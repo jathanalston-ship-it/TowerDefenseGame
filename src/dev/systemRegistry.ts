@@ -195,6 +195,14 @@ export const SYSTEMS: SystemDef[] = [
     localization: 'inline-en', docs: ['docs/NUCLEUS.md'],
   },
   {
+    id: 'idle-harvest', name: 'Idle Harvest', purpose: 'Permanent passive lane (docs/IDLE-HARVEST.md): away-time accrues toward an upgradeable cap, collects roll the gated drop registry, the 10-node infinite evolution tree grows every axis \u2014 always priced far below active play (the guardrail).',
+    files: ['src/core/idleHarvest.ts', 'src/ui/HarvestScreen.tsx'],
+    dependsOn: ['meta-store', 'genome-rank', 'collection', 'account-level'], powerScore: 'none \u2014 pure economy by design (idle must never buy Power); the idle codex is identity-only', save: ['idle'],
+    tutorial: [], help: ['idle-harvest'], hud: ['HarvestArrival (return ceremony strip)'],
+    ui: ['HarvestScreen'], collection: 'idle category (milestones + hour/best/bloom watermarks)', achievements: ['idle_first', 'idle_hours24', 'idle_brimmed', 'idle_bloom', 'idle_tree25'],
+    localization: 'inline-en', docs: ['docs/IDLE-HARVEST.md'],
+  },
+  {
     id: 'shards-economy', name: 'Shards & Star Economy', purpose: 'Strain Samples / Apex Genome income + star cost curves + the PRIME infinite ladder past ★max (docs/PRIME-STRAINS.md; direct lanes bank, container opens convert duplicates).',
     files: ['src/core/prime.ts'],
     dependsOn: ['loot'], powerScore: 'stars bought with shards move the permanent bucket; PRIME levels ride the towers/heroes geomeans', save: ['shards', 'lifetimeShards'],

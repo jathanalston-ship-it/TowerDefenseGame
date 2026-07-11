@@ -24,6 +24,38 @@
     "items": [
       {
         "cat": "Gameplay",
+        "text": "★ New system: Idle Harvest"
+      },
+      {
+        "cat": "Gameplay",
+        "text": "★ New achievement: Cultivated Depths"
+      },
+      {
+        "cat": "Gameplay",
+        "text": "★ New achievement: The Hive Blooms"
+      },
+      {
+        "cat": "Gameplay",
+        "text": "★ New achievement: Brimming Hopper"
+      },
+      {
+        "cat": "Gameplay",
+        "text": "★ New achievement: Hundred Days Harvested"
+      },
+      {
+        "cat": "Gameplay",
+        "text": "★ New achievement: Ten Days Below"
+      },
+      {
+        "cat": "Gameplay",
+        "text": "★ New achievement: Day Distilled"
+      },
+      {
+        "cat": "Gameplay",
+        "text": "★ New achievement: First Secretion"
+      },
+      {
+        "cat": "Gameplay",
         "text": "★ New system: Daily Bio-Cache (login streak)"
       },
       {
@@ -397,6 +429,10 @@
       {
         "cat": "Gameplay",
         "text": "PRIME STRAINS — per-unit infinite ladders past max Stars (save v39)"
+      },
+      {
+        "cat": "Gene Cards",
+        "text": "Idle Harvest: infinite passive lane — accrual, evolution tree, gated drops, guardrail"
       }
     ]
   },

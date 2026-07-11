@@ -17,7 +17,7 @@ import { ALL_QUESTS, allMissions } from './quests';
 import { DOCTRINE_RANK_MAX, doctrineRegistry } from './doctrines';
 import { validateEffects } from './validate';
 
-const freshCtx = (): CollectionContext => ({ stats: defaultLifetimeStats(), ownedDefIds: new Set(), bestWave: 0, bossesSlain: new Set(), megaSlain: new Set(), megaPerfect: new Set(), megaSpeed: new Set(), biomesSeen: new Set(), cosmeticsOwned: new Set(), wardrobeOwned: new Set(), mulliganDex: {}, mulliganOrganisms: {}, questCompletions: {}, missionsDone: new Set(), nucleusGrown: {}, nucleusAdapted: new Set(), lifetimeLogins: 0, bestLoginStreak: 0 });
+const freshCtx = (): CollectionContext => ({ stats: defaultLifetimeStats(), ownedDefIds: new Set(), bestWave: 0, bossesSlain: new Set(), megaSlain: new Set(), megaPerfect: new Set(), megaSpeed: new Set(), biomesSeen: new Set(), cosmeticsOwned: new Set(), wardrobeOwned: new Set(), mulliganDex: {}, mulliganOrganisms: {}, questCompletions: {}, missionsDone: new Set(), nucleusGrown: {}, nucleusAdapted: new Set(), lifetimeLogins: 0, bestLoginStreak: 0, idleHarvests: 0, idleLifetimeHours: 0, idleBestHours: 0, idleBlooms: 0 });
 
 function fullCtx(): CollectionContext {
   const stats = defaultLifetimeStats();
@@ -30,15 +30,15 @@ function fullCtx(): CollectionContext {
     stats.doctrineRuns[id] = 30; stats.doctrineWins[id] = 30; stats.doctrineBestWave[id] = 60; // Exemplar on both signals
   }
   const megaIds = new Set(megaBossRegistry.ids());
-  return { stats, ownedDefIds: new Set(ALL_ITEMS.map((i) => i.id)), bestWave: 99, bossesSlain: new Set(Object.keys(CHASSIS)), megaSlain: megaIds, megaPerfect: megaIds, megaSpeed: megaIds, biomesSeen: new Set(BIOMES.map((b) => b.id)), cosmeticsOwned: new Set(cosmeticRegistry.ids()), wardrobeOwned: new Set(wardrobeRegistry.ids()), mulliganDex: Object.fromEntries(mulliganRegistry.ids().map((id) => [id, 'ascendant' as const])), mulliganOrganisms: Object.fromEntries(TOWER_ORDER.map((k) => [k, { active: true, locked: true }])), questCompletions: Object.fromEntries(ALL_QUESTS.map((q) => [q.id, 3])), missionsDone: new Set(allMissions().map((m) => m.id)), nucleusGrown: Object.fromEntries(nucleusRegistry.all().map((o) => [o.id, organLevelCap(o)])), nucleusAdapted: new Set(COMBAT_CLASS_ORDER), lifetimeLogins: 1000, bestLoginStreak: 100 };
+  return { stats, ownedDefIds: new Set(ALL_ITEMS.map((i) => i.id)), bestWave: 99, bossesSlain: new Set(Object.keys(CHASSIS)), megaSlain: megaIds, megaPerfect: megaIds, megaSpeed: megaIds, biomesSeen: new Set(BIOMES.map((b) => b.id)), cosmeticsOwned: new Set(cosmeticRegistry.ids()), wardrobeOwned: new Set(wardrobeRegistry.ids()), mulliganDex: Object.fromEntries(mulliganRegistry.ids().map((id) => [id, 'ascendant' as const])), mulliganOrganisms: Object.fromEntries(TOWER_ORDER.map((k) => [k, { active: true, locked: true }])), questCompletions: Object.fromEntries(ALL_QUESTS.map((q) => [q.id, 3])), missionsDone: new Set(allMissions().map((m) => m.id)), nucleusGrown: Object.fromEntries(nucleusRegistry.all().map((o) => [o.id, organLevelCap(o)])), nucleusAdapted: new Set(COMBAT_CLASS_ORDER), lifetimeLogins: 1000, bestLoginStreak: 100, idleHarvests: 1000, idleLifetimeHours: 10_000, idleBestHours: 100, idleBlooms: 100 };
 }
 
 describe('collection layer', () => {
   it('enumerates straight from the registries (scales with content)', () => {
     const v = collectionView(freshCtx());
-    const expectedTotal = enemyRegistry.size + Object.keys(CHASSIS).length + megaBossRegistry.size + towerRegistry.size + heroRegistry.size + cardRegistry.size + ALL_ITEMS.length + BIOMES.length + chestRegistry.size + cosmeticRegistry.size + wardrobeRegistry.size + mulliganRegistry.size + TOWER_ORDER.length + ALL_QUESTS.length + allMissions().length + 7 + (doctrineRegistry.size - 1) + nucleusRegistry.size + COMBAT_CLASS_ORDER.length; // +7: the Devotion codex (6 lifetime milestones + the streak entry); -1: 'none' is no commitment, never a codex row
+    const expectedTotal = enemyRegistry.size + Object.keys(CHASSIS).length + megaBossRegistry.size + towerRegistry.size + heroRegistry.size + cardRegistry.size + ALL_ITEMS.length + BIOMES.length + chestRegistry.size + cosmeticRegistry.size + wardrobeRegistry.size + mulliganRegistry.size + TOWER_ORDER.length + ALL_QUESTS.length + allMissions().length + 7 + 7 + (doctrineRegistry.size - 1) + nucleusRegistry.size + COMBAT_CLASS_ORDER.length; // +7 twice: Devotion (6 milestones + streak) and Idle Harvest (4 milestones + 3 watermarks); -1: 'none' is no commitment, never a codex row
     expect(v.total).toBe(expectedTotal);
-    expect(v.categories.map((c) => c.id)).toEqual(['enemies', 'bosses', 'megaBosses', 'towers', 'heroes', 'cards', 'equipment', 'biomes', 'chests', 'towerSkins', 'heroSkins', 'wardrobeArena', 'wardrobeAudio', 'wardrobeInterface', 'wardrobeIdentity', 'quests', 'missions', 'logins', 'doctrines', 'mulligans', 'mulliganOrganisms', 'nucleusOrgans', 'nucleusAdaptations']);
+    expect(v.categories.map((c) => c.id)).toEqual(['enemies', 'bosses', 'megaBosses', 'towers', 'heroes', 'cards', 'equipment', 'biomes', 'chests', 'towerSkins', 'heroSkins', 'wardrobeArena', 'wardrobeAudio', 'wardrobeInterface', 'wardrobeIdentity', 'quests', 'missions', 'logins', 'idle', 'doctrines', 'mulligans', 'mulliganOrganisms', 'nucleusOrgans', 'nucleusAdaptations']);
   });
 
   it('the codex enumerates the recent content (Coil/Siphon towers · Revenant/Vitriol heroes · Deep-Strain cards · Mega Bosses)', () => {

@@ -337,6 +337,7 @@ const ROWS: Row[] = [
   ['emblem', 'Hive Sigil', 'common', { kind: 'starter' }, { glyph: '❉', accent: '#7fe07a' }, 'The mark every commander starts under.'],
   ['emblem', 'Skull Mark', 'rare', { kind: 'rush', bossKills: 50 }, { glyph: '☠', accent: '#c7d0d8' }, 'Fifty tyrants filed under “handled.”'],
   ['emblem', 'Gene Helix', 'rare', { kind: 'collection', category: 'cards', rank: 4 }, { glyph: '⌬', accent: '#c98bff' }, 'The mutation archive, worn as a badge.'],
+  ['emblem', 'Sleepless Hive', 'epic', { kind: 'collection', category: 'idle', rank: 3 }, { glyph: '⬣', accent: '#7fe07a' }, 'Gold rank across the Idle codex — the Hive that harvests while you sleep.'],
   ['emblem', 'Crown of Thorns', 'legendary', bp('s1', 65, 'premium'), { glyph: '♛', accent: '#ffd24d' }, 'Won, not inherited.'],
   ['emblem', 'Void Star', 'legendary', bp('s2', 65, 'premium'), { glyph: '✦', accent: '#8a6ff0' }, 'A point of dark you can navigate by.'],
   ['prestigeBorder', 'Molt Ring', 'rare', { kind: 'campaign', stage: 35 }, { css: 'molt', accent: '#7fe07a' }, 'A border grown from shed campaign skins.'],

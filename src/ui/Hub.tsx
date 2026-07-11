@@ -44,6 +44,7 @@ import { DevTools } from './DevTools';
 import { MusicDebug } from './MusicDebug';
 import { GeneArchive } from './GeneArchive';
 import { HiveScreen } from './HiveScreen';
+import { HarvestArrival, HarvestScreen } from './HarvestScreen';
 import { Wardrobe } from './Wardrobe';
 import { BattlePassScreen } from './BattlePassScreen';
 import { QuestBoard } from './QuestBoard';
@@ -54,7 +55,7 @@ import { PowerBadge } from './components/PowerScore';
 
 export type NavKey =
   | 'home' | 'campaign' | 'infinite' | 'bossrush' | 'daily' | 'quests' | 'season'
-  | 'towers' | 'heroes' | 'evolution' | 'genes' | 'mulligans' | 'hive'
+  | 'towers' | 'heroes' | 'evolution' | 'genes' | 'mulligans' | 'hive' | 'harvest'
   | 'vault' | 'market' | 'equipment' | 'gearcodex' | 'phenotypes' | 'collection'
   | 'store'
   | 'profile' | 'settings' | 'help';
@@ -84,6 +85,7 @@ const navGroups = (): NavGroup[] => [
     { key: 'genes', label: t('nav.genes'), mono: '⌬' },
     { key: 'mulligans', label: t('nav.mulligans'), mono: '⊛' },
     { key: 'hive', label: t('nav.hive'), mono: '⬡' }, // Hive Construction (docs/HIVE-CONSTRUCTION.md)
+    { key: 'harvest', label: t('nav.harvest'), mono: '⬣' }, // Idle Harvest (docs/IDLE-HARVEST.md)
   ] },
   { title: t('nav.group.collection'), accent: 'var(--gold)', items: [
     { key: 'vault', label: t('nav.vault'), mono: '◈' },
@@ -292,6 +294,9 @@ export function Hub({
     <div className="hub">
       <LabAtmosphere />
       <WardrobeReveal />
+      {/* Idle Harvest return ceremony (docs/IDLE-HARVEST.md §presentation) — once the screen
+          itself has revealed, a ripe hopper greets the returning player (never a bare popup). */}
+      {featureRevealed(save, 'harvest') && <HarvestArrival onVisitHarvest={() => go('harvest')} />}
       {navOpen && <div className="hub-nav-veil" onClick={() => setNavOpen(false)} aria-hidden />}
       <nav className={`hub-nav${navOpen ? ' is-open' : ''}`} aria-label="Headquarters">
         <div className="hub-brand">ASSIMILATE</div>
@@ -410,6 +415,7 @@ export function Hub({
           {nav === 'evolution' && <EvolutionHQ />}
           {nav === 'genes' && <GeneArchive />}
           {nav === 'hive' && <HiveScreen />}
+          {nav === 'harvest' && <HarvestScreen />}
           {nav === 'vault' && <GeneticVault />}
           {nav === 'market' && <SpliceMarket />}
           {nav === 'equipment' && <EquipmentPanel />}

@@ -179,6 +179,8 @@ profileRegistry.registerAll([
       // PRIME STRAINS (docs/PRIME-STRAINS.md) — the account's total infinite-ladder depth.
       const prime = totalPrimeLevels(s);
       if (prime > 0) rows.push({ id: 'prime-levels', label: 'Prime Levels', value: num(prime), color: 'var(--gold)', hint: 'Prime Strain levels bought past max Stars, across every tower and hero.' });
+      // IDLE HARVEST (docs/IDLE-HARVEST.md) — the passive lane's lifetime ledger.
+      if (s.idle.harvests > 0) rows.push({ id: 'idle-ledger', label: 'Idle Hours Banked', value: num(Math.floor(s.idle.lifetimeHours)), color: 'var(--caustic)', hint: `${num(s.idle.harvests)} harvests · ${num(s.idle.blooms)} blooms · best single harvest ${Math.floor(s.idle.bestHours)}h.` });
       return rows;
     },
   },

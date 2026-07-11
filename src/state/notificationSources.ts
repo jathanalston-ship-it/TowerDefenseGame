@@ -14,7 +14,7 @@ import { sumValues } from '../core/math';
 import { unlockedCutsceneIds } from '../save/derive';
 import { collectionContextOf, isTowerUnlocked, nextStarCost } from './meta';
 import { collectionView } from '../core/collection';
-import { TOWER_DEFS, TOWER_ORDER } from '../core/config';
+import { IDLE, TOWER_DEFS, TOWER_ORDER } from '../core/config';
 import { marketWindow } from '../core/market';
 import { dailyKey } from '../core/daily';
 import { MAIN_QUESTLINE, questComplete, weeklyQuestFor } from '../core/quests';
@@ -32,6 +32,18 @@ registerNotification({
   id: 'login.cache',
   channel: 'home',
   count: (s) => (s.login.last < dailyKey() ? 1 : 0),
+});
+
+// Idle Harvest — the Hive has banked a ceremony-worthy haul (docs/IDLE-HARVEST.md). Cheap
+// timestamp math only (no collection/power folds — this runs on every badge poll).
+registerNotification({
+  id: 'idle.ripe',
+  channel: 'harvest',
+  count: (s) => {
+    const last = s.idle.lastCollect;
+    if (!last || last > Date.now()) return 0;
+    return (Date.now() - last) / 60_000 >= IDLE.ceremonyMinutes ? 1 : 0;
+  },
 });
 
 // The Hive — organs whose NEXT tier is affordable right now (era met, every recipe line

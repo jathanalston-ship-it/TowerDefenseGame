@@ -1861,6 +1861,35 @@ export const PRIME = {
   ] as readonly { from: number; catalyst: number }[],
 };
 
+/** IDLE HARVEST (docs/IDLE-HARVEST.md) — the Hive keeps harvesting while the player is away.
+ *  PHILOSOPHY: idle reduces friction, never replaces play — the value model is calibrated so a
+ *  fully-invested idle hour stays well under an active hour (§simulation guardrail test). All
+ *  closed forms live in core/idleHarvest.ts; these are the tunables. */
+export const IDLE = {
+  baseCoresPerHour: 5, // the value budget (core-equivalents/h) at campaign stage 1, before nodes
+  stageGrowth: 0.02, // +2%/cleared campaign stage — idle scales WITH progression, at a fraction of the run economy's 5%
+  baseOfflineEff: 0.7, // the unattended Hive harvests at 70% — the Offline Efficiency node closes the gap
+  capHoursLadder: [8, 10, 12, 16, 24, 36, 48, 72] as readonly number[], // Harvest Capacity levels 0..7
+  capHoursBeyond: 12, // each Capacity level past the ladder adds this many hours (infinite)
+  softScaleL0: 50, // the log-easing scale shared by every ×-multiplier node (see prime's curve)
+  minCollectMinutes: 5, // below this the hopper is "still warming" — no collect (keeps receipts meaningful)
+  ceremonyMinutes: 30, // arrival ceremony auto-plays at ≥ this much banked time (else collect from the screen)
+  maxContainersPerCollect: 2, // hard fairness cap on container-class drops in ONE collect
+  bloomBudgetMult: 2, // a Special-Events BLOOM doubles the collect's budget + guarantees a rare
+  // Clock-integrity bound (docs/IDLE-HARVEST.md §integrity): a FUTURE accrual anchor freezes
+  // idle until real time passes it (backward tamper never double-pays — the anchor is monotone);
+  // stranded anchors clamp to now + this window, so a legitimately wrong device clock costs at
+  // most this much frozen idle while tamper cycles stay throttled to the same window.
+  tamperFreezeMaxHours: 48,
+  /** Value model — core-equivalents per unit of each drop kind. The budget is priced in cores;
+   *  every grant spends its slice through these rates, so the idle<active guardrail can price a
+   *  whole harvest and future drops stay calibrated by giving them a rate here. */
+  valuePerUnit: {
+    cores: 1, mats: 2.5, essence: 1.2, towerShard: 3, heroShard: 5,
+    mulligan: 60, container: 350, runCache: 250, ichor: 40,
+  } as Record<string, number>,
+};
+
 /** Campaign EVOLUTION CAP (docs/EVOLUTION-CAP.md) — the highest Star tier a tower may be evolved
  *  to is gated by CAMPAIGN progress, not Tower Shards alone. Clearing each `stage` permanently
  *  unlocks evolving towers up to `maxStar` account-wide — "a new generation of biological

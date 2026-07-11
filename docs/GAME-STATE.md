@@ -6,7 +6,7 @@
 > build disagree, **the build wins and this file is the tiebreaker.** Prefer reading this over
 > re-reading a system's implementation (per CLAUDE.md "Trust existing architecture").
 >
-> **Save schema:** `CURRENT_VERSION = 39` (additive migrations via `withDefaults` + per-field
+> **Save schema:** `CURRENT_VERSION = 40` (additive migrations via `withDefaults` + per-field
 > sanitizers; checksummed blob). **Stack:** React + TypeScript + Vite static SPA, deterministic sim
 > core in `src/core/` (no React/DOM), Canvas renderer, browser-local saves. Tests: `npm test`
 > (Vitest) — the golden characterization test pins the sim byte-for-byte.
@@ -526,6 +526,15 @@ sink ≈ hour-400 at endgame income — re-tune as the library grows.
   `quests`+`missions` collection codices (fresh-save zero); Quest Board nav screen
   (stage-4 reveal) hosting Champion Contracts as its third section; run completions
   surface as a Results category + a claimable-count nav badge — QUESTS.md
+- ✅ **Idle Harvest (the permanent passive lane, save v40)**: away-time accrues toward an
+  upgradeable cap (8h ladder → 72h → +12h/level forever), collects roll a gated future-proof
+  drop registry through a value budget priced in core-equivalents, and a 10-node infinite
+  evolution tree (six-lens progression gates: Campaign/Genome Rank/Molts/Rush/Collections/
+  Power) grows every axis. Guardrail-pinned below 25% of the weakest active lane at every
+  band (anti-dust-farm minValue floors; monotone tamper-proof clock, 48h bounded freeze).
+  Harvest screen (living hopper + tree + drops + ledger), once-per-session arrival strip,
+  pods-burst ceremony with grow-next suggestion; idle codex + 7 achievements + genome
+  source + Sleepless Hive emblem. Zero Power by design — IDLE-HARVEST.md
 - ✅ **Champion Contracts** (overhauled): weekly deterministic 3-contract board (LiveOps
   weekIndex) over a 24-row/8-week pool, 14-verb data vocabulary (incl. CombatClass
   bans/purities, boss/draft/hero verbs) judged in finishRun via contractReport (payout and
@@ -849,3 +858,37 @@ cards, host-synergy panel (pips/tier/chase copy), 8 sort modes, per-host recomme
 crowns, the organism's class-hued thorn crown (battlefield-visible), in-run Inspector readout,
 COMPLETE CLASS ADAPTATION ceremony + dedicated `adapt` cue. Genome mulligan measure blends
 assembly + full adaptations.
+
+## Compressed system summary — Idle Harvest (docs/IDLE-HARVEST.md)
+
+**Architecture.** Pure model in `src/core/idleHarvest.ts` (accrual closed forms, infinite cap
+ladder, 10-node gated evolution tree, drop registry, seeded roll, value pricing) over
+`config.IDLE`; `meta` owns application (guards, wallets, lifetime ledger, Account XP,
+achievements); `save.idle` (v40) = `lastCollect` anchor + `nodes` + never-reset ledger;
+`HarvestScreen.tsx` = hub screen + arrival strip + collect ceremony.
+
+**Public APIs.** `meta.idleView(now)` → accrual/nodes/drops/suggestion/ledger;
+`meta.collectIdleHarvest(now)` → receipt | null (ONE atomic persist);
+`meta.buyIdleNode(id)`; core: `idleAccrual`, `idleRatePerHour`, `rollIdleHarvest(acc, nodes,
+ctx, rng)`, `idleGrantValue`, `eligibleIdleDrops`, `idleNodeCost/Gate`, `idleSuggestion`.
+
+**Extension points.** A new idle drop = ONE `IDLE_DROPS` row (weight, `minCampaign?`,
+`minGenomeRank?`, `rare?`, `minValue?`, `grant`) + one `applyIdleGrant` case. A new gate lens
+= one `IdleGateReq` variant + `idleGateContext` field. Tunables all in `config.IDLE`.
+
+**Important assumptions.** Playing ALWAYS out-earns idling — Monte-Carlo guardrail pins idle
+value/wall-hour < 25% of the weakest active lane (campaign-replay cores, 2 runs/h) at stages
+10→1000 with generous node depths; idle stage growth (0.02) strictly < campaign reward growth
+(0.05); node soft-scaling `1+per·50·ln(1+L/50)` is ×1 at L0 (golden-safe) and log-bounded.
+`effHours ≤ rawHours` always; offline efficiency ≤ 1. The accrual anchor is MONOTONE (a
+rollback never rewinds it — re-farm loop killed); future anchors freeze accrual, bounded to
+48h (`IDLE.tamperFreezeMaxHours`) on load. Fixed-price rows carry `minValue` affordability
+floors (anti dust-farm). Spores are deliberately NOT an idle drop (rush-exclusive identity).
+
+**Future hooks.** Cloud server-time validation (no schema change needed); banked-spore wallet
+would be one registry row; LiveOps idle events can ride the BLOOM seam.
+
+**Known limitations.** Client clock is semi-trusted: pure forward-faking mints cap-bounded
+value from a deliberately weak lane (documented, accepted); container drops need slice ≥ 175
+core-eq so they only appear at deep rates/caps or on BLOOMs (intended rarity); the ceremony
+suggestion ignores multi-node strategy (cheapest-ungated only).

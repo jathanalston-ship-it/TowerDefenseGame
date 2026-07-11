@@ -126,6 +126,10 @@ export const SECURITY_ACTIONS: Record<string, ActionPolicy> = {
     id: 'wardrobe.buy', category: 'economy', level: 'moderate', limit: M(), cooldownMs: 400, dedupeMs: 1200,
     analytics: 'sec_wardrobe_buy', doc: 'Wardrobe item purchase.', at: META,
   },
+  'idle.collect': {
+    id: 'idle.collect', category: 'economy', level: 'moderate', limit: M(), cooldownMs: 1500, dedupeMs: 2000,
+    analytics: 'sec_idle', doc: 'Idle Harvest collect (docs/IDLE-HARVEST.md) — time-gated upstream by minCollectMinutes; the guard stops replay hammering.', at: META,
+  },
 
   // ── Permanent progression ──
   'progress.star': {
@@ -232,6 +236,8 @@ export const GUARDED_META_METHODS: Record<string, string> = {
   buyHeroStar: 'progress.star',
   buyTowerPrime: 'progress.star',
   buyHeroPrime: 'progress.star',
+  collectIdleHarvest: 'idle.collect',
+  buyIdleNode: 'progress.upgrade',
   unlockTower: 'progress.unlock',
   unlockHero: 'progress.unlock',
   buyUpgrade: 'progress.upgrade',

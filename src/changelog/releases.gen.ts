@@ -12,6 +12,46 @@ export const RELEASES: Release[] = [
     "entries": [
       {
         "cat": "Gameplay",
+        "text": "New system: Idle Harvest",
+        "major": true
+      },
+      {
+        "cat": "Gameplay",
+        "text": "New achievement: Cultivated Depths",
+        "major": true
+      },
+      {
+        "cat": "Gameplay",
+        "text": "New achievement: The Hive Blooms",
+        "major": true
+      },
+      {
+        "cat": "Gameplay",
+        "text": "New achievement: Brimming Hopper",
+        "major": true
+      },
+      {
+        "cat": "Gameplay",
+        "text": "New achievement: Hundred Days Harvested",
+        "major": true
+      },
+      {
+        "cat": "Gameplay",
+        "text": "New achievement: Ten Days Below",
+        "major": true
+      },
+      {
+        "cat": "Gameplay",
+        "text": "New achievement: Day Distilled",
+        "major": true
+      },
+      {
+        "cat": "Gameplay",
+        "text": "New achievement: First Secretion",
+        "major": true
+      },
+      {
+        "cat": "Gameplay",
         "text": "New system: Daily Bio-Cache (login streak)",
         "major": true
       },
@@ -413,6 +453,10 @@ export const RELEASES: Release[] = [
       {
         "cat": "Gameplay",
         "text": "PRIME STRAINS — per-unit infinite ladders past max Stars (save v39)"
+      },
+      {
+        "cat": "Gene Cards",
+        "text": "Idle Harvest: infinite passive lane — accrual, evolution tree, gated drops, guardrail"
       }
     ]
   },

@@ -81,6 +81,9 @@ describe('tower unlock gate (docs/TOWERS.md §expansion)', () => {
 describe('save export / import', () => {
   it('round-trips through serializeExport -> parseImport', () => {
     const data: SaveData = { ...defaultSave(), shards: 321, bestWave: 9, upgrades: { apex: 4 } };
+    // A REAL save always carries a started idle clock — the default 0 is the migration trigger
+    // (the sanitizer seeds it to now), so round-trip identity needs a sanitizer-stable stamp.
+    data.idle = { ...data.idle, lastCollect: Date.now() - 60_000 };
     const r = parseImport(serializeExport(data));
     expect(r.ok).toBe(true);
     if (r.ok) expect(r.data).toEqual(data);

@@ -170,6 +170,9 @@ export const KNOWLEDGE_EDGES: KnowledgeEdge[] = [
   { from: 'system:quests', kind: 'conflictsWith', to: 'concept:golden-test', note: 'weekly progress NEVER carries over (rollover mails earned rewards then resets); a fresh save has empty ledgers so the quests/missions codices read zero — any starter-time credit breaks POWER_BASE' },
   { from: 'system:onboarding', kind: 'conflictsWith', to: 'system:run-ui', note: 'PHONE DOCK CONTRACT (docs/TUTORIAL.md §phone): ≤700px the lesson callout DOCKS to the edge opposite its anchor and must never cover the step’s action (the step-3 slot bug); controls live top-right, the banner yields to the draft, and a missing spotlight target renders NO scrim' },
 
+  { from: 'system:idle-harvest', kind: 'conflictsWith', to: 'concept:golden-test', note: 'idle is PURE economy: zero Power, zero run effects, the idle codex carries no powerWeight, soft(0)=1 — any fold at level 0 breaks POWER_BASE; the accrual anchor is MONOTONE (never rewound) or clock rollback re-farms the same span, and fixed-price drop rows need minValue floors or 5-minute dust collects mint full containers (idleHarvest.test.ts pins all three)' },
+  { from: 'system:idle-harvest', kind: 'consumes', to: 'system:genome-rank', note: 'six-lens gates read rankFromRating(genomeRating(snapshot)).index via meta.idleGateContext; the journey source id \'idle\' reads lifetimeHours back — keep both directions cycle-free (core never imports meta)' },
+
   // ── Potential conflicts (landmines discovered in development — check these before editing) ──
   { from: 'system:daily', kind: 'conflictsWith', to: 'system:mulligans', note: 'the Daily SUBSTITUTES seeded organisms via mulliganOverride — account organisms must not leak into a daily run' },
   { from: 'system:cosmetics', kind: 'conflictsWith', to: 'concept:golden-test', note: 'skins/visual tiers must stay render-only; any def stat touched for looks breaks the pinned seeds' },

@@ -21,7 +21,7 @@ import { defaultLifetimeStats } from '../save/saveStore';
 function snap(over: Partial<GenomeSnapshot> = {}): GenomeSnapshot {
   return {
     accountLevel: 0, campaignStage: 0, bestWave: 0, rushBestBoss: 0, dailyCompletions: 0, lifetimeLogins: 0,
-    contractsHonoured: 0, powerScore: 0, molts: 0, masteryLevels: 0, lifetimeIchor: 0, titles: 0,
+    contractsHonoured: 0, idleLifetimeHours: 0, powerScore: 0, molts: 0, masteryLevels: 0, lifetimeIchor: 0, titles: 0,
     towerStarRatio: 0, strainRatio: 0, mulliganRatio: 0, nucleusRatio: 0, heroRatio: 0, gearRatio: 0,
     geneRatio: 0, achievementRatio: 0, collectionCompletion: 0, cosmeticRatio: 0, passScore: 0,
     ...over,
@@ -48,7 +48,7 @@ describe('the rating — pure, monotonic, breadth-weighted', () => {
     const base = genomeRating(MID);
     const bumps: Partial<GenomeSnapshot>[] = [
       { accountLevel: 60 }, { campaignStage: 60 }, { bestWave: 80 }, { rushBestBoss: 12 },
-      { dailyCompletions: 20 }, { contractsHonoured: 30 }, { powerScore: 500_000 }, { molts: 8 }, { masteryLevels: 120 },
+      { dailyCompletions: 20 }, { contractsHonoured: 30 }, { idleLifetimeHours: 120 }, { powerScore: 500_000 }, { molts: 8 }, { masteryLevels: 120 },
       { lifetimeIchor: 60 }, { titles: 8 }, { towerStarRatio: 0.8 }, { strainRatio: 0.8 },
       { mulliganRatio: 0.8 }, { heroRatio: 0.9 }, { gearRatio: 0.8 }, { geneRatio: 0.9 },
       { achievementRatio: 0.9 }, { collectionCompletion: 0.8 }, { cosmeticRatio: 0.7 }, { passScore: 1.5 },

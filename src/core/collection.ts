@@ -36,6 +36,7 @@ export type CollectionCategoryId =
   | 'wardrobeArena' | 'wardrobeAudio' | 'wardrobeInterface' | 'wardrobeIdentity' // Wardrobe codices (§wardrobe)
   | 'quests' | 'missions' // the directive codices (docs/QUESTS.md §collection)
   | 'logins' // Daily Bio-Cache devotion (docs/DAILY-LOGIN.md §collection)
+  | 'idle' // Idle Harvest milestones (docs/IDLE-HARVEST.md §collection)
   | 'doctrines' // run-commitment mastery (docs/DOCTRINES.md §collection)
   | 'mulligans' | 'mulliganOrganisms'
   | 'nucleusOrgans' | 'nucleusAdaptations'; // the Hive Nucleus's own organ system (docs/NUCLEUS.md)
@@ -96,6 +97,10 @@ export interface CollectionContext {
   missionsDone: Set<string>; // mission ids ever completed (lifetime, both lanes)
   lifetimeLogins: number; // Daily Bio-Cache claims ever (docs/DAILY-LOGIN.md — never reset)
   bestLoginStreak: number; // longest consecutive-day claim streak (a watermark — never regresses)
+  idleHarvests: number; // Idle Harvest collections ever (docs/IDLE-HARVEST.md — never reset)
+  idleLifetimeHours: number; // lifetime BANKED idle hours (post-efficiency — only ever grows)
+  idleBestHours: number; // largest single harvest in banked hours (a watermark)
+  idleBlooms: number; // lifetime BLOOM harvests witnessed
   geneLevels?: Record<string, number>; // card id → permanent Gene level (label enrichment only)
 }
 
@@ -298,6 +303,31 @@ export function collectionView(ctx: CollectionContext): CollectionView {
     });
   }
 
+  // Idle Harvest (docs/IDLE-HARVEST.md §collection): the passive lane's milestone ladder. Every
+  // axis is a lifetime ledger or a watermark, so the codex only ever grows — a lapse in idling
+  // costs future accrual, never the collection. Fresh save = zero harvests = all tier 0.
+  const IDLE_MILESTONES: { at: number; name: string }[] = [
+    { at: 1, name: 'First Extraction' },
+    { at: 10, name: 'Tithe of Ten' },
+    { at: 50, name: 'Fifty Returns' },
+    { at: 250, name: 'The Perpetual Yield' },
+  ];
+  const idle: CollectionEntry[] = IDLE_MILESTONES.map((m) => {
+    const tier = ctx.idleHarvests >= m.at ? 1 : 0;
+    return { id: `idle_${m.at}`, name: m.name, tier, maxTier: 1, tierLabel: tier ? 'Extracted' : `${Math.min(ctx.idleHarvests, m.at)}/${m.at} harvests` };
+  });
+  {
+    const HOUR_TIERS = [24, 240, 2400]; // banked (post-efficiency) hours — a day, ten, a hundred
+    const hours = tierFor(ctx.idleLifetimeHours, HOUR_TIERS);
+    idle.push({ id: 'idle_hours', name: 'The Long Secretion', tier: hours, maxTier: HOUR_TIERS.length, tierLabel: labelAt(hours, ['Unbanked', 'Day Distilled', 'Ten Days Deep', 'Hundred Days Below']) });
+    const BEST_TIERS = [8, 24, 48]; // single-harvest watermark — needs deep Capacity + Offline nodes
+    const best = tierFor(ctx.idleBestHours, BEST_TIERS);
+    idle.push({ id: 'idle_best', name: 'Brimming Hopper', tier: best, maxTier: BEST_TIERS.length, tierLabel: labelAt(best, ['Untended', 'Full Hopper', 'Day Brimmed', 'Two Days Swollen']) });
+    const BLOOM_TIERS = [1, 10, 50];
+    const blooms = tierFor(ctx.idleBlooms, BLOOM_TIERS);
+    idle.push({ id: 'idle_blooms', name: 'Hive Blooms', tier: blooms, maxTier: BLOOM_TIERS.length, tierLabel: labelAt(blooms, ['Unbloomed', 'First Bloom', 'Bloomkeeper', 'Garden of Ruin']) });
+  }
+
   // Doctrines (docs/DOCTRINES.md §collection): one entry per real doctrine (the 'none' default
   // is no commitment and never ranks). A settled run under it DISCOVERS it; beyond that the
   // codex tier IS 1 + the live mastery rank (doctrineRank over the stats ledgers) — one ladder,
@@ -357,6 +387,7 @@ export function collectionView(ctx: CollectionContext): CollectionView {
     makeCategory('quests', 'Quests', quests),
     makeCategory('missions', 'Missions', missions),
     makeCategory('logins', 'Devotion', logins),
+    makeCategory('idle', 'Idle Harvest', idle),
     makeCategory('doctrines', 'Doctrines', doctrines),
     makeCategory('mulligans', 'Mulligan Pieces', mulligans),
     makeCategory('mulliganOrganisms', 'Mulligans', mulliganOrganisms),
@@ -418,6 +449,10 @@ const CATEGORY_BONUS_SPECS: Record<CollectionCategoryId, CategoryBonusSpec> = {
   // economy payout, and its ranks already bleed Ichor via the shared rank-up faucet — any Power
   // or run bonus here would double-pay pure attendance (the wardrobe-codex precedent).
   logins: { effects: [], econ: [], powerWeight: 0 },
+  // Idle Harvest (docs/IDLE-HARVEST.md §collection) stays STRICTLY identity — the logins
+  // precedent: the harvest itself IS the economy payout, so any Power or run bonus here would
+  // pay idling twice and erode the "playing always out-earns idling" law the system is built on.
+  idle: { effects: [], econ: [], powerWeight: 0 },
   // Doctrine mastery (docs/DOCTRINES.md §collection): commitment breeds efficiency — a small
   // hive-wide Biomass edge at full mastery. Kept light: ranks ALREADY pay their own run-end
   // premium (doctrineRankBonus); the codex rewards breadth, not the same lever twice.
@@ -508,6 +543,8 @@ export const COLLECTION_REWARDS: CollectionReward[] = [
   { id: 'badge_armory', kind: 'badge', name: 'Quartermaster', desc: 'Own every piece of equipment.', requires: (v) => categoryComplete(v, 'equipment') },
   { id: 'badge_biomes', kind: 'badge', name: 'Pathfinder', desc: 'Chart every biome.', requires: (v) => categoryComplete(v, 'biomes') },
   { id: 'badge_caches', kind: 'badge', name: 'Treasure Hunter', desc: 'Earn every cache tier.', requires: (v) => categoryComplete(v, 'chests') },
+  { id: 'badge_idle', kind: 'badge', name: 'Keeper of the Hopper', desc: 'Answer every idle milestone.', requires: (v) => categoryComplete(v, 'idle') },
+  { id: 'title_perpetual', kind: 'title', name: 'The Perpetual', desc: 'Master the idle codex — every watermark at its deepest tier.', requires: (v) => masteredAll(v, 'idle') },
 
   // Overall discovery milestones → cosmetics / portraits / UI themes.
   { id: 'portrait_collector', kind: 'portrait', name: 'Collector Portrait', desc: 'Discover a quarter of all content.', requires: (v) => v.pct >= 0.25 },

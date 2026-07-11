@@ -17,7 +17,7 @@ import { highestCampaignStage, isBossRushUnlocked, isCutsceneUnlocked, isDailyUn
 import { CUTSCENES, cutsceneEffects, cutsceneForMega } from '../core/cutscenes';
 import type { CutsceneDef } from '../core/cutscenes';
 import { downloadText, readTextFile } from '../save/saveFile';
-import { TOWER_DEFS, CAMPAIGN_REWARDS, CHESTS, DAILY, ECON, EQUIP_DROP_CHANCE, HERO_DEFS, HERO_ORDER, HERO_SLOTS, INFINITE_REWARD_QUALIFY_FRAC, MASTERY, META_UPGRADES, RUN_CHEST, RUSH, STAR, TOWER_ORDER, campaignStarCap, chestForWave, endlessLootTaper, endlessTaper, heroForkTiers, heroSkillCount, resolveHeroKit, upgradeEffectUnits } from '../core/config';
+import { TOWER_DEFS, CAMPAIGN_REWARDS, CHESTS, DAILY, ECON, EQUIP_DROP_CHANCE, HERO_DEFS, HERO_ORDER, HERO_SLOTS, IDLE, INFINITE_REWARD_QUALIFY_FRAC, MASTERY, META_UPGRADES, RUN_CHEST, RUSH, STAR, TOWER_ORDER, campaignStarCap, chestForWave, endlessLootTaper, endlessTaper, heroForkTiers, heroSkillCount, resolveHeroKit, upgradeEffectUnits } from '../core/config';
 import { dailyKey, isPrevDayKey } from '../core/daily';
 import { offerAvailable, offerValueIchor, premiumOfferById } from '../core/premium';
 import { EMERGENCY_PICKS, RESEARCH, activeResearchRewards, researchDayKey, researchRewardById, researchScale, specimenRarity } from '../core/research';
@@ -25,6 +25,9 @@ import type { EmergencyPick, ResearchBoost, ResearchCategory, ResearchRewardDef 
 import type { PremiumGrant, PremiumOfferDef } from '../core/premium';
 import type { HeroForkTier, HeroUnlockReq, LootRarity, ResolvedHeroKit, UpgradeDef } from '../core/config';
 import { primeCatalystCost, primeCost, primeMult } from '../core/prime';
+import { IDLE_DROPS, IDLE_NODES, IDLE_NODE_BY_ID, eligibleIdleDrops, idleAccrual, idleGateLabel, idleNodeCost, idleNodeGate, idleSuggestion, rollIdleHarvest, idleGrantValue } from '../core/idleHarvest';
+import type { IdleAccrual, IdleGateContext, IdleGateReq, IdleGrant, IdleNodeDef } from '../core/idleHarvest';
+import { Rng } from '../core/rng';
 import type {
   HeroKind,
   HeroMasteryCounts,
@@ -500,6 +503,10 @@ export function collectionContextOf(save: SaveData): CollectionContext {
     missionsDone: new Set(save.quests.missionsDone),
     lifetimeLogins: save.login.lifetime,
     bestLoginStreak: save.login.best,
+    idleHarvests: save.idle.harvests,
+    idleLifetimeHours: save.idle.lifetimeHours,
+    idleBestHours: save.idle.bestHours,
+    idleBlooms: save.idle.blooms,
     geneLevels: Object.fromEntries(Object.entries(save.genes).map(([id, g]) => [id, g.level])),
     nucleusGrown: Object.fromEntries(Object.entries(save.nucleus?.grown ?? {}).map(([id, g]) => [id, g.level])),
     nucleusAdapted: new Set(save.nucleus?.adapted ?? []),
@@ -1556,6 +1563,98 @@ function openLootBoxes(
 export function sanitizeCommanderName(v: string): string | null {
   const cleaned = v.replace(/[\u0000-\u001f<>&"'`\\]/g, '').trim().slice(0, 20);
   return cleaned.length >= 2 ? cleaned : null;
+}
+
+// ── Idle Harvest plumbing (docs/IDLE-HARVEST.md) — pure helpers meta's actions share ─────────
+
+export interface IdleReceiptLine { icon: string; label: string; rare: boolean }
+export interface IdleHarvestReceipt {
+  lines: IdleReceiptLine[];
+  rawHours: number; effHours: number; capHours: number; full: boolean;
+  bloom: boolean; xp: number; value: number; efficiencyPct: number;
+  suggestion: ReturnType<typeof idleSuggestion>;
+}
+export interface IdleNodeView { def: IdleNodeDef; level: number; cost: number; gate: IdleGateReq | null; gateLabel: string | null; affordable: boolean }
+export interface IdleHarvestView {
+  accrual: IdleAccrual;
+  collectable: boolean;
+  nodes: IdleNodeView[];
+  suggestion: ReturnType<typeof idleSuggestion>;
+  drops: { id: string; name: string; icon: string; rare: boolean; minCampaign?: number; minGenomeRank?: number; eligible: boolean }[];
+  ledger: SaveData['idle'];
+  cores: number;
+}
+
+/** Static display rows for the drop table (gates shown as "work toward it" copy). */
+const IDLE_DROPS_VIEW = IDLE_DROPS.map((d) => ({ id: d.id, name: d.name, icon: d.icon, rare: d.rare === true, minCampaign: d.minCampaign, minGenomeRank: d.minGenomeRank }));
+
+export function fmtIdleHours(h: number): string {
+  if (h < 1) return `${Math.max(1, Math.round(h * 60))}m`;
+  return h < 48 ? `${h.toFixed(1)}h` : `${Math.floor(h / 24)}d ${Math.round(h % 24)}h`;
+}
+
+/** The six progression lenses idle gates + drop eligibility read (docs/IDLE-HARVEST.md §gates). */
+function idleGateContext(save: SaveData): IdleGateContext {
+  return {
+    stage: highestCampaignStage(save),
+    genomeRankIndex: rankFromRating(genomeRating(meta.genomeSnapshot())).index,
+    molts: save.prestige.molts,
+    rushBest: save.rushBestBoss,
+    collectionCompletion: collectionView(collectionContextOf(save)).completion,
+    power: composePower(accountPowerParts(save)).score,
+  };
+}
+
+/** Apply ONE registry grant to a draft save + push its receipt line. A future currency is one
+ *  registry row (core) + one case here — the whole integration contract. */
+function applyIdleGrant(next: SaveData, g: IdleGrant, rng: () => number, meta_: { icon: string; name: string; rare: boolean }, lines: IdleReceiptLine[]): SaveData {
+  const push = (label: string): void => { lines.push({ icon: meta_.icon, label, rare: meta_.rare }); };
+  switch (g.kind) {
+    case 'cores':
+      push(`${g.qty} Genome Cores`);
+      return { ...next, shards: next.shards + g.qty, lifetimeShards: next.lifetimeShards + g.qty };
+    case 'mats':
+      push(`Materials — ⊕${g.mutagen} · ◳${g.scrap} · ✷${g.catalyst}`);
+      return { ...next, mats: { mutagen: next.mats.mutagen + g.mutagen, scrap: next.mats.scrap + g.scrap, catalyst: next.mats.catalyst + g.catalyst } };
+    case 'essence':
+      push(`${g.qty} Gene Essence`);
+      return { ...next, geneEssence: next.geneEssence + g.qty };
+    case 'towerShards': {
+      const towerShards = { ...next.towerShards };
+      for (const k of towerShardPool(next)) towerShards[k] = (towerShards[k] ?? 0) + g.qtyEach;
+      push(`${g.qtyEach} Strain Samples × every tower`);
+      return { ...next, towerShards }; // banks even on max-Star lanes (Prime fuel — docs/PRIME-STRAINS.md)
+    }
+    case 'heroShards': {
+      const heroShards = { ...next.heroShards };
+      for (const k of HERO_ORDER) heroShards[k] = (heroShards[k] ?? 0) + g.qtyEach;
+      push(`${g.qtyEach} Apex Genome × every hero`);
+      return { ...next, heroShards };
+    }
+    case 'mulligan': {
+      // The container lane's discovery contract (docs/MULLIGANS.md §loot): prefer an UNOWNED
+      // piece; a fully-sequenced dex dissolves the pull into Gene Essence instead.
+      const modIds = mulliganRegistry.ids();
+      const unowned = modIds.filter((m) => !next.mulliganDex[m]);
+      const rar = rollRarity(rng());
+      if (unowned.length === 0) {
+        push('Duplicate Modifier — 60 Gene Essence');
+        return { ...next, geneEssence: next.geneEssence + 60 };
+      }
+      const id = unowned[Math.floor(rng() * unowned.length)];
+      push(`Modifier Sequenced — ${mulliganRegistry.get(id)?.name ?? id} (${MULLIGAN_RARITY[rar].label})`);
+      return { ...next, mulliganDex: { ...next.mulliganDex, [id]: rar } };
+    }
+    case 'container':
+      push(`${g.rarity} Bio-Container`);
+      return { ...next, pendingContainers: [...next.pendingContainers, { kind: 'loot', rarity: g.rarity }] };
+    case 'runCache':
+      push('Run Cache');
+      return { ...next, pendingContainers: [...next.pendingContainers, { kind: 'cache', chestId: RUN_CHEST }] };
+    case 'ichor':
+      push(`${g.qty} Ichor`);
+      return { ...next, ichor: next.ichor + g.qty, lifetimeIchor: next.lifetimeIchor + g.qty };
+  }
 }
 
 export const meta = {
@@ -3678,6 +3777,105 @@ export const meta = {
     };
   },
 
+  // ── IDLE HARVEST (docs/IDLE-HARVEST.md) — the Hive keeps harvesting while you're away. ──
+
+  /** Everything the Harvest screen + badge render: the live accrual, the tree (levels, costs,
+   *  gates as work-toward labels), the eligible/locked drop rows, and the grow-next suggestion. */
+  idleView(now = Date.now()): IdleHarvestView {
+    const save = store.get();
+    const ctx = idleGateContext(save);
+    const acc = idleAccrual(now - (save.idle.lastCollect || now), highestCampaignStage(save), save.idle.nodes);
+    const nodes = IDLE_NODES.map((def) => {
+      const level = save.idle.nodes[def.id] ?? 0;
+      const gate = idleNodeGate(def, level + 1, ctx);
+      return { def, level, cost: idleNodeCost(def, level), gate, gateLabel: gate ? idleGateLabel(gate) : null, affordable: gate === null && save.shards >= idleNodeCost(def, level) };
+    });
+    const eligible = new Set(eligibleIdleDrops(ctx).map((d) => d.id));
+    return {
+      accrual: acc,
+      collectable: acc.rawHours * 60 >= IDLE.minCollectMinutes,
+      nodes,
+      suggestion: idleSuggestion(save.idle.nodes, save.shards, ctx),
+      drops: [...IDLE_DROPS_VIEW].map((d) => ({ ...d, eligible: eligible.has(d.id) })),
+      ledger: { ...save.idle },
+      cores: save.shards,
+    };
+  },
+
+  /** Collect the banked harvest: ONE atomic persist rolls the seeded drop table, pays every
+   *  wallet, feeds Account XP, advances the lifetime ledger and re-arms the clock. Null when
+   *  the hopper is still warming (< IDLE.minCollectMinutes) or the guard refuses. The accrual
+   *  anchor is MONOTONE: a rolled-back clock pays nothing and never rewinds it (rewinding
+   *  would let the same wall-clock span be farmed in a loop) — accrual resumes when real time
+   *  passes the anchor, and absurdly-future anchors clamp to the bounded freeze window. */
+  collectIdleHarvest(now = Date.now()): IdleHarvestReceipt | null {
+    if (!guardOk('idle.collect')) return null;
+    const save = store.get();
+    const last = save.idle.lastCollect || now;
+    if (last > now) { // clock rolled back (or a future forge): HOLD — never rewind the anchor.
+      const maxLast = now + IDLE.tamperFreezeMaxHours * 3_600_000;
+      if (last > maxLast) persist({ ...save, idle: { ...save.idle, lastCollect: maxLast } });
+      return null;
+    }
+    const acc = idleAccrual(now - last, highestCampaignStage(save), save.idle.nodes);
+    if (acc.rawHours * 60 < IDLE.minCollectMinutes) return null;
+    const ctx = idleGateContext(save);
+    const rng = new Rng(((Math.floor(now / 1000) ^ Math.floor(last / 1000)) >>> 0) || 1);
+    const roll = rollIdleHarvest(acc, save.idle.nodes, ctx, () => rng.next());
+    let next: SaveData = { ...save };
+    const lines: IdleReceiptLine[] = [];
+    let value = 0;
+    for (const line of roll.lines) {
+      value += idleGrantValue(line.grant);
+      next = applyIdleGrant(next, line.grant, () => rng.next(), line, lines);
+    }
+    const xpFold = foldAccountXp(next, roll.xp, now);
+    next = xpFold.save;
+    if (roll.xp > 0) lines.push({ icon: '⬆', label: `${roll.xp} Account XP`, rare: false });
+    const effPct = Math.round(acc.offlineEff * 100);
+    persist({
+      ...next,
+      idle: {
+        ...next.idle,
+        lastCollect: now,
+        lifetimeHours: next.idle.lifetimeHours + acc.effHours,
+        harvests: next.idle.harvests + 1,
+        lifetimeValue: next.idle.lifetimeValue + Math.round(value),
+        bestHours: Math.max(next.idle.bestHours, acc.effHours),
+        blooms: next.idle.blooms + (roll.bloom ? 1 : 0),
+      },
+      timeline: pushTimeline(next.timeline, '⬢', `Idle Harvest — ${fmtIdleHours(acc.effHours)} banked${roll.bloom ? ' · BLOOM' : ''}`),
+    });
+    this.evaluateAchievements();
+    return {
+      lines,
+      rawHours: acc.rawHours, effHours: acc.effHours, capHours: acc.capHours, full: acc.full,
+      bloom: roll.bloom, xp: roll.xp, value: Math.round(value), efficiencyPct: effPct,
+      suggestion: idleSuggestion(store.get().idle.nodes, store.get().shards, ctx),
+    };
+  },
+
+  /** Grow one evolution-tree node: Genome Cores spend, progression gates enforced (Campaign /
+   *  Genome Rank / Molts / Boss Rush / Collections / Power — the gate is a work-toward label in
+   *  the UI, never a silent grey-out). Infinite levels, geometric costs. */
+  buyIdleNode(id: string): boolean {
+    if (!guardOk('progress.upgrade', `idle:${id}`)) return false;
+    const def = IDLE_NODE_BY_ID[id];
+    if (!def) return false;
+    const save = store.get();
+    const level = save.idle.nodes[id] ?? 0;
+    if (idleNodeGate(def, level + 1, idleGateContext(save)) !== null) return false;
+    const cost = idleNodeCost(def, level);
+    if (save.shards < cost) return false;
+    persist(foldAccountXp({
+      ...save,
+      shards: save.shards - cost,
+      idle: { ...save.idle, nodes: { ...save.idle.nodes, [id]: level + 1 } },
+    }, ACCOUNT_XP.acquisition).save);
+    this.evaluateAchievements(); // tree-depth milestones (idle_tree25)
+    return true;
+  },
+
   /** Unlock the CURRENT season's Premium track with Ichor (the real-money path is the
    *  store's Season Pass offer — both land on the same flag). */
   buyPassPremium(now = Date.now()): boolean {
@@ -5592,6 +5790,7 @@ export const meta = {
       dailyCompletions: save.daily.completions,
       lifetimeLogins: save.login.lifetime,
       contractsHonoured: save.contracts.completed.length,
+      idleLifetimeHours: save.idle.lifetimeHours,
       powerScore: composePower(accountPowerParts(save)).score,
       molts: save.prestige.molts,
       masteryLevels,

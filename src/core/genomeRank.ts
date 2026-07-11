@@ -28,6 +28,7 @@ export interface GenomeSnapshot {
   dailyCompletions: number; // lifetime daily clears
   lifetimeLogins: number; // lifetime Daily Bio-Cache claims (docs/DAILY-LOGIN.md — never reset)
   contractsHonoured: number; // lifetime Champion Contracts completed (docs/CONTRACTS.md)
+  idleLifetimeHours: number; // lifetime BANKED idle hours (docs/IDLE-HARVEST.md — never reset)
   powerScore: number; // the one strength number
   molts: number; // prestige cycles
   masteryLevels: number; // Σ tower + hero mastery levels
@@ -82,6 +83,10 @@ export const GENOME_SOURCES: GenomeSource[] = [
     score: (s) => depth(s.lifetimeLogins, 0.7, 1.6), hint: 'Open the Daily Bio-Cache — every day answered counts.' },
   { id: 'contracts', name: 'Champion Contracts', category: 'journey', weight: 40, nav: 'home',
     score: (s) => depth(s.contractsHonoured, 0.7, 1.2), hint: 'Honour this week’s Champion Contracts.' },
+  // Deliberately light + heavily decelerated: idle hours pile up fast, and the passive lane
+  // must never out-rate the played ones (docs/IDLE-HARVEST.md — idle reduces friction, not play).
+  { id: 'idle', name: 'Idle Harvest', category: 'journey', weight: 35, nav: 'harvest',
+    score: (s) => depth(s.idleLifetimeHours, 0.55, 3), hint: 'Collect the Hive’s idle harvest — lifetime banked hours accrue.' },
   { id: 'prestige', name: 'Molts', category: 'journey', weight: 80, nav: 'evolution',
     score: (s) => depth(s.molts, 0.75, 1 / 1.2), hint: 'Complete another Molt cycle.' },
   { id: 'battle-pass', name: 'Seasons', category: 'journey', weight: 55, nav: 'season',
@@ -242,6 +247,7 @@ export function genomeAdvice(s: GenomeSnapshot, n = 4): GenomeAdvice[] {
     'boss-rush': (x, k) => ({ ...x, rushBestBoss: x.rushBestBoss + k }),
     'daily': (x, k) => ({ ...x, dailyCompletions: x.dailyCompletions + k }),
     'login': (x, k) => ({ ...x, lifetimeLogins: x.lifetimeLogins + k }),
+    'idle': (x, k) => ({ ...x, idleLifetimeHours: x.idleLifetimeHours + k * 8 }), // ≈ a week of base caps
     'prestige': (x) => ({ ...x, molts: x.molts + 1 }), // one molt IS the chunk
     'mastery': (x, k) => ({ ...x, masteryLevels: x.masteryLevels + k * 2 }),
     'titles': (x, k) => ({ ...x, titles: x.titles + k }),

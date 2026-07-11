@@ -101,3 +101,11 @@
 - `dbf25cf` **[Gameplay]** PRIME STRAINS — per-unit infinite ladders past max Stars (save v38)
 - `0427025` **[UX]** THE COMMISSIONING — account creation as a ceremony at tutorial completion
 - `6758a3a` **[Gameplay]** PRIME STRAINS — per-unit infinite ladders past max Stars (save v39)
+- `5f0ee52` **[Gameplay]** PRIME STRAINS — per-unit infinite ladders past max Stars (save v39)
+- `942fa90` **[Backend]** Flip the public checkout flag to Stripe (.env.production) _(internal)_
+- `eb55d6e` **[Developer Tools]** Prime: 1k-hour simulation report + the attribution-honest delta table _(internal)_
+- `240cce2` **[Backend]** Redeploy — bind the freshly saved Stripe secrets into a new Pages deployment _(internal)_
+- `9fed631` **[Gene Cards]** Idle Harvest: infinite passive lane — accrual, evolution tree, gated drops, guardrail
+- `e8164d1` **[Framework]** Redeploy — first CI upload with the Cloudflare credentials in place _(internal)_
+- `b2efec0` **[Backend]** Redeploy — bind the wrangler-put Stripe secrets _(internal)_
+- `bd35f88` **[Gene Cards]** Idle Harvest: infinite passive lane — accrual, evolution tree, gated drops, guardrail

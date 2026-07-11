@@ -16,6 +16,9 @@ describe('save envelope', () => {
     save.shards = 777;
     save.bestWave = 31;
     save.profileName = 'OVERMIND';
+    // A real save carries a started idle clock (the default 0 is the migration trigger the
+    // sanitizer seeds to now) — round-trip identity needs a sanitizer-stable stamp.
+    save.idle = { ...save.idle, lastCollect: Date.now() - 60_000 };
     const env = buildEnvelope(save, ctx);
     expect(isEnvelope(env)).toBe(true);
     expect(verifyEnvelope(env)).toBe(true);

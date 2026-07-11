@@ -138,6 +138,20 @@ export const ACHIEVEMENTS: AchievementDef[] = [
   { id: 'contract_12', name: 'Sworn Champion', desc: 'Honour 12 Champion Contracts (lifetime).', reward: 40, test: (c) => c.save.contracts.completed.length >= 12, progress: (c) => ({ cur: c.save.contracts.completed.length, max: 12 }) },
   { id: 'perfect_week', name: 'Perfect Week', desc: 'Honour all three Champion Contracts in one week.', reward: 60, test: (c) => c.save.contracts.perfectWeeks >= 1 },
 
+  // ── Idle Harvest (docs/IDLE-HARVEST.md) — the passive lane's beats. All read the save.idle
+  //    lifetime ledger (only ever grows), so a fresh save unlocks none. The hours ladder is the
+  //    long-arc axis; the bloom is the surprise beat; the tree goal rewards reinvesting cores. ──
+  { id: 'idle_first', name: 'First Secretion', desc: 'Collect your first Idle Harvest.', reward: 15, test: (c) => c.save.idle.harvests >= 1 },
+  ...([24, 240, 2400] as const).map((n, i): AchievementDef => ({
+    id: `idle_hours${n}`, name: ['Day Distilled', 'Ten Days Below', 'Hundred Days Harvested'][i],
+    desc: `Bank ${n.toLocaleString('en-US')} idle hours (lifetime).`, reward: 30 + i * 35,
+    test: (c) => c.save.idle.lifetimeHours >= n,
+    progress: (c) => ({ cur: Math.floor(c.save.idle.lifetimeHours), max: n }),
+  })),
+  { id: 'idle_brimmed', name: 'Brimming Hopper', desc: 'Return to a single harvest of 12 banked hours or more.', reward: 40, test: (c) => c.save.idle.bestHours >= 12, progress: (c) => ({ cur: Math.floor(c.save.idle.bestHours), max: 12 }) },
+  { id: 'idle_bloom', name: 'The Hive Blooms', desc: 'Witness a Bloom — the Hive doubling its own harvest.', hidden: true, reward: 50, test: (c) => c.save.idle.blooms >= 1 },
+  { id: 'idle_tree25', name: 'Cultivated Depths', desc: 'Grow 25 total Hive Evolution levels.', reward: 60, test: (c) => Object.values(c.save.idle.nodes).reduce((a, n) => a + n, 0) >= 25, progress: (c) => ({ cur: Object.values(c.save.idle.nodes).reduce((a, n) => a + n, 0), max: 25 }) },
+
   // ── Hidden (surprise milestones — concealed until earned) ──
   { id: 'apex_slayer', name: 'Apex Slayer', desc: 'Slay a Brood Tyrant.', hidden: true, reward: 75, test: (c) => (c.save.stats.killsByEnemy.tyrant ?? 0) >= 1 },
   { id: 'annihilation', name: 'Annihilation', desc: 'Deal 1,000,000 total damage (lifetime).', hidden: true, reward: 100, test: (c) => c.save.stats.totalDamage >= 1_000_000, progress: (c) => ({ cur: c.save.stats.totalDamage, max: 1_000_000 }) },

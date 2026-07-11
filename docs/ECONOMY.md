@@ -42,6 +42,14 @@ table is the single source of truth:
 > Prime; only container opens still convert maxed duplicates to Gene Essence — the deliberate
 > hold-vs-crack tension. This closes the late-game "tower shards cap out" sink-exhaustion note.
 
+> **Shipped note — IDLE HARVEST (save v40, `IDLE-HARVEST.md`).** A permanent passive faucet:
+> away-time accrues toward an upgradeable cap (8h → 72h → forever) and collects roll a gated
+> drop registry (cores/mats/essence/shards → rare containers/caches/mulligans → trace Ichor).
+> Deliberately a TRICKLE: the guardrail suite pins idle value/hour below 25% of the WEAKEST
+> active lane (campaign-replay cores only) at every band, with anti-dust-farm affordability
+> floors and a monotone tamper-proof accrual clock. Its sink is its own infinite 10-node
+> evolution tree (Genome Cores). Zero Power, zero run effects — pure economy by design.
+
 ---
 
 ## 1. The currency map

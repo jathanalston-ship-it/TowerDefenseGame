@@ -5,7 +5,7 @@
 // Storage is injectable so the core is testable headlessly; the browser uses
 // localStorage. No DOM/file APIs here (those live in saveFile.ts).
 
-import { ENEMY_KINDS, HERO_DEFS, HERO_ORDER, HERO_IDS, TOWER_DEFS, TOWER_ORDER, heroRegistry, towerRegistry } from '../core/config';
+import { ENEMY_KINDS, HERO_DEFS, HERO_ORDER, HERO_IDS, IDLE, TOWER_DEFS, TOWER_ORDER, heroRegistry, towerRegistry } from '../core/config';
 import type { EnemyKind, HeroKind, LifetimeStats, TimelineEvent, TowerKind } from '../core/types';
 import type { Loadout, OwnedItem } from '../core/equipment';
 import { defaultLootQueue, sanitizeLootQueue } from '../core/lootQueue';
@@ -96,6 +96,13 @@ export interface SaveData {
   //    streak: consecutive-day claims; best: streak watermark; lifetime: total claims ever
   //    (NEVER reset — collections/titles/Genome Rank ride it). ──
   login: { last: string; streak: number; best: number; lifetime: number };
+  // ── Idle Harvest (v40, docs/IDLE-HARVEST.md) — the away-time accrual clock + evolution tree.
+  //    lastCollect: epoch ms of the last collect (the accrual origin; MONOTONE — never rewound;
+  //    a future stamp freezes accrual, bounded by IDLE.tamperFreezeMaxHours on load). nodes:
+  //    infinite tree levels. The
+  //    lifetime ledger (hours/harvests/value/bestHours/blooms) is NEVER reset — collections,
+  //    achievements and Genome Rank ride it. Pure economy, never Power. ──
+  idle: { lastCollect: number; nodes: Record<string, number>; lifetimeHours: number; harvests: number; lifetimeValue: number; bestHours: number; blooms: number };
   // ── Nemesis + trophies (v26, docs/NEMESIS.md; rack + vengeance v34). nemesis: the boss
   //    currently hunting this account (null = none). equippedTrophies: the mounted rack (up to
   //    trophySlots organs). vengeance: chassis you have AVENGED — the vengeance-trophy ledger
@@ -378,8 +385,11 @@ export interface TutorialSave {
 // the login-streak ledger behind the daily cache faucet; pure economy, never Power.
 // v38→v39: PRIME STRAINS (docs/PRIME-STRAINS.md) — `towerPrime` / `heroPrime` per-unit infinite
 // ladders past max Stars. Additive Records, zero-filled for older saves (level 0 = identity fold).
+// v39→v40: IDLE HARVEST (docs/IDLE-HARVEST.md) — `idle` {lastCollect, nodes, lifetime ledger}:
+// the away-time accrual clock + the infinite evolution tree. lastCollect seeds to NOW on
+// migration (the clock starts at the update — no retroactive grant); pure economy, never Power.
 // All additive/migrated — withDefaults() deep-fills, sanitize() folds the legacy field.
-export const CURRENT_VERSION = 39;
+export const CURRENT_VERSION = 40;
 
 /** The placeholder every save is born with — the Commander designation prompt fires
  *  while the name is still exactly this (components/CommanderName.tsx). */
@@ -617,6 +627,7 @@ export function defaultSave(): SaveData {
     directives: { week: '', progress: {}, claimed: [] },
     hive: { built: {} },
     login: { last: '', streak: 0, best: 0, lifetime: 0 },
+    idle: { lastCollect: 0, nodes: {}, lifetimeHours: 0, harvests: 0, lifetimeValue: 0, bestHours: 0, blooms: 0 },
     nemesis: null,
     equippedTrophies: [],
     vengeance: [],
@@ -1028,6 +1039,31 @@ function withDefaults(data: SaveData): SaveData {
       const streak = int(raw?.streak);
       const lifetime = Math.max(int(raw?.lifetime), streak); // lifetime can never trail the live streak
       return { last, streak, best: Math.max(int(raw?.best), streak), lifetime };
+    })(),
+    // v39→v40: Idle Harvest (docs/IDLE-HARVEST.md). lastCollect: absent/junk/0 seeds to NOW (the
+    // clock starts at migration — no retroactive grant); a FUTURE stamp is HELD (frozen accrual
+    // is a forged clock's price — meta keeps the live anchor monotone) but clamped to now + the
+    // freeze window, so a legitimately wrong device clock self-heals in bounded time. Clamping
+    // to NOW here would reopen the collect→rollback→reload farming loop the hold exists to kill.
+    // Node levels + the lifetime ledger clamp to whole non-negatives.
+    idle: ((): SaveData['idle'] => {
+      const raw = (data as { idle?: unknown }).idle as Partial<SaveData['idle']> | undefined;
+      const now = Date.now();
+      const int = (v: unknown): number => (Number.isFinite(Number(v)) ? Math.max(0, Math.floor(Number(v))) : 0);
+      const stamp = int(raw?.lastCollect);
+      const nodes: Record<string, number> = {};
+      if (raw?.nodes && typeof raw.nodes === 'object') {
+        for (const [k, v] of Object.entries(raw.nodes)) { const n = int(v); if (n > 0) nodes[k] = n; }
+      }
+      return {
+        lastCollect: stamp === 0 ? now : Math.min(stamp, now + IDLE.tamperFreezeMaxHours * 3_600_000),
+        nodes,
+        lifetimeHours: Math.max(0, Number.isFinite(Number(raw?.lifetimeHours)) ? Number(raw?.lifetimeHours) : 0),
+        harvests: int(raw?.harvests),
+        lifetimeValue: int(raw?.lifetimeValue),
+        bestHours: Math.max(0, Number.isFinite(Number(raw?.bestHours)) ? Number(raw?.bestHours) : 0),
+        blooms: int(raw?.blooms),
+      };
     })(),
     nemesis: ((): SaveData['nemesis'] => {
       const n = (data as { nemesis?: unknown }).nemesis as { defId?: unknown; slain?: unknown } | null | undefined;
