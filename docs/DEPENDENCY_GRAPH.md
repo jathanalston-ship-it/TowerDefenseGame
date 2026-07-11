@@ -691,7 +691,7 @@ graph TD
 
 ### Currencies & Economy Framework (`currencies`)
 
-*Currency identities (icon/color/tooltip/format) + the adaptive economy framework: one factor-traced income composition per currency, adaptive seams, health guards.*
+*Currency identities (icon/color/tooltip/format) + the adaptive economy framework: one factor-traced income composition per currency, adaptive seams (ACTIVE 2026-07 — catch-up/ahead-taper on the frontier power gap, clamped, onboarding-floored), health guards.*
 
 - **Files:** `src/core/currencies.ts` · `src/core/economyDirector.ts` · `src/ui/components/CurrencyIcon.tsx`
 - **Depends on:** `content-infra`

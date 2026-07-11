@@ -1871,6 +1871,7 @@ export const PRIME = {
 export const IDLE = {
   baseCoresPerHour: 5, // the value budget (core-equivalents/h) at campaign stage 1, before nodes
   stageGrowth: 0.02, // +2%/cleared campaign stage — idle scales WITH progression, at a fraction of the run economy's 5%
+  rankGrowth: 0.04, // GENOME RANK DIVIDEND: +4%/rank past I — the mastery ladder feeds the harvest (rank VIII ≈ +28%; guardrail-bounded)
   baseOfflineEff: 0.7, // the unattended Hive harvests at 70% — the Offline Efficiency node closes the gap
   capHoursLadder: [8, 10, 12, 16, 24, 36, 48, 72] as readonly number[], // Harvest Capacity levels 0..7
   capHoursBeyond: 12, // each Capacity level past the ladder adds this many hours (infinite)
@@ -2295,11 +2296,19 @@ export const DIRECTOR_ADAPTIVE = {
 
 // ── Adaptive Economy Framework: income-seam weights (docs/ECONOMY_FORMULAS.md) ──
 // Catch-up boosts a behind-the-curve account's settle income; the ahead-taper cools a
-// runaway one. SHIP AT 0 (exact ×1 in every chain — golden/meta-test safe): tune ONLY on
-// progression-simulator evidence (docs/PROGRESSION_REPORT.md).
+// runaway one. Shipped at 0; ACTIVATED 2026-07 on progression-simulator evidence
+// (BALANCE_ARCHITECTURE.md §7 round 3): the post-liveops faucet stack ran the optimal-play
+// early game ~+50% past the tuned molt cadence while deep bands starved (dead-progression
+// zones where farm income fell under the next geometric sink price, and a ×16 p10–p90 deep
+// power spread). The seam is the designed counter-mechanism: it reads the account's distance
+// from its OWN frontier bar, so it cools runaways and feeds stragglers with one dial each.
+// Tune ONLY on regenerated simulator evidence (docs/PROGRESSION_REPORT.md).
 export const ECONOMY_ADAPTIVE = {
-  catchUpPerPowerGap: 0, // ×(1 + w·gap) when the account is BEHIND its frontier's power bar
-  aheadTaperPerPowerGap: 0, // ÷(1 + w·|gap|) when far AHEAD of it
+  catchUpPerPowerGap: 0.35, // ×(1 + w·gap) when the account is BEHIND its frontier's power bar
+  aheadTaperPerPowerGap: 0.5, // ÷(1 + w·|gap|) when far AHEAD of it
+  maxCatchUpGap: 2, // gap clamp — catch-up saturates at ×(1 + w·this) (extreme comeback stays bounded)
+  maxAheadGap: 0.9, // |gap| clamp — the taper saturates at ÷(1 + w·this) (never starves a snowball outright)
+  minStage: 10, // onboarding floor: below this cleared stage the seam is OFF (fresh settles byte-identical)
 };
 
 // ── Future content registry: biomes (framework only — no content yet) ────────

@@ -76,16 +76,29 @@ simulator's `sinkExhaustion` detector and is the balance milestone's docket, wit
 - **Anti-exploit:** campaign caches only on wins; Infinite forfeits below the qualify bar;
   abandon forfeits everything.
 
-## 5. Adaptive seams (`ECONOMY_ADAPTIVE`, config.ts)
+## 5. Adaptive seams (`ECONOMY_ADAPTIVE`, config.ts) — **ACTIVATED 2026-07**
 
-| Seam | Formula | Weight today |
+| Seam | Formula | Weight |
 |---|---|---|
-| `catchUpPerPowerGap` | `×(1 + w·gap)` when behind the frontier's power bar (gap > 0) | **0** |
-| `aheadTaperPerPowerGap` | `÷(1 + w·|gap|)` when far ahead (gap < 0) | **0** |
+| `catchUpPerPowerGap` | `×(1 + w·gap)` when behind the frontier's power bar (gap > 0) | **0.35** |
+| `aheadTaperPerPowerGap` | `÷(1 + w·|gap|)` when far ahead (gap < 0) | **0.5** |
 
-Both compose into every income chain as an exact ×1 today (IEEE-754 identity — golden/
-meta-test safe). **They may only be weighted from progression-simulator evidence**
-(`docs/PROGRESSION_REPORT.md`) — pinned by test, the same rule as `DIRECTOR_ADAPTIVE`.
+Activated per the §4 protocol on `PROGRESSION_REPORT.md` evidence (`BALANCE_ARCHITECTURE.md`
+§7 round 3): the post-liveops faucet stack ran optimal-play molt cadence ~+50% past the tuned
+target while deep bands hit dead-progression zones (farm income under the next geometric sink
+price) and a ×16 deep p10–p90 luck spread. Mechanics:
+
+- **`powerGap`** `= recommendedPowerScore(frontier)/accountPower − 1`, computed once per settle
+  in `meta.finishRun` and composed into BOTH the core and loot chains as the `adaptive.income`
+  factor. The gap is **clamped** (`maxCatchUpGap` 2 / `maxAheadGap` 0.9), so catch-up saturates
+  at ×1.7 and the taper at ÷1.45 — extremes bend, never break.
+- **Onboarding floor** (`minStage` 10): below it no inputs are passed — the chain multiplies by
+  an exact ×1 (IEEE-754 identity), so fresh-account settles stay byte-identical (pinned).
+- **Surfacing:** the catch-up side ships on Results as **Momentum** (`RunOutcome.momentum`,
+  present only when >×1.005); the taper is silent by design (it reads as natural pacing) but
+  fully visible in the factor trace (`explainIncome`).
+- Re-tuning either weight remains a §4 protocol change: regenerate the simulator evidence first.
+  `DIRECTOR_ADAPTIVE` (threat-side) stays at 0 — economy-side pacing sufficed.
 
 ## 6. Scale guarantees (content growth doesn't destabilize)
 

@@ -127,6 +127,11 @@ export function HarvestScreen(): JSX.Element {
           </div>
           <div className="hv-meta-row">
             <span>{a.ratePerHour.toFixed(1)} value/h</span>
+            {v.rankBonus > 0 && (
+              <span title={`Genome Rank dividend: the mastery ladder feeds the harvest — +${Math.round(IDLE.rankGrowth * 100)}% rate per rank past I.`}>
+                ⌖ +{Math.round(v.rankBonus * 100)}% rank dividend
+              </span>
+            )}
             <span>{Math.round(a.offlineEff * 100)}% offline efficiency</span>
             <span>{a.full ? 'BRIMMED — collect now' : `full in ${fmtIdleHours(toFullH)}`}</span>
           </div>

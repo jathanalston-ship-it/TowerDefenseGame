@@ -245,7 +245,7 @@ export const SYSTEMS: SystemDef[] = [
     localization: 'inline-en', docs: ['docs/PROGRESSION-PHILOSOPHY.md', 'docs/PROGRESSION-REDESIGN.md', 'docs/SIMULATION-FRAMEWORK.md', 'docs/BALANCE_REPORT.md', 'docs/VOWS.md'],
   },
   {
-    id: 'currencies', name: 'Currencies & Economy Framework', purpose: 'Currency identities (icon/color/tooltip/format) + the adaptive economy framework: one factor-traced income composition per currency, adaptive seams, health guards.',
+    id: 'currencies', name: 'Currencies & Economy Framework', purpose: 'Currency identities (icon/color/tooltip/format) + the adaptive economy framework: one factor-traced income composition per currency, adaptive seams (ACTIVE 2026-07 — catch-up/ahead-taper on the frontier power gap, clamped, onboarding-floored), health guards.',
     files: ['src/core/currencies.ts', 'src/core/economyDirector.ts', 'src/ui/components/CurrencyIcon.tsx'],
     dependsOn: ['content-infra'], powerScore: null, save: [], tutorial: [], help: ['gene-essence'], hud: ['top resource bar'], ui: ['CurrencyIcon (everywhere)'],
     collection: null, achievements: [], localization: 'inline-en', docs: ['docs/ECONOMY.md', 'docs/LEXICON.md', 'docs/ECONOMY_FORMULAS.md'],

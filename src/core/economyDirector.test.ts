@@ -51,13 +51,24 @@ describe('income parity (legacy settle expressions, verbatim)', () => {
     }
   });
 
-  it('adaptive weights ship at 0 and adaptive inputs change nothing (bit-exact)', () => {
-    expect(ECONOMY_ADAPTIVE.catchUpPerPowerGap).toBe(0); // tune ONLY on simulator evidence
-    expect(ECONOMY_ADAPTIVE.aheadTaperPerPowerGap).toBe(0);
-    expect(adaptiveIncomeMult({ powerGap: 3 })).toBe(1);
-    expect(adaptiveIncomeMult({ powerGap: -0.9 })).toBe(1);
+  it('adaptive seam: ACTIVATED weights pinned; omitted inputs stay bit-exact identity', () => {
+    // Activated 2026-07 (BALANCE_ARCHITECTURE.md §7 round 3) on PROGRESSION_REPORT evidence:
+    // post-liveops faucet drift (molts@10h 12 vs the tuned 8) + deep dead-progression bands +
+    // the ×16 deep p10–p90 spread. Re-tune ONLY with regenerated simulator evidence.
+    expect(ECONOMY_ADAPTIVE.catchUpPerPowerGap).toBe(0.35);
+    expect(ECONOMY_ADAPTIVE.aheadTaperPerPowerGap).toBe(0.5);
+    // Behind the frontier bar: ×(1 + 0.35·gap), saturating at the clamp (gap 2 ⇒ ×1.7).
+    expect(adaptiveIncomeMult({ powerGap: 1 })).toBeCloseTo(1.35, 12);
+    expect(adaptiveIncomeMult({ powerGap: 3 })).toBeCloseTo(1 + 0.35 * ECONOMY_ADAPTIVE.maxCatchUpGap, 12);
+    // Ahead of it: ÷(1 + 0.5·|gap|), saturating at the clamp (|gap| 0.9 ⇒ ÷1.45).
+    expect(adaptiveIncomeMult({ powerGap: -0.5 })).toBeCloseTo(1 / 1.25, 12);
+    expect(adaptiveIncomeMult({ powerGap: -5 })).toBeCloseTo(1 / (1 + 0.5 * ECONOMY_ADAPTIVE.maxAheadGap), 12);
+    // The onboarding contract: chains WITHOUT adaptive inputs are bit-exact identity — a fresh
+    // account (below ECONOMY_ADAPTIVE.minStage the settle passes no inputs) never moves.
+    expect(adaptiveIncomeMult()).toBe(1);
+    expect(adaptiveIncomeMult({ powerGap: 0 })).toBe(1);
     const a = coreShardIncome({ wave: 40, kills: 500, prestigeShardGainMult: 1.1, prestigeCoreGainMult: 1, stageRewardMult: 2, endlessRewardMult: 1, modeCoreMult: 1, doctrineRewardMult: 1 });
-    const b = coreShardIncome({ wave: 40, kills: 500, prestigeShardGainMult: 1.1, prestigeCoreGainMult: 1, stageRewardMult: 2, endlessRewardMult: 1, modeCoreMult: 1, doctrineRewardMult: 1, adaptive: { powerGap: 5 } });
+    const b = coreShardIncome({ wave: 40, kills: 500, prestigeShardGainMult: 1.1, prestigeCoreGainMult: 1, stageRewardMult: 2, endlessRewardMult: 1, modeCoreMult: 1, doctrineRewardMult: 1, adaptive: { powerGap: 0 } });
     expect(Object.is(a.total(), b.total())).toBe(true);
   });
 

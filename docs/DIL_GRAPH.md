@@ -1,6 +1,6 @@
 # DIL_GRAPH.md — the Design Intelligence Layer (GENERATED — `npm run dil -- regen`)
 
-> **The project's brain** (docs/DIL.md). 747 nodes · 1351 edges, built from the live
+> **The project's brain** (docs/DIL.md). 747 nodes · 1352 edges, built from the live
 > registries + curated knowledge (src/dev/dil/). **Query it instead of searching the repo:**
 > `npm run dil -- node <id>` · `affects <id>` · `requires <id>` · `missing <kind> <edge>` ·
 > `checklist tower <kind>` · `find <text>`. Edge kinds are bidirectional (19 kinds).
@@ -144,6 +144,7 @@ graph LR
   system_quests["Quests & Missions"] -->|consumes| system_battle_pass["Battle Pass (Season)"]
   system_quests["Quests & Missions"] -->|consumes| system_cosmetics["The Wardrobe (Cosmetics)"]
   system_idle_harvest["Idle Harvest"] -->|consumes| system_genome_rank["Genome Rank (ultimate mastery ladder)"]
+  system_currencies["Currencies & Economy Framework"] -->|modifies| system_meta_store["Meta Store & Save"]
   system_nemesis["Nemesis & Trophies"] -->|modifies| system_engine["Sim Engine"]
   system_nemesis["Nemesis & Trophies"] -->|consumes| system_mega_bosses["Mega Bosses"]
 ```
@@ -465,6 +466,7 @@ graph LR
   system_security["Game Action Security Layer"] -->|modifies| system_meta_store["Meta Store & Save"]
   system_cosmetics["The Wardrobe (Cosmetics)"] -->|modifies| system_audio["Audio"]
   system_cosmetics["The Wardrobe (Cosmetics)"] -->|modifies| system_rendering["Rendering & VFX"]
+  system_currencies["Currencies & Economy Framework"] -->|modifies| system_meta_store["Meta Store & Save"]
   system_nemesis["Nemesis & Trophies"] -->|modifies| system_engine["Sim Engine"]
 ```
 
@@ -1159,7 +1161,7 @@ _at: src/core/idleHarvest.ts, src/ui/HarvestScreen.tsx_
   - provides → `concept:power-score` — none — pure economy by design (idle must never buy Power); the idle codex is identity-only
   - consumes → `system:meta-store` — owns save field 'idle'
   - conflictsWith → `concept:golden-test` — idle is PURE economy: zero Power, zero run effects, the idle codex carries no powerWeight, soft(0)=1 — any fold at level 0 breaks POWER_BASE; the accrual anchor is MONOTONE (never rewound) or clock rollback re-farms the same span, and fixed-price drop rows need minValue floors or 5-minute dust collects mint full containers (idleHarvest.test.ts pins all three)
-  - consumes → `system:genome-rank` — six-lens gates read rankFromRating(genomeRating(snapshot)).index via meta.idleGateContext; the journey source id 'idle' reads lifetimeHours back — keep both directions cycle-free (core never imports meta)
+  - consumes → `system:genome-rank` — six-lens gates read rankFromRating(genomeRating(snapshot)).index via meta.idleGateContext; the journey source id 'idle' reads lifetimeHours back — keep both directions cycle-free (core never imports meta). PLUS the RANK DIVIDEND (2026-07, IDLE-HARVEST.md §rank): idleRatePerHour × (1 + IDLE.rankGrowth·(rank−1)) — rank I/omitted is EXACTLY ×1 (fresh byte-stable) and the idle<active guardrail prices the dividend in
   - taughtBy ← `help:idle-harvest`
   - referencedBy ← `achievement:idle_first`
   - referencedBy ← `achievement:idle_hours24`
@@ -1303,11 +1305,12 @@ _at: src/core/prestige.ts, src/core/ascendant.ts, src/core/vows.ts, src/ui/Prest
 
 ### `system:currencies` — Currencies & Economy Framework
 
-Currency identities (icon/color/tooltip/format) + the adaptive economy framework: one factor-traced income composition per currency, adaptive seams, health guards.
+Currency identities (icon/color/tooltip/format) + the adaptive economy framework: one factor-traced income composition per currency, adaptive seams (ACTIVE 2026-07 — catch-up/ahead-taper on the frontier power gap, clamped, onboarding-floored), health guards.
 
 _at: src/core/currencies.ts, src/core/economyDirector.ts, src/ui/components/CurrencyIcon.tsx_
 
   - dependsOn → `system:content-infra`
+  - modifies → `system:meta-store` — ADAPTIVE SEAM ACTIVE (2026-07, ECONOMY_FORMULAS.md §5): meta.finishRun computes powerGap = recPower(frontier)/power − 1 ONCE per settle and composes adaptive.income into BOTH core+loot chains — catchUp 0.35 (clamped gap ≤2 ⇒ ≤×1.7), aheadTaper 0.5 (|gap| ≤0.9 ⇒ ≥÷1.45), OFF below ECONOMY_ADAPTIVE.minStage 10 (fresh settles byte-identical, pinned). The catch-up side surfaces as RunOutcome.momentum (Results chip); the taper is silent by design. Re-weighting = §4 protocol (simulate first) — economyDirector.test.ts pins the values
   - requiredBy ← `system:splice-market`
   - taughtBy ← `help:gene-essence`
   - documentedBy ← `doc:ECONOMY.md`
@@ -1666,7 +1669,7 @@ _at: src/core/genomeRank.ts, src/ui/components/GenomeRankPanel.tsx_
   - testedBy ← `test:src/core/genomeRank.test.ts`
   - providedBy ← `system:daily-login` — lifetimeLogins is a journey source (weight 40, depth 0.7/1.6) — attendance credits breadth, never Power
   - providedBy ← `system:contracts` — lifetime completions (save.contracts.completed.length) are the contractsHonoured journey source — a pool expansion needs NO genome change
-  - consumedBy ← `system:idle-harvest` — six-lens gates read rankFromRating(genomeRating(snapshot)).index via meta.idleGateContext; the journey source id 'idle' reads lifetimeHours back — keep both directions cycle-free (core never imports meta)
+  - consumedBy ← `system:idle-harvest` — six-lens gates read rankFromRating(genomeRating(snapshot)).index via meta.idleGateContext; the journey source id 'idle' reads lifetimeHours back — keep both directions cycle-free (core never imports meta). PLUS the RANK DIVIDEND (2026-07, IDLE-HARVEST.md §rank): idleRatePerHour × (1 + IDLE.rankGrowth·(rank−1)) — rank I/omitted is EXACTLY ×1 (fresh byte-stable) and the idle<active guardrail prices the dividend in
 
 ### `system:progression-gating` — Progression Gating & Director
 
@@ -1779,7 +1782,7 @@ _at: src/state/meta.ts, src/state/store.ts, src/state/prefs.ts, src/state/devRes
   - consumedBy ← `system:mulligans` — owns save field 'mulliganDex'
   - consumedBy ← `system:premium` — owns save field 'premium'
   - requiredBy ← `system:field-research`
-  - _…107 more (query: `npm run dil -- node system:meta-store`)_
+  - _…108 more (query: `npm run dil -- node system:meta-store`)_
 
 ### `system:bosses` — Bosses
 

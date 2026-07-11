@@ -170,9 +170,15 @@ export function idleBloomChance(nodes: IdleNodeLevels): number {
   return Math.min(0.25, IDLE_NODE_BY_ID.events.per * lvl(nodes, 'events'));
 }
 
-/** Core-equivalent budget per EFFECTIVE hour at a campaign stage + node levels. */
-export function idleRatePerHour(stage: number, nodes: IdleNodeLevels): number {
-  return IDLE.baseCoresPerHour * (1 + IDLE.stageGrowth * Math.max(0, stage - 1)) * idleSoft(lvl(nodes, 'speed'), IDLE_NODE_BY_ID.speed.per);
+/** Core-equivalent budget per EFFECTIVE hour at a campaign stage + node levels. GENOME RANK
+ *  DIVIDEND (docs/IDLE-HARVEST.md §rank, 2026-07): the mastery ladder feeds the harvest —
+ *  each rank past I adds IDLE.rankGrowth to the rate ("the Hive harvests smarter as the
+ *  organism masters more"). Rank I (or omitted) is exactly ×1, so fresh accounts and every
+ *  pre-existing call site are unchanged; the idle<active guardrail bounds the whole model. */
+export function idleRatePerHour(stage: number, nodes: IdleNodeLevels, rankIndex = 1): number {
+  return IDLE.baseCoresPerHour * (1 + IDLE.stageGrowth * Math.max(0, stage - 1))
+    * (1 + IDLE.rankGrowth * Math.max(0, rankIndex - 1))
+    * idleSoft(lvl(nodes, 'speed'), IDLE_NODE_BY_ID.speed.per);
 }
 
 export interface IdleAccrual {
@@ -188,12 +194,12 @@ export interface IdleAccrual {
 
 /** The whole accrual picture for `elapsedMs` away. Pure; negative/NaN elapsed folds to zero
  *  (clock-tamper clamps live in meta, but the math itself can never mint from junk). */
-export function idleAccrual(elapsedMs: number, stage: number, nodes: IdleNodeLevels): IdleAccrual {
+export function idleAccrual(elapsedMs: number, stage: number, nodes: IdleNodeLevels, rankIndex = 1): IdleAccrual {
   const rawHours = Number.isFinite(elapsedMs) ? Math.max(0, elapsedMs) / 3_600_000 : 0;
   const capHours = idleCapHours(nodes);
   const overflowHours = idleOverflowFrac(nodes) * Math.min(Math.max(rawHours - capHours, 0), capHours);
   const effHours = Math.min(rawHours, capHours) + overflowHours;
-  const ratePerHour = idleRatePerHour(stage, nodes);
+  const ratePerHour = idleRatePerHour(stage, nodes, rankIndex);
   const offlineEff = idleOfflineEff(nodes);
   return {
     rawHours, effHours, capHours, overflowHours,

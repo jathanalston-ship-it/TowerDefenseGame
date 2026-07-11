@@ -256,6 +256,15 @@ export function Results({
     stats: [
       { id: 'biomass', label: 'Biomass Earned', value: Math.round(result.stats.biomassEarned), icon: <BiomassIcon />, accent: 'var(--caustic)' },
       { id: 'shards', label: `${ACCOUNT_CURRENCY.name} Earned`, value: outcome.reward.shardsEarned, icon: <CurrencyIcon id="genomeCores" />, accent: 'var(--gold)' },
+      // MOMENTUM (docs/ECONOMY_FORMULAS.md §5): the catch-up seam paid extra because the account
+      // is fighting above its weight — worth celebrating, it's the comeback working.
+      ...(outcome.momentum
+        ? [{
+            id: 'momentum', label: 'Momentum (behind the frontier)', value: Math.round((outcome.momentum - 1) * 100),
+            format: (n: number) => `+${n}% all income`,
+            accent: 'var(--caustic)', celebrate: outcome.momentum >= 1.2,
+          }]
+        : []),
       // Season Pass XP (docs/BATTLEPASS.md §xp) — every run feeds the season; a crossed level celebrates.
       ...(outcome.passXp > 0
         ? [{

@@ -376,12 +376,19 @@ Content — not systems — is the binding constraint (see EA-DESIGN-AUDIT). The
   parity pinned; adaptive seams weight-0 — DIFFICULTY_DIRECTOR.md
 - ✅ **Adaptive Economy Framework** (`core/economyDirector.ts`) — factor-traced income chains
   (Cores, loot points) + health guards (uncapped sources, geometric sinks) — ECONOMY_FORMULAS.md
+- ✅ **ADAPTIVE SEAMS ACTIVE** (2026-07, round 3 — BALANCE_ARCHITECTURE.md §7): `finishRun`
+  computes the frontier power gap once per settle and composes `adaptive.income` into both
+  chains — catch-up 0.35 (≤×1.7), ahead-taper 0.5 (≥÷1.45), off below stage 10 (fresh settles
+  byte-identical). Catch-up surfaces on Results as **Momentum**; the taper stays silent.
+  Measured: molt cadence back on target, dead-progression/power-spike detectors to ZERO.
+- ✅ **Genome Rank Dividend** (2026-07, IDLE-HARVEST.md §rank): idle rate ×(1 + 4%·(rank−1)) —
+  the mastery ladder feeds the harvest; rank I exactly ×1; guardrail prices it (idle < active
+  holds); Harvest screen chips the bonus.
 - ✅ **Progression Loop Engine** (`state/progressionLoop.ts` + `LoopDirective` on Results/Campaign/
   Infinite) — 8 enforced invariants (walls form, farms pay, caps gate, prestige ring) — PROGRESSION-LOOP.md
 - ✅ **Progression Simulator** (`dev/progressionSim.ts`, `npm run sim:progression`) — virtual
-  accounts over the REAL meta layer, hour-band report + problem detectors — PROGRESSION_REPORT.md
-- 🟨 Findings docket: optimal-play pacing hot (molt cadence), mid-late sink thinning — tuning waits
-  on the change protocol (BALANCE_ARCHITECTURE.md §4/§5)
+  accounts over the REAL meta layer, hour-band report + problem detectors (dead-progression is
+  molt-aware since 2026-07: a mid-band Molt is permanent progress, not a dead zone) — PROGRESSION_REPORT.md
 
 **Compressed summary (Balance architecture).** *Architecture:* four pillars. The Difficulty
 Director composes every threat/economy scalar from data (DifficultyDef, DoctrineWarp, WAVE_*/

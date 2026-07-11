@@ -31,6 +31,14 @@ describe('problem detectors (synthetic traces)', () => {
     expect(f.deadProgression).toEqual(['10h→50h']);
   });
 
+  it('a Molt inside the band is permanent progress — its power trough is NOT dead progression', () => {
+    const f = detectProblems([
+      cp({ hours: 10, power: 5000, farmRuns: 0, molts: 3 }),
+      cp({ hours: 50, power: 4200, farmRuns: 40, molts: 4 }), // molted mid-band: upgrades reset, cells minted
+    ]);
+    expect(f.deadProgression).toEqual([]);
+  });
+
   it('flags a wall stall: same frontier, readiness flat, farming the whole band', () => {
     const f = detectProblems([
       cp({ hours: 10, stage: 30, readiness: 0.8, farmRuns: 0, power: 5000 }),
@@ -65,6 +73,10 @@ describe('live mini-simulation (real meta layer)', () => {
     // nudged 0xbeef's purchase timing across the same 15h→30h threshold (0.52% growth). The
     // 8-seed sweep stays 6/8 healthy (15–168% growth, every account stage 113+), so the same
     // luck-artifact call applies — and the ORIGINAL seed is healthy again under the new economy.
+    // (2026-07, adaptive-seam activation: the ahead-taper shifted this trajectory's molt timing
+    // into the 5h→15h checkpoint's trough — fixed at the INSTRUMENT, not the seed: the dead-
+    // progression detector now recognizes a mid-band Molt as permanent progress. See
+    // detectProblems + the synthetic molt-trough case above.)
     const lootRng = new Rng(0x51ce);
     const rnd = vi.spyOn(Math, 'random').mockImplementation(() => lootRng.next());
     try {

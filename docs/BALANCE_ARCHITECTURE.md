@@ -120,6 +120,42 @@ Changes went through the §4 protocol (named constants → simulate before/after
 pacing envelope (`progressionSim.test.ts`) passed unmodified; the consolation contract is
 pinned in `meta.test.ts` (frontier-only, depth-scaled, superseded on the clear).
 
+---
+
+## 7. Round 3 — ADAPTIVE SEAM ACTIVATION (2026-07-11, 8 accounts × 1000h before/after)
+
+**The finding (regenerated PROGRESSION_REPORT, 2026-07-11):** the liveops-era systems shipped
+since round 2 (Account Level rewards, quests/directives, contracts, idle harvest, transcendence)
+each landed individually calibrated but collectively re-inflated the early game — molts@10h
+**8 → 12** (+50% past the tuned milestone cadence), stage@10h 67 → 80, farm share 0% at 10h
+(no wall forms in a first session). Deep bands showed the opposite failure: **6 dead-progression
+bands** (150h+ farm income under the next geometric sink price) and a **×16 p10–p90 power
+spread** at 500h (unlucky accounts falling off the curve entirely).
+
+**Applied changes** (§4 protocol; parity/pinned tests updated with them):
+
+| Lever | Before | After | Why |
+|---|---|---|---|
+| `ECONOMY_ADAPTIVE.catchUpPerPowerGap` | 0 | **0.35** | deep farm keeps out-earning the next sink; luck spread compresses |
+| `ECONOMY_ADAPTIVE.aheadTaperPerPowerGap` | 0 | **0.5** | the aggregate faucet stack stops compounding into runaway cadence |
+| `ECONOMY_ADAPTIVE.maxCatchUpGap / maxAheadGap` | — | **2 / 0.9** | saturation clamps: ≤×1.7 catch-up, ≥÷1.45 taper — extremes bend, never break |
+| `ECONOMY_ADAPTIVE.minStage` | — | **10** | onboarding floor — fresh settles byte-identical (pinned) |
+| `meta.finishRun` wiring | inputs never passed | **powerGap once per settle → both chains** | the seams were built for this; activation is the designed counter-mechanism, not a new system |
+| `IDLE.rankGrowth` (Genome Rank Dividend) | — | **0.04** | interlink: the mastery ladder feeds idle (+4%/rank past I; guardrail-priced) |
+| Dead-progression detector | raw checkpoint power | **molt-aware** | a mid-band Molt is permanent progress; its power trough no longer masquerades as broken conversion (the artifact behind this test's three historical seed re-pins) |
+
+**Measured results** (8 × 1000h medians, before → after): molts@10h **12 → 8** (the round-2
+target exactly); stage@10h 80 → 72 with farm share **0% → 4%** (the wall returns to session
+one); dead-progression bands **6 → 0**; power spikes 10 → 8 (molt-batch texture, unchanged
+philosophy); wall-stall/sink-exhaustion 0 → 0. The headline: **cohort compression** — 500h
+power p10–p90 **×16.2 → ×3.6**, 1000h **×11.6 → ×1.6**, with the p10 floor at 1000h rising
+8.1M → 31.3M (unlucky accounts stay on the curve) while deep reach held (stage 232 → 229).
+Surfacing: the catch-up side ships on Results as **Momentum** (>×1 only); the taper is silent.
+
+**Watch items:** power-spike bands (8) remain molt-batch texture — still deferred to prestige
+layers 2+; `DIRECTOR_ADAPTIVE` (threat-side) stays 0, economy-side pacing sufficed; the persona
+matrix (`npm run sim:report`) regenerates next review round against the new economy.
+
 **Measured results** (persona matrix 11×4×400h, before → after the amendment):
 signals **26 → 15**, reported **top-20 → top-15**. Median finals — Efficient power
 **10.2M → 24.5M**, acquisitions **606 → 755** (Antigen picks now spent + counted + the

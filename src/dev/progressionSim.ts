@@ -303,7 +303,13 @@ export function detectProblems(cps: SimCheckpoint[]): SimFlags {
     const b = cps[i];
     const band = `${a.hours}h→${b.hours}h`;
     const farmed = b.farmRuns > a.farmRuns;
-    if (farmed && b.power < a.power * 1.01) flags.deadProgression.push(band);
+    // Dead progression = farming that produced no PERMANENT gains. A Molt inside the band is
+    // permanent progress by definition (it converts the upgrade pile into compounding cells and
+    // legitimately TROUGHS raw power at the checkpoint) — the flag fires only on molt-less flat
+    // bands, so molt-timing can't masquerade as broken conversion (the artifact behind this
+    // detector's historical seed re-pins; instrument correction 2026-07, same family as the
+    // cohort-relative spike detector in balanceReport.ts).
+    if (farmed && b.power < a.power * 1.01 && b.molts === a.molts) flags.deadProgression.push(band);
     if (farmed && b.stage === a.stage && b.readiness <= a.readiness + 0.005) flags.wallStall.push(band);
     if (b.power > a.power * 8) flags.powerSpike.push(band);
     if (a.unspentShards > 5000 && b.unspentShards > a.unspentShards * 2) flags.sinkExhaustion.push(band);

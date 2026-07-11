@@ -20,7 +20,7 @@ import { highestCampaignStage, isBossRushUnlocked, isCutsceneUnlocked, isDailyUn
 import { CUTSCENES, cutsceneEffects, cutsceneForMega } from '../core/cutscenes';
 import type { CutsceneDef } from '../core/cutscenes';
 import { downloadText, readTextFile } from '../save/saveFile';
-import { TOWER_DEFS, CAMPAIGN_REWARDS, CHESTS, DAILY, ECON, EQUIP_DROP_CHANCE, HERO_DEFS, HERO_ORDER, HERO_SLOTS, IDLE, INFINITE_REWARD_QUALIFY_FRAC, MASTERY, META_UPGRADES, RUN_CHEST, RUSH, STAR, TOWER_ORDER, campaignStarCap, chestForWave, endlessLootTaper, endlessTaper, heroForkTiers, heroSkillCount, resolveHeroKit, upgradeEffectUnits } from '../core/config';
+import { TOWER_DEFS, CAMPAIGN_REWARDS, CHESTS, DAILY, ECON, ECONOMY_ADAPTIVE, EQUIP_DROP_CHANCE, HERO_DEFS, HERO_ORDER, HERO_SLOTS, IDLE, INFINITE_REWARD_QUALIFY_FRAC, MASTERY, META_UPGRADES, RUN_CHEST, RUSH, STAR, TOWER_ORDER, campaignStarCap, chestForWave, endlessLootTaper, endlessTaper, heroForkTiers, heroSkillCount, resolveHeroKit, upgradeEffectUnits } from '../core/config';
 import { dailyKey, isPrevDayKey } from '../core/daily';
 import { offerAvailable, offerValueIchor, premiumOfferById } from '../core/premium';
 import { EMERGENCY_PICKS, RESEARCH, activeResearchRewards, researchDayKey, researchRewardById, researchScale, specimenRarity } from '../core/research';
@@ -93,7 +93,7 @@ import { resolveDifficulty } from '../core/difficulty';
 import { doctrineEconomy, economyFor, lootQualityTier, modeCoreMult, modeLootMult, modeMasteryMult } from '../core/difficultyDirector';
 import { doctrineRank } from '../core/doctrines';
 import { FOUNDING_TITLES, sigilById } from '../core/identity';
-import { coreShardIncome, lootPointIncome } from '../core/economyDirector';
+import { adaptiveIncomeMult, coreShardIncome, lootPointIncome } from '../core/economyDirector';
 import { predictBossRush, predictCampaign, predictInfinite, calibrate } from '../core/predict';
 import type { RouletteReward } from './bioRoulette';
 import type { Prediction } from '../core/predict';
@@ -1515,6 +1515,11 @@ export interface RunOutcome {
   // Account Level (docs/ACCOUNT-LEVEL.md): this settle's Account-XP delta — total gained (run +
   // achievements), the before/after levels, and every level crossed with its procedural reward.
   accountXp: AccountXpDelta;
+  // MOMENTUM (docs/ECONOMY_FORMULAS.md §5): the adaptive catch-up factor this settle applied
+  // when the account was behind its frontier bar (>1 ⇒ Results shows the boost). The ahead-taper
+  // side is deliberately NOT surfaced — it reads as natural pacing, and the factor trace stays
+  // inspectable for debugging either way. Absent when the seam was off or ×1.
+  momentum?: number;
 }
 
 /** One Account Level crossed during a settle, with its generated reward (docs/ACCOUNT-LEVEL.md).
@@ -1599,6 +1604,10 @@ export interface IdleHarvestView {
   drops: { id: string; name: string; icon: string; rare: boolean; minCampaign?: number; minGenomeRank?: number; eligible: boolean }[];
   ledger: SaveData['idle'];
   cores: number;
+  /** GENOME RANK DIVIDEND (docs/IDLE-HARVEST.md §rank): the rank index feeding the rate and
+   *  its bonus fraction (0 at rank I) — the screen shows the interlink, not just the total. */
+  rankIndex: number;
+  rankBonus: number;
 }
 
 /** Static display rows for the drop table (gates shown as "work toward it" copy). */
@@ -2139,6 +2148,14 @@ export const meta = {
       : 0;
     const docEcon = doctrineEconomy(result.doctrine, docRank);
     const doctrineEssence = docEcon.essenceFor(result.wave);
+    // Adaptive income seam (docs/ECONOMY_FORMULAS.md §5, ACTIVATED 2026-07 — BALANCE_ARCHITECTURE
+    // §7 round 3): the account's distance from its OWN frontier bar tilts settle income — behind
+    // the bar catches up (deep farm keeps out-earning the next geometric sink), far ahead cools
+    // (the post-liveops faucet stack stops compounding into runaway molt cadence). OFF below the
+    // onboarding floor, so fresh-account settles stay byte-identical (pinned tests unaffected).
+    const adaptive = highestCampaignStage(save) >= ECONOMY_ADAPTIVE.minStage
+      ? { powerGap: recommendedPowerScore(highestCampaignStage(save) + 1, 'standard') / Math.max(1, composePower(accountPowerParts(save)).score) - 1 }
+      : undefined;
     // Genome Cores ride the economy framework's composition (docs/ECONOMY_FORMULAS.md) — the
     // same factor chain, one owner, with an explainable trace.
     const shardsEarned = Math.floor(coreShardIncome({
@@ -2150,6 +2167,7 @@ export const meta = {
       endlessRewardMult,
       modeCoreMult: coreMult,
       doctrineRewardMult: docEcon.rewardMult,
+      adaptive,
     }).total() * researchBoost.coresMult
       // LiveOps spotlight weeks: the live mode's lane gets its window multiplier.
       * (result.bossRush ? lo.rushShardMult : result.endless ? lo.endlessShardMult : result.campaignStage !== undefined ? lo.campaignShardMult : 1)
@@ -2222,6 +2240,7 @@ export const meta = {
       // Infinite depth-camping taper (docs/MODE-IDENTITY.md §anti-grind) — same curve as the live
       // meter, keyed on result.wave so run-end and live banking agree. Identity for non-endless.
       endlessTaperMult: result.endless ? endlessLootTaper(result.wave) : 1,
+      adaptive, // the same seam as cores — behind-the-bar accounts fill containers faster
     }).total()) + rushLootBonus;
     const lootAdv = lootEligible
       ? addProgress(save.lootQueue, Math.max(0, lootPoints - runLootBanked), Math.random, lootBiasFor(save, result.difficulty))
@@ -2482,10 +2501,12 @@ export const meta = {
       to: levelFromXp(acctAfter),
       levelUps: pendingAccountLevelUps.splice(0),
     };
+    const momentumMult = adaptive ? adaptiveIncomeMult(adaptive) : 1;
     const outcome: RunOutcome = {
       passXp,
       ...(passLevelUp ? { passLevelUp } : {}),
       accountXp,
+      ...(momentumMult > 1.005 ? { momentum: momentumMult } : {}),
       reward: { shardsEarned, newBest },
       mastery,
       heroMastery,
@@ -3800,7 +3821,7 @@ export const meta = {
   idleView(now = Date.now()): IdleHarvestView {
     const save = store.get();
     const ctx = idleGateContext(save);
-    const acc = idleAccrual(now - (save.idle.lastCollect || now), highestCampaignStage(save), save.idle.nodes);
+    const acc = idleAccrual(now - (save.idle.lastCollect || now), highestCampaignStage(save), save.idle.nodes, ctx.genomeRankIndex);
     const nodes = IDLE_NODES.map((def) => {
       const level = save.idle.nodes[def.id] ?? 0;
       const gate = idleNodeGate(def, level + 1, ctx);
@@ -3815,6 +3836,8 @@ export const meta = {
       drops: [...IDLE_DROPS_VIEW].map((d) => ({ ...d, eligible: eligible.has(d.id) })),
       ledger: { ...save.idle },
       cores: save.shards,
+      rankIndex: ctx.genomeRankIndex,
+      rankBonus: IDLE.rankGrowth * Math.max(0, ctx.genomeRankIndex - 1),
     };
   },
 
@@ -3833,9 +3856,9 @@ export const meta = {
       if (last > maxLast) persist({ ...save, idle: { ...save.idle, lastCollect: maxLast } });
       return null;
     }
-    const acc = idleAccrual(now - last, highestCampaignStage(save), save.idle.nodes);
-    if (acc.rawHours * 60 < IDLE.minCollectMinutes) return null;
     const ctx = idleGateContext(save);
+    const acc = idleAccrual(now - last, highestCampaignStage(save), save.idle.nodes, ctx.genomeRankIndex);
+    if (acc.rawHours * 60 < IDLE.minCollectMinutes) return null;
     const rng = new Rng(((Math.floor(now / 1000) ^ Math.floor(last / 1000)) >>> 0) || 1);
     const roll = rollIdleHarvest(acc, save.idle.nodes, ctx, () => rng.next());
     let next: SaveData = { ...save };

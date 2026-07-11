@@ -15,7 +15,7 @@ import {
   IDLE_DROPS, IDLE_NODES, IDLE_NODE_BY_ID,
   eligibleIdleDrops, idleAccrual, idleBloomChance, idleCapHours, idleGateLabel, idleGateMet,
   idleGrantValue, idleNodeCost, idleNodeGate, idleOfflineEff, idleOverflowFrac,
-  idleSoft, idleSuggestion, rollIdleHarvest,
+  idleRatePerHour, idleSoft, idleSuggestion, rollIdleHarvest,
 } from './idleHarvest';
 import type { IdleGateContext, IdleNodeLevels } from './idleHarvest';
 import { ECON, IDLE } from './config';
@@ -73,6 +73,17 @@ describe('accrual — the cap clamps, junk mints nothing, idle never beats the w
     const top = IDLE.capHoursLadder[IDLE.capHoursLadder.length - 1];
     expect(idleCapHours({ capacity: 8 })).toBe(top + IDLE.capHoursBeyond);
     expect(idleCapHours({ capacity: 20 })).toBe(top + 13 * IDLE.capHoursBeyond);
+  });
+
+  it('GENOME RANK DIVIDEND: rank I (or omitted) is exactly ×1; each rank adds IDLE.rankGrowth', () => {
+    // The mastery-ladder ↔ idle interlink (docs/IDLE-HARVEST.md §rank, 2026-07): the rate model
+    // must stay byte-stable for fresh accounts and grow linearly with the rank index.
+    expect(idleRatePerHour(10, {})).toBe(idleRatePerHour(10, {}, 1)); // omitted ≡ rank I
+    expect(idleRatePerHour(10, {}, 0)).toBe(idleRatePerHour(10, {}, 1)); // junk floors to ×1
+    const base = idleRatePerHour(40, {}, 1);
+    expect(idleRatePerHour(40, {}, 5)).toBeCloseTo(base * (1 + IDLE.rankGrowth * 4), 10);
+    expect(idleRatePerHour(40, {}, 11)).toBeCloseTo(base * (1 + IDLE.rankGrowth * 10), 10); // XI+ keeps paying
+    expect(idleAccrual(10 * H, 40, {}, 5).budget).toBeCloseTo(idleAccrual(10 * H, 40, {}).budget * (1 + IDLE.rankGrowth * 4), 8);
   });
 
   it('offline efficiency climbs 0.7 → 1.0 and holds there', () => {
@@ -209,9 +220,10 @@ describe('the drop registry — gates, weights, affordability floors', () => {
 // faucets (loot meter, essence, shard drops, quests, XP). Beating a quarter of THAT floor is a
 // balance regression.
 describe('THE guardrail — idle < active at every band, including worst cases', () => {
-  /** Mean idle value of one collect, per wall-clock hour, over many seeded rolls. */
+  /** Mean idle value of one collect, per wall-clock hour, over many seeded rolls. Prices the
+   *  FULL rate model including the Genome Rank dividend (ctx carries the band's rank). */
   function idleValuePerWallHour(stage: number, nodes: IdleNodeLevels, rawHours: number, ctx: IdleGateContext): number {
-    const acc = idleAccrual(rawHours * H, stage, nodes);
+    const acc = idleAccrual(rawHours * H, stage, nodes, ctx.genomeRankIndex);
     let sum = 0;
     const N = 300;
     for (let seed = 1; seed <= N; seed++) {

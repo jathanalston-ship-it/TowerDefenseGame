@@ -53,9 +53,12 @@ export interface EconomyAdaptiveInputs {
 }
 
 /** The adaptive income seam: catch-up boosts a behind account, the taper cools a runaway
- *  one. Exactly 1 while the ECONOMY_ADAPTIVE weights are 0 (golden/meta-test safe). */
+ *  one. Exactly 1 when no inputs are passed (fresh/onboarding settles stay byte-identical).
+ *  The gap is clamped on BOTH sides so extreme accounts saturate instead of exploding:
+ *  catch-up tops out at ×(1 + w·maxCatchUpGap), the taper at ÷(1 + w·maxAheadGap). */
 export function adaptiveIncomeMult(a?: EconomyAdaptiveInputs): number {
-  const gap = a?.powerGap ?? 0;
+  const raw = a?.powerGap ?? 0;
+  const gap = Math.min(ECONOMY_ADAPTIVE.maxCatchUpGap, Math.max(-ECONOMY_ADAPTIVE.maxAheadGap, raw));
   return gap >= 0
     ? 1 + ECONOMY_ADAPTIVE.catchUpPerPowerGap * gap
     : 1 / (1 + ECONOMY_ADAPTIVE.aheadTaperPerPowerGap * -gap);

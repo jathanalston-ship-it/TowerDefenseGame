@@ -22,7 +22,8 @@ The core is pure (no DOM, no state, no `Math.random`) — the roll takes a seede
 
 ```
 soft(L)      = 1 + per·L₀·ln(1 + L/L₀)         L₀ = 50; exactly 1 at L 0 (golden-safe)
-rate(stage)  = 5 × (1 + 0.02·(stage−1)) × soft(speed)      core-equivalents / effective hour
+rate(stage, rank) = 5 × (1 + 0.02·(stage−1)) × (1 + 0.04·(rank−1)) × soft(speed)
+                                                core-equivalents / effective hour
 capHours(L)  = [8,10,12,16,24,36,48,72][L] … then 72 + 12·(L−7)      (infinite)
 effHours     = min(raw, cap) + overflowFrac·min(max(raw−cap,0), cap)  (≤ raw, always)
 offlineEff   = min(1, 0.7 + 0.03·offline)       idle may APPROACH play, never pass it
@@ -33,6 +34,17 @@ The budget is the collect's total core-equivalent value; the roll splits it into
 slices and shapes each through the drop registry. `IDLE.valuePerUnit` prices every grant kind,
 so `idleGrantValue` can price a whole harvest — that pricing IS the guardrail's ruler and the
 ceremony's "efficiency" stat.
+
+## §rank — the Genome Rank dividend (2026-07)
+
+The mastery ladder feeds the harvest: every Genome Rank past I adds `IDLE.rankGrowth` (+4%)
+to the rate — "the Hive harvests smarter as the organism masters more." Rank I (or an omitted
+index) is exactly ×1, so fresh accounts and historical call sites are byte-stable; ranks XI+
+keep paying forever (the ladder is infinite, so is the dividend). The rate already rode stage;
+now the game's TWO long-arc breadth meters (campaign depth + genome mastery) both express here,
+which gives deep accounts a visible reason to touch every system the rating weighs. The screen
+shows the dividend as its own chip (`IdleHarvestView.rankIndex/rankBonus`), and the §guardrail
+prices it (its context carries the band's realistic rank), so idle < active holds dividend-in.
 
 ## The evolution tree — infinite, soft-scaled, six-lens gated
 
