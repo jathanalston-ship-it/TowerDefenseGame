@@ -5556,6 +5556,130 @@ kbd {
   .hub-topbar { padding: 0 12px; gap: 10px; overflow-x: auto; }
   .hub-screen { padding: 12px; padding-bottom: calc(12px + var(--safe-b)); }
 }
+
+/* ── PORTRAIT SHELL (docs/RESPONSIVE-DESIGN.md §mobile-shell) ─────────────────────
+   On phones held upright the hub is a different machine: a fixed bottom TAB BAR
+   (Home / Battle / Evolve / Armory / More), per-tab INDEX PAGES of self-describing
+   rows (glyph + name + blurb), and a sticky BACK HEADER on drilled-in screens.
+   The rail/drawer never renders (Hub.tsx skips it on the portrait profile). */
+[data-layout='portrait'] .hub { grid-template-columns: 1fr; }
+[data-layout='portrait'] .hub-topbar { padding: 0 10px; gap: 8px; overflow-x: auto; scrollbar-width: none; }
+[data-layout='portrait'] .hub-topbar::-webkit-scrollbar { display: none; }
+[data-layout='portrait'] .hub-screen { padding: 10px; padding-bottom: calc(84px + var(--safe-b)); }
+
+.mtab-bar {
+  position: fixed;
+  left: 0; right: 0; bottom: 0;
+  z-index: 700; /* above toasts, below modals (900+) — same tier as the drawer it replaces */
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 2px;
+  padding: 6px max(8px, var(--safe-r)) calc(6px + var(--safe-b)) max(8px, var(--safe-l));
+  background: color-mix(in srgb, var(--panel) 94%, transparent);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border-top: 1px solid var(--line-strong);
+}
+.mtab {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  min-height: 52px;
+  padding: 5px 2px;
+  border: none;
+  background: transparent;
+  border-radius: var(--r-sm);
+  color: var(--muted);
+}
+.mtab-glyph { position: relative; font-size: 20px; line-height: 1; }
+.mtab-l { font-size: 10px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; }
+.mtab.on {
+  color: var(--text);
+  background: color-mix(in srgb, var(--nav-accent) 10%, var(--panel-3));
+  box-shadow: inset 0 2px 0 color-mix(in srgb, var(--nav-accent) 65%, transparent);
+}
+.mtab.on .mtab-glyph { color: color-mix(in srgb, var(--nav-accent) 70%, var(--text)); }
+
+/* A tab's index page — the "what is all this?" surface. Every row explains itself. */
+.mnav-index { display: flex; flex-direction: column; gap: 8px; }
+.mnav-index-h {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 13px; font-weight: 900; letter-spacing: 0.16em; text-transform: uppercase;
+  color: var(--muted); padding: 4px 2px;
+}
+.mnav-index-glyph { font-size: 16px; color: var(--text); }
+.mnav-row {
+  display: grid;
+  grid-template-columns: 46px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  min-height: 64px;
+  padding: 10px 12px;
+  border-radius: var(--r-md);
+  border: 1px solid var(--line);
+  background: var(--panel-2);
+  text-align: left;
+}
+.mnav-row:active { background: var(--panel-3); }
+.mnav-glyph {
+  width: 46px; height: 46px;
+  display: grid; place-items: center;
+  border-radius: 50%;
+  font-size: 20px;
+  background: var(--panel-deep);
+  border: 1px solid var(--line-strong);
+}
+.mnav-body { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.mnav-name { display: flex; align-items: center; gap: 8px; font-size: 16px; font-weight: 800; }
+.mnav-blurb { font-size: 12px; line-height: 1.35; color: var(--muted); }
+.mnav-end { display: flex; align-items: center; gap: 8px; }
+.mnav-pct { font-size: 11px; font-weight: 800; font-variant-numeric: tabular-nums; color: var(--muted); }
+.mnav-chev { font-size: 20px; line-height: 1; color: var(--muted); }
+.mnav-lock { font-size: 14px; }
+.mnav-row.is-locked { opacity: 0.66; }
+.mnav-row.is-locked .mnav-glyph { filter: saturate(0.4); }
+.mnav-row.is-locked .mnav-blurb { color: var(--warn); }
+/* Inline badge pill for index rows (the absolute corner-dot variant needs a glyph box). */
+.nav-badge.is-inline { position: static; animation: none; }
+
+/* Sticky back header on drilled-in portrait screens. */
+.mpage-head {
+  position: sticky;
+  top: -10px; /* hugs the scroll edge through .hub-screen's 10px padding */
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: -4px -10px 8px;
+  padding: 8px 10px;
+  background: color-mix(in srgb, var(--bg) 88%, transparent);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--line);
+}
+.mpage-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 40px;
+  padding: 0 14px;
+  border-radius: 999px;
+  border: 1px solid var(--line-strong);
+  background: var(--panel-2);
+  font-weight: 800;
+  font-size: 13px;
+}
+.mpage-title {
+  font-weight: 900;
+  font-size: 16px;
+  letter-spacing: 0.04em;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 /* Tab switch / menu open: the screen content RISES into place. `.hub-screen` remounts on every
    nav change (key={nav}), so this fires per switch — one animation; the panels inside ride
    along (animating each separately would double the motion). */
@@ -5858,20 +5982,11 @@ kbd {
 .dev-confirm-go { background: var(--danger); color: #fff; border-color: var(--danger); }
 .dev-confirm-go:disabled { opacity: 0.4; cursor: not-allowed; filter: none; }
 
-/* Narrow screens: the rail collapses to a top strip */
+/* Narrow screens: settings/detail column pairs stack. (The old "rail collapses to an icon
+   strip" block died with the portrait shell — it stripped every nav label inside the drawer,
+   the exact first-timer blocker the mobile rebuild removed. The drawer now shows the FULL
+   labelled rail; portrait replaces it with the bottom tab bar below.) */
 @media (max-width: 860px) {
-  .hub { grid-template-columns: 1fr; grid-template-rows: auto 1fr; }
-  .hub-nav { flex-direction: row; flex-wrap: wrap; align-items: center; gap: 6px; padding: 10px; border-right: none; border-bottom: 1px solid var(--line); }
-  .hub-brand { border-bottom: none; padding: 4px 8px; }
-  .hub-navlist { flex-direction: row; flex-wrap: wrap; overflow: visible; gap: 6px; }
-  .hub-navgroup { display: contents; } /* groups dissolve → every item flows into one icon row */
-  .hub-navgroup + .hub-navgroup { margin: 0; border: none; padding: 0; }
-  .hub-navgroup-h { display: none; }
-  .hub-navlabel { display: none; }
-  .hub-ringpct { display: none; }
-  .hub-navitem { padding: 8px; }
-  .hub-navitem.on { border-radius: var(--r-sm); border-right-color: color-mix(in srgb, var(--nav-accent) 42%, transparent); }
-  .hub-power { display: none; }
   .hub-cols { grid-template-columns: 1fr; }
 }
 

@@ -52,61 +52,13 @@ import { WardrobeReveal } from './components/WardrobeReveal';
 import { applyWardrobeDressing } from './wardrobeDressing';
 import { LabAtmosphere } from './LabAtmosphere';
 import { PowerBadge } from './components/PowerScore';
+import { navGroups, mobileTabs, tabOf, type NavKey, type MobileTabKey } from './navModel';
+import { MobileTabBar, MobileTabIndex, MobilePageHead } from './MobileShell';
+import { useLayoutProfile } from './layoutProfile';
 
-export type NavKey =
-  | 'home' | 'campaign' | 'infinite' | 'bossrush' | 'daily' | 'quests' | 'season'
-  | 'towers' | 'heroes' | 'evolution' | 'genes' | 'mulligans' | 'hive' | 'harvest'
-  | 'vault' | 'market' | 'equipment' | 'gearcodex' | 'phenotypes' | 'collection'
-  | 'store'
-  | 'profile' | 'settings' | 'help';
-
-interface NavItem { key: NavKey; label: string; mono: string }
-/** `compact` renders the group as a row of labelled icon squares (the Account trio) so every
- * destination — Settings included — stays visible without scrolling the rail. `headerless`
- * drops the group title when it would merely repeat its only item's label (the Store). */
-interface NavGroup { title: string; accent: string; items: NavItem[]; compact?: boolean; headerless?: boolean }
-
-// The nav is GROUPED by intent (the user-facing IA): Play / Progression / Collection / Account.
-// Adding a screen is one row in the right group — the renderer, badges, and rings are generic.
-const navGroups = (): NavGroup[] => [
-  { title: t('nav.group.play'), accent: 'var(--vital)', items: [
-    { key: 'home', label: t('nav.home'), mono: '⌂' },
-    { key: 'campaign', label: t('nav.campaign'), mono: '⬡' },
-    { key: 'infinite', label: t('nav.infinite'), mono: '∞' },
-    { key: 'bossrush', label: t('nav.bossrush'), mono: '☠' },
-    { key: 'daily', label: t('nav.daily'), mono: '☀' },
-    { key: 'quests', label: t('nav.quests'), mono: '✪' },
-    { key: 'season', label: t('nav.season'), mono: '❁' },
-  ] },
-  { title: t('nav.group.progression'), accent: 'var(--kinetic)', items: [
-    { key: 'towers', label: t('nav.towers'), mono: 'T' },
-    { key: 'heroes', label: t('nav.heroes'), mono: 'H' },
-    { key: 'evolution', label: t('nav.evolution'), mono: '✷' },
-    { key: 'genes', label: t('nav.genes'), mono: '⌬' },
-    { key: 'mulligans', label: t('nav.mulligans'), mono: '⊛' },
-    { key: 'hive', label: t('nav.hive'), mono: '⬡' }, // Hive Construction (docs/HIVE-CONSTRUCTION.md)
-    { key: 'harvest', label: t('nav.harvest'), mono: '⬣' }, // Idle Harvest (docs/IDLE-HARVEST.md)
-  ] },
-  { title: t('nav.group.collection'), accent: 'var(--gold)', items: [
-    { key: 'vault', label: t('nav.vault'), mono: '◈' },
-    { key: 'market', label: t('nav.market'), mono: '◆' },
-    { key: 'equipment', label: t('nav.equipment'), mono: '⛨' },
-    { key: 'gearcodex', label: t('nav.gearcodex'), mono: '❑' },
-    { key: 'phenotypes', label: t('nav.phenotypes'), mono: '❖' },
-    { key: 'collection', label: t('nav.collection'), mono: '▤' },
-  ] },
-  // The Premium Store sits in its OWN group — monetization stays visibly separate from
-  // gameplay progression (docs/PREMIUM-STORE.md §philosophy). Headerless: the divider +
-  // viral accent carry the separation; a "STORE" title over a "STORE" row said it twice.
-  { title: t('nav.group.store'), accent: 'var(--viral)', headerless: true, items: [
-    { key: 'store', label: t('nav.store'), mono: '✷' },
-  ] },
-  { title: t('nav.group.account'), accent: 'var(--muted)', compact: true, items: [
-    { key: 'profile', label: t('nav.profile'), mono: '◑' },
-    { key: 'help', label: t('nav.help'), mono: '?' },
-    { key: 'settings', label: t('nav.settings'), mono: '⚙' },
-  ] },
-];
+// The nav IA (groups + portrait tabs) lives in navModel.ts — the single source of truth this
+// shell, the portrait shell, and the validation layer (navModel.test / mobilecheck) all share.
+export type { NavKey } from './navModel';
 
 // Accent tint per group rides the group row itself (localization-safe — titles translate).
 
@@ -242,6 +194,13 @@ export function Hub({
   const [nav, setNav] = useState<NavKey>('home');
   useLocale(); // nav labels re-resolve on language switch
   const [navOpen, setNavOpen] = useState(false); // narrow-shell drawer (docs/RESPONSIVE-DESIGN.md)
+  // Portrait shell (docs/RESPONSIVE-DESIGN.md §mobile-shell): bottom tabs + index pages replace
+  // the rail/drawer. `mTab`+`mIndex` mean "browsing a tab's index"; a drilled-in screen derives
+  // its tab from `nav` so deep links (What's New, Command Center CTAs) light the right tab.
+  const { profile } = useLayoutProfile();
+  const mobileShell = profile === 'portrait';
+  const [mTab, setMTab] = useState<MobileTabKey>('home');
+  const [mIndex, setMIndex] = useState(false);
   const save = meta.use();
   const ackTick = notifications.use(); // re-render when a badge is acknowledged
   const cells = meta.prestigeView().cells;
@@ -285,6 +244,16 @@ export function Hub({
     meta.noteNavVisit(k); // exposure ledger (docs/PROGRESSION-GATING.md §director)
     setNav(k);
     setNavOpen(false); // picking a destination closes the narrow-shell drawer
+    setMIndex(false); // and leaves any portrait index page
+  };
+
+  // Portrait tab bar: HOME jumps straight to the Command Center; the rest open their index page.
+  const activeTab: MobileTabKey = mIndex ? mTab : tabOf(nav);
+  const tapTab = (k: MobileTabKey): void => {
+    if (k === 'home') { go('home'); return; }
+    audio.cue('ui');
+    setMTab(k);
+    setMIndex(true);
   };
 
   // What's New "Open ▸" CTA (and any future out-of-hub caller) navigates through the bus.
@@ -297,7 +266,8 @@ export function Hub({
       {/* Idle Harvest return ceremony (docs/IDLE-HARVEST.md §presentation) — once the screen
           itself has revealed, a ripe hopper greets the returning player (never a bare popup). */}
       {featureRevealed(save, 'harvest') && <HarvestArrival onVisitHarvest={() => go('harvest')} />}
-      {navOpen && <div className="hub-nav-veil" onClick={() => setNavOpen(false)} aria-hidden />}
+      {!mobileShell && navOpen && <div className="hub-nav-veil" onClick={() => setNavOpen(false)} aria-hidden />}
+      {!mobileShell && (
       <nav className={`hub-nav${navOpen ? ' is-open' : ''}`} aria-label="Headquarters">
         <div className="hub-brand">ASSIMILATE</div>
         <div className="hub-navlist">
@@ -376,12 +346,15 @@ export function Hub({
           <PowerBadge />
         </div>
       </nav>
+      )}
 
       <div className="hub-main">
         <header className="hub-topbar" data-tour="topbar">
+          {!mobileShell && (
           <button className="hub-burger" onClick={() => setNavOpen((v) => !v)} aria-label="Open navigation" aria-expanded={navOpen}>
             ☰ <span className="hub-burger-l">Menu</span>
           </button>
+          )}
           {/* The wallet (+ the account level chip) — standings live on the Home board, not up
               here. Chips reveal with their currency (docs/PROGRESSION-GATING.md §economy): a chip
               never precedes its purpose, so the first-session top bar reads calm. */}
@@ -396,7 +369,26 @@ export function Hub({
           )}
         </header>
 
-        <section className="hub-screen" key={nav}>
+        <section className="hub-screen" key={mobileShell && mIndex ? `midx-${mTab}` : nav}>
+          {mobileShell && mIndex ? (
+            <MobileTabIndex
+              tab={mobileTabs().find((tb) => tb.key === mTab) ?? mobileTabs()[0]}
+              save={save}
+              badges={badges}
+              progress={progress}
+              teaserOf={teaserOf}
+              go={go}
+            />
+          ) : (
+          <>
+          {/* Drilled-in portrait screens carry a sticky back header (Home IS its tab's root). */}
+          {mobileShell && nav !== 'home' && (
+            <MobilePageHead
+              title={featureView(save, nav).def.name}
+              backLabel={mobileTabs().find((tb) => tb.key === tabOf(nav))?.label ?? t('mnav.home')}
+              onBack={() => { setMTab(tabOf(nav)); setMIndex(true); }}
+            />
+          )}
           {/* Any screen whose feature hasn't revealed shows its unlock briefing instead —
               one gate for every wing (the old per-mode ModeLocked, generalized). */}
           {!featureRevealed(save, nav) && <FeatureLocked view={featureView(save, nav)} go={go} />}
@@ -428,8 +420,19 @@ export function Hub({
           {nav === 'settings' && <SettingsScreen onReplayTutorial={onReplayTutorial} onReplayTour={onReplayTour} onReplayIntro={onReplayIntro} />}
           {nav === 'help' && <HelpWiki onNavigate={(k) => go(k as NavKey)} onReplayTour={onReplayTour} />}
           </>}
+          </>
+          )}
         </section>
       </div>
+
+      {mobileShell && (
+        <MobileTabBar
+          active={activeTab}
+          badges={badges}
+          teaserKeys={new Set(teaserOf.keys())}
+          onTab={tapTab}
+        />
+      )}
     </div>
   );
 }
