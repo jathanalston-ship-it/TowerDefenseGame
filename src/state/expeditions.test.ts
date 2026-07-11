@@ -16,6 +16,7 @@ const T0 = 1_700_000_000_000; // a fixed wall-clock origin — the APIs take `no
 describe('hero expeditions', () => {
   it('sends only BENCHED heroes and respects the slot cap', () => {
     meta.reset();
+    meta.debugUnlockHeroes(); // a fresh save owns ONE hero (fielded) — the bench needs a roster
     const view = meta.expeditionsView(T0);
     const fielded = meta.fieldedLoadout()[0];
     expect(meta.startExpedition(EXPEDITION_DEFS[0].id, fielded, T0)).toBe(false); // front line stays home
@@ -33,6 +34,7 @@ describe('hero expeditions', () => {
 
   it('claims pay the full multiplier stack (stars × affinity × mastery × outcome + find) only after endsAt', () => {
     meta.reset();
+    meta.debugUnlockHeroes(); // own the roster — the bench is empty on a truly fresh save
     const hero = meta.expeditionsView(T0).benched[0];
     const def = EXPEDITION_DEFS[0];
     expect(meta.startExpedition(def.id, hero, T0)).toBe(true);
@@ -107,6 +109,7 @@ describe('hero expeditions', () => {
 
   it('mastery accrues per mission and boosts the offer matrix', () => {
     meta.reset();
+    meta.debugUnlockHeroes(); // own the roster — the bench is empty on a truly fresh save
     const def = EXPEDITION_DEFS[0];
     let benched = meta.expeditionsView(T0).benched[0];
     for (let run = 0; run < 3; run++) {

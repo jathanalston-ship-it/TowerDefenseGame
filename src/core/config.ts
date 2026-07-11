@@ -1094,9 +1094,11 @@ export type HeroBehavior = 'dive' | 'guard' | 'control' | 'siege' | 'phase';
 
 /** How a hero is gated. Absent on a HeroDef ⇒ always available (the launch trio). Data only
  *  (no save import — kept acyclic); state/meta.ts `isHeroUnlocked` evaluates it against a save.
- *  Each hero's gate is a DISTINCT axis: bossSlain (Vitriol) · infiniteDepth (Revenant). */
+ *  Each hero's gate is a DISTINCT axis: bossSlain (Vitriol) · infiniteDepth (Revenant).
+ *  bossSlain counts DISTINCT chassis (save.bossesSlain is chassis-keyed): every campaign stage
+ *  spawns a framework boss, so "any boss ever" is met minutes in — breadth is the real feat. */
 export type HeroUnlockReq =
-  | { kind: 'bossSlain'; label: string }
+  | { kind: 'bossSlain'; count: number; label: string }
   | { kind: 'infiniteDepth'; wave: number; label: string };
 
 export interface HeroAbilityDef {
@@ -1254,13 +1256,14 @@ export const HERO_DEFS: Record<HeroKind, HeroDef> = {
   vitriol: {
     // The hive's SIEGE caste (Caustic) — the only ranged / area-denial hero. Holds the rear line
     // and lobs corrosive shells at the deepest threat; each impact splashes, applies Corrosion,
-    // and leaves a lingering pool. Progression-gated: bred only after the hive assimilates a
-    // major threat (slay a Framework Boss). Numbers are centralized here (tuning clay).
+    // and leaves a lingering pool. Progression-gated: bred only after the hive ASSIMILATES the
+    // enemy's war-forms — three distinct Framework Boss chassis slain (a single boss kill lands
+    // on stage 1's stage boss, so breadth is the feat). Numbers are centralized here (tuning clay).
     kind: 'vitriol', name: 'Vitriol', combatClass: 'Caustic', behavior: 'siege', color: '#b6e13a',
     maxHp: 210, speed: 96, attackRange: 560, attackInterval: 1.5, attackDamage: 30, attackFracture: 0, attackSplash: 62, projectileSpeed: 440,
     aggroRange: 1400, contactRange: 22, respawnTime: 9,
     pulseInterval: 0, pulseRadius: 0, pulseDamage: 0, pulseDisrupt: 0, nucleusRegen: 0,
-    unlock: { kind: 'bossSlain', label: 'Slay a Framework Boss' },
+    unlock: { kind: 'bossSlain', count: 3, label: 'Slay 3 distinct Framework Boss chassis' },
     ability: { name: 'Corrosive Cataclysm', blurb: 'Saturates the target zone: a caustic blast that heavily corrodes everything caught, then a wide acid pool that lingers.', cooldown: 12, radius: 120, damage: 70, fracture: 0, disrupt: 0, corrode: 6, heal: 0, poolRadius: 120, poolDps: 22, poolSeconds: 5, particle: 'heroSpray', fxColor: '#cdea6a' },
     skills: [
       { name: 'Acid Barrage', blurb: 'A rapid salvo of corrosive shells — splash damage that douses the target in Corrosion.', cooldown: 6, radius: 84, damage: 30, fracture: 0, disrupt: 0, corrode: 4, heal: 0, castOn: 'target', minEnemies: 1, particle: 'heroSpray', fxColor: '#b6e84a' },

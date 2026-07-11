@@ -10,13 +10,13 @@
 // prefers-reduced-motion resolves the whole ceremony instantly to a readable still.
 
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { isTowerUnlocked, meta } from '../state/meta';
+import { isHeroUnlocked, isTowerUnlocked, meta } from '../state/meta';
 import { audio } from '../audio/sound';
 import {
   ROULETTE, boardTier, isPremiumPod, rollBoard, rollJackpot, rollOutcomesWithSurge,
   summarizeRewards, tripleReward,
 } from '../state/bioRoulette';
-import { TOWER_ORDER } from '../core/config';
+import { HERO_ORDER, TOWER_ORDER } from '../core/config';
 
 const LAUNCH_GAP = 0.55; // seconds between spore launches
 const SPIN_T = 2.1; // seconds of powered spin (cubic decel = momentum reads honestly)
@@ -62,7 +62,7 @@ export function BioRoulette({ spores, onExit }: { spores: number; onExit: () => 
   const { board, outcomes, surges, jackpot, tier } = useMemo(() => {
     const roster = {
       towers: TOWER_ORDER.filter((k) => isTowerUnlocked(save, k)),
-      heroes: save.heroUnlocked,
+      heroes: HERO_ORDER.filter((k) => isHeroUnlocked(save, k)), // gate-aware — milestone heroes derive
     };
     const t = boardTier(save.rushBestWave ?? 0);
     const b = rollBoard(Math.random, roster, t);

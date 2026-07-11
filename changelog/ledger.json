@@ -1,6 +1,6 @@
 {
-  "lastSha": "37b81e706ec1c801b533677e0e4771e08dec7af6",
-  "commitsSinceDraft": 0,
+  "lastSha": "d8e841b2e0c3d3edf8d8900d5992bd92aac50f62",
+  "commitsSinceDraft": 9,
   "content": {
     "tower": [
       "needle",
@@ -1918,6 +1918,10 @@
         },
         {
           "cat": "Gameplay",
+          "text": "Fix Vitriol/Revenant gating: derive milestone ownership, escalate Vitriol's dead gate"
+        },
+        {
+          "cat": "Gameplay",
           "text": "Un-gate the Premium Store: open from minute 0 (operator decision)"
         },
         {
@@ -1931,6 +1935,14 @@
         {
           "cat": "Developer Tools",
           "text": "Mobilecheck v2: registry-derived auto-coverage + the portrait tab-shell contract"
+        },
+        {
+          "cat": "Website",
+          "text": "Chronicle + site sync for the merged lineage (re-anchored ledger)"
+        },
+        {
+          "cat": "Heroes",
+          "text": "Portrait folds for the long screens: Evolution HQ, Equip Codex, Bio-Dex, Hero Hall"
         }
       ]
     }
@@ -2729,6 +2741,22 @@
       "needsReview": false
     },
     {
+      "sha": "468d4461a7dd2c344e3482711787922f3814330e",
+      "date": "2026-07-11",
+      "cat": "Gene Cards",
+      "text": "Idle Harvest: infinite passive lane — accrual, evolution tree, gated drops, guardrail",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "b73caf8b20e6a635c2fe99f8ea453046ef2f1076",
+      "date": "2026-07-11",
+      "cat": "Gameplay",
+      "text": "Fix Vitriol/Revenant gating: derive milestone ownership, escalate Vitriol's dead gate",
+      "internal": false,
+      "needsReview": false
+    },
+    {
       "sha": "239a9ae8be90911742b27464d25f91cdeb0a13ea",
       "date": "2026-07-11",
       "cat": "Gameplay",
@@ -2775,6 +2803,30 @@
       "text": "Rebase reconciliation: Idle Harvest joins the nav model + regenerated graphs/chronicle",
       "internal": true,
       "needsReview": true
+    },
+    {
+      "sha": "fbcb27d0ca3b670c81b132ff3a62ba8d6996f9b5",
+      "date": "2026-07-11",
+      "cat": "Website",
+      "text": "Chronicle + site sync for the merged lineage (re-anchored ledger)",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "c23020e56348b7a755b99e558e6a4f3719841ff9",
+      "date": "2026-07-11",
+      "cat": "Heroes",
+      "text": "Portrait folds for the long screens: Evolution HQ, Equip Codex, Bio-Dex, Hero Hall",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "d8e841b2e0c3d3edf8d8900d5992bd92aac50f62",
+      "date": "2026-07-11",
+      "cat": "Gameplay",
+      "text": "Fix Vitriol/Revenant gating: derive milestone ownership, escalate Vitriol's dead gate",
+      "internal": false,
+      "needsReview": false
     }
   ]
 }

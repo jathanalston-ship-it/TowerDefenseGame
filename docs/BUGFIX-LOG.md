@@ -102,3 +102,25 @@ strip while the draft is open, side sheets stand down under the draft, `cue.focu
 joins the auto-scroll chain (late-mounting draft), and a missing spotlight target no
 longer blacks out the screen. Gated by a headless per-step no-overlap audit + full
 10-checkpoint completion at 390×844.
+
+## Vitriol & Revenant shipped effectively ungated (starter mis-classification + a dead gate)
+
+**Symptom.** Both milestone heroes appeared owned from minute zero on the home army board,
+Splice Market roster, expeditions bench and Bio-Roulette — and Vitriol was fieldable in runs
+after the very first campaign stage.
+
+**Root cause.** Two independent holes. (1) `starterHeroes()` classified "no `unlockShards`"
+as a starter; the milestone heroes carry `unlock` gates and NO shard cost, so every fresh
+save (and every load, via `sanitizeHeroUnlocked`) seeded them into `save.heroUnlocked`, and
+every surface reading that array raw treated them as owned — only the run picker went through
+the gate-aware `isHeroUnlocked`. (2) Vitriol's gate ("slay a Framework Boss",
+`bossesSlain.length > 0`) rotted when Campaign gave EVERY stage a framework stage boss: the
+stage-1 boss met it minutes in.
+
+**Fix.** Milestone-hero ownership now derives ONLY from the live feat: `starterHeroes()`
+excludes `HeroDef.unlock` heroes, the sanitizer strips them from persisted lists (self-healing
+bugged saves), and every raw `heroUnlocked` reader (home army, market stock ×2, expeditions
+bench + start, Bio-Roulette, Genome heroRatio) now calls `isHeroUnlocked`. Vitriol's gate
+escalated to breadth — `{ kind: 'bossSlain', count: 3 }` distinct chassis — with live progress
+in the Hero Hall; Revenant's Depth-40 gate was already sound once the seeding hole closed.
+Pinned by meta.test gating cases + a live Hero Hall smoke across both gate boundaries.

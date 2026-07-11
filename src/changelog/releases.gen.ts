@@ -460,6 +460,10 @@ export const RELEASES: Release[] = [
       },
       {
         "cat": "Gameplay",
+        "text": "Fix Vitriol/Revenant gating: derive milestone ownership, escalate Vitriol's dead gate"
+      },
+      {
+        "cat": "Gameplay",
         "text": "Un-gate the Premium Store: open from minute 0 (operator decision)"
       },
       {
@@ -473,6 +477,14 @@ export const RELEASES: Release[] = [
       {
         "cat": "Developer Tools",
         "text": "Mobilecheck v2: registry-derived auto-coverage + the portrait tab-shell contract"
+      },
+      {
+        "cat": "Website",
+        "text": "Chronicle + site sync for the merged lineage (re-anchored ledger)"
+      },
+      {
+        "cat": "Heroes",
+        "text": "Portrait folds for the long screens: Evolution HQ, Equip Codex, Bio-Dex, Hero Hall"
       }
     ]
   },

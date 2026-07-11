@@ -257,13 +257,18 @@ sets up Caustic reactions (**Dissolve** with Fracture) for the whole build.
 - **Ult — Corrosive Cataclysm** — a wide caustic blast (AoE damage + heavy Corrosion) that
   then drops a large lingering acid pool at the target zone.
 
-**Progression gate (unique).** Vitriol is the roster's only **milestone-gated** hero — *earned*,
-not bought. The Ravager is a starter and the Shepherd/Overseer are **Shard-claimed** (`unlockShards`,
-banked + spent); Vitriol instead **auto-unlocks the moment you slay a Framework Boss**
-(`save.bossesSlain` non-empty) and can never be claimed with Shards. The gate is data-driven
-(`HeroDef.unlock`, a `HeroUnlockReq`) and evaluated in one place (`state/meta.ts` `isHeroUnlocked`),
-which the Hero Lab, the selection guard, `unlockHero` (rejects it), and run start all read — so a
-locked hero can never be fielded, and the Hero Collection surfaces the feat instead of a Shard bar.
+**Progression gate (unique).** Vitriol is **milestone-gated** — *earned*, not bought. The Ravager
+is a starter and the Shepherd/Overseer are **Shard-claimed** (`unlockShards`, banked + spent);
+Vitriol instead **auto-unlocks once the hive has assimilated 3 distinct Framework Boss chassis**
+(`save.bossesSlain` is chassis-keyed; every campaign stage spawns a framework boss, so a plain
+"any boss" gate would open on stage 1 — breadth across the enemy's war-forms is the feat) and can
+never be claimed with Shards. The gate is data-driven (`HeroDef.unlock`, a `HeroUnlockReq`) and
+evaluated in one place (`state/meta.ts` `isHeroUnlocked`), which the Hero Lab, the selection
+guard, `unlockHero` (rejects it), run start, the home army board, the Splice Market roster,
+expeditions, and the Bio-Roulette all read — so a locked hero can never be fielded or surfaced.
+Milestone heroes are NEVER stored in `save.heroUnlocked` (ownership derives live from the feat;
+the sanitizer strips them, healing saves from the era when they were wrongly seeded as starters),
+and the Hero Collection surfaces the feat with live progress instead of a Shard bar.
 
 **Strengths.** Safe ranged DPS; persistent area denial melts packs and armored lines; Corrosion
 feeds Caustic reactions and pairs with the Bone Mortar's pools; excellent at holding a lane.

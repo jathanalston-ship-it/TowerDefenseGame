@@ -142,7 +142,7 @@ import type { TrophyDef } from '../core/trophies';
 import type { CosmeticDef, CosmeticTheme } from '../core/cosmetics';
 import { BIOMES } from '../core/biomes';
 import { BIOME_REGION, recommendedPowerScore, stageWaveCount } from '../core/campaign';
-import { bossDef } from '../core/boss';
+import { CHASSIS, bossDef } from '../core/boss';
 import { MEGA, megaBossDef, megaBossIchor, megaExpectedKillSec, megaKillEfficiency } from '../core/megaboss';
 import type { MegaKillStat } from '../core/types';
 import { admitWrite, guardOk, noteClock, reportConflict, resetSecurity } from '../security/actionGuard';
@@ -1078,8 +1078,19 @@ export function isHeroUnlocked(save: SaveData, kind: HeroKind): boolean {
  *  new gate kind is one `case` here (+ one HeroUnlockReq variant in config) — future-proof. */
 function heroMilestoneMet(save: SaveData, req: HeroUnlockReq): boolean {
   switch (req.kind) {
-    case 'bossSlain': return save.bossesSlain.length > 0;
+    // Vitriol — DISTINCT chassis assimilated (bossesSlain is chassis-keyed). Every campaign
+    // stage spawns a framework boss, so a plain "any boss" check dies on stage 1 — breadth
+    // across the enemy's war-forms is the real feat.
+    case 'bossSlain': return save.bossesSlain.length >= req.count;
     case 'infiniteDepth': return save.bestWave >= req.wave; // Revenant — earned from the endless deep
+  }
+}
+
+/** 0..1 progress toward a milestone gate (the Hero Hall's concrete-goal bar for earned heroes). */
+function heroMilestoneProgress(save: SaveData, req: HeroUnlockReq): number {
+  switch (req.kind) {
+    case 'bossSlain': return Math.min(1, save.bossesSlain.length / req.count);
+    case 'infiniteDepth': return Math.min(1, save.bestWave / req.wave);
   }
 }
 
@@ -1199,7 +1210,7 @@ export function heroCollection(save: SaveData): HeroCollectionEntry[] {
     const shards = save.heroShards[kind] ?? 0;
     return {
       kind, name: def.name, color: def.color, unlocked, isStarter, cost, shards,
-      progress: unlocked ? 1 : milestone ? 0 : cost > 0 ? Math.min(1, shards / cost) : 1,
+      progress: unlocked ? 1 : milestone ? heroMilestoneProgress(save, milestone) : cost > 0 ? Math.min(1, shards / cost) : 1,
       canUnlock: !unlocked && !milestone && shards >= cost, // milestone heroes auto-unlock (no claim)
       requirement: milestone?.label,
     };
@@ -3174,7 +3185,7 @@ export const meta = {
     const s = store.get();
     const fielded = new Set(this.fieldedLoadout());
     const away = new Set(s.expeditions.active.map((e) => e.hero));
-    const benched = (s.heroUnlocked ?? []).filter((h) => !fielded.has(h) && !away.has(h));
+    const benched = HERO_ORDER.filter((h) => isHeroUnlocked(s, h) && !fielded.has(h) && !away.has(h));
     return {
       defs: EXPEDITION_DEFS,
       active: s.expeditions.active.map((e) => {
@@ -3209,7 +3220,7 @@ export const meta = {
     const def = expeditionById(defId);
     if (!def) return false;
     if (s.expeditions.active.length >= EXPEDITION_SLOTS) return false;
-    if (!(s.heroUnlocked ?? []).includes(hero)) return false;
+    if (!isHeroUnlocked(s, hero)) return false; // milestone heroes derive — never in the array
     if (this.fieldedLoadout().includes(hero)) return false; // the front line stays home
     if (s.expeditions.active.some((e) => e.hero === hero)) return false; // already away
     persist({
@@ -5236,7 +5247,7 @@ export const meta = {
     const window = Math.max(marketWindow(now), save.market.window);
     const stock = rollStock(marketSeedOf(save), window, {
       towers: TOWER_ORDER.filter((k) => isTowerUnlocked(save, k)),
-      heroes: save.heroUnlocked,
+      heroes: HERO_ORDER.filter((k) => isHeroUnlocked(save, k)),
     });
     return { window, stock, bought: save.market.window === window ? save.market.bought : [] };
   },
@@ -5269,7 +5280,7 @@ export const meta = {
     if (bought.includes(slotId)) return false;
     const stock = rollStock(marketSeedOf(save), window, {
       towers: TOWER_ORDER.filter((k) => isTowerUnlocked(save, k)),
-      heroes: save.heroUnlocked,
+      heroes: HERO_ORDER.filter((k) => isHeroUnlocked(save, k)),
     });
     const slot = stock.find((s) => s.id === slotId);
     if (!slot) return false;
@@ -5804,7 +5815,7 @@ export const meta = {
         for (let c = 0; c < NUCLEUS_CHAMBERS; c++) if (isChamberActive(save.nucleus, c)) active++;
         return (active + Math.min(NUCLEUS_CHAMBERS, (save.nucleus.adapted ?? []).length)) / (NUCLEUS_CHAMBERS * 2);
       })(),
-      heroRatio: (save.heroUnlocked.length / heroes + Math.min(1, sumRec(save.heroStars) / (heroes * 10))) / 2,
+      heroRatio: (HERO_ORDER.filter((k) => isHeroUnlocked(save, k)).length / heroes + Math.min(1, sumRec(save.heroStars) / (heroes * 10))) / 2,
       gearRatio: new Set(save.equipment.inventory.map((i) => i.defId)).size / ALL_ITEMS.length,
       geneRatio: (save.stats.uniqueCards.length / cards + Math.min(1, geneLevels / (cards * 3))) / 2,
       achievementRatio: (save.achievements ?? []).length / ACHIEVEMENTS.length,
@@ -6061,14 +6072,19 @@ export const meta = {
   },
 
   /** Own every hero — the debug shortcut for testing gated content. Claims the Shard-gated heroes
-   *  (into heroUnlocked) AND satisfies the milestone gate (records a boss kill → unlocks Vitriol). */
+   *  (into heroUnlocked) AND satisfies the milestone gates: records enough distinct chassis for
+   *  Vitriol and floors the depth record for Revenant (milestone ownership always derives). */
   debugUnlockHeroes(): void {
     if (!isDebugEnabled()) return; // release isolation (docs/SECURITY.md §debug)
     const save = store.get();
     const shardGated = HERO_ORDER.filter((k) => (HERO_DEFS[k].unlockShards ?? 0) > 0 && !HERO_DEFS[k].unlock);
     const heroUnlocked = [...new Set([...(save.heroUnlocked ?? []), ...shardGated])];
-    const bossesSlain = save.bossesSlain.length === 0 ? ['brood_tyrant'] : save.bossesSlain;
-    persist({ ...save, heroUnlocked, bossesSlain });
+    const vitriolReq = HERO_DEFS.vitriol.unlock;
+    const chassisNeed = vitriolReq?.kind === 'bossSlain' ? vitriolReq.count : 0;
+    const bossesSlain = [...new Set([...save.bossesSlain, ...Object.keys(CHASSIS).slice(0, chassisNeed)])];
+    const revenantReq = HERO_DEFS.revenant.unlock;
+    const bestWave = revenantReq?.kind === 'infiniteDepth' ? Math.max(save.bestWave, revenantReq.wave) : save.bestWave;
+    persist({ ...save, heroUnlocked, bossesSlain, bestWave });
   },
 
   /** Roll + grant a chest immediately (returns it so the panel can show a reveal). */

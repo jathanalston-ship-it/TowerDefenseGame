@@ -4,6 +4,7 @@
 
 import { describe, it, expect } from 'vitest';
 import { agoLabel, armyView, buildHomeView, commandFeed, homeRegistry, worldStatus } from './homeModel';
+import { isHeroUnlocked } from '../state/meta';
 import { defaultSave } from '../save/saveStore';
 import { HERO_ORDER, TOWER_ORDER } from '../core/config';
 
@@ -66,7 +67,11 @@ describe('armyView — every strain + champion', () => {
     expect(army.heroes.length).toBe(HERO_ORDER.length);
     const fielded = army.heroes.filter((h) => h.fielded);
     expect(fielded.length).toBe(s.heroLoadout.length);
-    expect(army.heroes.every((h) => h.unlocked === s.heroUnlocked.includes(h.kind as never))).toBe(true);
+    // Gate-aware ownership: milestone heroes (Vitriol/Revenant) derive from the feat and are
+    // NEVER in the heroUnlocked array — the home board must read the live gate, not the list.
+    expect(army.heroes.every((h) => h.unlocked === isHeroUnlocked(s, h.kind as never))).toBe(true);
+    expect(army.heroes.find((h) => h.kind === 'vitriol')?.unlocked).toBe(false); // fresh save: 0 chassis
+    expect(army.heroes.find((h) => h.kind === 'revenant')?.unlocked).toBe(false); // fresh save: depth 0
   });
 
   it('towers carry ownership: a fresh profile shows dormant strains LOCKED, never fielded', () => {

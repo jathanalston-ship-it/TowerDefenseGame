@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { defaultLifetimeStats, defaultSave, serializeExport } from '../save/saveStore';
+import { defaultLifetimeStats, defaultSave, parseImport, serializeExport } from '../save/saveStore';
 import { heroShardUnlockPool, isHeroUnlocked, meta, metaModifiers, upgradeCost, nextUpgradeCost, genomeRunEffects } from './meta';
 import type { RunResult } from './meta';
 import { CAMPAIGN_REWARDS, HERO_ORDER, META_UPGRADES, TOWER_ORDER } from '../core/config';
@@ -123,9 +123,31 @@ describe('hero unlock gating (isHeroUnlocked)', () => {
     expect(isHeroUnlocked(fresh, 'shepherd')).toBe(false); // Shard-gated, unclaimed
     expect(isHeroUnlocked(fresh, 'overseer')).toBe(false); // Shard-gated, unclaimed
     expect(isHeroUnlocked(fresh, 'vitriol')).toBe(false); // milestone unmet (no boss slain)
-    // Vitriol is EARNED by a feat, not bought — slaying a Framework Boss unlocks it (no Shards),
-    // the unique gate distinct from the Shard-claimed heroes.
-    expect(isHeroUnlocked({ ...fresh, bossesSlain: ['brood_tyrant'] }, 'vitriol')).toBe(true);
+    // Vitriol is EARNED by breadth, not bought: every campaign stage spawns a framework boss,
+    // so ONE kill (the stage-1 boss) must not open the siege caste — three distinct chassis do.
+    expect(isHeroUnlocked({ ...fresh, bossesSlain: ['bruiser'] }, 'vitriol')).toBe(false);
+    expect(isHeroUnlocked({ ...fresh, bossesSlain: ['bruiser', 'artillery'] }, 'vitriol')).toBe(false);
+    expect(isHeroUnlocked({ ...fresh, bossesSlain: ['bruiser', 'artillery', 'swarmlord'] }, 'vitriol')).toBe(true);
+  });
+
+  it('milestone heroes NEVER ride the heroUnlocked array — ownership derives from the feat', () => {
+    // The regression this pins: starterHeroes() once classified "no unlockShards" as a starter,
+    // seeding Vitriol AND Revenant into every fresh save (and every load, via the sanitizer) —
+    // both heroes shipped unlocked at minute zero on the home/market/expedition surfaces.
+    const fresh = defaultSave();
+    expect(fresh.heroUnlocked).not.toContain('vitriol');
+    expect(fresh.heroUnlocked).not.toContain('revenant');
+    expect(fresh.heroUnlocked).toContain('ravager'); // real starters still seed
+    // A bugged-era save that persisted them heals on import: the sanitizer strips milestone
+    // heroes from the list, so ownership always re-derives from the live gate.
+    const bugged = { ...defaultSave(), heroUnlocked: ['ravager', 'vitriol', 'revenant'] as HeroKind[] };
+    const back = parseImport(serializeExport(bugged));
+    expect(back.ok).toBe(true);
+    if (back.ok) {
+      expect(back.data.heroUnlocked).toContain('ravager');
+      expect(back.data.heroUnlocked).not.toContain('vitriol');
+      expect(back.data.heroUnlocked).not.toContain('revenant');
+    }
   });
 
   it('Vitriol can never be claimed with Shards (milestone-only) and auto-unlocks on the feat', () => {
@@ -151,7 +173,7 @@ describe('hero Shard economy — Vitriol upgrades with Shards like the rest', ()
   });
 
   it('once the Shard-unlock queue drains, the pool is empty so drops fund EVERY hero (incl. Vitriol) for Stars', () => {
-    const owned = { ...defaultSave(), heroUnlocked: ['shepherd', 'overseer'] as HeroKind[], bossesSlain: ['brood_tyrant'], bestWave: 99999 };
+    const owned = { ...defaultSave(), heroUnlocked: ['shepherd', 'overseer'] as HeroKind[], bossesSlain: ['bruiser', 'artillery', 'swarmlord'], bestWave: 99999 };
     expect(heroShardUnlockPool(owned)).toEqual([]); // empty ⇒ rollLoot falls back to HERO_IDS (all heroes)
   });
 

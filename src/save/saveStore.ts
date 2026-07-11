@@ -522,9 +522,12 @@ function emptyFavByHero(): Record<HeroKind, Record<string, number>> {
   for (const k of HERO_ORDER) r[k] = {};
   return r;
 }
-/** Heroes owned from the start — those with no `unlockShards` gate (e.g. Ravager). */
+/** Heroes owned from the start — no `unlockShards` gate AND no milestone gate (e.g. Ravager).
+ *  Milestone heroes (HeroDef.unlock — Vitriol/Revenant) carry no shard cost either, but they are
+ *  NEVER starters and never live in `heroUnlocked`: their ownership DERIVES live from the feat
+ *  (meta.isHeroUnlocked). Seeding them here handed both out at minute zero — the gating bug. */
 function starterHeroes(): HeroKind[] {
-  return HERO_ORDER.filter((k) => !(HERO_DEFS[k].unlockShards && HERO_DEFS[k].unlockShards! > 0));
+  return HERO_ORDER.filter((k) => !HERO_DEFS[k].unlock && !(HERO_DEFS[k].unlockShards && HERO_DEFS[k].unlockShards! > 0));
 }
 /** Towers owned from the start — those with no `unlockShards` gate (the launch five). */
 function starterTowers(): TowerKind[] {
@@ -549,7 +552,10 @@ function sanitizeTowerUnlocked(data: SaveData): TowerKind[] {
 /** Resolve the owned-hero set. A v14+ save honors its persisted list (registry-resolved, deduped);
  *  a PRE-v14 save has no field ⇒ grandfather in every hero the player already engaged with (stars /
  *  fielded / selected / lifetime usage) UNION the starters, so an existing player never loses access
- *  to a hero they were using. Always includes the starters and returns a stable HERO_ORDER order. */
+ *  to a hero they were using. Always includes the starters and returns a stable HERO_ORDER order.
+ *  MILESTONE heroes (HeroDef.unlock) are stripped even when persisted: their ownership derives
+ *  live from the feat (meta.isHeroUnlocked), and the list must never re-grant them — this also
+ *  self-heals saves from the era when starterHeroes() wrongly seeded Vitriol/Revenant. */
 function sanitizeHeroUnlocked(data: SaveData): HeroKind[] {
   const set = new Set<HeroKind>(starterHeroes());
   const raw = (data as { heroUnlocked?: unknown }).heroUnlocked;
@@ -561,7 +567,7 @@ function sanitizeHeroUnlocked(data: SaveData): HeroKind[] {
     for (const x of data.heroLoadout ?? []) { const k = heroRegistry.resolve(x) as HeroKind | undefined; if (k) set.add(k); }
     const sel = heroRegistry.resolve(data.selectedHero) as HeroKind | undefined; if (sel) set.add(sel);
   }
-  return HERO_ORDER.filter((k) => set.has(k));
+  return HERO_ORDER.filter((k) => set.has(k) && !HERO_DEFS[k].unlock);
 }
 /** Keep only real, de-duplicated adaptation-node ids per unit key (drops junk from a tampered save). */
 function sanitizeAdaptation(raw: unknown): Record<string, string[]> {

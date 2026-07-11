@@ -9,7 +9,7 @@ import type { SaveData } from '../save/saveStore';
 import type { TimelineEvent } from '../core/types';
 import { CAMPAIGN_REWARDS, HERO_DEFS, HERO_ORDER, TOWER_DEFS, TOWER_ORDER } from '../core/config';
 import { adaptVisualTier } from '../core/adaptation';
-import { isTowerUnlocked, masteryLevel, accountPowerParts, collectionContextOf } from '../state/meta';
+import { isHeroUnlocked, isTowerUnlocked, masteryLevel, accountPowerParts, collectionContextOf } from '../state/meta';
 import { composePower } from '../core/power';
 import { collectionView } from '../core/collection';
 import { highestCampaignStage } from '../save/derive';
@@ -194,7 +194,7 @@ export function armyView(save: SaveData): { towers: ArmyUnit[]; heroes: ArmyUnit
       mastery: masteryLevel(save.heroMasteryXp[kind] ?? 0),
       form: 0,
       fielded: save.heroLoadout.includes(kind),
-      unlocked: save.heroUnlocked.includes(kind),
+      unlocked: isHeroUnlocked(save, kind), // milestone heroes (Vitriol/Revenant) derive — never in the array
     })),
   };
 }
