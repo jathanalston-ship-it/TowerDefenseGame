@@ -9,6 +9,7 @@
 | 0 | ⌂ **Command Center** `home` | screen | always available | start | start | — | The shell itself — every session starts and ends here. |
 | 1 | ⬡ **Campaign** `campaign` | screen | always available | start | start | Campaign (`campaign`) | The foundational mode: the first minutes ARE the campaign; every other gate keys off its depth. |
 | 2 | ? **Help** `help` | screen | always available | start | start | — | Self-teach surface — must exist before any question does. The wiki itself only lists unlocked mechanics. |
+| 2.5 | ✷ **Premium Store** `store` | screen | always available | start | start | Premium Store (`premium-store`) | Operator decision (2026-07): the supporter door is open from minute 0 — buying is always a choice, never the path, and nothing sold gates progression. |
 | 3 | ⚙ **Settings** `settings` | screen | always available | start | start | — | Accessibility, audio and account controls can never be gated. |
 | 4 | ◑ **Player Profile** `profile` | screen | Finish your first run · 1 to go | start | S1 | — | Empty before the first run; reveals the moment there are stats to show. |
 | 5 | ◈ **Genetic Vault** `vault` | screen | Bank a Bio-Container | start | S2 | Bio-Containers (`containers`) | The session-1 payoff: the first run banks a container — the Vault reveals exactly when there is something to open (the lootbox hook). Stage 2 backstops a no-cache start. |
@@ -28,7 +29,6 @@
 | 17 | ❑ **Gear Codex** `gearcodex` | screen | Clear Campaign Stage 6 · 6 to go | S6 | S6 | Gear Codex (`gear-codex`) | A collection layer OVER gear — lands after the Armory habit forms; undiscovered silhouettes become goals. |
 | 18 | ⊛ **Mulligan Lab** `mulligans` | screen | Discover a Mulligan modifier | start | S7 | Mulligan Organisms (`mulligans`) | Reveals with the first discovered modifier (container luck), stage 7 as backstop — the deepest tower system waits for tower fluency. |
 | 19 | ❖ **Phenotype Lab** `phenotypes` | screen | Clear Campaign Stage 7 · 7 to go | S7 | S7 | Phenotype Lab (`phenotype-lab`) | Pure luxury — cosmetics wait until the mechanical wardrobe is full and Gene Essence has a purpose beyond upgrades. |
-| 20 | ✷ **Premium Store** `store` | screen | Clear Campaign Stage 8 · 8 to go | S8 | S8 | Premium Store (`premium-store`) | Monetization reveals LAST among the mid-game (docs/PREMIUM-STORE.md): the game proves itself before it asks. |
 | 21 | ☠ **Boss Rush** `bossrush` | screen | Clear Campaign Stage 10 · 10 to go | start | S10 | Boss Rush (`boss-rush`) | The established gate: the skill-check pillar arrives once builds are real. History grandfathers. |
 | 22 | 🩸 **Ichor** `cur:ichor` | currency | Bleed your first Ichor | start | S3 | — | Shows with its first drop, or when the Splice Market (its sink) reveals — a currency chip never precedes its purpose. |
 | 23 | ⊕ **Materials** `cur:mats` | currency | Find crafting materials | start | S6 | — | Crafting materials appear the moment the first container drops some — alongside the gear they reforge. Stage 6 backstops a dry streak. |
@@ -36,7 +36,7 @@
 
 ## The worst-case walk (no drop luck — every backstop earning its keep)
 
-- **Minute 0** — ⌂ Command Center · ⬡ Campaign · ? Help · ⚙ Settings
+- **Minute 0** — ⌂ Command Center · ⬡ Campaign · ? Help · ✷ Premium Store · ⚙ Settings
 - **Stage 1** — ◑ Player Profile · T Tower Lab
 - **Stage 2** — ◈ Genetic Vault · ✷ Evolution HQ · H Hero Hall
 - **Stage 3** — ∞ Infinite · ◆ Splice Market · ⌬ Gene Archive · 🩸 Ichor
@@ -44,6 +44,5 @@
 - **Stage 5** — ☀ Daily Run · ▤ Bio-Dex · ❁ Season Pass
 - **Stage 6** — ⬣ Idle Harvest · ❑ Gear Codex · ⊕ Materials
 - **Stage 7** — ⊛ Mulligan Lab · ❖ Phenotype Lab
-- **Stage 8** — ✷ Premium Store
 - **Stage 9** — ✦ Ascendant Cells
 - **Stage 10** — ☠ Boss Rush

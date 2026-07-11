@@ -60,18 +60,22 @@ describe('unlock registry — structural contracts', () => {
 });
 
 describe('the learning curve — pacing contracts', () => {
-  it('a brand-new account is CALM: four screens, Cores-only wallet, two teasers queued', () => {
+  it('a brand-new account is CALM: five screens, Cores-only wallet, two teasers queued', () => {
     const fresh = at(0, 0);
     const revealed = SCREENS.filter((f) => featureRevealed(fresh, f.id)).map((f) => f.id).sort();
-    expect(revealed).toEqual(['campaign', 'help', 'home', 'settings']);
+    // 'store' joined the minute-0 set by operator decision (2026-07) — the supporter door
+    // is always open. Five screens still sits inside the 'calm' band (≤6).
+    expect(revealed).toEqual(['campaign', 'help', 'home', 'settings', 'store']);
     const load = cognitiveLoad(fresh, 0);
     expect(load.band).toBe('calm');
     expect(load.currencies).toBe(2); // Genome Cores + Biomass — nothing else yet
     expect(nextReveals(fresh, 2).map((v) => v.def.id)).toEqual(['profile', 'vault']);
   });
 
-  it('no reveal desert: every stage 1–8 on the worst-case walk opens at least one new screen', () => {
-    for (let stage = 1; stage <= 8; stage++) {
+  it('no reveal desert: every stage 1–7 on the worst-case walk opens at least one new screen', () => {
+    // Stage 8's beat WAS the Premium Store; the operator un-gated it to minute 0 (2026-07),
+    // so the guaranteed reveal cadence now ends at stage 7 (Boss Rush lands at 10).
+    for (let stage = 1; stage <= 7; stage++) {
       const before = SCREENS.filter((f) => featureRevealed(at(stage - 1), f.id)).length;
       const after = SCREENS.filter((f) => featureRevealed(at(stage), f.id)).length;
       expect(after, `stage ${stage} revealed nothing new`).toBeGreaterThan(before);

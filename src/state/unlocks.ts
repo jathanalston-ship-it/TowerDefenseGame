@@ -141,6 +141,9 @@ export const FEATURES: FeatureDef[] = [
   { kind: 'screen', id: 'help', name: 'Help', glyph: '?', order: 2,
     blurb: 'The living wiki.', condition: { kind: 'always' },
     because: 'Self-teach surface — must exist before any question does. The wiki itself only lists unlocked mechanics.' },
+  { kind: 'screen', id: 'store', name: 'Premium Store', glyph: '✷', order: 2.5,
+    blurb: 'Optional support — never the path.', condition: { kind: 'always' },
+    because: 'Operator decision (2026-07): the supporter door is open from minute 0 — buying is always a choice, never the path, and nothing sold gates progression.', teach: 'premium-store' },
   { kind: 'screen', id: 'settings', name: 'Settings', glyph: '⚙', order: 3,
     blurb: 'Audio, account, saves.', condition: { kind: 'always' },
     because: 'Accessibility, audio and account controls can never be gated.' },
@@ -209,9 +212,9 @@ export const FEATURES: FeatureDef[] = [
   { kind: 'screen', id: 'phenotypes', name: 'Phenotype Lab', glyph: '❖', order: 19,
     blurb: 'Cosmetic phenotypes for every strain and champion.', condition: { kind: 'stage', stage: 7 },
     because: 'Pure luxury — cosmetics wait until the mechanical wardrobe is full and Gene Essence has a purpose beyond upgrades.', teach: 'phenotype-lab' },
-  { kind: 'screen', id: 'store', name: 'Premium Store', glyph: '✷', order: 20,
-    blurb: 'Optional support — never the path.', condition: { kind: 'stage', stage: 8 },
-    because: 'Monetization reveals LAST among the mid-game (docs/PREMIUM-STORE.md): the game proves itself before it asks.', teach: 'premium-store' },
+  // Moved to the foundational block below (operator decision 2026-07): the store door is
+  // open from minute 0 — see the always-on rows. Kept as a comment so the stage-8 slot's
+  // original design intent ("the game proves itself before it asks") stays on record.
 
   // ── Stage 10: the third pillar. ──
   { kind: 'screen', id: 'bossrush', name: 'Boss Rush', glyph: '☠', order: 21,
