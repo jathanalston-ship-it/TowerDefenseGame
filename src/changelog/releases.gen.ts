@@ -501,6 +501,18 @@ export const RELEASES: Release[] = [
       {
         "cat": "Balance",
         "text": "Balance pass round 3: activate adaptive economy seams + Genome Rank idle dividend"
+      },
+      {
+        "cat": "UI",
+        "text": "Identity: designation tags — duplicate names disambiguated by a stable register number"
+      },
+      {
+        "cat": "Website",
+        "text": "Chronicle + site regen for the balance pass"
+      },
+      {
+        "cat": "UI",
+        "text": "In-run HUD overhaul: bio-glass organs, living conveyor belt, incubation loot vessel"
       }
     ]
   },

@@ -1,6 +1,6 @@
 {
-  "lastSha": "14252edaeadb5161a0536021cdb1495355f06a4f",
-  "commitsSinceDraft": 2,
+  "lastSha": "70d8b6a93f95a9d2bb1c5955027fe1afb58e4c5d",
+  "commitsSinceDraft": 6,
   "content": {
     "tower": [
       "needle",
@@ -1959,6 +1959,18 @@
         {
           "cat": "Balance",
           "text": "Balance pass round 3: activate adaptive economy seams + Genome Rank idle dividend"
+        },
+        {
+          "cat": "UI",
+          "text": "Identity: designation tags — duplicate names disambiguated by a stable register number"
+        },
+        {
+          "cat": "Website",
+          "text": "Chronicle + site regen for the balance pass"
+        },
+        {
+          "cat": "UI",
+          "text": "In-run HUD overhaul: bio-glass organs, living conveyor belt, incubation loot vessel"
         }
       ]
     }
@@ -2873,6 +2885,38 @@
       "date": "2026-07-11",
       "cat": "Balance",
       "text": "Balance pass round 3: activate adaptive economy seams + Genome Rank idle dividend",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "59a2595a1778d17b568efff65e50c8cd98ab0ca4",
+      "date": "2026-07-11",
+      "cat": "UI",
+      "text": "Identity: designation tags — duplicate names disambiguated by a stable register number",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "16a31d862ef10e1db6716265ca370ea3eaae5b01",
+      "date": "2026-07-11",
+      "cat": "Balance",
+      "text": "Balance pass round 3: activate adaptive economy seams + Genome Rank idle dividend",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "a735354d5ab26277a58777e30855206b1f54e0ed",
+      "date": "2026-07-11",
+      "cat": "Website",
+      "text": "Chronicle + site regen for the balance pass",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "70d8b6a93f95a9d2bb1c5955027fe1afb58e4c5d",
+      "date": "2026-07-11",
+      "cat": "UI",
+      "text": "In-run HUD overhaul: bio-glass organs, living conveyor belt, incubation loot vessel",
       "internal": false,
       "needsReview": false
     }

@@ -124,3 +124,7 @@
 - `d116c36` **[UI]** Guest Mode: session-only offline tryout with in-place account conversion
 - `300c6fb` **[Website]** Chronicle + site regen for the Guest Mode batch
 - `14252ed` **[Balance]** Balance pass round 3: activate adaptive economy seams + Genome Rank idle dividend
+- `59a2595` **[UI]** Identity: designation tags — duplicate names disambiguated by a stable register number
+- `16a31d8` **[Balance]** Balance pass round 3: activate adaptive economy seams + Genome Rank idle dividend
+- `a735354` **[Website]** Chronicle + site regen for the balance pass
+- `70d8b6a` **[UI]** In-run HUD overhaul: bio-glass organs, living conveyor belt, incubation loot vessel
