@@ -121,8 +121,9 @@ Content — not systems — is the binding constraint (see EA-DESIGN-AUDIT). The
   organism-emitter projectiles wired into drawProjectile, container-reveal Overflow/discovery pulls,
   organic audio (squelch/crack/field heartbeat), help-wiki entry, profile dex/Overflow rows, mobile
   NAVS coverage. **MULLIGANS.md**
-  **v29 overhaul:** piece EXCLUSIVITY (one tower per piece; catalog pinned at 3× the tower
-  roster = 45 pieces), 3-distinct-Mega-Boss gate, duplicates dissolve to Gene Essence, split
+  **v29 overhaul:** piece EXCLUSIVITY (one tower per piece; catalog pinned at `CATALOG_PER_TOWER`
+  (6) × the tower roster = 102 pieces — two full alternative organisms per tower), 3-distinct-
+  Mega-Boss gate, duplicates dissolve to Gene Essence, split
   Collection (Pieces + complete Mulligans, each with its own %), Hub nav ring, and the
   ichor-fueled REFORGE wheel (1–3 slots by combined rarity; legendary rolls = GLOBAL passives;
   first spin permanently BINDS the organism) — MULLIGANS.md §reforge
@@ -442,7 +443,8 @@ difficulty's bar; adaptive inputs unwired until the loop engine feeds them (by d
   ❂ Archive panel + grid chrome) — the designed sink beyond full levels (GENE-EVOLUTION.md §Transcendence)
 
 ### Hero Symbiotes (the champion wing of the Mulligan pillar) — HERO-SYMBIOTES.md
-- ✅ Core: 36 organ SPECIES (6 per class, exactly 2 per class×category cell — coverage-tested),
+- ✅ Core: 54 organ SPECIES (9 per class, exactly 3 per class×category cell — coverage-tested;
+  mono-class triples possible in every slot),
   3 slots × 3 seats per hero, per-slot Complete Hero Adaptations, 7-row category-census Resonance
   (`core/heroSymbiote.ts`, save v41 `heroSymbiotes`) — the kit TYPE has no damage/cooldown stat
   fields, so a symbiote can never duplicate Hero Equipment (structural contract)
@@ -460,7 +462,7 @@ difficulty's bar; adaptive inputs unwired until the loop engine feeds them (by d
   rows, two-step Ichor confirm, organ conservatory (graft/seat/level), next-step recommendation
 
 ### Nucleus Mulligans (the Hive's own organ system) — NUCLEUS.md
-- ✅ Core: 18 support organs (3 per class, 3 categories), 3 chambers × 3 organs, class adaptations
+- ✅ Core: 30 support organs (5 per class, 3 categories), 3 chambers × 3 organs, class adaptations
   (`core/nucleus.ts`, save v37 `nucleus`) — towerDamageMult BANNED (registry-enforced identity)
 - ✅ Gates: chamber 1 free · chamber 2 "THE TRIAL OF THE SWARM" (6-system trial) · chamber 3
   "THE APEX CHAMBER" (deep campaign/genome/power/megas/molts/mastery/collection + 300 Ichor)

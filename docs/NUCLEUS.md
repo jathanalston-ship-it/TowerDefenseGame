@@ -16,8 +16,8 @@ bonuses to the same rule).
 - **Organ** (`NucleusOrgan`): one registry row — class (the SAME six-class taxonomy towers and
   Mulligan modifiers share), category (`metabolic` economy / `membrane` survivability /
   `dominion` command), fixed rarity (the Mulligan rarity ladder), level-1 `CardEffect[]`, a
-  `mutation` motif for the renderer, and a `powerWeight`. 18 at launch: **three per class** (so
-  every class can complete a chamber — pinned by test), six per category.
+  `mutation` motif for the renderer, and a `powerWeight`. 30 organs: **five per class** (so a
+  class adaptation is a CHOICE among organs, not a forced set — pinned by test), ten per category.
 - **State** (`save.nucleus`, schema v37): `grown` (organ id → level — the permanent dex),
   `chambers` (organ id refs, exclusive — one seat per organ), `unlocked` (1..3), `adapted`
   (lifetime full-adaptation classes — the codex ledger, never confiscated by re-slotting).

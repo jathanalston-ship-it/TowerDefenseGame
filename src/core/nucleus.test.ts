@@ -32,13 +32,13 @@ function withChamber(ids: string[], unlocked = 1): NucleusState {
 }
 
 describe('organ catalog — the future-organ contract', () => {
-  it('ships 18 organs: three per class (every class can complete a chamber), six per category', () => {
-    expect(nucleusRegistry.size).toBe(18);
+  it('ships 30 organs: five per class (adaptation choice, not just coverage), ten per category', () => {
+    expect(nucleusRegistry.size).toBe(30);
     for (const cls of COMBAT_CLASS_ORDER) {
-      expect(nucleusRegistry.all().filter((o) => o.cls === cls).length, `class ${cls}`).toBeGreaterThanOrEqual(3);
+      expect(nucleusRegistry.all().filter((o) => o.cls === cls).length, `class ${cls}`).toBeGreaterThanOrEqual(5);
     }
     for (const cat of ['metabolic', 'membrane', 'dominion'] as const) {
-      expect(nucleusRegistry.all().filter((o) => o.category === cat).length).toBe(6);
+      expect(nucleusRegistry.all().filter((o) => o.category === cat).length).toBe(10);
     }
   });
 

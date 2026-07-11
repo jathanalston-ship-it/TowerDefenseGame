@@ -38,18 +38,18 @@ describe('symbiote catalog contracts', () => {
     expect(symbioteRegistry.validate()).toEqual([]);
   });
 
-  it('launch catalog is 36 species — six per class, two per class×category cell', () => {
-    expect(symbioteRegistry.all().length).toBe(36);
+  it('catalog is 54 species — nine per class, three per class×category cell', () => {
+    expect(symbioteRegistry.all().length).toBe(54);
     for (const cls of COMBAT_CLASS_ORDER) {
       const ofClass = symbiotesByClass(cls);
-      expect(ofClass.length, `${cls} species`).toBe(6);
+      expect(ofClass.length, `${cls} species`).toBe(9);
       for (const cat of SYMBIOTE_CATEGORIES) {
         const cell = ofClass.filter((o) => o.category === cat);
-        expect(cell.length, `${cls}×${cat} cell`).toBeGreaterThanOrEqual(2);
+        expect(cell.length, `${cls}×${cat} cell`).toBeGreaterThanOrEqual(3);
       }
     }
-    // Category totals stay balanced (12 per category) so every resonance is reachable.
-    for (const cat of SYMBIOTE_CATEGORIES) expect(symbiotesByCategory(cat).length).toBe(12);
+    // Category totals stay balanced (18 per category) so every resonance is reachable.
+    for (const cat of SYMBIOTE_CATEGORIES) expect(symbiotesByCategory(cat).length).toBe(18);
   });
 
   it('graft/upgrade costs rise with rarity and level', () => {

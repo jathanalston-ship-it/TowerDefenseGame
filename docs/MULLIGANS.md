@@ -7,7 +7,8 @@ generated** appearance, animation, and projectile from the modifiers it holds. T
 **modularity** — a future modifier is one registry row and needs *zero* new gameplay or draw code.
 
 > Status: **SHIPPED end-to-end**, then **OVERHAULED (v29)**: piece exclusivity (one tower per
-> piece; the catalog is pinned at **3× the tower roster** — currently 45 pieces / 15 towers), a
+> piece; the catalog is pinned at **`CATALOG_PER_TOWER` (6) × the tower roster** — currently
+> 102 pieces / 17 towers, two full alternative organisms per tower), a
 > **progress gate** (3 distinct Mega Boss kills), duplicate pulls dissolving to Gene Essence,
 > a split Collection (pieces AND complete organisms), and the **Reforge wheel** (§reforge) —
 > an ichor-fueled bio-horror spinner that permanently BINDS an organism to its host.
@@ -22,9 +23,11 @@ generated** appearance, animation, and projectile from the modifiers it holds. T
 - Each Mulligan has **three modifier slots** (A / B / C).
 - **§exclusivity — a PIECE lives on ONE tower at a time.** Pieces are unique physical items:
   equipping one on a second tower MOVES it (the first organism deactivates); the same piece can
-  never fill two slots. The catalog is pinned at **exactly 3 pieces per tower**
-  (`mulliganRegistry.size === 3 × TOWER_ORDER.length`, content-integrity tested), so every tower
-  can host a full organism with zero sharing — adding a tower forces three new pieces.
+  never fill two slots. The catalog is pinned at **exactly `CATALOG_PER_TOWER` (6) pieces per
+  tower** (`mulliganRegistry.size === CATALOG_PER_TOWER × TOWER_ORDER.length`, content-integrity
+  tested — two per category per tower), so every tower can host a full organism with zero sharing
+  AND a real choice between two complete alternative organisms — adding a tower forces six new
+  pieces.
 - **§gate — the pillar unlocks after slaying 3 distinct Mega Bosses** (`MULLIGAN_GATE_MEGAS`;
   `meta.mulligansUnlocked`). The Lab shows a progress briefing until then; containers hold their
   piece drops. Accounts already holding pieces are grandfathered. Dailies still field loaner
@@ -169,18 +172,21 @@ generators pass that layers on this core.)
 
 ---
 
-## 9. The launch catalog — 30 modifiers
+## 9. The catalog — 102 modifiers (34 per category, 6 per tower)
 
 Authored at Common/L1; rarity + level scale the deltas. Each supports multiple archetypes.
+The catalog is **not enumerated here** — `src/core/mulligan.ts` is the single source of truth
+(`OFFENSIVE`/`UTILITY`/`BIOLOGICAL` waves 1–4) and the count contract is the exported
+`CATALOG_PER_TOWER` (6) pinned by `mulligan.test.ts` + `mulliganOverhaul.test.ts`. Structure:
 
-**Offensive (10):** Bone Spike · Acid Gland · Rapid Synapse · Rupture Node · Venom Barb ·
-Crystalline Core · Overload Ganglion · Siege Carapace · Shatter Lance · Apex Predator Gland.
-
-**Utility (10):** Sensory Cilia · Sticky Membrane · Symbiotic Pod · Disruptor Sac · Frost Vesicle ·
-Hunter Ocelli · Web Filament · Resonance Antenna · Warp Anchor · Oracle Nexus.
-
-**Biological (10):** Green Vein · Vascular Tissue · Parasite Sac · Spore Bladder · Regenerative Node
-· Toxin Reservoir · Symbiont Cluster · Necrotic Bloom · Living Hive · Genesis Organ.
+- **34 Offensive · 34 Utility · 34 Biological** — per-category totals stay an exact multiple of
+  the tower roster, so §exclusivity math never strands a tower.
+- **6 pieces per tower = two full alternative organisms** (2 per category per tower): every tower
+  has a genuine assembly CHOICE even with the whole roster equipped, and the container economy
+  keeps pulling meaningfully ~2× longer before dissolving into Gene Essence.
+- Every piece is pullable from the same source: epic+ Bio-Containers (and Bio-Roulette's modifier
+  lane) draw uniformly from `mulliganRegistry.ids()` filtered to unowned — a new registry row is
+  in the drop pool the moment it registers, zero loot wiring.
 
 ---
 

@@ -48,8 +48,9 @@ trials (the future-hero contract, half one; visuals are half two).
 
 ## §organs — a species catalog, grafted per host
 
-36 species at launch: **six per class, exactly two per class×category cell**
-(offensive/utility/biological × the six CombatClasses — the coverage test). Species are
+54 species: **nine per class, exactly three per class×category cell**
+(offensive/utility/biological × the six CombatClasses — the coverage test), so one hero can run
+a mono-class triple in every slot. Species are
 host-agnostic: any hero may graft any species, each graft is **that hero's own organism**
 (grown with Gene Essence, per-host level ladder on the shared Mulligan rarity caps), and within a
 host a species occupies at most ONE seat (§exclusivity per host). The catalog **never grows with

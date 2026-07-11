@@ -93,9 +93,11 @@ export const symbioteRegistry = new Registry<SymbioteOrgan>('symbioteOrgan', {
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
-// THE ORGAN BOOK — 36 species at launch: six per class, EXACTLY two per class×category cell
-// (the coverage test), so every class can complete a slot adaptation and every category can
+// THE ORGAN BOOK — 54 species: nine per class, EXACTLY three per class×category cell
+// (the coverage test), so every class can complete a slot adaptation THREE different ways,
+// a single hero can run a mono-class triple across all three slots, and every category can
 // drive a resonance. Species are host-agnostic: the catalog never grows with the hero roster.
+// The `_2` arrays are the second wave — registration stays append-only after the base 36.
 // ─────────────────────────────────────────────────────────────────────────────
 const KINETIC: SymbioteOrgan[] = [
   { id: 'bone_lancets', name: 'Bone Lancets', category: 'offensive', cls: 'Kinetic', rarity: 'common', mutation: 'spines',
@@ -223,7 +225,83 @@ const RESONANT: SymbioteOrgan[] = [
     desc: 'The presence deepens and the ability hums a soft echo.', flavor: 'The Hive taught it one song. It taught the song ambition.' },
 ];
 
-symbioteRegistry.registerAll([...KINETIC, ...CAUSTIC, ...VIRAL, ...NEURAL, ...VITAL, ...RESONANT]);
+// ── The second wave: one MORE species per class×category cell (2 → 3 everywhere) ────────────
+const KINETIC_2: SymbioteOrgan[] = [
+  { id: 'shatterhorn', name: 'Shatterhorn', category: 'offensive', cls: 'Kinetic', rarity: 'rare', mutation: 'spines',
+    kit: { strikeComponents: [{ type: 'explosion', radius: 50, damage: 6 }] }, powerWeight: 0.065,
+    desc: 'Every strike detonates a concussive burst around the target.', flavor: 'The horn breaks on impact. The horn is designed to break on impact.' },
+  { id: 'piston_haunches', name: 'Piston Haunches', category: 'utility', cls: 'Kinetic', rarity: 'uncommon', mutation: 'plates',
+    kit: { killHaste: { mult: 1.18, seconds: 0.9 } }, powerWeight: 0.054,
+    desc: 'Kills compress the springs — a short surge of speed and cadence.', flavor: 'Hydraulics grown from gristle. The warranty is a threat.' },
+  { id: 'living_ballast', name: 'Living Ballast', category: 'biological', cls: 'Kinetic', rarity: 'epic', mutation: 'plates',
+    kit: { strikeStatuses: [{ status: 'Fracture', amount: 1 }], reviveSpeedMult: 1.15 }, powerWeight: 0.088,
+    desc: 'Strikes Fracture armor, and the host\'s heavy frame reknits faster.', flavor: 'It stores mass the way misers store coin — and spends it as violence.' },
+];
+
+const CAUSTIC_2: SymbioteOrgan[] = [
+  { id: 'spitfire_ducts', name: 'Spitfire Ducts', category: 'offensive', cls: 'Caustic', rarity: 'epic', mutation: 'veins',
+    kit: { strikeComponents: [{ type: 'projectile', behavior: 'splash', damage: 5, speed: 300, range: 200, splash: 40 }] }, powerWeight: 0.09,
+    desc: 'Every strike spits a caustic glob that bursts on arrival.', flavor: 'The host learns to salivate strategically.' },
+  { id: 'slag_trail', name: 'Slag Trail', category: 'utility', cls: 'Caustic', rarity: 'rare', mutation: 'sacs',
+    kit: { strikeComponents: [{ type: 'pool', radius: 30, dps: 4, seconds: 1.6 }] }, powerWeight: 0.066,
+    desc: 'Strikes leave small smoldering acid slicks underfoot.', flavor: 'It never cleans up after itself. That is the entire strategy.' },
+  { id: 'pickled_organs', name: 'Pickled Organs', category: 'biological', cls: 'Caustic', rarity: 'common', mutation: 'sacs',
+    kit: { reviveSpeedMult: 1.15 }, powerWeight: 0.046,
+    desc: 'Preserved viscera reknit the fallen host measurably faster.', flavor: 'Brined, sealed, and extremely reluctant to spoil.' },
+];
+
+const VIRAL_2: SymbioteOrgan[] = [
+  { id: 'fever_spurs', name: 'Fever Spurs', category: 'offensive', cls: 'Viral', rarity: 'rare', mutation: 'spines',
+    kit: { strikeStatuses: [{ status: 'Infection', amount: 1 }], killHaste: { mult: 1.15, seconds: 0.8 } }, powerWeight: 0.067,
+    desc: 'Strikes infect, and every kill spikes the host\'s fever-tempo.', flavor: 'The temperature is not a symptom. It is a schedule.' },
+  { id: 'whisper_phage', name: 'Whisper Phage', category: 'utility', cls: 'Viral', rarity: 'epic', mutation: 'tendrils',
+    kit: { killPlague: { frac: 0.4, radius: 90 } }, powerWeight: 0.086,
+    desc: 'Kills exhale a wide, quiet burst of the victim\'s afflictions.', flavor: 'It spreads rumors between immune systems. All of them true.' },
+  { id: 'chrysalis_womb', name: 'Chrysalis Womb', category: 'biological', cls: 'Viral', rarity: 'legendary', mutation: 'sacs',
+    kit: { summonMult: { hpMult: 1.35, damageMult: 1.25 } }, powerWeight: 0.112,
+    desc: 'The host\'s summoned organisms emerge dramatically harder and hungrier.', flavor: 'Every larva gets a second draft. The editor is merciless.' },
+];
+
+const NEURAL_2: SymbioteOrgan[] = [
+  { id: 'verdict_spike', name: 'Verdict Spike', category: 'offensive', cls: 'Neural', rarity: 'epic', mutation: 'spines',
+    kit: { strikeStatuses: [{ status: 'Disruption', amount: 1.2 }], abilityRadiusMult: 1.05 }, powerWeight: 0.089,
+    desc: 'Strikes Disrupt, and the mind\'s reach widens slightly.', flavor: 'It renders judgment through the spinal column, skipping the appeal.' },
+  { id: 'premonition_knot', name: 'Premonition Knot', category: 'utility', cls: 'Neural', rarity: 'rare', mutation: 'eyes',
+    kit: { abilityEchoFrac: 0.15, survival: 'cautious' }, powerWeight: 0.064,
+    desc: 'The host grows careful, and its ability murmurs a 15% echo.', flavor: 'It saw this fight last week. It has notes.' },
+  { id: 'axon_vines', name: 'Axon Vines', category: 'biological', cls: 'Neural', rarity: 'uncommon', mutation: 'veins',
+    kit: { abilityRadiusMult: 1.08 }, powerWeight: 0.053,
+    desc: 'Grafted nerve-creepers stretch the ability\'s footprint.', flavor: 'Thought takes root in the host, then keeps growing past the fence.' },
+];
+
+const VITAL_2: SymbioteOrgan[] = [
+  { id: 'butcher_ivy', name: 'Butcher Ivy', category: 'offensive', cls: 'Vital', rarity: 'rare', mutation: 'tendrils',
+    kit: { strikeComponents: [{ type: 'aura', radius: 52, damage: 4 }, { type: 'heal', self: 1 }] }, powerWeight: 0.066,
+    desc: 'Strikes lash everything close and sip a little back.', flavor: 'It prunes the battlefield. The clippings are dinner.' },
+  { id: 'amber_heart', name: 'Amber Heart', category: 'utility', cls: 'Vital', rarity: 'epic', mutation: 'sacs',
+    kit: { overhealShieldFrac: 0.35, reviveSpeedMult: 1.1 }, powerWeight: 0.087,
+    desc: 'Overflow healing hardens to armor, and the host rises a little sooner.', flavor: 'Everything it cannot spend, it fossilizes for later.' },
+  { id: 'balm_ducts', name: 'Balm Ducts', category: 'biological', cls: 'Vital', rarity: 'uncommon', mutation: 'veins',
+    kit: { overhealShieldFrac: 0.25 }, powerWeight: 0.052,
+    desc: 'A quarter of overflow healing sets into a living shield.', flavor: 'It bottles mercy at the source and ages it into armor.' },
+];
+
+const RESONANT_2: SymbioteOrgan[] = [
+  { id: 'tocsin_barbs', name: 'Tocsin Barbs', category: 'offensive', cls: 'Resonant', rarity: 'uncommon', mutation: 'spines',
+    kit: { strikeComponents: [{ type: 'chain', jumps: 2, range: 110, damage: 4, falloff: 0.75 }] }, powerWeight: 0.056,
+    desc: 'Strikes toll outward — alarm arcs leap to nearby hosts.', flavor: 'Every hit rings the bell. The bell is barbed.' },
+  { id: 'lighthouse_gland', name: 'Lighthouse Gland', category: 'utility', cls: 'Resonant', rarity: 'legendary', mutation: 'halo',
+    kit: { auraMult: 1.16 }, powerWeight: 0.11,
+    desc: 'The host\'s presence sweeps far beyond its body.', flavor: 'It turns slowly inside the ribcage, looking for ships to ruin.' },
+  { id: 'chorus_marrow', name: 'Chorus Marrow', category: 'biological', cls: 'Resonant', rarity: 'common', mutation: 'veins',
+    kit: { auraMult: 1.05 }, powerWeight: 0.045,
+    desc: 'The bones hum along — presence carries a little further.', flavor: 'Even its skeleton refuses to sit out the song.' },
+];
+
+symbioteRegistry.registerAll([
+  ...KINETIC, ...CAUSTIC, ...VIRAL, ...NEURAL, ...VITAL, ...RESONANT,
+  ...KINETIC_2, ...CAUSTIC_2, ...VIRAL_2, ...NEURAL_2, ...VITAL_2, ...RESONANT_2,
+]);
 
 /** Organs of a class / category (UI grouping, collections, the recommender). */
 export function symbiotesByClass(cls: CombatClass): SymbioteOrgan[] {

@@ -7,7 +7,7 @@ import { describe, expect, it } from 'vitest';
 import { meta } from './meta';
 import { TOWER_ORDER } from '../core/config';
 import {
-  MULLIGAN_GATE_MEGAS, isMulliganActive, modifierHost, mulliganRegistry, reforgeSlotCount,
+  CATALOG_PER_TOWER, MULLIGAN_GATE_MEGAS, isMulliganActive, modifierHost, mulliganRegistry, reforgeSlotCount,
 } from '../core/mulligan';
 import { REFORGE_MODS, REFORGE_RARITY, reforgeCost, rollReforgeMod, rollReforgeRarity } from '../core/mulliganReforge';
 import { defaultSave, parseImport } from '../save/saveStore';
@@ -57,8 +57,8 @@ describe('piece exclusivity — one tower at a time', () => {
     }
   });
 
-  it('the catalog always holds exactly three pieces per tower (full-roster coverage)', () => {
-    expect(mulliganRegistry.size).toBe(3 * TOWER_ORDER.length);
+  it('the catalog always holds exactly CATALOG_PER_TOWER pieces per tower (full-roster coverage + choice)', () => {
+    expect(mulliganRegistry.size).toBe(CATALOG_PER_TOWER * TOWER_ORDER.length);
   });
 });
 

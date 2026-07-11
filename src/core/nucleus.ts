@@ -92,9 +92,9 @@ export const nucleusRegistry = new Registry<NucleusOrgan>('nucleusOrgan', {
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
-// THE ORGAN BOOK — 18 at launch: three per class (so every class can complete a chamber),
-// six per category. Authored small (a chamber stacks three, adaptations stack on top) and
-// support-flavored throughout. A new organ is ONE row here.
+// THE ORGAN BOOK — 30 organs: five per class (so a class adaptation is a CHOICE among organs,
+// not a forced set), ten per category. Authored small (a chamber stacks three, adaptations
+// stack on top) and support-flavored throughout. A new organ is ONE row here.
 // ─────────────────────────────────────────────────────────────────────────────
 const METABOLIC: NucleusOrgan[] = [
   { id: 'nectar_ducts', name: 'Nectar Ducts', category: 'metabolic', cls: 'Resonant', rarity: 'common', mutation: 'veins',
@@ -159,7 +159,54 @@ const DOMINION: NucleusOrgan[] = [
     desc: 'The apex dominion organ — the wave weakens, the army sharpens.', flavor: 'It does not command the battle. It remembers it forward.' },
 ];
 
-nucleusRegistry.registerAll([...METABOLIC, ...MEMBRANE, ...DOMINION]);
+// ── The cultivation 12 (4 per category, 2 per class → 5 per class, 10 per category) — grown
+// alongside the Mulligan-family catalog expansion so chamber-building has real CHOICE beyond
+// exact coverage: every class can now fill a chamber two different ways. Support-flavored
+// throughout (the towerDamageMult ban stands). ──
+const METABOLIC_2: NucleusOrgan[] = [
+  { id: 'chime_stomach', name: 'Chime Stomach', category: 'metabolic', cls: 'Resonant', rarity: 'uncommon', mutation: 'pulse',
+    effects: [{ op: 'mul', field: 'biomassMult', value: 1.04 }, { op: 'add', field: 'sellRefundFrac', value: 0.04 }], powerWeight: 0.052,
+    desc: '+4% biomass; reabsorption refunds +4%.', flavor: 'Digestion in waltz time. Nothing is wasted on the off-beat.' },
+  { id: 'render_vats', name: 'Render Vats', category: 'metabolic', cls: 'Caustic', rarity: 'rare', mutation: 'sacs',
+    effects: [{ op: 'mul', field: 'reactorBiomassMult', value: 1.1 }, { op: 'add', field: 'sellRefundFrac', value: 0.05 }], powerWeight: 0.062,
+    desc: 'Reactors run +10% richer; salvage renders +5% cleaner.', flavor: 'Everything the Hive outgrows is soup by morning.' },
+  { id: 'gut_flora', name: 'Gut Flora', category: 'metabolic', cls: 'Viral', rarity: 'common', mutation: 'spores',
+    effects: [{ op: 'mul', field: 'biomassMult', value: 1.04 }], powerWeight: 0.048,
+    desc: '+4% biomass from every kill.', flavor: 'A trillion tiny accountants, all of them hungry.' },
+  { id: 'honey_crypts', name: 'Honey Crypts', category: 'metabolic', cls: 'Vital', rarity: 'epic', mutation: 'sacs',
+    effects: [{ op: 'add', field: 'startBiomassBonus', value: 60 }, { op: 'mul', field: 'biomassMult', value: 1.04 }], powerWeight: 0.085,
+    desc: 'Begin every run with +60 biomass sealed away; +4% income.', flavor: 'The dead feed the vault. The vault feeds the war.' },
+];
+const MEMBRANE_2: NucleusOrgan[] = [
+  { id: 'buttress_ribs', name: 'Buttress Ribs', category: 'membrane', cls: 'Kinetic', rarity: 'uncommon', mutation: 'plating',
+    effects: [{ op: 'mul', field: 'integrityMult', value: 1.06 }, { op: 'add', field: 'integrityRegenPerWave', value: 3 }], powerWeight: 0.055,
+    desc: '+6% Integrity; regrow 3 each wave.', flavor: 'Architecture the Hive dreamed while being hit.' },
+  { id: 'lymphatic_moat', name: 'Lymphatic Moat', category: 'membrane', cls: 'Vital', rarity: 'rare', mutation: 'veins',
+    effects: [{ op: 'add', field: 'integrityRegenPerWave', value: 8 }, { op: 'mul', field: 'heroHealingMult', value: 1.05 }], powerWeight: 0.062,
+    desc: 'Regrow 8 Integrity each wave; champions mend +5% faster.', flavor: 'A circulating defense. The current always runs toward the wound.' },
+  { id: 'pain_editor', name: 'Pain Editor', category: 'membrane', cls: 'Neural', rarity: 'epic', mutation: 'eyes',
+    effects: [{ op: 'mul', field: 'integrityMult', value: 1.07 }, { op: 'mul', field: 'heroMaxHpMult', value: 1.05 }], powerWeight: 0.084,
+    desc: '+7% Integrity; champions toughen +5%.', flavor: 'It reads every injury and publishes a kinder version.' },
+  { id: 'bell_jar', name: 'Bell Jar', category: 'membrane', cls: 'Resonant', rarity: 'legendary', mutation: 'pulse',
+    effects: [{ op: 'mul', field: 'integrityMult', value: 1.1 }, { op: 'add', field: 'integrityRegenPerWave', value: 6 }, { op: 'mul', field: 'heroHealingMult', value: 1.05 }], powerWeight: 0.11,
+    desc: '+10% Integrity, regrow 6 each wave, +5% champion healing — the sheltering tone.', flavor: 'One sustained note, and inside it, nothing breaks.' },
+];
+const DOMINION_2: NucleusOrgan[] = [
+  { id: 'puppet_strings', name: 'Puppet Strings', category: 'dominion', cls: 'Neural', rarity: 'rare', mutation: 'tentacles',
+    effects: [{ op: 'mul', field: 'heroCooldownMult', value: 0.97 }, { op: 'mul', field: 'heroAggroRangeMult', value: 1.04 }], powerWeight: 0.063,
+    desc: 'Champion abilities recover 3% sooner; champions hunt 4% wider.', flavor: 'The Hive does not command its champions. It suggests, continuously.' },
+  { id: 'spite_pheromones', name: 'Spite Pheromones', category: 'dominion', cls: 'Viral', rarity: 'uncommon', mutation: 'spores',
+    effects: [{ op: 'mul', field: 'enemyHpRunMult', value: 0.98 }], powerWeight: 0.056,
+    desc: 'Everything that enters arrives 2% weaker.', flavor: 'The air holds a grudge on the Hive’s behalf.' },
+  { id: 'war_drums', name: 'War Drums', category: 'dominion', cls: 'Kinetic', rarity: 'epic', mutation: 'plating',
+    effects: [{ op: 'mul', field: 'towerFireRateMult', value: 1.03 }, { op: 'add', field: 'heroCritChance', value: 0.02 }], powerWeight: 0.083,
+    desc: 'Towers cycle +3% faster; champions strike keener (+2% crit).', flavor: 'Bone stretched over hunger. The rhythm is instructions.' },
+  { id: 'gravity_bile', name: 'Gravity Bile', category: 'dominion', cls: 'Caustic', rarity: 'legendary', mutation: 'tentacles',
+    effects: [{ op: 'add', field: 'corrosionSlowBonus', value: 0.04 }, { op: 'mul', field: 'splashRadiusMult', value: 1.05 }], powerWeight: 0.108,
+    desc: 'Corrosion clings +4% harder and blasts bloom 5% wider — the field thickens.', flavor: 'It weighs the enemy down with the Hive’s opinion of them.' },
+];
+
+nucleusRegistry.registerAll([...METABOLIC, ...MEMBRANE, ...DOMINION, ...METABOLIC_2, ...MEMBRANE_2, ...DOMINION_2]);
 
 /** Organs of a category / class (UI grouping, collections, the chamber recommender). */
 export function organsByCategory(cat: NucleusCategory): NucleusOrgan[] {

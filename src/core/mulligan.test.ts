@@ -4,7 +4,7 @@
 
 import { describe, it, expect } from 'vitest';
 import {
-  CLASS_ADAPTATIONS, MULLIGAN_AXES, MULLIGAN_RARITY, MULLIGAN_RARITY_ORDER, MULLIGAN_SLOTS,
+  CATALOG_PER_TOWER, CLASS_ADAPTATIONS, MULLIGAN_AXES, MULLIGAN_RARITY, MULLIGAN_RARITY_ORDER, MULLIGAN_SLOTS,
   accountMulliganPower, adaptationOf, ascendCost, assembleMulligan, dominantAxis, effectiveStats,
   emptyMulligan, identityMulligan, isMulliganActive, levelCap, makeSlot, modifiersByCategory,
   modifiersByClass, mulliganPower, mulliganRegistry, resolveMulligan, rollRarity, seedFor, upgradeCost,
@@ -14,14 +14,16 @@ import { TOWER_DEFS, TOWER_ORDER } from './config';
 import type { MulliganState } from './mulligan';
 
 describe('catalog', () => {
-  it('tracks the tower roster at EXACTLY three pieces per tower (§exclusivity math) and validates', () => {
-    // 3 pieces activate one organism and a piece lives on one tower at a time, so the
-    // catalog must always hold 3× the tower roster — adding a tower forces new pieces.
-    expect(mulliganRegistry.size).toBe(3 * TOWER_ORDER.length);
+  it('tracks the tower roster at EXACTLY CATALOG_PER_TOWER pieces per tower (§exclusivity + choice) and validates', () => {
+    // 3 pieces activate one organism and a piece lives on one tower at a time; the catalog
+    // ships at CATALOG_PER_TOWER (6) × roster — two full alternative organisms per tower, so
+    // decking the roster leaves real builds to choose. Adding a tower forces 6 new pieces.
+    expect(mulliganRegistry.size).toBe(CATALOG_PER_TOWER * TOWER_ORDER.length);
     expect(mulliganRegistry.validate()).toEqual([]);
-    expect(modifiersByCategory('offensive').length).toBe(TOWER_ORDER.length);
-    expect(modifiersByCategory('utility').length).toBe(TOWER_ORDER.length);
-    expect(modifiersByCategory('biological').length).toBe(TOWER_ORDER.length);
+    const perCategory = (CATALOG_PER_TOWER / 3) * TOWER_ORDER.length; // categories stay balanced
+    expect(modifiersByCategory('offensive').length).toBe(perCategory);
+    expect(modifiersByCategory('utility').length).toBe(perCategory);
+    expect(modifiersByCategory('biological').length).toBe(perCategory);
   });
   it('every modifier declares an influence over KNOWN axes and a positive Power weight', () => {
     for (const m of mulliganRegistry.all()) {
