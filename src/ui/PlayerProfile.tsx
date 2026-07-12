@@ -24,6 +24,8 @@ import { LoopDirective } from './NextGoalBanner';
 import { MasteryProfile } from './MasteryProfile';
 import { AchievementPanel } from './AchievementPanel';
 import { formatPower } from '../core/power';
+import { powerSeries, weeklyPowerDelta } from '../state/powerLog';
+import { PowerSpark } from './components/GrowthPanel';
 import { AccountXpBar, rewardLine } from './components/AccountXpBar';
 import { ACCOUNT_TITLES, MILESTONE_LEVELS, accountLevelReward } from '../core/accountLevel';
 import { LeaderboardBlock } from './components/LeaderboardBlock';
@@ -299,6 +301,18 @@ export function PlayerProfile({ onNavigate }: { onNavigate?: (nav: string) => vo
       {/* ── 3 · POWER BREAKDOWN — where the strength comes from ── */}
       <section className="pf-block" aria-label="Power breakdown">
         <div className="pf-h">Power Breakdown <b className="pf-h-power">{formatPower(power.score)}</b></div>
+        {/* Power over time — the daily ledger (docs/POWER-SCORE.md §history). Hidden until two days exist. */}
+        {powerSeries(save, 30).length >= 2 && (
+          <div className="pf-power-trend">
+            <PowerSpark points={powerSeries(save, 30)} />
+            {(() => {
+              const t = weeklyPowerDelta(save, power.score);
+              return t !== null ? (
+                <span className={`gp-trend ${t > 0 ? 'is-up' : ''}`}>{t > 0 ? `▲ +${formatPower(t)}` : t < 0 ? `▼ ${formatPower(t)}` : '— steady'} · 7d</span>
+              ) : null;
+            })()}
+          </div>
+        )}
         <div className="pf-power">
           {power.slices.map((s) => (
             <div className="pf-power-row tt" key={s.id} tabIndex={0}>

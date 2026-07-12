@@ -6,7 +6,7 @@
 > build disagree, **the build wins and this file is the tiebreaker.** Prefer reading this over
 > re-reading a system's implementation (per CLAUDE.md "Trust existing architecture").
 >
-> **Save schema:** `CURRENT_VERSION = 42` (additive migrations via `withDefaults` + per-field
+> **Save schema:** `CURRENT_VERSION = 43` (additive migrations via `withDefaults` + per-field
 > sanitizers; checksummed blob). **Stack:** React + TypeScript + Vite static SPA, deterministic sim
 > core in `src/core/` (no React/DOM), Canvas renderer, browser-local saves. Tests: `npm test`
 > (Vitest) — the golden characterization test pins the sim byte-for-byte.
@@ -49,6 +49,9 @@ Content — not systems — is the binding constraint (see EA-DESIGN-AUDIT). The
 - ✅ Data-driven registries + content validator (`core/registry.ts`, `core/validate.ts`)
 - ✅ Save: versioned blob, migrations, backups, export/import (`save/saveStore.ts`, UI `SaveManager`)
 - ✅ Power Score index + coverage enforcement (`core/power.ts`, `POWER_RELEVANT_FIELDS`) — POWER-SCORE.md
+- ✅ Power Atlas + history (`state/powerAtlas.ts`, `state/powerLog.ts`, `GrowthPanel` on Home; advisor
+  covers towers/heroes incl. Prime + evolution/genes/adaptation; `save.powerLog` daily ledger v43,
+  weekly delta + sparkline) — POWER-SCORE.md §atlas/§history
 - ✅ **Assimilation Index** — the hidden per-run MASTER STATE (`core/assimilation.ts`): one continuous
   `0..1` index folded from weighted `ContributionProfile` rows (the live run **Power Score** is the
   universal contributor, so every present/future strength system raises it for free), smoothed like

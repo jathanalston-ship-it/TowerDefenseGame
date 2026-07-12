@@ -18,6 +18,7 @@ import { CurrencyIcon } from './components/CurrencyIcon';
 import { audio } from '../audio/sound';
 import { MobileSection } from './components/MobileSection';
 import { SymbioteChamber } from './SymbioteChamber';
+import { BestBuyStrip } from './components/BestBuyStrip';
 import { useLayoutProfile } from './layoutProfile';
 import type { HeroCollectionEntry } from '../state/meta';
 
@@ -195,6 +196,7 @@ export function HeroLab(): JSX.Element {
 
   return (
     <div className="panel herolab">
+      <BestBuyStrip surface="heroes" />
       {/* ── Roster rail: compact, scrollable, one row per hero (scales to 30+) ── */}
       <div className="hero-roster" role="tablist" aria-label="Hero roster">
         <div className="hero-roster-h">Roster <span className="hr-count">{HERO_ORDER.length}</span></div>

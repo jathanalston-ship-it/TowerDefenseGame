@@ -155,13 +155,36 @@ Every strength API announces `before → after + SOURCE` through the powerEvents
 
 "Which of these upgrades is the best Power per currency?" answered EXACTLY:
 `state/bestPurchase.ts` enumerates every legal next purchase on a surface (gene card levels,
-Evolution HQ genome upgrades, tower stars — gates and caps pre-filtered, affordability a flag,
-never a filter), applies each mutation hypothetically, and diffs the real pure scorer
+Evolution HQ genome upgrades, tower stars + Prime, hero stars + Prime — gates and caps
+pre-filtered, affordability a flag, never a filter), applies each mutation hypothetically, and diffs the real pure scorer
 (`powerBreakdown`). Rankings are per-currency (`valuePer1k` = Power per 1000 spent) because
 cross-currency prices aren't comparable — each surface gets its own champion.
 
-`BestBuyStrip` (ui/components) renders the headline atop the Gene Archive, Evolution HQ and
-Tower Lab: the best AFFORDABLE pick now, plus the overall champion as a "save up" tease when
+`BestBuyStrip` (ui/components) renders the headline atop the Gene Archive, Evolution HQ,
+Tower Lab and Hero Lab: the best AFFORDABLE pick now, plus the overall champion as a "save up" tease when
 the wallet can't reach it yet. Memoized per save revision; zero-gain purchases are never
 recommended. **Extension point:** a new upgradeable system adds one `candidates()` block
 (mutate + cost rows) — scorer, ranking and strip are shared.
+
+## §atlas — the Power Atlas + the Growth panel
+
+`state/powerAtlas.ts` answers the whole loop on one card: for EVERY system that raises Power,
+"what's my best next move, can I afford it now, how many moves are open?" Buy-systems (towers,
+heroes — both incl. Prime rows for max-◈ units — Evolution HQ, genes, adaptation) reuse the
+exact advisors above; tend-systems (equipment, Mulligans, the Archive) get an honest status
+line instead of a fake price. The cross-system **headline** compares raw `powerDelta` of
+affordable picks (currency-free, so the comparison is honest — per-1k value stays per-surface).
+
+`GrowthPanel` (ui/components) renders it as the Command Center's `growth` side organ (gated on
+the towers reveal): Power headline + weekly trend + 30-day sparkline, the BEST MOVE strip, and
+one jump-row per system. **Extension point:** a new buy-system adds a `bestPurchase` surface and
+one `buyRow(...)` line; a new tend-system adds one status block.
+
+## §history — the daily Power ledger
+
+`save.powerLog` (v43) remembers one `{ day, score }` per UTC day — the LAST score observed that
+day, bounded to the newest 90 (`POWER_LOG_CAP`). Written by `meta.notePowerSnapshot()` on app
+boot and (600 ms-debounced) after every announced power gain; browser-only wiring, identical
+scores never persist. `state/powerLog.ts` owns the pure folds + queries: `weeklyPowerDelta`
+(newest entry ≥ 7 days old, oldest-entry fallback, null with no prior day) and `powerSeries`
+(sparkline). Surfaces: the Growth panel and the Profile's Power Breakdown trend.

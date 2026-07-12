@@ -242,6 +242,10 @@ export interface SaveData {
   profileFrame: string; // unlockable banner frame id (state/profile PROFILE_FRAMES)
   profileSigil: string | null; // commissioning sigil id (core/identity SIGILS; null = none)
   timeline: TimelineEvent[];
+  // ── Power history (v43, docs/POWER-SCORE.md §history) — one entry per UTC day (last
+  //    observed score that day), bounded to the newest 90. Feeds the Growth panel's weekly
+  //    delta + the Profile trend sparkline. Empty ⇒ no trend yet (additive). ──
+  powerLog: { day: string; score: number }[];
   // ── Adaptation (v22, docs/ADAPTATION.md) — Antigen granted by legendary+ containers.
   //    Consumed as a CAPPED budget source (core/adaptation ANTIGEN.containerCap). ──
   antigen: number;
@@ -409,7 +413,9 @@ export interface TutorialSave {
 // v41→v42: premium.flash (per-offer first-sight/dismiss ledger) + premium.lastFlashShownAt
 // (popup cadence limiter) — docs/PREMIUM-STORE.md §flash. Empty ledger ⇒ no flash offer has
 // been seen; purely additive (sanitizePremium deep-fills older saves).
-export const CURRENT_VERSION = 42;
+// v42→v43: powerLog (docs/POWER-SCORE.md §history) — bounded daily Power Score ledger for the
+// Growth panel's weekly delta + Profile trend. Empty ⇒ no trend yet; purely additive.
+export const CURRENT_VERSION = 43;
 
 /** The placeholder every save is born with — the Commander designation prompt fires
  *  while the name is still exactly this (components/CommanderName.tsx). */
@@ -713,6 +719,7 @@ export function defaultSave(): SaveData {
     profileFrame: 'membrane',
     profileSigil: null,
     timeline: [],
+    powerLog: [],
     antigen: 0,
     ichor: 0,
     lifetimeIchor: 0,
@@ -1240,6 +1247,7 @@ function withDefaults(data: SaveData): SaveData {
       };
     })(),
     timeline: sanitizeTimeline((data as { timeline?: unknown }).timeline),
+    powerLog: sanitizePowerLog((data as { powerLog?: unknown }).powerLog),
     antigen: Math.max(0, Math.floor(Number((data as { antigen?: unknown }).antigen) || 0)),
     // Splice Market (docs/MARKET.md): pre-market saves ⇒ 0 Ichor + a fresh window record.
     ichor: Math.max(0, Math.floor(Number((data as { ichor?: unknown }).ichor) || 0)),
@@ -1296,6 +1304,24 @@ function sanitizeTimeline(raw: unknown): TimelineEvent[] {
     out.push({ at: o.at, icon: typeof o.icon === 'string' ? o.icon : '◈', label: o.label.slice(0, 80) });
   }
   return out.slice(-TIMELINE_CAP);
+}
+
+/** Power-history ledger cap — ~a quarter of daily entries (docs/POWER-SCORE.md §history). */
+export const POWER_LOG_CAP = 90;
+
+function sanitizePowerLog(raw: unknown): { day: string; score: number }[] {
+  if (!Array.isArray(raw)) return [];
+  const out: { day: string; score: number }[] = [];
+  for (const e of raw) {
+    if (typeof e !== 'object' || e === null) continue;
+    const o = e as Partial<{ day: string; score: number }>;
+    if (typeof o.day !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(o.day)) continue;
+    const score = Math.floor(Number(o.score) || 0);
+    if (score <= 0) continue;
+    out.push({ day: o.day, score });
+  }
+  out.sort((a, b) => (a.day < b.day ? -1 : a.day > b.day ? 1 : 0));
+  return out.slice(-POWER_LOG_CAP);
 }
 
 /** Append a milestone to the timeline (pure; newest LAST, capped). The meta layer calls this

@@ -1,6 +1,6 @@
 // BEST-PURCHASE ADVISOR (docs/POWER-SCORE.md §advisor) — "what's the best Power bang for my
 // buck RIGHT NOW?" answered exactly. Every candidate purchase (gene card levels, Evolution HQ
-// genome upgrades, tower stars) is scored by applying its save mutation HYPOTHETICALLY and
+// genome upgrades, tower stars + Prime, hero stars + Prime) is scored by applying its save mutation HYPOTHETICALLY and
 // diffing the real pure scorer (state/profile.ts powerBreakdown) — no heuristics, the same
 // math the Power Score itself uses. Rankings are per-currency (value = Power per 1000 spent):
 // cross-currency prices aren't comparable, so each surface gets its own champion.
@@ -12,10 +12,11 @@
 import type { SaveData } from '../save/saveStore';
 import { powerBreakdown } from './profile';
 import { geneArchiveRows } from './geneArchive';
-import { META_UPGRADES, TOWER_DEFS, TOWER_ORDER } from '../core/config';
-import { isTowerUnlocked, nextStarCost, upgradeCost, upgradeLevel, upgradeUnlocked } from './meta';
+import { HERO_DEFS, HERO_ORDER, META_UPGRADES, STAR, TOWER_DEFS, TOWER_ORDER } from '../core/config';
+import { primeCatalystCost, primeCost } from '../core/prime';
+import { heroStarCost, isHeroUnlocked, isTowerUnlocked, nextStarCost, upgradeCost, upgradeLevel, upgradeUnlocked } from './meta';
 
-export type PurchaseSurface = 'genes' | 'evolution' | 'towers';
+export type PurchaseSurface = 'genes' | 'evolution' | 'towers' | 'heroes';
 
 export interface PurchaseCandidate {
   surface: PurchaseSurface;
@@ -62,18 +63,58 @@ export function purchaseCandidates(save: SaveData, surface: PurchaseSurface): Pu
         powerDelta: delta, valuePer1k: cost > 0 ? (delta / cost) * 1000 : 0,
       });
     }
-  } else {
+  } else if (surface === 'towers') {
     for (const k of TOWER_ORDER) {
       if (!isTowerUnlocked(save, k)) continue;
       const cost = nextStarCost(save, k); // null = maxed or campaign-capped
-      if (cost === null) continue;
-      const stars = save.towerStars[k] ?? 0;
-      const delta = score({ ...save, towerStars: { ...save.towerStars, [k]: stars + 1 } });
-      out.push({
-        surface, id: k, label: `${TOWER_DEFS[k].name} ◈${stars + 1}`,
-        buyLabel: `${cost} Strain Samples`, cost, affordable: (save.towerShards[k] ?? 0) >= cost,
-        powerDelta: delta, valuePer1k: cost > 0 ? (delta / cost) * 1000 : 0,
-      });
+      if (cost !== null) {
+        const stars = save.towerStars[k] ?? 0;
+        const delta = score({ ...save, towerStars: { ...save.towerStars, [k]: stars + 1 } });
+        out.push({
+          surface, id: k, label: `${TOWER_DEFS[k].name} ◈${stars + 1}`,
+          buyLabel: `${cost} Strain Samples`, cost, affordable: (save.towerShards[k] ?? 0) >= cost,
+          powerDelta: delta, valuePer1k: cost > 0 ? (delta / cost) * 1000 : 0,
+        });
+      } else if ((save.towerStars[k] ?? 0) >= STAR.maxTowerStars) {
+        // Star ladder finished → Prime Strains are this tower's next purchase (same seam as
+        // meta.buyTowerPrime: shards + Catalyst at deep levels; both gate affordability).
+        const level = save.towerPrime?.[k] ?? 0;
+        const pCost = primeCost('tower', level);
+        const catalyst = primeCatalystCost(level + 1);
+        const delta = score({ ...save, towerPrime: { ...save.towerPrime, [k]: level + 1 } });
+        out.push({
+          surface, id: `prime:${k}`, label: `${TOWER_DEFS[k].name} Prime L${level + 1}`,
+          buyLabel: `${pCost} Strain Samples${catalyst > 0 ? ` + ${catalyst} Catalyst` : ''}`, cost: pCost,
+          affordable: (save.towerShards[k] ?? 0) >= pCost && save.mats.catalyst >= catalyst,
+          powerDelta: delta, valuePer1k: pCost > 0 ? (delta / pCost) * 1000 : 0,
+        });
+      }
+    }
+  } else {
+    for (const k of HERO_ORDER) {
+      if (!isHeroUnlocked(save, k)) continue;
+      const stars = save.heroStars[k] ?? 0;
+      if (stars < STAR.maxStars) {
+        const cost = heroStarCost(stars);
+        const delta = score({ ...save, heroStars: { ...save.heroStars, [k]: stars + 1 } });
+        out.push({
+          surface, id: k, label: `${HERO_DEFS[k].name} ◈${stars + 1}`,
+          buyLabel: `${cost} Apex Genome`, cost, affordable: (save.heroShards[k] ?? 0) >= cost,
+          powerDelta: delta, valuePer1k: cost > 0 ? (delta / cost) * 1000 : 0,
+        });
+      } else {
+        // Max ◈ hero → the Prime ladder continues (meta.buyHeroPrime seam).
+        const level = save.heroPrime?.[k] ?? 0;
+        const pCost = primeCost('hero', level);
+        const catalyst = primeCatalystCost(level + 1);
+        const delta = score({ ...save, heroPrime: { ...save.heroPrime, [k]: level + 1 } });
+        out.push({
+          surface, id: `prime:${k}`, label: `${HERO_DEFS[k].name} Prime L${level + 1}`,
+          buyLabel: `${pCost} Apex Genome${catalyst > 0 ? ` + ${catalyst} Catalyst` : ''}`, cost: pCost,
+          affordable: (save.heroShards[k] ?? 0) >= pCost && save.mats.catalyst >= catalyst,
+          powerDelta: delta, valuePer1k: pCost > 0 ? (delta / pCost) * 1000 : 0,
+        });
+      }
     }
   }
 

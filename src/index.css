@@ -6244,6 +6244,30 @@ kbd {
 .cc-road-l { font-size: 12px; font-weight: 700; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .cc-road-r { font-size: 10px; color: var(--muted); }
 
+/* Growth panel (docs/POWER-SCORE.md §atlas) — the meta-progression organ: Power headline +
+   weekly trend + sparkline, the BEST MOVE strip, and one jump-row per Power system. */
+.cc-growth { display: flex; flex-direction: column; gap: 8px; padding: 12px 14px; border-radius: var(--r-md); border: 1px solid color-mix(in srgb, var(--gold) 24%, var(--line-strong)); background: linear-gradient(180deg, color-mix(in srgb, var(--gold) 6%, transparent), transparent 46%), rgba(0, 0, 0, 0.22); }
+.gp-head { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+.gp-score { font-size: 16px; font-weight: 900; color: var(--gold); margin-left: auto; }
+.gp-trend { font-size: 10px; font-weight: 900; letter-spacing: 0.08em; color: var(--muted); }
+.gp-trend.is-up { color: var(--success); }
+.gp-spark { width: 100%; height: 30px; color: color-mix(in srgb, var(--gold) 70%, var(--text)); opacity: 0.9; }
+.gp-best { display: flex; align-items: baseline; gap: 8px; width: 100%; text-align: left; padding: 7px 10px; border-radius: var(--r-sm); border: 1px solid color-mix(in srgb, var(--gold) 45%, transparent); background: color-mix(in srgb, var(--gold) 9%, transparent); transition: border-color var(--dur-2) var(--ease-out), transform var(--dur-2) var(--ease-out); }
+.gp-best:hover { border-color: var(--gold); transform: translateY(-1px); }
+.gp-best-k { flex: none; font-size: 10px; font-weight: 900; letter-spacing: 0.14em; color: var(--gold); }
+.gp-best-what { font-size: 12px; color: var(--text); min-width: 0; }
+.gp-best-what b { color: var(--gold); }
+.gp-best-go { margin-left: auto; color: var(--gold); }
+.gp-rows { display: flex; flex-direction: column; gap: 3px; }
+.gp-row { display: flex; align-items: center; gap: 8px; width: 100%; text-align: left; padding: 5px 8px; border-radius: var(--r-sm); border: 1px solid rgba(255, 255, 255, 0.06); background: rgba(255, 255, 255, 0.02); transition: border-color var(--dur-2) var(--ease-out); }
+.gp-row:hover { border-color: color-mix(in srgb, var(--gold) 45%, transparent); }
+.gp-row-l { flex: none; width: 118px; font-size: 11px; font-weight: 700; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.gp-ready { flex: none; min-width: 18px; text-align: center; font-size: 10px; font-weight: 900; padding: 1px 5px; border-radius: 999px; color: #0b1207; background: var(--gold); }
+.gp-row-note { flex: 1; min-width: 0; font-size: 11px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.gp-row-go { flex: none; color: var(--dim); }
+.pf-power-trend { display: flex; align-items: center; gap: 10px; margin: 4px 0 8px; }
+.pf-power-trend .gp-spark { flex: 1; }
+
 /* Live army — every strain + champion, each a door to its lab */
 .cc-army-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: stretch; }
 .cc-army-div { width: 1px; align-self: stretch; background: rgba(255,255,255,0.1); }
@@ -9757,6 +9781,7 @@ kbd {
 .bbs-save { font-style: normal; color: var(--warn); font-weight: 700; }
 .bbs-next { color: var(--muted); font-size: 11px; }
 .bbs-next b { color: var(--text); }
+.herolab > .bbs { grid-column: 1 / -1; margin-bottom: 0; } /* full row atop the rail+console grid */
 
 /* ── #288 VISUAL OVERHAULS: end-of-run Results + the Genetic Vault (pure CSS layers) ─────
    Both screens inherit the hatching ceremony's living-room language: drifting accent motes,

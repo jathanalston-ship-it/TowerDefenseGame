@@ -55,7 +55,8 @@ import { PRESTIGE, canMolt, cellsForCycle, prestigeMult, prestigeStageReq, shard
 import { ASCENDANT_NODES, ascendantBonuses, ascendantCost, nextAscendantCost } from '../core/ascendant';
 import { accumulateStats } from './stats';
 import { DEVICE_PREF_KEYS } from './prefs';
-import { announcePower } from './powerEvents';
+import { announcePower, onPowerGain } from './powerEvents';
+import { withPowerLogged } from './powerLog';
 import { ACHIEVEMENTS, achievementById, checkAchievements, rewardFor } from './achievements';
 import type { AchievementDef, RunSummary } from './achievements';
 import { ALL_ITEMS, CAPPED_GRANT_ITEMS, EQUIP_SLOTS, emptyLoadout, itemDef, loadoutEffects, rollItem, rollItemDrop, rollItemForPower, teamSetEffects } from '../core/equipment';
@@ -3025,6 +3026,15 @@ export const meta = {
    * the HUD and gene-draft "new power" preview. Outside a run pass nothing ⇒ equals power(). */
   powerWith(temporaryEffects: readonly CardEffect[] = []): PowerScore {
     return composePower(accountPowerParts(store.get(), effectsPower(temporaryEffects)));
+  },
+
+  /** Record today's Power Score in the save's daily history ledger (docs/POWER-SCORE.md
+   * §history). Idempotent per (day, score) — an unchanged score never writes. Called on app
+   * boot and (debounced) after power gains; system bookkeeping, not a player action. */
+  notePowerSnapshot(): void {
+    const save = store.get();
+    const next = withPowerLogged(save, composePower(accountPowerParts(save)).score);
+    if (next !== save) persist(next);
   },
 
   /** Power Score for a HYPOTHETICAL save — pass a pure mutator returning the post-upgrade save
@@ -6419,3 +6429,16 @@ export const meta = {
     return { queue: adv.state, banked: entries };
   },
 };
+
+// ── Power-history wiring (docs/POWER-SCORE.md §history) ─────────────────────────────────────
+// Browser-only, like the security layer's inert-in-Node rule — Node test runs stay free of
+// stray timers/persists. Boot logs today's baseline; gains re-log on a short debounce so a
+// claim-all chain lands as ONE ledger write.
+if (typeof window !== 'undefined') {
+  let logTimer: ReturnType<typeof setTimeout> | null = null;
+  onPowerGain(() => {
+    if (logTimer) clearTimeout(logTimer);
+    logTimer = setTimeout(() => { logTimer = null; meta.notePowerSnapshot(); }, 600);
+  });
+  setTimeout(() => meta.notePowerSnapshot(), 0);
+}

@@ -6,7 +6,7 @@ import { describe, expect, it } from 'vitest';
 import { bestPurchase, purchaseCandidates } from './bestPurchase';
 import { powerBreakdown } from './profile';
 import { defaultSave } from '../save/saveStore';
-import { TOWER_ORDER } from '../core/config';
+import { HERO_ORDER, STAR, TOWER_ORDER } from '../core/config';
 import type { SaveData } from '../save/saveStore';
 
 /** A save with real options open: campaign deep enough to lift the evolution cap + gates,
@@ -66,5 +66,45 @@ describe('purchase candidates — exact deltas, honest ordering', () => {
     const s = defaultSave();
     const genes = bestPurchase(s, 'genes');
     expect(genes.best === null || genes.best.powerDelta > 0).toBe(true);
+  });
+
+  it('hero stars: unlocked heroes rank with exact deltas; locked heroes never appear', () => {
+    const s = developed();
+    const starter = HERO_ORDER[0];
+    s.heroShards[starter] = 10_000;
+    const ranked = purchaseCandidates(s, 'heroes');
+    expect(ranked.length).toBeGreaterThan(0);
+    // Only unlocked heroes (the starter is always unlocked; shard-locked kinds stay out).
+    expect(ranked.some((c) => c.id === starter)).toBe(true);
+    const c = ranked.find((x) => x.id === starter)!;
+    const base = powerBreakdown(s).score;
+    const after = powerBreakdown({ ...s, heroStars: { ...s.heroStars, [starter]: (s.heroStars[starter] ?? 0) + 1 } }).score;
+    expect(c.powerDelta).toBeCloseTo(Math.max(0, after - base), 6);
+    expect(c.affordable).toBe(true);
+    expect(c.buyLabel).toContain('Apex Genome');
+  });
+
+  it('prime ladder: a max-◈ unit advertises Prime as its next purchase (never a star)', () => {
+    const s = developed();
+    const starter = HERO_ORDER[0];
+    s.heroStars[starter] = STAR.maxStars;
+    s.heroShards[starter] = 1_000_000;
+    s.mats.catalyst = 1_000;
+    const heroRows = purchaseCandidates(s, 'heroes').filter((c) => c.id === starter || c.id === `prime:${starter}`);
+    expect(heroRows).toHaveLength(1);
+    expect(heroRows[0].id).toBe(`prime:${starter}`);
+    expect(heroRows[0].label).toContain('Prime L1');
+    expect(heroRows[0].affordable).toBe(true);
+    // NOTE: the integer Power index may round a single +0.5%-on-one-unit Prime level to +0 on a
+    // small account (multiplicative model — the same buy is worth whole points late-game), so the
+    // candidate's contract is exact-and-non-negative; bestPurchase() filters zero-gain rows.
+    expect(heroRows[0].powerDelta).toBeGreaterThanOrEqual(0);
+
+    const t0 = TOWER_ORDER[0];
+    s.towerStars[t0] = STAR.maxTowerStars;
+    const towerRows = purchaseCandidates(s, 'towers').filter((c) => c.id === t0 || c.id === `prime:${t0}`);
+    expect(towerRows).toHaveLength(1);
+    expect(towerRows[0].id).toBe(`prime:${t0}`);
+    expect(towerRows[0].powerDelta).toBeGreaterThanOrEqual(0);
   });
 });

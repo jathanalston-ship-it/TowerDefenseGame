@@ -1,6 +1,6 @@
 # DIL_GRAPH.md — the Design Intelligence Layer (GENERATED — `npm run dil -- regen`)
 
-> **The project's brain** (docs/DIL.md). 765 nodes · 1403 edges, built from the live
+> **The project's brain** (docs/DIL.md). 767 nodes · 1407 edges, built from the live
 > registries + curated knowledge (src/dev/dil/). **Query it instead of searching the repo:**
 > `npm run dil -- node <id>` · `affects <id>` · `requires <id>` · `missing <kind> <edge>` ·
 > `checklist tower <kind>` · `find <text>`. Edge kinds are bidirectional (19 kinds).
@@ -50,6 +50,7 @@
 
 ```mermaid
 graph LR
+  system_power["Power Score"] -->|consumes| system_meta_store["Meta Store & Save"]
   system_campaign["Campaign"] -->|consumes| system_meta_store["Meta Store & Save"]
   system_infinite["Infinite Mode"] -->|consumes| system_meta_store["Meta Store & Save"]
   system_boss_rush["Boss Rush"] -->|consumes| system_meta_store["Meta Store & Save"]
@@ -207,6 +208,7 @@ graph LR
   system_engine["Sim Engine"] -->|dependsOn| system_difficulty["Difficulty"]
   system_engine["Sim Engine"] -->|dependsOn| system_assimilation["Assimilation Index"]
   system_power["Power Score"] -->|dependsOn| system_content_infra["Content Infrastructure"]
+  system_power["Power Score"] -->|consumes| system_meta_store["Meta Store & Save"]
   system_campaign["Campaign"] -->|dependsOn| system_engine["Sim Engine"]
   system_campaign["Campaign"] -->|dependsOn| system_biomes["Biomes"]
   system_campaign["Campaign"] -->|dependsOn| system_bosses["Bosses"]
@@ -728,10 +730,12 @@ _at: src/core/registry.ts, src/core/validate.ts, src/core/config.ts, src/core/ty
 
 ONE account-strength number folded from every permanent bucket + the in-run temporary bucket.
 
-_at: src/core/power.ts, src/state/itemPower.ts, src/state/powerEvents.ts, src/state/bestPurchase.ts, src/ui/components/PowerScore.tsx, src/ui/components/PowerDelta.tsx, src/ui/components/PowerToaster.tsx, src/ui/components/BestBuyStrip.tsx_
+_at: src/core/power.ts, src/state/itemPower.ts, src/state/powerEvents.ts, src/state/bestPurchase.ts, src/state/powerAtlas.ts, src/state/powerLog.ts, src/ui/components/PowerScore.tsx, src/ui/components/PowerDelta.tsx, src/ui/components/PowerToaster.tsx, src/ui/components/BestBuyStrip.tsx, src/ui/components/GrowthPanel.tsx_
 
   - dependsOn → `system:content-infra`
   - provides → `concept:power-score` — IS the model (buckets, effectsPower, FIELD_WEIGHT)
+  - consumes → `system:meta-store` — owns save field 'powerLog'
+  - extends → `system:hub-shell` — POWER ATLAS (state/powerAtlas.ts): one row per Power system — best next move via the exact advisors (bestPurchase, now incl. a `heroes` surface + Prime rows for max-◈ units; adaptationPicks) + honest tend notes (gear slots / Mulligan completion / Archive %). The Command Center `growth` widget (ui/components/GrowthPanel.tsx, homeRegistry order 15, gated on the towers reveal) renders it; save.powerLog (v43, bounded 90-day daily ledger, state/powerLog.ts — written by meta.notePowerSnapshot on boot + debounced power gains, browser-only) feeds its weekly delta + sparkline and the Profile Power Breakdown trend
   - requiredBy ← `system:campaign`
   - requiredBy ← `system:mulligans`
   - requiredBy ← `system:premium`
@@ -744,7 +748,7 @@ _at: src/core/power.ts, src/state/itemPower.ts, src/state/powerEvents.ts, src/st
   - requiredBy ← `system:profile`
   - requiredBy ← `system:genome-rank`
   - requiredBy ← `system:hub-shell`
-  - _…10 more (query: `npm run dil -- node system:power`)_
+  - _…12 more (query: `npm run dil -- node system:power`)_
 
 ### `system:campaign` — Campaign
 
@@ -1770,7 +1774,7 @@ _at: src/ui/Hub.tsx, src/ui/navModel.ts, src/ui/MobileShell.tsx, src/ui/CommandC
   - documentedBy ← `doc:HUD.md`
   - documentedBy ← `doc:PROGRESSION-LOOP.md`
   - testedBy ← `test:src/state/nextGoal.test.ts`
-  - _…6 more (query: `npm run dil -- node system:hub-shell`)_
+  - _…7 more (query: `npm run dil -- node system:hub-shell`)_
 
 ### `system:run-ui` — In-Run HUD & Results
 
@@ -1826,6 +1830,7 @@ _at: src/state/meta.ts, src/state/store.ts, src/state/prefs.ts, src/state/devRes
   - provides → `concept:power-score` — recomputes the account score on every persist
   - consumes → `system:meta-store` — owns save field 'ALL (owner)'
   - consumes → `currency:genome-cores` — genome upgrade tree
+  - consumedBy ← `system:power` — owns save field 'powerLog'
   - consumedBy ← `system:campaign` — owns save field 'campaign'
   - consumedBy ← `system:infinite` — owns save field 'bestWave'
   - requiredBy ← `system:accounts`
@@ -1837,8 +1842,7 @@ _at: src/state/meta.ts, src/state/store.ts, src/state/prefs.ts, src/state/devRes
   - consumedBy ← `system:mulligans` — owns save field 'mulligans'
   - consumedBy ← `system:mulligans` — owns save field 'mulliganDex'
   - consumedBy ← `system:premium` — owns save field 'premium'
-  - requiredBy ← `system:field-research`
-  - _…110 more (query: `npm run dil -- node system:meta-store`)_
+  - _…111 more (query: `npm run dil -- node system:meta-store`)_
 
 ### `system:bosses` — Bosses
 
@@ -3278,7 +3282,7 @@ _at: site/guides.ts → /guides/prestige/_
 - `doc:VOWS.md` — project documentation _(documents `system:prestige`)_
 - `doc:WEBSITE.md` — project documentation _(documents `system:field-research`, documents `system:website`)_
 
-## Tests (239)
+## Tests (241)
 
 - `test:src/audio/music.test.ts` — automated validation _(tests `system:audio`)_
 - `test:src/changelog/classify.test.ts` — automated validation _(tests `system:chronicle`)_
@@ -3492,8 +3496,10 @@ _at: site/guides.ts → /guides/prestige/_
 - `test:src/state/nextGoal.test.ts` — automated validation _(tests `system:hub-shell`)_
 - `test:src/state/notifications.test.ts` — automated validation _(tests `system:notifications`)_
 - `test:src/state/patchNotes.test.ts` — automated validation _(tests `system:engine`)_
+- `test:src/state/powerAtlas.test.ts` — automated validation _(tests `system:power`)_
 - `test:src/state/powerEvents.test.ts` — automated validation _(tests `system:power`)_
 - `test:src/state/powerIntegration.test.ts` — automated validation _(tests `system:engine`)_
+- `test:src/state/powerLog.test.ts` — automated validation _(tests `system:power`)_
 - `test:src/state/premiumEconomy.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/state/premiumSafeguards.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/state/prestigeView.test.ts` — automated validation _(tests `system:engine`)_

@@ -35,6 +35,7 @@ import { BioCacheCard } from './BioCache';
 import { DirectivesCard } from './components/DirectivesCard';
 import { ContractsCard } from './components/ContractsCard';
 import { InfestationBoard } from './components/InfestationBoard';
+import { GrowthPanel } from './components/GrowthPanel';
 import { armyView, buildHomeView, commandFeed, homeRegistry } from './homeModel';
 import type { HomeView, HomeZone } from './homeModel';
 import type { NavKey } from './Hub';
@@ -147,6 +148,7 @@ const WIDGETS: Record<string, (ctx: WidgetCtx) => ReactNode> = {
   'next-goal': (c) => <NextGoalBanner onNavigate={(k) => c.go(k as NavKey)} goals={c.view.goals.slice(0, 1)} />,
   'bio-cache': () => <BioCacheCard />,
   'live-events': () => <LiveEventsStrip />,
+  'growth': (c) => <GrowthPanel save={c.save} go={(k) => c.go(k as NavKey)} />,
   'directives': () => <DirectivesCard />,
   'contracts': () => <ContractsCard />,
   'infestation': () => <InfestationBoard />,
