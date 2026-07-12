@@ -31,6 +31,13 @@ const STING: Record<string, StingerId> = {
 const STING_COOLDOWN_MS = 6000;
 const stingLastAt: Partial<Record<StingerId, number>> = {};
 
+// Power chain (docs/POWER-SCORE.md §feel): the stinger cooldown above stops fanfare spam, but a
+// purchase CHAIN must never go quiet — successive gains inside the window climb an ascending
+// chime (pitch steps with chain depth, combo-counter style) and reset after a quiet beat.
+const POWER_CHAIN_WINDOW_MS = 4000;
+let powerChainAt = -1e12;
+let powerChain = 0;
+
 // Boss defeated mid-run → its musical payoff. Registered at module scope like the meta listeners
 // (app-only: the sim/golden tests never import the audio layer). Mega deaths ride megaDeath above.
 gameEvents.on('bossKilled', () => {
@@ -340,7 +347,10 @@ function sJackpot(): void { // rare hero-shard sparkle
 function sAchieve(): void { tone(587, 0.14, 'square', 0.1); tone(880, 0.36, 'square', 0.12); } // unlock "ta-da"
 // Power gain — a short ASCENDING bio-chime (fifth up + octave shimmer): unmistakably "you got
 // stronger", quiet enough to layer under reveals (POWER-SCORE.md §feel).
-function sPower(): void { tone(523, 0.07, 'triangle', 0.09, 660); tone(784, 0.12, 'sine', 0.1); tone(1568, 0.22, 'sine', 0.06); }
+function sPower(chain = 0): void {
+  const f = 1 + Math.min(chain, 8) * 0.08; // each chained gain rings a step higher (chain 0 = the base chime)
+  tone(523 * f, 0.07, 'triangle', 0.09, 660 * f); tone(784 * f, 0.12, 'sine', 0.1); tone(1568 * f, 0.22, 'sine', 0.06);
+}
 // Mastery level-up — the CRAFT chime: sPower's softer, lower sibling (expertise, not loot).
 function sMastery(): void { tone(392, 0.07, 'triangle', 0.08, 494); tone(587, 0.11, 'sine', 0.09); tone(1175, 0.2, 'sine', 0.045); }
 // Shard reward stingers — deliberately DISTINCT so the ear, not the text, says which shard landed.
@@ -549,7 +559,13 @@ export const audio = {
         case 'levelup': sLevelUp(); break;
         case 'promotion': sPromotion(); break;
         case 'adapt': sAdapt(); break;
-        case 'power': sPower(); break;
+        case 'power': {
+          const pNow = Date.now();
+          powerChain = pNow - powerChainAt < POWER_CHAIN_WINDOW_MS ? powerChain + 1 : 0;
+          powerChainAt = pNow;
+          sPower(powerChain);
+          break;
+        }
         case 'mastery': sMastery(); break;
         case 'rankup': sRankUp(); break;
         case 'biome': sBiome(); break;

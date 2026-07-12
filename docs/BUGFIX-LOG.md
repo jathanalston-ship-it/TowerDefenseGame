@@ -145,3 +145,24 @@ persists before the next, so isNew/pity/duplicate-conversion semantics are uncha
 vault's One/Five/Ten buttons route through it, plus the new **Open All (N)** button (shown
 at ≥2 banked). Pinned by a regression test that runs with guards LIVE on a fixed clock:
 per-call opens refuse on call 2 (the bug shape), the batch drains everything.
+
+## Chained power purchases lost their feedback (stinger gate + silent toast merges)
+
+**Symptom.** Buying power-raising upgrades back-to-back only celebrated the FIRST one in a
+~3–5s window — later purchases felt muted, and a repeated same-source gain could update an
+existing toast invisibly (or not appear at all if the toast had already played its baked-in
+2.2s exit animation while still mounted).
+
+**Root cause.** Two independent dampers. (1) The 'power' cue rides a musical stinger gated by
+`STING_COOLDOWN_MS = 6000` — correct as anti-spam for the fanfare, but the remaining per-gain
+chime was identical and quiet, so chained buys read as silence. (2) `PowerToaster` merged
+same-source gains within 400 ms by editing the toast's number in place: no animation, no
+lifetime extension — and the CSS exit (`ptoast-out … 2.2s both`) had often already hidden the
+node the merge was editing.
+
+**Fix.** Chains now ESCALATE instead of muting: `sPower(chain)` steps its pitch up per gain
+inside a 4 s window (combo-counter style; the stinger still crowns only the first). The
+toaster tracks `hits + expireAt` per toast (250 ms sweeper, merge window 1200 ms) and keys the
+node on `hits`, so every merge REMOUNTS the toast — the pop-in replays, the exit clock
+restarts, and the label shows the ×N chain. Verified with a headless probe: four chained
+Evolution HQ buys each produced audio + a live toast.
