@@ -9566,6 +9566,81 @@ kbd {
 .bbs-next { color: var(--muted); font-size: 11px; }
 .bbs-next b { color: var(--text); }
 
+/* ── #288 VISUAL OVERHAULS: end-of-run Results + the Genetic Vault (pure CSS layers) ─────
+   Both screens inherit the hatching ceremony's living-room language: drifting accent motes,
+   a breathing vignette, and focal glow on their centerpiece objects. Zero component changes —
+   pseudo-element atmospheres on the existing roots, silenced under reduced motion. */
+.results-screen { position: relative; isolation: isolate; }
+.results-screen::before { /* the after-battle air: outcome-tinted haze + drifting embers */
+  content: '';
+  position: absolute;
+  inset: -6%;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(2px 2px at 22% 28%, rgba(255, 255, 255, 0.35) 40%, transparent 60%),
+    radial-gradient(1.6px 1.6px at 68% 16%, rgba(255, 255, 255, 0.28) 40%, transparent 60%),
+    radial-gradient(2.2px 2.2px at 84% 62%, rgba(255, 255, 255, 0.3) 40%, transparent 60%),
+    radial-gradient(1.4px 1.4px at 38% 78%, rgba(255, 255, 255, 0.22) 40%, transparent 60%),
+    radial-gradient(70% 55% at 50% 0%, color-mix(in srgb, var(--gold) 7%, transparent), transparent 70%);
+  animation: hatch-atmo-drift 30s linear infinite;
+}
+.results-screen::after { /* the verdict vignette — the room leans into the outcome */
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: radial-gradient(120% 90% at 50% 45%, transparent 55%, rgba(3, 6, 10, 0.55));
+}
+.results-screen .results-title { position: relative; }
+.results-screen .results-title::after { /* a light shelf under the verdict */
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: -8px;
+  width: 240px;
+  height: 1px;
+  transform: translateX(-50%);
+  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--gold) 65%, transparent), transparent);
+}
+.rr-line { position: relative; }
+.rr-line:hover { background: color-mix(in srgb, var(--gold) 5%, transparent); }
+
+.vault { position: relative; isolation: isolate; }
+.vault::before { /* the vault breathes the ceremony's air before a single crack */
+  content: '';
+  position: absolute;
+  inset: -4%;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(2px 2px at 16% 34%, color-mix(in srgb, var(--r-epic) 55%, #fff) 40%, transparent 60%),
+    radial-gradient(1.6px 1.6px at 62% 20%, rgba(255, 255, 255, 0.3) 40%, transparent 60%),
+    radial-gradient(2px 2px at 82% 66%, color-mix(in srgb, var(--r-legendary) 50%, #fff) 40%, transparent 60%),
+    radial-gradient(1.4px 1.4px at 34% 82%, rgba(255, 255, 255, 0.24) 40%, transparent 60%),
+    radial-gradient(80% 60% at 50% 8%, color-mix(in srgb, var(--r-epic) 6%, transparent), transparent 72%);
+  opacity: 0.8;
+  animation: hatch-atmo-drift 34s linear infinite reverse;
+}
+.vault-ready { position: relative; }
+.vault-obj { transition: transform var(--dur-2) var(--ease-out), box-shadow var(--dur-2) var(--ease-out); }
+.vault-obj:hover { transform: translateY(-3px); box-shadow: 0 10px 26px -12px rgba(0, 0, 0, 0.8), 0 0 22px -8px var(--vc, var(--gold)); }
+.vault-obj-core { text-shadow: 0 0 14px var(--vc, var(--gold)); animation: vault-core-breathe 2.8s ease-in-out infinite; }
+@keyframes vault-core-breathe { 0%, 100% { filter: brightness(1); } 50% { filter: brightness(1.35); } }
+.vault-crack.primary { position: relative; overflow: hidden; }
+.vault-crack.primary::after { /* a slow sheen rolls over the crack key — THE action on this screen */
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(105deg, transparent 42%, rgba(255, 255, 255, 0.18) 50%, transparent 58%) 0 0 / 240% 100%;
+  animation: cv-gift 3.2s linear infinite;
+  pointer-events: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .results-screen::before, .vault::before, .vault-obj-core, .vault-crack.primary::after { animation: none; }
+}
+
 /* ── Wardrobe interface themes — data attributes set by wardrobeDressing.ts ── */
 [data-uitheme='arctic'] { --panel: #0e1a24; --panel-2: #13222e; --panel-3: #182b3a; --line: #1e3547; --line-strong: #35597a; }
 [data-uitheme='blood'] { --panel: #1c0e14; --panel-2: #241219; --panel-3: #2d1720; --line: #3a1f2b; --line-strong: #5f3245; }
