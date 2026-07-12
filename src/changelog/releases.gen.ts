@@ -679,6 +679,14 @@ export const RELEASES: Release[] = [
       {
         "cat": "Gameplay",
         "text": "Equip advisor: exact free-gear upgrades with one-click equip"
+      },
+      {
+        "cat": "Website",
+        "text": "Chronicle + site for the equip advisor"
+      },
+      {
+        "cat": "UI",
+        "text": "Fix desktop run HUD: gore streams aim at the real meters + legible conveyor pods"
       }
     ]
   },
