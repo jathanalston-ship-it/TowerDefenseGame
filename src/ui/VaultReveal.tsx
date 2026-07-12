@@ -251,6 +251,9 @@ export function VaultReveal({
       {/* Sibling of the modal shell so the RUPTURE lights the whole room, not just the box
           (the shell scrolls/clips its own content — fullscreen FX can't live inside it). */}
       {phase === 'rupture' && <span className="hatch-worldflash" aria-hidden />}
+      {/* The living ROOM: drifting spore strata + a slow accent fog — every act breathes in
+          the same atmosphere; rare+ ceremonies stand in a god-ray column from the first beat. */}
+      <span className="hatch-atmo" aria-hidden><i className="a" /><i className="b" />{isRare && <i className="rays" />}</span>
       <div className={`vreveal hatch tier-${model.topRarity} phase-${phase}`} onClick={(e) => e.stopPropagation()}>
         {phase === 'incubate' ? (
           <div className={`hatch-stage t${tier}${still ? ' is-still' : ''}`} onClick={hatch} role="button" aria-label="Hatch now">
@@ -266,7 +269,11 @@ export function VaultReveal({
               <span className="hatch-spores b" />
               {/* one echo ring per heartbeat — the key remounts it so each thump replays it */}
               {beat > 0 && !still && <span key={beat} className="hatch-pulse" />}
+              {/* …and an INNER flash on the same thump — the occupant kicks the light */}
+              {beat > 0 && !still && <span key={`g${beat}`} className="hatch-glowbeat" />}
             </div>
+            <span className="hatch-drips" aria-hidden><i /><i /><i /></span>
+            <span className="hatch-shadow" aria-hidden />
             <div className="hatch-title" style={{ color: accent }}>{name}</div>
             <div className="vreveal-tap">{still ? '…' : 'INCUBATING — TAP TO HATCH'}</div>
           </div>
@@ -277,10 +284,14 @@ export function VaultReveal({
               <span className="hatch-shell r" />
               <span className="hatch-flash" />
               <span className="hatch-ring" />
+              <span className="hatch-ring r2" />
               <span className="hatch-burst a" />
               <span className="hatch-burst b" />
-              {[0, 1, 2, 3, 4, 5, 6, 7].map((k) => (
+              {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11].map((k) => (
                 <i key={k} className={`hatch-bit${k % 2 ? ' s' : ''}`} style={{ ['--k' as string]: String(k) }} />
+              ))}
+              {[0, 1, 2, 3, 4, 5, 6, 7].map((k) => (
+                <i key={`e${k}`} className="hatch-ember" style={{ ['--k' as string]: String(k) }} />
               ))}
               {[0, 1, 2, 3, 4].map((k) => (
                 <i key={`g${k}`} className="hatch-goo" style={{ ['--k' as string]: String(k) }} />
@@ -301,6 +312,7 @@ export function VaultReveal({
                   </span>
                   <span className="hatch-cord" />
                 </span>
+                {open && TIER.indexOf(pull.rarity) >= 2 && <span className="hatch-halo" aria-hidden />}
                 {open && (
                   <span className="hatch-pop" aria-hidden>
                     {[0, 1, 2, 3, 4, 5].map((k) => <i key={k} className="hatch-shred" style={{ ['--k' as string]: String(k) }} />)}
@@ -343,9 +355,13 @@ export function VaultReveal({
           <>
             {prize && (
               <div className={`hatch-prize tier-${prize.rarity}`} style={{ ['--rw' as string]: prize.color }}>
+                {TIER.indexOf(prize.rarity) >= 3 && <span className="hatch-prize-motes" aria-hidden><i /><i /><i /><i /><i /><i /></span>}
                 <span className="hatch-prize-k">Prize specimen</span>
-                <span className="hatch-prize-emblem" aria-hidden>
-                  {prize.currency ? <CurrencyIcon id={prize.currency} color={prize.color} size={30} /> : <span>{prize.glyph ?? '◆'}</span>}
+                <span className="hatch-prize-crown" aria-hidden>
+                  <i className="hatch-prize-halo" />
+                  <span className="hatch-prize-emblem">
+                    {prize.currency ? <CurrencyIcon id={prize.currency} color={prize.color} size={34} /> : <span>{prize.glyph ?? '◆'}</span>}
+                  </span>
                 </span>
                 <span className="hatch-prize-name">{prize.name}</span>
                 <span className="hatch-prize-r" style={{ color: prize.color }}>{rarityLabel(prize.rarity)}</span>
