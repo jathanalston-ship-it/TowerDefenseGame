@@ -663,6 +663,14 @@ export const RELEASES: Release[] = [
       {
         "cat": "Visuals",
         "text": "Season Pass visual overhaul: living seasonal atmosphere + animated track"
+      },
+      {
+        "cat": "Website",
+        "text": "Chronicle + site for the Season Pass visual overhaul"
+      },
+      {
+        "cat": "Gameplay",
+        "text": "Meta-progression flow pass: Power Atlas on Home + full advisor coverage + power history"
       }
     ]
   },

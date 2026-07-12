@@ -159,3 +159,5 @@
 - `b6c86a8` **[Heroes]** Polish pass: fix hero-panel text collapse + three sweep findings
 - ⚑ `0180348` **[Framework]** Chronicle + handoff for the polish pass _(internal)_
 - `c865ef2` **[Visuals]** Season Pass visual overhaul: living seasonal atmosphere + animated track
+- `7ee38ed` **[Website]** Chronicle + site for the Season Pass visual overhaul
+- `d016713` **[Gameplay]** Meta-progression flow pass: Power Atlas on Home + full advisor coverage + power history

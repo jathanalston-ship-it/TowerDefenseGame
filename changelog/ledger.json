@@ -1,6 +1,6 @@
 {
-  "lastSha": "c865ef2b2aaa5c60dc47a1871cec7944fe47f093",
-  "commitsSinceDraft": 2,
+  "lastSha": "d01671301f95653672b013321299c34e3cb35b7c",
+  "commitsSinceDraft": 4,
   "content": {
     "tower": [
       "needle",
@@ -2131,6 +2131,14 @@
         {
           "cat": "Visuals",
           "text": "Season Pass visual overhaul: living seasonal atmosphere + animated track"
+        },
+        {
+          "cat": "Website",
+          "text": "Chronicle + site for the Season Pass visual overhaul"
+        },
+        {
+          "cat": "Gameplay",
+          "text": "Meta-progression flow pass: Power Atlas on Home + full advisor coverage + power history"
         }
       ]
     }
@@ -3309,6 +3317,22 @@
       "date": "2026-07-12",
       "cat": "Visuals",
       "text": "Season Pass visual overhaul: living seasonal atmosphere + animated track",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "7ee38ed95ebc15360ab98da1c39070deb69529d8",
+      "date": "2026-07-12",
+      "cat": "Website",
+      "text": "Chronicle + site for the Season Pass visual overhaul",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "d01671301f95653672b013321299c34e3cb35b7c",
+      "date": "2026-07-12",
+      "cat": "Gameplay",
+      "text": "Meta-progression flow pass: Power Atlas on Home + full advisor coverage + power history",
       "internal": false,
       "needsReview": false
     }
