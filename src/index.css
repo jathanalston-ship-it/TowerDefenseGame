@@ -9782,6 +9782,10 @@ kbd {
 .bbs-next { color: var(--muted); font-size: 11px; }
 .bbs-next b { color: var(--text); }
 .herolab > .bbs { grid-column: 1 / -1; margin-bottom: 0; } /* full row atop the rail+console grid */
+.eq-advisor { align-items: center; }
+.eq-replaces { font-style: normal; color: var(--muted); }
+.eq-equip-now { flex: none; font-size: 11px; font-weight: 900; letter-spacing: 0.08em; padding: 4px 14px; border-radius: 999px; color: #0b1207; background: var(--gold); border: 1px solid color-mix(in srgb, var(--gold) 70%, #fff 10%); transition: transform var(--dur-2) var(--ease-out), box-shadow var(--dur-2) var(--ease-out); }
+.eq-equip-now:hover { transform: translateY(-1px); box-shadow: 0 0 12px color-mix(in srgb, var(--gold) 45%, transparent); }
 
 /* ── #288 VISUAL OVERHAULS: end-of-run Results + the Genetic Vault (pure CSS layers) ─────
    Both screens inherit the hatching ceremony's living-room language: drifting accent motes,

@@ -171,8 +171,10 @@ recommended. **Extension point:** a new upgradeable system adds one `candidates(
 `state/powerAtlas.ts` answers the whole loop on one card: for EVERY system that raises Power,
 "what's my best next move, can I afford it now, how many moves are open?" Buy-systems (towers,
 heroes — both incl. Prime rows for max-◈ units — Evolution HQ, genes, adaptation) reuse the
-exact advisors above; tend-systems (equipment, Mulligans, the Archive) get an honest status
-line instead of a fake price. The cross-system **headline** compares raw `powerDelta` of
+exact advisors above; equipment surfaces FREE exact moves (`state/equipAdvisor.ts` — the best
+strictly-better vault piece per fielded hero x slot, itemPowerScore-prefiltered, exact-diffed,
+one-click equip in the Armory); the remaining tend-systems (Mulligans, the Archive) get an
+honest status line instead of a fake price. The cross-system **headline** compares raw `powerDelta` of
 affordable picks (currency-free, so the comparison is honest — per-1k value stays per-surface).
 
 `GrowthPanel` (ui/components) renders it as the Command Center's `growth` side organ (gated on

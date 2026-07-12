@@ -1,9 +1,10 @@
 // POWER ATLAS (docs/POWER-SCORE.md §atlas) — the whole meta-progression answered on one card:
 // for EVERY system that raises the account's Power Score, "what's my best next move there, can
 // I afford it right now, and how many moves are open?" Buy-systems reuse the exact advisors
-// (bestPurchase / adaptationPicks — real scorer diffs, never heuristics); tend-systems (gear,
-// Mulligans, the Archive) get an honest status line instead of a fake price tag. PURE over
-// SaveData — the Command Center's Growth panel and any future surface memoize per revision.
+// (bestPurchase / adaptationPicks — real scorer diffs, never heuristics); equipment surfaces
+// FREE exact moves via the equip advisor; the remaining tend-systems (Mulligans, the Archive)
+// get an honest status line instead of a fake price tag. PURE over SaveData — the Command
+// Center's Growth panel and any future surface memoize per revision.
 //
 // Extension point: a new upgradeable system adds ONE entry to systems() below — either a
 // bestPurchase surface (preferred; exact) or a tend row with its own status math.
@@ -13,6 +14,7 @@ import { powerBreakdown } from './profile';
 import type { PowerSlice } from './profile';
 import { bestPurchase } from './bestPurchase';
 import { adaptableUnits, adaptationPicks } from './adaptationAdvisor';
+import { equipUpgrades } from './equipAdvisor';
 import { collectionContextOf, fieldedLoadout, isTowerUnlocked, loadoutOf } from './meta';
 import { collectionView } from '../core/collection';
 import { MULLIGAN_SLOTS } from '../core/mulligan';
@@ -81,14 +83,21 @@ export function powerAtlas(save: SaveData): PowerAtlasModel {
     note: freeAntigen > 0 ? `${freeAntigen} free Antigen ready` : 'earn Antigen from Mastery Ranks and the campaign',
   });
 
-  // Equipment — a tend system: gear comes from drops; the actionable number is EMPTY fielded slots.
+  // Equipment — gear comes from drops, but EQUIPPING is a free exact move: the equip advisor
+  // (state/equipAdvisor.ts) finds strictly-better vault pieces for every fielded hero, so free
+  // upgrades compete for the headline against paid buys. Falls back to the empty-slot count.
+  const gear = equipUpgrades(save, 8);
   const fielded = fieldedLoadout(save);
   let emptySlots = 0;
   for (const k of fielded) for (const uid of Object.values(loadoutOf(save, k))) if (!uid) emptySlots++;
+  const gp = gear[0] ?? null;
   systems.push({
     id: 'equipment', label: 'Equipment', nav: 'equipment', kind: 'tend',
-    move: null, readyCount: emptySlots,
-    note: emptySlots > 0 ? `${emptySlots} fielded gear slot${emptySlots === 1 ? '' : 's'} empty` : 'loadouts full — hunt higher rarity',
+    move: gp ? { label: `Equip ${gp.itemName} — ${gp.heroName}`, price: 'free', powerDelta: gp.powerDelta, affordable: true } : null,
+    readyCount: gear.length,
+    note: gp
+      ? `${gear.length} free gear upgrade${gear.length === 1 ? '' : 's'} in the vault`
+      : emptySlots > 0 ? `${emptySlots} fielded gear slot${emptySlots === 1 ? '' : 's'} empty` : 'loadouts full — hunt higher rarity',
   });
 
   // Mulligans — organisms do nothing until all slots fill; the status is completion across strains.

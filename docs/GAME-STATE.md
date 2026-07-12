@@ -50,7 +50,7 @@ Content — not systems — is the binding constraint (see EA-DESIGN-AUDIT). The
 - ✅ Save: versioned blob, migrations, backups, export/import (`save/saveStore.ts`, UI `SaveManager`)
 - ✅ Power Score index + coverage enforcement (`core/power.ts`, `POWER_RELEVANT_FIELDS`) — POWER-SCORE.md
 - ✅ Power Atlas + history (`state/powerAtlas.ts`, `state/powerLog.ts`, `GrowthPanel` on Home; advisor
-  covers towers/heroes incl. Prime + evolution/genes/adaptation; `save.powerLog` daily ledger v43,
+  covers towers/heroes incl. Prime + evolution/genes/adaptation + free gear equips (`equipAdvisor`); `save.powerLog` daily ledger v43,
   weekly delta + sparkline) — POWER-SCORE.md §atlas/§history
 - ✅ **Assimilation Index** — the hidden per-run MASTER STATE (`core/assimilation.ts`): one continuous
   `0..1` index folded from weighted `ContributionProfile` rows (the live run **Power Score** is the

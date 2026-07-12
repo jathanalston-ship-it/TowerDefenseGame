@@ -4,8 +4,10 @@
 // and an Equipment (gear) Score. Scales to hundreds (data-driven grid) and is rarity-agnostic
 // (mythic/seasonal-ready). Reads the reactive save; equips/crafts/favorites go through meta.
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { meta } from '../state/meta';
+import { equipUpgrades } from '../state/equipAdvisor';
+import { audio } from '../audio/sound';
 import { HERO_DEFS } from '../core/config';
 import type { HeroKind } from '../core/types';
 import {
@@ -32,6 +34,8 @@ function traitChips(item: OwnedItem): { key: string; label: string; locked: bool
 export function EquipmentPanel(): JSX.Element {
   const save = meta.use();
   const { inventory } = save.equipment;
+  // Exact free upgrades across the fielded roster (memoized per save revision).
+  const gearPicks = useMemo(() => equipUpgrades(save, 8), [save]);
   const roster = meta.fieldedLoadout(); // the heroes the next run fields (1–3 by slot progression)
   const [focusHero, setFocusHero] = useState<HeroKind>(save.selectedHero);
   const focus = roster.includes(focusHero) ? focusHero : (roster[0] ?? save.selectedHero); // keep valid if roster changed
@@ -185,6 +189,26 @@ export function EquipmentPanel(): JSX.Element {
         <div className="armory-undo">
           <span>Salvaged <b>{itemDef(save.lastSalvage.item.defId)?.name ?? 'an item'}</b> — its materials were reclaimed.</span>
           <button className="armory-undo-btn" onClick={() => meta.undoSalvage()}>↺ Undo Salvage</button>
+        </div>
+      )}
+
+      {/* Equip advisor (docs/POWER-SCORE.md §atlas) — the best FREE upgrade sitting in the vault,
+          one click from equipped. Self-consuming: equipping reveals the next pick until none remain. */}
+      {gearPicks.length > 0 && (
+        <div className="bbs eq-advisor" role="note" aria-label="Best free gear upgrade">
+          <span className="bbs-k">⚡ BEST UPGRADE</span>
+          <span className="bbs-pick">
+            <b style={{ color: rarityColor(gearPicks[0].rarity) }}>{gearPicks[0].itemName}</b>
+            {' → '}{HERO_DEFS[gearPicks[0].hero]?.name ?? gearPicks[0].hero} {SLOT_LABELS[gearPicks[0].slot]} — +{gearPicks[0].powerDelta} Power
+            {gearPicks[0].replaces && <i className="eq-replaces"> · replaces {gearPicks[0].replaces}</i>}
+          </span>
+          <button
+            className="eq-equip-now"
+            onClick={() => { meta.equip(gearPicks[0].hero, gearPicks[0].slot, gearPicks[0].uid); audio.cue('ui'); }}
+          >
+            Equip
+          </button>
+          {gearPicks.length > 1 && <span className="bbs-next">{gearPicks.length - 1} more free upgrade{gearPicks.length === 2 ? '' : 's'} waiting</span>}
         </div>
       )}
 
