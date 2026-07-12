@@ -182,7 +182,8 @@ wave; the run never wins. Its reward identity keeps the triangle honest:
   qualify gate + prediction floor stay clean. Boss Rush runs its own qualify gate (≥50% of
   `rushBestWave`, reason `rush-short`) and its own prediction channel.
 - **Gates (`MODE_UNLOCKS`, 2026-07):** the pillars open in order — **Infinite unlocks after
-  Campaign Stage 3**, **Boss Rush after Campaign Stage 10** (`save/derive.ts`
+  Campaign Stage 3**, **Boss Rush after Campaign Stage 9** — moved from 10 in the 2026-07 stage-gate review, so every
+  farm outlet is open while the stage-10 mega wall stands (`save/derive.ts`
   `isInfiniteUnlocked`/`isBossRushUnlocked`; enforced at the meta/UI layer only, the sim stays
   ungated for tests/tutorial/debug). Locked modes stay VISIBLE (sealed nav item, unlock briefing
   screen, sealed Command Center tiles/dashboard card all routing to the Campaign). Pre-gate Boss

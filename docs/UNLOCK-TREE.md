@@ -31,7 +31,7 @@
 | 18 | ⊛ **Mulligan Lab** `mulligans` | screen | Discover a Mulligan modifier | start | S7 | Mulligan Organisms (`mulligans`) | Reveals with the first discovered modifier (container luck), stage 7 as backstop — the deepest tower system waits for tower fluency. |
 | 18.5 | ☣ **Adaptation Chamber** `adaptation` | screen | Earn your first Antigen | start | S7 | Adaptation & Antigen (`adaptation`) | Reveals with the first account-faucet Antigen (achievements/depth/traces — usually stages 2–4, the moment there is something to spend); the stage-7 backbone joins the deep-specialization beat (Mulligans/Phenotypes) because every earlier beat already sits at the reveal ceiling. |
 | 19 | ❖ **Phenotype Lab** `phenotypes` | screen | Clear Campaign Stage 7 · 7 to go | S7 | S7 | Phenotype Lab (`phenotype-lab`) | Pure luxury — cosmetics wait until the mechanical wardrobe is full and Gene Essence has a purpose beyond upgrades. |
-| 21 | ☠ **Boss Rush** `bossrush` | screen | Clear Campaign Stage 10 · 10 to go | start | S10 | Boss Rush (`boss-rush`) | The established gate: the skill-check pillar arrives once builds are real. History grandfathers. |
+| 21 | ☠ **Boss Rush** `bossrush` | screen | Clear Campaign Stage 9 · 9 to go | start | S9 | Boss Rush (`boss-rush`) | The established gate: the skill-check pillar arrives once builds are real. History grandfathers. |
 | 22 | 🩸 **Ichor** `cur:ichor` | currency | Bleed your first Ichor | start | S3 | — | Shows with its first drop, or when the Splice Market (its sink) reveals — a currency chip never precedes its purpose. |
 | 23 | ⊕ **Materials** `cur:mats` | currency | Find crafting materials | start | S6 | — | Crafting materials appear the moment the first container drops some — alongside the gear they reforge. Stage 6 backstops a dry streak. |
 | 24 | ✦ **Ascendant Cells** `cur:cells` | currency | Molt for the first time | start | S9 | — | Teased one stage before Prestige unlocks (10) so the Molt pitch lands with a visible wallet; earned Cells reveal it regardless. |
@@ -46,5 +46,4 @@
 - **Stage 5** — ☀ Daily Run · ▤ Bio-Dex · ❁ Season Pass
 - **Stage 6** — ⬣ Idle Harvest · ⇢ Expedition Command · ❑ Gear Codex · ⊕ Materials
 - **Stage 7** — ⊛ Mulligan Lab · ☣ Adaptation Chamber · ❖ Phenotype Lab
-- **Stage 9** — ✦ Ascendant Cells
-- **Stage 10** — ☠ Boss Rush
+- **Stage 9** — ☠ Boss Rush · ✦ Ascendant Cells

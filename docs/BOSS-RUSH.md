@@ -12,7 +12,8 @@
 THINNED AI-Director escort (every `RUSH.escortKeepEvery`-th scheduled spawn survives the cut; the
 bosses ARE the wave). A Gene Card drafts every **2nd** cleared wave (`RUSH.draftEvery`). The run
 never "wins" — like Infinite it only ends when the Nucleus falls. The mode is **sealed until
-Campaign Stage 10 falls** (docs/MODE-IDENTITY.md §gates).
+Campaign Stage 9 falls** (docs/MODE-IDENTITY.md §gates; moved from 10 in the 2026-07 stage-gate
+review so every farm outlet is open while the stage-10 mega wall stands — docs/DIFFICULTY.md §curve).
 
 Mode identity next to the other pillars (docs/MODE-IDENTITY.md):
 
