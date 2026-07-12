@@ -66,7 +66,11 @@ const LAB_KEY = 'assimilate.lab';
 
 export interface LabPrefs {
   favorites: string[]; // favorited tower kinds
-  recents: Record<string, number>; // kind → last star-upgrade epoch ms (drives "Recently upgraded")
+  recents: Record<string, number>; // kind → last star-upgrade epoch ms (drives the 'recent' SORT)
+  /** kind → last time the player INSPECTED it — the NEW chip shows only while an upgrade is
+   *  newer than the last look, so selecting the tower dismisses it (it used to sit for a
+   *  fixed 24h with no way to clear it — the "undismissable NEW badge" bug). */
+  recentsSeen: Record<string, number>;
   selected: string | null; // last inspected tower
   sort: string; // roster sort mode id
 }
@@ -77,11 +81,12 @@ export function labPrefs(): LabPrefs {
     return {
       favorites: Array.isArray(raw.favorites) ? raw.favorites : [],
       recents: raw.recents && typeof raw.recents === 'object' ? raw.recents : {},
+      recentsSeen: raw.recentsSeen && typeof raw.recentsSeen === 'object' ? raw.recentsSeen : {},
       selected: typeof raw.selected === 'string' ? raw.selected : null,
       sort: typeof raw.sort === 'string' ? raw.sort : 'default',
     };
   } catch {
-    return { favorites: [], recents: {}, selected: null, sort: 'default' };
+    return { favorites: [], recents: {}, recentsSeen: {}, selected: null, sort: 'default' };
   }
 }
 

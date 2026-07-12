@@ -151,7 +151,9 @@ export function TowerLab(): JSX.Element {
   const m = models[selected];
   const future = useMemo(() => futurePath(save, selected, m.stars), [save, selected, m.stars]);
 
-  const select = (k: TowerKind): void => setPrefs(setLabPrefs({ selected: k }));
+  // Inspecting a tower acknowledges its NEW chip (recentsSeen) — a badge you can always clear.
+  const select = (k: TowerKind): void =>
+    setPrefs(setLabPrefs({ selected: k, recentsSeen: { ...labPrefs().recentsSeen, [k]: Date.now() } }));
   const toggleFav = (k: TowerKind): void => {
     const favs = favorites.has(k) ? prefs.favorites.filter((f) => f !== k) : [...prefs.favorites, k];
     setPrefs(setLabPrefs({ favorites: favs }));
@@ -217,7 +219,11 @@ export function TowerLab(): JSX.Element {
           <div className="tl2-list" role="listbox" aria-label="Tower roster">
             {roster.map((k) => {
               const r = models[k];
-              const recent = Date.now() - (prefs.recents[k] ?? 0) < recentMs;
+              // NEW = upgraded since the player last LOOKED at it (and within the freshness
+              // window) — selecting the tower dismisses it; it can never stick.
+              const recent = Date.now() - (prefs.recents[k] ?? 0) < recentMs
+                && (prefs.recents[k] ?? 0) > (prefs.recentsSeen[k] ?? 0)
+                && k !== selected;
               return (
                 <button
                   key={k}
