@@ -18,6 +18,7 @@ import { HERO_ORDER, IDLE, TOWER_DEFS, TOWER_ORDER } from '../core/config';
 import { marketWindow } from '../core/market';
 import { dailyKey } from '../core/daily';
 import { MAIN_QUESTLINE, questComplete, weeklyQuestFor } from '../core/quests';
+import { BP, levelOf } from '../core/battlePass';
 
 // Genetic Vault — unopened bio-containers banked from runs, waiting to be cracked.
 registerNotification({
@@ -155,6 +156,26 @@ registerNotification({
   id: 'genes.upgradeable',
   channel: 'genes',
   count: (s) => geneArchiveRows(s).reduce((n, r) => n + (r.upgradeable ? 1 : 0), 0),
+});
+
+// Season Pass — earned-but-unclaimed reward cells (docs/BATTLEPASS.md). Mirrors the claim
+// gates in meta.battlePass()/claimPassLevel exactly: every earned free level + every earned
+// premium level when the pass is owned (the 1/50/99 free-taste levels count for everyone).
+// Cheap array math per poll; no window rollover here — a season-end backlog is precisely when
+// the badge should glow, and visiting the screen polls the rollover.
+registerNotification({
+  id: 'season.claimable',
+  channel: 'season',
+  count: (s) => {
+    const bp = s.battlePass;
+    const level = Math.min(levelOf(bp.xp).level, BP.levels);
+    let n = 0;
+    for (let l = 1; l <= level; l++) {
+      if (!bp.claimedFree.includes(l)) n++;
+      if ((bp.premium || BP.freePremiumLevels.includes(l)) && !bp.claimedPremium.includes(l)) n++;
+    }
+    return n;
+  },
 });
 
 // Quest Board — missions + finales claimable RIGHT NOW across both lanes (docs/QUESTS.md).

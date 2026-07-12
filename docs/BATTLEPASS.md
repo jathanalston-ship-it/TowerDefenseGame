@@ -5,7 +5,9 @@ A production-grade dual-track season built ON TOP of the Wardrobe (docs/COSMETIC
 derived reward tables). Meta: `src/state/meta.ts` (persistence, claims, purchases, XP
 faucets, rollover). UI: `src/ui/BattlePassScreen.tsx` (nav `season`) — season-themed
 living presentation (falling `season.glyph` petals, aurora, rotating medal, SVG level ring,
-track spine + beacon, claim bursts), all CSS-driven and stilled under reduced motion.
+track spine + beacon, claim bursts), all CSS-driven and stilled under reduced motion. The nav
+badge (`season.claimable`, state/notificationSources.ts) counts earned-but-unclaimed cells
+across both tracks and clears on visit (watermark model).
 
 ## Structure
 
