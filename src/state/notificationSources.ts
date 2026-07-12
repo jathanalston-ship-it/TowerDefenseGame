@@ -28,9 +28,12 @@ registerNotification({
 
 // Daily Bio-Cache — today's cache is still sealed (docs/DAILY-LOGIN.md). Lexical ISO-key
 // compare mirrors the claim gate, so a forged future key shows no badge either.
+// Channel is the VAULT (where the player cracks containers — the cache renders there too),
+// NOT 'home': the player lands on home every session, so a home badge acknowledged itself
+// before it was ever seen — the "no notification for the daily cache" bug.
 registerNotification({
   id: 'login.cache',
-  channel: 'home',
+  channel: 'vault',
   count: (s) => (s.login.last < dailyKey() ? 1 : 0),
 });
 

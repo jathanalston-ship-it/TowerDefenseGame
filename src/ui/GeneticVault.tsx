@@ -9,6 +9,7 @@ import { meta } from '../state/meta';
 import type { CrackedContainer } from '../state/meta';
 import { RARITIES, costOf, rarityRegistry } from '../core/loot';
 import { VaultReveal } from './VaultReveal';
+import { BioCacheCard } from './BioCache';
 import { compareItemPower } from '../state/itemPower';
 import { recordVaultOpen, vaultLedger } from '../state/prefs';
 
@@ -121,6 +122,11 @@ export function GeneticVault(): JSX.Element {
         Containers you earn in a run bank here unopened. Crack one open to roll its rewards — they
         only apply once you do.
       </div>
+
+      {/* Daily Bio-Cache — the login faucet lives HERE too (the vault is where things crack;
+          the vault nav badge lights while today's cache is sealed). Same self-contained card
+          as the home board — one component, two surfaces. */}
+      <BioCacheCard />
 
       {/* Ready to crack — the stockpile + the open action */}
       <div className="vault-ready">

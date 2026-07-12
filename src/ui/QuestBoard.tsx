@@ -28,14 +28,14 @@ function MissionRow({ mi, cur, claimed, onClaim }: {
   mi: MissionDef;
   cur: number;
   claimed: boolean;
-  onClaim: () => void;
+  onClaim: (e: React.MouseEvent) => void;
 }): JSX.Element {
   const earned = cur >= mi.target;
   const pct = Math.min(100, (cur / Math.max(1, mi.target)) * 100);
   return (
     <div className={`qb-mission${claimed ? ' is-claimed' : earned ? ' is-earned' : ''}`}>
       <div className="qb-m-main">
-        <span className="qb-m-name">{mi.name}</span>
+        <span className="qb-m-name">{mi.name}{!claimed && earned && <i className="qb-m-readydot" aria-label="Ready to claim" />}</span>
         <span className="qb-m-blurb">{mi.blurb}</span>
         <div className="qb-m-bar" role="progressbar" aria-valuenow={cur} aria-valuemin={0} aria-valuemax={mi.target}>
           <i style={{ width: `${pct}%` }} />
@@ -54,13 +54,37 @@ function MissionRow({ mi, cur, claimed, onClaim }: {
   );
 }
 
+/** The claim CELEBRATION — reward chips erupt from the claim point, ride a small arc, and
+ *  fade; a shock ring marks the spot (finales get the wide gold ring). Pure presentation over
+ *  the receipt (the save is already true), pointer-transparent, self-clearing, and skipped
+ *  entirely under reduced motion (the top receipt strip remains the accessible record). */
+function ClaimBurst({ burst }: { burst: { x: number; y: number; lines: { icon: string; label: string }[]; big: boolean; key: number } }): JSX.Element {
+  return (
+    <div className="qb-burst" style={{ left: burst.x, top: burst.y }} aria-hidden key={burst.key}>
+      <i className={`qb-burst-ring${burst.big ? ' is-big' : ''}`} />
+      {burst.lines.slice(0, 6).map((l, i) => {
+        const spread = (i - (Math.min(burst.lines.length, 6) - 1) / 2) * 34;
+        return (
+          <span
+            className="qb-burst-chip"
+            key={i}
+            style={{ ['--dx' as string]: `${spread}px`, animationDelay: `${i * 70}ms` }}
+          >
+            {l.icon} {l.label}
+          </span>
+        );
+      })}
+    </div>
+  );
+}
+
 /** The finale strip: repeatable rewards + the one-time story unlocks (or their substitution). */
 function FinaleStrip({ q, firstTime, claimable, claimed, onClaim }: {
   q: QuestDef;
   firstTime: boolean;
   claimable: boolean;
   claimed: boolean;
-  onClaim: () => void;
+  onClaim: (e: React.MouseEvent) => void;
 }): JSX.Element {
   const film = cutsceneDef(q.finaleCutscene);
   const item = wardrobeItem(q.finaleCosmetic);
@@ -96,6 +120,7 @@ export function QuestBoard(): JSX.Element {
   meta.use(); // re-render on credits / claims
   const [now, setNow] = useState(() => Date.now());
   const [receipt, setReceipt] = useState<{ icon: string; label: string }[] | null>(null);
+  const [burst, setBurst] = useState<{ x: number; y: number; lines: { icon: string; label: string }[]; big: boolean; key: number } | null>(null);
 
   useEffect(() => {
     meta.pollWeeklyQuest(now);
@@ -103,23 +128,46 @@ export function QuestBoard(): JSX.Element {
     return () => window.clearInterval(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+  // The burst self-clears (pointer-transparent, purely decorative).
+  useEffect(() => {
+    if (!burst) return;
+    const t = window.setTimeout(() => setBurst(null), 1600);
+    return () => window.clearTimeout(t);
+  }, [burst]);
 
   const view: QuestsView = meta.quests(now);
   const wk = view.weekly;
+  const reduced = typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches === true;
 
-  const claimMission = (id: string): void => {
+  const celebrate = (e: React.MouseEvent, lines: { icon: string; label: string }[], big: boolean): void => {
+    if (reduced) return;
+    setBurst({ x: e.clientX, y: e.clientY, lines, big, key: Date.now() });
+  };
+  const claimMission = (id: string, e: React.MouseEvent): void => {
     const lines = meta.claimQuestMission(id, Date.now());
-    if (lines) { setReceipt(lines); audio.cue('chest'); }
+    if (lines) { setReceipt(lines); celebrate(e, lines, false); audio.cue('chest'); audio.cue('power'); }
   };
-  const claimFinale = (questId: string): void => {
+  const claimFinale = (questId: string, e: React.MouseEvent): void => {
     const lines = meta.claimQuestFinale(questId, Date.now());
-    if (lines) { setReceipt(lines); audio.cue('jackpot'); }
+    if (lines) { setReceipt(lines); celebrate(e, lines, true); audio.cue('jackpot'); }
   };
+
+  // Claimable RIGHT NOW across both lanes — the board's own headline notification (the nav
+  // badge outside uses the same census via notificationSources 'quests.claimable').
+  const activeChapter = view.main.find((c) => c.state === 'active');
+  const claimableNow =
+    wk.quest.missions.filter((m) => (wk.progress[m.id] ?? 0) >= m.target && !wk.claimed.has(m.id)).length
+    + (wk.finaleClaimable && !wk.completionClaimed ? 1 : 0)
+    + (activeChapter
+      ? activeChapter.quest.missions.filter((m) => (activeChapter.progress[m.id] ?? 0) >= m.target && !activeChapter.claimed.has(m.id)).length
+        + (activeChapter.finaleClaimable ? 1 : 0)
+      : 0);
 
   return (
     <div className="menu qb" style={{ ['--qa' as string]: wk.quest.accent } as CSSProperties}>
-      <h1 className="title">QUEST BOARD</h1>
+      <h1 className="title">QUEST BOARD {claimableNow > 0 && <span className="qb-claimable-chip">◈ {claimableNow} to claim</span>}</h1>
       <p className="subtitle">Directives from the deep — weekly orders and the story of the descent.</p>
+      {burst && <ClaimBurst burst={burst} />}
 
       {receipt && (
         <div className="bp-receipt" role="status" onClick={() => setReceipt(null)}>
@@ -149,7 +197,7 @@ export function QuestBoard(): JSX.Element {
               mi={mi}
               cur={wk.progress[mi.id] ?? 0}
               claimed={wk.claimed.has(mi.id)}
-              onClaim={() => claimMission(mi.id)}
+              onClaim={(e) => claimMission(mi.id, e)}
             />
           ))}
         </div>
@@ -158,7 +206,7 @@ export function QuestBoard(): JSX.Element {
           firstTime={wk.firstTime}
           claimable={wk.finaleClaimable}
           claimed={wk.completionClaimed}
-          onClaim={() => claimFinale(wk.quest.id)}
+          onClaim={(e) => claimFinale(wk.quest.id, e)}
         />
       </section>
 
@@ -199,7 +247,7 @@ export function QuestBoard(): JSX.Element {
                       mi={mi}
                       cur={progress[mi.id] ?? 0}
                       claimed={claimed.has(mi.id)}
-                      onClaim={() => claimMission(mi.id)}
+                      onClaim={(e) => claimMission(mi.id, e)}
                     />
                   ))}
                 </div>
@@ -208,7 +256,7 @@ export function QuestBoard(): JSX.Element {
                   firstTime={firstTime}
                   claimable={finaleClaimable}
                   claimed={false}
-                  onClaim={() => claimFinale(c.id)}
+                  onClaim={(e) => claimFinale(c.id, e)}
                 />
               </>
             )}
