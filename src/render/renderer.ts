@@ -25,7 +25,7 @@ import {
 } from '../core/map';
 import { HERO_DEFS, HERO_PHASE_FLASH, MINION_DEFS, PERF, TOWER_DEFS } from '../core/config';
 import type { RenderState } from '../core/game';
-import type { TowerFiring, EnemyKind } from '../core/types';
+import type { TowerFiring, EnemyKind, HeroKind } from '../core/types';
 import { THEME, ENEMY_SHAPE, ENEMY_TIER, ENEMY_BODY, ENEMY_VARIANT, hexRgb, rgba } from './theme';
 import { drawEnemyBody } from './enemyForms';
 import type { BodyForm } from './enemyForms';
@@ -43,6 +43,7 @@ import {
   roundRectPath,
   spikeCrown,
 } from './vfx';
+import type { ShapeKind } from './vfx';
 import { drawTowerEvolution, evolutionGrowthAnimated, branchSkinColor } from './towerEvolution';
 import { drawStarEvolution, starEvolutionGrowth } from './starEvolution';
 import { drawMulliganOrganism, drawMulliganProjectile } from './mulliganOrganism';
@@ -2063,7 +2064,7 @@ const SELECT_RGB = hexRgb('#fff4c2'); // hero selection ring — warm white-gold
 // Low-HP urgency tint for minions (the shared "danger" red).
 const MINION_LOW_RGB = hexRgb('#ff5d73');
 
-const HERO_SHAPE = { ravager: 'diamond', shepherd: 'hex', overseer: 'triangle', vitriol: 'square', revenant: 'circle', knell: 'bell', wyrm: 'diamond' } as const;
+const HERO_SHAPE: Record<HeroKind, ShapeKind> = { ravager: 'diamond', shepherd: 'hex', overseer: 'triangle', vitriol: 'square', revenant: 'circle', knell: 'bell', wyrm: 'diamond', riptide: 'drop' };
 
 /** Membrane wings for FLYING heroes (behavior 'swoop'): two swept, translucent bat-wing sails
  *  beating behind the body — the stroke deepens/quickens while the flier is on the move. Each

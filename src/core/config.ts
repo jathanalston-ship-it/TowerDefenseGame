@@ -1163,7 +1163,8 @@ export type HeroBehavior = 'dive' | 'guard' | 'control' | 'siege' | 'phase' | 's
 export type HeroUnlockReq =
   | { kind: 'bossSlain'; count: number; label: string }
   | { kind: 'infiniteDepth'; wave: number; label: string }
-  | { kind: 'molts'; count: number; label: string };
+  | { kind: 'molts'; count: number; label: string }
+  | { kind: 'megaSlain'; count: number; label: string }; // Riptide — the tide rises where leviathans fell
 
 export interface HeroAbilityDef {
   name: string;
@@ -1429,6 +1430,39 @@ export const HERO_DEFS: Record<HeroKind, HeroDef> = {
       { star: 8, options: [
         { id: 'pyre', name: 'Pyre Titan', blurb: 'The breath becomes a CATACLYSM — a vast firestorm that swallows the approach.', upgrades: [{ target: 'ult', name: 'Cataclysm Breath', mulDamage: 1.7, mulRadius: 1.3, mulPoolRadius: 1.4, particle: 'heroSpray', fxColor: '#ff5c2e' }] },
         { id: 'talonlord', name: 'Talon Lord', blurb: 'Skyfall Talon becomes an ANNIHILATING dive — a single strike that ends the target.', upgrades: [{ target: 1, name: 'Annihilating Dive', mulDamage: 2.3, addFracture: 2, mulRadius: 0.7, setMinEnemies: 1, particle: 'heroLance', fxColor: '#ffde8a' }] },
+      ] },
+    ],
+  },
+  riptide: {
+    // The hive's TIDE caste (Kinetic) — the roster's ZONE-CONTROL bruiser, and its only
+    // WATER-form: a translucent mass of assimilated brine that flows to the densest pack
+    // (the 'control' movement archetype — the riptide forms where the swimmers are), crushes
+    // it under a tidal pulse, and floods the ground with UNDERTOW pools that grind the wave
+    // down where it stands. Where the Overseer disrupts and the Knell amplifies, the Riptide
+    // simply DROWNS: real chassis chip + area denial, no buffs. Progression-gated on the
+    // raid axis — condensed from the fluids of fallen leviathans (fell 2 distinct Mega
+    // Bosses). Entirely data-driven: control movement + pulse chassis + pool/disrupt ability
+    // fields are all established sim verbs (no new game.ts paths). Numbers are tuning clay.
+    kind: 'riptide', name: 'Riptide', combatClass: 'Kinetic', behavior: 'control', color: '#4dc3ff',
+    maxHp: 260, speed: 100, attackRange: 0, attackInterval: 0, attackDamage: 0, attackFracture: 0,
+    aggroRange: 1400, contactRange: 24, respawnTime: 9,
+    // The current: a fast tidal surge — real AoE chip with only a BRIEF stagger (drag, not
+    // control). Faster cadence + shallower stagger than the Knell's toll; no amp windows.
+    pulseInterval: 1.3, pulseRadius: 104, pulseDamage: 11, pulseDisrupt: 0.25, nucleusRegen: 0,
+    unlock: { kind: 'megaSlain', count: 2, label: 'Fell 2 distinct Mega Bosses' },
+    ability: { name: 'Maelstrom', blurb: 'Drags the pack into a crushing vortex: heavy tidal damage, a deep stagger — and the water STAYS, an undertow pool that drowns everything that lingers.', cooldown: 12, radius: 126, damage: 56, fracture: 0, disrupt: 1.6, heal: 0, poolRadius: 116, poolDps: 16, poolSeconds: 5, particle: 'heroBurst', fxColor: '#6fd8ff' },
+    skills: [
+      { name: 'Undertow', blurb: 'Floods the target zone — a dragging undertow pool that staggers on impact and grinds whatever stands in it.', cooldown: 8, radius: 96, damage: 18, fracture: 0, disrupt: 0.8, heal: 0, poolRadius: 100, poolDps: 14, poolSeconds: 5, castOn: 'target', minEnemies: 2, particle: 'heroSpray', fxColor: '#4db8ff' },
+      { name: 'Breaker', blurb: 'The wave BREAKS — a wide crushing slam that staggers the whole pack.', cooldown: 12, radius: 118, damage: 34, fracture: 0, disrupt: 1.0, heal: 0, castOn: 'target', minEnemies: 3, particle: 'heroBurst', fxColor: '#8ae2ff' },
+    ],
+    forks: [
+      { star: 5, options: [
+        { id: 'abyss', name: 'Abyssal Pull', blurb: 'The deep claims more — the undertows drag harder and grind faster.', upgrades: [{ target: 'ult', mulPoolDps: 1.5, addDisrupt: 0.5, fxColor: '#3da2ff' }, { target: 0, mulPoolDps: 1.4, addDisrupt: 0.4 }] },
+        { id: 'tsunami', name: 'Tsunami', blurb: 'The wall of water rises — the slams strike far harder and wider.', upgrades: [{ target: 'ult', mulDamage: 1.35, mulRadius: 1.15, fxColor: '#9ae8ff' }, { target: 1, mulDamage: 1.3 }] },
+      ] },
+      { star: 8, options: [
+        { id: 'drowned', name: 'Drowned Garden', blurb: 'Undertow becomes a vast standing sea that the wave must wade through.', upgrades: [{ target: 0, name: 'Drowned Garden', mulPoolRadius: 1.6, mulPoolDps: 1.4, particle: 'heroSpray', fxColor: '#4db8ff' }] },
+        { id: 'hammer', name: 'Water Hammer', blurb: 'Breaker becomes a single annihilating column of water.', upgrades: [{ target: 1, name: 'Water Hammer', mulDamage: 2.0, mulRadius: 0.7, addFracture: 2, setMinEnemies: 1, particle: 'heroLance', fxColor: '#bdf0ff' }] },
       ] },
     ],
   },

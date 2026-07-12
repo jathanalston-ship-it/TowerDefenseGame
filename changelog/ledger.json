@@ -1,6 +1,6 @@
 {
-  "lastSha": "0edce9a3cafd5ae44f617de640dcd83f51b1d304",
-  "commitsSinceDraft": 9,
+  "lastSha": "e3be902e9d61e8436e72327548911fdddbd3e1e3",
+  "commitsSinceDraft": 0,
   "content": {
     "tower": [
       "needle",
@@ -28,7 +28,8 @@
       "vitriol",
       "revenant",
       "knell",
-      "wyrm"
+      "wyrm",
+      "riptide"
     ],
     "enemy": [
       "runner",
@@ -1479,6 +1480,11 @@
       "sealed": false,
       "entries": [
         {
+          "cat": "Heroes",
+          "text": "New hero: Riptide",
+          "major": true
+        },
+        {
           "cat": "Gameplay",
           "text": "New system: Hero Symbiotes",
           "major": true
@@ -2195,6 +2201,10 @@
         {
           "cat": "Gameplay",
           "text": "Re-anchor the campaign curve: compensation band, raid-honest bars, hive-guardian override"
+        },
+        {
+          "cat": "Gameplay",
+          "text": "Chronicle + reports for the mega-targeting fix and campaign rescale"
         }
       ]
     }
@@ -3511,6 +3521,14 @@
       "text": "Rescale validation docs: probe evidence, gate references, bugfix log",
       "internal": true,
       "needsReview": true
+    },
+    {
+      "sha": "e3be902e9d61e8436e72327548911fdddbd3e1e3",
+      "date": "2026-07-12",
+      "cat": "Gameplay",
+      "text": "Chronicle + reports for the mega-targeting fix and campaign rescale",
+      "internal": false,
+      "needsReview": false
     }
   ]
 }

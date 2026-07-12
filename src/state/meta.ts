@@ -1118,6 +1118,7 @@ function heroMilestoneMet(save: SaveData, req: HeroUnlockReq): boolean {
     case 'bossSlain': return save.bossesSlain.length >= req.count;
     case 'infiniteDepth': return save.bestWave >= req.wave; // Revenant — earned from the endless deep
     case 'molts': return save.prestige.molts >= req.count; // Knell — cast from the hive's first rebirth
+    case 'megaSlain': return save.megaProgress.slain.length >= req.count; // Riptide — condensed from fallen leviathans (distinct defs)
   }
 }
 
@@ -1127,6 +1128,7 @@ function heroMilestoneProgress(save: SaveData, req: HeroUnlockReq): number {
     case 'bossSlain': return Math.min(1, save.bossesSlain.length / req.count);
     case 'infiniteDepth': return Math.min(1, save.bestWave / req.wave);
     case 'molts': return Math.min(1, save.prestige.molts / req.count);
+    case 'megaSlain': return Math.min(1, save.megaProgress.slain.length / req.count);
   }
 }
 

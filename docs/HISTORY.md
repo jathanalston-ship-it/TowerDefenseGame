@@ -176,3 +176,4 @@
 - `3844852` **[Mega Bosses]** Gate the Bio-Container meter behind the first Mega Boss kill
 - `933e80b` **[Gameplay]** Re-anchor the campaign curve: compensation band, raid-honest bars, hive-guardian override
 - ⚑ `0edce9a` **[Framework]** Rescale validation docs: probe evidence, gate references, bugfix log _(internal)_
+- `e3be902` **[Gameplay]** Chronicle + reports for the mega-targeting fix and campaign rescale

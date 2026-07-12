@@ -125,6 +125,19 @@ export const HERO_IDENTITIES: Record<HeroKind, HeroIdentity> = {
     scaling: { name: 'Firestorm', desc: 'The deeper the run, the hotter its Corrosion burns (up to +30%).', kind: 'saturation', perStack: 0.015, cap: 0.3 },
     survival: 'aggressive',
   },
+  riptide: {
+    kind: 'riptide',
+    role: 'Zone-control bruiser — flows to the densest pack, crushes it under tidal pulses, and drowns the ground in undertow pools.',
+    strengths: ['Real AoE chip + area denial in one chassis', 'Undertow pools grind the wave where it stands', 'Durable for a controller — the tide holds the middle'],
+    weaknesses: ['No single-target burst — a fat boss wades through', 'No sustain or buffs for the line', 'Its stagger is a drag, not a lockdown'],
+    // Reuses the shared sim verbs (heroVulnBonus sums every vulnField hero generically): its
+    // dragging water Disrupts, so everything caught in the current takes more from ALL sources —
+    // shallower than the Overseer's static (the Riptide brings real damage of its own).
+    passive: { name: 'Waterlogged', desc: 'DISRUPTED enemies take extra damage from ALL sources — soaked chitin splits under every blow.', kind: 'vulnField', amount: 0.12 },
+    trait: { name: 'Undertow', desc: 'Its current DRAGS — the tidal field denies the lane and scatters the advance.', kind: 'targetHijack' },
+    scaling: { name: 'Rising Tide', desc: 'The deeper the run, the harder the water grips (up to +30%).', kind: 'overload', perStack: 0.015, cap: 0.3 },
+    survival: 'cautious',
+  },
 };
 
 export function heroIdentity(kind: HeroKind): HeroIdentity {

@@ -111,10 +111,22 @@ export const HERO_EVOLUTION: Record<HeroKind, HeroEvolution> = {
       { at: 5, kind: 'crown', count: 6 }, // the horned apex wyrm
     ],
   },
+  // Riptide (Kinetic tide) — the water deepens: a tide ring → brine sacs → current arcs →
+  // dragging limbs → the drowned crown of the deep.
+  riptide: {
+    growth: 0.05,
+    parts: [
+      { at: 1, kind: 'halo' }, // the tide ring — the current's reach made visible
+      { at: 2, kind: 'biomass', count: 3 }, // brine sacs — condensed leviathan water
+      { at: 3, kind: 'arcs', count: 2, per: 1 }, // crosscurrents, wilder each star
+      { at: 4, kind: 'limbs', count: 3 }, // dragging tendrils of the undertow
+      { at: 5, kind: 'crown', count: 6 }, // the drowned crown
+    ],
+  },
 };
 
 /** Stable per-kind phase offset so two heroes of different kinds don't pulse in lockstep. */
-const KIND_PHASE: Record<HeroKind, number> = { ravager: 1, shepherd: 2, overseer: 3, vitriol: 4, revenant: 5, knell: 6, wyrm: 7 };
+const KIND_PHASE: Record<HeroKind, number> = { ravager: 1, shepherd: 2, overseer: 3, vitriol: 4, revenant: 5, knell: 6, wyrm: 7, riptide: 8 };
 
 /** Body-silhouette scale from permanent STARS (the "bigger, prestige hero" read). Identity (1) at
  *  ★0; gentle per star so the marker never dwarfs the field (★5 ≈ 1.2–1.25×). */

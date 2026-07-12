@@ -56,6 +56,11 @@ const AUTHORED: Record<string, Partial<HeroLore>> = {
     tagline: 'A biomech dragon that never lands — corroding fly-bys and firestorm breath.',
     specialization: 'Aerial Devastator',
   },
+  riptide: {
+    title: 'The Drowned Tide',
+    tagline: 'Condensed from the fluids of fallen leviathans — it flows to the thickest of the wave and drowns it where it stands.',
+    specialization: 'Tidal Controller',
+  },
 };
 
 /** Resolve a hero's lore, deriving any unauthored field from its definition. */

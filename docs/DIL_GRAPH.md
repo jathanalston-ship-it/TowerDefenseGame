@@ -1,6 +1,6 @@
 # DIL_GRAPH.md — the Design Intelligence Layer (GENERATED — `npm run dil -- regen`)
 
-> **The project's brain** (docs/DIL.md). 771 nodes · 1416 edges, built from the live
+> **The project's brain** (docs/DIL.md). 773 nodes · 1420 edges, built from the live
 > registries + curated knowledge (src/dev/dil/). **Query it instead of searching the repo:**
 > `npm run dil -- node <id>` · `affects <id>` · `requires <id>` · `missing <kind> <edge>` ·
 > `checklist tower <kind>` · `find <text>`. Edge kinds are bidirectional (19 kinds).
@@ -14,11 +14,11 @@
 
 ### Gameplay Index
 
-`tower:needle` · `tower:mortar` · `tower:reactor` · `tower:parasite` · `tower:obelisk` · `tower:maw` · `tower:chrysalis` · `tower:effigy` · `tower:coil` · `tower:siphon` · `tower:sower` · `tower:spire` · `tower:polyp` · `tower:spitfang` · `tower:rift` · `tower:glaive` · `tower:roost` · `hero:ravager` · `hero:shepherd` · `hero:overseer` · `hero:vitriol` · `hero:revenant` · `hero:knell` · `hero:wyrm` · `enemy:runner` · `enemy:mite` · `enemy:larva` · `enemy:rusher` · `enemy:darter` · `enemy:lasher` · `enemy:brute` · `enemy:tank` · `enemy:golem` · `enemy:colossus` · `enemy:bulwark` · `enemy:warden` · `enemy:knitter` · `enemy:revenant` · `enemy:burrower` · `enemy:molerat` · `enemy:flyer` · `enemy:wisp` · `enemy:gargoyle` · `enemy:cystwraith` · `enemy:broodmother` · `enemy:hivecaller` · `enemy:mender` · `enemy:cantor` · `enemy:bomber` · `enemy:popper` · `enemy:sapper` · `enemy:cataclyst` · `enemy:siegeworm` · `enemy:spitter` · `enemy:stratovore` · `enemy:broodweaver` · `enemy:zealot` · `enemy:carrier` · `enemy:entrencher` · `enemy:oracle` · …34 more
+`tower:needle` · `tower:mortar` · `tower:reactor` · `tower:parasite` · `tower:obelisk` · `tower:maw` · `tower:chrysalis` · `tower:effigy` · `tower:coil` · `tower:siphon` · `tower:sower` · `tower:spire` · `tower:polyp` · `tower:spitfang` · `tower:rift` · `tower:glaive` · `tower:roost` · `hero:ravager` · `hero:shepherd` · `hero:overseer` · `hero:vitriol` · `hero:revenant` · `hero:knell` · `hero:wyrm` · `hero:riptide` · `enemy:runner` · `enemy:mite` · `enemy:larva` · `enemy:rusher` · `enemy:darter` · `enemy:lasher` · `enemy:brute` · `enemy:tank` · `enemy:golem` · `enemy:colossus` · `enemy:bulwark` · `enemy:warden` · `enemy:knitter` · `enemy:revenant` · `enemy:burrower` · `enemy:molerat` · `enemy:flyer` · `enemy:wisp` · `enemy:gargoyle` · `enemy:cystwraith` · `enemy:broodmother` · `enemy:hivecaller` · `enemy:mender` · `enemy:cantor` · `enemy:bomber` · `enemy:popper` · `enemy:sapper` · `enemy:cataclyst` · `enemy:siegeworm` · `enemy:spitter` · `enemy:stratovore` · `enemy:broodweaver` · `enemy:zealot` · `enemy:carrier` · `enemy:entrencher` · …35 more
 
 ### Progression Index
 
-`system:campaign` · `system:accounts` · `system:premium` · `system:towers` · `system:loot` · `system:gene-cards` · `system:quests` · `system:progression-gating` · `system:hub-shell` · `system:meta-store` · `system:mega-bosses` · `system:cutscenes` · `system:security` · `system:doctrines` · `concept:progression-gates` · `currency:tower-shards` · `tower:maw` · `tower:chrysalis` · `tower:effigy` · `tower:coil` · `tower:siphon` · `tower:sower` · `tower:spire` · `tower:polyp` · `tower:spitfang` · `tower:rift` · `tower:glaive` · `tower:roost` · `hero:vitriol` · `hero:revenant` · `hero:knell` · `hero:wyrm`
+`system:campaign` · `system:accounts` · `system:premium` · `system:towers` · `system:loot` · `system:gene-cards` · `system:quests` · `system:progression-gating` · `system:hub-shell` · `system:meta-store` · `system:mega-bosses` · `system:cutscenes` · `system:security` · `system:doctrines` · `concept:progression-gates` · `currency:tower-shards` · `tower:maw` · `tower:chrysalis` · `tower:effigy` · `tower:coil` · `tower:siphon` · `tower:sower` · `tower:spire` · `tower:polyp` · `tower:spitfang` · `tower:rift` · `tower:glaive` · `tower:roost` · `hero:vitriol` · `hero:revenant` · `hero:knell` · `hero:wyrm` · `hero:riptide`
 
 ### Economy / Reward Index
 
@@ -132,6 +132,7 @@ graph LR
   system_equipment["Equipment & Armory"] -->|modifies| system_rendering["Rendering & VFX"]
   system_bosses["Bosses"] -->|modifies| system_rendering["Rendering & VFX"]
   system_genome_rank["Genome Rank (ultimate mastery ladder)"] -->|consumes| system_account_level["Account Level (evergreen meta-progression)"]
+  system_heroes["Heroes"] -->|consumes| system_mega_bosses["Mega Bosses"]
   system_mulligans["Mulligan System"] -->|consumes| system_towers["Towers, Stars, Branches, Strain & Codex"]
   system_security["Game Action Security Layer"] -->|modifies| system_meta_store["Meta Store & Save"]
   system_directives["Weekly Directives"] -->|rewards| currency_genome_cores["Genome Cores (◆)"]
@@ -449,6 +450,7 @@ graph LR
   system_living_battlefield["Living Battlefield"] -->|consumes| system_assimilation["Assimilation Index"]
   system_account_level["Account Level (evergreen meta-progression)"] -->|provides| system_loot["Loot & Bio-Containers"]
   system_genome_rank["Genome Rank (ultimate mastery ladder)"] -->|consumes| system_account_level["Account Level (evergreen meta-progression)"]
+  system_heroes["Heroes"] -->|consumes| system_mega_bosses["Mega Bosses"]
   system_mulligans["Mulligan System"] -->|consumes| system_towers["Towers, Stars, Branches, Strain & Codex"]
   system_security["Game Action Security Layer"] -->|consumes| concept_determinism["Determinism"]
   system_directives["Weekly Directives"] -->|consumes| concept_determinism["Determinism"]
@@ -548,6 +550,7 @@ Depth/stage/shard requirements that stage content unlocks (towers, heroes, cards
   - gates → `hero:revenant` — progression unlock requirement
   - gates → `hero:knell` — progression unlock requirement
   - gates → `hero:wyrm` — progression unlock requirement
+  - gates → `hero:riptide` — progression unlock requirement
   - gates → `system:gene-cards` — 44 cards unlock by progression
   - gates → `system:towers` — locked kinds carry unlockShards + stage requirements
   - requiredBy ← `system:doctrines` — unlockStage campaign gates + doctrineRuns grandfathering (save/derive.ts)
@@ -706,7 +709,7 @@ _at: src/core/game.ts, src/core/combat.ts, src/core/status.ts, src/core/targetin
   - requiredBy ← `system:mega-bosses`
   - requiredBy ← `system:rendering`
   - requiredBy ← `system:living-battlefield`
-  - _…184 more (query: `npm run dil -- node system:engine`)_
+  - _…185 more (query: `npm run dil -- node system:engine`)_
 
 ### `system:content-infra` — Content Infrastructure
 
@@ -1044,6 +1047,7 @@ _at: src/core/heroIdentity.ts, src/core/heroLore.ts, src/core/heroEvolution.ts, 
   - consumes → `system:meta-store` — owns save field 'heroLoadout'
   - consumes → `system:meta-store` — owns save field 'heroMasteryXp'
   - consumes → `currency:hero-shards` — unlocks + Star purchases + the PRIME infinite ladder past ★max (mirrors towers; direct shard lanes BANK for Prime, only container opens convert duplicates)
+  - consumes → `system:mega-bosses` — the megaSlain HeroUnlockReq axis (Riptide, 2 distinct defs from megaProgress.slain) — the FOURTH milestone lens beside bossSlain/infiniteDepth/molts; each milestone hero owns ONE progression axis and never rides unlockShards
   - extends → `system:engine` — CINDERWYRM (HEROES.md §6): HeroBehavior gained 'swoop' (game.updateSwoopHero) — the flying strafe brain: strike on the fly-by, Corrosion via WYRM.corrodePerStrike, then BANK THROUGH to Hero.bankX/bankY = WYRM.bankDist past the victim (sim fields for the flight, absent on every other hero). Unlock bossSlain 5 ⇒ never on a fresh account ⇒ golden-safe; wings render behavior-keyed (drawHeroWings) so a future flyer inherits them
   - requiredBy ← `system:engine`
   - requiredBy ← `system:equipment`
@@ -1056,8 +1060,8 @@ _at: src/core/heroIdentity.ts, src/core/heroLore.ts, src/core/heroEvolution.ts, 
   - contains ← `hero:revenant`
   - contains ← `hero:knell`
   - contains ← `hero:wyrm`
-  - taughtBy ← `tutorial:combat`
-  - _…11 more (query: `npm run dil -- node system:heroes`)_
+  - contains ← `hero:riptide`
+  - _…12 more (query: `npm run dil -- node system:heroes`)_
 
 ### `system:equipment` — Equipment & Armory
 
@@ -1903,7 +1907,7 @@ _at: src/core/megaboss.ts, src/render/megaboss.ts_
   - referencedBy ← `achievement:mega_perfect`
   - referencedBy ← `achievement:mega_speed`
   - referencedBy ← `achievement:mega_all`
-  - _…11 more (query: `npm run dil -- node system:mega-bosses`)_
+  - _…12 more (query: `npm run dil -- node system:mega-bosses`)_
 
 ### `system:cutscenes` — Story Cutscenes & Memory Archive
 
@@ -2314,7 +2318,7 @@ _at: src/core/config.ts TOWER_DEFS_
   - consumes → `currency:biomass` — placement cost 200
   - gatedBy ← `currency:tower-shards` — 520 shards to unlock
 
-## Heroes (7)
+## Heroes (8)
 
 ### `hero:ravager` — Ravager
 
@@ -2370,6 +2374,15 @@ _at: src/core/config.ts HERO_DEFS_
 ### `hero:wyrm` — Cinderwyrm
 
 Sweeps low and BREATHES: a pyroclastic blast that corrodes everything caught, leaving a firestorm that burns on.
+
+_at: src/core/config.ts HERO_DEFS_
+
+  - partOf → `system:heroes`
+  - gatedBy ← `concept:progression-gates` — progression unlock requirement
+
+### `hero:riptide` — Riptide
+
+Drags the pack into a crushing vortex: heavy tidal damage, a deep stagger — and the water STAYS, an undertow pool that drowns everything that lingers.
 
 _at: src/core/config.ts HERO_DEFS_
 
@@ -3291,7 +3304,7 @@ _at: site/guides.ts → /guides/prestige/_
 - `doc:VOWS.md` — project documentation _(documents `system:prestige`)_
 - `doc:WEBSITE.md` — project documentation _(documents `system:field-research`, documents `system:website`)_
 
-## Tests (244)
+## Tests (245)
 
 - `test:src/audio/music.test.ts` — automated validation _(tests `system:audio`)_
 - `test:src/changelog/classify.test.ts` — automated validation _(tests `system:chronicle`)_
@@ -3401,6 +3414,7 @@ _at: site/guides.ts → /guides/prestige/_
 - `test:src/core/registry.test.ts` — automated validation _(tests `system:content-infra`)_
 - `test:src/core/replay.test.ts` — automated validation _(tests `system:net-backend`)_
 - `test:src/core/revenant.test.ts` — automated validation _(tests `system:engine`)_
+- `test:src/core/riptide.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/core/rng.test.ts` — automated validation _(tests `system:content-infra`)_
 - `test:src/core/runEvents.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/core/runEventsSim.test.ts` — automated validation _(tests `system:engine`)_

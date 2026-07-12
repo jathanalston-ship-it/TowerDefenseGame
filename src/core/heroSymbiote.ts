@@ -745,6 +745,14 @@ export const HERO_SYMBIOTE_GATES: Record<HeroKind, [SymbioteGate, SymbioteGate]>
       blurb: 'The final graft crowns the firestorm: giants brought down mid-flight, power the heavens can measure.',
       reqs: [rKills(15000), rStars(4), rMastery(12), rGenome(6, 'VI · Hiveborn'), rMegas(5), rPower(9000)] },
   ],
+  riptide: [
+    { slot: 2, title: 'WHERE THE TIDE TAKES HOLD', ichorCost: SYMBIOTE_ICHOR_II,
+      blurb: 'The second graft dissolves only into water that has learned to grip — a current the campaign\'s mid-depths could not swim against.',
+      reqs: [rKills(1400), rStars(2), rStage(30)] },
+    { slot: 3, title: 'THE DROWNING DEEP', ichorCost: SYMBIOTE_ICHOR_III,
+      blurb: 'The final graft sinks only into abyssal water — a tide condensed from fallen leviathans, risen through everything that ever swam in it.',
+      reqs: [rKills(11000), rStars(4), rMastery(12), rGenome(6, 'VI · Hiveborn'), rMegas(4)] },
+  ],
 };
 
 // Compile-time completeness above; runtime sanity for tests + tooling.

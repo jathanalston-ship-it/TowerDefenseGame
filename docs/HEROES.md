@@ -422,13 +422,17 @@ the Wyrmwing Glaive's Ember Return branch — the draconic tower pairing it was 
 | **Revenant** | Viral | phase-assassin / boss-deleter | **Burst (single-target)** | teleport-deletes elites + spreads Infection (gated) |
 | **Knell** | Resonant | amplification conductor | Low (AoE chip) | run-wide tower-damage peals + a tower aura (gated) |
 | **Cinderwyrm** | Caustic | flying strafe-fighter | **High (mobile)** | Corrosion on every pass + Emberwake amplification (gated) |
+| **Riptide** | Kinetic | water-form zone controller | Medium (AoE chip + pools) | tidal pulses + undertow area denial + Waterlogged vulnerability (gated) |
 
 Distinct roles, distinct classes, distinct failure modes. The "ideal" core
 (Ravager + Shepherd + Overseer) is a classic damage/sustain/control trinity — and
 Vitriol adds a ranged Caustic zone-denial option once earned, the Revenant adds a
 Viral single-target executioner for the elites and bosses the trinity can't burst down, the
 Knell (the sixth class — every combat class now has a hero) turns any mature board into a louder
-one, and the Cinderwyrm adds a flying Caustic skirmisher that never stops moving. Since
+one, the Cinderwyrm adds a flying Caustic skirmisher that never stops moving, and the Riptide —
+the hive's WATER-form, condensed from the fluids of fallen leviathans (its gate is the RAID axis:
+fell 2 distinct Mega Bosses) — holds the middle of the pack with crushing tidal pulses and
+lingering undertow pools, the roster's first true zone-control bruiser. Since
 slots unlock over time and classes are shared with towers, players build toward many other
 combinations.
 

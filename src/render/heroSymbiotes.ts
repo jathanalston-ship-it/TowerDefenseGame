@@ -70,6 +70,12 @@ export const HERO_SYMBIOTE_VISUALS: Record<HeroKind, { stages: EvoPart[][] }> = 
     [{ at: 2, kind: 'tendrils', count: 3 }],
     [{ at: 3, kind: 'arcs', count: 2, per: 1 }],
   ] },
+  // Riptide — the water is COLONIZED: tide-rings → dragging feelers → brine egg-pods of the deep.
+  riptide: { stages: [
+    [{ at: 1, kind: 'ripples' }],
+    [{ at: 2, kind: 'tendrils', count: 3, per: 1 }],
+    [{ at: 3, kind: 'pods', count: 3 }],
+  ] },
 };
 
 /** The minimal hero shape the composer needs (mirrors heroEvolution.ts). */

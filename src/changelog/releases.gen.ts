@@ -11,6 +11,11 @@ export const RELEASES: Release[] = [
     "sealed": false,
     "entries": [
       {
+        "cat": "Heroes",
+        "text": "New hero: Riptide",
+        "major": true
+      },
+      {
         "cat": "Gameplay",
         "text": "New system: Hero Symbiotes",
         "major": true
@@ -727,6 +732,10 @@ export const RELEASES: Release[] = [
       {
         "cat": "Gameplay",
         "text": "Re-anchor the campaign curve: compensation band, raid-honest bars, hive-guardian override"
+      },
+      {
+        "cat": "Gameplay",
+        "text": "Chronicle + reports for the mega-targeting fix and campaign rescale"
       }
     ]
   },

@@ -62,7 +62,7 @@ export function ring(
 
 // ── Silhouette "sprites" (data-driven shapes — swap for art later) ───────────
 
-export type ShapeKind = 'circle' | 'triangle' | 'square' | 'diamond' | 'hex' | 'bell';
+export type ShapeKind = 'circle' | 'triangle' | 'square' | 'diamond' | 'hex' | 'bell' | 'drop';
 
 /** Build (but don't paint) a silhouette path of `r` radius centered at (x,y).
  * Shared by drawShape (fill) and strokeShape (outline) so the polygon math lives
@@ -113,6 +113,14 @@ export function shapePath(
       ctx.quadraticCurveTo(x - r * 0.45, y - r, x, y - r);
       ctx.quadraticCurveTo(x + r * 0.45, y - r, x + r * 0.5, y - r * 0.05);
       ctx.quadraticCurveTo(x + r * 0.55, y + r * 0.55, x + r * 0.92, y + r * 0.78);
+      ctx.closePath();
+      break;
+    case 'drop': // a standing water-drop: tapered crest, full rounded base (the Riptide's silhouette)
+      ctx.moveTo(x, y - r);
+      ctx.quadraticCurveTo(x + r * 0.62, y - r * 0.18, x + r * 0.74, y + r * 0.28);
+      ctx.quadraticCurveTo(x + r * 0.8, y + r * 0.95, x, y + r * 0.95);
+      ctx.quadraticCurveTo(x - r * 0.8, y + r * 0.95, x - r * 0.74, y + r * 0.28);
+      ctx.quadraticCurveTo(x - r * 0.62, y - r * 0.18, x, y - r);
       ctx.closePath();
       break;
   }
