@@ -204,6 +204,36 @@ describe('sim raid loop', () => {
     expect(rt3.hp).toBeLessThan(hp3); // body strikes landed once the organs were spent
   });
 
+  it('the Hive outranks the raid: a threatened Core pulls every gun off the organs', () => {
+    // The stage-10 contract-probe wipe: an open organ in reach of a long gun (needle 700)
+    // TUNNELED the whole board while wave enemies chewed the undefended Core. megaRaidYield
+    // must flip raid duty off while the Core is threatened, and back on when it clears.
+    const g = new Game(31, NO_META, undefined, 'ravager', undefined, { megaDaily: { defId: 'voraxis', tier: 1 } });
+    g.god = true;
+    g.debugAddBiomass(8000);
+    const gSpec = MEGA_BOSS_DEFS.voraxis.weakPoints.find((w) => w.kind === 'armored_growth')!;
+    expect(g.placeTower('needle', forwardSlots[0].x, forwardSlots[0].y)).toBe(true); // needle reaches organs from ANY pad
+    g.startWave();
+    type YieldGuts = { mega: { stunned: number; weakPoints: { kind: string; hp: number; maxHp: number; state: string; emergeT: number }[] } };
+    const rt = (g as unknown as YieldGuts).mega;
+    rt.stunned = 9999; // static organism — no casts, no broods
+    const growth = rt.weakPoints.find((w) => w.kind === gSpec.kind)!;
+    for (let i = 0; i < 90; i++) g.advance(SIM_DT); // organ fully descended; needle grinding it
+    expect(growth.hp).toBeLessThan(growth.maxHp); // raid duty was live before the breach
+    // A breacher reaches the final-defense zone — an unkillable stand-in keeps the threat up.
+    g.debugSpawn('brute', 1);
+    const brute = g.enemies[g.enemies.length - 1];
+    brute.hp = 1e12;
+    brute.y = 880; // ≥ FINAL_DEFENSE_TOP_Y (800): the Core is in danger
+    g.advance(SIM_DT); // one tick for megaBossSystem to derive the yield
+    const hpDuringThreat = growth.hp;
+    for (let i = 0; i < 45; i++) { brute.y = 880; g.advance(SIM_DT); } // hold the breach
+    expect(growth.hp).toBe(hpDuringThreat); // NOT ONE organ hit while the Hive bleeds
+    brute.hp = 1; // the guns (now on the breacher) finish it
+    for (let i = 0; i < 90; i++) g.advance(SIM_DT);
+    expect(growth.hp).toBeLessThan(hpDuringThreat); // threat cleared → raid duty resumes
+  });
+
   it('is fully deterministic for a fixed seed', () => {
     const run = (): string => {
       const g = new Game(42, NO_META);

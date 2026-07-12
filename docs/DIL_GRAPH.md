@@ -1,6 +1,6 @@
 # DIL_GRAPH.md — the Design Intelligence Layer (GENERATED — `npm run dil -- regen`)
 
-> **The project's brain** (docs/DIL.md). 771 nodes · 1413 edges, built from the live
+> **The project's brain** (docs/DIL.md). 771 nodes · 1416 edges, built from the live
 > registries + curated knowledge (src/dev/dil/). **Query it instead of searching the repo:**
 > `npm run dil -- node <id>` · `affects <id>` · `requires <id>` · `missing <kind> <edge>` ·
 > `checklist tower <kind>` · `find <text>`. Edge kinds are bidirectional (19 kinds).
@@ -18,7 +18,7 @@
 
 ### Progression Index
 
-`system:campaign` · `system:accounts` · `system:premium` · `system:towers` · `system:gene-cards` · `system:quests` · `system:progression-gating` · `system:hub-shell` · `system:meta-store` · `system:mega-bosses` · `system:cutscenes` · `system:security` · `system:doctrines` · `concept:progression-gates` · `currency:tower-shards` · `tower:maw` · `tower:chrysalis` · `tower:effigy` · `tower:coil` · `tower:siphon` · `tower:sower` · `tower:spire` · `tower:polyp` · `tower:spitfang` · `tower:rift` · `tower:glaive` · `tower:roost` · `hero:vitriol` · `hero:revenant` · `hero:knell` · `hero:wyrm`
+`system:campaign` · `system:accounts` · `system:premium` · `system:towers` · `system:loot` · `system:gene-cards` · `system:quests` · `system:progression-gating` · `system:hub-shell` · `system:meta-store` · `system:mega-bosses` · `system:cutscenes` · `system:security` · `system:doctrines` · `concept:progression-gates` · `currency:tower-shards` · `tower:maw` · `tower:chrysalis` · `tower:effigy` · `tower:coil` · `tower:siphon` · `tower:sower` · `tower:spire` · `tower:polyp` · `tower:spitfang` · `tower:rift` · `tower:glaive` · `tower:roost` · `hero:vitriol` · `hero:revenant` · `hero:knell` · `hero:wyrm`
 
 ### Economy / Reward Index
 
@@ -508,7 +508,7 @@ ONE account-strength number folded from every permanent bucket + the in-run temp
   - providedBy ← `system:equipment` — equipped items score via itemPower into the gear bucket
   - providedBy ← `system:crafting` — reforged items re-score through the gear bucket
   - providedBy ← `system:loot` — reads Power for catch-up bias; grants move account Power
-  - _…24 more (query: `npm run dil -- node concept:power-score`)_
+  - _…25 more (query: `npm run dil -- node concept:power-score`)_
 
 ### `concept:determinism` — Determinism
 
@@ -706,7 +706,7 @@ _at: src/core/game.ts, src/core/combat.ts, src/core/status.ts, src/core/targetin
   - requiredBy ← `system:mega-bosses`
   - requiredBy ← `system:rendering`
   - requiredBy ← `system:living-battlefield`
-  - _…183 more (query: `npm run dil -- node system:engine`)_
+  - _…184 more (query: `npm run dil -- node system:engine`)_
 
 ### `system:content-infra` — Content Infrastructure
 
@@ -1124,7 +1124,7 @@ _at: src/core/loot.ts, src/core/lootQueue.ts, src/core/progressionLoot.ts, src/s
   - documentedBy ← `doc:LOOT-PROGRESSION.md`
   - documentedBy ← `doc:REWARD-PRESENTATION.md`
   - testedBy ← `test:src/core/loot.test.ts`
-  - _…5 more (query: `npm run dil -- node system:loot`)_
+  - _…6 more (query: `npm run dil -- node system:loot`)_
 
 ### `system:gene-cards` — Gene Cards (draft + permanent evolution)
 
@@ -1887,6 +1887,9 @@ _at: src/core/megaboss.ts, src/render/megaboss.ts_
   - triggers → `system:audio` — the telegraph-resolve edge (banner snapshot-diff, stun-guarded so eye interrupts stay silent) fires mega_cast — the SAME edge drives the render-side CAST shock ring in megaboss.ts
   - balances → `system:towers` — the ADAPT verb (Myriad) armors against the top-damage tower kind from a per-kind ledger at the raid-fire seams — single-kind stacking is punished by design; heroes bypass it
   - conflictsWith → `system:towers` — RAID GEOMETRY CONTRACT: organ descent (MEGA.minWeakPointY..maxWeakPointY, validator-enforced) + bodyBandY are calibrated to the REAL slot grid (map.ts pads y 740–900) and the shortest combat reach (maul 170) — moving pads, shrinking ranges, or authoring organs outside the band silently makes the raid untargetable (the Voraxis targeting bug)
+  - conflictsWith → `system:engine` — HIVE-GUARDIAN OVERRIDE (game.ts megaRaidYield): raid targeting YIELDS while the Core is threatened (attackers locked / enemies past FINAL_DEFENSE_TOP_Y) — organ priority without it tunnels sparse early boards while wave 1 eats the Hive (the stage-10 contract wipe); any new raid-fire seam must consult the flag
+  - gates → `system:loot` — THE AWAKENING GATE (docs/LOOTBOX.md §meter): the Bio-Container loot meter banks NOTHING until megaProgress.slain is non-empty (hasSlainMega) — syncRunLoot + finishRun queue leg both check it; run/stage caches, market ichor containers and the daily Bio-Cache bypass the meter and stay live from run 1
+  - balances → `concept:power-score` — campaign mega stages display a RAID-PREMIUM recommended-power bar (campaign.ts C.megaStagePremium ×1.8, label/readiness only — enemy stats never read it): the raid is real threat the wave budget never priced in, and the sawtooth ladder is pinned by progressionLoop.test invariant 1
   - gates → `system:cutscenes` — ENFORCED CONTENT CONTRACT: every MEGA_BOSS_DEFS id must ship a defeat cutscene — cutscenes.test.ts fails the build without one
   - requiredBy ← `system:cutscenes`
   - contains ← `mega:voraxis`

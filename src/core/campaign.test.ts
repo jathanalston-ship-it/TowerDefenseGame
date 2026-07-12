@@ -28,13 +28,20 @@ describe('campaign generator', () => {
   });
 
   it('scales SMOOTHLY across stages — monotonic, no spikes', () => {
+    // 2026-07 re-anchor (docs/DIFFICULTY.md §curve): 5%/stage through stage 8, a deliberate
+    // 20%/stage COMPENSATION BAND across stages 9–25 (the early economy outruns 5%), then
+    // 5%/stage resumes from the elevated baseline. Each segment holds its own gentle-step
+    // bound; the whole curve stays strictly monotonic with no discontinuities.
     let prevHp = 0, prevDmg = 0, prevReward = 0;
     for (let n = 1; n <= 60; n++) {
       const s = generateStage(n, 'standard');
       expect(s.scaling.enemyHealthMult).toBeGreaterThan(prevHp - 1e-9); // monotonic ↑
       expect(s.scaling.enemyDamageMult).toBeGreaterThan(prevDmg - 1e-9);
       expect(s.rewardMult).toBeGreaterThan(prevReward - 1e-9);
-      if (n > 1) expect(s.scaling.enemyHealthMult / prevHp).toBeLessThan(1.1); // gentle step — never a spike
+      if (n > 1) {
+        const inBand = n > 8 && n <= 25; // the compensation band's steeper (still bounded) step
+        expect(s.scaling.enemyHealthMult / prevHp).toBeLessThan(inBand ? 1.21 : 1.1); // never a spike
+      }
       expect(s.enemySpeedMult).toBeLessThanOrEqual(1.6 + 1e-9); // capped so fast enemies stay fair
       prevHp = s.scaling.enemyHealthMult; prevDmg = s.scaling.enemyDamageMult; prevReward = s.rewardMult;
     }

@@ -219,6 +219,18 @@ each 30–70%).
 
 ## §meter (2026-07) — live HUD bar contract + earn ceremony
 
+**THE AWAKENING GATE (2026-07):** the meter is DORMANT until the account's first Mega Boss
+kill (`hasSlainMega`, save/derive.ts — the `megaProgress.slain` ledger, written live by the
+`megaKilled` event). While dormant, `syncRunLoot` and `finishRun`'s loot-queue leg bank
+NOTHING — runs pay Run Caches and flawless Stage Caches only — and the HUD cell hides
+entirely; the `loot-meter` mechanics row fires the What's-New reveal when the first mega
+falls (the run that fells it banks its full backlog at settle, so nothing earned that run is
+lost). Veterans wake instantly; market Ichor containers and the daily Bio-Cache never route
+through the meter and are untouched. The progression simulator mirrors the campaign mega
+cadence through the real event path so pacing comparisons stay meaningful. Rationale
+(docs/DIFFICULTY.md §curve): the container firehose from minute 0 was the main early-power
+accelerant that trivialized the campaign's first ~55 stages.
+
 CONTRACT: the HUD Loot bar (`ui/LootMeter`) renders ONLY `save.lootQueue` — the fill width is
 always `progress / costOf(queue[0])`, so the display cannot drift from the backend. A
 completion celebrates with OVERLAYS, never a faked width (the old faked-full pop latched

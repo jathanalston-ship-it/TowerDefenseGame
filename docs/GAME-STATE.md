@@ -739,7 +739,9 @@ events (mirrors `bossKilled`).
 **Known limitations.** Ability windows lapse across the inter-wave settle; slow-motion kills are
 presentation-side only (determinism); hero raid duty (`heroMegaRaid`: seek nearest organ →
 strike → body fallback) engages only while the field is empty — living enemies always take
-priority.
+priority. Tower/beam raid duty likewise YIELDS while the Core is threatened (`megaRaidYield` —
+the hive-guardian override, docs/MEGA-BOSS.md §targeting), and campaign mega stages display a
+raid-premium power bar (`campaign.ts C.megaStagePremium`).
 
 ## Compressed system summary — Living Battlefield (docs/LIVING-BATTLEFIELD.md)
 

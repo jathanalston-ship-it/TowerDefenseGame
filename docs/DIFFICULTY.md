@@ -69,6 +69,56 @@ on top of those curves, keeping `standard` as the calibrated baseline:
   through the currency/loot/XP streams above, so scaling those streams rebalances acquisition rate
   without touching the (golden-locked) base combat numbers.
 
+## The campaign curve (§curve) — 2026-07 re-anchor
+
+The flat geometric +5%/stage EHP curve was trivial against the early economy: bio-containers
+compound a reinvesting account ~×25 across its first ~10 stages of income (live data: 45k
+power at stage 10 vs a 1.9k bar; the pre-change simulator's Fresh bot cleared stage 62 in 10
+hours). The late tail already converged — only the early anchor was wrong. The curve is now
+**piecewise geometric** (`campaign.ts C.compFromStage/compToStage/compGrowth`):
+
+| Segment | Growth | Why |
+|---|---|---|
+| Stages 1–8 | +5%/stage | onboarding — unchanged |
+| Stages 9–25 | **+20%/stage** | the COMPENSATION BAND — a one-time steep climb fit against the post-container-gate simulator arrival medians |
+| Stages 26+ | +5%/stage | resumes from the elevated baseline (net ×~9.8 ≈ a one-time +45-stage shift) |
+
+`recommendedPower` still derives from the same `hpMult`, so the label and real enemy EHP move
+together by construction. Displayed ladder: ~1.5k @8 · ~2.2k @10 (×1.8 raid premium ⇒ ~3.9k
+shown) · ~6.2k @15 · ~15k @20 · ~38k @25 (the optimized-account wall) · ~137k @50 · ~968k @90.
+
+**Mega-stage raid premium** (`C.megaStagePremium`, ×1.8): every 10th stage hosts a Mega Boss —
+real threat the wave budget never priced in (probe-measured: a clean kill needs ~×1.5–2.0 of
+the wave-only index). The premium keeps the DISPLAYED bar honest; enemy stats never read it
+(label + readiness only — the same never-understate principle as the biome ratchet). The
+ladder is therefore a rising curve with authored SPIKES on mega stages: strictly rising across
+wave stages, a spike up onto each raid, strictly rising over any decade
+(`progressionLoop.test.ts` invariant 1).
+
+**Hive-guardian override** (`game.ts megaRaidYield`, docs/MEGA-BOSS.md §targeting): while the
+Core is threatened (attackers locked on, or enemies inside the final-defense zone) every
+tower/beam yields raid duty to normal targeting. Without it a sparse early board tunneled an
+open organ while wave 1 walked into an undefended Hive — the original stage-10 probe wipe
+(0/3 at ×3.0 of the bar; 3/3 at ×1.5 after the override).
+
+**Measured acceptance** (progression simulator, 5 seeds/persona, post-gate + post-curve):
+Average first-walls at ~stage 25 at 0.90× the bar; Efficient at ~25 at 0.96×; the Fresh bot
+reaches stage 29 in 10h (was 62) with its wall at the band. Every farm outlet is open before
+the first wall (Infinite @3, Daily @5, Boss Rush @9 — moved from 10 so the stage-10 raid never
+strands a walled account with a locked outlet).
+
+**Stage-gate review under the new hour-cost** (2026-07, recorded decisions): Gene level gates
+15/30/50/75 KEPT — they now span the journey (≈2–5h / ≈10h / ≈35–50h / ≈100–120h Average)
+instead of collapsing into a weekend. Hero slot 2 @25 KEPT (the wall's reward); slot 3 @90
+KEPT DELIBERATELY as a long-horizon endgame goal (≈150h+). Nucleus trials @40/@75 KEPT
+(endgame chambers by design). Deep-Strain gate @15 KEPT (a mid-band chase). Boss Rush 10→9
+(above). Prestige's linear +3-stages/molt requirement KEPT — the slower deep frontier slows
+the molt gate proportionally, preserving relative pacing.
+
+**Watch item:** non-mega deep stages just past the band exit (probe: stage 28 at ×1.0 lost
+1-of-3 with ~71 integrity) run hot — pre-existing speed/elite gradient, within the owner's
+"never under-difficult" doctrine; revisit if player data agrees.
+
 ## The difficulty contract (§contract)
 
 The player-facing promise that all campaign tuning serves (retuned 2026-07 on player
@@ -95,10 +145,15 @@ pressure × how long attackers survive. The same contract table holds (re-verifi
 per-hit damage remains a stage-flat unit property.
 
 **Verified empirically**, not by formula alone: an autopilot probe plays real generated
-stages at ×0.75 / ×1.0 / ×1.25 / ×1.7 of `recommendedPower` (5 seeds × stages 1–24). As of
-the 2026-07 retune: all ratios win everywhere; avg integrity lost at ×1.0 ranges 0 (stages
-1–3, 24) to ~35 (Frostbound); ×0.75 loses 33–74 mid-band. Re-run the probe after any change
-to campaign scaling, wave composition, enemy stats, or tower balance.
+stages at ×0.75 / ×1.0 / ×1.25 of `recommendedPower` (3 seeds × a stage lattice through the
+compensation band, 1–30). The pilot is a FAIR one — it keeps converting income into towers
+mid-wave, forward pads first, the way a live player does; a prep-only pilot understates every
+board. As of the 2026-07 re-anchor (§curve): ×1.25 wins everywhere (0–39 lost, worst at the
+tier-3 raid); ×1.0 wins everywhere with chip-to-boss-round damage (0–21 on wave stages, 2–18
+on mega stages against their premium'd bar; stage 28 is the recorded watch item); ×0.75 is a
+bad time (49–111 lost, losses on raid/deep stages). Ratios on mega stages are measured
+against the DISPLAYED (premium) bar — what the player actually reads. Re-run the probe after
+any change to campaign scaling, wave composition, enemy stats, or tower balance.
 
 ## Balancing assumptions & limitations
 

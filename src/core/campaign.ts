@@ -16,6 +16,7 @@ import type { DifficultyDef } from './difficulty';
 import { composeStageDifficulty } from './difficultyDirector';
 import { BIOMES, categoryOf } from './biomes';
 import type { Biome, BiomeCategory } from './biomes';
+import { campaignMegaFor } from './megaboss';
 import { POWER_BASE } from './power';
 import { campaignEventForStage, campaignEventStamp } from './campaignEvents';
 import type { CampaignEventDef, CampaignEventStamp } from './campaignEvents';
@@ -30,6 +31,22 @@ const C = {
   hpGrowth: 0.05, dmgGrowth: 0, // per-stage growth: EHP only. Leak/contact damage is a UNIT property
   // (classic TD): integrity never scales, so a leak must cost the same at stage 1 and stage 40 —
   // stage danger is expressed through hp/speed/count/elites instead (docs/DIFFICULTY.md §contract).
+  // ── COMPENSATION BAND (docs/DIFFICULTY.md §curve, 2026-07 re-anchor): the early economy
+  // multiplies a reinvesting account ~×25 across its first ~10 stages of income, so a flat
+  // 5%/stage curve is trivial for ~55 stages (live data: 45k power vs a 1.9k stage-10 bar).
+  // Stages compFromStage+1..compToStage grow at compGrowth instead — a one-time steep climb
+  // that re-anchors the curve to the post-container-gate arrival medians (BALANCE_REPORT) —
+  // then 5%/stage resumes from the elevated baseline (the late tail already converges).
+  // recommendedPower derives from the SAME hpMult, so the bar stays honest by construction.
+  compFromStage: 8, // last stage of the unchanged 5% onboarding ramp
+  compToStage: 25, // last compensation-band stage (the optimized-account wall lives here)
+  compGrowth: 0.2, // per-stage EHP growth inside the band (fit via the progression simulator)
+  // Mega-hosting stages (every MEGA.campaignEvery-th) carry a RAID on top of their waves — the
+  // contract probe measures a clean kill at ~×1.5–2.0 of the wave-only index. The premium keeps
+  // the DISPLAYED bar honest (label only — enemy stats never read it; safe error direction,
+  // same principle as the biome ratchet). It also lands the fresh account's first wall at the
+  // stage-10 mega with a truthful readiness read (docs/DIFFICULTY.md §curve).
+  megaStagePremium: 1.8,
   speedGrowth: 0.012, speedCap: 1.6, // capped so fast enemies stay fair
   spawnGrowth: 0.01, spawnCap: 1.5,
   rewardGrowth: 0.05,
@@ -81,10 +98,21 @@ function spacingFor(cat: BiomeCategory): number {
 // ── Combined scaling ──────────────────────────────────────────────────────────────────────────
 export interface StageScaling { hpMult: number; damageMult: number; spawnMult: number; rewardMult: number; speedMult: number }
 
+/** Piecewise-geometric EHP curve (docs/DIFFICULTY.md §curve): 5%/stage through compFromStage,
+ *  compGrowth/stage across the compensation band, then 5%/stage again from the elevated
+ *  baseline. Strictly monotonic; each segment is smooth geometric growth. */
+function hpMultFor(stage: number): number {
+  const s = Math.max(1, Math.floor(stage));
+  const a = Math.min(s, C.compFromStage) - 1; // onboarding steps (5%)
+  const b = Math.max(0, Math.min(s, C.compToStage) - C.compFromStage); // compensation steps
+  const c = Math.max(0, s - C.compToStage); // deep steps (5% resumes)
+  return Math.pow(1 + C.hpGrowth, a + c) * Math.pow(1 + C.compGrowth, b);
+}
+
 function stageScaling(stage: number): StageScaling {
   const s = stage - 1;
   return {
-    hpMult: Math.pow(1 + C.hpGrowth, s), // geometric — smooth + strictly monotonic, no spikes
+    hpMult: hpMultFor(stage),
     damageMult: Math.pow(1 + C.dmgGrowth, s),
     spawnMult: Math.min(C.spawnCap, 1 + C.spawnGrowth * s),
     rewardMult: 1 + C.rewardGrowth * s,
@@ -385,7 +413,10 @@ export function recommendedPower(stage: number, difficultyId = 'standard'): numb
   const seen = Math.min(Math.floor((Math.max(1, Math.floor(stage)) - 1) / BIOME_REGION) + 1, BIOMES.length);
   let biomeBar = 1;
   for (let i = 0; i < seen; i++) biomeBar = Math.max(biomeBar, BIOMES[i].mods.difficulty);
-  return sc.hpMult * biomeBar * Math.sqrt(sc.damageMult * base.enemyHealthMult * base.enemyDamageMult) * base.powerTargetMult;
+  // Mega-hosting stages read HIGHER than their waves alone (C.megaStagePremium): the raid is
+  // real threat the wave budget never priced in, and the bar must not understate it.
+  const megaBar = campaignMegaFor(Math.max(1, Math.floor(stage))) ? C.megaStagePremium : 1;
+  return sc.hpMult * biomeBar * megaBar * Math.sqrt(sc.damageMult * base.enemyHealthMult * base.enemyDamageMult) * base.powerTargetMult;
 }
 
 /** Recommended Power on the UNIVERSAL index (docs/POWER-SCORE.md) — POWER_BASE × the damage-multiple

@@ -540,6 +540,10 @@ export class Game {
   private mega: MegaRuntime | null = null;
   private megaFx: MegaFieldFx = { ...NEUTRAL_MEGA_FX };
   private megaShots: MegaShot[] = [];
+  // Hive-guardian override (§targeting): true while the Core is threatened — towers/beams
+  // yield raid duty to normal targeting. Derived per tick in megaBossSystem; only read while
+  // a mega is live, so it is inert (and never derived) on every other run.
+  private megaRaidYield = false;
   // Blight Sower spore mines (docs/SOWER.md) — empty on every run without one (golden-safe).
   mines: SporeMine[] = [];
   private nextMineId = 1;
@@ -3059,6 +3063,16 @@ export class Game {
     const rt = this.mega!;
     const def = megaBossDef(rt.defId);
     if (!def) { this.mega = null; return; }
+    // HIVE-GUARDIAN OVERRIDE (docs/MEGA-BOSS.md §targeting): raid duty YIELDS while the Core
+    // is in danger — enemies locked onto it, or inside the final-defense zone. Without this,
+    // a sparse early board tunnels an open organ (needle/mortar reach organs from anywhere)
+    // while wave enemies walk into an undefended Hive (the stage-10 contract-probe wipe).
+    this.megaRaidYield = this.hiveAttackers > 0;
+    if (!this.megaRaidYield) {
+      for (const e of this.enemies) {
+        if (e.alive && e.y >= FINAL_DEFENSE_TOP_Y) { this.megaRaidYield = true; break; }
+      }
+    }
     // Tracer decay (presentation) — runs during the death sequence too.
     for (let i = this.megaShots.length - 1; i >= 0; i--) {
       this.megaShots[i].life -= dt;
@@ -3070,6 +3084,7 @@ export class Game {
       if (rt.deathT <= 0) {
         this.mega = null;
         this.megaShots.length = 0;
+        this.megaRaidYield = false;
         if (this.megaDailyEnc !== null) this.phase = 'won'; // the Daily Mega variant ends HERE
       }
       return;
@@ -3347,6 +3362,9 @@ export class Game {
   /** Tower raid-fire: burst an open weak point (priority) or chip the anchored body when the field
    *  is empty. Returns true when the shot was consumed (the caller skips its normal cast). */
   private towerMegaFire(t: Tower, def: TowerDef, prog: TowerMods, bk: ResolvedBranchKit | null, dmgMult: number, rateMult: number): boolean {
+    // The Hive outranks the raid: while the Core is threatened, every tower falls back to
+    // normal enemy targeting (megaRaidYield — derived once per tick in megaBossSystem).
+    if (this.megaRaidYield) return false;
     const rt = this.mega!;
     // ADAPT (§functional overhaul): the boss's learned resistance answers ONE tower kind.
     // The per-kind ledger below is what the verb studies — heroes bypass both.
@@ -3971,7 +3989,9 @@ export class Game {
     // the renderer resolves the coordinates from the mega view. Gated ⇒ never reached otherwise.
     if (this.mega !== null && this.mega.deathT === 0) {
       const rt = this.mega;
-      const wp = this.megaWeakPointInRange(t.x, t.y, range);
+      // The Hive outranks the raid (megaRaidYield): while the Core is threatened the beam
+      // ignores organs and hunts enemies like any other tick.
+      const wp = this.megaRaidYield ? null : this.megaWeakPointInRange(t.x, t.y, range);
       if (wp !== null) {
         const lock = -1000 - wp.spec;
         if (t.beamTarget !== lock) { t.beamTarget = lock; t.beamHeat = 0; }
@@ -4153,7 +4173,9 @@ export class Game {
     // Gorge starves on raid duty. Gated ⇒ never reached without a mega (golden-safe).
     if (this.mega !== null && this.mega.deathT === 0) {
       const rt = this.mega;
-      const wp = this.megaWeakPointInRange(t.x, t.y, range);
+      // The Hive outranks the raid (megaRaidYield): a threatened Core pulls the web back
+      // onto the enemies feeding on it before any organ gets a tether.
+      const wp = this.megaRaidYield ? null : this.megaWeakPointInRange(t.x, t.y, range);
       if (wp !== null) {
         const raw = def.damage * dmgMult * dt;
         t.beamTarget = -1000 - wp.spec; // organ lock (the Coil's encode — any lock reader agrees)

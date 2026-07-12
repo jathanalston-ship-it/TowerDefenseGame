@@ -70,6 +70,13 @@ choreographs its own openings; phases change the choreography. Destroyed organs 
   nearest open organ, strike it, and fall to the body when every window is spent. Raid duty
   owns the hero tick (behaviors resume the moment enemies return).
 - All four seams feed `rt.dmgByKind`, so ADAPT (Myriad) reads the true per-kind ledger.
+- **THE HIVE OUTRANKS THE RAID** (`megaRaidYield`, derived once per tick): while the Core is
+  threatened — attackers locked onto it, or any enemy inside the final-defense zone — every
+  tower and beam yields raid duty back to normal enemy targeting. Without this a sparse early
+  board tunneled an open organ (long guns reach organs from anywhere) while wave enemies chewed
+  the undefended Hive — the stage-10 difficulty-contract wipe (docs/DIFFICULTY.md §curve).
+  Campaign mega stages also display a raid-premium power bar (`C.megaStagePremium`) so the
+  encounter's true cost is never understated.
 
 ## Encounters (registry-CYCLING — no hardcoded count)
 

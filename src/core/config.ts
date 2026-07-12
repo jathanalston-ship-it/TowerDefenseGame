@@ -1714,7 +1714,9 @@ export const MODE_REWARDS = {
 export const MODE_UNLOCKS = {
   infinite: 3, // Infinite opens after clearing Campaign Stage 3
   daily: 5, // Daily Run opens after clearing Campaign Stage 5 (docs/DAILY-RUN.md §gates)
-  bossRush: 10, // Boss Rush opens after clearing Campaign Stage 10
+  bossRush: 9, // Boss Rush opens after clearing Campaign Stage 9 — BEFORE the stage-10 mega, so
+  // every farm outlet (Infinite / Daily / Boss Rush) is open while the first wall stands
+  // (2026-07 stage-gate review, docs/DIFFICULTY.md §curve).
 };
 
 // Deep-Strain content gate (docs/SIPHON.md §gate): clearing Campaign Stage 15 is the SINGLE

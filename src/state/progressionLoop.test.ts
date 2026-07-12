@@ -57,13 +57,22 @@ function ceilingAt(stage: number): number {
 
 describe('loop enforcement invariants', () => {
   it('1. RESISTANCE — the campaign requirement curve is geometric (no free ride)', () => {
+    // 2026-07 re-anchor (docs/DIFFICULTY.md §curve): mega-hosting stages (every 10th) carry an
+    // honest RAID premium, so the ladder is a rising curve with authored SPIKES — strictly
+    // rising across wave stages, a spike up onto each mega stage, and rising over any decade.
+    const isMega = (s: number): boolean => s >= 10 && s % 10 === 0;
     let prev = recommendedPowerScore(1);
     for (let s = 2; s <= 90; s++) {
       const cur = recommendedPowerScore(s);
-      expect(cur).toBeGreaterThan(prev); // strictly rising …
+      if (isMega(s)) expect(cur).toBeGreaterThan(prev); // the raid reads ABOVE the stage before it
+      else if (!isMega(s - 1)) expect(cur).toBeGreaterThan(prev); // wave ladder: strictly rising
+      else expect(cur).toBeGreaterThan(prev / 1.8); // post-mega: only the premium comes off — never a real dip
       prev = cur;
     }
-    // … and each 10-stage band multiplies the bar (geometric, not additive).
+    // The long-run curve dominates the sawtooth: every decade multiplies the bar (geometric).
+    for (let s = 5; s <= 80; s++) {
+      expect(recommendedPowerScore(s + 10)).toBeGreaterThan(recommendedPowerScore(s));
+    }
     for (let s = 5; s <= 70; s += 10) {
       expect(recommendedPowerScore(s + 10) / recommendedPowerScore(s)).toBeGreaterThan(1.5);
     }
