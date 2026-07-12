@@ -1,6 +1,6 @@
 {
-  "lastSha": "518237e7e92d9f63660b98ad0054209ad694a946",
-  "commitsSinceDraft": 8,
+  "lastSha": "b6c86a8923e8b1fb1318f4e649601d99c6c27266",
+  "commitsSinceDraft": 0,
   "content": {
     "tower": [
       "needle",
@@ -2119,6 +2119,14 @@
         {
           "cat": "Gameplay",
           "text": "Adaptation Chamber: the Antigen layer gets its own wing + exact advisor"
+        },
+        {
+          "cat": "Website",
+          "text": "Chronicle + site + handoff for the adaptation/power-feedback batch"
+        },
+        {
+          "cat": "Heroes",
+          "text": "Polish pass: fix hero-panel text collapse + three sweep findings"
         }
       ]
     }
@@ -3265,6 +3273,22 @@
       "date": "2026-07-12",
       "cat": "Gameplay",
       "text": "Adaptation Chamber: the Antigen layer gets its own wing + exact advisor",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "08d5f075e75ccf87a324b314a1cb9682a33be1a7",
+      "date": "2026-07-12",
+      "cat": "Website",
+      "text": "Chronicle + site + handoff for the adaptation/power-feedback batch",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "b6c86a8923e8b1fb1318f4e649601d99c6c27266",
+      "date": "2026-07-12",
+      "cat": "Heroes",
+      "text": "Polish pass: fix hero-panel text collapse + three sweep findings",
       "internal": false,
       "needsReview": false
     }

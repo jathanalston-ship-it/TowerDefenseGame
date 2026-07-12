@@ -155,3 +155,5 @@
 - ⚑ `c44413d` **[Framework]** Chronicle: bank patch-note rows for the vault fix + trio overhaul batch _(internal)_
 - `151b902` **[Audio]** Power-gain chains escalate instead of muting (audio + toast fix)
 - `518237e` **[Gameplay]** Adaptation Chamber: the Antigen layer gets its own wing + exact advisor
+- `08d5f07` **[Website]** Chronicle + site + handoff for the adaptation/power-feedback batch
+- `b6c86a8` **[Heroes]** Polish pass: fix hero-panel text collapse + three sweep findings

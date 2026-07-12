@@ -4,8 +4,8 @@
 > before committing. Read together with docs/PROJECT_STATUS.md and the latest
 > docs/VALIDATION_REPORT.md. Next session: start at docs/PROJECT_MANIFEST.md.
 
-- **Generated:** 2026-07-12 05:43 UTC · **Diff scope:** working tree vs HEAD
-- **Branch:** claude/zen-hawking-rh1gxl · **HEAD:** 518237e
+- **Generated:** 2026-07-12 07:23 UTC · **Diff scope:** working tree vs HEAD
+- **Branch:** claude/zen-hawking-rh1gxl · **HEAD:** b6c86a8
 
 ## Summary of work completed
 
@@ -15,7 +15,7 @@ TODO: 3–6 sentences — what shipped, why, and the one thing the next session 
 
 - Source (1): `src/changelog/releases.gen.ts`
 - Tests (0): —
-- Docs (1): `docs/HISTORY.md`
+- Docs (2): `docs/HISTORY.md`, `docs/devlog/DRAFT-2026-07-12.md`
 
 ## Systems affected (from the dependency registry)
 

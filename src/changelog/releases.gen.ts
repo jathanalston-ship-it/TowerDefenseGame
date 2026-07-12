@@ -651,6 +651,14 @@ export const RELEASES: Release[] = [
       {
         "cat": "Gameplay",
         "text": "Adaptation Chamber: the Antigen layer gets its own wing + exact advisor"
+      },
+      {
+        "cat": "Website",
+        "text": "Chronicle + site + handoff for the adaptation/power-feedback batch"
+      },
+      {
+        "cat": "Heroes",
+        "text": "Polish pass: fix hero-panel text collapse + three sweep findings"
       }
     ]
   },
