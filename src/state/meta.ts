@@ -16,7 +16,7 @@ import {
 } from '../save/saveStore';
 import type { BackupMeta, ImportResult, SaveData } from '../save/saveStore';
 import { enterGuestMode, exitGuestMode, guestModeActive } from './guestMode';
-import { highestCampaignStage, isBossRushUnlocked, isCutsceneUnlocked, isDailyUnlocked, unlockedCutsceneIds } from '../save/derive';
+import { hasSlainMega, highestCampaignStage, isBossRushUnlocked, isCutsceneUnlocked, isDailyUnlocked, unlockedCutsceneIds } from '../save/derive';
 import { CUTSCENES, cutsceneEffects, cutsceneForMega } from '../core/cutscenes';
 import type { CutsceneDef } from '../core/cutscenes';
 import { downloadText, readTextFile } from '../save/saveFile';
@@ -2281,9 +2281,14 @@ export const meta = {
       endlessTaperMult: result.endless ? endlessLootTaper(result.wave) : 1,
       adaptive, // the same seam as cores — behind-the-bar accounts fill containers faster
     }).total()) + rushLootBonus;
-    const lootAdv = lootEligible
+    // Meter awakening (docs/LOOTBOX.md §meter): the loot QUEUE banks nothing until the account's
+    // first Mega Boss kill — run caches + stage first-clear caches below still pay. The slain
+    // ledger writes live (megaKilled event), and result.stats.megaKills covers callers without
+    // live events (the progression simulator): the run that fells the first mega banks in full.
+    const meterAwake = hasSlainMega(save) || (result.stats.megaKills?.length ?? 0) > 0;
+    const lootAdv = lootEligible && meterAwake
       ? addProgress(save.lootQueue, Math.max(0, lootPoints - runLootBanked), Math.random, lootBiasFor(save, result.difficulty))
-      : { state: save.lootQueue, awarded: [] as string[] }; // unqualified: no run-end loot, meter frozen (no RNG spent)
+      : { state: save.lootQueue, awarded: [] as string[] }; // unqualified/dormant: no run-end loot, meter frozen (no RNG spent)
     const queueRemainder: PendingContainer[] = lootAdv.awarded.map((rarity) => ({ kind: 'loot', rarity }));
     const runCache: PendingContainer = { kind: 'cache', chestId: chestForWave(result.wave) };
     // Flawless first-clear "Stage Cache": the bonus container is awarded ONLY when a campaign stage
@@ -2650,6 +2655,11 @@ export const meta = {
    */
   syncRunLoot(wave: number, kills: number, endless = false): string[] {
     const save = store.get();
+    // DORMANT until the account's first Mega Boss kill (docs/LOOTBOX.md §meter): the meter
+    // banks nothing — runs pay run/stage caches only. The slain ledger writes LIVE on the
+    // megaKilled event, so the run that fells the first mega awakens the meter mid-run and
+    // finishRun banks its full backlog (nothing earned before the kill is lost).
+    if (!hasSlainMega(save)) return [];
     const asc = ascendantBonuses(save.prestige.nodes);
     // Infinite depth-camping taper (docs/MODE-IDENTITY.md §anti-grind): endless runs bank the meter
     // scaled by the AVERAGE per-wave taper — identity (×1) through ENDLESS_TAPER.startWave, then

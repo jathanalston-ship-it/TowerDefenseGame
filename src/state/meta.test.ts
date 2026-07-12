@@ -1,10 +1,11 @@
 import { describe, it, expect } from 'vitest';
 import { defaultLifetimeStats, defaultSave, parseImport, serializeExport } from '../save/saveStore';
-import { heroShardUnlockPool, isHeroUnlocked, meta, metaModifiers, upgradeCost, nextUpgradeCost, genomeRunEffects } from './meta';
+import { collectionContextOf, heroShardUnlockPool, isHeroUnlocked, meta, metaModifiers, upgradeCost, nextUpgradeCost, genomeRunEffects } from './meta';
 import type { RunResult } from './meta';
 import { CAMPAIGN_REWARDS, HERO_ORDER, META_UPGRADES, TOWER_ORDER } from '../core/config';
 import { stageWaveCount } from '../core/campaign';
 import { costOf, isLootRarity } from '../core/loot';
+import { collectionEconomyBonuses, collectionView } from '../core/collection';
 import type { HeroKind, RunStats } from '../core/types';
 import { defaultPrestige } from '../core/prestige';
 import { gameEvents } from '../core/events';
@@ -356,9 +357,23 @@ function acctUnits(out: ReturnType<typeof meta.finishRun>): number {
   );
 }
 
+/** The Bio-Container meter is DORMANT until the first Mega Boss falls (docs/LOOTBOX.md §meter) —
+ *  suites exercising the AWAKENED meter record one kill first, through the real ledger path. */
+function awakenMeter(): void {
+  gameEvents.emit('megaKilled', { defId: 'voraxis', tier: 1, encounter: 'campaign', killSec: 100, perfect: false, weakPoints: 0, interrupts: 0 });
+}
+
+/** Loot-point income multiplier for the CURRENT account, read through the real codex seam:
+ *  an awakened account inherently carries a small megaBosses-codex Boss-Loot bonus, so the
+ *  exact conservation pins below price it in instead of assuming a ×1 fresh account. */
+function lootIncomeMult(): number {
+  return collectionEconomyBonuses(collectionView(collectionContextOf(meta.get()))).bossLootMult;
+}
+
 describe('deferred loot banking (containers bank unopened; cracked in the Vault)', () => {
   it('banks loot LIVE mid-run into the pending stockpile (unopened) and conserves every point', () => {
     meta.reset(); // fresh queue, progress 0, no prestige → lootGainMult = 1 (integer points)
+    awakenMeter();
 
     // Drive the run forward in steps the way the HUD loop does — each sync banks only the delta.
     let liveBanked = 0;
@@ -367,8 +382,8 @@ describe('deferred loot banking (containers bank unopened; cracked in the Vault)
     expect(liveBanked).toBeGreaterThan(0); // containers actually completed mid-run …
     expect(meta.pendingContainers().length).toBe(liveBanked); // … and banked UNOPENED into the Vault
 
-    const out = meta.finishRun(runResult(30, 1000)); // 30·14 + 1000 = 1420 pts total
-    const fullPoints = 30 * 14 + 1000;
+    const out = meta.finishRun(runResult(30, 1000)); // 30·14 + 1000 = 1420 raw pts total
+    const fullPoints = Math.floor((30 * 14 + 1000) * lootIncomeMult());
 
     // Every container banked this run (live + final) carried into the stockpile exactly once …
     expect(out.loot.banked.length).toBeGreaterThanOrEqual(liveBanked);
@@ -381,6 +396,7 @@ describe('deferred loot banking (containers bank unopened; cracked in the Vault)
 
   it('emits lootContainerEarned once per container completed on the live meter (drives the fill toast)', () => {
     meta.reset();
+    awakenMeter();
     const earned: string[] = [];
     const off = gameEvents.on('lootContainerEarned', ({ rarity }) => earned.push(rarity));
     const awarded = [...meta.syncRunLoot(10, 200), ...meta.syncRunLoot(20, 500)];
@@ -392,22 +408,45 @@ describe('deferred loot banking (containers bank unopened; cracked in the Vault)
 
   it('a run that never syncs still banks the full amount at finishRun (unopened)', () => {
     meta.reset();
-    const out = meta.finishRun(runResult(12, 300)); // 12·14 + 300 = 468 pts
+    awakenMeter();
+    const out = meta.finishRun(runResult(12, 300)); // 12·14 + 300 = 468 raw pts
     const spent = out.loot.banked.reduce((s, c) => s + (c.kind === 'loot' ? costOf(c.rarity) : 0), 0);
-    expect(spent + out.loot.queue.progress).toBe(12 * 14 + 300);
+    expect(spent + out.loot.queue.progress).toBe(Math.floor((12 * 14 + 300) * lootIncomeMult()));
     expect(meta.pendingContainers().length).toBe(out.loot.banked.length + acctContainers(out));
   });
 
   it('re-arms across runs: a new run banks its own full amount instead of under-counting', () => {
     meta.reset();
+    awakenMeter();
     meta.syncRunLoot(40, 2000); // a big first run banks a lot live …
     meta.finishRun(runResult(40, 2000)); // … and settles, resetting the live cycle
     const startProgress = meta.get().lootQueue.progress; // the queue carries over (never resets)
 
     meta.syncRunLoot(5, 50); // 5·14 + 50 = 120 pts
-    const out = meta.finishRun(runResult(8, 100)); // 8·14 + 100 = 212 pts THIS run
+    const out = meta.finishRun(runResult(8, 100)); // 8·14 + 100 = 212 raw pts THIS run
     const spent = out.loot.banked.reduce((s, c) => s + (c.kind === 'loot' ? costOf(c.rarity) : 0), 0);
-    expect(spent + out.loot.queue.progress).toBe(startProgress + 8 * 14 + 100);
+    expect(spent + out.loot.queue.progress).toBe(startProgress + Math.floor((8 * 14 + 100) * lootIncomeMult()));
+  });
+
+  // ── The awakening gate (docs/LOOTBOX.md §meter): dormant until the first Mega Boss falls ──
+  it('DORMANT before the first mega kill: the queue banks nothing, run caches still pay', () => {
+    meta.reset();
+    expect(meta.syncRunLoot(20, 500)).toEqual([]); // live banking: inert
+    expect(meta.get().lootQueue.progress).toBe(0); // not even silent progress
+    const out = meta.finishRun(runResult(30, 1000)); // a monster run …
+    expect(out.loot.queue.progress).toBe(0); // … banks NO loot-queue points
+    expect(out.loot.banked.some((c) => c.kind === 'loot')).toBe(false); // no meter containers
+    expect(out.loot.banked.some((c) => c.kind === 'cache')).toBe(true); // the run cache still pays
+  });
+
+  it('the run that fells the FIRST mega banks its full backlog at settle (nothing lost)', () => {
+    meta.reset();
+    expect(meta.syncRunLoot(10, 200)).toEqual([]); // still dormant mid-run …
+    const result = runResult(12, 300);
+    result.stats.megaKills = [{ defId: 'voraxis', tier: 1, encounter: 'campaign', killSec: 100, perfect: false, weakPoints: 4, interrupts: 1 }];
+    const out = meta.finishRun(result); // … but the kill awakens the meter for THIS settle
+    const spent = out.loot.banked.reduce((s, c) => s + (c.kind === 'loot' ? costOf(c.rarity) : 0), 0);
+    expect(spent + out.loot.queue.progress).toBe(12 * 14 + 300); // the FULL run banked, none forfeited
   });
 
   it('cracking a pending container applies its reward and shrinks the stockpile', () => {

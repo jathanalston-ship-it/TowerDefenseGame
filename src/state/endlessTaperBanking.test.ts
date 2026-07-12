@@ -6,6 +6,7 @@
 import { describe, it, expect, afterEach, vi } from 'vitest';
 import { meta } from './meta';
 import type { RunResult } from './meta';
+import { gameEvents } from '../core/events';
 import { HERO_ORDER, TOWER_ORDER, endlessTaper } from '../core/config';
 import { Rng } from '../core/rng';
 import { defaultLifetimeStats } from '../save/saveStore';
@@ -53,6 +54,9 @@ describe('endless taper — live loot banking (syncRunLoot)', () => {
   // would confound the container counts.)
   function freshRun(seed: number, endless: boolean, maxWave: number, killsPerWave: number): number {
     meta.reset();
+    // The meter is DORMANT until the first Mega Boss falls (docs/LOOTBOX.md §meter) — awaken it
+    // through the real ledger path so these suites measure the taper, not the gate.
+    gameEvents.emit('megaKilled', { defId: 'voraxis', tier: 1, encounter: 'campaign', killSec: 100, perfect: false, weakPoints: 0, interrupts: 0 });
     const restore = seedRandom(seed);
     try { return bankRun(endless, maxWave, killsPerWave); } finally { restore(); }
   }

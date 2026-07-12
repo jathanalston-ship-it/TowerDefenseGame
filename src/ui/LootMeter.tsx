@@ -21,7 +21,17 @@ interface Celebration {
   fly: { x0: number; y0: number; x1: number; y1: number } | null; // toast rail → meter chest
 }
 
-export function LootMeter(): JSX.Element {
+/** DORMANT until the account's first Mega Boss kill (docs/LOOTBOX.md §meter): the HUD cell is
+ *  hidden entirely — runs pay run/stage caches only, and the What's-New teach row announces the
+ *  awakening when the first mega falls. Split from the body so the gate returns early without
+ *  tripping the body's hook order. */
+export function LootMeter(): JSX.Element | null {
+  const { megaProgress } = meta.use();
+  if (megaProgress.slain.length === 0) return null;
+  return <LootMeterBody />;
+}
+
+function LootMeterBody(): JSX.Element {
   const { lootQueue } = meta.use();
   const frontId = lootQueue.queue[0] ?? 'common';
   const nextId = lootQueue.queue[1];

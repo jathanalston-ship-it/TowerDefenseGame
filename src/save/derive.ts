@@ -58,6 +58,14 @@ export function isDoctrineUnlocked(save: SaveData, def: DoctrineDef): boolean {
   );
 }
 
+/** Has this account EVER felled a Mega Boss? The Bio-Container meter's awakening gate
+ *  (docs/LOOTBOX.md §meter): until the first mega falls, runs pay run/stage caches only —
+ *  the loot queue banks nothing. Derived from the lifetime slain ledger (written live by the
+ *  megaKilled event), so veterans are unlocked the moment the gate ships. */
+export function hasSlainMega(save: SaveData): boolean {
+  return save.megaProgress.slain.length > 0;
+}
+
 /** Cutscene unlock resolution (docs/CUTSCENES.md §unlocks) — DERIVED, never stored: megas by
  *  the lifetime slain ledger, story beats by their milestone. Exhaustive over CutsceneUnlock
  *  (a new unlock kind fails to compile here before it can silently never unlock). */

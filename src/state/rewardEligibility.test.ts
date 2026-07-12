@@ -3,6 +3,7 @@ import { meta } from './meta';
 import type { RunResult } from './meta';
 import { defaultLifetimeStats } from '../save/saveStore';
 import { HERO_ORDER, TOWER_ORDER } from '../core/config';
+import { gameEvents } from '../core/events';
 import type { RunStats } from '../core/types';
 
 // A finished-run payload with sensible zeros; `over` sets the fields a case cares about.
@@ -25,6 +26,9 @@ const hasCache = (banked: { kind: string }[]): boolean => banked.some((c) => c.k
 function freshMeta(): void {
   meta.reset();
   meta.abandonRun(); // clears the module-level live-bank counters (runLootBanked / runContainersBanked)
+  // The loot meter is DORMANT until the first Mega Boss falls (docs/LOOTBOX.md §meter) — awaken
+  // it so these suites measure ELIGIBILITY gating, not the awakening gate.
+  gameEvents.emit('megaKilled', { defId: 'voraxis', tier: 1, encounter: 'campaign', killSec: 100, perfect: false, weakPoints: 0, interrupts: 0 });
 }
 
 describe('reward eligibility — Stage Cache gating (docs/MODE-IDENTITY.md)', () => {

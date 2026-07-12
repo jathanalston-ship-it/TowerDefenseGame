@@ -23,6 +23,8 @@ import { sumValues } from '../core/math';
 import { levelFromXp } from '../core/accountLevel';
 import { genomeRating } from '../core/genomeRank';
 import { highestCampaignStage } from '../save/derive';
+import { campaignMegaFor, megaExpectedKillSec } from '../core/megaboss';
+import { gameEvents } from '../core/events';
 import type { Persona } from './personas';
 
 /** The WORLD MODEL — the only simulated part (the run itself). Coarse, centralized,
@@ -85,6 +87,15 @@ function makeResult(opts: {
   const pool = cardRegistry.active();
   const cardIds: string[] = [];
   for (let i = 0; i < WORLD.cardsPerRun; i++) cardIds.push(pool[Math.floor(opts.rng() * pool.length)].id);
+  // WORLD-MODEL MIRROR of the Mega Boss cadence (docs/MEGA-BOSS.md §campaign): every
+  // MEGA.campaignEvery-th stage hosts a mega whose finale HOLDS until it falls — so a WON
+  // mega stage means the mega died. Modeled at median efficiency (killSec = expected). This
+  // is what lifts the Bio-Container meter gate (docs/LOOTBOX.md §meter) at the same point a
+  // real account lifts it, and pays the mega Ichor/XP bounty real accounts earn.
+  const mega = opts.won && !opts.endless && opts.stage ? campaignMegaFor(opts.stage) : null;
+  const megaKills = mega
+    ? [{ defId: mega.defId, tier: mega.tier, encounter: 'campaign', killSec: megaExpectedKillSec(mega.tier, 1, 1), perfect: false, weakPoints: 3, interrupts: 1 }]
+    : undefined;
   return {
     wave: opts.waves,
     kills: opts.kills,
@@ -107,6 +118,7 @@ function makeResult(opts: {
       towerBuilds,
       cardIds,
       heroId: opts.hero,
+      ...(megaKills ? { megaKills } : {}),
     },
   };
 }
@@ -264,6 +276,9 @@ export function simulateAccount(seed: number, bands: number[], persona?: Persona
       result = makeResult({ rng, waves: depth, kills, won: false, endless: true, hero });
     }
     meta.syncRunLoot(result.wave, result.kills); // live loot banking, like a real run
+    // A real run's megaKilled event fires DURING play (it writes the megaProgress.slain ledger
+    // that awakens the Bio-Container meter) — mirror it before finishRun, same order as live.
+    for (const k of result.stats.megaKills ?? []) gameEvents.emit('megaKilled', k);
     meta.finishRun(result);
     while (meta.openContainer()) { /* crack the whole stockpile */ }
     if (!persona || rng() >= persona.spendSkip) spendEverything(persona?.focus);
