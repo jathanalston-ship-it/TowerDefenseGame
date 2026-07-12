@@ -165,3 +165,5 @@
 - `b0e3efa` **[Gameplay]** Equip advisor: exact free-gear upgrades with one-click equip
 - `5fd5bf2` **[Website]** Chronicle + site for the equip advisor
 - `0106766` **[UI]** Fix desktop run HUD: gore streams aim at the real meters + legible conveyor pods
+- `a2bb98a` **[Website]** Chronicle + site for the desktop run-HUD fixes
+- `383caaf` **[Gameplay]** Quick-buy on every best-upgrade display

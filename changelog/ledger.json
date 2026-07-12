@@ -1,6 +1,6 @@
 {
-  "lastSha": "0106766447c44bed1d63b920c5712ea4131220ae",
-  "commitsSinceDraft": 8,
+  "lastSha": "383caafb2140bd92288fa4759e738b69fff5770e",
+  "commitsSinceDraft": 0,
   "content": {
     "tower": [
       "needle",
@@ -2155,6 +2155,14 @@
         {
           "cat": "UI",
           "text": "Fix desktop run HUD: gore streams aim at the real meters + legible conveyor pods"
+        },
+        {
+          "cat": "Website",
+          "text": "Chronicle + site for the desktop run-HUD fixes"
+        },
+        {
+          "cat": "Gameplay",
+          "text": "Quick-buy on every best-upgrade display"
         }
       ]
     }
@@ -3381,6 +3389,22 @@
       "date": "2026-07-12",
       "cat": "UI",
       "text": "Fix desktop run HUD: gore streams aim at the real meters + legible conveyor pods",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "a2bb98aed144060032f91d65690c8a205d8dd280",
+      "date": "2026-07-12",
+      "cat": "Website",
+      "text": "Chronicle + site for the desktop run-HUD fixes",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "383caafb2140bd92288fa4759e738b69fff5770e",
+      "date": "2026-07-12",
+      "cat": "Gameplay",
+      "text": "Quick-buy on every best-upgrade display",
       "internal": false,
       "needsReview": false
     }
