@@ -169,3 +169,5 @@
 - `383caaf` **[Gameplay]** Quick-buy on every best-upgrade display
 - `7f52273` **[Website]** Chronicle + site for the quick-buy keys
 - `78dc17d` **[Gameplay]** Season Pass nav badge: earned-but-unclaimed rewards
+- `a9d721d` **[Website]** Chronicle + site for the Season Pass badge
+- `e11081a` **[Towers]** Claim-receipt popups everywhere + de-scrolled tower mutation panel

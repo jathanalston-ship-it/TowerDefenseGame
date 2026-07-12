@@ -670,6 +670,14 @@
       {
         "cat": "Gameplay",
         "text": "Season Pass nav badge: earned-but-unclaimed rewards"
+      },
+      {
+        "cat": "Website",
+        "text": "Chronicle + site for the Season Pass badge"
+      },
+      {
+        "cat": "Towers",
+        "text": "Claim-receipt popups everywhere + de-scrolled tower mutation panel"
       }
     ]
   },

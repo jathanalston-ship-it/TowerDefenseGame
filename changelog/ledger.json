@@ -1,6 +1,6 @@
 {
-  "lastSha": "78dc17d8b1a0eb21b8a219b25111d38753bd3df5",
-  "commitsSinceDraft": 2,
+  "lastSha": "e11081a7ab09f2f3d6b7c49fa55fb0bceab77b6b",
+  "commitsSinceDraft": 4,
   "content": {
     "tower": [
       "needle",
@@ -2171,6 +2171,14 @@
         {
           "cat": "Gameplay",
           "text": "Season Pass nav badge: earned-but-unclaimed rewards"
+        },
+        {
+          "cat": "Website",
+          "text": "Chronicle + site for the Season Pass badge"
+        },
+        {
+          "cat": "Towers",
+          "text": "Claim-receipt popups everywhere + de-scrolled tower mutation panel"
         }
       ]
     }
@@ -3429,6 +3437,22 @@
       "date": "2026-07-12",
       "cat": "Gameplay",
       "text": "Season Pass nav badge: earned-but-unclaimed rewards",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "a9d721d00e239818dd98ab6341a918f33ef49cf6",
+      "date": "2026-07-12",
+      "cat": "Website",
+      "text": "Chronicle + site for the Season Pass badge",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "e11081a7ab09f2f3d6b7c49fa55fb0bceab77b6b",
+      "date": "2026-07-12",
+      "cat": "Towers",
+      "text": "Claim-receipt popups everywhere + de-scrolled tower mutation panel",
       "internal": false,
       "needsReview": false
     }
