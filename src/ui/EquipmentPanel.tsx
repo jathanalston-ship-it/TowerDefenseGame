@@ -275,7 +275,7 @@ export function EquipmentPanel(): JSX.Element {
 
       {/* Inventory grid */}
       {shown.length === 0 ? (
-        <div className="hint">{inventory.length === 0 ? 'No gear yet — finish a run for a drop, or grant some from the debug panel.' : 'No items match these filters.'}</div>
+        <div className="hint">{inventory.length === 0 ? 'No gear yet — Bio-Gear drops from runs and cracked Bio-Containers (about every other container).' : 'No items match these filters.'}</div>
       ) : (
         <div className="armory-grid">{shown.map(cardFor)}</div>
       )}

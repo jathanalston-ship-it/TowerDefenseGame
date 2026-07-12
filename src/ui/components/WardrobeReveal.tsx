@@ -53,6 +53,13 @@ export function WardrobeReveal(): JSX.Element | null {
         <button className="primary wdr-next" onClick={(e) => { e.stopPropagation(); next(); }}>
           {idx + 1 < queue.length ? `Next (${idx + 1}/${queue.length})` : 'Wear it well'}
         </button>
+        {queue.length - idx > 2 && (
+          // A backlog (fast progress, restored save) can queue DOZENS of ceremonies — never
+          // hold the player hostage to the chain: one tap banks the rest without the theater.
+          <button className="wdr-skipall" onClick={(e) => { e.stopPropagation(); setQueue([]); audio.cue('ui'); }}>
+            Wear all {queue.length - idx} — skip the ceremony
+          </button>
+        )}
       </div>
     </div>
   );

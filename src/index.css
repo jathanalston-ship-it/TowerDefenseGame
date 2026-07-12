@@ -1584,6 +1584,10 @@ button:disabled {
   line-height: 0;
   background: #05070b;
 }
+/* line-height:0 above exists for the canvas baseline gap — but every OVERLAY floated over the
+   board is text. Restore a sane default for them here, once, instead of re-patching each new
+   overlay after its text collapses (the gene-splash / hero-panel lesson). */
+.canvas-wrap > *:not(canvas) { line-height: 1.45; }
 canvas.board {
   width: auto;
   height: auto;
@@ -4144,9 +4148,12 @@ kbd {
    inset:0 box sweeps a larger bounding box every frame, which made the card jitter.
    Fixed-position children never contribute to ancestor scrollable overflow. */
 .whatsnew .evo-rays { position: fixed; }
-.ub-card { width: min(520px, 100%); }
+/* The briefing card must NEVER push its Continue button below the fold — a multi-release
+   backlog can carry dozens of highlight rows, so the card caps to the viewport and the
+   highlight/group lists scroll INSIDE it while the actions stay pinned in view. */
+.ub-card { width: min(520px, 100%); max-height: calc(100vh - 48px); overflow: hidden; }
 .ub-sub { font-size: 12px; color: var(--muted); }
-.ub-highlights { width: 100%; display: flex; flex-direction: column; gap: 5px; margin-top: 4px; }
+.ub-highlights { width: 100%; display: flex; flex-direction: column; gap: 5px; margin-top: 4px; max-height: 34vh; overflow-y: auto; }
 .ub-hi { padding: 7px 12px; border-radius: var(--r-md); text-align: left; font-size: 13px; font-weight: 700; color: var(--gold); background: color-mix(in srgb, var(--gold) 9%, transparent); border: 1px solid color-mix(in srgb, var(--gold) 40%, var(--line)); }
 .ub-groups { width: 100%; display: flex; flex-direction: column; gap: 8px; margin-top: 6px; max-height: 44vh; overflow: auto; text-align: left; }
 .ub-group { display: grid; grid-template-columns: 92px 1fr; gap: 10px; align-items: baseline; animation: ui-rise var(--dur-3) var(--ease-out) both; animation-delay: calc(var(--i, 0) * 40ms); }
@@ -4827,7 +4834,7 @@ kbd {
   position: absolute;
   left: 12px;
   bottom: 12px;
-  width: 250px;
+  width: min(260px, calc(100% - 24px)); /* never wider than the board it floats over */
   padding: 10px 11px 11px;
   border-radius: var(--r-sm, 8px);
   background: rgba(10, 12, 18, 0.9);
@@ -4837,13 +4844,14 @@ kbd {
   backdrop-filter: blur(4px);
   z-index: 20;
   font-size: 12px;
-  max-height: calc(100vh - 92px);
+  line-height: 1.45; /* undo canvas-wrap's line-height:0 — without this every text line collapses and sections draw on top of each other */
+  max-height: calc(100% - 24px); /* bound to the BOARD (the positioned ancestor), not the viewport */
   overflow-y: auto;
   animation: hero-panel-in 0.16s ease-out;
 }
 @keyframes hero-panel-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
 .hp-head { display: flex; align-items: center; gap: 7px; margin-bottom: 8px; }
-.hp-name { font-family: 'Chakra Petch', system-ui, sans-serif; font-weight: 800; font-size: 14px; letter-spacing: 0.04em; }
+.hp-name { font-family: 'Chakra Petch', system-ui, sans-serif; font-weight: 800; font-size: 14px; letter-spacing: 0.04em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .hp-class { font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
 .hp-state { margin-left: auto; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; padding: 1px 6px; border-radius: 999px; background: var(--panel-3); color: var(--text-dim); }
 .hp-state.st-attacking { color: #ffd0c0; background: color-mix(in srgb, var(--danger) 30%, #000); }
@@ -9428,6 +9436,8 @@ kbd {
 .wdr-desc { font-size: 12px; line-height: 1.45; color: var(--muted); }
 .wdr-src { font-size: 10px; letter-spacing: 0.08em; color: var(--dim); margin: 6px 0 12px; }
 .wdr-next { min-height: 32px; }
+.wdr-skipall { min-height: 28px; padding: 4px 12px; font-size: 11px; color: var(--muted); background: transparent; border: none; text-decoration: underline; cursor: pointer; }
+.wdr-skipall:hover { color: var(--text); }
 @media (prefers-reduced-motion: reduce) { .wdr-card, .wdr-burst i, .wd-prev-swatch::after, .wd-eq i { animation: none; } }
 
 /* ── SEASON PASS (docs/BATTLEPASS.md §ui) ── */
@@ -10557,6 +10567,7 @@ kbd {
   line-height: 0;
   background: #05070b;
 }
+.spectate-stage > *:not(canvas) { line-height: 1.45; } /* overlays are text — same guard as .canvas-wrap */
 .spectate-stage canvas.board { max-height: 100%; }
 .spectate-controls {
   display: flex;

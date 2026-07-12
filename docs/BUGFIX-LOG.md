@@ -166,3 +166,39 @@ toaster tracks `hits + expireAt` per toast (250 ms sweeper, merge window 1200 ms
 node on `hits`, so every merge REMOUNTS the toast — the pop-in replays, the exit clock
 restarts, and the label shows the ×N chain. Verified with a headless probe: four chained
 Evolution HQ buys each produced audio + a live toast.
+
+## Hero select panel rendered as overlapping text soup (inherited line-height: 0)
+
+**Symptom.** Clicking a hero in-run opened its status panel with "insane clipping/duplication":
+the name drawn over the class line, TEMPORARY/PERMANENT labels interleaved with their content,
+gear rows collapsed onto each other — only elements with explicit heights (health bar, cooldown
+tracks, portrait) rendered correctly.
+
+**Root cause.** `.canvas-wrap { line-height: 0 }` (the canvas whitespace kill) is INHERITED by
+every overlay floated over the board. Any text line without an explicit line-height collapses to
+a zero-height line box — glyphs still paint, boxes don't grow, so blocks stack at the same y.
+`.gene-splash` had already been patched for exactly this ("undo canvas-wrap's line-height:0")
+but the hero panel never was, and each new overlay re-discovers the trap. The panel's bounds
+were also dishonest: fixed 250px width and a `100vh`-based max-height measured against the
+VIEWPORT while positioned inside the (shorter, overflow-hidden) board wrap.
+
+**Fix.** Systemic: `.canvas-wrap > *:not(canvas) { line-height: 1.45 }` (and the same guard on
+`.spectate-stage`) — overlays get sane text by default; the per-overlay patches become
+redundant instead of mandatory. The panel itself: `line-height: 1.45`, `width: min(260px,
+calc(100% - 24px))`, `max-height: calc(100% - 24px)` (bounded to the BOARD, not the viewport),
+and the hero name ellipsizes. Verified with a live probe (panel 260×477, inside every clipping
+ancestor, one instance) + before/after screenshots.
+
+## Polish sweep: briefing CTA below the fold · 21-step wardrobe chain · dev-text leak
+
+**Symptoms (screenshot sweep, developed profile).** (1) The Update Briefing's highlight list
+grows with the release backlog — at 13 releases the Continue button rendered BELOW a 768px
+viewport (nothing visibly dismissed the modal). (2) A progression burst queued 15–21 wardrobe
+unlock ceremonies, each demanding its own click, re-interrupting on every screen until
+exhausted. (3) The Armory's empty state told players to "grant some from the debug panel".
+
+**Fixes.** Briefing: `.ub-card` caps at `100vh − 48px` and the highlight list scrolls inside
+(`max-height: 34vh`) — actions stay pinned in view (verified: card 720px of 768px, CTA
+visible). Wardrobe: a "Wear all N — skip the ceremony" escape appears whenever more than two
+reveals remain; one tap banks the rest (verified live: cleared a 15-deep chain). Armory: the
+empty state now points at runs + Bio-Containers.
