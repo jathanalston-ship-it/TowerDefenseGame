@@ -3,9 +3,10 @@
 // flags affordability without filtering on it, and never recommends a zero-gain purchase.
 
 import { describe, expect, it } from 'vitest';
-import { bestPurchase, purchaseCandidates } from './bestPurchase';
+import { bestPurchase, executePurchase, purchaseCandidates } from './bestPurchase';
 import { powerBreakdown } from './profile';
 import { defaultSave } from '../save/saveStore';
+import { meta } from './meta';
 import { HERO_ORDER, STAR, TOWER_ORDER } from '../core/config';
 import type { SaveData } from '../save/saveStore';
 
@@ -106,5 +107,20 @@ describe('purchase candidates — exact deltas, honest ordering', () => {
     expect(towerRows).toHaveLength(1);
     expect(towerRows[0].id).toBe(`prime:${t0}`);
     expect(towerRows[0].powerDelta).toBeGreaterThanOrEqual(0);
+  });
+
+  it('executePurchase (quick-buy): routes to the guarded action — buys when funded, refuses when broke', () => {
+    meta.reset();
+    const t0 = TOWER_ORDER[0];
+    // Broke: the advisor's quick-buy must refuse exactly like the wing's own button.
+    expect(executePurchase('towers', t0)).toBe(false);
+    expect(meta.get().towerStars[t0] ?? 0).toBe(0);
+    // Funded: the SAME call buys one star (guards/caps still apply — evolution cap allows ◈1).
+    meta.debugAddTowerShards(1_000_000);
+    expect(executePurchase('towers', t0)).toBe(true);
+    expect(meta.get().towerStars[t0]).toBe(1);
+    // Unknown gene id refuses without throwing (routing never bypasses the action's checks).
+    expect(executePurchase('genes', 'not_a_card')).toBe(false);
+    meta.reset();
   });
 });

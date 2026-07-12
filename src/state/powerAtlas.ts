@@ -19,6 +19,15 @@ import { collectionContextOf, fieldedLoadout, isTowerUnlocked, loadoutOf } from 
 import { collectionView } from '../core/collection';
 import { MULLIGAN_SLOTS } from '../core/mulligan';
 import { TOWER_ORDER } from '../core/config';
+import type { EquipSlot } from '../core/equipment';
+
+/** What executing a move actually does — the QUICK-BUY payload. Each variant routes to the
+ *  same guarded meta action the owning wing calls (executePurchase / spendAdaptation / equip),
+ *  so a quick-buy can never bypass gates the wing enforces. */
+export type AtlasAction =
+  | { type: 'purchase'; surface: 'towers' | 'heroes' | 'evolution' | 'genes'; id: string }
+  | { type: 'adapt'; subject: 'tower' | 'hero'; unit: string; nodeId: string }
+  | { type: 'equip'; hero: string; slot: EquipSlot; uid: string };
 
 /** One concrete "do this next" (buy systems only — tend systems guide via `note`). */
 export interface AtlasMove {
@@ -26,6 +35,7 @@ export interface AtlasMove {
   price: string; // for how much ("25 Cores" / "1 Antigen pick")
   powerDelta: number; // EXACT Power gained (advisor math)
   affordable: boolean;
+  action: AtlasAction; // the executable payload (UI shows quick-buy only when affordable)
 }
 
 export interface AtlasSystem {
@@ -58,7 +68,9 @@ function buyRow(
   const readyCount = ranked.filter((c) => c.affordable).length;
   return {
     id, label, nav, kind: 'buy',
-    move: pick ? { label: pick.label, price: pick.buyLabel, powerDelta: pick.powerDelta, affordable: pick.affordable } : null,
+    move: pick
+      ? { label: pick.label, price: pick.buyLabel, powerDelta: pick.powerDelta, affordable: pick.affordable, action: { type: 'purchase', surface: id, id: pick.id } }
+      : null,
     readyCount,
     note: pick ? (readyCount > 0 ? `${readyCount} affordable now` : 'save up — best value shown') : emptyNote,
   };
@@ -78,7 +90,9 @@ export function powerAtlas(save: SaveData): PowerAtlasModel {
   const topPick = freeAntigen > 0 ? adaptationPicks(save, 1)[0] ?? null : null;
   systems.push({
     id: 'adaptation', label: 'Adaptation', nav: 'adaptation', kind: 'buy',
-    move: topPick ? { label: `${topPick.unitName} — ${topPick.nodeName}`, price: '1 Antigen pick', powerDelta: topPick.powerDelta, affordable: true } : null,
+    move: topPick
+      ? { label: `${topPick.unitName} — ${topPick.nodeName}`, price: '1 Antigen pick', powerDelta: topPick.powerDelta, affordable: true, action: { type: 'adapt', subject: topPick.subject, unit: topPick.unit, nodeId: topPick.nodeId } }
+      : null,
     readyCount: freeAntigen,
     note: freeAntigen > 0 ? `${freeAntigen} free Antigen ready` : 'earn Antigen from Mastery Ranks and the campaign',
   });
@@ -93,7 +107,9 @@ export function powerAtlas(save: SaveData): PowerAtlasModel {
   const gp = gear[0] ?? null;
   systems.push({
     id: 'equipment', label: 'Equipment', nav: 'equipment', kind: 'tend',
-    move: gp ? { label: `Equip ${gp.itemName} — ${gp.heroName}`, price: 'free', powerDelta: gp.powerDelta, affordable: true } : null,
+    move: gp
+      ? { label: `Equip ${gp.itemName} — ${gp.heroName}`, price: 'free', powerDelta: gp.powerDelta, affordable: true, action: { type: 'equip', hero: gp.hero, slot: gp.slot, uid: gp.uid } }
+      : null,
     readyCount: gear.length,
     note: gp
       ? `${gear.length} free gear upgrade${gear.length === 1 ? '' : 's'} in the vault`

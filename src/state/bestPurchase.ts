@@ -10,11 +10,12 @@
 // the scorer, ranking and UI strip are shared.
 
 import type { SaveData } from '../save/saveStore';
+import type { HeroKind, TowerKind } from '../core/types';
 import { powerBreakdown } from './profile';
 import { geneArchiveRows } from './geneArchive';
 import { HERO_DEFS, HERO_ORDER, META_UPGRADES, STAR, TOWER_DEFS, TOWER_ORDER } from '../core/config';
 import { primeCatalystCost, primeCost } from '../core/prime';
-import { heroStarCost, isHeroUnlocked, isTowerUnlocked, nextStarCost, upgradeCost, upgradeLevel, upgradeUnlocked } from './meta';
+import { heroStarCost, isHeroUnlocked, isTowerUnlocked, meta, nextStarCost, upgradeCost, upgradeLevel, upgradeUnlocked } from './meta';
 
 export type PurchaseSurface = 'genes' | 'evolution' | 'towers' | 'heroes';
 
@@ -120,6 +121,19 @@ export function purchaseCandidates(save: SaveData, surface: PurchaseSurface): Pu
 
   // Best value first; ties (both zero-delta) break toward the cheaper commitment.
   return out.sort((a, b) => b.valuePer1k - a.valuePer1k || a.cost - b.cost);
+}
+
+/** QUICK-BUY: execute a candidate by (surface, id) — routes to the SAME guarded meta action the
+ *  wing's own button calls, so the advisor can never bypass caps, gates or wallets (a refused
+ *  buy returns false and mutates nothing). `prime:<kind>` ids continue the Prime ladder. */
+export function executePurchase(surface: PurchaseSurface, id: string): boolean {
+  const prime = id.startsWith('prime:') ? id.slice('prime:'.length) : null;
+  switch (surface) {
+    case 'towers': return prime ? meta.buyTowerPrime(prime as TowerKind) : meta.buyStar(id as TowerKind);
+    case 'heroes': return prime ? meta.buyHeroPrime(prime as HeroKind) : meta.buyHeroStar(id as HeroKind);
+    case 'evolution': return meta.buyUpgrade(id);
+    case 'genes': return meta.upgradeGene(id);
+  }
 }
 
 /** The surface's headline: best value overall + best you can afford RIGHT NOW (often the same). */

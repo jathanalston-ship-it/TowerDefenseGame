@@ -7,8 +7,23 @@
 import { useMemo } from 'react';
 import type { SaveData } from '../../save/saveStore';
 import { powerAtlas } from '../../state/powerAtlas';
+import type { AtlasAction } from '../../state/powerAtlas';
+import { executePurchase } from '../../state/bestPurchase';
 import { powerSeries, weeklyPowerDelta } from '../../state/powerLog';
+import { meta } from '../../state/meta';
+import { audio } from '../../audio/sound';
 import { formatPower } from '../../core/power';
+import type { HeroKind } from '../../core/types';
+
+/** Execute an atlas move — every branch is the SAME guarded meta action its wing calls. */
+function runAtlasAction(a: AtlasAction): boolean {
+  if (a.type === 'purchase') return executePurchase(a.surface, a.id);
+  if (a.type === 'adapt') return meta.spendAdaptation(a.subject, a.unit, a.nodeId);
+  meta.equip(a.hero as HeroKind, a.slot, a.uid);
+  return true;
+}
+
+const ACTION_VERB: Record<AtlasAction['type'], string> = { purchase: 'Buy', adapt: 'Adapt', equip: 'Equip' };
 
 /** Inline sparkline over the daily ledger — pure SVG, no animation (an info readout).
  *  Shared: the Growth panel and the Profile's Power Breakdown both draw the same history. */
@@ -52,13 +67,24 @@ export function GrowthPanel({ save, go }: { save: SaveData; go: (nav: string) =>
       <PowerSpark points={series} />
 
       {atlas.headline && (
-        <button className="gp-best" onClick={() => go(atlas.headline!.system.nav)}>
-          <span className="gp-best-k">BEST MOVE</span>
-          <span className="gp-best-what">
-            <b>{atlas.headline.move.label}</b> · +{atlas.headline.move.powerDelta} Power · {atlas.headline.move.price}
-          </span>
-          <span className="gp-best-go" aria-hidden>▸</span>
-        </button>
+        <div className="gp-best-row">
+          <button className="gp-best" onClick={() => go(atlas.headline!.system.nav)}>
+            <span className="gp-best-k">BEST MOVE</span>
+            <span className="gp-best-what">
+              <b>{atlas.headline.move.label}</b> · +{atlas.headline.move.powerDelta} Power · {atlas.headline.move.price}
+            </span>
+            <span className="gp-best-go" aria-hidden>▸</span>
+          </button>
+          {/* Quick-buy: executes the move in place (same guarded action the wing calls); the
+              atlas recomputes on the save change, so the NEXT best move slides in. */}
+          <button
+            className="gp-buy"
+            title={`${ACTION_VERB[atlas.headline.move.action.type]} now — ${atlas.headline.move.price}`}
+            onClick={() => { if (runAtlasAction(atlas.headline!.move.action)) audio.cue('ui'); }}
+          >
+            {ACTION_VERB[atlas.headline.move.action.type]}
+          </button>
+        </div>
       )}
 
       <div className="gp-rows">

@@ -162,7 +162,9 @@ cross-currency prices aren't comparable — each surface gets its own champion.
 
 `BestBuyStrip` (ui/components) renders the headline atop the Gene Archive, Evolution HQ,
 Tower Lab and Hero Lab: the best AFFORDABLE pick now, plus the overall champion as a "save up" tease when
-the wallet can't reach it yet. Memoized per save revision; zero-gain purchases are never
+the wallet can't reach it yet, and a QUICK-BUY key executes the affordable pick in place
+(`executePurchase` — the same guarded meta action the screen's own button calls, so the strip
+self-advances to the next pick). Memoized per save revision; zero-gain purchases are never
 recommended. **Extension point:** a new upgradeable system adds one `candidates()` block
 (mutate + cost rows) — scorer, ranking and strip are shared.
 
@@ -179,8 +181,9 @@ affordable picks (currency-free, so the comparison is honest — per-1k value st
 
 `GrowthPanel` (ui/components) renders it as the Command Center's `growth` side organ (gated on
 the towers reveal): Power headline + weekly trend + 30-day sparkline, the BEST MOVE strip, and
-one jump-row per system. **Extension point:** a new buy-system adds a `bestPurchase` surface and
-one `buyRow(...)` line; a new tend-system adds one status block.
+one jump-row per system; the headline carries a quick-buy (`AtlasAction` → purchase / adapt /
+equip, each routed through its wing's guarded action). **Extension point:** a new buy-system adds
+a `bestPurchase` surface and one `buyRow(...)` line; a new tend-system adds one status block.
 
 ## §history — the daily Power ledger
 

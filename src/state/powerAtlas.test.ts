@@ -38,6 +38,8 @@ describe('powerAtlas', () => {
     expect(towers.move?.label).toBe(pick?.label);
     expect(towers.move?.powerDelta).toBe(pick?.powerDelta);
     expect(towers.readyCount).toBe(advisor.ranked.filter((c) => c.affordable).length);
+    // Quick-buy payload: the move carries the exact candidate the advisor ranked.
+    expect(towers.move?.action).toEqual({ type: 'purchase', surface: 'towers', id: pick?.id });
 
     expect(atlas.headline).not.toBeNull();
     const { move } = atlas.headline!;
