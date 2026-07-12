@@ -727,8 +727,9 @@ and audio pick it up automatically (add a theme sting in `sound.ts` if `themeCue
 
 **Assumptions.** All battlefield manipulation folds through `MegaFieldFx` at existing sim
 chokepoints with ×1/+0 neutral defaults — a run without a mega (incl. golden) is byte-identical.
-One mega at a time (`spawnMegaBoss` ignores a second). Weak points must descend to
-`MEGA.minWeakPointY` so towers reach them (validator-enforced). Rotation runs only in the wave
+One mega at a time (`spawnMegaBoss` ignores a second). Weak points must descend into the
+`MEGA.minWeakPointY..maxWeakPointY` band — calibrated to the real slot grid (pads y 740–900)
+so every tower reaches them (validator-enforced). Rotation runs only in the wave
 phase. Rewards are paid at `finishRun` from `RunStats.megaKills`; ledger records land live via
 events (mirrors `bossKilled`).
 
@@ -736,7 +737,9 @@ events (mirrors `bossKilled`).
 "accuracy" stats; assembled/procedural megas (the pool + validator already support composition).
 
 **Known limitations.** Ability windows lapse across the inter-wave settle; slow-motion kills are
-presentation-side only (determinism); heroes only strike organs on an empty field.
+presentation-side only (determinism); hero raid duty (`heroMegaRaid`: seek nearest organ →
+strike → body fallback) engages only while the field is empty — living enemies always take
+priority.
 
 ## Compressed system summary — Living Battlefield (docs/LIVING-BATTLEFIELD.md)
 

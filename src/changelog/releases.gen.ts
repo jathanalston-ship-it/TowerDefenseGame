@@ -711,6 +711,10 @@ export const RELEASES: Release[] = [
       {
         "cat": "Towers",
         "text": "Claim-receipt popups everywhere + de-scrolled tower mutation panel"
+      },
+      {
+        "cat": "UI",
+        "text": "Chronicle + regenerated graphs for the claim-popup + mutation-panel overhaul"
       }
     ]
   },

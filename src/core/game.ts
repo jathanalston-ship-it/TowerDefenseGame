@@ -3504,14 +3504,47 @@ export class Game {
     }
   }
 
-  /** Hero raid-fire fallback: with no enemy engaged, an attacking hero strikes a reachable open
-   *  weak point (heroes hold the line first — towers own the burst windows). */
-  private heroMegaStrike(h: Hero, def: HeroDef): void {
-    if (def.attackRange <= 0 || def.attackDamage <= 0) return;
-    const wp = this.megaWeakPointInRange(h.x, h.y, Math.max(def.attackRange, 140));
-    if (wp === null) return;
-    this.megaHitWeakPoint(wp, def.attackDamage * this.heroDamageMult(h), h.x, h.y, HERO_DEFS[h.kind].color);
-    h.attackCd = def.attackInterval / this.heroHaste(h);
+  /** Hero RAID DUTY (docs/MEGA-BOSS.md §targeting): with the line CLEAR, a fighting hero
+   *  MARCHES on the organism — the nearest open organ first, else the anchored body — and
+   *  strikes on its own attack cadence (heroes hold the line first; adds returning hands the
+   *  tick back to the behavior loop). Supports without a real attack keep their loops (they
+   *  return false here). Owns the hero's movement for the tick when it returns true. */
+  private heroMegaRaid(h: Hero, def: HeroDef, dt: number): boolean {
+    const rt = this.mega;
+    if (rt === null || rt.deathT > 0 || this.enemies.length !== 0) return false;
+    if (def.attackRange <= 0 || def.attackDamage <= 0) return false;
+    const reach = Math.max(def.attackRange, 140);
+    // Nearest open, emerged organ ANYWHERE (mobility is the heroes' edge over towers).
+    let wp: MegaWeakPoint | null = null;
+    let bd = Infinity;
+    for (const w of rt.weakPoints) {
+      if (w.state !== 'open' || w.emergeT < 1) continue;
+      const d = dist2(h.x, h.y, w.x, w.y);
+      if (d < bd) { bd = d; wp = w; }
+    }
+    // Approach point: the organ, or a stand-off just under the body band (the jaw's shadow).
+    const bx = Math.max(WIDTH * 0.2, Math.min(WIDTH * 0.8, h.x));
+    const ax = wp ? wp.x : bx;
+    const ay = wp ? wp.y : MEGA.bodyBandY + 46;
+    const np = moveToward(h.x, h.y, ax, ay, this.heroSpeed(h) * dt);
+    h.x = Math.max(0, Math.min(WIDTH, np.x));
+    h.y = Math.max(0, Math.min(HEIGHT, np.y));
+    h.targetId = -1;
+    h.moveState = dist(h.x, h.y, ax, ay) <= reach ? 'attacking' : 'moving';
+    if (h.attackCd <= 0) {
+      if (wp !== null && dist2(h.x, h.y, wp.x, wp.y) <= reach * reach) {
+        const dmg = def.attackDamage * this.heroDamageMult(h);
+        this.megaHitWeakPoint(wp, dmg, h.x, h.y, HERO_DEFS[h.kind].color);
+        this.heroMasteryAccrual[h.kind].damage += dmg;
+        h.attackCd = def.attackInterval / this.heroHaste(h);
+      } else if (wp === null && dist2(h.x, h.y, bx, MEGA.bodyBandY) <= reach * reach) {
+        const dmg = def.attackDamage * this.heroDamageMult(h) * MEGA.bodyChipMult;
+        this.megaHitBody(dmg, h.x, h.y, bx, MEGA.bodyBandY, HERO_DEFS[h.kind].color);
+        this.heroMasteryAccrual[h.kind].damage += dmg;
+        h.attackCd = def.attackInterval / this.heroHaste(h);
+      }
+    }
+    return true;
   }
 
   private economySystem(dt: number): void {
@@ -3937,17 +3970,33 @@ export class Game {
     // encodes as -1000 - spec so resonance HOLDS across ticks (same organ = same heat ramp);
     // the renderer resolves the coordinates from the mega view. Gated ⇒ never reached otherwise.
     if (this.mega !== null && this.mega.deathT === 0) {
+      const rt = this.mega;
       const wp = this.megaWeakPointInRange(t.x, t.y, range);
       if (wp !== null) {
         const lock = -1000 - wp.spec;
         if (t.beamTarget !== lock) { t.beamTarget = lock; t.beamHeat = 0; }
         else t.beamHeat = Math.min(1, t.beamHeat + BEAM.heatPerSec * rateMult * dt);
         const wpHeat = 1 + t.beamHeat * BEAM.rampBonus * this.mods.coilRampMult;
-        this.megaHitWeakPoint(wp, def.damage * dmgMult * wpHeat * dt, t.x, t.y, TOWER_DEFS.coil.color);
+        const raw = def.damage * dmgMult * wpHeat * dt;
+        this.megaHitWeakPoint(wp, raw, t.x, t.y, TOWER_DEFS.coil.color);
+        rt.dmgByKind.coil = (rt.dmgByKind.coil ?? 0) + raw; // ADAPT's ledger sees the beam too
         t.cooldown = Math.max(0, t.cooldown - dt);
         return;
       }
       if (t.beamTarget <= -1000) { t.beamTarget = -1; t.beamHeat = 0; } // organ gone — the lock drops cold
+      // Between windows with an EMPTY field the beam grinds the anchored body instead —
+      // armored chip, no resonance ramp on dead chitin (docs/MEGA-BOSS.md §targeting).
+      if (this.enemies.length === 0) {
+        const bx = Math.max(WIDTH * 0.2, Math.min(WIDTH * 0.8, t.x));
+        if (dist2(t.x, t.y, bx, MEGA.bodyBandY) <= r2) {
+          const raw = def.damage * dmgMult * MEGA.bodyChipMult * dt;
+          this.megaHitBody(raw, t.x, t.y, bx, MEGA.bodyBandY, TOWER_DEFS.coil.color);
+          rt.dmgByKind.coil = (rt.dmgByKind.coil ?? 0) + raw;
+          t.beamHeat = Math.max(0, t.beamHeat - BEAM.heatDecayPerSec * dt);
+          t.cooldown = Math.max(0, t.cooldown - dt);
+          return;
+        }
+      }
     }
     let primary: Enemy | null = null;
     if (t.beamTarget >= 0) {
@@ -4097,6 +4146,41 @@ export class Game {
     const range = def.range * rangeMult;
     const targeting = bk?.targeting ?? prog.targeting ?? def.targeting ?? 'highestHealth';
     const forks = SIPHON.baseForks + (prog.extraProjectiles ?? 0) + (bk?.extraProjectiles ?? 0); // the drain WEB — several tethers at once (vs the Coil's single lock)
+
+    // MEGA raid drain (docs/MEGA-BOSS.md §targeting): an open organ in reach takes the tether —
+    // the drain bites it continuously; with an EMPTY field the web falls to the anchored body
+    // (armored chip). No Biomass is banked from the organism (the leech runs one way) and the
+    // Gorge starves on raid duty. Gated ⇒ never reached without a mega (golden-safe).
+    if (this.mega !== null && this.mega.deathT === 0) {
+      const rt = this.mega;
+      const wp = this.megaWeakPointInRange(t.x, t.y, range);
+      if (wp !== null) {
+        const raw = def.damage * dmgMult * dt;
+        t.beamTarget = -1000 - wp.spec; // organ lock (the Coil's encode — any lock reader agrees)
+        t.beamX = wp.x;
+        t.beamY = wp.y;
+        this.megaHitWeakPoint(wp, raw, t.x, t.y, TOWER_DEFS.siphon.color);
+        rt.dmgByKind.siphon = (rt.dmgByKind.siphon ?? 0) + raw; // ADAPT studies the drain too
+        t.beamHeat = Math.max(0, (t.beamHeat ?? 0) - SIPHON.gorgeDecayPerSec * dt);
+        t.cooldown = Math.max(0, t.cooldown - dt);
+        return;
+      }
+      if (this.enemies.length === 0) {
+        const bx = Math.max(WIDTH * 0.2, Math.min(WIDTH * 0.8, t.x));
+        if (dist2(t.x, t.y, bx, MEGA.bodyBandY) <= range * range) {
+          const raw = def.damage * dmgMult * MEGA.bodyChipMult * dt;
+          t.beamTarget = -1;
+          t.beamX = bx;
+          t.beamY = MEGA.bodyBandY;
+          this.megaHitBody(raw, t.x, t.y, bx, MEGA.bodyBandY, TOWER_DEFS.siphon.color);
+          rt.dmgByKind.siphon = (rt.dmgByKind.siphon ?? 0) + raw;
+          t.beamHeat = Math.max(0, (t.beamHeat ?? 0) - SIPHON.gorgeDecayPerSec * dt);
+          t.cooldown = Math.max(0, t.cooldown - dt);
+          return;
+        }
+      }
+      if (t.beamTarget <= -1000) { t.beamTarget = -1; t.beamX = undefined; t.beamY = undefined; } // organ gone — the tether drops
+    }
 
     // Acquire / maintain the locked target. Scope the target pick as a TOWER cast so emergency
     // focus + deadzone behave identically to every other tower.
@@ -5235,7 +5319,9 @@ export class Game {
       const np = moveToward(h.x, h.y, nucleusPoint.x, nucleusPoint.y, this.heroSpeed(h) * dt);
       h.x = Math.max(0, Math.min(WIDTH, np.x));
       h.y = Math.max(0, Math.min(HEIGHT, np.y));
-    } else {
+    } else if (!this.heroMegaRaid(h, def, dt)) {
+      // MEGA raid duty owns the tick when the line is clear (seek + strike the organism —
+      // docs/MEGA-BOSS.md §targeting); otherwise the identity behaviors run as ever.
       switch (def.behavior) {
         case 'dive': this.updateDiveHero(h, def, dt); break;
         case 'guard': this.updateGuardHero(h, def, dt); break;
@@ -5243,10 +5329,6 @@ export class Game {
         case 'siege': this.updateSiegeHero(h, def, dt); break;
         case 'phase': this.updatePhaseHero(h, def, dt); break;
         case 'swoop': this.updateSwoopHero(h, def, dt); break;
-      }
-      // MEGA raid-fire fallback (docs/MEGA-BOSS.md): the line is clear — strike a reachable organ.
-      if (this.mega !== null && this.mega.deathT === 0 && h.attackCd <= 0 && this.enemies.length === 0) {
-        this.heroMegaStrike(h, def);
       }
     }
 

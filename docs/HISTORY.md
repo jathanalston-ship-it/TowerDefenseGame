@@ -171,3 +171,4 @@
 - `78dc17d` **[Gameplay]** Season Pass nav badge: earned-but-unclaimed rewards
 - `a9d721d` **[Website]** Chronicle + site for the Season Pass badge
 - `e11081a` **[Towers]** Claim-receipt popups everywhere + de-scrolled tower mutation panel
+- `0ca4596` **[UI]** Chronicle + regenerated graphs for the claim-popup + mutation-panel overhaul

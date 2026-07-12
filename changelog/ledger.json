@@ -1,6 +1,6 @@
 {
-  "lastSha": "e11081a7ab09f2f3d6b7c49fa55fb0bceab77b6b",
-  "commitsSinceDraft": 4,
+  "lastSha": "0ca4596e71c1c707f61570c7ce0e5f5f0e303971",
+  "commitsSinceDraft": 5,
   "content": {
     "tower": [
       "needle",
@@ -2179,6 +2179,10 @@
         {
           "cat": "Towers",
           "text": "Claim-receipt popups everywhere + de-scrolled tower mutation panel"
+        },
+        {
+          "cat": "UI",
+          "text": "Chronicle + regenerated graphs for the claim-popup + mutation-panel overhaul"
         }
       ]
     }
@@ -3453,6 +3457,14 @@
       "date": "2026-07-12",
       "cat": "Towers",
       "text": "Claim-receipt popups everywhere + de-scrolled tower mutation panel",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "0ca4596e71c1c707f61570c7ce0e5f5f0e303971",
+      "date": "2026-07-12",
+      "cat": "UI",
+      "text": "Chronicle + regenerated graphs for the claim-popup + mutation-panel overhaul",
       "internal": false,
       "needsReview": false
     }

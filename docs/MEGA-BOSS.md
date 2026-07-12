@@ -35,8 +35,10 @@ nerve bundles. Adding a verb = one union member + one switch arm in `castMegaAbi
 ## Weak points (`WEAK_POINT_DEFS`) — the signature mechanic
 
 Independent gameplay objects with their own HP / armor / windows / regeneration, descending
-into tower reach on fleshy stalks (validator: `y ≥ MEGA.minWeakPointY`). **Destruction is
-never just damage** — each kind maps a consequence:
+into tower reach on fleshy stalks (validator: `MEGA.minWeakPointY ≤ y ≤ MEGA.maxWeakPointY` —
+the descent band is calibrated to the REAL slot grid: pads sit at y 740–900, so organs drop to
+y 560–700 where even the shortest combat reach connects, and never into the build rows).
+**Destruction is never just damage** — each kind maps a consequence:
 
 | Kind | Consequence |
 |---|---|
@@ -55,10 +57,19 @@ Spawn triggers per def: `phaseEntry` / `hpBelow` / `timer` / `abilityCast` — e
 choreographs its own openings; phases change the choreography. Destroyed organs never return
 (scars persist); un-burst windows close and regrow.
 
-**Targeting:** towers automatically prioritize an open weak point in range (`towerMegaFire`;
-the Coil channels it — lock encodes as `beamTarget = -1000 - spec`); with an empty field they
-chip the armored body (`bodyChipMult`); heroes strike organs when the line is clear. No manual
-targeting.
+**Targeting — every damage source joins the raid, no manual control:**
+
+- **Projectile towers** (`towerMegaFire`): prioritize an open weak point in range; with an
+  empty field they chip the armored body at `MEGA.bodyBandY` (`bodyChipMult`).
+- **Beam towers** get the same two legs at their own seams (beams branch before
+  `towerMegaFire`): the **Coil** channels an organ (lock encodes as `beamTarget = -1000 -
+  spec`) and falls to the body chip when no window is open; the **Siphon** tethers an organ
+  (`beamX/beamY` ride the stalk) and drains the body between windows — a one-way leech, it
+  banks no biomass from the organism.
+- **Heroes** (`heroMegaRaid`): when the line is clear they MARCH on the organism — seek the
+  nearest open organ, strike it, and fall to the body when every window is spent. Raid duty
+  owns the hero tick (behaviors resume the moment enemies return).
+- All four seams feed `rt.dmgByKind`, so ADAPT (Myriad) reads the true per-kind ledger.
 
 ## Encounters (registry-CYCLING — no hardcoded count)
 

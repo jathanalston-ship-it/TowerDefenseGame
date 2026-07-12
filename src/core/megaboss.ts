@@ -136,7 +136,7 @@ export interface WeakPointSpawn {
   ability?: MegaAbilityKind; // abilityCast: opens whenever this verb telegraphs
   // Anchor INSIDE the battlefield (the organ descends into tower reach on a fleshy stalk).
   x: number; // 0..1 of field width
-  y: number; // absolute px from the top (must be ≥ MEGA.minWeakPointY so towers can reach)
+  y: number; // absolute px from the top (must sit in MEGA.minWeakPointY..maxWeakPointY — the descent band real tower rows can reach)
 }
 
 export interface MegaPhase {
@@ -203,12 +203,12 @@ export const MEGA_BOSS_DEFS: Record<string, MegaBossDef> = {
       { threshold: 0.18, abilities: [2, 3, 4, 5, 6], passive: { kind: 'haste', magnitude: 1.2 }, entrySurge: { count: 6, addKind: 'rusher' }, regenPerSec: 6, visualTier: 3 }, // desperation: it knits itself
     ],
     weakPoints: [
-      { kind: 'eye', on: 'abilityCast', ability: 'eliteSurge', x: 0.3, y: 430 },
-      { kind: 'eye', on: 'timer', every: 24, x: 0.7, y: 430 },
-      { kind: 'armored_growth', on: 'phaseEntry', x: 0.5, y: 470 },
-      { kind: 'parasite_sac', on: 'abilityCast', ability: 'brood', x: 0.18, y: 500 },
-      { kind: 'heart', on: 'hpBelow', at: 0.45, x: 0.5, y: 540 },
-      { kind: 'regen_organ', on: 'hpBelow', at: 0.18, x: 0.62, y: 510 },
+      { kind: 'eye', on: 'abilityCast', ability: 'eliteSurge', x: 0.3, y: 560 },
+      { kind: 'eye', on: 'timer', every: 24, x: 0.7, y: 560 },
+      { kind: 'armored_growth', on: 'phaseEntry', x: 0.5, y: 600 },
+      { kind: 'parasite_sac', on: 'abilityCast', ability: 'brood', x: 0.18, y: 630 },
+      { kind: 'heart', on: 'hpBelow', at: 0.45, x: 0.5, y: 670 },
+      { kind: 'regen_organ', on: 'hpBelow', at: 0.18, x: 0.62, y: 640 },
     ],
     reward: { ichor: 26 },
     themeCue: 'megaMaw',
@@ -246,14 +246,14 @@ export const MEGA_BOSS_DEFS: Record<string, MegaBossDef> = {
       { threshold: 0.22, abilities: [0, 1, 2, 5, 6, 7], passive: { kind: 'suppressRange', magnitude: 0.85 }, entrySurge: { count: 5, addKind: 'warden' }, regenPerSec: 7, visualTier: 3 },
     ],
     weakPoints: [
-      { kind: 'nerve_bundle', on: 'phaseEntry', x: 0.25, y: 440 },
-      { kind: 'nerve_bundle', on: 'timer', every: 26, x: 0.75, y: 440 },
-      { kind: 'spore_cluster', on: 'abilityCast', ability: 'leech', x: 0.4, y: 500 },
-      { kind: 'shield_generator', on: 'hpBelow', at: 0.75, x: 0.6, y: 470 },
-      { kind: 'energy_core', on: 'abilityCast', ability: 'dampen', x: 0.82, y: 520 },
-      { kind: 'heart', on: 'hpBelow', at: 0.5, x: 0.5, y: 550 },
-      { kind: 'regen_organ', on: 'hpBelow', at: 0.3, x: 0.35, y: 520 },
-      { kind: 'mutation_node', on: 'hpBelow', at: 0.6, x: 0.15, y: 490 },
+      { kind: 'nerve_bundle', on: 'phaseEntry', x: 0.25, y: 570 },
+      { kind: 'nerve_bundle', on: 'timer', every: 26, x: 0.75, y: 570 },
+      { kind: 'spore_cluster', on: 'abilityCast', ability: 'leech', x: 0.4, y: 630 },
+      { kind: 'shield_generator', on: 'hpBelow', at: 0.75, x: 0.6, y: 600 },
+      { kind: 'energy_core', on: 'abilityCast', ability: 'dampen', x: 0.82, y: 650 },
+      { kind: 'heart', on: 'hpBelow', at: 0.5, x: 0.5, y: 680 },
+      { kind: 'regen_organ', on: 'hpBelow', at: 0.3, x: 0.35, y: 650 },
+      { kind: 'mutation_node', on: 'hpBelow', at: 0.6, x: 0.15, y: 620 },
     ],
     reward: { ichor: 30 },
     themeCue: 'megaChoir',
@@ -292,13 +292,13 @@ export const MEGA_BOSS_DEFS: Record<string, MegaBossDef> = {
       { threshold: 0.16, abilities: [1, 2, 3, 5, 6], passive: { kind: 'chitinize', magnitude: 10 }, entrySurge: { count: 5, addKind: 'warden' }, regenPerSec: 14, visualTier: 3 }, // desperation: the flock stampedes
     ],
     weakPoints: [
-      { kind: 'armored_growth', on: 'phaseEntry', x: 0.35, y: 460 },
-      { kind: 'armored_growth', on: 'hpBelow', at: 0.7, x: 0.65, y: 460 },
-      { kind: 'nerve_bundle', on: 'timer', every: 25, x: 0.2, y: 440 },
-      { kind: 'shield_generator', on: 'abilityCast', ability: 'shieldWeave', x: 0.8, y: 480 },
-      { kind: 'heart', on: 'hpBelow', at: 0.42, x: 0.5, y: 545 },
-      { kind: 'regen_organ', on: 'hpBelow', at: 0.42, x: 0.42, y: 505 },
-      { kind: 'mutation_node', on: 'hpBelow', at: 0.55, x: 0.85, y: 500 },
+      { kind: 'armored_growth', on: 'phaseEntry', x: 0.35, y: 590 },
+      { kind: 'armored_growth', on: 'hpBelow', at: 0.7, x: 0.65, y: 590 },
+      { kind: 'nerve_bundle', on: 'timer', every: 25, x: 0.2, y: 570 },
+      { kind: 'shield_generator', on: 'abilityCast', ability: 'shieldWeave', x: 0.8, y: 610 },
+      { kind: 'heart', on: 'hpBelow', at: 0.42, x: 0.5, y: 675 },
+      { kind: 'regen_organ', on: 'hpBelow', at: 0.42, x: 0.42, y: 635 },
+      { kind: 'mutation_node', on: 'hpBelow', at: 0.55, x: 0.85, y: 630 },
     ],
     reward: { ichor: 34 },
     themeCue: 'megaShepherd',
@@ -335,13 +335,13 @@ export const MEGA_BOSS_DEFS: Record<string, MegaBossDef> = {
       { threshold: 0.18, abilities: [1, 2, 4, 5, 6], passive: { kind: 'haste', magnitude: 1.12 }, entrySurge: { count: 5, addKind: 'lasher' }, regenPerSec: 6, visualTier: 3 },
     ],
     weakPoints: [
-      { kind: 'eye', on: 'abilityCast', ability: 'slowShots', x: 0.3, y: 435 },
-      { kind: 'eye', on: 'abilityCast', ability: 'haste', x: 0.7, y: 435 },
-      { kind: 'nerve_bundle', on: 'phaseEntry', x: 0.15, y: 470 },
-      { kind: 'parasite_sac', on: 'abilityCast', ability: 'brood', x: 0.85, y: 495 },
-      { kind: 'heart', on: 'hpBelow', at: 0.45, x: 0.5, y: 550 },
-      { kind: 'mutation_node', on: 'hpBelow', at: 0.6, x: 0.4, y: 505 },
-      { kind: 'energy_core', on: 'timer', every: 27, x: 0.62, y: 515 },
+      { kind: 'eye', on: 'abilityCast', ability: 'slowShots', x: 0.3, y: 565 },
+      { kind: 'eye', on: 'abilityCast', ability: 'haste', x: 0.7, y: 565 },
+      { kind: 'nerve_bundle', on: 'phaseEntry', x: 0.15, y: 600 },
+      { kind: 'parasite_sac', on: 'abilityCast', ability: 'brood', x: 0.85, y: 625 },
+      { kind: 'heart', on: 'hpBelow', at: 0.45, x: 0.5, y: 680 },
+      { kind: 'mutation_node', on: 'hpBelow', at: 0.6, x: 0.4, y: 635 },
+      { kind: 'energy_core', on: 'timer', every: 27, x: 0.62, y: 645 },
     ],
     reward: { ichor: 32 },
     themeCue: 'megaTide',
@@ -378,13 +378,13 @@ export const MEGA_BOSS_DEFS: Record<string, MegaBossDef> = {
       { threshold: 0.16, abilities: [1, 2, 3, 5, 6], passive: { kind: 'dampen', magnitude: 0.9 }, entrySurge: { count: 5, addKind: 'warden' }, regenPerSec: 10, visualTier: 3 },
     ],
     weakPoints: [
-      { kind: 'spore_cluster', on: 'abilityCast', ability: 'leech', x: 0.35, y: 480 }, // the counter-ledger
-      { kind: 'spore_cluster', on: 'timer', every: 24, x: 0.65, y: 480 },
-      { kind: 'armored_growth', on: 'phaseEntry', x: 0.5, y: 455 },
-      { kind: 'nerve_bundle', on: 'hpBelow', at: 0.7, x: 0.82, y: 445 }, // severs the standing tithe
-      { kind: 'parasite_sac', on: 'abilityCast', ability: 'eliteSurge', x: 0.18, y: 500 },
-      { kind: 'heart', on: 'hpBelow', at: 0.42, x: 0.5, y: 548 },
-      { kind: 'regen_organ', on: 'hpBelow', at: 0.3, x: 0.3, y: 515 },
+      { kind: 'spore_cluster', on: 'abilityCast', ability: 'leech', x: 0.35, y: 610 }, // the counter-ledger
+      { kind: 'spore_cluster', on: 'timer', every: 24, x: 0.65, y: 610 },
+      { kind: 'armored_growth', on: 'phaseEntry', x: 0.5, y: 585 },
+      { kind: 'nerve_bundle', on: 'hpBelow', at: 0.7, x: 0.82, y: 575 }, // severs the standing tithe
+      { kind: 'parasite_sac', on: 'abilityCast', ability: 'eliteSurge', x: 0.18, y: 630 },
+      { kind: 'heart', on: 'hpBelow', at: 0.42, x: 0.5, y: 678 },
+      { kind: 'regen_organ', on: 'hpBelow', at: 0.3, x: 0.3, y: 645 },
     ],
     reward: { ichor: 36 },
     themeCue: 'megaTithe',
@@ -421,13 +421,13 @@ export const MEGA_BOSS_DEFS: Record<string, MegaBossDef> = {
       { threshold: 0.2, abilities: [0, 1, 4, 5, 6], passive: { kind: 'haste', magnitude: 1.16 }, entrySurge: { count: 5, addKind: 'lasher' }, regenPerSec: 5, visualTier: 3 }, // desperation: it eats faster than you kill
     ],
     weakPoints: [
-      { kind: 'eye', on: 'abilityCast', ability: 'gorge', x: 0.32, y: 435 }, // interrupt the MEAL
-      { kind: 'eye', on: 'timer', every: 25, x: 0.68, y: 435 },
-      { kind: 'parasite_sac', on: 'abilityCast', ability: 'brood', x: 0.18, y: 495 },
-      { kind: 'armored_growth', on: 'phaseEntry', x: 0.5, y: 465 },
-      { kind: 'heart', on: 'hpBelow', at: 0.45, x: 0.5, y: 545 },
-      { kind: 'regen_organ', on: 'hpBelow', at: 0.25, x: 0.64, y: 510 },
-      { kind: 'mutation_node', on: 'hpBelow', at: 0.6, x: 0.84, y: 490 },
+      { kind: 'eye', on: 'abilityCast', ability: 'gorge', x: 0.32, y: 565 }, // interrupt the MEAL
+      { kind: 'eye', on: 'timer', every: 25, x: 0.68, y: 565 },
+      { kind: 'parasite_sac', on: 'abilityCast', ability: 'brood', x: 0.18, y: 625 },
+      { kind: 'armored_growth', on: 'phaseEntry', x: 0.5, y: 595 },
+      { kind: 'heart', on: 'hpBelow', at: 0.45, x: 0.5, y: 675 },
+      { kind: 'regen_organ', on: 'hpBelow', at: 0.25, x: 0.64, y: 640 },
+      { kind: 'mutation_node', on: 'hpBelow', at: 0.6, x: 0.84, y: 620 },
     ],
     reward: { ichor: 38 },
     themeCue: 'megaGorge',
@@ -464,13 +464,13 @@ export const MEGA_BOSS_DEFS: Record<string, MegaBossDef> = {
       { threshold: 0.18, abilities: [0, 1, 2, 5, 6], passive: { kind: 'suppressRange', magnitude: 0.88 }, entrySurge: { count: 5, addKind: 'lasher' }, regenPerSec: 7, visualTier: 3 },
     ],
     weakPoints: [
-      { kind: 'eye', on: 'abilityCast', ability: 'adapt', x: 0.4, y: 435 }, // interrupt the LESSON
-      { kind: 'eye', on: 'timer', every: 26, x: 0.75, y: 440 },
-      { kind: 'nerve_bundle', on: 'phaseEntry', x: 0.25, y: 455 }, // sever the reflex choir
-      { kind: 'energy_core', on: 'abilityCast', ability: 'dampen', x: 0.85, y: 515 },
-      { kind: 'heart', on: 'hpBelow', at: 0.5, x: 0.5, y: 548 },
-      { kind: 'mutation_node', on: 'hpBelow', at: 0.65, x: 0.15, y: 490 },
-      { kind: 'regen_organ', on: 'hpBelow', at: 0.28, x: 0.6, y: 512 },
+      { kind: 'eye', on: 'abilityCast', ability: 'adapt', x: 0.4, y: 565 }, // interrupt the LESSON
+      { kind: 'eye', on: 'timer', every: 26, x: 0.75, y: 570 },
+      { kind: 'nerve_bundle', on: 'phaseEntry', x: 0.25, y: 585 }, // sever the reflex choir
+      { kind: 'energy_core', on: 'abilityCast', ability: 'dampen', x: 0.85, y: 645 },
+      { kind: 'heart', on: 'hpBelow', at: 0.5, x: 0.5, y: 678 },
+      { kind: 'mutation_node', on: 'hpBelow', at: 0.65, x: 0.15, y: 620 },
+      { kind: 'regen_organ', on: 'hpBelow', at: 0.28, x: 0.6, y: 642 },
     ],
     reward: { ichor: 40 },
     themeCue: 'megaMyriad',
@@ -505,7 +505,7 @@ export function megaBossProblems(d: MegaBossDef): string[] {
     if (w.on === 'hpBelow' && !(w.at && w.at > 0 && w.at < 1)) out.push('hpBelow trigger needs at ∈ (0,1)');
     if (w.on === 'timer' && !(w.every && w.every > 0)) out.push('timer trigger needs a positive interval');
     if (w.on === 'abilityCast' && !w.ability) out.push('abilityCast trigger needs an ability kind');
-    if (w.y < MEGA.minWeakPointY) out.push(`weak point y ${w.y} above tower reach (min ${MEGA.minWeakPointY})`);
+    if (w.y < MEGA.minWeakPointY || w.y > MEGA.maxWeakPointY) out.push(`weak point y ${w.y} outside tower reach band (${MEGA.minWeakPointY}..${MEGA.maxWeakPointY})`);
     if (!(w.x >= 0 && w.x <= 1)) out.push('weak point x must be 0..1 of field width');
   }
   if (!(d.reward.ichor > 0)) out.push('reward.ichor must be > 0 (every Mega Boss guarantees Ichor)');
@@ -525,11 +525,16 @@ export function megaBossDef(id: string): MegaBossDef | undefined {
 // ── Tunables (centralized per the config convention; imported by sim + renderer) ──
 export const MEGA = {
   anchorY: 130, // the body's visual center line (px from top; mass extends above/off-screen)
-  minWeakPointY: 380, // organs must descend at least this far so forward towers reach them
+  // Organ descent band — calibrated to the REAL board: tower slots sit at y 740–900, and the
+  // shortest combat reach (maul, 170) only connects above y≈570 from the front row. Organs
+  // descend INTO this band so every emplacement can join the raid, and never below it so they
+  // don't sink into the build rows.
+  minWeakPointY: 560, // organs must descend at least this far so front-row towers reach them
+  maxWeakPointY: 700, // …and no farther, staying clear of the build rows (slots start at 740)
   weakPointRadius: 22, // hitbox radius (px)
   weakPointRegrowSec: 16, // a closed (not destroyed) regen point reopens after this
   bodyChipMult: 0.3, // damage dealt to the BODY band (armored chip) vs weak-point damage
-  bodyBandY: 300, // towers within range of this line may chip the body between windows
+  bodyBandY: 580, // towers within range of this line may chip the body between windows (160px above the front row — even the shortest reach connects)
   exposeFallback: 0.5, // 'expose' frac default
   stunFloatText: 'INTERRUPTED', // shared presentation strings (HUD + floats read one source)
   // STAGGER (§functional overhaul): every destroyed weak point adds to a hidden posture meter;

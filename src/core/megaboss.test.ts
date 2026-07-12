@@ -13,7 +13,7 @@ import {
 import { generateDaily } from './daily';
 import { Game } from './game';
 import { SIM_DT } from './config';
-import { towerSlots } from './map';
+import { towerSlots, WIDTH } from './map';
 import { gameEvents } from './events';
 import type { MetaModifiers } from './types';
 
@@ -119,7 +119,7 @@ describe('sim raid loop', () => {
     const g = new Game(7, NO_META);
     g.god = true;
     g.debugAddBiomass(4000);
-    // Voraxis opens its phase-entry ARMORED GROWTH at (0.5·W, 470) — in reach of a forward coil.
+    // Voraxis opens its phase-entry ARMORED GROWTH at (0.5·W, 600) — in reach of a forward coil.
     for (const s of forwardSlots) if (g.placeTower('coil', s.x, s.y)) break;
     for (const s of forwardSlots) if (g.placeTower('needle', s.x, s.y)) break;
     g.spawnMegaBoss({ defId: 'voraxis', tier: 1 }, 'campaign');
@@ -132,6 +132,76 @@ describe('sim raid loop', () => {
     const v = g.getRenderState().megaBoss!;
     expect(v.weakPoints.some((w) => w.state === 'destroyed')).toBe(true);
     expect(v.hp).toBeLessThan(v.maxHp); // destruction tears INTO the organism (never zero-value)
+  });
+
+  it('EVERY damage source joins the raid: siphon drains organs, beams chip the body, heroes seek', () => {
+    type RaidGuts = {
+      mega: import('./megaboss').MegaRuntime & { stunned: number; dmgByKind: Record<string, number> };
+      destroyWeakPoint: (wp: import('./megaboss').MegaRuntime['weakPoints'][number]) => void;
+      heroes: { x: number; y: number }[];
+    };
+    const raid = (g: Game): RaidGuts => g as unknown as RaidGuts;
+    const inReach = (range: number, tx: number, ty: number) =>
+      [...towerSlots].filter((s) => (s.x - tx) ** 2 + (s.y - ty) ** 2 <= range * range)
+        .sort((a, b) => (a.x - tx) ** 2 + (a.y - ty) ** 2 - ((b.x - tx) ** 2 + (b.y - ty) ** 2));
+    // The Daily Mega variant is the clean raid harness: no wave plan, the field starts EMPTY,
+    // and a stunned rotation (no casts) keeps it that way (docs/MEGA-BOSS.md §daily).
+    const raidGame = (seed: number): Game =>
+      new Game(seed, NO_META, undefined, 'ravager', undefined, { megaDaily: { defId: 'voraxis', tier: 1 } });
+
+    // ── The Marrow Siphon tethers an open organ (it was mega-blind) ──
+    const g = raidGame(21);
+    g.god = true;
+    g.debugAddBiomass(8000);
+    // Voraxis's phase-entry ARMORED GROWTH opens on spawn — aim the siphon at its authored spot.
+    const gSpec = MEGA_BOSS_DEFS.voraxis.weakPoints.find((w) => w.kind === 'armored_growth')!;
+    const sSlot = inReach(300, gSpec.x * WIDTH, gSpec.y)[0];
+    expect(sSlot).toBeTruthy();
+    expect(g.placeTower('siphon', sSlot.x, sSlot.y)).toBe(true);
+    g.startWave();
+    const rt = raid(g).mega;
+    const growth = rt.weakPoints.find((w) => w.kind === 'armored_growth')!;
+    expect(growth).toBeTruthy();
+    const wpHp0 = growth.hp;
+    for (let i = 0; i < 60 * 6 && growth.hp === wpHp0; i++) g.advance(SIM_DT);
+    expect(growth.hp).toBeLessThan(wpHp0); // the drain found the organ
+    expect(rt.dmgByKind.siphon ?? 0).toBeGreaterThan(0); // …and ADAPT's ledger saw it
+
+    // ── Beams chip the anchored body between windows (empty field, no open organs) ──
+    const g2 = raidGame(22);
+    g2.god = true;
+    g2.debugAddBiomass(8000);
+    const cSlot = inReach(340, 360, MEGA.bodyBandY)[0]; // coil range 340 → must reach the band
+    expect(cSlot).toBeTruthy();
+    expect(g2.placeTower('coil', cSlot.x, cSlot.y)).toBe(true);
+    g2.startWave();
+    const rt2 = raid(g2).mega;
+    rt2.stunned = 9999; // freeze the rotation: no casts ⇒ no new organ windows, no broods
+    for (const w of [...rt2.weakPoints]) raid(g2).destroyWeakPoint(w); // clear the spawn-opened organ
+    const hp0 = rt2.hp;
+    for (let i = 0; i < 60 * 5; i++) g2.advance(SIM_DT);
+    expect(rt2.hp).toBeLessThan(hp0); // the body chip ground it down
+    expect(rt2.dmgByKind.coil ?? 0).toBeGreaterThan(0); // the beam did real, ledgered work
+
+    // ── Heroes SEEK the organism instead of idling at their anchors ──
+    const g3 = raidGame(23);
+    g3.god = true;
+    g3.startWave();
+    const rt3 = raid(g3).mega;
+    rt3.stunned = 9999; // static organism, empty field — raid duty is the only job
+    const h = raid(g3).heroes[0];
+    expect(h).toBeTruthy();
+    const y0 = h.y;
+    const growth3 = rt3.weakPoints.find((w) => w.kind === 'armored_growth')!;
+    const wp3Hp0 = growth3.hp;
+    for (let i = 0; i < 60 * 15; i++) g3.advance(SIM_DT);
+    expect(h.y).toBeLessThan(y0 - 120); // it MARCHED on the organism (no more anchor idling)
+    expect(growth3.hp).toBeLessThan(wp3Hp0); // and struck the open organ
+    // With every organ gone, the hero falls to the anchored body itself.
+    for (const w of [...rt3.weakPoints]) if (w.state === 'open') raid(g3).destroyWeakPoint(w);
+    const hp3 = rt3.hp;
+    for (let i = 0; i < 60 * 15; i++) g3.advance(SIM_DT);
+    expect(rt3.hp).toBeLessThan(hp3); // body strikes landed once the organs were spent
   });
 
   it('is fully deterministic for a fixed seed', () => {
