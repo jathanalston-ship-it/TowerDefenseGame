@@ -124,3 +124,24 @@ bench + start, Bio-Roulette, Genome heroRatio) now calls `isHeroUnlocked`. Vitri
 escalated to breadth — `{ kind: 'bossSlain', count: 3 }` distinct chassis — with live progress
 in the Hero Hall; Revenant's Depth-40 gate was already sound once the seeding hole closed.
 Pinned by meta.test gating cases + a live Hero Hall smoke across both gate boundaries.
+
+## Vault multi-open silently opened ONE container (guard cooldown ate the loop)
+
+**Symptom.** "Open Five" / "Open Ten" in the Genetic Vault opened exactly one container —
+the ceremony played, but the stockpile only shrank by 1 (user report: "open multiple
+bio-containers at once is broken").
+
+**Root cause.** `'container.open'` carries a 250 ms guard cooldown (reveal-ceremony pacing).
+The vault's `crack(count)` looped `meta.openContainer()` synchronously, so calls 2..N landed
+inside the cooldown, `guardOk` refused them, and the loop's `if (!award) break` treated the
+refusal as an empty stockpile. The test suite never caught it because the guard layer is
+deliberately inert outside the browser (`enabled = typeof window !== 'undefined'`) — the
+`while (meta.openContainer())` loops in meta.test.ts pass with guards off.
+
+**Fix.** A multi-open is ONE gesture: new `meta.openContainers(count)` guards
+`container.open` once per press (the same batch-is-one-action reasoning as `quest.claim`'s
+board clear) and drains up to `count` via the internal unguarded path — each open still
+persists before the next, so isNew/pity/duplicate-conversion semantics are unchanged. The
+vault's One/Five/Ten buttons route through it, plus the new **Open All (N)** button (shown
+at ≥2 banked). Pinned by a regression test that runs with guards LIVE on a fixed clock:
+per-call opens refuse on call 2 (the bug shape), the batch drains everything.

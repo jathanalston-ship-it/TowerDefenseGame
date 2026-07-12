@@ -95,7 +95,7 @@ export const SECURITY_ACTIONS: Record<string, ActionPolicy> = {
   },
   'container.open': {
     id: 'container.open', category: 'claim', level: 'permissive', limit: P({ count: 20 }), cooldownMs: 250,
-    analytics: 'sec_container_open', doc: 'Open the next pending Bio-Container (reveal ceremony pacing).', at: META,
+    analytics: 'sec_container_open', doc: 'Open pending Bio-Container(s) — a multi-open (Five/Ten/All) is ONE guarded action (reveal ceremony pacing).', at: META,
   },
   'quest.claim': {
     id: 'quest.claim', category: 'claim', level: 'moderate', limit: M({ count: 30 }), dedupeMs: 600,
@@ -236,6 +236,7 @@ export const GUARDED_META_METHODS: Record<string, string> = {
   claimQuestFinale: 'quest.claim',
   grantTutorialRewards: 'tutorial.claim',
   openContainer: 'container.open',
+  openContainers: 'container.open',
   upgradeMulligan: 'craft.mulligan',
   ascendMulligan: 'craft.mulligan',
   reforgeMulligan: 'craft.mulligan',

@@ -8,6 +8,7 @@ import { costOf, isLootRarity } from '../core/loot';
 import type { HeroKind, RunStats } from '../core/types';
 import { defaultPrestige } from '../core/prestige';
 import { gameEvents } from '../core/events';
+import { resetSecurity, setSecurityClock, setSecurityEnabled } from '../security/actionGuard';
 
 /** Minimal finished-run payload (zeroed mastery/stats) — enough to drive finishRun's loot
  * banking without standing up a full Game. */
@@ -444,6 +445,40 @@ describe('deferred loot banking (containers bank unopened; cracked in the Vault)
     while (meta.openContainer()) { /* open them all */ }
     expect(reward(meta.get())).toBeGreaterThan(before);
     expect(meta.pendingContainers().length).toBe(0);
+  });
+});
+
+describe('multi-open batch (Open Five/Ten/All) — ONE guarded gesture', () => {
+  it('openContainers drains the full batch under LIVE guards; per-call opens are refused', () => {
+    meta.reset();
+    meta.debugAddLootPoints(20_000); // bank a healthy unopened stockpile
+    expect(meta.pendingContainers().length).toBeGreaterThanOrEqual(3);
+
+    // Browser conditions: guards live, every call in the same instant (a synchronous handler).
+    let now = 1_000_000;
+    setSecurityClock(() => now);
+    setSecurityEnabled(true);
+    resetSecurity();
+    try {
+      // The bug shape (why openContainers exists): guarding EACH open of a synchronous loop
+      // trips container.open's cooldown on call 2 — "Open Ten" silently opened one.
+      expect(meta.openContainer()).not.toBeNull();
+      expect(meta.openContainer()).toBeNull(); // same-instant second call → guard refuses
+
+      now += 1000; // a fresh press, past the cooldown
+      const rest = meta.pendingContainers().length;
+      expect(rest).toBeGreaterThanOrEqual(2);
+      const opened = meta.openContainers(rest); // one guarded gesture opens them ALL
+      expect(opened.length).toBe(rest);
+      expect(meta.pendingContainers().length).toBe(0);
+
+      now += 1000;
+      expect(meta.openContainers(5)).toEqual([]); // empty stockpile → empty batch, no throw
+    } finally {
+      setSecurityEnabled(false);
+      resetSecurity();
+      setSecurityClock(Date.now);
+    }
   });
 });
 

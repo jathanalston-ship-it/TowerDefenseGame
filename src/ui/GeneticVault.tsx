@@ -90,12 +90,9 @@ export function GeneticVault(): JSX.Element {
     const now = performance.now();
     if (now - lastCrackRef.current < 600) return;
     lastCrackRef.current = now;
-    const opened: CrackedContainer[] = [];
-    for (let i = 0; i < count; i++) {
-      const award = meta.openContainer(); // applies the reward + removes it from the stockpile
-      if (!award) break;
-      opened.push(award);
-    }
+    // ONE guarded batch call — looping meta.openContainer() here would trip the guard's
+    // per-open cooldown on calls 2..N and silently turn "Open Ten" into "open one".
+    const opened = meta.openContainers(count); // applies each reward + removes it from the stockpile
     if (opened.length === 0) { setOpening(null); return; }
     const merged = mergeCracked(opened);
     for (const c of opened) recordVaultOpen(c.label, c.chest.topRarity, c.chest.items.length);
@@ -165,6 +162,7 @@ export function GeneticVault(): JSX.Element {
               <button className="primary vault-crack" onClick={() => crack(1)}>◈ Open One</button>
               {pending.length >= 5 && <button className="vault-crack" onClick={() => crack(5)}>Open Five</button>}
               {pending.length >= 10 && <button className="vault-crack" onClick={() => crack(10)}>Open Ten</button>}
+              {pending.length >= 2 && <button className="vault-crack" onClick={() => crack(pending.length)}>Open All ({pending.length})</button>}
               <span className="vault-left">{pending.length} banked</span>
             </div>
           </>

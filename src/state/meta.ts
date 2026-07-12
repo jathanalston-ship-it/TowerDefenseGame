@@ -2698,9 +2698,10 @@ export const meta = {
   /** Crack open the oldest pending container, applying its reward and removing it from the
    * stockpile; returns the rolled chest + a display label/color for the reveal ceremony.
    * A loot box folds tower/hero Shards; a run cache also folds materials + adds equipment.
-   * Null when nothing is pending (or a tampered entry can't be resolved → discarded). */
-  openContainer(): CrackedContainer | null {
-    if (!guardOk('container.open')) return null;
+   * Null when nothing is pending (or a tampered entry can't be resolved → discarded).
+   * `guarded: false` is ONLY for openContainers(), which gates the whole batch once. */
+  openContainer(guarded = true): CrackedContainer | null {
+    if (guarded && !guardOk('container.open')) return null;
     const save = store.get();
     const [c, ...rest] = save.pendingContainers;
     if (!c) return null;
@@ -2884,6 +2885,23 @@ export const meta = {
     });
     this.creditQuests({ type: 'containers', n: 1 }); // the Vault feeds the directive layer (docs/QUESTS.md §credit)
     return { chest, label, color };
+  },
+
+  /** Crack up to `count` pending containers as ONE gesture (Open Five/Ten/All). Guarded ONCE:
+   * the per-open cooldown paces ceremony spam, not a single multi-open press — guarding each
+   * open would refuse calls 2..N of the synchronous loop and silently open one container
+   * (same batch-is-one-action reasoning as quest.claim's board clear). Each open still
+   * persists before the next so isNew/pity/duplicate-conversion stay per-open correct.
+   * Returns the opened containers in crack order (fewer when the stockpile runs dry). */
+  openContainers(count: number): CrackedContainer[] {
+    if (!Number.isFinite(count) || count < 1 || !guardOk('container.open')) return [];
+    const out: CrackedContainer[] = [];
+    for (let i = 0; i < count; i++) {
+      const award = this.openContainer(false); // the batch was gated above
+      if (!award) break;
+      out.push(award);
+    }
+    return out;
   },
 
   /** Unlock any newly-satisfied achievements; persist + return the new ids (for toasts). */
