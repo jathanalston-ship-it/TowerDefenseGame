@@ -1,47 +1,58 @@
-# AI_HANDOFF.md — live session context (overwrite each session)
+# AI_HANDOFF.md — session handoff
 
-> The incoming session reads this FIRST. Keep it short, factual, current.
+> Scaffolded by `npm run handoff`; the sections marked TODO are filled by the session
+> before committing. Read together with docs/PROJECT_STATUS.md and the latest
+> docs/VALIDATION_REPORT.md. Next session: start at docs/PROJECT_MANIFEST.md.
 
-## Where we are (2026-07-12)
+- **Generated:** 2026-07-12 05:43 UTC · **Diff scope:** working tree vs HEAD
+- **Branch:** claude/zen-hawking-rh1gxl · **HEAD:** 518237e
 
-Branch `claude/zen-hawking-rh1gxl` (the only push target — standing user rule). All green at
-HEAD: typecheck, 1960 tests, build, mobilecheck CLEAN, validate PASS.
+## Summary of work completed
 
-## Landed this session (all pushed)
+TODO: 3–6 sentences — what shipped, why, and the one thing the next session must know.
 
-1. **Catalog expansion** — tower Mulligan pieces 51→102 (`CATALOG_PER_TOWER = 6`), Nucleus
-   organs 18→30 (5/class), Symbiote species 36→54 (3/cell). Acquisition audited: every entry
-   registry-drawn (containers/essence/graft) — zero loot wiring.
-2. **Monetization expansion** — Season Pass pair (`bp_premium_first` $4.99 first-ever purchase,
-   limit 1; `bp_premium` $9.99 after; one door via `seasonOfferFor`), 4 one-time milestone
-   FLASH sales with the timing engine in `state/flashOffers.ts` (48h first-sight windows, one
-   popup/72h, stage-3+5-runs floor), save v42 `premium.flash`, store sections + Hub popup +
-   pass-screen door. Honesty rules validator-enforced (listUsd ≤ real worth, ×1.4–3.0).
-3. **Fix: conveyor ready-state screen shift** — root cause was the UNDEFINED `--fs-2xs/--fs-xs`
-   tokens (fell back to 16px); now defined at :root (10/11px) + grow bar matches the action row
-   (24/32px) + `.cv-actions` contributes zero intrinsic width. Live-probed box-identical.
-4. **Fix: undismissable Tower Lab NEW badge** — chip now means "upgraded since last LOOKED"
-   (labPrefs.recentsSeen); inspecting dismisses.
-5. **Daily Bio-Cache** — badge moved home→vault channel (home self-cleared on landing);
-   BioCacheCard now also renders in the Genetic Vault.
-6. **Quest Board** — "N to claim" title chip, ready-row gold chrome + pulse, claim erupts
-   reward chips over a shock ring from the click point (reduced-motion safe).
-7. **Gore-chunk flight overhaul** — chunks never fade mid-flight (failsafe lives), destinations
-   moved on-screen, arrival = orbit/coalesce → consume flash → debounced "+N" value floats
-   (real bounty for biomass; ◈units for assimilation). 22s live-combat probe clean.
-8. **Best-Purchase advisor (MAJOR)** — `state/bestPurchase.ts` diffs the REAL pure scorer per
-   hypothetical purchase; `BestBuyStrip` mounted on Gene Archive / Evolution HQ / Tower Lab.
+## Files modified
 
-## Next up (user-queued, tasks #287/#288)
+- Source (1): `src/changelog/releases.gen.ts`
+- Tests (0): —
+- Docs (1): `docs/HISTORY.md`
 
-Full visual overhauls, in the user's words: (a) Bio-Container opening animation/process,
-(b) end-of-run reward summary, (c) the Vault screen itself. Substantial standalone redesigns —
-start from docs/LOOTBOX.md + ui/VaultReveal.tsx / Results.tsx / GeneticVault.tsx.
+## Systems affected (from the dependency registry)
 
-## Watchouts
+- **chronicle** — `src/changelog/releases.gen.ts`
 
-- Push ONLY to `claude/zen-hawking-rh1gxl`; rebase (never force) on rejection.
-- `meta.offerPurchasable` polls the pass window (persists) — never call it during render.
-- The `--fs-*` type tokens now EXIST; author new micro-labels against them.
-- Flash SKU rows must stay in core/premium.ts (functions/ prices checkout from it); timing
-  logic stays in state/flashOffers.ts (core/ may not import save/).
+## Power Score changes
+
+None — no Power-relevant system touched.
+
+## UI changes
+
+Surfaces in the blast radius: `App (UpdateBriefing popup)`
+
+TODO: what visually/behaviorally changed; note headless-smoke coverage.
+
+## Documentation changes
+
+Registry says these move with the touched systems: `docs/CHANGELOG-PIPELINE.md`
+
+TODO: confirm each was updated or record "no change needed".
+
+## Save changes
+
+None — save layer untouched.
+
+## Known edge cases
+
+TODO: the sharp corners the next session should not rediscover.
+
+## Remaining technical debt
+
+TODO: new debt introduced or observed (cross-reference docs/ENGINEERING-AUDIT.md §debt).
+
+## Recommended next tasks
+
+TODO: ordered, concrete, with entry points.
+
+## Future expansion hooks
+
+TODO: seams deliberately left open (name the file + symbol).

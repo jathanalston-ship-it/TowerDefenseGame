@@ -1,6 +1,6 @@
 {
-  "lastSha": "151b9021ee8d59b0187b96494e7b151a9b1eed6a",
-  "commitsSinceDraft": 7,
+  "lastSha": "518237e7e92d9f63660b98ad0054209ad694a946",
+  "commitsSinceDraft": 8,
   "content": {
     "tower": [
       "needle",
@@ -2115,6 +2115,10 @@
         {
           "cat": "Audio",
           "text": "Power-gain chains escalate instead of muting (audio + toast fix)"
+        },
+        {
+          "cat": "Gameplay",
+          "text": "Adaptation Chamber: the Antigen layer gets its own wing + exact advisor"
         }
       ]
     }
@@ -3253,6 +3257,14 @@
       "date": "2026-07-12",
       "cat": "Audio",
       "text": "Power-gain chains escalate instead of muting (audio + toast fix)",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "518237e7e92d9f63660b98ad0054209ad694a946",
+      "date": "2026-07-12",
+      "cat": "Gameplay",
+      "text": "Adaptation Chamber: the Antigen layer gets its own wing + exact advisor",
       "internal": false,
       "needsReview": false
     }

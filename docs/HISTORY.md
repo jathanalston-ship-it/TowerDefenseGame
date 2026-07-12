@@ -154,3 +154,4 @@
 - `1ae864f` **[Heroes]** Overhaul Profile + Codex into tabbed wings; Expeditions get their own screen
 - ⚑ `c44413d` **[Framework]** Chronicle: bank patch-note rows for the vault fix + trio overhaul batch _(internal)_
 - `151b902` **[Audio]** Power-gain chains escalate instead of muting (audio + toast fix)
+- `518237e` **[Gameplay]** Adaptation Chamber: the Antigen layer gets its own wing + exact advisor

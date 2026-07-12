@@ -647,6 +647,10 @@ export const RELEASES: Release[] = [
       {
         "cat": "Audio",
         "text": "Power-gain chains escalate instead of muting (audio + toast fix)"
+      },
+      {
+        "cat": "Gameplay",
+        "text": "Adaptation Chamber: the Antigen layer gets its own wing + exact advisor"
       }
     ]
   },
