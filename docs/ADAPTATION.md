@@ -93,6 +93,19 @@ stage change, what it forsakes (or what sealed it), every requirement with met/u
 (`meta.previewPower` with the pick hypothetically applied — behavioral rewrites honestly
 read "Power unchanged"). The ADAPT button routes through `meta.spendAdaptation`.
 
+## 6b. §screen — the Adaptation Chamber (2026-07 relocation)
+
+Adaptation is an ACCOUNT-WIDE spending decision, so it owns a nav wing
+(`src/ui/AdaptationChamber.tsx`, Progression group; reveal: first account-faucet Antigen or
+stage 5; the nav badge counts unlocked units holding unspent Antigen). Three bands:
+**ADVISOR** — `src/state/adaptationAdvisor.ts` ranks every pickable node on every unit
+holding free Antigen by the EXACT Power diff of the hypothetical pick (`§advisor`; zero-gain
+picks surface flagged as behavioral rewrites, never hidden), each with one-tap **Adapt** and
+**View tree**; **ROSTER** — every unlocked strain + champion as a chip with its free-Antigen
+badge; and the selected unit's full `AdaptationTree` (unchanged — inspector, gates, respec).
+The Tower Lab fold and Hero Hall section were removed in favor of hint lines pointing here;
+dormant strains still synthesize in the Tower Lab first.
+
 ## 7. Invariants (tests pin these)
 
 1. Empty picks ⇒ neutral effect ⇒ fresh saves byte-identical (golden safety).

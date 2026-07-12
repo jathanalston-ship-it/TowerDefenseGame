@@ -643,6 +643,10 @@ export const RELEASES: Release[] = [
       {
         "cat": "Heroes",
         "text": "Overhaul Profile + Codex into tabbed wings; Expeditions get their own screen"
+      },
+      {
+        "cat": "Audio",
+        "text": "Power-gain chains escalate instead of muting (audio + toast fix)"
       }
     ]
   },

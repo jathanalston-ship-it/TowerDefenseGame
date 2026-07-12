@@ -12,9 +12,9 @@ import { HIVE_ORGANS, hiveCost } from '../core/hiveOrgans';
 import { labEra, labScore } from '../ui/homeBaseTiers';
 import { sumValues } from '../core/math';
 import { unlockedCutsceneIds } from '../save/derive';
-import { collectionContextOf, isTowerUnlocked, nextStarCost } from './meta';
+import { adaptationView, collectionContextOf, isHeroUnlocked, isTowerUnlocked, nextStarCost } from './meta';
 import { collectionView } from '../core/collection';
-import { IDLE, TOWER_DEFS, TOWER_ORDER } from '../core/config';
+import { HERO_ORDER, IDLE, TOWER_DEFS, TOWER_ORDER } from '../core/config';
 import { marketWindow } from '../core/market';
 import { dailyKey } from '../core/daily';
 import { MAIN_QUESTLINE, questComplete, weeklyQuestFor } from '../core/quests';
@@ -106,6 +106,19 @@ registerNotification({
   id: 'heroes.equipment',
   channel: 'equipment',
   count: (s) => s.equipment.inventory.length,
+});
+
+// Adaptation — unlocked units holding unspent Antigen (docs/ADAPTATION.md; a tier-1 rung is
+// always pickable while free points exist, so "free points" is actionable).
+registerNotification({
+  id: 'adaptation.points',
+  channel: 'adaptation',
+  count: (s) => {
+    let n = 0;
+    for (const k of TOWER_ORDER) if (isTowerUnlocked(s, k) && adaptationView(s, 'tower', k).pointsAvailable > 0) n++;
+    for (const h of HERO_ORDER) if (isHeroUnlocked(s, h) && adaptationView(s, 'hero', h).pointsAvailable > 0) n++;
+    return n;
+  },
 });
 
 // Expeditions — teams back from the field with unclaimed spoils (docs/EXPEDITIONS.md). Wall-clock

@@ -11,7 +11,7 @@ import { t } from '../i18n';
 
 export type NavKey =
   | 'home' | 'campaign' | 'infinite' | 'bossrush' | 'daily' | 'quests' | 'season'
-  | 'towers' | 'heroes' | 'expeditions' | 'evolution' | 'genes' | 'mulligans' | 'hive' | 'harvest'
+  | 'towers' | 'heroes' | 'expeditions' | 'evolution' | 'adaptation' | 'genes' | 'mulligans' | 'hive' | 'harvest'
   | 'vault' | 'market' | 'equipment' | 'gearcodex' | 'phenotypes' | 'collection'
   | 'store'
   | 'profile' | 'settings' | 'help';
@@ -42,6 +42,7 @@ export const navGroups = (): NavGroup[] => [
     { key: 'heroes', label: t('nav.heroes'), mono: 'H' },
     { key: 'expeditions', label: t('nav.expeditions'), mono: '⇢' }, // Hero Expeditions (docs/EXPEDITIONS.md)
     { key: 'evolution', label: t('nav.evolution'), mono: '✷' },
+    { key: 'adaptation', label: t('nav.adaptation'), mono: '☣' }, // Adaptation Chamber (docs/ADAPTATION.md)
     { key: 'genes', label: t('nav.genes'), mono: '⌬' },
     { key: 'mulligans', label: t('nav.mulligans'), mono: '⊛' },
     { key: 'hive', label: t('nav.hive'), mono: '⬡' }, // Hive Construction (docs/HIVE-CONSTRUCTION.md)

@@ -3682,20 +3682,8 @@ kbd {
 .tl-fork-opts { display: flex; gap: 6px; flex-wrap: wrap; }
 .tl-fork-opt { font-size: 11px; padding: 4px 9px; border-radius: var(--r-sm); }
 .tl-fork-opt.on { background: rgba(63, 224, 138, 0.16); border-color: rgba(63, 224, 138, 0.5); color: var(--success); }
-.tl-adapt-badge { display: inline-flex; align-items: center; justify-content: center; min-width: 15px; height: 15px; padding: 0 4px; border-radius: 999px; background: var(--gold); color: #1a1400; font-size: 10px; font-weight: 900; }
-.tl-adapt-lockmark { font-size: 11px; opacity: 0.8; }
-/* Dormant-strain Adaptation: the tree shows as an inert preview under a big LOCKED plate that
-   names the synthesis prerequisite (requirements always SHOWN — the anticipation rule). */
-.tl-adapt-lockwrap { position: relative; }
-.tl-adapt-dim { pointer-events: none; user-select: none; filter: grayscale(0.85) brightness(0.55); opacity: 0.5; }
-.tl-adapt-locked { position: absolute; inset: 0; z-index: 2; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; padding: 18px; text-align: center; border-radius: var(--r-md); background: radial-gradient(circle at 50% 40%, rgba(7, 10, 15, 0.72), rgba(7, 10, 15, 0.9)); border: 1px dashed var(--line-strong); backdrop-filter: blur(1.5px); }
-.tl-adapt-locked-glyph { font-size: 34px; filter: drop-shadow(0 4px 14px rgba(0, 0, 0, 0.6)); }
-.tl-adapt-locked-title { font-family: 'Chakra Petch', system-ui, sans-serif; font-size: 20px; font-weight: 800; letter-spacing: 0.28em; text-indent: 0.28em; color: var(--text); }
-.tl-adapt-locked-sub { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; }
-.tl-adapt-locked-req { display: inline-flex; align-items: center; gap: 5px; margin-top: 4px; padding: 6px 12px; border-radius: 999px; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--line); font-size: 12px; color: var(--kinetic); }
-.tl-adapt-locked-req.is-met { color: var(--success); border-color: color-mix(in srgb, var(--success) 45%, var(--line)); }
-.tl-adapt-locked-req b { color: var(--text); }
-.tl-adapt-locked-hint { font-size: 11px; color: var(--muted); }
+.tl-adapt-moved { margin: 0; padding: 10px 12px; border-radius: var(--r-md); border: 1px dashed var(--line-strong); background: rgba(255, 255, 255, 0.02); font-size: 12px; color: var(--muted); }
+.tl-adapt-moved b { color: var(--viral); }
 
 /* ── Adaptation lab (docs/ADAPTATION.md — Tower Lab + Hero Lab) ────────────────────────────── */
 .adapt { display: flex; flex-direction: column; gap: 8px; }
@@ -10994,6 +10982,56 @@ kbd {
 @media (prefers-reduced-motion: reduce) {
   .exb-ready, .exb-mission.is-ready { animation: none; }
 }
+
+/* ── Adaptation Chamber (AdaptationChamber.tsx, docs/ADAPTATION.md §screen) ── */
+.adc { display: flex; flex-direction: column; gap: 14px; width: min(1120px, 100%); }
+.adc-mast { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.adc-mast-chips { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.adc-wallet {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 12px; font-weight: 800; letter-spacing: 0.06em; white-space: nowrap;
+  padding: 5px 12px; border-radius: 999px;
+  color: var(--muted); border: 1px solid var(--line-strong); background: var(--panel-2);
+}
+.adc-wallet.is-live { color: var(--viral); border-color: color-mix(in srgb, var(--viral) 45%, var(--line)); background: color-mix(in srgb, var(--viral) 8%, transparent); }
+.adc-ready { font-size: 11px; font-weight: 800; letter-spacing: 0.08em; padding: 5px 12px; border-radius: 999px; color: var(--gold); border: 1px solid color-mix(in srgb, var(--gold) 50%, var(--line)); background: color-mix(in srgb, var(--gold) 10%, transparent); white-space: nowrap; }
+.adc-h { font: 700 13px/1 'Chakra Petch', system-ui, sans-serif; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); margin-bottom: 10px; }
+.adc-advisor, .adc-roster { padding: 14px 16px; border-radius: var(--r-md); background: var(--panel); border: 1px solid var(--line); }
+.adc-picks { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(310px, 100%), 1fr)); gap: 8px; }
+.adc-pick {
+  display: flex; flex-direction: column; gap: 5px;
+  padding: 9px 12px;
+  border-radius: var(--r-md);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--pc, var(--line)) 6%, var(--panel-2)), var(--panel-2));
+  border: 1px solid color-mix(in srgb, var(--pc, var(--line)) 30%, var(--line));
+}
+.adc-pick-unit { font-size: 11px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; }
+.adc-pick-node { font-size: 13px; font-weight: 700; }
+.adc-pick-node i { font-style: normal; margin-right: 4px; }
+.adc-pick-node small { margin-left: 6px; font-size: 10px; color: var(--dim); font-weight: 800; }
+.adc-pick-gain { font-size: 12px; font-weight: 800; color: var(--success); font-variant-numeric: tabular-nums; }
+.adc-pick-gain.is-beh { color: var(--kinetic); font-weight: 600; }
+.adc-pick-btns { display: flex; gap: 6px; margin-top: 2px; }
+.adc-pick-adopt { display: inline-flex; align-items: center; gap: 5px; min-height: 28px; padding: 4px 12px; font-size: 12px; }
+.adc-pick-view { min-height: 28px; padding: 4px 12px; font-size: 12px; color: var(--muted); background: var(--panel-3); border: 1px solid var(--line); border-radius: 999px; cursor: pointer; transition: color var(--dur-2) var(--ease-out), border-color var(--dur-2) var(--ease-out); }
+.adc-pick-view:hover { color: var(--text); border-color: var(--line-strong); }
+.adc-group + .adc-group { margin-top: 10px; }
+.adc-group-h { font-size: 11px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: var(--dim); margin-bottom: 7px; }
+.adc-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.adc-chip {
+  display: inline-flex; align-items: center; gap: 7px;
+  min-height: 32px; padding: 5px 12px;
+  font-size: 12px; font-weight: 700; color: var(--muted);
+  background: var(--panel-2); border: 1px solid var(--line); border-radius: 999px;
+  cursor: pointer;
+  transition: color var(--dur-2) var(--ease-out), border-color var(--dur-2) var(--ease-out), background var(--dur-2) var(--ease-out);
+}
+.adc-chip:hover { color: var(--text); border-color: var(--line-strong); }
+.adc-chip.on { color: var(--text); border-color: color-mix(in srgb, var(--uc, var(--gold)) 60%, var(--line)); background: color-mix(in srgb, var(--uc, var(--gold)) 9%, var(--panel-3)); }
+.adc-chip-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--uc, var(--line-strong)); box-shadow: 0 0 6px color-mix(in srgb, var(--uc, transparent) 55%, transparent); }
+.adc-chip-free { display: inline-flex; align-items: center; justify-content: center; min-width: 16px; height: 16px; padding: 0 5px; border-radius: 999px; background: var(--viral); color: #140a1c; font-size: 10px; font-weight: 900; }
+.adc-note { margin: 8px 0 0; font-size: 11px; color: var(--dim); }
+.adc-tree-h { font: 800 14px/1 'Chakra Petch', system-ui, sans-serif; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 8px; }
 
 /* ── Infestation board (InfestationBoard.tsx, docs/INFESTATION.md) ── */
 /* ── Infestation territory map (docs/INFESTATION.md §map) — living canvas + overlay ── */

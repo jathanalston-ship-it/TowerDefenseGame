@@ -13,6 +13,7 @@
 // pure over SaveData, so an existing account's history reveals everything it has already earned.
 //
 // Pure over SaveData (no meta import — read-model rules, like nextGoal.ts / mechanics.ts).
+import { antigenEarned } from '../core/adaptation';
 
 import type { SaveData } from '../save/saveStore';
 import { highestCampaignStage } from '../save/derive';
@@ -35,6 +36,7 @@ export type UnlockCondition =
   | { kind: 'ichor' } // any Ichor ever bled
   | { kind: 'mats' } // any crafting material held
   | { kind: 'molted' } // has prestiged at least once
+  | { kind: 'antigen' } // any account-faucet Antigen earned (achievements/depth/traces — mastery-sourced income reveals via the stage backbone)
   | { kind: 'rushHistory' } // pre-gate Boss Rush accounts (grandfather)
   | { kind: 'dailyHistory' } // pre-gate Daily accounts (grandfather)
   | { kind: 'any'; of: UnlockCondition[] }; // first satisfied wins (progress = max)
@@ -69,6 +71,9 @@ export function evalCondition(c: UnlockCondition, save: SaveData): ConditionView
     case 'ichor': return flag((save.lifetimeIchor ?? 0) > 0 || save.ichor > 0, 'Bleed your first Ichor');
     case 'mats': return flag(save.mats.mutagen + save.mats.scrap + save.mats.catalyst > 0, 'Find crafting materials');
     case 'molted': return flag((save.prestige?.molts ?? 0) > 0, 'Molt for the first time');
+    case 'antigen': return flag(
+      antigenEarned({ masteryLevel: 0, campaignStage: highestCampaignStage(save), containerAntigen: save.antigen, achievementCount: save.achievements.length }) > 0,
+      'Earn your first Antigen');
     case 'rushHistory': return flag(save.rushBestWave > 0 || (save.stats?.rushRuns ?? 0) > 0, '');
     case 'dailyHistory': return flag(save.daily.completions > 0 || save.daily.lastKey !== '', '');
     case 'any': {
@@ -212,6 +217,10 @@ export const FEATURES: FeatureDef[] = [
   { kind: 'screen', id: 'mulligans', name: 'Mulligan Lab', glyph: '⊛', order: 18,
     blurb: 'Graft living organisms onto your towers.', condition: { kind: 'any', of: [{ kind: 'mulligans' }, { kind: 'stage', stage: 7 }] },
     because: 'Reveals with the first discovered modifier (container luck), stage 7 as backstop — the deepest tower system waits for tower fluency.', teach: 'mulligans' },
+  { kind: 'screen', id: 'adaptation', name: 'Adaptation Chamber', glyph: '☣', order: 18.5,
+    blurb: 'Rewrite how your strains and champions behave — Antigen specialization.',
+    condition: { kind: 'any', of: [{ kind: 'antigen' }, { kind: 'stage', stage: 7 }] },
+    because: 'Reveals with the first account-faucet Antigen (achievements/depth/traces — usually stages 2–4, the moment there is something to spend); the stage-7 backbone joins the deep-specialization beat (Mulligans/Phenotypes) because every earlier beat already sits at the reveal ceiling.', teach: 'adaptation' },
   { kind: 'screen', id: 'phenotypes', name: 'Phenotype Lab', glyph: '❖', order: 19,
     blurb: 'Cosmetic phenotypes for every strain and champion.', condition: { kind: 'stage', stage: 7 },
     because: 'Pure luxury — cosmetics wait until the mechanical wardrobe is full and Gene Essence has a purpose beyond upgrades.', teach: 'phenotype-lab' },

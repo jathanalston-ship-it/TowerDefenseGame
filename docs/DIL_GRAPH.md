@@ -1,6 +1,6 @@
 # DIL_GRAPH.md — the Design Intelligence Layer (GENERATED — `npm run dil -- regen`)
 
-> **The project's brain** (docs/DIL.md). 764 nodes · 1401 edges, built from the live
+> **The project's brain** (docs/DIL.md). 765 nodes · 1403 edges, built from the live
 > registries + curated knowledge (src/dev/dil/). **Query it instead of searching the repo:**
 > `npm run dil -- node <id>` · `affects <id>` · `requires <id>` · `missing <kind> <edge>` ·
 > `checklist tower <kind>` · `find <text>`. Edge kinds are bidirectional (19 kinds).
@@ -999,9 +999,9 @@ _at: src/core/stars.ts, src/core/branches.ts, src/core/branchTree.ts, src/core/s
 
 ### `system:mastery` — Mastery / Adaptation
 
-Identity-through-use: titles, procedural ranks, halos, Antigen-Point decision trees.
+Identity-through-use: titles, procedural ranks, halos, Antigen-Point decision trees. Adaptation lives in its OWN wing — the Adaptation Chamber (nav, badge on unspent Antigen): exact best-gain advisor across the roster + every strain/champion tree in one place.
 
-_at: src/core/mastery.ts, src/core/adaptation.ts, src/state/masteryEvents.ts, src/ui/MasteryProfile.tsx, src/ui/components/AdaptationTree.tsx, src/ui/components/MasteryToaster.tsx_
+_at: src/core/mastery.ts, src/core/adaptation.ts, src/state/masteryEvents.ts, src/state/adaptationAdvisor.ts, src/ui/MasteryProfile.tsx, src/ui/AdaptationChamber.tsx, src/ui/components/AdaptationTree.tsx, src/ui/components/MasteryToaster.tsx_
 
   - dependsOn → `system:stats`
   - dependsOn → `system:content-infra`
@@ -1010,11 +1010,13 @@ _at: src/core/mastery.ts, src/core/adaptation.ts, src/state/masteryEvents.ts, sr
   - consumes → `system:meta-store` — owns save field 'heroMasteryXp'
   - consumes → `system:meta-store` — owns save field 'adaptation'
   - consumes → `system:meta-store` — owns save field 'antigen'
+  - taughtBy ← `help:adaptation`
   - documentedBy ← `doc:MASTERY.md`
   - documentedBy ← `doc:ADAPTATION.md`
   - documentedBy ← `guide:mastery`
   - testedBy ← `test:src/core/adaptation.test.ts`
   - testedBy ← `test:src/core/mastery.test.ts`
+  - testedBy ← `test:src/state/adaptationAdvisor.test.ts`
   - referencedBy ← `system:account-level` — account titles share save.equippedTitle with mastery rewards — display surfaces MUST resolve via titleName() (profile.ts), not masteryRewardById alone
   - referencedBy ← `system:genome-rank` — grank_<n> titles share save.equippedTitle — always resolve display through titleName() (profile.ts), never per-registry lookups
 
@@ -2769,7 +2771,7 @@ _at: src/core/tutorial.ts_
 - `help:tower-stars` — Permanent tower power, bought with Strain Samples. _(partOf `system:onboarding`, teaches `system:towers`, teaches `system:shards-economy`)_
 - `help:tower-mastery` — Infinite craft levels from USING a tower — tracked live in every run. _(partOf `system:onboarding`)_
 - `help:tower-branches` — Specialize a tower down a mutation path. _(partOf `system:onboarding`, teaches `system:towers`)_
-- `help:adaptation` — Per-tower talent trees bought with Antigen. _(partOf `system:onboarding`)_
+- `help:adaptation` — Per-tower talent trees bought with Antigen. _(partOf `system:onboarding`, teaches `system:mastery`)_
 - `help:mulligans` — Biomechanical organisms you assemble onto towers — stats AND flesh. _(partOf `system:onboarding`, teaches `system:mulligans`)_
 - `help:nucleus` — The Hive Nucleus grows its OWN organism — chambers of support organs that mutate it visibly. _(partOf `system:onboarding`, teaches `system:nucleus`)_
 - `help:gene-cards` — Drafted boosts for this run — collected forever. _(partOf `system:onboarding`, teaches `system:gene-cards`)_
@@ -3276,7 +3278,7 @@ _at: site/guides.ts → /guides/prestige/_
 - `doc:VOWS.md` — project documentation _(documents `system:prestige`)_
 - `doc:WEBSITE.md` — project documentation _(documents `system:field-research`, documents `system:website`)_
 
-## Tests (238)
+## Tests (239)
 
 - `test:src/audio/music.test.ts` — automated validation _(tests `system:audio`)_
 - `test:src/changelog/classify.test.ts` — automated validation _(tests `system:chronicle`)_
@@ -3447,6 +3449,7 @@ _at: site/guides.ts → /guides/prestige/_
 - `test:src/state/abandon.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/state/achievements.framework.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/state/achievements.test.ts` — automated validation _(tests `system:achievements`)_
+- `test:src/state/adaptationAdvisor.test.ts` — automated validation _(tests `system:mastery`)_
 - `test:src/state/armory.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/state/battlePassEconomy.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/state/battlePassMeta.test.ts` — automated validation _(tests `system:engine`)_

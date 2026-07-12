@@ -488,15 +488,15 @@ graph TD
 
 ### Mastery / Adaptation (`mastery`)
 
-*Identity-through-use: titles, procedural ranks, halos, Antigen-Point decision trees.*
+*Identity-through-use: titles, procedural ranks, halos, Antigen-Point decision trees. Adaptation lives in its OWN wing — the Adaptation Chamber (nav, badge on unspent Antigen): exact best-gain advisor across the roster + every strain/champion tree in one place.*
 
-- **Files:** `src/core/mastery.ts` · `src/core/adaptation.ts` · `src/state/masteryEvents.ts` · `src/ui/MasteryProfile.tsx` · `src/ui/components/AdaptationTree.tsx` · `src/ui/components/MasteryToaster.tsx`
+- **Files:** `src/core/mastery.ts` · `src/core/adaptation.ts` · `src/state/masteryEvents.ts` · `src/state/adaptationAdvisor.ts` · `src/ui/MasteryProfile.tsx` · `src/ui/AdaptationChamber.tsx` · `src/ui/components/AdaptationTree.tsx` · `src/ui/components/MasteryToaster.tsx`
 - **Depends on:** `stats` · `content-infra`
 - **Consumers — what breaks if you change this:** —
 - **Power Score:** mastery multiplier folds into the permanent bucket
 - **Save fields:** `towerMasteryXp` · `heroMasteryXp` · `adaptation` · `antigen`
-- **Tutorial:** — · **Help mechanics:** —
-- **HUD surfaces:** `halos (renderer)` · `live projection + level-up rings (GameView)` · `Inspector craft bar` · **UI screens:** `MasteryProfile` · `MasteryToaster`
+- **Tutorial:** — · **Help mechanics:** `adaptation`
+- **HUD surfaces:** `halos (renderer)` · `live projection + level-up rings (GameView)` · `Inspector craft bar` · **UI screens:** `AdaptationChamber (Adaptation Chamber)` · `MasteryProfile` · `MasteryToaster`
 - **Collection:** — · **Achievements:** —
 - **Localization:** inline English strings (no i18n layer yet — this field enumerates the surface for the day it lands)
 - **Docs to update on change:** `docs/MASTERY.md` · `docs/ADAPTATION.md`

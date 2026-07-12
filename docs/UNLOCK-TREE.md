@@ -1,6 +1,6 @@
 # UNLOCK-TREE.md — the complete progression reveal timeline (GENERATED — `npm run unlocks`)
 
-> 28 features under progression gating (docs/PROGRESSION-GATING.md): every hub
+> 29 features under progression gating (docs/PROGRESSION-GATING.md): every hub
 > screen and wallet chip, in learning-curve order. "Possible" = earliest a lucky account can
 > reveal it; "guaranteed" = the campaign stage that opens it regardless of drops.
 
@@ -29,6 +29,7 @@
 | 16 | ❁ **Season Pass** `season` | screen | Clear Campaign Stage 5 · 5 to go | S5 | S5 | Season Pass (`season-pass`) | XP accrues silently from run 1 (rollover mail keeps it lossless) — the track REVEALS once the loop is fluent and several faucets exist to feed it. |
 | 17 | ❑ **Gear Codex** `gearcodex` | screen | Clear Campaign Stage 6 · 6 to go | S6 | S6 | Gear Codex (`gear-codex`) | A collection layer OVER gear — lands after the Armory habit forms; undiscovered silhouettes become goals. |
 | 18 | ⊛ **Mulligan Lab** `mulligans` | screen | Discover a Mulligan modifier | start | S7 | Mulligan Organisms (`mulligans`) | Reveals with the first discovered modifier (container luck), stage 7 as backstop — the deepest tower system waits for tower fluency. |
+| 18.5 | ☣ **Adaptation Chamber** `adaptation` | screen | Earn your first Antigen | start | S7 | Adaptation & Antigen (`adaptation`) | Reveals with the first account-faucet Antigen (achievements/depth/traces — usually stages 2–4, the moment there is something to spend); the stage-7 backbone joins the deep-specialization beat (Mulligans/Phenotypes) because every earlier beat already sits at the reveal ceiling. |
 | 19 | ❖ **Phenotype Lab** `phenotypes` | screen | Clear Campaign Stage 7 · 7 to go | S7 | S7 | Phenotype Lab (`phenotype-lab`) | Pure luxury — cosmetics wait until the mechanical wardrobe is full and Gene Essence has a purpose beyond upgrades. |
 | 21 | ☠ **Boss Rush** `bossrush` | screen | Clear Campaign Stage 10 · 10 to go | start | S10 | Boss Rush (`boss-rush`) | The established gate: the skill-check pillar arrives once builds are real. History grandfathers. |
 | 22 | 🩸 **Ichor** `cur:ichor` | currency | Bleed your first Ichor | start | S3 | — | Shows with its first drop, or when the Splice Market (its sink) reveals — a currency chip never precedes its purpose. |
@@ -44,6 +45,6 @@
 - **Stage 4** — ⛨ Armory · ✪ Quest Board · ⬡ The Hive
 - **Stage 5** — ☀ Daily Run · ▤ Bio-Dex · ❁ Season Pass
 - **Stage 6** — ⬣ Idle Harvest · ⇢ Expedition Command · ❑ Gear Codex · ⊕ Materials
-- **Stage 7** — ⊛ Mulligan Lab · ❖ Phenotype Lab
+- **Stage 7** — ⊛ Mulligan Lab · ☣ Adaptation Chamber · ❖ Phenotype Lab
 - **Stage 9** — ✦ Ascendant Cells
 - **Stage 10** — ☠ Boss Rush

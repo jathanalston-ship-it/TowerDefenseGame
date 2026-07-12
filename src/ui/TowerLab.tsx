@@ -16,7 +16,6 @@ import { CurrencyIcon } from './components/CurrencyIcon';
 import { TowerPortrait } from './TowerPortrait';
 import { TowerCodex } from './TowerCodex';
 import { PowerPreview } from './components/PowerScore';
-import { AdaptationTree } from './components/AdaptationTree';
 import { StarCeremony } from './StarCeremony';
 import { labPrefs, setLabPrefs } from '../state/prefs';
 import { BestBuyStrip } from './components/BestBuyStrip';
@@ -114,7 +113,6 @@ export function TowerLab(): JSX.Element {
   const prog = towerProgress(save);
   const curPower = meta.power().score;
   const [ceremony, setCeremony] = useState<CeremonyState | null>(null);
-  const [openAdapt, setOpenAdapt] = useState(false);
   const [codexKind, setCodexKind] = useState<TowerKind | null>(null);
   const [prefs, setPrefs] = useState(labPrefs);
   const [query, setQuery] = useState('');
@@ -464,33 +462,7 @@ export function TowerLab(): JSX.Element {
           <MasteryPanel kind={selected} color={m.color} contribution={contribution[selected]} />
 
           <div className="tl2-block">
-            <button className="tl-forks-toggle" onClick={() => setOpenAdapt((v) => !v)}>
-              {/* The spendable-points signal belongs to SYNTHESIZED towers only; a dormant tree is locked. */}
-              Adaptation {m.locked && <span className="tl-adapt-lockmark" title="Locked — synthesize this tower first">🔒</span>}{!m.locked && meta.adaptation('tower', selected).pointsAvailable > 0 && <span className="tl-adapt-badge">{meta.adaptation('tower', selected).pointsAvailable}</span>} {openAdapt ? '▾' : '▸'}
-            </button>
-            {openAdapt && (m.locked ? (
-              // DORMANT STRAIN: the tree renders as a dimmed, inert preview under a LOCKED plate that
-              // states the synthesis prerequisite (requirements always SHOWN — the anticipation rule).
-              <div className="tl-adapt-lockwrap">
-                <div className="tl-adapt-dim" aria-hidden>
-                  <AdaptationTree subject="tower" unit={selected} color={m.color} />
-                </div>
-                <div className="tl-adapt-locked" role="note" aria-label={`Adaptation locked — synthesize ${m.name} first`}>
-                  <span className="tl-adapt-locked-glyph" aria-hidden>🔒</span>
-                  <span className="tl-adapt-locked-title">LOCKED</span>
-                  <span className="tl-adapt-locked-sub">DORMANT STRAIN — Adaptation awakens when this tower is synthesized</span>
-                  <span className={`tl-adapt-locked-req${m.canUnlock ? ' is-met' : ''}`}>
-                    {m.canUnlock ? '✓' : '✗'} Bank <b>{num(m.shards)} / {num(m.unlockCost)}</b>
-                    <CurrencyIcon id="towerShards" color={m.color} size={13} title="Strain Samples" /> Strain Samples (Bio-Containers drop them)
-                  </span>
-                  <span className="tl-adapt-locked-hint">
-                    {m.canUnlock ? 'Ready — press Synthesize above to unlock this organism.' : 'Then press Synthesize above to unlock this organism.'}
-                  </span>
-                </div>
-              </div>
-            ) : (
-              <AdaptationTree subject="tower" unit={selected} color={m.color} />
-            ))}
+            <p className="tl-adapt-moved">☣ Antigen specialization lives in the <b>Adaptation Chamber</b> (Progression wing) — every strain and champion tree in one place, with a suggested-next advisor.</p>
           </div>
         </div>
       </div>

@@ -30,6 +30,7 @@ import { MulliganLab } from './MulliganLab';
 import { EquipmentCollection } from './EquipmentCollection';
 import { HeroLab } from './HeroLab';
 import { ExpeditionScreen } from './ExpeditionScreen';
+import { AdaptationChamber } from './AdaptationChamber';
 import { EquipmentPanel } from './EquipmentPanel';
 import { GeneticVault } from './GeneticVault';
 import { SpliceMarket } from './SpliceMarket';
@@ -436,6 +437,7 @@ export function Hub({
           {nav === 'gearcodex' && <EquipmentCollection />}
           {nav === 'heroes' && <HeroLab />}
           {nav === 'expeditions' && <ExpeditionScreen />}
+          {nav === 'adaptation' && <AdaptationChamber />}
           {nav === 'evolution' && <EvolutionHQ />}
           {nav === 'genes' && <GeneArchive />}
           {nav === 'hive' && <HiveScreen />}

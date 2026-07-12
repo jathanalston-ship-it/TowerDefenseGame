@@ -13,7 +13,6 @@ import type { HeroKind } from '../core/types';
 import { masteryRank } from '../core/mastery';
 import { PowerPreview } from './components/PowerScore';
 import { HeroPortrait } from './components/HeroPortrait';
-import { AdaptationTree } from './components/AdaptationTree';
 import { ProgressBar } from './components/ProgressBar';
 import { CurrencyIcon } from './components/CurrencyIcon';
 import { audio } from '../audio/sound';
@@ -407,11 +406,7 @@ export function HeroLab(): JSX.Element {
             ) : (
               <p className="hsec-desc">Mastery rises forever as this hero fights — ranks and perks unlock with use.</p>
             )}
-          </Section>
-
-          {/* Adaptation — spend Antigen Points earned from Mastery Ranks */}
-          <Section title="Adaptation" accent={c} fold hint="Spend Antigen Points from Mastery Ranks.">
-            <AdaptationTree subject="hero" unit={d.def.kind} color={c} />
+            <p className="hsec-hint">Each Mastery Rank grants 1 Antigen — spend it in the Adaptation Chamber (Progression wing).</p>
           </Section>
 
           {/* Current Loadout */}

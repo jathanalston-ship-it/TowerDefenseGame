@@ -1,6 +1,6 @@
 {
-  "lastSha": "1ae864fc0940ad8f3edee9181a41b9cdcdf8fed9",
-  "commitsSinceDraft": 5,
+  "lastSha": "151b9021ee8d59b0187b96494e7b151a9b1eed6a",
+  "commitsSinceDraft": 7,
   "content": {
     "tower": [
       "needle",
@@ -2111,6 +2111,10 @@
         {
           "cat": "Heroes",
           "text": "Overhaul Profile + Codex into tabbed wings; Expeditions get their own screen"
+        },
+        {
+          "cat": "Audio",
+          "text": "Power-gain chains escalate instead of muting (audio + toast fix)"
         }
       ]
     }
@@ -3233,6 +3237,22 @@
       "date": "2026-07-12",
       "cat": "Heroes",
       "text": "Overhaul Profile + Codex into tabbed wings; Expeditions get their own screen",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "c44413dd66eb717fce996a2680da7a54471e7591",
+      "date": "2026-07-12",
+      "cat": "Framework",
+      "text": "Chronicle: bank patch-note rows for the vault fix + trio overhaul batch",
+      "internal": true,
+      "needsReview": true
+    },
+    {
+      "sha": "151b9021ee8d59b0187b96494e7b151a9b1eed6a",
+      "date": "2026-07-12",
+      "cat": "Audio",
+      "text": "Power-gain chains escalate instead of muting (audio + toast fix)",
       "internal": false,
       "needsReview": false
     }
