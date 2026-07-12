@@ -671,6 +671,14 @@ export const RELEASES: Release[] = [
       {
         "cat": "Gameplay",
         "text": "Meta-progression flow pass: Power Atlas on Home + full advisor coverage + power history"
+      },
+      {
+        "cat": "Website",
+        "text": "Chronicle + site for the meta-progression flow pass"
+      },
+      {
+        "cat": "Gameplay",
+        "text": "Equip advisor: exact free-gear upgrades with one-click equip"
       }
     ]
   },

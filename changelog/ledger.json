@@ -1,6 +1,6 @@
 {
-  "lastSha": "d01671301f95653672b013321299c34e3cb35b7c",
-  "commitsSinceDraft": 4,
+  "lastSha": "b0e3efade22adb6d28379d028164a52dcd8d1ed7",
+  "commitsSinceDraft": 6,
   "content": {
     "tower": [
       "needle",
@@ -2139,6 +2139,14 @@
         {
           "cat": "Gameplay",
           "text": "Meta-progression flow pass: Power Atlas on Home + full advisor coverage + power history"
+        },
+        {
+          "cat": "Website",
+          "text": "Chronicle + site for the meta-progression flow pass"
+        },
+        {
+          "cat": "Gameplay",
+          "text": "Equip advisor: exact free-gear upgrades with one-click equip"
         }
       ]
     }
@@ -3333,6 +3341,22 @@
       "date": "2026-07-12",
       "cat": "Gameplay",
       "text": "Meta-progression flow pass: Power Atlas on Home + full advisor coverage + power history",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "335be4cf6194caf19986e68749ca81c682813dad",
+      "date": "2026-07-12",
+      "cat": "Website",
+      "text": "Chronicle + site for the meta-progression flow pass",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "b0e3efade22adb6d28379d028164a52dcd8d1ed7",
+      "date": "2026-07-12",
+      "cat": "Gameplay",
+      "text": "Equip advisor: exact free-gear upgrades with one-click equip",
       "internal": false,
       "needsReview": false
     }

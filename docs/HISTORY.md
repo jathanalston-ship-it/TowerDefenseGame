@@ -161,3 +161,5 @@
 - `c865ef2` **[Visuals]** Season Pass visual overhaul: living seasonal atmosphere + animated track
 - `7ee38ed` **[Website]** Chronicle + site for the Season Pass visual overhaul
 - `d016713` **[Gameplay]** Meta-progression flow pass: Power Atlas on Home + full advisor coverage + power history
+- `335be4c` **[Website]** Chronicle + site for the meta-progression flow pass
+- `b0e3efa` **[Gameplay]** Equip advisor: exact free-gear upgrades with one-click equip
