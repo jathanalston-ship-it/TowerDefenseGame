@@ -147,3 +147,8 @@
 - `5ff0f0c` **[Gameplay]** Daily Bio-Cache surfaced in the Vault + quest claim celebration
 - `f345324` **[Visuals]** Gore-chunk reward flight overhaul: arrive, orbit, consume, count
 - `33c727f` **[UI]** Best-Purchase advisor: exact Power-per-cost guidance on every upgrade wall
+- `1f9d0fa` **[Website]** Session wrap: chronicle, site regen, handoff
+- `42beed3` **[Visuals]** Bio-Container hatching: full visual overhaul (atmosphere, reactive egg, violent shell)
+- `b6158fa` **[UI]** Results + Genetic Vault visual overhauls: the ceremony's air on both screens
+- `9b596e1` **[Gameplay]** Fix vault multi-open (guard cooldown ate the batch) + add Open All
+- `1ae864f` **[Heroes]** Overhaul Profile + Codex into tabbed wings; Expeditions get their own screen

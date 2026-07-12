@@ -1,6 +1,6 @@
 {
-  "lastSha": "33c727f27f31f733354cfe059d558a6f0fa8d322",
-  "commitsSinceDraft": 0,
+  "lastSha": "1ae864fc0940ad8f3edee9181a41b9cdcdf8fed9",
+  "commitsSinceDraft": 5,
   "content": {
     "tower": [
       "needle",
@@ -2091,6 +2091,26 @@
         {
           "cat": "UI",
           "text": "Best-Purchase advisor: exact Power-per-cost guidance on every upgrade wall"
+        },
+        {
+          "cat": "Website",
+          "text": "Session wrap: chronicle, site regen, handoff"
+        },
+        {
+          "cat": "Visuals",
+          "text": "Bio-Container hatching: full visual overhaul (atmosphere, reactive egg, violent shell)"
+        },
+        {
+          "cat": "UI",
+          "text": "Results + Genetic Vault visual overhauls: the ceremony's air on both screens"
+        },
+        {
+          "cat": "Gameplay",
+          "text": "Fix vault multi-open (guard cooldown ate the batch) + add Open All"
+        },
+        {
+          "cat": "Heroes",
+          "text": "Overhaul Profile + Codex into tabbed wings; Expeditions get their own screen"
         }
       ]
     }
@@ -3173,6 +3193,46 @@
       "date": "2026-07-12",
       "cat": "UI",
       "text": "Best-Purchase advisor: exact Power-per-cost guidance on every upgrade wall",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "1f9d0fa8a13017190fc2fb6da4e8457d4963a082",
+      "date": "2026-07-12",
+      "cat": "Website",
+      "text": "Session wrap: chronicle, site regen, handoff",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "42beed35f8f0582a4ccbfd34b503bcd5d7d2a088",
+      "date": "2026-07-12",
+      "cat": "Visuals",
+      "text": "Bio-Container hatching: full visual overhaul (atmosphere, reactive egg, violent shell)",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "b6158fa0d2dce3fd40e3a857db84dbf1a8e46832",
+      "date": "2026-07-12",
+      "cat": "UI",
+      "text": "Results + Genetic Vault visual overhauls: the ceremony's air on both screens",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "9b596e1cadc7a9cf9f4ec99061d939670950aa4c",
+      "date": "2026-07-12",
+      "cat": "Gameplay",
+      "text": "Fix vault multi-open (guard cooldown ate the batch) + add Open All",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "1ae864fc0940ad8f3edee9181a41b9cdcdf8fed9",
+      "date": "2026-07-12",
+      "cat": "Heroes",
+      "text": "Overhaul Profile + Codex into tabbed wings; Expeditions get their own screen",
       "internal": false,
       "needsReview": false
     }

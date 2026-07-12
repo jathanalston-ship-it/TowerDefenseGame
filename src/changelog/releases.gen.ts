@@ -623,6 +623,26 @@ export const RELEASES: Release[] = [
       {
         "cat": "UI",
         "text": "Best-Purchase advisor: exact Power-per-cost guidance on every upgrade wall"
+      },
+      {
+        "cat": "Website",
+        "text": "Session wrap: chronicle, site regen, handoff"
+      },
+      {
+        "cat": "Visuals",
+        "text": "Bio-Container hatching: full visual overhaul (atmosphere, reactive egg, violent shell)"
+      },
+      {
+        "cat": "UI",
+        "text": "Results + Genetic Vault visual overhauls: the ceremony's air on both screens"
+      },
+      {
+        "cat": "Gameplay",
+        "text": "Fix vault multi-open (guard cooldown ate the batch) + add Open All"
+      },
+      {
+        "cat": "Heroes",
+        "text": "Overhaul Profile + Codex into tabbed wings; Expeditions get their own screen"
       }
     ]
   },
