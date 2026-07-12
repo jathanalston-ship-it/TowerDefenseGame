@@ -1043,15 +1043,15 @@ graph TD
 
 ### Notifications (`notifications`)
 
-*Generic menu badges: registered count(save) sources per nav channel.*
+*Generic menu badges (registered count(save) sources per nav channel) + the global claim popup every hub claim receipts through.*
 
-- **Files:** `src/state/notifications.ts` · `src/state/notificationSources.ts`
+- **Files:** `src/state/notifications.ts` · `src/state/notificationSources.ts` · `src/state/rewardToast.ts` · `src/ui/components/RewardToaster.tsx`
 - **Depends on:** `meta-store`
 - **Consumers — what breaks if you change this:** `hub-shell`
 - **Power Score:** — (intentionally none)
 - **Save fields:** —
 - **Tutorial:** — · **Help mechanics:** —
-- **HUD surfaces:** `nav badges` · **UI screens:** `Hub (badges)`
+- **HUD surfaces:** `nav badges` · **UI screens:** `Hub (badges)` · `RewardToaster (claim popups)`
 - **Collection:** collection channel badge · **Achievements:** —
 - **Localization:** inline English strings (no i18n layer yet — this field enumerates the surface for the day it lands)
 - **Docs to update on change:** `docs/NOTIFICATIONS.md` · `docs/COMMAND-CENTER.md` · `docs/HOME-BASE.md` · `docs/ONE-MORE-RUN.md` · `docs/HUD.md` · `docs/PROGRESSION-LOOP.md`

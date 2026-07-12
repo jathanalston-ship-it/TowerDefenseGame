@@ -187,8 +187,9 @@ export function Inspector({
   const [sell, setSell] = useState<SelectedPlacedTower | null>(null);
 
   // ── Mutation panel: a PLACED tower is selected (the Tower Inspect redesign) ──
-  // The upgrade TREE is the centerpiece (core/branchTree → BranchTree). Around it:
-  // current branch + tier, the branch-folded stat readout, and the lock warning.
+  // ORDER IS THE DESIGN (TOWER-BRANCHES.md §3): the tree — the decision — sits directly under
+  // the title so the next buy is in hand without scrolling; the combat profile compresses to
+  // one strip; Strain/Mulligan/Mastery fold into "Host vitals" a tap away.
   const sp = hud.selectedPlaced;
   if (sp) {
     const cls = sp.combatClass.toLowerCase();
@@ -218,42 +219,29 @@ export function Inspector({
           </span>
         </div>
 
-        {/* Current stats — the base profile folded with this tower's purchased tiers. */}
-        <div className="ins-stats">
-          {stats.dps !== null && <StatRow k="DPS" v={`~${stats.dps}`} />}
-          {stats.range > 0 && <StatRow k="Range" v={stats.range} />}
-          {(TOWER_DEFS[sp.kind].minRange ?? 0) > 0 && <StatRow k="Deadzone" v={`${TOWER_DEFS[sp.kind].minRange} (no-fire)`} />}
-          {stats.rate !== null && stats.firing !== 'field' && stats.firing !== 'support' && (
-            <StatRow k="Fire rate" v={`${stats.rate.toFixed(1)}/s`} />
+        {/* The combat profile, one glance-able strip (branch tiers already folded in). */}
+        <div className="mut-statline" aria-label="Current combat profile">
+          {stats.dps !== null && <span>DPS <b>~{stats.dps}</b></span>}
+          {stats.range > 0 && <span>Range <b>{stats.range}</b></span>}
+          {stats.rate !== null && stats.firing !== 'support' && (
+            <span>{stats.firing === 'field' ? 'Pulse' : 'Rate'} <b>{stats.rate.toFixed(1)}/s</b></span>
           )}
-          {stats.firing === 'field' && stats.rate !== null && <StatRow k="Pulse" v={`${stats.rate.toFixed(1)}/s`} />}
-          {stats.splash > 0 && <StatRow k="Splash" v={stats.splash} />}
-          {stats.shots > 1 && <StatRow k="Targets" v={`×${stats.shots}`} />}
+          {stats.splash > 0 && <span>Splash <b>{stats.splash}</b></span>}
+          {stats.shots > 1 && <span>Targets <b>×{stats.shots}</b></span>}
         </div>
 
-        {/* STRAIN (docs/STRAIN.md): the in-run evolution level — Strain V is the run's trophy. */}
-        <div className={`insp-strain${sp.strain >= 5 ? ' is-apex' : ''}`} title="Strain — this run's evolution level (docs: consume conveyor duplicates to evolve)">
-          <span className="insp-strain-k">Strain {['I', 'II', 'III', 'IV', 'V'][sp.strain - 1]}</span>
-          {sp.strainName && <span className="insp-strain-n">{sp.strainName}</span>}
-        </div>
-
-        {/* Live Mastery — the craft grows WHILE you watch (docs/MASTERY.md §live). */}
-        {/* Mulligan organism — the graft riding this kind THIS run (docs/MULLIGANS.md §inspect). */}
-        <MulliganLive state={mulliganStates?.[sp.kind]} kind={sp.kind} />
-
-        <MasteryLive kind={sp.kind} color={`var(--${cls})`} live={liveMastery?.[sp.kind]} />
-
-        {/* Branch lock warning (pre-commit; the commit overlay re-warns on the click). */}
+        {/* Branch lock warning (pre-commit, one line; the commit overlay re-warns on the click). */}
         {hasBranches && !committedId && (
-          <p className="mut-warn" role="note">
-            ⚠ Pick a path to mutate — <b>Tier 1 locks it for the run</b> and closes the other.
-          </p>
+          <p className="mut-warn" role="note">⚠ <b>Tier 1 locks the path</b> for the run.</p>
         )}
 
-        {/* The upgrade tree — the centerpiece. */}
+        {/* The upgrade tree — the centerpiece, above the fold. Keyed by instance so tier
+            previews never leak between towers. */}
         {hasBranches ? (
           <BranchTree
+            key={sp.id}
             tree={tree}
+            kind={sp.kind}
             accent={accent}
             onBuyNext={(branchId, tier) => {
               if (tier === 1) {
@@ -266,6 +254,22 @@ export function Inspector({
         ) : (
           <p className="side-hint">This tower has no mutation paths yet.</p>
         )}
+
+        {/* Host vitals — the identity readouts, folded so the mutation decision owns the fold:
+            STRAIN (docs/STRAIN.md), the Mulligan organism (docs/MULLIGANS.md §inspect), and
+            live Mastery (docs/MASTERY.md §live). */}
+        <details className="mut-host">
+          <summary>Host vitals — Strain · Mulligan · Mastery</summary>
+          <div className={`insp-strain${sp.strain >= 5 ? ' is-apex' : ''}`} title="Strain — this run's evolution level (docs: consume conveyor duplicates to evolve)">
+            <span className="insp-strain-k">Strain {['I', 'II', 'III', 'IV', 'V'][sp.strain - 1]}</span>
+            {sp.strainName && <span className="insp-strain-n">{sp.strainName}</span>}
+          </div>
+          {(TOWER_DEFS[sp.kind].minRange ?? 0) > 0 && (
+            <p className="mut-deadzone">Deadzone {TOWER_DEFS[sp.kind].minRange} — no-fire inside.</p>
+          )}
+          <MulliganLive state={mulliganStates?.[sp.kind]} kind={sp.kind} />
+          <MasteryLive kind={sp.kind} color={`var(--${cls})`} live={liveMastery?.[sp.kind]} />
+        </details>
 
         {/* Tower management (docs/TOWER-MANAGEMENT.md): Relocate (Build Phase) + Sell. */}
         <div className="mut-manage">
@@ -286,10 +290,9 @@ export function Inspector({
           <button className="mut-btn mut-sell" onClick={() => setSell(sp)} title={`Sell for +${sp.sell.total} biomass`}>
             Sell <span className="mut-sell-amt">+{sp.sell.total}</span>
           </button>
+          <button className="mut-btn" onClick={onDeselect} title="Close the mutation panel">Done</button>
         </div>
         {!sp.canMove && !sp.moving && <p className="mut-move-note" role="note">Cannot relocate towers during combat.</p>}
-
-        <button className="branch-done" onClick={onDeselect}>Done</button>
 
         {/* Portal to <body> so the modal is a true screen-centered pop-up — rendering it inside the
             transformed/animated sidebar trapped `position: fixed` to the sidebar (warped + cut off). */}

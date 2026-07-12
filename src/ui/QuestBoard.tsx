@@ -15,6 +15,7 @@ import type { MissionDef, QuestDef } from '../core/quests';
 import { cutsceneDef } from '../core/cutscenes';
 import { wardrobeItem, WARDROBE_RARITY_COLOR } from '../core/wardrobe';
 import { ContractsCard } from './components/ContractsCard';
+import { rewardToast } from '../state/rewardToast';
 import { audio } from '../audio/sound';
 
 function fmtLeft(ms: number): string {
@@ -119,7 +120,6 @@ function FinaleStrip({ q, firstTime, claimable, claimed, onClaim }: {
 export function QuestBoard(): JSX.Element {
   meta.use(); // re-render on credits / claims
   const [now, setNow] = useState(() => Date.now());
-  const [receipt, setReceipt] = useState<{ icon: string; label: string }[] | null>(null);
   const [burst, setBurst] = useState<{ x: number; y: number; lines: { icon: string; label: string }[]; big: boolean; key: number } | null>(null);
 
   useEffect(() => {
@@ -143,13 +143,31 @@ export function QuestBoard(): JSX.Element {
     if (reduced) return;
     setBurst({ x: e.clientX, y: e.clientY, lines, big, key: Date.now() });
   };
-  const claimMission = (id: string, e: React.MouseEvent): void => {
-    const lines = meta.claimQuestMission(id, Date.now());
-    if (lines) { setReceipt(lines); celebrate(e, lines, false); audio.cue('chest'); audio.cue('power'); }
+  // Claims present through the global claim popup (docs/NOTIFICATIONS.md §claim-popups):
+  // a bold itemized receipt naming the mission/quest — the burst stays as local juice.
+  const claimMission = (mi: MissionDef, accent: string, e: React.MouseEvent): void => {
+    const lines = meta.claimQuestMission(mi.id, Date.now());
+    if (lines) {
+      rewardToast.push({ title: 'Mission rewards claimed', name: mi.name, accent, lines });
+      celebrate(e, lines, false);
+      audio.cue('chest');
+      audio.cue('power');
+    }
   };
-  const claimFinale = (questId: string, e: React.MouseEvent): void => {
-    const lines = meta.claimQuestFinale(questId, Date.now());
-    if (lines) { setReceipt(lines); celebrate(e, lines, true); audio.cue('jackpot'); }
+  const claimFinale = (q: QuestDef, firstTime: boolean, e: React.MouseEvent): void => {
+    const lines = meta.claimQuestFinale(q.id, Date.now());
+    if (lines) {
+      rewardToast.push({
+        title: firstTime ? 'Quest finale — story unlocked' : 'Quest finale claimed',
+        name: q.name,
+        icon: q.glyph,
+        accent: q.accent,
+        big: true,
+        lines,
+      });
+      celebrate(e, lines, true);
+      audio.cue('jackpot');
+    }
   };
 
   // Claimable RIGHT NOW across both lanes — the board's own headline notification (the nav
@@ -168,13 +186,6 @@ export function QuestBoard(): JSX.Element {
       <h1 className="title">QUEST BOARD {claimableNow > 0 && <span className="qb-claimable-chip">◈ {claimableNow} to claim</span>}</h1>
       <p className="subtitle">Directives from the deep — weekly orders and the story of the descent.</p>
       {burst && <ClaimBurst burst={burst} />}
-
-      {receipt && (
-        <div className="bp-receipt" role="status" onClick={() => setReceipt(null)}>
-          {receipt.slice(0, 8).map((l, i) => <span key={i}>{l.icon} {l.label}</span>)}
-          {receipt.length > 8 && <span>+{receipt.length - 8} more</span>}
-        </div>
-      )}
 
       <section className="panel qb-weekly" aria-label="This week's quest">
         <header className="qb-w-head">
@@ -197,7 +208,7 @@ export function QuestBoard(): JSX.Element {
               mi={mi}
               cur={wk.progress[mi.id] ?? 0}
               claimed={wk.claimed.has(mi.id)}
-              onClaim={(e) => claimMission(mi.id, e)}
+              onClaim={(e) => claimMission(mi, wk.quest.accent, e)}
             />
           ))}
         </div>
@@ -206,7 +217,7 @@ export function QuestBoard(): JSX.Element {
           firstTime={wk.firstTime}
           claimable={wk.finaleClaimable}
           claimed={wk.completionClaimed}
-          onClaim={(e) => claimFinale(wk.quest.id, e)}
+          onClaim={(e) => claimFinale(wk.quest, wk.firstTime, e)}
         />
       </section>
 
@@ -247,7 +258,7 @@ export function QuestBoard(): JSX.Element {
                       mi={mi}
                       cur={progress[mi.id] ?? 0}
                       claimed={claimed.has(mi.id)}
-                      onClaim={(e) => claimMission(mi.id, e)}
+                      onClaim={(e) => claimMission(mi, c.accent, e)}
                     />
                   ))}
                 </div>
@@ -256,7 +267,7 @@ export function QuestBoard(): JSX.Element {
                   firstTime={firstTime}
                   claimable={finaleClaimable}
                   claimed={false}
-                  onClaim={(e) => claimFinale(c.id, e)}
+                  onClaim={(e) => claimFinale(c, firstTime, e)}
                 />
               </>
             )}

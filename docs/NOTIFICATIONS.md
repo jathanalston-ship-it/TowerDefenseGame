@@ -1,6 +1,8 @@
-# NOTIFICATIONS.md — Global Menu Notification Badges
+# NOTIFICATIONS.md — Menu Badges + the Claim Popup
 
 Compressed developer summary (the canonical reference — prefer over re-reading code).
+Two layers: **badges** (dots that say "there's something here") and the **claim popup**
+(the bold receipt that says "here's exactly what you just got").
 
 ## Purpose
 
@@ -63,3 +65,31 @@ No menu or engine change. New nav keys get badges for free.
   `aria-label`. A numbered variant would be a CSS/markup tweak only.
 - The pulse honors `prefers-reduced-motion` via the global catch-all in index.css
   (it neutralizes all animation/transition durations), so no per-badge gate is needed.
+
+## §claim-popups — the global claim receipt
+
+**Every hub claim presents through ONE popup** instead of per-screen receipt strips:
+quest missions/finales, season-pass levels + claim-all + the premium unlock, weekly
+directives (which had NO feedback before), and wardrobe milestones. Ceremonial
+reveals deliberately stay bespoke (Bio-Cache, Vault reveal, WardrobeReveal, Premium
+Store, expedition SpoilsCard, Genome promotions) — the popup is the RECEIPT layer,
+not the ceremony layer.
+
+- **`src/state/rewardToast.ts`** — the bus (navBus pattern, save-free). `rewardToast.push({
+  title, name?, icon?, accent?, lines, big?, nav? })` where `lines` are
+  `PremiumReceiptLine`-shaped `{ icon, label, rarity? }` — exactly what `meta.claim*`
+  returns. `nav` omitted → **derived from the receipt icons** (single-sourced in
+  `meta.applyRewardList` / `battlePass.rewardLabel`): containers → Vault, cosmetics/
+  phenotypes → Wardrobe, essence → Gene Archive; containers out-rank the rest. Pass
+  `nav: null` when the claim already lives on the destination screen.
+- **`src/ui/components/RewardToaster.tsx`** — mounted once in App (menu only, so it can
+  never cover a live run). Center band BELOW `.achv-stack` (top 88px, z 492): medallion,
+  eyebrow title, headline name, itemized lines (rarity-tinted, ≤7 + "+N more"), the
+  "view it →" chip (routes via `navBus.go`), a `+N` chip for queued receipts. One at a
+  time; click dismisses; 5s dwell (6.8s for `big`); `role="status"`; reduced-motion safe.
+- **Audio stays at the claim site** (no double cues). Quest claim receipts also append
+  their `+N Season XP` line in `meta.claimQuestMission/Finale` — the popup teaches the
+  quests→season-pass loop.
+- **Add a claim surface:** call `meta`'s claim → get lines → `rewardToast.push` with a
+  title/name and the right accent. Tests: `src/state/rewardToast.test.ts` (queue +
+  destination derivation).

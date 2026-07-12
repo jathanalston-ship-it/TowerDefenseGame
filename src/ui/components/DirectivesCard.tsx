@@ -6,6 +6,9 @@
 import { useMemo, useState } from 'react';
 import { meta } from '../../state/meta';
 import { untilText, liveopsNow } from '../../core/liveops';
+import { rewardToast } from '../../state/rewardToast';
+import type { RewardToastLine } from '../../state/rewardToast';
+import { audio } from '../../audio/sound';
 import { CurrencyIcon } from './CurrencyIcon';
 
 function rewardChips(r: { cores?: number; essence?: number; container?: boolean }): JSX.Element {
@@ -23,7 +26,26 @@ export function DirectivesCard(): JSX.Element {
   const [, bump] = useState(0);
   const v = meta.directivesView();
   const endsIn = useMemo(() => untilText(liveopsNow(), new Date(liveopsNow().getTime() + v.weekEndsInMs)), [v.weekEndsInMs]);
-  const claim = (id: string): void => { if (meta.claimDirective(id)) bump((n) => n + 1); };
+  // Claims present through the global claim popup (docs/NOTIFICATIONS.md §claim-popups) —
+  // an itemized receipt naming the directive, so the grant is never a silent row-flip.
+  const claim = (id: string): void => {
+    const got = meta.claimDirective(id);
+    if (!got) return;
+    const capstone = id === '__capstone';
+    const lines: RewardToastLine[] = [];
+    if (got.cores) lines.push({ icon: '⬡', label: `${got.cores} Genome Cores` });
+    if (got.essence) lines.push({ icon: '⌬', label: `${got.essence} Gene Essence` });
+    if (got.container) lines.push({ icon: '◈', label: 'Premium Bio-Container' });
+    rewardToast.push({
+      title: capstone ? 'Weekly mandate claimed' : 'Directive complete',
+      name: capstone ? v.capstone.reward.name : v.directives.find((d) => d.id === id)?.name,
+      icon: capstone ? v.capstone.reward.icon : v.directives.find((d) => d.id === id)?.icon,
+      big: capstone,
+      lines,
+    });
+    audio.cue(capstone ? 'jackpot' : 'chest');
+    bump((n) => n + 1);
+  };
   const doneCount = v.directives.filter((d) => d.complete).length;
 
   return (

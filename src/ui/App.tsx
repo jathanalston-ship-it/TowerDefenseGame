@@ -9,6 +9,7 @@ import { Results } from './Results';
 const DebugPanel = lazy(() => import('./DebugPanel').then((m) => ({ default: m.DebugPanel })));
 import { AchievementToaster } from './AchievementToaster';
 import { PowerToaster } from './components/PowerToaster';
+import { RewardToaster } from './components/RewardToaster';
 import { AccountLevelToast } from './components/AccountXpBar';
 import { GenomePromotionCinematic } from './components/GenomeRankPanel';
 import { LootToaster } from './LootToaster';
@@ -484,6 +485,9 @@ export function App(): JSX.Element {
       {/* Off-menu, run-end milestones are shown inline on Results — suppress the floating toast so
           it never overlaps the summary. On the hub (e.g. a star-buy unlock) it toasts as usual. */}
       <AchievementToaster suppressed={screen !== 'menu'} />
+      {/* Claim receipts (docs/NOTIFICATIONS.md §claim-popups) — hub claims only, so the
+          popup can never cover a live run. */}
+      {screen === 'menu' && <RewardToaster />}
       {screen === 'menu' && <PowerToaster />}
       {/* Account level-ups earned off-run (star buys, molts …) celebrate here; run-settle level-ups
           render inline on Results instead, so the toaster only drains on the menu. */}

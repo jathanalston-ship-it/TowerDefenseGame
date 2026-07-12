@@ -218,7 +218,7 @@ export const MECHANICS: MechanicDef[] = [
     summary: 'Specialize a tower down a mutation path.', media: 'GIF: the branch tree',
     what: 'Branches are in-run specialization paths that re-author a tower with new firing behavior across five tiers.',
     why: 'They turn a generic tower into a build-defining specialist mid-run.',
-    where: 'Inspect a placed tower during a run to open its branch tree.',
+    where: 'Inspect a placed tower during a run — tap the tier pips to preview any tier (cost, mutation, projected stats) before you buy.',
     next: 'Match branches to the enemies you face and your Gene Card synergies.' },
   { id: 'adaptation', title: 'Adaptation & Antigen', category: 'Towers', nav: 'adaptation', links: ['towers', 'tower-mastery', 'tower-stars'],
     unlock: (s) => featureRevealed(s, 'adaptation'),

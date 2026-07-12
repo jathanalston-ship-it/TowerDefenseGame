@@ -4098,7 +4098,8 @@ export const meta = {
     });
     if (res.stamina > 0) this.grantRushStamina(res.stamina, now);
     this.grantPassXp('quest', QUEST_PASS_XP.mission, now); // directives feed the season (docs/BATTLEPASS.md §xp)
-    return res.lines;
+    // The receipt names the season credit too — the claim popup teaches the quests→pass loop.
+    return [...res.lines, { icon: '❁', label: `+${QUEST_PASS_XP.mission} Season XP` }];
   },
 
   /** Claim a completed quest's FINALE → receipt lines (null = not claimable). Earned-but-
@@ -4152,6 +4153,7 @@ export const meta = {
     // Auto-claimed missions pay their mission XP too — same rates as claiming them one by one.
     this.grantPassXp('quest', QUEST_PASS_XP.finale + autoClaimed * QUEST_PASS_XP.mission, now);
     this.evaluateAchievements();
+    lines.push({ icon: '❁', label: `+${QUEST_PASS_XP.finale + autoClaimed * QUEST_PASS_XP.mission} Season XP` });
     return lines;
   },
 

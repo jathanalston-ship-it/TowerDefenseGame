@@ -17,6 +17,7 @@ import type { PassReward, SeasonDef } from '../core/battlePass';
 import { seasonOfferFor } from '../core/premium';
 import { wardrobeItem, WARDROBE_RARITY_COLOR } from '../core/wardrobe';
 import { CurrencyIcon } from './components/CurrencyIcon';
+import { rewardToast } from '../state/rewardToast';
 import { audio } from '../audio/sound';
 import { adProvider } from '../ads/provider';
 
@@ -166,7 +167,6 @@ export function BattlePassScreen({ onStore }: { onStore?: () => void } = {}): JS
   const save = meta.use(); // re-render on claims / xp
   const [now, setNow] = useState(() => Date.now());
   const [sel, setSel] = useState<number | null>(null);
-  const [receipt, setReceipt] = useState<{ icon: string; label: string }[] | null>(null);
   const [unclaimedOnly, setUnclaimedOnly] = useState(false);
   const [burst, setBurst] = useState<{ level: number; track: 'free' | 'premium'; key: number } | null>(null);
   const burstTimer = useRef<number | null>(null);
@@ -193,10 +193,19 @@ export function BattlePassScreen({ onStore }: { onStore?: () => void } = {}): JS
     if (cell) host.scrollLeft = Math.max(0, cell.offsetLeft - host.clientWidth * 0.4);
   }, [view.level]);
 
+  // Claims present through the global claim popup (docs/NOTIFICATIONS.md §claim-popups):
+  // a bold itemized receipt naming the level — the cell burst stays as local juice.
   const claim = (track: 'free' | 'premium', level: number): void => {
     const lines = meta.claimPassLevel(track, level, Date.now());
     if (lines) {
-      setReceipt(lines);
+      rewardToast.push({
+        title: level === BP.levels ? 'The crown — level 100 claimed' : `Level ${level} ${track === 'premium' ? 'premium' : 'free'} reward claimed`,
+        name: season.name,
+        icon: season.glyph,
+        accent: season.accent,
+        big: level === BP.levels,
+        lines,
+      });
       audio.cue(level === BP.levels ? 'jackpot' : 'chest');
       // The claim BURST — a radial pop on the cell itself (re-keyed so chains re-fire).
       setBurst((b) => ({ level, track, key: (b?.key ?? 0) + 1 }));
@@ -205,8 +214,19 @@ export function BattlePassScreen({ onStore }: { onStore?: () => void } = {}): JS
     }
   };
   const claimAll = (): void => {
+    const count = view.claimableFree.length + view.claimablePremium.length;
     const lines = meta.claimAllPass(Date.now());
-    if (lines.length > 0) { setReceipt(lines); audio.cue('chest'); }
+    if (lines.length > 0) {
+      rewardToast.push({
+        title: 'Season rewards claimed',
+        name: `${count} level${count === 1 ? '' : 's'} — ${season.name}`,
+        icon: season.glyph,
+        accent: season.accent,
+        big: count >= 5,
+        lines,
+      });
+      audio.cue('chest');
+    }
   };
 
   const claimables = view.claimableFree.length + view.claimablePremium.length;
@@ -283,7 +303,27 @@ export function BattlePassScreen({ onStore }: { onStore?: () => void } = {}): JS
             <div className="bp-upsell-h">PREMIUM TRACK — {season.name}</div>
             <p>20 exclusive cosmetics, 10 permanent economy passives, premium containers, and the Level-100 crown. Levels 1, 50 and 99 are free tastes — claim them below.</p>
           </div>
-          <button className="primary bp-unlock" disabled={meta.get().ichor < BP.premiumIchor} onClick={() => { if (meta.buyPassPremium(Date.now())) audio.cue('jackpot'); }}>
+          <button
+            className="primary bp-unlock"
+            disabled={meta.get().ichor < BP.premiumIchor}
+            onClick={() => {
+              if (meta.buyPassPremium(Date.now())) {
+                rewardToast.push({
+                  title: 'Premium track unlocked',
+                  name: season.name,
+                  icon: season.glyph,
+                  accent: season.accent,
+                  big: true,
+                  nav: null, // already on the season screen — the track below just lit up
+                  lines: [
+                    { icon: '❖', label: '20 exclusive cosmetics + 10 permanent passives now claimable' },
+                    { icon: '★', label: 'Every premium level you have already reached is ready below' },
+                  ],
+                });
+                audio.cue('jackpot');
+              }
+            }}
+          >
             Unlock · <CurrencyIcon id="ichor" size={13} title="" /> {BP.premiumIchor}
           </button>
           {onStore && (() => {
@@ -295,15 +335,6 @@ export function BattlePassScreen({ onStore }: { onStore?: () => void } = {}): JS
               </button>
             );
           })()}
-        </div>
-      )}
-
-      {receipt && (
-        <div className="bp-receipt" role="status" onClick={() => setReceipt(null)}>
-          {receipt.slice(0, 8).map((l, i) => (
-            <span key={i} style={{ ['--i' as string]: i } as CSSProperties}>{l.icon} {l.label}</span>
-          ))}
-          {receipt.length > 8 && <span style={{ ['--i' as string]: 8 } as CSSProperties}>+{receipt.length - 8} more</span>}
         </div>
       )}
 

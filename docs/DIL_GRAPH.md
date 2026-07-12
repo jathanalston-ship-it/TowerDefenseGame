@@ -1,6 +1,6 @@
 # DIL_GRAPH.md — the Design Intelligence Layer (GENERATED — `npm run dil -- regen`)
 
-> **The project's brain** (docs/DIL.md). 769 nodes · 1409 edges, built from the live
+> **The project's brain** (docs/DIL.md). 769 nodes · 1410 edges, built from the live
 > registries + curated knowledge (src/dev/dil/). **Query it instead of searching the repo:**
 > `npm run dil -- node <id>` · `affects <id>` · `requires <id>` · `missing <kind> <edge>` ·
 > `checklist tower <kind>` · `find <text>`. Edge kinds are bidirectional (19 kinds).
@@ -193,6 +193,7 @@ graph LR
   concept_power_score["Power Score"] -->|displays| system_campaign["Campaign"]
   system_account_level["Account Level (evergreen meta-progression)"] -->|provides| system_loot["Loot & Bio-Containers"]
   system_contracts["Champion Contracts"] -->|provides| system_genome_rank["Genome Rank (ultimate mastery ladder)"]
+  system_notifications["Notifications"] -->|provides| system_hub_shell["Hub Shell & Home"]
 ```
 
 ### Determinism Map
@@ -460,6 +461,7 @@ graph LR
   system_battle_pass["Battle Pass (Season)"] -->|consumes| system_premium["Premium Store"]
   system_quests["Quests & Missions"] -->|consumes| system_battle_pass["Battle Pass (Season)"]
   system_quests["Quests & Missions"] -->|consumes| system_cosmetics["The Wardrobe (Cosmetics)"]
+  system_notifications["Notifications"] -->|provides| system_hub_shell["Hub Shell & Home"]
   system_idle_harvest["Idle Harvest"] -->|consumes| system_genome_rank["Genome Rank (ultimate mastery ladder)"]
   system_towers["Towers, Stars, Branches, Strain & Codex"] -->|consumes| system_engine["Sim Engine"]
   system_hero_symbiotes["Hero Symbiotes"] -->|consumes| system_engine["Sim Engine"]
@@ -704,7 +706,7 @@ _at: src/core/game.ts, src/core/combat.ts, src/core/status.ts, src/core/targetin
   - requiredBy ← `system:mega-bosses`
   - requiredBy ← `system:rendering`
   - requiredBy ← `system:living-battlefield`
-  - _…183 more (query: `npm run dil -- node system:engine`)_
+  - _…182 more (query: `npm run dil -- node system:engine`)_
 
 ### `system:content-infra` — Content Infrastructure
 
@@ -1774,7 +1776,7 @@ _at: src/ui/Hub.tsx, src/ui/navModel.ts, src/ui/MobileShell.tsx, src/ui/CommandC
   - documentedBy ← `doc:HUD.md`
   - documentedBy ← `doc:PROGRESSION-LOOP.md`
   - testedBy ← `test:src/state/nextGoal.test.ts`
-  - _…7 more (query: `npm run dil -- node system:hub-shell`)_
+  - _…8 more (query: `npm run dil -- node system:hub-shell`)_
 
 ### `system:run-ui` — In-Run HUD & Results
 
@@ -1796,14 +1798,16 @@ _at: src/ui/GameView.tsx, src/ui/Hud.tsx, src/ui/Toolbar.tsx, src/ui/BuildContro
 
 ### `system:notifications` — Notifications
 
-Generic menu badges: registered count(save) sources per nav channel.
+Generic menu badges (registered count(save) sources per nav channel) + the global claim popup every hub claim receipts through.
 
-_at: src/state/notifications.ts, src/state/notificationSources.ts_
+_at: src/state/notifications.ts, src/state/notificationSources.ts, src/state/rewardToast.ts, src/ui/components/RewardToaster.tsx_
 
   - dependsOn → `system:meta-store`
+  - provides → `system:hub-shell` — THE CLAIM POPUP (2026-07, NOTIFICATIONS.md §claim-popups): every hub claim — quest missions/finales, pass levels/claim-all/premium unlock, weekly directives, wardrobe milestones — pushes its PremiumReceiptLine[] to state/rewardToast; ONE RewardToaster (App, menu only) presents it bold + itemized. The "view it" jump derives from receipt ICONS (single-sourced in meta.applyRewardList/rewardLabel — change an icon there and update rewardToast DESTINATIONS) and routes via navBus. Ceremonial reveals (BioCache, VaultReveal, WardrobeReveal, PremiumStore, SpoilsCard, GenomePromotion) deliberately stay bespoke — the popup is the RECEIPT layer, not the ceremony layer
   - requiredBy ← `system:hub-shell`
   - documentedBy ← `doc:NOTIFICATIONS.md`
   - testedBy ← `test:src/state/notifications.test.ts`
+  - testedBy ← `test:src/state/rewardToast.test.ts`
 
 ### `system:prediction` — Progress Prediction
 
@@ -3495,7 +3499,6 @@ _at: site/guides.ts → /guides/prestige/_
 - `test:src/state/mulliganOverhaul.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/state/nemesis.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/state/nextGoal.test.ts` — automated validation _(tests `system:hub-shell`)_
-- `test:src/state/notificationSources.season.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/state/notifications.test.ts` — automated validation _(tests `system:notifications`)_
 - `test:src/state/patchNotes.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/state/powerAtlas.test.ts` — automated validation _(tests `system:power`)_
@@ -3513,6 +3516,7 @@ _at: site/guides.ts → /guides/prestige/_
 - `test:src/state/questsMeta.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/state/research.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/state/rewardEligibility.test.ts` — automated validation _(tests `system:engine`)_
+- `test:src/state/rewardToast.test.ts` — automated validation _(tests `system:notifications`)_
 - `test:src/state/rushStamina.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/state/stats.test.ts` — automated validation _(tests `system:stats`)_
 - `test:src/state/tutorialRewards.test.ts` — automated validation _(tests `system:engine`)_

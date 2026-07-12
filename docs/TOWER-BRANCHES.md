@@ -164,15 +164,22 @@ pre-lock. The lock logic (`branchId` pin) already enforces "one path per instanc
 5. Visual/audio feedback per tier: the tower's on-canvas appearance mutates (cosmetic
    tier), a splice sfx fires, and a mutation burst plays at the tower.
 
-**Panel layout (the redesigned Tower Inspect).** The **upgrade tree is the centerpiece**:
-each branch is a *lane* (a ladder of all its tiers), rendered generically from
-`branchTreeView` (`core/branchTree.ts`) so adding a branch or changing a tier count needs
-**zero UI changes**. Around it: the **current branch + tier** summary, a branch-folded
-**Current Stats** readout (`branchStatsView` folds the per-instance kit onto the base def —
-DPS/range/rate/targets climb as tiers are bought), the **lock warning** (pre-commit note +
-the Tier-1 modal), per-tier **costs**, the highlighted **next tier** with an inline preview,
-dimmed **future** tiers, and — once committed — the other lane(s) collapsed to a **LOCKED
-OUT** bar. Pure presentation: the tree/stats are derived, the sim is untouched.
+**Panel layout (the compact Tower Inspect — 2026-07 de-scroll).** The **tree is the
+centerpiece and sits directly under the title** so the next buy is in hand without
+scrolling. Each branch lane renders as a card: header (name + `PATH T2/5` / `CHOOSE` /
+`COMPARE` tag), theme line, a **horizontal five-pip tier TRACK** (owned ✓ / glowing next /
+dim future — the whole ladder at a glance), and **one detail card for the SELECTED tier**
+(default: the buyable one) with its mutation text, cost, **projected stat deltas**
+(`statDeltas` over `branchStatsView` — "DPS ~8 → ~63") and the buy/splice button. **Tap any
+pip to preview that tier** without scrolling. Pre-lock, only the **focused** lane opens its
+detail (tap the other card to flip focus — headers/themes/tracks stay visible for the
+comparison); Tier 1 warns via a one-line note + the commit modal. Once committed the other
+lane(s) collapse to a **LOCKED OUT** bar. The old six-row stat grid is a one-line **stat
+strip**; Strain/Mulligan/Mastery fold into a collapsed **Host vitals** `<details>`;
+Move/Sell/Done share one row. Mobile (≤900px bands): the mutate panel gets a taller cap
+(304px) so the buy button never hides in a letterbox. All rendered generically from
+`branchTreeView` (`core/branchTree.ts`) — adding a branch or changing tier counts needs
+**zero UI changes**. Pure presentation: the tree/stats are derived, the sim is untouched.
 
 ---
 

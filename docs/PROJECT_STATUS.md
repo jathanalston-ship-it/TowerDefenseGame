@@ -3,7 +3,25 @@
 > Maintained at the END of every session (paired with `docs/AI_HANDOFF.md` — the constitution's
 > workflow step 4). This is the "where are we?" answer; `docs/GAME-STATE.md` remains the deeper
 > per-system built-vs-planned index, `docs/PROJECT_MANIFEST.md` the system map.
-> **Last updated:** 2026-07-11 (**HERO SYMBIOTE SYSTEM** — the champion wing of the
+> **Last updated:** 2026-07-12 (**CLAIM-POPUP NOTIFICATION LAYER + MUTATION PANEL
+> DE-SCROLL** — docs/NOTIFICATIONS.md §claim-popups: ONE bold itemized receipt popup
+> (`state/rewardToast.ts` bus + `RewardToaster`, menu-only in App) now presents every hub
+> claim — quest missions/finales (+`+N Season XP` line teaching the quests→pass loop),
+> season-pass levels/claim-all/premium unlock, weekly directives (previously SILENT, now
+> also cued), wardrobe milestones — with icon-derived "view it →" jumps (containers→Vault,
+> cosmetics→Wardrobe, essence→Gene Archive) via navBus; per-screen `bp-receipt` strips
+> removed; ceremonies (BioCache/Vault/WardrobeReveal/Store/Spoils/Genome) deliberately stay
+> bespoke. And the in-run Tower Mutation panel de-scrolled (docs/TOWER-BRANCHES.md §3):
+> BranchTree = five-pip tier track + ONE selected-tier detail card (tap any pip → cost,
+> mutation text, projected stat deltas via `statDeltas`/`branchStatsView`), pre-lock
+> lane-focus compare (CHOOSE/COMPARE), tree directly under the title, one-line stat strip,
+> Host-vitals `<details>` fold, Move/Sell/Done one row, mobile 304px cap — the buy/splice
+> is above the fold everywhere. No sim/save/Power changes (goldens byte-identical). Suite
+> 1986 (+5 rewardToast), validate PASS, live headless smoke: toast small/big/queue/nav,
+> pre-lock compare, pip preview, splice→T2 evolve, 620px band — 15 screenshots reviewed.
+> Previous session below.)
+>
+> **2026-07-11** (**HERO SYMBIOTE SYSTEM** — the champion wing of the
 > Mulligan pillar, docs/HERO-SYMBIOTES.md: every hero hosts 3 gated slots × 3 organ seats
 > from a 36-species catalog (behavior-verb kit, structurally unable to duplicate Hero
 > Equipment stats); per-slot Complete Hero Adaptations; category-census Resonance; per-hero

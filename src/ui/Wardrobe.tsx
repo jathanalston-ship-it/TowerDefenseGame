@@ -14,6 +14,7 @@ import {
 import type { WardrobeGroup, WardrobeItemDef, WardrobeKindDef } from '../core/wardrobe';
 import { PhenotypeLab } from './PhenotypeLab';
 import { CurrencyIcon } from './components/CurrencyIcon';
+import { rewardToast } from '../state/rewardToast';
 import { audio } from '../audio/sound';
 
 type Tab = 'skins' | WardrobeGroup | 'boutique' | 'milestones';
@@ -177,16 +178,10 @@ function BoutiqueTab(): JSX.Element {
 
 function MilestonesTab(): JSX.Element {
   meta.use(); // re-render on claims
-  const [lines, setLines] = useState<{ icon: string; label: string }[] | null>(null);
   const rows = meta.wardrobeMilestones();
   return (
     <div className="wd-miles">
       <p className="panel-sub">Codex ranks pay out here — Ichor, containers, cores, shards, and milestone-exclusive cosmetics. Cosmetic-first by design.</p>
-      {lines && (
-        <div className="wd-miles-receipt" role="status">
-          {lines.map((l, i) => <span key={i}>{l.icon} {l.label}</span>)}
-        </div>
-      )}
       {rows.map(({ def, state, at }) => (
         <div className={`wd-mile is-${state}`} key={def.id}>
           <div className="wd-mile-body">
@@ -198,7 +193,12 @@ function MilestonesTab(): JSX.Element {
             disabled={state !== 'claimable'}
             onClick={() => {
               const got = meta.claimWardrobeMilestone(def.id);
-              if (got) { setLines(got); audio.cue('achieve'); }
+              // The receipt presents through the global claim popup (docs/NOTIFICATIONS.md
+              // §claim-popups); milestone cosmetics keep their WardrobeReveal ceremony on top.
+              if (got) {
+                rewardToast.push({ title: 'Milestone reward claimed', name: def.name, nav: null, lines: got });
+                audio.cue('achieve');
+              }
             }}
           >
             {state === 'claimed' ? 'CLAIMED ✓' : state === 'claimable' ? 'Claim' : 'Locked'}
