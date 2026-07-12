@@ -4,6 +4,8 @@ import type { RunMode } from '../core/game';
 import type { StageConfig } from '../core/campaign';
 import { drawGame } from '../render/renderer';
 import type { Pointer, MulliganRender } from '../render/renderer';
+import { setGoreAnchors } from '../render/gore';
+import { WIDTH as BOARD_W, HEIGHT as BOARD_H } from '../core/map';
 import { getAssimilationDebug } from '../render/livingBattlefield';
 import { resolveMulligan } from '../core/mulligan';
 import type { MulliganState } from '../core/mulligan';
@@ -210,6 +212,37 @@ export function GameView({
     const t = setTimeout(() => setGeneSplash([]), 3200);
     return () => clearTimeout(t);
   }, [geneSplash.length]);
+
+  // Gore anchor calibration (render/gore.ts setGoreAnchors): project the REAL biomass + loot HUD
+  // cells into BOARD coordinates so reward streams aim at the actual readouts on EVERY layout.
+  // On desktop the canvas is a centered, aspect-locked strip — the meters sit outside it, so the
+  // setter clamps each point to the arena edge nearest its meter (the stream points AT the cell
+  // instead of at a portrait-tuned fixed fraction). Re-measured on resize; defaults on unmount.
+  useEffect(() => {
+    const measure = (): void => {
+      const cv = canvasRef.current;
+      if (!cv) return;
+      const rect = cv.getBoundingClientRect();
+      if (rect.width < 10 || rect.height < 10) return;
+      const toBoard = (el: Element | null): { x: number; y: number } | null => {
+        if (!el) return null;
+        const b = el.getBoundingClientRect();
+        if (b.width === 0) return null; // hidden variant (other layout) — fall back
+        return {
+          x: ((b.x + b.width / 2 - rect.x) / rect.width) * BOARD_W,
+          y: ((b.bottom - rect.y) / rect.height) * BOARD_H + 10,
+        };
+      };
+      setGoreAnchors({
+        biomass: toBoard(document.querySelector('[data-tut="biomass"]')),
+        assim: toBoard(document.querySelector('.hud-loot')),
+      });
+    };
+    measure();
+    const settle = setTimeout(measure, 700); // once more after the HUD settles
+    window.addEventListener('resize', measure);
+    return () => { clearTimeout(settle); window.removeEventListener('resize', measure); setGoreAnchors({}); };
+  }, []);
 
   const [hud, setHud] = useState<HudSnapshot>(() => game.getSnapshot());
   const [crashed, setCrashed] = useState<string | null>(null);

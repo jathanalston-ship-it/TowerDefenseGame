@@ -202,3 +202,23 @@ exhausted. (3) The Armory's empty state told players to "grant some from the deb
 visible). Wardrobe: a "Wear all N — skip the ceremony" escape appears whenever more than two
 reveals remain; one tap banks the rest (verified live: cleared a 15-deep chain). Armory: the
 empty state now points at runs + Bio-Containers.
+
+## 2026-07-12 — Desktop run HUD: gore streams aimed at nothing + crushed conveyor pods
+
+**Symptom.** On desktop, biomass motes and assimilation chunks flew to two arbitrary points
+along the top of the board ("mobile-layout destinations") while tower-bound shards were fine;
+conveyor pods rendered their three actions as "D… S… ⚙…".
+
+**Root cause.** (1) The gore coalescing destinations were FIXED board-space fractions
+(`0.8·WIDTH / 0.52·WIDTH, y=14`) tuned for the portrait layout, where the full-width canvas
+sits directly beneath the top meters. Desktop letterboxes the 720×960 board into a centered
+strip (~380px at 768p), so those fractions align with no HUD cell. (2) The ready-reflow fix
+pinned conveyor pods at a constant 132px (`.cv-actions { width: 0; min-width: 100% }`), too
+narrow for three labeled buttons.
+
+**Fixes.** (1) `setGoreAnchors` (render/gore.ts): GameView projects the REAL `[data-tut=
+"biomass"]` and `.hud-loot` cells into board coordinates (clamped to the arena's top band) on
+mount/resize — streams now land at the arena edge nearest each actual readout on every layout,
+portrait defaults preserved as fallback. (2) Pods stay width-constant but desktop widens them
+(`[data-layout='desktop'] .cv-slot { min-width: 240px }` + label-weighted button flex) —
+"Deploy FREE / Strain N / ♻ N" verified fully legible in a live 1366×768 run.

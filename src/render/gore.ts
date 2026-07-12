@@ -32,11 +32,28 @@ function shade(hex: string, f: number): string {
 
 const BIOMASS_COL = '182,232,74'; // the biomass green
 const ASSIM_COL = '201,139,255'; // the bio-container violet
-// Coalescing DESTINATIONS — inside the visible arena at its top edge, horizontally beneath the
-// real HUD cells (biomass readout right-of-center, container meter mid-left). ON-SCREEN by
-// design: a chunk must visibly ARRIVE, orbit, and be consumed — never exit the canvas and die.
-const BIOMASS_TARGET = { x: WIDTH * 0.8, y: 14 };
-const ASSIM_TARGET = { x: WIDTH * 0.52, y: 14 };
+// Coalescing DESTINATIONS — inside the visible arena at its top edge, aimed at the REAL HUD
+// meters. The defaults approximate the portrait layout (meters directly above the full-width
+// canvas); GameView calibrates per layout by projecting the actual biomass/loot DOM cells into
+// board space (setGoreAnchors) — on desktop's centered, letterboxed canvas the streams land at
+// the arena edge NEAREST each readout instead of a fixed fraction that matches no layout.
+// ON-SCREEN by design: a chunk must visibly ARRIVE, orbit, and be consumed — never exit the
+// canvas and die (it physically can't reach a DOM meter outside the board).
+const DEFAULT_BIOMASS_TARGET = { x: WIDTH * 0.8, y: 14 };
+const DEFAULT_ASSIM_TARGET = { x: WIDTH * 0.52, y: 14 };
+let BIOMASS_TARGET = { ...DEFAULT_BIOMASS_TARGET };
+let ASSIM_TARGET = { ...DEFAULT_ASSIM_TARGET };
+
+/** Calibrate the HUD-bound stream destinations (BOARD coordinates). Points are clamped into
+ *  the arena's top band; null/omitted restores a stream's portrait-tuned default. */
+export function setGoreAnchors(a: { biomass?: { x: number; y: number } | null; assim?: { x: number; y: number } | null }): void {
+  const clamp = (p: { x: number; y: number }): { x: number; y: number } => ({
+    x: Math.max(24, Math.min(WIDTH - 24, p.x)),
+    y: Math.max(12, Math.min(90, p.y)),
+  });
+  BIOMASS_TARGET = a.biomass ? clamp(a.biomass) : { ...DEFAULT_BIOMASS_TARGET };
+  ASSIM_TARGET = a.assim ? clamp(a.assim) : { ...DEFAULT_ASSIM_TARGET };
+}
 const GORE_REF_BOUNTY = 12; // a mid-tier bounty ⇒ relScale ≈ 1
 const CAP = 520; // total live pieces (perf ceiling)
 const HOMING_FAILSAFE = 4; // seconds — a homing chunk may cross the whole board; life is a leak-guard, NOT a fade

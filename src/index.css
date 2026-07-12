@@ -741,6 +741,9 @@ button:disabled {
   display: flex;
   flex-direction: column;
   gap: 4px;
+  /* Pod width is CONSTANT (growing and ready states share it — the ready-reflow contract in
+     .cv-actions below). 132px is the compact-layout floor; desktop widens below so the three
+     action labels ("Deploy FREE" / "Strain N" / "♻ N") never crush into ellipses. */
   min-width: 132px;
   padding: 6px 9px 7px;
   border-radius: var(--r-sm);
@@ -777,6 +780,11 @@ button:disabled {
   box-shadow: 0 0 9px 0 color-mix(in srgb, var(--cv) 70%, transparent);
 }
 .cv-slot:hover { transform: translateY(-1px); }
+/* Desktop toolbar has acres of free width — give pods full-label room. Shares are weighted by
+   label length: "Deploy FREE" (the longest) > "Strain 120" > "♻ 50". */
+[data-layout='desktop'] .cv-slot { min-width: 240px; }
+[data-layout='desktop'] .cv-btn.cv-deploy { flex: 1.8; }
+[data-layout='desktop'] .cv-btn.cv-strainb { flex: 1.2; }
 .cv-slot.is-armed {
   transform: translateY(-2px);
   border-color: var(--cv);
