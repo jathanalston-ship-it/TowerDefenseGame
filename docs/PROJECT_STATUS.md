@@ -3,7 +3,27 @@
 > Maintained at the END of every session (paired with `docs/AI_HANDOFF.md` — the constitution's
 > workflow step 4). This is the "where are we?" answer; `docs/GAME-STATE.md` remains the deeper
 > per-system built-vs-planned index, `docs/PROJECT_MANIFEST.md` the system map.
-> **Last updated:** 2026-07-12 (**CLAIM-POPUP NOTIFICATION LAYER + MUTATION PANEL
+> **Last updated:** 2026-07-12 (**MEGA-TARGETING FIX + CAMPAIGN DIFFICULTY RESCALE** —
+> two arcs, four batches (0fd3d2d/3844852/933e80b/0edce9a). (1) Mega raids were untargetable
+> by most of the arsenal: organ descent band recalibrated to the REAL slot grid
+> (MEGA.minWeakPointY..maxWeakPointY 560–700, bodyBandY 580, validator-enforced ± both
+> bounds), Siphon organ-tether/body legs + Coil body chip (both feed the ADAPT ledger), hero
+> `heroMegaRaid` seek duty. (2) The economy-vs-curve rescale (docs/DIFFICULTY.md §curve):
+> Bio-Container meter DORMANT until the first mega kill (`hasSlainMega`; run/stage caches
+> unaffected; sim world-model mirrors the cadence via the real megaKilled event); piecewise
+> EHP curve (5% 1–8 · 20% 9–25 · 5% after, `hpMultFor`); honest ×1.8 raid-premium bar on
+> mega stages (sawtooth ladder pinned by progressionLoop invariant 1); probe-discovered
+> HIVE-GUARDIAN OVERRIDE (`megaRaidYield` — raid duty yields while the Core is threatened;
+> stage 10 was unwinnable at ×3 without it, BUGFIX-LOG #14); Boss Rush gate 10→9; gene/hero/
+> nucleus stage gates reviewed + kept (decisions in §curve). Evidence: baseline/post-gate/
+> final BALANCE_REPORT runs, fair-pilot contract probe 1–30 (table holds vs displayed bars),
+> acceptance probe (Average first-walls ~25 at 0.90×, Efficient 0.96×, fresh-bot 10h stage
+> 62→29), live headless probe (dormant/awakened meter, on-screen premium bar == derivation).
+> Suite 1991 green ×4 batches, goldens byte-identical throughout, validate PASS, mobilecheck
+> CLEAN. Watch items: stage-28 band heat; possible dormant-meter teaser copy. Previous
+> session below.)
+>
+> **2026-07-12** (**CLAIM-POPUP NOTIFICATION LAYER + MUTATION PANEL
 > DE-SCROLL** — docs/NOTIFICATIONS.md §claim-popups: ONE bold itemized receipt popup
 > (`state/rewardToast.ts` bus + `RewardToaster`, menu-only in App) now presents every hub
 > claim — quest missions/finales (+`+N Season XP` line teaching the quests→pass loop),

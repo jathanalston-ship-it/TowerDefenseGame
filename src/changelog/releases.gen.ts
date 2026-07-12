@@ -715,6 +715,18 @@ export const RELEASES: Release[] = [
       {
         "cat": "UI",
         "text": "Chronicle + regenerated graphs for the claim-popup + mutation-panel overhaul"
+      },
+      {
+        "cat": "Mega Bosses",
+        "text": "Fix mega-boss raid targeting: geometry, beam legs, hero raid duty"
+      },
+      {
+        "cat": "Mega Bosses",
+        "text": "Gate the Bio-Container meter behind the first Mega Boss kill"
+      },
+      {
+        "cat": "Gameplay",
+        "text": "Re-anchor the campaign curve: compensation band, raid-honest bars, hive-guardian override"
       }
     ]
   },

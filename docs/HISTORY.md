@@ -172,3 +172,7 @@
 - `a9d721d` **[Website]** Chronicle + site for the Season Pass badge
 - `e11081a` **[Towers]** Claim-receipt popups everywhere + de-scrolled tower mutation panel
 - `0ca4596` **[UI]** Chronicle + regenerated graphs for the claim-popup + mutation-panel overhaul
+- `0fd3d2d` **[Mega Bosses]** Fix mega-boss raid targeting: geometry, beam legs, hero raid duty
+- `3844852` **[Mega Bosses]** Gate the Bio-Container meter behind the first Mega Boss kill
+- `933e80b` **[Gameplay]** Re-anchor the campaign curve: compensation band, raid-honest bars, hive-guardian override
+- ⚑ `0edce9a` **[Framework]** Rescale validation docs: probe evidence, gate references, bugfix log _(internal)_

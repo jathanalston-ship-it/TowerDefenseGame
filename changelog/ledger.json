@@ -1,6 +1,6 @@
 {
-  "lastSha": "0ca4596e71c1c707f61570c7ce0e5f5f0e303971",
-  "commitsSinceDraft": 5,
+  "lastSha": "0edce9a3cafd5ae44f617de640dcd83f51b1d304",
+  "commitsSinceDraft": 9,
   "content": {
     "tower": [
       "needle",
@@ -2183,6 +2183,18 @@
         {
           "cat": "UI",
           "text": "Chronicle + regenerated graphs for the claim-popup + mutation-panel overhaul"
+        },
+        {
+          "cat": "Mega Bosses",
+          "text": "Fix mega-boss raid targeting: geometry, beam legs, hero raid duty"
+        },
+        {
+          "cat": "Mega Bosses",
+          "text": "Gate the Bio-Container meter behind the first Mega Boss kill"
+        },
+        {
+          "cat": "Gameplay",
+          "text": "Re-anchor the campaign curve: compensation band, raid-honest bars, hive-guardian override"
         }
       ]
     }
@@ -3467,6 +3479,38 @@
       "text": "Chronicle + regenerated graphs for the claim-popup + mutation-panel overhaul",
       "internal": false,
       "needsReview": false
+    },
+    {
+      "sha": "0fd3d2d6abfc2cc9589c05a8cdfc83dcc09d4e54",
+      "date": "2026-07-12",
+      "cat": "Mega Bosses",
+      "text": "Fix mega-boss raid targeting: geometry, beam legs, hero raid duty",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "384485296b8b4e45218d6a56ac297cf21b8dac69",
+      "date": "2026-07-12",
+      "cat": "Mega Bosses",
+      "text": "Gate the Bio-Container meter behind the first Mega Boss kill",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "933e80b1b3fa9402291a8759a0d27b1a66790c7e",
+      "date": "2026-07-12",
+      "cat": "Gameplay",
+      "text": "Re-anchor the campaign curve: compensation band, raid-honest bars, hive-guardian override",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "0edce9a3cafd5ae44f617de640dcd83f51b1d304",
+      "date": "2026-07-12",
+      "cat": "Framework",
+      "text": "Rescale validation docs: probe evidence, gate references, bugfix log",
+      "internal": true,
+      "needsReview": true
     }
   ]
 }

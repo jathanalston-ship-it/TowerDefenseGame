@@ -4,130 +4,94 @@
 > before committing. Read together with docs/PROJECT_STATUS.md and the latest
 > docs/VALIDATION_REPORT.md. Next session: start at docs/PROJECT_MANIFEST.md.
 
-- **Generated:** 2026-07-12 19:17 UTC · **Diff scope:** working tree vs HEAD
-- **Branch:** claude/zen-hawking-rh1gxl · **HEAD:** 7f52273
+- **Generated:** 2026-07-12 23:09 UTC · **Diff scope:** working tree vs HEAD
+- **Branch:** claude/zen-hawking-rh1gxl · **HEAD:** 0edce9a
 
 ## Summary of work completed
 
-Two UX overhauls, no sim/save/balance changes. **(1) Claim-popup notification layer:**
-every hub claim (quest missions/finales, season-pass levels/claim-all/premium unlock,
-weekly directives — which had ZERO feedback — and wardrobe milestones) now presents through
-ONE bold itemized popup (`state/rewardToast.ts` bus + `ui/components/RewardToaster.tsx`,
-mounted menu-only in App). It shows exactly what was received, appends the `+N Season XP`
-credit on quest claims, and derives a "view it →" jump (containers→Vault,
-cosmetics→Wardrobe, essence→Gene Archive) routed via navBus. The per-screen `bp-receipt`
-strips were removed. **(2) Tower mutation panel de-scroll:** `BranchTree` is now a compact
-pip-track + single tier-detail card (tap any pip to preview cost/mutation/projected stat
-deltas); pre-lock only the focused lane opens its detail (tap the other card to compare);
-the Inspector puts the tree directly under the title, compresses stats to one strip, folds
-Strain/Mulligan/Mastery into a `<details>` Host-vitals, and merges Move/Sell/Done into one
-row. The buy/splice action is above the fold at 900p/1080p and mobile gets a 304px cap.
-**The one thing to know:** ceremonial reveals (BioCache, VaultReveal, WardrobeReveal,
-PremiumStore, SpoilsCard, Genome promotions) deliberately stay bespoke — the popup is the
-RECEIPT layer; don't migrate them into it.
+Two shipped arcs. (1) **Mega-boss raid targeting fix** (0fd3d2d): the raid geometry was
+authored for a board that doesn't exist — organs/body band recalibrated to the real slot grid
+(descent band 560–700, body band 580, validator-enforced), Siphon/Coil beams gained mega legs,
+heroes gained `heroMegaRaid` seek duty. (2) **Campaign rescale** (3844852 → 933e80b → 0edce9a):
+the Bio-Container meter is DORMANT until the account's first mega kill; the EHP curve is
+piecewise (5%/stage 1–8, 20%/stage 9–25, 5% after — recommendedPower still derives from the
+same hpMult); mega stages display an honest ×1.8 raid-premium bar; the probe-discovered
+**hive-guardian override** (`megaRaidYield`) makes raid duty yield while the Core is
+threatened; Boss Rush gate moved 10→9. The one thing to know: **the requirement ladder is now
+a sawtooth** (raid spikes on every 10th stage) — `progressionLoop.test.ts` invariant 1 pins
+its shape; don't "fix" the post-mega dip.
 
 ## Files modified
 
-- Source (14): `src/dev/dil/knowledge.ts`, `src/dev/systemRegistry.ts`, `src/index.css`, `src/state/mechanics.ts`, `src/state/meta.ts`, `src/ui/App.tsx`, `src/ui/BattlePassScreen.tsx`, `src/ui/Inspector.tsx`, `src/ui/QuestBoard.tsx`, `src/ui/Wardrobe.tsx`, `src/ui/components/BranchTree.tsx`, `src/ui/components/DirectivesCard.tsx`, `src/state/rewardToast.ts`, `src/ui/components/RewardToaster.tsx`
-- Tests (1): `src/state/rewardToast.test.ts`
-- Docs (6): `docs/DEPENDENCY_GRAPH.md`, `docs/DIL_GRAPH.md`, `docs/NOTIFICATIONS.md`, `docs/PROJECT_MANIFEST.md`, `docs/TOWER-BRANCHES.md`, `docs/VALIDATION_REPORT.md`
+- Source (1): `src/changelog/releases.gen.ts`
+- Tests (0): —
+- Docs (2): `docs/BALANCE_REPORT.md`, `docs/HISTORY.md`
 
 ## Systems affected (from the dependency registry)
 
-- **battle-pass** — `src/ui/BattlePassScreen.tsx`
-- **cosmetics** — `src/ui/Wardrobe.tsx`
-- **dev-registry** — `src/dev/dil/knowledge.ts`, `src/dev/systemRegistry.ts`
-- **directives** — `src/ui/components/DirectivesCard.tsx`
-- **hub-shell** — `src/ui/App.tsx`
-- **meta-store** — `src/state/meta.ts`
-- **notifications** — `src/state/rewardToast.ts`, `src/ui/components/RewardToaster.tsx`
-- **onboarding** — `src/state/mechanics.ts`
-- **quests** — `src/ui/QuestBoard.tsx`
-- **run-ui** — `src/ui/Inspector.tsx`
-- **towers** — `src/ui/components/BranchTree.tsx`
-- Consumer ring (verify, unchanged): account-level, accounts, chronicle, contracts, cutscenes, daily, daily-login, devtools, engine, expeditions, field-research, genome-rank, hero-symbiotes, hive-construction, idle-harvest, infestation, liveops, mulligans, nemesis, net-backend, nucleus, pil, profile, progression-gating, security
+- **chronicle** — `src/changelog/releases.gen.ts`
 
 ## Power Score changes
 
-None. `meta.ts` changes are receipt-line appends only (`+N Season XP` on quest claims —
-display strings; `grantPassXp` was already called). No scoring, buckets, or preview
-surfaces moved; power/preview tests untouched and green.
+None — no Power-relevant system touched. (The rescale changes REQUIREMENTS, not Power
+income; `recommendedPowerScore` consumers all follow the new curve automatically.)
 
 ## UI changes
 
-- **New:** `RewardToaster` — center band below `.achv-stack` (top 88px, z 492), one popup
-  at a time, `+N` chip for queued receipts, itemized rarity-tinted lines (≤7 + "+N more"),
-  optional nav chip, `role="status"`, reduced-motion safe, `--dur`/`--ease` tokens only.
-- **QuestBoard / BattlePassScreen:** claims push the popup; local `bp-receipt` strips
-  removed (CSS pruned; `bp-pop` keyframe kept — the popup's lines reuse it). Claim bursts
-  on the cell/cursor kept as local juice. Premium unlock pushes a big popup.
-- **DirectivesCard:** claims now popup + `audio.cue('chest'|'jackpot')` (was silent).
-- **Wardrobe milestones:** claims popup (nav: null); `wd-miles-receipt` strip removed.
-- **Inspector (mutate):** order is the design — title → branch/tier summary → one-line
-  stat strip → one-line lock note → BranchTree → Host-vitals `<details>` → Move/Sell/Done
-  row. `Done` button folded into the manage row; `branch-done` CSS removed.
-- **BranchTree:** pip track (28px-min tap targets, aria-pressed) + `TierDetail` card with
-  projected `statDeltas` ("DPS ~8 → ~63"); pre-lock lane focus (CHOOSE/COMPARE tags);
-  committed lane pins; locked-out lanes stay slim bars.
-- **Headless smoke coverage:** scripted Chromium run (scratchpad) drove the real app —
-  toast small/big/queue/nav-to-Vault, pre-lock compare, T4 pip preview, splice confirm,
-  T2 evolve, host-vitals fold, 620px mobile band. 15 screenshots reviewed; panel overflow
-  measured (pre-lock decision fully above the fold at 752px/572px client heights).
+Surfaces in the blast radius: `App (UpdateBriefing popup)`
+
+The chronicle batch itself is docs-only. Earlier batches this session (already pushed +
+smoke-verified live): the LootMeter HUD cell hides while dormant and reveals on the first
+mega kill (What's-New row `loot-meter`), and the campaign map shows the premium'd stage-10
+bar — verified headless (dormant hidden / awakened present / on-screen bar == derivation).
 
 ## Documentation changes
 
-- Updated: `docs/NOTIFICATIONS.md` (new §claim-popups — canonical for the popup),
-  `docs/TOWER-BRANCHES.md` §3 (compact panel layout), `docs/PROJECT_MANIFEST.md`
-  (Notifications framework row), `docs/DEPENDENCY_GRAPH.md` + `docs/DIL_GRAPH.md`
-  (regenerated), `docs/VALIDATION_REPORT.md` (PASS), HelpWiki `tower-branches.where`
-  copy (teaches pip preview).
-- The long registry list in this section's scaffold: no other doc moved — "no change
-  needed" (no behavior in those systems changed; only their claim RECEIPT presentation,
-  documented in NOTIFICATIONS.md).
+Registry says these move with the touched systems: `docs/CHANGELOG-PIPELINE.md` — no change
+needed (pipeline untouched; this batch only banks its generated artifacts). This session also
+updated DIFFICULTY (§curve + §contract), MEGA-BOSS (§targeting), LOOTBOX (§meter gate),
+ECONOMY_FORMULAS (loot-points dormant clause), MODE-IDENTITY/BOSS-RUSH (gate 9), GAME-STATE,
+BUGFIX-LOG (rows 13–14), UNLOCK-TREE + DIL graph regens.
 
 ## Save changes
 
-None — save layer untouched.
+None — save layer untouched. The meter gate reads the EXISTING `megaProgress.slain` ledger
+(`hasSlainMega`, save/derive.ts): no schema bump, veterans wake instantly.
 
 ## Known edge cases
 
-- `rewardToast.push` before the toaster mounts is dropped by design (navBus semantics);
-  claims only happen on hub screens where App mounts it, so nothing is lost.
-- Explicit `nav: null` suppresses the derived jump (used when the claim already lives on
-  the destination screen — wardrobe milestones, battle-pass premium unlock).
-- Destination derivation keys on receipt ICONS — if `meta.applyRewardList` /
-  `battlePass.rewardLabel` ever change an icon, update `DESTINATIONS` in
-  `state/rewardToast.ts` (rewardToast.test pins the mapping).
-- Nav jumps can land on a progression-sealed screen (e.g. Vault before first container) —
-  the screen's own sealed presentation handles it; after a real container claim the wing
-  is unsealed by definition.
-- `BranchTree` is keyed by tower instance (`key={sp.id}`) so pip previews never leak
-  between towers; after a buy, the lane's selection snaps back to "the next tier".
-- Pre-lock lane focus lives in component state — selecting another tower resets it (same
-  key mechanism). The unfocused lane card is fully clickable to flip focus.
+- The awakening run banks its FULL backlog at settle (`finishRun` accepts
+  `result.stats.megaKills` because the sim has no live events) — don't "simplify" that check
+  away or the progression simulator locks forever.
+- Awakened accounts carry a small megaBosses-codex Boss-Loot bonus, so exact loot-conservation
+  tests price it via `collectionEconomyBonuses` (see meta.test `lootIncomeMult`).
+- `megaRaidYield` derives in `megaBossSystem` and is only READ under a live mega — keep new
+  raid-fire seams consulting it (DIL edge `system:mega-bosses conflictsWith system:engine`).
+- The contract probe needs a FAIR pilot (mid-wave building, forward pads); a prep-only pilot
+  wipes on mega stages and misleads.
 
 ## Remaining technical debt
 
-- The smoke scripts live in the session scratchpad (not the repo) — a committed
-  Playwright harness is still an open item (ENGINEERING-AUDIT.md).
-- `index.css` remains one large stylesheet (~9.7k lines; known audit item).
-- Expedition SpoilsCard is a second, older receipt presentation — fine (it's inline and
-  informative), but if it ever needs uplift, route it through `rewardToast`.
+- Non-mega deep stages just past the band exit run hot (probe: stage 28 ×1.0 lost 1-of-3,
+  ~71 integrity) — recorded watch item in DIFFICULTY.md §curve; pre-existing speed/elite
+  gradient, revisit with player data.
+- The Fresh-persona hour numbers remain frictionless-bot inflated (documented artifact) —
+  compare cohorts before/after, never bot-hours to real-hours.
 
 ## Recommended next tasks
 
-1. Play a real weekly-quest claim → finale → cutscene premiere chain end-to-end on a
-   progressed save (the smoke drove the bus + real claims on fresh-save surfaces; a
-   deep-save pass would exercise repeat-finale substitution lines in the popup).
-2. Consider a `notifSound` wardrobe-kind hook for the popup (audio stays at claim sites
-   today; a per-claim cosmetic voice is a natural extension).
-3. If the branch roster grows past 2 lanes/tower, the focus pattern already scales — but
-   revisit the pre-lock default (focus the lane matching the tower's last-used branch?).
+1. Watch live stage-10 funnel data once players hit the new wall (entry: the flagged
+   DIFFICULTY.md §curve watch items; tune `C.megaStagePremium` / `compGrowth` via the §4
+   protocol only).
+2. Consider a small in-game telegraph for the meter's dormancy (e.g. a sealed-meter teaser
+   tooltip) if players ask where loot boxes went — the What's-New row covers the reveal, not
+   the absence.
+3. The stage-28-band heat check (above) after real data lands.
 
 ## Future expansion hooks
 
-- `state/rewardToast.ts` — `RewardToastInput.nav` accepts any Hub NavKey; new claim
-  surfaces are one `rewardToast.push` after their `meta` claim call.
-- `DESTINATIONS` table (same file) — one row per new reward icon → destination.
-- `BranchTree`'s `statDeltas` (`ui/components/BranchTree.tsx`) — extend when
-  `branchStatsView` grows new dimensions; chips cap at 3 by design.
+- `campaign.ts C.megaStagePremium` — per-stage-class bar premiums (a future raid variant can
+  carry its own factor).
+- `game.ts megaRaidYield` — the one flag any future raid-fire seam must consult; extendable
+  to hero raid duty if heroes ever raid mid-wave.
+- `hpMultFor` (campaign.ts) — additional curve segments are one constant pair away.
