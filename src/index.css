@@ -55,6 +55,14 @@
   --r-mythic: #ff6b8b;
   --cache: #36e0c4; /* Run Cache — deliberately NOT gold, so it never reads as Legendary */
 
+  /* type micro-scale — the smallest label sizes (chips, pod controls, timers). These were
+     referenced by the conveyor chrome but never DEFINED: an undefined var() makes font-size
+     invalid → it INHERITED 16px, bloating every micro-label that used the tokens (the
+     conveyor ready-swap screen-shift bug). Defined once, matching the hand-authored 10/11px
+     micro-labels used across the HUD. */
+  --fs-2xs: 10px;
+  --fs-xs: 11px;
+
   /* spacing / radius / motion */
   --s1: 4px;
   --s2: 8px;
@@ -812,7 +820,10 @@ button:disabled {
    the countdown floats in the vat. --grow drives a transform — no width reflow per tick. */
 .cv-grow {
   position: relative;
-  height: 20px;
+  /* EXACTLY the .cv-btn row height (24px base / 32px coarse) — the grow bar and the ready
+     action row must occupy the SAME box, or the slot (and the whole toolbar above the
+     battlefield) reflows the moment a pod ripens. Layout-neutral ready state, always. */
+  height: 24px;
   border-radius: 999px;
   overflow: hidden;
   background:
@@ -850,11 +861,22 @@ button:disabled {
 .cv-actions {
   display: flex;
   gap: 5px;
+  /* Zero intrinsic-width contribution (then stretch back to the pod's width): the action row
+     may NEVER size the pod — the pod's width comes from its head + min-width alone, so the
+     grow-bar → buttons swap is width-neutral by construction. */
+  width: 0;
+  min-width: 100%;
 }
 /* Pod controls: DEPLOY is the tower-colored energy key, STRAIN the gold splice, DISCARD a
    ghost recycler. Every press lands (scale) inside a frame; disabled reads dimmed-glass. */
 .cv-btn {
   flex: 1;
+  /* min-width 0 kills the flex automatic-minimum: three labeled buttons may never force the
+     pod wider than its growing-state width (the other half of the ready-reflow bug). */
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
   min-height: 24px;
   padding: 3px 6px;
   border: 1px solid transparent;
@@ -905,9 +927,11 @@ button:disabled {
   box-shadow: none;
 }
 .cv-btn.cv-discard:hover:not(:disabled) { color: var(--success); border-color: color-mix(in srgb, var(--success) 40%, transparent); filter: none; }
-/* Touch: pod controls get real thumb room (the 24px base floor grows on coarse pointers). */
+/* Touch: pod controls get real thumb room (the 24px base floor grows on coarse pointers).
+   The grow bar grows in lockstep — the ready swap stays layout-neutral on touch too. */
 @media (pointer: coarse) {
   .cv-btn { min-height: 32px; }
+  .cv-grow { height: 32px; }
 }
 .tl2-convbtn {
   padding: 2px 8px;
