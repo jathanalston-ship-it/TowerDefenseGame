@@ -1,6 +1,6 @@
 {
-  "lastSha": "e297ddef26daf0fb0b955f880a9982cceac23e12",
-  "commitsSinceDraft": 8,
+  "lastSha": "33c727f27f31f733354cfe059d558a6f0fa8d322",
+  "commitsSinceDraft": 0,
   "content": {
     "tower": [
       "needle",
@@ -2067,6 +2067,30 @@
         {
           "cat": "Gameplay",
           "text": "Monetization expansion: first-season half-price pass + milestone flash sales"
+        },
+        {
+          "cat": "Website",
+          "text": "Chronicle + site regen for the monetization batch"
+        },
+        {
+          "cat": "UI",
+          "text": "Fix conveyor ready-state screen shift: define the missing type tokens"
+        },
+        {
+          "cat": "Towers",
+          "text": "Fix undismissable NEW badge in the Tower Lab"
+        },
+        {
+          "cat": "Gameplay",
+          "text": "Daily Bio-Cache surfaced in the Vault + quest claim celebration"
+        },
+        {
+          "cat": "Visuals",
+          "text": "Gore-chunk reward flight overhaul: arrive, orbit, consume, count"
+        },
+        {
+          "cat": "UI",
+          "text": "Best-Purchase advisor: exact Power-per-cost guidance on every upgrade wall"
         }
       ]
     }
@@ -3101,6 +3125,54 @@
       "date": "2026-07-11",
       "cat": "Gameplay",
       "text": "Monetization expansion: first-season half-price pass + milestone flash sales",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "1d915bd91a9591051288c4a47b6a1985e380c951",
+      "date": "2026-07-11",
+      "cat": "Website",
+      "text": "Chronicle + site regen for the monetization batch",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "0ad9208c3d835aa6c0d3816a35ebc2ba5ca03b49",
+      "date": "2026-07-12",
+      "cat": "UI",
+      "text": "Fix conveyor ready-state screen shift: define the missing type tokens",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "6bf5403353f499e5ab72d892bb51fc755854ff51",
+      "date": "2026-07-12",
+      "cat": "Towers",
+      "text": "Fix undismissable NEW badge in the Tower Lab",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "5ff0f0c64b9aa3ff18e4972c0359468a5680ad0d",
+      "date": "2026-07-12",
+      "cat": "Gameplay",
+      "text": "Daily Bio-Cache surfaced in the Vault + quest claim celebration",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "f34532419ec593e1bb6161d21eaa473d4205403d",
+      "date": "2026-07-12",
+      "cat": "Visuals",
+      "text": "Gore-chunk reward flight overhaul: arrive, orbit, consume, count",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "33c727f27f31f733354cfe059d558a6f0fa8d322",
+      "date": "2026-07-12",
+      "cat": "UI",
+      "text": "Best-Purchase advisor: exact Power-per-cost guidance on every upgrade wall",
       "internal": false,
       "needsReview": false
     }

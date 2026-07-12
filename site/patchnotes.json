@@ -566,6 +566,30 @@
       {
         "cat": "Gameplay",
         "text": "Monetization expansion: first-season half-price pass + milestone flash sales"
+      },
+      {
+        "cat": "Website",
+        "text": "Chronicle + site regen for the monetization batch"
+      },
+      {
+        "cat": "UI",
+        "text": "Fix conveyor ready-state screen shift: define the missing type tokens"
+      },
+      {
+        "cat": "Towers",
+        "text": "Fix undismissable NEW badge in the Tower Lab"
+      },
+      {
+        "cat": "Gameplay",
+        "text": "Daily Bio-Cache surfaced in the Vault + quest claim celebration"
+      },
+      {
+        "cat": "Visuals",
+        "text": "Gore-chunk reward flight overhaul: arrive, orbit, consume, count"
+      },
+      {
+        "cat": "UI",
+        "text": "Best-Purchase advisor: exact Power-per-cost guidance on every upgrade wall"
       }
     ]
   },

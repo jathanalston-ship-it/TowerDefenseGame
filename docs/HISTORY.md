@@ -139,3 +139,11 @@
 - `11a9110` **[Towers]** Triple the grafted-organism catalogs: 102 tower pieces, 30 organs, 54 species
 - `3eed281` **[Website]** Chronicle + site regen for the catalog expansion batch
 - `e297dde` **[Gameplay]** Monetization expansion: first-season half-price pass + milestone flash sales
+- `1d915bd` **[Website]** Chronicle + site regen for the monetization batch
+## 2026-07-12
+
+- `0ad9208` **[UI]** Fix conveyor ready-state screen shift: define the missing type tokens
+- `6bf5403` **[Towers]** Fix undismissable NEW badge in the Tower Lab
+- `5ff0f0c` **[Gameplay]** Daily Bio-Cache surfaced in the Vault + quest claim celebration
+- `f345324` **[Visuals]** Gore-chunk reward flight overhaul: arrive, orbit, consume, count
+- `33c727f` **[UI]** Best-Purchase advisor: exact Power-per-cost guidance on every upgrade wall
