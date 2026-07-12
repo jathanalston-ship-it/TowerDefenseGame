@@ -19,6 +19,7 @@ import { usePressRepeat } from './components/usePressRepeat';
 import { MobileSection } from './components/MobileSection';
 import { useLayoutProfile } from './layoutProfile';
 import { PrestigePanel } from './PrestigePanel';
+import { BestBuyStrip } from './components/BestBuyStrip';
 
 /** The living-lab backdrop — drifting cells + a rotating DNA helix. Pure decoration. */
 function EvoBackdrop(): JSX.Element {
@@ -211,6 +212,7 @@ export function EvolutionHQ(): JSX.Element {
         <h2 className="evo-hq-title">Evolution HQ</h2>
         <p className="evo-hq-sub">Sink Genome Cores into permanent mutations, then Molt to spend Ascendant Cells on levers that survive every reset.</p>
       </header>
+      <BestBuyStrip surface="evolution" />
 
       {/* The treasury — every purchase decision needs its budget in view. */}
       <section className="evo-treasury" aria-label="Genome Core treasury">

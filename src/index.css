@@ -9396,6 +9396,17 @@ kbd {
   .qb-claimable-chip, .qb-m-readydot, .qb-m-claim, .qb-burst-ring, .qb-burst-chip { animation: none; }
 }
 
+/* ── Best-value strip (components/BestBuyStrip.tsx) — the purchase advisor headline ── */
+.bbs { display: flex; align-items: baseline; flex-wrap: wrap; gap: 6px 14px; margin: 8px 0 10px; padding: 8px 12px;
+  border: 1px solid color-mix(in srgb, var(--gold) 35%, var(--line-strong)); border-radius: var(--r-sm);
+  background: linear-gradient(90deg, color-mix(in srgb, var(--gold) 10%, transparent), transparent 70%); font-size: 12px; }
+.bbs-k { font-size: 10px; font-weight: 900; letter-spacing: 0.14em; color: var(--gold); }
+.bbs-pick { color: var(--text); }
+.bbs-pick b { color: var(--gold); }
+.bbs-save { font-style: normal; color: var(--warn); font-weight: 700; }
+.bbs-next { color: var(--muted); font-size: 11px; }
+.bbs-next b { color: var(--text); }
+
 /* ── Wardrobe interface themes — data attributes set by wardrobeDressing.ts ── */
 [data-uitheme='arctic'] { --panel: #0e1a24; --panel-2: #13222e; --panel-3: #182b3a; --line: #1e3547; --line-strong: #35597a; }
 [data-uitheme='blood'] { --panel: #1c0e14; --panel-2: #241219; --panel-3: #2d1720; --line: #3a1f2b; --line-strong: #5f3245; }

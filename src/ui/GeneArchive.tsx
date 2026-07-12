@@ -20,6 +20,7 @@ import { CurrencyIcon } from './components/CurrencyIcon';
 import { audio } from '../audio/sound';
 import { highestCampaignStage } from '../save/derive';
 import { Popup } from './components/Popup';
+import { BestBuyStrip } from './components/BestBuyStrip';
 
 /** Compact preview phrase for one Transcendence-option effect (§Transcendence). The pools only
  *  author field-bearing mul/add ops, so this covers them fully: mul reads as ±%, a sub-1 add reads
@@ -475,6 +476,7 @@ export function GeneArchive(): JSX.Element {
         Your permanent Gene Card collection — {sum.owned}/{sum.total} discovered · {sum.levels}/{sum.maxLevels} levels evolved{sum.transcended > 0 ? <> · <span className="ga-transcended">❂ {sum.transcended} transcended</span></> : ''}.
         Spend Gene Essence to permanently upgrade a card; it applies every time you draft it.
       </div>
+      <BestBuyStrip surface="genes" />
 
       {/* In-place help (Task 11) — the whole loop in five lines, one tap away. */}
       <details className="ga-help">

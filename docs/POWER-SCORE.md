@@ -149,3 +149,19 @@ Every strength API announces `before → after + SOURCE` through the powerEvents
 - **Meta tripwire**: a declared strength source announcing a non-positive delta records into
   `powerAnnounceWarnings` + console.warn — the meta twin of `game.powerAuditWarnings`
   (POWER-AUDIT.md). Sidegrade/unequip announcers pass `expectGain: false`.
+
+
+## §advisor — the Best-Purchase strip
+
+"Which of these upgrades is the best Power per currency?" answered EXACTLY:
+`state/bestPurchase.ts` enumerates every legal next purchase on a surface (gene card levels,
+Evolution HQ genome upgrades, tower stars — gates and caps pre-filtered, affordability a flag,
+never a filter), applies each mutation hypothetically, and diffs the real pure scorer
+(`powerBreakdown`). Rankings are per-currency (`valuePer1k` = Power per 1000 spent) because
+cross-currency prices aren't comparable — each surface gets its own champion.
+
+`BestBuyStrip` (ui/components) renders the headline atop the Gene Archive, Evolution HQ and
+Tower Lab: the best AFFORDABLE pick now, plus the overall champion as a "save up" tease when
+the wallet can't reach it yet. Memoized per save revision; zero-gain purchases are never
+recommended. **Extension point:** a new upgradeable system adds one `candidates()` block
+(mutate + cost rows) — scorer, ranking and strip are shared.

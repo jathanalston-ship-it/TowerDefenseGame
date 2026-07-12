@@ -19,6 +19,7 @@ import { PowerPreview } from './components/PowerScore';
 import { AdaptationTree } from './components/AdaptationTree';
 import { StarCeremony } from './StarCeremony';
 import { labPrefs, setLabPrefs } from '../state/prefs';
+import { BestBuyStrip } from './components/BestBuyStrip';
 import { LAB_SORTS, ceremonyView, futurePath, labRoster, masteryPanelModel, towerLabModel } from './towerLabModel';
 import type { LabSort, StepView, TowerLabModel } from './towerLabModel';
 
@@ -197,6 +198,7 @@ export function TowerLab(): JSX.Element {
         </div>
         {upgradeableCount > 0 && <span className="tl2-ready-badge">{upgradeableCount} ready to evolve</span>}
       </div>
+      <BestBuyStrip surface="towers" />
 
       <div className="tl2-body">
         {/* ── The specimen rail — search / sort / filter, favorites lead ── */}

@@ -59,7 +59,7 @@ export const SYSTEMS: SystemDef[] = [
   },
   {
     id: 'power', name: 'Power Score', purpose: 'ONE account-strength number folded from every permanent bucket + the in-run temporary bucket.',
-    files: ['src/core/power.ts', 'src/state/itemPower.ts', 'src/state/powerEvents.ts', 'src/ui/components/PowerScore.tsx', 'src/ui/components/PowerDelta.tsx', 'src/ui/components/PowerToaster.tsx'],
+    files: ['src/core/power.ts', 'src/state/itemPower.ts', 'src/state/powerEvents.ts', 'src/state/bestPurchase.ts', 'src/ui/components/PowerScore.tsx', 'src/ui/components/PowerDelta.tsx', 'src/ui/components/PowerToaster.tsx', 'src/ui/components/BestBuyStrip.tsx'],
     dependsOn: ['content-infra'], powerScore: 'IS the model (buckets, effectsPower, FIELD_WEIGHT)', save: [], tutorial: [], help: ['power-score'],
     hud: ['Hud (live run Power)'], ui: ['ProgressDashboard', 'CommandCenter (recommended power)'], collection: 'collection completion feeds a bucket', achievements: [],
     localization: 'inline-en', docs: ['docs/POWER-SCORE.md', 'docs/POWER-AUDIT.md'],
