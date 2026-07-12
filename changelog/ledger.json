@@ -1,6 +1,6 @@
 {
-  "lastSha": "383caafb2140bd92288fa4759e738b69fff5770e",
-  "commitsSinceDraft": 0,
+  "lastSha": "78dc17d8b1a0eb21b8a219b25111d38753bd3df5",
+  "commitsSinceDraft": 2,
   "content": {
     "tower": [
       "needle",
@@ -2163,6 +2163,14 @@
         {
           "cat": "Gameplay",
           "text": "Quick-buy on every best-upgrade display"
+        },
+        {
+          "cat": "Website",
+          "text": "Chronicle + site for the quick-buy keys"
+        },
+        {
+          "cat": "Gameplay",
+          "text": "Season Pass nav badge: earned-but-unclaimed rewards"
         }
       ]
     }
@@ -3405,6 +3413,22 @@
       "date": "2026-07-12",
       "cat": "Gameplay",
       "text": "Quick-buy on every best-upgrade display",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "7f522731e81ab53fe4ece0aa99ea93dba27916e3",
+      "date": "2026-07-12",
+      "cat": "Website",
+      "text": "Chronicle + site for the quick-buy keys",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "78dc17d8b1a0eb21b8a219b25111d38753bd3df5",
+      "date": "2026-07-12",
+      "cat": "Gameplay",
+      "text": "Season Pass nav badge: earned-but-unclaimed rewards",
       "internal": false,
       "needsReview": false
     }

@@ -167,3 +167,5 @@
 - `0106766` **[UI]** Fix desktop run HUD: gore streams aim at the real meters + legible conveyor pods
 - `a2bb98a` **[Website]** Chronicle + site for the desktop run-HUD fixes
 - `383caaf` **[Gameplay]** Quick-buy on every best-upgrade display
+- `7f52273` **[Website]** Chronicle + site for the quick-buy keys
+- `78dc17d` **[Gameplay]** Season Pass nav badge: earned-but-unclaimed rewards

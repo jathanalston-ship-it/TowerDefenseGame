@@ -695,6 +695,14 @@ export const RELEASES: Release[] = [
       {
         "cat": "Gameplay",
         "text": "Quick-buy on every best-upgrade display"
+      },
+      {
+        "cat": "Website",
+        "text": "Chronicle + site for the quick-buy keys"
+      },
+      {
+        "cat": "Gameplay",
+        "text": "Season Pass nav badge: earned-but-unclaimed rewards"
       }
     ]
   },
