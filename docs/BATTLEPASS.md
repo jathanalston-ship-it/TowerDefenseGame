@@ -3,7 +3,9 @@
 A production-grade dual-track season built ON TOP of the Wardrobe (docs/COSMETICS.md
 §wardrobe). Core: `src/core/battlePass.ts` (pure — window math, XP curve, SeasonDefs,
 derived reward tables). Meta: `src/state/meta.ts` (persistence, claims, purchases, XP
-faucets, rollover). UI: `src/ui/BattlePassScreen.tsx` (nav `season`).
+faucets, rollover). UI: `src/ui/BattlePassScreen.tsx` (nav `season`) — season-themed
+living presentation (falling `season.glyph` petals, aurora, rotating medal, SVG level ring,
+track spine + beacon, claim bursts), all CSS-driven and stilled under reduced motion.
 
 ## Structure
 

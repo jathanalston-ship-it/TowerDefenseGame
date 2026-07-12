@@ -9441,55 +9441,208 @@ kbd {
 @media (prefers-reduced-motion: reduce) { .wdr-card, .wdr-burst i, .wd-prev-swatch::after, .wd-eq i { animation: none; } }
 
 /* ── SEASON PASS (docs/BATTLEPASS.md §ui) ── */
-.bp { --bpx: var(--bp, var(--viral)); max-width: 1100px; margin: 0 auto; }
-.bp-head { display: flex; flex-wrap: wrap; align-items: center; gap: 14px; background: linear-gradient(150deg, color-mix(in srgb, var(--bp-bg, #12060c) 88%, transparent), var(--panel)); border: 1px solid color-mix(in srgb, var(--bpx) 35%, var(--line)); border-radius: var(--r-lg); padding: 14px 16px; }
-.bp-glyph { font-size: 34px; color: var(--bpx); text-shadow: 0 0 22px color-mix(in srgb, var(--bpx) 60%, transparent); animation: wd-pulse 3.2s var(--ease-out) infinite; }
+/* ── Season Pass — the living season terminal (docs/BATTLEPASS.md §ui). The SeasonDef
+      palette (--bp/--bp-glow/--bp-bg) drives EVERY layer: ambience, medallion, ring, spine,
+      chrome. All ambient motion is CSS transforms/opacity and stilled under reduced motion. */
+.bp { --bpx: var(--bp, var(--viral)); position: relative; isolation: isolate; max-width: 1100px; margin: 0 auto; }
+.bp > :not(.bp-atmo) { position: relative; z-index: 1; }
+
+/* Ambient layer: breathing aurora blobs, a slow ray wheel, the season glyph falling as petals. */
+.bp-atmo { position: absolute; inset: -12px; z-index: 0; overflow: hidden; pointer-events: none; border-radius: var(--r-lg); }
+.bp-atmo-aurora { position: absolute; width: 62%; aspect-ratio: 1; border-radius: 50%; opacity: 0.16; filter: blur(70px); }
+.bp-atmo-aurora.is-a { top: -18%; left: -12%; background: radial-gradient(circle, var(--bpx), transparent 65%); animation: bp-aurora 16s var(--ease-out) infinite alternate; }
+.bp-atmo-aurora.is-b { bottom: -25%; right: -10%; opacity: 0.1; background: radial-gradient(circle, var(--bp-glow, #fff), transparent 65%); animation: bp-aurora 21s var(--ease-out) infinite alternate-reverse; }
+@keyframes bp-aurora { from { transform: translate3d(0, 0, 0) scale(1); } to { transform: translate3d(6%, 4%, 0) scale(1.15); } }
+.bp-atmo-rays {
+  position: absolute; top: -180px; left: 50%; width: 760px; height: 760px; transform: translateX(-50%);
+  background: repeating-conic-gradient(from 0deg, color-mix(in srgb, var(--bpx) 8%, transparent) 0deg 8deg, transparent 8deg 26deg);
+  -webkit-mask: radial-gradient(closest-side, #000, transparent 72%);
+  mask: radial-gradient(closest-side, #000, transparent 72%);
+  opacity: 0.5;
+  animation: bp-rays 90s linear infinite;
+}
+@keyframes bp-rays { to { transform: translateX(-50%) rotate(360deg); } }
+.bp-petal {
+  position: absolute; top: -6%;
+  color: var(--bpx);
+  text-shadow: 0 0 8px color-mix(in srgb, var(--bpx) 55%, transparent);
+  animation: bp-petal-fall var(--pdur, 18s) linear var(--pdel, 0s) infinite;
+  will-change: transform;
+}
+@keyframes bp-petal-fall {
+  0% { transform: translate3d(0, 0, 0) rotate(0deg); }
+  50% { transform: translate3d(var(--pdrift, 0px), 55vh, 0) rotate(calc(var(--pspin, 180deg) / 2)); }
+  100% { transform: translate3d(calc(var(--pdrift, 0px) * -0.4), 112vh, 0) rotate(var(--pspin, 180deg)); }
+}
+
+/* Masthead: the season banner — medallion, gradient-ink title, level ring + shimmering XP bar. */
+.bp-head {
+  position: relative;
+  display: flex; flex-wrap: wrap; align-items: center; gap: 16px;
+  background: linear-gradient(150deg, color-mix(in srgb, var(--bp-bg, #12060c) 92%, transparent), color-mix(in srgb, var(--bp-bg, #12060c) 40%, var(--panel)));
+  border: 1px solid color-mix(in srgb, var(--bpx) 40%, var(--line));
+  border-radius: var(--r-lg);
+  padding: 18px 20px;
+  overflow: hidden;
+  box-shadow: 0 14px 44px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+.bp-medal { position: relative; flex: none; width: 84px; height: 84px; display: grid; place-items: center; }
+.bp-medal-ring {
+  position: absolute; inset: 0; border-radius: 50%;
+  background: conic-gradient(from 0deg, transparent, var(--bpx) 24%, transparent 52%, var(--bp-glow, #fff) 76%, transparent);
+  -webkit-mask: radial-gradient(closest-side, transparent 66%, #000 69%);
+  mask: radial-gradient(closest-side, transparent 66%, #000 69%);
+  animation: bp-spin 9s linear infinite;
+}
+.bp-medal-orbit { position: absolute; inset: 0; animation: bp-spin 15s linear infinite reverse; }
+.bp-medal-orbit b { position: absolute; top: 50%; left: 50%; width: 5px; height: 5px; border-radius: 50%; background: var(--bp-glow, #fff); box-shadow: 0 0 8px var(--bpx); transform: translate(-50%, -50%) rotate(var(--a)) translateX(36px); }
+.bp-medal-orbit b:nth-child(1) { --a: 0deg; }
+.bp-medal-orbit b:nth-child(2) { --a: 120deg; }
+.bp-medal-orbit b:nth-child(3) { --a: 240deg; }
+.bp-glyph { position: relative; font-size: 40px; color: var(--bpx); text-shadow: 0 0 26px color-mix(in srgb, var(--bpx) 70%, transparent); animation: bp-breathe 3.4s var(--ease-out) infinite; }
+@keyframes bp-spin { to { transform: rotate(360deg); } }
+@keyframes bp-breathe { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.08); } }
 .bp-eyebrow { font-size: 10px; letter-spacing: 0.24em; color: var(--dim); }
-.bp-title { font-size: 26px; letter-spacing: 0.12em; color: var(--text); margin: 2px 0; }
+.bp-title {
+  font-size: 26px; letter-spacing: 0.12em; margin: 2px 0;
+  background: linear-gradient(90deg, var(--text) 20%, color-mix(in srgb, var(--bpx) 75%, var(--text)));
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+}
 .bp-tagline { font-size: 12px; color: var(--muted); margin: 0; }
-.bp-level-block { margin-left: auto; min-width: 220px; }
-.bp-level { font-size: 13px; letter-spacing: 0.08em; color: var(--muted); }
-.bp-level b { font-size: 20px; color: var(--bpx); }
-.bp-level span { color: var(--dim); }
-.bp-xpbar { height: 8px; border-radius: 999px; background: var(--panel-deep); border: 1px solid var(--line); overflow: hidden; margin: 4px 0; }
-.bp-xpbar i { display: block; height: 100%; background: linear-gradient(90deg, var(--bpx), var(--bp-glow, #ffffff)); border-radius: 999px; transition: width var(--dur-3) var(--ease-out); }
+.bp-level-block { margin-left: auto; display: flex; align-items: center; gap: 12px; min-width: 250px; }
+.bp-ring { position: relative; flex: none; width: 64px; height: 64px; }
+.bp-ring svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+.bp-ring-track { fill: none; stroke: rgba(255, 255, 255, 0.09); stroke-width: 5; }
+.bp-ring-fill { fill: none; stroke: url(#bpRingInk); stroke-width: 5; stroke-linecap: round; filter: drop-shadow(0 0 4px color-mix(in srgb, var(--bpx) 60%, transparent)); transition: stroke-dashoffset var(--dur-4) var(--ease-out); }
+.bp-ring-lv { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.bp-ring-lv b { font: 800 20px/1 'Chakra Petch', system-ui, sans-serif; color: var(--bpx); font-variant-numeric: tabular-nums; }
+.bp-ring-lv i { font-style: normal; font-size: 10px; color: var(--dim); }
+.bp-xp-block { flex: 1; min-width: 150px; }
+.bp-xpbar { position: relative; height: 10px; border-radius: 999px; background: var(--panel-deep); border: 1px solid var(--line); overflow: hidden; margin: 0 0 4px; }
+.bp-xpbar i { position: relative; display: block; height: 100%; border-radius: 999px; overflow: hidden; background: linear-gradient(90deg, var(--bpx), var(--bp-glow, #ffffff)); box-shadow: 0 0 10px color-mix(in srgb, var(--bpx) 45%, transparent); transition: width var(--dur-3) var(--ease-out); }
+.bp-xpbar i::after { content: ''; position: absolute; top: 0; bottom: 0; left: 0; width: 45%; background: linear-gradient(105deg, transparent 20%, rgba(255, 255, 255, 0.55) 50%, transparent 80%); animation: bp-shimmer 2.6s linear infinite; }
+@keyframes bp-shimmer { from { transform: translateX(-160%); } to { transform: translateX(320%); } }
 .bp-xpline { font-size: 11px; color: var(--dim); font-variant-numeric: tabular-nums; }
+
 .bp-controls { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 10px 0; }
 .bp-claimall { min-height: 30px; }
 .bp-buylv, .bp-ad { min-height: 28px; font-size: 11px; letter-spacing: 0.06em; border-radius: 999px; border: 1px solid var(--line-strong); background: var(--panel-2); color: var(--text); padding: 4px 12px; }
 .bp-filter { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; color: var(--muted); min-height: 24px; }
 .bp-completion { margin-left: auto; font-size: 11px; letter-spacing: 0.08em; color: var(--muted); font-variant-numeric: tabular-nums; }
-.bp-upsell { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; border: 1px solid color-mix(in srgb, var(--bpx) 40%, var(--line)); background: color-mix(in srgb, var(--bpx) 7%, var(--panel-2)); border-radius: var(--r-md); padding: 10px 14px; margin-bottom: 10px; }
+
+/* The premium door: themed chrome, glyph watermark, a periodic light sweep. */
+.bp-upsell {
+  position: relative; overflow: hidden;
+  display: flex; flex-wrap: wrap; align-items: center; gap: 12px;
+  border: 1px solid color-mix(in srgb, var(--bpx) 45%, var(--line));
+  background: linear-gradient(150deg, color-mix(in srgb, var(--bpx) 10%, var(--panel-2)), var(--panel-2));
+  border-radius: var(--r-md);
+  padding: 12px 14px;
+  margin-bottom: 10px;
+  box-shadow: 0 8px 26px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+.bp-upsell::after { content: ''; position: absolute; top: 0; bottom: 0; left: -160px; width: 120px; background: linear-gradient(100deg, transparent, color-mix(in srgb, var(--bpx) 20%, transparent), transparent); transform: skewX(-18deg); animation: bp-doorsheen 5.5s var(--ease-out) infinite; pointer-events: none; }
+@keyframes bp-doorsheen { 0%, 55% { left: -160px; } 85%, 100% { left: calc(100% + 60px); } }
+.bp-upsell-mark { position: absolute; right: 4px; bottom: -20px; font-size: 58px; color: color-mix(in srgb, var(--bpx) 35%, transparent); opacity: 0.5; pointer-events: none; }
 .bp-upsell-h { font-size: 12px; letter-spacing: 0.16em; color: var(--bpx); }
 .bp-upsell p { font-size: 12px; color: var(--muted); margin: 4px 0 0; max-width: 640px; }
 .bp-unlock { margin-left: auto; min-height: 34px; }
-.bp-receipt { display: flex; flex-wrap: wrap; gap: 10px; font-size: 12px; color: var(--caustic); background: var(--panel-2); border: 1px solid var(--line); border-radius: var(--r-sm); padding: 6px 10px; margin-bottom: 8px; cursor: pointer; animation: ui-rise var(--dur-3) var(--ease-out) both; }
-.bp-track { position: relative; overflow-x: auto; border: 1px solid var(--line); border-radius: var(--r-md); background: var(--panel-deep); padding: 10px 10px 12px 84px; }
-.bp-lane-labels { position: absolute; left: 10px; top: 14px; bottom: 16px; display: flex; flex-direction: column; justify-content: space-around; }
+
+.bp-receipt { display: flex; flex-wrap: wrap; gap: 10px; font-size: 12px; color: var(--caustic); background: var(--panel-2); border: 1px solid color-mix(in srgb, var(--gold) 30%, var(--line)); border-radius: var(--r-sm); padding: 6px 10px; margin-bottom: 8px; cursor: pointer; animation: ui-rise var(--dur-3) var(--ease-out) both; }
+.bp-receipt span { animation: bp-pop 0.35s var(--ease-out) both; animation-delay: calc(var(--i, 0) * 60ms); }
+@keyframes bp-pop { from { opacity: 0; transform: translateY(5px) scale(0.92); } to { opacity: 1; transform: none; } }
+
+/* The reward track: columns threaded on a progress SPINE, a beacon on the current level. */
+.bp-track {
+  position: relative; overflow-x: auto;
+  border: 1px solid color-mix(in srgb, var(--bpx) 25%, var(--line));
+  border-radius: var(--r-md);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--bp-bg, #12060c) 55%, var(--panel-deep)), var(--panel-deep));
+  padding: 24px 12px 14px 84px;
+}
+.bp-lane-labels { position: absolute; left: 10px; top: 28px; bottom: 16px; display: flex; flex-direction: column; justify-content: space-around; }
 .bp-lane-l { font-size: 10px; letter-spacing: 0.2em; color: var(--dim); }
 .bp-lane-l.is-premium { color: var(--bpx); }
-.bp-cols { display: flex; gap: 6px; }
-.bp-col { display: flex; flex-direction: column; gap: 6px; }
+.bp-cols { display: flex; gap: 8px; }
+.bp-col { position: relative; display: flex; flex-direction: column; gap: 8px; padding-top: 10px; animation: ui-rise var(--dur-3) var(--ease-out) both; animation-delay: calc(var(--i, 0) * 22ms); }
+/* the spine segment behind this column (bridges the flex gap to the previous one) */
+.bp-col::before { content: ''; position: absolute; left: -8px; right: 0; top: calc(50% + 5px); height: 3px; border-radius: 2px; background: rgba(255, 255, 255, 0.06); }
+.bp-col:first-child::before { left: 0; }
+.bp-col.is-past::before { background: linear-gradient(90deg, color-mix(in srgb, var(--bpx) 65%, transparent), var(--bpx)); box-shadow: 0 0 8px color-mix(in srgb, var(--bpx) 40%, transparent); }
+.bp-beacon { position: absolute; top: -8px; left: 50%; z-index: 2; font-size: 14px; color: var(--bp-glow, #fff); text-shadow: 0 0 10px var(--bpx); animation: bp-beacon 1.6s var(--ease-out) infinite; }
+@keyframes bp-beacon { 0%, 100% { transform: translate(-50%, 0); opacity: 1; } 50% { transform: translate(-50%, 3px); opacity: 0.7; } }
 .bp-col-current .bp-cell { outline: 1px solid color-mix(in srgb, var(--bpx) 55%, transparent); }
-.bp-cell { position: relative; width: 64px; min-height: 52px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; background: var(--panel-2); border: 1px solid var(--line); border-left: 3px solid var(--rc, var(--line)); border-radius: var(--r-sm); transition: border-color var(--dur-2) var(--ease-out), box-shadow var(--dur-2) var(--ease-out); }
+
+.bp-cell {
+  position: relative; z-index: 1;
+  width: 66px; min-height: 56px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
+  background: linear-gradient(180deg, var(--panel-3), var(--panel-2));
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--rc, var(--line));
+  border-radius: var(--r-sm);
+  transition: transform var(--dur-2) var(--ease-out), border-color var(--dur-2) var(--ease-out), box-shadow var(--dur-2) var(--ease-out);
+}
+.bp-cell:hover { transform: translateY(-2px); }
 .bp-cell-lv { font-size: 10px; color: var(--dim); font-variant-numeric: tabular-nums; }
-.bp-ricons { font-size: 14px; display: inline-flex; gap: 2px; }
-.bp-cell.is-claimable { border-color: color-mix(in srgb, var(--caustic) 55%, var(--line)); box-shadow: 0 0 10px color-mix(in srgb, var(--caustic) 25%, transparent); animation: wd-pulse 2s var(--ease-out) infinite; }
+.bp-ricons { font-size: 16px; display: inline-flex; gap: 2px; transition: transform var(--dur-2) var(--ease-out); }
+.bp-cell:hover .bp-ricons { transform: scale(1.15); }
+.bp-cell.is-claimable {
+  border-color: color-mix(in srgb, var(--gold) 60%, var(--line));
+  background: linear-gradient(180deg, color-mix(in srgb, var(--gold) 10%, var(--panel-3)), var(--panel-2));
+  animation: bp-claim-breathe 1.8s var(--ease-out) infinite;
+}
+@keyframes bp-claim-breathe { 0%, 100% { box-shadow: 0 0 6px color-mix(in srgb, var(--gold) 25%, transparent); } 50% { box-shadow: 0 0 16px 2px color-mix(in srgb, var(--gold) 45%, transparent); } }
+.bp-cell.is-claimable .bp-ricons { animation: bp-bob 1.8s var(--ease-out) infinite; }
+@keyframes bp-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-2px); } }
 .bp-cell.is-claimed { opacity: 0.5; }
 .bp-cell.is-future { opacity: 0.75; }
-.bp-cell.is-gated { opacity: 0.55; }
-.bp-cell.is-crown { width: 84px; border-color: color-mix(in srgb, var(--bpx) 70%, var(--line)); box-shadow: 0 0 16px color-mix(in srgb, var(--bpx) 30%, transparent); }
+.bp-cell.is-gated { opacity: 0.55; background-image: repeating-linear-gradient(135deg, transparent 0 6px, rgba(255, 255, 255, 0.04) 6px 12px); }
+.bp-cell.is-crown { width: 88px; border-color: color-mix(in srgb, var(--bpx) 70%, var(--line)); box-shadow: 0 0 16px color-mix(in srgb, var(--bpx) 30%, transparent); }
+.bp-cell-rays {
+  position: absolute; inset: -16px; z-index: -1; pointer-events: none;
+  background: repeating-conic-gradient(from 0deg, color-mix(in srgb, var(--bpx) 25%, transparent) 0deg 10deg, transparent 10deg 32deg);
+  -webkit-mask: radial-gradient(closest-side, #000, transparent 74%);
+  mask: radial-gradient(closest-side, #000, transparent 74%);
+  animation: bp-spin 14s linear infinite;
+  opacity: 0.6;
+}
 .bp-cell.is-sel { border-color: var(--line-strong); }
 .bp-cell-done { position: absolute; top: 2px; right: 4px; font-size: 10px; color: var(--caustic); }
 .bp-cell-lock { position: absolute; top: 2px; right: 4px; font-size: 10px; }
 .bp-cell-star { position: absolute; top: 2px; left: 4px; font-size: 10px; color: var(--gold, #ffd24d); }
-.bp-detail { border: 1px solid var(--line); border-radius: var(--r-md); background: var(--panel-2); padding: 10px 14px; margin-top: 10px; animation: ui-rise var(--dur-3) var(--ease-out) both; }
+
+/* Claim burst — six petals of light + an expanding ring, fired on the cell just claimed. */
+.bp-claimburst { position: absolute; inset: 0; pointer-events: none; z-index: 3; }
+.bp-claimburst::before { content: ''; position: absolute; inset: -3px; border-radius: var(--r-sm); border: 2px solid var(--gold); animation: bp-burstring 0.7s var(--ease-out) both; }
+@keyframes bp-burstring { 0% { opacity: 1; transform: scale(1); } 100% { opacity: 0; transform: scale(1.55); } }
+.bp-claimburst i { position: absolute; top: 50%; left: 50%; width: 4px; height: 14px; border-radius: 999px; background: linear-gradient(180deg, var(--bp-glow, #fff), var(--gold)); transform-origin: 50% 0; animation: bp-burst 0.7s var(--ease-out) both; }
+.bp-claimburst i:nth-child(1) { --a: 0deg; }
+.bp-claimburst i:nth-child(2) { --a: 60deg; }
+.bp-claimburst i:nth-child(3) { --a: 120deg; }
+.bp-claimburst i:nth-child(4) { --a: 180deg; }
+.bp-claimburst i:nth-child(5) { --a: 240deg; }
+.bp-claimburst i:nth-child(6) { --a: 300deg; }
+@keyframes bp-burst {
+  0% { transform: translate(-50%, 0) rotate(var(--a)) translateY(4px) scaleY(0.4); opacity: 1; }
+  100% { transform: translate(-50%, 0) rotate(var(--a)) translateY(30px) scaleY(1); opacity: 0; }
+}
+
+.bp-detail { border: 1px solid color-mix(in srgb, var(--bpx) 30%, var(--line)); border-radius: var(--r-md); background: linear-gradient(180deg, color-mix(in srgb, var(--bpx) 5%, var(--panel-2)), var(--panel-2)); padding: 10px 14px; margin-top: 10px; animation: ui-rise var(--dur-3) var(--ease-out) both; }
 .bp-detail-h { font-size: 12px; letter-spacing: 0.16em; color: var(--bpx); margin-bottom: 6px; }
 .bp-detail-cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
 .bp-detail-k { font-size: 11px; letter-spacing: 0.12em; color: var(--muted); margin-bottom: 4px; }
 .bp-detail-k.is-premium { color: var(--bpx); }
 .bp-detail-line { font-size: 12px; color: var(--text); padding: 2px 0; }
 .bp-detail-note { font-size: 11px; color: var(--dim); margin: 8px 0 0; }
+
+@media (prefers-reduced-motion: reduce) {
+  .bp-petal, .bp-atmo-aurora, .bp-atmo-rays,
+  .bp-medal-ring, .bp-medal-orbit, .bp-glyph,
+  .bp-xpbar i::after, .bp-upsell::after, .bp-beacon,
+  .bp-cell.is-claimable, .bp-cell.is-claimable .bp-ricons, .bp-cell-rays,
+  .bp-col, .bp-receipt span { animation: none !important; }
+}
 @media (prefers-reduced-motion: reduce) { .bp-glyph, .bp-cell.is-claimable, .bp-receipt, .bp-detail { animation: none; } }
 
 /* ── Quest Board (docs/QUESTS.md §ui) — weekly banner, questline chapters, contracts ── */
