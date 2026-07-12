@@ -659,6 +659,10 @@ export const RELEASES: Release[] = [
       {
         "cat": "Heroes",
         "text": "Polish pass: fix hero-panel text collapse + three sweep findings"
+      },
+      {
+        "cat": "Visuals",
+        "text": "Season Pass visual overhaul: living seasonal atmosphere + animated track"
       }
     ]
   },

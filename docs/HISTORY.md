@@ -157,3 +157,5 @@
 - `518237e` **[Gameplay]** Adaptation Chamber: the Antigen layer gets its own wing + exact advisor
 - `08d5f07` **[Website]** Chronicle + site + handoff for the adaptation/power-feedback batch
 - `b6c86a8` **[Heroes]** Polish pass: fix hero-panel text collapse + three sweep findings
+- ⚑ `0180348` **[Framework]** Chronicle + handoff for the polish pass _(internal)_
+- `c865ef2` **[Visuals]** Season Pass visual overhaul: living seasonal atmosphere + animated track

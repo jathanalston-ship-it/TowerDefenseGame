@@ -1,6 +1,6 @@
 {
-  "lastSha": "b6c86a8923e8b1fb1318f4e649601d99c6c27266",
-  "commitsSinceDraft": 0,
+  "lastSha": "c865ef2b2aaa5c60dc47a1871cec7944fe47f093",
+  "commitsSinceDraft": 2,
   "content": {
     "tower": [
       "needle",
@@ -2127,6 +2127,10 @@
         {
           "cat": "Heroes",
           "text": "Polish pass: fix hero-panel text collapse + three sweep findings"
+        },
+        {
+          "cat": "Visuals",
+          "text": "Season Pass visual overhaul: living seasonal atmosphere + animated track"
         }
       ]
     }
@@ -3289,6 +3293,22 @@
       "date": "2026-07-12",
       "cat": "Heroes",
       "text": "Polish pass: fix hero-panel text collapse + three sweep findings",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "0180348bcbfdc8c7cdbf7b096b6a4477c367975b",
+      "date": "2026-07-12",
+      "cat": "Framework",
+      "text": "Chronicle + handoff for the polish pass",
+      "internal": true,
+      "needsReview": true
+    },
+    {
+      "sha": "c865ef2b2aaa5c60dc47a1871cec7944fe47f093",
+      "date": "2026-07-12",
+      "cat": "Visuals",
+      "text": "Season Pass visual overhaul: living seasonal atmosphere + animated track",
       "internal": false,
       "needsReview": false
     }
