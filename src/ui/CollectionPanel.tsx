@@ -1,9 +1,9 @@
 // Codex screen — the Collection layer's face, and a genuine PROGRESSION dashboard (docs/COLLECTION.md).
-// For each category it renders a RANK badge (Bronze→Ascendant), a completion bar, a reward TRACK with
-// milestone pips, the live per-category BONUSES, and the collection's POWER contribution — plus a
-// rank-up CELEBRATION (with a Power-gain popup + fanfare) fired for any promotions since the last
-// visit (meta.pollCollectionRankUps, session-diffed). Read-only over meta.collection(); self-
-// contained (inline-styled + one injected <style> for the celebration keyframes).
+// Three wings under one masthead (no infinite scroll): CODEX — a compact category tile grid that
+// drills into a per-category detail (rank badge, completion bar, reward TRACK with milestone pips,
+// live BONUSES, the entry grid); MEMORIES — the cutscene archive; REWARDS — earned identity items.
+// A rank-up CELEBRATION (Power-gain popup + fanfare) fires for any promotions since the last visit
+// (meta.pollCollectionRankUps, session-diffed). Read-only over meta.collection().
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { meta } from '../state/meta';
@@ -14,8 +14,6 @@ import type { BonusLine, CollectionCategory, CollectionEntry, CollectionRank, Co
 import type { CutsceneDef } from '../core/cutscenes';
 import { drawCutsceneStill } from '../render/cutsceneScenes';
 import { CutscenePlayer } from './CutscenePlayer';
-import { MobileSection } from './components/MobileSection';
-import { useLayoutProfile } from './layoutProfile';
 
 const REWARD_ICON: Record<RewardKind, string> = { title: '✦', badge: '◈', portrait: '☻', theme: '◧', cosmetic: '✷', bonus: '▲' };
 const MILES = rankMilestones(); // [{ rank, at }] — the reward-track pip positions (single source)
@@ -63,35 +61,20 @@ function MemoryCard({ def, unlocked, onPlay }: { def: CutsceneDef; unlocked: boo
   );
 }
 
-/** The Memory Archive — every story cutscene as a collectible, replayable forever. */
-function MemoryArchive(): JSX.Element {
-  const memories = useMemo(() => meta.cutscenesView(), []);
+/** The Memory Archive wing — every story cutscene as a collectible, replayable forever. */
+function MemoryArchive({ memories }: { memories: ReturnType<typeof meta.cutscenesView> }): JSX.Element {
   const [playing, setPlaying] = useState<CutsceneDef | null>(null);
-  const portrait = useLayoutProfile().profile === 'portrait';
   const unlocked = memories.filter((m) => m.unlocked).length;
-  const grid = (
-    <div className="mem-grid">
-      {memories.map((m) => (
-        <MemoryCard key={m.def.id} def={m.def} unlocked={m.unlocked} onPlay={() => { audio.cue('ui'); setPlaying(m.def); }} />
-      ))}
-    </div>
-  );
   return (
     <>
-      {portrait ? (
-        // Portrait: the full-art memory wall folds — it was most of the codex's scroll.
-        <MobileSection title="Memory Archive" hint="Story cutscenes replay forever — each grants a small passive." count={`${unlocked}/${memories.length}`}>
-          {grid}
-        </MobileSection>
-      ) : (
-        <>
-          <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, margin: '14px 0 8px' }}>
-            <h3 style={{ margin: 0, fontSize: 16, letterSpacing: '0.06em' }}>Memory Archive</h3>
-            <span style={{ fontSize: 12, opacity: 0.7 }}>{unlocked}/{memories.length} recovered · story cutscenes replay forever · each grants a small passive</span>
-          </div>
-          {grid}
-        </>
-      )}
+      <div className="cx-wing-sub">
+        {unlocked}/{memories.length} recovered · story cutscenes replay forever · each grants a small passive
+      </div>
+      <div className="mem-grid">
+        {memories.map((m) => (
+          <MemoryCard key={m.def.id} def={m.def} unlocked={m.unlocked} onPlay={() => { audio.cue('ui'); setPlaying(m.def); }} />
+        ))}
+      </div>
       {playing && (
         <CutscenePlayer def={playing} onDone={() => { setPlaying(null); music.play('menu'); }} />
       )}
@@ -182,43 +165,48 @@ function EntryGrid({ entries }: { entries: CollectionEntry[] }): JSX.Element {
   );
 }
 
-function CategoryCard({ c }: { c: CollectionCategory }): JSX.Element {
-  const [open, setOpen] = useState(false);
-  const portrait = useLayoutProfile().profile === 'portrait';
+/** Next-rank line for a category — shared by the tile hint and the detail header. */
+function nextRankText(c: CollectionCategory): string {
+  if (c.nextRankAt == null || c.rankIndex >= MILES.length) return 'Fully mastered ★';
+  if (c.rankIndex === 0) return `${c.nextRank} — make a discovery`;
+  return `${c.nextRank} at ${Math.ceil(c.nextRankAt * 100)}%`;
+}
+
+/** One compact category tile — the codex browses as a wall of these; tap to drill in. */
+function CategoryTile({ c, onOpen }: { c: CollectionCategory; onOpen: () => void }): JSX.Element {
   const color = RANK_COLORS[c.rank];
-  const nextText = c.nextRankAt == null ? 'Fully mastered'
-    : c.rankIndex === 0 ? `${c.nextRank} — make a discovery`
-    : `${c.nextRank} at ${Math.ceil(c.nextRankAt * 100)}%`;
-  const body = (
-    <>
-      <RewardTrack completion={c.completion} rankIndex={c.rankIndex} />
-      <div style={{ fontSize: 10.5, opacity: 0.6 }}>{c.rankIndex >= MILES.length ? 'Fully mastered ★' : `Next: ${nextText}`}</div>
-      <Bonuses lines={c.bonuses} />
-      <button onClick={() => setOpen((o) => !o)} style={{
-        marginTop: 8, background: 'none', border: 'none', color: '#7fd7ff', cursor: 'pointer', fontSize: 11.5, padding: 0,
-      }}>{open ? 'Hide entries ▴' : `Show ${c.total} entries ▾`}</button>
-      {open && <EntryGrid entries={c.entries} />}
-    </>
-  );
-  // Portrait: ~20 always-expanded category cards made the codex a 9-screen scroll — each
-  // category folds to a header row (name · rank progress) and opens on demand.
-  if (portrait) {
-    return (
-      <MobileSection title={c.name} hint={c.rankIndex >= MILES.length ? 'Fully mastered ★' : `${c.rank} · next: ${nextText}`} count={`${c.discovered}/${c.total} · ${Math.round(c.completion * 100)}%`}>
-        {body}
-      </MobileSection>
-    );
-  }
   return (
-    <div style={{ marginBottom: 12, padding: '12px 14px', borderRadius: 10, background: 'rgba(255,255,255,0.03)', border: `1px solid ${color}33` }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <h3 style={{ margin: 0, fontSize: 15, letterSpacing: '0.05em' }}>{c.name}</h3>
+    <button className="cx-tile" style={{ ['--cxc' as string]: color }} onClick={onOpen}>
+      <span className="cx-tile-top">
+        <b className="cx-tile-name">{c.name}</b>
+        <RankBadge rank={c.rank} size={10} />
+      </span>
+      <span className="cx-tile-bar" aria-hidden><i style={{ width: `${Math.round(c.completion * 100)}%` }} /></span>
+      <span className="cx-tile-foot">
+        <span>{c.discovered}/{c.total} · {Math.round(c.completion * 100)}%</span>
+        <i className="cx-tile-go" aria-hidden>▸</i>
+      </span>
+    </button>
+  );
+}
+
+/** The drilled-in category page: back row, header, reward track, bonuses, every entry. */
+function CategoryDetail({ c, onBack }: { c: CollectionCategory; onBack: () => void }): JSX.Element {
+  const color = RANK_COLORS[c.rank];
+  return (
+    <div className="cx-detail" style={{ ['--cxc' as string]: color }}>
+      <button className="cx-back" onClick={onBack}>‹ All categories</button>
+      <div className="cx-detail-head">
+        <div className="cx-detail-title">
+          <h3>{c.name}</h3>
           <RankBadge rank={c.rank} />
         </div>
-        <span style={{ fontSize: 12, opacity: 0.75 }}>{c.discovered}/{c.total} · {Math.round(c.completion * 100)}%</span>
+        <span className="cx-detail-count">{c.discovered}/{c.total} · {Math.round(c.completion * 100)}%</span>
       </div>
-      {body}
+      <RewardTrack completion={c.completion} rankIndex={c.rankIndex} />
+      <div style={{ fontSize: 10.5, opacity: 0.6 }}>{c.rankIndex >= MILES.length ? 'Fully mastered ★' : `Next: ${nextRankText(c)}`}</div>
+      <Bonuses lines={c.bonuses} />
+      <EntryGrid entries={c.entries} />
     </div>
   );
 }
@@ -257,12 +245,24 @@ function RankUpCelebration({ rankUps, powerGain, onClose }: { rankUps: Collectio
   );
 }
 
+const CX_TABS = [
+  { id: 'codex', glyph: '▤', label: 'Codex' },
+  { id: 'memories', glyph: '▣', label: 'Memories' },
+  { id: 'rewards', glyph: '✦', label: 'Rewards' },
+] as const;
+type CxTab = (typeof CX_TABS)[number]['id'];
+
 /** Codex as a dedicated headquarters screen. Reflects meta.collection() / meta.collectionRewards();
  * read-only, except it polls session rank-ups on mount to celebrate promotions. */
 export function CollectionScreen(): JSX.Element {
   const view = useMemo(() => meta.collection(), []);
   const rewards = useMemo(() => meta.collectionRewards(), []);
+  const memories = useMemo(() => meta.cutscenesView(), []);
   const [celebration, setCelebration] = useState<{ rankUps: CollectionRankUp[]; powerGain: number } | null>(null);
+  const [tab, setTab] = useState<CxTab>('codex');
+  const [openCat, setOpenCat] = useState<string | null>(null);
+  const open = view.categories.find((c) => c.id === openCat) ?? null;
+  const memUnlocked = memories.filter((m) => m.unlocked).length;
 
   useEffect(() => {
     const { rankUps, powerGain } = meta.pollCollectionRankUps();
@@ -270,44 +270,80 @@ export function CollectionScreen(): JSX.Element {
   }, []);
 
   return (
-    <div className="collection" style={{ color: '#dfe8f2' }}>
+    <div className="collection cx" style={{ color: '#dfe8f2' }}>
       <style>{KEYFRAMES}</style>
 
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, marginBottom: 6 }}>
-        <div className="panel-title">Codex</div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+      {/* ── MASTHEAD — the whole collection at a glance ── */}
+      <div className="cx-mast">
+        <div className="cx-mast-id">
+          <div className="panel-title">Bio-Dex Codex</div>
+          <div className="cx-mast-sub">
+            {view.discovered}/{view.total} discovered · {Math.round(view.pct * 100)}% found · {Math.round(view.completion * 100)}% mastery
+          </div>
+        </div>
+        <div className="cx-mast-stats">
           <RankBadge rank={view.rank} size={12} />
-          <span title="The collection's contribution to your Power Score" style={{ fontSize: 12.5, color: '#e6a2ff', fontWeight: 600 }}>
+          <span className="cx-mast-power" title="The collection's contribution to your Power Score">
             ◆ Power ×{view.power.toFixed(2)}
           </span>
         </div>
       </div>
-      <div style={{ fontSize: 12, opacity: 0.8, marginBottom: 5 }}>
-        {view.discovered}/{view.total} discovered · {Math.round(view.pct * 100)}% found · {Math.round(view.completion * 100)}% mastery
-      </div>
       <Bar pct={view.completion} color={RANK_COLORS[view.rank]} />
-      <div style={{ height: 14 }} />
 
-      {view.categories.map((c) => <CategoryCard key={c.id} c={c} />)}
+      {/* ── SUB-NAV — three wings, no infinite scroll ── */}
+      <div className="wing-tabs cx-tabs" role="tablist" aria-label="Codex pages" style={{ ['--wingc' as string]: 'var(--viral)' }}>
+        {CX_TABS.map((t) => (
+          <button
+            key={t.id}
+            role="tab"
+            aria-selected={tab === t.id}
+            className={`wing-tab${tab === t.id ? ' on' : ''}`}
+            onClick={() => { setTab(t.id); setOpenCat(null); }}
+          >
+            <span className="wing-tab-glyph" aria-hidden>{t.glyph}</span>
+            <span className="wing-tab-body">
+              <b>{t.label}</b>
+              <i>{t.id === 'codex' ? `${view.categories.length} categories`
+                : t.id === 'memories' ? `${memUnlocked}/${memories.length} recovered`
+                : `${rewards.length} earned`}</i>
+            </span>
+          </button>
+        ))}
+      </div>
 
-      <MemoryArchive />
-
-      <h3 style={{ margin: '10px 0 8px', fontSize: 15, letterSpacing: '0.06em' }}>Identity Rewards</h3>
-      {rewards.length === 0 ? (
-        <div style={{ fontSize: 12.5, opacity: 0.7 }}>Complete a category to earn titles, badges, and cosmetics.</div>
+      {tab === 'codex' && (open ? (
+        <CategoryDetail c={open} onBack={() => setOpenCat(null)} />
       ) : (
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-          {rewards.map((r) => (
-            <div key={r.id} title={r.desc} style={{
-              display: 'flex', alignItems: 'center', gap: 6, padding: '6px 10px', borderRadius: 999,
-              background: 'rgba(255,210,77,0.10)', border: '1px solid rgba(255,210,77,0.35)', fontSize: 12.5,
-            }}>
-              <span style={{ color: '#ffd24d' }}>{REWARD_ICON[r.kind]}</span>
-              <span>{r.name}</span>
-              <span style={{ opacity: 0.55, fontSize: 10.5, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{r.kind}</span>
+        <>
+          <div className="cx-wing-sub">Every category ranks Bronze → Ascendant — open one for its reward track, bonuses and entries.</div>
+          <div className="cx-tiles">
+            {view.categories.map((c) => <CategoryTile key={c.id} c={c} onOpen={() => { audio.cue('ui'); setOpenCat(c.id); }} />)}
+          </div>
+        </>
+      ))}
+
+      {tab === 'memories' && <MemoryArchive memories={memories} />}
+
+      {tab === 'rewards' && (
+        <>
+          <div className="cx-wing-sub">Identity rewards earned from category ranks — titles, badges and cosmetics.</div>
+          {rewards.length === 0 ? (
+            <div style={{ fontSize: 12.5, opacity: 0.7 }}>Complete a category to earn titles, badges, and cosmetics.</div>
+          ) : (
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+              {rewards.map((r) => (
+                <div key={r.id} title={r.desc} style={{
+                  display: 'flex', alignItems: 'center', gap: 6, padding: '6px 10px', borderRadius: 999,
+                  background: 'rgba(255,210,77,0.10)', border: '1px solid rgba(255,210,77,0.35)', fontSize: 12.5,
+                }}>
+                  <span style={{ color: '#ffd24d' }}>{REWARD_ICON[r.kind]}</span>
+                  <span>{r.name}</span>
+                  <span style={{ opacity: 0.55, fontSize: 10.5, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{r.kind}</span>
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
+          )}
+        </>
       )}
 
       {celebration && <RankUpCelebration rankUps={celebration.rankUps} powerGain={celebration.powerGain} onClose={() => setCelebration(null)} />}

@@ -46,12 +46,18 @@ of this.
 - Claiming pays the multiplied bundle (+ any find) into shards/essence/mats, bumps the
   mission's mastery, frees the hero, and writes outcome-flavored timeline events.
 
-## UI
+## UI — §screen
 
-HeroLab → **Hero Expeditions** panel: live countdowns + progress bars (minute tick),
-risk chips, affinity + mastery lines per offer, per-hero send buttons showing ★s and the
-projected ×mult (affine foragers glow), and a claim ceremony styled by outcome
-(windfall / setback / rare find).
+**Expedition Command** (`src/ui/ExpeditionScreen.tsx`) — its own nav wing in the
+Progression group (relocated out of the HeroLab basement, 2026-07; stage-6 reveal beside
+Idle Harvest as the away-game pair; a `expeditions` nav badge lights when spoils are
+claimable). Two boards under a masthead (slots chip + ready-count pulse):
+**AWAY TEAM** — per-mission cards with hero portrait, risk chip, live progress bar +
+countdown (30s tick), and a pulsing claim when returned; the claim raises an
+outcome-tinted **spoils ceremony** card (windfall / setback / rare find, itemized haul).
+**MISSION BOARD** — risk-chromed offer cards (tier accent border), affinity chip,
+10-pip mastery meter (+% label), payout row, and per-hero portrait send buttons showing
+the projected ×mult (affine foragers glow).
 
 ## Extending
 

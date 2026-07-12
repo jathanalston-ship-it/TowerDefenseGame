@@ -108,6 +108,14 @@ registerNotification({
   count: (s) => s.equipment.inventory.length,
 });
 
+// Expeditions — teams back from the field with unclaimed spoils (docs/EXPEDITIONS.md). Wall-clock
+// read: the badge refreshes on any save write / ack tick, which is exactly when it matters.
+registerNotification({
+  id: 'expeditions.claimable',
+  channel: 'expeditions',
+  count: (s) => s.expeditions.active.filter((e) => e.endsAt <= Date.now()).length,
+});
+
 // Profile — achievements unlocked (their Shard rewards are auto-granted) since last viewed.
 registerNotification({
   id: 'profile.achievements',

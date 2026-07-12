@@ -1,11 +1,29 @@
 # PROFILE.md — the Player Profile (account dashboard)
 
-> The profile answers, top to bottom: **who is this player** (banner, frames, worn title),
+> The profile answers: **who is this player** (banner, frames, worn title),
 > **what have they accomplished** (career statistics, power breakdown, achievements showcase,
 > milestone timeline), **what are they working toward** (loop directive + Next-Goal
 > milestones), and **how do they play** (performance analytics). Read-model + registry:
 > `src/state/profile.ts` (pinned by `profile.test.ts`); screen: `src/ui/PlayerProfile.tsx`
 > (Hub → Profile). Save schema v22 adds the identity fields + ledgers.
+
+## §tabs — four wings under one banner (2026-07 overhaul)
+
+The dashboard no longer stacks every section into one infinite scroll. The **identity
+banner stays always-visible**; below it a sticky `wing-tabs` sub-nav splits the screen
+into four focused pages (each tab chip carries a live count):
+
+| Tab | Contents |
+|---|---|
+| **Overview** | Genome Rank panel · Account Level (bar, next-level pay, milestones, standings boards) · Account & Sync card · Next Milestones (loop directive + goals) |
+| **Career** | Power Breakdown · Career Statistics — each registry section renders as a `Fold` (combat open by default), Performance Analytics folds in as the last group |
+| **Honors** | Nemesis & Trophy Rack · Achievements showcase · identity galleries (titles + achievement gallery) |
+| **Timeline** | The account's story feed, newest first |
+
+`Fold` (`src/ui/components/MobileSection.tsx`) is the universal `<details>` collapsible
+(all layout profiles); `MobileSection` remains the portrait-only wrapper over it. The
+`wing-tabs`/`wing-tab` CSS pattern is shared with the Bio-Dex Codex (`--wingc` sets the
+accent) — reuse it for any future in-screen sub-nav.
 
 ---
 

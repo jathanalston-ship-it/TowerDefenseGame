@@ -863,15 +863,15 @@ graph TD
 
 ### Hero Expeditions (`expeditions`)
 
-*The benched-hero idle lane (docs/EXPEDITIONS.md): owned-but-unfielded heroes run real-time away-missions (absolute endsAt timestamps — offline-safe, testable now params) on a 7-mission board with class affinity (+25%), risk tiers (deterministic hash-rolled windfalls/setbacks), rare finds, and a per-mission mastery ledger (save v27). HeroLab panel: offer matrix with projected multipliers, progress bars, outcome claim ceremony.*
+*The benched-hero idle lane (docs/EXPEDITIONS.md): owned-but-unfielded heroes run real-time away-missions (absolute endsAt timestamps — offline-safe, testable now params) on a 7-mission board with class affinity (+25%), risk tiers (deterministic hash-rolled windfalls/setbacks), rare finds, and a per-mission mastery ledger (save v27). Expedition Command screen (own nav wing, stage-6 reveal, claimable nav badge): away-team cards with portraits/progress/pulsing claims, risk-chromed offer wall with mastery pips + projected multipliers, outcome spoils ceremony.*
 
-- **Files:** `src/core/expeditions.ts`
+- **Files:** `src/core/expeditions.ts` · `src/ui/ExpeditionScreen.tsx`
 - **Depends on:** `heroes` · `meta-store`
 - **Consumers — what breaks if you change this:** —
 - **Power Score:** — (intentionally none)
 - **Save fields:** `expeditions`
-- **Tutorial:** — · **Help mechanics:** —
-- **HUD surfaces:** — · **UI screens:** `HeroLab (Expeditions panel)`
+- **Tutorial:** — · **Help mechanics:** `expeditions`
+- **HUD surfaces:** — · **UI screens:** `ExpeditionScreen (Expedition Command)`
 - **Collection:** — · **Achievements:** —
 - **Localization:** inline English strings (no i18n layer yet — this field enumerates the surface for the day it lands)
 - **Docs to update on change:** `docs/EXPEDITIONS.md`

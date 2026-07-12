@@ -1,6 +1,6 @@
 # UNLOCK-TREE.md — the complete progression reveal timeline (GENERATED — `npm run unlocks`)
 
-> 27 features under progression gating (docs/PROGRESSION-GATING.md): every hub
+> 28 features under progression gating (docs/PROGRESSION-GATING.md): every hub
 > screen and wallet chip, in learning-curve order. "Possible" = earliest a lucky account can
 > reveal it; "guaranteed" = the campaign stage that opens it regardless of drops.
 
@@ -23,6 +23,7 @@
 | 13 | ✪ **Quest Board** `quests` | screen | Clear Campaign Stage 4 · 4 to go | S4 | S4 | Quests & Missions (`quests`) | Directives give the mid-early game its to-do list: by stage 4 enough systems exist for missions to point at, and Chapter I is already half-earnable from natural play. |
 | 13.5 | ⬡ **The Hive** `hive` | screen | Clear Campaign Stage 4 · 4 to go | S4 | S4 | Hive Construction (`hive-construction`) | A composite sink needs wallets to sink — by stage 4 Cores/Essence/materials all flow and the era-0 organs read as a real goal (stage 3 already reveals three screens). |
 | 13.6 | ⬣ **Idle Harvest** `harvest` | screen | Clear Campaign Stage 6 · 6 to go | S6 | S6 | Idle Harvest (`idle-harvest`) | Idle exists to soften RETURN friction — it reveals one beat AFTER the stage-5 retention rhythm screens (which already fill that beat), so the first away-session banks something worth a ceremony without joining an overload stage. |
+| 13.7 | ⇢ **Expedition Command** `expeditions` | screen | Clear Campaign Stage 6 · 6 to go | S6 | S6 | Hero Expeditions (`expeditions`) | The away-game beat, taught as a pair: Idle Harvest banks time, Expeditions bank BENCHED HEROES — both reveal at stage 6, when a second champion exists to send and return friction is worth softening. |
 | 14 | ☀ **Daily Run** `daily` | screen | Clear Campaign Stage 5 · 5 to go | start | S5 | Daily Run (`daily-run`) | The established gate (docs/DAILY-RUN.md): the retention rhythm starts once the core loop is fluent. History grandfathers. |
 | 15 | ▤ **Bio-Dex** `collection` | screen | Clear Campaign Stage 5 · 5 to go | S5 | S5 | Bio-Dex (Collection) (`collection-codex`) | By stage 5 several enemy families, cards and drops exist to catalogue — rank bonuses stop being abstract. |
 | 16 | ❁ **Season Pass** `season` | screen | Clear Campaign Stage 5 · 5 to go | S5 | S5 | Season Pass (`season-pass`) | XP accrues silently from run 1 (rollover mail keeps it lossless) — the track REVEALS once the loop is fluent and several faucets exist to feed it. |
@@ -42,7 +43,7 @@
 - **Stage 3** — ∞ Infinite · ◆ Splice Market · ⌬ Gene Archive · 🩸 Ichor
 - **Stage 4** — ⛨ Armory · ✪ Quest Board · ⬡ The Hive
 - **Stage 5** — ☀ Daily Run · ▤ Bio-Dex · ❁ Season Pass
-- **Stage 6** — ⬣ Idle Harvest · ❑ Gear Codex · ⊕ Materials
+- **Stage 6** — ⬣ Idle Harvest · ⇢ Expedition Command · ❑ Gear Codex · ⊕ Materials
 - **Stage 7** — ⊛ Mulligan Lab · ❖ Phenotype Lab
 - **Stage 9** — ✦ Ascendant Cells
 - **Stage 10** — ☠ Boss Rush

@@ -28,9 +28,20 @@ import { AccountXpBar, rewardLine } from './components/AccountXpBar';
 import { ACCOUNT_TITLES, MILESTONE_LEVELS, accountLevelReward } from '../core/accountLevel';
 import { LeaderboardBlock } from './components/LeaderboardBlock';
 import { GenomeRankPanel } from './components/GenomeRankPanel';
+import { Fold } from './components/MobileSection';
 import type { LbMode } from '../net/leaderboard';
 
 const CAREER_SECTIONS: ProfileSectionId[] = ['combat', 'economy', 'campaign', 'infinite', 'bossrush', 'collection'];
+
+/** The profile's sub-pages — one identity banner, four focused wings (docs/PROFILE.md §tabs).
+ *  Splitting the dashboard kills the infinite scroll: each tab answers ONE question. */
+const PF_TABS = [
+  { id: 'overview', glyph: '◑', label: 'Overview', sub: 'rank · level · next' },
+  { id: 'career', glyph: '⚔', label: 'Career', sub: 'power · statistics' },
+  { id: 'honors', glyph: '✦', label: 'Honors', sub: 'feats · trophies' },
+  { id: 'timeline', glyph: '≣', label: 'Timeline', sub: 'the account’s story' },
+] as const;
+type PfTab = (typeof PF_TABS)[number]['id'];
 
 function StatCell({ s }: { s: ProfileStat }): JSX.Element {
   return (
@@ -55,6 +66,7 @@ export function PlayerProfile({ onNavigate }: { onNavigate?: (nav: string) => vo
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(banner.name);
   const [board, setBoard] = useState<LbMode>('accountLevel');
+  const [tab, setTab] = useState<PfTab>('overview');
   const maxShare = Math.max(1, ...power.slices.map((s) => s.share));
   // Wardrobe identity (docs/COSMETICS.md §wardrobe): the commander card wears every equipped
   // identity cosmetic — name ink, title, nameplate, backdrop, banner standard, emblem, borders.
@@ -147,6 +159,29 @@ export function PlayerProfile({ onNavigate }: { onNavigate?: (nav: string) => vo
         </div>
       </section>
 
+      {/* ── SUB-NAV — four focused wings under one identity banner (no infinite scroll) ── */}
+      <div className="wing-tabs" role="tablist" aria-label="Profile pages">
+        {PF_TABS.map((t) => (
+          <button
+            key={t.id}
+            role="tab"
+            aria-selected={tab === t.id}
+            className={`wing-tab${tab === t.id ? ' on' : ''}`}
+            onClick={() => setTab(t.id)}
+          >
+            <span className="wing-tab-glyph" aria-hidden>{t.glyph}</span>
+            <span className="wing-tab-body">
+              <b>{t.label}</b>
+              <i>{t.id === 'honors' ? `${showcase.count}/${showcase.total} unlocked`
+                : t.id === 'timeline' ? `${save.timeline.length} entries`
+                : t.id === 'career' ? `${formatPower(power.score)} power`
+                : t.sub}</i>
+            </span>
+          </button>
+        ))}
+      </div>
+
+      {tab === 'overview' && <>
       {/* ── 1a · GENOME RANK — the ultimate mastery ladder (docs/GENOME-RANK.md): the emblem,
           what feeds the rating, and the Advisor's easiest next points. ── */}
       <GenomeRankPanel onNavigate={onNavigate} />
@@ -206,7 +241,9 @@ export function PlayerProfile({ onNavigate }: { onNavigate?: (nav: string) => vo
           {goals.length === 0 && <div className="pf-empty">Every tracked goal is complete — push the frontier.</div>}
         </div>
       </section>
+      </>}
 
+      {tab === 'honors' && <>
       {/* ── 6b · NEMESIS + TROPHY RACK (docs/NEMESIS.md) — the hunt and the spoils ── */}
       <section className="pf-block" aria-label="Nemesis and trophies">
         <div className="pf-h">Nemesis &amp; Trophy Rack</div>
@@ -256,7 +293,9 @@ export function PlayerProfile({ onNavigate }: { onNavigate?: (nav: string) => vo
         </div>
         <div className="pf-trophy-note">Mount up to your rack's slots — tradeoff organs pay AND cost; Vengeance organs (from avenged Nemeses) only pay.</div>
       </section>
+      </>}
 
+      {tab === 'career' && <>
       {/* ── 3 · POWER BREAKDOWN — where the strength comes from ── */}
       <section className="pf-block" aria-label="Power breakdown">
         <div className="pf-h">Power Breakdown <b className="pf-h-power">{formatPower(power.score)}</b></div>
@@ -273,7 +312,7 @@ export function PlayerProfile({ onNavigate }: { onNavigate?: (nav: string) => vo
         </div>
       </section>
 
-      {/* ── 2 · CAREER STATISTICS — registry-driven groups ── */}
+      {/* ── 2 · CAREER STATISTICS — registry-driven groups, each behind a scannable fold ── */}
       <section className="pf-block" aria-label="Career statistics">
         <div className="pf-h">Career Statistics</div>
         <div className="pf-career">
@@ -281,23 +320,23 @@ export function PlayerProfile({ onNavigate }: { onNavigate?: (nav: string) => vo
             const stats = profileSection(save, id);
             if (stats.length === 0) return null;
             return (
-              <div className="pf-group" key={id}>
-                <div className="pf-group-h">{PROFILE_SECTION_TITLES[id]}</div>
+              <Fold key={id} title={PROFILE_SECTION_TITLES[id]} count={`${stats.length} stats`} defaultOpen={id === 'combat'}>
                 <div className="pf-grid">{stats.map((s) => <StatCell key={s.id} s={s} />)}</div>
-              </div>
+              </Fold>
             );
           })}
+          {/* Performance analytics — "how do they play?" folds in as the last group. */}
+          <Fold title={PROFILE_SECTION_TITLES.analytics} count={`${profileSection(save, 'analytics').length} reads`}>
+            <div className="pf-grid pf-analytics">
+              {profileSection(save, 'analytics').map((s) => <StatCell key={s.id} s={s} />)}
+            </div>
+          </Fold>
         </div>
       </section>
 
-      {/* ── 7 · PERFORMANCE ANALYTICS — how do they play? ── */}
-      <section className="pf-block" aria-label="Performance analytics">
-        <div className="pf-h">{PROFILE_SECTION_TITLES.analytics}</div>
-        <div className="pf-grid pf-analytics">
-          {profileSection(save, 'analytics').map((s) => <StatCell key={s.id} s={s} />)}
-        </div>
-      </section>
+      </>}
 
+      {tab === 'honors' && <>
       {/* ── 4 · ACHIEVEMENTS SHOWCASE ── */}
       <section className="pf-block" aria-label="Achievements showcase">
         <div className="pf-h">Achievements <b className="pf-h-sub">{showcase.count} / {showcase.total}</b></div>
@@ -308,6 +347,14 @@ export function PlayerProfile({ onNavigate }: { onNavigate?: (nav: string) => vo
         </div>
       </section>
 
+      {/* Identity + gallery — the existing surfaces, embedded (titles = wearable badges). */}
+      <div className="pf-cols">
+        <MasteryProfile />
+        <AchievementPanel />
+      </div>
+      </>}
+
+      {tab === 'timeline' && <>
       {/* ── 5 · PROGRESS TIMELINE — the account's story, newest first ── */}
       <section className="pf-block" aria-label="Progress timeline">
         <div className="pf-h">Timeline</div>
@@ -325,12 +372,7 @@ export function PlayerProfile({ onNavigate }: { onNavigate?: (nav: string) => vo
           <div className="pf-empty">Milestones record here from your next settled run onward.</div>
         )}
       </section>
-
-      {/* Identity + gallery — the existing surfaces, embedded (titles = wearable badges). */}
-      <div className="pf-cols">
-        <MasteryProfile />
-        <AchievementPanel />
-      </div>
+      </>}
     </div>
   );
 }

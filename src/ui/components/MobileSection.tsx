@@ -1,16 +1,20 @@
-// MOBILE SECTION (docs/RESPONSIVE-DESIGN.md §mobile-shell) — the portrait collapsible.
-// Desktop renders children untouched (zero layout impact); the portrait profile wraps them in a
-// native <details> with a fat, self-describing summary row (title + one-line hint + live count),
-// so long screens become a scannable table of contents instead of a thousand-pixel scroll.
-// Native details/summary keeps it accessible (keyboard/AT) with no positioning code.
+// COLLAPSIBLE SECTIONS (docs/RESPONSIVE-DESIGN.md §mobile-shell + docs/UI_STYLE_GUIDE.md).
+// `Fold` is the universal collapsible — a native <details> with a fat, self-describing summary
+// row (title + one-line hint + live count) that works on EVERY layout profile; long screens
+// become a scannable table of contents instead of a thousand-pixel scroll. `MobileSection`
+// keeps its original contract: desktop renders children untouched (zero layout impact) and
+// only the portrait profile folds. Native details/summary keeps both accessible
+// (keyboard/AT) with no positioning code.
 
 import { useState, type ReactNode } from 'react';
 import { useLayoutProfile } from '../layoutProfile';
 
-export function MobileSection({
+/** The always-collapsible section (all layout profiles). */
+export function Fold({
   title,
   hint,
   count,
+  accent,
   defaultOpen = false,
   children,
 }: {
@@ -19,12 +23,12 @@ export function MobileSection({
   hint?: string;
   /** Live tally chip (e.g. "12/24") — visible while closed so state reads without opening. */
   count?: string;
+  /** Optional accent color for the title (section identity). */
+  accent?: string;
   defaultOpen?: boolean;
   children: ReactNode;
 }): JSX.Element {
-  const { profile } = useLayoutProfile();
   const [open, setOpen] = useState(defaultOpen);
-  if (profile !== 'portrait') return <>{children}</>;
   return (
     <details
       className="msec"
@@ -33,7 +37,7 @@ export function MobileSection({
     >
       <summary className="msec-h">
         <span className="msec-body">
-          <span className="msec-title">{title}</span>
+          <span className="msec-title" style={accent ? { color: accent } : undefined}>{title}</span>
           {hint && !open && <span className="msec-hint">{hint}</span>}
         </span>
         {count && <span className="msec-count">{count}</span>}
@@ -42,4 +46,17 @@ export function MobileSection({
       <div className="msec-content">{children}</div>
     </details>
   );
+}
+
+/** Portrait-only collapsible: desktop renders children untouched. */
+export function MobileSection(props: {
+  title: string;
+  hint?: string;
+  count?: string;
+  defaultOpen?: boolean;
+  children: ReactNode;
+}): JSX.Element {
+  const { profile } = useLayoutProfile();
+  if (profile !== 'portrait') return <>{props.children}</>;
+  return <Fold {...props} />;
 }

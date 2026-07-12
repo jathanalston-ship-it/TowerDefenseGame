@@ -11,6 +11,17 @@ identical (golden-safe).
 UI (`src/ui/CollectionPanel.tsx`) renders. Each category enumerates straight from a content registry
 (`enemyRegistry.ids()`, `ALL_ITEMS`, `BIOMES`, …), so **adding content auto-adds codex entries**.
 
+## §screen — masthead + three wings + tile drill-in (2026-07 overhaul)
+
+The screen no longer stacks ~28 expanded category cards. A **masthead** (overall rank badge,
+Power ×mult, discovered/mastery line + bar) sits over a `wing-tabs` sub-nav (shared with the
+Profile; `--wingc: var(--viral)`): **Codex** — a compact category **tile grid** (rank-colored
+accent, mini completion bar, counts) that **drills into** a per-category detail page (back
+button, reward track with milestone pips, next-rank line, live bonuses, full entry grid);
+**Memories** — the cutscene Memory Archive as its own wing; **Rewards** — earned identity
+items. The rank-up celebration (session-diffed `pollCollectionRankUps`) is unchanged. Same
+drill-in pattern on desktop and portrait — no per-profile special casing.
+
 **Completion score** (per category) = `Σ entry.tier / Σ entry.maxTier` — tier-weighted, so both
 *discovery* and *mastery* raise it (0..1). Multi-tier categories (enemies/towers/heroes) reward
 mastery; single-tier ones (bosses/cards/equipment/biomes/chests) are pure discovery.

@@ -321,10 +321,10 @@ export const SYSTEMS: SystemDef[] = [
     localization: 'inline-en', docs: ['docs/CHANGELOG-PIPELINE.md'],
   },
   {
-    id: 'expeditions', name: 'Hero Expeditions', purpose: 'The benched-hero idle lane (docs/EXPEDITIONS.md): owned-but-unfielded heroes run real-time away-missions (absolute endsAt timestamps — offline-safe, testable now params) on a 7-mission board with class affinity (+25%), risk tiers (deterministic hash-rolled windfalls/setbacks), rare finds, and a per-mission mastery ledger (save v27). HeroLab panel: offer matrix with projected multipliers, progress bars, outcome claim ceremony.',
-    files: ['src/core/expeditions.ts'],
+    id: 'expeditions', name: 'Hero Expeditions', purpose: 'The benched-hero idle lane (docs/EXPEDITIONS.md): owned-but-unfielded heroes run real-time away-missions (absolute endsAt timestamps — offline-safe, testable now params) on a 7-mission board with class affinity (+25%), risk tiers (deterministic hash-rolled windfalls/setbacks), rare finds, and a per-mission mastery ledger (save v27). Expedition Command screen (own nav wing, stage-6 reveal, claimable nav badge): away-team cards with portraits/progress/pulsing claims, risk-chromed offer wall with mastery pips + projected multipliers, outcome spoils ceremony.',
+    files: ['src/core/expeditions.ts', 'src/ui/ExpeditionScreen.tsx'],
     dependsOn: ['heroes', 'meta-store'], powerScore: null, save: ['expeditions'],
-    tutorial: [], help: [], hud: [], ui: ['HeroLab (Expeditions panel)'], collection: null, achievements: [],
+    tutorial: [], help: ['expeditions'], hud: [], ui: ['ExpeditionScreen (Expedition Command)'], collection: null, achievements: [],
     localization: 'inline-en', docs: ['docs/EXPEDITIONS.md'],
   },
   {
