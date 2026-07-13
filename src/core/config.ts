@@ -640,6 +640,33 @@ export const ENEMY_DEFS: Record<EnemyKind, EnemyDef> = {
     behavior: { seek: 1.1, avoidTowers: 0.1, avoidHero: 0.6, separation: 0.7, jitter: 0.28 }, // a fragile cloud → splash-or-die
     attack: { interval: 0.9, windup: 0.3 }, // SWARM: gnat bites
   },
+  // ── EARLY BROOD — four WEAK teaching variations (docs/ENEMIES.md §early-brood). All are
+  //    trait-less walkers with tier-1 effective HP, so the derived campaign gate (`unlockStage`)
+  //    admits them from STAGE 1 and the wave-1 unit caps accept them — the opening stages read
+  //    as a varied brood instead of a Skitterling monoculture. Each teaches ONE placement lesson
+  //    at newbie scale: armor exists (husk) · speed pressure (flea) · sustained-DPS wall (mold) ·
+  //    coverage gaps (skulker). Golden-safe for the pinned autoplay: the scripted WAVES table
+  //    never spawns them (campaign/daily generation is where they enter). ──
+  husk: {
+    kind: 'husk', name: 'Hollow Husk', hp: 20, armor: 1, speed: 55, bounty: 6, damage: 2, radius: 9, color: '#cfc3a8',
+    behavior: { seek: 1, avoidTowers: 0.2, avoidHero: 0.3, separation: 0.5, jitter: 0.12 }, // a dried shell that shambles — the FIRST armor read, in a harmless dose
+    attack: { interval: 0.9, windup: 0.35 },
+  },
+  flea: {
+    kind: 'flea', name: 'Itch Flea', hp: 16, armor: 0, speed: 98, bounty: 6, damage: 2, radius: 6, color: '#e8c06a',
+    behavior: { seek: 1.05, avoidTowers: 0.12, avoidHero: 0.7, separation: 0.75, jitter: 0.34 }, // a bounding speck — speed pressure before the Razor Sprinter exists
+    attack: { interval: 0.9, windup: 0.3 },
+  },
+  mold: {
+    kind: 'mold', name: 'Creeping Mold', hp: 62, armor: 0, speed: 26, bounty: 9, damage: 4, radius: 12, color: '#9ec27b',
+    behavior: { seek: 1, avoidTowers: 0.02, avoidHero: 0.05, separation: 0.35, jitter: 0.06 }, // a slow spongy mass that creeps STRAIGHT — the first "this needs sustained fire" wall
+    attack: { interval: 1.1, windup: 0.4 }, // slow chewing
+  },
+  skulker: {
+    kind: 'skulker', name: 'Pale Skulker', hp: 24, armor: 0, speed: 80, bounty: 7, damage: 3, radius: 8, color: '#93a8bd',
+    behavior: { seek: 0.85, avoidTowers: 0.85, avoidHero: 0.8, separation: 0.45, jitter: 0.2 }, // a coward that HUNTS GAPS (highest tower-avoidance in the weak band) — the coverage lesson
+    attack: { interval: 0.9, windup: 0.32 },
+  },
   larva: {
     kind: 'larva', name: 'Writhing Larva', hp: 24, armor: 0, speed: 40, bounty: 4, damage: 3, radius: 9, color: '#c8e0a0',
     behavior: { seek: 1, avoidTowers: 0.05, avoidHero: 0.1, separation: 0.5, jitter: 0.1 }, // slow chaff that clogs the lane

@@ -1,6 +1,6 @@
 {
-  "lastSha": "a38c36fc7c3aa5d46e472e248595cecbfd6ed353",
-  "commitsSinceDraft": 2,
+  "lastSha": "3f6ecfd3ef8e9fe67bb6b24e23e31b2327d28171",
+  "commitsSinceDraft": 3,
   "content": {
     "tower": [
       "needle",
@@ -39,6 +39,10 @@
     "enemy": [
       "runner",
       "mite",
+      "husk",
+      "flea",
+      "mold",
+      "skulker",
       "larva",
       "rusher",
       "darter",
@@ -1485,6 +1489,26 @@
       "sealed": false,
       "entries": [
         {
+          "cat": "Enemies",
+          "text": "New enemy: Pale Skulker",
+          "major": true
+        },
+        {
+          "cat": "Enemies",
+          "text": "New enemy: Creeping Mold",
+          "major": true
+        },
+        {
+          "cat": "Enemies",
+          "text": "New enemy: Itch Flea",
+          "major": true
+        },
+        {
+          "cat": "Enemies",
+          "text": "New enemy: Hollow Husk",
+          "major": true
+        },
+        {
           "cat": "Towers",
           "text": "New tower: Acid Lancet",
           "major": true
@@ -2243,6 +2267,10 @@
         {
           "cat": "Heroes",
           "text": "Two new heroes: CARRION (death necromancer) + FOVEA (executioner lance) - the roster hits 10"
+        },
+        {
+          "cat": "Towers",
+          "text": "Three new towers: the REACTION TRIO - Miasma Lung, Chitin Bell, Acid Lancet - the roster hits 20"
         }
       ]
     }
@@ -3581,6 +3609,14 @@
       "date": "2026-07-13",
       "cat": "Heroes",
       "text": "Two new heroes: CARRION (death necromancer) + FOVEA (executioner lance) - the roster hits 10",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "3f6ecfd3ef8e9fe67bb6b24e23e31b2327d28171",
+      "date": "2026-07-13",
+      "cat": "Towers",
+      "text": "Three new towers: the REACTION TRIO - Miasma Lung, Chitin Bell, Acid Lancet - the roster hits 20",
       "internal": false,
       "needsReview": false
     }

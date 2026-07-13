@@ -3,6 +3,7 @@
     "date": "2026-07-09",
     "title": "The Living World Update",
     "categories": [
+      "Enemies",
       "Towers",
       "Heroes",
       "Gameplay",
@@ -23,6 +24,22 @@
       "Balance"
     ],
     "items": [
+      {
+        "cat": "Enemies",
+        "text": "★ New enemy: Pale Skulker"
+      },
+      {
+        "cat": "Enemies",
+        "text": "★ New enemy: Creeping Mold"
+      },
+      {
+        "cat": "Enemies",
+        "text": "★ New enemy: Itch Flea"
+      },
+      {
+        "cat": "Enemies",
+        "text": "★ New enemy: Hollow Husk"
+      },
       {
         "cat": "Towers",
         "text": "★ New tower: Acid Lancet"
@@ -730,6 +747,10 @@
       {
         "cat": "Heroes",
         "text": "Two new heroes: CARRION (death necromancer) + FOVEA (executioner lance) - the roster hits 10"
+      },
+      {
+        "cat": "Towers",
+        "text": "Three new towers: the REACTION TRIO - Miasma Lung, Chitin Bell, Acid Lancet - the roster hits 20"
       }
     ]
   },

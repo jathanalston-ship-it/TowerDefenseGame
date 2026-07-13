@@ -11,6 +11,26 @@ export const RELEASES: Release[] = [
     "sealed": false,
     "entries": [
       {
+        "cat": "Enemies",
+        "text": "New enemy: Pale Skulker",
+        "major": true
+      },
+      {
+        "cat": "Enemies",
+        "text": "New enemy: Creeping Mold",
+        "major": true
+      },
+      {
+        "cat": "Enemies",
+        "text": "New enemy: Itch Flea",
+        "major": true
+      },
+      {
+        "cat": "Enemies",
+        "text": "New enemy: Hollow Husk",
+        "major": true
+      },
+      {
         "cat": "Towers",
         "text": "New tower: Acid Lancet",
         "major": true
@@ -769,6 +789,10 @@ export const RELEASES: Release[] = [
       {
         "cat": "Heroes",
         "text": "Two new heroes: CARRION (death necromancer) + FOVEA (executioner lance) - the roster hits 10"
+      },
+      {
+        "cat": "Towers",
+        "text": "Three new towers: the REACTION TRIO - Miasma Lung, Chitin Bell, Acid Lancet - the roster hits 20"
       }
     ]
   },

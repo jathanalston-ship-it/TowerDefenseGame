@@ -1,6 +1,6 @@
 # DIL_GRAPH.md — the Design Intelligence Layer (GENERATED — `npm run dil -- regen`)
 
-> **The project's brain** (docs/DIL.md). 781 nodes · 1438 edges, built from the live
+> **The project's brain** (docs/DIL.md). 786 nodes · 1448 edges, built from the live
 > registries + curated knowledge (src/dev/dil/). **Query it instead of searching the repo:**
 > `npm run dil -- node <id>` · `affects <id>` · `requires <id>` · `missing <kind> <edge>` ·
 > `checklist tower <kind>` · `find <text>`. Edge kinds are bidirectional (19 kinds).
@@ -14,7 +14,7 @@
 
 ### Gameplay Index
 
-`tower:needle` · `tower:mortar` · `tower:reactor` · `tower:parasite` · `tower:obelisk` · `tower:maw` · `tower:chrysalis` · `tower:effigy` · `tower:coil` · `tower:siphon` · `tower:sower` · `tower:spire` · `tower:polyp` · `tower:spitfang` · `tower:rift` · `tower:glaive` · `tower:roost` · `tower:lung` · `tower:bell` · `tower:lancet` · `hero:ravager` · `hero:shepherd` · `hero:overseer` · `hero:vitriol` · `hero:revenant` · `hero:knell` · `hero:wyrm` · `hero:riptide` · `hero:carrion` · `hero:fovea` · `enemy:runner` · `enemy:mite` · `enemy:larva` · `enemy:rusher` · `enemy:darter` · `enemy:lasher` · `enemy:brute` · `enemy:tank` · `enemy:golem` · `enemy:colossus` · `enemy:bulwark` · `enemy:warden` · `enemy:knitter` · `enemy:revenant` · `enemy:burrower` · `enemy:molerat` · `enemy:flyer` · `enemy:wisp` · `enemy:gargoyle` · `enemy:cystwraith` · `enemy:broodmother` · `enemy:hivecaller` · `enemy:mender` · `enemy:cantor` · `enemy:bomber` · `enemy:popper` · `enemy:sapper` · `enemy:cataclyst` · `enemy:siegeworm` · `enemy:spitter` · …40 more
+`tower:needle` · `tower:mortar` · `tower:reactor` · `tower:parasite` · `tower:obelisk` · `tower:maw` · `tower:chrysalis` · `tower:effigy` · `tower:coil` · `tower:siphon` · `tower:sower` · `tower:spire` · `tower:polyp` · `tower:spitfang` · `tower:rift` · `tower:glaive` · `tower:roost` · `tower:lung` · `tower:bell` · `tower:lancet` · `hero:ravager` · `hero:shepherd` · `hero:overseer` · `hero:vitriol` · `hero:revenant` · `hero:knell` · `hero:wyrm` · `hero:riptide` · `hero:carrion` · `hero:fovea` · `enemy:runner` · `enemy:mite` · `enemy:husk` · `enemy:flea` · `enemy:mold` · `enemy:skulker` · `enemy:larva` · `enemy:rusher` · `enemy:darter` · `enemy:lasher` · `enemy:brute` · `enemy:tank` · `enemy:golem` · `enemy:colossus` · `enemy:bulwark` · `enemy:warden` · `enemy:knitter` · `enemy:revenant` · `enemy:burrower` · `enemy:molerat` · `enemy:flyer` · `enemy:wisp` · `enemy:gargoyle` · `enemy:cystwraith` · `enemy:broodmother` · `enemy:hivecaller` · `enemy:mender` · `enemy:cantor` · `enemy:bomber` · `enemy:popper` · …44 more
 
 ### Progression Index
 
@@ -22,7 +22,7 @@
 
 ### Economy / Reward Index
 
-`currency:biomass` · `currency:genome-cores` · `currency:tower-shards` · `currency:hero-shards` · `currency:gene-essence` · `currency:materials` · `currency:stamina` · `currency:ichor` · `system:campaign` · `system:infinite` · `system:boss-rush` · `system:daily` · `system:loot` · `system:daily-login` · `system:achievements` · `system:directives` · `system:expeditions` · `system:doctrines` · `enemy:runner` · `enemy:mite` · `enemy:larva` · `enemy:rusher` · `enemy:darter` · `enemy:lasher` · `enemy:brute` · `enemy:tank` · `enemy:golem` · `enemy:colossus` · `enemy:bulwark` · `enemy:warden` · `enemy:knitter` · `enemy:revenant` · `enemy:burrower` · `enemy:molerat` · `enemy:flyer` · `enemy:wisp` · `enemy:gargoyle` · `enemy:cystwraith` · `enemy:broodmother` · `enemy:hivecaller` · `enemy:mender` · `enemy:cantor` · `enemy:bomber` · `enemy:popper` · `enemy:sapper` · `enemy:cataclyst` · `enemy:siegeworm` · `enemy:spitter` · `enemy:stratovore` · `enemy:broodweaver` · `enemy:zealot` · `enemy:carrier` · `enemy:entrencher` · `enemy:oracle` · `enemy:glutling` · `enemy:apex` · `enemy:dreadnought` · `enemy:tyrant` · `achievement:tutorial_complete` · `achievement:first_run` · …101 more
+`currency:biomass` · `currency:genome-cores` · `currency:tower-shards` · `currency:hero-shards` · `currency:gene-essence` · `currency:materials` · `currency:stamina` · `currency:ichor` · `system:campaign` · `system:infinite` · `system:boss-rush` · `system:daily` · `system:loot` · `system:daily-login` · `system:achievements` · `system:directives` · `system:expeditions` · `system:doctrines` · `enemy:runner` · `enemy:mite` · `enemy:husk` · `enemy:flea` · `enemy:mold` · `enemy:skulker` · `enemy:larva` · `enemy:rusher` · `enemy:darter` · `enemy:lasher` · `enemy:brute` · `enemy:tank` · `enemy:golem` · `enemy:colossus` · `enemy:bulwark` · `enemy:warden` · `enemy:knitter` · `enemy:revenant` · `enemy:burrower` · `enemy:molerat` · `enemy:flyer` · `enemy:wisp` · `enemy:gargoyle` · `enemy:cystwraith` · `enemy:broodmother` · `enemy:hivecaller` · `enemy:mender` · `enemy:cantor` · `enemy:bomber` · `enemy:popper` · `enemy:sapper` · `enemy:cataclyst` · `enemy:siegeworm` · `enemy:spitter` · `enemy:stratovore` · `enemy:broodweaver` · `enemy:zealot` · `enemy:carrier` · `enemy:entrencher` · `enemy:oracle` · `enemy:glutling` · `enemy:apex` · …105 more
 
 ### Power Score Index
 
@@ -601,7 +601,7 @@ THE run currency — dropped by kills, spent on towers/upgrades; dies with the r
   - consumedBy ← `tower:siphon` — placement cost 175
   - consumedBy ← `tower:sower` — placement cost 130
   - consumedBy ← `tower:spire` — placement cost 150
-  - _…49 more (query: `npm run dil -- node currency:biomass`)_
+  - _…53 more (query: `npm run dil -- node currency:biomass`)_
 
 ### `currency:genome-cores` — Genome Cores (◆)
 
@@ -715,7 +715,7 @@ _at: src/core/game.ts, src/core/combat.ts, src/core/status.ts, src/core/targetin
   - requiredBy ← `system:mega-bosses`
   - requiredBy ← `system:rendering`
   - requiredBy ← `system:living-battlefield`
-  - _…190 more (query: `npm run dil -- node system:engine`)_
+  - _…196 more (query: `npm run dil -- node system:engine`)_
 
 ### `system:content-infra` — Content Infrastructure
 
@@ -777,6 +777,7 @@ _at: src/core/campaign.ts, src/core/campaignEvents.ts, src/core/hash.ts, src/ui/
   - rewards → `currency:genome-cores` — first-clear + stage rewards
   - rewards → `currency:tower-shards` — stage rewards feed unlock gates
   - provides → `concept:progression-gates` — depth is the master unlock axis
+  - references → `system:engine` — EARLY BROOD (2026-07, ENEMIES.md §early-brood — husk/flea/mold/skulker): four WEAK trait-less walkers the DERIVED campaign gate admits from stage 1 (unlockStage = max(hpTier, mechGate); tier 1 needs effectiveHp < baseHp+hpPerTier = 92 AND zero role traits — flying alone gates stage 3). Wave-1 eligibility additionally needs threatCost ≤ unitCapBase 3, damage ≤ dmgCapBase 8, speed ≤ 100. A new weak enemy is defs + three render rows ONLY — cues/bestiary/ledgers auto-classify. Golden-safe because the pinned autoplay runs the SCRIPTED WAVES table (authored kinds), never generation; campaign/daily compositions re-roll freely (earlyBrood.test pins the contract + spawn frequency)
   - requiredBy ← `system:daily`
   - requiredBy ← `system:towers`
   - requiredBy ← `system:heroes`
@@ -2446,10 +2447,14 @@ _at: src/core/config.ts HERO_DEFS_
 
   - partOf → `system:heroes`
 
-## Enemies (40)
+## Enemies (44)
 
 - `enemy:runner` — baseline strain _(partOf `system:engine`, rewards `currency:biomass`)_
 - `enemy:mite` — baseline strain _(partOf `system:engine`, rewards `currency:biomass`)_
+- `enemy:husk` — baseline strain _(partOf `system:engine`, rewards `currency:biomass`)_
+- `enemy:flea` — baseline strain _(partOf `system:engine`, rewards `currency:biomass`)_
+- `enemy:mold` — baseline strain _(partOf `system:engine`, rewards `currency:biomass`)_
+- `enemy:skulker` — baseline strain _(partOf `system:engine`, rewards `currency:biomass`)_
 - `enemy:larva` — baseline strain _(partOf `system:engine`, rewards `currency:biomass`)_
 - `enemy:rusher` — baseline strain _(partOf `system:engine`, rewards `currency:biomass`)_
 - `enemy:darter` — baseline strain _(partOf `system:engine`, rewards `currency:biomass`)_
@@ -3361,7 +3366,7 @@ _at: site/guides.ts → /guides/prestige/_
 - `doc:VOWS.md` — project documentation _(documents `system:prestige`)_
 - `doc:WEBSITE.md` — project documentation _(documents `system:field-research`, documents `system:website`)_
 
-## Tests (248)
+## Tests (249)
 
 - `test:src/audio/music.test.ts` — automated validation _(tests `system:audio`)_
 - `test:src/changelog/classify.test.ts` — automated validation _(tests `system:chronicle`)_
@@ -3407,6 +3412,7 @@ _at: site/guides.ts → /guides/prestige/_
 - `test:src/core/director.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/core/doctrines.test.ts` — automated validation _(tests `system:doctrines`)_
 - `test:src/core/draftcadence.test.ts` — automated validation _(tests `system:engine`)_
+- `test:src/core/earlyBrood.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/core/economyDirector.test.ts` — automated validation _(tests `system:currencies`)_
 - `test:src/core/endlessTaper.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/core/enemies.test.ts` — automated validation _(tests `system:engine`)_

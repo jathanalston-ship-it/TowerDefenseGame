@@ -20,9 +20,18 @@
 > visual evolutions, +18 Mulligan pieces (the CATALOG_PER_TOWER ratio). All double-gated ⇒
 > goldens byte-identical, zero golden re-pins. Suite 2017 green, validate PASS, live
 > headless probes fielded the new content with no page errors. Balance = tuning clay
-> (locked content; deep-account persona pass when wanted). NEXT (user-queued): 4 weak
-> early-campaign enemy variations (#167), then an early-game/NPE + tutorial overhaul from
-> playtest feedback (#168). Previous session below.)
+> (locked content; deep-account persona pass when wanted). **+ the EARLY BROOD** (third
+> batch, ENEMIES.md §early-brood): four WEAK trait-less enemy variations — Hollow Husk
+> (armor 1, the first armor read) · Itch Flea (speed 98) · Creeping Mold (62 hp @ 26 —
+> the soft wall) · Pale Skulker (avoidTowers 0.85, the gap prober) — that the DERIVED
+> campaign gate admits from stage 1 (tier-1 EHP, zero mech traits). Stage 1 wave 1 now
+> opens mold×8+skulker×2+larva×1 (live-probe verified in the real Incoming preview, zero
+> page errors); scripted WAVES untouched ⇒ pinned autoplay golden byte-identical.
+> earlyBrood.test pins the weak-band contract + real spawn frequency. NEXT (user-queued):
+> the early-game/NPE + tutorial overhaul from playtest feedback (#168) — the probe work
+> surfaced the evidence: a fresh account stacks title→transmission film→rank-promotion
+> popup→12-step Field Orientation tour→login cache ceremony→run tutorial before first
+> combat. Previous session below.)
 >
 > **2026-07-12** (**MEGA-TARGETING FIX + CAMPAIGN DIFFICULTY RESCALE** —
 > two arcs, four batches (0fd3d2d/3844852/933e80b/0edce9a). (1) Mega raids were untargetable

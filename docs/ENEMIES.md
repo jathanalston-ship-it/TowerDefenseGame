@@ -368,3 +368,29 @@ damage applies on impact**, with the breach float + burst at the landing point. 
 shells keep flying through the wave-end settle (combat residue, like tower projectiles).
 The shell array is empty on the golden path (no historical enemy sets `siege`), and the
 lifecycle is pinned in `src/core/enemies.test.ts`.
+
+---
+
+## 10. The Early Brood (§early-brood) — Hollow Husk · Itch Flea · Creeping Mold · Pale Skulker
+
+Four **weak teaching variations** bred for the opening campaign (2026-07). The first stages read
+as a varied brood instead of a Skitterling monoculture: each is a **trait-less walker** with
+tier-1 effective HP, so the *derived* campaign gate (`campaign.ts unlockStage` — hp tier ×
+mechanics gate) admits them from **stage 1**, and the wave-1 unit caps (threat ≤ 3, damage ≤ 8,
+speed ≤ 100) accept them into the very first wave. Each carries **one placement lesson** at
+newbie scale, before its full-strength cousin arrives:
+
+| Kind | Name | The lesson | Stats that carry it |
+|---|---|---|---|
+| `husk` | **Hollow Husk** | armor exists (before the stage-3 Brute) | 20 hp · **armor 1** · speed 55 · dmg 2 · bounty 6 |
+| `flea` | **Itch Flea** | speed pressure (before the stage-4 Sprinter) | 16 hp · **speed 98** · dmg 2 · bounty 6 |
+| `mold` | **Creeping Mold** | some bodies need SUSTAINED fire | **62 hp · speed 26** · dmg 4 · bounty 9 |
+| `skulker` | **Pale Skulker** | coverage has GAPS | 24 hp · speed 80 · **avoidTowers 0.85** (highest in the weak band) · dmg 3 · bounty 7 |
+
+Integration is fully derived — defs only (`ENEMY_DEFS`), plus the three render rows
+(`ENEMY_SHAPE`/`ENEMY_TIER`/`ENEMY_BODY`: husk=beetle shell, flea/skulker=darts, mold=polyp);
+death cues, bestiary, codex, variants, and `killsByEnemy` ledgers all auto-classify.
+**Golden-safe:** the scripted `WAVES` table never spawns them, so the pinned autoplay run is
+byte-identical; campaign/daily *generation* naturally re-rolls (`earlyBrood.test.ts` pins the
+weak-band contract, stage-1/2 pool membership, real spawn frequency across seeds, and the
+scripted-table control).

@@ -12,6 +12,9 @@ export type TowerKind = 'needle' | 'mortar' | 'reactor' | 'parasite' | 'obelisk'
 export type EnemyKind =
   // swarm
   | 'runner' | 'mite' | 'larva'
+  // early brood — the WEAK teaching variations (stage 1–2 pool): armor read (husk), speed
+  // pressure (flea), soft wall (mold), coverage prober (skulker). All trait-less walkers.
+  | 'husk' | 'flea' | 'mold' | 'skulker'
   // fast
   | 'rusher' | 'darter' | 'lasher'
   // heavy

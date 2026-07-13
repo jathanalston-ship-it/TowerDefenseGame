@@ -175,6 +175,9 @@ export const TOWER_SHAPE: Record<TowerKind, ShapeKind> = {
 export const ENEMY_SHAPE: Record<EnemyKind, ShapeKind> = {
   // swarm — small skittering blobs
   runner: 'circle', mite: 'circle', larva: 'circle',
+  // early brood — the weak teaching variations (husk reads as a dry plated shell; the flea is a
+  // directional speck; mold a broad blob; the skulker a slinking dart)
+  husk: 'hex', flea: 'triangle', mold: 'circle', skulker: 'triangle',
   // fast — directional darts
   rusher: 'triangle', darter: 'triangle', lasher: 'triangle',
   // heavy — armored bulk
@@ -210,6 +213,7 @@ export type EnemyTier = 'normal' | 'elite' | 'boss';
 export const ENEMY_TIER: Record<EnemyKind, EnemyTier> = {
   // normal — chaff, fast, fragile specialists
   runner: 'normal', mite: 'normal', larva: 'normal',
+  husk: 'normal', flea: 'normal', mold: 'normal', skulker: 'normal',
   rusher: 'normal', darter: 'normal', lasher: 'normal',
   bulwark: 'normal', knitter: 'normal', burrower: 'normal', molerat: 'normal',
   flyer: 'normal', wisp: 'normal', mender: 'normal', cantor: 'normal',
@@ -230,6 +234,8 @@ export const ENEMY_TIER: Record<EnemyKind, EnemyTier> = {
 export const ENEMY_BODY: Record<EnemyKind, BodyForm> = {
   // swarm — soft segmented larvae
   runner: 'grub', mite: 'grub', larva: 'grub',
+  // early brood — husk wears a dry beetle shell, the flea/skulker are darts, the mold a soft polyp
+  husk: 'beetle', flea: 'dart', mold: 'polyp', skulker: 'dart',
   // fast — sleek arrowheads
   rusher: 'dart', darter: 'dart', lasher: 'dart',
   // heavy — domed armoured carapaces (colossus = a colossal beetle juggernaut)

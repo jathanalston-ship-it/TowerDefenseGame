@@ -181,3 +181,4 @@
 ## 2026-07-13
 
 - `a38c36f` **[Heroes]** Two new heroes: CARRION (death necromancer) + FOVEA (executioner lance) - the roster hits 10
+- `3f6ecfd` **[Towers]** Three new towers: the REACTION TRIO - Miasma Lung, Chitin Bell, Acid Lancet - the roster hits 20

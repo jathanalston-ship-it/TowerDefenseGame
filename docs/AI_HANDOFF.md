@@ -91,12 +91,20 @@ kinds' zero-rows automatically.
 
 ## Recommended next tasks
 
-1. **Four weak enemy variations spawnable from Campaign stage 1–2** (user-queued, task #167)
-   — entry: `ENEMY_DEFS` (config.ts), stage composition/spawn tables, `ENEMY_SHAPE`/
-   `enemyForms`; watch the golden (stage-1 spawn table changes likely need a re-pin).
+1. ~~Four weak enemy variations~~ — **SHIPPED in this same session** (the EARLY BROOD,
+   ENEMIES.md §early-brood: husk/flea/mold/skulker). Key learnings recorded as a DIL edge:
+   the campaign enemy gate is fully DERIVED (`unlockStage` = hp tier × mech gate; tier 1 =
+   effectiveHp < 92 + zero role traits; wave-1 needs threat ≤ 3, dmg ≤ 8, speed ≤ 100), and
+   the pinned golden only runs the SCRIPTED `WAVES` table — generation re-rolls freely with
+   no re-pin. Stage 1 wave 1 now opens with the brood (live-probe verified).
 2. **Early-game / new-player-experience overhaul** (user-queued, task #168) — playtesters
    were overwhelmed, skipped the wordy/janky tutorial, and reported it inaccurate to current
    gameplay. Entry: `docs/TUTORIAL.md`, `src/ui` tutorial/onboarding surfaces, help system.
+   HARD EVIDENCE from this session's live probes: a fresh account stacks, before first
+   combat — title gate → 5-scene transmission film → hub → rank-promotion popup UNDER a
+   12-step "Field Orientation" tour + the login-cache ceremony → then the run tutorial
+   (which keeps the classic full tower rail while real runs use the conveyor — a mechanics
+   MISMATCH that matches the "tutorial not accurate to gameplay" report).
 
 ## Future expansion hooks
 
