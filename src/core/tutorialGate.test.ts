@@ -69,3 +69,27 @@ describe('tutorial gates (game.tutorialMode)', () => {
     expect(g.biomass).toBe(start + 500);
   });
 });
+
+describe('tutorial ACCURACY (docs/TUTORIAL.md §accuracy — the lessons run the REAL deployment model)', () => {
+  it('the Biomorph Conveyor is LIVE under the tutorial: the free gift is on the belt', () => {
+    const g = new Game(1, NO_META);
+    g.tutorialMode = true;
+    g.advance(SIM_DT); // one prep tick — the belt boots and seats the run-start gift
+    expect(g.conveyor.length).toBeGreaterThan(0); // the second-tower lesson deploys from HERE
+    expect(g.conveyor[0].free).toBe(true); // …and the first organism is the free instant gift
+  });
+
+  it('tutorial placement rides the SAME universal deploy curve as every real run', () => {
+    const run = (tut: boolean): number => {
+      const g = new Game(1, NO_META);
+      g.tutorialMode = tut;
+      g.advance(SIM_DT);
+      const before = g.biomass;
+      g.selectTower('needle');
+      g.click(360, 740, { shift: false }); // the favorite deploys via the conveyor economy
+      return before - g.biomass;
+    };
+    expect(run(true)).toBe(run(false)); // identical price — no tutorial-only sandbox pricing
+    expect(run(true)).toBeGreaterThan(0); // …and a deploy actually happened
+  });
+});

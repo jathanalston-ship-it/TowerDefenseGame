@@ -1,5 +1,5 @@
 import type { Game } from '../core/game';
-import { HERO_DEFS, TOWER_DEFS, TOWER_ORDER } from '../core/config';
+import { HERO_DEFS, TOWER_DEFS } from '../core/config';
 import { audio } from '../audio/sound';
 import type { HudSnapshot } from '../core/types';
 import { meta, masteryLevel } from '../state/meta';
@@ -31,8 +31,10 @@ export function Toolbar({
   const playable = hud.phase === 'prep' || hud.phase === 'wave';
   const heroDef = HERO_DEFS[hud.hero.kind];
   const save = meta.use(); // stars + mastery ranks on the cards (permanent identity at a glance)
-  const conveyorMode = !game.tutorialMode; // the tutorial keeps the classic full rail (its lessons are authored on it)
-  const railKinds = conveyorMode ? [hud.conveyor.favorite] : TOWER_ORDER.filter((k) => game.unlockedKinds.has(k)); // locked kinds never rail (docs/TOWERS.md §expansion)
+  // The tutorial rails the SAME conveyor model as every real run (docs/TUTORIAL.md §accuracy) —
+  // teaching a full classic rail the player never sees again was the #1 playtest confusion.
+  const conveyorMode = true;
+  const railKinds = [hud.conveyor.favorite]; // the always-available favorite; everything else arrives on the belt
 
   return (
     <div className="toolbar">

@@ -174,3 +174,25 @@ Verified by a headless per-step geometry audit at 390×844: at every checkpoint 
 interaction surfaces (continue button / tower card + all 15 build slots / ability button + cast
 zone / draft cards) are asserted unobstructed and pointer-reachable, then the full 10-checkpoint
 trial is completed end-to-end. Desktop (>700px) keeps the measured floating bubble unchanged.
+
+---
+
+## §accuracy — the tutorial teaches the REAL game (2026-07 playtest response)
+
+Playtest finding: testers skipped a wordy tutorial that also taught a **deployment model the
+game no longer uses** (a classic full tower rail; real runs use the Biomorph Conveyor). Fixes:
+
+- **Conveyor-native lessons.** `game.tutorialMode` no longer forks deployment: the belt ticks
+  under the tutorial (the run-start FREE gift included), placement rides `deployTower` (the
+  universal cost curve), and the Toolbar rails the favorite + belt exactly as in real runs.
+  The old `second-tower` lesson is now **Deploy from the Conveyor** (anchored on
+  `[data-tut="conveyor"]`); `graduation` no longer defers the conveyor to Help.
+  Pinned by `tutorialGate.test.ts` §accuracy (belt live + identical deploy pricing).
+- **Copy discipline.** Every callout is ≤2 short sentences, verb-first (the old callouts ran
+  3–4 clauses; both testers stopped reading).
+- **Skippers land on Campaign.** A tutorial Skip routes to the Campaign screen (one Deploy from
+  the real Stage 1) instead of the bare hub — a skipper wants to play, not navigate
+  (`TutorialRunner` → `navBus.go('campaign')`). Skip still marks the tutorial seen (never
+  re-forced) and never pays rewards.
+- Stage 1's opening waves are the **Early Brood** (ENEMIES.md §early-brood) — four weak
+  teaching enemies, so "figure it out on my own" is a safe, legible first hour.

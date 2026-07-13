@@ -7,6 +7,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { audio } from '../audio/sound';
 import { tutorial } from '../state/tutorial';
+import { navBus } from '../state/navBus';
 import { meta, metaModifiers } from '../state/meta';
 import type { TutorialRewardSummary } from '../state/meta';
 import type { Game } from '../core/game';
@@ -58,7 +59,12 @@ export function TutorialRunner({ onExit }: { onExit: () => void }): JSX.Element 
         const r = meta.grantTutorialRewards('combat'); // idempotent — null on a replay
         if (r) { setReward(r); return; }
       }
+      // A SKIPPER wants to play, not read (playtest 2026-07: both testers skipped) — land them on
+      // the Campaign screen, one Deploy from the real Stage 1, instead of the bare hub. Deferred a
+      // tick so the Hub has mounted and is listening on the nav bus.
+      const skipped = tutorial.lastEndReason() === 'skipped';
       onExit();
+      if (skipped) setTimeout(() => navBus.go('campaign'), 150);
     }
   }, [session, onExit]);
 

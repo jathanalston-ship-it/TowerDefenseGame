@@ -1616,8 +1616,8 @@ export class Game {
       const occupant = this.towerAt(px, py);
       if (occupant) { this.selectPlacedTower(occupant.id); return; }
       // Conveyor organism armed → deploying CONSUMES it (universal economy). Otherwise the
-      // favorite deploys on the same universal curve — the tutorial keeps the legacy def-cost
-      // sandbox (its lessons and grants are authored against it).
+      // favorite deploys on the same universal curve — tutorial included (its lessons are
+      // authored against the real conveyor model).
       if (this.selectedConveyorId !== null) {
         if (this.deployFromConveyor(this.selectedConveyorId, px, py)) {
           this.selectedConveyorId = null;
@@ -1626,9 +1626,9 @@ export class Game {
         return;
       }
       // One-shot placement by default; holding Shift keeps the tool armed for rapid building.
-      const placed = this.tutorialMode
-        ? this.placeTower(this.selectedTower, px, py)
-        : this.deployTower(this.selectedTower, px, py);
+      // The tutorial uses the SAME deploy path as every real run (conveyor pricing) — the lessons
+      // must teach the deployment model the player will actually live with (docs/TUTORIAL.md).
+      const placed = this.deployTower(this.selectedTower, px, py);
       if (placed && !opts.shift) this.selectedTower = null;
       return;
     }
@@ -2364,9 +2364,11 @@ export class Game {
     // Danger camera (docs/CAMERA.md) — render-only, ticked in EVERY phase (combat, settle,
     // prep, won, lost) so the tension always enters deliberately and exhales smoothly.
     this.dangerCameraSystem(dt);
-    // Biomorph Conveyor (docs/STRAIN.md §conveyor): the belt lives through build AND combat.
-    // Dedicated rng + refunds only on overflow, so an untouched belt costs the sim nothing.
-    if (!this.tutorialMode && (this.phase === 'prep' || this.phase === 'wave')) this.conveyorTick();
+    // Biomorph Conveyor (docs/STRAIN.md §conveyor): the belt lives through build AND combat —
+    // INCLUDING the tutorial (docs/TUTORIAL.md §accuracy: the lessons teach the REAL deployment
+    // model, so the belt must exist under them). Dedicated rng + refunds only on overflow, so an
+    // untouched belt costs the sim nothing and the golden autoplay (never tutorialMode) is unmoved.
+    if (this.phase === 'prep' || this.phase === 'wave') this.conveyorTick();
     // ── Combat→Build SETTLE beat ── the wave is cleared and the simulation is PAUSED: the sim
     // clock, run-buff + minion timers, and every combat system are frozen, so all downstream
     // deterministic state (enemy steering jitter keyed off `this.time`, the spawn schedule, buff

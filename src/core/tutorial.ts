@@ -118,42 +118,45 @@ export function sanitizeProgress(raw: unknown, def?: TutorialDef): TutorialProgr
 // (game.tutorialMode): the director starts every wave and releases the held draft exactly when its
 // lesson arrives, so the callouts can never describe a world that has moved on without them.
 // Copy teaches PURPOSE (why a system matters), not just where a button is.
+// COPY DISCIPLINE (playtest 2026-07: "too wordy — both testers skipped"): every callout is ≤2
+// short sentences, verb-first, and describes EXACTLY the world on screen. The lessons run on the
+// REAL deployment model — the favorite card + the Biomorph Conveyor — never a tutorial-only rail.
 export const COMBAT_TUTORIAL: TutorialDef = {
   id: 'combat',
   name: 'Combat Tutorial',
   checkpoints: [
     { id: 'hive-core', title: 'Protect the Hive Core', advance: { kind: 'continue' },
       cue: { spotlight: '[data-tut="hive-core"]', canvasFocus: { x: 480, y: 880, zoom: 1.05 },
-        callout: { eyebrow: 'UPLINK 01 · THE CORE', text: 'This is your Hive Core — your one life. Everything you build exists to keep it alive: if its integrity falls, the run ends.', target: '[data-tut="hive-core"]', side: 'bottom' } } },
+        callout: { eyebrow: 'UPLINK 01 · THE CORE', text: 'This is your Hive Core — your one life. If its integrity falls, the run ends.', target: '[data-tut="hive-core"]', side: 'bottom' } } },
     { id: 'biomass', title: 'Biomass grows your hive', advance: { kind: 'continue' },
       cue: { spotlight: '[data-tut="biomass"]',
-        callout: { eyebrow: 'UPLINK 02 · FUEL', text: 'Biomass is this run’s fuel. Enemies drop it when they die, and you spend it to grow — every tower, upgrade, and hero purchase comes from this counter.', target: '[data-tut="biomass"]', side: 'bottom' } } },
-    { id: 'place-needle', title: 'Place a Needle Spitter', advance: { kind: 'event', event: 'tower-placed' },
+        callout: { eyebrow: 'UPLINK 02 · FUEL', text: 'Biomass is this run’s fuel — enemies drop it, you spend it. Everything you grow comes from this counter.', target: '[data-tut="biomass"]', side: 'bottom' } } },
+    { id: 'place-needle', title: 'Deploy your Needle Spitter', advance: { kind: 'event', event: 'tower-placed' },
       cue: { arrow: { target: '[data-tut="tower-card-first"]', from: 'top' }, canvasFocus: { x: 480, y: 780, zoom: 1.03 },
-        callout: { eyebrow: 'UPLINK 03 · FIRST GROWTH', text: 'Time to build. Select the Needle Spitter — long range, cheap, reliable — then click any glowing build slot on the field to place it.', target: '[data-tut="tower-card-first"]', side: 'top' } } },
+        callout: { eyebrow: 'UPLINK 03 · FIRST GROWTH', text: 'The starred card is your FAVORITE — always available, every run. Select it, then click a glowing slot on the field.', target: '[data-tut="tower-card-first"]', side: 'top' } } },
     { id: 'wave-1', title: 'Survive Wave 1', advance: { kind: 'event', event: 'wave-completed' },
       milestone: { label: 'The line holds', cores: 25 },
-      cue: { callout: { eyebrow: 'UPLINK 04 · CONTACT', text: 'Wave 1 incoming! Enemies march on the Hive — your towers pick targets and fire on their own. Watch your Needle work, and hold the line until the wave is cleared.' } } },
+      cue: { callout: { eyebrow: 'UPLINK 04 · CONTACT', text: 'Wave 1 incoming. Your towers aim and fire on their own — hold the line.' } } },
     { id: 'first-kill', title: 'Kills became Biomass', advance: { kind: 'continue' },
       cue: { spotlight: '[data-tut="biomass"]',
-        callout: { eyebrow: 'UPLINK 05 · THE LOOP', text: 'Held it. Every kill you just made dropped Biomass into your bank — kills fund expansion, expansion brings bigger kills. That loop is the whole run.', target: '[data-tut="biomass"]', side: 'bottom' } } },
-    { id: 'second-tower', title: 'Layer a second tower', advance: { kind: 'event', event: 'tower-placed' },
-      cue: { arrow: { target: '[data-tut="tower-rail"]', from: 'top' },
-        callout: { eyebrow: 'UPLINK 06 · LAYER THE LINE', text: 'One tower is a start, not a defense. Each species fills a different role — splash, income, control. Spend your Biomass on a second tower to layer the line.', target: '[data-tut="tower-card-first"]', side: 'top' } } },
+        callout: { eyebrow: 'UPLINK 05 · THE LOOP', text: 'Held it. Every kill paid Biomass — kills fund growth, growth brings bigger kills. That loop is the whole run.', target: '[data-tut="biomass"]', side: 'bottom' } } },
+    { id: 'second-tower', title: 'Deploy from the Conveyor', advance: { kind: 'event', event: 'tower-placed' },
+      cue: { arrow: { target: '[data-tut="conveyor"]', from: 'top' },
+        callout: { eyebrow: 'UPLINK 06 · THE CONVEYOR', text: 'New organisms GROW on the Biomorph Conveyor beside your favorite — your first is ready, free. Deploy it (or your favorite again) onto a second slot.', target: '[data-tut="conveyor"]', side: 'top' } } },
     { id: 'hero-ability', title: 'Use your Hero ability', advance: { kind: 'event', event: 'hero-ability' },
       cue: { arrow: { target: '[data-tut="ability"]', from: 'bottom' },
-        callout: { eyebrow: 'UPLINK 07 · THE HERO', text: 'Your Hero fights on its own — but its Active Ability is yours. It’s the burst you save for the moment a wave gets past your towers. Arm it (the button, or Q), then click the field to unleash it.', target: '[data-tut="ability"]', side: 'top' } } },
+        callout: { eyebrow: 'UPLINK 07 · THE HERO', text: 'Your Hero fights on its own — the Active Ability is yours. Arm it (button or Q), then click the field.', target: '[data-tut="ability"]', side: 'top' } } },
     { id: 'gene-card', title: 'Draft a Gene Card', advance: { kind: 'event', event: 'card-chosen' },
       milestone: { label: 'First strain isolated', essence: 10 },
       // focus: the draft mounts mid-step (when its wave settles) — the reachability scroll
       // brings it into view the moment it appears, on any layout.
       cue: { focus: '.overlay .cards',
-        callout: { eyebrow: 'UPLINK 08 · EVOLUTION', text: 'Time to evolve. You’ll draft a Gene Card: its boost lasts only THIS run, but the card itself joins your permanent Gene Archive, where it can be leveled forever. Pick whichever calls to you.' } } },
+        callout: { eyebrow: 'UPLINK 08 · EVOLUTION', text: 'Draft a Gene Card: the boost lasts this run, the card joins your permanent Archive forever. Pick one.' } } },
     { id: 'inspect', title: 'Inspect your towers', advance: { kind: 'continue' },
       cue: { spotlight: '.side-panel.inspector',
-        callout: { eyebrow: 'UPLINK 09 · KNOW YOUR STRAIN', text: 'We’ve selected your Needle Spitter. The Inspector shows its stats, live Mastery, and — as you push deeper — Branch mutations that re-author how it fires. Look around, then continue.', target: '.side-panel.inspector', side: 'left' } } },
+        callout: { eyebrow: 'UPLINK 09 · KNOW YOUR STRAIN', text: 'Tap any placed tower to open this Inspector — stats, Mastery, and (deeper in) Branch mutations. Look around, then continue.', target: '.side-panel.inspector', side: 'left' } } },
     { id: 'graduation', title: 'Hold the line', advance: { kind: 'event', event: 'wave-completed' },
-      cue: { callout: { eyebrow: 'FINAL UPLINK · GRADUATION', text: 'You have the fundamentals — towers, Biomass, your Hero, Gene Cards. Beyond this trial, new organisms arrive on the BIOMORPH CONVEYOR: deploy them, or consume duplicates to evolve a tower’s Strain (Help explains both). One more wave, on your own. Hold the line and graduate.' } } },
+      cue: { callout: { eyebrow: 'FINAL UPLINK · GRADUATION', text: 'You know the loop — build, evolve, hold. One more wave, on your own.' } } },
   ],
 };
 
