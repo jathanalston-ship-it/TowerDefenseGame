@@ -1,6 +1,6 @@
 {
-  "lastSha": "e3be902e9d61e8436e72327548911fdddbd3e1e3",
-  "commitsSinceDraft": 0,
+  "lastSha": "3ac46c2509ac820bcd79af4f7063ef8058655812",
+  "commitsSinceDraft": 1,
   "content": {
     "tower": [
       "needle",
@@ -29,7 +29,9 @@
       "revenant",
       "knell",
       "wyrm",
-      "riptide"
+      "riptide",
+      "carrion",
+      "fovea"
     ],
     "enemy": [
       "runner",
@@ -1481,6 +1483,16 @@
       "entries": [
         {
           "cat": "Heroes",
+          "text": "New hero: Fovea",
+          "major": true
+        },
+        {
+          "cat": "Heroes",
+          "text": "New hero: Carrion",
+          "major": true
+        },
+        {
+          "cat": "Heroes",
           "text": "New hero: Riptide",
           "major": true
         },
@@ -2205,6 +2217,10 @@
         {
           "cat": "Gameplay",
           "text": "Chronicle + reports for the mega-targeting fix and campaign rescale"
+        },
+        {
+          "cat": "Heroes",
+          "text": "New hero: RIPTIDE - the water-form zone controller (Kinetic tide caste)"
         }
       ]
     }
@@ -3527,6 +3543,14 @@
       "date": "2026-07-12",
       "cat": "Gameplay",
       "text": "Chronicle + reports for the mega-targeting fix and campaign rescale",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "3ac46c2509ac820bcd79af4f7063ef8058655812",
+      "date": "2026-07-12",
+      "cat": "Heroes",
+      "text": "New hero: RIPTIDE - the water-form zone controller (Kinetic tide caste)",
       "internal": false,
       "needsReview": false
     }

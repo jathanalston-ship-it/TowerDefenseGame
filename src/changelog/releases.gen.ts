@@ -12,6 +12,16 @@ export const RELEASES: Release[] = [
     "entries": [
       {
         "cat": "Heroes",
+        "text": "New hero: Fovea",
+        "major": true
+      },
+      {
+        "cat": "Heroes",
+        "text": "New hero: Carrion",
+        "major": true
+      },
+      {
+        "cat": "Heroes",
         "text": "New hero: Riptide",
         "major": true
       },
@@ -736,6 +746,10 @@ export const RELEASES: Release[] = [
       {
         "cat": "Gameplay",
         "text": "Chronicle + reports for the mega-targeting fix and campaign rescale"
+      },
+      {
+        "cat": "Heroes",
+        "text": "New hero: RIPTIDE - the water-form zone controller (Kinetic tide caste)"
       }
     ]
   },

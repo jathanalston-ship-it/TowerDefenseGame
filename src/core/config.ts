@@ -1164,7 +1164,8 @@ export type HeroUnlockReq =
   | { kind: 'bossSlain'; count: number; label: string }
   | { kind: 'infiniteDepth'; wave: number; label: string }
   | { kind: 'molts'; count: number; label: string }
-  | { kind: 'megaSlain'; count: number; label: string }; // Riptide — the tide rises where leviathans fell
+  | { kind: 'megaSlain'; count: number; label: string } // Riptide — the tide rises where leviathans fell
+  | { kind: 'lifetimeKills'; count: number; label: string }; // Carrion — fed by the mountain of your dead
 
 export interface HeroAbilityDef {
   name: string;
@@ -1466,6 +1467,66 @@ export const HERO_DEFS: Record<HeroKind, HeroDef> = {
       ] },
     ],
   },
+  carrion: {
+    // The hive's CHARNEL caste (Vital) — death turned back into service. The hive does not bury
+    // what it kills: enemies that fall near the Carrion RISE as Risen Thralls carrying a fraction
+    // of their own bodies (the GRAVEBIND passive — game.raiseFromCorpse, the one new sim verb this
+    // hero ships). It drifts to the densest fight (control movement — where the dead accumulate),
+    // chips with a carrion-fly pulse, and its kit calls fresh thralls up between harvests. The
+    // INVERSE Vital: where the Shepherd tends the living, the Carrion tends the dead.
+    // Progression-gated on the corpse ledger itself: 20,000 lifetime kills. Numbers are clay.
+    kind: 'carrion', name: 'Carrion', combatClass: 'Vital', behavior: 'control', color: '#7de8a8',
+    maxHp: 235, speed: 98, attackRange: 0, attackInterval: 0, attackDamage: 0, attackFracture: 0,
+    aggroRange: 1400, contactRange: 24, respawnTime: 9,
+    // The flies: a soft charnel pulse — real chip, no stagger (its power is the risen, not the cloud).
+    pulseInterval: 1.4, pulseRadius: 100, pulseDamage: 9, pulseDisrupt: 0, nucleusRegen: 0,
+    unlock: { kind: 'lifetimeKills', count: 20000, label: 'Slay 20,000 enemies (lifetime)' },
+    ability: { name: 'Mass Rebirth', blurb: 'The ground gives back its dead: a necrotic burst savages the pack, and three Risen Thralls claw up to fight for the hive.', cooldown: 13, radius: 120, damage: 40, fracture: 0, disrupt: 0, heal: 0, summonUnit: 'thrall', summonCount: 3, particle: 'heroBloom', fxColor: '#9fe8b0' },
+    skills: [
+      { name: 'Grave Call', blurb: 'Calls two Risen Thralls up from the charnel ground to fight beside it.', cooldown: 10, radius: 0, damage: 0, fracture: 0, disrupt: 0, heal: 0, summonUnit: 'thrall', summonCount: 2, castOn: 'self', minEnemies: 0, particle: 'heroBloom', fxColor: '#8fe8b8' },
+      { name: 'Funerary Feast', blurb: 'The flies descend to feed — a necrotic burst that savages the pack and mends the Carrion with what it takes.', cooldown: 12, radius: 108, damage: 28, fracture: 0, disrupt: 0, heal: 26, castOn: 'target', minEnemies: 2, particle: 'heroSpray', fxColor: '#6fd894' },
+    ],
+    forks: [
+      { star: 5, options: [
+        { id: 'gravelord', name: 'Gravelord', blurb: 'The rebirth deepens — the necrotic burst savages far harder and feeds the master.', upgrades: [{ target: 'ult', mulDamage: 1.4, addHeal: 20, fxColor: '#5ee89a' }, { target: 1, mulDamage: 1.3 }] },
+        { id: 'procession', name: 'Procession', blurb: 'The dead answer faster — the calls come around far sooner.', upgrades: [{ target: 0, mulCooldown: 0.7, fxColor: '#b8ffd2' }, { target: 'ult', mulCooldown: 0.85 }] },
+      ] },
+      { star: 8, options: [
+        { id: 'eternal', name: 'Eternal Procession', blurb: 'Grave Call becomes an unending cortege.', upgrades: [{ target: 0, name: 'Eternal Procession', mulCooldown: 0.6, particle: 'heroBloom', fxColor: '#b8ffd2' }] },
+        { id: 'charnel', name: 'Charnel Feast', blurb: 'Funerary Feast becomes a devouring — the flies strip everything they touch.', upgrades: [{ target: 1, name: 'Charnel Feast', mulDamage: 1.9, addHeal: 28, mulRadius: 1.25, particle: 'heroSpray', fxColor: '#4fd884' }] },
+      ] },
+    ],
+  },
+  fovea: {
+    // The hive's EYE caste (Neural) — the rear-line EXECUTIONER lance. A living oculus that
+    // holds behind the towers (the 'siege' movement archetype, the Vitriol's brain) and projects
+    // psionic lances across most of the field — slow, colossal single strikes with no splash:
+    // the anti-elite answer the Ravager dives for and the Vitriol's pools can't burst. Its
+    // identity rides the shared elite-hunter verbs (+damage vs elites, elite kills feed it —
+    // zero new sim code). Shard-claimed: the third Collection unlock (the deep shard sink).
+    kind: 'fovea', name: 'Fovea', combatClass: 'Neural', behavior: 'siege', color: '#c4b5ff',
+    unlockShards: 160, // locked: the third Shard unlock — the deepest Collection goal
+    // attackSplash is the shell path's IMPACT radius (fireSiegeShell routes 'splash') — 16 is a
+    // pinpoint entry wound, execution-grade, nothing like the Vitriol's 62px bombardment.
+    maxHp: 190, speed: 94, attackRange: 640, attackInterval: 2.4, attackDamage: 95, attackFracture: 0, attackSplash: 16, projectileSpeed: 720,
+    aggroRange: 1400, contactRange: 20, respawnTime: 10,
+    pulseInterval: 0, pulseRadius: 0, pulseDamage: 0, pulseDisrupt: 0, nucleusRegen: 0,
+    ability: { name: 'Apex Stare', blurb: 'The eye opens fully: a single annihilating psionic lance that holds the target in the gaze — colossal damage and a deep stagger.', cooldown: 12, radius: 60, damage: 140, fracture: 0, disrupt: 2.0, heal: 0, particle: 'heroLance', fxColor: '#d8ccff' },
+    skills: [
+      { name: 'Pinning Glare', blurb: 'A focused lance that pins the victim mid-stride — heavy damage and a long stagger.', cooldown: 7, radius: 56, damage: 44, fracture: 0, disrupt: 1.4, heal: 0, castOn: 'target', minEnemies: 1, particle: 'heroLance', fxColor: '#c9baff' },
+      { name: 'Panopticon', blurb: 'The gaze widens to hold the whole pack — a field of pressure that staggers everything seen.', cooldown: 13, radius: 140, damage: 18, fracture: 0, disrupt: 2.0, heal: 0, castOn: 'target', minEnemies: 3, particle: 'heroMote', fxColor: '#b0a0ff' },
+    ],
+    forks: [
+      { star: 5, options: [
+        { id: 'deadeye', name: 'Deadeye', blurb: 'The focus narrows to a killing point — the lances strike far harder.', upgrades: [{ target: 'ult', mulDamage: 1.35, fxColor: '#efe8ff' }, { target: 0, mulDamage: 1.4 }] },
+        { id: 'wardeneye', name: 'Warden Eye', blurb: 'The gaze widens — every look holds more of the field, longer.', upgrades: [{ target: 1, mulRadius: 1.3, addDisrupt: 0.6, fxColor: '#a89aff' }, { target: 'ult', addDisrupt: 0.8 }] },
+      ] },
+      { star: 8, options: [
+        { id: 'terminal', name: 'Terminal Glare', blurb: 'Pinning Glare becomes a sentence — one look, one corpse.', upgrades: [{ target: 0, name: 'Terminal Glare', mulDamage: 2.2, mulRadius: 0.6, setMinEnemies: 1, particle: 'heroLance', fxColor: '#f4efff' }] },
+        { id: 'allseeing', name: 'The All-Seeing', blurb: 'Panopticon becomes total surveillance — nothing moves unwatched.', upgrades: [{ target: 1, name: 'The All-Seeing', mulRadius: 1.5, addDisrupt: 1.0, particle: 'heroMote', fxColor: '#c4b5ff' }] },
+      ] },
+    ],
+  },
 };
 
 export function heroProblems(d: HeroDef): string[] {
@@ -1692,11 +1753,28 @@ export const MINION_DEFS: Record<string, MinionDef> = {
   //    functionally (hp/dmg) and visually (radius/color/tier art). `life` is effectively wave-long
   //    (all minions clear at wave end); the roost re-incubates each wave. `range` here is the
   //    unit's ATTACK acquisition reach — the roost's own range is the brood leash. ──
+  // The Carrion's risen dead (docs/HEROES.md §carrion): base stats are the FLOOR — a corpse
+  // raised by Gravebind rises with a fraction of ITS OWN body (game.raiseFromCorpse), so a
+  // fallen brute stands back up as a wall and a mite as a spark. Ability summons use the base.
+  thrall: { id: 'thrall', name: 'Risen Thrall', hp: 36, damage: 8, attackInterval: 0.8, range: 260, speed: 105, life: 9, radius: 8, color: '#9fe8b0' },
   drakeling: { id: 'drakeling', name: 'Drakeling', hp: 70, damage: 11, attackInterval: 0.65, range: 340, speed: 150, life: 999, radius: 8, color: '#ffc46b', heroAI: true, perchRegen: 14, art: 'drake', tier: 1 },
   drake: { id: 'drake', name: 'Ember Drake', hp: 150, damage: 24, attackInterval: 0.7, range: 360, speed: 145, life: 999, radius: 11, color: '#ff9e4a', heroAI: true, perchRegen: 26, art: 'drake', tier: 2 },
   wyrmspawn: { id: 'wyrmspawn', name: 'Wyrmspawn', hp: 320, damage: 50, attackInterval: 0.8, range: 380, speed: 140, life: 999, radius: 15, color: '#ff7a3d', heroAI: true, perchRegen: 45, art: 'drake', tier: 3 },
 };
 export const MINION_CAP = 16; // global cap on live minions (perf + visual bound)
+
+/** GRAVEBIND (docs/HEROES.md §carrion) — the Carrion's corpse-raising, centralized. Enemies that
+ *  die within `radius` of a fielded gravebind hero RISE as Risen Thralls carrying a fraction of
+ *  their own body (floored at the thrall MinionDef). Cadence + a personal thrall cap keep swarms
+ *  from chain-exploding the minion pool; bosses stay down (their corpse is a trophy, not a tool).
+ *  Golden-safe: the death-seam hook early-outs unless a gravebind hero is fielded. */
+export const GRAVEBIND = {
+  radius: 240, // corpses within this reach of the Carrion answer it
+  hpFrac: 0.4, // thrall hp = max(floor, corpse maxHp × this) — the body rises diminished
+  dmgFrac: 0.5, // thrall damage = max(floor, corpse damage × this)
+  cadenceSec: 1.1, // min seconds between raises (a swarm wipe is not an instant army)
+  maxThralls: 5, // the Carrion's own concurrent risen (global MINION_CAP still applies)
+};
 
 /** Drake Roost tunables (firing 'summon' — docs/TOWERS.md §roost). The roost keeps `brood` units
  *  fielded (hatching one per fireInterval while below the cap) and its upgrades improve the UNITS:

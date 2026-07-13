@@ -753,6 +753,22 @@ export const HERO_SYMBIOTE_GATES: Record<HeroKind, [SymbioteGate, SymbioteGate]>
       blurb: 'The final graft sinks only into abyssal water — a tide condensed from fallen leviathans, risen through everything that ever swam in it.',
       reqs: [rKills(11000), rStars(4), rMastery(12), rGenome(6, 'VI · Hiveborn'), rMegas(4)] },
   ],
+  carrion: [
+    { slot: 2, title: 'THE FLIES KNOW ITS NAME', ichorCost: SYMBIOTE_ICHOR_II,
+      blurb: 'The second graft roots only in a charnel keeper the campaign already feeds — a tender whose procession never empties.',
+      reqs: [rKills(1600), rStars(2), rStage(30)] },
+    { slot: 3, title: 'KEEPER OF THE MOUNTAIN', ichorCost: SYMBIOTE_ICHOR_III,
+      blurb: 'The final graft crowns the mountain of the dead itself — a keeper mended by a Molt and steeped in ten thousand risings.',
+      reqs: [rKills(13000), rStars(4), rMastery(12), rGenome(6, 'VI · Hiveborn'), rMolts(1)] },
+  ],
+  fovea: [
+    { slot: 2, title: 'THE LONG LOOK', ichorCost: SYMBIOTE_ICHOR_II,
+      blurb: 'The second graft settles only behind an eye that has watched whole campaigns end — patient, unblinking, proven.',
+      reqs: [rKills(1200), rStars(2), rMastery(8), rStage(32)] },
+    { slot: 3, title: 'NOTHING UNSEEN', ichorCost: SYMBIOTE_ICHOR_III,
+      blurb: 'The final graft opens inside total witness — an oculus that has catalogued the great and outstared the gauntlet.',
+      reqs: [rKills(10000), rStars(4), rMastery(12), rGenome(6, 'VI · Hiveborn'), rRush(9)] },
+  ],
 };
 
 // Compile-time completeness above; runtime sanity for tests + tooling.

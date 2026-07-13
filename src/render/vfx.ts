@@ -62,7 +62,7 @@ export function ring(
 
 // ── Silhouette "sprites" (data-driven shapes — swap for art later) ───────────
 
-export type ShapeKind = 'circle' | 'triangle' | 'square' | 'diamond' | 'hex' | 'bell' | 'drop';
+export type ShapeKind = 'circle' | 'triangle' | 'square' | 'diamond' | 'hex' | 'bell' | 'drop' | 'shroud' | 'lens';
 
 /** Build (but don't paint) a silhouette path of `r` radius centered at (x,y).
  * Shared by drawShape (fill) and strokeShape (outline) so the polygon math lives
@@ -121,6 +121,24 @@ export function shapePath(
       ctx.quadraticCurveTo(x + r * 0.8, y + r * 0.95, x, y + r * 0.95);
       ctx.quadraticCurveTo(x - r * 0.8, y + r * 0.95, x - r * 0.74, y + r * 0.28);
       ctx.quadraticCurveTo(x - r * 0.62, y - r * 0.18, x, y - r);
+      ctx.closePath();
+      break;
+    case 'shroud': // a hooded pall: rounded crown, ragged hem (the Carrion's silhouette)
+      ctx.moveTo(x - r * 0.78, y + r * 0.9);
+      ctx.lineTo(x - r * 0.52, y + r * 0.62);
+      ctx.lineTo(x - r * 0.3, y + r * 0.9);
+      ctx.lineTo(x, y + r * 0.6);
+      ctx.lineTo(x + r * 0.3, y + r * 0.9);
+      ctx.lineTo(x + r * 0.52, y + r * 0.62);
+      ctx.lineTo(x + r * 0.78, y + r * 0.9);
+      ctx.quadraticCurveTo(x + r * 0.85, y - r * 0.2, x, y - r);
+      ctx.quadraticCurveTo(x - r * 0.85, y - r * 0.2, x - r * 0.78, y + r * 0.9);
+      ctx.closePath();
+      break;
+    case 'lens': // a vertical vesica — the open eye (the Fovea's silhouette)
+      ctx.moveTo(x, y - r);
+      ctx.quadraticCurveTo(x + r * 0.72, y, x, y + r);
+      ctx.quadraticCurveTo(x - r * 0.72, y, x, y - r);
       ctx.closePath();
       break;
   }

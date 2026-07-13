@@ -62,6 +62,7 @@ import {
   AUTO_START_FIRST_DELAY,
   MINION_DEFS,
   MINION_CAP,
+  GRAVEBIND,
 } from './config';
 import type { EnemyDef, HeroAbilityDef, HeroDef, MinionDef, ResolvedHeroKit, TowerDef } from './config';
 import { DANGER_CAM, initialDangerCamera, stepDangerCamera } from './dangerCamera';
@@ -544,6 +545,10 @@ export class Game {
   // yield raid duty to normal targeting. Derived per tick in megaBossSystem; only read while
   // a mega is live, so it is inert (and never derived) on every other run.
   private megaRaidYield = false;
+  // GRAVEBIND (docs/HEROES.md §carrion) — the fielded corpse-raiser, cached at roster boot.
+  // Null on every run without one (incl. golden autoplay) ⇒ the death-seam hook is inert.
+  private gravebindHero: Hero | null = null;
+  private raiseCd = 0; // seconds until the next corpse may rise (GRAVEBIND.cadenceSec)
   // Blight Sower spore mines (docs/SOWER.md) — empty on every run without one (golden-safe).
   mines: SporeMine[] = [];
   private nextMineId = 1;
@@ -783,6 +788,9 @@ export class Game {
     this.biomass = ECON.startingBiomass + this.mods.startBiomassBonus + (this.stage?.startBiomassBonus ?? 0)
       + (this.mode === 'bossRush' ? RUSH.openingBiomass : 0); // the gauntlet fortifies before wave 1's boss duel (docs/BOSS-RUSH.md)
     this.heroes = roster.map((k) => this.makeHero(k));
+    // GRAVEBIND (docs/HEROES.md §carrion): cache the fielded corpse-raiser once — the death seam
+    // early-outs on null, so every roster without one (incl. golden autoplay) does zero work.
+    this.gravebindHero = this.heroes.find((h) => this.idOf(h).passive.kind === 'gravebind') ?? null;
     // ── Starting Gene Loadout (docs/GENE-EVOLUTION.md §Loadouts): equipped cards auto-activate NOW,
     //    through the exact same path as a mid-run draft (applyCard + live verb collection + the run's
     //    card list + chosenCardEffects), so they show in the Build panel and the live run Power
@@ -5198,6 +5206,7 @@ export class Game {
   }
 
   private heroSystem(dt: number): void {
+    if (this.gravebindHero !== null && this.raiseCd > 0) this.raiseCd -= dt; // Gravebind cadence (gated ⇒ golden-inert)
     for (const h of this.heroes) this.updateHero(h, dt);
     // The non-primary roster (slots 2+) is fully AUTONOMOUS — it auto-casts its signature ability on
     // cooldown; the primary (slot 1) stays PLAYER-triggered. The loop is empty for a single-hero run
@@ -5930,6 +5939,10 @@ export class Game {
           }
           if (frozenDeath) this.onCasingBreak(e);
         }
+        // GRAVEBIND (docs/HEROES.md §carrion): the hive does not bury what it kills — a corpse
+        // falling near the fielded Carrion RISES as a thrall. Null-gated ⇒ inert on every
+        // other roster (incl. golden autoplay).
+        if (this.gravebindHero !== null) this.raiseFromCorpse(e);
         if (e.infection > 0) {
           this.spreadInfection(e); // Viral: the plague jumps to the living
           // STRAIN plague verbs (docs/STRAIN.md — Spore Bloat / Leaping Broodworm): the nest's
@@ -6742,6 +6755,34 @@ export class Game {
 
   /** Summon `count` friendly units of `unit` around (x,y) — the `summon` ability primitive.
    * Capped globally (MINION_CAP) and fanned out in a ring so they don't stack on the point. */
+  /** GRAVEBIND (docs/HEROES.md §carrion): raise a just-fallen enemy as a Risen Thrall carrying a
+   *  fraction of its own body (floored at the thrall MinionDef; deepened by the raiser's scaling,
+   *  the shared per-wave curve). Cadence + a personal thrall cap keep swarm wipes from becoming an
+   *  instant army; bosses stay down. Called ONLY from the death seam while a gravebind hero is
+   *  fielded — every other run never reaches this path. */
+  private raiseFromCorpse(e: Enemy): void {
+    const h = this.gravebindHero!;
+    if (h.down || e.boss || this.raiseCd > 0) return;
+    if (this.minions.length >= MINION_CAP) return;
+    if (dist2(h.x, h.y, e.x, e.y) > GRAVEBIND.radius * GRAVEBIND.radius) return;
+    let own = 0;
+    for (const m of this.minions) if (m.alive && m.kind === 'thrall') own++;
+    if (own >= GRAVEBIND.maxThralls) return;
+    const def = MINION_DEFS.thrall;
+    const id = this.idOf(h);
+    const depth = 1 + Math.min(id.scaling.cap, this.waveIndex * id.scaling.perStack); // Rising Tide of the dead
+    const hp = Math.max(def.hp, e.maxHp * GRAVEBIND.hpFrac) * depth;
+    const dmg = Math.max(def.damage, e.damage * GRAVEBIND.dmgFrac) * depth;
+    this.minions.push({
+      id: this.nextId++, kind: 'thrall', x: e.x, y: e.y,
+      hp, maxHp: hp, hitFlash: 0,
+      damage: dmg, attackCd: 0, attackInterval: def.attackInterval, range: def.range,
+      speed: def.speed, life: def.life, maxLife: def.life, radius: def.radius, color: def.color, alive: true,
+    });
+    this.raiseCd = GRAVEBIND.cadenceSec;
+    this.spawnParticles(e.x, e.y, PARTICLE.bloom, def.color, 0.8); // the body claws back up
+  }
+
   private summonMinions(unit: string, count: number, x: number, y: number): void {
     const def = MINION_DEFS[unit];
     if (!def) return;

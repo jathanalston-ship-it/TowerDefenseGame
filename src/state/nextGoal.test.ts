@@ -19,7 +19,8 @@ describe('Next-Goal engine (the anticipation spine)', () => {
   });
 
   it('does NOT surface an already-owned hero as a Release goal', () => {
-    const s = { ...defaultSave(), heroUnlocked: ['ravager', 'shepherd', 'overseer'] as never };
+    // Own every SHARD-claimable hero (milestone heroes never surface as Release goals).
+    const s = { ...defaultSave(), heroUnlocked: ['ravager', 'shepherd', 'overseer', 'fovea'] as never };
     expect(nextGoals(s).some((x) => x.kind === 'hero-release')).toBe(false);
   });
 

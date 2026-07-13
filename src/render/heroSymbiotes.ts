@@ -76,6 +76,18 @@ export const HERO_SYMBIOTE_VISUALS: Record<HeroKind, { stages: EvoPart[][] }> = 
     [{ at: 2, kind: 'tendrils', count: 3, per: 1 }],
     [{ at: 3, kind: 'pods', count: 3 }],
   ] },
+  // Carrion — the keeper is KEPT: bone plating → grave egg-pods → feelers of the procession.
+  carrion: { stages: [
+    [{ at: 1, kind: 'armor', count: 3, per: 1 }],
+    [{ at: 2, kind: 'pods', count: 3 }],
+    [{ at: 3, kind: 'tendrils', count: 4 }],
+  ] },
+  // Fovea — the eye is RIMMED: witness rings → sight barbs → stormlight arcs.
+  fovea: { stages: [
+    [{ at: 1, kind: 'ripples' }],
+    [{ at: 2, kind: 'barbs', count: 3, per: 1 }],
+    [{ at: 3, kind: 'arcs', count: 2, per: 1 }],
+  ] },
 };
 
 /** The minimal hero shape the composer needs (mirrors heroEvolution.ts). */

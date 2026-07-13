@@ -1,6 +1,6 @@
 # DIL_GRAPH.md — the Design Intelligence Layer (GENERATED — `npm run dil -- regen`)
 
-> **The project's brain** (docs/DIL.md). 773 nodes · 1420 edges, built from the live
+> **The project's brain** (docs/DIL.md). 777 nodes · 1427 edges, built from the live
 > registries + curated knowledge (src/dev/dil/). **Query it instead of searching the repo:**
 > `npm run dil -- node <id>` · `affects <id>` · `requires <id>` · `missing <kind> <edge>` ·
 > `checklist tower <kind>` · `find <text>`. Edge kinds are bidirectional (19 kinds).
@@ -14,11 +14,11 @@
 
 ### Gameplay Index
 
-`tower:needle` · `tower:mortar` · `tower:reactor` · `tower:parasite` · `tower:obelisk` · `tower:maw` · `tower:chrysalis` · `tower:effigy` · `tower:coil` · `tower:siphon` · `tower:sower` · `tower:spire` · `tower:polyp` · `tower:spitfang` · `tower:rift` · `tower:glaive` · `tower:roost` · `hero:ravager` · `hero:shepherd` · `hero:overseer` · `hero:vitriol` · `hero:revenant` · `hero:knell` · `hero:wyrm` · `hero:riptide` · `enemy:runner` · `enemy:mite` · `enemy:larva` · `enemy:rusher` · `enemy:darter` · `enemy:lasher` · `enemy:brute` · `enemy:tank` · `enemy:golem` · `enemy:colossus` · `enemy:bulwark` · `enemy:warden` · `enemy:knitter` · `enemy:revenant` · `enemy:burrower` · `enemy:molerat` · `enemy:flyer` · `enemy:wisp` · `enemy:gargoyle` · `enemy:cystwraith` · `enemy:broodmother` · `enemy:hivecaller` · `enemy:mender` · `enemy:cantor` · `enemy:bomber` · `enemy:popper` · `enemy:sapper` · `enemy:cataclyst` · `enemy:siegeworm` · `enemy:spitter` · `enemy:stratovore` · `enemy:broodweaver` · `enemy:zealot` · `enemy:carrier` · `enemy:entrencher` · …35 more
+`tower:needle` · `tower:mortar` · `tower:reactor` · `tower:parasite` · `tower:obelisk` · `tower:maw` · `tower:chrysalis` · `tower:effigy` · `tower:coil` · `tower:siphon` · `tower:sower` · `tower:spire` · `tower:polyp` · `tower:spitfang` · `tower:rift` · `tower:glaive` · `tower:roost` · `hero:ravager` · `hero:shepherd` · `hero:overseer` · `hero:vitriol` · `hero:revenant` · `hero:knell` · `hero:wyrm` · `hero:riptide` · `hero:carrion` · `hero:fovea` · `enemy:runner` · `enemy:mite` · `enemy:larva` · `enemy:rusher` · `enemy:darter` · `enemy:lasher` · `enemy:brute` · `enemy:tank` · `enemy:golem` · `enemy:colossus` · `enemy:bulwark` · `enemy:warden` · `enemy:knitter` · `enemy:revenant` · `enemy:burrower` · `enemy:molerat` · `enemy:flyer` · `enemy:wisp` · `enemy:gargoyle` · `enemy:cystwraith` · `enemy:broodmother` · `enemy:hivecaller` · `enemy:mender` · `enemy:cantor` · `enemy:bomber` · `enemy:popper` · `enemy:sapper` · `enemy:cataclyst` · `enemy:siegeworm` · `enemy:spitter` · `enemy:stratovore` · `enemy:broodweaver` · `enemy:zealot` · …37 more
 
 ### Progression Index
 
-`system:campaign` · `system:accounts` · `system:premium` · `system:towers` · `system:loot` · `system:gene-cards` · `system:quests` · `system:progression-gating` · `system:hub-shell` · `system:meta-store` · `system:mega-bosses` · `system:cutscenes` · `system:security` · `system:doctrines` · `concept:progression-gates` · `currency:tower-shards` · `tower:maw` · `tower:chrysalis` · `tower:effigy` · `tower:coil` · `tower:siphon` · `tower:sower` · `tower:spire` · `tower:polyp` · `tower:spitfang` · `tower:rift` · `tower:glaive` · `tower:roost` · `hero:vitriol` · `hero:revenant` · `hero:knell` · `hero:wyrm` · `hero:riptide`
+`system:campaign` · `system:accounts` · `system:premium` · `system:towers` · `system:loot` · `system:gene-cards` · `system:quests` · `system:progression-gating` · `system:hub-shell` · `system:meta-store` · `system:mega-bosses` · `system:cutscenes` · `system:security` · `system:doctrines` · `concept:progression-gates` · `currency:tower-shards` · `tower:maw` · `tower:chrysalis` · `tower:effigy` · `tower:coil` · `tower:siphon` · `tower:sower` · `tower:spire` · `tower:polyp` · `tower:spitfang` · `tower:rift` · `tower:glaive` · `tower:roost` · `hero:vitriol` · `hero:revenant` · `hero:knell` · `hero:wyrm` · `hero:riptide` · `hero:carrion`
 
 ### Economy / Reward Index
 
@@ -133,6 +133,7 @@ graph LR
   system_bosses["Bosses"] -->|modifies| system_rendering["Rendering & VFX"]
   system_genome_rank["Genome Rank (ultimate mastery ladder)"] -->|consumes| system_account_level["Account Level (evergreen meta-progression)"]
   system_heroes["Heroes"] -->|consumes| system_mega_bosses["Mega Bosses"]
+  system_heroes["Heroes"] -->|consumes| system_stats["Lifetime Stats"]
   system_mulligans["Mulligan System"] -->|consumes| system_towers["Towers, Stars, Branches, Strain & Codex"]
   system_security["Game Action Security Layer"] -->|modifies| system_meta_store["Meta Store & Save"]
   system_directives["Weekly Directives"] -->|rewards| currency_genome_cores["Genome Cores (◆)"]
@@ -451,6 +452,7 @@ graph LR
   system_account_level["Account Level (evergreen meta-progression)"] -->|provides| system_loot["Loot & Bio-Containers"]
   system_genome_rank["Genome Rank (ultimate mastery ladder)"] -->|consumes| system_account_level["Account Level (evergreen meta-progression)"]
   system_heroes["Heroes"] -->|consumes| system_mega_bosses["Mega Bosses"]
+  system_heroes["Heroes"] -->|consumes| system_stats["Lifetime Stats"]
   system_mulligans["Mulligan System"] -->|consumes| system_towers["Towers, Stars, Branches, Strain & Codex"]
   system_security["Game Action Security Layer"] -->|consumes| concept_determinism["Determinism"]
   system_directives["Weekly Directives"] -->|consumes| concept_determinism["Determinism"]
@@ -551,6 +553,7 @@ Depth/stage/shard requirements that stage content unlocks (towers, heroes, cards
   - gates → `hero:knell` — progression unlock requirement
   - gates → `hero:wyrm` — progression unlock requirement
   - gates → `hero:riptide` — progression unlock requirement
+  - gates → `hero:carrion` — progression unlock requirement
   - gates → `system:gene-cards` — 44 cards unlock by progression
   - gates → `system:towers` — locked kinds carry unlockShards + stage requirements
   - requiredBy ← `system:doctrines` — unlockStage campaign gates + doctrineRuns grandfathering (save/derive.ts)
@@ -709,7 +712,7 @@ _at: src/core/game.ts, src/core/combat.ts, src/core/status.ts, src/core/targetin
   - requiredBy ← `system:mega-bosses`
   - requiredBy ← `system:rendering`
   - requiredBy ← `system:living-battlefield`
-  - _…185 more (query: `npm run dil -- node system:engine`)_
+  - _…188 more (query: `npm run dil -- node system:engine`)_
 
 ### `system:content-infra` — Content Infrastructure
 
@@ -1048,6 +1051,8 @@ _at: src/core/heroIdentity.ts, src/core/heroLore.ts, src/core/heroEvolution.ts, 
   - consumes → `system:meta-store` — owns save field 'heroMasteryXp'
   - consumes → `currency:hero-shards` — unlocks + Star purchases + the PRIME infinite ladder past ★max (mirrors towers; direct shard lanes BANK for Prime, only container opens convert duplicates)
   - consumes → `system:mega-bosses` — the megaSlain HeroUnlockReq axis (Riptide, 2 distinct defs from megaProgress.slain) — the FOURTH milestone lens beside bossSlain/infiniteDepth/molts; each milestone hero owns ONE progression axis and never rides unlockShards
+  - consumes → `system:stats` — the lifetimeKills HeroUnlockReq axis (Carrion, 20k from stats.lifetimeKills) — the FIFTH milestone lens; the corpse ledger both gates the necromancer and is what it thematically feeds on
+  - extends → `system:engine` — GRAVEBIND (game.raiseFromCorpse, the Carrion): the death seam raises corpses as thralls — null-gated on the cached gravebindHero (roster boot, keyed by passive.kind) so every other run incl. golden autoplay is inert; tunables in config.GRAVEBIND; thralls ride the existing minion pool under MINION_CAP
   - extends → `system:engine` — CINDERWYRM (HEROES.md §6): HeroBehavior gained 'swoop' (game.updateSwoopHero) — the flying strafe brain: strike on the fly-by, Corrosion via WYRM.corrodePerStrike, then BANK THROUGH to Hero.bankX/bankY = WYRM.bankDist past the victim (sim fields for the flight, absent on every other hero). Unlock bossSlain 5 ⇒ never on a fresh account ⇒ golden-safe; wings render behavior-keyed (drawHeroWings) so a future flyer inherits them
   - requiredBy ← `system:engine`
   - requiredBy ← `system:equipment`
@@ -1061,7 +1066,7 @@ _at: src/core/heroIdentity.ts, src/core/heroLore.ts, src/core/heroEvolution.ts, 
   - contains ← `hero:knell`
   - contains ← `hero:wyrm`
   - contains ← `hero:riptide`
-  - _…12 more (query: `npm run dil -- node system:heroes`)_
+  - _…14 more (query: `npm run dil -- node system:heroes`)_
 
 ### `system:equipment` — Equipment & Armory
 
@@ -1443,6 +1448,7 @@ _at: src/state/stats.ts_
   - referencedBy ← `achievement:collector`
   - documentedBy ← `doc:PROGRESSION-SYSTEMS.md`
   - testedBy ← `test:src/state/stats.test.ts`
+  - consumedBy ← `system:heroes` — the lifetimeKills HeroUnlockReq axis (Carrion, 20k from stats.lifetimeKills) — the FIFTH milestone lens; the corpse ledger both gates the necromancer and is what it thematically feeds on
 
 ### `system:liveops` — LiveOps calendar
 
@@ -2318,7 +2324,7 @@ _at: src/core/config.ts TOWER_DEFS_
   - consumes → `currency:biomass` — placement cost 200
   - gatedBy ← `currency:tower-shards` — 520 shards to unlock
 
-## Heroes (8)
+## Heroes (10)
 
 ### `hero:ravager` — Ravager
 
@@ -2388,6 +2394,23 @@ _at: src/core/config.ts HERO_DEFS_
 
   - partOf → `system:heroes`
   - gatedBy ← `concept:progression-gates` — progression unlock requirement
+
+### `hero:carrion` — Carrion
+
+The ground gives back its dead: a necrotic burst savages the pack, and three Risen Thralls claw up to fight for the hive.
+
+_at: src/core/config.ts HERO_DEFS_
+
+  - partOf → `system:heroes`
+  - gatedBy ← `concept:progression-gates` — progression unlock requirement
+
+### `hero:fovea` — Fovea
+
+The eye opens fully: a single annihilating psionic lance that holds the target in the gaze — colossal damage and a deep stagger.
+
+_at: src/core/config.ts HERO_DEFS_
+
+  - partOf → `system:heroes`
 
 ## Enemies (40)
 
@@ -3304,7 +3327,7 @@ _at: site/guides.ts → /guides/prestige/_
 - `doc:VOWS.md` — project documentation _(documents `system:prestige`)_
 - `doc:WEBSITE.md` — project documentation _(documents `system:field-research`, documents `system:website`)_
 
-## Tests (245)
+## Tests (247)
 
 - `test:src/audio/music.test.ts` — automated validation _(tests `system:audio`)_
 - `test:src/changelog/classify.test.ts` — automated validation _(tests `system:chronicle`)_
@@ -3330,6 +3353,7 @@ _at: site/guides.ts → /guides/prestige/_
 - `test:src/core/campaign.test.ts` — automated validation _(tests `system:campaign`)_
 - `test:src/core/campaignEvents.test.ts` — automated validation _(tests `system:campaign`)_
 - `test:src/core/cards.test.ts` — automated validation _(tests `system:gene-cards`)_
+- `test:src/core/carrion.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/core/coil.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/core/collection.test.ts` — automated validation _(tests `system:collection`)_
 - `test:src/core/combat.test.ts` — automated validation _(tests `system:engine`)_
@@ -3360,6 +3384,7 @@ _at: site/guides.ts → /guides/prestige/_
 - `test:src/core/expansion.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/core/feel.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/core/finaldefense.test.ts` — automated validation _(tests `system:engine`)_
+- `test:src/core/fovea.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/core/gameBoss.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/core/geneAscension.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/core/geneCards.test.ts` — automated validation _(tests `system:gene-cards`)_

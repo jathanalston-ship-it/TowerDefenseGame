@@ -15,7 +15,8 @@ export type HeroPassiveKind =
   | 'towerAura' // innate aura: nearby towers gain fire-rate + damage (Shepherd)
   | 'vulnField' // disrupted enemies take extra damage from all sources (Overseer)
   | 'causticVuln' // CORRODED enemies take extra damage from all sources (Vitriol)
-  | 'viralVuln'; // INFECTED enemies take extra damage from all sources (Revenant)
+  | 'viralVuln' // INFECTED enemies take extra damage from all sources (Revenant)
+  | 'gravebind'; // enemies dying near the hero RISE as thralls (Carrion — game.raiseFromCorpse)
 
 /** A hero's defining identity rule (flavour + a light mechanical lean). */
 export type HeroTraitKind =
@@ -124,6 +125,29 @@ export const HERO_IDENTITIES: Record<HeroKind, HeroIdentity> = {
     trait: { name: 'Strafing Run', desc: 'Every fly-by strike douses the victim in Corrosion, and the wyrm banks THROUGH to the far side — always moving, never caught.', kind: 'strafingRun' },
     scaling: { name: 'Firestorm', desc: 'The deeper the run, the hotter its Corrosion burns (up to +30%).', kind: 'saturation', perStack: 0.015, cap: 0.3 },
     survival: 'aggressive',
+  },
+  carrion: {
+    kind: 'carrion',
+    role: 'Charnel necromancer — drifts to the densest fight and raises the fallen as Risen Thralls that fight for the hive.',
+    strengths: ['Turns every kill zone into reinforcements', 'Thralls rise with a fraction of the corpse\'s own body', 'Self-sustaining army with the flies chipping on top'],
+    weaknesses: ['Slow to start — it needs corpses before it has an army', 'No burst, control, or line sustain of its own', 'Thralls are mortal and capped — a clean sweep leaves it alone'],
+    // The passive IS the raise (the one new sim verb this hero ships — game.raiseFromCorpse,
+    // amount = a data hint only); the scaling is the shared per-wave curve the raise reads to
+    // deepen thrall bodies with depth.
+    passive: { name: 'Gravebind', desc: 'Enemies that die near the Carrion RISE as Risen Thralls carrying part of their own bodies.', kind: 'gravebind', amount: 0.4 },
+    trait: { name: 'Charnel Tender', desc: 'Its calls and corpses lean to crowd service — the risen endure for the hive.', kind: 'broodTender' },
+    scaling: { name: 'The Pile Grows', desc: 'The deeper the run, the stronger its risen stand (up to +30%).', kind: 'overload', perStack: 0.015, cap: 0.3 },
+    survival: 'cautious',
+  },
+  fovea: {
+    kind: 'fovea',
+    role: 'Rear-line executioner lance — a living oculus that deletes the fattest, deepest threats with colossal single strikes.',
+    strengths: ['Massive single-target execution at extreme range', 'The anti-elite specialist (+damage, feeds on their deaths)', 'Its glares stagger what they hold'],
+    weaknesses: ['Slow cadence — wasted on chaff a needle could kill', 'Utterly fragile if the line collapses to its rear', 'No area presence of its own'],
+    passive: { name: 'Predator\'s Focus', desc: '+40% damage to elite enemies — the eye exists for the great.', kind: 'eliteDamage', amount: 0.4 },
+    trait: { name: 'Savored Kill', desc: 'Slaying an elite feeds the Fovea — it mends and quickens with every great death.', kind: 'eliteHunter' },
+    scaling: { name: 'Killchain Gaze', desc: 'Each elite slain this run adds +4% elite damage (stacking, up to +60%).', kind: 'killchain', perStack: 0.04, cap: 0.6 },
+    survival: 'cautious',
   },
   riptide: {
     kind: 'riptide',

@@ -177,3 +177,4 @@
 - `933e80b` **[Gameplay]** Re-anchor the campaign curve: compensation band, raid-honest bars, hive-guardian override
 - ⚑ `0edce9a` **[Framework]** Rescale validation docs: probe evidence, gate references, bugfix log _(internal)_
 - `e3be902` **[Gameplay]** Chronicle + reports for the mega-targeting fix and campaign rescale
+- `3ac46c2` **[Heroes]** New hero: RIPTIDE - the water-form zone controller (Kinetic tide caste)

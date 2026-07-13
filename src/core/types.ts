@@ -51,7 +51,7 @@ export type EnemyKind =
   | 'glutling' // swarm + suicide: a fragile kamikaze cloud (AoE it early, spacing)
   // elite / apex
   | 'apex' | 'dreadnought' | 'tyrant';
-export type HeroKind = 'ravager' | 'shepherd' | 'overseer' | 'vitriol' | 'revenant' | 'knell' | 'wyrm' | 'riptide';
+export type HeroKind = 'ravager' | 'shepherd' | 'overseer' | 'vitriol' | 'revenant' | 'knell' | 'wyrm' | 'riptide' | 'carrion' | 'fovea';
 
 /** How a tower delivers its attack — drives the firing/projectile dispatch, so a
  * new tower that reuses a behavior is data-only (no sim code). 'support' = no fire,

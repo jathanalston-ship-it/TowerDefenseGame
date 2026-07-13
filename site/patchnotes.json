@@ -25,6 +25,14 @@
     "items": [
       {
         "cat": "Heroes",
+        "text": "★ New hero: Fovea"
+      },
+      {
+        "cat": "Heroes",
+        "text": "★ New hero: Carrion"
+      },
+      {
+        "cat": "Heroes",
         "text": "★ New hero: Riptide"
       },
       {
@@ -702,6 +710,10 @@
       {
         "cat": "Gameplay",
         "text": "Chronicle + reports for the mega-targeting fix and campaign rescale"
+      },
+      {
+        "cat": "Heroes",
+        "text": "New hero: RIPTIDE - the water-form zone controller (Kinetic tide caste)"
       }
     ]
   },

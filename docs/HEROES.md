@@ -423,6 +423,8 @@ the Wyrmwing Glaive's Ember Return branch — the draconic tower pairing it was 
 | **Knell** | Resonant | amplification conductor | Low (AoE chip) | run-wide tower-damage peals + a tower aura (gated) |
 | **Cinderwyrm** | Caustic | flying strafe-fighter | **High (mobile)** | Corrosion on every pass + Emberwake amplification (gated) |
 | **Riptide** | Kinetic | water-form zone controller | Medium (AoE chip + pools) | tidal pulses + undertow area denial + Waterlogged vulnerability (gated) |
+| **Carrion** | Vital | charnel necromancer | Low (fly-cloud chip) | GRAVEBIND — the fallen rise as corpse-scaled Risen Thralls that fight for the hive (gated) |
+| **Fovea** | Neural | rear-line executioner lance | **Colossal (single strikes)** | deletes elites/fat targets from extreme range + staggering glares (Shard-claimed) |
 
 Distinct roles, distinct classes, distinct failure modes. The "ideal" core
 (Ravager + Shepherd + Overseer) is a classic damage/sustain/control trinity — and

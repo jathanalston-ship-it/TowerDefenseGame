@@ -175,7 +175,7 @@ describe('hero Shard economy — Vitriol upgrades with Shards like the rest', ()
   });
 
   it('once the Shard-unlock queue drains, the pool is empty so drops fund EVERY hero (incl. Vitriol) for Stars', () => {
-    const owned = { ...defaultSave(), heroUnlocked: ['shepherd', 'overseer'] as HeroKind[], bossesSlain: ['bruiser', 'artillery', 'swarmlord'], bestWave: 99999 };
+    const owned = { ...defaultSave(), heroUnlocked: ['shepherd', 'overseer', 'fovea'] as HeroKind[], bossesSlain: ['bruiser', 'artillery', 'swarmlord'], bestWave: 99999 };
     expect(heroShardUnlockPool(owned)).toEqual([]); // empty ⇒ rollLoot falls back to HERO_IDS (all heroes)
   });
 

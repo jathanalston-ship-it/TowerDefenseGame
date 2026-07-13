@@ -123,10 +123,34 @@ export const HERO_EVOLUTION: Record<HeroKind, HeroEvolution> = {
       { at: 5, kind: 'crown', count: 6 }, // the drowned crown
     ],
   },
+  // Carrion (Vital charnel) — the procession accretes: a fly halo → grave nodes → reaching
+  // limbs → bone spurs → the keeper's crown of the mountain.
+  carrion: {
+    growth: 0.048,
+    parts: [
+      { at: 1, kind: 'halo' }, // the fly cloud — the charnel reach made visible
+      { at: 2, kind: 'organs', count: 3 }, // grave nodes — the first risen kept close
+      { at: 3, kind: 'limbs', count: 3 }, // reaching tender-limbs
+      { at: 4, kind: 'spikes', count: 5 }, // bone spurs of the pile
+      { at: 5, kind: 'crown', count: 6 }, // keeper of the mountain
+    ],
+  },
+  // Fovea (Neural eye) — the gaze sharpens: a ranging iris → lash-sights → sight-lightning →
+  // focus nodes → the all-seeing nova.
+  fovea: {
+    growth: 0.042, // like the Overseer, its power is presence, not mass
+    parts: [
+      { at: 1, kind: 'halo' }, // the ranging iris
+      { at: 2, kind: 'barbs', count: 4, per: 1 }, // lash-sights, longer each star
+      { at: 3, kind: 'arcs', count: 2, per: 1 }, // sight made visible, wilder each star
+      { at: 4, kind: 'organs', count: 3 }, // focus nodes
+      { at: 5, kind: 'nova' }, // the all-seeing
+    ],
+  },
 };
 
 /** Stable per-kind phase offset so two heroes of different kinds don't pulse in lockstep. */
-const KIND_PHASE: Record<HeroKind, number> = { ravager: 1, shepherd: 2, overseer: 3, vitriol: 4, revenant: 5, knell: 6, wyrm: 7, riptide: 8 };
+const KIND_PHASE: Record<HeroKind, number> = { ravager: 1, shepherd: 2, overseer: 3, vitriol: 4, revenant: 5, knell: 6, wyrm: 7, riptide: 8, carrion: 9, fovea: 10 };
 
 /** Body-silhouette scale from permanent STARS (the "bigger, prestige hero" read). Identity (1) at
  *  ★0; gentle per star so the marker never dwarfs the field (★5 ≈ 1.2–1.25×). */

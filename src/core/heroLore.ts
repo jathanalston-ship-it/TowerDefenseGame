@@ -61,6 +61,16 @@ const AUTHORED: Record<string, Partial<HeroLore>> = {
     tagline: 'Condensed from the fluids of fallen leviathans — it flows to the thickest of the wave and drowns it where it stands.',
     specialization: 'Tidal Controller',
   },
+  carrion: {
+    title: 'Keeper of the Mountain',
+    tagline: 'The hive does not bury what it kills — the fallen rise around it and march back into the war.',
+    specialization: 'Charnel Necromancer',
+  },
+  fovea: {
+    title: 'The Unblinking',
+    tagline: 'A living oculus behind the line — one look, one lance, one fewer giant.',
+    specialization: 'Executioner Lance',
+  },
 };
 
 /** Resolve a hero's lore, deriving any unauthored field from its definition. */

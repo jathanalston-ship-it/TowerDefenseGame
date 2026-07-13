@@ -153,8 +153,11 @@ const LANES: Lane[] = [
       return { reward: { kind: 'mats', ...out } };
     },
   },
-  { id: 'towerShards', weight: 9, minIV: 2, roll: (iv) => ({ reward: { kind: 'towerShardsAll', qtyEach: Math.max(1, Math.round(iv / (TOWER_ORDER.length * LANE_VALUE.towerShardEach))) } }) },
-  { id: 'heroShards', weight: 8, minIV: 3, roll: (iv) => ({ reward: { kind: 'heroShardsAll', qtyEach: Math.max(1, Math.round(iv / (HERO_ORDER.length * LANE_VALUE.heroShardEach))) } }) },
+  // The *ShardsAll lanes grant qtyEach to EVERY kind, so their minimum chunk COSTS a full
+  // roster-each — derive minIV from that cost (roster-proof: new towers/heroes can never make
+  // the smallest grant overshoot a small day's budget again).
+  { id: 'towerShards', weight: 9, minIV: TOWER_ORDER.length * LANE_VALUE.towerShardEach, roll: (iv) => ({ reward: { kind: 'towerShardsAll', qtyEach: Math.max(1, Math.round(iv / (TOWER_ORDER.length * LANE_VALUE.towerShardEach))) } }) },
+  { id: 'heroShards', weight: 8, minIV: HERO_ORDER.length * LANE_VALUE.heroShardEach, roll: (iv) => ({ reward: { kind: 'heroShardsAll', qtyEach: Math.max(1, Math.round(iv / (HERO_ORDER.length * LANE_VALUE.heroShardEach))) } }) },
   { id: 'runCache', weight: 8, minIV: 8, roll: (iv) => ({ reward: { kind: 'runCache', count: Math.max(1, Math.floor(iv / LANE_VALUE.runCache + 0.5)) } }) },
   { id: 'passXp', weight: 9, minIV: 1, roll: (iv) => ({ passXp: Math.min(LOGIN.passXpCap, Math.max(40, Math.round(iv / LANE_VALUE.passXp / 10) * 10)) }) },
   { id: 'stamina', weight: 4, minIV: 1.5, roll: (iv) => ({ reward: { kind: 'rushStamina', qty: Math.max(3, Math.min(15, Math.round(iv / LANE_VALUE.rushStamina))) } }) },
