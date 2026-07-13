@@ -167,6 +167,9 @@ export const TOWER_SHAPE: Record<TowerKind, ShapeKind> = {
   rift: 'hex', // a faceted void anchor (deep violet, an accretion ring circles it)
   glaive: 'triangle', // a swept wing-blade launcher (ember; the returning glaive spins over the lane)
   roost: 'circle', // a clutch of biomech eggs (amber-gold; its drakes wheel around the perch)
+  lung: 'circle', // a swollen breathing sac (plague-pink; its fog bank breathes around it)
+  bell: 'bell', // a great chitin bell (bone-bronze; the toll rings visibly outward)
+  lancet: 'diamond', // a drawn harpoon rail (sulphur; a narrow blade aimed up the lane)
 };
 
 export const ENEMY_SHAPE: Record<EnemyKind, ShapeKind> = {

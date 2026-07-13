@@ -1,6 +1,6 @@
 {
-  "lastSha": "3ac46c2509ac820bcd79af4f7063ef8058655812",
-  "commitsSinceDraft": 1,
+  "lastSha": "a38c36fc7c3aa5d46e472e248595cecbfd6ed353",
+  "commitsSinceDraft": 2,
   "content": {
     "tower": [
       "needle",
@@ -19,7 +19,10 @@
       "spitfang",
       "rift",
       "glaive",
-      "roost"
+      "roost",
+      "lung",
+      "bell",
+      "lancet"
     ],
     "hero": [
       "ravager",
@@ -1482,6 +1485,21 @@
       "sealed": false,
       "entries": [
         {
+          "cat": "Towers",
+          "text": "New tower: Acid Lancet",
+          "major": true
+        },
+        {
+          "cat": "Towers",
+          "text": "New tower: Chitin Bell",
+          "major": true
+        },
+        {
+          "cat": "Towers",
+          "text": "New tower: Miasma Lung",
+          "major": true
+        },
+        {
           "cat": "Heroes",
           "text": "New hero: Fovea",
           "major": true
@@ -2221,6 +2239,10 @@
         {
           "cat": "Heroes",
           "text": "New hero: RIPTIDE - the water-form zone controller (Kinetic tide caste)"
+        },
+        {
+          "cat": "Heroes",
+          "text": "Two new heroes: CARRION (death necromancer) + FOVEA (executioner lance) - the roster hits 10"
         }
       ]
     }
@@ -3551,6 +3573,14 @@
       "date": "2026-07-12",
       "cat": "Heroes",
       "text": "New hero: RIPTIDE - the water-form zone controller (Kinetic tide caste)",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "a38c36fc7c3aa5d46e472e248595cecbfd6ed353",
+      "date": "2026-07-13",
+      "cat": "Heroes",
+      "text": "Two new heroes: CARRION (death necromancer) + FOVEA (executioner lance) - the roster hits 10",
       "internal": false,
       "needsReview": false
     }

@@ -1,6 +1,6 @@
 # DIL_GRAPH.md — the Design Intelligence Layer (GENERATED — `npm run dil -- regen`)
 
-> **The project's brain** (docs/DIL.md). 777 nodes · 1427 edges, built from the live
+> **The project's brain** (docs/DIL.md). 781 nodes · 1438 edges, built from the live
 > registries + curated knowledge (src/dev/dil/). **Query it instead of searching the repo:**
 > `npm run dil -- node <id>` · `affects <id>` · `requires <id>` · `missing <kind> <edge>` ·
 > `checklist tower <kind>` · `find <text>`. Edge kinds are bidirectional (19 kinds).
@@ -14,11 +14,11 @@
 
 ### Gameplay Index
 
-`tower:needle` · `tower:mortar` · `tower:reactor` · `tower:parasite` · `tower:obelisk` · `tower:maw` · `tower:chrysalis` · `tower:effigy` · `tower:coil` · `tower:siphon` · `tower:sower` · `tower:spire` · `tower:polyp` · `tower:spitfang` · `tower:rift` · `tower:glaive` · `tower:roost` · `hero:ravager` · `hero:shepherd` · `hero:overseer` · `hero:vitriol` · `hero:revenant` · `hero:knell` · `hero:wyrm` · `hero:riptide` · `hero:carrion` · `hero:fovea` · `enemy:runner` · `enemy:mite` · `enemy:larva` · `enemy:rusher` · `enemy:darter` · `enemy:lasher` · `enemy:brute` · `enemy:tank` · `enemy:golem` · `enemy:colossus` · `enemy:bulwark` · `enemy:warden` · `enemy:knitter` · `enemy:revenant` · `enemy:burrower` · `enemy:molerat` · `enemy:flyer` · `enemy:wisp` · `enemy:gargoyle` · `enemy:cystwraith` · `enemy:broodmother` · `enemy:hivecaller` · `enemy:mender` · `enemy:cantor` · `enemy:bomber` · `enemy:popper` · `enemy:sapper` · `enemy:cataclyst` · `enemy:siegeworm` · `enemy:spitter` · `enemy:stratovore` · `enemy:broodweaver` · `enemy:zealot` · …37 more
+`tower:needle` · `tower:mortar` · `tower:reactor` · `tower:parasite` · `tower:obelisk` · `tower:maw` · `tower:chrysalis` · `tower:effigy` · `tower:coil` · `tower:siphon` · `tower:sower` · `tower:spire` · `tower:polyp` · `tower:spitfang` · `tower:rift` · `tower:glaive` · `tower:roost` · `tower:lung` · `tower:bell` · `tower:lancet` · `hero:ravager` · `hero:shepherd` · `hero:overseer` · `hero:vitriol` · `hero:revenant` · `hero:knell` · `hero:wyrm` · `hero:riptide` · `hero:carrion` · `hero:fovea` · `enemy:runner` · `enemy:mite` · `enemy:larva` · `enemy:rusher` · `enemy:darter` · `enemy:lasher` · `enemy:brute` · `enemy:tank` · `enemy:golem` · `enemy:colossus` · `enemy:bulwark` · `enemy:warden` · `enemy:knitter` · `enemy:revenant` · `enemy:burrower` · `enemy:molerat` · `enemy:flyer` · `enemy:wisp` · `enemy:gargoyle` · `enemy:cystwraith` · `enemy:broodmother` · `enemy:hivecaller` · `enemy:mender` · `enemy:cantor` · `enemy:bomber` · `enemy:popper` · `enemy:sapper` · `enemy:cataclyst` · `enemy:siegeworm` · `enemy:spitter` · …40 more
 
 ### Progression Index
 
-`system:campaign` · `system:accounts` · `system:premium` · `system:towers` · `system:loot` · `system:gene-cards` · `system:quests` · `system:progression-gating` · `system:hub-shell` · `system:meta-store` · `system:mega-bosses` · `system:cutscenes` · `system:security` · `system:doctrines` · `concept:progression-gates` · `currency:tower-shards` · `tower:maw` · `tower:chrysalis` · `tower:effigy` · `tower:coil` · `tower:siphon` · `tower:sower` · `tower:spire` · `tower:polyp` · `tower:spitfang` · `tower:rift` · `tower:glaive` · `tower:roost` · `hero:vitriol` · `hero:revenant` · `hero:knell` · `hero:wyrm` · `hero:riptide` · `hero:carrion`
+`system:campaign` · `system:accounts` · `system:premium` · `system:towers` · `system:loot` · `system:gene-cards` · `system:quests` · `system:progression-gating` · `system:hub-shell` · `system:meta-store` · `system:mega-bosses` · `system:cutscenes` · `system:security` · `system:doctrines` · `concept:progression-gates` · `currency:tower-shards` · `tower:maw` · `tower:chrysalis` · `tower:effigy` · `tower:coil` · `tower:siphon` · `tower:sower` · `tower:spire` · `tower:polyp` · `tower:spitfang` · `tower:rift` · `tower:glaive` · `tower:roost` · `tower:lung` · `tower:bell` · `tower:lancet` · `hero:vitriol` · `hero:revenant` · `hero:knell` · `hero:wyrm` · `hero:riptide` · `hero:carrion`
 
 ### Economy / Reward Index
 
@@ -601,7 +601,7 @@ THE run currency — dropped by kills, spent on towers/upgrades; dies with the r
   - consumedBy ← `tower:siphon` — placement cost 175
   - consumedBy ← `tower:sower` — placement cost 130
   - consumedBy ← `tower:spire` — placement cost 150
-  - _…46 more (query: `npm run dil -- node currency:biomass`)_
+  - _…49 more (query: `npm run dil -- node currency:biomass`)_
 
 ### `currency:genome-cores` — Genome Cores (◆)
 
@@ -637,6 +637,9 @@ Per-tower permanent currency: unlocks locked towers, buys Star evolutions.
   - gates → `tower:rift` — 640 shards to unlock
   - gates → `tower:glaive` — 420 shards to unlock
   - gates → `tower:roost` — 520 shards to unlock
+  - gates → `tower:lung` — 240 shards to unlock
+  - gates → `tower:bell` — 380 shards to unlock
+  - gates → `tower:lancet` — 560 shards to unlock
   - consumedBy ← `system:hive-construction` — Strain Sample lanes drain the per-kind wallet richest-first (roster tie-break) — kinds near an Evolution are touched last
   - rewardedBy ← `system:campaign` — stage rewards feed unlock gates
   - rewardedBy ← `system:loot` — chest pipeline
@@ -712,7 +715,7 @@ _at: src/core/game.ts, src/core/combat.ts, src/core/status.ts, src/core/targetin
   - requiredBy ← `system:mega-bosses`
   - requiredBy ← `system:rendering`
   - requiredBy ← `system:living-battlefield`
-  - _…188 more (query: `npm run dil -- node system:engine`)_
+  - _…190 more (query: `npm run dil -- node system:engine`)_
 
 ### `system:content-infra` — Content Infrastructure
 
@@ -995,6 +998,7 @@ _at: src/core/stars.ts, src/core/branches.ts, src/core/branchTree.ts, src/core/s
   - consumes → `currency:tower-shards` — unlocks + Star purchases + the PRIME infinite ladder past ★max (docs/PRIME-STRAINS.md — geometric costs, log-diminishing bonus; deep levels also consume Catalyst)
   - extends → `system:engine` — DRACONIC pair (2026-07, TOWERS.md §draconic): TowerFiring gained 'arc' (Wyrmwing Glaive — a RETURNING blade: out to effective range piercing everything, hitIds clears at the turnaround, dies back at the origin; pure kinematics in the projectile step, extra-projectile channels = extra blades, pierce mutators are no-ops for it) and 'summon' (Drake Roost — game.roostSystem incubates a standing brood; damage/rate/range folds bake into each hatch like mine plant-time stats). Both LOCKED by default (unlockStage 22/26 + shards) ⇒ goldens byte-identical without re-pin
   - consumes → `system:engine` — HERO-AI MINIONS (roost drakes): MinionDef.heroAI dispatches minionSystem to game.drakeBrain (deepest-threat + elites-first targeting, rally leash around homeX/homeY, retreat-to-perch < ROOST.retreatFrac with perchRegen × (1 + towerProgress.roost.roostRegenBonus), re-engage at reengageFrac) — wisp/harvester/broodling never reach it (flag-gated ⇒ byte-identical). Unit TIER climbs ROOST.unitByTier via the 'brood' star/branch grant vocabulary (roostBroodBonus/roostTierBonus/roostRegenBonus on ResolvedStarKit) — upgrades improve the UNITS, functionally AND visually (drakeling→drake→wyrmspawn defs)
+  - references → `system:engine` — REACTION TRIO (2026-07, TOWERS.md §reactionTrio — Miasma Lung/Chitin Bell/Acid Lancet): the first roster growth with ZERO new sim verbs — all three compose TowerDef.abilities (aura+Infection fog · aura+Resonance react-slam · homing 130-dmg cull + Corrosion + minRange 120 deadzone). CAVEAT: a firing:'field' def WITHOUT explicit abilities inherits the DERIVED Disruption pulse kit (deriveTowerAbilities) — a field tower with its own identity MUST author abilities. Lung=second Viral, Bell=second Resonant (the two 1-tower class gaps closed); all double-gated (18/240 · 24/380 · 34/560) ⇒ goldens byte-identical. Adding a tower forces 6 new Mulligan catalog pieces (CATALOG_PER_TOWER contract, 2 per category)
   - requiredBy ← `system:engine`
   - requiredBy ← `system:daily`
   - requiredBy ← `system:mulligans`
@@ -1007,7 +1011,7 @@ _at: src/core/stars.ts, src/core/branches.ts, src/core/branchTree.ts, src/core/s
   - contains ← `tower:maw`
   - contains ← `tower:chrysalis`
   - contains ← `tower:effigy`
-  - _…31 more (query: `npm run dil -- node system:towers`)_
+  - _…34 more (query: `npm run dil -- node system:towers`)_
 
 ### `system:mastery` — Mastery / Adaptation
 
@@ -2157,7 +2161,7 @@ _at: src/dev/*, src/dev/dil/*_
   - testedBy ← `test:src/dev/systemRegistry.test.ts`
   - _…2 more (query: `npm run dil -- node system:dev-registry`)_
 
-## Towers (17)
+## Towers (20)
 
 ### `tower:needle` — Needle Spitter
 
@@ -2323,6 +2327,36 @@ _at: src/core/config.ts TOWER_DEFS_
   - partOf → `system:towers`
   - consumes → `currency:biomass` — placement cost 200
   - gatedBy ← `currency:tower-shards` — 520 shards to unlock
+
+### `tower:lung` — Miasma Lung
+
+Exhales a plague fog — every breath coats EVERYTHING in reach with Infection. The Nest drills one host; the Lung poisons the crowd.
+
+_at: src/core/config.ts TOWER_DEFS_
+
+  - partOf → `system:towers`
+  - consumes → `currency:biomass` — placement cost 145
+  - gatedBy ← `currency:tower-shards` — 240 shards to unlock
+
+### `tower:bell` — Chitin Bell
+
+A great chitin bell — each TOLL slams everything in reach and leaves Resonance ringing in the bodies. Prime the crowd, then pair the shatter.
+
+_at: src/core/config.ts TOWER_DEFS_
+
+  - partOf → `system:towers`
+  - consumes → `currency:biomass` — placement cost 160
+  - gatedBy ← `currency:tower-shards` — 380 shards to unlock
+
+### `tower:lancet` — Acid Lancet
+
+A pressurized bile harpoon that CULLS the biggest body on the lane — one colossal strike, then a long, patient draw. The wound it leaves melts open.
+
+_at: src/core/config.ts TOWER_DEFS_
+
+  - partOf → `system:towers`
+  - consumes → `currency:biomass` — placement cost 185
+  - gatedBy ← `currency:tower-shards` — 560 shards to unlock
 
 ## Heroes (10)
 
@@ -3327,7 +3361,7 @@ _at: site/guides.ts → /guides/prestige/_
 - `doc:VOWS.md` — project documentation _(documents `system:prestige`)_
 - `doc:WEBSITE.md` — project documentation _(documents `system:field-research`, documents `system:website`)_
 
-## Tests (247)
+## Tests (248)
 
 - `test:src/audio/music.test.ts` — automated validation _(tests `system:audio`)_
 - `test:src/changelog/classify.test.ts` — automated validation _(tests `system:chronicle`)_
@@ -3432,6 +3466,7 @@ _at: site/guides.ts → /guides/prestige/_
 - `test:src/core/prestige.test.ts` — automated validation _(tests `system:prestige`)_
 - `test:src/core/progressionLoot.test.ts` — automated validation _(tests `system:loot`)_
 - `test:src/core/quests.test.ts` — automated validation _(tests `system:quests`)_
+- `test:src/core/reactionTrio.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/core/reactions.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/core/reactionsSim.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/core/reactor.test.ts` — automated validation _(tests `system:engine`)_

@@ -526,6 +526,87 @@ const BRANCHES: Branch[] = [
       { tier: 5, name: 'The Swarm Clutch', desc: 'A FIFTH egg and frantic hatching — the roost blackens its own sky.', damageMult: 1.1, fireRateMult: 1.15, particle: 'barbstorm', grants: [{ t: 'brood', broodBonus: 1 }, { t: 'cosmetic', id: 'swarmsky' }] },
     ],
   },
+
+  // ════════════ MIASMA LUNG (Viral, 'field' plague fog) ════════════
+  // The zone infector. PANDEMIC ENGINE deepens the plague itself (more Infection per breath, a
+  // numbing damp that Blooms); CAUSTIC SMOTHER turns the fog to acid (damage + Corrosion — the
+  // Putrefy engine). Both stack extra aura breaths on the exhale cadence — no new verbs.
+  {
+    id: 'lung_plague', tower: 'lung', name: 'Pandemic Engine',
+    theme: 'The fog stops being weather and becomes an OUTBREAK — every breath a deeper coat of plague.',
+    tiers: [
+      { tier: 1, name: 'Carrier Spores', desc: 'A second infectious coat rides each breath.', fireRateMult: 1.08, particle: 'infect', sfx: 'br_plague', impact: 'infect', grants: [{ t: 'ability', components: [{ type: 'aura', radius: 245, status: { kind: 'Infection', amount: 1 } }] }] },
+      { tier: 2, name: 'Rolling Fog', desc: 'The bank spreads wider and bites as it rolls.', rangeMult: 1.12, grants: [{ t: 'ability', components: [{ type: 'aura', radius: 255, damage: 4 }] }] },
+      { tier: 3, name: 'Numbing Damp', desc: 'The damp NUMBS — Disruption in the fog makes the plague BLOOM.', damageMult: 1.1, particle: 'venom', impact: 'venom', grants: [{ t: 'ability', components: [{ type: 'aura', radius: 245, status: { kind: 'Disruption', amount: 0.7 } }] }] },
+      { tier: 4, name: 'Outbreak Logic', desc: 'Faster breaths, another coat — the outbreak organizes.', fireRateMult: 1.12, grants: [{ t: 'ability', components: [{ type: 'aura', radius: 250, status: { kind: 'Infection', amount: 1 }, particle: 'pandemic' }] }] },
+      { tier: 5, name: 'The Pandemic Engine', desc: 'The fog IS the outbreak: deep plague on every body it touches.', damageMult: 1.2, fireRateMult: 1.1, particle: 'pandemic', impact: 'pandemic', grants: [{ t: 'ability', components: [{ type: 'aura', radius: 265, status: { kind: 'Infection', amount: 2 } }] }, { t: 'cosmetic', id: 'pandemicfog' }] },
+    ],
+  },
+  {
+    id: 'lung_choke', tower: 'lung', name: 'Caustic Smother',
+    theme: 'The fog turns to acid — the crowd is not infected so much as DISSOLVED where it stands.',
+    tiers: [
+      { tier: 1, name: 'Acrid Bite', desc: 'The fog BITES — real damage on everything it holds.', damageMult: 1.15, particle: 'acid', sfx: 'br_acid', impact: 'acid', grants: [{ t: 'ability', components: [{ type: 'aura', radius: 240, damage: 6, react: true }] }] },
+      { tier: 2, name: 'Clinging Reek', desc: 'Corrosion clings to the fogged — the rot accelerates (Putrefy).', damageMult: 1.1, grants: [{ t: 'ability', components: [{ type: 'aura', radius: 240, status: { kind: 'Corrosion', amount: 1 } }] }] },
+      { tier: 3, name: 'Heavy Vapor', desc: 'A heavier, wider bank that wounds as it settles.', rangeMult: 1.1, grants: [{ t: 'ability', components: [{ type: 'aura', radius: 250, damage: 8, react: true }] }] },
+      { tier: 4, name: 'Lungburn', desc: 'The acid reaches the LUNGS — deep corrosive damage inside the bank.', damageMult: 1.15, particle: 'dissolve', impact: 'dissolve', grants: [{ t: 'ability', components: [{ type: 'aura', radius: 245, status: { kind: 'Corrosion', amount: 1.5 } }] }] },
+      { tier: 5, name: 'The Smothering Bloom', desc: 'Nothing breathes in it and walks out — a dissolving, reacting shroud.', damageMult: 1.25, particle: 'dissolve', impact: 'dissolve', grants: [{ t: 'ability', components: [{ type: 'aura', radius: 260, damage: 12, status: { kind: 'Corrosion', amount: 2 }, react: true }] }, { t: 'cosmetic', id: 'smother' }] },
+    ],
+  },
+
+  // ════════════ CHITIN BELL (Resonant, 'field' toll slammer) ════════════
+  // The reaction primer. FUNERAL DIRGE weds the toll to Fracture (the Shear self-engine — heavy,
+  // slow, skeleton-cracking); DEAFENING CHORUS deepens the Resonance itself (faster tolls, more
+  // stacks, a numbing Overtone). Both stack extra slams on the toll cadence — no new verbs.
+  {
+    id: 'bell_dirge', tower: 'bell', name: 'Funeral Dirge',
+    theme: 'The toll turns funerary — every note cracks shells, and the resonance SHEARS what it cracked.',
+    tiers: [
+      { tier: 1, name: 'Leaden Tongue', desc: 'The slam CRACKS — Fracture rides every toll (Shear fuel).', damageMult: 1.15, particle: 'shred', sfx: 'br_siege', impact: 'shred', grants: [{ t: 'ability', components: [{ type: 'debuff', radius: 225, status: { kind: 'Fracture', amount: 1 } }] }] },
+      { tier: 2, name: 'Grave Weight', desc: 'A heavier note — the toll lands twice.', damageMult: 1.1, grants: [{ t: 'ability', components: [{ type: 'aura', radius: 230, damage: 10, react: true }] }] },
+      { tier: 3, name: 'Mourning Peal', desc: 'The dirge deepens — more cracks per toll, sooner.', fireRateMult: 1.08, grants: [{ t: 'ability', components: [{ type: 'debuff', radius: 230, status: { kind: 'Fracture', amount: 1 } }] }] },
+      { tier: 4, name: 'Sepulchral Boom', desc: 'The note becomes a BLOW — heavy reacting damage in the ring.', damageMult: 1.15, particle: 'railburst', impact: 'railburst', grants: [{ t: 'ability', components: [{ type: 'aura', radius: 240, damage: 14, react: true }] }] },
+      { tier: 5, name: 'The Funeral Dirge', desc: 'One toll and the crowd is a reliquary — deep cracks, then the shear.', damageMult: 1.25, particle: 'railburst', impact: 'railburst', grants: [{ t: 'ability', components: [{ type: 'debuff', radius: 245, status: { kind: 'Fracture', amount: 2 } }, { type: 'aura', radius: 245, damage: 16, react: true }] }, { t: 'cosmetic', id: 'dirge' }] },
+    ],
+  },
+  {
+    id: 'bell_chorus', tower: 'bell', name: 'Deafening Chorus',
+    theme: 'The bell learns harmony with itself — faster tolls, deeper resonance, a note that numbs.',
+    tiers: [
+      { tier: 1, name: 'Choir of One', desc: 'A second resonant coat rides each toll.', fireRateMult: 1.12, particle: 'spark', sfx: 'br_amber', impact: 'spark', grants: [{ t: 'ability', components: [{ type: 'aura', radius: 230, status: { kind: 'Resonance', amount: 1 } }] }] },
+      { tier: 2, name: 'Standing Wave', desc: 'The ring widens and bites as it holds.', rangeMult: 1.12, grants: [{ t: 'ability', components: [{ type: 'aura', radius: 240, damage: 6, react: true }] }] },
+      { tier: 3, name: 'Third Harmonic', desc: 'Another harmonic — resonance stacks faster still.', fireRateMult: 1.1, grants: [{ t: 'ability', components: [{ type: 'aura', radius: 235, status: { kind: 'Resonance', amount: 1 } }] }] },
+      { tier: 4, name: 'Numbing Overtone', desc: 'The note NUMBS — Disruption hums under the toll (Overtone fuel).', fireRateMult: 1.08, particle: 'railburst', impact: 'railburst', grants: [{ t: 'ability', components: [{ type: 'aura', radius: 235, status: { kind: 'Disruption', amount: 0.7 } }] }] },
+      { tier: 5, name: 'The Deafening Chorus', desc: 'The bell sings in chords — deep resonance and a biting, reacting ring.', damageMult: 1.15, fireRateMult: 1.15, particle: 'railburst', impact: 'railburst', grants: [{ t: 'ability', components: [{ type: 'aura', radius: 250, damage: 10, status: { kind: 'Resonance', amount: 2 }, react: true }] }, { t: 'cosmetic', id: 'chorus' }] },
+    ],
+  },
+
+  // ════════════ ACID LANCET (Caustic, 'homing' executioner harpoon) ════════════
+  // The cull. HEADSMAN'S DRAW perfects the single stroke (crits, pierce, a third harpoon);
+  // DISSOLVING POINT makes the wound the weapon (acid bursts, rot, a detonating head). extraProjectiles
+  // = a second harpoon per draw; pierce mutators let the draw pass THROUGH the kill.
+  {
+    id: 'lancet_headsman', tower: 'lancet', name: "Headsman's Draw",
+    theme: 'One draw, one monster — the stroke is honed until size stops being an argument.',
+    tiers: [
+      { tier: 1, name: 'Honed Head', desc: 'A keener head — vicious critical draws.', damageMult: 1.2, particle: 'spark', sfx: 'br_rail', impact: 'spark', grants: [{ t: 'ability', components: [{ type: 'crit', chance: 0.2, mult: 2, damage: 30 }] }] },
+      { tier: 2, name: 'Piercing Draw', desc: 'The harpoon passes THROUGH the kill into the body behind it.', damageMult: 1.1, grants: [{ t: 'projectile', mutators: ['pierce1'] }] },
+      { tier: 3, name: 'Boneseeker Sight', desc: 'It reads the joints — crueler crits, a quicker draw.', fireRateMult: 1.06, grants: [{ t: 'ability', components: [{ type: 'crit', chance: 0.25, mult: 2.2, damage: 35 }] }] },
+      { tier: 4, name: 'Twin Ballista', desc: 'A SECOND harpoon per draw, hunting its own monster.', damageMult: 1.08, grants: [{ t: 'projectile', extraProjectiles: 1 }] },
+      { tier: 5, name: 'The Headsman', desc: 'The stroke is perfect: massive killing crits, and the draw passes through the row.', damageMult: 1.3, particle: 'railburst', impact: 'railburst', grants: [{ t: 'ability', components: [{ type: 'crit', chance: 0.35, mult: 2.5, damage: 50 }] }, { t: 'projectile', mutators: ['pierce2'] }, { t: 'cosmetic', id: 'headsman' }] },
+    ],
+  },
+  {
+    id: 'lancet_venom', tower: 'lancet', name: 'Dissolving Point',
+    theme: 'The head is a vial — the cull is only the delivery, and the wound does the rest.',
+    tiers: [
+      { tier: 1, name: 'Bile-Dipped', desc: 'The wound MELTS wider — deeper Corrosion in the impaled.', damageMult: 1.1, particle: 'acid', sfx: 'br_acid', impact: 'acid', grants: [{ t: 'ability', components: [{ type: 'status', status: { kind: 'Corrosion', amount: 1.5 } }] }] },
+      { tier: 2, name: 'Bursting Gall', desc: 'The head BURSTS — acid sprays the bodies beside the victim.', damageMult: 1.05, grants: [{ t: 'ability', components: [{ type: 'debuff', radius: 110, status: { kind: 'Corrosion', amount: 1.5 } }] }] },
+      { tier: 3, name: 'Melting Quarrel', desc: 'The impact DETONATES — a dissolving blast at the wound.', damageMult: 1.08, particle: 'dissolve', impact: 'dissolve', grants: [{ t: 'ability', components: [{ type: 'explosion', radius: 100, damage: 20, react: true, particle: 'acid' }] }] },
+      { tier: 4, name: 'Deep Rot', desc: 'ROT rides the head — Infection festers in the wound (Putrefy fuel).', damageMult: 1.1, grants: [{ t: 'ability', components: [{ type: 'status', status: { kind: 'Infection', amount: 2 } }] }] },
+      { tier: 5, name: 'The Dissolving Point', desc: 'The victim becomes the weapon: a wide melting blast and acid on everything near it.', damageMult: 1.2, particle: 'dissolve', impact: 'dissolve', grants: [{ t: 'ability', components: [{ type: 'explosion', radius: 130, damage: 30, react: true, particle: 'dissolve' }, { type: 'debuff', radius: 120, status: { kind: 'Corrosion', amount: 2 } }] }, { t: 'cosmetic', id: 'dissolvepoint' }] },
+    ],
+  },
 ];
 
 branchRegistry.registerAll(BRANCHES);

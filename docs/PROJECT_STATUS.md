@@ -3,7 +3,28 @@
 > Maintained at the END of every session (paired with `docs/AI_HANDOFF.md` — the constitution's
 > workflow step 4). This is the "where are we?" answer; `docs/GAME-STATE.md` remains the deeper
 > per-system built-vs-planned index, `docs/PROJECT_MANIFEST.md` the system map.
-> **Last updated:** 2026-07-12 (**MEGA-TARGETING FIX + CAMPAIGN DIFFICULTY RESCALE** —
+> **Last updated:** 2026-07-13 (**HERO ROSTER → 10 + THE REACTION TRIO → 20 TOWERS** —
+> three batches (3ac46c2/a38c36f/this). Heroes: **RIPTIDE** (Kinetic water-form zone
+> controller, megaSlain-2 gate), **CARRION** (Vital charnel necromancer — GRAVEBIND raises
+> corpses near it as corpse-scaled Risen Thralls off the death seam; lifetimeKills-20k gate;
+> the pair's ONE new sim verb) and **FOVEA** (Neural executioner lance on the siege brain,
+> Shard-160) — every typed-complete hero seam extended, roster-proof login-lane fix
+> (`minIV` derives from roster size). Towers (TOWERS.md §reactionTrio): **MIASMA LUNG**
+> (second Viral — a `field` plague fog coating the WHOLE pack with Infection; 18/240),
+> **CHITIN BELL** (second Resonant — a toll slam priming the crowd with Resonance for the
+> shatter reactions; 24/380) and **ACID LANCET** (Caustic EXECUTIONER — one 130-dmg
+> `highestHealth` harpoon per 4.5 s, Corrosion wound, 120 px deadzone; 34/560) — the first
+> roster growth with ZERO new sim verbs (all composed from `TowerDef.abilities`; the
+> derived-Disruption field-kit caveat is a DIL edge). Both 1-tower class gaps closed. Full
+> stacks: star paths, 2 branches each, 4-branch Adaptation rows, mastery lore, star/branch
+> visual evolutions, +18 Mulligan pieces (the CATALOG_PER_TOWER ratio). All double-gated ⇒
+> goldens byte-identical, zero golden re-pins. Suite 2017 green, validate PASS, live
+> headless probes fielded the new content with no page errors. Balance = tuning clay
+> (locked content; deep-account persona pass when wanted). NEXT (user-queued): 4 weak
+> early-campaign enemy variations (#167), then an early-game/NPE + tutorial overhaul from
+> playtest feedback (#168). Previous session below.)
+>
+> **2026-07-12** (**MEGA-TARGETING FIX + CAMPAIGN DIFFICULTY RESCALE** —
 > two arcs, four batches (0fd3d2d/3844852/933e80b/0edce9a). (1) Mega raids were untargetable
 > by most of the arsenal: organ descent band recalibrated to the REAL slot grid
 > (MEGA.minWeakPointY..maxWeakPointY 560–700, bodyBandY 580, validator-enforced ± both

@@ -178,3 +178,6 @@
 - ⚑ `0edce9a` **[Framework]** Rescale validation docs: probe evidence, gate references, bugfix log _(internal)_
 - `e3be902` **[Gameplay]** Chronicle + reports for the mega-targeting fix and campaign rescale
 - `3ac46c2` **[Heroes]** New hero: RIPTIDE - the water-form zone controller (Kinetic tide caste)
+## 2026-07-13
+
+- `a38c36f` **[Heroes]** Two new heroes: CARRION (death necromancer) + FOVEA (executioner lance) - the roster hits 10

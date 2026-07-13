@@ -36,6 +36,9 @@ export const TOWER_FORM: Record<TowerKind, TowerForm> = {
   rift: 'singularity',    // a void anchor with an accretion ring
   glaive: 'lens',     // a swept launch-ring the returning blade spins out of
   roost: 'nest',      // a clutch of biomech eggs around a warm perch
+  lung: 'pod',        // a swollen breathing sac that vents fog on each exhale
+  bell: 'maw',        // a ringed bronze mouth that gapes on every toll
+  lancet: 'barrel',   // a long harpoon rail, drawn and loosed
 };
 
 // ── colour: one memoized helper. `lit`>0 lightens toward white, <0 darkens; `a`<1 ⇒ rgba. ────────

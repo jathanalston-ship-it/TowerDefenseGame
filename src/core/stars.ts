@@ -676,7 +676,90 @@ const ROOST_PATH: StarPath = {
   ],
 };
 
-starPathRegistry.registerAll([NEEDLE, MORTAR, PARASITE, OBELISK, REACTOR, MAW, CHRYSALIS, EFFIGY, COIL, SIPHON_PATH, SOWER_PATH, SPIRE_PATH, POLYP_PATH, SPITFANG_PATH, RIFT_PATH, GLAIVE_PATH, ROOST_PATH]);
+// Miasma Lung (Viral, firing 'field') — the zone infector. Its path deepens the FOG: stacked
+// breaths (extra aura pulses on the cast cadence) that layer Infection, then partner statuses so
+// the fog becomes a self-contained reaction engine (Putrefy at ★2, Bloom on the ★3 pick).
+const LUNG_PATH: StarPath = {
+  tower: 'lung',
+  steps: [
+    { star: 1, name: 'Wet Cough', kind: 'interaction', desc: 'The fog thickens — a second, biting breath rides each exhale.', grants: [{ t: 'ability', components: [{ type: 'aura', radius: 255, damage: 4, particle: 'infect' }] }] },
+    { star: 2, name: 'Acrid Condensate', kind: 'interaction', desc: 'The vapor SOURS — corrosive damp coats the fogged (Putrefy fuel).', grants: [{ t: 'ability', components: [{ type: 'aura', radius: 245, status: { kind: 'Corrosion', amount: 1 } }] }] },
+    {
+      star: 3, name: 'Exhalation', kind: 'fork', desc: 'Choose the breath (re-pick any run).',
+      fork: [
+        { id: 'deeplung', name: 'Deep Lung', desc: 'A HEAVIER breath — the fog itself wounds.', grants: [{ t: 'ability', components: [{ type: 'aura', radius: 265, damage: 8, react: true }] }] },
+        { id: 'numbing', name: 'Numbing Vapor', desc: 'The fog NUMBS — Disruption rides the damp (Bloom fuel).', grants: [{ t: 'ability', components: [{ type: 'aura', radius: 245, status: { kind: 'Disruption', amount: 0.8 } }] }] },
+      ],
+    },
+    { star: 4, name: 'Third Alveolus', kind: 'interaction', desc: 'Another infectious breath — the plague coats twice per exhale.', grants: [{ t: 'ability', components: [{ type: 'aura', radius: 250, status: { kind: 'Infection', amount: 1 }, particle: 'infect' }] }] },
+    {
+      star: 5, name: 'Apex Miasma', kind: 'fork', desc: 'Signature transformation.',
+      fork: [
+        { id: 'pandemic', name: 'Pandemic Bloom', desc: 'The fog CARRIES the outbreak — deep Infection on every breath.', grants: [{ t: 'ability', components: [{ type: 'aura', radius: 270, status: { kind: 'Infection', amount: 2 }, particle: 'pandemic' }] }] },
+        { id: 'smog', name: 'Caustic Smog', desc: 'The fog turns to ACID — heavy corrosive damage on the fogged.', grants: [{ t: 'ability', components: [{ type: 'aura', radius: 270, damage: 10, status: { kind: 'Corrosion', amount: 1.5 }, react: true, particle: 'acid' }] }] },
+      ],
+    },
+    { star: 7, name: 'Fever Pitch', kind: 'attack', desc: 'The fog BURNS in infected lungs — real damage on everything it holds.', grants: [{ t: 'ability', components: [{ type: 'aura', radius: 260, damage: 12, react: true }] }] },
+    { star: 9, name: 'The Black Breath', kind: 'capstone', desc: 'One exhale owns the field: deep plague, real wounds, and every reaction it feeds.', grants: [{ t: 'ability', components: [{ type: 'aura', radius: 285, damage: 10, status: { kind: 'Infection', amount: 2 }, react: true, particle: 'pandemic' }] }, { t: 'cosmetic', id: 'blackbreath' }] },
+  ],
+};
+
+// Chitin Bell (Resonant, firing 'field') — the reaction primer. Its path layers PARTNER statuses
+// onto the toll so the Bell shatters what it primes on its own: Overtone at ★2 (Disruption),
+// Shear on the ★3 pick (Fracture) — and heavier, deeper tolls in between.
+const BELL_PATH: StarPath = {
+  tower: 'bell',
+  steps: [
+    { star: 1, name: 'Bronze Tongue', kind: 'attack', desc: 'The toll bites harder — a second strike rides each slam.', grants: [{ t: 'ability', components: [{ type: 'aura', radius: 235, damage: 10, react: true }] }] },
+    { star: 2, name: 'Long Peal', kind: 'interaction', desc: 'The note LINGERS — Disruption hums in the struck (Overtone fuel).', grants: [{ t: 'ability', components: [{ type: 'aura', radius: 235, status: { kind: 'Disruption', amount: 0.6 } }] }] },
+    {
+      star: 3, name: 'Toll Doctrine', kind: 'fork', desc: 'Choose the toll (re-pick any run).',
+      fork: [
+        { id: 'funeral', name: 'Funeral Toll', desc: 'The slam CRACKS shells — Fracture rides the note (Shear fuel).', grants: [{ t: 'ability', components: [{ type: 'debuff', radius: 230, status: { kind: 'Fracture', amount: 1 } }] }] },
+        { id: 'vesper', name: 'Vesper Chime', desc: 'The resonance DEEPENS — a second coat of Resonance per toll.', grants: [{ t: 'ability', components: [{ type: 'aura', radius: 235, status: { kind: 'Resonance', amount: 1 } }] }] },
+      ],
+    },
+    { star: 4, name: 'Second Clapper', kind: 'attack', desc: 'A twin tongue — the slam lands again.', grants: [{ t: 'ability', components: [{ type: 'aura', radius: 240, damage: 12, react: true }] }] },
+    {
+      star: 5, name: 'Apex Carillon', kind: 'fork', desc: 'Signature transformation.',
+      fork: [
+        { id: 'bourdon', name: 'Great Bourdon', desc: 'The DEEP note — a heavy resonant slam that primes as it wounds.', grants: [{ t: 'ability', components: [{ type: 'aura', radius: 255, damage: 18, status: { kind: 'Resonance', amount: 1 }, react: true, particle: 'railburst' }] }] },
+        { id: 'shatter', name: 'Shattering Peal', desc: 'The note SHATTERS — deep Fracture and a biting sweep.', grants: [{ t: 'ability', components: [{ type: 'debuff', radius: 245, status: { kind: 'Fracture', amount: 2 } }, { type: 'aura', radius: 245, damage: 8, react: true }] }] },
+      ],
+    },
+    { star: 7, name: 'Harmonic Doubling', kind: 'interaction', desc: 'The overtones stack — more resonance, more bite, every toll.', grants: [{ t: 'ability', components: [{ type: 'aura', radius: 250, damage: 8, status: { kind: 'Resonance', amount: 1 }, react: true }] }] },
+    { star: 9, name: 'The Last Peal', kind: 'capstone', desc: 'One toll and the crowd is already ringing apart.', grants: [{ t: 'ability', components: [{ type: 'aura', radius: 270, damage: 20, status: { kind: 'Resonance', amount: 2 }, react: true, particle: 'railburst' }] }, { t: 'cosmetic', id: 'lastpeal' }] },
+  ],
+};
+
+// Acid Lancet (Caustic, firing 'homing') — the executioner. Its path sharpens the CULL: crits that
+// find the joint, acid that bursts around the impaled, and a second harpoon for the deep board.
+const LANCET_PATH: StarPath = {
+  tower: 'lancet',
+  steps: [
+    { star: 1, name: 'Weeping Wound', kind: 'interaction', desc: 'The wound WEEPS — acid sprays the bodies beside the impaled.', grants: [{ t: 'ability', components: [{ type: 'debuff', radius: 90, status: { kind: 'Corrosion', amount: 1.5 } }] }] },
+    { star: 2, name: 'Twin Ballista', kind: 'projectile', desc: 'A SECOND harpoon per draw, hunting its own monster.', grants: [{ t: 'projectile', extraProjectiles: 1 }] },
+    {
+      star: 3, name: 'Cull Doctrine', kind: 'fork', desc: 'Choose the prey (re-pick any run).',
+      fork: [
+        { id: 'skinner', name: 'Skinner', desc: 'Cull the RUNNERS — the draw leads the fastest prey.', grants: [{ t: 'targeting', profile: 'fastest' }] },
+        { id: 'boneseeker', name: 'Boneseeker', desc: 'The head finds the JOINT — vicious critical draws.', grants: [{ t: 'ability', components: [{ type: 'crit', chance: 0.3, mult: 2, damage: 35 }] }] },
+      ],
+    },
+    { star: 4, name: 'Dissolving Quarrel', kind: 'interaction', desc: 'The head BURSTS on impact — acid around the victim.', grants: [{ t: 'ability', components: [{ type: 'debuff', radius: 100, status: { kind: 'Corrosion', amount: 1.5 } }] }] },
+    {
+      star: 5, name: 'Apex Cull', kind: 'fork', desc: 'Signature transformation.',
+      fork: [
+        { id: 'headsman', name: 'Headsman', desc: 'The clean stroke — massive killing crits.', grants: [{ t: 'ability', components: [{ type: 'crit', chance: 0.35, mult: 2.5, damage: 45 }] }] },
+        { id: 'pox', name: 'Pox Quarrel', desc: 'The harpoon carries ROT — deep Infection in the wound (Putrefy fuel).', grants: [{ t: 'ability', components: [{ type: 'status', status: { kind: 'Infection', amount: 2 } }] }] },
+      ],
+    },
+    { star: 7, name: "Executioner's Eye", kind: 'attack', desc: 'It reads the body before the draw — vicious criticals.', grants: [{ t: 'ability', components: [{ type: 'crit', chance: 0.3, mult: 2.2, damage: 40 }] }] },
+    { star: 9, name: 'The Culling Stroke', kind: 'capstone', desc: "The forge's answer to size: a THIRD harpoon, and every impact detonates.", grants: [{ t: 'projectile', extraProjectiles: 1 }, { t: 'ability', components: [{ type: 'explosion', radius: 110, damage: 40, react: true, particle: 'acid' }] }, { t: 'cosmetic', id: 'cullingstroke' }] },
+  ],
+};
+
+starPathRegistry.registerAll([NEEDLE, MORTAR, PARASITE, OBELISK, REACTOR, MAW, CHRYSALIS, EFFIGY, COIL, SIPHON_PATH, SOWER_PATH, SPIRE_PATH, POLYP_PATH, SPITFANG_PATH, RIFT_PATH, GLAIVE_PATH, ROOST_PATH, LUNG_PATH, BELL_PATH, LANCET_PATH]);
 
 /** The fork steps of a tower's path (for the loadout UI). */
 export function forksOf(tower: TowerKind): StarFork[] {

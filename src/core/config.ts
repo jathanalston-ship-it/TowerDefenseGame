@@ -384,6 +384,71 @@ export const TOWER_DEFS: Record<TowerKind, TowerDef> = {
     blurb: 'Incubates a brood of biomech drakes — hunting units that leash to the roost, retreat to mend, and dive back in.',
     abilities: [], // the brood loop is bespoke (game.roostSystem); star/branch grants shape the brood via ROOST
   },
+  // ── REACTION roster (docs/TOWERS.md §reactionTrio) — three organs whose identities live in the
+  //    STATUS/reaction matrix, not a stat line. All three compose the existing ability vocabulary
+  //    (aura / projectile / status) — ZERO new sim verbs — and all are locked ⇒ golden-safe. ──
+  lung: {
+    kind: 'lung',
+    name: 'Miasma Lung',
+    combatClass: 'Viral',
+    firing: 'field', // a breathing sac — its exhale is the attack; explicit kit below (no derived Disruption)
+    unlockShards: 240, // the SECOND Viral organ — a mid synthesis goal between siphon and coil
+    unlockStage: 18, // its shards drop only past Campaign Stage 18
+    cost: 145,
+    range: 250, // the fog bank — everything breathing inside it catches the plague
+    fireInterval: 1.5, // breath cadence — each exhale is one coat of Infection on the whole pack
+    damage: 3, // token chip — the PLAGUE is the product (ramping, armor-ignoring, spreading)
+    projectileSpeed: 0,
+    splash: 0,
+    color: '#ff6ee0',
+    blurb: 'Exhales a plague fog — every breath coats EVERYTHING in reach with Infection. The Nest drills one host; the Lung poisons the crowd.',
+    // The zone-infector identity: where the Parasite Nest seeds ONE host deep, the Lung shallow-coats
+    // the WHOLE pack — native Infection ramp/spread does the deep work, and every fogged body is
+    // reaction fuel (Virulence / Putrefy / Bloom / Rupture partners).
+    abilities: [{ type: 'aura', radius: 250, damage: 3, status: { kind: 'Infection', amount: 1 }, particle: 'infect' }],
+  },
+  bell: {
+    kind: 'bell',
+    name: 'Chitin Bell',
+    combatClass: 'Resonant',
+    firing: 'field', // the toll is an all-in-reach slam — explicit kit below (no derived Disruption)
+    unlockShards: 380, // the SECOND Resonant organ — a deep goal beside the spire
+    unlockStage: 24, // its shards drop only past Campaign Stage 24
+    cost: 160,
+    range: 230, // the toll's reach — a heavy, medium footprint slammer
+    fireInterval: 2.4, // slow, deliberate tolls — each one is a crowd slam + a resonance coat
+    damage: 30, // heavy per-toll AoE — the hardest field slam in the game, paid for by the cadence
+    projectileSpeed: 0,
+    splash: 0,
+    color: '#e8d5a3',
+    blurb: 'A great chitin bell — each TOLL slams everything in reach and leaves Resonance ringing in the bodies. Prime the crowd, then pair the shatter.',
+    // The mass reaction-PRIMER identity: the Coil focus-melts ONE target; the Bell coats the CROWD
+    // in Resonance so any co-present status combusts (Shear with Fracture stackers, Melt with
+    // Corrosion, Rupture with Infection). react:true lets the slam itself detonate what's primed.
+    abilities: [{ type: 'aura', radius: 230, damage: 30, status: { kind: 'Resonance', amount: 1 }, react: true, particle: 'disrupt' }],
+  },
+  lancet: {
+    kind: 'lancet',
+    name: 'Acid Lancet',
+    combatClass: 'Caustic',
+    firing: 'homing', // a pressurized bile harpoon — one colossal, guided cull per draw
+    unlockShards: 560, // a deep premium — the executioner sits between roost and rift
+    unlockStage: 34, // its shards drop only past Campaign Stage 34 (fills the 30→40 gate gap)
+    cost: 185,
+    range: 620, // EXECUTIONER — near-marksman reach; it culls the fattest body on the approach
+    minRange: 120, // DEADZONE — the harpoon can't be drawn point-blank; the last line belongs to brawlers
+    fireInterval: 4.5, // the slowest discrete gun in the game — every draw is a beheading decision
+    damage: 130, // the heaviest single hit in the roster; mediocre DPS on purpose — WHERE it lands is the value
+    projectileSpeed: 820, // a harpoon, not a lob — it arrives
+    splash: 0,
+    color: '#eaf24d',
+    blurb: 'A pressurized bile harpoon that CULLS the biggest body on the lane — one colossal strike, then a long, patient draw. The wound it leaves melts open.',
+    targeting: 'highestHealth', // the executioner identity: it always takes the monster
+    abilities: [
+      { type: 'projectile', behavior: 'homing', damage: 130, speed: 820, range: 620 },
+      { type: 'status', status: { kind: 'Corrosion', amount: 2 } }, // the melting wound — Shred/Putrefy/Melt fuel on the culled
+    ],
+  },
 };
 
 /** Resonance Beam tunables (Resonance Coil, firing 'beam'). The beam deals CONTINUOUS damage each
@@ -466,6 +531,9 @@ export const BRANCH_COSTS: Record<TowerKind, readonly [number, number, number, n
   rift: [980, 4100, 16500, 60000, 215000], // the premium void anchor — the priciest ladder (mirrors its deep gate)
   glaive: [880, 3700, 15000, 54000, 198000], // the returning blade — premium kinetic, sits with chrysalis/spire
   roost: [950, 4000, 16000, 58000, 210000], // the brood engine — premium capstone ladder (mirrors siphon)
+  lung: [800, 3400, 14000, 50000, 185000], // the zone infector — sits with effigy/sower
+  bell: [900, 3800, 15000, 55000, 200000], // the reaction primer — premium control band (obelisk/spire)
+  lancet: [920, 3900, 15500, 56000, 205000], // the executioner — premium, just under the rift's ladder
 };
 
 /** Returning-blade tunables (Wyrmwing Glaive, firing 'arc' — docs/TOWERS.md §glaive).
@@ -547,10 +615,10 @@ export function enemyDeathCue(def: EnemyDef): string {
 export function towerFireCue(kind: TowerKind): string {
   switch (kind) {
     case 'needle': case 'spire': case 'spitfang': return 'tfire_tick'; // a sharp kinetic/synaptic snap (autocannon included — gap caught by the DIL checklist)
-    case 'mortar': case 'glaive': return 'tfire_thud'; // a heavy lobbed thud / a heavy blade release
-    case 'parasite': case 'maw': case 'polyp': case 'sower': case 'roost': return 'tfire_wet'; // a wet organic blip (the roost's is its HATCH — played by roostSystem)
+    case 'mortar': case 'glaive': case 'lancet': return 'tfire_thud'; // a heavy lobbed thud / a heavy blade or harpoon release
+    case 'parasite': case 'maw': case 'polyp': case 'sower': case 'roost': case 'lung': return 'tfire_wet'; // a wet organic blip (the roost's is its HATCH — played by roostSystem; the lung's is its exhale)
     case 'obelisk': case 'effigy': return 'tfire_zap'; // a psionic zap
-    case 'chrysalis': return 'tfire_ting'; // a crystalline ting
+    case 'chrysalis': case 'bell': return 'tfire_ting'; // a crystalline ting / the bell's toll
     default: return ''; // coil/siphon beams + reactor support + roost brood have their own identity
   }
 }

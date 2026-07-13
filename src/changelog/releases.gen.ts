@@ -11,6 +11,21 @@ export const RELEASES: Release[] = [
     "sealed": false,
     "entries": [
       {
+        "cat": "Towers",
+        "text": "New tower: Acid Lancet",
+        "major": true
+      },
+      {
+        "cat": "Towers",
+        "text": "New tower: Chitin Bell",
+        "major": true
+      },
+      {
+        "cat": "Towers",
+        "text": "New tower: Miasma Lung",
+        "major": true
+      },
+      {
         "cat": "Heroes",
         "text": "New hero: Fovea",
         "major": true
@@ -750,6 +765,10 @@ export const RELEASES: Release[] = [
       {
         "cat": "Heroes",
         "text": "New hero: RIPTIDE - the water-form zone controller (Kinetic tide caste)"
+      },
+      {
+        "cat": "Heroes",
+        "text": "Two new heroes: CARRION (death necromancer) + FOVEA (executioner lance) - the roster hits 10"
       }
     ]
   },

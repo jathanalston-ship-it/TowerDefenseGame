@@ -35,6 +35,9 @@ export const BRANCH_COLOR: Record<string, string> = {
   rift_collapse: '#9a5cff', rift_annihilate: '#d24dff',
   glaive_razor: '#ffd166', glaive_ember: '#ff7a3d',
   roost_alpha: '#ff9e4a', roost_swarm: '#ffc46b',
+  lung_plague: '#ff8ae6', lung_choke: '#c0e84a',
+  bell_dirge: '#d8b06a', bell_chorus: '#f0e0b0',
+  lancet_headsman: '#f0f06a', lancet_venom: '#9fe06a',
 };
 
 /** The reusable "organ" vocabulary — each maps to a small pure drawer in PART_DRAWERS. */
@@ -442,6 +445,75 @@ export const BRANCH_EVOLUTION: Record<string, BranchEvolution> = {
       { at: 3, kind: 'tendrils', count: 3 }, // brood-tending feelers
       { at: 4, kind: 'ripples', count: 2 }, // the beating of many wings
       { at: 5, kind: 'nova' }, // the swarm clutch
+    ],
+  },
+  // LUNG ──────────────────────────────────────────────────────────────────────
+  lung_plague: {
+    color: BRANCH_COLOR.lung_plague, growth: 0.06,
+    parts: [
+      { at: 1, kind: 'halo' },
+      { at: 1, kind: 'ripples', count: 2, per: 1 }, // contagion rings, more per tier
+      { at: 2, kind: 'biomass', count: 3 }, // carrier blisters
+      { at: 3, kind: 'organs', count: 3 }, // numbing glands
+      { at: 4, kind: 'pods', count: 3 }, // outbreak pods
+      { at: 5, kind: 'nova' }, // the pandemic engine
+    ],
+  },
+  lung_choke: {
+    color: BRANCH_COLOR.lung_choke, growth: 0.06,
+    parts: [
+      { at: 1, kind: 'halo' },
+      { at: 1, kind: 'biomass', count: 3, per: 1 }, // acid blisters, swelling per tier
+      { at: 2, kind: 'tendrils', count: 3 }, // dripping vapor feelers
+      { at: 3, kind: 'organs', count: 3 }, // caustic glands
+      { at: 4, kind: 'spikes', count: 4 }, // crusted burn-scale
+      { at: 5, kind: 'nova' }, // the smothering bloom
+    ],
+  },
+  // BELL ──────────────────────────────────────────────────────────────────────
+  bell_dirge: {
+    color: BRANCH_COLOR.bell_dirge, growth: 0.05,
+    parts: [
+      { at: 1, kind: 'halo' },
+      { at: 1, kind: 'armor', count: 3, per: 1 }, // leaden plating, heavier per tier
+      { at: 2, kind: 'spikes', count: 4 }, // funerary barbs
+      { at: 3, kind: 'organs', count: 3 }, // grave-weight nodes
+      { at: 4, kind: 'crown', count: 5 }, // the mourner's crest
+      { at: 5, kind: 'nova' }, // the funeral dirge
+    ],
+  },
+  bell_chorus: {
+    color: BRANCH_COLOR.bell_chorus, growth: 0.045,
+    parts: [
+      { at: 1, kind: 'halo' },
+      { at: 1, kind: 'glyphRing' }, // the harmonic ring
+      { at: 2, kind: 'arcs', count: 2, per: 1 }, // sound made visible, wilder per tier
+      { at: 3, kind: 'organs', count: 3 }, // chime nodes
+      { at: 4, kind: 'ripples', count: 2 }, // standing waves
+      { at: 5, kind: 'nova' }, // the deafening chorus
+    ],
+  },
+  // LANCET ────────────────────────────────────────────────────────────────────
+  lancet_headsman: {
+    color: BRANCH_COLOR.lancet_headsman, growth: 0.05,
+    parts: [
+      { at: 1, kind: 'halo' },
+      { at: 1, kind: 'barrel' }, // the harpoon rail, lengthening
+      { at: 2, kind: 'armor', count: 3 }, // executioner's plating
+      { at: 3, kind: 'barbs', count: 4 }, // racked spare heads
+      { at: 4, kind: 'spikes', count: 5 }, // the headsman's carapace
+      { at: 5, kind: 'nova' }, // the perfect stroke
+    ],
+  },
+  lancet_venom: {
+    color: BRANCH_COLOR.lancet_venom, growth: 0.05,
+    parts: [
+      { at: 1, kind: 'halo' },
+      { at: 1, kind: 'biomass', count: 3, per: 1 }, // gall vials, swelling per tier
+      { at: 2, kind: 'tendrils', count: 3 }, // dripping feed-lines
+      { at: 3, kind: 'organs', count: 3 }, // venom glands
+      { at: 4, kind: 'barbs', count: 4 }, // bile-dipped heads
+      { at: 5, kind: 'nova' }, // the dissolving point
     ],
   },
 };

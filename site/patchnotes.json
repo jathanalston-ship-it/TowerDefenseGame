@@ -3,9 +3,9 @@
     "date": "2026-07-09",
     "title": "The Living World Update",
     "categories": [
+      "Towers",
       "Heroes",
       "Gameplay",
-      "Towers",
       "Mega Bosses",
       "Visuals",
       "UX",
@@ -23,6 +23,18 @@
       "Balance"
     ],
     "items": [
+      {
+        "cat": "Towers",
+        "text": "★ New tower: Acid Lancet"
+      },
+      {
+        "cat": "Towers",
+        "text": "★ New tower: Chitin Bell"
+      },
+      {
+        "cat": "Towers",
+        "text": "★ New tower: Miasma Lung"
+      },
       {
         "cat": "Heroes",
         "text": "★ New hero: Fovea"
@@ -714,6 +726,10 @@
       {
         "cat": "Heroes",
         "text": "New hero: RIPTIDE - the water-form zone controller (Kinetic tide caste)"
+      },
+      {
+        "cat": "Heroes",
+        "text": "Two new heroes: CARRION (death necromancer) + FOVEA (executioner lance) - the roster hits 10"
       }
     ]
   },

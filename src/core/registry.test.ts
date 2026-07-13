@@ -75,11 +75,12 @@ describe('core content is registry-derived (no hardcoded lists)', () => {
     expect(HERO_ORDER).toEqual(heroRegistry.ids());
     expect(ENEMY_KINDS).toEqual(enemyRegistry.ids());
     // launch five + expansion three + Coil/Siphon/Sower + Spire/Polyp + Spitfang/Rift +
-    // Glaive/Roost (the draconic pair) = seventeen towers; TEN heroes — the launch trio +
+    // Glaive/Roost (the draconic pair) + Lung/Bell/Lancet (the reaction trio: second Viral,
+    // second Resonant, the Caustic executioner) = twenty towers; TEN heroes — the launch trio +
     // Vitriol/Revenant/Knell (one per combat class) + the Cinderwyrm (the flying second Caustic)
     // + the Riptide (water-form zone controller, second Kinetic) + the Carrion (charnel
     // necromancer, second Vital) + the Fovea (executioner lance, second Neural)
-    expect(towerRegistry.size).toBe(17);
+    expect(towerRegistry.size).toBe(20);
     expect(heroRegistry.size).toBe(10);
   });
 

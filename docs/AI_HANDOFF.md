@@ -4,94 +4,104 @@
 > before committing. Read together with docs/PROJECT_STATUS.md and the latest
 > docs/VALIDATION_REPORT.md. Next session: start at docs/PROJECT_MANIFEST.md.
 
-- **Generated:** 2026-07-12 23:09 UTC · **Diff scope:** working tree vs HEAD
-- **Branch:** claude/zen-hawking-rh1gxl · **HEAD:** 0edce9a
+- **Generated:** 2026-07-13 13:22 UTC · **Diff scope:** working tree vs HEAD
+- **Branch:** claude/zen-hawking-rh1gxl · **HEAD:** a38c36f
 
 ## Summary of work completed
 
-Two shipped arcs. (1) **Mega-boss raid targeting fix** (0fd3d2d): the raid geometry was
-authored for a board that doesn't exist — organs/body band recalibrated to the real slot grid
-(descent band 560–700, body band 580, validator-enforced), Siphon/Coil beams gained mega legs,
-heroes gained `heroMegaRaid` seek duty. (2) **Campaign rescale** (3844852 → 933e80b → 0edce9a):
-the Bio-Container meter is DORMANT until the account's first mega kill; the EHP curve is
-piecewise (5%/stage 1–8, 20%/stage 9–25, 5% after — recommendedPower still derives from the
-same hpMult); mega stages display an honest ×1.8 raid-premium bar; the probe-discovered
-**hive-guardian override** (`megaRaidYield`) makes raid duty yield while the Core is
-threatened; Boss Rush gate moved 10→9. The one thing to know: **the requirement ladder is now
-a sawtooth** (raid spikes on every 10th stage) — `progressionLoop.test.ts` invariant 1 pins
-its shape; don't "fix" the post-mega dip.
+**The REACTION TRIO shipped — the tower roster is 20** (TOWERS.md §reactionTrio): **Miasma
+Lung** (second Viral — a `field` plague fog that coats the WHOLE pack with Infection, vs the
+Nest's one-host drill; 145 ¢ · 18/240 gate), **Chitin Bell** (second Resonant — a slow toll
+slam that primes the crowd with Resonance for the shatter reactions; 160 ¢ · 24/380) and
+**Acid Lancet** (the Caustic EXECUTIONER — one 130-dmg `highestHealth` harpoon per 4.5 s with
+a Corrosion wound and a 120 px deadzone; 185 ¢ · 34/560). The one thing to know: this was the
+first roster growth with **ZERO new sim verbs** — every mechanic is composed from
+`TowerDef.abilities` — and the load-bearing caveat is that a `firing: 'field'` def **without**
+explicit `abilities` inherits the derived Disruption pulse kit, so a field tower with its own
+identity MUST author its kit. Both class gaps (1-tower Viral / 1-tower Resonant) are closed.
 
 ## Files modified
 
-- Source (1): `src/changelog/releases.gen.ts`
-- Tests (0): —
-- Docs (2): `docs/BALANCE_REPORT.md`, `docs/HISTORY.md`
+- Source (13): `src/changelog/releases.gen.ts`, `src/core/adaptation.ts`, `src/core/branches.ts`, `src/core/config.ts`, `src/core/mastery.ts`, `src/core/mulligan.ts`, `src/core/stars.ts`, `src/core/types.ts`, `src/dev/dil/knowledge.ts`, `src/render/starEvolution.ts`, `src/render/theme.ts`, `src/render/towerEvolution.ts`, `src/render/towerForms.ts`
+- Tests (3): `src/core/registry.test.ts` (pin 17→20), `src/state/stats.test.ts` (fixtures), `src/core/reactionTrio.test.ts` (NEW — 10 tests)
+- Docs (5): `docs/DIL_GRAPH.md`, `docs/GAME-STATE.md`, `docs/HISTORY.md`, `docs/TOWERS.md`, `docs/VALIDATION_REPORT.md`
 
 ## Systems affected (from the dependency registry)
 
 - **chronicle** — `src/changelog/releases.gen.ts`
+- **content-infra** — `src/core/config.ts`, `src/core/types.ts`
+- **dev-registry** — `src/dev/dil/knowledge.ts`
+- **mastery** — `src/core/adaptation.ts`, `src/core/mastery.ts`
+- **mulligans** — `src/core/mulligan.ts`
+- **rendering** — `src/render/starEvolution.ts`, `src/render/theme.ts`, `src/render/towerEvolution.ts`, `src/render/towerForms.ts`
+- **towers** — `src/core/branches.ts`, `src/core/stars.ts`
+- Consumer ring (verify, unchanged): biomes, bosses, collection, contracts, currencies, daily, difficulty, doctrines, engine, equipment, evolution-hq, gene-cards, hero-symbiotes, heroes, living-battlefield, loot, mega-bosses, meta-store, nucleus, pil, power, premium, website
 
 ## Power Score changes
 
-None — no Power-relevant system touched. (The rescale changes REQUIREMENTS, not Power
-income; `recommendedPowerScore` consumers all follow the new curve automatically.)
+None in effect: all three towers are double-gated (locked + stage-gated), so a fresh account's
+Power and every pinned seed are byte-identical (golden suite green, no re-pin). The Mulligan
+catalog grew by 18 pieces (the `CATALOG_PER_TOWER = 6` ratio contract — 2 per category per
+tower); piece `powerWeight`s follow the established rarity bands, pinned by
+`mulligan.test.ts` / `mulliganOverhaul.test.ts`.
 
 ## UI changes
 
-Surfaces in the blast radius: `App (UpdateBriefing popup)`
-
-The chronicle batch itself is docs-only. Earlier batches this session (already pushed +
-smoke-verified live): the LootMeter HUD cell hides while dormant and reveals on the first
-mega kill (What's-New row `loot-meter`), and the campaign map shows the premium'd stage-10
-bar — verified headless (dormant hidden / awakened present / on-screen bar == derivation).
+No component code changed — every surface in the blast radius (Tower Lab, Codex, tower rail,
+conveyor, Inspector, StarCeremony, Adaptation Chamber, website tower guide) is registry-driven
+and picked the three kinds up automatically. Live headless smoke: a seeded Campaign run
+fielded the trio off the real rail/conveyor with zero page errors (see PROJECT_STATUS).
 
 ## Documentation changes
 
-Registry says these move with the touched systems: `docs/CHANGELOG-PIPELINE.md` — no change
-needed (pipeline untouched; this batch only banks its generated artifacts). This session also
-updated DIFFICULTY (§curve + §contract), MEGA-BOSS (§targeting), LOOTBOX (§meter gate),
-ECONOMY_FORMULAS (loot-points dormant clause), MODE-IDENTITY/BOSS-RUSH (gate 9), GAME-STATE,
-BUGFIX-LOG (rows 13–14), UNLOCK-TREE + DIL graph regens.
+`docs/TOWERS.md` (roster intro → twenty; NEW §reactionTrio with per-tower specs),
+`docs/GAME-STATE.md` (Towers row 17→20 + reaction-trio summary — the docSync anchor),
+`docs/DIL_GRAPH.md` + `docs/DEPENDENCY_GRAPH.md` (regenerated), `src/dev/dil/knowledge.ts`
+(reaction-trio edge incl. the derived-Disruption caveat + the Mulligan ratio contract).
+All other registry-listed docs: no change needed (no system behavior moved).
 
 ## Save changes
 
-None — save layer untouched. The meter gate reads the EXISTING `megaProgress.slain` ledger
-(`hasSlainMega`, save/derive.ts): no schema bump, veterans wake instantly.
+None — save layer untouched. `towerUnlocked`/shards/stars/forks/mastery records are
+`TOWER_ORDER`-derived and deep-filled by `withDefaults`, so existing saves gain the three
+kinds' zero-rows automatically.
 
 ## Known edge cases
 
-- The awakening run banks its FULL backlog at settle (`finishRun` accepts
-  `result.stats.megaKills` because the sim has no live events) — don't "simplify" that check
-  away or the progression simulator locks forever.
-- Awakened accounts carry a small megaBosses-codex Boss-Loot bonus, so exact loot-conservation
-  tests price it via `collectionEconomyBonuses` (see meta.test `lootIncomeMult`).
-- `megaRaidYield` derives in `megaBossSystem` and is only READ under a live mega — keep new
-  raid-fire seams consulting it (DIL edge `system:mega-bosses conflictsWith system:engine`).
-- The contract probe needs a FAIR pilot (mid-wave building, forward pads); a prep-only pilot
-  wipes on mega stages and misleads.
+- A `firing: 'field'` TowerDef with NO explicit `abilities` gets the DERIVED aura kit
+  (damage + Disruption — the obelisk pulse). The Lung/Bell author explicit kits for this
+  reason; a future field tower must too (recorded as a DIL edge).
+- Corrosion is SECONDS (expires); test assertions must sample while live (the trio suite's
+  `sawWound` latch), and damage-isolation tests must `parkHero` — the default Ravager dives
+  pinned targets and contaminates "never damaged" assertions.
+- The Bell's aura applies its status BEFORE damage+react in the same pulse, so a toll can
+  combust its own freshly-applied Resonance against a pre-existing partner status — that's
+  the designed primer behavior, pinned in `reactionTrio.test.ts`.
 
 ## Remaining technical debt
 
-- Non-mega deep stages just past the band exit run hot (probe: stage 28 ×1.0 lost 1-of-3,
-  ~71 integrity) — recorded watch item in DIFFICULTY.md §curve; pre-existing speed/elite
-  gradient, revisit with player data.
-- The Fresh-persona hour numbers remain frictionless-bot inflated (documented artifact) —
-  compare cohorts before/after, never bot-hours to real-hours.
+- Strain II–V ladders unauthored for the trio (same shipping state as
+  coil/siphon/sower/spire/polyp/spitfang/rift — the named levels climb with empty hooks).
+- Balance numbers are tuning clay: no full `sim:report` persona pass ran for this batch (all
+  three towers are locked, so fresh-persona curves are unaffected; a deep-account pass is the
+  meaningful one when wanted).
+- `complete_arsenal` achievement desc still says "the launch five, the expansion three, and
+  both beam towers" — the TEST is roster-proof (`>= TOWER_ORDER.length`) but the copy is
+  stale (pre-existing).
 
 ## Recommended next tasks
 
-1. Watch live stage-10 funnel data once players hit the new wall (entry: the flagged
-   DIFFICULTY.md §curve watch items; tune `C.megaStagePremium` / `compGrowth` via the §4
-   protocol only).
-2. Consider a small in-game telegraph for the meter's dormancy (e.g. a sealed-meter teaser
-   tooltip) if players ask where loot boxes went — the What's-New row covers the reveal, not
-   the absence.
-3. The stage-28-band heat check (above) after real data lands.
+1. **Four weak enemy variations spawnable from Campaign stage 1–2** (user-queued, task #167)
+   — entry: `ENEMY_DEFS` (config.ts), stage composition/spawn tables, `ENEMY_SHAPE`/
+   `enemyForms`; watch the golden (stage-1 spawn table changes likely need a re-pin).
+2. **Early-game / new-player-experience overhaul** (user-queued, task #168) — playtesters
+   were overwhelmed, skipped the wordy/janky tutorial, and reported it inaccurate to current
+   gameplay. Entry: `docs/TUTORIAL.md`, `src/ui` tutorial/onboarding surfaces, help system.
 
 ## Future expansion hooks
 
-- `campaign.ts C.megaStagePremium` — per-stage-class bar premiums (a future raid variant can
-  carry its own factor).
-- `game.ts megaRaidYield` — the one flag any future raid-fire seam must consult; extendable
-  to hero raid duty if heroes ever raid mid-wave.
-- `hpMultFor` (campaign.ts) — additional curve segments are one constant pair away.
+- The reaction-primer pattern (aura + status + `react: true`) generalizes: any future class
+  can ship a "primer" tower with zero sim code — the matrix (`reactions.ts`) already prices
+  every pairing.
+- `lancet`'s deadzone + `highestHealth` + slow-heavy-hit template is the general "executioner"
+  archetype shape (config-only) if a second one is ever wanted (e.g. a Neural sniper).

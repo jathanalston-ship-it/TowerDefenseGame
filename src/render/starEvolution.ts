@@ -217,6 +217,39 @@ export const STAR_EVOLUTION: Record<TowerKind, StarEvolution> = {
       { at: 9, kind: 'nova' }, // the apex nest
     ],
   },
+  // Miasma Lung (Viral) — a breathing sac → the black breath: blisters, contagion rings, spore pods.
+  lung: {
+    growth: 0.024, // the sac swells with every star
+    parts: [
+      { at: 1, kind: 'halo' }, // the first visible fog ring
+      { at: 3, kind: 'biomass', count: 3 }, // blister sacs along the body
+      { at: 5, kind: 'ripples', count: 2 }, // expanding contagion rings
+      { at: 7, kind: 'pods', count: 3 }, // budding spore pods
+      { at: 9, kind: 'nova' }, // the black breath
+    ],
+  },
+  // Chitin Bell (Resonant) — a cast bell → the last peal: bronze plating, chime nodes, sound made visible.
+  bell: {
+    growth: 0.02, // it gains weight, not sprawl — a bell, recast heavier
+    parts: [
+      { at: 1, kind: 'glyphRing' }, // the resonant ring around the mouth
+      { at: 3, kind: 'armor', count: 3 }, // bronze chitin plating
+      { at: 5, kind: 'organs', count: 3 }, // chime nodes
+      { at: 7, kind: 'arcs', count: 3 }, // sound made visible
+      { at: 9, kind: 'nova' }, // the last peal
+    ],
+  },
+  // Acid Lancet (Caustic) — a drawn rail → the culling stroke: the rail lengthens, barbs, a bladed carapace.
+  lancet: {
+    growth: 0.02, // a marksman's economy of mass
+    parts: [
+      { at: 1, kind: 'halo' }, // the ranging shimmer
+      { at: 3, kind: 'barrel' }, // the harpoon rail, lengthening
+      { at: 5, kind: 'barbs', count: 4 }, // spare heads racked along the body
+      { at: 7, kind: 'spikes', count: 5 }, // a bladed executioner's carapace
+      { at: 9, kind: 'nova' }, // the culling stroke
+    ],
+  },
 };
 
 /** Body-silhouette scale from STARS (the "larger / prestige silhouette" read). Identity (1) at

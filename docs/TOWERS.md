@@ -24,8 +24,8 @@ reaction framework** — it supersedes the placeholder tower names used in the e
 > Evolutions, and class keystones are the designed-but-future content this spec also covers. Balance values live in
 > `src/core/config.ts`.
 >
-> **Roster now: seventeen built towers.** Beyond the launch five, the placeable roster runs to
-> **seventeen**: the three post-siege expansion niches (§expansion — Carrion Maw · Amber Chrysalis ·
+> **Roster now: twenty built towers.** Beyond the launch five, the placeable roster runs to
+> **twenty**: the three post-siege expansion niches (§expansion — Carrion Maw · Amber Chrysalis ·
 > Wailing Effigy), the two **Deep-Strain beam** towers (§deep-strain — **Resonance Coil**, a
 > single-target resonance melter; **Marrow Siphon**, a Vital multi-tether *harvester* that drains a
 > dying swarm into Biomass), the **Blight Sower** (§trap — a Caustic `firing: 'trap'` that
@@ -35,7 +35,10 @@ reaction framework** — it supersedes the placeholder tower names used in the e
 > *easiest* gate, and **Rift Anchor**, a Neural void pull field on its *deepest* — and the two
 > **draconic** organs (§draconic): the **Wyrmwing Glaive**, a Kinetic RETURNING blade on the
 > all-new `firing: 'arc'` archetype, and the **Drake Roost**, a Vital `firing: 'summon'` brood
-> engine whose hero-AI drakes are the payload. Each new tower adds or reuses a delivery mode
+> engine whose hero-AI drakes are the payload — and the three **reaction** organs (§reactionTrio):
+> the **Miasma Lung** (the second Viral — a plague-fog zone infector), the **Chitin Bell** (the
+> second Resonant — a tolling mass reaction-primer) and the **Acid Lancet** (the Caustic
+> EXECUTIONER harpoon). Each new tower adds or reuses a delivery mode
 > (`beam`, `trap`, `field`, `arc`, `summon`) and is **doubly progression-gated** (a Campaign-stage
 > gate → then its own Tower Shards). All are registry-driven — stars, mastery, conveyor, codex,
 > loot, and Strain inherited them with no per-system code.
@@ -691,3 +694,65 @@ regen, tier maturation → *The Wyrmmother* (★9). **Strains II–V** ride the 
 a side-clutch that escalates from extra drakelings to a birthing WYRMSPAWN. Wave end clears all
 minions (the standing rule), so the roost re-incubates each wave; drakes body-block like all
 friendly units and their kills/damage credit **roost mastery**.
+
+---
+
+## Reaction roster (§reactionTrio) — Miasma Lung · Chitin Bell · Acid Lancet
+
+Three organs whose identities live in the **status/reaction matrix** (docs/TOWERS.md §reactions),
+not a stat line — and the first roster growth with **zero new sim verbs**: every mechanic composes
+the existing ability vocabulary (`aura` / `projectile` / `status` / `debuff`) straight from
+`TowerDef.abilities`. They also close the roster's two class gaps: the Lung is the **second Viral**
+tower (the Parasite Nest stood alone) and the Bell the **second Resonant** (the Coil stood alone) —
+`onlyClass` contracts and class-themed Adaptations finally have partners in both families. All
+three ship the standard stack (two branches, a ★1–9 star path, a four-branch Adaptation tree, six
+Mulligan catalog pieces, mastery lore, procedural body) and are doubly gated; Strain II–V ladders
+are unauthored (the named levels still climb — the same shipping state as the coil/siphon/sower/
+spire/polyp/spitfang/rift seven).
+
+### 18. MIASMA LUNG — Viral (the zone infector) · `firing: 'field'`
+
+A breathing sac that **exhales plague fog**: every breath (1.5 s) coats EVERYTHING in its 250 px
+bank with **Infection** (+1 stack) and a token 3 chip. The identity contrast is the Parasite Nest:
+the Nest drills ONE host with deep ramping stacks; the Lung **shallow-coats the WHOLE pack** and
+lets Infection's native ramp/spread do the deep work — and every fogged body is standing reaction
+fuel (Virulence with Fracture, Putrefy with Corrosion, Bloom with Disruption, Rupture with
+Resonance). Viral · cost **145** · colour `#ff6ee0`. **Gated** `unlockStage` 18 · `unlockShards`
+240. **Branches** (`lung_*`): **Pandemic Engine** (deeper plague — more Infection per breath + a
+numbing damp that Blooms) vs **Caustic Smother** (the fog turns to acid — real damage + Corrosion,
+the Putrefy engine). **Stars** stack extra breaths on the exhale cadence: Acrid Condensate (★2 —
+Corrosion in the fog makes it a self-contained Putrefy engine) → Deep Lung/Numbing Vapor (★3) →
+Pandemic Bloom/Caustic Smog (★5) → *The Black Breath* (★9). **Visual**: the `pod` form (a venting
+seed-sac), circle silhouette, `tfire_wet` exhale.
+
+### 19. CHITIN BELL — Resonant (the mass reaction primer) · `firing: 'field'`
+
+A great chitin bell whose **toll is an all-in-reach slam** (2.4 s cadence, 30 damage — the hardest
+field slam in the game) that leaves **Resonance** (+1 stack) ringing in every body it strikes,
+with `react: true` so the slam itself detonates whatever it primed. The identity contrast is the
+Resonance Coil: the Coil focus-MELTS one target on a ramping beam; the Bell **primes the CROWD**
+for the shatter family — pair it with Fracture stackers (needle/spitfang) for SHEAR, Corrosion
+(mortar/sower) for MELT, Infection (parasite/lung) for RUPTURE. Resonant · cost **160** · ring
+**230** · colour `#e8d5a3`. **Gated** `unlockStage` 24 · `unlockShards` 380. **Branches**
+(`bell_*`): **Funeral Dirge** (Fracture rides every toll — the Shear self-engine) vs **Deafening
+Chorus** (faster tolls, deeper Resonance, a numbing Overtone). **Stars**: Long Peal (★2 —
+Disruption hums under the note: the Overtone self-engine) → Funeral Toll/Vesper Chime (★3) → Great
+Bourdon/Shattering Peal (★5) → *The Last Peal* (★9). **Visual**: the `maw` form (a ringed bronze
+mouth that gapes on the toll), the `bell` silhouette, `tfire_ting` toll.
+
+### 20. ACID LANCET — Caustic (the executioner) · `firing: 'homing'`
+
+A pressurized bile **harpoon** — ONE colossal draw every **4.5 s** (the slowest discrete gun in
+the game) for **130** damage (the heaviest single hit in the roster) into the **`highestHealth`**
+target, leaving a 2 s **Corrosion** wound melting in the impaled (Shred/Putrefy/Melt fuel). Its
+DPS is deliberately mediocre — WHERE the damage lands is the value: it fills the roster's
+**anti-elite alpha-strike** hole (the Chrysalis freezes the monster; nothing else *deletes* it).
+Reach **620** with a **120 px artillery deadzone** (`minRange` — the mortar's rule: the last line
+belongs to the brawlers). Caustic · cost **185** · projectile 820 px/s · colour `#eaf24d`.
+**Gated** `unlockStage` 34 · `unlockShards` 560 (fills the 30→40 gate gap between polyp and
+rift). **Branches** (`lancet_*`): **Headsman's Draw** (crits, pierce-through-the-kill, a second
+harpoon — the perfect stroke) vs **Dissolving Point** (the wound is the weapon — acid bursts, deep
+rot, a detonating head). **Stars**: Weeping Wound (★1) → Twin Ballista (★2) → Skinner/Boneseeker
+(★3) → Headsman/Pox Quarrel (★5) → *The Culling Stroke* (★9 — a third harpoon and every impact
+detonates). **Visual**: the `barrel` form (a drawn harpoon rail), diamond silhouette, `tfire_thud`
+release.

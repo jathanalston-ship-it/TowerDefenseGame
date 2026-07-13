@@ -250,6 +250,27 @@ const TOWER_TRACKS: { unit: TowerKind; rewards: MasteryReward[]; perks?: Mastery
       { at: 25, kind: 'title', id: 'title.roost.broodkeeper', name: 'Broodkeeper' },
     ],
   },
+  {
+    unit: 'lung',
+    rewards: [
+      { at: 10, kind: 'lore', id: 'lore.lung.1', name: 'Breath Doctrine', text: 'The Lung does not chase. It EXHALES — and everything the wave carried in with it starts belonging to the fog.' },
+      { at: 25, kind: 'title', id: 'title.lung.plaguewright', name: 'Plaguewright' },
+    ],
+  },
+  {
+    unit: 'bell',
+    rewards: [
+      { at: 10, kind: 'lore', id: 'lore.bell.1', name: 'Toll Doctrine', text: 'Every body carries a note it was never meant to hear. The Bell finds it — and rings it until the body agrees.' },
+      { at: 25, kind: 'title', id: 'title.bell.bellkeeper', name: 'Bellkeeper' },
+    ],
+  },
+  {
+    unit: 'lancet',
+    rewards: [
+      { at: 10, kind: 'lore', id: 'lore.lancet.1', name: 'Cull Doctrine', text: 'The swarm is a ledger. The Lancet is the red line drawn, patiently, through its largest entry.' },
+      { at: 25, kind: 'title', id: 'title.lancet.headsman', name: 'Headsman' },
+    ],
+  },
 ];
 
 const HERO_TRACKS: { unit: HeroKind; rewards: MasteryReward[] }[] = [
