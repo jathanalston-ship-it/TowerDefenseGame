@@ -4,112 +4,99 @@
 > before committing. Read together with docs/PROJECT_STATUS.md and the latest
 > docs/VALIDATION_REPORT.md. Next session: start at docs/PROJECT_MANIFEST.md.
 
-- **Generated:** 2026-07-13 13:22 UTC · **Diff scope:** working tree vs HEAD
-- **Branch:** claude/zen-hawking-rh1gxl · **HEAD:** a38c36f
+- **Generated:** 2026-07-14 09:10 UTC · **Diff scope:** working tree vs HEAD
+- **Branch:** claude/zen-hawking-rh1gxl · **HEAD:** 1d7fca5
 
 ## Summary of work completed
 
-**The REACTION TRIO shipped — the tower roster is 20** (TOWERS.md §reactionTrio): **Miasma
-Lung** (second Viral — a `field` plague fog that coats the WHOLE pack with Infection, vs the
-Nest's one-host drill; 145 ¢ · 18/240 gate), **Chitin Bell** (second Resonant — a slow toll
-slam that primes the crowd with Resonance for the shatter reactions; 160 ¢ · 24/380) and
-**Acid Lancet** (the Caustic EXECUTIONER — one 130-dmg `highestHealth` harpoon per 4.5 s with
-a Corrosion wound and a 120 px deadzone; 185 ¢ · 34/560). The one thing to know: this was the
-first roster growth with **ZERO new sim verbs** — every mechanic is composed from
-`TowerDef.abilities` — and the load-bearing caveat is that a `firing: 'field'` def **without**
-explicit `abilities` inherits the derived Disruption pulse kit, so a field tower with its own
-identity MUST author its kit. Both class gaps (1-tower Viral / 1-tower Resonant) are closed.
+Shipped the **In-Run Gameplay Feel Pass** (canonical doc: `docs/COMBAT-VISUAL-STANDARDS.md`).
+Centerpiece: the **Status Effect Visualization System** — every `StatusEffectDef` now carries a
+MANDATORY `fx` trait block (validator-enforced), and `render/statusFx.ts` procedurally MERGES all
+live statuses per body (blended hue, deduped overlays, budgeted particle emitters, intensity off
+stacks/remaining, control-state body animation) so combinations like poison+burn compose without
+hand-authoring. Around it: hit-confirmation sparks + status-flavored death reactions (frozen
+shatter / embers / spores / dissolve) via the renderer motion tracker; form-keyed tower attack
+ANTICIPATION (`FORM_ANTICIPATION` in towerForms.ts); hero ability activation/ready cues; log-capped
+projectile power scaling; and `statusApplied` audio category cues (hasListeners-gated, golden-safe).
+**The one thing to know:** never draw a bespoke per-status ring again — author `fx` traits and the
+merge composes everything (the validator rejects a status without them).
 
 ## Files modified
 
-- Source (13): `src/changelog/releases.gen.ts`, `src/core/adaptation.ts`, `src/core/branches.ts`, `src/core/config.ts`, `src/core/mastery.ts`, `src/core/mulligan.ts`, `src/core/stars.ts`, `src/core/types.ts`, `src/dev/dil/knowledge.ts`, `src/render/starEvolution.ts`, `src/render/theme.ts`, `src/render/towerEvolution.ts`, `src/render/towerForms.ts`
-- Tests (3): `src/core/registry.test.ts` (pin 17→20), `src/state/stats.test.ts` (fixtures), `src/core/reactionTrio.test.ts` (NEW — 10 tests)
-- Docs (5): `docs/DIL_GRAPH.md`, `docs/GAME-STATE.md`, `docs/HISTORY.md`, `docs/TOWERS.md`, `docs/VALIDATION_REPORT.md`
+- Source (11): `src/audio/sound.ts`, `src/core/config.ts`, `src/core/events.ts`, `src/core/game.ts`, `src/core/status.ts`, `src/dev/dil/knowledge.ts`, `src/dev/systemRegistry.ts`, `src/render/renderer.ts`, `src/render/towerForms.ts`, `src/ui/GameView.tsx`, `src/render/statusFx.ts`
+- Tests (2): `src/core/status.test.ts`, `src/render/statusFx.test.ts`
+- Docs (6): `docs/DEPENDENCY_GRAPH.md`, `docs/DIL_GRAPH.md`, `docs/GAME-STATE.md`, `docs/PROJECT_MANIFEST.md`, `docs/VALIDATION_REPORT.md`, `docs/COMBAT-VISUAL-STANDARDS.md`
 
 ## Systems affected (from the dependency registry)
 
-- **chronicle** — `src/changelog/releases.gen.ts`
-- **content-infra** — `src/core/config.ts`, `src/core/types.ts`
-- **dev-registry** — `src/dev/dil/knowledge.ts`
-- **mastery** — `src/core/adaptation.ts`, `src/core/mastery.ts`
-- **mulligans** — `src/core/mulligan.ts`
-- **rendering** — `src/render/starEvolution.ts`, `src/render/theme.ts`, `src/render/towerEvolution.ts`, `src/render/towerForms.ts`
-- **towers** — `src/core/branches.ts`, `src/core/stars.ts`
-- Consumer ring (verify, unchanged): biomes, bosses, collection, contracts, currencies, daily, difficulty, doctrines, engine, equipment, evolution-hq, gene-cards, hero-symbiotes, heroes, living-battlefield, loot, mega-bosses, meta-store, nucleus, pil, power, premium, website
+- **audio** — `src/audio/sound.ts`
+- **content-infra** — `src/core/config.ts`
+- **dev-registry** — `src/dev/dil/knowledge.ts`, `src/dev/systemRegistry.ts`
+- **engine** — `src/core/events.ts`, `src/core/game.ts`, `src/core/status.ts`
+- **rendering** — `src/render/renderer.ts`, `src/render/towerForms.ts`, `src/render/statusFx.ts`
+- **run-ui** — `src/ui/GameView.tsx`
+- Consumer ring (verify, unchanged): biomes, boss-rush, bosses, campaign, collection, currencies, cutscenes, daily, difficulty, doctrines, equipment, evolution-hq, gene-cards, heroes, infinite, living-battlefield, loot, mastery, mega-bosses, meta-store, mulligans, nemesis, nucleus, onboarding, pil, power, premium, towers, website
 
 ## Power Score changes
 
-None in effect: all three towers are double-gated (locked + stage-gated), so a fresh account's
-Power and every pinned seed are byte-identical (golden suite green, no re-pin). The Mulligan
-catalog grew by 18 pieces (the `CATALOG_PER_TOWER = 6` ratio contract — 2 per category per
-tower); piece `powerWeight`s follow the established rarity bands, pinned by
-`mulligan.test.ts` / `mulliganOverhaul.test.ts`.
+None. All changes are presentation-side; the only core/config.ts change is a PERF render tunable
+(`statusFullDetail`) and status `fx` data the sim never reads. Full suite (incl. power tests) green.
 
 ## UI changes
 
-No component code changed — every surface in the blast radius (Tower Lab, Codex, tower rail,
-conveyor, Inspector, StarCeremony, Adaptation Chamber, website tower guide) is registry-driven
-and picked the three kinds up automatically. Live headless smoke: a seeded Campaign run
-fielded the trio off the real rail/conveyor with zero page errors (see PROJECT_STATUS).
+Surfaces in the blast radius: `MusicDebug (Settings dev console)`, `(audible)`, `GameView`, `Hud`, `Toolbar`, `BuildControls`, `Inspector`, `BuildPanel`, `the battlefield itself`, `Results`, `ALL`
+
+The battlefield only: merged status overlays/particles on afflicted enemies, impact-spark
+starbursts, flavored death echoes, tower wind-up squash/flex + muzzle charge, hero ability
+burst/ready flare/standing glint, damage-scaled projectile comets. Two audio cues added
+(status_dot / status_control), throttled in GameView. Verified by a headless-Chromium smoke
+(preview build → skip tutorial → launch campaign → live wave; zero page errors) plus the
+real-frame recording-context tests in `src/render/statusFx.test.ts`.
 
 ## Documentation changes
 
-`docs/TOWERS.md` (roster intro → twenty; NEW §reactionTrio with per-tower specs),
-`docs/GAME-STATE.md` (Towers row 17→20 + reaction-trio summary — the docSync anchor),
-`docs/DIL_GRAPH.md` + `docs/DEPENDENCY_GRAPH.md` (regenerated), `src/dev/dil/knowledge.ts`
-(reaction-trio edge incl. the derived-Disruption caveat + the Mulligan ratio contract).
-All other registry-listed docs: no change needed (no system behavior moved).
+Registry says these move with the touched systems: `docs/MUSIC.md`, `docs/GAME-FEEL.md`, `docs/CUTSCENES.md`, `docs/LIVING-BATTLEFIELD.md`, `docs/CODEMAP.md`, `docs/CORE-FRAMEWORKS.md`, `docs/AUTHORING.md`, `docs/ARCHITECTURE.md`, `docs/DESIGN.md`, `docs/POWER-SCORE.md`, `docs/POWER-AUDIT.md`, `docs/MULLIGANS.md`, `docs/PREMIUM-STORE.md`, `docs/PREMIUM-ECONOMY-REPORT.md`, `docs/TOWER-STARS.md`, `docs/TOWER-BRANCHES.md`, `docs/TOWER-LAB.md`, `docs/TOWER-CODEX.md`, `docs/TOWERS.md`, `docs/STRAIN.md`, `docs/MASTERY.md`, `docs/ADAPTATION.md`, `docs/HEROES.md`, `docs/HERO-FRAMEWORK.md`, `docs/HERO-EVOLUTION.md`, `docs/HERO-SELECTION.md`, `docs/SLOTS.md`, `docs/EQUIPMENT.md`, `docs/EQUIPMENT-PHILOSOPHY.md`, `docs/LOOTBOX.md`, `docs/LOOT-PROGRESSION.md`, `docs/REWARD-PRESENTATION.md`, `docs/GENE-EVOLUTION.md`, `docs/CARDS.md`, `docs/GENE-AUDIT-REPORT.md`, `docs/NUCLEUS.md`, `docs/COLLECTION.md`, `docs/EVOLUTION-HQ.md`, `docs/GENOME-CORE.md`, `docs/EVOLUTION-CAP.md`, `docs/ECONOMY.md`, `docs/LEXICON.md`, `docs/ECONOMY_FORMULAS.md`, `docs/DEV-RESET.md`, `docs/SCALABILITY.md`, `docs/PROJECT_MANIFEST.md`, `docs/BOSS-DESIGN.md`, `docs/MEGA-BOSS.md`, `docs/BIOMES.md`, `docs/DOCTRINES.md`, `docs/MODE-IDENTITY.md`, `docs/DIFFICULTY.md`, `docs/DIFFICULTY_DIRECTOR.md`, `docs/WEBSITE.md`, `docs/DEPLOYMENT.md`, `docs/DIL.md`, `docs/DEPENDENCY_GRAPH.md`, `docs/ENGINEERING-AUDIT.md`, `docs/GAME_CONSTITUTION.md`, `docs/PROJECT_STATUS.md`, `docs/AI_HANDOFF.md`, `docs/PIL.md`, `docs/CAMPAIGN.md`, `docs/CAMPAIGN-EVENTS.md`, `docs/STAGES.md`, `docs/ENDLESS-SCALING.md`, `docs/BOSS-RUSH.md`, `docs/DAILY-RUN.md`, `docs/NEMESIS.md`, `docs/TUTORIAL.md`, `docs/HELP.md`, `docs/TUTORIAL-AUDIT.md`, `docs/HUD.md`, `docs/READABILITY.md`, `docs/RENDER-PIPELINE.md`, `docs/TOWER-VISUAL-EVOLUTION.md`, `docs/CAMERA.md`, `docs/COMBAT-VISUAL-STANDARDS.md`
+
+Updated: `docs/COMBAT-VISUAL-STANDARDS.md` (new, canonical), `PROJECT_MANIFEST.md` (Visual
+Effects section), `GAME-STATE.md` (compressed summary), `DIL_GRAPH.md` + `DEPENDENCY_GRAPH.md`
+(regenerated), `dil/knowledge.ts` (2 edges). The remainder of the registry's blast-radius list:
+no change needed — no gameplay numbers, saves, modes, or economy semantics moved.
 
 ## Save changes
 
-None — save layer untouched. `towerUnlocked`/shards/stars/forks/mastery records are
-`TOWER_ORDER`-derived and deep-filled by `withDefaults`, so existing saves gain the three
-kinds' zero-rows automatically.
+None — save layer untouched.
 
 ## Known edge cases
 
-- A `firing: 'field'` TowerDef with NO explicit `abilities` gets the DERIVED aura kit
-  (damage + Disruption — the obelisk pulse). The Lung/Bell author explicit kits for this
-  reason; a future field tower must too (recorded as a DIL edge).
-- Corrosion is SECONDS (expires); test assertions must sample while live (the trio suite's
-  `sawWound` latch), and damage-isolation tests must `parkHero` — the default Ravager dives
-  pinned targets and contaminates "never damaged" assertions.
-- The Bell's aura applies its status BEFORE damage+react in the same pulse, so a toll can
-  combust its own freshly-applied Resonance against a pre-existing partner status — that's
-  the designed primer behavior, pinned in `reactionTrio.test.ts`.
+- `statusVfx.test.ts` pins the Mark/Resonance charge-ring COLORS — those two rings stay bespoke
+  in `drawEnemy`; don't fold them into statusFx without updating the pinned tokens.
+- The legacy four statuses (fracture/corrosion/infection/disruption) render through registry `fx`
+  traits but do NOT emit `statusApplied` (only `applyEffect` does) — intentional (audio spam).
+- Tower anticipation holds full wind-up while a combat-phase tower waits at cooldown 0 with no
+  target in range — reads as "primed", accepted deliberately.
+- Bosses skip the motion tracker (chassis renderer) ⇒ no impact sparks/death flavors on bosses;
+  they have their own hit/death spectacle (gore DeathEvents, phase FX).
+- DIL_GRAPH and DEPENDENCY_GRAPH both derive from docs + systemRegistry — regen BOTH after doc
+  or registry edits (`npm run docs:graph` then `npm run dil -- regen`) or two sync tests fail.
 
 ## Remaining technical debt
 
-- Strain II–V ladders unauthored for the trio (same shipping state as
-  coil/siphon/sower/spire/polyp/spitfang/rift — the named levels climb with empty hooks).
-- Balance numbers are tuning clay: no full `sim:report` persona pass ran for this batch (all
-  three towers are locked, so fresh-persona curves are unaffected; a deep-account pass is the
-  meaningful one when wanted).
-- `complete_arsenal` achievement desc still says "the launch five, the expansion three, and
-  both beam towers" — the TEST is roster-proof (`>= TOWER_ORDER.length`) but the copy is
-  stale (pre-existing).
+- `mergeStatusFx` allocates small arrays per afflicted enemy per frame (afflicted bodies are a
+  minority; measured acceptable) — a scratch-buffer refactor is available if profiling ever flags it.
+- `distortion` is a body-scale shimmer, not a shader warp (Canvas2D limitation, documented).
+- Heroes/minions carry no framework statuses yet, so the status framework has nothing to draw on
+  friendlies — the seam exists when the sim grows friendly statuses.
 
 ## Recommended next tasks
 
-1. ~~Four weak enemy variations~~ — **SHIPPED in this same session** (the EARLY BROOD,
-   ENEMIES.md §early-brood: husk/flea/mold/skulker). Key learnings recorded as a DIL edge:
-   the campaign enemy gate is fully DERIVED (`unlockStage` = hp tier × mech gate; tier 1 =
-   effectiveHp < 92 + zero role traits; wave-1 needs threat ≤ 3, dmg ≤ 8, speed ≤ 100), and
-   the pinned golden only runs the SCRIPTED `WAVES` table — generation re-rolls freely with
-   no re-pin. Stage 1 wave 1 now opens with the brood (live-probe verified).
-2. **Early-game / new-player-experience overhaul** (user-queued, task #168) — playtesters
-   were overwhelmed, skipped the wordy/janky tutorial, and reported it inaccurate to current
-   gameplay. Entry: `docs/TUTORIAL.md`, `src/ui` tutorial/onboarding surfaces, help system.
-   HARD EVIDENCE from this session's live probes: a fresh account stacks, before first
-   combat — title gate → 5-scene transmission film → hub → rank-promotion popup UNDER a
-   12-step "Field Orientation" tour + the login-cache ceremony → then the run tutorial
-   (which keeps the classic full tower rail while real runs use the conveyor — a mechanics
-   MISMATCH that matches the "tutorial not accurate to gameplay" report).
+1. **Chain/multi-target visualization** (COMBAT-VISUAL-STANDARDS is the standard; entry:
+   `render/renderer.ts` beam/projectile passes) — ricochet/fragment/venom STRAIN payloads could
+   draw brief leap arcs so bounce order reads.
+2. **Boss hit feedback parity** — extend impact sparks/death flavors to chassis bosses (entry:
+   `updateEnemyMotion` boss skip + `render/bossChassis.ts`).
+3. **Settings exposure** — a "Combat FX intensity" slider folding into the statusFx quality tier
+   (entry: `PERF.statusFullDetail`, `ui/Settings`).
 
 ## Future expansion hooks
 
-- The reaction-primer pattern (aura + status + `react: true`) generalizes: any future class
-  can ship a "primer" tower with zero sim code — the matrix (`reactions.ts`) already prices
-  every pairing.
-- `lancet`'s deadzone + `highestHealth` + slow-heavy-hit template is the general "executioner"
-  archetype shape (config-only) if a second one is ever wanted (e.g. a Neural sniper).
+TODO: seams deliberately left open (name the file + symbol).

@@ -357,6 +357,17 @@ export function GameView({
   // NEMESIS entrance (docs/NEMESIS.md): the personal hunt returning earns its own vengeful roar,
   // distinct from a normal boss intro — the moment you recognize your rival cresting the membrane.
   useEffect(() => gameEvents.on('bossSpawned', (e) => { if (e.nemesis) audio.cue('nemesis_roar'); }), []);
+  // STATUS APPLICATION cues (docs/COMBAT-VISUAL-STANDARDS.md §audio): a landed framework status
+  // sounds its CATEGORY — a wet corruption squelch for DoTs/debuffs, a crystalline arrest chime
+  // for control. Hard-throttled: applications arrive in bursts and must never machine-gun.
+  const statusCueAt = useRef(0);
+  useEffect(() => gameEvents.on('statusApplied', (e) => {
+    if (e.category === 'buff') return; // enemy-side buffs have no player payoff — stay silent
+    const now = Date.now();
+    if (now - statusCueAt.current < 160) return;
+    statusCueAt.current = now;
+    audio.cue(e.category === 'control' ? 'status_control' : 'status_dot');
+  }), []);
   // MEGA BOSS arrival spectacle (docs/MEGA-BOSS.md): the raid banner flipping null→present IS the
   // arrival — a grander card than the boss intro (the audio roar + quake ride the sfx queue).
   const [megaIntro, setMegaIntro] = useState<{ name: string; title: string; glow: string; at: number } | null>(null);

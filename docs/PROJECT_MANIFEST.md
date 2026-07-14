@@ -522,21 +522,28 @@ ladders. 4. Every permanent progression source must move the Power Score (valida
 
 ## Visual Effects
 
-- **Purpose:** battlefield juice — particles (muzzle, impacts, deaths, status auras), tower
-  visual evolution (star/branch-driven), range/zone visualization, projectile fades, screen
-  motion tokens.
-- **Dependencies:** render state from the sim (particles are SIM entities for determinism);
-  `render/` draws, never mutates.
-- **Files:** `render/renderer.ts` (battlefield), `render/towerEvolution.ts` (evolving tower
+- **Purpose:** battlefield juice — particles (muzzle, impacts, deaths), the STATUS EFFECT
+  VISUALIZATION framework (trait-merged overlays/particles per afflicted body), hit-confirmation
+  sparks + status-flavored death reactions, tower anticipation personalities, hero ability
+  activation/ready cues, projectile power scaling, tower visual evolution (star/branch-driven),
+  range/zone visualization, screen motion tokens.
+- **Dependencies:** render state from the sim (sim particles are SIM entities for determinism);
+  `render/` draws, never mutates; status fx TRAITS are data on `StatusEffectDef` (core).
+- **Files:** `render/renderer.ts` (battlefield), `render/statusFx.ts` (status merge + painters),
+  `render/towerForms.ts` (`FORM_ANTICIPATION`), `render/towerEvolution.ts` (evolving tower
   bodies), particle spawn in `core/game.ts` (`ParticleKind`s), CSS motion tokens in
-  `index.css`. Docs: `TOWER-VISUAL-EVOLUTION.md`, `RENDER-PIPELINE.md`, `UI-MOTION.md`,
+  `index.css`. Docs: **`COMBAT-VISUAL-STANDARDS.md`** (the feel contract + future-content
+  checklist), `TOWER-VISUAL-EVOLUTION.md`, `RENDER-PIPELINE.md`, `UI-MOTION.md`,
   `PLACEHOLDER-ART.md`.
-- **Related:** Tower Stars/Branches (visual escalation), HUD readability rules.
-- **Future expansion:** art lands behind the same procedural fallbacks (`GeneCardArt`,
-  `ItemArt`, tower bodies) — swap-in by key, no system changes.
+- **Related:** Status engine (every def carries a validator-MANDATORY `fx` trait block), Tower
+  Stars/Branches (visual escalation), HUD readability rules, Audio (`statusApplied` cues).
+- **Future expansion:** a new status authors ONE `fx` block and every visual (merge, synergy
+  blend, intensity, death flavor, audio category cue) rides free; art lands behind the same
+  procedural fallbacks — swap-in by key, no system changes.
 - **Known limitations:** everything is procedural placeholder art by design (EA).
-- **Developer tips:** particles live in the SIM (golden-relevant!) — visual-only tweaks belong
-  in the renderer; adding sim particles changes goldens.
+- **Developer tips:** sim particles live in the SIM (golden-relevant!) — visual-only tweaks
+  belong in the renderer (statusFx pools/sparks are render-local, capped, deterministic). Never
+  draw a bespoke per-status ring; add traits and let the merge compose them.
 
 ## Assimilation Index
 

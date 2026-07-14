@@ -82,6 +82,17 @@ describe('status registry', () => {
     expect(statusRegistry.has('burn')).toBe(true);
     expect(validateAllContent()).toEqual([]); // shipped status defs are valid
   });
+
+  it('every status carries a complete fx visual contract (COMBAT-VISUAL-STANDARDS)', () => {
+    for (const d of statusRegistry.all()) {
+      expect(d.fx, `status '${d.id}' must define fx`).toBeTruthy();
+      expect(d.fx.hue).toMatch(/^#[0-9a-fA-F]{3,8}$/);
+      expect(d.fx.glow).toBeGreaterThanOrEqual(0);
+      expect(d.fx.glow).toBeLessThanOrEqual(1);
+      expect(d.fx.pulseSpeed).toBeGreaterThan(0);
+      expect(d.fx.particles.length).toBeLessThanOrEqual(2);
+    }
+  });
 });
 
 const NO_META: MetaModifiers = { towerDamageMult: 1, biomassMult: 1, heroDamageMult: 1, integrityBonus: 0, bonusSlots: 0 };

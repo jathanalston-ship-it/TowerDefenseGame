@@ -130,6 +130,10 @@ function noise(dur: number, peak: number, filterFreq: number, slideTo?: number):
 
 // ── individual sounds ──
 function sHit(i: number): void { noise(0.06, 0.12, 2600 - i * 300); tone(640 - i * 60, 0.05, 'triangle', 0.06); }
+// Status applications (docs/COMBAT-VISUAL-STANDARDS.md §audio): a wet corruption squelch for
+// DoTs/debuffs landing, a crystalline arrest chime for control — quiet, throttled by the view.
+function sStatusDot(i: number): void { noise(0.09, 0.07, 900 - i * 120, 320); tone(210 - i * 18, 0.09, 'sawtooth', 0.028, 125); }
+function sStatusControl(i: number): void { tone(960 + i * 70, 0.07, 'triangle', 0.045, 1420); tone(480, 0.11, 'sine', 0.028, 640); }
 function sKill(): void {
   const nowS = performance.now() / 1000;
   if (nowS - lastKillAt > 1.0) killStreak = 0;
@@ -498,6 +502,8 @@ export const audio = {
         case 'tfire_wet': for (let i = 0; i < Math.min(3, n); i++) sTfWet(i, vf); break;
         case 'tfire_zap': for (let i = 0; i < Math.min(3, n); i++) sTfZap(i, vf); break;
         case 'tfire_ting': for (let i = 0; i < Math.min(2, n); i++) sTfTing(i, vf); break;
+        case 'status_dot': for (let i = 0; i < Math.min(2, n); i++) sStatusDot(i); break;
+        case 'status_control': for (let i = 0; i < Math.min(2, n); i++) sStatusControl(i); break;
         case 'shred': for (let i = 0; i < Math.min(2, n); i++) sShred(); break;
         case 'breach': sBreach(); break;
         case 'hiveHit': for (let i = 0; i < Math.min(2, n); i++) sHiveHit(); break;

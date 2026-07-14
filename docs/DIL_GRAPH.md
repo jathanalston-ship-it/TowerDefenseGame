@@ -1,6 +1,6 @@
 # DIL_GRAPH.md — the Design Intelligence Layer (GENERATED — `npm run dil -- regen`)
 
-> **The project's brain** (docs/DIL.md). 803 nodes · 1474 edges, built from the live
+> **The project's brain** (docs/DIL.md). 805 nodes · 1478 edges, built from the live
 > registries + curated knowledge (src/dev/dil/). **Query it instead of searching the repo:**
 > `npm run dil -- node <id>` · `affects <id>` · `requires <id>` · `missing <kind> <edge>` ·
 > `checklist tower <kind>` · `find <text>`. Edge kinds are bidirectional (19 kinds).
@@ -30,7 +30,7 @@
 
 ### Audio Index
 
-`music:menu` · `music:combat` · `music:boss` · `music:mega` · `music:victory` · `music:defeat` · `music:events` · `music:cinema` · `system:engine` · `system:cosmetics` · `system:onboarding` · `system:bosses` · `system:mega-bosses` · `system:cutscenes` · `system:living-battlefield` · `system:assimilation`
+`music:menu` · `music:combat` · `music:boss` · `music:mega` · `music:victory` · `music:defeat` · `music:events` · `music:cinema` · `system:engine` · `system:cosmetics` · `system:onboarding` · `system:bosses` · `system:mega-bosses` · `system:cutscenes` · `system:rendering` · `system:living-battlefield` · `system:assimilation`
 
 ### Teaching Index
 
@@ -152,6 +152,8 @@ graph LR
   system_towers["Towers, Stars, Branches, Strain & Codex"] -->|consumes| system_engine["Sim Engine"]
   system_hero_symbiotes["Hero Symbiotes"] -->|modifies| system_engine["Sim Engine"]
   system_hero_symbiotes["Hero Symbiotes"] -->|consumes| system_engine["Sim Engine"]
+  system_engine["Sim Engine"] -->|modifies| system_rendering["Rendering & VFX"]
+  system_rendering["Rendering & VFX"] -->|consumes| system_audio["Audio"]
   system_nemesis["Nemesis & Trophies"] -->|modifies| system_engine["Sim Engine"]
   system_nemesis["Nemesis & Trophies"] -->|consumes| system_mega_bosses["Mega Bosses"]
 ```
@@ -469,6 +471,7 @@ graph LR
   system_idle_harvest["Idle Harvest"] -->|consumes| system_genome_rank["Genome Rank (ultimate mastery ladder)"]
   system_towers["Towers, Stars, Branches, Strain & Codex"] -->|consumes| system_engine["Sim Engine"]
   system_hero_symbiotes["Hero Symbiotes"] -->|consumes| system_engine["Sim Engine"]
+  system_rendering["Rendering & VFX"] -->|consumes| system_audio["Audio"]
   system_nemesis["Nemesis & Trophies"] -->|consumes| system_mega_bosses["Mega Bosses"]
 ```
 
@@ -490,6 +493,7 @@ graph LR
   system_cosmetics["The Wardrobe (Cosmetics)"] -->|modifies| system_rendering["Rendering & VFX"]
   system_currencies["Currencies & Economy Framework"] -->|modifies| system_meta_store["Meta Store & Save"]
   system_hero_symbiotes["Hero Symbiotes"] -->|modifies| system_engine["Sim Engine"]
+  system_engine["Sim Engine"] -->|modifies| system_rendering["Rendering & VFX"]
   system_nemesis["Nemesis & Trophies"] -->|modifies| system_engine["Sim Engine"]
 ```
 
@@ -704,6 +708,7 @@ _at: src/core/game.ts, src/core/combat.ts, src/core/status.ts, src/core/targetin
   - dependsOn → `system:assimilation`
   - provides → `concept:power-score` — emits the TEMPORARY in-run bucket (game.powerEffects)
   - provides → `concept:determinism` — fixed-timestep sim, seeded rng, render/sim wall
+  - modifies → `system:rendering` — STATUS FX CONTRACT (2026-07, COMBAT-VISUAL-STANDARDS.md): every StatusEffectDef carries a MANDATORY fx trait block (hue/glow/pulse/overlay/particles — validator-rejected without it); render/statusFx.ts MERGES all live statuses per body (blended hue, deduped overlays, budgeted emitters) — never draw a bespoke per-status ring in the renderer again
   - requiredBy ← `system:campaign`
   - requiredBy ← `system:infinite`
   - requiredBy ← `system:boss-rush`
@@ -2056,19 +2061,20 @@ _at: src/render/*, src/core/dangerCamera.ts_
 
   - dependsOn → `system:engine`
   - consumes → `concept:determinism` — render-only contract: reads snapshots, NEVER writes sim state
+  - consumes → `system:audio` — statusApplied event (applyEffect, hasListeners-gated ⇒ golden-safe) → GameView plays throttled category cues (status_dot / status_control); the four legacy fast-field statuses do NOT emit — only framework applications
   - requiredBy ← `system:living-battlefield`
   - documentedBy ← `doc:RENDER-PIPELINE.md`
   - documentedBy ← `doc:TOWER-VISUAL-EVOLUTION.md`
   - documentedBy ← `doc:GAME-FEEL.md`
   - documentedBy ← `doc:CAMERA.md`
+  - documentedBy ← `doc:COMBAT-VISUAL-STANDARDS.md`
   - testedBy ← `test:src/core/dangerCamera.test.ts`
   - testedBy ← `test:src/render/assimilationFx.test.ts`
   - testedBy ← `test:src/render/equipmentArt.test.ts`
   - testedBy ← `test:src/render/heroEvolution.test.ts`
   - testedBy ← `test:src/render/heroSymbiotes.test.ts`
   - testedBy ← `test:src/render/infestationMap.test.ts`
-  - testedBy ← `test:src/render/introScenes.test.ts`
-  - _…11 more (query: `npm run dil -- node system:rendering`)_
+  - _…14 more (query: `npm run dil -- node system:rendering`)_
 
 ### `system:living-battlefield` — Living Battlefield
 
@@ -2106,7 +2112,7 @@ _at: src/audio/*, src/ui/MusicDebug.tsx_
   - contains ← `music:cinema`
   - documentedBy ← `doc:MUSIC.md`
   - documentedBy ← `doc:GAME-FEEL.md`
-  - _…5 more (query: `npm run dil -- node system:audio`)_
+  - _…6 more (query: `npm run dil -- node system:audio`)_
 
 ### `system:assimilation` — Assimilation Index
 
@@ -3215,7 +3221,7 @@ _at: site/guides.ts → /guides/prestige/_
 - `achievement:deep_genome` — Collect 25 distinct Gene Cards (the Deep-Strain set and beyond). _(partOf `system:achievements`, rewards `currency:genome-cores`)_
 - `achievement:return_from_deep` — Reach Infinite Depth 40 — the abyss that awakens the Revenant. _(partOf `system:achievements`, rewards `currency:genome-cores`)_
 
-## Documentation (168)
+## Documentation (169)
 
 - `doc:ACCOUNT-LEVEL.md` — project documentation _(documents `system:account-level`)_
 - `doc:ACCOUNTS.md` — project documentation _(documents `system:accounts`)_
@@ -3242,6 +3248,7 @@ _at: site/guides.ts → /guides/prestige/_
 - `doc:CHANGELOG-PIPELINE.md` — project documentation _(documents `system:chronicle`)_
 - `doc:CODEMAP.md` — project documentation _(documents `system:engine`, documents `system:content-infra`)_
 - `doc:COLLECTION.md` — project documentation _(documents `system:collection`)_
+- `doc:COMBAT-VISUAL-STANDARDS.md` — project documentation _(documents `system:rendering`)_
 - `doc:COMMAND-CENTER.md` — project documentation _(documents `system:hub-shell`)_
 - `doc:CONTENT-ROADMAP.md` — project documentation
 - `doc:CONTRACTS.md` — project documentation _(documents `system:contracts`)_
@@ -3386,7 +3393,7 @@ _at: site/guides.ts → /guides/prestige/_
 - `doc:VOWS.md` — project documentation _(documents `system:prestige`)_
 - `doc:WEBSITE.md` — project documentation _(documents `system:field-research`, documents `system:website`)_
 
-## Tests (255)
+## Tests (256)
 
 - `test:src/audio/music.test.ts` — automated validation _(tests `system:audio`)_
 - `test:src/changelog/classify.test.ts` — automated validation _(tests `system:chronicle`)_
@@ -3553,6 +3560,7 @@ _at: site/guides.ts → /guides/prestige/_
 - `test:src/render/mulliganOrganism.test.ts` — automated validation _(tests `system:rendering`, tests `system:mulligans`)_
 - `test:src/render/renderer.test.ts` — automated validation _(tests `system:rendering`)_
 - `test:src/render/starEvolution.test.ts` — automated validation _(tests `system:rendering`)_
+- `test:src/render/statusFx.test.ts` — automated validation _(tests `system:rendering`)_
 - `test:src/render/statusVfx.test.ts` — automated validation _(tests `system:rendering`)_
 - `test:src/render/towerEvolution.test.ts` — automated validation _(tests `system:rendering`)_
 - `test:src/save/envelope.test.ts` — automated validation _(tests `system:meta-store`, tests `system:accounts`)_

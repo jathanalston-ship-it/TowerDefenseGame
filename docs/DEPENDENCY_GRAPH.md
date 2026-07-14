@@ -266,7 +266,7 @@ graph TD
 | **Doctrines** (`doctrines`) | `content-infra` · `gene-cards` · `difficulty` | — | — | — | `docs/DOCTRINES.md` · `docs/MODE-IDENTITY.md` |
 | **Difficulty** (`difficulty`) | `content-infra` | `engine` · `campaign` · `infinite` · `boss-rush` · `doctrines` | — | — | `docs/DIFFICULTY.md` · `docs/DIFFICULTY_DIRECTOR.md` |
 | **Marketing Website** (`website`) | `content-infra` | — | — | — | `docs/WEBSITE.md` · `docs/DEPLOYMENT.md` |
-| **Rendering & VFX** (`rendering`) | `engine` | `living-battlefield` | — | — | `docs/RENDER-PIPELINE.md` · `docs/TOWER-VISUAL-EVOLUTION.md` · `docs/GAME-FEEL.md` · `docs/CAMERA.md` |
+| **Rendering & VFX** (`rendering`) | `engine` | `living-battlefield` | — | — | `docs/RENDER-PIPELINE.md` · `docs/TOWER-VISUAL-EVOLUTION.md` · `docs/GAME-FEEL.md` · `docs/CAMERA.md` · `docs/COMBAT-VISUAL-STANDARDS.md` |
 | **Living Battlefield** (`living-battlefield`) | `rendering` · `engine` · `audio` · `assimilation` | — | — | — | `docs/LIVING-BATTLEFIELD.md` |
 | **Audio** (`audio`) | `engine` | `cutscenes` · `living-battlefield` | — | — | `docs/MUSIC.md` · `docs/GAME-FEEL.md` |
 | **Assimilation Index** (`assimilation`) | — | `engine` · `run-ui` · `living-battlefield` · `devtools` | ⚡ CONSUMES the live run Power Score as its dominant contributor (never feeds Power) | — | `docs/ASSIMILATION.md` |
@@ -289,7 +289,7 @@ graph TD
 - **HUD surfaces:** `Hud` · `Toolbar` · `BuildControls` · `Inspector` · `BuildPanel` · **UI screens:** `GameView`
 - **Collection:** kills/usage feed collection tiers · **Achievements:** —
 - **Localization:** inline English strings (no i18n layer yet — this field enumerates the surface for the day it lands)
-- **Docs to update on change:** `docs/ARCHITECTURE.md` · `docs/CODEMAP.md` · `docs/DESIGN.md` · `docs/CAMPAIGN.md` · `docs/CAMPAIGN-EVENTS.md` · `docs/MODE-IDENTITY.md` · `docs/STAGES.md` · `docs/ENDLESS-SCALING.md` · `docs/BOSS-RUSH.md` · `docs/DAILY-RUN.md` · `docs/HEROES.md` · `docs/HERO-FRAMEWORK.md` · `docs/HERO-EVOLUTION.md` · `docs/HERO-SELECTION.md` · `docs/SLOTS.md` · `docs/NEMESIS.md` · `docs/TUTORIAL.md` · `docs/HELP.md` · `docs/TUTORIAL-AUDIT.md` · `docs/GUIDED-UNLOCKS.md` · `docs/HUD.md` · `docs/READABILITY.md` · `docs/REWARD-PRESENTATION.md` · `docs/BOSS-DESIGN.md` · `docs/MEGA-BOSS.md` · `docs/RENDER-PIPELINE.md` · `docs/TOWER-VISUAL-EVOLUTION.md` · `docs/GAME-FEEL.md` · `docs/CAMERA.md` · `docs/LIVING-BATTLEFIELD.md` · `docs/MUSIC.md`
+- **Docs to update on change:** `docs/ARCHITECTURE.md` · `docs/CODEMAP.md` · `docs/DESIGN.md` · `docs/CAMPAIGN.md` · `docs/CAMPAIGN-EVENTS.md` · `docs/MODE-IDENTITY.md` · `docs/STAGES.md` · `docs/ENDLESS-SCALING.md` · `docs/BOSS-RUSH.md` · `docs/DAILY-RUN.md` · `docs/HEROES.md` · `docs/HERO-FRAMEWORK.md` · `docs/HERO-EVOLUTION.md` · `docs/HERO-SELECTION.md` · `docs/SLOTS.md` · `docs/NEMESIS.md` · `docs/TUTORIAL.md` · `docs/HELP.md` · `docs/TUTORIAL-AUDIT.md` · `docs/GUIDED-UNLOCKS.md` · `docs/HUD.md` · `docs/READABILITY.md` · `docs/REWARD-PRESENTATION.md` · `docs/BOSS-DESIGN.md` · `docs/MEGA-BOSS.md` · `docs/RENDER-PIPELINE.md` · `docs/TOWER-VISUAL-EVOLUTION.md` · `docs/GAME-FEEL.md` · `docs/CAMERA.md` · `docs/COMBAT-VISUAL-STANDARDS.md` · `docs/LIVING-BATTLEFIELD.md` · `docs/MUSIC.md`
 
 ### Content Infrastructure (`content-infra`)
 
@@ -1219,7 +1219,7 @@ graph TD
 - **HUD surfaces:** `the battlefield itself` · **UI screens:** —
 - **Collection:** — · **Achievements:** —
 - **Localization:** no player-facing strings
-- **Docs to update on change:** `docs/RENDER-PIPELINE.md` · `docs/TOWER-VISUAL-EVOLUTION.md` · `docs/GAME-FEEL.md` · `docs/CAMERA.md` · `docs/LIVING-BATTLEFIELD.md`
+- **Docs to update on change:** `docs/RENDER-PIPELINE.md` · `docs/TOWER-VISUAL-EVOLUTION.md` · `docs/GAME-FEEL.md` · `docs/CAMERA.md` · `docs/COMBAT-VISUAL-STANDARDS.md` · `docs/LIVING-BATTLEFIELD.md`
 
 ### Living Battlefield (`living-battlefield`)
 

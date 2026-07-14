@@ -41,6 +41,28 @@ export const TOWER_FORM: Record<TowerKind, TowerForm> = {
   lancet: 'barrel',   // a long harpoon rail, drawn and loosed
 };
 
+// ── ATTACK ANTICIPATION personality (docs/COMBAT-VISUAL-STANDARDS.md §towers) ────────────────────
+// How each body form WINDS UP as its next shot nears: sx/sy scale the silhouette at full windup
+// (positive sx + negative sy = a compressing crouch; negative sx + positive sy = a rising flex),
+// `glow` charges the muzzle. Keyed by FORM, not kind, so every future tower inherits a
+// personality the moment it picks a body — no per-tower authoring at the 100-tower target.
+export interface AnticipationProfile { sx: number; sy: number; glow: number }
+
+export const FORM_ANTICIPATION: Record<TowerForm, AnticipationProfile> = {
+  barrel: { sx: -0.03, sy: 0.06, glow: 0.3 }, // the spike-barrel flexes taller, coiling to spit
+  cannon: { sx: 0.08, sy: -0.12, glow: 0.35 }, // the mortar tube compresses before the lob
+  core: { sx: 0.04, sy: 0.04, glow: 0.2 }, // the reactor swells with the pulse it's charging
+  nest: { sx: 0.05, sy: -0.05, glow: 0.2 }, // the clutch churns tighter before a birth
+  monolith: { sx: -0.04, sy: 0.05, glow: 0.5 }, // the totem draws up, tip-light gathering
+  crystal: { sx: 0, sy: 0, glow: 0.55 }, // the gem only brightens — stone doesn't strain
+  maw: { sx: 0.07, sy: -0.09, glow: 0.15 }, // the mouth gathers into a crouch before gaping
+  lens: { sx: 0, sy: 0, glow: 0.45 }, // emitters charge light, not muscle
+  pod: { sx: 0.06, sy: -0.08, glow: 0.25 }, // the seed-pod squeezes down before venting
+  antenna: { sx: -0.02, sy: 0.04, glow: 0.5 }, // the spire stiffens, charge racing to the tip
+  gatling: { sx: 0.03, sy: -0.04, glow: 0.3 }, // the autocannon hunkers into its mount
+  singularity: { sx: 0, sy: 0, glow: 0.5 }, // the void anchor only deepens — nothing to flex
+};
+
 // ── colour: one memoized helper. `lit`>0 lightens toward white, <0 darkens; `a`<1 ⇒ rgba. ────────
 const triCache = new Map<string, [number, number, number]>();
 function tri(hex: string): [number, number, number] {

@@ -991,3 +991,43 @@ would be one registry row; LiveOps idle events can ride the BLOOM seam.
 value from a deliberately weak lane (documented, accepted); container drops need slice ≥ 175
 core-eq so they only appear at deep rates/caps or on BLOOMs (intended rarity); the ceremony
 suggestion ignores multi-node strategy (cheapest-ungated only).
+
+## Compressed system summary — In-Run Gameplay Feel Pass (docs/COMBAT-VISUAL-STANDARDS.md)
+
+**Architecture.** Feel work is RENDER-SIDE by contract: the renderer reads `RenderState`
+snapshots, all animation is time/id-keyed (no rng, no state the sim can see) ⇒ golden-safe by
+construction. Sim-side additions are DATA only (`StatusEffectDef.fx` trait blocks) plus one
+`hasListeners`-gated event (`statusApplied`). Five layers shipped: (1) the **Status Effect
+Visualization System** — every status authors traits (hue/glow/pulseSpeed/overlay/particles/
+distortion/jitter); `render/statusFx.ts` MERGES all live statuses per body into one blended
+effect (weighted hue blend, deduped overlays, budgeted emitters) so combinations compose
+procedurally — poison+burn, freeze+shock, anything future — with intensity scaling off
+stacks/remaining; (2) **hit confirmation** — motion-tracker `hitFlash` rising edges burst
+class-tinted sparks (pool 90, 120 ms/body throttle) over the existing flinch/knock; (3)
+**status-flavored deaths** — the dominant affliction at death picks the echo (frozen SHATTER /
+burning embers / spore burst / corrosive melt); (4) **tower anticipation** — `FORM_ANTICIPATION`
+(keyed by BODY FORM, so all future towers inherit) winds the silhouette up + gathers muzzle
+charge across the cooldown's last 30%; (5) **hero ability cues** — cooldown-edge tracker draws
+activation bursts, ready flares, and a standing ready-glint. Projectile heads/trails now scale
+log-capped (×1.4) with shot damage.
+
+**Public APIs.** `mergeStatusFx(enemyView, quality) → MergedStatusFx | null`;
+`drawStatusFxUnder/Over`, `statusBodyTransform`, `deathFlavorOf` (render/statusFx.ts);
+`FORM_ANTICIPATION` (render/towerForms.ts); `STATUS_EFFECTS[*].fx` traits (core/status.ts);
+`statusApplied` event → `status_dot`/`status_control` cues (GameView, 160 ms throttle).
+
+**Extension points.** A new status = ONE `fx` block — merge, synergy blending, intensity,
+body animation, death flavor and the category audio cue all ride free. A new tower form = one
+`FORM_ANTICIPATION` row. New particle/overlay grammar = one enum member + one painter case.
+
+**Important assumptions.** Quality tiers decided once per frame (full < 120 enemies, reduced
+< 220, suppressed past LOD); bosses/elites are LOD-immune. The Mark/Resonance charge rings
+stay bespoke (test-pinned reaction fuel). Legacy fast-field statuses render through the same
+registry traits but do NOT emit audio events (only framework `applyEffect` does).
+
+**Known limitations.** Heroes/minions don't carry framework statuses (nothing to draw there
+yet); `distortion` is a body-scale shimmer, not a shader warp (Canvas2D); status visuals on
+the flat-shape LOD tier are intentionally suppressed.
+
+**Validation contract.** `statusRegistry.validate` REJECTS any status without a complete `fx`
+block — incomplete combat content fails dev boot + `status.test.ts`.

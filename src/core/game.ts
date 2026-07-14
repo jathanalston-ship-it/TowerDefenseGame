@@ -6385,6 +6385,12 @@ export class Game {
     if (!d) return false;
     (e.statuses ??= []);
     applyStatusInstance(e.statuses, d, amount);
+    // Presentation seam (docs/COMBAT-VISUAL-STANDARDS.md §audio): the view layer plays a
+    // throttled category cue per application. hasListeners-gated ⇒ zero work, no payload,
+    // byte-identical goldens on the subscriber-less path.
+    if (gameEvents.hasListeners('statusApplied')) {
+      gameEvents.emit('statusApplied', { id, category: d.category, x: e.x, y: e.y });
+    }
     return true;
   }
 

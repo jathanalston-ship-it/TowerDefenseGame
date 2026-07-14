@@ -30,7 +30,7 @@ import { THEME, ENEMY_SHAPE, ENEMY_TIER, ENEMY_BODY, ENEMY_VARIANT, hexRgb, rgba
 import { drawEnemyBody } from './enemyForms';
 import type { BodyForm } from './enemyForms';
 import { ingestDeaths, updateGore, drawGoreFloor, drawGorePieces, goreThrob } from './gore';
-import { drawTowerForm } from './towerForms';
+import { drawTowerForm, FORM_ANTICIPATION, TOWER_FORM } from './towerForms';
 import {
   chevronDown,
   drawShape,
@@ -58,6 +58,8 @@ import { drawLivingBattlefield, drawLivingBattlefieldAmbient } from './livingBat
 import type { Assimilation } from './livingBattlefield';
 import { drawMegaBody, drawMegaOrgans, drawMegaShots, drawMegaVignette } from './megaboss';
 import { bossColorOf, drawBossBody, drawBossCrown } from './bossChassis';
+import { deathFlavorOf, drawStatusFxOver, drawStatusFxUnder, mergeStatusFx, statusBodyTransform } from './statusFx';
+import type { DeathFlavor, StatusFxQuality } from './statusFx';
 import { dangerCurve } from '../core/dangerCamera';
 import { GRUDGE_LADDER } from '../core/nemesis';
 import type { CosmeticTheme } from '../core/cosmetics';
@@ -380,10 +382,11 @@ export function drawGame(
   updateGore(t);
   drawGoreFloor(ctx);
   drawOverchargeLinks(ctx, rs);
+  const combat = rs.phase === 'wave' && rs.enemies.length > 0; // anticipation only makes sense with prey
   for (const tw of rs.towers) {
     const fed = goreThrob(`t${tw.id}`); // XP shards just coalesced in ⇒ a satisfying feed-throb
     if (fed > 0.01) { ctx.save(); ctx.translate(tw.x, tw.y); const s = 1 + fed * 0.13; ctx.scale(s, s); ctx.translate(-tw.x, -tw.y); }
-    drawTower(ctx, tw, t, cosmeticTiers[tw.kind] ?? 0, tw.id === rs.selectedPlacedId, starTiers[tw.kind] ?? 0, adaptTiers[tw.kind] ?? 0, towerSkins[tw.kind], mulligans[tw.kind]);
+    drawTower(ctx, tw, t, cosmeticTiers[tw.kind] ?? 0, tw.id === rs.selectedPlacedId, starTiers[tw.kind] ?? 0, adaptTiers[tw.kind] ?? 0, towerSkins[tw.kind], mulligans[tw.kind], combat);
     if (fed > 0.01) ctx.restore();
   }
   drawLandingImpacts(ctx, rs, t); // relocation landing impact
@@ -394,9 +397,14 @@ export function drawGame(
 
   // LOD: drop per-enemy embellishments when the swarm is huge (perf headroom).
   const detail = rs.enemies.length < PERF.lodEnemyCount;
-  updateEnemyMotion(rs.enemies, t); // per-id velocity + spawn age + death reaping (presentation only)
+  // Status-FX quality tier (docs/COMBAT-VISUAL-STANDARDS.md §effect management): full below
+  // statusFullDetail, reduced in the busy band, suppressed past the LOD line. Bosses/elites
+  // stay full-quality regardless (priority rendering — the important reads never degrade).
+  const fxQ: StatusFxQuality = !detail ? 0 : rs.enemies.length < PERF.statusFullDetail ? 2 : 1;
+  updateEnemyMotion(rs.enemies, t, detail); // per-id velocity + spawn age + hit edges + death reaping (presentation only)
   if (detail) drawDeathEchoes(ctx, t); // fading crumples UNDER the living bodies
-  for (const e of rs.enemies) drawEnemy(ctx, e, detail, t);
+  for (const e of rs.enemies) drawEnemy(ctx, e, detail, t, fxQ);
+  drawImpactSparks(ctx, t); // hit-confirmation starbursts OVER the bodies they struck
   drawGorePieces(ctx); // gibs + juice + coalescing streams, OVER the bodies
 
   // MEGA weak-point organs + raid-fire tracers — over enemies (they are the priority targets).
@@ -1091,7 +1099,7 @@ function drawCosmeticAura(ctx: CanvasRenderingContext2D, x: number, y: number, r
 /** Per-kind resolved Mulligan the renderer needs to draw its organism (docs/MULLIGANS.md). */
 export interface MulliganRender { resolved: ResolvedMulligan; visualSeed: number; animSeed: number; projectile?: MulliganProjectileSkin | null }
 
-function drawTower(ctx: CanvasRenderingContext2D, tw: RenderState['towers'][number], now: number, tier = 0, selected = false, stars = 0, adaptTier = 0, skin?: CosmeticTheme, mulligan?: MulliganRender): void {
+function drawTower(ctx: CanvasRenderingContext2D, tw: RenderState['towers'][number], now: number, tier = 0, selected = false, stars = 0, adaptTier = 0, skin?: CosmeticTheme, mulligan?: MulliganRender, combat = false): void {
   const def = TOWER_DEFS[tw.kind];
   // Phenotype re-expression (docs/COSMETICS.md): the equipped skin's primary replaces the
   // def color EVERYWHERE this body paints; absent skin ⇒ the exact pre-cosmetics look.
@@ -1168,6 +1176,24 @@ function drawTower(ctx: CanvasRenderingContext2D, tw: RenderState['towers'][numb
     drawSiphonBeam(ctx, tw.x, tw.y - r * 0.2, tw.beamX, tw.beamY, tw.beamHeat ?? 0, now, kcolor, tw.id);
   }
 
+  // ATTACK ANTICIPATION (docs/COMBAT-VISUAL-STANDARDS.md §towers): across the final stretch of
+  // the cooldown the organism visibly WINDS UP per its form's personality — the mortar tube
+  // compresses, the needler flexes taller, emitters gather muzzle light — so the release
+  // (recoil + flash) lands as a payoff. Idle towers (prep / no prey) and supports stay still.
+  const anticip = combat && def.fireInterval > 0
+    ? Math.pow(Math.max(0, 1 - tw.cooldown / (def.fireInterval * 0.3)), 2) : 0;
+  const pers = FORM_ANTICIPATION[TOWER_FORM[tw.kind]];
+  if (anticip > 0.02 && pers.glow > 0) {
+    glowDisc(ctx, tw.x, tw.y - r * 0.8, r * (0.3 + anticip * 0.55), rgba(hexRgb(skin?.glow ?? kcolor), pers.glow * anticip * 0.6));
+  }
+  const strained = anticip > 0.02 && (pers.sx !== 0 || pers.sy !== 0);
+  if (strained) {
+    ctx.save();
+    ctx.translate(tw.x, tw.y + r * Math.max(0, -pers.sy) * anticip * 0.6); // a crouch sinks into the socket
+    ctx.scale(1 + pers.sx * anticip, 1 + pers.sy * anticip);
+    ctx.translate(-tw.x, -tw.y);
+  }
+
   // The procedural TURRET body (render/towerForms.ts) — a rooted structure + firing apparatus that
   // recoils on `fresh` and idles with `breathe`. Replaces the flat placeholder shape; the per-kind
   // organs + all evolution layers below still draw over it.
@@ -1240,6 +1266,7 @@ function drawTower(ctx: CanvasRenderingContext2D, tw: RenderState['towers'][numb
     glowDisc(ctx, ix, iy, r * (0.34 + heat * 0.16) * breathe, kcolor);
     drawShape(ctx, 'circle', ix, iy, r * 0.16 * breathe, 'rgba(10,6,10,0.85)'); // the drinking pupil
   }
+  if (strained) ctx.restore(); // end of the anticipation wind-up transform
 
   // Mastery cosmetic: a veteran "halo" that grows with the tower's mastery RANK (MASTERY.md
   // visual mutations). Pure cosmetic — tier 0 (a fresh save) renders identically.
@@ -1489,8 +1516,12 @@ function drawProjectile(ctx: CanvasRenderingContext2D, p: RenderState['projectil
   const len = Math.hypot(ux, uy) || 1;
   ux /= len;
   uy /= len;
-  const head = splash ? 3.7 : parasite ? 2.9 : 2.4;
-  const tlen = splash ? 15 : parasite ? 9 : 13;
+  // POWER SCALING (docs/COMBAT-VISUAL-STANDARDS.md §projectiles): heavier shots read heavier —
+  // a log-capped size ramp off the shot's damage (12 dmg ⇒ ×1, ~10× ⇒ ×1.25, hard cap ×1.4),
+  // so account power subtly thickens the fire without ever bloating the battlefield.
+  const pw = Math.min(1.4, 1 + Math.max(0, Math.log10(Math.max(1, p.damage / 12))) * 0.25);
+  const head = (splash ? 3.7 : parasite ? 2.9 : 2.4) * pw;
+  const tlen = (splash ? 15 : parasite ? 9 : 13) * (0.7 + 0.3 * pw);
 
   // A tapered COMET trail (fading segments, fat near the head → thin) reads as speed +
   // energy far better than a single flat line; a faint wide under-glow softens the streak.
@@ -1685,50 +1716,145 @@ function drawEnemyShells(ctx: CanvasRenderingContext2D, rs: RenderState): void {
 // ── Enemy MOTION tracker (presentation-only, like heroTrail) — per-id smoothed screen velocity +
 //    spawn age, so bodies BANK/BOB as they move, EMERGE on spawn, and leave a crumple ECHO on death.
 //    Keyed by enemy id, pruned each frame. Never read by the sim (golden-safe). ─────────────────────
-interface EnemyMotion { x: number; y: number; vx: number; vy: number; spawnT: number; seen: number; kind: EnemyKind }
+interface EnemyMotion { x: number; y: number; vx: number; vy: number; spawnT: number; seen: number; kind: EnemyKind; hitF: number; sparkT: number; flavor: DeathFlavor | null; flavorHue: string | null }
 const enemyMotion = new Map<number, EnemyMotion>();
-interface DeathEcho { form: BodyForm; x: number; y: number; r: number; color: string; seed: number; phase: number; t0: number }
+interface DeathEcho { form: BodyForm; x: number; y: number; r: number; color: string; seed: number; phase: number; t0: number; flavor: DeathFlavor | null; flavorHue: string | null }
 const deathEchoes: DeathEcho[] = [];
+// HIT CONFIRMATION sparks (docs/GAME-FEEL.md P0): a landed hit bursts class-tinted sparks at
+// contact. Render-local pool (the sim spawns no hit particles) — capped, stateless to draw.
+interface ImpactSpark { x: number; y: number; hue: string; t0: number; seed: number }
+const impactSparks: ImpactSpark[] = [];
+const SPARK_T = 0.24; // seconds a hit spark lives
+const SPARK_GAP = 0.12; // per-enemy throttle — a machine-gunned body doesn't strobe
 let motionFrame = 0;
 const EMERGE_T = 0.55; // seconds for the archetype BIRTH intro (enemyForms drawSpawnIntro) to play out
 const ECHO_T = 0.3; // seconds a death crumple lingers
+const FLAVOR_ECHO_T = 0.45; // status-flavored deaths (shatter/embers/…) play a touch longer
 
 /** Refresh the tracker from this frame's live enemies; reap the vanished into death echoes. */
-function updateEnemyMotion(enemies: RenderState['enemies'], t: number): void {
+function updateEnemyMotion(enemies: RenderState['enemies'], t: number, detail: boolean): void {
   motionFrame++;
   for (const e of enemies) {
     if (e.boss) continue; // framework bosses use the chassis renderer, not body-forms
     const m = enemyMotion.get(e.id);
-    if (!m) { enemyMotion.set(e.id, { x: e.x, y: e.y, vx: 0, vy: 0, spawnT: t, seen: motionFrame, kind: e.kind }); continue; }
+    if (!m) { enemyMotion.set(e.id, { x: e.x, y: e.y, vx: 0, vy: 0, spawnT: t, seen: motionFrame, kind: e.kind, hitF: e.hitFlash, sparkT: 0, flavor: null, flavorHue: null }); continue; }
     const dx = e.x - m.x, dy = e.y - m.y;
     if (dx * dx + dy * dy > 40000) { // >200px jump ⇒ id reuse (new run) or a blink ⇒ re-emerge, not velocity
       m.x = e.x; m.y = e.y; m.vx = 0; m.vy = 0; m.spawnT = t; m.kind = e.kind; m.seen = motionFrame; continue;
     }
     m.vx += (dx - m.vx) * 0.35; m.vy += (dy - m.vy) * 0.35; // smoothed per-frame delta
     m.x = e.x; m.y = e.y; m.seen = motionFrame;
+    // A RISING hitFlash edge = a hit just landed — burst sparks tinted by the striking tower's
+    // class (throttled per body, LOD-gated, pool-capped: heavy fire stays readable).
+    if (detail && e.hitFlash > m.hitF + 0.005 && t - m.sparkT > SPARK_GAP && impactSparks.length < 90) {
+      impactSparks.push({ x: e.x, y: e.y, hue: e.lastHitKind ? TOWER_DEFS[e.lastHitKind].color : '#cfe8ff', t0: t, seed: e.id * 31 + motionFrame });
+      m.sparkT = t;
+    }
+    m.hitF = e.hitFlash;
+    // Death-flavor snapshot: remember the dominant affliction so the DEATH can react to it
+    // (frozen shatter / burning collapse / spore burst / corrosive dissolve).
+    const fl = deathFlavorOf(e);
+    m.flavor = fl?.flavor ?? null;
+    m.flavorHue = fl?.hue ?? null;
   }
   for (const [id, m] of enemyMotion) {
     if (m.seen === motionFrame) continue;
     if (deathEchoes.length < 48) { // a vanished enemy died — leave a fading crumple
       const def = themedEnemyDef(m.kind);
-      deathEchoes.push({ form: ENEMY_BODY[m.kind], x: m.x, y: m.y, r: def.radius, color: def.color, seed: ENEMY_VARIANT[m.kind], phase: id, t0: t });
+      deathEchoes.push({ form: ENEMY_BODY[m.kind], x: m.x, y: m.y, r: def.radius, color: def.color, seed: ENEMY_VARIANT[m.kind], phase: id, t0: t, flavor: m.flavor, flavorHue: m.flavorHue });
     }
     enemyMotion.delete(id);
   }
 }
 
-/** Draw the death crumples — the body splays + squashes flat + fades over ECHO_T. */
+/** Draw + reap the live hit sparks — a brief radial starburst at each contact point. */
+function drawImpactSparks(ctx: CanvasRenderingContext2D, t: number): void {
+  for (let i = impactSparks.length - 1; i >= 0; i--) {
+    const s = impactSparks[i];
+    const k = (t - s.t0) / SPARK_T;
+    if (k >= 1 || k < 0) { impactSparks.splice(i, 1); continue; }
+    const c = hexRgb(s.hue);
+    ctx.strokeStyle = rgba(c, (1 - k) * 0.85);
+    ctx.lineWidth = 1.4;
+    ctx.beginPath();
+    for (let j = 0; j < 4; j++) {
+      const a = hash01(s.seed + j * 17) * Math.PI * 2;
+      const d0 = 3 + k * 13;
+      const d1 = d0 + 4.5 * (1 - k);
+      ctx.moveTo(s.x + Math.cos(a) * d0, s.y + Math.sin(a) * d0);
+      ctx.lineTo(s.x + Math.cos(a) * d1, s.y + Math.sin(a) * d1);
+    }
+    ctx.stroke();
+  }
+}
+
+/** Draw the death crumples — the body splays + squashes flat + fades over ECHO_T. A body that
+ *  died under a dominant status dies IN CHARACTER (docs/COMBAT-VISUAL-STANDARDS.md §deaths):
+ *  frozen bodies burst into shards instead of crumpling; burning ones shed rising embers;
+ *  infested ones puff spores; corroded ones melt flat under falling droplets. */
 function drawDeathEchoes(ctx: CanvasRenderingContext2D, t: number): void {
   for (let i = deathEchoes.length - 1; i >= 0; i--) {
     const d = deathEchoes[i];
-    const age = (t - d.t0) / ECHO_T;
+    const dur = d.flavor ? FLAVOR_ECHO_T : ECHO_T;
+    const age = (t - d.t0) / dur;
     if (age >= 1 || age < 0) { deathEchoes.splice(i, 1); continue; }
+    const hue = d.flavorHue ? hexRgb(d.flavorHue) : null;
+    if (d.flavor === 'shatter' && hue) {
+      // FROZEN SHATTER: no crumple — the casing explodes into flying ice shards.
+      ctx.fillStyle = rgba(hue, (1 - age) * 0.9);
+      for (let j = 0; j < 6; j++) {
+        const a = hash01(d.phase * 7 + j * 13) * Math.PI * 2;
+        const fly = d.r * (0.4 + age * 2.2) * (0.6 + hash01(d.phase + j) * 0.7);
+        const sx = d.x + Math.cos(a) * fly;
+        const sy = d.y + Math.sin(a) * fly + age * age * d.r * 0.8; // shards arc down
+        const sz = (2.2 + hash01(j * 29 + d.phase) * 2) * (1 - age * 0.5);
+        ctx.beginPath();
+        ctx.moveTo(sx, sy - sz);
+        ctx.lineTo(sx + sz * 0.7, sy);
+        ctx.lineTo(sx, sy + sz);
+        ctx.lineTo(sx - sz * 0.7, sy);
+        ctx.closePath();
+        ctx.fill();
+      }
+      ring(ctx, d.x, d.y, d.r * (0.5 + age * 1.6), rgba(hue, (1 - age) * 0.6), 1.5);
+      continue;
+    }
     ctx.save();
     ctx.globalAlpha = (1 - age) * 0.85;
     ctx.translate(d.x, d.y + age * d.r * 0.4); // sink into the floor
-    ctx.scale(1 + age * 0.35, 1 - age * 0.55); // splay wide + squash flat
+    const melt = d.flavor === 'dissolve' ? 0.75 : 0.55; // corrosion flattens harder
+    ctx.scale(1 + age * 0.35, 1 - age * melt); // splay wide + squash flat
     drawEnemyBody(ctx, d.form, 0, 0, d.r, d.color, t, { seed: d.seed, phase: d.phase, rim: THEME.enemy.rim });
     ctx.restore();
+    if (hue && d.flavor === 'embers') {
+      // BURNING COLLAPSE: embers lift off the settling body.
+      for (let j = 0; j < 3; j++) {
+        const h = hash01(d.phase * 5 + j * 11);
+        ctx.fillStyle = rgba(hue, (1 - age) * 0.7);
+        ctx.beginPath();
+        ctx.arc(d.x + (h - 0.5) * d.r * 1.3, d.y - age * (d.r + 10) * (0.6 + h), 1.5 * (1 - age * 0.5), 0, Math.PI * 2);
+        ctx.fill();
+      }
+    } else if (hue && d.flavor === 'spores') {
+      // SPORE BURST: the infestation escapes the host in an expanding drift.
+      for (let j = 0; j < 4; j++) {
+        const a = hash01(d.phase * 3 + j * 17) * Math.PI * 2;
+        const fly = d.r * (0.3 + age * 1.5);
+        ctx.fillStyle = rgba(hue, (1 - age) * 0.6);
+        ctx.beginPath();
+        ctx.arc(d.x + Math.cos(a) * fly, d.y + Math.sin(a) * fly - age * 6, 1.6 + age * 1.2, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    } else if (hue && d.flavor === 'dissolve') {
+      // CORROSIVE DISSOLVE: acid beads off the melting body.
+      for (let j = 0; j < 3; j++) {
+        const h = hash01(d.phase * 9 + j * 23);
+        ctx.fillStyle = rgba(hue, (1 - age) * 0.65);
+        ctx.beginPath();
+        ctx.arc(d.x + (h - 0.5) * d.r * 1.5, d.y + d.r * 0.3 + age * (6 + h * 6), 1.3, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
   }
   ctx.globalAlpha = 1;
 }
@@ -1738,6 +1864,7 @@ function drawEnemy(
   e: RenderState['enemies'][number],
   detail: boolean,
   t: number,
+  fxQ: StatusFxQuality = 2,
 ): void {
   const def = themedEnemyDef(e.kind); // Wardrobe enemy reskin: color-swapped clone, else the base def
   const r = def.radius;
@@ -1906,6 +2033,22 @@ function drawEnemy(
     }
   }
 
+  // ── MERGED STATUS PRESENTATION (render/statusFx.ts): every live status — the legacy fast
+  //    fields AND the universal framework list — blends into ONE coherent effect: an under-glow
+  //    beneath the body, a control-state transform ON it (fear trembles, burn shimmers), and
+  //    overlays + budgeted particles over it. Bosses/elites keep full quality regardless of
+  //    battlefield load (priority rendering). Null on an untouched body (the common path). ──
+  const eFxQ: StatusFxQuality = tier === 'boss' || tier === 'elite' || e.elite ? 2 : fxQ;
+  const sfx = detail ? mergeStatusFx(e, eFxQ) : null;
+  if (sfx) drawStatusFxUnder(ctx, sfx, e.x, drawY, r, t, e.id);
+  const bodyXf = sfx ? statusBodyTransform(sfx, t, e.id) : null;
+  if (bodyXf) {
+    ctx.save();
+    ctx.translate(e.x + bodyXf.dx, drawY + bodyXf.dy);
+    ctx.scale(bodyXf.sx, bodyXf.sy);
+    ctx.translate(-e.x, -drawY);
+  }
+
   // body + a tier-weighted rim so it reads as a solid, threat-ranked unit. A framework boss
   // renders its CHASSIS body plan (render/bossChassis.ts — five silhouettes, own palette,
   // per-def markings) instead of the borrowed tyrant disc; at low LOD it stays a cheap flat
@@ -1927,6 +2070,7 @@ function drawEnemy(
     });
   }
   else drawShape(ctx, shape, e.x, drawY, r, e.boss ? bcol : def.color);
+  if (bodyXf) ctx.restore();
   if (detail) {
 
     // Shield bubble — a front-arc barrier facing the descent, alpha by remaining charge;
@@ -2016,14 +2160,9 @@ function drawEnemy(
   if (detail) {
     // white pop on taking a hit (FX.hitFlash ≈ 0.09s → normalize ×9 for alpha)
     if (e.hitFlash > 0) drawShape(ctx, shape, e.x, drawY, r, rgba(THEME.enemy.hitFlash, Math.min(0.8, e.hitFlash * 9)));
-    if (e.corrosion > 0) ring(ctx, e.x, drawY, r + 2, THEME.enemy.corrosion, 2);
-    if (e.infection > 0) {
-      ring(ctx, e.x, drawY, r + 3, rgba(THEME.enemy.infection, Math.min(0.9, 0.3 + e.infection * 0.07)), 2);
-    }
-    if (e.disrupt > 0) ring(ctx, e.x, drawY, r + 5, rgba(THEME.enemy.disrupt, 0.7), 1.5, [3, 3]);
-    if (e.fracture > 0) {
-      ring(ctx, e.x, drawY, r + 4, rgba(THEME.enemy.fracture, Math.min(0.9, 0.25 + e.fracture * 0.12)), 2);
-    }
+    // Status overlays + particles — the merged framework pass (replaces the old per-status
+    // rings: corrosion/infection/disrupt/fracture now blend through their registry fx traits).
+    if (sfx) drawStatusFxOver(ctx, sfx, e.x, drawY, r, t, e.id, eFxQ);
     // Beam-tower "charge" statuses — tight inner rings that intensify with stacks (reaction fuel:
     // Mark from the Marrow Siphon, Resonance from the Resonance Coil). Neither appears on the golden path.
     if (e.mark > 0) ring(ctx, e.x, drawY, r + 1, rgba(THEME.enemy.mark, Math.min(0.9, 0.35 + e.mark * 0.09)), 2);
@@ -2058,6 +2197,12 @@ function drawEnemy(
 
 // Presentation-only afterimage buffer (primary hero) — never read by sim.
 const heroTrail: { x: number; y: number }[] = [];
+// HERO ABILITY feedback tracker (docs/COMBAT-VISUAL-STANDARDS.md §heroes) — render-local, per
+// hero kind: a cooldown JUMP = the ability just fired (activation burst); a fall to 0 = it came
+// off cooldown (ready flare + a standing ready-glint). Never read by the sim (golden-safe).
+const heroAbilityFx = new Map<string, { lastCd: number; castT: number; readyT: number }>();
+const CAST_FX_T = 0.5; // seconds the activation burst plays
+const READY_FX_T = 0.6; // seconds the ready flare plays
 // Absorb-shield barrier tint (matches the status framework's Shield buff color).
 const SHIELD_RGB = hexRgb('#9ad0ff');
 const SELECT_RGB = hexRgb('#fff4c2'); // hero selection ring — warm white-gold, distinct from class tints
@@ -2124,6 +2269,15 @@ function drawHero(ctx: CanvasRenderingContext2D, rs: RenderState, h: RenderState
   const shape = HERO_SHAPE[h.kind];
   const down = h.down;
 
+  // Ability edge tracking: a cooldown JUMP = just cast; a fall to 0 = just came ready. Stale
+  // marks from a previous run sit in the future after the clock resets and self-clear.
+  let abFx = heroAbilityFx.get(h.kind);
+  if (!abFx) { abFx = { lastCd: h.abilityCd, castT: -10, readyT: -10 }; heroAbilityFx.set(h.kind, abFx); }
+  if (abFx.castT > t || abFx.readyT > t) { abFx.castT = -10; abFx.readyT = -10; }
+  if (h.abilityCd > abFx.lastCd + 0.5) abFx.castT = t;
+  else if (abFx.lastCd > 0 && h.abilityCd <= 0) abFx.readyT = t;
+  abFx.lastCd = h.abilityCd;
+
   // Shepherd's vital aura / Overseer's disruption field — show the role's reach.
   if (!down && def.pulseRadius > 0) {
     const reach = def.pulseRadius * pulse(t, h.kind === 'overseer' ? 2.4 : 1.6, 0.95, 1.05);
@@ -2183,6 +2337,25 @@ function drawHero(ctx: CanvasRenderingContext2D, rs: RenderState, h: RenderState
     ring(ctx, h.x, h.y, 19 + pulse(t, 3, 0, 2), rgba(tint, pulse(t, 3, 0.22, 0.55)), 1.5);
     // Absorb-shield (Shepherd's Bloom): a cyan barrier ring while the pool holds.
     if (h.shield > 0) ring(ctx, h.x, h.y, 21 + pulse(t, 4, 0, 1.5), rgba(SHIELD_RGB, pulse(t, 4, 0.4, 0.75)), 2);
+    // ── ABILITY FEEDBACK (docs/COMBAT-VISUAL-STANDARDS.md §heroes) ──
+    // Activation burst: the cast is UNMISSABLE — a class-tinted double shockwave + flash.
+    const castAge = (t - abFx.castT) / CAST_FX_T;
+    if (castAge >= 0 && castAge < 1) {
+      const k = easeOutCubic(castAge);
+      ring(ctx, h.x, h.y, 10 + k * 34, rgba(tint, (1 - castAge) * 0.85), 2.5 - castAge * 1.5);
+      ring(ctx, h.x, h.y, 6 + k * 22, rgba('255, 255, 255', (1 - castAge) * 0.5), 1.2);
+      glowDisc(ctx, h.x, h.y, 18 * (1 - castAge * 0.5), rgba(tint, (1 - castAge) * 0.4));
+    }
+    // Cooldown-complete flare: a rising spark + ring the moment the ability comes back…
+    const readyAge = (t - abFx.readyT) / READY_FX_T;
+    if (readyAge >= 0 && readyAge < 1) {
+      drawShape(ctx, 'diamond', h.x, h.y - 20 - readyAge * 10, 3.5 * (1 - readyAge * 0.4), rgba(tint, (1 - readyAge) * 0.85));
+      ring(ctx, h.x, h.y, 16 + easeOutCubic(readyAge) * 10, rgba(tint, (1 - readyAge) * 0.5), 1.5);
+    }
+    // …and a quiet standing glint above the head while it stays ready (findable in a swarm).
+    if (h.abilityCd <= 0) {
+      drawShape(ctx, 'diamond', h.x, h.y - 21 + Math.sin(t * 2.4) * 1.2, 2 + 0.7 * pulse(t, 3, 0, 1), rgba(tint, 0.45 + 0.3 * pulse(t, 3, 0, 1)));
+    }
     // Mastery cosmetic: a veteran halo + orbiting rank pips, tier = the hero's mastery rank
     // (MASTERY.md hero visuals). Pure cosmetic — tier 0 (a fresh save) renders identically.
     if (tier > 0) {

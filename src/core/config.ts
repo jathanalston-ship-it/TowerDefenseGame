@@ -939,6 +939,7 @@ export const PERF = {
   maxEnemies: 600, // soft cap on concurrent enemies (spawns skip past this)
   maxParticles: 420, // cosmetic particle budget (oldest dropped past this)
   lodEnemyCount: 220, // beyond this, the renderer drops per-enemy embellishments
+  statusFullDetail: 120, // below this enemy count, status FX render at full quality (else reduced)
 };
 
 // Cosmetic combat particles (pooled). Counts kept modest to stay within budget.

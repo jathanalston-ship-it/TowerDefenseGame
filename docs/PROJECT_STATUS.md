@@ -3,7 +3,18 @@
 > Maintained at the END of every session (paired with `docs/AI_HANDOFF.md` — the constitution's
 > workflow step 4). This is the "where are we?" answer; `docs/GAME-STATE.md` remains the deeper
 > per-system built-vs-planned index, `docs/PROJECT_MANIFEST.md` the system map.
-> **Last updated:** 2026-07-13 (**HERO ROSTER → 10 + THE REACTION TRIO → 20 TOWERS** —
+> **Last updated:** 2026-07-14 (**IN-RUN GAMEPLAY FEEL PASS** — combat presentation overhaul,
+> canonical doc `docs/COMBAT-VISUAL-STANDARDS.md`: the Status Effect Visualization System
+> (mandatory `fx` traits on every StatusEffectDef, validator-enforced; `render/statusFx.ts`
+> procedurally MERGES all live statuses per body — blended hue, deduped overlays, budgeted
+> emitters, intensity scaling, synergy combos free); hit-confirmation sparks + status-flavored
+> deaths (frozen shatter/embers/spores/dissolve); form-keyed tower attack ANTICIPATION
+> (`FORM_ANTICIPATION`); hero ability activation/ready cues; log-capped projectile power
+> scaling; `statusApplied` → throttled category audio cues. All render-side/data ⇒ goldens
+> byte-identical. Suite 2072 green post-merge with the 07-13 roster batch, validate PASS, mobilecheck CLEAN, headless live-combat smoke
+> verified. Previous session below.)
+>
+> **2026-07-13** (**HERO ROSTER → 10 + THE REACTION TRIO → 20 TOWERS** —
 > three batches (3ac46c2/a38c36f/this). Heroes: **RIPTIDE** (Kinetic water-form zone
 > controller, megaSlain-2 gate), **CARRION** (Vital charnel necromancer — GRAVEBIND raises
 > corpses near it as corpse-scaled Risen Thralls off the death seam; lifetimeKills-20k gate;
