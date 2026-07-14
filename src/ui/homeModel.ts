@@ -248,6 +248,9 @@ homeRegistry.register({ id: 'roadmap', zone: 'side', order: 20 });
 homeRegistry.register({ id: 'army', zone: 'army', order: 10, when: (s) => featureRevealed(s, 'towers') }); // the roster strip appears with the Tower Lab
 homeRegistry.register({ id: 'modes', zone: 'ops', order: 10 });
 homeRegistry.register({ id: 'infestation', zone: 'ops', order: 20, when: (s) => featureRevealed(s, 'infinite') }); // Infestation conquest map (docs/INFESTATION.md) — a meta-layer over the modes it spans
-homeRegistry.register({ id: 'command-feed', zone: 'feed', order: 10, when: (s) => (s.timeline ?? []).length > 0 });
+// Hive Intelligence (docs/HIVE-INTEL.md) mounts whenever it has ANYTHING to say — banked
+// containers and ready Power moves count, not just timeline history (the old gate hid a fresh
+// account's first ACT rows). The widget itself renders null when the feed is empty.
+homeRegistry.register({ id: 'command-feed', zone: 'feed', order: 10, when: (s) => (s.timeline ?? []).length > 0 || (s.pendingContainers ?? []).length > 0 || s.shards > 0 });
 homeRegistry.register({ id: 'dashboard', zone: 'feed', order: 20 });
 homeRegistry.register({ id: 'tip', zone: 'foot', order: 10 });

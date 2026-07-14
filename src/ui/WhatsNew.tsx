@@ -5,15 +5,15 @@
 // unlock fanfare. On dismiss it's archived into the Help wiki (revisitable, never re-announces).
 // Queued: unlocks that land together show one at a time. Rendered on the menu only.
 // When the mechanic has a Guided Unlock (docs/GUIDED-UNLOCKS.md), the CTA reads "Show me ▸" and
-// `onGuide` arms the anchored walkthrough right after navigation — card, door, guide: one chain.
+// the guideBus arms the anchored walkthrough right after navigation — card, door, guide: one chain.
 
 import { useEffect } from 'react';
 import { meta } from '../state/meta';
 import { audio } from '../audio/sound';
 import { navBus } from '../state/navBus';
-import { guideFor } from '../state/guidedUnlocks';
+import { guideBus, guideFor } from '../state/guidedUnlocks';
 
-export function WhatsNew({ onGuide }: { onGuide?: (mechId: string) => void } = {}): JSX.Element | null {
+export function WhatsNew(): JSX.Element | null {
   meta.use(); // re-render as the archive changes
   const queue = meta.whatsNew();
   const m = queue.length > 0 ? queue[0] : null;
@@ -28,7 +28,7 @@ export function WhatsNew({ onGuide }: { onGuide?: (mechId: string) => void } = {
     close();
     if (nav) {
       navBus.go(nav);
-      if (guide) onGuide?.(id);
+      if (guide) guideBus.start(id);
     }
   };
 

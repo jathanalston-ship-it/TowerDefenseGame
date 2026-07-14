@@ -9,6 +9,8 @@
 import { useEffect } from 'react';
 import { meta } from '../state/meta';
 import { audio } from '../audio/sound';
+import { navBus } from '../state/navBus';
+import { hiveIntel } from '../state/hiveIntel';
 import type { Release, ReleaseEntry } from '../changelog/types';
 import { NOTE_CATEGORIES } from '../changelog/types';
 
@@ -45,6 +47,10 @@ export function UpdateBriefing(): JSX.Element | null {
   const head = unseen[0];
   const done = (): void => { meta.markPatchNotesSeen(); audio.cue('ui'); };
   const never = (): void => { meta.setPatchNotesOptOut(true); audio.cue('ui'); };
+  // Returning-player bridge (docs/HIVE-INTEL.md): the briefing says what CHANGED; these two rows
+  // say what to DO — the Feed's own ACT intel (banked value, best Power move), one tap away.
+  const acts = hiveIntel(meta.get(), Date.now()).filter((e) => e.priority === 'act').slice(0, 2);
+  const act = (nav: string): void => { done(); navBus.go(nav); };
 
   return (
     <div className="whatsnew ub" role="dialog" aria-label="Update briefing" onClick={done}>
@@ -70,6 +76,20 @@ export function UpdateBriefing(): JSX.Element | null {
             </div>
           ))}
         </div>
+
+        {acts.length > 0 && (
+          <div className="ub-now" aria-label="Waiting for you now">
+            <span className="ub-now-k">WAITING FOR YOU</span>
+            {acts.map((e) => (
+              <button key={e.id} className="ub-now-row" onClick={() => act(e.nav)} title={e.why}>
+                <span aria-hidden>{e.icon}</span>
+                <span className="ub-now-t">{e.what}</span>
+                {e.powerGain !== undefined && <span className="ub-now-gain">+{e.powerGain}⚡</span>}
+                <span className="ub-now-go">{e.action} ▸</span>
+              </button>
+            ))}
+          </div>
+        )}
 
         <div className="ub-actions">
           <button className="primary ub-go" onClick={done}>Continue ▸</button>

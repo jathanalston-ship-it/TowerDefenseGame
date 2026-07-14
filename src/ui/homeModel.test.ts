@@ -125,8 +125,11 @@ describe('home widget registry — the shell renders THIS', () => {
     const midgame = { ...fresh, campaign: { ...fresh.campaign, cleared: { standard: 5 } } };
     expect(homeRegistry.zone(midgame, 'main').map((d) => d.id)).toEqual(['mission-control', 'live-events', 'directives', 'contracts']);
     expect(homeRegistry.zone(midgame, 'ops').map((d) => d.id)).toEqual(['modes', 'infestation']);
-    // feed hides on an empty timeline; appears once history exists
+    // feed hides while Hive Intelligence has nothing to say (no history, nothing banked,
+    // no wallet); appears the moment any of those exists
     expect(homeRegistry.zone(fresh, 'feed').map((d) => d.id)).toEqual(['dashboard']);
+    const banked = { ...fresh, pendingContainers: [{}] as never };
+    expect(homeRegistry.zone(banked, 'feed').map((d) => d.id)).toEqual(['command-feed', 'dashboard']);
     const vet = { ...fresh, timeline: [{ at: 1, icon: '★', label: 'x' }] };
     expect(homeRegistry.zone(vet, 'feed').map((d) => d.id)).toEqual(['command-feed', 'dashboard']);
   });

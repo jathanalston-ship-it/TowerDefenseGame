@@ -23,6 +23,30 @@ interface TourStop {
 }
 
 export const TOUR: TourStop[] = [
+  // ── The five-Foundation instruments come FIRST (docs/MISSION-CONTROL.md and siblings): the
+  //    tour's opening beat is "here is how the game tells you what to do", then the wings.
+  //    Widget anchors that aren't mounted (quiet feed, pre-towers growth panel) drop from the
+  //    snapshot — the tour never points at nothing.
+  { area: 'Mission Control', anchor: '.mc-campaign',
+    what: 'Your standing orders — the next stage, an objective ledger, and what lies AHEAD.',
+    why: 'It answers "what should I do now?" at every moment. If you ever feel lost, come here.',
+    when: 'Start every session from it; tap any objective row to jump straight to that job.',
+    later: 'Objectives deepen with the account, and Power estimates wire into every row.' },
+  { area: 'Hive Intelligence', anchor: '.cc-feed',
+    what: 'The live intel feed: banked value to collect, ready Power moves, recent milestones.',
+    why: 'Every row answers what happened, why it matters, and what to do — never noise.',
+    when: 'Act on the gold rows first; acting on a row retires it automatically.',
+    later: 'Wings nearing their unlock announce themselves here as they get close.' },
+  { area: 'Evolution Roadmap', anchor: '.cc-roadmap',
+    what: 'The whole learning curve on one rail — every wing of the hive, in unlock order.',
+    why: 'The future is a plan, not a surprise: each stop shows its requirement and its Power.',
+    when: 'Glance at it whenever you wonder what the next system will be.',
+    later: 'Conquered wings tick up as the roadmap turns into your history.' },
+  { area: 'Growth — Best Moves', anchor: '.cc-growth',
+    what: 'The Power Advisor: your best next purchase in every system, ranked by exact gain.',
+    why: 'It removes the "what should I buy?" question — the math is done for you.',
+    when: 'After every run, before the next — spend down the top picks you can afford.',
+    later: 'Every spend screen carries its own BEST VALUE strip wired to the same engine.' },
   { area: 'Resource Bar', anchor: '[data-tour="topbar"]',
     what: 'Your permanent account currencies — Genome Cores, Ascendant Cells, and crafting materials.',
     why: 'Unlike in-run Biomass, these never reset. Everything here compounds across every future run.',
@@ -88,11 +112,15 @@ export const TOUR: TourStop[] = [
 export function HudTour({ onClose }: { onClose: () => void }): JSX.Element {
   // Progression gating (docs/PROGRESSION-GATING.md): the tour only visits REVEALED surfaces —
   // a fresh account gets a short, focused orientation; hidden wings are each introduced by
-  // their own What's New card when they unlock. Snapshotted once so a mid-tour reveal can't
-  // reshuffle the stops (replays from Settings naturally cover more ground).
+  // their own What's New card when they unlock. Widget stops (class anchors) additionally
+  // require their element to be MOUNTED right now — a quiet intel feed or a pre-reveal growth
+  // panel drops its stop instead of pointing at nothing. Snapshotted once so a mid-tour
+  // reveal can't reshuffle the stops (replays from Settings naturally cover more ground).
   const [stops] = useState(() => TOUR.filter((st) => {
     const m = st.anchor?.match(/\[data-nav="([^"]+)"\]/);
-    return !m || featureRevealed(meta.get(), m[1]);
+    if (m) return featureRevealed(meta.get(), m[1]);
+    if (st.anchor?.startsWith('.')) return document.querySelector(st.anchor) !== null;
+    return true;
   }));
   const [i, setI] = useState(0);
   const [reward, setReward] = useState<TutorialRewardSummary | null>(null);

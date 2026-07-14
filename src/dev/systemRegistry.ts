@@ -60,7 +60,7 @@ export const SYSTEMS: SystemDef[] = [
   {
     id: 'power', name: 'Power Score', purpose: 'ONE account-strength number folded from every permanent bucket + the in-run temporary bucket.',
     files: ['src/core/power.ts', 'src/state/itemPower.ts', 'src/state/powerEvents.ts', 'src/state/bestPurchase.ts', 'src/state/equipAdvisor.ts', 'src/state/powerAtlas.ts', 'src/state/powerAdvisor.ts', 'src/state/missionControl.ts', 'src/state/evolutionRoadmap.ts', 'src/state/powerLog.ts', 'src/ui/components/PowerScore.tsx', 'src/ui/components/PowerDelta.tsx', 'src/ui/components/PowerToaster.tsx', 'src/ui/components/BestBuyStrip.tsx', 'src/ui/components/GrowthPanel.tsx'],
-    dependsOn: ['content-infra'], powerScore: 'IS the model (buckets, effectsPower, FIELD_WEIGHT)', save: ['powerLog'], tutorial: [], help: ['power-score'],
+    dependsOn: ['content-infra'], powerScore: 'IS the model (buckets, effectsPower, FIELD_WEIGHT)', save: ['powerLog'], tutorial: [], help: ['power-score', 'power-advisor', 'mission-control', 'evolution-roadmap'],
     hud: ['Hud (live run Power)'], ui: ['ProgressDashboard', 'CommandCenter (recommended power + Growth panel)'], collection: 'collection completion feeds a bucket', achievements: [],
     localization: 'inline-en', docs: ['docs/POWER-SCORE.md', 'docs/POWER-AUDIT.md'],
   },
@@ -367,7 +367,7 @@ export const SYSTEMS: SystemDef[] = [
     id: 'onboarding', name: 'Tutorials, Help & Onboarding', purpose: 'Combat Tutorial over a live sim, THE COMMISSIONING (post-tutorial account-creation ceremony: rewards, designation, sigil + founding-title oath, account safeguard), HUD Tour, mechanics-registry Help wiki, What\'s New, loading tips.',
     files: ['src/ui/InitCutscene.tsx', 'src/render/introScenes.ts', 'src/core/tutorial.ts', 'src/state/tutorial.ts', 'src/state/mechanics.ts', 'src/ui/TutorialRunner.tsx', 'src/ui/tutorial/*', 'src/ui/HelpWiki.tsx', 'src/ui/WhatsNew.tsx', 'src/ui/HudTour.tsx', 'src/state/guidedUnlocks.ts', 'src/ui/GuidedUnlock.tsx', 'src/ui/tips.ts'],
     dependsOn: ['engine', 'meta-store', 'profile', 'accounts'], powerScore: null, save: ['tutorial', 'help'],
-    tutorial: ['combat'], help: [], hud: ['TutorialOverlay'], ui: ['HelpWiki', 'WhatsNew', 'HudTour', 'CommandCenter (tips)'], collection: null,
+    tutorial: ['combat'], help: ['field-guides'], hud: ['TutorialOverlay'], ui: ['HelpWiki', 'WhatsNew', 'HudTour', 'CommandCenter (tips)'], collection: null,
     achievements: [], localization: 'inline-en', docs: ['docs/TUTORIAL.md', 'docs/HELP.md', 'docs/TUTORIAL-AUDIT.md'],
   },
   {
@@ -408,7 +408,7 @@ export const SYSTEMS: SystemDef[] = [
   {
     id: 'notifications', name: 'Notifications', purpose: 'Generic menu badges (registered count(save) sources per nav channel) + the global claim popup every hub claim receipts through.',
     files: ['src/state/notifications.ts', 'src/state/notificationSources.ts', 'src/state/rewardToast.ts', 'src/state/hiveIntel.ts', 'src/ui/components/RewardToaster.tsx'],
-    dependsOn: ['meta-store'], powerScore: null, save: [], tutorial: [], help: [], hud: ['nav badges'], ui: ['Hub (badges)', 'RewardToaster (claim popups)'],
+    dependsOn: ['meta-store'], powerScore: null, save: [], tutorial: [], help: ['hive-intel'], hud: ['nav badges'], ui: ['Hub (badges)', 'RewardToaster (claim popups)'],
     collection: 'collection channel badge', achievements: [], localization: 'inline-en', docs: ['docs/NOTIFICATIONS.md'],
   },
   {

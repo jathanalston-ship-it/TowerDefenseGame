@@ -315,7 +315,7 @@ graph TD
 - **Consumers — what breaks if you change this:** `campaign` · `mulligans` · `premium` · `net-backend` · `equipment` · `loot` · `gene-cards` · `nucleus` · `hero-symbiotes` · `profile` · `genome-rank` · `hub-shell` · `run-ui` · `prediction`
 - **Power Score:** IS the model (buckets, effectsPower, FIELD_WEIGHT)
 - **Save fields:** `powerLog`
-- **Tutorial:** — · **Help mechanics:** `power-score`
+- **Tutorial:** — · **Help mechanics:** `power-score` · `power-advisor` · `mission-control` · `evolution-roadmap`
 - **HUD surfaces:** `Hud (live run Power)` · **UI screens:** `ProgressDashboard` · `CommandCenter (recommended power + Growth panel)`
 - **Collection:** collection completion feeds a bucket · **Achievements:** —
 - **Localization:** inline English strings (no i18n layer yet — this field enumerates the surface for the day it lands)
@@ -960,7 +960,7 @@ graph TD
 - **Consumers — what breaks if you change this:** `progression-gating`
 - **Power Score:** — (intentionally none)
 - **Save fields:** `tutorial` · `help`
-- **Tutorial:** `combat` · **Help mechanics:** —
+- **Tutorial:** `combat` · **Help mechanics:** `field-guides`
 - **HUD surfaces:** `TutorialOverlay` · **UI screens:** `HelpWiki` · `WhatsNew` · `HudTour` · `CommandCenter (tips)`
 - **Collection:** — · **Achievements:** —
 - **Localization:** inline English strings (no i18n layer yet — this field enumerates the surface for the day it lands)
@@ -1050,7 +1050,7 @@ graph TD
 - **Consumers — what breaks if you change this:** `hub-shell`
 - **Power Score:** — (intentionally none)
 - **Save fields:** —
-- **Tutorial:** — · **Help mechanics:** —
+- **Tutorial:** — · **Help mechanics:** `hive-intel`
 - **HUD surfaces:** `nav badges` · **UI screens:** `Hub (badges)` · `RewardToaster (claim popups)`
 - **Collection:** collection channel badge · **Achievements:** —
 - **Localization:** inline English strings (no i18n layer yet — this field enumerates the surface for the day it lands)

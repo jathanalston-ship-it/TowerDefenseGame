@@ -7,6 +7,8 @@ import { useState } from 'react';
 import { meta } from '../state/meta';
 import { MECHANIC_BY_ID } from '../state/mechanics';
 import type { MechanicCategory, MechanicDef } from '../state/mechanics';
+import { guideBus, guideFor } from '../state/guidedUnlocks';
+import { navBus } from '../state/navBus';
 
 const CATEGORY_ORDER: MechanicCategory[] = ['Basics', 'Towers', 'Heroes', 'Progression', 'Modes', 'World'];
 
@@ -62,6 +64,17 @@ export function HelpWiki({ onNavigate, onReplayTour }: { onNavigate?: (nav: stri
             </div>
             {sel.nav && onNavigate && (
               <button className="help-goto" onClick={() => onNavigate(sel.nav!)}>Open {sel.title} ▸</button>
+            )}
+            {/* Field-guide replay (docs/GUIDED-UNLOCKS.md): re-teaches the wing's walkthrough —
+                the milestone ledger keeps replays unpaid. */}
+            {guideFor(sel.id) && (
+              <button
+                className="help-goto is-guide"
+                onClick={() => { navBus.go(guideFor(sel.id)!.nav); guideBus.start(sel.id); }}
+                title="Replay the anchored walkthrough on the screen itself"
+              >
+                ▶ Field guide
+              </button>
             )}
             {sel.links && sel.links.some((id) => all.some((m) => m.id === id)) && (
               <div className="help-links">

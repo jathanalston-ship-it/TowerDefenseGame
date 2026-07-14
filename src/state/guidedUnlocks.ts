@@ -136,3 +136,22 @@ const BY_MECH: ReadonlyMap<string, GuideDef> = new Map(GUIDES.map((g) => [g.mech
 export function guideFor(mechId: string): GuideDef | null {
   return BY_MECH.get(mechId) ?? null;
 }
+
+// Tiny arm-a-guide bus (mirrors navBus): components that can't reach the App's overlay state —
+// the What's New card, the Help wiki's replay button — ask the shell to run a guide. The App
+// subscribes on mount; emits before a subscriber exists are dropped (all callers render on the
+// menu, where the App is always listening). Replays re-teach; the ledger keeps them unpaid.
+type StartFn = (mechId: string) => void;
+const guideSubs = new Set<StartFn>();
+
+export const guideBus = {
+  /** Ask the shell to run the guide for a mechanic (no-op if none exists or nothing listens). */
+  start(mechId: string): void {
+    if (!BY_MECH.has(mechId)) return;
+    for (const fn of guideSubs) fn(mechId);
+  },
+  onStart(fn: StartFn): () => void {
+    guideSubs.add(fn);
+    return () => { guideSubs.delete(fn); };
+  },
+};

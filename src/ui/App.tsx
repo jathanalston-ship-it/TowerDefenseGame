@@ -15,7 +15,7 @@ import { GenomePromotionCinematic } from './components/GenomeRankPanel';
 import { LootToaster } from './LootToaster';
 import { WhatsNew } from './WhatsNew';
 import { GuidedUnlock } from './GuidedUnlock';
-import { guideFor } from '../state/guidedUnlocks';
+import { guideBus, guideFor } from '../state/guidedUnlocks';
 import type { GuideDef } from '../state/guidedUnlocks';
 import { featureRevealed } from '../state/unlocks';
 import { UpdateBriefing } from './UpdateBriefing';
@@ -59,7 +59,7 @@ import type { DailyPlan } from '../core/daily';
 import { HERO_ORDER, TOWER_ORDER } from '../core/config';
 import { sporesFromParts } from '../state/bioRoulette';
 import { tutorial } from '../state/tutorial';
-import { cutsceneBus } from '../state/navBus';
+import { cutsceneBus, navBus } from '../state/navBus';
 import { TutorialRunner } from './TutorialRunner';
 import { DeployScreen } from './DeployScreen';
 import type { DeployInfo } from './DeployScreen';
@@ -345,13 +345,14 @@ export function App(): JSX.Element {
   // First-launch HUD Tour: latch it ON when eligible (after the tutorial, on the menu). Latched
   // (not the reactive predicate) so its reward reveal survives completeHudTour marking it done.
   useEffect(() => { if (screen === 'menu' && meta.shouldHudTour()) setTourActive(true); }, [screen]);
-  // Guided Unlock walkthrough (docs/GUIDED-UNLOCKS.md): armed by a What's New "Show me ▸" after
-  // it navigates; dropped if the player leaves the menu (the wing being taught lives there).
+  // Guided Unlock walkthrough (docs/GUIDED-UNLOCKS.md): armed over the guideBus — by a What's
+  // New "Show me ▸" after it navigates, or a Help-wiki replay (re-teaches, never re-pays).
+  // Dropped if the player leaves the menu (the wing being taught lives there).
   const [guided, setGuided] = useState<GuideDef | null>(null);
-  const startGuide = useCallback((mechId: string) => {
+  useEffect(() => guideBus.onStart((mechId) => {
     const g = guideFor(mechId);
     if (g && featureRevealed(meta.get(), g.nav)) setGuided(g);
-  }, []);
+  }), []);
   useEffect(() => { if (screen !== 'menu') setGuided(null); }, [screen]);
   // Launch (or replay) the Combat Tutorial from Settings — its own mode.
   const launchTutorial = useCallback(() => { tutorial.start('combat'); setScreen('tutorial'); }, []);
@@ -414,7 +415,7 @@ export function App(): JSX.Element {
           last={last}
           onSeenLast={clearLast}
           onReplayTutorial={launchTutorial}
-          onReplayTour={() => setTourActive(true)}
+          onReplayTour={() => { navBus.go('home'); setTimeout(() => setTourActive(true), 50); }}
           onReplayIntro={() => setIntroActive(true)}
           onSpectate={setSpectate}
           difficultyRef={difficultyRef}
@@ -514,7 +515,7 @@ export function App(): JSX.Element {
       {/* Guided Unlock (docs/GUIDED-UNLOCKS.md): "Show me ▸" on a What's New card walks the new
           wing itself — the card queue waits (WhatsNew unmounts) until the walkthrough closes. */}
       {screen === 'menu' && !tourActive && guided && <GuidedUnlock guide={guided} onClose={() => setGuided(null)} />}
-      {screen === 'menu' && !tourActive && !guided && <WhatsNew onGuide={startGuide} />}
+      {screen === 'menu' && !tourActive && !guided && <WhatsNew />}
       {screen === 'menu' && !tourActive && !guided && <UpdateBriefing />}
       {/* Commander designation: the FIRST prompt an unnamed save sees on reaching the hub
           (i.e. immediately after the tutorial completes or is skipped). */}

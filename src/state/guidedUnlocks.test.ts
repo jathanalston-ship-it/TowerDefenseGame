@@ -53,4 +53,12 @@ describe('Guided Unlocks — every early wing walks you through itself', () => {
     }
     expect(guideFor('not-a-mechanic')).toBeNull();
   });
+
+  it('the five Foundation instruments are CORE help rows — browsable always, never announced', () => {
+    for (const id of ['mission-control', 'hive-intel', 'evolution-roadmap', 'power-advisor', 'field-guides']) {
+      const m = MECHANIC_BY_ID.get(id);
+      expect(m, `missing Foundation help row '${id}'`).toBeTruthy();
+      expect(m!.core, `'${id}' must be core (a What's New card for the guidance layer is noise)`).toBe(true);
+    }
+  });
 });
