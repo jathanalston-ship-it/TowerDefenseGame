@@ -182,3 +182,15 @@
 
 - `a38c36f` **[Heroes]** Two new heroes: CARRION (death necromancer) + FOVEA (executioner lance) - the roster hits 10
 - `3f6ecfd` **[Towers]** Three new towers: the REACTION TRIO - Miasma Lung, Chitin Bell, Acid Lancet - the roster hits 20
+- `27a8487` **[Enemies]** Four new weak enemies: the EARLY BROOD - stage 1-2 opens as a varied brood, not a monoculture
+- `aa51da2` **[UX]** NPE overhaul: the tutorial teaches the REAL game - conveyor-native lessons, tight copy, skippers land on Campaign
+## 2026-07-14
+
+- `6e1b7a4` **[UX]** Power Advisor engine (Foundation 5 of the UX consolidation pass)
+- `1b62c8d` **[Gameplay]** Mission Control read-model (Foundation 1) - one derivation answers "what should I do?"
+- `5f65bcb` **[Gene Cards]** Mission Control ships on the home board - the deploy card gains the objective ledger
+- `3f8f485` **[Gameplay]** Hive Intelligence Feed (Foundation 2) - the notification layer re-founded as derived intel
+- `7dcb178` **[Gene Cards]** Evolution Roadmap (Foundation #4): the whole learning curve on one rail
+- `370bc07` **[UI]** Guided Unlocks (Foundation #3): every early wing walks you through itself
+- `788d5d0` **[UX]** Tutorial, Help & returning-player integration over the five Foundations
+- `fda8225` **[UX]** Game-wide UX audit + coalescing pass: one fact, one owner

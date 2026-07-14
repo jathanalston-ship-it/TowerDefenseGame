@@ -11925,10 +11925,10 @@ html[data-debug-layout] body::after {
 /* Field-guide replay in Help (docs/GUIDED-UNLOCKS.md) + the Update Briefing's returning-player
    "WAITING FOR YOU" strip (docs/HIVE-INTEL.md — the Feed's ACT rows bridged into the briefing). */
 .help-goto.is-guide { margin-left: 8px; border-color: color-mix(in srgb, var(--gold) 35%, var(--line-strong)); }
-.ub-now { display: flex; flex-direction: column; gap: 6px; margin-top: 12px; padding: 10px; border: 1px solid color-mix(in srgb, var(--gold) 30%, var(--line-strong)); border-radius: var(--r-sm); background: rgba(255, 255, 255, 0.03); }
+.ub-now { display: flex; flex-direction: column; gap: 6px; margin-top: 12px; padding: 10px; border: 1px solid color-mix(in srgb, var(--gold) 30%, var(--line-strong)); border-radius: var(--r-sm); background: rgba(255, 255, 255, 0.03); max-width: 100%; box-sizing: border-box; }
 .ub-now-k { font-size: 10px; font-weight: 900; letter-spacing: 0.16em; color: var(--gold); }
-.ub-now-row { display: flex; align-items: center; gap: 8px; background: none; border: none; padding: 4px 2px; cursor: pointer; text-align: left; min-width: 0; }
+.ub-now-row { display: flex; align-items: center; gap: 8px; width: 100%; background: none; border: none; padding: 4px 2px; cursor: pointer; text-align: left; min-width: 0; box-sizing: border-box; }
 .ub-now-row:hover .ub-now-t { color: var(--text); }
-.ub-now-t { flex: 1; font-size: 12px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ub-now-t { flex: 1 1 auto; min-width: 0; font-size: 12px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .ub-now-gain { flex: none; font-size: 11px; font-weight: 900; color: var(--gold); }
-.ub-now-go { flex: none; font-size: 10px; font-weight: 800; color: var(--text); background: rgba(255,255,255,0.06); border: 1px solid var(--line-strong); border-radius: var(--r-sm); padding: 3px 8px; }
+.ub-now-go { flex: none; font-size: 10px; font-weight: 800; color: var(--text); background: rgba(255,255,255,0.06); border: 1px solid var(--line-strong); border-radius: var(--r-sm); padding: 3px 8px; white-space: nowrap; }

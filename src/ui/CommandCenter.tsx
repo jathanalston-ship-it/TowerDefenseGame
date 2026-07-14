@@ -110,7 +110,11 @@ export function CommandCenter({
   const zone = (z: HomeZone): ReactNode =>
     homeRegistry.zone(save, z).map((d) => {
       const render = WIDGETS[d.id];
-      return render ? <div className="cc-widget" data-widget={d.id} key={d.id}>{render(ctx)}</div> : null;
+      // Render through CCWidget (a real component) so each widget's hooks live on ITS OWN fiber.
+      // Calling render(ctx) inline would flatten every widget's hooks into CommandCenter's list,
+      // and a `when` gate flipping a widget in/out between renders would trip React's
+      // "rendered more hooks than during the previous render" (docs/UX-CONSOLIDATION.md).
+      return render ? <CCWidget key={d.id} id={d.id} render={render} ctx={ctx} /> : null;
     });
 
   return (
@@ -141,6 +145,12 @@ export function CommandCenter({
 }
 
 // ── Widget renderers — the registry's ids resolve HERE (one entry per widget) ────────────
+
+/** One home widget on its own component fiber (see the zone renderer): keeps each widget's hooks
+ *  isolated so widget membership can change between renders without a hook-count mismatch. */
+function CCWidget({ id, render, ctx }: { id: string; render: (c: WidgetCtx) => ReactNode; ctx: WidgetCtx }): JSX.Element {
+  return <div className="cc-widget" data-widget={id}>{render(ctx)}</div>;
+}
 
 const WIDGETS: Record<string, (ctx: WidgetCtx) => ReactNode> = {
   'vitals': Vitals,

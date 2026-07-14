@@ -501,6 +501,22 @@ duplicate conversion needs max-Star units (early game leans on the container dri
 sink ≈ hour-400 at endgame income — re-tune as the library grows.
 
 ### Onboarding & UX
+- ✅ **UX CONSOLIDATION PASS — the Five Foundations** (2026-07, UX-CONSOLIDATION.md + the five
+  reference docs): a game-wide pass to make the SAME depth dramatically easier to understand —
+  the player is never left asking "what am I supposed to do now?". No content removed; overlapping
+  guidance OWNERS removed (one fact, one owner). (1) **Mission Control** (MISSION-CONTROL.md) — the
+  Command Center centerpiece answers "what now?" with a primary objective + secondary ledger + AHEAD
+  strip. (2) **Hive Intelligence** (HIVE-INTEL.md) — the re-founded, DERIVED notification feed (acting
+  retires a row with zero bookkeeping; capped; four questions per row; silence over noise). (3)
+  **Guided Unlocks** (GUIDED-UNLOCKS.md) — every early wing walks you through itself on first contact
+  (spotlight → practice interaction → one-time reward), coverage enforced against the unlock registry.
+  (4) **Evolution Roadmap** (EVOLUTION-ROADMAP.md) — the whole learning curve on one rail, derived from
+  the same doors it points at. (5) **Power Advisor** (POWER-ADVISOR.md) — exact "what should I buy?"
+  everywhere spending happens. Tutorial graduation hands off to Mission Control; the HUD Tour opens
+  Foundations-first; Help wiki carries all five as CORE rows + replayable field guides; the returning-
+  player Update Briefing bridges into the feed's ACT rows. Persona-simulation guardrail
+  (foundationsUX.test.ts): every persona across the spectrum always has an objective, a bounded feed,
+  and something to do — no dead-ends, no notification walls
 - ✅ Combat Tutorial, HUD Tour, Help wiki + mechanics registry, "What's New" — TUTORIAL.md, HELP.md
 - ✅ **THE COMMISSIONING** (2026-07, PROFILE.md §commissioning) — account creation at tutorial
   completion as ONE four-step ceremony (was: scattered reveal + CommanderName modal + a cold

@@ -793,6 +793,46 @@ export const RELEASES: Release[] = [
       {
         "cat": "Towers",
         "text": "Three new towers: the REACTION TRIO - Miasma Lung, Chitin Bell, Acid Lancet - the roster hits 20"
+      },
+      {
+        "cat": "Enemies",
+        "text": "Four new weak enemies: the EARLY BROOD - stage 1-2 opens as a varied brood, not a monoculture"
+      },
+      {
+        "cat": "UX",
+        "text": "NPE overhaul: the tutorial teaches the REAL game - conveyor-native lessons, tight copy, skippers land on Campaign"
+      },
+      {
+        "cat": "UX",
+        "text": "Power Advisor engine (Foundation 5 of the UX consolidation pass)"
+      },
+      {
+        "cat": "Gameplay",
+        "text": "Mission Control read-model (Foundation 1) - one derivation answers \"what should I do?\""
+      },
+      {
+        "cat": "Gene Cards",
+        "text": "Mission Control ships on the home board - the deploy card gains the objective ledger"
+      },
+      {
+        "cat": "Gameplay",
+        "text": "Hive Intelligence Feed (Foundation 2) - the notification layer re-founded as derived intel"
+      },
+      {
+        "cat": "Gene Cards",
+        "text": "Evolution Roadmap (Foundation #4): the whole learning curve on one rail"
+      },
+      {
+        "cat": "UI",
+        "text": "Guided Unlocks (Foundation #3): every early wing walks you through itself"
+      },
+      {
+        "cat": "UX",
+        "text": "Tutorial, Help & returning-player integration over the five Foundations"
+      },
+      {
+        "cat": "UX",
+        "text": "Game-wide UX audit + coalescing pass: one fact, one owner"
       }
     ]
   },

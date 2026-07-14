@@ -1,6 +1,6 @@
 {
-  "lastSha": "3f6ecfd3ef8e9fe67bb6b24e23e31b2327d28171",
-  "commitsSinceDraft": 3,
+  "lastSha": "fda82252fcf975d42b70f5d62129bdd9f2ecf37d",
+  "commitsSinceDraft": 0,
   "content": {
     "tower": [
       "needle",
@@ -2271,6 +2271,46 @@
         {
           "cat": "Towers",
           "text": "Three new towers: the REACTION TRIO - Miasma Lung, Chitin Bell, Acid Lancet - the roster hits 20"
+        },
+        {
+          "cat": "Enemies",
+          "text": "Four new weak enemies: the EARLY BROOD - stage 1-2 opens as a varied brood, not a monoculture"
+        },
+        {
+          "cat": "UX",
+          "text": "NPE overhaul: the tutorial teaches the REAL game - conveyor-native lessons, tight copy, skippers land on Campaign"
+        },
+        {
+          "cat": "UX",
+          "text": "Power Advisor engine (Foundation 5 of the UX consolidation pass)"
+        },
+        {
+          "cat": "Gameplay",
+          "text": "Mission Control read-model (Foundation 1) - one derivation answers \"what should I do?\""
+        },
+        {
+          "cat": "Gene Cards",
+          "text": "Mission Control ships on the home board - the deploy card gains the objective ledger"
+        },
+        {
+          "cat": "Gameplay",
+          "text": "Hive Intelligence Feed (Foundation 2) - the notification layer re-founded as derived intel"
+        },
+        {
+          "cat": "Gene Cards",
+          "text": "Evolution Roadmap (Foundation #4): the whole learning curve on one rail"
+        },
+        {
+          "cat": "UI",
+          "text": "Guided Unlocks (Foundation #3): every early wing walks you through itself"
+        },
+        {
+          "cat": "UX",
+          "text": "Tutorial, Help & returning-player integration over the five Foundations"
+        },
+        {
+          "cat": "UX",
+          "text": "Game-wide UX audit + coalescing pass: one fact, one owner"
         }
       ]
     }
@@ -3617,6 +3657,86 @@
       "date": "2026-07-13",
       "cat": "Towers",
       "text": "Three new towers: the REACTION TRIO - Miasma Lung, Chitin Bell, Acid Lancet - the roster hits 20",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "27a848722271838ede226f0de23fca0e36efe40e",
+      "date": "2026-07-13",
+      "cat": "Enemies",
+      "text": "Four new weak enemies: the EARLY BROOD - stage 1-2 opens as a varied brood, not a monoculture",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "aa51da2318aa1a5b104d7fd378e1a31cd2b1c6e9",
+      "date": "2026-07-13",
+      "cat": "UX",
+      "text": "NPE overhaul: the tutorial teaches the REAL game - conveyor-native lessons, tight copy, skippers land on Campaign",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "6e1b7a484da208b4caf73e2ded2238def5aa9500",
+      "date": "2026-07-14",
+      "cat": "UX",
+      "text": "Power Advisor engine (Foundation 5 of the UX consolidation pass)",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "1b62c8d6d0e48310d02f45ab414769b3c704875d",
+      "date": "2026-07-14",
+      "cat": "Gameplay",
+      "text": "Mission Control read-model (Foundation 1) - one derivation answers \"what should I do?\"",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "5f65bcb4c64c06edfee7ad59fccb51daf0547db7",
+      "date": "2026-07-14",
+      "cat": "Gene Cards",
+      "text": "Mission Control ships on the home board - the deploy card gains the objective ledger",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "3f8f485d0aa90b50170c0ddfbfc471c85434903b",
+      "date": "2026-07-14",
+      "cat": "Gameplay",
+      "text": "Hive Intelligence Feed (Foundation 2) - the notification layer re-founded as derived intel",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "7dcb178ec52a8142065d42dabe7bcb4f183cdc3b",
+      "date": "2026-07-14",
+      "cat": "Gene Cards",
+      "text": "Evolution Roadmap (Foundation #4): the whole learning curve on one rail",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "370bc07a86ee829efdd1e1960d5fe7be4a5e8dae",
+      "date": "2026-07-14",
+      "cat": "UI",
+      "text": "Guided Unlocks (Foundation #3): every early wing walks you through itself",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "788d5d06750119bf00d386479f9e173955fbfc1d",
+      "date": "2026-07-14",
+      "cat": "UX",
+      "text": "Tutorial, Help & returning-player integration over the five Foundations",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "fda82252fcf975d42b70f5d62129bdd9f2ecf37d",
+      "date": "2026-07-14",
+      "cat": "UX",
+      "text": "Game-wide UX audit + coalescing pass: one fact, one owner",
       "internal": false,
       "needsReview": false
     }

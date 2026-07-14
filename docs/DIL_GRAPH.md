@@ -1,6 +1,6 @@
 # DIL_GRAPH.md — the Design Intelligence Layer (GENERATED — `npm run dil -- regen`)
 
-> **The project's brain** (docs/DIL.md). 802 nodes · 1471 edges, built from the live
+> **The project's brain** (docs/DIL.md). 803 nodes · 1474 edges, built from the live
 > registries + curated knowledge (src/dev/dil/). **Query it instead of searching the repo:**
 > `npm run dil -- node <id>` · `affects <id>` · `requires <id>` · `missing <kind> <edge>` ·
 > `checklist tower <kind>` · `find <text>`. Edge kinds are bidirectional (19 kinds).
@@ -542,6 +542,7 @@ Six seeded runs pinned byte-for-byte (core/golden.test.ts) — the tripwire for 
   - conflictsWith ← `system:quests` — weekly progress NEVER carries over (rollover mails earned rewards then resets); a fresh save has empty ledgers so the quests/missions codices read zero — any starter-time credit breaks POWER_BASE
   - conflictsWith ← `system:idle-harvest` — idle is PURE economy: zero Power, zero run effects, the idle codex carries no powerWeight, soft(0)=1 — any fold at level 0 breaks POWER_BASE; the accrual anchor is MONOTONE (never rewound) or clock rollback re-farms the same span, and fixed-price drop rows need minValue floors or 5-minute dust collects mint full containers (idleHarvest.test.ts pins all three)
   - conflictsWith ← `system:hero-symbiotes` — every symbiote surface must stay inactive⇒identity: resolveHeroSymbiote power EXACTLY 1 / kit null while no slot is fully seated; a new kit verb needs BOTH an optional field (absent on fresh saves) AND a presence-gated seam read — an unconditional read or a default ≠ identity breaks the pinned seeds
+  - conflictsWith ← `system:hub-shell` — HOME WIDGET FIBER INVARIANT (2026-07, CommandCenter.tsx CCWidget): the home zone renders each widget through the CCWidget COMPONENT (<CCWidget/>), never by calling the widget function inline — an inline render(ctx) flattens every widget's hooks into CommandCenter's own list, so a `when` gate flipping a widget in/out between renders (e.g. command-feed keying off pendingContainers/shards) trips React's "rendered more hooks than during the previous render" and the ErrorBoundary blanks the hub. Unit tests can't see it (React UI); the MOBILE GATE (npm run mobilecheck, run by validate) catches it on the developed-profile sweep. Any new home widget with hooks + a volatile `when` MUST route through CCWidget
   - conflictsWith ← `system:cosmetics` — skins/visual tiers must stay render-only; any def stat touched for looks breaks the pinned seeds
 
 ### `concept:progression-gates` — Progression Gates
@@ -1781,6 +1782,7 @@ _at: src/ui/Hub.tsx, src/ui/navModel.ts, src/ui/MobileShell.tsx, src/ui/CommandC
   - references → `system:collection` — home surfaces show CollectionView.pct (discovery); mixing in rank-weighted .completion once put two contradictory percentages on one board
   - provides → `concept:responsive` — PORTRAIT SHELL (docs/RESPONSIVE-DESIGN.md §3b): ui/navModel.ts is the ONLY nav IA source — desktop rail, five-tab bottom bar, index pages (MobileShell.tsx), mobilecheck, and navModel.test all derive from it; a new screen = one group row + one unlock-registry def and it is auto-indexed/explained/swept on phones
   - conflictsWith → `concept:responsive` — portrait strips inside grids need minmax(0,1fr) columns (intrinsic strip width widens the page past the phone viewport — the Tower Lab empty-showcase bug); flex children of height-capped roster lists need flex:none or rows compress and overlap their portraits
+  - conflictsWith → `concept:golden-test` — HOME WIDGET FIBER INVARIANT (2026-07, CommandCenter.tsx CCWidget): the home zone renders each widget through the CCWidget COMPONENT (<CCWidget/>), never by calling the widget function inline — an inline render(ctx) flattens every widget's hooks into CommandCenter's own list, so a `when` gate flipping a widget in/out between renders (e.g. command-feed keying off pendingContainers/shards) trips React's "rendered more hooks than during the previous render" and the ErrorBoundary blanks the hub. Unit tests can't see it (React UI); the MOBILE GATE (npm run mobilecheck, run by validate) catches it on the developed-profile sweep. Any new home widget with hooks + a volatile `when` MUST route through CCWidget
   - references → `system:power` — UX CONSOLIDATION PASS (2026-07, UX-CONSOLIDATION.md — the coalescing record): the five Foundations own guidance by KIND, one fact one owner. Absorbed: Home NEXT banner → Mission Control ledger (NextGoalBanner component+CSS deleted, only LoopDirective/NextGoalCliffhanger remain); raw command-feed → Hive Intelligence note tail; COMING UP resource goals → MC ledger (roadmap owns only the system curve); ProgressDashboard HOT/claim CTAs → the Feed's ACT rows (dashboard is now STANDINGS-ONLY — no dash-cta, no is-hot; Ascension banner KEPT as the one unique claim). command-feed mount gate re-founded (was timeline-only; now mounts on timeline OR pendingContainers OR shards — homeModel.test pins it). KEEP decisions (one engine many doors): LoopDirective ×4, BestBuyStrip ×4 + Growth, BioCacheCard ×2, HUD-Tour-vs-Guided-Unlocks. VERIFICATION CONTRACT: home probe asserts dash-cta=0 + ng-next=0 + feed-act>0 on fresh AND veteran seeds
   - requiredBy ← `system:hive-construction`
   - requiredBy ← `system:infestation`
@@ -1794,7 +1796,7 @@ _at: src/ui/Hub.tsx, src/ui/navModel.ts, src/ui/MobileShell.tsx, src/ui/CommandC
   - documentedBy ← `doc:HUD.md`
   - documentedBy ← `doc:PROGRESSION-LOOP.md`
   - documentedBy ← `doc:UX-CONSOLIDATION.md`
-  - _…9 more (query: `npm run dil -- node system:hub-shell`)_
+  - _…10 more (query: `npm run dil -- node system:hub-shell`)_
 
 ### `system:run-ui` — In-Run HUD & Results
 
@@ -2154,6 +2156,7 @@ THIS registry + the doc-sync/validation generators + the DIL (src/dev/dil/*): th
 
 _at: src/dev/*, src/dev/dil/*_
 
+  - references → `system:hub-shell` — FOUNDATIONS UX SIM (2026-07, foundationsUX.test.ts): the persona spectrum (personas.ts) drives real simulateAccount runs, then asserts the five Foundation models against the LIVE end-state save — the UX-consolidation contract that the economy sim can't see: Mission Control always names a primary objective (never "what now?"); hiveIntel ≤ 6 rows and every row keeps its what/why (never a notification wall, even for the completionist at 30h); advisorPlan is never blank (moves OR an honest saveUp); and NO total dead-end (primary-under-ready OR secondary OR advisor OR roadmap.next is always non-empty). Fresh-account NPE face pinned separately: quiet feed ≤ 2, a visible roadmap.next, a guide for the first teachable wing. Pacing stays design's call (the report's job) — this suite is STRUCTURAL only
   - requiredBy ← `system:pil`
   - documentedBy ← `doc:DIL.md`
   - documentedBy ← `doc:DEPENDENCY_GRAPH.md`
@@ -2163,10 +2166,10 @@ _at: src/dev/*, src/dev/dil/*_
   - documentedBy ← `doc:AI_HANDOFF.md`
   - testedBy ← `test:src/dev/balanceReport.test.ts`
   - testedBy ← `test:src/dev/dil/dil.test.ts`
+  - testedBy ← `test:src/dev/foundationsUX.test.ts`
   - testedBy ← `test:src/dev/mobileContent.test.ts`
   - testedBy ← `test:src/dev/progressionSim.test.ts`
-  - testedBy ← `test:src/dev/systemRegistry.test.ts`
-  - _…2 more (query: `npm run dil -- node system:dev-registry`)_
+  - _…3 more (query: `npm run dil -- node system:dev-registry`)_
 
 ## Towers (20)
 
@@ -3383,7 +3386,7 @@ _at: site/guides.ts → /guides/prestige/_
 - `doc:VOWS.md` — project documentation _(documents `system:prestige`)_
 - `doc:WEBSITE.md` — project documentation _(documents `system:field-research`, documents `system:website`)_
 
-## Tests (254)
+## Tests (255)
 
 - `test:src/audio/music.test.ts` — automated validation _(tests `system:audio`)_
 - `test:src/changelog/classify.test.ts` — automated validation _(tests `system:chronicle`)_
@@ -3530,6 +3533,7 @@ _at: site/guides.ts → /guides/prestige/_
 - `test:src/core/wardrobe.test.ts` — automated validation _(tests `system:cosmetics`)_
 - `test:src/dev/balanceReport.test.ts` — automated validation _(tests `system:dev-registry`)_
 - `test:src/dev/dil/dil.test.ts` — automated validation _(tests `system:dev-registry`)_
+- `test:src/dev/foundationsUX.test.ts` — automated validation _(tests `system:dev-registry`)_
 - `test:src/dev/mobileContent.test.ts` — automated validation _(tests `system:dev-registry`)_
 - `test:src/dev/pil/pil.test.ts` — automated validation _(tests `system:pil`)_
 - `test:src/dev/progressionSim.test.ts` — automated validation _(tests `system:dev-registry`)_
