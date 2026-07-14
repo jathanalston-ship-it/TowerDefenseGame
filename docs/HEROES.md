@@ -619,3 +619,16 @@ existing player already used, so no access is stripped). `meta.isHeroUnlocked / 
 pulls **bias toward still-locked heroes** so a "42 / 100" bar fills visibly. HeroLab renders locked roster cards
 (silhouette + progress) and a dormant-strain page (sealed lore, Release CTA + celebration) — the hero is
 selectable the instant it's claimed.
+
+---
+
+## Ability cinematics — every cast is a set piece
+
+Every ability of every hero stages a procedural PERFORMANCE on cast — the Cinderwyrm's breath is a
+dragon sweeping the lane, the Fovea's stare an eye opening and lancing — and the **zone payload
+(damage/debuff/pool) LANDS with the performance**, `impactDelay` (0.3–0.55s) after the cast, while
+support (heals/shields/buffs/summons) stays instant. Pure data per ability
+(`HeroAbilityDef.cinematic: { actor, motion, impactDelay }`); the 10-puppet × 10-motion vocabulary,
+the sim's `pendingImpacts` seam, and the test-enforced response budget are documented in
+**HERO-CINEMATICS.md**. A new hero picks existing vocabulary in its data row (the cinematics
+registry tests fail the build if a row is missing or names an unknown actor).

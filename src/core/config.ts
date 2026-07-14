@@ -1263,6 +1263,47 @@ export type HeroUnlockReq =
   | { kind: 'megaSlain'; count: number; label: string } // Riptide — the tide rises where leviathans fell
   | { kind: 'lifetimeKills'; count: number; label: string }; // Carrion — fed by the mountain of your dead
 
+// ── Hero ability CINEMATICS (docs/HERO-CINEMATICS.md) — every ability cast plays a procedural
+// set-piece PERFORMANCE (the Cinderwyrm's breath is a dragon swooping the lane, the Fovea's
+// stare is an eye-beam). Pure DATA here: `actor` names the render-side puppet painter, `motion`
+// the shared trajectory the framework computes, `impactDelay` how long the payload takes to
+// LAND. The sim honors impactDelay (damage/debuff/pool resolve when the performance strikes —
+// game.ts pendingImpacts); everything else about the performance is presentation-only. A cast
+// with impactDelay 0 (self flourishes) resolves exactly like the pre-cinematic sim.
+/** The procedural puppet a cast manifests — one per hero identity (render/abilityCinematics.ts
+ *  owns the painters; config stays render-free — these are just names). */
+export type CinematicActor =
+  | 'beast' // Ravager — the pouncing apex predator
+  | 'bloomheart' // Shepherd — a swelling flower-of-flesh
+  | 'psion' // Overseer — concentric neural rings / synapse web
+  | 'barrage' // Vitriol — a ballistic salvo of caustic shells
+  | 'wraith' // Revenant — a ghostly phase-double
+  | 'bellwave' // Knell — the tolling bell + resonance rings
+  | 'serpent' // Cinderwyrm — the winged dragon itself
+  | 'tide' // Riptide — a cresting wall of brine
+  | 'murder' // Carrion — a converging swarm of carrion flies
+  | 'gaze'; // Fovea — the vast opening eye + psionic lance
+/** The shared trajectory the framework drives the actor along (from caster → impact zone). */
+export type CinematicMotion =
+  | 'lunge' // short arc from the caster onto the target point
+  | 'swoop' // enters from the arena edge, sweeps THROUGH the target, exits beyond
+  | 'dive' // folds in from high above, straight down onto the point
+  | 'lob' // ballistic arc(s) from the caster to the zone
+  | 'rise' // surges up out of the ground beneath the target
+  | 'expand' // manifests AT the target and swells to the blast radius
+  | 'converge' // a ring collapsing inward onto the point
+  | 'beam' // a lance from the caster's stance to the target
+  | 'blink' // fades in at the target (phase entry)
+  | 'self'; // a flourish at the caster (utility self-casts)
+export interface HeroCinematicDef {
+  actor: CinematicActor;
+  motion: CinematicMotion;
+  /** Seconds between cast and the payload LANDING (damage/debuff/pool). 0 ⇒ instant resolve
+   *  (self flourishes). Keep within [0, 0.6] — long enough to read, never long enough to feel
+   *  unresponsive (enforced by the cinematics registry test). */
+  impactDelay: number;
+}
+
 export interface HeroAbilityDef {
   name: string;
   blurb: string;
@@ -1289,6 +1330,7 @@ export interface HeroAbilityDef {
   minEnemies?: number; // only auto-cast when ≥ this many enemies are near the aim point (default 1; 0 = always)
   particle?: ParticleKind; // the ability's cast VFX SHAPE — a particle burst spawned at the aim point
   fxColor?: string; // tints that burst — a per-ability hue, so every ability reads distinctly on screen
+  cinematic?: HeroCinematicDef; // the cast's set-piece performance + payload landing delay (absent ⇒ instant burst)
 }
 
 // ── Hero ability FORKS (HEROES.md §5/★8) — the A/B star choices that UPGRADE the abilities the hero
@@ -1355,10 +1397,10 @@ export const HERO_DEFS: Record<HeroKind, HeroDef> = {
     maxHp: 230, speed: 115, attackRange: 32, attackInterval: 0.55, attackDamage: 19, attackFracture: 1,
     aggroRange: 1400, contactRange: 26, respawnTime: 8,
     pulseInterval: 0, pulseRadius: 0, pulseDamage: 0, pulseDisrupt: 0, nucleusRegen: 0,
-    ability: { name: 'Apex Leap', blurb: 'AoE leap that fractures enemies.', cooldown: 8, radius: 72, damage: 62, fracture: 2, disrupt: 0, heal: 0, particle: 'heroBurst', fxColor: '#ffe066' },
+    ability: { name: 'Apex Leap', blurb: 'AoE leap that fractures enemies.', cooldown: 8, radius: 72, damage: 62, fracture: 2, disrupt: 0, heal: 0, particle: 'heroBurst', fxColor: '#ffe066', cinematic: { actor: 'beast', motion: 'lunge', impactDelay: 0.45 } },
     skills: [
-      { name: 'Rend', blurb: 'A gap-close strike that bursts Fracture onto the target and everything near it.', cooldown: 5, radius: 56, damage: 36, fracture: 2, disrupt: 0, heal: 0, castOn: 'target', minEnemies: 1, particle: 'heroSlash', fxColor: '#ffb03d' },
-      { name: 'Cleave Wave', blurb: 'A sweeping cleave — a wide arc that fractures the whole pack.', cooldown: 11, radius: 104, damage: 24, fracture: 1, disrupt: 0, heal: 0, castOn: 'target', minEnemies: 3, particle: 'heroBurst', fxColor: '#ff8a3d' },
+      { name: 'Rend', blurb: 'A gap-close strike that bursts Fracture onto the target and everything near it.', cooldown: 5, radius: 56, damage: 36, fracture: 2, disrupt: 0, heal: 0, castOn: 'target', minEnemies: 1, particle: 'heroSlash', fxColor: '#ffb03d', cinematic: { actor: 'beast', motion: 'lunge', impactDelay: 0.3 } },
+      { name: 'Cleave Wave', blurb: 'A sweeping cleave — a wide arc that fractures the whole pack.', cooldown: 11, radius: 104, damage: 24, fracture: 1, disrupt: 0, heal: 0, castOn: 'target', minEnemies: 3, particle: 'heroBurst', fxColor: '#ff8a3d', cinematic: { actor: 'beast', motion: 'lunge', impactDelay: 0.35 } },
     ],
     forks: [
       { star: 5, options: [
@@ -1379,10 +1421,10 @@ export const HERO_DEFS: Record<HeroKind, HeroDef> = {
     maxHp: 300, speed: 95, attackRange: 0, attackInterval: 0, attackDamage: 0, attackFracture: 0,
     aggroRange: 1400, contactRange: 24, respawnTime: 8,
     pulseInterval: 1.2, pulseRadius: 92, pulseDamage: 8, pulseDisrupt: 0, nucleusRegen: 1.2,
-    ability: { name: 'Bloom', blurb: 'A vital bloom: heals + self-shields the Shepherd, sprouts two Vital Wisps, then an AoE burst.', cooldown: 12, radius: 110, damage: 40, fracture: 0, disrupt: 0, heal: 40, shield: 100, shieldSeconds: 6, summonUnit: 'wisp', summonCount: 2, particle: 'heroBloom', fxColor: '#8affc0' },
+    ability: { name: 'Bloom', blurb: 'A vital bloom: heals + self-shields the Shepherd, sprouts two Vital Wisps, then an AoE burst.', cooldown: 12, radius: 110, damage: 40, fracture: 0, disrupt: 0, heal: 40, shield: 100, shieldSeconds: 6, summonUnit: 'wisp', summonCount: 2, particle: 'heroBloom', fxColor: '#8affc0', cinematic: { actor: 'bloomheart', motion: 'expand', impactDelay: 0.35 } },
     skills: [
-      { name: 'Graft', blurb: 'Grafts vital tissue onto itself — a burst heal and a brief self-shield.', cooldown: 8, radius: 0, damage: 0, fracture: 0, disrupt: 0, heal: 30, shield: 60, shieldSeconds: 5, castOn: 'self', minEnemies: 0, particle: 'heroBloom', fxColor: '#7affb0' },
-      { name: 'Flock', blurb: 'Sprouts a flock of Vital Wisps to fight beside it.', cooldown: 16, radius: 0, damage: 0, fracture: 0, disrupt: 0, heal: 0, summonUnit: 'wisp', summonCount: 2, castOn: 'self', minEnemies: 0, particle: 'heroBloom', fxColor: '#b6ff9c' },
+      { name: 'Graft', blurb: 'Grafts vital tissue onto itself — a burst heal and a brief self-shield.', cooldown: 8, radius: 0, damage: 0, fracture: 0, disrupt: 0, heal: 30, shield: 60, shieldSeconds: 5, castOn: 'self', minEnemies: 0, particle: 'heroBloom', fxColor: '#7affb0', cinematic: { actor: 'bloomheart', motion: 'self', impactDelay: 0 } },
+      { name: 'Flock', blurb: 'Sprouts a flock of Vital Wisps to fight beside it.', cooldown: 16, radius: 0, damage: 0, fracture: 0, disrupt: 0, heal: 0, summonUnit: 'wisp', summonCount: 2, castOn: 'self', minEnemies: 0, particle: 'heroBloom', fxColor: '#b6ff9c', cinematic: { actor: 'bloomheart', motion: 'self', impactDelay: 0 } },
     ],
     forks: [
       { star: 5, options: [
@@ -1403,10 +1445,10 @@ export const HERO_DEFS: Record<HeroKind, HeroDef> = {
     maxHp: 200, speed: 108, attackRange: 0, attackInterval: 0, attackDamage: 0, attackFracture: 0,
     aggroRange: 1400, contactRange: 22, respawnTime: 9,
     pulseInterval: 0.6, pulseRadius: 110, pulseDamage: 3, pulseDisrupt: STATUS.disruptDuration, nucleusRegen: 0,
-    ability: { name: 'Mass Override', blurb: 'Floods deep Disruption (slow + heavy vulnerability) and overclocks your towers (+20% damage, 5s).', cooldown: 11, radius: 132, damage: 0, fracture: 0, disrupt: 3.0, heal: 0, buffStat: 'towerDamage', buffAmount: 1.2, buffSeconds: 5, particle: 'heroMote', fxColor: '#9aa6ff' },
+    ability: { name: 'Mass Override', blurb: 'Floods deep Disruption (slow + heavy vulnerability) and overclocks your towers (+20% damage, 5s).', cooldown: 11, radius: 132, damage: 0, fracture: 0, disrupt: 3.0, heal: 0, buffStat: 'towerDamage', buffAmount: 1.2, buffSeconds: 5, particle: 'heroMote', fxColor: '#9aa6ff', cinematic: { actor: 'psion', motion: 'expand', impactDelay: 0.4 } },
     skills: [
-      { name: 'Static Field', blurb: 'Projects a psionic field that slows and destabilizes the cluster.', cooldown: 7, radius: 104, damage: 0, fracture: 0, disrupt: 2.5, heal: 0, castOn: 'target', minEnemies: 2, particle: 'heroMote', fxColor: '#8ab4ff' },
-      { name: 'Synaptic Overload', blurb: 'Overloads the pack — a neural blast that damages AND disrupts everything caught.', cooldown: 13, radius: 124, damage: 28, fracture: 0, disrupt: 2, heal: 0, castOn: 'target', minEnemies: 2, particle: 'heroBurst', fxColor: '#6f8cff' },
+      { name: 'Static Field', blurb: 'Projects a psionic field that slows and destabilizes the cluster.', cooldown: 7, radius: 104, damage: 0, fracture: 0, disrupt: 2.5, heal: 0, castOn: 'target', minEnemies: 2, particle: 'heroMote', fxColor: '#8ab4ff', cinematic: { actor: 'psion', motion: 'expand', impactDelay: 0.35 } },
+      { name: 'Synaptic Overload', blurb: 'Overloads the pack — a neural blast that damages AND disrupts everything caught.', cooldown: 13, radius: 124, damage: 28, fracture: 0, disrupt: 2, heal: 0, castOn: 'target', minEnemies: 2, particle: 'heroBurst', fxColor: '#6f8cff', cinematic: { actor: 'psion', motion: 'expand', impactDelay: 0.4 } },
     ],
     forks: [
       { star: 5, options: [
@@ -1430,10 +1472,10 @@ export const HERO_DEFS: Record<HeroKind, HeroDef> = {
     aggroRange: 1400, contactRange: 22, respawnTime: 9,
     pulseInterval: 0, pulseRadius: 0, pulseDamage: 0, pulseDisrupt: 0, nucleusRegen: 0,
     unlock: { kind: 'bossSlain', count: 3, label: 'Slay 3 distinct Framework Boss chassis' },
-    ability: { name: 'Corrosive Cataclysm', blurb: 'Saturates the target zone: a caustic blast that heavily corrodes everything caught, then a wide acid pool that lingers.', cooldown: 12, radius: 120, damage: 70, fracture: 0, disrupt: 0, corrode: 6, heal: 0, poolRadius: 120, poolDps: 22, poolSeconds: 5, particle: 'heroSpray', fxColor: '#cdea6a' },
+    ability: { name: 'Corrosive Cataclysm', blurb: 'Saturates the target zone: a caustic blast that heavily corrodes everything caught, then a wide acid pool that lingers.', cooldown: 12, radius: 120, damage: 70, fracture: 0, disrupt: 0, corrode: 6, heal: 0, poolRadius: 120, poolDps: 22, poolSeconds: 5, particle: 'heroSpray', fxColor: '#cdea6a', cinematic: { actor: 'barrage', motion: 'lob', impactDelay: 0.55 } },
     skills: [
-      { name: 'Acid Barrage', blurb: 'A rapid salvo of corrosive shells — splash damage that douses the target in Corrosion.', cooldown: 6, radius: 84, damage: 30, fracture: 0, disrupt: 0, corrode: 4, heal: 0, castOn: 'target', minEnemies: 1, particle: 'heroSpray', fxColor: '#b6e84a' },
-      { name: 'Corrosive Mire', blurb: 'Floods the target zone with a wide, lingering acid mire.', cooldown: 13, radius: 0, damage: 0, fracture: 0, disrupt: 0, heal: 0, poolRadius: 104, poolDps: 18, poolSeconds: 5, castOn: 'target', minEnemies: 2, particle: 'heroSpray', fxColor: '#9be84a' },
+      { name: 'Acid Barrage', blurb: 'A rapid salvo of corrosive shells — splash damage that douses the target in Corrosion.', cooldown: 6, radius: 84, damage: 30, fracture: 0, disrupt: 0, corrode: 4, heal: 0, castOn: 'target', minEnemies: 1, particle: 'heroSpray', fxColor: '#b6e84a', cinematic: { actor: 'barrage', motion: 'lob', impactDelay: 0.45 } },
+      { name: 'Corrosive Mire', blurb: 'Floods the target zone with a wide, lingering acid mire.', cooldown: 13, radius: 0, damage: 0, fracture: 0, disrupt: 0, heal: 0, poolRadius: 104, poolDps: 18, poolSeconds: 5, castOn: 'target', minEnemies: 2, particle: 'heroSpray', fxColor: '#9be84a', cinematic: { actor: 'barrage', motion: 'lob', impactDelay: 0.5 } },
     ],
     forks: [
       { star: 5, options: [
@@ -1456,10 +1498,10 @@ export const HERO_DEFS: Record<HeroKind, HeroDef> = {
     aggroRange: 1400, contactRange: 20, respawnTime: 9,
     pulseInterval: 0, pulseRadius: 0, pulseDamage: 0, pulseDisrupt: 0, nucleusRegen: 0,
     unlock: { kind: 'infiniteDepth', wave: 40, label: 'Reach Infinite Depth 40' },
-    ability: { name: 'Plague Rupture', blurb: 'Blinks to the target zone and RUPTURES it: a viral detonation that savages everything caught and injects a deep, spreading Infection.', cooldown: 12, radius: 130, damage: 66, fracture: 0, disrupt: 0, infect: 5, heal: 0, particle: 'heroBurst', fxColor: '#c86bff' },
+    ability: { name: 'Plague Rupture', blurb: 'Blinks to the target zone and RUPTURES it: a viral detonation that savages everything caught and injects a deep, spreading Infection.', cooldown: 12, radius: 130, damage: 66, fracture: 0, disrupt: 0, infect: 5, heal: 0, particle: 'heroBurst', fxColor: '#c86bff', cinematic: { actor: 'wraith', motion: 'blink', impactDelay: 0.35 } },
     skills: [
-      { name: 'Contagion', blurb: 'Lashes the target with a viral spray — injects deep, spreading Infection.', cooldown: 6, radius: 78, damage: 30, fracture: 0, disrupt: 0, infect: 3, heal: 0, castOn: 'target', minEnemies: 1, particle: 'heroSpray', fxColor: '#e24dff' },
-      { name: 'Virulent Burst', blurb: 'Ruptures the accumulated plague — a wide viral detonation that savages the pack.', cooldown: 12, radius: 108, damage: 40, fracture: 0, disrupt: 0, infect: 5, heal: 0, castOn: 'target', minEnemies: 2, particle: 'heroBurst', fxColor: '#ff5cc4' },
+      { name: 'Contagion', blurb: 'Lashes the target with a viral spray — injects deep, spreading Infection.', cooldown: 6, radius: 78, damage: 30, fracture: 0, disrupt: 0, infect: 3, heal: 0, castOn: 'target', minEnemies: 1, particle: 'heroSpray', fxColor: '#e24dff', cinematic: { actor: 'wraith', motion: 'lunge', impactDelay: 0.3 } },
+      { name: 'Virulent Burst', blurb: 'Ruptures the accumulated plague — a wide viral detonation that savages the pack.', cooldown: 12, radius: 108, damage: 40, fracture: 0, disrupt: 0, infect: 5, heal: 0, castOn: 'target', minEnemies: 2, particle: 'heroBurst', fxColor: '#ff5cc4', cinematic: { actor: 'wraith', motion: 'blink', impactDelay: 0.35 } },
     ],
     forks: [
       { star: 5, options: [
@@ -1487,10 +1529,10 @@ export const HERO_DEFS: Record<HeroKind, HeroDef> = {
     // concussion, not control. Its power is the amp windows, not the debuff.
     pulseInterval: 1.6, pulseRadius: 120, pulseDamage: 14, pulseDisrupt: 0.35, nucleusRegen: 0,
     unlock: { kind: 'molts', count: 1, label: 'Complete your first Molt' },
-    ability: { name: 'Sundering Peal', blurb: 'The bell SLAMS: a massive resonant blast that staggers the pack — and for 6s the whole hive answers, every tower striking +30% harder.', cooldown: 13, radius: 140, damage: 60, fracture: 0, disrupt: 1.0, heal: 0, buffStat: 'towerDamage', buffAmount: 1.3, buffSeconds: 6, particle: 'heroBurst', fxColor: '#ffc46b' },
+    ability: { name: 'Sundering Peal', blurb: 'The bell SLAMS: a massive resonant blast that staggers the pack — and for 6s the whole hive answers, every tower striking +30% harder.', cooldown: 13, radius: 140, damage: 60, fracture: 0, disrupt: 1.0, heal: 0, buffStat: 'towerDamage', buffAmount: 1.3, buffSeconds: 6, particle: 'heroBurst', fxColor: '#ffc46b', cinematic: { actor: 'bellwave', motion: 'expand', impactDelay: 0.45 } },
     skills: [
-      { name: 'Tolling Strike', blurb: 'A focused toll — resonant damage that briefly staggers everything caught.', cooldown: 7, radius: 100, damage: 30, fracture: 0, disrupt: 0.6, heal: 0, castOn: 'target', minEnemies: 2, particle: 'heroBurst', fxColor: '#f2d49a' },
-      { name: 'Battle Hymn', blurb: 'A sustained hum through the hive: towers strike +15% harder for 5s (refreshes, never stacks).', cooldown: 15, radius: 0, damage: 0, fracture: 0, disrupt: 0, heal: 0, buffStat: 'towerDamage', buffAmount: 1.15, buffSeconds: 5, castOn: 'self', minEnemies: 0, particle: 'heroMote', fxColor: '#ffe9b8' },
+      { name: 'Tolling Strike', blurb: 'A focused toll — resonant damage that briefly staggers everything caught.', cooldown: 7, radius: 100, damage: 30, fracture: 0, disrupt: 0.6, heal: 0, castOn: 'target', minEnemies: 2, particle: 'heroBurst', fxColor: '#f2d49a', cinematic: { actor: 'bellwave', motion: 'expand', impactDelay: 0.3 } },
+      { name: 'Battle Hymn', blurb: 'A sustained hum through the hive: towers strike +15% harder for 5s (refreshes, never stacks).', cooldown: 15, radius: 0, damage: 0, fracture: 0, disrupt: 0, heal: 0, buffStat: 'towerDamage', buffAmount: 1.15, buffSeconds: 5, castOn: 'self', minEnemies: 0, particle: 'heroMote', fxColor: '#ffe9b8', cinematic: { actor: 'bellwave', motion: 'self', impactDelay: 0 } },
     ],
     forks: [
       { star: 5, options: [
@@ -1514,10 +1556,10 @@ export const HERO_DEFS: Record<HeroKind, HeroDef> = {
     aggroRange: 1400, contactRange: 20, respawnTime: 9,
     pulseInterval: 0, pulseRadius: 0, pulseDamage: 0, pulseDisrupt: 0, nucleusRegen: 0,
     unlock: { kind: 'bossSlain', count: 5, label: 'Slay 5 distinct Framework Boss chassis' },
-    ability: { name: 'Pyroclastic Breath', blurb: 'Sweeps low and BREATHES: a pyroclastic blast that corrodes everything caught, leaving a firestorm that burns on.', cooldown: 12, radius: 118, damage: 58, fracture: 0, disrupt: 0, corrode: 5, heal: 0, poolRadius: 110, poolDps: 20, poolSeconds: 4, particle: 'heroSpray', fxColor: '#ffab4a' },
+    ability: { name: 'Pyroclastic Breath', blurb: 'Sweeps low and BREATHES: a pyroclastic blast that corrodes everything caught, leaving a firestorm that burns on.', cooldown: 12, radius: 118, damage: 58, fracture: 0, disrupt: 0, corrode: 5, heal: 0, poolRadius: 110, poolDps: 20, poolSeconds: 4, particle: 'heroSpray', fxColor: '#ffab4a', cinematic: { actor: 'serpent', motion: 'swoop', impactDelay: 0.55 } },
     skills: [
-      { name: 'Wing Shear', blurb: 'A razor wing-arc across the pack — kinetic shear that cracks plating.', cooldown: 7, radius: 96, damage: 30, fracture: 1, disrupt: 0, heal: 0, castOn: 'target', minEnemies: 2, particle: 'heroSlash', fxColor: '#ffc46b' },
-      { name: 'Skyfall Talon', blurb: 'Folds its wings and DIVES — a talon strike that punches deep and corrodes the wound.', cooldown: 12, radius: 52, damage: 62, fracture: 0, disrupt: 0, corrode: 3, heal: 0, castOn: 'target', minEnemies: 1, particle: 'heroLance', fxColor: '#ff7a3d' },
+      { name: 'Wing Shear', blurb: 'A razor wing-arc across the pack — kinetic shear that cracks plating.', cooldown: 7, radius: 96, damage: 30, fracture: 1, disrupt: 0, heal: 0, castOn: 'target', minEnemies: 2, particle: 'heroSlash', fxColor: '#ffc46b', cinematic: { actor: 'serpent', motion: 'swoop', impactDelay: 0.4 } },
+      { name: 'Skyfall Talon', blurb: 'Folds its wings and DIVES — a talon strike that punches deep and corrodes the wound.', cooldown: 12, radius: 52, damage: 62, fracture: 0, disrupt: 0, corrode: 3, heal: 0, castOn: 'target', minEnemies: 1, particle: 'heroLance', fxColor: '#ff7a3d', cinematic: { actor: 'serpent', motion: 'dive', impactDelay: 0.45 } },
     ],
     forks: [
       { star: 5, options: [
@@ -1547,10 +1589,10 @@ export const HERO_DEFS: Record<HeroKind, HeroDef> = {
     // control). Faster cadence + shallower stagger than the Knell's toll; no amp windows.
     pulseInterval: 1.3, pulseRadius: 104, pulseDamage: 11, pulseDisrupt: 0.25, nucleusRegen: 0,
     unlock: { kind: 'megaSlain', count: 2, label: 'Fell 2 distinct Mega Bosses' },
-    ability: { name: 'Maelstrom', blurb: 'Drags the pack into a crushing vortex: heavy tidal damage, a deep stagger — and the water STAYS, an undertow pool that drowns everything that lingers.', cooldown: 12, radius: 126, damage: 56, fracture: 0, disrupt: 1.6, heal: 0, poolRadius: 116, poolDps: 16, poolSeconds: 5, particle: 'heroBurst', fxColor: '#6fd8ff' },
+    ability: { name: 'Maelstrom', blurb: 'Drags the pack into a crushing vortex: heavy tidal damage, a deep stagger — and the water STAYS, an undertow pool that drowns everything that lingers.', cooldown: 12, radius: 126, damage: 56, fracture: 0, disrupt: 1.6, heal: 0, poolRadius: 116, poolDps: 16, poolSeconds: 5, particle: 'heroBurst', fxColor: '#6fd8ff', cinematic: { actor: 'tide', motion: 'expand', impactDelay: 0.5 } },
     skills: [
-      { name: 'Undertow', blurb: 'Floods the target zone — a dragging undertow pool that staggers on impact and grinds whatever stands in it.', cooldown: 8, radius: 96, damage: 18, fracture: 0, disrupt: 0.8, heal: 0, poolRadius: 100, poolDps: 14, poolSeconds: 5, castOn: 'target', minEnemies: 2, particle: 'heroSpray', fxColor: '#4db8ff' },
-      { name: 'Breaker', blurb: 'The wave BREAKS — a wide crushing slam that staggers the whole pack.', cooldown: 12, radius: 118, damage: 34, fracture: 0, disrupt: 1.0, heal: 0, castOn: 'target', minEnemies: 3, particle: 'heroBurst', fxColor: '#8ae2ff' },
+      { name: 'Undertow', blurb: 'Floods the target zone — a dragging undertow pool that staggers on impact and grinds whatever stands in it.', cooldown: 8, radius: 96, damage: 18, fracture: 0, disrupt: 0.8, heal: 0, poolRadius: 100, poolDps: 14, poolSeconds: 5, castOn: 'target', minEnemies: 2, particle: 'heroSpray', fxColor: '#4db8ff', cinematic: { actor: 'tide', motion: 'rise', impactDelay: 0.4 } },
+      { name: 'Breaker', blurb: 'The wave BREAKS — a wide crushing slam that staggers the whole pack.', cooldown: 12, radius: 118, damage: 34, fracture: 0, disrupt: 1.0, heal: 0, castOn: 'target', minEnemies: 3, particle: 'heroBurst', fxColor: '#8ae2ff', cinematic: { actor: 'tide', motion: 'rise', impactDelay: 0.4 } },
     ],
     forks: [
       { star: 5, options: [
@@ -1577,10 +1619,10 @@ export const HERO_DEFS: Record<HeroKind, HeroDef> = {
     // The flies: a soft charnel pulse — real chip, no stagger (its power is the risen, not the cloud).
     pulseInterval: 1.4, pulseRadius: 100, pulseDamage: 9, pulseDisrupt: 0, nucleusRegen: 0,
     unlock: { kind: 'lifetimeKills', count: 20000, label: 'Slay 20,000 enemies (lifetime)' },
-    ability: { name: 'Mass Rebirth', blurb: 'The ground gives back its dead: a necrotic burst savages the pack, and three Risen Thralls claw up to fight for the hive.', cooldown: 13, radius: 120, damage: 40, fracture: 0, disrupt: 0, heal: 0, summonUnit: 'thrall', summonCount: 3, particle: 'heroBloom', fxColor: '#9fe8b0' },
+    ability: { name: 'Mass Rebirth', blurb: 'The ground gives back its dead: a necrotic burst savages the pack, and three Risen Thralls claw up to fight for the hive.', cooldown: 13, radius: 120, damage: 40, fracture: 0, disrupt: 0, heal: 0, summonUnit: 'thrall', summonCount: 3, particle: 'heroBloom', fxColor: '#9fe8b0', cinematic: { actor: 'murder', motion: 'converge', impactDelay: 0.45 } },
     skills: [
-      { name: 'Grave Call', blurb: 'Calls two Risen Thralls up from the charnel ground to fight beside it.', cooldown: 10, radius: 0, damage: 0, fracture: 0, disrupt: 0, heal: 0, summonUnit: 'thrall', summonCount: 2, castOn: 'self', minEnemies: 0, particle: 'heroBloom', fxColor: '#8fe8b8' },
-      { name: 'Funerary Feast', blurb: 'The flies descend to feed — a necrotic burst that savages the pack and mends the Carrion with what it takes.', cooldown: 12, radius: 108, damage: 28, fracture: 0, disrupt: 0, heal: 26, castOn: 'target', minEnemies: 2, particle: 'heroSpray', fxColor: '#6fd894' },
+      { name: 'Grave Call', blurb: 'Calls two Risen Thralls up from the charnel ground to fight beside it.', cooldown: 10, radius: 0, damage: 0, fracture: 0, disrupt: 0, heal: 0, summonUnit: 'thrall', summonCount: 2, castOn: 'self', minEnemies: 0, particle: 'heroBloom', fxColor: '#8fe8b8', cinematic: { actor: 'murder', motion: 'self', impactDelay: 0 } },
+      { name: 'Funerary Feast', blurb: 'The flies descend to feed — a necrotic burst that savages the pack and mends the Carrion with what it takes.', cooldown: 12, radius: 108, damage: 28, fracture: 0, disrupt: 0, heal: 26, castOn: 'target', minEnemies: 2, particle: 'heroSpray', fxColor: '#6fd894', cinematic: { actor: 'murder', motion: 'converge', impactDelay: 0.4 } },
     ],
     forks: [
       { star: 5, options: [
@@ -1607,10 +1649,10 @@ export const HERO_DEFS: Record<HeroKind, HeroDef> = {
     maxHp: 190, speed: 94, attackRange: 640, attackInterval: 2.4, attackDamage: 95, attackFracture: 0, attackSplash: 16, projectileSpeed: 720,
     aggroRange: 1400, contactRange: 20, respawnTime: 10,
     pulseInterval: 0, pulseRadius: 0, pulseDamage: 0, pulseDisrupt: 0, nucleusRegen: 0,
-    ability: { name: 'Apex Stare', blurb: 'The eye opens fully: a single annihilating psionic lance that holds the target in the gaze — colossal damage and a deep stagger.', cooldown: 12, radius: 60, damage: 140, fracture: 0, disrupt: 2.0, heal: 0, particle: 'heroLance', fxColor: '#d8ccff' },
+    ability: { name: 'Apex Stare', blurb: 'The eye opens fully: a single annihilating psionic lance that holds the target in the gaze — colossal damage and a deep stagger.', cooldown: 12, radius: 60, damage: 140, fracture: 0, disrupt: 2.0, heal: 0, particle: 'heroLance', fxColor: '#d8ccff', cinematic: { actor: 'gaze', motion: 'beam', impactDelay: 0.5 } },
     skills: [
-      { name: 'Pinning Glare', blurb: 'A focused lance that pins the victim mid-stride — heavy damage and a long stagger.', cooldown: 7, radius: 56, damage: 44, fracture: 0, disrupt: 1.4, heal: 0, castOn: 'target', minEnemies: 1, particle: 'heroLance', fxColor: '#c9baff' },
-      { name: 'Panopticon', blurb: 'The gaze widens to hold the whole pack — a field of pressure that staggers everything seen.', cooldown: 13, radius: 140, damage: 18, fracture: 0, disrupt: 2.0, heal: 0, castOn: 'target', minEnemies: 3, particle: 'heroMote', fxColor: '#b0a0ff' },
+      { name: 'Pinning Glare', blurb: 'A focused lance that pins the victim mid-stride — heavy damage and a long stagger.', cooldown: 7, radius: 56, damage: 44, fracture: 0, disrupt: 1.4, heal: 0, castOn: 'target', minEnemies: 1, particle: 'heroLance', fxColor: '#c9baff', cinematic: { actor: 'gaze', motion: 'beam', impactDelay: 0.35 } },
+      { name: 'Panopticon', blurb: 'The gaze widens to hold the whole pack — a field of pressure that staggers everything seen.', cooldown: 13, radius: 140, damage: 18, fracture: 0, disrupt: 2.0, heal: 0, castOn: 'target', minEnemies: 3, particle: 'heroMote', fxColor: '#b0a0ff', cinematic: { actor: 'gaze', motion: 'expand', impactDelay: 0.45 } },
     ],
     forks: [
       { star: 5, options: [

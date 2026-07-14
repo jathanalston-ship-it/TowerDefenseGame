@@ -193,6 +193,25 @@ Content — not systems — is the binding constraint (see EA-DESIGN-AUDIT). The
   / no picks resolves to the exact base kit; `neutralHeroProgress` + `NO_META` pass no kits ⇒ byte-
   identical (heroForks.test.ts pins identity + patch math + the HUD-level end-to-end)
 
+- ✅ **Hero ability CINEMATICS** — every cast is a procedural set-piece: the Cinderwyrm's breath is a
+  dragon swooping the lane, the Fovea's stare an opening eye-lance (HERO-CINEMATICS.md). **Data:**
+  `HeroAbilityDef.cinematic { actor, motion, impactDelay }` on all 30 abilities (10 heroes × ult+2 skills).
+  **Sim:** a cinematic cast SPLITS — support (heal/shield/buff/summon) lands at cast; the ZONE payload
+  (explosion/debuff/pool) lands `impactDelay` (0.3–0.55s) later via `game.pendingImpacts` (crit/radius
+  locked at cast ⇒ no rng at impact; enemies re-queried at landing — the blow hits whatever stands there;
+  the settle wind-down clears the queue). One-shot `CastEvent`s ride `RenderState.castEvents` (the
+  DeathEvent seq-ingest pattern). **Render:** `render/abilityCinematics.ts` — `ACTOR_PAINTERS` (10
+  puppets: beast/bloomheart/psion/barrage/wraith/bellwave/serpent/tide/murder/gaze) × `computePose`
+  (10 motions: lunge/swoop/dive/lob/rise/expand/converge/beam/blink/self), driven by SIM time
+  (pause/speed stay in sync), anticipation → travel → impact → linger beats, calm covenant (no
+  shake/flash, alpha-capped), reduced-motion skips the travel theater, ~0.9s wall-clock sim-stall
+  releases performances. **Guardrails (test-enforced):** impactDelay ∈ [0, 0.6]; zone strikes must
+  travel (> 0), pure support must not lag (= 0); golden seeds byte-identical (cast-less runs never
+  touch the path — pendingImpactSystem length-gated, feed only written on cast). Tests:
+  heroCinematics.test.ts (sim seam) + abilityCinematics.test.ts (renderer contract); riptide/vitriol
+  tests updated to the ride-through pattern. Live-smoked headlessly: serpent mid-swoop + the
+  landing-synced firestorm confirmed on the real battlefield
+
 ### Bosses
 - ✅ Module/phase framework + procedural assembly (`core/boss.ts`) — BOSS-DESIGN.md, STAGES.md §10
 - ✅ **Chassis identity depth** (BOSS-DESIGN.md §identity) — `CHASSIS_IDENTITY`: per-chassis creed,

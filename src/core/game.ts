@@ -64,7 +64,7 @@ import {
   MINION_CAP,
   GRAVEBIND,
 } from './config';
-import type { EnemyDef, HeroAbilityDef, HeroDef, MinionDef, ResolvedHeroKit, TowerDef } from './config';
+import type { CinematicActor, CinematicMotion, EnemyDef, HeroAbilityDef, HeroDef, MinionDef, ResolvedHeroKit, TowerDef } from './config';
 import { DANGER_CAM, initialDangerCamera, stepDangerCamera } from './dangerCamera';
 import type { DangerCameraState } from './dangerCamera';
 import { initialAssimilation } from './assimilation';
@@ -320,6 +320,7 @@ export interface RenderState {
   megaShots: MegaShot[]; // raid-fire tracers (tower/hero → weak point / body); empty otherwise
   mines: SporeMine[]; // Blight Sower spore mines (docs/SOWER.md); empty on every other run
   deathEvents: DeathEvent[]; // one-shot ENEMY-DEATH descriptors for the assimilation VFX (render/gore.ts)
+  castEvents: CastEvent[]; // one-shot hero-CAST descriptors for the ability cinematics (render/abilityCinematics.ts)
   // LIVING BATTLEFIELD (docs/LIVING-BATTLEFIELD.md) — read-only run signals the render-side biomass
   // accumulator folds (with rs.towers/heroes/biome + the render maps) into the arena's evolution
   // stage. Pure snapshot reads of counters the sim already tracks ⇒ no sim math touched ⇒ golden-safe.
@@ -339,6 +340,48 @@ export interface DeathEvent {
   killerKind: TowerKind | null; // credited tower kind (nearest instance = the visual XP target); null ⇒ hero/other
   flying: boolean;
 }
+
+/** A single hero-ability cast, surfaced for the ABILITY CINEMATICS layer
+ *  (render/abilityCinematics.ts, docs/HERO-CINEMATICS.md) — the renderer seq-ingests these to
+ *  stage the cast's procedural set-piece performance (the Cinderwyrm's dragon swoop, the Fovea's
+ *  eye-beam). Presentation-only: nothing in the sim reads the buffer back — the payload's LANDING
+ *  timing is owned by the pendingImpacts queue, not by this feed. */
+export interface CastEvent {
+  seq: number; // monotonic id — the renderer ingests each cast exactly once (mirrors DeathEvent)
+  hero: HeroKind;
+  name: string; // resolved ability name (fork renames ride along)
+  slot: 'ult' | 0 | 1 | 'echo'; // which verb fired ('echo' = the symbiote aftershock — always instant)
+  x: number; // impact-zone center
+  y: number;
+  fromX: number; // the caster's stance when the cast began (beams/lobs/lunges launch here)
+  fromY: number;
+  radius: number; // resolved zone radius (ability × gear/evolution range mult; pools included)
+  color: string; // fork-resolved fxColor (falls back to the hero's identity color)
+  actor: CinematicActor;
+  motion: CinematicMotion;
+  delay: number; // seconds until the payload lands — the performance's travel window
+  at: number; // sim time of the cast (performances run on sim time ⇒ pause/speed stay in sync)
+}
+
+/** The sim half of a cinematic cast (docs/HERO-CINEMATICS.md): the zone payload
+ *  (explosion/debuff/pool) scheduled to LAND when the performance strikes. Crit + damage
+ *  multipliers were resolved at cast (no rng at impact); enemies are re-queried at the stored
+ *  point when it fires — the blow hits whatever stands in the zone when it lands. */
+interface PendingImpact {
+  at: number; // sim time the payload lands
+  x: number;
+  y: number;
+  comps: AbilityComponent[]; // the zone payload (explosion/debuff/pool), fork-resolved
+  damageMult: number;
+  rangeMult: number; // cast-time ability radius mult (gear × evolution)
+  hero: HeroKind;
+  particle?: ParticleKind; // the landing burst (deferred from cast time)
+  fxColor?: string;
+}
+
+/** Component types that LAND with the cinematic impact; everything else in a kit
+ *  (heal/shield/buff/summon…) stays instant at cast — support must never feel laggy. */
+const IMPACT_COMP_TYPES: ReadonlySet<AbilityComponent['type']> = new Set(['explosion', 'debuff', 'pool']);
 
 /** An instant raid-fire tracer (tower/hero → weak point / body chip). Presentation-only. */
 export interface MegaShot {
@@ -469,6 +512,11 @@ export class Game {
   particles: Particle[] = [];
   deathEvents: DeathEvent[] = []; // presentation-only ENEMY-DEATH buffer for the assimilation gore VFX
   private deathSeq = 0; // monotonic id for one-shot render ingest
+  castEvents: CastEvent[] = []; // presentation-only hero-CAST buffer for the ability cinematics (docs/HERO-CINEMATICS.md)
+  private castSeq = 0; // monotonic id for one-shot render ingest
+  // Scheduled cinematic payloads (docs/HERO-CINEMATICS.md) — the sim half of impactDelay. Empty
+  // on any run that never casts a hero ability (the golden autoplay) ⇒ zero per-tick work, no rng.
+  private pendingImpacts: PendingImpact[] = [];
   minions: Minion[] = []; // summoned friendly units (empty on the golden path → byte-identical)
   enemyShells: EnemyShell[] = []; // artillery shells in flight (empty on the golden path)
   /** Danger-camera state machine (docs/CAMERA.md) — RENDER-ONLY; no sim system reads it. */
@@ -2432,6 +2480,7 @@ export class Game {
       this.enemyShellSystem(dt); // artillery shells in flight (empty array on the golden path)
       this.enemyMoveSystem(dt);
       this.heroSystem(dt);
+      if (this.pendingImpacts.length > 0) this.pendingImpactSystem(); // cinematic payloads LAND (docs/HERO-CINEMATICS.md)
       this.deathSystem();
       this.floatSystem(dt);
       this.particleSystem(dt);
@@ -5290,9 +5339,20 @@ export class Game {
     this.castScratch.target = null;
     this.castScratch.pierce = 0;
     this.castRangeMult = this.heroAbilityRadiusFor(h);
-    runAbilities(this.actx, this.heroAbilityKits[h.kind]?.skillComps[i] ?? HERO_SKILLS[h.kind][i], this.castScratch);
+    const comps = this.heroAbilityKits[h.kind]?.skillComps[i] ?? HERO_SKILLS[h.kind][i];
+    const delay = sk.cinematic?.impactDelay ?? 0;
+    if (delay > 0) {
+      // Cinematic cast (docs/HERO-CINEMATICS.md): support components fire NOW; the zone payload
+      // (damage/debuff/pool) lands when the performance strikes, `delay` seconds out.
+      const instant = comps.filter((c) => !IMPACT_COMP_TYPES.has(c.type));
+      if (instant.length > 0) runAbilities(this.actx, instant, this.castScratch);
+      this.queueImpact(h, sk, comps, px, py, delay);
+    } else {
+      runAbilities(this.actx, comps, this.castScratch);
+    }
+    this.pushCastEvent(h, sk, i as 0 | 1, px, py, h.x, h.y);
     this.castRangeMult = 1;
-    if (sk.particle) this.spawnParticles(px, py, PARTICLE[sk.particle], sk.fxColor); // the skill's unique cast VFX (fork-recoloured)
+    if (delay === 0 && sk.particle) this.spawnParticles(px, py, PARTICLE[sk.particle], sk.fxColor); // the skill's unique cast VFX (fork-recoloured); a delayed payload bursts on LANDING instead
     (h.skillCd as number[])[i] = sk.cooldown * this.heroProgress[h.kind].cooldownMult; // stars/gear shave skill cds too
     if (this.relicHooks.length) this.fireRelicHooks('abilityCast', null);
     this.pushSfx('ability');
@@ -5807,6 +5867,8 @@ export class Game {
     const def = HERO_DEFS[h.kind];
     const kit = this.heroAbilityKits[h.kind]; // fork-resolved abilities (absent ⇒ base kit)
     const ab = kit?.ult ?? def.ability;
+    const fromX = h.x; // stance BEFORE the reposition — beams/lobs/lunges launch here (cast feed)
+    const fromY = h.y;
     h.x = px;
     h.y = py;
     h.rally = { x: px, y: py };
@@ -5822,9 +5884,20 @@ export class Game {
     this.castScratch.target = null;
     this.castScratch.pierce = 0;
     this.castRangeMult = this.heroAbilityRadiusFor(h); // gear × Evolution Amplitude scales the ability AoE
-    runAbilities(this.actx, kit?.ultComps ?? HERO_ULT[h.kind], this.castScratch);
+    const comps = kit?.ultComps ?? HERO_ULT[h.kind];
+    const delay = ab.cinematic?.impactDelay ?? 0;
+    if (delay > 0) {
+      // Cinematic cast (docs/HERO-CINEMATICS.md): support components (heal/shield/buff/summon)
+      // fire NOW; the zone payload lands when the performance strikes, `delay` seconds out.
+      const instant = comps.filter((c) => !IMPACT_COMP_TYPES.has(c.type));
+      if (instant.length > 0) runAbilities(this.actx, instant, this.castScratch);
+      this.queueImpact(h, ab, comps, px, py, delay);
+    } else {
+      runAbilities(this.actx, comps, this.castScratch);
+    }
+    this.pushCastEvent(h, ab, 'ult', px, py, fromX, fromY);
     this.castRangeMult = 1;
-    if (ab.particle) this.spawnParticles(px, py, PARTICLE[ab.particle], ab.fxColor); // the ult's unique cast VFX (fork-recoloured)
+    if (delay === 0 && ab.particle) this.spawnParticles(px, py, PARTICLE[ab.particle], ab.fxColor); // the ult's unique cast VFX (fork-recoloured); a delayed payload bursts on LANDING instead
     if (this.relicHooks.length) this.fireRelicHooks('abilityCast', null); // relic rule on ability cast
     h.abilityCd = this.heroAbilityCooldownFor(h);
     this.pushSfx('ability');
@@ -5860,12 +5933,81 @@ export class Game {
     this.castScratch.pierce = 0;
     this.castRangeMult = this.heroAbilityRadiusFor(h) * 0.85; // the echo is a smaller answer
     runAbilities(this.actx, kit?.ultComps ?? HERO_ULT[h.kind], this.castScratch);
+    this.pushCastEvent(h, ab, 'echo', px, py, h.x, h.y); // a diminished encore performance (delay 0)
     this.castRangeMult = 1;
     if (ab.particle) {
       const p = PARTICLE[ab.particle];
       this.spawnParticles(px, py, { ...p, count: Math.max(3, Math.floor(p.count / 2)) }, ab.fxColor);
     }
     this.floats.push({ x: px, y: py - 16, text: `${ab.name} echoes`, color: def.color, life: 0.6 });
+  }
+
+  /** Publish a cast to the presentation feed (RenderState.castEvents): the ability-cinematics
+   *  layer (render/abilityCinematics.ts) seq-ingests each event exactly once and stages the
+   *  performance — the DeathEvent pattern. Presentation-only; the sim never reads it back.
+   *  Call while castRangeMult is still armed (the zone radius resolves through it). */
+  private pushCastEvent(h: Hero, ab: HeroAbilityDef, slot: CastEvent['slot'], px: number, py: number, fromX: number, fromY: number): void {
+    const cine = ab.cinematic;
+    if (!cine) return;
+    this.castEvents.push({
+      seq: this.castSeq++,
+      hero: h.kind,
+      name: ab.name,
+      slot,
+      x: px,
+      y: py,
+      fromX,
+      fromY,
+      radius: Math.max(ab.radius, ab.poolRadius ?? 0) * this.castRangeMult,
+      color: ab.fxColor ?? HERO_DEFS[h.kind].color,
+      actor: cine.actor,
+      motion: cine.motion,
+      delay: slot === 'echo' ? 0 : cine.impactDelay,
+      at: this.time,
+    });
+    if (this.castEvents.length > 32) this.castEvents.splice(0, this.castEvents.length - 32);
+  }
+
+  /** Queue the LANDING half of a cinematic cast: the zone payload (IMPACT_COMP_TYPES) resolves
+   *  `delay` seconds out, when the performance strikes. Damage/crit multipliers and the ability
+   *  radius were locked at CAST — the impact spends no rng. */
+  private queueImpact(h: Hero, ab: HeroAbilityDef, comps: readonly AbilityComponent[], px: number, py: number, delay: number): void {
+    const impact = comps.filter((c) => IMPACT_COMP_TYPES.has(c.type));
+    if (impact.length === 0) return;
+    this.pendingImpacts.push({
+      at: this.time + delay,
+      x: px,
+      y: py,
+      comps: impact,
+      damageMult: this.castScratch.damageMult,
+      rangeMult: this.castRangeMult,
+      hero: h.kind,
+      particle: ab.particle,
+      fxColor: ab.fxColor,
+    });
+  }
+
+  /** Fire every cinematic payload whose performance has LANDED. Gated in step() on a non-empty
+   *  queue, so a cast-less run — the golden autoplay — never pays a tick for it. Enemies are
+   *  re-queried at the stored zone: the blow hits whatever stands there when it lands. */
+  private pendingImpactSystem(): void {
+    const due = this.pendingImpacts.filter((p) => this.time >= p.at);
+    if (due.length === 0) return;
+    this.pendingImpacts = this.pendingImpacts.filter((p) => this.time < p.at);
+    for (const p of due) {
+      this.abilitySourceKind = null;
+      this.abilityHeroKind = p.hero;
+      this.abilityCaster = this.heroes.find((x) => x.kind === p.hero) ?? null;
+      this.castScratch.x = p.x;
+      this.castScratch.y = p.y;
+      this.castScratch.damageMult = p.damageMult;
+      this.castScratch.target = null;
+      this.castScratch.pierce = 0;
+      this.castRangeMult = p.rangeMult;
+      runAbilities(this.actx, p.comps, this.castScratch);
+      this.castRangeMult = 1;
+      if (p.particle) this.spawnParticles(p.x, p.y, PARTICLE[p.particle], p.fxColor); // the landing burst
+    }
   }
 
   private deathSystem(): void {
@@ -6254,6 +6396,7 @@ export class Game {
         }
       }
       this.settleTimer = SETTLE.duration; // begin the wind-down; endWave() reveals the result
+      this.pendingImpacts.length = 0; // the field is clear — no cinematic payload left to land
     }
   }
 
@@ -7046,6 +7189,7 @@ export class Game {
       megaShots: this.megaShots,
       mines: this.mines,
       deathEvents: this.deathEvents,
+      castEvents: this.castEvents,
       assimilation: { wave: this.waveIndex, kills: this.kills, bossKills: this.runBossKills, megaKills: this.runMegaKills.length },
     };
   }

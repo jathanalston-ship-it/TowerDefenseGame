@@ -11,6 +11,11 @@ export const RELEASES: Release[] = [
     "sealed": false,
     "entries": [
       {
+        "cat": "Gameplay",
+        "text": "New system: Hero Ability Cinematics",
+        "major": true
+      },
+      {
         "cat": "Enemies",
         "text": "New enemy: Pale Skulker",
         "major": true
@@ -833,6 +838,18 @@ export const RELEASES: Release[] = [
       {
         "cat": "UX",
         "text": "Game-wide UX audit + coalescing pass: one fact, one owner"
+      },
+      {
+        "cat": "UI",
+        "text": "Persona simulation, final ship — fix the home-widget hook-scope crash"
+      },
+      {
+        "cat": "Audio",
+        "text": "In-run gameplay feel pass: status FX framework, hit confirmation, tower anticipation, hero ability cues"
+      },
+      {
+        "cat": "Heroes",
+        "text": "Hero ability cinematics: every cast is a procedural set-piece"
       }
     ]
   },

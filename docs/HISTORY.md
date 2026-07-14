@@ -194,3 +194,6 @@
 - `370bc07` **[UI]** Guided Unlocks (Foundation #3): every early wing walks you through itself
 - `788d5d0` **[UX]** Tutorial, Help & returning-player integration over the five Foundations
 - `fda8225` **[UX]** Game-wide UX audit + coalescing pass: one fact, one owner
+- `c0acc6a` **[UI]** Persona simulation, final ship — fix the home-widget hook-scope crash
+- `fd87da1` **[Audio]** In-run gameplay feel pass: status FX framework, hit confirmation, tower anticipation, hero ability cues
+- `4cf2f84` **[Heroes]** Hero ability cinematics: every cast is a procedural set-piece

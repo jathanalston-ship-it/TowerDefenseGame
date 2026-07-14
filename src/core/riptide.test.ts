@@ -47,9 +47,15 @@ describe('Riptide — the drowned tide (Kinetic zone control)', () => {
     for (const e of g.enemies) { e.x = h.x; e.y = h.y; }
     expect(g.pools.length).toBe(0);
     g.armAbility();
-    g.click(h.x, h.y); // the vortex slams down
+    g.click(h.x, h.y); // the vortex begins to turn…
+    // …and the payload (crush + pool) LANDS with the performance, impactDelay later
+    // (docs/HERO-CINEMATICS.md) — ride the cast through its landing before asserting.
+    const delay = HERO_DEFS.riptide.ability.cinematic!.impactDelay;
+    for (let i = 0; i < Math.ceil(delay / SIM_DT) + 3; i++) {
+      for (const e of g.enemies) { e.x = h.x; e.y = h.y; }
+      g.advance(SIM_DT);
+    }
     expect(g.pools.length).toBeGreaterThan(0); // …and the water STAYS
-    for (let i = 0; i < 12; i++) g.advance(SIM_DT); // let the crush + first grind land
     const afterBurst = g.getRunStats().damageDealt;
     expect(afterBurst).toBeGreaterThan(0); // the crush landed
     for (let i = 0; i < Math.ceil(2 / SIM_DT); i++) {

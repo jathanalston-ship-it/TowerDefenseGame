@@ -158,6 +158,14 @@ export const SYSTEMS: SystemDef[] = [
     docs: ['docs/HEROES.md', 'docs/HERO-FRAMEWORK.md', 'docs/HERO-EVOLUTION.md', 'docs/HERO-SELECTION.md', 'docs/SLOTS.md'],
   },
   {
+    id: 'hero-cinematics', name: 'Hero Ability Cinematics', purpose: 'Every hero cast stages a procedural set-piece performance (the Cinderwyrm’s dragon swoop, the Fovea’s eye-beam): game.ts publishes one-shot CastEvents and delays each ZONE payload (pendingImpacts) so the blow lands WITH the animation; render/abilityCinematics.ts drives 10 actor puppets across 10 shared motions, all data-driven from HeroAbilityDef.cinematic.',
+    files: ['src/render/abilityCinematics.ts'],
+    dependsOn: ['heroes', 'engine', 'rendering'], powerScore: null, save: [],
+    tutorial: [], help: [], hud: ['battlefield performance layer (over entities, under labels)'], ui: [],
+    collection: null, achievements: [], localization: 'none',
+    docs: ['docs/HERO-CINEMATICS.md'],
+  },
+  {
     id: 'equipment', name: 'Equipment & Armory', purpose: '~180 behavioral items, affixes, sets; per-hero Weapon/Armor/Relic loadouts. Bespoke PROCEDURAL card art (render/equipmentArt.ts) — a unique rarity-graded biomechanical emblem per item, derived from slot/subtype/set/rarity/affixes (no placeholder icons; scales to hundreds for free) — and, in-game, the equipped loadout draws as hero GEAR on the battlefield.',
     files: ['src/core/equipment.ts', 'src/render/equipmentArt.ts', 'src/ui/EquipmentPanel.tsx', 'src/ui/ItemDetails.tsx', 'src/ui/EquipmentCollection.tsx', 'src/ui/components/ItemArt.tsx', 'src/ui/components/HeroGearPreview.tsx'],
     dependsOn: ['content-infra', 'loot', 'power', 'heroes'], powerScore: 'equipped items score via itemPower into the gear bucket', save: ['equipment'],

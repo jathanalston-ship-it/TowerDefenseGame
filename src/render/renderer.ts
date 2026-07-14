@@ -30,6 +30,7 @@ import { THEME, ENEMY_SHAPE, ENEMY_TIER, ENEMY_BODY, ENEMY_VARIANT, hexRgb, rgba
 import { drawEnemyBody } from './enemyForms';
 import type { BodyForm } from './enemyForms';
 import { ingestDeaths, updateGore, drawGoreFloor, drawGorePieces, goreThrob } from './gore';
+import { drawAbilityCinematics } from './abilityCinematics';
 import { drawTowerForm, FORM_ANTICIPATION, TOWER_FORM } from './towerForms';
 import {
   chevronDown,
@@ -416,6 +417,7 @@ export function drawGame(
   drawParticles(ctx, rs);
   drawMinions(ctx, rs, t);
   drawHeroes(ctx, rs, cosmeticTiers, heroStarTiers, heroEvo, heroSkins, heroGear, heroSymbiotes);
+  drawAbilityCinematics(ctx, rs); // hero-cast set-piece performances (docs/HERO-CINEMATICS.md) — over the entities, under the labels
   drawLivingBattlefieldAmbient(ctx, lbAssim, t, lbDetail); // deep-stage atmosphere (over entities, under labels)
   drawEmergency(ctx, rs, t); // Emergency Defense Mode alert (over the field, under labels)
   drawPointer(ctx, rs, pointer);

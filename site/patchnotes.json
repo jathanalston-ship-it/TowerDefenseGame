@@ -3,10 +3,10 @@
     "date": "2026-07-09",
     "title": "The Living World Update",
     "categories": [
+      "Gameplay",
       "Enemies",
       "Towers",
       "Heroes",
-      "Gameplay",
       "Mega Bosses",
       "Visuals",
       "UX",
@@ -24,6 +24,10 @@
       "Balance"
     ],
     "items": [
+      {
+        "cat": "Gameplay",
+        "text": "★ New system: Hero Ability Cinematics"
+      },
       {
         "cat": "Enemies",
         "text": "★ New enemy: Pale Skulker"
@@ -791,6 +795,18 @@
       {
         "cat": "UX",
         "text": "Game-wide UX audit + coalescing pass: one fact, one owner"
+      },
+      {
+        "cat": "UI",
+        "text": "Persona simulation, final ship — fix the home-widget hook-scope crash"
+      },
+      {
+        "cat": "Audio",
+        "text": "In-run gameplay feel pass: status FX framework, hit confirmation, tower anticipation, hero ability cues"
+      },
+      {
+        "cat": "Heroes",
+        "text": "Hero ability cinematics: every cast is a procedural set-piece"
       }
     ]
   },

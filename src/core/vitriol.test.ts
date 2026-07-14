@@ -6,7 +6,7 @@
 
 import { describe, it, expect } from 'vitest';
 import { Game } from './game';
-import { SIM_DT } from './config';
+import { HERO_DEFS, SIM_DT } from './config';
 import { WIDTH } from './map';
 import type { MetaModifiers } from './types';
 
@@ -49,6 +49,10 @@ describe('Vitriol Corrosive Cataclysm ult', () => {
     for (let i = 0; i < 5; i++) { e.x = P.x; e.y = P.y; g.advance(SIM_DT); }
     e.x = P.x; e.y = P.y;
     castUlt(g, P.x, P.y);
+    // The salvo LANDS with the performance (docs/HERO-CINEMATICS.md): blast + corrosion + pool
+    // resolve impactDelay after the cast — hold the target in the zone through the landing.
+    const delay = HERO_DEFS.vitriol.ability.cinematic!.impactDelay;
+    for (let i = 0; i < Math.ceil(delay / SIM_DT) + 3; i++) { e.x = P.x; e.y = P.y; g.advance(SIM_DT); }
     expect(g.getRunStats().damageDealt).toBeGreaterThan(0); // the blast hit
     expect(e.corrosion).toBeGreaterThan(0); // …and corroded the target
     expect(g.pools.length).toBeGreaterThan(0); // …and left a wide acid pool

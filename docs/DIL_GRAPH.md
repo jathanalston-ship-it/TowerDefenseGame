@@ -1,6 +1,6 @@
 # DIL_GRAPH.md — the Design Intelligence Layer (GENERATED — `npm run dil -- regen`)
 
-> **The project's brain** (docs/DIL.md). 805 nodes · 1478 edges, built from the live
+> **The project's brain** (docs/DIL.md). 809 nodes · 1488 edges, built from the live
 > registries + curated knowledge (src/dev/dil/). **Query it instead of searching the repo:**
 > `npm run dil -- node <id>` · `affects <id>` · `requires <id>` · `missing <kind> <edge>` ·
 > `checklist tower <kind>` · `find <text>`. Edge kinds are bidirectional (19 kinds).
@@ -38,7 +38,7 @@
 
 ### Testing Index
 
-`system:engine` · `system:content-infra` · `system:power` · `system:campaign` · `system:pil` · `system:accounts` · `system:boss-rush` · `system:daily` · `system:mulligans` · `system:premium` · `system:net-backend` · `system:towers` · `system:mastery` · `system:heroes` · `system:equipment` · `system:crafting` · `system:loot` · `system:gene-cards` · `system:nucleus` · `system:hero-symbiotes` · `system:idle-harvest` · `system:collection` · `system:evolution-hq` · `system:hive-construction` · `system:daily-login` · `system:prestige` · `system:currencies` · `system:splice-market` · `system:achievements` · `system:stats` · `system:liveops` · `system:directives` · `system:contracts` · `system:infestation` · `system:chronicle` · `system:cosmetics` · `system:battle-pass` · `system:quests` · `system:profile` · `system:onboarding` · `system:account-level` · `system:genome-rank` · `system:progression-gating` · `system:hub-shell` · `system:notifications` · `system:prediction` · `system:meta-store` · `system:bosses` · `system:mega-bosses` · `system:cutscenes` · `system:security` · `system:biomes` · `system:doctrines` · `system:difficulty` · `system:website` · `system:rendering` · `system:living-battlefield` · `system:audio` · `system:assimilation` · `system:dev-registry`
+`system:engine` · `system:content-infra` · `system:power` · `system:campaign` · `system:pil` · `system:accounts` · `system:boss-rush` · `system:daily` · `system:mulligans` · `system:premium` · `system:net-backend` · `system:towers` · `system:mastery` · `system:heroes` · `system:hero-cinematics` · `system:equipment` · `system:crafting` · `system:loot` · `system:gene-cards` · `system:nucleus` · `system:hero-symbiotes` · `system:idle-harvest` · `system:collection` · `system:evolution-hq` · `system:hive-construction` · `system:daily-login` · `system:prestige` · `system:currencies` · `system:splice-market` · `system:achievements` · `system:stats` · `system:liveops` · `system:directives` · `system:contracts` · `system:infestation` · `system:chronicle` · `system:cosmetics` · `system:battle-pass` · `system:quests` · `system:profile` · `system:onboarding` · `system:account-level` · `system:genome-rank` · `system:progression-gating` · `system:hub-shell` · `system:notifications` · `system:prediction` · `system:meta-store` · `system:bosses` · `system:mega-bosses` · `system:cutscenes` · `system:security` · `system:biomes` · `system:doctrines` · `system:difficulty` · `system:website` · `system:rendering` · `system:living-battlefield` · `system:audio` · `system:assimilation` · …1 more
 
 ### Developer Tooling Index
 
@@ -154,6 +154,8 @@ graph LR
   system_hero_symbiotes["Hero Symbiotes"] -->|consumes| system_engine["Sim Engine"]
   system_engine["Sim Engine"] -->|modifies| system_rendering["Rendering & VFX"]
   system_rendering["Rendering & VFX"] -->|consumes| system_audio["Audio"]
+  system_hero_cinematics["Hero Ability Cinematics"] -->|consumes| system_heroes["Heroes"]
+  system_hero_cinematics["Hero Ability Cinematics"] -->|modifies| system_rendering["Rendering & VFX"]
   system_nemesis["Nemesis & Trophies"] -->|modifies| system_engine["Sim Engine"]
   system_nemesis["Nemesis & Trophies"] -->|consumes| system_mega_bosses["Mega Bosses"]
 ```
@@ -271,6 +273,9 @@ graph LR
   system_heroes["Heroes"] -->|dependsOn| system_shards_economy["Shards & Star Economy"]
   system_heroes["Heroes"] -->|dependsOn| system_campaign["Campaign"]
   system_heroes["Heroes"] -->|consumes| system_meta_store["Meta Store & Save"]
+  system_hero_cinematics["Hero Ability Cinematics"] -->|dependsOn| system_heroes["Heroes"]
+  system_hero_cinematics["Hero Ability Cinematics"] -->|dependsOn| system_engine["Sim Engine"]
+  system_hero_cinematics["Hero Ability Cinematics"] -->|dependsOn| system_rendering["Rendering & VFX"]
   system_equipment["Equipment & Armory"] -->|dependsOn| system_content_infra["Content Infrastructure"]
   system_equipment["Equipment & Armory"] -->|dependsOn| system_loot["Loot & Bio-Containers"]
   system_equipment["Equipment & Armory"] -->|dependsOn| system_power["Power Score"]
@@ -472,6 +477,7 @@ graph LR
   system_towers["Towers, Stars, Branches, Strain & Codex"] -->|consumes| system_engine["Sim Engine"]
   system_hero_symbiotes["Hero Symbiotes"] -->|consumes| system_engine["Sim Engine"]
   system_rendering["Rendering & VFX"] -->|consumes| system_audio["Audio"]
+  system_hero_cinematics["Hero Ability Cinematics"] -->|consumes| system_heroes["Heroes"]
   system_nemesis["Nemesis & Trophies"] -->|consumes| system_mega_bosses["Mega Bosses"]
 ```
 
@@ -494,6 +500,7 @@ graph LR
   system_currencies["Currencies & Economy Framework"] -->|modifies| system_meta_store["Meta Store & Save"]
   system_hero_symbiotes["Hero Symbiotes"] -->|modifies| system_engine["Sim Engine"]
   system_engine["Sim Engine"] -->|modifies| system_rendering["Rendering & VFX"]
+  system_hero_cinematics["Hero Ability Cinematics"] -->|modifies| system_rendering["Rendering & VFX"]
   system_nemesis["Nemesis & Trophies"] -->|modifies| system_engine["Sim Engine"]
 ```
 
@@ -547,6 +554,7 @@ Six seeded runs pinned byte-for-byte (core/golden.test.ts) — the tripwire for 
   - conflictsWith ← `system:idle-harvest` — idle is PURE economy: zero Power, zero run effects, the idle codex carries no powerWeight, soft(0)=1 — any fold at level 0 breaks POWER_BASE; the accrual anchor is MONOTONE (never rewound) or clock rollback re-farms the same span, and fixed-price drop rows need minValue floors or 5-minute dust collects mint full containers (idleHarvest.test.ts pins all three)
   - conflictsWith ← `system:hero-symbiotes` — every symbiote surface must stay inactive⇒identity: resolveHeroSymbiote power EXACTLY 1 / kit null while no slot is fully seated; a new kit verb needs BOTH an optional field (absent on fresh saves) AND a presence-gated seam read — an unconditional read or a default ≠ identity breaks the pinned seeds
   - conflictsWith ← `system:hub-shell` — HOME WIDGET FIBER INVARIANT (2026-07, CommandCenter.tsx CCWidget): the home zone renders each widget through the CCWidget COMPONENT (<CCWidget/>), never by calling the widget function inline — an inline render(ctx) flattens every widget's hooks into CommandCenter's own list, so a `when` gate flipping a widget in/out between renders (e.g. command-feed keying off pendingContainers/shards) trips React's "rendered more hooks than during the previous render" and the ErrorBoundary blanks the hub. Unit tests can't see it (React UI); the MOBILE GATE (npm run mobilecheck, run by validate) catches it on the developed-profile sweep. Any new home widget with hooks + a volatile `when` MUST route through CCWidget
+  - conflictsWith ← `system:hero-cinematics` — cast-less runs (the golden autoplay) must never touch the cinematic path: pendingImpactSystem is length-gated, castEvents only written on cast — and any test asserting cast RESULTS must step past the def’s impactDelay before asserting (riptide/vitriol tests show the ride-through pattern)
   - conflictsWith ← `system:cosmetics` — skins/visual tiers must stay render-only; any def stat touched for looks breaks the pinned seeds
 
 ### `concept:progression-gates` — Progression Gates
@@ -690,7 +698,7 @@ The premium reserve — never farmable; bled from achievements, collection ranks
 
   - rewardedBy ← `system:daily-login` — a rare small lane (weight 3, clamped 2–6/day) — deliberately below the never-farmable premium posture thresholds
 
-## Systems (69)
+## Systems (70)
 
 ### `system:engine` — Sim Engine
 
@@ -714,14 +722,14 @@ _at: src/core/game.ts, src/core/combat.ts, src/core/status.ts, src/core/targetin
   - requiredBy ← `system:boss-rush`
   - requiredBy ← `system:daily`
   - requiredBy ← `system:heroes`
+  - requiredBy ← `system:hero-cinematics`
   - requiredBy ← `system:nemesis`
   - requiredBy ← `system:onboarding`
   - requiredBy ← `system:run-ui`
   - requiredBy ← `system:bosses`
   - requiredBy ← `system:mega-bosses`
   - requiredBy ← `system:rendering`
-  - requiredBy ← `system:living-battlefield`
-  - _…196 more (query: `npm run dil -- node system:engine`)_
+  - _…198 more (query: `npm run dil -- node system:engine`)_
 
 ### `system:content-infra` — Content Infrastructure
 
@@ -1066,6 +1074,7 @@ _at: src/core/heroIdentity.ts, src/core/heroLore.ts, src/core/heroEvolution.ts, 
   - extends → `system:engine` — GRAVEBIND (game.raiseFromCorpse, the Carrion): the death seam raises corpses as thralls — null-gated on the cached gravebindHero (roster boot, keyed by passive.kind) so every other run incl. golden autoplay is inert; tunables in config.GRAVEBIND; thralls ride the existing minion pool under MINION_CAP
   - extends → `system:engine` — CINDERWYRM (HEROES.md §6): HeroBehavior gained 'swoop' (game.updateSwoopHero) — the flying strafe brain: strike on the fly-by, Corrosion via WYRM.corrodePerStrike, then BANK THROUGH to Hero.bankX/bankY = WYRM.bankDist past the victim (sim fields for the flight, absent on every other hero). Unlock bossSlain 5 ⇒ never on a fresh account ⇒ golden-safe; wings render behavior-keyed (drawHeroWings) so a future flyer inherits them
   - requiredBy ← `system:engine`
+  - requiredBy ← `system:hero-cinematics`
   - requiredBy ← `system:equipment`
   - requiredBy ← `system:hero-symbiotes`
   - requiredBy ← `system:expeditions`
@@ -1076,8 +1085,22 @@ _at: src/core/heroIdentity.ts, src/core/heroLore.ts, src/core/heroEvolution.ts, 
   - contains ← `hero:revenant`
   - contains ← `hero:knell`
   - contains ← `hero:wyrm`
-  - contains ← `hero:riptide`
-  - _…14 more (query: `npm run dil -- node system:heroes`)_
+  - _…16 more (query: `npm run dil -- node system:heroes`)_
+
+### `system:hero-cinematics` — Hero Ability Cinematics
+
+Every hero cast stages a procedural set-piece performance (the Cinderwyrm’s dragon swoop, the Fovea’s eye-beam): game.ts publishes one-shot CastEvents and delays each ZONE payload (pendingImpacts) so the blow lands WITH the animation; render/abilityCinematics.ts drives 10 actor puppets across 10 shared motions, all data-driven from HeroAbilityDef.cinematic.
+
+_at: src/render/abilityCinematics.ts_
+
+  - dependsOn → `system:heroes`
+  - dependsOn → `system:engine`
+  - dependsOn → `system:rendering`
+  - consumes → `system:heroes` — HERO ABILITY CINEMATICS (2026-07, HERO-CINEMATICS.md): every HeroAbilityDef carries cinematic {actor, motion, impactDelay} — game.ts publishes one-shot CastEvents (RenderState.castEvents, the DeathEvent seq pattern) and pendingImpacts delays the ZONE payload (explosion/debuff/pool) to land WITH the performance; support (heal/shield/buff/summon) stays instant at cast. Crit/radius locked at cast ⇒ no rng at impact; enemies re-queried at landing (the blow hits whatever stands there); the settle wind-down clears the queue
+  - conflictsWith → `concept:golden-test` — cast-less runs (the golden autoplay) must never touch the cinematic path: pendingImpactSystem is length-gated, castEvents only written on cast — and any test asserting cast RESULTS must step past the def’s impactDelay before asserting (riptide/vitriol tests show the ride-through pattern)
+  - modifies → `system:rendering` — render/abilityCinematics.ts ACTOR_PAINTERS (10 puppets, one per hero identity) × computePose motions (10 shared trajectories) run on SIM time between drawHeroes and the floats — calm covenant (no shake/flash, alpha-capped), prefers-reduced-motion skips the travel theater (the sim’s landing burst still marks impact), and a ~0.9s wall-clock sim-stall releases performances (settle/pause safety)
+  - documentedBy ← `doc:HERO-CINEMATICS.md`
+  - testedBy ← `test:src/render/abilityCinematics.test.ts`
 
 ### `system:equipment` — Equipment & Armory
 
@@ -2062,6 +2085,7 @@ _at: src/render/*, src/core/dangerCamera.ts_
   - dependsOn → `system:engine`
   - consumes → `concept:determinism` — render-only contract: reads snapshots, NEVER writes sim state
   - consumes → `system:audio` — statusApplied event (applyEffect, hasListeners-gated ⇒ golden-safe) → GameView plays throttled category cues (status_dot / status_control); the four legacy fast-field statuses do NOT emit — only framework applications
+  - requiredBy ← `system:hero-cinematics`
   - requiredBy ← `system:living-battlefield`
   - documentedBy ← `doc:RENDER-PIPELINE.md`
   - documentedBy ← `doc:TOWER-VISUAL-EVOLUTION.md`
@@ -2069,12 +2093,11 @@ _at: src/render/*, src/core/dangerCamera.ts_
   - documentedBy ← `doc:CAMERA.md`
   - documentedBy ← `doc:COMBAT-VISUAL-STANDARDS.md`
   - testedBy ← `test:src/core/dangerCamera.test.ts`
+  - testedBy ← `test:src/render/abilityCinematics.test.ts`
   - testedBy ← `test:src/render/assimilationFx.test.ts`
   - testedBy ← `test:src/render/equipmentArt.test.ts`
   - testedBy ← `test:src/render/heroEvolution.test.ts`
-  - testedBy ← `test:src/render/heroSymbiotes.test.ts`
-  - testedBy ← `test:src/render/infestationMap.test.ts`
-  - _…14 more (query: `npm run dil -- node system:rendering`)_
+  - _…17 more (query: `npm run dil -- node system:rendering`)_
 
 ### `system:living-battlefield` — Living Battlefield
 
@@ -3221,7 +3244,7 @@ _at: site/guides.ts → /guides/prestige/_
 - `achievement:deep_genome` — Collect 25 distinct Gene Cards (the Deep-Strain set and beyond). _(partOf `system:achievements`, rewards `currency:genome-cores`)_
 - `achievement:return_from_deep` — Reach Infinite Depth 40 — the abyss that awakens the Revenant. _(partOf `system:achievements`, rewards `currency:genome-cores`)_
 
-## Documentation (169)
+## Documentation (170)
 
 - `doc:ACCOUNT-LEVEL.md` — project documentation _(documents `system:account-level`)_
 - `doc:ACCOUNTS.md` — project documentation _(documents `system:accounts`)_
@@ -3290,6 +3313,7 @@ _at: site/guides.ts → /guides/prestige/_
 - `doc:GENOME-RANK.md` — project documentation _(documents `system:genome-rank`)_
 - `doc:GUIDED-UNLOCKS.md` — project documentation _(documents `system:onboarding`)_
 - `doc:HELP.md` — project documentation _(documents `system:onboarding`)_
+- `doc:HERO-CINEMATICS.md` — project documentation _(documents `system:hero-cinematics`)_
 - `doc:HERO-EVOLUTION.md` — project documentation _(documents `system:heroes`)_
 - `doc:HERO-FRAMEWORK.md` — project documentation _(documents `system:heroes`)_
 - `doc:HERO-SELECTION.md` — project documentation _(documents `system:heroes`)_
@@ -3393,7 +3417,7 @@ _at: site/guides.ts → /guides/prestige/_
 - `doc:VOWS.md` — project documentation _(documents `system:prestige`)_
 - `doc:WEBSITE.md` — project documentation _(documents `system:field-research`, documents `system:website`)_
 
-## Tests (256)
+## Tests (258)
 
 - `test:src/audio/music.test.ts` — automated validation _(tests `system:audio`)_
 - `test:src/changelog/classify.test.ts` — automated validation _(tests `system:chronicle`)_
@@ -3461,6 +3485,7 @@ _at: site/guides.ts → /guides/prestige/_
 - `test:src/core/geneUpgrades.test.ts` — automated validation _(tests `system:gene-cards`)_
 - `test:src/core/genomeRank.test.ts` — automated validation _(tests `system:genome-rank`)_
 - `test:src/core/golden.test.ts` — automated validation _(tests `system:engine`)_
+- `test:src/core/heroCinematics.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/core/heroEquip.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/core/heroEvoGame.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/core/heroEvolution.test.ts` — automated validation _(tests `system:heroes`)_
@@ -3550,6 +3575,7 @@ _at: site/guides.ts → /guides/prestige/_
 - `test:src/i18n/i18n.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/net/replayShare.test.ts` — automated validation _(tests `system:net-backend`, tests `system:website`)_
 - `test:src/net/syncEngine.test.ts` — automated validation _(tests `system:accounts`, tests `system:net-backend`)_
+- `test:src/render/abilityCinematics.test.ts` — automated validation _(tests `system:rendering`, tests `system:hero-cinematics`)_
 - `test:src/render/assimilationFx.test.ts` — automated validation _(tests `system:rendering`, tests `system:assimilation`)_
 - `test:src/render/equipmentArt.test.ts` — automated validation _(tests `system:rendering`, tests `system:equipment`)_
 - `test:src/render/heroEvolution.test.ts` — automated validation _(tests `system:rendering`)_
