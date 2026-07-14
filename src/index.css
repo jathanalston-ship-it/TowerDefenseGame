@@ -11922,3 +11922,10 @@ html[data-debug-layout] body::after {
 .cc-feed-gain { flex: none; font-size: 11px; font-weight: 900; color: var(--gold); }
 .cc-feed-act { flex: none; font-size: 10px; font-weight: 800; color: var(--text); background: rgba(255,255,255,0.06); border: 1px solid var(--line-strong); border-radius: var(--r-sm); padding: 3px 8px; cursor: pointer; }
 .cc-feed-act:hover { background: rgba(255,255,255,0.1); }
+
+/* Evolution Roadmap rail (docs/ROADMAP.md — Foundation #4): the NEXT wing leads with the live
+   ring; the far queue reads as quiet glyph stops. */
+.cc-road-count { font-size: 10px; font-weight: 700; color: var(--muted); margin-left: 6px; letter-spacing: 0.04em; }
+.cc-road-stop.is-next { border: 1px solid color-mix(in srgb, var(--gold) 30%, var(--line-strong)); }
+.cc-road-stop.is-far { opacity: 0.75; cursor: default; }
+.cc-road-glyph { flex: none; width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; background: rgba(255,255,255,0.05); border: 1px dashed var(--line-strong); font-size: 14px; }

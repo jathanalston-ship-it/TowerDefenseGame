@@ -38,6 +38,7 @@ import { InfestationBoard } from './components/InfestationBoard';
 import { GrowthPanel } from './components/GrowthPanel';
 import { armyView, buildHomeView, homeRegistry } from './homeModel';
 import { hiveIntel } from '../state/hiveIntel';
+import { evolutionRoadmap } from '../state/evolutionRoadmap';
 import type { HomeView, HomeZone } from './homeModel';
 import type { NavKey } from './Hub';
 
@@ -326,24 +327,39 @@ function MissionControl({ save, view, go, start, onStartCampaign, doctrineRef }:
   );
 }
 
-/** Unlock roadmap — the queue BEHIND the NEXT banner's goal (goals[1..]), as a visual rail. */
-function Roadmap({ view, go }: WidgetCtx): ReactNode {
-  const goals = view.goals.slice(1, 5);
-  if (goals.length === 0) return null;
+/** EVOLUTION ROADMAP (docs/ROADMAP.md — Foundation #4): the whole learning curve on one rail.
+ *  The headline is the NEXT wing (live requirement + the Power its frontier will ask for); the
+ *  queue behind it shows what's coming, and the conquered count says how far you've come.
+ *  (Coalescing: resource goals — evolutions, releases — live in Mission Control's ledger now;
+ *  this rail owns the SYSTEM curve, so no goal ever renders on two home surfaces.) */
+function Roadmap({ save, go }: WidgetCtx): ReactNode {
+  const rm = useMemo(() => evolutionRoadmap(save), [save]);
+  if (!rm.next) return null; // everything revealed — the veteran board stays calm
+  const upcoming = rm.nodes.filter((n) => !n.revealed).slice(1, 4);
   return (
-    <section className="cc-roadmap" aria-label="Upcoming unlocks">
-      <span className="cc-panel-h">⬡ COMING UP</span>
+    <section className="cc-roadmap" aria-label="Evolution Roadmap">
+      <span className="cc-panel-h">⬡ EVOLUTION ROADMAP <small className="cc-road-count">{rm.conquered}/{rm.nodes.length} wings</small></span>
       <div className="cc-road">
-        {goals.map((g) => (
-          <button className="cc-road-stop" key={g.id} style={{ ['--g' as string]: g.color }} onClick={() => go(g.nav as NavKey)} title={g.reward}>
-            <span className="cc-road-ring" style={{ ['--p' as string]: g.progress }} aria-hidden>
-              <b>{Math.round(g.progress * 100)}%</b>
-            </span>
+        <button className="cc-road-stop is-next" key={rm.next.id} onClick={() => go('campaign')} title={rm.next.hook}>
+          <span className="cc-road-ring" style={{ ['--p' as string]: rm.next.progress }} aria-hidden>
+            <b>{Math.round(rm.next.progress * 100)}%</b>
+          </span>
+          <span className="cc-road-body">
+            <span className="cc-road-l">{rm.next.glyph} {rm.next.name}</span>
+            <span className="cc-road-r">{rm.next.requirement || 'Almost there'}</span>
+            {rm.next.stagesAhead > 0 && (
+              <span className="cc-road-r">≈{rm.next.stagesAhead} stage{rm.next.stagesAhead === 1 ? '' : 's'} · ready ≈ {formatPower(rm.next.powerAtUnlock)} Power</span>
+            )}
+          </span>
+        </button>
+        {upcoming.map((n) => (
+          <div className="cc-road-stop is-far" key={n.id} title={`${n.hook} — ${n.requirement}`}>
+            <span className="cc-road-glyph" aria-hidden>{n.glyph}</span>
             <span className="cc-road-body">
-              <span className="cc-road-l">{g.label}</span>
-              <span className="cc-road-r">{g.remaining} to go</span>
+              <span className="cc-road-l">{n.name}</span>
+              <span className="cc-road-r">{n.stagesAhead > 0 ? `≈${n.stagesAhead} stages ahead` : n.requirement}</span>
             </span>
-          </button>
+          </div>
         ))}
       </div>
     </section>
