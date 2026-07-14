@@ -7570,16 +7570,63 @@ kbd {
   background: linear-gradient(180deg, color-mix(in srgb, var(--rw, var(--gold)) 13%, var(--panel)) 0%, var(--panel-deep) 100%);
   border: 1px solid color-mix(in srgb, var(--rw, var(--gold)) 55%, var(--line));
   box-shadow: 0 10px 34px rgba(0, 0, 0, 0.5), var(--halo) color-mix(in srgb, var(--rw, var(--gold)) 45%, transparent);
-  animation: achv-in var(--dur-4) var(--ease-spring) both;
+  overflow: hidden; /* the sheen sweep clips to the card */
+  animation: rwt-in 0.55s var(--ease-spring) both;
 }
-.rwt.is-big { min-width: 340px; border-width: 2px; box-shadow: 0 12px 44px rgba(0, 0, 0, 0.6), 0 0 30px -4px color-mix(in srgb, var(--rw, var(--gold)) 55%, transparent); }
+.rwt.is-big { min-width: 340px; border-width: 2px; box-shadow: 0 12px 44px rgba(0, 0, 0, 0.6), 0 0 30px -4px color-mix(in srgb, var(--rw, var(--gold)) 55%, transparent); animation-duration: 0.7s; }
+/* Entrance with real pop: drop in, overshoot past full size, settle. */
+@keyframes rwt-in {
+  0% { opacity: 0; transform: translateY(-18px) scale(0.8) rotate(-1.2deg); }
+  55% { opacity: 1; transform: translateY(2px) scale(1.05) rotate(0.4deg); }
+  78% { transform: translateY(-1px) scale(0.985) rotate(0deg); }
+  100% { opacity: 1; transform: none; }
+}
+/* One-shot BURST — eight rays exploding from the medal the instant the receipt lands. */
+.rwt-burst { position: absolute; left: 34px; top: 32px; width: 0; height: 0; pointer-events: none; }
+.rwt-burst i {
+  position: absolute; left: -1.5px; top: -14px; width: 3px; height: 14px; border-radius: 2px;
+  background: linear-gradient(180deg, var(--rw, var(--gold)), transparent);
+  transform-origin: 50% 14px;
+  rotate: calc(var(--b, 0) * 45deg);
+  animation: rwt-ray 0.6s var(--ease-out) both;
+}
+.rwt-burst i:nth-child(1) { --b: 0; } .rwt-burst i:nth-child(2) { --b: 1; }
+.rwt-burst i:nth-child(3) { --b: 2; } .rwt-burst i:nth-child(4) { --b: 3; }
+.rwt-burst i:nth-child(5) { --b: 4; } .rwt-burst i:nth-child(6) { --b: 5; }
+.rwt-burst i:nth-child(7) { --b: 6; } .rwt-burst i:nth-child(8) { --b: 7; }
+@keyframes rwt-ray {
+  0% { opacity: 0; transform: translateY(0) scaleY(0.4); }
+  25% { opacity: 0.9; }
+  100% { opacity: 0; transform: translateY(-22px) scaleY(1.15); }
+}
+/* Shimmer sweep — one diagonal light band across the whole receipt. */
+.rwt-sheen { position: absolute; inset: 0; pointer-events: none; overflow: hidden; border-radius: inherit; }
+.rwt-sheen::after {
+  content: ''; position: absolute; top: -30%; bottom: -30%; width: 46px;
+  background: linear-gradient(105deg, transparent, color-mix(in srgb, var(--rw, var(--gold)) 26%, transparent), transparent);
+  transform: skewX(-18deg);
+  animation: rwt-sheen 0.9s var(--ease-out) 0.18s both;
+}
+@keyframes rwt-sheen { from { left: -60px; } to { left: 110%; } }
+.rwt.is-big .rwt-sheen::after { animation-duration: 1.15s; }
 .rwt-medal {
+  position: relative;
   flex: none; width: 40px; height: 40px; display: grid; place-items: center; border-radius: 50%;
   font-size: 18px; color: var(--rw, var(--gold));
   background: radial-gradient(circle at 50% 35%, color-mix(in srgb, var(--rw, var(--gold)) 24%, var(--panel-deep)), var(--panel-deep));
   box-shadow: inset 0 0 14px -4px var(--rw, var(--gold));
+  animation: rwt-medal-bloom 0.55s var(--ease-spring) both;
 }
 .rwt.is-big .rwt-medal { width: 46px; height: 46px; font-size: 20px; }
+@keyframes rwt-medal-bloom {
+  0% { transform: scale(0.3) rotate(-20deg); }
+  60% { transform: scale(1.18) rotate(3deg); }
+  100% { transform: scale(1) rotate(0deg); }
+}
+/* Expanding ripple ring off the medal — doubled on finale/capstone receipts. */
+.rwt-medal-ring { position: absolute; inset: 0; border-radius: 50%; border: 2px solid var(--rw, var(--gold)); animation: rwt-ring 0.7s var(--ease-out) 0.1s both; }
+.rwt.is-big .rwt-medal-ring { animation: rwt-ring 0.8s var(--ease-out) 0.1s both, rwt-ring 0.8s var(--ease-out) 0.45s both; }
+@keyframes rwt-ring { from { opacity: 0.8; transform: scale(0.9); } to { opacity: 0; transform: scale(2.1); } }
 .rwt-body { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
 .rwt-eyebrow { font-size: 10px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: var(--rw, var(--gold)); }
 .rwt-name { font-size: 14px; font-weight: 800; line-height: 1.2; }
@@ -7600,7 +7647,11 @@ kbd {
   display: grid; place-items: center; border-radius: 999px; font-size: 10px; font-weight: 800;
   color: var(--panel-deep); background: var(--rw, var(--gold)); box-shadow: 0 2px 8px rgba(0, 0, 0, 0.45);
 }
-@media (prefers-reduced-motion: reduce) { .rwt, .rwt-line { animation: none; } }
+@media (prefers-reduced-motion: reduce) {
+  .rwt, .rwt-line, .rwt-medal, .rwt-medal-ring, .rwt-burst i { animation: none; }
+  .rwt-sheen::after { animation: none; opacity: 0; }
+  .rwt-medal-ring { opacity: 0; }
+}
 
 /* Inspector live-Mastery block — a smoothly-filling craft bar with floating XP ticks. */
 .ins-mastery { display: flex; flex-direction: column; gap: 5px; margin: 8px 0 2px; padding: 8px 10px; border-radius: var(--r-sm); border: 1px solid color-mix(in srgb, var(--mc, var(--line)) 30%, var(--line)); background: color-mix(in srgb, var(--mc, transparent) 5%, rgba(255, 255, 255, 0.02)); }

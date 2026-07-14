@@ -199,3 +199,6 @@
 - `4cf2f84` **[Heroes]** Hero ability cinematics: every cast is a procedural set-piece
 - `b492e21` **[Heroes]** Hero ability cinematics: every cast is a procedural set-piece
 - `97db38a` **[Visuals]** Typography overhaul: ship the game's real face (Chakra Petch + Exo 2)
+- `07be4c3` **[Website]** Website update + expansion: current systems, new devlog, brand typography
+- `019f448` **[Gameplay]** Season pass: every track tile names its reward (no more icon-guessing)
+- `8518537` **[UI]** Claim receipts: dopamine pass on the global reward popup + coverage audit

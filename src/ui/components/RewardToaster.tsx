@@ -43,7 +43,11 @@ export function RewardToaster(): JSX.Element | null {
         onClick={() => setQueue((q) => q.slice(1))}
         title="Dismiss"
       >
-        <span className="rwt-medal" aria-hidden>{front.icon ?? shown[0]?.icon ?? '◈'}</span>
+        {/* The dopamine hit: one-shot burst rays + a medal ripple + a shimmer sweep, all
+            re-keyed per receipt (the card's key) so chained claims re-fire every time. */}
+        <span className="rwt-burst" aria-hidden><i /><i /><i /><i /><i /><i /><i /><i /></span>
+        <span className="rwt-sheen" aria-hidden />
+        <span className="rwt-medal" aria-hidden>{front.icon ?? shown[0]?.icon ?? '◈'}<i className="rwt-medal-ring" /></span>
         <div className="rwt-body">
           <span className="rwt-eyebrow">{front.title}</span>
           {front.name && <span className="rwt-name">{front.name}</span>}

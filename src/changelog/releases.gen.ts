@@ -854,6 +854,18 @@ export const RELEASES: Release[] = [
       {
         "cat": "Visuals",
         "text": "Typography overhaul: ship the game's real face (Chakra Petch + Exo 2)"
+      },
+      {
+        "cat": "Website",
+        "text": "Website update + expansion: current systems, new devlog, brand typography"
+      },
+      {
+        "cat": "Gameplay",
+        "text": "Season pass: every track tile names its reward (no more icon-guessing)"
+      },
+      {
+        "cat": "UI",
+        "text": "Claim receipts: dopamine pass on the global reward popup + coverage audit"
       }
     ]
   },

@@ -93,3 +93,32 @@ not the ceremony layer.
 - **Add a claim surface:** call `meta`'s claim → get lines → `rewardToast.push` with a
   title/name and the right accent. Tests: `src/state/rewardToast.test.ts` (queue +
   destination derivation).
+
+### The dopamine layer (2026-07 juice pass)
+
+The receipt card now LANDS: a spring **pop-in with overshoot** (`rwt-in`), a one-shot
+**eight-ray burst** exploding from the medallion (`.rwt-burst`), a **medal bloom**
+(scale-spin settle) with an expanding **ripple ring** (doubled on `big` finales), a
+**shimmer sweep** across the card (`.rwt-sheen`), and the existing staggered line pops.
+Everything is CSS-only, re-keyed per receipt (chained claims re-fire), and fully
+stilled under `prefers-reduced-motion` (rays/sheen/ring hidden, not just frozen).
+
+### Coverage audit (2026-07): every claim lane has exactly ONE owner
+
+| Claim | Owner |
+|---|---|
+| Quest missions / finales, contracts (unified board) | RewardToaster |
+| Season-pass levels / claim-all / premium unlock | RewardToaster |
+| Weekly directives | RewardToaster |
+| Wardrobe milestones | RewardToaster |
+| Daily login Bio-Cache | rupture ceremony (BioCache) |
+| Expeditions | SpoilsCard (mastery/streak context the receipt can't carry) |
+| Field research studies | Reveal ceremony (store-mirror) |
+| Idle Harvest collects | arrival ceremony (HarvestScreen) |
+| Containers / run caches | Vault reveal ceremony |
+| Achievements (auto-grant on unlock) | AchievementToaster |
+| Account level / Power gains / in-run loot | PowerToaster / LootToaster lanes |
+| Weekly rollover (earned-but-unclaimed) | auto-claims to "mail" → notification row |
+
+Single-owner rule: a claim NEVER fires two popups — new surfaces either push the
+toaster or ship a bespoke ceremony, not both.

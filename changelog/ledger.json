@@ -1,6 +1,6 @@
 {
-  "lastSha": "97db38a9fad027c6aa2f17c7e78617cee90ca1de",
-  "commitsSinceDraft": 5,
+  "lastSha": "8518537ae1af265cc154a4166a2354aedc27579d",
+  "commitsSinceDraft": 8,
   "content": {
     "tower": [
       "needle",
@@ -2333,6 +2333,18 @@
         {
           "cat": "Visuals",
           "text": "Typography overhaul: ship the game's real face (Chakra Petch + Exo 2)"
+        },
+        {
+          "cat": "Website",
+          "text": "Website update + expansion: current systems, new devlog, brand typography"
+        },
+        {
+          "cat": "Gameplay",
+          "text": "Season pass: every track tile names its reward (no more icon-guessing)"
+        },
+        {
+          "cat": "UI",
+          "text": "Claim receipts: dopamine pass on the global reward popup + coverage audit"
         }
       ]
     }
@@ -3799,6 +3811,30 @@
       "date": "2026-07-14",
       "cat": "Visuals",
       "text": "Typography overhaul: ship the game's real face (Chakra Petch + Exo 2)",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "07be4c38731f4aa56439f08ae0a03676ef3a4e10",
+      "date": "2026-07-14",
+      "cat": "Website",
+      "text": "Website update + expansion: current systems, new devlog, brand typography",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "019f4481e9ae4f3e5e83ea58b2af7b7fbe18d14a",
+      "date": "2026-07-14",
+      "cat": "Gameplay",
+      "text": "Season pass: every track tile names its reward (no more icon-guessing)",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "8518537ae1af265cc154a4166a2354aedc27579d",
+      "date": "2026-07-14",
+      "cat": "UI",
+      "text": "Claim receipts: dopamine pass on the global reward popup + coverage audit",
       "internal": false,
       "needsReview": false
     }
