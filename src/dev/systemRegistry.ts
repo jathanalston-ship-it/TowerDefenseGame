@@ -62,7 +62,7 @@ export const SYSTEMS: SystemDef[] = [
     files: ['src/core/power.ts', 'src/state/itemPower.ts', 'src/state/powerEvents.ts', 'src/state/bestPurchase.ts', 'src/state/equipAdvisor.ts', 'src/state/powerAtlas.ts', 'src/state/powerAdvisor.ts', 'src/state/missionControl.ts', 'src/state/evolutionRoadmap.ts', 'src/state/powerLog.ts', 'src/ui/components/PowerScore.tsx', 'src/ui/components/PowerDelta.tsx', 'src/ui/components/PowerToaster.tsx', 'src/ui/components/BestBuyStrip.tsx', 'src/ui/components/GrowthPanel.tsx'],
     dependsOn: ['content-infra'], powerScore: 'IS the model (buckets, effectsPower, FIELD_WEIGHT)', save: ['powerLog'], tutorial: [], help: ['power-score', 'power-advisor', 'mission-control', 'evolution-roadmap'],
     hud: ['Hud (live run Power)'], ui: ['ProgressDashboard', 'CommandCenter (recommended power + Growth panel)'], collection: 'collection completion feeds a bucket', achievements: [],
-    localization: 'inline-en', docs: ['docs/POWER-SCORE.md', 'docs/POWER-AUDIT.md'],
+    localization: 'inline-en', docs: ['docs/POWER-SCORE.md', 'docs/POWER-AUDIT.md', 'docs/POWER-ADVISOR.md', 'docs/MISSION-CONTROL.md', 'docs/EVOLUTION-ROADMAP.md'],
   },
   {
     id: 'campaign', name: 'Campaign', purpose: 'Procedural authored-feeling stages; depth is the master progression gate. Authored EVENTS (Elite Rush / Boss Gauntlet / Genome Cache / Mutation choice) punctuate the ladder via a data registry.',
@@ -368,7 +368,7 @@ export const SYSTEMS: SystemDef[] = [
     files: ['src/ui/InitCutscene.tsx', 'src/render/introScenes.ts', 'src/core/tutorial.ts', 'src/state/tutorial.ts', 'src/state/mechanics.ts', 'src/ui/TutorialRunner.tsx', 'src/ui/tutorial/*', 'src/ui/HelpWiki.tsx', 'src/ui/WhatsNew.tsx', 'src/ui/HudTour.tsx', 'src/state/guidedUnlocks.ts', 'src/ui/GuidedUnlock.tsx', 'src/ui/tips.ts'],
     dependsOn: ['engine', 'meta-store', 'profile', 'accounts'], powerScore: null, save: ['tutorial', 'help'],
     tutorial: ['combat'], help: ['field-guides'], hud: ['TutorialOverlay'], ui: ['HelpWiki', 'WhatsNew', 'HudTour', 'CommandCenter (tips)'], collection: null,
-    achievements: [], localization: 'inline-en', docs: ['docs/TUTORIAL.md', 'docs/HELP.md', 'docs/TUTORIAL-AUDIT.md'],
+    achievements: [], localization: 'inline-en', docs: ['docs/TUTORIAL.md', 'docs/HELP.md', 'docs/TUTORIAL-AUDIT.md', 'docs/GUIDED-UNLOCKS.md'],
   },
   {
     id: 'account-level', name: 'Account Level (evergreen meta-progression)', purpose: 'Uncapped Account XP from nearly every activity; smooth infinite curve; deterministic weighted per-level rewards; infinite milestones with titles; week/month XP ledgers.',
@@ -396,7 +396,7 @@ export const SYSTEMS: SystemDef[] = [
     files: ['src/ui/Hub.tsx', 'src/ui/navModel.ts', 'src/ui/MobileShell.tsx', 'src/ui/CommandCenter.tsx', 'src/ui/DeployScreen.tsx', 'src/ui/homeModel.ts', 'src/ui/WorldStatus.tsx', 'src/ui/ProgressDashboard.tsx', 'src/ui/NextGoalBanner.tsx', 'src/state/nextGoal.ts', 'src/state/progressionLoop.ts', 'src/ui/hubProgress.ts', 'src/ui/homeBaseTiers.ts', 'src/ui/LabAtmosphere.tsx', 'src/ui/App.tsx', 'src/ui/ErrorBoundary.tsx', 'src/main.tsx', 'src/net/swRegister.ts', 'src/ui/components/UpdateToast.tsx', 'src/ui/components/Popup.tsx'],
     dependsOn: ['meta-store', 'notifications', 'prediction', 'power'], powerScore: null, save: [],
     tutorial: [], help: [], hud: [], ui: ['Hub', 'CommandCenter', 'ProgressDashboard'], collection: null, achievements: [],
-    localization: 'inline-en', docs: ['docs/COMMAND-CENTER.md', 'docs/HOME-BASE.md', 'docs/ONE-MORE-RUN.md', 'docs/HUD.md', 'docs/PROGRESSION-LOOP.md'],
+    localization: 'inline-en', docs: ['docs/COMMAND-CENTER.md', 'docs/HOME-BASE.md', 'docs/ONE-MORE-RUN.md', 'docs/HUD.md', 'docs/PROGRESSION-LOOP.md', 'docs/UX-CONSOLIDATION.md'],
   },
   {
     id: 'run-ui', name: 'In-Run HUD & Results', purpose: 'The battlefield interface: HUD, toolbar, inspector, build panel, results + reward reveal.',
@@ -409,7 +409,7 @@ export const SYSTEMS: SystemDef[] = [
     id: 'notifications', name: 'Notifications', purpose: 'Generic menu badges (registered count(save) sources per nav channel) + the global claim popup every hub claim receipts through.',
     files: ['src/state/notifications.ts', 'src/state/notificationSources.ts', 'src/state/rewardToast.ts', 'src/state/hiveIntel.ts', 'src/ui/components/RewardToaster.tsx'],
     dependsOn: ['meta-store'], powerScore: null, save: [], tutorial: [], help: ['hive-intel'], hud: ['nav badges'], ui: ['Hub (badges)', 'RewardToaster (claim popups)'],
-    collection: 'collection channel badge', achievements: [], localization: 'inline-en', docs: ['docs/NOTIFICATIONS.md'],
+    collection: 'collection channel badge', achievements: [], localization: 'inline-en', docs: ['docs/NOTIFICATIONS.md', 'docs/HIVE-INTEL.md'],
   },
   {
     id: 'prediction', name: 'Progress Prediction', purpose: 'Self-calibrating reach forecasts from Power history.',

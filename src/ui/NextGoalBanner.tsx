@@ -1,11 +1,11 @@
 // The anticipation surface (docs/ONE-MORE-RUN.md) — renders the Next-Goal engine so the screen a
-// player would quit from always shows the nearest reward. Two forms: the Home NEXT banner + a
-// "coming up" rail, and a compact single-goal cliffhanger (used on Results). Pure presentation over
-// state/nextGoal; clicking a goal jumps to the system that advances it.
+// player would quit from always shows the nearest reward. The old Home NEXT banner was absorbed
+// into Mission Control's objective ledger (docs/MISSION-CONTROL.md — one main-zone owner); what
+// remains here is the macro-loop directive and the Results cliffhanger. Pure presentation over
+// state/nextGoal + state/progressionLoop.
 
 import { meta } from '../state/meta';
 import { nextGoals } from '../state/nextGoal';
-import type { NextGoal } from '../state/nextGoal';
 import { loopAdvice, loopState } from '../state/progressionLoop';
 
 const pct = (p: number): number => Math.round(p * 100);
@@ -47,37 +47,3 @@ export function NextGoalCliffhanger(): JSX.Element | null {
   );
 }
 
-/** The Home NEXT banner + a "coming up" rail of the next few goals. Reactive to the save,
- * unless the caller passes precomputed `goals` (the Command Center hands a slice of its
- * home view-model so the banner and the roadmap can split the queue without overlap). */
-export function NextGoalBanner({ onNavigate, goals: given }: { onNavigate?: (nav: string) => void; goals?: NextGoal[] }): JSX.Element | null {
-  const save = meta.use();
-  const goals = given ?? nextGoals(save);
-  if (goals.length === 0) return null;
-  const [next, ...rest] = goals;
-  const go = (g: NextGoal): void => onNavigate?.(g.nav);
-  return (
-    <div className="nextgoal">
-      <button type="button" className="ng-next" style={{ ['--gc' as string]: next.color }} onClick={() => go(next)}>
-        <span className="ng-eyebrow">◈ NEXT · {pct(next.progress)}%</span>
-        <span className="ng-goal-h">
-          <span className="ng-goal-label">{next.label}</span>
-          <span className="ng-goal-rem">{next.remaining}</span>
-        </span>
-        <span className="ng-bar big"><i style={{ width: `${pct(next.progress)}%` }} /></span>
-        <span className="ng-goal-reward">{next.reward}</span>
-      </button>
-      {rest.length > 0 && (
-        <div className="ng-rail">
-          <span className="ng-rail-h">Coming up</span>
-          {rest.slice(0, 3).map((g) => (
-            <button type="button" className="ng-mini" key={g.id} style={{ ['--gc' as string]: g.color }} onClick={() => go(g)}>
-              <span className="ng-mini-top"><span className="ng-mini-label">{g.label}</span><span className="ng-mini-rem">{g.remaining}</span></span>
-              <span className="ng-mini-bar"><i style={{ width: `${pct(g.progress)}%` }} /></span>
-            </button>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}

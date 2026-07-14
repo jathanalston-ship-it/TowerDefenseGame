@@ -1,4 +1,4 @@
-// EVOLUTION ROADMAP (docs/ROADMAP.md — Foundation #4). Pins the coalescing contract: nodes
+// EVOLUTION ROADMAP (docs/EVOLUTION-ROADMAP.md — Foundation #4). Pins the coalescing contract: nodes
 // derive from the SAME registry that gates the nav (the roadmap can never disagree with the
 // doors), authored learning-curve order, honest stage distances off the luck-proof backbone,
 // and Power numbers that match the campaign's own recommendation at the gate.

@@ -1,10 +1,11 @@
-// Living Progress dashboard — the Home screen's CLAIM row: each card is a stockpile or
-// ready-action surface (containers to crack, stars affordable now, gear to equip, codex
-// momentum) that turns HOT (glowing, with an action verb) the moment it has something to
-// claim. Campaign/Infinite standings live in the command strip, not here — this row is
-// about what the player can DO right now. When Ascension is available it dominates with a
-// full-width banner. Pure presentation over the existing meta + notification systems; the
-// card set is data-driven so a new progression system is one array entry.
+// Living Progress dashboard — the Home screen's STANDINGS row: per-system momentum at a
+// glance (vault stockpile/fill, evolutions within reach, armory size, codex completion).
+// COALESCED (docs/UX-CONSOLIDATION.md): the old HOT/claim layer duplicated the Hive
+// Intelligence feed's ACT rows rendered directly above it — the Feed owns the action verbs
+// now; this row owns standing numbers. One fact, one owner. The Ascension banner stays: no
+// Foundation surface carries Molt readiness at this prominence. Pure presentation over the
+// existing meta + notification systems; the card set is data-driven so a new progression
+// system is one array entry.
 
 import { meta, nextStarCost } from '../state/meta';
 import { audio } from '../audio/sound';
@@ -21,8 +22,6 @@ interface DashCard {
   sub: string; // the next goal / context line
   progress?: number; // 0..1 → a progress bar; omit for count-only cards
   badge?: number; // "new since last viewed" attention count
-  hot?: boolean; // something to claim right now → grows + shows a CTA
-  cta?: string; // the action verb shown when hot ("Open Now", "Evolve", …)
   chips?: { label: string; color: string }[]; // a "contains" preview (Vault stockpile)
   onClick: () => void;
 }
@@ -73,21 +72,21 @@ export function ProgressDashboard({ go }: { go: (k: NavKey) => void }): JSX.Elem
   const cards: DashCard[] = [
     {
       key: 'vault', title: 'Genetic Vault', accent: 'var(--gold)',
-      big: pending > 0 ? `${pending} Ready` : `${Math.round(fillPct * 100)}%`,
-      sub: pending > 0 ? 'Containers to crack' : `${frontName} container filling`,
+      big: pending > 0 ? `${pending} banked` : `${Math.round(fillPct * 100)}%`,
+      sub: pending > 0 ? 'In the stockpile' : `${frontName} container filling`,
       progress: pending > 0 ? undefined : fillPct, badge: badges.vault,
-      hot: pending > 0, cta: 'Open Now', chips: pending > 0 ? vaultChips : undefined,
+      chips: pending > 0 ? vaultChips : undefined,
       onClick: () => nav('vault'),
     },
     {
       key: 'towers', title: 'Tower Evolution', accent: 'var(--kinetic)',
-      big: `${towersReady}`, sub: towersReady > 0 ? 'Towers ready to evolve' : 'Earn shards to evolve',
-      badge: badges.towers, hot: towersReady > 0, cta: 'Evolve', onClick: () => nav('towers'),
+      big: `${towersReady}`, sub: towersReady > 0 ? 'Evolutions within reach' : 'Earn shards to evolve',
+      badge: badges.towers, onClick: () => nav('towers'),
     },
     {
       key: 'equipment', title: 'Hero Equipment', accent: 'var(--caustic)',
       big: `${items}`, sub: items === 1 ? 'Item in the armory' : 'Items in the armory',
-      badge: newGear, hot: newGear > 0, cta: 'Equip', onClick: () => nav('equipment'),
+      badge: newGear, onClick: () => nav('equipment'),
     },
     {
       // CollectionView.pct is THE home-surface completion number (the command strip shows
@@ -127,7 +126,7 @@ export function ProgressDashboard({ go }: { go: (k: NavKey) => void }): JSX.Elem
         {cards.map((c) => (
           <button
             key={c.key}
-            className={`dash-card ${c.hot ? 'is-hot' : ''} ${c.badge ? 'has-new' : ''}`}
+            className={`dash-card ${c.badge ? 'has-new' : ''}`}
             style={{ ['--c' as string]: c.accent }}
             onClick={c.onClick}
           >
@@ -147,7 +146,7 @@ export function ProgressDashboard({ go }: { go: (k: NavKey) => void }): JSX.Elem
                 <div className="dash-bar-fill" style={{ width: `${Math.max(0, Math.min(1, c.progress)) * 100}%`, background: c.accent }} />
               </div>
             ) : null}
-            {c.hot && c.cta ? <span className="dash-cta">{c.cta} ▸</span> : <div className="dash-sub">{c.sub}</div>}
+            <div className="dash-sub">{c.sub}</div>
           </button>
         ))}
       </section>

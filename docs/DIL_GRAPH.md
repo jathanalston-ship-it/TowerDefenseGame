@@ -1,6 +1,6 @@
 # DIL_GRAPH.md — the Design Intelligence Layer (GENERATED — `npm run dil -- regen`)
 
-> **The project's brain** (docs/DIL.md). 796 nodes · 1464 edges, built from the live
+> **The project's brain** (docs/DIL.md). 802 nodes · 1471 edges, built from the live
 > registries + curated knowledge (src/dev/dil/). **Query it instead of searching the repo:**
 > `npm run dil -- node <id>` · `affects <id>` · `requires <id>` · `missing <kind> <edge>` ·
 > `checklist tower <kind>` · `find <text>`. Edge kinds are bidirectional (19 kinds).
@@ -759,7 +759,7 @@ _at: src/core/power.ts, src/state/itemPower.ts, src/state/powerEvents.ts, src/st
   - requiredBy ← `system:profile`
   - requiredBy ← `system:genome-rank`
   - requiredBy ← `system:hub-shell`
-  - _…19 more (query: `npm run dil -- node system:power`)_
+  - _…23 more (query: `npm run dil -- node system:power`)_
 
 ### `system:campaign` — Campaign
 
@@ -1699,7 +1699,7 @@ _at: src/ui/InitCutscene.tsx, src/render/introScenes.ts, src/core/tutorial.ts, s
   - contains ← `help:strain-evolution`
   - contains ← `help:boss-sieges`
   - contains ← `help:boss-rush`
-  - _…58 more (query: `npm run dil -- node system:onboarding`)_
+  - _…59 more (query: `npm run dil -- node system:onboarding`)_
 
 ### `system:account-level` — Account Level (evergreen meta-progression)
 
@@ -1781,6 +1781,7 @@ _at: src/ui/Hub.tsx, src/ui/navModel.ts, src/ui/MobileShell.tsx, src/ui/CommandC
   - references → `system:collection` — home surfaces show CollectionView.pct (discovery); mixing in rank-weighted .completion once put two contradictory percentages on one board
   - provides → `concept:responsive` — PORTRAIT SHELL (docs/RESPONSIVE-DESIGN.md §3b): ui/navModel.ts is the ONLY nav IA source — desktop rail, five-tab bottom bar, index pages (MobileShell.tsx), mobilecheck, and navModel.test all derive from it; a new screen = one group row + one unlock-registry def and it is auto-indexed/explained/swept on phones
   - conflictsWith → `concept:responsive` — portrait strips inside grids need minmax(0,1fr) columns (intrinsic strip width widens the page past the phone viewport — the Tower Lab empty-showcase bug); flex children of height-capped roster lists need flex:none or rows compress and overlap their portraits
+  - references → `system:power` — UX CONSOLIDATION PASS (2026-07, UX-CONSOLIDATION.md — the coalescing record): the five Foundations own guidance by KIND, one fact one owner. Absorbed: Home NEXT banner → Mission Control ledger (NextGoalBanner component+CSS deleted, only LoopDirective/NextGoalCliffhanger remain); raw command-feed → Hive Intelligence note tail; COMING UP resource goals → MC ledger (roadmap owns only the system curve); ProgressDashboard HOT/claim CTAs → the Feed's ACT rows (dashboard is now STANDINGS-ONLY — no dash-cta, no is-hot; Ascension banner KEPT as the one unique claim). command-feed mount gate re-founded (was timeline-only; now mounts on timeline OR pendingContainers OR shards — homeModel.test pins it). KEEP decisions (one engine many doors): LoopDirective ×4, BestBuyStrip ×4 + Growth, BioCacheCard ×2, HUD-Tour-vs-Guided-Unlocks. VERIFICATION CONTRACT: home probe asserts dash-cta=0 + ng-next=0 + feed-act>0 on fresh AND veteran seeds
   - requiredBy ← `system:hive-construction`
   - requiredBy ← `system:infestation`
   - requiredBy ← `system:cosmetics`
@@ -1792,8 +1793,8 @@ _at: src/ui/Hub.tsx, src/ui/navModel.ts, src/ui/MobileShell.tsx, src/ui/CommandC
   - documentedBy ← `doc:ONE-MORE-RUN.md`
   - documentedBy ← `doc:HUD.md`
   - documentedBy ← `doc:PROGRESSION-LOOP.md`
-  - testedBy ← `test:src/state/nextGoal.test.ts`
-  - _…8 more (query: `npm run dil -- node system:hub-shell`)_
+  - documentedBy ← `doc:UX-CONSOLIDATION.md`
+  - _…9 more (query: `npm run dil -- node system:hub-shell`)_
 
 ### `system:run-ui` — In-Run HUD & Results
 
@@ -1824,6 +1825,7 @@ _at: src/state/notifications.ts, src/state/notificationSources.ts, src/state/rew
   - requiredBy ← `system:hub-shell`
   - taughtBy ← `help:hive-intel`
   - documentedBy ← `doc:NOTIFICATIONS.md`
+  - documentedBy ← `doc:HIVE-INTEL.md`
   - testedBy ← `test:src/state/hiveIntel.test.ts`
   - testedBy ← `test:src/state/notifications.test.ts`
   - testedBy ← `test:src/state/rewardToast.test.ts`
@@ -3210,7 +3212,7 @@ _at: site/guides.ts → /guides/prestige/_
 - `achievement:deep_genome` — Collect 25 distinct Gene Cards (the Deep-Strain set and beyond). _(partOf `system:achievements`, rewards `currency:genome-cores`)_
 - `achievement:return_from_deep` — Reach Infinite Depth 40 — the abyss that awakens the Revenant. _(partOf `system:achievements`, rewards `currency:genome-cores`)_
 
-## Documentation (162)
+## Documentation (168)
 
 - `doc:ACCOUNT-LEVEL.md` — project documentation _(documents `system:account-level`)_
 - `doc:ACCOUNTS.md` — project documentation _(documents `system:accounts`)_
@@ -3267,6 +3269,7 @@ _at: site/guides.ts → /guides/prestige/_
 - `doc:EQUIPMENT.md` — project documentation _(documents `system:equipment`)_
 - `doc:EVOLUTION-CAP.md` — project documentation _(documents `system:evolution-hq`)_
 - `doc:EVOLUTION-HQ.md` — project documentation _(documents `system:evolution-hq`)_
+- `doc:EVOLUTION-ROADMAP.md` — project documentation _(documents `system:power`)_
 - `doc:EXPEDITIONS.md` — project documentation _(documents `system:expeditions`)_
 - `doc:GAME-FEEL.md` — project documentation _(documents `system:rendering`, documents `system:audio`)_
 - `doc:GAME-STATE.md` — project documentation
@@ -3275,6 +3278,7 @@ _at: site/guides.ts → /guides/prestige/_
 - `doc:GENE-EVOLUTION.md` — project documentation _(documents `system:gene-cards`)_
 - `doc:GENOME-CORE.md` — project documentation _(documents `system:evolution-hq`)_
 - `doc:GENOME-RANK.md` — project documentation _(documents `system:genome-rank`)_
+- `doc:GUIDED-UNLOCKS.md` — project documentation _(documents `system:onboarding`)_
 - `doc:HELP.md` — project documentation _(documents `system:onboarding`)_
 - `doc:HERO-EVOLUTION.md` — project documentation _(documents `system:heroes`)_
 - `doc:HERO-FRAMEWORK.md` — project documentation _(documents `system:heroes`)_
@@ -3283,6 +3287,7 @@ _at: site/guides.ts → /guides/prestige/_
 - `doc:HEROES.md` — project documentation _(documents `system:heroes`)_
 - `doc:HISTORY.md` — project documentation
 - `doc:HIVE-CONSTRUCTION.md` — project documentation _(documents `system:hive-construction`)_
+- `doc:HIVE-INTEL.md` — project documentation _(documents `system:notifications`)_
 - `doc:HIVE-SIEGE.md` — project documentation
 - `doc:HOME-BASE.md` — project documentation _(documents `system:hive-construction`, documents `system:hub-shell`)_
 - `doc:HUD.md` — project documentation _(documents `system:hub-shell`, documents `system:run-ui`)_
@@ -3299,6 +3304,7 @@ _at: site/guides.ts → /guides/prestige/_
 - `doc:MARKET.md` — project documentation _(documents `system:splice-market`)_
 - `doc:MASTERY.md` — project documentation _(documents `system:mastery`)_
 - `doc:MEGA-BOSS.md` — project documentation _(documents `system:mega-bosses`)_
+- `doc:MISSION-CONTROL.md` — project documentation _(documents `system:power`)_
 - `doc:MODE-IDENTITY.md` — project documentation _(documents `system:campaign`, documents `system:infinite`, documents `system:boss-rush`)_
 - `doc:MULLIGANS.md` — project documentation _(documents `system:mulligans`)_
 - `doc:MUSIC.md` — project documentation _(documents `system:audio`)_
@@ -3311,6 +3317,7 @@ _at: site/guides.ts → /guides/prestige/_
 - `doc:PLACEHOLDER-ART.md` — project documentation
 - `doc:PLAYTEST-CHECKLIST.md` — project documentation
 - `doc:POLYP.md` — project documentation
+- `doc:POWER-ADVISOR.md` — project documentation _(documents `system:power`)_
 - `doc:POWER-AUDIT.md` — project documentation _(documents `system:power`)_
 - `doc:POWER-SCORE.md` — project documentation _(documents `system:power`)_
 - `doc:PREDICTION.md` — project documentation _(documents `system:prediction`)_
@@ -3369,6 +3376,7 @@ _at: site/guides.ts → /guides/prestige/_
 - `doc:UI-STANDARDS.md` — project documentation _(documents `system:ui-kit`)_
 - `doc:UI_STYLE_GUIDE.md` — project documentation _(documents `system:ui-kit`)_
 - `doc:UNLOCK-TREE.md` — project documentation _(documents `system:progression-gating`)_
+- `doc:UX-CONSOLIDATION.md` — project documentation _(documents `system:hub-shell`)_
 - `doc:VALIDATION_REPORT.md` — project documentation
 - `doc:VISUAL-AUDIT.md` — project documentation
 - `doc:VISUAL_IDENTITY.md` — project documentation _(documents `system:ui-kit`)_

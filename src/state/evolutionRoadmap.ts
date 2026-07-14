@@ -1,4 +1,4 @@
-// EVOLUTION ROADMAP (docs/ROADMAP.md — Foundation #4 of the UX consolidation pass): the whole
+// EVOLUTION ROADMAP (docs/EVOLUTION-ROADMAP.md — Foundation #4 of the UX consolidation pass): the whole
 // progression future on one rail. Every major system, in the learning curve's authored order —
 // already-revealed wings shown as CONQUERED waypoints, locked wings as UPCOMING nodes with live
 // requirement progress, an honest distance in stages, the Power the frontier will ask for, and
