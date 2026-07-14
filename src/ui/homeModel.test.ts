@@ -118,10 +118,12 @@ describe('home widget registry — the shell renders THIS', () => {
     // HIERARCHY CONTRACT: the deploy decision leads the main zone; intel follows it — and
     // progression gating (docs/PROGRESSION-GATING.md) keeps a fresh board calm: contracts
     // ride the Daily reveal (S5), the Infestation map rides the Infinite reveal (S3).
-    expect(homeRegistry.zone(fresh, 'main').map((d) => d.id)).toEqual(['mission-control', 'next-goal', 'live-events']);
+    // (UX consolidation: the next-goal banner is ABSORBED into Mission Control's ledger —
+    // one main-zone panel answers "what should I do"; docs/MISSION-CONTROL.md.)
+    expect(homeRegistry.zone(fresh, 'main').map((d) => d.id)).toEqual(['mission-control', 'live-events']);
     expect(homeRegistry.zone(fresh, 'ops').map((d) => d.id)).toEqual(['modes']);
     const midgame = { ...fresh, campaign: { ...fresh.campaign, cleared: { standard: 5 } } };
-    expect(homeRegistry.zone(midgame, 'main').map((d) => d.id)).toEqual(['mission-control', 'next-goal', 'live-events', 'directives', 'contracts']);
+    expect(homeRegistry.zone(midgame, 'main').map((d) => d.id)).toEqual(['mission-control', 'live-events', 'directives', 'contracts']);
     expect(homeRegistry.zone(midgame, 'ops').map((d) => d.id)).toEqual(['modes', 'infestation']);
     // feed hides on an empty timeline; appears once history exists
     expect(homeRegistry.zone(fresh, 'feed').map((d) => d.id)).toEqual(['dashboard']);

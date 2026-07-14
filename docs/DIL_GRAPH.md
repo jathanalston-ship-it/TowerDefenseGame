@@ -1,6 +1,6 @@
 # DIL_GRAPH.md — the Design Intelligence Layer (GENERATED — `npm run dil -- regen`)
 
-> **The project's brain** (docs/DIL.md). 786 nodes · 1448 edges, built from the live
+> **The project's brain** (docs/DIL.md). 788 nodes · 1450 edges, built from the live
 > registries + curated knowledge (src/dev/dil/). **Query it instead of searching the repo:**
 > `npm run dil -- node <id>` · `affects <id>` · `requires <id>` · `missing <kind> <edge>` ·
 > `checklist tower <kind>` · `find <text>`. Edge kinds are bidirectional (19 kinds).
@@ -741,7 +741,7 @@ _at: src/core/registry.ts, src/core/validate.ts, src/core/config.ts, src/core/ty
 
 ONE account-strength number folded from every permanent bucket + the in-run temporary bucket.
 
-_at: src/core/power.ts, src/state/itemPower.ts, src/state/powerEvents.ts, src/state/bestPurchase.ts, src/state/equipAdvisor.ts, src/state/powerAtlas.ts, src/state/powerLog.ts, src/ui/components/PowerScore.tsx, src/ui/components/PowerDelta.tsx, src/ui/components/PowerToaster.tsx, src/ui/components/BestBuyStrip.tsx, src/ui/components/GrowthPanel.tsx_
+_at: src/core/power.ts, src/state/itemPower.ts, src/state/powerEvents.ts, src/state/bestPurchase.ts, src/state/equipAdvisor.ts, src/state/powerAtlas.ts, src/state/powerAdvisor.ts, src/state/missionControl.ts, src/state/powerLog.ts, src/ui/components/PowerScore.tsx, src/ui/components/PowerDelta.tsx, src/ui/components/PowerToaster.tsx, src/ui/components/BestBuyStrip.tsx, src/ui/components/GrowthPanel.tsx_
 
   - dependsOn → `system:content-infra`
   - provides → `concept:power-score` — IS the model (buckets, effectsPower, FIELD_WEIGHT)
@@ -759,7 +759,7 @@ _at: src/core/power.ts, src/state/itemPower.ts, src/state/powerEvents.ts, src/st
   - requiredBy ← `system:profile`
   - requiredBy ← `system:genome-rank`
   - requiredBy ← `system:hub-shell`
-  - _…13 more (query: `npm run dil -- node system:power`)_
+  - _…15 more (query: `npm run dil -- node system:power`)_
 
 ### `system:campaign` — Campaign
 
@@ -3366,7 +3366,7 @@ _at: site/guides.ts → /guides/prestige/_
 - `doc:VOWS.md` — project documentation _(documents `system:prestige`)_
 - `doc:WEBSITE.md` — project documentation _(documents `system:field-research`, documents `system:website`)_
 
-## Tests (249)
+## Tests (251)
 
 - `test:src/audio/music.test.ts` — automated validation _(tests `system:audio`)_
 - `test:src/changelog/classify.test.ts` — automated validation _(tests `system:chronicle`)_
@@ -3578,6 +3578,7 @@ _at: site/guides.ts → /guides/prestige/_
 - `test:src/state/mechanics.test.ts` — automated validation _(tests `system:onboarding`)_
 - `test:src/state/megacollection.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/state/meta.test.ts` — automated validation _(tests `system:meta-store`)_
+- `test:src/state/missionControl.test.ts` — automated validation _(tests `system:power`)_
 - `test:src/state/modeGates.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/state/mulligan.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/state/mulliganLabModel.test.ts` — automated validation _(tests `system:mulligans`)_
@@ -3587,6 +3588,7 @@ _at: site/guides.ts → /guides/prestige/_
 - `test:src/state/notificationSources.season.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/state/notifications.test.ts` — automated validation _(tests `system:notifications`)_
 - `test:src/state/patchNotes.test.ts` — automated validation _(tests `system:engine`)_
+- `test:src/state/powerAdvisor.test.ts` — automated validation _(tests `system:power`)_
 - `test:src/state/powerAtlas.test.ts` — automated validation _(tests `system:power`)_
 - `test:src/state/powerEvents.test.ts` — automated validation _(tests `system:power`)_
 - `test:src/state/powerIntegration.test.ts` — automated validation _(tests `system:engine`)_

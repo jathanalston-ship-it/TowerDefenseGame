@@ -11894,3 +11894,21 @@ html[data-debug-layout] body::after {
 @media (prefers-reduced-motion: reduce) {
   .hv-pod, .hv-line, .hv-arrive, .hv-cer-backdrop { animation-duration: 0.01s !important; }
 }
+
+/* Mission Control objective ledger (docs/MISSION-CONTROL.md — Foundation #1): SECONDARY
+   objective rows under the deploy card + the AHEAD horizon strip. Rows reuse the roadmap's
+   progress-ring language so "how far" reads identically everywhere. */
+.mc-ledger { display: flex; flex-direction: column; gap: 6px; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--line); }
+.mc-obj { display: flex; align-items: center; gap: 10px; padding: 6px 8px; border-radius: var(--r-sm); border: 1px solid transparent; background: rgba(255, 255, 255, 0.03); cursor: pointer; text-align: left; min-width: 0; }
+.mc-obj:hover { border-color: var(--line-strong); background: rgba(255, 255, 255, 0.06); }
+.mc-obj-ring { position: relative; flex: none; width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; background: conic-gradient(var(--mc-accent, var(--gold)) calc(var(--p) * 360deg), rgba(255,255,255,0.08) 0); }
+.mc-obj-ring::before { content: ''; position: absolute; inset: 3px; border-radius: 50%; background: var(--panel-2); }
+.mc-obj-ring b { position: relative; font-size: 10px; font-weight: 900; color: var(--text); }
+.mc-obj-body { display: flex; flex-direction: column; gap: 1px; min-width: 0; flex: 1; }
+.mc-obj-t { font-size: 12px; font-weight: 700; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mc-obj-r { font-size: 10px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mc-obj-gain { flex: none; font-size: 11px; font-weight: 900; color: var(--gold); }
+.mc-horizon { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 4px 8px 0; }
+.mc-horizon-k { font-size: 10px; font-weight: 900; letter-spacing: 0.14em; color: var(--muted); }
+.mc-horizon-stop { font-size: 10px; color: var(--muted); display: inline-flex; align-items: center; gap: 4px; }
+.mc-horizon-stop i { font-style: normal; opacity: 0.8; }

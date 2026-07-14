@@ -27,7 +27,7 @@ import { heroSlotsUnlocked } from '../state/meta';
 import { highestCampaignStage } from '../save/derive';
 import { RewardPreview } from './RewardPreview';
 import type { PreviewChip } from './RewardPreview';
-import { NextGoalBanner } from './NextGoalBanner';
+import { missionControl } from '../state/missionControl';
 import { PredictionPanel } from './PredictionPanel';
 import { WorldStatus } from './WorldStatus';
 import { LiveEventsStrip } from './components/LiveEventsStrip';
@@ -143,9 +143,8 @@ export function CommandCenter({
 const WIDGETS: Record<string, (ctx: WidgetCtx) => ReactNode> = {
   'vitals': Vitals,
   'world-status': (c) => <WorldStatus ws={c.view.world} />,
-  // The banner owns ONLY the nearest goal; the side roadmap owns the queue behind it —
-  // one goal, one surface (the pre-overhaul board showed the same goal three times).
-  'next-goal': (c) => <NextGoalBanner onNavigate={(k) => c.go(k as NavKey)} goals={c.view.goals.slice(0, 1)} />,
+  // (UX consolidation, docs/MISSION-CONTROL.md: the old next-goal banner is ABSORBED into
+  // Mission Control's objective ledger — one main-zone panel answers "what should I do".)
   'bio-cache': () => <BioCacheCard />,
   'live-events': () => <LiveEventsStrip />,
   'growth': (c) => <GrowthPanel save={c.save} go={(k) => c.go(k as NavKey)} />,
@@ -196,8 +195,12 @@ function Vitals({ save, view, go }: WidgetCtx): ReactNode {
 }
 
 /** Mission control — CONTINUE CAMPAIGN dominates; the primary decision of every visit. */
-function MissionControl({ view, go, start, onStartCampaign, doctrineRef }: WidgetCtx): ReactNode {
+function MissionControl({ save, view, go, start, onStartCampaign, doctrineRef }: WidgetCtx): ReactNode {
   const { diff, stage, cleared, cfg, rec, ready, isMilestone, firstClearCore } = view.frontier;
+  // Foundation #1 (docs/MISSION-CONTROL.md): the objective ledger under the deploy card — the
+  // one model that answers "what else should I do, and where is this going". Absorbs the old
+  // standalone next-goal banner (one main-zone panel instead of two).
+  const mc = useMemo(() => missionControl(save), [save]);
   // Doctrine commitment (docs/DOCTRINES.md): the field shows the pick; tapping it unfolds the
   // shared picker (lock seals + rank pips) — no more blind dropdown on the campaign path.
   const [doctrine, setDoctrine] = useState(doctrineRef.current || 'none');
@@ -291,6 +294,33 @@ function MissionControl({ view, go, start, onStartCampaign, doctrineRef }: Widge
           />
         )}
       </div>
+      {/* ── The objective ledger (Foundation #1) — SECONDARY moves + where it's all going. ── */}
+      {(mc.secondary.length > 0 || mc.longterm.length > 0) && (
+        <div className="mc-ledger" aria-label="Mission objectives">
+          {mc.secondary.map((o) => (
+            <button key={o.id} className="mc-obj" onClick={() => go(o.nav as NavKey)} title={o.why}>
+              <span className="mc-obj-ring" style={{ ['--p' as string]: o.progress }} aria-hidden>
+                <b>{Math.round(o.progress * 100)}%</b>
+              </span>
+              <span className="mc-obj-body">
+                <span className="mc-obj-t">{o.title}</span>
+                <span className="mc-obj-r">{o.remaining}{o.reward ? ` · ${o.reward}` : ''}</span>
+              </span>
+              {o.powerGain !== undefined && <span className="mc-obj-gain">+{o.powerGain}⚡</span>}
+            </button>
+          ))}
+          {mc.longterm.length > 0 && (
+            <div className="mc-horizon" title="The next wings of the hive — unlocked by playing">
+              <span className="mc-horizon-k">AHEAD</span>
+              {mc.longterm.map((o) => (
+                <span key={o.id} className="mc-horizon-stop" title={`${o.why} — ${o.remaining}`}>
+                  <i aria-hidden>{o.glyph}</i> {o.title}
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
     </section>
   );
 }
