@@ -407,7 +407,7 @@ export const SYSTEMS: SystemDef[] = [
   },
   {
     id: 'notifications', name: 'Notifications', purpose: 'Generic menu badges (registered count(save) sources per nav channel) + the global claim popup every hub claim receipts through.',
-    files: ['src/state/notifications.ts', 'src/state/notificationSources.ts', 'src/state/rewardToast.ts', 'src/ui/components/RewardToaster.tsx'],
+    files: ['src/state/notifications.ts', 'src/state/notificationSources.ts', 'src/state/rewardToast.ts', 'src/state/hiveIntel.ts', 'src/ui/components/RewardToaster.tsx'],
     dependsOn: ['meta-store'], powerScore: null, save: [], tutorial: [], help: [], hud: ['nav badges'], ui: ['Hub (badges)', 'RewardToaster (claim popups)'],
     collection: 'collection channel badge', achievements: [], localization: 'inline-en', docs: ['docs/NOTIFICATIONS.md'],
   },

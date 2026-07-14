@@ -1,6 +1,6 @@
 # DIL_GRAPH.md — the Design Intelligence Layer (GENERATED — `npm run dil -- regen`)
 
-> **The project's brain** (docs/DIL.md). 788 nodes · 1450 edges, built from the live
+> **The project's brain** (docs/DIL.md). 789 nodes · 1451 edges, built from the live
 > registries + curated knowledge (src/dev/dil/). **Query it instead of searching the repo:**
 > `npm run dil -- node <id>` · `affects <id>` · `requires <id>` · `missing <kind> <edge>` ·
 > `checklist tower <kind>` · `find <text>`. Edge kinds are bidirectional (19 kinds).
@@ -1815,12 +1815,13 @@ _at: src/ui/GameView.tsx, src/ui/Hud.tsx, src/ui/Toolbar.tsx, src/ui/BuildContro
 
 Generic menu badges (registered count(save) sources per nav channel) + the global claim popup every hub claim receipts through.
 
-_at: src/state/notifications.ts, src/state/notificationSources.ts, src/state/rewardToast.ts, src/ui/components/RewardToaster.tsx_
+_at: src/state/notifications.ts, src/state/notificationSources.ts, src/state/rewardToast.ts, src/state/hiveIntel.ts, src/ui/components/RewardToaster.tsx_
 
   - dependsOn → `system:meta-store`
   - provides → `system:hub-shell` — THE CLAIM POPUP (2026-07, NOTIFICATIONS.md §claim-popups): every hub claim — quest missions/finales, pass levels/claim-all/premium unlock, weekly directives, wardrobe milestones — pushes its PremiumReceiptLine[] to state/rewardToast; ONE RewardToaster (App, menu only) presents it bold + itemized. The "view it" jump derives from receipt ICONS (single-sourced in meta.applyRewardList/rewardLabel — change an icon there and update rewardToast DESTINATIONS) and routes via navBus. Ceremonial reveals (BioCache, VaultReveal, WardrobeReveal, PremiumStore, SpoilsCard, GenomePromotion) deliberately stay bespoke — the popup is the RECEIPT layer, not the ceremony layer
   - requiredBy ← `system:hub-shell`
   - documentedBy ← `doc:NOTIFICATIONS.md`
+  - testedBy ← `test:src/state/hiveIntel.test.ts`
   - testedBy ← `test:src/state/notifications.test.ts`
   - testedBy ← `test:src/state/rewardToast.test.ts`
 
@@ -3366,7 +3367,7 @@ _at: site/guides.ts → /guides/prestige/_
 - `doc:VOWS.md` — project documentation _(documents `system:prestige`)_
 - `doc:WEBSITE.md` — project documentation _(documents `system:field-research`, documents `system:website`)_
 
-## Tests (251)
+## Tests (252)
 
 - `test:src/audio/music.test.ts` — automated validation _(tests `system:audio`)_
 - `test:src/changelog/classify.test.ts` — automated validation _(tests `system:chronicle`)_
@@ -3566,6 +3567,7 @@ _at: site/guides.ts → /guides/prestige/_
 - `test:src/state/heroCollection.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/state/heroLab.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/state/heroSlots.test.ts` — automated validation _(tests `system:engine`)_
+- `test:src/state/hiveIntel.test.ts` — automated validation _(tests `system:notifications`)_
 - `test:src/state/hiveMeta.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/state/ichorExchange.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/state/idleMeta.test.ts` — automated validation _(tests `system:engine`)_

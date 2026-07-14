@@ -36,7 +36,8 @@ import { DirectivesCard } from './components/DirectivesCard';
 import { ContractsCard } from './components/ContractsCard';
 import { InfestationBoard } from './components/InfestationBoard';
 import { GrowthPanel } from './components/GrowthPanel';
-import { armyView, buildHomeView, commandFeed, homeRegistry } from './homeModel';
+import { armyView, buildHomeView, homeRegistry } from './homeModel';
+import { hiveIntel } from '../state/hiveIntel';
 import type { HomeView, HomeZone } from './homeModel';
 import type { NavKey } from './Hub';
 
@@ -471,17 +472,29 @@ function Modes({ start, onStart, onStartEndless, go, save }: WidgetCtx): ReactNo
 }
 
 /** Command feed — the account's recent milestones from the save timeline (newest first). */
-function CommandFeed({ save }: WidgetCtx): ReactNode {
-  const feed = commandFeed(save, Date.now());
+function CommandFeed({ save, go }: WidgetCtx): ReactNode {
+  // HIVE INTELLIGENCE (docs/HIVE-INTEL.md — Foundation #2): the derived intel layer replaces
+  // the raw timeline list. ACT rows (banked value / exact Power moves) lead with one-tap jumps;
+  // the old command-feed milestones ride as the low-priority NOTE tail (absorbed, not lost).
+  const feed = useMemo(() => hiveIntel(save, Date.now()), [save]);
+  if (feed.length === 0) return null;
   return (
-    <section className="cc-feed" aria-label="Command feed">
-      <span className="cc-panel-h">▤ COMMAND FEED</span>
+    <section className="cc-feed" aria-label="Hive Intelligence">
+      <span className="cc-panel-h">▤ HIVE INTELLIGENCE</span>
       <ul className="cc-feed-list">
-        {feed.map((e, i) => (
-          <li className="cc-feed-item" key={`${e.at}-${i}`}>
+        {feed.map((e) => (
+          <li className={`cc-feed-item is-${e.priority}`} key={e.id}>
             <span className="cc-feed-i" aria-hidden>{e.icon}</span>
-            <span className="cc-feed-l">{e.label}</span>
-            <span className="cc-feed-t">{e.ago}</span>
+            <span className="cc-feed-body" title={e.why}>
+              <span className="cc-feed-l">{e.what}</span>
+              {e.priority !== 'note' && <span className="cc-feed-why">{e.why}</span>}
+            </span>
+            {e.powerGain !== undefined && <span className="cc-feed-gain">+{e.powerGain}⚡</span>}
+            {e.ago ? (
+              <span className="cc-feed-t">{e.ago}</span>
+            ) : (
+              <button className="cc-feed-act" onClick={() => go(e.nav as NavKey)}>{e.action} ▸</button>
+            )}
           </li>
         ))}
       </ul>
