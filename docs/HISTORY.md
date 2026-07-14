@@ -197,3 +197,5 @@
 - `c0acc6a` **[UI]** Persona simulation, final ship — fix the home-widget hook-scope crash
 - `fd87da1` **[Audio]** In-run gameplay feel pass: status FX framework, hit confirmation, tower anticipation, hero ability cues
 - `4cf2f84` **[Heroes]** Hero ability cinematics: every cast is a procedural set-piece
+- `b492e21` **[Heroes]** Hero ability cinematics: every cast is a procedural set-piece
+- `97db38a` **[Visuals]** Typography overhaul: ship the game's real face (Chakra Petch + Exo 2)

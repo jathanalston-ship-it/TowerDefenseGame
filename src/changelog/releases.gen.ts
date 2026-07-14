@@ -850,6 +850,10 @@ export const RELEASES: Release[] = [
       {
         "cat": "Heroes",
         "text": "Hero ability cinematics: every cast is a procedural set-piece"
+      },
+      {
+        "cat": "Visuals",
+        "text": "Typography overhaul: ship the game's real face (Chakra Petch + Exo 2)"
       }
     ]
   },

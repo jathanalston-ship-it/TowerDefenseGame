@@ -23,19 +23,50 @@
   --r: 12px;
 }
 
+/* Typography — the game's own faces (public/fonts/, OFL; docs/STYLE-GUIDE.md §9):
+   Chakra Petch display + Exo 2 body, so the site and the game speak one voice. */
+@font-face {
+  font-family: 'Chakra Petch';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url('/fonts/chakra-petch-500.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Chakra Petch';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url('/fonts/chakra-petch-600.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Chakra Petch';
+  font-style: normal;
+  font-weight: 700 900;
+  font-display: swap;
+  src: url('/fonts/chakra-petch-700.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Exo 2';
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url('/fonts/exo2-var.woff2') format('woff2-variations');
+}
+
 * { box-sizing: border-box; }
 html { scroll-behavior: smooth; }
 body {
   margin: 0;
   background: var(--bg);
   color: var(--text);
-  font: 16px/1.65 'Segoe UI', system-ui, -apple-system, sans-serif;
+  font: 16px/1.65 'Exo 2', 'Segoe UI', system-ui, -apple-system, sans-serif;
   -webkit-font-smoothing: antialiased;
 }
 img, video { max-width: 100%; height: auto; }
 a { color: var(--cyan); text-decoration: none; }
 a:hover { text-decoration: underline; }
-h1, h2, h3 { line-height: 1.2; letter-spacing: 0.01em; }
+h1, h2, h3 { line-height: 1.2; letter-spacing: 0.01em; font-family: 'Chakra Petch', 'Exo 2', system-ui, sans-serif; }
 h2 { font-size: 28px; margin: 0 0 12px; }
 h3 { font-size: 19px; margin: 0 0 8px; }
 .shell-wrap { max-width: var(--wrap); margin: 0 auto; padding: 0 20px; }

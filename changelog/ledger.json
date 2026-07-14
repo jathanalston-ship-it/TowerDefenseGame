@@ -1,6 +1,6 @@
 {
-  "lastSha": "4cf2f8472a971971c9e0c14658ad3999d9593a5f",
-  "commitsSinceDraft": 3,
+  "lastSha": "97db38a9fad027c6aa2f17c7e78617cee90ca1de",
+  "commitsSinceDraft": 5,
   "content": {
     "tower": [
       "needle",
@@ -2329,6 +2329,10 @@
         {
           "cat": "Heroes",
           "text": "Hero ability cinematics: every cast is a procedural set-piece"
+        },
+        {
+          "cat": "Visuals",
+          "text": "Typography overhaul: ship the game's real face (Chakra Petch + Exo 2)"
         }
       ]
     }
@@ -3779,6 +3783,22 @@
       "date": "2026-07-14",
       "cat": "Heroes",
       "text": "Hero ability cinematics: every cast is a procedural set-piece",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "b492e2102b2a73e22377aa836d425ce48185b2db",
+      "date": "2026-07-14",
+      "cat": "Heroes",
+      "text": "Hero ability cinematics: every cast is a procedural set-piece",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "97db38a9fad027c6aa2f17c7e78617cee90ca1de",
+      "date": "2026-07-14",
+      "cat": "Visuals",
+      "text": "Typography overhaul: ship the game's real face (Chakra Petch + Exo 2)",
       "internal": false,
       "needsReview": false
     }

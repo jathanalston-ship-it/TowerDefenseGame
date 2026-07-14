@@ -105,6 +105,8 @@ ${adSlot('home-below-trailer', 'banner')}
     <div class="f"><b>${c.biomes} biomes</b><span>Ecosystems that warp the rules — permafrost, bone dunes, neural storms.</span></div>
     <div class="f"><b>${c.doctrines} doctrines</b><span>Exclusive run commitments that reshape the rules — and rank up as you master them.</span></div>
     <div class="f"><b>A living week</b><span>Daily seeds, Champion Contracts, quest rings and directives — the hive resets its rituals weekly.</span></div>
+    <div class="f"><b>Set-piece casts</b><span>Every hero ability is a staged performance — the sky-dragon strafes the lane, and the blow lands with it.</span></div>
+    <div class="f"><b>Works while you're away</b><span>The Idle Harvest accrues honestly — a welcome back, never a replacement for play.</span></div>
     <div class="f"><b>Deterministic</b><span>Same seed, same run, byte for byte — shareable replays and fair dailies.</span></div>
   </div>
   <p style="margin-top:22px"><a class="btn-ghost" href="/features/">Every feature in depth →</a></p>
@@ -137,8 +139,12 @@ export function featuresPage(): string {
 <p>Before a run you may sign exactly ONE <a href="/guides/doctrines/">Doctrine</a>: a Build doctrine that bends your own math, a Protocol that reshapes the enemy world (double swarms at half health; a handful of titans; a famine that pays premium rewards), or a Pact that does both. Doctrines carry campaign unlock gates, mastery ranks that raise their payouts, and a Bio-Dex codex of their own — commitment is a progression axis.</p>
 <h2>The weekly game</h2>
 <p>The hive runs on rituals. A <b>Daily Run</b> — one deterministic seed worldwide. <a href="/guides/contracts/"><b>Champion Contracts</b></a> — three constraint runs a week on one shared board, with a Gilded marquee exclusive and a Perfect Week sweep bonus. A <b>weekly quest ring</b> plus the permanent Descent Below questline, credited automatically from everything you already do. <b>Weekly Directives</b> — a cumulative objective ladder with milestone payouts. A <b>Season Pass</b> fed by all of it. None of these are chores: they read from your normal play.</p>
+<h2>Set-piece hero casts</h2>
+<p>Every hero ability stages a procedural performance when it fires — the Cinderwyrm's breath is a dragon sweeping the lane, the Fovea's stare is a vast eye opening into a psionic lance, the Knell's peal is a bell descending to its slam — and the blow <b>lands the moment the performance strikes</b>. Support (heals, shields, rally buffs) stays instant, the zone payload travels with the animation, and the telegraph is real: what stands in the ring when it lands is what gets hit. All of it procedural, no sprites, no video — and it respects reduced-motion settings.</p>
 <h2>The permanent game</h2>
-<p>A genome upgrade tree, a levelable Gene Archive of draft cards, tower and hero labs, equipment crafting with pity protection and undo-able salvage, per-tower Mulligan organisms with class adaptations, collections with rank bonuses, prestige with Ascendant nodes, and a Power Score that folds all of it into one honest number.</p>
+<p>A genome upgrade tree, a levelable Gene Archive of draft cards, tower and hero labs, equipment crafting with pity protection and undo-able salvage, per-tower Mulligan organisms with class adaptations, collections with rank bonuses, prestige with Ascendant nodes, and a Power Score that folds all of it into one honest number. Above the star caps sit <b>Prime Strains</b> — a deep per-unit ascension lane for maxed towers and heroes that folds into the same Power math.</p>
+<h2>The hive works while you're away</h2>
+<p>The <b>Idle Harvest</b> accrues while you're gone — materials, essence, shards, the occasional sealed container — with its own upgrade tree of harvest nodes. It is deliberately, provably the <i>slower</i> path: the design guardrail (enforced by automated economy simulations) keeps away-time income well under active play at every stage band, so the harvest welcomes you back without ever replacing the game.</p>
 <h2>Account mastery</h2>
 <p>An uncapped <b>Account Level</b> pays on nearly everything you do, with procedurally weighted level rewards, milestone titles and weekly/monthly XP leaderboards. Above it sits the <b>Genome Rank</b> — a breadth-weighted rating folding every major system into one prestigious, infinite ladder, with a Progress Advisor that names your best next move. Promotions pay prestige, never power.</p>
 <h2>The hunt hunts back</h2>
@@ -146,7 +152,7 @@ export function featuresPage(): string {
 <h2>Modes</h2>
 <p><b>Campaign</b> — a procedurally authored stage ladder with events and milestone bosses every tenth stage. <b>Infinite</b> — an AI Director escalating against your best. <b>Boss Rush</b> — wave N is N bosses, stamina-gated, paying per kill. <b>Daily Run</b> — one deterministic seed per day, worldwide, verified by replay.</p>
 <h2>Presentation</h2>
-<p>A living battlefield that terraforms with your run, procedural creature and turret bodies, a fully scored opening cinematic plus story cutscenes premiered by quest finales and Mega defeats, an adaptive generative soundtrack (the Mega raids have their own hymn; events re-voice the dailies), and gore that routes every kill's biomass visibly home. All of it procedural — the whole game ships lighter than one video file.</p>
+<p>A living battlefield that terraforms with your run, procedural creature and turret bodies, set-piece hero-cast performances, a fully scored opening cinematic plus story cutscenes premiered by quest finales and Mega defeats, an adaptive generative soundtrack (the Mega raids have their own hymn; events re-voice the dailies), and gore that routes every kill's biomass visibly home. All of it procedural — the whole game ships lighter than one video file.</p>
 <h2>Fair by construction</h2>
 <p>Deterministic simulation, replays as links, replay-verified leaderboards, no energy timers on core play, no loot boxes for power, and saves that live on YOUR device with optional cloud accounts for backup and cross-device play.</p>`;
 }
@@ -159,6 +165,8 @@ export function roadmapPage(): string {
     <p>Four modes (Campaign, Infinite, Boss Rush, Daily); the full tower roster with stars, branches, strains, mastery and Mulligan organisms; heroes with equipment, forks and expeditions; Mega Boss raids; Doctrines with mastery ranks; the Living Battlefield; story cutscenes; collections and prestige.</p></li>
   <li><span class="t-date">NOW — LIVE</span><h3>The weekly game</h3>
     <p>Shipped and running on the weekly clock: Champion Contracts with Gilded marquees and Perfect Weeks, the rotating quest ring plus The Descent Below questline, Weekly Directives, a two-season Battle Pass, a LiveOps event calendar, and Account Level + Genome Rank with weekly and monthly leaderboards.</p></li>
+  <li><span class="t-date">NOW — LIVE</span><h3>The deep game</h3>
+    <p>The latest wave of systems: set-piece hero-cast cinematics (every ability a staged performance with its payload landing on the strike), Prime Strains above the star caps, the Idle Harvest with its guardrailed away-time economy, and a roster grown to ten heroes across six combat classes — each gated by a different feat.</p></li>
   <li><span class="t-date">NEXT</span><h3>Deeper roster</h3>
     <p>New tower strains and heroes toward the long-term targets (100 towers / 30 heroes), more authored bosses and Mega organisms, and new biome ecosystems with bespoke terrain flora.</p></li>
   <li><span class="t-date">SOON</span><h3>Community & competition</h3>
@@ -185,6 +193,8 @@ export function faqPage(): { html: string; qa: [string, string][] } {
     ['How often does the game update?', 'Continuously — patch notes are generated straight from the development history. See the News page for the full record.'],
     ['What is there to do each week?', 'The hive runs on a weekly clock: a daily seed every UTC day, three Champion Contracts on one worldwide board (sweep all three for a Perfect Week), a rotating quest ring, Weekly Directives, and a season pass fed by all of it. Everything credits from normal play — no chore lists.'],
     ['What are Doctrines?', 'Optional run-start commitments — you sign exactly one, and it reshapes a rule for the whole run: your own math (Build), the enemy world (Protocol), or both (Pact). Harder doctrines pay reward premiums, and each ranks up as you master it.'],
+    ['Do I earn anything while I\'m away?', 'Yes — the Idle Harvest accrues materials while you\'re gone, with its own small upgrade tree. It is deliberately the slower path: an automated economy guardrail keeps away-time income well below active play, so it welcomes you back without ever playing the game for you.'],
+    ['Are the hero abilities animated?', 'Every hero cast stages a procedural set-piece — the sky-dragon strafes the lane, the great eye opens and lances — and the damage lands exactly when the performance strikes. It is all drawn in code (no sprites or video), and it respects your reduced-motion setting.'],
     ['Do I need an account?', 'No. The game plays fully without one. A free named account adds cloud backup, cross-device play and leaderboard identity — and you can delete it in-game at any time.'],
     ['How do I report a bug or give feedback?', `Email ${CONTACT_EMAIL} — reports with a replay code attached are gold, because we can reproduce your exact run.`],
   ];
@@ -268,6 +278,8 @@ export function termsPage(): string {
 <p>The game, site, art, music and written content are © ASSIMILATE. You may capture, stream and publish gameplay freely (monetized included). You may not redistribute the game itself or use our assets to build a competing product.</p>
 <h2>Liability</h2>
 <p>To the maximum extent permitted by law, the service is provided without warranties, and our liability is limited to the amount you paid us in the past twelve months.</p>
+<h2>Governing law</h2>
+<p>These terms are governed by the laws of the United States and of the operator's state of residence, without regard to conflict-of-law rules. Disputes will be resolved in the courts of that jurisdiction, except where the consumer-protection law of your country of residence grants you mandatory rights or venue — nothing in these terms limits rights that cannot be waived.</p>
 <h2>Contact</h2>
 <p>Questions about these terms: <a href="mailto:${CONTACT_EMAIL}">${CONTACT_EMAIL}</a>.</p>`;
 }
