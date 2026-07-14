@@ -187,7 +187,7 @@ export function QuestBoard(): JSX.Element {
       <p className="subtitle">Directives from the deep — weekly orders and the story of the descent.</p>
       {burst && <ClaimBurst burst={burst} />}
 
-      <section className="panel qb-weekly" aria-label="This week's quest">
+      <section className="panel qb-weekly" data-guide="quest-weekly" aria-label="This week's quest">
         <header className="qb-w-head">
           <div className="qb-w-glyph" aria-hidden>{wk.quest.glyph}</div>
           <div className="qb-w-title">
@@ -281,7 +281,7 @@ export function QuestBoard(): JSX.Element {
         ))}
       </section>
 
-      <section className="qb-contracts" aria-label="Champion Contracts">
+      <section className="qb-contracts" data-guide="quest-story" aria-label="Champion Contracts">
         <div className="qb-main-h">
           <h2 className="qb-main-title">CHAMPION CONTRACTS</h2>
           <p className="qb-main-sub">The weekly skill checks — one qualifying run each, judged at run end.</p>

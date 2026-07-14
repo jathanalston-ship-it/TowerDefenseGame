@@ -72,7 +72,7 @@ export function HiveScreen(): JSX.Element {
                 <span className="hive-era-gate">unlocks when {gate} — development {Math.floor(score)}/{at}</span>
               )}
             </div>
-            <div className="hive-grid">
+            <div className="hive-grid" data-guide="hive-grid">
               {organs.map(({ def, built, next }) => (
                 <div className={`hive-organ${built > 0 ? ' is-built' : ''}${next?.affordable ? ' is-afford' : ''}`} key={def.id}>
                   <div className="hive-organ-top">

@@ -158,7 +158,7 @@ export function SpliceMarket(): JSX.Element {
         <span className="market-refresh-w">lot #{view.window % 1000}</span>
       </section>
 
-      <div className="market-grid">
+      <div className="market-grid" data-guide="market-grid">
         {view.slots.map((s) => (
           <SlotCard key={s.id} slot={s} justBought={justBought === s.id} onBuy={onBuy} />
         ))}

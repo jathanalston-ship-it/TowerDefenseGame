@@ -14,6 +14,10 @@ import { AccountLevelToast } from './components/AccountXpBar';
 import { GenomePromotionCinematic } from './components/GenomeRankPanel';
 import { LootToaster } from './LootToaster';
 import { WhatsNew } from './WhatsNew';
+import { GuidedUnlock } from './GuidedUnlock';
+import { guideFor } from '../state/guidedUnlocks';
+import type { GuideDef } from '../state/guidedUnlocks';
+import { featureRevealed } from '../state/unlocks';
 import { UpdateBriefing } from './UpdateBriefing';
 import { CommanderName } from './components/CommanderName';
 import { InitCutscene, introSeen } from './InitCutscene';
@@ -341,6 +345,14 @@ export function App(): JSX.Element {
   // First-launch HUD Tour: latch it ON when eligible (after the tutorial, on the menu). Latched
   // (not the reactive predicate) so its reward reveal survives completeHudTour marking it done.
   useEffect(() => { if (screen === 'menu' && meta.shouldHudTour()) setTourActive(true); }, [screen]);
+  // Guided Unlock walkthrough (docs/GUIDED-UNLOCKS.md): armed by a What's New "Show me ▸" after
+  // it navigates; dropped if the player leaves the menu (the wing being taught lives there).
+  const [guided, setGuided] = useState<GuideDef | null>(null);
+  const startGuide = useCallback((mechId: string) => {
+    const g = guideFor(mechId);
+    if (g && featureRevealed(meta.get(), g.nav)) setGuided(g);
+  }, []);
+  useEffect(() => { if (screen !== 'menu') setGuided(null); }, [screen]);
   // Launch (or replay) the Combat Tutorial from Settings — its own mode.
   const launchTutorial = useCallback(() => { tutorial.start('combat'); setScreen('tutorial'); }, []);
 
@@ -499,8 +511,11 @@ export function App(): JSX.Element {
       {/* Onboarding + discovery (menu only): the HUD Tour runs once after the tutorial, then the
           "What's New?" queue announces each newly-unlocked mechanic. */}
       {screen === 'menu' && tourActive && <HudTour onClose={() => setTourActive(false)} />}
-      {screen === 'menu' && !tourActive && <WhatsNew />}
-      {screen === 'menu' && !tourActive && <UpdateBriefing />}
+      {/* Guided Unlock (docs/GUIDED-UNLOCKS.md): "Show me ▸" on a What's New card walks the new
+          wing itself — the card queue waits (WhatsNew unmounts) until the walkthrough closes. */}
+      {screen === 'menu' && !tourActive && guided && <GuidedUnlock guide={guided} onClose={() => setGuided(null)} />}
+      {screen === 'menu' && !tourActive && !guided && <WhatsNew onGuide={startGuide} />}
+      {screen === 'menu' && !tourActive && !guided && <UpdateBriefing />}
       {/* Commander designation: the FIRST prompt an unnamed save sees on reaching the hub
           (i.e. immediately after the tutorial completes or is skipped). */}
       {screen === 'menu' && !tourActive && <CommanderName />}

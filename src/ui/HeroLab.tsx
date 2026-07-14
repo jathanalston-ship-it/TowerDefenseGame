@@ -198,7 +198,7 @@ export function HeroLab(): JSX.Element {
     <div className="panel herolab">
       <BestBuyStrip surface="heroes" />
       {/* ── Roster rail: compact, scrollable, one row per hero (scales to 30+) ── */}
-      <div className="hero-roster" role="tablist" aria-label="Hero roster">
+      <div className="hero-roster" data-guide="hero-roster" role="tablist" aria-label="Hero roster">
         <div className="hero-roster-h">Roster <span className="hr-count">{HERO_ORDER.length}</span></div>
         {HERO_ORDER.map((k) => {
           const def = HERO_DEFS[k];

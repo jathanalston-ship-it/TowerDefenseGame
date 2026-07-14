@@ -1,6 +1,6 @@
 # DIL_GRAPH.md — the Design Intelligence Layer (GENERATED — `npm run dil -- regen`)
 
-> **The project's brain** (docs/DIL.md). 790 nodes · 1452 edges, built from the live
+> **The project's brain** (docs/DIL.md). 791 nodes · 1454 edges, built from the live
 > registries + curated knowledge (src/dev/dil/). **Query it instead of searching the repo:**
 > `npm run dil -- node <id>` · `affects <id>` · `requires <id>` · `missing <kind> <edge>` ·
 > `checklist tower <kind>` · `find <text>`. Edge kinds are bidirectional (19 kinds).
@@ -1676,7 +1676,7 @@ _at: src/state/profile.ts, src/ui/PlayerProfile.tsx, src/ui/components/Commander
 
 Combat Tutorial over a live sim, THE COMMISSIONING (post-tutorial account-creation ceremony: rewards, designation, sigil + founding-title oath, account safeguard), HUD Tour, mechanics-registry Help wiki, What's New, loading tips.
 
-_at: src/ui/InitCutscene.tsx, src/render/introScenes.ts, src/core/tutorial.ts, src/state/tutorial.ts, src/state/mechanics.ts, src/ui/TutorialRunner.tsx, src/ui/tutorial/*, src/ui/HelpWiki.tsx, src/ui/WhatsNew.tsx, src/ui/HudTour.tsx, src/ui/tips.ts_
+_at: src/ui/InitCutscene.tsx, src/render/introScenes.ts, src/core/tutorial.ts, src/state/tutorial.ts, src/state/mechanics.ts, src/ui/TutorialRunner.tsx, src/ui/tutorial/*, src/ui/HelpWiki.tsx, src/ui/WhatsNew.tsx, src/ui/HudTour.tsx, src/state/guidedUnlocks.ts, src/ui/GuidedUnlock.tsx, src/ui/tips.ts_
 
   - dependsOn → `system:engine`
   - dependsOn → `system:meta-store`
@@ -1686,6 +1686,7 @@ _at: src/ui/InitCutscene.tsx, src/render/introScenes.ts, src/core/tutorial.ts, s
   - consumes → `system:meta-store` — owns save field 'help'
   - triggers → `system:audio` — the opening cinematic scores itself via the cinema track + cin_* beat cues
   - conflictsWith → `system:run-ui` — PHONE DOCK CONTRACT (docs/TUTORIAL.md §phone): ≤700px the lesson callout DOCKS to the edge opposite its anchor and must never cover the step’s action (the step-3 slot bug); controls live top-right, the banner yields to the draft, and a missing spotlight target renders NO scrim
+  - extends → `system:progression-gating` — GUIDED UNLOCKS (2026-07, GUIDED-UNLOCKS.md — Foundation #3): state/guidedUnlocks.ts GUIDES keyed by MECHANIC id (== FEATURES.teach) → ui/GuidedUnlock.tsx renders ≤4 one-sentence steps with the Combat Tutorial's own Spotlight/Callout/useTargetRect over `[data-guide]` marks the screens declare (BestBuyStrip's data-guide="bbs" covers all four spend screens — the guide teaches the ADVISOR); the interact step advances on the player's first REAL capture-phase click (the click still lands; chrome drops so ceremonies stay free); completion pays via meta.grantTutorialMilestone('guided', mech) — the tutorial ledger, replays never re-grant. Armed ONLY by What's New's "Show me ▸" (App owns the state; leaves menu ⇒ dropped; WhatsNew queue waits while a guide runs). COVERAGE IS ENFORCED: every FEATURES screen with teach + guaranteedByStage ≤ 4 (except campaign/store) must have a guide — a new early wing FAILS guidedUnlocks.test until its guide row exists. Missing anchor ⇒ centered callout, no dim (never traps)
   - requiredBy ← `system:progression-gating`
   - contains ← `tutorial:combat`
   - contains ← `help:hive-core`
@@ -1698,7 +1699,7 @@ _at: src/ui/InitCutscene.tsx, src/render/introScenes.ts, src/core/tutorial.ts, s
   - contains ← `help:field-research`
   - contains ← `help:splice-market`
   - contains ← `help:daily-login`
-  - _…51 more (query: `npm run dil -- node system:onboarding`)_
+  - _…52 more (query: `npm run dil -- node system:onboarding`)_
 
 ### `system:account-level` — Account Level (evergreen meta-progression)
 
@@ -1764,6 +1765,7 @@ _at: src/state/unlocks.ts, src/state/progressionDirector.ts, src/state/navBus.ts
   - documentedBy ← `doc:UNLOCK-TREE.md`
   - testedBy ← `test:src/state/progressionDirector.test.ts`
   - testedBy ← `test:src/state/unlocks.test.ts`
+  - extendedBy ← `system:onboarding` — GUIDED UNLOCKS (2026-07, GUIDED-UNLOCKS.md — Foundation #3): state/guidedUnlocks.ts GUIDES keyed by MECHANIC id (== FEATURES.teach) → ui/GuidedUnlock.tsx renders ≤4 one-sentence steps with the Combat Tutorial's own Spotlight/Callout/useTargetRect over `[data-guide]` marks the screens declare (BestBuyStrip's data-guide="bbs" covers all four spend screens — the guide teaches the ADVISOR); the interact step advances on the player's first REAL capture-phase click (the click still lands; chrome drops so ceremonies stay free); completion pays via meta.grantTutorialMilestone('guided', mech) — the tutorial ledger, replays never re-grant. Armed ONLY by What's New's "Show me ▸" (App owns the state; leaves menu ⇒ dropped; WhatsNew queue waits while a guide runs). COVERAGE IS ENFORCED: every FEATURES screen with teach + guaranteedByStage ≤ 4 (except campaign/store) must have a guide — a new early wing FAILS guidedUnlocks.test until its guide row exists. Missing anchor ⇒ centered callout, no dim (never traps)
 
 ### `system:hub-shell` — Hub Shell & Home
 
@@ -3367,7 +3369,7 @@ _at: site/guides.ts → /guides/prestige/_
 - `doc:VOWS.md` — project documentation _(documents `system:prestige`)_
 - `doc:WEBSITE.md` — project documentation _(documents `system:field-research`, documents `system:website`)_
 
-## Tests (253)
+## Tests (254)
 
 - `test:src/audio/music.test.ts` — automated validation _(tests `system:audio`)_
 - `test:src/changelog/classify.test.ts` — automated validation _(tests `system:chronicle`)_
@@ -3565,6 +3567,7 @@ _at: site/guides.ts → /guides/prestige/_
 - `test:src/state/flashOffers.test.ts` — automated validation _(tests `system:premium`)_
 - `test:src/state/geneArchive.test.ts` — automated validation _(tests `system:gene-cards`)_
 - `test:src/state/geneStress.test.ts` — automated validation _(tests `system:engine`)_
+- `test:src/state/guidedUnlocks.test.ts` — automated validation _(tests `system:onboarding`)_
 - `test:src/state/heroCollection.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/state/heroLab.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/state/heroSlots.test.ts` — automated validation _(tests `system:engine`)_

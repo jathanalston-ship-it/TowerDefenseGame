@@ -955,7 +955,7 @@ graph TD
 
 *Combat Tutorial over a live sim, THE COMMISSIONING (post-tutorial account-creation ceremony: rewards, designation, sigil + founding-title oath, account safeguard), HUD Tour, mechanics-registry Help wiki, What's New, loading tips.*
 
-- **Files:** `src/ui/InitCutscene.tsx` · `src/render/introScenes.ts` · `src/core/tutorial.ts` · `src/state/tutorial.ts` · `src/state/mechanics.ts` · `src/ui/TutorialRunner.tsx` · `src/ui/tutorial/*` · `src/ui/HelpWiki.tsx` · `src/ui/WhatsNew.tsx` · `src/ui/HudTour.tsx` · `src/ui/tips.ts`
+- **Files:** `src/ui/InitCutscene.tsx` · `src/render/introScenes.ts` · `src/core/tutorial.ts` · `src/state/tutorial.ts` · `src/state/mechanics.ts` · `src/ui/TutorialRunner.tsx` · `src/ui/tutorial/*` · `src/ui/HelpWiki.tsx` · `src/ui/WhatsNew.tsx` · `src/ui/HudTour.tsx` · `src/state/guidedUnlocks.ts` · `src/ui/GuidedUnlock.tsx` · `src/ui/tips.ts`
 - **Depends on:** `engine` · `meta-store` · `profile` · `accounts`
 - **Consumers — what breaks if you change this:** `progression-gating`
 - **Power Score:** — (intentionally none)

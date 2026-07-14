@@ -292,7 +292,7 @@ function LoadoutBar({ equipMode, onArmSlot }: { equipMode: number | null; onArmS
     setSwapFrom(null);
   };
   return (
-    <div className="gl-bar">
+    <div className="gl-bar" data-guide="gene-loadout">
       <span className="gl-k" title="Equipped genes auto-activate at the start of EVERY run">STARTING GENES</span>
       {GENE_LOADOUT_SLOTS.map((def, i) => {
         const unlocked = i < slots;

@@ -80,7 +80,7 @@ export function InfiniteScreen({
         <h1 className="title play-title infinite-title">INFINITE</h1>
         <p className="subtitle">Configure the experiment. The AI Director escalates forever — the only question is how deep the specimen line holds.</p>
 
-        <div className="play-cta">
+        <div className="play-cta" data-guide="inf-start">
           <button className="primary play-start infinite-start" onClick={start} title="AI Director-driven, infinite depth">
             ∞ Begin Experiment
           </button>

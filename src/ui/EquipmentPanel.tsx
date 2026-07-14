@@ -215,7 +215,7 @@ export function EquipmentPanel(): JSX.Element {
       {/* Current Loadouts — the heroes tab's at-a-glance section, integrated here: EVERY
           fielded hero's equipped-vs-empty slots (1–3 cards as hero slots unlock). Clicking a
           card focuses that hero for gearing — it replaces the old thin focus strip. */}
-      <div className="armory-loadouts">
+      <div className="armory-loadouts" data-guide="armory-loadouts">
         {roster.map((k, i) => {
           const lo = save.equipment.loadouts[k] ?? emptyLoadout();
           const hs = loadoutScore(inventory, lo);
@@ -301,7 +301,7 @@ export function EquipmentPanel(): JSX.Element {
       {shown.length === 0 ? (
         <div className="hint">{inventory.length === 0 ? 'No gear yet — Bio-Gear drops from runs and cracked Bio-Containers (about every other container).' : 'No items match these filters.'}</div>
       ) : (
-        <div className="armory-grid">{shown.map(cardFor)}</div>
+        <div className="armory-grid" data-guide="armory-grid">{shown.map(cardFor)}</div>
       )}
 
       {/* Quick-Salvage sticky action bar — the batch yield shows BEFORE confirming; the one-deep

@@ -200,7 +200,7 @@ export function TowerLab(): JSX.Element {
 
       <div className="tl2-body">
         {/* ── The specimen rail — search / sort / filter, favorites lead ── */}
-        <div className="tl2-rail">
+        <div className="tl2-rail" data-guide="lab-rail">
           <input
             className="tl2-search"
             type="search"
@@ -398,7 +398,7 @@ export function TowerLab(): JSX.Element {
                 )}
               </div>
             ) : null}
-            <div className="tl-actions">
+            <div className="tl-actions" data-guide="lab-buy">
               {m.prime ? (
                 <button
                   className={`primary tl-mutate${m.prime.affordable ? ' is-afford' : ''}`}

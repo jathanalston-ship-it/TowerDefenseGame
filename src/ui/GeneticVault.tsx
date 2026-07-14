@@ -126,7 +126,7 @@ export function GeneticVault(): JSX.Element {
       <BioCacheCard />
 
       {/* Ready to crack — the stockpile + the open action */}
-      <div className="vault-ready">
+      <div className="vault-ready" data-guide="vault-ready">
         <div className="vault-h">Ready to crack {pending.length > 0 && <b style={{ color: 'var(--gold)' }}>· {pending.length}</b>}</div>
         {pending.length === 0 ? (
           <div className="vault-empty">No containers ready — fill the meter in a run to earn one.</div>
@@ -159,7 +159,7 @@ export function GeneticVault(): JSX.Element {
               })}
             </div>
             <div className="vault-actions">
-              <button className="primary vault-crack" onClick={() => crack(1)}>◈ Open One</button>
+              <button className="primary vault-crack" data-guide="vault-crack" onClick={() => crack(1)}>◈ Open One</button>
               {pending.length >= 5 && <button className="vault-crack" onClick={() => crack(5)}>Open Five</button>}
               {pending.length >= 10 && <button className="vault-crack" onClick={() => crack(10)}>Open Ten</button>}
               {pending.length >= 2 && <button className="vault-crack" onClick={() => crack(pending.length)}>Open All ({pending.length})</button>}

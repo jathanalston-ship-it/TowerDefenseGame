@@ -215,7 +215,7 @@ export function EvolutionHQ(): JSX.Element {
       <BestBuyStrip surface="evolution" />
 
       {/* The treasury — every purchase decision needs its budget in view. */}
-      <section className="evo-treasury" aria-label="Genome Core treasury">
+      <section className="evo-treasury" data-guide="evo-treasury" aria-label="Genome Core treasury">
         <span className="evo-treasury-bal"><CurrencyIcon id="genomeCores" size={20} /> {save.shards.toLocaleString()}</span>
         <span className="evo-treasury-k">Genome Cores</span>
         <span className="evo-treasury-life">{save.lifetimeShards.toLocaleString()} lifetime</span>

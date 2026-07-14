@@ -365,7 +365,7 @@ export const SYSTEMS: SystemDef[] = [
   },
   {
     id: 'onboarding', name: 'Tutorials, Help & Onboarding', purpose: 'Combat Tutorial over a live sim, THE COMMISSIONING (post-tutorial account-creation ceremony: rewards, designation, sigil + founding-title oath, account safeguard), HUD Tour, mechanics-registry Help wiki, What\'s New, loading tips.',
-    files: ['src/ui/InitCutscene.tsx', 'src/render/introScenes.ts', 'src/core/tutorial.ts', 'src/state/tutorial.ts', 'src/state/mechanics.ts', 'src/ui/TutorialRunner.tsx', 'src/ui/tutorial/*', 'src/ui/HelpWiki.tsx', 'src/ui/WhatsNew.tsx', 'src/ui/HudTour.tsx', 'src/ui/tips.ts'],
+    files: ['src/ui/InitCutscene.tsx', 'src/render/introScenes.ts', 'src/core/tutorial.ts', 'src/state/tutorial.ts', 'src/state/mechanics.ts', 'src/ui/TutorialRunner.tsx', 'src/ui/tutorial/*', 'src/ui/HelpWiki.tsx', 'src/ui/WhatsNew.tsx', 'src/ui/HudTour.tsx', 'src/state/guidedUnlocks.ts', 'src/ui/GuidedUnlock.tsx', 'src/ui/tips.ts'],
     dependsOn: ['engine', 'meta-store', 'profile', 'accounts'], powerScore: null, save: ['tutorial', 'help'],
     tutorial: ['combat'], help: [], hud: ['TutorialOverlay'], ui: ['HelpWiki', 'WhatsNew', 'HudTour', 'CommandCenter (tips)'], collection: null,
     achievements: [], localization: 'inline-en', docs: ['docs/TUTORIAL.md', 'docs/HELP.md', 'docs/TUTORIAL-AUDIT.md'],

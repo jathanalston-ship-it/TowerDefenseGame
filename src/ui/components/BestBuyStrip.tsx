@@ -20,7 +20,7 @@ export function BestBuyStrip({ surface }: { surface: PurchaseSurface }): JSX.Ele
   const pick = bestAffordable ?? best;
   const fmt = (n: number): string => (n >= 10 ? String(Math.round(n)) : n.toFixed(1));
   return (
-    <div className="bbs" role="note" aria-label="Best value purchase">
+    <div className="bbs" data-guide="bbs" role="note" aria-label="Best value purchase">
       <span className="bbs-k">⚡ BEST VALUE</span>
       <span className="bbs-pick">
         <b>{pick.label}</b> — +{fmt(pick.powerDelta)} Power for {pick.buyLabel}
