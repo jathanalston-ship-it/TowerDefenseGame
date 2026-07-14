@@ -440,12 +440,12 @@ export function drawGame(
         ctx.globalAlpha = Math.min(1, f.life * 2);
       }
       ctx.fillStyle = f.color;
-      ctx.font = `900 ${Math.round(17 * scale)}px system-ui, sans-serif`;
+      ctx.font = `900 ${Math.round(17 * scale)}px 'Chakra Petch', 'Exo 2', system-ui, sans-serif`;
       ctx.textAlign = 'center';
       ctx.fillText(f.text, f.x, f.y);
     } else {
       ctx.fillStyle = f.color;
-      ctx.font = 'bold 14px system-ui, sans-serif';
+      ctx.font = "bold 14px 'Exo 2', system-ui, sans-serif";
       ctx.textAlign = 'center';
       ctx.fillText(f.text, f.x, f.y);
     }
@@ -586,7 +586,7 @@ function drawSpawnZone(ctx: CanvasRenderingContext2D, t: number): void {
 
   ctx.fillStyle = THEME.spawn.label;
   chevronDown(ctx, 11, 5, 7, THEME.spawn.label);
-  ctx.font = '700 10px system-ui, sans-serif';
+  ctx.font = "700 10px 'Exo 2', system-ui, sans-serif";
   ctx.fillText('ENEMY SPAWN', 19, 12);
 }
 
@@ -622,7 +622,7 @@ function drawDefenseZone(ctx: CanvasRenderingContext2D, t: number, pressure: num
   }
 
   ctx.fillStyle = rgba(THEME.defense.label, 0.7 + pressure * 0.3);
-  ctx.font = '700 11px system-ui, sans-serif';
+  ctx.font = "700 11px 'Exo 2', system-ui, sans-serif";
   ctx.fillText('— HOLD THE LINE —', 8, DEFENSE_TOP_Y - 6);
 }
 
@@ -845,7 +845,7 @@ function drawBase(ctx: CanvasRenderingContext2D, rs: RenderState, t: number): vo
   }
 
   ctx.fillStyle = THEME.hive.label;
-  ctx.font = '700 10px system-ui, sans-serif';
+  ctx.font = "700 10px 'Exo 2', system-ui, sans-serif";
   ctx.textAlign = 'center';
   ctx.fillText('HIVE CORE', x, y + 34);
   ctx.textAlign = 'left';
@@ -2392,7 +2392,7 @@ function drawHero(ctx: CanvasRenderingContext2D, rs: RenderState, h: RenderState
 
   if (down) {
     ctx.fillStyle = THEME.hero.down;
-    ctx.font = 'bold 12px system-ui, sans-serif';
+    ctx.font = "bold 12px 'Exo 2', system-ui, sans-serif";
     ctx.textAlign = 'center';
     ctx.fillText(`${Math.ceil(h.respawn)}s`, h.x, h.y - 22);
     ctx.textAlign = 'left';
@@ -2680,7 +2680,7 @@ function drawPointer(ctx: CanvasRenderingContext2D, rs: RenderState, pointer: Po
 }
 
 function labelAt(ctx: CanvasRenderingContext2D, x: number, y: number, text: string, color: string): void {
-  ctx.font = '600 11px system-ui, sans-serif';
+  ctx.font = "600 11px 'Exo 2', system-ui, sans-serif";
   ctx.textAlign = 'center';
   const w = ctx.measureText(text).width + 12;
   roundRectPath(ctx, x - w / 2, y - 12, w, 16, 4);

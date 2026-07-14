@@ -19,6 +19,11 @@
     <!-- PWA (docs/WEBSITE.md §branding): installable identity + home-screen icons. -->
     <link rel="manifest" href="/manifest.json" />
 
+    <!-- Typography (self-hosted, font-src 'self'): preload the two files the first paint
+         uses — the Exo 2 variable body + the Chakra Petch display weight. -->
+    <link rel="preload" href="/fonts/exo2-var.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/fonts/chakra-petch-700.woff2" as="font" type="font/woff2" crossorigin />
+
     <!-- Social cards (Open Graph + Twitter). og:url is set to the canonical production
          domain at launch — update BOTH tags when the custom domain is decided. -->
     <meta property="og:type" content="website" />

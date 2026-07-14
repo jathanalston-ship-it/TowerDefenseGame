@@ -4,6 +4,40 @@
    results → debug → responsive. Desktop-first; mobile breakpoints near the end.
    ============================================================================ */
 
+/* ── Typography (docs/STYLE-GUIDE.md §type) — self-hosted, CSP `font-src 'self'`.
+   DISPLAY: Chakra Petch (angular lab-tech — titles, hero names, big callouts; the
+   family the display classes below always intended — now actually shipped).
+   BODY: Exo 2 variable (100–900 in one 40KB file) — the whole UI reads in it.
+   Latin subset covers EN/ES/PT. Files: public/fonts/ (OFL — LICENSE.txt there). */
+@font-face {
+  font-family: 'Chakra Petch';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url('/fonts/chakra-petch-500.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Chakra Petch';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url('/fonts/chakra-petch-600.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Chakra Petch';
+  font-style: normal;
+  font-weight: 700 900; /* 700 file serves the 800/900 display sites too (no faux-bold jump) */
+  font-display: swap;
+  src: url('/fonts/chakra-petch-700.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Exo 2';
+  font-style: normal;
+  font-weight: 100 900; /* variable wght axis */
+  font-display: swap;
+  src: url('/fonts/exo2-var.woff2') format('woff2-variations');
+}
+
 :root {
   /* neutrals */
   --void: #070a0f;
@@ -124,9 +158,16 @@ body {
   background:
     radial-gradient(1200px 700px at 50% -10%, #0d1320 0%, var(--bg) 60%) fixed;
   color: var(--text);
-  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  font-family: 'Exo 2', system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   -webkit-font-smoothing: antialiased;
   font-feature-settings: 'tnum' 1; /* tabular figures for stat readouts */
+}
+
+/* Structural headings carry the display face (component classes that already opt into
+   Chakra Petch keep their own rules — this covers the generic h-tiers everywhere). */
+h1, h2, h3 {
+  font-family: 'Chakra Petch', 'Exo 2', system-ui, sans-serif;
+  letter-spacing: 0.02em;
 }
 
 /* ── Base controls ────────────────────────────────────────────────────────── */

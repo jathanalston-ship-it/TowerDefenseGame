@@ -227,20 +227,20 @@ export function BioRoulette({ spores, onExit }: { spores: number; onExit: () => 
           ctx.lineWidth = 1.2;
           ctx.stroke();
           ctx.fillStyle = '#ffd65c';
-          ctx.font = '800 10px system-ui, sans-serif';
+          ctx.font = "800 10px 'Exo 2', system-ui, sans-serif";
           ctx.textAlign = 'center';
           ctx.textBaseline = 'middle';
           ctx.fillText('×3', px, py - r - 20);
         }
         ctx.fillStyle = glow > 0 ? '#ffd65c' : '#e6d9f6';
-        ctx.font = '700 11px system-ui, sans-serif';
+        ctx.font = "700 11px 'Exo 2', system-ui, sans-serif";
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         ctx.fillText(board[i].short, px, py - (counts.get(i) ? 5 : 0));
         const c = counts.get(i);
         if (c) {
           ctx.fillStyle = '#ffd65c';
-          ctx.font = '800 12px system-ui, sans-serif';
+          ctx.font = "800 12px 'Exo 2', system-ui, sans-serif";
           ctx.fillText(`×${c}`, px, py + 10);
         }
       }

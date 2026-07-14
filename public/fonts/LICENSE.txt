@@ -1,0 +1,13 @@
+Self-hosted webfonts for ASSIMILATE (latin subsets, woff2).
+
+Chakra Petch (chakra-petch-500/600/700.woff2)
+  Copyright 2020 The Chakra Petch Project Authors (https://github.com/cadsondemak/chakra-petch)
+  Licensed under the SIL Open Font License, Version 1.1.
+
+Exo 2 (exo2-var.woff2 — variable, wght 100-900)
+  Copyright 2013 The Exo 2 Project Authors (https://github.com/NDISCOVER/Exo-2.0)
+  Licensed under the SIL Open Font License, Version 1.1.
+
+SIL Open Font License, Version 1.1: https://openfontlicense.org
+Both fonts are used and redistributed under the OFL; the fonts are not sold by
+themselves and retain their original names and copyright notices.

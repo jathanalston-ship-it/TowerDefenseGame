@@ -151,11 +151,11 @@ export function drawAssimilationFx(
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ls.letterSpacing = '2px';
-    ctx.font = '700 12px system-ui, sans-serif';
+    ctx.font = "700 12px 'Exo 2', system-ui, sans-serif";
     ctx.fillStyle = rgba([230, 236, 240], 0.7 * textA);
     ctx.fillText('EVOLUTION TIER ' + p.ascendedTier, cx, ty - 26);
     ls.letterSpacing = '4px';
-    ctx.font = '800 34px system-ui, sans-serif';
+    ctx.font = "800 34px 'Chakra Petch', 'Exo 2', system-ui, sans-serif";
     ctx.shadowColor = rgba(p.color, 0.9 * textA);
     ctx.shadowBlur = 26 * a;
     ctx.fillStyle = rgba([245, 248, 250], textA);

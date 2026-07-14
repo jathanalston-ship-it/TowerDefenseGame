@@ -179,14 +179,23 @@ hotter than a fresh one.
 
 ## 9. Typography
 
-A two-typeface system + a numeric rule. All recommendations are **OFL / free for
-commercial use**, self-hosted & subset for live-service performance.
+A two-typeface system + a numeric rule. All faces are **OFL / free for commercial
+use**, self-hosted & subset for live-service performance.
 
-| Role | Recommendation | Fallback | Notes |
+**SHIPPED (2026-07):** the system below is live — `public/fonts/` (latin woff2, ~71KB
+total incl. the Exo 2 variable), `@font-face` at the top of `src/index.css`, preloaded
+in `play/index.html`, precached by the service worker, `font-src 'self'` CSP-clean.
+Body deviates from the earlier Inter recommendation **deliberately**: Inter reads like
+the system fonts it replaced; Exo 2 (techy-humanist, variable 100–900) carries actual
+character at the same small-size legibility. Canvas text draws the same stacks
+(renderer floats/labels → Exo 2; the big assimilation banner + crit callouts → Chakra
+Petch), so DOM and battlefield speak one voice.
+
+| Role | Face (shipped) | Fallback | Notes |
 |---|---|---|---|
-| **Display / headers** | **Chakra Petch** (or Rajdhani / Orbitron) | system-ui | cyber-industrial; uppercase, +0.06–0.18em tracking |
-| **Body / UI** | **Inter** | system-ui _(impl)_ | high legibility at small sizes |
-| **Numerics (stats/damage)** | **Inter tabular-nums** (or JetBrains Mono) | monospace | **tabular** so counters don't jitter |
+| **Display / headers** | **Chakra Petch** 500/600/700 (700 file serves 800/900 sites) | Exo 2 → system-ui | cyber-industrial; uppercase, +0.06–0.18em tracking; generic `h1–h3` + the `.hero-name`-class sites |
+| **Body / UI** | **Exo 2** variable (wght 100–900) | system-ui | the `body` base — everything inherits it |
+| **Numerics (stats/damage)** | **Exo 2 + `tnum`** (body-wide `font-feature-settings`) | monospace | **tabular** so counters don't jitter |
 
 **Type scale** (desktop, 1.0 = 16px base): 11 / 12 / 13 / 15 / 18 / 24 / 34 / 44.
 - HUD stat labels: 11px uppercase, `--text-muted`, +0.05em.

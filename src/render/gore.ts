@@ -322,7 +322,7 @@ export function drawGorePieces(ctx: Ctx): void {
     const k = 1 - fl.life / fl.maxLife; // 0 → 1 over the float's life
     const a = fl.life < 0.35 ? fl.life / 0.35 : 1;
     const y = fl.y + 6 - k * 30;
-    ctx.font = '800 13px system-ui, sans-serif';
+    ctx.font = "800 13px 'Exo 2', system-ui, sans-serif";
     ctx.textAlign = 'center';
     ctx.lineWidth = 3;
     ctx.strokeStyle = `rgba(6,10,14,${a * 0.85})`;

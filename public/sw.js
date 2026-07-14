@@ -13,7 +13,11 @@ const CACHE = `asm-${VERSION}`;
 // The game shell is a real asset directory at /play/ (its own Vite entry); the domain
 // root is the marketing site's Home. Precache only the game shell — site pages are
 // cached individually by the network-first branch as they're visited.
-const SHELL = ['/play/', '/manifest.json'];
+const SHELL = [
+  '/play/', '/manifest.json',
+  // Typography rides the shell: offline play keeps its face (fonts are tiny + immutable).
+  '/fonts/exo2-var.woff2', '/fonts/chakra-petch-500.woff2', '/fonts/chakra-petch-600.woff2', '/fonts/chakra-petch-700.woff2',
+];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
@@ -42,8 +46,9 @@ self.addEventListener('fetch', (event) => {
   if (url.origin !== self.location.origin) return;
   if (url.pathname.startsWith('/api/')) return; // network only — always live
 
-  // Content-hashed assets never change: serve from cache, fill once.
-  if (url.pathname.startsWith('/assets/')) {
+  // Content-hashed assets never change: serve from cache, fill once. Fonts are
+  // filename-versioned (a new face = a new file) so they ride the same branch.
+  if (url.pathname.startsWith('/assets/') || url.pathname.startsWith('/fonts/')) {
     event.respondWith(
       caches.match(req).then(
         (hit) =>
