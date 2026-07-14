@@ -12,7 +12,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import type { CSSProperties } from 'react';
 import { meta } from '../state/meta';
 import type { BattlePassView } from '../state/meta';
-import { BP, rewardLabel } from '../core/battlePass';
+import { BP, rewardLabel, rewardShort } from '../core/battlePass';
 import type { PassReward, SeasonDef } from '../core/battlePass';
 import { seasonOfferFor } from '../core/premium';
 import { wardrobeItem, WARDROBE_RARITY_COLOR } from '../core/wardrobe';
@@ -108,10 +108,16 @@ function LevelRing({ level }: { level: number }): JSX.Element {
   );
 }
 
+/** Icon + NAMED cargo per reward — every tile says what it holds (no icon-guessing). */
 function RewardIcons({ rewards }: { rewards: PassReward[] }): JSX.Element {
   return (
     <span className="bp-ricons" aria-hidden>
-      {rewards.slice(0, 2).map((r, i) => <i key={i}>{rewardLabel(r).icon}</i>)}
+      {rewards.slice(0, 2).map((r, i) => (
+        <span className="bp-rchip" key={i}>
+          <i className="bp-rchip-i">{rewardLabel(r).icon}</i>
+          <em className="bp-rchip-t">{rewardShort(r)}</em>
+        </span>
+      ))}
     </span>
   );
 }
@@ -133,6 +139,7 @@ function Cell({ level, track, view, selected, bursting, onSelect, onClaim }: {
   const claimable = reached && !claimed && !(track === 'premium' && gated);
   const cosmetic = rewards.find((r) => r.kind === 'cosmetic');
   const rc = cosmetic && cosmetic.kind === 'cosmetic' ? WARDROBE_RARITY_COLOR[wardrobeItem(cosmetic.id)?.rarity ?? 'common'] : undefined;
+  const cargo = rewards.map((r) => rewardLabel(r).label).join(' + '); // the tile SAYS what it holds
   return (
     <button
       className={[
@@ -146,7 +153,8 @@ function Cell({ level, track, view, selected, bursting, onSelect, onClaim }: {
       ].filter(Boolean).join(' ')}
       style={rc ? ({ ['--rc' as string]: rc } as CSSProperties) : undefined}
       onClick={() => { onSelect(); if (claimable) onClaim(); }}
-      aria-label={`Level ${level} ${track} reward${claimed ? ' (claimed)' : claimable ? ' (claimable)' : ''}`}
+      title={`Level ${level} ${track}: ${cargo}`}
+      aria-label={`Level ${level} ${track} reward: ${cargo}${claimed ? ' (claimed)' : claimable ? ' (claimable)' : ''}`}
     >
       <span className="bp-cell-lv">{level}</span>
       <RewardIcons rewards={rewards} />

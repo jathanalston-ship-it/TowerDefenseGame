@@ -169,6 +169,26 @@ export function rewardLabel(r: PassReward): { icon: string; label: string } {
   }
 }
 
+/** Ultra-compact reward text for the track CELLS (docs/BATTLEPASS.md §ui): every tile names
+ *  its cargo at a glance, without opening the detail panel. Full wording stays rewardLabel's. */
+export function rewardShort(r: PassReward): string {
+  switch (r.kind) {
+    case 'ichor': return `${r.qty} Ichor`;
+    case 'cores': return `${r.qty} Cores`;
+    case 'geneEssence': return `${r.qty} Essence`;
+    case 'mats': return 'Materials';
+    case 'towerShardsAll': return `Samples ×${r.qtyEach}`;
+    case 'heroShardsAll': return `Genome ×${r.qtyEach}`;
+    case 'container': return `${r.rarity} cache`;
+    case 'runCache': return r.count > 1 ? `${r.count}× Run Cache` : 'Run Cache';
+    case 'rushStamina': return `${r.qty} Stamina`;
+    case 'cosmetic': return wardrobeItem(r.id)?.name ?? 'Cosmetic';
+    case 'phenotype': return 'Phenotype';
+    case 'passive': return passPassive(r.id)?.name ?? 'Passive';
+    case 'stack': return 'Bloom stack';
+  }
+}
+
 // ── Season definitions ─────────────────────────────────────────────────────────
 export interface SeasonDef {
   id: string; // 's1' | 's2' | future

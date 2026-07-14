@@ -5,7 +5,7 @@
 
 import { describe, expect, it } from 'vitest';
 import {
-  BP, levelBuyPrice, levelOf, msToPassEnd, passWindow, PASS_PASSIVES, rewardLabel,
+  BP, levelBuyPrice, levelOf, msToPassEnd, passWindow, PASS_PASSIVES, rewardLabel, rewardShort,
   seasonForWindow, SEASONS, seasonTracks, trackIchorTotal, xpForLevel, xpToReach,
 } from './battlePass';
 import { seasonItems } from './wardrobe';
@@ -48,6 +48,10 @@ describe('the reward tables', () => {
         expect(tracks.premium[l - 1].length, `${s.id} premium L${l} empty`).toBeGreaterThan(0);
         for (const r of [...tracks.free[l - 1], ...tracks.premium[l - 1]]) {
           expect(rewardLabel(r).label.length).toBeGreaterThan(0);
+          // The track TILES name their cargo (no icon-guessing): every reward carries a
+          // compact non-empty short label too, small enough to live inside an 84px cell.
+          expect(rewardShort(r).length).toBeGreaterThan(0);
+          expect(rewardShort(r).length).toBeLessThanOrEqual(26);
         }
       }
     }

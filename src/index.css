@@ -9694,7 +9694,8 @@ kbd {
 
 .bp-cell {
   position: relative; z-index: 1;
-  width: 66px; min-height: 56px;
+  width: 84px; min-height: 62px;
+  padding: 4px 5px;
   display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
   background: linear-gradient(180deg, var(--panel-3), var(--panel-2));
   border: 1px solid var(--line);
@@ -9704,8 +9705,12 @@ kbd {
 }
 .bp-cell:hover { transform: translateY(-2px); }
 .bp-cell-lv { font-size: 10px; color: var(--dim); font-variant-numeric: tabular-nums; }
-.bp-ricons { font-size: 16px; display: inline-flex; gap: 2px; transition: transform var(--dur-2) var(--ease-out); }
-.bp-cell:hover .bp-ricons { transform: scale(1.15); }
+.bp-ricons { display: inline-flex; flex-direction: column; align-items: stretch; gap: 1px; max-width: 100%; transition: transform var(--dur-2) var(--ease-out); }
+.bp-rchip { display: flex; align-items: center; gap: 3px; max-width: 100%; }
+.bp-rchip-i { font-size: 13px; font-style: normal; line-height: 1; flex: none; }
+.bp-rchip-t { font-style: normal; font-size: 10px; line-height: 1.2; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.bp-cell.is-claimable .bp-rchip-t { color: var(--text); }
+.bp-cell:hover .bp-ricons { transform: scale(1.08); }
 .bp-cell.is-claimable {
   border-color: color-mix(in srgb, var(--gold) 60%, var(--line));
   background: linear-gradient(180deg, color-mix(in srgb, var(--gold) 10%, var(--panel-3)), var(--panel-2));

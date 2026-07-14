@@ -1,20 +1,25 @@
 # PIL_REPORT.md — Public Intelligence Layer report (GENERATED — `npm run pil -- regen`)
 
-> The public-facing sync ledger (docs/PIL.md): 47 pages · 6 assets tracked against the DIL.
+> The public-facing sync ledger (docs/PIL.md): 48 pages · 6 assets tracked against the DIL.
 
 ## Structural audit — ✅ clean
 
-## Staleness (advisory) — 22 page/ref pair(s) to re-review
+## Staleness (advisory) — 28 page/ref pair(s) to re-review
+- `index.html` references **system:infinite** whose source changed 2026-07-14
+- `features/index.html` references **system:infinite** whose source changed 2026-07-14
+- `encyclopedia/enemies/index.html` references **system:bosses** whose source changed 2026-07-11
 - `guides/beginner/index.html` references **guide:beginner** whose source changed 2026-07-11
 - `guides/towers/index.html` references **guide:towers** whose source changed 2026-07-11
 - `guides/heroes/index.html` references **guide:heroes** whose source changed 2026-07-11
 - `guides/gene-cards/index.html` references **guide:gene-cards** whose source changed 2026-07-11
 - `guides/bosses/index.html` references **guide:bosses** whose source changed 2026-07-11
+- `guides/bosses/index.html` references **system:bosses** whose source changed 2026-07-11
 - `guides/mega-bosses/index.html` references **guide:mega-bosses** whose source changed 2026-07-11
 - `guides/power-score/index.html` references **guide:power-score** whose source changed 2026-07-11
 - `guides/progression/index.html` references **guide:progression** whose source changed 2026-07-11
 - `guides/campaign/index.html` references **guide:campaign** whose source changed 2026-07-11
 - `guides/infinite/index.html` references **guide:infinite** whose source changed 2026-07-11
+- `guides/infinite/index.html` references **system:infinite** whose source changed 2026-07-14
 - `guides/boss-rush/index.html` references **guide:boss-rush** whose source changed 2026-07-11
 - `guides/daily/index.html` references **guide:daily** whose source changed 2026-07-11
 - `guides/mulligans/index.html` references **guide:mulligans** whose source changed 2026-07-11
@@ -27,6 +32,7 @@
 - `guides/nemesis/index.html` references **guide:nemesis** whose source changed 2026-07-11
 - `guides/equipment/index.html` references **guide:equipment** whose source changed 2026-07-11
 - `guides/prestige/index.html` references **guide:prestige** whose source changed 2026-07-11
+- `blog/living-battlefield/index.html` references **system:living-battlefield** whose source changed 2026-07-11
 
 ## Page inventory
 - `/` — Home → system:towers, system:heroes, system:campaign, system:infinite, system:boss-rush, concept:power-score
@@ -72,6 +78,7 @@
 - `/guides/prestige/` — Prestige Guide — The Ascendant Layer → guide:prestige, system:prestige
 - `/blog/determinism/` — Dev Blog — determinism → concept:determinism
 - `/blog/equipment-identity/` — Dev Blog — equipment-identity → system:equipment
+- `/blog/every-cast-a-set-piece/` — Dev Blog — every-cast-a-set-piece → (static)
 - `/blog/living-battlefield/` — Dev Blog — living-battlefield → system:living-battlefield
 - `/blog/mega-boss-raids/` — Dev Blog — mega-boss-raids → system:mega-bosses
 - `/blog/opening-cinematic/` — Dev Blog — opening-cinematic → system:onboarding
