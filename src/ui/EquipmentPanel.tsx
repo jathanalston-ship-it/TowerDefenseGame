@@ -15,6 +15,7 @@ import {
 } from '../core/equipment';
 import type { EquipSlot, OwnedItem, Rarity } from '../core/equipment';
 import { ItemArt, rarityColor } from './components/ItemArt';
+import { setHueOf } from '../render/equipmentArt';
 import { PowerDelta } from './components/PowerDelta';
 import { compareItemPower } from '../state/itemPower';
 import { ItemDetails } from './ItemDetails';
@@ -137,6 +138,17 @@ export function EquipmentPanel(): JSX.Element {
           {item.favorite && <span className="ic-star" title="Favorite">★</span>}
           {def.season && <span className="ic-season" title={`Seasonal: ${def.season}`}>{def.season}</span>}
           {salvageMode && canSalv && <span className={`ic-sel${chosen ? ' on' : ''}`} aria-hidden>{chosen ? '✓' : ''}</span>}
+          {/* At-a-glance language (EQUIPMENT.md §visuals): set monogram chip + affix pips + ability mark */}
+          {set && (
+            <span className="ic-setchip" style={{ ['--sc' as string]: setHueOf(def.setId) }}
+              title={`${set.name} set${setStatus ? ` · ${setStatus.count} pc active` : ''}`}>
+              {set.name.split(/\s+/).slice(0, 2).map((w) => w[0]).join('').toUpperCase()}
+            </span>
+          )}
+          <span className="ic-pips" aria-hidden>
+            {traitChips(item).map((t) => <i key={t.key} className={t.locked ? 'lk' : ''} />)}
+            {def.signature && <b className={sig ? 'on' : ''} title="Signature ability (awakens at Rampant+)" />}
+          </span>
         </div>
         <div className="ic-body">
           <div className="ic-name" style={{ color: c }}>{def.name}</div>
@@ -318,10 +330,10 @@ export function EquipmentPanel(): JSX.Element {
       {salvageMode && (
         <div className="armory-salvagebar">
           <span className="asb-grab" aria-label="Quick-grab dismantlable gear by rarity">
-            {(['common', 'uncommon', 'rare'] as Rarity[]).filter((r) => raritiesPresent.includes(r)).map((r) => (
+            {(['common', 'rare'] as Rarity[]).filter((r) => raritiesPresent.includes(r)).map((r) => (
               <button key={r} className="asb-chip" style={{ ['--rc' as string]: rarityColor(r) }} onClick={() => grabUpTo(r)}
-                title={`Select every unlocked, unequipped item of ${r === 'common' ? 'Common' : `${r[0].toUpperCase()}${r.slice(1)} rarity or below`}`}>
-                {r === 'common' ? 'Commons' : `≤ ${r[0].toUpperCase()}${r.slice(1)}`}
+                title={`Select every unlocked, unequipped ${rarityLabelOf(r)}${r === 'common' ? '' : '-or-below'} item`}>
+                {r === 'common' ? rarityLabelOf(r) : `≤ ${rarityLabelOf(r)}`}
               </button>
             ))}
             {selected.size > 0 && (

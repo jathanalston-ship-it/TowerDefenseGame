@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import type { Game } from '../core/game';
 import { ENEMY_DEFS } from '../core/config';
 import type { EnemyDef } from '../core/config';
@@ -74,8 +74,20 @@ export function BuildControls({
     return { biomass, heavy };
   }, [preview]);
 
+  // Hide-from-AT via `inert`, not aria-hidden: the Start button keeps focus at the moment the bar
+  // hides (the press launches the wave), and aria-hiding a focused subtree trips the browser's
+  // accessibility violation ("Blocked aria-hidden…"). `inert` blocks focus AND hides from AT; we
+  // also release any focus still inside before the subtree goes inert.
+  const rootRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const el = rootRef.current;
+    if (!el) return;
+    if (!visible && el.contains(document.activeElement)) (document.activeElement as HTMLElement | null)?.blur?.();
+    el.inert = !visible;
+  }, [visible]);
+
   return (
-    <div className={`build-controls ${visible ? 'is-visible' : ''}`} aria-hidden={!visible}>
+    <div ref={rootRef} className={`build-controls ${visible ? 'is-visible' : ''}`}>
       <div className="build-bar">
         <div className="wb-brief">
           <div className="wb-head">

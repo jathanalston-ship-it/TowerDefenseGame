@@ -40,9 +40,12 @@ function rng(seed: number): () => number {
 }
 
 // Named set hues (accents the illustration by its build family); unknown sets hash to a stable hue.
+// Every launch set is named so its accent is ART-DIRECTED, not hashed (16 distinct hues).
 const SET_HUE: Record<string, string> = {
   apex: '#ff5b4a', caustic: '#9be84a', paralytic: '#7cdcff', resonance: '#ffcf4d',
-  lifebloom: '#ff6f91', windrunner: '#8fd0ff',
+  lifebloom: '#ff6f91', windrunner: '#8fd0ff', bloodrage: '#d92b45', bulwark: '#6fc9a8',
+  contagion: '#7a9e3a', dominion: '#a76bff', executioner: '#ff7a2e', overcharge: '#ffe94d',
+  precision: '#c9d6f0', reaper: '#5a6f8f', siege: '#c9945a', tempest: '#4ae0cf',
 };
 function setHue(setId?: string): string {
   if (!setId) return '#c8d0e0';
@@ -50,6 +53,8 @@ function setHue(setId?: string): string {
   let h = 0; for (let i = 0; i < setId.length; i++) h = (h * 31 + setId.charCodeAt(i)) & 0xffff;
   return `hsl(${h % 360}, 70%, 62%)`;
 }
+/** The set's art-directed accent hue (card chips + illustrations share ONE source). */
+export function setHueOf(setId?: string): string { return setHue(setId); }
 
 /** The derived, cacheable illustration spec (also drives the in-game weapon form). */
 export interface ItemArtSpec {
@@ -166,43 +171,245 @@ export function drawItemArt(ctx: CanvasRenderingContext2D, cx: number, cy: numbe
     sh.addColorStop(0, 'rgba(255,255,255,0)'); sh.addColorStop(0.5, rgba('#ffffff', 0.18)); sh.addColorStop(1, 'rgba(255,255,255,0)');
     ctx.fillStyle = sh; ctx.fillRect(-r, -r, r * 2, r * 2); ctx.restore();
   }
+  // Slot GLYPH chip (bottom-left corner) — the equipment TYPE reads without words on every
+  // surface that renders the art (grid, details, reveals, store): weapon = crossed blades,
+  // armor = keeled shield, relic = orb-in-ring. House 1.5px-stroke glyph family, no emoji.
+  const chip = size * 0.17;
+  const gx = -r + chip * 0.78, gy = r - chip * 0.78;
+  ctx.fillStyle = 'rgba(8,7,14,0.88)';
+  ctx.strokeStyle = rgba(spec.color, 0.85);
+  ctx.lineWidth = Math.max(1, size * 0.014);
+  ctx.beginPath(); ctx.arc(gx, gy, chip * 0.64, 0, TAU); ctx.fill(); ctx.stroke();
+  ctx.strokeStyle = spec.color;
+  ctx.lineWidth = Math.max(1.2, chip * 0.15);
+  ctx.lineCap = 'round';
+  if (spec.slot === 'weapon') {
+    ctx.beginPath(); ctx.moveTo(gx - chip * 0.28, gy + chip * 0.28); ctx.lineTo(gx + chip * 0.28, gy - chip * 0.28);
+    ctx.moveTo(gx - chip * 0.28, gy - chip * 0.28); ctx.lineTo(gx + chip * 0.28, gy + chip * 0.28); ctx.stroke();
+  } else if (spec.slot === 'armor') {
+    ctx.beginPath();
+    ctx.moveTo(gx - chip * 0.3, gy - chip * 0.24); ctx.quadraticCurveTo(gx, gy - chip * 0.38, gx + chip * 0.3, gy - chip * 0.24);
+    ctx.quadraticCurveTo(gx + chip * 0.26, gy + chip * 0.14, gx, gy + chip * 0.4);
+    ctx.quadraticCurveTo(gx - chip * 0.26, gy + chip * 0.14, gx - chip * 0.3, gy - chip * 0.24);
+    ctx.closePath(); ctx.stroke();
+  } else {
+    ctx.beginPath(); ctx.arc(gx, gy, chip * 0.32, 0, TAU); ctx.stroke();
+    ctx.fillStyle = spec.color; ctx.beginPath(); ctx.arc(gx, gy, chip * 0.12, 0, TAU); ctx.fill();
+  }
   ctx.restore();
 }
 
-/** The slot/subtype emblem (the "unique illustration" core). */
+/** The slot/subtype SPRITE (the "genuine equipment" core — EQUIPMENT.md §visuals). Every family
+ *  draws a recognizable object (a blade IS a blade, a carapace IS a chestplate, a vial IS a vial),
+ *  with 3–4 seed-picked structural variants per family and set-hued fittings — so ~130 items share
+ *  ~22 authored silhouettes with logical application, and a new item costs zero art. Weapons sit on
+ *  the classic held diagonal; armor and relics stand upright. `rot` seeds only a tiny jitter now —
+ *  random orientation is what made the old emblems read as abstract badges. */
 function drawEmblem(ctx: CanvasRenderingContext2D, s: number, spec: ItemArtSpec, rot: number, now: number): void {
   const col = spec.color, acc = spec.accent;
+  const v = spec.seed % 3;
   ctx.save();
-  ctx.rotate(rot);
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
   if (spec.slot === 'weapon') {
-    // A haft + a subtype head, ringed by spent-energy spikes.
-    ctx.strokeStyle = shade(acc, -0.1); ctx.lineWidth = s * 0.14; ctx.lineCap = 'round';
-    ctx.beginPath(); ctx.moveTo(0, s * 0.9); ctx.lineTo(0, -s * 0.4); ctx.stroke();
-    ctx.fillStyle = col;
-    if (spec.subtype === 'melee') { ctx.beginPath(); ctx.moveTo(0, -s); ctx.lineTo(s * 0.34, -s * 0.2); ctx.lineTo(0, -s * 0.35); ctx.lineTo(-s * 0.34, -s * 0.2); ctx.closePath(); ctx.fill(); }
-    else if (spec.subtype === 'ranged') { ctx.fillRect(-s * 0.16, -s, s * 0.32, s * 0.7); ctx.fillStyle = shade(col, 0.4); ctx.beginPath(); ctx.arc(0, -s, s * 0.16, 0, TAU); ctx.fill(); }
-    else { for (let i = 0; i < 3; i++) { ctx.strokeStyle = rgba(col, 0.9); ctx.lineWidth = s * 0.08; ctx.beginPath(); ctx.arc(0, -s * 0.4, s * (0.2 + i * 0.14), -0.4, Math.PI + 0.4); ctx.stroke(); } }
+    ctx.rotate(-0.6 + ((rot % 0.16) - 0.08)); // held diagonal, hilt low — reads as a WEAPON sprite
+    // shared haft/grip, sinew-wrapped in the set hue
+    const haft = (y0: number, y1: number): void => {
+      ctx.strokeStyle = shade(acc, -0.15); ctx.lineWidth = s * 0.16;
+      ctx.beginPath(); ctx.moveTo(0, y0); ctx.lineTo(0, y1); ctx.stroke();
+      ctx.strokeStyle = rgba('#0a0810', 0.5); ctx.lineWidth = s * 0.05;
+      for (let i = 0; i < 3; i++) { const y = y0 - (y0 - y1) * (0.25 + i * 0.25); ctx.beginPath(); ctx.moveTo(-s * 0.1, y + s * 0.04); ctx.lineTo(s * 0.1, y - s * 0.04); ctx.stroke(); }
+    };
+    if (spec.subtype === 'melee') {
+      if (v === 0) { // scythe-claw: one cruel crescent
+        haft(s * 0.95, s * 0.1);
+        ctx.fillStyle = col;
+        ctx.beginPath(); ctx.moveTo(-s * 0.06, s * 0.12);
+        ctx.quadraticCurveTo(-s * 0.55, -s * 0.45, -s * 0.1, -s * 1.0);
+        ctx.quadraticCurveTo(-s * 0.16, -s * 0.42, s * 0.14, s * 0.02); ctx.closePath(); ctx.fill();
+        ctx.strokeStyle = shade(col, 0.5); ctx.lineWidth = s * 0.05;
+        ctx.beginPath(); ctx.moveTo(-s * 0.08, s * 0.06); ctx.quadraticCurveTo(-s * 0.46, -s * 0.44, -s * 0.1, -s * 0.94); ctx.stroke();
+      } else if (v === 1) { // twin talons off a knuckle block
+        ctx.fillStyle = shade(acc, -0.1); roundRect(ctx, -s * 0.3, s * 0.28, s * 0.6, s * 0.34, s * 0.1); ctx.fill();
+        for (const off of [-s * 0.16, s * 0.16]) {
+          ctx.fillStyle = col;
+          ctx.beginPath(); ctx.moveTo(off - s * 0.1, s * 0.3);
+          ctx.quadraticCurveTo(off - s * 0.26, -s * 0.35, off + s * 0.04, -s * (0.95 - Math.abs(off) / s * 0.5));
+          ctx.quadraticCurveTo(off + s * 0.12, -s * 0.3, off + s * 0.12, s * 0.3); ctx.closePath(); ctx.fill();
+        }
+      } else { // jagged bone sword
+        haft(s * 0.95, s * 0.34);
+        ctx.fillStyle = shade(acc, 0.1); roundRect(ctx, -s * 0.3, s * 0.22, s * 0.6, s * 0.12, s * 0.06); ctx.fill(); // guard
+        ctx.fillStyle = col;
+        ctx.beginPath(); ctx.moveTo(-s * 0.13, s * 0.2); ctx.lineTo(-s * 0.1, -s * 0.7); ctx.lineTo(0, -s * 1.0); ctx.lineTo(s * 0.12, -s * 0.66);
+        ctx.lineTo(s * 0.07, -s * 0.42); ctx.lineTo(s * 0.14, -s * 0.3); ctx.lineTo(s * 0.09, -s * 0.06); ctx.lineTo(s * 0.13, s * 0.2); ctx.closePath(); ctx.fill();
+        ctx.strokeStyle = shade(col, 0.45); ctx.lineWidth = s * 0.045;
+        ctx.beginPath(); ctx.moveTo(-s * 0.04, s * 0.14); ctx.lineTo(-s * 0.02, -s * 0.85); ctx.stroke();
+      }
+    } else if (spec.subtype === 'ranged') {
+      if (v === 0) { // quill launcher: barrel + fanned quill magazine
+        ctx.fillStyle = shade(col, -0.15); roundRect(ctx, -s * 0.16, -s * 1.0, s * 0.32, s * 1.1, s * 0.08); ctx.fill();
+        ctx.fillStyle = shade(col, 0.3); ctx.beginPath(); ctx.ellipse(0, -s * 1.0, s * 0.16, s * 0.07, 0, 0, TAU); ctx.fill();
+        haft(s * 0.9, s * 0.12);
+        ctx.strokeStyle = acc; ctx.lineWidth = s * 0.07;
+        for (let i = -1; i <= 1; i++) { const a = -0.5 + i * 0.35; ctx.beginPath(); ctx.moveTo(s * 0.18, -s * 0.2); ctx.lineTo(s * 0.18 + Math.cos(a) * s * 0.5, -s * 0.2 + Math.sin(a) * s * 0.5); ctx.stroke(); }
+      } else if (v === 1) { // arbalest: recurved limbs + taut sinew + loaded spine
+        haft(s * 0.9, -s * 0.5);
+        ctx.strokeStyle = shade(acc, -0.05); ctx.lineWidth = s * 0.11;
+        ctx.beginPath(); ctx.moveTo(-s * 0.75, -s * 0.1); ctx.quadraticCurveTo(0, -s * 0.75, s * 0.75, -s * 0.1); ctx.stroke();
+        ctx.strokeStyle = rgba('#eef4ff', 0.6); ctx.lineWidth = s * 0.035;
+        ctx.beginPath(); ctx.moveTo(-s * 0.72, -s * 0.12); ctx.lineTo(0, s * 0.06); ctx.lineTo(s * 0.72, -s * 0.12); ctx.stroke();
+        ctx.strokeStyle = col; ctx.lineWidth = s * 0.09;
+        ctx.beginPath(); ctx.moveTo(0, s * 0.05); ctx.lineTo(0, -s * 0.95); ctx.stroke();
+        ctx.fillStyle = shade(col, 0.4); ctx.beginPath(); ctx.moveTo(0, -s * 1.05); ctx.lineTo(s * 0.1, -s * 0.78); ctx.lineTo(-s * 0.1, -s * 0.78); ctx.closePath(); ctx.fill();
+      } else { // spore mortar: fat angled tube + breech sac
+        ctx.save(); ctx.rotate(0.25);
+        ctx.fillStyle = shade(col, -0.1); roundRect(ctx, -s * 0.26, -s * 0.95, s * 0.52, s * 1.0, s * 0.12); ctx.fill();
+        ctx.strokeStyle = shade(col, 0.35); ctx.lineWidth = s * 0.06;
+        ctx.beginPath(); ctx.ellipse(0, -s * 0.92, s * 0.26, s * 0.1, 0, 0, TAU); ctx.stroke();
+        ctx.fillStyle = acc; ctx.beginPath(); ctx.arc(0, s * 0.28, s * 0.3, 0, TAU); ctx.fill();
+        ctx.fillStyle = rgba('#ffffff', 0.35);
+        ctx.beginPath(); ctx.arc(-s * 0.1, s * 0.18, s * 0.07, 0, TAU); ctx.fill();
+        ctx.beginPath(); ctx.arc(s * 0.08, s * 0.34, s * 0.05, 0, TAU); ctx.fill();
+        ctx.restore();
+      }
+    } else { // conduit
+      if (v === 0) { // orb stave: prongs cradling a live focus
+        haft(s * 0.95, -s * 0.3);
+        ctx.strokeStyle = shade(acc, 0.05); ctx.lineWidth = s * 0.09;
+        ctx.beginPath(); ctx.moveTo(-s * 0.05, -s * 0.3); ctx.quadraticCurveTo(-s * 0.36, -s * 0.55, -s * 0.16, -s * 0.85); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(s * 0.05, -s * 0.3); ctx.quadraticCurveTo(s * 0.36, -s * 0.55, s * 0.16, -s * 0.85); ctx.stroke();
+        const orb = ctx.createRadialGradient(0, -s * 0.62, 0, 0, -s * 0.62, s * 0.24);
+        orb.addColorStop(0, '#ffffff'); orb.addColorStop(0.45, col); orb.addColorStop(1, rgba(col, 0.1));
+        ctx.fillStyle = orb; ctx.beginPath(); ctx.arc(0, -s * 0.62, s * 0.24, 0, TAU); ctx.fill();
+      } else if (v === 1) { // gauntlet emitter: fist block + focusing rings
+        ctx.fillStyle = shade(acc, -0.12); roundRect(ctx, -s * 0.3, s * 0.05, s * 0.6, s * 0.7, s * 0.14); ctx.fill();
+        ctx.strokeStyle = rgba('#0a0810', 0.45); ctx.lineWidth = s * 0.045;
+        for (let i = 0; i < 3; i++) { ctx.beginPath(); ctx.moveTo(-s * 0.28, s * (0.22 + i * 0.16)); ctx.lineTo(s * 0.28, s * (0.22 + i * 0.16)); ctx.stroke(); }
+        ctx.strokeStyle = col;
+        for (let i = 0; i < 3; i++) { ctx.lineWidth = s * (0.09 - i * 0.02); ctx.beginPath(); ctx.arc(0, -s * (0.18 + i * 0.3), s * (0.3 - i * 0.07), 0, TAU); ctx.stroke(); }
+        ctx.fillStyle = rgba(col, 0.9); ctx.beginPath(); ctx.arc(0, -s * 0.86, s * 0.08, 0, TAU); ctx.fill();
+      } else { // tendril wand: living S-curve with a glowing bud
+        ctx.strokeStyle = shade(acc, -0.05); ctx.lineWidth = s * 0.14;
+        ctx.beginPath(); ctx.moveTo(-s * 0.05, s * 0.95);
+        ctx.quadraticCurveTo(s * 0.4, s * 0.3, -s * 0.12, -s * 0.25);
+        ctx.quadraticCurveTo(-s * 0.42, -s * 0.62, s * 0.05, -s * 0.8); ctx.stroke();
+        ctx.strokeStyle = shade(acc, 0.25); ctx.lineWidth = s * 0.06;
+        ctx.beginPath(); ctx.moveTo(-s * 0.02, s * 0.5); ctx.quadraticCurveTo(s * 0.2, s * 0.16, -s * 0.06, -s * 0.1); ctx.stroke();
+        const bud = ctx.createRadialGradient(s * 0.08, -s * 0.84, 0, s * 0.08, -s * 0.84, s * 0.2);
+        bud.addColorStop(0, '#ffffff'); bud.addColorStop(0.5, col); bud.addColorStop(1, rgba(col, 0));
+        ctx.fillStyle = bud; ctx.beginPath(); ctx.arc(s * 0.08, -s * 0.84, s * 0.2, 0, TAU); ctx.fill();
+        ctx.fillStyle = rgba(col, 0.8);
+        ctx.beginPath(); ctx.arc(-s * 0.2, -s * 0.4, s * 0.06, 0, TAU); ctx.fill();
+        ctx.beginPath(); ctx.arc(s * 0.16, s * 0.06, s * 0.05, 0, TAU); ctx.fill();
+      }
+    }
   } else if (spec.slot === 'armor') {
-    // A layered carapace shield.
-    ctx.fillStyle = shade(acc, -0.2); polygon(ctx, 0, 0, s * 0.95, 6, rot); ctx.fill();
-    ctx.fillStyle = shade(col, 0.1); polygon(ctx, 0, 0, s * 0.62, 6, rot); ctx.fill();
-    ctx.strokeStyle = rgba('#ffffff', 0.35); ctx.lineWidth = s * 0.05; polygon(ctx, 0, 0, s * 0.62, 6, rot); ctx.stroke();
-    if (spec.subtype === 'hide') { ctx.strokeStyle = rgba(acc, 0.8); ctx.lineWidth = s * 0.06; for (let i = -1; i <= 1; i++) { ctx.beginPath(); ctx.moveTo(i * s * 0.3, -s * 0.5); ctx.quadraticCurveTo(i * s * 0.5, 0, i * s * 0.3, s * 0.5); ctx.stroke(); } }
+    // an upright TORSO piece — the garment silhouette is the family tell
+    if (spec.subtype === 'carapace') { // segmented shell chestplate
+      const plates = 3 + (v === 2 ? 1 : 0);
+      ctx.fillStyle = shade(col, -0.35);
+      ctx.beginPath(); ctx.moveTo(-s * 0.72, -s * 0.55); ctx.quadraticCurveTo(0, -s * (v === 1 ? 0.95 : 0.78), s * 0.72, -s * 0.55);
+      ctx.lineTo(s * 0.52, s * 0.85); ctx.quadraticCurveTo(0, s * 1.0, -s * 0.52, s * 0.85); ctx.closePath(); ctx.fill();
+      for (let i = 0; i < plates; i++) { // plate bands, alternating tones
+        const y0 = -s * 0.5 + (i / plates) * s * 1.3;
+        const w = s * (0.66 - i * 0.06);
+        ctx.fillStyle = i % 2 ? shade(col, -0.08) : shade(col, 0.14);
+        ctx.beginPath(); ctx.moveTo(-w, y0); ctx.quadraticCurveTo(0, y0 + (v === 0 ? s * 0.2 : s * 0.08), w, y0);
+        ctx.lineTo(w * 0.92, y0 + s * 0.34); ctx.quadraticCurveTo(0, y0 + s * (v === 0 ? 0.5 : 0.42), -w * 0.92, y0 + s * 0.34); ctx.closePath(); ctx.fill();
+      }
+      ctx.strokeStyle = shade(col, 0.5); ctx.lineWidth = s * 0.05; // central keel
+      ctx.beginPath(); ctx.moveTo(0, -s * 0.6); ctx.lineTo(0, s * 0.9); ctx.stroke();
+      ctx.fillStyle = acc; // shoulder bosses in the set hue
+      ctx.beginPath(); ctx.arc(-s * 0.62, -s * 0.5, s * 0.14, 0, TAU); ctx.fill();
+      ctx.beginPath(); ctx.arc(s * 0.62, -s * 0.5, s * 0.14, 0, TAU); ctx.fill();
+    } else if (spec.subtype === 'hide') { // draped pelt / cloak with a ragged hem
+      if (v === 1) { // hood
+        ctx.fillStyle = shade(col, -0.25);
+        ctx.beginPath(); ctx.arc(0, -s * 0.55, s * 0.42, Math.PI * 0.95, Math.PI * 2.05); ctx.fill();
+      }
+      ctx.fillStyle = shade(col, -0.05);
+      ctx.beginPath(); ctx.moveTo(-s * 0.55, -s * 0.5);
+      ctx.quadraticCurveTo(0, -s * (v === 1 ? 0.62 : 0.75), s * (v === 2 ? 0.7 : 0.55), -s * 0.45);
+      ctx.lineTo(s * 0.75, s * 0.7);
+      for (let i = 0; i < 5; i++) ctx.lineTo(s * (0.75 - (i + 0.5) * 0.3), s * (i % 2 ? 0.72 : 0.95)); // ragged hem
+      ctx.lineTo(-s * 0.75, s * 0.7); ctx.closePath(); ctx.fill();
+      ctx.strokeStyle = rgba('#0a0810', 0.4); ctx.lineWidth = s * 0.04; // pelt striations
+      for (let i = -1; i <= 1; i++) { ctx.beginPath(); ctx.moveTo(i * s * 0.32, -s * 0.4); ctx.quadraticCurveTo(i * s * 0.44, s * 0.1, i * s * 0.3, s * 0.7); ctx.stroke(); }
+      ctx.fillStyle = acc; // throat clasp
+      ctx.save(); ctx.translate(0, -s * 0.42); ctx.rotate(Math.PI / 4); ctx.fillRect(-s * 0.11, -s * 0.11, s * 0.22, s * 0.22); ctx.restore();
+    } else { // weave: woven membrane suit with glowing threads
+      ctx.fillStyle = shade(col, -0.3);
+      ctx.beginPath(); ctx.moveTo(-s * 0.6, -s * 0.6); ctx.quadraticCurveTo(0, -s * 0.72, s * 0.6, -s * 0.6);
+      ctx.lineTo(s * 0.46, s * 0.9); ctx.quadraticCurveTo(0, s * 1.02, -s * 0.46, s * 0.9); ctx.closePath(); ctx.fill();
+      ctx.save();
+      ctx.beginPath(); ctx.moveTo(-s * 0.6, -s * 0.6); ctx.quadraticCurveTo(0, -s * 0.72, s * 0.6, -s * 0.6);
+      ctx.lineTo(s * 0.46, s * 0.9); ctx.quadraticCurveTo(0, s * 1.02, -s * 0.46, s * 0.9); ctx.closePath(); ctx.clip();
+      const nLat = 3 + v;
+      ctx.strokeStyle = rgba(acc, 0.55); ctx.lineWidth = s * 0.045;
+      for (let i = -nLat; i <= nLat; i++) {
+        ctx.beginPath(); ctx.moveTo(i * s * 0.3 - s, -s * 0.8); ctx.lineTo(i * s * 0.3 + s, s * 1.1); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(i * s * 0.3 + s, -s * 0.8); ctx.lineTo(i * s * 0.3 - s, s * 1.1); ctx.stroke();
+      }
+      ctx.restore();
+      ctx.fillStyle = shade(col, 0.2); // waist sash
+      ctx.beginPath(); ctx.moveTo(-s * 0.5, s * 0.24); ctx.quadraticCurveTo(0, s * 0.38, s * 0.5, s * 0.24);
+      ctx.lineTo(s * 0.48, s * 0.44); ctx.quadraticCurveTo(0, s * 0.58, -s * 0.48, s * 0.44); ctx.closePath(); ctx.fill();
+    }
   } else {
-    // Relic — an orbital core with rings.
-    ctx.strokeStyle = rgba(acc, 0.8); ctx.lineWidth = s * 0.06;
-    ctx.beginPath(); ctx.ellipse(0, 0, s * 0.85, s * 0.4, now * 0.6, 0, TAU); ctx.stroke();
-    ctx.beginPath(); ctx.ellipse(0, 0, s * 0.4, s * 0.85, -now * 0.5, 0, TAU); ctx.stroke();
-    const core = ctx.createRadialGradient(0, 0, 0, 0, 0, s * 0.4);
-    core.addColorStop(0, '#ffffff'); core.addColorStop(0.4, col); core.addColorStop(1, rgba(col, 0));
-    ctx.fillStyle = core; ctx.beginPath(); ctx.arc(0, 0, s * 0.4, 0, TAU); ctx.fill();
-  }
-  // Embellishment spikes ring the emblem (count = rarity + affixes).
-  ctx.fillStyle = rgba(col, 0.85);
-  for (let i = 0; i < spec.spikes; i++) {
-    const a = (i / spec.spikes) * TAU;
-    const rr = s * 1.05;
-    ctx.beginPath(); ctx.arc(Math.cos(a) * rr, Math.sin(a) * rr, s * 0.06, 0, TAU); ctx.fill();
+    // RELIC — a held artifact; 4 seed forms (organ · eye · vial · totem)
+    const rv = spec.seed % 4;
+    if (rv === 0) { // suspended organ in a ring armature
+      ctx.strokeStyle = rgba(acc, 0.85); ctx.lineWidth = s * 0.07;
+      ctx.beginPath(); ctx.arc(0, 0, s * 0.85, Math.PI * 0.65, Math.PI * 2.35); ctx.stroke();
+      const beat = 1 + 0.06 * Math.sin(now * 3.1 + spec.seed);
+      ctx.save(); ctx.scale(beat, beat);
+      ctx.fillStyle = shade(col, -0.05);
+      ctx.beginPath(); ctx.arc(-s * 0.16, -s * 0.08, s * 0.3, 0, TAU); ctx.fill();
+      ctx.beginPath(); ctx.arc(s * 0.14, -s * 0.14, s * 0.26, 0, TAU); ctx.fill();
+      ctx.beginPath(); ctx.moveTo(-s * 0.4, 0); ctx.quadraticCurveTo(0, s * 0.62, s * 0.36, -s * 0.04); ctx.quadraticCurveTo(0, s * 0.28, -s * 0.4, 0); ctx.fill();
+      ctx.strokeStyle = shade(acc, 0.2); ctx.lineWidth = s * 0.06;
+      ctx.beginPath(); ctx.moveTo(-s * 0.05, -s * 0.32); ctx.lineTo(-s * 0.05, -s * 0.55); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(s * 0.16, -s * 0.34); ctx.lineTo(s * 0.26, -s * 0.52); ctx.stroke();
+      ctx.restore();
+    } else if (rv === 1) { // eye amulet with a slow-tracking pupil
+      ctx.strokeStyle = rgba(acc, 0.8); ctx.lineWidth = s * 0.06;
+      ctx.beginPath(); ctx.moveTo(0, -s * 0.9); ctx.lineTo(0, -s * 0.62); ctx.stroke(); // hanger
+      ctx.fillStyle = shade(col, -0.3);
+      ctx.beginPath(); ctx.moveTo(-s * 0.8, 0); ctx.quadraticCurveTo(0, -s * 0.72, s * 0.8, 0); ctx.quadraticCurveTo(0, s * 0.72, -s * 0.8, 0); ctx.closePath(); ctx.fill();
+      ctx.strokeStyle = rgba(col, 0.8); ctx.lineWidth = s * 0.05; ctx.stroke();
+      const look = Math.sin(now * 0.7 + spec.seed) * s * 0.14;
+      const iris = ctx.createRadialGradient(look, 0, 0, look, 0, s * 0.3);
+      iris.addColorStop(0, shade(acc, 0.3)); iris.addColorStop(1, shade(acc, -0.35));
+      ctx.fillStyle = iris; ctx.beginPath(); ctx.arc(look, 0, s * 0.3, 0, TAU); ctx.fill();
+      ctx.fillStyle = '#0a0810'; ctx.beginPath(); ctx.arc(look, 0, s * 0.13, 0, TAU); ctx.fill();
+      ctx.fillStyle = rgba('#ffffff', 0.8); ctx.beginPath(); ctx.arc(look - s * 0.07, -s * 0.08, s * 0.05, 0, TAU); ctx.fill();
+    } else if (rv === 2) { // ampoule of live culture
+      ctx.fillStyle = shade(acc, -0.1); roundRect(ctx, -s * 0.14, -s * 0.85, s * 0.28, s * 0.2, s * 0.05); ctx.fill(); // cap
+      ctx.strokeStyle = rgba('#eef4ff', 0.35); ctx.lineWidth = s * 0.05; // glass
+      ctx.beginPath(); ctx.moveTo(-s * 0.12, -s * 0.62); ctx.lineTo(-s * 0.3, -s * 0.2);
+      ctx.quadraticCurveTo(-s * 0.42, s * 0.5, 0, s * 0.72);
+      ctx.quadraticCurveTo(s * 0.42, s * 0.5, s * 0.3, -s * 0.2); ctx.lineTo(s * 0.12, -s * 0.62); ctx.stroke();
+      ctx.fillStyle = rgba(col, 0.75); // the culture fluid
+      ctx.beginPath(); ctx.moveTo(-s * 0.33, s * 0.02); ctx.quadraticCurveTo(-s * 0.4, s * 0.48, 0, s * 0.68);
+      ctx.quadraticCurveTo(s * 0.4, s * 0.48, s * 0.33, s * 0.02);
+      ctx.quadraticCurveTo(0, s * (0.14 + 0.05 * Math.sin(now * 1.8)), -s * 0.33, s * 0.02); ctx.closePath(); ctx.fill();
+      ctx.fillStyle = rgba('#ffffff', 0.5);
+      for (let i = 0; i < 2; i++) { const t = (now * 0.5 + i * 0.5) % 1; ctx.beginPath(); ctx.arc((i ? -1 : 1) * s * 0.1, s * 0.6 - t * s * 0.55, s * 0.05 * (1 - t * 0.5), 0, TAU); ctx.fill(); }
+    } else { // bone totem: beads + tooth on a cord
+      const sway = Math.sin(now * 1.1 + spec.seed) * 0.06;
+      ctx.save(); ctx.rotate(sway);
+      ctx.strokeStyle = rgba(acc, 0.8); ctx.lineWidth = s * 0.05;
+      ctx.beginPath(); ctx.moveTo(0, -s * 0.95); ctx.lineTo(0, s * 0.35); ctx.stroke();
+      for (let i = 0; i < 3; i++) {
+        ctx.fillStyle = i % 2 ? shade(col, 0.15) : shade(col, -0.12);
+        ctx.beginPath(); ctx.ellipse(0, -s * 0.55 + i * s * 0.35, s * 0.19, s * 0.15, 0, 0, TAU); ctx.fill();
+      }
+      ctx.fillStyle = '#ddd6c8'; // the tooth
+      ctx.beginPath(); ctx.moveTo(-s * 0.13, s * 0.36); ctx.quadraticCurveTo(-s * 0.02, s * 0.95, s * 0.03, s * 0.4); ctx.closePath(); ctx.fill();
+      ctx.fillStyle = acc; ctx.beginPath(); ctx.arc(0, s * 0.38, s * 0.09, 0, TAU); ctx.fill();
+      ctx.restore();
+    }
   }
   ctx.restore();
 }

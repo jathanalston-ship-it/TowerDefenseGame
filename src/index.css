@@ -6993,6 +6993,16 @@ kbd {
 .item-card:hover { transform: translateY(-2px); box-shadow: 0 10px 26px -12px color-mix(in srgb, var(--rc) 70%, transparent); border-color: color-mix(in srgb, var(--rc) 70%, var(--line)); }
 .item-card.is-equipped { border-color: var(--rc); box-shadow: 0 0 0 1px var(--rc), var(--halo) var(--rc); }
 .ic-frame { position: relative; align-self: start; }
+/* At-a-glance card language (EQUIPMENT.md §visuals): rarity rail + set monogram + affix pips.
+   Rail = the instant rarity read; monogram = the set read; pips = rolled affixes (gold = locked),
+   diamond = a signature ability lives on this item (lit when awakened). */
+.item-card::before { content: ''; position: absolute; left: 0; top: 10px; bottom: 10px; width: 3px; border-radius: 2px; background: linear-gradient(180deg, var(--rc), color-mix(in srgb, var(--rc) 18%, transparent)); opacity: 0.95; pointer-events: none; }
+.ic-setchip { position: absolute; right: -5px; bottom: -5px; min-width: 19px; height: 17px; padding: 0 3px; display: grid; place-items: center; font-size: 10px; font-weight: 900; letter-spacing: 0.04em; color: var(--sc, var(--muted)); background: rgba(8, 7, 14, 0.92); border: 1px solid color-mix(in srgb, var(--sc, var(--line)) 70%, transparent); border-radius: var(--r-xs); line-height: 1; }
+.ic-pips { position: absolute; left: 3px; right: 3px; bottom: 3px; display: flex; gap: 3px; justify-content: center; align-items: center; pointer-events: none; }
+.ic-pips i { width: 5px; height: 5px; border-radius: 50%; background: var(--rc, var(--muted)); box-shadow: 0 0 3px rgba(0, 0, 0, 0.8); }
+.ic-pips i.lk { background: var(--gold); }
+.ic-pips b { width: 6px; height: 6px; background: color-mix(in srgb, var(--gold) 45%, transparent); border: 1px solid var(--gold); transform: rotate(45deg); margin-left: 2px; }
+.ic-pips b.on { background: var(--gold); box-shadow: 0 0 6px var(--gold); }
 .ic-lock, .ic-star, .ic-season { position: absolute; font-size: 11px; line-height: 1; }
 .ic-lock { top: -4px; left: -4px; }
 .ic-star { top: -4px; right: -4px; color: var(--gold); text-shadow: 0 0 6px var(--gold); }

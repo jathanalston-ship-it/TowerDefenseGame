@@ -117,11 +117,12 @@ Dismantling is hard to do by accident and easy to reverse:
 - **"NEW" badge:** a freshly-dropped item shows a NEW pip until you open its Details
   (`OwnedItem.seen`).
 - **Quick-grab chips (Quick-Salvage mode):** the sticky bar offers one-tap rarity sweeps —
-  **Commons / ≤ Uncommon / ≤ Rare** (only tiers actually owned render) select every dismantlable
-  item at/below that rarity across the whole inventory, ignoring view filters; **None** clears.
-  The sweep runs through the same `meta.canSalvage` gate as manual picks (locked / favorite /
-  equipped stay inert), the bar shows the exact count + yield, and the two-step confirm still
-  applies. Epic+ gear is never grabbed by a chip — chips top out at Rare by design.
+  **Inert / ≤ Active** in the house rarity voice (only tiers actually owned render) select every
+  dismantlable item at/below that rarity across the whole inventory, ignoring view filters;
+  **None** clears. The sweep runs through the same `meta.canSalvage` gate as manual picks
+  (locked / favorite / equipped stay inert), the bar shows the exact count + yield, and the
+  two-step confirm still applies. Virulent+ gear is never grabbed by a chip — chips top out at
+  Active by design.
 
 ---
 
@@ -443,12 +444,21 @@ framework drives BOTH surfaces; it is **derived** from item data, so hundreds of
 zero new art (a new item is one data row) and it never touches the sim (render-only ⇒ golden-safe).
 
 **Card art (menus).** `deriveItemArt(def, rarity, affixCount, ilvl) → ItemArtSpec` + `drawItemArt`
-paint a UNIQUE biomechanical emblem per item: the FORM from the slot/subtype (weapon haft+blade /
-barrel / conduit-coil · armor hex-carapace · relic orbital core+rings), the ACCENT from the item's
-set family, embellishment count from rarity + affixes, and effects from the rarity TIER — **common**
-flat · **rare** glow · **epic** orbiting particles · **legendary** living (breathing) silhouette ·
-**exotic** complex particles + rising floating energy + swept sheen. `ui/components/ItemArt` renders
-it on an animated `<canvas>` (premium tiers animate; lower tiers draw once), same public API so the
+paint a genuine equipment SPRITE per item (2026-07 overhaul — the old abstract emblems are gone):
+the FORM comes from the family with 3–4 seed-picked structural variants each — **melee** scythe-claw
+/ twin talons / jagged bone sword · **ranged** quill launcher / arbalest / spore mortar · **conduit**
+orb stave / gauntlet emitter / tendril wand · **carapace** plated chestpieces · **hide** ragged
+pelts & hooded cloaks · **weave** lattice mesh suits · **relic** organ-in-armature / tracking eye /
+culture ampoule / bone totem — so ~130 items share ~22 authored silhouettes with logical
+application. Weapons sit on the held diagonal; armor/relics stand upright; fittings tint by the
+item's SET (all 16 launch sets art-directed in `SET_HUE`, `setHueOf` exported for UI chips). A slot
+GLYPH chip (crossed blades / keeled shield / orb-in-ring) sits in the art's corner so TYPE reads
+without words on every surface. Rarity dressing unchanged — **common** flat · **rare** glow ·
+**epic** orbiting particles · **legendary** living (breathing) silhouette · **exotic** complex
+particles + rising floating energy + swept sheen. The Armory card adds the at-a-glance DOM
+language: a rarity RAIL down the card edge, a set MONOGRAM chip on the art, and affix PIPS
+(gold = locked; a gold diamond = signature ability, lit when awakened). `ui/components/ItemArt`
+renders it on an animated `<canvas>` (premium tiers animate; lower tiers draw once), same public API so the
 Armory grid, Item Details, and Compare all upgrade for free. No placeholder icons.
 
 **In-game hero gear (battlefield).** `deriveHeroGear(items, setBonuses) → HeroGearSpec` +
