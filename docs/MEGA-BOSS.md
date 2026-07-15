@@ -73,6 +73,12 @@ choreographs its own openings; phases change the choreography. Destroyed organs 
 - **Heroes** (`heroMegaRaid`): when the line is clear they MARCH on the organism — seek the
   nearest open organ, strike it, and fall to the body when every window is spent. Raid duty
   owns the hero tick (behaviors resume the moment enemies return).
+- **Units** (`unitMegaRaid`): a friendly unit with no enemy in its own reach joins the raid —
+  the roost's drakes UNLEASH (the perch leash yields to the carcass when their territory is
+  bare) and dive the nearest open organ; classic motes (wisps/thralls/broodlings) walk on it;
+  all fall to the body when windows are spent and the field is empty (chip-scaled). Drake
+  damage is roost-credited (mastery + the ADAPT ledger); hero summons stay ledger-free,
+  exactly like their normal strikes.
 - All four seams feed `rt.dmgByKind`, so ADAPT (Myriad) reads the true per-kind ledger.
 - **THE HIVE OUTRANKS THE RAID** (`megaRaidYield`, derived once per tick): while the Core is
   threatened — attackers locked onto it, or any enemy inside the final-defense zone — every

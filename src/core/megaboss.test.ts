@@ -392,7 +392,9 @@ describe('§lone siege — the last thing standing turns on the Hive', () => {
     mega: import('./megaboss').MegaRuntime;
     megaBodyY: (ty: number, range: number) => number;
     destroyWeakPoint: (wp: import('./megaboss').MegaRuntime['weakPoints'][number]) => void;
-    megaShots: { x0: number; y0: number }[];
+    megaShots: { x0: number; y0: number; color: string }[];
+    heroes: { down: boolean; respawn: number }[];
+    minions: import('./types').Minion[];
   };
   const guts = (g: Game): SiegeGuts => g as unknown as SiegeGuts;
   const eyeWp = (): import('./megaboss').MegaRuntime['weakPoints'][number] => ({
@@ -469,6 +471,40 @@ describe('§lone siege — the last thing standing turns on the Hive', () => {
     // And nothing ever aims below the descended mass or above the shepherding band.
     expect(guts(g).megaBodyY(900, 100)).toBe(MEGA.siegeBodyY);
     expect(guts(g).megaBodyY(600, 90)).toBe(MEGA.bodyBandY);
+  });
+
+  it('UNITS raid too: drakes dive organs (roost-credited) and motes bite the body', () => {
+    const g = new Game(29, NO_META, undefined, 'ravager', undefined, { megaDaily: { defId: 'voraxis', tier: 1 } });
+    g.god = true;
+    g.debugAddBiomass(9000);
+    expect(g.placeTower('roost', forwardSlots[0].x, forwardSlots[0].y)).toBe(true);
+    g.startWave();
+    const rt = guts(g).mega;
+    becalm(rt);
+    rt.stunned = 99999; // static organism: no broods — the leash territory stays bare
+    const hero = guts(g).heroes[0];
+    hero.down = true; // park the hero so unit damage is the only organ pressure
+    hero.respawn = 1e9;
+    // The roost hatches; with nothing to hunt, the drake UNLEASHES and dives the spawn-opened
+    // Armored Growth (docs/MEGA-BOSS.md §targeting — the leash yields to the carcass).
+    const growth = rt.weakPoints.find((w) => w.kind === 'armored_growth')!;
+    const hp0 = growth.hp;
+    for (let i = 0; i < 60 * 25 && growth.hp === hp0; i++) g.advance(SIM_DT);
+    expect(growth.hp).toBeLessThan(hp0); // the flock joined the raid
+    expect(rt.dmgByKind.roost ?? 0).toBeGreaterThan(0); // ADAPT's ledger studies the brood
+    // With every organ spent + the field empty, a classic mote bites the anchored BODY.
+    for (const w of [...rt.weakPoints]) if (w.state === 'open') guts(g).destroyWeakPoint(w);
+    guts(g).minions.push({
+      id: 9901, kind: 'wisp', x: 600, y: 520, hp: 30, maxHp: 30, hitFlash: 0, damage: 7,
+      attackCd: 0, attackInterval: 0.7, range: 300, speed: 130, life: 60, maxLife: 60,
+      radius: 7, color: '#ffd0a6', alive: true,
+    });
+    let moteBit = false; // its tracer color proves the strike came from the mote, not the drake
+    for (let i = 0; i < 60 * 8 && !moteBit; i++) {
+      g.advance(SIM_DT);
+      if (guts(g).megaShots.some((s) => s.color === '#ffd0a6')) moteBit = true;
+    }
+    expect(moteBit).toBe(true);
   });
 
   it('pure-tempo organs (Effigy) never burn casts on zero-damage raid fire', () => {

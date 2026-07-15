@@ -3712,6 +3712,61 @@ export class Game {
     return true;
   }
 
+  /** Unit RAID DUTY (docs/MEGA-BOSS.md §targeting): a friendly unit with no enemy in its own
+   *  reach joins the raid — it moves on the nearest open organ ANYWHERE (the leash yields to
+   *  the carcass when its territory is bare) and strikes on its own cadence; with every window
+   *  spent and the field EMPTY it bites the anchored body instead (chip-scaled, deeper while
+   *  the organism SIEGES). The Hive still outranks the raid (megaRaidYield). `credit` feeds
+   *  mastery + the ADAPT ledger for tower-born units (the roost's drakes); hero summons pass
+   *  null, exactly like their normal combat crediting. Returns true when raid duty owned the
+   *  unit's tick. */
+  private unitMegaRaid(m: Minion, dt: number, credit: TowerKind | null): boolean {
+    const rt = this.mega;
+    if (rt === null || rt.deathT > 0 || this.megaRaidYield) return false;
+    let wp: MegaWeakPoint | null = null;
+    let bd = Infinity;
+    for (const w of rt.weakPoints) {
+      if (w.state !== 'open' || w.emergeT < 1) continue;
+      const d = dist2(m.x, m.y, w.x, w.y);
+      if (d < bd) { bd = d; wp = w; }
+    }
+    if (wp !== null) {
+      const reach = m.radius + MEGA.weakPointRadius;
+      if (dist(m.x, m.y, wp.x, wp.y) > reach) {
+        const np = moveToward(m.x, m.y, wp.x, wp.y, m.speed * dt);
+        m.x = np.x;
+        m.y = np.y;
+      } else if (m.attackCd <= 0) {
+        this.megaHitWeakPoint(wp, m.damage, m.x, m.y, m.color);
+        if (credit !== null) {
+          rt.dmgByKind[credit] = (rt.dmgByKind[credit] ?? 0) + m.damage;
+          this.masteryAccrual[credit].damage += m.damage;
+        }
+        m.attackCd = m.attackInterval;
+      }
+      return true;
+    }
+    if (this.enemies.length === 0) {
+      const bx = Math.max(WIDTH * 0.2, Math.min(WIDTH * 0.8, m.x));
+      const by = this.megaBodyY(m.y, 60); // it climbs to the lowest hanging mass it can bite
+      if (dist(m.x, m.y, bx, by) > m.radius + 12) {
+        const np = moveToward(m.x, m.y, bx, by, m.speed * dt);
+        m.x = np.x;
+        m.y = np.y;
+      } else if (m.attackCd <= 0) {
+        const dmg = m.damage * this.megaChipMult();
+        this.megaHitBody(dmg, m.x, m.y, bx, by, m.color);
+        if (credit !== null) {
+          rt.dmgByKind[credit] = (rt.dmgByKind[credit] ?? 0) + dmg;
+          this.masteryAccrual[credit].damage += dmg;
+        }
+        m.attackCd = m.attackInterval;
+      }
+      return true;
+    }
+    return false;
+  }
+
   private economySystem(dt: number): void {
     if (this.reactorCount > 0) {
       // Reactor STAR evolution (support-tower path): its kit scales biomass generation.
@@ -7136,6 +7191,10 @@ export class Game {
     });
     const target = (elite ?? deepest) as Enemy | null;
     if (!target) {
+      // MEGA raid duty (docs/MEGA-BOSS.md §targeting): with the leash territory bare, the
+      // flock dives the organism instead of circling — organs first, the sieging body after
+      // (roost-credited, so ADAPT can study the brood and mastery accrues).
+      if (this.mega !== null && this.unitMegaRaid(m, dt, 'roost')) return;
       // Empty territory: wheel back toward the perch (drakes never stray off their leash).
       if (dist(m.x, m.y, homeX, homeY) > 24) {
         const np = moveToward(m.x, m.y, homeX, homeY, m.speed * dt);
@@ -7171,7 +7230,12 @@ export class Game {
       if (mdef?.heroAI) { this.drakeBrain(m, mdef, dt, inWave); continue; }
       if (!inWave) continue;
       const target = this.nearestEnemyTo(m.x, m.y, m.range);
-      if (!target) continue;
+      if (!target) {
+        // MEGA raid duty (docs/MEGA-BOSS.md §targeting): an idle mote joins the raid too
+        // (hero-summon crediting — null — exactly like its normal strikes).
+        if (this.mega !== null) this.unitMegaRaid(m, dt, null);
+        continue;
+      }
       const reach = m.radius + ENEMY_DEFS[target.kind].radius + 6;
       if (dist(m.x, m.y, target.x, target.y) > reach) {
         const np = moveToward(m.x, m.y, target.x, target.y, m.speed * dt);
