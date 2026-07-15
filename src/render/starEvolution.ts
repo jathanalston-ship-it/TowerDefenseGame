@@ -258,7 +258,9 @@ export const STAR_EVOLUTION: Record<TowerKind, StarEvolution> = {
 export function starEvolutionGrowth(kind: TowerKind, stars: number): number {
   if (stars <= 0) return 1;
   const evo = STAR_EVOLUTION[kind];
-  return 1 + (evo ? evo.growth : 0.02) * stars;
+  // ★10 is the ladder's contract — clamp so an out-of-band star count (bad save, future
+  // economy drift) can only ever fatten a body to the designed ceiling, never past the pad.
+  return 1 + (evo ? evo.growth : 0.02) * Math.min(10, stars);
 }
 
 /** The minimal tower shape the star composer needs (a subset of the render tower). */

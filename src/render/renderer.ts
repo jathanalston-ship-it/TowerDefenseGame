@@ -1168,9 +1168,22 @@ function drawTower(ctx: CanvasRenderingContext2D, tw: RenderState['towers'][numb
   // window after a purchase. Identity (×1) when unbranched ⇒ golden look.
   // Body swells with BOTH the in-run branch tier AND the permanent STAR count (docs/
   // TOWER-VISUAL-EVOLUTION.md). Both are ×1 at zero ⇒ a fresh/unbranched tower is unchanged.
-  const r = TOWER_R * grow * breathe * (1 + fresh * 0.1)
+  const rawR = TOWER_R * grow * breathe * (1 + fresh * 0.1)
     * evolutionGrowthAnimated(tw.branchId, tw.tier, now - tw.mutatedAt)
     * starEvolutionGrowth(tw.kind, stars);
+  // HARD CEILING (BUGFIX-LOG: a live Parasite Nest drew at ~75× and swallowed the arena): the
+  // design law is "the body never outgrows its build pad" — every legit factor stack tops out
+  // near 2× base, so 2.2× contains any misbehaving factor while changing no designed look.
+  // The `!(<=)` form also catches NaN. The DEV canary names the culprit when the raw product
+  // ever escapes again (render-only guard; the sim never reads any of this).
+  const r = !(rawR <= TOWER_R * 2.2) ? TOWER_R * 2.2 : rawR;
+  if (import.meta.env.DEV && !(rawR <= TOWER_R * 2.2)) {
+    console.warn('[canary] tower r blowup (clamped)', tw.kind, rawR.toFixed(1), JSON.stringify({
+      grow, breathe, fresh, stars, tier: tw.tier, branchId: tw.branchId,
+      evo: evolutionGrowthAnimated(tw.branchId, tw.tier, now - tw.mutatedAt),
+      star: starEvolutionGrowth(tw.kind, stars), mutatedAt: tw.mutatedAt, bornAt: tw.bornAt, now,
+    }));
+  }
 
   // (Range/field circles are intentionally NOT drawn permanently — they cluttered play
   // and, for the long-range towers, were near-fullscreen and uninformative. Range is now

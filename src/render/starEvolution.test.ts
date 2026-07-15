@@ -49,6 +49,9 @@ describe('tower star visual evolution', () => {
         prev = g;
       }
       expect(starEvolutionGrowth(k, 10), `${k} grows too big at ★10`).toBeLessThanOrEqual(1.25);
+      // BUGFIX-LOG (giant Parasite Nest): an out-of-band star count must clamp to the ★10 look,
+      // never scale linearly toward a screen-filling body.
+      expect(starEvolutionGrowth(k, 5000)).toBe(starEvolutionGrowth(k, 10));
     }
   });
 

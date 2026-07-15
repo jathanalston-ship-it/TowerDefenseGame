@@ -48,6 +48,9 @@ describe('tower visual evolution', () => {
       }
     }
     expect(evolutionGrowth('future_unspecced_branch', 5)).toBeGreaterThan(1); // future branch still grows
+    // BUGFIX-LOG (giant Parasite Nest): a corrupt/out-of-band tier clamps to the T5 swell —
+    // the body may never scale past its designed maximum toward a screen-filling silhouette.
+    for (const id of branchIds) expect(evolutionGrowth(id, 999)).toBe(evolutionGrowth(id, 5));
   });
 
   it('renders every branch at every tier without throwing (all organs execute)', () => {

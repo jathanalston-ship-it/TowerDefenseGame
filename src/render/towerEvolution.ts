@@ -524,7 +524,9 @@ export const BRANCH_EVOLUTION: Record<string, BranchEvolution> = {
 export function evolutionGrowth(branchId: string | null, tier: number): number {
   if (!branchId || tier <= 0) return 1;
   const evo = BRANCH_EVOLUTION[branchId];
-  return 1 + (evo ? evo.growth : 0.05) * tier;
+  // T5 is the branch ladder's contract — clamp so a corrupt/out-of-band tier can only reach
+  // the designed maximum swell, never a screen-filling body.
+  return 1 + (evo ? evo.growth : 0.05) * Math.min(5, tier);
 }
 
 /** Body scale that ANIMATES the swell from the previous tier to the new one over MUTATION_GROW_TIME
