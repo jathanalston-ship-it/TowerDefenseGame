@@ -766,7 +766,12 @@ One mega at a time (`spawnMegaBoss` ignores a second). Weak points must descend 
 `MEGA.minWeakPointY..maxWeakPointY` band — calibrated to the real slot grid (pads y 740–900)
 so every tower reaches them (validator-enforced). Rotation runs only in the wave
 phase. Rewards are paid at `finishRun` from `RunStats.megaKills`; ledger records land live via
-events (mirrors `bossKilled`).
+events (mirrors `bossKilled`). **LONE SIEGE** (docs/MEGA-BOSS.md §lone siege): a mega that is
+the last thing standing can never stall the run — after `siegeGraceSec` it lashes the Hive
+directly (telegraphed, interruptible, self-tightening cadence, tier-scaled damage), its mass
+descends so every tower connects (`megaBodyY`, deeper `siegeChipMult`), and reinforcement
+pulses surge; a resumed wave plan stands it down (`MegaRuntime.siegeT/lashT/lashWindup/lashes`,
+view `MegaBossView.siege`).
 
 **Future hooks.** Scripted tutorial beat for the first encounter; per-mega codex art; weak-point
 "accuracy" stats; assembled/procedural megas (the pool + validator already support composition).

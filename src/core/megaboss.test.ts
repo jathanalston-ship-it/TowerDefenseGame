@@ -387,6 +387,111 @@ describe('§functional overhaul — stagger, cataclysm, gorge, adapt', () => {
   });
 });
 
+describe('§lone siege — the last thing standing turns on the Hive', () => {
+  type SiegeGuts = {
+    mega: import('./megaboss').MegaRuntime;
+    megaBodyY: (ty: number, range: number) => number;
+    destroyWeakPoint: (wp: import('./megaboss').MegaRuntime['weakPoints'][number]) => void;
+    megaShots: { x0: number; y0: number }[];
+  };
+  const guts = (g: Game): SiegeGuts => g as unknown as SiegeGuts;
+  const eyeWp = (): import('./megaboss').MegaRuntime['weakPoints'][number] => ({
+    spec: 0, kind: 'eye', x: 400, y: 560, hp: 0, maxHp: 100, armor: 0,
+    state: 'open', window: 9, regrow: 0, emergeT: 1, hitFlash: 0,
+  });
+  /** Silence everything EXCEPT the siege: the rotation never readies (no broods to shield it),
+   *  no timer organs open (no accidental hero interrupts), no reinforcement pulses. The field
+   *  stays bare, so the lash machinery is probed in isolation — pure and deterministic. */
+  const becalm = (rt: import('./megaboss').MegaRuntime): void => {
+    rt.abilityCd.fill(1e9);
+    rt.timerT = rt.timerT.map((t) => (t > 0 ? 1e9 : 0));
+    rt.reinforceT = -1e9;
+  };
+
+  it('a lone mega SIEGES: HIVE LASHES land integrity damage on a tightening cadence', () => {
+    const g = new Game(5, NO_META, undefined, 'ravager', undefined, { megaDaily: { defId: 'voraxis', tier: 1 } });
+    g.startWave(); // no towers, god OFF — the bare-field stall the sim must now pressure
+    const rt = guts(g).mega;
+    becalm(rt);
+    const integ0 = g.integrity;
+    let sawWindup = false;
+    let sawSiegeView = false;
+    for (let i = 0; i < 60 * 40; i++) {
+      g.advance(SIM_DT);
+      const v = g.getRenderState().megaBoss;
+      if (v?.siege) sawSiegeView = true;
+      if (v?.siege && v.siege.windupFrac > 0) sawWindup = true;
+    }
+    expect(rt.siegeT).toBeGreaterThan(MEGA.siegeGraceSec); // it noticed the bare field
+    expect(sawSiegeView).toBe(true); // the view carries the siege (renderer/HUD read)
+    expect(sawWindup).toBe(true); // the windup telegraphed (the interrupt window existed)
+    expect(rt.lashes).toBeGreaterThanOrEqual(2); // and lashes LANDED, repeatedly
+    expect(g.integrity).toBeLessThan(integ0); // the Hive actually bled — no more free stalling
+    // The cadence tightens as blows land (the DPS-race clock compounds).
+    expect(rt.lashT).toBeLessThanOrEqual(MEGA.siegeLashEvery * MEGA.siegeLashRamp + 1e-9);
+  });
+
+  it('an eye interrupt DEFUSES a wound-up lash (and a resumed wave plan stands the siege down)', () => {
+    const g = new Game(13, NO_META, undefined, 'ravager', undefined, { megaDaily: { defId: 'voraxis', tier: 1 } });
+    g.god = true;
+    g.startWave();
+    const rt = guts(g).mega;
+    becalm(rt);
+    // Run until a lash is mid-windup, then burst a (synthetic) eye — the interrupt consequence.
+    for (let i = 0; i < 60 * 30 && rt.lashWindup <= 0; i++) g.advance(SIM_DT);
+    expect(rt.lashWindup).toBeGreaterThan(0);
+    const interrupts0 = rt.interrupts;
+    guts(g).destroyWeakPoint(eyeWp());
+    expect(rt.lashWindup).toBe(0); // the reaching arm recoiled
+    expect(rt.interrupts).toBe(interrupts0 + 1); // and it COUNTS as an interrupt (achievements)
+    expect(rt.stunned).toBeGreaterThan(0);
+    // A resumed wave plan (pending spawns) stands the whole siege down.
+    (g as unknown as { spawnQueue: unknown[] }).spawnQueue.push({});
+    g.advance(SIM_DT);
+    expect(rt.siegeT).toBe(0);
+    expect(g.getRenderState().megaBoss!.siege).toBeNull();
+    (g as unknown as { spawnQueue: unknown[] }).spawnQueue.length = 0;
+  });
+
+  it('the sieging mass DESCENDS: the body drops into every row\'s reach (and only then)', () => {
+    const g = new Game(17, NO_META, undefined, 'ravager', undefined, { megaDaily: { defId: 'voraxis', tier: 1 } });
+    g.god = true;
+    g.startWave();
+    const rt = guts(g).mega;
+    // Shepherding (pre-siege): the high band only — a back-row short gun cannot connect
+    // (the aim point stays at the band even though the gun can't reach it).
+    expect(guts(g).megaBodyY(900, 210)).toBe(MEGA.bodyBandY);
+    rt.siegeT = MEGA.siegeGraceSec + 1; // sieging: the mass hangs to the front build row
+    // A back-row SHORT gun (spire, 210) now connects — striking as high as its reach allows.
+    expect(guts(g).megaBodyY(900, 210)).toBe(900 - (210 - 40));
+    // A LONG gun keeps hitting the HIGH band (its tracer crosses the field, no muzzle stub).
+    expect(guts(g).megaBodyY(740, 700)).toBe(MEGA.bodyBandY);
+    // And nothing ever aims below the descended mass or above the shepherding band.
+    expect(guts(g).megaBodyY(900, 100)).toBe(MEGA.siegeBodyY);
+    expect(guts(g).megaBodyY(600, 90)).toBe(MEGA.bodyBandY);
+  });
+
+  it('pure-tempo organs (Effigy) never burn casts on zero-damage raid fire', () => {
+    const g = new Game(19, NO_META, undefined, 'ravager', undefined, { megaDaily: { defId: 'voraxis', tier: 1 } });
+    g.god = true;
+    g.debugAddBiomass(8000);
+    const slot = forwardSlots[0];
+    expect(g.placeTower('effigy', slot.x, slot.y)).toBe(true);
+    g.startWave();
+    const rt = guts(g).mega;
+    becalm(rt);
+    rt.stunned = 99999; // static organism: no broods, no lash — a pure raid-fire probe
+    for (const w of [...rt.weakPoints]) guts(g).destroyWeakPoint(w); // no organ windows either
+    let firedAtMega = false; // a raid tracer ORIGINATING at the effigy's pad = a burned cast
+    for (let i = 0; i < 60 * 10; i++) {
+      g.advance(SIM_DT);
+      if (guts(g).megaShots.some((s) => s.x0 === slot.x && s.y0 === slot.y)) firedAtMega = true;
+    }
+    expect(firedAtMega).toBe(false); // nothing to throw at a mountain — its kit stays on the field
+    expect('effigy' in rt.dmgByKind).toBe(false); // and the ADAPT ledger never saw a ghost entry
+  });
+});
+
 describe('Daily Mega variant (docs/MEGA-BOSS.md §daily)', () => {
   it('the plan roll is deterministic per key, rare, and registry-driven', () => {
     const a = generateDaily('2026-07-07');

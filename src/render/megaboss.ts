@@ -10,7 +10,7 @@
 //                          floods on a heart exposure, and guts out through the death sequence.
 // Everything keys off def palette + kind — a future Mega Boss gets a full presentation for free.
 
-import { WIDTH, HEIGHT } from '../core/map';
+import { WIDTH, HEIGHT, nucleusPoint } from '../core/map';
 import { hexRgb, rgba } from './theme';
 import { themedMegaColor } from './wardrobeFx';
 import type { RenderState } from '../core/game';
@@ -52,6 +52,8 @@ let castFlashBig = false; // the resolved cast was a cataclysm
 let staggerEase = 0; // smoothed 0..1 slump into/out of the STAGGERED posture (cosmetic lerp)
 const wpPrevState = new Map<number, MegaWeakPoint['state']>(); // spec → last-frame state
 const wpRuptureT = new Map<number, number>(); // spec → renderer-now of the rupture
+let prevLashWf = 0; // last-frame HIVE LASH windup (completion edge → strike afterimage)
+let lashFlashT = -10; // renderer-now of the last landed lash
 
 // ── The body (under entities) ────────────────────────────────────────────────
 export function drawMegaBody(ctx: Ctx, v: MegaView, now: number): void {
@@ -157,6 +159,26 @@ export function drawMegaBody(ctx: Ctx, v: MegaView, now: number): void {
         ctx.arc(sx, baseY + sag2 + ((drip - 0.7) / 0.3) * 46, 1.8, 0, Math.PI * 2);
         ctx.fill();
       }
+    }
+    // LONE SIEGE (docs/MEGA-BOSS.md §lone siege): the mass DRAPES — long feeler curtains sink
+    // toward the build rows (the descended body the raid chips at), swaying hungrily. Body-chip
+    // tracers terminate on this hanging flesh, and the whole silhouette says it is HERE now.
+    if (v.siege !== null) {
+      ctx.lineCap = 'round';
+      for (let i = 0; i < 5; i++) {
+        const h = Math.abs(Math.sin(i * 91.3 + 7.7) * 10403.9) % 1;
+        const sx = (0.14 + h * 0.72) * WIDTH;
+        const len = 300 + h * 260 + Math.sin(now * 0.5 + i * 1.9) * 24;
+        const sway = Math.sin(now * 0.7 + i * 2.3) * (18 + h * 14);
+        ctx.strokeStyle = rgba(body, 0.75 * alpha);
+        ctx.lineWidth = 5 + h * 4;
+        ctx.beginPath();
+        ctx.moveTo(sx, baseY - 8);
+        ctx.bezierCurveTo(sx - sway * 0.4, baseY + len * 0.4, sx + sway, baseY + len * 0.75, sx + sway * 0.5, baseY + len);
+        ctx.stroke();
+        glow(ctx, sx + sway * 0.5, baseY + len, 7, rgba(glo, 0.3 * alpha)); // the feeler tip the raid bites at
+      }
+      ctx.lineCap = 'butt';
     }
   }
 
@@ -655,6 +677,66 @@ export function drawMegaOrgans(ctx: Ctx, v: MegaView, now: number): void {
       if (wp.hitFlash > 0) glow(ctx, ox, oy, 29, `rgba(255,255,255,${Math.min(0.7, wp.hitFlash * 4)})`);
     }
   }
+
+  // ── LONE SIEGE — the reaching arm (docs/MEGA-BOSS.md §lone siege) ──
+  // While the organism sieges, a lash arm hangs coiled beneath the maw; across a HIVE LASH
+  // windup it EXTENDS toward the Nucleus with a rising charge (the interrupt read), and the
+  // frame a windup completes it snaps through as a strike afterimage. Interrupted windups
+  // (the charge dropping mid-way) simply retract — no strike.
+  if (v.siege !== null) {
+    const wf = v.siege.windupFrac;
+    if (prevLashWf > 0.93 && wf === 0) lashFlashT = now; // completion edge — the strike frame
+    prevLashWf = wf;
+    const flash = Math.max(0, 1 - (now - lashFlashT) / 0.24);
+    const x0 = WIDTH / 2;
+    const y0 = rootY + 12;
+    const nx = nucleusPoint.x;
+    const ny = nucleusPoint.y - 26;
+    if (wf > 0 || flash > 0) {
+      const ext = flash > 0 ? 1 : 0.12 + 0.78 * wf; // holds just short of the Core until it lands
+      const tx = x0 + (nx - x0) * ext;
+      const ty = y0 + (ny - y0) * ext;
+      const midX = (x0 + tx) / 2 + Math.sin(now * 7) * 18 * wf * (1 - flash);
+      const midY = (y0 + ty) / 2 - 30;
+      const w = 7 + wf * 5;
+      ctx.lineCap = 'round';
+      ctx.strokeStyle = rgba(body, 0.9);
+      ctx.lineWidth = w + flash * 3;
+      ctx.beginPath();
+      ctx.moveTo(x0, y0);
+      ctx.quadraticCurveTo(midX, midY, tx, ty);
+      ctx.stroke();
+      ctx.strokeStyle = rgba(glo, 0.35 + wf * 0.5 + flash * 0.4);
+      ctx.lineWidth = Math.max(1.6, w * 0.4);
+      ctx.stroke();
+      ctx.lineCap = 'butt';
+      // The claw tip: a charge bulb burning hotter as the strike closes in.
+      glow(ctx, tx, ty, 10 + wf * 16 + flash * 18, rgba(glo, 0.45 + wf * 0.4 + flash * 0.4));
+      // Imminent warning: the Nucleus itself rings once the windup passes 70%.
+      if (wf > 0.7) {
+        ctx.strokeStyle = rgba('255, 93, 115', ((wf - 0.7) / 0.3) * (0.45 + pulse(now, 0.24, 0, 0.3)));
+        ctx.lineWidth = 2.4;
+        ctx.beginPath();
+        ctx.arc(nucleusPoint.x, nucleusPoint.y, 30 + pulse(now, 0.24) * 6, 0, TAU);
+        ctx.stroke();
+      }
+    } else {
+      // Between windups: the arm coils under the maw, writhing — the threat never leaves.
+      ctx.lineCap = 'round';
+      for (let i = 0; i < 2; i++) {
+        const side = i === 0 ? -1 : 1;
+        const sway = Math.sin(now * 1.4 + i * 2.1) * 7;
+        ctx.strokeStyle = rgba(body, 0.8);
+        ctx.lineWidth = 6 - i * 2;
+        ctx.beginPath();
+        ctx.moveTo(x0 + side * 10, y0 - 6);
+        ctx.quadraticCurveTo(x0 + side * (22 + sway), y0 + 22, x0 + side * (10 + sway * 0.6), y0 + 44 + Math.sin(now * 1.1 + i) * 5);
+        ctx.stroke();
+      }
+      ctx.lineCap = 'butt';
+      glow(ctx, x0, y0 + 18, 12, rgba(glo, 0.2 + pulse(now, 1.6, 0, 0.15)));
+    }
+  }
 }
 
 function easeOut(t: number): number {
@@ -823,13 +905,28 @@ function crack(ctx: Ctx, x: number, y: number, seed: number, dim: number): void 
 // ── Raid-fire tracers ────────────────────────────────────────────────────────
 export function drawMegaShots(ctx: Ctx, rs: RenderState): void {
   for (const s of rs.megaShots) {
-    const a = Math.max(0, s.life / 0.14);
-    ctx.strokeStyle = rgba(hexRgb(s.color), 0.55 * a);
-    ctx.lineWidth = 2.2 * a;
+    const a = Math.min(1, Math.max(0, s.life / 0.14));
+    const c = hexRgb(s.color);
+    // A soft energy sheath under a hot core — raid fire reads as ARTILLERY, not a hairline.
+    ctx.lineCap = 'round';
+    ctx.strokeStyle = rgba(c, 0.22 * a);
+    ctx.lineWidth = 7 * a;
     ctx.beginPath();
     ctx.moveTo(s.x0, s.y0);
     ctx.lineTo(s.x1, s.y1);
     ctx.stroke();
+    ctx.strokeStyle = rgba(c, 0.85 * a);
+    ctx.lineWidth = 2.6 * a;
+    ctx.stroke();
+    ctx.strokeStyle = `rgba(255,255,255,${0.5 * a})`;
+    ctx.lineWidth = a;
+    ctx.stroke();
+    ctx.lineCap = 'butt';
+    // Impact tick at the far end — the hit visibly LANDS on the organ / body / Nucleus.
+    ctx.fillStyle = rgba(c, 0.7 * a);
+    ctx.beginPath();
+    ctx.arc(s.x1, s.y1, 2.5 + 2 * a, 0, TAU);
+    ctx.fill();
   }
 }
 

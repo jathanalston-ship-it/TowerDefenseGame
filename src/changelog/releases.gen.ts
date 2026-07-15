@@ -898,6 +898,14 @@ export const RELEASES: Release[] = [
       {
         "cat": "UI",
         "text": "Idle Harvest satisfaction pass: the grow ceremony (buys were literally silent)"
+      },
+      {
+        "cat": "Gene Cards",
+        "text": "Equipment visual overhaul: genuine sprites + at-a-glance card language"
+      },
+      {
+        "cat": "Towers",
+        "text": "Gene drafts read the live board: tower cards only for FIELDED kinds"
       }
     ]
   },

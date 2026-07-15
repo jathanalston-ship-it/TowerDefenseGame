@@ -546,6 +546,26 @@ export const MEGA = {
   staggerDurSec: 6, // seconds toppled
   staggerDamageAmp: 0.4, // body takes ×(1+this) while staggered (stacks with a heart exposure)
   staggerFloatText: 'STAGGERED',
+  // LONE SIEGE (docs/MEGA-BOSS.md §lone siege): a Mega Boss never lets the fight stall. Once the
+  // wave plan is spent and the field is bare (the mega is the LAST thing standing), it TURNS ON
+  // THE HIVE: its mass sinks over the build rows (every emplacement connects — siegeBodyY),
+  // reinforcements escalate, and it winds up direct HIVE LASHES — telegraphed, interruptible
+  // (eye interrupt / stagger), each landed blow TIGHTENING the cadence. The lash is the raid's
+  // DPS-race clock: kill it, keep interrupting, or bleed out. Its own spawns never break the
+  // siege — only a resumed wave plan does.
+  siegeGraceSec: 8, // quiet seconds before the organism turns on the Hive
+  siegeLashEvery: 13, // opening seconds between lashes (the first arrives on the half-beat)
+  siegeLashEveryMin: 8, // the cadence floor as landed blows compound
+  siegeLashRamp: 0.88, // per landed lash: next interval × this
+  siegeLashTelegraph: 3.2, // windup seconds — the interrupt window
+  siegeLashDamage: 5, // Hive integrity per landed lash at tier 1…
+  siegeLashPerTier: 2, // …+ per tier above 1 (deep encounters hit harder)
+  siegeBodyY: 740, // the sieging mass hangs to the front build row — every tower reaches the body
+  siegeBodyGap: 40, // …but never closer than this above a given emplacement (a chip stays a reach)
+  siegeChipMult: 0.45, // reaching for the Hive EXPOSES it — body chips bite deeper than bodyChipMult
+  siegeReinforceEvery: 45, // seconds of siege per reinforcement surge step…
+  siegeReinforceCap: 3, // …capped (the siege pressures through the LASH, not a corpse flood)
+  siegeFloatText: 'IT TURNS ON THE HIVE',
   // Encounter cadence — data, not scattered mode checks.
   campaignEvery: 10, // one Mega Boss every N campaign stages … forever (procedural scaling)
   infiniteEvery: 20, // one every N endless waves
@@ -698,6 +718,13 @@ export interface MegaRuntime {
   adaptKind: string | null;
   adaptUntil: number;
   adaptMult: number;
+  // LONE SIEGE (docs/MEGA-BOSS.md §lone siege): time spent as the last thing standing, the
+  // countdown to the next Hive Lash, the live windup (0 = none), and landed-lash count (the
+  // escalation exponent). All reset the moment a wave plan resumes.
+  siegeT: number;
+  lashT: number;
+  lashWindup: number;
+  lashes: number;
   // Encounter statistics (RunStats + collection + achievements).
   wpDestroyed: number;
   wpKinds: WeakPointKind[];
@@ -749,6 +776,10 @@ export function createMegaRuntime(def: MegaBossDef, enc: MegaEncounter, encounte
     adaptKind: null,
     adaptUntil: 0,
     adaptMult: 1,
+    siegeT: 0,
+    lashT: 0,
+    lashWindup: 0,
+    lashes: 0,
     wpDestroyed: 0,
     wpKinds: [],
     interrupts: 0,

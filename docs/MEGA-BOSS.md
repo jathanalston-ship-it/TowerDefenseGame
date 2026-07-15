@@ -60,7 +60,11 @@ choreographs its own openings; phases change the choreography. Destroyed organs 
 **Targeting — every damage source joins the raid, no manual control:**
 
 - **Projectile towers** (`towerMegaFire`): prioritize an open weak point in range; with an
-  empty field they chip the armored body at `MEGA.bodyBandY` (`bodyChipMult`).
+  empty field they chip the armored body (`bodyChipMult`), each striking the **highest point
+  of the mass its range reaches** (`megaBodyY` — long guns hit the high band at
+  `MEGA.bodyBandY`, short guns need the §lone siege descent). Pure-tempo kinds with
+  `damage: 0` (the Effigy) are **skipped** — they keep their field kit instead of burning
+  casts on zero-damage tracers.
 - **Beam towers** get the same two legs at their own seams (beams branch before
   `towerMegaFire`): the **Coil** channels an organ (lock encodes as `beamTarget = -1000 -
   spec`) and falls to the body chip when no window is open; the **Siphon** tethers an organ
@@ -82,7 +86,7 @@ choreographs its own openings; phases change the choreography. Destroyed organs 
 
 | Mode | Cadence | Notes |
 |---|---|---|
-| Campaign | every `MEGA.campaignEvery` (10) stages, forever | arrives wave 1, persists all stage; the finale holds (overtime reinforcements) until it falls |
+| Campaign | every `MEGA.campaignEvery` (10) stages, forever | arrives wave 1, persists all stage; the finale holds — the organism enters the **§lone siege** — until it falls |
 | Infinite | every 20 waves | skipped while one lives (never two) |
 | Boss Rush | every 5 waves | oversees the siege column |
 | Daily | ~1-in-`dailyMegaOdds` (7) days | the **Mega variant**: no wave plan — the boss evolves (`dailyEvolveSec` stacks: haste + regen), reinforcements pulse, the run ends only when the Hive **or** the boss dies |
@@ -154,6 +158,44 @@ registry-driven.
 - **ADAPT** (Myriad): studies the per-tower-kind damage ledger (`rt.dmgByKind`, tracked at the
   raid-fire seams) and armors against the argmax kind for its duration (`×magnitude` damage
   from that kind only; heroes bypass it). The HUD chips it as `ADAPTED·<KIND>`.
+
+## §lone siege (2026-07) — the last thing standing turns on the Hive
+
+Before this pass, a mega whose wave plan was spent just **sat there soaking** — its aura verbs
+had no horde to buff, broods melted on arrival, half the board couldn't even reach it, and the
+only real threat was the last-phase cataclysm (~16 integrity across a 3-minute overtime). Now
+the encounter can never stall (all state in `MegaRuntime.siegeT/lashT/lashWindup/lashes`, all
+tunables in `MEGA.siege*`, everything gated on a live mega ⇒ golden-safe):
+
+- **Engage**: once the wave plan is spent (`spawnedAll`, empty queues) and the field has been
+  bare for `siegeGraceSec` (8s), the organism **turns on the Hive** (`IT TURNS ON THE HIVE`,
+  the HUD chips `HIVE SIEGE`). Its own broods/reinforcements never break the siege — only a
+  resumed wave plan (the next wave) stands it down. Applies to EVERY encounter: the campaign
+  finale hold, infinite/rush mid-run gaps, and the Daily variant.
+- **HIVE LASH** — the pressure clock: on a cadence that opens at `siegeLashEvery` (13s) and
+  **tightens with every landed blow** (`× siegeLashRamp` per lash, floored at
+  `siegeLashEveryMin`), it winds up a `siegeLashTelegraph` (3.2s) reaching arm and strikes the
+  Core for `siegeLashDamage + siegeLashPerTier·(tier−1)` integrity. A committed windup resolves
+  through stragglers, but a **new** one only begins over a bare field. Counterplay is the
+  rotation's own: an **eye interrupt or a stagger drops the windup** (counts as an interrupt,
+  forces a re-approach) — stalling is a losing race, interrupting buys a full beat.
+- **The descent**: while sieging, the mass hangs to the front build row — `megaBodyY` lets
+  every emplacement (down to the shortest reach) chip the body, and the chip bites deeper
+  (`siegeChipMult` 0.45 vs `bodyChipMult` 0.3): reaching for the Hive **exposes** it.
+- **Escalation**: the quiet-field reinforcement pulse surges with siege time
+  (`max(evolveStacks, ⌊siegeT/siegeReinforceEvery⌋ capped at siegeReinforceCap)` extra adds +
+  meaner mixes) — the Daily's own evolution ladder is unchanged by construction (`max`).
+- **Presentation** (`render/megaboss.ts`): the arm coils under the maw between lashes, extends
+  toward the Nucleus across the windup (charge bulb + a nucleus warning ring past 70%), snaps
+  through as a strike afterimage on completion (interrupted windups just retract), and the
+  sieging mass **drapes** — feeler curtains sink to the chip band so body tracers visibly bite
+  hanging flesh. Raid tracers themselves upgraded from hairlines to sheath+core artillery
+  lines with impact ticks. Audio rides existing cues (`megaAbility` windup, `megaCataclysm`
+  strike, `megaPhase` on the turn).
+
+Verified against the report that motivated it (campaign stage 10, 16-tower median board):
+overtime went from **16 integrity lost in 184s of nothing** to **~60 integrity of drumbeat
+pressure with every tower firing** — a real DPS race at the reward model's expected pace.
 
 ## Authoring a new Mega Boss
 

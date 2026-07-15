@@ -216,3 +216,6 @@
 - `7a312c4` **[Towers]** Contain the giant-tower blowup: clamp every body-growth factor + hard ceiling
 - `b4f820b` **[UI]** Quick-salvage grab chips: one-tap rarity sweeps in Salvage mode
 - `b07f44c` **[UI]** Idle Harvest satisfaction pass: the grow ceremony (buys were literally silent)
+- ⚑ `98401c3` **[Framework]** Chronicle roll for the salvage + harvest + containment batch _(internal)_
+- `2d8a239` **[Gene Cards]** Equipment visual overhaul: genuine sprites + at-a-glance card language
+- `2b95ab6` **[Towers]** Gene drafts read the live board: tower cards only for FIELDED kinds

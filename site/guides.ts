@@ -104,6 +104,9 @@ export const GUIDES: Guide[] = [
       { h: 'Weak-point surgery', body: [
         'Weak points descend into reach and each destroyed organ removes a threat or triggers a consequence — the raid is a sequence of surgical decisions under pressure. Killing efficiency (speed, integrity kept, organs burned, casts interrupted) grades the reward payout.',
       ] },
+      { h: 'The lone siege', body: [
+        'When the wave plan is spent and the Mega Boss is the last thing standing, it TURNS ON THE HIVE: its mass drapes down into every tower’s reach (and takes deeper body damage for it), reinforcements escalate, and it winds up direct HIVE LASHES — telegraphed strikes on your integrity that come FASTER with every landed blow. Stalling is a losing race. Burst an eye mid-windup or topple it with a weak-point push to defuse a lash and buy a full beat.',
+      ] },
       { h: 'Preparation', body: [
         'Raids reward sustained single-target damage more than swarm control. Bring a beam or high-cadence core to your line before stage 10, 20, 30… and keep your hero alive: their raid-fire contribution is substantial.',
       ] },

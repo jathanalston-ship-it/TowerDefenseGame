@@ -1,6 +1,6 @@
 {
-  "lastSha": "b07f44c1e6be507eb5a1c2b994d31f9e7097cf8e",
-  "commitsSinceDraft": 0,
+  "lastSha": "2b95ab64d86b6cf3e6342279a4db8b84a9a3a000",
+  "commitsSinceDraft": 3,
   "content": {
     "tower": [
       "needle",
@@ -2377,6 +2377,14 @@
         {
           "cat": "UI",
           "text": "Idle Harvest satisfaction pass: the grow ceremony (buys were literally silent)"
+        },
+        {
+          "cat": "Gene Cards",
+          "text": "Equipment visual overhaul: genuine sprites + at-a-glance card language"
+        },
+        {
+          "cat": "Towers",
+          "text": "Gene drafts read the live board: tower cards only for FIELDED kinds"
         }
       ]
     }
@@ -3963,6 +3971,30 @@
       "date": "2026-07-15",
       "cat": "UI",
       "text": "Idle Harvest satisfaction pass: the grow ceremony (buys were literally silent)",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "98401c3a7efb5349fb40e556635fc1321ec3022f",
+      "date": "2026-07-15",
+      "cat": "Framework",
+      "text": "Chronicle roll for the salvage + harvest + containment batch",
+      "internal": true,
+      "needsReview": true
+    },
+    {
+      "sha": "2d8a239e1a359529cc7a06339336121cbbd144d8",
+      "date": "2026-07-15",
+      "cat": "Gene Cards",
+      "text": "Equipment visual overhaul: genuine sprites + at-a-glance card language",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "2b95ab64d86b6cf3e6342279a4db8b84a9a3a000",
+      "date": "2026-07-15",
+      "cat": "Towers",
+      "text": "Gene drafts read the live board: tower cards only for FIELDED kinds",
       "internal": false,
       "needsReview": false
     }

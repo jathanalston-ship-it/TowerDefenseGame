@@ -412,6 +412,10 @@ export interface MegaBossView {
   deathT: number; // > 0: the death sequence is playing
   weakPoints: MegaWeakPoint[];
   effects: string[]; // short HUD labels for the live manipulations (e.g. 'HASTE', 'LEECH')
+  // LONE SIEGE (docs/MEGA-BOSS.md §lone siege): null while shepherding a wave. While sieging,
+  // windupFrac is the live HIVE LASH charge (0 between lashes, 0→1 across a windup) — the
+  // renderer's reaching-arm + strike-warning read.
+  siege: { windupFrac: number } | null;
 }
 
 /** A timed, run-wide friendly buff (the `buff` ability primitive). Keyed by `stat`; the
@@ -3216,15 +3220,50 @@ export class Game {
         }
       }
     }
+    // ── LONE SIEGE (docs/MEGA-BOSS.md §lone siege): the organism never lets the fight stall.
+    //    Once the wave plan is spent and the field has gone bare, it TURNS ON THE HIVE — direct,
+    //    telegraphed HIVE LASHES on a cadence that tightens with every landed blow. Its own
+    //    reinforcements never break the siege; only a resumed wave plan (next wave) does. The
+    //    windup shares the rotation's counterplay: an eye interrupt or a stagger drops it. ──
+    const planActive = !this.spawnedAll || this.spawnQueue.length > 0 || this.rushPending.length > 0;
+    const quiet = !planActive && this.enemies.length === 0;
+    if (planActive) {
+      rt.siegeT = 0;
+      rt.lashWindup = 0;
+    } else if (quiet || rt.siegeT > 0) {
+      const wasSieging = rt.siegeT >= MEGA.siegeGraceSec;
+      rt.siegeT += dt;
+      if (!wasSieging && rt.siegeT >= MEGA.siegeGraceSec) { // the turn: it notices the Hive
+        rt.lashT = MEGA.siegeLashEvery * 0.5; // first lash on the half-beat (the opening convention)
+        this.floats.push({ x: WIDTH / 2, y: MEGA.anchorY + 84, text: MEGA.siegeFloatText, color: '#ff5d73', life: 2.4 });
+        this.pushSfx('megaPhase');
+      }
+      if (rt.siegeT >= MEGA.siegeGraceSec && rt.stunned <= 0 && this.time >= rt.staggeredUntil) {
+        if (rt.lashWindup > 0) { // a committed windup resolves regardless of stragglers…
+          rt.lashWindup -= dt;
+          if (rt.lashWindup <= 0) this.landSiegeLash(def, rt);
+        } else if (this.enemies.length === 0) { // …but a NEW one only begins over a bare field
+          rt.lashT -= dt;
+          if (rt.lashT <= 0) {
+            rt.lashWindup = MEGA.siegeLashTelegraph;
+            this.floats.push({ x: nucleusPoint.x, y: nucleusPoint.y - 40, text: 'HIVE LASH INCOMING', color: '#ffd24d', life: MEGA.siegeLashTelegraph });
+            this.pushSfx('megaAbility');
+          }
+        }
+      }
+    }
     // ── Reinforcement loop: the Daily variant ALWAYS pulses; every other encounter pulses only
-    //    when the field has gone quiet (overtime — the organism refuses to let the fight stall). ──
-    const quiet = this.spawnedAll && this.spawnQueue.length === 0 && this.rushPending.length === 0 && this.enemies.length === 0;
+    //    while quiet (overtime). A long siege SURGES the pulse — bigger, meaner mixes — but the
+    //    surge is capped: the siege pressures through the lash, not a corpse flood. `surge` takes
+    //    the max of the daily evolution ladder and the siege ladder so the Daily's own escalation
+    //    is unchanged and every other encounter climbs the same steps while the siege holds. ──
     if (rt.encounter === 'daily' || quiet) {
       rt.reinforceT += dt;
       if (rt.reinforceT >= MEGA.dailyReinforceSec) {
         rt.reinforceT = 0;
-        const n = MEGA.dailyReinforceBase + rt.evolveStacks;
-        const pool: EnemyKind[] = rt.evolveStacks >= 4 ? ['rusher', 'lasher', 'warden'] : rt.evolveStacks >= 2 ? ['runner', 'rusher', 'lasher'] : ['runner', 'rusher'];
+        const surge = Math.max(rt.evolveStacks, Math.min(MEGA.siegeReinforceCap, Math.floor(rt.siegeT / MEGA.siegeReinforceEvery)));
+        const n = MEGA.dailyReinforceBase + surge;
+        const pool: EnemyKind[] = surge >= 4 ? ['rusher', 'lasher', 'warden'] : surge >= 2 ? ['runner', 'rusher', 'lasher'] : ['runner', 'rusher'];
         for (let i = 0; i < n; i++) this.spawnNear(this.megaRng.pick(pool), 60 + this.megaRng.next() * (WIDTH - 120), 28);
       }
     }
@@ -3364,6 +3403,25 @@ export class Game {
     }
   }
 
+  /** A HIVE LASH lands (docs/MEGA-BOSS.md §lone siege): the sieging organism strikes the Core
+   *  directly. The windup was the whole counterplay — an eye interrupt or a stagger drops it —
+   *  and every landed blow TIGHTENS the cadence, so stalling the raid is a losing race. */
+  private landSiegeLash(def: MegaBossDef, rt: MegaRuntime): void {
+    rt.lashes++;
+    rt.lashT = Math.max(MEGA.siegeLashEveryMin, MEGA.siegeLashEvery * Math.pow(MEGA.siegeLashRamp, rt.lashes));
+    const dmg = Math.round(MEGA.siegeLashDamage + MEGA.siegeLashPerTier * Math.max(0, rt.tier - 1));
+    if (!this.god) {
+      this.integrity -= dmg;
+      this.statIntegrityLost += dmg; // same ledger as siege shells + the cataclysm
+      this.hiveRecentDamage += dmg;
+      this.hiveHitPulse = Math.min(1, this.hiveHitPulse + 0.5 + dmg * 0.012);
+    }
+    this.floats.push({ x: nucleusPoint.x, y: nucleusPoint.y - 22, text: `HIVE LASH −${dmg}`, color: '#ff5d73', life: 1.8 });
+    this.spawnParticles(nucleusPoint.x, nucleusPoint.y, PARTICLE.breach, def.palette.glow);
+    this.megaShots.push({ x0: WIDTH / 2, y0: MEGA.anchorY + 70, x1: nucleusPoint.x, y1: nucleusPoint.y, life: 0.3, color: def.palette.glow });
+    this.pushSfx('megaCataclysm');
+  }
+
   /** Open every phaseEntry weak point of the CURRENT phase (spawn + phase shifts). */
   private openPhaseWeakPoints(def: MegaBossDef, rt: MegaRuntime): void {
     for (let i = 0; i < def.weakPoints.length; i++) {
@@ -3418,12 +3476,34 @@ export class Game {
     return best;
   }
 
+  /** Between-window body-chip aim point for a tower at height `ty` with `range` reach. The
+   *  organism is a WALL: each tower strikes the HIGHEST point of its mass it can reach, so a
+   *  long gun's tracer crosses the field instead of stubbing out at its own muzzle. While it
+   *  SIEGES (docs/MEGA-BOSS.md §lone siege) the mass hangs to the front build row, so even the
+   *  shortest reach connects; while shepherding only the high band exists (front-row reach —
+   *  unchanged). The 40px slack absorbs the horizontal clamp drift, so the caller's distance
+   *  check always passes at the returned height. */
+  private megaBodyY(ty: number, range: number): number {
+    const rt = this.mega!;
+    const low = rt.siegeT >= MEGA.siegeGraceSec ? Math.max(MEGA.bodyBandY, Math.min(MEGA.siegeBodyY, ty - MEGA.siegeBodyGap)) : MEGA.bodyBandY;
+    return Math.max(MEGA.bodyBandY, Math.min(low, ty - (range - 40)));
+  }
+
+  /** Body-chip severity: reaching for the Hive EXPOSES the organism (§lone siege), so a sieging
+   *  body takes the deeper siege chip — the risk half of the trade its lash pressure opens. */
+  private megaChipMult(): number {
+    return this.mega!.siegeT >= MEGA.siegeGraceSec ? MEGA.siegeChipMult : MEGA.bodyChipMult;
+  }
+
   /** Tower raid-fire: burst an open weak point (priority) or chip the anchored body when the field
    *  is empty. Returns true when the shot was consumed (the caller skips its normal cast). */
   private towerMegaFire(t: Tower, def: TowerDef, prog: TowerMods, bk: ResolvedBranchKit | null, dmgMult: number, rateMult: number): boolean {
     // The Hive outranks the raid: while the Core is threatened, every tower falls back to
     // normal enemy targeting (megaRaidYield — derived once per tick in megaBossSystem).
     if (this.megaRaidYield) return false;
+    // Pure-tempo organs (the Effigy's dread field) carry no damage — nothing to throw at a
+    // mountain. They keep their own kit instead of burning casts on zero-damage tracers.
+    if (def.damage <= 0) return false;
     const rt = this.mega!;
     // ADAPT (§functional overhaul): the boss's learned resistance answers ONE tower kind.
     // The per-kind ledger below is what the verb studies — heroes bypass both.
@@ -3441,9 +3521,10 @@ export class Game {
     // Body chip: only when there is NOTHING else to shoot (the raid's between-window sustain).
     if (this.enemies.length === 0) {
       const bx = Math.max(WIDTH * 0.2, Math.min(WIDTH * 0.8, t.x));
-      if (dist2(t.x, t.y, bx, MEGA.bodyBandY) <= range * range) {
-        const raw = def.damage * dmgMult * MEGA.bodyChipMult * adaptMul;
-        this.megaHitBody(raw, t.x, t.y, bx, MEGA.bodyBandY, TOWER_DEFS[t.kind].color);
+      const by = this.megaBodyY(t.y, range);
+      if (dist2(t.x, t.y, bx, by) <= range * range) {
+        const raw = def.damage * dmgMult * this.megaChipMult() * adaptMul;
+        this.megaHitBody(raw, t.x, t.y, bx, by, TOWER_DEFS[t.kind].color);
         rt.dmgByKind[t.kind] = (rt.dmgByKind[t.kind] ?? 0) + raw;
         t.cooldown = def.fireInterval / rateMult;
         return true;
@@ -3490,6 +3571,11 @@ export class Game {
     switch (c.effect) {
       case 'interrupt':
         if (rt.telegraph !== null) { rt.telegraph = null; rt.interrupts++; this.statMegaInterrupts++; interrupted = true; }
+        if (rt.lashWindup > 0) { // the reaching arm recoils — a wound-up HIVE LASH is defused too
+          rt.lashWindup = 0;
+          rt.lashT = Math.max(rt.lashT, 4); // …and must re-approach, not instantly re-wind
+          if (!interrupted) { rt.interrupts++; this.statMegaInterrupts++; interrupted = true; }
+        }
         rt.stunned = Math.max(rt.stunned, c.seconds ?? 4);
         break;
       case 'expose':
@@ -3540,6 +3626,7 @@ export class Game {
         rt.staggeredUntil = this.time + MEGA.staggerDurSec;
         rt.stunned = Math.max(rt.stunned, MEGA.staggerDurSec);
         rt.telegraph = null; // whatever it was winding up dies with its footing
+        if (rt.lashWindup > 0) { rt.lashWindup = 0; rt.lashT = Math.max(rt.lashT, 4); } // …including a reaching HIVE LASH (§lone siege)
         this.floats.push({ x: WIDTH / 2, y: MEGA.anchorY + 96, text: MEGA.staggerFloatText, color: '#ffd24d', life: 2.4 });
         this.pushSfx('megaStagger');
       }
@@ -3559,6 +3646,7 @@ export class Game {
     rt.hp = 0;
     rt.deathT = 3.5; // the renderer's multi-stage collapse window
     rt.telegraph = null;
+    rt.lashWindup = 0; // a reaching lash dies with it
     rt.active.length = 0;
     this.megaFx = { ...NEUTRAL_MEGA_FX }; // its grip on the battlefield releases IMMEDIATELY
     const killSec = this.time - rt.spawnedAt;
@@ -3615,7 +3703,7 @@ export class Game {
         this.heroMasteryAccrual[h.kind].damage += dmg;
         h.attackCd = def.attackInterval / this.heroHaste(h);
       } else if (wp === null && dist2(h.x, h.y, bx, MEGA.bodyBandY) <= reach * reach) {
-        const dmg = def.attackDamage * this.heroDamageMult(h) * MEGA.bodyChipMult;
+        const dmg = def.attackDamage * this.heroDamageMult(h) * this.megaChipMult();
         this.megaHitBody(dmg, h.x, h.y, bx, MEGA.bodyBandY, HERO_DEFS[h.kind].color);
         this.heroMasteryAccrual[h.kind].damage += dmg;
         h.attackCd = def.attackInterval / this.heroHaste(h);
@@ -4067,9 +4155,10 @@ export class Game {
       // armored chip, no resonance ramp on dead chitin (docs/MEGA-BOSS.md §targeting).
       if (this.enemies.length === 0) {
         const bx = Math.max(WIDTH * 0.2, Math.min(WIDTH * 0.8, t.x));
-        if (dist2(t.x, t.y, bx, MEGA.bodyBandY) <= r2) {
-          const raw = def.damage * dmgMult * MEGA.bodyChipMult * dt;
-          this.megaHitBody(raw, t.x, t.y, bx, MEGA.bodyBandY, TOWER_DEFS.coil.color);
+        const by = this.megaBodyY(t.y, range);
+        if (dist2(t.x, t.y, bx, by) <= r2) {
+          const raw = def.damage * dmgMult * this.megaChipMult() * dt;
+          this.megaHitBody(raw, t.x, t.y, bx, by, TOWER_DEFS.coil.color);
           rt.dmgByKind.coil = (rt.dmgByKind.coil ?? 0) + raw;
           t.beamHeat = Math.max(0, t.beamHeat - BEAM.heatDecayPerSec * dt);
           t.cooldown = Math.max(0, t.cooldown - dt);
@@ -4248,12 +4337,13 @@ export class Game {
       }
       if (this.enemies.length === 0) {
         const bx = Math.max(WIDTH * 0.2, Math.min(WIDTH * 0.8, t.x));
-        if (dist2(t.x, t.y, bx, MEGA.bodyBandY) <= range * range) {
-          const raw = def.damage * dmgMult * MEGA.bodyChipMult * dt;
+        const by = this.megaBodyY(t.y, range);
+        if (dist2(t.x, t.y, bx, by) <= range * range) {
+          const raw = def.damage * dmgMult * this.megaChipMult() * dt;
           t.beamTarget = -1;
           t.beamX = bx;
-          t.beamY = MEGA.bodyBandY;
-          this.megaHitBody(raw, t.x, t.y, bx, MEGA.bodyBandY, TOWER_DEFS.siphon.color);
+          t.beamY = by;
+          this.megaHitBody(raw, t.x, t.y, bx, by, TOWER_DEFS.siphon.color);
           rt.dmgByKind.siphon = (rt.dmgByKind.siphon ?? 0) + raw;
           t.beamHeat = Math.max(0, (t.beamHeat ?? 0) - SIPHON.gorgeDecayPerSec * dt);
           t.cooldown = Math.max(0, t.cooldown - dt);
@@ -7247,6 +7337,8 @@ export class Game {
     for (const a of rt.active) if (this.time < a.until) effects.push(a.kind.toUpperCase());
     if (phase.passive && this.time >= rt.passiveOffUntil) effects.push(`${phase.passive.kind.toUpperCase()}*`);
     if (rt.adaptKind !== null && this.time < rt.adaptUntil) effects.push(`ADAPTED·${TOWER_DEFS[rt.adaptKind as TowerKind].name.toUpperCase()}`);
+    const sieging = rt.siegeT >= MEGA.siegeGraceSec && rt.deathT === 0;
+    if (sieging) effects.push('HIVE SIEGE');
     return {
       defId: def.id,
       name: def.name,
@@ -7270,6 +7362,7 @@ export class Game {
       deathT: rt.deathT,
       weakPoints: rt.weakPoints,
       effects,
+      siege: sieging ? { windupFrac: rt.lashWindup > 0 ? 1 - rt.lashWindup / MEGA.siegeLashTelegraph : 0 } : null,
     };
   }
 

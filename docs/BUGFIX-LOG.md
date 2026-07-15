@@ -226,3 +226,26 @@ mount/resize — streams now land at the arena edge nearest each actual readout 
 portrait defaults preserved as fallback. (2) Pods stay width-constant but desktop widens them
 (`[data-layout='desktop'] .cv-slot { min-width: 240px }` + label-weighted button flex) —
 "Deploy FREE / Strain N / ♻ N" verified fully legible in a live 1366×768 run.
+
+## 2026-07-15 — Stage-10 Mega Boss "does not work": inert overtime + broken-looking raid fire
+
+**Symptom.** With the wave plan spent and the mega the only thing left, the fight went dead:
+the boss "just sits there and soaks" (probe: ONE 16-integrity cataclysm across a 184s
+overtime), most towers looked broken — no projectiles at all in lone stretches (raid fire is
+hitscan tracers), short-range/back-row kinds never fired (the body band at y 580 was
+front-row-only by design), and the Effigy visibly "fired" zero-damage tracers.
+
+**Root cause.** No lone-state behavior existed: the rotation's verbs are horde-buffs/summons
+(no horde ⇒ no-ops), overtime pressure was a 3-add trickle every 18s, `towerMegaFire` aimed
+every chip at the fixed high band and never skipped `damage: 0` kinds, and the 0.14s hairline
+tracers read as nothing at all.
+
+**Fixes** (docs/MEGA-BOSS.md §lone siege). (1) LONE SIEGE state: after 8 quiet seconds the
+organism turns on the Hive — telegraphed, interruptible HIVE LASHES on a self-tightening
+cadence (tier-scaled integrity damage; eye interrupts/staggers defuse a windup), escalating
+reinforcement surges, mass descent (`megaBodyY`: every emplacement connects, each striking the
+highest point its range reaches) with a deeper exposure chip (`siegeChipMult`). (2) `damage: 0`
+kinds skip raid fire. (3) Presentation: reaching lash arm + nucleus warning + strike afterimage,
+sieging drapes the tracers visibly bite, and sheath+core artillery tracers with impact ticks.
+Probe after: ~60 integrity of drumbeat pressure, 16/16 towers firing, same ~3min median kill —
+now a race, not a wait.
