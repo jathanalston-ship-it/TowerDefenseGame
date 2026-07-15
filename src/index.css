@@ -12029,3 +12029,41 @@ html[data-debug-layout] body::after {
 .ub-now-t { flex: 1 1 auto; min-width: 0; font-size: 12px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .ub-now-gain { flex: none; font-size: 11px; font-weight: 900; color: var(--gold); }
 .ub-now-go { flex: none; font-size: 10px; font-weight: 800; color: var(--text); background: rgba(255,255,255,0.06); border: 1px solid var(--line-strong); border-radius: var(--r-sm); padding: 3px 8px; white-space: nowrap; }
+
+/* ── PROGRESSIVE CONTAMINATION (VISUAL_IDENTITY.md §contamination) — the instrument itself is
+   slowly assimilated as the account deepens, on the SAME ladder as the evolving lab
+   (homeBaseTiers labEra 0..3 → .hub[data-contam] + the .hub-contam overlay). Era 1 seeds one
+   corner vein cluster; era 2 grows the opposite corner and infects the nav seam; era 3 deepens
+   the growth and its nodules begin to breathe. Additive ONLY: never re-tints theme tokens (the
+   cosmetic uithemes keep their lines), pointer-events:none, sits far below every modal (z 70 vs
+   4000+), and text panels stay clean. Stilled under prefers-reduced-motion. */
+.hub-contam { position: fixed; inset: 0; pointer-events: none; z-index: 70; }
+.hub-contam::before,
+.hub-contam::after {
+  content: '';
+  position: absolute;
+  width: min(32vw, 340px);
+  height: min(28vh, 272px);
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 300 240'%3E%3Cpath d='M0,0 C42,6 62,26 54,56 C38,42 14,34 0,30 Z' fill='%238a5fae' opacity='.15'/%3E%3Cg fill='none' stroke='%238a5fae' stroke-linecap='round'%3E%3Cpath d='M2,2 C60,18 90,10 128,44 S170,96 208,102' stroke-width='3' opacity='.5'/%3E%3Cpath d='M2,2 C30,60 18,96 44,132 S92,178 96,214' stroke-width='2.6' opacity='.45'/%3E%3Cpath d='M4,4 C70,40 130,30 170,20' stroke-width='2' opacity='.35'/%3E%3Cpath d='M44,132 C70,140 82,160 84,178' stroke-width='1.6' opacity='.4'/%3E%3Cpath d='M128,44 C140,70 160,78 158,96' stroke-width='1.5' opacity='.35'/%3E%3C/g%3E%3Cg fill='%23a06bd0'%3E%3Ccircle cx='208' cy='102' r='4' opacity='.5'/%3E%3Ccircle cx='96' cy='214' r='3.6' opacity='.5'/%3E%3Ccircle cx='158' cy='96' r='2.6' opacity='.4'/%3E%3Ccircle cx='84' cy='178' r='2.4' opacity='.4'/%3E%3Ccircle cx='170' cy='20' r='2.8' opacity='.4'/%3E%3C/g%3E%3Cg fill='%2395a050'%3E%3Ccircle cx='128' cy='44' r='2.2' opacity='.45'/%3E%3Ccircle cx='44' cy='132' r='2' opacity='.45'/%3E%3C/g%3E%3C/svg%3E") 0 0 / contain no-repeat;
+  opacity: calc(0.35 + var(--contam, 0.2) * 0.4);
+}
+.hub-contam::before { top: 0; left: 0; }
+.hub-contam::after { right: 0; bottom: 0; transform: rotate(180deg); display: none; }
+.hub-contam[data-era='2']::after,
+.hub-contam[data-era='3']::after { display: block; }
+.hub-contam[data-era='3']::before,
+.hub-contam[data-era='3']::after { animation: contamBreathe 7s ease-in-out infinite; }
+.hub-contam[data-era='3']::after { animation-delay: -3.5s; }
+@keyframes contamBreathe {
+  0%, 100% { filter: brightness(1); }
+  50% { filter: brightness(1.4); }
+}
+/* era 2+: the nav's inner seam picks up the infection (an ADDED edge — the theme border stays) */
+.hub[data-contam='2'] .hub-nav,
+.hub[data-contam='3'] .hub-nav { box-shadow: inset -2px 0 12px -8px rgba(168, 112, 210, calc(0.5 + var(--contam, 0.3) * 0.4)); }
+/* era 3: the wordmark itself glows faintly infected (drop-shadow — text stays gradient-clipped) */
+.hub[data-contam='3'] .hub-brand { filter: drop-shadow(0 0 9px rgba(178, 122, 220, 0.4)); }
+@media (prefers-reduced-motion: reduce) {
+  .hub-contam::before,
+  .hub-contam::after { animation: none !important; }
+}

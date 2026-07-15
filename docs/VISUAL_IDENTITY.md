@@ -168,6 +168,17 @@ feature that reads at gameplay radius:
 - **Bosses**: identity stays chassis-first (five body plans + per-def hue); per-def hide
   markings are the same-chassis tiebreaker and must stay readable at combat distance.
 
+### §contamination — the instrument is being assimilated too
+
+The hub chrome itself is slowly infected as the account deepens, on the SAME ladder as the
+evolving lab (`homeBaseTiers` labEra 0–3 → `.hub[data-contam]` + the `.hub-contam` overlay):
+era 1 seeds one corner vein cluster, era 2 grows the opposite corner and infects the nav seam,
+era 3 deepens the growth, sets the nodules breathing, and puts a faint infected glow on the
+wordmark. Rules: **additive only** (never re-tint theme tokens — cosmetic uithemes keep their
+lines), pointer-events none, far below every modal, text always legible, stilled under
+`prefers-reduced-motion`. A fresh account sees a perfectly clean instrument — the creep is the
+long-arc reward.
+
 ## 9. The screenshot test (definition of done)
 
 Any new screen must pass all five:

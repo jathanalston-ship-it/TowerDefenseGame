@@ -1,6 +1,6 @@
 # DIL_GRAPH.md — the Design Intelligence Layer (GENERATED — `npm run dil -- regen`)
 
-> **The project's brain** (docs/DIL.md). 809 nodes · 1488 edges, built from the live
+> **The project's brain** (docs/DIL.md). 809 nodes · 1490 edges, built from the live
 > registries + curated knowledge (src/dev/dil/). **Query it instead of searching the repo:**
 > `npm run dil -- node <id>` · `affects <id>` · `requires <id>` · `missing <kind> <edge>` ·
 > `checklist tower <kind>` · `find <text>`. Edge kinds are bidirectional (19 kinds).
@@ -158,6 +158,7 @@ graph LR
   system_hero_cinematics["Hero Ability Cinematics"] -->|modifies| system_rendering["Rendering & VFX"]
   system_nemesis["Nemesis & Trophies"] -->|modifies| system_engine["Sim Engine"]
   system_nemesis["Nemesis & Trophies"] -->|consumes| system_mega_bosses["Mega Bosses"]
+  system_rendering["Rendering & VFX"] -->|consumes| system_engine["Sim Engine"]
 ```
 
 ### Power Score Map
@@ -479,6 +480,7 @@ graph LR
   system_rendering["Rendering & VFX"] -->|consumes| system_audio["Audio"]
   system_hero_cinematics["Hero Ability Cinematics"] -->|consumes| system_heroes["Heroes"]
   system_nemesis["Nemesis & Trophies"] -->|consumes| system_mega_bosses["Mega Bosses"]
+  system_rendering["Rendering & VFX"] -->|consumes| system_engine["Sim Engine"]
 ```
 
 ### Presentation Couplings Map
@@ -729,7 +731,7 @@ _at: src/core/game.ts, src/core/combat.ts, src/core/status.ts, src/core/targetin
   - requiredBy ← `system:bosses`
   - requiredBy ← `system:mega-bosses`
   - requiredBy ← `system:rendering`
-  - _…198 more (query: `npm run dil -- node system:engine`)_
+  - _…199 more (query: `npm run dil -- node system:engine`)_
 
 ### `system:content-infra` — Content Infrastructure
 
@@ -1631,6 +1633,7 @@ _at: src/core/cosmetics.ts, src/core/wardrobe.ts, src/ui/PhenotypeLab.tsx, src/u
   - consumedBy ← `system:contracts` — marquee rows pay pt_gilded_* phenotypes under a pinned POOL INVARIANT: length % 3 == 0 and marquees EXACTLY at indices ≡ 0 mod 3 — one Gilded marquee per weekly window; off-stride marquees give some weeks two and others none
   - consumedBy ← `system:battle-pass` — reward tables DERIVE cosmetic placement from wardrobe battlepass sources — battlePass.test.ts fails if an item slot and the table disagree
   - consumedBy ← `system:quests` — every quest's finaleCosmetic must be a wardrobe item with source {kind:'quest',quest} (never auto-unlocks; sourceLabel's QUEST_NAMES map is pinned against quest names by quests.test)
+  - _…1 more (query: `npm run dil -- node system:cosmetics`)_
 
 ### `system:battle-pass` — Battle Pass (Season)
 
@@ -1812,6 +1815,7 @@ _at: src/ui/Hub.tsx, src/ui/navModel.ts, src/ui/MobileShell.tsx, src/ui/CommandC
   - conflictsWith → `concept:responsive` — portrait strips inside grids need minmax(0,1fr) columns (intrinsic strip width widens the page past the phone viewport — the Tower Lab empty-showcase bug); flex children of height-capped roster lists need flex:none or rows compress and overlap their portraits
   - conflictsWith → `concept:golden-test` — HOME WIDGET FIBER INVARIANT (2026-07, CommandCenter.tsx CCWidget): the home zone renders each widget through the CCWidget COMPONENT (<CCWidget/>), never by calling the widget function inline — an inline render(ctx) flattens every widget's hooks into CommandCenter's own list, so a `when` gate flipping a widget in/out between renders (e.g. command-feed keying off pendingContainers/shards) trips React's "rendered more hooks than during the previous render" and the ErrorBoundary blanks the hub. Unit tests can't see it (React UI); the MOBILE GATE (npm run mobilecheck, run by validate) catches it on the developed-profile sweep. Any new home widget with hooks + a volatile `when` MUST route through CCWidget
   - references → `system:power` — UX CONSOLIDATION PASS (2026-07, UX-CONSOLIDATION.md — the coalescing record): the five Foundations own guidance by KIND, one fact one owner. Absorbed: Home NEXT banner → Mission Control ledger (NextGoalBanner component+CSS deleted, only LoopDirective/NextGoalCliffhanger remain); raw command-feed → Hive Intelligence note tail; COMING UP resource goals → MC ledger (roadmap owns only the system curve); ProgressDashboard HOT/claim CTAs → the Feed's ACT rows (dashboard is now STANDINGS-ONLY — no dash-cta, no is-hot; Ascension banner KEPT as the one unique claim). command-feed mount gate re-founded (was timeline-only; now mounts on timeline OR pendingContainers OR shards — homeModel.test pins it). KEEP decisions (one engine many doors): LoopDirective ×4, BestBuyStrip ×4 + Growth, BioCacheCard ×2, HUD-Tour-vs-Guided-Unlocks. VERIFICATION CONTRACT: home probe asserts dash-cta=0 + ng-next=0 + feed-act>0 on fresh AND veteran seeds
+  - conflictsWith → `system:cosmetics` — UI contamination (homeBaseTiers labEra → .hub[data-contam] + .hub-contam) must stay ADDITIVE — cosmetic uithemes own --line/--panel tokens; never re-tint theme tokens for the infection look
   - requiredBy ← `system:hive-construction`
   - requiredBy ← `system:infestation`
   - requiredBy ← `system:cosmetics`
@@ -2085,6 +2089,7 @@ _at: src/render/*, src/core/dangerCamera.ts_
   - dependsOn → `system:engine`
   - consumes → `concept:determinism` — render-only contract: reads snapshots, NEVER writes sim state
   - consumes → `system:audio` — statusApplied event (applyEffect, hasListeners-gated ⇒ golden-safe) → GameView plays throttled category cues (status_dot / status_control); the four legacy fast-field statuses do NOT emit — only framework applications
+  - consumes → `system:engine` — enemy silhouette accents: theme.ENEMY_ACCENT round-robins slot 0..2 per ENEMY_BODY form family in DECLARATION ORDER — keep family groups contiguous so new kinds auto-take the next free slot
   - requiredBy ← `system:hero-cinematics`
   - requiredBy ← `system:living-battlefield`
   - documentedBy ← `doc:RENDER-PIPELINE.md`

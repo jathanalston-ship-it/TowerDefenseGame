@@ -226,4 +226,8 @@ export const KNOWLEDGE_EDGES: KnowledgeEdge[] = [
   { from: 'system:nemesis', kind: 'consumes', to: 'system:mega-bosses', note: 'mega + vengeance trophy organs; mega kills derive mega-source trophy ownership' },
   { from: 'system:prestige', kind: 'extends', to: 'system:meta-store', note: 'Ascendant nodes multiply the permanent buckets' },
   { from: 'system:living-battlefield', kind: 'plans', to: 'system:biomes', note: 'per-biome bespoke terrain flora beyond the BIOME_FLORA tint map' },
+
+  // ── Visual identity pass (VISUAL_IDENTITY.md §8) ──
+  { from: 'system:hub-shell', kind: 'conflictsWith', to: 'system:cosmetics', note: 'UI contamination (homeBaseTiers labEra → .hub[data-contam] + .hub-contam) must stay ADDITIVE — cosmetic uithemes own --line/--panel tokens; never re-tint theme tokens for the infection look' },
+  { from: 'system:rendering', kind: 'consumes', to: 'system:engine', note: 'enemy silhouette accents: theme.ENEMY_ACCENT round-robins slot 0..2 per ENEMY_BODY form family in DECLARATION ORDER — keep family groups contiguous so new kinds auto-take the next free slot' },
 ];

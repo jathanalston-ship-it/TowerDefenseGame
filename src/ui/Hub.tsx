@@ -57,6 +57,7 @@ import type { PremiumOfferDef } from '../core/premium';
 import { useGuestMode } from '../state/guestMode';
 import { applyWardrobeDressing } from './wardrobeDressing';
 import { LabAtmosphere } from './LabAtmosphere';
+import { labState } from './homeBaseTiers';
 import { PowerBadge } from './components/PowerScore';
 import { navGroups, mobileTabs, tabOf, type NavKey, type MobileTabKey } from './navModel';
 import { MobileTabBar, MobileTabIndex, MobilePageHead } from './MobileShell';
@@ -283,9 +284,15 @@ export function Hub({
   // What's New "Open ▸" CTA (and any future out-of-hub caller) navigates through the bus.
   useEffect(() => navBus.onGo((k) => go(k as NavKey)), []); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Progressive UI contamination (VISUAL_IDENTITY.md §contamination): the instrument's own
+  // chrome is slowly assimilated as the account deepens — SAME ladder as the evolving lab
+  // (labEra 0..3). Era 0 (a fresh account) renders a perfectly clean instrument.
+  const lab = labState(save);
+
   return (
-    <div className="hub">
+    <div className="hub" data-contam={lab.era} style={{ ['--contam' as string]: lab.intensity } as CSSProperties}>
       <LabAtmosphere />
+      {lab.era > 0 && <div className="hub-contam" aria-hidden data-era={lab.era} />}
       <WardrobeReveal />
       {flashOffer && (
         <FlashOfferPopup
