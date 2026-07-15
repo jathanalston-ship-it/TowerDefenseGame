@@ -167,6 +167,10 @@ feature that reads at gameplay radius:
   same-form kinds never collide and a new kind auto-inherits the next slot.
 - **Bosses**: identity stays chassis-first (five body plans + per-def hue); per-def hide
   markings are the same-chassis tiebreaker and must stay readable at combat distance.
+- **Visual heft**: enemies DRAW fatter than their sim radius — `renderer.visualHeft` tapers
+  ×1.75 (smallest grubs) → ×1.25 (apex tier, floor ×1.15), monotonic so the size ladder never
+  inverts; boss bodies ride the same curve and keep their chassis flourishes on top; megas are
+  untouched. Render-only: the sim, targeting, splash, and the goldens still run on `def.radius`.
 
 ### §contamination — the instrument is being assimilated too
 

@@ -1793,7 +1793,7 @@ function updateEnemyMotion(enemies: RenderState['enemies'], t: number, detail: b
     if (m.seen === motionFrame) continue;
     if (deathEchoes.length < 48) { // a vanished enemy died — leave a fading crumple
       const def = themedEnemyDef(m.kind);
-      deathEchoes.push({ form: ENEMY_BODY[m.kind], x: m.x, y: m.y, r: def.radius, color: def.color, seed: ENEMY_VARIANT[m.kind], accent: ENEMY_ACCENT[m.kind], phase: id, t0: t, flavor: m.flavor, flavorHue: m.flavorHue });
+      deathEchoes.push({ form: ENEMY_BODY[m.kind], x: m.x, y: m.y, r: visualHeft(def.radius), color: def.color, seed: ENEMY_VARIANT[m.kind], accent: ENEMY_ACCENT[m.kind], phase: id, t0: t, flavor: m.flavor, flavorHue: m.flavorHue });
     }
     enemyMotion.delete(id);
   }
@@ -1891,6 +1891,17 @@ function drawDeathEchoes(ctx: CanvasRenderingContext2D, t: number): void {
   ctx.globalAlpha = 1;
 }
 
+/** VISUAL HEFT (VISUAL_IDENTITY.md §silhouette): enemies DRAW fatter than their sim radius — a
+ *  tapered boost (×1.75 at the smallest grubs, easing linearly to ×1.25 by the apex tier, floor
+ *  ×1.15) so the swarm has real presence at gameplay zoom. The taper is monotonic (dv/dr > 0 up
+ *  to r≈34), so the threat-size ladder is preserved end to end: grunts 6→10.5 · mid 12→19 ·
+ *  heavies 18→25.5 · apex 24→30 · boss bodies 26→31 (+ chassis crowns beyond) · megas untouched
+ *  (their own draw path). RENDER-ONLY: targeting, splash, contact, separation, and the golden
+ *  runs all still work on def.radius — this function must never leak into the sim. */
+function visualHeft(r: number): number {
+  return r * Math.min(1.75, Math.max(1.15, 1.75 - (r - 6) * (0.5 / 18)));
+}
+
 function drawEnemy(
   ctx: CanvasRenderingContext2D,
   e: RenderState['enemies'][number],
@@ -1899,7 +1910,7 @@ function drawEnemy(
   fxQ: StatusFxQuality = 2,
 ): void {
   const def = themedEnemyDef(e.kind); // Wardrobe enemy reskin: color-swapped clone, else the base def
-  const r = def.radius;
+  const r = visualHeft(def.radius); // the HEFTED draw radius — everything below anchors to it
   const flying = def.behavior.flying === true;
   const shape = ENEMY_SHAPE[e.kind];
   const tier = ENEMY_TIER[e.kind];
