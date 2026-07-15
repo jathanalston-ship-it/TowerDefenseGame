@@ -50,8 +50,8 @@ patch('index.html', (s) => {
     s = s.replace(/(property="og:url" content=")[^"]*(")/, `$1${origin}/play$2`);
   } else {
     s = s.replace(
-      '<meta property="og:site_name" content="ASSIMILATE" />',
-      `<meta property="og:site_name" content="ASSIMILATE" />\n    <meta property="og:url" content="${origin}/play" />`,
+      '<meta property="og:site_name" content="ASSIMILATION" />',
+      `<meta property="og:site_name" content="ASSIMILATION" />\n    <meta property="og:url" content="${origin}/play" />`,
     );
   }
   return s;

@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="color-scheme" content="dark" />
   <meta name="theme-color" content="#070a10" />
-  <title>Why ASSIMILATE is deterministic (and why you should care) · ASSIMILATE Dev Blog</title>
+  <title>Why ASSIMILATION is deterministic (and why you should care) · ASSIMILATION Dev Blog</title>
   <meta name="description" content="Same seed, same inputs, same run — byte for byte. The engineering constraint that gives us shareable replays, fair daily leaderboards, and a test suite that catches balance drift." />
   <link rel="canonical" href="https://assimilationtowerdefense.com/blog/determinism/" />
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
@@ -13,16 +13,16 @@
   <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
   <link rel="stylesheet" href="/site.css" />
   <meta property="og:type" content="website" />
-  <meta property="og:site_name" content="ASSIMILATE" />
+  <meta property="og:site_name" content="ASSIMILATION" />
   <meta property="og:url" content="https://assimilationtowerdefense.com/blog/determinism/" />
-  <meta property="og:title" content="Why ASSIMILATE is deterministic (and why you should care) · ASSIMILATE Dev Blog" />
+  <meta property="og:title" content="Why ASSIMILATION is deterministic (and why you should care) · ASSIMILATION Dev Blog" />
   <meta property="og:description" content="Same seed, same inputs, same run — byte for byte. The engineering constraint that gives us shareable replays, fair daily leaderboards, and a test suite that catches balance drift." />
   <meta property="og:image" content="https://assimilationtowerdefense.com/og.png" />
   <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="Why ASSIMILATE is deterministic (and why you should care) · ASSIMILATE Dev Blog" />
+  <meta name="twitter:title" content="Why ASSIMILATION is deterministic (and why you should care) · ASSIMILATION Dev Blog" />
   <meta name="twitter:description" content="Same seed, same inputs, same run — byte for byte. The engineering constraint that gives us shareable replays, fair daily leaderboards, and a test suite that catches balance drift." />
   <meta name="twitter:image" content="https://assimilationtowerdefense.com/og.png" />
-  <script type="application/ld+json">[{"@context":"https://schema.org","@type":"Article","headline":"Why ASSIMILATE is deterministic (and why you should care)","description":"Same seed, same inputs, same run — byte for byte. The engineering constraint that gives us shareable replays, fair daily leaderboards, and a test suite that catches balance drift.","datePublished":"2026-06-15","author":{"@type":"Organization","name":"ASSIMILATE"},"publisher":{"@type":"Organization","name":"ASSIMILATE"},"mainEntityOfPage":"https://assimilationtowerdefense.com/blog/determinism/","image":"https://assimilationtowerdefense.com/og.png"},{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://assimilationtowerdefense.com/"},{"@type":"ListItem","position":2,"name":"Dev Blog","item":"https://assimilationtowerdefense.com/blog/"},{"@type":"ListItem","position":3,"name":"Why ASSIMILATE is deterministic (and why you should care)","item":"https://assimilationtowerdefense.com/blog/determinism/"}]}]</script>
+  <script type="application/ld+json">[{"@context":"https://schema.org","@type":"Article","headline":"Why ASSIMILATION is deterministic (and why you should care)","description":"Same seed, same inputs, same run — byte for byte. The engineering constraint that gives us shareable replays, fair daily leaderboards, and a test suite that catches balance drift.","datePublished":"2026-06-15","author":{"@type":"Organization","name":"ASSIMILATION"},"publisher":{"@type":"Organization","name":"ASSIMILATION"},"mainEntityOfPage":"https://assimilationtowerdefense.com/blog/determinism/","image":"https://assimilationtowerdefense.com/og.png"},{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://assimilationtowerdefense.com/"},{"@type":"ListItem","position":2,"name":"Dev Blog","item":"https://assimilationtowerdefense.com/blog/"},{"@type":"ListItem","position":3,"name":"Why ASSIMILATION is deterministic (and why you should care)","item":"https://assimilationtowerdefense.com/blog/determinism/"}]}]</script>
 </head>
 <body>
   <canvas id="bio-bg" aria-hidden="true"></canvas>
@@ -30,7 +30,7 @@
   
   <header class="site-head">
     <div class="shell-wrap head-row">
-      <a class="brand" href="/"><img src="/favicon.svg" alt="" width="26" height="26" /> ASSIMILATE</a>
+      <a class="brand" href="/"><img src="/favicon.svg" alt="" width="26" height="26" /> ASSIMILATION</a>
       <input type="checkbox" id="nav-toggle" class="nav-toggle" aria-hidden="true" />
       <label for="nav-toggle" class="nav-burger" aria-label="Menu"><span></span><span></span><span></span></label>
       <nav class="site-nav" aria-label="Site">
@@ -42,30 +42,30 @@
   <div class="ad-slot ad-banner" data-ad-slot="header-banner" hidden><span class="ad-label">Advertisement</span></div>
   <main id="main"><section class="page-hero"><div class="shell-wrap">
     <div class="eyebrow">TECH · June 15, 2026</div>
-    <h1>Why ASSIMILATE is deterministic (and why you should care)</h1>
+    <h1>Why ASSIMILATION is deterministic (and why you should care)</h1>
     <p class="lead">Same seed, same inputs, same run — byte for byte. The engineering constraint that gives us shareable replays, fair daily leaderboards, and a test suite that catches balance drift.</p>
   </div></section><div class="shell-wrap"><div class="article-grid"><div class="article">
-<p>Every run of ASSIMILATE is a pure function of its seed and your inputs. Play the same run twice and the simulation produces byte-identical results.</p>
+<p>Every run of ASSIMILATION is a pure function of its seed and your inputs. Play the same run twice and the simulation produces byte-identical results.</p>
 <h2>What that buys players</h2>
 <p><b>Replays as links.</b> A finished run compresses to a short code — anyone can watch your exact run, because their machine recomputes it. <b>Fair dailies.</b> Everyone's daily run is the same seed with the same modifiers; the leaderboard measures decisions, not luck. <b>Trust.</b> No hidden rubber-banding, no server-side dice.</p>
 <h2>What it costs us</h2>
 <p>Discipline. The renderer may never write into the simulation; every visual system — gore, terrain evolution, cinematics — reads snapshots and keeps its state on its own side of the wall. A "golden test" pins six seeded runs byte-for-byte in CI, so a stray floating-point reorder or an accidental sim read fails the build before it ships. It is the strictest rule in the codebase, and the one we would never trade away.</p>
         <p style="margin-top:30px"><span class="tag">engineering</span><span class="tag">replays</span><span class="tag">fairness</span></p>
-        <p><a href="/blog/">← All devlogs</a> · <a href="/play/">Play ASSIMILATE free →</a></p>
+        <p><a href="/blog/">← All devlogs</a> · <a href="/play/">Play ASSIMILATION free →</a></p>
       </div><aside class="article-rail"><div class="ad-slot ad-rail" data-ad-slot="article-rail" hidden><span class="ad-label">Advertisement</span></div></aside></div></div></main>
   
   <footer class="site-foot">
     <div class="ad-slot ad-banner" data-ad-slot="footer-banner" hidden><span class="ad-label">Advertisement</span></div>
     <div class="shell-wrap foot-grid">
       <div class="foot-brand">
-        <a class="brand" href="/"><img src="/favicon.svg" alt="" width="30" height="30" /> ASSIMILATE</a>
+        <a class="brand" href="/"><img src="/favicon.svg" alt="" width="30" height="30" /> ASSIMILATION</a>
         <p>Grow. Mutate. Assimilate. A cyberpunk bio-horror tower defense.</p>
         <p class="foot-note">Plays free in your browser. No install, no account — your hive saves on your device, with optional cloud backup.</p>
       </div>
       <div class="foot-col"><h3>Game</h3><ul><li><a href="/play/">Play Free</a></li><li><a href="/about/">About</a></li><li><a href="/features/">Features</a></li><li><a href="/roadmap/">Roadmap</a></li><li><a href="/faq/">FAQ</a></li></ul></div><div class="foot-col"><h3>Learn</h3><ul><li><a href="/guides/">Guides</a></li><li><a href="/encyclopedia/enemies/">Enemy Compendium</a></li><li><a href="/encyclopedia/biomes/">Biome Encyclopedia</a></li><li><a href="/encyclopedia/doctrines/">Doctrine Codex</a></li><li><a href="/encyclopedia/collections/">Collection Records</a></li></ul></div><div class="foot-col"><h3>News</h3><ul><li><a href="/blog/">Dev Blog</a></li><li><a href="/news/">Patch Notes</a></li><li><a href="/leaderboards/">Leaderboards</a></li></ul></div><div class="foot-col"><h3>Studio</h3><ul><li><a href="/contact/">Contact</a></li><li><a href="/credits/">Credits</a></li><li><a href="/privacy/">Privacy Policy</a></li><li><a href="/terms/">Terms of Service</a></li><li><a href="/cookies/">Cookie Policy</a></li></ul></div>
     </div>
     <div class="shell-wrap foot-legal">
-      <span>© <span data-year>2026</span> ASSIMILATE. All rights reserved.</span>
+      <span>© <span data-year>2026</span> ASSIMILATION. All rights reserved.</span>
       <span><a href="mailto:assimilationtowerdefense@gmail.com">assimilationtowerdefense@gmail.com</a></span>
     </div>
   </footer>

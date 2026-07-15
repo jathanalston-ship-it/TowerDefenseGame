@@ -1585,7 +1585,7 @@ function parseBlob(raw: string | null): SaveData | null {
 // ── Export / import (pure; usable without a SaveStore, e.g. in tests) ────────
 
 interface SaveExport {
-  app: 'ASSIMILATE';
+  app: 'ASSIMILATION';
   kind: 'save-export';
   schemaVersion: number;
   exportedAt: string;
@@ -1595,7 +1595,7 @@ interface SaveExport {
 
 export function serializeExport(data: SaveData): string {
   const exp: SaveExport = {
-    app: 'ASSIMILATE',
+    app: 'ASSIMILATION',
     kind: 'save-export',
     schemaVersion: CURRENT_VERSION,
     exportedAt: new Date().toISOString(),

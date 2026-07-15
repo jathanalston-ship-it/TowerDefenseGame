@@ -59,14 +59,14 @@ export function buildSite(root = process.cwd()): Map<string, string> {
 
   // ── Core static pages ──
   const statics: { path: string; title: string; desc: string; section?: string; hero: [string, string, string]; body: string; jsonLd?: object[] }[] = [
-    { path: '/about/', title: `About ${SITE_NAME} — What It Is and Why It's Different`, desc: 'What ASSIMILATE is, what makes it different, and the state of the game — a free, deterministic bio-horror tower defense.', section: 'Game', hero: ['THE GAME', 'About ASSIMILATE', 'A tower defense where you are the thing growing.'], body: aboutPage() },
+    { path: '/about/', title: `About ${SITE_NAME} — What It Is and Why It's Different`, desc: 'What ASSIMILATION is, what makes it different, and the state of the game — a free, deterministic bio-horror tower defense.', section: 'Game', hero: ['THE GAME', 'About ASSIMILATION', 'A tower defense where you are the thing growing.'], body: aboutPage() },
     { path: '/features/', title: `${SITE_NAME} Features — Every System in Depth`, desc: 'Combat, four tower evolution layers, heroes with equipment, the permanent game, four modes and a fully procedural presentation.', section: 'Game', hero: ['THE SYSTEMS', 'Features', 'Everything the hive grows — combat, evolution, progression, presentation.'], body: featuresPage() },
     { path: '/roadmap/', title: `${SITE_NAME} Roadmap — What's Growing Next`, desc: 'Current development priorities: deeper rosters, community features, Steam release and mobile builds.', section: 'Game', hero: ['THE FUTURE', 'Roadmap', 'What is live, what is next, and what is on the horizon.'], body: roadmapPage() },
-    { path: '/contact/', title: `Contact ${SITE_NAME}`, desc: 'Bug reports, feedback, press and business contact for ASSIMILATE.', section: 'Game', hero: ['STUDIO', 'Contact', 'We read everything — replay codes make bug reports gold.'], body: contactPage() },
-    { path: '/credits/', title: `${SITE_NAME} Credits`, desc: 'The team and technology behind ASSIMILATE.', hero: ['STUDIO', 'Credits', 'Who and what the hive is made of.'], body: creditsPage() },
+    { path: '/contact/', title: `Contact ${SITE_NAME}`, desc: 'Bug reports, feedback, press and business contact for ASSIMILATION.', section: 'Game', hero: ['STUDIO', 'Contact', 'We read everything — replay codes make bug reports gold.'], body: contactPage() },
+    { path: '/credits/', title: `${SITE_NAME} Credits`, desc: 'The team and technology behind ASSIMILATION.', hero: ['STUDIO', 'Credits', 'Who and what the hive is made of.'], body: creditsPage() },
     { path: '/leaderboards/', title: `${SITE_NAME} Leaderboards — Daily Runs & Records`, desc: 'How the daily leaderboard works, replay verification, and where the standings live.', section: 'News', hero: ['COMPETITION', 'Leaderboards', 'One daily seed, worldwide — verified by deterministic replay.'], body: leaderboardsPage() },
-    { path: '/privacy/', title: `${SITE_NAME} Privacy Policy`, desc: 'What data ASSIMILATE stores, where your save lives, and your rights.', hero: ['LEGAL', 'Privacy Policy', 'Your save is yours. The short version really is short.'], body: privacyPage() },
-    { path: '/terms/', title: `${SITE_NAME} Terms of Service`, desc: 'The terms covering the ASSIMILATE game and website.', hero: ['LEGAL', 'Terms of Service', 'The reasonable rules of the hive.'], body: termsPage() },
+    { path: '/privacy/', title: `${SITE_NAME} Privacy Policy`, desc: 'What data ASSIMILATION stores, where your save lives, and your rights.', hero: ['LEGAL', 'Privacy Policy', 'Your save is yours. The short version really is short.'], body: privacyPage() },
+    { path: '/terms/', title: `${SITE_NAME} Terms of Service`, desc: 'The terms covering the ASSIMILATION game and website.', hero: ['LEGAL', 'Terms of Service', 'The reasonable rules of the hive.'], body: termsPage() },
     { path: '/cookies/', title: `${SITE_NAME} Cookie Policy`, desc: 'Exactly what storage and cookies the site and game use, and your controls.', hero: ['LEGAL', 'Cookie Policy', 'Local saves, cookie-free analytics, and labelled ads with consent.'], body: cookiesPage() },
   ];
   for (const s of statics) {
@@ -140,7 +140,7 @@ export function buildSite(root = process.cwd()): Map<string, string> {
       <div class="tagrow">${p.tags.map((t) => `<span class="tag">${esc(t)}</span>`).join('')}</div></div>
     </div>`).join('');
   out.set('/blog/', page(
-    { path: '/blog/', title: `${SITE_NAME} Dev Blog — How the Hive Is Built`, description: 'Development deep-dives: systems design, procedural art and audio, balance and engineering — from the team building ASSIMILATE.', section: 'News' },
+    { path: '/blog/', title: `${SITE_NAME} Dev Blog — How the Hive Is Built`, description: 'Development deep-dives: systems design, procedural art and audio, balance and engineering — from the team building ASSIMILATION.', section: 'News' },
     pageHero('DEV BLOG', 'How the Hive Is Built', 'Systems, art, audio and engineering — deep dives from development.')
     + `<div class="shell-wrap section">
       <div class="search-box"><input type="search" placeholder="Search posts… (title, tag, topic)" aria-label="Search posts" data-search-input /></div>
@@ -161,7 +161,7 @@ export function buildSite(root = process.cwd()): Map<string, string> {
       pageHero(`${p.category.toUpperCase()} · ${fmtDate(p.date)}`, p.title, p.summary)
       + `<div class="shell-wrap"><div class="article-grid"><div class="article">${p.body}
         <p style="margin-top:30px">${p.tags.map((t) => `<span class="tag">${esc(t)}</span>`).join('')}</p>
-        <p><a href="/blog/">← All devlogs</a> · <a href="${PLAY_PATH}">Play ASSIMILATE free →</a></p>
+        <p><a href="/blog/">← All devlogs</a> · <a href="${PLAY_PATH}">Play ASSIMILATION free →</a></p>
       </div><aside class="article-rail">${adSlot('article-rail', 'rail')}</aside></div></div>`,
     ));
   }

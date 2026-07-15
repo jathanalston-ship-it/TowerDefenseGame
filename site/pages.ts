@@ -21,11 +21,11 @@ export function homePage(ctx: HomeCtx): string {
 <section class="home-hero">
   <div class="shell-wrap">
     <div class="eyebrow">DEFEND · EVOLVE · CONSUME</div>
-    <h1 class="home-title">ASSIMILATE</h1>
+    <h1 class="home-title">ASSIMILATION</h1>
     <p class="home-tag">A cyberpunk bio-horror tower defense. Grow a living hive, mutate ${c.towers} tower strains through stars, branches and grafts, and hold the line against ${c.bosses}+ apex organisms.</p>
     <div class="hero-ctas">
       <a class="btn-primary" href="${PLAY_PATH}">▶ PLAY FREE IN YOUR BROWSER</a>
-      <a class="btn-ghost" href="/about/">What is ASSIMILATE?</a>
+      <a class="btn-ghost" href="/about/">What is ASSIMILATION?</a>
     </div>
     <p class="hero-sub">No install. No account. Your hive saves on your device — with optional cloud backup.</p>
     <div class="store-row">
@@ -41,7 +41,7 @@ export function homePage(ctx: HomeCtx): string {
   <p class="lead">Real gameplay: the Command Center, the line under siege, and a battlefield-scale raid organism.</p>
   <video class="trailer-video" controls muted playsinline preload="metadata"
          poster="/media/shots/combat.webp" src="/media/trailer.webm"
-         aria-label="ASSIMILATE gameplay trailer">
+         aria-label="ASSIMILATION gameplay trailer">
     Your browser can't play this video — <a href="${PLAY_PATH}">play the game itself instead</a>.
   </video>
 </div></section>
@@ -115,16 +115,16 @@ ${adSlot('home-below-trailer', 'banner')}
 
 export function aboutPage(): string {
   return `
-<h2>What ASSIMILATE is</h2>
-<p>ASSIMILATE is a single-player tower defense set inside a bio-mechanical ecosystem. You are the Hive Core — the last organism still growing back — holding a defensive line against an appetite that consumes flesh, steel and thought. It plays free in any modern browser: no install, no account, no pay-to-win.</p>
+<h2>What ASSIMILATION is</h2>
+<p>ASSIMILATION is a single-player tower defense set inside a bio-mechanical ecosystem. You are the Hive Core — the last organism still growing back — holding a defensive line against an appetite that consumes flesh, steel and thought. It plays free in any modern browser: no install, no account, no pay-to-win.</p>
 <h2>What makes it different</h2>
 <p><b>Everything grows.</b> Towers are organisms with four independent evolution layers. Heroes wear their equipment on the battlefield. The terrain itself assimilates as your run deepens, until the arena no longer resembles the map you started on.</p>
 <p><b>Everything is deterministic.</b> A run is a pure function of its seed and your inputs — which gives you shareable replay links, honest daily leaderboards and a game that can never secretly cheat you.</p>
 <p><b>Everything persists.</b> Biomass dies with the run; knowledge, shards, genes, mastery and collections do not. A lost run is still fuel.</p>
 <h2>The state of the game</h2>
-<p>ASSIMILATE is in active development with frequent updates — the <a href="/news/">patch notes</a> are generated straight from the development history, and the <a href="/blog/">dev blog</a> covers the systems as they land. The web version is the live game, not a demo.</p>
+<p>ASSIMILATION is in active development with frequent updates — the <a href="/news/">patch notes</a> are generated straight from the development history, and the <a href="/blog/">dev blog</a> covers the systems as they land. The web version is the live game, not a demo.</p>
 <h2>Who makes it</h2>
-<p>ASSIMILATE is an independent project — a small team building the tower defense we always wanted: systems-deep, visually alive, and respectful of your time and wallet. Say hello on the <a href="/contact/">contact page</a>.</p>`;
+<p>ASSIMILATION is an independent project — a small team building the tower defense we always wanted: systems-deep, visually alive, and respectful of your time and wallet. Say hello on the <a href="/contact/">contact page</a>.</p>`;
 }
 
 export function featuresPage(): string {
@@ -182,7 +182,7 @@ export function roadmapPage(): string {
 
 export function faqPage(): { html: string; qa: [string, string][] } {
   const qa: [string, string][] = [
-    ['Is ASSIMILATE really free?', 'Yes. The full game plays free in your browser with no install and no account. Optional cosmetic and convenience purchases support development — power is never for sale.'],
+    ['Is ASSIMILATION really free?', 'Yes. The full game plays free in your browser with no install and no account. Optional cosmetic and convenience purchases support development — power is never for sale.'],
     ['Where is my save stored?', 'On your device, in your browser\'s local storage. Named accounts can additionally mirror saves to the cloud for free backup and cross-device play. Export/import is always available.'],
     ['Does it work on mobile?', 'Yes — the game is touch-first and portrait-native, and plays well in mobile browsers. Native iOS/Android builds are on the roadmap.'],
     ['Does it work offline?', 'Yes. After your first visit the game installs a service worker and runs fully offline. You can also install it as an app from your browser.'],
@@ -205,12 +205,12 @@ export function faqPage(): { html: string; qa: [string, string][] } {
 export function contactPage(): string {
   return `
 <h2>Get in touch</h2>
-<p>ASSIMILATE is an independent project and we read everything.</p>
+<p>ASSIMILATION is an independent project and we read everything.</p>
 <p><b>Email:</b> <a href="mailto:${CONTACT_EMAIL}">${CONTACT_EMAIL}</a></p>
 <h2>Bug reports</h2>
 <p>The most useful bug report includes: what you expected, what happened, your browser, and — if it happened during a run — the run's <b>replay code</b> (Results screen → Share). Because the game is deterministic, a replay code lets us reproduce your exact run.</p>
 <h2>Press & content creators</h2>
-<p>You are welcome to publish videos, streams and articles about ASSIMILATE, monetized or not. Screenshots and captures from the game may be used freely for coverage. For a press kit or interview, email us with "PRESS" in the subject.</p>
+<p>You are welcome to publish videos, streams and articles about ASSIMILATION, monetized or not. Screenshots and captures from the game may be used freely for coverage. For a press kit or interview, email us with "PRESS" in the subject.</p>
 <h2>Business</h2>
 <p>Partnership or platform inquiries: same address, subject "BIZ". We answer within a few business days.</p>`;
 }
@@ -218,7 +218,7 @@ export function contactPage(): string {
 export function creditsPage(): string {
   return `
 <h2>The team</h2>
-<p>ASSIMILATE is designed, engineered, composed and illustrated by a small independent team, with systems and content built in the open — the development history behind the <a href="/news/">patch notes</a> is the honest record of who did what, when.</p>
+<p>ASSIMILATION is designed, engineered, composed and illustrated by a small independent team, with systems and content built in the open — the development history behind the <a href="/news/">patch notes</a> is the honest record of who did what, when.</p>
 <h2>Technology</h2>
 <p>Built with TypeScript, React and Vite. Rendering is hand-written Canvas 2D. The soundtrack and every sound effect are synthesized procedurally in the Web Audio API — the game ships with no audio files. Hosting by Cloudflare Pages.</p>
 <h2>Special thanks</h2>
@@ -242,7 +242,7 @@ export function leaderboardsPage(): string {
 
 export function privacyPage(): string {
   return `
-<p class="note">Effective date: July 10, 2026. This policy covers assimilationtowerdefense.com and the ASSIMILATE web game.</p>
+<p class="note">Effective date: July 10, 2026. This policy covers assimilationtowerdefense.com and the ASSIMILATION web game.</p>
 <h2>The short version</h2>
 <p>Your game save lives on your device. We don't sell data, we don't require accounts, and the game contains no third-party trackers. The website may show clearly-labelled advertisements; if and when it does, the ad provider's cookie usage is disclosed here and governed by the <a href="/cookies/">Cookie Policy</a>.</p>
 <h2>Data stored on your device</h2>
@@ -267,7 +267,7 @@ export function termsPage(): string {
   return `
 <p class="note">Effective date: July 10, 2026.</p>
 <h2>The service</h2>
-<p>ASSIMILATE is a free browser game provided as-is. We work hard to keep it available and your progress safe, but we cannot guarantee uninterrupted service or that updates will never affect balance, content or saved data. The in-game export tool is your friend.</p>
+<p>ASSIMILATION is a free browser game provided as-is. We work hard to keep it available and your progress safe, but we cannot guarantee uninterrupted service or that updates will never affect balance, content or saved data. The in-game export tool is your friend.</p>
 <h2>Acceptable use</h2>
 <p>Don't attack the service, scrape it abusively, submit falsified leaderboard entries, or attempt to disrupt other players' experience. Leaderboard entries may be verified by deterministic replay and removed if falsified.</p>
 <h2>Purchases</h2>
@@ -275,7 +275,7 @@ export function termsPage(): string {
 <h2>Your content</h2>
 <p>Replay codes, display names and shared runs you publish may be visible to other players. Don't use a display name you wouldn't show a stranger.</p>
 <h2>Intellectual property</h2>
-<p>The game, site, art, music and written content are © ASSIMILATE. You may capture, stream and publish gameplay freely (monetized included). You may not redistribute the game itself or use our assets to build a competing product.</p>
+<p>The game, site, art, music and written content are © ASSIMILATION. You may capture, stream and publish gameplay freely (monetized included). You may not redistribute the game itself or use our assets to build a competing product.</p>
 <h2>Liability</h2>
 <p>To the maximum extent permitted by law, the service is provided without warranties, and our liability is limited to the amount you paid us in the past twelve months.</p>
 <h2>Governing law</h2>

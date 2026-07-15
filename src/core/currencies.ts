@@ -1,4 +1,4 @@
-// Currency framework — the single source of truth for every spendable currency in ASSIMILATE.
+// Currency framework — the single source of truth for every spendable currency in ASSIMILATION.
 // One definition per currency keeps names (and, in the visual-identity pass, colors / glyphs /
 // pickup effects) in one data-driven place, so a NEW currency plugs in here without hunting
 // through the UI. Pure metadata: no save/DOM imports, so the core stays testable and light.

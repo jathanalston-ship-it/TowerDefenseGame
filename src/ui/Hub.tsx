@@ -301,7 +301,7 @@ export function Hub({
       {!mobileShell && navOpen && <div className="hub-nav-veil" onClick={() => setNavOpen(false)} aria-hidden />}
       {!mobileShell && (
       <nav className={`hub-nav${navOpen ? ' is-open' : ''}`} aria-label="Headquarters">
-        <div className="hub-brand">ASSIMILATE</div>
+        <div className="hub-brand">ASSIMILATION</div>
         <div className="hub-navlist">
           {navGroups().map((group) => {
             // Progression gating: only REVEALED entries + the next-two teasers render; a group

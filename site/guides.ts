@@ -18,7 +18,7 @@ export const GUIDES: Guide[] = [
     summary: 'Everything a new Hive Core needs: the loop, your first towers, and the five mistakes that end early runs.',
     sections: [
       { h: 'The loop in one paragraph', body: [
-        'ASSIMILATE is a tower defense where you ARE the thing growing. Enemies march from the breeding membrane at the top of the arena toward your Hive Core at the bottom. Kills drop <b>Biomass</b> — this run’s fuel — which you spend on towers, upgrades and heroes. Between waves you draft <b>Gene Cards</b> that bend the run’s rules. If the Core’s integrity reaches zero, the run ends; everything you learned, unlocked and mastered persists into the next one.',
+        'ASSIMILATION is a tower defense where you ARE the thing growing. Enemies march from the breeding membrane at the top of the arena toward your Hive Core at the bottom. Kills drop <b>Biomass</b> — this run’s fuel — which you spend on towers, upgrades and heroes. Between waves you draft <b>Gene Cards</b> that bend the run’s rules. If the Core’s integrity reaches zero, the run ends; everything you learned, unlocked and mastered persists into the next one.',
       ] },
       { h: 'Your first three towers', body: [
         'Open with a <b>Needle Spitter</b> near the center of the line — long range, cheap, reliable single-target damage. Add a second tower one wave later: splash for swarms or a support organ to feed the line. The most common beginner mistake is saving Biomass "for later" — an unspent bank kills nothing. Spend early, spend central.',

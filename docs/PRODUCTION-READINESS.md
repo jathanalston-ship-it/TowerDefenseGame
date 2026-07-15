@@ -44,6 +44,6 @@ row, live headless verification, and the batch-4/5 audits.
 **RC pass (2026-07-08):** the full 12-phase release-candidate audit lives in
 `docs/RELEASE-CANDIDATE.md` — scorecard, fixes, and the ranked top-10 remaining items.
 
-**Verdict:** with the three blockers cleared, ASSIMILATE is production-ready: every
+**Verdict:** with the three blockers cleared, ASSIMILATION is production-ready: every
 money path is server-verified and failure-tested, the game is fully playable offline
 with zero backend, and every optional lane (cloud, standings, studies, ads) fails soft.

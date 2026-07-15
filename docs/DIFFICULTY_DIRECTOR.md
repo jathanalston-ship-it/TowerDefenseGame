@@ -1,7 +1,7 @@
 # DIFFICULTY_DIRECTOR.md — the Universal Difficulty Director
 
 > **Permanent reference.** The single composition layer for every scaling policy in
-> ASSIMILATE. No gameplay system composes balance factors inline anymore: the sim, the
+> ASSIMILATION. No gameplay system composes balance factors inline anymore: the sim, the
 > campaign generator, the settle layer, and the UI all **ask the director**
 > (`src/core/difficultyDirector.ts`). Parity/identity pins: `src/core/difficultyDirector.test.ts`.
 > Companions: `docs/DIFFICULTY.md` (the variant data), `docs/ENDLESS-SCALING.md` (curve design),

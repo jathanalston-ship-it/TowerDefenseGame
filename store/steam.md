@@ -1,4 +1,4 @@
-# ASSIMILATE — Steam listing (GENERATED — 'npm run pil -- release'; edit src/dev/pil/storeCopy.ts)
+# ASSIMILATION — Steam listing (GENERATED — 'npm run pil -- release'; edit src/dev/pil/storeCopy.ts)
 
 ## Tagline
 You are not defending against the swarm. You ARE the swarm.
@@ -7,7 +7,7 @@ You are not defending against the swarm. You ARE the swarm.
 Bio-horror tower defense: grow living turrets, splice genes mid-run, and assimilate the battlefield itself across Campaign, Infinite and Boss Rush — with permanent mutation between runs.
 
 ## Long description
-ASSIMILATE is a bio-horror tower defense where the towers are organisms, the battlefield is a body, and every run feeds a permanent, ever-mutating hive. Grow living turrets, splice Gene Cards mid-run, field evolving heroes, and push three pillars — Campaign, Infinite, and Boss Rush — while the arena itself assimilates around your growth. Deterministic runs, deep progression, fully playable offline.
+ASSIMILATION is a bio-horror tower defense where the towers are organisms, the battlefield is a body, and every run feeds a permanent, ever-mutating hive. Grow living turrets, splice Gene Cards mid-run, field evolving heroes, and push three pillars — Campaign, Infinite, and Boss Rush — while the arena itself assimilates around your growth. Deterministic runs, deep progression, fully playable offline.
 
 ## Feature bullets
 - 15+ living towers with Strains, Branches and permanent Star evolution
@@ -18,9 +18,63 @@ ASSIMILATE is a bio-horror tower defense where the towers are organisms, the bat
 - One account, every device — cloud saves, cross-progression, full offline play
 - Deterministic runs with shareable, self-verifying replays and daily leaderboards
 
-## What's new (1870/4000)
+## What's new (4000/4000)
 ```
 The Living World Update (2026-07-09)
+• [Gameplay] ★ New system: Hero Ability Cinematics
+• [Enemies] ★ New enemy: Pale Skulker
+• [Enemies] ★ New enemy: Creeping Mold
+• [Enemies] ★ New enemy: Itch Flea
+• [Enemies] ★ New enemy: Hollow Husk
+• [Towers] ★ New tower: Acid Lancet
+• [Towers] ★ New tower: Chitin Bell
+• [Towers] ★ New tower: Miasma Lung
+• [Heroes] ★ New hero: Fovea
+• [Heroes] ★ New hero: Carrion
+• [Heroes] ★ New hero: Riptide
+• [Gameplay] ★ New system: Hero Symbiotes
+• [Gameplay] ★ New achievement: More Symbiote Than Champion
+• [Gameplay] ★ New achievement: The Body Sings
+• [Gameplay] ★ New achievement: Complete Hero Adaptation
+• [Gameplay] ★ New achievement: The First Graft
+• [Heroes] ★ New hero: Cinderwyrm
+• [Towers] ★ New tower: Drake Roost
+• [Towers] ★ New tower: Wyrmwing Glaive
+• [Gameplay] ★ New achievement: For Whom the Bell
+• [Heroes] ★ New hero: Knell
+• [Gameplay] ★ New system: Idle Harvest
+• [Gameplay] ★ New achievement: Cultivated Depths
+• [Gameplay] ★ New achievement: The Hive Blooms
+• [Gameplay] ★ New achievement: Brimming Hopper
+• [Gameplay] ★ New achievement: Hundred Days Harvested
+• [Gameplay] ★ New achievement: Ten Days Below
+• [Gameplay] ★ New achievement: Day Distilled
+• [Gameplay] ★ New achievement: First Secretion
+• [Gameplay] ★ New system: Daily Bio-Cache (login streak)
+• [Gameplay] ★ New system: Nucleus Mulligans
+• [Gameplay] ★ New achievement: Sovereign Organism
+• [Gameplay] ★ New achievement: Chamber Symphony
+• [Gameplay] ★ New achievement: The Heart Grows Teeth
+• [Gameplay] ★ New system: Hive Construction
+• [Gameplay] ★ New achievement: Exemplar
+• [Gameplay] ★ New achievement: Three Schools
+• [Gameplay] ★ New achievement: Doctrinaire
+• [Gameplay] ★ New achievement: Sworn In
+• [Gameplay] ★ New system: Doctrines
+• [Gameplay] ★ New achievement: Perfect Week
+• [Gameplay] ★ New achievement: Sworn Champion
+• [Gameplay] ★ New achievement: Under Contract
+• [Gameplay] ★ New system: Weekly Directives
+• [Gameplay] ★ New system: Game Action Security Layer
+• [Gameplay] ★ New system: Quests & Missions
+• [Gameplay] ★ New system: Genome Rank (ultimate mastery ladder)
+• [Gameplay] ★ New system: Account Level (evergreen meta-progression)
+• [Mega Bosses] ★ New Mega Boss: MYRIAD
+• [Mega Bosses] ★ New Mega Boss: SARCOPHAGE
+• [Gameplay] ★ New system: Story Cutscenes & Memory Archive
+• [Gameplay] ★ New system: Progression Gating & Director
+• [Gameplay] ★ New system: Battle Pass (Season)
+• [Gameplay] ★ New system: Public Intelligence Layer
 • [Gameplay] ★ New system: Marketing Website
 • [Gameplay] ★ New system: Account Platform
 • [Gameplay] ★ New system: Chronicle (patch-note pipeline)
@@ -39,10 +93,7 @@ The Living World Update (2026-07-09)
 • [Heroes] Expeditions: full overhaul — 7-mission board, affinity, risk tiers, rare finds, mastery
 • [UX] Opening cinematic + tutorial overhaul — a scored film that dives into the trial
 • [Website] Marketing page becomes the front door — game moves to /play
-• [Gameplay] Account platform: guest/email accounts, versioned cloud sync, cross-progression, offline-first
-• [Website] Website overhaul — the public face of ASSIMILATE (SEO, AdSense-ready, retention, marketing)
-• [Website] Site: regenerate with stamped contact + merged forwarding
-• [Website] Chronicle patch-note pipeline, unified with the generated site
+• [Gameplay] Account platform:…
 ```
 
 ## SEO / store keywords

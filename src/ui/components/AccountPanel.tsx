@@ -292,7 +292,7 @@ export function WelcomeGate(): JSX.Element | null {
   return (
     <div className="acct-scrim" role="dialog" aria-modal="true" aria-label="Welcome">
       <div className="acct-welcome">
-        <div className="acct-welcome-h">ASSIMILATE</div>
+        <div className="acct-welcome-h">ASSIMILATION</div>
         <p className="acct-welcome-sub">
           Your progress lives on an account — play here, continue anywhere. Or stay a guest on this
           device and upgrade later without losing anything.

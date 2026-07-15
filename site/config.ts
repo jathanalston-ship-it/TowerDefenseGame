@@ -5,7 +5,7 @@
 // module — the nav, sitemap, search index and link-check test all pick it up automatically.
 
 export const DOMAIN = 'https://assimilationtowerdefense.com';
-export const SITE_NAME = 'ASSIMILATE';
+export const SITE_NAME = 'ASSIMILATION';
 export const TAGLINE = 'Grow. Mutate. Assimilate. A cyberpunk bio-horror tower defense.';
 // The game's dedicated support address (a reachable contact — AdSense + the legal pages want one).
 export const CONTACT_EMAIL = 'assimilationtowerdefense@gmail.com';

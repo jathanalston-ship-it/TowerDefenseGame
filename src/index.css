@@ -1,5 +1,5 @@
 /* ============================================================================
-   ASSIMILATE — UI styles. Token-driven (see docs/STYLE-GUIDE.md). Organized:
+   ASSIMILATION — UI styles. Token-driven (see docs/STYLE-GUIDE.md). Organized:
    tokens → base → utilities → primitives → menu → game HUD → toolbar → draft →
    results → debug → responsive. Desktop-first; mobile breakpoints near the end.
    ============================================================================ */

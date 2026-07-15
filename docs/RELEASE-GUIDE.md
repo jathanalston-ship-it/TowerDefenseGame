@@ -1,4 +1,4 @@
-# RELEASE-GUIDE.md — publishing ASSIMILATE, step by step
+# RELEASE-GUIDE.md — publishing ASSIMILATION, step by step
 
 The complete launch manual, written for someone who has **never published a web game**.
 Follow it top to bottom; each step says where to click, what to paste, and how to know

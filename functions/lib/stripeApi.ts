@@ -74,7 +74,7 @@ export function createCheckoutSession(
       'line_items[0][quantity]': '1',
       'line_items[0][price_data][currency]': 'usd',
       'line_items[0][price_data][unit_amount]': String(args.unitAmountCents),
-      'line_items[0][price_data][product_data][name]': `ASSIMILATE — ${args.offerName}`,
+      'line_items[0][price_data][product_data][name]': `ASSIMILATION — ${args.offerName}`,
       success_url: `${args.origin}/play?checkout=success&session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${args.origin}/play?checkout=cancel`,
       client_reference_id: args.playerId,

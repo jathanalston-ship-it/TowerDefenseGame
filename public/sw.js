@@ -1,4 +1,4 @@
-// ASSIMILATE service worker — offline shell + versioned caches (docs/DEPLOYMENT.md §sw).
+// ASSIMILATION service worker — offline shell + versioned caches (docs/DEPLOYMENT.md §sw).
 // __SW_VERSION__ is stamped by scripts/stamp-sw.mjs on every build, so each deploy is a
 // new worker: the old cache is swept on activate and the app shows the update toast.
 //

@@ -1,4 +1,4 @@
-# ASSIMILATE — Tower Defense (vertical slice)
+# ASSIMILATION — Tower Defense (vertical slice)
 
 A cyberpunk bio-horror tower defense. This repo currently contains the **design
 corpus** (`docs/`) and a **playable vertical slice** built as a static

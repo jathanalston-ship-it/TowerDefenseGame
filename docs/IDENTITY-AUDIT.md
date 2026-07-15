@@ -2,12 +2,12 @@
 
 > **The test.** For every mechanic, screen, currency, button, reward, notification, and
 > combat event, ask one question: **could this exist, unchanged, in a generic fantasy TD?**
-> If yes, it is a leak in the ASSIMILATE identity and must be re-skinned until the answer
+> If yes, it is a leak in the ASSIMILATION identity and must be re-skinned until the answer
 > is **no**. The target verbs — everything should *feel* like one of these, never like
 > "tower defense": **growing · mutating · infecting · evolving · assimilating · corrupting
 > · consuming · spreading.**
 >
-> **Grounding:** ASSIMILATE is already ~40% there — towers, currencies, and the Vault are
+> **Grounding:** ASSIMILATION is already ~40% there — towers, currencies, and the Vault are
 > bio-flavored. This audit targets the **generic remnants** hiding in the systems layer and
 > the UI verbs, and specifies the rename/reflavor + the visual/animation direction for each.
 > **No code changed here — this is the spec implementation follows.**
@@ -40,7 +40,7 @@ Every term below is judged against this seat.
 ## 1. The generic-remnant audit (leak → verdict → assimilation)
 
 Legend: **LEAK** = could be any TD · **PARTIAL** = themed noun, generic mechanic-feel ·
-**CLEAN** = already unmistakably ASSIMILATE (leave it).
+**CLEAN** = already unmistakably ASSIMILATION (leave it).
 
 ### Currencies & resources
 | Current | Verdict | Assimilate it → | Visual / motion direction |
@@ -162,7 +162,7 @@ add an **"organic" easing set** (asymmetric, slightly wet) used for all reveals.
 
 ---
 
-## 3. Screens — is each one unmistakably ASSIMILATE?
+## 3. Screens — is each one unmistakably ASSIMILATION?
 
 | Screen | Verdict | Fix |
 |---|---|---|
@@ -189,7 +189,7 @@ resolves content through registries with **alias support** (`heroRegistry.resolv
    stays; only `RARITY_LABEL`/`RARITY` display maps change (already centralized).
 3. **The ★ icon** is the highest-ROI single change: swap the star glyph for a mutation-node
    glyph everywhere it renders (pips, buy buttons, hero/tower cards). Pure presentation.
-4. **A `docs/LEXICON.md`** (the ASSIMILATE dictionary) becomes the single source of truth for
+4. **A `docs/LEXICON.md`** (the ASSIMILATION dictionary) becomes the single source of truth for
    player-facing terms, so no two surfaces disagree (the current doc/code/UI split — see
    `EA-DESIGN-AUDIT §4` — gets fixed here).
 5. **Sequence:** (a) LEXICON + the ★→◈ icon swap (1 PR, zero risk); (b) currencies + rarity

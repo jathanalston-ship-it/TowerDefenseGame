@@ -1,6 +1,6 @@
 # ENGINEERING-AUDIT.md — repository-wide engineering audit
 
-A complete engineering-quality audit of ASSIMILATE (structure → modules → refactors → outlook),
+A complete engineering-quality audit of ASSIMILATION (structure → modules → refactors → outlook),
 run at the transition from feature-sprint development to architecture-first development. **No
 functionality was removed and no gameplay was altered**: the full suite (707 tests, including the
 byte-exact golden sim runs) passed unchanged after every refactor in this pass.

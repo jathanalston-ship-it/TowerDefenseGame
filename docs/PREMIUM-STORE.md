@@ -1,6 +1,6 @@
 # PREMIUM-STORE.md — ethical monetization as pure data
 
-The Premium Store is ASSIMILATE's monetization layer: a permanent Hub tab (its own nav group —
+The Premium Store is ASSIMILATION's monetization layer: a permanent Hub tab (its own nav group —
 visibly **separate from gameplay progression**) selling Ichor bundles, two permanent packs, one
 rotating daily pack, time-windowed event offers, the **Season Pass pair** (§season), and one-time
 milestone **flash sales** (§flash). Everything is a row on a **registry** (`src/core/premium.ts`);

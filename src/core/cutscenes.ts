@@ -324,7 +324,7 @@ export const CUTSCENES: CutsceneDef[] = [
         lines: [
           { at: 0.8, text: 'A memory surfaces that is not yours. Or is only yours.' },
           { at: 3.6, text: 'Glass. Instruments. Voices arguing about a cage.' },
-          { at: 6.2, text: 'PROJECT ASSIMILATE. Phase one.', em: true },
+          { at: 6.2, text: 'PROJECT ASSIMILATION. Phase one.', em: true },
         ],
         beats: [{ at: 0.3, cue: 'cin_ping' }, { at: 2.4, cue: 'cin_creep' }, { at: 5.8, cue: 'cin_alarm' }, { at: 7.2, cue: 'cin_heart' }],
       },

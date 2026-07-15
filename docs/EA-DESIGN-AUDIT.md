@@ -1,4 +1,4 @@
-# EA-DESIGN-AUDIT.md — ASSIMILATE Early-Access Design Audit
+# EA-DESIGN-AUDIT.md — ASSIMILATION Early-Access Design Audit
 
 > **Brief:** a brutally-honest, AAA-caliber design consultation, wearing all five hats
 > at once — Lead Systems Designer, Technical Director, Progression Designer, Economy
@@ -20,7 +20,7 @@
 
 ## 0. The one-paragraph verdict (read this even if you read nothing else)
 
-ASSIMILATE is an **exceptionally well-engineered vertical slice wearing the design
+ASSIMILATION is an **exceptionally well-engineered vertical slice wearing the design
 documents of a 1,000-hour live-service game it is not yet.** The *frameworks* are
 genuinely AAA — deterministic sim core, data-driven registries, a universal Power
 index with (now) enforced coverage, versioned saves, a content validator, golden

@@ -3,7 +3,7 @@
 > Engine: `src/audio/music.ts` · Tests: `src/audio/music.test.ts` · Dev console: `src/ui/MusicDebug.tsx`
 > (Settings → Music Console, dev/debug builds). SFX + the cue→stinger bridge: `src/audio/sound.ts`.
 
-ASSIMILATE's score is **actual music, never ambience**: every track is a composition with a
+ASSIMILATION's score is **actual music, never ambience**: every track is a composition with a
 recognizable melody, a countermelody, bass motion, drum grammar, a harmonic progression, and
 evolving structure — synthesized live in WebAudio (asset-free, ships no files). The whole
 soundtrack is **data**: tracks, motifs, and stingers are rows in tables; the engine never grows a

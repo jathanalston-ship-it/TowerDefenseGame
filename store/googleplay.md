@@ -1,4 +1,4 @@
-# ASSIMILATE — Google Play listing (GENERATED — 'npm run pil -- release'; edit src/dev/pil/storeCopy.ts)
+# ASSIMILATION — Google Play listing (GENERATED — 'npm run pil -- release'; edit src/dev/pil/storeCopy.ts)
 
 ## Tagline
 You are not defending against the swarm. You ARE the swarm.
@@ -7,7 +7,7 @@ You are not defending against the swarm. You ARE the swarm.
 Bio-horror tower defense. Grow living turrets. Assimilate everything.
 
 ## Long description
-ASSIMILATE is a bio-horror tower defense where the towers are organisms, the battlefield is a body, and every run feeds a permanent, ever-mutating hive. Grow living turrets, splice Gene Cards mid-run, field evolving heroes, and push three pillars — Campaign, Infinite, and Boss Rush — while the arena itself assimilates around your growth. Deterministic runs, deep progression, fully playable offline.
+ASSIMILATION is a bio-horror tower defense where the towers are organisms, the battlefield is a body, and every run feeds a permanent, ever-mutating hive. Grow living turrets, splice Gene Cards mid-run, field evolving heroes, and push three pillars — Campaign, Infinite, and Boss Rush — while the arena itself assimilates around your growth. Deterministic runs, deep progression, fully playable offline.
 
 ## Feature bullets
 - 15+ living towers with Strains, Branches and permanent Star evolution
@@ -21,13 +21,19 @@ ASSIMILATE is a bio-horror tower defense where the towers are organisms, the bat
 ## What's new (500/500)
 ```
 The Living World Update (2026-07-09)
-• [Gameplay] ★ New system: Marketing Website
-• [Gameplay] ★ New system: Account Platform
-• [Gameplay] ★ New system: Chronicle (patch-note pipeline)
-• [Visuals] Init cutscene overhaul — full procedural canvas cinematics
-• [Gameplay] Assimilation Index — the run's master presentation state
-• [Visuals] Living Battlefield — the arena assimilates as a run deepens (render-only, golden-safe)
-• [Visuals] Living Battlefield — drive terrain stage from the canonical As…
+• [Gameplay] ★ New system: Hero Ability Cinematics
+• [Enemies] ★ New enemy: Pale Skulker
+• [Enemies] ★ New enemy: Creeping Mold
+• [Enemies] ★ New enemy: Itch Flea
+• [Enemies] ★ New enemy: Hollow Husk
+• [Towers] ★ New tower: Acid Lancet
+• [Towers] ★ New tower: Chitin Bell
+• [Towers] ★ New tower: Miasma Lung
+• [Heroes] ★ New hero: Fovea
+• [Heroes] ★ New hero: Carrion
+• [Heroes] ★ New hero: Riptide
+• [Gameplay] ★ New system: Hero Symbiotes
+• [Gameplay] ★ New ac…
 ```
 
 ## SEO / store keywords

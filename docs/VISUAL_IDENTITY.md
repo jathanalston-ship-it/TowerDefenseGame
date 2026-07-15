@@ -1,7 +1,7 @@
-# VISUAL_IDENTITY.md — what makes it ASSIMILATE
+# VISUAL_IDENTITY.md — what makes it ASSIMILATION
 
 > The artistic vision. One game, one studio, one identity: if a screenshot has no title on it,
-> it should still be unmistakably ASSIMILATE. This document is the **why**; the concrete numbers
+> it should still be unmistakably ASSIMILATION. This document is the **why**; the concrete numbers
 > live in `docs/UI_STYLE_GUIDE.md` (the **what**) and the application rules in
 > `docs/DESIGN_LANGUAGE.md` (the **how**). Battlefield/art-direction depth (enemies, arenas,
 > luminance zones, render specs) stays in `docs/STYLE-GUIDE.md` — the art bible this identity

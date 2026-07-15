@@ -1,6 +1,6 @@
 # SECURITY-AUDIT.md — production security audit (public release)
 
-Audit of ASSIMILATE as software preparing for public release on the
+Audit of ASSIMILATION as software preparing for public release on the
 Cloudflare Pages + Functions + D1 + Stripe stack (docs/DEPLOYMENT.md). The
 governing threat model: **the entire simulation runs on the player's machine by
 design**, so the security boundary is drawn around the things that cross it —

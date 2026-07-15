@@ -1,6 +1,6 @@
 # DEPLOYMENT.md — Production deployment (Cloudflare Pages + Functions)
 
-Step-by-step instructions to put ASSIMILATE online, written for someone who has
+Step-by-step instructions to put ASSIMILATION online, written for someone who has
 **never deployed on Cloudflare before**. The game is a **static SPA** (React +
 TypeScript + Vite) with a **thin serverless backend** (Cloudflare Pages
 Functions + D1) for exactly the things a client must never decide alone:

@@ -19,7 +19,7 @@ banner + the Results cliffhanger/replay). Later phases remain PLANNED. Companion
 
 A reward *received* is tension *released* — the natural place to stop. A reward
 *imminent* is tension *held* — the natural place to keep going. Idle/gacha/roguelite
-retention is built on **always having a meter that is 80–95% full.** ASSIMILATE already
+retention is built on **always having a meter that is 80–95% full.** ASSIMILATION already
 has the *systems* to generate these meters (unlocks, evolutions, collections, prestige);
 what it lacks is a **single engine that always surfaces the nearest one** and **paces
 rewards to land just after a session would otherwise end.**

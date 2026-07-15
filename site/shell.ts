@@ -68,7 +68,7 @@ function footerHtml(): string {
       ${groups}
     </div>
     <div class="shell-wrap foot-legal">
-      <span>© <span data-year>2026</span> ASSIMILATE. All rights reserved.</span>
+      <span>© <span data-year>2026</span> ${SITE_NAME}. All rights reserved.</span>
       <span><a href="mailto:${CONTACT_EMAIL}">${CONTACT_EMAIL}</a></span>
     </div>
   </footer>`;

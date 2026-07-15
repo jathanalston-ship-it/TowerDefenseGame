@@ -24,14 +24,14 @@ export const POSTS: BlogPost[] = [
     tags: ['heroes', 'vfx', 'rendering', 'design', 'cinematics'],
     summary: 'All thirty hero abilities now stage a procedural performance when they fire — the Cinderwyrm\'s breath is a dragon sweeping the lane — and the damage lands the exact moment the performance strikes. Here is how we made abilities feel cinematic without a single sprite, and why the delay is honest gameplay.',
     body: `
-<p>Until this week, casting a hero ability in ASSIMILATE looked like a particle burst. A good burst — tinted per ability, shaped per class — but a burst: the damage happened the instant you clicked, and the screen punctuated it after the fact.</p>
+<p>Until this week, casting a hero ability in ASSIMILATION looked like a particle burst. A good burst — tinted per ability, shaped per class — but a burst: the damage happened the instant you clicked, and the screen punctuated it after the fact.</p>
 <p>Now the Cinderwyrm folds out of the sky. A winged serpent enters from beyond the arena edge, banks low across your target zone trailing embers, and the pyroclastic blast lands <i>under its wings</i> — then it keeps flying, out past the spawn line, while the firestorm it left keeps burning. Every one of the roster's thirty abilities got this treatment: the Fovea's stare is an eye that opens and lances, the Knell's peal is a bell descending to its slam, the Carrion's feast is a spiral of flies collapsing onto the pack.</p>
 <h2>The delay is a promise</h2>
 <p>The interesting design decision wasn't visual — it was temporal. A performance takes time; if the damage still landed on the click, the dragon would arrive at a battlefield of corpses. So the zone payload of every ability — the damage, the stagger, the pools — now lands when the performance strikes, a beat (0.3–0.55s) after the cast. Two rules keep that honest. First, <b>support never lags</b>: heals, shields, rally buffs and summons still land the instant you cast, because waiting on a heal feels broken. Second, <b>the telegraph is real</b>: the strike hits whatever stands in the ring when it lands, not a snapshot from cast time. Fast enemies can genuinely slip a slow strike. That's not a nerf — that's the zone mattering.</p>
 <h2>Puppets, not sprites</h2>
 <p>There is no video and no sprite sheet behind any of this. Each hero has a procedural puppet — the dragon is seven undulating segments, two flapping wing membranes and an ember wake, drawn in code every frame — riding a shared trajectory vocabulary (swoop, dive, lob, converge, beam, blink…). A new hero picks a puppet and a path in one line of data. The whole system respects the game's calm-render covenant: no screen shake, no full-field flashes, and if you play with reduced motion enabled, the theater steps aside entirely while the landing burst still marks every impact.</p>
 <h2>Determinism survives</h2>
-<p>ASSIMILATE's simulation stays a pure function of seed and inputs — replays and daily leaderboards depend on it. The performances run on the simulation clock (pause freezes a dragon mid-bank; game speed keeps the landing synced), critical hits are still rolled at cast time, and a run that never casts an ability simulates byte-for-byte identically to the old engine. The set pieces are honest theater on top of honest math.</p>`,
+<p>ASSIMILATION's simulation stays a pure function of seed and inputs — replays and daily leaderboards depend on it. The performances run on the simulation clock (pause freezes a dragon mid-bank; game speed keeps the landing synced), critical hits are still rolled at cast time, and a run that never casts an ability simulates byte-for-byte identically to the old engine. The set pieces are honest theater on top of honest math.</p>`,
   },
   {
     slug: 'the-weekly-game',
@@ -39,9 +39,9 @@ export const POSTS: BlogPost[] = [
     title: 'The Weekly Game: contracts, quests and a hive that keeps a calendar',
     category: 'Systems',
     tags: ['liveops', 'contracts', 'quests', 'progression', 'design'],
-    summary: 'The last month rebuilt what a week of ASSIMILATE feels like: a worldwide contract board with near-miss feedback, a lossless quest ring, weekly directives, and two account-wide meters that recognize all of it — with a hard rule that none of it may become a chore.',
+    summary: 'The last month rebuilt what a week of ASSIMILATION feels like: a worldwide contract board with near-miss feedback, a lossless quest ring, weekly directives, and two account-wide meters that recognize all of it — with a hard rule that none of it may become a chore.',
     body: `
-<p>A single run of ASSIMILATE has always known what it is. The question this batch of updates answered is different: what is a <i>week</i> of ASSIMILATE?</p>
+<p>A single run of ASSIMILATION has always known what it is. The question this batch of updates answered is different: what is a <i>week</i> of ASSIMILATION?</p>
 <h2>One board, everyone</h2>
 <p>Champion Contracts put three authored constraint runs on a weekly board — "win without a single Kinetic tower", "reach wave 12 flawless" — and every player on Earth sees the same board, rotating on the same UTC clock through an eight-week pool. There is no server deciding this: the rotation is deterministic, the same trick our daily seeds use. One contract each week is the marquee, carrying a Gilded phenotype that exists nowhere else; sweeping all three pays a Perfect Week bonus and a lifetime badge.</p>
 <h2>Near-misses are the feature</h2>
@@ -59,7 +59,7 @@ export const POSTS: BlogPost[] = [
     tags: ['rendering', 'procedural', 'atmosphere'],
     summary: 'By late game the arena should no longer resemble the map you started on. Here is how the terrain now evolves with your build — veins, frontiers, flora and eyes — without costing a frame.',
     body: `
-<p>ASSIMILATE has always been about growth, but until recently the ground you fought on stayed politely inert. That changed with the Living Battlefield: a terrain layer that assimilates alongside your run.</p>
+<p>ASSIMILATION has always been about growth, but until recently the ground you fought on stayed politely inert. That changed with the Living Battlefield: a terrain layer that assimilates alongside your run.</p>
 <h2>One hidden number</h2>
 <p>Everything you build feeds a hidden assimilation state — tower count and depth (strains, branches, stars, mastery, grafted organisms), heroes and their equipment, kills, bosses, wave depth, your Power Score, even the biome. That state drives an evolution stage from 0 (pristine terrain) to 5 (an unmistakably alive biomechanical ecosystem), shared with the music and HUD so the whole presentation deepens together.</p>
 <h2>Mutation spreads from the build</h2>
@@ -103,12 +103,12 @@ export const POSTS: BlogPost[] = [
   {
     slug: 'determinism',
     date: '2026-06-15',
-    title: 'Why ASSIMILATE is deterministic (and why you should care)',
+    title: 'Why ASSIMILATION is deterministic (and why you should care)',
     category: 'Tech',
     tags: ['engineering', 'replays', 'fairness'],
     summary: 'Same seed, same inputs, same run — byte for byte. The engineering constraint that gives us shareable replays, fair daily leaderboards, and a test suite that catches balance drift.',
     body: `
-<p>Every run of ASSIMILATE is a pure function of its seed and your inputs. Play the same run twice and the simulation produces byte-identical results.</p>
+<p>Every run of ASSIMILATION is a pure function of its seed and your inputs. Play the same run twice and the simulation produces byte-identical results.</p>
 <h2>What that buys players</h2>
 <p><b>Replays as links.</b> A finished run compresses to a short code — anyone can watch your exact run, because their machine recomputes it. <b>Fair dailies.</b> Everyone's daily run is the same seed with the same modifiers; the leaderboard measures decisions, not luck. <b>Trust.</b> No hidden rubber-banding, no server-side dice.</p>
 <h2>What it costs us</h2>

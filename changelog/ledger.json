@@ -1,6 +1,6 @@
 {
-  "lastSha": "8518537ae1af265cc154a4166a2354aedc27579d",
-  "commitsSinceDraft": 8,
+  "lastSha": "96c9a5ca566d97f3526042027705c47a9babc786",
+  "commitsSinceDraft": 1,
   "content": {
     "tower": [
       "needle",
@@ -863,7 +863,7 @@
         },
         {
           "cat": "Bosses",
-          "text": "docs: ASSIMILATE identity + boss + progression + anticipation design pass"
+          "text": "docs: ASSIMILATION identity + boss + progression + anticipation design pass"
         },
         {
           "cat": "Audio",
@@ -1840,7 +1840,7 @@
         },
         {
           "cat": "Website",
-          "text": "Website overhaul — the public face of ASSIMILATE (SEO, AdSense-ready, retention, marketing)"
+          "text": "Website overhaul — the public face of ASSIMILATION (SEO, AdSense-ready, retention, marketing)"
         },
         {
           "cat": "Website",
@@ -2345,6 +2345,10 @@
         {
           "cat": "UI",
           "text": "Claim receipts: dopamine pass on the global reward popup + coverage audit"
+        },
+        {
+          "cat": "Gameplay",
+          "text": "Rename the game: ASSIMILATE -> ASSIMILATION everywhere the NAME appears"
         }
       ]
     }
@@ -2498,7 +2502,7 @@
       "sha": "2a8ef6083a998d37469889578a7ff0386f78d30b",
       "date": "2026-07-10",
       "cat": "Website",
-      "text": "Website overhaul — the public face of ASSIMILATE (SEO, AdSense-ready, retention, marketing)",
+      "text": "Website overhaul — the public face of ASSIMILATION (SEO, AdSense-ready, retention, marketing)",
       "internal": false,
       "needsReview": false
     },
@@ -3835,6 +3839,30 @@
       "date": "2026-07-14",
       "cat": "UI",
       "text": "Claim receipts: dopamine pass on the global reward popup + coverage audit",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "65394ffde73ed62c70b8554b988abdd25c160e32",
+      "date": "2026-07-14",
+      "cat": "UI",
+      "text": "Claim receipts: dopamine pass on the global reward popup + coverage audit",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "b0d72957e3b58b5aa9aa771ba6d2815966140002",
+      "date": "2026-07-14",
+      "cat": "Website",
+      "text": "Session handoff: cinematics + typography + site + pass labels + claim-juice batch",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "96c9a5ca566d97f3526042027705c47a9babc786",
+      "date": "2026-07-15",
+      "cat": "Gameplay",
+      "text": "Rename the game: ASSIMILATE -> ASSIMILATION everywhere the NAME appears",
       "internal": false,
       "needsReview": false
     }

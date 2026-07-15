@@ -1,6 +1,6 @@
 # TOWER-BRANCHES.md — Per-tower Branching Upgrade System (design)
 
-Bloons-TD-style upgrade **paths**, adapted for ASSIMILATE. **Document-first** spec
+Bloons-TD-style upgrade **paths**, adapted for ASSIMILATION. **Document-first** spec
 (per the brief): every upgrade is designed here before any code lands. Companion to
 `TOWERS.md` (base towers), `TOWER-STARS.md` (the permanent per-*kind* evolution), and
 `CARDS.md` (the run-wide draft). Branches are the **per-instance, in-run** layer.

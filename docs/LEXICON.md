@@ -1,4 +1,4 @@
-# LEXICON.md — the ASSIMILATE dictionary (canonical player-facing terms)
+# LEXICON.md — the ASSIMILATION dictionary (canonical player-facing terms)
 
 > **Single source of truth for what the player is called things.** Every UI string, tooltip,
 > reward, and doc uses THESE words. Fixes the doc/code/UI naming split (`EA-DESIGN-AUDIT §4`)

@@ -1,6 +1,6 @@
 # BALANCE_ARCHITECTURE.md — the foundational balance framework
 
-> **Permanent reference — the capstone.** How ASSIMILATE's balance is architected so years of
+> **Permanent reference — the capstone.** How ASSIMILATION's balance is architected so years of
 > content land inside a stable mathematical frame instead of triggering rebalance passes.
 > The four pillars each have their own deep doc; this page is the map, the guardrail
 > inventory, and the change protocol. Pillars: `DIFFICULTY_DIRECTOR.md` (scaling policy),

@@ -1,6 +1,6 @@
 # ROADMAP.md — Development Roadmap (canonical plan)
 
-The build plan for *ASSIMILATE*, from empty repo to full release and live-ops.
+The build plan for *ASSIMILATION*, from empty repo to full release and live-ops.
 Companion to the design corpus (`DESIGN`, `PROGRESSION`, `STAGES`, `TOWERS`,
 `HEROES`, `EQUIPMENT`) and the engineering blueprint (`ARCHITECTURE.md`). Where those
 say *what* and *how it's structured*, this says **in what order we build it, and how we

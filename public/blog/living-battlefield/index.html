@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="color-scheme" content="dark" />
   <meta name="theme-color" content="#070a10" />
-  <title>The Living Battlefield: making the ground remember your run · ASSIMILATE Dev Blog</title>
+  <title>The Living Battlefield: making the ground remember your run · ASSIMILATION Dev Blog</title>
   <meta name="description" content="By late game the arena should no longer resemble the map you started on. Here is how the terrain now evolves with your build — veins, frontiers, flora and eyes — without costing a frame." />
   <link rel="canonical" href="https://assimilationtowerdefense.com/blog/living-battlefield/" />
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
@@ -13,16 +13,16 @@
   <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
   <link rel="stylesheet" href="/site.css" />
   <meta property="og:type" content="website" />
-  <meta property="og:site_name" content="ASSIMILATE" />
+  <meta property="og:site_name" content="ASSIMILATION" />
   <meta property="og:url" content="https://assimilationtowerdefense.com/blog/living-battlefield/" />
-  <meta property="og:title" content="The Living Battlefield: making the ground remember your run · ASSIMILATE Dev Blog" />
+  <meta property="og:title" content="The Living Battlefield: making the ground remember your run · ASSIMILATION Dev Blog" />
   <meta property="og:description" content="By late game the arena should no longer resemble the map you started on. Here is how the terrain now evolves with your build — veins, frontiers, flora and eyes — without costing a frame." />
   <meta property="og:image" content="https://assimilationtowerdefense.com/og.png" />
   <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="The Living Battlefield: making the ground remember your run · ASSIMILATE Dev Blog" />
+  <meta name="twitter:title" content="The Living Battlefield: making the ground remember your run · ASSIMILATION Dev Blog" />
   <meta name="twitter:description" content="By late game the arena should no longer resemble the map you started on. Here is how the terrain now evolves with your build — veins, frontiers, flora and eyes — without costing a frame." />
   <meta name="twitter:image" content="https://assimilationtowerdefense.com/og.png" />
-  <script type="application/ld+json">[{"@context":"https://schema.org","@type":"Article","headline":"The Living Battlefield: making the ground remember your run","description":"By late game the arena should no longer resemble the map you started on. Here is how the terrain now evolves with your build — veins, frontiers, flora and eyes — without costing a frame.","datePublished":"2026-07-09","author":{"@type":"Organization","name":"ASSIMILATE"},"publisher":{"@type":"Organization","name":"ASSIMILATE"},"mainEntityOfPage":"https://assimilationtowerdefense.com/blog/living-battlefield/","image":"https://assimilationtowerdefense.com/og.png"},{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://assimilationtowerdefense.com/"},{"@type":"ListItem","position":2,"name":"Dev Blog","item":"https://assimilationtowerdefense.com/blog/"},{"@type":"ListItem","position":3,"name":"The Living Battlefield: making the ground remember your run","item":"https://assimilationtowerdefense.com/blog/living-battlefield/"}]}]</script>
+  <script type="application/ld+json">[{"@context":"https://schema.org","@type":"Article","headline":"The Living Battlefield: making the ground remember your run","description":"By late game the arena should no longer resemble the map you started on. Here is how the terrain now evolves with your build — veins, frontiers, flora and eyes — without costing a frame.","datePublished":"2026-07-09","author":{"@type":"Organization","name":"ASSIMILATION"},"publisher":{"@type":"Organization","name":"ASSIMILATION"},"mainEntityOfPage":"https://assimilationtowerdefense.com/blog/living-battlefield/","image":"https://assimilationtowerdefense.com/og.png"},{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://assimilationtowerdefense.com/"},{"@type":"ListItem","position":2,"name":"Dev Blog","item":"https://assimilationtowerdefense.com/blog/"},{"@type":"ListItem","position":3,"name":"The Living Battlefield: making the ground remember your run","item":"https://assimilationtowerdefense.com/blog/living-battlefield/"}]}]</script>
 </head>
 <body>
   <canvas id="bio-bg" aria-hidden="true"></canvas>
@@ -30,7 +30,7 @@
   
   <header class="site-head">
     <div class="shell-wrap head-row">
-      <a class="brand" href="/"><img src="/favicon.svg" alt="" width="26" height="26" /> ASSIMILATE</a>
+      <a class="brand" href="/"><img src="/favicon.svg" alt="" width="26" height="26" /> ASSIMILATION</a>
       <input type="checkbox" id="nav-toggle" class="nav-toggle" aria-hidden="true" />
       <label for="nav-toggle" class="nav-burger" aria-label="Menu"><span></span><span></span><span></span></label>
       <nav class="site-nav" aria-label="Site">
@@ -45,7 +45,7 @@
     <h1>The Living Battlefield: making the ground remember your run</h1>
     <p class="lead">By late game the arena should no longer resemble the map you started on. Here is how the terrain now evolves with your build — veins, frontiers, flora and eyes — without costing a frame.</p>
   </div></section><div class="shell-wrap"><div class="article-grid"><div class="article">
-<p>ASSIMILATE has always been about growth, but until recently the ground you fought on stayed politely inert. That changed with the Living Battlefield: a terrain layer that assimilates alongside your run.</p>
+<p>ASSIMILATION has always been about growth, but until recently the ground you fought on stayed politely inert. That changed with the Living Battlefield: a terrain layer that assimilates alongside your run.</p>
 <h2>One hidden number</h2>
 <p>Everything you build feeds a hidden assimilation state — tower count and depth (strains, branches, stars, mastery, grafted organisms), heroes and their equipment, kills, bosses, wave depth, your Power Score, even the biome. That state drives an evolution stage from 0 (pristine terrain) to 5 (an unmistakably alive biomechanical ecosystem), shared with the music and HUD so the whole presentation deepens together.</p>
 <h2>Mutation spreads from the build</h2>
@@ -54,21 +54,21 @@
 <p>All of the stable terrain is baked into two cached canvases — a base layer that breathes and a glow layer whose alpha rides the heartbeat — rebuilt only when the run actually changes and crossfaded so the arena grows instead of popping. A steady frame costs two draw calls. The whole system is render-only: the deterministic simulation never reads it, so replays and leaderboards are untouched.</p>
 <p>A screenshot of a deep run now tells you how deep it is, what the player built, and how thoroughly the environment has been consumed — which was the point all along.</p>
         <p style="margin-top:30px"><span class="tag">rendering</span><span class="tag">procedural</span><span class="tag">atmosphere</span></p>
-        <p><a href="/blog/">← All devlogs</a> · <a href="/play/">Play ASSIMILATE free →</a></p>
+        <p><a href="/blog/">← All devlogs</a> · <a href="/play/">Play ASSIMILATION free →</a></p>
       </div><aside class="article-rail"><div class="ad-slot ad-rail" data-ad-slot="article-rail" hidden><span class="ad-label">Advertisement</span></div></aside></div></div></main>
   
   <footer class="site-foot">
     <div class="ad-slot ad-banner" data-ad-slot="footer-banner" hidden><span class="ad-label">Advertisement</span></div>
     <div class="shell-wrap foot-grid">
       <div class="foot-brand">
-        <a class="brand" href="/"><img src="/favicon.svg" alt="" width="30" height="30" /> ASSIMILATE</a>
+        <a class="brand" href="/"><img src="/favicon.svg" alt="" width="30" height="30" /> ASSIMILATION</a>
         <p>Grow. Mutate. Assimilate. A cyberpunk bio-horror tower defense.</p>
         <p class="foot-note">Plays free in your browser. No install, no account — your hive saves on your device, with optional cloud backup.</p>
       </div>
       <div class="foot-col"><h3>Game</h3><ul><li><a href="/play/">Play Free</a></li><li><a href="/about/">About</a></li><li><a href="/features/">Features</a></li><li><a href="/roadmap/">Roadmap</a></li><li><a href="/faq/">FAQ</a></li></ul></div><div class="foot-col"><h3>Learn</h3><ul><li><a href="/guides/">Guides</a></li><li><a href="/encyclopedia/enemies/">Enemy Compendium</a></li><li><a href="/encyclopedia/biomes/">Biome Encyclopedia</a></li><li><a href="/encyclopedia/doctrines/">Doctrine Codex</a></li><li><a href="/encyclopedia/collections/">Collection Records</a></li></ul></div><div class="foot-col"><h3>News</h3><ul><li><a href="/blog/">Dev Blog</a></li><li><a href="/news/">Patch Notes</a></li><li><a href="/leaderboards/">Leaderboards</a></li></ul></div><div class="foot-col"><h3>Studio</h3><ul><li><a href="/contact/">Contact</a></li><li><a href="/credits/">Credits</a></li><li><a href="/privacy/">Privacy Policy</a></li><li><a href="/terms/">Terms of Service</a></li><li><a href="/cookies/">Cookie Policy</a></li></ul></div>
     </div>
     <div class="shell-wrap foot-legal">
-      <span>© <span data-year>2026</span> ASSIMILATE. All rights reserved.</span>
+      <span>© <span data-year>2026</span> ASSIMILATION. All rights reserved.</span>
       <span><a href="mailto:assimilationtowerdefense@gmail.com">assimilationtowerdefense@gmail.com</a></span>
     </div>
   </footer>

@@ -99,7 +99,7 @@ export const SCENES: IntroScene[] = [
   },
   {
     id: 'title', eyebrow: 'DEFEND · EVOLVE · CONSUME', visual: 'title', durMs: 0, // 0 = waits for the player
-    lines: [{ at: 0.6, text: 'ASSIMILATE', em: true }],
+    lines: [{ at: 0.6, text: 'ASSIMILATION', em: true }],
     beats: [{ at: 0.55, cue: 'cin_title' }],
   },
 ];
@@ -278,7 +278,7 @@ export function InitCutscene({ onDone }: { onDone: () => void }): JSX.Element {
           {scene.eyebrow && <div className="intro-eyebrow">{scene.eyebrow}</div>}
           {scene.id === 'title' ? (
             <>
-              <h1 className="intro-title" style={{ animationDelay: '0.55s' }}>ASSIMILATE</h1>
+              <h1 className="intro-title" style={{ animationDelay: '0.55s' }}>ASSIMILATION</h1>
               <button
                 className="primary intro-begin"
                 onClick={(e) => {

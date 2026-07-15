@@ -1,6 +1,6 @@
 # Content Authoring — the "add content fast" reference
 
-ASSIMILATE is in **content-production mode**. This is the canonical, audited answer to *"to add one
+ASSIMILATION is in **content-production mode**. This is the canonical, audited answer to *"to add one
 X, which file(s) do I touch and what do I paste?"* The engine is registry-driven, so **almost every
 content type is a single-file edit** — this doc removes the discovery cost (which, in a ~100-file /
 ~55-doc repo, is the real friction) and pins the exceptions.

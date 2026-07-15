@@ -1,6 +1,6 @@
 # ARCHITECTURE.md — Technical Architecture (canonical spec)
 
-The engineering blueprint for *ASSIMILATE*. Companion to the design corpus
+The engineering blueprint for *ASSIMILATION*. Companion to the design corpus
 (`DESIGN.md`, `PROGRESSION.md`, `STAGES.md`, `TOWERS.md`, `HEROES.md`,
 `EQUIPMENT.md`). This doc owns **how the software is structured** — module
 boundaries, data flow, state ownership, the save system, and the per-system

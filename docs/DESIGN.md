@@ -1,6 +1,6 @@
 # DESIGN.md — Game Design Bible
 
-**Working title:** *ASSIMILATE* (codename — placeholder)
+**Title:** *ASSIMILATION* (final — matches assimilationtowerdefense.com; standardized 2026-07, replacing the old ASSIMILATE codename)
 **Genre:** Cyberpunk biological-horror Tower Defense × Incremental × Roguelite-draft × Collection × Endless
 **One-line vision:** *You are a rogue biotech hive intelligence. Grow, mutate, and assimilate hostile ecosystems — forever.*
 

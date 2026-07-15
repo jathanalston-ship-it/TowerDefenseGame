@@ -1,6 +1,6 @@
 # Power Score — the universal strength index
 
-Power Score is ASSIMILATE's single, always-visible measure of account strength. It exists to
+Power Score is ASSIMILATION's single, always-visible measure of account strength. It exists to
 answer one question at a glance, everywhere: **did that make me stronger?** Every permanent and
 temporary upgrade folds into it, so the player never has to reason about whether a Star, an item,
 or a gene card mattered — the number moves.

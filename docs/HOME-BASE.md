@@ -1,6 +1,6 @@
 # Evolving Home Base — the laboratory as a progression system
 
-> The headquarters is not a static menu backdrop. The ASSIMILATE laboratory **visibly evolves**
+> The headquarters is not a static menu backdrop. The ASSIMILATION laboratory **visibly evolves**
 > as the account develops: it brightens, fills with bioluminescent life, and grows new equipment.
 > Returning after dozens of hours should feel unrecognizable from the first launch. Built on
 > origin's `LabAtmosphere` ambient layer (extended, not replaced).

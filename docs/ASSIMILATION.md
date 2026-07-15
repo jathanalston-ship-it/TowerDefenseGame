@@ -1,6 +1,6 @@
 # ASSIMILATION.md — the Assimilation Index framework
 
-> **The invisible heartbeat of ASSIMILATE.** One hidden per-run master state that measures how
+> **The invisible heartbeat of ASSIMILATION.** One hidden per-run master state that measures how
 > thoroughly the player has assimilated the battlefield *this run*, and the single driver every
 > dynamic presentation system keys on — so the whole game evolves together instead of each system
 > inventing its own thresholds.

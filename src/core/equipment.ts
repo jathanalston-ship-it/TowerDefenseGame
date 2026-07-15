@@ -658,7 +658,7 @@ export const RARITY_WEIGHT: Record<string, number> = {
   common: 1, rare: 2, epic: 4, legendary: 7, exotic: 9, mythic: 12,
 };
 
-/** ASSIMILATE grade labels for rarity (docs/LEXICON.md) — the DISPLAY name; the internal id (and
+/** ASSIMILATION grade labels for rarity (docs/LEXICON.md) — the DISPLAY name; the internal id (and
  *  save data) never change. common→Inert … exotic→Apex; a future 'mythic' reads 'Aberrant'. */
 export const RARITY_LABELS: Record<string, string> = {
   common: 'Inert', rare: 'Active', epic: 'Virulent', legendary: 'Rampant', exotic: 'Apex', mythic: 'Aberrant',

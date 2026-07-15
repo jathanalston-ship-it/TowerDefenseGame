@@ -1,4 +1,4 @@
-// ASSIMILATE marketing site runtime (docs/WEBSITE.md) — vanilla, deferred, tiny. Three jobs:
+// ASSIMILATION marketing site runtime (docs/WEBSITE.md) — vanilla, deferred, tiny. Three jobs:
 //   1. The LIVING BACKGROUND: slow procedural veins + drifting spores on #bio-bg (the game's
 //      visual DNA leaking into the site). Reduced-motion → a single static frame. Pauses when
 //      the tab is hidden.

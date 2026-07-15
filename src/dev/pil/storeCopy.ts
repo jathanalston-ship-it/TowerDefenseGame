@@ -3,11 +3,11 @@
 // into per-store bundles (store/*.md) and the in-game What's New feed — the same truth
 // everywhere, written once. Update THIS file when the pitch changes; never edit a bundle.
 
-export const GAME_NAME = 'ASSIMILATE';
+export const GAME_NAME = 'ASSIMILATION';
 export const TAGLINE = 'You are not defending against the swarm. You ARE the swarm.';
 
 export const DESCRIPTION_LONG =
-  'ASSIMILATE is a bio-horror tower defense where the towers are organisms, the battlefield is a body, ' +
+  'ASSIMILATION is a bio-horror tower defense where the towers are organisms, the battlefield is a body, ' +
   'and every run feeds a permanent, ever-mutating hive. Grow living turrets, splice Gene Cards mid-run, ' +
   'field evolving heroes, and push three pillars — Campaign, Infinite, and Boss Rush — while the arena ' +
   'itself assimilates around your growth. Deterministic runs, deep progression, fully playable offline.';

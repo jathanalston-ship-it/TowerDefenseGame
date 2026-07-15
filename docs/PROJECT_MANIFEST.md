@@ -1,4 +1,4 @@
-# PROJECT_MANIFEST.md — ASSIMILATE: the single source of truth
+# PROJECT_MANIFEST.md — ASSIMILATION: the single source of truth
 
 > **READ THIS FIRST.** This manifest is the entry point for every developer and every future
 > Claude session. It maps every major system: what it's for, what it depends on, where it lives,
@@ -11,7 +11,7 @@
 > `DEPENDENCY_GRAPH.md` (what breaks if I change this?) → `CODEMAP.md` (file-level orientation) →
 > `ENGINEERING-AUDIT.md` (architecture health) → the per-system doc linked in each section.
 
-**The game:** ASSIMILATE — a bio-horror tower defense. React 18 + TypeScript (strict) + Vite,
+**The game:** ASSIMILATION — a bio-horror tower defense. React 18 + TypeScript (strict) + Vite,
 static SPA (Cloudflare Pages), browser-local saves. The deterministic simulation lives in
 `src/core/` (no React/DOM — golden tests pin it byte-for-byte); React renders HUD/menus; a
 Canvas2D renderer draws the battlefield. Data flows one way: **sim → snapshot → UI/render**;

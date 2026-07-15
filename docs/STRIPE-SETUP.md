@@ -1,6 +1,6 @@
 # STRIPE-SETUP.md — exactly what to configure in Stripe
 
-The complete operator checklist for ASSIMILATE's store. No code changes are
+The complete operator checklist for ASSIMILATION's store. No code changes are
 involved — the integration reads everything from environment variables
 (docs/DEPLOYMENT.md §3). **Never** paste a key into the repo.
 

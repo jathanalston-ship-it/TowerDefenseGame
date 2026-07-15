@@ -1,4 +1,4 @@
-/* ASSIMILATE marketing site design system (docs/WEBSITE.md §design).
+/* ASSIMILATION marketing site design system (docs/WEBSITE.md §design).
    Bio-mechanical dark aesthetic matching the game's palette; no framework, ~zero JS required
    (the burger menu is a checkbox; site.js only adds the living background + search + ads).
    Generated pages (scripts/gen-site.ts) all share this one sheet — cache it once, browse free. */

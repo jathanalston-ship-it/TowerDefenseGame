@@ -1,6 +1,6 @@
 # CLAUDE.md — Tower Defense Game
 
-ASSIMILATE — a bio-horror tower-defense game. This file is the operating guide for any Claude
+ASSIMILATION — a bio-horror tower-defense game. This file is the operating guide for any Claude
 session working in this repo. It captures the practices worth keeping; the
 stack-specific sections (build/test/run) are filled in below.
 

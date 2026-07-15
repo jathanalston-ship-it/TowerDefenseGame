@@ -361,7 +361,7 @@ export const RELEASES: Release[] = [
       },
       {
         "cat": "Website",
-        "text": "Website overhaul — the public face of ASSIMILATE (SEO, AdSense-ready, retention, marketing)"
+        "text": "Website overhaul — the public face of ASSIMILATION (SEO, AdSense-ready, retention, marketing)"
       },
       {
         "cat": "Website",
@@ -866,6 +866,10 @@ export const RELEASES: Release[] = [
       {
         "cat": "UI",
         "text": "Claim receipts: dopamine pass on the global reward popup + coverage audit"
+      },
+      {
+        "cat": "Gameplay",
+        "text": "Rename the game: ASSIMILATE -> ASSIMILATION everywhere the NAME appears"
       }
     ]
   },
@@ -1577,7 +1581,7 @@ export const RELEASES: Release[] = [
       },
       {
         "cat": "Bosses",
-        "text": "docs: ASSIMILATE identity + boss + progression + anticipation design pass"
+        "text": "docs: ASSIMILATION identity + boss + progression + anticipation design pass"
       },
       {
         "cat": "Audio",

@@ -13,7 +13,7 @@ PLANNED. Framework: `core/boss.ts` (phase + module system). Companion: `ENEMIES.
 
 ---
 
-## 1. The six laws of an ASSIMILATE boss (all must hold)
+## 1. The six laws of an ASSIMILATION boss (all must hold)
 
 1. **It teaches one thing.** Each boss has a single, legible *lesson* (e.g., "spread your
    damage," "protect the flanks," "don't over-commit to one strain"). A player should be

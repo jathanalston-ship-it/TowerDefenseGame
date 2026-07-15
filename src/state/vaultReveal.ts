@@ -40,7 +40,7 @@ const CATEGORY_TITLE: Record<RevealCategory, string> = {
 };
 
 const TIER: LootRarity[] = ['common', 'rare', 'epic', 'legendary', 'exotic'];
-// ASSIMILATE grade ladder (docs/LEXICON.md) — uppercased for the reveal's rarity word.
+// ASSIMILATION grade ladder (docs/LEXICON.md) — uppercased for the reveal's rarity word.
 const RARITY_LABEL: Record<string, string> = {
   common: 'INERT', rare: 'ACTIVE', epic: 'VIRULENT', legendary: 'RAMPANT', exotic: 'APEX', mythic: 'ABERRANT',
 };

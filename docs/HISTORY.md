@@ -26,7 +26,7 @@
 - `2a9c6fa` **[UX]** Opening cinematic + tutorial overhaul — a scored film that dives into the trial
 - `2436521` **[Website]** Marketing page becomes the front door — game moves to /play
 - `65fce4d` **[Gameplay]** Account platform: guest/email accounts, versioned cloud sync, cross-progression, offline-first
-- `2a8ef60` **[Website]** Website overhaul — the public face of ASSIMILATE (SEO, AdSense-ready, retention, marketing)
+- `2a8ef60` **[Website]** Website overhaul — the public face of ASSIMILATION (SEO, AdSense-ready, retention, marketing)
 - `656fd21` **[Website]** Site: regenerate with stamped contact + merged forwarding
 - `7b5da81` **[Website]** Chronicle patch-note pipeline, unified with the generated site
 - `3b97504` **[Developer Tools]** Design Intelligence Layer — the project's living knowledge graph (src/dev/dil)
@@ -202,3 +202,8 @@
 - `07be4c3` **[Website]** Website update + expansion: current systems, new devlog, brand typography
 - `019f448` **[Gameplay]** Season pass: every track tile names its reward (no more icon-guessing)
 - `8518537` **[UI]** Claim receipts: dopamine pass on the global reward popup + coverage audit
+- `65394ff` **[UI]** Claim receipts: dopamine pass on the global reward popup + coverage audit
+- `b0d7295` **[Website]** Session handoff: cinematics + typography + site + pass labels + claim-juice batch _(internal)_
+## 2026-07-15
+
+- `96c9a5c` **[Gameplay]** Rename the game: ASSIMILATE -> ASSIMILATION everywhere the NAME appears
