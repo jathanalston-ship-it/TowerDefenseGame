@@ -153,6 +153,21 @@ never wears it. Enemy/boss "life" reads through `THEME.sick` (bile/pus/sepsis/ma
 infection tones adjacent to health-green but visibly *wrong*. The spawn haze is violet (threat),
 not teal.
 
+### §silhouette — one unmistakable feature per kind
+
+Hue is never the only difference between two kinds — every body must carry ONE anatomical
+feature that reads at gameplay radius:
+
+- **Towers**: kinds sharing a body form get a signature idle organ
+  (`towerForms.drawTowerSignature` — effigy's vertebrae charms, bell's clapper, glaive's docked
+  chakram, lung's bronchi, roost's perch, polyp's fronds, lancet's harpoon barbs; the original
+  five organ-bearers keep their renderer-ladder organs). A future form-sharer adds one case.
+- **Enemies**: every form drawer ends with an accent slot (crest / tail / tusk / plate…), and
+  `theme.ENEMY_ACCENT` round-robins slots within each form family in declaration order, so
+  same-form kinds never collide and a new kind auto-inherits the next slot.
+- **Bosses**: identity stays chassis-first (five body plans + per-def hue); per-def hide
+  markings are the same-chassis tiebreaker and must stay readable at combat distance.
+
 ## 9. The screenshot test (definition of done)
 
 Any new screen must pass all five:

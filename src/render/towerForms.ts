@@ -343,3 +343,118 @@ const DRAWERS: Record<TowerForm, (ctx: Ctx, x: number, y: number, r: number, c: 
 export function drawTowerForm(ctx: Ctx, kind: TowerKind, x: number, y: number, r: number, color: string, now: number, fire: number, br: number): void {
   DRAWERS[TOWER_FORM[kind]](ctx, x, y, r, color, now, fire, br);
 }
+
+// ── PER-KIND SIGNATURES (VISUAL_IDENTITY.md §silhouette) — one unmistakable idle organ for each
+// kind that SHARES its body form with another tower, so form-mates never read as hue-swaps at
+// gameplay zoom (needle/lancet, parasite/roost, obelisk/effigy, coil/siphon/glaive, sower/lung,
+// maw/polyp/bell). The five original organ-bearers (reactor/parasite/obelisk/coil/siphon) keep
+// their organs in the renderer ladder; kinds with a unique form need nothing. Future form-sharers
+// add a case here. Cosmetic + render-only ⇒ golden-safe.
+export function drawTowerSignature(ctx: Ctx, kind: TowerKind, x: number, y: number, r: number, color: string, now: number, fire: number, br: number, id: number): void {
+  switch (kind) {
+    case 'effigy': { // gaunt totem: strung vertebrae charms swaying from the shoulders
+      for (const s of [-1, 1]) {
+        const ax = x + s * r * 0.56, ay = y - r * 0.34;
+        const sw = Math.sin(now * 1.8 + s * 2.1 + id) * r * 0.14;
+        ctx.strokeStyle = C(color, 0.1, 0.6); ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.moveTo(ax, ay); ctx.quadraticCurveTo(ax + sw * 0.5, ay + r * 0.3, ax + sw, ay + r * 0.6); ctx.stroke();
+        ctx.fillStyle = 'rgba(226,232,240,0.75)';
+        for (let i = 1; i <= 3; i++) { ctx.beginPath(); ctx.arc(ax + sw * (i / 3) * 0.9, ay + r * 0.58 * (i / 3), r * 0.065, 0, TAU); ctx.fill(); }
+      }
+      break;
+    }
+    case 'polyp': { // undertow fronds: kelp tendrils curling inward over the mouth — the pull made visible
+      ctx.strokeStyle = C(color, 0.25, 0.6);
+      ctx.lineWidth = Math.max(1, r * 0.09);
+      ctx.lineCap = 'round';
+      for (let i = 0; i < 4; i++) {
+        const a = (i / 4) * TAU + 0.4;
+        const bx = x + Math.cos(a) * r * 0.82, by = y + Math.sin(a) * r * 0.82;
+        const sway = Math.sin(now * 2.2 + i * 1.7 + id) * r * 0.16;
+        ctx.beginPath();
+        ctx.moveTo(bx, by);
+        ctx.quadraticCurveTo(bx + sway, by - r * 0.5, x + Math.cos(a) * r * 0.25 + sway, y + Math.sin(a) * r * 0.25 - r * 0.52);
+        ctx.stroke();
+      }
+      ctx.lineCap = 'butt';
+      break;
+    }
+    case 'bell': { // the clapper: a yoke bar + a hanging pendulum bob — a bell you can SEE toll
+      ctx.strokeStyle = C(color, 0.3, 0.75);
+      ctx.lineWidth = Math.max(1, r * 0.1);
+      ctx.beginPath(); ctx.moveTo(x - r * 0.5, y - r * 0.44); ctx.lineTo(x + r * 0.5, y - r * 0.44); ctx.stroke();
+      const sw = Math.sin(now * 2.6 + id) * r * (0.14 + fire * 0.3);
+      ctx.lineWidth = Math.max(1, r * 0.07);
+      ctx.beginPath(); ctx.moveTo(x, y - r * 0.44); ctx.quadraticCurveTo(x + sw * 0.4, y - r * 0.05, x + sw, y + r * 0.28); ctx.stroke();
+      ctx.fillStyle = `rgba(255,214,140,${0.7 + fire * 0.3})`;
+      ctx.beginPath(); ctx.arc(x + sw, y + r * 0.3, r * 0.15 * br, 0, TAU); ctx.fill();
+      break;
+    }
+    case 'lancet': { // harpoon rig: back-swept tip barbs + a slack retrieval cable down to the winch
+      const tipY = y - r * 1.66 + fire * r * 0.3;
+      ctx.fillStyle = C(color, 0.35, 0.9);
+      for (const s of [-1, 1]) {
+        ctx.beginPath();
+        ctx.moveTo(x, tipY + r * 0.18);
+        ctx.lineTo(x + s * r * 0.3, tipY + r * 0.52);
+        ctx.lineTo(x + s * r * 0.06, tipY + r * 0.44);
+        ctx.closePath(); ctx.fill();
+      }
+      ctx.strokeStyle = C(color, 0.15, 0.45); ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(x, tipY + r * 0.2); ctx.quadraticCurveTo(x + r * 0.36, y - r * 0.55, x + r * 0.2, y + r * 0.12); ctx.stroke();
+      break;
+    }
+    case 'roost': { // the perch: a Y-branch rising off the clutch with a folded-wing fledgling on watch
+      ctx.strokeStyle = C(color, -0.1, 0.8);
+      ctx.lineWidth = Math.max(1.2, r * 0.11);
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.moveTo(x + r * 0.3, y - r * 0.05);
+      ctx.quadraticCurveTo(x + r * 0.46, y - r * 0.65, x + r * 0.34, y - r * 1.02);
+      ctx.moveTo(x + r * 0.4, y - r * 0.68);
+      ctx.lineTo(x + r * 0.66, y - r * 0.98);
+      ctx.stroke();
+      ctx.lineCap = 'butt';
+      const hop = Math.abs(Math.sin(now * 1.4 + id)) * r * 0.05;
+      ctx.fillStyle = 'rgba(235,225,240,0.85)';
+      ctx.beginPath(); ctx.ellipse(x + r * 0.34, y - r * 1.16 - hop, r * 0.12, r * 0.18, 0, 0, TAU); ctx.fill();
+      ctx.fillStyle = C(color, 0.2, 0.8);
+      ctx.beginPath(); ctx.ellipse(x + r * 0.38, y - r * 1.12 - hop, r * 0.07, r * 0.12, 0.5, 0, TAU); ctx.fill(); // folded wing
+      break;
+    }
+    case 'lung': { // bronchi: paired air-stubs flaring on the sac's own breath + spiracles that brighten on the exhale
+      const ex = 0.5 + 0.5 * Math.sin(now * 1.6); // matches the pod drawer's swell beat
+      ctx.lineCap = 'round';
+      for (const s of [-1, 1]) {
+        ctx.strokeStyle = C(color, 0.2, 0.5 + ex * 0.3);
+        ctx.lineWidth = Math.max(1.4, r * (0.15 + ex * 0.05));
+        ctx.beginPath();
+        ctx.moveTo(x + s * r * 0.4, y - r * 0.6);
+        ctx.quadraticCurveTo(x + s * r * 0.72, y - r * 0.95, x + s * r * 0.58, y - r * 1.18);
+        ctx.stroke();
+        ctx.fillStyle = C(color, 0.4, 0.4 + 0.4 * ex);
+        ctx.beginPath(); ctx.arc(x + s * r * 0.58, y - r * 1.2, r * (0.07 + 0.05 * ex), 0, TAU); ctx.fill();
+      }
+      ctx.lineCap = 'butt';
+      ctx.fillStyle = C(color, 0.3, 0.25 + 0.45 * ex);
+      for (let i = 0; i < 3; i++) {
+        for (const s of [-1, 1]) { ctx.beginPath(); ctx.arc(x + s * r * 0.68, y - r * 0.15 + i * r * 0.3, r * 0.05, 0, TAU); ctx.fill(); }
+      }
+      break;
+    }
+    case 'glaive': { // the docked blade: a crescent chakram hovering over the launch ring between throws
+      const hover = Math.sin(now * 1.9 + id) * r * 0.07;
+      const by = y - r * 0.74 + hover;
+      bloom(ctx, x, by, r * 0.5, color, 0.25);
+      ctx.save();
+      ctx.translate(x, by);
+      ctx.rotate(now * 0.6 + id);
+      ctx.strokeStyle = C(color, 0.35, 0.9);
+      ctx.lineWidth = Math.max(1.6, r * 0.13);
+      ctx.beginPath(); ctx.arc(0, 0, r * 0.42, 0.35, Math.PI - 0.35); ctx.stroke();
+      ctx.beginPath(); ctx.arc(0, 0, r * 0.42, Math.PI + 0.35, TAU - 0.35); ctx.stroke();
+      ctx.restore();
+      break;
+    }
+  }
+}

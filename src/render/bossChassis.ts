@@ -44,7 +44,7 @@ export function bossColorOf(defId: string): string {
   return lookOf(defId).color;
 }
 
-const DARK = rgba(hexRgb('#0a0d14'), 0.3); // plate/marking shade over any hide color
+const DARK = rgba(hexRgb('#0a0d14'), 0.42); // plate/marking shade over any hide color — dark enough to read at gameplay zoom (VISUAL_IDENTITY §silhouette)
 
 // ── Volumetric hide (beauty pass): lighten/darken a def color (memoized — per-def key space)
 //    and build a key-lit radial fill. Bosses are ≤3 on field, so per-frame gradients are cheap.
@@ -72,11 +72,11 @@ function hideGrad(ctx: CanvasRenderingContext2D, x: number, y: number, r: number
  *  Progenitor and the Brood Cyst are both violet swarmlords). */
 function drawMarkings(ctx: CanvasRenderingContext2D, mark: number, x: number, y: number, r: number): void {
   if (mark === 0) {
-    drawShape(ctx, 'circle', x - r * 0.34, y - r * 0.1, r * 0.14, DARK);
-    drawShape(ctx, 'circle', x + r * 0.3, y + r * 0.16, r * 0.11, DARK);
+    drawShape(ctx, 'circle', x - r * 0.34, y - r * 0.1, r * 0.17, DARK);
+    drawShape(ctx, 'circle', x + r * 0.3, y + r * 0.16, r * 0.13, DARK);
   } else if (mark === 1) {
     ctx.strokeStyle = DARK;
-    ctx.lineWidth = 2;
+    ctx.lineWidth = 2.5;
     for (let i = 0; i < 2; i++) {
       const oy = y - r * 0.28 + i * r * 0.34;
       ctx.beginPath();

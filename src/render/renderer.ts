@@ -26,12 +26,12 @@ import {
 import { HERO_DEFS, HERO_PHASE_FLASH, MINION_DEFS, PERF, TOWER_DEFS } from '../core/config';
 import type { RenderState } from '../core/game';
 import type { TowerFiring, EnemyKind, HeroKind } from '../core/types';
-import { THEME, ENEMY_SHAPE, ENEMY_TIER, ENEMY_BODY, ENEMY_VARIANT, hexRgb, rgba } from './theme';
+import { THEME, ENEMY_SHAPE, ENEMY_TIER, ENEMY_BODY, ENEMY_VARIANT, ENEMY_ACCENT, hexRgb, rgba } from './theme';
 import { drawEnemyBody } from './enemyForms';
 import type { BodyForm } from './enemyForms';
 import { ingestDeaths, updateGore, drawGoreFloor, drawGorePieces, goreThrob } from './gore';
 import { drawAbilityCinematics } from './abilityCinematics';
-import { drawTowerForm, FORM_ANTICIPATION, TOWER_FORM } from './towerForms';
+import { drawTowerForm, drawTowerSignature, FORM_ANTICIPATION, TOWER_FORM } from './towerForms';
 import {
   chevronDown,
   drawShape,
@@ -1295,6 +1295,9 @@ function drawTower(ctx: CanvasRenderingContext2D, tw: RenderState['towers'][numb
     glowDisc(ctx, ix, iy, r * (0.34 + heat * 0.16) * breathe, kcolor);
     drawShape(ctx, 'circle', ix, iy, r * 0.16 * breathe, 'rgba(10,6,10,0.85)'); // the drinking pupil
   }
+  // Per-kind SIGNATURE organ (towerForms.drawTowerSignature) — the tiebreaker for kinds sharing a
+  // body form (VISUAL_IDENTITY.md §silhouette); no-op for the kinds handled above or unique forms.
+  drawTowerSignature(ctx, tw.kind, tw.x, tw.y, r, kcolor, now, fresh, breathe, tw.id);
   if (strained) ctx.restore(); // end of the anticipation wind-up transform
 
   // Mastery cosmetic: a veteran "halo" that grows with the tower's mastery RANK (MASTERY.md
@@ -1747,7 +1750,7 @@ function drawEnemyShells(ctx: CanvasRenderingContext2D, rs: RenderState): void {
 //    Keyed by enemy id, pruned each frame. Never read by the sim (golden-safe). ─────────────────────
 interface EnemyMotion { x: number; y: number; vx: number; vy: number; spawnT: number; seen: number; kind: EnemyKind; hitF: number; sparkT: number; flavor: DeathFlavor | null; flavorHue: string | null }
 const enemyMotion = new Map<number, EnemyMotion>();
-interface DeathEcho { form: BodyForm; x: number; y: number; r: number; color: string; seed: number; phase: number; t0: number; flavor: DeathFlavor | null; flavorHue: string | null }
+interface DeathEcho { form: BodyForm; x: number; y: number; r: number; color: string; seed: number; accent: number; phase: number; t0: number; flavor: DeathFlavor | null; flavorHue: string | null }
 const deathEchoes: DeathEcho[] = [];
 // HIT CONFIRMATION sparks (docs/GAME-FEEL.md P0): a landed hit bursts class-tinted sparks at
 // contact. Render-local pool (the sim spawns no hit particles) — capped, stateless to draw.
@@ -1790,7 +1793,7 @@ function updateEnemyMotion(enemies: RenderState['enemies'], t: number, detail: b
     if (m.seen === motionFrame) continue;
     if (deathEchoes.length < 48) { // a vanished enemy died — leave a fading crumple
       const def = themedEnemyDef(m.kind);
-      deathEchoes.push({ form: ENEMY_BODY[m.kind], x: m.x, y: m.y, r: def.radius, color: def.color, seed: ENEMY_VARIANT[m.kind], phase: id, t0: t, flavor: m.flavor, flavorHue: m.flavorHue });
+      deathEchoes.push({ form: ENEMY_BODY[m.kind], x: m.x, y: m.y, r: def.radius, color: def.color, seed: ENEMY_VARIANT[m.kind], accent: ENEMY_ACCENT[m.kind], phase: id, t0: t, flavor: m.flavor, flavorHue: m.flavorHue });
     }
     enemyMotion.delete(id);
   }
@@ -1853,7 +1856,7 @@ function drawDeathEchoes(ctx: CanvasRenderingContext2D, t: number): void {
     ctx.translate(d.x, d.y + age * d.r * 0.4); // sink into the floor
     const melt = d.flavor === 'dissolve' ? 0.75 : 0.55; // corrosion flattens harder
     ctx.scale(1 + age * 0.35, 1 - age * melt); // splay wide + squash flat
-    drawEnemyBody(ctx, d.form, 0, 0, d.r, d.color, t, { seed: d.seed, phase: d.phase, rim: THEME.enemy.rim });
+    drawEnemyBody(ctx, d.form, 0, 0, d.r, d.color, t, { seed: d.seed, accent: d.accent, phase: d.phase, rim: THEME.enemy.rim });
     ctx.restore();
     if (hue && d.flavor === 'embers') {
       // BURNING COLLAPSE: embers lift off the settling body.
@@ -2099,7 +2102,7 @@ function drawEnemy(
     const emerge = easeOutCubic(mo ? Math.min(1, (t - mo.spawnT) / EMERGE_T) : 1);
     const bodyR = r * (0.93 + (e.id % 5) * 0.028); // per-instance size jitter (body only — rings stay true)
     drawEnemyBody(ctx, ENEMY_BODY[e.kind], e.x, drawY, bodyR, def.color, t, {
-      seed: ENEMY_VARIANT[e.kind], phase: e.id, rim, flying,
+      seed: ENEMY_VARIANT[e.kind], accent: ENEMY_ACCENT[e.kind], phase: e.id, rim, flying,
       vx: mo?.vx ?? 0, vy: mo?.vy ?? 0, emerge,
       flinch: Math.min(1, e.hitFlash * 9), // the 0.09s sim flash → a physical recoil
     });

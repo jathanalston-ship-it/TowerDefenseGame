@@ -27,6 +27,7 @@ export type BodyForm =
 
 export interface BodyOpts {
   seed: number;  // per-KIND structural variant (stable across a kind's instances)
+  accent?: number; // per-KIND silhouette-accent slot 0..2 (theme.ENEMY_ACCENT — round-robin per form family); falls back to seed % 3
   phase: number; // per-INSTANCE animation offset (e.id) so a swarm doesn't animate in lockstep
   rim: string;   // tier-keyed outline colour (normal / elite / boss)
   flying?: boolean;
@@ -110,6 +111,12 @@ function antennae(ctx: Ctx, x: number, y: number, r: number, c: string, sway: nu
 }
 
 // ── Per-form drawers ───────────────────────────────────────────────────────────────────────────
+// SILHOUETTE ACCENTS (VISUAL_IDENTITY.md §silhouette): every drawer ends with one accent-slot
+// (`o.accent`, 0..2 — theme.ENEMY_ACCENT round-robins the slot within each form family so
+// same-form kinds never collide; seed % 3 is the fallback) anatomical accent at SILHOUETTE
+// scale — a crest, tail, tusk, or plate that still reads at gameplay radius (~6–9px) — so kinds
+// sharing a form differ in outline, not just hue. An accent is a kind's permanent anatomy, and
+// future kinds inherit one automatically. Budget: ≤ 6 ops per accent.
 
 function grub(ctx: Ctx, x: number, y: number, r: number, c: string, t: number, o: BodyOpts): void {
   const segs = 2 + (o.seed % 3); // runner/mite/larva differ in segment count
@@ -141,6 +148,25 @@ function grub(ctx: Ctx, x: number, y: number, r: number, c: string, t: number, o
     ctx.stroke();
   }
   eyes(ctx, x + wig, y - r * 0.5, r * 0.28, r * 0.12, shade(c, 0.6));
+  // accent: bristle mohawk / tail-whip / plain
+  const acc = o.accent ?? o.seed % 3;
+  if (acc === 0) {
+    ctx.strokeStyle = shade(c, -0.45); ctx.lineWidth = Math.max(1, r * 0.12); ctx.lineCap = 'round';
+    for (let i = -1; i <= 1; i++) {
+      ctx.beginPath();
+      ctx.moveTo(x + wig + i * r * 0.28, y - r * (0.8 - Math.abs(i) * 0.14));
+      ctx.lineTo(x + wig + i * r * 0.44, y - r * (1.25 - Math.abs(i) * 0.24));
+      ctx.stroke();
+    }
+    ctx.lineCap = 'butt';
+  } else if (acc === 1) {
+    ctx.strokeStyle = shade(c, -0.25); ctx.lineWidth = Math.max(1, r * 0.14); ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.moveTo(x + wig, y + r * 0.9);
+    ctx.quadraticCurveTo(x + wig - r * 0.3, y + r * 1.3, x + wig + Math.sin(t * 6 + o.phase) * r * 0.3, y + r * 1.55);
+    ctx.stroke();
+    ctx.lineCap = 'butt';
+  }
 }
 
 function dart(ctx: Ctx, x: number, y: number, r: number, c: string, t: number, o: BodyOpts): void {
@@ -170,6 +196,30 @@ function dart(ctx: Ctx, x: number, y: number, r: number, c: string, t: number, o
   // forward visor-eye
   ctx.fillStyle = shade(c, 0.65);
   ctx.beginPath(); ctx.ellipse(x, y + r * 0.15, r * 0.22, r * 0.34, 0, 0, Math.PI * 2); ctx.fill();
+  // accent: twin tail streamers / forward canards / dorsal keel
+  const acc = o.accent ?? o.seed % 3;
+  if (acc === 0) {
+    ctx.strokeStyle = shade(c, 0.15); ctx.lineWidth = Math.max(1, r * 0.1); ctx.lineCap = 'round';
+    for (const s of [-1, 1]) {
+      ctx.beginPath();
+      ctx.moveTo(x + s * r * 0.28, y - r * 0.45);
+      ctx.quadraticCurveTo(x + s * r * 0.52, y - r * 1.0, x + s * (r * 0.34 + Math.sin(t * 9 + o.phase + s) * r * 0.12), y - r * 1.5);
+      ctx.stroke();
+    }
+    ctx.lineCap = 'butt';
+  } else if (acc === 1) {
+    ctx.fillStyle = shade(c, -0.2);
+    for (const s of [-1, 1]) {
+      ctx.beginPath();
+      ctx.moveTo(x + s * r * 0.28, y + r * 0.5);
+      ctx.lineTo(x + s * r * 0.85, y + r * 0.88);
+      ctx.lineTo(x + s * r * 0.28, y + r * 0.86);
+      ctx.closePath(); ctx.fill();
+    }
+  } else {
+    ctx.fillStyle = shade(c, -0.32);
+    ctx.beginPath(); ctx.moveTo(x, y - r * 0.68); ctx.lineTo(x + r * 0.17, y - r * 0.02); ctx.lineTo(x - r * 0.17, y - r * 0.02); ctx.closePath(); ctx.fill();
+  }
 }
 
 function beetle(ctx: Ctx, x: number, y: number, r: number, c: string, t: number, o: BodyOpts): void {
@@ -213,27 +263,39 @@ function beetle(ctx: Ctx, x: number, y: number, r: number, c: string, t: number,
   ctx.beginPath(); ctx.ellipse(x - r * 0.28, y - r * 0.42, r * 0.28, r * 0.16, -0.5, 0, Math.PI * 2); ctx.fill();
   ctx.globalAlpha = 1;
   glint(ctx, x, y - r * 0.1, r, c);
-  // apex variants get a brow horn
-  if (o.seed % 4 === 0) {
+  // accent: brow horn / flared pincer mandibles / clean dome
+  const acc = o.accent ?? o.seed % 3;
+  if (acc === 0) {
     ctx.fillStyle = shade(c, -0.3);
-    ctx.beginPath(); ctx.moveTo(x - r * 0.18, y + r * 0.5); ctx.lineTo(x, y + r * 1.15); ctx.lineTo(x + r * 0.18, y + r * 0.5); ctx.closePath(); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(x - r * 0.18, y + r * 0.5); ctx.lineTo(x, y + r * 1.2); ctx.lineTo(x + r * 0.18, y + r * 0.5); ctx.closePath(); ctx.fill();
+  } else if (acc === 1) {
+    ctx.strokeStyle = shade(c, -0.35); ctx.lineWidth = Math.max(1.2, r * 0.14); ctx.lineCap = 'round';
+    for (const s of [-1, 1]) {
+      ctx.beginPath();
+      ctx.arc(x + s * r * 0.36, y + r * 0.9, r * 0.34, s > 0 ? Math.PI * 0.75 : Math.PI * 0.05, s > 0 ? Math.PI * 1.55 : Math.PI * 0.95, s < 0);
+      ctx.stroke();
+    }
+    ctx.lineCap = 'butt';
   }
 }
 
 function crab(ctx: Ctx, x: number, y: number, r: number, c: string, t: number, o: BodyOpts): void {
   const move = o.moving ?? 0;
+  // accent 0: one CRUSHER claw grows oversized (asymmetry reads instantly at any zoom)
+  const acc = o.accent ?? o.seed % 3;
   // two claws framing the shell — SNAPPING open/shut as it advances
   ctx.fillStyle = shade(c, -0.2);
   ctx.strokeStyle = o.rim;
   ctx.lineWidth = Math.max(1, r * 0.09);
   for (const s of [-1, 1]) {
-    const cx = x + s * r * 0.95, cy = y + r * 0.1 + Math.sin(t * 4 + o.phase) * r * 0.05;
+    const k = acc === 0 && s < 0 ? 1.55 : 1; // the crusher
+    const cx = x + s * r * (0.95 + (k - 1) * 0.2), cy = y + r * 0.1 + Math.sin(t * 4 + o.phase) * r * 0.05;
     const snap = Math.max(0, Math.sin(t * (3 + move * 6) + o.phase + s)) * (0.4 + 0.6 * move);
-    ctx.beginPath(); ctx.arc(cx, cy, r * 0.32, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+    ctx.beginPath(); ctx.arc(cx, cy, r * 0.32 * k, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
     ctx.beginPath();
-    ctx.moveTo(cx + s * r * 0.1, cy - r * 0.3);
-    ctx.lineTo(cx + s * r * (0.35 + snap * 0.14), cy - r * (0.05 + snap * 0.14));
-    ctx.lineTo(cx + s * r * 0.1, cy);
+    ctx.moveTo(cx + s * r * 0.1 * k, cy - r * 0.3 * k);
+    ctx.lineTo(cx + s * r * (0.35 + snap * 0.14) * k, cy - r * (0.05 + snap * 0.14) * k);
+    ctx.lineTo(cx + s * r * 0.1 * k, cy);
     ctx.closePath(); ctx.fill();
   }
   // low wide carapace
@@ -257,6 +319,13 @@ function crab(ctx: Ctx, x: number, y: number, r: number, c: string, t: number, o
   ctx.beginPath(); ctx.arc(x, y + r * 0.2, r * 0.92, Math.PI * 0.15, Math.PI * 0.85); ctx.stroke();
   glint(ctx, x - r * 0.2, y - r * 0.2, r * 0.9, c);
   eyes(ctx, x, y - r * 0.15, r * 0.26, r * 0.1, shade(c, 0.6));
+  // accent 1: a row of shell studs across the carapace ridge (0 = crusher claw above, 2 = clean)
+  if (acc === 1) {
+    ctx.fillStyle = shade(c, -0.42);
+    for (let i = -1; i <= 1; i++) {
+      ctx.beginPath(); ctx.arc(x + i * r * 0.4, y - r * 0.52, r * 0.11, 0, Math.PI * 2); ctx.fill();
+    }
+  }
 }
 
 function polyp(ctx: Ctx, x: number, y: number, r: number, c: string, t: number, o: BodyOpts): void {
@@ -279,9 +348,24 @@ function polyp(ctx: Ctx, x: number, y: number, r: number, c: string, t: number, 
   ctx.arc(x, y, r * p, 0, Math.PI * 2);
   fillRim(ctx, shade(c, 0.1), o.rim, Math.max(1.2, r * 0.12));
   ctx.globalAlpha = 1;
+  // accent: crown stalk / TWIN nuclei / single heart — the sac's contents are the tell
+  const acc = o.accent ?? o.seed % 3;
+  if (acc === 0) {
+    ctx.strokeStyle = shade(c, -0.2); ctx.lineWidth = Math.max(1, r * 0.11); ctx.lineCap = 'round';
+    const nod = Math.sin(t * 2.2 + o.phase) * r * 0.1;
+    ctx.beginPath(); ctx.moveTo(x, y - r * 0.85 * p); ctx.quadraticCurveTo(x + nod, y - r * 1.15, x + nod * 1.6, y - r * 1.38); ctx.stroke();
+    ctx.lineCap = 'butt';
+    ctx.fillStyle = shade(c, 0.45);
+    ctx.beginPath(); ctx.arc(x + nod * 1.6, y - r * 1.42, r * 0.14, 0, Math.PI * 2); ctx.fill();
+  }
   // inner nucleus (the regenerating heart) + refracted bubbles drifting inside the jelly
   ctx.fillStyle = shade(c, -0.35);
-  ctx.beginPath(); ctx.arc(x, y, r * 0.42 * p, 0, Math.PI * 2); ctx.fill();
+  if (acc === 1) {
+    ctx.beginPath(); ctx.arc(x - r * 0.22, y + r * 0.05, r * 0.3 * p, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(x + r * 0.24, y - r * 0.08, r * 0.26 * p, 0, Math.PI * 2); ctx.fill();
+  } else {
+    ctx.beginPath(); ctx.arc(x, y, r * 0.42 * p, 0, Math.PI * 2); ctx.fill();
+  }
   ctx.fillStyle = shade(c, 0.5);
   ctx.beginPath(); ctx.arc(x - r * 0.12, y - r * 0.12, r * 0.16, 0, Math.PI * 2); ctx.fill();
   ctx.fillStyle = shade(c, 0.6);
@@ -333,6 +417,21 @@ function mole(ctx: Ctx, x: number, y: number, r: number, c: string, t: number, o
     }
   }
   eyes(ctx, x, y - r * 0.2, r * 0.2, r * 0.08, '#ffcf6a');
+  // accent: a pushed bow-wave of soil ahead of the nose / an armoured skull-visor / clean
+  const acc = o.accent ?? o.seed % 3;
+  if (acc === 0) {
+    ctx.strokeStyle = 'rgba(88,70,56,0.75)'; ctx.lineWidth = Math.max(1.4, r * 0.18); ctx.lineCap = 'round';
+    ctx.beginPath(); ctx.arc(x, y + r * 1.1, r * 0.75, Math.PI * 0.2, Math.PI * 0.8); ctx.stroke();
+    ctx.lineCap = 'butt';
+  } else if (acc === 1) {
+    ctx.fillStyle = shade(c, 0.35);
+    ctx.beginPath();
+    ctx.moveTo(x - r * 0.5, y + r * 0.35);
+    ctx.quadraticCurveTo(x, y + r * 0.05, x + r * 0.5, y + r * 0.35);
+    ctx.lineTo(x + r * 0.34, y + r * 0.78);
+    ctx.quadraticCurveTo(x, y + r * 0.6, x - r * 0.34, y + r * 0.78);
+    ctx.closePath(); ctx.fill();
+  }
 }
 
 function moth(ctx: Ctx, x: number, y: number, r: number, c: string, t: number, o: BodyOpts): void {
@@ -365,6 +464,32 @@ function moth(ctx: Ctx, x: number, y: number, r: number, c: string, t: number, o
   for (let i = -1; i <= 1; i++) { ctx.beginPath(); ctx.moveTo(x - r * 0.3, y + i * r * 0.3); ctx.lineTo(x + r * 0.3, y + i * r * 0.3); ctx.stroke(); }
   antennae(ctx, x, y - r * 0.45, r * 0.6, c, t * 4 + o.phase);
   eyes(ctx, x, y - r * 0.55, r * 0.18, r * 0.09, shade(c, 0.6));
+  // accent: swallowtail streamers / bright abdomen bands / plumed antennae
+  const acc = o.accent ?? o.seed % 3;
+  if (acc === 0) {
+    ctx.strokeStyle = shade(c, 0.2); ctx.lineWidth = Math.max(1, r * 0.09); ctx.lineCap = 'round';
+    for (const s of [-1, 1]) {
+      ctx.beginPath();
+      ctx.moveTo(x + s * r * 0.14, y + r * 0.7);
+      ctx.quadraticCurveTo(x + s * r * 0.42, y + r * 1.15, x + s * (r * 0.3 + Math.sin(t * 5 + o.phase) * r * 0.08), y + r * 1.5);
+      ctx.stroke();
+    }
+    ctx.lineCap = 'butt';
+  } else if (acc === 1) {
+    ctx.strokeStyle = shade(c, 0.45); ctx.lineWidth = Math.max(1, r * 0.12);
+    for (const by of [0.1, 0.42]) {
+      ctx.beginPath(); ctx.moveTo(x - r * 0.28, y + by * r); ctx.lineTo(x + r * 0.28, y + by * r); ctx.stroke();
+    }
+  } else {
+    ctx.strokeStyle = shade(c, 0.35); ctx.lineWidth = Math.max(1, r * 0.14); ctx.lineCap = 'round';
+    for (const s of [-1, 1]) {
+      ctx.beginPath();
+      ctx.moveTo(x + s * r * 0.12, y - r * 0.5);
+      ctx.lineTo(x + s * r * 0.62, y - r * (1.2 + 0.08 * Math.sin(t * 4 + s)));
+      ctx.stroke();
+    }
+    ctx.lineCap = 'butt';
+  }
 }
 
 function broodsac(ctx: Ctx, x: number, y: number, r: number, c: string, t: number, o: BodyOpts): void {
@@ -399,6 +524,23 @@ function broodsac(ctx: Ctx, x: number, y: number, r: number, c: string, t: numbe
   }
   ctx.fillStyle = shade(c, -0.25);
   ctx.beginPath(); ctx.arc(x, y, r * 0.2, 0, Math.PI * 2); ctx.fill();
+  // accent: a piggybacked egg-cluster / a birthing proboscis / a sealed sac
+  const acc = o.accent ?? o.seed % 3;
+  if (acc === 0) {
+    ctx.fillStyle = shade(c, 0.3);
+    ctx.strokeStyle = o.rim; ctx.lineWidth = Math.max(1, r * 0.07);
+    for (let i = -1; i <= 1; i++) {
+      const ex = x + i * r * 0.32, ey = y - r * (0.95 - Math.abs(i) * 0.14);
+      ctx.beginPath(); ctx.arc(ex, ey, r * 0.19, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+    }
+  } else if (acc === 1) {
+    const push = 0.5 + 0.5 * Math.sin(t * 3 + o.phase);
+    ctx.strokeStyle = shade(c, -0.15); ctx.lineWidth = Math.max(1.4, r * 0.2); ctx.lineCap = 'round';
+    ctx.beginPath(); ctx.moveTo(x, y + r * 0.8); ctx.lineTo(x, y + r * (1.1 + push * 0.25)); ctx.stroke();
+    ctx.lineCap = 'butt';
+    ctx.fillStyle = shade(c, 0.5);
+    ctx.beginPath(); ctx.arc(x, y + r * (1.15 + push * 0.25), r * (0.1 + 0.05 * push), 0, Math.PI * 2); ctx.fill();
+  }
 }
 
 function frond(ctx: Ctx, x: number, y: number, r: number, c: string, t: number, o: BodyOpts): void {
@@ -424,6 +566,21 @@ function frond(ctx: Ctx, x: number, y: number, r: number, c: string, t: number, 
   fillRim(ctx, shade(c, 0.1), o.rim, Math.max(1.2, r * 0.12));
   ctx.fillStyle = shade(c, 0.55);
   ctx.beginPath(); ctx.arc(x, y, r * 0.26 * p, 0, Math.PI * 2); ctx.fill();
+  // accent: a tall crown plume / a translucent skirt membrane / bare anemone
+  const acc = o.accent ?? o.seed % 3;
+  if (acc === 0) {
+    const nod = Math.sin(t * 2 + o.phase) * r * 0.14;
+    ctx.strokeStyle = shade(c, 0.4); ctx.lineWidth = Math.max(1.2, r * 0.13); ctx.lineCap = 'round';
+    ctx.beginPath(); ctx.moveTo(x, y - r * 0.4); ctx.quadraticCurveTo(x + nod, y - r * 1.2, x + nod * 1.8, y - r * 1.75); ctx.stroke();
+    ctx.lineCap = 'butt';
+    ctx.fillStyle = shade(c, 0.6);
+    ctx.beginPath(); ctx.arc(x + nod * 1.8, y - r * 1.8, r * 0.15, 0, Math.PI * 2); ctx.fill();
+  } else if (acc === 1) {
+    ctx.globalAlpha = 0.35;
+    ctx.fillStyle = shade(c, 0.25);
+    ctx.beginPath(); ctx.ellipse(x, y + r * 0.25, r * 1.05, r * 0.42, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.globalAlpha = 1;
+  }
 }
 
 function bulb(ctx: Ctx, x: number, y: number, r: number, c: string, t: number, o: BodyOpts): void {
@@ -461,32 +618,64 @@ function bulb(ctx: Ctx, x: number, y: number, r: number, c: string, t: number, o
       ctx.stroke();
     }
   }
+  // accent: a second forked fuse / an armoured blast-cap / a single clean fuse
+  const acc = o.accent ?? o.seed % 3;
+  if (acc === 0) {
+    ctx.strokeStyle = shade(c, -0.4); ctx.lineWidth = Math.max(1, r * 0.1);
+    ctx.beginPath(); ctx.moveTo(x + r * 0.12, y - r * 0.8); ctx.lineTo(x + r * 0.42, y - r * 1.12); ctx.stroke();
+    ctx.fillStyle = `rgba(255,${Math.round(140 + 90 * unst)},60,${0.5 + 0.4 * unst})`;
+    ctx.beginPath(); ctx.arc(x + r * 0.46, y - r * 1.18, r * (0.09 + 0.06 * unst), 0, Math.PI * 2); ctx.fill();
+  } else if (acc === 1) {
+    ctx.fillStyle = shade(c, -0.45);
+    ctx.strokeStyle = shade(c, 0.2); ctx.lineWidth = Math.max(1, r * 0.08);
+    ctx.beginPath();
+    ctx.moveTo(x - r * 0.62, y - r * 0.55);
+    ctx.quadraticCurveTo(x, y - r * 1.02, x + r * 0.62, y - r * 0.55);
+    ctx.quadraticCurveTo(x, y - r * 0.72, x - r * 0.62, y - r * 0.55);
+    ctx.closePath(); ctx.fill(); ctx.stroke();
+  }
 }
 
 function mortar(ctx: Ctx, x: number, y: number, r: number, c: string, t: number, o: BodyOpts): void {
+  // accent 0: a TWIN battery — two spouts side by side (1: front mantlet plate · 2: single tube)
+  const acc = o.accent ?? o.seed % 3;
   // braced legs, dug in
   ctx.strokeStyle = shade(c, -0.45); ctx.lineWidth = Math.max(1.3, r * 0.16);
   for (const s of [-1, 1]) {
     ctx.beginPath(); ctx.moveTo(x + s * r * 0.5, y + r * 0.3); ctx.lineTo(x + s * r * 1.05, y + r * 0.95); ctx.stroke();
     ctx.beginPath(); ctx.moveTo(x + s * r * 0.25, y + r * 0.5); ctx.lineTo(x + s * r * 0.6, y + r * 1.0); ctx.stroke();
   }
-  // raised barrel/spout pointing up-back (it lobs shells over the field)
+  // raised barrel/spout(s) pointing up-back (it lobs shells over the field)
   const chg = 0.5 + 0.5 * Math.abs(Math.sin(t * 2 + o.phase));
-  ctx.save();
-  ctx.translate(x, y - r * 0.2);
-  ctx.rotate(-0.35);
-  ctx.fillStyle = shade(c, -0.25);
-  ctx.strokeStyle = o.rim; ctx.lineWidth = Math.max(1, r * 0.1);
-  ctx.beginPath(); ctx.rect(-r * 0.28, -r * 1.15, r * 0.56, r * 1.15); ctx.fill(); ctx.stroke();
-  ctx.fillStyle = `rgba(255,184,77,${0.25 + 0.6 * chg})`; // muzzle charge
-  ctx.beginPath(); ctx.arc(0, -r * 1.1, r * (0.18 + 0.12 * chg), 0, Math.PI * 2); ctx.fill();
-  ctx.restore();
+  const spouts = acc === 0 ? [-0.3, 0.3] : [0];
+  for (const off of spouts) {
+    ctx.save();
+    ctx.translate(x + off * r, y - r * 0.2);
+    ctx.rotate(-0.35 + off * 0.5);
+    ctx.fillStyle = shade(c, -0.25);
+    ctx.strokeStyle = o.rim; ctx.lineWidth = Math.max(1, r * 0.1);
+    const w = acc === 0 ? r * 0.22 : r * 0.28;
+    ctx.beginPath(); ctx.rect(-w, -r * 1.15, w * 2, r * 1.15); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = `rgba(255,184,77,${0.25 + 0.6 * chg})`; // muzzle charge
+    ctx.beginPath(); ctx.arc(0, -r * 1.1, r * (0.15 + 0.12 * chg), 0, Math.PI * 2); ctx.fill();
+    ctx.restore();
+  }
   // low armoured base
   ctx.beginPath();
   ctx.ellipse(x, y + r * 0.25, r, r * 0.62, 0, 0, Math.PI * 2);
   fillRim(ctx, c, o.rim, Math.max(1.4, r * 0.14));
   ctx.strokeStyle = shade(c, -0.35); ctx.lineWidth = Math.max(1, r * 0.09);
   ctx.beginPath(); ctx.moveTo(x - r * 0.7, y + r * 0.25); ctx.lineTo(x + r * 0.7, y + r * 0.25); ctx.stroke();
+  if (acc === 1) { // a welded mantlet SHIELD facing the line
+    ctx.fillStyle = shade(c, 0.3);
+    ctx.strokeStyle = o.rim; ctx.lineWidth = Math.max(1, r * 0.08);
+    ctx.beginPath();
+    ctx.moveTo(x - r * 0.85, y + r * 0.55);
+    ctx.quadraticCurveTo(x, y + r * 1.15, x + r * 0.85, y + r * 0.55);
+    ctx.lineTo(x + r * 0.7, y + r * 0.3);
+    ctx.quadraticCurveTo(x, y + r * 0.75, x - r * 0.7, y + r * 0.3);
+    ctx.closePath(); ctx.fill(); ctx.stroke();
+  }
   glint(ctx, x - r * 0.15, y + r * 0.1, r * 0.8, c);
   eyes(ctx, x, y + r * 0.1, r * 0.24, r * 0.09, '#ffb84d');
 }
@@ -529,6 +718,27 @@ function maw(ctx: Ctx, x: number, y: number, r: number, c: string, t: number, o:
     const fx = x + i * r * 0.24;
     ctx.beginPath(); ctx.moveTo(fx - r * 0.07, y + r * 0.55 - gape * 0.7); ctx.lineTo(fx, y + r * 0.55 - gape * 0.1); ctx.lineTo(fx + r * 0.07, y + r * 0.55 - gape * 0.7); ctx.closePath(); ctx.fill();
     ctx.beginPath(); ctx.moveTo(fx - r * 0.07, y + r * 0.55 + gape * 0.7); ctx.lineTo(fx, y + r * 0.55 + gape * 0.1); ctx.lineTo(fx + r * 0.07, y + r * 0.55 + gape * 0.7); ctx.closePath(); ctx.fill();
+  }
+  // accent: jutting under-tusks framing the maw / a lashing tongue / a clean bite
+  const acc = o.accent ?? o.seed % 3;
+  if (acc === 0) {
+    ctx.fillStyle = shade(c, 0.75);
+    ctx.strokeStyle = o.rim; ctx.lineWidth = Math.max(1, r * 0.06);
+    for (const s of [-1, 1]) {
+      ctx.beginPath();
+      ctx.moveTo(x + s * r * 0.62, y + r * 0.75);
+      ctx.quadraticCurveTo(x + s * r * 0.95, y + r * 0.45, x + s * r * 0.78, y - r * 0.1);
+      ctx.lineTo(x + s * r * 0.55, y + r * 0.4);
+      ctx.closePath(); ctx.fill(); ctx.stroke();
+    }
+  } else if (acc === 1) {
+    const lash = Math.sin(t * 5 + o.phase);
+    ctx.strokeStyle = 'rgba(255,120,140,0.85)'; ctx.lineWidth = Math.max(1.2, r * 0.11); ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.moveTo(x, y + r * 0.6);
+    ctx.quadraticCurveTo(x + lash * r * 0.4, y + r * 1.1, x + lash * r * 0.7, y + r * (1.3 + 0.1 * Math.abs(lash)));
+    ctx.stroke();
+    ctx.lineCap = 'butt';
   }
 }
 

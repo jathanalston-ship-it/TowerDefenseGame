@@ -282,3 +282,19 @@ function variantOf(kind: string): number {
 export const ENEMY_VARIANT: Record<EnemyKind, number> = Object.fromEntries(
   (Object.keys(ENEMY_BODY) as EnemyKind[]).map((k) => [k, variantOf(k)]),
 ) as Record<EnemyKind, number>;
+
+/** Silhouette-accent slot (0/1/2) per kind — ROUND-ROBIN within each form family in declaration
+ *  order, so same-form kinds always land on different accents (a raw hash lets siblings collide).
+ *  Drawers key their seed-accent ladder off this (enemyForms §silhouette accents); a future kind
+ *  automatically takes its family's next free slot just by being declared. */
+export const ENEMY_ACCENT: Record<EnemyKind, number> = (() => {
+  const counts = new Map<string, number>();
+  const out = {} as Record<EnemyKind, number>;
+  for (const k of Object.keys(ENEMY_BODY) as EnemyKind[]) {
+    const form = ENEMY_BODY[k];
+    const n = counts.get(form) ?? 0;
+    counts.set(form, n + 1);
+    out[k] = n % 3;
+  }
+  return out;
+})();
