@@ -1,6 +1,6 @@
 {
-  "lastSha": "9706f8f2a6132f5a5fd546cad87d0bfbca1ed757",
-  "commitsSinceDraft": 4,
+  "lastSha": "7d23ac3d9d8abdb68f4de01ba6368afcc5046a4a",
+  "commitsSinceDraft": 7,
   "content": {
     "tower": [
       "needle",
@@ -2389,6 +2389,14 @@
         {
           "cat": "Mega Bosses",
           "text": "Mega Boss LONE SIEGE: the last thing standing turns on the Hive"
+        },
+        {
+          "cat": "Gameplay",
+          "text": "Units join the mega raid: drakes dive organs, motes bite the body"
+        },
+        {
+          "cat": "Enemies",
+          "text": "Enemy GAITS: the roster finally MOVES differently (docs/ENEMIES.md §gaits)"
         }
       ]
     }
@@ -4007,6 +4015,30 @@
       "date": "2026-07-15",
       "cat": "Mega Bosses",
       "text": "Mega Boss LONE SIEGE: the last thing standing turns on the Hive",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "ba9c85033a06d07880468cfa03419f297ad9c782",
+      "date": "2026-07-15",
+      "cat": "Framework",
+      "text": "Chronicle roll for the drafts + lone-siege batch",
+      "internal": true,
+      "needsReview": true
+    },
+    {
+      "sha": "fd94b51b9c31cc253c5eeccd33fa604a4bc85ed0",
+      "date": "2026-07-15",
+      "cat": "Gameplay",
+      "text": "Units join the mega raid: drakes dive organs, motes bite the body",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "7d23ac3d9d8abdb68f4de01ba6368afcc5046a4a",
+      "date": "2026-07-15",
+      "cat": "Enemies",
+      "text": "Enemy GAITS: the roster finally MOVES differently (docs/ENEMIES.md §gaits)",
       "internal": false,
       "needsReview": false
     }

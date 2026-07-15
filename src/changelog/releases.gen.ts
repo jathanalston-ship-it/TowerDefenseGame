@@ -910,6 +910,14 @@ export const RELEASES: Release[] = [
       {
         "cat": "Mega Bosses",
         "text": "Mega Boss LONE SIEGE: the last thing standing turns on the Hive"
+      },
+      {
+        "cat": "Gameplay",
+        "text": "Units join the mega raid: drakes dive organs, motes bite the body"
+      },
+      {
+        "cat": "Enemies",
+        "text": "Enemy GAITS: the roster finally MOVES differently (docs/ENEMIES.md §gaits)"
       }
     ]
   },
