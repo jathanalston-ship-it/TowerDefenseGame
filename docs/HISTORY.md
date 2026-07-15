@@ -211,3 +211,8 @@
 - `c14b122` **[Visuals]** Arena identity pass: light hierarchy, rooting, sick register, organic idle motion
 - `b1cf014` **[Gameplay]** Silhouette surgery: one unmistakable feature per kind at gameplay zoom
 - `bca9542` **[UI]** Progressive UI contamination: the instrument is being assimilated too
+- ⚑ `379c4c1` **[Framework]** Chronicle roll + session handoff for the style identity arc _(internal)_
+- `28eebc6` **[Enemies]** Visual heft: enemies draw fatter than their sim radius (tapered ladder)
+- `7a312c4` **[Towers]** Contain the giant-tower blowup: clamp every body-growth factor + hard ceiling
+- `b4f820b` **[UI]** Quick-salvage grab chips: one-tap rarity sweeps in Salvage mode
+- `b07f44c` **[UI]** Idle Harvest satisfaction pass: the grow ceremony (buys were literally silent)

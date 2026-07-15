@@ -1,6 +1,6 @@
 {
-  "lastSha": "bca9542afcde11c2e49ef41362162927f349f311",
-  "commitsSinceDraft": 5,
+  "lastSha": "b07f44c1e6be507eb5a1c2b994d31f9e7097cf8e",
+  "commitsSinceDraft": 0,
   "content": {
     "tower": [
       "needle",
@@ -2361,6 +2361,22 @@
         {
           "cat": "UI",
           "text": "Progressive UI contamination: the instrument is being assimilated too"
+        },
+        {
+          "cat": "Enemies",
+          "text": "Visual heft: enemies draw fatter than their sim radius (tapered ladder)"
+        },
+        {
+          "cat": "Towers",
+          "text": "Contain the giant-tower blowup: clamp every body-growth factor + hard ceiling"
+        },
+        {
+          "cat": "UI",
+          "text": "Quick-salvage grab chips: one-tap rarity sweeps in Salvage mode"
+        },
+        {
+          "cat": "UI",
+          "text": "Idle Harvest satisfaction pass: the grow ceremony (buys were literally silent)"
         }
       ]
     }
@@ -3907,6 +3923,46 @@
       "date": "2026-07-15",
       "cat": "UI",
       "text": "Progressive UI contamination: the instrument is being assimilated too",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "379c4c13a92e1082842be98c913527a621897003",
+      "date": "2026-07-15",
+      "cat": "Framework",
+      "text": "Chronicle roll + session handoff for the style identity arc",
+      "internal": true,
+      "needsReview": true
+    },
+    {
+      "sha": "28eebc65b4809d509c9a104e42e73cd3210e6936",
+      "date": "2026-07-15",
+      "cat": "Enemies",
+      "text": "Visual heft: enemies draw fatter than their sim radius (tapered ladder)",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "7a312c48c9b0b5825c767a69fd6d93f7a5620f07",
+      "date": "2026-07-15",
+      "cat": "Towers",
+      "text": "Contain the giant-tower blowup: clamp every body-growth factor + hard ceiling",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "b4f820bbbfef9e976919362ae388f5d7990e1fb8",
+      "date": "2026-07-15",
+      "cat": "UI",
+      "text": "Quick-salvage grab chips: one-tap rarity sweeps in Salvage mode",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "b07f44c1e6be507eb5a1c2b994d31f9e7097cf8e",
+      "date": "2026-07-15",
+      "cat": "UI",
+      "text": "Idle Harvest satisfaction pass: the grow ceremony (buys were literally silent)",
       "internal": false,
       "needsReview": false
     }

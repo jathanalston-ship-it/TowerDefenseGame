@@ -839,6 +839,22 @@
       {
         "cat": "UI",
         "text": "Progressive UI contamination: the instrument is being assimilated too"
+      },
+      {
+        "cat": "Enemies",
+        "text": "Visual heft: enemies draw fatter than their sim radius (tapered ladder)"
+      },
+      {
+        "cat": "Towers",
+        "text": "Contain the giant-tower blowup: clamp every body-growth factor + hard ceiling"
+      },
+      {
+        "cat": "UI",
+        "text": "Quick-salvage grab chips: one-tap rarity sweeps in Salvage mode"
+      },
+      {
+        "cat": "UI",
+        "text": "Idle Harvest satisfaction pass: the grow ceremony (buys were literally silent)"
       }
     ]
   },
