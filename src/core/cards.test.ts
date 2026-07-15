@@ -284,6 +284,29 @@ describe('behavioral gated Gene Cards (docs/CARDS.md §gates)', () => {
   });
 });
 
+describe('draft relevance (docs/CARDS.md §draft relevance)', () => {
+  it('drafts reflect the LIVE board: tower-subject cards only for FIELDED kinds', () => {
+    for (let seed = 0; seed < 30; seed++) {
+      const game = new Game(seed, NO_META);
+      game.debugAddBiomass(500);
+      for (const s of towerSlots) if (game.placeTower('needle', s.x, s.y)) break; // exactly one kind fielded
+      game.debugOpenDraft();
+      expect(game.draft?.length).toBe(3); // non-tower cards backfill — a thin board never starves the draft
+      for (const c of game.draft ?? []) {
+        const su = cardSubject(c);
+        expect(su.kind !== 'tower' || su.tower === 'needle', `${c.id} offered for an unfielded tower`).toBe(true);
+      }
+    }
+  });
+
+  it('an EMPTY board still fills the draft (global/economy/hero cards only)', () => {
+    const game = new Game(11, NO_META);
+    game.debugOpenDraft();
+    expect(game.draft?.length).toBe(3);
+    for (const c of game.draft ?? []) expect(cardSubject(c).kind).not.toBe('tower');
+  });
+});
+
 describe('draft roster filter (docs/TOWERS.md §expansion)', () => {
   it('never offers a card whose subject tower is off the run roster — and a full roster is stream-identical', () => {
     const owned = new Set<TowerKind>(['needle', 'mortar', 'reactor', 'parasite', 'obelisk']); // trio locked

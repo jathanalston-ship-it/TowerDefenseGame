@@ -81,8 +81,14 @@ permanent (shaped by **Mutation Fragments**, `ECONOMY.md`); the *draw* is per-ru
     Concretely, drafts land on depths **1·2·3·4·5·7·9·12·15·19·24·29·34…**
     (gaps `1·1·1·1·2·2·3·3·4·5·5·5…`). The exact curve is a balance tunable.
   - Over a ~35-wave run that's ~12–35 cards depending on mode — your temporary build.
-- **Stacking.** Duplicate cards **stack** (additively within their effect) — drafting
-  toward a stack is a core strategy. A few Legendaries are unique (no stack).
+- **Draft relevance (§draft relevance).** Every draft reads the **live board**: tower-subject
+  cards are offered **only for kinds with a tower currently placed** (`game.fieldedKinds()` →
+  `draftCards`' `allowedTowers`), so a card for an organism you aren't running is never a dead
+  pick. Global / economy / hive / hero cards are unaffected and backfill the 3 choices when the
+  board is thin (an empty board still fills the draft). The pool re-widens the moment a new kind
+  is placed — each draft reflects the army as built. Deliberate sim change (2026-07): the golden
+  seeds were re-pinned (wave/kills/won identical; only drafted-buff-dependent integrity/biomass
+  moved), and pre-change replay codes skew at their first draft.
 - **Reroll** — reroll the 3 options (limited charges; +charges from economy cards /
   Hive Tree / Mutation Fragments).
 - **Banish** — remove a card from the pool *for this run* (thin your deck toward a

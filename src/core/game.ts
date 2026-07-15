@@ -6392,7 +6392,7 @@ export class Game {
         // Gene Card cadence (CARDS.md §1): campaign drafts every wave (generous); endless slows
         // the drip with depth so cards stay exciting and deep runs lean on permanent progression.
         if (!this.tutorialMode && this.shouldDraftThisWave()) {
-          this.draft = draftCards(this.rng, 3, this.waveIndex, this.unlockedKinds, this.unlockedCardIds); // depth-scaled rarity (CARDS.md §2)
+          this.draft = draftCards(this.rng, 3, this.waveIndex, this.fieldedKinds(), this.unlockedCardIds); // depth-scaled rarity (CARDS.md §2); tower cards only for FIELDED kinds
         }
       }
       this.settleTimer = SETTLE.duration; // begin the wind-down; endWave() reveals the result
@@ -6819,11 +6819,21 @@ export class Game {
     this.spawnedAll = true;
   }
 
+  /** Kinds ACTIVELY FIELDED right now — the kinds with a tower on the board. Gene drafts offer
+   *  tower-subject cards ONLY for these (docs/CARDS.md §draft relevance): a card for an organism
+   *  you aren't running is a dead pick. Global / economy / hive / hero cards are unaffected, and
+   *  the pool re-widens the moment a new kind is placed (each draft reads the LIVE board). */
+  private fieldedKinds(): ReadonlySet<TowerKind> {
+    const s = new Set<TowerKind>();
+    for (const t of this.towers) s.add(t.kind);
+    return s;
+  }
+
   /** Tutorial beats (tutorialMode only — the director calls these to script the lessons). The
    *  gene-card lesson releases the held draft here, from prep, exactly when it teaches drafting. */
   openTutorialDraft(): void {
     if (!this.tutorialMode || this.phase !== 'prep') return;
-    this.draft = draftCards(this.rng, 3, this.waveIndex, this.unlockedKinds, this.unlockedCardIds);
+    this.draft = draftCards(this.rng, 3, this.waveIndex, this.fieldedKinds(), this.unlockedCardIds);
     this.phase = 'draft';
   }
 
@@ -6836,7 +6846,7 @@ export class Game {
   /** Open the 1-of-3 draft now (abandons any in-progress wave). */
   debugOpenDraft(): void {
     if (this.phase === 'won' || this.phase === 'lost') return;
-    this.draft = draftCards(this.rng, 3, this.waveIndex, this.unlockedKinds, this.unlockedCardIds);
+    this.draft = draftCards(this.rng, 3, this.waveIndex, this.fieldedKinds(), this.unlockedCardIds);
     this.phase = 'draft';
   }
 

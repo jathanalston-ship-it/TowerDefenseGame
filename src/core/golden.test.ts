@@ -37,13 +37,19 @@ import { autoplay } from './sim.testutil';
 // AND economy genes). **wave (12), kills (196), and the 'won' outcome are IDENTICAL on every seed** —
 // the run structure is unchanged; only drafted-buff-dependent integrity/biomass moved. The 5 GATED
 // expansion genes stay OUT of the default pool ⇒ no sim-logic change. Any FURTHER drift is unintended.
+// Re-pinned 2026-07 for DRAFT RELEVANCE (docs/CARDS.md §draft relevance): gene drafts now offer
+// tower-subject cards ONLY for kinds with a tower on the board (a card for an organism you aren't
+// running was a dead pick). Autoplay fields a needle-heavy board, so the filtered pool skews its
+// picks toward needle/global/economy genes — **wave (12), kills (196), and the 'won' outcome are
+// IDENTICAL on every seed**; only drafted-buff-dependent integrity/biomass moved (the surviving
+// picks lean harder on economy, hence the higher leftover biomass). Any FURTHER drift is unintended.
 const GOLDEN: Record<number, { wave: number; kills: number; integrity: number; biomass: number; phase: string }> = {
-  1: { wave: 12, kills: 196, integrity: 112, biomass: 8638, phase: 'won' },
-  7: { wave: 12, kills: 196, integrity: 142, biomass: 8216, phase: 'won' },
-  42: { wave: 12, kills: 196, integrity: 97, biomass: 9267, phase: 'won' },
-  777: { wave: 12, kills: 196, integrity: 231, biomass: 9206, phase: 'won' },
-  2024: { wave: 12, kills: 196, integrity: 100, biomass: 8505, phase: 'won' },
-  12345: { wave: 12, kills: 196, integrity: 139, biomass: 8563, phase: 'won' },
+  1: { wave: 12, kills: 196, integrity: 112, biomass: 10161, phase: 'won' },
+  7: { wave: 12, kills: 196, integrity: 212, biomass: 9353, phase: 'won' },
+  42: { wave: 12, kills: 196, integrity: 167, biomass: 8574, phase: 'won' },
+  777: { wave: 12, kills: 196, integrity: 161, biomass: 9454, phase: 'won' },
+  2024: { wave: 12, kills: 196, integrity: 100, biomass: 13286, phase: 'won' },
+  12345: { wave: 12, kills: 196, integrity: 94, biomass: 9367, phase: 'won' },
 };
 
 describe('golden outcomes (gameplay must not drift)', () => {
