@@ -219,3 +219,4 @@
 - ⚑ `98401c3` **[Framework]** Chronicle roll for the salvage + harvest + containment batch _(internal)_
 - `2d8a239` **[Gene Cards]** Equipment visual overhaul: genuine sprites + at-a-glance card language
 - `2b95ab6` **[Towers]** Gene drafts read the live board: tower cards only for FIELDED kinds
+- `9706f8f` **[Mega Bosses]** Mega Boss LONE SIEGE: the last thing standing turns on the Hive

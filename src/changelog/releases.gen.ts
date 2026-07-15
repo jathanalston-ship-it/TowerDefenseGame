@@ -906,6 +906,10 @@ export const RELEASES: Release[] = [
       {
         "cat": "Towers",
         "text": "Gene drafts read the live board: tower cards only for FIELDED kinds"
+      },
+      {
+        "cat": "Mega Bosses",
+        "text": "Mega Boss LONE SIEGE: the last thing standing turns on the Hive"
       }
     ]
   },

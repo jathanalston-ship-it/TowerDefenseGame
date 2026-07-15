@@ -1,6 +1,6 @@
 {
-  "lastSha": "2b95ab64d86b6cf3e6342279a4db8b84a9a3a000",
-  "commitsSinceDraft": 3,
+  "lastSha": "9706f8f2a6132f5a5fd546cad87d0bfbca1ed757",
+  "commitsSinceDraft": 4,
   "content": {
     "tower": [
       "needle",
@@ -2385,6 +2385,10 @@
         {
           "cat": "Towers",
           "text": "Gene drafts read the live board: tower cards only for FIELDED kinds"
+        },
+        {
+          "cat": "Mega Bosses",
+          "text": "Mega Boss LONE SIEGE: the last thing standing turns on the Hive"
         }
       ]
     }
@@ -3995,6 +3999,14 @@
       "date": "2026-07-15",
       "cat": "Towers",
       "text": "Gene drafts read the live board: tower cards only for FIELDED kinds",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "9706f8f2a6132f5a5fd546cad87d0bfbca1ed757",
+      "date": "2026-07-15",
+      "cat": "Mega Bosses",
+      "text": "Mega Boss LONE SIEGE: the last thing standing turns on the Hive",
       "internal": false,
       "needsReview": false
     }
