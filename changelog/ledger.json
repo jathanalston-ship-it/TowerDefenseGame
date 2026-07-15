@@ -1,6 +1,6 @@
 {
-  "lastSha": "6c93de5e3541d4b9af6027dc5d99437c30557502",
-  "commitsSinceDraft": 2,
+  "lastSha": "bca9542afcde11c2e49ef41362162927f349f311",
+  "commitsSinceDraft": 5,
   "content": {
     "tower": [
       "needle",
@@ -2349,6 +2349,18 @@
         {
           "cat": "Gameplay",
           "text": "Rename the game: ASSIMILATE -> ASSIMILATION everywhere the NAME appears"
+        },
+        {
+          "cat": "Visuals",
+          "text": "Arena identity pass: light hierarchy, rooting, sick register, organic idle motion"
+        },
+        {
+          "cat": "Gameplay",
+          "text": "Silhouette surgery: one unmistakable feature per kind at gameplay zoom"
+        },
+        {
+          "cat": "UI",
+          "text": "Progressive UI contamination: the instrument is being assimilated too"
         }
       ]
     }
@@ -3871,6 +3883,30 @@
       "date": "2026-07-15",
       "cat": "Gameplay",
       "text": "Rename the game: ASSIMILATE -> ASSIMILATION everywhere the NAME appears",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "c14b122010b778c27fb4623b7316af797d6ca4ef",
+      "date": "2026-07-15",
+      "cat": "Visuals",
+      "text": "Arena identity pass: light hierarchy, rooting, sick register, organic idle motion",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "b1cf0144eb000d0d015417dca2bc37e6f12524e6",
+      "date": "2026-07-15",
+      "cat": "Gameplay",
+      "text": "Silhouette surgery: one unmistakable feature per kind at gameplay zoom",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "bca9542afcde11c2e49ef41362162927f349f311",
+      "date": "2026-07-15",
+      "cat": "UI",
+      "text": "Progressive UI contamination: the instrument is being assimilated too",
       "internal": false,
       "needsReview": false
     }

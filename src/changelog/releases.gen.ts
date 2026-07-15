@@ -870,6 +870,18 @@ export const RELEASES: Release[] = [
       {
         "cat": "Gameplay",
         "text": "Rename the game: ASSIMILATE -> ASSIMILATION everywhere the NAME appears"
+      },
+      {
+        "cat": "Visuals",
+        "text": "Arena identity pass: light hierarchy, rooting, sick register, organic idle motion"
+      },
+      {
+        "cat": "Gameplay",
+        "text": "Silhouette surgery: one unmistakable feature per kind at gameplay zoom"
+      },
+      {
+        "cat": "UI",
+        "text": "Progressive UI contamination: the instrument is being assimilated too"
       }
     ]
   },

@@ -4,35 +4,33 @@
 > before committing. Read together with docs/PROJECT_STATUS.md and the latest
 > docs/VALIDATION_REPORT.md. Next session: start at docs/PROJECT_MANIFEST.md.
 
-- **Generated:** 2026-07-14 14:31 UTC · **Diff scope:** HEAD~1...HEAD
-- **Branch:** claude/zen-hawking-rh1gxl · **HEAD:** 65394ff
+- **Generated:** 2026-07-15 01:55 UTC · **Diff scope:** working tree vs HEAD
+- **Branch:** claude/zen-hawking-rh1gxl · **HEAD:** bca9542
 
 ## Summary of work completed
 
-Five pushes this session. (1) HERO ABILITY CINEMATICS (b492e21): all 30 abilities stage
-procedural set-piece performances (serpent swoop, eye-beam, bell slam…) with the zone payload
-landing AT the strike via game.pendingImpacts — support stays instant; goldens byte-identical;
-HERO-CINEMATICS.md is the reference. (2) Typography overhaul (97db38a): Chakra Petch + Exo 2
-actually shipped (the CSS had referenced Chakra for months with no @font-face) — self-hosted
-woff2 in public/fonts/, canvas stacks included. (3) Website expansion (07be4c3): cinematics/
-Prime/Idle sections, new devlog post, governing-law clause (preflight legal block now fully
-green). (4) Season-pass tiles name their rewards (019f448): rewardShort() + labeled 84px cells.
-(5) Claim-receipt dopamine pass (65394ff): burst/ring/sheen on RewardToaster + the game-wide
-claim-coverage audit table in NOTIFICATIONS.md. The one thing to know: cast-timing tests must
-step past HeroAbilityDef.cinematic.impactDelay before asserting (riptide/vitriol show the
-pattern).
+Shipped the full six-item **arena/style identity arc** derived from the visual critique, highest
+impact first, as three commits: `c14b122` (rooting layer, light hierarchy, sick palette, idle
+organic motion), `b1cf014` (silhouette surgery: tower signatures, enemy accent slots, boss
+marking legibility), `bca9542` (progressive UI contamination by account depth). All doctrine is
+canonized in **docs/VISUAL_IDENTITY.md §8** (§light · §motion · §palette · §silhouette ·
+§contamination) — code comments cite those anchors directly. The one thing to know: all of it is
+render/CSS-side and golden-safe by construction; the sim was never touched.
 
 ## Files modified
 
-- Source (3): `src/changelog/releases.gen.ts`, `src/index.css`, `src/ui/components/RewardToaster.tsx`
-- Tests (0): —
-- Docs (3): `docs/HISTORY.md`, `docs/NOTIFICATIONS.md`, `docs/VALIDATION_REPORT.md`
+- Source: `src/render/{renderer,theme,livingBattlefield,enemyForms,towerForms,bossChassis}.ts`,
+  `src/core/{config,boss}.ts` (hex swaps only), `src/ui/Hub.tsx`, `src/index.css`,
+  `src/dev/dil/knowledge.ts`, `src/changelog/releases.gen.ts` (generated)
+- Tests: none added — coverage rides the existing suite (2087 green) + validate gate
+- Docs: `docs/VISUAL_IDENTITY.md` (new §8 arena doctrine), `docs/HISTORY.md` (generated)
 
 ## Systems affected (from the dependency registry)
 
-- **chronicle** — `src/changelog/releases.gen.ts`
-- **notifications** — `src/ui/components/RewardToaster.tsx`
-- Consumer ring (verify, unchanged): hub-shell
+- **rendering** — arena light hierarchy, gait/breath/peristalsis, enemy accents, tower signatures, boss markings
+- **living-battlefield** — `drawTowerRoots` rooting layer + restructured early-outs
+- **hub-shell** — `.hub[data-contam]` + `.hub-contam` overlay off `homeBaseTiers` labEra
+- **chronicle** — ledger/HISTORY/site regen
 
 ## Power Score changes
 
@@ -40,23 +38,17 @@ None — no Power-relevant system touched.
 
 ## UI changes
 
-Surfaces in the blast radius: `App (UpdateBriefing popup)`, `Hub (badges)`, `RewardToaster (claim popups)`, `nav badges`
-
-Battlefield: hero casts now play travel→impact performances (headless-smoked: serpent
-mid-swoop + landing-synced firestorm captured live). App-wide: Exo 2 body + Chakra Petch
-display faces (mobile gate PASS at the new metrics). Season pass: every track cell shows
-icon + named cargo + full-label tooltip/aria (headless claim screenshot verified). Claim
-popup: pop-in overshoot, medal bloom + ripple ring, 8-ray burst, shimmer sweep — stilled
-under reduced motion (live claim frame captured).
+Hub only: era-gated contamination (corner vein clusters, nav seam glow at era 2+, wordmark glow
+at era 3). Verified via headless smoke on a spliced era-3 account (`data-contam="3"` asserted +
+screenshot); additive-only so cosmetic uithemes keep their tokens; stilled under
+prefers-reduced-motion; z 70 (below all modals). Arena changes verified with live wave captures
+plus a full proof sheet (20 towers / 44 enemies / 13 bosses at gameplay radii).
 
 ## Documentation changes
 
-Registry says these move with the touched systems: `docs/CHANGELOG-PIPELINE.md`, `docs/NOTIFICATIONS.md`, `docs/HIVE-INTEL.md`, `docs/COMMAND-CENTER.md`, `docs/HOME-BASE.md`, `docs/ONE-MORE-RUN.md`, `docs/HUD.md`, `docs/PROGRESSION-LOOP.md`, `docs/UX-CONSOLIDATION.md`
-
-Updated: HERO-CINEMATICS.md (new), HEROES.md, GAME-STATE.md, STYLE-GUIDE.md §9,
-NOTIFICATIONS.md §claim-popups (+audit), DIL_GRAPH/DEPENDENCY_GRAPH regenerated, system
-registry + knowledge edges (hero-cinematics), site regenerated (49 pages incl. the new
-devlog). PIL report regenerated. No save-schema change anywhere in the batch.
+`docs/CHANGELOG-PIPELINE.md` — no change needed (pipeline untouched; only its generated outputs
+rolled). `docs/VISUAL_IDENTITY.md` gained §8; DIL knowledge gained the
+hub-shell↔cosmetics conflictsWith and rendering→engine accent-order edges.
 
 ## Save changes
 
@@ -64,24 +56,39 @@ None — save layer untouched.
 
 ## Known edge cases
 
-• Tests asserting cast RESULTS must ride past impactDelay (docs/HERO-CINEMATICS.md §5).
-• wrangler pages dev is flaky under the session proxy (Request.cf fetch can kill it) — use
-`npx vite preview` for headless smokes of static builds.
-• The uiStandards type-scale test rejects any px font size off the 10/11/12/13/14/16/18/20/
-26/34/40/58 scale — check before adding CSS type.
-• rewardShort() labels are pinned ≤26 chars by battlePass.test.ts.
+- **ENEMY_ACCENT depends on declaration order**: accents round-robin within each `ENEMY_BODY`
+  form family in declaration order — keep family groups contiguous when adding kinds, or
+  existing kinds' accents shift (cosmetic-only, but players notice anatomy changes).
+- **Contamination must stay additive**: cosmetic uithemes own `--line`/`--panel`; re-tinting
+  those tokens for the infection look would stomp purchased themes (DIL conflictsWith edge).
+- **DIL knowledge edges must use registry node ids** (`system:hub-shell`, not invented names) —
+  the graph-integrity test fails otherwise.
+- Glaive shows its docked chakram even while a blade projectile is in flight (accepted; the
+  muzzle pulse covers the throw moment).
+- `pkill` exits 144 and kills `&&`/`;` chains in this harness — run it as its own command.
 
 ## Remaining technical debt
 
-Observed, not introduced: pre-cinematics daily replays diverge on re-verify (accepted skew
-window, same class as golden re-pins — documented in HERO-CINEMATICS.md §5). The RewardToaster
-and AchievementToaster share the top-center band and can overlap in first-time pile-ups
-(deliberate layering per NOTIFICATIONS.md; cosmetic only).
+- Tower per-kind organs are split across two homes: the original five in the renderer ladder,
+  the seven new ones in `towerForms.drawTowerSignature`. Consolidating the five into
+  drawTowerSignature would be a clean follow-up (pure move, no behavior change).
+- The lightshot/proof harnesses live only in the session scratchpad; a committed dev harness
+  page was deliberately avoided (repo hygiene) but would help future visual passes.
 
 ## Recommended next tasks
 
-TODO: ordered, concrete, with entry points.
+1. User-driven: next feature directive (the six-item style arc is complete).
+2. Optional consolidation: move the renderer's five per-kind organ blocks into
+   `drawTowerSignature` (entry: `src/render/renderer.ts` reactor/parasite/obelisk/coil/siphon
+   branches → `src/render/towerForms.ts`).
+3. Standing release item (user side): Turnstile SITE key in `.env.production` is still empty.
 
 ## Future expansion hooks
 
-TODO: seams deliberately left open (name the file + symbol).
+- `towerForms.drawTowerSignature` — add a case per future form-sharing tower kind.
+- `theme.ENEMY_ACCENT` — new enemy kinds auto-take the next accent slot; drawers read
+  `o.accent` (`enemyForms.BodyOpts`).
+- `.hub-contam` CSS ladder (`src/index.css` tail) — era 4+ or per-uitheme contamination hues
+  slot in as extra `[data-era]` rules.
+- `livingBattlefield.drawTowerRoots` — `hand` fade-out constant (intensity*2.2) is the seam for
+  tuning how long the rooting layer owns the early game.

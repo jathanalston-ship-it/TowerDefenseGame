@@ -208,3 +208,6 @@
 
 - `96c9a5c` **[Gameplay]** Rename the game: ASSIMILATE -> ASSIMILATION everywhere the NAME appears
 - `6c93de5` **[Gameplay]** Rename the game: ASSIMILATE -> ASSIMILATION everywhere the NAME appears
+- `c14b122` **[Visuals]** Arena identity pass: light hierarchy, rooting, sick register, organic idle motion
+- `b1cf014` **[Gameplay]** Silhouette surgery: one unmistakable feature per kind at gameplay zoom
+- `bca9542` **[UI]** Progressive UI contamination: the instrument is being assimilated too
