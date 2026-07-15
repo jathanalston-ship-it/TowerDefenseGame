@@ -6,7 +6,7 @@
 
 import { useMemo, useState } from 'react';
 import { meta } from '../state/meta';
-import { equipUpgrades } from '../state/equipAdvisor';
+import { equipAllPlan, equipUpgrades } from '../state/equipAdvisor';
 import { audio } from '../audio/sound';
 import { HERO_DEFS } from '../core/config';
 import type { HeroKind } from '../core/types';
@@ -229,6 +229,15 @@ export function EquipmentPanel(): JSX.Element {
           >
             Equip
           </button>
+          {gearPicks.length > 1 && (
+            <button
+              className="eq-equip-now eq-equip-all"
+              title="Apply EVERY free upgrade across the fielded roster — each step recomputed, exactly like clicking through by hand"
+              onClick={() => { for (const s of equipAllPlan(save)) meta.equip(s.hero, s.slot, s.uid); audio.cue('ui'); }}
+            >
+              Equip all
+            </button>
+          )}
           {gearPicks.length > 1 && <span className="bbs-next">{gearPicks.length - 1} more free upgrade{gearPicks.length === 2 ? '' : 's'} waiting</span>}
         </div>
       )}

@@ -76,3 +76,20 @@ export function equipUpgrades(save: SaveData, limit = 8): EquipPick[] {
   out.sort((a, b) => b.powerDelta - a.powerDelta || a.heroName.localeCompare(b.heroName));
   return out.slice(0, limit);
 }
+
+/** The full free-upgrade PLAN: the advisor's picks applied ITERATIVELY (each step recomputed
+ *  against the previous equip — exactly like clicking through the strip by hand), until no
+ *  strictly-positive swap remains. Pure over SaveData; the caller executes each step via
+ *  `meta.equip` so quest credit, events and Power toasts fire exactly as manual equips do. */
+export function equipAllPlan(save: SaveData, guard = 24): EquipPick[] {
+  const steps: EquipPick[] = [];
+  let cur = save;
+  for (let i = 0; i < guard; i++) {
+    const [p] = equipUpgrades(cur, 1);
+    if (!p) break;
+    const lo = cur.equipment.loadouts[p.hero] ?? emptyLoadout();
+    cur = { ...cur, equipment: { ...cur.equipment, loadouts: { ...cur.equipment.loadouts, [p.hero]: { ...lo, [p.slot]: p.uid } } } };
+    steps.push(p);
+  }
+  return steps;
+}

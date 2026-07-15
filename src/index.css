@@ -9955,6 +9955,9 @@ kbd {
    Best-Value strips, the Growth panel's BEST MOVE). */
 .eq-equip-now, .bbs-buy, .gp-buy { flex: none; font-size: 11px; font-weight: 900; letter-spacing: 0.08em; padding: 4px 14px; border-radius: 999px; color: #0b1207; background: var(--gold); border: 1px solid color-mix(in srgb, var(--gold) 70%, #fff 10%); transition: transform var(--dur-2) var(--ease-out), box-shadow var(--dur-2) var(--ease-out); }
 .eq-equip-now:hover, .bbs-buy:hover, .gp-buy:hover { transform: translateY(-1px); box-shadow: 0 0 12px color-mix(in srgb, var(--gold) 45%, transparent); }
+/* Equip ALL — the advisor's one-tap sweep: outlined so the single best pick stays the headline. */
+.eq-equip-all { margin-left: 6px; color: var(--gold); background: transparent; border-color: color-mix(in srgb, var(--gold) 55%, transparent); }
+.eq-equip-all:hover { background: color-mix(in srgb, var(--gold) 14%, transparent); }
 .bbs-buy { padding: 3px 12px; }
 .gp-best-row { display: flex; align-items: stretch; gap: 6px; }
 .gp-best-row .gp-best { flex: 1; min-width: 0; }

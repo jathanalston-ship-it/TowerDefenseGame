@@ -2,7 +2,7 @@
 // scorer, worn items are never suggested, downgrades are filtered, best-gain ranks first.
 
 import { describe, expect, it } from 'vitest';
-import { equipUpgrades } from './equipAdvisor';
+import { equipAllPlan, equipUpgrades } from './equipAdvisor';
 import { powerBreakdown } from './profile';
 import { defaultSave } from '../save/saveStore';
 import { fieldedLoadout } from './meta';
@@ -58,5 +58,26 @@ describe('equipUpgrades', () => {
     // Sorted best-gain first.
     for (let i = 1; i < picks.length; i++) expect(picks[i - 1].powerDelta).toBeGreaterThanOrEqual(picks[i].powerDelta);
     expect(equipUpgrades(defaultSave())).toEqual([]);
+  });
+});
+
+describe('equipAllPlan — the one-tap sweep', () => {
+  it('applies every free upgrade iteratively and never claims one item twice', () => {
+    const s = defaultSave();
+    s.equipment.inventory = [
+      item('w1', 'w_marrow', 'legendary'), item('w2', 'w_quill', 'rare'),
+      item('a1', 'a_husk', 'epic'), item('r1', 'r_heart', 'rare'),
+    ];
+    const steps = equipAllPlan(s);
+    expect(steps.length).toBeGreaterThan(0);
+    const uids = steps.map((p) => p.uid);
+    expect(new Set(uids).size).toBe(uids.length); // a single physical item lands on ONE seat
+    const seats = steps.map((p) => `${p.hero}:${p.slot}`);
+    expect(new Set(seats).size).toBe(seats.length); // and every seat is filled at most once
+  });
+
+  it('a save with no positive swaps plans nothing', () => {
+    const s = defaultSave();
+    expect(equipAllPlan(s)).toEqual([]);
   });
 });
