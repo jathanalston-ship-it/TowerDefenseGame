@@ -79,8 +79,18 @@ export function HarvestArrival({ onVisitHarvest }: { onVisitHarvest: () => void 
 
 // ── The Harvest screen ───────────────────────────────────────────────────────────────────────
 function NodeCard({ n }: { n: IdleNodeView }): JSX.Element {
+  // GROW ceremony (docs/IDLE-HARVEST.md §presentation): a successful node buy must FEEL like
+  // biology taking — graftCrack cue (the house upgrade sound), a caustic ring bursting off the
+  // card, the glyph swelling, and the new level flaring gold. `grewLv` keys the one-shot CSS
+  // animation to the level just reached (re-buys re-trigger); reduced-motion stills it in CSS.
+  const [grewLv, setGrewLv] = useState(0);
+  const buy = (): void => {
+    if (!meta.buyIdleNode(n.def.id)) return;
+    audio.cue('graftCrack');
+    setGrewLv(n.level + 1);
+  };
   return (
-    <div className={`hv-node${n.gate ? ' is-gated' : ''}`}>
+    <div className={`hv-node${n.gate ? ' is-gated' : ''}${grewLv > 0 ? ' is-grown' : ''}`} key={grewLv}>
       <div className="hv-node-h">
         <span className="hv-node-g" aria-hidden>{n.def.glyph}</span>
         <span className="hv-node-name">{n.def.name}</span>
@@ -90,7 +100,7 @@ function NodeCard({ n }: { n: IdleNodeView }): JSX.Element {
       {n.gate ? (
         <div className="hv-node-gate">🔒 {n.gateLabel} unlocks L{n.level + 1}</div>
       ) : (
-        <button className={`hv-node-buy${n.affordable ? ' is-afford' : ''}`} disabled={!n.affordable} onClick={() => { if (meta.buyIdleNode(n.def.id)) audio.cue('upgrade'); }}>
+        <button className={`hv-node-buy${n.affordable ? ' is-afford' : ''}`} disabled={!n.affordable} onClick={buy}>
           Grow · {n.cost.toLocaleString('en-US')} <CurrencyIcon id="genomeCores" size={12} title="Genome Cores" />
         </button>
       )}
@@ -136,7 +146,7 @@ export function HarvestScreen(): JSX.Element {
             <span>{a.full ? 'BRIMMED — collect now' : `full in ${fmtIdleHours(toFullH)}`}</span>
           </div>
           <button
-            className={`primary hv-collect${v.collectable ? ' is-ready' : ''}`}
+            className={`primary hv-collect${v.collectable ? ' is-ready' : ''}${a.full ? ' is-brimmed' : ''}`}
             disabled={!v.collectable}
             onClick={() => {
               const r = meta.collectIdleHarvest();

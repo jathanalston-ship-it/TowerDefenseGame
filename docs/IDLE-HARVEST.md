@@ -128,6 +128,12 @@ Client-only idle games cannot fully trust the device clock; this is the bounded-
 - **The ceremony** (`HarvestCeremony`): pods burst, time-away / banked / efficiency stats,
   staggered reward flyouts with RARE tags, BLOOM variant, and a "grow this next" suggestion
   (`idleSuggestion` — the cheapest ungated node, or the nearest gate as a horizon line).
+- **The grow ceremony** (NodeCard): a successful node buy must FEEL like biology taking —
+  the `graftCrack` cue (the house upgrade sound; the old `'upgrade'` id was unregistered and
+  silent), a caustic ring bursting off the card, the glyph swelling, and the new level flaring
+  white→gold (card remounts per buy so re-buys re-trigger). Affordable Grow buttons breathe;
+  a BRIMMED hopper pulses the HARVEST button until pressed. All of it stills under
+  prefers-reduced-motion; feedback is in-place (never a toast — the single-owner rule).
 - Reveal: hub screen `harvest` at campaign stage 6 (one beat after the stage-5 retention
   screens), teach row `idle-harvest`, badge `idle.ripe` on the harvest channel (cheap
   timestamp math only).

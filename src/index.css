@@ -11910,6 +11910,26 @@ html[data-debug-layout] body::after {
 .hv-node-lv { font-size: 11px; font-weight: 700; color: var(--gold); }
 .hv-node-blurb { font-size: 11px; color: var(--muted); margin: 0; }
 .hv-node-gate { font-size: 11px; color: var(--r-epic); }
+/* GROW ceremony (IDLE-HARVEST.md §presentation) — a one-shot bloom the instant a node level
+   takes: caustic ring burst off the card, glyph swell, the new level flaring white→gold. The
+   card remounts per buy (key=level) so re-buys re-trigger crisply. */
+.hv-node { position: relative; }
+.hv-node.is-grown::after { content: ''; position: absolute; inset: -2px; border-radius: inherit; border: 2px solid var(--caustic); opacity: 0; pointer-events: none; animation: hvGrowRing 0.7s ease-out; }
+.hv-node.is-grown .hv-node-g { display: inline-block; animation: hvGlyphPop 0.55s var(--ease-out); }
+.hv-node.is-grown .hv-node-lv { animation: hvLvFlare 0.9s ease-out; }
+@keyframes hvGrowRing { 0% { opacity: 0.9; transform: scale(0.94); } 100% { opacity: 0; transform: scale(1.1); } }
+@keyframes hvGlyphPop { 0% { transform: scale(1); } 35% { transform: scale(1.5); } 100% { transform: scale(1); } }
+@keyframes hvLvFlare { 0% { color: #fff; text-shadow: 0 0 12px var(--caustic); } 100% { color: var(--gold); text-shadow: none; } }
+/* Affordable Grow buttons breathe — "something is ready to grow" reads from across the screen */
+.hv-node-buy.is-afford { animation: hvAffordBreathe 2.6s ease-in-out infinite; }
+@keyframes hvAffordBreathe { 0%, 100% { box-shadow: 0 0 0 0 rgba(182, 232, 74, 0); } 50% { box-shadow: 0 0 10px 1px rgba(182, 232, 74, 0.28); } }
+/* A BRIMMED hopper demands the harvest — the collect button pulses until pressed */
+.hv-collect.is-brimmed { animation: hvBrimPulse 1.6s ease-in-out infinite; }
+@keyframes hvBrimPulse { 0%, 100% { box-shadow: 0 0 14px rgba(63, 224, 138, 0.35); } 50% { box-shadow: 0 0 26px rgba(63, 224, 138, 0.7); } }
+@media (prefers-reduced-motion: reduce) {
+  .hv-node.is-grown::after, .hv-node.is-grown .hv-node-g, .hv-node.is-grown .hv-node-lv,
+  .hv-node-buy.is-afford, .hv-collect.is-brimmed { animation: none; }
+}
 .hv-node-buy { font-size: 12px; }
 .hv-node-buy.is-afford { box-shadow: 0 0 10px rgba(63, 224, 138, 0.3); }
 /* Drop table chips */
