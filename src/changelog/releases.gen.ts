@@ -918,6 +918,10 @@ export const RELEASES: Release[] = [
       {
         "cat": "Enemies",
         "text": "Enemy GAITS: the roster finally MOVES differently (docs/ENEMIES.md §gaits)"
+      },
+      {
+        "cat": "Gameplay",
+        "text": "QOL: Equip All — the advisor's one-tap free-upgrade sweep"
       }
     ]
   },

@@ -1,6 +1,6 @@
 {
-  "lastSha": "7d23ac3d9d8abdb68f4de01ba6368afcc5046a4a",
-  "commitsSinceDraft": 7,
+  "lastSha": "19d12f4c3507c877eb13e32df819f4642fd284f1",
+  "commitsSinceDraft": 9,
   "content": {
     "tower": [
       "needle",
@@ -2397,6 +2397,10 @@
         {
           "cat": "Enemies",
           "text": "Enemy GAITS: the roster finally MOVES differently (docs/ENEMIES.md §gaits)"
+        },
+        {
+          "cat": "Gameplay",
+          "text": "QOL: Equip All — the advisor's one-tap free-upgrade sweep"
         }
       ]
     }
@@ -4039,6 +4043,22 @@
       "date": "2026-07-15",
       "cat": "Enemies",
       "text": "Enemy GAITS: the roster finally MOVES differently (docs/ENEMIES.md §gaits)",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "68f6b1aad50b54bd1fee2ed06d103e5f282784f5",
+      "date": "2026-07-15",
+      "cat": "Framework",
+      "text": "Chronicle roll for the unit-raid + gaits batch",
+      "internal": true,
+      "needsReview": true
+    },
+    {
+      "sha": "19d12f4c3507c877eb13e32df819f4642fd284f1",
+      "date": "2026-07-15",
+      "cat": "Gameplay",
+      "text": "QOL: Equip All — the advisor's one-tap free-upgrade sweep",
       "internal": false,
       "needsReview": false
     }

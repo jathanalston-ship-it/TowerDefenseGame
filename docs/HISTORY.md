@@ -223,3 +223,5 @@
 - ⚑ `ba9c850` **[Framework]** Chronicle roll for the drafts + lone-siege batch _(internal)_
 - `fd94b51` **[Gameplay]** Units join the mega raid: drakes dive organs, motes bite the body
 - `7d23ac3` **[Enemies]** Enemy GAITS: the roster finally MOVES differently (docs/ENEMIES.md §gaits)
+- ⚑ `68f6b1a` **[Framework]** Chronicle roll for the unit-raid + gaits batch _(internal)_
+- `19d12f4` **[Gameplay]** QOL: Equip All — the advisor's one-tap free-upgrade sweep
