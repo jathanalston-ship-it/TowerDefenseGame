@@ -62,6 +62,15 @@ export function EquipmentPanel(): JSX.Element {
     meta.salvageItems([...selected]);
     exitSalvage();
   };
+  // QUICK-SALVAGE grab: one tap selects every dismantlable item at/below a rarity across the
+  // WHOLE inventory (view filters don't hide junk from the sweep). Locked / favorite / equipped
+  // items stay inert via the same meta.canSalvage gate as manual picks (EQUIPMENT.md §safeguards);
+  // the sticky bar then shows the exact count + yield and the two-step confirm still applies.
+  const grabUpTo = (ceil: Rarity): void => {
+    setConfirmSalvage(false);
+    const cut = RARITY_ORDER.indexOf(ceil);
+    setSelected(new Set(inventory.filter((i) => RARITY_ORDER.indexOf(i.rarity) <= cut && meta.canSalvage(i.uid)).map((i) => i.uid)));
+  };
 
   // Which fielded hero (if any) wears each item — items are single-instance, so an item shows
   // its owner and can be moved between heroes. Never overwrites another hero's loadout.
@@ -308,7 +317,18 @@ export function EquipmentPanel(): JSX.Element {
           Undo restores the last item of the batch (the confirm copy says so, docs/EQUIPMENT.md). */}
       {salvageMode && (
         <div className="armory-salvagebar">
-          <span className="asb-count">{salvagePreview.count > 0 ? `${salvagePreview.count} selected` : 'Select unlocked gear to dismantle'}</span>
+          <span className="asb-grab" aria-label="Quick-grab dismantlable gear by rarity">
+            {(['common', 'uncommon', 'rare'] as Rarity[]).filter((r) => raritiesPresent.includes(r)).map((r) => (
+              <button key={r} className="asb-chip" style={{ ['--rc' as string]: rarityColor(r) }} onClick={() => grabUpTo(r)}
+                title={`Select every unlocked, unequipped item of ${r === 'common' ? 'Common' : `${r[0].toUpperCase()}${r.slice(1)} rarity or below`}`}>
+                {r === 'common' ? 'Commons' : `≤ ${r[0].toUpperCase()}${r.slice(1)}`}
+              </button>
+            ))}
+            {selected.size > 0 && (
+              <button className="asb-chip is-clear" onClick={() => { setSelected(new Set()); setConfirmSalvage(false); }}>None</button>
+            )}
+          </span>
+          <span className="asb-count">{salvagePreview.count > 0 ? `${salvagePreview.count} selected` : 'Tap gear — or grab a rarity'}</span>
           <button className="asb-cancel" onClick={exitSalvage}>Cancel</button>
           <button
             className="asb-go"

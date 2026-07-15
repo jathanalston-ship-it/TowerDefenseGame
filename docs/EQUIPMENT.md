@@ -116,6 +116,12 @@ Dismantling is hard to do by accident and easy to reverse:
   overwrites the buffer (`save.lastSalvage` — restores the item and reclaims the refunded materials).
 - **"NEW" badge:** a freshly-dropped item shows a NEW pip until you open its Details
   (`OwnedItem.seen`).
+- **Quick-grab chips (Quick-Salvage mode):** the sticky bar offers one-tap rarity sweeps —
+  **Commons / ≤ Uncommon / ≤ Rare** (only tiers actually owned render) select every dismantlable
+  item at/below that rarity across the whole inventory, ignoring view filters; **None** clears.
+  The sweep runs through the same `meta.canSalvage` gate as manual picks (locked / favorite /
+  equipped stay inert), the bar shows the exact count + yield, and the two-step confirm still
+  applies. Epic+ gear is never grabbed by a chip — chips top out at Rare by design.
 
 ---
 
