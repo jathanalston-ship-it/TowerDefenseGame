@@ -49,9 +49,15 @@ describe('Carrion Maw — the crust brawler', () => {
   it('one bite damages MULTIPLE enemies inside the jaws (cleave, not single-target)', () => {
     const g = gameWith('maw', 1);
     g.startWave();
-    // march until several enemies are inside the jaws and a bite lands
+    // PIN a picket inside the jaws (§gaits scatter marching spacing, so spawn traffic no
+    // longer guarantees overlap): the cleave CONTRACT is "one bite, many victims" — hold
+    // four bodies in reach and watch a single bite damage several at once.
+    g.debugSpawn('runner', 4);
+    const maw = g.towers[0];
     let multiHit = false;
-    for (let i = 0; i < Math.round(40 / SIM_DT) && !multiHit; i++) {
+    for (let i = 0; i < Math.round(10 / SIM_DT) && !multiHit; i++) {
+      const picket = g.enemies.slice(-4);
+      for (let j = 0; j < picket.length; j++) { picket[j].x = maw.x + (j - 1.5) * 24; picket[j].y = maw.y - 40; }
       const before = g.enemies.map((e) => ({ id: e.id, hp: e.hp }));
       g.advance(SIM_DT);
       let hit = 0;

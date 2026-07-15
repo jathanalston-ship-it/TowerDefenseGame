@@ -43,13 +43,21 @@ import { autoplay } from './sim.testutil';
 // picks toward needle/global/economy genes — **wave (12), kills (196), and the 'won' outcome are
 // IDENTICAL on every seed**; only drafted-buff-dependent integrity/biomass moved (the surviving
 // picks lean harder on economy, hence the higher leftover biomass). Any FURTHER drift is unintended.
+//
+// Re-pinned 2026-07 for ENEMY GAITS (docs/ENEMIES.md §gaits): enemies now carry a per-kind
+// LOCOMOTION pattern over the steering blend — duty-cycle speed pulses (lunges/skitters/pounces),
+// coherent perpendicular weaves, flank entries. This is a DELIBERATE gameplay change (the roster
+// finally MOVES differently per kind). Pulses are authored to average ×1 (guardrail-tested), so
+// the run structure held exactly: **wave (12), kills (196), and the 'won' outcome are IDENTICAL
+// on every seed** — only integrity/biomass moved (rhythm shifts kill timing at the margins; three
+// seeds kept their integrity to the point). Any FURTHER drift is unintended.
 const GOLDEN: Record<number, { wave: number; kills: number; integrity: number; biomass: number; phase: string }> = {
-  1: { wave: 12, kills: 196, integrity: 112, biomass: 10161, phase: 'won' },
-  7: { wave: 12, kills: 196, integrity: 212, biomass: 9353, phase: 'won' },
-  42: { wave: 12, kills: 196, integrity: 167, biomass: 8574, phase: 'won' },
-  777: { wave: 12, kills: 196, integrity: 161, biomass: 9454, phase: 'won' },
-  2024: { wave: 12, kills: 196, integrity: 100, biomass: 13286, phase: 'won' },
-  12345: { wave: 12, kills: 196, integrity: 94, biomass: 9367, phase: 'won' },
+  1: { wave: 12, kills: 196, integrity: 145, biomass: 10131, phase: 'won' },
+  7: { wave: 12, kills: 196, integrity: 212, biomass: 9291, phase: 'won' },
+  42: { wave: 12, kills: 196, integrity: 161, biomass: 8514, phase: 'won' },
+  777: { wave: 12, kills: 196, integrity: 158, biomass: 9360, phase: 'won' },
+  2024: { wave: 12, kills: 196, integrity: 100, biomass: 12994, phase: 'won' },
+  12345: { wave: 12, kills: 196, integrity: 94, biomass: 9349, phase: 'won' },
 };
 
 describe('golden outcomes (gameplay must not drift)', () => {

@@ -1055,3 +1055,25 @@ the flat-shape LOD tier are intentionally suppressed.
 
 **Validation contract.** `statusRegistry.validate` REJECTS any status without a complete `fx`
 block — incomplete combat content fails dev boot + `status.test.ts`.
+
+## Compressed system summary — Enemy Gaits (docs/ENEMIES.md §gaits)
+
+**Architecture.** A LOCOMOTION layer over the existing steering blend: `EnemyGait` on
+`EnemyBehavior` (config.ts) with three composable, optional parts — `pulse` (duty-cycle speed
+rhythm, authored to average ×1), `weave` (coherent perpendicular sinusoid), `flank` (edge-run
+entry, id-parity brood split) — applied at three gated points in `Game.enemyMoveSystem`.
+Deterministic (body-id + clock phased, no gameplay rng); bosses excluded (identity verbs own
+their movement). The Apex Predator uses the steering framework's hunter axis (`avoidHero < 0`).
+
+**Public APIs.** Pure data: `ENEMY_DEFS[kind].behavior.gait`. No new sim entry points.
+
+**Extension points.** A new enemy adds one `gait` block in its def — `gait.test.ts` guardrails
+validate it automatically (pulse avg ×1 ±2%, weave amp ≤ 0.6, flank on-field).
+
+**Assumptions.** Pulse averages ×1 so wave arrival clocks and balance hold (this is why the
+golden re-pin kept wave/kills/'won' identical on every seed); weave trades a bounded slice of
+net advance for the snake; the walls (mold/tank/golem/colossus/cataclyst/tyrant) deliberately
+carry NO gait — contrast is the read.
+
+**Known limitations.** Gaits shape MOVEMENT only — attack loops stay role-authored
+(docs/HIVE-SIEGE.md); sieging/crust bodies and artillery standoffs are unaffected by design.

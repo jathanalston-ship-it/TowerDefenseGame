@@ -561,11 +561,32 @@ export const MINES = {
 export interface EnemyBehavior {
   seek: number; // pull toward the base/line (flow field)
   avoidTowers: number; // steer out of tower kill-zones -> seek gaps (penetration)
-  avoidHero: number; // >0 skirt the hero, <0 hunt it (future hunter types)
+  avoidHero: number; // >0 skirt the hero, <0 HUNT it (bends toward the champion in passing)
   separation: number; // spread from neighbours
   jitter: number; // organic wander
   flying?: boolean; // ignore ground obstacles (drift straight for the base)
   burrowing?: boolean; // ignore ground obstacles (tunnel under them)
+  gait?: EnemyGait; // LOCOMOTION pattern (docs/ENEMIES.md §gaits); absent = the classic march
+}
+
+/** GAIT (docs/ENEMIES.md §gaits) — the kind's LOCOMOTION, layered over the steering blend:
+ *  how the body covers ground, not where it wants to go. Every part is deterministic (phased
+ *  off the body id + sim clock — no gameplay rng) and OPTIONAL: an absent part is the classic
+ *  constant march (identity). Bosses ignore gaits (their identity verbs own their movement). */
+export interface EnemyGait {
+  /** Duty-cycle speed pulse: ×`burst` for the first `duty` of each `period` (s), ×`rest` for
+   *  the remainder. AUTHOR so duty·burst + (1−duty)·rest ≈ 1 — the average pace (and the
+   *  wave's arrival clock) stays the def's `speed`; only the RHYTHM changes. Enforced by the
+   *  gait guardrail test (±2%). Reads as lunges / skitters / pounces / heaves. */
+  pulse?: { period: number; duty: number; burst: number; rest: number };
+  /** Coherent perpendicular WEAVE: a sine of frequency `freq` (rad/s) with steering weight
+   *  `amp`, phased per body. Jitter scrambles; weave SNAKES — slithers, banks, wisp-swirls.
+   *  Costs a little net advance (longer path), so keep amp ≤ 0.6 (guardrail-enforced). */
+  weave?: { amp: number; freq: number };
+  /** FLANK entry: above `untilY` the body pulls toward its side lane with steering weight
+   *  `pull` (id parity splits a brood across both flanks) — it runs the edges, then cuts in.
+   *  The gap-hunter read, in the path itself. */
+  flank?: { pull: number; untilY: number };
 }
 
 export interface EnemyDef {
@@ -632,12 +653,12 @@ export const ENEMY_DEFS: Record<EnemyKind, EnemyDef> = {
   // ── SWARM — many, weak, spread; demand AoE/splash over single-target ──
   runner: {
     kind: 'runner', name: 'Skitterling', hp: 36, armor: 0, speed: 72, bounty: 11, damage: 3, radius: 10, color: '#d98cff',
-    behavior: { seek: 1, avoidTowers: 0.28, avoidHero: 0.5, separation: 0.55, jitter: 0.16 },
+    behavior: { seek: 1, avoidTowers: 0.28, avoidHero: 0.5, separation: 0.55, jitter: 0.16, gait: { pulse: { period: 0.55, duty: 0.5, burst: 1.5, rest: 0.5 }, weave: { amp: 0.22, freq: 5 } } }, // nervous scuttle-bursts
     attack: { interval: 0.9, windup: 0.35 }, // SWARM: rapid nibbles
   },
   mite: {
     kind: 'mite', name: 'Gnat Mite', hp: 14, armor: 0, speed: 96, bounty: 5, damage: 2, radius: 6, color: '#f0a0d8',
-    behavior: { seek: 1.1, avoidTowers: 0.1, avoidHero: 0.6, separation: 0.7, jitter: 0.28 }, // a fragile cloud → splash-or-die
+    behavior: { seek: 1.1, avoidTowers: 0.1, avoidHero: 0.6, separation: 0.7, jitter: 0.28, gait: { weave: { amp: 0.5, freq: 7.5 } } }, // a fragile SWIRLING cloud → splash-or-die
     attack: { interval: 0.9, windup: 0.3 }, // SWARM: gnat bites
   },
   // ── EARLY BROOD — four WEAK teaching variations (docs/ENEMIES.md §early-brood). All are
@@ -649,12 +670,12 @@ export const ENEMY_DEFS: Record<EnemyKind, EnemyDef> = {
   //    never spawns them (campaign/daily generation is where they enter). ──
   husk: {
     kind: 'husk', name: 'Hollow Husk', hp: 20, armor: 1, speed: 55, bounty: 6, damage: 2, radius: 9, color: '#cfc3a8',
-    behavior: { seek: 1, avoidTowers: 0.2, avoidHero: 0.3, separation: 0.5, jitter: 0.12 }, // a dried shell that shambles — the FIRST armor read, in a harmless dose
+    behavior: { seek: 1, avoidTowers: 0.2, avoidHero: 0.3, separation: 0.5, jitter: 0.12, gait: { weave: { amp: 0.15, freq: 1.2 } } }, // a dried shell that shambles + sways — the FIRST armor read, in a harmless dose
     attack: { interval: 0.9, windup: 0.35 },
   },
   flea: {
     kind: 'flea', name: 'Itch Flea', hp: 16, armor: 0, speed: 98, bounty: 6, damage: 2, radius: 6, color: '#e8c06a',
-    behavior: { seek: 1.05, avoidTowers: 0.12, avoidHero: 0.7, separation: 0.75, jitter: 0.34 }, // a bounding speck — speed pressure before the Razor Sprinter exists
+    behavior: { seek: 1.05, avoidTowers: 0.12, avoidHero: 0.7, separation: 0.75, jitter: 0.34, gait: { pulse: { period: 0.4, duty: 0.35, burst: 2, rest: 0.46 } } }, // a POPPING speck — it hops — speed pressure before the Razor Sprinter exists
     attack: { interval: 0.9, windup: 0.3 },
   },
   mold: {
@@ -664,34 +685,34 @@ export const ENEMY_DEFS: Record<EnemyKind, EnemyDef> = {
   },
   skulker: {
     kind: 'skulker', name: 'Pale Skulker', hp: 24, armor: 0, speed: 80, bounty: 7, damage: 3, radius: 8, color: '#93a8bd',
-    behavior: { seek: 0.85, avoidTowers: 0.85, avoidHero: 0.8, separation: 0.45, jitter: 0.2 }, // a coward that HUNTS GAPS (highest tower-avoidance in the weak band) — the coverage lesson
+    behavior: { seek: 0.85, avoidTowers: 0.85, avoidHero: 0.8, separation: 0.45, jitter: 0.2, gait: { pulse: { period: 0.7, duty: 0.45, burst: 1.4, rest: 0.67 }, flank: { pull: 0.5, untilY: 500 } } }, // a coward that HUNTS GAPS — it creeps the EDGES first (highest tower-avoidance in the weak band) — the coverage lesson
     attack: { interval: 0.9, windup: 0.32 },
   },
   larva: {
     kind: 'larva', name: 'Writhing Larva', hp: 24, armor: 0, speed: 40, bounty: 4, damage: 3, radius: 9, color: '#d8cfa0',
-    behavior: { seek: 1, avoidTowers: 0.05, avoidHero: 0.1, separation: 0.5, jitter: 0.1 }, // slow chaff that clogs the lane
+    behavior: { seek: 1, avoidTowers: 0.05, avoidHero: 0.1, separation: 0.5, jitter: 0.1, gait: { pulse: { period: 1.4, duty: 0.5, burst: 1.5, rest: 0.5 } } }, // slow INCHING chaff that clogs the lane
     attack: { interval: 1.1, windup: 0.4 }, // SWARM: slow chew
   },
   // ── FAST — high speed, beeline; need front-loaded DPS / static coverage ──
   rusher: {
     kind: 'rusher', name: 'Razor Sprinter', hp: 28, armor: 0, speed: 132, bounty: 9, damage: 3, radius: 8, color: '#ff5db0',
-    behavior: { seek: 1.2, avoidTowers: 0, avoidHero: 0, separation: 0.2, jitter: 0.04 }, // beelines, ignores defenses
+    behavior: { seek: 1.2, avoidTowers: 0, avoidHero: 0, separation: 0.2, jitter: 0.04, gait: { pulse: { period: 1.5, duty: 0.35, burst: 2.1, rest: 0.41 } } }, // SPRINT-skid-SPRINT, ignores defenses
     attack: { interval: 0.8, windup: 0.3 }, // FAST: frantic slashes
   },
   darter: {
     kind: 'darter', name: 'Synapse Darter', hp: 30, armor: 0, speed: 150, bounty: 11, damage: 3, radius: 8, color: '#ff79c0',
-    behavior: { seek: 1.25, avoidTowers: 0.1, avoidHero: 0.9, separation: 0.2, jitter: 0.2 }, // slips PAST the hero → static front
+    behavior: { seek: 1.25, avoidTowers: 0.1, avoidHero: 0.9, separation: 0.2, jitter: 0.2, gait: { pulse: { period: 1.1, duty: 0.25, burst: 2.6, rest: 0.47 }, weave: { amp: 0.3, freq: 6 } } }, // synaptic DASHES that slip PAST the hero → static front
     attack: { interval: 0.75, windup: 0.3 }, // FAST: frantic slashes
   },
   lasher: {
     kind: 'lasher', name: 'Whip Lasher', hp: 44, armor: 0, speed: 118, bounty: 13, damage: 5, radius: 10, color: '#ff6088',
-    behavior: { seek: 1.3, avoidTowers: 0, avoidHero: 0, separation: 0.15, jitter: 0.03 }, // shortest-line charge → punishes gaps
+    behavior: { seek: 1.3, avoidTowers: 0, avoidHero: 0, separation: 0.15, jitter: 0.03, gait: { pulse: { period: 1.8, duty: 0.3, burst: 2, rest: 0.57 } } }, // coil-then-STRIKE charge → punishes gaps
     attack: { interval: 0.9, windup: 0.35 }, // FAST: whip flurry
   },
   // ── HEAVY — high HP/armor, slow; lean on shred + sustained focus ──
   brute: {
     kind: 'brute', name: 'Carrion Brute', hp: 150, armor: 8, speed: 42, bounty: 26, damage: 12, radius: 14, color: '#7b9cff',
-    behavior: { seek: 1, avoidTowers: 0.16, avoidHero: 0.22, separation: 0.4, jitter: 0.06 },
+    behavior: { seek: 1, avoidTowers: 0.16, avoidHero: 0.22, separation: 0.4, jitter: 0.06, gait: { pulse: { period: 2.2, duty: 0.55, burst: 1.25, rest: 0.69 } } }, // heaving lumber-steps
     attack: { interval: 1.8, windup: 0.6 }, // HEAVY: slow club swings
   },
   tank: {
@@ -723,7 +744,7 @@ export const ENEMY_DEFS: Record<EnemyKind, EnemyDef> = {
   // ── REGENERATING — heals over time; out-DPS / burst or it never dies ──
   knitter: {
     kind: 'knitter', name: 'Flesh Knitter', hp: 130, armor: 4, speed: 60, bounty: 34, damage: 9, radius: 13, color: '#7ce0a0', regenPerSec: 26,
-    behavior: { seek: 1, avoidTowers: 0.12, avoidHero: 0.2, separation: 0.3, jitter: 0.08 }, // mends 26/s → needs burst DPS
+    behavior: { seek: 1, avoidTowers: 0.12, avoidHero: 0.2, separation: 0.3, jitter: 0.08, gait: { weave: { amp: 0.2, freq: 2.2 } } }, // drifts as it mends 26/s → needs burst DPS
     attack: { interval: 1.4, windup: 0.5 }, // REGEN: relentless picking
   },
   revenant: {
@@ -734,42 +755,42 @@ export const ENEMY_DEFS: Record<EnemyKind, EnemyDef> = {
   // ── BURROWING — ignores obstacles, hunts gaps; demands even coverage ──
   burrower: {
     kind: 'burrower', name: 'Gut Tunneler', hp: 90, armor: 6, speed: 58, bounty: 22, damage: 6, radius: 12, color: '#e8a04a',
-    behavior: { seek: 1, avoidTowers: 0.55, avoidHero: 0.4, separation: 0.3, jitter: 0.1, burrowing: true }, // tunnels gaps
+    behavior: { seek: 1, avoidTowers: 0.55, avoidHero: 0.4, separation: 0.3, jitter: 0.1, burrowing: true, gait: { pulse: { period: 1.6, duty: 0.4, burst: 1.9, rest: 0.4 } } }, // tunnels gaps in surging HEAVES
     attack: { interval: 1.2, windup: 0.45 }, // BURROW: gouging claws
   },
   molerat: {
     kind: 'molerat', name: 'Sand Stalker', hp: 70, armor: 4, speed: 78, bounty: 20, damage: 6, radius: 11, color: '#d8a850',
-    behavior: { seek: 1.1, avoidTowers: 0.7, avoidHero: 0.4, separation: 0.3, jitter: 0.12, burrowing: true }, // fast gap-hunter
+    behavior: { seek: 1.1, avoidTowers: 0.7, avoidHero: 0.4, separation: 0.3, jitter: 0.12, burrowing: true, gait: { pulse: { period: 1, duty: 0.45, burst: 1.8, rest: 0.35 }, flank: { pull: 0.4, untilY: 560 } } }, // fast gap-hunter that CIRCLES the flanks
     attack: { interval: 1.0, windup: 0.4 }, // BURROW: gnawing frenzy
   },
   // ── FLYING — over all obstacles; need anti-air / wide coverage ──
   flyer: {
     kind: 'flyer', name: 'Spore Drifter', hp: 60, armor: 2, speed: 64, bounty: 18, damage: 6, radius: 11, color: '#c0a3ff',
-    behavior: { seek: 1, avoidTowers: 0.12, avoidHero: 0.35, separation: 0.3, jitter: 0.12, flying: true }, // over obstacles
+    behavior: { seek: 1, avoidTowers: 0.12, avoidHero: 0.35, separation: 0.3, jitter: 0.12, flying: true, gait: { weave: { amp: 0.4, freq: 2 } } }, // BANKS over obstacles
     attack: { interval: 1.1, windup: 0.4 }, // FLYING: diving pecks
   },
   wisp: {
     kind: 'wisp', name: 'Mind Wisp', hp: 40, armor: 0, speed: 92, bounty: 16, damage: 5, radius: 9, color: '#b0c8ff',
-    behavior: { seek: 1.1, avoidTowers: 0.15, avoidHero: 0.4, separation: 0.3, jitter: 0.18, flying: true }, // fast air → anti-air
+    behavior: { seek: 1.1, avoidTowers: 0.15, avoidHero: 0.4, separation: 0.3, jitter: 0.18, flying: true, gait: { weave: { amp: 0.55, freq: 3.2 } } }, // SWIRLING fast air → anti-air
     attack: { interval: 1.0, windup: 0.4 }, // SPECIAL: arcing stings
   },
   gargoyle: {
     kind: 'gargoyle', name: 'Bone Gargoyle', hp: 180, armor: 14, speed: 48, bounty: 48, damage: 13, radius: 15, color: '#8898b0',
-    behavior: { seek: 1, avoidTowers: 0.08, avoidHero: 0.1, separation: 0.25, jitter: 0.06, flying: true }, // armored air → shred AA
+    behavior: { seek: 1, avoidTowers: 0.08, avoidHero: 0.1, separation: 0.25, jitter: 0.06, flying: true, gait: { weave: { amp: 0.3, freq: 1.6 } } }, // armored air on slow heavy WINGBEATS → shred AA
     attack: { interval: 1.6, windup: 0.55 }, // ARMORED: stone talons
   },
   // ── FLYING + REGENERATING — an airborne leech that re-knits itself; burst can't out-race the
   //    heal before it re-forms, so anti-air must SUSTAIN. The first flyer with a self-heal. ──
   cystwraith: {
     kind: 'cystwraith', name: 'Cyst Wraith', hp: 140, armor: 3, speed: 66, bounty: 40, damage: 8, radius: 13, color: '#5fe0b0', regenPerSec: 28,
-    behavior: { seek: 1, avoidTowers: 0.12, avoidHero: 0.35, separation: 0.3, jitter: 0.12, flying: true }, // drifting air-regen → sustained AA
+    behavior: { seek: 1, avoidTowers: 0.12, avoidHero: 0.35, separation: 0.3, jitter: 0.12, flying: true, gait: { pulse: { period: 1.3, duty: 0.5, burst: 1.35, rest: 0.65 }, weave: { amp: 0.45, freq: 1.4 } } }, // PHASING glide-fade air-regen → sustained AA
     attack: { interval: 1.3, windup: 0.5 }, // REGEN FLYER: leeching bites
   },
   // ── SUMMONER — spawns adds on a timer; priority-kill or drown in swarm ──
   broodmother: {
     kind: 'broodmother', name: 'Brood Matron', hp: 200, armor: 6, speed: 38, bounty: 80, damage: 13, radius: 17, color: '#e070c0',
     summon: { kind: 'mite', count: 2, interval: 3.5 },
-    behavior: { seek: 1, avoidTowers: 0.1, avoidHero: 0.15, separation: 0.25, jitter: 0.06 }, // births mites → focus it down
+    behavior: { seek: 1, avoidTowers: 0.1, avoidHero: 0.15, separation: 0.25, jitter: 0.06, gait: { pulse: { period: 2.4, duty: 0.5, burst: 1.3, rest: 0.7 } } }, // laboring waddle; births mites → focus it down
     attack: { interval: 2.0, windup: 0.7 }, // SUMMONER: ponderous slams (her brood is the threat)
   },
   hivecaller: {
@@ -782,26 +803,26 @@ export const ENEMY_DEFS: Record<EnemyKind, EnemyDef> = {
   mender: {
     kind: 'mender', name: 'Vital Mender', hp: 110, armor: 2, speed: 48, bounty: 60, damage: 4, radius: 12, color: '#d6c65c',
     auraRadius: 96, auraRegenPerSec: 18,
-    behavior: { seek: 1, avoidTowers: 0.2, avoidHero: 0.5, separation: 0.35, jitter: 0.1 }, // heals the pack 18/s → kill the healer
+    behavior: { seek: 1, avoidTowers: 0.2, avoidHero: 0.5, separation: 0.35, jitter: 0.1, gait: { weave: { amp: 0.25, freq: 1.8 } } }, // bobs behind the pack, healing 18/s → kill the healer
     attack: { interval: 1.6, windup: 0.5 }, // SUPPORT: half-hearted prods (its aura is the threat)
   },
   cantor: {
     kind: 'cantor', name: 'Aegis Cantor', hp: 120, armor: 4, speed: 44, bounty: 64, damage: 4, radius: 13, color: '#7cb0f0',
     auraRadius: 104, auraShield: 60,
-    behavior: { seek: 1, avoidTowers: 0.2, avoidHero: 0.45, separation: 0.35, jitter: 0.08 }, // shields the pack 60 → silence it
+    behavior: { seek: 1, avoidTowers: 0.2, avoidHero: 0.45, separation: 0.35, jitter: 0.08, gait: { weave: { amp: 0.25, freq: 1.8 } } }, // bobs behind the pack, shielding 60 → silence it
     attack: { interval: 1.6, windup: 0.5 }, // SUPPORT: half-hearted prods (its aura is the threat)
   },
   // ── SUICIDE — fragile bombs that detonate at the line; intercept early ──
   bomber: {
     kind: 'bomber', name: 'Bile Bomber', hp: 50, armor: 0, speed: 104, bounty: 18, damage: 28, radius: 11, color: '#ff9a3d',
     explodeRadius: 70, explodeDamage: 28,
-    behavior: { seek: 1.25, avoidTowers: 0.05, avoidHero: 0, separation: 0.2, jitter: 0.06 }, // fast bomb → kill it BEFORE the line
+    behavior: { seek: 1.25, avoidTowers: 0.05, avoidHero: 0, separation: 0.2, jitter: 0.06, gait: { pulse: { period: 0.9, duty: 0.55, burst: 1.4, rest: 0.51 }, weave: { amp: 0.35, freq: 4.5 } } }, // a JINKING bombing run → kill it BEFORE the line
     attack: { interval: 1.5, windup: 0.5 }, // SUICIDE: windup = the FUSE; one burst, then gone
   },
   popper: {
     kind: 'popper', name: 'Spore Popper', hp: 90, armor: 2, speed: 40, bounty: 22, damage: 36, radius: 14, color: '#ffb84d',
     explodeRadius: 96, explodeDamage: 40,
-    behavior: { seek: 1, avoidTowers: 0.1, avoidHero: 0.1, separation: 0.25, jitter: 0.05 }, // a slow walking mine → kill it clear
+    behavior: { seek: 1, avoidTowers: 0.1, avoidHero: 0.1, separation: 0.25, jitter: 0.05, gait: { pulse: { period: 1.8, duty: 0.5, burst: 1.3, rest: 0.7 } } }, // a SLOSHING walking mine → kill it clear
     attack: { interval: 1.5, windup: 0.65 }, // SUICIDE: windup = the FUSE; one burst, then gone
   },
   // ── BURROWING + SUICIDE — a tunnelling incendiary that skirts tower kill-zones (hunts gaps),
@@ -809,7 +830,7 @@ export const ENEMY_DEFS: Record<EnemyKind, EnemyDef> = {
   sapper: {
     kind: 'sapper', name: 'Cinder Sapper', hp: 80, armor: 2, speed: 70, bounty: 26, damage: 6, radius: 12, color: '#e07a30',
     explodeRadius: 84, explodeDamage: 34,
-    behavior: { seek: 1.1, avoidTowers: 0.6, avoidHero: 0.1, separation: 0.25, jitter: 0.1, burrowing: true }, // tunnels the gaps, then blows
+    behavior: { seek: 1.1, avoidTowers: 0.6, avoidHero: 0.1, separation: 0.25, jitter: 0.1, burrowing: true, gait: { flank: { pull: 0.6, untilY: 520 } } }, // runs the FLANKS to the gaps, then blows
     attack: { interval: 1.4, windup: 0.5 }, // SUICIDE: windup = the FUSE; one burst, then gone
   },
   // ── HEAVY + SUICIDE — a slow walking bomb: huge HP, huge blast. The wave you CANNOT let
@@ -830,7 +851,7 @@ export const ENEMY_DEFS: Record<EnemyKind, EnemyDef> = {
   spitter: {
     kind: 'spitter', name: 'Acid Spitter', hp: 110, armor: 2, speed: 44, bounty: 40, damage: 6, radius: 12, color: '#a0d060',
     siege: { range: 180, damage: 4, interval: 1.2 },
-    behavior: { seek: 1.05, avoidTowers: 0.1, avoidHero: 0.2, separation: 0.25, jitter: 0.08 }, // nimble standoff → mid-field DPS
+    behavior: { seek: 1.05, avoidTowers: 0.1, avoidHero: 0.2, separation: 0.25, jitter: 0.08, gait: { weave: { amp: 0.2, freq: 2.5 } } }, // nimble SIDLING standoff → mid-field DPS
     attack: { interval: 1.5, windup: 0.5 }, // ARTILLERY: melee fallback only (it standoffs)
   },
   // ── FLYING + ARTILLERY — bombards from the AIR: path answers don't apply AND range answers
@@ -838,7 +859,7 @@ export const ENEMY_DEFS: Record<EnemyKind, EnemyDef> = {
   stratovore: {
     kind: 'stratovore', name: 'Stratovore', hp: 190, armor: 4, speed: 42, bounty: 72, damage: 8, radius: 15, color: '#9a7ce0',
     siege: { range: 260, damage: 5, interval: 1.8 },
-    behavior: { seek: 1, avoidTowers: 0.15, avoidHero: 0.3, separation: 0.3, jitter: 0.1, flying: true }, // drifts high, shells far
+    behavior: { seek: 1, avoidTowers: 0.15, avoidHero: 0.3, separation: 0.3, jitter: 0.1, flying: true, gait: { weave: { amp: 0.35, freq: 1.5 } } }, // rides high THERMALS, shells far
     attack: { interval: 1.6, windup: 0.6 }, // ARTILLERY FLYER: pecks if forced to the line
   },
   // ── SUMMONER + REGENERATING — a self-mending womb: chip damage can't stop the brood.
@@ -846,7 +867,7 @@ export const ENEMY_DEFS: Record<EnemyKind, EnemyDef> = {
   broodweaver: {
     kind: 'broodweaver', name: 'Brood Weaver', hp: 240, armor: 5, speed: 33, bounty: 92, damage: 12, radius: 17, color: '#8ae06a', regenPerSec: 22,
     summon: { kind: 'larva', count: 2, interval: 4 },
-    behavior: { seek: 1, avoidTowers: 0.1, avoidHero: 0.15, separation: 0.25, jitter: 0.06 }, // waddles + weaves the swarm back
+    behavior: { seek: 1, avoidTowers: 0.1, avoidHero: 0.15, separation: 0.25, jitter: 0.06, gait: { weave: { amp: 0.2, freq: 1.3 } } }, // WEAVES as it waddles the swarm back
     attack: { interval: 2.0, windup: 0.7 }, // SUMMONER: slow slams (the brood is the threat)
   },
   // ── DEEP-FAUNA — fresh role FUSIONS (each reuses TWO existing gated hooks; pure data, golden-safe).
@@ -855,12 +876,12 @@ export const ENEMY_DEFS: Record<EnemyKind, EnemyDef> = {
   //    (unlockStage), so they arrive STAGGERED, never all at once. ──
   zealot: {
     kind: 'zealot', name: 'Aegis Zealot', hp: 150, armor: 8, speed: 42, bounty: 50, damage: 13, radius: 14, color: '#6fe0d0', shieldHp: 130, regenPerSec: 20,
-    behavior: { seek: 1, avoidTowers: 0.1, avoidHero: 0.15, separation: 0.3, jitter: 0.05 }, // shield soaks burst, flesh re-knits → answer with SUSTAINED shred
+    behavior: { seek: 1, avoidTowers: 0.1, avoidHero: 0.15, separation: 0.3, jitter: 0.05, gait: { pulse: { period: 2, duty: 0.4, burst: 1.6, rest: 0.6 } } }, // zealous surges; shield soaks burst, flesh re-knits → answer with SUSTAINED shred
     attack: { interval: 1.7, windup: 0.6 }, // SHIELDED REGEN: measured bashes
   },
   carrier: {
     kind: 'carrier', name: 'Carrion Zeppelin', hp: 210, armor: 6, speed: 32, bounty: 90, damage: 9, radius: 18, color: '#b28cff', summon: { kind: 'mite', count: 2, interval: 4 },
-    behavior: { seek: 1, avoidTowers: 0.1, avoidHero: 0.2, separation: 0.25, jitter: 0.08, flying: true }, // drifts over defenses, seeding mites behind the line → anti-air + focus
+    behavior: { seek: 1, avoidTowers: 0.1, avoidHero: 0.2, separation: 0.25, jitter: 0.08, flying: true, gait: { weave: { amp: 0.3, freq: 1.2 } } }, // a drifting ZEPPELIN sway over defenses, seeding mites behind the line → anti-air + focus
     attack: { interval: 1.8, windup: 0.6 }, // FLYING SUMMONER: ponderous (its brood is the threat)
   },
   entrencher: {
@@ -870,18 +891,18 @@ export const ENEMY_DEFS: Record<EnemyKind, EnemyDef> = {
   },
   oracle: {
     kind: 'oracle', name: 'Hollow Oracle', hp: 150, armor: 4, speed: 40, bounty: 82, damage: 5, radius: 14, color: '#8ce0c0', auraRadius: 108, auraRegenPerSec: 16, auraShield: 50,
-    behavior: { seek: 1, avoidTowers: 0.22, avoidHero: 0.5, separation: 0.35, jitter: 0.08 }, // heals AND shields the pack from the backline → kill the keystone FIRST
+    behavior: { seek: 1, avoidTowers: 0.22, avoidHero: 0.5, separation: 0.35, jitter: 0.08, gait: { weave: { amp: 0.25, freq: 1.6 } } }, // drifts at the backline; heals AND shields the pack from the backline → kill the keystone FIRST
     attack: { interval: 1.6, windup: 0.5 }, // DOUBLE SUPPORT: half-hearted prods (its auras are the threat)
   },
   glutling: {
     kind: 'glutling', name: 'Bloat Cluster', hp: 26, armor: 0, speed: 106, bounty: 7, damage: 4, radius: 8, color: '#ff8a4d', explodeRadius: 52, explodeDamage: 16,
-    behavior: { seek: 1.2, avoidTowers: 0.05, avoidHero: 0, separation: 0.5, jitter: 0.18 }, // a fast, spread cloud of bomblets → AoE it early or the swarm detonates together
+    behavior: { seek: 1.2, avoidTowers: 0.05, avoidHero: 0, separation: 0.5, jitter: 0.18, gait: { pulse: { period: 0.5, duty: 0.5, burst: 1.6, rest: 0.4 }, weave: { amp: 0.25, freq: 8 } } }, // a frantic WOBBLING cloud of bomblets → AoE it early or the swarm detonates together
     attack: { interval: 1.2, windup: 0.45 }, // SWARM SUICIDE: windup = the FUSE; one burst, then gone
   },
   // ── ELITE / APEX — premium multi-threats that fuse several roles ──
   apex: {
     kind: 'apex', name: 'Apex Predator', hp: 280, armor: 10, speed: 86, bounty: 120, damage: 15, radius: 16, color: '#ffcf5a', regenPerSec: 20,
-    behavior: { seek: 1.1, avoidTowers: 0.1, avoidHero: -0.6, separation: 0.2, jitter: 0.06 }, // regenerates AND hunts the hero
+    behavior: { seek: 1.1, avoidTowers: 0.1, avoidHero: -0.6, separation: 0.2, jitter: 0.06, gait: { pulse: { period: 2.4, duty: 0.22, burst: 2.8, rest: 0.49 } } }, // STALKS, then POUNCES — and hunts the hero
     attack: { interval: 1.3, windup: 0.45 }, // APEX: savage bite cycle
   },
   dreadnought: {

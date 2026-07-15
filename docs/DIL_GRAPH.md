@@ -1,6 +1,6 @@
 # DIL_GRAPH.md — the Design Intelligence Layer (GENERATED — `npm run dil -- regen`)
 
-> **The project's brain** (docs/DIL.md). 809 nodes · 1490 edges, built from the live
+> **The project's brain** (docs/DIL.md). 810 nodes · 1491 edges, built from the live
 > registries + curated knowledge (src/dev/dil/). **Query it instead of searching the repo:**
 > `npm run dil -- node <id>` · `affects <id>` · `requires <id>` · `missing <kind> <edge>` ·
 > `checklist tower <kind>` · `find <text>`. Edge kinds are bidirectional (19 kinds).
@@ -731,7 +731,7 @@ _at: src/core/game.ts, src/core/combat.ts, src/core/status.ts, src/core/targetin
   - requiredBy ← `system:bosses`
   - requiredBy ← `system:mega-bosses`
   - requiredBy ← `system:rendering`
-  - _…199 more (query: `npm run dil -- node system:engine`)_
+  - _…200 more (query: `npm run dil -- node system:engine`)_
 
 ### `system:content-infra` — Content Infrastructure
 
@@ -3422,7 +3422,7 @@ _at: site/guides.ts → /guides/prestige/_
 - `doc:VOWS.md` — project documentation _(documents `system:prestige`)_
 - `doc:WEBSITE.md` — project documentation _(documents `system:field-research`, documents `system:website`)_
 
-## Tests (258)
+## Tests (259)
 
 - `test:src/audio/music.test.ts` — automated validation _(tests `system:audio`)_
 - `test:src/changelog/classify.test.ts` — automated validation _(tests `system:chronicle`)_
@@ -3481,6 +3481,7 @@ _at: site/guides.ts → /guides/prestige/_
 - `test:src/core/feel.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/core/finaldefense.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/core/fovea.test.ts` — automated validation _(tests `system:engine`)_
+- `test:src/core/gait.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/core/gameBoss.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/core/geneAscension.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/core/geneCards.test.ts` — automated validation _(tests `system:gene-cards`)_

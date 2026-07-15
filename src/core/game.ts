@@ -5102,9 +5102,19 @@ export class Game {
       // BRUISER WARCRY haste (docs/BOSS-DESIGN.md §identity): a timed pack-wide surge. Undefined
       // on every enemy the cry never touched ⇒ ×1 ⇒ golden-safe.
       const haste = e.hasteT !== undefined && e.hasteT > 0 ? e.hasteMult ?? 1 : 1;
+      // GAIT (docs/ENEMIES.md §gaits): the kind's LOCOMOTION pattern over the steering blend.
+      // Bosses keep their own identity verbs (charge/burrow) — never a gait. The PULSE is a
+      // deterministic duty-cycle (lunges / skitters / pounces), phased off the body id so a
+      // brood never moves in lockstep; authored to average ×1, so the arrival clock holds.
+      const gait = e.boss === null ? b.gait : undefined;
+      let gaitMult = 1;
+      if (gait?.pulse !== undefined) {
+        const gp = gait.pulse;
+        gaitMult = ((this.time + e.id * 0.618034) / gp.period) % 1 < gp.duty ? gp.burst : gp.rest;
+      }
       // Biome hazard speed pulse (e.g. Firestorm) — transient, on top of the speed baked at spawn.
       // 1 when no hazard is active / Stage mode ⇒ golden-safe.
-      const step = e.speed * chargeMult * haste * this.biomeHazardEnemySpeed() * this.megaFx.enemyHaste * (1 - slow) * dt;
+      const step = e.speed * gaitMult * chargeMult * haste * this.biomeHazardEnemySpeed() * this.megaFx.enemyHaste * (1 - slow) * dt;
 
       // 1. seek
       let vx: number;
@@ -5129,6 +5139,13 @@ export class Game {
         const dir = flowDirAt(e.x, e.y);
         vx = dir.x * b.seek;
         vy = dir.y * b.seek;
+      }
+
+      // 1b. GAIT flank (§gaits): above `untilY` the body pulls toward its side lane — id
+      // parity splits a brood across both flanks — so it RUNS THE EDGES, then cuts in.
+      if (gait?.flank !== undefined && e.y < gait.flank.untilY && !fleeing) {
+        const lane = (e.id & 1) === 0 ? WIDTH * 0.12 : WIDTH * 0.88;
+        vx += (lane > e.x ? 1 : -1) * gait.flank.pull;
       }
 
       // 2. avoid defensive structures -> route toward gaps (penetration)
@@ -5183,6 +5200,17 @@ export class Game {
         const n = e.id * MOVE.jitterIdScale + this.time * STEER.jitterFreq;
         vx += Math.sin(n) * b.jitter;
         vy += Math.cos(n * MOVE.jitterPhase) * b.jitter;
+      }
+
+      // 6. GAIT weave (§gaits): a coherent PERPENDICULAR sinusoid on the blended heading —
+      // jitter scrambles, weave SNAKES (slithers, banks, wisp-swirls). Deterministic phase.
+      if (gait?.weave !== undefined) {
+        const gw = gait.weave;
+        const ol = Math.hypot(vx, vy) || 1;
+        const w = Math.sin(this.time * gw.freq + e.id * 1.732051) * gw.amp;
+        const ox = vx / ol;
+        vx += (-vy / ol) * w;
+        vy += ox * w;
       }
 
       const vl = Math.hypot(vx, vy) || 1;

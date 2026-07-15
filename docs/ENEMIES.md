@@ -394,3 +394,32 @@ death cues, bestiary, codex, variants, and `killsByEnemy` ledgers all auto-class
 byte-identical; campaign/daily *generation* naturally re-rolls (`earlyBrood.test.ts` pins the
 weak-band contract, stage-1/2 pool membership, real spawn frequency across seeds, and the
 scripted-table control).
+
+## 11. Gaits (§gaits) — the roster MOVES differently
+
+Every enemy used to cover ground the same way: one constant-speed drift along its blended
+steering vector — the *thinking* varied (`EnemyBehavior` weights), the *locomotion* never did.
+`EnemyGait` (`behavior.gait`, config.ts) is the data-driven locomotion layer over the blend,
+applied in `enemyMoveSystem`. Three composable parts, all deterministic (phased off the body id
++ sim clock — no gameplay rng), all optional (absent = the classic march), and never applied to
+bosses (their identity verbs — charge, burrow — own their movement):
+
+- **`pulse`** `{ period, duty, burst, rest }` — a duty-cycle speed rhythm: ×`burst` for the
+  first `duty` of each period, ×`rest` after. **Authored to average ×1** (`gait.test.ts`
+  guardrail, ±2%), so the wave's arrival clock — and balance — hold; only the RHYTHM changes.
+  Reads: the Sprinter *sprints and skids*, the Apex *stalks then pounces*, the Flea *hops*,
+  the Larva *inches*, the Brute *heaves*.
+- **`weave`** `{ amp, freq }` — a coherent perpendicular sinusoid on the heading. Jitter
+  scrambles; weave SNAKES: the Wisp swirls, the Drifter banks, the Cyst Wraith phases, the
+  supports bob behind the pack. Amp capped at 0.6 (net-advance cost stays bounded).
+- **`flank`** `{ pull, untilY }` — above `untilY` the body pulls toward its side lane (id
+  parity splits a brood across BOTH flanks), then cuts in: the Skulker, Sapper and Sand
+  Stalker now *run the edges* to their gaps — the coverage lesson written into the path.
+
+~26 kinds carry a gait; the walls (Mold, Hauler, Golem, Colossus, Cataclyst, Tyrant) and the
+committed artillery deliberately do NOT — an unswerving march is *their* read, and the contrast
+is the point. The Apex Predator additionally HUNTS the hero (`avoidHero: -0.6` — the steering
+framework's hunter axis). Goldens were re-pinned for this deliberately: pulses average ×1, so
+**wave/kills/'won' held on every seed** — only integrity/biomass textures moved.
+
+A new enemy picks its gait in its def — one data block, guardrail-validated, no new code.
