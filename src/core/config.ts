@@ -658,7 +658,7 @@ export const ENEMY_DEFS: Record<EnemyKind, EnemyDef> = {
     attack: { interval: 0.9, windup: 0.3 },
   },
   mold: {
-    kind: 'mold', name: 'Creeping Mold', hp: 62, armor: 0, speed: 26, bounty: 9, damage: 4, radius: 12, color: '#9ec27b',
+    kind: 'mold', name: 'Creeping Mold', hp: 62, armor: 0, speed: 26, bounty: 9, damage: 4, radius: 12, color: '#95a050',
     behavior: { seek: 1, avoidTowers: 0.02, avoidHero: 0.05, separation: 0.35, jitter: 0.06 }, // a slow spongy mass that creeps STRAIGHT — the first "this needs sustained fire" wall
     attack: { interval: 1.1, windup: 0.4 }, // slow chewing
   },
@@ -668,7 +668,7 @@ export const ENEMY_DEFS: Record<EnemyKind, EnemyDef> = {
     attack: { interval: 0.9, windup: 0.32 },
   },
   larva: {
-    kind: 'larva', name: 'Writhing Larva', hp: 24, armor: 0, speed: 40, bounty: 4, damage: 3, radius: 9, color: '#c8e0a0',
+    kind: 'larva', name: 'Writhing Larva', hp: 24, armor: 0, speed: 40, bounty: 4, damage: 3, radius: 9, color: '#d8cfa0',
     behavior: { seek: 1, avoidTowers: 0.05, avoidHero: 0.1, separation: 0.5, jitter: 0.1 }, // slow chaff that clogs the lane
     attack: { interval: 1.1, windup: 0.4 }, // SWARM: slow chew
   },
@@ -780,7 +780,7 @@ export const ENEMY_DEFS: Record<EnemyKind, EnemyDef> = {
   },
   // ── SUPPORT — auras that heal/shield allies; kill the support FIRST ──
   mender: {
-    kind: 'mender', name: 'Vital Mender', hp: 110, armor: 2, speed: 48, bounty: 60, damage: 4, radius: 12, color: '#7cf0b0',
+    kind: 'mender', name: 'Vital Mender', hp: 110, armor: 2, speed: 48, bounty: 60, damage: 4, radius: 12, color: '#d6c65c',
     auraRadius: 96, auraRegenPerSec: 18,
     behavior: { seek: 1, avoidTowers: 0.2, avoidHero: 0.5, separation: 0.35, jitter: 0.1 }, // heals the pack 18/s → kill the healer
     attack: { interval: 1.6, windup: 0.5 }, // SUPPORT: half-hearted prods (its aura is the threat)

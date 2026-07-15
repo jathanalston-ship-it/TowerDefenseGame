@@ -40,9 +40,19 @@ export const THEME = {
   spawn: {
     membrane: '150, 70, 220',
     edge: '180, 110, 230',
-    haze: 'rgba(70, 180, 140, 0.08)',
+    haze: 'rgba(140, 70, 190, 0.08)', // bruised, not fresh — the old teal-green haze read healthy
     chevron: 'rgba(180, 120, 230, 0.20)',
     label: 'rgba(196, 150, 238, 0.78)',
+  },
+  // THE SICK REGISTER (VISUAL_IDENTITY.md §palette) — necrotic hues the PLAYER never owns:
+  // enemy flesh, infection, rot. Vital lime (#b6e84a) and healing mints belong to the hive
+  // alone; anything hostile that needs a "life" color draws from here instead.
+  sick: {
+    bile: '#c9ad38', // necrotic amber-bile (artillery chassis, corrupt glands)
+    pus: '#d6c65c', // infected secretion (enemy healers)
+    sepsis: '#95a050', // olive-drab rot (molds, spore flesh)
+    maggot: '#d8cfa0', // pale larval cream
+    bruise: '#7a4d8e', // deep contusion violet (membrane depths)
   },
   // The defensive line + the zone the hive is protecting behind it.
   defense: {

@@ -207,3 +207,4 @@
 ## 2026-07-15
 
 - `96c9a5c` **[Gameplay]** Rename the game: ASSIMILATE -> ASSIMILATION everywhere the NAME appears
+- `6c93de5` **[Gameplay]** Rename the game: ASSIMILATE -> ASSIMILATION everywhere the NAME appears

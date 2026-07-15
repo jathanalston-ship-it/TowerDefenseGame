@@ -111,7 +111,49 @@ One synthesized organism — every sound is built from the same `tone()` palette
   is retired; per-biome flavor returns through the music engine's intensity/layer seam.
 - Nothing plays raw sawtooth alarm-style; even danger (breach) is a bodily thud, not a klaxon.
 
-## 8. The screenshot test (definition of done)
+## 8. The arena doctrine — §light · §motion · §palette
+
+The 2026-07 arena identity pass turned the standing critique ("a clinical instrument, but the
+infestation under it doesn't feel alive or dangerous enough") into render law. Code comments cite
+these anchors directly (`VISUAL_IDENTITY.md §light` etc.).
+
+### §light — the light hierarchy
+
+Light answers *where is life?* Three luminance zones, brightest to darkest:
+
+1. **THE HEARTH** — the Hive Core is the warmest, brightest thing on the field (warm glow disc
+   ~145px, breathing with the shared heartbeat). What the player protects gathers in its light.
+2. **The defense band** — mid-light: slots, towers, and their rooted stains in a readable
+   working glow.
+3. **THE DARK BEYOND** — the spawn edge refuses illumination: a near-black gradient over the
+   membrane band. Enemies are born in darkness and *walk into the light* — threat direction is
+   legible from luminance alone.
+
+The corner vignette (buildFloor, 0.34) is the base coat that makes the hierarchy read.
+
+### §motion — idle organic motion
+
+Nothing biological is a statue. All idle motion is render-side, time-keyed, and deterministic
+(id/hash-phased, no rng, no sim writes — golden runs untouched):
+
+- **GAIT** — ground enemies bob per-id (≤ 1.6px): bodies crawl, they don't glide.
+- **BREATH** — towers swell ~1.6% on a slow cycle (quicker in combat, plus feed-swell).
+- **PERISTALSIS** — the spawn membrane undulates on two incommensurate waves; its sacs swell.
+- **ROOTS** — freshly placed towers grab the substrate at once (radial stain, questing tendrils,
+  budding tips — livingBattlefield's rooting layer) so the early field is never sterile; the
+  woken field's veins take over as intensity rises.
+
+Gait and other fine motion drop out with the `detail` LOD flag; the renderer covenant
+(no screen shake, no flashes) still binds everything here.
+
+### §palette — the sick register
+
+Vital lime (`#b6e84a`) is the **player's** life color — biomass, Hive Core, growth. The enemy
+never wears it. Enemy/boss "life" reads through `THEME.sick` (bile/pus/sepsis/maggot/bruise):
+infection tones adjacent to health-green but visibly *wrong*. The spawn haze is violet (threat),
+not teal.
+
+## 9. The screenshot test (definition of done)
 
 Any new screen must pass all five:
 

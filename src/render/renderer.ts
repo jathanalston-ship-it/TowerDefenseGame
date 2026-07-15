@@ -163,10 +163,12 @@ function buildFloor(scale: number): HTMLCanvasElement {
     );
     g2.stroke();
   }
-  // Corner vignette — depth for free.
-  const vg = g2.createRadialGradient(WIDTH / 2, HEIGHT * 0.45, HEIGHT * 0.35, WIDTH / 2, HEIGHT * 0.5, HEIGHT * 0.82);
+  // Corner vignette — the LIGHT HIERARCHY's base coat (VISUAL_IDENTITY.md §light): the arena
+  // edges fall into real darkness so the lit things (the core, the membrane seam, the bodies)
+  // read as light sources in a dark room, not chips on a lit board.
+  const vg = g2.createRadialGradient(WIDTH / 2, HEIGHT * 0.45, HEIGHT * 0.3, WIDTH / 2, HEIGHT * 0.5, HEIGHT * 0.82);
   vg.addColorStop(0, 'rgba(0,0,0,0)');
-  vg.addColorStop(1, 'rgba(0,0,0,0.17)'); // gentle — the LIVE pressure vignette stacks on top
+  vg.addColorStop(1, 'rgba(0,0,0,0.34)'); // the LIVE pressure vignette still stacks on top
   g2.fillStyle = vg;
   g2.fillRect(0, 0, WIDTH, HEIGHT);
   return c;
@@ -386,9 +388,13 @@ export function drawGame(
   const combat = rs.phase === 'wave' && rs.enemies.length > 0; // anticipation only makes sense with prey
   for (const tw of rs.towers) {
     const fed = goreThrob(`t${tw.id}`); // XP shards just coalesced in ⇒ a satisfying feed-throb
-    if (fed > 0.01) { ctx.save(); ctx.translate(tw.x, tw.y); const s = 1 + fed * 0.13; ctx.scale(s, s); ctx.translate(-tw.x, -tw.y); }
+    // BREATH (VISUAL_IDENTITY.md §motion): every organism idles ALIVE — a ~1.6% slow swell,
+    // per-id phase (the garrison never breathes in lockstep), a touch quicker under fire.
+    // The feed-throb stacks multiplicatively on the same transform.
+    const s = (1 + 0.016 * Math.sin(t * (combat ? 1.5 : 1.05) + tw.id * 1.7)) * (1 + (fed > 0.01 ? fed * 0.13 : 0));
+    ctx.save(); ctx.translate(tw.x, tw.y); ctx.scale(s, s); ctx.translate(-tw.x, -tw.y);
     drawTower(ctx, tw, t, cosmeticTiers[tw.kind] ?? 0, tw.id === rs.selectedPlacedId, starTiers[tw.kind] ?? 0, adaptTiers[tw.kind] ?? 0, towerSkins[tw.kind], mulligans[tw.kind], combat);
-    if (fed > 0.01) ctx.restore();
+    ctx.restore();
   }
   drawLandingImpacts(ctx, rs, t); // relocation landing impact
   drawMoveOverlay(ctx, rs, t); // move-mode targets + holographic pickup
@@ -528,6 +534,17 @@ function drawTiles(ctx: CanvasRenderingContext2D): void {
 }
 
 function drawSpawnZone(ctx: CanvasRenderingContext2D, t: number): void {
+  // THE DARK BEYOND (VISUAL_IDENTITY.md §light): the one place the arena refuses to
+  // illuminate. A deep static pool of darkness behind and below the membrane, so the
+  // swarm enters OUT of a void you genuinely can't see into — luminous bodies emerging
+  // from black, not tokens appearing on a lit field. Static gradient: no flicker.
+  const dk = ctx.createLinearGradient(0, 0, 0, SPAWN_BAND * 1.6);
+  dk.addColorStop(0, 'rgba(1, 3, 7, 0.66)');
+  dk.addColorStop(0.55, 'rgba(1, 3, 7, 0.3)');
+  dk.addColorStop(1, 'rgba(1, 3, 7, 0)');
+  ctx.fillStyle = dk;
+  ctx.fillRect(0, 0, WIDTH, SPAWN_BAND * 1.6);
+
   // A hostile "breeding membrane" the swarm pours out of along the top edge.
   const g = ctx.createLinearGradient(0, 0, 0, SPAWN_BAND);
   g.addColorStop(0, rgba(THEME.spawn.membrane, pulse(t, 1.6, 0.16, 0.26)));
@@ -541,19 +558,23 @@ function drawSpawnZone(ctx: CanvasRenderingContext2D, t: number): void {
   ctx.lineWidth = 2;
   ctx.beginPath();
   const yb = SPAWN_BAND;
+  // PERISTALSIS (VISUAL_IDENTITY.md §motion): two incommensurate waves — the fast ripple plus
+  // a slow travelling BULGE — so the seam digests instead of oscillating like a spring.
+  const seamY = (x: number): number => yb + Math.sin(x * 0.05 + t * 1.5) * 3 + Math.sin(x * 0.013 - t * 0.7) * 2.6;
   for (let x = 0; x <= WIDTH; x += 12) {
-    const yy = yb + Math.sin(x * 0.05 + t * 1.5) * 3;
+    const yy = seamY(x);
     if (x === 0) ctx.moveTo(x, yy);
     else ctx.lineTo(x, yy);
   }
   ctx.stroke();
 
-  // egg-sac bumps studding the seam (ride the same ripple; each carries a dim ovum glint)
+  // egg-sac bumps studding the seam (ride the same ripple; each carries a dim ovum glint) —
+  // each sac SWELLS on its own slow phase, like something inside is pressing out.
   for (let x = 24; x < WIDTH; x += 48) {
-    const yy = yb + Math.sin(x * 0.05 + t * 1.5) * 3;
+    const yy = seamY(x);
     ctx.fillStyle = rgba(THEME.spawn.membrane, 0.5);
     ctx.beginPath();
-    ctx.arc(x, yy - 1, 3.2 + Math.sin(x * 1.7) * 1.2, Math.PI, 0);
+    ctx.arc(x, yy - 1, 3.2 + Math.sin(x * 1.7) * 1.2 + Math.sin(t * 0.85 + x * 0.31) * 0.9, Math.PI, 0);
     ctx.fill();
     ctx.fillStyle = rgba(THEME.spawn.edge, pulse(t * 1.3 + x, 2, 0.15, 0.5));
     ctx.beginPath();
@@ -712,6 +733,12 @@ function drawBase(ctx: CanvasRenderingContext2D, rs: RenderState, t: number): vo
   // Wardrobe nucleus skin (docs/COSMETICS.md §wardrobe): re-grows the heart in the equipped
   // palette. Absent ⇒ every literal below is the exact classic organ.
   const nuc = wardrobeKit().nucleusSkin;
+
+  // THE HEARTH (VISUAL_IDENTITY.md §light): the Hive Core is the brightest thing on the
+  // ground — your one life is the arena's light source. A wide, slow-breathing halo that
+  // outshines every neutral element (the darkness pass dimmed everything else to make
+  // this hierarchy true). Static soft gradient, breath-rate modulation only — no flash.
+  glowDisc(ctx, x, y, 145 + 12 * beat, rgba(hexRgb(nuc?.glow ?? '#ff9a7a'), 0.15 + 0.04 * (beat - 0.85)));
 
   // Warm caustic light pooling beneath the organism — grounds it in the arena.
   const lp = ctx.createRadialGradient(x, y + 14, 2, x, y + 14, 52);
@@ -1910,7 +1937,13 @@ function drawEnemy(
     ctx.fillRect(e.x - r * 0.45, e.y - r * 2.2, r * 0.9, r * 2.2);
   }
 
-  const drawY = flying && detail ? e.y - 4 : e.y; // lift fliers off the floor
+  // GAIT (VISUAL_IDENTITY.md §motion): bodies CRAWL, they don't glide — a per-id undulation
+  // bob (LOD-gated) lifts the body off its planted contact shadow each "step", so even a
+  // distant swarm reads as something walking. Bars/shadows stay anchored (no wobble); slow
+  // sine only (no flicker). Bosses keep their mass — no bob.
+  const gaitAmp = detail && !e.boss ? Math.min(1.6, r * 0.14) : 0;
+  const gait = gaitAmp > 0 ? Math.sin(t * (5.2 + (e.id % 7) * 0.6) + e.id * 1.9) * gaitAmp : 0;
+  const drawY = (flying && detail ? e.y - 4 : e.y) + gait; // lift fliers off the floor; everyone breathes stride
 
   // Boss visual identity (render/bossChassis.ts): a framework boss renders in its OWN def
   // palette (not the borrowed tyrant body's) — burrow mound, crown, buds and body all tint.

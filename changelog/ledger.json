@@ -1,6 +1,6 @@
 {
-  "lastSha": "96c9a5ca566d97f3526042027705c47a9babc786",
-  "commitsSinceDraft": 1,
+  "lastSha": "6c93de5e3541d4b9af6027dc5d99437c30557502",
+  "commitsSinceDraft": 2,
   "content": {
     "tower": [
       "needle",
@@ -3860,6 +3860,14 @@
     },
     {
       "sha": "96c9a5ca566d97f3526042027705c47a9babc786",
+      "date": "2026-07-15",
+      "cat": "Gameplay",
+      "text": "Rename the game: ASSIMILATE -> ASSIMILATION everywhere the NAME appears",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "6c93de5e3541d4b9af6027dc5d99437c30557502",
       "date": "2026-07-15",
       "cat": "Gameplay",
       "text": "Rename the game: ASSIMILATE -> ASSIMILATION everywhere the NAME appears",

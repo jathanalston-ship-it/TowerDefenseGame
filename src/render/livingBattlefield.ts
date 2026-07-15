@@ -689,9 +689,18 @@ export function drawLivingBattlefield(ctx: Ctx, rs: RenderState, data: LBContext
   lastTime = rs.time;
   ingestScars(rs, a.stage, simDt);
 
-  if (a.stage <= 0 && scars.length === 0) return a; // Stage 0, no history ⇒ nothing drawn
-
   const towers = a.regions.filter((r) => r.kind === 'tower');
+  if (a.stage <= 0 && scars.length === 0 && towers.length === 0) return a; // truly untouched field
+
+  // ROOTING — the invasion starts at PLACEMENT, not at stage 1: every socket bleeds a small
+  // root system into the floor from the moment its tower exists, so the player watches the
+  // arena begin to belong to them inside the first wave. Hands off to the woken terraform
+  // (attenuates with intensity; gone by mid-Spreading). Drawn in BOTH the DOM and headless
+  // paths — it is part of the field's identity, not an embellishment.
+  drawTowerRoots(ctx, a, towers, now, detail);
+
+  if (a.stage <= 0 && scars.length === 0) return a; // rooted but unscarred, unwoken
+
   let permN = 0; for (const s of scars) if (s.perm) permN++;
   const key = layerKey(a.stage, a.stage > 0 ? rs.biome.id : 'x', towers, permN);
   const sp = ensureSpec(a, rs.biome.id, key);
@@ -734,6 +743,52 @@ export function drawLivingBattlefield(ctx: Ctx, rs: RenderState, data: LBContext
   drawCombatFlare(ctx, a, now); // hot mutation where the line is pressed hardest
   drawMegaBloom(ctx, a, now); // battlefield-scale bloom under a mega (rare)
   return a;
+}
+
+/** ROOTING (stage-0 invasion): a per-tower root system — mottled stain + wobbled tendrils
+ *  crawling out of the socket seams, deterministic per region seed, pulsing on the slow
+ *  breath. Alpha-capped and cheap (≤5 curves/tower, 3 under LOD); attenuates as the staged
+ *  terraform wakes so the bake takes over without a seam. */
+function drawTowerRoots(ctx: Ctx, a: Assimilation, towers: Region[], now: number, detail: boolean): void {
+  if (towers.length === 0) return;
+  const hand = Math.max(0, 1 - a.intensity * 2.2); // 1 on a fresh field → 0 by ~stage 2
+  if (hand <= 0.03) return;
+  const breathe = 0.9 + 0.1 * Math.sin(now * 1.1);
+  ctx.save();
+  ctx.lineCap = 'round';
+  for (const r of towers) {
+    const grow = Math.min(1, 0.45 + r.strength * 0.12); // deeper organisms root wider
+    const alpha = 0.3 * hand * grow * breathe;
+    const hue = hex(r.hue);
+    const stainR = 26 + grow * 14;
+    const g = ctx.createRadialGradient(r.x, r.y, 2, r.x, r.y, stainR);
+    g.addColorStop(0, css(shade(hue, 0.5), alpha));
+    g.addColorStop(0.7, css(shade(hue, 0.32), alpha * 0.5));
+    g.addColorStop(1, css(shade(hue, 0.28), 0));
+    ctx.fillStyle = g;
+    ctx.beginPath(); ctx.arc(r.x, r.y, stainR, 0, TAU); ctx.fill();
+    const n = detail ? 5 : 3;
+    ctx.strokeStyle = css(shade(hue, 0.48), Math.min(0.5, alpha * 1.5));
+    for (let i = 0; i < n; i++) {
+      const h1 = hash01(r.seed * 7 + i * 13);
+      const h2 = hash01(r.seed * 11 + i * 29);
+      const ang = h1 * TAU + Math.sin(now * 0.4 + i) * 0.05; // roots quest, barely
+      const len = (18 + h2 * 22) * grow;
+      const mx = r.x + Math.cos(ang) * len * 0.55 + (h2 - 0.5) * 10;
+      const my = r.y + Math.sin(ang) * len * 0.55 + (h1 - 0.5) * 10;
+      const ex = r.x + Math.cos(ang) * len;
+      const ey = r.y + Math.sin(ang) * len;
+      ctx.lineWidth = 1 + grow;
+      ctx.beginPath();
+      ctx.moveTo(r.x + Math.cos(ang) * 8, r.y + Math.sin(ang) * 8);
+      ctx.quadraticCurveTo(mx, my, ex, ey);
+      ctx.stroke();
+      // root-tip nodule — a slow bud, the promise of the woken field
+      ctx.fillStyle = css(shade(hue, 0.58), Math.min(0.6, alpha * (1.1 + 0.5 * Math.sin(now * 1.3 + i + (r.seed % 7)))));
+      ctx.beginPath(); ctx.arc(ex, ey, 1.2 + grow, 0, TAU); ctx.fill();
+    }
+  }
+  ctx.restore();
 }
 
 /** Nutrient beads running along the vein NETWORK edges toward the build — synced to the heartbeat. */

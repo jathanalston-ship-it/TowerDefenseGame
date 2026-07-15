@@ -85,7 +85,7 @@ export interface BossDef {
 /** Chassis base profile — the "body plan" that biases stats before modules/phases. */
 export const CHASSIS: Record<BossChassis, { hp: number; radius: number; speed: number; color: string; attack: { interval: number; windup: number } }> = {
   bruiser: { hp: 1.0, radius: 30, speed: 34, color: '#ff5d73', attack: { interval: 2.4, windup: 0.8 } },
-  artillery: { hp: 0.8, radius: 28, speed: 26, color: '#b6e84a', attack: { interval: 3.0, windup: 1.0 } },
+  artillery: { hp: 0.8, radius: 28, speed: 26, color: '#c9ad38', attack: { interval: 3.0, windup: 1.0 } }, // necrotic bile — the enemy NEVER wears the player's vital lime (VISUAL_IDENTITY §palette)
   swarmlord: { hp: 0.9, radius: 32, speed: 30, color: '#d98cff', attack: { interval: 2.0, windup: 0.7 } },
   controller: { hp: 0.85, radius: 28, speed: 30, color: '#6e7bff', attack: { interval: 2.6, windup: 0.9 } },
   juggernaut: { hp: 1.4, radius: 36, speed: 22, color: '#5fd0c6', attack: { interval: 3.2, windup: 1.1 } },
@@ -152,7 +152,7 @@ export const BOSS_DEFS: Record<string, BossDef> = {
   },
   the_mender: {
     id: 'the_mender', name: 'The Mender', epithet: 'the Undying', chassis: 'controller',
-    hpMult: 3.0, radius: 28, color: '#6effa8', bounty: 260, damage: 48,
+    hpMult: 3.0, radius: 28, color: '#b4b83c', bounty: 260, damage: 48, // sick bile, not healing mint — enemy "life" reads infected
     modules: [
       { kind: 'spawner', cooldown: 6, amount: 3, addKind: 'runner' },
       { kind: 'healer', cooldown: 4, amount: 150, radius: 170 }, // mends itself + the whole pack
