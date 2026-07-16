@@ -253,3 +253,36 @@ Every opened container rolls an independent, pity-less **Ichor Bleed** (docs/MAR
 event row ("Ichor Bleed") so the jackpot plumbing fires, and merged into the harvest summary
 like any currency. Its EV sits deliberately below the cheapest market container's price —
 lucky streaks briefly self-fund more openings and always die (marketEconomy.test pins it).
+
+## §clutch (2026-07) — the simultaneous specimen clutch (as built)
+
+The one-at-a-time births are gone. After INCUBATE → RUPTURE, **every reward materializes at
+once** as a face-down specimen in one grid (the *clutch*), and the player flips each by hand:
+
+- **Faces stay honest**: backs are deliberately uniform membranes (no rarity leak — the
+  mystery IS the draw). The flip is a 3D membrane turn whose duration, spring curve, glow
+  and spark burst scale with the pull's tier; audio rides `flip@N` (the membrane turn
+  deepens + after-rings with rarity, `src/audio/sound.ts sFlip`).
+- **Interrupts**: a NEW strand recovery raises the discovery celebration (zoom card, flavor
+  text, Archive X/Y + completion %, `strandFound` cue → the `discovery` stinger); a
+  legendary+ pull raises the apex moment (god rays, double heartbeat, room warp, `jackpot`
+  → the `legendary` stinger). Manual flips HOLD until tapped; the armed cascade
+  auto-continues after a beat.
+- **Controls**: Reveal All ⇄ Flip Individually (a true toggle), Fast (cascade pacing), Skip
+  Anims (instant flips; celebrations defer to the summary — combined with Reveal All it
+  fast-paths to Harvest via `flipAll`), Skip All.
+- **Scale**: stockpiles page in clutches of 12 (`revealGrid`) — only the active page mounts,
+  so 50×/100× opens (the Vault's new Open 50 / Open 100) never scroll and never render
+  hundreds of nodes. A 600-pull session builds + flips in <400ms (perf-pinned).
+- **Harvest**: ledger unchanged, with **New Discoveries leading** (strand labels kept) and
+  **Replay Highlights** — every ceremony-worthy flip (interrupts, rare+ pulls, first finds)
+  replayable in the order the player revealed them.
+
+**The framework contract** (`state/vaultReveal.ts`): a specimen derives ENTIRELY from
+`describePull`'s output — `buildSpecimens` assigns tier magnitude + interrupt class from the
+PullView alone, and `revealReduce` (a pure reducer: flip / ack / revealAll / flipAll / fast /
+skipAnims / page) enforces every flow rule. **A future reward type only needs its
+`describePull` case** — grid, flips, interrupts, summary grouping, highlights and audio all
+follow with zero reveal-specific code. The rules are unit-pinned in
+`state/vaultReveal.test.ts` (adapter coverage across every RewardItem variant, hold/ack,
+double-flip refusal, skip suppression, cascade order, 1/5/10/50/100 geometry, perf).

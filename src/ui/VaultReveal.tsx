@@ -238,24 +238,25 @@ export function VaultReveal({
     return () => { clearTimeout(goo); clearTimeout(t); };
   }, [phase]);
 
-  // ── CLUTCH: flip audio — the wet membrane turn, then a rarity sting on top. One effect
-  // watches the flip ORDER so manual taps and the cascade sound identical.
+  // ── CLUTCH: flip audio — the per-rarity membrane turn ('flip@N' deepens with tier), the
+  // shard ear-language on top. One effect watches the flip ORDER so manual taps and the
+  // cascade sound identical (docs/LOOTBOX.md §opening).
   const flips = st.order.length;
   useEffect(() => {
     if (phase !== 'clutch' || flips === 0) return undefined;
     const sp = specimens[st.order[flips - 1]];
     if (!sp) return undefined;
-    audio.cue('splice');
+    audio.cue(`flip@${sp.tier + 1}`);
     const cue = sp.pull.currency === 'heroShards' ? 'shard_hero'
-      : sp.pull.currency === 'towerShards' ? 'shard_tower'
-      : sp.tier >= 2 ? 'jackpot' : 'reveal';
-    const sting = setTimeout(() => audio.cue(cue), 90);
-    return () => clearTimeout(sting);
+      : sp.pull.currency === 'towerShards' ? 'shard_tower' : null;
+    const sting = cue ? setTimeout(() => audio.cue(cue), 90) : null;
+    return () => { if (sting) clearTimeout(sting); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [flips, phase]);
 
   // The celebration's own voice: a legendary interrupt gets the double heartbeat under the
-  // zoom; a discovery lands with the draft chime.
+  // zoom, then 'jackpot' (which carries the 'legendary' musical stinger); a NEW strand lands
+  // with 'strandFound' (which carries the 'discovery' motif).
   useEffect(() => {
     if (st.interrupt === null) return undefined;
     const sp = specimens[st.interrupt];
@@ -265,7 +266,7 @@ export function VaultReveal({
       const t2 = setTimeout(() => audio.cue('jackpot'), 820);
       return () => { clearTimeout(t1); clearTimeout(t2); };
     }
-    audio.cue('draft');
+    audio.cue('strandFound');
     return undefined;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [st.interrupt]);

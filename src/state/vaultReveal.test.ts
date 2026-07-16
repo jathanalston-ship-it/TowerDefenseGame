@@ -218,6 +218,53 @@ describe('specimen reveal session', () => {
     expect(revealReduce([], s, { kind: 'page', to: -4 }).page).toBe(0);
   });
 
+  it('the adapter covers EVERY RewardItem variant — a specimen derives from any pull (data-driven contract)', () => {
+    const weaponDef = itemsForSlot('weapon').find((d) => !d.exotic)!;
+    const item = rollItem(mulberry32(3), weaponDef, 'rare');
+    const card = CARD_POOL[0];
+    const all: RewardItem[] = [
+      { type: 'tower', rarity: 'common', kind: t0, amount: 3 },
+      { type: 'hero', rarity: 'rare', id: 'ravager', amount: 2 },
+      { type: 'material', rarity: 'legendary', mat: 'catalyst', amount: 1 },
+      { type: 'equipment', rarity: 'rare', item, isNew: true },
+      { type: 'gene', rarity: 'rare', cardRarity: card.rarity, cardId: card.id, isNew: true },
+      { type: 'gene', rarity: 'rare', cardRarity: card.rarity, cardId: card.id, isNew: false, echoEssence: 9 },
+      { type: 'cosmetic', rarity: 'epic', id: 'skin_x' },
+      { type: 'relic', rarity: 'legendary', id: 'relic_x' },
+      { type: 'event', rarity: 'common', currency: 'geneEssence', amount: 12, note: 'Duplicate Common Tower' },
+      { type: 'event', rarity: 'epic', currency: 'mulliganModifier', amount: 1, note: 'Overgrown Bore' },
+    ];
+    const specimens = buildSpecimens(buildReveal(chest(all)));
+    expect(specimens).toHaveLength(all.length); // no variant is dropped
+    for (const sp of specimens) {
+      expect(sp.pull.name.length).toBeGreaterThan(0);
+      expect(sp.pull.amountLabel.length).toBeGreaterThan(0);
+      expect(sp.tier).toBeGreaterThanOrEqual(0);
+      expect(sp.tier).toBeLessThanOrEqual(4);
+    }
+    // Interrupt classes stay exclusive to the two celebration triggers: the NEW strand, plus
+    // the two legendary-tier pulls (the Catalyst material + the relic).
+    const interrupts = specimens.filter((sp) => sp.interrupt !== null);
+    expect(interrupts.map((sp) => sp.interrupt).sort()).toEqual(['discovery', 'legendary', 'legendary']);
+  });
+
+  it('a 100×-open session stays cheap: 600 pulls build + flip in well under a frame budget', () => {
+    const items: RewardItem[] = Array.from({ length: 600 }, (_, i): RewardItem =>
+      i % 7 === 0
+        ? { type: 'hero', rarity: 'rare', id: 'ravager', amount: 2 }
+        : { type: 'tower', rarity: (['common', 'rare', 'epic'] as const)[i % 3], kind: t0, amount: 3 });
+    const t0ms = performance.now();
+    const model = buildReveal(chest(items));
+    const specimens = buildSpecimens(model);
+    let s = initialRevealState(specimens.length);
+    for (let i = 0; i < specimens.length; i++) s = revealReduce(specimens, s, { kind: 'flip', index: i });
+    const ms = performance.now() - t0ms;
+    expect(model.count).toBe(600);
+    expect(revealDone(s)).toBe(true);
+    expect(revealGrid(600).pages).toBe(50); // still 12-tile pages — the DOM never sees 600 nodes
+    expect(ms).toBeLessThan(400); // generous CI bound (~10× local headroom) — catches O(n²) drift
+  });
+
   it('Replay Highlights keeps only ceremony-worthy flips, in the order they were revealed', () => {
     const card = CARD_POOL[0];
     const sp = pulls(2, [

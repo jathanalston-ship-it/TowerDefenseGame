@@ -484,3 +484,61 @@ Epic = build-shaping · Legendary = rule-bending. All values are starting points
 
 Each archetype is anchored by a Legendary, fed by lower-rarity cards, and *wants*
 different enemy factions (`ENEMIES.md`) — so the optimal draft rotates by run.
+
+## §discovery (2026-07) — DISCOVER → COLLECT → UPGRADE → TRANSCEND (as built)
+
+The acquisition layer was overhauled: cards are no longer "unlocked by drafting once" — they
+are **DISCOVERED into a permanent Archive**, then drafted/upgraded/transcended exactly as
+before (the upgrade/essence/transcendence systems are untouched by design).
+
+### The five-tier rarity ladder
+`CardRarity = common | uncommon | rare | epic | legendary` (core/types.ts). The uncommon
+tier was added for pacing texture (8 gated rares re-tiered; ungated cards untouched so the
+golden draft pools never moved). Rarity drives draft weights (CARDS.md §2), discovery drop
+weights, essence costs (`ESSENCE_COST.baseByCardRarity` — uncommon 34), Archive visuals
+(`--r-uncommon` token), and the reveal grade ladder (`LATENT`).
+
+### Ownership = `save.genesDiscovered` (v46)
+- A fresh account owns **STARTER_GENES** — 16 ungated commons spanning ≥4 categories
+  (validator-enforced 10–20), so the tutorial's draft pool is exactly what a new account owns.
+- Every other card is recovered from **Bio-Containers**: `openContainer` rolls the additive
+  discovery lane (`rollGeneDiscovery`) — chance by container rarity
+  (16/22/28/42/58/70%), then a weighted pick over the ELIGIBLE pool.
+- **Pools open on campaign milestones** (`poolStageByCardRarity` 0/8/15/30/60) and a card's
+  own `unlock` gate applies ON TOP — discovery never leaks a card the account hasn't met.
+- **Duplicate protection**: undiscovered cards weigh ×(1 + 7·(1−completion)) — ×8 on a fresh
+  archive fading to ×1 at completion; a roll that still lands on a known strand pays a Gene
+  Essence **echo** (6/9/14/24/40 by rarity) — never a dead pull.
+- v45→v46 migration seeds starters ∪ every card the account ever touched
+  (stats.uniqueCards ∪ leveled genes) — veterans lose nothing.
+
+### Golden safety (the invariant)
+The deterministic sim NEVER rolls discovery. The draft pool is decided at LAUNCH:
+GameView passes `RunOptions.draftPool = meta.discoveredGeneIds()`; the no-options path
+(golden autoplay) keeps the legacy ungated catalog — goldens stay byte-identical by
+construction. Never filter `draftCards` by discovery inside the sim.
+
+### Pacing (scripts/sim-gene-discovery.ts — re-run after ANY tunable change)
+40 seeds × 365 days against the real roll core, catalog 106 (16 starters):
+
+| Profile | 30 strands | 60 strands | common set | first legendary | d30 | d90 | d365 | full |
+|---|---|---|---|---|---|---|---|---|
+| F2P (daily loops) | d33 | d97 | d37 | ~d237 | 27% | 53% | 87% | >365d |
+| Regular (evenings) | d22 | d60 | d15 | d172 | 35% | 69% | 92% | >365d |
+| Whale (stockpiles) | d13 | d33 | d5 | d92 | 54% | 85% | 97% | ~d363 |
+
+P(discover | lane fired) fades 90% → 71% → 30% at 20/50/80% completion (echoes fill the
+gap). Guardrails in the sim fail the script if F2P >75% at d30, F2P <30% at d90, F2P misses
+a first legendary in >20% of years, or a whale finishes inside 2 months.
+
+### Surfaces & integration
+Archive silhouettes + honest per-card hints (`discoveryHint` — pool stage, unlock kind, or
+container source) + the completion strip; the opening ceremony's NEW-strand celebration
+(docs/LOOTBOX.md §clutch); Collections cards codex credits DISCOVERY (tier 1 = Discovered →
+small permanent Power; a fresh account reads base × collection(starters) ≈ +5); achievements
+collector(30)/deep_genome(60)/apex_find/common_set/full_genome; Profile "Strands
+Discovered"; Mission Control gene goals. The Archive screen-reveal gate deliberately stays
+DRAFTED-based (engagement) — starters make any discovered-count gate trivially true.
+
+**Future cards need ONLY data**: a def (id/name/rarity/category/effects/unlock?) — discovery,
+gating, hints, weighting, ceremony and Archive presentation all derive from it.

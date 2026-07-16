@@ -89,3 +89,12 @@ with completion (0 at fresh → the listed max at 100%):
   surfaces on meaningful jumps (category milestones).
 - `accountPowerParts` recomputes `collectionView` per call; fine at menu/run-end cadence, not a
   per-frame path.
+
+## §gene-discovery (2026-07) — the cards codex credits DISCOVERY
+
+The cards category now keys on `CollectionContext.genesDiscovered` (save.genesDiscovered —
+docs/CARDS.md §discovery), not "drafted once": tier 1 = **Discovered**, label enriched to
+`Gene Level N` once upgraded. Discovery is therefore the spec'd "small permanent Power via
+Collections" lane — and because a fresh account owns the 16 starters, a fresh save's ONLY
+Power above base is its collection slice (base × collection(starters) ≈ +5;
+powerIntegration/profile tests pin exactly that shape).

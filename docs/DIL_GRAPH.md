@@ -1,6 +1,6 @@
 # DIL_GRAPH.md — the Design Intelligence Layer (GENERATED — `npm run dil -- regen`)
 
-> **The project's brain** (docs/DIL.md). 822 nodes · 1520 edges, built from the live
+> **The project's brain** (docs/DIL.md). 822 nodes · 1521 edges, built from the live
 > registries + curated knowledge (src/dev/dil/). **Query it instead of searching the repo:**
 > `npm run dil -- node <id>` · `affects <id>` · `requires <id>` · `missing <kind> <edge>` ·
 > `checklist tower <kind>` · `find <text>`. Edge kinds are bidirectional (19 kinds).
@@ -160,6 +160,7 @@ graph LR
   system_nemesis["Nemesis & Trophies"] -->|consumes| system_mega_bosses["Mega Bosses"]
   system_mastery["Mastery / Adaptation"] -->|modifies| system_hub_shell["Hub Shell & Home"]
   system_gene_cards["Gene Cards (draft + permanent evolution)"] -->|modifies| system_hub_shell["Hub Shell & Home"]
+  system_loot["Loot & Bio-Containers"] -->|modifies| system_hub_shell["Hub Shell & Home"]
   system_rendering["Rendering & VFX"] -->|consumes| system_engine["Sim Engine"]
 ```
 
@@ -510,6 +511,7 @@ graph LR
   system_mastery["Mastery / Adaptation"] -->|modifies| system_hub_shell["Hub Shell & Home"]
   system_gene_cards["Gene Cards (draft + permanent evolution)"] -->|modifies| concept_power_score["Power Score"]
   system_gene_cards["Gene Cards (draft + permanent evolution)"] -->|modifies| system_hub_shell["Hub Shell & Home"]
+  system_loot["Loot & Bio-Containers"] -->|modifies| system_hub_shell["Hub Shell & Home"]
 ```
 
 ## Concepts (7)
@@ -1173,6 +1175,7 @@ _at: src/core/loot.ts, src/core/lootQueue.ts, src/core/progressionLoot.ts, src/s
   - consumes → `system:meta-store` — owns save field 'pendingContainers'
   - rewards → `currency:tower-shards` — chest pipeline
   - rewards → `currency:hero-shards` — chest pipeline
+  - modifies → `system:hub-shell` — CLUTCH ceremony (state/vaultReveal.ts + ui/VaultReveal.tsx): all rewards materialize AT ONCE as face-down specimens; describePull is THE data-driven adapter (a new RewardItem variant needs only its case — buildSpecimens derives tier magnitude + discovery/legendary interrupt class from the PullView alone), revealReduce is the pure flip reducer (flip/ack/revealAll/flipAll/fast/skipAnims/page — unit-pinned), revealGrid pages clutches of 12 so 100× opens mount ≤12 nodes; audio flip@N + strandFound→discovery stinger + jackpot→legendary stinger; NEVER rebuild reveal logic per reward type
   - requiredBy ← `system:infinite`
   - requiredBy ← `system:boss-rush`
   - requiredBy ← `system:equipment`
@@ -1850,7 +1853,7 @@ _at: src/ui/Hub.tsx, src/ui/navModel.ts, src/ui/MobileShell.tsx, src/ui/CommandC
   - documentedBy ← `doc:HUD.md`
   - documentedBy ← `doc:PROGRESSION-LOOP.md`
   - documentedBy ← `doc:UX-CONSOLIDATION.md`
-  - _…12 more (query: `npm run dil -- node system:hub-shell`)_
+  - _…13 more (query: `npm run dil -- node system:hub-shell`)_
 
 ### `system:run-ui` — In-Run HUD & Results
 
@@ -2932,7 +2935,7 @@ _at: src/core/tutorial.ts_
 - `help:adaptation` — Per-tower talent trees bought with Antigen. _(partOf `system:onboarding`, teaches `system:mastery`)_
 - `help:mulligans` — Biomechanical organisms you assemble onto towers — stats AND flesh. _(partOf `system:onboarding`, teaches `system:mulligans`)_
 - `help:nucleus` — The Hive Nucleus grows its OWN organism — chambers of support organs that mutate it visibly. _(partOf `system:onboarding`, teaches `system:nucleus`)_
-- `help:gene-cards` — Drafted boosts for this run — collected forever. _(partOf `system:onboarding`, teaches `system:gene-cards`)_
+- `help:gene-cards` — Discovered strands, drafted as run boosts — collected forever. _(partOf `system:onboarding`, teaches `system:gene-cards`)_
 - `help:heroes` — A living unit that moves and fights on its own. _(partOf `system:onboarding`, teaches `system:heroes`)_
 - `help:hero-evolution` — Spend Biomass on your hero mid-run — ten axes, ten levels. _(partOf `system:onboarding`)_
 - `help:hero-slots` — Field 2, then 3 heroes at once. _(partOf `system:onboarding`, teaches `system:heroes`)_

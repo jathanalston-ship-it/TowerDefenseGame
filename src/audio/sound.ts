@@ -26,7 +26,7 @@ const DUCK: Record<string, [number, number]> = {
  *  stinger id (streamy cues like the Power toaster can't turn a motif into a siren). */
 const STING: Record<string, StingerId> = {
   jackpot: 'legendary', achieve: 'achievement', mastery: 'mastery',
-  rankup: 'unlock', power: 'power', megaDeath: 'bossDown',
+  rankup: 'unlock', power: 'power', megaDeath: 'bossDown', strandFound: 'discovery',
 };
 const STING_COOLDOWN_MS = 6000;
 const stingLastAt: Partial<Record<StingerId, number>> = {};
@@ -369,6 +369,19 @@ function sEvoPrestige(): void { // EVOLVE — the strand melts down, then re-ris
   tone(660, 0.22, 'sawtooth', 0.09, 220); tone(110, 0.32, 'sine', 0.12, 82);
   tone(330, 0.2, 'triangle', 0.1, 660); tone(660, 0.34, 'sine', 0.1, 1320); noise(0.24, 0.06, 900, 4200);
 }
+// ── Specimen flips (docs/LOOTBOX.md §opening) — the clutch's own voice. One wet membrane
+//    TURN whose body deepens and whose after-ring brightens with rarity (d = tier/4 rides the
+//    'flip@N' suffix); commons stay a dry turn, the apex tiers add sJackpot + the 'legendary'
+//    stinger ON TOP (cued by the ceremony, throttled by the stinger cooldown). ──
+function sFlip(d = 0): void {
+  noise(0.05 + 0.05 * d, 0.05 + 0.03 * d, 2600 - 1200 * d, 640);
+  tone(236 - 90 * d, 0.09 + 0.05 * d, 'triangle', 0.06 + 0.03 * d, 128);
+  if (d > 0) tone(620 + 640 * d, 0.09 + 0.08 * d, 'sine', 0.02 + 0.045 * d, 900 + 900 * d);
+}
+function sStrandFound(): void { // a NEW strand enters the Archive — wet snap, then a rising helix
+  tone(494, 0.07, 'triangle', 0.1, 741); noise(0.07, 0.05, 4600);
+  tone(659, 0.1, 'sine', 0.1, 988); tone(988, 0.3, 'sine', 0.09, 1480);
+}
 // Shard reward stingers — deliberately DISTINCT so the ear, not the text, says which shard landed.
 function sShardTower(): void { // Tower Shard — a crisp, glassy crystalline "ting"
   tone(1245, 0.07, 'triangle', 0.1, 1660); tone(1860, 0.16, 'sine', 0.08); noise(0.05, 0.03, 8000);
@@ -591,6 +604,8 @@ export const audio = {
         case 'rankup': sRankUp(); break;
         case 'biome': sBiome(); break;
         case 'splice': sSplice(); break;
+        case 'flip': sFlip(d); break;
+        case 'strandFound': sStrandFound(); break;
         case 'dissolve': sDissolve(); break;
         case 'br_swarm': for (let i = 0; i < Math.min(2, n); i++) sBrSwarm(d); break;
         case 'br_rail': sBrRail(d); break;

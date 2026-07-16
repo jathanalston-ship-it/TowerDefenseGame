@@ -475,6 +475,7 @@ export function barNotes(t: TrackDef, bar: number): BarNotes {
 
 export type StingerId =
   | 'legendary' // legendary/exotic/mythic reveal
+  | 'discovery' // a NEW gene strand enters the Archive (docs/CARDS.md §discovery)
   | 'achievement' // achievement unlocked
   | 'unlock' // hero/tower/system unlock
   | 'prestige' // MOLT / ascension
@@ -488,6 +489,11 @@ export const STINGERS: Record<StingerId, StingerNote[]> = {
   legendary: [
     { t: 0, midi: 64, len: 1, vel: 0.8 }, { t: 1, midi: 67, len: 1, vel: 0.8 }, { t: 2, midi: 71, len: 1, vel: 0.85 },
     { t: 3, midi: 76, len: 4, vel: 0.95 }, { t: 5, midi: 79, len: 6, vel: 0.8 },
+  ],
+  // The discovery motif — a short WONDROUS lift (minor third → fifth → major sixth), quieter
+  // and quicker than 'legendary': curiosity rewarded, not a jackpot.
+  discovery: [
+    { t: 0, midi: 64, len: 1, vel: 0.7 }, { t: 1, midi: 71, len: 2, vel: 0.75 }, { t: 3, midi: 73, len: 5, vel: 0.85 },
   ],
   achievement: [
     { t: 0, midi: 67, len: 1, vel: 0.7 }, { t: 1, midi: 71, len: 1, vel: 0.75 }, { t: 2, midi: 74, len: 4, vel: 0.85 },

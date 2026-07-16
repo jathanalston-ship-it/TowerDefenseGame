@@ -1116,3 +1116,59 @@ standing balance probe (re-run + refresh MASTERY.md §10.2 on tunable changes).
 is the lever); level-100 crowns are grinder horizons (~464h focused) — most players live in
 claims, not prestiges; est. time-to-next-node is shown as levels-to-go (no per-unit XP-rate
 tracker yet); no dedicated Genome-Rank signal (Power hum reaches it indirectly).
+
+## Compressed system summary — Gene Card Discovery (docs/CARDS.md §discovery)
+
+**Architecture.** Ownership = `save.genesDiscovered` (v46). `core/geneDiscovery.ts` is THE
+core: `GENE_DISCOVERY` tunables (container chance 16–70%, pool stages 0/8/15/30/60, drop
+weights 60/40/24/8/2, undiscovered boost ×(1+7·(1−completion)), echo essence 6–40),
+`STARTER_GENES` (16 ungated commons, validator-enforced 10–20 across ≥4 categories),
+`rollGeneDiscovery` (pure, rng-injected), `discoveryHint` (honest per-card hints from the
+def alone), `geneDiscoveryProblems` (build-failing content guardrails). Five-tier
+`CardRarity` (uncommon added; only gated cards re-tiered — golden pools untouched).
+
+**Public APIs.** `rollGeneDiscovery(rng, containerRarity, stage, unlockMet, discovered)`;
+`eligibleDiscoveries` / `archiveCompletion` / `rarityPoolOpen` / `discoveryHint`;
+`meta.discoveredGeneIds()`; `RunOptions.draftPool` (exact-pool override — GameView passes
+the discovered set; the no-options sim path keeps the ungated catalog → goldens
+byte-identical by construction).
+
+**Extension points.** A future card needs ONLY its def — discovery, gating, hints,
+weighting, ceremony and Archive presentation derive. Tunables live in one block; the
+standing probe is `scripts/sim-gene-discovery.ts` (pacing table in CARDS.md §discovery;
+guardrails fail the script on contract breaks).
+
+**Assumptions/invariants.** Drafts are pool-restricted going forward ⇒ touched ⊆ discovered
+(the v46 sanitize union is therefore safe); upgrade/transcend/loadout guards key on
+discovery; the Collection cards codex credits discovery (fresh Power = base ×
+collection(starters) ≈ +5 — pinned); the Archive screen-reveal gate deliberately stays
+DRAFTED-based (starters make discovered-count gates trivially true).
+
+**Known limitations.** Card Ascension (spec's "Future Ascend") is a labeled future hook;
+per-card unlock fractions in the sim are modeled (stage/50), not measured.
+
+## Compressed system summary — Bio-Container Opening (docs/LOOTBOX.md §clutch)
+
+**Architecture.** `state/vaultReveal.ts` owns ALL rules: `describePull` (the data-driven
+adapter — one case per RewardItem variant), `buildReveal` (honest pull list + merged summary,
+New Discoveries leading), `buildSpecimens` (tier magnitude + interrupt class from the
+PullView alone), `revealGrid` (clutches of 12; only the active page mounts),
+`revealReduce` (pure flip reducer: flip/ack/revealAll/flipAll/fast/skipAnims/page),
+`nextFaceDown`, `revealHighlights`. `ui/VaultReveal.tsx` is presentation + pacing only:
+INCUBATE → RUPTURE → CLUTCH (simultaneous face-down grid, manual 3D flips, discovery +
+legendary interrupt overlays) → HARVEST (prize banner, tally, ledger, Replay Highlights).
+
+**Public APIs.** `<VaultReveal chest|chest[] …>` (unchanged props); the Vault's crack(count)
+batch buttons now include Open 50/100. Audio: `flip@N` (per-rarity membrane turn),
+`strandFound` (→ `discovery` stinger), `jackpot` (→ `legendary` stinger).
+
+**Extension points.** A new reward type = one `describePull` case — specimen, flips,
+interrupts, summary grouping, highlights and audio follow. New stinger = one STINGERS row.
+
+**Assumptions/invariants.** Flips are face-down-only; an interrupt HOLDS until acked (manual)
+or auto-continues (cascade); skipAnims suppresses holds and fast-paths Reveal All via
+flipAll; rules unit-pinned (16 tests incl. adapter coverage + 600-pull perf bound <400ms).
+
+**Known limitations.** Replay Highlights replays the celebration overlay, not the grid flip
+animation itself; face-down backs are deliberately uniform (no rarity tell) — a "sensor"
+teaser is a possible future hook.
