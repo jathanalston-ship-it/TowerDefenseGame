@@ -74,14 +74,19 @@ function GeneTile({ row, onOpen }: { row: GeneArchiveRow; onOpen: () => void }):
           onClick={(e) => { e.stopPropagation(); meta.toggleGeneFavorite(def.id); }}
         >★</span>
       </span>
-      <GeneCardArt id={def.id} accent={aff.color} rarity={def.rarity} size={64} />
+      {/* Undiscovered strands render as SILHOUETTES (docs/CARDS.md §discovery) — the art is
+          there, blacked out; the rarity frame + hint carry the anticipation. */}
+      <span className={row.owned ? undefined : 'ga-sil'}>
+        <GeneCardArt id={def.id} accent={aff.color} rarity={def.rarity} size={64} />
+      </span>
       <span className="ga-tile-body">
         <span className="ga-name" style={{ color: rc }}>{def.name}</span>
         <span className="ga-meta">
+          <span className="ga-rarity" style={{ color: rc }}>{def.rarity.toUpperCase()}</span>
           <span className="ga-aff" style={{ color: aff.color }}>{aff.label}</span>
           <span className="ga-cat">{CARD_CATEGORY_LABEL[def.category]}</span>
         </span>
-        {levelPips(row.level, row.maxLevel, rc)}
+        {row.owned && levelPips(row.level, row.maxLevel, rc)}
         <span className="ga-line">
           {row.owned ? (
             row.nextCost === null ? (
@@ -92,7 +97,7 @@ function GeneTile({ row, onOpen }: { row: GeneArchiveRow; onOpen: () => void }):
             : !row.gateMet ? <span className="ga-gate">🔒 Stage {row.gateStage}</span>
             : <span className={`ga-cost${row.canAfford ? ' ok' : ''}`}><CurrencyIcon id="geneEssence" size={11} title="" /> {row.nextCost.toLocaleString()}</span>
           ) : (
-            <span className="ga-unowned">UNDISCOVERED — draft it in a run</span>
+            <span className="ga-unowned" title={row.hint ?? undefined}>◈ {row.hint}</span>
           )}
           {row.powerMult > 1 && <span className="ga-pow" title="Permanent Power contribution">⚙ +{Math.round((row.powerMult - 1) * 100)}%</span>}
         </span>
@@ -133,7 +138,7 @@ function GeneInspect({ id, onClose }: { id: string; onClose: () => void }): JSX.
             <div className="ga-powline" title="This card's PERMANENT contribution to your Power Score">
               Power contribution: <b>{row.powerMult > 1 ? `+${((row.powerMult - 1) * 100).toFixed(1)}%` : '— (level a card to add permanent Power)'}</b>
             </div>
-            {!row.owned && <div className="ga-owned-note">UNDISCOVERED — draft this card in any run to add it to your Archive.</div>}
+            {!row.owned && <div className="ga-owned-note">UNDISCOVERED — {row.hint}. Bio-Containers carry the strand once its pool opens.</div>}
           </div>
         </div>
 
@@ -476,13 +481,25 @@ export function GeneArchive(): JSX.Element {
         Your permanent Gene Card collection — {sum.owned}/{sum.total} discovered · {sum.levels}/{sum.maxLevels} levels evolved{sum.transcended > 0 ? <> · <span className="ga-transcended">❂ {sum.transcended} transcended</span></> : ''}.
         Spend Gene Essence to permanently upgrade a card; it applies every time you draft it.
       </div>
+      {/* Discovery completion (docs/CARDS.md §discovery) — the collection header: overall %
+          plus the five-tier ladder, so "something exciting remains" is always visible. */}
+      <div className="ga-completion" role="group" aria-label="Archive completion">
+        <span className="ga-comp-pct">{sum.completionPct}%</span>
+        <span className="ga-comp-bar" aria-hidden><i style={{ width: `${sum.completionPct}%` }} /></span>
+        {sum.byRarity.map((b) => b.total > 0 && (
+          <span className="ga-comp-tier" key={b.rarity} style={{ ['--rc' as string]: geneRarityColor(b.rarity) }} title={`${b.rarity}: ${b.have}/${b.total} discovered`}>
+            {b.have}/{b.total}
+          </span>
+        ))}
+      </div>
       <BestBuyStrip surface="genes" />
 
       {/* In-place help (Task 11) — the whole loop in five lines, one tap away. */}
       <details className="ga-help">
         <summary>How the Gene system works</summary>
         <ul>
-          <li><b>Collect</b> — draft a Gene Card in any run and it joins this Archive forever.</li>
+          <li><b>Discover</b> — every strand is first RECOVERED from a Bio-Container (starters come free). Undiscovered cards show as silhouettes with an honest source hint; rarer pools open on Campaign milestones.</li>
+          <li><b>Draft</b> — only discovered strands appear in your between-wave drafts, so every discovery permanently widens your in-run options.</li>
           <li><b>Gene Essence</b> — earned mainly by duplicate shards once a tower/hero is max Star, plus rare Bio-Container drops.</li>
           <li><b>Upgrade</b> — each card has 3–5 permanent levels; every level adds real new effects and raises your Power Score immediately.</li>
           <li><b>Campaign gates</b> — deeper levels unlock globally: L2 at Stage 15, L3 at 30, L4 at 50, L5 at 75.</li>

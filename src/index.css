@@ -7153,7 +7153,19 @@ kbd {
 .ga-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 10px; }
 .ga-tile { position: relative; display: flex; gap: 10px; align-items: flex-start; text-align: left; padding: 10px; border-radius: var(--r-md); background: var(--panel-2); border: 1px solid color-mix(in srgb, var(--rc) 35%, var(--line)); }
 .ga-tile:hover { border-color: var(--rc); transform: translateY(-1px); }
-.ga-tile.is-unowned { opacity: 0.55; filter: saturate(0.5); }
+/* Undiscovered strand (docs/CARDS.md §discovery): the tile keeps its RARITY frame (the tell —
+   anticipation lives in the border color), the art blacks out to a true silhouette, and the
+   hint line replaces the upgrade line. Epic+ frames glow faintly even undiscovered. */
+.ga-tile.is-unowned { opacity: 0.72; border-style: dashed; border-color: color-mix(in srgb, var(--rc) 45%, var(--line)); }
+.ga-tile.is-unowned .ga-sil { filter: brightness(0.22) saturate(0.15); display: inline-flex; }
+.ga-sil { display: inline-flex; }
+.ga-rarity { font-size: 10px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; }
+/* Archive completion strip — the collection header (overall % + the five-tier ladder). */
+.ga-completion { display: flex; align-items: center; flex-wrap: wrap; gap: var(--s2) var(--s3); padding: 6px 10px; border: 1px solid var(--line); border-radius: var(--r-md); background: rgba(255, 255, 255, 0.02); }
+.ga-comp-pct { font-size: 16px; font-weight: 900; color: var(--viral); font-variant-numeric: tabular-nums; }
+.ga-comp-bar { flex: 1 1 120px; min-width: 80px; height: 6px; border-radius: 999px; background: rgba(255, 255, 255, 0.06); overflow: hidden; }
+.ga-comp-bar i { display: block; height: 100%; border-radius: 999px; background: linear-gradient(90deg, color-mix(in srgb, var(--viral) 55%, transparent), var(--viral)); }
+.ga-comp-tier { font-size: 11px; font-weight: 800; font-variant-numeric: tabular-nums; color: var(--rc); padding: 1px 8px; border: 1px solid color-mix(in srgb, var(--rc) 45%, var(--line)); border-radius: 999px; background: color-mix(in srgb, var(--rc) 8%, transparent); }
 .ga-tile.is-upgradeable { box-shadow: 0 0 0 1px color-mix(in srgb, var(--success) 55%, transparent), 0 0 14px color-mix(in srgb, var(--success) 22%, transparent); }
 .ga-up { position: absolute; top: 6px; right: 8px; color: var(--success); font-size: 11px; font-weight: 900; animation: pulse 1.6s ease-in-out infinite; }
 .ga-tile-body { display: flex; flex-direction: column; gap: 3px; min-width: 0; flex: 1; }

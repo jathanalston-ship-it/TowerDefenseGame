@@ -5,12 +5,14 @@ import { describe, it, expect } from 'vitest';
 import { geneArchiveRows, geneArchiveSummary } from './geneArchive';
 import { meta } from './meta';
 import { defaultSave, serializeExport } from '../save/saveStore';
+import { STARTER_GENES } from '../core/geneDiscovery';
 import { CARD_POOL } from '../core/cards';
 import { geneLevelCapForStage, genePermanentPowerMult } from '../core/geneCards';
 import { transcendOptionsFor } from '../core/geneTranscend';
 import { essenceTranscendCost, essenceUpgradeCost } from '../core/geneEssence';
 
-const card = CARD_POOL[0]; // sharpened_needles (common)
+const card = CARD_POOL[0]; // sharpened_needles (common — a STARTER, discovered on every account)
+const STARTERS = new Set(STARTER_GENES);
 
 function seed(over: Partial<ReturnType<typeof defaultSave>> = {}): void {
   meta.importText(serializeExport({ ...defaultSave(), ...over }));
@@ -34,9 +36,9 @@ describe('gene archive read-model', () => {
     const rows = geneArchiveRows(meta.get());
     expect(rows).toHaveLength(CARD_POOL.length);
     for (const r of rows) {
-      expect(r.owned).toBe(false);
+      expect(r.owned).toBe(STARTERS.has(r.def.id)); // v46: starters arrive discovered
       expect(r.level).toBe(0);
-      expect(r.upgradeable).toBe(false); // unowned ⇒ never upgradeable
+      expect(r.upgradeable).toBe(false); // fresh essence is 0 ⇒ nothing is buyable yet
       expect(r.gateStage).toBe(0); // L1 is ungated — the requirement is SHOWN as none
       expect(r.nextCost).toBe(essenceUpgradeCost(r.def.rarity, 1));
       expect(r.futureNotes.length).toBe(r.maxLevel); // every future level is listed (never hidden)
@@ -49,7 +51,7 @@ describe('gene archive read-model', () => {
     expect(row.owned).toBe(true);
     expect(row.upgradeable).toBe(true);
     const sum = geneArchiveSummary(meta.get());
-    expect(sum.upgradeable).toBe(1);
+    expect(sum.upgradeable).toBe(STARTER_GENES.length); // the whole starter archive is buyable at 999 Essence
     expect(sum.nextGate).toEqual({ level: 2, stage: 15 }); // the next milestone, surfaced prominently
   });
 
@@ -126,10 +128,10 @@ describe('nav badge (Task 12 audit) — the Archive lights up when an upgrade is
   it("the 'genes' channel counts upgradeable cards and clears when none remain", async () => {
     await import('./notificationSources'); // side-effect registration (as the Hub does)
     const { notifications } = await import('./notifications');
-    seed(); // fresh save: nothing owned ⇒ no badge
+    seed(); // fresh save: starters owned but broke ⇒ no badge
     expect(notifications.badges(meta.get()).genes).toBeUndefined();
     seed({ stats: { ...defaultSave().stats, uniqueCards: [card.id] }, geneEssence: 999 });
-    expect(notifications.badges(meta.get()).genes).toBe(1); // owned + gate met + affordable
+    expect(notifications.badges(meta.get()).genes).toBe(STARTER_GENES.length); // every discovered card is now buyable
     notifications.markSeen('genes', meta.get());
     expect(notifications.badges(meta.get()).genes).toBeUndefined(); // acknowledged
   });

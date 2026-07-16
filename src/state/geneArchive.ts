@@ -13,13 +13,16 @@ import {
 import { transcendOption, transcendOptionsFor, transcendPowerMult } from '../core/geneTranscend';
 import type { TranscendOption } from '../core/geneTranscend';
 import { essenceTranscendCost, essenceUpgradeCost } from '../core/geneEssence';
+import { discoveryHint } from '../core/geneDiscovery';
+import type { CardRarity } from '../core/types';
 import type { SaveData } from '../save/saveStore';
 import { highestCampaignStage } from '../save/derive';
 
 export interface GeneArchiveRow {
   def: CardDef;
   subject: CardSubject; // what it affects (tower / hero / global / economy / hive)
-  owned: boolean; // drafted at least once (stats.uniqueCards)
+  owned: boolean; // DISCOVERED (save.genesDiscovered — docs/CARDS.md §discovery)
+  hint: string | null; // undiscovered only: the honest source hint (discoveryHint)
   level: number; // current permanent level
   maxLevel: number; // authored ceiling
   powerMult: number; // this card's PERMANENT power contribution right now (1 at level 0)
@@ -51,6 +54,8 @@ export interface GeneArchiveSummary {
   levels: number; // Σ purchased levels
   maxLevels: number; // Σ ceilings
   transcended: number; // cards carrying a chosen Transcendence line (§Transcendence)
+  completionPct: number; // discovered / total, 0..100 int — the collection header number
+  byRarity: { rarity: CardRarity; have: number; total: number }[]; // discovery per tier, ladder order
   essence: number; // wallet
   campaignStage: number;
   levelCap: number; // globally-unlocked level ceiling at this stage
@@ -60,7 +65,7 @@ export interface GeneArchiveSummary {
 /** One row per REGISTERED card, in registry order (stable). */
 export function geneArchiveRows(save: SaveData): GeneArchiveRow[] {
   const stage = highestCampaignStage(save);
-  const ownedSet = new Set(save.stats?.uniqueCards ?? []);
+  const ownedSet = new Set(save.genesDiscovered ?? []); // discovery IS archive membership (v46)
   const cap = geneLevelCapForStage(stage);
   return cardRegistry.active().map((def) => {
     const level = geneLevel(save.genes, def.id);
@@ -79,6 +84,7 @@ export function geneArchiveRows(save: SaveData): GeneArchiveRow[] {
       def,
       subject: cardSubject(def),
       owned,
+      hint: owned ? null : discoveryHint(def, stage),
       level,
       maxLevel: max,
       // Permanent contribution = upgrade levels + the transcended second line, combined ADDITIVELY —
@@ -113,12 +119,16 @@ export function geneArchiveSummary(save: SaveData, rows = geneArchiveRows(save))
   const stage = highestCampaignStage(save);
   const cap = geneLevelCapForStage(stage);
   let levels = 0, maxLevels = 0, owned = 0, upgradeable = 0, transcended = 0;
+  const ladder: CardRarity[] = ['common', 'uncommon', 'rare', 'epic', 'legendary'];
+  const byRarity = ladder.map((rarity) => ({ rarity, have: 0, total: 0 }));
   for (const r of rows) {
     levels += r.level;
     maxLevels += r.maxLevel;
     if (r.owned) owned++;
     if (r.upgradeable) upgradeable++;
     if (r.transcend) transcended++;
+    const bucket = byRarity[ladder.indexOf(r.def.rarity)];
+    if (bucket) { bucket.total++; if (r.owned) bucket.have++; }
   }
   // The next gate above the current cap (null once every authored level is globally unlocked).
   const nextGate = (() => {
@@ -129,5 +139,5 @@ export function geneArchiveSummary(save: SaveData, rows = geneArchiveRows(save))
     }
     return best;
   })();
-  return { total: rows.length, owned, upgradeable, levels, maxLevels, transcended, essence: save.geneEssence, campaignStage: stage, levelCap: cap, nextGate };
+  return { total: rows.length, owned, upgradeable, levels, maxLevels, transcended, completionPct: rows.length ? Math.round((owned / rows.length) * 100) : 0, byRarity, essence: save.geneEssence, campaignStage: stage, levelCap: cap, nextGate };
 }
