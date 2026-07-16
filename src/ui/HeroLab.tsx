@@ -19,6 +19,7 @@ import { audio } from '../audio/sound';
 import { MobileSection } from './components/MobileSection';
 import { SymbioteChamber } from './SymbioteChamber';
 import { BestBuyStrip } from './components/BestBuyStrip';
+import { EvolutionTrackPanel } from './EvolutionTrack';
 import { useLayoutProfile } from './layoutProfile';
 import type { HeroCollectionEntry } from '../state/meta';
 
@@ -409,6 +410,7 @@ export function HeroLab(): JSX.Element {
               <p className="hsec-desc">Mastery rises forever as this hero fights — ranks and perks unlock with use.</p>
             )}
             <p className="hsec-hint">Each Mastery Rank grants 1 Antigen — spend it in the Adaptation Chamber (Progression wing).</p>
+            <EvolutionTrackPanel subject="hero" unit={focus} name={d.def.name} color={c} />
           </Section>
 
           {/* Current Loadout */}

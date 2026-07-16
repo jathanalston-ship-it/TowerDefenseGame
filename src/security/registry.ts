@@ -81,6 +81,14 @@ export const SECURITY_ACTIONS: Record<string, ActionPolicy> = {
     id: 'wardrobe.claim', category: 'claim', level: 'strict', limit: S(), cooldownMs: 800, dedupeMs: 2000,
     analytics: 'sec_wardrobe_claim', doc: 'Wardrobe milestone claim.', at: META,
   },
+  'mastery.claim': {
+    id: 'mastery.claim', category: 'claim', level: 'moderate', limit: M({ count: 60 }),
+    analytics: 'sec_mastery_claim', doc: 'Mastery Evolution Track claim-all for one unit (idempotent; a full roster sweep fits one burst).', at: META,
+  },
+  'mastery.prestige': {
+    id: 'mastery.prestige', category: 'progression', level: 'strict', limit: S(), cooldownMs: 800,
+    analytics: 'sec_mastery_prestige', doc: 'Mastery Evolution prestige (EVOLVE) — re-arms a completed loop; the auto-claim precedes it.', at: META,
+  },
   'directive.claim': {
     id: 'directive.claim', category: 'claim', level: 'strict', limit: S({ count: 4 }), cooldownMs: 600, dedupeMs: 2000,
     analytics: 'sec_directive_claim', doc: 'Weekly Directive / capstone reward claim (cores/essence/container).', at: META,
@@ -269,6 +277,8 @@ export const GUARDED_META_METHODS: Record<string, string> = {
   setHeroSymbioteSeat: 'symbiote.slot',
   unlockHeroSymbioteSlot: 'symbiote.unlock',
   claimLogin: 'login.claim',
+  claimMasteryEvolution: 'mastery.claim',
+  prestigeMasteryEvolution: 'mastery.prestige',
   importText: 'save.import',
   restoreBackup: 'save.restore',
   reset: 'account.reset',

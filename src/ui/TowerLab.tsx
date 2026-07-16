@@ -21,6 +21,8 @@ import { labPrefs, setLabPrefs } from '../state/prefs';
 import { BestBuyStrip } from './components/BestBuyStrip';
 import { LAB_SORTS, ceremonyView, futurePath, labRoster, masteryPanelModel, towerLabModel } from './towerLabModel';
 import type { LabSort, StepView, TowerLabModel } from './towerLabModel';
+import { EvolutionTrackPanel } from './EvolutionTrack';
+import { evolutionRosterSignal } from './evolutionTrackModel';
 
 interface CeremonyState {
   kind: TowerKind;
@@ -142,8 +144,16 @@ export function TowerLab(): JSX.Element {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [save, curPower]);
 
+  // Evolution Track roster signal (docs/MASTERY.md §evolution track): claimable nodes badge
+  // the rail; a completed loop (ready to EVOLVE) outranks any claim count in the sort.
+  const evo = useMemo(() => {
+    const out = {} as Record<TowerKind, { claimable: number; ready: boolean }>;
+    for (const k of TOWER_ORDER) out[k] = evolutionRosterSignal(save, 'tower', k);
+    return out;
+  }, [save]);
+
   const favorites = useMemo(() => new Set(prefs.favorites), [prefs.favorites]);
-  const roster = labRoster(models, { query, favoritesOnly: favOnly, upgradeableOnly: upOnly }, prefs.sort as LabSort, favorites, prefs.recents, (k) => contribution[k]);
+  const roster = labRoster(models, { query, favoritesOnly: favOnly, upgradeableOnly: upOnly }, prefs.sort as LabSort, favorites, prefs.recents, (k) => contribution[k], (k) => evo[k].claimable + (evo[k].ready ? 1000 : 0));
 
   // Selection: last-inspected (pref) → first of the roster; never an empty showcase.
   const selected: TowerKind = (roster.includes(prefs.selected as TowerKind) ? (prefs.selected as TowerKind) : roster[0]) ?? TOWER_ORDER[0];
@@ -241,6 +251,11 @@ export function TowerLab(): JSX.Element {
                   <span className="tl2-item-badges">
                     {recent && <i className="tl2-b tl2-b-recent" title="Recently upgraded">NEW</i>}
                     {r.affordable && <i className="tl2-b tl2-b-up" title="Next star affordable">▲</i>}
+                    {(evo[k].claimable > 0 || evo[k].ready) && (
+                      <i className="tl2-b tl2-b-evo" title={evo[k].ready ? 'Evolution Track loop complete — ready to EVOLVE' : `${evo[k].claimable} Evolution Track node${evo[k].claimable > 1 ? 's' : ''} ready to claim`}>
+                        ⧉{evo[k].ready ? '▲' : evo[k].claimable}
+                      </i>
+                    )}
                     {r.locked && <i className="tl2-b tl2-b-lock" title={`Locked — synthesize for ${r.unlockCost} Strain Samples`}>🔒</i>}
                     {r.capLocked && !r.locked && <i className="tl2-b tl2-b-cap" title="Campaign-gated">🔒</i>}
                     {/* Adaptation pts only signal on SYNTHESIZED towers — a dormant tree is locked shut. */}
@@ -460,6 +475,8 @@ export function TowerLab(): JSX.Element {
           )}
 
           <MasteryPanel kind={selected} color={m.color} contribution={contribution[selected]} />
+
+          <EvolutionTrackPanel subject="tower" unit={selected} name={m.name} color={m.color} />
 
           <div className="tl2-block">
             <p className="tl-adapt-moved">☣ Antigen specialization lives in the <b>Adaptation Chamber</b> (Progression wing) — every strain and champion tree in one place, with a suggested-next advisor.</p>

@@ -1,6 +1,6 @@
 # DIL_GRAPH.md — the Design Intelligence Layer (GENERATED — `npm run dil -- regen`)
 
-> **The project's brain** (docs/DIL.md). 810 nodes · 1491 edges, built from the live
+> **The project's brain** (docs/DIL.md). 813 nodes · 1495 edges, built from the live
 > registries + curated knowledge (src/dev/dil/). **Query it instead of searching the repo:**
 > `npm run dil -- node <id>` · `affects <id>` · `requires <id>` · `missing <kind> <edge>` ·
 > `checklist tower <kind>` · `find <text>`. Edge kinds are bidirectional (19 kinds).
@@ -731,7 +731,7 @@ _at: src/core/game.ts, src/core/combat.ts, src/core/status.ts, src/core/targetin
   - requiredBy ← `system:bosses`
   - requiredBy ← `system:mega-bosses`
   - requiredBy ← `system:rendering`
-  - _…200 more (query: `npm run dil -- node system:engine`)_
+  - _…201 more (query: `npm run dil -- node system:engine`)_
 
 ### `system:content-infra` — Content Infrastructure
 
@@ -1034,7 +1034,7 @@ _at: src/core/stars.ts, src/core/branches.ts, src/core/branchTree.ts, src/core/s
 
 Identity-through-use: titles, procedural ranks, halos, Antigen-Point decision trees. Adaptation lives in its OWN wing — the Adaptation Chamber (nav, badge on unspent Antigen): exact best-gain advisor across the roster + every strain/champion tree in one place.
 
-_at: src/core/mastery.ts, src/core/adaptation.ts, src/state/masteryEvents.ts, src/state/adaptationAdvisor.ts, src/ui/MasteryProfile.tsx, src/ui/AdaptationChamber.tsx, src/ui/components/AdaptationTree.tsx, src/ui/components/MasteryToaster.tsx_
+_at: src/core/mastery.ts, src/core/masteryEvolution.ts, src/core/adaptation.ts, src/state/masteryEvents.ts, src/state/adaptationAdvisor.ts, src/ui/MasteryProfile.tsx, src/ui/AdaptationChamber.tsx, src/ui/EvolutionTrack.tsx, src/ui/evolutionTrackModel.ts, src/ui/components/AdaptationTree.tsx, src/ui/components/MasteryToaster.tsx_
 
   - dependsOn → `system:stats`
   - dependsOn → `system:content-infra`
@@ -1043,13 +1043,16 @@ _at: src/core/mastery.ts, src/core/adaptation.ts, src/state/masteryEvents.ts, sr
   - consumes → `system:meta-store` — owns save field 'heroMasteryXp'
   - consumes → `system:meta-store` — owns save field 'adaptation'
   - consumes → `system:meta-store` — owns save field 'antigen'
+  - consumes → `system:meta-store` — owns save field 'masteryEvolution'
   - taughtBy ← `help:adaptation`
   - documentedBy ← `doc:MASTERY.md`
   - documentedBy ← `doc:ADAPTATION.md`
   - documentedBy ← `guide:mastery`
   - testedBy ← `test:src/core/adaptation.test.ts`
   - testedBy ← `test:src/core/mastery.test.ts`
+  - testedBy ← `test:src/core/masteryEvolution.test.ts`
   - testedBy ← `test:src/state/adaptationAdvisor.test.ts`
+  - testedBy ← `test:src/ui/evolutionTrackModel.test.ts`
   - referencedBy ← `system:account-level` — account titles share save.equippedTitle with mastery rewards — display surfaces MUST resolve via titleName() (profile.ts), not masteryRewardById alone
   - referencedBy ← `system:genome-rank` — grank_<n> titles share save.equippedTitle — always resolve display through titleName() (profile.ts), never per-registry lookups
 
@@ -1901,7 +1904,7 @@ _at: src/state/meta.ts, src/state/store.ts, src/state/prefs.ts, src/state/devRes
   - consumedBy ← `system:mulligans` — owns save field 'mulligans'
   - consumedBy ← `system:mulligans` — owns save field 'mulliganDex'
   - consumedBy ← `system:premium` — owns save field 'premium'
-  - _…111 more (query: `npm run dil -- node system:meta-store`)_
+  - _…112 more (query: `npm run dil -- node system:meta-store`)_
 
 ### `system:bosses` — Bosses
 
@@ -3422,7 +3425,7 @@ _at: site/guides.ts → /guides/prestige/_
 - `doc:VOWS.md` — project documentation _(documents `system:prestige`)_
 - `doc:WEBSITE.md` — project documentation _(documents `system:field-research`, documents `system:website`)_
 
-## Tests (259)
+## Tests (262)
 
 - `test:src/audio/music.test.ts` — automated validation _(tests `system:audio`)_
 - `test:src/changelog/classify.test.ts` — automated validation _(tests `system:chronicle`)_
@@ -3514,6 +3517,7 @@ _at: site/guides.ts → /guides/prestige/_
 - `test:src/core/lootQueue.test.ts` — automated validation _(tests `system:loot`)_
 - `test:src/core/market.test.ts` — automated validation _(tests `system:splice-market`)_
 - `test:src/core/mastery.test.ts` — automated validation _(tests `system:mastery`)_
+- `test:src/core/masteryEvolution.test.ts` — automated validation _(tests `system:mastery`)_
 - `test:src/core/materialDrop.test.ts` — automated validation _(tests `system:crafting`)_
 - `test:src/core/megaboss.test.ts` — automated validation _(tests `system:mega-bosses`)_
 - `test:src/core/modifiers.test.ts` — automated validation _(tests `system:engine`)_
@@ -3639,6 +3643,7 @@ _at: site/guides.ts → /guides/prestige/_
 - `test:src/state/loginMeta.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/state/lootbox.test.ts` — automated validation _(tests `system:loot`)_
 - `test:src/state/marketEconomy.test.ts` — automated validation _(tests `system:engine`)_
+- `test:src/state/masteryEvolutionMeta.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/state/mechanics.test.ts` — automated validation _(tests `system:onboarding`)_
 - `test:src/state/megacollection.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/state/meta.test.ts` — automated validation _(tests `system:meta-store`)_
@@ -3677,6 +3682,7 @@ _at: site/guides.ts → /guides/prestige/_
 - `test:src/state/verifiedPurchase.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/state/vowsMeta.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/state/wardrobeMeta.test.ts` — automated validation _(tests `system:engine`)_
+- `test:src/ui/evolutionTrackModel.test.ts` — automated validation _(tests `system:mastery`)_
 - `test:src/ui/homeBaseTiers.test.ts` — automated validation _(tests `system:hub-shell`)_
 - `test:src/ui/homeModel.test.ts` — automated validation _(tests `system:hub-shell`)_
 - `test:src/ui/hubProgress.test.ts` — automated validation _(tests `system:hub-shell`)_

@@ -221,7 +221,7 @@ graph TD
 | **Field Research (rewarded studies)** (`field-research`) | `premium` · `meta-store` · `splice-market` · `boss-rush` · `daily` | — | — | `research` | `docs/RESEARCH.md` · `docs/WEBSITE.md` |
 | **Backend lanes (net/)** (`net-backend`) | `premium` · `meta-store` · `daily` · `power` | `security` | — | `premium` | `docs/DEPLOYMENT.md` · `docs/REPLAY-SHARE.md` |
 | **Towers, Stars, Branches, Strain & Codex** (`towers`) | `content-infra` · `shards-economy` · `campaign` | `engine` · `daily` · `mulligans` · `contracts` | ⚡ stars/branches feed permanent + temporary buckets | `towerStars` · `towerPrime` · `towerShards` · `towerMasteryXp` · `towerForks` | `docs/TOWER-STARS.md` · `docs/TOWER-BRANCHES.md` · `docs/TOWER-LAB.md` · `docs/TOWER-CODEX.md` · `docs/TOWERS.md` · `docs/STRAIN.md` |
-| **Mastery / Adaptation** (`mastery`) | `stats` · `content-infra` | — | ⚡ mastery multiplier folds into the permanent bucket | `towerMasteryXp` · `heroMasteryXp` · `adaptation` · `antigen` | `docs/MASTERY.md` · `docs/ADAPTATION.md` |
+| **Mastery / Adaptation** (`mastery`) | `stats` · `content-infra` | — | ⚡ mastery multiplier folds into the permanent bucket | `towerMasteryXp` · `heroMasteryXp` · `adaptation` · `antigen` · `masteryEvolution` | `docs/MASTERY.md` · `docs/ADAPTATION.md` |
 | **Heroes** (`heroes`) | `content-infra` · `engine` · `shards-economy` · `campaign` | `engine` · `hero-cinematics` · `equipment` · `hero-symbiotes` · `expeditions` | ⚡ hero stars/evolution feed permanent + temporary buckets | `heroStars` · `heroPrime` · `heroShards` · `heroUnlocked` · `heroLoadout` · `heroMasteryXp` | `docs/HEROES.md` · `docs/HERO-FRAMEWORK.md` · `docs/HERO-EVOLUTION.md` · `docs/HERO-SELECTION.md` · `docs/SLOTS.md` |
 | **Hero Ability Cinematics** (`hero-cinematics`) | `heroes` · `engine` · `rendering` | — | — | — | `docs/HERO-CINEMATICS.md` |
 | **Equipment & Armory** (`equipment`) | `content-infra` · `loot` · `power` · `heroes` | `crafting` | ⚡ equipped items score via itemPower into the gear bucket | `equipment` | `docs/EQUIPMENT.md` · `docs/EQUIPMENT-PHILOSOPHY.md` |
@@ -494,13 +494,13 @@ graph TD
 
 *Identity-through-use: titles, procedural ranks, halos, Antigen-Point decision trees. Adaptation lives in its OWN wing — the Adaptation Chamber (nav, badge on unspent Antigen): exact best-gain advisor across the roster + every strain/champion tree in one place.*
 
-- **Files:** `src/core/mastery.ts` · `src/core/adaptation.ts` · `src/state/masteryEvents.ts` · `src/state/adaptationAdvisor.ts` · `src/ui/MasteryProfile.tsx` · `src/ui/AdaptationChamber.tsx` · `src/ui/components/AdaptationTree.tsx` · `src/ui/components/MasteryToaster.tsx`
+- **Files:** `src/core/mastery.ts` · `src/core/masteryEvolution.ts` · `src/core/adaptation.ts` · `src/state/masteryEvents.ts` · `src/state/adaptationAdvisor.ts` · `src/ui/MasteryProfile.tsx` · `src/ui/AdaptationChamber.tsx` · `src/ui/EvolutionTrack.tsx` · `src/ui/evolutionTrackModel.ts` · `src/ui/components/AdaptationTree.tsx` · `src/ui/components/MasteryToaster.tsx`
 - **Depends on:** `stats` · `content-infra`
 - **Consumers — what breaks if you change this:** —
 - **Power Score:** mastery multiplier folds into the permanent bucket
-- **Save fields:** `towerMasteryXp` · `heroMasteryXp` · `adaptation` · `antigen`
+- **Save fields:** `towerMasteryXp` · `heroMasteryXp` · `adaptation` · `antigen` · `masteryEvolution`
 - **Tutorial:** — · **Help mechanics:** `adaptation`
-- **HUD surfaces:** `halos (renderer)` · `live projection + level-up rings (GameView)` · `Inspector craft bar` · **UI screens:** `AdaptationChamber (Adaptation Chamber)` · `MasteryProfile` · `MasteryToaster`
+- **HUD surfaces:** `halos (renderer)` · `live projection + level-up rings (GameView)` · `Inspector craft bar` · **UI screens:** `AdaptationChamber (Adaptation Chamber)` · `MasteryProfile` · `MasteryToaster` · `EvolutionTrackPanel (labs helix — docs/MASTERY.md §evolution track)`
 - **Collection:** — · **Achievements:** —
 - **Localization:** inline English strings (no i18n layer yet — this field enumerates the surface for the day it lands)
 - **Docs to update on change:** `docs/MASTERY.md` · `docs/ADAPTATION.md`

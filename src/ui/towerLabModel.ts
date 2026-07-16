@@ -228,13 +228,14 @@ export function towerLabModel(save: SaveData, kind: TowerKind, prog: TowerStats)
 // ── The specimen BENCH (roster rail) — search / sort / filter, scale-ready ────────────
 // Pure list logic so a 100-tower roster costs one pass; the rail renders what this returns.
 
-export type LabSort = 'default' | 'power' | 'mastery' | 'stars' | 'upgradeable' | 'recent';
+export type LabSort = 'default' | 'power' | 'mastery' | 'stars' | 'upgradeable' | 'recent' | 'evolution';
 export const LAB_SORTS: { id: LabSort; label: string }[] = [
   { id: 'default', label: 'Doctrine order' },
   { id: 'upgradeable', label: 'Upgradeable first' },
   { id: 'power', label: 'Highest Power' },
   { id: 'stars', label: 'Highest Evolution' },
   { id: 'mastery', label: 'Highest Mastery' },
+  { id: 'evolution', label: 'Evolution rewards' },
   { id: 'recent', label: 'Recently upgraded' },
 ];
 
@@ -245,7 +246,8 @@ export interface LabFilters {
 }
 
 /** Order + filter the roster for the bench rail. `powerOf` supplies each kind's Power
- * contribution (computed by the caller via meta.previewPower, memoized on the save). */
+ * contribution (computed by the caller via meta.previewPower, memoized on the save);
+ * `evoOf` supplies its Evolution Track urgency (claimable nodes, prestige-ready boosted). */
 export function labRoster(
   models: Record<TowerKind, TowerLabModel>,
   filters: LabFilters,
@@ -253,6 +255,7 @@ export function labRoster(
   favorites: ReadonlySet<string>,
   recents: Record<string, number>,
   powerOf: (k: TowerKind) => number,
+  evoOf?: (k: TowerKind) => number,
 ): TowerKind[] {
   const q = filters.query.trim().toLowerCase();
   // "Upgradeable" includes an affordable PRIME level on a maxed tower (docs/PRIME-STRAINS.md).
@@ -270,6 +273,7 @@ export function labRoster(
   if (sort === 'power') by(powerOf);
   else if (sort === 'stars') by((k) => models[k].stars);
   else if (sort === 'mastery') by((k) => models[k].mastery.level);
+  else if (sort === 'evolution') by((k) => evoOf?.(k) ?? 0);
   else if (sort === 'recent') by((k) => recents[k] ?? 0);
   else if (sort === 'upgradeable') by((k) => (canBuy(models[k]) ? 1 : 0));
   // Favorites always lead within the chosen order (curation beats sorting).

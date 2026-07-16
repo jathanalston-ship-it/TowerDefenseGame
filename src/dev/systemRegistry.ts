@@ -144,9 +144,9 @@ export const SYSTEMS: SystemDef[] = [
   },
   {
     id: 'mastery', name: 'Mastery / Adaptation', purpose: 'Identity-through-use: titles, procedural ranks, halos, Antigen-Point decision trees. Adaptation lives in its OWN wing — the Adaptation Chamber (nav, badge on unspent Antigen): exact best-gain advisor across the roster + every strain/champion tree in one place.',
-    files: ['src/core/mastery.ts', 'src/core/adaptation.ts', 'src/state/masteryEvents.ts', 'src/state/adaptationAdvisor.ts', 'src/ui/MasteryProfile.tsx', 'src/ui/AdaptationChamber.tsx', 'src/ui/components/AdaptationTree.tsx', 'src/ui/components/MasteryToaster.tsx'],
-    dependsOn: ['stats', 'content-infra'], powerScore: 'mastery multiplier folds into the permanent bucket', save: ['towerMasteryXp', 'heroMasteryXp', 'adaptation', 'antigen'],
-    tutorial: [], help: ['adaptation'], hud: ['halos (renderer)', 'live projection + level-up rings (GameView)', 'Inspector craft bar'], ui: ['AdaptationChamber (Adaptation Chamber)', 'MasteryProfile', 'MasteryToaster'], collection: null, achievements: [],
+    files: ['src/core/mastery.ts', 'src/core/masteryEvolution.ts', 'src/core/adaptation.ts', 'src/state/masteryEvents.ts', 'src/state/adaptationAdvisor.ts', 'src/ui/MasteryProfile.tsx', 'src/ui/AdaptationChamber.tsx', 'src/ui/EvolutionTrack.tsx', 'src/ui/evolutionTrackModel.ts', 'src/ui/components/AdaptationTree.tsx', 'src/ui/components/MasteryToaster.tsx'],
+    dependsOn: ['stats', 'content-infra'], powerScore: 'mastery multiplier folds into the permanent bucket', save: ['towerMasteryXp', 'heroMasteryXp', 'adaptation', 'antigen', 'masteryEvolution'],
+    tutorial: [], help: ['adaptation'], hud: ['halos (renderer)', 'live projection + level-up rings (GameView)', 'Inspector craft bar'], ui: ['AdaptationChamber (Adaptation Chamber)', 'MasteryProfile', 'MasteryToaster', 'EvolutionTrackPanel (labs helix — docs/MASTERY.md §evolution track)'], collection: null, achievements: [],
     localization: 'inline-en', docs: ['docs/MASTERY.md', 'docs/ADAPTATION.md'],
   },
   {

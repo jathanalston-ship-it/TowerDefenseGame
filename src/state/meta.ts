@@ -5772,6 +5772,7 @@ export const meta = {
    *  through their real lanes (shards bank on the unit, containers queue for the Vault), the
    *  receipt toasts once, and the celebration event carries the major count for audio. */
   claimMasteryEvolution(subject: EvolutionSubject, unit: string): number {
+    if (!guardOk('mastery.claim', `${subject}:${unit}`)) return 0;
     const save = store.get();
     const key = `${subject}:${unit}`;
     const st = save.masteryEvolution[key] ?? { claimedUpTo: 0, prestige: 0 };
@@ -5797,6 +5798,7 @@ export const meta = {
   /** EVOLVE the organism (prestige): auto-claims anything outstanding, then re-arms the loop —
    *  mastery level NEVER decreases; the next loop's (upgraded, shard-free) pool begins at once. */
   prestigeMasteryEvolution(subject: EvolutionSubject, unit: string): boolean {
+    if (!guardOk('mastery.prestige', `${subject}:${unit}`)) return false;
     meta.claimMasteryEvolution(subject, unit); // nothing earned is ever lost to an evolution
     const save = store.get();
     const key = `${subject}:${unit}`;
