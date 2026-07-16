@@ -80,13 +80,16 @@ only tools are eyes, tooltips, and a thumb. `src/ui/navModel.ts` is the single s
 truth (the desktop rail derives from the same rows); `src/ui/MobileShell.tsx` renders it.
 
 - **Bottom tab bar** (`.mtab-bar`, fixed, safe-area padded, five ≥52px tabs): Home / Battle /
-  Evolve / Armory / More. Tabs derive from the nav groups via `TAB_OF_GROUP` — a new nav
-  group is one mapping row. Badges aggregate per tab; the active tab tracks the open screen.
+  Rewards / Evolve / More — reward-loop order, mirroring the desktop behavior hubs
+  (docs/NOTIFICATIONS.md §hubs). Tabs derive from the nav groups via `TAB_OF_GROUP` — a new
+  nav group is one mapping row. Badges aggregate per tab; the active tab tracks the open screen.
 - **Index pages** (`MobileTabIndex`): tapping a tab (except Home, which IS the Command
   Center) opens a page of self-describing rows — unlock-registry glyph + name + **blurb**
   (the first-timer explanation), notification badge, completion %, and teaser locks that
-  print their requirement inline (`Sealed — Reach Stage 12`). Gating rules match the rail:
-  revealed screens + the next-reveal teasers, nothing deeper.
+  print their requirement inline (`Sealed — Reach Stage 12`). Rows with news swap the blurb
+  for their smart-notification REASON, and a compact recommendation strip leads the page
+  (§reasons/§recommendations) — the index doubles as the hub's landing on phones. Gating
+  rules match the rail: revealed screens + the next-reveal teasers, nothing deeper.
 - **Drill-down** (`MobilePageHead`): every opened screen gets a sticky back header
   (`‹ TabName · Screen Title`); back returns to the tab index. Deep links (What's New,
   Command Center CTAs) land with the right tab lit because the owning tab derives from

@@ -37,6 +37,9 @@ import { ContractsCard } from './components/ContractsCard';
 import { InfestationBoard } from './components/InfestationBoard';
 import { GrowthPanel } from './components/GrowthPanel';
 import { armyView, buildHomeView, homeRegistry } from './homeModel';
+import { recommendationsFor } from '../state/recommendations';
+import { RecommendStrip } from './HubLanding';
+import { t } from '../i18n';
 import { hiveIntel } from '../state/hiveIntel';
 import { evolutionRoadmap } from '../state/evolutionRoadmap';
 import type { HomeView, HomeZone } from './homeModel';
@@ -155,6 +158,14 @@ function CCWidget({ id, render, ctx }: { id: string; render: (c: WidgetCtx) => R
 const WIDGETS: Record<string, (ctx: WidgetCtx) => ReactNode> = {
   'vitals': Vitals,
   'world-status': (c) => <WorldStatus ws={c.view.world} />,
+  // Recommended-now (docs/NOTIFICATIONS.md §recommendations): the global top-3 next actions,
+  // reasons included — the home board's answer to "what's actually waiting on me?".
+  'recommend': (c) => (
+    <section className="cc-recommend" aria-label={t('hub.landing.recommended')}>
+      <span className="cc-panel-h">✦ {t('hub.landing.recommended').toUpperCase()}</span>
+      <RecommendStrip recs={recommendationsFor(c.save, { limit: 3 })} go={(k) => c.go(k)} />
+    </section>
+  ),
   // (UX consolidation, docs/MISSION-CONTROL.md: the old next-goal banner is ABSORBED into
   // Mission Control's objective ledger — one main-zone panel answers "what should I do".)
   'bio-cache': () => <BioCacheCard />,

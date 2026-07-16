@@ -66,6 +66,47 @@ No menu or engine change. New nav keys get badges for free.
 - The pulse honors `prefers-reduced-motion` via the global catch-all in index.css
   (it neutralizes all animation/transition durations), so no per-badge gate is needed.
 
+## §hubs — the behavior-hub navigation (2026-07 overhaul)
+
+The sidebar groups are **behavior hubs in reward-loop order** (`src/ui/navModel.ts`):
+MISSION (fight) → REWARDS (claim/open) → EVOLUTION (permanent growth) → MARKET
+(trade/equip) → Store (separate by design) → PROFILE (identity/record). Every claim/open
+surface lives in ONE hub, so "what's waiting for me?" is one place. Portrait tabs derive
+from the same rows (Home / Battle / Rewards / Evolve / More — loop order).
+
+- **Group headers are front doors:** clicking one opens the hub's **landing page**
+  (`src/ui/HubLanding.tsx`) — identity header (glyph/promise/completion %), a "needs
+  attention" strip of reason lines, the recommendation panel, the screen grid (unlock-
+  registry cards with badges/reasons/rings/teasers), and a recently-unlocked shelf
+  (`director.revealed` within the last 5 runs). Fully registry-driven — a new screen in
+  navModel lands with everything for free; there is no per-hub layout.
+- **Mobile:** the tab index pages render the same intelligence (compact recommendation
+  strip + reason sublines on rows) — the landing and the index are the same idea at two
+  widths.
+- Aggregate header badges sum the members; header tooltips list the member reasons.
+
+## §reasons — smart notifications say WHY
+
+`NotificationSource.reason?: (save, unseen) => string` gives every badge a human phrase —
+"3 Bio-Containers to open · Daily Bio-Cache sealed", never "(4)". `notifications.
+reasons(save)` returns the lines per channel (same watermark clamping as `badges`).
+Rendered: nav-item tooltips + aria-labels, hub landing attention rows, landing/index card
+sublines (the WHY replaces the blurb when something waits). Sources without a reason fall
+back to "N new". Adding a reason is one line on the source.
+
+## §recommendations — the "what next?" engine
+
+`src/state/recommendations.ts` — `recommendationsFor(save, { navs?, limit? })` returns
+ranked concrete actions `{ nav, kind, label, why, score }`. Candidates DERIVE from
+registries: every notification source with a reason is a candidate (its channel classifies
+kind/score via `CHANNEL_CLASS` — claim 90 > open 80 > upgrade ~55 > spend ~45 > browse;
+unknown channels still surface as 'browse'), progression teasers ≥50% surface as
+"almost unlocked" pulls routed toward their gate, and a PLAY action backstops so the list
+is **never empty — no dead ends**. Bespoke candidates: `registerRecSource()`.
+Rendered: hub landings, mobile tab indexes (compact), the Command Center 'recommend'
+widget, and the `NextUp` strip mounted on claim-surface empty states (vault empty,
+harvest warming). Tests: `src/state/recommendations.test.ts`.
+
 ## §reward-toasts — the reward placard stack
 
 **Every reward in the game announces through ONE config-driven placard system** — a

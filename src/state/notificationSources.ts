@@ -26,6 +26,7 @@ registerNotification({
   id: 'vault.containers',
   channel: 'vault',
   count: (s) => s.pendingContainers.length,
+  reason: (_s, n) => `${n} Bio-Container${n === 1 ? '' : 's'} to open`,
 });
 
 // Daily Bio-Cache — today's cache is still sealed (docs/DAILY-LOGIN.md). Lexical ISO-key
@@ -37,6 +38,7 @@ registerNotification({
   id: 'login.cache',
   channel: 'vault',
   count: (s) => (s.login.last < dailyKey() ? 1 : 0),
+  reason: () => 'Daily Bio-Cache sealed',
 });
 
 // Idle Harvest — the Hive has banked a ceremony-worthy haul (docs/IDLE-HARVEST.md). Cheap
@@ -49,6 +51,7 @@ registerNotification({
     if (!last || last > Date.now()) return 0;
     return (Date.now() - last) / 60_000 >= IDLE.ceremonyMinutes ? 1 : 0;
   },
+  reason: () => 'Hive yield ready to harvest',
 });
 
 // The Hive — organs whose NEXT tier is affordable right now (era met, every recipe line
@@ -68,6 +71,7 @@ registerNotification({
       return n + (hiveCost(def, built + 1).every((l) => wallet[l.key] >= l.amount) ? 1 : 0);
     }, 0);
   },
+  reason: (_s, n) => `${n} Hive organ${n === 1 ? '' : 's'} affordable`,
 });
 
 // Splice Market — a stock window the player hasn't seen yet (fresh goods landed). Uses the
@@ -77,6 +81,7 @@ registerNotification({
   id: 'market.stock',
   channel: 'market',
   count: (s) => (Math.max(marketWindow(Date.now()), s.market.window) > s.market.seenWindow ? 1 : 0),
+  reason: () => 'Fresh market stock landed',
 });
 
 // Premium Store — today's rotating pack hasn't been SEEN yet (opening the store stamps
@@ -85,6 +90,7 @@ registerNotification({
   id: 'store.rotation',
   channel: 'store',
   count: (s) => (s.premium.seenKey === dailyKey() ? 0 : 1),
+  reason: () => "Today's pack rotation unseen",
 });
 
 // Tower Lab — towers whose next star you can afford right now (drops as you buy them),
@@ -101,6 +107,7 @@ registerNotification({
       const cost = nextStarCost(s, k);
       return n + (cost !== null && (s.towerShards[k] ?? 0) >= cost ? 1 : 0);
     }, 0),
+  reason: (_s, n) => `${n} tower Star${n === 1 ? '' : 's'} affordable`,
 });
 
 // Equipment — newly acquired gear (the inventory grows as caches drop loot). Its own nav now.
@@ -108,6 +115,7 @@ registerNotification({
   id: 'heroes.equipment',
   channel: 'equipment',
   count: (s) => s.equipment.inventory.length,
+  reason: (_s, n) => `${n} new gear piece${n === 1 ? '' : 's'}`,
 });
 
 // Adaptation — unlocked units holding unspent Antigen (docs/ADAPTATION.md; a tier-1 rung is
@@ -121,6 +129,7 @@ registerNotification({
     for (const h of HERO_ORDER) if (isHeroUnlocked(s, h) && adaptationView(s, 'hero', h).pointsAvailable > 0) n++;
     return n;
   },
+  reason: (_s, n) => `${n} unit${n === 1 ? '' : 's'} holding unspent Antigen`,
 });
 
 // Expeditions — teams back from the field with unclaimed spoils (docs/EXPEDITIONS.md). Wall-clock
@@ -129,6 +138,7 @@ registerNotification({
   id: 'expeditions.claimable',
   channel: 'expeditions',
   count: (s) => s.expeditions.active.filter((e) => e.endsAt <= Date.now()).length,
+  reason: (_s, n) => `${n} expedition${n === 1 ? '' : 's'} returned with spoils`,
 });
 
 // Profile — achievements unlocked (their Shard rewards are auto-granted) since last viewed.
@@ -136,6 +146,7 @@ registerNotification({
   id: 'profile.achievements',
   channel: 'profile',
   count: (s) => (s.achievements ?? []).length,
+  reason: (_s, n) => `${n} achievement${n === 1 ? '' : 's'} unlocked`,
 });
 
 // Collection — codex entries newly discovered since last viewed.
@@ -143,6 +154,7 @@ registerNotification({
   id: 'collection.discovered',
   channel: 'collection',
   count: (s) => collectionView(collectionContextOf(s)).discovered,
+  reason: (_s, n) => `${n} codex entr${n === 1 ? 'y' : 'ies'} discovered`,
 });
 
 // Memory Archive — story cutscenes recovered since last viewed (docs/CUTSCENES.md §archive).
@@ -150,6 +162,7 @@ registerNotification({
   id: 'collection.memories',
   channel: 'collection',
   count: (s) => unlockedCutsceneIds(s).length,
+  reason: (_s, n) => `${n} memor${n === 1 ? 'y' : 'ies'} recovered`,
 });
 
 // Gene Archive — cards you can permanently upgrade RIGHT NOW (owned + gate met + affordable).
@@ -157,6 +170,7 @@ registerNotification({
   id: 'genes.upgradeable',
   channel: 'genes',
   count: (s) => geneArchiveRows(s).reduce((n, r) => n + (r.upgradeable ? 1 : 0), 0),
+  reason: (_s, n) => `${n} gene card${n === 1 ? '' : 's'} upgradeable now`,
 });
 
 // Season Pass — earned-but-unclaimed reward cells (docs/BATTLEPASS.md). Mirrors the claim
@@ -177,6 +191,7 @@ registerNotification({
     }
     return n;
   },
+  reason: (_s, n) => `${n} pass reward${n === 1 ? '' : 's'} earned, unclaimed`,
 });
 
 // Quest Board — missions + finales claimable RIGHT NOW across both lanes (docs/QUESTS.md).
@@ -197,6 +212,7 @@ registerNotification({
     }
     return n;
   },
+  reason: (_s, n) => `${n} quest reward${n === 1 ? '' : 's'} claimable`,
 });
 
 // Mastery Evolution Tracks (docs/MASTERY.md §evolution track) — units whose helix holds
@@ -209,6 +225,7 @@ registerNotification({
     const sig = evolutionRosterSignal(s, 'tower', k);
     return n + (sig.claimable > 0 || sig.ready ? 1 : 0);
   }, 0),
+  reason: (_s, n) => `${n} tower evolution track${n === 1 ? '' : 's'} ready`,
 });
 registerNotification({
   id: 'evolution.heroes',
@@ -217,4 +234,5 @@ registerNotification({
     const sig = evolutionRosterSignal(s, 'hero', k);
     return n + (sig.claimable > 0 || sig.ready ? 1 : 0);
   }, 0),
+  reason: (_s, n) => `${n} hero evolution track${n === 1 ? '' : 's'} ready`,
 });

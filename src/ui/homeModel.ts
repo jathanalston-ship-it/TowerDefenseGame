@@ -242,6 +242,7 @@ homeRegistry.register({ id: 'bio-cache', zone: 'main', order: 25, when: (s) => s
 homeRegistry.register({ id: 'live-events', zone: 'main', order: 30 }); // LiveOps calendar strip (docs/LIVEOPS.md)
 homeRegistry.register({ id: 'directives', zone: 'main', order: 35, when: (s) => featureRevealed(s, 'daily') }); // Weekly Directives ladder (docs/LIVEOPS.md §directives) — arrives with the weekly rhythm
 homeRegistry.register({ id: 'contracts', zone: 'main', order: 40, when: (s) => featureRevealed(s, 'daily') }); // Champion Contracts board (docs/CONTRACTS.md) — the weekly rhythm arrives with the daily one
+homeRegistry.register({ id: 'recommend', zone: 'side', order: 5, when: (s) => s.totalRuns > 0 }); // Recommended-now panel (docs/NOTIFICATIONS.md §recommendations) — the loop's next step leads the side column
 homeRegistry.register({ id: 'forecast', zone: 'side', order: 10, when: (s) => s.totalRuns > 0 });
 homeRegistry.register({ id: 'growth', zone: 'side', order: 15, when: (s) => featureRevealed(s, 'towers') }); // Power Atlas organ (docs/POWER-SCORE.md §atlas) — arrives with the first upgrade wing
 homeRegistry.register({ id: 'roadmap', zone: 'side', order: 20 });

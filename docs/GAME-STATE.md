@@ -1246,3 +1246,42 @@ the grant seam with a source string; unknown types still render (generic glyph c
 **Assumptions/limitations.** Toaster mounts at the menu only (runs never covered); held
 events survive only the session (a hard refresh mid-run drops the trail — the save is
 already true); merge window is wall-clock (Date.now), untestable via fake timers only.
+
+
+## Compressed system summary — Hub Navigation & Guidance (docs/NOTIFICATIONS.md §hubs)
+
+**Architecture.** The sidebar groups in `ui/navModel.ts` are BEHAVIOR HUBS in reward-loop
+order: MISSION (home/campaign/infinite/bossrush/daily) → REWARDS (quests/season/vault/
+expeditions/harvest — every claim surface in one place) → EVOLUTION (towers/heroes/
+evolution/adaptation/genes/mulligans/hive) → MARKET (market/equipment/gearcodex/
+phenotypes) → Store (own group, monetization separation) → PROFILE (profile/collection/
+help/settings). Portrait tabs derive from the same rows (Home/Battle/Rewards/Evolve/More);
+`groupOf(nav)` resolves ownership. Three intelligence layers ride the same registries:
+
+- **Reasons** (`NotificationSource.reason` + `notifications.reasons(save)`): every badge
+  states WHY — "3 Bio-Containers to open", never "(4)". Rendered in nav tooltips/aria,
+  landing attention rows, and index/card sublines (the WHY replaces the blurb).
+- **Recommendations** (`state/recommendations.ts`): ranked next actions derived from the
+  notification sources (channel → kind/score: claim > open > upgrade > spend > browse),
+  progression teasers ≥50% ("almost unlocked", routed at the gate), and a PLAY backstop —
+  the list is never empty (no dead ends). `registerRecSource` for bespoke candidates;
+  unknown channels still surface as 'browse'.
+- **Landings** (`ui/HubLanding.tsx`): group headers are buttons → landing page (identity +
+  completion % + attention strip + recommendation panel + registry-driven screen grid +
+  recently-unlocked shelf from `director.revealed`). Mobile tab indexes render the same
+  intelligence compactly. Command Center gained the 'recommend' side widget; `NextUp`
+  chains claim-surface empty states (vault empty, harvest warming) to the next action.
+
+**Public APIs.** `navGroups()` rows now carry `hub: {glyph, blurb}`; `groupOf(k)`;
+`notifications.reasons(save)`; `recommendationsFor(save, {navs?, limit?})`;
+`registerRecSource`; `<HubLanding/>`, `<RecommendStrip/>`, `<NextUp/>`, `recentlyUnlocked`.
+
+**Extension points.** A new screen = one navModel row (inherits grouping, tabs, landing
+card, badges, mobilecheck contracts). A new notification with `reason` = badge + tooltip +
+attention row + recommendation, all free. A new hub = one group row + one TAB_OF_GROUP
+mapping.
+
+**Assumptions/limitations.** Landing state is desktop-only UI state (mobile index pages ARE
+the landings); recommendations read device-local watermarks (a seen badge stops recommending
+until it re-lights); the play backstop always routes to the Campaign; hub completion = mean
+of member rings that exist (screens without a metric are excluded).

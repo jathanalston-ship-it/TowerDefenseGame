@@ -12,6 +12,8 @@ import type { IdleHarvestReceipt, IdleHarvestView, IdleNodeView } from '../state
 import { fmtIdleHours } from '../state/meta';
 import { IDLE } from '../core/config';
 import { audio } from '../audio/sound';
+import { NextUp } from './HubLanding';
+import { navBus } from '../state/navBus';
 import { CurrencyIcon } from './components/CurrencyIcon';
 
 function pct(n: number): number { return Math.max(0, Math.min(100, Math.round(n * 100))); }
@@ -155,6 +157,8 @@ export function HarvestScreen(): JSX.Element {
           >
             {v.collectable ? 'HARVEST' : `Warming — ready in ${Math.max(1, Math.ceil(IDLE.minCollectMinutes - a.rawHours * 60))}m`}
           </button>
+          {/* No dead ends: a warming hopper immediately points at the loop's next step. */}
+          {!v.collectable && <NextUp save={meta.get()} exclude="harvest" go={(k) => navBus.go(k)} />}
         </div>
       </section>
 

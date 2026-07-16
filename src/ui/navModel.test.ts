@@ -35,7 +35,7 @@ describe('navModel — portrait tab shell contract', () => {
   it('the bar stays a five-tab thumb layout with short labels and glyphs', () => {
     const tabs = mobileTabs();
     expect(tabs.length).toBe(5);
-    expect(tabs.map((tb) => tb.key)).toEqual(['home', 'battle', 'evolve', 'armory', 'more']);
+    expect(tabs.map((tb) => tb.key)).toEqual(['home', 'battle', 'rewards', 'evolve', 'more']);
     for (const tb of tabs) {
       expect(tb.label.length, `tab '${tb.key}' label '${tb.label}' must fit under a glyph`).toBeLessThanOrEqual(10);
       expect(tb.glyph.length).toBeGreaterThan(0);

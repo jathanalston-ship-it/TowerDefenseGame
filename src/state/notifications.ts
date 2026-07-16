@@ -23,6 +23,10 @@ export interface NotificationSource {
   channel: string;
   /** How many noteworthy things exist right now. Pure function of the save. */
   count: (save: SaveData) => number;
+  /** The WHY behind the number (docs/NOTIFICATIONS.md §reasons) — a short human phrase for
+   *  the unseen count, e.g. "3 Bio-Containers to open". Smart notifications render these
+   *  instead of bare dots; omit for sources whose channel name already says it all. */
+  reason?: (save: SaveData, unseen: number) => string;
 }
 
 const sources: NotificationSource[] = [];
@@ -66,6 +70,22 @@ export const notifications = {
       const ack = Math.min(seen[s.id] ?? 0, count); // never "seen" more than currently exist
       const unseen = count - ack;
       if (unseen > 0) out[s.channel] = (out[s.channel] ?? 0) + unseen;
+    }
+    return out;
+  },
+
+  /** The WHY lines per channel (docs/NOTIFICATIONS.md §reasons): every source with an
+   *  unacknowledged count contributes its human phrase — "3 Bio-Containers to open ·
+   *  Daily Bio-Cache sealed" beats "(4)". Channels with nothing new are omitted; sources
+   *  without a reason fall back to "N new". Pure read, same clamping as badges(). */
+  reasons(save: SaveData): Record<string, string[]> {
+    const seen = seenStore.get();
+    const out: Record<string, string[]> = {};
+    for (const s of sources) {
+      const count = Math.max(0, s.count(save));
+      const unseen = count - Math.min(seen[s.id] ?? 0, count);
+      if (unseen <= 0) continue;
+      (out[s.channel] ??= []).push(s.reason ? s.reason(save, unseen) : `${unseen} new`);
     }
     return out;
   },

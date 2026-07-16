@@ -10,15 +10,17 @@
 import type { CSSProperties } from 'react';
 import type { SaveData } from '../save/saveStore';
 import { featureRevealed, featureView, type FeatureView } from '../state/unlocks';
+import { recommendationsFor } from '../state/recommendations';
 import { audio } from '../audio/sound';
 import { mobileTabs, type MobileTab, type MobileTabKey, type NavKey } from './navModel';
+import { RecommendStrip } from './HubLanding';
 
 /** Per-tab accents echo the desktop rail's group accents (same intent groups). */
 const TAB_ACCENT: Record<MobileTabKey, string> = {
   home: 'var(--vital)',
   battle: 'var(--vital)',
+  rewards: 'var(--gold)',
   evolve: 'var(--kinetic)',
-  armory: 'var(--gold)',
   more: 'var(--muted)',
 };
 
@@ -64,6 +66,7 @@ export function MobileTabIndex({
   tab,
   save,
   badges,
+  reasons,
   progress,
   teaserOf,
   go,
@@ -71,22 +74,29 @@ export function MobileTabIndex({
   tab: MobileTab;
   save: SaveData;
   badges: Partial<Record<string, number>>;
+  reasons: Record<string, string[]>;
   progress: Partial<Record<string, number>>;
   teaserOf: ReadonlyMap<string, FeatureView>;
   go: (k: NavKey) => void;
 }): JSX.Element {
   // Same gating as the desktop rail: revealed screens + the next-reveal teasers, nothing deeper.
   const rows = tab.navs.filter((k) => featureRevealed(save, k) || teaserOf.has(k));
+  // The tab index doubles as the hub's landing on phones: recommendations scoped to this
+  // tab's screens lead (compact rows — the WHY rides the screen rows themselves below).
+  const recs = recommendationsFor(save, { navs: tab.navs, limit: 2 })
+    .filter((r) => r.kind !== 'play' || tab.navs.includes('campaign'));
   return (
     <div className="mnav-index" data-mindex={tab.key}>
       <div className="mnav-index-h">
         <span className="mnav-index-glyph" aria-hidden>{tab.glyph}</span>
         {tab.label}
       </div>
+      <RecommendStrip recs={recs} go={go} compact />
       {rows.map((k) => {
         const view = featureView(save, k);
         const teaser = teaserOf.get(k);
         const badge = teaser ? 0 : badges[k] ?? 0;
+        const why = (reasons[k] ?? []).join(' · ');
         const ring = teaser ? teaser.progress : progress[k];
         return (
           <button
@@ -94,7 +104,7 @@ export function MobileTabIndex({
             data-nav={k}
             className={`mnav-row${teaser ? ' is-locked' : ''}`}
             onClick={() => go(k)}
-            aria-label={teaser ? `${view.def.name} — locked. ${teaser.label}` : badge > 0 ? `${view.def.name} — ${badge} new` : view.def.name}
+            aria-label={teaser ? `${view.def.name} — locked. ${teaser.label}` : why ? `${view.def.name} — ${why}` : view.def.name}
           >
             <span className="mnav-glyph" aria-hidden>{view.def.glyph}</span>
             <span className="mnav-body">
@@ -102,9 +112,11 @@ export function MobileTabIndex({
                 {view.def.name}
                 {badge > 0 && <span className="nav-badge is-inline" aria-hidden>{badge > 9 ? '9+' : badge > 1 ? badge : ''}</span>}
               </span>
-              {/* Locked rows put the REQUIREMENT where the blurb goes — the row itself teaches
-                  the path in, exactly like the desktop teaser tooltip (but always visible). */}
-              <span className="mnav-blurb">{teaser ? `Sealed — ${teaser.label}` : view.def.blurb}</span>
+              {/* The subline is a ladder: a locked row teaches its REQUIREMENT, a row with
+                  news states the smart-notification WHY, a quiet row keeps its blurb. */}
+              <span className={`mnav-blurb${!teaser && why ? ' is-why' : ''}`}>
+                {teaser ? `Sealed — ${teaser.label}` : why || view.def.blurb}
+              </span>
             </span>
             <span className="mnav-end" aria-hidden>
               {teaser ? <span className="mnav-lock">🔒</span> : ring != null && ring >= 0.005 ? <span className="mnav-pct">{Math.round(ring * 100)}%</span> : null}

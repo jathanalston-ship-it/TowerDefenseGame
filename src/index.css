@@ -5688,6 +5688,71 @@ kbd {
   padding: 0 12px 2px;
   user-select: none;
 }
+/* Hub landing front doors (docs/NOTIFICATIONS.md §hubs): the header is a button — hover
+   brightens, the chevron appears, the aggregate badge counts the whole hub. */
+button.hub-navgroup-h.is-link {
+  display: flex; align-items: center; gap: 5px;
+  background: none; border: 0; cursor: pointer; text-align: left; width: 100%;
+  transition: color var(--dur-2);
+}
+button.hub-navgroup-h.is-link:hover,
+button.hub-navgroup-h.is-link.on { color: var(--nav-accent); }
+.hub-navgroup-chev { opacity: 0; margin-left: auto; font-size: 11px; transition: opacity var(--dur-2); }
+button.hub-navgroup-h.is-link:hover .hub-navgroup-chev,
+button.hub-navgroup-h.is-link.on .hub-navgroup-chev { opacity: 0.9; }
+
+/* ── Hub landing pages (ui/HubLanding.tsx) ─────────────────────────────────── */
+.hubl { display: flex; flex-direction: column; gap: 14px; max-width: 980px; }
+.hubl-head { display: flex; align-items: center; gap: 14px; padding: 14px 16px; border: 1px solid color-mix(in srgb, var(--hub-accent) 35%, var(--line)); border-radius: var(--r-lg); background: linear-gradient(135deg, color-mix(in srgb, var(--hub-accent) 9%, transparent), transparent 60%); }
+.hubl-glyph { font-size: 34px; color: var(--hub-accent); text-shadow: 0 0 18px color-mix(in srgb, var(--hub-accent) 55%, transparent); }
+.hubl-title { margin: 0; font-size: 20px; letter-spacing: 0.08em; }
+.hubl-blurb { margin: 2px 0 0; font-size: 13px; color: var(--muted); line-height: 1.4; }
+.hubl-done { margin-left: auto; font-size: 11px; color: var(--muted); white-space: nowrap; }
+.hubl-done b { font-size: 16px; color: var(--hub-accent); margin-right: 3px; }
+.hubl-sec { display: flex; flex-direction: column; gap: 7px; }
+.hubl-sec-h { font-size: 11px; font-weight: 800; letter-spacing: 0.2em; text-transform: uppercase; color: color-mix(in srgb, var(--hub-accent) 60%, var(--muted)); }
+.hubl-quiet { margin: 0; font-size: 12px; color: var(--muted); font-style: italic; }
+.hubl-att { display: flex; flex-direction: column; gap: 5px; }
+.hubl-att-row { display: flex; align-items: center; gap: 10px; padding: 8px 12px; border: 1px solid color-mix(in srgb, var(--gold) 30%, var(--line)); border-radius: var(--r-md); background: color-mix(in srgb, var(--gold) 5%, transparent); cursor: pointer; text-align: left; transition: border-color var(--dur-2), background var(--dur-2); }
+.hubl-att-row:hover { border-color: var(--gold); background: color-mix(in srgb, var(--gold) 10%, transparent); }
+.hubl-att-l { font-size: 13px; font-weight: 700; color: var(--gold); }
+.hubl-att-in { margin-left: auto; font-size: 11px; color: var(--muted); white-space: nowrap; }
+.hubl-recs { display: flex; flex-direction: column; gap: 5px; }
+.hubl-rec { display: flex; align-items: center; gap: 10px; padding: 8px 12px; border: 1px solid var(--line); border-radius: var(--r-md); background: var(--panel); cursor: pointer; text-align: left; transition: border-color var(--dur-2), transform var(--dur-2); }
+.hubl-rec:hover { border-color: var(--viral); transform: translateX(2px); }
+.hubl-rec-k { font-size: 10px; font-weight: 800; letter-spacing: 0.14em; padding: 2px 7px; border-radius: var(--r-xs); background: color-mix(in srgb, var(--viral) 16%, transparent); color: var(--viral); white-space: nowrap; }
+.hubl-rec[data-reckind='claim'] .hubl-rec-k, .hubl-rec[data-reckind='open'] .hubl-rec-k { background: color-mix(in srgb, var(--gold) 16%, transparent); color: var(--gold); }
+.hubl-rec[data-reckind='play'] .hubl-rec-k { background: color-mix(in srgb, var(--vital) 16%, transparent); color: var(--vital); }
+.hubl-rec-body { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.hubl-rec-l { font-size: 13px; font-weight: 700; }
+.hubl-rec-w { font-size: 11px; color: var(--muted); line-height: 1.35; }
+.hubl-rec-go { margin-left: auto; color: var(--muted); font-size: 14px; }
+.hubl-recs.is-compact .hubl-rec { padding: 6px 10px; }
+.hubl-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 8px; }
+.hubl-card { position: relative; display: flex; flex-direction: column; gap: 4px; padding: 11px 13px 13px; border: 1px solid var(--line); border-radius: var(--r-md); background: var(--panel); cursor: pointer; text-align: left; transition: border-color var(--dur-2), transform var(--dur-2); }
+.hubl-card:hover { border-color: var(--hub-accent); transform: translateY(-1px); }
+.hubl-card.has-news { border-color: color-mix(in srgb, var(--gold) 45%, var(--line)); }
+.hubl-card.is-locked { opacity: 0.75; }
+.hubl-card-glyph { font-size: 18px; color: var(--hub-accent); }
+.hubl-card-name { display: flex; align-items: center; gap: 6px; font-size: 14px; font-weight: 800; }
+.hubl-card-lock { font-size: 11px; }
+.hubl-card-sub { font-size: 11px; color: var(--muted); line-height: 1.4; }
+.hubl-card-sub.is-why { color: var(--gold); font-weight: 600; }
+.hubl-card-ring { display: block; height: 3px; border-radius: 999px; background: color-mix(in srgb, var(--line) 60%, transparent); overflow: hidden; margin-top: 3px; }
+.hubl-card-ring i { display: block; height: 100%; background: var(--hub-accent); border-radius: inherit; }
+.hubl-fresh { display: flex; flex-wrap: wrap; gap: 6px; }
+.hubl-fresh-chip { display: inline-flex; align-items: center; gap: 6px; padding: 5px 11px; font-size: 12px; font-weight: 700; border: 1px solid color-mix(in srgb, var(--viral) 40%, var(--line)); border-radius: 999px; background: color-mix(in srgb, var(--viral) 8%, transparent); cursor: pointer; transition: border-color var(--dur-2); }
+.hubl-fresh-chip:hover { border-color: var(--viral); }
+.hubl-nextup { display: flex; flex-direction: column; gap: 6px; margin-top: 10px; }
+.hubl-nextup-h { font-size: 10px; font-weight: 800; letter-spacing: 0.2em; text-transform: uppercase; color: var(--muted); }
+.cc-recommend { display: flex; flex-direction: column; gap: 7px; }
+.mnav-blurb.is-why { color: var(--gold); font-weight: 600; }
+@media (max-width: 480px) {
+  .hubl-head { padding: 11px 12px; gap: 10px; }
+  .hubl-glyph { font-size: 26px; }
+  .hubl-title { font-size: 16px; }
+  .hubl-grid { grid-template-columns: 1fr 1fr; }
+}
 
 .hub-navitem {
   position: relative;

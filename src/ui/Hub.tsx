@@ -59,9 +59,10 @@ import { applyWardrobeDressing } from './wardrobeDressing';
 import { LabAtmosphere } from './LabAtmosphere';
 import { labState } from './homeBaseTiers';
 import { PowerBadge } from './components/PowerScore';
-import { navGroups, mobileTabs, tabOf, type NavKey, type MobileTabKey } from './navModel';
+import { navGroups, mobileTabs, tabOf, type NavKey, type NavGroupId, type MobileTabKey } from './navModel';
 import { MobileTabBar, MobileTabIndex, MobilePageHead } from './MobileShell';
 import { useLayoutProfile } from './layoutProfile';
+import { HubLanding } from './HubLanding';
 
 // The nav IA (groups + portrait tabs) lives in navModel.ts — the single source of truth this
 // shell, the portrait shell, and the validation layer (navModel.test / mobilecheck) all share.
@@ -199,6 +200,9 @@ export function Hub({
   doctrineRef: MutableRefObject<string>;
 }): JSX.Element {
   const [nav, setNav] = useState<NavKey>('home');
+  // Desktop hub landings (docs/NOTIFICATIONS.md §hubs): clicking a group HEADER opens the
+  // hub's landing page in the content area; picking any screen (or landing row) clears it.
+  const [landing, setLanding] = useState<NavGroupId | null>(null);
   useLocale(); // nav labels re-resolve on language switch
   const [navOpen, setNavOpen] = useState(false); // narrow-shell drawer (docs/RESPONSIVE-DESIGN.md)
   // Portrait shell (docs/RESPONSIVE-DESIGN.md §mobile-shell): bottom tabs + index pages replace
@@ -215,6 +219,9 @@ export function Hub({
   // Derived rail state — recomputed only when the save snapshot (or an ack) changes, not on
   // every shell render; navProgress walks every tower/hero/upgrade/card.
   const badges = useMemo(() => notifications.badges(save), [save, ackTick]);
+  // Smart-notification REASONS (docs/NOTIFICATIONS.md §reasons) — the WHY behind every badge,
+  // rendered as nav tooltips, landing "needs attention" rows, and index-row sublines.
+  const reasons = useMemo(() => notifications.reasons(save), [save, ackTick]);
   const progress = useMemo(() => navProgress(save), [save]); // 0..1 completion rings per menu
   // Progression gating (docs/PROGRESSION-GATING.md): the nav lists REVEALED screens plus the
   // next two upcoming reveals as locked TEASERS (anticipation with live progress); everything
@@ -268,8 +275,16 @@ export function Hub({
     notifications.markSeen(k, save); // viewing a menu clears its badge immediately
     meta.noteNavVisit(k); // exposure ledger (docs/PROGRESSION-GATING.md §director)
     setNav(k);
+    setLanding(null); // a concrete destination leaves any hub landing
     setNavOpen(false); // picking a destination closes the narrow-shell drawer
     setMIndex(false); // and leaves any portrait index page
+  };
+
+  /** Open a hub's landing page (desktop group headers; landing rows drill in via go). */
+  const goLanding = (id: NavGroupId): void => {
+    audio.cue('ui');
+    setLanding(id);
+    setNavOpen(false);
   };
 
   // Portrait tab bar: HOME jumps straight to the Command Center; the rest open their index page.
@@ -315,13 +330,31 @@ export function Hub({
             // with nothing revealed stays silent.
             const items = group.items.filter((n) => navVisible(n.key));
             if (items.length === 0) return null;
+            // The header is the hub's front door: its badge aggregates the members, its
+            // tooltip lists the member REASONS, and clicking it opens the landing page.
+            const groupBadge = items.reduce((n, it) => n + (teaserOf.has(it.key) ? 0 : badges[it.key] ?? 0), 0);
+            const groupWhy = items.flatMap((it) => reasons[it.key] ?? []).join(' · ');
             return (
             <div
               className={`hub-navgroup${group.compact ? ' is-compact' : ''}`}
-              key={group.title}
+              key={group.id}
               style={{ ['--nav-accent' as string]: group.accent } as CSSProperties}
             >
-              {!group.headerless && <div className="hub-navgroup-h" aria-hidden>{group.title}</div>}
+              {!group.headerless && (
+                <button
+                  type="button"
+                  data-hub={group.id}
+                  className={`hub-navgroup-h is-link${landing === group.id ? ' on' : ''}`}
+                  onClick={() => goLanding(group.id)}
+                  onPointerEnter={() => audio.cue('hover')}
+                  title={groupWhy || group.hub.blurb}
+                  aria-label={groupWhy ? `${group.title} — ${groupWhy}` : group.title}
+                >
+                  {group.title}
+                  {groupBadge > 0 && <span className="nav-badge is-inline" aria-hidden>{groupBadge > 9 ? '9+' : groupBadge}</span>}
+                  <span className="hub-navgroup-chev" aria-hidden>›</span>
+                </button>
+              )}
               {group.compact && <div className="hub-navrow">{items.map((n) => {
                 const teaser = teaserOf.get(n.key);
                 const badge = teaser ? 0 : (badges[n.key] ?? 0);
@@ -358,8 +391,8 @@ export function Hub({
                     onClick={() => go(n.key)}
                     onPointerEnter={() => audio.cue('hover')}
                     aria-current={nav === n.key ? 'page' : undefined}
-                    aria-label={teaser ? `${n.label} — locked. ${teaser.label}` : badge > 0 ? `${n.label} — ${badge} new` : undefined}
-                    title={teaser ? teaser.label : undefined}
+                    aria-label={teaser ? `${n.label} — locked. ${teaser.label}` : badge > 0 ? `${n.label} — ${(reasons[n.key] ?? [`${badge} new`]).join(' · ')}` : undefined}
+                    title={teaser ? teaser.label : badge > 0 ? (reasons[n.key] ?? []).join(' · ') || undefined : undefined}
                   >
                     <span
                       className={`hub-mono ${ring != null ? 'has-ring' : ''}`}
@@ -408,12 +441,23 @@ export function Hub({
           )}
         </header>
 
-        <section className="hub-screen" key={mobileShell && mIndex ? `midx-${mTab}` : nav}>
-          {mobileShell && mIndex ? (
+        <section className="hub-screen" key={mobileShell && mIndex ? `midx-${mTab}` : landing ?? nav}>
+          {!mobileShell && landing !== null ? (
+            <HubLanding
+              group={navGroups().find((g) => g.id === landing) ?? navGroups()[0]}
+              save={save}
+              badges={badges}
+              reasons={reasons}
+              progress={progress}
+              teaserOf={teaserOf}
+              go={go}
+            />
+          ) : mobileShell && mIndex ? (
             <MobileTabIndex
               tab={mobileTabs().find((tb) => tb.key === mTab) ?? mobileTabs()[0]}
               save={save}
               badges={badges}
+              reasons={reasons}
               progress={progress}
               teaserOf={teaserOf}
               go={go}

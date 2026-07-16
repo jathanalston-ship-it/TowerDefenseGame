@@ -1,0 +1,116 @@
+// RECOMMENDATION ENGINE (docs/NOTIFICATIONS.md §recommendations) — "what should I do next?"
+// answered as a ranked list of concrete actions, rendered by the hub landing pages and the
+// Command Center. Foundational by construction: the candidates DERIVE from registries that
+// already exist — every notification source with a reason() is automatically a candidate
+// (its channel classifies the action), progression teasers surface as "almost unlocked"
+// pulls, and a play action backstops the list so it is NEVER empty (no dead ends — the
+// reward loop always has a next step). A future system that registers a notification gets
+// recommended for free; bespoke candidates are one registerRecSource() call.
+//
+// Pure over SaveData (device-local watermarks ride along via notifications.reasons).
+
+import { notifications } from './notifications';
+import './notificationSources'; // the default sources are this engine's candidate pool — register them
+import { nextReveals } from './unlocks';
+import { highestCampaignStage } from '../save/derive';
+import type { SaveData } from '../save/saveStore';
+import type { NavKey } from '../ui/navModel';
+
+export type RecKind = 'claim' | 'open' | 'spend' | 'upgrade' | 'play' | 'unlock' | 'browse';
+
+export interface Recommendation {
+  id: string;
+  nav: NavKey; // where the action lives (the jump target)
+  kind: RecKind;
+  label: string; // the action, e.g. "3 quest rewards claimable"
+  why: string; // one-line context under the label
+  score: number; // rank weight — claims beat spends beat browsing
+}
+
+/** How each notification CHANNEL classifies as an action. Score encodes the reward-loop
+ *  order (PLAY → CLAIM → OPEN → SPEND → UPGRADE): claiming earned rewards always outranks
+ *  spending, which outranks browsing news. A channel not listed here still surfaces (as
+ *  'browse', modest score) — new systems are recommended without touching this file. */
+const CHANNEL_CLASS: Partial<Record<string, { kind: RecKind; score: number; why: string }>> = {
+  quests: { kind: 'claim', score: 90, why: 'Earned rewards are waiting on the Quest Board' },
+  season: { kind: 'claim', score: 88, why: 'Season Pass levels are earned but unclaimed' },
+  expeditions: { kind: 'claim', score: 86, why: 'Returned teams hold their spoils until you debrief' },
+  harvest: { kind: 'claim', score: 84, why: 'The Hive kept producing while you were away' },
+  vault: { kind: 'open', score: 80, why: 'Banked containers do nothing until cracked' },
+  towers: { kind: 'upgrade', score: 60, why: 'Affordable upgrades are idle power' },
+  heroes: { kind: 'upgrade', score: 58, why: 'A champion is ready to grow' },
+  genes: { kind: 'upgrade', score: 56, why: 'Permanent card upgrades are affordable now' },
+  adaptation: { kind: 'upgrade', score: 54, why: 'Unspent Antigen is idle power' },
+  hive: { kind: 'spend', score: 50, why: 'An organ tier is within budget' },
+  equipment: { kind: 'spend', score: 46, why: 'New gear is sitting unequipped' },
+  market: { kind: 'spend', score: 40, why: 'Stock rotates on a timer — good lots expire' },
+  store: { kind: 'browse', score: 20, why: "Today's rotation hasn't been seen" },
+  collection: { kind: 'browse', score: 16, why: 'New codex entries to inspect' },
+  profile: { kind: 'browse', score: 14, why: 'Fresh milestones on your record' },
+};
+
+export interface RecSource { id: string; recs(save: SaveData): Recommendation[] }
+
+const extraSources: RecSource[] = [];
+
+/** Register a bespoke recommendation source (idempotent by id). Most systems never need
+ *  this — a notification source with a reason() is already recommended. */
+export function registerRecSource(src: RecSource): void {
+  if (extraSources.some((s) => s.id === src.id)) return;
+  extraSources.push(src);
+}
+
+/** Ranked recommendations. `navs` filters to one hub's screens (landing pages);
+ *  `limit` caps the list (default 3). The list is never empty: a PLAY action backstops. */
+export function recommendationsFor(
+  save: SaveData,
+  opts: { navs?: readonly NavKey[]; limit?: number } = {},
+): Recommendation[] {
+  const out: Recommendation[] = [];
+
+  // 1) Every unseen notification, classified by its channel (reasons are the labels).
+  const reasons = notifications.reasons(save);
+  for (const [channel, lines] of Object.entries(reasons)) {
+    const cls = CHANNEL_CLASS[channel] ?? { kind: 'browse' as RecKind, score: 12, why: 'Something new landed here' };
+    out.push({
+      id: `notif:${channel}`,
+      nav: channel as NavKey,
+      kind: cls.kind,
+      label: lines.join(' · '),
+      why: cls.why,
+      score: cls.score + Math.min(6, lines.length), // stacked reasons nudge upward, never dominate
+    });
+  }
+
+  // 2) Almost-unlocked features pull forward (anticipation → guidance). Stage-gated teasers
+  //    route to the Campaign — the action is playing toward the gate, not staring at a lock.
+  for (const teaser of nextReveals(save, 2)) {
+    if (teaser.progress < 0.5) continue;
+    out.push({
+      id: `unlock:${teaser.def.id}`,
+      nav: (teaser.label.includes('Stage') ? 'campaign' : 'home') as NavKey,
+      kind: 'unlock',
+      label: `Almost unlocked — ${teaser.def.name}`,
+      why: teaser.label || teaser.def.blurb,
+      score: 30 + Math.round(teaser.progress * 20), // 80% there ≈ a mid spend action
+    });
+  }
+
+  // 3) Bespoke registered sources.
+  for (const src of extraSources) out.push(...src.recs(save));
+
+  // 4) The play backstop — the loop's re-entry. Always present, lowest urgency.
+  const stage = highestCampaignStage(save);
+  out.push({
+    id: 'play:next',
+    nav: 'campaign',
+    kind: 'play',
+    label: stage > 0 ? `Push Campaign Stage ${stage + 1}` : 'Launch your first mission',
+    why: 'Runs feed every other system — cores, XP, loot, quest progress',
+    score: 10,
+  });
+
+  const scoped = opts.navs ? out.filter((r) => opts.navs!.includes(r.nav)) : out;
+  const pool = scoped.length > 0 ? scoped : out.filter((r) => r.kind === 'play'); // a quiet hub still guides somewhere
+  return pool.sort((a, b) => b.score - a.score).slice(0, opts.limit ?? 3);
+}

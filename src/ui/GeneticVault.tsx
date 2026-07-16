@@ -10,6 +10,8 @@ import type { CrackedContainer } from '../state/meta';
 import { RARITIES, costOf, rarityRegistry } from '../core/loot';
 import { VaultReveal } from './VaultReveal';
 import { BioCacheCard } from './BioCache';
+import { NextUp } from './HubLanding';
+import { navBus } from '../state/navBus';
 import { compareItemPower } from '../state/itemPower';
 import { recordVaultOpen, vaultLedger } from '../state/prefs';
 
@@ -129,7 +131,11 @@ export function GeneticVault(): JSX.Element {
       <div className="vault-ready" data-guide="vault-ready">
         <div className="vault-h">Ready to crack {pending.length > 0 && <b style={{ color: 'var(--gold)' }}>· {pending.length}</b>}</div>
         {pending.length === 0 ? (
-          <div className="vault-empty">No containers ready — fill the meter in a run to earn one.</div>
+          <div className="vault-empty">
+            No containers ready — fill the meter in a run to earn one.
+            {/* No dead ends: an empty vault immediately offers the loop's next step. */}
+            <NextUp save={save} exclude="vault" go={(k) => navBus.go(k)} />
+          </div>
         ) : (
           <>
             <div className="vault-objects">
