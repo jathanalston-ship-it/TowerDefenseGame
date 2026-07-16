@@ -100,6 +100,47 @@ export function setLabPrefs(patch: Partial<LabPrefs>): LabPrefs {
   return next;
 }
 
+// ── List-organization prefs (state/listOrg.ts) — per-SURFACE sort/filter/group choices.
+// Device-local curation exactly like the Lab bench prefs: how THIS player arranges each
+// long list, never progression. The query is deliberately NOT persisted (a stale search
+// silently hiding everything on return is a trap).
+const LISTORG_KEY = 'assimilate.listorg';
+
+export interface ListOrgPrefs {
+  sort?: string;
+  filters?: string[];
+  group?: string | null;
+  collapsed?: string[];
+}
+
+export function listOrgPrefs(surface: string): ListOrgPrefs {
+  try {
+    const all = JSON.parse(localStorage.getItem(LISTORG_KEY) ?? '{}') as Record<string, ListOrgPrefs>;
+    const raw = all[surface];
+    if (!raw || typeof raw !== 'object') return {};
+    return {
+      sort: typeof raw.sort === 'string' ? raw.sort : undefined,
+      filters: Array.isArray(raw.filters) ? raw.filters.filter((f) => typeof f === 'string') : undefined,
+      group: typeof raw.group === 'string' ? raw.group : raw.group === null ? null : undefined,
+      collapsed: Array.isArray(raw.collapsed) ? raw.collapsed.filter((f) => typeof f === 'string') : undefined,
+    };
+  } catch {
+    return {};
+  }
+}
+
+export function setListOrgPrefs(surface: string, patch: Partial<ListOrgPrefs>): ListOrgPrefs {
+  const next = { ...listOrgPrefs(surface), ...patch };
+  try {
+    const all = JSON.parse(localStorage.getItem(LISTORG_KEY) ?? '{}') as Record<string, ListOrgPrefs>;
+    all[surface] = next;
+    localStorage.setItem(LISTORG_KEY, JSON.stringify(all));
+  } catch {
+    /* storage unavailable */
+  }
+  return next;
+}
+
 // ── Genetic Vault ledger — session-spanning opening history + counters (device-local;
 // presentation only, never progression). Capped list so it can't grow unbounded.
 const VAULT_KEY = 'assimilate.vault';

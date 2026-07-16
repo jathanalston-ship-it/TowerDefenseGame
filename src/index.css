@@ -7138,6 +7138,25 @@ kbd {
 .ga-gates-k { color: var(--text); } .ga-gates-k b { color: var(--gold); }
 .ga-gates-next { color: var(--muted); } .ga-gates-next b { color: var(--kinetic); }
 .ga-gates-up { color: var(--success); font-weight: 700; }
+/* ── Shared list-control row (ui/components/ListControls — state/listOrg.ts): the ONE
+   visual language for search/chips/sort/view on every long-list screen. Mirrors the Gene
+   Archive controls (the reference) so adopting the framework changes nothing visually. ── */
+.lc-row { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin: 4px 0 12px; }
+.lc-search { flex: 0 1 220px; padding: 6px 12px; border-radius: var(--r-sm); background: var(--panel-2); border: 1px solid var(--line); color: var(--text); font-size: 12px; }
+.lc-search:focus { border-color: var(--caustic); outline: none; }
+.lc-chips, .lc-views { display: flex; flex-wrap: wrap; gap: 5px; }
+.lc-chip { padding: 4px 10px; border-radius: 999px; background: rgba(255, 255, 255, 0.04); border: 1px solid var(--line); font-size: 11px; color: var(--muted); }
+.lc-chip.on { border-color: var(--caustic); color: var(--caustic); background: color-mix(in srgb, var(--caustic) 10%, transparent); }
+.lc-sort { margin-left: auto; display: inline-flex; align-items: center; gap: 6px; font-size: 11px; color: var(--muted); }
+.lc-shown { font-size: 11px; color: var(--muted); font-weight: 700; }
+/* Collapsible group fold (the ga-folder pattern, shared): header button + count. */
+.lc-group { border: 1px solid var(--line); border-radius: var(--r-md); background: var(--panel-2); }
+.lc-group + .lc-group { margin-top: 8px; }
+.lc-group-h { display: flex; align-items: center; gap: 8px; width: 100%; padding: 8px 12px; background: none; border: 0; color: var(--text); font-size: 12px; font-weight: 700; cursor: pointer; text-align: left; }
+.lc-group-arrow { color: var(--muted); font-size: 10px; }
+.lc-group-count { margin-left: auto; font-size: 11px; color: var(--muted); }
+.lc-group-body { padding: 4px 8px 8px; }
+
 .ga-controls { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin: 4px 0 12px; }
 .ga-search { flex: 0 1 220px; padding: 6px 12px; border-radius: var(--r-sm); background: var(--panel-2); border: 1px solid var(--line); color: var(--text); font-size: 12px; }
 .ga-search:focus { border-color: var(--caustic); outline: none; }
