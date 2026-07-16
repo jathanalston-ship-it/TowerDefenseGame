@@ -3,22 +3,21 @@
 > Maintained at the END of every session (paired with `docs/AI_HANDOFF.md` — the constitution's
 > workflow step 4). This is the "where are we?" answer; `docs/GAME-STATE.md` remains the deeper
 > per-system built-vs-planned index, `docs/PROJECT_MANIFEST.md` the system map.
-> **Last updated:** 2026-07-16 (**REWARD TOAST VOCABULARY + CEREMONY TIERS** — the claim
-> popup's foundational layer (docs/NOTIFICATIONS.md §vocab/§tiers/§merge/§dismiss):
-> `src/state/rewardVocab.ts` registry (18 reward kinds — glyph/name/base tier/mergeable/label
-> format; **a future reward type is one data row**), receipt lines kind/qty-stamped in
-> `meta.applyRewardList` (quests/pass/directives inherit free), receipt tier = loudest line
-> (rarity escalates the whole card), pure `coalesce()` merges rapid identical receipts into
-> one rising total (+100/+250/+75 → "425 Genome Cores"; re-keyed entrance + re-armed dwell),
-> RewardToaster hero placard (one quantified line ⇒ 26px `+qty` headline under the medal),
-> tier-scaled ceremony (rare halo · epic spore spray · legendary screen wash + 8s dwell),
-> single-voiced tier audio for `sound:true` receipts, dismissal everywhere (click · 24px ✕ ·
-> swipe on the independent `translate` property · Clear all past two queued · reduced-motion
-> stilled). Splice Market trades — the ONE silent reward source — now present the popup with
-> the slot's rarity tier. Suite 2158 green, validate PASS, live headless market-purchase
-> probe on the real bundle (placard/tier/✕/queue chip; buys spaced past the 700ms
-> `market.buy` anti-macro cooldown). Batch rebased cleanly over the parallel session's
-> container-clutch + list-organization work. Previous session below.)
+> **Last updated:** 2026-07-16 (**REWARD PLACARD FRAMEWORK** — the reward-toast overhaul's
+> final form (docs/NOTIFICATIONS.md §reward-toasts/§reward-registry): every reward announces
+> through ONE registry-driven placard stack — `state/rewardToast.ts` `REWARD_TYPES` (26 rows;
+> **a future reward type is one row**), per-reward miniature reveals (large art · big `+qty` ·
+> unit · source · rarity · Power/collection lines), 4s merge window (+100/+250/+75 → one
+> pulsing +425 card), tiers t0–t3 (t3 legendary takeover + screen accent + `jackpot` stinger),
+> X/click/swipe/Dismiss-All, `toast0/1/2` tier audio, and a bounded hold buffer so run-end
+> grants placard on hub return. Pushes live at meta.ts grant seams ONLY (applyRewardList
+> returns events; quests/BP/login/directives/wardrobe/expeditions/idle/mastery/tutorial/
+> market/exchange/collection-rank wired; achievements via a headless save-diff watcher).
+> This SUPERSEDED the same-day parallel-session vocabulary layer (`rewardVocab.ts`,
+> receipt-line coalescing — removed in the convergence; its Splice-Market coverage carried
+> over as grant-seam placards). Suite 2167 green, validate PASS, live smokes: merged +647
+> exchange card, harvest + achievement stack with "+5 more" queue, mobile 390 top band.
+> Previous session below.)
 >
 > **2026-07-14** (**IN-RUN GAMEPLAY FEEL PASS** — combat presentation overhaul,
 > canonical doc `docs/COMBAT-VISUAL-STANDARDS.md`: the Status Effect Visualization System

@@ -4,34 +4,37 @@
 > before committing. Read together with docs/PROJECT_STATUS.md and the latest
 > docs/VALIDATION_REPORT.md. Next session: start at docs/PROJECT_MANIFEST.md.
 
-- **Generated:** 2026-07-16 12:42 UTC · **Diff scope:** working tree vs HEAD
-- **Branch:** claude/zen-hawking-rh1gxl · **HEAD:** e67c20a
+- **Generated:** 2026-07-16 (updated post-convergence) · **Diff scope:** working tree vs HEAD
+- **Branch:** claude/zen-hawking-rh1gxl · **HEAD:** the reward placard framework
 
 ## Summary of work completed
 
-The reward-toast gap batch (docs/NOTIFICATIONS.md §vocab/§tiers/§merge/§dismiss): a
-config-driven reward vocabulary (`src/state/rewardVocab.ts`, one registry row per reward
-kind), kind/qty-stamped receipt lines from `meta.applyRewardList`, tier derivation from the
-loudest line, pure `coalesce()` merging of rapid identical receipts, and the RewardToaster
-upgrade — hero placard, tier-scaled ceremony (rare halo / epic spores / legendary screen
-wash + 8s dwell), tier audio for `sound`-flagged receipts, ✕/swipe/Clear-all dismissal.
-Splice Market trades (the one silent reward source) now present the claim popup. The one
-thing the next session must know: **a future reward type is one row in `REWARD_KINDS`** —
-presentation, tier, audio and merge behavior follow automatically.
+TWO parallel sessions implemented the same reward-toast spec on this branch the same day;
+the branch CONVERGED on the placard framework (docs/NOTIFICATIONS.md §reward-toasts +
+§reward-registry): every reward announces as a per-reward placard reveal from the
+`REWARD_TYPES` registry in `src/state/rewardToast.ts` — large art, big `+qty`, source
+subtitle, rarity tiers t0–t3, 4s merge window, X/click/swipe/Dismiss-All, hold buffer for
+run-end grants. Pushes live at `meta.ts` grant seams ONLY (applyRewardList returns events);
+achievements ride a headless save-diff watcher. The earlier vocabulary layer
+(`rewardVocab.ts`, receipt-line coalescing, SpliceMarket UI-side pushes) was REMOVED in the
+convergence — its Splice-Market coverage carried over as grant-seam placards in
+`meta.buyMarketSlot`/`buyIchorOffer`. The one thing the next session must know: **a future
+reward type is one row in `REWARD_TYPES`** — art, tier, merge rule and nav follow; a new
+claim surface pushes `rewardToast.pushMany(source, events)` at its grant seam, never from a
+screen.
 
 ## Files modified
 
-- Source (1): `src/changelog/releases.gen.ts`
-- Tests (0): —
-- Docs (2): `docs/HISTORY.md`, `docs/VALIDATION_REPORT.md`
-
-(The batch itself is already in HEAD — see e67c20a for the 11-file diff; this scaffold's
-scope caught only the post-push chronicle/validate artifacts.)
+The placard framework commit (17 files): `state/rewardToast.ts` + test (rewritten),
+`ui/components/RewardToaster.tsx` (rewritten), `state/meta.ts` (13+ grant seams),
+`ui/AchievementToaster.tsx` (headless), `audio/sound.ts` (toast0/1/2), `index.css`
+(`.rwt2-*`), QuestBoard/BattlePassScreen/Wardrobe/DirectivesCard (legacy pushes removed),
+docs (NOTIFICATIONS/GAME-STATE/DIL edge). Convergence removed `state/rewardVocab.ts` and
+the SpliceMarket UI push.
 
 ## Systems affected (from the dependency registry)
 
-- **chronicle** — `src/changelog/releases.gen.ts`
-- **notifications** (in HEAD e67c20a) — rewardVocab/rewardToast/RewardToaster/SpliceMarket
+- **notifications** — rewardToast/RewardToaster/AchievementToaster + every claim seam in meta
 
 ## Power Score changes
 
@@ -39,14 +42,10 @@ None — no Power-relevant system touched.
 
 ## UI changes
 
-Surfaces in the blast radius: `App (RewardToaster claim popup)`, `Splice Market`.
-Every receipt now carries a ceremony tier class (`is-t-*`), single quantified lines render
-the HERO placard (54px medal, 26px `+qty` headline, WHAT deduped against the name line),
-and dismissal is universal (click, 24px ✕, pointer swipe riding the independent `translate`
-property, Clear all past two queued). Verified LIVE headlessly: a real market purchase on
-the built bundle presented the card with tier class + hero placard, ✕ dismissed it, and two
-spaced buys queued behind one card with the `+1` chip (spacing respects the `market.buy`
-700ms anti-macro cooldown — rapid third clicks are rejected by SecurityPulse by design).
+The placard stack (top-right; top band ≤480px) replaces the receipt popup. Verified LIVE
+headlessly on desktop + 390px: two exchange buys merged into one +647 card, harvest collect
+stacked achievement placards over the ceremony with the "+5 more" queue chip and Dismiss
+All, mobile placard in-viewport in the top band, click/X dismissal.
 
 ## Documentation changes
 
@@ -78,18 +77,17 @@ verification contract is `rewardToast.test.ts` (18 tests) + uiStandards + mobile
 
 ## Recommended next tasks
 
-1. Adopt `vocabLine()` at claim sites that still hand-build receipt labels (grep
-   `rewardToast.push` — quests/pass/directives already inherit via applyRewardList).
-2. USER DECISION (flagged, not actioned): the stage-gate divergence — the recorded
+1. USER DECISION (flagged, not actioned): the stage-gate divergence — the recorded
    docs/DIFFICULTY.md §curve decision KEEPS hero slot 3 @90, gene gates 15/30/50/75,
    Nucleus 40/75; the hour-parity analysis suggested 45/20, 12/18/25/40, 20/35. Five-line
    data change if wanted; do not change without the user's word.
-3. If a new reward SOURCE ships (not a new kind), route it once: bespoke ceremony OR
-   `rewardToast.push` — never both (single-owner rule, docs/NOTIFICATIONS.md).
+2. If a new reward SOURCE ships (not a new type), route it once: dedicated full-screen
+   ceremony OR grant-seam placards — never both (coverage table, docs/NOTIFICATIONS.md
+   §reward-toasts).
 
 ## Future expansion hooks
 
-- `src/state/rewardVocab.ts` — `REWARD_KINDS` (add a row: id/icon/name/tier/mergeable/fmt).
-- `src/state/rewardToast.ts` — `RewardToastLine.kind/qty` (stamp at any source to opt into
-  tiers + merging); `mergeKey()` if a future kind needs custom merge identity.
-- `src/ui/components/RewardToaster.tsx` — `TIER_CUE` map (per-tier audio), `dwellFor()`.
+- `src/state/rewardToast.ts` — `REWARD_TYPES` (a new reward type is one row:
+  id/unit/art/merge/tier/nav); `eventsForPassRewards` for new applyRewardList kinds.
+- `src/ui/components/RewardToaster.tsx` — tier classes t0–t3, arrival cue map,
+  `lifeFractionOf` (exported seam for a future progress ring).
