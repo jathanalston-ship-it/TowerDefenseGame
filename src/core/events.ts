@@ -29,6 +29,9 @@ export interface GameEventMap {
   projectileHit: { x: number; y: number; damage: number; targetId: number; byTower: TowerKind | null };
   // ── Mega Boss encounters (docs/MEGA-BOSS.md) — collection/achievements/HUD subscribe. ──
   megaSpawned: { defId: string; name: string; tier: number; encounter: string };
+  // Mastery Evolution Tracks (docs/MASTERY.md §evolution track) — claim + prestige ceremonies.
+  masteryEvolutionClaim: { subject: 'tower' | 'hero'; unit: string; nodes: number; majors: number };
+  masteryEvolutionPrestige: { subject: 'tower' | 'hero'; unit: string; prestige: number };
   megaPhase: { defId: string; phase: number };
   megaWeakPointDown: { defId: string; kind: string; note: string; interrupted: boolean };
   megaKilled: { defId: string; tier: number; encounter: string; killSec: number; perfect: boolean; weakPoints: number; interrupts: number };

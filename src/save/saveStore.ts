@@ -282,6 +282,12 @@ export interface SaveData {
   //    only once touched; everything empty ⇒ resolveHeroSymbiote is identity (golden-safe).
   //    All additive: pre-v41 saves default to {}. ──
   heroSymbiotes: Partial<Record<HeroKind, HeroSymbioteState>>;
+  // ── Mastery Evolution Tracks (v44, docs/MASTERY.md §evolution track) — per-unit CLAIM state
+  //    for the procedural reward tracks (core/masteryEvolution.ts): claimedUpTo = highest track
+  //    level fully claimed THIS loop, prestige = completed loops. Sparse map keyed
+  //    'tower:<kind>' / 'hero:<kind>'; {} ⇒ nothing claimed. Purely additive — migration grants
+  //    nothing retroactively (a veteran's first visit is a celebration, not a side-effect).
+  masteryEvolution: Record<string, { claimedUpTo: number; prestige: number }>;
   // ── Wardrobe (v31, docs/COSMETICS.md §wardrobe) — account cosmetics beyond unit Phenotypes:
   //    owned item ids (starter rows seeded on load), ONE equipped id per kind ({} = classic
   //    look everywhere ⇒ golden-safe), favorites + seen (NEW badges), claimed cosmetic
@@ -343,6 +349,21 @@ export interface MegaProgress {
 
 export function defaultMegaProgress(): MegaProgress {
   return { slain: [], perfect: [], speed: [], kills: 0, weakPoints: 0, wpKinds: [], interrupts: 0, abilitiesSurvived: 0, fastestSec: {} };
+}
+
+/** v44 Mastery Evolution claim state: clamp claimedUpTo into the 0..100 loop window and
+ *  prestige to a non-negative int — junk entries drop to a fresh track, never crash. */
+function sanitizeMasteryEvolution(raw: unknown): Record<string, { claimedUpTo: number; prestige: number }> {
+  const out: Record<string, { claimedUpTo: number; prestige: number }> = {};
+  if (!raw || typeof raw !== 'object') return out;
+  for (const [k, v] of Object.entries(raw as Record<string, unknown>)) {
+    if (!v || typeof v !== 'object') continue;
+    const rec = v as { claimedUpTo?: unknown; prestige?: unknown };
+    const claimedUpTo = Math.max(0, Math.min(100, Math.floor(Number(rec.claimedUpTo) || 0)));
+    const prestige = Math.max(0, Math.floor(Number(rec.prestige) || 0));
+    out[k] = { claimedUpTo, prestige };
+  }
+  return out;
 }
 
 function sanitizeMegaProgress(raw: unknown): MegaProgress {
@@ -415,7 +436,10 @@ export interface TutorialSave {
 // been seen; purely additive (sanitizePremium deep-fills older saves).
 // v42→v43: powerLog (docs/POWER-SCORE.md §history) — bounded daily Power Score ledger for the
 // Growth panel's weekly delta + Profile trend. Empty ⇒ no trend yet; purely additive.
-export const CURRENT_VERSION = 43;
+// v43→v44: MASTERY EVOLUTION TRACKS (docs/MASTERY.md §evolution track) — `masteryEvolution`
+// per-unit { claimedUpTo, prestige } claim state for the procedural 100-level reward loops.
+// {} ⇒ untouched; purely additive (sanitizeMasteryEvolution clamps/int-coerces).
+export const CURRENT_VERSION = 44;
 
 /** The placeholder every save is born with — the Commander designation prompt fires
  *  while the name is still exactly this (components/CommanderName.tsx). */
@@ -732,6 +756,7 @@ export function defaultSave(): SaveData {
     mulliganDex: {},
     nucleus: emptyNucleus(),
     heroSymbiotes: {},
+    masteryEvolution: {},
   };
 }
 
@@ -1277,6 +1302,7 @@ function withDefaults(data: SaveData): SaveData {
     mulliganDex: sanitizeMulliganDex((data as { mulliganDex?: unknown }).mulliganDex),
     nucleus: sanitizeNucleus((data as { nucleus?: unknown }).nucleus),
     heroSymbiotes: sanitizeHeroSymbiotes((data as { heroSymbiotes?: unknown }).heroSymbiotes),
+    masteryEvolution: sanitizeMasteryEvolution((data as { masteryEvolution?: unknown }).masteryEvolution),
     wardrobe: sanitizeWardrobe((data as { wardrobe?: unknown }).wardrobe),
     battlePass: sanitizeBattlePass((data as { battlePass?: unknown }).battlePass),
     quests: sanitizeQuests((data as { quests?: unknown }).quests),

@@ -68,6 +68,9 @@ import {
 } from '../core/reforge';
 import type { ReforgeOp } from '../core/reforge';
 import { gameEvents } from '../core/events';
+import { canPrestige as evolutionCanPrestige, masteryEvolutionTrack, trackLevelOf } from '../core/masteryEvolution';
+import type { EvolutionGrant, EvolutionSubject } from '../core/masteryEvolution';
+import { rewardToast } from './rewardToast';
 import type { CardDef, CardEffect, CardUnlock } from '../core/cards';
 import { CARD_POOL, cardRegistry } from '../core/cards';
 import { HERO_SLOT_POWER, composePower, effectsPower, geomean, itemRarityPower, metaExtrasPower } from '../core/power';
@@ -1162,6 +1165,51 @@ export function towerShardGateMet(save: SaveData, kind: TowerKind): boolean {
 
 /** The tower kinds whose shards may drop from loot right now: everything whose campaign gate is met.
  *  Passed to the loot rollers so a gated tower's shards never leak before the player reaches its stage. */
+/** Fold ONE Mastery Evolution grant into the save (docs/MASTERY.md §evolution track). Every
+ *  good flows through its real lane — shards bank on the unit, containers queue for the
+ *  Genetic Vault — so downstream systems (Prime, vault ceremonies, Power) see nothing new. */
+function applyEvolutionGrant(save: SaveData, subject: EvolutionSubject, unit: string, g: EvolutionGrant): SaveData {
+  switch (g.kind) {
+    case 'unitShards':
+      return subject === 'tower'
+        ? { ...save, towerShards: { ...save.towerShards, [unit]: (save.towerShards[unit as TowerKind] ?? 0) + g.amount } }
+        : { ...save, heroShards: { ...save.heroShards, [unit]: (save.heroShards[unit as HeroKind] ?? 0) + g.amount } };
+    case 'genomeCores':
+      return { ...save, shards: save.shards + g.amount, lifetimeShards: save.lifetimeShards + g.amount };
+    case 'geneEssence':
+      return { ...save, geneEssence: save.geneEssence + g.amount };
+    case 'scrap':
+      return { ...save, mats: { ...save.mats, scrap: save.mats.scrap + g.amount } };
+    case 'mutagen':
+      return { ...save, mats: { ...save.mats, mutagen: save.mats.mutagen + g.amount } };
+    case 'catalyst':
+      return { ...save, mats: { ...save.mats, catalyst: save.mats.catalyst + g.amount } };
+    case 'container':
+      return { ...save, pendingContainers: [...save.pendingContainers, { kind: 'loot', rarity: g.tier === 1 ? 'rare' : g.tier === 2 ? 'epic' : 'legendary' }] };
+    case 'ichor':
+      return { ...save, ichor: save.ichor + g.amount };
+  }
+}
+
+/** Receipt lines for a claim toast — one line per grant kind, amounts merged. */
+function evolutionToastLines(grants: EvolutionGrant[], unitName: string): { icon: string; label: string }[] {
+  const sums = new Map<string, number>();
+  let containers = 0;
+  for (const g of grants) {
+    if (g.kind === 'container') containers++;
+    else sums.set(g.kind, (sums.get(g.kind) ?? 0) + g.amount);
+  }
+  const label: Record<string, [string, string]> = {
+    unitShards: ['\u2726', `${unitName} Shards`], genomeCores: ['\u25c6', 'Genome Cores'],
+    geneEssence: ['\u29c9', 'Gene Essence'], scrap: ['\u25f3', 'Scrap'], mutagen: ['\u2295', 'Mutagen'],
+    catalyst: ['\u2737', 'Catalyst'], ichor: ['\u2620', 'Ichor'],
+  };
+  const out: { icon: string; label: string }[] = [];
+  for (const [k, n] of sums) out.push({ icon: label[k]?.[0] ?? '\u2726', label: `+${n} ${label[k]?.[1] ?? k}` });
+  if (containers > 0) out.push({ icon: '\u2623', label: `+${containers} Bio Container${containers > 1 ? 's' : ''}` });
+  return out;
+}
+
 export function towerShardPool(save: SaveData): TowerKind[] {
   return TOWER_ORDER.filter((k) => towerShardGateMet(save, k));
 }
@@ -5711,6 +5759,63 @@ export const meta = {
   grantItem(item: OwnedItem): void {
     const save = store.get();
     persist({ ...save, equipment: { ...save.equipment, inventory: [...save.equipment.inventory, item] } });
+  },
+
+  // ── Mastery Evolution Tracks (docs/MASTERY.md §evolution track) ────────────────
+
+  /** A unit's live claim state (fresh loop 1 when untouched). */
+  masteryEvolutionState(subject: EvolutionSubject, unit: string): { claimedUpTo: number; prestige: number } {
+    return store.get().masteryEvolution[`${subject}:${unit}`] ?? { claimedUpTo: 0, prestige: 0 };
+  },
+
+  /** Claim EVERY reached-unclaimed node on the unit's current loop in one tap. Grants flow
+   *  through their real lanes (shards bank on the unit, containers queue for the Vault), the
+   *  receipt toasts once, and the celebration event carries the major count for audio. */
+  claimMasteryEvolution(subject: EvolutionSubject, unit: string): number {
+    const save = store.get();
+    const key = `${subject}:${unit}`;
+    const st = save.masteryEvolution[key] ?? { claimedUpTo: 0, prestige: 0 };
+    const xp = subject === 'tower' ? save.towerMasteryXp[unit as TowerKind] ?? 0 : save.heroMasteryXp[unit as HeroKind] ?? 0;
+    const trackLevel = trackLevelOf(masteryLevel(xp), st.prestige);
+    const due = masteryEvolutionTrack(subject, unit, st.prestige).nodes
+      .filter((n) => n.level <= trackLevel && n.level > st.claimedUpTo);
+    if (due.length === 0) return 0;
+    let next = save;
+    for (const n of due) for (const g of n.grants) next = applyEvolutionGrant(next, subject, unit, g);
+    next = { ...next, masteryEvolution: { ...next.masteryEvolution, [key]: { claimedUpTo: trackLevel, prestige: st.prestige } } };
+    persist(next);
+    const unitName = subject === 'tower' ? TOWER_DEFS[unit as TowerKind]?.name ?? unit : HERO_DEFS[unit as HeroKind]?.name ?? unit;
+    const majors = due.filter((n) => n.major).length;
+    rewardToast.push({
+      title: 'MASTERY EVOLUTION CLAIMED', name: unitName, icon: '\u29c9', accent: 'var(--viral)',
+      big: majors > 0, lines: evolutionToastLines(due.flatMap((n) => n.grants), unitName),
+    });
+    if (gameEvents.hasListeners('masteryEvolutionClaim')) gameEvents.emit('masteryEvolutionClaim', { subject, unit, nodes: due.length, majors });
+    return due.length;
+  },
+
+  /** EVOLVE the organism (prestige): auto-claims anything outstanding, then re-arms the loop —
+   *  mastery level NEVER decreases; the next loop's (upgraded, shard-free) pool begins at once. */
+  prestigeMasteryEvolution(subject: EvolutionSubject, unit: string): boolean {
+    meta.claimMasteryEvolution(subject, unit); // nothing earned is ever lost to an evolution
+    const save = store.get();
+    const key = `${subject}:${unit}`;
+    const st = save.masteryEvolution[key] ?? { claimedUpTo: 0, prestige: 0 };
+    const xp = subject === 'tower' ? save.towerMasteryXp[unit as TowerKind] ?? 0 : save.heroMasteryXp[unit as HeroKind] ?? 0;
+    if (!evolutionCanPrestige(masteryLevel(xp), st.prestige)) return false;
+    const unitName = subject === 'tower' ? TOWER_DEFS[unit as TowerKind]?.name ?? unit : HERO_DEFS[unit as HeroKind]?.name ?? unit;
+    persist({
+      ...save,
+      masteryEvolution: { ...save.masteryEvolution, [key]: { claimedUpTo: 0, prestige: st.prestige + 1 } },
+      timeline: pushTimeline(save.timeline, '\u29c9', `${unitName} evolved — Mastery Prestige ${st.prestige + 2}`),
+    });
+    rewardToast.push({
+      title: 'ORGANISM EVOLVED', name: `${unitName} — Prestige ${st.prestige + 2}`, icon: '\u29c9',
+      accent: 'var(--viral)', big: true,
+      lines: [{ icon: '\u29c9', label: 'The reward pool reforms, upgraded' }],
+    });
+    if (gameEvents.hasListeners('masteryEvolutionPrestige')) gameEvents.emit('masteryEvolutionPrestige', { subject, unit, prestige: st.prestige + 1 });
+    return true;
   },
 
   /** Toggle the collectible "favorite" pin on an owned item (sorts first; never auto-salvaged). */
