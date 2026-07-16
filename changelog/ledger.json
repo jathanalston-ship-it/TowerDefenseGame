@@ -1,6 +1,6 @@
 {
-  "lastSha": "fdd36277adaa1aea50fcfb0f6a9b33144439a9f2",
-  "commitsSinceDraft": 6,
+  "lastSha": "e67c20aba54774e902042f86f1133ac087738056",
+  "commitsSinceDraft": 8,
   "content": {
     "tower": [
       "needle",
@@ -2521,6 +2521,14 @@
         {
           "cat": "Gene Cards",
           "text": "Gene Archive + Armory: persisted organization + Highest Rarity sort"
+        },
+        {
+          "cat": "Website",
+          "text": "Chronicle: list-organization batch notes + site regen"
+        },
+        {
+          "cat": "Developer Tools",
+          "text": "Reward toast gaps: vocabulary registry, ceremony tiers, merging, dismissal"
         }
       ]
     }
@@ -4365,6 +4373,22 @@
       "text": "List organization: docs, DIL, verify — the overhaul ships",
       "internal": true,
       "needsReview": true
+    },
+    {
+      "sha": "53b03c3d4f1c18bbbdcd1a1200232a0ee2e406cd",
+      "date": "2026-07-16",
+      "cat": "Website",
+      "text": "Chronicle: list-organization batch notes + site regen",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "e67c20aba54774e902042f86f1133ac087738056",
+      "date": "2026-07-16",
+      "cat": "Developer Tools",
+      "text": "Reward toast gaps: vocabulary registry, ceremony tiers, merging, dismissal",
+      "internal": false,
+      "needsReview": false
     }
   ]
 }

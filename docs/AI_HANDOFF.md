@@ -4,33 +4,34 @@
 > before committing. Read together with docs/PROJECT_STATUS.md and the latest
 > docs/VALIDATION_REPORT.md. Next session: start at docs/PROJECT_MANIFEST.md.
 
-- **Generated:** 2026-07-15 01:55 UTC · **Diff scope:** working tree vs HEAD
-- **Branch:** claude/zen-hawking-rh1gxl · **HEAD:** bca9542
+- **Generated:** 2026-07-16 12:42 UTC · **Diff scope:** working tree vs HEAD
+- **Branch:** claude/zen-hawking-rh1gxl · **HEAD:** e67c20a
 
 ## Summary of work completed
 
-Shipped the full six-item **arena/style identity arc** derived from the visual critique, highest
-impact first, as three commits: `c14b122` (rooting layer, light hierarchy, sick palette, idle
-organic motion), `b1cf014` (silhouette surgery: tower signatures, enemy accent slots, boss
-marking legibility), `bca9542` (progressive UI contamination by account depth). All doctrine is
-canonized in **docs/VISUAL_IDENTITY.md §8** (§light · §motion · §palette · §silhouette ·
-§contamination) — code comments cite those anchors directly. The one thing to know: all of it is
-render/CSS-side and golden-safe by construction; the sim was never touched.
+The reward-toast gap batch (docs/NOTIFICATIONS.md §vocab/§tiers/§merge/§dismiss): a
+config-driven reward vocabulary (`src/state/rewardVocab.ts`, one registry row per reward
+kind), kind/qty-stamped receipt lines from `meta.applyRewardList`, tier derivation from the
+loudest line, pure `coalesce()` merging of rapid identical receipts, and the RewardToaster
+upgrade — hero placard, tier-scaled ceremony (rare halo / epic spores / legendary screen
+wash + 8s dwell), tier audio for `sound`-flagged receipts, ✕/swipe/Clear-all dismissal.
+Splice Market trades (the one silent reward source) now present the claim popup. The one
+thing the next session must know: **a future reward type is one row in `REWARD_KINDS`** —
+presentation, tier, audio and merge behavior follow automatically.
 
 ## Files modified
 
-- Source: `src/render/{renderer,theme,livingBattlefield,enemyForms,towerForms,bossChassis}.ts`,
-  `src/core/{config,boss}.ts` (hex swaps only), `src/ui/Hub.tsx`, `src/index.css`,
-  `src/dev/dil/knowledge.ts`, `src/changelog/releases.gen.ts` (generated)
-- Tests: none added — coverage rides the existing suite (2087 green) + validate gate
-- Docs: `docs/VISUAL_IDENTITY.md` (new §8 arena doctrine), `docs/HISTORY.md` (generated)
+- Source (1): `src/changelog/releases.gen.ts`
+- Tests (0): —
+- Docs (2): `docs/HISTORY.md`, `docs/VALIDATION_REPORT.md`
+
+(The batch itself is already in HEAD — see e67c20a for the 11-file diff; this scaffold's
+scope caught only the post-push chronicle/validate artifacts.)
 
 ## Systems affected (from the dependency registry)
 
-- **rendering** — arena light hierarchy, gait/breath/peristalsis, enemy accents, tower signatures, boss markings
-- **living-battlefield** — `drawTowerRoots` rooting layer + restructured early-outs
-- **hub-shell** — `.hub[data-contam]` + `.hub-contam` overlay off `homeBaseTiers` labEra
-- **chronicle** — ledger/HISTORY/site regen
+- **chronicle** — `src/changelog/releases.gen.ts`
+- **notifications** (in HEAD e67c20a) — rewardVocab/rewardToast/RewardToaster/SpliceMarket
 
 ## Power Score changes
 
@@ -38,57 +39,57 @@ None — no Power-relevant system touched.
 
 ## UI changes
 
-Hub only: era-gated contamination (corner vein clusters, nav seam glow at era 2+, wordmark glow
-at era 3). Verified via headless smoke on a spliced era-3 account (`data-contam="3"` asserted +
-screenshot); additive-only so cosmetic uithemes keep their tokens; stilled under
-prefers-reduced-motion; z 70 (below all modals). Arena changes verified with live wave captures
-plus a full proof sheet (20 towers / 44 enemies / 13 bosses at gameplay radii).
+Surfaces in the blast radius: `App (RewardToaster claim popup)`, `Splice Market`.
+Every receipt now carries a ceremony tier class (`is-t-*`), single quantified lines render
+the HERO placard (54px medal, 26px `+qty` headline, WHAT deduped against the name line),
+and dismissal is universal (click, 24px ✕, pointer swipe riding the independent `translate`
+property, Clear all past two queued). Verified LIVE headlessly: a real market purchase on
+the built bundle presented the card with tier class + hero placard, ✕ dismissed it, and two
+spaced buys queued behind one card with the `+1` chip (spacing respects the `market.buy`
+700ms anti-macro cooldown — rapid third clicks are rejected by SecurityPulse by design).
 
 ## Documentation changes
 
-`docs/CHANGELOG-PIPELINE.md` — no change needed (pipeline untouched; only its generated outputs
-rolled). `docs/VISUAL_IDENTITY.md` gained §8; DIL knowledge gained the
-hub-shell↔cosmetics conflictsWith and rendering→engine accent-order edges.
+Registry says these move with the touched systems: `docs/CHANGELOG-PIPELINE.md` — no change
+needed (the pipeline itself regenerated its artifacts). `docs/NOTIFICATIONS.md` gained
+§vocab/§tiers/§merge/§dismiss + two coverage rows (in HEAD).
 
 ## Save changes
 
-None — save layer untouched.
+None — save layer untouched (receipt kinds/tiers are presentation-only; the bus is save-free).
 
 ## Known edge cases
 
-- **ENEMY_ACCENT depends on declaration order**: accents round-robin within each `ENEMY_BODY`
-  form family in declaration order — keep family groups contiguous when adding kinds, or
-  existing kinds' accents shift (cosmetic-only, but players notice anatomy changes).
-- **Contamination must stay additive**: cosmetic uithemes own `--line`/`--panel`; re-tinting
-  those tokens for the infection look would stomp purchased themes (DIL conflictsWith edge).
-- **DIL knowledge edges must use registry node ids** (`system:hub-shell`, not invented names) —
-  the graph-integrity test fails otherwise.
-- Glaive shows its docked chakram even while a blade projectile is in flight (accepted; the
-  muzzle pulse covers the throw moment).
-- `pkill` exits 144 and kills `&&`/`;` chains in this harness — run it as its own command.
+- `applyRewardList`'s composite materials + all-shards lines are deliberately NOT
+  kind-stamped: their special-form labels would be lost on merge-regeneration, so they
+  queue exactly as before and never coalesce.
+- The swipe-away drag rides the `translate` CSS property because the `rwt-in` entrance
+  animation owns `transform` with fill `both` — moving the drag onto `transform` would be
+  silently overridden. Don't "simplify" that.
+- A purchase can unlock a mechanic mid-flow and fire the WhatsNew ceremony over the screen
+  (headless probes must pre-seed `help.seen` with every mechanic id; the market probe does).
+- Market receipts rarely coalesce in practice (slot names differ per purchase); the merge
+  path's real customers are repeated quest/directive claims through `applyRewardList`.
 
 ## Remaining technical debt
 
-- Tower per-kind organs are split across two homes: the original five in the renderer ladder,
-  the seven new ones in `towerForms.drawTowerSignature`. Consolidating the five into
-  drawTowerSignature would be a clean follow-up (pure move, no behavior change).
-- The lightshot/proof harnesses live only in the session scratchpad; a committed dev harness
-  page was deliberately avoided (repo hygiene) but would help future visual passes.
+None new. Probe scripts stay session-local (scratchpad) by design — the repeatable
+verification contract is `rewardToast.test.ts` (18 tests) + uiStandards + mobilecheck.
 
 ## Recommended next tasks
 
-1. User-driven: next feature directive (the six-item style arc is complete).
-2. Optional consolidation: move the renderer's five per-kind organ blocks into
-   `drawTowerSignature` (entry: `src/render/renderer.ts` reactor/parasite/obelisk/coil/siphon
-   branches → `src/render/towerForms.ts`).
-3. Standing release item (user side): Turnstile SITE key in `.env.production` is still empty.
+1. Adopt `vocabLine()` at claim sites that still hand-build receipt labels (grep
+   `rewardToast.push` — quests/pass/directives already inherit via applyRewardList).
+2. USER DECISION (flagged, not actioned): the stage-gate divergence — the recorded
+   docs/DIFFICULTY.md §curve decision KEEPS hero slot 3 @90, gene gates 15/30/50/75,
+   Nucleus 40/75; the hour-parity analysis suggested 45/20, 12/18/25/40, 20/35. Five-line
+   data change if wanted; do not change without the user's word.
+3. If a new reward SOURCE ships (not a new kind), route it once: bespoke ceremony OR
+   `rewardToast.push` — never both (single-owner rule, docs/NOTIFICATIONS.md).
 
 ## Future expansion hooks
 
-- `towerForms.drawTowerSignature` — add a case per future form-sharing tower kind.
-- `theme.ENEMY_ACCENT` — new enemy kinds auto-take the next accent slot; drawers read
-  `o.accent` (`enemyForms.BodyOpts`).
-- `.hub-contam` CSS ladder (`src/index.css` tail) — era 4+ or per-uitheme contamination hues
-  slot in as extra `[data-era]` rules.
-- `livingBattlefield.drawTowerRoots` — `hand` fade-out constant (intensity*2.2) is the seam for
-  tuning how long the rooting layer owns the early game.
+- `src/state/rewardVocab.ts` — `REWARD_KINDS` (add a row: id/icon/name/tier/mergeable/fmt).
+- `src/state/rewardToast.ts` — `RewardToastLine.kind/qty` (stamp at any source to opt into
+  tiers + merging); `mergeKey()` if a future kind needs custom merge identity.
+- `src/ui/components/RewardToaster.tsx` — `TIER_CUE` map (per-tier audio), `dwellFor()`.

@@ -1036,6 +1036,14 @@ export const RELEASES: Release[] = [
       {
         "cat": "Gene Cards",
         "text": "Gene Archive + Armory: persisted organization + Highest Rarity sort"
+      },
+      {
+        "cat": "Website",
+        "text": "Chronicle: list-organization batch notes + site regen"
+      },
+      {
+        "cat": "Developer Tools",
+        "text": "Reward toast gaps: vocabulary registry, ceremony tiers, merging, dismissal"
       }
     ]
   },

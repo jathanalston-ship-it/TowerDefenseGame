@@ -250,3 +250,5 @@
 - `ff3f5d2` **[Heroes]** Hero roster + Evolution HQ: search, sorting, filters via the shared framework
 - `c9a21d2` **[Gene Cards]** Gene Archive + Armory: persisted organization + Highest Rarity sort
 - ⚑ `fdd3627` **[Framework]** List organization: docs, DIL, verify — the overhaul ships _(internal)_
+- `53b03c3` **[Website]** Chronicle: list-organization batch notes + site regen
+- `e67c20a` **[Developer Tools]** Reward toast gaps: vocabulary registry, ceremony tiers, merging, dismissal
