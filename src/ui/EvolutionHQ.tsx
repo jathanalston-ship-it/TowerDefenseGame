@@ -43,10 +43,13 @@ function StatLine({ label, value, accent }: { label: string; value: string; acce
 }
 
 function GenomeCard({ card, curPower, onBuy, justBought }: {
-  card: GenomeCardView; curPower: number; onBuy: (id: string) => void; justBought: boolean;
+  card: GenomeCardView; curPower: number; onBuy: (id: string) => boolean; justBought: boolean;
 }): JSX.Element {
   const save = meta.use();
   const affordable = card.cost !== null && save.shards >= card.cost;
+  // Hold-to-buy (QOL): the Runaway card's press-repeat, now on every fixed tier — the loop
+  // stops itself at the cap or an unaffordable step (buyUpgrade's boolean).
+  const hold = usePressRepeat(() => onBuy(card.id));
   const nextPower = card.completed ? curPower
     : meta.previewPower((s) => ({ ...s, upgrades: { ...s.upgrades, [card.id]: card.level + 1 } })).score;
   return (
@@ -69,8 +72,8 @@ function GenomeCard({ card, curPower, onBuy, justBought }: {
         <button
           className={`shop-buy evo-card-buy ${affordable && !card.locked ? 'is-afford' : ''}`}
           disabled={card.completed || !affordable || card.locked}
-          onClick={() => onBuy(card.id)}
-          title={card.locked ? card.unlockNote : undefined}
+          {...hold}
+          title={card.locked ? card.unlockNote : 'Hold to buy repeatedly'}
         >
           {card.completed ? '✓ Complete' : card.locked ? 'Locked' : <>{card.cost} <CurrencyIcon id="genomeCores" /></>}
         </button>
@@ -120,8 +123,8 @@ function RunawayCard({ card, curPower, onBuy, justBought }: {
   );
 }
 
-function SectionBlock({ section, curPower, onBuy, onBuyRunaway, justBought }: {
-  section: GenomeSection; curPower: number; onBuy: (id: string) => void;
+function SectionBlock({ section, curPower, onBuyRunaway, justBought }: {
+  section: GenomeSection; curPower: number;
   onBuyRunaway: (id: string) => boolean; justBought: string | null;
 }): JSX.Element {
   const { profile } = useLayoutProfile();
@@ -130,7 +133,7 @@ function SectionBlock({ section, curPower, onBuy, onBuyRunaway, justBought }: {
       {section.cards.map((c) => (
         c.infinite
           ? <RunawayCard key={c.id} card={c} curPower={curPower} onBuy={onBuyRunaway} justBought={justBought === c.id} />
-          : <GenomeCard key={c.id} card={c} curPower={curPower} onBuy={onBuy} justBought={justBought === c.id} />
+          : <GenomeCard key={c.id} card={c} curPower={curPower} onBuy={onBuyRunaway} justBought={justBought === c.id} />
       ))}
     </div>
   );
@@ -176,13 +179,8 @@ export function EvolutionHQ(): JSX.Element {
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(() => () => { if (timer.current) clearTimeout(timer.current); }, []);
 
-  const onBuy = (id: string): void => {
-    if (!meta.buyUpgrade(id)) return;
-    setJustBought(id); // brief purchase-feedback pulse
-    if (timer.current) clearTimeout(timer.current);
-    timer.current = setTimeout(() => setJustBought(null), 620);
-  };
-  // The Runaway hold-to-buy loop needs the success signal back (false stops the hold).
+  // EVERY buy button holds-to-repeat now (QOL) — the loop needs the success signal back
+  // (false stops the hold at a cap or an unaffordable step).
   const onBuyRunaway = (id: string): boolean => {
     if (!meta.buyUpgrade(id)) return false;
     setJustBought(id);
@@ -257,7 +255,7 @@ export function EvolutionHQ(): JSX.Element {
 
       {/* Genome Core sections — one per category (capped catalog + the Runaway sink). */}
       {sections.map((sec) => (
-        <SectionBlock key={sec.category} section={sec} curPower={curPower} onBuy={onBuy} onBuyRunaway={onBuyRunaway} justBought={justBought} />
+        <SectionBlock key={sec.category} section={sec} curPower={curPower} onBuyRunaway={onBuyRunaway} justBought={justBought} />
       ))}
 
       {/* Ascension — Molt gate + Ascendant Tree (the existing panel, one source of truth). */}
