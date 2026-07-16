@@ -68,7 +68,7 @@ import {
 } from '../core/reforge';
 import type { ReforgeOp } from '../core/reforge';
 import { gameEvents } from '../core/events';
-import { canPrestige as evolutionCanPrestige, masteryEvolutionPowerMult, masteryEvolutionTrack, trackLevelOf } from '../core/masteryEvolution';
+import { canPrestigeFromXp, masteryEvolutionPowerMult, masteryEvolutionTrack, trackLevelFromXp } from '../core/masteryEvolution';
 import type { EvolutionGrant, EvolutionSubject } from '../core/masteryEvolution';
 import { rewardToast } from './rewardToast';
 import type { CardDef, CardEffect, CardUnlock } from '../core/cards';
@@ -5768,8 +5768,8 @@ export const meta = {
   // ── Mastery Evolution Tracks (docs/MASTERY.md §evolution track) ────────────────
 
   /** A unit's live claim state (fresh loop 1 when untouched). */
-  masteryEvolutionState(subject: EvolutionSubject, unit: string): { claimedUpTo: number; prestige: number } {
-    return store.get().masteryEvolution[`${subject}:${unit}`] ?? { claimedUpTo: 0, prestige: 0 };
+  masteryEvolutionState(subject: EvolutionSubject, unit: string): { claimedUpTo: number; prestige: number; xpAt: number } {
+    return store.get().masteryEvolution[`${subject}:${unit}`] ?? { claimedUpTo: 0, prestige: 0, xpAt: 0 };
   },
 
   /** Claim EVERY reached-unclaimed node on the unit's current loop in one tap. Grants flow
@@ -5779,15 +5779,15 @@ export const meta = {
     if (!guardOk('mastery.claim', `${subject}:${unit}`)) return 0;
     const save = store.get();
     const key = `${subject}:${unit}`;
-    const st = save.masteryEvolution[key] ?? { claimedUpTo: 0, prestige: 0 };
+    const st = save.masteryEvolution[key] ?? { claimedUpTo: 0, prestige: 0, xpAt: 0 };
     const xp = subject === 'tower' ? save.towerMasteryXp[unit as TowerKind] ?? 0 : save.heroMasteryXp[unit as HeroKind] ?? 0;
-    const trackLevel = trackLevelOf(masteryLevel(xp), st.prestige);
+    const trackLevel = trackLevelFromXp(xp - st.xpAt, st.prestige);
     const due = masteryEvolutionTrack(subject, unit, st.prestige).nodes
       .filter((n) => n.level <= trackLevel && n.level > st.claimedUpTo);
     if (due.length === 0) return 0;
     let next = save;
     for (const n of due) for (const g of n.grants) next = applyEvolutionGrant(next, subject, unit, g);
-    next = { ...next, masteryEvolution: { ...next.masteryEvolution, [key]: { claimedUpTo: trackLevel, prestige: st.prestige } } };
+    next = { ...next, masteryEvolution: { ...next.masteryEvolution, [key]: { claimedUpTo: trackLevel, prestige: st.prestige, xpAt: st.xpAt } } };
     persist(next);
     const unitName = subject === 'tower' ? TOWER_DEFS[unit as TowerKind]?.name ?? unit : HERO_DEFS[unit as HeroKind]?.name ?? unit;
     const majors = due.filter((n) => n.major).length;
@@ -5806,13 +5806,15 @@ export const meta = {
     meta.claimMasteryEvolution(subject, unit); // nothing earned is ever lost to an evolution
     const save = store.get();
     const key = `${subject}:${unit}`;
-    const st = save.masteryEvolution[key] ?? { claimedUpTo: 0, prestige: 0 };
+    const st = save.masteryEvolution[key] ?? { claimedUpTo: 0, prestige: 0, xpAt: 0 };
     const xp = subject === 'tower' ? save.towerMasteryXp[unit as TowerKind] ?? 0 : save.heroMasteryXp[unit as HeroKind] ?? 0;
-    if (!evolutionCanPrestige(masteryLevel(xp), st.prestige)) return false;
+    if (!canPrestigeFromXp(xp - st.xpAt, st.prestige)) return false;
     const unitName = subject === 'tower' ? TOWER_DEFS[unit as TowerKind]?.name ?? unit : HERO_DEFS[unit as HeroKind]?.name ?? unit;
     persist({
       ...save,
-      masteryEvolution: { ...save.masteryEvolution, [key]: { claimedUpTo: 0, prestige: st.prestige + 1 } },
+      // The new loop re-arms from THIS moment's XP watermark (docs/MASTERY.md §pacing) —
+      // mastery level itself never moves; only the helix's meter re-zeros.
+      masteryEvolution: { ...save.masteryEvolution, [key]: { claimedUpTo: 0, prestige: st.prestige + 1, xpAt: xp } },
       timeline: pushTimeline(save.timeline, '\u29c9', `${unitName} evolved — Mastery Prestige ${st.prestige + 2}`),
     });
     rewardToast.push({

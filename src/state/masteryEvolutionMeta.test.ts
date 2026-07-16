@@ -6,7 +6,7 @@ import { describe, expect, it } from 'vitest';
 import { meta, masteryLevel } from './meta';
 import { defaultSave, serializeExport } from '../save/saveStore';
 import type { SaveData } from '../save/saveStore';
-import { masteryEvolutionTrack, trackLevelOf } from '../core/masteryEvolution';
+import { masteryEvolutionTrack, trackLevelFromXp } from '../core/masteryEvolution';
 import { MASTERY } from '../core/config';
 
 /** XP that lands AT (or just past) mastery level `n` — walked through the real curve so
@@ -28,7 +28,9 @@ describe('claims (one atomic persist through the real lanes)', () => {
   it('claims every reached node once, banks shards on the unit, and never double-pays', () => {
     seed({ towerMasteryXp: { ...defaultSave().towerMasteryXp, needle: xpForLevel(23) } });
     const st0 = meta.masteryEvolutionState('tower', 'needle');
-    expect(st0).toEqual({ claimedUpTo: 0, prestige: 0 });
+    expect(st0).toEqual({ claimedUpTo: 0, prestige: 0, xpAt: 0 });
+    // Debut-loop invariant: the helix's meter and the mastery bar agree exactly.
+    expect(trackLevelFromXp(xpForLevel(23), 0)).toBe(masteryLevel(xpForLevel(23)));
     const shards0 = meta.get().towerShards.needle ?? 0;
     const claimed = meta.claimMasteryEvolution('tower', 'needle');
     const track = masteryEvolutionTrack('tower', 'needle', 0);
@@ -62,10 +64,12 @@ describe('the prestige loop (mastery level NEVER decreases)', () => {
     seed({ heroMasteryXp: { ...defaultSave().heroMasteryXp, ravager: xpForLevel(100) } });
     expect(meta.prestigeMasteryEvolution('hero', 'ravager')).toBe(true);
     const st = meta.masteryEvolutionState('hero', 'ravager');
-    expect(st).toEqual({ claimedUpTo: 0, prestige: 1 });
-    // The SAME mastery level re-enters loop 2 at track level 0 — nothing regressed.
     const xp = meta.get().heroMasteryXp.ravager ?? 0;
-    expect(trackLevelOf(masteryLevel(xp), st.prestige)).toBe(0);
+    // The XP watermark stamps at the evolution (docs/MASTERY.md §pacing) — loop 2 is metered
+    // from here; the mastery level itself never regressed (it lives on its own curve).
+    expect(st).toEqual({ claimedUpTo: 0, prestige: 1, xpAt: xp });
+    expect(masteryLevel(xp)).toBeGreaterThanOrEqual(100);
+    expect(trackLevelFromXp(xp - st.xpAt, st.prestige)).toBe(0);
     // The new pool never pays hero shards again.
     const grants = masteryEvolutionTrack('hero', 'ravager', 1).nodes.flatMap((n) => n.grants);
     expect(grants.some((g) => g.kind === 'unitShards')).toBe(false);
@@ -79,12 +83,12 @@ describe('Power Score reflection (docs/POWER-SCORE.md §coverage)', () => {
     seed();
     const base = meta.power().score;
     const oneLoop = meta.previewPower((s) => ({
-      ...s, masteryEvolution: { 'tower:needle': { claimedUpTo: 0, prestige: 1 } },
+      ...s, masteryEvolution: { 'tower:needle': { claimedUpTo: 0, prestige: 1, xpAt: 0 } },
     })).score;
     const fiveLoops = meta.previewPower((s) => ({
       ...s, masteryEvolution: {
-        'tower:needle': { claimedUpTo: 0, prestige: 2 },
-        'hero:ravager': { claimedUpTo: 0, prestige: 3 },
+        'tower:needle': { claimedUpTo: 0, prestige: 2, xpAt: 0 },
+        'hero:ravager': { claimedUpTo: 0, prestige: 3, xpAt: 0 },
       },
     })).score;
     expect(oneLoop).toBeGreaterThan(base); // the preview announces the EVOLVE before it happens
@@ -98,11 +102,12 @@ describe('v44 sanitizer (tamper holds to the loop window)', () => {
     const base = defaultSave();
     const forged = {
       ...base,
-      masteryEvolution: { 'tower:needle': { claimedUpTo: 9999, prestige: -3 }, junk: 'nope' },
+      masteryEvolution: { 'tower:needle': { claimedUpTo: 9999, prestige: -3, xpAt: -42 }, junk: 'nope' },
     } as unknown as SaveData;
     expect(meta.importText(serializeExport(forged)).ok).toBe(true); // sanitize folds it in
     const st = meta.get().masteryEvolution['tower:needle'];
     expect(st.claimedUpTo).toBe(100); // clamped into the loop window
     expect(st.prestige).toBe(0); // negatives floor to 0
+    expect(st.xpAt).toBe(0); // a negative watermark floors to the debut loop
   });
 });

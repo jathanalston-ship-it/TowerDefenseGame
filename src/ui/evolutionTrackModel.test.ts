@@ -24,7 +24,7 @@ function saveAt(masteryLvl: number, over: Partial<SaveData> = {}): SaveData {
 
 describe('the helix panel model', () => {
   it('partitions nodes claimed/ready/upcoming and counts the claim signal exactly', () => {
-    const save = saveAt(23, { masteryEvolution: { 'tower:needle': { claimedUpTo: 12, prestige: 0 } } });
+    const save = saveAt(23, { masteryEvolution: { 'tower:needle': { claimedUpTo: 12, prestige: 0, xpAt: 0 } } });
     const m = evolutionPanelModel(save, 'tower', 'needle');
     expect(m.trackLevel).toBe(23);
     expect(m.completionPct).toBe(23);
@@ -47,12 +47,20 @@ describe('the helix panel model', () => {
     expect(done.completionPct).toBe(100);
     expect(done.next).toBeNull();
     expect(done.canPrestige).toBe(true);
-    const deep = evolutionPanelModel(
-      saveAt(137, { masteryEvolution: { 'tower:needle': { claimedUpTo: 0, prestige: 1 } } }),
-      'tower', 'needle',
-    );
+    // Deep loop (docs/MASTERY.md §pacing): loop 2 is XP-metered from the prestige watermark.
+    // Build the fixture on the REAL per-level walk (base req × the loop's ×1.25 effort).
+    const xpAt = xpForLevel(100);
+    let intoLoop2 = 0;
+    for (let l = 0; l < 37; l++) intoLoop2 += Math.round(Math.round(MASTERY.baseReq * Math.pow(MASTERY.reqGrowth, l)) * 1.25);
+    const base = defaultSave();
+    const deepSave: SaveData = {
+      ...base,
+      towerMasteryXp: { ...base.towerMasteryXp, needle: xpAt + intoLoop2 + 1 },
+      masteryEvolution: { 'tower:needle': { claimedUpTo: 0, prestige: 1, xpAt } },
+    };
+    const deep = evolutionPanelModel(deepSave, 'tower', 'needle');
     expect(deep.trackLevel).toBe(37);
-    expect(deep.masteryLevel).toBe(137); // the lifetime level NEVER re-windows
+    expect(deep.masteryLevel).toBeGreaterThanOrEqual(100); // the lifetime level NEVER re-windows
     expect(deep.shardFree).toBe(true);
     expect(deep.nodes.some((n) => n.label.includes('Strain Samples'))).toBe(false); // P2+ shard-free
   });

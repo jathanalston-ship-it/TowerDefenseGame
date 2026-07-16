@@ -4,10 +4,10 @@
 
 import { describe, expect, it } from 'vitest';
 import {
-  MASTERY_EVOLUTION, canPrestige, masteryEvolutionProblems, masteryEvolutionTrack,
-  p1ShardBudget, trackLevelOf,
+  BASE_LOOP_XP, MASTERY_EVOLUTION, canPrestigeFromXp, loopXpRequirement,
+  masteryEvolutionProblems, masteryEvolutionTrack, p1ShardBudget, trackLevelFromXp,
 } from './masteryEvolution';
-import { HERO_ORDER, STAR, TOWER_ORDER } from './config';
+import { HERO_ORDER, MASTERY, STAR, TOWER_ORDER } from './config';
 
 const UNITS: { subject: 'tower' | 'hero'; unit: string }[] = [
   ...TOWER_ORDER.map((k) => ({ subject: 'tower' as const, unit: k as string })),
@@ -79,19 +79,34 @@ describe('the shard economy contract (docs/MASTERY.md §evolution track)', () =>
   });
 });
 
-describe('the prestige loop math (mastery level NEVER decreases)', () => {
-  it('trackLevelOf windows each loop; canPrestige opens exactly at the loop top', () => {
-    expect(trackLevelOf(0, 0)).toBe(0);
-    expect(trackLevelOf(37, 0)).toBe(37);
-    expect(trackLevelOf(100, 0)).toBe(100);
-    expect(canPrestige(99, 0)).toBe(false);
-    expect(canPrestige(100, 0)).toBe(true);
-    // After prestiging at 100, the SAME mastery level re-enters loop 1 at track level 0.
-    expect(trackLevelOf(100, 1)).toBe(0);
-    expect(trackLevelOf(153, 1)).toBe(53);
-    // A veteran at mastery 537 can chain: loop 5 sees track level 37.
-    expect(trackLevelOf(537, 5)).toBe(37);
-    expect(canPrestige(537, 4)).toBe(true); // loops 0..4 are all complete at 537
-    expect(trackLevelOf(9999, 5)).toBe(100); // deep levels clamp to the loop top
+describe('the prestige loop math — XP-metered loops (docs/MASTERY.md §pacing)', () => {
+  it('the debut loop mirrors the real mastery ladder exactly, capped at the crown', () => {
+    // Walk the REAL requirement curve (state/meta.masteryReq's formula) — trackLevelFromXp on
+    // prestige 0 must reproduce it level for level: the helix and the mastery bar agree.
+    let xp = 0;
+    for (let level = 0; level < 100; level++) {
+      expect(trackLevelFromXp(xp, 0), `at exactly level ${level}`).toBe(level);
+      expect(trackLevelFromXp(xp + 1, 0), `one XP into level ${level}`).toBe(level);
+      xp += Math.round(MASTERY.baseReq * Math.pow(MASTERY.reqGrowth, level));
+    }
+    expect(xp).toBe(BASE_LOOP_XP); // the loop's total IS the first 100 levels' total
+    expect(trackLevelFromXp(BASE_LOOP_XP, 0)).toBe(100);
+    expect(trackLevelFromXp(BASE_LOOP_XP * 50, 0)).toBe(100); // overshoot clamps to the crown
+    expect(canPrestigeFromXp(BASE_LOOP_XP - 1, 0)).toBe(false);
+    expect(canPrestigeFromXp(BASE_LOOP_XP, 0)).toBe(true);
+  });
+
+  it('each loop past the first costs +25% — chainable forever, never the ×83,522 wall', () => {
+    expect(loopXpRequirement(0)).toBe(BASE_LOOP_XP);
+    expect(loopXpRequirement(1) / loopXpRequirement(0)).toBeCloseTo(MASTERY_EVOLUTION.loopEffortGrowth, 5);
+    expect(loopXpRequirement(2) / loopXpRequirement(1)).toBeCloseTo(MASTERY_EVOLUTION.loopEffortGrowth, 5);
+    // Loop 6 costs ~×3.8 the debut loop — a marathon, not a myth. (Level-windowed loops on the
+    // ×1.12 mastery curve would have cost ×83,522 PER LOOP — the design this replaced.)
+    expect(loopXpRequirement(5)).toBeLessThan(BASE_LOOP_XP * 4);
+    expect(loopXpRequirement(5)).toBeGreaterThan(BASE_LOOP_XP * 3);
+    // A fresh loop always re-arms at 0 regardless of depth.
+    expect(trackLevelFromXp(0, 3)).toBe(0);
+    expect(canPrestigeFromXp(loopXpRequirement(3), 3)).toBe(true);
+    expect(canPrestigeFromXp(loopXpRequirement(3) - BASE_LOOP_XP, 3)).toBe(false);
   });
 });

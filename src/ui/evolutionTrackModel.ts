@@ -2,7 +2,7 @@
 // helix panel shows from the pure generator + the save's claim state. Pure (no React/DOM),
 // shared by TowerLab and HeroLab, and cheap enough to sweep the whole roster for badges/sorting.
 
-import { MASTERY_EVOLUTION, canPrestige, masteryEvolutionTrack, trackLevelOf } from '../core/masteryEvolution';
+import { MASTERY_EVOLUTION, canPrestigeFromXp, masteryEvolutionTrack, trackLevelFromXp } from '../core/masteryEvolution';
 import type { EvolutionGrant, EvolutionSubject } from '../core/masteryEvolution';
 import { masteryProgress } from '../state/meta';
 import type { SaveData } from '../save/saveStore';
@@ -49,8 +49,10 @@ export function evolutionPanelModel(save: SaveData, subject: EvolutionSubject, u
     ? save.towerMasteryXp[unit as TowerKind] ?? 0
     : save.heroMasteryXp[unit as HeroKind] ?? 0;
   const lvl = masteryProgress(xp).level;
-  const st = save.masteryEvolution[`${subject}:${unit}`] ?? { claimedUpTo: 0, prestige: 0 };
-  const trackLevel = trackLevelOf(lvl, st.prestige);
+  const st = save.masteryEvolution[`${subject}:${unit}`] ?? { claimedUpTo: 0, prestige: 0, xpAt: 0 };
+  // Loop progress is XP-metered from the prestige watermark (docs/MASTERY.md §pacing) —
+  // on the debut loop (xpAt 0) this equals the unit's mastery level, capped at 100.
+  const trackLevel = trackLevelFromXp(xp - st.xpAt, st.prestige);
   const track = masteryEvolutionTrack(subject, unit, st.prestige);
 
   let claimable = 0;
@@ -71,7 +73,7 @@ export function evolutionPanelModel(save: SaveData, subject: EvolutionSubject, u
     claimableMajors,
     nodes,
     next: upcoming ? { level: upcoming.level, toGo: upcoming.level - trackLevel, major: upcoming.major, label: upcoming.label } : null,
-    canPrestige: canPrestige(lvl, st.prestige),
+    canPrestige: canPrestigeFromXp(xp - st.xpAt, st.prestige),
     shardFree: st.prestige >= 1,
   };
 }

@@ -23,7 +23,7 @@
 // registry-free, sim-free: the meta layer (state/meta.ts) executes grants; nothing here can
 // perturb a run (golden-safe by construction).
 
-import { HERO_DEFS, STAR, TOWER_DEFS } from './config';
+import { HERO_DEFS, MASTERY, STAR, TOWER_DEFS } from './config';
 import type { HeroKind, TowerKind } from './types';
 
 export type EvolutionSubject = 'tower' | 'hero';
@@ -94,6 +94,9 @@ export const MASTERY_EVOLUTION = {
   // Power reflection (docs/POWER-SCORE.md): every completed loop is permanent account strength.
   powerPerPrestige: 0.005, // +0.5% to the meta bucket per completed loop…
   powerCap: 0.6, // …with the summed hum capped, so deep grinders enrich without dominating
+  // Loop pacing (§pacing below): each loop past the first costs +25% more XP than the base
+  // loop — the endless chain stays chainable (a LEVEL-windowed loop 2 would cost ×83,522).
+  loopEffortGrowth: 1.25,
 } as const;
 
 /** Permanent Power hum from completed Evolution loops: ×1 with no prestige anywhere (fresh
@@ -268,13 +271,52 @@ export function masteryEvolutionProblems(t: EvolutionTrack): string[] {
   return out;
 }
 
-/** The track level a mastery level maps to inside its current loop (never regresses the
- *  mastery level itself): loop N covers mastery levels (100·N, 100·N+100]. */
-export function trackLevelOf(masteryLvl: number, prestige: number): number {
-  return Math.max(0, Math.min(MASTERY_EVOLUTION.trackLevels, masteryLvl - prestige * MASTERY_EVOLUTION.trackLevels));
+// ── Loop pacing — XP-metered loops (docs/MASTERY.md §pacing) ────────────────────
+// Loop 1 is EXACTLY the unit's first 100 mastery levels (xpAt = 0 ⇒ the meters coincide).
+// Later loops are XP-METERED on the same first-loop requirement ladder, scaled by a gentle
+// per-loop effort growth. This is deliberate: the mastery level curve is geometric (×1.12 per
+// level), so a LEVEL-windowed loop 2 (levels 100→200) would cost ×83,522 the XP of loop 1 —
+// the balancing sims killed that dead end. XP-metering keeps every next loop +25% effort:
+// chainable forever, ever-slower, never absurd. Mastery LEVEL itself is untouched — it keeps
+// climbing on its own curve while the helix measures loop progress in its own 100 steps.
+
+/** One full loop's XP on the BASE ladder (the first 100 mastery levels' real requirements —
+ *  mirrors state/meta.masteryReq: round(baseReq · reqGrowth^level)). Computed once. */
+const BASE_LOOP_REQS: readonly number[] = Array.from(
+  { length: MASTERY_EVOLUTION.trackLevels },
+  (_, l) => Math.round(MASTERY.baseReq * Math.pow(MASTERY.reqGrowth, l)),
+);
+export const BASE_LOOP_XP: number = BASE_LOOP_REQS.reduce((a, n) => a + n, 0);
+
+/** The effort multiplier for loop `prestige` (0-based): ×1 for the debut loop, +25% per loop. */
+export function loopEffortMult(prestige: number): number {
+  return Math.pow(MASTERY_EVOLUTION.loopEffortGrowth, Math.max(0, prestige));
+}
+
+/** Total XP the loop at `prestige` requires from its watermark to its crown — the exact sum
+ *  of the per-level requirements trackLevelFromXp walks (same rounding, no drift). */
+export function loopXpRequirement(prestige: number): number {
+  const effort = loopEffortMult(prestige);
+  let total = 0;
+  for (const req of BASE_LOOP_REQS) total += Math.round(req * effort);
+  return total;
+}
+
+/** The track level (0..100) reached with `xpIntoLoop` XP earned since the loop's watermark
+ *  (save.masteryEvolution[key].xpAt). Walks the base ladder scaled by the loop's effort —
+ *  at prestige 0 with watermark 0 this reproduces the unit's mastery level exactly (capped). */
+export function trackLevelFromXp(xpIntoLoop: number, prestige: number): number {
+  const effort = loopEffortMult(prestige);
+  let rem = Math.max(0, xpIntoLoop);
+  for (let level = 0; level < MASTERY_EVOLUTION.trackLevels; level++) {
+    const need = Math.round(BASE_LOOP_REQS[level] * effort);
+    if (rem < need) return level;
+    rem -= need;
+  }
+  return MASTERY_EVOLUTION.trackLevels;
 }
 
 /** Whether the loop is complete and the organism may evolve (prestige). */
-export function canPrestige(masteryLvl: number, prestige: number): boolean {
-  return trackLevelOf(masteryLvl, prestige) >= MASTERY_EVOLUTION.trackLevels;
+export function canPrestigeFromXp(xpIntoLoop: number, prestige: number): boolean {
+  return trackLevelFromXp(xpIntoLoop, prestige) >= MASTERY_EVOLUTION.trackLevels;
 }
