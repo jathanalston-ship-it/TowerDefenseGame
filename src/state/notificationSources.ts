@@ -19,6 +19,7 @@ import { marketWindow } from '../core/market';
 import { dailyKey } from '../core/daily';
 import { MAIN_QUESTLINE, questComplete, weeklyQuestFor } from '../core/quests';
 import { BP, levelOf } from '../core/battlePass';
+import { evolutionRosterSignal } from '../ui/evolutionTrackModel';
 
 // Genetic Vault — unopened bio-containers banked from runs, waiting to be cracked.
 registerNotification({
@@ -196,4 +197,24 @@ registerNotification({
     }
     return n;
   },
+});
+
+// Mastery Evolution Tracks (docs/MASTERY.md §evolution track) — units whose helix holds
+// reached-unclaimed nodes, or a completed loop ready to EVOLVE. One badge per lab wing;
+// claiming (or evolving) drops the count, and the watermark clamps down with it.
+registerNotification({
+  id: 'evolution.towers',
+  channel: 'towers',
+  count: (s) => TOWER_ORDER.reduce((n, k) => {
+    const sig = evolutionRosterSignal(s, 'tower', k);
+    return n + (sig.claimable > 0 || sig.ready ? 1 : 0);
+  }, 0),
+});
+registerNotification({
+  id: 'evolution.heroes',
+  channel: 'heroes',
+  count: (s) => HERO_ORDER.reduce((n, k) => {
+    const sig = evolutionRosterSignal(s, 'hero', k);
+    return n + (sig.claimable > 0 || sig.ready ? 1 : 0);
+  }, 0),
 });

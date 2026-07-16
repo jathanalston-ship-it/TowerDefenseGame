@@ -74,6 +74,25 @@ describe('the prestige loop (mastery level NEVER decreases)', () => {
   });
 });
 
+describe('Power Score reflection (docs/POWER-SCORE.md §coverage)', () => {
+  it('every completed loop raises account Power; an empty record reads exactly like v43', () => {
+    seed();
+    const base = meta.power().score;
+    const oneLoop = meta.previewPower((s) => ({
+      ...s, masteryEvolution: { 'tower:needle': { claimedUpTo: 0, prestige: 1 } },
+    })).score;
+    const fiveLoops = meta.previewPower((s) => ({
+      ...s, masteryEvolution: {
+        'tower:needle': { claimedUpTo: 0, prestige: 2 },
+        'hero:ravager': { claimedUpTo: 0, prestige: 3 },
+      },
+    })).score;
+    expect(oneLoop).toBeGreaterThan(base); // the preview announces the EVOLVE before it happens
+    expect(fiveLoops).toBeGreaterThan(oneLoop); // …and deeper loops keep paying
+    expect(meta.previewPower((s) => ({ ...s, masteryEvolution: {} })).score).toBe(base); // neutral at zero
+  });
+});
+
 describe('v44 sanitizer (tamper holds to the loop window)', () => {
   it('clamps forged claim state instead of crashing or over-paying', () => {
     const base = defaultSave();

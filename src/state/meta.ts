@@ -68,7 +68,7 @@ import {
 } from '../core/reforge';
 import type { ReforgeOp } from '../core/reforge';
 import { gameEvents } from '../core/events';
-import { canPrestige as evolutionCanPrestige, masteryEvolutionTrack, trackLevelOf } from '../core/masteryEvolution';
+import { canPrestige as evolutionCanPrestige, masteryEvolutionPowerMult, masteryEvolutionTrack, trackLevelOf } from '../core/masteryEvolution';
 import type { EvolutionGrant, EvolutionSubject } from '../core/masteryEvolution';
 import { rewardToast } from './rewardToast';
 import type { CardDef, CardEffect, CardUnlock } from '../core/cards';
@@ -522,6 +522,7 @@ export function collectionContextOf(save: SaveData): CollectionContext {
     idleBestHours: save.idle.bestHours,
     idleBlooms: save.idle.blooms,
     geneLevels: Object.fromEntries(Object.entries(save.genes).map(([id, g]) => [id, g.level])),
+    evolutionPrestige: Object.fromEntries(Object.entries(save.masteryEvolution ?? {}).map(([k, st]) => [k, st.prestige])),
     nucleusGrown: Object.fromEntries(Object.entries(save.nucleus?.grown ?? {}).map(([id, g]) => [id, g.level])),
     nucleusAdapted: new Set(save.nucleus?.adapted ?? []),
     ...(() => {
@@ -894,13 +895,16 @@ export function accountPowerParts(save: SaveData, temporary = 1): PowerParts {
   // Unlocked hero slots beyond the first are account strength (a fielded extra champion) — the
   // hero-slot twin of the tower bonusSlots fold (POWER-AUDIT.md).
   const heroSlotMult = 1 + HERO_SLOT_POWER * Math.max(0, heroSlotsUnlocked(save) - 1);
+  // Completed Mastery Evolution loops (docs/MASTERY.md §evolution track) are the same class of
+  // permanent strength — ×1 while nothing has prestiged, so v43 saves read identically.
+  const evolutionMult = masteryEvolutionPowerMult(save.masteryEvolution);
   return {
     // Every PERMANENT strength source lands in `meta`: upgrades (tower-dmg proxy × genome run-effects ×
     // the hero/biomass/integrity/slot axes), prestige/ascendant, and collection bonuses — so ANY
     // upgrade raises Power. Towers/heroes/equipment/temporary are the other buckets.
     // Permanent gene-card upgrades are account strength → they fold into `meta` via the scale-safe
     // gene collection multiplier (1 until Task 4 authors upgrade levels; docs/GENE-EVOLUTION.md).
-    meta: mm.towerDamageMult * effectsPower(genomeRunEffects(save)) * metaExtras * collectionMult * battlePassMult * geneCollectionPowerMult(save.genes) * heroSlotMult,
+    meta: mm.towerDamageMult * effectsPower(genomeRunEffects(save)) * metaExtras * collectionMult * battlePassMult * geneCollectionPowerMult(save.genes) * heroSlotMult * evolutionMult,
     towers: geomean(TOWER_ORDER.map((k) => tp[k].damageMult)),
     heroes: geomean(HERO_ORDER.map((k) => hp[k].damageMult)),
     equipment: equipmentPower(save),

@@ -235,7 +235,16 @@ export const ACHIEVEMENTS: AchievementDef[] = [
   { id: 'complete_arsenal', name: 'Complete Arsenal', desc: 'Unlock every tower — the launch five, the expansion three, and both beam towers.', reward: 80, test: (c) => towersOwned(c.save) >= TOWER_ORDER.length, progress: (c) => ({ cur: towersOwned(c.save), max: TOWER_ORDER.length }) },
   { id: 'deep_genome', name: 'Deep Genome', desc: 'Collect 25 distinct Gene Cards (the Deep-Strain set and beyond).', reward: 60, test: (c) => c.save.stats.uniqueCards.length >= 25, progress: (c) => ({ cur: c.save.stats.uniqueCards.length, max: 25 }) },
   { id: 'return_from_deep', name: 'Return from the Deep', desc: 'Reach Infinite Depth 40 — the abyss that awakens the Revenant.', reward: 45, test: (c) => c.save.bestWave >= 40, progress: (c) => ({ cur: c.save.bestWave, max: 40 }) },
+  // ── Mastery Evolution Tracks (docs/MASTERY.md §evolution track) — the endless loop ──
+  { id: 'evo_first_loop', name: 'The Helix Reforms', desc: 'EVOLVE a Mastery Evolution Track for the first time — complete a 100-level loop and prestige it.', reward: 60, test: (c) => Object.values(c.save.masteryEvolution ?? {}).some((st) => st.prestige >= 1) },
+  { id: 'evo_five_loops', name: 'Serial Mutator', desc: 'Complete five Evolution loops across the roster.', reward: 120, test: (c) => evolutionLoops(c.save) >= 5, progress: (c) => ({ cur: Math.min(5, evolutionLoops(c.save)), max: 5 }) },
+  { id: 'evo_ancestral', name: 'Ancestral Strand', desc: 'Carry one organism into its fourth loop (Prestige 4).', hidden: true, reward: 200, test: (c) => Object.values(c.save.masteryEvolution ?? {}).some((st) => st.prestige >= 3) },
 ];
+
+/** Total completed Evolution loops (prestiges) across every tower and hero. */
+function evolutionLoops(s: SaveData): number {
+  return Object.values(s.masteryEvolution ?? {}).reduce((a, st) => a + Math.max(0, st.prestige), 0);
+}
 
 /** Achievements whose condition is now met but which aren't yet unlocked. */
 export function checkAchievements(ctx: AchievementCtx): AchievementDef[] {

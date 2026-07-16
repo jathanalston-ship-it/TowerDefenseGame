@@ -357,6 +357,18 @@ function sPower(chain = 0): void {
 }
 // Mastery level-up — the CRAFT chime: sPower's softer, lower sibling (expertise, not loot).
 function sMastery(): void { tone(392, 0.07, 'triangle', 0.08, 494); tone(587, 0.11, 'sine', 0.09); tone(1175, 0.2, 'sine', 0.045); }
+// ── Mastery Evolution Tracks (docs/MASTERY.md §evolution track) — the helix's own voice,
+//    kept apart from sMastery (craft) and sJackpot (loot): wet, genetic, strand-like. ──
+function sEvoClaim(): void { // nodes bank — a wet double-pluck climbing a fifth (a base pair snaps in)
+  tone(494, 0.08, 'triangle', 0.1, 741); tone(741, 0.14, 'sine', 0.1, 988); noise(0.06, 0.03, 5200);
+}
+function sEvoMilestone(): void { // a ganglion lights — the claim voice over a deep organic bloom
+  sEvoClaim(); tone(196, 0.3, 'sine', 0.12, 147); tone(988, 0.26, 'sine', 0.07, 1319);
+}
+function sEvoPrestige(): void { // EVOLVE — the strand melts down, then re-rises reformed
+  tone(660, 0.22, 'sawtooth', 0.09, 220); tone(110, 0.32, 'sine', 0.12, 82);
+  tone(330, 0.2, 'triangle', 0.1, 660); tone(660, 0.34, 'sine', 0.1, 1320); noise(0.24, 0.06, 900, 4200);
+}
 // Shard reward stingers — deliberately DISTINCT so the ear, not the text, says which shard landed.
 function sShardTower(): void { // Tower Shard — a crisp, glassy crystalline "ting"
   tone(1245, 0.07, 'triangle', 0.1, 1660); tone(1860, 0.16, 'sine', 0.08); noise(0.05, 0.03, 8000);
@@ -573,6 +585,9 @@ export const audio = {
           break;
         }
         case 'mastery': sMastery(); break;
+        case 'evoClaim': sEvoClaim(); break;
+        case 'evoMilestone': sEvoMilestone(); break;
+        case 'evoPrestige': sEvoPrestige(); break;
         case 'rankup': sRankUp(); break;
         case 'biome': sBiome(); break;
         case 'splice': sSplice(); break;

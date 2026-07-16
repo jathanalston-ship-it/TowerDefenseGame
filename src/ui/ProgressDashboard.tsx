@@ -10,7 +10,8 @@
 import { meta, nextStarCost } from '../state/meta';
 import { audio } from '../audio/sound';
 import { notifications } from '../state/notifications';
-import { TOWER_ORDER } from '../core/config';
+import { HERO_ORDER, TOWER_ORDER } from '../core/config';
+import { evolutionRosterSignal } from './evolutionTrackModel';
 import { costOf, rarityRank, rarityRegistry } from '../core/loot';
 import type { NavKey } from './Hub';
 
@@ -62,6 +63,13 @@ export function ProgressDashboard({ go }: { go: (k: NavKey) => void }): JSX.Elem
     return n + (cost !== null && (save.towerShards[k] ?? 0) >= cost ? 1 : 0);
   }, 0);
 
+  // Mastery Evolution helixes with value waiting (docs/MASTERY.md §evolution track):
+  // reached-unclaimed nodes, or a completed loop ready to EVOLVE.
+  const helixesReady = [
+    ...TOWER_ORDER.map((k) => evolutionRosterSignal(save, 'tower', k)),
+    ...HERO_ORDER.map((k) => evolutionRosterSignal(save, 'hero', k)),
+  ].reduce((n, sig) => n + (sig.claimable > 0 || sig.ready ? 1 : 0), 0);
+
   const items = save.equipment.inventory.length;
   const newGear = badges.equipment ?? 0; // equipment is its own nav now (re-channeled)
   const col = meta.collection();
@@ -82,6 +90,11 @@ export function ProgressDashboard({ go }: { go: (k: NavKey) => void }): JSX.Elem
       key: 'towers', title: 'Tower Evolution', accent: 'var(--kinetic)',
       big: `${towersReady}`, sub: towersReady > 0 ? 'Evolutions within reach' : 'Earn shards to evolve',
       badge: badges.towers, onClick: () => nav('towers'),
+    },
+    {
+      key: 'evolution', title: 'Evolution Tracks', accent: 'var(--viral)',
+      big: `${helixesReady}`, sub: helixesReady > 0 ? 'Helixes holding rewards' : 'Level mastery to grow each helix',
+      onClick: () => nav('towers'),
     },
     {
       key: 'equipment', title: 'Hero Equipment', accent: 'var(--caustic)',

@@ -91,7 +91,19 @@ export const MASTERY_EVOLUTION = {
   // Ichor (premium-adjacent) stays RARE and SMALL: only on deep-prestige majors.
   ichorAt50: 1, // level-50 major, prestige ≥ 2, every other loop (hash-phased)
   ichorAt100: 2, // level-100 completion, prestige ≥ 2, every loop
+  // Power reflection (docs/POWER-SCORE.md): every completed loop is permanent account strength.
+  powerPerPrestige: 0.005, // +0.5% to the meta bucket per completed loop…
+  powerCap: 0.6, // …with the summed hum capped, so deep grinders enrich without dominating
 } as const;
+
+/** Permanent Power hum from completed Evolution loops: ×1 with no prestige anywhere (fresh
+ *  accounts and v43 saves read identically), small per-loop growth, capped. The direct
+ *  "every EVOLVE made the account stronger" reflection — folded into accountPowerParts.meta. */
+export function masteryEvolutionPowerMult(evo: Record<string, { claimedUpTo: number; prestige: number }> | undefined): number {
+  let loops = 0;
+  for (const st of Object.values(evo ?? {})) loops += Math.max(0, st.prestige);
+  return 1 + Math.min(MASTERY_EVOLUTION.powerCap, MASTERY_EVOLUTION.powerPerPrestige * loops);
+}
 
 // ── Deterministic per-track stream (no Math.random, no gameplay rng) ───────────
 function seedOf(subject: EvolutionSubject, unit: string, prestige: number): number {

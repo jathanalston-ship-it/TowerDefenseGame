@@ -42,7 +42,8 @@ export type CollectionCategoryId =
   | 'doctrines' // run-commitment mastery (docs/DOCTRINES.md §collection)
   | 'mulligans' | 'mulliganOrganisms'
   | 'nucleusOrgans' | 'nucleusAdaptations' // the Hive Nucleus's own organ system (docs/NUCLEUS.md)
-  | 'heroSymbioteOrgans' | 'heroAdaptations' | 'heroResonances' | 'heroEvolutions'; // Hero Symbiotes (docs/HERO-SYMBIOTES.md)
+  | 'heroSymbioteOrgans' | 'heroAdaptations' | 'heroResonances' | 'heroEvolutions' // Hero Symbiotes (docs/HERO-SYMBIOTES.md)
+  | 'masteryEvolution'; // Evolution Track loops per unit (docs/MASTERY.md §evolution track)
 
 export interface CollectionEntry {
   id: string;
@@ -101,6 +102,7 @@ export interface CollectionContext {
   heroAdapted: Set<string>; // classes whose Complete Hero Adaptation has ever awakened (any host)
   heroResonated: Set<string>; // resonance ids ever witnessed (any host)
   heroEvolved: Set<string>; // hero kinds that have ever reached full evolution (9/9)
+  evolutionPrestige: Record<string, number>; // 'tower:<kind>'/'hero:<kind>' → completed Evolution loops
   questCompletions: Record<string, number>; // quest id → lifetime finale claims (docs/QUESTS.md §collection)
   missionsDone: Set<string>; // mission ids ever completed (lifetime, both lanes)
   lifetimeLogins: number; // Daily Bio-Cache claims ever (docs/DAILY-LOGIN.md — never reset)
@@ -399,6 +401,22 @@ export function collectionView(ctx: CollectionContext): CollectionView {
     return { id: `hevo_${k}`, name: `${HERO_DEFS[k].name} — Fully Evolved`, tier, maxTier: 1, tierLabel: tier ? 'Complete Organism' : 'Incomplete' };
   });
 
+  // Mastery Evolution loops (docs/MASTERY.md §evolution track): each unit's prestige depth,
+  // chronicled to three loops — the endless track's codex face. Tier 0 everywhere on a fresh
+  // account (and on every pre-v44 save), so nothing is retroactively discovered.
+  const evoLoopLabels = ['Unevolved', 'Loop II Reached', 'Loop III Reached', 'Loop IV Reached'];
+  const evoTier = (key: string): number => Math.max(0, Math.min(3, ctx.evolutionPrestige[key] ?? 0));
+  const masteryEvolution: CollectionEntry[] = [
+    ...TOWER_ORDER.map((k): CollectionEntry => {
+      const tier = evoTier(`tower:${k}`);
+      return { id: `mevo_t_${k}`, name: `${TOWER_DEFS[k].name} Helix`, tier, maxTier: 3, tierLabel: evoLoopLabels[tier] };
+    }),
+    ...HERO_ORDER.map((k): CollectionEntry => {
+      const tier = evoTier(`hero:${k}`);
+      return { id: `mevo_h_${k}`, name: `${HERO_DEFS[k].name} Helix`, tier, maxTier: 3, tierLabel: evoLoopLabels[tier] };
+    }),
+  ];
+
   const categories: CollectionCategory[] = [
     makeCategory('enemies', 'Bestiary', enemies),
     makeCategory('bosses', 'Bosses', bosses),
@@ -428,6 +446,7 @@ export function collectionView(ctx: CollectionContext): CollectionView {
     makeCategory('heroAdaptations', 'Hero Adaptations', heroAdaptations),
     makeCategory('heroResonances', 'Resonances', heroResonances),
     makeCategory('heroEvolutions', 'Hero Evolutions', heroEvolutions),
+    makeCategory('masteryEvolution', 'Evolution Loops', masteryEvolution),
   ];
   const discovered = categories.reduce((a, c) => a + c.discovered, 0);
   const total = categories.reduce((a, c) => a + c.total, 0);
@@ -506,6 +525,9 @@ const CATEGORY_BONUS_SPECS: Record<CollectionCategoryId, CategoryBonusSpec> = {
   heroAdaptations: { effects: [{ op: 'mul', field: 'heroMaxHpMult', max: 1.04, label: 'Hero Health' }], econ: [], powerWeight: 0.02 },
   heroResonances: { effects: [{ op: 'mul', field: 'heroDamageMult', max: 1.03, label: 'Hero Damage' }], econ: [], powerWeight: 0.02 },
   heroEvolutions: { effects: [], econ: [{ key: 'heroXpMult', max: 0.15, label: 'Hero XP' }], powerWeight: 0.03 },
+  // Evolution loops pay Power DIRECTLY per prestige (masteryEvolutionPowerMult → the meta bucket),
+  // so the codex itself is chronicle-only — no second lane, no double-counting (like 'chests').
+  masteryEvolution: { effects: [], econ: [], powerWeight: 0 },
 };
 
 const effVal = (op: 'mul' | 'add', max: number, c: number): number => (op === 'mul' ? 1 + (max - 1) * c : max * c);

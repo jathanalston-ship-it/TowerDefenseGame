@@ -55,11 +55,11 @@ export function EvolutionTrackPanel({ subject, unit, name, color }: {
   const claim = (): void => {
     audio.resume();
     const majors = m.claimableMajors; // captured pre-claim: were any of the paid nodes majors?
-    if (meta.claimMasteryEvolution(subject, unit) > 0) audio.cue(majors > 0 ? 'levelup' : 'mastery');
+    if (meta.claimMasteryEvolution(subject, unit) > 0) audio.cue(majors > 0 ? 'evoMilestone' : 'evoClaim');
   };
   const evolve = (): void => {
     audio.resume();
-    if (meta.prestigeMasteryEvolution(subject, unit)) audio.cue('promotion');
+    if (meta.prestigeMasteryEvolution(subject, unit)) audio.cue('evoPrestige');
   };
 
   return (
