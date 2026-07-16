@@ -1016,6 +1016,26 @@ export const RELEASES: Release[] = [
       {
         "cat": "Audio",
         "text": "Container opening: per-rarity audio, framework tests, docs — both overhauls complete"
+      },
+      {
+        "cat": "Website",
+        "text": "Chronicle: batch notes + site regen (discovery + clutch overhauls)"
+      },
+      {
+        "cat": "Framework",
+        "text": "List-organization framework: generic organizer + shared control row + per-surface prefs"
+      },
+      {
+        "cat": "Towers",
+        "text": "Tower Lab: combat-class folds + Name sort — the 100-tower rail answer"
+      },
+      {
+        "cat": "Heroes",
+        "text": "Hero roster + Evolution HQ: search, sorting, filters via the shared framework"
+      },
+      {
+        "cat": "Gene Cards",
+        "text": "Gene Archive + Armory: persisted organization + Highest Rarity sort"
       }
     ]
   },

@@ -244,3 +244,9 @@
 - `840f18b` **[Framework]** Bio-Container reveal framework: specimen session model + flip state machine
 - `297c895` **[Gameplay]** Bio-Container opening experience: simultaneous face-down clutch + celebrations
 - `33dd837` **[Audio]** Container opening: per-rarity audio, framework tests, docs — both overhauls complete
+- `a02439d` **[Website]** Chronicle: batch notes + site regen (discovery + clutch overhauls)
+- `e4c51f7` **[Framework]** List-organization framework: generic organizer + shared control row + per-surface prefs
+- `ccf6aff` **[Towers]** Tower Lab: combat-class folds + Name sort — the 100-tower rail answer
+- `ff3f5d2` **[Heroes]** Hero roster + Evolution HQ: search, sorting, filters via the shared framework
+- `c9a21d2` **[Gene Cards]** Gene Archive + Armory: persisted organization + Highest Rarity sort
+- ⚑ `fdd3627` **[Framework]** List organization: docs, DIL, verify — the overhaul ships _(internal)_

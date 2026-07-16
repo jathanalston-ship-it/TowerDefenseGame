@@ -1,6 +1,6 @@
 {
-  "lastSha": "33dd837ddb1cb9bfae52ebf7b73fa9e1bc5d1b50",
-  "commitsSinceDraft": 0,
+  "lastSha": "fdd36277adaa1aea50fcfb0f6a9b33144439a9f2",
+  "commitsSinceDraft": 6,
   "content": {
     "tower": [
       "needle",
@@ -2501,6 +2501,26 @@
         {
           "cat": "Audio",
           "text": "Container opening: per-rarity audio, framework tests, docs — both overhauls complete"
+        },
+        {
+          "cat": "Website",
+          "text": "Chronicle: batch notes + site regen (discovery + clutch overhauls)"
+        },
+        {
+          "cat": "Framework",
+          "text": "List-organization framework: generic organizer + shared control row + per-surface prefs"
+        },
+        {
+          "cat": "Towers",
+          "text": "Tower Lab: combat-class folds + Name sort — the 100-tower rail answer"
+        },
+        {
+          "cat": "Heroes",
+          "text": "Hero roster + Evolution HQ: search, sorting, filters via the shared framework"
+        },
+        {
+          "cat": "Gene Cards",
+          "text": "Gene Archive + Armory: persisted organization + Highest Rarity sort"
         }
       ]
     }
@@ -4297,6 +4317,54 @@
       "text": "Container opening: per-rarity audio, framework tests, docs — both overhauls complete",
       "internal": false,
       "needsReview": false
+    },
+    {
+      "sha": "a02439d9493c761617b2c52b1e8d9d9dc983b416",
+      "date": "2026-07-16",
+      "cat": "Website",
+      "text": "Chronicle: batch notes + site regen (discovery + clutch overhauls)",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "e4c51f76517d32aad241cb457f298dbd1f0065e4",
+      "date": "2026-07-16",
+      "cat": "Framework",
+      "text": "List-organization framework: generic organizer + shared control row + per-surface prefs",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "ccf6aff78222da041955e705ee2c1b09754dafaa",
+      "date": "2026-07-16",
+      "cat": "Towers",
+      "text": "Tower Lab: combat-class folds + Name sort — the 100-tower rail answer",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "ff3f5d2182355a2862af0ebc72b09e88cd05d9a7",
+      "date": "2026-07-16",
+      "cat": "Heroes",
+      "text": "Hero roster + Evolution HQ: search, sorting, filters via the shared framework",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "c9a21d2f9cda0344ef72714ed1883b8ce2793541",
+      "date": "2026-07-16",
+      "cat": "Gene Cards",
+      "text": "Gene Archive + Armory: persisted organization + Highest Rarity sort",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "fdd36277adaa1aea50fcfb0f6a9b33144439a9f2",
+      "date": "2026-07-16",
+      "cat": "Framework",
+      "text": "List organization: docs, DIL, verify — the overhaul ships",
+      "internal": true,
+      "needsReview": true
     }
   ]
 }
