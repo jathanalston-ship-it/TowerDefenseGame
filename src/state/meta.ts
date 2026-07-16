@@ -71,7 +71,9 @@ import { gameEvents } from '../core/events';
 import { canPrestigeFromXp, masteryEvolutionPowerMult, masteryEvolutionTrack, trackLevelFromXp } from '../core/masteryEvolution';
 import { rollGeneDiscovery } from '../core/geneDiscovery';
 import type { EvolutionGrant, EvolutionSubject } from '../core/masteryEvolution';
-import { rewardToast } from './rewardToast';
+import { rewardToast, eventsForPassRewards } from './rewardToast';
+import type { RewardEvent } from './rewardToast';
+type ToastEvents = Omit<RewardEvent, 'source'>[];
 import type { CardDef, CardEffect, CardUnlock } from '../core/cards';
 import { CARD_POOL, cardRegistry } from '../core/cards';
 import { HERO_SLOT_POWER, composePower, effectsPower, geomean, itemRarityPower, metaExtrasPower } from '../core/power';
@@ -293,9 +295,10 @@ function applyRewardList(
   rewards: PassReward[],
   repl: { ichor: number; cores: number },
   seasonForStack: SeasonDef | null,
-): { next: SaveData; lines: PremiumReceiptLine[]; stamina: number } {
+): { next: SaveData; lines: PremiumReceiptLine[]; stamina: number; events: ToastEvents } {
   let next = draft;
   const lines: PremiumReceiptLine[] = [];
+  const events: ToastEvents = []; // structured toast facts (docs/NOTIFICATIONS.md §reward-toasts)
   let stamina = 0;
   const replacement = (label: string): void => {
     const { ichor, cores } = repl;
@@ -305,24 +308,31 @@ function applyRewardList(
       shards: next.shards + cores, lifetimeShards: next.lifetimeShards + cores,
     };
     lines.push({ icon: '⟳', label: `${label} (owned) → ${ichor} Ichor + ${cores} Cores` });
+    events.push({ type: 'ichor', qty: ichor }, { type: 'genomeCores', qty: cores });
   };
   for (const r of rewards) {
     switch (r.kind) {
       case 'ichor':
         next = { ...next, ichor: next.ichor + r.qty, lifetimeIchor: next.lifetimeIchor + r.qty };
-        lines.push({ icon: '◆', label: `${r.qty} Ichor`, kind: 'ichor', qty: r.qty });
+        lines.push({ icon: '◆', label: `${r.qty} Ichor` });
+        events.push({ type: 'ichor', qty: r.qty });
         break;
       case 'cores':
         next = { ...next, shards: next.shards + r.qty, lifetimeShards: next.lifetimeShards + r.qty };
-        lines.push({ icon: '⬡', label: `${r.qty} Genome Cores`, kind: 'cores', qty: r.qty });
+        lines.push({ icon: '⬡', label: `${r.qty} Genome Cores` });
+        events.push({ type: 'genomeCores', qty: r.qty });
         break;
       case 'geneEssence':
         next = { ...next, geneEssence: next.geneEssence + r.qty };
-        lines.push({ icon: '⌬', label: `${r.qty} Gene Essence`, kind: 'essence', qty: r.qty });
+        lines.push({ icon: '⌬', label: `${r.qty} Gene Essence` });
+        events.push({ type: 'geneEssence', qty: r.qty });
         break;
       case 'mats':
         next = { ...next, mats: { ...next.mats, mutagen: next.mats.mutagen + (r.mutagen ?? 0), scrap: next.mats.scrap + (r.scrap ?? 0), catalyst: next.mats.catalyst + (r.catalyst ?? 0) } };
         lines.push({ icon: '⚒', label: `Materials — ⊕${r.mutagen ?? 0} · ◳${r.scrap ?? 0} · ✷${r.catalyst ?? 0}` });
+        if (r.mutagen) events.push({ type: 'mutagen', qty: r.mutagen });
+        if (r.scrap) events.push({ type: 'scrap', qty: r.scrap });
+        if (r.catalyst) events.push({ type: 'catalyst', qty: r.catalyst });
         break;
       case 'towerShardsAll': {
         // Direct lanes BANK since Prime Strains (docs/PRIME-STRAINS.md §economy): a max-Star
@@ -332,6 +342,7 @@ function applyRewardList(
         for (const k of towerShardPool(next)) towerShards[k] = (towerShards[k] ?? 0) + r.qtyEach;
         next = { ...next, towerShards };
         lines.push({ icon: '✦', label: `${r.qtyEach} Strain Samples × every tower` });
+        events.push({ type: 'towerShards', qty: r.qtyEach, name: 'every tower' });
         break;
       }
       case 'heroShardsAll': {
@@ -339,19 +350,23 @@ function applyRewardList(
         for (const k of HERO_ORDER) heroShards[k] = (heroShards[k] ?? 0) + r.qtyEach;
         next = { ...next, heroShards };
         lines.push({ icon: '✦', label: `${r.qtyEach} Apex Genome × every hero` });
+        events.push({ type: 'heroShards', qty: r.qtyEach, name: 'every hero' });
         break;
       }
       case 'container':
         next = { ...next, pendingContainers: [...next.pendingContainers, ...Array.from({ length: r.count }, () => ({ kind: 'loot' as const, rarity: r.rarity }))] };
-        lines.push({ icon: '◈', label: `${r.count}× ${r.rarity} Bio-Container`, rarity: r.rarity, kind: 'container', qty: r.count });
+        lines.push({ icon: '◈', label: `${r.count}× ${r.rarity} Bio-Container`, rarity: r.rarity });
+        events.push({ type: 'container', qty: r.count, rarity: r.rarity });
         break;
       case 'runCache':
         next = { ...next, pendingContainers: [...next.pendingContainers, ...Array.from({ length: r.count }, () => ({ kind: 'cache' as const, chestId: RUN_CHEST }))] };
-        lines.push({ icon: '⬢', label: `${r.count}× Run Cache`, kind: 'cache', qty: r.count });
+        lines.push({ icon: '⬢', label: `${r.count}× Run Cache` });
+        events.push({ type: 'runCache', qty: r.count });
         break;
       case 'rushStamina':
         stamina += r.qty; // granted after the persist via the capped pipeline
-        lines.push({ icon: '☠', label: `${r.qty} Rush Stamina`, kind: 'stamina', qty: r.qty });
+        lines.push({ icon: '☠', label: `${r.qty} Rush Stamina` });
+        events.push({ type: 'stamina', qty: r.qty });
         break;
       case 'cosmetic': {
         const def = wardrobeItem(r.id);
@@ -360,6 +375,7 @@ function applyRewardList(
         else {
           next = { ...next, wardrobe: { ...next.wardrobe, owned: [...next.wardrobe.owned, r.id], pendingReveal: [...next.wardrobe.pendingReveal, r.id] } };
           lines.push({ icon: '❖', label: def.name });
+          events.push({ type: 'cosmetic', name: def.name });
         }
         break;
       }
@@ -370,6 +386,7 @@ function applyRewardList(
         if (!grant) { replacement(`${r.family} Phenotype`); break; }
         next = { ...next, cosmetics: { ...next.cosmetics, owned: [...next.cosmetics.owned, grant.id] } };
         lines.push({ icon: '🧬', label: grant.name });
+        events.push({ type: 'phenotype', name: grant.name });
         break;
       }
       case 'passive': {
@@ -379,6 +396,7 @@ function applyRewardList(
         else {
           next = { ...next, battlePass: { ...next.battlePass, permanents: [...next.battlePass.permanents, r.id] } };
           lines.push({ icon: '♾', label: `${def.name} — permanent (${def.desc})` });
+          events.push({ type: 'passive', name: def.name });
         }
         break;
       }
@@ -393,10 +411,11 @@ function applyRewardList(
           },
         };
         lines.push({ icon: '❁', label: `Perennial Bloom ×${next.battlePass.stacks} — the season fully cleared` });
+        events.push({ type: 'passStack', name: `Perennial Bloom ×${next.battlePass.stacks}` });
         break;
     }
   }
-  return { next, lines, stamina };
+  return { next, lines, stamina, events };
 }
 
 /** Pass XP a quest claim banks (docs/QUESTS.md §credit) — manual claims and rollover mail
@@ -437,10 +456,11 @@ export interface LoginReceipt {
  *  Repeats substitute the QUESTS.repeatFinale bundle for the unlocks (docs/QUESTS.md §finale).
  *  Also settles the completion ledgers: questCompletions++, weekly.completionClaimed / the
  *  main-lane completions append (which opens the next chapter). */
-function grantQuestFinale(draft: SaveData, quest: QuestDef): { next: SaveData; lines: PremiumReceiptLine[]; premiere: boolean } {
+function grantQuestFinale(draft: SaveData, quest: QuestDef): { next: SaveData; lines: PremiumReceiptLine[]; premiere: boolean; events: ToastEvents } {
   const res = applyRewardList(draft, quest.finaleRewards, QUESTS.repeatFinale, null);
   let next = res.next;
   const lines = [...res.lines];
+  const events: ToastEvents = [...res.events];
   let premiere = false;
   const cutKey = `cutscene:${quest.id}`;
   const cosKey = `cosmetic:${quest.id}`;
@@ -457,6 +477,7 @@ function grantQuestFinale(draft: SaveData, quest: QuestDef): { next: SaveData; l
       shards: next.shards + cores, lifetimeShards: next.lifetimeShards + cores,
     };
     lines.push({ icon: '⟳', label: `Story rewards (unlocked) → ${ichor} Ichor + ${cores} Cores` });
+    events.push({ type: 'ichor', qty: ichor }, { type: 'genomeCores', qty: cores });
   }
   const item = wardrobeItem(quest.finaleCosmetic);
   if (item && !next.quests.once.includes(cosKey)) {
@@ -468,6 +489,7 @@ function grantQuestFinale(draft: SaveData, quest: QuestDef): { next: SaveData; l
         : { ...next.wardrobe, owned: [...next.wardrobe.owned, item.id], pendingReveal: [...next.wardrobe.pendingReveal, item.id] },
     };
     lines.push({ icon: '❖', label: `${item.name} — quest exclusive` });
+    events.push({ type: 'cosmetic', name: item.name });
   }
   next = {
     ...next,
@@ -479,7 +501,7 @@ function grantQuestFinale(draft: SaveData, quest: QuestDef): { next: SaveData; l
         : { main: { ...next.quests.main, completions: [...next.quests.main.completions, quest.id] } }),
     },
   };
-  return { next, lines, premiere };
+  return { next, lines, premiere, events };
 }
 
 /** Apply ONE pass level's rewards to a save draft (no persist — callers batch + persist) and
@@ -490,11 +512,11 @@ function applyPassRewards(
   rewards: PassReward[],
   track: 'free' | 'premium',
   level: number,
-): { next: SaveData; lines: PremiumReceiptLine[]; stamina: number } {
+): { next: SaveData; lines: PremiumReceiptLine[]; stamina: number; events: ToastEvents } {
   const res = applyRewardList(draft, rewards, BP.repeatReplacement, season);
   const key = track === 'free' ? 'claimedFree' : 'claimedPremium';
   const next = { ...res.next, battlePass: { ...res.next.battlePass, [key]: [...res.next.battlePass[key], level] } };
-  return { next, lines: res.lines, stamina: res.stamina };
+  return { events: res.events, next, lines: res.lines, stamina: res.stamina };
 }
 
 export function collectionContextOf(save: SaveData): CollectionContext {
@@ -1197,23 +1219,24 @@ function applyEvolutionGrant(save: SaveData, subject: EvolutionSubject, unit: st
   }
 }
 
-/** Receipt lines for a claim toast — one line per grant kind, amounts merged. */
-function evolutionToastLines(grants: EvolutionGrant[], unitName: string): { icon: string; label: string }[] {
+
+/** Structured toast events for an Evolution Track claim (docs/NOTIFICATIONS.md §reward-toasts). */
+function evolutionToastEvents(grants: EvolutionGrant[], unitName: string, subject: EvolutionSubject): ToastEvents {
   const sums = new Map<string, number>();
   let containers = 0;
   for (const g of grants) {
     if (g.kind === 'container') containers++;
     else sums.set(g.kind, (sums.get(g.kind) ?? 0) + g.amount);
   }
-  const label: Record<string, [string, string]> = {
-    unitShards: ['\u2726', `${unitName} Shards`], genomeCores: ['\u25c6', 'Genome Cores'],
-    geneEssence: ['\u29c9', 'Gene Essence'], scrap: ['\u25f3', 'Scrap'], mutagen: ['\u2295', 'Mutagen'],
-    catalyst: ['\u2737', 'Catalyst'], ichor: ['\u2620', 'Ichor'],
+  const ev: ToastEvents = [];
+  const typeFor: Record<string, string> = {
+    unitShards: subject === 'tower' ? 'towerShards' : 'heroShards',
+    genomeCores: 'genomeCores', geneEssence: 'geneEssence',
+    scrap: 'scrap', mutagen: 'mutagen', catalyst: 'catalyst', ichor: 'ichor',
   };
-  const out: { icon: string; label: string }[] = [];
-  for (const [k, n] of sums) out.push({ icon: label[k]?.[0] ?? '\u2726', label: `+${n} ${label[k]?.[1] ?? k}` });
-  if (containers > 0) out.push({ icon: '\u2623', label: `+${containers} Bio Container${containers > 1 ? 's' : ''}` });
-  return out;
+  for (const [k, n] of sums) ev.push({ type: typeFor[k] ?? k, qty: n, ...(k === 'unitShards' ? { name: unitName } : {}) });
+  if (containers > 0) ev.push({ type: 'container', qty: containers });
+  return ev;
 }
 
 export function towerShardPool(save: SaveData): TowerKind[] {
@@ -1634,8 +1657,6 @@ export interface PremiumReceiptLine {
   icon: string;
   label: string;
   rarity?: string; // tint for container/equipment lines
-  kind?: string; // reward-vocabulary id (state/rewardVocab.ts) — tiers + merges the toast line
-  qty?: number; // quantity for mergeable lines (docs/NOTIFICATIONS.md §merge)
 }
 /** What meta.purchaseOffer returns — everything the confirmation + reveal UI needs. */
 export interface PremiumReceipt {
@@ -2640,6 +2661,20 @@ export const meta = {
       ...(pendingMegaCutscenes.length > 0 ? { megaCutscenes: pendingMegaCutscenes.splice(0) } : {}),
       flawlessCache,
     };
+    // Reward placards (docs/NOTIFICATIONS.md §reward-toasts): the run's account-level take,
+    // announced through the global toaster. Pushed while Results is up ⇒ the bus HOLDS them
+    // and they land as the claim trail the moment the player returns to the hub.
+    {
+      const toastSource = isRush ? 'Boss Rush'
+        : isCampaign ? `Campaign Stage ${stageNo}`
+        : result.endless ? `Infinite — Depth ${result.wave}`
+        : isDaily ? 'Daily Run' : 'Field Run';
+      const ev: ToastEvents = [];
+      if (shardsEarned > 0) ev.push({ type: 'genomeCores', qty: shardsEarned });
+      if (passXp > 0) ev.push({ type: 'bpXp', qty: passXp });
+      for (const c of bankedThisRun) ev.push(c.kind === 'cache' ? { type: 'runCache' } : { type: 'container', rarity: c.rarity });
+      if (ev.length > 0) rewardToast.pushMany(toastSource, ev);
+    }
     settledOutcomes.set(result, outcome);
     return outcome;
   },
@@ -3352,6 +3387,13 @@ export const meta = {
       directives: { week: wk, progress: cur.progress, claimed: [...cur.claimed, key] },
       timeline: pushTimeline(save.timeline, '❇', `Directive claimed — ${id === '__capstone' ? DIRECTIVE_CAPSTONE.name : (activeDirectives().find((x) => x.id === id)?.name ?? id)}`),
     });
+    {
+      const ev: ToastEvents = [];
+      if (reward.cores) ev.push({ type: 'genomeCores', qty: reward.cores });
+      if (reward.essence) ev.push({ type: 'geneEssence', qty: reward.essence });
+      if (reward.container) ev.push({ type: 'runCache' });
+      rewardToast.pushMany('Weekly Directive', ev);
+    }
     return reward;
   },
 
@@ -3455,6 +3497,16 @@ export const meta = {
       timeline: pushTimeline(s.timeline, '⇠', `Expedition — ${HERO_DEFS[hero].name} ${flavor} (${def.name})${find ? ` · ${find.name}!` : ''}`),
     });
     this.grantPassXp('expedition', 40); // away-missions feed the season (docs/BATTLEPASS.md §xp)
+    {
+      const ev: ToastEvents = [{ type: 'bpXp', qty: 40 }];
+      if (reward.cores > 0) ev.push({ type: 'genomeCores', qty: reward.cores });
+      if (reward.essence > 0) ev.push({ type: 'geneEssence', qty: reward.essence });
+      if (reward.mats.mutagen > 0) ev.push({ type: 'mutagen', qty: reward.mats.mutagen });
+      if (reward.mats.scrap > 0) ev.push({ type: 'scrap', qty: reward.mats.scrap });
+      if (reward.mats.catalyst > 0) ev.push({ type: 'catalyst', qty: reward.mats.catalyst });
+      if (find) ev.push({ type: 'collection', name: `Rare Find — ${find.name}`, rarity: 'epic' });
+      rewardToast.pushMany(`Expedition — ${HERO_DEFS[hero].name}`, ev);
+    }
     this.creditQuests({ type: 'expeditions', n: 1 }); // …and the directive layer (docs/QUESTS.md §credit)
     return { reward, outcome: outcome.kind, find };
   },
@@ -3758,6 +3810,7 @@ export const meta = {
       }
     }
     persist({ ...next, timeline: pushTimeline(next.timeline, '❖', `Milestone — ${def.name} claimed`) });
+    rewardToast.pushMany(`Wardrobe — ${def.name}`, eventsForPassRewards(def.rewards as never));
     return lines;
   },
 
@@ -3842,10 +3895,11 @@ export const meta = {
     if (track === 'premium' && !bp.premium && !BP.freePremiumLevels.includes(level)) return null;
     const season = seasonForWindow(bp.window);
     const rewards = seasonTracks(season.id)[track][level - 1];
-    const { next, lines, stamina } = applyPassRewards(save, season, rewards, track, level);
+    const { next, lines, stamina, events } = applyPassRewards(save, season, rewards, track, level);
     persist(next);
     if (stamina > 0) this.grantRushStamina(stamina, now);
     this.evaluateAchievements();
+    rewardToast.pushMany(`Battle Pass — Level ${level}`, events);
     return lines;
   },
 
@@ -3958,6 +4012,7 @@ export const meta = {
     const nextStreak = isPrevDayKey(save.login.last, key) ? save.login.streak + 1 : 1;
     const bundle = rollLoginBundle(key, save.login.lifetime, nextStreak);
     const res = applyRewardList(save, bundle.rewards, LOGIN.repeatReplacement, null);
+    rewardToast.pushMany(`Daily Bio-Cache — Day ${nextStreak}`, res.events);
     const lifetime = save.login.lifetime + 1;
     const best = Math.max(save.login.best, nextStreak);
     persist({
@@ -4048,6 +4103,25 @@ export const meta = {
       },
       timeline: pushTimeline(next.timeline, '⬢', `Idle Harvest — ${fmtIdleHours(acc.effHours)} banked${roll.bloom ? ' · BLOOM' : ''}`),
     });
+    {
+      const ev: ToastEvents = [];
+      for (const l of roll.lines) {
+        const g = l.grant;
+        if (g.kind === 'cores') ev.push({ type: 'genomeCores', qty: g.qty });
+        else if (g.kind === 'essence') ev.push({ type: 'geneEssence', qty: g.qty });
+        else if (g.kind === 'ichor') ev.push({ type: 'ichor', qty: g.qty });
+        else if (g.kind === 'mats') {
+          if (g.mutagen) ev.push({ type: 'mutagen', qty: g.mutagen });
+          if (g.scrap) ev.push({ type: 'scrap', qty: g.scrap });
+          if (g.catalyst) ev.push({ type: 'catalyst', qty: g.catalyst });
+        } else if (g.kind === 'towerShards') ev.push({ type: 'towerShards', qty: g.qtyEach, name: 'every tower' });
+        else if (g.kind === 'heroShards') ev.push({ type: 'heroShards', qty: g.qtyEach, name: 'every hero' });
+        else if (g.kind === 'mulligan') ev.push({ type: 'mulligan', name: 'Modifier drop' });
+        else if (g.kind === 'container') ev.push({ type: 'container', rarity: g.rarity });
+        else if (g.kind === 'runCache') ev.push({ type: 'runCache' });
+      }
+      rewardToast.pushMany(roll.bloom ? 'Idle Harvest — BLOOM' : 'Idle Harvest', ev);
+    }
     this.evaluateAchievements();
     return {
       lines,
@@ -4195,6 +4269,7 @@ export const meta = {
     });
     if (res.stamina > 0) this.grantRushStamina(res.stamina, now);
     this.grantPassXp('quest', QUEST_PASS_XP.mission, now); // directives feed the season (docs/BATTLEPASS.md §xp)
+    rewardToast.pushMany(`Mission — ${mi.name}`, [...res.events, { type: 'bpXp', qty: QUEST_PASS_XP.mission }]);
     // The receipt names the season credit too — the claim popup teaches the quests→pass loop.
     return [...res.lines, { icon: '❁', label: `+${QUEST_PASS_XP.mission} Season XP` }];
   },
@@ -4217,6 +4292,7 @@ export const meta = {
     const lane = quest.lane === 'weekly' ? q.weekly : q.main;
     if (!questComplete(quest, lane.progress)) return null;
     const lines: PremiumReceiptLine[] = [];
+    const events: ToastEvents = [];
     let draft = save;
     let autoClaimed = 0;
     for (const mi of quest.missions) {
@@ -4237,11 +4313,13 @@ export const meta = {
         },
       };
       lines.push(...res.lines);
+      events.push(...res.events);
       autoClaimed++;
     }
     const fin = grantQuestFinale(draft, quest);
     draft = fin.next;
     lines.push(...fin.lines);
+    events.push(...fin.events);
     persist({
       ...draft,
       timeline: pushTimeline(draft.timeline, quest.glyph, `Quest complete — ${quest.name}`),
@@ -4251,6 +4329,7 @@ export const meta = {
     this.grantPassXp('quest', QUEST_PASS_XP.finale + autoClaimed * QUEST_PASS_XP.mission, now);
     this.evaluateAchievements();
     lines.push({ icon: '❁', label: `+${QUEST_PASS_XP.finale + autoClaimed * QUEST_PASS_XP.mission} Season XP` });
+    rewardToast.pushMany(`Quest Finale — ${quest.name}`, [...events, { type: 'bpXp', qty: QUEST_PASS_XP.finale + autoClaimed * QUEST_PASS_XP.mission }]);
     return lines;
   },
 
@@ -5050,6 +5129,7 @@ export const meta = {
         lifetimeIchor: s2.lifetimeIchor + gain,
         timeline: pushTimeline(s2.timeline, '◆', `Ichor bleed — Collection rank up (+${gain})`),
       });
+      rewardToast.pushMany('Collection Rank-Up', [{ type: 'ichor', qty: gain }]);
     }
     return { rankUps, powerGain };
   },
@@ -5670,18 +5750,23 @@ export const meta = {
       market: { ...save.market, window, bought: [...bought, slotId], seenWindow: window },
     };
     const it = slot.item;
+    const ev: ToastEvents = []; // the purchased good placards (docs/NOTIFICATIONS.md §reward-toasts)
     switch (it.good) {
       case 'towerShards':
         next = { ...next, towerShards: { ...next.towerShards, [it.kind]: (next.towerShards[it.kind] ?? 0) + it.qty } };
+        ev.push({ type: 'towerShards', qty: it.qty, name: TOWER_DEFS[it.kind].name });
         break;
       case 'heroShards':
         next = { ...next, heroShards: { ...next.heroShards, [it.hero]: (next.heroShards[it.hero] ?? 0) + it.qty } };
+        ev.push({ type: 'heroShards', qty: it.qty, name: HERO_DEFS[it.hero as HeroKind].name });
         break;
       case 'scrap':
         next = { ...next, mats: { ...next.mats, scrap: next.mats.scrap + it.qty } };
+        ev.push({ type: 'scrap', qty: it.qty });
         break;
       case 'geneEssence':
         next = { ...next, geneEssence: next.geneEssence + it.qty };
+        ev.push({ type: 'geneEssence', qty: it.qty });
         break;
       case 'equipment': {
         // The SLOT (rarity + price) is deterministic per window; the concrete piece rolls at
@@ -5689,6 +5774,7 @@ export const meta = {
         const def = CAPPED_GRANT_ITEMS[Math.floor(Math.random() * CAPPED_GRANT_ITEMS.length)];
         const item = rollItem(Math.random, def, it.equipRarity, undefined, 'Splice Market');
         next = { ...next, equipment: { ...next.equipment, inventory: [...next.equipment.inventory, item] } };
+        ev.push({ type: 'equipment', name: itemDef(item.defId)?.name ?? 'Equipment', rarity: item.rarity });
         break;
       }
       case 'container': {
@@ -5698,6 +5784,7 @@ export const meta = {
           pendingContainers: [...next.pendingContainers, { kind: 'loot', rarity: it.rarity }],
           timeline: pushTimeline(next.timeline, '◈', `Splice Market — ${def?.name ?? it.rarity} Bio-Container acquired`),
         };
+        ev.push({ type: 'container', rarity: it.rarity });
         break;
       }
       case 'stamina': {
@@ -5710,10 +5797,12 @@ export const meta = {
           : Math.min(RUSH.staminaMax, next.rushStamina.value + Math.floor(elapsed / regenMs));
         const materializedAt = cur >= RUSH.staminaMax ? now : base + Math.floor(elapsed / regenMs) * regenMs;
         next = { ...next, rushStamina: { ...next.rushStamina, value: Math.min(RUSH.staminaOverflowMax, cur + it.qty), updatedAt: materializedAt } };
+        ev.push({ type: 'stamina', qty: it.qty });
         break;
       }
     }
     persist(next);
+    rewardToast.pushMany('Splice Market', ev);
     return true;
   },
 
@@ -5770,6 +5859,7 @@ export const meta = {
     else if (offer.currency === 'geneEssence') next = { ...next, geneEssence: next.geneEssence + offer.qty };
     else next = { ...next, mats: { ...next.mats, scrap: next.mats.scrap + offer.qty } };
     persist(next);
+    rewardToast.pushMany('Ichor Exchange', [{ type: offer.currency, qty: offer.qty }]);
     return true;
   },
 
@@ -5828,10 +5918,7 @@ export const meta = {
     persist(next);
     const unitName = subject === 'tower' ? TOWER_DEFS[unit as TowerKind]?.name ?? unit : HERO_DEFS[unit as HeroKind]?.name ?? unit;
     const majors = due.filter((n) => n.major).length;
-    rewardToast.push({
-      title: 'MASTERY EVOLUTION CLAIMED', name: unitName, icon: '\u29c9', accent: 'var(--viral)',
-      big: majors > 0, lines: evolutionToastLines(due.flatMap((n) => n.grants), unitName),
-    });
+    rewardToast.pushMany(`Evolution Track — ${unitName}`, evolutionToastEvents(due.flatMap((n) => n.grants), unitName, subject));
     if (gameEvents.hasListeners('masteryEvolutionClaim')) gameEvents.emit('masteryEvolutionClaim', { subject, unit, nodes: due.length, majors });
     return due.length;
   },
@@ -5854,11 +5941,7 @@ export const meta = {
       masteryEvolution: { ...save.masteryEvolution, [key]: { claimedUpTo: 0, prestige: st.prestige + 1, xpAt: xp } },
       timeline: pushTimeline(save.timeline, '\u29c9', `${unitName} evolved — Mastery Prestige ${st.prestige + 2}`),
     });
-    rewardToast.push({
-      title: 'ORGANISM EVOLVED', name: `${unitName} — Prestige ${st.prestige + 2}`, icon: '\u29c9',
-      accent: 'var(--viral)', big: true,
-      lines: [{ icon: '\u29c9', label: 'The reward pool reforms, upgraded' }],
-    });
+    rewardToast.pushMany('Evolution Track', [{ type: 'evolutionNode', name: `${unitName} — Prestige ${st.prestige + 2}`, rarity: 'epic' }]);
     if (gameEvents.hasListeners('masteryEvolutionPrestige')) gameEvents.emit('masteryEvolutionPrestige', { subject, unit, prestige: st.prestige + 1 });
     return true;
   },
@@ -6172,6 +6255,12 @@ export const meta = {
       geneEssence: s.geneEssence + essence,
       tutorial: { ...s.tutorial, milestones: [...s.tutorial.milestones, key] },
     });
+    {
+      const ev: ToastEvents = [];
+      if (cores > 0) ev.push({ type: 'genomeCores', qty: cores });
+      if (essence > 0) ev.push({ type: 'geneEssence', qty: essence });
+      rewardToast.pushMany('Tutorial Milestone', ev);
+    }
     return { cores, essence };
   },
 

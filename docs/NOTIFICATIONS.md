@@ -1,8 +1,8 @@
-# NOTIFICATIONS.md — Menu Badges + the Claim Popup
+# NOTIFICATIONS.md — Menu Badges + Reward Toasts
 
 Compressed developer summary (the canonical reference — prefer over re-reading code).
-Two layers: **badges** (dots that say "there's something here") and the **claim popup**
-(the bold receipt that says "here's exactly what you just got").
+Two layers: **badges** (dots that say "there's something here") and the **reward
+placard stack** (miniature reward reveals that say "here's exactly what you just got").
 
 ## Purpose
 
@@ -66,110 +66,73 @@ No menu or engine change. New nav keys get badges for free.
 - The pulse honors `prefers-reduced-motion` via the global catch-all in index.css
   (it neutralizes all animation/transition durations), so no per-badge gate is needed.
 
-## §claim-popups — the global claim receipt
+## §reward-toasts — the reward placard stack
 
-**Every hub claim presents through ONE popup** instead of per-screen receipt strips:
-quest missions/finales, season-pass levels + claim-all + the premium unlock, weekly
-directives (which had NO feedback before), and wardrobe milestones. Ceremonial
-reveals deliberately stay bespoke (Bio-Cache, Vault reveal, WardrobeReveal, Premium
-Store, expedition SpoilsCard, Genome promotions) — the popup is the RECEIPT layer,
-not the ceremony layer.
+**Every reward in the game announces through ONE config-driven placard system** — a
+miniature reward reveal (large art · big `+quantity` · unit name · source subtitle ·
+rarity word · optional Power/collection lines), not a text notification. WHAT / HOW
+MUCH / WHERE, readable in under a second.
 
-- **`src/state/rewardToast.ts`** — the bus (navBus pattern, save-free). `rewardToast.push({
-  title, name?, icon?, accent?, lines, big?, nav? })` where `lines` are
-  `PremiumReceiptLine`-shaped `{ icon, label, rarity? }` — exactly what `meta.claim*`
-  returns. `nav` omitted → **derived from the receipt icons** (single-sourced in
-  `meta.applyRewardList` / `battlePass.rewardLabel`): containers → Vault, cosmetics/
-  phenotypes → Wardrobe, essence → Gene Archive; containers out-rank the rest. Pass
-  `nav: null` when the claim already lives on the destination screen.
-- **`src/ui/components/RewardToaster.tsx`** — mounted once in App (menu only, so it can
-  never cover a live run). Center band BELOW `.achv-stack` (top 88px, z 492): medallion,
-  eyebrow title, headline name, itemized lines (rarity-tinted, ≤7 + "+N more"), the
-  "view it →" chip (routes via `navBus.go`), a `+N` chip for queued receipts. One at a
-  time; click dismisses; 5s dwell (6.8s for `big`); `role="status"`; reduced-motion safe.
-- **Audio stays at the claim site** (no double cues). Quest claim receipts also append
-  their `+N Season XP` line in `meta.claimQuestMission/Finale` — the popup teaches the
-  quests→season-pass loop.
-- **Add a claim surface:** call `meta`'s claim → get lines → `rewardToast.push` with a
-  title/name and the right accent. Tests: `src/state/rewardToast.test.ts` (queue +
-  destination derivation).
+- **`src/state/rewardToast.ts`** — the framework. `REWARD_TYPES` registry (see
+  §reward-registry), `RewardEvent { type, qty?, name?, rarity?, source, power?,
+  collection?, nav? }`, the pure queue rules (`applyEvent`, `pruneCards`, `tierOf`,
+  `lifeOf` — all unit-tested), and the bus: `rewardToast.push(event)` /
+  `pushMany(source, events)` / `onReward(fn)`. Events pushed while no toaster is
+  mounted (run end, boot) **hold in a bounded buffer (40) and flush on mount** — a
+  reward announcement is never silently dropped; run earnings placard the moment the
+  player returns to the hub.
+- **Queue rules:** identical rewards (`type:name`) landing within **4s merge** —
+  `+100 +250 +75` becomes one `+425` card that pulses, re-arms its lifetime, and jumps
+  back to the front; differing sources blend to "Multiple sources". `merge:'count'`
+  types stack as ×N; `merge:'never'` types (equipment, achievements, cosmetics) keep
+  distinct cards. Lifetime 5s (7s at tier 3); max 4 visible + "+N more" + Dismiss All.
+- **Rarity presentation ladder:** tier = max(registry base, event rarity) — t0 subtle
+  rise · t1 rim glow · t2 spark burst · t3 legendary takeover (bigger card, screen
+  accent, `jackpot` stinger). Arrival audio is tier-keyed (`toast0/1/2` cues in
+  `sound.ts`) and rate-limited; merges tick softly.
+- **`src/ui/components/RewardToaster.tsx`** — pure presentation, mounted in App at the
+  menu (never covers a live run). Top-right stack (top band on phones). Dismissal: X ·
+  click/tap · swipe · Dismiss All. `role="status"`, reduced-motion safe (`.rwt2-*` CSS).
+- **Grant-time pushes live in `meta.ts`** (single source of truth — placards are
+  emitted where the save actually changes, never from screens): `applyRewardList`
+  returns `events`; every claim seam pushes with its source string.
 
-### The dopamine layer (2026-07 juice pass)
+### Coverage audit (2026-07 placard overhaul): every reward lane has exactly ONE owner
 
-The receipt card now LANDS: a spring **pop-in with overshoot** (`rwt-in`), a one-shot
-**eight-ray burst** exploding from the medallion (`.rwt-burst`), a **medal bloom**
-(scale-spin settle) with an expanding **ripple ring** (doubled on `big` finales), a
-**shimmer sweep** across the card (`.rwt-sheen`), and the existing staggered line pops.
-Everything is CSS-only, re-keyed per receipt (chained claims re-fire), and fully
-stilled under `prefers-reduced-motion` (rays/sheen/ring hidden, not just frozen).
-
-### Coverage audit (2026-07): every claim lane has exactly ONE owner
-
-| Claim | Owner |
+| Reward lane | Owner |
 |---|---|
-| Quest missions / finales, contracts (unified board) | RewardToaster |
-| Season-pass levels / claim-all / premium unlock | RewardToaster |
-| Weekly directives | RewardToaster |
-| Wardrobe milestones | RewardToaster |
-| Mastery Evolution claims / prestige | RewardToaster |
-| Splice Market trades (were SILENT — a 620ms border flash) | RewardToaster (`sound: true`) |
-| Daily login Bio-Cache | rupture ceremony (BioCache) |
-| Expeditions | SpoilsCard (mastery/streak context the receipt can't carry) |
-| Field research studies | Reveal ceremony (store-mirror) |
-| Idle Harvest collects | arrival ceremony (HarvestScreen) |
-| Containers / run caches | Vault reveal ceremony |
-| Achievements (auto-grant on unlock) | AchievementToaster |
-| Account level / Power gains / in-run loot | PowerToaster / LootToaster lanes |
-| Weekly rollover (earned-but-unclaimed) | auto-claims to "mail" → notification row |
+| Run settle (Field/Campaign/Infinite/Boss Rush/Daily: cores, Season XP, banked loot) | placards on hub return (held buffer) |
+| Quest missions / finales · Battle Pass levels · weekly directives | placards |
+| Daily login Bio-Cache · Idle Harvest · expeditions · wardrobe milestones | ceremony **and** placards (ceremony is transient; placards are the claim trail) |
+| Splice Market buys · Ichor Exchange trades · collection rank-up Ichor | placards |
+| Mastery evolution claims / prestige · tutorial milestones | placards |
+| Achievements (auto-grant on unlock) | AchievementToaster (headless watcher → placard) |
+| Container/cache opening · Bio-Roulette · Premium Store · field research reveals | dedicated full-screen ceremony only (every item individually presented — no double-toast) |
+| Genome-rank promotions | promotion cinematic only (rewards presented in-cinematic) |
+| Permanent stat purchases (stars, primes, meta/idle/ascendant nodes) | Power delta popup (spends, not rewards) |
+| In-run pickups | LootToaster corner lane (run-safe); banked totals placard at settle |
 
-Single-owner rule: a claim NEVER fires two popups — new surfaces either push the
-toaster or ship a bespoke ceremony, not both.
+Single-owner rule for CEREMONY: a reward never fires two ceremonies. Placards are the
+persistent trail layer — they coexist with transient ceremonies but never with a
+dedicated full-screen reveal that already itemizes every reward.
 
-## §vocab — the reward vocabulary (config-driven receipts)
+## §reward-registry — adding a reward type
 
-**`src/state/rewardVocab.ts`** is the registry behind every receipt: one row per reward
-KIND (`cores`, `ichor`, `essence`, `container`, `cache`, `equipment`, `stamina`, …) defines
-its glyph, display name, base ceremony **tier**, whether rapid grants **merge**, and its
-label format (`qty` → "12,500 Genome Cores" · `count` → "3× Rare Bio-Container"). Receipt
-lines carry an optional `kind` + `qty` (stamped at the source — `meta.applyRewardList`
-stamps its simple grants, so quests/pass/directives inherit everything with zero caller
-churn); `vocabLine(kind, qty[, rarity])` is the one call a NEW claim site needs. **A future
-reward type is one registry row** — its toast presentation, tier, audio and merge behavior
-follow automatically; nothing is hardcoded per display.
+A future reward type is **one row** in `REWARD_TYPES` (`src/state/rewardToast.ts`):
 
-## §tiers — rarity-scaled ceremony
+```ts
+{ id: 'relic', unit: 'Ancient Relic', art: { kind: 'glyph', glyph: '☥', color: 'var(--gold)' },
+  merge: 'never', tier: 2, nav: { key: 'relics', label: 'View in the Reliquary' } }
+```
 
-A receipt's tier = its **loudest line** (`receiptTier`): the kind's base tier, raised by a
-line's `rarity` (`tierForRarity` — epic/legendary containers or gear escalate the whole
-receipt). Presentation scales per tier on the same card family:
+- `art`: `currency` (animated medallion) · `glyph` (large tinted glyph) · `gene` ·
+  `container` (rarity-tinted core).
+- `merge`: `'sum'` (+425 pattern) · `'count'` (×N stacks) · `'never'` (unique items).
+- `tier` 0–3 sets the floor presentation; event `rarity` raises it.
+- `nav` is the "view it →" jump (Hub NavKey), overridable per event (`nav: null` when
+  the grant already lives on the destination screen).
 
-| Tier | Treatment | Dwell | Cue (`sound` receipts) |
-|---|---|---|---|
-| common | the base card (burst + medal + sheen) | 5s | `ui` — light organic click |
-| rare | brighter halo | 5s | `reveal` — mutation pulse |
-| epic | 2px frame + **spore spray** off the medal | 6.8s | `unlock` — resonance |
-| legendary | epic + a one-shot **screen wash** behind the card | 8s | `jackpot` — the stinger |
-
-A single quantified line renders the **HERO placard** — the 54px medal and the quantity as
-a 26px headline ("+12,500 · Genome Cores · <source eyebrow>") — WHAT · HOW MUCH · WHERE
-FROM, readable in under a second. Audio remains single-voiced: the toaster plays the tier
-cue ONLY for `sound: true` receipts (claim sites with their own cue never double).
-
-## §merge — coalescing rapid identical receipts
-
-"+100 Cores · +250 Cores · +75 Cores" must read as **"425 Genome Cores"**, never a queue of
-near-duplicates. `coalesce(queue, toast)` (pure, unit-tested) folds a pushed receipt into a
-pending one when title+name and the SET of mergeable line keys (kind + rarity — a rare and
-an epic container never sum) match: quantities sum per line, labels regenerate from the
-vocabulary, the tier re-derives, and the merged receipt takes the NEW id so the toaster
-re-fires its entrance and re-arms the dwell on the updated total. Legacy lines without a
-`kind` stamp (and kinds declared non-mergeable — cosmetics, equipment) queue exactly as
-before.
-
-## §dismiss — the player always has the exit
-
-Every receipt: **≥5s dwell**, click-to-dismiss, an explicit **✕** (24px target), and
-**swipe-away** (pointer-driven, rides the independent `translate` property so it composes
-with the entrance animation; `touch-action: pan-y` keeps vertical scroll intact). Past two
-queued receipts a **Clear all (N)** pill appears under the card. All new motion is stilled
-under `prefers-reduced-motion`.
+Unknown types still render (generic glyph card) — a new grant can never be silent.
+`eventsForPassRewards` maps the `applyRewardList` reward language (`cores`, `mats`,
+`container`, …) to events, so quest/pass/login/mission content needs no toast code at
+all. Tests: `src/state/rewardToast.test.ts` (registry coverage, merge/prune rules, bus).

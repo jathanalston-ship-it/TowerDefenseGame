@@ -7649,170 +7649,93 @@ kbd {
 .mtoast-sub { font-size: 11px; color: var(--muted); font-variant-numeric: tabular-nums; }
 .mtoast-sub i { font-style: normal; color: var(--success); }
 
-/* Claim receipts (docs/NOTIFICATIONS.md §claim-popups) — the center band's SECOND slot,
-   below account milestones (.achv-stack, z-500) so a claim that also pops an achievement
-   never collides. One at a time (the queue chip counts the rest); click dismisses; the
-   "view it" chip jumps via navBus to where the reward landed. */
-.rwt-wrap { position: fixed; top: calc(88px + var(--safe-t)); left: 50%; transform: translateX(-50%); z-index: 492; pointer-events: none; display: flex; flex-direction: column; align-items: center; gap: 8px; width: max-content; max-width: min(500px, 94vw); }
-.rwt {
-  position: relative; pointer-events: auto; cursor: pointer;
-  display: flex; align-items: flex-start; gap: 12px;
-  min-width: 300px; max-width: min(480px, 92vw); padding: 12px 34px 12px 16px; /* right gutter hosts the ✕ */
-  border-radius: var(--r-md);
-  background: linear-gradient(180deg, color-mix(in srgb, var(--rw, var(--gold)) 13%, var(--panel)) 0%, var(--panel-deep) 100%);
-  border: 1px solid color-mix(in srgb, var(--rw, var(--gold)) 55%, var(--line));
-  box-shadow: 0 10px 34px rgba(0, 0, 0, 0.5), var(--halo) color-mix(in srgb, var(--rw, var(--gold)) 45%, transparent);
-  overflow: hidden; /* the sheen sweep clips to the card */
-  animation: rwt-in 0.55s var(--ease-spring) both;
-  /* Swipe-away (docs/NOTIFICATIONS.md §dismiss): the drag rides the independent `translate`
-     property so it composes with (never fights) the entrance animation's `transform`. */
-  touch-action: pan-y;
-  translate: var(--dx, 0px) 0;
-  transition: translate var(--dur-2) var(--ease-out);
+/* ── REWARD PLACARDS (docs/NOTIFICATIONS.md §reward-toasts) — the miniature reveal stack:
+   top-right column (top band on phones), one card per reward, rarity-tiered presentation.
+   t0 subtle rise · t1 rim glow · t2 spark burst · t3 legendary takeover + screen accent. ── */
+.rwt2-wrap {
+  position: fixed;
+  top: calc(64px + var(--safe-t));
+  right: 12px;
+  z-index: 492;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: min(340px, calc(100vw - 24px));
+  pointer-events: none;
 }
-.rwt.is-dragging { transition: none; }
-.rwt.is-big { min-width: 340px; border-width: 2px; box-shadow: 0 12px 44px rgba(0, 0, 0, 0.6), 0 0 30px -4px color-mix(in srgb, var(--rw, var(--gold)) 55%, transparent); animation-duration: 0.7s; }
-/* Entrance with real pop: drop in, overshoot past full size, settle. */
-@keyframes rwt-in {
-  0% { opacity: 0; transform: translateY(-18px) scale(0.8) rotate(-1.2deg); }
-  55% { opacity: 1; transform: translateY(2px) scale(1.05) rotate(0.4deg); }
-  78% { transform: translateY(-1px) scale(0.985) rotate(0deg); }
-  100% { opacity: 1; transform: none; }
-}
-/* One-shot BURST — eight rays exploding from the medal the instant the receipt lands. */
-.rwt-burst { position: absolute; left: 34px; top: 32px; width: 0; height: 0; pointer-events: none; }
-.rwt-burst i {
-  position: absolute; left: -1.5px; top: -14px; width: 3px; height: 14px; border-radius: 2px;
-  background: linear-gradient(180deg, var(--rw, var(--gold)), transparent);
-  transform-origin: 50% 14px;
-  rotate: calc(var(--b, 0) * 45deg);
-  animation: rwt-ray 0.6s var(--ease-out) both;
-}
-.rwt-burst i:nth-child(1) { --b: 0; } .rwt-burst i:nth-child(2) { --b: 1; }
-.rwt-burst i:nth-child(3) { --b: 2; } .rwt-burst i:nth-child(4) { --b: 3; }
-.rwt-burst i:nth-child(5) { --b: 4; } .rwt-burst i:nth-child(6) { --b: 5; }
-.rwt-burst i:nth-child(7) { --b: 6; } .rwt-burst i:nth-child(8) { --b: 7; }
-@keyframes rwt-ray {
-  0% { opacity: 0; transform: translateY(0) scaleY(0.4); }
-  25% { opacity: 0.9; }
-  100% { opacity: 0; transform: translateY(-22px) scaleY(1.15); }
-}
-/* Shimmer sweep — one diagonal light band across the whole receipt. */
-.rwt-sheen { position: absolute; inset: 0; pointer-events: none; overflow: hidden; border-radius: inherit; }
-.rwt-sheen::after {
-  content: ''; position: absolute; top: -30%; bottom: -30%; width: 46px;
-  background: linear-gradient(105deg, transparent, color-mix(in srgb, var(--rw, var(--gold)) 26%, transparent), transparent);
-  transform: skewX(-18deg);
-  animation: rwt-sheen 0.9s var(--ease-out) 0.18s both;
-}
-@keyframes rwt-sheen { from { left: -60px; } to { left: 110%; } }
-.rwt.is-big .rwt-sheen::after { animation-duration: 1.15s; }
-.rwt-medal {
+.rwt2 {
   position: relative;
-  flex: none; width: 40px; height: 40px; display: grid; place-items: center; border-radius: 50%;
-  font-size: 18px; color: var(--rw, var(--gold));
-  background: radial-gradient(circle at 50% 35%, color-mix(in srgb, var(--rw, var(--gold)) 24%, var(--panel-deep)), var(--panel-deep));
-  box-shadow: inset 0 0 14px -4px var(--rw, var(--gold));
-  animation: rwt-medal-bloom 0.55s var(--ease-spring) both;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  padding: 12px 34px 12px 12px;
+  border-radius: var(--r-md);
+  background: linear-gradient(168deg, color-mix(in srgb, var(--rw, var(--gold)) 12%, var(--panel-deep)), color-mix(in srgb, var(--panel-deep) 92%, black));
+  border: 1px solid color-mix(in srgb, var(--rw, var(--gold)) 45%, var(--line-strong));
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  pointer-events: auto;
+  cursor: pointer;
+  touch-action: pan-y;
+  animation: rwt2-in 0.4s cubic-bezier(0.2, 1.25, 0.4, 1) both;
+  transition: transform var(--dur-2) ease, opacity var(--dur-2) ease;
 }
-.rwt.is-big .rwt-medal { width: 46px; height: 46px; font-size: 20px; }
-@keyframes rwt-medal-bloom {
-  0% { transform: scale(0.3) rotate(-20deg); }
-  60% { transform: scale(1.18) rotate(3deg); }
-  100% { transform: scale(1) rotate(0deg); }
+@keyframes rwt2-in { from { opacity: 0; transform: translateX(46px) scale(0.86); } }
+.rwt2.t1 { box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), 0 0 18px -6px var(--rw, var(--gold)); }
+.rwt2.t2 { box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), 0 0 26px -4px var(--rw, var(--gold)); }
+.rwt2.t3 {
+  padding: 16px 36px 16px 14px;
+  border-width: 2px;
+  box-shadow: 0 14px 44px rgba(0, 0, 0, 0.6), 0 0 40px -4px var(--rw, var(--gold)), inset 0 0 26px -14px var(--rw, var(--gold));
+  animation-duration: 0.65s;
 }
-/* Expanding ripple ring off the medal — doubled on finale/capstone receipts. */
-.rwt-medal-ring { position: absolute; inset: 0; border-radius: 50%; border: 2px solid var(--rw, var(--gold)); animation: rwt-ring 0.7s var(--ease-out) 0.1s both; }
-.rwt.is-big .rwt-medal-ring { animation: rwt-ring 0.8s var(--ease-out) 0.1s both, rwt-ring 0.8s var(--ease-out) 0.45s both; }
-@keyframes rwt-ring { from { opacity: 0.8; transform: scale(0.9); } to { opacity: 0; transform: scale(2.1); } }
-.rwt-body { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
-.rwt-eyebrow { font-size: 10px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: var(--rw, var(--gold)); }
-.rwt-name { font-size: 14px; font-weight: 800; line-height: 1.2; }
-.rwt.is-big .rwt-name { font-size: 16px; }
-.rwt-lines { display: flex; flex-direction: column; gap: 2px; margin-top: 2px; }
-.rwt-line { font-size: 12px; font-weight: 600; line-height: 1.35; animation: bp-pop 0.35s var(--ease-out) both; animation-delay: calc(var(--i, 0) * 60ms); }
-.rwt-line i { font-style: normal; opacity: 0.9; }
-.rwt-line.is-more { color: var(--muted); font-weight: 600; }
-.rwt-nav {
-  align-self: flex-start; margin-top: 6px; padding: 4px 10px; border-radius: 999px;
-  font-size: 11px; font-weight: 700; color: var(--rw, var(--gold));
-  background: color-mix(in srgb, var(--rw, var(--gold)) 12%, transparent);
-  border: 1px solid color-mix(in srgb, var(--rw, var(--gold)) 45%, var(--line));
+/* one-shot merge pulse — re-keyed on every bump so bursts visibly GROW the card */
+.rwt2-pulse { position: absolute; inset: -1px; border-radius: inherit; border: 1px solid var(--rw, var(--gold)); opacity: 0; animation: rwt2-pulse 0.55s ease-out both; pointer-events: none; }
+@keyframes rwt2-pulse { from { opacity: 0.9; transform: scale(1); } to { opacity: 0; transform: scale(1.06); } }
+.rwt2-sparks { position: absolute; left: 34px; top: 50%; pointer-events: none; }
+.rwt2-sparks i { position: absolute; width: 4px; height: 4px; border-radius: 50%; background: var(--rw, var(--gold)); box-shadow: 0 0 8px var(--rw, var(--gold)); animation: rwt2-spark 0.6s ease-out both; }
+.rwt2-sparks i:nth-child(1) { --sx: -26px; --sy: -22px; }
+.rwt2-sparks i:nth-child(2) { --sx: 30px; --sy: -26px; animation-delay: 30ms; }
+.rwt2-sparks i:nth-child(3) { --sx: -30px; --sy: 20px; animation-delay: 60ms; }
+.rwt2-sparks i:nth-child(4) { --sx: 26px; --sy: 24px; animation-delay: 90ms; }
+.rwt2-sparks i:nth-child(5) { --sx: 0px; --sy: -32px; animation-delay: 120ms; }
+.rwt2-sparks i:nth-child(6) { --sx: 4px; --sy: 30px; animation-delay: 150ms; }
+@keyframes rwt2-spark { from { transform: translate(0, 0) scale(1); opacity: 1; } to { transform: translate(var(--sx, 0), var(--sy, 0)) scale(0.2); opacity: 0; } }
+/* the legendary SCREEN ACCENT — a one-shot edge vignette flash behind the stack */
+.rwt2-accent { position: fixed; inset: 0; pointer-events: none; z-index: -1; background: radial-gradient(120% 120% at 100% 0%, color-mix(in srgb, var(--gold) 22%, transparent), transparent 55%); animation: rwt2-accent 1.4s ease-out both; }
+@keyframes rwt2-accent { from { opacity: 0; } 25% { opacity: 1; } to { opacity: 0; } }
+.rwt2-x {
+  position: absolute; top: 6px; right: 6px; width: 22px; height: 22px;
+  display: grid; place-items: center; padding: 0; border: 0; border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06); color: var(--muted); font-size: 11px; cursor: pointer;
 }
-.rwt-nav:hover { background: color-mix(in srgb, var(--rw, var(--gold)) 22%, transparent); color: var(--text); }
-.rwt-queued {
-  position: absolute; top: 6px; right: 32px; min-width: 22px; height: 22px; padding: 0 6px;
-  display: grid; place-items: center; border-radius: 999px; font-size: 10px; font-weight: 800;
-  color: var(--panel-deep); background: var(--rw, var(--gold)); box-shadow: 0 2px 8px rgba(0, 0, 0, 0.45);
-}
-/* Explicit dismissal (docs/NOTIFICATIONS.md §dismiss) — the ✕ and, past two queued, Clear all. */
-.rwt-x {
-  position: absolute; top: 4px; right: 4px; width: 24px; height: 24px;
-  display: grid; place-items: center; border-radius: 50%;
-  font-size: 11px; font-weight: 800; color: var(--muted);
-  background: transparent; border: none; cursor: pointer;
-  transition: color var(--dur-1) var(--ease-out), background var(--dur-1) var(--ease-out);
-}
-.rwt-x:hover { color: var(--text); background: color-mix(in srgb, var(--rw, var(--gold)) 18%, transparent); }
-.rwt-clear {
-  pointer-events: auto; min-height: 24px; padding: 4px 12px; border-radius: 999px;
-  font-size: 11px; font-weight: 700; color: var(--muted); cursor: pointer;
-  background: color-mix(in srgb, var(--panel) 82%, transparent);
-  border: 1px solid var(--line);
-  transition: color var(--dur-1) var(--ease-out), border-color var(--dur-1) var(--ease-out);
-}
-.rwt-clear:hover { color: var(--text); border-color: color-mix(in srgb, var(--gold) 45%, var(--line)); }
-/* HERO placard (docs/NOTIFICATIONS.md §tiers) — one quantified reward: the number IS the card. */
-.rwt.is-hero .rwt-medal { width: 54px; height: 54px; font-size: 26px; }
-.rwt-hero { display: flex; align-items: baseline; gap: 8px; margin-top: 2px; min-width: 0; }
-.rwt-qty {
-  font-size: 26px; font-weight: 900; line-height: 1; font-variant-numeric: tabular-nums;
-  text-shadow: 0 0 14px color-mix(in srgb, var(--rw, var(--gold)) 55%, transparent);
-  animation: rwt-qty-pop 0.5s var(--ease-spring) 0.1s both;
-}
-@keyframes rwt-qty-pop {
-  0% { opacity: 0; transform: scale(0.6); }
-  60% { opacity: 1; transform: scale(1.12); }
-  100% { opacity: 1; transform: scale(1); }
-}
-.rwt-what { font-size: 13px; font-weight: 800; }
-/* Ceremony tiers (docs/NOTIFICATIONS.md §tiers) — common stays the base card; each step louder. */
-.rwt.is-t-rare { box-shadow: 0 10px 34px rgba(0, 0, 0, 0.5), 0 0 24px -4px color-mix(in srgb, var(--rw, var(--gold)) 60%, transparent); }
-.rwt.is-t-epic, .rwt.is-t-legendary { border-width: 2px; box-shadow: 0 12px 44px rgba(0, 0, 0, 0.6), 0 0 34px -2px color-mix(in srgb, var(--rw, var(--gold)) 70%, transparent); }
-/* Epic+ spore spray — six one-shot motes rising off the medal (organic, not confetti). */
-.rwt-spores { position: absolute; left: 36px; top: 30px; width: 0; height: 0; pointer-events: none; }
-.rwt-spores i {
-  position: absolute; left: 0; top: 0; width: 4px; height: 4px; border-radius: 50%;
-  background: var(--rw, var(--gold)); box-shadow: 0 0 6px var(--rw, var(--gold));
-  opacity: 0;
-  animation: rwt-spore 1.05s var(--ease-out) both;
-  animation-delay: calc(var(--sp, 0) * 90ms);
-  --sx: calc((var(--sp, 0) - 2.5) * 11px);
-}
-.rwt-spores i:nth-child(1) { --sp: 0; } .rwt-spores i:nth-child(2) { --sp: 1; }
-.rwt-spores i:nth-child(3) { --sp: 2; } .rwt-spores i:nth-child(4) { --sp: 3; }
-.rwt-spores i:nth-child(5) { --sp: 4; } .rwt-spores i:nth-child(6) { --sp: 5; }
-@keyframes rwt-spore {
-  0% { opacity: 0; transform: translate(0, 0) scale(0.6); }
-  25% { opacity: 0.9; }
-  100% { opacity: 0; transform: translate(var(--sx, 0px), -34px) scale(1.1); }
-}
-/* Legendary screen accent — one radial wash behind the card, gone in a breath. */
-.rwt-screen {
-  position: fixed; inset: 0; z-index: -1; pointer-events: none;
-  background: radial-gradient(60% 46% at 50% 18%, color-mix(in srgb, var(--gold) 20%, transparent), transparent 72%);
-  animation: rwt-screen 1.2s var(--ease-out) both;
-}
-@keyframes rwt-screen {
-  0% { opacity: 0; }
-  30% { opacity: 1; }
-  100% { opacity: 0; }
+.rwt2-x:hover { color: var(--text); background: rgba(255, 255, 255, 0.12); }
+.rwt2-art { flex: 0 0 56px; width: 56px; height: 56px; display: grid; place-items: center; border-radius: var(--r-sm); background: radial-gradient(circle at 40% 32%, color-mix(in srgb, var(--rw, var(--gold)) 22%, transparent), transparent 70%); }
+.rwt2.t3 .rwt2-art { flex-basis: 64px; width: 64px; height: 64px; }
+.rwt2-glyph { font-size: 34px; font-weight: 800; line-height: 1; filter: drop-shadow(0 0 10px color-mix(in srgb, var(--rw, var(--gold)) 55%, transparent)); }
+.rwt2.t3 .rwt2-glyph { font-size: 40px; }
+.rwt2-body { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.rwt2-src { font-size: 10px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+.rwt2-qty { font-size: 20px; font-weight: 900; line-height: 1.05; color: var(--text); font-variant-numeric: tabular-nums; }
+.rwt2.t3 .rwt2-qty { font-size: 26px; }
+.rwt2-unit { font-size: 13px; font-weight: 700; color: color-mix(in srgb, var(--rw, var(--gold)) 70%, var(--text)); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rwt2-xn { color: var(--text); }
+.rwt2-sub { font-size: 11px; color: var(--muted); }
+.rwt2-tags { display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; }
+.rwt2-rarity { font-style: normal; font-size: 10px; font-weight: 800; letter-spacing: 0.14em; color: var(--rw, var(--gold)); }
+.rwt2-power { font-style: normal; font-size: 11px; font-weight: 800; color: var(--gold); }
+.rwt2-coll { font-size: 11px; color: var(--ink-dim, var(--muted)); }
+.rwt2-nav { margin-top: 4px; align-self: flex-start; padding: 3px 10px; border-radius: 999px; border: 1px solid color-mix(in srgb, var(--rw, var(--gold)) 55%, var(--line)); background: color-mix(in srgb, var(--rw, var(--gold)) 12%, transparent); color: var(--rw, var(--gold)); font-size: 11px; font-weight: 700; cursor: pointer; }
+.rwt2-nav:hover { background: color-mix(in srgb, var(--rw, var(--gold)) 22%, transparent); color: var(--text); }
+.rwt2-foot { display: flex; align-items: center; justify-content: flex-end; gap: 10px; pointer-events: auto; }
+.rwt2-more { font-size: 11px; font-weight: 800; color: var(--muted); }
+.rwt2-clear { padding: 4px 12px; border-radius: 999px; border: 1px solid var(--line); background: var(--panel-2); color: var(--muted); font-size: 11px; font-weight: 700; cursor: pointer; }
+.rwt2-clear:hover { color: var(--text); border-color: var(--line-strong); }
+@media (max-width: 480px) {
+  .rwt2-wrap { top: calc(56px + var(--safe-t)); right: 8px; left: 8px; width: auto; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .rwt, .rwt-line, .rwt-medal, .rwt-medal-ring, .rwt-burst i, .rwt-qty, .rwt-spores i, .rwt-screen { animation: none; }
-  .rwt-sheen::after { animation: none; opacity: 0; }
-  .rwt-medal-ring { opacity: 0; }
-  .rwt-spores i, .rwt-screen { opacity: 0; }
+  .rwt2, .rwt2-pulse, .rwt2-sparks i, .rwt2-accent { animation: none; }
+  .rwt2-pulse, .rwt2-accent { opacity: 0; }
 }
 
 /* Inspector live-Mastery block — a smoothly-filling craft bar with floating XP ticks. */

@@ -1205,3 +1205,44 @@ framework); EvolutionHQ's authored card order inside sections is deliberately un
 
 (See the full summary above; this batch also shipped per-rarity flip audio — sFlip on the
 flip@N depth grammar, sStrandFound → the 'discovery' stinger — and the vault's Open 50/100.)
+
+## Compressed system summary — Reward Placard Toasts (docs/NOTIFICATIONS.md §reward-toasts)
+
+**Architecture.** `state/rewardToast.ts` is the whole framework: the `REWARD_TYPES`
+registry (26 rows — id/unit/art/merge/tier/nav), `RewardEvent {type, qty?, name?, rarity?,
+source, power?, collection?, nav?}`, pure queue rules (`applyEvent` merge fold,
+`pruneCards`, `tierOf`, `lifeOf` — unit-tested in rewardToast.test.ts), and a save-free bus
+(`push`/`pushMany(source, events)`/`onReward`) with a bounded 40-event hold buffer that
+flushes on subscribe. `ui/components/RewardToaster.tsx` is pure presentation: top-right
+placard stack (top band ≤480px), large art (currency medallion/glyph/gene/container) + big
+count-up `+qty` + unit + source eyebrow + rarity word + Power/collection lines + "view
+it →" (navBus); X/click/swipe/Dismiss-All; `.rwt2-*` CSS, tiers t0–t3 (t3 = bigger card +
+screen accent + `jackpot` stinger); arrival audio `toast0/1/2` tier-keyed, rate-limited.
+
+**Merge rules.** Identity `type:name` within a 4s window: `sum` adds qty (+100+250+75 →
++425, pulses, re-arms 5s/7s lifetime, jumps to front), `count` stacks ×N, `never` keeps
+distinct cards; blended sources read "Multiple sources"; rarity/tier only escalate.
+
+**Public APIs.** `rewardToast.push/pushMany/onReward`; `eventsForPassRewards(rewards,
+names?)` maps the applyRewardList reward language to events; `meta.applyRewardList` now
+returns `{next, lines, stamina, events}`.
+
+**Where pushes live.** meta.ts grant seams ONLY (never screens): finishRun (all modes —
+placards land on hub return via the hold buffer), quest missions/finales, BP levels, login,
+directives, wardrobe milestones, expeditions, idle harvest, mastery evolution claims +
+prestige, tutorial milestones, Splice Market buys, Ichor Exchange, collection rank-up
+Ichor; `AchievementToaster` is a headless save-diff watcher → achievement placards.
+
+**Ceremony boundary (the coverage table in NOTIFICATIONS.md is normative).** Dedicated
+full-screen reveals that itemize every reward (vault clutch, Bio-Roulette, Premium Store,
+field research, genome-rank cinematic) do NOT double-placard; transient ceremonies (login,
+idle, expedition) DO — placards are the persistent claim trail. Pure spends (stars, primes,
+nodes) announce via the Power delta popup, not placards. LootToaster stays the in-run
+corner lane.
+
+**Extension points.** New reward type = one REWARD_TYPES row; new claim surface = push at
+the grant seam with a source string; unknown types still render (generic glyph card).
+
+**Assumptions/limitations.** Toaster mounts at the menu only (runs never covered); held
+events survive only the session (a hard refresh mid-run drops the trail — the save is
+already true); merge window is wall-clock (Date.now), untestable via fake timers only.

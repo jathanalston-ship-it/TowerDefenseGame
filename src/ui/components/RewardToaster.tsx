@@ -1,174 +1,156 @@
-// THE CLAIM POPUP (docs/NOTIFICATIONS.md §claim-popups) — one bold, unmissable receipt for
-// every hub claim, replacing each screen's easy-to-miss inline strip. Center band, queued one
-// at a time (never stacks), itemized lines with icons + rarity tints, an optional "view it"
-// jump (navBus) to where the reward landed, and a big framing for finales/capstones.
-//
-// CEREMONY TIERS (docs/NOTIFICATIONS.md §tiers): the receipt's vocabulary tier (rewardVocab)
-// scales the treatment — common stays subtle, rare glows, epic sprays spores, legendary adds
-// a screen wash, a longer dwell and (for sound-flagged receipts) the jackpot stinger. A
-// single quantified line renders the HERO placard: the big medal + the quantity as the
-// headline, readable in under a second. Dismissal is everywhere: the ✕, a click, a swipe
-// (docs/NOTIFICATIONS.md §dismiss), and Clear All once a real queue builds. Rapid identical
-// receipts are COALESCED by the bus into one rising total (§merge). Pure presentation: the
-// save is already true; audio fires only for receipts that opted in (`sound` — claim sites
-// with their own cue stay single-voiced).
+// THE REWARD PLACARD STACK (docs/NOTIFICATIONS.md §reward-toasts) — every reward event
+// renders as a miniature reveal card: LARGE art (left) · big +quantity · unit name · source
+// subtitle · rarity word · optional Power / collection lines. Cards stack top-right (top
+// band on phones), merge-bump when identical rewards land in a burst, and dismiss by X /
+// click / swipe / Dismiss All. Rarity scales the whole presentation: t0 subtle rise, t1 rim
+// glow, t2 spark burst, t3 legendary takeover (bigger card + screen accent + stinger).
+// Pure presentation over the state/rewardToast queue rules; the save is already true.
 
 import { useEffect, useRef, useState } from 'react';
-import type { CSSProperties } from 'react';
-import { coalesce, rewardToast } from '../../state/rewardToast';
-import type { RewardToast } from '../../state/rewardToast';
+import type { CSSProperties, PointerEvent as ReactPointerEvent } from 'react';
+import {
+  TOAST_MAX_VISIBLE, applyEvent, lifeOf, pruneCards, rewardToast, rewardTypeOf,
+} from '../../state/rewardToast';
+import type { RewardArt, ToastCard } from '../../state/rewardToast';
 import { navBus } from '../../state/navBus';
 import { audio } from '../../audio/sound';
-import type { RewardTier } from '../../state/rewardVocab';
+import { CurrencyIcon } from './CurrencyIcon';
+import { useCountUp } from './useCountUp';
+import { rarityColorOf } from '../../core/equipment';
 
-const SHOW_MS = 5000; // ≥5s default (docs/NOTIFICATIONS.md §dismiss) — loot toast is 3.2s
-const SHOW_BIG_MS = 6800;
-const SHOW_LEGENDARY_MS = 8000; // the big pull deserves its beat
-const MAX_LINES = 7; // beyond this the receipt summarizes ("+N more") — claim-all can be long
-const SWIPE_DISMISS_PX = 88; // horizontal travel that counts as a swipe-away
-const DRAG_SUPPRESS_CLICK_PX = 8; // past this a pointer-up is a drag end, not a click
-
-const TIER_CUE: Record<RewardTier, string> = {
-  common: 'ui', // light organic click
-  rare: 'reveal', // mutation pulse
-  epic: 'unlock', // biological resonance
-  legendary: 'jackpot', // the distinct stinger
+const RARITY_WORD: Record<string, string> = {
+  common: 'COMMON', uncommon: 'UNCOMMON', rare: 'RARE', epic: 'EPIC', legendary: 'LEGENDARY', exotic: 'EXOTIC', mythic: 'MYTHIC',
 };
 
-function dwellFor(t: RewardToast): number {
-  if (t.tier === 'legendary') return SHOW_LEGENDARY_MS;
-  if (t.big) return SHOW_BIG_MS;
-  if (t.tier === 'epic') return SHOW_BIG_MS;
-  return SHOW_MS;
+function ArtPanel({ art, rarity }: { art: RewardArt | undefined; rarity?: string }): JSX.Element {
+  if (art?.kind === 'currency') return <CurrencyIcon id={art.id} size={44} pickup title="" />;
+  if (art?.kind === 'gene') return <span className="rwt2-glyph" style={{ color: rarity ? `var(--r-${rarity})` : 'var(--viral)' }}>🧬</span>;
+  if (art?.kind === 'container') return <span className="rwt2-glyph" style={{ color: rarity ? rarityColorOf(rarity as never) : 'var(--r-common)' }}>◈</span>;
+  return <span className="rwt2-glyph" style={{ color: art?.color ?? 'var(--gold)' }}>{art?.glyph ?? '✦'}</span>;
+}
+
+/** The big quantity line counts up on merge bumps — the +425 moment reads as growth. */
+function QtyLine({ qty, unitOnly }: { qty: number; unitOnly: boolean }): JSX.Element | null {
+  const shown = useCountUp(qty);
+  if (unitOnly) return null;
+  return <span className="rwt2-qty">+{shown.toLocaleString()}</span>;
+}
+
+function Card({ card, onDismiss }: { card: ToastCard; onDismiss: (uid: number) => void }): JSX.Element {
+  const def = rewardTypeOf(card.type);
+  const color = card.rarity ? `var(--r-${card.rarity})` : def?.art.kind === 'glyph' ? def.art.color : 'var(--gold)';
+  // Swipe dismissal (mobile + mouse drags): track dx; past the threshold the card flies out.
+  const [dx, setDx] = useState(0);
+  const drag = useRef<{ x0: number; on: boolean }>({ x0: 0, on: false });
+  const onDown = (ev: ReactPointerEvent): void => { drag.current = { x0: ev.clientX, on: true }; };
+  const onMove = (ev: ReactPointerEvent): void => { if (drag.current.on) setDx(ev.clientX - drag.current.x0); };
+  const onUp = (): void => {
+    if (!drag.current.on) return;
+    drag.current.on = false;
+    if (Math.abs(dx) > 72) onDismiss(card.uid);
+    else if (Math.abs(dx) < 6) onDismiss(card.uid); // a plain click/tap dismisses too
+    else setDx(0);
+  };
+  // The unique-item card (equipment/cosmetic/achievement) leads with its NAME, not a +qty.
+  const unitOnly = def?.merge === 'never' && (card.qty <= 1 || card.type === 'achievement');
+  return (
+    <article
+      className={`rwt2 t${card.tier}`}
+      role="status"
+      style={{ ['--rw' as string]: color, transform: dx !== 0 ? `translateX(${dx}px)` : undefined, opacity: dx !== 0 ? Math.max(0.25, 1 - Math.abs(dx) / 160) : undefined } as CSSProperties}
+      onPointerDown={onDown}
+      onPointerMove={onMove}
+      onPointerUp={onUp}
+      onPointerCancel={() => { drag.current.on = false; setDx(0); }}
+    >
+      {/* key on bumpedAt: every merge re-fires the pulse ring + keeps the card visibly alive */}
+      <span key={card.bumpedAt} className="rwt2-pulse" aria-hidden />
+      {card.tier >= 2 && <span key={`s${card.bumpedAt}`} className="rwt2-sparks" aria-hidden><i /><i /><i /><i /><i /><i /></span>}
+      <button
+        type="button"
+        className="rwt2-x"
+        aria-label="Dismiss notification"
+        onPointerDown={(e) => e.stopPropagation()}
+        onClick={(e) => { e.stopPropagation(); onDismiss(card.uid); }}
+      >✕</button>
+      <span className="rwt2-art" aria-hidden><ArtPanel art={def?.art} rarity={card.rarity} /></span>
+      <div className="rwt2-body">
+        <span className="rwt2-src">{card.source}</span>
+        <QtyLine qty={card.qty} unitOnly={unitOnly} />
+        <span className="rwt2-unit">
+          {card.name ?? def?.unit ?? card.type}
+          {card.count > 1 && def?.merge === 'count' && <b className="rwt2-xn"> ×{card.qty}</b>}
+        </span>
+        {card.name && !unitOnly && <span className="rwt2-sub">{def?.unit}</span>}
+        <span className="rwt2-tags">
+          {card.rarity && <i className="rwt2-rarity">{RARITY_WORD[card.rarity] ?? card.rarity.toUpperCase()}</i>}
+          {card.power ? <i className="rwt2-power">▲ +{Math.round(card.power)} Power</i> : null}
+        </span>
+        {card.collection && <span className="rwt2-coll">{card.collection}</span>}
+        {card.nav && (
+          <button
+            type="button"
+            className="rwt2-nav"
+            onPointerDown={(e) => e.stopPropagation()}
+            onClick={(e) => { e.stopPropagation(); navBus.go(card.nav!.key); onDismiss(card.uid); }}
+          >
+            {card.nav.label} →
+          </button>
+        )}
+      </div>
+    </article>
+  );
 }
 
 export function RewardToaster(): JSX.Element | null {
-  const [queue, setQueue] = useState<RewardToast[]>([]);
-  // Swipe-away state: dx follows the pointer; `snap` re-enables the transition on release.
-  const [dx, setDx] = useState(0);
-  const drag = useRef<{ startX: number; moved: boolean; active: boolean }>({ startX: 0, moved: false, active: false });
+  const [cards, setCards] = useState<ToastCard[]>([]);
+  const lastCueAt = useRef(0);
 
-  useEffect(() => rewardToast.onToast((t) => setQueue((q) => coalesce(q, t))), []);
+  // Subscribe to the bus; each event folds through the pure queue rules. Arrival audio is
+  // tier-keyed and rate-limited (a burst clicks once, not eight times); merges tick softly.
+  useEffect(() => rewardToast.onReward((e) => {
+    setCards((cs) => {
+      const next = applyEvent(pruneCards(cs, Date.now()), e, Date.now());
+      const merged = next.length === cs.length; // same count ⇒ the event merged into a card
+      const now = performance.now();
+      if (now - lastCueAt.current > 200) {
+        lastCueAt.current = now;
+        const tier = next[0]?.tier ?? 0;
+        audio.cue(merged ? 'toast0' : tier >= 3 ? 'jackpot' : (`toast${Math.min(2, tier)}` as 'toast0' | 'toast1' | 'toast2'));
+      }
+      return next;
+    });
+  }), []);
 
-  const dismissFront = (): void => { setDx(0); setQueue((q) => q.slice(1)); };
-
-  // Auto-dismiss the front toast; re-arms whenever the front changes (next in queue, or a
-  // coalesced merge re-keys the front — the dwell restarts on the updated total).
-  const front = queue[0];
-  const frontId = front?.id ?? -1;
+  // Lifetime prune tick (lifetimes re-arm on merge bumps, so a fixed timer per card is wrong).
   useEffect(() => {
-    if (!front) return undefined;
-    const t = window.setTimeout(dismissFront, dwellFor(front));
-    return () => window.clearTimeout(t);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [frontId]);
+    if (cards.length === 0) return undefined;
+    const id = window.setInterval(() => setCards((cs) => pruneCards(cs, Date.now())), 250);
+    return () => window.clearInterval(id);
+  }, [cards.length > 0]);
 
-  // Tier audio — only for receipts whose claim site has no cue of its own (§tiers).
-  useEffect(() => {
-    if (front?.sound) audio.cue(TIER_CUE[front.tier ?? 'common']);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [frontId]);
-
-  if (!front) return null;
-  const accent = front.accent ?? 'var(--gold)';
-  const tier = front.tier ?? 'common';
-  const shown = front.lines.slice(0, MAX_LINES);
-  const extra = front.lines.length - shown.length;
-  // HERO placard (§tiers): one quantified line ⇒ the quantity IS the headline. The WHAT text
-  // drops when the receipt's name headline already says it (market buys label lines by name).
-  const hero = front.lines.length === 1 && typeof front.lines[0].qty === 'number' ? front.lines[0] : null;
-  const heroWhat = hero ? hero.label.replace(/^[\d,.]+×?\s*/, '') : '';
-
-  const onPointerDown = (e: React.PointerEvent<HTMLDivElement>): void => {
-    drag.current = { startX: e.clientX, moved: false, active: true };
-    e.currentTarget.setPointerCapture(e.pointerId);
-  };
-  const onPointerMove = (e: React.PointerEvent<HTMLDivElement>): void => {
-    if (!drag.current.active) return;
-    const d = e.clientX - drag.current.startX;
-    if (Math.abs(d) > DRAG_SUPPRESS_CLICK_PX) drag.current.moved = true;
-    setDx(d);
-  };
-  const onPointerUp = (): void => {
-    if (!drag.current.active) return;
-    drag.current.active = false;
-    if (Math.abs(dx) > SWIPE_DISMISS_PX) dismissFront();
-    else setDx(0);
-  };
-
+  if (cards.length === 0) return null;
+  const visible = cards.slice(0, TOAST_MAX_VISIBLE);
+  const queued = cards.length - visible.length;
+  const dismiss = (uid: number): void => setCards((cs) => cs.filter((c) => c.uid !== uid));
+  const hasApex = visible.some((c) => c.tier >= 3);
   return (
-    <div className="rwt-wrap" aria-live="polite">
-      {tier === 'legendary' && <span className="rwt-screen" key={`s${front.id}`} aria-hidden />}
-      <div
-        className={`rwt is-t-${tier}${front.big ? ' is-big' : ''}${hero ? ' is-hero' : ''}${drag.current.active ? ' is-dragging' : ''}`}
-        key={front.id}
-        role="status"
-        style={{ ['--rw' as string]: accent, ['--dx' as string]: `${dx}px` } as CSSProperties}
-        onClick={() => { if (!drag.current.moved) dismissFront(); }}
-        onPointerDown={onPointerDown}
-        onPointerMove={onPointerMove}
-        onPointerUp={onPointerUp}
-        onPointerCancel={onPointerUp}
-        title="Dismiss"
-      >
-        {/* The dopamine hit: one-shot burst rays + a medal ripple + a shimmer sweep, all
-            re-keyed per receipt (the card's key) so chained claims re-fire every time. */}
-        <span className="rwt-burst" aria-hidden><i /><i /><i /><i /><i /><i /><i /><i /></span>
-        {tier === 'epic' || tier === 'legendary' ? (
-          <span className="rwt-spores" aria-hidden><i /><i /><i /><i /><i /><i /></span>
-        ) : null}
-        <span className="rwt-sheen" aria-hidden />
-        <span className="rwt-medal" aria-hidden>{front.icon ?? shown[0]?.icon ?? '◈'}<i className="rwt-medal-ring" /></span>
-        <div className="rwt-body">
-          <span className="rwt-eyebrow">{front.title}</span>
-          {front.name && <span className="rwt-name">{front.name}</span>}
-          {hero ? (
-            /* WHAT · HOW MUCH · WHERE FROM, readable in under a second (§tiers). */
-            <div className="rwt-hero" style={hero.rarity ? ({ color: `var(--r-${hero.rarity})` } as CSSProperties) : undefined}>
-              <span className="rwt-qty">+{(hero.qty ?? 0).toLocaleString()}</span>
-              {heroWhat !== front.name && <span className="rwt-what">{heroWhat}</span>}
-            </div>
-          ) : (
-            <div className="rwt-lines">
-              {shown.map((l, i) => (
-                <span
-                  className="rwt-line"
-                  key={i}
-                  style={{ ['--i' as string]: i, ...(l.rarity ? { color: `var(--r-${l.rarity})` } : null) } as CSSProperties}
-                >
-                  <i aria-hidden>{l.icon}</i> {l.label}
-                </span>
-              ))}
-              {extra > 0 && <span className="rwt-line is-more" style={{ ['--i' as string]: MAX_LINES } as CSSProperties}>+{extra} more</span>}
-            </div>
-          )}
-          {front.nav && (
-            <button
-              className="rwt-nav"
-              onClick={(e) => {
-                e.stopPropagation();
-                navBus.go(front.nav!.key);
-                dismissFront();
-              }}
-            >
-              {front.nav.label} →
-            </button>
-          )}
+    <div className="rwt2-wrap" aria-live="polite">
+      {/* The legendary takeover: a one-shot screen accent behind the stack (reduced-motion: none) */}
+      {hasApex && <span key={visible.find((c) => c.tier >= 3)?.uid} className="rwt2-accent" aria-hidden />}
+      {visible.map((c) => <Card key={c.uid} card={c} onDismiss={dismiss} />)}
+      {(queued > 0 || cards.length > 2) && (
+        <div className="rwt2-foot">
+          {queued > 0 && <span className="rwt2-more">+{queued} more</span>}
+          <button type="button" className="rwt2-clear" onClick={() => setCards([])}>Dismiss All ✕</button>
         </div>
-        <button
-          className="rwt-x"
-          aria-label="Dismiss notification"
-          onClick={(e) => { e.stopPropagation(); dismissFront(); }}
-        >
-          ✕
-        </button>
-        {queue.length > 1 && <span className="rwt-queued" title={`${queue.length - 1} more receipt${queue.length > 2 ? 's' : ''} queued`}>+{queue.length - 1}</span>}
-      </div>
-      {queue.length > 2 && (
-        <button className="rwt-clear" onClick={() => { setDx(0); setQueue([]); }}>
-          Clear all ({queue.length})
-        </button>
       )}
     </div>
   );
+}
+
+/** Compute a card's remaining life fraction (exported for a future progress ring; also keeps
+ *  lifeOf referenced from the UI layer so the rules module stays the single authority). */
+export function lifeFractionOf(card: ToastCard, now: number): number {
+  return Math.max(0, 1 - (now - card.bumpedAt) / lifeOf(card));
 }

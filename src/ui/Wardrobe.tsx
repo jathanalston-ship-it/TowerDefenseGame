@@ -14,7 +14,6 @@ import {
 import type { WardrobeGroup, WardrobeItemDef, WardrobeKindDef } from '../core/wardrobe';
 import { PhenotypeLab } from './PhenotypeLab';
 import { CurrencyIcon } from './components/CurrencyIcon';
-import { rewardToast } from '../state/rewardToast';
 import { audio } from '../audio/sound';
 
 type Tab = 'skins' | WardrobeGroup | 'boutique' | 'milestones';
@@ -196,7 +195,6 @@ function MilestonesTab(): JSX.Element {
               // The receipt presents through the global claim popup (docs/NOTIFICATIONS.md
               // §claim-popups); milestone cosmetics keep their WardrobeReveal ceremony on top.
               if (got) {
-                rewardToast.push({ title: 'Milestone reward claimed', name: def.name, nav: null, lines: got });
                 audio.cue('achieve');
               }
             }}

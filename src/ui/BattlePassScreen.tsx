@@ -17,7 +17,6 @@ import type { PassReward, SeasonDef } from '../core/battlePass';
 import { seasonOfferFor } from '../core/premium';
 import { wardrobeItem, WARDROBE_RARITY_COLOR } from '../core/wardrobe';
 import { CurrencyIcon } from './components/CurrencyIcon';
-import { rewardToast } from '../state/rewardToast';
 import { audio } from '../audio/sound';
 import { adProvider } from '../ads/provider';
 
@@ -206,14 +205,6 @@ export function BattlePassScreen({ onStore }: { onStore?: () => void } = {}): JS
   const claim = (track: 'free' | 'premium', level: number): void => {
     const lines = meta.claimPassLevel(track, level, Date.now());
     if (lines) {
-      rewardToast.push({
-        title: level === BP.levels ? 'The crown — level 100 claimed' : `Level ${level} ${track === 'premium' ? 'premium' : 'free'} reward claimed`,
-        name: season.name,
-        icon: season.glyph,
-        accent: season.accent,
-        big: level === BP.levels,
-        lines,
-      });
       audio.cue(level === BP.levels ? 'jackpot' : 'chest');
       // The claim BURST — a radial pop on the cell itself (re-keyed so chains re-fire).
       setBurst((b) => ({ level, track, key: (b?.key ?? 0) + 1 }));
@@ -222,17 +213,8 @@ export function BattlePassScreen({ onStore }: { onStore?: () => void } = {}): JS
     }
   };
   const claimAll = (): void => {
-    const count = view.claimableFree.length + view.claimablePremium.length;
     const lines = meta.claimAllPass(Date.now());
     if (lines.length > 0) {
-      rewardToast.push({
-        title: 'Season rewards claimed',
-        name: `${count} level${count === 1 ? '' : 's'} — ${season.name}`,
-        icon: season.glyph,
-        accent: season.accent,
-        big: count >= 5,
-        lines,
-      });
       audio.cue('chest');
     }
   };
@@ -316,18 +298,6 @@ export function BattlePassScreen({ onStore }: { onStore?: () => void } = {}): JS
             disabled={meta.get().ichor < BP.premiumIchor}
             onClick={() => {
               if (meta.buyPassPremium(Date.now())) {
-                rewardToast.push({
-                  title: 'Premium track unlocked',
-                  name: season.name,
-                  icon: season.glyph,
-                  accent: season.accent,
-                  big: true,
-                  nav: null, // already on the season screen — the track below just lit up
-                  lines: [
-                    { icon: '❖', label: '20 exclusive cosmetics + 10 permanent passives now claimable' },
-                    { icon: '★', label: 'Every premium level you have already reached is ready below' },
-                  ],
-                });
                 audio.cue('jackpot');
               }
             }}

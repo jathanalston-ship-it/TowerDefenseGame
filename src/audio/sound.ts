@@ -378,6 +378,19 @@ function sFlip(d = 0): void {
   tone(236 - 90 * d, 0.09 + 0.05 * d, 'triangle', 0.06 + 0.03 * d, 128);
   if (d > 0) tone(620 + 640 * d, 0.09 + 0.08 * d, 'sine', 0.02 + 0.045 * d, 900 + 900 * d);
 }
+// ── Reward toast tiers (docs/NOTIFICATIONS.md §reward-toasts) — small/medium/epic voices;
+//    legendary placards ride 'jackpot' (and its 'legendary' stinger). Deliberately short +
+//    quiet: toasts LAYER under gameplay and merge-bursts tick, never klaxon. ──
+function sToast0(): void { // light organic click — the everyday reward
+  noise(0.03, 0.04, 3600, 900); tone(520, 0.05, 'triangle', 0.05, 640);
+}
+function sToast1(): void { // mutation pulse — a worthwhile drop
+  tone(392, 0.07, 'triangle', 0.07, 523); tone(784, 0.1, 'sine', 0.055); noise(0.05, 0.03, 5200);
+}
+function sToast2(): void { // biological resonance — an EPIC arrival blooms
+  tone(262, 0.16, 'sine', 0.08, 330); tone(659, 0.12, 'triangle', 0.07, 880);
+  tone(1319, 0.22, 'sine', 0.05); noise(0.1, 0.04, 2400, 5200);
+}
 function sStrandFound(): void { // a NEW strand enters the Archive — wet snap, then a rising helix
   tone(494, 0.07, 'triangle', 0.1, 741); noise(0.07, 0.05, 4600);
   tone(659, 0.1, 'sine', 0.1, 988); tone(988, 0.3, 'sine', 0.09, 1480);
@@ -606,6 +619,9 @@ export const audio = {
         case 'splice': sSplice(); break;
         case 'flip': sFlip(d); break;
         case 'strandFound': sStrandFound(); break;
+        case 'toast0': sToast0(); break;
+        case 'toast1': sToast1(); break;
+        case 'toast2': sToast2(); break;
         case 'dissolve': sDissolve(); break;
         case 'br_swarm': for (let i = 0; i < Math.min(2, n); i++) sBrSwarm(d); break;
         case 'br_rail': sBrRail(d); break;

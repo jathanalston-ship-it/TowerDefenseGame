@@ -15,7 +15,6 @@ import type { MissionDef, QuestDef } from '../core/quests';
 import { cutsceneDef } from '../core/cutscenes';
 import { wardrobeItem, WARDROBE_RARITY_COLOR } from '../core/wardrobe';
 import { ContractsCard } from './components/ContractsCard';
-import { rewardToast } from '../state/rewardToast';
 import { audio } from '../audio/sound';
 
 function fmtLeft(ms: number): string {
@@ -145,26 +144,17 @@ export function QuestBoard(): JSX.Element {
   };
   // Claims present through the global claim popup (docs/NOTIFICATIONS.md §claim-popups):
   // a bold itemized receipt naming the mission/quest — the burst stays as local juice.
-  const claimMission = (mi: MissionDef, accent: string, e: React.MouseEvent): void => {
+  const claimMission = (mi: MissionDef, _accent: string, e: React.MouseEvent): void => {
     const lines = meta.claimQuestMission(mi.id, Date.now());
     if (lines) {
-      rewardToast.push({ title: 'Mission rewards claimed', name: mi.name, accent, lines });
       celebrate(e, lines, false);
       audio.cue('chest');
       audio.cue('power');
     }
   };
-  const claimFinale = (q: QuestDef, firstTime: boolean, e: React.MouseEvent): void => {
+  const claimFinale = (q: QuestDef, _firstTime: boolean, e: React.MouseEvent): void => {
     const lines = meta.claimQuestFinale(q.id, Date.now());
     if (lines) {
-      rewardToast.push({
-        title: firstTime ? 'Quest finale — story unlocked' : 'Quest finale claimed',
-        name: q.name,
-        icon: q.glyph,
-        accent: q.accent,
-        big: true,
-        lines,
-      });
       celebrate(e, lines, true);
       audio.cue('jackpot');
     }

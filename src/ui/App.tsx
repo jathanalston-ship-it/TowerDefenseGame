@@ -497,7 +497,7 @@ export function App(): JSX.Element {
       {debugOn && <Suspense fallback={null}><DebugPanel /></Suspense>}
       {/* Off-menu, run-end milestones are shown inline on Results — suppress the floating toast so
           it never overlaps the summary. On the hub (e.g. a star-buy unlock) it toasts as usual. */}
-      <AchievementToaster suppressed={screen !== 'menu'} />
+      <AchievementToaster />
       {/* Claim receipts (docs/NOTIFICATIONS.md §claim-popups) — hub claims only, so the
           popup can never cover a live run. */}
       {screen === 'menu' && <RewardToaster />}
