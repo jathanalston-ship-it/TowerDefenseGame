@@ -4,10 +4,12 @@
 // source can never silently escape it. (The FIELD-level contract is pinned by core/powerCoverage.test.)
 
 import { describe, it, expect } from 'vitest';
-import { meta } from './meta';
+import { meta, collectionContextOf } from './meta';
+import { collectionView } from '../core/collection';
 import { META_UPGRADES, TOWER_ORDER, HERO_ORDER } from '../core/config';
 import { ALL_ITEMS, rollItem } from '../core/equipment';
 import type { EquipSlot } from '../core/equipment';
+import { defaultSave } from '../save/saveStore';
 import type { SaveData } from '../save/saveStore';
 
 const HALF = (): number => 0.5; // deterministic affix rolls
@@ -106,6 +108,11 @@ describe('Power Score integration — every strength source moves the index', ()
       heroStars: Object.fromEntries(HERO_ORDER.map((k) => [k, 2])),
     } as SaveData)).score;
     expect(stacked).toBeGreaterThan(fresh);
-    expect(fresh).toBe(1000); // a fresh account still reads exactly POWER_BASE
+    // v46 (docs/CARDS.md §discovery): a fresh account OWNS the starter archive, so its only
+    // Power above base is the Collection credit for those 16 discovered strands — nothing else.
+    const freshCollection = collectionView(collectionContextOf(defaultSave())).power;
+    expect(fresh).toBe(Math.round(1000 * freshCollection));
+    expect(freshCollection).toBeGreaterThan(1); // starters do credit the codex…
+    expect(freshCollection).toBeLessThan(1.02); // …but only slightly (≤2%)
   });
 });

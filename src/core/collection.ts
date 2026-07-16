@@ -112,6 +112,9 @@ export interface CollectionContext {
   idleBestHours: number; // largest single harvest in banked hours (a watermark)
   idleBlooms: number; // lifetime BLOOM harvests witnessed
   geneLevels?: Record<string, number>; // card id → permanent Gene level (label enrichment only)
+  /** Card ids permanently DISCOVERED (docs/CARDS.md §discovery) — drives the Gene codex. Discovery
+   *  is the collection act now (starters + Bio-Container finds), not "drafted once". */
+  genesDiscovered: Set<string>;
 }
 
 // ── Ranks ─────────────────────────────────────────────────────────────────────
@@ -193,13 +196,12 @@ export function collectionView(ctx: CollectionContext): CollectionView {
     return { id, name: HERO_DEFS[id as keyof typeof HERO_DEFS]?.name ?? id, tier, maxTier: HERO_TIERS.length, tierLabel: labelAt(tier, HERO_LABELS) };
   });
 
-  const seenCards = new Set(stats.uniqueCards);
   const cards = cardRegistry.ids().map((id): CollectionEntry => {
-    const tier = seenCards.has(id) ? 1 : 0;
+    const tier = ctx.genesDiscovered.has(id) ? 1 : 0;
     // The permanent Gene level enriches the LABEL only (tier/maxTier untouched, so collection
     // completion and its Power/bonuses are unchanged — Gene power is counted by the Archive).
     const lvl = ctx.geneLevels?.[id] ?? 0;
-    return { id, name: cardRegistry.get(id)?.name ?? id, tier, maxTier: 1, tierLabel: tier ? (lvl > 0 ? `Gene Level ${lvl}` : 'Collected') : 'Undiscovered' };
+    return { id, name: cardRegistry.get(id)?.name ?? id, tier, maxTier: 1, tierLabel: tier ? (lvl > 0 ? `Gene Level ${lvl}` : 'Discovered') : 'Undiscovered' };
   });
 
   const equipment = ALL_ITEMS.map((d): CollectionEntry => {

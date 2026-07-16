@@ -13,6 +13,8 @@ import { essenceTranscendCost, essenceUpgradeCost } from '../core/geneEssence';
 
 const card = CARD_POOL[0]; // sharpened_needles (common — a STARTER, discovered on every account)
 const STARTERS = new Set(STARTER_GENES);
+// A real but UNDISCOVERED strand (ungated, non-starter) for the refusal guards.
+const undisc = CARD_POOL.find((c) => !c.unlock && !STARTERS.has(c.id))!;
 
 function seed(over: Partial<ReturnType<typeof defaultSave>> = {}): void {
   meta.importText(serializeExport({ ...defaultSave(), ...over }));
@@ -160,7 +162,7 @@ describe('favorites + pinning (Task 8) — persisted collection gestures', () =>
 describe('meta.upgradeGene — the guarded spend', () => {
   it('refuses unowned / unaffordable; succeeds owned + funded; stamps upgradedAt', () => {
     seed({ geneEssence: 999 });
-    expect(meta.upgradeGene(card.id)).toBe(false); // not discovered yet
+    expect(meta.upgradeGene(undisc.id)).toBe(false); // not discovered yet
     seed({ stats: { ...defaultSave().stats, uniqueCards: [card.id] }, geneEssence: 3 });
     expect(meta.upgradeGene(card.id)).toBe(false); // can't afford (L1 costs 25)
     seed({ stats: { ...defaultSave().stats, uniqueCards: [card.id] }, geneEssence: 999 });
@@ -197,8 +199,10 @@ describe('meta.transcendGene — the late-game sink (docs/GENE-EVOLUTION.md §Tr
   });
 
   it('refuses undiscovered / below-max / bogus-option / unaffordable', () => {
-    seed({ geneEssence: cost, genes: { [card.id]: { level: card.maxLevel! } } });
-    expect(meta.transcendGene(card.id, opts[0].id)).toBe(false); // not discovered
+    // Undiscovered refusal fires FIRST (before any level check) — no gene entry seeded, since
+    // a leveled gene is folded into the discovered set by the v46 migration union.
+    seed({ geneEssence: cost });
+    expect(meta.transcendGene(undisc.id, transcendOptionsFor(undisc)[0]?.id ?? '__any__')).toBe(false); // not discovered
     seed({ stats: { ...defaultSave().stats, uniqueCards: [card.id] }, geneEssence: cost, genes: { [card.id]: { level: card.maxLevel! - 1 } } });
     expect(meta.transcendGene(card.id, opts[0].id)).toBe(false); // max level only
     seed(maxed(cost));

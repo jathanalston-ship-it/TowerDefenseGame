@@ -1,6 +1,6 @@
 # DIL_GRAPH.md — the Design Intelligence Layer (GENERATED — `npm run dil -- regen`)
 
-> **The project's brain** (docs/DIL.md). 819 nodes · 1510 edges, built from the live
+> **The project's brain** (docs/DIL.md). 822 nodes · 1520 edges, built from the live
 > registries + curated knowledge (src/dev/dil/). **Query it instead of searching the repo:**
 > `npm run dil -- node <id>` · `affects <id>` · `requires <id>` · `missing <kind> <edge>` ·
 > `checklist tower <kind>` · `find <text>`. Edge kinds are bidirectional (19 kinds).
@@ -22,7 +22,7 @@
 
 ### Economy / Reward Index
 
-`currency:biomass` · `currency:genome-cores` · `currency:tower-shards` · `currency:hero-shards` · `currency:gene-essence` · `currency:materials` · `currency:stamina` · `currency:ichor` · `system:campaign` · `system:infinite` · `system:boss-rush` · `system:daily` · `system:loot` · `system:daily-login` · `system:achievements` · `system:directives` · `system:expeditions` · `system:doctrines` · `enemy:runner` · `enemy:mite` · `enemy:husk` · `enemy:flea` · `enemy:mold` · `enemy:skulker` · `enemy:larva` · `enemy:rusher` · `enemy:darter` · `enemy:lasher` · `enemy:brute` · `enemy:tank` · `enemy:golem` · `enemy:colossus` · `enemy:bulwark` · `enemy:warden` · `enemy:knitter` · `enemy:revenant` · `enemy:burrower` · `enemy:molerat` · `enemy:flyer` · `enemy:wisp` · `enemy:gargoyle` · `enemy:cystwraith` · `enemy:broodmother` · `enemy:hivecaller` · `enemy:mender` · `enemy:cantor` · `enemy:bomber` · `enemy:popper` · `enemy:sapper` · `enemy:cataclyst` · `enemy:siegeworm` · `enemy:spitter` · `enemy:stratovore` · `enemy:broodweaver` · `enemy:zealot` · `enemy:carrier` · `enemy:entrencher` · `enemy:oracle` · `enemy:glutling` · `enemy:apex` · …108 more
+`currency:biomass` · `currency:genome-cores` · `currency:tower-shards` · `currency:hero-shards` · `currency:gene-essence` · `currency:materials` · `currency:stamina` · `currency:ichor` · `system:campaign` · `system:infinite` · `system:boss-rush` · `system:daily` · `system:loot` · `system:daily-login` · `system:achievements` · `system:directives` · `system:expeditions` · `system:doctrines` · `enemy:runner` · `enemy:mite` · `enemy:husk` · `enemy:flea` · `enemy:mold` · `enemy:skulker` · `enemy:larva` · `enemy:rusher` · `enemy:darter` · `enemy:lasher` · `enemy:brute` · `enemy:tank` · `enemy:golem` · `enemy:colossus` · `enemy:bulwark` · `enemy:warden` · `enemy:knitter` · `enemy:revenant` · `enemy:burrower` · `enemy:molerat` · `enemy:flyer` · `enemy:wisp` · `enemy:gargoyle` · `enemy:cystwraith` · `enemy:broodmother` · `enemy:hivecaller` · `enemy:mender` · `enemy:cantor` · `enemy:bomber` · `enemy:popper` · `enemy:sapper` · `enemy:cataclyst` · `enemy:siegeworm` · `enemy:spitter` · `enemy:stratovore` · `enemy:broodweaver` · `enemy:zealot` · `enemy:carrier` · `enemy:entrencher` · `enemy:oracle` · `enemy:glutling` · `enemy:apex` · …111 more
 
 ### Power Score Index
 
@@ -159,6 +159,7 @@ graph LR
   system_nemesis["Nemesis & Trophies"] -->|modifies| system_engine["Sim Engine"]
   system_nemesis["Nemesis & Trophies"] -->|consumes| system_mega_bosses["Mega Bosses"]
   system_mastery["Mastery / Adaptation"] -->|modifies| system_hub_shell["Hub Shell & Home"]
+  system_gene_cards["Gene Cards (draft + permanent evolution)"] -->|modifies| system_hub_shell["Hub Shell & Home"]
   system_rendering["Rendering & VFX"] -->|consumes| system_engine["Sim Engine"]
 ```
 
@@ -507,6 +508,8 @@ graph LR
   system_nemesis["Nemesis & Trophies"] -->|modifies| system_engine["Sim Engine"]
   system_mastery["Mastery / Adaptation"] -->|modifies| concept_power_score["Power Score"]
   system_mastery["Mastery / Adaptation"] -->|modifies| system_hub_shell["Hub Shell & Home"]
+  system_gene_cards["Gene Cards (draft + permanent evolution)"] -->|modifies| concept_power_score["Power Score"]
+  system_gene_cards["Gene Cards (draft + permanent evolution)"] -->|modifies| system_hub_shell["Hub Shell & Home"]
 ```
 
 ## Concepts (7)
@@ -528,7 +531,7 @@ ONE account-strength number folded from every permanent bucket + the in-run temp
   - providedBy ← `system:equipment` — equipped items score via itemPower into the gear bucket
   - providedBy ← `system:crafting` — reforged items re-score through the gear bucket
   - providedBy ← `system:loot` — reads Power for catch-up bias; grants move account Power
-  - _…26 more (query: `npm run dil -- node concept:power-score`)_
+  - _…27 more (query: `npm run dil -- node concept:power-score`)_
 
 ### `concept:determinism` — Determinism
 
@@ -544,6 +547,7 @@ A run is a pure function of seed + inputs — the invariant behind replays, fair
   - consumedBy ← `system:security` — guards live OUTSIDE the sim: wall-clock rate limits on in-run verbs would corrupt replays/dailies/goldens — in-run spam is absorbed at the UI input boundary instead
   - consumedBy ← `system:directives` — the weekly board rotates on the same UTC weekIndex as liveops/contracts (no server); progress banks from run FACTS at finishRun — the pinned test Monday keeps it gameplay-neutral (fresh save = 0 progress, meta-only rewards ⇒ golden-safe)
   - conflictsWith ← `system:mastery` — LOOPS ARE XP-METERED, NEVER LEVEL-WINDOWED (MASTERY.md §10.2): the ×1.12 mastery level curve makes a level-windowed loop 2 cost ×83,522 loop 1 — trackLevelFromXp walks BASE_LOOP_REQS × 1.25^prestige from masteryEvolution[key].xpAt; loop 1 must stay EXACTLY mastery levels 1..100 (100-step parity test) — do not touch MASTERY.reqGrowth or the walk without re-running scripts/sim-mastery-evolution.ts
+  - conflictsWith ← `system:gene-cards` — the DRAFT POOL is the discovered set passed at LAUNCH (GameView → RunOptions.draftPool); the no-options sim path keeps the legacy ungated catalog so goldens stay byte-identical — never filter draftCards by discovery INSIDE the sim, and never roll discovery from sim code (meta-only, Math.random)
 
 ### `concept:golden-test` — Golden Test
 
@@ -638,7 +642,7 @@ The permanent meta currency — genome upgrades, rewards, achievement payouts.
   - rewardedBy ← `achievement:specialist` — +25 on unlock
   - rewardedBy ← `achievement:mulligan_grafted` — +25 on unlock
   - rewardedBy ← `achievement:mulligan_splicer` — +40 on unlock
-  - _…104 more (query: `npm run dil -- node currency:genome-cores`)_
+  - _…107 more (query: `npm run dil -- node currency:genome-cores`)_
 
 ### `currency:tower-shards` — Tower Shards (✦)
 
@@ -1181,7 +1185,7 @@ _at: src/core/loot.ts, src/core/lootQueue.ts, src/core/progressionLoot.ts, src/s
   - documentedBy ← `doc:LOOT-PROGRESSION.md`
   - documentedBy ← `doc:REWARD-PRESENTATION.md`
   - testedBy ← `test:src/core/loot.test.ts`
-  - _…6 more (query: `npm run dil -- node system:loot`)_
+  - _…7 more (query: `npm run dil -- node system:loot`)_
 
 ### `system:gene-cards` — Gene Cards (draft + permanent evolution)
 
@@ -1202,6 +1206,10 @@ _at: src/core/cards.ts, src/core/geneCards.ts, src/core/geneDiscovery.ts, src/co
   - consumes → `currency:gene-essence` — Archive leveling
   - provides → `concept:power-score` — Transcendence (geneTranscend.ts) made mortarPoolDuration/corrosionSlow/killFractureSplash/bonusTowerSlots/integrityRegenPerWave SCORED fields — permanent second lines must be Power-visible (validate.ts errors on an invisible family option; cardProblems on overrides)
   - conflictsWith → `concept:golden-test` — Transcendence rides effectiveGeneEffects 4th arg + RunOptions.geneTranscends — untranscended saves MUST fold byte-identical (transcendPowerMult ×1, stale ids drop in the sanitizer); options may never use boot-only fields (dead on mid-run draft)
+  - extends → `system:loot` — GENE DISCOVERY (core/geneDiscovery.ts): save.genesDiscovered IS ownership — starters free (16 ungated commons), everything else recovered from Bio-Containers (openContainer additive lane: rollGeneDiscovery → discover extends the archive / echo pays Gene Essence, never a dead pull); rarity pools open on campaign milestones 0/8/15/30/60 with per-card unlock gates ON TOP; undiscovered weight ×(1+7·(1−completion)) fades as the archive fills — rebalance ONLY via GENE_DISCOVERY + scripts/sim-gene-discovery.ts
+  - conflictsWith → `concept:determinism` — the DRAFT POOL is the discovered set passed at LAUNCH (GameView → RunOptions.draftPool); the no-options sim path keeps the legacy ungated catalog so goldens stay byte-identical — never filter draftCards by discovery INSIDE the sim, and never roll discovery from sim code (meta-only, Math.random)
+  - modifies → `concept:power-score` — discovery credits the cards codex (CollectionContext.genesDiscovered → tier 1 = Discovered) so each find is small permanent Power via the Collection fold; a FRESH account therefore reads base × collection(starters) ≈ +5 — powerIntegration/profile tests pin this shape; upgrade Power (geneCollectionPowerMult over save.genes) is a separate lane, unchanged
+  - modifies → `system:hub-shell` — discovery surfaces: Archive silhouettes + honest per-card hints (discoveryHint — pool stage, unlock kind, or container source) + completion strip (ga-completion, per-rarity chips); collector/deep_genome re-keyed to discovered count with apex_find/common_set/full_genome new; unlocks "cards" condition stays DRAFTED-based (engagement) because starters make discovered-count gates trivially true; Profile strands-found row
   - requiredBy ← `system:engine`
   - requiredBy ← `system:doctrines`
   - taughtBy ← `tutorial:combat`
@@ -1480,7 +1488,7 @@ _at: src/state/achievements.ts, src/ui/AchievementPanel.tsx, src/ui/AchievementT
   - contains ← `achievement:star3`
   - contains ← `achievement:specialist`
   - contains ← `achievement:hero_shard`
-  - _…98 more (query: `npm run dil -- node system:achievements`)_
+  - _…101 more (query: `npm run dil -- node system:achievements`)_
 
 ### `system:stats` — Lifetime Stats
 
@@ -1842,7 +1850,7 @@ _at: src/ui/Hub.tsx, src/ui/navModel.ts, src/ui/MobileShell.tsx, src/ui/CommandC
   - documentedBy ← `doc:HUD.md`
   - documentedBy ← `doc:PROGRESSION-LOOP.md`
   - documentedBy ← `doc:UX-CONSOLIDATION.md`
-  - _…11 more (query: `npm run dil -- node system:hub-shell`)_
+  - _…12 more (query: `npm run dil -- node system:hub-shell`)_
 
 ### `system:run-ui` — In-Run HUD & Results
 
@@ -3157,7 +3165,7 @@ _at: site/guides.ts → /guides/prestige/_
   - partOf → `system:website`
   - documents → `system:prestige`
 
-## Achievements (107)
+## Achievements (110)
 
 - `achievement:tutorial_complete` — Complete the Combat Tutorial. _(partOf `system:achievements`, rewards `currency:genome-cores`)_
 - `achievement:first_run` — Finish your first run. _(partOf `system:achievements`, rewards `currency:genome-cores`)_
@@ -3186,7 +3194,7 @@ _at: site/guides.ts → /guides/prestige/_
 - `achievement:symbiote_apex` — Fully evolve every fielded champion class — three complete organisms in the roster. _(partOf `system:achievements`, rewards `currency:genome-cores`, references `system:hero-symbiotes`)_
 - `achievement:exterminator` — Kill 1,000 enemies (lifetime). _(partOf `system:achievements`, rewards `currency:genome-cores`)_
 - `achievement:biomass_baron` — Harvest 50,000 biomass (lifetime). _(partOf `system:achievements`, rewards `currency:genome-cores`)_
-- `achievement:collector` — Collect 12 distinct Gene Cards. _(partOf `system:achievements`, rewards `currency:genome-cores`, references `system:gene-cards`)_
+- `achievement:collector` — Discover 30 Gene strands (starters included). _(partOf `system:achievements`, rewards `currency:genome-cores`, references `system:gene-cards`)_
 - `achievement:persistent` — Complete 5 runs to extraction. _(partOf `system:achievements`, rewards `currency:genome-cores`)_
 - `achievement:first_strain` — Evolve a tower to Strain II. _(partOf `system:achievements`, rewards `currency:genome-cores`)_
 - `achievement:strain5` — Evolve a tower to Strain V. _(partOf `system:achievements`, rewards `currency:genome-cores`)_
@@ -3261,7 +3269,10 @@ _at: site/guides.ts → /guides/prestige/_
 - `achievement:field_knell` — Field the Knell — the resonance cast from your first Molt. _(partOf `system:achievements`, rewards `currency:genome-cores`)_
 - `achievement:full_menagerie` — Field every hero at least once (lifetime). _(partOf `system:achievements`, rewards `currency:genome-cores`)_
 - `achievement:complete_arsenal` — Unlock every tower — the launch five, the expansion three, and both beam towers. _(partOf `system:achievements`, rewards `currency:genome-cores`)_
-- `achievement:deep_genome` — Collect 25 distinct Gene Cards (the Deep-Strain set and beyond). _(partOf `system:achievements`, rewards `currency:genome-cores`)_
+- `achievement:deep_genome` — Discover 60 Gene strands — deep into the sealed pools. _(partOf `system:achievements`, rewards `currency:genome-cores`)_
+- `achievement:apex_find` — Discover your first LEGENDARY gene card. _(partOf `system:achievements`, rewards `currency:genome-cores`)_
+- `achievement:common_set` — Discover every COMMON strand in the Archive. _(partOf `system:achievements`, rewards `currency:genome-cores`)_
+- `achievement:full_genome` — Discover EVERY strand — the Archive holds nothing more. _(partOf `system:achievements`, rewards `currency:genome-cores`)_
 - `achievement:return_from_deep` — Reach Infinite Depth 40 — the abyss that awakens the Revenant. _(partOf `system:achievements`, rewards `currency:genome-cores`)_
 - `achievement:evo_first_loop` — EVOLVE a Mastery Evolution Track for the first time — complete a 100-level loop and prestige it. _(partOf `system:achievements`, rewards `currency:genome-cores`)_
 - `achievement:evo_five_loops` — Complete five Evolution loops across the roster. _(partOf `system:achievements`, rewards `currency:genome-cores`)_

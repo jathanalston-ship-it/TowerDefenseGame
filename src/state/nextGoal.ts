@@ -122,7 +122,7 @@ export function nextGoals(save: SaveData, limit = 6): NextGoal[] {
   const geneCap = geneLevelCapForStage(stage);
   const geneGate = GENE_LEVEL_GATES.find((g) => g.stage > stage);
   if (geneGate) {
-    const ownedSet = new Set(save.stats?.uniqueCards ?? []);
+    const ownedSet = new Set(save.genesDiscovered ?? []);
     let blocked = 0;
     for (const c of cardRegistry.active()) {
       if (ownedSet.has(c.id) && geneLevel(save.genes, c.id) >= geneCap && geneMaxLevel(c) > geneCap) blocked++;

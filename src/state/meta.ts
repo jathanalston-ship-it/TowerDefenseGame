@@ -523,6 +523,7 @@ export function collectionContextOf(save: SaveData): CollectionContext {
     idleBestHours: save.idle.bestHours,
     idleBlooms: save.idle.blooms,
     geneLevels: Object.fromEntries(Object.entries(save.genes).map(([id, g]) => [id, g.level])),
+    genesDiscovered: new Set(save.genesDiscovered ?? []),
     evolutionPrestige: Object.fromEntries(Object.entries(save.masteryEvolution ?? {}).map(([k, st]) => [k, st.prestige])),
     nucleusGrown: Object.fromEntries(Object.entries(save.nucleus?.grown ?? {}).map(([id, g]) => [id, g.level])),
     nucleusAdapted: new Set(save.nucleus?.adapted ?? []),
@@ -3167,11 +3168,11 @@ export const meta = {
   geneLoadout(): (string | null)[] {
     return store.get().geneLoadout;
   },
-  /** The card ids that AUTO-ACTIVATE at run boot: the equipped, OWNED cards in unlocked slots.
-   *  Passed to the Game as RunOptions.startingGenes; empty ⇒ nothing applied (golden path). */
+  /** The card ids that AUTO-ACTIVATE at run boot: the equipped, DISCOVERED cards in unlocked
+   *  slots. Passed to the Game as RunOptions.startingGenes; empty ⇒ nothing applied (golden path). */
   startingGenes(): string[] {
     const s = store.get();
-    const owned = new Set(s.stats?.uniqueCards ?? []);
+    const owned = new Set(s.genesDiscovered ?? []);
     const out: string[] = [];
     for (let i = 0; i < s.geneSlots; i++) {
       const id = s.geneLoadout[i];
@@ -3186,7 +3187,7 @@ export const meta = {
     if (index < 0 || index >= s.geneSlots) return false;
     if (id !== null) {
       if (!cardRegistry.has(id)) return false;
-      if (!(s.stats?.uniqueCards ?? []).includes(id)) return false; // must be discovered
+      if (!(s.genesDiscovered ?? []).includes(id)) return false; // must be discovered
       if (s.geneLoadout.some((v, i) => v === id && i !== index)) return false; // one slot per card
     }
     const geneLoadout = s.geneLoadout.slice();
@@ -4290,7 +4291,7 @@ export const meta = {
     const save = store.get();
     const def = cardRegistry.get(id);
     if (!def) return false;
-    if (!(save.stats?.uniqueCards ?? []).includes(id)) return false; // must be discovered first
+    if (!(save.genesDiscovered ?? []).includes(id)) return false; // must be discovered first
     const level = geneLevel(save.genes, id);
     if (level >= geneMaxLevel(def)) return false; // authored ceiling
     const next = level + 1;
@@ -4316,7 +4317,7 @@ export const meta = {
     const save = store.get();
     const def = cardRegistry.get(id);
     if (!def) return false;
-    if (!(save.stats?.uniqueCards ?? []).includes(id)) return false; // must be discovered first
+    if (!(save.genesDiscovered ?? []).includes(id)) return false; // must be discovered first
     if (geneLevel(save.genes, id) < geneMaxLevel(def)) return false; // max level only
     if (!transcendOptionsFor(def).some((o) => o.id === optionId)) return false; // real option only
     const prev = save.genes[id];
@@ -6261,7 +6262,7 @@ export const meta = {
       })(),
       heroRatio: (HERO_ORDER.filter((k) => isHeroUnlocked(save, k)).length / heroes + Math.min(1, sumRec(save.heroStars) / (heroes * 10))) / 2,
       gearRatio: new Set(save.equipment.inventory.map((i) => i.defId)).size / ALL_ITEMS.length,
-      geneRatio: (save.stats.uniqueCards.length / cards + Math.min(1, geneLevels / (cards * 3))) / 2,
+      geneRatio: ((save.genesDiscovered ?? []).length / cards + Math.min(1, geneLevels / (cards * 3))) / 2,
       achievementRatio: (save.achievements ?? []).length / ACHIEVEMENTS.length,
       collectionCompletion: collectionView(collectionContextOf(save)).completion,
       cosmeticRatio: (save.cosmetics.owned.length / cosmeticRegistry.ids().length + save.wardrobe.owned.length / WARDROBE_ITEMS.length) / 2,

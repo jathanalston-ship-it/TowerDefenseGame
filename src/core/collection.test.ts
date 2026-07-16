@@ -18,7 +18,7 @@ import { ALL_QUESTS, allMissions } from './quests';
 import { DOCTRINE_RANK_MAX, doctrineRegistry } from './doctrines';
 import { validateEffects } from './validate';
 
-const freshCtx = (): CollectionContext => ({ stats: defaultLifetimeStats(), ownedDefIds: new Set(), bestWave: 0, bossesSlain: new Set(), megaSlain: new Set(), megaPerfect: new Set(), megaSpeed: new Set(), biomesSeen: new Set(), cosmeticsOwned: new Set(), wardrobeOwned: new Set(), mulliganDex: {}, mulliganOrganisms: {}, questCompletions: {}, missionsDone: new Set(), nucleusGrown: {}, nucleusAdapted: new Set(), heroSymbioteGrown: {}, heroAdapted: new Set(), heroResonated: new Set(), heroEvolved: new Set(), evolutionPrestige: {}, lifetimeLogins: 0, bestLoginStreak: 0, idleHarvests: 0, idleLifetimeHours: 0, idleBestHours: 0, idleBlooms: 0 });
+const freshCtx = (): CollectionContext => ({ stats: defaultLifetimeStats(), ownedDefIds: new Set(), bestWave: 0, bossesSlain: new Set(), megaSlain: new Set(), megaPerfect: new Set(), megaSpeed: new Set(), biomesSeen: new Set(), cosmeticsOwned: new Set(), wardrobeOwned: new Set(), mulliganDex: {}, mulliganOrganisms: {}, questCompletions: {}, missionsDone: new Set(), nucleusGrown: {}, nucleusAdapted: new Set(), heroSymbioteGrown: {}, heroAdapted: new Set(), heroResonated: new Set(), heroEvolved: new Set(), evolutionPrestige: {}, lifetimeLogins: 0, bestLoginStreak: 0, idleHarvests: 0, idleLifetimeHours: 0, idleBestHours: 0, idleBlooms: 0, genesDiscovered: new Set() });
 
 function fullCtx(): CollectionContext {
   const stats = defaultLifetimeStats();
@@ -26,12 +26,13 @@ function fullCtx(): CollectionContext {
   for (const k of TOWER_ORDER) stats.towerUsage[k] = 10_000;
   for (const id of HERO_IDS) stats.heroUsage[id] = 10_000;
   stats.uniqueCards = cardRegistry.ids();
+  const genesDiscovered = new Set(cardRegistry.ids());
   for (const id of doctrineRegistry.ids()) {
     if (id === 'none') continue;
     stats.doctrineRuns[id] = 30; stats.doctrineWins[id] = 30; stats.doctrineBestWave[id] = 60; // Exemplar on both signals
   }
   const megaIds = new Set(megaBossRegistry.ids());
-  return { stats, ownedDefIds: new Set(ALL_ITEMS.map((i) => i.id)), bestWave: 99, bossesSlain: new Set(Object.keys(CHASSIS)), megaSlain: megaIds, megaPerfect: megaIds, megaSpeed: megaIds, biomesSeen: new Set(BIOMES.map((b) => b.id)), cosmeticsOwned: new Set(cosmeticRegistry.ids()), wardrobeOwned: new Set(wardrobeRegistry.ids()), mulliganDex: Object.fromEntries(mulliganRegistry.ids().map((id) => [id, 'ascendant' as const])), mulliganOrganisms: Object.fromEntries(TOWER_ORDER.map((k) => [k, { active: true, locked: true }])), questCompletions: Object.fromEntries(ALL_QUESTS.map((q) => [q.id, 3])), missionsDone: new Set(allMissions().map((m) => m.id)), nucleusGrown: Object.fromEntries(nucleusRegistry.all().map((o) => [o.id, organLevelCap(o)])), nucleusAdapted: new Set(COMBAT_CLASS_ORDER), heroSymbioteGrown: Object.fromEntries(symbioteRegistry.all().map((o) => [o.id, symbioteLevelCap(o)])), heroAdapted: new Set(COMBAT_CLASS_ORDER), heroResonated: new Set(SYMBIOTE_RESONANCES.map((r) => r.id)), heroEvolved: new Set(HERO_IDS), evolutionPrestige: Object.fromEntries([...TOWER_ORDER.map((k) => [`tower:${k}`, 3] as const), ...HERO_IDS.map((k) => [`hero:${k}`, 3] as const)]), lifetimeLogins: 1000, bestLoginStreak: 100, idleHarvests: 1000, idleLifetimeHours: 10_000, idleBestHours: 100, idleBlooms: 100 };
+  return { stats, ownedDefIds: new Set(ALL_ITEMS.map((i) => i.id)), bestWave: 99, bossesSlain: new Set(Object.keys(CHASSIS)), megaSlain: megaIds, megaPerfect: megaIds, megaSpeed: megaIds, biomesSeen: new Set(BIOMES.map((b) => b.id)), cosmeticsOwned: new Set(cosmeticRegistry.ids()), wardrobeOwned: new Set(wardrobeRegistry.ids()), mulliganDex: Object.fromEntries(mulliganRegistry.ids().map((id) => [id, 'ascendant' as const])), mulliganOrganisms: Object.fromEntries(TOWER_ORDER.map((k) => [k, { active: true, locked: true }])), questCompletions: Object.fromEntries(ALL_QUESTS.map((q) => [q.id, 3])), missionsDone: new Set(allMissions().map((m) => m.id)), nucleusGrown: Object.fromEntries(nucleusRegistry.all().map((o) => [o.id, organLevelCap(o)])), nucleusAdapted: new Set(COMBAT_CLASS_ORDER), heroSymbioteGrown: Object.fromEntries(symbioteRegistry.all().map((o) => [o.id, symbioteLevelCap(o)])), heroAdapted: new Set(COMBAT_CLASS_ORDER), heroResonated: new Set(SYMBIOTE_RESONANCES.map((r) => r.id)), heroEvolved: new Set(HERO_IDS), evolutionPrestige: Object.fromEntries([...TOWER_ORDER.map((k) => [`tower:${k}`, 3] as const), ...HERO_IDS.map((k) => [`hero:${k}`, 3] as const)]), lifetimeLogins: 1000, bestLoginStreak: 100, idleHarvests: 1000, idleLifetimeHours: 10_000, idleBestHours: 100, idleBlooms: 100, genesDiscovered };
 }
 
 describe('collection layer', () => {
@@ -106,11 +107,11 @@ describe('collection layer', () => {
   it('card entries surface the permanent Gene level in the LABEL only (completion untouched)', () => {
     const ctx = freshCtx();
     const id = cardRegistry.ids()[0];
-    ctx.stats.uniqueCards = [id];
+    ctx.genesDiscovered = new Set([id]);
     const plain = collectionView(ctx).categories.find((c) => c.id === 'cards')!;
     ctx.geneLevels = { [id]: 2 };
     const leveled = collectionView(ctx).categories.find((c) => c.id === 'cards')!;
-    expect(plain.entries.find((e) => e.id === id)!.tierLabel).toBe('Collected');
+    expect(plain.entries.find((e) => e.id === id)!.tierLabel).toBe('Discovered');
     expect(leveled.entries.find((e) => e.id === id)!.tierLabel).toBe('Gene Level 2');
     expect(leveled.completion).toBe(plain.completion); // label enrichment can't move collection Power
   });

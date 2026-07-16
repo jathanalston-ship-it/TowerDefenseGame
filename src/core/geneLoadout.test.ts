@@ -3,19 +3,22 @@
 import { describe, it, expect } from 'vitest';
 import { GENE_LOADOUT_MAX, GENE_LOADOUT_SLOTS, sanitizeGeneLoadout, sanitizeGeneSlots } from './geneLoadout';
 import { CARD_POOL } from './cards';
+import { STARTER_GENES } from './geneDiscovery';
 import { Game } from './game';
 import { meta } from '../state/meta';
 import { defaultSave, serializeExport } from '../save/saveStore';
 import type { MetaModifiers } from './types';
 
 const NO_META: MetaModifiers = { towerDamageMult: 1, biomassMult: 1, heroDamageMult: 1, integrityBonus: 0, bonusSlots: 0 };
-const a = CARD_POOL[0].id; // sharpened_needles
-const b = CARD_POOL[1].id; // rapid_glands
+const a = CARD_POOL[0].id; // sharpened_needles (a starter — always discovered)
+const b = CARD_POOL[1].id; // rapid_glands (a starter — always discovered)
+// A real but UNDISCOVERED strand: ungated, outside the starter archive (docs/CARDS.md §discovery).
+const u = CARD_POOL.find((c) => !c.unlock && !STARTER_GENES.includes(c.id))!.id;
 
 function seed(over: Partial<ReturnType<typeof defaultSave>> = {}): void {
   meta.importText(serializeExport({ ...defaultSave(), ...over }));
 }
-const owned = (...ids: string[]) => ({ stats: { ...defaultSave().stats, uniqueCards: ids } });
+const owned = (...ids: string[]) => ({ genesDiscovered: [...new Set([...STARTER_GENES, ...ids])] });
 
 describe('loadout sanitizers (anti-corruption)', () => {
   it('pads/clamps to five entries, drops unknown ids + duplicates', () => {
@@ -31,7 +34,7 @@ describe('meta loadout API — guarded equip / swap / buy', () => {
   it('equips only OWNED cards into UNLOCKED slots, never duplicated', () => {
     seed(owned(a));
     expect(meta.setGeneSlot(1, a)).toBe(false); // slot 2 locked (geneSlots = 1)
-    expect(meta.setGeneSlot(0, b)).toBe(false); // b not discovered
+    expect(meta.setGeneSlot(0, u)).toBe(false); // u not discovered
     expect(meta.setGeneSlot(0, a)).toBe(true);
     seed({ ...owned(a, b), geneSlots: 2, geneLoadout: [a, null, null, null, null] });
     expect(meta.setGeneSlot(1, a)).toBe(false); // duplicate — one slot per card
@@ -64,8 +67,8 @@ describe('meta loadout API — guarded equip / swap / buy', () => {
   });
 
   it('startingGenes returns only OWNED cards in UNLOCKED slots (the run-boot list)', () => {
-    seed({ ...owned(a), geneSlots: 2, geneLoadout: [a, b, null, null, null] });
-    expect(meta.startingGenes()).toEqual([a]); // b unowned ⇒ filtered
+    seed({ ...owned(a), geneSlots: 2, geneLoadout: [a, u, null, null, null] });
+    expect(meta.startingGenes()).toEqual([a]); // u undiscovered ⇒ filtered
     seed({ ...owned(a, b), geneSlots: 1, geneLoadout: [a, b, null, null, null] });
     expect(meta.startingGenes()).toEqual([a]); // slot 2 locked ⇒ b ignored
   });

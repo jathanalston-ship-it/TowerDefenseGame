@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { defaultSave } from '../save/saveStore';
 import { HERO_ORDER, TOWER_ORDER } from '../core/config';
+import { CARD_POOL } from '../core/cards';
 import { ACHIEVEMENTS, checkAchievements } from './achievements';
 
 describe('achievements', () => {
@@ -69,11 +70,32 @@ describe('achievements', () => {
     for (const k of TOWER_ORDER) towerUsage[k] = 30; // deployed each (Coil/Siphon → beam achievements)
     const heroUsage: Record<string, number> = { ...base.stats.heroUsage };
     for (const k of HERO_ORDER) heroUsage[k] = 10; // fielded each (Vitriol/Revenant → roster achievements)
-    const stats = { ...base.stats, towerUsage, heroUsage, uniqueCards: Array.from({ length: 25 }, (_, i) => `card_${i}`) };
-    const save = { ...base, stats, bestWave: 40, towerUnlocked: [...TOWER_ORDER] };
+    const stats = { ...base.stats, towerUsage, heroUsage };
+    // deep_genome reads the DISCOVERED archive now (docs/CARDS.md §discovery) — 60 strands deep.
+    const save = { ...base, stats, bestWave: 40, towerUnlocked: [...TOWER_ORDER], genesDiscovered: CARD_POOL.slice(0, 60).map((c) => c.id) };
     const ids = new Set(checkAchievements({ save }).map((a) => a.id));
     for (const id of ['deploy_coil', 'deploy_siphon', 'beam_arsenal', 'beam_veteran', 'field_vitriol', 'field_revenant', 'full_menagerie', 'complete_arsenal', 'deep_genome', 'return_from_deep']) {
       expect(ids.has(id), id).toBe(true);
     }
+  });
+
+  it('discovery milestones ride the Archive (collector ladder, first legendary, common set, full genome)', () => {
+    const base = defaultSave();
+    const withArchive = (ids: string[]) => ({ ...base, genesDiscovered: ids });
+    const commons = CARD_POOL.filter((c) => c.rarity === 'common').map((c) => c.id);
+    const aLegendary = CARD_POOL.find((c) => c.rarity === 'legendary')!.id;
+    // Fresh starters (16) sit BELOW every threshold — the fresh-save contract above proves none fire.
+    let ids = new Set(checkAchievements({ save: withArchive(CARD_POOL.slice(0, 30).map((c) => c.id)) }).map((a) => a.id));
+    expect(ids.has('collector')).toBe(true);
+    expect(ids.has('deep_genome')).toBe(false);
+    // The first legendary find fires apex_find regardless of archive size.
+    ids = new Set(checkAchievements({ save: withArchive([aLegendary]) }).map((a) => a.id));
+    expect(ids.has('apex_find')).toBe(true);
+    // Every common ⇒ the Baseline Genome set completes.
+    ids = new Set(checkAchievements({ save: withArchive(commons) }).map((a) => a.id));
+    expect(ids.has('common_set')).toBe(true);
+    // The whole registry ⇒ the hidden Complete Genome.
+    ids = new Set(checkAchievements({ save: withArchive(CARD_POOL.map((c) => c.id)) }).map((a) => a.id));
+    expect(ids.has('full_genome')).toBe(true);
   });
 });

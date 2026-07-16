@@ -12,6 +12,7 @@
 //                the statistics-system integration) and the optional run summary.
 
 import { HERO_ORDER, TOWER_DEFS, TOWER_ORDER } from '../core/config';
+import { cardRegistry } from '../core/cards';
 import { ACCOUNT_CURRENCY } from '../core/currencies';
 import { MULLIGAN_RARITY, accountMulliganPower, isMaxLevel, isMulliganActive, mulliganRegistry } from '../core/mulligan';
 import { NUCLEUS_CHAMBERS, isChamberActive } from '../core/nucleus';
@@ -106,7 +107,9 @@ export const ACHIEVEMENTS: AchievementDef[] = [
   // ── Statistics-driven (integrates with the lifetime stats system) ──
   { id: 'exterminator', name: 'Exterminator', desc: 'Kill 1,000 enemies (lifetime).', reward: 60, test: (c) => c.save.stats.lifetimeKills >= 1000, progress: (c) => ({ cur: c.save.stats.lifetimeKills, max: 1000 }) },
   { id: 'biomass_baron', name: 'Biomass Baron', desc: 'Harvest 50,000 biomass (lifetime).', reward: 60, test: (c) => c.save.stats.totalBiomass >= 50000, progress: (c) => ({ cur: c.save.stats.totalBiomass, max: 50000 }) },
-  { id: 'collector', name: 'Gene Collector', desc: 'Collect 12 distinct Gene Cards.', reward: 40, test: (c) => c.save.stats.uniqueCards.length >= 12, progress: (c) => ({ cur: c.save.stats.uniqueCards.length, max: 12 }) },
+  // Discovery ladder (docs/CARDS.md §discovery) — counts the permanent Archive, so thresholds sit
+  // ABOVE the 16 free starters (a fresh save unlocks none).
+  { id: 'collector', name: 'Gene Collector', desc: 'Discover 30 Gene strands (starters included).', reward: 40, test: (c) => discovered(c.save) >= 30, progress: (c) => ({ cur: discovered(c.save), max: 30 }) },
   { id: 'persistent', name: 'Persistence', desc: 'Complete 5 runs to extraction.', reward: 40, test: (c) => c.save.stats.runsCompleted >= 5, progress: (c) => ({ cur: c.save.stats.runsCompleted, max: 5 }) },
 
   // ── Strain evolution (docs/STRAIN.md §7 — the in-run conveyor-merge layer) ──
@@ -233,7 +236,11 @@ export const ACHIEVEMENTS: AchievementDef[] = [
   { id: 'field_knell', name: 'For Whom the Bell', desc: 'Field the Knell — the resonance cast from your first Molt.', reward: 40, test: (c) => heroUse(c.save, 'knell') >= 1 },
   { id: 'full_menagerie', name: 'Full Menagerie', desc: 'Field every hero at least once (lifetime).', reward: 75, test: (c) => heroesFielded(c.save) >= HERO_ORDER.length, progress: (c) => ({ cur: heroesFielded(c.save), max: HERO_ORDER.length }) },
   { id: 'complete_arsenal', name: 'Complete Arsenal', desc: 'Unlock every tower — the launch five, the expansion three, and both beam towers.', reward: 80, test: (c) => towersOwned(c.save) >= TOWER_ORDER.length, progress: (c) => ({ cur: towersOwned(c.save), max: TOWER_ORDER.length }) },
-  { id: 'deep_genome', name: 'Deep Genome', desc: 'Collect 25 distinct Gene Cards (the Deep-Strain set and beyond).', reward: 60, test: (c) => c.save.stats.uniqueCards.length >= 25, progress: (c) => ({ cur: c.save.stats.uniqueCards.length, max: 25 }) },
+  { id: 'deep_genome', name: 'Deep Genome', desc: 'Discover 60 Gene strands — deep into the sealed pools.', reward: 60, test: (c) => discovered(c.save) >= 60, progress: (c) => ({ cur: discovered(c.save), max: 60 }) },
+  // ── Gene discovery (docs/CARDS.md §discovery) — the Bio-Container recovery chase ──
+  { id: 'apex_find', name: 'Apex Strand', desc: 'Discover your first LEGENDARY gene card.', reward: 80, test: (c) => discoveredOfRarity(c.save, 'legendary') >= 1 },
+  { id: 'common_set', name: 'Baseline Genome', desc: 'Discover every COMMON strand in the Archive.', reward: 60, test: (c) => discoveredOfRarity(c.save, 'common') >= rarityTotal('common'), progress: (c) => ({ cur: discoveredOfRarity(c.save, 'common'), max: rarityTotal('common') }) },
+  { id: 'full_genome', name: 'The Complete Genome', desc: 'Discover EVERY strand — the Archive holds nothing more.', hidden: true, reward: 200, test: (c) => discovered(c.save) >= cardRegistry.ids().length, progress: (c) => ({ cur: discovered(c.save), max: cardRegistry.ids().length }) },
   { id: 'return_from_deep', name: 'Return from the Deep', desc: 'Reach Infinite Depth 40 — the abyss that awakens the Revenant.', reward: 45, test: (c) => c.save.bestWave >= 40, progress: (c) => ({ cur: c.save.bestWave, max: 40 }) },
   // ── Mastery Evolution Tracks (docs/MASTERY.md §evolution track) — the endless loop ──
   { id: 'evo_first_loop', name: 'The Helix Reforms', desc: 'EVOLVE a Mastery Evolution Track for the first time — complete a 100-level loop and prestige it.', reward: 60, test: (c) => Object.values(c.save.masteryEvolution ?? {}).some((st) => st.prestige >= 1) },
@@ -244,6 +251,19 @@ export const ACHIEVEMENTS: AchievementDef[] = [
 /** Total completed Evolution loops (prestiges) across every tower and hero. */
 function evolutionLoops(s: SaveData): number {
   return Object.values(s.masteryEvolution ?? {}).reduce((a, st) => a + Math.max(0, st.prestige), 0);
+}
+
+/** Strands permanently DISCOVERED (docs/CARDS.md §discovery) — the Archive count. */
+function discovered(s: SaveData): number {
+  return (s.genesDiscovered ?? []).length;
+}
+function discoveredOfRarity(s: SaveData, rarity: string): number {
+  let n = 0;
+  for (const id of s.genesDiscovered ?? []) if (cardRegistry.get(id)?.rarity === rarity) n++;
+  return n;
+}
+function rarityTotal(rarity: string): number {
+  return cardRegistry.active().filter((c) => c.rarity === rarity).length;
 }
 
 /** Achievements whose condition is now met but which aren't yet unlocked. */

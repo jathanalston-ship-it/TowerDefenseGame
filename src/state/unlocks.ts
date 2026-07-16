@@ -31,7 +31,7 @@ export type UnlockCondition =
   | { kind: 'cores' } // first Genome Cores ever earned (lifetimeShards > 0)
   | { kind: 'gear' } // any equipment currently owned
   | { kind: 'containers' } // a Bio-Container is banked and waiting
-  | { kind: 'cards'; count: number } // unique Gene Cards collected ≥ n
+  | { kind: 'cards'; count: number } // distinct Gene Cards DRAFTED ≥ n — an ENGAGEMENT signal (discovery starts at 16 starters, so the discovered count would gate nothing)
   | { kind: 'mulligans' } // first Mulligan modifier discovered
   | { kind: 'ichor' } // any Ichor ever bled
   | { kind: 'mats' } // any crafting material held
@@ -65,7 +65,7 @@ export function evalCondition(c: UnlockCondition, save: SaveData): ConditionView
     case 'containers': return flag(save.pendingContainers.length > 0, 'Bank a Bio-Container');
     case 'cards': {
       const have = save.stats?.uniqueCards?.length ?? 0;
-      return { done: have >= c.count, progress: Math.min(1, have / c.count), label: `Collect ${c.count} Gene Cards · ${Math.max(0, c.count - have)} to go` };
+      return { done: have >= c.count, progress: Math.min(1, have / c.count), label: `Draft ${c.count} different Gene Cards · ${Math.max(0, c.count - have)} to go` };
     }
     case 'mulligans': return flag(Object.keys(save.mulliganDex ?? {}).length > 0, 'Discover a Mulligan modifier');
     case 'ichor': return flag((save.lifetimeIchor ?? 0) > 0 || save.ichor > 0, 'Bleed your first Ichor');
@@ -180,8 +180,8 @@ export const FEATURES: FeatureDef[] = [
     blurb: 'A refreshing bazaar for Cores and Ichor.', condition: { kind: 'stage', stage: 3 },
     because: 'Opens once Core income is steady (stage 3) so its stock means something — and Ichor gets a visible sink before Ichor itself flows.', teach: 'splice-market' },
   { kind: 'screen', id: 'genes', name: 'Gene Archive', glyph: '⌬', order: 11,
-    blurb: 'Your drafted cards, collected forever — and leveled.', condition: { kind: 'any', of: [{ kind: 'cards', count: 6 }, { kind: 'stage', stage: 3 }] },
-    because: 'Cards collect from run 1, but the Archive teaches best once a small library exists (6 cards, or stage 3 as backstop).', teach: 'gene-archive' },
+    blurb: 'Your discovered strands, collected forever — and leveled.', condition: { kind: 'any', of: [{ kind: 'cards', count: 6 }, { kind: 'stage', stage: 3 }] },
+    because: 'The starter archive exists from minute 0, but the screen teaches best once drafting is familiar (6 distinct drafts, or stage 3 as backstop).', teach: 'gene-archive' },
 
   // ── Stage 4–5: gear arrives; the daily rhythm begins. ──
   { kind: 'screen', id: 'equipment', name: 'Armory', glyph: '⛨', order: 12,

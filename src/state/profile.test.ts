@@ -98,10 +98,16 @@ describe('power breakdown attribution', () => {
     expect(pb.slices.find((x) => x.id === 'towers')!.share).toBeGreaterThan(0);
   });
 
-  it('a fresh account attributes zero everywhere (score = base)', () => {
+  it('a fresh account attributes ONLY the starter-archive Collection credit (v46)', () => {
+    // docs/CARDS.md §discovery: a fresh save owns the 16 starters, so the Collection slice
+    // carries a small share — every OTHER slice must still read exactly zero.
     const pb = powerBreakdown(defaultSave());
-    expect(pb.score).toBe(POWER_BASE);
-    for (const sl of pb.slices) expect(sl.share).toBe(0);
+    expect(pb.score).toBeGreaterThan(POWER_BASE);
+    expect(pb.score).toBeLessThan(POWER_BASE * 1.02); // ≤2% — starters are a nudge, not a leap
+    for (const sl of pb.slices) {
+      if (sl.id === 'collection') expect(sl.share).toBe(pb.score - pb.base);
+      else expect(sl.share).toBe(0);
+    }
   });
 });
 
