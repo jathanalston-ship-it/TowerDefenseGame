@@ -1,6 +1,6 @@
 {
-  "lastSha": "516824a0560650cbc9ffe102f5e97c88d5e51f85",
-  "commitsSinceDraft": 8,
+  "lastSha": "69199fd9f155b6a396150a04c8addf5732fd4f46",
+  "commitsSinceDraft": 0,
   "content": {
     "tower": [
       "needle",
@@ -2591,6 +2591,10 @@
         {
           "cat": "Gameplay",
           "text": "Hive Production: merge The Hive and Idle Harvest into one living loop"
+        },
+        {
+          "cat": "Website",
+          "text": "Chronicle + graphs + site regen for the Hive Production merge atop the arena-exclusives rebase"
         }
       ]
     }
@@ -4537,6 +4541,22 @@
       "date": "2026-07-16",
       "cat": "Gameplay",
       "text": "Hive Production: merge The Hive and Idle Harvest into one living loop",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "72bfc69513d4d6c9a8bb37b7d8ef35d9860498fa",
+      "date": "2026-07-16",
+      "cat": "Gameplay",
+      "text": "Hive Production: merge The Hive and Idle Harvest into one living loop",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "69199fd9f155b6a396150a04c8addf5732fd4f46",
+      "date": "2026-07-16",
+      "cat": "Website",
+      "text": "Chronicle + graphs + site regen for the Hive Production merge atop the arena-exclusives rebase",
       "internal": false,
       "needsReview": false
     }

@@ -1101,6 +1101,10 @@ export const RELEASES: Release[] = [
       {
         "cat": "Gameplay",
         "text": "Hive Production: merge The Hive and Idle Harvest into one living loop"
+      },
+      {
+        "cat": "Website",
+        "text": "Chronicle + graphs + site regen for the Hive Production merge atop the arena-exclusives rebase"
       }
     ]
   },

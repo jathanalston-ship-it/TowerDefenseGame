@@ -1,6 +1,6 @@
 # DIL_GRAPH.md — the Design Intelligence Layer (GENERATED — `npm run dil -- regen`)
 
-> **The project's brain** (docs/DIL.md). 842 nodes · 1557 edges, built from the live
+> **The project's brain** (docs/DIL.md). 844 nodes · 1559 edges, built from the live
 > registries + curated knowledge (src/dev/dil/). **Query it instead of searching the repo:**
 > `npm run dil -- node <id>` · `affects <id>` · `requires <id>` · `missing <kind> <edge>` ·
 > `checklist tower <kind>` · `find <text>`. Edge kinds are bidirectional (19 kinds).
@@ -8,7 +8,7 @@
 ## Gap report (the graph's own radar)
 
 - **Systems with no test:** `system:infinite`, `system:field-research`, `system:shards-economy`, `system:i18n`, `system:expeditions`, `system:nemesis`, `system:run-ui`, `system:devtools`, `system:ui-kit`
-- **Docs referenced by no system (review for retirement):** `ADVANCED-SYSTEMS.md`, `ARCHITECTURE-AUDIT.md`, `BACKLOG.md`, `BALANCE_ARCHITECTURE.md`, `BRANCH-EVOLUTION.md`, `BUGFIX-LOG.md`, `CONTENT-ROADMAP.md`, `DEV-FRAMEWORKS.md`, `DIL_GRAPH.md`, `EA-DESIGN-AUDIT.md`, `ENEMIES.md`, `ENEMY-ROSTER.md`, `GAME-STATE.md`, `HISTORY.md`, `HIVE-SIEGE.md`, `IDENTITY-AUDIT.md`, `LIVING-HIVE.md`, `PIL_REPORT.md`, `PLACEHOLDER-ART.md`, `PLAYTEST-CHECKLIST.md` · …19 more
+- **Docs referenced by no system (review for retirement):** `ADVANCED-SYSTEMS.md`, `ARCHITECTURE-AUDIT.md`, `BACKLOG.md`, `BALANCE_ARCHITECTURE.md`, `BRANCH-EVOLUTION.md`, `BUGFIX-LOG.md`, `CONTENT-ROADMAP.md`, `DEV-FRAMEWORKS.md`, `DIL_GRAPH.md`, `EA-DESIGN-AUDIT.md`, `ENEMIES.md`, `ENEMY-ROSTER.md`, `GAME-STATE.md`, `HISTORY.md`, `HIVE-PRODUCTION.md`, `HIVE-SIEGE.md`, `IDENTITY-AUDIT.md`, `LIVING-HIVE.md`, `PIL_REPORT.md`, `PLACEHOLDER-ART.md` · …20 more
 
 ## Indexes
 
@@ -163,6 +163,7 @@ graph LR
   system_mastery["Mastery / Adaptation"] -->|modifies| system_hub_shell["Hub Shell & Home"]
   system_gene_cards["Gene Cards (draft + permanent evolution)"] -->|modifies| system_hub_shell["Hub Shell & Home"]
   system_loot["Loot & Bio-Containers"] -->|modifies| system_hub_shell["Hub Shell & Home"]
+  system_hive_construction["Hive Construction"] -->|modifies| system_idle_harvest["Idle Harvest"]
   system_rendering["Rendering & VFX"] -->|consumes| system_engine["Sim Engine"]
 ```
 
@@ -526,6 +527,7 @@ graph LR
   system_gene_cards["Gene Cards (draft + permanent evolution)"] -->|modifies| concept_power_score["Power Score"]
   system_gene_cards["Gene Cards (draft + permanent evolution)"] -->|modifies| system_hub_shell["Hub Shell & Home"]
   system_loot["Loot & Bio-Containers"] -->|modifies| system_hub_shell["Hub Shell & Home"]
+  system_hive_construction["Hive Construction"] -->|modifies| system_idle_harvest["Idle Harvest"]
 ```
 
 ## Concepts (8)
@@ -1360,6 +1362,7 @@ _at: src/core/idleHarvest.ts, src/ui/HarvestScreen.tsx_
   - referencedBy ← `achievement:idle_tree25`
   - documentedBy ← `doc:IDLE-HARVEST.md`
   - testedBy ← `test:src/core/idleHarvest.test.ts`
+  - modifiedBy ← `system:hive-construction` — MERGED LOOP (core/hiveProduction.ts): every built organ tier feeds ONE themed production lane (ORGAN_COUPLINGS — validator fails an organ with no coupling); fully-grown organ PAIRS reveal HIVE_SYNERGIES; hiveProductionBonus(built) is a caps-clamped bundle consumed by idleAccrual/rollIdleHarvest through OPTIONAL identity-default args — goldens/fresh saves byte-unchanged, NO save migration; guardrail re-proven with organs MAXED (hiveProduction.test.ts); organs still NEVER touch combat Power; both screens share ui/components/HiveOrganism.tsx (Growth ⇄ Production tabs) — never rebuild the diagram per screen
 
 ### `system:shards-economy` — Shards & Star Economy
 
@@ -1428,7 +1431,7 @@ _at: src/state/evolutionHQ.ts, src/ui/EvolutionHQ.tsx, src/ui/EvolutionUnlock.ts
 
 The composite long-horizon sink (docs/HIVE-CONSTRUCTION.md): BUILD the Home Base — 10 organ data rows across labScore eras 0–3 (the passive ladder is the prerequisite), each a MULTI-currency recipe (Cores/Essence/Strain/Apex/materials, ≥2 lanes enforced, factor-traced geometric tiers, per-kind drains richest-first) spent through ONE atomic guarded action; built organs layer fixtures into LabAtmosphere immediately + lift ambient glow. Sidegrades only — Power Score never reads it.
 
-_at: src/core/hiveOrgans.ts, src/ui/HiveScreen.tsx_
+_at: src/core/hiveOrgans.ts, src/core/hiveProduction.ts, src/ui/HiveScreen.tsx, src/ui/components/HiveOrganism.tsx_
 
   - dependsOn → `system:meta-store`
   - dependsOn → `system:hub-shell`
@@ -1439,9 +1442,11 @@ _at: src/core/hiveOrgans.ts, src/ui/HiveScreen.tsx_
   - consumes → `currency:tower-shards` — Strain Sample lanes drain the per-kind wallet richest-first (roster tie-break) — kinds near an Evolution are touched last
   - consumes → `currency:hero-shards` — Apex Genome lanes drain the per-kind wallet richest-first
   - consumes → `currency:materials` — mutagen/scrap/catalyst lanes compete with equipment crafting for the same mats wallet
+  - modifies → `system:idle-harvest` — MERGED LOOP (core/hiveProduction.ts): every built organ tier feeds ONE themed production lane (ORGAN_COUPLINGS — validator fails an organ with no coupling); fully-grown organ PAIRS reveal HIVE_SYNERGIES; hiveProductionBonus(built) is a caps-clamped bundle consumed by idleAccrual/rollIdleHarvest through OPTIONAL identity-default args — goldens/fresh saves byte-unchanged, NO save migration; guardrail re-proven with organs MAXED (hiveProduction.test.ts); organs still NEVER touch combat Power; both screens share ui/components/HiveOrganism.tsx (Growth ⇄ Production tabs) — never rebuild the diagram per screen
   - documentedBy ← `doc:HIVE-CONSTRUCTION.md`
   - documentedBy ← `doc:HOME-BASE.md`
   - testedBy ← `test:src/core/hiveOrgans.test.ts`
+  - testedBy ← `test:src/core/hiveProduction.test.ts`
 
 ### `system:daily-login` — Daily Bio-Cache (login streak)
 
@@ -3043,7 +3048,7 @@ _at: src/core/tutorial.ts_
 - `help:loot-meter` — The organism stirs — every wave and kill now banks toward Bio-Containers. _(partOf `system:onboarding`)_
 - `help:collection-codex` — Rank badges, bonuses and Power for everything you catalogue. _(partOf `system:onboarding`)_
 - `help:phenotype-lab` — Cosmetic phenotypes for every strain and champion. _(partOf `system:onboarding`)_
-- `help:idle-harvest` — The Hive keeps harvesting while you are away — collect on return, grow the hive to bank more. _(partOf `system:onboarding`, teaches `system:idle-harvest`)_
+- `help:idle-harvest` — The Hive is the engine; the harvest is its output. It produces while you are away — collect on return, grow the body to produce more. _(partOf `system:onboarding`, teaches `system:idle-harvest`)_
 - `help:arena` — Ranked live PvP: mirrored battlefields, one shared assault, the survivor takes the rating. _(partOf `system:onboarding`, teaches `system:arena`)_
 - `help:expeditions` — Benched heroes run real-time away-missions and return carrying Cores, Essence and materials. _(partOf `system:onboarding`, teaches `system:expeditions`)_
 - `help:quests` — Weekly directives and the story questline. _(partOf `system:onboarding`)_
@@ -3376,7 +3381,7 @@ _at: site/guides.ts → /guides/prestige/_
 - `achievement:evo_five_loops` — Complete five Evolution loops across the roster. _(partOf `system:achievements`, rewards `currency:genome-cores`)_
 - `achievement:evo_ancestral` — Carry one organism into its fourth loop (Prestige 4). _(partOf `system:achievements`, rewards `currency:genome-cores`)_
 
-## Documentation (173)
+## Documentation (174)
 
 - `doc:ACCOUNT-LEVEL.md` — project documentation _(documents `system:account-level`)_
 - `doc:ACCOUNTS.md` — project documentation _(documents `system:accounts`)_
@@ -3455,6 +3460,7 @@ _at: site/guides.ts → /guides/prestige/_
 - `doc:HISTORY.md` — project documentation
 - `doc:HIVE-CONSTRUCTION.md` — project documentation _(documents `system:hive-construction`)_
 - `doc:HIVE-INTEL.md` — project documentation _(documents `system:notifications`)_
+- `doc:HIVE-PRODUCTION.md` — project documentation
 - `doc:HIVE-SIEGE.md` — project documentation
 - `doc:HOME-BASE.md` — project documentation _(documents `system:hive-construction`, documents `system:hub-shell`)_
 - `doc:HUD.md` — project documentation _(documents `system:hub-shell`, documents `system:run-ui`)_
@@ -3552,7 +3558,7 @@ _at: site/guides.ts → /guides/prestige/_
 - `doc:VOWS.md` — project documentation _(documents `system:prestige`)_
 - `doc:WEBSITE.md` — project documentation _(documents `system:field-research`, documents `system:website`)_
 
-## Tests (274)
+## Tests (275)
 
 - `test:src/audio/music.test.ts` — automated validation _(tests `system:audio`)_
 - `test:src/changelog/classify.test.ts` — automated validation _(tests `system:chronicle`)_
@@ -3638,6 +3644,7 @@ _at: site/guides.ts → /guides/prestige/_
 - `test:src/core/heroes.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/core/heroshield.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/core/hiveOrgans.test.ts` — automated validation _(tests `system:hive-construction`)_
+- `test:src/core/hiveProduction.test.ts` — automated validation _(tests `system:hive-construction`)_
 - `test:src/core/hiveSiege.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/core/identity.test.ts` — automated validation _(tests `system:profile`)_
 - `test:src/core/idleHarvest.test.ts` — automated validation _(tests `system:idle-harvest`)_
