@@ -1097,6 +1097,10 @@ export const RELEASES: Release[] = [
       {
         "cat": "Heroes",
         "text": "Arena exclusives: Basilisk Maw + Ossuary Choir towers, Chimera hero — the Pass crowns"
+      },
+      {
+        "cat": "Gameplay",
+        "text": "Hive Production: merge The Hive and Idle Harvest into one living loop"
       }
     ]
   },

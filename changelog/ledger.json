@@ -1,6 +1,6 @@
 {
-  "lastSha": "d9a8c30fbcc8437985c6c21a0b1a751e902b127a",
-  "commitsSinceDraft": 7,
+  "lastSha": "516824a0560650cbc9ffe102f5e97c88d5e51f85",
+  "commitsSinceDraft": 8,
   "content": {
     "tower": [
       "needle",
@@ -2587,6 +2587,10 @@
         {
           "cat": "Heroes",
           "text": "Arena exclusives: Basilisk Maw + Ossuary Choir towers, Chimera hero — the Pass crowns"
+        },
+        {
+          "cat": "Gameplay",
+          "text": "Hive Production: merge The Hive and Idle Harvest into one living loop"
         }
       ]
     }
@@ -4525,6 +4529,14 @@
       "date": "2026-07-16",
       "cat": "Heroes",
       "text": "Arena exclusives: Basilisk Maw + Ossuary Choir towers, Chimera hero — the Pass crowns",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "516824a0560650cbc9ffe102f5e97c88d5e51f85",
+      "date": "2026-07-16",
+      "cat": "Gameplay",
+      "text": "Hive Production: merge The Hive and Idle Harvest into one living loop",
       "internal": false,
       "needsReview": false
     }

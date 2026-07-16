@@ -262,3 +262,4 @@
 - `f40f40b` **[Website]** Hub navigation overhaul: behavior hubs, landing pages, smart reasons, recommendations
 - `5b83b89` **[Website]** Chronicle + graphs + site regen for the hub batch atop the online-foundation rebase
 - `d9a8c30` **[Heroes]** Arena exclusives: Basilisk Maw + Ossuary Choir towers, Chimera hero — the Pass crowns
+- `516824a` **[Gameplay]** Hive Production: merge The Hive and Idle Harvest into one living loop
