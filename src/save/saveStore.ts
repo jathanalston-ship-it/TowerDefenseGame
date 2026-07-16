@@ -25,6 +25,8 @@ import { defaultCalib } from '../core/predict';
 import type { PredictCalib } from '../core/predict';
 import { adaptNode } from '../core/adaptation';
 import { sanitizeGeneSave } from '../core/geneCards';
+import { STARTER_GENES } from '../core/geneDiscovery';
+import { cardRegistry } from '../core/cards';
 import { sanitizeGeneLoadout, sanitizeGeneSlots } from '../core/geneLoadout';
 import type { GeneSave } from '../core/geneCards';
 import { MULLIGAN_RARITY, MULLIGAN_SLOTS, emptyMulligan, levelCap, mulliganRegistry } from '../core/mulligan';
@@ -234,6 +236,11 @@ export interface SaveData {
   // ── Gene Essence (schema v18) — permanent Gene Card upgrade currency. Earned mainly by converting
   //    duplicate max-Star shards (meta.openContainer) + rare container drops. Additive ⇒ 0 for old saves. ──
   geneEssence: number;
+  // ── Gene Card DISCOVERY (v46, docs/CARDS.md §discovery) — the Archive's membership set:
+  //    card ids the account has discovered (starters + Bio-Container finds). Drafting and
+  //    permanent upgrades key on membership. Migration seeds STARTER_GENES ∪ every card the
+  //    account has already touched (stats.uniqueCards + leveled genes) — veterans lose nothing. ──
+  genesDiscovered: string[];
   // ── Player Profile (schema v22, docs/PROFILE.md) — account identity + the milestone timeline.
   //    `createdAt` stays 0 in defaultSave (determinism) and is stamped by the FIRST settle.
   //    `timeline` is newest-LAST and capped (TIMELINE_CAP) at every push. Additive migrations. ──
@@ -353,6 +360,28 @@ export function defaultMegaProgress(): MegaProgress {
   return { slain: [], perfect: [], speed: [], kills: 0, weakPoints: 0, wpKinds: [], interrupts: 0, abilitiesSurvived: 0, fastestSec: {} };
 }
 
+/** v46 Gene Discovery set (docs/CARDS.md §discovery): known card ids, deduped. A PRE-v46
+ *  save (field missing) seeds STARTER_GENES ∪ every card the account already TOUCHED
+ *  (stats.uniqueCards + leveled/transcended genes) — veterans lose nothing. Starters are
+ *  always unioned back in, so the teaching set self-heals on every load. */
+function sanitizeGenesDiscovered(data: Partial<SaveData>): string[] {
+  const known = new Set(cardRegistry.active().map((c) => c.id));
+  const out = new Set<string>();
+  for (const id of STARTER_GENES) if (known.has(id)) out.add(id);
+  const raw = (data as { genesDiscovered?: unknown }).genesDiscovered;
+  if (Array.isArray(raw)) {
+    for (const id of raw) if (typeof id === 'string' && known.has(id)) out.add(id);
+  }
+  // Touched-card union runs UNCONDITIONALLY (not just when the field is missing): withDefaults
+  // fills absent fields before sanitize, so "missing" is unobservable here — and the union is
+  // safe by invariant (drafts are pool-restricted to discovered ids going forward, so
+  // uniqueCards/levels can only name cards the account legitimately used pre-v46).
+  const unique = (data.stats as { uniqueCards?: unknown } | undefined)?.uniqueCards;
+  if (Array.isArray(unique)) for (const id of unique) if (typeof id === 'string' && known.has(id)) out.add(id);
+  for (const id of Object.keys((data.genes as Record<string, unknown> | undefined) ?? {})) if (known.has(id)) out.add(id);
+  return [...out];
+}
+
 /** v44/v45 Mastery Evolution claim state: clamp claimedUpTo into the 0..100 loop window,
  *  prestige to a non-negative int, and the v45 xpAt watermark to a non-negative finite
  *  number (missing ⇒ 0, the debut loop) — junk entries drop to a fresh track, never crash. */
@@ -447,7 +476,10 @@ export interface TutorialSave {
 // v44→v45: masteryEvolution.xpAt — the mastery-XP watermark stamped on EVOLVE; loops past the
 // first are XP-metered on it (docs/MASTERY.md §pacing — the balancing sims killed level
 // windows: loop 2 would have cost ×83,522 loop 1). Missing ⇒ 0 (debut loop unchanged).
-export const CURRENT_VERSION = 45;
+// v45→v46: GENE DISCOVERY (docs/CARDS.md §discovery) — `genesDiscovered` (Archive membership:
+// starters + Bio-Container finds; drafting + permanent upgrades key on it). Missing ⇒ seeded
+// from STARTER_GENES ∪ touched cards, so no veteran loses access to anything they used.
+export const CURRENT_VERSION = 46;
 
 /** The placeholder every save is born with — the Commander designation prompt fires
  *  while the name is still exactly this (components/CommanderName.tsx). */
@@ -746,6 +778,8 @@ export function defaultSave(): SaveData {
     geneSlots: 1,
     geneLoadout: [null, null, null, null, null],
     geneEssence: 0,
+    genesDiscovered: [...STARTER_GENES], // the teaching set — every account starts with it
+
     createdAt: 0, // stamped by the first settle — defaultSave() must stay deterministic
     profileName: DEFAULT_PROFILE_NAME,
     profileFrame: 'membrane',
@@ -1255,6 +1289,7 @@ function withDefaults(data: SaveData): SaveData {
     accountXp: sanitizeAccountXp((data as { accountXp?: unknown }).accountXp), // additive: pre-level saves ⇒ zero XP
     genomeRank: sanitizeGenomeRank((data as { genomeRank?: unknown }).genomeRank), // additive: pre-rank saves ⇒ watermark I
     genes: sanitizeGeneSave(data.genes), // v18: drops unknown/renamed cards + clamps levels (pre-v18 ⇒ {})
+    genesDiscovered: sanitizeGenesDiscovered(data as Partial<SaveData>), // v46: starters ∪ touched (migration) → known ids only
     // v18→v19: Starting Gene Loadout. Pre-v19 ⇒ 1 slot, empty loadout; junk ids/duplicates dropped.
     geneSlots: sanitizeGeneSlots((data as { geneSlots?: unknown }).geneSlots),
     geneLoadout: sanitizeGeneLoadout((data as { geneLoadout?: unknown }).geneLoadout),

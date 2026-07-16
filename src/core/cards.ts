@@ -635,8 +635,9 @@ export function rollCardRarity(rng: Rng, wave: number, available: ReadonlySet<Ca
  * §expansion — a card for a tower you cannot deploy is a dead draft). `unlockedCardIds` re-admits
  * PROGRESSION-gated cards (CardDef.unlock) the account has earned; a gated card NOT in the set is
  * dropped, so a fresh account (and the golden sim) draws only the ungated catalog ⇒ byte-identical. */
-export function draftCards(rng: Rng, count = 3, wave = 0, allowedTowers?: ReadonlySet<TowerKind>, unlockedCardIds?: ReadonlySet<string>): CardDef[] {
+export function draftCards(rng: Rng, count = 3, wave = 0, allowedTowers?: ReadonlySet<TowerKind>, unlockedCardIds?: ReadonlySet<string>, draftPool?: ReadonlySet<string>): CardDef[] {
   const active = cardRegistry.active().filter((c) => {
+    if (draftPool && !draftPool.has(c.id)) return false; // discovery overhaul: only DISCOVERED strands draft (absent ⇒ legacy/golden pool)
     if (c.unlock && !unlockedCardIds?.has(c.id)) return false; // progression-gated & not yet earned
     if (allowedTowers !== undefined) {
       const s = cardSubject(c);

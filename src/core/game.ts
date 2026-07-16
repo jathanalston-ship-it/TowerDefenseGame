@@ -159,6 +159,7 @@ export interface RunOptions {
   // golden path — tests/autoplay/probes construct without it and are byte-identical).
   startingGenes?: string[]; // Starting Gene Loadout: card ids that AUTO-ACTIVATE at run boot (each at its permanent level). Empty/omitted ⇒ nothing applied (golden path)
   unlockedCardIds?: readonly string[]; // PROGRESSION-gated gene-card ids (CardDef.unlock) the account has earned — injected into the draft pool. Omitted ⇒ only ungated cards (golden path)
+  draftPool?: readonly string[]; // DISCOVERED gene-card ids (docs/CARDS.md §discovery) — when present, drafts draw ONLY these (∩ the other gates). Omitted ⇒ legacy pool (golden path unchanged)
   // Daily Run (docs/DAILY-RUN.md): the day's TWO modifier ids, resolved once at boot into the
   // neutral-defaulted ResolvedEffects struct the sim reads. Omitted ⇒ NEUTRAL (golden path).
   // The day's 3-tower Conveyor pool rides the existing `unlocked` + `favorite` options.
@@ -691,6 +692,7 @@ export class Game {
   favoriteTower: TowerKind;
   readonly unlockedKinds: ReadonlySet<TowerKind>; // the run roster (UI rails read this too)
   private readonly unlockedCardIds: ReadonlySet<string>; // progression-gated gene cards the account has earned (draft injection)
+  private readonly draftPool: ReadonlySet<string> | undefined; // DISCOVERED card ids — the exact draft pool when present (discovery overhaul)
   deployments = 0; // player deployments this run — drives the universal cost curve
   selectedConveyorId: number | null = null; // a READY organism armed for placement (docs/STRAIN.md §conveyor)
   private conveyorSeq = 0; // branch tier tagged onto shots (drives projectile evolution; 0 = base)
@@ -731,6 +733,7 @@ export class Game {
     // Progression-gated gene cards the account has earned (default = none ⇒ only the ungated catalog
     // is draftable, so a fresh account / the golden sim is byte-identical).
     this.unlockedCardIds = new Set(opts.unlockedCardIds ?? []);
+    this.draftPool = opts.draftPool ? new Set(opts.draftPool) : undefined;
     // Daily Run (docs/DAILY-RUN.md): resolve the day's modifiers ONCE into the neutral-defaulted
     // struct every hook reads (mults 1 / adds 0 without them ⇒ every read below is golden-safe).
     // The dedicated rng paces Infestation's elite rolls — consumed ONLY when that modifier is live.
@@ -2249,7 +2252,7 @@ export class Game {
     if (this.biomass < cost) return false;
     this.biomass -= cost;
     this.draftRerolled = true;
-    this.draft = draftCards(this.rng, 3, this.waveIndex, this.fieldedKinds(), this.unlockedCardIds);
+    this.draft = draftCards(this.rng, 3, this.waveIndex, this.fieldedKinds(), this.unlockedCardIds, this.draftPool);
     this.pushSfx('draft'); // the re-deal plays the same beat as the deal
     return true;
   }
@@ -6587,7 +6590,7 @@ export class Game {
         // Gene Card cadence (CARDS.md §1): campaign drafts every wave (generous); endless slows
         // the drip with depth so cards stay exciting and deep runs lean on permanent progression.
         if (!this.tutorialMode && this.shouldDraftThisWave()) {
-          this.draft = draftCards(this.rng, 3, this.waveIndex, this.fieldedKinds(), this.unlockedCardIds); // depth-scaled rarity (CARDS.md §2); tower cards only for FIELDED kinds
+          this.draft = draftCards(this.rng, 3, this.waveIndex, this.fieldedKinds(), this.unlockedCardIds, this.draftPool); // depth-scaled rarity (CARDS.md §2); tower cards only for FIELDED kinds
           this.draftRerolled = false; // a fresh deal re-arms the one paid reroll (§reroll)
         }
       }
@@ -7029,7 +7032,7 @@ export class Game {
    *  gene-card lesson releases the held draft here, from prep, exactly when it teaches drafting. */
   openTutorialDraft(): void {
     if (!this.tutorialMode || this.phase !== 'prep') return;
-    this.draft = draftCards(this.rng, 3, this.waveIndex, this.fieldedKinds(), this.unlockedCardIds);
+    this.draft = draftCards(this.rng, 3, this.waveIndex, this.fieldedKinds(), this.unlockedCardIds, this.draftPool);
     this.draftRerolled = false;
     this.phase = 'draft';
   }
@@ -7043,7 +7046,7 @@ export class Game {
   /** Open the 1-of-3 draft now (abandons any in-progress wave). */
   debugOpenDraft(): void {
     if (this.phase === 'won' || this.phase === 'lost') return;
-    this.draft = draftCards(this.rng, 3, this.waveIndex, this.fieldedKinds(), this.unlockedCardIds);
+    this.draft = draftCards(this.rng, 3, this.waveIndex, this.fieldedKinds(), this.unlockedCardIds, this.draftPool);
     this.draftRerolled = false;
     this.phase = 'draft';
   }

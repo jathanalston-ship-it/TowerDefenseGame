@@ -13,6 +13,7 @@
 // results, safe to unit-test.
 
 import type { ChestResult, RewardItem } from './lootbox';
+import { cardRegistry } from '../core/cards';
 import { HERO_DEFS, HERO_LABELS, TOWER_DEFS } from '../core/config';
 import type { LootRarity } from '../core/config';
 import type { HeroKind } from '../core/types';
@@ -41,8 +42,16 @@ const CATEGORY_TITLE: Record<RevealCategory, string> = {
 
 const TIER: LootRarity[] = ['common', 'rare', 'epic', 'legendary', 'exotic'];
 // ASSIMILATION grade ladder (docs/LEXICON.md) — uppercased for the reveal's rarity word.
+// 'uncommon' is the gene-card FIVE-tier ladder's second grade (docs/CARDS.md §rarity).
 const RARITY_LABEL: Record<string, string> = {
-  common: 'INERT', rare: 'ACTIVE', epic: 'VIRULENT', legendary: 'RAMPANT', exotic: 'APEX', mythic: 'ABERRANT',
+  common: 'INERT', uncommon: 'LATENT', rare: 'ACTIVE', epic: 'VIRULENT', legendary: 'RAMPANT', exotic: 'APEX', mythic: 'ABERRANT',
+};
+
+/** Gene-card FIVE-tier rarity colors (CSS tokens; --r-uncommon added with the discovery
+ *  overhaul). Separate from the equipment/loot map — the two scales stay distinct. */
+const CARD_RARITY_COLOR: Record<string, string> = {
+  common: 'var(--r-common)', uncommon: 'var(--r-uncommon)', rare: 'var(--r-rare)',
+  epic: 'var(--r-epic)', legendary: 'var(--r-legendary)',
 };
 
 
@@ -128,6 +137,22 @@ export function describePull(item: RewardItem, compare?: (i: OwnedItem) => Power
       const d = itemDef(item.item.defId);
       const power = itemPowerScore(item.item);
       return { key: `equip:${item.item.uid}`, category: 'equipment', rarity: item.rarity, color: rarityColor(item.rarity), name: d?.name ?? 'Equipment', qty: 1, unit: '', amountLabel: rarityLabel(item.rarity), glyph: d ? SLOT_LABELS[d.slot][0] : '◆', power, compare: compare?.(item.item), isNew: item.isNew };
+    }
+    case 'gene': {
+      // Gene Card discovery (docs/CARDS.md §discovery): a NEW strand celebrates; a known
+      // strand echoes into Gene Essence (the amount rides the label so it is never invisible).
+      const def = cardRegistry.get(item.cardId);
+      const color = CARD_RARITY_COLOR[item.cardRarity] ?? 'var(--viral)';
+      return {
+        key: `gene:${item.cardId}${item.isNew ? '' : ':echo'}`,
+        category: 'other', rarity: item.rarity, color,
+        name: def?.name ?? item.cardId,
+        qty: item.isNew ? 1 : item.echoEssence ?? 0,
+        unit: item.isNew ? 'Gene Card' : 'Gene Essence',
+        amountLabel: item.isNew ? `${rarityLabel(item.cardRarity)} STRAND` : `+${item.echoEssence ?? 0} Gene Essence`,
+        glyph: '🧬',
+        isNew: item.isNew,
+      };
     }
     case 'cosmetic':
       return { key: `cos:${item.id}`, category: 'other', rarity: item.rarity, color: 'var(--r-epic)', name: item.id, qty: 1, unit: 'Cosmetic', amountLabel: 'Cosmetic', glyph: '✦' };

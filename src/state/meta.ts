@@ -69,6 +69,7 @@ import {
 import type { ReforgeOp } from '../core/reforge';
 import { gameEvents } from '../core/events';
 import { canPrestigeFromXp, masteryEvolutionPowerMult, masteryEvolutionTrack, trackLevelFromXp } from '../core/masteryEvolution';
+import { rollGeneDiscovery } from '../core/geneDiscovery';
 import type { EvolutionGrant, EvolutionSubject } from '../core/masteryEvolution';
 import { rewardToast } from './rewardToast';
 import type { CardDef, CardEffect, CardUnlock } from '../core/cards';
@@ -2911,6 +2912,29 @@ export const meta = {
     let mulliganDex = save.mulliganDex;
     // Surface the bleed on the reveal (an event pull) so the spoils are never invisible.
     chest.items.push({ type: 'event', rarity: chest.topRarity, currency: 'geneEssence', amount: essenceBleed, note: 'Gene Bleed' });
+    // ── GENE CARD DISCOVERY (docs/CARDS.md §discovery): the additive lane that permanently
+    //    expands the Gene Archive. Chance by container rarity; pool = campaign-milestone
+    //    rarity pools ∩ the card's own unlock gate; undiscovered strands carry the fading
+    //    duplicate-protection boost; a roll that lands on a KNOWN strand echoes into Gene
+    //    Essence (never a dead pull). Epic+ discoveries also mark the profile timeline. ──
+    let genesDiscovered = save.genesDiscovered;
+    let geneEchoEssence = 0;
+    const geneRoll = rollGeneDiscovery(
+      Math.random, containerRarity, highestCampaignStage(save),
+      new Set(unlockedCardIds(save)), new Set(save.genesDiscovered),
+    );
+    if (geneRoll) {
+      const magnitude: LootRarity = geneRoll.card.rarity === 'legendary' ? 'legendary'
+        : geneRoll.card.rarity === 'epic' ? 'epic'
+        : geneRoll.card.rarity === 'common' ? 'common' : 'rare'; // uncommon/rare read at 'rare' emphasis
+      if (geneRoll.kind === 'discover') {
+        genesDiscovered = [...genesDiscovered, geneRoll.card.id];
+        chest.items.push({ type: 'gene', rarity: magnitude, cardRarity: geneRoll.card.rarity, cardId: geneRoll.card.id, isNew: true });
+      } else {
+        geneEchoEssence = Math.round(geneRoll.essence * ascOpen.essenceGainMult * lo.essenceMult);
+        chest.items.push({ type: 'gene', rarity: magnitude, cardRarity: geneRoll.card.rarity, cardId: geneRoll.card.id, isNew: false, echoEssence: geneEchoEssence });
+      }
+    }
     const premiumMull = containerRarity === 'epic' || containerRarity === 'legendary' || containerRarity === 'exotic' || containerRarity === 'mythic';
     let dupeEssence = 0;
     // §gate: pieces only drop once the pillar is unlocked (3 distinct Mega Bosses slain,
@@ -2943,8 +2967,12 @@ export const meta = {
     }
     persist({
       ...save, towerShards, heroShards, mats, matPity: pity, antigen,
-      geneEssence: save.geneEssence + essenceGained + essenceBleed + dupeEssence,
+      geneEssence: save.geneEssence + essenceGained + essenceBleed + dupeEssence + geneEchoEssence,
       mulliganDex,
+      genesDiscovered,
+      timeline: geneRoll?.kind === 'discover' && (geneRoll.card.rarity === 'epic' || geneRoll.card.rarity === 'legendary')
+        ? pushTimeline(save.timeline, '🧬', `${geneRoll.card.name} sequenced — ${geneRoll.card.rarity} strand discovered`)
+        : save.timeline,
       ichor: save.ichor + ichorBleed,
       lifetimeIchor: save.lifetimeIchor + ichorBleed,
       equipment: { ...save.equipment, inventory: [...save.equipment.inventory, ...chest.equipment] },
@@ -4751,6 +4779,12 @@ export const meta = {
    *  (RunOptions.unlockedCardIds). Empty for a fresh account ⇒ the golden draft pool is unchanged. */
   unlockedCardIds(): string[] {
     return unlockedCardIds(store.get());
+  },
+
+  /** The DISCOVERED Gene Card ids (docs/CARDS.md §discovery) — the run draft pool
+   *  (RunOptions.draftPool) and the Archive's membership set. */
+  discoveredGeneIds(): string[] {
+    return [...store.get().genesDiscovered];
   },
 
   /** Claim a locked tower once enough of ITS Tower Shards are banked: spends the unlock cost,

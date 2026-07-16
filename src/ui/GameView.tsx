@@ -190,6 +190,7 @@ export function GameView({
     // Progression-gated gene cards the account has earned (campaign depth / best wave / owning the
     // Coil) — injected into the draft pool. A fresh account passes none ⇒ ungated catalog only.
     unlockedCardIds: meta.unlockedCardIds(),
+    draftPool: meta.discoveredGeneIds(), // discovery overhaul: only DISCOVERED strands draft (docs/CARDS.md §discovery)
   }));
   // MOLT VOW chips (docs/VOWS.md): the armed wager's compact HUD marker — captured once at
   // game creation (the same exclusions as the run opts: never on dailies or the tutorial).

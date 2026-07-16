@@ -1,6 +1,6 @@
 # DIL_GRAPH.md — the Design Intelligence Layer (GENERATED — `npm run dil -- regen`)
 
-> **The project's brain** (docs/DIL.md). 817 nodes · 1507 edges, built from the live
+> **The project's brain** (docs/DIL.md). 819 nodes · 1510 edges, built from the live
 > registries + curated knowledge (src/dev/dil/). **Query it instead of searching the repo:**
 > `npm run dil -- node <id>` · `affects <id>` · `requires <id>` · `missing <kind> <edge>` ·
 > `checklist tower <kind>` · `find <text>`. Edge kinds are bidirectional (19 kinds).
@@ -735,7 +735,7 @@ _at: src/core/game.ts, src/core/combat.ts, src/core/status.ts, src/core/targetin
   - requiredBy ← `system:bosses`
   - requiredBy ← `system:mega-bosses`
   - requiredBy ← `system:rendering`
-  - _…201 more (query: `npm run dil -- node system:engine`)_
+  - _…202 more (query: `npm run dil -- node system:engine`)_
 
 ### `system:content-infra` — Content Infrastructure
 
@@ -1187,7 +1187,7 @@ _at: src/core/loot.ts, src/core/lootQueue.ts, src/core/progressionLoot.ts, src/s
 
 Between-wave drafts + the permanent Archive: Essence-funded levels, gates, loadouts, Transcendence (maxed-card second lines), Ascension backend.
 
-_at: src/core/cards.ts, src/core/geneCards.ts, src/core/geneUpgrades.ts, src/core/geneTranscend.ts, src/core/geneEssence.ts, src/core/geneLoadout.ts, src/state/geneArchive.ts, src/ui/GeneArchive.tsx, src/ui/DraftModal.tsx, src/ui/cardAffects.tsx, src/ui/components/GeneCardArt.tsx_
+_at: src/core/cards.ts, src/core/geneCards.ts, src/core/geneDiscovery.ts, src/core/geneUpgrades.ts, src/core/geneTranscend.ts, src/core/geneEssence.ts, src/core/geneLoadout.ts, src/state/geneArchive.ts, src/ui/GeneArchive.tsx, src/ui/DraftModal.tsx, src/ui/cardAffects.tsx, src/ui/components/GeneCardArt.tsx_
 
   - dependsOn → `system:content-infra`
   - dependsOn → `system:power`
@@ -1198,6 +1198,7 @@ _at: src/core/cards.ts, src/core/geneCards.ts, src/core/geneUpgrades.ts, src/cor
   - consumes → `system:meta-store` — owns save field 'geneEssence'
   - consumes → `system:meta-store` — owns save field 'geneSlots'
   - consumes → `system:meta-store` — owns save field 'geneLoadout'
+  - consumes → `system:meta-store` — owns save field 'genesDiscovered'
   - consumes → `currency:gene-essence` — Archive leveling
   - provides → `concept:power-score` — Transcendence (geneTranscend.ts) made mortarPoolDuration/corrosionSlow/killFractureSplash/bonusTowerSlots/integrityRegenPerWave SCORED fields — permanent second lines must be Power-visible (validate.ts errors on an invisible family option; cardProblems on overrides)
   - conflictsWith → `concept:golden-test` — Transcendence rides effectiveGeneEffects 4th arg + RunOptions.geneTranscends — untranscended saves MUST fold byte-identical (transcendPowerMult ×1, stale ids drop in the sanitizer); options may never use boot-only fields (dead on mid-run draft)
@@ -1213,7 +1214,7 @@ _at: src/core/cards.ts, src/core/geneCards.ts, src/core/geneUpgrades.ts, src/cor
   - documentedBy ← `doc:CARDS.md`
   - documentedBy ← `doc:GENE-AUDIT-REPORT.md`
   - documentedBy ← `guide:gene-cards`
-  - _…8 more (query: `npm run dil -- node system:gene-cards`)_
+  - _…9 more (query: `npm run dil -- node system:gene-cards`)_
 
 ### `system:nucleus` — Nucleus Mulligans
 
@@ -1914,7 +1915,7 @@ _at: src/state/meta.ts, src/state/store.ts, src/state/prefs.ts, src/state/devRes
   - consumedBy ← `system:mulligans` — owns save field 'mulligans'
   - consumedBy ← `system:mulligans` — owns save field 'mulliganDex'
   - consumedBy ← `system:premium` — owns save field 'premium'
-  - _…113 more (query: `npm run dil -- node system:meta-store`)_
+  - _…114 more (query: `npm run dil -- node system:meta-store`)_
 
 ### `system:bosses` — Bosses
 
@@ -3439,7 +3440,7 @@ _at: site/guides.ts → /guides/prestige/_
 - `doc:VOWS.md` — project documentation _(documents `system:prestige`)_
 - `doc:WEBSITE.md` — project documentation _(documents `system:field-research`, documents `system:website`)_
 
-## Tests (262)
+## Tests (264)
 
 - `test:src/audio/music.test.ts` — automated validation _(tests `system:audio`)_
 - `test:src/changelog/classify.test.ts` — automated validation _(tests `system:chronicle`)_
@@ -3502,6 +3503,7 @@ _at: site/guides.ts → /guides/prestige/_
 - `test:src/core/gameBoss.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/core/geneAscension.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/core/geneCards.test.ts` — automated validation _(tests `system:gene-cards`)_
+- `test:src/core/geneDiscovery.test.ts` — automated validation _(tests `system:gene-cards`)_
 - `test:src/core/geneEssence.test.ts` — automated validation _(tests `system:gene-cards`)_
 - `test:src/core/geneLoadout.test.ts` — automated validation _(tests `system:gene-cards`)_
 - `test:src/core/geneTranscend.test.ts` — automated validation _(tests `system:gene-cards`)_
@@ -3642,6 +3644,7 @@ _at: site/guides.ts → /guides/prestige/_
 - `test:src/state/expeditions.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/state/flashOffers.test.ts` — automated validation _(tests `system:premium`)_
 - `test:src/state/geneArchive.test.ts` — automated validation _(tests `system:gene-cards`)_
+- `test:src/state/geneDiscoveryMeta.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/state/geneStress.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/state/guidedUnlocks.test.ts` — automated validation _(tests `system:onboarding`)_
 - `test:src/state/heroCollection.test.ts` — automated validation _(tests `system:engine`)_

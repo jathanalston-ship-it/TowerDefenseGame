@@ -25,7 +25,11 @@ export type RewardItem =
   | { type: 'equipment'; rarity: LootRarity; item: OwnedItem; isNew?: boolean } // isNew = defId undiscovered at roll time (collection semantics: not in the inventory)
   | { type: 'cosmetic'; rarity: LootRarity; id: string }
   | { type: 'relic'; rarity: LootRarity; id: string }
-  | { type: 'event'; rarity: LootRarity; currency: string; amount: number; note?: string };
+  | { type: 'event'; rarity: LootRarity; currency: string; amount: number; note?: string }
+  // Gene Card discovery (docs/CARDS.md §discovery): a NEW strand for the Archive, or a
+  // known strand echoing into Gene Essence. `rarity` is the ceremony-magnitude mapping of
+  // the CARD's own five-tier rarity (`cardRarity` — the display truth).
+  | { type: 'gene'; rarity: LootRarity; cardRarity: string; cardId: string; isNew: boolean; echoEssence?: number };
 
 /** A banked, UNOPENED container in the Genetic Vault. Either a loot-queue box (a rarity
  *  rolled via rollLoot on crack) or the run-end results cache (a chest def rolled via
