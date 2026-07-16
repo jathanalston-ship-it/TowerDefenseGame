@@ -8428,128 +8428,183 @@ kbd {
   opacity: 0.55;
   pointer-events: none;
 }
-.hatch-beams { /* rare+ births crack the darkness open */
-  position: absolute;
-  width: 360px;
-  height: 360px;
-  pointer-events: none;
-  opacity: 0.45;
-  filter: blur(1.5px);
-  background: repeating-conic-gradient(from 0deg, transparent 0deg 10deg, rgba(255, 255, 255, 0.05) 10deg 12deg, transparent 12deg 21deg, var(--rw, var(--vr-accent)) 21deg 22.5deg, transparent 22.5deg 30deg);
-  -webkit-mask: radial-gradient(circle, transparent 24%, #000 32%, #000 58%, transparent 70%);
-  mask: radial-gradient(circle, transparent 24%, #000 32%, #000 58%, transparent 70%);
-  animation: hatch-beamspin 9s linear infinite;
+/* The clutch grid: --vcols from revealGrid (JS); phones drop to --vcols-n. Tiles are 3D
+   flip cards — face-down is a uniform membrane (no rarity leak), the flip's speed/light
+   scale with tier. Only the active page mounts (≤12 tiles), so 100× opens stay cheap. */
+.vclutch {
+  display: grid;
+  grid-template-columns: repeat(var(--vcols, 3), 1fr);
+  gap: 10px;
+  width: 100%;
+  padding: 4px 2px;
+  perspective: 900px;
 }
-@keyframes hatch-beamspin { to { transform: rotate(360deg); } }
-.hatch-sac { position: relative; width: 250px; height: 286px; display: grid; place-items: center; }
-.hatch-sac-skin {
+@media (max-width: 480px) { .vclutch { grid-template-columns: repeat(var(--vcols-n, 3), 1fr); gap: 8px; } }
+.vspec {
+  position: relative;
+  appearance: none;
+  border: 0;
+  padding: 0;
+  background: none;
+  aspect-ratio: 3 / 4;
+  min-height: 118px;
+  cursor: pointer;
+  animation: vspec-rise 0.5s cubic-bezier(0.2, 1.25, 0.4, 1) both;
+  animation-delay: var(--d, 0ms);
+}
+.vspec:disabled { cursor: default; }
+@keyframes vspec-rise { from { opacity: 0; transform: translateY(46px) scale(0.6); } }
+.vspec-inner {
+  position: absolute;
+  inset: 0;
+  transform-style: preserve-3d;
+  transition: transform 0.55s cubic-bezier(0.3, 1.2, 0.4, 1); /* bespoke: rarity-scaled flip */
+}
+/* the flip: rarer specimens turn HARDER — a longer, springier arc with more light */
+.vspec.t0 .vspec-inner { transition-duration: 0.42s; /* bespoke */ }
+.vspec.t2 .vspec-inner { transition-duration: 0.62s; /* bespoke */ }
+.vspec.t3 .vspec-inner, .vspec.t4 .vspec-inner { transition-duration: 0.78s; transition-timing-function: cubic-bezier(0.2, 1.45, 0.35, 1); /* bespoke */ }
+.vspec.is-up .vspec-inner { transform: rotateY(180deg); }
+.vclutch.no-anim .vspec { animation: none; }
+.vclutch.no-anim .vspec-inner { transition-duration: 0.08s; /* bespoke */ }
+.vspec-back, .vspec-front {
+  position: absolute;
+  inset: 0;
+  border-radius: var(--r-md);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+}
+/* FACE-DOWN: a sealed membrane — deliberately uniform (the mystery IS the draw; rarity
+   only speaks when the flip happens). A faint idle breath keeps the clutch alive. */
+.vspec-back {
+  background:
+    radial-gradient(60% 46% at 38% 24%, rgba(255, 255, 255, 0.09), transparent 58%),
+    radial-gradient(120% 110% at 50% 98%, color-mix(in srgb, var(--vr-accent) 18%, #131f2b) 0%, transparent 74%),
+    linear-gradient(165deg, #1b2936, #0d1621 70%);
+  border: 1px solid var(--line-strong);
+  box-shadow: inset 0 -12px 22px rgba(0, 0, 0, 0.4), 0 8px 20px rgba(0, 0, 0, 0.35);
+  animation: vspec-breath 2.8s ease-in-out infinite;
+}
+.vclutch.no-anim .vspec-back { animation: none; }
+@keyframes vspec-breath { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.015); } }
+.vspec:not(:disabled):hover .vspec-back, .vspec:focus-visible .vspec-back { border-color: color-mix(in srgb, var(--vr-accent) 55%, var(--line-strong)); box-shadow: inset 0 -12px 22px rgba(0, 0, 0, 0.4), 0 0 16px -4px var(--vr-accent); }
+.vspec-vein {
+  position: absolute;
+  border-radius: 50%;
+  border: 1px solid color-mix(in srgb, var(--vr-accent) 26%, transparent);
+  opacity: 0.5;
+  filter: blur(0.4px);
+}
+.vspec-vein.a { width: 74%; height: 58%; left: -14%; top: 12%; transform: rotate(-24deg); }
+.vspec-vein.b { width: 68%; height: 52%; right: -18%; bottom: 8%; transform: rotate(19deg); }
+.vspec-eye { /* the dim occupant — you can ALMOST see it */
+  width: 34%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: radial-gradient(circle at 42% 36%, color-mix(in srgb, var(--vr-accent) 36%, #1a2836), #101b26 68%);
+  filter: blur(3px);
+  opacity: 0.75;
+}
+/* FACE-UP: the reward face in the pull's own rarity light. */
+.vspec-front {
+  transform: rotateY(180deg);
+  background: linear-gradient(170deg, color-mix(in srgb, var(--rw, var(--vr-accent)) 14%, #16222e), #0c151f 75%);
+  border: 1px solid color-mix(in srgb, var(--rw, var(--vr-accent)) 55%, var(--line-strong));
+}
+.vspec.is-up.t2 .vspec-front { box-shadow: 0 0 22px -6px var(--rw); }
+.vspec.is-up.t3 .vspec-front, .vspec.is-up.t4 .vspec-front { box-shadow: 0 0 34px -4px var(--rw), inset 0 0 22px -12px var(--rw); }
+/* the tile face is a COMPACT PullFace — shrink its type scale to fit the card */
+.vspec-front .vreveal-face { gap: 3px; padding: 6px 4px; }
+.vspec-front .vreveal-face-rword { font-size: 10px; letter-spacing: 0.14em; }
+.vspec-front .vreveal-emblem { width: 44px; height: 44px; }
+.vspec-front .vreveal-emblem .vreveal-glyph { font-size: 20px; }
+.vspec-front .vreveal-face-name { font-size: 12px; line-height: 1.15; }
+.vspec-front .vreveal-face-amt { font-size: 11px; }
+.vspec-front .vreveal-face-power, .vspec-front .vreveal-face-cmp { font-size: 10px; }
+.vspec-front .vreveal-new { font-size: 10px; padding: 2px 6px; }
+.vspec-sparks { position: absolute; inset: 0; pointer-events: none; }
+.vspec-sparks i {
   position: absolute;
   left: 50%;
   top: 50%;
-  width: 168px;
-  height: 200px;
-  margin: -100px 0 0 -84px;
-  border-radius: 48% 52% 55% 45% / 58% 54% 46% 42%;
-  background:
-    radial-gradient(60% 46% at 38% 26%, rgba(255, 255, 255, 0.16), transparent 58%),
-    radial-gradient(120% 110% at 50% 96%, color-mix(in srgb, var(--rw, var(--vr-accent)) 34%, #14202c) 0%, transparent 74%),
-    linear-gradient(165deg, color-mix(in srgb, var(--rw, var(--vr-accent)) 16%, #1b2936), #0d1621 70%);
-  border: 1px solid color-mix(in srgb, var(--rw, var(--vr-accent)) 60%, var(--line-strong));
-  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.5), inset 0 -14px 26px rgba(0, 0, 0, 0.45), 0 0 34px -10px var(--rw, var(--vr-accent));
-  animation:
-    hatch-rise 0.55s cubic-bezier(0.2, 1.25, 0.4, 1) both,
-    hatch-wobble 1.6s ease-in-out 0.55s infinite;
-}
-@keyframes hatch-rise { from { opacity: 0; transform: translateY(130px) scale(0.4); } }
-@keyframes hatch-wobble {
-  0%, 100% { border-radius: 48% 52% 55% 45% / 58% 54% 46% 42%; transform: rotate(-1.6deg); }
-  33% { border-radius: 55% 45% 47% 53% / 52% 58% 42% 48%; transform: rotate(1.2deg) scale(1.02); }
-  66% { border-radius: 45% 55% 52% 48% / 56% 47% 53% 44%; transform: rotate(-0.6deg); }
-}
-.hatch-sac.tier-epic .hatch-sac-skin,
-.hatch-sac.tier-legendary .hatch-sac-skin,
-.hatch-sac.tier-exotic .hatch-sac-skin { box-shadow: 0 18px 40px rgba(0, 0, 0, 0.5), inset 0 -14px 26px rgba(0, 0, 0, 0.45), 0 0 58px -8px var(--rw, var(--vr-accent)); }
-/* the sac ITSELF telegraphs the tier: commons run small, epic+ swells, and a legendary/exotic
-   occupant FIGHTS its way out (struggle is listed after the wobble so it owns transform while
-   it runs; default fill hands the wobble back when it ends) */
-.hatch-sac.tier-common .hatch-sac-skin { width: 146px; height: 176px; margin: -88px 0 0 -73px; }
-.hatch-sac.tier-epic .hatch-sac-skin { width: 180px; height: 214px; margin: -107px 0 0 -90px; }
-.hatch-sac.tier-legendary .hatch-sac-skin,
-.hatch-sac.tier-exotic .hatch-sac-skin {
-  width: 192px;
-  height: 228px;
-  margin: -114px 0 0 -96px;
-  animation:
-    hatch-rise 0.55s cubic-bezier(0.2, 1.25, 0.4, 1) both,
-    hatch-wobble 1.6s ease-in-out 0.55s infinite,
-    hatch-struggle 0.42s ease-in-out 0.85s 2;
-}
-@keyframes hatch-struggle {
-  0%, 100% { transform: translate(0, 0) rotate(0deg); }
-  15% { transform: translate(-5px, 2px) rotate(-3deg); }
-  35% { transform: translate(6px, -2px) rotate(2.5deg); }
-  55% { transform: translate(-6px, 1px) rotate(-2deg) scale(1.03); }
-  75% { transform: translate(5px, 2px) rotate(3deg); }
-}
-.hatch-embryo { /* the dim silhouette floating inside — you can ALMOST see what it is */
-  position: absolute;
-  left: 50%;
-  top: 47%;
-  transform: translate(-50%, -50%);
-  font-size: 40px;
-  font-weight: 800;
-  color: var(--rw, var(--vr-accent));
-  opacity: 0.4;
-  filter: blur(2.2px) saturate(0.8);
-  animation: hatch-embryodrift 2.6s ease-in-out infinite;
-}
-@keyframes hatch-embryodrift { 0%, 100% { transform: translate(-50%, -50%) rotate(-4deg); } 50% { transform: translate(-46%, -54%) rotate(5deg); } }
-.hatch-cord {
-  position: absolute;
-  left: 50%;
-  bottom: -6px;
-  width: 3px;
-  height: 48px;
-  margin-left: -1px;
-  background: linear-gradient(to bottom, color-mix(in srgb, var(--rw, var(--vr-accent)) 70%, transparent), transparent);
-  filter: blur(0.5px);
-  opacity: 0.6;
-}
-/* the BIRTH: the sac pops — skin flies apart, the reward face lands */
-.hatch-sac.is-open .hatch-sac-skin { animation: hatch-sacpop 0.4s cubic-bezier(0.4, 0, 0.8, 0.4) both; }
-@keyframes hatch-sacpop { 35% { transform: scale(1.14); opacity: 1; } to { transform: scale(1.55); opacity: 0; } }
-.hatch-pop { position: absolute; left: 50%; top: 50%; pointer-events: none; }
-.hatch-shred { /* six membrane petals fly outward */
-  position: absolute;
-  left: -10px;
-  top: -17px;
-  width: 20px;
-  height: 34px;
-  border-radius: 50% 50% 62% 38% / 62% 62% 38% 38%;
-  background: color-mix(in srgb, var(--rw, var(--vr-accent)) 42%, #182430);
-  border: 1px solid color-mix(in srgb, var(--rw, var(--vr-accent)) 55%, transparent);
-  animation: hatch-shredfly 0.58s cubic-bezier(0.2, 0.6, 0.5, 1) both;
-}
-@keyframes hatch-shredfly {
-  from { transform: rotate(calc(var(--k, 0) * 60deg)) translateY(-24px) scale(1); opacity: 0.95; }
-  to { transform: rotate(calc(var(--k, 0) * 60deg + 24deg)) translateY(-128px) scale(0.45); opacity: 0; }
-}
-.hatch-pop-ring {
-  position: absolute;
-  left: -30px;
-  top: -30px;
-  width: 60px;
-  height: 60px;
+  width: 5px;
+  height: 5px;
   border-radius: 50%;
-  border: 2px solid var(--rw, var(--vr-accent));
-  animation: hatch-ringout 0.55s ease-out both;
+  background: var(--rw, var(--vr-accent));
+  box-shadow: 0 0 8px var(--rw, var(--vr-accent));
+  animation: vspec-spark 0.7s ease-out both;
 }
-.hatch-sac.tier-epic .hatch-pop-ring,
-.hatch-sac.tier-legendary .hatch-pop-ring,
-.hatch-sac.tier-exotic .hatch-pop-ring { border-width: 3px; box-shadow: 0 0 24px var(--rw, var(--vr-accent)); animation-duration: 0.75s; }
-.hatch-face { opacity: 0; }
-.hatch-sac.is-open .hatch-face { animation: hatch-facein 0.5s cubic-bezier(0.2, 1.35, 0.4, 1) 0.1s both; }
-@keyframes hatch-facein { from { opacity: 0; transform: translateY(14px) scale(0.6); } to { opacity: 1; } }
+.vspec-sparks i:nth-child(1) { --sx: -52px; --sy: -38px; }
+.vspec-sparks i:nth-child(2) { --sx: 48px; --sy: -46px; animation-delay: 40ms; }
+.vspec-sparks i:nth-child(3) { --sx: -40px; --sy: 44px; animation-delay: 80ms; }
+.vspec-sparks i:nth-child(4) { --sx: 54px; --sy: 36px; animation-delay: 120ms; }
+.vspec-sparks i:nth-child(5) { --sx: 0px; --sy: -58px; animation-delay: 160ms; }
+.vspec-sparks i:nth-child(6) { --sx: -8px; --sy: 56px; animation-delay: 200ms; }
+@keyframes vspec-spark { from { transform: translate(0, 0) scale(1); opacity: 1; } to { transform: translate(var(--sx, 0), var(--sy, 0)) scale(0.2); opacity: 0; } }
+.vclutch-pager { display: flex; align-items: center; gap: 12px; margin-top: 2px; }
+.vclutch-pageno { font-size: 12px; font-weight: 700; letter-spacing: 0.08em; color: var(--ink-dim); }
+
+/* ── The flow-interrupting celebration (legendary zoom / NEW strand recovery) ── */
+.vintr {
+  position: fixed;
+  inset: 0;
+  z-index: 5;
+  display: grid;
+  place-items: center;
+  padding: 18px;
+  background: color-mix(in srgb, #05090e 78%, transparent);
+  backdrop-filter: blur(3px);
+  animation: vintr-in 0.3s ease-out both;
+}
+@keyframes vintr-in { from { opacity: 0; } }
+.vintr-rays {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: min(760px, 150vw);
+  aspect-ratio: 1;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  opacity: 0.5;
+  background: repeating-conic-gradient(from 0deg, transparent 0deg 11deg, color-mix(in srgb, var(--rw, var(--vr-accent)) 30%, transparent) 11deg 13deg, transparent 13deg 24deg);
+  -webkit-mask: radial-gradient(circle, #000 0%, #000 42%, transparent 68%);
+  mask: radial-gradient(circle, #000 0%, #000 42%, transparent 68%);
+  animation: hatch-beamspin 11s linear infinite;
+}
+@keyframes hatch-beamspin { to { transform: translate(-50%, -50%) rotate(360deg); } }
+.vintr-card {
+  position: relative;
+  width: min(400px, 92vw);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 20px 18px 16px;
+  border-radius: var(--r-lg);
+  background: linear-gradient(172deg, color-mix(in srgb, var(--rw, var(--vr-accent)) 16%, #121d29), #0a131d 70%);
+  border: 1px solid color-mix(in srgb, var(--rw, var(--vr-accent)) 60%, var(--line-strong));
+  box-shadow: 0 0 60px -12px var(--rw, var(--vr-accent)), 0 24px 60px rgba(0, 0, 0, 0.6);
+  animation: vintr-zoom 0.5s cubic-bezier(0.2, 1.35, 0.35, 1) both;
+}
+@keyframes vintr-zoom { from { transform: scale(0.42); opacity: 0; } }
+.vintr.is-legendary .vintr-card { animation-duration: 0.65s; }
+.vintr-k { font-size: 12px; font-weight: 800; letter-spacing: 0.16em; color: var(--rw, var(--vr-accent)); }
+.vintr-zoom .vreveal-face-name { font-size: 20px; }
+.vintr-flavor { font-size: 13px; line-height: 1.45; color: var(--ink-dim); text-align: center; font-style: italic; max-width: 42ch; }
+.vintr-archive { font-size: 12px; color: var(--ink); display: flex; align-items: center; gap: 10px; flex-wrap: wrap; justify-content: center; }
+.vintr-power { color: var(--gold); font-weight: 700; font-size: 11px; }
+.vintr-actions { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+/* the room DISTORTS while a celebration holds (suppressed under reduced motion via JS) */
+.vreveal-backdrop.is-warp .vreveal { animation: vintr-warp 2.2s ease-in-out infinite; }
+@keyframes vintr-warp { 0%, 100% { filter: none; } 50% { filter: saturate(1.25) contrast(1.06); } }
+@media (prefers-reduced-motion: reduce) {
+  .vspec, .vspec-back, .vspec-sparks i, .vintr, .vintr-card, .vintr-rays { animation: none; }
+  .vspec-inner { transition-duration: 0.05s; /* bespoke */ }
+  .vreveal-backdrop.is-warp .vreveal { animation: none; }
+}
 
 /* ── HARVEST extras: the prize banner + rarity tally ── */
 .hatch-prize {
@@ -8699,8 +8754,7 @@ kbd {
   .vreveal-backdrop, .vreveal, .vreveal-tap, .vreveal-power-total, .vreveal-row, .vreveal-new,
   .hatch-pod, .hatch-pod::after, .hatch-fetus, .hatch-veins, .hatch-bulge, .hatch-crack, .hatch-spores,
   .hatch-pulse, .hatch-bit, .hatch-goo, .hatch-worldflash, .vreveal-backdrop.is-shine::after,
-  .hatch-shell, .hatch-flash, .hatch-ring, .hatch-burst, .hatch-sac-skin, .hatch-embryo,
-  .hatch-shred, .hatch-pop-ring, .hatch-face, .hatch-beams, .hatch-prize, .hatch-tally-chip {
+  .hatch-shell, .hatch-flash, .hatch-ring, .hatch-burst, .hatch-prize, .hatch-tally-chip {
     animation-duration: 0.01ms !important;
     transition-duration: 0.01ms !important;
     transition-delay: 0s !important; /* flip is instant here → swap the face opacity instantly too */

@@ -137,6 +137,7 @@ describe('vault reveal read-model (honest pulls + merged summary)', () => {
     expect(m.sections[0].id).toBe('discoveries'); // NEW finds lead, always
     expect(m.sections[0].rows).toHaveLength(1);
     expect(m.sections[0].rows[0].isNew).toBe(true);
+    expect(m.sections[0].rows[0].amountLabel).toMatch(/STRAND$/); // keeps the pull's strand label
     const other = m.sections.find((s) => s.id === 'other')!;
     expect(other.rows.some((r) => r.key.endsWith(':echo'))).toBe(true); // the echo pays, separately
   });

@@ -1,6 +1,6 @@
-// Bio-Container opening ceremony — a fullscreen HATCHING, not a card pack (docs/LOOTBOX.md).
-// The reward set is already decided (a deterministic ChestResult from the meta layer); this only
-// CHOREOGRAPHS it, in four acts that stay diegetic to the bio-horror identity:
+// Bio-Container opening ceremony — a fullscreen HATCHING, not a card pack (docs/LOOTBOX.md
+// §opening). The reward set is already decided (a deterministic ChestResult from the meta
+// layer); this only CHOREOGRAPHS it, in four acts that stay diegetic to the bio-horror identity:
 //
 //   INCUBATE — a living egg SQUEEZES on every audible heartbeat (WAAPI per thump, so sight
 //              and sound never drift), harder as the accelerando peaks; veins brighten,
@@ -8,30 +8,38 @@
 //              last half-second the egg goes DEAD STILL — then gives. Tap to force the hatch.
 //   RUPTURE  — the shell tears apart: flash (the whole room lights up), shell shrapnel,
 //              falling goo, spore burst, shockwave, a backdrop quake. Brief, automatic.
-//   EMERGE   — each reward is BORN: a wobbling specimen sac rises from the afterbirth, its
-//              silhouette dimly visible inside, then bursts (wet splice + membrane shreds)
-//              into the reward face. The sac itself telegraphs the tier — commons run small,
-//              epic+ swells and washes the backdrop, a legendary/exotic occupant STRUGGLES.
-//              Tap opens/advances; Fast auto-deals (and cuts the wobble); Skip All → harvest.
-//   HARVEST  — the summary: the PRIZE SPECIMEN banner (best pull), a rarity tally, then the
-//              categorized/merged reward ledger with the Power gain counted up. Never
-//              auto-closes; Open More hatches the next container in place.
+//   CLUTCH   — every reward materializes AT ONCE as a face-down specimen in one grid (the
+//              clutch). The player flips each by hand — a 3D membrane flip whose speed,
+//              light and particles scale with the pull's rarity — or arms the Reveal All
+//              cascade. Legendary+ pulls and NEW strand recoveries INTERRUPT the flow with
+//              a fullscreen celebration (zoom, heartbeat, archive progress). Stockpiles
+//              page in clutches of 12 — only the active page mounts (100× stays cheap).
+//   HARVEST  — the summary: the PRIZE SPECIMEN banner (best pull), a rarity tally, the
+//              categorized/merged ledger (New Discoveries lead) with the Power gain counted
+//              up, and Replay Highlights. Never auto-closes; Open More hatches in place.
 //
 // Fullscreen by construction (portal + fixed backdrop). One caller (GeneticVault); one props
-// shape serves both run caches and loot-queue boxes. The pull LIST is never collapsed
-// (state/vaultReveal builds it); this file is presentation only.
+// shape serves both run caches and loot-queue boxes. All flip RULES live in the state layer
+// (state/vaultReveal revealReduce — unit-tested); this file owns only pacing + presentation.
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useReducer, useState } from 'react';
+import { useCallback, useRef } from 'react';
 import { useCountUp } from './components/useCountUp';
 import { createPortal } from 'react-dom';
 import type { ChestResult } from '../state/lootbox';
-import { buildReveal, rarityLabel } from '../state/vaultReveal';
-import type { PullView, SummarySection } from '../state/vaultReveal';
+import {
+  buildReveal, buildSpecimens, initialRevealState, nextFaceDown, rarityLabel,
+  revealDone, revealGrid, revealHighlights, revealReduce,
+} from '../state/vaultReveal';
+import type { PullView, RevealAction, RevealSessionState, SpecimenView, SummarySection } from '../state/vaultReveal';
 import { CHESTS } from '../core/config';
 import { MULLIGAN_MARK } from '../core/mulligan';
 import type { LootRarity } from '../core/config';
 import { rarityRank } from '../core/loot';
 import { formatPower } from '../core/power';
+import { cardRegistry } from '../core/cards';
+import { archiveCompletion } from '../core/geneDiscovery';
+import { meta } from '../state/meta';
 import { audio } from '../audio/sound';
 import { CurrencyIcon } from './components/CurrencyIcon';
 import { PowerDelta } from './components/PowerDelta';
@@ -100,6 +108,48 @@ function SummaryList({ sections, totalPower }: { sections: SummarySection[]; tot
   );
 }
 
+/** The flow-interrupting celebration (docs/LOOTBOX.md §opening): a legendary pull's zoom
+ *  moment, or a NEW strand recovery's archive card. Also serves Replay Highlights. */
+function InterruptOverlay({ sp, onAck, replay }: {
+  sp: SpecimenView;
+  onAck: () => void;
+  replay?: { i: number; n: number; onPrev: () => void; onNext: () => void };
+}): JSX.Element {
+  const isDiscovery = sp.interrupt === 'discovery';
+  // Archive progress AFTER this open (the save already applied) — the celebration's context line.
+  const archive = useMemo(() => {
+    if (!isDiscovery) return null;
+    const ids = meta.discoveredGeneIds();
+    return { have: ids.length, total: cardRegistry.ids().length, pct: Math.round(archiveCompletion(new Set(ids)) * 100) };
+  }, [isDiscovery]);
+  const def = isDiscovery && sp.pull.cardId ? cardRegistry.get(sp.pull.cardId) : undefined;
+  return (
+    <div className={`vintr ${isDiscovery ? 'is-discovery' : 'is-legendary'}`} style={{ ['--rw' as string]: sp.pull.color }} onClick={onAck} role="dialog" aria-modal="true" aria-label={isDiscovery ? 'New discovery' : 'Legendary specimen'}>
+      <span className="vintr-rays" aria-hidden />
+      <div className="vintr-card" onClick={(e) => e.stopPropagation()}>
+        <div className="vintr-k">{isDiscovery ? '🧬 NEW STRAND RECOVERED' : sp.tier >= 3 ? '☣ APEX SPECIMEN CONTAINED' : '◈ PRIZE SPECIMEN'}</div>
+        <div className="vintr-zoom">
+          <PullFace pull={sp.pull} />
+        </div>
+        {isDiscovery && def && <div className="vintr-flavor">{def.description}</div>}
+        {isDiscovery && archive && (
+          <div className="vintr-archive">
+            Archive {archive.have}/{archive.total} · <b>{archive.pct}%</b> complete
+            <span className="vintr-power">▲ +Collection Power</span>
+          </div>
+        )}
+        <div className="vintr-actions">
+          {replay && <button type="button" className="vreveal-btn" onClick={replay.onPrev} disabled={replay.i === 0}>‹ Prev</button>}
+          <button type="button" className="vreveal-btn primary" onClick={onAck}>
+            {replay ? `Close (${replay.i + 1}/${replay.n})` : 'Continue ▸'}
+          </button>
+          {replay && <button type="button" className="vreveal-btn" onClick={replay.onNext} disabled={replay.i >= replay.n - 1}>Next ›</button>}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function VaultReveal({
   chest,
   title,
@@ -119,6 +169,13 @@ export function VaultReveal({
 }): JSX.Element {
   const chests = useMemo(() => (Array.isArray(chest) ? chest : [chest]), [chest]);
   const model = useMemo(() => buildReveal(chests, compareEquip), [chests, compareEquip]);
+  const specimens = useMemo(() => buildSpecimens(model), [model]);
+  const grid = useMemo(() => revealGrid(model.count), [model.count]);
+  const [st, dispatch] = useReducer(
+    (s: RevealSessionState, a: RevealAction) => revealReduce(specimens, s, a),
+    model.count,
+    initialRevealState,
+  );
 
   // Ceremony magnitude: the bigger of the best pull rarity and the box's registry rank.
   const itemTier = TIER.indexOf(model.topRarity);
@@ -128,14 +185,11 @@ export function VaultReveal({
   const name = title ?? (chests.length === 1 ? (CHESTS[chests[0].chestId]?.name ?? 'Bio-Container') : `${chests.length}× Bio-Containers`);
   const accent = color ?? (model.pulls[model.pulls.length - 1]?.color ?? 'var(--gold)');
 
-  const [phase, setPhase] = useState<'incubate' | 'rupture' | 'emerge' | 'summary'>(model.count > 0 ? 'incubate' : 'summary');
-  const [i, setI] = useState(0);
-  const [open, setOpen] = useState(false); // the current sac has burst → the reward face shows
-  const [fast, setFast] = useState(false); // auto-deal each sac after its reveal
+  const [phase, setPhase] = useState<'incubate' | 'rupture' | 'clutch' | 'summary'>(model.count > 0 ? 'incubate' : 'summary');
+  const [replayI, setReplayI] = useState<number | null>(null); // Replay Highlights cursor (summary)
   const [beat, setBeat] = useState(0); // heartbeat counter — keys one visible pulse per audible thump
   const [still, setStill] = useState(false); // the DEAD-STILL beat right before the shell gives
   const podRef = useRef<HTMLDivElement | null>(null);
-  const pull = model.pulls[i];
   const incubMs = 1700 + tier * 350; // the egg holds longer when something big is inside
 
   // ── INCUBATE: an ACCELERATING heartbeat (audio synced to the pod's visual accelerando).
@@ -143,8 +197,6 @@ export function VaultReveal({
   const hatch = useCallback(() => {
     setPhase((p) => (p === 'incubate' ? 'rupture' : p));
   }, []);
-  // The egg SQUEEZES on every audible thump (WAAPI, so sight and sound can't drift apart),
-  // harder as the rate climbs — then goes DEAD STILL for the last half-second before it gives.
   useEffect(() => {
     if (phase !== 'incubate') return undefined;
     setStill(false);
@@ -177,54 +229,89 @@ export function VaultReveal({
     return () => { clearTimeout(t); clearTimeout(stillT); clearTimeout(beatT); };
   }, [phase, incubMs, hatch]);
 
-  // ── RUPTURE: brief and decisive — the crack lands here, then the first birth begins.
+  // ── RUPTURE: brief and decisive — the crack lands here, then the clutch materializes.
   useEffect(() => {
     if (phase !== 'rupture') return undefined;
     audio.cue('chest');
     const goo = setTimeout(() => audio.cue('dissolve'), 140);
-    const t = setTimeout(() => setPhase('emerge'), 680);
+    const t = setTimeout(() => setPhase('clutch'), 680);
     return () => { clearTimeout(goo); clearTimeout(t); };
   }, [phase]);
 
-  // ── EMERGE: the sac bursts on its own after a rarity-paced wobble (a tap bursts it early;
-  // Fast mode cuts the wobble short too — fast means FAST).
+  // ── CLUTCH: flip audio — the wet membrane turn, then a rarity sting on top. One effect
+  // watches the flip ORDER so manual taps and the cascade sound identical.
+  const flips = st.order.length;
   useEffect(() => {
-    if (phase !== 'emerge' || open) return undefined;
-    const pace = fast ? 340 : 700 + TIER.indexOf(pull?.rarity ?? 'common') * 260;
-    const id = setTimeout(() => setOpen(true), pace);
-    return () => clearTimeout(id);
-  }, [phase, open, i, pull, fast]);
-
-  // Per-birth audio: the wet SPLICE of the membrane tearing, then the reward sting on top —
-  // shards play their own cue; rarer pulls get the jackpot.
-  useEffect(() => {
-    if (phase !== 'emerge' || !open || !pull) return undefined;
+    if (phase !== 'clutch' || flips === 0) return undefined;
+    const sp = specimens[st.order[flips - 1]];
+    if (!sp) return undefined;
     audio.cue('splice');
-    const cue = pull.currency === 'heroShards' ? 'shard_hero'
-      : pull.currency === 'towerShards' ? 'shard_tower'
-      : TIER.indexOf(pull.rarity) >= 2 ? 'jackpot' : 'reveal';
+    const cue = sp.pull.currency === 'heroShards' ? 'shard_hero'
+      : sp.pull.currency === 'towerShards' ? 'shard_tower'
+      : sp.tier >= 2 ? 'jackpot' : 'reveal';
     const sting = setTimeout(() => audio.cue(cue), 90);
     return () => clearTimeout(sting);
-  }, [phase, open, i, pull]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [flips, phase]);
 
-  const toSummary = useCallback(() => { setPhase('summary'); audio.cue('reveal'); }, []);
-  // Fast: once burst, the next sac rises after a beat (still one birth at a time).
+  // The celebration's own voice: a legendary interrupt gets the double heartbeat under the
+  // zoom; a discovery lands with the draft chime.
   useEffect(() => {
-    if (!fast || phase !== 'emerge' || !open) return undefined;
-    const id = setTimeout(() => {
-      if (i < model.count - 1) { setI((n) => n + 1); setOpen(false); }
-      else toSummary();
-    }, 460);
-    return () => clearTimeout(id);
-  }, [fast, phase, open, i, model.count, toSummary]);
-  const advance = useCallback((): void => {
-    if (phase !== 'emerge') return;
-    if (!open) { setOpen(true); return; } // first tap bursts the sac
-    if (i < model.count - 1) { setI((n) => n + 1); setOpen(false); } // next birth
-    else toSummary(); // last birth → the harvest
-  }, [phase, open, i, model.count, toSummary]);
+    if (st.interrupt === null) return undefined;
+    const sp = specimens[st.interrupt];
+    if (sp?.interrupt === 'legendary') {
+      audio.cue('heartbeat');
+      const t1 = setTimeout(() => audio.cue('heartbeat'), 430);
+      const t2 = setTimeout(() => audio.cue('jackpot'), 820);
+      return () => { clearTimeout(t1); clearTimeout(t2); };
+    }
+    audio.cue('draft');
+    return undefined;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [st.interrupt]);
 
-  const isLast = i >= model.count - 1;
+  // ── The Reveal All cascade: flips the next face-down specimen (jumping pages when needed)
+  // while armed and unheld. Timing lives HERE — the reducer only enforces the rules.
+  useEffect(() => {
+    if (phase !== 'clutch' || !st.revealAll || st.interrupt !== null) return undefined;
+    const nxt = nextFaceDown(st);
+    if (nxt < 0) return undefined;
+    // Skip Anims + Reveal All = "just show me the harvest": everything up in one dispatch —
+    // a 100× stockpile must never make the skip path a 30-second page crawl.
+    if (st.skipAnims) { dispatch({ kind: 'flipAll' }); return undefined; }
+    const page = Math.floor(nxt / grid.pageSize);
+    if (page !== st.page) {
+      const id = setTimeout(() => dispatch({ kind: 'page', to: page }), 650);
+      return () => clearTimeout(id);
+    }
+    const pace = st.fast ? 150 : 340;
+    const id = setTimeout(() => dispatch({ kind: 'flip', index: nxt }), pace);
+    return () => clearTimeout(id);
+  }, [phase, st, grid.pageSize]);
+
+  // A held celebration auto-continues ONLY while the cascade is armed (hands-free by choice);
+  // manual flips always wait for the player's tap.
+  useEffect(() => {
+    if (st.interrupt === null || !st.revealAll) return undefined;
+    const sp = specimens[st.interrupt];
+    const id = setTimeout(() => dispatch({ kind: 'ack' }), sp?.interrupt === 'discovery' ? 2600 : 2000);
+    return () => clearTimeout(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [st.interrupt, st.revealAll]);
+
+  // Everything up → the harvest (after a settle beat; instant under Skip Anims).
+  const done = model.count > 0 && revealDone(st);
+  useEffect(() => {
+    if (phase !== 'clutch' || !done || st.interrupt !== null) return undefined;
+    const id = setTimeout(() => { setPhase('summary'); audio.cue('reveal'); }, st.skipAnims ? 160 : 900);
+    return () => clearTimeout(id);
+  }, [phase, done, st.interrupt, st.skipAnims]);
+
+  const isNoMotion = typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const pageStart = st.page * grid.pageSize;
+  const pageEnd = Math.min(model.count, pageStart + grid.pageSize);
+  const pageSpecimens = specimens.slice(pageStart, pageEnd);
+  const pageFlipped = pageSpecimens.filter((sp) => st.flipped[sp.index]).length;
 
   // The PRIZE SPECIMEN (harvest banner): the first pull at the ceremony's top rarity.
   const prize = useMemo(() => model.pulls.find((p) => p.rarity === model.topRarity) ?? model.pulls[0], [model]);
@@ -237,14 +324,18 @@ export function VaultReveal({
     }
     return TIER.filter((r) => counts.has(r)).map((r) => ({ rarity: r, ...counts.get(r)! }));
   }, [model]);
+  const highlights = useMemo(() => revealHighlights(specimens, st), [specimens, st]);
+
+  const heldSpecimen = st.interrupt !== null ? specimens[st.interrupt] : null;
+  const replaySpecimen = replayI !== null ? highlights[replayI] : null;
 
   // Portal to <body> so the fixed, fullscreen backdrop escapes the Hub's `isolation: isolate`
   // stacking context — it must cover EVERYTHING (nav included) with nothing clipping it.
   return createPortal(
     <div
-      className={`vreveal-backdrop ${isRare ? 'is-rare' : ''} ${phase === 'rupture' ? 'is-quake' : ''}${phase === 'emerge' && open && pull && TIER.indexOf(pull.rarity) >= 2 ? ' is-shine' : ''}`}
-      style={{ ['--vr-accent' as string]: accent, ['--shine' as string]: pull?.color ?? accent }}
-      onClick={phase === 'emerge' ? advance : phase === 'incubate' ? hatch : undefined}
+      className={`vreveal-backdrop ${isRare ? 'is-rare' : ''} ${phase === 'rupture' ? 'is-quake' : ''}${heldSpecimen && !isNoMotion ? ' is-warp is-shine' : ''}`}
+      style={{ ['--vr-accent' as string]: accent, ['--shine' as string]: heldSpecimen?.pull.color ?? accent }}
+      onClick={phase === 'incubate' ? hatch : undefined}
       role="dialog"
       aria-modal="true"
     >
@@ -298,53 +389,81 @@ export function VaultReveal({
               ))}
             </div>
           </div>
-        ) : phase === 'emerge' && pull ? (
+        ) : phase === 'clutch' ? (
           <>
-            <div className="hatch-stage" onClick={advance}>
+            <div className="hatch-stage vclutch-stage">
               <div className="hatch-floor" aria-hidden />
-              {isRare && open && <div className="hatch-beams" aria-hidden />}
-              {/* Key on the pull index so each birth RISES fresh (a clean new sac), instead of
-                  reusing the element and un-bursting the previous reward. */}
-              <div key={i} className={`hatch-sac tier-${pull.rarity} ${open ? 'is-open' : ''}`} style={{ ['--rw' as string]: pull.color }}>
-                <span className="hatch-sac-skin" aria-hidden>
-                  <span className="hatch-embryo">
-                    {pull.currency ? <CurrencyIcon id={pull.currency} color={pull.color} size={40} /> : <span>{pull.glyph ?? '◆'}</span>}
-                  </span>
-                  <span className="hatch-cord" />
-                </span>
-                {open && TIER.indexOf(pull.rarity) >= 2 && <span className="hatch-halo" aria-hidden />}
-                {open && (
-                  <span className="hatch-pop" aria-hidden>
-                    {[0, 1, 2, 3, 4, 5].map((k) => <i key={k} className="hatch-shred" style={{ ['--k' as string]: String(k) }} />)}
-                    <i className="hatch-pop-ring" />
-                  </span>
-                )}
-                <div className="hatch-face">
-                  <PullFace pull={pull} />
-                </div>
+              {/* The clutch: ONLY the active page mounts (12 tiles max — 100× stays cheap). */}
+              <div
+                className={`vclutch${st.skipAnims || isNoMotion ? ' no-anim' : ''}`}
+                style={{ ['--vcols' as string]: String(grid.cols), ['--vcols-n' as string]: String(grid.colsNarrow) }}
+                role="group"
+                aria-label={`Specimen clutch — ${pageFlipped} of ${pageSpecimens.length} revealed`}
+              >
+                {pageSpecimens.map((sp) => {
+                  const up = st.flipped[sp.index];
+                  return (
+                    <button
+                      type="button"
+                      key={sp.index}
+                      className={`vspec t${sp.tier}${up ? ' is-up' : ''}`}
+                      style={{ ['--rw' as string]: sp.pull.color, ['--d' as string]: `${(sp.index - pageStart) * 45}ms` }}
+                      onClick={() => dispatch({ kind: 'flip', index: sp.index })}
+                      disabled={up}
+                      aria-label={up ? `${sp.pull.name} — ${sp.pull.amountLabel}` : 'Face-down specimen — tap to flip'}
+                    >
+                      <span className="vspec-inner">
+                        <span className="vspec-back" aria-hidden>
+                          <i className="vspec-vein a" /><i className="vspec-vein b" /><i className="vspec-eye" />
+                        </span>
+                        <span className="vspec-front">
+                          <PullFace pull={sp.pull} />
+                          {up && sp.tier >= 2 && !st.skipAnims && (
+                            <span className="vspec-sparks" aria-hidden><i /><i /><i /><i /><i /><i /></span>
+                          )}
+                        </span>
+                      </span>
+                    </button>
+                  );
+                })}
               </div>
-              {!open && <div className="vreveal-tap">TAP TO BIRTH</div>}
+              {grid.pages > 1 && (
+                <div className="vclutch-pager" onClick={(e) => e.stopPropagation()}>
+                  <button type="button" className="vreveal-btn" onClick={() => dispatch({ kind: 'page', to: st.page - 1 })} disabled={st.page === 0} aria-label="Previous clutch">‹</button>
+                  <span className="vclutch-pageno">Clutch {st.page + 1}/{grid.pages}</span>
+                  <button type="button" className="vreveal-btn" onClick={() => dispatch({ kind: 'page', to: st.page + 1 })} disabled={st.page >= grid.pages - 1} aria-label="Next clutch">›</button>
+                </div>
+              )}
             </div>
 
-            {/* Bottom HUD: container identity + live birth progress */}
+            {/* Bottom HUD: container identity + live flip progress */}
             <div className="vreveal-hud">
               <span className="vreveal-hud-name" style={{ color: accent }}>◈ {name}</span>
-              <span className="vreveal-pullcount">Specimen {i + 1}/{model.count}</span>
-              <span className="vreveal-pips" aria-hidden>
-                {model.pulls.map((_, k) => <i key={k} className={k < i ? 'done' : k === i ? 'cur' : ''} />)}
-              </span>
+              <span className="vreveal-pullcount">Revealed {flips}/{model.count}</span>
+              {model.count <= 24 && (
+                <span className="vreveal-pips" aria-hidden>
+                  {specimens.map((sp) => <i key={sp.index} className={st.flipped[sp.index] ? 'done' : ''} />)}
+                </span>
+              )}
             </div>
 
             <div className="vreveal-actions" onClick={(e) => e.stopPropagation()}>
-              <button type="button" className="vreveal-btn primary vreveal-continue" onClick={advance}>
-                {!open ? 'Open ▸' : isLast ? 'Harvest ▸' : 'Next ▸'}
-              </button>
-              {model.count > 1 && (
+              {done ? (
+                <button type="button" className="vreveal-btn primary vreveal-continue" onClick={() => { setPhase('summary'); audio.cue('reveal'); }}>
+                  Harvest ▸
+                </button>
+              ) : (
                 <>
-                  <button type="button" className={`vreveal-btn${fast ? ' on' : ''}`} onClick={() => setFast((v) => !v)} title="Auto-deal each specimen after its reveal">
-                    Fast {fast ? '✓' : '▸▸'}
+                  <button type="button" className={`vreveal-btn primary${st.revealAll ? ' on' : ''}`} onClick={() => dispatch({ kind: 'revealAll' })}>
+                    {st.revealAll ? '⏸ Flip Individually' : 'Reveal All ▸'}
                   </button>
-                  <button type="button" className="vreveal-btn vreveal-revealall" onClick={toSummary}>
+                  <button type="button" className={`vreveal-btn${st.fast ? ' on' : ''}`} onClick={() => dispatch({ kind: 'fast' })} title="Faster cascade pacing">
+                    Fast {st.fast ? '✓' : '▸▸'}
+                  </button>
+                  <button type="button" className={`vreveal-btn${st.skipAnims ? ' on' : ''}`} onClick={() => dispatch({ kind: 'skipAnims' })} title="Instant flips — celebrations wait for the summary">
+                    Skip Anims {st.skipAnims ? '✓' : ''}
+                  </button>
+                  <button type="button" className="vreveal-btn vreveal-revealall" onClick={() => dispatch({ kind: 'flipAll' })}>
                     Skip All ⏩
                   </button>
                 </>
@@ -382,6 +501,11 @@ export function VaultReveal({
               <span className="vreveal-pullcount">{model.count} specimen{model.count === 1 ? '' : 's'}</span>
             </div>
             <div className="vreveal-actions" onClick={(e) => e.stopPropagation()}>
+              {highlights.length > 0 && (
+                <button type="button" className="vreveal-btn vreveal-replay" onClick={() => setReplayI(0)}>
+                  ↺ Replay Highlights ({highlights.length})
+                </button>
+              )}
               {onOpenMore && remaining > 0 ? (
                 <>
                   <button type="button" className="vreveal-btn primary vreveal-openmore" onClick={onOpenMore}>
@@ -396,6 +520,22 @@ export function VaultReveal({
           </>
         )}
       </div>
+      {/* The flow-interrupting celebrations (and their summary replays) sit ABOVE everything. */}
+      {heldSpecimen && phase === 'clutch' && (
+        <InterruptOverlay sp={heldSpecimen} onAck={() => dispatch({ kind: 'ack' })} />
+      )}
+      {replaySpecimen && phase === 'summary' && (
+        <InterruptOverlay
+          sp={replaySpecimen}
+          onAck={() => setReplayI(null)}
+          replay={{
+            i: replayI ?? 0,
+            n: highlights.length,
+            onPrev: () => setReplayI((v) => Math.max(0, (v ?? 0) - 1)),
+            onNext: () => setReplayI((v) => Math.min(highlights.length - 1, (v ?? 0) + 1)),
+          }}
+        />
+      )}
     </div>,
     document.body,
   );

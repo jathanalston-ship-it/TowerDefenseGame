@@ -81,7 +81,8 @@ export interface PullView {
   glyph?: string; // fallback glyph when there is no currency icon (equipment/material/…)
   power?: number; // equipment: intrinsic Power Score points (drives the highlight)
   compare?: PowerCompare; // equipment: ▲/▼/= vs the selected hero's equipped slot (when supplied)
-  isNew?: boolean; // equipment: first collection discovery (defId not owned at roll time)
+  isNew?: boolean; // equipment/gene: first collection discovery (defId not owned at roll time)
+  cardId?: string; // gene pulls: the strand's card id (the discovery celebration reads the def)
 }
 
 /** A merged summary row — duplicate pulls of the same reward collapsed, `count` = how many. */
@@ -155,6 +156,7 @@ export function describePull(item: RewardItem, compare?: (i: OwnedItem) => Power
         amountLabel: item.isNew ? `${rarityLabel(item.cardRarity)} STRAND` : `+${item.echoEssence ?? 0} Gene Essence`,
         glyph: '🧬',
         isNew: item.isNew,
+        cardId: item.cardId,
       };
     }
     case 'cosmetic':
@@ -216,7 +218,8 @@ export function buildReveal(chests: ChestResult | ChestResult[], compare?: (i: O
   for (const cat of CATEGORY_ORDER) {
     const rows = [...byKey.values()]
       .filter((r) => r.category === cat)
-      .map((r) => ({ ...r, amountLabel: amountLabel(r.qty, unitFor(r), r.rarity, cat === 'equipment') }))
+      // Discoveries keep their pull label ("RARE STRAND") — each is unique, never merged.
+      .map((r) => ({ ...r, amountLabel: cat === 'discoveries' ? r.amountLabel : amountLabel(r.qty, unitFor(r), r.rarity, cat === 'equipment') }))
       .sort((a, b) => (b.power ?? 0) - (a.power ?? 0) || TIER.indexOf(b.rarity) - TIER.indexOf(a.rarity) || b.qty - a.qty);
     if (rows.length === 0) continue;
     const power = rows.reduce((s, r) => s + (r.power ?? 0), 0);
@@ -297,7 +300,8 @@ export interface RevealSessionState {
 export type RevealAction =
   | { kind: 'flip'; index: number }
   | { kind: 'ack' } // dismiss the held celebration
-  | { kind: 'revealAll' }
+  | { kind: 'revealAll' } // toggle the cascade — off = back to Flip Individually
+  | { kind: 'flipAll' } // the Skip All fast-path: everything up at once, no holds
   | { kind: 'fast' }
   | { kind: 'skipAnims' }
   | { kind: 'page'; to: number };
@@ -321,7 +325,13 @@ export function revealReduce(specimens: SpecimenView[], s: RevealSessionState, a
     case 'ack':
       return s.interrupt === null ? s : { ...s, interrupt: null };
     case 'revealAll':
-      return s.revealAll ? s : { ...s, revealAll: true };
+      return { ...s, revealAll: !s.revealAll };
+    case 'flipAll': {
+      if (s.flipped.every(Boolean)) return s;
+      const order = [...s.order];
+      for (let i = 0; i < s.flipped.length; i++) if (!s.flipped[i]) order.push(i);
+      return { ...s, flipped: s.flipped.map(() => true), order, interrupt: null };
+    }
     case 'fast':
       return { ...s, fast: !s.fast };
     case 'skipAnims':
