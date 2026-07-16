@@ -1,6 +1,6 @@
 {
-  "lastSha": "75a407c2b1728bf86a148d879f1909bb64d1f5b3",
-  "commitsSinceDraft": 0,
+  "lastSha": "fb097787bc04aa865fd31656da38b8e0a73fdabe",
+  "commitsSinceDraft": 8,
   "content": {
     "tower": [
       "needle",
@@ -211,7 +211,10 @@
       "full_menagerie",
       "complete_arsenal",
       "deep_genome",
-      "return_from_deep"
+      "return_from_deep",
+      "evo_first_loop",
+      "evo_five_loops",
+      "evo_ancestral"
     ],
     "system": [
       "engine",
@@ -1491,6 +1494,21 @@
       "entries": [
         {
           "cat": "Gameplay",
+          "text": "New achievement: Ancestral Strand",
+          "major": true
+        },
+        {
+          "cat": "Gameplay",
+          "text": "New achievement: Serial Mutator",
+          "major": true
+        },
+        {
+          "cat": "Gameplay",
+          "text": "New achievement: The Helix Reforms",
+          "major": true
+        },
+        {
+          "cat": "Gameplay",
           "text": "New system: Hero Ability Cinematics",
           "major": true
         },
@@ -2401,6 +2419,38 @@
         {
           "cat": "Gameplay",
           "text": "QOL: Equip All — the advisor's one-tap free-upgrade sweep"
+        },
+        {
+          "cat": "Gene Cards",
+          "text": "QOL: draft REROLL — one paid re-deal per draft (docs/CARDS.md §reroll)"
+        },
+        {
+          "cat": "Gene Cards",
+          "text": "QOL: hold-to-buy on every fixed genome tier (Evolution HQ)"
+        },
+        {
+          "cat": "UI",
+          "text": "QOL: deploy-dock hotkeys that match the UI (1 = favorite, 2-4 = pods)"
+        },
+        {
+          "cat": "Gene Cards",
+          "text": "Mastery Evolution Tracks (2/7): the procedural track generator"
+        },
+        {
+          "cat": "Gene Cards",
+          "text": "Mastery Evolution Tracks (3/7): save v44 + claim/prestige meta pipeline"
+        },
+        {
+          "cat": "Gene Cards",
+          "text": "Mastery Evolution UI: the HELIX panel in both labs (claim, EVOLVE, badges)"
+        },
+        {
+          "cat": "Gene Cards",
+          "text": "Mastery Evolution integration: Power, codex, achievements, badges, voice"
+        },
+        {
+          "cat": "Gene Cards",
+          "text": "Mastery Evolution pacing: XP-metered loops (v45) + balancing simulation"
         }
       ]
     }
@@ -4069,6 +4119,70 @@
       "text": "Chronicle roll for the QOL batch",
       "internal": true,
       "needsReview": true
+    },
+    {
+      "sha": "5add91d78fc7058b85b52006cfa3ed37808b60a8",
+      "date": "2026-07-16",
+      "cat": "Gene Cards",
+      "text": "QOL: draft REROLL — one paid re-deal per draft (docs/CARDS.md §reroll)",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "12f13342270a796cd43c4899d1fddefd441ddba7",
+      "date": "2026-07-16",
+      "cat": "Gene Cards",
+      "text": "QOL: hold-to-buy on every fixed genome tier (Evolution HQ)",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "8fff2b6465a8578cdcbbdbc9f998c8f6e9de57bd",
+      "date": "2026-07-16",
+      "cat": "UI",
+      "text": "QOL: deploy-dock hotkeys that match the UI (1 = favorite, 2-4 = pods)",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "1ed4b62d3b7d86c0bd2d720e20334ed75d9d502e",
+      "date": "2026-07-16",
+      "cat": "Gene Cards",
+      "text": "Mastery Evolution Tracks (2/7): the procedural track generator",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "469b50d62d907f3c3046d9c76c399ef2a4608dea",
+      "date": "2026-07-16",
+      "cat": "Gene Cards",
+      "text": "Mastery Evolution Tracks (3/7): save v44 + claim/prestige meta pipeline",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "7ca30871fb7265b1a7667c18fcfefb36c457ec36",
+      "date": "2026-07-16",
+      "cat": "Gene Cards",
+      "text": "Mastery Evolution UI: the HELIX panel in both labs (claim, EVOLVE, badges)",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "bdb519112872d69a1157d2d732085338087e2422",
+      "date": "2026-07-16",
+      "cat": "Gene Cards",
+      "text": "Mastery Evolution integration: Power, codex, achievements, badges, voice",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "fb097787bc04aa865fd31656da38b8e0a73fdabe",
+      "date": "2026-07-16",
+      "cat": "Gene Cards",
+      "text": "Mastery Evolution pacing: XP-metered loops (v45) + balancing simulation",
+      "internal": false,
+      "needsReview": false
     }
   ]
 }

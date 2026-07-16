@@ -12,6 +12,21 @@ export const RELEASES: Release[] = [
     "entries": [
       {
         "cat": "Gameplay",
+        "text": "New achievement: Ancestral Strand",
+        "major": true
+      },
+      {
+        "cat": "Gameplay",
+        "text": "New achievement: Serial Mutator",
+        "major": true
+      },
+      {
+        "cat": "Gameplay",
+        "text": "New achievement: The Helix Reforms",
+        "major": true
+      },
+      {
+        "cat": "Gameplay",
         "text": "New system: Hero Ability Cinematics",
         "major": true
       },
@@ -922,6 +937,38 @@ export const RELEASES: Release[] = [
       {
         "cat": "Gameplay",
         "text": "QOL: Equip All — the advisor's one-tap free-upgrade sweep"
+      },
+      {
+        "cat": "Gene Cards",
+        "text": "QOL: draft REROLL — one paid re-deal per draft (docs/CARDS.md §reroll)"
+      },
+      {
+        "cat": "Gene Cards",
+        "text": "QOL: hold-to-buy on every fixed genome tier (Evolution HQ)"
+      },
+      {
+        "cat": "UI",
+        "text": "QOL: deploy-dock hotkeys that match the UI (1 = favorite, 2-4 = pods)"
+      },
+      {
+        "cat": "Gene Cards",
+        "text": "Mastery Evolution Tracks (2/7): the procedural track generator"
+      },
+      {
+        "cat": "Gene Cards",
+        "text": "Mastery Evolution Tracks (3/7): save v44 + claim/prestige meta pipeline"
+      },
+      {
+        "cat": "Gene Cards",
+        "text": "Mastery Evolution UI: the HELIX panel in both labs (claim, EVOLVE, badges)"
+      },
+      {
+        "cat": "Gene Cards",
+        "text": "Mastery Evolution integration: Power, codex, achievements, badges, voice"
+      },
+      {
+        "cat": "Gene Cards",
+        "text": "Mastery Evolution pacing: XP-metered loops (v45) + balancing simulation"
       }
     ]
   },

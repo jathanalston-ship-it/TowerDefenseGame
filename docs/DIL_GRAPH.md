@@ -1,6 +1,6 @@
 # DIL_GRAPH.md — the Design Intelligence Layer (GENERATED — `npm run dil -- regen`)
 
-> **The project's brain** (docs/DIL.md). 817 nodes · 1502 edges, built from the live
+> **The project's brain** (docs/DIL.md). 817 nodes · 1507 edges, built from the live
 > registries + curated knowledge (src/dev/dil/). **Query it instead of searching the repo:**
 > `npm run dil -- node <id>` · `affects <id>` · `requires <id>` · `missing <kind> <edge>` ·
 > `checklist tower <kind>` · `find <text>`. Edge kinds are bidirectional (19 kinds).
@@ -158,6 +158,7 @@ graph LR
   system_hero_cinematics["Hero Ability Cinematics"] -->|modifies| system_rendering["Rendering & VFX"]
   system_nemesis["Nemesis & Trophies"] -->|modifies| system_engine["Sim Engine"]
   system_nemesis["Nemesis & Trophies"] -->|consumes| system_mega_bosses["Mega Bosses"]
+  system_mastery["Mastery / Adaptation"] -->|modifies| system_hub_shell["Hub Shell & Home"]
   system_rendering["Rendering & VFX"] -->|consumes| system_engine["Sim Engine"]
 ```
 
@@ -504,6 +505,8 @@ graph LR
   system_engine["Sim Engine"] -->|modifies| system_rendering["Rendering & VFX"]
   system_hero_cinematics["Hero Ability Cinematics"] -->|modifies| system_rendering["Rendering & VFX"]
   system_nemesis["Nemesis & Trophies"] -->|modifies| system_engine["Sim Engine"]
+  system_mastery["Mastery / Adaptation"] -->|modifies| concept_power_score["Power Score"]
+  system_mastery["Mastery / Adaptation"] -->|modifies| system_hub_shell["Hub Shell & Home"]
 ```
 
 ## Concepts (7)
@@ -525,7 +528,7 @@ ONE account-strength number folded from every permanent bucket + the in-run temp
   - providedBy ← `system:equipment` — equipped items score via itemPower into the gear bucket
   - providedBy ← `system:crafting` — reforged items re-score through the gear bucket
   - providedBy ← `system:loot` — reads Power for catch-up bias; grants move account Power
-  - _…25 more (query: `npm run dil -- node concept:power-score`)_
+  - _…26 more (query: `npm run dil -- node concept:power-score`)_
 
 ### `concept:determinism` — Determinism
 
@@ -540,6 +543,7 @@ A run is a pure function of seed + inputs — the invariant behind replays, fair
   - requiredBy ← `system:prediction` — outcome prediction replays candidate futures
   - consumedBy ← `system:security` — guards live OUTSIDE the sim: wall-clock rate limits on in-run verbs would corrupt replays/dailies/goldens — in-run spam is absorbed at the UI input boundary instead
   - consumedBy ← `system:directives` — the weekly board rotates on the same UTC weekIndex as liveops/contracts (no server); progress banks from run FACTS at finishRun — the pinned test Monday keeps it gameplay-neutral (fresh save = 0 progress, meta-only rewards ⇒ golden-safe)
+  - conflictsWith ← `system:mastery` — LOOPS ARE XP-METERED, NEVER LEVEL-WINDOWED (MASTERY.md §10.2): the ×1.12 mastery level curve makes a level-windowed loop 2 cost ×83,522 loop 1 — trackLevelFromXp walks BASE_LOOP_REQS × 1.25^prestige from masteryEvolution[key].xpAt; loop 1 must stay EXACTLY mastery levels 1..100 (100-step parity test) — do not touch MASTERY.reqGrowth or the walk without re-running scripts/sim-mastery-evolution.ts
 
 ### `concept:golden-test` — Golden Test
 
@@ -1044,6 +1048,11 @@ _at: src/core/mastery.ts, src/core/masteryEvolution.ts, src/core/adaptation.ts, 
   - consumes → `system:meta-store` — owns save field 'adaptation'
   - consumes → `system:meta-store` — owns save field 'antigen'
   - consumes → `system:meta-store` — owns save field 'masteryEvolution'
+  - extends → `system:meta-store` — MASTERY EVOLUTION (MASTERY.md §10): core/masteryEvolution.ts pure generator (djb2+xorshift per unit×prestige, zero authoring per unit) → meta.claimMasteryEvolution banks reached nodes through the REAL lanes in ONE persist (shards on the unit, containers to the vault) and prestigeMasteryEvolution auto-claims then stamps the xpAt watermark (save v44 map + v45 xpAt); both guarded (mastery.claim / mastery.prestige in the security registry)
+  - conflictsWith → `concept:determinism` — LOOPS ARE XP-METERED, NEVER LEVEL-WINDOWED (MASTERY.md §10.2): the ×1.12 mastery level curve makes a level-windowed loop 2 cost ×83,522 loop 1 — trackLevelFromXp walks BASE_LOOP_REQS × 1.25^prestige from masteryEvolution[key].xpAt; loop 1 must stay EXACTLY mastery levels 1..100 (100-step parity test) — do not touch MASTERY.reqGrowth or the walk without re-running scripts/sim-mastery-evolution.ts
+  - conflictsWith → `system:shards-economy` — P2+ Evolution loops must NEVER pay unit shards (no infinite shard farm — masteryEvolutionProblems validator + tests enforce); P1 totals are budget-locked to 3.5–5 star-upgrades on the REAL ladder (p1ShardBudget); alt pools (cores/essence/mats/containers/rare Ichor ≤4/loop) grow +12%/loop capped ×2
+  - modifies → `concept:power-score` — masteryEvolutionPowerMult: +0.5% per completed loop into accountPowerParts.meta, capped +60% — ×1 with zero prestige so v43 saves read identically; the masteryEvolution collection codex is chronicle-only (powerWeight 0) to avoid a double lane
+  - modifies → `system:hub-shell` — the helix surfaces: EvolutionTrackPanel in BOTH labs (SVG double helix, unit color, crossovers=majors on the 10s), tl2 rail ⧉ badges + "Evolution rewards" sort, evolution.towers/heroes notification channels, Mission Control standings card, Profile loops row, mastery-evolution help mechanic, evoClaim/evoMilestone/evoPrestige cues
   - taughtBy ← `help:adaptation`
   - documentedBy ← `doc:MASTERY.md`
   - documentedBy ← `doc:ADAPTATION.md`
@@ -1300,6 +1309,7 @@ _at: src/core/prime.ts_
   - documentedBy ← `doc:PRIME-STRAINS.md`
   - documentedBy ← `guide:progression`
   - conflictsWith ← `system:account-level` — level-reward cores must stay a supplement — sim guard trips if they exceed 15% of lifetime cores (reward ∝ n^0.7 vs requirement ∝ n^1.25)
+  - conflictsWith ← `system:mastery` — P2+ Evolution loops must NEVER pay unit shards (no infinite shard farm — masteryEvolutionProblems validator + tests enforce); P1 totals are budget-locked to 3.5–5 star-upgrades on the REAL ladder (p1ShardBudget); alt pools (cores/essence/mats/containers/rare Ichor ≤4/loop) grow +12%/loop capped ×2
 
 ### `system:collection` — Collections / Codex
 
@@ -1831,7 +1841,7 @@ _at: src/ui/Hub.tsx, src/ui/navModel.ts, src/ui/MobileShell.tsx, src/ui/CommandC
   - documentedBy ← `doc:HUD.md`
   - documentedBy ← `doc:PROGRESSION-LOOP.md`
   - documentedBy ← `doc:UX-CONSOLIDATION.md`
-  - _…10 more (query: `npm run dil -- node system:hub-shell`)_
+  - _…11 more (query: `npm run dil -- node system:hub-shell`)_
 
 ### `system:run-ui` — In-Run HUD & Results
 
@@ -1904,7 +1914,7 @@ _at: src/state/meta.ts, src/state/store.ts, src/state/prefs.ts, src/state/devRes
   - consumedBy ← `system:mulligans` — owns save field 'mulligans'
   - consumedBy ← `system:mulligans` — owns save field 'mulliganDex'
   - consumedBy ← `system:premium` — owns save field 'premium'
-  - _…112 more (query: `npm run dil -- node system:meta-store`)_
+  - _…113 more (query: `npm run dil -- node system:meta-store`)_
 
 ### `system:bosses` — Bosses
 

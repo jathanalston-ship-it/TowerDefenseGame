@@ -226,3 +226,13 @@
 - ⚑ `68f6b1a` **[Framework]** Chronicle roll for the unit-raid + gaits batch _(internal)_
 - `19d12f4` **[Gameplay]** QOL: Equip All — the advisor's one-tap free-upgrade sweep
 - ⚑ `75a407c` **[Framework]** Chronicle roll for the QOL batch _(internal)_
+## 2026-07-16
+
+- `5add91d` **[Gene Cards]** QOL: draft REROLL — one paid re-deal per draft (docs/CARDS.md §reroll)
+- `12f1334` **[Gene Cards]** QOL: hold-to-buy on every fixed genome tier (Evolution HQ)
+- `8fff2b6` **[UI]** QOL: deploy-dock hotkeys that match the UI (1 = favorite, 2-4 = pods)
+- `1ed4b62` **[Gene Cards]** Mastery Evolution Tracks (2/7): the procedural track generator
+- `469b50d` **[Gene Cards]** Mastery Evolution Tracks (3/7): save v44 + claim/prestige meta pipeline
+- `7ca3087` **[Gene Cards]** Mastery Evolution UI: the HELIX panel in both labs (claim, EVOLVE, badges)
+- `bdb5191` **[Gene Cards]** Mastery Evolution integration: Power, codex, achievements, badges, voice
+- `fb09778` **[Gene Cards]** Mastery Evolution pacing: XP-metered loops (v45) + balancing simulation

@@ -1077,3 +1077,42 @@ carry NO gait — contrast is the read.
 
 **Known limitations.** Gaits shape MOVEMENT only — attack loops stay role-authored
 (docs/HIVE-SIEGE.md); sieging/crust bodies and artillery standoffs are unaffected by design.
+
+## Compressed system summary — Mastery Evolution Tracks (docs/MASTERY.md §10)
+
+**Architecture.** A claimable per-unit reward layer over the untouched mastery accrual: every
+tower and hero owns a procedurally generated 100-node "helix" loop that renews forever through
+prestige. Pure core generator (`core/masteryEvolution.ts`, djb2+xorshift — deterministic per
+unit×prestige, registry-free, golden-safe); meta executes grants through the REAL lanes; UI is
+one shared panel in both labs. Save state is only `{ claimedUpTo, prestige, xpAt }` per unit
+(v44 map + v45 XP watermark; `{}` default, nothing retroactive).
+
+**Public APIs.** `masteryEvolutionTrack(subject, unit, prestige)` → node list;
+`trackLevelFromXp(xpSinceWatermark, prestige)` / `canPrestigeFromXp` (loop meters);
+`loopXpRequirement`, `BASE_LOOP_XP`, `p1ShardBudget`, `masteryEvolutionPowerMult`;
+`masteryEvolutionProblems` (content guardrail). Meta: `meta.masteryEvolutionState`,
+`meta.claimMasteryEvolution` (claim-all, one atomic persist, guarded `mastery.claim`),
+`meta.prestigeMasteryEvolution` (auto-claim → watermark stamp, guarded `mastery.prestige`).
+UI: `EvolutionTrackPanel {subject, unit, name, color}` + `evolutionPanelModel` /
+`evolutionRosterSignal` (badges + "Evolution rewards" lab sort).
+
+**Extension points.** New units need ZERO code (track derives from the def; scarcity from
+`unlockShards`). New grant kinds: extend `EvolutionGrant` + `meta.applyEvolutionGrant`. All
+economy/shape tunables in `MASTERY_EVOLUTION` (decade shapes, shares, ±growths, ichor caps,
+power hum, `loopEffortGrowth`). Events `masteryEvolutionClaim`/`masteryEvolutionPrestige`;
+cues `evoClaim`/`evoMilestone`/`evoPrestige`.
+
+**Assumptions.** Loop 1 ≡ mastery levels 1..100 exactly (parity test pins helix ↔ mastery
+bar); later loops are XP-metered ×1.25/loop from `xpAt` — LEVEL windows are forbidden (the
+×1.12 level curve makes loop 2 cost ×83,522; the sims killed it). P1 pays the unit's own
+shards (3.5–5 stars' worth on the real ladder); P2+ never pays unit shards (validator).
+Mastery level/ranks/Antigens/log hum untouched by prestige.
+
+**Future hooks.** Prestige-N cosmetics can key off `masteryEvolution[key].prestige`; seasonal
+overlays can wrap the generator (same claim lanes); `scripts/sim-mastery-evolution.ts` is the
+standing balance probe (re-run + refresh MASTERY.md §10.2 on tunable changes).
+
+**Known limitations.** P1 value is deep-loaded by design (34% by level 50; `majorShardShare`
+is the lever); level-100 crowns are grinder horizons (~464h focused) — most players live in
+claims, not prestiges; est. time-to-next-node is shown as levels-to-go (no per-unit XP-rate
+tracker yet); no dedicated Genome-Rank signal (Power hum reaches it indirectly).

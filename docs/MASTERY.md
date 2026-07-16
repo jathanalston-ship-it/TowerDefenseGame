@@ -238,3 +238,76 @@ below is presentation over the unchanged economy — the XP formula and banking 
   the level-up toast derives its Power line from `meta.previewPower` — preview === outcome.
 - Suite: golden sim untouched (projection reads accrual; celebrations are DOM/canvas
   presentation).
+
+---
+
+## 10. EVOLUTION TRACKS (2026-07 — the claimable second layer; shipped)
+
+Every tower and hero owns a **100-level reward helix** that renews forever through prestige —
+"a second Battle Pass dedicated to each unit," except it is NOT a pass: no season, no timer,
+no premium lane, and visually a DNA genome, not a card row. Mastery LEVELS are untouched — the
+same accrual (§9.1), the same log power hum, the same rank titles and Antigen minting. The
+track is a parallel CLAIMABLE layer keyed off the XP the player was already earning.
+
+### 10.1 Architecture (all pure, all procedural)
+
+- `core/masteryEvolution.ts` — THE generator. `masteryEvolutionTrack(subject, unit, prestige)`
+  returns the loop's node list from a djb2-seeded xorshift stream: nodes every 2–5 levels
+  (per-decade authored shapes, never a metronome), majors exactly on the 10s, containers every
+  3rd major (tier 1→2→3), the level-100 crown always carries a container. **Zero authoring per
+  unit** — a future tower/hero gets a full track from its def alone (`unlockShards` sets its
+  scarcity band). `masteryEvolutionProblems` is the content guardrail, swept across every unit
+  × prestiges 0..3 in tests.
+- **Prestige 1 pays the unit's OWN shards**: `p1ShardBudget` = 3.5–5 star-upgrades' worth on
+  the REAL ladder (towerStarCost/heroStarCost), banded by scarcity — starters get the fat end
+  in bigger piles, deep unlocks the lean end in richer chunks. Majors carry 70%
+  (`majorShardShare`), ascending weights 1..10 — the climb pays deeper by design (the sim's
+  value-vs-reachability table below; `majorShardShare` is the softening lever if ever needed).
+- **Prestige 2+ NEVER pays unit shards again** (no infinite shard farm — validator-enforced):
+  the pool swaps to alternate progression (Genome Cores, Gene Essence, scrap/mutagen/catalyst,
+  Bio Containers, rare small Ichor — never in P1, ≤4/loop) and grows +12%/loop (capped ×2).
+- `state/meta.ts` — `claimMasteryEvolution` (claim-all through the REAL lanes in one atomic
+  persist; guarded `mastery.claim`), `prestigeMasteryEvolution` (auto-claims first, stamps the
+  XP watermark; guarded `mastery.prestige`). Save: `masteryEvolution` sparse map (v44) +
+  `xpAt` watermark (v45); `{}` default — nothing retroactive.
+- UI: `ui/EvolutionTrack.tsx` (the helix panel in both labs — SVG double helix in the unit's
+  color, minors as vertebrae on the strands, majors as crossover ganglia on the 10s, the
+  assimilated span recolored, a pulsing read-head, claim-on-node-tap, EVOLVE at the crown) +
+  `ui/evolutionTrackModel.ts` (pure view model + roster badges/sort signal).
+- Integration: Power (`masteryEvolutionPowerMult` — +0.5%/loop into the meta bucket, cap
+  +60%), collection codex `masteryEvolution` (chronicle-only, powerWeight 0 — no double lane),
+  achievements (first loop / 5 loops / hidden P4), notification channels
+  `evolution.towers`/`evolution.heroes`, Mission Control standings card, Profile loops row,
+  help mechanic `mastery-evolution`, own audio voice (`evoClaim`/`evoMilestone`/`evoPrestige`).
+
+### 10.2 §pacing — XP-metered loops (the sims' verdict)
+
+The mastery requirement curve is geometric (×1.12/level), so LEVEL-windowed loops would cost
+×83,522 more XP per loop — prestige would die at its first turn. Loops are therefore
+**XP-metered** (v45): loop 1 is EXACTLY mastery levels 1..100 (`BASE_LOOP_XP` ≈ 69.6M XP —
+helix and mastery bar agree level-for-level, pinned by a 100-step parity test); every later
+loop meters the same ladder × `loopEffortGrowth` (+25%/loop) from the `xpAt` watermark stamped
+on EVOLVE. Mastery level itself never re-windows.
+
+From `scripts/sim-mastery-evolution.ts` (re-run after any MASTERY/MASTERY_EVOLUTION change):
+
+| Loop | XP | Casual 12k/h | Regular 40k/h | Grinder 150k/h | Whale 500k/h |
+|---|---|---|---|---|---|
+| 1 | 69.6M | 5.8k h | 1.7k h | 464 h | 139 h |
+| 2 | 87.0M | 7.3k h | 2.2k h | 580 h | 174 h |
+| 4 | 135.9M | 11.3k h | 3.4k h | 906 h | 272 h |
+| 7 | 265.5M | 22.1k h | 6.6k h | 1.8k h | 531 h |
+
+- P1 value spread (needle): 34% of the shard budget lands by level 50 (~20 casual hours on a
+  favorite unit); the deep tail is the grinder's horizon — authored ascent, not an accident.
+- Alt income at grinder pace: ≤1.5 Genome Cores/h, ≤0.6 Essence/h, Ichor ≈0.005/h — every
+  lane far below its direct faucet. The loop enriches; it never replaces.
+- Power hum: 26 total loops → ×1.13 meta; the ×1.6 cap needs 200 (deliberately distant).
+
+### 10.3 Extensibility contract
+
+No future gameplay content requires new Mastery code: a new unit inherits accrual (§9),
+a full Evolution Track (10.1), labs UI, badges, codex entries, and the Power hum purely from
+its def + the shared tunables in `MASTERY_EVOLUTION`. New GRANT kinds extend the
+`EvolutionGrant` union + `meta.applyEvolutionGrant` — every profile and validator keeps
+working. Track shape/economy changes are config edits (`DECADE_SHAPES`, shares, growths).
