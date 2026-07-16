@@ -19,6 +19,8 @@ import '../state/notificationSources'; // registers the default menu badges (sid
 import { CommandCenter } from './CommandCenter';
 import { InfiniteScreen } from './InfiniteScreen';
 import { BossRushScreen } from './BossRushScreen';
+import { ArenaScreen } from './ArenaScreen';
+import type { ArenaMatchSetup } from '../core/arenaMatch';
 import { DailyScreen } from './DailyScreen';
 import { PremiumStore } from './PremiumStore';
 import { featureRevealed, featureView, nextReveals, type FeatureView } from '../state/unlocks';
@@ -182,6 +184,7 @@ export function Hub({
   onReplayTour,
   onReplayIntro,
   onSpectate,
+  onLaunchArenaMatch,
   difficultyRef,
   doctrineRef,
 }: {
@@ -196,6 +199,7 @@ export function Hub({
   onReplayTour: () => void;
   onReplayIntro: () => void;
   onSpectate: (r: ReplayRecord) => void;
+  onLaunchArenaMatch: (setup: ArenaMatchSetup) => void;
   difficultyRef: MutableRefObject<string>;
   doctrineRef: MutableRefObject<string>;
 }): JSX.Element {
@@ -482,6 +486,7 @@ export function Hub({
           {nav === 'campaign' && <CampaignScreen onStart={onStartCampaign} difficultyRef={difficultyRef} />}
           {nav === 'infinite' && <InfiniteScreen onStartEndless={onStartEndless} difficultyRef={difficultyRef} doctrineRef={doctrineRef} />}
           {nav === 'bossrush' && <BossRushScreen onStartBossRush={onStartBossRush} difficultyRef={difficultyRef} />}
+          {nav === 'arena' && <ArenaScreen onLaunchMatch={onLaunchArenaMatch} />}
           {nav === 'daily' && <DailyScreen onStartDaily={onStartDaily} onSpectate={onSpectate} />}
           {nav === 'towers' && <TowerLab />}
           {nav === 'mulligans' && <MulliganLab />}

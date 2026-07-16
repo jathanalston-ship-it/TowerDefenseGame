@@ -505,13 +505,13 @@ graph TD
 
 *The live-PvP pillar (docs/ARENA.md): the mirror SIEGE RACE ruleset over two deterministic sims, Power-Score matchmaking with the 20s AI fallback, ranked divisions (Spore→Apex Strain; placements, streaks, decay, 30-day seasonal soft resets), the wins-only 100-level Arena Pass with procedurally rotated seasonal reward tables + the alternating arena-exclusive content crown, division-banded match rewards (wins pay containers, losses pay standard resources), and modest diminishing Idle-Harvest rank dividends.*
 
-- **Files:** `src/core/arena.ts` · `src/core/arenaPass.ts` · `src/core/arenaAi.ts` · `src/core/arenaMatch.ts`
+- **Files:** `src/core/arena.ts` · `src/core/arenaPass.ts` · `src/core/arenaAi.ts` · `src/core/arenaMatch.ts` · `src/ui/ArenaScreen.tsx` · `src/ui/ArenaView.tsx` · `src/net/arenaReport.ts`
 - **Depends on:** `online-foundation` · `engine` · `battle-pass` · `idle-harvest` · `power` · `meta-store`
 - **Consumers — what breaks if you change this:** —
 - **Power Score:** arena exclusives are full content pieces scored by the existing tower/hero buckets once unlocked; rank itself is deliberately zero-Power (prestige lane, like Genome Rank)
 - **Save fields:** `arena`
-- **Tutorial:** — · **Help mechanics:** —
-- **HUD surfaces:** — · **UI screens:** —
+- **Tutorial:** — · **Help mechanics:** `arena`
+- **HUD surfaces:** `ArenaView (opponent bar, PvP timer, scroll indicator, command dock)` · **UI screens:** `ArenaScreen` · `ArenaView` · `Hub`
 - **Collection:** — · **Achievements:** —
 - **Localization:** inline English strings (no i18n layer yet — this field enumerates the surface for the day it lands)
 - **Docs to update on change:** `docs/ARENA.md`

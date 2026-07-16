@@ -1,6 +1,6 @@
 # UNLOCK-TREE.md — the complete progression reveal timeline (GENERATED — `npm run unlocks`)
 
-> 29 features under progression gating (docs/PROGRESSION-GATING.md): every hub
+> 30 features under progression gating (docs/PROGRESSION-GATING.md): every hub
 > screen and wallet chip, in learning-curve order. "Possible" = earliest a lucky account can
 > reveal it; "guaranteed" = the campaign stage that opens it regardless of drops.
 
@@ -18,7 +18,7 @@
 | 8 | H **Hero Hall** `heroes` | screen | Clear Campaign Stage 2 · 2 to go | S2 | S2 | Heroes (`heroes`) | The hero already fights from run 1; the HALL matters once shards start dropping — one beat after towers so the two spend-screens don’t land together. |
 | 9 | ∞ **Infinite** `infinite` | screen | Clear Campaign Stage 3 · 3 to go | S3 | S3 | Infinite (`infinite`) | The established mode gate (docs/MODE-IDENTITY.md): three stages teach the loop before the loop’s farm-half opens. |
 | 10 | ◆ **Splice Market** `market` | screen | Clear Campaign Stage 3 · 3 to go | S3 | S3 | Splice Market & Ichor (`splice-market`) | Opens once Core income is steady (stage 3) so its stock means something — and Ichor gets a visible sink before Ichor itself flows. |
-| 11 | ⌬ **Gene Archive** `genes` | screen | Collect 6 Gene Cards · 6 to go | start | S3 | Gene Archive (`gene-archive`) | Cards collect from run 1, but the Archive teaches best once a small library exists (6 cards, or stage 3 as backstop). |
+| 11 | ⌬ **Gene Archive** `genes` | screen | Draft 6 different Gene Cards · 6 to go | start | S3 | Gene Archive (`gene-archive`) | The starter archive exists from minute 0, but the screen teaches best once drafting is familiar (6 distinct drafts, or stage 3 as backstop). |
 | 12 | ⛨ **Armory** `equipment` | screen | Find your first Bio-Gear | start | S4 | Equipment (`equipment`) | Reveals with the first Bio-Gear drop (container luck), stage 4 as backstop — never an empty Armory, never gear without a home. |
 | 13 | ✪ **Quest Board** `quests` | screen | Clear Campaign Stage 4 · 4 to go | S4 | S4 | Quests & Missions (`quests`) | Directives give the mid-early game its to-do list: by stage 4 enough systems exist for missions to point at, and Chapter I is already half-earnable from natural play. |
 | 13.5 | ⬡ **The Hive** `hive` | screen | Clear Campaign Stage 4 · 4 to go | S4 | S4 | Hive Construction (`hive-construction`) | A composite sink needs wallets to sink — by stage 4 Cores/Essence/materials all flow and the era-0 organs read as a real goal (stage 3 already reveals three screens). |
@@ -32,6 +32,7 @@
 | 18.5 | ☣ **Adaptation Chamber** `adaptation` | screen | Earn your first Antigen | start | S7 | Adaptation & Antigen (`adaptation`) | Reveals with the first account-faucet Antigen (achievements/depth/traces — usually stages 2–4, the moment there is something to spend); the stage-7 backbone joins the deep-specialization beat (Mulligans/Phenotypes) because every earlier beat already sits at the reveal ceiling. |
 | 19 | ❖ **Phenotype Lab** `phenotypes` | screen | Clear Campaign Stage 7 · 7 to go | S7 | S7 | Phenotype Lab (`phenotype-lab`) | Pure luxury — cosmetics wait until the mechanical wardrobe is full and Gene Essence has a purpose beyond upgrades. |
 | 21 | ☠ **Boss Rush** `bossrush` | screen | Clear Campaign Stage 9 · 9 to go | start | S9 | Boss Rush (`boss-rush`) | The established gate: the skill-check pillar arrives once builds are real. History grandfathers. |
+| 21.5 | ⚔ **The Proving Grounds** `arena` | screen | Clear Campaign Stage 9 · 9 to go | S9 | S9 | The Arena (Live PvP) (`arena`) | PvP demands a REAL build to be fair or fun — it reveals beside Boss Rush (the solo skill check, the stage-9 guarantee line) so the first ranked match is fought with towers, genes and a hero worth ranking (docs/ARENA.md). |
 | 22 | 🩸 **Ichor** `cur:ichor` | currency | Bleed your first Ichor | start | S3 | — | Shows with its first drop, or when the Splice Market (its sink) reveals — a currency chip never precedes its purpose. |
 | 23 | ⊕ **Materials** `cur:mats` | currency | Find crafting materials | start | S6 | — | Crafting materials appear the moment the first container drops some — alongside the gear they reforge. Stage 6 backstops a dry streak. |
 | 24 | ✦ **Ascendant Cells** `cur:cells` | currency | Molt for the first time | start | S9 | — | Teased one stage before Prestige unlocks (10) so the Molt pitch lands with a visible wallet; earned Cells reveal it regardless. |
@@ -46,4 +47,4 @@
 - **Stage 5** — ☀ Daily Run · ▤ Bio-Dex · ❁ Season Pass
 - **Stage 6** — ⬣ Idle Harvest · ⇢ Expedition Command · ❑ Gear Codex · ⊕ Materials
 - **Stage 7** — ⊛ Mulligan Lab · ☣ Adaptation Chamber · ❖ Phenotype Lab
-- **Stage 9** — ☠ Boss Rush · ✦ Ascendant Cells
+- **Stage 9** — ☠ Boss Rush · ⚔ The Proving Grounds · ✦ Ascendant Cells

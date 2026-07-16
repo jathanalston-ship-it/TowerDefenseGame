@@ -232,6 +232,9 @@ export const FEATURES: FeatureDef[] = [
   { kind: 'screen', id: 'bossrush', name: 'Boss Rush', glyph: '☠', order: 21,
     blurb: 'The gauntlet: wave N is N bosses.', condition: { kind: 'any', of: [{ kind: 'stage', stage: MODE_UNLOCKS.bossRush }, { kind: 'rushHistory' }] },
     because: 'The established gate: the skill-check pillar arrives once builds are real. History grandfathers.', teach: 'boss-rush' },
+  { kind: 'screen', id: 'arena', name: 'The Proving Grounds', glyph: '⚔', order: 21.5,
+    blurb: 'Live PvP: two hives, one assault, one survivor.', condition: { kind: 'stage', stage: 9 },
+    because: 'PvP demands a REAL build to be fair or fun — it reveals beside Boss Rush (the solo skill check, the stage-9 guarantee line) so the first ranked match is fought with towers, genes and a hero worth ranking (docs/ARENA.md).', teach: 'arena' },
 
   // ── Currencies (top bar) — appear when they exist or their sink reveals. ──
   { kind: 'currency', id: 'cur:ichor', name: 'Ichor', glyph: '🩸', order: 22,

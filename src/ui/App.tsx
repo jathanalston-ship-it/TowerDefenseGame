@@ -62,6 +62,8 @@ import { tutorial } from '../state/tutorial';
 import { cutsceneBus, navBus } from '../state/navBus';
 import { TutorialRunner } from './TutorialRunner';
 import { DeployScreen } from './DeployScreen';
+import { ArenaView } from './ArenaView';
+import type { ArenaMatchSetup } from '../core/arenaMatch';
 import type { DeployInfo } from './DeployScreen';
 import { DIFFICULTIES } from '../core/difficulty';
 import { initLayoutProfile } from './layoutProfile';
@@ -84,6 +86,8 @@ const DEPLOY_MS = 1600;
 export function App(): JSX.Element {
   // First launch / after an Account Reset → open straight into the Combat Tutorial (its own mode).
   const [screen, setScreen] = useState<Screen>(() => (meta.shouldAutoTutorial() ? 'tutorial' : 'menu'));
+  // A live arena match (docs/ARENA.md) — rendered OVER the hub; null = none.
+  const [arenaSetup, setArenaSetup] = useState<ArenaMatchSetup | null>(null);
   // The cold-open cinematic: first boot on this device (before even the tutorial),
   // replayable from Settings → Help. Overlays whatever screen is behind it.
   const [introActive, setIntroActive] = useState(() => !introSeen());
@@ -418,9 +422,15 @@ export function App(): JSX.Element {
           onReplayTour={() => { navBus.go('home'); setTimeout(() => setTourActive(true), 50); }}
           onReplayIntro={() => setIntroActive(true)}
           onSpectate={setSpectate}
+          onLaunchArenaMatch={setArenaSetup}
           difficultyRef={difficultyRef}
           doctrineRef={doctrineRef}
         />
+      )}
+      {screen === 'menu' && arenaSetup && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 60 }}>
+          <ArenaView setup={arenaSetup} onExit={() => setArenaSetup(null)} />
+        </div>
       )}
       {screen === 'deploying' && deployInfo && <DeployScreen info={deployInfo} />}
       {screen === 'playing' && (

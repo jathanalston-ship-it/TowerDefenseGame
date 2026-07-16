@@ -222,6 +222,10 @@ export const SECURITY_ACTIONS: Record<string, ActionPolicy> = {
     id: 'leaderboard.submit', category: 'network', level: 'critical', limit: C({ count: 4, perMs: 300_000 }), dedupeMs: 30_000,
     analytics: 'sec_lb_submit', doc: 'Leaderboard submission (server re-simulates replays; this is the client budget).', at: 'src/net/leaderboard.ts',
   },
+  'arena.report': {
+    id: 'arena.report', category: 'network', level: 'critical', limit: C({ count: 6, perMs: 600_000 }), dedupeMs: 60_000,
+    analytics: 'sec_arena_report', doc: 'Arena match report to the server ladder (docs/ARENA.md §7) — matches take minutes; the matchId dedupe makes double delivery free on both sides.', at: 'src/net/arenaReport.ts',
+  },
 
   // ── Account surgery ──
   'save.import': {
