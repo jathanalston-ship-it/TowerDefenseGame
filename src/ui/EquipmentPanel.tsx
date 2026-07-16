@@ -7,6 +7,7 @@
 import { useMemo, useState } from 'react';
 import { meta } from '../state/meta';
 import { equipAllPlan, equipUpgrades } from '../state/equipAdvisor';
+import { listOrgPrefs, setListOrgPrefs } from '../state/prefs';
 import { audio } from '../audio/sound';
 import { HERO_DEFS } from '../core/config';
 import type { HeroKind } from '../core/types';
@@ -43,7 +44,13 @@ export function EquipmentPanel(): JSX.Element {
   const loadout = save.equipment.loadouts[focus] ?? emptyLoadout(); // the FOCUSED hero's own gear (per-hero)
   const [category, setCategory] = useState<EquipSlot | 'all'>('all');
   const [rarity, setRarity] = useState<Rarity | 'all'>('all');
-  const [sort, setSort] = useState<SortKey>('power');
+  // The sort choice persists per surface (state/listOrg prefs); category/rarity stay
+  // session-scoped — they're browsing context, not curation.
+  const [sort, setSortState] = useState<SortKey>(() => {
+    const s = listOrgPrefs('equipment').sort as SortKey | undefined;
+    return s && SORTS.some((d) => d.key === s) ? s : 'power';
+  });
+  const setSort = (s: SortKey): void => { setSortState(s); setListOrgPrefs('equipment', { sort: s }); };
   const [favOnly, setFavOnly] = useState(false);
   const [detailsUid, setDetailsUid] = useState<string | null>(null); // opens the Equipment Details screen
   // Quick-Salvage mode: multi-select unlocked gear, then dismantle the batch in one action

@@ -8,6 +8,7 @@
 import { useMemo, useState } from 'react';
 import { meta } from '../state/meta';
 import { geneArchiveRows, geneArchiveSummary } from '../state/geneArchive';
+import { listOrgPrefs, setListOrgPrefs } from '../state/prefs';
 import type { GeneArchiveRow } from '../state/geneArchive';
 import { CARD_CATEGORY_LABEL, cardRegistry, cardSubject } from '../core/cards';
 import type { CardEffect } from '../core/cards';
@@ -349,12 +350,14 @@ const FILTERS: { key: GeneFilter; label: string }[] = [
   { key: 'upgradeable', label: '▲ Upgradeable now' }, { key: 'gated', label: '🔒 Future unlock' },
   { key: 'favorites', label: '★ Favorites' },
 ];
-type GeneSort = 'default' | 'power' | 'lowLevel' | 'alpha' | 'recentAcquired' | 'recentImproved';
+type GeneSort = 'default' | 'power' | 'lowLevel' | 'alpha' | 'recentAcquired' | 'recentImproved' | 'rarity';
 const SORTS: { key: GeneSort; label: string }[] = [
   { key: 'default', label: 'Default' }, { key: 'power', label: 'Highest Power' },
+  { key: 'rarity', label: 'Highest Rarity' },
   { key: 'lowLevel', label: 'Lowest Level' }, { key: 'alpha', label: 'Alphabetical' },
   { key: 'recentAcquired', label: 'Recently acquired' }, { key: 'recentImproved', label: 'Recently improved' },
 ];
+const RARITY_RANK: Record<string, number> = { common: 0, uncommon: 1, rare: 2, epic: 3, legendary: 4 };
 
 // ── Folder view — rows AUTO-FILE by their subject: one folder per tower (registry-driven,
 //    so new towers grow folders for free), plus Hero / Global / Economy / Hive. Search,
@@ -397,6 +400,7 @@ function sortRows(rows: GeneArchiveRow[], sort: GeneSort): GeneArchiveRow[] {
   const cmp = (a: GeneArchiveRow, b: GeneArchiveRow): number => {
     switch (sort) {
       case 'power': return b.powerMult - a.powerMult;
+      case 'rarity': return (RARITY_RANK[b.def.rarity] ?? 0) - (RARITY_RANK[a.def.rarity] ?? 0) || a.def.name.localeCompare(b.def.name);
       case 'lowLevel': return a.level - b.level || a.def.name.localeCompare(b.def.name);
       case 'alpha': return a.def.name.localeCompare(b.def.name);
       case 'recentAcquired': return (b.acquiredAt ?? 0) - (a.acquiredAt ?? 0);
@@ -415,11 +419,22 @@ export function GeneArchive(): JSX.Element {
   const [inspectId, setInspectId] = useState<string | null>(null);
   const [equipSlot, setEquipSlot] = useState<number | null>(null); // armed slot: the next tile click equips
   const [query, setQuery] = useState('');
-  const [filter, setFilter] = useState<GeneFilter>('all');
-  const [sort, setSort] = useState<GeneSort>('default');
+  // Filter / sort / view persist per surface (state/listOrg prefs — docs/UI-STANDARDS.md
+  // §lists); the query never does. Unknown persisted ids fall back to the defaults.
+  const [filter, setFilterState] = useState<GeneFilter>(() => {
+    const f = listOrgPrefs('genes').filters?.[0] as GeneFilter | undefined;
+    return f && FILTERS.some((d) => d.key === f) ? f : 'all';
+  });
+  const [sort, setSortState] = useState<GeneSort>(() => {
+    const s = listOrgPrefs('genes').sort as GeneSort | undefined;
+    return s && SORTS.some((d) => d.key === s) ? s : 'default';
+  });
   // Folder view is the default at this catalog size; searching always flattens (a search
   // result split across collapsed folders would hide its own hits).
-  const [view, setView] = useState<'folders' | 'all'>('folders');
+  const [view, setViewState] = useState<'folders' | 'all'>(() => (listOrgPrefs('genes').group === null ? 'all' : 'folders'));
+  const setFilter = (f: GeneFilter): void => { setFilterState(f); setListOrgPrefs('genes', { filters: [f] }); };
+  const setSort = (s: GeneSort): void => { setSortState(s); setListOrgPrefs('genes', { sort: s }); };
+  const setView = (v: 'folders' | 'all'): void => { setViewState(v); setListOrgPrefs('genes', { group: v === 'folders' ? 'folders' : null }); };
   const [openFolders, setOpenFolders] = useState<Record<string, boolean>>({});
 
   const shown = useMemo(() => {
