@@ -39,6 +39,8 @@ export const TOWER_FORM: Record<TowerKind, TowerForm> = {
   lung: 'pod',        // a swollen breathing sac that vents fog on each exhale
   bell: 'maw',        // a ringed bronze mouth that gapes on every toll
   lancet: 'barrel',   // a long harpoon rail, drawn and loosed
+  basilisk: 'lens',   // the petrifying oculus — a lidless arena eye on a calcified stalk
+  ossuary: 'monolith', // the bone-organ choir — fused ribcages standing like a reliquary
 };
 
 // ── ATTACK ANTICIPATION personality (docs/COMBAT-VISUAL-STANDARDS.md §towers) ────────────────────

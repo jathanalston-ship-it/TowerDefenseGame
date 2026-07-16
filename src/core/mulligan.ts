@@ -320,7 +320,28 @@ const BIOLOGICAL_5: MulliganModifier[] = [
   { id: 'culling_eye', name: 'Culling Eye', category: 'biological', cls: 'Neural', baseRarity: 'epic', stats: { damageMult: 1.07, rangeMult: 1.08 }, influence: { crit: 0.7, support: 0.4 }, powerWeight: 0.087, desc: "A judge's eye grown into the graft — it picks what dies next.", flavor: 'It has a list. You are the pen.' },
 ];
 
-mulliganRegistry.registerAll([...OFFENSIVE, ...UTILITY, ...BIOLOGICAL, ...OFFENSIVE_2, ...UTILITY_2, ...BIOLOGICAL_2, ...OFFENSIVE_3, ...UTILITY_3, ...BIOLOGICAL_3, ...OFFENSIVE_4, ...UTILITY_4, ...BIOLOGICAL_4, ...OFFENSIVE_5, ...UTILITY_5, ...BIOLOGICAL_5]);
+// ── The arena 12 (4 per category) — the catalog keeps its 6-per-tower ratio as the roster
+// grows to twenty-two (Basilisk Maw + Ossuary Choir, the Pass crowns). Stare + hymn flavor. ──
+const OFFENSIVE_6: MulliganModifier[] = [
+  { id: 'gorgon_lens', name: 'Gorgon Lens', category: 'offensive', cls: 'Neural', baseRarity: 'rare', stats: { damageMult: 1.09, rangeMult: 1.05 }, influence: { crit: 0.6, slow: 0.5 }, powerWeight: 0.068, desc: 'A petrifying optic — strikes that land like verdicts.', flavor: 'It looked at a river once. The river is still deciding.' },
+  { id: 'victors_fang', name: "Victor's Fang", category: 'offensive', cls: 'Kinetic', baseRarity: 'epic', stats: { damageMult: 1.13, fireRateMult: 1.04 }, influence: { damage: 0.8, crit: 0.5 }, powerWeight: 0.088, desc: 'A trophy tooth from the proving grounds — heavier, prouder blows.', flavor: 'It has already won. It is just showing you how.' },
+  { id: 'requiem_pipe', name: 'Requiem Pipe', category: 'offensive', cls: 'Resonant', baseRarity: 'uncommon', stats: { damageMult: 1.07, splashMult: 1.05 }, influence: { splash: 0.6, support: 0.4 }, powerWeight: 0.056, desc: 'A bone flue that plays through every impact.', flavor: 'Each note is a casualty report, sung ahead of schedule.' },
+  { id: 'arena_spur', name: 'Arena Spur', category: 'offensive', cls: 'Viral', baseRarity: 'legendary', stats: { damageMult: 1.14, fireRateMult: 1.06 }, influence: { damage: 0.8, poison: 0.5, attackSpeed: 0.4 }, powerWeight: 0.117, desc: 'A grafted champion-claw — the killing tempo of the pit.', flavor: 'It fights in rounds. It has never needed the second one.' },
+];
+const UTILITY_6: MulliganModifier[] = [
+  { id: 'stone_iris', name: 'Stone Iris', category: 'utility', cls: 'Neural', baseRarity: 'uncommon', stats: { rangeMult: 1.08, splashMult: 1.04 }, influence: { slow: 0.7, debuff: 0.3 }, powerWeight: 0.055, desc: 'A calcified pupil — what it watches, hesitates.', flavor: 'Blink first. It will not.' },
+  { id: 'nave_bracket', name: 'Nave Bracket', category: 'utility', cls: 'Resonant', baseRarity: 'rare', stats: { rangeMult: 1.1, fireRateMult: 1.04 }, influence: { support: 0.8, crit: 0.3 }, powerWeight: 0.067, desc: 'A vaulting rib-brace — the host sings over a wider yard.', flavor: 'Architecture, but ambitious about it.' },
+  { id: 'judges_bench', name: "Judge's Bench", category: 'utility', cls: 'Kinetic', baseRarity: 'epic', stats: { rangeMult: 1.11, damageMult: 1.05 }, influence: { support: 0.6, damage: 0.5 }, powerWeight: 0.086, desc: 'A raised firing seat — longer sight, weightier sentences.', flavor: 'All rise. Most fall.' },
+  { id: 'colosseum_gate', name: 'Colosseum Gate', category: 'utility', cls: 'Vital', baseRarity: 'common', stats: { rangeMult: 1.06, fireRateMult: 1.03 }, influence: { support: 0.6, healing: 0.3 }, powerWeight: 0.047, desc: 'A living arena arch — the graft holds its ground longer.', flavor: 'Everything that enters is a contestant. It keeps the score.' },
+];
+const BIOLOGICAL_6: MulliganModifier[] = [
+  { id: 'trophy_marrow', name: 'Trophy Marrow', category: 'biological', cls: 'Vital', baseRarity: 'rare', stats: { damageMult: 1.07, fireRateMult: 1.05 }, influence: { healing: 0.7, damage: 0.4 }, powerWeight: 0.067, desc: 'Bone from a thousand victors — strength that remembers winning.', flavor: 'Every splinter has a title to defend.' },
+  { id: 'petrified_heart', name: 'Petrified Heart', category: 'biological', cls: 'Neural', baseRarity: 'epic', stats: { damageMult: 1.06, rangeMult: 1.08 }, influence: { slow: 0.7, debuff: 0.5 }, powerWeight: 0.086, desc: 'A heart the stare caught mid-beat — its stillness is contagious.', flavor: 'It stopped. Politely, everything near it tries to match.' },
+  { id: 'chorister_gland', name: 'Chorister Gland', category: 'biological', cls: 'Resonant', baseRarity: 'uncommon', stats: { fireRateMult: 1.06, rangeMult: 1.04 }, influence: { support: 0.7, attackSpeed: 0.3 }, powerWeight: 0.054, desc: 'A grafted singing organ — the host keeps liturgical time.', flavor: 'It hums while it works. The hum is the work.' },
+  { id: 'pit_ichor', name: 'Pit Ichor', category: 'biological', cls: 'Caustic', baseRarity: 'legendary', stats: { damageMult: 1.11, splashMult: 1.07 }, influence: { poison: 0.8, splash: 0.6 }, powerWeight: 0.116, desc: 'Blood of the arena floor — everything it splashes has already lost.', flavor: 'The pit keeps a little of everyone. This is the little.' },
+];
+
+mulliganRegistry.registerAll([...OFFENSIVE, ...UTILITY, ...BIOLOGICAL, ...OFFENSIVE_2, ...UTILITY_2, ...BIOLOGICAL_2, ...OFFENSIVE_3, ...UTILITY_3, ...BIOLOGICAL_3, ...OFFENSIVE_4, ...UTILITY_4, ...BIOLOGICAL_4, ...OFFENSIVE_5, ...UTILITY_5, ...BIOLOGICAL_5, ...OFFENSIVE_6, ...UTILITY_6, ...BIOLOGICAL_6]);
 
 /** The catalog-ratio contract (content-integrity tests): pieces per tower in the roster.
  *  3 = exact coverage (every seat fillable under §exclusivity, zero spare); the catalog now

@@ -107,9 +107,20 @@ describe('the Arena Pass (meta)', () => {
     const lines = meta.claimArenaPassLevel('free', ARENA_PASS.levels, NOW)!;
     expect(lines.some((l) => l.label.includes('UNLOCKED'))).toBe(true);
     expect(meta.get().arena.exclusives).toContain(row.exclusive);
+    // season 1's crown is the Basilisk Maw — the roster unlock lands with the ledger
+    expect(row.exclusive).toBe('tower:basilisk');
+    expect(meta.get().towerUnlocked).toContain('basilisk');
     // the ledger survives a season roll (forever)
     meta.pollArenaSeason(NOW + ARENA.seasonMs * 2);
     expect(meta.get().arena.exclusives).toContain(row.exclusive);
+  });
+
+  it('exclusives never leak: not starters, never in the shard pool, AI-legal', () => {
+    seed();
+    const save = meta.get();
+    expect(save.towerUnlocked).not.toContain('basilisk');
+    expect(save.towerUnlocked).not.toContain('ossuary');
+    expect(save.heroUnlocked).not.toContain('chimera');
   });
 
   it('buyArenaPassPremium spends Ichor exactly once', () => {

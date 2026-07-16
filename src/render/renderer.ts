@@ -2271,7 +2271,7 @@ const SELECT_RGB = hexRgb('#fff4c2'); // hero selection ring — warm white-gold
 // Low-HP urgency tint for minions (the shared "danger" red).
 const MINION_LOW_RGB = hexRgb('#ff5d73');
 
-const HERO_SHAPE: Record<HeroKind, ShapeKind> = { ravager: 'diamond', shepherd: 'hex', overseer: 'triangle', vitriol: 'square', revenant: 'circle', knell: 'bell', wyrm: 'diamond', riptide: 'drop', carrion: 'shroud', fovea: 'lens' };
+const HERO_SHAPE: Record<HeroKind, ShapeKind> = { ravager: 'diamond', shepherd: 'hex', overseer: 'triangle', vitriol: 'square', revenant: 'circle', knell: 'bell', wyrm: 'diamond', riptide: 'drop', carrion: 'shroud', fovea: 'lens', chimera: 'hex' };
 
 /** Membrane wings for FLYING heroes (behavior 'swoop'): two swept, translucent bat-wing sails
  *  beating behind the body — the stroke deepens/quickens while the flier is on the move. Each

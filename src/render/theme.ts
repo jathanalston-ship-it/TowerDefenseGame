@@ -180,6 +180,8 @@ export const TOWER_SHAPE: Record<TowerKind, ShapeKind> = {
   lung: 'circle', // a swollen breathing sac (plague-pink; its fog bank breathes around it)
   bell: 'bell', // a great chitin bell (bone-bronze; the toll rings visibly outward)
   lancet: 'diamond', // a drawn harpoon rail (sulphur; a narrow blade aimed up the lane)
+  basilisk: 'diamond', // the lidless arena eye (violet; a narrow petrifying iris)
+  ossuary: 'hex', // the fused-ribcage choir (bone; a heavy chambered organ)
 };
 
 export const ENEMY_SHAPE: Record<EnemyKind, ShapeKind> = {

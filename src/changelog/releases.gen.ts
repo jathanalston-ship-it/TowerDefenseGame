@@ -11,6 +11,21 @@ export const RELEASES: Release[] = [
     "sealed": false,
     "entries": [
       {
+        "cat": "Heroes",
+        "text": "New hero: Chimera",
+        "major": true
+      },
+      {
+        "cat": "Towers",
+        "text": "New tower: Ossuary Choir",
+        "major": true
+      },
+      {
+        "cat": "Towers",
+        "text": "New tower: Basilisk Maw",
+        "major": true
+      },
+      {
         "cat": "Gameplay",
         "text": "New system: Arena (Live PvP)",
         "major": true
@@ -1068,8 +1083,20 @@ export const RELEASES: Release[] = [
         "text": "Online foundation: protocol/authority core, item provenance (v47), arena rank+pass, AI opponents, lockstep netcode"
       },
       {
+        "cat": "Backend",
+        "text": "Arena backend + meta integration: server settlement, exactly-once ledgers, idle rank dividends"
+      },
+      {
         "cat": "Website",
         "text": "Hub navigation overhaul: behavior hubs, landing pages, smart reasons, recommendations"
+      },
+      {
+        "cat": "Website",
+        "text": "Chronicle + graphs + site regen for the hub batch atop the online-foundation rebase"
+      },
+      {
+        "cat": "Heroes",
+        "text": "Arena exclusives: Basilisk Maw + Ossuary Choir towers, Chimera hero — the Pass crowns"
       }
     ]
   },

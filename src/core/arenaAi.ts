@@ -107,13 +107,15 @@ export function generateAiOpponent(seed: number, targetPower: number, divisionIn
   const name = `${rng.pick(AI_FORENAME)} ${rng.pick(AI_EPITHET)}`;
 
   // Roster: starters always; deeper divisions carry more of the unlockable arsenal.
-  // Arena exclusives only appear at the top of the ladder (and only once the content exists).
+  // ARENA EXCLUSIVES join only at the top of the ladder (docs/ARENA.md §ai — deep-division AI
+  // showcases the seasonal crown content; below that they never appear).
   const rosterSize = Math.min(TOWER_ORDER.length, 4 + Math.floor(divisionIndex * 0.8) + rng.int(2));
-  const starters = TOWER_ORDER.filter((k) => !TOWER_DEFS[k].unlockShards);
-  const unlockable = TOWER_ORDER.filter((k) => TOWER_DEFS[k].unlockShards);
+  const starters = TOWER_ORDER.filter((k) => !TOWER_DEFS[k].arenaExclusive && !TOWER_DEFS[k].unlockShards);
+  const unlockable = TOWER_ORDER.filter((k) =>
+    TOWER_DEFS[k].arenaExclusive ? divisionIndex >= ARENA_AI.exclusiveMinDiv : !!TOWER_DEFS[k].unlockShards);
   const roster = new Set<TowerKind>(starters);
   const weighted = unlockable.map((k): readonly [TowerKind, number] => {
-    const w = personality.classWeights[TOWER_DEFS[k].combatClass] ?? 0.5;
+    const w = TOWER_DEFS[k].arenaExclusive ? 3 : personality.classWeights[TOWER_DEFS[k].combatClass] ?? 0.5;
     return [k, w] as const;
   });
   let guard = 0;

@@ -257,4 +257,8 @@
 - `5892bc2` **[Framework]** Converge the two parallel toast implementations on the placard framework _(internal)_
 - `bc403f8` **[Framework]** Chronicle: placard-framework batch notes + devlog draft
 - `ba55715` **[Security]** Online foundation: protocol/authority core, item provenance (v47), arena rank+pass, AI opponents, lockstep netcode
+- `80509a8` **[Security]** Online foundation: protocol/authority core, item provenance (v47), arena rank+pass, AI opponents, lockstep netcode
+- `babcc25` **[Backend]** Arena backend + meta integration: server settlement, exactly-once ledgers, idle rank dividends
 - `f40f40b` **[Website]** Hub navigation overhaul: behavior hubs, landing pages, smart reasons, recommendations
+- `5b83b89` **[Website]** Chronicle + graphs + site regen for the hub batch atop the online-foundation rebase
+- `d9a8c30` **[Heroes]** Arena exclusives: Basilisk Maw + Ossuary Choir towers, Chimera hero — the Pass crowns

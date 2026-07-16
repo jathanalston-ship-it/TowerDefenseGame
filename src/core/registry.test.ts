@@ -80,8 +80,8 @@ describe('core content is registry-derived (no hardcoded lists)', () => {
     // Vitriol/Revenant/Knell (one per combat class) + the Cinderwyrm (the flying second Caustic)
     // + the Riptide (water-form zone controller, second Kinetic) + the Carrion (charnel
     // necromancer, second Vital) + the Fovea (executioner lance, second Neural)
-    expect(towerRegistry.size).toBe(20);
-    expect(heroRegistry.size).toBe(10);
+    expect(towerRegistry.size).toBe(22);
+    expect(heroRegistry.size).toBe(11);
   });
 
   it('shipped content passes registry-driven validation', () => {

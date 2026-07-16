@@ -250,6 +250,26 @@ export const STAR_EVOLUTION: Record<TowerKind, StarEvolution> = {
       { at: 9, kind: 'nova' }, // the culling stroke
     ],
   },
+  basilisk: {
+    growth: 0.024, // the eye swells with every season it outstares
+    parts: [
+      { at: 1, kind: 'halo' }, // the waking iris
+      { at: 3, kind: 'arcs', count: 2 }, // sight made visible
+      { at: 5, kind: 'spikes', count: 4 }, // calcified lash-quills
+      { at: 7, kind: 'organs', count: 3 }, // secondary pupils budding
+      { at: 9, kind: 'nova' }, // the stare that ends wars
+    ],
+  },
+  ossuary: {
+    growth: 0.024, // the choir gains voices — measured mass (the ★10 cap holds)
+    parts: [
+      { at: 1, kind: 'halo' }, // the first hymn's shimmer
+      { at: 3, kind: 'organs', count: 3 }, // new throats fusing in
+      { at: 5, kind: 'barbs', count: 5 }, // rib-spurs flaring outward
+      { at: 7, kind: 'arcs', count: 3 }, // the harmonics turned visible
+      { at: 9, kind: 'nova' }, // the requiem chord
+    ],
+  },
 };
 
 /** Body-silhouette scale from STARS (the "larger / prestige silhouette" read). Identity (1) at

@@ -8,7 +8,7 @@ import type { TargetingProfile } from './targeting';
 
 export type CombatClass = 'Kinetic' | 'Caustic' | 'Viral' | 'Neural' | 'Vital' | 'Resonant';
 export type StatusType = 'Fracture' | 'Corrosion' | 'Infection' | 'Disruption' | 'Freeze' | 'Fear' | 'Mark' | 'Resonance';
-export type TowerKind = 'needle' | 'mortar' | 'reactor' | 'parasite' | 'obelisk' | 'maw' | 'chrysalis' | 'effigy' | 'coil' | 'siphon' | 'sower' | 'spire' | 'polyp' | 'spitfang' | 'rift' | 'glaive' | 'roost' | 'lung' | 'bell' | 'lancet';
+export type TowerKind = 'needle' | 'mortar' | 'reactor' | 'parasite' | 'obelisk' | 'maw' | 'chrysalis' | 'effigy' | 'coil' | 'siphon' | 'sower' | 'spire' | 'polyp' | 'spitfang' | 'rift' | 'glaive' | 'roost' | 'lung' | 'bell' | 'lancet' | 'basilisk' | 'ossuary';
 export type EnemyKind =
   // swarm
   | 'runner' | 'mite' | 'larva'
@@ -54,7 +54,7 @@ export type EnemyKind =
   | 'glutling' // swarm + suicide: a fragile kamikaze cloud (AoE it early, spacing)
   // elite / apex
   | 'apex' | 'dreadnought' | 'tyrant';
-export type HeroKind = 'ravager' | 'shepherd' | 'overseer' | 'vitriol' | 'revenant' | 'knell' | 'wyrm' | 'riptide' | 'carrion' | 'fovea';
+export type HeroKind = 'ravager' | 'shepherd' | 'overseer' | 'vitriol' | 'revenant' | 'knell' | 'wyrm' | 'riptide' | 'carrion' | 'fovea' | 'chimera';
 
 /** How a tower delivers its attack — drives the firing/projectile dispatch, so a
  * new tower that reuses a behavior is data-only (no sim code). 'support' = no fire,

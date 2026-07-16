@@ -1,6 +1,6 @@
 {
-  "lastSha": "f40f40b391e6bb0176eb53edf2731adc526a4568",
-  "commitsSinceDraft": 3,
+  "lastSha": "d9a8c30fbcc8437985c6c21a0b1a751e902b127a",
+  "commitsSinceDraft": 7,
   "content": {
     "tower": [
       "needle",
@@ -22,7 +22,9 @@
       "roost",
       "lung",
       "bell",
-      "lancet"
+      "lancet",
+      "basilisk",
+      "ossuary"
     ],
     "hero": [
       "ravager",
@@ -34,7 +36,8 @@
       "wyrm",
       "riptide",
       "carrion",
-      "fovea"
+      "fovea",
+      "chimera"
     ],
     "enemy": [
       "runner",
@@ -1498,6 +1501,21 @@
       "sealed": false,
       "entries": [
         {
+          "cat": "Heroes",
+          "text": "New hero: Chimera",
+          "major": true
+        },
+        {
+          "cat": "Towers",
+          "text": "New tower: Ossuary Choir",
+          "major": true
+        },
+        {
+          "cat": "Towers",
+          "text": "New tower: Basilisk Maw",
+          "major": true
+        },
+        {
           "cat": "Gameplay",
           "text": "New system: Arena (Live PvP)",
           "major": true
@@ -2555,8 +2573,20 @@
           "text": "Online foundation: protocol/authority core, item provenance (v47), arena rank+pass, AI opponents, lockstep netcode"
         },
         {
+          "cat": "Backend",
+          "text": "Arena backend + meta integration: server settlement, exactly-once ledgers, idle rank dividends"
+        },
+        {
           "cat": "Website",
           "text": "Hub navigation overhaul: behavior hubs, landing pages, smart reasons, recommendations"
+        },
+        {
+          "cat": "Website",
+          "text": "Chronicle + graphs + site regen for the hub batch atop the online-foundation rebase"
+        },
+        {
+          "cat": "Heroes",
+          "text": "Arena exclusives: Basilisk Maw + Ossuary Choir towers, Chimera hero — the Pass crowns"
         }
       ]
     }
@@ -4459,10 +4489,42 @@
       "needsReview": false
     },
     {
+      "sha": "80509a8e7dd159242d70e4f1ffefa5267c3fead2",
+      "date": "2026-07-16",
+      "cat": "Security",
+      "text": "Online foundation: protocol/authority core, item provenance (v47), arena rank+pass, AI opponents, lockstep netcode",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "babcc25ec4e0687b169568965477e36b9375cbc7",
+      "date": "2026-07-16",
+      "cat": "Backend",
+      "text": "Arena backend + meta integration: server settlement, exactly-once ledgers, idle rank dividends",
+      "internal": false,
+      "needsReview": false
+    },
+    {
       "sha": "f40f40b391e6bb0176eb53edf2731adc526a4568",
       "date": "2026-07-16",
       "cat": "Website",
       "text": "Hub navigation overhaul: behavior hubs, landing pages, smart reasons, recommendations",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "5b83b89611ae4026a3b352c164f480738fade2a7",
+      "date": "2026-07-16",
+      "cat": "Website",
+      "text": "Chronicle + graphs + site regen for the hub batch atop the online-foundation rebase",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "d9a8c30fbcc8437985c6c21a0b1a751e902b127a",
+      "date": "2026-07-16",
+      "cat": "Heroes",
+      "text": "Arena exclusives: Basilisk Maw + Ossuary Choir towers, Chimera hero — the Pass crowns",
       "internal": false,
       "needsReview": false
     }

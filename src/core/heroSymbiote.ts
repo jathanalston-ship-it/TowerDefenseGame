@@ -769,6 +769,14 @@ export const HERO_SYMBIOTE_GATES: Record<HeroKind, [SymbioteGate, SymbioteGate]>
       blurb: 'The final graft opens inside total witness — an oculus that has catalogued the great and outstared the gauntlet.',
       reqs: [rKills(10000), rStars(4), rMastery(12), rGenome(6, 'VI · Hiveborn'), rRush(9)] },
   ],
+  chimera: [
+    { slot: 2, title: 'THE SECOND TROPHY', ichorCost: SYMBIOTE_ICHOR_II,
+      blurb: 'The second graft takes only on tissue that has already won — an amalgam blooded in the proving grounds.',
+      reqs: [rKills(1200), rStars(2), rMastery(8), rStage(30)] },
+    { slot: 3, title: 'APEX AMALGAM', ichorCost: SYMBIOTE_ICHOR_III,
+      blurb: 'The final graft crowns a body stitched from every strain that ever held the arena — nothing left to take.',
+      reqs: [rKills(10000), rStars(4), rMastery(12), rGenome(6, 'VI · Hiveborn'), rRush(9)] },
+  ],
 };
 
 // Compile-time completeness above; runtime sanity for tests + tooling.

@@ -1171,6 +1171,7 @@ function heroMilestoneMet(save: SaveData, req: HeroUnlockReq): boolean {
     case 'molts': return save.prestige.molts >= req.count; // Knell — cast from the hive's first rebirth
     case 'megaSlain': return save.megaProgress.slain.length >= req.count; // Riptide — condensed from fallen leviathans (distinct defs)
     case 'lifetimeKills': return save.stats.lifetimeKills >= req.count; // Carrion — fed by the mountain of your dead
+    case 'arena': return save.arena.exclusives.includes('hero:chimera'); // Chimera — the Pass level-100 crown IS the milestone (docs/ARENA.md §6)
   }
 }
 
@@ -1182,6 +1183,7 @@ function heroMilestoneProgress(save: SaveData, req: HeroUnlockReq): number {
     case 'molts': return Math.min(1, save.prestige.molts / req.count);
     case 'megaSlain': return Math.min(1, save.megaProgress.slain.length / req.count);
     case 'lifetimeKills': return Math.min(1, save.stats.lifetimeKills / req.count);
+    case 'arena': return Math.min(1, arenaPassLevelOf(save.arena.passXp).level / ARENA_PASS.levels); // the season's climb toward the crown
   }
 }
 
@@ -1196,8 +1198,10 @@ export function heroShardUnlockPool(save: SaveData): HeroKind[] {
 
 /** Whether the account owns tower `kind` (docs/TOWERS.md §expansion). Starters (TowerDef without
  *  an unlockShards gate — the launch five) are always owned; a gated tower is owned once claimed
- *  with its own Tower Shards. Owned kinds ride the Biomorph Conveyor + favorite pool. */
+ *  with its own Tower Shards. ARENA EXCLUSIVES are owned ONLY via the Pass crown's roster grant
+ *  (never starters, despite having no shard price — docs/ARENA.md §6). */
 export function isTowerUnlocked(save: SaveData, kind: TowerKind): boolean {
+  if (TOWER_DEFS[kind]?.arenaExclusive) return (save.towerUnlocked ?? []).includes(kind);
   const cost = TOWER_DEFS[kind]?.unlockShards ?? 0;
   if (cost <= 0) return true; // starter
   return (save.towerUnlocked ?? []).includes(kind);
@@ -1205,8 +1209,10 @@ export function isTowerUnlocked(save: SaveData, kind: TowerKind): boolean {
 
 /** Whether a locked tower's progression GATE is cleared — i.e. its unlock shards may DROP. Towers with
  *  no `unlockStage` (maw/chrysalis/effigy) are always met; a deep-gated tower (Resonance Coil / Marrow
- *  Siphon) needs its campaign stage cleared first ("shards only start dropping once the gate is met"). */
+ *  Siphon) needs its campaign stage cleared first ("shards only start dropping once the gate is met").
+ *  ARENA EXCLUSIVES never drop shards at all (docs/ARENA.md §6 — the Pass crown is the only path). */
 export function towerShardGateMet(save: SaveData, kind: TowerKind): boolean {
+  if (TOWER_DEFS[kind]?.arenaExclusive) return false;
   const stage = TOWER_DEFS[kind]?.unlockStage ?? 0;
   return stage <= 0 || highestCampaignStage(save) >= stage;
 }

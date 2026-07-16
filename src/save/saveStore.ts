@@ -642,7 +642,9 @@ function starterHeroes(): HeroKind[] {
 }
 /** Towers owned from the start — those with no `unlockShards` gate (the launch five). */
 function starterTowers(): TowerKind[] {
-  return TOWER_ORDER.filter((k) => !(TOWER_DEFS[k].unlockShards && TOWER_DEFS[k].unlockShards! > 0));
+  // Arena exclusives carry no shard price but are NEVER starters — the Arena Pass crown is
+  // their only acquisition path (docs/ARENA.md §6).
+  return TOWER_ORDER.filter((k) => !TOWER_DEFS[k].arenaExclusive && !(TOWER_DEFS[k].unlockShards && TOWER_DEFS[k].unlockShards! > 0));
 }
 /** Resolve the owned-tower set (mirrors sanitizeHeroUnlocked). A save with the field honors its
  *  persisted list (registry-resolved, deduped); a PRE-gate save has no field ⇒ grandfather in any

@@ -88,6 +88,11 @@ export const HERO_SYMBIOTE_VISUALS: Record<HeroKind, { stages: EvoPart[][] }> = 
     [{ at: 2, kind: 'barbs', count: 3, per: 1 }],
     [{ at: 3, kind: 'arcs', count: 2, per: 1 }],
   ] },
+  chimera: { stages: [
+    [{ at: 1, kind: 'barbs', count: 4, per: 1 }],
+    [{ at: 2, kind: 'pods', count: 3 }],
+    [{ at: 3, kind: 'tendrils', count: 4 }],
+  ] },
 };
 
 /** The minimal hero shape the composer needs (mirrors heroEvolution.ts). */

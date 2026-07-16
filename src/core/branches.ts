@@ -607,6 +607,58 @@ const BRANCHES: Branch[] = [
       { tier: 5, name: 'The Dissolving Point', desc: 'The victim becomes the weapon: a wide melting blast and acid on everything near it.', damageMult: 1.2, particle: 'dissolve', impact: 'dissolve', grants: [{ t: 'ability', components: [{ type: 'explosion', radius: 130, damage: 30, react: true, particle: 'dissolve' }, { type: 'debuff', radius: 120, status: { kind: 'Corrosion', amount: 2 } }] }, { t: 'cosmetic', id: 'dissolvepoint' }] },
     ],
   },
+
+  // ════════════ BASILISK MAW (Neural, 'homing' petrifier — ARENA EXCLUSIVE) ════════════
+  // The stare. EVENT HORIZON perfects the STOP (deeper freezes, wider static); STONE GARDEN
+  // turns the petrified into ordnance (cracks, bursts on the stone). Zero new verbs.
+  {
+    id: 'basilisk_horizon', tower: 'basilisk', name: 'Event Horizon',
+    theme: 'The stare widens until the charge itself is a memory — nothing it watches arrives.',
+    tiers: [
+      { tier: 1, name: 'Second Iris', desc: 'The static spreads — Disruption around every stone.', damageMult: 1.1, particle: 'disrupt', sfx: 'br_amber', impact: 'disrupt', grants: [{ t: 'ability', components: [{ type: 'debuff', radius: 80, status: { kind: 'Disruption', amount: 0.6 } }] }] },
+      { tier: 2, name: 'Deep Stone', desc: 'The petrification HOLDS longer.', damageMult: 1.08, grants: [{ t: 'ability', components: [{ type: 'status', status: { kind: 'Freeze', amount: 0.4 } }] }] },
+      { tier: 3, name: 'Wide Court', desc: 'The eye sees farther — and its static reaches with it.', rangeMult: 1.1, fireRateMult: 1.06, grants: [{ t: 'ability', components: [{ type: 'status', status: { kind: 'Disruption', amount: 0.4 } }] }] },
+      { tier: 4, name: 'Paralytic Field', desc: 'The static becomes a FIELD — deep Disruption around the verdict.', damageMult: 1.1, particle: 'railburst', impact: 'railburst', grants: [{ t: 'ability', components: [{ type: 'debuff', radius: 110, status: { kind: 'Disruption', amount: 0.9 } }] }] },
+      { tier: 5, name: 'The Event Horizon', desc: 'Past this line nothing moves — long stone, wide static, a colder verdict.', damageMult: 1.2, particle: 'railburst', impact: 'railburst', grants: [{ t: 'ability', components: [{ type: 'status', status: { kind: 'Freeze', amount: 0.5 } }, { type: 'debuff', radius: 120, status: { kind: 'Disruption', amount: 0.8 } }] }, { t: 'cosmetic', id: 'horizon' }] },
+    ],
+  },
+  {
+    id: 'basilisk_garden', tower: 'basilisk', name: 'Stone Garden',
+    theme: 'What the stare stops, the garden SHATTERS — the petrified are ordnance now.',
+    tiers: [
+      { tier: 1, name: 'Cracking Gaze', desc: 'The stone CRACKS — Fracture rides the bolt (Shear fuel).', damageMult: 1.12, particle: 'shred', sfx: 'br_siege', impact: 'shred', grants: [{ t: 'ability', components: [{ type: 'status', status: { kind: 'Fracture', amount: 1 } }] }] },
+      { tier: 2, name: 'Splinter Verdict', desc: 'The impact bursts — damage around the stone.', damageMult: 1.1, grants: [{ t: 'ability', components: [{ type: 'explosion', radius: 70, damage: 16 }] }] },
+      { tier: 3, name: 'Heavier Sentences', desc: 'The bolt lands crueler, quicker — and cracks as it lands.', damageMult: 1.1, fireRateMult: 1.06, grants: [{ t: 'ability', components: [{ type: 'status', status: { kind: 'Fracture', amount: 1 } }] }] },
+      { tier: 4, name: 'Shattering Stare', desc: 'Deeper cracks — and a vicious critical verdict.', damageMult: 1.1, particle: 'railburst', impact: 'railburst', grants: [{ t: 'ability', components: [{ type: 'crit', chance: 0.25, mult: 2.2, damage: 30 }, { type: 'status', status: { kind: 'Fracture', amount: 1 } }] }] },
+      { tier: 5, name: 'The Stone Garden', desc: 'Every statue is a bomb the next bolt sets off.', damageMult: 1.22, particle: 'railburst', impact: 'railburst', grants: [{ t: 'ability', components: [{ type: 'explosion', radius: 95, damage: 30 }, { type: 'status', status: { kind: 'Fracture', amount: 2 } }] }, { t: 'cosmetic', id: 'garden' }] },
+    ],
+  },
+
+  // ════════════ OSSUARY CHOIR (Resonant, 'field' chord organ — ARENA EXCLUSIVE) ════════════
+  // The hymn. REQUIEM ENGINE weds the chord to Fracture and weight; ETERNAL CHORUS deepens the
+  // resonance and tempo. Both stack extra chords on the toll cadence — no new verbs.
+  {
+    id: 'ossuary_requiem', tower: 'ossuary', name: 'Requiem Engine',
+    theme: 'The hymn turns funerary — every chord cracks the pallbearers and shears what it cracked.',
+    tiers: [
+      { tier: 1, name: 'Leaden Chord', desc: 'The chord CRACKS — Fracture rides every hymn (Shear fuel).', damageMult: 1.15, particle: 'shred', sfx: 'br_siege', impact: 'shred', grants: [{ t: 'ability', components: [{ type: 'debuff', radius: 245, status: { kind: 'Fracture', amount: 1 } }] }] },
+      { tier: 2, name: 'Grave Meter', desc: 'A heavier hymn — the chord lands twice.', damageMult: 1.1, grants: [{ t: 'ability', components: [{ type: 'aura', radius: 250, damage: 10, react: true }] }] },
+      { tier: 3, name: 'Mourning Register', desc: 'The requiem deepens — more cracks per chord, sooner.', fireRateMult: 1.08, grants: [{ t: 'ability', components: [{ type: 'debuff', radius: 250, status: { kind: 'Fracture', amount: 1 } }] }] },
+      { tier: 4, name: 'Sepulchral Chord', desc: 'The hymn becomes a BLOW — heavy reacting damage in the nave.', damageMult: 1.15, particle: 'railburst', impact: 'railburst', grants: [{ t: 'ability', components: [{ type: 'aura', radius: 260, damage: 15, react: true }] }] },
+      { tier: 5, name: 'The Requiem Engine', desc: 'One chord and the yard is a reliquary — deep cracks, then the shear.', damageMult: 1.25, particle: 'railburst', impact: 'railburst', grants: [{ t: 'ability', components: [{ type: 'debuff', radius: 265, status: { kind: 'Fracture', amount: 2 } }, { type: 'aura', radius: 265, damage: 17, react: true }] }, { t: 'cosmetic', id: 'requiem' }] },
+    ],
+  },
+  {
+    id: 'ossuary_chorus', tower: 'ossuary', name: 'Eternal Chorus',
+    theme: 'The choir learns harmony with itself — faster hymns, deeper resonance, a nave that never falls silent.',
+    tiers: [
+      { tier: 1, name: 'Borrowed Throat', desc: 'A second resonant coat rides each chord.', fireRateMult: 1.12, particle: 'spark', sfx: 'br_amber', impact: 'spark', grants: [{ t: 'ability', components: [{ type: 'aura', radius: 250, status: { kind: 'Resonance', amount: 1 } }] }] },
+      { tier: 2, name: 'Standing Hymn', desc: 'The nave widens and bites as it holds.', rangeMult: 1.12, grants: [{ t: 'ability', components: [{ type: 'aura', radius: 260, damage: 6, react: true }] }] },
+      { tier: 3, name: 'Fourth Harmonic', desc: 'Another harmonic — resonance stacks faster still.', fireRateMult: 1.1, grants: [{ t: 'ability', components: [{ type: 'aura', radius: 255, status: { kind: 'Resonance', amount: 1 } }] }] },
+      { tier: 4, name: 'Numbing Psalm', desc: 'The hymn NUMBS — Disruption hums under the chord.', fireRateMult: 1.08, particle: 'railburst', impact: 'railburst', grants: [{ t: 'ability', components: [{ type: 'debuff', radius: 255, status: { kind: 'Disruption', amount: 0.7 } }] }] },
+      { tier: 5, name: 'The Eternal Chorus', desc: 'The choir sings in chords of chords — deep resonance and a biting, reacting nave.', damageMult: 1.15, fireRateMult: 1.15, particle: 'railburst', impact: 'railburst', grants: [{ t: 'ability', components: [{ type: 'aura', radius: 275, damage: 11, status: { kind: 'Resonance', amount: 2 }, react: true }] }, { t: 'cosmetic', id: 'eternal' }] },
+    ],
+  },
 ];
 
 branchRegistry.registerAll(BRANCHES);

@@ -759,7 +759,59 @@ const LANCET_PATH: StarPath = {
   ],
 };
 
-starPathRegistry.registerAll([NEEDLE, MORTAR, PARASITE, OBELISK, REACTOR, MAW, CHRYSALIS, EFFIGY, COIL, SIPHON_PATH, SOWER_PATH, SPIRE_PATH, POLYP_PATH, SPITFANG_PATH, RIFT_PATH, GLAIVE_PATH, ROOST_PATH, LUNG_PATH, BELL_PATH, LANCET_PATH]);
+// ── THE ARENA EXCLUSIVES (docs/ARENA.md §6) — the Pass crowns' permanent ★ ladders. ──
+// Basilisk Maw: the stare deepens — heavier sentences, longer freezes, more eyes.
+const BASILISK_PATH: StarPath = {
+  tower: 'basilisk',
+  steps: [
+    { star: 1, name: 'Second Lid', kind: 'interaction', desc: 'The static thickens — deeper Disruption around every stone.', grants: [{ t: 'ability', components: [{ type: 'status', status: { kind: 'Disruption', amount: 0.5 } }] }] },
+    { star: 2, name: 'Heavier Sentence', kind: 'attack', desc: 'The bolt lands like a verdict — a biting follow-strike.', grants: [{ t: 'ability', components: [{ type: 'crit', chance: 0.25, mult: 2, damage: 22 }] }] },
+    {
+      star: 3, name: 'Stare Doctrine', kind: 'fork', desc: 'Choose the gaze (re-pick any run).',
+      fork: [
+        { id: 'warden', name: 'Warden Stare', desc: 'The eye leads the RUNNERS — it stones the fastest prey.', grants: [{ t: 'targeting', profile: 'fastest' }] },
+        { id: 'judge', name: 'Judge Stare', desc: 'The eye takes the MONSTER — it stones the biggest body.', grants: [{ t: 'targeting', profile: 'highestHealth' }] },
+      ],
+    },
+    { star: 4, name: 'Longer Stone', kind: 'interaction', desc: 'The petrification HOLDS — a deeper freeze in the struck.', grants: [{ t: 'ability', components: [{ type: 'status', status: { kind: 'Freeze', amount: 0.5 } }] }] },
+    {
+      star: 5, name: 'Apex Stare', kind: 'fork', desc: 'Signature transformation.',
+      fork: [
+        { id: 'gorgon', name: 'Gorgon Court', desc: 'A SECOND stare per judgment, hunting its own body.', grants: [{ t: 'projectile', extraProjectiles: 1 }] },
+        { id: 'abyssal', name: 'Abyssal Gaze', desc: 'The stone CRACKS — heavy damage and Fracture on the petrified.', grants: [{ t: 'ability', components: [{ type: 'explosion', radius: 70, damage: 30 }, { type: 'status', status: { kind: 'Fracture', amount: 1 } }] }] },
+      ],
+    },
+    { star: 7, name: 'Council of Eyes', kind: 'interaction', desc: 'Secondary pupils open — static and stone spread wider.', grants: [{ t: 'ability', components: [{ type: 'debuff', radius: 80, status: { kind: 'Disruption', amount: 0.6 } }] }] },
+    { star: 9, name: 'The Lidless Verdict', kind: 'capstone', desc: 'Nothing it sees finishes its charge.', grants: [{ t: 'ability', components: [{ type: 'crit', chance: 0.35, mult: 2.4, damage: 40 }, { type: 'status', status: { kind: 'Freeze', amount: 0.4 } }] }, { t: 'cosmetic', id: 'lidless' }] },
+  ],
+};
+// Ossuary Choir: the hymn swells — harder chords, wider naves, deeper resonance.
+const OSSUARY_PATH: StarPath = {
+  tower: 'ossuary',
+  steps: [
+    { star: 1, name: 'Second Voice', kind: 'attack', desc: 'A second throat joins — the chord bites again.', grants: [{ t: 'ability', components: [{ type: 'aura', radius: 255, damage: 10, react: true }] }] },
+    { star: 2, name: 'Marrow Note', kind: 'interaction', desc: 'The note settles in the BONE — another resonant coat per chord.', grants: [{ t: 'ability', components: [{ type: 'aura', radius: 255, status: { kind: 'Resonance', amount: 1 } }] }] },
+    {
+      star: 3, name: 'Hymn Doctrine', kind: 'fork', desc: 'Choose the hymn (re-pick any run).',
+      fork: [
+        { id: 'requiem', name: 'Requiem', desc: 'The hymn CRACKS shells — Fracture rides the chord (Shear fuel).', grants: [{ t: 'ability', components: [{ type: 'debuff', radius: 250, status: { kind: 'Fracture', amount: 1 } }] }] },
+        { id: 'vigil', name: 'Vigil', desc: 'The hymn NUMBS — Disruption hums under the chord.', grants: [{ t: 'ability', components: [{ type: 'debuff', radius: 250, status: { kind: 'Disruption', amount: 0.7 } }] }] },
+      ],
+    },
+    { star: 4, name: 'Fused Ribwork', kind: 'attack', desc: 'The chamber deepens — a heavier chord.', grants: [{ t: 'ability', components: [{ type: 'aura', radius: 260, damage: 12, react: true }] }] },
+    {
+      star: 5, name: 'Apex Requiem', kind: 'fork', desc: 'Signature transformation.',
+      fork: [
+        { id: 'bass', name: 'Sepulchre Bass', desc: 'The DEEP chord — a colossal resonant slam that primes as it wounds.', grants: [{ t: 'ability', components: [{ type: 'aura', radius: 275, damage: 20, status: { kind: 'Resonance', amount: 1 }, react: true, particle: 'railburst' }] }] },
+        { id: 'descant', name: 'Screaming Descant', desc: 'The HIGH chord — faster harmonics, another coat, a numbing edge.', grants: [{ t: 'ability', components: [{ type: 'aura', radius: 265, status: { kind: 'Resonance', amount: 1 } }, { type: 'debuff', radius: 265, status: { kind: 'Disruption', amount: 0.6 } }] }] },
+      ],
+    },
+    { star: 7, name: 'Choir of Choirs', kind: 'interaction', desc: 'The harmonics stack — more resonance, more bite, every chord.', grants: [{ t: 'ability', components: [{ type: 'aura', radius: 270, damage: 8, status: { kind: 'Resonance', amount: 1 }, react: true }] }] },
+    { star: 9, name: 'The Last Hymn', kind: 'capstone', desc: 'One chord and the yard is already singing itself apart.', grants: [{ t: 'ability', components: [{ type: 'aura', radius: 290, damage: 22, status: { kind: 'Resonance', amount: 2 }, react: true, particle: 'railburst' }] }, { t: 'cosmetic', id: 'lasthymn' }] },
+  ],
+};
+
+starPathRegistry.registerAll([NEEDLE, MORTAR, PARASITE, OBELISK, REACTOR, MAW, CHRYSALIS, EFFIGY, COIL, SIPHON_PATH, SOWER_PATH, SPIRE_PATH, POLYP_PATH, SPITFANG_PATH, RIFT_PATH, GLAIVE_PATH, ROOST_PATH, LUNG_PATH, BELL_PATH, LANCET_PATH, BASILISK_PATH, OSSUARY_PATH]);
 
 /** The fork steps of a tower's path (for the loadout UI). */
 export function forksOf(tower: TowerKind): StarFork[] {

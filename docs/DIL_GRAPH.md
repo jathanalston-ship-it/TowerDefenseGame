@@ -1,6 +1,6 @@
 # DIL_GRAPH.md — the Design Intelligence Layer (GENERATED — `npm run dil -- regen`)
 
-> **The project's brain** (docs/DIL.md). 838 nodes · 1549 edges, built from the live
+> **The project's brain** (docs/DIL.md). 841 nodes · 1555 edges, built from the live
 > registries + curated knowledge (src/dev/dil/). **Query it instead of searching the repo:**
 > `npm run dil -- node <id>` · `affects <id>` · `requires <id>` · `missing <kind> <edge>` ·
 > `checklist tower <kind>` · `find <text>`. Edge kinds are bidirectional (19 kinds).
@@ -14,11 +14,11 @@
 
 ### Gameplay Index
 
-`tower:needle` · `tower:mortar` · `tower:reactor` · `tower:parasite` · `tower:obelisk` · `tower:maw` · `tower:chrysalis` · `tower:effigy` · `tower:coil` · `tower:siphon` · `tower:sower` · `tower:spire` · `tower:polyp` · `tower:spitfang` · `tower:rift` · `tower:glaive` · `tower:roost` · `tower:lung` · `tower:bell` · `tower:lancet` · `hero:ravager` · `hero:shepherd` · `hero:overseer` · `hero:vitriol` · `hero:revenant` · `hero:knell` · `hero:wyrm` · `hero:riptide` · `hero:carrion` · `hero:fovea` · `enemy:runner` · `enemy:mite` · `enemy:husk` · `enemy:flea` · `enemy:mold` · `enemy:skulker` · `enemy:larva` · `enemy:rusher` · `enemy:darter` · `enemy:lasher` · `enemy:brute` · `enemy:tank` · `enemy:golem` · `enemy:colossus` · `enemy:bulwark` · `enemy:warden` · `enemy:knitter` · `enemy:revenant` · `enemy:burrower` · `enemy:molerat` · `enemy:flyer` · `enemy:wisp` · `enemy:gargoyle` · `enemy:cystwraith` · `enemy:broodmother` · `enemy:hivecaller` · `enemy:mender` · `enemy:cantor` · `enemy:bomber` · `enemy:popper` · …44 more
+`tower:needle` · `tower:mortar` · `tower:reactor` · `tower:parasite` · `tower:obelisk` · `tower:maw` · `tower:chrysalis` · `tower:effigy` · `tower:coil` · `tower:siphon` · `tower:sower` · `tower:spire` · `tower:polyp` · `tower:spitfang` · `tower:rift` · `tower:glaive` · `tower:roost` · `tower:lung` · `tower:bell` · `tower:lancet` · `tower:basilisk` · `tower:ossuary` · `hero:ravager` · `hero:shepherd` · `hero:overseer` · `hero:vitriol` · `hero:revenant` · `hero:knell` · `hero:wyrm` · `hero:riptide` · `hero:carrion` · `hero:fovea` · `hero:chimera` · `enemy:runner` · `enemy:mite` · `enemy:husk` · `enemy:flea` · `enemy:mold` · `enemy:skulker` · `enemy:larva` · `enemy:rusher` · `enemy:darter` · `enemy:lasher` · `enemy:brute` · `enemy:tank` · `enemy:golem` · `enemy:colossus` · `enemy:bulwark` · `enemy:warden` · `enemy:knitter` · `enemy:revenant` · `enemy:burrower` · `enemy:molerat` · `enemy:flyer` · `enemy:wisp` · `enemy:gargoyle` · `enemy:cystwraith` · `enemy:broodmother` · `enemy:hivecaller` · `enemy:mender` · …47 more
 
 ### Progression Index
 
-`system:campaign` · `system:accounts` · `system:premium` · `system:towers` · `system:loot` · `system:gene-cards` · `system:quests` · `system:progression-gating` · `system:hub-shell` · `system:meta-store` · `system:mega-bosses` · `system:cutscenes` · `system:security` · `system:doctrines` · `concept:progression-gates` · `currency:tower-shards` · `tower:maw` · `tower:chrysalis` · `tower:effigy` · `tower:coil` · `tower:siphon` · `tower:sower` · `tower:spire` · `tower:polyp` · `tower:spitfang` · `tower:rift` · `tower:glaive` · `tower:roost` · `tower:lung` · `tower:bell` · `tower:lancet` · `hero:vitriol` · `hero:revenant` · `hero:knell` · `hero:wyrm` · `hero:riptide` · `hero:carrion`
+`system:campaign` · `system:accounts` · `system:premium` · `system:towers` · `system:loot` · `system:gene-cards` · `system:quests` · `system:progression-gating` · `system:hub-shell` · `system:meta-store` · `system:mega-bosses` · `system:cutscenes` · `system:security` · `system:doctrines` · `concept:progression-gates` · `currency:tower-shards` · `tower:maw` · `tower:chrysalis` · `tower:effigy` · `tower:coil` · `tower:siphon` · `tower:sower` · `tower:spire` · `tower:polyp` · `tower:spitfang` · `tower:rift` · `tower:glaive` · `tower:roost` · `tower:lung` · `tower:bell` · `tower:lancet` · `hero:vitriol` · `hero:revenant` · `hero:knell` · `hero:wyrm` · `hero:riptide` · `hero:carrion` · `hero:chimera`
 
 ### Economy / Reward Index
 
@@ -593,6 +593,7 @@ Depth/stage/shard requirements that stage content unlocks (towers, heroes, cards
   - gates → `hero:wyrm` — progression unlock requirement
   - gates → `hero:riptide` — progression unlock requirement
   - gates → `hero:carrion` — progression unlock requirement
+  - gates → `hero:chimera` — progression unlock requirement
   - gates → `system:gene-cards` — 44 cards unlock by progression
   - gates → `system:towers` — locked kinds carry unlockShards + stage requirements
   - requiredBy ← `system:doctrines` — unlockStage campaign gates + doctrineRuns grandfathering (save/derive.ts)
@@ -648,7 +649,7 @@ THE run currency — dropped by kills, spent on towers/upgrades; dies with the r
   - consumedBy ← `tower:siphon` — placement cost 175
   - consumedBy ← `tower:sower` — placement cost 130
   - consumedBy ← `tower:spire` — placement cost 150
-  - _…53 more (query: `npm run dil -- node currency:biomass`)_
+  - _…55 more (query: `npm run dil -- node currency:biomass`)_
 
 ### `currency:genome-cores` — Genome Cores (◆)
 
@@ -1096,7 +1097,7 @@ _at: src/core/stars.ts, src/core/branches.ts, src/core/branchTree.ts, src/core/s
   - contains ← `tower:maw`
   - contains ← `tower:chrysalis`
   - contains ← `tower:effigy`
-  - _…34 more (query: `npm run dil -- node system:towers`)_
+  - _…36 more (query: `npm run dil -- node system:towers`)_
 
 ### `system:mastery` — Mastery / Adaptation
 
@@ -1163,7 +1164,7 @@ _at: src/core/heroIdentity.ts, src/core/heroLore.ts, src/core/heroEvolution.ts, 
   - contains ← `hero:revenant`
   - contains ← `hero:knell`
   - contains ← `hero:wyrm`
-  - _…16 more (query: `npm run dil -- node system:heroes`)_
+  - _…17 more (query: `npm run dil -- node system:heroes`)_
 
 ### `system:hero-cinematics` — Hero Ability Cinematics
 
@@ -2295,7 +2296,7 @@ _at: src/dev/*, src/dev/dil/*_
   - testedBy ← `test:src/dev/progressionSim.test.ts`
   - _…3 more (query: `npm run dil -- node system:dev-registry`)_
 
-## Towers (20)
+## Towers (22)
 
 ### `tower:needle` — Needle Spitter
 
@@ -2492,7 +2493,25 @@ _at: src/core/config.ts TOWER_DEFS_
   - consumes → `currency:biomass` — placement cost 185
   - gatedBy ← `currency:tower-shards` — 560 shards to unlock
 
-## Heroes (10)
+### `tower:basilisk` — Basilisk Maw
+
+A lidless arena-bred eye on a calcified stalk. Its stare CALCIFIES — the struck body petrifies mid-stride, and the panic that follows never arrives in time.
+
+_at: src/core/config.ts TOWER_DEFS_
+
+  - partOf → `system:towers`
+  - consumes → `currency:biomass` — placement cost 190
+
+### `tower:ossuary` — Ossuary Choir
+
+A choir of fused ribcages that sings in graveyard harmonics. Every CHORD slams the crowd, rings Resonance into the bone, and detonates whatever the last chord primed.
+
+_at: src/core/config.ts TOWER_DEFS_
+
+  - partOf → `system:towers`
+  - consumes → `currency:biomass` — placement cost 210
+
+## Heroes (11)
 
 ### `hero:ravager` — Ravager
 
@@ -2579,6 +2598,15 @@ The eye opens fully: a single annihilating psionic lance that holds the target i
 _at: src/core/config.ts HERO_DEFS_
 
   - partOf → `system:heroes`
+
+### `hero:chimera` — Chimera
+
+The amalgam remembers every arena it has won: a colossal slam that infects everything caught under the landing.
+
+_at: src/core/config.ts HERO_DEFS_
+
+  - partOf → `system:heroes`
+  - gatedBy ← `concept:progression-gates` — progression unlock requirement
 
 ## Enemies (44)
 

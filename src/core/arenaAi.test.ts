@@ -60,7 +60,7 @@ describe('account generation', () => {
         const ai = generateAiOpponent(seed, 2000 + div * 4000, div);
         const roster = ai.boot.opts.unlocked ?? [];
         for (const k of roster) expect(TOWER_ORDER).toContain(k);
-        for (const starter of TOWER_ORDER.filter((k) => !TOWER_DEFS[k].unlockShards)) {
+        for (const starter of TOWER_ORDER.filter((k) => !TOWER_DEFS[k].unlockShards && !TOWER_DEFS[k].arenaExclusive)) {
           expect(roster).toContain(starter);
         }
         expect(roster).toContain(ai.boot.opts.favorite);

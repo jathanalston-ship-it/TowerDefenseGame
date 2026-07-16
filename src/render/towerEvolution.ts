@@ -38,6 +38,7 @@ export const BRANCH_COLOR: Record<string, string> = {
   lung_plague: '#ff8ae6', lung_choke: '#c0e84a',
   bell_dirge: '#d8b06a', bell_chorus: '#f0e0b0',
   lancet_headsman: '#f0f06a', lancet_venom: '#9fe06a',
+  basilisk_horizon: '#c9a8ff', basilisk_garden: '#9a7fe0', ossuary_requiem: '#d8ceb0', ossuary_chorus: '#f2ecd8',
 };
 
 /** The reusable "organ" vocabulary — each maps to a small pure drawer in PART_DRAWERS. */
@@ -514,6 +515,52 @@ export const BRANCH_EVOLUTION: Record<string, BranchEvolution> = {
       { at: 3, kind: 'organs', count: 3 }, // venom glands
       { at: 4, kind: 'barbs', count: 4 }, // bile-dipped heads
       { at: 5, kind: 'nova' }, // the dissolving point
+    ],
+  },
+  // BASILISK (ARENA) ─────────────────────────────────────────────────────────
+  basilisk_horizon: {
+    color: BRANCH_COLOR.basilisk_horizon, growth: 0.05,
+    parts: [
+      { at: 1, kind: 'halo' },
+      { at: 1, kind: 'glyphRing' }, // the widening iris
+      { at: 2, kind: 'ripples', count: 2 }, // static made visible
+      { at: 3, kind: 'arcs', count: 2, per: 1 }, // the paralytic field's reach
+      { at: 4, kind: 'organs', count: 3 }, // secondary pupils
+      { at: 5, kind: 'nova' }, // the event horizon
+    ],
+  },
+  basilisk_garden: {
+    color: BRANCH_COLOR.basilisk_garden, growth: 0.055,
+    parts: [
+      { at: 1, kind: 'halo' },
+      { at: 1, kind: 'spikes', count: 3 }, // calcite splinters
+      { at: 2, kind: 'armor', count: 3, per: 1 }, // stone plating, heavier per tier
+      { at: 3, kind: 'barbs', count: 4 }, // shattering quills
+      { at: 4, kind: 'crown', count: 5 }, // the garden's statuary crest
+      { at: 5, kind: 'nova' }, // the stone garden
+    ],
+  },
+  // OSSUARY (ARENA) ───────────────────────────────────────────────────────────
+  ossuary_requiem: {
+    color: BRANCH_COLOR.ossuary_requiem, growth: 0.055,
+    parts: [
+      { at: 1, kind: 'halo' },
+      { at: 1, kind: 'armor', count: 3, per: 1 }, // leaden rib-plating
+      { at: 2, kind: 'spikes', count: 4 }, // funerary spurs
+      { at: 3, kind: 'organs', count: 3 }, // grave-weight chambers
+      { at: 4, kind: 'crown', count: 5 }, // the requiem crest
+      { at: 5, kind: 'nova' }, // the requiem engine
+    ],
+  },
+  ossuary_chorus: {
+    color: BRANCH_COLOR.ossuary_chorus, growth: 0.05,
+    parts: [
+      { at: 1, kind: 'halo' },
+      { at: 1, kind: 'glyphRing' }, // the harmonic ring
+      { at: 2, kind: 'arcs', count: 2, per: 1 }, // hymns made visible
+      { at: 3, kind: 'ripples', count: 2 }, // standing chords
+      { at: 4, kind: 'organs', count: 3 }, // new throats
+      { at: 5, kind: 'nova' }, // the eternal chorus
     ],
   },
 };

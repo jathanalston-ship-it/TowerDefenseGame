@@ -78,6 +78,10 @@ export interface TowerDef {
    *  gate (shards drop from the start, like maw/chrysalis/effigy). Pairs with unlockShards so a gated
    *  tower (Resonance Coil, Marrow Siphon) is DOUBLY gated: reach the stage, THEN grind its shards. */
   unlockStage?: number;
+  /** ARENA EXCLUSIVE (docs/ARENA.md §6): acquisition is ONLY the Arena Pass level-100 crown —
+   *  never a starter, never in the shard pool, never claimable in the Tower Lab. Meta's
+   *  towerShardGateMet / unlockTower and saveStore's starterTowers all honor this flag. */
+  arenaExclusive?: boolean;
 }
 
 export const TOWER_DEFS: Record<TowerKind, TowerDef> = {
@@ -449,6 +453,51 @@ export const TOWER_DEFS: Record<TowerKind, TowerDef> = {
       { type: 'status', status: { kind: 'Corrosion', amount: 2 } }, // the melting wound — Shred/Putrefy/Melt fuel on the culled
     ],
   },
+  // ── THE ARENA EXCLUSIVES (docs/ARENA.md §6) — the Pass's alternating level-100 crowns.
+  //    NO other acquisition path exists: no shards, no stage gate, no market, no containers —
+  //    `arenaExclusive: true` removes them from the starter set, the shard pool and the Tower
+  //    Lab claim flow; meta.grantArenaExclusive is the ONLY unlock. Both are composed purely
+  //    from existing verbs (TowerDef.abilities — the reaction-trio precedent): zero sim code.
+  basilisk: {
+    kind: 'basilisk',
+    name: 'Basilisk Maw',
+    combatClass: 'Neural',
+    firing: 'homing', // a calcifying gaze-bolt — the petrifier (Season A's crown)
+    arenaExclusive: true,
+    cost: 190,
+    range: 560, // a rear-line CONTROL sniper — it stops the charge you can already see
+    fireInterval: 2.6, // deliberate — every stare picks the body that most needs stopping
+    damage: 48, // control first, damage second: the freeze IS the value
+    projectileSpeed: 900,
+    splash: 0,
+    color: '#b48cff',
+    blurb: 'A lidless arena-bred eye on a calcified stalk. Its stare CALCIFIES — the struck body petrifies mid-stride, and the panic that follows never arrives in time.',
+    // The petrifier identity: a single guided bolt that FREEZES (the engine's refractory window
+    // keeps chains honest) and leaves Neural static behind — control layered on control.
+    abilities: [
+      { type: 'projectile', behavior: 'homing', damage: 48, speed: 900, range: 560 },
+      { type: 'status', status: { kind: 'Freeze', amount: 1.1 } }, // petrify — the stare's sentence
+      { type: 'status', status: { kind: 'Disruption', amount: 0.8 } }, // the static after the stone
+    ],
+  },
+  ossuary: {
+    kind: 'ossuary',
+    name: 'Ossuary Choir',
+    combatClass: 'Resonant',
+    firing: 'field', // a bone-organ CHORD — the third Resonant voice (Season B's crown)
+    arenaExclusive: true,
+    cost: 210,
+    range: 250, // a heavy mid-field footprint — the choir sings over the thick of it
+    fireInterval: 2.8, // slow liturgical chords — each one slams, coats and DETONATES what is primed
+    damage: 34, // the hardest resonant field hit — paid for by cadence and the arena grind
+    projectileSpeed: 0,
+    splash: 0,
+    color: '#e6e0c8',
+    blurb: 'A choir of fused ribcages that sings in graveyard harmonics. Every CHORD slams the crowd, rings Resonance into the bone, and detonates whatever the last chord primed.',
+    // The self-sufficient resonant: like the Bell it primes, but its chord also REACTS — a solo
+    // Ossuary cycles prime→detonate on its own cadence; pairing it with stackers goes nova.
+    abilities: [{ type: 'aura', radius: 250, damage: 34, status: { kind: 'Resonance', amount: 1 }, react: true, particle: 'disrupt' }],
+  },
 };
 
 /** Resonance Beam tunables (Resonance Coil, firing 'beam'). The beam deals CONTINUOUS damage each
@@ -534,6 +583,8 @@ export const BRANCH_COSTS: Record<TowerKind, readonly [number, number, number, n
   lung: [800, 3400, 14000, 50000, 185000], // the zone infector — sits with effigy/sower
   bell: [900, 3800, 15000, 55000, 200000], // the reaction primer — premium control band (obelisk/spire)
   lancet: [920, 3900, 15500, 56000, 205000], // the executioner — premium, just under the rift's ladder
+  basilisk: [900, 3800, 15000, 55000, 200000], // the arena petrifier — crown content, obelisk-band ladder
+  ossuary: [950, 4000, 16000, 58000, 210000], // the arena choir — crown content, the deep resonant ladder
 };
 
 /** Returning-blade tunables (Wyrmwing Glaive, firing 'arc' — docs/TOWERS.md §glaive).
@@ -638,7 +689,7 @@ export function towerFireCue(kind: TowerKind): string {
     case 'needle': case 'spire': case 'spitfang': return 'tfire_tick'; // a sharp kinetic/synaptic snap (autocannon included — gap caught by the DIL checklist)
     case 'mortar': case 'glaive': case 'lancet': return 'tfire_thud'; // a heavy lobbed thud / a heavy blade or harpoon release
     case 'parasite': case 'maw': case 'polyp': case 'sower': case 'roost': case 'lung': return 'tfire_wet'; // a wet organic blip (the roost's is its HATCH — played by roostSystem; the lung's is its exhale)
-    case 'obelisk': case 'effigy': return 'tfire_zap'; // a psionic zap
+    case 'obelisk': case 'effigy': case 'basilisk': return 'tfire_zap'; // a psionic zap / the petrifying stare's discharge
     case 'chrysalis': case 'bell': return 'tfire_ting'; // a crystalline ting / the bell's toll
     default: return ''; // coil/siphon beams + reactor support + roost brood have their own identity
   }
@@ -1291,7 +1342,8 @@ export type HeroUnlockReq =
   | { kind: 'infiniteDepth'; wave: number; label: string }
   | { kind: 'molts'; count: number; label: string }
   | { kind: 'megaSlain'; count: number; label: string } // Riptide — the tide rises where leviathans fell
-  | { kind: 'lifetimeKills'; count: number; label: string }; // Carrion — fed by the mountain of your dead
+  | { kind: 'lifetimeKills'; count: number; label: string } // Carrion — fed by the mountain of your dead
+  | { kind: 'arena'; label: string }; // Chimera — the Arena Pass level-100 crown; NO other path (docs/ARENA.md §6)
 
 // ── Hero ability CINEMATICS (docs/HERO-CINEMATICS.md) — every ability cast plays a procedural
 // set-piece PERFORMANCE (the Cinderwyrm's breath is a dragon swooping the lane, the Fovea's
@@ -1692,6 +1744,34 @@ export const HERO_DEFS: Record<HeroKind, HeroDef> = {
       { star: 8, options: [
         { id: 'terminal', name: 'Terminal Glare', blurb: 'Pinning Glare becomes a sentence — one look, one corpse.', upgrades: [{ target: 0, name: 'Terminal Glare', mulDamage: 2.2, mulRadius: 0.6, setMinEnemies: 1, particle: 'heroLance', fxColor: '#f4efff' }] },
         { id: 'allseeing', name: 'The All-Seeing', blurb: 'Panopticon becomes total surveillance — nothing moves unwatched.', upgrades: [{ target: 1, name: 'The All-Seeing', mulRadius: 1.5, addDisrupt: 1.0, particle: 'heroMote', fxColor: '#c4b5ff' }] },
+      ] },
+    ],
+  },
+  chimera: {
+    // THE ARENA CHAMPION (docs/ARENA.md §6) — the proving grounds' own spliced amalgam, grown
+    // from trophy-tissue of every strain that ever won there. A front-line DUELIST on the dive
+    // brain (the Ravager's) whose kit is the arena's tempo in miniature: a colossal opening slam,
+    // a self-stitch mid-round, a finishing cleave. Zero new sim verbs — every ability composes
+    // the existing explosion/heal/status primitives. ARENA EXCLUSIVE: unlock.kind 'arena' —
+    // meta.grantArenaExclusive (the Pass level-100 crown) is the ONLY path; no shards ever drop.
+    kind: 'chimera', name: 'Chimera', combatClass: 'Viral', behavior: 'dive', color: '#d24dff',
+    unlock: { kind: 'arena', label: 'Arena Pass — the season crown (Level 100)' },
+    maxHp: 300, speed: 128, attackRange: 46, attackInterval: 0.85, attackDamage: 22, attackFracture: 1,
+    aggroRange: 1400, contactRange: 26, respawnTime: 9,
+    pulseInterval: 0, pulseRadius: 0, pulseDamage: 0, pulseDisrupt: 0, nucleusRegen: 0,
+    ability: { name: 'Trophy Slam', blurb: 'The amalgam remembers every arena it has won: a colossal slam that infects everything caught under the landing.', cooldown: 11, radius: 130, damage: 85, fracture: 1, disrupt: 0.6, heal: 0, particle: 'heroBurst', fxColor: '#e88bff', cinematic: { actor: 'beast', motion: 'lunge', impactDelay: 0.4 } },
+    skills: [
+      { name: 'Splice-Stitch', blurb: 'The grafts close over the wounds — a deep self-mend woven from stolen tissue.', cooldown: 12, radius: 0, damage: 0, fracture: 0, disrupt: 0, heal: 90, castOn: 'self', minEnemies: 0, particle: 'heroBloom', fxColor: '#8bffc9', cinematic: { actor: 'beast', motion: 'self', impactDelay: 0 } },
+      { name: 'Victor\'s Cleave', blurb: 'The finishing sweep — a wide infected cleave through everything in reach.', cooldown: 8, radius: 96, damage: 40, fracture: 1, disrupt: 0, heal: 0, castOn: 'target', minEnemies: 2, particle: 'heroSlash', fxColor: '#d24dff', cinematic: { actor: 'beast', motion: 'swoop', impactDelay: 0.3 } },
+    ],
+    forks: [
+      { star: 5, options: [
+        { id: 'apexgraft', name: 'Apex Graft', blurb: 'The slam grows heavier with every trophy — colossal damage.', upgrades: [{ target: 'ult', mulDamage: 1.4, fxColor: '#f2c9ff' }] },
+        { id: 'regenerant', name: 'Regenerant Weave', blurb: 'The stitch deepens and quickens — the duelist refuses to fall.', upgrades: [{ target: 0, addHeal: 45, mulCooldown: 0.85, fxColor: '#a8ffd8' }] },
+      ] },
+      { star: 8, options: [
+        { id: 'pandemic', name: 'Pandemic Slam', blurb: 'Trophy Slam becomes an outbreak — wider, and the infection runs hotter.', upgrades: [{ target: 'ult', name: 'Pandemic Slam', mulRadius: 1.35, addFracture: 1, fxColor: '#ff8bf2' }] },
+        { id: 'executioner', name: 'Executioner\'s Cleave', blurb: 'The cleave narrows into a beheading arc — fewer caught, none survive.', upgrades: [{ target: 1, name: 'Executioner\'s Cleave', mulDamage: 1.9, mulRadius: 0.7, fxColor: '#ff4dd2' }] },
       ] },
     ],
   },

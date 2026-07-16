@@ -149,6 +149,16 @@ export const HERO_IDENTITIES: Record<HeroKind, HeroIdentity> = {
     scaling: { name: 'Killchain Gaze', desc: 'Each elite slain this run adds +4% elite damage (stacking, up to +60%).', kind: 'killchain', perStack: 0.04, cap: 0.6 },
     survival: 'cautious',
   },
+  chimera: {
+    kind: 'chimera',
+    role: 'The arena-bred duelist — a spliced amalgam that dives the biggest fight, slams it flat, and stitches itself back together mid-round.',
+    strengths: ['A colossal opening slam that infects everything under it', 'Self-mending — it outlasts trades other divers lose', 'The finishing cleave clears what the slam cracked'],
+    weaknesses: ['Melee reach — artillery castes outrange it', 'Its mending has a cadence; burst inside the window kills it', 'No ranged presence at all'],
+    passive: { name: 'Trophy Tissue', desc: '+40% damage to elite enemies — it was grown from the arena\'s champions.', kind: 'eliteDamage', amount: 0.4 },
+    trait: { name: 'Victor\'s Meal', desc: 'Slaying an elite feeds the amalgam — it mends and quickens with every trophy taken.', kind: 'eliteHunter' },
+    scaling: { name: 'Champion\'s Ledger', desc: 'Each elite slain this run adds +4% elite damage (stacking, up to +60%).', kind: 'killchain', perStack: 0.04, cap: 0.6 },
+    survival: 'aggressive',
+  },
   riptide: {
     kind: 'riptide',
     role: 'Zone-control bruiser — flows to the densest pack, crushes it under tidal pulses, and drowns the ground in undertow pools.',
