@@ -1,6 +1,6 @@
 {
-  "lastSha": "e67c20aba54774e902042f86f1133ac087738056",
-  "commitsSinceDraft": 8,
+  "lastSha": "5892bc20eef929290c973dd6e2ef04ec3fe4dffd",
+  "commitsSinceDraft": 0,
   "content": {
     "tower": [
       "needle",
@@ -2529,6 +2529,10 @@
         {
           "cat": "Developer Tools",
           "text": "Reward toast gaps: vocabulary registry, ceremony tiers, merging, dismissal"
+        },
+        {
+          "cat": "UI",
+          "text": "Reward toast overhaul: every reward becomes a config-driven placard reveal"
         }
       ]
     }
@@ -4388,6 +4392,30 @@
       "cat": "Developer Tools",
       "text": "Reward toast gaps: vocabulary registry, ceremony tiers, merging, dismissal",
       "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "9c97b2fd61f0e4fd67f02f830c1cb553f6508f5f",
+      "date": "2026-07-16",
+      "cat": "Framework",
+      "text": "Chronicle + validate + session handoff for the toast-vocabulary batch",
+      "internal": true,
+      "needsReview": true
+    },
+    {
+      "sha": "1a4d706d0717d547c7cdcfbe94aaf711b719d1e4",
+      "date": "2026-07-16",
+      "cat": "UI",
+      "text": "Reward toast overhaul: every reward becomes a config-driven placard reveal",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "5892bc20eef929290c973dd6e2ef04ec3fe4dffd",
+      "date": "2026-07-16",
+      "cat": "Framework",
+      "text": "Converge the two parallel toast implementations on the placard framework",
+      "internal": true,
       "needsReview": false
     }
   ]

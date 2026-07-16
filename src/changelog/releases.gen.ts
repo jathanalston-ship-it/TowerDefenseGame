@@ -1044,6 +1044,10 @@ export const RELEASES: Release[] = [
       {
         "cat": "Developer Tools",
         "text": "Reward toast gaps: vocabulary registry, ceremony tiers, merging, dismissal"
+      },
+      {
+        "cat": "UI",
+        "text": "Reward toast overhaul: every reward becomes a config-driven placard reveal"
       }
     ]
   },

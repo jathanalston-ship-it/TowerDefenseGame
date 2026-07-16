@@ -252,3 +252,6 @@
 - ⚑ `fdd3627` **[Framework]** List organization: docs, DIL, verify — the overhaul ships _(internal)_
 - `53b03c3` **[Website]** Chronicle: list-organization batch notes + site regen
 - `e67c20a` **[Developer Tools]** Reward toast gaps: vocabulary registry, ceremony tiers, merging, dismissal
+- ⚑ `9c97b2f` **[Framework]** Chronicle + validate + session handoff for the toast-vocabulary batch _(internal)_
+- `1a4d706` **[UI]** Reward toast overhaul: every reward becomes a config-driven placard reveal
+- `5892bc2` **[Framework]** Converge the two parallel toast implementations on the placard framework _(internal)_
