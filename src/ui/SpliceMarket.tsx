@@ -9,6 +9,8 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { meta } from '../state/meta';
 import { marketView } from '../state/spliceMarket';
 import type { MarketSlotView } from '../state/spliceMarket';
+import { rewardToast } from '../state/rewardToast';
+import type { RewardToastLine } from '../state/rewardToast';
 import { ICHOR, MARKET } from '../core/market';
 import type { ExchangeCurrency } from '../core/ichorExchange';
 import { audio } from '../audio/sound';
@@ -121,8 +123,31 @@ export function SpliceMarket(): JSX.Element {
   useEffect(() => () => { if (timer.current) clearTimeout(timer.current); }, []);
 
   const view = useMemo(() => marketView(save, now), [save, now]);
+  // Purchase receipt (docs/NOTIFICATIONS.md §claim-popups) — market buys were SILENT (a 620ms
+  // border flash only): now every trade presents through the claim popup, vocabularized so a
+  // container/equipment slot inherits its rarity's ceremony tier, with the toaster's tier cue
+  // (this site has no purchase sound of its own — the `sound` flag stays single-voiced).
+  const purchaseLine = (slot: MarketSlotView): RewardToastLine => {
+    const it = slot.item;
+    switch (it.good) {
+      case 'container': return { icon: '◈', label: slot.name, kind: 'container', qty: 1, rarity: it.rarity };
+      case 'equipment': return { icon: '⛨', label: slot.name, kind: 'equipment', qty: 1, rarity: it.equipRarity };
+      case 'towerShards': return { icon: '✦', label: slot.name, kind: 'towerShards', qty: it.qty };
+      case 'heroShards': return { icon: '✦', label: slot.name, kind: 'heroShards', qty: it.qty };
+      case 'geneEssence': return { icon: '⌬', label: slot.name, kind: 'essence', qty: it.qty };
+      case 'scrap': return { icon: '◳', label: slot.name, kind: 'scrap', qty: it.qty };
+      case 'stamina': return { icon: '☠', label: slot.name, kind: 'stamina', qty: it.qty };
+    }
+  };
   const onBuy = (id: string): void => {
+    const slot = view.slots.find((s) => s.id === id);
     if (!meta.buyMarketSlot(id)) return;
+    if (slot) {
+      rewardToast.push({
+        title: 'Market trade sealed', name: slot.name, accent: slot.color, sound: true,
+        lines: [purchaseLine(slot)],
+      });
+    }
     setJustBought(id);
     if (timer.current) clearTimeout(timer.current);
     timer.current = setTimeout(() => setJustBought(null), 620);

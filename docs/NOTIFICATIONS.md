@@ -111,6 +111,8 @@ stilled under `prefers-reduced-motion` (rays/sheen/ring hidden, not just frozen)
 | Season-pass levels / claim-all / premium unlock | RewardToaster |
 | Weekly directives | RewardToaster |
 | Wardrobe milestones | RewardToaster |
+| Mastery Evolution claims / prestige | RewardToaster |
+| Splice Market trades (were SILENT — a 620ms border flash) | RewardToaster (`sound: true`) |
 | Daily login Bio-Cache | rupture ceremony (BioCache) |
 | Expeditions | SpoilsCard (mastery/streak context the receipt can't carry) |
 | Field research studies | Reveal ceremony (store-mirror) |
@@ -122,3 +124,52 @@ stilled under `prefers-reduced-motion` (rays/sheen/ring hidden, not just frozen)
 
 Single-owner rule: a claim NEVER fires two popups — new surfaces either push the
 toaster or ship a bespoke ceremony, not both.
+
+## §vocab — the reward vocabulary (config-driven receipts)
+
+**`src/state/rewardVocab.ts`** is the registry behind every receipt: one row per reward
+KIND (`cores`, `ichor`, `essence`, `container`, `cache`, `equipment`, `stamina`, …) defines
+its glyph, display name, base ceremony **tier**, whether rapid grants **merge**, and its
+label format (`qty` → "12,500 Genome Cores" · `count` → "3× Rare Bio-Container"). Receipt
+lines carry an optional `kind` + `qty` (stamped at the source — `meta.applyRewardList`
+stamps its simple grants, so quests/pass/directives inherit everything with zero caller
+churn); `vocabLine(kind, qty[, rarity])` is the one call a NEW claim site needs. **A future
+reward type is one registry row** — its toast presentation, tier, audio and merge behavior
+follow automatically; nothing is hardcoded per display.
+
+## §tiers — rarity-scaled ceremony
+
+A receipt's tier = its **loudest line** (`receiptTier`): the kind's base tier, raised by a
+line's `rarity` (`tierForRarity` — epic/legendary containers or gear escalate the whole
+receipt). Presentation scales per tier on the same card family:
+
+| Tier | Treatment | Dwell | Cue (`sound` receipts) |
+|---|---|---|---|
+| common | the base card (burst + medal + sheen) | 5s | `ui` — light organic click |
+| rare | brighter halo | 5s | `reveal` — mutation pulse |
+| epic | 2px frame + **spore spray** off the medal | 6.8s | `unlock` — resonance |
+| legendary | epic + a one-shot **screen wash** behind the card | 8s | `jackpot` — the stinger |
+
+A single quantified line renders the **HERO placard** — the 54px medal and the quantity as
+a 26px headline ("+12,500 · Genome Cores · <source eyebrow>") — WHAT · HOW MUCH · WHERE
+FROM, readable in under a second. Audio remains single-voiced: the toaster plays the tier
+cue ONLY for `sound: true` receipts (claim sites with their own cue never double).
+
+## §merge — coalescing rapid identical receipts
+
+"+100 Cores · +250 Cores · +75 Cores" must read as **"425 Genome Cores"**, never a queue of
+near-duplicates. `coalesce(queue, toast)` (pure, unit-tested) folds a pushed receipt into a
+pending one when title+name and the SET of mergeable line keys (kind + rarity — a rare and
+an epic container never sum) match: quantities sum per line, labels regenerate from the
+vocabulary, the tier re-derives, and the merged receipt takes the NEW id so the toaster
+re-fires its entrance and re-arms the dwell on the updated total. Legacy lines without a
+`kind` stamp (and kinds declared non-mergeable — cosmetics, equipment) queue exactly as
+before.
+
+## §dismiss — the player always has the exit
+
+Every receipt: **≥5s dwell**, click-to-dismiss, an explicit **✕** (24px target), and
+**swipe-away** (pointer-driven, rides the independent `translate` property so it composes
+with the entrance animation; `touch-action: pan-y` keeps vertical scroll intact). Past two
+queued receipts a **Clear all (N)** pill appears under the card. All new motion is stilled
+under `prefers-reduced-motion`.

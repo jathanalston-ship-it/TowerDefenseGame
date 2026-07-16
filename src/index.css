@@ -7653,18 +7653,24 @@ kbd {
    below account milestones (.achv-stack, z-500) so a claim that also pops an achievement
    never collides. One at a time (the queue chip counts the rest); click dismisses; the
    "view it" chip jumps via navBus to where the reward landed. */
-.rwt-wrap { position: fixed; top: calc(88px + var(--safe-t)); left: 50%; transform: translateX(-50%); z-index: 492; pointer-events: none; display: flex; justify-content: center; width: max-content; max-width: min(500px, 94vw); }
+.rwt-wrap { position: fixed; top: calc(88px + var(--safe-t)); left: 50%; transform: translateX(-50%); z-index: 492; pointer-events: none; display: flex; flex-direction: column; align-items: center; gap: 8px; width: max-content; max-width: min(500px, 94vw); }
 .rwt {
   position: relative; pointer-events: auto; cursor: pointer;
   display: flex; align-items: flex-start; gap: 12px;
-  min-width: 300px; max-width: min(480px, 92vw); padding: 12px 16px;
+  min-width: 300px; max-width: min(480px, 92vw); padding: 12px 34px 12px 16px; /* right gutter hosts the ✕ */
   border-radius: var(--r-md);
   background: linear-gradient(180deg, color-mix(in srgb, var(--rw, var(--gold)) 13%, var(--panel)) 0%, var(--panel-deep) 100%);
   border: 1px solid color-mix(in srgb, var(--rw, var(--gold)) 55%, var(--line));
   box-shadow: 0 10px 34px rgba(0, 0, 0, 0.5), var(--halo) color-mix(in srgb, var(--rw, var(--gold)) 45%, transparent);
   overflow: hidden; /* the sheen sweep clips to the card */
   animation: rwt-in 0.55s var(--ease-spring) both;
+  /* Swipe-away (docs/NOTIFICATIONS.md §dismiss): the drag rides the independent `translate`
+     property so it composes with (never fights) the entrance animation's `transform`. */
+  touch-action: pan-y;
+  translate: var(--dx, 0px) 0;
+  transition: translate var(--dur-2) var(--ease-out);
 }
+.rwt.is-dragging { transition: none; }
 .rwt.is-big { min-width: 340px; border-width: 2px; box-shadow: 0 12px 44px rgba(0, 0, 0, 0.6), 0 0 30px -4px color-mix(in srgb, var(--rw, var(--gold)) 55%, transparent); animation-duration: 0.7s; }
 /* Entrance with real pop: drop in, overshoot past full size, settle. */
 @keyframes rwt-in {
@@ -7735,14 +7741,78 @@ kbd {
 }
 .rwt-nav:hover { background: color-mix(in srgb, var(--rw, var(--gold)) 22%, transparent); color: var(--text); }
 .rwt-queued {
-  position: absolute; top: -8px; right: -8px; min-width: 22px; height: 22px; padding: 0 6px;
+  position: absolute; top: 6px; right: 32px; min-width: 22px; height: 22px; padding: 0 6px;
   display: grid; place-items: center; border-radius: 999px; font-size: 10px; font-weight: 800;
   color: var(--panel-deep); background: var(--rw, var(--gold)); box-shadow: 0 2px 8px rgba(0, 0, 0, 0.45);
 }
+/* Explicit dismissal (docs/NOTIFICATIONS.md §dismiss) — the ✕ and, past two queued, Clear all. */
+.rwt-x {
+  position: absolute; top: 4px; right: 4px; width: 24px; height: 24px;
+  display: grid; place-items: center; border-radius: 50%;
+  font-size: 11px; font-weight: 800; color: var(--muted);
+  background: transparent; border: none; cursor: pointer;
+  transition: color var(--dur-1) var(--ease-out), background var(--dur-1) var(--ease-out);
+}
+.rwt-x:hover { color: var(--text); background: color-mix(in srgb, var(--rw, var(--gold)) 18%, transparent); }
+.rwt-clear {
+  pointer-events: auto; min-height: 24px; padding: 4px 12px; border-radius: 999px;
+  font-size: 11px; font-weight: 700; color: var(--muted); cursor: pointer;
+  background: color-mix(in srgb, var(--panel) 82%, transparent);
+  border: 1px solid var(--line);
+  transition: color var(--dur-1) var(--ease-out), border-color var(--dur-1) var(--ease-out);
+}
+.rwt-clear:hover { color: var(--text); border-color: color-mix(in srgb, var(--gold) 45%, var(--line)); }
+/* HERO placard (docs/NOTIFICATIONS.md §tiers) — one quantified reward: the number IS the card. */
+.rwt.is-hero .rwt-medal { width: 54px; height: 54px; font-size: 26px; }
+.rwt-hero { display: flex; align-items: baseline; gap: 8px; margin-top: 2px; min-width: 0; }
+.rwt-qty {
+  font-size: 26px; font-weight: 900; line-height: 1; font-variant-numeric: tabular-nums;
+  text-shadow: 0 0 14px color-mix(in srgb, var(--rw, var(--gold)) 55%, transparent);
+  animation: rwt-qty-pop 0.5s var(--ease-spring) 0.1s both;
+}
+@keyframes rwt-qty-pop {
+  0% { opacity: 0; transform: scale(0.6); }
+  60% { opacity: 1; transform: scale(1.12); }
+  100% { opacity: 1; transform: scale(1); }
+}
+.rwt-what { font-size: 13px; font-weight: 800; }
+/* Ceremony tiers (docs/NOTIFICATIONS.md §tiers) — common stays the base card; each step louder. */
+.rwt.is-t-rare { box-shadow: 0 10px 34px rgba(0, 0, 0, 0.5), 0 0 24px -4px color-mix(in srgb, var(--rw, var(--gold)) 60%, transparent); }
+.rwt.is-t-epic, .rwt.is-t-legendary { border-width: 2px; box-shadow: 0 12px 44px rgba(0, 0, 0, 0.6), 0 0 34px -2px color-mix(in srgb, var(--rw, var(--gold)) 70%, transparent); }
+/* Epic+ spore spray — six one-shot motes rising off the medal (organic, not confetti). */
+.rwt-spores { position: absolute; left: 36px; top: 30px; width: 0; height: 0; pointer-events: none; }
+.rwt-spores i {
+  position: absolute; left: 0; top: 0; width: 4px; height: 4px; border-radius: 50%;
+  background: var(--rw, var(--gold)); box-shadow: 0 0 6px var(--rw, var(--gold));
+  opacity: 0;
+  animation: rwt-spore 1.05s var(--ease-out) both;
+  animation-delay: calc(var(--sp, 0) * 90ms);
+  --sx: calc((var(--sp, 0) - 2.5) * 11px);
+}
+.rwt-spores i:nth-child(1) { --sp: 0; } .rwt-spores i:nth-child(2) { --sp: 1; }
+.rwt-spores i:nth-child(3) { --sp: 2; } .rwt-spores i:nth-child(4) { --sp: 3; }
+.rwt-spores i:nth-child(5) { --sp: 4; } .rwt-spores i:nth-child(6) { --sp: 5; }
+@keyframes rwt-spore {
+  0% { opacity: 0; transform: translate(0, 0) scale(0.6); }
+  25% { opacity: 0.9; }
+  100% { opacity: 0; transform: translate(var(--sx, 0px), -34px) scale(1.1); }
+}
+/* Legendary screen accent — one radial wash behind the card, gone in a breath. */
+.rwt-screen {
+  position: fixed; inset: 0; z-index: -1; pointer-events: none;
+  background: radial-gradient(60% 46% at 50% 18%, color-mix(in srgb, var(--gold) 20%, transparent), transparent 72%);
+  animation: rwt-screen 1.2s var(--ease-out) both;
+}
+@keyframes rwt-screen {
+  0% { opacity: 0; }
+  30% { opacity: 1; }
+  100% { opacity: 0; }
+}
 @media (prefers-reduced-motion: reduce) {
-  .rwt, .rwt-line, .rwt-medal, .rwt-medal-ring, .rwt-burst i { animation: none; }
+  .rwt, .rwt-line, .rwt-medal, .rwt-medal-ring, .rwt-burst i, .rwt-qty, .rwt-spores i, .rwt-screen { animation: none; }
   .rwt-sheen::after { animation: none; opacity: 0; }
   .rwt-medal-ring { opacity: 0; }
+  .rwt-spores i, .rwt-screen { opacity: 0; }
 }
 
 /* Inspector live-Mastery block — a smoothly-filling craft bar with floating XP ticks. */

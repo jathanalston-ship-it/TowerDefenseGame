@@ -310,15 +310,15 @@ function applyRewardList(
     switch (r.kind) {
       case 'ichor':
         next = { ...next, ichor: next.ichor + r.qty, lifetimeIchor: next.lifetimeIchor + r.qty };
-        lines.push({ icon: '◆', label: `${r.qty} Ichor` });
+        lines.push({ icon: '◆', label: `${r.qty} Ichor`, kind: 'ichor', qty: r.qty });
         break;
       case 'cores':
         next = { ...next, shards: next.shards + r.qty, lifetimeShards: next.lifetimeShards + r.qty };
-        lines.push({ icon: '⬡', label: `${r.qty} Genome Cores` });
+        lines.push({ icon: '⬡', label: `${r.qty} Genome Cores`, kind: 'cores', qty: r.qty });
         break;
       case 'geneEssence':
         next = { ...next, geneEssence: next.geneEssence + r.qty };
-        lines.push({ icon: '⌬', label: `${r.qty} Gene Essence` });
+        lines.push({ icon: '⌬', label: `${r.qty} Gene Essence`, kind: 'essence', qty: r.qty });
         break;
       case 'mats':
         next = { ...next, mats: { ...next.mats, mutagen: next.mats.mutagen + (r.mutagen ?? 0), scrap: next.mats.scrap + (r.scrap ?? 0), catalyst: next.mats.catalyst + (r.catalyst ?? 0) } };
@@ -343,15 +343,15 @@ function applyRewardList(
       }
       case 'container':
         next = { ...next, pendingContainers: [...next.pendingContainers, ...Array.from({ length: r.count }, () => ({ kind: 'loot' as const, rarity: r.rarity }))] };
-        lines.push({ icon: '◈', label: `${r.count}× ${r.rarity} Bio-Container`, rarity: r.rarity });
+        lines.push({ icon: '◈', label: `${r.count}× ${r.rarity} Bio-Container`, rarity: r.rarity, kind: 'container', qty: r.count });
         break;
       case 'runCache':
         next = { ...next, pendingContainers: [...next.pendingContainers, ...Array.from({ length: r.count }, () => ({ kind: 'cache' as const, chestId: RUN_CHEST }))] };
-        lines.push({ icon: '⬢', label: `${r.count}× Run Cache` });
+        lines.push({ icon: '⬢', label: `${r.count}× Run Cache`, kind: 'cache', qty: r.count });
         break;
       case 'rushStamina':
         stamina += r.qty; // granted after the persist via the capped pipeline
-        lines.push({ icon: '☠', label: `${r.qty} Rush Stamina` });
+        lines.push({ icon: '☠', label: `${r.qty} Rush Stamina`, kind: 'stamina', qty: r.qty });
         break;
       case 'cosmetic': {
         const def = wardrobeItem(r.id);
@@ -1634,6 +1634,8 @@ export interface PremiumReceiptLine {
   icon: string;
   label: string;
   rarity?: string; // tint for container/equipment lines
+  kind?: string; // reward-vocabulary id (state/rewardVocab.ts) — tiers + merges the toast line
+  qty?: number; // quantity for mergeable lines (docs/NOTIFICATIONS.md §merge)
 }
 /** What meta.purchaseOffer returns — everything the confirmation + reveal UI needs. */
 export interface PremiumReceipt {
