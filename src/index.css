@@ -12106,3 +12106,10 @@ html[data-debug-layout] body::after {
   .hub-contam::before,
   .hub-contam::after { animation: none !important; }
 }
+
+/* §reroll — the draft's one paid re-deal: quiet, under the cards, never competing with the pick. */
+.draft-reroll { margin: 10px auto 0; display: block; font-size: 12px; font-weight: 700; letter-spacing: 0.06em; padding: 6px 16px; border-radius: 999px; color: var(--ink-hi, #dfe8e2); background: transparent; border: 1px solid color-mix(in srgb, currentColor 35%, transparent); transition: background var(--dur-2) var(--ease-out), transform var(--dur-2) var(--ease-out); }
+.draft-reroll:hover:not(:disabled) { background: color-mix(in srgb, currentColor 10%, transparent); transform: translateY(-1px); }
+.draft-reroll:disabled { opacity: 0.45; cursor: not-allowed; }
+.draft-reroll b { color: var(--gold); }
+.draft-reroll i { margin-left: 8px; opacity: 0.55; font-style: normal; font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; }

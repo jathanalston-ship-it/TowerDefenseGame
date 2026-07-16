@@ -59,6 +59,7 @@ import {
   ROOST,
   WAVES,
   AUTO_START_DELAY,
+  DRAFT_REROLL,
   AUTO_START_FIRST_DELAY,
   MINION_DEFS,
   MINION_CAP,
@@ -578,6 +579,7 @@ export class Game {
   selectedHeroKind: HeroKind | null = null;
   armedAbility = false;
   draft: CardDef[] | null = null;
+  private draftRerolled = false; // one paid re-deal per draft (docs/CARDS.md §reroll)
   sfx: string[] = []; // presentation cue queue (drained by the view: audio + shake)
   chosenCards: CardOption[] = []; // gene cards taken this run
 
@@ -2230,6 +2232,26 @@ export class Game {
     const bounty = q.length ? q[0].bountyMult : 1;
     for (let i = 0; i < count; i++) q.push({ kind, at: base + 1 + i * 0.4, hpMult: hp, bountyMult: bounty, elite: elite || undefined });
     q.sort((a, b) => a.at - b.at);
+  }
+
+  /** The open draft's reroll price (docs/CARDS.md §reroll) — wave-scaled so a late re-deal is a
+   *  real decision against next-prep tower money. */
+  rerollCost(): number {
+    return Math.round(DRAFT_REROLL.base + DRAFT_REROLL.perWave * this.waveIndex);
+  }
+
+  /** ONE paid re-deal of the open draft (docs/CARDS.md §reroll): pays Biomass for a fresh
+   *  3-card roll from the same live-board pool. Never in the tutorial (the lesson is the base
+   *  flow), never twice. Golden-safe: the extra rng draw happens only when a player invokes it. */
+  rerollDraft(): boolean {
+    if (this.phase !== 'draft' || this.draft === null || this.draftRerolled || this.tutorialMode) return false;
+    const cost = this.rerollCost();
+    if (this.biomass < cost) return false;
+    this.biomass -= cost;
+    this.draftRerolled = true;
+    this.draft = draftCards(this.rng, 3, this.waveIndex, this.fieldedKinds(), this.unlockedCardIds);
+    this.pushSfx('draft'); // the re-deal plays the same beat as the deal
+    return true;
   }
 
   chooseCard(id: string): void {
@@ -6566,6 +6588,7 @@ export class Game {
         // the drip with depth so cards stay exciting and deep runs lean on permanent progression.
         if (!this.tutorialMode && this.shouldDraftThisWave()) {
           this.draft = draftCards(this.rng, 3, this.waveIndex, this.fieldedKinds(), this.unlockedCardIds); // depth-scaled rarity (CARDS.md §2); tower cards only for FIELDED kinds
+          this.draftRerolled = false; // a fresh deal re-arms the one paid reroll (§reroll)
         }
       }
       this.settleTimer = SETTLE.duration; // begin the wind-down; endWave() reveals the result
@@ -7007,6 +7030,7 @@ export class Game {
   openTutorialDraft(): void {
     if (!this.tutorialMode || this.phase !== 'prep') return;
     this.draft = draftCards(this.rng, 3, this.waveIndex, this.fieldedKinds(), this.unlockedCardIds);
+    this.draftRerolled = false;
     this.phase = 'draft';
   }
 
@@ -7020,6 +7044,7 @@ export class Game {
   debugOpenDraft(): void {
     if (this.phase === 'won' || this.phase === 'lost') return;
     this.draft = draftCards(this.rng, 3, this.waveIndex, this.fieldedKinds(), this.unlockedCardIds);
+    this.draftRerolled = false;
     this.phase = 'draft';
   }
 
@@ -7554,6 +7579,8 @@ export class Game {
       // docs/CAMERA.md) — the targeting override keeps its own instantaneous in-zone list.
       emergency: this.dangerCam.phase === 'danger',
       draft: this.draft ? this.draft.map(cardToOption) : null,
+      // §reroll: the open draft's one paid re-deal — price, or -1 once used / in the tutorial.
+      draftRerollCost: this.phase === 'draft' && this.draft !== null && !this.draftRerolled && !this.tutorialMode ? this.rerollCost() : -1,
       selectedTower: this.selectedTower,
       selectedPlaced: this.selectedPlacedView(),
       armedAbility: this.armedAbility,

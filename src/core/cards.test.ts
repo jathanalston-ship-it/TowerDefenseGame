@@ -325,3 +325,32 @@ describe('draft roster filter (docs/TOWERS.md §expansion)', () => {
     }
   });
 });
+
+describe('draft reroll (docs/CARDS.md §reroll)', () => {
+  it('one paid re-deal: charges wave-scaled Biomass, deals fresh cards, then locks', () => {
+    const game = new Game(21, NO_META);
+    game.debugAddBiomass(1000);
+    for (const s of towerSlots) if (game.placeTower('needle', s.x, s.y)) break;
+    game.debugOpenDraft();
+    const before = game.draft!.map((c) => c.id).join(',');
+    const cost = game.rerollCost();
+    const bio0 = game.biomass;
+    expect(game.getSnapshot().draftRerollCost).toBe(cost); // surfaced to the modal
+    expect(game.rerollDraft()).toBe(true);
+    expect(game.biomass).toBe(bio0 - cost); // paid exactly the quoted price
+    expect(game.draft!.length).toBe(3); // a full fresh deal
+    expect(game.getSnapshot().draftRerollCost).toBe(-1); // one per draft — the button hides
+    expect(game.rerollDraft()).toBe(false); // and a second attempt is refused
+    void before; // (a re-deal MAY coincide by rng — the charge + lock are the contract)
+  });
+
+  it('an unaffordable reroll is refused without charging or re-dealing', () => {
+    const game = new Game(23, NO_META);
+    game.debugOpenDraft();
+    const ids = game.draft!.map((c) => c.id).join(',');
+    game.debugAddBiomass(-game.biomass); // broke
+    expect(game.rerollDraft()).toBe(false);
+    expect(game.draft!.map((c) => c.id).join(',')).toBe(ids);
+    expect(game.getSnapshot().draftRerollCost).toBeGreaterThanOrEqual(0); // still offered, just unaffordable
+  });
+});

@@ -704,6 +704,7 @@ export interface HudSnapshot {
   enemiesAlive: number;
   emergency: boolean; // Emergency Defense Mode — an enemy is in the Final Defense Zone
   draft: CardOption[] | null;
+  draftRerollCost: number; // §reroll: biomass price of the open draft's ONE re-deal; -1 = unavailable
   selectedTower: TowerKind | null;
   selectedPlaced: SelectedPlacedTower | null; // a placed tower being inspected (branch/Mutation UI)
   armedAbility: boolean;

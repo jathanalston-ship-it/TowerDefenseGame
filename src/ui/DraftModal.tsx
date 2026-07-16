@@ -24,12 +24,19 @@ export function DraftModal({
   clearedWave,
   onPick,
   forceManual = false,
+  rerollCost = -1,
+  biomass = 0,
+  onReroll,
 }: {
   options: CardOption[];
   clearedWave?: number;
   onPick: (id: string) => void;
   /** Tutorial: the draft lesson must be a confirmed player choice — never the auto countdown. */
   forceManual?: boolean;
+  /** §reroll: biomass price of the draft's ONE re-deal; -1 hides the button (used / tutorial). */
+  rerollCost?: number;
+  biomass?: number;
+  onReroll?: () => void;
 }): JSX.Element {
   // Recommend the highest-rarity option (first on ties) to speed the call.
   let best = 0;
@@ -149,6 +156,16 @@ export function DraftModal({
           );
         })}
       </div>
+      {rerollCost >= 0 && onReroll && (
+        <button
+          className="draft-reroll"
+          disabled={biomass < rerollCost}
+          title={biomass < rerollCost ? `Needs ${rerollCost} Biomass` : 'Pay Biomass for a fresh deal of 3 — once per draft'}
+          onClick={() => { onReroll(); audio.cue('ui'); }}
+        >
+          ↻ Reroll the deal · <b>{rerollCost}</b> Biomass <i>once per draft</i>
+        </button>
+      )}
       <div className="hint">Gene Cards reset when you extract or fall.</div>
     </div>
   );

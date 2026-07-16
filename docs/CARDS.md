@@ -100,6 +100,11 @@ permanent (shaped by **Mutation Fragments**, `ECONOMY.md`); the *draw* is per-ru
   cancels the countdown immediately. UI-only — the deterministic sim is untouched.
 - **Reset.** The deck, rerolls, banishes, and any run-stack effects **wipe at run
   end**. Only the *outcomes* (currencies, mastery, codex) persist.
+- **Reroll (§reroll).** Every draft carries ONE paid re-deal: `game.rerollDraft()` swaps the
+  open 3 for a fresh roll from the same live-board pool at `DRAFT_REROLL.base + perWave·wave`
+  Biomass (config.ts). Never in the tutorial, never twice; the modal button hides once used
+  (`HudSnapshot.draftRerollCost = -1`). Golden-safe: the extra rng draw exists only when a
+  player invokes it — autoplay never rerolls.
 
 ---
 

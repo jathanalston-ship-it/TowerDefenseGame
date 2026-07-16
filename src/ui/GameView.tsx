@@ -905,10 +905,22 @@ export function GameView({
       // Tutorial: the director scripts wave starts and pins 1× speed — swallow their hotkeys.
       if (tutorial && (k === ' ' || k === 'Spacebar' || k === 'f' || k === 'F')) { e.preventDefault(); return; }
       if (k === 'p' || k === 'P') { togglePause(); return; }
-      if (k >= '1' && k <= String(TOWER_ORDER.length)) {
-        const kind = TOWER_ORDER[Number(k) - 1];
-        game.selectTower(game.selectedTower === kind ? null : kind);
-        audio.cue('select');
+      if (k >= '1' && k <= '4') {
+        // The number row mirrors the DEPLOY DOCK left→right: 1 = the favorite rail card,
+        // 2-4 = the conveyor pods (the chips on those cards ARE these keys). The old 1-N
+        // TOWER_ORDER map was a classic-rail ghost — it armed kinds the conveyor model can't
+        // place, and its string compare ('3' <= '20' is false) had killed keys 3-9 anyway.
+        if (k === '1') {
+          const fav = game.favoriteTower;
+          game.selectTower(game.selectedTower === fav ? null : fav);
+          audio.cue('select');
+        } else {
+          const item = game.conveyor[Number(k) - 2];
+          if (item) {
+            game.selectConveyorItem(game.selectedConveyorId === item.id ? null : item.id);
+            audio.cue('select');
+          }
+        }
       } else if (k === 'q' || k === 'Q') {
         game.armAbility();
       } else if (k === 'e' || k === 'E') {
@@ -1222,6 +1234,11 @@ export function GameView({
             options={hud.draft}
             clearedWave={hud.wave}
             forceManual={!!tutorial}
+            rerollCost={hud.draftRerollCost}
+            biomass={hud.biomass}
+            onReroll={() => {
+              if (game.rerollDraft()) refresh();
+            }}
             onPick={(id) => {
               game.chooseCard(id);
               refresh();

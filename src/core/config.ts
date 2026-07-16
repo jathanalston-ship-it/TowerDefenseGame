@@ -1021,6 +1021,15 @@ export const WAVE_BOUNTY_GROWTH = 0.05;
 // prep seconds (a visible countdown). Opt-in + off by default, so the golden run — which starts
 // waves manually — is byte-identical.
 export const AUTO_START_DELAY = 4; // seconds of prep before an auto-start fires the next wave
+
+/** Draft REROLL (docs/CARDS.md §reroll): ONE paid re-deal per draft — a Biomass luxury for a
+ *  dead hand, never a second draft. Cost scales gently with wave so late rerolls stay a real
+ *  decision against next-prep tower money. Golden-safe: autoplay never rerolls, and the extra
+ *  rng draw happens only when a player invokes it. */
+export const DRAFT_REROLL = {
+  base: 30, // biomass at wave 0…
+  perWave: 5, // …plus this per cleared wave
+};
 // The opening prep (before any wave) gets a longer window once the player places their first
 // tower, so auto-start doesn't rush the initial build-out.
 export const AUTO_START_FIRST_DELAY = 8; // seconds granted on the first tower of the opening prep
