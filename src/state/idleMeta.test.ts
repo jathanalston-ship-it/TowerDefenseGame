@@ -70,7 +70,7 @@ describe('the collect — one atomic settle', () => {
       || JSON.stringify(after.heroShards) !== JSON.stringify(before.heroShards);
     expect(moved).toBe(true);
     expect(after.accountXp.xp).toBeGreaterThan(before.accountXp.xp);
-    expect(after.timeline.some((t) => t.label.includes('Idle Harvest'))).toBe(true);
+    expect(after.timeline.some((t) => t.label.includes('Hive Production'))).toBe(true);
     expect(after.achievements).toContain('idle_first');
   });
 

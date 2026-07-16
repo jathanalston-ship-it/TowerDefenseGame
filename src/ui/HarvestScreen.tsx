@@ -15,6 +15,7 @@ import { audio } from '../audio/sound';
 import { NextUp } from './HubLanding';
 import { navBus } from '../state/navBus';
 import { CurrencyIcon } from './components/CurrencyIcon';
+import { HiveOrganism } from './components/HiveOrganism';
 
 function pct(n: number): number { return Math.max(0, Math.min(100, Math.round(n * 100))); }
 
@@ -22,8 +23,8 @@ function pct(n: number): number { return Math.max(0, Math.min(100, Math.round(n 
 function HarvestCeremony({ r, onClose, onGrow }: { r: IdleHarvestReceipt; onClose: () => void; onGrow?: () => void }): JSX.Element {
   return (
     <div className="hv-cer-backdrop" onClick={onClose}>
-      <div className={`hv-cer${r.bloom ? ' is-bloom' : ''}`} onClick={(e) => e.stopPropagation()} role="dialog" aria-label="Harvest collected">
-        <div className="hv-cer-eyebrow">{r.bloom ? '❉ THE HIVE BLOOMED ❉' : '⬢ HARVEST EXTRACTED ⬢'}</div>
+      <div className={`hv-cer${r.bloom ? ' is-bloom' : ''}`} onClick={(e) => e.stopPropagation()} role="dialog" aria-label="Hive production collected">
+        <div className="hv-cer-eyebrow">{r.bloom ? '❉ THE HIVE BLOOMED ❉' : '⬢ HIVE PRODUCTION COMPLETE ⬢'}</div>
         <div className="hv-cer-pods" aria-hidden>
           {Array.from({ length: 5 }, (_, i) => <span key={i} className="hv-pod" style={{ animationDelay: `${i * 0.12}s` }} />)}
         </div>
@@ -117,12 +118,16 @@ export function HarvestScreen(): JSX.Element {
   const a = v.accrual;
   const fillPct = pct(Math.min(1, a.rawHours / a.capHours));
   const toFullH = Math.max(0, a.capHours - a.rawHours);
+  const built = meta.get().hive.built;
   return (
     <div className="screen hv-screen">
       <header className="screen-h">
-        <h2>Idle Harvest</h2>
-        <p className="screen-sub">The Hive keeps harvesting while you're away — playing always out-earns it, but nothing is wasted.</p>
+        <h2>Hive Production</h2>
+        <p className="screen-sub">The Hive produces while you're away — its body is the engine, this is the yield. Playing always out-earns it, but nothing is wasted.</p>
       </header>
+
+      {/* The living organism — the same body the Growth view grows (docs/HIVE-PRODUCTION.md §organism) */}
+      <HiveOrganism built={built} fillFrac={a.capHours > 0 ? a.rawHours / a.capHours : 0} producing={!a.full} view="production" />
 
       {/* The living hopper: veins fill toward the cap */}
       <section className="hv-hopper" aria-label="Harvest hopper">
@@ -159,6 +164,44 @@ export function HarvestScreen(): JSX.Element {
           </button>
           {/* No dead ends: a warming hopper immediately points at the loop's next step. */}
           {!v.collectable && <NextUp save={meta.get()} exclude="harvest" go={(k) => navBus.go(k)} />}
+        </div>
+      </section>
+
+      {/* Production intelligence (docs/HIVE-PRODUCTION.md §stats): rate breakdown, the body's
+          contribution, and the adaptive "what to grow" hint. */}
+      <section className="hv-stats" aria-label="Production statistics">
+        <div className="hv-sec-h"><span className="hv-sec-t">Production Intelligence</span></div>
+        <div className="hv-stat-grid">
+          <span className="hv-stat"><b>{a.ratePerHour.toFixed(1)}</b> value/h production rate</span>
+          <span className="hv-stat"><b>{Math.round(a.offlineEff * 100)}%</b> offline efficiency</span>
+          <span className="hv-stat"><b>{fmtIdleHours(a.capHours)}</b> storage capacity</span>
+          <span className="hv-stat"><b>{a.full ? 'now' : fmtIdleHours(toFullH)}</b> {a.full ? 'READY — storage brimmed' : 'until storage fills'}</span>
+        </div>
+        <div className="hv-mults">
+          {v.rankBonus > 0 && <span className="hv-mult" title="Genome Rank dividend">⌖ +{Math.round(v.rankBonus * 100)}% rank</span>}
+          {v.arenaDividend > 1 && <span className="hv-mult" title="Arena division dividend">⚔ +{Math.round((v.arenaDividend - 1) * 100)}% arena</span>}
+          {v.hive.rateMult > 1 && <span className="hv-mult is-hive" title="Built organs feeding the rate lane">⬡ +{Math.round((v.hive.rateMult - 1) * 100)}% organism</span>}
+          {v.hive.capBonusHours > 0 && <span className="hv-mult is-hive" title="Symbiote-tended storage">⬡ +{v.hive.capBonusHours}h storage</span>}
+          {v.synergies.filter((x) => x.live).map((x) => (
+            <span key={x.def.id} className="hv-mult is-syn" title={x.def.note}>✦ {x.def.name}</span>
+          ))}
+        </div>
+        {v.mostProductive && (
+          <div className="hv-top-organ" title={v.mostProductive.line}>
+            Most productive organ: <b>{v.mostProductive.name}</b> — {v.mostProductive.line}
+          </div>
+        )}
+        {/* The adaptive recommendation: storage pressure beats everything, then the tree's own suggestion. */}
+        <div className="hv-advice">
+          {a.full
+            ? <>◉ Storage is BRIMMED — harvest now, then grow <button className="hv-advice-link" onClick={() => navBus.go('hive')}>Storage Tissue in the Hive</button> or Harvest Capacity below.</>
+            : a.rawHours / a.capHours > 0.8
+              ? <>◉ Storage is nearly full — plan a harvest, or grow Capacity so nothing is wasted.</>
+              : v.suggestion && v.suggestion.kind === 'buy'
+                ? <>✦ Recommended growth: {v.suggestion.node.glyph} {v.suggestion.node.name} · {v.suggestion.cost.toLocaleString('en-US')} cores.</>
+                : v.suggestion && v.suggestion.kind === 'gate'
+                  ? <>✦ Next horizon: {v.suggestion.node.name} — keep progressing to open it.</>
+                  : <>✦ The organism hums along — grow any organ to raise the yield.</>}
         </div>
       </section>
 

@@ -12078,6 +12078,52 @@ html[data-debug-layout] body::after {
 
 /* ── IDLE HARVEST (docs/IDLE-HARVEST.md §presentation) ─────────────────────────────────────── */
 .hv-screen { display: flex; flex-direction: column; gap: 18px; }
+
+/* ── The living Hive organism (ui/components/HiveOrganism.tsx — docs/HIVE-PRODUCTION.md) ── */
+.hvo { border: 1px solid var(--line); border-radius: var(--r-lg); background: radial-gradient(ellipse at 50% 60%, color-mix(in srgb, var(--viral) 7%, transparent), transparent 70%), var(--panel); overflow: hidden; }
+.hvo-tabs { display: flex; gap: 2px; padding: 8px 10px 0; }
+.hvo-tab { padding: 5px 14px; font-size: 11px; font-weight: 800; letter-spacing: 0.12em; border: 1px solid var(--line); border-bottom: 0; border-radius: var(--r-md) var(--r-md) 0 0; background: transparent; color: var(--muted); cursor: pointer; transition: color var(--dur-2); }
+.hvo-tab.on { color: var(--viral); background: color-mix(in srgb, var(--viral) 8%, transparent); }
+.hvo-tab:not(.on):hover { color: var(--ink); }
+.hvo-svg { display: block; width: 100%; height: auto; max-height: 210px; }
+.hvo-vein { fill: none; stroke: color-mix(in srgb, var(--viral) 35%, transparent); stroke-width: 1.4; stroke-dasharray: 3 4; }
+.hvo-mote { fill: var(--caustic); filter: drop-shadow(0 0 3px var(--caustic)); }
+.hvo-syn { fill: none; stroke: color-mix(in srgb, var(--gold) 55%, transparent); stroke-width: 1.2; stroke-dasharray: 2 5; animation: hvoSyn 3s linear infinite; }
+@keyframes hvoSyn { to { stroke-dashoffset: -14; } }
+.hvo-core-halo { fill: none; stroke: color-mix(in srgb, var(--viral) 30%, transparent); stroke-width: 1; }
+.hvo[data-producing='1'] .hvo-core-halo { animation: hvoBeat 2.4s ease-in-out infinite; transform-origin: center; transform-box: fill-box; }
+@keyframes hvoBeat { 0%, 100% { opacity: 0.5; transform: scale(1); } 50% { opacity: 1; transform: scale(1.12); } }
+.hvo-core-shell { fill: color-mix(in srgb, var(--viral) 10%, var(--bg)); stroke: var(--viral); stroke-width: 1.4; }
+.hvo-core-fill { fill: color-mix(in srgb, var(--caustic) 55%, var(--viral)); opacity: 0.75; transition: y var(--dur-3), height var(--dur-3); }
+.hvo-core-pct { font-size: 11px; font-weight: 800; fill: var(--ink); }
+.hvo-organ-body { fill: color-mix(in srgb, var(--line) 40%, var(--bg)); stroke: var(--line); stroke-width: 1; }
+.hvo-organ-glyph { font-size: 10px; fill: var(--muted); opacity: 0.55; }
+.hvo-organ.is-grown .hvo-organ-body { fill: color-mix(in srgb, var(--viral) 16%, var(--bg)); stroke: var(--viral); }
+.hvo-organ.is-grown .hvo-organ-glyph { fill: var(--ink); opacity: 1; }
+.hvo[data-producing='1'] .hvo-organ.is-grown { animation: hvoOrgan 3.2s ease-in-out infinite; animation-delay: var(--d, 0s); transform-origin: center; transform-box: fill-box; }
+@keyframes hvoOrgan { 0%, 100% { opacity: 0.85; } 50% { opacity: 1; } }
+.hvo-pip { fill: var(--caustic); }
+@media (prefers-reduced-motion: reduce) {
+  .hvo-mote { display: none; }
+  .hvo-syn, .hvo[data-producing='1'] .hvo-core-halo, .hvo[data-producing='1'] .hvo-organ.is-grown { animation: none; }
+}
+
+/* Production intelligence panel + growth-card production lines */
+.hv-stats { display: flex; flex-direction: column; gap: 8px; }
+.hv-stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 6px; }
+.hv-stat { font-size: 12px; color: var(--muted); padding: 7px 10px; border: 1px solid var(--line); border-radius: var(--r-md); background: var(--panel); }
+.hv-stat b { color: var(--ink); font-size: 14px; margin-right: 4px; }
+.hv-mults { display: flex; flex-wrap: wrap; gap: 5px; }
+.hv-mult { font-size: 11px; font-weight: 700; padding: 3px 9px; border-radius: 999px; border: 1px solid var(--line); color: var(--muted); }
+.hv-mult.is-hive { border-color: color-mix(in srgb, var(--viral) 45%, var(--line)); color: var(--viral); }
+.hv-mult.is-syn { border-color: color-mix(in srgb, var(--gold) 45%, var(--line)); color: var(--gold); }
+.hv-top-organ { font-size: 12px; color: var(--muted); }
+.hv-top-organ b { color: var(--viral); }
+.hv-advice { font-size: 12px; line-height: 1.45; padding: 8px 11px; border: 1px solid color-mix(in srgb, var(--gold) 30%, var(--line)); border-radius: var(--r-md); background: color-mix(in srgb, var(--gold) 5%, transparent); }
+.hv-advice-link { background: none; border: 0; padding: 0; color: var(--gold); font-weight: 700; cursor: pointer; text-decoration: underline; font-size: 12px; }
+.hive-organ-prod { font-size: 11px; color: var(--viral); line-height: 1.4; }
+.hive-organ-syn { font-size: 11px; color: var(--muted); font-style: italic; }
+.hive-organ-syn.is-live { color: var(--gold); font-style: normal; font-weight: 700; }
 /* The living hopper — veins fill toward the cap behind the numbers. */
 .hv-hopper { position: relative; overflow: hidden; border: 1px solid var(--line); border-radius: var(--r-md);
   background: rgba(12, 16, 12, 0.7); padding: 16px 18px; }

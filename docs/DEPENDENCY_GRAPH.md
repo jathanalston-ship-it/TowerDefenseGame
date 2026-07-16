@@ -730,7 +730,7 @@ graph TD
 
 *The composite long-horizon sink (docs/HIVE-CONSTRUCTION.md): BUILD the Home Base — 10 organ data rows across labScore eras 0–3 (the passive ladder is the prerequisite), each a MULTI-currency recipe (Cores/Essence/Strain/Apex/materials, ≥2 lanes enforced, factor-traced geometric tiers, per-kind drains richest-first) spent through ONE atomic guarded action; built organs layer fixtures into LabAtmosphere immediately + lift ambient glow. Sidegrades only — Power Score never reads it.*
 
-- **Files:** `src/core/hiveOrgans.ts` · `src/ui/HiveScreen.tsx`
+- **Files:** `src/core/hiveOrgans.ts` · `src/core/hiveProduction.ts` · `src/ui/HiveScreen.tsx` · `src/ui/components/HiveOrganism.tsx`
 - **Depends on:** `meta-store` · `hub-shell` · `shards-economy`
 - **Consumers — what breaks if you change this:** —
 - **Power Score:** — (intentionally none)

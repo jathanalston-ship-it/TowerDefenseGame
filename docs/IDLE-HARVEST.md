@@ -1,5 +1,9 @@
 # IDLE-HARVEST.md — the permanent passive lane
 
+> **MERGED (2026-07):** the harvest is now the OUTPUT of the Hive organism — read
+> **docs/HIVE-PRODUCTION.md** first (couplings, synergies, the shared living diagram).
+> Everything below (accrual, tree, drops, guardrail) still holds as the production model.
+
 > **Philosophy (the law every number below serves):** playing is ALWAYS more rewarding than
 > idling. Idle progression exists to reduce friction — a returning player finds something
 > banked, never a reason to stop playing. The guardrail suite (`src/core/idleHarvest.test.ts`

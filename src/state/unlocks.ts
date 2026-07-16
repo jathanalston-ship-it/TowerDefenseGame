@@ -193,7 +193,7 @@ export const FEATURES: FeatureDef[] = [
   { kind: 'screen', id: 'hive', name: 'The Hive', glyph: '⬡', order: 13.5,
     blurb: 'Build the laboratory organism — organs that transform your base.', condition: { kind: 'stage', stage: 4 },
     because: 'A composite sink needs wallets to sink — by stage 4 Cores/Essence/materials all flow and the era-0 organs read as a real goal (stage 3 already reveals three screens).', teach: 'hive-construction' },
-  { kind: 'screen', id: 'harvest', name: 'Idle Harvest', glyph: '⬣', order: 13.6,
+  { kind: 'screen', id: 'harvest', name: 'Hive Production', glyph: '⬣', order: 13.6,
     blurb: 'The Hive keeps harvesting while you are away.', condition: { kind: 'stage', stage: 6 },
     because: 'Idle exists to soften RETURN friction — it reveals one beat AFTER the stage-5 retention rhythm screens (which already fill that beat), so the first away-session banks something worth a ceremony without joining an overload stage.', teach: 'idle-harvest' },
   { kind: 'screen', id: 'expeditions', name: 'Expedition Command', glyph: '⇢', order: 13.7,

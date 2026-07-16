@@ -17,6 +17,7 @@
 //   budget            = rate × effHours × offlineEff × (bloom ? bloomBudgetMult : 1)
 
 import { IDLE } from './config';
+import { HIVE_PRODUCTION_IDENTITY, type HiveProductionBonus } from './hiveProduction';
 
 // ── Soft scaling (shared by every multiplier node) ───────────────────────────────────────────
 /** Log-eased multiplier: slope `per` at level 0, halved at L₀, unbounded but logarithmic. */
@@ -157,9 +158,10 @@ export function idleCapHours(nodes: IdleNodeLevels, bonusHours = 0): number {
   return base + Math.max(0, bonusHours);
 }
 
-/** Offline efficiency 0.7 → 1.0 (never above full — idle may approach play, not pass it). */
-export function idleOfflineEff(nodes: IdleNodeLevels): number {
-  return Math.min(1, IDLE.baseOfflineEff + IDLE_NODE_BY_ID.offline.per * lvl(nodes, 'offline'));
+/** Offline efficiency 0.7 → 1.0 (never above full — idle may approach play, not pass it).
+ *  `bonus` is the Hive-structure feed (docs/HIVE-PRODUCTION.md); the 1.0 cap holds it too. */
+export function idleOfflineEff(nodes: IdleNodeLevels, bonus = 0): number {
+  return Math.min(1, IDLE.baseOfflineEff + IDLE_NODE_BY_ID.offline.per * lvl(nodes, 'offline') + Math.max(0, bonus));
 }
 
 /** Fraction of a second cap-width of OVER-cap hours retained (0 → 0.5). */
@@ -167,9 +169,10 @@ export function idleOverflowFrac(nodes: IdleNodeLevels): number {
   return Math.min(0.5, IDLE_NODE_BY_ID.overflow.per * lvl(nodes, 'overflow'));
 }
 
-/** BLOOM chance per collect (Special Events node) — capped so it stays an event, not a norm. */
-export function idleBloomChance(nodes: IdleNodeLevels): number {
-  return Math.min(0.25, IDLE_NODE_BY_ID.events.per * lvl(nodes, 'events'));
+/** BLOOM chance per collect (Special Events node) — capped so it stays an event, not a norm.
+ *  The Hive-structure `bonus` (crown spire, womb lullaby) rides INSIDE a slightly-lifted cap. */
+export function idleBloomChance(nodes: IdleNodeLevels, bonus = 0): number {
+  return Math.min(0.25 + Math.max(0, bonus), IDLE_NODE_BY_ID.events.per * lvl(nodes, 'events') + Math.max(0, bonus));
 }
 
 /** Core-equivalent budget per EFFECTIVE hour at a campaign stage + node levels. GENOME RANK
@@ -177,13 +180,16 @@ export function idleBloomChance(nodes: IdleNodeLevels): number {
  *  each rank past I adds IDLE.rankGrowth to the rate ("the Hive harvests smarter as the
  *  organism masters more"). Rank I (or omitted) is exactly ×1, so fresh accounts and every
  *  pre-existing call site are unchanged; the idle<active guardrail bounds the whole model. */
-export function idleRatePerHour(stage: number, nodes: IdleNodeLevels, rankIndex = 1, arenaMult = 1): number {
+export function idleRatePerHour(stage: number, nodes: IdleNodeLevels, rankIndex = 1, arenaMult = 1, hiveRateMult = 1): number {
   // ARENA RANK DIVIDEND (docs/ARENA.md §8): a second, DIMINISHING mastery-ladder feed —
   // core/arena.arenaIdleDividend, ×1 at division 0 (IEEE-identity for non-arena accounts)
   // and hard-capped at ×1.15, so the idle<active guardrail's headroom absorbs it whole.
+  // HIVE STRUCTURE FEED (docs/HIVE-PRODUCTION.md): the built organism's rate lane — ×1 with
+  // nothing built, capped by HIVE_PRODUCTION_CAPS; the guardrail bounds the merged model.
   return IDLE.baseCoresPerHour * (1 + IDLE.stageGrowth * Math.max(0, stage - 1))
     * (1 + IDLE.rankGrowth * Math.max(0, rankIndex - 1))
     * Math.max(1, arenaMult)
+    * Math.max(1, hiveRateMult)
     * idleSoft(lvl(nodes, 'speed'), IDLE_NODE_BY_ID.speed.per);
 }
 
@@ -202,13 +208,13 @@ export interface IdleAccrual {
  *  (clock-tamper clamps live in meta, but the math itself can never mint from junk).
  *  `arenaMult`/`arenaCapBonusHours` are the ARENA RANK benefits (docs/ARENA.md §8) — both
  *  identity (1 / 0) when omitted, so every pre-arena call site is byte-unchanged. */
-export function idleAccrual(elapsedMs: number, stage: number, nodes: IdleNodeLevels, rankIndex = 1, arenaMult = 1, arenaCapBonusHours = 0): IdleAccrual {
+export function idleAccrual(elapsedMs: number, stage: number, nodes: IdleNodeLevels, rankIndex = 1, arenaMult = 1, arenaCapBonusHours = 0, hive: HiveProductionBonus = HIVE_PRODUCTION_IDENTITY): IdleAccrual {
   const rawHours = Number.isFinite(elapsedMs) ? Math.max(0, elapsedMs) / 3_600_000 : 0;
-  const capHours = idleCapHours(nodes, arenaCapBonusHours);
+  const capHours = idleCapHours(nodes, arenaCapBonusHours + hive.capBonusHours);
   const overflowHours = idleOverflowFrac(nodes) * Math.min(Math.max(rawHours - capHours, 0), capHours);
   const effHours = Math.min(rawHours, capHours) + overflowHours;
-  const ratePerHour = idleRatePerHour(stage, nodes, rankIndex, arenaMult);
-  const offlineEff = idleOfflineEff(nodes);
+  const ratePerHour = idleRatePerHour(stage, nodes, rankIndex, arenaMult, hive.rateMult);
+  const offlineEff = idleOfflineEff(nodes, hive.offlineBonus);
   return {
     rawHours, effHours, capHours, overflowHours,
     full: rawHours >= capHours,
@@ -308,14 +314,15 @@ export function rollIdleHarvest(
   nodes: IdleNodeLevels,
   ctx: IdleGateContext,
   rng: () => number,
+  hive: HiveProductionBonus = HIVE_PRODUCTION_IDENTITY,
 ): IdleHarvestResult {
-  const bloom = rng() < idleBloomChance(nodes);
+  const bloom = rng() < idleBloomChance(nodes, hive.bloomBonus);
   const budget = accrual.budget * (bloom ? IDLE.bloomBudgetMult : 1);
   const pool = eligibleIdleDrops(ctx);
-  const rareMult = idleSoft(lvl(nodes, 'rare'), IDLE_NODE_BY_ID.rare.per);
-  const containerMult = idleSoft(lvl(nodes, 'containers'), IDLE_NODE_BY_ID.containers.per);
-  const craftMult = idleSoft(lvl(nodes, 'craft'), IDLE_NODE_BY_ID.craft.per);
-  const shardMult = idleSoft(lvl(nodes, 'shards'), IDLE_NODE_BY_ID.shards.per);
+  const rareMult = idleSoft(lvl(nodes, 'rare'), IDLE_NODE_BY_ID.rare.per) * hive.rareWeightMult;
+  const containerMult = idleSoft(lvl(nodes, 'containers'), IDLE_NODE_BY_ID.containers.per) * hive.containerWeightMult;
+  const craftMult = idleSoft(lvl(nodes, 'craft'), IDLE_NODE_BY_ID.craft.per) * hive.craftMult;
+  const shardMult = idleSoft(lvl(nodes, 'shards'), IDLE_NODE_BY_ID.shards.per) * hive.shardMult;
   const weightOf = (d: IdleDropDef): number => {
     let w = d.weight;
     if (d.rare) w *= rareMult;
@@ -347,7 +354,7 @@ export function rollIdleHarvest(
     if (pick.id === 'container' || pick.id === 'runCache') containers++;
     lines.push({ dropId: pick.id, name: pick.name, icon: pick.icon, grant: pick.grant(slice, rng), rare: pick.rare === true });
   }
-  const xp = Math.round(accrual.effHours * 4 * idleSoft(lvl(nodes, 'xp'), IDLE_NODE_BY_ID.xp.per));
+  const xp = Math.round(accrual.effHours * 4 * idleSoft(lvl(nodes, 'xp'), IDLE_NODE_BY_ID.xp.per) * hive.xpMult);
   return { lines, bloom, budget, xp };
 }
 

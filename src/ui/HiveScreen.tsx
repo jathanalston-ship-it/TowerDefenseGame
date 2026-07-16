@@ -12,6 +12,8 @@ import { music } from '../audio/music';
 import { labScore } from './homeBaseTiers';
 import type { HiveOrganDef, RecipeKey } from '../core/hiveOrgans';
 import { explainCost } from '../core/hiveOrgans';
+import { HIVE_SYNERGIES, ORGAN_COUPLINGS, synergyLive } from '../core/hiveProduction';
+import { HiveOrganism } from './components/HiveOrganism';
 import { CurrencyIcon } from './components/CurrencyIcon';
 import { Popup } from './components/Popup';
 
@@ -37,6 +39,8 @@ export function HiveScreen(): JSX.Element {
   meta.use();
   const v = meta.hiveView();
   const score = labScore(meta.get());
+  const idle = meta.idleView();
+  const builtLedger = meta.get().hive.built;
   const [ceremony, setCeremony] = useState<{ def: HiveOrganDef; tier: number } | null>(null);
 
   const build = (def: HiveOrganDef, tier: number): void => {
@@ -51,14 +55,18 @@ export function HiveScreen(): JSX.Element {
     <div className="hive">
       <div className="hive-head">
         <div>
-          <div className="hive-title">⬡ THE HIVE — CONSTRUCTION</div>
+          <div className="hive-title">⬡ THE HIVE — GROWTH</div>
           <div className="hive-sub">
-            Grow the laboratory organism deliberately. Every organ consumes a MIX of resources and
-            <b> transforms the base you see behind every screen</b> — the era ladder gates what can grow next.
+            Grow the organism deliberately. Every organ consumes a MIX of resources,
+            <b> transforms the base you see behind every screen</b>, and <b>feeds its production</b> —
+            the harvest is this body's output (docs: fully-grown pairs reveal hidden synergies).
           </div>
         </div>
         <div className="hive-era-chip">ERA {v.era} · {ERAS[v.era].name}</div>
       </div>
+
+      {/* The living organism — the same body the Production view harvests */}
+      <HiveOrganism built={builtLedger} fillFrac={idle.accrual.capHours > 0 ? idle.accrual.rawHours / idle.accrual.capHours : 0} producing={!idle.accrual.full} view="growth" />
 
       {ERAS.map(({ era, name, gate, at }) => {
         const organs = v.organs.filter((o) => o.def.era === era);
@@ -86,6 +94,21 @@ export function HiveScreen(): JSX.Element {
                   </div>
                   <div className="hive-organ-blurb">{def.blurb}</div>
                   <div className="hive-organ-perk">◇ {def.perk}</div>
+                  {(() => {
+                    const c = ORGAN_COUPLINGS.find((x) => x.organ === def.id);
+                    const syn = HIVE_SYNERGIES.find((x) => x.a === def.id || x.b === def.id);
+                    const synLive = syn ? synergyLive(builtLedger, syn) : false;
+                    return (
+                      <>
+                        {c && <div className="hive-organ-prod" title={c.line}>⬣ {c.line}</div>}
+                        {syn && (
+                          <div className={`hive-organ-syn${synLive ? ' is-live' : ''}`} title={synLive ? syn.note : 'Fully grow both partner organs to reveal a hidden efficiency.'}>
+                            {synLive ? `✦ ${syn.name} — LIVE` : '✦ Pairs with another organ — a hidden efficiency waits at full growth.'}
+                          </div>
+                        )}
+                      </>
+                    );
+                  })()}
                   {next ? (
                     <>
                       <div className="hive-recipe">

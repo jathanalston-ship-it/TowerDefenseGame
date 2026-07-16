@@ -155,6 +155,8 @@ import { deepenNemesis, nemesisTraits, vengeanceCores } from '../core/nemesis';
 import { MAX_VOWS, VOWS, combinedVowWarp, vowArmCost, vowById, vowYieldProduct } from '../core/vows';
 import { HIVE_ORGANS, apexDrainPlan, hiveCost, hiveOrganById, strainDrainPlan } from '../core/hiveOrgans';
 import type { HiveCostLine, HiveOrganDef, RecipeKey } from '../core/hiveOrgans';
+import { HIVE_SYNERGIES, ORGAN_COUPLINGS, hiveProductionBonus, mostProductiveOrgan, synergyLive } from '../core/hiveProduction';
+import type { HiveProductionBonus, HiveSynergyDef } from '../core/hiveProduction';
 import { labEra, labScore } from '../ui/homeBaseTiers'; // pure model (no DOM) — the hive's era prerequisite
 import { sumValues } from '../core/math';
 import type { VowDef } from '../core/vows';
@@ -1758,6 +1760,12 @@ export interface IdleHarvestView {
    *  and storage-cap bonus hours — the second mastery-ladder feed, shown as its own chip. */
   arenaDividend: number;
   arenaCapBonusHours: number;
+  /** HIVE STRUCTURE FEED (docs/HIVE-PRODUCTION.md): the built organism's production bundle
+   *  (identity with nothing built), its live synergies, and the most productive organ —
+   *  the stats panel shows the body feeding the harvest. */
+  hive: HiveProductionBonus;
+  synergies: { def: HiveSynergyDef; live: boolean }[];
+  mostProductive: { name: string; line: string } | null;
 }
 
 /** Static display rows for the drop table (gates shown as "work toward it" copy). */
@@ -2183,6 +2191,25 @@ export const meta = {
       hive: { built: { ...s.hive.built, [id]: tier } },
       timeline: pushTimeline(s.timeline, def.icon, `Hive grown — ${def.name}${def.tiers > 1 ? ` ${['I', 'II', 'III'][tier - 1]}` : ''}`),
     });
+    // The growth placard leads with the organ's PRODUCTION line (docs/HIVE-PRODUCTION.md):
+    // building the body visibly grows the output — the merged loop's core beat. A newly
+    // completed synergy announces its reveal as a second, rarer card.
+    {
+      const coupling = ORGAN_COUPLINGS.find((c) => c.organ === id);
+      const ev: ToastEvents = [{
+        type: 'organ',
+        name: `${def.name}${def.tiers > 1 ? ` — Tier ${tier}` : ''}`,
+        rarity: def.era >= 3 ? 'epic' : def.era >= 2 ? 'rare' : undefined,
+        collection: coupling?.line,
+      }];
+      const built = { ...s.hive.built, [id]: tier };
+      for (const syn of HIVE_SYNERGIES) {
+        if ((syn.a === id || syn.b === id) && synergyLive(built, syn) && !synergyLive(s.hive.built, syn)) {
+          ev.push({ type: 'organ', name: `Synergy revealed — ${syn.name}`, rarity: 'epic', collection: syn.note });
+        }
+      }
+      rewardToast.pushMany('The Hive Grows', ev);
+    }
     return true;
   },
 
@@ -4144,7 +4171,8 @@ export const meta = {
     const save = store.get();
     const ctx = idleGateContext(save);
     const arenaDiv = this.arenaDivisionIndex(now);
-    const acc = idleAccrual(now - (save.idle.lastCollect || now), highestCampaignStage(save), save.idle.nodes, ctx.genomeRankIndex, arenaIdleDividend(arenaDiv), arenaIdleCapBonusHours(arenaDiv));
+    const hive = hiveProductionBonus(save.hive.built);
+    const acc = idleAccrual(now - (save.idle.lastCollect || now), highestCampaignStage(save), save.idle.nodes, ctx.genomeRankIndex, arenaIdleDividend(arenaDiv), arenaIdleCapBonusHours(arenaDiv), hive);
     const nodes = IDLE_NODES.map((def) => {
       const level = save.idle.nodes[def.id] ?? 0;
       const gate = idleNodeGate(def, level + 1, ctx);
@@ -4163,6 +4191,9 @@ export const meta = {
       rankBonus: IDLE.rankGrowth * Math.max(0, ctx.genomeRankIndex - 1),
       arenaDividend: arenaIdleDividend(arenaDiv),
       arenaCapBonusHours: arenaIdleCapBonusHours(arenaDiv),
+      hive,
+      synergies: HIVE_SYNERGIES.map((def) => ({ def, live: synergyLive(save.hive.built, def) })),
+      mostProductive: mostProductiveOrgan(save.hive.built),
     };
   },
 
@@ -4183,10 +4214,11 @@ export const meta = {
     }
     const ctx = idleGateContext(save);
     const arenaDiv = this.arenaDivisionIndex(now);
-    const acc = idleAccrual(now - last, highestCampaignStage(save), save.idle.nodes, ctx.genomeRankIndex, arenaIdleDividend(arenaDiv), arenaIdleCapBonusHours(arenaDiv));
+    const hive = hiveProductionBonus(save.hive.built);
+    const acc = idleAccrual(now - last, highestCampaignStage(save), save.idle.nodes, ctx.genomeRankIndex, arenaIdleDividend(arenaDiv), arenaIdleCapBonusHours(arenaDiv), hive);
     if (acc.rawHours * 60 < IDLE.minCollectMinutes) return null;
     const rng = new Rng(((Math.floor(now / 1000) ^ Math.floor(last / 1000)) >>> 0) || 1);
-    const roll = rollIdleHarvest(acc, save.idle.nodes, ctx, () => rng.next());
+    const roll = rollIdleHarvest(acc, save.idle.nodes, ctx, () => rng.next(), hive);
     let next: SaveData = { ...save };
     const lines: IdleReceiptLine[] = [];
     let value = 0;
@@ -4209,7 +4241,7 @@ export const meta = {
         bestHours: Math.max(next.idle.bestHours, acc.effHours),
         blooms: next.idle.blooms + (roll.bloom ? 1 : 0),
       },
-      timeline: pushTimeline(next.timeline, '⬢', `Idle Harvest — ${fmtIdleHours(acc.effHours)} banked${roll.bloom ? ' · BLOOM' : ''}`),
+      timeline: pushTimeline(next.timeline, '⬢', `Hive Production — ${fmtIdleHours(acc.effHours)} banked${roll.bloom ? ' · BLOOM' : ''}`),
     });
     {
       const ev: ToastEvents = [];
@@ -4228,7 +4260,7 @@ export const meta = {
         else if (g.kind === 'container') ev.push({ type: 'container', rarity: g.rarity });
         else if (g.kind === 'runCache') ev.push({ type: 'runCache' });
       }
-      rewardToast.pushMany(roll.bloom ? 'Idle Harvest — BLOOM' : 'Idle Harvest', ev);
+      rewardToast.pushMany(roll.bloom ? 'Hive Production — BLOOM' : 'Hive Production', ev);
     }
     this.evaluateAchievements();
     return {

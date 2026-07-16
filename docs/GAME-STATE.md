@@ -1285,3 +1285,27 @@ mapping.
 the landings); recommendations read device-local watermarks (a seen badge stops recommending
 until it re-lights); the play backstop always routes to the Campaign; hub completion = mean
 of member rings that exist (screens without a metric are excluded).
+
+## Compressed system summary — Hive Production (docs/HIVE-PRODUCTION.md)
+
+**The merge.** The Hive organism (construction) and Idle Harvest are ONE loop: the Hive is
+the engine, the harvest its output. NO save migration — `core/hiveProduction.ts` unifies the
+two existing ledgers: ORGAN_COUPLINGS (every organ feeds one themed production lane per
+built tier — validator-enforced), HIVE_SYNERGIES (hidden efficiencies revealed when both
+paired organs are fully grown), `hiveProductionBonus(built)` → a caps-clamped bundle that
+idleAccrual/rollIdleHarvest consume through OPTIONAL identity-default args (goldens + fresh
+saves byte-unchanged). Guardrail re-proven with organs MAXED (idle < ¼ of the weakest
+active lane across the arc); organs still never touch combat Power.
+
+**Presentation.** `ui/components/HiveOrganism.tsx` — the shared living diagram (production
+sac fills toward cap + heartbeat, built organs pulse, veins carry motes, synergy arcs,
+Growth ⇄ Production tabs). HarvestScreen → "Hive Production" (Rewards hub): stats panel
+(rate/offline/capacity/ETA + ⬡ organism & ✦ synergy chips + most productive organ) and an
+adaptive advice line (brimmed → collect + grow storage). HiveScreen → "The Hive — Growth"
+(Evolution hub): organ cards carry production lines + synergy state; building placards
+"The Hive Grows" (the `organ` reward type) + epic synergy-reveal cards. Language sweep:
+nav/i18n ×3, unlock row, help entry, timeline, placard sources all say Hive Production.
+
+**Extension points.** New organ = one HIVE_ORGANS row + one coupling row; new synergy = one
+pair row; new lane = one CouplingTarget; new drop = one IDLE_DROPS row. Rank/arena/campaign
+already feed the engine; future systems add multipliers at the same optional-arg seam.

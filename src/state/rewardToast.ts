@@ -67,7 +67,8 @@ export const REWARD_TYPES: readonly RewardTypeDef[] = [
   { id: 'evolutionNode', unit: 'Evolution Rewards', art: { kind: 'glyph', glyph: '⧉', color: 'var(--viral)' }, merge: 'sum', tier: 1 },
   { id: 'achievement', unit: 'Achievement', art: { kind: 'glyph', glyph: '🏆', color: 'var(--gold)' }, merge: 'never', tier: 2 },
   { id: 'collection', unit: 'Collection Reward', art: { kind: 'glyph', glyph: '❈', color: 'var(--gold)' }, merge: 'never', tier: 2 },
-  { id: 'idleLoot', unit: 'Idle Yield', art: { kind: 'glyph', glyph: '⌛', color: 'var(--caustic)' }, merge: 'sum' },
+  { id: 'idleLoot', unit: 'Hive Yield', art: { kind: 'glyph', glyph: '⌛', color: 'var(--caustic)' }, merge: 'sum' },
+  { id: 'organ', unit: 'Hive Organ Grown', art: { kind: 'glyph', glyph: '⬡', color: 'var(--viral)' }, merge: 'never', tier: 1, nav: { key: 'hive', label: 'View the Hive' } },
   { id: 'boost', unit: 'Research Boost', art: { kind: 'glyph', glyph: '⚗', color: 'var(--caustic)' }, merge: 'never', tier: 1 },
 ];
 

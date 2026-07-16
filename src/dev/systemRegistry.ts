@@ -255,7 +255,7 @@ export const SYSTEMS: SystemDef[] = [
   },
   {
     id: 'hive-construction', name: 'Hive Construction', purpose: 'The composite long-horizon sink (docs/HIVE-CONSTRUCTION.md): BUILD the Home Base — 10 organ data rows across labScore eras 0–3 (the passive ladder is the prerequisite), each a MULTI-currency recipe (Cores/Essence/Strain/Apex/materials, ≥2 lanes enforced, factor-traced geometric tiers, per-kind drains richest-first) spent through ONE atomic guarded action; built organs layer fixtures into LabAtmosphere immediately + lift ambient glow. Sidegrades only — Power Score never reads it.',
-    files: ['src/core/hiveOrgans.ts', 'src/ui/HiveScreen.tsx'],
+    files: ['src/core/hiveOrgans.ts', 'src/core/hiveProduction.ts', 'src/ui/HiveScreen.tsx', 'src/ui/components/HiveOrganism.tsx'],
     dependsOn: ['meta-store', 'hub-shell', 'shards-economy'], powerScore: null, save: ['hive'],
     tutorial: [], help: [], hud: [], ui: ['HiveScreen', 'LabAtmosphere (fixture layers)'], collection: null, achievements: [],
     localization: 'inline-en', docs: ['docs/HIVE-CONSTRUCTION.md', 'docs/HOME-BASE.md'],

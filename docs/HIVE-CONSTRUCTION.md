@@ -1,5 +1,9 @@
 # HIVE CONSTRUCTION — the composite long-horizon sink (`src/core/hiveOrgans.ts`)
 
+> **MERGED (2026-07):** organs now FEED PRODUCTION — read **docs/HIVE-PRODUCTION.md**
+> first (one themed coupling per organ + hidden pair synergies). Construction economy,
+> fixtures, and the never-combat-power constitution below are unchanged.
+
 The Home Base's passive growth (docs/HOME-BASE.md: `labScore` → eras 0–3 → fixtures) stays
 the PREREQUISITE ladder; Hive Construction makes the next stage ACTIVE: the player **builds**
 the laboratory organism's organs, each consuming a **mix of currencies**, and each built organ
