@@ -4,8 +4,12 @@
 // Reads the reactive save; selection/purchases go through meta. Equipment management lives in the
 // Armory (EquipmentPanel) below — this page shows the loadout and points there.
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { masteryProgress, meta } from '../state/meta';
+import { organizeList, toggleIn } from '../state/listOrg';
+import type { ListOrgSpec, ListOrgState } from '../state/listOrg';
+import { listOrgPrefs, setListOrgPrefs } from '../state/prefs';
+import { ListControls } from './components/ListControls';
 import { heroDetail } from '../state/heroView';
 import { HERO_DEFS, HERO_ORDER } from '../core/config';
 import { heroIdentity } from '../core/heroIdentity';
@@ -195,13 +199,58 @@ export function HeroLab(): JSX.Element {
   const fieldedSet = new Set(meta.fieldedLoadout()); // heroes currently in the roster (any slot)
   const isPrimary = slots[0]?.kind === focus;
 
+  // ── Roster organization (state/listOrg — docs/UI-STANDARDS.md §lists): the 30-hero answer.
+  // Sort/filters persist per surface; the query never does (a stale search is a trap).
+  const [rosterQuery, setRosterQuery] = useState('');
+  const [rosterPrefs, setRosterPrefs] = useState(() => listOrgPrefs('heroes'));
+  const rosterSpec = useMemo((): ListOrgSpec<HeroKind> => ({
+    searchText: (k) => `${HERO_DEFS[k].name} ${HERO_DEFS[k].combatClass}`,
+    sorts: [
+      { id: 'default', label: 'Roster order', by: (k) => HERO_ORDER.indexOf(k), dir: 'asc' },
+      { id: 'stars', label: 'Highest Stars', by: (k) => save.heroStars[k] ?? 0 },
+      { id: 'mastery', label: 'Highest Mastery', by: (k) => masteryProgress(save.heroMasteryXp[k] ?? 0).level },
+      { id: 'name', label: 'Name A–Z', by: (k) => HERO_DEFS[k].name },
+    ],
+    filters: [
+      { id: 'fielded', label: '● Fielded', test: (k) => fieldedSet.has(k), title: 'Only heroes in your roster slots' },
+      { id: 'owned', label: 'Unlocked', test: (k) => colByKind.get(k)?.unlocked === true },
+      { id: 'ready', label: 'Unlock ready', test: (k) => colByKind.get(k)?.canUnlock === true, title: 'Enough Apex Genome to release' },
+    ],
+    // Locked champions sink below the roster you can actually field.
+    lead: (k) => (colByKind.get(k)?.unlocked ? 1 : 0),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }), [save, fieldedSet, colByKind]);
+  const rosterState: ListOrgState = {
+    query: rosterQuery,
+    sort: rosterPrefs.sort ?? 'default',
+    filters: rosterPrefs.filters ?? [],
+    group: null,
+    collapsed: [],
+  };
+  const rosterOut = organizeList(HERO_ORDER, rosterSpec, rosterState);
+
   return (
     <div className="panel herolab">
       <BestBuyStrip surface="heroes" />
       {/* ── Roster rail: compact, scrollable, one row per hero (scales to 30+) ── */}
       <div className="hero-roster" data-guide="hero-roster" role="tablist" aria-label="Hero roster">
         <div className="hero-roster-h">Roster <span className="hr-count">{HERO_ORDER.length}</span></div>
-        {HERO_ORDER.map((k) => {
+        <ListControls
+          search={{ value: rosterQuery, onChange: setRosterQuery, placeholder: 'Search champions…', label: 'Search heroes' }}
+          chips={(rosterSpec.filters ?? []).map((f) => ({
+            id: f.id, label: f.label, title: f.title,
+            on: rosterState.filters.includes(f.id),
+            onToggle: () => setRosterPrefs(setListOrgPrefs('heroes', { filters: toggleIn(rosterState.filters, f.id) })),
+          }))}
+          sort={{
+            value: rosterState.sort,
+            options: rosterSpec.sorts.map((s) => ({ id: s.id, label: s.label })),
+            onChange: (id2) => setRosterPrefs(setListOrgPrefs('heroes', { sort: id2 })),
+          }}
+          shown={{ shown: rosterOut.shown, total: rosterOut.total }}
+        />
+        {rosterOut.shown === 0 && <div className="tl2-empty">No champions match — clear the filters.</div>}
+        {rosterOut.rows.map((k) => {
           const def = HERO_DEFS[k];
           const entry = colByKind.get(k)!;
           const locked = !entry.unlocked;

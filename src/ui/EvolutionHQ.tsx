@@ -6,10 +6,14 @@
 // Future-Locked teaser. Presentation only: reads the reactive save + meta selectors; purchases
 // route through meta.buyUpgrade.
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { meta, metaModifiers, highestCampaignStage } from '../state/meta';
 import { genomeSections, FUTURE_LOCKED } from '../state/evolutionHQ';
 import type { GenomeSection, GenomeCardView } from '../state/evolutionHQ';
+import { organizeList, toggleIn } from '../state/listOrg';
+import type { ListOrgSpec, ListOrgState } from '../state/listOrg';
+import { listOrgPrefs, setListOrgPrefs } from '../state/prefs';
+import { ListControls } from './components/ListControls';
 import { SLOTS } from '../core/config';
 import { formatPower } from '../core/power';
 import { ProgressBar } from './components/ProgressBar';
@@ -191,7 +195,28 @@ export function EvolutionHQ(): JSX.Element {
 
   const curPower = meta.power().score;
   const mm = metaModifiers(save);
-  const sections = genomeSections(save);
+  // ── Board organization (state/listOrg — docs/UI-STANDARDS.md §lists): the catalog only
+  // grows (1000-upgrade target). Search + chips filter CARDS inside every category; a
+  // category with nothing left disappears from the board AND the jump rail.
+  const [boardQuery, setBoardQuery] = useState('');
+  const [boardPrefs, setBoardPrefs] = useState(() => listOrgPrefs('evolution'));
+  const boardFilters = useMemo(() => ([
+    { id: 'affordable', label: 'Affordable now', title: 'Only upgrades you can buy this second', test: (c: GenomeCardView) => !c.completed && !c.locked && c.cost !== null && c.cost <= save.shards },
+    { id: 'hidemax', label: 'Hide maxed', test: (c: GenomeCardView) => !c.completed },
+  ]), [save.shards]);
+  const activeFilters = boardPrefs.filters ?? [];
+  const sections = useMemo(() => {
+    const spec: ListOrgSpec<GenomeCardView> = {
+      searchText: (c) => `${c.name} ${c.description}`,
+      sorts: [{ id: 'default', label: 'Authored order', by: () => 0, dir: 'asc' }],
+      filters: boardFilters,
+    };
+    const state: ListOrgState = { query: boardQuery, sort: 'default', filters: activeFilters, group: null, collapsed: [] };
+    return genomeSections(save)
+      .map((sec) => ({ ...sec, cards: organizeList(sec.cards, spec, state).rows }))
+      .filter((sec) => sec.cards.length > 0);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [save, boardQuery, activeFilters, boardFilters]);
   const prestige = meta.prestigeView();
   const towerCap = Math.min(SLOTS.permanentMax, SLOTS.initialUnlocked + mm.bonusSlots);
   const runawayLevels = sections.reduce((a, s) => a + s.endlessLevels, 0);
@@ -219,6 +244,17 @@ export function EvolutionHQ(): JSX.Element {
         <span className="evo-treasury-life">{save.lifetimeShards.toLocaleString()} lifetime</span>
         {runawayLevels > 0 && <span className="evo-treasury-run" title="Runaway mutation levels across all categories">∞ {runawayLevels} Runaway</span>}
       </section>
+
+      {/* Board organization — find one upgrade among 1000 (docs/UI-STANDARDS.md §lists). */}
+      <ListControls
+        search={{ value: boardQuery, onChange: setBoardQuery, placeholder: 'Search upgrades…', label: 'Search Genome Core upgrades' }}
+        chips={boardFilters.map((f) => ({
+          id: f.id, label: f.label, title: f.title,
+          on: activeFilters.includes(f.id),
+          onToggle: () => setBoardPrefs(setListOrgPrefs('evolution', { filters: toggleIn(activeFilters, f.id) })),
+        }))}
+      />
+      {sections.length === 0 && <div className="tl2-empty">No upgrades match — clear the search or filters.</div>}
 
       {/* Jump rail — the HQ is long; every section is one tap away. (Desktop only: on portrait
           the folded category headers below ARE the index, all visible in one viewport.) */}
