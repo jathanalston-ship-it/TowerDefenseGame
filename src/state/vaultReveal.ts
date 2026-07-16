@@ -28,11 +28,14 @@ import { MULLIGAN_MARK } from '../core/mulligan';
 
 export { itemPowerScore }; // re-exported for callers that import it from the reveal read-model
 
-/** Reward families the summary groups by (fixed display order below). */
-export type RevealCategory = 'equipment' | 'towerShards' | 'heroShards' | 'materials' | 'other';
+/** Reward families the summary groups by (fixed display order below). NEW gene-strand
+ *  recoveries lead the ledger in their own section (docs/CARDS.md §discovery); equipment
+ *  first-finds keep their NEW badge inside Equipment (their identity is the gear). */
+export type RevealCategory = 'discoveries' | 'equipment' | 'towerShards' | 'heroShards' | 'materials' | 'other';
 
-const CATEGORY_ORDER: RevealCategory[] = ['equipment', 'towerShards', 'heroShards', 'materials', 'other'];
+const CATEGORY_ORDER: RevealCategory[] = ['discoveries', 'equipment', 'towerShards', 'heroShards', 'materials', 'other'];
 const CATEGORY_TITLE: Record<RevealCategory, string> = {
+  discoveries: 'New Discoveries',
   equipment: 'Equipment',
   towerShards: 'Strain Samples',
   heroShards: 'Apex Genome',
@@ -145,7 +148,7 @@ export function describePull(item: RewardItem, compare?: (i: OwnedItem) => Power
       const color = CARD_RARITY_COLOR[item.cardRarity] ?? 'var(--viral)';
       return {
         key: `gene:${item.cardId}${item.isNew ? '' : ':echo'}`,
-        category: 'other', rarity: item.rarity, color,
+        category: item.isNew ? 'discoveries' : 'other', rarity: item.rarity, color,
         name: def?.name ?? item.cardId,
         qty: item.isNew ? 1 : item.echoEssence ?? 0,
         unit: item.isNew ? 'Gene Card' : 'Gene Essence',
@@ -233,4 +236,118 @@ function unitFor(r: SummaryRow): string {
     case 'materials': return r.name; // each material row is its own kind (Mutagen / Scrap / Catalyst)
     default: return '';
   }
+}
+
+// ── SPECIMEN REVEAL SESSION (docs/LOOTBOX.md §opening) ──────────────────────────────────
+// The simultaneous face-down grid that replaced the one-at-a-time births: every reward
+// materializes at once as a face-down specimen; the player flips each by hand (or arms the
+// Reveal All cascade). Pure rules — pacing/animation live in the component; ANY RewardItem
+// variant integrates automatically because a specimen is derived entirely from describePull's
+// output (a future reward type only needs its describePull case — zero reveal code).
+
+/** One face-down specimen in the grid. `tier` (0..4 on the loot ladder) drives flip
+ *  animation/sound/lighting magnitude; `interrupt` names the flow-stopping celebration the
+ *  flip triggers (a NEW strand recovery, or a legendary+ pull's zoom moment). */
+export interface SpecimenView {
+  index: number;
+  pull: PullView;
+  tier: number;
+  interrupt: 'discovery' | 'legendary' | null;
+}
+
+export function buildSpecimens(model: RevealModel): SpecimenView[] {
+  return model.pulls.map((pull, index) => {
+    const tier = Math.max(0, TIER.indexOf(pull.rarity));
+    const interrupt = pull.category === 'discoveries' ? 'discovery' as const
+      : tier >= 3 ? 'legendary' as const : null;
+    return { index, pull, tier, interrupt };
+  });
+}
+
+/** Grid geometry: a single clutch up to 12 specimens; larger stockpiles page in clutches
+ *  (only the active page mounts — 100× is nine 12-specimen pages, zero scrolling). */
+export interface RevealGridSpec {
+  pageSize: number;
+  pages: number;
+  cols: number; // desktop columns
+  colsNarrow: number; // phone columns (≤480px)
+}
+
+export function revealGrid(count: number): RevealGridSpec {
+  const pageSize = count <= 12 ? Math.max(1, count) : 12;
+  const pages = Math.max(1, Math.ceil(count / pageSize));
+  const per = Math.min(count, pageSize);
+  const cols = per <= 1 ? 1 : per <= 4 ? 2 : per <= 9 ? 3 : 4;
+  const colsNarrow = per <= 1 ? 1 : per <= 4 ? 2 : 3;
+  return { pageSize, pages, cols, colsNarrow };
+}
+
+/** The session's live state — a plain reducer so the flip rules are unit-testable and the
+ *  component stays presentation-only. Timing (cascade pacing, flip durations) is UI-owned. */
+export interface RevealSessionState {
+  flipped: boolean[];
+  order: number[]; // specimen indices in flip order (drives Replay Highlights)
+  interrupt: number | null; // specimen whose celebration currently HOLDS the flow
+  page: number;
+  revealAll: boolean; // the auto-flip cascade is armed (UI drives the timer)
+  fast: boolean; // shortened flip pacing
+  skipAnims: boolean; // instant flips — suppresses interrupts entirely
+}
+
+export type RevealAction =
+  | { kind: 'flip'; index: number }
+  | { kind: 'ack' } // dismiss the held celebration
+  | { kind: 'revealAll' }
+  | { kind: 'fast' }
+  | { kind: 'skipAnims' }
+  | { kind: 'page'; to: number };
+
+export function initialRevealState(count: number): RevealSessionState {
+  return { flipped: Array.from({ length: count }, () => false), order: [], interrupt: null, page: 0, revealAll: false, fast: false, skipAnims: false };
+}
+
+export function revealReduce(specimens: SpecimenView[], s: RevealSessionState, a: RevealAction): RevealSessionState {
+  switch (a.kind) {
+    case 'flip': {
+      // One rule set, every path: face-down only, and never while a celebration holds the flow.
+      if (s.interrupt !== null) return s;
+      if (a.index < 0 || a.index >= s.flipped.length || s.flipped[a.index]) return s;
+      const flipped = s.flipped.slice();
+      flipped[a.index] = true;
+      const sp = specimens[a.index];
+      const interrupt = !s.skipAnims && sp?.interrupt ? a.index : null;
+      return { ...s, flipped, order: [...s.order, a.index], interrupt };
+    }
+    case 'ack':
+      return s.interrupt === null ? s : { ...s, interrupt: null };
+    case 'revealAll':
+      return s.revealAll ? s : { ...s, revealAll: true };
+    case 'fast':
+      return { ...s, fast: !s.fast };
+    case 'skipAnims':
+      return { ...s, skipAnims: !s.skipAnims };
+    case 'page': {
+      const pages = revealGrid(s.flipped.length).pages;
+      const to = Math.max(0, Math.min(pages - 1, a.to));
+      return to === s.page ? s : { ...s, page: to };
+    }
+  }
+}
+
+export function revealDone(s: RevealSessionState): boolean {
+  return s.flipped.every(Boolean);
+}
+
+/** First face-down specimen at or after `from` (the cascade's next target), else -1. */
+export function nextFaceDown(s: RevealSessionState, from = 0): number {
+  for (let i = Math.max(0, from); i < s.flipped.length; i++) if (!s.flipped[i]) return i;
+  return -1;
+}
+
+/** Replay Highlights: the ceremony-worthy flips (celebrations, rare+ pulls, first finds),
+ *  in the order the player actually revealed them. */
+export function revealHighlights(specimens: SpecimenView[], s: RevealSessionState): SpecimenView[] {
+  return s.order
+    .map((i) => specimens[i])
+    .filter((sp): sp is SpecimenView => !!sp && (sp.interrupt !== null || sp.tier >= 2 || sp.pull.isNew === true));
 }
