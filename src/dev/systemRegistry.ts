@@ -135,6 +135,20 @@ export const SYSTEMS: SystemDef[] = [
     localization: 'inline-en', docs: ['docs/DEPLOYMENT.md', 'docs/REPLAY-SHARE.md'],
   },
   {
+    id: 'online-foundation', name: 'Online Foundation', purpose: 'The authoritative online architecture every online feature inherits (docs/ONLINE-FOUNDATION.md): the replicated command vocabulary + ONE applyArenaCommand path onto the Game intents, the versioned wire protocol (deterministic lockstep — only commands cross the wire; command-log replay IS rollback/reconnect), state digests (desync/tamper alarm), the server-authority policy table, and the Auction House backend prep — per-item provenance stamps (source/time/season/bound/ownership history, self-healing coverage on every load) + trade eligibility/fees/fraud heuristics denominated in Ichor (docs/TRADING-PREP.md). No trading gameplay/UI exists by design.',
+    files: ['src/core/online.ts', 'src/core/itemIdentity.ts', 'src/core/trading.ts', 'src/net/arenaTransport.ts', 'src/net/arenaSession.ts'],
+    dependsOn: ['engine', 'content-infra', 'splice-market'], powerScore: null, save: ['provenance'], tutorial: [], help: [],
+    hud: [], ui: [], collection: null, achievements: [],
+    localization: 'inline-en', docs: ['docs/ONLINE-FOUNDATION.md', 'docs/TRADING-PREP.md'],
+  },
+  {
+    id: 'arena', name: 'Arena (Live PvP)', purpose: 'The live-PvP pillar (docs/ARENA.md): the mirror SIEGE RACE ruleset over two deterministic sims, Power-Score matchmaking with the 20s AI fallback, ranked divisions (Spore→Apex Strain; placements, streaks, decay, 30-day seasonal soft resets), the wins-only 100-level Arena Pass with procedurally rotated seasonal reward tables + the alternating arena-exclusive content crown, division-banded match rewards (wins pay containers, losses pay standard resources), and modest diminishing Idle-Harvest rank dividends.',
+    files: ['src/core/arena.ts', 'src/core/arenaPass.ts', 'src/core/arenaAi.ts', 'src/core/arenaMatch.ts'],
+    dependsOn: ['online-foundation', 'engine', 'battle-pass', 'idle-harvest', 'power', 'meta-store'], powerScore: 'arena exclusives are full content pieces scored by the existing tower/hero buckets once unlocked; rank itself is deliberately zero-Power (prestige lane, like Genome Rank)', save: ['arena'], tutorial: [], help: [],
+    hud: [], ui: [], collection: null, achievements: [],
+    localization: 'inline-en', docs: ['docs/ARENA.md'],
+  },
+  {
     id: 'towers', name: 'Towers, Stars, Branches, Strain & Codex', purpose: 'Tower roster; permanent Star evolutions; in-run Branch specialization; the in-run STRAIN evolution layer (docs/STRAIN.md); the Codex.',
     files: ['src/core/stars.ts', 'src/core/branches.ts', 'src/core/branchTree.ts', 'src/core/strains.ts', 'src/core/conveyor.ts', 'src/ui/TowerLab.tsx', 'src/ui/TowerCodex.tsx', 'src/ui/TowerPortrait.tsx', 'src/ui/towerLabModel.ts', 'src/ui/towerCodexModel.ts', 'src/ui/StarCeremony.tsx', 'src/ui/components/BranchTree.tsx'],
     dependsOn: ['content-infra', 'shards-economy', 'campaign'], powerScore: 'stars/branches feed permanent + temporary buckets', save: ['towerStars', 'towerPrime', 'towerShards', 'towerMasteryXp', 'towerForks'],

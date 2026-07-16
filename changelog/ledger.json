@@ -1,6 +1,6 @@
 {
-  "lastSha": "5892bc20eef929290c973dd6e2ef04ec3fe4dffd",
-  "commitsSinceDraft": 0,
+  "lastSha": "ba55715b4b99e84f338dd4e2d1e25ba5e11dd38f",
+  "commitsSinceDraft": 2,
   "content": {
     "tower": [
       "needle",
@@ -233,6 +233,8 @@
       "premium",
       "field-research",
       "net-backend",
+      "online-foundation",
+      "arena",
       "towers",
       "mastery",
       "heroes",
@@ -1497,6 +1499,16 @@
       "entries": [
         {
           "cat": "Gameplay",
+          "text": "New system: Arena (Live PvP)",
+          "major": true
+        },
+        {
+          "cat": "Gameplay",
+          "text": "New system: Online Foundation",
+          "major": true
+        },
+        {
+          "cat": "Gameplay",
           "text": "New achievement: The Complete Genome",
           "major": true
         },
@@ -2533,6 +2545,14 @@
         {
           "cat": "UI",
           "text": "Reward toast overhaul: every reward becomes a config-driven placard reveal"
+        },
+        {
+          "cat": "Framework",
+          "text": "Chronicle: placard-framework batch notes + devlog draft"
+        },
+        {
+          "cat": "Security",
+          "text": "Online foundation: protocol/authority core, item provenance (v47), arena rank+pass, AI opponents, lockstep netcode"
         }
       ]
     }
@@ -4416,6 +4436,22 @@
       "cat": "Framework",
       "text": "Converge the two parallel toast implementations on the placard framework",
       "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "bc403f8fee450c574487ffa842a20fb5fbcdd534",
+      "date": "2026-07-16",
+      "cat": "Framework",
+      "text": "Chronicle: placard-framework batch notes + devlog draft",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "ba55715b4b99e84f338dd4e2d1e25ba5e11dd38f",
+      "date": "2026-07-16",
+      "cat": "Security",
+      "text": "Online foundation: protocol/authority core, item provenance (v47), arena rank+pass, AI opponents, lockstep netcode",
+      "internal": false,
       "needsReview": false
     }
   ]

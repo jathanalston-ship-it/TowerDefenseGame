@@ -214,3 +214,73 @@ describe('backups & corruption recovery', () => {
     expect(store.listBackups().length).toBeLessThanOrEqual(8);
   });
 });
+
+describe('v46→v47 migration — arena record + provenance ledger (docs/ONLINE-FOUNDATION.md)', () => {
+  const V46ish = (): SaveData => {
+    // A pre-v47 blob: the fields simply do not exist (JSON.stringify drops undefined),
+    // with owned tradables in every category so the reconcile pass has work to do.
+    const d = defaultSave() as unknown as Record<string, unknown>;
+    delete d.arena;
+    delete d.provenance;
+    const save = d as unknown as SaveData;
+    save.equipment = {
+      inventory: [{ uid: 'it_legacy_1', defId: 'x', rarity: 'common', affixes: [], source: 'Genetic Vault' } as unknown as SaveData['equipment']['inventory'][number]],
+      loadouts: {},
+    };
+    return save;
+  };
+
+  it('a pre-v47 save gains a fresh inert arena record and a fully-stamped provenance ledger', () => {
+    const store = new SaveStore(mem());
+    store.save(V46ish());
+    const loaded = store.load();
+    expect(loaded.arena).toEqual(defaultSave().arena);
+    expect(loaded.arena.rating).toBe(0); // inert — no rating minted by migration
+    // COVERAGE INVARIANT: every owned tradable is stamped (equipment + wardrobe + genes)
+    expect(loaded.provenance['eq:it_legacy_1']).toMatchObject({ source: 'legacy', at: 0, bound: false });
+    for (const id of loaded.wardrobe.owned) expect(loaded.provenance[`cos:${id}`]).toBeTruthy();
+    for (const id of loaded.genesDiscovered) expect(loaded.provenance[`gene:${id}`]).toBeTruthy();
+  });
+
+  it('provenance prunes stamps for equipment that no longer exists and keeps real sources', () => {
+    const store = new SaveStore(mem());
+    const data = defaultSave();
+    data.provenance = {
+      'eq:gone_uid': { source: 'Genetic Vault', at: 5, season: 1, bound: false, transfers: 0, history: [] },
+      [`gene:${data.genesDiscovered[0]}`]: { source: 'arena-pass', at: 9, season: 2, bound: true, transfers: 1, history: ['prev'] },
+    };
+    store.save(data);
+    const loaded = store.load();
+    expect(loaded.provenance['eq:gone_uid']).toBeUndefined(); // instance died ⇒ stamp pruned
+    expect(loaded.provenance[`gene:${data.genesDiscovered[0]}`]).toMatchObject({ source: 'arena-pass', at: 9, season: 2, bound: true, transfers: 1 });
+  });
+
+  it('a junk arena blob degrades to a sane record (never crashes, never mints)', () => {
+    const store = new SaveStore(mem());
+    const data = defaultSave() as unknown as Record<string, unknown>;
+    data.arena = { rating: -50, peak: 'NaN', wins: 3.9, placements: 99, exclusives: [7, 'tower:basilisk'], history: [null, { season: 2, rating: 1e12 }], settledMatchIds: 'nope' };
+    store.save(data as unknown as SaveData);
+    const loaded = store.load();
+    expect(loaded.arena.rating).toBe(0);
+    expect(loaded.arena.peak).toBe(0);
+    expect(loaded.arena.wins).toBe(3);
+    expect(loaded.arena.placements).toBeLessThanOrEqual(defaultSave().arena.placements);
+    expect(loaded.arena.exclusives).toEqual(['tower:basilisk']);
+    expect(loaded.arena.history).toEqual([{ season: 2, rating: 20_000, division: '', wins: 0, losses: 0 }]);
+    expect(loaded.arena.settledMatchIds).toEqual([]);
+  });
+
+  it('a live arena record round-trips byte-exactly', () => {
+    const store = new SaveStore(mem());
+    const data = defaultSave();
+    data.arena = {
+      ...data.arena, season: 3, rating: 1712, peak: 1800, wins: 9, losses: 4, lifetimeWins: 40,
+      lifetimeLosses: 22, placements: 0, streak: 2, lastPlayedAt: 1234567, passXp: 260,
+      passPremium: true, passClaimedFree: [1, 2, 3], passClaimedPremium: [1],
+      exclusives: ['tower:basilisk'], settledMatchIds: ['m_abcdefgh'],
+      history: [{ season: 2, rating: 1500, division: 'Larval I', wins: 20, losses: 11 }],
+    };
+    store.save(data);
+    expect(store.load().arena).toEqual(data.arena);
+  });
+});

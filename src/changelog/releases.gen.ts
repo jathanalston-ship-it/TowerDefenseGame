@@ -12,6 +12,16 @@ export const RELEASES: Release[] = [
     "entries": [
       {
         "cat": "Gameplay",
+        "text": "New system: Arena (Live PvP)",
+        "major": true
+      },
+      {
+        "cat": "Gameplay",
+        "text": "New system: Online Foundation",
+        "major": true
+      },
+      {
+        "cat": "Gameplay",
         "text": "New achievement: The Complete Genome",
         "major": true
       },
@@ -1048,6 +1058,14 @@ export const RELEASES: Release[] = [
       {
         "cat": "UI",
         "text": "Reward toast overhaul: every reward becomes a config-driven placard reveal"
+      },
+      {
+        "cat": "Framework",
+        "text": "Chronicle: placard-framework batch notes + devlog draft"
+      },
+      {
+        "cat": "Security",
+        "text": "Online foundation: protocol/authority core, item provenance (v47), arena rank+pass, AI opponents, lockstep netcode"
       }
     ]
   },

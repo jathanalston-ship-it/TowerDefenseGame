@@ -1,6 +1,6 @@
 # DIL_GRAPH.md — the Design Intelligence Layer (GENERATED — `npm run dil -- regen`)
 
-> **The project's brain** (docs/DIL.md). 824 nodes · 1524 edges, built from the live
+> **The project's brain** (docs/DIL.md). 836 nodes · 1546 edges, built from the live
 > registries + curated knowledge (src/dev/dil/). **Query it instead of searching the repo:**
 > `npm run dil -- node <id>` · `affects <id>` · `requires <id>` · `missing <kind> <edge>` ·
 > `checklist tower <kind>` · `find <text>`. Edge kinds are bidirectional (19 kinds).
@@ -26,7 +26,7 @@
 
 ### Power Score Index
 
-`system:engine` · `system:power` · `system:campaign` · `system:daily` · `system:mulligans` · `system:premium` · `system:towers` · `system:mastery` · `system:heroes` · `system:equipment` · `system:crafting` · `system:loot` · `system:gene-cards` · `system:nucleus` · `system:hero-symbiotes` · `system:idle-harvest` · `system:shards-economy` · `system:collection` · `system:evolution-hq` · `system:prestige` · `system:splice-market` · `system:achievements` · `system:cosmetics` · `system:battle-pass` · `system:quests` · `system:run-ui` · `system:prediction` · `system:meta-store` · `system:mega-bosses` · `system:assimilation`
+`system:engine` · `system:power` · `system:campaign` · `system:daily` · `system:mulligans` · `system:premium` · `system:arena` · `system:towers` · `system:mastery` · `system:heroes` · `system:equipment` · `system:crafting` · `system:loot` · `system:gene-cards` · `system:nucleus` · `system:hero-symbiotes` · `system:idle-harvest` · `system:shards-economy` · `system:collection` · `system:evolution-hq` · `system:prestige` · `system:splice-market` · `system:achievements` · `system:cosmetics` · `system:battle-pass` · `system:quests` · `system:run-ui` · `system:prediction` · `system:meta-store` · `system:mega-bosses` · `system:assimilation`
 
 ### Audio Index
 
@@ -38,7 +38,7 @@
 
 ### Testing Index
 
-`system:engine` · `system:content-infra` · `system:power` · `system:campaign` · `system:pil` · `system:accounts` · `system:boss-rush` · `system:daily` · `system:mulligans` · `system:premium` · `system:net-backend` · `system:towers` · `system:mastery` · `system:heroes` · `system:hero-cinematics` · `system:equipment` · `system:crafting` · `system:loot` · `system:gene-cards` · `system:nucleus` · `system:hero-symbiotes` · `system:idle-harvest` · `system:collection` · `system:evolution-hq` · `system:hive-construction` · `system:daily-login` · `system:prestige` · `system:currencies` · `system:splice-market` · `system:achievements` · `system:stats` · `system:liveops` · `system:directives` · `system:contracts` · `system:infestation` · `system:chronicle` · `system:cosmetics` · `system:battle-pass` · `system:quests` · `system:profile` · `system:onboarding` · `system:account-level` · `system:genome-rank` · `system:progression-gating` · `system:hub-shell` · `system:notifications` · `system:prediction` · `system:meta-store` · `system:bosses` · `system:mega-bosses` · `system:cutscenes` · `system:security` · `system:biomes` · `system:doctrines` · `system:difficulty` · `system:website` · `system:rendering` · `system:living-battlefield` · `system:audio` · `system:assimilation` · …1 more
+`system:engine` · `system:content-infra` · `system:power` · `system:campaign` · `system:pil` · `system:accounts` · `system:boss-rush` · `system:daily` · `system:mulligans` · `system:premium` · `system:net-backend` · `system:online-foundation` · `system:arena` · `system:towers` · `system:mastery` · `system:heroes` · `system:hero-cinematics` · `system:equipment` · `system:crafting` · `system:loot` · `system:gene-cards` · `system:nucleus` · `system:hero-symbiotes` · `system:idle-harvest` · `system:collection` · `system:evolution-hq` · `system:hive-construction` · `system:daily-login` · `system:prestige` · `system:currencies` · `system:splice-market` · `system:achievements` · `system:stats` · `system:liveops` · `system:directives` · `system:contracts` · `system:infestation` · `system:chronicle` · `system:cosmetics` · `system:battle-pass` · `system:quests` · `system:profile` · `system:onboarding` · `system:account-level` · `system:genome-rank` · `system:progression-gating` · `system:hub-shell` · `system:notifications` · `system:prediction` · `system:meta-store` · `system:bosses` · `system:mega-bosses` · `system:cutscenes` · `system:security` · `system:biomes` · `system:doctrines` · `system:difficulty` · `system:website` · `system:rendering` · `system:living-battlefield` · …3 more
 
 ### Developer Tooling Index
 
@@ -59,6 +59,8 @@ graph LR
   system_premium["Premium Store"] -->|consumes| system_meta_store["Meta Store & Save"]
   system_field_research["Field Research (rewarded studies)"] -->|consumes| system_meta_store["Meta Store & Save"]
   system_net_backend["Backend lanes (net/)"] -->|consumes| system_meta_store["Meta Store & Save"]
+  system_online_foundation["Online Foundation"] -->|consumes| system_meta_store["Meta Store & Save"]
+  system_arena["Arena (Live PvP)"] -->|consumes| system_meta_store["Meta Store & Save"]
   system_towers["Towers, Stars, Branches, Strain & Codex"] -->|consumes| system_meta_store["Meta Store & Save"]
   system_mastery["Mastery / Adaptation"] -->|consumes| system_meta_store["Meta Store & Save"]
   system_heroes["Heroes"] -->|consumes| system_meta_store["Meta Store & Save"]
@@ -174,6 +176,7 @@ graph LR
   system_daily["Daily Run"] -->|provides| concept_power_score["Power Score"]
   system_mulligans["Mulligan System"] -->|provides| concept_power_score["Power Score"]
   system_premium["Premium Store"] -->|provides| concept_power_score["Power Score"]
+  system_arena["Arena (Live PvP)"] -->|provides| concept_power_score["Power Score"]
   system_towers["Towers, Stars, Branches, Strain & Codex"] -->|provides| concept_power_score["Power Score"]
   system_mastery["Mastery / Adaptation"] -->|provides| concept_power_score["Power Score"]
   system_heroes["Heroes"] -->|provides| concept_power_score["Power Score"]
@@ -265,6 +268,17 @@ graph LR
   system_net_backend["Backend lanes (net/)"] -->|dependsOn| system_daily["Daily Run"]
   system_net_backend["Backend lanes (net/)"] -->|dependsOn| system_power["Power Score"]
   system_net_backend["Backend lanes (net/)"] -->|consumes| system_meta_store["Meta Store & Save"]
+  system_online_foundation["Online Foundation"] -->|dependsOn| system_engine["Sim Engine"]
+  system_online_foundation["Online Foundation"] -->|dependsOn| system_content_infra["Content Infrastructure"]
+  system_online_foundation["Online Foundation"] -->|dependsOn| system_splice_market["Splice Market & Ichor"]
+  system_online_foundation["Online Foundation"] -->|consumes| system_meta_store["Meta Store & Save"]
+  system_arena["Arena (Live PvP)"] -->|dependsOn| system_online_foundation["Online Foundation"]
+  system_arena["Arena (Live PvP)"] -->|dependsOn| system_engine["Sim Engine"]
+  system_arena["Arena (Live PvP)"] -->|dependsOn| system_battle_pass["Battle Pass (Season)"]
+  system_arena["Arena (Live PvP)"] -->|dependsOn| system_idle_harvest["Idle Harvest"]
+  system_arena["Arena (Live PvP)"] -->|dependsOn| system_power["Power Score"]
+  system_arena["Arena (Live PvP)"] -->|dependsOn| system_meta_store["Meta Store & Save"]
+  system_arena["Arena (Live PvP)"] -->|consumes| system_meta_store["Meta Store & Save"]
   system_towers["Towers, Stars, Branches, Strain & Codex"] -->|dependsOn| system_content_infra["Content Infrastructure"]
   system_towers["Towers, Stars, Branches, Strain & Codex"] -->|dependsOn| system_shards_economy["Shards & Star Economy"]
   system_towers["Towers, Stars, Branches, Strain & Codex"] -->|dependsOn| system_campaign["Campaign"]
@@ -527,13 +541,13 @@ ONE account-strength number folded from every permanent bucket + the in-run temp
   - providedBy ← `system:daily` — recommended-power readiness on the day card
   - providedBy ← `system:mulligans` — a DEDICATED, separately-inspectable PowerParts.mulligans bucket (accountMulliganPower) — modifiers × rarity × level; exactly 1 until an organism is fully assembled
   - providedBy ← `system:premium` — offerPowerPotential — the honest "up to +N when invested" estimate
+  - providedBy ← `system:arena` — arena exclusives are full content pieces scored by the existing tower/hero buckets once unlocked; rank itself is deliberately zero-Power (prestige lane, like Genome Rank)
   - providedBy ← `system:towers` — stars/branches feed permanent + temporary buckets
   - providedBy ← `system:mastery` — mastery multiplier folds into the permanent bucket
   - providedBy ← `system:heroes` — hero stars/evolution feed permanent + temporary buckets
   - providedBy ← `system:equipment` — equipped items score via itemPower into the gear bucket
   - providedBy ← `system:crafting` — reforged items re-score through the gear bucket
-  - providedBy ← `system:loot` — reads Power for catch-up bias; grants move account Power
-  - _…27 more (query: `npm run dil -- node concept:power-score`)_
+  - _…28 more (query: `npm run dil -- node concept:power-score`)_
 
 ### `concept:determinism` — Determinism
 
@@ -717,7 +731,7 @@ The premium reserve — never farmable; bled from achievements, collection ranks
 
   - rewardedBy ← `system:daily-login` — a rare small lane (weight 3, clamped 2–6/day) — deliberately below the never-farmable premium posture thresholds
 
-## Systems (70)
+## Systems (72)
 
 ### `system:engine` — Sim Engine
 
@@ -740,15 +754,15 @@ _at: src/core/game.ts, src/core/combat.ts, src/core/status.ts, src/core/targetin
   - requiredBy ← `system:infinite`
   - requiredBy ← `system:boss-rush`
   - requiredBy ← `system:daily`
+  - requiredBy ← `system:online-foundation`
+  - requiredBy ← `system:arena`
   - requiredBy ← `system:heroes`
   - requiredBy ← `system:hero-cinematics`
   - requiredBy ← `system:nemesis`
   - requiredBy ← `system:onboarding`
   - requiredBy ← `system:run-ui`
   - requiredBy ← `system:bosses`
-  - requiredBy ← `system:mega-bosses`
-  - requiredBy ← `system:rendering`
-  - _…202 more (query: `npm run dil -- node system:engine`)_
+  - _…205 more (query: `npm run dil -- node system:engine`)_
 
 ### `system:content-infra` — Content Infrastructure
 
@@ -760,6 +774,7 @@ _at: src/core/registry.ts, src/core/validate.ts, src/core/config.ts, src/core/ty
   - requiredBy ← `system:power`
   - requiredBy ← `system:mulligans`
   - requiredBy ← `system:premium`
+  - requiredBy ← `system:online-foundation`
   - requiredBy ← `system:towers`
   - requiredBy ← `system:mastery`
   - requiredBy ← `system:heroes`
@@ -767,8 +782,7 @@ _at: src/core/registry.ts, src/core/validate.ts, src/core/config.ts, src/core/ty
   - requiredBy ← `system:loot`
   - requiredBy ← `system:gene-cards`
   - requiredBy ← `system:nucleus`
-  - requiredBy ← `system:hero-symbiotes`
-  - _…17 more (query: `npm run dil -- node system:content-infra`)_
+  - _…18 more (query: `npm run dil -- node system:content-infra`)_
 
 ### `system:power` — Power Score
 
@@ -784,6 +798,7 @@ _at: src/core/power.ts, src/state/itemPower.ts, src/state/powerEvents.ts, src/st
   - requiredBy ← `system:mulligans`
   - requiredBy ← `system:premium`
   - requiredBy ← `system:net-backend`
+  - requiredBy ← `system:arena`
   - requiredBy ← `system:equipment`
   - requiredBy ← `system:loot`
   - requiredBy ← `system:gene-cards`
@@ -791,8 +806,7 @@ _at: src/core/power.ts, src/state/itemPower.ts, src/state/powerEvents.ts, src/st
   - requiredBy ← `system:hero-symbiotes`
   - requiredBy ← `system:profile`
   - requiredBy ← `system:genome-rank`
-  - requiredBy ← `system:hub-shell`
-  - _…23 more (query: `npm run dil -- node system:power`)_
+  - _…24 more (query: `npm run dil -- node system:power`)_
 
 ### `system:campaign` — Campaign
 
@@ -1013,6 +1027,42 @@ _at: src/net/identity.ts, src/net/checkout.ts, src/net/cloudSave.ts, src/net/syn
   - testedBy ← `test:src/core/replay.test.ts`
   - testedBy ← `test:src/net/replayShare.test.ts`
   - testedBy ← `test:src/net/syncEngine.test.ts`
+
+### `system:online-foundation` — Online Foundation
+
+The authoritative online architecture every online feature inherits (docs/ONLINE-FOUNDATION.md): the replicated command vocabulary + ONE applyArenaCommand path onto the Game intents, the versioned wire protocol (deterministic lockstep — only commands cross the wire; command-log replay IS rollback/reconnect), state digests (desync/tamper alarm), the server-authority policy table, and the Auction House backend prep — per-item provenance stamps (source/time/season/bound/ownership history, self-healing coverage on every load) + trade eligibility/fees/fraud heuristics denominated in Ichor (docs/TRADING-PREP.md). No trading gameplay/UI exists by design.
+
+_at: src/core/online.ts, src/core/itemIdentity.ts, src/core/trading.ts, src/net/arenaTransport.ts, src/net/arenaSession.ts_
+
+  - dependsOn → `system:engine`
+  - dependsOn → `system:content-infra`
+  - dependsOn → `system:splice-market`
+  - consumes → `system:meta-store` — owns save field 'provenance'
+  - requiredBy ← `system:arena`
+  - documentedBy ← `doc:ONLINE-FOUNDATION.md`
+  - documentedBy ← `doc:TRADING-PREP.md`
+  - testedBy ← `test:src/core/itemIdentity.test.ts`
+  - testedBy ← `test:src/core/online.test.ts`
+
+### `system:arena` — Arena (Live PvP)
+
+The live-PvP pillar (docs/ARENA.md): the mirror SIEGE RACE ruleset over two deterministic sims, Power-Score matchmaking with the 20s AI fallback, ranked divisions (Spore→Apex Strain; placements, streaks, decay, 30-day seasonal soft resets), the wins-only 100-level Arena Pass with procedurally rotated seasonal reward tables + the alternating arena-exclusive content crown, division-banded match rewards (wins pay containers, losses pay standard resources), and modest diminishing Idle-Harvest rank dividends.
+
+_at: src/core/arena.ts, src/core/arenaPass.ts, src/core/arenaAi.ts, src/core/arenaMatch.ts_
+
+  - dependsOn → `system:online-foundation`
+  - dependsOn → `system:engine`
+  - dependsOn → `system:battle-pass`
+  - dependsOn → `system:idle-harvest`
+  - dependsOn → `system:power`
+  - dependsOn → `system:meta-store`
+  - provides → `concept:power-score` — arena exclusives are full content pieces scored by the existing tower/hero buckets once unlocked; rank itself is deliberately zero-Power (prestige lane, like Genome Rank)
+  - consumes → `system:meta-store` — owns save field 'arena'
+  - documentedBy ← `doc:ARENA.md`
+  - testedBy ← `test:src/core/arena.test.ts`
+  - testedBy ← `test:src/core/arenaAi.test.ts`
+  - testedBy ← `test:src/core/arenaMatch.test.ts`
+  - testedBy ← `test:src/core/arenaPass.test.ts`
 
 ### `system:towers` — Towers, Stars, Branches, Strain & Codex
 
@@ -1298,6 +1348,7 @@ _at: src/core/idleHarvest.ts, src/ui/HarvestScreen.tsx_
   - consumes → `system:meta-store` — owns save field 'idle'
   - conflictsWith → `concept:golden-test` — idle is PURE economy: zero Power, zero run effects, the idle codex carries no powerWeight, soft(0)=1 — any fold at level 0 breaks POWER_BASE; the accrual anchor is MONOTONE (never rewound) or clock rollback re-farms the same span, and fixed-price drop rows need minValue floors or 5-minute dust collects mint full containers (idleHarvest.test.ts pins all three)
   - consumes → `system:genome-rank` — six-lens gates read rankFromRating(genomeRating(snapshot)).index via meta.idleGateContext; the journey source id 'idle' reads lifetimeHours back — keep both directions cycle-free (core never imports meta). PLUS the RANK DIVIDEND (2026-07, IDLE-HARVEST.md §rank): idleRatePerHour × (1 + IDLE.rankGrowth·(rank−1)) — rank I/omitted is EXACTLY ×1 (fresh byte-stable) and the idle<active guardrail prices the dividend in
+  - requiredBy ← `system:arena`
   - taughtBy ← `help:idle-harvest`
   - referencedBy ← `achievement:idle_first`
   - referencedBy ← `achievement:idle_hours24`
@@ -1471,6 +1522,7 @@ _at: src/core/market.ts, src/core/ichorExchange.ts, src/state/spliceMarket.ts, s
   - modifies → `currency:materials` — exchange rates between currencies
   - requiredBy ← `system:premium`
   - requiredBy ← `system:field-research`
+  - requiredBy ← `system:online-foundation`
   - taughtBy ← `help:splice-market`
   - documentedBy ← `doc:MARKET.md`
   - testedBy ← `test:src/core/market.test.ts`
@@ -1682,6 +1734,7 @@ _at: src/core/battlePass.ts, src/ui/BattlePassScreen.tsx_
   - consumes → `system:cosmetics` — reward tables DERIVE cosmetic placement from wardrobe battlepass sources — battlePass.test.ts fails if an item slot and the table disagree
   - consumes → `system:premium` — the store 'bp_premium' season SKU and the 250-Ichor door set the SAME per-season flag; offerValueIchor hardcodes 250 (functions/ bundle stays lean) and battlePass.test.ts pins it against BP.premiumIchor; the FIRST-ever purchase is always the half-price 'bp_premium_first' SKU (seasonOfferFor shows one door; meta.offerPurchasable refuses while premium is owned this window)
   - conflictsWith → `concept:golden-test` — permanents/stacks fold at the META seams (effects + accountEconomyBonuses) only — a fresh save must fold NOTHING or the pinned seeds break
+  - requiredBy ← `system:arena`
   - requiredBy ← `system:daily-login`
   - requiredBy ← `system:quests`
   - documentedBy ← `doc:BATTLEPASS.md`
@@ -1935,7 +1988,7 @@ _at: src/state/meta.ts, src/state/store.ts, src/state/prefs.ts, src/state/devRes
   - consumedBy ← `system:mulligans` — owns save field 'mulligans'
   - consumedBy ← `system:mulligans` — owns save field 'mulliganDex'
   - consumedBy ← `system:premium` — owns save field 'premium'
-  - _…114 more (query: `npm run dil -- node system:meta-store`)_
+  - _…117 more (query: `npm run dil -- node system:meta-store`)_
 
 ### `system:bosses` — Bosses
 
@@ -3290,7 +3343,7 @@ _at: site/guides.ts → /guides/prestige/_
 - `achievement:evo_five_loops` — Complete five Evolution loops across the roster. _(partOf `system:achievements`, rewards `currency:genome-cores`)_
 - `achievement:evo_ancestral` — Carry one organism into its fourth loop (Prestige 4). _(partOf `system:achievements`, rewards `currency:genome-cores`)_
 
-## Documentation (170)
+## Documentation (173)
 
 - `doc:ACCOUNT-LEVEL.md` — project documentation _(documents `system:account-level`)_
 - `doc:ACCOUNTS.md` — project documentation _(documents `system:accounts`)_
@@ -3299,6 +3352,7 @@ _at: site/guides.ts → /guides/prestige/_
 - `doc:AI_HANDOFF.md` — project documentation _(documents `system:dev-registry`)_
 - `doc:ARCHITECTURE-AUDIT.md` — project documentation
 - `doc:ARCHITECTURE.md` — project documentation _(documents `system:engine`)_
+- `doc:ARENA.md` — project documentation _(documents `system:arena`)_
 - `doc:ASSIMILATION.md` — project documentation _(documents `system:assimilation`)_
 - `doc:AUTHORING.md` — project documentation _(documents `system:content-infra`)_
 - `doc:BACKLOG.md` — project documentation
@@ -3392,6 +3446,7 @@ _at: site/guides.ts → /guides/prestige/_
 - `doc:NOTIFICATIONS.md` — project documentation _(documents `system:notifications`)_
 - `doc:NUCLEUS.md` — project documentation _(documents `system:nucleus`)_
 - `doc:ONE-MORE-RUN.md` — project documentation _(documents `system:hub-shell`)_
+- `doc:ONLINE-FOUNDATION.md` — project documentation _(documents `system:online-foundation`)_
 - `doc:PIL.md` — project documentation _(documents `system:pil`)_
 - `doc:PIL_REPORT.md` — project documentation
 - `doc:PLACEHOLDER-ART.md` — project documentation
@@ -3450,6 +3505,7 @@ _at: site/guides.ts → /guides/prestige/_
 - `doc:TOWER-STARS.md` — project documentation _(documents `system:towers`)_
 - `doc:TOWER-VISUAL-EVOLUTION.md` — project documentation _(documents `system:rendering`)_
 - `doc:TOWERS.md` — project documentation _(documents `system:towers`)_
+- `doc:TRADING-PREP.md` — project documentation _(documents `system:online-foundation`)_
 - `doc:TUTORIAL-AUDIT.md` — project documentation _(documents `system:onboarding`)_
 - `doc:TUTORIAL.md` — project documentation _(documents `system:onboarding`)_
 - `doc:UI-MOTION.md` — project documentation _(documents `system:ui-kit`)_
@@ -3463,13 +3519,17 @@ _at: site/guides.ts → /guides/prestige/_
 - `doc:VOWS.md` — project documentation _(documents `system:prestige`)_
 - `doc:WEBSITE.md` — project documentation _(documents `system:field-research`, documents `system:website`)_
 
-## Tests (265)
+## Tests (272)
 
 - `test:src/audio/music.test.ts` — automated validation _(tests `system:audio`)_
 - `test:src/changelog/classify.test.ts` — automated validation _(tests `system:chronicle`)_
 - `test:src/core/ability.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/core/accountLevel.test.ts` — automated validation _(tests `system:account-level`)_
 - `test:src/core/adaptation.test.ts` — automated validation _(tests `system:mastery`)_
+- `test:src/core/arena.test.ts` — automated validation _(tests `system:arena`)_
+- `test:src/core/arenaAi.test.ts` — automated validation _(tests `system:arena`)_
+- `test:src/core/arenaMatch.test.ts` — automated validation _(tests `system:arena`)_
+- `test:src/core/arenaPass.test.ts` — automated validation _(tests `system:arena`)_
 - `test:src/core/artillery.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/core/ascendant.test.ts` — automated validation _(tests `system:prestige`)_
 - `test:src/core/assimilation.test.ts` — automated validation _(tests `system:assimilation`)_
@@ -3548,6 +3608,7 @@ _at: site/guides.ts → /guides/prestige/_
 - `test:src/core/hiveSiege.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/core/identity.test.ts` — automated validation _(tests `system:profile`)_
 - `test:src/core/idleHarvest.test.ts` — automated validation _(tests `system:idle-harvest`)_
+- `test:src/core/itemIdentity.test.ts` — automated validation _(tests `system:online-foundation`)_
 - `test:src/core/keystones.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/core/knell.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/core/liveops.test.ts` — automated validation _(tests `system:liveops`)_
@@ -3563,6 +3624,7 @@ _at: site/guides.ts → /guides/prestige/_
 - `test:src/core/mulligan.test.ts` — automated validation _(tests `system:mulligans`)_
 - `test:src/core/mutators.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/core/nucleus.test.ts` — automated validation _(tests `system:nucleus`)_
+- `test:src/core/online.test.ts` — automated validation _(tests `system:online-foundation`)_
 - `test:src/core/pacing.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/core/polyp.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/core/power.test.ts` — automated validation _(tests `system:power`)_
@@ -3622,6 +3684,7 @@ _at: site/guides.ts → /guides/prestige/_
 - `test:src/dev/tutorialAnchors.test.ts` — automated validation _(tests `system:dev-registry`)_
 - `test:src/dev/uiStandards.test.ts` — automated validation _(tests `system:dev-registry`)_
 - `test:src/i18n/i18n.test.ts` — automated validation _(tests `system:engine`)_
+- `test:src/net/arenaNetcode.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/net/replayShare.test.ts` — automated validation _(tests `system:net-backend`, tests `system:website`)_
 - `test:src/net/syncEngine.test.ts` — automated validation _(tests `system:accounts`, tests `system:net-backend`)_
 - `test:src/render/abilityCinematics.test.ts` — automated validation _(tests `system:rendering`, tests `system:hero-cinematics`)_

@@ -170,6 +170,10 @@ export interface RunOptions {
   /** The account's NEMESIS (docs/NEMESIS.md): a boss with this defId spawns BUFFED (+15%/slay
    *  hp, +10%/slay bounty, both capped) and marked. Excluded from Daily runs (shared gauntlet). */
   nemesis?: { defId: string; slain: number };
+  /** Suppress ALL Mega Boss encounters this run (docs/ARENA.md §ruleset — arena matches are
+   *  wave-vs-wave by design). One gate at spawnMegaBoss covers every mode. Absent/false ⇒
+   *  unchanged cadence (golden-safe). */
+  noMega?: boolean;
 }
 
 /** Fold a declarative effect into the run modifiers (mul/add/flag; grants handled at boot). */
@@ -514,6 +518,7 @@ export class Game {
   projectiles: Projectile[] = [];
   pools: Pool[] = [];
   private nemesisSpec: { defId: string; slain: number } | null = null; // docs/NEMESIS.md — spawn-time boss buff
+  private readonly noMega: boolean; // docs/ARENA.md §ruleset — suppress every Mega Boss encounter (PvP)
   floats: FloatingText[] = [];
   particles: Particle[] = [];
   deathEvents: DeathEvent[] = []; // presentation-only ENEMY-DEATH buffer for the assimilation gore VFX
@@ -729,6 +734,7 @@ export class Game {
     this.conveyorRng = new Rng((seed ^ 0xb10c0de5) >>> 0);
     this.favoriteTower = opts.favorite ?? 'needle';
     this.nemesisSpec = opts.nemesis ?? null;
+    this.noMega = opts.noMega === true; // arena ruleset flag (docs/ARENA.md) — false ⇒ golden path
     this.unlockedKinds = new Set(opts.unlocked ?? TOWER_ORDER);
     // Progression-gated gene cards the account has earned (default = none ⇒ only the ungated catalog
     // is draftable, so a fresh account / the golden sim is byte-identical).
@@ -3128,6 +3134,7 @@ export class Game {
 
   /** Anchor a Mega Boss over the battlefield. One at a time — a second call is ignored. */
   spawnMegaBoss(enc: MegaEncounter, encounter: MegaRuntime['encounter']): void {
+    if (this.noMega) return; // arena ruleset (docs/ARENA.md): no Mega Boss encounters in PvP
     const def = megaBossDef(enc.defId);
     if (!def || this.mega !== null) return;
     const rt = createMegaRuntime(def, enc, encounter);

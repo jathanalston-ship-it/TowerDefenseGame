@@ -40,6 +40,10 @@ import { starterItems, wardrobeItem, wardrobeMilestone, WARDROBE_KINDS } from '.
 import type { WardrobeKind } from '../core/wardrobe';
 import { BP, passPassive, seasonById } from '../core/battlePass';
 import { missionById, questById } from '../core/quests';
+import { ARENA, ARENA_HISTORY_CAP, ARENA_SETTLED_CAP, defaultArenaSave } from '../core/arena';
+import type { ArenaSave } from '../core/arena';
+import { reconcileProvenance, sanitizeProvenanceLedger } from '../core/itemIdentity';
+import type { ProvenanceLedger } from '../core/itemIdentity';
 
 export interface SaveData {
   shards: number;
@@ -339,6 +343,18 @@ export interface SaveData {
     missionsDone: string[];
     questCompletions: Record<string, number>;
   };
+  // ── Arena (v47, docs/ARENA.md) — the live-PvP season record: rating/placements/streak per
+  //    30-day season, the wins-only Arena Pass ledger, the FOREVER exclusives ledger, closed-
+  //    season history, and the exactly-once settled-match ring. Server-authoritative when
+  //    online (functions/api/arena/report.ts); the same shared validators run locally for
+  //    AI/offline matches. A fresh record (rating 0, season 0) is inert ⇒ golden-safe. ──
+  arena: ArenaSave;
+  // ── Item provenance ledger (v47, docs/TRADING-PREP.md) — the Auction House's identity
+  //    spine: one stamp per owned tradable (equipment uid / cosmetic id / gene card id):
+  //    source, acquisition time, arena season, soul-bound flag, ownership history. SELF-HEALS
+  //    on load (reconcileProvenance): owned-but-unstamped ⇒ `legacy`; stamps for dead
+  //    equipment uids prune. Pure metadata — never read by the sim (golden-safe). ──
+  provenance: ProvenanceLedger;
 }
 
 /** Permanent tutorial state: which tutorials are fully done, which have paid out their one-time
@@ -479,7 +495,12 @@ export interface TutorialSave {
 // v45→v46: GENE DISCOVERY (docs/CARDS.md §discovery) — `genesDiscovered` (Archive membership:
 // starters + Bio-Container finds; drafting + permanent upgrades key on it). Missing ⇒ seeded
 // from STARTER_GENES ∪ touched cards, so no veteran loses access to anything they used.
-export const CURRENT_VERSION = 46;
+// v46→v47: ONLINE FOUNDATION (docs/ONLINE-FOUNDATION.md) — `arena` (the live-PvP season
+// record: rating/placements/streak, the wins-only Arena Pass, the forever exclusives ledger,
+// season history, exactly-once settled-match ring) + `provenance` (the Auction House identity
+// spine: per-item acquisition stamps with bound flags + ownership history, self-healing on
+// load so every owned tradable is ALWAYS covered). Both inert when fresh ⇒ golden-safe.
+export const CURRENT_VERSION = 47;
 
 /** The placeholder every save is born with — the Commander designation prompt fires
  *  while the name is still exactly this (components/CommanderName.tsx). */
@@ -709,7 +730,7 @@ export function defaultLifetimeStats(): LifetimeStats {
 }
 
 export function defaultSave(): SaveData {
-  return {
+  return reconcileSaveProvenance({
     shards: 0,
     upgrades: {},
     bestWave: 0,
@@ -799,7 +820,12 @@ export function defaultSave(): SaveData {
     nucleus: emptyNucleus(),
     heroSymbiotes: {},
     masteryEvolution: {},
-  };
+    arena: defaultArenaSave(),
+    // v47 coverage invariant: even a FRESH account's starter tradables (starter genes,
+    // starter wardrobe rows) carry provenance stamps — reconciled by the wrapper above,
+    // deterministically (legacy stamps at 0).
+    provenance: {},
+  });
 }
 
 export function defaultQuests(): SaveData['quests'] {
@@ -1045,7 +1071,7 @@ function sanitizePrime<K extends string>(defaults: Record<K, number>, raw: unkno
 
 function withDefaults(data: SaveData): SaveData {
   const d = defaultSave();
-  return stripRetired({
+  return reconcileSaveProvenance(stripRetired({
     ...d,
     ...data,
     upgrades: { ...data.upgrades },
@@ -1349,7 +1375,76 @@ function withDefaults(data: SaveData): SaveData {
     wardrobe: sanitizeWardrobe((data as { wardrobe?: unknown }).wardrobe),
     battlePass: sanitizeBattlePass((data as { battlePass?: unknown }).battlePass),
     quests: sanitizeQuests((data as { quests?: unknown }).quests),
+    // v46→v47: Arena season record (docs/ARENA.md) — absent on older saves ⇒ a fresh, inert record.
+    arena: sanitizeArena((data as { arena?: unknown }).arena),
+    // v46→v47: provenance stamps are shape-checked here; ownership reconciliation (the
+    // self-heal guaranteeing every owned tradable carries a stamp) runs AFTER the object
+    // assembles, below — it needs the sanitized inventory/wardrobe/gene sets.
+    provenance: sanitizeProvenanceLedger((data as { provenance?: unknown }).provenance),
+  }));
+}
+
+/** v47 Arena record (docs/ARENA.md): whole non-negative ints, bounded arrays, placements
+ *  clamped to the placement count, exclusives/settled ids deduped. A junk blob degrades to a
+ *  fresh inert record — never crashes, never mints rating. */
+function sanitizeArena(raw: unknown): ArenaSave {
+  const d = defaultArenaSave();
+  if (!raw || typeof raw !== 'object') return d;
+  const o = raw as Partial<ArenaSave>;
+  const int = (v: unknown, cap = 1e9): number => {
+    const n = Math.floor(Number(v));
+    return Number.isFinite(n) && n >= 0 ? Math.min(n, cap) : 0;
+  };
+  const strs = (v: unknown, cap: number): string[] =>
+    Array.isArray(v) ? [...new Set(v.filter((x): x is string => typeof x === 'string' && x.length <= 64))].slice(-cap) : [];
+  const levels = (v: unknown): number[] =>
+    Array.isArray(v) ? [...new Set(v.filter((x): x is number => Number.isInteger(x) && x >= 1 && x <= 100))] : [];
+  const history: ArenaSave['history'] = [];
+  if (Array.isArray(o.history)) {
+    for (const h of o.history) {
+      if (!h || typeof h !== 'object') continue;
+      const e = h as Partial<ArenaSave['history'][number]>;
+      if (!Number.isInteger(e.season) || (e.season as number) < 1) continue;
+      history.push({
+        season: e.season as number,
+        rating: int(e.rating, 20_000),
+        division: typeof e.division === 'string' ? e.division.slice(0, 24) : '',
+        wins: int(e.wins, 100_000),
+        losses: int(e.losses, 100_000),
+      });
+    }
+  }
+  return {
+    season: int(o.season, 10_000),
+    rating: int(o.rating, 20_000),
+    peak: Math.max(int(o.peak, 20_000), int(o.rating, 20_000)), // peak can never trail the live rating
+    wins: int(o.wins, 100_000),
+    losses: int(o.losses, 100_000),
+    lifetimeWins: Math.max(int(o.lifetimeWins, 1e9), int(o.wins, 100_000)),
+    lifetimeLosses: Math.max(int(o.lifetimeLosses, 1e9), int(o.losses, 100_000)),
+    placements: Math.min(int(o.placements, ARENA.placementMatches), ARENA.placementMatches),
+    streak: int(o.streak, 100_000),
+    lastPlayedAt: int(o.lastPlayedAt),
+    passXp: int(o.passXp, 1e6),
+    passPremium: o.passPremium === true,
+    passClaimedFree: levels(o.passClaimedFree),
+    passClaimedPremium: levels(o.passClaimedPremium),
+    exclusives: strs(o.exclusives, 16),
+    history: history.slice(-ARENA_HISTORY_CAP),
+    settledMatchIds: strs(o.settledMatchIds, ARENA_SETTLED_CAP),
+  };
+}
+
+/** v47 provenance self-heal (docs/TRADING-PREP.md §coverage): every owned tradable gets a
+ *  stamp (`legacy` when its true origin predates the ledger), dead equipment stamps prune.
+ *  Runs on EVERY load so coverage is an invariant, not a discipline. */
+function reconcileSaveProvenance(save: SaveData): SaveData {
+  save.provenance = reconcileProvenance(save.provenance, {
+    equipmentUids: save.equipment.inventory.map((i) => i.uid),
+    cosmeticIds: [...save.wardrobe.owned, ...save.cosmetics.owned],
+    geneCardIds: save.genesDiscovered,
   });
+  return save;
 }
 
 /** Retired top-level fields a legacy blob may still carry (they ride in through the `...data`
