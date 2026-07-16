@@ -1,6 +1,6 @@
 # DIL_GRAPH.md — the Design Intelligence Layer (GENERATED — `npm run dil -- regen`)
 
-> **The project's brain** (docs/DIL.md). 844 nodes · 1559 edges, built from the live
+> **The project's brain** (docs/DIL.md). 844 nodes · 1564 edges, built from the live
 > registries + curated knowledge (src/dev/dil/). **Query it instead of searching the repo:**
 > `npm run dil -- node <id>` · `affects <id>` · `requires <id>` · `missing <kind> <edge>` ·
 > `checklist tower <kind>` · `find <text>`. Edge kinds are bidirectional (19 kinds).
@@ -566,6 +566,7 @@ A run is a pure function of seed + inputs — the invariant behind replays, fair
   - consumedBy ← `system:directives` — the weekly board rotates on the same UTC weekIndex as liveops/contracts (no server); progress banks from run FACTS at finishRun — the pinned test Monday keeps it gameplay-neutral (fresh save = 0 progress, meta-only rewards ⇒ golden-safe)
   - conflictsWith ← `system:mastery` — LOOPS ARE XP-METERED, NEVER LEVEL-WINDOWED (MASTERY.md §10.2): the ×1.12 mastery level curve makes a level-windowed loop 2 cost ×83,522 loop 1 — trackLevelFromXp walks BASE_LOOP_REQS × 1.25^prestige from masteryEvolution[key].xpAt; loop 1 must stay EXACTLY mastery levels 1..100 (100-step parity test) — do not touch MASTERY.reqGrowth or the walk without re-running scripts/sim-mastery-evolution.ts
   - conflictsWith ← `system:gene-cards` — the DRAFT POOL is the discovered set passed at LAUNCH (GameView → RunOptions.draftPool); the no-options sim path keeps the legacy ungated catalog so goldens stay byte-identical — never filter draftCards by discovery INSIDE the sim, and never roll discovery from sim code (meta-only, Math.random)
+  - extendedBy ← `system:online-foundation` — DETERMINISTIC LOCKSTEP (ONLINE-FOUNDATION.md §2–3): a PvP match is TWO sims from one shared seed; only COMMANDS cross the wire; applyArenaCommand (core/online.ts) is the ONE application path (local echo, mirror, AI alike) so anti-cheat holds by construction (commands are intents — the sim itself rejects forged affordability); the MIRROR is FRONTIER-BOUNDED (never simulates past the newest received sender tick) so commands apply on their EXACT stamped ticks — the live mirror and a command-log replay are byte-identical, which makes replayRemoteFromLog the rollback AND the reconnect primitive; digest beacons (arenaStateDigest, quantized ×16) compare at exact ticks and SELF-HEAL through resyncReq on mismatch
 
 ### `concept:golden-test` — Golden Test
 
@@ -584,6 +585,7 @@ Six seeded runs pinned byte-for-byte (core/golden.test.ts) — the tripwire for 
   - conflictsWith ← `system:hub-shell` — HOME WIDGET FIBER INVARIANT (2026-07, CommandCenter.tsx CCWidget): the home zone renders each widget through the CCWidget COMPONENT (<CCWidget/>), never by calling the widget function inline — an inline render(ctx) flattens every widget's hooks into CommandCenter's own list, so a `when` gate flipping a widget in/out between renders (e.g. command-feed keying off pendingContainers/shards) trips React's "rendered more hooks than during the previous render" and the ErrorBoundary blanks the hub. Unit tests can't see it (React UI); the MOBILE GATE (npm run mobilecheck, run by validate) catches it on the developed-profile sweep. Any new home widget with hooks + a volatile `when` MUST route through CCWidget
   - conflictsWith ← `system:hero-cinematics` — cast-less runs (the golden autoplay) must never touch the cinematic path: pendingImpactSystem is length-gated, castEvents only written on cast — and any test asserting cast RESULTS must step past the def’s impactDelay before asserting (riptide/vitriol tests show the ride-through pattern)
   - conflictsWith ← `system:cosmetics` — skins/visual tiers must stay render-only; any def stat touched for looks breaks the pinned seeds
+  - _…1 more (query: `npm run dil -- node concept:golden-test`)_
 
 ### `concept:progression-gates` — Progression Gates
 
@@ -1031,6 +1033,7 @@ _at: src/net/identity.ts, src/net/checkout.ts, src/net/cloudSave.ts, src/net/syn
   - testedBy ← `test:src/core/replay.test.ts`
   - testedBy ← `test:src/net/replayShare.test.ts`
   - testedBy ← `test:src/net/syncEngine.test.ts`
+  - extendedBy ← `system:arena` — SERVER AUTHORITY (ARENA.md §7): settleArenaMatch (guarded arena.settle, exactly-once by matchId in save.arena.settledMatchIds) and functions/api/arena/report.ts run the SAME shared validators (arenaClaimProblem/ratingDelta/arenaMatchRewards from src/core/arena.ts — the premium.ts shared-import precedent); the server derives rating from STORED state and rewards from its OWN division read — client amounts are never fields in the protocol; net/arenaReport.ts is fail-soft (offline/guest ⇒ local settle stands, reconciled later)
 
 ### `system:online-foundation` — Online Foundation
 
@@ -1042,6 +1045,8 @@ _at: src/core/online.ts, src/core/itemIdentity.ts, src/core/trading.ts, src/net/
   - dependsOn → `system:content-infra`
   - dependsOn → `system:splice-market`
   - consumes → `system:meta-store` — owns save field 'provenance'
+  - extends → `concept:determinism` — DETERMINISTIC LOCKSTEP (ONLINE-FOUNDATION.md §2–3): a PvP match is TWO sims from one shared seed; only COMMANDS cross the wire; applyArenaCommand (core/online.ts) is the ONE application path (local echo, mirror, AI alike) so anti-cheat holds by construction (commands are intents — the sim itself rejects forged affordability); the MIRROR is FRONTIER-BOUNDED (never simulates past the newest received sender tick) so commands apply on their EXACT stamped ticks — the live mirror and a command-log replay are byte-identical, which makes replayRemoteFromLog the rollback AND the reconnect primitive; digest beacons (arenaStateDigest, quantized ×16) compare at exact ticks and SELF-HEAL through resyncReq on mismatch
+  - extends → `system:meta-store` — ITEM PROVENANCE (TRADING-PREP.md, save v47): save.provenance holds one stamp per owned tradable (eq:<uid>/cos:<id>/gene:<id> — source/at/season/bound/transfers/history); reconcileProvenance runs inside withDefaults AND defaultSave (coverage is a LOAD-TIME INVARIANT — owned-but-unstamped backfills legacy, dead equipment uids prune, force-bound refs re-bind); applyRewardList stamps granted cosmetics at the chokepoint with its provenanceSource arg; ONLY cosmetics/equipment/geneCards are tradable categories, trading itself is server-only (PROGRESSION_AUTHORITY), and bindItem is deliberately one-way
   - requiredBy ← `system:arena`
   - documentedBy ← `doc:ONLINE-FOUNDATION.md`
   - documentedBy ← `doc:TRADING-PREP.md`
@@ -1062,6 +1067,9 @@ _at: src/core/arena.ts, src/core/arenaPass.ts, src/core/arenaAi.ts, src/core/are
   - dependsOn → `system:meta-store`
   - provides → `concept:power-score` — arena exclusives are full content pieces scored by the existing tower/hero buckets once unlocked; rank itself is deliberately zero-Power (prestige lane, like Genome Rank)
   - consumes → `system:meta-store` — owns save field 'arena'
+  - conflictsWith → `concept:golden-test` — ARENA GOLDEN SAFETY: RunOptions.noMega gates spawnMegaBoss (absent ⇒ unchanged — the arena ruleset bans megas); arenaExclusive towers have NO unlockShards yet are NOT starters (starterTowers/isTowerUnlocked/towerShardGateMet all special-case the flag — forgetting one leaks the Pass crowns to everyone); arenaIdleDividend(0) is EXACTLY 1 and idleRatePerHour/idleCapHours/idleAccrual default their arena params to identity so every pre-arena call site is byte-unchanged; a fresh save.arena (season 0, rating 0) is inert
+  - extends → `system:battle-pass` — THE ARENA PASS speaks PassReward (core/battlePass.ts) so meta.applyRewardList pays both passes — but its tables are PROCEDURAL (seeded per season, arenaPassTrack cache) with a HARD Ichor cap enforced at generation (ARENA_PASS_ICHOR_CAP — overflow converts to cores; the economy law is structural, not statistical); XP is WINS-ONLY (ARENA.winPassXp via settleArenaMatch — losses/draws pay zero track progress); level 100 grants the season exclusive through grantArenaExclusive (the FOREVER ledger save.arena.exclusives — survives season rolls; heroMilestoneMet kind 'arena' reads it for the Chimera)
+  - extends → `system:net-backend` — SERVER AUTHORITY (ARENA.md §7): settleArenaMatch (guarded arena.settle, exactly-once by matchId in save.arena.settledMatchIds) and functions/api/arena/report.ts run the SAME shared validators (arenaClaimProblem/ratingDelta/arenaMatchRewards from src/core/arena.ts — the premium.ts shared-import precedent); the server derives rating from STORED state and rewards from its OWN division read — client amounts are never fields in the protocol; net/arenaReport.ts is fail-soft (offline/guest ⇒ local settle stands, reconciled later)
   - taughtBy ← `help:arena`
   - documentedBy ← `doc:ARENA.md`
   - testedBy ← `test:src/core/arena.test.ts`
@@ -1749,6 +1757,7 @@ _at: src/core/battlePass.ts, src/ui/BattlePassScreen.tsx_
   - testedBy ← `test:src/core/battlePass.test.ts`
   - consumedBy ← `system:daily-login` — the Bio-Cache SPEAKS PassReward through the shared applyRewardList interpreter (never authors passive/stack/phenotype — loginStreak.test pins it) and rides a Season-XP faucet capped at 300/day so pass pace stays owned by play
   - consumedBy ← `system:quests` — quest rewards SPEAK PassReward through the shared applyRewardList interpreter (never author stack/passive/cosmetic kinds — quests.test pins it); claims feed pass XP, pass level-ups credit passLevels missions via grantPassXp
+  - extendedBy ← `system:arena` — THE ARENA PASS speaks PassReward (core/battlePass.ts) so meta.applyRewardList pays both passes — but its tables are PROCEDURAL (seeded per season, arenaPassTrack cache) with a HARD Ichor cap enforced at generation (ARENA_PASS_ICHOR_CAP — overflow converts to cores; the economy law is structural, not statistical); XP is WINS-ONLY (ARENA.winPassXp via settleArenaMatch — losses/draws pay zero track progress); level 100 grants the season exclusive through grantArenaExclusive (the FOREVER ledger save.arena.exclusives — survives season rolls; heroMilestoneMet kind 'arena' reads it for the Chimera)
 
 ### `system:quests` — Quests & Missions
 
@@ -1998,7 +2007,7 @@ _at: src/state/meta.ts, src/state/store.ts, src/state/prefs.ts, src/state/devRes
   - consumedBy ← `system:mulligans` — owns save field 'mulligans'
   - consumedBy ← `system:mulligans` — owns save field 'mulliganDex'
   - consumedBy ← `system:premium` — owns save field 'premium'
-  - _…117 more (query: `npm run dil -- node system:meta-store`)_
+  - _…118 more (query: `npm run dil -- node system:meta-store`)_
 
 ### `system:bosses` — Bosses
 

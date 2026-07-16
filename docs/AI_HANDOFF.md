@@ -4,90 +4,129 @@
 > before committing. Read together with docs/PROJECT_STATUS.md and the latest
 > docs/VALIDATION_REPORT.md. Next session: start at docs/PROJECT_MANIFEST.md.
 
-- **Generated:** 2026-07-16 (updated post-convergence) · **Diff scope:** working tree vs HEAD
-- **Branch:** claude/zen-hawking-rh1gxl · **HEAD:** the reward placard framework
+- **Generated:** 2026-07-16 15:21 UTC · **Diff scope:** working tree vs HEAD
+- **Branch:** claude/zen-hawking-rh1gxl · **HEAD:** 7bed509
 
 ## Summary of work completed
 
-TWO parallel sessions implemented the same reward-toast spec on this branch the same day;
-the branch CONVERGED on the placard framework (docs/NOTIFICATIONS.md §reward-toasts +
-§reward-registry): every reward announces as a per-reward placard reveal from the
-`REWARD_TYPES` registry in `src/state/rewardToast.ts` — large art, big `+qty`, source
-subtitle, rarity tiers t0–t3, 4s merge window, X/click/swipe/Dismiss-All, hold buffer for
-run-end grants. Pushes live at `meta.ts` grant seams ONLY (applyRewardList returns events);
-achievements ride a headless save-diff watcher. The earlier vocabulary layer
-(`rewardVocab.ts`, receipt-line coalescing, SpliceMarket UI-side pushes) was REMOVED in the
-convergence — its Splice-Market coverage carried over as grant-seam placards in
-`meta.buyMarketSlot`/`buyIchorOffer`. The one thing the next session must know: **a future
-reward type is one row in `REWARD_TYPES`** — art, tier, merge rule and nav follow; a new
-claim surface pushes `rewardToast.pushMany(source, events)` at its grant seam, never from a
-screen.
+THE ONLINE FOUNDATION SAGA — the largest architectural batch of the project, in four pushed
+commits (80509a8 → 5772b2c → 7bed509 → this docs batch): (1) the authoritative ONLINE
+FOUNDATION (docs/ONLINE-FOUNDATION.md) — replicated command vocabulary with ONE
+`applyArenaCommand` path, deterministic-lockstep wire protocol, frontier-bounded mirrors with
+exact-tick application (live mirror ≡ command-log replay ⇒ rollback and reconnect are the same
+primitive), digest beacons with self-healing resync, the `PROGRESSION_AUTHORITY` table, seeded
+loopback network model + dormant WebSocket relay; (2) AUCTION HOUSE BACKEND PREP
+(docs/TRADING-PREP.md, save **v47**) — per-item provenance stamps with self-healing load-time
+coverage, Ichor trade economics, fraud heuristics, the `item_events` D1 ledger — deliberately
+NO trading gameplay/UI; (3) the ARENA pillar (docs/ARENA.md) — mirror siege-race matches
+(noMega), 20s Power-bracket matchmaking with seamless procedural AI ACCOUNTS playing the real
+sim through commands, Spore→Apex divisions (placements/streaks/decay/30-day soft resets),
+division-banded match rewards (wins: container + Run Cache; losses: cores + salvage), the
+wins-only 100-level Arena Pass with procedurally rotated seasonal tables + hard Ichor cap,
+server settlement endpoints sharing the client's validators, idle-harvest rank dividends, and
+the Proving Grounds screen + dual-battlefield ArenaView (mirrored live opponent sim, PvP HUD);
+(4) the three ARENA EXCLUSIVES as full content (Basilisk Maw / Ossuary Choir / Chimera).
+**The one thing the next session must know:** every online surface derives from
+`core/online.ts` + `core/arena.ts` shared modules — the server imports them verbatim; never
+add a claim field or a reward amount the shared validators don't derive.
 
 ## Files modified
 
-The placard framework commit (17 files): `state/rewardToast.ts` + test (rewritten),
-`ui/components/RewardToaster.tsx` (rewritten), `state/meta.ts` (13+ grant seams),
-`ui/AchievementToaster.tsx` (headless), `audio/sound.ts` (toast0/1/2), `index.css`
-(`.rwt2-*`), QuestBoard/BattlePassScreen/Wardrobe/DirectivesCard (legacy pushes removed),
-docs (NOTIFICATIONS/GAME-STATE/DIL edge). Convergence removed `state/rewardVocab.ts` and
-the SpliceMarket UI push.
+Across the four pushed batches: ~40 source files (12 new core/net modules, 3 UI, 2 backend
+endpoints, 1 migration), 7 new test files (arena/arenaPass/arenaAi/arenaMatch/online/
+itemIdentity/arenaMeta + netcode + backend), and this docs batch (`PROJECT_MANIFEST.md`,
+`GAME-STATE.md`, `ARENA.md`, `ONLINE-FOUNDATION.md`, `TRADING-PREP.md`, DIL knowledge + graphs,
+UNLOCK-TREE, VALIDATION_REPORT). The trailing scaffold diff caught only the chronicle + DIL
+knowledge artifacts.
 
 ## Systems affected (from the dependency registry)
 
-- **notifications** — rewardToast/RewardToaster/AchievementToaster + every claim seam in meta
+- **online-foundation** (NEW) — protocol/provenance/trading/transports/session
+- **arena** (NEW) — rank/pass/AI/match/UI/backend
+- **engine** — `RunOptions.noMega` (one gate at `spawnMegaBoss`; absent ⇒ golden path)
+- **idle-harvest** — identity-defaulted arena dividend params on rate/cap/accrual
+- **meta-store** — save v47 (`arena`, `provenance`), settle/claim methods, reward-list
+  provenance stamping; **security** — 4 new policies; **towers/heroes** — the exclusives;
+  **hub-shell** — NavKey/unlocks/mechanics/i18n rows; **net-backend** — arena endpoints + FakeD1.
 
 ## Power Score changes
 
-None — no Power-relevant system touched.
+Arena rank is deliberately ZERO-Power (the Genome Rank prestige-lane precedent, recorded in
+the registry row). The exclusives are full content pieces scored by the existing tower/hero
+buckets once unlocked — fresh saves unchanged (POWER_BASE untouched, suite-pinned).
 
 ## UI changes
 
-The placard stack (top-right; top band ≤480px) replaces the receipt popup. Verified LIVE
-headlessly on desktop + 390px: two exchange buys merged into one +647 card, harvest collect
-stacked achievement placards over the ceremony with the "+5 more" queue chip and Dismiss
-All, mobile placard in-viewport in the top band, click/X dismissal.
+New surfaces: the Proving Grounds hub screen (queue console with widening bracket + honest
+20s countdown, ranked emblem, wins-only pass track with claims/premium/crown showcase, season
+history) and the ArenaView match surface (vertically-expanded battlefield: opponent's genuine
+live sim mirrored above the membrane seam; wheel/drag scroll with ease-home camera + reset;
+opponent bar with health/portrait/name/rating; PvP timer; connection chip; command dock;
+draft modal; verdict panel). Verified LIVE headlessly on the real bundle: hub → queue → AI
+fallback → place/start-wave commands → scroll to the live mirrored opponent → camera reset →
+mid-match HUD; zero page errors (9 screenshots reviewed). Mobilecheck CLEAN (in validate).
 
 ## Documentation changes
 
-Registry says these move with the touched systems: `docs/CHANGELOG-PIPELINE.md` — no change
-needed (the pipeline itself regenerated its artifacts). `docs/NOTIFICATIONS.md` gained
-§vocab/§tiers/§merge/§dismiss + two coverage rows (in HEAD).
+New canon: `ONLINE-FOUNDATION.md`, `ARENA.md`, `TRADING-PREP.md`. Updated: manifest (+2
+sections + index), GAME-STATE (v47 header, tower/hero counts 22/11, the online/arena/exclusives
+status block), UNLOCK-TREE + DIL_GRAPH + DEPENDENCY_GRAPH (regenerated), 5 DIL knowledge rows.
+`docs/CHANGELOG-PIPELINE.md`/`DIL.md`/`ENGINEERING-AUDIT.md`/`GAME_CONSTITUTION.md`/`PIL.md`:
+no change needed (pipelines regenerated their own artifacts; no rule/tooling amended).
 
 ## Save changes
 
-None — save layer untouched (receipt kinds/tiers are presentation-only; the bus is save-free).
+**v46 → v47** (both additive, migration-tested): `arena` (season record: rating/placements/
+streak/pass ledgers/FOREVER exclusives/history/settled-match ring; junk degrades to an inert
+record) and `provenance` (the coverage-invariant stamp ledger — reconciled on EVERY load AND in
+`defaultSave`). Sanitizer detail: `lastPlayedAt` caps at year-2100 epoch-ms (the 1e9 default
+cap crushed real timestamps into full decay — fixed and pinned by arenaMeta tests).
 
 ## Known edge cases
 
-- `applyRewardList`'s composite materials + all-shards lines are deliberately NOT
-  kind-stamped: their special-form labels would be lost on merge-regeneration, so they
-  queue exactly as before and never coalesce.
-- The swipe-away drag rides the `translate` CSS property because the `rwt-in` entrance
-  animation owns `transform` with fill `both` — moving the drag onto `transform` would be
-  silently overridden. Don't "simplify" that.
-- A purchase can unlock a mechanic mid-flow and fire the WhatsNew ceremony over the screen
-  (headless probes must pre-seed `help.seen` with every mechanic id; the market probe does).
-- Market receipts rarely coalesce in practice (slot names differ per purchase); the merge
-  path's real customers are repeated quest/directive claims through `applyRewardList`.
+- `arenaExclusive` towers carry NO `unlockShards` yet must never be starters — THREE seams
+  special-case the flag (`starterTowers`, `isTowerUnlocked`, `towerShardGateMet`); a new
+  unlock/shard surface must honor it or the Pass crowns leak to everyone.
+- The mirror is FRONTIER-BOUNDED: it never simulates past the newest received sender tick, so
+  commands apply on exact stamps. Weakening that (e.g. free-running the mirror) silently
+  diverges live mirrors from replays and trips resync storms.
+- Arena settles are exactly-once by matchId on BOTH sides — resubmits are free by design;
+  never "fix" the duplicate return path into an error.
+- The arena pass Ichor cap is enforced at TABLE GENERATION (overflow → cores); retuning the
+  rotation weights cannot break the economy law, but changing `ARENA_PASS_ICHOR_CAP` needs the
+  arenaPassEconomy scan (40 seasons) re-read.
+- The ArenaView pixel-flips the opponent field, so the renderer's baked lane labels read
+  upside-down there (damage floats are stripped); cosmetic, documented in ARENA.md.
 
 ## Remaining technical debt
 
-None new. Probe scripts stay session-local (scratchpad) by design — the repeatable
-verification contract is `rewardToast.test.ts` (18 tests) + uiStandards + mobilecheck.
+- No deployed realtime relay: human-vs-human matches await a Durable-Objects (or any ws room)
+  relay — the transport/protocol/resync seams are relay-ready and CI-exercised via the
+  loopback network model. Launch experience is the AI framework (per spec's fallback mandate).
+- The ArenaView is a lean command surface: no branch/strain/inspector console mid-match yet;
+  arena runs deliberately skip PvE ledgers (mastery XP/loot meter) — revisit only with
+  engagement evidence.
+- Arena achievements/collection codex rows are not yet authored (recognition layer); the
+  mechanics row + unlock reveal cover onboarding.
 
 ## Recommended next tasks
 
-1. USER DECISION (flagged, not actioned): the stage-gate divergence — the recorded
-   docs/DIFFICULTY.md §curve decision KEEPS hero slot 3 @90, gene gates 15/30/50/75,
-   Nucleus 40/75; the hour-parity analysis suggested 45/20, 12/18/25/40, 20/35. Five-line
-   data change if wanted; do not change without the user's word.
-2. If a new reward SOURCE ships (not a new type), route it once: dedicated full-screen
-   ceremony OR grant-seam placards — never both (coverage table, docs/NOTIFICATIONS.md
-   §reward-toasts).
+1. Arena recognition layer: achievements (first win / placements done / division tiers /
+   season crown) + a `pvp` profile section — all data rows on existing frameworks.
+2. The relay: a minimal ws room server + `RelayTransport` bring-up behind
+   `VITE_ARENA_RELAY_URL`, then human matchmaking through the same queue console.
+3. Auction House phase 2 (when wanted): D1 listings/bids schema + endpoints over the prepared
+   types; escrow + `recordTransfer` wiring; the browse/sell UI reading `tradeEligibility`.
+4. Persona-simulator pass over arena pacing (wins/day vs pass curve) once real telemetry or
+   the progression sim gains a PvP persona.
 
 ## Future expansion hooks
 
-- `src/state/rewardToast.ts` — `REWARD_TYPES` (a new reward type is one row:
-  id/unit/art/merge/tier/nav); `eventsForPassRewards` for new applyRewardList kinds.
-- `src/ui/components/RewardToaster.tsx` — tier classes t0–t3, arrival cue map,
-  `lifeFractionOf` (exported seam for a future progress ring).
+- `core/online.ts` — one union member + one switch arm per new player verb; one
+  `PROGRESSION_AUTHORITY` row per new online event class.
+- `core/arenaPass.ts` — seasonal wardrobe cosmetics are one unlock-source row + pool entries;
+  `arenaExclusiveForSeason` extends past three crowns by appending to `ARENA_EXCLUSIVES`.
+- `core/trading.ts` — `pvpLegality` is the seasonal-ruleset seam; `auditTradeEvents` is
+  servable as-is over the `item_events` ledger.
+- `core/arenaAi.ts` — new personalities are data rows; `ARENA_AI.exclusiveMinDiv` gates what
+  deep-ladder AI showcases.

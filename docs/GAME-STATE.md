@@ -684,6 +684,60 @@ sink ≈ hour-400 at endgame income — re-tune as the library grows.
   + just-fed flashes, DPR-aware, visibility-paused, reduced-motion still, a11y button overlay;
   richer `infestationView` with tiers + decay forecasts + map totals — INFESTATION.md
 
+### Online foundation & Arena (docs/ONLINE-FOUNDATION.md · docs/ARENA.md · docs/TRADING-PREP.md)
+- ✅ **ONLINE FOUNDATION** (2026-07, save **v47**): the authoritative architecture every online
+  feature inherits — the replicated COMMAND vocabulary + ONE `applyArenaCommand` path onto Game
+  intents (anti-cheat by construction: commands are intents, the sim rejects forgeries),
+  the versioned wire protocol (deterministic LOCKSTEP — only commands cross the wire),
+  FRONTIER-BOUNDED mirrors with exact-tick command application (live mirror ≡ command-log
+  replay, byte-identical — so `replayRemoteFromLog` is both the rollback and the reconnect
+  primitive), per-second digest beacons that SELF-HEAL through the resync handshake, the
+  `PROGRESSION_AUTHORITY` policy table, and transports: a seeded loopback NETWORK MODEL
+  (latency/jitter/drop — the netcode battery runs deterministically in CI: high-latency
+  convergence, lossy-wire self-heal, disconnect→reconnect byte-exact recovery) + the dormant
+  WebSocket relay (`VITE_ARENA_RELAY_URL` — real infra is a config value, not a refactor)
+- ✅ **AUCTION HOUSE BACKEND PREP** (deliberately NO gameplay/UI): `save.provenance` — one stamp
+  per owned tradable (source/time/arena-season/bound/transfers/ownership history) with
+  SELF-HEALING load-time coverage (owned-but-unstamped ⇒ legacy; dead equipment uids prune;
+  `defaultSave` itself reconciles); trade eligibility (`tradeEligibility` — bound/guest/
+  campaign/age/cap/equipped blocks), the Ichor market economics (5% listing fee, 10% sale tax,
+  price bounds, bid steps, anti-snipe), the full listing/bid/history type vocabulary, REAL
+  unit-tested fraud heuristics (`auditTradeEvents`: mule chains, price outliers, self-dealing,
+  circular items), the `item_events` D1 ledger, and the `pvpLegality` seam. Trading is
+  server-ONLY in the authority table — no offline path exists to build on wrong
+- ✅ **ARENA — live PvP** (docs/ARENA.md): the mirror SIEGE RACE (two deterministic sims, one
+  shared seed + escalating endless assault, `RunOptions.noMega` — no Mega Bosses in PvP; first
+  Nucleus down loses; timer tiebreak integrity→waves→damage); Power-bracket matchmaking
+  (±15%→±60% across the honest 20s window) with SEAMLESS procedural AI fallback — full AI
+  ACCOUNTS (5 personality archetypes, bracket-scaled strength that passes the same anti-cheat
+  boot validation as humans, legal rosters, seeded variety) driven by a controller that plays
+  the REAL sim through the command vocabulary (places/branches/strains/drafts by synergy/casts
+  on threats); ranked divisions Spore III → Apex Strain (Elo K96 placements ×5 / K32, capped
+  streak bonus, wins>0/losses<0 floors, 7-day decay in Chrysalis+ never below Larval I, 30-day
+  UTC seasons with soft reset + history archive); MATCH REWARDS: wins pay a division-banded
+  Bio-Container + a Run Cache (+10 pass XP — the ONLY track fuel), losses pay cores + salvage
+  mats, draws pay cores; the wins-only 100-LEVEL ARENA PASS (PassReward vocabulary through the
+  ONE interpreter; procedurally rotated per season — containers/cores/essence/mats/shards/
+  stamina/phenotypes genuinely differ; HARD Ichor cap by construction; premium 200 Ichor;
+  ~145 wins ≈ 5/day clears the season) whose level-100 crown alternates FOREVER between the
+  three ARENA EXCLUSIVES; rank benefits: diminishing capped Idle-Harvest dividends (×1
+  identity at division 0 — golden-safe; ≤×1.15 rate, ≤+6h storage); server settlement
+  (`functions/api/arena/report.ts` — the SAME shared validators, exactly-once by matchId,
+  rating from STORED state, rewards derived never claimed) + the fail-soft client reporter;
+  UI: the Proving Grounds screen (queue console/emblem/pass track/history) + the ArenaView
+  dual battlefield (the opponent's GENUINE live simulation mirrored above the membrane seam;
+  wheel/drag scroll, ease-home camera + reset; §10 HUD: opponent health/portrait/name/rating,
+  PvP timer, connection chip, scroll indicator, command dock). Live-probe verified on the
+  real bundle end-to-end. Suite 2275 green, goldens byte-identical
+- ✅ **ARENA EXCLUSIVES** (the alternating crowns — no other acquisition path, enforced by
+  `TowerDef.arenaExclusive` + `HeroUnlockReq 'arena'` across starters/shard-pools/labs):
+  **Basilisk Maw** (Neural petrifier — Freeze+Disruption gaze bolt; Event Horizon / Stone
+  Garden branches) · **Ossuary Choir** (3rd Resonant — a self-detonating chord field; Requiem
+  Engine / Eternal Chorus) · **Chimera** (Viral dive duelist hero — Trophy Slam / Splice-Stitch
+  / Victor's Cleave + ★5/★8 forks + symbiote gates). Each fully integrated: star paths,
+  adaptation trees, mulligan pieces (catalog ratio holds at 22 towers), visual evolutions,
+  forms, fire cues, collections/Power ride the registries; deep-division AI showcases them
+
 ### Not built (structural)
 - 📋 Content-string localization (tower/card/enemy names, help wiki) — chrome is on `t()` via
   I18N.md's convention; registries stay English until `nameKey` columns are worth the volume.

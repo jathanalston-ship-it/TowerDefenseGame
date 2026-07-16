@@ -1,6 +1,6 @@
 {
-  "lastSha": "69199fd9f155b6a396150a04c8addf5732fd4f46",
-  "commitsSinceDraft": 0,
+  "lastSha": "7f98c3fe7569e3c2e94980686d9e170316a5e4be",
+  "commitsSinceDraft": 4,
   "content": {
     "tower": [
       "needle",
@@ -2589,12 +2589,24 @@
           "text": "Arena exclusives: Basilisk Maw + Ossuary Choir towers, Chimera hero — the Pass crowns"
         },
         {
+          "cat": "UI",
+          "text": "Arena UI: the Proving Grounds screen, matchmaking queue, dual-battlefield match view, PvP HUD"
+        },
+        {
+          "cat": "Developer Tools",
+          "text": "Online Foundation saga: docs, DIL knowledge, manifest, status board, validation record"
+        },
+        {
           "cat": "Gameplay",
           "text": "Hive Production: merge The Hive and Idle Harvest into one living loop"
         },
         {
           "cat": "Website",
           "text": "Chronicle + graphs + site regen for the Hive Production merge atop the arena-exclusives rebase"
+        },
+        {
+          "cat": "Website",
+          "text": "Chronicle + graphs + site regen after the Proving Grounds rebase"
         }
       ]
     }
@@ -4537,10 +4549,26 @@
       "needsReview": false
     },
     {
-      "sha": "516824a0560650cbc9ffe102f5e97c88d5e51f85",
+      "sha": "5772b2c4354e43b25903fd92fc0a21752620a130",
       "date": "2026-07-16",
-      "cat": "Gameplay",
-      "text": "Hive Production: merge The Hive and Idle Harvest into one living loop",
+      "cat": "Heroes",
+      "text": "Arena exclusives: Basilisk Maw + Ossuary Choir towers, Chimera hero — the Pass crowns",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "7bed509c3a5b6fba45e87773430aae55be2fb636",
+      "date": "2026-07-16",
+      "cat": "UI",
+      "text": "Arena UI: the Proving Grounds screen, matchmaking queue, dual-battlefield match view, PvP HUD",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "2addd764d742b66b29f07d1bfa9b68799dcbe256",
+      "date": "2026-07-16",
+      "cat": "Developer Tools",
+      "text": "Online Foundation saga: docs, DIL knowledge, manifest, status board, validation record",
       "internal": false,
       "needsReview": false
     },
@@ -4557,6 +4585,22 @@
       "date": "2026-07-16",
       "cat": "Website",
       "text": "Chronicle + graphs + site regen for the Hive Production merge atop the arena-exclusives rebase",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "fb741f3202b5fecb991bb578da4390b8f8137cec",
+      "date": "2026-07-16",
+      "cat": "Website",
+      "text": "Chronicle + graphs + site regen after the Proving Grounds rebase",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "7f98c3fe7569e3c2e94980686d9e170316a5e4be",
+      "date": "2026-07-16",
+      "cat": "Developer Tools",
+      "text": "Online Foundation saga: docs, DIL knowledge, manifest, status board, validation record",
       "internal": false,
       "needsReview": false
     }

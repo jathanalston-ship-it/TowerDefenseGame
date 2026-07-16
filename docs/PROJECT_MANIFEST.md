@@ -30,7 +30,8 @@ ladders. 4. Every permanent progression source must move the Power Score (valida
 
 ## System index
 
-[Campaign](#campaign) · [Infinite](#infinite) · [Mega Bosses](#mega-bosses) · [Power Score](#power-score) ·
+[Campaign](#campaign) · [Infinite](#infinite) · [Arena (Live PvP)](#arena-live-pvp) ·
+[Online Foundation](#online-foundation) · [Mega Bosses](#mega-bosses) · [Power Score](#power-score) ·
 [Tower Stars](#tower-stars) · [Tower Mastery / Adaptation](#tower-mastery--adaptation) ·
 [Heroes](#heroes) · [Hero Equipment](#hero-equipment) · [Hero Symbiotes](#hero-symbiotes) · [Gene Cards](#gene-cards) ·
 [Equipment](#equipment) · [Crafting / Reforging](#crafting--reforging) · [Loot](#loot) ·
@@ -569,6 +570,59 @@ ladders. 4. Every permanent progression source must move the Power Score (valida
 - **Developer tips:** render-only by contract (the sim never reads it ⇒ golden-safe); the state is
   stepped in the view loop, not `advance()`. Open the Debug panel → 🧬 Assimilation Index to preview
   any depth via the manual override.
+
+## Online Foundation
+
+- **Purpose:** the authoritative online architecture every online feature inherits — the
+  replicated command vocabulary (ONE `applyArenaCommand` path onto Game intents), the versioned
+  wire protocol (deterministic lockstep: only commands cross the wire; command-log replay IS
+  rollback/reconnect), state digests (desync/tamper tripwire), the server-authority policy
+  table, and the Auction House backend prep: per-item provenance stamps with self-healing
+  load-time coverage + trade eligibility/fees/fraud heuristics in Ichor. NO trading gameplay/UI
+  exists by design.
+- **Dependencies:** the deterministic sim (the lockstep dividend), save v47 (`provenance`),
+  Splice Market (Ichor identity), the Pages Functions backend.
+- **Files:** `core/online.ts` (protocol/commands/digests/authority), `core/itemIdentity.ts`
+  (stamps + reconcile), `core/trading.ts` (eligibility/economics/fraud), `net/arenaTransport.ts`
+  (loopback network model + the dormant WebSocket relay), `net/arenaSession.ts` (beacons/resync/
+  liveness). Docs: **`ONLINE-FOUNDATION.md`**, **`TRADING-PREP.md`**.
+- **Related:** Arena (the first consumer), accounts/sync (reconciliation lane), leaderboards
+  (the claims-with-bounds precedent it generalizes).
+- **Future expansion:** a future online feature = one command union member + one
+  `PROGRESSION_AUTHORITY` row + provenance stamps if it grants items; the Auction House needs
+  ONLY a D1 schema + endpoints + UI (identity/eligibility/economics/fraud are done).
+- **Known limitations:** no deployed realtime relay yet (the AI framework carries launch; the
+  transport seam is config-away); trade heuristics are server-callable but not yet served.
+- **Developer tips:** never mutate a remote sim directly — commands only; never trust a claim
+  field the shared validators don't check; the mirror is frontier-bounded so commands land on
+  exact ticks — keep it that way or live and replayed mirrors diverge.
+
+## Arena (Live PvP)
+
+- **Purpose:** the live-PvP pillar — the mirror SIEGE RACE (two sims, one shared escalating
+  assault, no Mega Bosses), Power-bracket matchmaking with the honest 20s window → seamless
+  procedural AI opponents, ranked divisions (Spore→Apex Strain; placements/streaks/decay/30-day
+  soft resets), the wins-only 100-level Arena Pass with procedurally rotated seasonal tables and
+  the alternating arena-exclusive crowns, and modest diminishing Idle-Harvest rank dividends.
+- **Dependencies:** Online Foundation (protocol/authority), the sim (`RunOptions.noMega`),
+  Battle Pass (the PassReward interpreter), Idle Harvest (the dividend params), Power (brackets).
+- **Files:** `core/arena.ts` (divisions/rating/seasons/claims/rewards — shared with the server),
+  `core/arenaPass.ts` (tracks/exclusives/season identity), `core/arenaAi.ts` (procedural
+  accounts + the controller), `core/arenaMatch.ts` (orchestration/rollback/anti-cheat boot
+  validation), `ui/ArenaScreen.tsx` (hub + queue), `ui/ArenaView.tsx` (the dual battlefield +
+  PvP HUD), `net/arenaReport.ts`, `functions/api/arena/*`, `migrations/0005_arena.sql`,
+  `save.arena` (v47). Docs: **`ARENA.md`**.
+- **Related:** the exclusives (Basilisk Maw / Ossuary Choir / Chimera — full content pieces
+  through every validator), Genome Rank (the zero-Power prestige-lane precedent rank follows).
+- **Future expansion:** a real relay makes human matches a config value; seasonal rulesets hook
+  `pvpLegality`; arena wardrobe cosmetics are one unlock-source row away.
+- **Known limitations:** arena runs deliberately do NOT feed PvE ledgers (mastery XP, lifetime
+  stats, loot meter) — PvP progression is its own lane; the match view is a lean command
+  surface (no branch/strain console mid-match yet); wave composition can diverge between the
+  two sims via combat-rng consumption (budgets identical by wave index — fair in expectation).
+- **Developer tips:** settle ONLY through `meta.settleArenaMatch` (exactly-once, shared
+  validators); grant exclusives ONLY through the level-100 claim (`grantArenaExclusive`); the
+  `arenaExclusive` def flag must be honored by any new unlock/shard surface.
 
 ## Save Data
 

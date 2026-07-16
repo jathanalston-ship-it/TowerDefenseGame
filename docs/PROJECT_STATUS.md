@@ -3,7 +3,38 @@
 > Maintained at the END of every session (paired with `docs/AI_HANDOFF.md` — the constitution's
 > workflow step 4). This is the "where are we?" answer; `docs/GAME-STATE.md` remains the deeper
 > per-system built-vs-planned index, `docs/PROJECT_MANIFEST.md` the system map.
-> **Last updated:** 2026-07-16 (**REWARD PLACARD FRAMEWORK** — the reward-toast overhaul's
+> **Last updated:** 2026-07-16 (**THE ONLINE FOUNDATION SAGA — live PvP architecture, the
+> Arena pillar, Auction House backend prep.** Four batches, save **v47**. (1) ONLINE
+> FOUNDATION (docs/ONLINE-FOUNDATION.md): the replicated command vocabulary — ONE
+> `applyArenaCommand` path onto the Game intents (anti-cheat by construction: commands are
+> intents, the deterministic sim rejects forgeries) — under a versioned lockstep wire protocol
+> (only commands cross the wire); FRONTIER-BOUNDED mirrors apply commands on exact stamped
+> ticks so a live mirror is byte-identical to a command-log replay — rollback and reconnect
+> are ONE primitive (`replayRemoteFromLog`), digest beacons SELF-HEAL through resyncReq, and
+> the CI netcode battery proves high-latency convergence, lossy-wire healing and
+> disconnect→reconnect byte-exact recovery over a seeded loopback network model; the dormant
+> `RelayTransport` makes real infra a config value. `PROGRESSION_AUTHORITY` is the policy
+> table every future online feature adds one row to. (2) AUCTION HOUSE PREP
+> (docs/TRADING-PREP.md — deliberately NO gameplay/UI): `save.provenance` per-item stamps
+> (source/time/season/bound/ownership history) with SELF-HEALING load-time coverage;
+> eligibility, Ichor fees/taxes/bounds, listing/bid/history types, REAL fraud heuristics,
+> the `item_events` D1 ledger. (3) ARENA (docs/ARENA.md): the mirror SIEGE RACE (two sims,
+> one seed, `noMega`), 20s Power-bracket matchmaking → seamless procedural AI ACCOUNTS
+> (5 personalities, bracket-scaled, same boot validation as humans) playing the real sim
+> through commands; Spore→Apex divisions (K96 placements/K32, streaks, 7-day decay, 30-day
+> soft resets); wins pay division-banded containers + a Run Cache and are the ONLY fuel for
+> the 100-level ARENA PASS (procedurally rotated seasonal tables, HARD Ichor cap by
+> construction, premium 200◆, ~145 wins/season) whose level-100 crown alternates the three
+> ARENA EXCLUSIVES forever; server settlement (functions/api/arena) runs the SAME shared
+> validators exactly-once by matchId; rank pays capped diminishing Idle-Harvest dividends
+> (×1 identity ungated); the Proving Grounds screen + ArenaView dual battlefield (the
+> opponent's GENUINE live sim mirrored above the membrane; scroll/ease-home camera; §10 HUD).
+> (4) THE EXCLUSIVES as full validator-complete content: **Basilisk Maw** (Neural petrifier),
+> **Ossuary Choir** (3rd Resonant chord organ), **Chimera** (Viral dive duelist) — 22 towers /
+> 11 heroes now. Suite **2275 green**, goldens byte-identical, validate PASS, mobilecheck
+> CLEAN, live headless arena probe PASS (9 screenshots reviewed). Previous session below.)
+>
+> **2026-07-16, earlier** (**REWARD PLACARD FRAMEWORK** — the reward-toast overhaul's
 > final form (docs/NOTIFICATIONS.md §reward-toasts/§reward-registry): every reward announces
 > through ONE registry-driven placard stack — `state/rewardToast.ts` `REWARD_TYPES` (26 rows;
 > **a future reward type is one row**), per-reward miniature reveals (large art · big `+qty` ·

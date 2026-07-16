@@ -1099,12 +1099,24 @@ export const RELEASES: Release[] = [
         "text": "Arena exclusives: Basilisk Maw + Ossuary Choir towers, Chimera hero — the Pass crowns"
       },
       {
+        "cat": "UI",
+        "text": "Arena UI: the Proving Grounds screen, matchmaking queue, dual-battlefield match view, PvP HUD"
+      },
+      {
+        "cat": "Developer Tools",
+        "text": "Online Foundation saga: docs, DIL knowledge, manifest, status board, validation record"
+      },
+      {
         "cat": "Gameplay",
         "text": "Hive Production: merge The Hive and Idle Harvest into one living loop"
       },
       {
         "cat": "Website",
         "text": "Chronicle + graphs + site regen for the Hive Production merge atop the arena-exclusives rebase"
+      },
+      {
+        "cat": "Website",
+        "text": "Chronicle + graphs + site regen after the Proving Grounds rebase"
       }
     ]
   },
