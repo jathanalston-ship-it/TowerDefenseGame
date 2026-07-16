@@ -1,6 +1,6 @@
 # DIL_GRAPH.md — the Design Intelligence Layer (GENERATED — `npm run dil -- regen`)
 
-> **The project's brain** (docs/DIL.md). 822 nodes · 1521 edges, built from the live
+> **The project's brain** (docs/DIL.md). 824 nodes · 1523 edges, built from the live
 > registries + curated knowledge (src/dev/dil/). **Query it instead of searching the repo:**
 > `npm run dil -- node <id>` · `affects <id>` · `requires <id>` · `missing <kind> <edge>` ·
 > `checklist tower <kind>` · `find <text>`. Edge kinds are bidirectional (19 kinds).
@@ -514,7 +514,7 @@ graph LR
   system_loot["Loot & Bio-Containers"] -->|modifies| system_hub_shell["Hub Shell & Home"]
 ```
 
-## Concepts (7)
+## Concepts (8)
 
 ### `concept:power-score` — Power Score
 
@@ -607,6 +607,12 @@ Three intentional interfaces from one codebase (layoutProfile → data-layout); 
   - providedBy ← `system:hub-shell` — PORTRAIT SHELL (docs/RESPONSIVE-DESIGN.md §3b): ui/navModel.ts is the ONLY nav IA source — desktop rail, five-tab bottom bar, index pages (MobileShell.tsx), mobilecheck, and navModel.test all derive from it; a new screen = one group row + one unlock-registry def and it is auto-indexed/explained/swept on phones
   - conflictsWith ← `system:hub-shell` — portrait strips inside grids need minmax(0,1fr) columns (intrinsic strip width widens the page past the phone viewport — the Tower Lab empty-showcase bug); flex children of height-capped roster lists need flex:none or rows compress and overlap their portraits
   - providedBy ← `system:run-ui` — PORTRAIT COMBAT DOCK: build-controls become a FIXED bottom dock on data-layout=portrait (≥48px Start Wave, slides away in combat); the HUD is a 3-col grid where the wave module must stay ONE item (hz-c re-flexed — the ≤900px .hz{display:contents} scatters its children); mobilecheck portraitRunContract pins all of it
+
+### `concept:scalability` — Content-Scale Targets
+
+Every system is built for the CLAUDE.md content targets (100 towers, 30 heroes, 1000 upgrades, 500 cards…) — registries + data-driven entries over per-item code, organized lists over flat scrolls, paged/folded UI over unbounded DOM.
+
+  - extendedBy ← `system:hub-shell` — LIST ORG (state/listOrg.ts): organizeList<T> over a DATA spec (searchText/sorts/filters/groups/lead) — query → AND-chips → stable sort → lead-first (favorites/pins) → grouping; per-surface prefs via listOrgPrefs (sort/filters/group/collapsed, NEVER the query — stale searches trap); shared ui/components/ListControls (.lc-*) + .lc-group folds; applied to Tower Lab (class folds), Hero Lab, Evolution HQ (Affordable/Hide-maxed), Gene Archive (persisted + rarity sort), Armory — a NEW long-list screen is one spec + one control row, never hand-rolled list logic
 
 ## Currencies (8)
 
@@ -1828,7 +1834,7 @@ _at: src/state/unlocks.ts, src/state/progressionDirector.ts, src/state/navBus.ts
 
 The nav shell + the Command Center home: registry-driven widgets, living World Status, mission control, feed/roadmap/army, dashboards.
 
-_at: src/ui/Hub.tsx, src/ui/navModel.ts, src/ui/MobileShell.tsx, src/ui/CommandCenter.tsx, src/ui/DeployScreen.tsx, src/ui/homeModel.ts, src/ui/WorldStatus.tsx, src/ui/ProgressDashboard.tsx, src/ui/NextGoalBanner.tsx, src/state/nextGoal.ts, src/state/progressionLoop.ts, src/ui/hubProgress.ts, src/ui/homeBaseTiers.ts, src/ui/LabAtmosphere.tsx, src/ui/App.tsx, src/ui/ErrorBoundary.tsx, src/main.tsx, src/net/swRegister.ts, src/ui/components/UpdateToast.tsx, src/ui/components/Popup.tsx_
+_at: src/ui/Hub.tsx, src/ui/navModel.ts, src/ui/MobileShell.tsx, src/ui/CommandCenter.tsx, src/ui/DeployScreen.tsx, src/ui/homeModel.ts, src/ui/WorldStatus.tsx, src/ui/ProgressDashboard.tsx, src/ui/NextGoalBanner.tsx, src/state/nextGoal.ts, src/state/progressionLoop.ts, src/ui/hubProgress.ts, src/ui/homeBaseTiers.ts, src/ui/LabAtmosphere.tsx, src/ui/App.tsx, src/ui/ErrorBoundary.tsx, src/main.tsx, src/net/swRegister.ts, src/ui/components/UpdateToast.tsx, src/ui/components/Popup.tsx, src/state/listOrg.ts, src/ui/components/ListControls.tsx_
 
   - dependsOn → `system:meta-store`
   - dependsOn → `system:notifications`
@@ -1840,6 +1846,7 @@ _at: src/ui/Hub.tsx, src/ui/navModel.ts, src/ui/MobileShell.tsx, src/ui/CommandC
   - conflictsWith → `concept:responsive` — portrait strips inside grids need minmax(0,1fr) columns (intrinsic strip width widens the page past the phone viewport — the Tower Lab empty-showcase bug); flex children of height-capped roster lists need flex:none or rows compress and overlap their portraits
   - conflictsWith → `concept:golden-test` — HOME WIDGET FIBER INVARIANT (2026-07, CommandCenter.tsx CCWidget): the home zone renders each widget through the CCWidget COMPONENT (<CCWidget/>), never by calling the widget function inline — an inline render(ctx) flattens every widget's hooks into CommandCenter's own list, so a `when` gate flipping a widget in/out between renders (e.g. command-feed keying off pendingContainers/shards) trips React's "rendered more hooks than during the previous render" and the ErrorBoundary blanks the hub. Unit tests can't see it (React UI); the MOBILE GATE (npm run mobilecheck, run by validate) catches it on the developed-profile sweep. Any new home widget with hooks + a volatile `when` MUST route through CCWidget
   - references → `system:power` — UX CONSOLIDATION PASS (2026-07, UX-CONSOLIDATION.md — the coalescing record): the five Foundations own guidance by KIND, one fact one owner. Absorbed: Home NEXT banner → Mission Control ledger (NextGoalBanner component+CSS deleted, only LoopDirective/NextGoalCliffhanger remain); raw command-feed → Hive Intelligence note tail; COMING UP resource goals → MC ledger (roadmap owns only the system curve); ProgressDashboard HOT/claim CTAs → the Feed's ACT rows (dashboard is now STANDINGS-ONLY — no dash-cta, no is-hot; Ascension banner KEPT as the one unique claim). command-feed mount gate re-founded (was timeline-only; now mounts on timeline OR pendingContainers OR shards — homeModel.test pins it). KEEP decisions (one engine many doors): LoopDirective ×4, BestBuyStrip ×4 + Growth, BioCacheCard ×2, HUD-Tour-vs-Guided-Unlocks. VERIFICATION CONTRACT: home probe asserts dash-cta=0 + ng-next=0 + feed-act>0 on fresh AND veteran seeds
+  - extends → `concept:scalability` — LIST ORG (state/listOrg.ts): organizeList<T> over a DATA spec (searchText/sorts/filters/groups/lead) — query → AND-chips → stable sort → lead-first (favorites/pins) → grouping; per-surface prefs via listOrgPrefs (sort/filters/group/collapsed, NEVER the query — stale searches trap); shared ui/components/ListControls (.lc-*) + .lc-group folds; applied to Tower Lab (class folds), Hero Lab, Evolution HQ (Affordable/Hide-maxed), Gene Archive (persisted + rarity sort), Armory — a NEW long-list screen is one spec + one control row, never hand-rolled list logic
   - conflictsWith → `system:cosmetics` — UI contamination (homeBaseTiers labEra → .hub[data-contam] + .hub-contam) must stay ADDITIVE — cosmetic uithemes own --line/--panel tokens; never re-tint theme tokens for the infection look
   - requiredBy ← `system:hive-construction`
   - requiredBy ← `system:infestation`
@@ -1853,7 +1860,7 @@ _at: src/ui/Hub.tsx, src/ui/navModel.ts, src/ui/MobileShell.tsx, src/ui/CommandC
   - documentedBy ← `doc:HUD.md`
   - documentedBy ← `doc:PROGRESSION-LOOP.md`
   - documentedBy ← `doc:UX-CONSOLIDATION.md`
-  - _…13 more (query: `npm run dil -- node system:hub-shell`)_
+  - _…14 more (query: `npm run dil -- node system:hub-shell`)_
 
 ### `system:run-ui` — In-Run HUD & Results
 
@@ -3454,7 +3461,7 @@ _at: site/guides.ts → /guides/prestige/_
 - `doc:VOWS.md` — project documentation _(documents `system:prestige`)_
 - `doc:WEBSITE.md` — project documentation _(documents `system:field-research`, documents `system:website`)_
 
-## Tests (264)
+## Tests (265)
 
 - `test:src/audio/music.test.ts` — automated validation _(tests `system:audio`)_
 - `test:src/changelog/classify.test.ts` — automated validation _(tests `system:chronicle`)_
@@ -3671,6 +3678,7 @@ _at: site/guides.ts → /guides/prestige/_
 - `test:src/state/infestation.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/state/itemDetails.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/state/itemPower.test.ts` — automated validation _(tests `system:power`)_
+- `test:src/state/listOrg.test.ts` — automated validation _(tests `system:hub-shell`)_
 - `test:src/state/loginMeta.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/state/lootbox.test.ts` — automated validation _(tests `system:loot`)_
 - `test:src/state/marketEconomy.test.ts` — automated validation _(tests `system:engine`)_

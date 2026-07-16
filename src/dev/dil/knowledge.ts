@@ -18,6 +18,7 @@ export const CONCEPTS: DilNode[] = [
   { id: 'concept:replays', kind: 'concept', name: 'Replays', summary: 'Seed+inputs compressed to a shareable code; recomputed locally (net/replayShare.ts, Replay Theater).' },
   { id: 'concept:daily-seed', kind: 'concept', name: 'Daily Seed', summary: 'One deterministic run per UTC day, identical worldwide (core/daily.ts).' },
   { id: 'concept:responsive', kind: 'concept', name: 'Responsive / Portrait Shell', summary: 'Three intentional interfaces from one codebase (layoutProfile → data-layout); portrait phones get the tab-shell game (docs/RESPONSIVE-DESIGN.md §3b), machine-enforced by mobilecheck + navModel.test.' },
+  { id: 'concept:scalability', kind: 'concept', name: 'Content-Scale Targets', summary: 'Every system is built for the CLAUDE.md content targets (100 towers, 30 heroes, 1000 upgrades, 500 cards…) — registries + data-driven entries over per-item code, organized lists over flat scrolls, paged/folded UI over unbounded DOM.' },
   { id: 'currency:biomass', kind: 'currency', name: 'Biomass', summary: 'THE run currency — dropped by kills, spent on towers/upgrades; dies with the run.' },
   { id: 'currency:genome-cores', kind: 'currency', name: 'Genome Cores (◆)', summary: 'The permanent meta currency — genome upgrades, rewards, achievement payouts.' },
   { id: 'currency:tower-shards', kind: 'currency', name: 'Tower Shards (✦)', summary: 'Per-tower permanent currency: unlocks locked towers, buys Star evolutions.' },
@@ -242,6 +243,9 @@ export const KNOWLEDGE_EDGES: KnowledgeEdge[] = [
 
   // ── Bio-Container opening (2026-07, LOOTBOX.md §clutch — the specimen clutch) ──
   { from: 'system:loot', kind: 'modifies', to: 'system:hub-shell', note: 'CLUTCH ceremony (state/vaultReveal.ts + ui/VaultReveal.tsx): all rewards materialize AT ONCE as face-down specimens; describePull is THE data-driven adapter (a new RewardItem variant needs only its case — buildSpecimens derives tier magnitude + discovery/legendary interrupt class from the PullView alone), revealReduce is the pure flip reducer (flip/ack/revealAll/flipAll/fast/skipAnims/page — unit-pinned), revealGrid pages clutches of 12 so 100× opens mount ≤12 nodes; audio flip@N + strandFound→discovery stinger + jackpot→legendary stinger; NEVER rebuild reveal logic per reward type' },
+
+  // ── List organization (2026-07, UI-STANDARDS.md §lists — every long list scale-proofed) ──
+  { from: 'system:hub-shell', kind: 'extends', to: 'concept:scalability', note: 'LIST ORG (state/listOrg.ts): organizeList<T> over a DATA spec (searchText/sorts/filters/groups/lead) — query → AND-chips → stable sort → lead-first (favorites/pins) → grouping; per-surface prefs via listOrgPrefs (sort/filters/group/collapsed, NEVER the query — stale searches trap); shared ui/components/ListControls (.lc-*) + .lc-group folds; applied to Tower Lab (class folds), Hero Lab, Evolution HQ (Affordable/Hide-maxed), Gene Archive (persisted + rarity sort), Armory — a NEW long-list screen is one spec + one control row, never hand-rolled list logic' },
 
   // ── Visual identity pass (VISUAL_IDENTITY.md §8) ──
   { from: 'system:hub-shell', kind: 'conflictsWith', to: 'system:cosmetics', note: 'UI contamination (homeBaseTiers labEra → .hub[data-contam] + .hub-contam) must stay ADDITIVE — cosmetic uithemes own --line/--panel tokens; never re-tint theme tokens for the infection look' },

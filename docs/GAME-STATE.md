@@ -1172,3 +1172,36 @@ flipAll; rules unit-pinned (16 tests incl. adapter coverage + 600-pull perf boun
 **Known limitations.** Replay Highlights replays the celebration overlay, not the grid flip
 animation itself; face-down backs are deliberately uniform (no rarity tell) — a "sensor"
 teaser is a possible future hook.
+
+## Compressed system summary — List Organization (docs/UI-STANDARDS.md §lists)
+
+**Architecture.** `state/listOrg.ts`: `organizeList<T>(rows, spec, state)` — spec is DATA
+(searchText, sorts[0]=default, AND-filter chips, group-by modes, lead weight); pipeline is
+query → chips → stable sort (numeric desc / string asc, authored ties) → lead-first →
+grouping; unknown sort ids fall back (a removed mode never crashes a persisted pref).
+Per-surface persistence in `prefs.listOrgPrefs(surface)` (sort/filters/group/collapsed —
+never the query). Shared UI: `ui/components/ListControls` (.lc-* row) + the `.lc-group`
+collapsible fold pattern.
+
+**Public APIs.** `organizeList`, `defaultListState`, `toggleIn`;
+`listOrgPrefs`/`setListOrgPrefs`; `<ListControls search chips sort views shown right>`.
+
+**Applied surfaces.** Tower Lab (labRoster stays the sort core; ▤ class folds via
+organizeList grouping, grouped/collapsed in LabPrefs; +Name sort), Hero Lab (full kit:
+search/4 sorts/3 chips/N-of-M, locked champions sink via lead), Evolution HQ (board search
++ Affordable now / Hide maxed over cards inside categories; empty categories leave the
+board AND the jump rail), Gene Archive (own markup kept — the visual reference; choices
+persisted; +Highest Rarity sort), Armory (sort persisted).
+
+**Extension points.** A future long-list screen = one spec + one ListControls row +
+listOrgPrefs(surface). Grouping + paging are the sanctioned scale answers (see the clutch's
+revealGrid for the paging precedent).
+
+**Assumptions/limitations.** Prefs are device-local curation, never save data; the Archive's
+gene favorites/pins stay in the SAVE (progression-adjacent curation predating this
+framework); EvolutionHQ's authored card order inside sections is deliberately unsortable.
+
+## Compressed system summary — Bio-Container Opening addendum
+
+(See the full summary above; this batch also shipped per-rarity flip audio — sFlip on the
+flip@N depth grammar, sStrandFound → the 'discovery' stinger — and the vault's Open 50/100.)

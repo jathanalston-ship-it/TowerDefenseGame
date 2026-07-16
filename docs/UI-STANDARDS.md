@@ -128,3 +128,27 @@ Adding a component: put it in `src/ui/components/`, register it in the `ui-kit` 
 - Spacing (§3) is a convention, not yet machine-enforced (padding values are too contextual for
   a blunt regex — revisit with a real CSS parser if drift returns).
 - The large decorative arcs (vault card tops) are sanctioned shapes, allow-listed in the test.
+
+## §lists (2026-07) — long-list organization standards
+
+Every list that grows with content (the targets: 100 towers, 30 heroes, 1000 upgrades,
+500 cards) must ship ORGANIZED, not flat. The framework is `state/listOrg.ts`:
+
+- **Declare, don't implement**: a surface describes its spec as data — `searchText`,
+  `sorts` (first = default), `filters` (AND chips), optional `groups`, and a `lead` weight
+  (favorites/pins always float first — curation beats sorting). `organizeList` applies
+  query → chips → stable sort → lead → grouping; screens never hand-roll list logic.
+- **Persist choices per surface** with `prefs.listOrgPrefs(surface)` — sort/filters/group/
+  collapsed only. The QUERY is never persisted (a stale search silently hiding everything
+  on return is a trap). Unknown persisted ids must fall back to defaults (a removed sort
+  mode can never wedge a screen).
+- **The shared control row** is `ui/components/ListControls` (`.lc-*` — search, chips,
+  sort select, view toggle, N/M shown counter), styled on the Gene Archive's control
+  language. Compact rails (the Tower Lab bench) may keep their own markup but ride the
+  same organizer + prefs.
+- **Grouping is the scale answer**, not longer scrollbars: collapsible folds
+  (`.lc-group`) with per-fold counts and signal badges (▲ upgradeables), fold state
+  persisted. Only the sections/pages in view should mount when a list can exceed ~50 rows.
+- Shipped surfaces: Tower Lab (class folds + 8 sorts), Hero Lab (search/sorts/chips,
+  locked-last), Evolution HQ (board search + Affordable now / Hide maxed, empty categories
+  vanish), Gene Archive (persisted + Highest Rarity sort), Armory (persisted sort).
