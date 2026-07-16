@@ -91,7 +91,7 @@ export function rollEssenceDrop(p: EssenceDropParams): number {
 // endgame duplicate-conversion income (~1k Essence/hr — see the simulation in GENE-EVOLUTION.md,
 // which sizes the full-library sink at roughly the 400-hour income mark). All tunables in one place.
 export const ESSENCE_COST = {
-  baseByCardRarity: { common: 25, rare: 45, epic: 80, legendary: 130 } as Record<string, number>,
+  baseByCardRarity: { common: 25, uncommon: 34, rare: 45, epic: 80, legendary: 130 } as Record<string, number>,
   levelGrowth: 5, // cost(level) = base × growth^(level-1) — L4 legendary ≈ 16k (a real chase)
   // TRANSCENDENCE (docs/GENE-EVOLUTION.md §Transcendence) — the late-game sink on top of a maxed
   // card: cost = rarity base × this. Re-choosing an option pays the FULL price again (that is the

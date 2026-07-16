@@ -246,7 +246,7 @@ export interface GeneUpgradeLevel {
 
 /** The card-rarity ladder, lowest→highest — the ORDER used by future rarity upgrades and
  *  ascended-rarity overrides (geneCards.geneEffectiveRarity). Data, not scattered comparisons. */
-export const CARD_RARITY_LADDER: CardRarity[] = ['common', 'rare', 'epic', 'legendary'];
+export const CARD_RARITY_LADDER: CardRarity[] = ['common', 'uncommon', 'rare', 'epic', 'legendary'];
 
 /** Ascension BACKEND scaffolding (docs/GENE-EVOLUTION.md §Ascension) — data only, NO gameplay yet.
  *  A future tier can raise rarity, swap art, and layer extra effects/power. Absent ⇒ not ascendable.
@@ -416,11 +416,11 @@ export const CARD_POOL: CardDef[] = [
   // wave), and the meta layer injects the unlocked ids into a run. Golden-safe (default pool unchanged).
   { id: 'viral_bloom', name: 'Viral Bloom', rarity: 'rare', category: 'poison', description: '+35% Infection damage & spread.', effects: [{ op: 'mul', field: 'parasiteInfectionMult', value: 1.35 }], unlock: { kind: 'campaignStage', stage: 10 } },
   { id: 'neural_overclock', name: 'Neural Overclock', rarity: 'epic', category: 'hero', description: '+40% hero damage and −20% ability cooldown.', effects: [{ op: 'mul', field: 'heroDamageMult', value: 1.4 }, { op: 'mul', field: 'heroCooldownMult', value: 0.8 }], unlock: { kind: 'campaignStage', stage: 20 } },
-  { id: 'siege_protocol', name: 'Siege Protocol', rarity: 'rare', category: 'aoe', description: '+40% splash radius and +10% tower damage.', effects: [{ op: 'mul', field: 'splashRadiusMult', value: 1.4 }, { op: 'mul', field: 'towerDamageMult', value: 1.1 }], unlock: { kind: 'campaignStage', stage: 25 } },
+  { id: 'siege_protocol', name: 'Siege Protocol', rarity: 'uncommon', category: 'aoe', description: '+40% splash radius and +10% tower damage.', effects: [{ op: 'mul', field: 'splashRadiusMult', value: 1.4 }, { op: 'mul', field: 'towerDamageMult', value: 1.1 }], unlock: { kind: 'campaignStage', stage: 25 } },
   { id: 'overclocked_matrix', name: 'Overclocked Matrix', rarity: 'epic', category: 'tower', description: '+20% tower fire rate and +10% tower damage.', effects: [{ op: 'mul', field: 'towerFireRateMult', value: 1.2 }, { op: 'mul', field: 'towerDamageMult', value: 1.1 }], unlock: { kind: 'bestWave', wave: 30 } },
   { id: 'unstable_genome', name: 'Unstable Genome', rarity: 'legendary', category: 'mutation', description: 'Status reactions re-fire twice more; +15% tower damage.', effects: [{ op: 'add', field: 'reactionRepeats', value: 2 }, { op: 'mul', field: 'towerDamageMult', value: 1.15 }], unlock: { kind: 'campaignStage', stage: 40 } },
   // ── Expansion gated pool (5) — each on a UNIQUE progression gate (campaign depth / best wave) ──
-  { id: 'apex_swarm', name: 'Apex Swarm', rarity: 'rare', category: 'economy', description: '+25% biomass from kills.', effects: [{ op: 'mul', field: 'biomassMult', value: 1.25 }], unlock: { kind: 'campaignStage', stage: 15 } },
+  { id: 'apex_swarm', name: 'Apex Swarm', rarity: 'uncommon', category: 'economy', description: '+25% biomass from kills.', effects: [{ op: 'mul', field: 'biomassMult', value: 1.25 }], unlock: { kind: 'campaignStage', stage: 15 } },
   { id: 'corrosive_deluge', name: 'Corrosive Deluge', rarity: 'epic', category: 'poison', description: '+35% Corrosion pool damage; pools last +40% longer.', effects: [{ op: 'mul', field: 'poolDpsMult', value: 1.35 }, { op: 'mul', field: 'mortarPoolDurationMult', value: 1.4 }], unlock: { kind: 'bestWave', wave: 20 } },
   { id: 'phalanx_protocol', name: 'Phalanx Protocol', rarity: 'rare', category: 'tower', description: '+20% tower fire rate and +8% tower damage.', effects: [{ op: 'mul', field: 'towerFireRateMult', value: 1.2 }, { op: 'mul', field: 'towerDamageMult', value: 1.08 }], unlock: { kind: 'campaignStage', stage: 30 } },
   { id: 'dread_resonance', name: 'Dread Resonance', rarity: 'epic', category: 'control', description: 'Wailing Effigy panic lasts +25% longer; +8% tower damage.', effects: [{ op: 'mul', field: 'effigyDreadDurationMult', value: 1.25 }, { op: 'mul', field: 'towerDamageMult', value: 1.08 }], unlock: { kind: 'campaignStage', stage: 35 } },
@@ -442,7 +442,7 @@ export const CARD_POOL: CardDef[] = [
   { id: 'mycelial_carpet', name: 'Mycelial Carpet', rarity: 'rare', category: 'aoe', description: 'Blight Sower detonations bloom 35% wider.', effects: [{ op: 'mul', field: 'sowerBlastRadiusMult', value: 1.35 }], unlock: { kind: 'towerUnlocked', tower: 'sower' } },
   { id: 'seed_hoard', name: 'Seed Hoard', rarity: 'epic', category: 'tower', description: 'Every Blight Sower keeps +2 more mines armed.', effects: [{ op: 'add', field: 'sowerExtraMines', value: 2 }], unlock: { kind: 'towerUnlocked', tower: 'sower' } },
   // ════════════════ Expansion gated trio — each on a UNIQUE progression gate ════════════════
-  { id: 'war_rhythm', name: 'War Rhythm', rarity: 'rare', category: 'tower', description: '+18% tower fire rate.', effects: [{ op: 'mul', field: 'towerFireRateMult', value: 1.18 }], unlock: { kind: 'campaignStage', stage: 50 } },
+  { id: 'war_rhythm', name: 'War Rhythm', rarity: 'uncommon', category: 'tower', description: '+18% tower fire rate.', effects: [{ op: 'mul', field: 'towerFireRateMult', value: 1.18 }], unlock: { kind: 'campaignStage', stage: 50 } },
   { id: 'apex_hunger', name: 'Apex Hunger', rarity: 'epic', category: 'economy', description: '+30% biomass from kills and +8% tower damage.', effects: [{ op: 'mul', field: 'biomassMult', value: 1.3 }, { op: 'mul', field: 'towerDamageMult', value: 1.08 }], unlock: { kind: 'lifetimeKills', kills: 5000 } },
   { id: 'trophy_takers', name: 'Trophy Takers', rarity: 'legendary', category: 'economy', description: 'Status reactions re-fire once more; +20% biomass from kills.', effects: [{ op: 'add', field: 'reactionRepeats', value: 1 }, { op: 'mul', field: 'biomassMult', value: 1.2 }], unlock: { kind: 'bossesSlain', bosses: 5 } },
 
@@ -452,10 +452,10 @@ export const CARD_POOL: CardDef[] = [
   // fields, and gates on its own axis (best wave / campaign / bosses / kills / runs). Gated ⇒ out of
   // the default pool ⇒ the golden run is byte-identical; the meta layer injects each once earned.
   { id: 'predator_instinct', name: 'Predator Instinct', rarity: 'epic', category: 'crit', description: 'The hero hunts for the kill: +25% crit chance, +60% crit damage, +10% hero damage.', effects: [{ op: 'add', field: 'heroCritChance', value: 0.25 }, { op: 'add', field: 'heroCritDamageBonus', value: 0.6 }, { op: 'mul', field: 'heroDamageMult', value: 1.1 }], unlock: { kind: 'bestWave', wave: 18 } },
-  { id: 'entrenchment', name: 'Entrenchment', rarity: 'rare', category: 'tower', description: 'A lean, dug-in battery: +6% tower damage for every EMPTY build slot, +5% tower damage.', effects: [{ op: 'add', field: 'damagePerEmptySlot', value: 0.06 }, { op: 'mul', field: 'towerDamageMult', value: 1.05 }], unlock: { kind: 'campaignStage', stage: 22 } },
+  { id: 'entrenchment', name: 'Entrenchment', rarity: 'uncommon', category: 'tower', description: 'A lean, dug-in battery: +6% tower damage for every EMPTY build slot, +5% tower damage.', effects: [{ op: 'add', field: 'damagePerEmptySlot', value: 0.06 }, { op: 'mul', field: 'towerDamageMult', value: 1.05 }], unlock: { kind: 'campaignStage', stage: 22 } },
   { id: 'vanguard_doctrine', name: 'Vanguard Doctrine', rarity: 'epic', category: 'tower', description: 'Disciplined ranks: +10% damage to towers of your hero’s class, +5% per distinct tower class fielded, +6% tower damage.', effects: [{ op: 'add', field: 'classResonanceBonus', value: 0.1 }, { op: 'add', field: 'diversityBonus', value: 0.05 }, { op: 'mul', field: 'towerDamageMult', value: 1.06 }], unlock: { kind: 'bossesSlain', bosses: 4 } },
-  { id: 'second_wind', name: 'Second Wind', rarity: 'rare', category: 'hero', description: 'A body that refuses to fall: +90 hero HP, 12% damage reduction, +25% healing received.', effects: [{ op: 'heroHp', value: 90 }, { op: 'add', field: 'heroArmor', value: 0.12 }, { op: 'mul', field: 'heroHealingMult', value: 1.25 }], unlock: { kind: 'lifetimeKills', kills: 2000 } },
-  { id: 'salvage_enzymes', name: 'Salvage Enzymes', rarity: 'rare', category: 'economy', description: 'Reclaim the fallen: tower sell refunds +10%, and +15% biomass from kills.', effects: [{ op: 'add', field: 'sellRefundFrac', value: 0.1 }, { op: 'mul', field: 'biomassMult', value: 1.15 }], unlock: { kind: 'totalRuns', runs: 15 } },
+  { id: 'second_wind', name: 'Second Wind', rarity: 'uncommon', category: 'hero', description: 'A body that refuses to fall: +90 hero HP, 12% damage reduction, +25% healing received.', effects: [{ op: 'heroHp', value: 90 }, { op: 'add', field: 'heroArmor', value: 0.12 }, { op: 'mul', field: 'heroHealingMult', value: 1.25 }], unlock: { kind: 'lifetimeKills', kills: 2000 } },
+  { id: 'salvage_enzymes', name: 'Salvage Enzymes', rarity: 'uncommon', category: 'economy', description: 'Reclaim the fallen: tower sell refunds +10%, and +15% biomass from kills.', effects: [{ op: 'add', field: 'sellRefundFrac', value: 0.1 }, { op: 'mul', field: 'biomassMult', value: 1.15 }], unlock: { kind: 'totalRuns', runs: 15 } },
 
   // ════════════════ Expansion III (10) — Spire/Polyp signature sets + six fresh-gated ════════════
   // The four signature cards ride the new towers' identity knobs (docs/SPIRE.md hops ·
@@ -463,7 +463,7 @@ export const CARD_POOL: CardDef[] = [
   // The six others each claim an unlock VALUE no prior card used (campaign 45/55, best wave 25,
   // runs 25, kills 10k, biomass 150k) over already-wired, Power-scored fields. All ten are
   // gated ⇒ out of the default pool ⇒ the golden run stays byte-identical.
-  { id: 'surplus_synapse', name: 'Surplus Synapse', rarity: 'rare', category: 'tower', description: 'The Synapse Spire’s arc leaps to +1 further victim.', effects: [{ op: 'add', field: 'spireChainJumps', value: 1 }], unlock: { kind: 'towerUnlocked', tower: 'spire' } },
+  { id: 'surplus_synapse', name: 'Surplus Synapse', rarity: 'uncommon', category: 'tower', description: 'The Synapse Spire’s arc leaps to +1 further victim.', effects: [{ op: 'add', field: 'spireChainJumps', value: 1 }], unlock: { kind: 'towerUnlocked', tower: 'spire' } },
   { id: 'standing_wave', name: 'Standing Wave', rarity: 'epic', category: 'tower', description: 'The lightning refuses to end: every Synapse Spire arcs +2 further victims.', effects: [{ op: 'add', field: 'spireChainJumps', value: 2 }], unlock: { kind: 'towerUnlocked', tower: 'spire' } },
   { id: 'spring_tide', name: 'Spring Tide', rarity: 'rare', category: 'control', description: 'The Undertow Polyp’s field reaches 30% wider.', effects: [{ op: 'mul', field: 'polypFieldMult', value: 1.3 }], unlock: { kind: 'towerUnlocked', tower: 'polyp' } },
   { id: 'kings_tide', name: 'King’s Tide', rarity: 'epic', category: 'control', description: 'The whole shore drowns: Undertow fields reach ×1.5 and pulse +8% faster.', effects: [{ op: 'mul', field: 'polypFieldMult', value: 1.5 }, { op: 'mul', field: 'towerFireRateMult', value: 1.08 }], unlock: { kind: 'towerUnlocked', tower: 'polyp' } },
@@ -471,7 +471,7 @@ export const CARD_POOL: CardDef[] = [
   // OWNING the tower (the Coil/Siphon/Sower pattern — out of the default pool, golden-safe). ════
   { id: 'second_wing', name: 'Second Wing', rarity: 'rare', category: 'tower', description: 'Every Wyrmwing Glaive throw carries +1 blade.', effects: [{ op: 'add', field: 'glaiveExtraBlades', value: 1 }], unlock: { kind: 'towerUnlocked', tower: 'glaive' } },
   { id: 'bladestorm_communion', name: 'Bladestorm Communion', rarity: 'epic', category: 'tower', description: 'The sky fills with edges: +2 blades per Glaive throw and +8% tower fire rate.', effects: [{ op: 'add', field: 'glaiveExtraBlades', value: 2 }, { op: 'mul', field: 'towerFireRateMult', value: 1.08 }], unlock: { kind: 'towerUnlocked', tower: 'glaive' } },
-  { id: 'spare_egg', name: 'Spare Egg', rarity: 'rare', category: 'tower', description: 'Every Drake Roost keeps +1 drake fielded.', effects: [{ op: 'add', field: 'roostBroodSize', value: 1 }], unlock: { kind: 'towerUnlocked', tower: 'roost' } },
+  { id: 'spare_egg', name: 'Spare Egg', rarity: 'uncommon', category: 'tower', description: 'Every Drake Roost keeps +1 drake fielded.', effects: [{ op: 'add', field: 'roostBroodSize', value: 1 }], unlock: { kind: 'towerUnlocked', tower: 'roost' } },
   { id: 'blackened_sky', name: 'Blackened Sky', rarity: 'epic', category: 'tower', description: 'The territory darkens: +1 drake per Roost and +12% tower fire rate (the eggs hatch faster).', effects: [{ op: 'add', field: 'roostBroodSize', value: 1 }, { op: 'mul', field: 'towerFireRateMult', value: 1.12 }], unlock: { kind: 'towerUnlocked', tower: 'roost' } },
   { id: 'unmakers_lesson', name: 'The Unmaker’s Lesson', rarity: 'epic', category: 'mutation', description: 'What the stage-45 horror taught: unmake non-bosses below an extra 5% health; +8% tower damage.', effects: [{ op: 'add', field: 'executeThreshold', value: 0.05 }, { op: 'mul', field: 'towerDamageMult', value: 1.08 }], unlock: { kind: 'campaignStage', stage: 45 } },
   { id: 'tyrants_grip', name: 'Tyrant’s Grip', rarity: 'epic', category: 'control', description: 'The Null Tyrant’s grip, reversed: Disruption slows +20% more and exposes +10% more.', effects: [{ op: 'add', field: 'obeliskSlowBonus', value: 0.2 }, { op: 'add', field: 'obeliskVulnerabilityBonus', value: 0.1 }], unlock: { kind: 'campaignStage', stage: 55 } },
@@ -605,6 +605,7 @@ export interface CardRarityDef {
 }
 export const CARD_RARITY_DEFS: CardRarityDef[] = [
   { rarity: 'common', weight: 64, weightPerWave: 0 },
+  { rarity: 'uncommon', weight: 42, weightPerWave: 0 },
   { rarity: 'rare', weight: 28, weightPerWave: 0 },
   { rarity: 'epic', weight: 7, weightPerWave: 0.4 },
   { rarity: 'legendary', weight: 1, weightPerWave: 0.1 },

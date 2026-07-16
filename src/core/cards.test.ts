@@ -25,7 +25,7 @@ import { towerSlots } from './map';
 import type { MetaModifiers } from './types';
 
 const NO_META: MetaModifiers = { towerDamageMult: 1, biomassMult: 1, heroDamageMult: 1, integrityBonus: 0, bonusSlots: 0 };
-const ALL_RARITIES: CardRarity[] = ['common', 'rare', 'epic', 'legendary'];
+const ALL_RARITIES: CardRarity[] = ['common', 'uncommon', 'rare', 'epic', 'legendary'];
 
 describe('card catalog (data integrity)', () => {
   it('every card is valid and uses a known category', () => {
