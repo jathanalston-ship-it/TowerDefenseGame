@@ -1,6 +1,6 @@
 {
-  "lastSha": "19d12f4c3507c877eb13e32df819f4642fd284f1",
-  "commitsSinceDraft": 9,
+  "lastSha": "75a407c2b1728bf86a148d879f1909bb64d1f5b3",
+  "commitsSinceDraft": 0,
   "content": {
     "tower": [
       "needle",
@@ -4061,6 +4061,14 @@
       "text": "QOL: Equip All — the advisor's one-tap free-upgrade sweep",
       "internal": false,
       "needsReview": false
+    },
+    {
+      "sha": "75a407c2b1728bf86a148d879f1909bb64d1f5b3",
+      "date": "2026-07-15",
+      "cat": "Framework",
+      "text": "Chronicle roll for the QOL batch",
+      "internal": true,
+      "needsReview": true
     }
   ]
 }

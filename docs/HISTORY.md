@@ -225,3 +225,4 @@
 - `7d23ac3` **[Enemies]** Enemy GAITS: the roster finally MOVES differently (docs/ENEMIES.md §gaits)
 - ⚑ `68f6b1a` **[Framework]** Chronicle roll for the unit-raid + gaits batch _(internal)_
 - `19d12f4` **[Gameplay]** QOL: Equip All — the advisor's one-tap free-upgrade sweep
+- ⚑ `75a407c` **[Framework]** Chronicle roll for the QOL batch _(internal)_

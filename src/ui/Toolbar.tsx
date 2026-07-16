@@ -108,7 +108,7 @@ export function Toolbar({
 
         {conveyorMode && (
           <div className="conveyor" data-tut="conveyor" aria-label="Biomorph Conveyor">
-            {hud.conveyor.items.map((c) => {
+            {hud.conveyor.items.map((c, idx) => {
               const def = TOWER_DEFS[c.kind];
               const ready = c.growFrac >= 1;
               const armed = game.selectedConveyorId === c.id;
@@ -123,6 +123,7 @@ export function Toolbar({
                   <div className="cv-head">
                     <span className="cv-name">{def.name}</span>
                     {c.strain > 1 && <span className="cv-strain">Strain {ROMAN[c.strain - 1]}</span>}
+                    {idx < 3 && <span className="hotkey" title={`Press ${idx + 2} to arm this pod`}>{idx + 2}</span>}
                   </div>
                   {!ready && (
                     <div className="cv-grow" role="progressbar" aria-label={`Growing — ${Math.ceil(c.readyIn)}s`}>
