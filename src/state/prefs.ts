@@ -73,6 +73,8 @@ export interface LabPrefs {
   recentsSeen: Record<string, number>;
   selected: string | null; // last inspected tower
   sort: string; // roster sort mode id
+  grouped: boolean; // rail folds by combat class (the 100-tower answer — docs/UI-STANDARDS.md §lists)
+  collapsed: string[]; // collapsed class-fold keys
 }
 
 export function labPrefs(): LabPrefs {
@@ -84,9 +86,11 @@ export function labPrefs(): LabPrefs {
       recentsSeen: raw.recentsSeen && typeof raw.recentsSeen === 'object' ? raw.recentsSeen : {},
       selected: typeof raw.selected === 'string' ? raw.selected : null,
       sort: typeof raw.sort === 'string' ? raw.sort : 'default',
+      grouped: raw.grouped === true,
+      collapsed: Array.isArray(raw.collapsed) ? raw.collapsed.filter((c) => typeof c === 'string') : [],
     };
   } catch {
-    return { favorites: [], recents: {}, recentsSeen: {}, selected: null, sort: 'default' };
+    return { favorites: [], recents: {}, recentsSeen: {}, selected: null, sort: 'default', grouped: false, collapsed: [] };
   }
 }
 

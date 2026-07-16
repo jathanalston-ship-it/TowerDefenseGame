@@ -228,7 +228,7 @@ export function towerLabModel(save: SaveData, kind: TowerKind, prog: TowerStats)
 // ── The specimen BENCH (roster rail) — search / sort / filter, scale-ready ────────────
 // Pure list logic so a 100-tower roster costs one pass; the rail renders what this returns.
 
-export type LabSort = 'default' | 'power' | 'mastery' | 'stars' | 'upgradeable' | 'recent' | 'evolution';
+export type LabSort = 'default' | 'power' | 'mastery' | 'stars' | 'upgradeable' | 'recent' | 'evolution' | 'name';
 export const LAB_SORTS: { id: LabSort; label: string }[] = [
   { id: 'default', label: 'Doctrine order' },
   { id: 'upgradeable', label: 'Upgradeable first' },
@@ -237,6 +237,7 @@ export const LAB_SORTS: { id: LabSort; label: string }[] = [
   { id: 'mastery', label: 'Highest Mastery' },
   { id: 'evolution', label: 'Evolution rewards' },
   { id: 'recent', label: 'Recently upgraded' },
+  { id: 'name', label: 'Name A–Z' },
 ];
 
 export interface LabFilters {
@@ -276,6 +277,7 @@ export function labRoster(
   else if (sort === 'evolution') by((k) => evoOf?.(k) ?? 0);
   else if (sort === 'recent') by((k) => recents[k] ?? 0);
   else if (sort === 'upgradeable') by((k) => (canBuy(models[k]) ? 1 : 0));
+  else if (sort === 'name') kinds = kinds.slice().sort((a, b) => models[a].name.localeCompare(models[b].name));
   // Favorites always lead within the chosen order (curation beats sorting).
   return kinds.slice().sort((a, b) => Number(favorites.has(b)) - Number(favorites.has(a)));
 }

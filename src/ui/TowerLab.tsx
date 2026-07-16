@@ -18,6 +18,7 @@ import { TowerCodex } from './TowerCodex';
 import { PowerPreview } from './components/PowerScore';
 import { StarCeremony } from './StarCeremony';
 import { labPrefs, setLabPrefs } from '../state/prefs';
+import { organizeList, toggleIn } from '../state/listOrg';
 import { BestBuyStrip } from './components/BestBuyStrip';
 import { LAB_SORTS, ceremonyView, futurePath, labRoster, masteryPanelModel, towerLabModel } from './towerLabModel';
 import type { LabSort, StepView, TowerLabModel } from './towerLabModel';
@@ -225,9 +226,10 @@ export function TowerLab(): JSX.Element {
             </select>
             <button className={`tl2-chip${upOnly ? ' on' : ''}`} onClick={() => setUpOnly((v) => !v)} title="Only towers with an affordable next star">Upgradeable</button>
             <button className={`tl2-chip${favOnly ? ' on' : ''}`} onClick={() => setFavOnly((v) => !v)} title="Only favorites">★</button>
+            <button className={`tl2-chip${prefs.grouped ? ' on' : ''}`} onClick={() => setPrefs(setLabPrefs({ grouped: !prefs.grouped }))} title="Fold the bench by combat class" aria-pressed={prefs.grouped}>▤</button>
           </div>
-          <div className="tl2-list" role="listbox" aria-label="Tower roster">
-            {roster.map((k) => {
+          {(() => {
+            const renderItem = (k: TowerKind): JSX.Element => {
               const r = models[k];
               // NEW = upgraded since the player last LOOKED at it (and within the freshness
               // window) — selecting the tower dismisses it; it can never stick.
@@ -263,9 +265,46 @@ export function TowerLab(): JSX.Element {
                   </span>
                 </button>
               );
-            })}
-            {roster.length === 0 && <div className="tl2-empty">No specimens match — clear the filters.</div>}
-          </div>
+            };
+            if (!prefs.grouped) {
+              return (
+                <div className="tl2-list" role="listbox" aria-label="Tower roster">
+                  {roster.map(renderItem)}
+                  {roster.length === 0 && <div className="tl2-empty">No specimens match — clear the filters.</div>}
+                </div>
+              );
+            }
+            // Class folds (docs/UI-STANDARDS.md §lists): bucket the ORGANIZED roster by combat
+            // class, class order = doctrine first-appearance — the 100-tower rail answer.
+            const org = organizeList(roster, {
+              sorts: [{ id: 'keep', label: 'keep', by: (k) => roster.indexOf(k), dir: 'asc' }],
+              groups: [{
+                id: 'cls', label: 'By class',
+                keyOf: (k) => models[k].combatClass,
+                groupOrder: [...new Set(TOWER_ORDER.map((k) => models[k].combatClass))],
+              }],
+            }, { query: '', sort: 'keep', filters: [], group: 'cls', collapsed: prefs.collapsed });
+            return (
+              <div className="tl2-list is-grouped" role="listbox" aria-label="Tower roster by class">
+                {(org.groups ?? []).map((g) => {
+                  const open = !prefs.collapsed.includes(g.key);
+                  const ups = g.rows.filter((k) => models[k].affordable || (models[k].prime?.affordable ?? false)).length;
+                  return (
+                    <div className={`lc-group${open ? ' is-open' : ''}`} key={g.key}>
+                      <button type="button" className="lc-group-h" onClick={() => setPrefs(setLabPrefs({ collapsed: toggleIn(labPrefs().collapsed, g.key) }))} aria-expanded={open}>
+                        <span className="lc-group-arrow" aria-hidden>{open ? '▾' : '▸'}</span>
+                        {g.label}
+                        {ups > 0 && <i className="tl2-b tl2-b-up" title={`${ups} upgradeable`}>▲{ups}</i>}
+                        <span className="lc-group-count">{g.rows.length}</span>
+                      </button>
+                      {open && <div className="lc-group-body">{g.rows.map(renderItem)}</div>}
+                    </div>
+                  );
+                })}
+                {roster.length === 0 && <div className="tl2-empty">No specimens match — clear the filters.</div>}
+              </div>
+            );
+          })()}
         </div>
 
         {/* ── The showcase — one organism, everything it is and will become ── */}
