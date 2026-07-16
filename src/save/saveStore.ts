@@ -1424,7 +1424,7 @@ function sanitizeArena(raw: unknown): ArenaSave {
     lifetimeLosses: Math.max(int(o.lifetimeLosses, 1e9), int(o.losses, 100_000)),
     placements: Math.min(int(o.placements, ARENA.placementMatches), ARENA.placementMatches),
     streak: int(o.streak, 100_000),
-    lastPlayedAt: int(o.lastPlayedAt),
+    lastPlayedAt: int(o.lastPlayedAt, 4_102_444_800_000), // epoch ms — capped at year 2100 (a forged future stamp can only DELAY decay's grace window, never mint)
     passXp: int(o.passXp, 1e6),
     passPremium: o.passPremium === true,
     passClaimedFree: levels(o.passClaimedFree),

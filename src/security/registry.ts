@@ -109,6 +109,18 @@ export const SECURITY_ACTIONS: Record<string, ActionPolicy> = {
     id: 'quest.claim', category: 'claim', level: 'moderate', limit: M({ count: 30 }), dedupeMs: 600,
     analytics: 'sec_quest_claim', doc: 'Quest mission/finale claim — clearing a full board in one burst is legitimate (docs/QUESTS.md).', at: META,
   },
+  'arena.settle': {
+    id: 'arena.settle', category: 'progression', level: 'strict', limit: S({ count: 2, perMs: 30_000 }), cooldownMs: 3000, dedupeMs: 60_000,
+    analytics: 'sec_arena_settle', doc: 'Arena match settlement (docs/ARENA.md §7) — a match takes minutes; the matchId dedupe makes replayed results free. Server path re-validates (functions/api/arena/report.ts).', at: META,
+  },
+  'arena.claim': {
+    id: 'arena.claim', category: 'claim', level: 'moderate', limit: M({ count: 60 }), dedupeMs: 800,
+    analytics: 'sec_arena_claim', doc: 'Arena Pass level claim — claim-all sweeps a deep backlog in one burst (the pass.claim shape).', at: META,
+  },
+  'arena.premium': {
+    id: 'arena.premium', category: 'purchase', level: 'strict', limit: S({ count: 2 }), cooldownMs: 1200, dedupeMs: 5000,
+    analytics: 'sec_arena_premium', doc: 'Arena Pass premium unlock (Ichor) — once per season; the guard blunts double-click spends.', at: META,
+  },
 
   // ── Repeatable economy operations ──
   // NOTE (§standards): grants that land AFTER a paid ceremony (roulette results, run outcomes)
@@ -242,6 +254,9 @@ export const GUARDED_META_METHODS: Record<string, string> = {
   claimExpedition: 'expedition.claim',
   claimQuestMission: 'quest.claim',
   claimQuestFinale: 'quest.claim',
+  settleArenaMatch: 'arena.settle',
+  claimArenaPassLevel: 'arena.claim',
+  buyArenaPassPremium: 'arena.premium',
   grantTutorialRewards: 'tutorial.claim',
   openContainer: 'container.open',
   openContainers: 'container.open',

@@ -130,6 +130,16 @@ import {
   BP, PASS_PASSIVES, levelBuyPrice, levelOf, msToPassEnd, passPassive, passWindow, rewardLabel, seasonForWindow, seasonTracks, xpToReach,
 } from '../core/battlePass';
 import type { PassReward, SeasonDef } from '../core/battlePass';
+import {
+  applyRatingFloor, arenaClaimProblem, arenaIdleCapBonusHours, arenaIdleDividend, arenaMatchRewards,
+  arenaSeasonIndex, decayedRating, divisionForRating, divisionIndex, ratingDelta, rolledArenaSave,
+  ARENA_DIVISIONS, ARENA_SETTLED_CAP,
+} from '../core/arena';
+import type { ArenaDivisionDef, ArenaMatchClaim, ArenaSave } from '../core/arena';
+import { ARENA_PASS, arenaExclusiveLabel, arenaPassLevelOf, arenaPassTrack, arenaSeasonInfo } from '../core/arenaPass';
+import type { ArenaExclusiveId, ArenaPassLevelRewards, ArenaSeasonInfo } from '../core/arenaPass';
+import type { ArenaBootBundle } from '../core/arenaMatch';
+import { stampAcquisition } from '../core/itemIdentity';
 import { LOGIN, loginTargetValue, milestoneContainer, rollLoginBundle, streakMult } from '../core/loginStreak';
 import { PERFECT_WEEK, activeContracts, contractReport, contractSatisfied, contractWeekKey } from '../core/contracts';
 import type { ContractRunFacts } from '../core/contracts';
@@ -295,8 +305,16 @@ function applyRewardList(
   rewards: PassReward[],
   repl: { ichor: number; cores: number },
   seasonForStack: SeasonDef | null,
+  provenanceSource = 'reward', // v47: acquisition stamp for granted tradables (docs/TRADING-PREP.md)
 ): { next: SaveData; lines: PremiumReceiptLine[]; stamina: number; events: ToastEvents } {
   let next = draft;
+  // Provenance chokepoint (docs/TRADING-PREP.md §coverage): granted cosmetics stamp their REAL
+  // source here; the load-time reconcile remains the backstop for every other path.
+  const stampCosmetic = (id: string): void => {
+    const provenance = { ...next.provenance };
+    stampAcquisition(provenance, { cat: 'cosmetic', id }, provenanceSource, Date.now(), arenaSeasonIndex(Date.now()));
+    next = { ...next, provenance };
+  };
   const lines: PremiumReceiptLine[] = [];
   const events: ToastEvents = []; // structured toast facts (docs/NOTIFICATIONS.md §reward-toasts)
   let stamina = 0;
@@ -374,6 +392,7 @@ function applyRewardList(
         if (next.wardrobe.owned.includes(r.id)) replacement(def.name);
         else {
           next = { ...next, wardrobe: { ...next.wardrobe, owned: [...next.wardrobe.owned, r.id], pendingReveal: [...next.wardrobe.pendingReveal, r.id] } };
+          stampCosmetic(r.id);
           lines.push({ icon: '❖', label: def.name });
           events.push({ type: 'cosmetic', name: def.name });
         }
@@ -385,6 +404,7 @@ function applyRewardList(
         const grant = pool.find((d) => !next.cosmetics.owned.includes(d.id));
         if (!grant) { replacement(`${r.family} Phenotype`); break; }
         next = { ...next, cosmetics: { ...next.cosmetics, owned: [...next.cosmetics.owned, grant.id] } };
+        stampCosmetic(grant.id);
         lines.push({ icon: '🧬', label: grant.name });
         events.push({ type: 'phenotype', name: grant.name });
         break;
@@ -1728,10 +1748,88 @@ export interface IdleHarvestView {
    *  its bonus fraction (0 at rank I) — the screen shows the interlink, not just the total. */
   rankIndex: number;
   rankBonus: number;
+  /** ARENA RANK DIVIDEND (docs/ARENA.md §8): the division's rate multiplier (×1 at Spore III)
+   *  and storage-cap bonus hours — the second mastery-ladder feed, shown as its own chip. */
+  arenaDividend: number;
+  arenaCapBonusHours: number;
 }
 
 /** Static display rows for the drop table (gates shown as "work toward it" copy). */
 const IDLE_DROPS_VIEW = IDLE_DROPS.map((d) => ({ id: d.id, name: d.name, icon: d.icon, rare: d.rare === true, minCampaign: d.minCampaign, minGenomeRank: d.minGenomeRank }));
+
+// ── Arena view models (docs/ARENA.md) ───────────────────────────────────────────
+/** Everything the Arena screen renders: season identity, the live (decay-adjusted) ladder
+ *  position, the pass track state, exclusives, and the rank benefits. Poll-free read. */
+export interface ArenaHubView {
+  season: ArenaSeasonInfo;
+  rating: number;
+  division: ArenaDivisionDef;
+  divisionIndex: number;
+  nextDivision: ArenaDivisionDef | null; // null at the top
+  placementsLeft: number;
+  wins: number;
+  losses: number;
+  streak: number;
+  lifetimeWins: number;
+  lifetimeLosses: number;
+  peak: number;
+  pass: {
+    xp: number;
+    level: number;
+    into: number;
+    need: number;
+    premium: boolean;
+    premiumPrice: number;
+    track: ArenaPassLevelRewards[];
+    claimedFree: Set<number>;
+    claimedPremium: Set<number>;
+    claimableFree: number[];
+    claimablePremium: number[];
+    exclusive: ArenaExclusiveId;
+    exclusiveLabel: string;
+    exclusiveOwned: boolean;
+  };
+  idle: { dividend: number; capBonusHours: number };
+  history: ArenaSave['history'];
+  power: number;
+}
+
+/** The settle receipt (Results-side): the verdict, the rating movement, and the paid lines. */
+export interface ArenaSettleReceipt {
+  outcome: 'win' | 'loss' | 'draw';
+  delta: number;
+  rating: number;
+  division: string;
+  promoted: boolean;
+  demoted: boolean;
+  placementsLeft: number;
+  lines: PremiumReceiptLine[];
+  passXp: number;
+  passLevelUp: { from: number; to: number } | null;
+}
+
+/** The division ABOVE each index (promotion teaser); the top maps to null. */
+const ARENA_DIVISIONS_NEXT: (ArenaDivisionDef | null)[] = ARENA_DIVISIONS.map((_, i) => ARENA_DIVISIONS[i + 1] ?? null);
+
+/** Grant an arena-exclusive content piece (docs/ARENA.md §6): the FOREVER ledger entry plus
+ *  the roster unlock (when the content def exists — the ledger is authoritative either way,
+ *  so a claim before a content patch self-heals on the next roster read). Exclusives have NO
+ *  other acquisition path: no unlockShards, no stage gate, no market, no containers. */
+function grantArenaExclusive(save: SaveData, id: ArenaExclusiveId): SaveData {
+  let next: SaveData = { ...save, arena: { ...save.arena, exclusives: [...save.arena.exclusives, id] } };
+  if (id.startsWith('tower:')) {
+    const kind = id.slice('tower:'.length) as TowerKind;
+    if ((TOWER_ORDER as string[]).includes(kind) && !next.towerUnlocked.includes(kind)) {
+      next = { ...next, towerUnlocked: [...next.towerUnlocked, kind] };
+    }
+  } else if (id.startsWith('hero:')) {
+    const kind = id.slice('hero:'.length) as HeroKind;
+    if ((HERO_ORDER as string[]).includes(kind) && !next.heroUnlocked.includes(kind)) {
+      next = { ...next, heroUnlocked: [...next.heroUnlocked, kind] };
+    }
+  }
+  return next;
+}
 
 export function fmtIdleHours(h: number): string {
   if (h < 1) return `${Math.max(1, Math.round(h * 60))}m`;
@@ -4039,7 +4137,8 @@ export const meta = {
   idleView(now = Date.now()): IdleHarvestView {
     const save = store.get();
     const ctx = idleGateContext(save);
-    const acc = idleAccrual(now - (save.idle.lastCollect || now), highestCampaignStage(save), save.idle.nodes, ctx.genomeRankIndex);
+    const arenaDiv = this.arenaDivisionIndex(now);
+    const acc = idleAccrual(now - (save.idle.lastCollect || now), highestCampaignStage(save), save.idle.nodes, ctx.genomeRankIndex, arenaIdleDividend(arenaDiv), arenaIdleCapBonusHours(arenaDiv));
     const nodes = IDLE_NODES.map((def) => {
       const level = save.idle.nodes[def.id] ?? 0;
       const gate = idleNodeGate(def, level + 1, ctx);
@@ -4056,6 +4155,8 @@ export const meta = {
       cores: save.shards,
       rankIndex: ctx.genomeRankIndex,
       rankBonus: IDLE.rankGrowth * Math.max(0, ctx.genomeRankIndex - 1),
+      arenaDividend: arenaIdleDividend(arenaDiv),
+      arenaCapBonusHours: arenaIdleCapBonusHours(arenaDiv),
     };
   },
 
@@ -4075,7 +4176,8 @@ export const meta = {
       return null;
     }
     const ctx = idleGateContext(save);
-    const acc = idleAccrual(now - last, highestCampaignStage(save), save.idle.nodes, ctx.genomeRankIndex);
+    const arenaDiv = this.arenaDivisionIndex(now);
+    const acc = idleAccrual(now - last, highestCampaignStage(save), save.idle.nodes, ctx.genomeRankIndex, arenaIdleDividend(arenaDiv), arenaIdleCapBonusHours(arenaDiv));
     if (acc.rawHours * 60 < IDLE.minCollectMinutes) return null;
     const rng = new Rng(((Math.floor(now / 1000) ^ Math.floor(last / 1000)) >>> 0) || 1);
     const roll = rollIdleHarvest(acc, save.idle.nodes, ctx, () => rng.next());
@@ -4171,6 +4273,235 @@ export const meta = {
   /** Battle Pass permanents + Perennial stacks as run effects (folded like gear). */
   battlePassRunEffects(): CardEffect[] {
     return battlePassEffectsOf(store.get());
+  },
+
+  // ── ARENA (docs/ARENA.md) — the live-PvP pillar: ranked seasons, the wins-only pass,
+  //    exclusives, and the settle path. Authority model: docs/ONLINE-FOUNDATION.md §4 —
+  //    online matches settle server-side (functions/api/arena/report.ts) and reconcile;
+  //    AI/offline matches run the SAME shared validators locally, right here. ──
+
+  /** Roll the record into the current 30-day season (archive → soft reset → placements) and
+   *  MATERIALIZE lazy rank decay. Idempotent; every arena entry point calls it first. */
+  pollArenaSeason(now = Date.now()): void {
+    const save = store.get();
+    const season = arenaSeasonIndex(now);
+    let arena = rolledArenaSave(save.arena, season);
+    const decayed = decayedRating(arena.rating, arena.lastPlayedAt, now);
+    if (decayed !== arena.rating) arena = { ...arena, rating: decayed };
+    if (arena !== save.arena) persist({ ...save, arena });
+  },
+
+  /** The division index (0-based) at the live, decay-adjusted rating — the idle dividend's
+   *  input (0 for accounts that never touched the arena ⇒ ×1 identity, golden-safe). */
+  arenaDivisionIndex(now = Date.now()): number {
+    const save = store.get();
+    if (save.arena.season === 0 && save.arena.rating === 0) return 0;
+    const arena = rolledArenaSave(save.arena, arenaSeasonIndex(now));
+    return divisionIndex(decayedRating(arena.rating, arena.lastPlayedAt, now));
+  },
+
+  /** The Arena screen's read-model (poll-free — derives the rolled/decayed picture without
+   *  persisting; pollArenaSeason materializes on real interactions). */
+  arenaView(now = Date.now()): ArenaHubView {
+    const save = store.get();
+    const season = arenaSeasonIndex(now);
+    const arena = rolledArenaSave(save.arena, season);
+    const rating = decayedRating(arena.rating, arena.lastPlayedAt, now);
+    const div = divisionForRating(rating);
+    const divIdx = divisionIndex(rating);
+    const info = arenaSeasonInfo(season, now);
+    const lp = arenaPassLevelOf(arena.passXp);
+    const track = arenaPassTrack(season);
+    const claimableFree: number[] = [];
+    const claimablePremium: number[] = [];
+    for (let l = 1; l <= lp.level; l++) {
+      if (!arena.passClaimedFree.includes(l)) claimableFree.push(l);
+      if (arena.passPremium && !arena.passClaimedPremium.includes(l)) claimablePremium.push(l);
+    }
+    return {
+      season: info,
+      rating,
+      division: div,
+      divisionIndex: divIdx,
+      nextDivision: ARENA_DIVISIONS_NEXT[divIdx] ?? null,
+      placementsLeft: arena.placements,
+      wins: arena.wins,
+      losses: arena.losses,
+      streak: arena.streak,
+      lifetimeWins: arena.lifetimeWins,
+      lifetimeLosses: arena.lifetimeLosses,
+      peak: arena.peak,
+      pass: {
+        xp: arena.passXp,
+        level: lp.level,
+        into: lp.into,
+        need: lp.need,
+        premium: arena.passPremium,
+        premiumPrice: ARENA_PASS.premiumIchor,
+        track,
+        claimedFree: new Set(arena.passClaimedFree),
+        claimedPremium: new Set(arena.passClaimedPremium),
+        claimableFree,
+        claimablePremium,
+        exclusive: info.exclusive,
+        exclusiveLabel: arenaExclusiveLabel(info.exclusive),
+        exclusiveOwned: arena.exclusives.includes(info.exclusive),
+      },
+      idle: { dividend: arenaIdleDividend(divIdx), capBonusHours: arenaIdleCapBonusHours(divIdx) },
+      history: arena.history,
+      power: this.power().score,
+    };
+  },
+
+  /** The LOCAL player's match boot bundle — the same snapshot a normal run boots with
+   *  (docs/ARENA.md §ruleset), MINUS the unfair-in-PvP layers: no Molt Vows, no Nemesis, no
+   *  daily overrides (the mirror fairness rule — both fields fight the seed's world). */
+  arenaBootBundle(): ArenaBootBundle {
+    const save = store.get();
+    return {
+      meta: metaModifiers(save),
+      towerProgress: this.towerProgress(),
+      heroKind: this.selectedHero(),
+      heroProgress: this.heroProgress(),
+      opts: {
+        runEffects: [
+          ...this.genomeRunEffects(), ...this.collectionRunEffects(), ...this.trophyRunEffects(),
+          ...this.infestationRunEffects(), ...this.cutsceneRunEffects(), ...this.mulliganGlobalEffects(),
+          ...this.battlePassRunEffects(),
+        ],
+        heroRoster: this.fieldedLoadout(),
+        heroEquip: this.heroRosterEquip(),
+        setEffects: this.fieldedSetEffects(),
+        heroAbilityKits: this.heroAbilityKits(),
+        favorite: this.favoriteTower(),
+        unlocked: this.unlockedTowers(),
+        geneLevels: this.geneLevels(),
+        geneTranscends: this.geneTranscends(),
+        nucleusEffects: this.nucleusEffects(),
+        startingGenes: this.startingGenes(),
+        unlockedCardIds: this.unlockedCardIds(),
+        draftPool: this.discoveredGeneIds(),
+      },
+    };
+  },
+
+  /** Settle one finished match from its validated claim — the shared-validator path
+   *  (docs/ONLINE-FOUNDATION.md §4). Exactly-once by matchId; rating moves by the SAME
+   *  ratingDelta the server runs; wins (only) feed the pass; rewards pay through the ONE
+   *  interpreter (wins → division-banded container + Run Cache; losses → cores + salvage). */
+  settleArenaMatch(claim: ArenaMatchClaim, now = Date.now()): ArenaSettleReceipt | null {
+    if (!guardOk('arena.settle', claim.matchId)) return null;
+    if (arenaClaimProblem(claim) !== null) return null;
+    this.pollArenaSeason(now);
+    const save = store.get();
+    const arena = save.arena;
+    if (claim.season !== arena.season) return null; // stale claim (season rolled mid-flight)
+    if (arena.settledMatchIds.includes(claim.matchId)) return null; // exactly-once
+    const divBefore = divisionIndex(arena.rating);
+    const delta = claim.outcome === 'draw'
+      ? 0
+      : ratingDelta({ rating: arena.rating, oppRating: claim.oppRating, won: claim.outcome === 'win', placementsLeft: arena.placements, streak: arena.streak });
+    const rating = applyRatingFloor(arena.rating + delta);
+    const divAfter = divisionIndex(rating);
+    const { rewards, passXp } = arenaMatchRewards(claim.outcome, divBefore);
+    const res = applyRewardList(save, rewards, BP.repeatReplacement, null, 'arena-match');
+    const passBefore = arenaPassLevelOf(arena.passXp).level;
+    const passAfter = arenaPassLevelOf(arena.passXp + passXp).level;
+    const settled = [...arena.settledMatchIds, claim.matchId].slice(-ARENA_SETTLED_CAP);
+    const nextArena: ArenaSave = {
+      ...arena,
+      rating,
+      peak: Math.max(arena.peak, rating),
+      wins: arena.wins + (claim.outcome === 'win' ? 1 : 0),
+      losses: arena.losses + (claim.outcome === 'loss' ? 1 : 0),
+      lifetimeWins: arena.lifetimeWins + (claim.outcome === 'win' ? 1 : 0),
+      lifetimeLosses: arena.lifetimeLosses + (claim.outcome === 'loss' ? 1 : 0),
+      placements: Math.max(0, arena.placements - 1),
+      streak: claim.outcome === 'win' ? arena.streak + 1 : 0,
+      lastPlayedAt: now,
+      passXp: arena.passXp + passXp,
+      settledMatchIds: settled,
+    };
+    const div = divisionForRating(rating);
+    persist({
+      ...res.next,
+      arena: nextArena,
+      timeline: claim.outcome === 'win'
+        ? pushTimeline(res.next.timeline, '⚔', `Arena victory — ${div.name} (${rating})`)
+        : res.next.timeline,
+    });
+    if (res.stamina > 0) this.grantRushStamina(res.stamina, now);
+    rewardToast.pushMany(
+      claim.outcome === 'win' ? 'Arena — VICTORY' : claim.outcome === 'loss' ? 'Arena — defeat' : 'Arena — draw',
+      res.events,
+    );
+    this.evaluateAchievements();
+    const lines = [...res.lines];
+    if (passXp > 0) lines.push({ icon: '⚔', label: `${passXp} Arena Pass XP` });
+    return {
+      outcome: claim.outcome,
+      delta,
+      rating,
+      division: div.name,
+      promoted: divAfter > divBefore,
+      demoted: divAfter < divBefore,
+      placementsLeft: nextArena.placements,
+      lines,
+      passXp,
+      passLevelUp: passAfter > passBefore ? { from: passBefore, to: passAfter } : null,
+    };
+  },
+
+  /** Claim one earned Arena Pass level on a track → receipt lines (null = not claimable).
+   *  Level 100 additionally grants the SEASON EXCLUSIVE (once ever per content piece — the
+   *  forever ledger): the tower/hero joins the account roster with no other acquisition path. */
+  claimArenaPassLevel(track: 'free' | 'premium', level: number, now = Date.now()): PremiumReceiptLine[] | null {
+    if (!guardOk('arena.claim', `${track}:${level}`)) return null;
+    this.pollArenaSeason(now);
+    const save = store.get();
+    const arena = save.arena;
+    if (arena.season === 0) return null; // never touched the arena
+    if (level < 1 || level > ARENA_PASS.levels || level > arenaPassLevelOf(arena.passXp).level) return null;
+    const claimed = track === 'free' ? arena.passClaimedFree : arena.passClaimedPremium;
+    if (claimed.includes(level)) return null;
+    if (track === 'premium' && !arena.passPremium) return null;
+    const row = arenaPassTrack(arena.season)[level - 1];
+    const res = applyRewardList(save, row[track], BP.repeatReplacement, null, 'arena-pass');
+    let next = res.next;
+    const lines = [...res.lines];
+    // The level-100 crown: the season's arena-exclusive content piece (docs/ARENA.md §6).
+    if (row.exclusive && !next.arena.exclusives.includes(row.exclusive)) {
+      next = grantArenaExclusive(next, row.exclusive);
+      lines.push({ icon: '✦', label: `${arenaExclusiveLabel(row.exclusive)} — UNLOCKED` });
+    }
+    const claimKey = track === 'free' ? 'passClaimedFree' : 'passClaimedPremium';
+    persist({
+      ...next,
+      arena: { ...next.arena, [claimKey]: [...next.arena[claimKey], level] },
+      timeline: row.exclusive && next.arena.exclusives.includes(row.exclusive) && !save.arena.exclusives.includes(row.exclusive)
+        ? pushTimeline(next.timeline, '✦', `Arena exclusive claimed — ${arenaExclusiveLabel(row.exclusive)}`)
+        : next.timeline,
+    });
+    if (res.stamina > 0) this.grantRushStamina(res.stamina, now);
+    this.evaluateAchievements();
+    rewardToast.pushMany(`Arena Pass — Level ${level}`, res.events);
+    return lines;
+  },
+
+  /** Unlock the season's premium arena track (Ichor). Mirrors buyPassPremium. */
+  buyArenaPassPremium(now = Date.now()): boolean {
+    if (!guardOk('arena.premium')) return false;
+    this.pollArenaSeason(now);
+    const save = store.get();
+    if (save.arena.season === 0 || save.arena.passPremium || save.ichor < ARENA_PASS.premiumIchor) return false;
+    const info = arenaSeasonInfo(save.arena.season);
+    persist({
+      ...save,
+      ichor: save.ichor - ARENA_PASS.premiumIchor,
+      arena: { ...save.arena, passPremium: true },
+      timeline: pushTimeline(save.timeline, info.glyph, `${info.name} — Premium arena track unlocked`),
+    });
+    return true;
   },
 
   // ── QUESTS & MISSIONS (docs/QUESTS.md) — the directive layer. Missions compose quests;

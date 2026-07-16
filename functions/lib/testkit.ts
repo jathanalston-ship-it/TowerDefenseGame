@@ -21,6 +21,8 @@ export class FakeD1 {
   accounts = new Map<string, Row>(); // key: account_id
   sessions = new Map<string, Row>(); // key: token_hash
   resetTokens = new Map<string, Row>(); // key: token_hash
+  arenaRatings = new Map<string, Row>(); // key: player|season
+  arenaMatches = new Map<string, Row>(); // key: match|player
 
   prepare(sql: string): FakeStatement {
     return new FakeStatement(this, sql.replace(/\s+/g, ' ').trim());
@@ -256,6 +258,36 @@ class FakeStatement {
     if (sql.startsWith('SELECT score, wave FROM leaderboard')) {
       const row = [...db.leaderboard.values()].find((r) => r.mode === args[0] && r.day_key === args[1] && r.player_id === args[2]);
       return { rows: row ? [{ score: row.score, wave: row.wave }] : [], changes: 0 };
+    }
+    // ── arena (docs/ARENA.md §7) ──
+    if (sql.startsWith('SELECT rating, wins, losses, placements, streak, peak FROM arena_ratings')) {
+      const row = db.arenaRatings.get(`${args[0]}|${args[1]}`);
+      return { rows: row ? [row] : [], changes: 0 };
+    }
+    if (sql.startsWith('INSERT INTO arena_matches')) {
+      const key = `${args[0]}|${args[1]}`;
+      if (db.arenaMatches.has(key)) return { rows: [], changes: 0 }; // ON CONFLICT DO NOTHING
+      db.arenaMatches.set(key, {
+        match_id: args[0], player_id: args[1], season: args[2], outcome: args[3], vs_ai: args[4],
+        opp_rating: args[5], duration_sec: args[6], wave: args[7], power: args[8], rating_after: args[9], created_at: args[10],
+      });
+      return { rows: [], changes: 1 };
+    }
+    if (sql.startsWith('SELECT rating_after FROM arena_matches')) {
+      const row = db.arenaMatches.get(`${args[0]}|${args[1]}`);
+      return { rows: row ? [{ rating_after: row.rating_after }] : [], changes: 0 };
+    }
+    if (sql.startsWith('INSERT INTO arena_ratings')) {
+      db.arenaRatings.set(`${args[0]}|${args[1]}`, {
+        player_id: args[0], season: args[1], rating: args[2], wins: args[3], losses: args[4],
+        placements: args[5], streak: args[6], peak: args[7], updated_at: args[8],
+      });
+      return { rows: [], changes: 1 };
+    }
+    if (sql.startsWith('UPDATE arena_matches SET rating_after')) {
+      const row = db.arenaMatches.get(`${args[1]}|${args[2]}`);
+      if (row) row.rating_after = args[0];
+      return { rows: [], changes: row ? 1 : 0 };
     }
     if (sql === 'SELECT 1') return { rows: [{ 1: 1 }], changes: 0 };
     throw new Error(`FakeD1: unsupported query — add a fake for it:\n${sql}`);

@@ -147,12 +147,14 @@ export function idleNodeGate(def: IdleNodeDef, toLevel: number, ctx: IdleGateCon
 export type IdleNodeLevels = Record<string, number>;
 const lvl = (nodes: IdleNodeLevels, id: string): number => Math.max(0, Math.floor(nodes[id] ?? 0));
 
-/** Storage cap in hours at a Capacity level: the authored ladder, then +capHoursBeyond forever. */
-export function idleCapHours(nodes: IdleNodeLevels): number {
+/** Storage cap in hours at a Capacity level: the authored ladder, then +capHoursBeyond forever.
+ *  `bonusHours` is the ARENA RANK storage benefit (docs/ARENA.md §8 — flat, ≤ 6h, division-
+ *  derived); 0 (or omitted) ⇒ unchanged for every pre-arena call site. */
+export function idleCapHours(nodes: IdleNodeLevels, bonusHours = 0): number {
   const l = lvl(nodes, 'capacity');
   const ladder = IDLE.capHoursLadder;
-  if (l < ladder.length) return ladder[l];
-  return ladder[ladder.length - 1] + IDLE.capHoursBeyond * (l - (ladder.length - 1));
+  const base = l < ladder.length ? ladder[l] : ladder[ladder.length - 1] + IDLE.capHoursBeyond * (l - (ladder.length - 1));
+  return base + Math.max(0, bonusHours);
 }
 
 /** Offline efficiency 0.7 → 1.0 (never above full — idle may approach play, not pass it). */
@@ -175,9 +177,13 @@ export function idleBloomChance(nodes: IdleNodeLevels): number {
  *  each rank past I adds IDLE.rankGrowth to the rate ("the Hive harvests smarter as the
  *  organism masters more"). Rank I (or omitted) is exactly ×1, so fresh accounts and every
  *  pre-existing call site are unchanged; the idle<active guardrail bounds the whole model. */
-export function idleRatePerHour(stage: number, nodes: IdleNodeLevels, rankIndex = 1): number {
+export function idleRatePerHour(stage: number, nodes: IdleNodeLevels, rankIndex = 1, arenaMult = 1): number {
+  // ARENA RANK DIVIDEND (docs/ARENA.md §8): a second, DIMINISHING mastery-ladder feed —
+  // core/arena.arenaIdleDividend, ×1 at division 0 (IEEE-identity for non-arena accounts)
+  // and hard-capped at ×1.15, so the idle<active guardrail's headroom absorbs it whole.
   return IDLE.baseCoresPerHour * (1 + IDLE.stageGrowth * Math.max(0, stage - 1))
     * (1 + IDLE.rankGrowth * Math.max(0, rankIndex - 1))
+    * Math.max(1, arenaMult)
     * idleSoft(lvl(nodes, 'speed'), IDLE_NODE_BY_ID.speed.per);
 }
 
@@ -193,13 +199,15 @@ export interface IdleAccrual {
 }
 
 /** The whole accrual picture for `elapsedMs` away. Pure; negative/NaN elapsed folds to zero
- *  (clock-tamper clamps live in meta, but the math itself can never mint from junk). */
-export function idleAccrual(elapsedMs: number, stage: number, nodes: IdleNodeLevels, rankIndex = 1): IdleAccrual {
+ *  (clock-tamper clamps live in meta, but the math itself can never mint from junk).
+ *  `arenaMult`/`arenaCapBonusHours` are the ARENA RANK benefits (docs/ARENA.md §8) — both
+ *  identity (1 / 0) when omitted, so every pre-arena call site is byte-unchanged. */
+export function idleAccrual(elapsedMs: number, stage: number, nodes: IdleNodeLevels, rankIndex = 1, arenaMult = 1, arenaCapBonusHours = 0): IdleAccrual {
   const rawHours = Number.isFinite(elapsedMs) ? Math.max(0, elapsedMs) / 3_600_000 : 0;
-  const capHours = idleCapHours(nodes);
+  const capHours = idleCapHours(nodes, arenaCapBonusHours);
   const overflowHours = idleOverflowFrac(nodes) * Math.min(Math.max(rawHours - capHours, 0), capHours);
   const effHours = Math.min(rawHours, capHours) + overflowHours;
-  const ratePerHour = idleRatePerHour(stage, nodes, rankIndex);
+  const ratePerHour = idleRatePerHour(stage, nodes, rankIndex, arenaMult);
   const offlineEff = idleOfflineEff(nodes);
   return {
     rawHours, effHours, capHours, overflowHours,

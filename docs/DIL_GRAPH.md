@@ -1,6 +1,6 @@
 # DIL_GRAPH.md — the Design Intelligence Layer (GENERATED — `npm run dil -- regen`)
 
-> **The project's brain** (docs/DIL.md). 836 nodes · 1546 edges, built from the live
+> **The project's brain** (docs/DIL.md). 837 nodes · 1547 edges, built from the live
 > registries + curated knowledge (src/dev/dil/). **Query it instead of searching the repo:**
 > `npm run dil -- node <id>` · `affects <id>` · `requires <id>` · `missing <kind> <edge>` ·
 > `checklist tower <kind>` · `find <text>`. Edge kinds are bidirectional (19 kinds).
@@ -762,7 +762,7 @@ _at: src/core/game.ts, src/core/combat.ts, src/core/status.ts, src/core/targetin
   - requiredBy ← `system:onboarding`
   - requiredBy ← `system:run-ui`
   - requiredBy ← `system:bosses`
-  - _…205 more (query: `npm run dil -- node system:engine`)_
+  - _…206 more (query: `npm run dil -- node system:engine`)_
 
 ### `system:content-infra` — Content Infrastructure
 
@@ -3519,7 +3519,7 @@ _at: site/guides.ts → /guides/prestige/_
 - `doc:VOWS.md` — project documentation _(documents `system:prestige`)_
 - `doc:WEBSITE.md` — project documentation _(documents `system:field-research`, documents `system:website`)_
 
-## Tests (272)
+## Tests (273)
 
 - `test:src/audio/music.test.ts` — automated validation _(tests `system:audio`)_
 - `test:src/changelog/classify.test.ts` — automated validation _(tests `system:chronicle`)_
@@ -3710,6 +3710,7 @@ _at: site/guides.ts → /guides/prestige/_
 - `test:src/state/achievements.framework.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/state/achievements.test.ts` — automated validation _(tests `system:achievements`)_
 - `test:src/state/adaptationAdvisor.test.ts` — automated validation _(tests `system:mastery`)_
+- `test:src/state/arenaMeta.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/state/armory.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/state/battlePassEconomy.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/state/battlePassMeta.test.ts` — automated validation _(tests `system:engine`)_
