@@ -12,6 +12,21 @@ export const RELEASES: Release[] = [
     "entries": [
       {
         "cat": "Gameplay",
+        "text": "New achievement: The Complete Genome",
+        "major": true
+      },
+      {
+        "cat": "Gameplay",
+        "text": "New achievement: Baseline Genome",
+        "major": true
+      },
+      {
+        "cat": "Gameplay",
+        "text": "New achievement: Apex Strand",
+        "major": true
+      },
+      {
+        "cat": "Gameplay",
         "text": "New achievement: Ancestral Strand",
         "major": true
       },
@@ -969,6 +984,38 @@ export const RELEASES: Release[] = [
       {
         "cat": "Gene Cards",
         "text": "Mastery Evolution pacing: XP-metered loops (v45) + balancing simulation"
+      },
+      {
+        "cat": "Gene Cards",
+        "text": "Mastery Evolution docs + DIL: §10 spec, system summary, knowledge edges"
+      },
+      {
+        "cat": "Gene Cards",
+        "text": "Gene Discovery core: five rarities, starters, gated pools, protected rolls"
+      },
+      {
+        "cat": "Gene Cards",
+        "text": "Gene Discovery save v46 + the container lane + discovered-only drafts"
+      },
+      {
+        "cat": "Gene Cards",
+        "text": "Gene Archive discovery UI: silhouettes, hints, rarity chips, completion strip"
+      },
+      {
+        "cat": "Gene Cards",
+        "text": "Gene Discovery integration: Collections credit, achievements, surfaces, economy sim"
+      },
+      {
+        "cat": "Framework",
+        "text": "Bio-Container reveal framework: specimen session model + flip state machine"
+      },
+      {
+        "cat": "Gameplay",
+        "text": "Bio-Container opening experience: simultaneous face-down clutch + celebrations"
+      },
+      {
+        "cat": "Audio",
+        "text": "Container opening: per-rarity audio, framework tests, docs — both overhauls complete"
       }
     ]
   },

@@ -236,3 +236,11 @@
 - `7ca3087` **[Gene Cards]** Mastery Evolution UI: the HELIX panel in both labs (claim, EVOLVE, badges)
 - `bdb5191` **[Gene Cards]** Mastery Evolution integration: Power, codex, achievements, badges, voice
 - `fb09778` **[Gene Cards]** Mastery Evolution pacing: XP-metered loops (v45) + balancing simulation
+- `378e86e` **[Gene Cards]** Mastery Evolution docs + DIL: §10 spec, system summary, knowledge edges
+- `d3b461b` **[Gene Cards]** Gene Discovery core: five rarities, starters, gated pools, protected rolls
+- `0d03819` **[Gene Cards]** Gene Discovery save v46 + the container lane + discovered-only drafts
+- `acebd39` **[Gene Cards]** Gene Archive discovery UI: silhouettes, hints, rarity chips, completion strip
+- `c165e0b` **[Gene Cards]** Gene Discovery integration: Collections credit, achievements, surfaces, economy sim
+- `840f18b` **[Framework]** Bio-Container reveal framework: specimen session model + flip state machine
+- `297c895` **[Gameplay]** Bio-Container opening experience: simultaneous face-down clutch + celebrations
+- `33dd837` **[Audio]** Container opening: per-rarity audio, framework tests, docs — both overhauls complete

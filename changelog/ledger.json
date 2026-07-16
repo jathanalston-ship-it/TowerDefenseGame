@@ -1,6 +1,6 @@
 {
-  "lastSha": "fb097787bc04aa865fd31656da38b8e0a73fdabe",
-  "commitsSinceDraft": 8,
+  "lastSha": "33dd837ddb1cb9bfae52ebf7b73fa9e1bc5d1b50",
+  "commitsSinceDraft": 0,
   "content": {
     "tower": [
       "needle",
@@ -211,6 +211,9 @@
       "full_menagerie",
       "complete_arsenal",
       "deep_genome",
+      "apex_find",
+      "common_set",
+      "full_genome",
       "return_from_deep",
       "evo_first_loop",
       "evo_five_loops",
@@ -1494,6 +1497,21 @@
       "entries": [
         {
           "cat": "Gameplay",
+          "text": "New achievement: The Complete Genome",
+          "major": true
+        },
+        {
+          "cat": "Gameplay",
+          "text": "New achievement: Baseline Genome",
+          "major": true
+        },
+        {
+          "cat": "Gameplay",
+          "text": "New achievement: Apex Strand",
+          "major": true
+        },
+        {
+          "cat": "Gameplay",
           "text": "New achievement: Ancestral Strand",
           "major": true
         },
@@ -2451,6 +2469,38 @@
         {
           "cat": "Gene Cards",
           "text": "Mastery Evolution pacing: XP-metered loops (v45) + balancing simulation"
+        },
+        {
+          "cat": "Gene Cards",
+          "text": "Mastery Evolution docs + DIL: §10 spec, system summary, knowledge edges"
+        },
+        {
+          "cat": "Gene Cards",
+          "text": "Gene Discovery core: five rarities, starters, gated pools, protected rolls"
+        },
+        {
+          "cat": "Gene Cards",
+          "text": "Gene Discovery save v46 + the container lane + discovered-only drafts"
+        },
+        {
+          "cat": "Gene Cards",
+          "text": "Gene Archive discovery UI: silhouettes, hints, rarity chips, completion strip"
+        },
+        {
+          "cat": "Gene Cards",
+          "text": "Gene Discovery integration: Collections credit, achievements, surfaces, economy sim"
+        },
+        {
+          "cat": "Framework",
+          "text": "Bio-Container reveal framework: specimen session model + flip state machine"
+        },
+        {
+          "cat": "Gameplay",
+          "text": "Bio-Container opening experience: simultaneous face-down clutch + celebrations"
+        },
+        {
+          "cat": "Audio",
+          "text": "Container opening: per-rarity audio, framework tests, docs — both overhauls complete"
         }
       ]
     }
@@ -4181,6 +4231,70 @@
       "date": "2026-07-16",
       "cat": "Gene Cards",
       "text": "Mastery Evolution pacing: XP-metered loops (v45) + balancing simulation",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "378e86ec3b0911117c1331a8ee90fa78160d14dd",
+      "date": "2026-07-16",
+      "cat": "Gene Cards",
+      "text": "Mastery Evolution docs + DIL: §10 spec, system summary, knowledge edges",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "d3b461ba43b9746216d62219bbedd939cdffc419",
+      "date": "2026-07-16",
+      "cat": "Gene Cards",
+      "text": "Gene Discovery core: five rarities, starters, gated pools, protected rolls",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "0d038197ca87e25d9af5fc213bbe9517eee3a77d",
+      "date": "2026-07-16",
+      "cat": "Gene Cards",
+      "text": "Gene Discovery save v46 + the container lane + discovered-only drafts",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "acebd395a331d8425b2ac427964c3df472c4ccc4",
+      "date": "2026-07-16",
+      "cat": "Gene Cards",
+      "text": "Gene Archive discovery UI: silhouettes, hints, rarity chips, completion strip",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "c165e0bcdd7cbf2016611297f6010bb986b66946",
+      "date": "2026-07-16",
+      "cat": "Gene Cards",
+      "text": "Gene Discovery integration: Collections credit, achievements, surfaces, economy sim",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "840f18bd35593aeb6e37846e7ea6b2d6996fb134",
+      "date": "2026-07-16",
+      "cat": "Framework",
+      "text": "Bio-Container reveal framework: specimen session model + flip state machine",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "297c89587b7f33a9dd4b33bb676975350d018efc",
+      "date": "2026-07-16",
+      "cat": "Gameplay",
+      "text": "Bio-Container opening experience: simultaneous face-down clutch + celebrations",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "33dd837ddb1cb9bfae52ebf7b73fa9e1bc5d1b50",
+      "date": "2026-07-16",
+      "cat": "Audio",
+      "text": "Container opening: per-rarity audio, framework tests, docs — both overhauls complete",
       "internal": false,
       "needsReview": false
     }
