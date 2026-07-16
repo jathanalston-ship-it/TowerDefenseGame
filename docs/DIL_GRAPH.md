@@ -1,6 +1,6 @@
 # DIL_GRAPH.md — the Design Intelligence Layer (GENERATED — `npm run dil -- regen`)
 
-> **The project's brain** (docs/DIL.md). 837 nodes · 1547 edges, built from the live
+> **The project's brain** (docs/DIL.md). 838 nodes · 1549 edges, built from the live
 > registries + curated knowledge (src/dev/dil/). **Query it instead of searching the repo:**
 > `npm run dil -- node <id>` · `affects <id>` · `requires <id>` · `missing <kind> <edge>` ·
 > `checklist tower <kind>` · `find <text>`. Edge kinds are bidirectional (19 kinds).
@@ -599,6 +599,7 @@ Depth/stage/shard requirements that stage content unlocks (towers, heroes, cards
   - providedBy ← `system:campaign` — depth is the master unlock axis
   - providedBy ← `system:cutscenes` — memories unlock from milestones (stages, molt, depth) and first mega defeats; each grants a small capped passive
   - providedBy ← `system:premium` — FLASH sales (state/flashOffers.ts): one-time milestone SKUs armed at achievement highs (megas/stage/passLevel/molts triggers), 48h windows anchored at FIRST SIGHT, one popup per 72h above a stage-3/5-runs floor — the SKU rows stay in core/premium.ts so functions/ prices checkout; save v42 premium.flash ledger
+  - extendedBy ← `system:hub-shell` — BEHAVIOR HUBS (ui/navModel.ts): groups are hubs in reward-loop order (MISSION→REWARDS→EVOLUTION→MARKET→Store→PROFILE) — every claim surface lives in REWARDS; group headers open ui/HubLanding.tsx (registry-driven landing: attention reasons + recommendations + screen grid + recently-unlocked); NotificationSource.reason gives every badge its WHY, and state/recommendations.ts derives ranked next actions FROM the notification sources + teasers + a play backstop (never empty — no dead ends); a new screen is one navModel row and inherits ALL of it; portrait tabs derive via TAB_OF_GROUP (Home/Battle/Rewards/Evolve/More)
 
 ### `concept:replays` — Replays
 
@@ -1902,6 +1903,7 @@ _at: src/ui/Hub.tsx, src/ui/navModel.ts, src/ui/MobileShell.tsx, src/ui/CommandC
   - references → `system:power` — UX CONSOLIDATION PASS (2026-07, UX-CONSOLIDATION.md — the coalescing record): the five Foundations own guidance by KIND, one fact one owner. Absorbed: Home NEXT banner → Mission Control ledger (NextGoalBanner component+CSS deleted, only LoopDirective/NextGoalCliffhanger remain); raw command-feed → Hive Intelligence note tail; COMING UP resource goals → MC ledger (roadmap owns only the system curve); ProgressDashboard HOT/claim CTAs → the Feed's ACT rows (dashboard is now STANDINGS-ONLY — no dash-cta, no is-hot; Ascension banner KEPT as the one unique claim). command-feed mount gate re-founded (was timeline-only; now mounts on timeline OR pendingContainers OR shards — homeModel.test pins it). KEEP decisions (one engine many doors): LoopDirective ×4, BestBuyStrip ×4 + Growth, BioCacheCard ×2, HUD-Tour-vs-Guided-Unlocks. VERIFICATION CONTRACT: home probe asserts dash-cta=0 + ng-next=0 + feed-act>0 on fresh AND veteran seeds
   - extends → `concept:scalability` — LIST ORG (state/listOrg.ts): organizeList<T> over a DATA spec (searchText/sorts/filters/groups/lead) — query → AND-chips → stable sort → lead-first (favorites/pins) → grouping; per-surface prefs via listOrgPrefs (sort/filters/group/collapsed, NEVER the query — stale searches trap); shared ui/components/ListControls (.lc-*) + .lc-group folds; applied to Tower Lab (class folds), Hero Lab, Evolution HQ (Affordable/Hide-maxed), Gene Archive (persisted + rarity sort), Armory — a NEW long-list screen is one spec + one control row, never hand-rolled list logic
   - extends → `concept:scalability` — REWARD TOASTS (state/rewardToast.ts): every reward announces via ONE registry-driven placard stack — a new reward type is one REWARD_TYPES row (art/unit/merge/tier/nav), never a bespoke display; placards are pushed AT GRANT TIME in meta.ts (applyRewardList returns events; claim seams pushMany with a source string) — never from screens; the bus HOLDS events while no toaster is mounted (runs flush on hub return); dedicated full-screen ceremonies (vault clutch, roulette, premium receipts, research reveal, genome-rank cinematic) do NOT double-placard — see the NOTIFICATIONS.md coverage table before wiring a new reward lane
+  - extends → `concept:progression-gates` — BEHAVIOR HUBS (ui/navModel.ts): groups are hubs in reward-loop order (MISSION→REWARDS→EVOLUTION→MARKET→Store→PROFILE) — every claim surface lives in REWARDS; group headers open ui/HubLanding.tsx (registry-driven landing: attention reasons + recommendations + screen grid + recently-unlocked); NotificationSource.reason gives every badge its WHY, and state/recommendations.ts derives ranked next actions FROM the notification sources + teasers + a play backstop (never empty — no dead ends); a new screen is one navModel row and inherits ALL of it; portrait tabs derive via TAB_OF_GROUP (Home/Battle/Rewards/Evolve/More)
   - conflictsWith → `system:cosmetics` — UI contamination (homeBaseTiers labEra → .hub[data-contam] + .hub-contam) must stay ADDITIVE — cosmetic uithemes own --line/--panel tokens; never re-tint theme tokens for the infection look
   - requiredBy ← `system:hive-construction`
   - requiredBy ← `system:infestation`
@@ -1939,7 +1941,7 @@ _at: src/ui/GameView.tsx, src/ui/Hud.tsx, src/ui/Toolbar.tsx, src/ui/BuildContro
 
 Generic menu badges (registered count(save) sources per nav channel) + the global claim popup every hub claim receipts through.
 
-_at: src/state/notifications.ts, src/state/notificationSources.ts, src/state/rewardToast.ts, src/state/hiveIntel.ts, src/ui/components/RewardToaster.tsx_
+_at: src/state/notifications.ts, src/state/notificationSources.ts, src/state/rewardToast.ts, src/state/recommendations.ts, src/state/hiveIntel.ts, src/ui/components/RewardToaster.tsx, src/ui/HubLanding.tsx_
 
   - dependsOn → `system:meta-store`
   - provides → `system:hub-shell` — THE CLAIM POPUP (2026-07, NOTIFICATIONS.md §claim-popups): every hub claim — quest missions/finales, pass levels/claim-all/premium unlock, weekly directives, wardrobe milestones — pushes its PremiumReceiptLine[] to state/rewardToast; ONE RewardToaster (App, menu only) presents it bold + itemized. The "view it" jump derives from receipt ICONS (single-sourced in meta.applyRewardList/rewardLabel — change an icon there and update rewardToast DESTINATIONS) and routes via navBus. Ceremonial reveals (BioCache, VaultReveal, WardrobeReveal, PremiumStore, SpoilsCard, GenomePromotion) deliberately stay bespoke — the popup is the RECEIPT layer, not the ceremony layer
@@ -1949,6 +1951,7 @@ _at: src/state/notifications.ts, src/state/notificationSources.ts, src/state/rew
   - documentedBy ← `doc:HIVE-INTEL.md`
   - testedBy ← `test:src/state/hiveIntel.test.ts`
   - testedBy ← `test:src/state/notifications.test.ts`
+  - testedBy ← `test:src/state/recommendations.test.ts`
   - testedBy ← `test:src/state/rewardToast.test.ts`
 
 ### `system:prediction` — Progress Prediction
@@ -3519,7 +3522,7 @@ _at: site/guides.ts → /guides/prestige/_
 - `doc:VOWS.md` — project documentation _(documents `system:prestige`)_
 - `doc:WEBSITE.md` — project documentation _(documents `system:field-research`, documents `system:website`)_
 
-## Tests (273)
+## Tests (274)
 
 - `test:src/audio/music.test.ts` — automated validation _(tests `system:audio`)_
 - `test:src/changelog/classify.test.ts` — automated validation _(tests `system:chronicle`)_
@@ -3776,6 +3779,7 @@ _at: site/guides.ts → /guides/prestige/_
 - `test:src/state/progressionDirector.test.ts` — automated validation _(tests `system:progression-gating`)_
 - `test:src/state/progressionLoop.test.ts` — automated validation _(tests `system:hub-shell`)_
 - `test:src/state/questsMeta.test.ts` — automated validation _(tests `system:engine`)_
+- `test:src/state/recommendations.test.ts` — automated validation _(tests `system:notifications`)_
 - `test:src/state/research.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/state/rewardEligibility.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/state/rewardToast.test.ts` — automated validation _(tests `system:notifications`)_

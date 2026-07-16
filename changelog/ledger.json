@@ -1,6 +1,6 @@
 {
-  "lastSha": "ba55715b4b99e84f338dd4e2d1e25ba5e11dd38f",
-  "commitsSinceDraft": 2,
+  "lastSha": "f40f40b391e6bb0176eb53edf2731adc526a4568",
+  "commitsSinceDraft": 3,
   "content": {
     "tower": [
       "needle",
@@ -2553,6 +2553,10 @@
         {
           "cat": "Security",
           "text": "Online foundation: protocol/authority core, item provenance (v47), arena rank+pass, AI opponents, lockstep netcode"
+        },
+        {
+          "cat": "Website",
+          "text": "Hub navigation overhaul: behavior hubs, landing pages, smart reasons, recommendations"
         }
       ]
     }
@@ -4451,6 +4455,14 @@
       "date": "2026-07-16",
       "cat": "Security",
       "text": "Online foundation: protocol/authority core, item provenance (v47), arena rank+pass, AI opponents, lockstep netcode",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "f40f40b391e6bb0176eb53edf2731adc526a4568",
+      "date": "2026-07-16",
+      "cat": "Website",
+      "text": "Hub navigation overhaul: behavior hubs, landing pages, smart reasons, recommendations",
       "internal": false,
       "needsReview": false
     }

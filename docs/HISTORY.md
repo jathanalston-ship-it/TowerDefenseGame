@@ -257,3 +257,4 @@
 - `5892bc2` **[Framework]** Converge the two parallel toast implementations on the placard framework _(internal)_
 - `bc403f8` **[Framework]** Chronicle: placard-framework batch notes + devlog draft
 - `ba55715` **[Security]** Online foundation: protocol/authority core, item provenance (v47), arena rank+pass, AI opponents, lockstep netcode
+- `f40f40b` **[Website]** Hub navigation overhaul: behavior hubs, landing pages, smart reasons, recommendations

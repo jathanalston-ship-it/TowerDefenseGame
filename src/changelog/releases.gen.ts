@@ -1066,6 +1066,10 @@ export const RELEASES: Release[] = [
       {
         "cat": "Security",
         "text": "Online foundation: protocol/authority core, item provenance (v47), arena rank+pass, AI opponents, lockstep netcode"
+      },
+      {
+        "cat": "Website",
+        "text": "Hub navigation overhaul: behavior hubs, landing pages, smart reasons, recommendations"
       }
     ]
   },
