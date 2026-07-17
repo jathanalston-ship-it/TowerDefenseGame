@@ -114,6 +114,13 @@ cache). Entered once from the centerpiece, then rode **NextUp only** — home ne
 | End state | Zero chain rows, zero breathing doors |
 | Fresh account | No chain block, no chain pulses anywhere (silence held) |
 
+### Pass-3 results (the PORTRAIT ride, 390×844)
+
+Same seed through the phone shell: only the Rewards tab breathed; its index rows carried
+the live chain lines + pulse; the ride (index row → claims → NextUp hops) cleared
+Season → Vault → Quests → Season(cross-fed) in **7 claims / 11 taps**, converged, and no
+tab breathed afterward. The NextUp exit again handed to the upgrade loop.
+
 ### The reveal gate (pass-2 fix)
 
 A source can ripen before its wing unlocks (the Hive ripens before the Harvest screen
