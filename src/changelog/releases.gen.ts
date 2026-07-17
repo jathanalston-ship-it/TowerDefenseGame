@@ -1216,6 +1216,14 @@ export const RELEASES: Release[] = [
       {
         "cat": "Framework",
         "text": "Post-rebase repairs: auction migration renumbered to 0007, graphs regenerated"
+      },
+      {
+        "cat": "Website",
+        "text": "Chronicle: Auction House batch patch notes + news page (post-merge regen)"
+      },
+      {
+        "cat": "Gameplay",
+        "text": "Hive Production ceremony overhaul: a haul, never a log"
       }
     ]
   },

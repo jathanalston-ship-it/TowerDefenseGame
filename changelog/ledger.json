@@ -1,6 +1,6 @@
 {
-  "lastSha": "9ae130efca93ad585eec7cdbd98a310961527169",
-  "commitsSinceDraft": 6,
+  "lastSha": "94b7967f1d039f7c93ad14ab057a1d2498e5d9d6",
+  "commitsSinceDraft": 9,
   "content": {
     "tower": [
       "needle",
@@ -2717,6 +2717,14 @@
         {
           "cat": "Framework",
           "text": "Post-rebase repairs: auction migration renumbered to 0007, graphs regenerated"
+        },
+        {
+          "cat": "Website",
+          "text": "Chronicle: Auction House batch patch notes + news page (post-merge regen)"
+        },
+        {
+          "cat": "Gameplay",
+          "text": "Hive Production ceremony overhaul: a haul, never a log"
         }
       ]
     }
@@ -4815,6 +4823,30 @@
       "date": "2026-07-17",
       "cat": "Framework",
       "text": "Post-rebase repairs: auction migration renumbered to 0007, graphs regenerated",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "da313e077b7ca0e9cc18eac0c8075e056026088a",
+      "date": "2026-07-17",
+      "cat": "Website",
+      "text": "Chronicle: Auction House batch patch notes + news page (post-merge regen)",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "5e0bed01b6b2183e2e4af9a2b35aa9ab07239c86",
+      "date": "2026-07-17",
+      "cat": "Framework",
+      "text": "Validation record: full-tree PASS after the auction/arena merge",
+      "internal": true,
+      "needsReview": true
+    },
+    {
+      "sha": "94b7967f1d039f7c93ad14ab057a1d2498e5d9d6",
+      "date": "2026-07-17",
+      "cat": "Gameplay",
+      "text": "Hive Production ceremony overhaul: a haul, never a log",
       "internal": false,
       "needsReview": false
     }

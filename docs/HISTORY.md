@@ -284,3 +284,6 @@
 - `382f7b5` **[UI]** Auction House client: trade-hub screen, custody store, crash-safe wallet
 - ⚑ `780bfa6` **[Framework]** Auction House docs + graphs: AUCTION-HOUSE.md, GAME-STATE summary, DIL edges, deploy notes _(internal)_
 - `9ae130e` **[Framework]** Post-rebase repairs: auction migration renumbered to 0007, graphs regenerated
+- `da313e0` **[Website]** Chronicle: Auction House batch patch notes + news page (post-merge regen)
+- ⚑ `5e0bed0` **[Framework]** Validation record: full-tree PASS after the auction/arena merge _(internal)_
+- `94b7967` **[Gameplay]** Hive Production ceremony overhaul: a haul, never a log
