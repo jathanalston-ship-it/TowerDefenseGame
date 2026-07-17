@@ -18,6 +18,7 @@ import { notifications } from '../state/notifications';
 import '../state/notificationSources'; // registers the default menu badges (side-effect import)
 import { telemetry } from '../net/telemetry';
 import { loopFlow } from '../state/loopFlow';
+import { chainNavs } from '../state/readyChain';
 import { CommandCenter } from './CommandCenter';
 import { InfiniteScreen } from './InfiniteScreen';
 import { BossRushScreen } from './BossRushScreen';
@@ -241,6 +242,9 @@ export function Hub({
   // Derived rail state — recomputed only when the save snapshot (or an ack) changes, not on
   // every shell render; navProgress walks every tower/hero/upgrade/card.
   const badges = useMemo(() => notifications.badges(save), [save, ackTick]);
+  // Ready Chain pulse source (docs/HUB-FLOW.md §surfaces) — LIVE claim/open stops,
+  // independent of the seen-watermarks: readiness breathes, novelty badges.
+  const chainSet = useMemo(() => chainNavs(save), [save]);
   // Smart-notification REASONS (docs/NOTIFICATIONS.md §reasons) — the WHY behind every badge,
   // rendered as nav tooltips, landing "needs attention" rows, and index-row sublines.
   const reasons = useMemo(() => notifications.reasons(save), [save, ackTick]);
@@ -411,12 +415,13 @@ export function Hub({
             // The hub door: its badge aggregates the members, its tooltip lists the member
             // REASONS, and clicking it opens the landing page (the only door to the screens).
             const active = landing === group.id || (landing === null && items.some((it) => it.key === nav));
+            const ready = items.some((it) => !teaserOf.has(it.key) && chainSet.has(it.key));
             return (
               <button
                 type="button"
                 key={group.id}
                 data-hub={group.id}
-                className={`hub-door${active ? ' on' : ''}`}
+                className={`hub-door${active ? ' on' : ''}${ready ? ' is-ready' : ''}`}
                 style={{ ['--nav-accent' as string]: group.accent } as CSSProperties}
                 onClick={() => goLanding(group.id)}
                 onPointerEnter={() => audio.cue('hover')}
@@ -537,6 +542,7 @@ export function Hub({
           active={activeTab}
           badges={badges}
           teaserKeys={new Set(teaserOf.keys())}
+          readyKeys={chainSet}
           onTab={tapTab}
         />
       )}

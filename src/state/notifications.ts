@@ -90,6 +90,22 @@ export const notifications = {
     return out;
   },
 
+  /** LIVE actionable state per channel — NO watermark (docs/HUB-FLOW.md §model). The
+   *  sources' count() is the live truth; this lane answers "what is ready RIGHT NOW",
+   *  independent of what the player has already looked at — a visited-but-unclaimed
+   *  reward must never go dark. Unseen-ness (attention) stays badges()/reasons(). */
+  live(save: SaveData): Record<string, { count: number; lines: string[] }> {
+    const out: Record<string, { count: number; lines: string[] }> = {};
+    for (const s of sources) {
+      const count = Math.max(0, s.count(save));
+      if (count <= 0) continue;
+      const e = (out[s.channel] ??= { count: 0, lines: [] });
+      e.count += count;
+      e.lines.push(s.reason ? s.reason(save, count) : `${count} ready`);
+    }
+    return out;
+  },
+
   /** Mark every source on a channel as seen at its current count — the badge clears now. */
   markSeen(channel: string, save: SaveData): void {
     const next = { ...seenStore.get() };

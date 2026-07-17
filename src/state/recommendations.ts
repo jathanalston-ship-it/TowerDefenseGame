@@ -33,8 +33,10 @@ export interface Recommendation {
 /** How each notification CHANNEL classifies as an action. Score encodes the reward-loop
  *  order (PLAY → CLAIM → OPEN → SPEND → UPGRADE): claiming earned rewards always outranks
  *  spending, which outranks browsing news. A channel not listed here still surfaces (as
- *  'browse', modest score) — new systems are recommended without touching this file. */
-const CHANNEL_CLASS: Partial<Record<string, { kind: RecKind; score: number; why: string }>> = {
+ *  'browse', modest score) — new systems are recommended without touching this file.
+ *  Exported as the shared action vocabulary: the Ready Chain (state/readyChain.ts) reads
+ *  the claim/open classes off this same table, so the two layers can never disagree. */
+export const CHANNEL_CLASS: Partial<Record<string, { kind: RecKind; score: number; why: string }>> = {
   quests: { kind: 'claim', score: 90, why: 'Earned rewards are waiting on the Quest Board' },
   season: { kind: 'claim', score: 88, why: 'Season Pass levels are earned but unclaimed' },
   expeditions: { kind: 'claim', score: 86, why: 'Returned teams hold their spoils until you debrief' },

@@ -1111,7 +1111,7 @@ graph TD
 
 *Generic menu badges (registered count(save) sources per nav channel) + the global claim popup every hub claim receipts through.*
 
-- **Files:** `src/state/notifications.ts` · `src/state/notificationSources.ts` · `src/state/rewardToast.ts` · `src/state/recommendations.ts` · `src/state/hiveIntel.ts` · `src/ui/components/RewardToaster.tsx` · `src/ui/HubLanding.tsx`
+- **Files:** `src/state/notifications.ts` · `src/state/notificationSources.ts` · `src/state/rewardToast.ts` · `src/state/recommendations.ts` · `src/state/readyChain.ts` · `src/state/hiveIntel.ts` · `src/ui/components/RewardToaster.tsx` · `src/ui/HubLanding.tsx`
 - **Depends on:** `meta-store`
 - **Consumers — what breaks if you change this:** `hub-shell`
 - **Power Score:** — (intentionally none)

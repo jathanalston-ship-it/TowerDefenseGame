@@ -38,6 +38,8 @@ import { InfestationBoard } from './components/InfestationBoard';
 import { GrowthPanel } from './components/GrowthPanel';
 import { armyView, buildHomeView, homeRegistry } from './homeModel';
 import { recommendationsFor } from '../state/recommendations';
+import { readyChain } from '../state/readyChain';
+import { featureView } from '../state/unlocks';
 import { loopFlow } from '../state/loopFlow';
 import { RecommendStrip } from './HubLanding';
 import { t } from '../i18n';
@@ -159,14 +161,34 @@ function CCWidget({ id, render, ctx }: { id: string; render: (c: WidgetCtx) => R
 const WIDGETS: Record<string, (ctx: WidgetCtx) => ReactNode> = {
   'vitals': Vitals,
   'world-status': (c) => <WorldStatus ws={c.view.world} />,
-  // Recommended-now (docs/NOTIFICATIONS.md §recommendations): the global top-3 next actions,
-  // reasons included — the home board's answer to "what's actually waiting on me?".
-  'recommend': (c) => (
+  // The READY CHAIN centerpiece (docs/HUB-FLOW.md §surfaces) leads: every live claim/open
+  // stop, watermark-independent — the board's answer to "what did I forget I earned?".
+  // The rotated Recommended-Now strip follows for spends/unlocks/play. A quiet account
+  // renders no chain block at all (silence is meaningful).
+  'recommend': (c) => {
+    const chain = readyChain(c.save);
+    return (
     <section className="cc-recommend" aria-label={t('hub.landing.recommended')}>
+      {chain.length > 0 && (
+        <>
+          <span className="cc-panel-h cc-chain-h">◈ READY CHAIN — {chain.length} STOP{chain.length === 1 ? '' : 'S'}</span>
+          <div className="cc-chain" role="list">
+            {chain.slice(0, 4).map((n) => (
+              <button key={n.nav} type="button" role="listitem" className="cc-chain-row" data-reckind={n.kind} onClick={() => c.go(n.nav)}>
+                <span className="cc-chain-name">{featureView(c.save, n.nav).def.name}</span>
+                <span className="cc-chain-l">{n.label}</span>
+                <span className="cc-chain-go" aria-hidden>→</span>
+              </button>
+            ))}
+            {chain.length > 4 && <span className="cc-chain-more">+{chain.length - 4} more on the chain</span>}
+          </div>
+        </>
+      )}
       <span className="cc-panel-h">✦ {t('hub.landing.recommended').toUpperCase()}</span>
       <RecommendStrip recs={recommendationsFor(c.save, { limit: 3, rotateFrom: loopFlow.last() })} go={(k) => c.go(k)} />
     </section>
-  ),
+    );
+  },
   // (UX consolidation, docs/MISSION-CONTROL.md: the old next-goal banner is ABSORBED into
   // Mission Control's objective ledger — one main-zone panel answers "what should I do".)
   'bio-cache': () => <BioCacheCard />,

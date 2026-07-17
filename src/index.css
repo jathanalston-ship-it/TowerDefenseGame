@@ -5960,7 +5960,46 @@ kbd {
 .hubl-fresh-chip:hover { border-color: var(--viral); }
 .hubl-nextup { display: flex; flex-direction: column; gap: 6px; margin-top: 10px; }
 .hubl-nextup-h { font-size: 10px; font-weight: 800; letter-spacing: 0.2em; text-transform: uppercase; color: var(--muted); }
+.hubl-nextup.is-chain .hubl-nextup-h { color: var(--gold); }
 .cc-recommend { display: flex; flex-direction: column; gap: 7px; }
+/* ── Ready Chain (docs/HUB-FLOW.md §surfaces) — the live harvest queue. Readiness
+   BREATHES (slow glow, no layout shift); the unseen badge stays the novelty channel. ── */
+.cc-chain-h { color: var(--gold); }
+.cc-chain { display: flex; flex-direction: column; gap: 5px; }
+.cc-chain-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 10px;
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--gold);
+  border-radius: var(--r-sm);
+  background: rgba(255, 255, 255, 0.03);
+  cursor: pointer;
+  text-align: left;
+  transition: background var(--dur-2) var(--ease-out), transform var(--dur-2) var(--ease-out);
+}
+.cc-chain-row:hover { background: rgba(255, 255, 255, 0.07); transform: translateX(2px); }
+.cc-chain-name { font-size: 12px; font-weight: 800; white-space: nowrap; }
+.cc-chain-l { flex: 1; font-size: 12px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cc-chain-go { color: var(--gold); }
+.cc-chain-more { font-size: 11px; color: var(--dim); padding-left: 2px; }
+.hub-door.is-ready .hub-door-g { animation: ready-breathe 2.8s ease-in-out infinite; }
+.hubl-card.is-ready { border-color: color-mix(in srgb, var(--gold) 45%, var(--line)); animation: ready-card 2.8s ease-in-out infinite; }
+@keyframes ready-breathe {
+  0%, 100% { filter: drop-shadow(0 0 0 transparent); }
+  50% { filter: drop-shadow(0 0 7px var(--gold)); }
+}
+@keyframes ready-card {
+  0%, 100% { box-shadow: 0 0 0 transparent; }
+  50% { box-shadow: 0 0 12px -6px var(--gold); }
+}
+.mtab.is-ready .mtab-glyph { animation: ready-breathe 2.8s ease-in-out infinite; }
+.mnav-row.is-ready { border-left: 3px solid var(--gold); }
+@media (prefers-reduced-motion: reduce) {
+  .hub-door.is-ready .hub-door-g, .hubl-card.is-ready, .mtab.is-ready .mtab-glyph { animation: none; }
+  .hub-door.is-ready .hub-door-g, .mtab.is-ready .mtab-glyph { filter: drop-shadow(0 0 5px var(--gold)); }
+}
 .mnav-blurb.is-why { color: var(--gold); font-weight: 600; }
 @media (max-width: 480px) {
   .hubl-head { padding: 11px 12px; gap: 10px; }

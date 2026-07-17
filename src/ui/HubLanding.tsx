@@ -11,6 +11,7 @@ import type { SaveData } from '../save/saveStore';
 import { t } from '../i18n';
 import { featureRevealed, featureView, type FeatureView } from '../state/unlocks';
 import { recommendationsFor, type Recommendation } from '../state/recommendations';
+import { readyChain } from '../state/readyChain';
 import { loopOfNav } from '../core/rewardLoops';
 import type { NavGroup, NavKey } from './navModel';
 
@@ -35,9 +36,31 @@ export function RecommendStrip({ recs, go, compact }: { recs: Recommendation[]; 
 }
 
 /** NO DEAD ENDS (docs/NOTIFICATIONS.md §recommendations): claim-surface empty states mount
- *  this strip so "nothing left here" always answers "…so do THIS next". Excludes the screen
- *  it sits on; the engine's play backstop guarantees at least one row. */
+ *  this strip so "nothing left here" always answers "…so do THIS next". CHAIN-AWARE
+ *  (docs/HUB-FLOW.md §surfaces): while the Ready Chain has stops elsewhere, the handoff is
+ *  the next stop with the remaining count — claims ride node → node instead of re-deriving
+ *  the loop after every screen. An empty chain falls back to the rotated recommendations
+ *  (whose play backstop guarantees the final handoff is a deploy). */
 export function NextUp({ save, exclude, go }: { save: SaveData; exclude: NavKey; go: (k: NavKey) => void }): JSX.Element | null {
+  const chain = readyChain(save).filter((n) => n.nav !== exclude);
+  if (chain.length > 0) {
+    const next = chain[0];
+    const rec: Recommendation = {
+      id: `chain:${next.nav}`,
+      nav: next.nav,
+      kind: next.kind,
+      label: `Next stop: ${featureView(save, next.nav).def.name} — ${next.label}`,
+      why: chain.length > 1 ? `${chain.length - 1} more on the chain after this` : 'Last stop — then back to the field',
+      score: next.score,
+      loop: next.loop,
+    };
+    return (
+      <div className="hubl-nextup is-chain">
+        <span className="hubl-nextup-h">◈ Ready chain — {chain.length} stop{chain.length === 1 ? '' : 's'} left</span>
+        <RecommendStrip recs={[rec]} go={go} compact />
+      </div>
+    );
+  }
   // Loop rotation (docs/REWARD-ARCHITECTURE.md §chaining): hand the session to a DIFFERENT
   // loop than the surface it's standing on — claim → open → upgrade → play, never a circle.
   const recs = recommendationsFor(save, { limit: 3, rotateFrom: loopOfNav(exclude) }).filter((r) => r.nav !== exclude).slice(0, 2);
@@ -87,6 +110,10 @@ export function HubLanding({
   const attention = keys.flatMap((k) => (reasons[k] ?? []).map((line) => ({ k, line })));
   const recs = recommendationsFor(save, { navs: keys, limit: 3 });
   const fresh = recentlyUnlocked(save, keys);
+  // LIVE readiness per member screen (docs/HUB-FLOW.md §surfaces): a seen-but-unclaimed
+  // stop keeps pulsing here and keeps its live line on the card, even after its unseen
+  // badge/reason cleared — the landing never hides earned value.
+  const chainOf = new Map(readyChain(save).map((n) => [n.nav as string, n.label] as const));
 
   return (
     <div className="hubl" style={{ ['--hub-accent' as string]: group.accent } as CSSProperties}>
@@ -131,14 +158,15 @@ export function HubLanding({
             const view = featureView(save, k);
             const teaser = teaserOf.get(k);
             const badge = teaser ? 0 : badges[k] ?? 0;
-            const why = (reasons[k] ?? []).join(' · ');
+            const ready = teaser ? undefined : chainOf.get(k);
+            const why = (reasons[k] ?? []).join(' · ') || ready || '';
             const ring = teaser ? teaser.progress : progress[k];
             return (
               <button
                 key={k}
                 type="button"
                 data-nav={k}
-                className={`hubl-card${teaser ? ' is-locked' : ''}${badge > 0 ? ' has-news' : ''}`}
+                className={`hubl-card${teaser ? ' is-locked' : ''}${badge > 0 ? ' has-news' : ''}${ready ? ' is-ready' : ''}`}
                 onClick={() => go(k)}
                 aria-label={teaser ? `${view.def.name} — locked. ${teaser.label}` : why ? `${view.def.name} — ${why}` : view.def.name}
               >
@@ -149,7 +177,7 @@ export function HubLanding({
                   {teaser && <span className="hubl-card-lock" aria-hidden>🔒</span>}
                 </span>
                 {/* The card's second line is the smart notification when there IS one — the
-                    WHY beats the blurb whenever something actually waits inside. */}
+                    WHY (or the LIVE chain line) beats the blurb whenever something waits inside. */}
                 <span className={`hubl-card-sub${why ? ' is-why' : ''}`}>
                   {teaser ? `Sealed — ${teaser.label}` : why || view.def.blurb}
                 </span>

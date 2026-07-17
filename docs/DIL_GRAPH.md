@@ -1,6 +1,6 @@
 # DIL_GRAPH.md — the Design Intelligence Layer (GENERATED — `npm run dil -- regen`)
 
-> **The project's brain** (docs/DIL.md). 871 nodes · 1632 edges, built from the live
+> **The project's brain** (docs/DIL.md). 873 nodes · 1634 edges, built from the live
 > registries + curated knowledge (src/dev/dil/). **Query it instead of searching the repo:**
 > `npm run dil -- node <id>` · `affects <id>` · `requires <id>` · `missing <kind> <edge>` ·
 > `checklist tower <kind>` · `find <text>`. Edge kinds are bidirectional (19 kinds).
@@ -8,7 +8,7 @@
 ## Gap report (the graph's own radar)
 
 - **Systems with no test:** `system:infinite`, `system:field-research`, `system:shards-economy`, `system:i18n`, `system:expeditions`, `system:nemesis`, `system:run-ui`, `system:devtools`, `system:ui-kit`
-- **Docs referenced by no system (review for retirement):** `ADVANCED-SYSTEMS.md`, `ARCHITECTURE-AUDIT.md`, `AUCTION-HOUSE.md`, `BACKLOG.md`, `BALANCE_ARCHITECTURE.md`, `BRANCH-EVOLUTION.md`, `BUGFIX-LOG.md`, `CONTENT-ROADMAP.md`, `DEV-FRAMEWORKS.md`, `DIL_GRAPH.md`, `EA-DESIGN-AUDIT.md`, `ENEMIES.md`, `ENEMY-ROSTER.md`, `GAME-STATE.md`, `HISTORY.md`, `HIVE-PRODUCTION.md`, `HIVE-SIEGE.md`, `IDENTITY-AUDIT.md`, `LIVING-HIVE.md`, `PIL_REPORT.md` · …21 more
+- **Docs referenced by no system (review for retirement):** `ADVANCED-SYSTEMS.md`, `ARCHITECTURE-AUDIT.md`, `AUCTION-HOUSE.md`, `BACKLOG.md`, `BALANCE_ARCHITECTURE.md`, `BRANCH-EVOLUTION.md`, `BUGFIX-LOG.md`, `CONTENT-ROADMAP.md`, `DEV-FRAMEWORKS.md`, `DIL_GRAPH.md`, `EA-DESIGN-AUDIT.md`, `ENEMIES.md`, `ENEMY-ROSTER.md`, `GAME-STATE.md`, `HISTORY.md`, `HIVE-PRODUCTION.md`, `HIVE-SIEGE.md`, `HUB-FLOW.md`, `IDENTITY-AUDIT.md`, `LIVING-HIVE.md` · …22 more
 
 ## Indexes
 
@@ -123,6 +123,7 @@ graph LR
   system_heroes["Heroes"] -->|consumes| currency_hero_shards["Hero Shards"]
   system_shards_economy["Shards & Star Economy"] -->|consumes| currency_materials["Materials (mutagen/scrap/catalyst)"]
   system_gene_cards["Gene Cards (draft + permanent evolution)"] -->|consumes| currency_gene_essence["Gene Essence"]
+  system_notifications["Notifications"] -->|modifies| system_hub_shell["Hub Shell & Home"]
   system_gene_cards["Gene Cards (draft + permanent evolution)"] -->|modifies| system_hub_shell["Hub Shell & Home"]
   system_nucleus["Nucleus Mulligans"] -->|modifies| system_rendering["Rendering & VFX"]
   system_mulligans["Mulligan System"] -->|consumes| currency_gene_essence["Gene Essence"]
@@ -517,6 +518,7 @@ graph LR
 ```mermaid
 graph LR
   system_prestige["Prestige (Molt / Ascendant)"] -->|modifies| system_difficulty["Difficulty"]
+  system_notifications["Notifications"] -->|modifies| system_hub_shell["Hub Shell & Home"]
   system_gene_cards["Gene Cards (draft + permanent evolution)"] -->|modifies| system_hub_shell["Hub Shell & Home"]
   system_nucleus["Nucleus Mulligans"] -->|modifies| system_rendering["Rendering & VFX"]
   system_audio["Audio"] -->|visualizes| system_assimilation["Assimilation Index"]
@@ -1981,7 +1983,7 @@ _at: src/ui/Hub.tsx, src/ui/navModel.ts, src/ui/MobileShell.tsx, src/ui/CommandC
   - documentedBy ← `doc:ONE-MORE-RUN.md`
   - documentedBy ← `doc:HUD.md`
   - documentedBy ← `doc:PROGRESSION-LOOP.md`
-  - _…18 more (query: `npm run dil -- node system:hub-shell`)_
+  - _…19 more (query: `npm run dil -- node system:hub-shell`)_
 
 ### `system:run-ui` — In-Run HUD & Results
 
@@ -2005,9 +2007,10 @@ _at: src/ui/GameView.tsx, src/ui/Hud.tsx, src/ui/Toolbar.tsx, src/ui/BuildContro
 
 Generic menu badges (registered count(save) sources per nav channel) + the global claim popup every hub claim receipts through.
 
-_at: src/state/notifications.ts, src/state/notificationSources.ts, src/state/rewardToast.ts, src/state/recommendations.ts, src/state/hiveIntel.ts, src/ui/components/RewardToaster.tsx, src/ui/HubLanding.tsx_
+_at: src/state/notifications.ts, src/state/notificationSources.ts, src/state/rewardToast.ts, src/state/recommendations.ts, src/state/readyChain.ts, src/state/hiveIntel.ts, src/ui/components/RewardToaster.tsx, src/ui/HubLanding.tsx_
 
   - dependsOn → `system:meta-store`
+  - modifies → `system:hub-shell` — READY CHAIN (state/readyChain.ts — docs/HUB-FLOW.md): the hub's live harvest queue derives from notifications.live() (NO seen-watermark — badges/reasons stay the attention lane, the chain is the truth lane; a visited-but-unclaimed reward must never go dark) classified by the SAME exported CHANNEL_CLASS claim/open vocabulary as recommendations. Surfaces: Command Center centerpiece leads the recommend widget, hub doors + landing cards + portrait tabs/rows pulse via chainNavs() (readiness BREATHES via .is-ready, novelty stays the numeric badge), NextUp hands node→node with the remaining count before falling back to rotated recommendations. A future claim surface joins by registering a notification source — no chain wiring.
   - provides → `system:hub-shell` — THE CLAIM POPUP (2026-07, NOTIFICATIONS.md §claim-popups): every hub claim — quest missions/finales, pass levels/claim-all/premium unlock, weekly directives, wardrobe milestones — pushes its PremiumReceiptLine[] to state/rewardToast; ONE RewardToaster (App, menu only) presents it bold + itemized. The "view it" jump derives from receipt ICONS (single-sourced in meta.applyRewardList/rewardLabel — change an icon there and update rewardToast DESTINATIONS) and routes via navBus. Ceremonial reveals (BioCache, VaultReveal, WardrobeReveal, PremiumStore, SpoilsCard, GenomePromotion) deliberately stay bespoke — the popup is the RECEIPT layer, not the ceremony layer
   - requiredBy ← `system:hub-shell`
   - taughtBy ← `help:hive-intel`
@@ -2015,6 +2018,7 @@ _at: src/state/notifications.ts, src/state/notificationSources.ts, src/state/rew
   - documentedBy ← `doc:HIVE-INTEL.md`
   - testedBy ← `test:src/state/hiveIntel.test.ts`
   - testedBy ← `test:src/state/notifications.test.ts`
+  - testedBy ← `test:src/state/readyChain.test.ts`
   - testedBy ← `test:src/state/recommendations.test.ts`
   - testedBy ← `test:src/state/rewardToast.test.ts`
 
@@ -3482,7 +3486,7 @@ _at: site/guides.ts → /guides/prestige/_
 - `achievement:arena_crown` — Claim Arena Pass level 100 — a permanently arena-exclusive strain is yours forever. _(partOf `system:achievements`, rewards `currency:genome-cores`, references `system:arena`)_
 - `achievement:arena_perennial` — Close three Arena seasons with a record on the books. _(partOf `system:achievements`, rewards `currency:genome-cores`, references `system:arena`)_
 
-## Documentation (178)
+## Documentation (179)
 
 - `doc:ACCOUNT-LEVEL.md` — project documentation _(documents `system:account-level`)_
 - `doc:ACCOUNTS.md` — project documentation _(documents `system:accounts`)_
@@ -3567,6 +3571,7 @@ _at: site/guides.ts → /guides/prestige/_
 - `doc:HIVE-PRODUCTION.md` — project documentation
 - `doc:HIVE-SIEGE.md` — project documentation
 - `doc:HOME-BASE.md` — project documentation _(documents `system:hive-construction`, documents `system:hub-shell`)_
+- `doc:HUB-FLOW.md` — project documentation
 - `doc:HUD.md` — project documentation _(documents `system:hub-shell`, documents `system:run-ui`)_
 - `doc:I18N.md` — project documentation _(documents `system:i18n`)_
 - `doc:IDENTITY-AUDIT.md` — project documentation
@@ -3663,7 +3668,7 @@ _at: site/guides.ts → /guides/prestige/_
 - `doc:VOWS.md` — project documentation _(documents `system:prestige`)_
 - `doc:WEBSITE.md` — project documentation _(documents `system:field-research`, documents `system:website`)_
 
-## Tests (284)
+## Tests (285)
 
 - `test:src/audio/music.test.ts` — automated validation _(tests `system:audio`)_
 - `test:src/changelog/classify.test.ts` — automated validation _(tests `system:chronicle`)_
@@ -3930,6 +3935,7 @@ _at: site/guides.ts → /guides/prestige/_
 - `test:src/state/progressionDirector.test.ts` — automated validation _(tests `system:progression-gating`)_
 - `test:src/state/progressionLoop.test.ts` — automated validation _(tests `system:hub-shell`)_
 - `test:src/state/questsMeta.test.ts` — automated validation _(tests `system:engine`)_
+- `test:src/state/readyChain.test.ts` — automated validation _(tests `system:notifications`)_
 - `test:src/state/recommendations.test.ts` — automated validation _(tests `system:notifications`)_
 - `test:src/state/research.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/state/rewardEligibility.test.ts` — automated validation _(tests `system:engine`)_

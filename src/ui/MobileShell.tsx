@@ -11,6 +11,7 @@ import type { CSSProperties } from 'react';
 import type { SaveData } from '../save/saveStore';
 import { featureRevealed, featureView, type FeatureView } from '../state/unlocks';
 import { recommendationsFor } from '../state/recommendations';
+import { readyChain } from '../state/readyChain';
 import { audio } from '../audio/sound';
 import { mobileTabs, type MobileTab, type MobileTabKey, type NavKey } from './navModel';
 import { RecommendStrip } from './HubLanding';
@@ -28,11 +29,14 @@ export function MobileTabBar({
   active,
   badges,
   teaserKeys,
+  readyKeys,
   onTab,
 }: {
   active: MobileTabKey;
   badges: Partial<Record<string, number>>;
   teaserKeys: ReadonlySet<string>;
+  /** Screens hosting a LIVE Ready-Chain stop (docs/HUB-FLOW.md §surfaces) — the tab breathes. */
+  readyKeys?: ReadonlySet<string>;
   onTab: (k: MobileTabKey) => void;
 }): JSX.Element {
   return (
@@ -40,11 +44,12 @@ export function MobileTabBar({
       {mobileTabs().map((tab) => {
         // A tab's badge = the sum of its screens' unseen counts (teasers never count).
         const n = tab.navs.reduce((s, k) => s + (teaserKeys.has(k) ? 0 : badges[k] ?? 0), 0);
+        const ready = tab.navs.some((k) => !teaserKeys.has(k) && (readyKeys?.has(k) ?? false));
         return (
           <button
             key={tab.key}
             data-mtab={tab.key}
-            className={`mtab${active === tab.key ? ' on' : ''}`}
+            className={`mtab${active === tab.key ? ' on' : ''}${ready ? ' is-ready' : ''}`}
             style={{ ['--nav-accent' as string]: TAB_ACCENT[tab.key] } as CSSProperties}
             onClick={() => onTab(tab.key)}
             aria-current={active === tab.key ? 'page' : undefined}
@@ -81,6 +86,9 @@ export function MobileTabIndex({
 }): JSX.Element {
   // Same gating as the desktop rail: revealed screens + the next-reveal teasers, nothing deeper.
   const rows = tab.navs.filter((k) => featureRevealed(save, k) || teaserOf.has(k));
+  // LIVE readiness (docs/HUB-FLOW.md §surfaces): a seen-but-unclaimed stop keeps its line
+  // and pulse here, exactly like the desktop landing — earned value never goes dark.
+  const chainOf = new Map(readyChain(save).map((node) => [node.nav as string, node.label] as const));
   // The tab index doubles as the hub's landing on phones: recommendations scoped to this
   // tab's screens lead (compact rows — the WHY rides the screen rows themselves below).
   const recs = recommendationsFor(save, { navs: tab.navs, limit: 2 })
@@ -96,13 +104,14 @@ export function MobileTabIndex({
         const view = featureView(save, k);
         const teaser = teaserOf.get(k);
         const badge = teaser ? 0 : badges[k] ?? 0;
-        const why = (reasons[k] ?? []).join(' · ');
+        const ready = teaser ? undefined : chainOf.get(k);
+        const why = (reasons[k] ?? []).join(' · ') || ready || '';
         const ring = teaser ? teaser.progress : progress[k];
         return (
           <button
             key={k}
             data-nav={k}
-            className={`mnav-row${teaser ? ' is-locked' : ''}`}
+            className={`mnav-row${teaser ? ' is-locked' : ''}${ready ? ' is-ready' : ''}`}
             onClick={() => go(k)}
             aria-label={teaser ? `${view.def.name} — locked. ${teaser.label}` : why ? `${view.def.name} — ${why}` : view.def.name}
           >
