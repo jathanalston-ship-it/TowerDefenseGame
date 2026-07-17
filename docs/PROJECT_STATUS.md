@@ -3,7 +3,25 @@
 > Maintained at the END of every session (paired with `docs/AI_HANDOFF.md` — the constitution's
 > workflow step 4). This is the "where are we?" answer; `docs/GAME-STATE.md` remains the deeper
 > per-system built-vs-planned index, `docs/PROJECT_MANIFEST.md` the system map.
-> **Last updated:** 2026-07-17d (**TWO USER-REPORTED FIXES.** (1) **THE PARASITE-NEST FLOOD,
+> **Last updated:** 2026-07-17e (**THE MARKET LIQUIDITY ENGINE** — the Market Authority's
+> BUY side (AUCTION-HOUSE.md §5b, user brief executed): the authority may quietly purchase a
+> stale, fairly-priced FOUNDATIONAL listing (commons/uncommons + entry-band cosmetics;
+> catalog exclusives/neverTrade an absolute veto; `AUTHORITY_ELIGIBLE_OVERRIDES` the
+> hand-curated widening hook). Structurally unfarmable: sink-funded budget
+> `min(2000, max(40, prevBurns × 0.5))` (injections ≪ burns in every scenario), crypto-rng
+> shuffle + 0.55 accept roll (never guaranteed), caps 3/window · 1/family/window ·
+> 1/seller/UTC-day + 6h cooldown, valuation corridor ×0.2–×1.05 of the player-only family
+> estimate, dupe walls + transfer caps, unreviewed-flag sellers invisible, bid-carrying
+> listings untouchable (the sold-gate itself requires `bid IS NULL`). Purchases settle with
+> the normal sale discipline (seller paid at live tax; item ABSORBED, never resold; trade
+> `authority = 2`), are EXCLUDED from price history + demand metrics (no self-referential
+> price support), and fade out on BOTH population and sales velocity (players ARE the
+> liquidity). Conservation identity extended with the explicit injection term. Coverage:
+> 8 planner units + 4 FakeD1 e2e + sim-market all 10 scenarios green with new gates
+> (buybacks ≤ 25% of trade, never flagged personas, never exclusive). Suite 2372 green,
+> validate PASS. Previous below.)
+>
+> **2026-07-17d** (**TWO USER-REPORTED FIXES.** (1) **THE PARASITE-NEST FLOOD,
 > ROOT-CAUSED** (BUGFIX-LOG #16 — closes #15's "under watch"): the projectile fire path ticks
 > `cooldown -= dt` every tick and resets only `if (acted)`, so a tower that CANNOT act (raid
 > lull / STUNNED boss / empty lane) drifts its cooldown to -∞; the renderer's attack-

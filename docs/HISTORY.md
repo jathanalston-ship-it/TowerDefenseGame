@@ -287,3 +287,9 @@
 - `da313e0` **[Website]** Chronicle: Auction House batch patch notes + news page (post-merge regen)
 - ⚑ `5e0bed0` **[Framework]** Validation record: full-tree PASS after the auction/arena merge _(internal)_
 - `94b7967` **[Gameplay]** Hive Production ceremony overhaul: a haul, never a log
+- ⚑ `20a10b2` **[Framework]** Chronicle: Hive ceremony overhaul patch notes _(internal)_
+- ⚑ `dbb5486` **[Framework]** Handoff: Auction House shipped end-to-end + Hive ceremony overhaul _(internal)_
+- `ed86bc7` **[UI]** Hub: one standard content width for every screen (--screen-max)
+- `9a186ed` **[UI]** Fix the Parasite Nest screen flood: clamp attack anticipation at the source
+- ⚑ `50c2e8b` **[Framework]** Regen DIL graph + validation report after rebase over the auction batch _(internal)_
+- `b78bb01` **[Security]** Market Liquidity Engine: the authority's buy side — stale fair listings, never farmable

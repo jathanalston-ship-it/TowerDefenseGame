@@ -1224,6 +1224,18 @@ export const RELEASES: Release[] = [
       {
         "cat": "Gameplay",
         "text": "Hive Production ceremony overhaul: a haul, never a log"
+      },
+      {
+        "cat": "UI",
+        "text": "Hub: one standard content width for every screen (--screen-max)"
+      },
+      {
+        "cat": "UI",
+        "text": "Fix the Parasite Nest screen flood: clamp attack anticipation at the source"
+      },
+      {
+        "cat": "Security",
+        "text": "Market Liquidity Engine: the authority's buy side — stale fair listings, never farmable"
       }
     ]
   },

@@ -1,6 +1,6 @@
 {
-  "lastSha": "94b7967f1d039f7c93ad14ab057a1d2498e5d9d6",
-  "commitsSinceDraft": 9,
+  "lastSha": "b78bb01eac3c2f20cb4cc0ae6ffd4c0f176b003a",
+  "commitsSinceDraft": 0,
   "content": {
     "tower": [
       "needle",
@@ -2725,6 +2725,18 @@
         {
           "cat": "Gameplay",
           "text": "Hive Production ceremony overhaul: a haul, never a log"
+        },
+        {
+          "cat": "UI",
+          "text": "Hub: one standard content width for every screen (--screen-max)"
+        },
+        {
+          "cat": "UI",
+          "text": "Fix the Parasite Nest screen flood: clamp attack anticipation at the source"
+        },
+        {
+          "cat": "Security",
+          "text": "Market Liquidity Engine: the authority's buy side — stale fair listings, never farmable"
         }
       ]
     }
@@ -4847,6 +4859,54 @@
       "date": "2026-07-17",
       "cat": "Gameplay",
       "text": "Hive Production ceremony overhaul: a haul, never a log",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "20a10b2d9e108f75d85f94e8c99514d285a60229",
+      "date": "2026-07-17",
+      "cat": "Framework",
+      "text": "Chronicle: Hive ceremony overhaul patch notes",
+      "internal": true,
+      "needsReview": true
+    },
+    {
+      "sha": "dbb5486a46192f2f1243cd9edadc134decaec013",
+      "date": "2026-07-17",
+      "cat": "Framework",
+      "text": "Handoff: Auction House shipped end-to-end + Hive ceremony overhaul",
+      "internal": true,
+      "needsReview": true
+    },
+    {
+      "sha": "ed86bc78a9a5f6d61c9c0c17dcf994cee000458b",
+      "date": "2026-07-17",
+      "cat": "UI",
+      "text": "Hub: one standard content width for every screen (--screen-max)",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "9a186edb3557e3cadc1d366b7c9a29e3f525b0dd",
+      "date": "2026-07-17",
+      "cat": "UI",
+      "text": "Fix the Parasite Nest screen flood: clamp attack anticipation at the source",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "50c2e8b1681c0567ac81486a6a96aa85e0529784",
+      "date": "2026-07-17",
+      "cat": "Framework",
+      "text": "Regen DIL graph + validation report after rebase over the auction batch",
+      "internal": true,
+      "needsReview": true
+    },
+    {
+      "sha": "b78bb01eac3c2f20cb4cc0ae6ffd4c0f176b003a",
+      "date": "2026-07-17",
+      "cat": "Security",
+      "text": "Market Liquidity Engine: the authority's buy side — stale fair listings, never farmable",
       "internal": false,
       "needsReview": false
     }
