@@ -5,6 +5,7 @@
 import { describe, expect, it } from 'vitest';
 import { chainNavs, nextChainStop, readyChain } from './readyChain';
 import { notifications } from './notifications';
+import { featureRevealed } from './unlocks';
 import { defaultSave } from '../save/saveStore';
 import type { SaveData } from '../save/saveStore';
 
@@ -44,5 +45,14 @@ describe('readyChain — the live harvest queue', () => {
 
   it('chainNavs is the doors/landing pulse source', () => {
     expect(chainNavs(withContainer()).has('vault')).toBe(true);
+  });
+
+  it('waits for the reveal: a ripe source behind a SEALED wing is never a stop', () => {
+    const s = defaultSave();
+    s.idle.lastCollect = Date.now() - 3 * 3_600_000; // the Hive ripened…
+    expect(featureRevealed(s, 'harvest')).toBe(false); // …but a fresh account has no Harvest wing
+    expect(readyChain(s).some((n) => n.nav === 'harvest')).toBe(false); // riding it would dead-end
+    s.director.revealed.harvest = 1; // the progression director opens the wing
+    expect(readyChain(s).some((n) => n.nav === 'harvest')).toBe(true); // now it joins the chain
   });
 });

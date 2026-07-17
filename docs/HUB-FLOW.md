@@ -93,8 +93,32 @@ causes real back-and-forth.)
 ## §validation
 
 - Unit: chain derivation (live vs unseen — a seen-but-unclaimed quest STAYS in the chain),
-  ordering, loop tags, chain-aware NextUp fallbacks.
+  ordering, loop tags, the REVEAL GATE (below), chain-aware NextUp fallbacks.
 - Headless usability pass: developed profile with ≥3 ready surfaces → enter hub, assert
   the centerpiece lists them, ride the chain node→node via the UI only, assert each stop
   renders its claim surface and the ribbon count decrements, ending at the deploy CTA.
 - mobilecheck (all viewports) + uiStandards + reduced-motion audit on the new classes.
+
+### Pass-2 results (multi-stop ride, measured headlessly)
+
+Seeded stops: Season (14 unclaimed tiers) + Harvest (ripe) + Vault (3 containers + sealed
+cache). Entered once from the centerpiece, then rode **NextUp only** — home never revisited:
+
+| Metric | Result |
+|---|---|
+| Path | Season → Quests → Vault → Quests → Harvest → Quests → Season → *(empty)* |
+| Stops cleared / rewards | 7 surfaces · ~20 rewards (level-ups, cosmetics, achievements riding along) |
+| Total taps | **17** (10 were claim clicks; 1 tap per hop; 0 home returns) |
+| Cross-feeding | The chain GREW mid-ride (pass claims completed quest missions; quest claims earned pass XP) and **converged** — the loops' no-dead-end law, visible |
+| Exit | Chain empty ⇒ NextUp switched to rotated recommendations (UPGRADE: "6 tower Stars affordable") — the harvest hands to the upgrade loop, then play |
+| End state | Zero chain rows, zero breathing doors |
+| Fresh account | No chain block, no chain pulses anywhere (silence held) |
+
+### The reveal gate (pass-2 fix)
+
+A source can ripen before its wing unlocks (the Hive ripens before the Harvest screen
+reveals) — an ungated stop would ride into the sealed-feature briefing, a dead end.
+`readyChain` therefore filters stops by `featureRevealed(save, nav)`; progression gating
+owns the reveal, the chain waits (pinned in readyChain.test). Note: `.is-ready` is a
+game-wide CSS modifier other components already use (cache card, harvest collect…) — the
+chain's selectors stay compound-scoped (`.hub-door.is-ready` etc.), never bare.

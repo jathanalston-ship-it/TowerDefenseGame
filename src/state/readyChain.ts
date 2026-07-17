@@ -14,6 +14,7 @@
 import { notifications } from './notifications';
 import './notificationSources'; // the default sources are the chain's candidate pool
 import { CHANNEL_CLASS } from './recommendations';
+import { featureRevealed } from './unlocks';
 import { loopOfNav } from '../core/rewardLoops';
 import type { LoopId } from '../core/rewardLoops';
 import type { SaveData } from '../save/saveStore';
@@ -36,6 +37,10 @@ export function readyChain(save: SaveData): ChainNode[] {
   for (const [channel, e] of Object.entries(live)) {
     const cls = CHANNEL_CLASS[channel];
     if (!cls || (cls.kind !== 'claim' && cls.kind !== 'open')) continue;
+    // A stop must lead somewhere OPEN: a source can fire before its screen reveals (e.g.
+    // the Hive ripens before the Harvest wing unlocks) — riding there would dead-end on
+    // the sealed-feature briefing. Progression gating owns the reveal; the chain waits.
+    if (!featureRevealed(save, channel)) continue;
     out.push({
       nav: channel as NavKey,
       kind: cls.kind,

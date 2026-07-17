@@ -3,7 +3,20 @@
 > Maintained at the END of every session (paired with `docs/AI_HANDOFF.md` — the constitution's
 > workflow step 4). This is the "where are we?" answer; `docs/GAME-STATE.md` remains the deeper
 > per-system built-vs-planned index, `docs/PROJECT_MANIFEST.md` the system map.
-> **Last updated:** 2026-07-17g (**THE HUB READY CHAIN** — the hub-redesign brief's
+> **Last updated:** 2026-07-17h (**READY CHAIN — USABILITY PASS 2** (user-directed): the
+> multi-stop ride, measured. One REAL fix: chain stops now filter by `featureRevealed`
+> (a source can ripen before its wing unlocks — the Hive ripens pre-Harvest-reveal — and
+> an ungated stop dead-ended on the sealed-feature briefing; pinned in readyChain.test).
+> The measured ride (HUB-FLOW.md §validation pass-2): Season(14 tiers)+Harvest+Vault
+> seeded → entered once from the centerpiece, then NextUp-only — **7 surfaces, ~20
+> rewards, 17 taps, zero home returns**; the chain GREW mid-ride via cross-feeding (pass
+> claims completed quest missions, quest claims earned pass XP) and CONVERGED to empty,
+> whereupon NextUp handed to the UPGRADE loop ("6 tower Stars affordable") — the reward
+> architecture's full cycle, visible in the UI. Fresh-account silence held (no chain
+> block, no chain pulses; note: `.is-ready` is a game-wide modifier — chain selectors
+> stay compound-scoped). Suite 2434 green. Previous below.)
+>
+> **2026-07-17g** (**THE HUB READY CHAIN** — the hub-redesign brief's
 > momentum layer (docs/HUB-FLOW.md; builds ON the twin's Reward Loop Architecture, never
 > beside it). The structural audit finding: EVERY attention surface (badges/reasons/
 > recommendations) was seen-watermark-gated and Hub.go marks-seen per visit — a visited-
