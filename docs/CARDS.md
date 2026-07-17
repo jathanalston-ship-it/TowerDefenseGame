@@ -542,3 +542,57 @@ DRAFTED-based (engagement) — starters make any discovered-count gate trivially
 
 **Future cards need ONLY data**: a def (id/name/rarity/category/effects/unlock?) — discovery,
 gating, hints, weighting, ceremony and Archive presentation all derive from it.
+
+## §language (2026-07) — the universal effect-description system (as built)
+
+**Module:** `src/core/effectLanguage.ts` (pure data + functions; the type back-edges to
+cards.ts are type-only). **Consumed by:** `cardToOption` (cards.ts) → `CardOption.lines`
+/ `CardOption.effects` → DraftModal. **Tests:** `src/core/effectLanguage.test.ts`.
+
+### The contract
+Primary card text is **generated, digit-free, standardized** — never hand-written stat
+prose. `describeCard(def, effects)` folds the effects (`foldEffects`: same-field ×'s
+compound, +'s sum, flags dedupe — exactly `applyCard` semantics) and renders each as an
+`EffectLine { pre, keyword, post, cat, tier, good, exact }`. The UI bolds + colors the
+keyword by category; drawbacks (`good: false`, e.g. Glass Genome's enemy-HP rider) phrase
+as "But …" and sort last. The precise numbers live ONLY in `exact` (the detail expansion);
+`CardDef.description` stays the technical line shown there. `CardDef.simple` is the single
+hand-written override seam for cards whose essence can't be derived — nothing uses it yet.
+
+### The impact scale (IMPACT_SCALE — 8 bands over normalized magnitude)
+Very Slightly ≥0 · Slightly ≥0.08 · Moderately ≥0.15 · Significantly ≥0.25 · Greatly ≥0.4
+· Massively ≥0.6 · Extremely ≥1.0 · Overwhelmingly ≥1.75. A ×1.12 mult normalizes to
+0.12; a +8% fraction to 0.08; discrete effects (projectiles, mines, slots, instants)
+normalize via their vocab `unit`. Retuning a band edge re-words the whole game at once.
+
+### The category palette (EFFECT_CATEGORIES — 12, color + glyph + label)
+Damage (deep red ▲) · Attack Speed (orange ≫) · Critical (gold ✦) · Biomass Economy
+(green ⬢) · Genome Core Economy (teal ◈) · Gene Essence (purple ⟡) · Defense (blue ⬟) ·
+Healing (emerald ✚) · Debuffs (magenta ▼) · Crowd Control (cyan ◇) · Hero Effects
+(yellow ★) · Tower Effects (light blue ⌂). The glyph is the colorblind identity channel —
+color is never the only signal. genomeCore/essence serve meta reward surfaces.
+
+### Vocabulary totality (the future-proofing lock)
+`FIELD_VOCAB` is a **total `Record` over `keyof RunModifiers`** — adding a run-modifier
+field without authoring its vocab is a TYPE ERROR, so every future card auto-describes on
+the day its field lands. Tests additionally pin: no digits in any pool card's primary text
+at level 0 AND max level; identical generated text ⇒ identical effect shape; thresholds
+monotonic; every numeric field covered.
+
+### Draft surface (DraftModal)
+Hierarchy: name → procedural art + subject badge → effect lines (first = primary, larger)
+→ synergy tag → quiet rarity. Detail expansion (exact values + "YOUR GENE STACK"
+before→after rows vs the run's drafted effects + Gene-stack Power diff + technical line):
+hover-dwell 550ms or hold Shift on desktop, long-press 450ms on touch (the release click
+is suppressed; the next tap dismisses before a pick can fire). Synergy chip ("Pairs with
+your X build ×n") appears only when ≥2 drafted cards share the category. Keyword bloom is
+a one-shot glow, `prefers-reduced-motion`-gated; short viewports drop the art.
+The sim feeds the DTO **leveled** effects (`effectiveGeneEffects` at the player's
+permanent level) so the language and comparisons describe exactly what the pick applies.
+
+### Adoption path (remaining surfaces speak the old dialect)
+The Gene Archive, equipment cards, mulligan/organ/symbiote inspections and the in-run buff
+chips still render their own hand/technical text. They should migrate to
+`describeEffects`/`EFFECT_CATEGORIES` — each is a rendering swap, no data change. New
+systems MUST speak through this module from day one (DIL edge `system:gene-cards →
+system:hub-shell` records the rule).

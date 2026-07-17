@@ -866,7 +866,7 @@ export class Game {
         const effects = effectiveGeneEffects(card, this.geneLevels[card.id] ?? 0, 0, this.geneTranscends[card.id]);
         applyCard({ ...card, effects }, this.cardContext());
         for (const e of effects) if (e.op === 'grant' || e.op === 'hook') this.collectRunVerb(e);
-        this.chosenCards.push(cardToOption(card));
+        this.chosenCards.push(cardToOption(card, effects));
         this.chosenCardEffects.push(...effects);
       }
     }
@@ -2276,7 +2276,7 @@ export class Game {
       for (const e of effects) if (e.op === 'grant' || e.op === 'hook') this.collectRunVerb(e);
       const scored = effectsPower(effects) > 1; // instant-only cards are legitimately unscored
       const powerBefore = scored ? effectsPower(this.powerEffects()) : 0;
-      this.chosenCards.push(cardToOption(card));
+      this.chosenCards.push(cardToOption(card, effects));
       this.chosenCardEffects.push(...effects); // retain for the live run-Power (temporary bucket)
       if (scored) this.auditTempPower(powerBefore, `Gene Card ${card.name}`);
       this.pushSfx('draft');
@@ -7588,7 +7588,9 @@ export class Game {
       // Banner rides the danger-camera STATE (deliberate entry + min-hold + smooth exit,
       // docs/CAMERA.md) — the targeting override keeps its own instantaneous in-zone list.
       emergency: this.dangerCam.phase === 'danger',
-      draft: this.draft ? this.draft.map(cardToOption) : null,
+      // Draft DTOs describe the LEVELED effects — the exact effects a pick will apply
+      // (docs/CARDS.md §language) — so the generated text and comparison math never lie.
+      draft: this.draft ? this.draft.map((c) => cardToOption(c, effectiveGeneEffects(c, this.geneLevels[c.id] ?? 0, 0, this.geneTranscends[c.id]))) : null,
       // §reroll: the open draft's one paid re-deal — price, or -1 once used / in the tutorial.
       draftRerollCost: this.phase === 'draft' && this.draft !== null && !this.draftRerolled && !this.tutorialMode ? this.rerollCost() : -1,
       selectedTower: this.selectedTower,

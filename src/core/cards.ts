@@ -9,6 +9,7 @@ import { Registry } from './registry';
 import { DEEP_STRAIN_STAGE, SELL, TOWER_ORDER } from './config';
 import { GENE_UPGRADES } from './geneUpgrades';
 import { effectsPower } from './power'; // type-only back-edges elsewhere ⇒ no runtime cycle
+import { describeCard } from './effectLanguage'; // same pattern: its cards.ts imports are type-only
 
 /** The run "R bucket": multipliers/flags a run accumulates from drafted cards. */
 export interface RunModifiers {
@@ -284,6 +285,9 @@ export interface CardDef {
   rarity: CardRarity;
   category: CardCategory; // synergy tag; CARD_CATEGORY_LABEL maps it to the display string
   description: string;
+  /** Hand-written, digit-free primary-text OVERRIDE for the effect-language system
+   *  (docs/CARDS.md §language). Absent ⇒ the default: text auto-generates from `effects`. */
+  simple?: string;
   effects: CardEffect[]; // BASE (level-0) effects
   unlock?: CardUnlock; // absent ⇒ a BASE card, always in the pool; present ⇒ progression-gated
   // ── Permanent progression scaffolding (docs/GENE-EVOLUTION.md). ALL OPTIONAL — a card with none of
@@ -761,7 +765,11 @@ export function cardSubject(def: CardDef): CardSubject {
   }
 }
 
-export function cardToOption(def: CardDef): CardOption {
+/** Build the UI DTO for a card. Pass the LEVELED effects (effectiveGeneEffects) so the
+ *  generated language + live-comparison data match what the pick will actually apply;
+ *  defaults to the base effects. `description` stays the precise technical line (the
+ *  detail expansion); `lines` is the standardized digit-free player text. */
+export function cardToOption(def: CardDef, effects: readonly CardEffect[] = def.effects): CardOption {
   return {
     id: def.id,
     name: def.name,
@@ -769,5 +777,7 @@ export function cardToOption(def: CardDef): CardOption {
     description: def.description,
     category: CARD_CATEGORY_LABEL[def.category],
     subject: cardSubject(def),
+    lines: describeCard(def, effects).lines,
+    effects: effects.slice(),
   };
 }

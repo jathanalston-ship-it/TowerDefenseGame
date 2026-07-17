@@ -1241,6 +1241,7 @@ export function GameView({
             forceManual={!!tutorial}
             rerollCost={hud.draftRerollCost}
             biomass={hud.biomass}
+            chosen={hud.cards}
             onReroll={() => {
               if (game.rerollDraft()) refresh();
             }}

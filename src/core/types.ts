@@ -5,6 +5,8 @@ import type { Vec2 } from './math';
 import type { ActiveStatus } from './status';
 import type { AbilityComponent } from './ability';
 import type { TargetingProfile } from './targeting';
+import type { CardEffect } from './cards'; // type-only back-edge (cards.ts imports this file)
+import type { EffectLine } from './effectLanguage'; // type-only back-edge, same pattern
 
 export type CombatClass = 'Kinetic' | 'Caustic' | 'Viral' | 'Neural' | 'Vital' | 'Resonant';
 export type StatusType = 'Fracture' | 'Corrosion' | 'Infection' | 'Disruption' | 'Freeze' | 'Fear' | 'Mark' | 'Resonance';
@@ -741,9 +743,13 @@ export interface CardOption {
   id: string;
   name: string;
   rarity: CardRarity;
-  description: string;
+  description: string; // the precise technical line (detail expansion; legacy fallback)
   category: string;
   subject: CardSubject; // what the card affects (tower/hero/global/economy/hive) — drives the draft badge
+  // Effect language (docs/CARDS.md §language): standardized digit-free player text, generated
+  // from the SAME effects the pick will apply, plus those effects for live comparison/exact math.
+  lines: EffectLine[];
+  effects: CardEffect[];
 }
 
 /** A telegraph of an upcoming wave's composition (anticipation / informed prep). */

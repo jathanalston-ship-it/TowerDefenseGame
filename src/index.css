@@ -1961,12 +1961,24 @@ canvas.board {
   color: var(--muted);
 }
 /* Gene Card "what it affects" badge (draft) — the subject color is set inline (cards.ts derives
-   it); the pill's border + icon + text all inherit it via currentColor. */
-.card-affects-row {
+   it); the pill's border + icon + text all inherit it via currentColor. Sits beside the
+   procedural artwork (hierarchy: name → art → effect — docs/CARDS.md §language). */
+.card-art-row {
   display: flex;
   align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
+  gap: 10px;
+}
+.card-art {
+  flex: none;
+  line-height: 0;
+  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.35));
+}
+.card-art-side {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  min-width: 0;
 }
 .card-affects {
   display: inline-flex;
@@ -2004,10 +2016,131 @@ canvas.board {
   font-size: 16px;
   font-weight: 700;
 }
-.card-desc {
+/* ── Effect language (docs/CARDS.md §language): digit-free lines with color-coded bold
+   keywords. The FIRST line is the primary effect; drawbacks read as warnings. The keyword
+   bloom is a one-shot glow after the card lands — subtle, and gated for reduced motion. ── */
+.card-fx {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  flex: 1;
   color: var(--text);
   font-size: 13px;
-  flex: 1;
+  line-height: 1.45;
+}
+.fx-line {
+  display: block;
+}
+.fx-primary {
+  font-size: 14px;
+  font-weight: 600;
+}
+.fx-bad {
+  color: var(--danger);
+}
+.fx-kw {
+  font-weight: 800;
+  animation: kw-bloom 1.1s ease 0.42s;
+}
+.fx-kw-hi {
+  animation: kw-bloom-hi 1.3s ease 0.42s;
+}
+@keyframes kw-bloom {
+  0% { text-shadow: 0 0 0 transparent; }
+  45% { text-shadow: 0 0 9px currentColor; }
+  100% { text-shadow: 0 0 0 transparent; }
+}
+@keyframes kw-bloom-hi {
+  0% { text-shadow: 0 0 0 transparent; }
+  45% { text-shadow: 0 0 15px currentColor; }
+  100% { text-shadow: 0 0 0 transparent; }
+}
+/* Exact-numbers expansion (hover dwell / Shift / long-press) — an informational sheet over
+   the card body; scrolls if the card is short. */
+.card-detail {
+  position: absolute;
+  inset: 6px;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 12px;
+  background: color-mix(in srgb, var(--panel) 96%, black);
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  box-shadow: var(--shadow);
+  overflow: auto;
+  font-size: 12px;
+  text-align: left;
+  animation: fade-in 0.16s ease;
+}
+.card-detail-k {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  color: var(--muted);
+}
+.card-detail-row {
+  display: flex;
+  align-items: baseline;
+  gap: 7px;
+}
+.card-detail-row i {
+  font-style: normal;
+  flex: none;
+  width: 13px;
+  text-align: center;
+}
+.card-detail-power {
+  margin-top: auto;
+  padding-top: 6px;
+  color: var(--muted);
+  font-size: 12px;
+}
+.card-detail-power b {
+  color: var(--gold);
+}
+.card-detail-tech {
+  color: var(--dim);
+  font-size: 11px;
+  border-top: 1px solid var(--line);
+  padding-top: 6px;
+}
+/* live before→after comparison vs the run's drafted Gene stack */
+.card-detail-cmp {
+  justify-content: space-between;
+  gap: 10px;
+}
+.cmp-label {
+  color: var(--muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.cmp-vals {
+  flex: none;
+  color: var(--text);
+}
+.cmp-vals i {
+  font-style: normal;
+  color: var(--dim);
+}
+.cmp-vals b {
+  color: var(--gold);
+}
+/* synergy callout — shown ONLY when the run already leans into the category */
+.card-pair {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--gold);
+}
+@media (prefers-reduced-motion: reduce) {
+  .fx-kw, .fx-kw-hi { animation: none; }
+  .card-detail { animation: none; }
+}
+/* Short landscape viewports: drop the artwork, keep every word readable. */
+@media (max-height: 600px) {
+  .card-art { display: none; }
 }
 .card-pick {
   align-self: stretch;
@@ -2028,6 +2161,16 @@ canvas.board {
 /* rarity coloring */
 .card.r-common {
   border-left-color: var(--r-common);
+}
+.card.r-uncommon {
+  border-left-color: var(--r-uncommon);
+}
+.card.r-uncommon .card-name {
+  color: var(--r-uncommon);
+}
+.card.r-uncommon .card-rarity {
+  background: rgba(95, 224, 138, 0.16);
+  color: var(--r-uncommon);
 }
 .card.r-rare {
   border-left-color: var(--r-rare);

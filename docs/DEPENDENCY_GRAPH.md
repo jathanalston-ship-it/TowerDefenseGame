@@ -631,7 +631,7 @@ graph TD
 
 *Between-wave drafts + the permanent Archive: Essence-funded levels, gates, loadouts, Transcendence (maxed-card second lines), Ascension backend.*
 
-- **Files:** `src/core/cards.ts` · `src/core/geneCards.ts` · `src/core/geneDiscovery.ts` · `src/core/geneUpgrades.ts` · `src/core/geneTranscend.ts` · `src/core/geneEssence.ts` · `src/core/geneLoadout.ts` · `src/state/geneArchive.ts` · `src/ui/GeneArchive.tsx` · `src/ui/DraftModal.tsx` · `src/ui/cardAffects.tsx` · `src/ui/components/GeneCardArt.tsx`
+- **Files:** `src/core/cards.ts` · `src/core/effectLanguage.ts` · `src/core/geneCards.ts` · `src/core/geneDiscovery.ts` · `src/core/geneUpgrades.ts` · `src/core/geneTranscend.ts` · `src/core/geneEssence.ts` · `src/core/geneLoadout.ts` · `src/state/geneArchive.ts` · `src/ui/GeneArchive.tsx` · `src/ui/DraftModal.tsx` · `src/ui/cardAffects.tsx` · `src/ui/components/GeneCardArt.tsx`
 - **Depends on:** `content-infra` · `power` · `campaign` · `shards-economy`
 - **Consumers — what breaks if you change this:** `engine` · `doctrines`
 - **Power Score:** permanent levels + Transcendence lines fold linearly (GENE_POWER_SCALE); drafts feed the temporary bucket; validator enforces visibility
