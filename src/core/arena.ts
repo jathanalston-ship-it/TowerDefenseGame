@@ -38,6 +38,15 @@ export const ARENA = {
   decayPerDay: 15,
   /** AI opponents: rating the fallback pretends to hold = yours ± jitter (fair by design). */
   aiRatingJitter: 40,
+  /** OPT-OUT hardening (docs/ARENA.md §toggle): a player who DISABLES human matchmaking gets
+   *  the AI immediately — but its build generates at this Power premium, so ducking the human
+   *  queue is never the easier rating farm. The involuntary fallback (no human found inside
+   *  the window) stays at ×1. The Elo stake is UNCHANGED either way (aiRatingJitter above):
+   *  a harder fight for the same reward is the whole moderation. */
+  aiOptOutPowerPremium: 1.25,
+  /** Queue beat when human matchmaking is OFF/unavailable-by-choice — the ceremony without
+   *  the pointless 20-second wait (spec: never make players wait indefinitely). */
+  aiOnlySearchSec: 3,
   /** Match rewards (validated server-side; deliberately modest — the ARENA PASS is the real
    *  payout lane). WINS pay in CONTAINERS (a division-banded Bio-Container + a Run Cache);
    *  LOSSES pay standard resources only (Genome Cores + salvage materials) so a hard match is
@@ -166,6 +175,12 @@ export function matchSearchState(elapsedSec: number, power: number): MatchSearch
 /** Would an opponent at `oppPower` be a fair match at this point of the search? */
 export function opponentInBracket(state: MatchSearchState, oppPower: number): boolean {
   return oppPower >= state.powerLow && oppPower <= state.powerHigh;
+}
+
+/** The Power the AI opponent generates at (docs/ARENA.md §toggle): the involuntary fallback
+ *  fights at parity; a player who OPTED OUT of human matchmaking faces the hardened build. */
+export function aiFallbackPower(power: number, optedOut: boolean): number {
+  return Math.round(power * (optedOut ? ARENA.aiOptOutPowerPremium : 1));
 }
 
 // ── Match outcome (the mirror SIEGE RACE ruleset — docs/ARENA.md §ruleset) ─────

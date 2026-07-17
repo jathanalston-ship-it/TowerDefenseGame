@@ -149,7 +149,17 @@ export function createLoopbackPair(net: NetConditions = {}): LoopbackPair {
 }
 
 // ── Relay (the real-infrastructure seam — dormant without a configured URL) ────
+/** The relay endpoint: the production build bakes VITE_ARENA_RELAY_URL; a device-local
+ *  override (`assimilate.relayUrl`) lets self-hosters/dev point at their own relay without a
+ *  rebuild. The override changes NO trust: the relay is a dumb pipe either way — peers still
+ *  validate each other and the server still re-derives every settle (ONLINE-FOUNDATION.md). */
 export function arenaRelayUrl(): string | null {
+  try {
+    const local = localStorage.getItem('assimilate.relayUrl');
+    if (local && /^wss?:\/\//.test(local)) return local;
+  } catch {
+    /* storage unavailable — fall through to the build-time URL */
+  }
   const url = (import.meta as unknown as { env?: Record<string, string | undefined> }).env?.VITE_ARENA_RELAY_URL;
   return typeof url === 'string' && url.length > 0 ? url : null;
 }

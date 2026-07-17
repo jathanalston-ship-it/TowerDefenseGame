@@ -15,10 +15,10 @@
 
 import { describe, expect, it } from 'vitest';
 import {
-  ARENA, ARENA_DIVISIONS, arenaClaimProblem, arenaIdleCapBonusHours, arenaIdleDividend,
-  arenaMatchRewards, arenaSeasonIndex, decayedRating, defaultArenaSave, divisionForRating,
-  divisionIndex, expectedScore, matchSearchState, msToSeasonEnd, opponentInBracket,
-  ratingDelta, resolveArenaOutcome, rolledArenaSave, seasonResetRating,
+  ARENA, ARENA_DIVISIONS, aiFallbackPower, arenaClaimProblem, arenaIdleCapBonusHours,
+  arenaIdleDividend, arenaMatchRewards, arenaSeasonIndex, decayedRating, defaultArenaSave,
+  divisionForRating, divisionIndex, expectedScore, matchSearchState, msToSeasonEnd,
+  opponentInBracket, ratingDelta, resolveArenaOutcome, rolledArenaSave, seasonResetRating,
 } from './arena';
 import type { ArenaMatchClaim, ArenaSideResult } from './arena';
 
@@ -154,6 +154,13 @@ describe('matchmaking', () => {
     expect(opponentInBracket(early, 1400)).toBe(false); // +40% — outside the ±15% start
     expect(opponentInBracket(late, 1400)).toBe(true); // inside the ±60% end
     expect(opponentInBracket(late, 5000)).toBe(false); // never obviously unfair
+  });
+
+  it('the OPT-OUT construct is hardened; the involuntary fallback fights at parity (§toggle)', () => {
+    expect(aiFallbackPower(1000, false)).toBe(1000); // no human found ⇒ ×1, byte-unchanged
+    expect(aiFallbackPower(1000, true)).toBe(Math.round(1000 * ARENA.aiOptOutPowerPremium));
+    expect(ARENA.aiOptOutPowerPremium).toBeGreaterThan(1); // ducking humans is never the farm
+    expect(ARENA.aiOnlySearchSec).toBeLessThan(ARENA.searchSec); // and never a pointless wait
   });
 });
 

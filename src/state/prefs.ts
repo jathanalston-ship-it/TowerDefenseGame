@@ -59,6 +59,17 @@ export function setMusicPref(on: boolean): void {
   try { localStorage.setItem('musicOn', String(on)); } catch { /* storage unavailable */ }
 }
 
+// ── Arena matchmaking pref (docs/ARENA.md §toggle) — human matchmaking is ON by default
+// wherever a relay is configured; opting OUT is honored (the queue goes straight to the AI)
+// but the sparring construct runs a HARDENED build (ARENA.aiOptOutPowerPremium) so ducking
+// humans never becomes the easy-rating farm. Device-local, like every UX pref.
+export function humanMatchmakingPref(): boolean {
+  try { return localStorage.getItem('assimilate.humanMM') !== 'false'; } catch { return true; }
+}
+export function setHumanMatchmakingPref(on: boolean): void {
+  try { localStorage.setItem('assimilate.humanMM', String(on)); } catch { /* storage unavailable */ }
+}
+
 // ── Tower Lab bench prefs (docs/TOWERS.md) — favorites, recent upgrades, selection, sort.
 // Device-local curation (NOT progression): favorites/sort are how THIS player arranges the
 // bench, so they live beside the other UI prefs, never in the save.

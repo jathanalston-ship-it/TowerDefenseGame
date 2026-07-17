@@ -37,6 +37,27 @@ candidates; at window end the AI opponent takes the slot with the same hello/loa
 (the transition is invisible — same protocol, same HUD). Estimated wait is honest: the
 fallback guarantees a match inside the window.
 
+## §toggle — human matchmaking on by default, AI-only as a HARDENED opt-out (2026-07)
+
+Wherever a relay is configured, the queue hunts humans by default. The console's
+**OPPONENTS** row (`HUMANS + AI` / `AI ONLY`) is a device-local pref
+(`humanMatchmakingPref`, `assimilate.humanMM` — `state/prefs.ts`), read at queue ENTRY
+only (no mid-search flips; the toggle locks while searching).
+
+- **Opting out is honored, never free:** an AI-only queue skips the 20 s hunt
+  (`ARENA.aiOnlySearchSec` = 3 s beat) but the sparring construct generates at
+  `aiFallbackPower(power, optedOut=true)` = **×`ARENA.aiOptOutPowerPremium` (1.25) Power**
+  with UNCHANGED Elo stakes — ducking humans is a harder fight for the same rating,
+  so the opt-out can't become the easy-rating farm.
+- **The involuntary fallback stays at parity (×1):** a player who WANTED humans and found
+  none is never punished for an empty pool — same power, same stakes, invisible transition.
+- No relay configured ⇒ the toggle renders disabled and every queue is the AI lane at ×1
+  (the pre-relay behavior, unchanged).
+
+Tunables live in `ARENA` (`core/arena.ts`); the hardening applies at GENERATION
+(`generateAiOpponent` receives the premium power), so every downstream system — boot
+validation, match rewards, server settle — sees an ordinary opponent.
+
 ## 3. Ranked divisions
 
 Ten divisions over the rating line (`ARENA_DIVISIONS`, data): Spore III→I · Larval III→I ·
@@ -192,9 +213,13 @@ anti-cheat INTENT without a server sim.
 
 ## Known limitations
 
-- Human matches need a reachable relay (`npm run relay` + `VITE_ARENA_RELAY_URL` at build —
-  ONLINE-FOUNDATION.md §relay); without one the AI framework carries every queue. Matchmaking
-  pairs inside one power band per key; band-edge pairs fall to the AI fallback.
+- Human matches need a reachable relay (`npm run relay`, then `VITE_ARENA_RELAY_URL` at build
+  or the device-local `assimilate.relayUrl` override — ONLINE-FOUNDATION.md §relay); without
+  one the AI framework carries every queue. Matchmaking pairs inside one power band per key;
+  band-edge pairs fall to the AI fallback.
+- The AI-only pref is device-local, so a determined player could flip it per device; the
+  hardened construct (×1.25) is the deterrent, not a server-enforced lock — revisit only if
+  telemetry shows opt-out farming despite the premium.
 - Arena runs deliberately do NOT feed PvE ledgers (mastery XP, lifetime kill stats, loot
   meter): PvP progression is its own lane (rating/pass/exclusives) — revisit only with
   evidence it starves engagement.

@@ -7,7 +7,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { meta } from '../state/meta';
 import type { ArenaHubView } from '../state/meta';
-import { ARENA, matchSearchState } from '../core/arena';
+import { ARENA, aiFallbackPower, matchSearchState } from '../core/arena';
 import { ARENA_PASS } from '../core/arenaPass';
 import { generateAiOpponent } from '../core/arenaAi';
 import type { ArenaMatchSetup } from '../core/arenaMatch';
@@ -20,6 +20,7 @@ import type { MatchmakerHandle } from '../net/arenaMatchmaker';
 import { fetchArenaLadder } from '../net/arenaReport';
 import type { ArenaLadderView } from '../net/arenaReport';
 import { myDesignationTag, playerId } from '../net/identity';
+import { humanMatchmakingPref, setHumanMatchmakingPref } from '../state/prefs';
 import { CurrencyIcon } from './components/CurrencyIcon';
 
 /** Deterministic-enough match id (local matches; the server treats it as an opaque dedupe key). */
@@ -36,6 +37,16 @@ export function ArenaScreen({ onLaunchMatch }: { onLaunchMatch: (setup: ArenaMat
   const [elapsed, setElapsed] = useState(0);
   const searchRef = useRef<number | null>(null);
   const seedRef = useRef(0);
+  // Human matchmaking is ON by default wherever a relay lives; the opt-out is honored but
+  // hardened (docs/ARENA.md §toggle) — the sparring construct generates at a Power premium.
+  const [humanMM, setHumanMM] = useState(humanMatchmakingPref);
+  const relayLive = arenaRelayUrl() !== null;
+  const toggleHumanMM = (on: boolean): void => {
+    if (searching) return; // the queue reads the pref at entry — no mid-search flips
+    setHumanMatchmakingPref(on);
+    setHumanMM(on);
+  };
+  const premiumPct = Math.round((ARENA.aiOptOutPowerPremium - 1) * 100);
   // ── PRIVATE BOUT (docs/ARENA.md §private) — friendly, unrated, over a shared room code ──
   const [pmCode, setPmCode] = useState('');
   const [pmWaiting, setPmWaiting] = useState(false);
@@ -110,7 +121,12 @@ export function ArenaScreen({ onLaunchMatch }: { onLaunchMatch: (setup: ArenaMat
     let done = false;
     const boot = meta.arenaBootBundle();
     const relay = arenaRelayUrl();
-    const mm = relay
+    // The human lane runs only when a relay exists AND the player hasn't opted out. Opting
+    // out is a CHOICE (§toggle): the queue resolves fast, but the construct is hardened.
+    const wantHumans = relay !== null && humanMM;
+    const optedOut = relay !== null && !humanMM;
+    const windowSec = wantHumans ? ARENA.searchSec : ARENA.aiOnlySearchSec;
+    const mm = wantHumans && relay
       ? findArenaOpponent({
           url: relay,
           season: view.season.index,
@@ -153,12 +169,14 @@ export function ArenaScreen({ onLaunchMatch }: { onLaunchMatch: (setup: ArenaMat
     const tick = (): void => {
       const t = (performance.now() - startedAt) / 1000;
       setElapsed(t);
-      if (t >= ARENA.searchSec) {
-        // No relay configured / no human in bracket — the AI opponent fills the slot.
+      if (t >= windowSec) {
+        // No human found (or none wanted) — the AI opponent fills the slot. A voluntary
+        // opt-out faces the HARDENED build (aiFallbackPower); the involuntary fallback
+        // fights at parity. The Elo stake is identical either way (§toggle).
         if (done) return;
         done = true;
         mm?.cancel();
-        const ai = generateAiOpponent(seedRef.current, view.power, view.divisionIndex);
+        const ai = generateAiOpponent(seedRef.current, aiFallbackPower(view.power, optedOut), view.divisionIndex);
         const setup: ArenaMatchSetup = {
           matchId: newMatchId(),
           seed: (seedRef.current ^ 0xa54ff53a) >>> 0,
@@ -230,23 +248,63 @@ export function ArenaScreen({ onLaunchMatch }: { onLaunchMatch: (setup: ArenaMat
         </div>
         <div style={{ minWidth: 230 }}>
           {!searching ? (
-            <button className="primary" style={{ width: '100%', padding: '14px 18px', fontSize: 16 }} onClick={() => { setElapsed(0); setSearching(true); }}>
-              ⚔ ENTER THE ARENA
-            </button>
+            <>
+              <button className="primary" style={{ width: '100%', padding: '14px 18px', fontSize: 16 }} onClick={() => { setElapsed(0); setSearching(true); }}>
+                ⚔ ENTER THE ARENA
+              </button>
+              {relayLive && (
+                /* The opponent preference (§toggle) — shown only where a relay makes it real. */
+                <div style={{ display: 'flex', gap: 6, alignItems: 'center', marginTop: 8, flexWrap: 'wrap' }}>
+                  <span className="muted" style={{ fontSize: 12 }}>OPPONENTS</span>
+                  <button
+                    className={humanMM ? 'primary' : ''}
+                    style={{ minHeight: 24, fontSize: 12 }}
+                    onClick={() => toggleHumanMM(true)}
+                    title="Search for humans; the AI takes the slot if none is found inside the window"
+                  >
+                    HUMANS + AI
+                  </button>
+                  <button
+                    className={!humanMM ? 'primary' : ''}
+                    style={{ minHeight: 24, fontSize: 12 }}
+                    onClick={() => toggleHumanMM(false)}
+                    title={`Skip the human queue — the sparring construct runs a hardened build (+${premiumPct}% Power, same rating stakes)`}
+                  >
+                    AI ONLY
+                  </button>
+                  {!humanMM && <span className="muted" style={{ fontSize: 12 }}>hardened construct +{premiumPct}%</span>}
+                </div>
+              )}
+            </>
           ) : (
             <div className="panel" style={{ padding: 10, textAlign: 'center' }}>
-              <div style={{ letterSpacing: 2, color: view.season.accent }}>
-                SEARCHING{'.'.repeat(1 + (Math.floor(elapsed * 2) % 3))}
-              </div>
-              <div className="muted" style={{ fontSize: 12, marginTop: 4 }}>
-                Power bracket {search!.powerLow.toLocaleString('en-US')} – {search!.powerHigh.toLocaleString('en-US')} (widening)
-              </div>
-              <div style={{ height: 6, background: 'rgba(255,255,255,0.08)', borderRadius: 3, margin: '8px 0' }}>
-                <div style={{ height: '100%', width: `${Math.round(search!.frac * 100)}%`, background: view.season.accent, borderRadius: 3, transition: 'width 120ms linear' }} />
-              </div>
-              <div className="muted" style={{ fontSize: 12 }}>
-                est. wait ≤ {ARENA.searchSec}s · opponent guaranteed in {Math.ceil(search!.aiInSec)}s
-              </div>
+              {relayLive && humanMM ? (
+                <>
+                  <div style={{ letterSpacing: 2, color: view.season.accent }}>
+                    SEARCHING{'.'.repeat(1 + (Math.floor(elapsed * 2) % 3))}
+                  </div>
+                  <div className="muted" style={{ fontSize: 12, marginTop: 4 }}>
+                    Power bracket {search!.powerLow.toLocaleString('en-US')} – {search!.powerHigh.toLocaleString('en-US')} (widening)
+                  </div>
+                  <div style={{ height: 6, background: 'rgba(255,255,255,0.08)', borderRadius: 3, margin: '8px 0' }}>
+                    <div style={{ height: '100%', width: `${Math.round(search!.frac * 100)}%`, background: view.season.accent, borderRadius: 3, transition: 'width 120ms linear' }} />
+                  </div>
+                  <div className="muted" style={{ fontSize: 12 }}>
+                    est. wait ≤ {ARENA.searchSec}s · opponent guaranteed in {Math.ceil(search!.aiInSec)}s
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div style={{ letterSpacing: 2, color: view.season.accent }}>
+                    ENGAGING CONSTRUCT{'.'.repeat(1 + (Math.floor(elapsed * 2) % 3))}
+                  </div>
+                  <div className="muted" style={{ fontSize: 12, marginTop: 4 }}>
+                    {relayLive
+                      ? `Human queue skipped — hardened sparring construct (+${premiumPct}% Power, same stakes).`
+                      : 'A sparring construct takes the slot — it fields a real build and plays the real sim.'}
+                  </div>
+                </>
+              )}
               <button style={{ marginTop: 8 }} onClick={() => setSearching(false)}>Cancel</button>
             </div>
           )}

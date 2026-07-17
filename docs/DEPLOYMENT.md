@@ -111,6 +111,7 @@ go in `.dev.vars` (gitignored). `ENVIRONMENT` needs no setup — it ships in
 |---|---|---|---|
 | `VITE_CHECKOUT_PROVIDER` | client | for real store | `sandbox` (default — dev stub) or `stripe` |
 | `VITE_TURNSTILE_SITE_KEY` | client | recommended | Turnstile site key (public) |
+| `VITE_ARENA_RELAY_URL` | client | for human PvP | `wss://` arena relay (ONLINE-FOUNDATION.md §relay); unset ⇒ every Arena queue resolves to the AI opponent. Device override: `assimilate.relayUrl` |
 | `STRIPE_SECRET_KEY` | server | for real store | `sk_live_…` (production) / `sk_test_…` (preview) |
 | `STRIPE_WEBHOOK_SECRET` | server | for real store | `whsec_…` from the webhook endpoint |
 | `TURNSTILE_SECRET_KEY` | server | recommended | Turnstile secret; absent ⇒ bot checks skipped |

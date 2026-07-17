@@ -133,6 +133,12 @@ queued facts the next sync reconciles — never client-invented values.
 - **Reconnect targeting:** on `paired` the matchmaker calls `RelayTransport.setRoom(room)` so
   a mid-match reconnect rejoins the MATCH room — never the matchmaking pool, where a stranger's
   commands would corrupt the mirror.
+- **Enabling without a rebuild:** `arenaRelayUrl()` checks the device-local
+  `assimilate.relayUrl` (must be `ws://`/`wss://`) BEFORE the baked `VITE_ARENA_RELAY_URL` —
+  self-hosters and dev sessions point a production build at their own relay from the console.
+  The override changes NO trust: the relay stays a dumb pipe; peers validate each other and
+  the server re-derives every settle either way. Human matchmaking defaults ON when any relay
+  URL resolves; the AI-only opt-out is hardened (ARENA.md §toggle).
 
 ## 6. What a future online feature must do
 
@@ -145,7 +151,8 @@ queued facts the next sync reconciles — never client-invented values.
 ## Known limitations
 
 - The relay is self-hosted infrastructure (`npm run relay` — any node host), not yet a
-  deployed Cloudflare service; without `VITE_ARENA_RELAY_URL` baked at build time every match
+  deployed Cloudflare service; without a relay URL (baked `VITE_ARENA_RELAY_URL` or the
+  `assimilate.relayUrl` device override) every match
   past the search window is vs the AI framework (which fields real builds and plays the real
   sim — see ARENA.md §ai). The broker is DO-portable by construction when that migration lands.
 - Matchmaking pairs within one `log2` power band per key — a fair pair straddling a band edge
