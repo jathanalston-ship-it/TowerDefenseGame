@@ -275,3 +275,6 @@
 - `ab95670` **[Gameplay]** Arena recognition layer + the relay bring-up: live human-vs-human PvP
 - `f30c8d6` **[Website]** Chronicle + site regen for the arena recognition / relay batch
 - `5522dbc` **[Backend]** Live-PvP brief deltas: private bouts, the season ladder, the match sweep
+- `0b1788a` **[Website]** Chronicle + site regen for the Live-PvP brief delta batch
+- `93870b3` **[Gameplay]** Arena: human matchmaking on by default, hardened AI-only opt-out, relay URL override
+- `f91363a` **[UI]** Hub: compress the desktop rail to front-door buttons only

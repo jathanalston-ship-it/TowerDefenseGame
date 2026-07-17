@@ -1,6 +1,6 @@
 {
-  "lastSha": "5522dbc9f2b73afe40485e7d7cd83641e735fb8b",
-  "commitsSinceDraft": 8,
+  "lastSha": "f91363ac086817bc0fcfc29e902a0454292f5835",
+  "commitsSinceDraft": 0,
   "content": {
     "tower": [
       "needle",
@@ -2685,6 +2685,18 @@
         {
           "cat": "Backend",
           "text": "Live-PvP brief deltas: private bouts, the season ladder, the match sweep"
+        },
+        {
+          "cat": "Website",
+          "text": "Chronicle + site regen for the Live-PvP brief delta batch"
+        },
+        {
+          "cat": "Gameplay",
+          "text": "Arena: human matchmaking on by default, hardened AI-only opt-out, relay URL override"
+        },
+        {
+          "cat": "UI",
+          "text": "Hub: compress the desktop rail to front-door buttons only"
         }
       ]
     }
@@ -4711,6 +4723,30 @@
       "date": "2026-07-17",
       "cat": "Backend",
       "text": "Live-PvP brief deltas: private bouts, the season ladder, the match sweep",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "0b1788a56f5ebcaacd7227f40437f9160fc29b75",
+      "date": "2026-07-17",
+      "cat": "Website",
+      "text": "Chronicle + site regen for the Live-PvP brief delta batch",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "93870b3e4f66aa3f17564394c8efdd44fb390727",
+      "date": "2026-07-17",
+      "cat": "Gameplay",
+      "text": "Arena: human matchmaking on by default, hardened AI-only opt-out, relay URL override",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "f91363ac086817bc0fcfc29e902a0454292f5835",
+      "date": "2026-07-17",
+      "cat": "UI",
+      "text": "Hub: compress the desktop rail to front-door buttons only",
       "internal": false,
       "needsReview": false
     }

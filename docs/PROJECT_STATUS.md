@@ -3,7 +3,27 @@
 > Maintained at the END of every session (paired with `docs/AI_HANDOFF.md` — the constitution's
 > workflow step 4). This is the "where are we?" answer; `docs/GAME-STATE.md` remains the deeper
 > per-system built-vs-planned index, `docs/PROJECT_MANIFEST.md` the system map.
-> **Last updated:** 2026-07-17b (**THE LIVE-PvP BRIEF: AUDIT + DELTAS** — the brief mapped to
+> **Last updated:** 2026-07-17c (**HUMAN MATCHMAKING ON + THE COMPRESSED RAIL** — two
+> user-directed features. (1) The Arena queue hunts HUMANS BY DEFAULT wherever a relay
+> resolves; the console's OPPONENTS toggle (HUMANS + AI / AI ONLY, device-local
+> `assimilate.humanMM`, read at queue entry only) lets players opt out — but the opt-out
+> construct generates at `aiFallbackPower` ×`ARENA.aiOptOutPowerPremium` (1.25) with
+> UNCHANGED Elo stakes on a short `aiOnlySearchSec` (3s) beat, while the INVOLUNTARY
+> fallback stays ×1 (never punish an empty pool) — ARENA.md §toggle. `arenaRelayUrl()`
+> now honors the device-local `assimilate.relayUrl` override before the baked
+> `VITE_ARENA_RELAY_URL` (enable PvP on a production build without a rebuild; the relay
+> stays a dumb pipe). Verified LIVE headlessly: override + toggle + AI-only queue → match.
+> (2) The desktop rail COMPRESSED to front doors only (less visual clutter, user-directed):
+> HOME + one `.hub-door` per behavior hub (+ the Store's direct door; `compact` flag
+> removed, `headerless` now means "direct door") — per-screen rows/rings/teasers live ONLY
+> on the hub landings (whose cards already carry `data-nav`). The three anchor consumers
+> moved together: mobilecheck's desktop sweep walks door → landing (audited once per hub)
+> → card; HudTour wing stops spotlight `[data-hub]` with a new `nav` reveal-gate field;
+> tutorialAnchors guards data-hub. NOTIFICATIONS.md §hubs + RESPONSIVE-DESIGN.md §4d
+> updated. Suite 2308 green, validate PASS, mobilecheck CLEAN, rail probe shots clean.
+> Standing user-decision flags unchanged (arena `noMega`; server-side sim). Previous below.)
+>
+> **2026-07-17b** (**THE LIVE-PvP BRIEF: AUDIT + DELTAS** — the brief mapped to
 > evidence in ARENA.md §brief-coverage (nearly all landed by the saga + the relay batch; the
 > two recorded-decision conflicts — arena `noMega`, "server simulates everything" — are
 > FLAGGED for the user, not re-litigated). The genuine deltas shipped: (1) **PRIVATE BOUTS**

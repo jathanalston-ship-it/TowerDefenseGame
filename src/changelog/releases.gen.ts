@@ -1184,6 +1184,18 @@ export const RELEASES: Release[] = [
       {
         "cat": "Backend",
         "text": "Live-PvP brief deltas: private bouts, the season ladder, the match sweep"
+      },
+      {
+        "cat": "Website",
+        "text": "Chronicle + site regen for the Live-PvP brief delta batch"
+      },
+      {
+        "cat": "Gameplay",
+        "text": "Arena: human matchmaking on by default, hardened AI-only opt-out, relay URL override"
+      },
+      {
+        "cat": "UI",
+        "text": "Hub: compress the desktop rail to front-door buttons only"
       }
     ]
   },
