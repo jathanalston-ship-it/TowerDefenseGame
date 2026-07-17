@@ -33,7 +33,7 @@ import { GenomeRankPanel } from './components/GenomeRankPanel';
 import { Fold } from './components/MobileSection';
 import type { LbMode } from '../net/leaderboard';
 
-const CAREER_SECTIONS: ProfileSectionId[] = ['combat', 'economy', 'campaign', 'infinite', 'bossrush', 'collection'];
+const CAREER_SECTIONS: ProfileSectionId[] = ['combat', 'economy', 'campaign', 'infinite', 'bossrush', 'pvp', 'collection'];
 
 /** The profile's sub-pages — one identity banner, four focused wings (docs/PROFILE.md §tabs).
  *  Splitting the dashboard kills the infinite scroll: each tab answers ONE question. */

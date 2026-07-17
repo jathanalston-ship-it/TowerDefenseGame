@@ -490,7 +490,7 @@ graph TD
 
 *The authoritative online architecture every online feature inherits (docs/ONLINE-FOUNDATION.md): the replicated command vocabulary + ONE applyArenaCommand path onto the Game intents, the versioned wire protocol (deterministic lockstep — only commands cross the wire; command-log replay IS rollback/reconnect), state digests (desync/tamper alarm), the server-authority policy table, and the Auction House backend prep — per-item provenance stamps (source/time/season/bound/ownership history, self-healing coverage on every load) + trade eligibility/fees/fraud heuristics denominated in Ichor (docs/TRADING-PREP.md). No trading gameplay/UI exists by design.*
 
-- **Files:** `src/core/online.ts` · `src/core/itemIdentity.ts` · `src/core/trading.ts` · `src/net/arenaTransport.ts` · `src/net/arenaSession.ts`
+- **Files:** `src/core/online.ts` · `src/core/itemIdentity.ts` · `src/core/trading.ts` · `src/net/arenaTransport.ts` · `src/net/arenaSession.ts` · `src/net/arenaMatchmaker.ts`
 - **Depends on:** `engine` · `content-infra` · `splice-market`
 - **Consumers — what breaks if you change this:** `arena`
 - **Power Score:** — (intentionally none)
@@ -511,8 +511,8 @@ graph TD
 - **Power Score:** arena exclusives are full content pieces scored by the existing tower/hero buckets once unlocked; rank itself is deliberately zero-Power (prestige lane, like Genome Rank)
 - **Save fields:** `arena`
 - **Tutorial:** — · **Help mechanics:** `arena`
-- **HUD surfaces:** `ArenaView (opponent bar, PvP timer, scroll indicator, command dock)` · **UI screens:** `ArenaScreen` · `ArenaView` · `Hub`
-- **Collection:** — · **Achievements:** —
+- **HUD surfaces:** `ArenaView (opponent bar, PvP timer, connection chip, scroll indicator, command dock)` · **UI screens:** `ArenaScreen` · `ArenaView` · `Hub` · `PlayerProfile (pvp section)`
+- **Collection:** — · **Achievements:** `arena_first_match` · `arena_first_win` · `arena_placed` · `arena_streak5` · `arena_larval` · `arena_chrysalis` · `arena_apex` · `arena_wins25` · `arena_wins100` · `arena_crown` · `arena_perennial`
 - **Localization:** inline English strings (no i18n layer yet — this field enumerates the surface for the day it lands)
 - **Docs to update on change:** `docs/ARENA.md`
 

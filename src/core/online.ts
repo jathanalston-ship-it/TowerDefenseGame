@@ -202,6 +202,9 @@ export interface ArenaLoadoutCard {
 export type ArenaMessage =
   | ({ t: 'hello' } & ArenaHello)
   | ({ t: 'loadout' } & ArenaLoadoutCard)
+  /** The boot-bundle exchange (human PvP handshake) — validated by bootBundleProblem before
+   *  the remote sim ever constructs (docs/ONLINE-FOUNDATION.md §anti-cheat). */
+  | { t: 'boot'; bundle: unknown }
   | { t: 'ready'; matchId: string; seed: number }
   | ({ t: 'cmd' } & StampedCommand)
   | { t: 'state'; tick: number; digest: number; integrityFrac: number; wave: number; heroDown: boolean }
@@ -211,7 +214,10 @@ export type ArenaMessage =
   | { t: 'resync'; seed: number; matchId: string; cmds: StampedCommand[]; tick: number }
   | { t: 'finish'; integrityFrac: number; wave: number; damageDealt: number; fellAtSec: number | null }
   | { t: 'forfeit' }
-  | { t: 'bye' };
+  | { t: 'bye' }
+  /** RELAY CONTROL (docs/ONLINE-FOUNDATION.md §relay) — the room server pairs two queued
+   *  clients and tells each its match room + role (0 proposes `ready`, 1 echoes it). */
+  | { t: 'paired'; room: string; role: 0 | 1 };
 
 /** Codec — JSON with a version + shape gate on decode. Unknown/foreign payloads decode to
  *  null (never throw): a malformed peer can only be ignored, not crash the match loop. */
@@ -219,7 +225,7 @@ export function encodeArenaMessage(msg: ArenaMessage): string {
   return JSON.stringify({ v: PROTOCOL_VERSION, ...msg });
 }
 
-const MESSAGE_KINDS = new Set<string>(['hello', 'loadout', 'ready', 'cmd', 'state', 'ping', 'pong', 'resyncReq', 'resync', 'finish', 'forfeit', 'bye']);
+const MESSAGE_KINDS = new Set<string>(['hello', 'loadout', 'boot', 'ready', 'cmd', 'state', 'ping', 'pong', 'resyncReq', 'resync', 'finish', 'forfeit', 'bye', 'paired']);
 
 export function decodeArenaMessage(raw: string): ArenaMessage | null {
   try {

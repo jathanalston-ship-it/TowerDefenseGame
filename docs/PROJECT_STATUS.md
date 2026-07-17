@@ -3,7 +3,27 @@
 > Maintained at the END of every session (paired with `docs/AI_HANDOFF.md` — the constitution's
 > workflow step 4). This is the "where are we?" answer; `docs/GAME-STATE.md` remains the deeper
 > per-system built-vs-planned index, `docs/PROJECT_MANIFEST.md` the system map.
-> **Last updated:** 2026-07-16 (**THE ONLINE FOUNDATION SAGA — live PvP architecture, the
+> **Last updated:** 2026-07-17 (**ARENA RECOGNITION + THE RELAY BRING-UP** — the saga's first
+> two follow-ups (Auction House phase 2 explicitly deferred). RECOGNITION (docs/ARENA.md
+> §recognition): 11 `arena_*` achievement rows (first match/win · placements · 5-streak ·
+> Larval/Chrysalis/Apex watermarks riding `peak` · 25/100 win ladder · Season Crown ·
+> Perennial — zero new triggers, settle/claim already evaluate) + the Profile's Proving
+> Grounds career fold (division/rating/records/pass/crowns/best season; hidden until first
+> arena touch). THE RELAY (docs/ONLINE-FOUNDATION.md §relay): live human-vs-human matches —
+> pure `RelayBroker` room server (functions/lib/arenaRelayRoom.ts, `npm run relay`, ws devDep;
+> mm:-key pairing → `paired{room,role}`, verbatim forwarding, rooms HELD for reconnect;
+> DO-portable, no node imports) + `findArenaOpponent` (net/arenaMatchmaker.ts) racing the 20s
+> AI window (hello/loadout/boot → `peerProblem` gate → ready-echo accept; `boot`/`paired`
+> joined the ArenaMessage envelope; `RelayTransport.setRoom` re-targets reconnects at the
+> match room) + ArenaSession wired into ArenaView (live RTT/quality chip, lifecycle cleanup).
+> Suite 2302 green (broker unit + REAL-socket e2e: two RelayTransports pair through a live ws
+> server and run a session exchange in CI), validate PASS, mobilecheck CLEAN, and a LIVE
+> dual-client headless probe on a relay-baked build: two browsers queued, paired, and fought
+> in live ArenaViews naming each other (`⇄ 2ms · excellent`). NEXT (user-queued): the Live-PvP
+> brief — mostly landed by the saga; audit + genuine deltas; `noMega` and "server simulates
+> everything" conflict with recorded decisions and need the user's call. Previous below.)
+>
+> **2026-07-16** (**THE ONLINE FOUNDATION SAGA — live PvP architecture, the
 > Arena pillar, Auction House backend prep.** Four batches, save **v47**. (1) ONLINE
 > FOUNDATION (docs/ONLINE-FOUNDATION.md): the replicated command vocabulary — ONE
 > `applyArenaCommand` path onto the Game intents (anti-cheat by construction: commands are

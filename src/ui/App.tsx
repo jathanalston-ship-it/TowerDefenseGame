@@ -64,6 +64,7 @@ import { TutorialRunner } from './TutorialRunner';
 import { DeployScreen } from './DeployScreen';
 import { ArenaView } from './ArenaView';
 import type { ArenaMatchSetup } from '../core/arenaMatch';
+import type { ArenaTransport } from '../net/arenaTransport';
 import type { DeployInfo } from './DeployScreen';
 import { DIFFICULTIES } from '../core/difficulty';
 import { initLayoutProfile } from './layoutProfile';
@@ -86,8 +87,11 @@ const DEPLOY_MS = 1600;
 export function App(): JSX.Element {
   // First launch / after an Account Reset → open straight into the Combat Tutorial (its own mode).
   const [screen, setScreen] = useState<Screen>(() => (meta.shouldAutoTutorial() ? 'tutorial' : 'menu'));
-  // A live arena match (docs/ARENA.md) — rendered OVER the hub; null = none.
+  // A live arena match (docs/ARENA.md) — rendered OVER the hub; null = none. Human matches
+  // (docs/ONLINE-FOUNDATION.md §relay) also carry the live relay transport the matchmaker
+  // paired on; the ArenaView owns its lifecycle from launch to exit.
   const [arenaSetup, setArenaSetup] = useState<ArenaMatchSetup | null>(null);
+  const arenaTransportRef = useRef<ArenaTransport | null>(null);
   // The cold-open cinematic: first boot on this device (before even the tutorial),
   // replayable from Settings → Help. Overlays whatever screen is behind it.
   const [introActive, setIntroActive] = useState(() => !introSeen());
@@ -422,14 +426,18 @@ export function App(): JSX.Element {
           onReplayTour={() => { navBus.go('home'); setTimeout(() => setTourActive(true), 50); }}
           onReplayIntro={() => setIntroActive(true)}
           onSpectate={setSpectate}
-          onLaunchArenaMatch={setArenaSetup}
+          onLaunchArenaMatch={(setup, transport) => { arenaTransportRef.current = transport ?? null; setArenaSetup(setup); }}
           difficultyRef={difficultyRef}
           doctrineRef={doctrineRef}
         />
       )}
       {screen === 'menu' && arenaSetup && (
         <div style={{ position: 'fixed', inset: 0, zIndex: 60 }}>
-          <ArenaView setup={arenaSetup} onExit={() => setArenaSetup(null)} />
+          <ArenaView
+            setup={arenaSetup}
+            transport={arenaTransportRef.current}
+            onExit={() => { arenaTransportRef.current = null; setArenaSetup(null); }}
+          />
         </div>
       )}
       {screen === 'deploying' && deployInfo && <DeployScreen info={deployInfo} />}

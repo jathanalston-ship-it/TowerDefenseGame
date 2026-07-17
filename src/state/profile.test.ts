@@ -23,7 +23,9 @@ const SECTIONS = Object.keys(PROFILE_SECTION_TITLES) as ProfileSectionId[];
 describe('profile registry (the no-hardcoded-stat-lists architecture)', () => {
   it('every section yields renderable stats on a FRESH account — zero dead panels', () => {
     const s = defaultSave();
-    for (const id of SECTIONS) {
+    // 'pvp' is the one DECLARED-empty section on a fresh save (hidden until the first arena
+    // touch — the screen renders no Fold for an empty section, which IS the no-dead-panel rule).
+    for (const id of SECTIONS.filter((x) => x !== 'pvp')) {
       const stats = profileSection(s, id);
       expect(stats.length).toBeGreaterThan(0);
       for (const st of stats) {
@@ -32,6 +34,21 @@ describe('profile registry (the no-hardcoded-stat-lists architecture)', () => {
         expect(st.value.length).toBeGreaterThan(0); // '—' for not-yet-tracked, never empty
       }
     }
+    expect(profileSection(s, 'pvp')).toHaveLength(0);
+  });
+
+  it('the Proving Grounds section appears on first arena touch (docs/ARENA.md §recognition)', () => {
+    const base = defaultSave();
+    const s = { ...base, arena: { ...base.arena, season: 2, rating: 1250, peak: 1400, wins: 8, losses: 4, lifetimeWins: 20, lifetimeLosses: 11, streak: 3, passXp: 120, exclusives: ['hero:chimera'], history: [{ season: 1, rating: 1400, division: 'Larval II', wins: 12, losses: 7 }] } };
+    const stats = profileSection(s, 'pvp');
+    const byId = new Map(stats.map((st) => [st.id, st]));
+    expect(byId.get('pvp-division')?.value).toContain('Larval II'); // 1250 sits in Larval II
+    expect(byId.get('pvp-rating')?.value).toBe('1,250 · peak 1,400');
+    expect(byId.get('pvp-season')?.value).toBe('8–4 (67%)');
+    expect(byId.get('pvp-pass')?.value).toContain('LV 12'); // 120 XP / 10-per-level band
+    expect(byId.get('pvp-crowns')?.value).toBe('1 / 3');
+    expect(byId.get('pvp-streak')?.value).toBe('3');
+    expect(byId.get('pvp-best-season')?.value).toBe('S1 — Larval II (1,400)');
   });
 
   it('is OPEN: a future system registers a provider and its stats appear in place', () => {

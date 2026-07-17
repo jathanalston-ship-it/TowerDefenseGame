@@ -23,6 +23,8 @@ import { ACCOUNT_TITLE_BY_ID } from '../core/accountLevel';
 import { genomeTitleName } from '../core/genomeRank';
 import { foundingTitleName, sigilById } from '../core/identity';
 import type { SigilDef } from '../core/identity';
+import { divisionForRating } from '../core/arena';
+import { ARENA_EXCLUSIVES, ARENA_PASS, arenaPassLevelOf } from '../core/arenaPass';
 import { ACHIEVEMENTS, achievementById } from './achievements';
 import type { AchievementDef } from './achievements';
 import { favoriteTowerName } from './stats';
@@ -43,7 +45,7 @@ export interface ProfileStat {
   progress?: number; // 0..1 → renders a bar under the value
 }
 
-export type ProfileSectionId = 'combat' | 'economy' | 'campaign' | 'infinite' | 'bossrush' | 'collection' | 'analytics';
+export type ProfileSectionId = 'combat' | 'economy' | 'campaign' | 'infinite' | 'bossrush' | 'pvp' | 'collection' | 'analytics';
 
 export const PROFILE_SECTION_TITLES: Record<ProfileSectionId, string> = {
   combat: 'Combat',
@@ -51,6 +53,7 @@ export const PROFILE_SECTION_TITLES: Record<ProfileSectionId, string> = {
   campaign: 'Campaign',
   infinite: 'Infinite',
   bossrush: 'Boss Rush',
+  pvp: 'Proving Grounds',
   collection: 'Collection',
   analytics: 'Performance Analytics',
 };
@@ -166,6 +169,32 @@ profileRegistry.registerAll([
       { id: 'rush-runs', label: 'Gauntlet Runs', value: String(s.stats.rushRuns) },
       { id: 'rush-ichor', label: 'Next Ichor Band', value: `${s.rushBestBoss}/${nextRushIchorAt(s.rushBestBoss)}`, hint: 'Every NEW 5-boss single-run record bleeds Ichor; every 10th drops a Bio-Container.' },
     ],
+  },
+  {
+    // THE PROVING GROUNDS (docs/ARENA.md §recognition) — hidden until the account's first
+    // arena touch (the Fold renders nothing for an empty section); rating shows live,
+    // watermarks (peak, crowns, closed seasons) never regress.
+    id: 'pvp-core', section: 'pvp', order: 10,
+    stats: (s) => {
+      const a = s.arena;
+      if (a.season === 0 && a.lifetimeWins + a.lifetimeLosses === 0 && a.history.length === 0) return [];
+      const div = divisionForRating(a.rating);
+      const winRate = a.wins + a.losses > 0 ? ` (${Math.round((a.wins / (a.wins + a.losses)) * 100)}%)` : '';
+      const pass = arenaPassLevelOf(a.passXp);
+      const best = a.history.reduce<(typeof a.history)[number] | null>((top, h) => (top === null || h.rating > top.rating ? h : top), null);
+      const rows: ProfileStat[] = [
+        { id: 'pvp-division', label: 'Division', value: `${div.glyph} ${div.name}`, color: div.color, hint: 'Current season standing. Chrysalis and above decay after 7 idle days.' },
+        { id: 'pvp-rating', label: 'Rating', value: a.peak > a.rating ? `${num(a.rating)} · peak ${num(a.peak)}` : num(a.rating) },
+        { id: 'pvp-season', label: 'Season Record', value: `${a.wins}–${a.losses}${winRate}` },
+        { id: 'pvp-lifetime', label: 'Lifetime Record', value: `${num(a.lifetimeWins)}–${num(a.lifetimeLosses)}` },
+        { id: 'pvp-pass', label: 'Arena Pass', value: `LV ${pass.level} / ${ARENA_PASS.levels}`, progress: pctOf(pass.level, ARENA_PASS.levels), hint: 'Wins only — every arena victory pays pass XP; losses pay none.' },
+        { id: 'pvp-crowns', label: 'Season Crowns', value: `${a.exclusives.length} / ${ARENA_EXCLUSIVES.length}`, progress: pctOf(a.exclusives.length, ARENA_EXCLUSIVES.length), hint: 'Arena-exclusive strains claimed at pass level 100 — yours forever, unobtainable anywhere else.' },
+      ];
+      if (a.streak > 1) rows.push({ id: 'pvp-streak', label: 'Win Streak', value: String(a.streak), color: 'var(--gold)' });
+      if (a.season > 0 && a.placements > 0) rows.push({ id: 'pvp-placements', label: 'Placements Left', value: String(a.placements), hint: 'Rating swings hard (K=96) until the five placement matches settle.' });
+      if (best) rows.push({ id: 'pvp-best-season', label: 'Best Closed Season', value: `S${best.season} — ${best.division} (${num(best.rating)})` });
+      return rows;
+    },
   },
   {
     id: 'collection-core', section: 'collection', order: 10,

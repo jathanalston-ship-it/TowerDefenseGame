@@ -3,9 +3,9 @@
     "date": "2026-07-09",
     "title": "The Living World Update",
     "categories": [
+      "Gameplay",
       "Heroes",
       "Towers",
-      "Gameplay",
       "Enemies",
       "Mega Bosses",
       "Visuals",
@@ -25,6 +25,50 @@
       "Backend"
     ],
     "items": [
+      {
+        "cat": "Gameplay",
+        "text": "★ New achievement: Perennial"
+      },
+      {
+        "cat": "Gameplay",
+        "text": "★ New achievement: The Season Crown"
+      },
+      {
+        "cat": "Gameplay",
+        "text": "★ New achievement: Warlord of the Grounds"
+      },
+      {
+        "cat": "Gameplay",
+        "text": "★ New achievement: Arena Veteran"
+      },
+      {
+        "cat": "Gameplay",
+        "text": "★ New achievement: Apex Strain"
+      },
+      {
+        "cat": "Gameplay",
+        "text": "★ New achievement: Chrysalis Shell"
+      },
+      {
+        "cat": "Gameplay",
+        "text": "★ New achievement: Larval Ascent"
+      },
+      {
+        "cat": "Gameplay",
+        "text": "★ New achievement: Rampage"
+      },
+      {
+        "cat": "Gameplay",
+        "text": "★ New achievement: Placed"
+      },
+      {
+        "cat": "Gameplay",
+        "text": "★ New achievement: Proven"
+      },
+      {
+        "cat": "Gameplay",
+        "text": "★ New achievement: First Trial"
+      },
       {
         "cat": "Heroes",
         "text": "★ New hero: Chimera"

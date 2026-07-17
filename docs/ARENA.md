@@ -118,10 +118,22 @@ latency (RTT) + connection-quality dots, PvP timer, the vertical-scroll indicato
 camera-reset control. Camera: the battlefield extends vertically — scroll to inspect the
 opponent's field (never both at once; zoom unchanged); focus returns to your field on release.
 
+## §recognition — achievements + the PvP profile wing (2026-07)
+
+Eleven `arena_*` achievement rows (`state/achievements.ts`) — first match/win, placements
+done, a 5-streak, division watermarks at Larval/Chrysalis/Apex (riding `peak`, which never
+soft-resets), the 25/100 lifetime-win ladder, the Season Crown (first exclusive owned), and
+Perennial (3 closed seasons). `settleArenaMatch`/`claimArenaPassLevel` already evaluate
+achievements — the rows needed zero new triggers. The Profile's **Proving Grounds** section
+(`state/profile.ts` `pvp-core`) shows division/rating/records/pass/crowns/best-closed-season
+and stays hidden until the account's first arena touch (the one declared-empty profile
+section on a fresh save).
+
 ## Known limitations
 
-- Live cross-device matches await a deployed realtime relay (ONLINE-FOUNDATION.md §5) — the
-  AI framework carries launch; the protocol/transport seams are relay-ready.
+- Human matches need a reachable relay (`npm run relay` + `VITE_ARENA_RELAY_URL` at build —
+  ONLINE-FOUNDATION.md §relay); without one the AI framework carries every queue. Matchmaking
+  pairs inside one power band per key; band-edge pairs fall to the AI fallback.
 - Arena runs deliberately do NOT feed PvE ledgers (mastery XP, lifetime kill stats, loot
   meter): PvP progression is its own lane (rating/pass/exclusives) — revisit only with
   evidence it starves engagement.

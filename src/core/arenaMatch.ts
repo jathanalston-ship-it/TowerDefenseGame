@@ -76,6 +76,8 @@ export interface ArenaMatchSetup {
   localPower: number;
   oppPower: number;
   oppRating: number;
+  /** Display name for a HUMAN opponent (from their hello card); AI matches use `ai.name`. */
+  oppName?: string;
 }
 
 /** The per-frame opponent read-model the Arena HUD renders (docs/ARENA.md §hud). */

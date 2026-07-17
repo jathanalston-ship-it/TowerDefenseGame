@@ -11,6 +11,61 @@ export const RELEASES: Release[] = [
     "sealed": false,
     "entries": [
       {
+        "cat": "Gameplay",
+        "text": "New achievement: Perennial",
+        "major": true
+      },
+      {
+        "cat": "Gameplay",
+        "text": "New achievement: The Season Crown",
+        "major": true
+      },
+      {
+        "cat": "Gameplay",
+        "text": "New achievement: Warlord of the Grounds",
+        "major": true
+      },
+      {
+        "cat": "Gameplay",
+        "text": "New achievement: Arena Veteran",
+        "major": true
+      },
+      {
+        "cat": "Gameplay",
+        "text": "New achievement: Apex Strain",
+        "major": true
+      },
+      {
+        "cat": "Gameplay",
+        "text": "New achievement: Chrysalis Shell",
+        "major": true
+      },
+      {
+        "cat": "Gameplay",
+        "text": "New achievement: Larval Ascent",
+        "major": true
+      },
+      {
+        "cat": "Gameplay",
+        "text": "New achievement: Rampage",
+        "major": true
+      },
+      {
+        "cat": "Gameplay",
+        "text": "New achievement: Placed",
+        "major": true
+      },
+      {
+        "cat": "Gameplay",
+        "text": "New achievement: Proven",
+        "major": true
+      },
+      {
+        "cat": "Gameplay",
+        "text": "New achievement: First Trial",
+        "major": true
+      },
+      {
         "cat": "Heroes",
         "text": "New hero: Chimera",
         "major": true

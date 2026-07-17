@@ -59,6 +59,29 @@ describe('achievements', () => {
     expect(checkAchievements({ save: withLedgers({}, { titan: 50 }) }).map((a) => a.id)).toContain('doctrine_exemplar');
   });
 
+  it('arena recognition rides save.arena (docs/ARENA.md §recognition)', () => {
+    const base = defaultSave();
+    const arena = (over: Partial<typeof base.arena>) => ({ ...base, arena: { ...base.arena, ...over } });
+    // A fresh record fires nothing — arena_placed must NOT fire from the default placements=5 @ season 0.
+    expect(checkAchievements({ save: base }).map((a) => a.id).filter((id) => id.startsWith('arena_'))).toHaveLength(0);
+    // First settles: a loss alone fires the trial but not the win.
+    let ids = new Set(checkAchievements({ save: arena({ lifetimeLosses: 1 }) }).map((a) => a.id));
+    expect(ids.has('arena_first_match')).toBe(true);
+    expect(ids.has('arena_first_win')).toBe(false);
+    // Placements done only counts inside a REAL season (season > 0).
+    expect(new Set(checkAchievements({ save: arena({ placements: 0 }) }).map((a) => a.id)).has('arena_placed')).toBe(false);
+    expect(new Set(checkAchievements({ save: arena({ season: 3, placements: 0 }) }).map((a) => a.id)).has('arena_placed')).toBe(true);
+    // Division watermarks ride PEAK (never resets), not the live rating.
+    ids = new Set(checkAchievements({ save: arena({ rating: 400, peak: 1800 }) }).map((a) => a.id));
+    expect(ids.has('arena_larval')).toBe(true);
+    expect(ids.has('arena_chrysalis')).toBe(true);
+    expect(ids.has('arena_apex')).toBe(false);
+    // Streak, veteran ladder, the crown, and the season shelf.
+    ids = new Set(checkAchievements({ save: arena({ streak: 5, lifetimeWins: 25, exclusives: ['tower:basilisk'], history: [{ season: 1, rating: 900, division: 'Spore I', wins: 3, losses: 2 }, { season: 2, rating: 1000, division: 'Larval III', wins: 4, losses: 1 }, { season: 3, rating: 1100, division: 'Larval III', wins: 5, losses: 0 }] }) }).map((a) => a.id));
+    for (const id of ['arena_streak5', 'arena_wins25', 'arena_crown', 'arena_perennial']) expect(ids.has(id), id).toBe(true);
+    expect(ids.has('arena_wins100')).toBe(false);
+  });
+
   it('every achievement id is unique', () => {
     const ids = ACHIEVEMENTS.map((a) => a.id);
     expect(new Set(ids).size).toBe(ids.length);

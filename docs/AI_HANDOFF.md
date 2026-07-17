@@ -4,129 +4,109 @@
 > before committing. Read together with docs/PROJECT_STATUS.md and the latest
 > docs/VALIDATION_REPORT.md. Next session: start at docs/PROJECT_MANIFEST.md.
 
-- **Generated:** 2026-07-16 15:21 UTC · **Diff scope:** working tree vs HEAD
-- **Branch:** claude/zen-hawking-rh1gxl · **HEAD:** 7bed509
+- **Generated:** 2026-07-17 01:54 UTC · **Diff scope:** working tree vs HEAD
+- **Branch:** claude/zen-hawking-rh1gxl · **HEAD:** aab74f5
 
 ## Summary of work completed
 
-THE ONLINE FOUNDATION SAGA — the largest architectural batch of the project, in four pushed
-commits (80509a8 → 5772b2c → 7bed509 → this docs batch): (1) the authoritative ONLINE
-FOUNDATION (docs/ONLINE-FOUNDATION.md) — replicated command vocabulary with ONE
-`applyArenaCommand` path, deterministic-lockstep wire protocol, frontier-bounded mirrors with
-exact-tick application (live mirror ≡ command-log replay ⇒ rollback and reconnect are the same
-primitive), digest beacons with self-healing resync, the `PROGRESSION_AUTHORITY` table, seeded
-loopback network model + dormant WebSocket relay; (2) AUCTION HOUSE BACKEND PREP
-(docs/TRADING-PREP.md, save **v47**) — per-item provenance stamps with self-healing load-time
-coverage, Ichor trade economics, fraud heuristics, the `item_events` D1 ledger — deliberately
-NO trading gameplay/UI; (3) the ARENA pillar (docs/ARENA.md) — mirror siege-race matches
-(noMega), 20s Power-bracket matchmaking with seamless procedural AI ACCOUNTS playing the real
-sim through commands, Spore→Apex divisions (placements/streaks/decay/30-day soft resets),
-division-banded match rewards (wins: container + Run Cache; losses: cores + salvage), the
-wins-only 100-level Arena Pass with procedurally rotated seasonal tables + hard Ichor cap,
-server settlement endpoints sharing the client's validators, idle-harvest rank dividends, and
-the Proving Grounds screen + dual-battlefield ArenaView (mirrored live opponent sim, PvP HUD);
-(4) the three ARENA EXCLUSIVES as full content (Basilisk Maw / Ossuary Choir / Chimera).
-**The one thing the next session must know:** every online surface derives from
-`core/online.ts` + `core/arena.ts` shared modules — the server imports them verbatim; never
-add a claim field or a reward amount the shared validators don't derive.
+The ARENA RECOGNITION LAYER + THE RELAY BRING-UP (the Online Foundation saga's first two
+follow-ups, user-directed; Auction House phase 2 explicitly deferred): 11 `arena_*`
+achievement rows + the Profile's Proving Grounds career section (docs/ARENA.md §recognition),
+and LIVE HUMAN-vs-HUMAN MATCHES over a real WebSocket relay (docs/ONLINE-FOUNDATION.md
+§relay) — the pure `RelayBroker` room server (`npm run relay`, `ws` devDep), the
+`findArenaOpponent` matchmaker racing the 20-second AI window, the `paired → hello/loadout/
+boot → peerProblem gate → ready-echo` handshake, ArenaSession wired into ArenaView with a
+live RTT/quality chip, and reconnects re-targeted at the match room. **The one thing the
+next session must know:** the relay is DUMB (a pairing pipe) and the broker is PURE — all
+trust lives in the shared validators (`peerProblem`/`bootBundleProblem`) plus the server
+settle; a Durable-Objects migration imports `functions/lib/arenaRelayRoom.ts` verbatim.
 
 ## Files modified
 
-Across the four pushed batches: ~40 source files (12 new core/net modules, 3 UI, 2 backend
-endpoints, 1 migration), 7 new test files (arena/arenaPass/arenaAi/arenaMatch/online/
-itemIdentity/arenaMeta + netcode + backend), and this docs batch (`PROJECT_MANIFEST.md`,
-`GAME-STATE.md`, `ARENA.md`, `ONLINE-FOUNDATION.md`, `TRADING-PREP.md`, DIL knowledge + graphs,
-UNLOCK-TREE, VALIDATION_REPORT). The trailing scaffold diff caught only the chronicle + DIL
-knowledge artifacts.
+- Source (14): `src/changelog/releases.gen.ts`, `src/core/arenaMatch.ts`, `src/core/online.ts`, `src/dev/dil/knowledge.ts`, `src/dev/systemRegistry.ts`, `src/net/arenaTransport.ts`, `src/state/achievements.ts`, `src/state/profile.ts`, `src/ui/App.tsx`, `src/ui/ArenaScreen.tsx`, `src/ui/ArenaView.tsx`, `src/ui/Hub.tsx`, `src/ui/PlayerProfile.tsx`, `src/net/arenaMatchmaker.ts`
+- Tests (4): `src/state/achievements.test.ts`, `src/state/profile.test.ts`, `functions/arenaRelay.test.ts`, `src/net/arenaMatchmaker.test.ts`
+- Docs (6): `docs/ARENA.md`, `docs/DEPENDENCY_GRAPH.md`, `docs/DIL_GRAPH.md`, `docs/HISTORY.md`, `docs/ONLINE-FOUNDATION.md`, `docs/VALIDATION_REPORT.md`
 
 ## Systems affected (from the dependency registry)
 
-- **online-foundation** (NEW) — protocol/provenance/trading/transports/session
-- **arena** (NEW) — rank/pass/AI/match/UI/backend
-- **engine** — `RunOptions.noMega` (one gate at `spawnMegaBoss`; absent ⇒ golden path)
-- **idle-harvest** — identity-defaulted arena dividend params on rate/cap/accrual
-- **meta-store** — save v47 (`arena`, `provenance`), settle/claim methods, reward-list
-  provenance stamping; **security** — 4 new policies; **towers/heroes** — the exclusives;
-  **hub-shell** — NavKey/unlocks/mechanics/i18n rows; **net-backend** — arena endpoints + FakeD1.
+- **achievements** — `src/state/achievements.ts`
+- **arena** — `src/core/arenaMatch.ts`, `src/ui/ArenaScreen.tsx`, `src/ui/ArenaView.tsx`
+- **chronicle** — `src/changelog/releases.gen.ts`
+- **dev-registry** — `src/dev/dil/knowledge.ts`, `src/dev/systemRegistry.ts`
+- **hub-shell** — `src/ui/App.tsx`, `src/ui/Hub.tsx`
+- **online-foundation** — `src/core/online.ts`, `src/net/arenaTransport.ts`, `src/net/arenaMatchmaker.ts`
+- **profile** — `src/state/profile.ts`, `src/ui/PlayerProfile.tsx`
+- Consumer ring (verify, unchanged): accounts, battle-pass, cosmetics, hive-construction, infestation, onboarding, pil, quests
 
 ## Power Score changes
 
-Arena rank is deliberately ZERO-Power (the Genome Rank prestige-lane precedent, recorded in
-the registry row). The exclusives are full content pieces scored by the existing tower/hero
-buckets once unlocked — fresh saves unchanged (POWER_BASE untouched, suite-pinned).
+None moved. Recognition is deliberately zero-Power (the arena registry row's recorded
+stance); the new achievement rows pay Genome Cores/Ichor through the existing one-shot
+lanes, and the pvp profile section is read-only. Fresh-save Power stays suite-pinned.
 
 ## UI changes
 
-New surfaces: the Proving Grounds hub screen (queue console with widening bracket + honest
-20s countdown, ranked emblem, wins-only pass track with claims/premium/crown showcase, season
-history) and the ArenaView match surface (vertically-expanded battlefield: opponent's genuine
-live sim mirrored above the membrane seam; wheel/drag scroll with ease-home camera + reset;
-opponent bar with health/portrait/name/rating; PvP timer; connection chip; command dock;
-draft modal; verdict panel). Verified LIVE headlessly on the real bundle: hub → queue → AI
-fallback → place/start-wave commands → scroll to the live mirrored opponent → camera reset →
-mid-match HUD; zero page errors (9 screenshots reviewed). Mobilecheck CLEAN (in validate).
+Surfaces in the blast radius: `AchievementPanel`, `RewardReveal (inline strip)`, `AchievementToaster`, `ArenaScreen`, `ArenaView`, `Hub`, `PlayerProfile (pvp section)`, `ArenaView (opponent bar, PvP timer, connection chip, scroll indicator, command dock)`, `App (UpdateBriefing popup)`, `CommandCenter`, `ProgressDashboard`, `PlayerProfile`
+
+Profile gains the **Proving Grounds** career fold (division/rating/records/pass/crowns/
+best-closed-season; hidden until first arena touch — the one declared-empty section on a
+fresh save). The queue console now RACES the relay's human lane against the 20s AI window
+(console UI unchanged — the transition stays invisible). ArenaView's connection chip is LIVE
+for human matches (RTT ms + quality color; RECONNECTING…/LOST states); the opponent bar
+names the human peer (hello name + tag). Verified END-TO-END headlessly on a
+`VITE_ARENA_RELAY_URL` build: two real clients queued, paired through the running relay
+(`npm run relay`), and landed in live ArenaViews naming each other with `⇄ 2ms · excellent`
+chips — zero page errors, screenshot reviewed. Mobilecheck CLEAN (27 screens × 4 viewports).
 
 ## Documentation changes
 
-New canon: `ONLINE-FOUNDATION.md`, `ARENA.md`, `TRADING-PREP.md`. Updated: manifest (+2
-sections + index), GAME-STATE (v47 header, tower/hero counts 22/11, the online/arena/exclusives
-status block), UNLOCK-TREE + DIL_GRAPH + DEPENDENCY_GRAPH (regenerated), 5 DIL knowledge rows.
-`docs/CHANGELOG-PIPELINE.md`/`DIL.md`/`ENGINEERING-AUDIT.md`/`GAME_CONSTITUTION.md`/`PIL.md`:
-no change needed (pipelines regenerated their own artifacts; no rule/tooling amended).
+Registry says these move with the touched systems: `docs/PROGRESSION-SYSTEMS.md`, `docs/PROFILE.md`, `docs/ARENA.md`, `docs/CHANGELOG-PIPELINE.md`, `docs/DIL.md`, `docs/DEPENDENCY_GRAPH.md`, `docs/ENGINEERING-AUDIT.md`, `docs/GAME_CONSTITUTION.md`, `docs/PROJECT_STATUS.md`, `docs/AI_HANDOFF.md`, `docs/PIL.md`, `docs/COMMAND-CENTER.md`, `docs/HOME-BASE.md`, `docs/ONE-MORE-RUN.md`, `docs/HUD.md`, `docs/PROGRESSION-LOOP.md`, `docs/UX-CONSOLIDATION.md`, `docs/HIVE-CONSTRUCTION.md`, `docs/INFESTATION.md`, `docs/COSMETICS.md`, `docs/BATTLEPASS.md`, `docs/QUESTS.md`, `docs/ONLINE-FOUNDATION.md`, `docs/TRADING-PREP.md`, `docs/ACCOUNTS.md`, `docs/DEPLOYMENT.md`, `docs/TUTORIAL.md`, `docs/HELP.md`, `docs/TUTORIAL-AUDIT.md`, `docs/GUIDED-UNLOCKS.md`
+
+Updated: `docs/ONLINE-FOUNDATION.md` (§relay — server/rooms/handshake/keys/reconnect +
+limitations), `docs/ARENA.md` (§recognition + limitations), DIL knowledge (+2 rows) and both
+regenerated graphs, `docs/PROJECT_STATUS.md` + this handoff. The remaining listed docs move
+with UNTOUCHED consumer systems — no change needed.
 
 ## Save changes
 
-**v46 → v47** (both additive, migration-tested): `arena` (season record: rating/placements/
-streak/pass ledgers/FOREVER exclusives/history/settled-match ring; junk degrades to an inert
-record) and `provenance` (the coverage-invariant stamp ledger — reconciled on EVERY load AND in
-`defaultSave`). Sanitizer detail: `lastPlayedAt` caps at year-2100 epoch-ms (the 1e9 default
-cap crushed real timestamps into full decay — fixed and pinned by arenaMeta tests).
+None — recognition reads `save.arena` as-is; the relay is transport-layer only.
 
 ## Known edge cases
 
-- `arenaExclusive` towers carry NO `unlockShards` yet must never be starters — THREE seams
-  special-case the flag (`starterTowers`, `isTowerUnlocked`, `towerShardGateMet`); a new
-  unlock/shard surface must honor it or the Pass crowns leak to everyone.
-- The mirror is FRONTIER-BOUNDED: it never simulates past the newest received sender tick, so
-  commands apply on exact stamps. Weakening that (e.g. free-running the mirror) silently
-  diverges live mirrors from replays and trips resync storms.
-- Arena settles are exactly-once by matchId on BOTH sides — resubmits are free by design;
-  never "fix" the duplicate return path into an error.
-- The arena pass Ichor cap is enforced at TABLE GENERATION (overflow → cores); retuning the
-  rotation weights cannot break the economy law, but changing `ARENA_PASS_ICHOR_CAP` needs the
-  arenaPassEconomy scan (40 seasons) re-read.
-- The ArenaView pixel-flips the opponent field, so the renderer's baked lane labels read
-  upside-down there (damage floats are stripped); cosmetic, documented in ARENA.md.
+- Matchmaking keys quantize power to one log2 band — a fair pair straddling a band edge
+  misses and falls to the AI window (documented §relay; the client-side live-bracket gate in
+  `peerProblem` is the real fairness check either way).
+- `RelayTransport.setRoom` on `paired` is LOAD-BEARING: without it a mid-match reconnect
+  re-enters the matchmaking pool, where a stranger's commands would corrupt the mirror.
+- The broker answers pings ONLY for unpaired sockets (a waiter's heartbeat must not starve);
+  paired pings forward and the PEER answers — don't "fix" the relay into answering both or
+  RTT stops measuring the full loop.
+- A command sent in the beat between matchmaker resolve and ArenaSession attach is recovered
+  by the seq-gap → resync lane (self-healing by architecture — no ordering shim needed).
+- `arena_placed` requires `season > 0` (a fresh record has placements=5 at season 0 and must
+  not fire); division achievements ride `peak`, never the soft-reset live rating.
 
 ## Remaining technical debt
 
-- No deployed realtime relay: human-vs-human matches await a Durable-Objects (or any ws room)
-  relay — the transport/protocol/resync seams are relay-ready and CI-exercised via the
-  loopback network model. Launch experience is the AI framework (per spec's fallback mandate).
-- The ArenaView is a lean command surface: no branch/strain/inspector console mid-match yet;
-  arena runs deliberately skip PvE ledgers (mastery XP/loot meter) — revisit only with
-  engagement evidence.
-- Arena achievements/collection codex rows are not yet authored (recognition layer); the
-  mechanics row + unlock reveal cover onboarding.
+- The relay is self-hosted node infrastructure (`npm run relay`), not yet a deployed
+  Cloudflare service — the broker is DO-portable by construction (no node imports).
+- Private matches / spectators would reuse the relay's DIRECT rooms; no UI is wired to them.
 
 ## Recommended next tasks
 
-1. Arena recognition layer: achievements (first win / placements done / division tiers /
-   season crown) + a `pvp` profile section — all data rows on existing frameworks.
-2. The relay: a minimal ws room server + `RelayTransport` bring-up behind
-   `VITE_ARENA_RELAY_URL`, then human matchmaking through the same queue console.
-3. Auction House phase 2 (when wanted): D1 listings/bids schema + endpoints over the prepared
-   types; escrow + `recordTransfer` wiring; the browse/sell UI reading `tradeEligibility`.
-4. Persona-simulator pass over arena pacing (wins/day vs pass curve) once real telemetry or
-   the progression sim gains a PvP persona.
+1. THE LIVE-PvP BRIEF (user-queued next): audit against the landed saga + this batch, then
+   implement the genuine deltas (arena mode hooks — Quick/Private over direct rooms; bulk
+   AI-match stability sweep; rating leaderboard lane). Two brief lines conflict with RECORDED
+   decisions and need the user's call: arena `noMega` (ARENA.md §1) and "server simulates
+   everything" vs the documented lockstep + server-progression-authority architecture
+   (ONLINE-FOUNDATION.md §0).
+2. Deploy the relay (Durable Object or any ws host) + set `VITE_ARENA_RELAY_URL` in the
+   Pages build — human matchmaking lights up with zero code changes.
+3. Auction House phase 2 (explicitly deferred): D1 listings/bids over the prepared types.
 
 ## Future expansion hooks
 
-- `core/online.ts` — one union member + one switch arm per new player verb; one
-  `PROGRESSION_AUTHORITY` row per new online event class.
-- `core/arenaPass.ts` — seasonal wardrobe cosmetics are one unlock-source row + pool entries;
-  `arenaExclusiveForSeason` extends past three crowns by appending to `ARENA_EXCLUSIVES`.
-- `core/trading.ts` — `pvpLegality` is the seasonal-ruleset seam; `auditTradeEvents` is
-  servable as-is over the `item_events` ledger.
-- `core/arenaAi.ts` — new personalities are data rows; `ARENA_AI.exclusiveMinDiv` gates what
-  deep-ladder AI showcases.
+- `functions/lib/arenaRelayRoom.ts` — DIRECT rooms are the private-match/spectator seam.
+- `net/arenaMatchmaker.ts` `peerProblem` — the one gate to extend for stricter fairness.
+- `core/online.ts` `ArenaMessage` — `paired`/`boot` joined the versioned envelope; a future
+  intent stays one union member + one switch arm.

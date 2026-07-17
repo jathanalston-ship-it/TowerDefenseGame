@@ -21,17 +21,26 @@ import { drawGame } from '../render/renderer';
 import { meta } from '../state/meta';
 import type { ArenaSettleReceipt } from '../state/meta';
 import { reportArenaMatch } from '../net/arenaReport';
+import { ArenaSession } from '../net/arenaSession';
+import type { ArenaTransport } from '../net/arenaTransport';
 import { audio } from '../audio/sound';
 
 const SEAM = 46; // the membrane band between the two battlefields (world px)
 const SCROLL_MAX = HEIGHT + SEAM; // camY at full opponent view
 const RETURN_RATE = 4.2; // camera ease-home speed (fraction/sec)
 
-export function ArenaView({ setup, onExit }: { setup: ArenaMatchSetup; onExit: () => void }): JSX.Element {
+export function ArenaView({ setup, transport, onExit }: { setup: ArenaMatchSetup; transport?: ArenaTransport | null; onExit: () => void }): JSX.Element {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const offRef = useRef<HTMLCanvasElement | null>(null);
   const matchRef = useRef<ArenaMatch | null>(null);
   const match = (matchRef.current ??= new ArenaMatch(setup));
+  // HUMAN matches bind the match to its relay transport through ONE ArenaSession — command
+  // relay, beacons, digests, resync, liveness (docs/ONLINE-FOUNDATION.md §2–3). Vs-AI matches
+  // never construct one (the match drives the AI internally).
+  const sessionRef = useRef<ArenaSession | null>(null);
+  if (!setup.vsAi && transport && sessionRef.current === null) {
+    sessionRef.current = new ArenaSession(match, transport);
+  }
   const [, force] = useState(0); // HUD refresh tick (~8 Hz)
   const [selected, setSelected] = useState<TowerKind | null>(null);
   const [armed, setArmed] = useState(false); // next tap casts the hero ability
@@ -40,7 +49,7 @@ export function ArenaView({ setup, onExit }: { setup: ArenaMatchSetup; onExit: (
   const camRef = useRef({ y: 0, target: 0, inspecting: false });
   const dragRef = useRef<{ y0: number; camY0: number } | null>(null);
 
-  const oppName = setup.ai?.name ?? 'OPPONENT';
+  const oppName = setup.ai?.name ?? setup.oppName ?? 'OPPONENT';
   const oppHero = setup.ai?.heroKind ?? setup.remote.heroKind;
   const oppDivision = divisionForRating(setup.oppRating);
 
@@ -52,7 +61,9 @@ export function ArenaView({ setup, onExit }: { setup: ArenaMatchSetup; onExit: (
     const loop = (now: number): void => {
       const dt = Math.min(0.1, (now - last) / 1000);
       last = now;
-      match.step(dt);
+      // The session's step wraps match.step with the protocol work (beacons/digests/liveness).
+      if (sessionRef.current) sessionRef.current.step(dt);
+      else match.step(dt);
 
       // Camera: ease toward the target; ease HOME when not inspecting (spec: returns naturally).
       const cam = camRef.current;
@@ -76,7 +87,16 @@ export function ArenaView({ setup, onExit }: { setup: ArenaMatchSetup; onExit: (
       raf = requestAnimationFrame(loop);
     };
     raf = requestAnimationFrame(loop);
-    return () => cancelAnimationFrame(raf);
+    return () => {
+      cancelAnimationFrame(raf);
+      // Human matches: release the wire on the way out (bye is a courtesy; the peer's
+      // liveness path covers a silent exit — docs/ONLINE-FOUNDATION.md §2).
+      sessionRef.current?.close();
+      if (transport) {
+        transport.send({ t: 'bye' });
+        transport.close();
+      }
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -220,7 +240,23 @@ export function ArenaView({ setup, onExit }: { setup: ArenaMatchSetup; onExit: (
           ⏱ {Math.floor(timeLeft / 60)}:{String(Math.floor(timeLeft % 60)).padStart(2, '0')}
         </span>
         <span title="connection">
-          {setup.vsAi ? <span className="muted">⇄ LOCAL · AI</span> : <span>⇄ live</span>}
+          {setup.vsAi || !transport ? (
+            <span className="muted">⇄ LOCAL · AI</span>
+          ) : (
+            (() => {
+              // Live RTT + quality off the relay transport (§10 HUD); refreshed by the 8 Hz tick.
+              const st = transport.state();
+              const q = transport.quality();
+              const col = st !== 'open' || q === 'bad' ? 'var(--danger, #ff5d73)'
+                : q === 'poor' ? 'var(--gold, #ffd24d)'
+                : 'var(--vital, #7fd08f)';
+              return (
+                <span style={{ color: col, fontVariantNumeric: 'tabular-nums' }}>
+                  ⇄ {st === 'open' ? `${transport.rttMs()}ms · ${q}` : st === 'dropped' ? 'RECONNECTING…' : 'LOST'}
+                </span>
+              );
+            })()
+          )}
         </span>
         <button onClick={() => { if (!receipt) match.forfeitLocal(); else onExit(); }} title="Forfeit the match">
           {receipt ? 'LEAVE' : 'FORFEIT'}

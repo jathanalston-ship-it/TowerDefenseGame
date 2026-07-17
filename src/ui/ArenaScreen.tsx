@@ -11,7 +11,12 @@ import { ARENA, matchSearchState } from '../core/arena';
 import { ARENA_PASS } from '../core/arenaPass';
 import { generateAiOpponent } from '../core/arenaAi';
 import type { ArenaMatchSetup } from '../core/arenaMatch';
+import { PROTOCOL_VERSION, loadoutFingerprint } from '../core/online';
 import { rewardShort } from '../core/battlePass';
+import { arenaRelayUrl } from '../net/arenaTransport';
+import type { ArenaTransport } from '../net/arenaTransport';
+import { findArenaOpponent } from '../net/arenaMatchmaker';
+import { myDesignationTag, playerId } from '../net/identity';
 import { CurrencyIcon } from './components/CurrencyIcon';
 
 /** Deterministic-enough match id (local matches; the server treats it as an opaque dedupe key). */
@@ -19,8 +24,8 @@ function newMatchId(): string {
   return `m_${Date.now().toString(36)}_${Math.floor(Math.random() * 0xffffffff).toString(36)}`;
 }
 
-export function ArenaScreen({ onLaunchMatch }: { onLaunchMatch: (setup: ArenaMatchSetup) => void }): JSX.Element {
-  meta.use(); // re-render on every persist (claims/settles/premium)
+export function ArenaScreen({ onLaunchMatch }: { onLaunchMatch: (setup: ArenaMatchSetup, transport?: ArenaTransport) => void }): JSX.Element {
+  const save = meta.use(); // re-render on every persist (claims/settles/premium)
   const view: ArenaHubView = meta.arenaView();
   const [tab, setTab] = useState<'ladder' | 'pass'>('ladder');
   // ── The queue ──
@@ -35,21 +40,70 @@ export function ArenaScreen({ onLaunchMatch }: { onLaunchMatch: (setup: ArenaMat
 
   // The search clock: brackets widen across the window; at its end the AI opponent takes the
   // slot with the same handshake — the transition is seamless by design (docs/ARENA.md §2).
+  // With a relay configured (VITE_ARENA_RELAY_URL) the window RACES the human lane: the
+  // matchmaker hunts a bracket-fair human over the relay; whichever clock lands first owns
+  // the launch, and the loser is cancelled (docs/ONLINE-FOUNDATION.md §relay).
   useEffect(() => {
     if (!searching) return;
     const startedAt = performance.now();
     seedRef.current = (Date.now() ^ Math.floor(Math.random() * 0xffffffff)) >>> 0;
+    let done = false;
+    const boot = meta.arenaBootBundle();
+    const relay = arenaRelayUrl();
+    const mm = relay
+      ? findArenaOpponent({
+          url: relay,
+          season: view.season.index,
+          power: view.power,
+          hello: {
+            proto: PROTOCOL_VERSION, playerId: playerId(), name: save.profileName, tag: myDesignationTag(),
+            power: view.power, rating: view.rating, season: view.season.index, heroKind: boot.heroKind,
+          },
+          loadout: {
+            fingerprint: loadoutFingerprint(boot.opts.unlocked ?? [], [boot.heroKind], view.power),
+            towerKinds: boot.opts.unlocked ?? [],
+            heroKinds: [boot.heroKind],
+          },
+          boot,
+        })
+      : null;
+    if (mm) {
+      void mm.promise.then((hm) => {
+        if (!hm) return; // refused/cancelled — the window clock owns the fallback
+        if (done) {
+          hm.transport.close(); // the AI landed first in the race's final frame
+          return;
+        }
+        done = true;
+        setSearching(false);
+        onLaunchMatch({
+          matchId: hm.matchId,
+          seed: hm.seed,
+          season: view.season.index,
+          local: boot,
+          remote: hm.remoteBoot,
+          vsAi: false,
+          localPower: view.power,
+          oppPower: hm.oppHello.power,
+          oppRating: hm.oppHello.rating,
+          oppName: `${hm.oppHello.name}${hm.oppHello.tag}`,
+        }, hm.transport);
+      });
+    }
     const tick = (): void => {
       const t = (performance.now() - startedAt) / 1000;
       setElapsed(t);
       if (t >= ARENA.searchSec) {
         // No relay configured / no human in bracket — the AI opponent fills the slot.
+        if (done) return;
+        done = true;
+        mm?.cancel();
         const ai = generateAiOpponent(seedRef.current, view.power, view.divisionIndex);
         const setup: ArenaMatchSetup = {
           matchId: newMatchId(),
           seed: (seedRef.current ^ 0xa54ff53a) >>> 0,
           season: view.season.index,
-          local: meta.arenaBootBundle(),
+          local: boot,
           remote: ai.boot,
           vsAi: true,
           ai,
@@ -66,6 +120,7 @@ export function ArenaScreen({ onLaunchMatch }: { onLaunchMatch: (setup: ArenaMat
     searchRef.current = requestAnimationFrame(tick);
     return () => {
       if (searchRef.current !== null) cancelAnimationFrame(searchRef.current);
+      if (!done) mm?.cancel(); // navigated away / cancelled the queue mid-search
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searching]);

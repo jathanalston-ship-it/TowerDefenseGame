@@ -168,8 +168,15 @@ export class RelayTransport implements ArenaTransport {
   private reconnectAt = 0;
   private attempts = 0;
 
-  constructor(private readonly url: string, private readonly room: string) {
+  constructor(private readonly url: string, private room: string) {
     this.connect();
+  }
+
+  /** Re-target future (re)connects at a different room — the matchmaker calls this with the
+   *  relay-assigned match room on `paired`, so a mid-match reconnect rejoins the MATCH room
+   *  instead of re-entering the matchmaking pool (docs/ONLINE-FOUNDATION.md §relay). */
+  setRoom(room: string): void {
+    this.room = room;
   }
 
   private connect(): void {

@@ -21,6 +21,7 @@ import { InfiniteScreen } from './InfiniteScreen';
 import { BossRushScreen } from './BossRushScreen';
 import { ArenaScreen } from './ArenaScreen';
 import type { ArenaMatchSetup } from '../core/arenaMatch';
+import type { ArenaTransport } from '../net/arenaTransport';
 import { DailyScreen } from './DailyScreen';
 import { PremiumStore } from './PremiumStore';
 import { featureRevealed, featureView, nextReveals, type FeatureView } from '../state/unlocks';
@@ -199,7 +200,7 @@ export function Hub({
   onReplayTour: () => void;
   onReplayIntro: () => void;
   onSpectate: (r: ReplayRecord) => void;
-  onLaunchArenaMatch: (setup: ArenaMatchSetup) => void;
+  onLaunchArenaMatch: (setup: ArenaMatchSetup, transport?: ArenaTransport) => void;
   difficultyRef: MutableRefObject<string>;
   doctrineRef: MutableRefObject<string>;
 }): JSX.Element {

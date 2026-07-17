@@ -18,6 +18,7 @@ import { MULLIGAN_RARITY, accountMulliganPower, isMaxLevel, isMulliganActive, mu
 import { NUCLEUS_CHAMBERS, isChamberActive } from '../core/nucleus';
 import { SYMBIOTE_SLOTS, isSlotActive } from '../core/heroSymbiote';
 import { WEAK_POINT_DEFS, megaBossRegistry } from '../core/megaboss';
+import { ARENA } from '../core/arena';
 import { DOCTRINE_RANK_MAX, doctrineRank, doctrineRegistry } from '../core/doctrines';
 import type { DoctrineFamily } from '../core/doctrines';
 import { highestCampaignStage } from '../save/derive';
@@ -246,11 +247,30 @@ export const ACHIEVEMENTS: AchievementDef[] = [
   { id: 'evo_first_loop', name: 'The Helix Reforms', desc: 'EVOLVE a Mastery Evolution Track for the first time — complete a 100-level loop and prestige it.', reward: 60, test: (c) => Object.values(c.save.masteryEvolution ?? {}).some((st) => st.prestige >= 1) },
   { id: 'evo_five_loops', name: 'Serial Mutator', desc: 'Complete five Evolution loops across the roster.', reward: 120, test: (c) => evolutionLoops(c.save) >= 5, progress: (c) => ({ cur: Math.min(5, evolutionLoops(c.save)), max: 5 }) },
   { id: 'evo_ancestral', name: 'Ancestral Strand', desc: 'Carry one organism into its fourth loop (Prestige 4).', hidden: true, reward: 200, test: (c) => Object.values(c.save.masteryEvolution ?? {}).some((st) => st.prestige >= 3) },
+  // ── The Proving Grounds (docs/ARENA.md §recognition) — rating watermarks ride `peak`
+  //    (lifetime, never resets) so a seasonal soft reset can't strand a division milestone;
+  //    streak/placements are live season values (a momentarily-true test latches forever). ──
+  { id: 'arena_first_match', name: 'First Trial', desc: 'Settle your first Arena match — win or lose, the Grounds remember.', reward: 15, test: (c) => arenaMatches(c.save) >= 1 },
+  { id: 'arena_first_win', name: 'Proven', desc: 'Take your first Arena victory.', reward: 25, test: (c) => c.save.arena.lifetimeWins >= 1 },
+  { id: 'arena_placed', name: 'Placed', desc: 'Complete all five placement matches in a season.', reward: 30, test: (c) => c.save.arena.season > 0 && c.save.arena.placements === 0, progress: (c) => ({ cur: c.save.arena.season > 0 ? ARENA.placementMatches - c.save.arena.placements : 0, max: ARENA.placementMatches }) },
+  { id: 'arena_streak5', name: 'Rampage', desc: 'Win five Arena matches in a row.', reward: 60, test: (c) => c.save.arena.streak >= 5, progress: (c) => ({ cur: Math.min(5, c.save.arena.streak), max: 5 }) },
+  { id: 'arena_larval', name: 'Larval Ascent', desc: 'Reach the Larval division (1000 rating).', reward: 30, test: (c) => c.save.arena.peak >= 1000, progress: (c) => ({ cur: c.save.arena.peak, max: 1000 }) },
+  { id: 'arena_chrysalis', name: 'Chrysalis Shell', desc: 'Reach the Chrysalis division (1800 rating) — where the decay bites.', reward: 60, test: (c) => c.save.arena.peak >= 1800, progress: (c) => ({ cur: c.save.arena.peak, max: 1800 }) },
+  { id: 'arena_apex', name: 'Apex Strain', desc: 'Reach the Apex Strain division (2800 rating) — the ladder holds nothing higher.', reward: 150, test: (c) => c.save.arena.peak >= 2800, progress: (c) => ({ cur: c.save.arena.peak, max: 2800 }) },
+  { id: 'arena_wins25', name: 'Arena Veteran', desc: 'Win 25 Arena matches (lifetime).', reward: 60, test: (c) => c.save.arena.lifetimeWins >= 25, progress: (c) => ({ cur: c.save.arena.lifetimeWins, max: 25 }) },
+  { id: 'arena_wins100', name: 'Warlord of the Grounds', desc: 'Win 100 Arena matches (lifetime).', reward: 120, test: (c) => c.save.arena.lifetimeWins >= 100, progress: (c) => ({ cur: c.save.arena.lifetimeWins, max: 100 }) },
+  { id: 'arena_crown', name: 'The Season Crown', desc: 'Claim Arena Pass level 100 — a permanently arena-exclusive strain is yours forever.', reward: 150, test: (c) => c.save.arena.exclusives.length >= 1 },
+  { id: 'arena_perennial', name: 'Perennial', desc: 'Close three Arena seasons with a record on the books.', reward: 50, test: (c) => c.save.arena.history.length >= 3, progress: (c) => ({ cur: c.save.arena.history.length, max: 3 }) },
 ];
 
 /** Total completed Evolution loops (prestiges) across every tower and hero. */
 function evolutionLoops(s: SaveData): number {
   return Object.values(s.masteryEvolution ?? {}).reduce((a, st) => a + Math.max(0, st.prestige), 0);
+}
+
+/** Lifetime Arena matches settled (docs/ARENA.md — wins + losses; draws pay neither ledger). */
+function arenaMatches(s: SaveData): number {
+  return s.arena.lifetimeWins + s.arena.lifetimeLosses;
 }
 
 /** Strands permanently DISCOVERED (docs/CARDS.md §discovery) — the Archive count. */

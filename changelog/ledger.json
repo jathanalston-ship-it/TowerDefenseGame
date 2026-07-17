@@ -1,6 +1,6 @@
 {
-  "lastSha": "7f98c3fe7569e3c2e94980686d9e170316a5e4be",
-  "commitsSinceDraft": 4,
+  "lastSha": "aab74f5af56054808d66daf47c4770bfe28e5a24",
+  "commitsSinceDraft": 5,
   "content": {
     "tower": [
       "needle",
@@ -220,7 +220,18 @@
       "return_from_deep",
       "evo_first_loop",
       "evo_five_loops",
-      "evo_ancestral"
+      "evo_ancestral",
+      "arena_first_match",
+      "arena_first_win",
+      "arena_placed",
+      "arena_streak5",
+      "arena_larval",
+      "arena_chrysalis",
+      "arena_apex",
+      "arena_wins25",
+      "arena_wins100",
+      "arena_crown",
+      "arena_perennial"
     ],
     "system": [
       "engine",
@@ -1500,6 +1511,61 @@
       "title": "The Living World Update",
       "sealed": false,
       "entries": [
+        {
+          "cat": "Gameplay",
+          "text": "New achievement: Perennial",
+          "major": true
+        },
+        {
+          "cat": "Gameplay",
+          "text": "New achievement: The Season Crown",
+          "major": true
+        },
+        {
+          "cat": "Gameplay",
+          "text": "New achievement: Warlord of the Grounds",
+          "major": true
+        },
+        {
+          "cat": "Gameplay",
+          "text": "New achievement: Arena Veteran",
+          "major": true
+        },
+        {
+          "cat": "Gameplay",
+          "text": "New achievement: Apex Strain",
+          "major": true
+        },
+        {
+          "cat": "Gameplay",
+          "text": "New achievement: Chrysalis Shell",
+          "major": true
+        },
+        {
+          "cat": "Gameplay",
+          "text": "New achievement: Larval Ascent",
+          "major": true
+        },
+        {
+          "cat": "Gameplay",
+          "text": "New achievement: Rampage",
+          "major": true
+        },
+        {
+          "cat": "Gameplay",
+          "text": "New achievement: Placed",
+          "major": true
+        },
+        {
+          "cat": "Gameplay",
+          "text": "New achievement: Proven",
+          "major": true
+        },
+        {
+          "cat": "Gameplay",
+          "text": "New achievement: First Trial",
+          "major": true
+        },
         {
           "cat": "Heroes",
           "text": "New hero: Chimera",
@@ -4598,6 +4664,14 @@
     },
     {
       "sha": "7f98c3fe7569e3c2e94980686d9e170316a5e4be",
+      "date": "2026-07-16",
+      "cat": "Developer Tools",
+      "text": "Online Foundation saga: docs, DIL knowledge, manifest, status board, validation record",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "aab74f5af56054808d66daf47c4770bfe28e5a24",
       "date": "2026-07-16",
       "cat": "Developer Tools",
       "text": "Online Foundation saga: docs, DIL knowledge, manifest, status board, validation record",

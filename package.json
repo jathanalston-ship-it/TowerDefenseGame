@@ -6,7 +6,7 @@
   },
   "version": "1.0.0",
   "type": "module",
-  "description": "ASSIMILATION \u2014 a cyberpunk bio-horror tower defense (playable vertical slice). Static React + TypeScript + Vite app, built for Cloudflare Pages.",
+  "description": "ASSIMILATION — a cyberpunk bio-horror tower defense (playable vertical slice). Static React + TypeScript + Vite app, built for Cloudflare Pages.",
   "scripts": {
     "dev": "vite",
     "build": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p functions/tsconfig.json && vite build && node scripts/stamp-sw.mjs",
@@ -36,7 +36,8 @@
     "sim:progression": "vite-node scripts/sim-progression.ts",
     "sim:report": "vite-node scripts/sim-balance-report.ts",
     "pil": "vite-node scripts/pil.ts",
-    "unlocks": "vite-node scripts/gen-unlocks.ts"
+    "unlocks": "vite-node scripts/gen-unlocks.ts",
+    "relay": "vite-node scripts/arena-relay.ts"
   },
   "dependencies": {
     "react": "^18.3.1",
@@ -47,10 +48,12 @@
     "@types/node": "^26.1.0",
     "@types/react": "^18.3.11",
     "@types/react-dom": "^18.3.1",
+    "@types/ws": "^8.18.1",
     "@vitejs/plugin-react": "^4.3.3",
     "playwright-core": "^1.47.2",
     "typescript": "^5.6.3",
     "vite": "^5.4.10",
-    "vitest": "^2.1.4"
+    "vitest": "^2.1.4",
+    "ws": "^8.21.1"
   }
 }

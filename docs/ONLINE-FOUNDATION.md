@@ -100,10 +100,39 @@ queued facts the next sync reconciles — never client-invented values.
   / jitter / drop model, so high-latency and disconnect behavior is exercised in CI, not
   discovered in production.
 - **RelayTransport** — WebSocket to `VITE_ARENA_RELAY_URL` (heartbeat, RTT, backoff reconnect,
-  resync on rejoin). Ships DORMANT: without a configured relay the matchmaker always resolves
-  to the AI opponent at the search window's end — the seamless fallback is the launch
-  experience, and real infrastructure is a config value + a Durable-Objects relay away
-  (documented in DEPLOYMENT.md's future-work section; the protocol is transport-agnostic).
+  resync on rejoin). Without a configured relay it stays dormant and every queue resolves to
+  the AI opponent at the search window's end — the seamless fallback is the launch experience.
+
+### §relay — the room server + human matchmaking (brought up 2026-07)
+
+- **The server** is two layers: `functions/lib/arenaRelayRoom.ts` — the PURE `RelayBroker`
+  (no sockets, no node imports; joins/messages/closes in, wire actions out) — bound to real
+  WebSockets by `scripts/arena-relay.ts` (**`npm run relay`**, port `ARENA_RELAY_PORT` ∨ 8899,
+  `ws` devDependency). The broker's purity is deliberate: the SAME module moves onto a
+  Durable-Objects room without a rewrite, and CI tests the pairing contract socket-free
+  (`functions/arenaRelay.test.ts`) plus a REAL-socket end-to-end (`net/arenaMatchmaker.test.ts`
+  spins the server on an ephemeral port and runs a live two-client session exchange).
+- **Room semantics:** `?room=mm:<key>` is a MATCHMAKING key — first client waits, second
+  pairs; both move into a fresh `r<n>` room and receive `paired {room, role}` (waiter =
+  role 0). Any other `?room=` is a DIRECT room (reconnects; private matches later), capacity
+  exactly 2 (third join → close 4001). Paired traffic forwards VERBATIM (the relay is a pipe
+  and parses nothing); unpaired `ping`s are answered by the broker so a waiting client's
+  heartbeat never starves. A leaver's peer holds the room — the rejoin comes back by room id.
+- **The client lane** (`net/arenaMatchmaker.ts`): `findArenaOpponent` races the queue console's
+  20-second window. Handshake: `paired` → both send `hello · loadout · boot` → each side runs
+  `peerProblem` (protocol / season / LIVE-bracket fairness at the current search width /
+  `bootBundleProblem` bounds / loadout-fingerprint honesty) → role 0 proposes
+  `ready {matchId, seed}` → role 1 validates and ECHOES it (the echo is the accept) → both
+  resolve the SAME matchId/seed and hand the live transport to the ArenaView, whose
+  ArenaSession takes the stream (a command sent in the handoff beat self-heals via the seq-gap
+  → resync lane). Anything wrong resolves `null` — the AI fallback owns the window end.
+- **Matchmaking keys** are `mm:s<season>.p<round(log2 power)>` — one power band ≈ the widened
+  end-bracket. Two fair players straddling a band edge can miss each other (accepted for
+  bring-up; the AI fallback covers it); the pure `matchSearchState` bracket remains the real
+  fairness gate on BOTH clients.
+- **Reconnect targeting:** on `paired` the matchmaker calls `RelayTransport.setRoom(room)` so
+  a mid-match reconnect rejoins the MATCH room — never the matchmaking pool, where a stranger's
+  commands would corrupt the mirror.
 
 ## 6. What a future online feature must do
 
@@ -115,9 +144,12 @@ queued facts the next sync reconciles — never client-invented values.
 
 ## Known limitations
 
-- No deployed realtime relay yet — live cross-device PvP awaits a Durable-Objects (or
-  equivalent) relay; until then every match past the search window is vs the AI framework
-  (which fields real builds and plays the real sim — see ARENA.md §ai).
+- The relay is self-hosted infrastructure (`npm run relay` — any node host), not yet a
+  deployed Cloudflare service; without `VITE_ARENA_RELAY_URL` baked at build time every match
+  past the search window is vs the AI framework (which fields real builds and plays the real
+  sim — see ARENA.md §ai). The broker is DO-portable by construction when that migration lands.
+- Matchmaking pairs within one `log2` power band per key — a fair pair straddling a band edge
+  waits for the AI fallback instead (§relay).
 - Command-log resync assumes both peers keep the log for the match duration (they do — it is
   also the anti-cheat evidence object).
 - `arenaStateDigest` is a tripwire, not a proof; authoritative adjudication is the server-side

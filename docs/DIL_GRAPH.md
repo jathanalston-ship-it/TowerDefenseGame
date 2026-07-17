@@ -1,6 +1,6 @@
 # DIL_GRAPH.md — the Design Intelligence Layer (GENERATED — `npm run dil -- regen`)
 
-> **The project's brain** (docs/DIL.md). 844 nodes · 1564 edges, built from the live
+> **The project's brain** (docs/DIL.md). 856 nodes · 1600 edges, built from the live
 > registries + curated knowledge (src/dev/dil/). **Query it instead of searching the repo:**
 > `npm run dil -- node <id>` · `affects <id>` · `requires <id>` · `missing <kind> <edge>` ·
 > `checklist tower <kind>` · `find <text>`. Edge kinds are bidirectional (19 kinds).
@@ -22,7 +22,7 @@
 
 ### Economy / Reward Index
 
-`currency:biomass` · `currency:genome-cores` · `currency:tower-shards` · `currency:hero-shards` · `currency:gene-essence` · `currency:materials` · `currency:stamina` · `currency:ichor` · `system:campaign` · `system:infinite` · `system:boss-rush` · `system:daily` · `system:loot` · `system:daily-login` · `system:achievements` · `system:directives` · `system:expeditions` · `system:doctrines` · `enemy:runner` · `enemy:mite` · `enemy:husk` · `enemy:flea` · `enemy:mold` · `enemy:skulker` · `enemy:larva` · `enemy:rusher` · `enemy:darter` · `enemy:lasher` · `enemy:brute` · `enemy:tank` · `enemy:golem` · `enemy:colossus` · `enemy:bulwark` · `enemy:warden` · `enemy:knitter` · `enemy:revenant` · `enemy:burrower` · `enemy:molerat` · `enemy:flyer` · `enemy:wisp` · `enemy:gargoyle` · `enemy:cystwraith` · `enemy:broodmother` · `enemy:hivecaller` · `enemy:mender` · `enemy:cantor` · `enemy:bomber` · `enemy:popper` · `enemy:sapper` · `enemy:cataclyst` · `enemy:siegeworm` · `enemy:spitter` · `enemy:stratovore` · `enemy:broodweaver` · `enemy:zealot` · `enemy:carrier` · `enemy:entrencher` · `enemy:oracle` · `enemy:glutling` · `enemy:apex` · …111 more
+`currency:biomass` · `currency:genome-cores` · `currency:tower-shards` · `currency:hero-shards` · `currency:gene-essence` · `currency:materials` · `currency:stamina` · `currency:ichor` · `system:campaign` · `system:infinite` · `system:boss-rush` · `system:daily` · `system:loot` · `system:daily-login` · `system:achievements` · `system:directives` · `system:expeditions` · `system:doctrines` · `enemy:runner` · `enemy:mite` · `enemy:husk` · `enemy:flea` · `enemy:mold` · `enemy:skulker` · `enemy:larva` · `enemy:rusher` · `enemy:darter` · `enemy:lasher` · `enemy:brute` · `enemy:tank` · `enemy:golem` · `enemy:colossus` · `enemy:bulwark` · `enemy:warden` · `enemy:knitter` · `enemy:revenant` · `enemy:burrower` · `enemy:molerat` · `enemy:flyer` · `enemy:wisp` · `enemy:gargoyle` · `enemy:cystwraith` · `enemy:broodmother` · `enemy:hivecaller` · `enemy:mender` · `enemy:cantor` · `enemy:bomber` · `enemy:popper` · `enemy:sapper` · `enemy:cataclyst` · `enemy:siegeworm` · `enemy:spitter` · `enemy:stratovore` · `enemy:broodweaver` · `enemy:zealot` · `enemy:carrier` · `enemy:entrencher` · `enemy:oracle` · `enemy:glutling` · `enemy:apex` · …122 more
 
 ### Power Score Index
 
@@ -671,7 +671,7 @@ The permanent meta currency — genome upgrades, rewards, achievement payouts.
   - rewardedBy ← `achievement:specialist` — +25 on unlock
   - rewardedBy ← `achievement:mulligan_grafted` — +25 on unlock
   - rewardedBy ← `achievement:mulligan_splicer` — +40 on unlock
-  - _…107 more (query: `npm run dil -- node currency:genome-cores`)_
+  - _…118 more (query: `npm run dil -- node currency:genome-cores`)_
 
 ### `currency:tower-shards` — Tower Shards (✦)
 
@@ -1034,12 +1034,13 @@ _at: src/net/identity.ts, src/net/checkout.ts, src/net/cloudSave.ts, src/net/syn
   - testedBy ← `test:src/net/replayShare.test.ts`
   - testedBy ← `test:src/net/syncEngine.test.ts`
   - extendedBy ← `system:arena` — SERVER AUTHORITY (ARENA.md §7): settleArenaMatch (guarded arena.settle, exactly-once by matchId in save.arena.settledMatchIds) and functions/api/arena/report.ts run the SAME shared validators (arenaClaimProblem/ratingDelta/arenaMatchRewards from src/core/arena.ts — the premium.ts shared-import precedent); the server derives rating from STORED state and rewards from its OWN division read — client amounts are never fields in the protocol; net/arenaReport.ts is fail-soft (offline/guest ⇒ local settle stands, reconciled later)
+  - extendedBy ← `system:online-foundation` — THE RELAY (ONLINE-FOUNDATION.md §relay): human matchmaking = ArenaScreen racing findArenaOpponent (net/arenaMatchmaker.ts) against the 20s AI window — paired {room,role} → hello/loadout/boot → peerProblem gate (proto/season/LIVE bracket/bootBundleProblem/fingerprint) → role 0 proposes ready{matchId,seed}, role 1 ECHOES it (the accept); RelayTransport.setRoom re-targets reconnects at the assigned r<n> room so a mid-match rejoin NEVER re-enters the mm: pool (a stranger's cmds would corrupt the mirror); the ws server is the PURE RelayBroker (functions/lib/arenaRelayRoom.ts — pairing keys mm:s<season>.p<log2 power band>, verbatim forwarding, unpaired-ping answering, rooms HELD for the reconnect window) bound by scripts/arena-relay.ts (npm run relay, ws devDep) — portable to a Durable Object verbatim because the broker has no node imports
 
 ### `system:online-foundation` — Online Foundation
 
 The authoritative online architecture every online feature inherits (docs/ONLINE-FOUNDATION.md): the replicated command vocabulary + ONE applyArenaCommand path onto the Game intents, the versioned wire protocol (deterministic lockstep — only commands cross the wire; command-log replay IS rollback/reconnect), state digests (desync/tamper alarm), the server-authority policy table, and the Auction House backend prep — per-item provenance stamps (source/time/season/bound/ownership history, self-healing coverage on every load) + trade eligibility/fees/fraud heuristics denominated in Ichor (docs/TRADING-PREP.md). No trading gameplay/UI exists by design.
 
-_at: src/core/online.ts, src/core/itemIdentity.ts, src/core/trading.ts, src/net/arenaTransport.ts, src/net/arenaSession.ts_
+_at: src/core/online.ts, src/core/itemIdentity.ts, src/core/trading.ts, src/net/arenaTransport.ts, src/net/arenaSession.ts, src/net/arenaMatchmaker.ts_
 
   - dependsOn → `system:engine`
   - dependsOn → `system:content-infra`
@@ -1047,11 +1048,13 @@ _at: src/core/online.ts, src/core/itemIdentity.ts, src/core/trading.ts, src/net/
   - consumes → `system:meta-store` — owns save field 'provenance'
   - extends → `concept:determinism` — DETERMINISTIC LOCKSTEP (ONLINE-FOUNDATION.md §2–3): a PvP match is TWO sims from one shared seed; only COMMANDS cross the wire; applyArenaCommand (core/online.ts) is the ONE application path (local echo, mirror, AI alike) so anti-cheat holds by construction (commands are intents — the sim itself rejects forged affordability); the MIRROR is FRONTIER-BOUNDED (never simulates past the newest received sender tick) so commands apply on their EXACT stamped ticks — the live mirror and a command-log replay are byte-identical, which makes replayRemoteFromLog the rollback AND the reconnect primitive; digest beacons (arenaStateDigest, quantized ×16) compare at exact ticks and SELF-HEAL through resyncReq on mismatch
   - extends → `system:meta-store` — ITEM PROVENANCE (TRADING-PREP.md, save v47): save.provenance holds one stamp per owned tradable (eq:<uid>/cos:<id>/gene:<id> — source/at/season/bound/transfers/history); reconcileProvenance runs inside withDefaults AND defaultSave (coverage is a LOAD-TIME INVARIANT — owned-but-unstamped backfills legacy, dead equipment uids prune, force-bound refs re-bind); applyRewardList stamps granted cosmetics at the chokepoint with its provenanceSource arg; ONLY cosmetics/equipment/geneCards are tradable categories, trading itself is server-only (PROGRESSION_AUTHORITY), and bindItem is deliberately one-way
+  - extends → `system:net-backend` — THE RELAY (ONLINE-FOUNDATION.md §relay): human matchmaking = ArenaScreen racing findArenaOpponent (net/arenaMatchmaker.ts) against the 20s AI window — paired {room,role} → hello/loadout/boot → peerProblem gate (proto/season/LIVE bracket/bootBundleProblem/fingerprint) → role 0 proposes ready{matchId,seed}, role 1 ECHOES it (the accept); RelayTransport.setRoom re-targets reconnects at the assigned r<n> room so a mid-match rejoin NEVER re-enters the mm: pool (a stranger's cmds would corrupt the mirror); the ws server is the PURE RelayBroker (functions/lib/arenaRelayRoom.ts — pairing keys mm:s<season>.p<log2 power band>, verbatim forwarding, unpaired-ping answering, rooms HELD for the reconnect window) bound by scripts/arena-relay.ts (npm run relay, ws devDep) — portable to a Durable Object verbatim because the broker has no node imports
   - requiredBy ← `system:arena`
   - documentedBy ← `doc:ONLINE-FOUNDATION.md`
   - documentedBy ← `doc:TRADING-PREP.md`
   - testedBy ← `test:src/core/itemIdentity.test.ts`
   - testedBy ← `test:src/core/online.test.ts`
+  - testedBy ← `test:src/net/arenaMatchmaker.test.ts`
 
 ### `system:arena` — Arena (Live PvP)
 
@@ -1070,12 +1073,20 @@ _at: src/core/arena.ts, src/core/arenaPass.ts, src/core/arenaAi.ts, src/core/are
   - conflictsWith → `concept:golden-test` — ARENA GOLDEN SAFETY: RunOptions.noMega gates spawnMegaBoss (absent ⇒ unchanged — the arena ruleset bans megas); arenaExclusive towers have NO unlockShards yet are NOT starters (starterTowers/isTowerUnlocked/towerShardGateMet all special-case the flag — forgetting one leaks the Pass crowns to everyone); arenaIdleDividend(0) is EXACTLY 1 and idleRatePerHour/idleCapHours/idleAccrual default their arena params to identity so every pre-arena call site is byte-unchanged; a fresh save.arena (season 0, rating 0) is inert
   - extends → `system:battle-pass` — THE ARENA PASS speaks PassReward (core/battlePass.ts) so meta.applyRewardList pays both passes — but its tables are PROCEDURAL (seeded per season, arenaPassTrack cache) with a HARD Ichor cap enforced at generation (ARENA_PASS_ICHOR_CAP — overflow converts to cores; the economy law is structural, not statistical); XP is WINS-ONLY (ARENA.winPassXp via settleArenaMatch — losses/draws pay zero track progress); level 100 grants the season exclusive through grantArenaExclusive (the FOREVER ledger save.arena.exclusives — survives season rolls; heroMilestoneMet kind 'arena' reads it for the Chimera)
   - extends → `system:net-backend` — SERVER AUTHORITY (ARENA.md §7): settleArenaMatch (guarded arena.settle, exactly-once by matchId in save.arena.settledMatchIds) and functions/api/arena/report.ts run the SAME shared validators (arenaClaimProblem/ratingDelta/arenaMatchRewards from src/core/arena.ts — the premium.ts shared-import precedent); the server derives rating from STORED state and rewards from its OWN division read — client amounts are never fields in the protocol; net/arenaReport.ts is fail-soft (offline/guest ⇒ local settle stands, reconciled later)
+  - extends → `system:achievements` — ARENA RECOGNITION (ARENA.md §recognition): 11 arena_* achievement rows are pure predicates over save.arena — division watermarks ride PEAK (lifetime, never soft-reset) not live rating; arena_placed requires season > 0 (a fresh record has placements=5 at season 0 and must NOT fire); streak/placements are live season values whose momentarily-true tests latch forever via save.achievements; settleArenaMatch/claimArenaPassLevel already call evaluateAchievements so the rows need NO new triggers; the pvp Profile section (state/profile.ts) is the ONE declared-empty section on a fresh save (hidden until first arena touch — profile.test.ts pins it)
   - taughtBy ← `help:arena`
-  - documentedBy ← `doc:ARENA.md`
-  - testedBy ← `test:src/core/arena.test.ts`
-  - testedBy ← `test:src/core/arenaAi.test.ts`
-  - testedBy ← `test:src/core/arenaMatch.test.ts`
-  - testedBy ← `test:src/core/arenaPass.test.ts`
+  - referencedBy ← `achievement:arena_first_match`
+  - referencedBy ← `achievement:arena_first_win`
+  - referencedBy ← `achievement:arena_placed`
+  - referencedBy ← `achievement:arena_streak5`
+  - referencedBy ← `achievement:arena_larval`
+  - referencedBy ← `achievement:arena_chrysalis`
+  - referencedBy ← `achievement:arena_apex`
+  - referencedBy ← `achievement:arena_wins25`
+  - referencedBy ← `achievement:arena_wins100`
+  - referencedBy ← `achievement:arena_crown`
+  - referencedBy ← `achievement:arena_perennial`
+  - _…5 more (query: `npm run dil -- node system:arena`)_
 
 ### `system:towers` — Towers, Stars, Branches, Strain & Codex
 
@@ -1566,7 +1577,7 @@ _at: src/state/achievements.ts, src/ui/AchievementPanel.tsx, src/ui/AchievementT
   - contains ← `achievement:star3`
   - contains ← `achievement:specialist`
   - contains ← `achievement:hero_shard`
-  - _…101 more (query: `npm run dil -- node system:achievements`)_
+  - _…113 more (query: `npm run dil -- node system:achievements`)_
 
 ### `system:stats` — Lifetime Stats
 
@@ -3277,7 +3288,7 @@ _at: site/guides.ts → /guides/prestige/_
   - partOf → `system:website`
   - documents → `system:prestige`
 
-## Achievements (110)
+## Achievements (121)
 
 - `achievement:tutorial_complete` — Complete the Combat Tutorial. _(partOf `system:achievements`, rewards `currency:genome-cores`)_
 - `achievement:first_run` — Finish your first run. _(partOf `system:achievements`, rewards `currency:genome-cores`)_
@@ -3389,6 +3400,17 @@ _at: site/guides.ts → /guides/prestige/_
 - `achievement:evo_first_loop` — EVOLVE a Mastery Evolution Track for the first time — complete a 100-level loop and prestige it. _(partOf `system:achievements`, rewards `currency:genome-cores`)_
 - `achievement:evo_five_loops` — Complete five Evolution loops across the roster. _(partOf `system:achievements`, rewards `currency:genome-cores`)_
 - `achievement:evo_ancestral` — Carry one organism into its fourth loop (Prestige 4). _(partOf `system:achievements`, rewards `currency:genome-cores`)_
+- `achievement:arena_first_match` — Settle your first Arena match — win or lose, the Grounds remember. _(partOf `system:achievements`, rewards `currency:genome-cores`, references `system:arena`)_
+- `achievement:arena_first_win` — Take your first Arena victory. _(partOf `system:achievements`, rewards `currency:genome-cores`, references `system:arena`)_
+- `achievement:arena_placed` — Complete all five placement matches in a season. _(partOf `system:achievements`, rewards `currency:genome-cores`, references `system:arena`)_
+- `achievement:arena_streak5` — Win five Arena matches in a row. _(partOf `system:achievements`, rewards `currency:genome-cores`, references `system:arena`)_
+- `achievement:arena_larval` — Reach the Larval division (1000 rating). _(partOf `system:achievements`, rewards `currency:genome-cores`, references `system:arena`)_
+- `achievement:arena_chrysalis` — Reach the Chrysalis division (1800 rating) — where the decay bites. _(partOf `system:achievements`, rewards `currency:genome-cores`, references `system:arena`)_
+- `achievement:arena_apex` — Reach the Apex Strain division (2800 rating) — the ladder holds nothing higher. _(partOf `system:achievements`, rewards `currency:genome-cores`, references `system:arena`)_
+- `achievement:arena_wins25` — Win 25 Arena matches (lifetime). _(partOf `system:achievements`, rewards `currency:genome-cores`, references `system:arena`)_
+- `achievement:arena_wins100` — Win 100 Arena matches (lifetime). _(partOf `system:achievements`, rewards `currency:genome-cores`, references `system:arena`)_
+- `achievement:arena_crown` — Claim Arena Pass level 100 — a permanently arena-exclusive strain is yours forever. _(partOf `system:achievements`, rewards `currency:genome-cores`, references `system:arena`)_
+- `achievement:arena_perennial` — Close three Arena seasons with a record on the books. _(partOf `system:achievements`, rewards `currency:genome-cores`, references `system:arena`)_
 
 ## Documentation (174)
 
@@ -3567,7 +3589,7 @@ _at: site/guides.ts → /guides/prestige/_
 - `doc:VOWS.md` — project documentation _(documents `system:prestige`)_
 - `doc:WEBSITE.md` — project documentation _(documents `system:field-research`, documents `system:website`)_
 
-## Tests (275)
+## Tests (276)
 
 - `test:src/audio/music.test.ts` — automated validation _(tests `system:audio`)_
 - `test:src/changelog/classify.test.ts` — automated validation _(tests `system:chronicle`)_
@@ -3733,6 +3755,7 @@ _at: site/guides.ts → /guides/prestige/_
 - `test:src/dev/tutorialAnchors.test.ts` — automated validation _(tests `system:dev-registry`)_
 - `test:src/dev/uiStandards.test.ts` — automated validation _(tests `system:dev-registry`)_
 - `test:src/i18n/i18n.test.ts` — automated validation _(tests `system:engine`)_
+- `test:src/net/arenaMatchmaker.test.ts` — automated validation _(tests `system:online-foundation`)_
 - `test:src/net/arenaNetcode.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/net/replayShare.test.ts` — automated validation _(tests `system:net-backend`, tests `system:website`)_
 - `test:src/net/syncEngine.test.ts` — automated validation _(tests `system:accounts`, tests `system:net-backend`)_
