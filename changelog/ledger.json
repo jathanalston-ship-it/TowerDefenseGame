@@ -1,6 +1,6 @@
 {
-  "lastSha": "5d8c03a3c5e37d8169c0128d6d7fb242ea191cc8",
-  "commitsSinceDraft": 8,
+  "lastSha": "81a73c09beec152bc23f5ac624a481ad775d3888",
+  "commitsSinceDraft": 0,
   "content": {
     "tower": [
       "needle",
@@ -2769,6 +2769,14 @@
         {
           "cat": "Gene Cards",
           "text": "Effect language: digit-free draft text generated from card effects"
+        },
+        {
+          "cat": "Website",
+          "text": "Rituals: chronicle + site regen, handoff + status board for the effect language"
+        },
+        {
+          "cat": "Gameplay",
+          "text": "Hub Ready Chain: the live harvest queue that never forgets earned value"
         }
       ]
     }
@@ -5004,6 +5012,22 @@
       "cat": "Website",
       "text": "Rituals: chronicle + site regen, handoff + status board for the effect language",
       "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "24c5d399cdc2b9f479592defe74d8133ec1f8eee",
+      "date": "2026-07-17",
+      "cat": "Website",
+      "text": "Rituals: chronicle + site regen, handoff + status board for the effect language",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "81a73c09beec152bc23f5ac624a481ad775d3888",
+      "date": "2026-07-17",
+      "cat": "Gameplay",
+      "text": "Hub Ready Chain: the live harvest queue that never forgets earned value",
+      "internal": false,
       "needsReview": false
     }
   ]

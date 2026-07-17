@@ -1200,6 +1200,14 @@
       {
         "cat": "Gene Cards",
         "text": "Effect language: digit-free draft text generated from card effects"
+      },
+      {
+        "cat": "Website",
+        "text": "Rituals: chronicle + site regen, handoff + status board for the effect language"
+      },
+      {
+        "cat": "Gameplay",
+        "text": "Hub Ready Chain: the live harvest queue that never forgets earned value"
       }
     ]
   },

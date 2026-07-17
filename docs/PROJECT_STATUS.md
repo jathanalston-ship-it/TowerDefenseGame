@@ -3,7 +3,25 @@
 > Maintained at the END of every session (paired with `docs/AI_HANDOFF.md` — the constitution's
 > workflow step 4). This is the "where are we?" answer; `docs/GAME-STATE.md` remains the deeper
 > per-system built-vs-planned index, `docs/PROJECT_MANIFEST.md` the system map.
-> **Last updated:** 2026-07-17f (**THE GENE-DRAFT EFFECT LANGUAGE** — the in-run draft
+> **Last updated:** 2026-07-17g (**THE HUB READY CHAIN** — the hub-redesign brief's
+> momentum layer (docs/HUB-FLOW.md; builds ON the twin's Reward Loop Architecture, never
+> beside it). The structural audit finding: EVERY attention surface (badges/reasons/
+> recommendations) was seen-watermark-gated and Hub.go marks-seen per visit — a visited-
+> but-unclaimed reward went dark hub-wide (the "forgot what I earned" failure). Fix:
+> `notifications.live()` (the watermark-FREE truth lane) + `state/readyChain.ts` — every
+> live claim/open stop, classified by the now-exported CHANNEL_CLASS vocabulary (a future
+> claim surface joins chain+badges+recommendations with ONE registerNotification), urgency-
+> ordered, presentation-pure. Surfaces: the Command Center recommend widget leads with
+> "◈ READY CHAIN — N STOPS" (one-tap gold rows) above Recommended-Now; hub doors, landing
+> cards, portrait tabs + index rows breathe `.is-ready` (readiness pulses, novelty stays
+> the numeric badge; reduced-motion → static glow); NextUp hands claims node→node with the
+> remaining count before the rotated-recommendation fallback. Consolidation decision
+> recorded: navigation reduced by FLOW, screens stay (contract-bound). Verified: 6 chain
+> units (incl. the watermark-independence law), headless chain-ride probe (centerpiece →
+> vault → back home with the stop still live; landing + portrait pulses), suite 2433
+> green, mobilecheck CLEAN. Previous below.)
+>
+> **2026-07-17f** (**THE GENE-DRAFT EFFECT LANGUAGE** — the in-run draft
 > readability overhaul (user brief; CARDS.md §language). `src/core/effectLanguage.ts` is the
 > game-wide descriptor system: an 8-band impact scale (Very Slightly → Overwhelmingly,
 > configurable thresholds), a 12-category color/glyph palette (Damage deep red ▲ … Tower

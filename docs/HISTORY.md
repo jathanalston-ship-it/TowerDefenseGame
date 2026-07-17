@@ -301,3 +301,5 @@
 - `4680ab8` **[Framework]** Handoff notes for the reward architecture session _(internal)_
 - `55435bd` **[Gene Cards]** Effect language: digit-free draft text generated from card effects
 - `5d8c03a` **[Website]** Rituals: chronicle + site regen, handoff + status board for the effect language _(internal)_
+- `24c5d39` **[Website]** Rituals: chronicle + site regen, handoff + status board for the effect language
+- `81a73c0` **[Gameplay]** Hub Ready Chain: the live harvest queue that never forgets earned value
