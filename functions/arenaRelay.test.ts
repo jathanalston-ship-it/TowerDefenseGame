@@ -72,10 +72,22 @@ describe('leave + reconnect (the room HOLDS for the rejoin)', () => {
     const room = paired(b.join(2, 'mm:k'), 1).room;
     const onLeave = b.leave(2);
     expect(decodeArenaMessage((onLeave[0] as { raw: string }).raw)?.t).toBe('bye');
-    // The peer is alone but the room persists — the rejoiner comes back by ROOM id.
-    expect(b.join(3, room)).toEqual([]);
+    // The peer is alone but the room persists — the rejoiner comes back by ROOM id. The
+    // refill re-emits `paired` (live sessions ignore it) and forwarding resumes.
+    const rejoin = b.join(3, room);
+    expect(rejoin).toHaveLength(2);
+    expect(paired(rejoin, 3).room).toBe(room);
     const raw = encodeArenaMessage({ t: 'resyncReq' });
     expect(b.message(3, raw)).toEqual([{ kind: 'send', to: 1, raw }]);
+  });
+
+  it('a DIRECT room (private bout) fills with the same handshake — first-in is role 0', () => {
+    const b = new RelayBroker();
+    expect(b.join(1, 'pm:3:CRIMSON')).toEqual([]); // host waits on the shared code
+    const actions = b.join(2, 'pm:3:CRIMSON');
+    expect(paired(actions, 1).role).toBe(0);
+    expect(paired(actions, 2).role).toBe(1);
+    expect(paired(actions, 1).room).toBe('pm:3:CRIMSON'); // direct rooms keep their name
   });
 
   it('a full direct room refuses a third occupant with 4001', () => {

@@ -45,6 +45,7 @@ export function ArenaView({ setup, transport, onExit }: { setup: ArenaMatchSetup
   const [selected, setSelected] = useState<TowerKind | null>(null);
   const [armed, setArmed] = useState(false); // next tap casts the hero ability
   const [receipt, setReceipt] = useState<ArenaSettleReceipt | null>(null);
+  const [friendlyDone, setFriendlyDone] = useState(false); // friendly verdict (never settles)
   const settledRef = useRef(false);
   const camRef = useRef({ y: 0, target: 0, inspecting: false });
   const dragRef = useRef<{ y0: number; camY0: number } | null>(null);
@@ -79,10 +80,14 @@ export function ArenaView({ setup, transport, onExit }: { setup: ArenaMatchSetup
       }
       if (match.finished && !settledRef.current) {
         settledRef.current = true;
-        const r = meta.settleArenaMatch(match.finished.claim);
-        setReceipt(r);
         audio.cue(match.finished.outcome === 'win' ? 'victory' : 'defeat');
-        void reportArenaMatch(match.finished.claim); // fail-soft server ladder reconcile
+        if (setup.friendly) {
+          setFriendlyDone(true); // §private: friendly bouts NEVER settle — no rating/rewards
+        } else {
+          const r = meta.settleArenaMatch(match.finished.claim);
+          setReceipt(r);
+          void reportArenaMatch(match.finished.claim); // fail-soft server ladder reconcile
+        }
       }
       raf = requestAnimationFrame(loop);
     };
@@ -169,7 +174,7 @@ export function ArenaView({ setup, transport, onExit }: { setup: ArenaMatchSetup
   };
 
   const onTap = (e: React.MouseEvent): void => {
-    if (receipt) return;
+    if (receipt || friendlyDone) return;
     const p = boardPoint(e);
     if (!p || p.y < 0 || p.y > HEIGHT) return; // taps land on YOUR field only
     if (armed) {
@@ -258,8 +263,8 @@ export function ArenaView({ setup, transport, onExit }: { setup: ArenaMatchSetup
             })()
           )}
         </span>
-        <button onClick={() => { if (!receipt) match.forfeitLocal(); else onExit(); }} title="Forfeit the match">
-          {receipt ? 'LEAVE' : 'FORFEIT'}
+        <button onClick={() => { if (!receipt && !friendlyDone) match.forfeitLocal(); else onExit(); }} title="Forfeit the match">
+          {receipt || friendlyDone ? 'LEAVE' : 'FORFEIT'}
         </button>
       </div>
 
@@ -294,7 +299,7 @@ export function ArenaView({ setup, transport, onExit }: { setup: ArenaMatchSetup
         </div>
 
         {/* The draft, when the assault offers one */}
-        {snap.draft && !receipt && (
+        {snap.draft && !receipt && !friendlyDone && (
           <div style={{ position: 'absolute', left: '50%', bottom: 90, transform: 'translateX(-50%)', display: 'flex', gap: 8, background: 'rgba(10,5,16,0.94)', padding: 10, borderRadius: 8, border: '1px solid rgba(210,77,255,0.4)' }}>
             {snap.draft.map((c) => (
               <button key={c.id} style={{ maxWidth: 150, textAlign: 'left' }} onClick={() => match.issueLocal({ k: 'chooseCard', cardId: c.id })}>
@@ -302,6 +307,19 @@ export function ArenaView({ setup, transport, onExit }: { setup: ArenaMatchSetup
                 <div className="muted" style={{ fontSize: 11 }}>{c.description}</div>
               </button>
             ))}
+          </div>
+        )}
+
+        {/* The FRIENDLY verdict (§private) — outcome only, deliberately settlement-free. */}
+        {friendlyDone && match.finished && (
+          <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(4,2,8,0.82)' }}>
+            <div className="panel" style={{ minWidth: 300, maxWidth: 420, textAlign: 'center', borderColor: match.finished.outcome === 'win' ? 'var(--gold, #ffd24d)' : 'rgba(255,255,255,0.2)' }}>
+              <h2 style={{ color: match.finished.outcome === 'win' ? 'var(--gold, #ffd24d)' : match.finished.outcome === 'loss' ? 'var(--danger, #ff5d73)' : undefined }}>
+                {match.finished.outcome === 'win' ? '⚔ VICTORY' : match.finished.outcome === 'loss' ? 'DEFEAT' : 'DRAW'}
+              </h2>
+              <p className="muted">A friendly bout — no rating moved, nothing was paid. The Grounds keep no record of sparring.</p>
+              <button className="primary" onClick={onExit} style={{ marginTop: 8 }}>RETURN TO THE PROVING GROUNDS</button>
+            </div>
           </div>
         )}
 

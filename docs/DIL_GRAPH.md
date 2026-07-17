@@ -1,6 +1,6 @@
 # DIL_GRAPH.md — the Design Intelligence Layer (GENERATED — `npm run dil -- regen`)
 
-> **The project's brain** (docs/DIL.md). 856 nodes · 1600 edges, built from the live
+> **The project's brain** (docs/DIL.md). 857 nodes · 1602 edges, built from the live
 > registries + curated knowledge (src/dev/dil/). **Query it instead of searching the repo:**
 > `npm run dil -- node <id>` · `affects <id>` · `requires <id>` · `missing <kind> <edge>` ·
 > `checklist tower <kind>` · `find <text>`. Edge kinds are bidirectional (19 kinds).
@@ -1055,6 +1055,7 @@ _at: src/core/online.ts, src/core/itemIdentity.ts, src/core/trading.ts, src/net/
   - testedBy ← `test:src/core/itemIdentity.test.ts`
   - testedBy ← `test:src/core/online.test.ts`
   - testedBy ← `test:src/net/arenaMatchmaker.test.ts`
+  - extendedBy ← `system:arena` — PRIVATE BOUTS + THE LADDER + THE SWEEP (ARENA.md §private/§ladder/§sweep): findPrivateMatch joins the direct room pm:<season>:<CODE> (codes normalize; the broker fills DIRECT rooms with the same paired handshake, first-in = role 0) with a gate that DROPS the bracket but keeps proto/season/boot/fingerprint; ArenaMatchSetup.friendly plays the full ruleset and NEVER settles (no rating/rewards/pass XP ⇒ nothing to win-trade — ArenaView branches settle vs friendly verdict); Quick Match is deliberately unshipped (pool-splitting — one mm:-prefix away if wanted); GET /api/arena/ladder reads arena_ratings top 50 + you-rank (names stored sanitized on report — migration 0006; tags derive from stored player_id); npm run arena:sweep is the bulk AI-vs-AI stability harness (every match terminates, every claim passes arenaClaimProblem, rating deltas sign-correct) → docs/ARENA_MATCH_REPORT.md
 
 ### `system:arena` — Arena (Live PvP)
 
@@ -1074,6 +1075,7 @@ _at: src/core/arena.ts, src/core/arenaPass.ts, src/core/arenaAi.ts, src/core/are
   - extends → `system:battle-pass` — THE ARENA PASS speaks PassReward (core/battlePass.ts) so meta.applyRewardList pays both passes — but its tables are PROCEDURAL (seeded per season, arenaPassTrack cache) with a HARD Ichor cap enforced at generation (ARENA_PASS_ICHOR_CAP — overflow converts to cores; the economy law is structural, not statistical); XP is WINS-ONLY (ARENA.winPassXp via settleArenaMatch — losses/draws pay zero track progress); level 100 grants the season exclusive through grantArenaExclusive (the FOREVER ledger save.arena.exclusives — survives season rolls; heroMilestoneMet kind 'arena' reads it for the Chimera)
   - extends → `system:net-backend` — SERVER AUTHORITY (ARENA.md §7): settleArenaMatch (guarded arena.settle, exactly-once by matchId in save.arena.settledMatchIds) and functions/api/arena/report.ts run the SAME shared validators (arenaClaimProblem/ratingDelta/arenaMatchRewards from src/core/arena.ts — the premium.ts shared-import precedent); the server derives rating from STORED state and rewards from its OWN division read — client amounts are never fields in the protocol; net/arenaReport.ts is fail-soft (offline/guest ⇒ local settle stands, reconciled later)
   - extends → `system:achievements` — ARENA RECOGNITION (ARENA.md §recognition): 11 arena_* achievement rows are pure predicates over save.arena — division watermarks ride PEAK (lifetime, never soft-reset) not live rating; arena_placed requires season > 0 (a fresh record has placements=5 at season 0 and must NOT fire); streak/placements are live season values whose momentarily-true tests latch forever via save.achievements; settleArenaMatch/claimArenaPassLevel already call evaluateAchievements so the rows need NO new triggers; the pvp Profile section (state/profile.ts) is the ONE declared-empty section on a fresh save (hidden until first arena touch — profile.test.ts pins it)
+  - extends → `system:online-foundation` — PRIVATE BOUTS + THE LADDER + THE SWEEP (ARENA.md §private/§ladder/§sweep): findPrivateMatch joins the direct room pm:<season>:<CODE> (codes normalize; the broker fills DIRECT rooms with the same paired handshake, first-in = role 0) with a gate that DROPS the bracket but keeps proto/season/boot/fingerprint; ArenaMatchSetup.friendly plays the full ruleset and NEVER settles (no rating/rewards/pass XP ⇒ nothing to win-trade — ArenaView branches settle vs friendly verdict); Quick Match is deliberately unshipped (pool-splitting — one mm:-prefix away if wanted); GET /api/arena/ladder reads arena_ratings top 50 + you-rank (names stored sanitized on report — migration 0006; tags derive from stored player_id); npm run arena:sweep is the bulk AI-vs-AI stability harness (every match terminates, every claim passes arenaClaimProblem, rating deltas sign-correct) → docs/ARENA_MATCH_REPORT.md
   - taughtBy ← `help:arena`
   - referencedBy ← `achievement:arena_first_match`
   - referencedBy ← `achievement:arena_first_win`
@@ -1086,7 +1088,7 @@ _at: src/core/arena.ts, src/core/arenaPass.ts, src/core/arenaAi.ts, src/core/are
   - referencedBy ← `achievement:arena_wins100`
   - referencedBy ← `achievement:arena_crown`
   - referencedBy ← `achievement:arena_perennial`
-  - _…5 more (query: `npm run dil -- node system:arena`)_
+  - _…6 more (query: `npm run dil -- node system:arena`)_
 
 ### `system:towers` — Towers, Stars, Branches, Strain & Codex
 
@@ -3412,7 +3414,7 @@ _at: site/guides.ts → /guides/prestige/_
 - `achievement:arena_crown` — Claim Arena Pass level 100 — a permanently arena-exclusive strain is yours forever. _(partOf `system:achievements`, rewards `currency:genome-cores`, references `system:arena`)_
 - `achievement:arena_perennial` — Close three Arena seasons with a record on the books. _(partOf `system:achievements`, rewards `currency:genome-cores`, references `system:arena`)_
 
-## Documentation (174)
+## Documentation (175)
 
 - `doc:ACCOUNT-LEVEL.md` — project documentation _(documents `system:account-level`)_
 - `doc:ACCOUNTS.md` — project documentation _(documents `system:accounts`)_
@@ -3422,6 +3424,7 @@ _at: site/guides.ts → /guides/prestige/_
 - `doc:ARCHITECTURE-AUDIT.md` — project documentation
 - `doc:ARCHITECTURE.md` — project documentation _(documents `system:engine`)_
 - `doc:ARENA.md` — project documentation _(documents `system:arena`)_
+- `doc:ARENA_MATCH_REPORT.md` — project documentation _(documents `system:arena`)_
 - `doc:ASSIMILATION.md` — project documentation _(documents `system:assimilation`)_
 - `doc:AUTHORING.md` — project documentation _(documents `system:content-infra`)_
 - `doc:BACKLOG.md` — project documentation

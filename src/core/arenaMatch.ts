@@ -78,6 +78,9 @@ export interface ArenaMatchSetup {
   oppRating: number;
   /** Display name for a HUMAN opponent (from their hello card); AI matches use `ai.name`. */
   oppName?: string;
+  /** FRIENDLY bout (docs/ARENA.md §private): plays the full ruleset but never settles —
+   *  no rating, no rewards, no pass XP (and therefore nothing to win-trade). */
+  friendly?: boolean;
 }
 
 /** The per-frame opponent read-model the Arena HUD renders (docs/ARENA.md §hud). */

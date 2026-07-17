@@ -6,6 +6,7 @@
 // matchId on BOTH sides, so double delivery is free).
 
 import { guestModeActive } from '../state/guestMode';
+import { meta } from '../state/meta';
 import { playerId } from './identity';
 import { guard } from '../security/actionGuard';
 import { turnstileToken } from './turnstile';
@@ -29,11 +30,43 @@ export async function reportArenaMatch(claim: ArenaMatchClaim): Promise<ArenaSer
     const res = await fetch('/api/arena/report', {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ playerId: playerId(), claim, turnstileToken: await turnstileToken() }),
+      // The name rides for the season ladder display (sanitized server-side; the tag never
+      // does — it derives from the stored player id, docs/ARENA.md §ladder).
+      body: JSON.stringify({ playerId: playerId(), claim, name: meta.get().profileName, turnstileToken: await turnstileToken() }),
     });
     if (!res.ok) return null;
     return (await res.json()) as ArenaServerVerdict;
   } catch {
     return null; // offline — the local settle stands; sync reconciles later
+  }
+}
+
+// ── The season ladder read (docs/ARENA.md §ladder) ─────────────────────────────
+export interface ArenaLadderEntry {
+  rank: number;
+  name: string;
+  tag: string;
+  rating: number;
+  division: string;
+  wins: number;
+  losses: number;
+  peak: number;
+}
+
+export interface ArenaLadderView {
+  season: number;
+  entries: ArenaLadderEntry[];
+  you: { rank: number; rating: number; wins: number; losses: number } | null;
+}
+
+/** Fetch the current season's ladder. Fail-soft: null = offline/guest (the screen says so). */
+export async function fetchArenaLadder(): Promise<ArenaLadderView | null> {
+  if (guestModeActive()) return null;
+  try {
+    const res = await fetch(`/api/arena/ladder?playerId=${encodeURIComponent(playerId())}`);
+    if (!res.ok) return null;
+    return (await res.json()) as ArenaLadderView;
+  } catch {
+    return null;
   }
 }

@@ -3,7 +3,23 @@
 > Maintained at the END of every session (paired with `docs/AI_HANDOFF.md` — the constitution's
 > workflow step 4). This is the "where are we?" answer; `docs/GAME-STATE.md` remains the deeper
 > per-system built-vs-planned index, `docs/PROJECT_MANIFEST.md` the system map.
-> **Last updated:** 2026-07-17 (**ARENA RECOGNITION + THE RELAY BRING-UP** — the saga's first
+> **Last updated:** 2026-07-17b (**THE LIVE-PvP BRIEF: AUDIT + DELTAS** — the brief mapped to
+> evidence in ARENA.md §brief-coverage (nearly all landed by the saga + the relay batch; the
+> two recorded-decision conflicts — arena `noMega`, "server simulates everything" — are
+> FLAGGED for the user, not re-litigated). The genuine deltas shipped: (1) **PRIVATE BOUTS**
+> (§private) — friendly, unrated sparring by shared room code over the relay's DIRECT rooms
+> (broker fills them with the same `paired` handshake; the gate drops the bracket, keeps
+> proto/season/boot/fingerprint; `ArenaMatchSetup.friendly` never settles ⇒ nothing to
+> win-trade; Quick Match deliberately unshipped — pool-splitting); (2) **THE SEASON LADDER**
+> (§ladder) — `GET /api/arena/ladder` over arena_ratings (migration 0006 adds the sanitized
+> display name at report; tags derive from stored player ids) + the Proving Grounds ladder
+> tab, fail-soft offline; (3) **THE SWEEP** (§sweep) — `npm run arena:sweep`: bulk AI-vs-AI
+> full matches across 6 Power brackets × 4 divisions; the shipped 240-match run is STABLE
+> (every match terminated, 100% server-valid claims, sign-correct rating deltas) →
+> docs/ARENA_MATCH_REPORT.md. Suite 2307 green (+ private-bout live-socket e2e pairing a
+> ×50 power gap by code), validate PASS, mobilecheck CLEAN. Previous below.)
+>
+> **2026-07-17** (**ARENA RECOGNITION + THE RELAY BRING-UP** — the saga's first
 > two follow-ups (Auction House phase 2 explicitly deferred). RECOGNITION (docs/ARENA.md
 > §recognition): 11 `arena_*` achievement rows (first match/win · placements · 5-streak ·
 > Larval/Chrysalis/Apex watermarks riding `peak` · 25/100 win ladder · Season Crown ·

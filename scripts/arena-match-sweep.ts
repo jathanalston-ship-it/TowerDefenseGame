@@ -1,0 +1,131 @@
+// ARENA MATCH SWEEP (docs/ARENA.md §sweep) — the bulk AI-vs-AI stability harness: full
+// matches of the REAL ruleset (two deterministic sims, the genuine AiController on BOTH
+// fields, commands through the one applyArenaCommand pipeline) across power brackets and
+// divisions, asserting the invariants that make the arena safe to ship at scale:
+//
+//   • every match TERMINATES (a fell nucleus or the PvP timer — never a hang);
+//   • every produced claim passes the SHARED validator (arenaClaimProblem) — the sim can
+//     never emit a claim its own server would reject;
+//   • outcomes resolve to win/loss/draw and the rating model accepts them;
+//   • no exception escapes a match at any bracket.
+//
+//   npm run arena:sweep             # default batch
+//   npm run arena:sweep -- 500      # bigger batch (matches spread across the grid)
+//   npm run arena:sweep -- 500 7    # + seed
+//
+// Writes docs/ARENA_MATCH_REPORT.md (the BALANCE_REPORT.md pattern — regenerate, review,
+// commit). Wall cost is real simulation (≈18k ticks × 2 sims per full-length match); most
+// AI matches resolve early, so batches in the hundreds are minutes, not hours.
+
+import { ArenaMatch } from '../src/core/arenaMatch';
+import type { ArenaMatchSetup } from '../src/core/arenaMatch';
+import { AiController, generateAiOpponent } from '../src/core/arenaAi';
+import { ARENA, arenaClaimProblem, divisionForRating, ratingDelta } from '../src/core/arena';
+import { writeFileSync } from 'node:fs';
+
+const MATCHES = Math.max(4, Number(process.argv[2] ?? 120));
+const BASE_SEED = (Number(process.argv[3] ?? 1) >>> 0) || 1;
+
+/** The sweep grid: log-spaced Power brackets × the ladder's tiers (docs/ARENA.md §2–3). */
+const POWERS = [800, 3_000, 12_000, 60_000, 300_000, 1_500_000];
+const DIVISIONS = [0, 3, 6, 9];
+
+interface MatchRow {
+  power: number;
+  division: number;
+  outcome: 'win' | 'loss' | 'draw';
+  durationSec: number;
+  waveLocal: number;
+  waveRemote: number;
+  claimOk: boolean;
+  error: string | null;
+}
+
+function runOne(seed: number, power: number, divisionIndex: number): MatchRow {
+  const a = generateAiOpponent(seed, power, divisionIndex);
+  const b = generateAiOpponent((seed ^ 0x5f5f5f5f) >>> 0, power, divisionIndex);
+  const setup: ArenaMatchSetup = {
+    matchId: `m_sweep_${seed.toString(36)}`,
+    seed: (seed ^ 0x9e3779b9) >>> 0,
+    season: 1,
+    local: a.boot,
+    remote: b.boot,
+    vsAi: true,
+    ai: b, // the match drives B's field internally — A is driven below, same pipeline
+    localPower: a.power,
+    oppPower: b.power,
+    oppRating: b.rating,
+  };
+  try {
+    const match = new ArenaMatch(setup);
+    const localCtl = new AiController((a.controllerSeed ^ 0x1234abcd) >>> 0, a.personality);
+    const dt = 1 / 30;
+    // Hard step budget: the 300s timer + settle headroom. resolve() fires INSIDE step().
+    const maxSteps = Math.ceil((ARENA.matchSec + 30) / dt);
+    for (let i = 0; i < maxSteps && !match.finished; i++) {
+      for (const cmd of localCtl.step(match.localGame, dt)) match.issueLocal(cmd);
+      match.step(dt);
+    }
+    if (!match.finished) return { power, division: divisionIndex, outcome: 'draw', durationSec: -1, waveLocal: -1, waveRemote: -1, claimOk: false, error: 'match never terminated' };
+    const f = match.finished;
+    const claimBad = arenaClaimProblem(f.claim);
+    // The rating model must accept both sides of the verdict without pathology.
+    const delta = f.outcome === 'draw' ? 0 : ratingDelta({ rating: 600, oppRating: b.rating, won: f.outcome === 'win', placementsLeft: 0, streak: 0 });
+    const deltaSane = f.outcome === 'draw' ? delta === 0 : f.outcome === 'win' ? delta > 0 : delta < 0;
+    return {
+      power,
+      division: divisionIndex,
+      outcome: f.outcome,
+      durationSec: f.claim.durationSec,
+      waveLocal: f.local.waveReached,
+      waveRemote: f.remote.waveReached,
+      claimOk: claimBad === null && deltaSane,
+      error: claimBad ? `claim: ${claimBad}` : deltaSane ? null : 'rating delta sign',
+    };
+  } catch (e) {
+    return { power, division: divisionIndex, outcome: 'draw', durationSec: -1, waveLocal: -1, waveRemote: -1, claimOk: false, error: `exception: ${(e as Error).message}` };
+  }
+}
+
+const rows: MatchRow[] = [];
+const startedAt = Date.now();
+for (let i = 0; i < MATCHES; i++) {
+  const power = POWERS[i % POWERS.length];
+  const division = DIVISIONS[Math.floor(i / POWERS.length) % DIVISIONS.length];
+  const seed = (BASE_SEED + i * 2654435761) >>> 0;
+  rows.push(runOne(seed, power, division));
+  if ((i + 1) % 20 === 0) console.log(`arena-sweep: ${i + 1}/${MATCHES} matches (${Math.round((Date.now() - startedAt) / 1000)}s)`);
+}
+
+const failures = rows.filter((r) => r.error !== null);
+const pct = (n: number, d: number): string => (d > 0 ? `${Math.round((n / d) * 100)}%` : '—');
+const mean = (xs: number[]): number => (xs.length > 0 ? xs.reduce((s, x) => s + x, 0) / xs.length : 0);
+
+let md = `# ARENA_MATCH_REPORT.md — the bulk AI-vs-AI stability sweep\n\n`;
+md += `> Generated by \`npm run arena:sweep\` (scripts/arena-match-sweep.ts). ${MATCHES} full matches\n`;
+md += `> of the real ruleset across ${POWERS.length} Power brackets × ${DIVISIONS.length} division tiers, seed ${BASE_SEED}.\n`;
+md += `> Wall time ${Math.round((Date.now() - startedAt) / 1000)}s. Regenerate after sim/arena/AI changes.\n\n`;
+md += `**Verdict: ${failures.length === 0 ? 'STABLE — every match terminated with a server-valid claim.' : `${failures.length} FAILURE(S) — see below.`}**\n\n`;
+md += `| Power | Div | Matches | W / L / D (local) | Mean dur (s) | Mean waves | Claims valid |\n|---|---|---|---|---|---|---|\n`;
+for (const power of POWERS) {
+  for (const division of DIVISIONS) {
+    const cell = rows.filter((r) => r.power === power && r.division === division);
+    if (cell.length === 0) continue;
+    const w = cell.filter((r) => r.outcome === 'win').length;
+    const l = cell.filter((r) => r.outcome === 'loss').length;
+    const d = cell.filter((r) => r.outcome === 'draw').length;
+    md += `| ${power.toLocaleString('en-US')} | ${division} | ${cell.length} | ${w} / ${l} / ${d} | ${mean(cell.map((r) => r.durationSec)).toFixed(0)} | ${mean(cell.map((r) => (r.waveLocal + r.waveRemote) / 2)).toFixed(1)} | ${pct(cell.filter((r) => r.claimOk).length, cell.length)} |\n`;
+  }
+}
+md += `\n- Both fields run the REAL sim through the one command pipeline (docs/ONLINE-FOUNDATION.md §1);\n`;
+md += `  seeded AI personalities on both sides, so outcome splits reflect build/personality variance,\n`;
+md += `  not scripted results.\n`;
+md += `- "Claims valid" = every terminal claim passes \`arenaClaimProblem\` AND the rating model\n`;
+md += `  moves the right direction — the sim cannot emit a claim its own server would refuse.\n`;
+if (failures.length > 0) {
+  md += `\n## Failures\n\n`;
+  for (const f of failures.slice(0, 20)) md += `- power ${f.power}, div ${f.division}: ${f.error}\n`;
+}
+writeFileSync('docs/ARENA_MATCH_REPORT.md', md);
+console.log(`arena-sweep: ${MATCHES} matches, ${failures.length} failures → docs/ARENA_MATCH_REPORT.md`);
+process.exit(failures.length === 0 ? 0 : 1);

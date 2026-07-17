@@ -11,6 +11,7 @@
 import { describe, expect, it } from 'vitest';
 import { onRequestPost as reportPost } from './api/arena/report';
 import { onRequestGet as seasonGet } from './api/arena/season';
+import { onRequestGet as ladderGet } from './api/arena/ladder';
 import { ctx, makeEnv, postJson } from './lib/testkit';
 import { ARENA, arenaSeasonIndex } from '../src/core/arena';
 import type { ArenaMatchClaim } from '../src/core/arena';
@@ -116,5 +117,42 @@ describe('GET /api/arena/season', () => {
     const res = (await seasonGet(ctx(new Request('https://game.test/api/arena/season'), makeEnv()))) as Response;
     const out = (await res.json()) as { ladder: unknown };
     expect(out.ladder).toBeNull();
+  });
+});
+
+describe('GET /api/arena/ladder', () => {
+  it('ranks the season by rating with names + derived tags; the asker gets their own rank', async () => {
+    const env = makeEnv();
+    // Two settles under one player (win then win) + one under another (loss) build a ladder.
+    await report(env, { playerId: PLAYER, claim: claim({ matchId: 'm_ladder_a_00001' }), name: 'Marrowthorn' });
+    await report(env, { playerId: PLAYER, claim: claim({ matchId: 'm_ladder_a_00002' }), name: 'Marrowthorn' });
+    const OTHER = '99999999-8888-4777-8666-555555555555';
+    await report(env, { playerId: OTHER, claim: claim({ matchId: 'm_ladder_b_00001', outcome: 'loss' }), name: 'Palewick' });
+
+    const res = (await ladderGet(
+      ctx(new Request(`https://game.test/api/arena/ladder?playerId=${PLAYER}`), env),
+    )) as Response;
+    expect(res.status).toBe(200);
+    const out = (await res.json()) as {
+      season: number;
+      entries: { rank: number; name: string; tag: string; rating: number; division: string; wins: number }[];
+      you: { rank: number; rating: number } | null;
+    };
+    expect(out.season).toBe(arenaSeasonIndex(Date.now()));
+    expect(out.entries.length).toBe(2);
+    expect(out.entries[0].name).toBe('Marrowthorn'); // two wins out-rate one loss
+    expect(out.entries[0].rank).toBe(1);
+    expect(out.entries[0].tag).toMatch(/^\d{4}$/); // bare register number — '#' is display-side
+    expect(out.entries[0].rating).toBeGreaterThan(out.entries[1].rating);
+    expect(out.entries[0].division.length).toBeGreaterThan(2);
+    expect(out.you).not.toBeNull();
+    expect(out.you!.rank).toBe(1);
+  });
+
+  it('an unlisted asker gets the board with you = null', async () => {
+    const res = (await ladderGet(ctx(new Request('https://game.test/api/arena/ladder'), makeEnv()))) as Response;
+    const out = (await res.json()) as { entries: unknown[]; you: unknown };
+    expect(out.entries).toEqual([]);
+    expect(out.you).toBeNull();
   });
 });

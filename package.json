@@ -37,7 +37,8 @@
     "sim:report": "vite-node scripts/sim-balance-report.ts",
     "pil": "vite-node scripts/pil.ts",
     "unlocks": "vite-node scripts/gen-unlocks.ts",
-    "relay": "vite-node scripts/arena-relay.ts"
+    "relay": "vite-node scripts/arena-relay.ts",
+    "arena:sweep": "vite-node scripts/arena-match-sweep.ts"
   },
   "dependencies": {
     "react": "^18.3.1",

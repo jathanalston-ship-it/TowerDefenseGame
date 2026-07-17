@@ -280,9 +280,21 @@ class FakeStatement {
     if (sql.startsWith('INSERT INTO arena_ratings')) {
       db.arenaRatings.set(`${args[0]}|${args[1]}`, {
         player_id: args[0], season: args[1], rating: args[2], wins: args[3], losses: args[4],
-        placements: args[5], streak: args[6], peak: args[7], updated_at: args[8],
+        placements: args[5], streak: args[6], peak: args[7], updated_at: args[8], name: args[9] ?? '',
       });
       return { rows: [], changes: 1 };
+    }
+    if (sql.startsWith('SELECT player_id, name, rating, wins, losses, peak FROM arena_ratings')) {
+      const rows = [...db.arenaRatings.values()]
+        .filter((r) => r.season === args[0])
+        .sort((a, b) => Number(b.rating) - Number(a.rating) || Number(a.updated_at) - Number(b.updated_at))
+        .slice(0, 50)
+        .map((r) => ({ player_id: r.player_id, name: r.name ?? '', rating: r.rating, wins: r.wins, losses: r.losses, peak: r.peak }));
+      return { rows, changes: 0 };
+    }
+    if (sql.startsWith('SELECT COUNT(*) + 1 AS rank FROM arena_ratings')) {
+      const rank = 1 + [...db.arenaRatings.values()].filter((r) => r.season === args[0] && Number(r.rating) > Number(args[1])).length;
+      return { rows: [{ rank }], changes: 0 };
     }
     if (sql.startsWith('UPDATE arena_matches SET rating_after')) {
       const row = db.arenaMatches.get(`${args[1]}|${args[2]}`);

@@ -70,7 +70,10 @@ export class RelayBroker {
       ];
     }
 
-    // Direct room (reconnect / future private matches): capacity exactly 2.
+    // Direct room (private matches + mid-match reconnects): capacity exactly 2. Filling a
+    // direct room emits the SAME `paired` handshake as a matchmaking key (first-in = role 0)
+    // — private bouts inherit the whole hello/boot/ready flow for free. A mid-match REJOIN
+    // also re-emits it; both live sessions ignore `paired` (their handshake is long done).
     const occupants = this.rooms.get(room) ?? [];
     if (occupants.length >= 2) {
       this.conns.delete(id);
@@ -79,6 +82,12 @@ export class RelayBroker {
     occupants.push(id);
     this.rooms.set(room, occupants);
     conn.room = room;
+    if (occupants.length === 2) {
+      return [
+        { kind: 'send', to: occupants[0], raw: encodeArenaMessage({ t: 'paired', room, role: 0 }) },
+        { kind: 'send', to: id, raw: encodeArenaMessage({ t: 'paired', room, role: 1 }) },
+      ];
+    }
     return [];
   }
 

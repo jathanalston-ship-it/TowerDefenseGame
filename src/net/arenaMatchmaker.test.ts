@@ -12,7 +12,7 @@ import type { Server } from 'node:http';
 import { WebSocketServer } from 'ws';
 import { RelayBroker } from '../../functions/lib/arenaRelayRoom';
 import type { RelayAction } from '../../functions/lib/arenaRelayRoom';
-import { findArenaOpponent, mmRoomKey, peerProblem } from './arenaMatchmaker';
+import { findArenaOpponent, findPrivateMatch, mmRoomKey, peerProblem, pmRoomKey } from './arenaMatchmaker';
 import type { MatchmakerArgs } from './arenaMatchmaker';
 import { ArenaSession } from './arenaSession';
 import { ArenaMatch } from '../core/arenaMatch';
@@ -57,6 +57,13 @@ describe('peerProblem — the pure peer gate', () => {
     expect(mmRoomKey(3, 1000)).toBe(mmRoomKey(3, 1100));
     expect(mmRoomKey(3, 1000)).not.toBe(mmRoomKey(3, 4000));
     expect(mmRoomKey(3, 1000)).not.toBe(mmRoomKey(4, 1000)); // seasons never cross
+  });
+
+  it('private-bout codes normalize (trim/case/punctuation) so friends always land together', () => {
+    expect(pmRoomKey(3, ' crimson-maw ')).toBe('pm:3:CRIMSONMAW');
+    expect(pmRoomKey(3, 'CRIMSONMAW')).toBe(pmRoomKey(3, 'crimson maw'));
+    expect(pmRoomKey(3, 'x'.repeat(40))).toBe(`pm:3:${'X'.repeat(12)}`); // capped
+    expect(pmRoomKey(4, 'CRIMSONMAW')).not.toBe(pmRoomKey(3, 'CRIMSONMAW'));
   });
 });
 
@@ -146,4 +153,21 @@ describe('the real wire — relay pairing + a live session exchange', () => {
     setTimeout(() => lone.cancel(), 150);
     expect(await lone.promise).toBeNull();
   });
+
+  it('a PRIVATE BOUT pairs by shared code even far outside the ranked bracket (§private)', async () => {
+    const low = { ...mmArgs('Spore', 'ps') };
+    const high = { ...mmArgs('Apex', 'px') };
+    high.power = 50_000; // ×50 apart — the ranked gate would refuse this pair outright
+    high.hello = { ...high.hello, power: 50_000 };
+    high.loadout = { ...high.loadout, fingerprint: loadoutFingerprint([], [high.boot.heroKind], 50_000) };
+    const a = findPrivateMatch({ ...low, code: ' spar-CODE ' });
+    const b = findPrivateMatch({ ...high, code: 'SPARCODE' }); // normalization meets in one room
+    const [ra, rb] = await Promise.all([a.promise, b.promise]);
+    expect(ra).not.toBeNull();
+    expect(rb).not.toBeNull();
+    expect(ra!.matchId).toBe(rb!.matchId);
+    expect(ra!.oppHello.power).toBe(50_000);
+    ra!.transport.close();
+    rb!.transport.close();
+  }, 20_000);
 });

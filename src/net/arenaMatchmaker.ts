@@ -78,7 +78,36 @@ function newMatchId(): string {
 }
 
 export function findArenaOpponent(args: MatchmakerArgs): MatchmakerHandle {
-  const transport = new RelayTransport(args.url, mmRoomKey(args.season, args.power));
+  return runHandshake(new RelayTransport(args.url, mmRoomKey(args.season, args.power)), args, (peer, elapsedSec) =>
+    peerProblem({ season: args.season, power: args.power, elapsedSec }, peer));
+}
+
+/** Private-bout room key — both players enter the same code (docs/ARENA.md §private). */
+export function pmRoomKey(season: number, code: string): string {
+  return `pm:${season}:${code.trim().toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 12)}`;
+}
+
+/** PRIVATE BOUT (friendly, unrated — docs/ARENA.md §private): both players join the SAME
+ *  direct relay room by shared code; the broker fills it with the identical `paired`
+ *  handshake. The peer gate keeps protocol/season/boot-bounds/fingerprint but DROPS the
+ *  power bracket — friends of any power may spar (the match never settles, so there is
+ *  nothing to farm). */
+export function findPrivateMatch(args: MatchmakerArgs & { code: string }): MatchmakerHandle {
+  return runHandshake(new RelayTransport(args.url, pmRoomKey(args.season, args.code)), args, (peer) => {
+    if (peer.hello.proto !== PROTOCOL_VERSION) return 'proto';
+    if (peer.hello.season !== args.season) return 'season';
+    const bootBad = bootBundleProblem(peer.boot);
+    if (bootBad) return `boot:${bootBad}`;
+    if (peer.loadout.fingerprint !== loadoutFingerprint(peer.loadout.towerKinds, peer.loadout.heroKinds, peer.hello.power)) return 'fingerprint';
+    return null;
+  });
+}
+
+function runHandshake(
+  transport: RelayTransport,
+  args: MatchmakerArgs,
+  gate: (peer: PeerCard, elapsedSec: number) => string | null,
+): MatchmakerHandle {
   const startedAt = Date.now();
   let settled = false;
   let role: 0 | 1 | null = null;
@@ -112,7 +141,7 @@ export function findArenaOpponent(args: MatchmakerArgs): MatchmakerHandle {
     const maybeReady = (): void => {
       // Role 0 proposes once the peer's full card validated; role 1 answers inside handle().
       if (role !== 0 || proposed || !peerHello || !peerLoadout || !peerBoot) return;
-      const bad = peerProblem({ season: args.season, power: args.power, elapsedSec: (Date.now() - startedAt) / 1000 }, { hello: peerHello, loadout: peerLoadout, boot: peerBoot });
+      const bad = gate({ hello: peerHello, loadout: peerLoadout, boot: peerBoot }, (Date.now() - startedAt) / 1000);
       if (bad) {
         finish(null);
         return;
@@ -148,7 +177,7 @@ export function findArenaOpponent(args: MatchmakerArgs): MatchmakerHandle {
           if (role === 1) {
             // The proposal — validate the peer's card, echo the accept, and we're matched.
             if (!peerHello || !peerLoadout || !peerBoot) return finish(null);
-            const bad = peerProblem({ season: args.season, power: args.power, elapsedSec: (Date.now() - startedAt) / 1000 }, { hello: peerHello, loadout: peerLoadout, boot: peerBoot });
+            const bad = gate({ hello: peerHello, loadout: peerLoadout, boot: peerBoot }, (Date.now() - startedAt) / 1000);
             if (bad) return finish(null);
             transport.send({ t: 'ready', matchId: msg.matchId, seed: msg.seed });
             return finish({ transport, matchId: msg.matchId, seed: msg.seed >>> 0, remoteBoot: peerBoot, oppHello: peerHello });

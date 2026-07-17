@@ -14,7 +14,7 @@ import type { Env } from '../../lib/env';
 import { clientIp, crossOrigin, err, json, readJson } from '../../lib/http';
 import { rateLimit } from '../../lib/rateLimit';
 import { verifyTurnstile } from '../../lib/turnstile';
-import { isPlayerId } from '../../lib/validate';
+import { isPlayerId, sanitizeName } from '../../lib/validate';
 import {
   ARENA, applyRatingFloor, arenaClaimProblem, arenaMatchRewards, arenaSeasonIndex,
   divisionForRating, divisionIndex, ratingDelta,
@@ -24,6 +24,8 @@ import type { ArenaMatchClaim } from '../../../src/core/arena';
 interface Body {
   playerId?: string;
   claim?: ArenaMatchClaim;
+  /** Display name for the season ladder (sanitized; the tag derives from player_id). */
+  name?: string;
   turnstileToken?: string;
 }
 
@@ -92,11 +94,11 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
     peak: Math.max(row.peak, rating),
   };
   await env.DB.prepare(
-    `INSERT INTO arena_ratings (player_id, season, rating, wins, losses, placements, streak, peak, updated_at)
-     VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9)
+    `INSERT INTO arena_ratings (player_id, season, rating, wins, losses, placements, streak, peak, updated_at, name)
+     VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10)
      ON CONFLICT(player_id, season) DO UPDATE
-       SET rating = ?3, wins = ?4, losses = ?5, placements = ?6, streak = ?7, peak = ?8, updated_at = ?9`,
-  ).bind(body.playerId, season, next.rating, next.wins, next.losses, next.placements, next.streak, next.peak, now).run();
+       SET rating = ?3, wins = ?4, losses = ?5, placements = ?6, streak = ?7, peak = ?8, updated_at = ?9, name = ?10`,
+  ).bind(body.playerId, season, next.rating, next.wins, next.losses, next.placements, next.streak, next.peak, now, sanitizeName(body.name)).run();
   await env.DB.prepare(
     'UPDATE arena_matches SET rating_after = ?1 WHERE match_id = ?2 AND player_id = ?3',
   ).bind(next.rating, claim.matchId, body.playerId).run();

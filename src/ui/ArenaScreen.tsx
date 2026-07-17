@@ -15,7 +15,10 @@ import { PROTOCOL_VERSION, loadoutFingerprint } from '../core/online';
 import { rewardShort } from '../core/battlePass';
 import { arenaRelayUrl } from '../net/arenaTransport';
 import type { ArenaTransport } from '../net/arenaTransport';
-import { findArenaOpponent } from '../net/arenaMatchmaker';
+import { findArenaOpponent, findPrivateMatch } from '../net/arenaMatchmaker';
+import type { MatchmakerHandle } from '../net/arenaMatchmaker';
+import { fetchArenaLadder } from '../net/arenaReport';
+import type { ArenaLadderView } from '../net/arenaReport';
 import { myDesignationTag, playerId } from '../net/identity';
 import { CurrencyIcon } from './components/CurrencyIcon';
 
@@ -33,6 +36,63 @@ export function ArenaScreen({ onLaunchMatch }: { onLaunchMatch: (setup: ArenaMat
   const [elapsed, setElapsed] = useState(0);
   const searchRef = useRef<number | null>(null);
   const seedRef = useRef(0);
+  // ── PRIVATE BOUT (docs/ARENA.md §private) — friendly, unrated, over a shared room code ──
+  const [pmCode, setPmCode] = useState('');
+  const [pmWaiting, setPmWaiting] = useState(false);
+  const pmRef = useRef<MatchmakerHandle | null>(null);
+  useEffect(() => () => { pmRef.current?.cancel(); }, []); // navigating away abandons the room
+  const startPrivate = (): void => {
+    const relay = arenaRelayUrl();
+    const code = pmCode.trim();
+    if (!relay || code.length < 3 || pmWaiting || searching) return;
+    const boot = meta.arenaBootBundle();
+    setPmWaiting(true);
+    const mm = findPrivateMatch({
+      url: relay,
+      season: view.season.index,
+      power: view.power,
+      code,
+      hello: {
+        proto: PROTOCOL_VERSION, playerId: playerId(), name: save.profileName, tag: myDesignationTag(),
+        power: view.power, rating: view.rating, season: view.season.index, heroKind: boot.heroKind,
+      },
+      loadout: {
+        fingerprint: loadoutFingerprint(boot.opts.unlocked ?? [], [boot.heroKind], view.power),
+        towerKinds: boot.opts.unlocked ?? [],
+        heroKinds: [boot.heroKind],
+      },
+      boot,
+    });
+    pmRef.current = mm;
+    void mm.promise.then((hm) => {
+      setPmWaiting(false);
+      pmRef.current = null;
+      if (!hm) return; // cancelled / refused — stay on the console
+      onLaunchMatch({
+        matchId: hm.matchId,
+        seed: hm.seed,
+        season: view.season.index,
+        local: boot,
+        remote: hm.remoteBoot,
+        vsAi: false,
+        friendly: true, // §private: full ruleset, zero settlement
+        localPower: view.power,
+        oppPower: hm.oppHello.power,
+        oppRating: hm.oppHello.rating,
+        oppName: `${hm.oppHello.name}${hm.oppHello.tag}`,
+      }, hm.transport);
+    });
+  };
+
+  // ── The season ladder (docs/ARENA.md §ladder) — fetched fail-soft on the ladder tab ──
+  const [ladder, setLadder] = useState<ArenaLadderView | null | 'loading'>('loading');
+  useEffect(() => {
+    if (tab !== 'ladder') return;
+    let live = true;
+    setLadder('loading');
+    void fetchArenaLadder().then((v) => { if (live) setLadder(v); });
+    return () => { live = false; };
+  }, [tab]);
 
   useEffect(() => {
     meta.pollArenaSeason(); // materialize season rolls + decay on entry
@@ -193,6 +253,39 @@ export function ArenaScreen({ onLaunchMatch }: { onLaunchMatch: (setup: ArenaMat
         </div>
       </section>
 
+      {/* ── PRIVATE BOUT (docs/ARENA.md §private) — spar a friend by shared code; unrated ── */}
+      <section className="panel" style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap', marginTop: 12 }}>
+        <div style={{ minWidth: 180 }}>
+          <b>PRIVATE BOUT</b>
+          <div className="muted" style={{ fontSize: 12 }}>
+            {arenaRelayUrl()
+              ? 'Agree on a code with a friend — both enter it. Friendly: no rating, no rewards.'
+              : 'Needs a live relay — sparring opens when one is configured.'}
+          </div>
+        </div>
+        {arenaRelayUrl() && !pmWaiting && (
+          <>
+            <input
+              value={pmCode}
+              onChange={(e) => setPmCode(e.target.value)}
+              maxLength={12}
+              placeholder="ROOM CODE"
+              aria-label="Private bout room code"
+              style={{ width: 140, textTransform: 'uppercase' }}
+            />
+            <button className="primary" disabled={pmCode.trim().length < 3 || searching} onClick={startPrivate}>
+              ⚔ SPAR
+            </button>
+          </>
+        )}
+        {pmWaiting && (
+          <>
+            <span style={{ color: view.season.accent }}>WAITING — share the code “{pmCode.trim().toUpperCase()}”…</span>
+            <button onClick={() => pmRef.current?.cancel()}>Cancel</button>
+          </>
+        )}
+      </section>
+
       {/* ── Tabs: ladder detail / the pass ── */}
       <nav style={{ display: 'flex', gap: 8, margin: '12px 0' }}>
         <button className={tab === 'ladder' ? 'primary' : ''} onClick={() => setTab('ladder')}>LADDER</button>
@@ -201,6 +294,37 @@ export function ArenaScreen({ onLaunchMatch }: { onLaunchMatch: (setup: ArenaMat
           {view.pass.claimableFree.length + view.pass.claimablePremium.length > 0 ? ` (${view.pass.claimableFree.length + view.pass.claimablePremium.length} to claim)` : ''}
         </button>
       </nav>
+
+      {tab === 'ladder' && (
+        <section className="panel">
+          <h3>THE SEASON LADDER</h3>
+          {ladder === 'loading' && <p className="muted">Reading the ladder…</p>}
+          {ladder === null && <p className="muted">The ladder needs the network — offline and guest hives fight unlisted.</p>}
+          {ladder !== null && ladder !== 'loading' && (
+            <>
+              {ladder.entries.length === 0 && <p className="muted">No settled matches this season yet — the first report takes rank 1.</p>}
+              {ladder.entries.length > 0 && (
+                <ul style={{ listStyle: 'none', padding: 0, margin: 0, maxHeight: 260, overflowY: 'auto' }}>
+                  {ladder.entries.map((e) => (
+                    <li key={e.rank} style={{ display: 'flex', gap: 10, padding: '3px 0', alignItems: 'baseline' }}>
+                      <span className="muted" style={{ minWidth: 28, textAlign: 'right' }}>#{e.rank}</span>
+                      <b style={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{e.name || 'Unnamed Hive'} <span className="muted">#{e.tag}</span></b>
+                      <span style={{ marginLeft: 'auto' }}>{e.rating}</span>
+                      <span className="muted">{e.division}</span>
+                      <span className="muted">{e.wins}–{e.losses}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+              {ladder.you && (
+                <p style={{ marginTop: 8 }}>
+                  Your standing: <b>#{ladder.you.rank}</b> at {ladder.you.rating} rating ({ladder.you.wins}–{ladder.you.losses}).
+                </p>
+              )}
+            </>
+          )}
+        </section>
+      )}
 
       {tab === 'ladder' && (
         <section className="panel">

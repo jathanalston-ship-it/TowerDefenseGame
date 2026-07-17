@@ -147,7 +147,7 @@ export const SYSTEMS: SystemDef[] = [
     dependsOn: ['online-foundation', 'engine', 'battle-pass', 'idle-harvest', 'power', 'meta-store'], powerScore: 'arena exclusives are full content pieces scored by the existing tower/hero buckets once unlocked; rank itself is deliberately zero-Power (prestige lane, like Genome Rank)', save: ['arena'], tutorial: [], help: ['arena'],
     hud: ['ArenaView (opponent bar, PvP timer, connection chip, scroll indicator, command dock)'], ui: ['ArenaScreen', 'ArenaView', 'Hub', 'PlayerProfile (pvp section)'], collection: null,
     achievements: ['arena_first_match', 'arena_first_win', 'arena_placed', 'arena_streak5', 'arena_larval', 'arena_chrysalis', 'arena_apex', 'arena_wins25', 'arena_wins100', 'arena_crown', 'arena_perennial'],
-    localization: 'inline-en', docs: ['docs/ARENA.md'],
+    localization: 'inline-en', docs: ['docs/ARENA.md', 'docs/ARENA_MATCH_REPORT.md'],
   },
   {
     id: 'towers', name: 'Towers, Stars, Branches, Strain & Codex', purpose: 'Tower roster; permanent Star evolutions; in-run Branch specialization; the in-run STRAIN evolution layer (docs/STRAIN.md); the Codex.',

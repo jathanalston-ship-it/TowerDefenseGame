@@ -230,7 +230,7 @@ graph TD
 | **Field Research (rewarded studies)** (`field-research`) | `premium` · `meta-store` · `splice-market` · `boss-rush` · `daily` | — | — | `research` | `docs/RESEARCH.md` · `docs/WEBSITE.md` |
 | **Backend lanes (net/)** (`net-backend`) | `premium` · `meta-store` · `daily` · `power` | `security` | — | `premium` | `docs/DEPLOYMENT.md` · `docs/REPLAY-SHARE.md` |
 | **Online Foundation** (`online-foundation`) | `engine` · `content-infra` · `splice-market` | `arena` | — | `provenance` | `docs/ONLINE-FOUNDATION.md` · `docs/TRADING-PREP.md` |
-| **Arena (Live PvP)** (`arena`) | `online-foundation` · `engine` · `battle-pass` · `idle-harvest` · `power` · `meta-store` | — | ⚡ arena exclusives are full content pieces scored by the existing tower/hero buckets once unlocked; rank itself is deliberately zero-Power (prestige lane, like Genome Rank) | `arena` | `docs/ARENA.md` |
+| **Arena (Live PvP)** (`arena`) | `online-foundation` · `engine` · `battle-pass` · `idle-harvest` · `power` · `meta-store` | — | ⚡ arena exclusives are full content pieces scored by the existing tower/hero buckets once unlocked; rank itself is deliberately zero-Power (prestige lane, like Genome Rank) | `arena` | `docs/ARENA.md` · `docs/ARENA_MATCH_REPORT.md` |
 | **Towers, Stars, Branches, Strain & Codex** (`towers`) | `content-infra` · `shards-economy` · `campaign` | `engine` · `daily` · `mulligans` · `contracts` | ⚡ stars/branches feed permanent + temporary buckets | `towerStars` · `towerPrime` · `towerShards` · `towerMasteryXp` · `towerForks` | `docs/TOWER-STARS.md` · `docs/TOWER-BRANCHES.md` · `docs/TOWER-LAB.md` · `docs/TOWER-CODEX.md` · `docs/TOWERS.md` · `docs/STRAIN.md` |
 | **Mastery / Adaptation** (`mastery`) | `stats` · `content-infra` | — | ⚡ mastery multiplier folds into the permanent bucket | `towerMasteryXp` · `heroMasteryXp` · `adaptation` · `antigen` · `masteryEvolution` | `docs/MASTERY.md` · `docs/ADAPTATION.md` |
 | **Heroes** (`heroes`) | `content-infra` · `engine` · `shards-economy` · `campaign` | `engine` · `hero-cinematics` · `equipment` · `hero-symbiotes` · `expeditions` | ⚡ hero stars/evolution feed permanent + temporary buckets | `heroStars` · `heroPrime` · `heroShards` · `heroUnlocked` · `heroLoadout` · `heroMasteryXp` | `docs/HEROES.md` · `docs/HERO-FRAMEWORK.md` · `docs/HERO-EVOLUTION.md` · `docs/HERO-SELECTION.md` · `docs/SLOTS.md` |
@@ -304,7 +304,7 @@ graph TD
 - **HUD surfaces:** `Hud` · `Toolbar` · `BuildControls` · `Inspector` · `BuildPanel` · **UI screens:** `GameView`
 - **Collection:** kills/usage feed collection tiers · **Achievements:** —
 - **Localization:** inline English strings (no i18n layer yet — this field enumerates the surface for the day it lands)
-- **Docs to update on change:** `docs/ARCHITECTURE.md` · `docs/CODEMAP.md` · `docs/DESIGN.md` · `docs/CAMPAIGN.md` · `docs/CAMPAIGN-EVENTS.md` · `docs/MODE-IDENTITY.md` · `docs/STAGES.md` · `docs/ENDLESS-SCALING.md` · `docs/BOSS-RUSH.md` · `docs/DAILY-RUN.md` · `docs/ONLINE-FOUNDATION.md` · `docs/TRADING-PREP.md` · `docs/ARENA.md` · `docs/HEROES.md` · `docs/HERO-FRAMEWORK.md` · `docs/HERO-EVOLUTION.md` · `docs/HERO-SELECTION.md` · `docs/SLOTS.md` · `docs/HERO-CINEMATICS.md` · `docs/NEMESIS.md` · `docs/TUTORIAL.md` · `docs/HELP.md` · `docs/TUTORIAL-AUDIT.md` · `docs/GUIDED-UNLOCKS.md` · `docs/HUD.md` · `docs/READABILITY.md` · `docs/REWARD-PRESENTATION.md` · `docs/BOSS-DESIGN.md` · `docs/MEGA-BOSS.md` · `docs/RENDER-PIPELINE.md` · `docs/TOWER-VISUAL-EVOLUTION.md` · `docs/GAME-FEEL.md` · `docs/CAMERA.md` · `docs/COMBAT-VISUAL-STANDARDS.md` · `docs/LIVING-BATTLEFIELD.md` · `docs/MUSIC.md`
+- **Docs to update on change:** `docs/ARCHITECTURE.md` · `docs/CODEMAP.md` · `docs/DESIGN.md` · `docs/CAMPAIGN.md` · `docs/CAMPAIGN-EVENTS.md` · `docs/MODE-IDENTITY.md` · `docs/STAGES.md` · `docs/ENDLESS-SCALING.md` · `docs/BOSS-RUSH.md` · `docs/DAILY-RUN.md` · `docs/ONLINE-FOUNDATION.md` · `docs/TRADING-PREP.md` · `docs/ARENA.md` · `docs/ARENA_MATCH_REPORT.md` · `docs/HEROES.md` · `docs/HERO-FRAMEWORK.md` · `docs/HERO-EVOLUTION.md` · `docs/HERO-SELECTION.md` · `docs/SLOTS.md` · `docs/HERO-CINEMATICS.md` · `docs/NEMESIS.md` · `docs/TUTORIAL.md` · `docs/HELP.md` · `docs/TUTORIAL-AUDIT.md` · `docs/GUIDED-UNLOCKS.md` · `docs/HUD.md` · `docs/READABILITY.md` · `docs/REWARD-PRESENTATION.md` · `docs/BOSS-DESIGN.md` · `docs/MEGA-BOSS.md` · `docs/RENDER-PIPELINE.md` · `docs/TOWER-VISUAL-EVOLUTION.md` · `docs/GAME-FEEL.md` · `docs/CAMERA.md` · `docs/COMBAT-VISUAL-STANDARDS.md` · `docs/LIVING-BATTLEFIELD.md` · `docs/MUSIC.md`
 
 ### Content Infrastructure (`content-infra`)
 
@@ -334,7 +334,7 @@ graph TD
 - **HUD surfaces:** `Hud (live run Power)` · **UI screens:** `ProgressDashboard` · `CommandCenter (recommended power + Growth panel)`
 - **Collection:** collection completion feeds a bucket · **Achievements:** —
 - **Localization:** inline English strings (no i18n layer yet — this field enumerates the surface for the day it lands)
-- **Docs to update on change:** `docs/POWER-SCORE.md` · `docs/POWER-AUDIT.md` · `docs/POWER-ADVISOR.md` · `docs/MISSION-CONTROL.md` · `docs/EVOLUTION-ROADMAP.md` · `docs/CAMPAIGN.md` · `docs/CAMPAIGN-EVENTS.md` · `docs/MODE-IDENTITY.md` · `docs/STAGES.md` · `docs/MULLIGANS.md` · `docs/PREMIUM-STORE.md` · `docs/PREMIUM-ECONOMY-REPORT.md` · `docs/DEPLOYMENT.md` · `docs/REPLAY-SHARE.md` · `docs/ARENA.md` · `docs/EQUIPMENT.md` · `docs/EQUIPMENT-PHILOSOPHY.md` · `docs/LOOTBOX.md` · `docs/LOOT-PROGRESSION.md` · `docs/REWARD-PRESENTATION.md` · `docs/GENE-EVOLUTION.md` · `docs/CARDS.md` · `docs/GENE-AUDIT-REPORT.md` · `docs/NUCLEUS.md` · `docs/HERO-SYMBIOTES.md` · `docs/PROFILE.md` · `docs/GENOME-RANK.md` · `docs/COMMAND-CENTER.md` · `docs/HOME-BASE.md` · `docs/ONE-MORE-RUN.md` · `docs/HUD.md` · `docs/PROGRESSION-LOOP.md` · `docs/UX-CONSOLIDATION.md` · `docs/READABILITY.md` · `docs/PREDICTION.md`
+- **Docs to update on change:** `docs/POWER-SCORE.md` · `docs/POWER-AUDIT.md` · `docs/POWER-ADVISOR.md` · `docs/MISSION-CONTROL.md` · `docs/EVOLUTION-ROADMAP.md` · `docs/CAMPAIGN.md` · `docs/CAMPAIGN-EVENTS.md` · `docs/MODE-IDENTITY.md` · `docs/STAGES.md` · `docs/MULLIGANS.md` · `docs/PREMIUM-STORE.md` · `docs/PREMIUM-ECONOMY-REPORT.md` · `docs/DEPLOYMENT.md` · `docs/REPLAY-SHARE.md` · `docs/ARENA.md` · `docs/ARENA_MATCH_REPORT.md` · `docs/EQUIPMENT.md` · `docs/EQUIPMENT-PHILOSOPHY.md` · `docs/LOOTBOX.md` · `docs/LOOT-PROGRESSION.md` · `docs/REWARD-PRESENTATION.md` · `docs/GENE-EVOLUTION.md` · `docs/CARDS.md` · `docs/GENE-AUDIT-REPORT.md` · `docs/NUCLEUS.md` · `docs/HERO-SYMBIOTES.md` · `docs/PROFILE.md` · `docs/GENOME-RANK.md` · `docs/COMMAND-CENTER.md` · `docs/HOME-BASE.md` · `docs/ONE-MORE-RUN.md` · `docs/HUD.md` · `docs/PROGRESSION-LOOP.md` · `docs/UX-CONSOLIDATION.md` · `docs/READABILITY.md` · `docs/PREDICTION.md`
 
 ### Campaign (`campaign`)
 
@@ -499,7 +499,7 @@ graph TD
 - **HUD surfaces:** — · **UI screens:** —
 - **Collection:** — · **Achievements:** —
 - **Localization:** inline English strings (no i18n layer yet — this field enumerates the surface for the day it lands)
-- **Docs to update on change:** `docs/ONLINE-FOUNDATION.md` · `docs/TRADING-PREP.md` · `docs/ARENA.md`
+- **Docs to update on change:** `docs/ONLINE-FOUNDATION.md` · `docs/TRADING-PREP.md` · `docs/ARENA.md` · `docs/ARENA_MATCH_REPORT.md`
 
 ### Arena (Live PvP) (`arena`)
 
@@ -514,7 +514,7 @@ graph TD
 - **HUD surfaces:** `ArenaView (opponent bar, PvP timer, connection chip, scroll indicator, command dock)` · **UI screens:** `ArenaScreen` · `ArenaView` · `Hub` · `PlayerProfile (pvp section)`
 - **Collection:** — · **Achievements:** `arena_first_match` · `arena_first_win` · `arena_placed` · `arena_streak5` · `arena_larval` · `arena_chrysalis` · `arena_apex` · `arena_wins25` · `arena_wins100` · `arena_crown` · `arena_perennial`
 - **Localization:** inline English strings (no i18n layer yet — this field enumerates the surface for the day it lands)
-- **Docs to update on change:** `docs/ARENA.md`
+- **Docs to update on change:** `docs/ARENA.md` · `docs/ARENA_MATCH_REPORT.md`
 
 ### Towers, Stars, Branches, Strain & Codex (`towers`)
 
@@ -679,7 +679,7 @@ graph TD
 - **HUD surfaces:** `HarvestArrival (return ceremony strip)` · **UI screens:** `HarvestScreen`
 - **Collection:** idle category (milestones + hour/best/bloom watermarks) · **Achievements:** `idle_first` · `idle_hours24` · `idle_brimmed` · `idle_bloom` · `idle_tree25`
 - **Localization:** inline English strings (no i18n layer yet — this field enumerates the surface for the day it lands)
-- **Docs to update on change:** `docs/IDLE-HARVEST.md` · `docs/ARENA.md`
+- **Docs to update on change:** `docs/IDLE-HARVEST.md` · `docs/ARENA.md` · `docs/ARENA_MATCH_REPORT.md`
 
 ### Shards & Star Economy (`shards-economy`)
 
@@ -979,7 +979,7 @@ graph TD
 - **HUD surfaces:** — · **UI screens:** `BattlePassScreen`
 - **Collection:** grants land in the wardrobe codices · **Achievements:** —
 - **Localization:** inline English strings (no i18n layer yet — this field enumerates the surface for the day it lands)
-- **Docs to update on change:** `docs/BATTLEPASS.md` · `docs/ARENA.md` · `docs/DAILY-LOGIN.md` · `docs/DAILY-RUN.md` · `docs/ECONOMY.md` · `docs/QUESTS.md`
+- **Docs to update on change:** `docs/BATTLEPASS.md` · `docs/ARENA.md` · `docs/ARENA_MATCH_REPORT.md` · `docs/DAILY-LOGIN.md` · `docs/DAILY-RUN.md` · `docs/ECONOMY.md` · `docs/QUESTS.md`
 
 ### Quests & Missions (`quests`)
 
@@ -1144,7 +1144,7 @@ graph TD
 - **HUD surfaces:** — · **UI screens:** `SaveManager`
 - **Collection:** — · **Achievements:** —
 - **Localization:** inline English strings (no i18n layer yet — this field enumerates the surface for the day it lands)
-- **Docs to update on change:** `docs/DEV-RESET.md` · `docs/SCALABILITY.md` · `docs/PROJECT_MANIFEST.md` · `docs/ACCOUNTS.md` · `docs/DEPLOYMENT.md` · `docs/MULLIGANS.md` · `docs/RESEARCH.md` · `docs/WEBSITE.md` · `docs/REPLAY-SHARE.md` · `docs/ARENA.md` · `docs/NUCLEUS.md` · `docs/HERO-SYMBIOTES.md` · `docs/IDLE-HARVEST.md` · `docs/HIVE-CONSTRUCTION.md` · `docs/HOME-BASE.md` · `docs/DAILY-LOGIN.md` · `docs/DAILY-RUN.md` · `docs/ECONOMY.md` · `docs/LIVEOPS.md` · `docs/CONTRACTS.md` · `docs/INFESTATION.md` · `docs/CHANGELOG-PIPELINE.md` · `docs/EXPEDITIONS.md` · `docs/NEMESIS.md` · `docs/COSMETICS.md` · `docs/BATTLEPASS.md` · `docs/QUESTS.md` · `docs/TUTORIAL.md` · `docs/HELP.md` · `docs/TUTORIAL-AUDIT.md` · `docs/GUIDED-UNLOCKS.md` · `docs/ACCOUNT-LEVEL.md` · `docs/GENOME-RANK.md` · `docs/PROGRESSION-GATING.md` · `docs/UNLOCK-TREE.md` · `docs/COMMAND-CENTER.md` · `docs/ONE-MORE-RUN.md` · `docs/HUD.md` · `docs/PROGRESSION-LOOP.md` · `docs/UX-CONSOLIDATION.md` · `docs/READABILITY.md` · `docs/REWARD-PRESENTATION.md` · `docs/NOTIFICATIONS.md` · `docs/HIVE-INTEL.md` · `docs/CUTSCENES.md` · `docs/SECURITY.md`
+- **Docs to update on change:** `docs/DEV-RESET.md` · `docs/SCALABILITY.md` · `docs/PROJECT_MANIFEST.md` · `docs/ACCOUNTS.md` · `docs/DEPLOYMENT.md` · `docs/MULLIGANS.md` · `docs/RESEARCH.md` · `docs/WEBSITE.md` · `docs/REPLAY-SHARE.md` · `docs/ARENA.md` · `docs/ARENA_MATCH_REPORT.md` · `docs/NUCLEUS.md` · `docs/HERO-SYMBIOTES.md` · `docs/IDLE-HARVEST.md` · `docs/HIVE-CONSTRUCTION.md` · `docs/HOME-BASE.md` · `docs/DAILY-LOGIN.md` · `docs/DAILY-RUN.md` · `docs/ECONOMY.md` · `docs/LIVEOPS.md` · `docs/CONTRACTS.md` · `docs/INFESTATION.md` · `docs/CHANGELOG-PIPELINE.md` · `docs/EXPEDITIONS.md` · `docs/NEMESIS.md` · `docs/COSMETICS.md` · `docs/BATTLEPASS.md` · `docs/QUESTS.md` · `docs/TUTORIAL.md` · `docs/HELP.md` · `docs/TUTORIAL-AUDIT.md` · `docs/GUIDED-UNLOCKS.md` · `docs/ACCOUNT-LEVEL.md` · `docs/GENOME-RANK.md` · `docs/PROGRESSION-GATING.md` · `docs/UNLOCK-TREE.md` · `docs/COMMAND-CENTER.md` · `docs/ONE-MORE-RUN.md` · `docs/HUD.md` · `docs/PROGRESSION-LOOP.md` · `docs/UX-CONSOLIDATION.md` · `docs/READABILITY.md` · `docs/REWARD-PRESENTATION.md` · `docs/NOTIFICATIONS.md` · `docs/HIVE-INTEL.md` · `docs/CUTSCENES.md` · `docs/SECURITY.md`
 
 ### Bosses (`bosses`)
 

@@ -4,8 +4,9 @@
 > before committing. Read together with docs/PROJECT_STATUS.md and the latest
 > docs/VALIDATION_REPORT.md. Next session: start at docs/PROJECT_MANIFEST.md.
 
-- **Generated:** 2026-07-17 01:54 UTC · **Diff scope:** working tree vs HEAD
-- **Branch:** claude/zen-hawking-rh1gxl · **HEAD:** aab74f5
+- **Generated:** 2026-07-17 · **Diff scope:** the recognition/relay batch (pushed ab95670)
+  PLUS the Live-PvP-brief delta batch (this commit: private bouts, the ladder, the sweep)
+- **Branch:** claude/zen-hawking-rh1gxl
 
 ## Summary of work completed
 
@@ -20,6 +21,14 @@ live RTT/quality chip, and reconnects re-targeted at the match room. **The one t
 next session must know:** the relay is DUMB (a pairing pipe) and the broker is PURE — all
 trust lives in the shared validators (`peerProblem`/`bootBundleProblem`) plus the server
 settle; a Durable-Objects migration imports `functions/lib/arenaRelayRoom.ts` verbatim.
+
+THEN the LIVE-PvP BRIEF (user-queued): audited against the landed saga — the coverage map
+lives in ARENA.md §brief-coverage; the two recorded-decision conflicts (`noMega`,
+server-side sim) are flagged there for the user. The genuine deltas shipped: PRIVATE BOUTS
+(§private — friendly, unrated, by shared code over direct relay rooms; never settles),
+THE SEASON LADDER (§ladder — GET /api/arena/ladder + migration 0006 names + the Proving
+Grounds ladder tab), and THE SWEEP (§sweep — `npm run arena:sweep`; the shipped 240-match
+AI-vs-AI run is STABLE with 100% server-valid claims → docs/ARENA_MATCH_REPORT.md).
 
 ## Files modified
 

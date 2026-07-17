@@ -129,6 +129,67 @@ achievements — the rows needed zero new triggers. The Profile's **Proving Grou
 and stays hidden until the account's first arena touch (the one declared-empty profile
 section on a fresh save).
 
+## §private — Private Bouts (friendly, unrated)
+
+Two players agree on a code and both press SPAR on the Proving Grounds console: each joins
+the direct relay room `pm:<season>:<CODE>` (codes normalize — trim/case/punctuation — so
+friends always land together), the broker fills it with the SAME `paired` handshake as
+ranked, and the peer gate keeps protocol/season/boot-bounds/fingerprint but DROPS the power
+bracket — any two friends may spar. `ArenaMatchSetup.friendly` plays the full ruleset and
+**never settles**: no rating, no rewards, no pass XP (and therefore nothing to win-trade);
+the verdict panel says so. Quick Match (a public unranked queue) is deliberately NOT shipped —
+it would split the ranked pool; the seam is one `mm:`-prefix variant away if evidence ever
+wants it. Tournament/spectator hooks live on the same direct-room seam
+(ONLINE-FOUNDATION.md §relay).
+
+## §ladder — the season rating ladder
+
+`GET /api/arena/ladder` reads the CURRENT season's `arena_ratings` top slice (the
+`idx_arena_ratings_ladder` index was built for this) plus the asker's own rank; display
+names ride the report body (sanitized server-side, stored on the rating row — migration
+0006), tags derive from the STORED player id (unforgeable — the wave-leaderboard precedent).
+The Proving Grounds ladder tab renders it fail-soft: offline/guest hives fight unlisted.
+
+## §sweep — the bulk stability harness
+
+`npm run arena:sweep [-- N [seed]]` (scripts/arena-match-sweep.ts) runs N full AI-vs-AI
+matches of the real ruleset — the genuine `AiController` on BOTH fields, commands through
+the one `applyArenaCommand` pipeline — across 6 Power brackets × 4 division tiers, asserting:
+every match terminates, every terminal claim passes the SHARED `arenaClaimProblem` validator,
+and the rating model moves the right direction. Writes `docs/ARENA_MATCH_REPORT.md`
+(regenerate after sim/arena/AI changes; the BALANCE_REPORT.md pattern).
+
+## §brief-coverage — the Live-PvP brief, mapped to evidence
+
+The 2026-07 "COMPLETE LIVE PvP EXECUTION" brief is delivered across the Online Foundation
+saga + the two follow-up batches. The map (each row names its living evidence):
+
+| Brief section | Status | Evidence |
+|---|---|---|
+| Real-time two-player matches | ✅ | deterministic lockstep + relay (ONLINE-FOUNDATION.md §2, §relay); live dual-client probe |
+| Authoritative model / client never trusted | ✅* | commands-are-intents + digest tripwires + shared validators + server-derived rating/rewards (§0, §authority) — *see conflict note below |
+| Matchmaking (20s, widening brackets, honest console, invisible AI fallback) | ✅ | `matchSearchState` + the human-lane race (ArenaScreen) |
+| Vertically mirrored, scrollable battlefield | ✅ | ArenaView membrane seam + ease-home camera |
+| Live opponent sim ("everything visible") | ✅* | the mirror IS a genuine sim; megas excluded by RECORDED decision (§1) — *conflict note |
+| HUD overhaul (health/portraits/latency/rank/timer/scroll/reset) | ✅ | ArenaView §10 set + the live RTT/quality chip |
+| AI as a real player (procedural accounts, real sim, no cheating) | ✅ | core/arenaAi.ts (§9) |
+| Sync: prediction/rollback/reconnect/bandwidth | ✅ | frontier mirror, log-replay rollback/reconnect, digests, bytes-per-action wire (§2–3) |
+| Online security battery | ✅ | intent commands, bounds validators, exactly-once settles, provenance, netcode CI |
+| Arena modes: Ranked · Private (future-ready) · hooks | ✅ | ranked queue + §private bouts; spectator/tournament seams documented |
+| Rank divisions / placements / resets / leaderboard | ✅ | ARENA_DIVISIONS + §ladder |
+| Arena Pass (100 lv, 30d, wins-only, 3 exclusive crowns as full content) | ✅ | core/arenaPass.ts + the exclusives |
+| Power Score validation | ✅ | the engine-level Power validator batch + claim bounds + bracket gates |
+| Performance / traffic | ✅ | bandwidth by architecture (commands, not state streams); FPS unchanged |
+| UX loop (menu→queue→match→verdict→rewards→queue again) | ✅ | verdict panel → RETURN → console |
+| Bulk testing (latency/loss/disconnect/brackets/exploits) | ✅ | netcode CI (loopback network model) + §sweep |
+
+**Recorded-decision conflicts (user's call, not silently re-litigated):** the brief lists
+Mega Bosses on the opponent field — ARENA.md §1 records `noMega` as a design decision; and
+"the server simulates everything, clients become prediction layers" — ONLINE-FOUNDATION.md §0
+records the deterministic-lockstep + server-progression-authority architecture instead
+(SECURITY-AUDIT: "do not move gameplay simulation to the server"), which delivers the brief's
+anti-cheat INTENT without a server sim.
+
 ## Known limitations
 
 - Human matches need a reachable relay (`npm run relay` + `VITE_ARENA_RELAY_URL` at build —
