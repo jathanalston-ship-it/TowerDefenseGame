@@ -32,17 +32,22 @@ CREATE TABLE IF NOT EXISTS market_listings (
   category TEXT NOT NULL,
   rarity TEXT NOT NULL,
   seller_id TEXT NOT NULL, -- '@authority' for baseline stock
+  season INTEGER NOT NULL DEFAULT 0, -- item's provenance season (search filter, denormalized)
   ask INTEGER NOT NULL,
   buy_now INTEGER, -- NULL = bid-only
   bid INTEGER, -- standing bid
   bidder_id TEXT,
   ends_at INTEGER NOT NULL, -- epoch ms (anti-snipe extends)
   created_at INTEGER NOT NULL,
+  closed_at INTEGER, -- when it left 'active' (sold/expired/cancelled) — audit input
   state TEXT NOT NULL DEFAULT 'active', -- active | sold | expired | cancelled
   fee_paid INTEGER NOT NULL DEFAULT 0,
   authority INTEGER NOT NULL DEFAULT 0
 );
 CREATE INDEX IF NOT EXISTS idx_market_listings_browse ON market_listings (state, category, rarity, ends_at);
+-- One ACTIVE listing per item, enforced by the schema: a double-list is a SQL error and the
+-- whole batch (fee charge included) rolls back atomically.
+CREATE UNIQUE INDEX IF NOT EXISTS idx_market_listings_active_item ON market_listings (global_item_id) WHERE state = 'active';
 CREATE INDEX IF NOT EXISTS idx_market_listings_family ON market_listings (state, family_key);
 CREATE INDEX IF NOT EXISTS idx_market_listings_seller ON market_listings (seller_id, state);
 CREATE INDEX IF NOT EXISTS idx_market_listings_expiry ON market_listings (state, ends_at);
@@ -61,10 +66,11 @@ CREATE INDEX IF NOT EXISTS idx_market_bids_listing ON market_bids (listing_id, a
 -- §security) and every movement lands in market_wallet_ledger exactly-once.
 CREATE TABLE IF NOT EXISTS market_wallets (
   player_id TEXT PRIMARY KEY,
-  balance INTEGER NOT NULL DEFAULT 0,
-  escrow INTEGER NOT NULL DEFAULT 0, -- standing-bid escrow held out of balance
+  balance INTEGER NOT NULL DEFAULT 0 CHECK (balance >= 0), -- a negative wallet is a bug, never a state
+  escrow INTEGER NOT NULL DEFAULT 0 CHECK (escrow >= 0), -- standing-bid escrow held out of balance
   deposited_lifetime INTEGER NOT NULL DEFAULT 0,
   withdrawn_lifetime INTEGER NOT NULL DEFAULT 0,
+  created_at INTEGER NOT NULL, -- first market touch — the market-age gate's clock for token players
   updated_at INTEGER NOT NULL
 );
 

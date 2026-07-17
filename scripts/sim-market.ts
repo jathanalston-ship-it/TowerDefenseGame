@@ -152,6 +152,7 @@ function openFor(w: World, agent: Agent, familyKey: string, ask: number, buyNowP
   const r = openListing({
     listingId: id, globalItemId: `G${w.seq}`, refKey: stableRef ?? `${cat.cat}:${familyKey}#${w.seq}`, cat: cat.cat,
     familyKey, rarity: cat.rarity, sellerId: agent.id, ask, buyNow: buyNowPrice, durationH: 48, now: w.now, authority,
+    feeMult: w.authority.feeMult, // the authority's live anti-inflation lever actually charges
   });
   if (!r.ok) return null;
   if (!applyOps(w, r.ops)) return null;
@@ -171,7 +172,7 @@ function runDay(w: World, sc: Scenario): void {
   w.now += DAY;
   for (const l of [...w.listings.values()]) {
     if (l.state !== 'active' || w.now < l.endsAt) continue;
-    const r = settleExpired(l, w.now);
+    const r = settleExpired(l, w.now, w.authority.taxMult);
     if (!r.ok) continue;
     applyOps(w, r.ops, false);
     w.listings.set(l.listingId, r.value.listing);
@@ -241,7 +242,7 @@ function runDay(w: World, sc: Scenario): void {
         : price <= worth;
       if (!wants || price > agent.wallet * budgetFrac) continue;
       if (l.buyNow !== null && (agent.persona === 'whale' || w.rng.next() < 0.6)) {
-        const r = buyNow(l, agent.id, w.now);
+        const r = buyNow(l, agent.id, w.now, w.authority.taxMult);
         if (r.ok && applyOps(w, r.ops)) {
           w.listings.set(l.listingId, r.value.listing);
           agent.items.push(l.familyKey);
@@ -266,7 +267,7 @@ function runDay(w: World, sc: Scenario): void {
       const price = Math.max(5, Math.round((medianOf(w, fam) || 20) * 6));
       const l = openFor(w, agent, fam, price, price);
       if (l && partner.wallet >= price) {
-        const r = buyNow(l, partner.id, w.now + 5000);
+        const r = buyNow(l, partner.id, w.now + 5000, w.authority.taxMult);
         if (r.ok && applyOps(w, r.ops)) {
           w.listings.set(l.listingId, r.value.listing);
           recordSale(w, fam, price, agent.id, partner.id, `equipment:${fam}#wash`); // SAME refKey each cycle — the chain detectors watch items

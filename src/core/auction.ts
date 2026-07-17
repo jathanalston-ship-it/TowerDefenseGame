@@ -15,7 +15,7 @@
 //
 // Pure: no DOM, no state imports, no Math.random, no Date.now (time is always an argument).
 
-import { TRADE, listingFee, minNextBid, priceInBounds, saleTax, sellerProceeds } from './trading';
+import { TRADE, listingFee, minNextBid, priceInBounds, saleTax } from './trading';
 import type { AuctionListing, MarketHistoryPoint } from './trading';
 
 // ── Listing lifecycle ─────────────────────────────────────────────────────────
@@ -71,6 +71,8 @@ export interface OpenListingInput {
   durationH: number;
   now: number;
   authority?: boolean;
+  /** Market Authority anti-inflation lever (AuthorityState.feeMult) — scales the fee. */
+  feeMult?: number;
 }
 
 /** Open a listing. The fee charges up-front and BURNS (non-refundable spam brake). */
@@ -81,7 +83,7 @@ export function openListing(input: OpenListingInput): EngineOutcome<LiveListing>
     if (input.buyNow < input.ask) return fail('buynow-below-ask');
   }
   if (!TRADE.durationsH.includes(input.durationH)) return fail('bad-duration');
-  const fee = input.authority ? 0 : listingFee(input.buyNow ?? input.ask);
+  const fee = input.authority ? 0 : Math.ceil(listingFee(input.buyNow ?? input.ask) * Math.max(1, input.feeMult ?? 1));
   const listing: LiveListing = {
     listingId: input.listingId,
     globalItemId: input.globalItemId,
@@ -122,15 +124,16 @@ export function placeBid(l: LiveListing, bidderId: string, amount: number, now: 
   return { ok: true, value: { ...l, bid: amount, bidderId, endsAt }, ops };
 }
 
-/** Buy-now: immediate settlement at the posted price. The standing bidder refunds. */
-export function buyNow(l: LiveListing, buyerId: string, now: number): EngineOutcome<{ listing: LiveListing; sale: SettledSale }> {
+/** Buy-now: immediate settlement at the posted price. The standing bidder refunds.
+ *  `taxMult` is the authority's sale-tax lever (AuthorityState.taxMult). */
+export function buyNow(l: LiveListing, buyerId: string, now: number, taxMult = 1): EngineOutcome<{ listing: LiveListing; sale: SettledSale }> {
   if (l.state !== 'active') return fail('not-active');
   if (now >= l.endsAt) return fail('ended');
   if (l.buyNow === null) return fail('no-buynow');
   if (buyerId === l.sellerId) return fail('self-buy');
   const ops: LedgerOp[] = [{ op: 'charge', playerId: buyerId, amount: l.buyNow, why: 'buyNow' }];
   if (l.bid !== null && l.bidderId !== null) ops.push({ op: 'refund', playerId: l.bidderId, amount: l.bid, why: 'outbid' });
-  const sale = settlementOps(l, buyerId, l.buyNow, now, ops);
+  const sale = settlementOps(l, buyerId, l.buyNow, now, ops, taxMult);
   return { ok: true, value: { listing: { ...l, state: 'sold', endsAt: now }, sale }, ops };
 }
 
@@ -155,9 +158,9 @@ export interface SettledSale {
   authority: boolean;
 }
 
-function settlementOps(l: LiveListing, buyerId: string, price: number, at: number, ops: LedgerOp[]): SettledSale {
-  const tax = saleTax(price);
-  const proceeds = sellerProceeds(price);
+function settlementOps(l: LiveListing, buyerId: string, price: number, at: number, ops: LedgerOp[], taxMult = 1): SettledSale {
+  const tax = Math.min(price, Math.ceil(saleTax(price) * Math.max(1, taxMult)));
+  const proceeds = Math.max(0, price - tax);
   if (l.authority) {
     ops.push({ op: 'burn', amount: price, why: 'authoritySale' }); // baseline sales fully leave circulation
   } else {
@@ -173,12 +176,12 @@ function settlementOps(l: LiveListing, buyerId: string, price: number, at: numbe
 
 /** Expire a listing past its clock: the standing bid WINS (auction settlement); a bid-free
  *  listing returns to its seller. Pure — the host loops this over expired rows. */
-export function settleExpired(l: LiveListing, now: number): EngineOutcome<{ listing: LiveListing; sale: SettledSale | null }> {
+export function settleExpired(l: LiveListing, now: number, taxMult = 1): EngineOutcome<{ listing: LiveListing; sale: SettledSale | null }> {
   if (l.state !== 'active') return fail('not-active');
   if (now < l.endsAt) return fail('not-ended');
   if (l.bid !== null && l.bidderId !== null) {
     const ops: LedgerOp[] = []; // the escrowed bid already charged at bid time
-    const sale = settlementOps(l, l.bidderId, l.bid, now, ops);
+    const sale = settlementOps(l, l.bidderId, l.bid, now, ops, taxMult);
     return { ok: true, value: { listing: { ...l, state: 'sold' }, sale }, ops };
   }
   return { ok: true, value: { listing: { ...l, state: 'expired' }, sale: null }, ops: [] };

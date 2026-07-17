@@ -15,6 +15,8 @@ export interface Env {
   /** Password-reset email delivery webhook (any provider accepting POST {to, token}).
    *  Absent ⇒ /api/account/reset request-step returns 503 'email-not-configured'. */
   RESET_EMAIL_WEBHOOK?: string;
+  /** Moderation key for /api/auction/flags (header x-mod-key). Absent ⇒ endpoint 503. */
+  MOD_KEY?: string;
   /** 'production' | 'preview' — production refuses sk_test_ keys. */
   ENVIRONMENT?: string;
 }

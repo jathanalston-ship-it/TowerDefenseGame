@@ -127,6 +127,20 @@ describe('listing lifecycle — open / bid / buy / cancel / settle', () => {
     expect(r.ok && r.value.state === 'cancelled' && r.ops.length === 0).toBe(true);
   });
 
+  it('authority fee/tax multipliers scale the sinks (never the price, never the floor)', () => {
+    const r = openListing({ ...baseInput(), feeMult: 2 });
+    expect(r.ok).toBe(true);
+    if (!r.ok) return;
+    expect(r.value.feePaid).toBe(Math.ceil(listingFee(200) * 2));
+    const sold = buyNow(r.value, 'buyer', T0 + 1000, 1.5);
+    expect(sold.ok).toBe(true);
+    if (!sold.ok) return;
+    expect(sold.value.sale.tax).toBe(Math.ceil(saleTax(200) * 1.5));
+    expect(sold.value.sale.proceeds).toBe(200 - sold.value.sale.tax);
+    const c = conserve(sold.ops);
+    expect(c.returned + c.burned).toBe(c.charged); // conservation is mult-independent
+  });
+
   it('authority listings: no fee, buy-now only, sale fully burns (pure sink)', () => {
     const r = openListing({ ...baseInput(), authority: true, sellerId: '@authority' });
     expect(r.ok).toBe(true);
