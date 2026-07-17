@@ -6,7 +6,7 @@
 > build disagree, **the build wins and this file is the tiebreaker.** Prefer reading this over
 > re-reading a system's implementation (per CLAUDE.md "Trust existing architecture").
 >
-> **Save schema:** `CURRENT_VERSION = 47` (additive migrations via `withDefaults` + per-field
+> **Save schema:** `CURRENT_VERSION = 48` (additive migrations via `withDefaults` + per-field
 > sanitizers; checksummed blob). **Stack:** React + TypeScript + Vite static SPA, deterministic sim
 > core in `src/core/` (no React/DOM), Canvas renderer, browser-local saves. Tests: `npm test`
 > (Vitest) — the golden characterization test pins the sim byte-for-byte.
@@ -1442,3 +1442,17 @@ repairable via the documented ledger scan.
 **Validation.** `npm run sim:rewards`: 4 personas × 14 days — value FLAT exact (800◆ = 800◆ over 40 clears), 5× survey payout events, ceremonies never decrease, hub sessions touch ~2 loops, session output ADVANCES ~5/5 loops, rotation never reduces coverage. `rewardLoops.test.ts` pins the structural laws + real-nav validity + the ≥60% sub-weekly cadence share.
 
 **Limitations.** Rotation forgets on reload (session-scoped by design); `loopOfNav` assigns each screen ONE primary loop; the persona sim's readiness probabilities are documented assumptions (structural laws are pinned independently).
+
+## Compressed system summary — Localized Economy (docs/ECONOMY.md §8, save v48)
+
+**Architecture.** The currency registry (`core/currencies.ts`) became the machine-enforced economy contract: every `CurrencyDef` carries `domain` (the ONE system it upgrades; `'account'` only for Genome Cores + Ichor) and `earnedFrom` (≥2 sources; prestige exempt — Molt IS the faucet). Two new wallets: **Chitin** (`save.hiveMaterials`) buys Hive-Production organs (was Genome Cores); **Mulligan Tissue** (`save.mulliganTissue`) buys tower-graft upgrades/ascends (was Gene Essence — the v26 unification deliberately re-split). Every faucet is value SHIFTED, never added: Chitin = guaranteed hopper top-slice (`IDLE.hiveMatsShare` 0.3, carved before the weighted roll; lane pushed LAST so a BLOOM's rare leads) + expedition lanes swapped 1:1 out of cores (patrol 15+15, harvest 80+30, graveyard 250+90) + Chitin Lode find; Tissue = dupe dissolves at old essence numbers + even premium-bleed split (mid-catalog faucet) + hopper trickle (weight 3 carved from essence 16→13).
+
+**Public APIs.** `currencyProblems()` (registry laws), `CurrencyDomain`, `meta.grantMulliganTissue`, `IdleGrant` kinds `hiveMats`/`tissue`, `ExpeditionReward.chitin?`, `IdleHarvestView.chitin`, `MulliganLabView.tissue`, toast types `hiveMaterials`/`mulliganTissue`, telemetry dims `hivemat`/`tissue`.
+
+**Extension points.** New currency = one CURRENCIES row (+ icon in the `Record<CurrencyId,…>` map — compiler-forced); the laws hold uniqueness/domain/overlap automatically. New Chitin faucet = an `IdleGrant`/expedition lane; new Tissue faucet = any surface pushing the toast/currency ids.
+
+**Assumptions.** Migration seeds on ABSENT fields only (hive `60+20×Σ levels`, tissue `25+8×Σ levels` — reseeding never fires once the field exists); fresh accounts seed 0 (golden-safe); organ/graft COST tables unchanged (pace parity comes from faucet sizing, `npm run sim:economy` pins 0.75–1.13 across 4 personas × 3 bands plus gene-wallet relief ≥95% and tissue ≥1.5 upgrades/week mid).
+
+**Deliberate non-conversions.** Ichor reforge (premium sink), Hive-Construction composite recipes (mixed-currency mandate), Nucleus/Symbiote organs (future candidates, still essence), Armory mats (already localized).
+
+**Limitations.** Old-run-economy income in the sim is a documented assumption (structural laws unit-pinned independently); Chitin frees cores previously spent on organs — a modest broad-wallet dividend accepted as the localization trade and bounded by the parity band.

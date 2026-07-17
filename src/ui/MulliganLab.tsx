@@ -264,9 +264,9 @@ export function MulliganLab(): JSX.Element {
           </div>
         </div>
         <div className="mgl-wallet">
-          <span className="mgl-overflow" title={CURRENCIES.geneEssence.blurb}>
-            <CurrencyIcon id="geneEssence" size={16} title="" /> {view.essence.toLocaleString()}
-            <em>Gene Essence</em>
+          <span className="mgl-overflow" title={CURRENCIES.mulliganTissue.blurb}>
+            <CurrencyIcon id="mulliganTissue" size={16} title="" /> {view.tissue.toLocaleString()}
+            <em>Mulligan Tissue</em>
           </span>
           <span className="mgl-dexcount" title="Modifiers sequenced — epic+ Bio-Containers discover new ones">
             {view.discovered} / {view.total} sequenced

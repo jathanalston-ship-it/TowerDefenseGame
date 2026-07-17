@@ -1752,7 +1752,8 @@ export interface IdleHarvestView {
   suggestion: ReturnType<typeof idleSuggestion>;
   drops: { id: string; name: string; icon: string; rare: boolean; minCampaign?: number; minGenomeRank?: number; eligible: boolean }[];
   ledger: SaveData['idle'];
-  cores: number;
+  /** The Hive wallet (save.hiveMaterials) — organs are priced in CHITIN (docs/ECONOMY.md §localized). */
+  chitin: number;
   /** GENOME RANK DIVIDEND (docs/IDLE-HARVEST.md §rank): the rank index feeding the rate and
    *  its bonus fraction (0 at rank I) — the screen shows the interlink, not just the total. */
   rankIndex: number;
@@ -1880,6 +1881,12 @@ function applyIdleGrant(next: SaveData, g: IdleGrant, rng: () => number, meta_: 
     case 'essence':
       pushCur('geneEssence', g.qty);
       return { ...next, geneEssence: next.geneEssence + g.qty };
+    case 'hiveMats': // Chitin — the guaranteed Hive-Production lane (docs/ECONOMY.md §localized)
+      pushCur('hiveMaterials', g.qty);
+      return { ...next, hiveMaterials: next.hiveMaterials + g.qty };
+    case 'tissue': // Mulligan Tissue traces beside the dupe-dissolve + graft-bleed faucets
+      pushCur('mulliganTissue', g.qty);
+      return { ...next, mulliganTissue: next.mulliganTissue + g.qty };
     case 'towerShards': {
       const towerShards = { ...next.towerShards };
       for (const k of towerShardPool(next)) towerShards[k] = (towerShards[k] ?? 0) + g.qtyEach;
@@ -1899,8 +1906,10 @@ function applyIdleGrant(next: SaveData, g: IdleGrant, rng: () => number, meta_: 
       const unowned = modIds.filter((m) => !next.mulliganDex[m]);
       const rar = rollRarity(rng());
       if (unowned.length === 0) {
-        push('Duplicate Modifier — 60 Gene Essence');
-        return { ...next, geneEssence: next.geneEssence + 60 };
+        // §localized: duplicate modifiers dissolve into MULLIGAN TISSUE (same unit price as the
+        // Gene Essence they used to pay — a currency swap, not new value).
+        push('Duplicate Modifier — 60 Mulligan Tissue');
+        return { ...next, mulliganTissue: next.mulliganTissue + 60 };
       }
       const id = unowned[Math.floor(rng() * unowned.length)];
       push(`Modifier Sequenced — ${mulliganRegistry.get(id)?.name ?? id} (${MULLIGAN_RARITY[rar].label})`);
@@ -3095,10 +3104,19 @@ export const meta = {
     //    rarity; epic+ containers additionally DISCOVER a random modifier at a rolled rarity
     //    (recording the best rarity seen in the dex). Purely additive — a fresh account is unaffected. ──
     const BLEED_BY_RARITY: Record<string, number> = { common: 15, rare: 30, epic: 55, legendary: 90, exotic: 140, mythic: 200 };
-    const essenceBleed = Math.round((BLEED_BY_RARITY[containerRarity] ?? 15) * (0.7 + Math.random() * 0.6) * lo.essenceMult);
+    const bleedTotal = Math.round((BLEED_BY_RARITY[containerRarity] ?? 15) * (0.7 + Math.random() * 0.6) * lo.essenceMult);
+    const premiumMull = containerRarity === 'epic' || containerRarity === 'legendary' || containerRarity === 'exotic' || containerRarity === 'mythic';
+    // §localized (docs/ECONOMY.md): once Mulligans are unlocked, a premium container's bleed
+    // SPLITS EVENLY between Gene Essence and GRAFT TISSUE — halves of the SAME bleed, never a
+    // second one (value unchanged; the two share a unit price). This is the mid-catalog
+    // Mulligan-Tissue faucet: duplicate dissolves only flow once the catalog is fully sequenced,
+    // so the bleed carries graft pace until then (sim-localized-economy pins ≥1.5 upgrades/week).
+    const tissueBleed = premiumMull && meta.mulligansUnlocked() ? Math.round(bleedTotal * 0.5) : 0;
+    const essenceBleed = bleedTotal - tissueBleed;
     let mulliganDex = save.mulliganDex;
     // Surface the bleed on the reveal (an event pull) so the spoils are never invisible.
     chest.items.push({ type: 'event', rarity: chest.topRarity, currency: 'geneEssence', amount: essenceBleed, note: 'Gene Bleed' });
+    if (tissueBleed > 0) chest.items.push({ type: 'event', rarity: chest.topRarity, currency: 'mulliganTissue', amount: tissueBleed, note: 'Graft Bleed' });
     // ── GENE CARD DISCOVERY (docs/CARDS.md §discovery): the additive lane that permanently
     //    expands the Gene Archive. Chance by container rarity; pool = campaign-milestone
     //    rarity pools ∩ the card's own unlock gate; undiscovered strands carry the fading
@@ -3122,8 +3140,7 @@ export const meta = {
         chest.items.push({ type: 'gene', rarity: magnitude, cardRarity: geneRoll.card.rarity, cardId: geneRoll.card.id, isNew: false, echoEssence: geneEchoEssence });
       }
     }
-    const premiumMull = containerRarity === 'epic' || containerRarity === 'legendary' || containerRarity === 'exotic' || containerRarity === 'mythic';
-    let dupeEssence = 0;
+    let dupeTissue = 0;
     // §gate: pieces only drop once the pillar is unlocked (3 distinct Mega Bosses slain,
     // or the account already holds pieces — grandfathered pre-v29 progress).
     if (premiumMull && meta.mulligansUnlocked()) {
@@ -3143,18 +3160,21 @@ export const meta = {
           note: `Modifier Sequenced — ${mulliganRegistry.get(id)?.name ?? id} (${MULLIGAN_RARITY[rar].label})`,
         });
       } else {
-        const DUP_ESSENCE: Record<MulliganRarity, number> = { common: 30, uncommon: 50, rare: 90, epic: 160, legendary: 280, ascendant: 500 };
-        dupeEssence = DUP_ESSENCE[rar];
+        // §localized: a fully-sequenced catalog dissolves duplicates into MULLIGAN TISSUE — the
+        // same numbers the old Gene-Essence table paid (a currency swap, never new value).
+        const DUP_TISSUE: Record<MulliganRarity, number> = { common: 30, uncommon: 50, rare: 90, epic: 160, legendary: 280, ascendant: 500 };
+        dupeTissue = DUP_TISSUE[rar];
         const dupId = modIds[Math.floor(Math.random() * modIds.length)];
         chest.items.push({
-          type: 'event', rarity: revealRarity, currency: 'geneEssence', amount: dupeEssence,
+          type: 'event', rarity: revealRarity, currency: 'mulliganTissue', amount: dupeTissue,
           note: `Duplicate Dissolved — ${mulliganRegistry.get(dupId)?.name ?? 'Modifier'} (${MULLIGAN_RARITY[rar].label})`,
         });
       }
     }
     persist({
       ...save, towerShards, heroShards, mats, matPity: pity, antigen,
-      geneEssence: save.geneEssence + essenceGained + essenceBleed + dupeEssence + geneEchoEssence,
+      geneEssence: save.geneEssence + essenceGained + essenceBleed + geneEchoEssence,
+      mulliganTissue: save.mulliganTissue + tissueBleed + dupeTissue,
       mulliganDex,
       genesDiscovered,
       timeline: geneRoll?.kind === 'discover' && (geneRoll.card.rarity === 'epic' || geneRoll.card.rarity === 'legendary')
@@ -3634,6 +3654,7 @@ export const meta = {
       shards: s.shards + reward.cores,
       lifetimeShards: s.lifetimeShards + reward.cores,
       geneEssence: s.geneEssence + reward.essence,
+      hiveMaterials: s.hiveMaterials + (reward.chitin ?? 0),
       mats: {
         mutagen: s.mats.mutagen + reward.mats.mutagen,
         scrap: s.mats.scrap + reward.mats.scrap,
@@ -3650,6 +3671,7 @@ export const meta = {
       const ev: ToastEvents = [{ type: 'bpXp', qty: 40 }];
       if (reward.cores > 0) ev.push({ type: 'genomeCores', qty: reward.cores });
       if (reward.essence > 0) ev.push({ type: 'geneEssence', qty: reward.essence });
+      if ((reward.chitin ?? 0) > 0) ev.push({ type: 'hiveMaterials', qty: reward.chitin ?? 0 });
       if (reward.mats.mutagen > 0) ev.push({ type: 'mutagen', qty: reward.mats.mutagen });
       if (reward.mats.scrap > 0) ev.push({ type: 'scrap', qty: reward.mats.scrap });
       if (reward.mats.catalyst > 0) ev.push({ type: 'catalyst', qty: reward.mats.catalyst });
@@ -4194,17 +4216,17 @@ export const meta = {
     const nodes = IDLE_NODES.map((def) => {
       const level = save.idle.nodes[def.id] ?? 0;
       const gate = idleNodeGate(def, level + 1, ctx);
-      return { def, level, cost: idleNodeCost(def, level), gate, gateLabel: gate ? idleGateLabel(gate) : null, affordable: gate === null && save.shards >= idleNodeCost(def, level) };
+      return { def, level, cost: idleNodeCost(def, level), gate, gateLabel: gate ? idleGateLabel(gate) : null, affordable: gate === null && save.hiveMaterials >= idleNodeCost(def, level) };
     });
     const eligible = new Set(eligibleIdleDrops(ctx).map((d) => d.id));
     return {
       accrual: acc,
       collectable: acc.rawHours * 60 >= IDLE.minCollectMinutes,
       nodes,
-      suggestion: idleSuggestion(save.idle.nodes, save.shards, ctx),
+      suggestion: idleSuggestion(save.idle.nodes, save.hiveMaterials, ctx),
       drops: [...IDLE_DROPS_VIEW].map((d) => ({ ...d, eligible: eligible.has(d.id) })),
       ledger: { ...save.idle },
-      cores: save.shards,
+      chitin: save.hiveMaterials,
       rankIndex: ctx.genomeRankIndex,
       rankBonus: IDLE.rankGrowth * Math.max(0, ctx.genomeRankIndex - 1),
       arenaDividend: arenaIdleDividend(arenaDiv),
@@ -4270,6 +4292,8 @@ export const meta = {
         const g = l.grant;
         if (g.kind === 'cores') ev.push({ type: 'genomeCores', qty: g.qty });
         else if (g.kind === 'essence') ev.push({ type: 'geneEssence', qty: g.qty });
+        else if (g.kind === 'hiveMats') ev.push({ type: 'hiveMaterials', qty: g.qty });
+        else if (g.kind === 'tissue') ev.push({ type: 'mulliganTissue', qty: g.qty });
         else if (g.kind === 'ichor') ev.push({ type: 'ichor', qty: g.qty });
         else if (g.kind === 'mats') {
           if (g.mutagen) ev.push({ type: 'mutagen', qty: g.mutagen });
@@ -4288,11 +4312,12 @@ export const meta = {
       lines: merged,
       rawHours: acc.rawHours, effHours: acc.effHours, capHours: acc.capHours, full: acc.full,
       bloom: roll.bloom, xp: roll.xp, value: Math.round(value), efficiencyPct: effPct,
-      suggestion: idleSuggestion(store.get().idle.nodes, store.get().shards, ctx),
+      suggestion: idleSuggestion(store.get().idle.nodes, store.get().hiveMaterials, ctx),
     };
   },
 
-  /** Grow one evolution-tree node: Genome Cores spend, progression gates enforced (Campaign /
+  /** Grow one evolution-tree node: CHITIN spend (docs/ECONOMY.md §localized — the Hive builds
+   *  itself from its own secretion, never Genome Cores), progression gates enforced (Campaign /
    *  Genome Rank / Molts / Boss Rush / Collections / Power — the gate is a work-toward label in
    *  the UI, never a silent grey-out). Infinite levels, geometric costs. */
   buyIdleNode(id: string): boolean {
@@ -4303,10 +4328,10 @@ export const meta = {
     const level = save.idle.nodes[id] ?? 0;
     if (idleNodeGate(def, level + 1, idleGateContext(save)) !== null) return false;
     const cost = idleNodeCost(def, level);
-    if (save.shards < cost) return false;
+    if (save.hiveMaterials < cost) return false;
     persist(foldAccountXp({
       ...save,
-      shards: save.shards - cost,
+      hiveMaterials: save.hiveMaterials - cost,
       idle: { ...save.idle, nodes: { ...save.idle.nodes, [id]: level + 1 } },
     }, ACCOUNT_XP.acquisition).save);
     this.evaluateAchievements(); // tree-depth milestones (idle_tree25)
@@ -5073,10 +5098,15 @@ export const meta = {
     persist({ ...save, mulliganDex: { ...save.mulliganDex, [id]: rarity } });
     return true;
   },
-  /** Grant Gene Essence (the unified gene currency — cards AND modifiers) — loot / conversions. */
+  /** Grant Gene Essence (the Gene Archive's card-upgrade currency) — loot / conversions. */
   grantGeneEssence(amount: number): void {
     const save = store.get();
     persist({ ...save, geneEssence: Math.max(0, save.geneEssence + Math.floor(amount)) });
+  },
+  /** Grant Mulligan Tissue (the graft-upgrade wallet — docs/ECONOMY.md §localized) — loot / dissolves. */
+  grantMulliganTissue(amount: number): void {
+    const save = store.get();
+    persist({ ...save, mulliganTissue: Math.max(0, save.mulliganTissue + Math.floor(amount)) });
   },
   /** Slot an OWNED piece into a tower's Mulligan (rarity ≤ the owned ceiling; level 1).
    *  §exclusivity: a piece lives on ONE tower — equipping it here MOVES it off its current
@@ -5122,7 +5152,8 @@ export const meta = {
     persist({ ...save, mulligans: { ...save.mulligans, [kind]: { slots, ...seedFor(kind, slots) } } });
     return true;
   },
-  /** Spend Gene Essence to raise a slot's level by one (within its rarity ceiling). */
+  /** Spend Mulligan Tissue to raise a slot's level by one (within its rarity ceiling).
+   *  docs/ECONOMY.md §localized — grafts grow from graft tissue, never the Gene Archive's wallet. */
   upgradeMulligan(kind: TowerKind, slotIndex: number): boolean {
     if (!guardOk('craft.mulligan', `${kind}:${slotIndex}`)) return false;
     const save = store.get();
@@ -5130,15 +5161,15 @@ export const meta = {
     const slot = cur?.slots[slotIndex];
     if (!cur || !slot || isMaxLevel(slot)) return false;
     const cost = mulliganUpgradeCost(slot.rarity, slot.level);
-    if (save.geneEssence < cost) return false;
+    if (save.mulliganTissue < cost) return false;
     const slots = cur.slots.slice();
     slots[slotIndex] = { ...slot, level: slot.level + 1 };
     const powerBefore = meta.power().score;
-    persist({ ...save, geneEssence: save.geneEssence - cost, mulligans: { ...save.mulligans, [kind]: { ...cur, slots } } });
+    persist({ ...save, mulliganTissue: save.mulliganTissue - cost, mulligans: { ...save.mulligans, [kind]: { ...cur, slots } } });
     if (meta.mulliganResolved(kind).active) announcePower(`${TOWER_DEFS[kind].name} Mulligan — Level ${slot.level + 1}`, powerBefore, meta.power().score);
     return true;
   },
-  /** Spend Gene Essence to ASCEND a MAXED slot to the next rarity (Ascension-ready). Bumps the dex
+  /** Spend Mulligan Tissue to ASCEND a MAXED slot to the next rarity (Ascension-ready). Bumps the dex
    *  so the modifier can be re-slotted at the new rarity; recomputes the (intensified) organism. */
   ascendMulligan(kind: TowerKind, slotIndex: number): boolean {
     if (!guardOk('craft.mulligan', `${kind}:${slotIndex}:asc`)) return false;
@@ -5148,13 +5179,13 @@ export const meta = {
     if (!cur || !slot || !isMaxLevel(slot)) return false;
     const nxt = nextRarity(slot.rarity);
     const cost = ascendCost(slot.rarity);
-    if (!nxt || cost == null || save.geneEssence < cost) return false;
+    if (!nxt || cost == null || save.mulliganTissue < cost) return false;
     const slots = cur.slots.slice();
     slots[slotIndex] = { id: slot.id, rarity: nxt, level: slot.level }; // level preserved (new cap ≥ old)
     const dexCur = save.mulliganDex[slot.id];
     const mulliganDex = dexCur && rarityAtLeast(dexCur, nxt) ? save.mulliganDex : { ...save.mulliganDex, [slot.id]: nxt };
     const powerBefore = meta.power().score;
-    persist({ ...save, geneEssence: save.geneEssence - cost, mulliganDex, mulligans: { ...save.mulligans, [kind]: { ...cur, slots, ...seedFor(kind, slots) } } });
+    persist({ ...save, mulliganTissue: save.mulliganTissue - cost, mulliganDex, mulligans: { ...save.mulligans, [kind]: { ...cur, slots, ...seedFor(kind, slots) } } });
     if (meta.mulliganResolved(kind).active) announcePower(`${TOWER_DEFS[kind].name} Mulligan — ${nxt}`, powerBefore, meta.power().score);
     return true;
   },

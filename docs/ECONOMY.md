@@ -306,3 +306,73 @@ ladders are the only time-bound rewards.
 - **The throughline:** income, sinks, and challenge **all scale together**, and a new
   *kind* of sink always sits just ahead — so the number going up never stops *meaning*
   something. That is how the economy backs 1000+ hours without going stale.
+
+---
+
+## 8. Localized economy (§localized, save v48 — SHIPPED)
+
+**The directive:** globally shared currencies flatten system identity. Each major
+progression system owns its own specialized upgrade currency where appropriate — logical
+acquisition tied into gameplay, overlapping reward sources, ONE spend domain per wallet,
+and no new grind (every faucet is value **shifted**, never added). The registry
+(`src/core/currencies.ts`) is the machine-enforced contract: every `CurrencyDef` declares
+`domain` (the one system it upgrades; `'account'` is reserved for the deliberately broad
+Genome Cores + Ichor) and `earnedFrom` (≥2 distinct sources — the prestige mint is the
+one sanctioned single-faucet wallet), and `currencyProblems()` fails the build on name /
+color / domain collisions. **Adding a currency = one registry row**; every
+`Record<CurrencyId, …>` surface (the icon map) is forced by the compiler.
+
+### The live wallet map
+
+| Wallet | Domain (the ONE spend) | Faucets |
+|---|---|---|
+| Genome Cores | account (broad) | runs, campaign surveys, hopper, quests/pass |
+| **Chitin** (`hiveMaterials`, v48) | Hive-Production organs | guaranteed hopper top-slice + scavenge expeditions |
+| Strain Samples | tower Evolutions | containers, hopper, market |
+| Apex Genome | hero Evolutions | containers, hopper, market |
+| Gene Essence | Gene Card levels | dupe conversion, containers, hopper, expeditions |
+| **Mulligan Tissue** (`mulliganTissue`, v48) | Mulligan grafts | dupe dissolves, premium-container bleed split, hopper traces |
+| Antigen | Adaptation trees | mastery ranks, campaign depth, traces, achievements |
+| Ascendant Cells | prestige tree | Molt (the identity faucet) |
+| Ichor | account (premium) | achievements, ranks, milestones, depth records, bleeds |
+
+### Chitin — the Hive builds itself
+
+Hive-Production organs (`meta.buyIdleNode`, `idleNodeCost`) price in Chitin, never Genome
+Cores. Income: a **guaranteed top-slice** of every harvest budget (`IDLE.hiveMatsShare` =
+0.3, carved out **before** the weighted drop roll — deterministic, because organ growth
+must never be drought-gated, and value-neutral because the slices split the remainder) +
+chitin lanes on the scavenge expeditions (Patrol 15+15, Deep Harvest 80+30, Titan
+Graveyard 250+90 — each **value-swapped 1:1 out of that road's cores lane**, old totals
+pinned in `localizedEconomy.test.ts`) + the Chitin Lode rare find. Migration: an absent
+field on an invested save seeds `60 + 20 × Σ organ levels` on load.
+
+### Mulligan Tissue — grafts grow from graft matter
+
+Tower Mulligan upgrades/ascends (`meta.upgradeMulligan/ascendMulligan`) spend Tissue,
+re-splitting the v26 essence unification on purpose. Faucets: duplicate dissolves at the
+**old essence numbers 1:1** (`DUP_TISSUE` 30…500 + the idle dupe path's 60), the premium
+container Gene Bleed **split evenly** essence/tissue once Mulligans unlock (same bleed
+total — this is the mid-catalog faucet, since dupes only flow at full catalog), and a
+hopper trickle row (weight 3 **carved from** essence 16→13). Migration seed:
+`25 + 8 × Σ graft levels`.
+
+### Deliberate non-conversions
+
+- **Ichor reforge** — the premium-sink posture is the point; reforges stay Ichor.
+- **Hive Construction** (`core/hiveOrgans.ts`) — the composite sink MANDATES mixed
+  broad-currency recipes; converting it would delete its purpose.
+- **Nucleus + Hero Symbiote organs** — their own systems, still essence; flagged as
+  future localization candidates, not silently absorbed.
+- **Armory materials** (Mutagen/Scrap/Catalyst) — already localized in spirit.
+
+### Validation — `npm run sim:economy`
+
+4 personas × 3 bands × 14 days on the real accrual/cost/reward curves (assumptions for
+the old run economy printed with the report): organ pace parity 0.75–1.13 at the base
+allocation assumption (small-sample cells use a first-organ-within-4-active-days floor),
+migration seeds bridge every investment depth, the gene wallet is *relieved* (≥95% of its
+old card purchasing power with graft spending gone), tissue funds ≥1.5 graft
+upgrades/week mid-catalog (dupes lift it ~3× at full catalog), and both new wallets show
+live income for every engaged persona. Unit pins: `src/core/currencies.test.ts` (laws),
+`src/state/localizedEconomy.test.ts` (seeds, top-slice, swaps, reveal pipeline).

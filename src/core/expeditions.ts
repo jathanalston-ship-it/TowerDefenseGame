@@ -21,6 +21,10 @@ export interface ExpeditionReward {
   cores: number; // Genome Cores
   essence: number; // Gene Essence
   mats: { mutagen: number; scrap: number; catalyst: number };
+  /** Chitin (docs/ECONOMY.md §localized) — the Hive-Production build currency, hauled home by
+   *  the scavenge-flavored roads. Value SWAPPED out of those missions' cores lane at the shared
+   *  1:1 unit price, never added on top. Absent = 0 (most missions don't carry it). */
+  chitin?: number;
 }
 
 export type ExpeditionOutcome = 'setback' | 'standard' | 'windfall';
@@ -60,7 +64,7 @@ export const EXPEDITION_DEFS: ExpeditionDef[] = [
   {
     id: 'exp_patrol', name: 'Perimeter Patrol', hours: 2, risk: 0, affinity: 'Kinetic',
     blurb: 'Sweep the near ruins for splice-worthy tissue. Quick, safe, modest.',
-    reward: { cores: 30, essence: 40, mats: { mutagen: 2, scrap: 4, catalyst: 0 } },
+    reward: { cores: 15, essence: 40, mats: { mutagen: 2, scrap: 4, catalyst: 0 }, chitin: 15 },
   },
   {
     id: 'exp_vents', name: 'Vent Skim', hours: 3, risk: 1, affinity: 'Caustic',
@@ -80,7 +84,7 @@ export const EXPEDITION_DEFS: ExpeditionDef[] = [
   {
     id: 'exp_harvest', name: 'Deep Harvest', hours: 6, risk: 0, affinity: 'Vital',
     blurb: 'Follow the vein-lines under the old city and bring back what still pulses.',
-    reward: { cores: 110, essence: 150, mats: { mutagen: 8, scrap: 14, catalyst: 1 } },
+    reward: { cores: 80, essence: 150, mats: { mutagen: 8, scrap: 14, catalyst: 1 }, chitin: 30 },
   },
   {
     id: 'exp_hunt', name: 'Apex Hunt', hours: 8, risk: 2, affinity: 'Viral',
@@ -95,7 +99,7 @@ export const EXPEDITION_DEFS: ExpeditionDef[] = [
   {
     id: 'exp_graveyard', name: 'Titan Graveyard', hours: 16, risk: 2, affinity: 'Kinetic',
     blurb: 'Strip the fallen colossi bone by bone. The longest road, the heaviest haul.',
-    reward: { cores: 340, essence: 430, mats: { mutagen: 22, scrap: 52, catalyst: 7 } },
+    reward: { cores: 250, essence: 430, mats: { mutagen: 22, scrap: 52, catalyst: 7 }, chitin: 90 },
   },
 ];
 
@@ -133,6 +137,7 @@ export function scaleReward(base: ExpeditionReward, mult: number): ExpeditionRew
       scrap: Math.round(base.mats.scrap * mult),
       catalyst: Math.round(base.mats.catalyst * mult),
     },
+    chitin: Math.round((base.chitin ?? 0) * mult),
   };
 }
 
@@ -146,6 +151,7 @@ export function sumRewards(a: ExpeditionReward, b: ExpeditionReward): Expedition
       scrap: a.mats.scrap + b.mats.scrap,
       catalyst: a.mats.catalyst + b.mats.catalyst,
     },
+    chitin: (a.chitin ?? 0) + (b.chitin ?? 0),
   };
 }
 
@@ -194,6 +200,11 @@ export const RARE_FINDS: RareFind[] = [
     id: 'find_titanplate', name: 'Titanplate Cache',
     blurb: 'Armor plate stripped from something enormous and dead.',
     reward: { cores: 0, essence: 0, mats: { mutagen: 10, scrap: 40, catalyst: 0 } },
+  },
+  {
+    id: 'find_chitin_lode', name: 'Chitin Lode',
+    blurb: 'A hardened seam of hive-grade plating, pried loose whole.',
+    reward: { cores: 0, essence: 0, mats: { mutagen: 0, scrap: 0, catalyst: 0 }, chitin: 150 },
   },
 ];
 

@@ -47,6 +47,8 @@ export const REWARD_TYPES: readonly RewardTypeDef[] = [
   { id: 'ichor', unit: 'Ichor', art: { kind: 'currency', id: 'ichor' }, merge: 'sum', tier: 1 },
   { id: 'cells', unit: 'Ascendant Cells', art: { kind: 'currency', id: 'ascendantCells' }, merge: 'sum', tier: 2 },
   { id: 'geneEssence', unit: 'Gene Essence', art: { kind: 'currency', id: 'geneEssence' }, merge: 'sum', nav: { key: 'genes', label: 'Spend in the Gene Archive' } },
+  { id: 'hiveMaterials', unit: 'Chitin', art: { kind: 'currency', id: 'hiveMaterials' }, merge: 'sum', nav: { key: 'harvest', label: 'Grow the Hive' } },
+  { id: 'mulliganTissue', unit: 'Mulligan Tissue', art: { kind: 'currency', id: 'mulliganTissue' }, merge: 'sum', nav: { key: 'towers', label: 'Upgrade Mulligan grafts' } },
   { id: 'towerShards', unit: 'Strain Samples', art: { kind: 'currency', id: 'towerShards' }, merge: 'sum', nav: { key: 'towers', label: 'Spend in the Tower Lab' } },
   { id: 'heroShards', unit: 'Apex Genome', art: { kind: 'currency', id: 'heroShards' }, merge: 'sum', nav: { key: 'heroes', label: 'Spend in the Hero Lab' } },
   { id: 'mutagen', unit: 'Mutagen', art: { kind: 'glyph', glyph: '⊕', color: 'var(--viral)' }, merge: 'sum' },

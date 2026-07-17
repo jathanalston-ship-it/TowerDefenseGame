@@ -9,9 +9,9 @@ import { defaultSave } from '../save/saveStore';
 import { mulliganRegistry } from '../core/mulligan';
 
 describe('mulliganLabView', () => {
-  it('a fresh account: 0 essence, nothing discovered, every organism empty + inactive', () => {
+  it('a fresh account: 0 tissue, nothing discovered, every organism empty + inactive', () => {
     const v = mulliganLabView(defaultSave());
-    expect(v.essence).toBe(0);
+    expect(v.tissue).toBe(0);
     expect(v.discovered).toBe(0);
     expect(v.total).toBe(mulliganRegistry.size);
     expect(v.owned).toEqual([]);
@@ -45,8 +45,8 @@ describe('mulliganLabView', () => {
     expect(s0.desc).toBeTruthy();
     expect(s0.nextRarity).toBe('legendary'); // epic slot ascends toward legendary
     expect(s0.upgradeCost).toBeGreaterThan(0);
-    expect(s0.canAfford).toBe(false); // 0 essence
-    meta.grantGeneEssence(100000);
+    expect(s0.canAfford).toBe(false); // 0 tissue
+    meta.grantMulliganTissue(100000);
     expect(mulliganLabView(meta.get()).towers.find((t) => t.kind === 'needle')!.slots[0].canAfford).toBe(true);
     meta.reset();
   });

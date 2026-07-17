@@ -240,6 +240,14 @@ export interface SaveData {
   // ── Gene Essence (schema v18) — permanent Gene Card upgrade currency. Earned mainly by converting
   //    duplicate max-Star shards (meta.openContainer) + rare container drops. Additive ⇒ 0 for old saves. ──
   geneEssence: number;
+  // ── Localized wallets (schema v48, docs/ECONOMY.md §localized) — one specialized currency per
+  //    system. `hiveMaterials` (Chitin) grows Hive-Production organs (previously Genome Cores);
+  //    `mulliganTissue` upgrades/ascends tower Mulligan grafts (previously Gene Essence — the v26
+  //    unification is deliberately re-split; localization is the design, not wallet sprawl).
+  //    Absent fields SEED from existing investment on load (withDefaults), so no migrating
+  //    build-in-progress stalls; fresh accounts stay 0 (golden-safe). ──
+  hiveMaterials: number;
+  mulliganTissue: number;
   // ── Gene Card DISCOVERY (v46, docs/CARDS.md §discovery) — the Archive's membership set:
   //    card ids the account has discovered (starters + Bio-Container finds). Drafting and
   //    permanent upgrades key on membership. Migration seeds STARTER_GENES ∪ every card the
@@ -275,9 +283,9 @@ export interface SaveData {
   //    tower kind permanently owns ONE Mulligan (three modifier slots + generated visual/anim seeds);
   //    the organism does NOTHING until all three slots are filled, so a fresh account is byte-identical
   //    (golden-safe). `mulliganDex` is the discovered-modifier collection (id → best rarity found), the
-  //    equip gate + Collections/Achievements source. Modifier upgrades spend `geneEssence` — the SAME
-  //    currency Gene Cards level with (unified; the retired `geneOverflow` wallet folds into it on load).
-  //    All additive: pre-v26 saves default empty Mulligans + empty dex. ──
+  //    equip gate + Collections/Achievements source. Modifier upgrades spend `mulliganTissue`
+  //    (v48 — localized out of the v26 geneEssence unification; the retired `geneOverflow` wallet
+  //    still folds into geneEssence on load). All additive: pre-v26 saves default empty. ──
   mulligans: Record<TowerKind, MulliganState>;
   mulliganDex: Record<string, MulliganRarity>; // modifier id → highest rarity discovered (equip ceiling)
   // ── Nucleus Mulligans (schema v37, docs/NUCLEUS.md) — the Hive Nucleus's OWN organ system: up
@@ -500,7 +508,12 @@ export interface TutorialSave {
 // season history, exactly-once settled-match ring) + `provenance` (the Auction House identity
 // spine: per-item acquisition stamps with bound flags + ownership history, self-healing on
 // load so every owned tradable is ALWAYS covered). Both inert when fresh ⇒ golden-safe.
-export const CURRENT_VERSION = 47;
+// v47→v48: LOCALIZED ECONOMY (docs/ECONOMY.md §localized) — `hiveMaterials` (Chitin: the
+// Hive-Production organ wallet, replacing Genome Cores there) + `mulliganTissue` (the tower
+// Mulligan graft wallet, replacing Gene Essence there). Missing ⇒ seeded from existing
+// investment (Σ organ levels / Σ graft levels) so a migrating build never stalls; 0 when
+// the account never touched the system (fresh accounts byte-identical).
+export const CURRENT_VERSION = 48;
 
 /** The placeholder every save is born with — the Commander designation prompt fires
  *  while the name is still exactly this (components/CommanderName.tsx). */
@@ -801,6 +814,8 @@ export function defaultSave(): SaveData {
     geneSlots: 1,
     geneLoadout: [null, null, null, null, null],
     geneEssence: 0,
+    hiveMaterials: 0,
+    mulliganTissue: 0,
     genesDiscovered: [...STARTER_GENES], // the teaching set — every account starts with it
 
     createdAt: 0, // stamped by the first settle — defaultSave() must stay deterministic
@@ -1326,6 +1341,27 @@ function withDefaults(data: SaveData): SaveData {
     // Cards AND Mulligan modifiers, and no banked balance is lost.
     geneEssence: Math.max(0, Math.floor(Number((data as { geneEssence?: unknown }).geneEssence) || 0))
       + Math.max(0, Math.floor(Number((data as { geneOverflow?: unknown }).geneOverflow) || 0)),
+    // v48 (docs/ECONOMY.md §localized): the two specialized wallets. An ABSENT field on an
+    // invested save seeds a working balance from the investment itself (≈ the next purchase's
+    // scale), so the currency swap never strands a build mid-ladder; untouched systems — and
+    // every fresh account — seed exactly 0 (golden-safe). Present fields just sanitize.
+    hiveMaterials: (() => {
+      const raw = (data as { hiveMaterials?: unknown }).hiveMaterials;
+      if (raw !== undefined) return Math.max(0, Math.floor(Number(raw) || 0));
+      const nodes = (data as { idle?: { nodes?: Record<string, unknown> } }).idle?.nodes ?? {};
+      const organLevels = Object.values(nodes).reduce<number>((s, v) => s + Math.max(0, Math.floor(Number(v) || 0)), 0);
+      return organLevels > 0 ? 60 + 20 * organLevels : 0;
+    })(),
+    mulliganTissue: (() => {
+      const raw = (data as { mulliganTissue?: unknown }).mulliganTissue;
+      if (raw !== undefined) return Math.max(0, Math.floor(Number(raw) || 0));
+      const mull = (data as { mulligans?: Record<string, { slots?: unknown[] } | null> }).mulligans ?? {};
+      let graftLevels = 0;
+      for (const st of Object.values(mull)) {
+        for (const s of st?.slots ?? []) graftLevels += Math.max(0, Math.floor(Number((s as { level?: unknown } | null)?.level) || 0));
+      }
+      return graftLevels > 0 ? 25 + 8 * graftLevels : 0;
+    })(),
     // v21→v22: Player Profile — identity fields + the milestone timeline (pre-v22 ⇒ defaults;
     // createdAt stays 0 until the first settle stamps it).
     createdAt: Math.max(0, Math.floor(Number((data as { createdAt?: unknown }).createdAt) || 0)),

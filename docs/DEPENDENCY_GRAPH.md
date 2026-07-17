@@ -252,7 +252,7 @@ graph TD
 | **Hive Construction** (`hive-construction`) | `meta-store` · `hub-shell` · `shards-economy` | — | — | `hive` | `docs/HIVE-CONSTRUCTION.md` · `docs/HOME-BASE.md` |
 | **Daily Bio-Cache (login streak)** (`daily-login`) | `meta-store` · `battle-pass` · `cosmetics` · `collection` | — | — | `login` | `docs/DAILY-LOGIN.md` · `docs/DAILY-RUN.md` · `docs/ECONOMY.md` |
 | **Prestige (Molt / Ascendant)** (`prestige`) | `campaign` · `evolution-hq` | `evolution-hq` · `profile` | ⚡ the P bucket (log fold of Cells + tree) | `prestige` | `docs/PROGRESSION-PHILOSOPHY.md` · `docs/PROGRESSION-REDESIGN.md` · `docs/SIMULATION-FRAMEWORK.md` · `docs/BALANCE_REPORT.md` · `docs/VOWS.md` |
-| **Currencies & Economy Framework** (`currencies`) | `content-infra` | `splice-market` | — | — | `docs/ECONOMY.md` · `docs/LEXICON.md` · `docs/ECONOMY_FORMULAS.md` |
+| **Currencies & Economy Framework** (`currencies`) | `content-infra` | `splice-market` | — | `hiveMaterials` · `mulliganTissue` | `docs/ECONOMY.md` · `docs/LEXICON.md` · `docs/ECONOMY_FORMULAS.md` |
 | **Splice Market & Ichor** (`splice-market`) | `currencies` · `loot` | `premium` · `field-research` · `online-foundation` | ⚡ none by design (Ichor never feeds Power) | `ichor` · `lifetimeIchor` · `market` · `ichorExchange` | `docs/MARKET.md` |
 | **Achievements** (`achievements`) | `stats` | `profile` | ⚡ rewards (shards) move Power indirectly | `achievements` | `docs/PROGRESSION-SYSTEMS.md` |
 | **Lifetime Stats** (`stats`) | — | `mastery` · `collection` · `achievements` · `profile` | — | `stats` · `totalRuns` · `bestWave` | `docs/PROGRESSION-SYSTEMS.md` |
@@ -434,7 +434,7 @@ graph TD
 
 ### Mulligan System (`mulligans`)
 
-*A permanent endgame pillar: each tower kind permanently owns ONE biomechanical Mulligan organism assembled from THREE genetic modifiers. Fully data-driven — a new modifier is one registry row; the organism's appearance, animation and projectile are PROCEDURALLY generated from the modifiers' stat profile. Inactive until all three slots fill ⇒ golden-safe; folds through the existing TowerMods channels (no new sim branch). OVERHAUL (v29): pieces are EXCLUSIVE (one tower at a time; catalog pinned at 3× the tower roster), the pillar gates behind 3 distinct Mega Boss kills, duplicates dissolve to Gene Essence, and the REFORGE wheel (core/mulliganReforge.ts, ichor-fueled, 1–3 slots by combined rarity) permanently BINDS an organism to its host — legendary rolls grant GLOBAL passives.*
+*A permanent endgame pillar: each tower kind permanently owns ONE biomechanical Mulligan organism assembled from THREE genetic modifiers. Fully data-driven — a new modifier is one registry row; the organism's appearance, animation and projectile are PROCEDURALLY generated from the modifiers' stat profile. Inactive until all three slots fill ⇒ golden-safe; folds through the existing TowerMods channels (no new sim branch). OVERHAUL (v29): pieces are EXCLUSIVE (one tower at a time; catalog pinned at 3× the tower roster), the pillar gates behind 3 distinct Mega Boss kills, duplicates dissolve to Mulligan Tissue (v48 — the localized graft wallet; upgrades/ascends spend it too), and the REFORGE wheel (core/mulliganReforge.ts, ichor-fueled, 1–3 slots by combined rarity) permanently BINDS an organism to its host — legendary rolls grant GLOBAL passives.*
 
 - **Files:** `src/core/mulligan.ts` · `src/core/combatClass.ts` · `src/render/mulliganOrganism.ts` · `src/state/mulliganLabModel.ts` · `src/ui/MulliganLab.tsx` · `src/core/mulliganReforge.ts` · `src/render/reforgeWheel.ts`
 - **Depends on:** `content-infra` · `towers` · `power` · `meta-store`
@@ -779,13 +779,13 @@ graph TD
 
 ### Currencies & Economy Framework (`currencies`)
 
-*Currency identities (icon/color/tooltip/format) + the adaptive economy framework: one factor-traced income composition per currency, adaptive seams (ACTIVE 2026-07 — catch-up/ahead-taper on the frontier power gap, clamped, onboarding-floored), health guards.*
+*Currency identities (icon/color/tooltip/format) + the adaptive economy framework: one factor-traced income composition per currency, adaptive seams (ACTIVE 2026-07 — catch-up/ahead-taper on the frontier power gap, clamped, onboarding-floored), health guards. LOCALIZED ECONOMY (v48, docs/ECONOMY.md §localized): every CurrencyDef declares its ONE spend domain + ≥2 earn sources, machine-enforced by currencyProblems() (unique names/colors, one specialized wallet per system, prestige exempt as the single-faucet mint). Chitin (hiveMaterials) grows Hive-Production organs — guaranteed hopper top-slice (IDLE.hiveMatsShare, value SHIFTED not added) + scavenge-expedition lanes value-swapped from cores; Mulligan Tissue (mulliganTissue) upgrades/ascends tower grafts — dupe dissolves (old essence numbers 1:1) + even premium-bleed split + hopper trickle (weight carved from essence). Ichor reforge + Hive-Construction composite recipes + Nucleus/Symbiote essence sinks deliberately NOT converted. Pace parity pinned by scripts/sim-localized-economy.ts.*
 
 - **Files:** `src/core/currencies.ts` · `src/core/economyDirector.ts` · `src/ui/components/CurrencyIcon.tsx`
 - **Depends on:** `content-infra`
 - **Consumers — what breaks if you change this:** `splice-market`
 - **Power Score:** — (intentionally none)
-- **Save fields:** —
+- **Save fields:** `hiveMaterials` · `mulliganTissue`
 - **Tutorial:** — · **Help mechanics:** `gene-essence`
 - **HUD surfaces:** `top resource bar` · **UI screens:** `CurrencyIcon (everywhere)`
 - **Collection:** — · **Achievements:** —

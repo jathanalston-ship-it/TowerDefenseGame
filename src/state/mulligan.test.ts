@@ -80,9 +80,9 @@ describe('active Mulligan folds into the tower + its own Power bucket', () => {
 });
 
 describe('meta pipeline — discover → equip → upgrade → ascend', () => {
-  it('activates only at three slots, spends Gene Essence, and gates ascension on max level', () => {
+  it('activates only at three slots, spends Mulligan Tissue, and gates ascension on max level', () => {
     meta.reset();
-    expect(meta.get().geneEssence).toBe(0);
+    expect(meta.get().mulliganTissue).toBe(0);
     // cannot equip an undiscovered modifier
     expect(meta.equipMulligan('needle', 0, 'siege_carapace')).toBe(false);
     meta.discoverModifier('siege_carapace', 'epic');
@@ -96,14 +96,19 @@ describe('meta pipeline — discover → equip → upgrade → ascend', () => {
     expect(meta.mulliganResolved('needle').active).toBe(true);
     expect(meta.power().score).toBeGreaterThan(before);
 
-    // upgrade needs currency — the UNIFIED Gene Essence wallet (shared with Gene Card levels)
+    // upgrade needs currency — the LOCALIZED Mulligan Tissue wallet (docs/ECONOMY.md §localized);
+    // a fat Gene Essence balance must NOT substitute (grafts left the gene wallet at v48).
     expect(meta.upgradeMulligan('needle', 0)).toBe(false);
     meta.grantGeneEssence(100000);
+    expect(meta.upgradeMulligan('needle', 0)).toBe(false); // essence cannot pay for grafts
+    meta.grantMulliganTissue(100000);
     const p0 = meta.power().score;
-    const spentBefore = meta.get().geneEssence;
+    const spentBefore = meta.get().mulliganTissue;
+    const essenceBefore = meta.get().geneEssence;
     expect(meta.upgradeMulligan('needle', 0)).toBe(true);
     expect(meta.get().mulligans.needle.slots[0]!.level).toBe(2);
-    expect(meta.get().geneEssence).toBeLessThan(spentBefore); // charged
+    expect(meta.get().mulliganTissue).toBeLessThan(spentBefore); // charged
+    expect(meta.get().geneEssence).toBe(essenceBefore); // the gene wallet is untouched
     expect(meta.power().score).toBeGreaterThan(p0);
 
     // ascension requires a maxed slot

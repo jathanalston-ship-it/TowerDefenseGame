@@ -134,6 +134,29 @@ export const IchorIcon = (p: IconProps): JSX.Element =>
     p,
   );
 
+/** Chitin — an overlapped pair of hexagonal hive plates (the Hive-Production build currency). */
+export const HiveMaterialIcon = (p: IconProps): JSX.Element =>
+  svg(
+    <>
+      <path d="M9 3.2l5.4 3.1v6.2L9 15.6l-5.4-3.1V6.3z" opacity="0.55" />
+      <path d="M14.6 8.4l5.4 3.1v6.2l-5.4 3.1-5.4-3.1v-6.2z" opacity="0.95" />
+      <path d="M14.6 12.2v3.6M11.5 10.2l3.1 2M17.7 10.2l-3.1 2" fill="none" stroke="rgba(0,0,0,0.35)" strokeWidth="1.1" strokeLinecap="round" />
+    </>,
+    p,
+  );
+
+/** Mulligan Tissue — a lobed graft culture, one live nucleus (the Mulligan upgrade currency). */
+export const MulliganTissueIcon = (p: IconProps): JSX.Element =>
+  svg(
+    <>
+      <path d="M12 3.4c2.6 0 3.4 1.8 5.2 2.6 1.9.9 3 2.4 3 4.6 0 2.4-1.4 3.6-1.9 5.4-.5 2-2.1 3.6-4.6 3.6-1.9 0-2.6-.9-4.2-1.1-2.3-.3-4.7-1.5-4.7-4.6 0-2 1-2.9 1.3-4.6.4-2.4 1.6-4 3.6-4.6 1-.3 1.5-1.3 2.3-1.3z" opacity="0.95" />
+      <circle cx="13.4" cy="11.8" r="2.5" fill="rgba(0,0,0,0.32)" />
+      <circle cx="8.6" cy="14.6" r="1.1" fill="rgba(0,0,0,0.22)" />
+      <circle cx="15.8" cy="16.2" r="0.9" fill="rgba(0,0,0,0.22)" />
+    </>,
+    p,
+  );
+
 /** Lightning bolt — the Apex Leap ability (replaces ⚡). */
 export const BoltIcon = (p: IconProps): JSX.Element => svg(<path d="M13 2L4 14h6l-1 8 9-12h-6z" />, p);
 

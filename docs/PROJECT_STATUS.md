@@ -3,7 +3,27 @@
 > Maintained at the END of every session (paired with `docs/AI_HANDOFF.md` — the constitution's
 > workflow step 4). This is the "where are we?" answer; `docs/GAME-STATE.md` remains the deeper
 > per-system built-vs-planned index, `docs/PROJECT_MANIFEST.md` the system map.
-> **Last updated:** 2026-07-17i (**THE REWARD CEREMONY OVERHAUL** (user brief) —
+> **Last updated:** 2026-07-17j (**LOCALIZED ECONOMY REDESIGN** — save v48, ECONOMY.md §8:
+> the currency registry became the machine-enforced economy contract (`CurrencyDef.domain`
+> = the ONE system a wallet upgrades, `'account'` reserved for Genome Cores + Ichor;
+> `earnedFrom` ≥2 sources with prestige the sanctioned single-faucet; `currencyProblems()`
+> fails the build on name/color/domain collisions — a new currency is ONE row and the icon
+> map is compiler-forced). Two localized wallets shipped, every faucet value-SHIFTED never
+> added: **Chitin** (`hiveMaterials`) prices Hive-Production organs — guaranteed hopper
+> top-slice (`IDLE.hiveMatsShare` 0.3 carved BEFORE the weighted roll, lane pushed last so
+> BLOOM rares still lead) + expedition lanes swapped 1:1 out of cores (patrol 15+15,
+> harvest 80+30, graveyard 250+90) + the Chitin Lode find; **Mulligan Tissue**
+> (`mulliganTissue`) prices tower graft upgrades/ascends — dupe dissolves at the old
+> essence numbers, the premium bleed SPLIT EVENLY once Mulligans unlock (the mid-catalog
+> faucet), hopper trickle carved from essence 16→13. Migration seeds on ABSENT fields only
+> (60+20×Σ organ levels / 25+8×Σ graft levels). Deliberately NOT converted: Ichor reforge,
+> Hive-Construction composite recipes, Nucleus/Symbiote organs (flagged future candidates).
+> `npm run sim:economy`: organ pace parity 0.75–1.13 across 4 personas × 3 bands, no
+> migration stalls, gene-wallet relief ≥95%, tissue ≥1.5 upgrades/week mid. Live smoke:
+> seeded 500 Chitin → organ bought at 60 → wallet 440; Lab shows 300 Tissue. Suite 2440
+> green, validate PASS. Previous below.)
+>
+> **2026-07-17i** (**THE REWARD CEREMONY OVERHAUL** (user brief) —
 > REWARD-PRESENTATION.md §ceremony/§roulette. Audit: the reward BUS already announces every
 > grant (18 meta push points; tiered merge placards) — the silent layer was the WALLET.
 > Shipped: **CeremonyLayer** (rides `rewardToast.tap()` — a particle burst at the claim

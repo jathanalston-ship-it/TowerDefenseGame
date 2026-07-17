@@ -28,7 +28,7 @@ function pct(n: number): number { return Math.max(0, Math.min(100, Math.round(n 
 // action. Every section cascades in; reduced-motion stills it all in CSS.
 
 /** CurrencyIcon ids the receipt can carry (materials render name-chips instead). */
-const CEREMONY_CURS = new Set(['genomeCores', 'geneEssence', 'ichor', 'towerShards', 'heroShards']);
+const CEREMONY_CURS = new Set(['genomeCores', 'hiveMaterials', 'geneEssence', 'mulliganTissue', 'ichor', 'towerShards', 'heroShards']);
 
 function CeremonyLine({ l, delay }: { l: IdleHarvestReceipt['lines'][number]; delay: number }): JSX.Element {
   const cur = l.cur && CEREMONY_CURS.has(l.cur) ? l.cur : null;
@@ -88,7 +88,7 @@ function HarvestCeremony({ r, onClose, onGrow }: { r: IdleHarvestReceipt; onClos
           <button className="hv-cer-grow" onClick={() => { onGrow?.(); onClose(); }}>
             <span className="hv-grow-k">Grow next</span>
             <span className="hv-grow-n">{r.suggestion.node.glyph} {r.suggestion.node.name}</span>
-            <span className="hv-grow-c">{r.suggestion.cost.toLocaleString('en-US')} <CurrencyIcon id="genomeCores" size={12} title="Genome Cores" /></span>
+            <span className="hv-grow-c">{r.suggestion.cost.toLocaleString('en-US')} <CurrencyIcon id="hiveMaterials" size={12} title="Chitin" /></span>
           </button>
         )}
         {r.suggestion && r.suggestion.kind === 'gate' && (
@@ -152,7 +152,7 @@ function NodeCard({ n }: { n: IdleNodeView }): JSX.Element {
         <div className="hv-node-gate">🔒 {n.gateLabel} unlocks L{n.level + 1}</div>
       ) : (
         <button className={`hv-node-buy${n.affordable ? ' is-afford' : ''}`} disabled={!n.affordable} onClick={buy}>
-          Grow · {n.cost.toLocaleString('en-US')} <CurrencyIcon id="genomeCores" size={12} title="Genome Cores" />
+          Grow · {n.cost.toLocaleString('en-US')} <CurrencyIcon id="hiveMaterials" size={12} title="Chitin" />
         </button>
       )}
     </div>
@@ -250,7 +250,7 @@ export function HarvestScreen(): JSX.Element {
             : a.rawHours / a.capHours > 0.8
               ? <>◉ Storage is nearly full — plan a harvest, or grow Capacity so nothing is wasted.</>
               : v.suggestion && v.suggestion.kind === 'buy'
-                ? <>✦ Recommended growth: {v.suggestion.node.glyph} {v.suggestion.node.name} · {v.suggestion.cost.toLocaleString('en-US')} cores.</>
+                ? <>✦ Recommended growth: {v.suggestion.node.glyph} {v.suggestion.node.name} · {v.suggestion.cost.toLocaleString('en-US')} Chitin.</>
                 : v.suggestion && v.suggestion.kind === 'gate'
                   ? <>✦ Next horizon: {v.suggestion.node.name} — keep progressing to open it.</>
                   : <>✦ The organism hums along — grow any organ to raise the yield.</>}
@@ -261,7 +261,7 @@ export function HarvestScreen(): JSX.Element {
       <section aria-label="Idle evolution tree">
         <div className="hv-sec-h">
           <span className="hv-sec-t">Hive Evolution</span>
-          <span className="hv-sec-s">{v.cores.toLocaleString('en-US')} <CurrencyIcon id="genomeCores" size={12} title="Genome Cores" /> · every node grows forever, ever slower, ever pricier</span>
+          <span className="hv-sec-s">{v.chitin.toLocaleString('en-US')} <CurrencyIcon id="hiveMaterials" size={12} title="Chitin" /> · every node grows forever, ever slower, ever pricier</span>
         </div>
         <div className="hv-nodes">
           {v.nodes.map((n) => <NodeCard key={n.def.id} n={n} />)}

@@ -157,23 +157,23 @@ describe('the anchor is monotone — clock tamper never double-pays', () => {
 });
 
 describe('the evolution tree — guarded, gated, geometric', () => {
-  it('an ungated node buys: cores spend, the level lands, the price climbs', () => {
-    seed();
-    meta.debugAddShards(200);
+  it('an ungated node buys: Chitin spends (Cores untouched), the level lands, the price climbs', () => {
+    seed({ hiveMaterials: 200 }); // §localized (docs/ECONOMY.md): organs are priced in Chitin
+    const chitin = meta.get().hiveMaterials;
     const cores = meta.get().shards;
     const view = meta.idleView(T0 + 60_000);
     const speed = view.nodes.find((n) => n.def.id === 'speed')!;
     expect(speed.gate).toBeNull();
     expect(speed.cost).toBe(60);
     expect(meta.buyIdleNode('speed')).toBe(true);
-    expect(meta.get().shards).toBe(cores - 60);
+    expect(meta.get().hiveMaterials).toBe(chitin - 60);
+    expect(meta.get().shards).toBe(cores); // the account wallet never funds organs anymore
     expect(meta.get().idle.nodes.speed).toBe(1);
     expect(meta.idleView(T0 + 60_000).nodes.find((n) => n.def.id === 'speed')!.cost).toBe(81); // 60 × 1.35
   });
 
-  it('a progression gate refuses the buy even with the cores in hand', () => {
-    seed(); // fresh account: stage 0 — the containers node wants Campaign Stage 10 at L1
-    meta.debugAddShards(100_000);
+  it('a progression gate refuses the buy even with the Chitin in hand', () => {
+    seed({ hiveMaterials: 100_000 }); // fresh account: stage 0 — the containers node wants Campaign Stage 10 at L1
     expect(meta.buyIdleNode('containers')).toBe(false);
     expect(meta.get().idle.nodes.containers).toBeUndefined();
     meta.debugSetCampaignStage(10);
@@ -181,10 +181,11 @@ describe('the evolution tree — guarded, gated, geometric', () => {
     expect(meta.get().idle.nodes.containers).toBe(1);
   });
 
-  it('poverty refuses cleanly (nothing spent, nothing granted)', () => {
+  it('poverty refuses cleanly (nothing spent, nothing granted) — and Cores cannot substitute', () => {
     seed();
+    meta.debugAddShards(100_000); // a rich account wallet must NOT buy organs (§localized)
     const before = meta.get();
-    expect(before.shards).toBeLessThan(60);
+    expect(before.hiveMaterials).toBeLessThan(60);
     expect(meta.buyIdleNode('speed')).toBe(false);
     expect(meta.get()).toBe(before);
   });

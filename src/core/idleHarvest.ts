@@ -76,7 +76,7 @@ export interface IdleNodeDef {
   name: string;
   glyph: string;
   blurb: string; // what the node grows, in hive language
-  baseCost: number; // Genome Cores for level 1
+  baseCost: number; // Chitin for level 1 (docs/ECONOMY.md §localized — the Hive builds itself)
   costGrowth: number; // geometric per level (every node is INFINITE)
   /** Per-level effect strength consumed by the accrual/roll (interpreted per node id). */
   per: number;
@@ -133,7 +133,7 @@ export const IDLE_NODES: readonly IdleNodeDef[] = [
 
 export const IDLE_NODE_BY_ID: Record<string, IdleNodeDef> = Object.fromEntries(IDLE_NODES.map((n) => [n.id, n]));
 
-/** Genome-Core cost of buying node level `level+1` (from `level`). Geometric — infinite. */
+/** Chitin cost of buying node level `level+1` (from `level`). Geometric — infinite. */
 export function idleNodeCost(def: IdleNodeDef, level: number): number {
   return Math.round(def.baseCost * Math.pow(def.costGrowth, Math.max(0, level)));
 }
@@ -235,7 +235,9 @@ export type IdleGrant =
   | { kind: 'mulligan'; count: number }
   | { kind: 'container'; rarity: 'common' | 'uncommon' | 'rare' }
   | { kind: 'runCache' }
-  | { kind: 'ichor'; qty: number };
+  | { kind: 'ichor'; qty: number }
+  | { kind: 'hiveMats'; qty: number } // Chitin — the guaranteed lane (IDLE.hiveMatsShare), never a weighted row
+  | { kind: 'tissue'; qty: number }; // Mulligan Tissue — hopper traces beside the dupe-dissolve faucet
 
 export interface IdleDropDef {
   id: string;
@@ -270,8 +272,13 @@ export const IDLE_DROPS: readonly IdleDropDef[] = [
       const scrap = Math.max(0, units - mutagen - (rng() < 0.12 ? 1 : 0));
       return { kind: 'mats', mutagen, scrap, catalyst: Math.max(0, units - mutagen - scrap) };
     } },
-  { id: 'essence', name: 'Gene Essence', icon: '⌬', weight: 16, minCampaign: 3, minValue: 0.6,
+  { id: 'essence', name: 'Gene Essence', icon: '⌬', weight: 13, minCampaign: 3, minValue: 0.6,
     grant: (v) => ({ kind: 'essence', qty: qtyFor(v, unit('essence')) }) },
+  // Mulligan Tissue traces (docs/ECONOMY.md §localized) — weight CARVED from the essence row
+  // (16 → 13), not added: the hopper's total value is unchanged, a sliver of it just pays in the
+  // Mulligan wallet. Gates mirror the modifier drop above — tissue is meaningless pre-Mulligans.
+  { id: 'tissue', name: 'Mulligan Tissue', icon: '⊛', weight: 3, minCampaign: 12, minGenomeRank: 3, minValue: 0.6,
+    grant: (v) => ({ kind: 'tissue', qty: qtyFor(v, unit('tissue')) }) },
   { id: 'towerShards', name: 'Strain Samples', icon: '✦', weight: 12, minCampaign: 2, minValue: 12,
     grant: (v) => ({ kind: 'towerShards', qtyEach: qtyFor(v / 8, unit('towerShard')) }) },
   { id: 'heroShards', name: 'Apex Genome', icon: '✧', weight: 8, minCampaign: 5, minValue: 15,
@@ -318,6 +325,12 @@ export function rollIdleHarvest(
 ): IdleHarvestResult {
   const bloom = rng() < idleBloomChance(nodes, hive.bloomBonus);
   const budget = accrual.budget * (bloom ? IDLE.bloomBudgetMult : 1);
+  // THE CHITIN LANE (docs/ECONOMY.md §localized): a GUARANTEED top-slice of the budget pays the
+  // Hive-Production build currency before the weighted roll — deterministic because organ growth
+  // must never be drought-gated by drop RNG. Value-neutral: the weighted slices split the REMAINDER,
+  // so the harvest's core-equivalent total is exactly what it was.
+  const hiveMatsQty = Math.round((budget * IDLE.hiveMatsShare) / unit('hiveMats'));
+  const sliceBudget = budget * (1 - IDLE.hiveMatsShare);
   const pool = eligibleIdleDrops(ctx);
   const rareMult = idleSoft(lvl(nodes, 'rare'), IDLE_NODE_BY_ID.rare.per) * hive.rareWeightMult;
   const containerMult = idleSoft(lvl(nodes, 'containers'), IDLE_NODE_BY_ID.containers.per) * hive.containerWeightMult;
@@ -332,7 +345,7 @@ export function rollIdleHarvest(
   const lines: IdleHarvestLine[] = [];
   let containers = 0;
   const slices = Math.min(6, Math.max(3, Math.floor(accrual.effHours / 3) + 3));
-  const baseSlice = budget / slices;
+  const baseSlice = sliceBudget / slices;
   for (let i = 0; i < slices; i++) {
     let slice = baseSlice;
     // The BLOOM's guaranteed rare rides the FIRST slice (when any AFFORDABLE rare row exists).
@@ -354,6 +367,9 @@ export function rollIdleHarvest(
     if (pick.id === 'container' || pick.id === 'runCache') containers++;
     lines.push({ dropId: pick.id, name: pick.name, icon: pick.icon, grant: pick.grant(slice, rng), rare: pick.rare === true });
   }
+  // The Chitin lane lands LAST in roll order so a BLOOM's guaranteed rare still leads the raw
+  // receipt; display order is owned by mergeIdleReceiptLines' currency sort either way.
+  if (hiveMatsQty > 0) lines.push({ dropId: 'hiveMats', name: 'Chitin', icon: '⬣', grant: { kind: 'hiveMats', qty: hiveMatsQty }, rare: false });
   const xp = Math.round(accrual.effHours * 4 * idleSoft(lvl(nodes, 'xp'), IDLE_NODE_BY_ID.xp.per) * hive.xpMult);
   return { lines, bloom, budget, xp };
 }
@@ -371,12 +387,15 @@ export function idleGrantValue(g: IdleGrant): number {
     case 'container': return unit('container');
     case 'runCache': return unit('runCache');
     case 'ichor': return g.qty * unit('ichor');
+    case 'hiveMats': return g.qty * unit('hiveMats');
+    case 'tissue': return g.qty * unit('tissue');
   }
 }
 
 /** The cheapest currently-buyable node (the ceremony's "grow this next" suggestion), or the
- *  nearest gate when everything affordable is progression-locked. */
-export function idleSuggestion(nodes: IdleNodeLevels, cores: number, ctx: IdleGateContext):
+ *  nearest gate when everything affordable is progression-locked. `chitin` is the Hive wallet
+ *  (save.hiveMaterials) — organs are priced in Chitin, never Genome Cores. */
+export function idleSuggestion(nodes: IdleNodeLevels, chitin: number, ctx: IdleGateContext):
   { kind: 'buy'; node: IdleNodeDef; cost: number } | { kind: 'gate'; node: IdleNodeDef; req: IdleGateReq } | null {
   let cheapest: { node: IdleNodeDef; cost: number } | null = null;
   let gated: { node: IdleNodeDef; req: IdleGateReq } | null = null;
@@ -387,7 +406,7 @@ export function idleSuggestion(nodes: IdleNodeLevels, cores: number, ctx: IdleGa
     const cost = idleNodeCost(def, level);
     if (!cheapest || cost < cheapest.cost) cheapest = { node: def, cost };
   }
-  if (cheapest && cores >= cheapest.cost) return { kind: 'buy', ...cheapest };
+  if (cheapest && chitin >= cheapest.cost) return { kind: 'buy', ...cheapest };
   if (cheapest) return { kind: 'buy', ...cheapest }; // still the target — the UI shows the price
   return gated ? { kind: 'gate', ...gated } : null;
 }
@@ -418,8 +437,9 @@ export interface IdleReceiptLine {
 const CUR_LABEL: Record<string, string> = {
   genomeCores: 'Genome Cores', geneEssence: 'Gene Essence', ichor: 'Ichor',
   towerShards: 'Strain Samples', heroShards: 'Apex Genome',
+  hiveMaterials: 'Chitin', mulliganTissue: 'Mulligan Tissue',
 };
-const CUR_ORDER = ['genomeCores', 'geneEssence', 'ichor', 'towerShards', 'heroShards'];
+const CUR_ORDER = ['genomeCores', 'hiveMaterials', 'geneEssence', 'mulliganTissue', 'ichor', 'towerShards', 'heroShards'];
 
 export function mergeIdleReceiptLines(lines: readonly IdleReceiptLine[]): IdleReceiptLine[] {
   const byCur = new Map<string, IdleReceiptLine>();

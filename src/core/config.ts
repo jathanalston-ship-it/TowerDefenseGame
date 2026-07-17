@@ -2434,12 +2434,20 @@ export const IDLE = {
   // stranded anchors clamp to now + this window, so a legitimately wrong device clock costs at
   // most this much frozen idle while tamper cycles stay throttled to the same window.
   tamperFreezeMaxHours: 48,
+  /** CHITIN LANE (docs/ECONOMY.md §localized) — the guaranteed share of every harvest budget
+   *  paid as Chitin, the Hive-Production build currency. A TOP-SLICE, not new value: the slice
+   *  comes out of the same core-equivalent budget before the weighted drop roll, so the hopper's
+   *  total value is unchanged — its composition shifts toward the currency that grows the Hive
+   *  itself. Sized (with the expedition chitin lanes) for organ-pace parity with the old
+   *  cores-priced tree (scripts/sim-localized-economy.ts pins it). */
+  hiveMatsShare: 0.3,
   /** Value model — core-equivalents per unit of each drop kind. The budget is priced in cores;
    *  every grant spends its slice through these rates, so the idle<active guardrail can price a
    *  whole harvest and future drops stay calibrated by giving them a rate here. */
   valuePerUnit: {
     cores: 1, mats: 2.5, essence: 1.2, towerShard: 3, heroShard: 5,
     mulligan: 60, container: 350, runCache: 250, ichor: 40,
+    hiveMats: 1, tissue: 1.2, // Chitin ↔ core parity; Tissue prices like the essence it replaced
   } as Record<string, number>,
 };
 

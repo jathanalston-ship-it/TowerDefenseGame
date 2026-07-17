@@ -68,9 +68,9 @@ export const REWARD_SOURCES: RewardSourceDef[] = [
   { id: 'daily_login', name: 'Daily Bio-Cache (login streak)', loop: 'reward', feeds: ['economy', 'progression', 'collection'], cadence: 'daily', nav: 'home',
     gives: 'IV-budgeted daily bundle + Season-XP rider + streak milestones + devotion codex', at: 'src/core/loginStreak.ts · ui/BioCache.tsx' },
   { id: 'idle_harvest', name: 'Hive Production collection', loop: 'reward', feeds: ['economy', 'upgrade', 'collection'], cadence: 'passive', nav: 'harvest',
-    gives: 'Banked offline yield: cores, essence, materials, rare drops', at: 'src/core/idleHarvest.ts · meta.collectIdleHarvest' },
+    gives: 'Banked offline yield: guaranteed Chitin lane + cores, essence, materials, rare drops', at: 'src/core/idleHarvest.ts · meta.collectIdleHarvest' },
   { id: 'expeditions', name: 'Hero Expedition debriefs', loop: 'reward', feeds: ['economy', 'upgrade', 'progression'], cadence: 'passive', nav: 'expeditions',
-    gives: 'Timed away-mission spoils sized by risk/affinity/streak', at: 'src/state/expeditions (meta) · docs/EXPEDITIONS.md' },
+    gives: 'Timed away-mission spoils sized by risk/affinity/streak; scavenge roads haul Chitin', at: 'src/state/expeditions (meta) · docs/EXPEDITIONS.md' },
   { id: 'field_research', name: 'Field Research studies', loop: 'reward', feeds: ['economy', 'upgrade'], cadence: 'daily', nav: 'market',
     gives: 'Rewarded-study grants (daily-capped, power-scaled)', at: 'src/core/research.ts · ui/components/FieldResearch.tsx' },
 
@@ -108,9 +108,9 @@ export const REWARD_SOURCES: RewardSourceDef[] = [
   { id: 'equipment_forge', name: 'Armory equips & reforges', loop: 'upgrade', feeds: ['collection', 'progression'], cadence: 'onDemand', nav: 'equipment',
     gives: 'Loadout power, set bonuses, gear codex progress', at: 'ui/EquipmentPanel · meta loadouts' },
   { id: 'mulligan_grafts', name: 'Mulligan grafts & reforges', loop: 'upgrade', feeds: ['collection', 'progression'], cadence: 'onDemand', nav: 'mulligans',
-    gives: 'Organism slots, reforge wheels, dex ranks', at: 'meta mulligan APIs · TowerLab tab' },
+    gives: 'Organism slots (Mulligan Tissue spends), reforge wheels, dex ranks', at: 'meta mulligan APIs · TowerLab tab' },
   { id: 'hive_organs', name: 'Hive organ growth', loop: 'upgrade', feeds: ['reward', 'economy'], cadence: 'onDemand', nav: 'hive',
-    gives: 'Organ tiers → production lanes + synergies → BIGGER idle yields', at: 'core/hiveProduction.ts · meta.buyIdleNode' },
+    gives: 'Chitin-priced organ tiers → production lanes + synergies → BIGGER idle yields', at: 'core/hiveProduction.ts · meta.buyIdleNode' },
   { id: 'adaptation_nodes', name: 'Adaptation Chamber picks', loop: 'upgrade', feeds: ['progression'], cadence: 'milestone', nav: 'adaptation',
     gives: 'Antigen points arrive at mastery/stage milestones → per-subject adaptive node picks', at: 'core/adaptation.ts · meta picks' },
 

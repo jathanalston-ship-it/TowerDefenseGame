@@ -66,6 +66,7 @@ const CURRENCY_TYPE: Record<string, string> = {
   genomeCores: 'cores', ichor: 'ichor', cells: 'cells', geneEssence: 'essence',
   towerShards: 'tshards', heroShards: 'hshards', mutagen: 'mutagen', scrap: 'scrap',
   catalyst: 'catalyst', stamina: 'stamina', bpXp: 'bpxp', masteryXp: 'mxp',
+  hiveMaterials: 'hivemat', mulliganTissue: 'tissue', // §localized wallets (docs/ECONOMY.md)
 };
 const RARE_BANDS = new Set(['epic', 'legendary', 'exotic', 'mythic']);
 

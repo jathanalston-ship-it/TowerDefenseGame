@@ -95,7 +95,7 @@ export interface OwnedModifier {
 }
 
 export interface MulliganLabView {
-  essence: number; // Gene Essence balance (the unified gene currency — cards AND modifiers)
+  tissue: number; // Mulligan Tissue balance — the graft upgrade/ascend wallet (docs/ECONOMY.md §localized)
   ichor: number; // the reforge wheel's fuel
   discovered: number;
   total: number; // total modifiers in the registry
@@ -131,8 +131,8 @@ function slotView(save: SaveData, kind: TowerKind, index: number): SlotView {
     maxLevel: levelCap(slot.rarity),
     maxed,
     upgradeCost: cost,
-    canAfford: cost !== undefined && save.geneEssence >= cost,
-    ascendable: maxed && !!nextRarity(slot.rarity) && asc != null && save.geneEssence >= asc,
+    canAfford: cost !== undefined && save.mulliganTissue >= cost,
+    ascendable: maxed && !!nextRarity(slot.rarity) && asc != null && save.mulliganTissue >= asc,
     ascendCost: asc,
     nextRarity: nextRarity(slot.rarity),
   };
@@ -208,7 +208,7 @@ export function mulliganLabView(save: SaveData): MulliganLabView {
         cls: def.cls, clsGlyph: cmeta.glyph, clsColor: cmeta.color, role: cmeta.role,
         powerWeight: def.powerWeight, dexIndex,
         level: hostedSlot?.level ?? 0,
-        upgradeable: !!hostedSlot && !isMaxLevel(hostedSlot) && save.geneEssence >= upgradeCost(hostedSlot.rarity, hostedSlot.level),
+        upgradeable: !!hostedSlot && !isMaxLevel(hostedSlot) && save.mulliganTissue >= upgradeCost(hostedSlot.rarity, hostedSlot.level),
         host, hostName: host ? TOWER_DEFS[host].name : null,
         bound: !!host && save.mulligans[host]?.locked === true,
       };
@@ -217,7 +217,7 @@ export function mulliganLabView(save: SaveData): MulliganLabView {
     .sort((a, b) => MULLIGAN_RARITY[b.rarity].tier - MULLIGAN_RARITY[a.rarity].tier || a.name.localeCompare(b.name));
   const slainMegas = save.megaProgress?.slain?.length ?? 0;
   return {
-    essence: save.geneEssence ?? 0,
+    tissue: save.mulliganTissue ?? 0,
     ichor: save.ichor ?? 0,
     discovered: owned.length,
     total: mulliganRegistry.size,

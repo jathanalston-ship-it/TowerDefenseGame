@@ -38,6 +38,7 @@ function SpoilsCard({ s, onClose }: { s: Spoils; onClose: () => void }): JSX.Ele
       <div className="exb-spoils-haul">
         <span className="exb-haul-chip">◆ {s.reward.cores} Cores</span>
         <span className="exb-haul-chip">⌬ {s.reward.essence} Essence</span>
+        {(s.reward.chitin ?? 0) > 0 && <span className="exb-haul-chip">⬣ {s.reward.chitin} Chitin</span>}
         <span className="exb-haul-chip">⊕ {s.reward.mats.mutagen} · ◳ {s.reward.mats.scrap} · ✷ {s.reward.mats.catalyst}</span>
         {s.find && <span className="exb-haul-chip is-find">✦ {s.find.name}!</span>}
       </div>
@@ -155,7 +156,7 @@ export function ExpeditionScreen(): JSX.Element {
                   </span>
                 </div>
                 <div className="exb-pay">
-                  +{d.reward.cores} Cores · +{d.reward.essence} Essence · ⊕{d.reward.mats.mutagen} ◳{d.reward.mats.scrap}{d.reward.mats.catalyst > 0 ? ` ✷${d.reward.mats.catalyst}` : ''}
+                  +{d.reward.cores} Cores · +{d.reward.essence} Essence{(d.reward.chitin ?? 0) > 0 ? ` · +${d.reward.chitin} Chitin` : ''} · ⊕{d.reward.mats.mutagen} ◳{d.reward.mats.scrap}{d.reward.mats.catalyst > 0 ? ` ✷${d.reward.mats.catalyst}` : ''}
                 </div>
                 <div className="exb-send">
                   {picks.map((p) => {
