@@ -16,6 +16,10 @@ import { useTargetRect } from './tutorial/useTargetRect';
 interface TourStop {
   area: string;
   anchor?: string; // spotlighted element (fallback: centered card, no dim hole)
+  /** Wing stops teach a SCREEN but spotlight its hub's rail door (the compressed rail renders
+   *  no per-screen rows) — `nav` carries the screen key so the reveal gate still filters on
+   *  the actual feature, not the door. */
+  nav?: string;
   what: string;
   why: string;
   when: string;
@@ -57,52 +61,52 @@ export const TOUR: TourStop[] = [
     why: 'It’s how you KNOW you got stronger, and it drives your progress predictions.',
     when: 'Watch it jump after any purchase; if a stage wall stops you, Power is what you raise.',
     later: 'Progress predictions use it to estimate exactly how far your next push will reach.' },
-  { area: 'Campaign', anchor: '[data-nav="campaign"]',
+  { area: 'Campaign', anchor: '[data-hub="play"]', nav: 'campaign',
     what: 'The main path — authored stages descending ever deeper into the world.',
     why: 'Depth is the master key: your Star Cap, Hero Slots, Adaptation gates, and Prestige all unlock by Campaign stage.',
     when: 'Push it whenever your Power feels ahead of the wall; it’s always the highest-value goal.',
     later: 'Milestone stages hide bosses with first-kill rewards — and Stage 10 opens Prestige itself.' },
-  { area: 'Infinite', anchor: '[data-nav="infinite"]',
+  { area: 'Infinite', anchor: '[data-hub="play"]', nav: 'infinite',
     what: 'Endless, escalating waves under an AI director — no win, only how deep you hold.',
     why: 'It’s the richest loot faucet and the truest test of a build.',
     when: 'Farm it when the Campaign wall stops you — the loot you bank buys your way through.',
     later: 'Depth records feed achievements and scale your Loot Meter payouts.' },
-  { area: 'Evolution', anchor: '[data-nav="evolution"]',
+  { area: 'Evolution', anchor: '[data-hub="progression"]', nav: 'evolution',
     what: 'Your permanent-progression HQ: Genome Core upgrades, and later Prestige (Molt).',
     why: 'This is the steadiest Power growth in the game — every Core spent here works forever.',
     when: 'Spend Cores after most runs; check for newly affordable tiers.',
     later: 'Molting resets the Genome engine for a compounding multiplier — the deep loop.' },
-  { area: 'Tower Lab', anchor: '[data-nav="towers"]',
+  { area: 'Tower Lab', anchor: '[data-hub="progression"]', nav: 'towers',
     what: 'Permanent tower development — Stars, the Evolution Codex, and Adaptation trees.',
     why: 'Stars are your backbone damage scaling; Adaptation adds build-defining behavior.',
     when: 'Visit when Strain Samples pile up, or a specific tower feels weak.',
     later: 'The Star Cap rises with Campaign depth; Adaptation gates open at Stages 15/30/50.' },
-  { area: 'Hero Lab', anchor: '[data-nav="heroes"]',
+  { area: 'Hero Lab', anchor: '[data-hub="progression"]', nav: 'heroes',
     what: 'Hero development — stars, mastery, and which heroes you field.',
     why: 'Heroes are your mobile burst; their growth multiplies every run they join.',
     when: 'After earning Apex Genome shards, and when new heroes unlock.',
     later: 'A second and third Hero Slot open at Campaign Stages 25 and 90.' },
-  { area: 'Equipment', anchor: '[data-nav="equipment"]',
+  { area: 'Equipment', anchor: '[data-hub="trade"]', nav: 'equipment',
     what: 'The Armory — weapon, armor, and relic loadouts for each hero.',
     why: 'Gear is a huge Power source, and set bonuses + affixes enable whole archetypes.',
     when: 'After cracking Bio-Containers; slot upgrades the moment they drop.',
     later: 'Reforging with materials turns a good base item into a perfect one.' },
-  { area: 'Genetic Vault', anchor: '[data-nav="vault"]',
+  { area: 'Genetic Vault', anchor: '[data-hub="rewards"]', nav: 'vault',
     what: 'Where your banked Bio-Containers get cracked open.',
     why: 'Containers are the reward loop — equipment, shards, and materials pour out of them.',
     when: 'After runs: your Loot Meter converts survival into containers automatically.',
     later: 'Rarer containers carry pity protection — a legendary is always coming.' },
-  { area: 'Gene Archive', anchor: '[data-nav="genes"]',
+  { area: 'Gene Archive', anchor: '[data-hub="progression"]', nav: 'genes',
     what: 'Every Gene Card you have ever drafted, collected permanently.',
     why: 'Cards level up with Gene Essence — a leveled card is stronger EVERY time you draft it.',
     when: 'Between runs: spend Essence, and equip Starting Genes that auto-activate at wave 1.',
     later: 'Deeper Archive levels unlock at Campaign milestones; Ascension arrives beyond that.' },
-  { area: 'Collection', anchor: '[data-nav="collection"]',
+  { area: 'Collection', anchor: '[data-hub="account"]', nav: 'collection',
     what: 'Your codex — every tower, enemy, boss, and card you have discovered.',
     why: 'Discovery itself pays: collection tiers grant rewards as entries fill in.',
     when: 'Browse after runs that met something new.',
     later: 'Boss and biome entries deepen as the world grows.' },
-  { area: 'Help & Settings', anchor: '[data-nav="help"]',
+  { area: 'Help & Settings', anchor: '[data-hub="account"]', nav: 'help',
     what: 'The Field Manual — a living wiki of every system you have unlocked (plus this tour, replayable).',
     why: 'New mechanics announce themselves once, then live here forever with the full picture.',
     when: 'Whenever a system surprises you — search it, read the Watch-out notes.',
@@ -117,8 +121,7 @@ export function HudTour({ onClose }: { onClose: () => void }): JSX.Element {
   // panel drops its stop instead of pointing at nothing. Snapshotted once so a mid-tour
   // reveal can't reshuffle the stops (replays from Settings naturally cover more ground).
   const [stops] = useState(() => TOUR.filter((st) => {
-    const m = st.anchor?.match(/\[data-nav="([^"]+)"\]/);
-    if (m) return featureRevealed(meta.get(), m[1]);
+    if (st.nav) return featureRevealed(meta.get(), st.nav);
     if (st.anchor?.startsWith('.')) return document.querySelector(st.anchor) !== null;
     return true;
   }));

@@ -141,7 +141,7 @@ control is off-screen — the "portrait couldn't finish the tutorial" class of b
 Default (runs in `npm run validate`): EVERY nav screen (derived from `navModel.ts`, never a
 hand list) + a live board at one honest representative of each supported profile class —
 1366×768 desktop, 390×844 + 320×568 portrait, 768×1024 tablet-portrait — plus the portrait
-tutorial walk. Desktop sweeps via the rail (`[data-nav]`); portrait sweeps via the REAL tab
+tutorial walk. Desktop sweeps the COMPRESSED rail: hub door (`[data-hub]`) → landing (audited once per hub) → screen card (`[data-nav]`), with direct doors (Home/Store) short-circuiting; portrait sweeps via the REAL tab
 shell: tab bar present with ≥44px labelled tabs, every index row named + blurbed + ≥44px,
 every row drills in (back header, titled) and returns, and the live run passes the combat-dock
 contract (fixed dock, ≥44px on-screen ▶ Start Wave, board ≥25% of the viewport, tray present).

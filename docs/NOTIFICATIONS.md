@@ -74,16 +74,23 @@ MISSION (fight) → REWARDS (claim/open) → EVOLUTION (permanent growth) → MA
 surface lives in ONE hub, so "what's waiting for me?" is one place. Portrait tabs derive
 from the same rows (Home / Battle / Rewards / Evolve / More — loop order).
 
-- **Group headers are front doors:** clicking one opens the hub's **landing page**
-  (`src/ui/HubLanding.tsx`) — identity header (glyph/promise/completion %), a "needs
-  attention" strip of reason lines, the recommendation panel, the screen grid (unlock-
-  registry cards with badges/reasons/rings/teasers), and a recently-unlocked shelf
+- **The rail is ONLY the front doors (2026-07 compression):** the desktop sidebar renders
+  HOME + one door per hub (+ the Store's direct door — `headerless` groups ARE their single
+  screen) and nothing else — no per-screen rows, rings, or teaser rows at the rail level.
+  Clicking a door opens the hub's **landing page** (`src/ui/HubLanding.tsx`) — identity
+  header (glyph/promise/completion %), a "needs attention" strip of reason lines, the
+  recommendation panel, the screen grid (unlock-registry cards with badges/reasons/rings/
+  teasers — the ONLY desktop door to individual screens now), and a recently-unlocked shelf
   (`director.revealed` within the last 5 runs). Fully registry-driven — a new screen in
   navModel lands with everything for free; there is no per-hub layout.
 - **Mobile:** the tab index pages render the same intelligence (compact recommendation
   strip + reason sublines on rows) — the landing and the index are the same idea at two
   widths.
-- Aggregate header badges sum the members; header tooltips list the member reasons.
+- Aggregate door badges sum the members (on the glyph corner); door tooltips list the
+  member reasons. The active door stays lit while any of its screens is open.
+- **Consumers of the old per-row anchors moved with it:** the HUD tour's wing stops
+  spotlight `[data-hub]` doors (`nav` field keeps the reveal gate), and the mobilecheck
+  desktop sweep walks door → landing → `[data-nav]` card.
 
 ## §reasons — smart notifications say WHY
 

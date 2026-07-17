@@ -2,7 +2,9 @@
 //
 // Serves the current dist/ build and enforces BOTH intentional interfaces
 // (docs/RESPONSIVE-DESIGN.md §mobile-shell):
-//   • DESKTOP — the rail hub, swept via [data-nav] exactly as before.
+//   • DESKTOP — the COMPRESSED rail (front doors only): every screen is reached door →
+//     hub landing → [data-nav] card (direct doors like HOME/Store short-circuit), and the
+//     landing pages themselves are audited along the way.
 //   • PORTRAIT — the phone game: the five-tab bottom bar must exist (≥44px tabs), every tab
 //     index row must be SELF-DESCRIBING (name + blurb — a first-timer reads what a screen is
 //     before entering), every row must drill in (back header present) and return, and the
@@ -229,20 +231,49 @@ async function main(): Promise<void> {
   }
 }
 
-/** Desktop/tablet-landscape: the rail hub — click every registry nav that is present. */
+/** Desktop/tablet-landscape: the COMPRESSED rail — HOME + one front door per hub. A screen
+ *  is reached door → hub landing → its [data-nav] card (Hub.tsx / HubLanding.tsx); direct
+ *  rail doors (HOME, the Store) short-circuit. Each hub's landing page is itself audited the
+ *  first time its door opens, so the landings stay inside the layout gate too. */
 async function desktopRailWalk(page: import('playwright-core').Page, vpName: string, touch: boolean): Promise<Violation[]> {
   const out: Violation[] = [];
   let missing = 0;
+  const hubOf = new Map(navGroups().flatMap((g) => g.items.map((i) => [i.key, g.id] as const)));
+  const auditedHubs = new Set<string>();
   for (const nav of NAVS) {
-    const present = await page.evaluate((n) => !!document.querySelector(`[data-nav="${n}"]`), nav);
-    if (!present) { missing++; continue; } // still gated for this profile — its teaser row was audited with the shell
-    await page.evaluate((n) => (document.querySelector(`[data-nav="${n}"]`) as HTMLElement | null)?.click(), nav);
+    // 1) Rail-level direct door (HOME, the Store) — click straight through.
+    const direct = await page.evaluate((n) => {
+      const el = document.querySelector(`.hub-nav [data-nav="${n}"]`) as HTMLElement | null;
+      if (el) el.click();
+      return !!el;
+    }, nav);
+    if (!direct) {
+      // 2) Through the hub: open the owning door's landing, then the screen's card.
+      const hub = hubOf.get(nav) ?? '';
+      const doorOpen = await page.evaluate((h) => {
+        const el = document.querySelector(`[data-hub="${h}"]`) as HTMLElement | null;
+        if (el) el.click();
+        return !!el;
+      }, hub);
+      if (!doorOpen) { missing++; continue; } // whole hub still gated for this profile
+      await page.waitForTimeout(450);
+      if (!auditedHubs.has(hub)) {
+        auditedHubs.add(hub);
+        out.push(...(await audit(page, `hub-${hub}`, vpName, touch)));
+      }
+      const card = await page.evaluate((n) => {
+        const el = document.querySelector(`.hubl-grid [data-nav="${n}"]`) as HTMLElement | null;
+        if (el) el.click();
+        return !!el;
+      }, nav);
+      if (!card) { missing++; continue; } // still gated (not even teased) — audited as a teaser elsewhere
+    }
     await page.waitForTimeout(650); // let ui-rise / panel transitions settle before measuring
     await dismiss(page);
     out.push(...(await audit(page, nav, vpName, touch)));
   }
-  // The developed seed reveals nearly everything; a collapsed rail means gating regressed.
-  if (missing > 6) out.push({ screen: 'hub', vp: vpName, kind: 'rail-coverage', detail: `${missing}/${NAVS.length} registry navs missing from the rail on a developed profile` });
+  // The developed seed reveals nearly everything; heavy misses mean the doors or landings regressed.
+  if (missing > 6) out.push({ screen: 'hub', vp: vpName, kind: 'rail-coverage', detail: `${missing}/${NAVS.length} registry navs unreachable via door→landing on a developed profile` });
   return out;
 }
 

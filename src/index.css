@@ -5672,34 +5672,97 @@ kbd {
   color: transparent;
   border-bottom: 1px solid var(--line);
 }
-.hub-navlist { display: flex; flex-direction: column; gap: 1px; flex: 1; min-height: 0; overflow-y: auto; }
+.hub-navlist { display: flex; flex-direction: column; gap: 4px; flex: 1; min-height: 0; overflow-y: auto; }
 
-/* Grouped nav — each section is a labelled zone carrying its own accent hue (--nav-accent),
-   so the rail reads as four intent-zones rather than one flat list. Rows are DENSE on
-   purpose: all ~20 destinations must fit a 900px-tall shell without scrolling the rail. */
-.hub-navgroup { display: flex; flex-direction: column; gap: 2px; }
-.hub-navgroup + .hub-navgroup { margin-top: 4px; border-top: 1px solid var(--line); padding-top: 5px; }
-.hub-navgroup-h {
-  font-size: 10px;
+/* COMPRESSED RAIL (docs/NOTIFICATIONS.md §hubs) — the rail renders ONLY the front doors:
+   HOME + one button per behavior hub (+ the Store's direct door). Each door carries its
+   hub accent (--nav-accent), the aggregate badge on the glyph corner, and a chevron that
+   says "opens a landing". Per-screen rows/rings/teasers live on the landing pages now —
+   the rail stays seven quiet buttons no matter how many wings the account has open. */
+.hub-door {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  width: 100%;
+  padding: 8px 11px;
+  border-radius: var(--r-sm);
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 12px;
   font-weight: 800;
-  letter-spacing: 0.24em;
+  letter-spacing: 0.08em; /* tight enough that "EVOLUTION HUB" fits the 216px rail un-ellipsized */
   text-transform: uppercase;
-  color: color-mix(in srgb, var(--nav-accent) 50%, var(--muted));
-  padding: 0 12px 2px;
-  user-select: none;
+  text-align: left;
+  /* transform transition + Lift/Press come from the base `button` rule (one consistent feel). */
+  transition: background var(--dur-2) var(--ease-out), color var(--dur-2) var(--ease-out), border-color var(--dur-2) var(--ease-out), box-shadow var(--dur-2) var(--ease-out);
 }
-/* Hub landing front doors (docs/NOTIFICATIONS.md §hubs): the header is a button — hover
-   brightens, the chevron appears, the aggregate badge counts the whole hub. */
-button.hub-navgroup-h.is-link {
-  display: flex; align-items: center; gap: 5px;
-  background: none; border: 0; cursor: pointer; text-align: left; width: 100%;
-  transition: color var(--dur-2);
+.hub-door:hover {
+  background: var(--panel-3);
+  color: var(--text);
+  box-shadow: var(--ring-in) color-mix(in srgb, var(--nav-accent) 24%, transparent),
+              0 0 18px -7px color-mix(in srgb, var(--nav-accent) 72%, transparent);
 }
-button.hub-navgroup-h.is-link:hover,
-button.hub-navgroup-h.is-link.on { color: var(--nav-accent); }
-.hub-navgroup-chev { opacity: 0; margin-left: auto; font-size: 11px; transition: opacity var(--dur-2); }
-button.hub-navgroup-h.is-link:hover .hub-navgroup-chev,
-button.hub-navgroup-h.is-link.on .hub-navgroup-chev { opacity: 0.9; }
+/* Selected — the active door OPENS toward the content panel: right corners flatten, the right
+   border dissolves, and an accent glow bleeds inward so it reads as one piece with the screen. */
+.hub-door.on {
+  color: var(--text);
+  border-color: color-mix(in srgb, var(--nav-accent) 42%, transparent);
+  border-right-color: transparent;
+  border-radius: var(--r-sm) 0 0 var(--r-sm);
+  background: linear-gradient(90deg,
+    color-mix(in srgb, var(--nav-accent) 24%, transparent),
+    color-mix(in srgb, var(--nav-accent) 7%, transparent) 72%,
+    transparent);
+  box-shadow: inset 3px 0 0 var(--nav-accent),
+              inset -16px 0 22px -16px color-mix(in srgb, var(--nav-accent) 85%, transparent);
+}
+.hub-door-g {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 25px;
+  height: 25px;
+  flex: none;
+  border-radius: var(--r-sm);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--line);
+  font-size: 13px;
+  color: color-mix(in srgb, var(--nav-accent) 62%, var(--muted));
+  letter-spacing: 0;
+  transition: background var(--dur-2) var(--ease-out), border-color var(--dur-2) var(--ease-out), box-shadow var(--dur-2) var(--ease-out);
+}
+.hub-door:hover .hub-door-g { border-color: color-mix(in srgb, var(--nav-accent) 45%, var(--line)); }
+.hub-door.on .hub-door-g {
+  color: color-mix(in srgb, var(--nav-accent) 85%, var(--text));
+  background: color-mix(in srgb, var(--nav-accent) 16%, transparent);
+  border-color: color-mix(in srgb, var(--nav-accent) 52%, transparent);
+  box-shadow: 0 0 13px -2px color-mix(in srgb, var(--nav-accent) 70%, transparent);
+}
+.hub-door-l { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.hub-door.on .hub-door-l { font-weight: 800; }
+.hub-door-chev { opacity: 0; margin-left: auto; font-size: 12px; transition: opacity var(--dur-2); }
+.hub-door:hover .hub-door-chev, .hub-door.on .hub-door-chev { opacity: 0.9; }
+.hub-door.is-locked { opacity: 0.6; }
+.hub-door.is-locked .hub-door-g { filter: saturate(0.4); }
+/* The Store divider — monetization stays visibly separate from the gameplay hubs
+   (docs/PREMIUM-STORE.md §philosophy). */
+.hub-door-sep { border-top: 1px solid var(--line); margin: 3px 0 7px; }
+
+/* Selection micro-feedback — a one-shot accent ring "pops" off the glyph the instant a door
+   becomes active (replays on each re-selection). Cheap: one pseudo-element, one keyframe. */
+.hub-door.on .hub-door-g::after {
+  content: '';
+  position: absolute;
+  inset: -3px;
+  border-radius: var(--r-sm);
+  border: 1.5px solid var(--nav-accent);
+  animation: nav-pick var(--dur-3) var(--ease-out) 1 both;
+  pointer-events: none;
+}
 
 /* ── Hub landing pages (ui/HubLanding.tsx) ─────────────────────────────────── */
 .hubl { display: flex; flex-direction: column; gap: 14px; max-width: 980px; }
@@ -5754,108 +5817,14 @@ button.hub-navgroup-h.is-link.on .hub-navgroup-chev { opacity: 0.9; }
   .hubl-grid { grid-template-columns: 1fr 1fr; }
 }
 
-.hub-navitem {
-  position: relative;
-  display: flex;
-  align-items: center;
-  gap: 11px;
-  width: 100%;
-  padding: 5px 12px;
-  border-radius: var(--r-sm);
-  background: transparent;
-  border: 1px solid transparent;
-  color: var(--muted);
-  cursor: pointer;
-  font-size: 13px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  text-align: left;
-  /* transform transition + Lift/Press come from the base `button` rule (one consistent feel). */
-  transition: background var(--dur-2) var(--ease-out), color var(--dur-2) var(--ease-out), border-color var(--dur-2) var(--ease-out), box-shadow var(--dur-2) var(--ease-out);
-}
-.hub-navitem:hover {
-  background: var(--panel-3);
-  color: var(--text);
-  box-shadow: var(--ring-in) color-mix(in srgb, var(--nav-accent) 24%, transparent),
-              0 0 18px -7px color-mix(in srgb, var(--nav-accent) 72%, transparent);
-}
-/* Selected — the active tab OPENS toward the content panel: right corners flatten, the right
-   border dissolves, and an accent glow bleeds inward so it reads as one piece with the screen. */
-.hub-navitem.on {
-  color: var(--text);
-  border-color: color-mix(in srgb, var(--nav-accent) 42%, transparent);
-  border-right-color: transparent;
-  border-radius: var(--r-sm) 0 0 var(--r-sm);
-  background: linear-gradient(90deg,
-    color-mix(in srgb, var(--nav-accent) 24%, transparent),
-    color-mix(in srgb, var(--nav-accent) 7%, transparent) 72%,
-    transparent);
-  box-shadow: inset 3px 0 0 var(--nav-accent),
-              inset -16px 0 22px -16px color-mix(in srgb, var(--nav-accent) 85%, transparent);
-}
-.hub-navitem.on .hub-navlabel { font-weight: 800; }
-
-.hub-mono {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 23px;
-  height: 23px;
-  flex: none;
-  border-radius: var(--r-sm);
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid var(--line);
-  font-size: 11px;
-  transition: background var(--dur-2) var(--ease-out), border-color var(--dur-2) var(--ease-out), box-shadow var(--dur-2) var(--ease-out);
-}
-.hub-navitem:hover .hub-mono { border-color: color-mix(in srgb, var(--nav-accent) 45%, var(--line)); }
-.hub-navitem.on .hub-mono {
-  background: color-mix(in srgb, var(--nav-accent) 16%, transparent);
-  border-color: color-mix(in srgb, var(--nav-accent) 52%, transparent);
-  box-shadow: 0 0 13px -2px color-mix(in srgb, var(--nav-accent) 70%, transparent);
-}
-
-/* Progress ring around the glyph — a thin conic gauge driven by --p (0..1), in the group accent. */
-.hub-mono.has-ring::before {
-  content: '';
-  position: absolute;
-  inset: -4px;
-  border-radius: 50%;
-  background: conic-gradient(var(--nav-accent) calc(var(--p, 0) * 360deg), color-mix(in srgb, var(--line) 70%, transparent) 0);
-  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 2.5px), #000 calc(100% - 2px));
-  mask: radial-gradient(farthest-side, transparent calc(100% - 2.5px), #000 calc(100% - 2px));
-  opacity: 0.9;
-  pointer-events: none;
-}
-.hub-ringpct {
-  margin-left: auto;
-  font-size: 10px;
-  font-weight: 700;
-  color: color-mix(in srgb, var(--nav-accent) 60%, var(--muted));
-  font-variant-numeric: tabular-nums;
-}
-.hub-navitem.on .hub-ringpct { color: color-mix(in srgb, var(--nav-accent) 78%, var(--text)); }
-
-/* Selection micro-feedback — a one-shot accent ring "pops" off the glyph the instant an item
-   becomes active (replays on each re-selection). Cheap: one pseudo-element, one keyframe. */
-.hub-navitem.on .hub-mono::after {
-  content: '';
-  position: absolute;
-  inset: -3px;
-  border-radius: var(--r-sm);
-  border: 1.5px solid var(--nav-accent);
-  animation: nav-pick var(--dur-3) var(--ease-out) 1 both;
-  pointer-events: none;
-}
 @keyframes nav-pick {
   0% { opacity: 0.85; transform: scale(0.78); }
   100% { opacity: 0; transform: scale(1.7); }
 }
 
 /* Global notification dot (notifications.ts) — any menu with unacknowledged news. It anchors
-   to the GLYPH's corner (the .hub-mono square), never the row edge, so it can't collide with
-   the completion % that lives at the row's right. */
+   to the GLYPH's corner (the .hub-door-g square / mobile tab glyph), never the row edge, so it
+   can't collide with anything living at the row's right. */
 .nav-badge {
   position: absolute;
   top: -4px;
@@ -5887,33 +5856,6 @@ button.hub-navgroup-h.is-link.on .hub-navgroup-chev { opacity: 0.9; }
   0%, 100% { transform: scale(1); box-shadow: 0 0 0 2px var(--panel), 0 0 6px 1px rgba(255, 178, 77, 0.55); }
   50% { transform: scale(1.12); box-shadow: 0 0 0 2px var(--panel), 0 0 11px 2px rgba(255, 178, 77, 0.95); }
 }
-.hub-navlabel { font-weight: 600; }
-
-/* Compact group (Account) — a row of labelled icon squares. Every destination stays on
-   screen at 900px-tall shells; the labels keep it self-explanatory (no mystery meat). */
-.hub-navrow { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; }
-.hub-navsquare {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 2px;
-  padding: 3px 2px 3px;
-  border-radius: var(--r-sm);
-  background: transparent;
-  border: 1px solid transparent;
-  color: var(--muted);
-  cursor: pointer;
-  transition: background var(--dur-2) var(--ease-out), color var(--dur-2) var(--ease-out), border-color var(--dur-2) var(--ease-out);
-}
-.hub-navsquare:hover { background: var(--panel-3); color: var(--text); }
-.hub-navsquare.on {
-  color: var(--text);
-  border-color: color-mix(in srgb, var(--nav-accent) 42%, transparent);
-  background: color-mix(in srgb, var(--nav-accent) 12%, transparent);
-}
-.hub-navsquare-l { font-size: 10px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-
 .hub-power {
   padding: 7px 12px;
   border-radius: var(--r-sm);
@@ -10290,8 +10232,6 @@ button.hub-navgroup-h.is-link.on .hub-navgroup-chev { opacity: 0.9; }
 @media (prefers-reduced-motion: reduce) { .roulette-collect.is-ready { animation: none; } }
 
 /* Campaign-sealed modes (docs/MODE-IDENTITY.md §gates) — visible but sealed until the stage falls. */
-.hub-navitem.is-locked { opacity: 0.6; }
-.hub-navitem.is-locked .hub-mono { filter: saturate(0.4); }
 .hub-lock { margin-left: auto; font-size: 10px; opacity: 0.8; }
 .mode-locked-panel { display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 28px 22px; text-align: center; border-color: color-mix(in srgb, var(--danger) 30%, var(--line)); }
 .mode-locked-glyph { font-size: 58px; line-height: 1; opacity: 0.5; filter: saturate(0.5); }

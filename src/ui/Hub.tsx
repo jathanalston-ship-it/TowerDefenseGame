@@ -329,93 +329,83 @@ export function Hub({
       {!mobileShell && (
       <nav className={`hub-nav${navOpen ? ' is-open' : ''}`} aria-label="Headquarters">
         <div className="hub-brand">ASSIMILATION</div>
+        {/* COMPRESSED RAIL (docs/NOTIFICATIONS.md §hubs): only the front doors render — HOME
+            plus ONE button per behavior hub. Screens (and their teasers/rings/reasons) are
+            picked from the hub LANDING pages; per-screen rows never render at the rail level,
+            so the shell stays visually quiet no matter how many wings the account has open. */}
         <div className="hub-navlist">
+          <button
+            type="button"
+            data-nav="home"
+            className={`hub-door${landing === null && nav === 'home' ? ' on' : ''}`}
+            onClick={() => go('home')}
+            onPointerEnter={() => audio.cue('hover')}
+            aria-current={landing === null && nav === 'home' ? 'page' : undefined}
+            aria-label={(badges.home ?? 0) > 0 ? `${t('nav.home')} — ${(reasons.home ?? []).join(' · ') || `${badges.home} new`}` : t('nav.home')}
+            title={(reasons.home ?? []).join(' · ') || undefined}
+          >
+            <span className="hub-door-g" aria-hidden>
+              ⌂
+              {(badges.home ?? 0) > 0 && <span className="nav-badge" aria-hidden>{(badges.home ?? 0) > 1 ? ((badges.home ?? 0) > 9 ? '9+' : badges.home) : ''}</span>}
+            </span>
+            <span className="hub-door-l">{t('nav.home')}</span>
+          </button>
           {navGroups().map((group) => {
-            // Progression gating: only REVEALED entries + the next-two teasers render; a group
-            // with nothing revealed stays silent.
-            const items = group.items.filter((n) => navVisible(n.key));
+            // Progression gating: a hub with nothing revealed (and nothing teased) stays
+            // silent. HOME has its own door above, so it never counts toward the play hub.
+            const items = group.items.filter((n) => n.key !== 'home' && navVisible(n.key));
             if (items.length === 0) return null;
-            // The header is the hub's front door: its badge aggregates the members, its
-            // tooltip lists the member REASONS, and clicking it opens the landing page.
             const groupBadge = items.reduce((n, it) => n + (teaserOf.has(it.key) ? 0 : badges[it.key] ?? 0), 0);
             const groupWhy = items.flatMap((it) => reasons[it.key] ?? []).join(' · ');
-            return (
-            <div
-              className={`hub-navgroup${group.compact ? ' is-compact' : ''}`}
-              key={group.id}
-              style={{ ['--nav-accent' as string]: group.accent } as CSSProperties}
-            >
-              {!group.headerless && (
-                <button
-                  type="button"
-                  data-hub={group.id}
-                  className={`hub-navgroup-h is-link${landing === group.id ? ' on' : ''}`}
-                  onClick={() => goLanding(group.id)}
-                  onPointerEnter={() => audio.cue('hover')}
-                  title={groupWhy || group.hub.blurb}
-                  aria-label={groupWhy ? `${group.title} — ${groupWhy}` : group.title}
-                >
-                  {group.title}
-                  {groupBadge > 0 && <span className="nav-badge is-inline" aria-hidden>{groupBadge > 9 ? '9+' : groupBadge}</span>}
-                  <span className="hub-navgroup-chev" aria-hidden>›</span>
-                </button>
-              )}
-              {group.compact && <div className="hub-navrow">{items.map((n) => {
-                const teaser = teaserOf.get(n.key);
-                const badge = teaser ? 0 : (badges[n.key] ?? 0);
-                return (
+            // A headerless hub IS its single screen (the Store) — its door navigates straight
+            // there (a one-card landing would be a pointless hop); the divider + accent keep
+            // monetization visibly separate (docs/PREMIUM-STORE.md §philosophy).
+            if (group.headerless) {
+              const n = items[0];
+              const teaser = teaserOf.get(n.key);
+              return (
+                <div key={group.id} style={{ ['--nav-accent' as string]: group.accent } as CSSProperties}>
+                  <div className="hub-door-sep" aria-hidden />
                   <button
-                    key={n.key}
+                    type="button"
                     data-nav={n.key}
-                    className={`hub-navsquare ${nav === n.key ? 'on' : ''}${teaser ? ' is-locked' : ''}`}
+                    className={`hub-door${landing === null && nav === n.key ? ' on' : ''}${teaser ? ' is-locked' : ''}`}
                     onClick={() => go(n.key)}
                     onPointerEnter={() => audio.cue('hover')}
-                    aria-current={nav === n.key ? 'page' : undefined}
-                    aria-label={teaser ? `${n.label} — locked. ${teaser.label}` : badge > 0 ? `${n.label} — ${badge} new` : n.label}
-                    title={teaser ? teaser.label : n.label}
+                    aria-current={landing === null && nav === n.key ? 'page' : undefined}
+                    aria-label={teaser ? `${n.label} — locked. ${teaser.label}` : n.label}
+                    title={teaser ? teaser.label : undefined}
                   >
-                    <span className="hub-mono" aria-hidden>
-                      {n.mono}
-                      {badge > 0 && <span className="nav-badge" aria-hidden>{badge > 1 ? (badge > 9 ? '9+' : badge) : ''}</span>}
-                    </span>
-                    <span className="hub-navsquare-l">{n.label}</span>
-                  </button>
-                );
-              })}</div>}
-              {!group.compact && items.map((n) => {
-                const teaser = teaserOf.get(n.key);
-                const badge = teaser ? 0 : (badges[n.key] ?? 0);
-                // A teaser's ring shows progress TOWARD the unlock; a revealed entry keeps
-                // its completion ring.
-                const ring = teaser ? (teaser.progress > 0 ? teaser.progress : null) : progress[n.key];
-                return (
-                  <button
-                    key={n.key}
-                    data-nav={n.key}
-                    className={`hub-navitem ${nav === n.key ? 'on' : ''}${teaser ? ' is-locked' : ''}`}
-                    onClick={() => go(n.key)}
-                    onPointerEnter={() => audio.cue('hover')}
-                    aria-current={nav === n.key ? 'page' : undefined}
-                    aria-label={teaser ? `${n.label} — locked. ${teaser.label}` : badge > 0 ? `${n.label} — ${(reasons[n.key] ?? [`${badge} new`]).join(' · ')}` : undefined}
-                    title={teaser ? teaser.label : badge > 0 ? (reasons[n.key] ?? []).join(' · ') || undefined : undefined}
-                  >
-                    <span
-                      className={`hub-mono ${ring != null ? 'has-ring' : ''}`}
-                      aria-hidden
-                      style={ring != null ? ({ ['--p' as string]: ring } as CSSProperties) : undefined}
-                    >
-                      {n.mono}
-                      {/* The badge anchors to the glyph corner so it never collides with the
-                          ring % at the row's right edge (the pre-overhaul overlap). */}
-                      {badge > 0 && <span className="nav-badge" aria-hidden>{badge > 1 ? (badge > 9 ? '9+' : badge) : ''}</span>}
-                    </span>
-                    <span className="hub-navlabel">{n.label}</span>
+                    <span className="hub-door-g" aria-hidden>{n.mono}</span>
+                    <span className="hub-door-l">{n.label}</span>
                     {teaser && <span className="hub-lock" aria-hidden>🔒</span>}
-                    {ring != null && (teaser || ring >= 0.005) && <span className="hub-ringpct" aria-hidden>{Math.round(ring * 100)}%</span>}
                   </button>
-                );
-              })}
-            </div>
+                </div>
+              );
+            }
+            // The hub door: its badge aggregates the members, its tooltip lists the member
+            // REASONS, and clicking it opens the landing page (the only door to the screens).
+            const active = landing === group.id || (landing === null && items.some((it) => it.key === nav));
+            return (
+              <button
+                type="button"
+                key={group.id}
+                data-hub={group.id}
+                className={`hub-door${active ? ' on' : ''}`}
+                style={{ ['--nav-accent' as string]: group.accent } as CSSProperties}
+                onClick={() => goLanding(group.id)}
+                onPointerEnter={() => audio.cue('hover')}
+                aria-current={active ? 'page' : undefined}
+                title={groupWhy || group.hub.blurb}
+                aria-label={groupWhy ? `${group.title} — ${groupWhy}` : group.title}
+              >
+                <span className="hub-door-g" aria-hidden>
+                  {group.hub.glyph}
+                  {groupBadge > 0 && <span className="nav-badge" aria-hidden>{groupBadge > 1 ? (groupBadge > 9 ? '9+' : groupBadge) : ''}</span>}
+                </span>
+                <span className="hub-door-l">{group.title}</span>
+                <span className="hub-door-chev" aria-hidden>›</span>
+              </button>
             );
           })}
         </div>

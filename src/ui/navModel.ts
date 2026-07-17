@@ -26,14 +26,14 @@ export type NavKey =
 export type NavGroupId = 'play' | 'rewards' | 'progression' | 'trade' | 'store' | 'account';
 
 export interface NavItem { key: NavKey; label: string; mono: string }
-/** `compact` renders the group as a row of labelled icon squares (the Profile hub) so every
- * destination — Settings included — stays visible without scrolling the rail. `headerless`
- * drops the group title when it would merely repeat its only item's label (the Store).
+/** The desktop rail renders ONE front-door button per group (less visual clutter — screens
+ * are picked from the hub LANDING pages). `headerless` marks a group that IS its single item
+ * (the Store): its door navigates straight to the screen instead of a one-card landing hop.
  * `hub` is the landing-page identity (ui/HubLanding.tsx): glyph + one-line promise. */
 export interface NavGroup {
   id: NavGroupId; title: string; accent: string; items: NavItem[];
   hub: { glyph: string; blurb: string };
-  compact?: boolean; headerless?: boolean;
+  headerless?: boolean;
 }
 
 // Adding a screen is one row in the right hub — the renderer, badges, rings, landing pages,
@@ -77,7 +77,7 @@ export const navGroups = (): NavGroup[] => [
   { id: 'store', title: t('nav.group.store'), accent: 'var(--viral)', headerless: true, hub: { glyph: '✷', blurb: t('hub.blurb.store') }, items: [
     { key: 'store', label: t('nav.store'), mono: '✷' },
   ] },
-  { id: 'account', title: t('nav.group.account'), accent: 'var(--muted)', compact: true, hub: { glyph: '◑', blurb: t('hub.blurb.account') }, items: [
+  { id: 'account', title: t('nav.group.account'), accent: 'var(--muted)', hub: { glyph: '◑', blurb: t('hub.blurb.account') }, items: [
     { key: 'profile', label: t('nav.profile'), mono: '◑' },
     { key: 'collection', label: t('nav.collection'), mono: '▤' },
     { key: 'help', label: t('nav.help'), mono: '?' },

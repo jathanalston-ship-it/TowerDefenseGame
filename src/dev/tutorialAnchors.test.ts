@@ -2,7 +2,7 @@
 // reference UI anchors as CSS-selector STRINGS. A renamed data attribute or class silently
 // degrades a lesson to the centered-callout / full-dim fallback (a soft failure nobody sees in
 // CI). This guard cross-checks every selector the defs use against the UI source: each
-// data-tut/data-tour/data-nav value and class token must appear as a literal in src/ui.
+// data-tut/data-tour/data-nav/data-hub value and class token must appear as a literal in src/ui.
 
 import { describe, it, expect } from 'vitest';
 import { readFileSync, readdirSync, statSync } from 'node:fs';
@@ -40,7 +40,7 @@ function cueSelectors(): string[] {
 /** A selector "resolves" if each attribute value / class token appears literally in src/ui. */
 function missingTokens(sel: string): string[] {
   const missing: string[] = [];
-  for (const m of sel.matchAll(/\[data-(?:tut|tour|nav)="([^"]+)"\]/g)) {
+  for (const m of sel.matchAll(/\[data-(?:tut|tour|nav|hub)="([^"]+)"\]/g)) {
     if (!new RegExp(`['"\`]${m[1]}['"\`]`).test(ALL_UI)) missing.push(m[0]);
   }
   for (const m of sel.replace(/\[[^\]]*\]/g, '').matchAll(/\.([\w-]+)/g)) {
