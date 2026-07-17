@@ -65,6 +65,24 @@ export const FORM_ANTICIPATION: Record<TowerForm, AnticipationProfile> = {
   singularity: { sx: 0, sy: 0, glow: 0.5 }, // the void anchor only deepens — nothing to flex
 };
 
+/** Wind-up intensity [0..1] across the FINAL 30% of a tower's cooldown — the scale factor the
+ *  renderer feeds the FORM_ANTICIPATION transform (the whole-body `ctx.scale` around the draw).
+ *
+ *  HARD [0..1] BY CONSTRUCTION (BUGFIX-LOG #16 — the "Parasite Nest fills the screen" flood):
+ *  the sim's fire paths tick `cooldown -= dt` and reset only when the tower ACTS, so a tower
+ *  that CANNOT act (a nest with nothing to infest, any tower through an autostart-off prep)
+ *  drifts its cooldown arbitrarily far below zero — harmless to the sim (the fire gate is
+ *  `> 0`), catastrophic here if extrapolated: the raw ratio grows quadratically with time and
+ *  the body transform sits OUTSIDE drawTower's 2.2× radius ceiling. A past-due cooldown means
+ *  exactly "fully wound up" (1) — never more. NaN-hostile inputs collapse to 0 (still still). */
+export function attackAnticipation(cooldown: number, fireInterval: number): number {
+  if (!(fireInterval > 0)) return 0; // supports / NaN intervals never wind up
+  const readiness = 1 - Math.max(0, cooldown) / (fireInterval * 0.3);
+  if (!(readiness > 0)) return 0; // not yet in the window — and NaN lands here too
+  const t = readiness >= 1 ? 1 : readiness;
+  return t * t;
+}
+
 // ── colour: one memoized helper. `lit`>0 lightens toward white, <0 darkens; `a`<1 ⇒ rgba. ────────
 const triCache = new Map<string, [number, number, number]>();
 function tri(hex: string): [number, number, number] {

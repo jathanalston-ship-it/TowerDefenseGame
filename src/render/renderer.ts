@@ -31,7 +31,7 @@ import { drawEnemyBody } from './enemyForms';
 import type { BodyForm } from './enemyForms';
 import { ingestDeaths, updateGore, drawGoreFloor, drawGorePieces, goreThrob } from './gore';
 import { drawAbilityCinematics } from './abilityCinematics';
-import { drawTowerForm, drawTowerSignature, FORM_ANTICIPATION, TOWER_FORM } from './towerForms';
+import { attackAnticipation, drawTowerForm, drawTowerSignature, FORM_ANTICIPATION, TOWER_FORM } from './towerForms';
 import {
   chevronDown,
   drawShape,
@@ -1222,8 +1222,11 @@ function drawTower(ctx: CanvasRenderingContext2D, tw: RenderState['towers'][numb
   // the cooldown the organism visibly WINDS UP per its form's personality — the mortar tube
   // compresses, the needler flexes taller, emitters gather muzzle light — so the release
   // (recoil + flash) lands as a payoff. Idle towers (prep / no prey) and supports stay still.
-  const anticip = combat && def.fireInterval > 0
-    ? Math.pow(Math.max(0, 1 - tw.cooldown / (def.fireInterval * 0.3)), 2) : 0;
+  // attackAnticipation is [0..1] BY CONSTRUCTION — a tower that can't act drifts its cooldown
+  // below zero every tick, and the raw ratio here once grew the wind-up transform without
+  // bound (the "Parasite Nest fills the screen" flood, BUGFIX-LOG #16 — this scale sits
+  // OUTSIDE the 2.2× body-radius ceiling, so the ceiling never caught it).
+  const anticip = combat ? attackAnticipation(tw.cooldown, def.fireInterval) : 0;
   const pers = FORM_ANTICIPATION[TOWER_FORM[tw.kind]];
   if (anticip > 0.02 && pers.glow > 0) {
     glowDisc(ctx, tw.x, tw.y - r * 0.8, r * (0.3 + anticip * 0.55), rgba(hexRgb(skin?.glow ?? kcolor), pers.glow * anticip * 0.6));

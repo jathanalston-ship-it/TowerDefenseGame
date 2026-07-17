@@ -3,7 +3,22 @@
 > Maintained at the END of every session (paired with `docs/AI_HANDOFF.md` — the constitution's
 > workflow step 4). This is the "where are we?" answer; `docs/GAME-STATE.md` remains the deeper
 > per-system built-vs-planned index, `docs/PROJECT_MANIFEST.md` the system map.
-> **Last updated:** 2026-07-17c (**HUMAN MATCHMAKING ON + THE COMPRESSED RAIL** — two
+> **Last updated:** 2026-07-17d (**TWO USER-REPORTED FIXES.** (1) **THE PARASITE-NEST FLOOD,
+> ROOT-CAUSED** (BUGFIX-LOG #16 — closes #15's "under watch"): the projectile fire path ticks
+> `cooldown -= dt` every tick and resets only `if (acted)`, so a tower that CANNOT act (raid
+> lull / STUNNED boss / empty lane) drifts its cooldown to -∞; the renderer's attack-
+> anticipation wind-up fed that raw value into a WHOLE-BODY ctx.scale OUTSIDE the 2.2× body
+> ceiling (measured on the real towerSystem: 60s no-prey → cd -59.9 → nest ×2,785, needle
+> ×12,516 until its first shot — the reported "brief 2-3×" ramp). Fix at the render boundary
+> only (sim untouched — goldens + arena lockstep): `attackAnticipation()` (towerForms.ts) is
+> [0..1] by construction, pinned in renderer.test.ts; the sim's drift contract is now a DIL
+> row. (2) **ONE STANDARD SCREEN WIDTH** (UI-STANDARDS.md §measure): .app's shrink-to-fit
+> centering let the whole hub shell resize per screen (store 820 / landings 980 / home fluid);
+> `.hub{width:100%}` + `--screen-max` (1120px) + one `.hub-screen > *` rule; per-screen caps
+> tokenized; probe: all 27 screens + 6 landings = exactly 1120px @1920. Suite 2311 green,
+> validate PASS, mobilecheck CLEAN, live wave probe clean. Previous below.)
+>
+> **2026-07-17c** (**HUMAN MATCHMAKING ON + THE COMPRESSED RAIL** — two
 > user-directed features. (1) The Arena queue hunts HUMANS BY DEFAULT wherever a relay
 > resolves; the console's OPPONENTS toggle (HUMANS + AI / AI ONLY, device-local
 > `assimilate.humanMM`, read at queue entry only) lets players opt out — but the opt-out

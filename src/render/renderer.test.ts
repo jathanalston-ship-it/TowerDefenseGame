@@ -6,6 +6,7 @@
 import { describe, it, expect } from 'vitest';
 import { Game } from '../core/game';
 import { drawGame } from './renderer';
+import { attackAnticipation } from './towerForms';
 import { SIM_DT } from '../core/config';
 import { towerSlots } from '../core/map';
 import type { MetaModifiers, TowerKind } from '../core/types';
@@ -98,5 +99,38 @@ describe('renderer branch cosmetics (smoke)', () => {
       }
     }).not.toThrow();
     expect(sawShell).toBe(true); // the bombardment actually flew through the draw path
+  });
+});
+
+// ── Attack-anticipation clamp (BUGFIX-LOG #16 — the "Parasite Nest fills the screen" flood) ──
+// The sim's fire paths tick `cooldown -= dt` and reset it only when the tower ACTS, so a tower
+// that can't act (a nest with nothing to infest; any tower across an autostart-off prep) drifts
+// its cooldown arbitrarily far below zero. The wind-up factor feeds a WHOLE-BODY ctx.scale that
+// sits outside drawTower's 2.2× radius ceiling — it must be [0..1] by construction, forever.
+describe('attackAnticipation stays [0..1] for any cooldown the sim can produce', () => {
+  it('a past-due (negative) cooldown means fully wound up — never more', () => {
+    expect(attackAnticipation(0, 2.5)).toBe(1);
+    expect(attackAnticipation(-0.001, 2.5)).toBe(1);
+    expect(attackAnticipation(-60, 2.5)).toBe(1); // a minute of can't-act drift (the nest)
+    expect(attackAnticipation(-1e9, 0.4)).toBe(1);
+  });
+  it('winds up smoothly across the final 30% of the cooldown and is 0 before it', () => {
+    const fi = 2;
+    expect(attackAnticipation(fi, fi)).toBe(0); // just fired
+    expect(attackAnticipation(fi * 0.3, fi)).toBe(0); // window opens
+    const mid = attackAnticipation(fi * 0.15, fi);
+    expect(mid).toBeGreaterThan(0);
+    expect(mid).toBeLessThan(1);
+    for (const cd of [fi, fi * 0.6, fi * 0.3, fi * 0.15, fi * 0.05, 0, -5, -5000]) {
+      const a = attackAnticipation(cd, fi);
+      expect(a).toBeGreaterThanOrEqual(0);
+      expect(a).toBeLessThanOrEqual(1);
+    }
+  });
+  it('supports (fireInterval 0) and hostile numbers never wind up', () => {
+    expect(attackAnticipation(-10, 0)).toBe(0);
+    expect(attackAnticipation(5, -1)).toBe(0);
+    expect(attackAnticipation(NaN, 2)).toBe(0);
+    expect(attackAnticipation(1, NaN)).toBe(0);
   });
 });
