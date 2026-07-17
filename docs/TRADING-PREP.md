@@ -82,15 +82,15 @@ ledger history is the evidence).
 `pvpLegality(ref, stamp)` — whether an item may be fielded in ranked arena play. Everything is
 legal today; seasonal rulesets filter here without touching equipment/arena code.
 
-## 6. What the future Auction House still needs (and ONLY needs)
+## 6. The Auction House — BUILT (docs/AUCTION-HOUSE.md)
 
-1. A D1 schema for listings/bids/history (the types in §3 are the row shapes) + Pages Function
-   endpoints (list/bid/buy/settle/history) behind `PROGRESSION_AUTHORITY` server rules.
-2. Escrow at listing time (server marks the item held; the client mirrors via sync).
-3. Transfer settlement calling `recordTransfer` on both provenance mirrors.
-4. UI (browse/search/sell flows) — reading `tradeEligibility` for every button state.
-
-No identity, eligibility, economics, fraud, or authority work remains — that is this layer.
+Everything this section once listed now exists: `migrations/0006_auction.sql` (listings/
+bids/wallets/ledger/trades/history/authority/flags), `functions/api/auction/*` behind the
+shared eligibility + engine validation, item escrow + settlement with provenance
+transfers, and `ui/AuctionHouse.tsx` reading `tradeEligibility` for every button state —
+plus the invisible Market Authority (core/marketAuthority.ts) this prep layer anticipated.
+**docs/AUCTION-HOUSE.md is the market's reference now**; this document stays canonical for
+the identity/eligibility/fee vocabulary it defines.
 
 ## Known limitations
 

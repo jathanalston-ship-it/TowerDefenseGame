@@ -116,6 +116,7 @@ go in `.dev.vars` (gitignored). `ENVIRONMENT` needs no setup — it ships in
 | `STRIPE_WEBHOOK_SECRET` | server | for real store | `whsec_…` from the webhook endpoint |
 | `TURNSTILE_SECRET_KEY` | server | recommended | Turnstile secret; absent ⇒ bot checks skipped |
 | `DAY_TICKET_SECRET` | server | recommended | random 32+ bytes hex (`openssl rand -hex 32`) |
+| `MOD_KEY` | server | for auction moderation | secret for `/api/auction/flags` (docs/AUCTION-HOUSE.md §6); absent ⇒ lane closed (503) |
 | `ENVIRONMENT` | server | recommended | `production` / `preview` — production refuses `sk_test_` keys |
 
 Rules: **never** put a secret in a `VITE_` variable; never commit real values;

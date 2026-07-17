@@ -1363,3 +1363,42 @@ nav/i18n ×3, unlock row, help entry, timeline, placard sources all say Hive Pro
 **Extension points.** New organ = one HIVE_ORGANS row + one coupling row; new synergy = one
 pair row; new lane = one CouplingTarget; new drop = one IDLE_DROPS row. Rank/arena/campaign
 already feed the engine; future systems add multipliers at the same optional-arg seam.
+## Compressed system summary — Auction House & Market Authority (docs/AUCTION-HOUSE.md)
+
+**Architecture.** One rulebook, three hosts. `core/auction.ts` — the pure listing state
+machine (open→bid/buyNow→settle/expire/cancel) emitting `LedgerOp` money movements +
+price stats (`familyStats`→`recommendedPrice`) + the shared search model. `core/
+marketAuthority.ts` — the invisible steward: `MarketMetrics` per window → four bounded
+levers (fee ≤×2.5, tax ≤×2, baseline 1–6, recBias ±15%; drift ≤6%/window; two-speed EWMA
+inflation index immune to slow boils and sparse-window noise) + manipulation detectors
+(relist churn, monopoly, price fixing over trading.ts's wash/circular/outlier). `core/
+marketCatalog.ts` — families/exclusivity DERIVED from content registries; sanitizer-seeded
+content is `neverTrade` (the infinite-printer guard). Server: `functions/lib/auctionHost.ts`
++ 10 `/api/auction/*` endpoints — wallet CHECKs and a partial UNIQUE index make overdrafts/
+double-lists atomic rollbacks; money statements are conditioned on their state transition
+(races charge nothing); exactly-once via trades/ledger/windows PKs; `maintainMarket()`
+weaves settlement + authority ticks + restock + audits into requests (no daemon). Client:
+`net/auctionHouse.ts` → `state/auctionHouse.ts` (server-first custody, crash-safe wallet
+outbox, delivery/proceeds placards) → `ui/AuctionHouse.tsx` (Browse/Sell/My Market, stage-9
+reveal in the MARKET hub).
+
+**Public APIs.** Engine: `openListing/placeBid/buyNow/cancelListing/settleExpired`
+(feeMult/taxMult params — the levers actually charge), `familyStats`, `recommendedPrice`,
+`matchesQuery/sortListings`. Authority: `authorityTick`, `effectiveFees`,
+`baselineEligible`, `planBaselineRestock`, `baselineDemandScale`, `auditMarket`. Catalog:
+`marketFamilies/marketFamily/baselineCatalog/stockableFamilies/marketCatalogProblems`.
+Meta custody: `auctionSellables/auctionEscrowOut/auctionDeliver/auctionReconcile`.
+
+**Assumptions.** Trading needs a synced identity (session or cloud-save token; guests
+refused). Deposits + listing payloads are client-attested (documented trust boundary —
+audit lane + moderation watch; everything else server-truth). Quantity is always 1;
+gene/cosmetic trades move THE UNLOCK.
+
+**Verification.** `npm run sim:market` — 10 mandated scenarios (~3,820 days) all healthy:
+exact conservation, commons affordable everywhere, exclusives never stocked, authority
+engages/relaxes inside bounds, every fraud pattern flagged. 45 market unit tests + 17
+endpoint tests (67 functions total).
+
+**Limitations.** No away-notifications (sources are save-pure; placards on next visit);
+affix/collection filters are client-side over pages; the settle-gate crash window is
+repairable via the documented ledger scan.
