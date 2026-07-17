@@ -1,6 +1,6 @@
 {
-  "lastSha": "f91363ac086817bc0fcfc29e902a0454292f5835",
-  "commitsSinceDraft": 0,
+  "lastSha": "9ae130efca93ad585eec7cdbd98a310961527169",
+  "commitsSinceDraft": 6,
   "content": {
     "tower": [
       "needle",
@@ -2697,6 +2697,26 @@
         {
           "cat": "UI",
           "text": "Hub: compress the desktop rail to front-door buttons only"
+        },
+        {
+          "cat": "Website",
+          "text": "Rituals: chronicle + site regen, validation report, handoff + status board"
+        },
+        {
+          "cat": "Security",
+          "text": "Auction House core: market engine, invisible Market Authority, economy sims"
+        },
+        {
+          "cat": "Security",
+          "text": "Auction House server: D1 endpoints, registry-derived catalog, live authority levers"
+        },
+        {
+          "cat": "UI",
+          "text": "Auction House client: trade-hub screen, custody store, crash-safe wallet"
+        },
+        {
+          "cat": "Framework",
+          "text": "Post-rebase repairs: auction migration renumbered to 0007, graphs regenerated"
         }
       ]
     }
@@ -4747,6 +4767,54 @@
       "date": "2026-07-17",
       "cat": "UI",
       "text": "Hub: compress the desktop rail to front-door buttons only",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "50c5d338f650847e4bb0ab6084a1f78ee23a32aa",
+      "date": "2026-07-17",
+      "cat": "Website",
+      "text": "Rituals: chronicle + site regen, validation report, handoff + status board",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "d125fe3245f1b09626ddf4e6dbe828d0828a2dd8",
+      "date": "2026-07-17",
+      "cat": "Security",
+      "text": "Auction House core: market engine, invisible Market Authority, economy sims",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "73b107ba0a104e17b5e0602a55a6fe7d3aaac9b7",
+      "date": "2026-07-17",
+      "cat": "Security",
+      "text": "Auction House server: D1 endpoints, registry-derived catalog, live authority levers",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "382f7b5e9db61974ed15c7f72ca20f067f484d14",
+      "date": "2026-07-17",
+      "cat": "UI",
+      "text": "Auction House client: trade-hub screen, custody store, crash-safe wallet",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "780bfa621e993a0ec5975302c6a795e8c8badfe5",
+      "date": "2026-07-17",
+      "cat": "Framework",
+      "text": "Auction House docs + graphs: AUCTION-HOUSE.md, GAME-STATE summary, DIL edges, deploy notes",
+      "internal": true,
+      "needsReview": true
+    },
+    {
+      "sha": "9ae130efca93ad585eec7cdbd98a310961527169",
+      "date": "2026-07-17",
+      "cat": "Framework",
+      "text": "Post-rebase repairs: auction migration renumbered to 0007, graphs regenerated",
       "internal": false,
       "needsReview": false
     }

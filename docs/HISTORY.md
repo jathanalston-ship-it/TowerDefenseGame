@@ -278,3 +278,9 @@
 - `0b1788a` **[Website]** Chronicle + site regen for the Live-PvP brief delta batch
 - `93870b3` **[Gameplay]** Arena: human matchmaking on by default, hardened AI-only opt-out, relay URL override
 - `f91363a` **[UI]** Hub: compress the desktop rail to front-door buttons only
+- `50c5d33` **[Website]** Rituals: chronicle + site regen, validation report, handoff + status board
+- `d125fe3` **[Security]** Auction House core: market engine, invisible Market Authority, economy sims
+- `73b107b` **[Security]** Auction House server: D1 endpoints, registry-derived catalog, live authority levers
+- `382f7b5` **[UI]** Auction House client: trade-hub screen, custody store, crash-safe wallet
+- ⚑ `780bfa6` **[Framework]** Auction House docs + graphs: AUCTION-HOUSE.md, GAME-STATE summary, DIL edges, deploy notes _(internal)_
+- `9ae130e` **[Framework]** Post-rebase repairs: auction migration renumbered to 0007, graphs regenerated

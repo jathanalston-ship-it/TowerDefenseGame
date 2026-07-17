@@ -1196,6 +1196,26 @@ export const RELEASES: Release[] = [
       {
         "cat": "UI",
         "text": "Hub: compress the desktop rail to front-door buttons only"
+      },
+      {
+        "cat": "Website",
+        "text": "Rituals: chronicle + site regen, validation report, handoff + status board"
+      },
+      {
+        "cat": "Security",
+        "text": "Auction House core: market engine, invisible Market Authority, economy sims"
+      },
+      {
+        "cat": "Security",
+        "text": "Auction House server: D1 endpoints, registry-derived catalog, live authority levers"
+      },
+      {
+        "cat": "UI",
+        "text": "Auction House client: trade-hub screen, custody store, crash-safe wallet"
+      },
+      {
+        "cat": "Framework",
+        "text": "Post-rebase repairs: auction migration renumbered to 0007, graphs regenerated"
       }
     ]
   },
