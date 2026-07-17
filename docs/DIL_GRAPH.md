@@ -1,6 +1,6 @@
 # DIL_GRAPH.md — the Design Intelligence Layer (GENERATED — `npm run dil -- regen`)
 
-> **The project's brain** (docs/DIL.md). 873 nodes · 1635 edges, built from the live
+> **The project's brain** (docs/DIL.md). 875 nodes · 1642 edges, built from the live
 > registries + curated knowledge (src/dev/dil/). **Query it instead of searching the repo:**
 > `npm run dil -- node <id>` · `affects <id>` · `requires <id>` · `missing <kind> <edge>` ·
 > `checklist tower <kind>` · `find <text>`. Edge kinds are bidirectional (19 kinds).
@@ -76,6 +76,7 @@ graph LR
   system_hive_construction["Hive Construction"] -->|consumes| system_meta_store["Meta Store & Save"]
   system_daily_login["Daily Bio-Cache (login streak)"] -->|consumes| system_meta_store["Meta Store & Save"]
   system_prestige["Prestige (Molt / Ascendant)"] -->|consumes| system_meta_store["Meta Store & Save"]
+  system_currencies["Currencies & Economy Framework"] -->|consumes| system_meta_store["Meta Store & Save"]
   system_splice_market["Splice Market & Ichor"] -->|consumes| system_meta_store["Meta Store & Save"]
   system_achievements["Achievements"] -->|consumes| system_meta_store["Meta Store & Save"]
   system_stats["Lifetime Stats"] -->|consumes| system_meta_store["Meta Store & Save"]
@@ -170,6 +171,8 @@ graph LR
   system_hub_shell["Hub Shell & Home"] -->|modifies| system_progression_gating["Progression Gating & Director"]
   system_analytics["Player Telemetry & Analytics"] -->|consumes| system_hub_shell["Hub Shell & Home"]
   system_reward_architecture["Reward Loop Architecture"] -->|modifies| system_hub_shell["Hub Shell & Home"]
+  system_currencies["Currencies & Economy Framework"] -->|modifies| system_idle_harvest["Idle Harvest"]
+  system_currencies["Currencies & Economy Framework"] -->|modifies| system_mulligans["Mulligan System"]
 ```
 
 ### Power Score Map
@@ -356,6 +359,7 @@ graph LR
   system_prestige["Prestige (Molt / Ascendant)"] -->|dependsOn| system_evolution_hq["Evolution HQ (Genome Cores)"]
   system_prestige["Prestige (Molt / Ascendant)"] -->|consumes| system_meta_store["Meta Store & Save"]
   system_currencies["Currencies & Economy Framework"] -->|dependsOn| system_content_infra["Content Infrastructure"]
+  system_currencies["Currencies & Economy Framework"] -->|consumes| system_meta_store["Meta Store & Save"]
   system_splice_market["Splice Market & Ichor"] -->|dependsOn| system_currencies["Currencies & Economy Framework"]
   system_splice_market["Splice Market & Ichor"] -->|dependsOn| system_loot["Loot & Bio-Containers"]
   system_splice_market["Splice Market & Ichor"] -->|consumes| system_meta_store["Meta Store & Save"]
@@ -543,6 +547,8 @@ graph LR
   system_hive_construction["Hive Construction"] -->|modifies| system_idle_harvest["Idle Harvest"]
   system_hub_shell["Hub Shell & Home"] -->|modifies| system_progression_gating["Progression Gating & Director"]
   system_reward_architecture["Reward Loop Architecture"] -->|modifies| system_hub_shell["Hub Shell & Home"]
+  system_currencies["Currencies & Economy Framework"] -->|modifies| system_idle_harvest["Idle Harvest"]
+  system_currencies["Currencies & Economy Framework"] -->|modifies| system_mulligans["Mulligan System"]
 ```
 
 ## Concepts (8)
@@ -653,6 +659,7 @@ Every system is built for the CLAUDE.md content targets (100 towers, 30 heroes, 
   - extendedBy ← `system:online-foundation` — AUCTION HOUSE (core/auction.ts + marketAuthority.ts + marketCatalog.ts): ONE rulebook, three hosts — the engine emits LedgerOps (server maps→D1 wallet ledger; sim maps→agent wallets); the AUTHORITY is bounded smooth levers (fee/tax/baseline/recBias, ≤6%/window, two-speed EWMA inflation index) advanced lazily in maintainMarket (market_windows PK = exactly-once tick, NO daemon); the CATALOG derives families/exclusivity/neverTrade from content registries — new cards/defs/cosmetics inherit market eligibility with zero wiring; ANY economy change must re-run npm run sim:market (10 scenarios, all must stay healthy)
   - extendedBy ← `system:analytics` — UNIFIED EVENTS (core/analyticsEvents.ts): ONE AN_EVENTS row declares an event completely (dim/value/extras/rollup/durable/sample) and is validated identically by the client emitter, the server ingest, and the sims — a future event is one row + one telemetry.emit call; hot signals NEVER leave raw (61-bucket FPS histogram, 12×8 heat grid, FlowFold currency sums, djb2 error hashes, waveBand loss dims) so rollup cardinality = kinds×dims×versions×days, INDEPENDENT of player count — that structural bound is the whole 100k-player scale story
   - extendedBy ← `system:reward-architecture` — THE LOOP REGISTRY (core/rewardLoops.ts): ~40 REWARD_SOURCES rows classify every pathway into 5 loops with feeds[] — rewardLoopProblems() FAILS THE BUILD on a dead-end source (feeds only its own loop), a single-cadence loop, an unfed loop, or a broken 5-loop chain; a NEW reward source is one row and inherits rotation/handoffs/docs. Rebalance rule of the house: convert lumps to drips ONLY at exactly-equal window totals (campaignSurveyBonus = milestoneCore/milestoneEvery per stage, pinned; landmark cadence stays every-5th for map/finales) — never raise totals, never touch loot-meter EV or MODE_REWARDS identity lanes
+  - extendedBy ← `system:currencies` — LOCALIZED WALLET LAWS (core/currencies.ts): every CurrencyDef declares domain (the ONE system it upgrades; 'account' reserved for Genome Cores + Ichor) and earnedFrom (≥2 distinct gameplay sources; prestige exempt — Molt IS its identity); currencyProblems() enforces unique names/colors and ONE specialized wallet per domain, so "add a currency" = one registry row and the anti-overlap law holds itself. Adding a CurrencyId forces every Record<CurrencyId,…> surface at compile time (CurrencyIcon SVG map)
 
 ## Currencies (8)
 
@@ -787,7 +794,7 @@ _at: src/core/game.ts, src/core/combat.ts, src/core/status.ts, src/core/targetin
   - requiredBy ← `system:onboarding`
   - requiredBy ← `system:run-ui`
   - requiredBy ← `system:bosses`
-  - _…207 more (query: `npm run dil -- node system:engine`)_
+  - _…208 more (query: `npm run dil -- node system:engine`)_
 
 ### `system:content-infra` — Content Infrastructure
 
@@ -967,7 +974,7 @@ _at: src/core/daily.ts, src/core/dailyModifiers.ts, src/ui/DailyScreen.tsx_
 
 ### `system:mulligans` — Mulligan System
 
-A permanent endgame pillar: each tower kind permanently owns ONE biomechanical Mulligan organism assembled from THREE genetic modifiers. Fully data-driven — a new modifier is one registry row; the organism's appearance, animation and projectile are PROCEDURALLY generated from the modifiers' stat profile. Inactive until all three slots fill ⇒ golden-safe; folds through the existing TowerMods channels (no new sim branch). OVERHAUL (v29): pieces are EXCLUSIVE (one tower at a time; catalog pinned at 3× the tower roster), the pillar gates behind 3 distinct Mega Boss kills, duplicates dissolve to Gene Essence, and the REFORGE wheel (core/mulliganReforge.ts, ichor-fueled, 1–3 slots by combined rarity) permanently BINDS an organism to its host — legendary rolls grant GLOBAL passives.
+A permanent endgame pillar: each tower kind permanently owns ONE biomechanical Mulligan organism assembled from THREE genetic modifiers. Fully data-driven — a new modifier is one registry row; the organism's appearance, animation and projectile are PROCEDURALLY generated from the modifiers' stat profile. Inactive until all three slots fill ⇒ golden-safe; folds through the existing TowerMods channels (no new sim branch). OVERHAUL (v29): pieces are EXCLUSIVE (one tower at a time; catalog pinned at 3× the tower roster), the pillar gates behind 3 distinct Mega Boss kills, duplicates dissolve to Mulligan Tissue (v48 — the localized graft wallet; upgrades/ascends spend it too), and the REFORGE wheel (core/mulliganReforge.ts, ichor-fueled, 1–3 slots by combined rarity) permanently BINDS an organism to its host — legendary rolls grant GLOBAL passives.
 
 _at: src/core/mulligan.ts, src/core/combatClass.ts, src/render/mulliganOrganism.ts, src/state/mulliganLabModel.ts, src/ui/MulliganLab.tsx, src/core/mulliganReforge.ts, src/render/reforgeWheel.ts_
 
@@ -994,7 +1001,7 @@ _at: src/core/mulligan.ts, src/core/combatClass.ts, src/render/mulliganOrganism.
   - referencedBy ← `achievement:mulligan_overlord`
   - documentedBy ← `doc:MULLIGANS.md`
   - documentedBy ← `guide:mulligans`
-  - _…5 more (query: `npm run dil -- node system:mulligans`)_
+  - _…6 more (query: `npm run dil -- node system:mulligans`)_
 
 ### `system:premium` — Premium Store
 
@@ -1417,6 +1424,7 @@ _at: src/core/idleHarvest.ts, src/ui/HarvestScreen.tsx_
   - documentedBy ← `doc:IDLE-HARVEST.md`
   - testedBy ← `test:src/core/idleHarvest.test.ts`
   - modifiedBy ← `system:hive-construction` — MERGED LOOP (core/hiveProduction.ts): every built organ tier feeds ONE themed production lane (ORGAN_COUPLINGS — validator fails an organ with no coupling); fully-grown organ PAIRS reveal HIVE_SYNERGIES; hiveProductionBonus(built) is a caps-clamped bundle consumed by idleAccrual/rollIdleHarvest through OPTIONAL identity-default args — goldens/fresh saves byte-unchanged, NO save migration; guardrail re-proven with organs MAXED (hiveProduction.test.ts); organs still NEVER touch combat Power; both screens share ui/components/HiveOrganism.tsx (Growth ⇄ Production tabs) — never rebuild the diagram per screen
+  - modifiedBy ← `system:currencies` — CHITIN (hiveMaterials, v48): Hive-Production organs (buyIdleNode/idleNodeCost/idleSuggestion + idleView.affordable/chitin) price in Chitin, NEVER Genome Cores; income = a GUARANTEED hopper top-slice (IDLE.hiveMatsShare of the budget BEFORE the weighted roll — deterministic so organ growth is never drought-gated; the slice comes OUT of the budget, total harvest value unchanged; the lane lands LAST in roll order so a BLOOM's rare still leads) + scavenge-expedition lanes value-SWAPPED from cores at 1:1 (patrol 15+15, harvest 80+30, graveyard 250+90 — old totals pinned in localizedEconomy.test) + the Chitin Lode rare find; migration seeds 60+20×Σ organ levels when the field is absent; pace parity ±25% pinned by npm run sim:economy
 
 ### `system:shards-economy` — Shards & Star Economy
 
@@ -1555,17 +1563,23 @@ _at: src/core/prestige.ts, src/core/ascendant.ts, src/core/vows.ts, src/ui/Prest
 
 ### `system:currencies` — Currencies & Economy Framework
 
-Currency identities (icon/color/tooltip/format) + the adaptive economy framework: one factor-traced income composition per currency, adaptive seams (ACTIVE 2026-07 — catch-up/ahead-taper on the frontier power gap, clamped, onboarding-floored), health guards.
+Currency identities (icon/color/tooltip/format) + the adaptive economy framework: one factor-traced income composition per currency, adaptive seams (ACTIVE 2026-07 — catch-up/ahead-taper on the frontier power gap, clamped, onboarding-floored), health guards. LOCALIZED ECONOMY (v48, docs/ECONOMY.md §localized): every CurrencyDef declares its ONE spend domain + ≥2 earn sources, machine-enforced by currencyProblems() (unique names/colors, one specialized wallet per system, prestige exempt as the single-faucet mint). Chitin (hiveMaterials) grows Hive-Production organs — guaranteed hopper top-slice (IDLE.hiveMatsShare, value SHIFTED not added) + scavenge-expedition lanes value-swapped from cores; Mulligan Tissue (mulliganTissue) upgrades/ascends tower grafts — dupe dissolves (old essence numbers 1:1) + even premium-bleed split + hopper trickle (weight carved from essence). Ichor reforge + Hive-Construction composite recipes + Nucleus/Symbiote essence sinks deliberately NOT converted. Pace parity pinned by scripts/sim-localized-economy.ts.
 
 _at: src/core/currencies.ts, src/core/economyDirector.ts, src/ui/components/CurrencyIcon.tsx_
 
   - dependsOn → `system:content-infra`
+  - consumes → `system:meta-store` — owns save field 'hiveMaterials'
+  - consumes → `system:meta-store` — owns save field 'mulliganTissue'
   - modifies → `system:meta-store` — ADAPTIVE SEAM ACTIVE (2026-07, ECONOMY_FORMULAS.md §5): meta.finishRun computes powerGap = recPower(frontier)/power − 1 ONCE per settle and composes adaptive.income into BOTH core+loot chains — catchUp 0.35 (clamped gap ≤2 ⇒ ≤×1.7), aheadTaper 0.5 (|gap| ≤0.9 ⇒ ≥÷1.45), OFF below ECONOMY_ADAPTIVE.minStage 10 (fresh settles byte-identical, pinned). The catch-up side surfaces as RunOutcome.momentum (Results chip); the taper is silent by design. Re-weighting = §4 protocol (simulate first) — economyDirector.test.ts pins the values
+  - extends → `concept:scalability` — LOCALIZED WALLET LAWS (core/currencies.ts): every CurrencyDef declares domain (the ONE system it upgrades; 'account' reserved for Genome Cores + Ichor) and earnedFrom (≥2 distinct gameplay sources; prestige exempt — Molt IS its identity); currencyProblems() enforces unique names/colors and ONE specialized wallet per domain, so "add a currency" = one registry row and the anti-overlap law holds itself. Adding a CurrencyId forces every Record<CurrencyId,…> surface at compile time (CurrencyIcon SVG map)
+  - modifies → `system:idle-harvest` — CHITIN (hiveMaterials, v48): Hive-Production organs (buyIdleNode/idleNodeCost/idleSuggestion + idleView.affordable/chitin) price in Chitin, NEVER Genome Cores; income = a GUARANTEED hopper top-slice (IDLE.hiveMatsShare of the budget BEFORE the weighted roll — deterministic so organ growth is never drought-gated; the slice comes OUT of the budget, total harvest value unchanged; the lane lands LAST in roll order so a BLOOM's rare still leads) + scavenge-expedition lanes value-SWAPPED from cores at 1:1 (patrol 15+15, harvest 80+30, graveyard 250+90 — old totals pinned in localizedEconomy.test) + the Chitin Lode rare find; migration seeds 60+20×Σ organ levels when the field is absent; pace parity ±25% pinned by npm run sim:economy
+  - modifies → `system:mulligans` — MULLIGAN TISSUE (mulliganTissue, v48): graft upgrades/ascends (meta.upgradeMulligan/ascendMulligan + mulliganLabView canAfford/tissue) spend Tissue, not Gene Essence (the v26 unification deliberately re-split); faucets: duplicate dissolves at the OLD essence numbers 1:1 (DUP_TISSUE table + the idle mulligan grant's 60-tissue dupe path), the premium-container Gene Bleed SPLIT EVENLY essence/tissue once mulligansUnlocked (same bleed total — the mid-catalog faucet, since dupes only flow when all 45 pieces are sequenced), and a hopper trickle row (weight 3 CARVED from essence 16→13). Migration seeds 25+8×Σ slot levels. Deliberately NOT converted: the Ichor reforge (premium sink), Hive-Construction composite recipes (multi-currency sink by mandate), Nucleus/Symbiote organ growth (own systems, future candidates)
   - requiredBy ← `system:splice-market`
   - taughtBy ← `help:gene-essence`
   - documentedBy ← `doc:ECONOMY.md`
   - documentedBy ← `doc:LEXICON.md`
   - documentedBy ← `doc:ECONOMY_FORMULAS.md`
+  - testedBy ← `test:src/core/currencies.test.ts`
   - testedBy ← `test:src/core/economyDirector.test.ts`
 
 ### `system:splice-market` — Splice Market & Ichor
@@ -2060,7 +2074,7 @@ _at: src/state/meta.ts, src/state/store.ts, src/state/prefs.ts, src/state/devRes
   - consumedBy ← `system:mulligans` — owns save field 'mulligans'
   - consumedBy ← `system:mulligans` — owns save field 'mulliganDex'
   - consumedBy ← `system:premium` — owns save field 'premium'
-  - _…119 more (query: `npm run dil -- node system:meta-store`)_
+  - _…121 more (query: `npm run dil -- node system:meta-store`)_
 
 ### `system:bosses` — Bosses
 
@@ -3669,7 +3683,7 @@ _at: site/guides.ts → /guides/prestige/_
 - `doc:VOWS.md` — project documentation _(documents `system:prestige`)_
 - `doc:WEBSITE.md` — project documentation _(documents `system:field-research`, documents `system:website`)_
 
-## Tests (285)
+## Tests (287)
 
 - `test:src/audio/music.test.ts` — automated validation _(tests `system:audio`)_
 - `test:src/changelog/classify.test.ts` — automated validation _(tests `system:chronicle`)_
@@ -3710,6 +3724,7 @@ _at: site/guides.ts → /guides/prestige/_
 - `test:src/core/contracts.test.ts` — automated validation _(tests `system:contracts`)_
 - `test:src/core/conveyor.test.ts` — automated validation _(tests `system:towers`)_
 - `test:src/core/cosmetics.test.ts` — automated validation _(tests `system:cosmetics`)_
+- `test:src/core/currencies.test.ts` — automated validation _(tests `system:currencies`)_
 - `test:src/core/cutscenes.test.ts` — automated validation _(tests `system:cutscenes`)_
 - `test:src/core/daily.test.ts` — automated validation _(tests `system:daily`)_
 - `test:src/core/dailySim.test.ts` — automated validation _(tests `system:engine`)_
@@ -3905,6 +3920,7 @@ _at: site/guides.ts → /guides/prestige/_
 - `test:src/state/itemDetails.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/state/itemPower.test.ts` — automated validation _(tests `system:power`)_
 - `test:src/state/listOrg.test.ts` — automated validation _(tests `system:hub-shell`)_
+- `test:src/state/localizedEconomy.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/state/loginMeta.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/state/lootbox.test.ts` — automated validation _(tests `system:loot`)_
 - `test:src/state/marketEconomy.test.ts` — automated validation _(tests `system:engine`)_

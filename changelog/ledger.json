@@ -1,6 +1,6 @@
 {
-  "lastSha": "c46b149e411cdb65b92f70b22fbae8e79b9fbbdd",
-  "commitsSinceDraft": 4,
+  "lastSha": "64016884ed5a8142b89972e38954ec15e5f050b8",
+  "commitsSinceDraft": 6,
   "content": {
     "tower": [
       "needle",
@@ -2789,6 +2789,14 @@
         {
           "cat": "UI",
           "text": "Reward ceremonies: the physical moment + Bio-Roulette anticipation pass"
+        },
+        {
+          "cat": "Website",
+          "text": "Rituals: chronicle + site regen + validation for the ceremony batch"
+        },
+        {
+          "cat": "Towers",
+          "text": "Localized economy redesign: Chitin + Mulligan Tissue wallets (save v48)"
         }
       ]
     }
@@ -5071,6 +5079,22 @@
       "date": "2026-07-17",
       "cat": "UI",
       "text": "Reward ceremonies: the physical moment + Bio-Roulette anticipation pass",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "bc920819f5329cccc91bc77d680bf294363974b0",
+      "date": "2026-07-17",
+      "cat": "Website",
+      "text": "Rituals: chronicle + site regen + validation for the ceremony batch",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "64016884ed5a8142b89972e38954ec15e5f050b8",
+      "date": "2026-07-17",
+      "cat": "Towers",
+      "text": "Localized economy redesign: Chitin + Mulligan Tissue wallets (save v48)",
       "internal": false,
       "needsReview": false
     }

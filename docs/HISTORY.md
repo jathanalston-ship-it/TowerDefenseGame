@@ -307,3 +307,5 @@
 - `ac8925d` **[Gameplay]** Ready Chain pass 2: reveal-gate stops + measured multi-stop ride
 - ⚑ `38146b3` **[Framework]** Ready Chain pass 3: portrait ride measured — record in HUB-FLOW.md _(internal)_
 - `c46b149` **[UI]** Reward ceremonies: the physical moment + Bio-Roulette anticipation pass
+- `bc92081` **[Website]** Rituals: chronicle + site regen + validation for the ceremony batch
+- `6401688` **[Towers]** Localized economy redesign: Chitin + Mulligan Tissue wallets (save v48)

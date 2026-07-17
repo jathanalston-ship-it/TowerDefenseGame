@@ -1286,6 +1286,14 @@ export const RELEASES: Release[] = [
       {
         "cat": "UI",
         "text": "Reward ceremonies: the physical moment + Bio-Roulette anticipation pass"
+      },
+      {
+        "cat": "Website",
+        "text": "Rituals: chronicle + site regen + validation for the ceremony batch"
+      },
+      {
+        "cat": "Towers",
+        "text": "Localized economy redesign: Chitin + Mulligan Tissue wallets (save v48)"
       }
     ]
   },
