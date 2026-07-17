@@ -3,7 +3,26 @@
 > Maintained at the END of every session (paired with `docs/AI_HANDOFF.md` — the constitution's
 > workflow step 4). This is the "where are we?" answer; `docs/GAME-STATE.md` remains the deeper
 > per-system built-vs-planned index, `docs/PROJECT_MANIFEST.md` the system map.
-> **Last updated:** 2026-07-17j (**LOCALIZED ECONOMY REDESIGN** — save v48, ECONOMY.md §8:
+> **Last updated:** 2026-07-17k (**BIO-ROULETTE GAME-WIDE** (user brief: "integrate the
+> roulette wheel into as many logical areas as possible") — BOSS-RUSH.md §roulette. The
+> wheel graduates from rush-exclusive to the game's SPORE ENGINE via one banked economy:
+> `save.bioSpores` (v48; sanitizer floors junk, caps 999). Sources: Boss Rush (App.handleEnd
+> banks FIRST, then the ceremony plays the whole bank — carried spores ride along), **+1 for
+> the first kill of every boss chassis in ANY mode** (the idempotent `bossesSlain`
+> registrar), every quest finale (weeklies +1, main chapters 1/2/3), and Battle Pass
+> milestone lanes (free %25 = 4/season, premium %20 = 5/season — pushed ADDITIVELY after the
+> filler fallback, nothing displaced). `PassReward` gained the `bioSpores` kind → banked by
+> `applyRewardList`, placarded by the `REWARD_TYPES` row (nav "Spin the Bio-Roulette").
+> The **Vault Roulette bay** (beside the Daily Bio-Cache) shows the bank, breathes when
+> loaded, and fires `rouletteBus.open()` (navBus-co-located) → App opens `min(bank, 40)`
+> menu-only and the exit returns TO the Vault; `vault.spores` lights badges + the Ready
+> Chain. `grantRouletteRewards` debits the bank by the session spend. Verified: suite 2439
+> green (bank cap/consume/clamp, the pass-claim interpreter path, per-season + per-finale
+> source coverage, sanitizer, toast mapping), mobilecheck CLEAN, and the wheel's FIRST full
+> headless run (seed bank → bay → spin → collect → bank 0 · ledger 12 · bay disarmed) —
+> closing the 17i "roulette only mounts post-rush" verification gap. Previous below.)
+>
+> **2026-07-17j** (**LOCALIZED ECONOMY REDESIGN** — save v48, ECONOMY.md §8:
 > the currency registry became the machine-enforced economy contract (`CurrencyDef.domain`
 > = the ONE system a wallet upgrades, `'account'` reserved for Genome Cores + Ichor;
 > `earnedFrom` ≥2 sources with prestige the sanctioned single-faucet; `currencyProblems()`

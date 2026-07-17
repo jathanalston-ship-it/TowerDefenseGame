@@ -309,3 +309,6 @@
 - `c46b149` **[UI]** Reward ceremonies: the physical moment + Bio-Roulette anticipation pass
 - `bc92081` **[Website]** Rituals: chronicle + site regen + validation for the ceremony batch
 - `6401688` **[Towers]** Localized economy redesign: Chitin + Mulligan Tissue wallets (save v48)
+- `d8002dc` **[Website]** Rituals: chronicle + graphs + site regen for the localized economy batch
+- `3af05a0` **[Gameplay]** Bio-Roulette game-wide: banked spores, multi-source drops, Vault bay
+- ⚑ `13a11cc` **[Framework]** Docs + rituals: roulette-integration batch (handoff, status, notes, validation) _(internal)_

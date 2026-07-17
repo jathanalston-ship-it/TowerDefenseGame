@@ -4,107 +4,103 @@
 > before committing. Read together with docs/PROJECT_STATUS.md and the latest
 > docs/VALIDATION_REPORT.md. Next session: start at docs/PROJECT_MANIFEST.md.
 
-- **Generated:** 2026-07-17 23:43 UTC · **Diff scope:** working tree vs HEAD
-- **Branch:** claude/zen-hawking-rh1gxl · **HEAD:** 4680ab8
+- **Generated:** 2026-07-17 23:46 UTC · **Diff scope:** working tree vs HEAD
+- **Branch:** claude/zen-hawking-rh1gxl · **HEAD:** 1f93b53
 
 ## Summary of work completed
 
-LOCALIZED ECONOMY REDESIGN (docs/ECONOMY.md §8, save v48). The currency registry became a
-machine-enforced contract — every `CurrencyDef` now declares its ONE spend `domain` plus ≥2
-`earnedFrom` sources, and `currencyProblems()` fails the build on name/color/domain collisions.
-Two new wallets shipped: **Chitin** (`hiveMaterials`) now prices Hive-Production organs (was
-Genome Cores; income = guaranteed hopper top-slice `IDLE.hiveMatsShare` + expedition lanes
-value-swapped 1:1 from cores) and **Mulligan Tissue** (`mulliganTissue`) now prices tower graft
-upgrades/ascends (was Gene Essence; income = dupe dissolves at the old numbers, an even
-premium-container bleed split, and a hopper trickle carved from the essence row). Everything is
-value SHIFTED, never added — `npm run sim:economy` pins organ pace parity, no migration stalls,
-gene-wallet relief, and tissue adequacy. The one thing to know: the Ichor reforge,
-Hive-Construction recipes, and Nucleus/Symbiote essence sinks were deliberately NOT converted.
+Bio-Roulette went game-wide (commit 1f93b53): a banked spore economy (`save.bioSpores`, v48)
+now feeds the wheel from Boss Rush, the FIRST kill of every boss chassis in any mode, all six
+quest finales, and Battle Pass milestone lanes — and the Vault gained a Roulette bay that
+spins the bank on demand (`rouletteBus` → App session → returns to the Vault). The one thing
+to know: **the wheel is now headlessly reachable** (seed `bioSpores` → vault → spin →
+collect), which closed the REWARD-PRESENTATION.md "verified by build + review only" gap. The
+working-tree diff this scaffold saw is just the Chronicle regen from `npm run notes`.
 
 ## Files modified
 
-- Source (18): `src/changelog/releases.gen.ts`, `src/core/config.ts`, `src/core/currencies.ts`, `src/core/expeditions.ts`, `src/core/idleHarvest.ts`, `src/core/rewardLoops.ts`, `src/dev/dil/knowledge.ts`, `src/dev/systemRegistry.ts`, `src/net/telemetry.ts`, `src/save/saveStore.ts`, `src/state/meta.ts`, `src/state/mulliganLabModel.ts`, `src/state/rewardToast.ts`, `src/ui/ExpeditionScreen.tsx`, `src/ui/HarvestScreen.tsx`, `src/ui/MulliganLab.tsx`, `src/ui/components/CurrencyIcon.tsx`, `src/ui/components/Icon.tsx`
-- Tests (5): `src/state/idleMeta.test.ts`, `src/state/mulligan.test.ts`, `src/state/mulliganLabModel.test.ts`, `src/core/currencies.test.ts`, `src/state/localizedEconomy.test.ts`
-- Docs (6): `docs/DEPENDENCY_GRAPH.md`, `docs/DIL_GRAPH.md`, `docs/ECONOMY.md`, `docs/GAME-STATE.md`, `docs/HISTORY.md`, `docs/VALIDATION_REPORT.md`
-- New script: `scripts/sim-localized-economy.ts` (`npm run sim:economy`)
+- Source (1): `src/changelog/releases.gen.ts`
+- Tests (0): —
+- Docs (1): `docs/HISTORY.md`
 
 ## Systems affected (from the dependency registry)
 
-- **analytics** — `src/net/telemetry.ts`
 - **chronicle** — `src/changelog/releases.gen.ts`
-- **content-infra** — `src/core/config.ts`
-- **currencies** — `src/core/currencies.ts`, `src/ui/components/CurrencyIcon.tsx`
-- **dev-registry** — `src/dev/dil/knowledge.ts`, `src/dev/systemRegistry.ts`
-- **expeditions** — `src/core/expeditions.ts`, `src/ui/ExpeditionScreen.tsx`
-- **idle-harvest** — `src/core/idleHarvest.ts`, `src/ui/HarvestScreen.tsx`
-- **meta-store** — `src/save/saveStore.ts`, `src/state/meta.ts`
-- **mulligans** — `src/state/mulliganLabModel.ts`, `src/ui/MulliganLab.tsx`
-- **notifications** — `src/state/rewardToast.ts`
-- **reward-architecture** — `src/core/rewardLoops.ts`
-- **ui-kit** — `src/ui/components/Icon.tsx`
-- Consumer ring (verify, unchanged): account-level, accounts, arena, battle-pass, biomes, bosses, collection, contracts, cosmetics, cutscenes, daily-login, devtools, difficulty, directives, doctrines, engine, equipment, evolution-hq, field-research, gene-cards, genome-rank, hero-symbiotes, heroes, hive-construction, hub-shell, infestation, liveops, loot, mastery, mega-bosses, nemesis, net-backend, nucleus, onboarding, online-foundation, pil, power, premium, progression-gating, quests, run-ui, security, splice-market, towers, website
+- (Committed just prior, same batch: save, meta, battle-pass, quests, notifications,
+  hub-shell/vault UI, bio-roulette — see PROJECT_STATUS entry 17k. Rebased over the twin's
+  17j localized-economy batch: both v48 field sets coexist in saveStore.)
 
 ## Power Score changes
 
-None by design — the swap changes WHICH wallet pays, never what power a purchase grants.
-Mulligan Power still rides modifiers × rarity × level (`accountMulliganPower`); organ levels
-never fed Power. `mulligan.test.ts` re-pins the upgrade Power bump under the Tissue wallet.
+None — Bio-Spores are ceremony ammo, not a Power input; roulette grants flow through the
+existing granted-currency paths.
 
 ## UI changes
 
-Harvest screen: organ costs, the wallet chip, the grow-next suggestion and the ceremony
-footer all read Chitin (`CurrencyIcon id="hiveMaterials"`, olive hex-plate icon). Mulligan
-Lab: wallet header shows Mulligan Tissue (rose lobed-tissue icon); `canAfford/ascendable`
-read the Tissue balance. Expedition board + spoils show a Chitin chip on scavenge roads.
-Vault reveals render Tissue events (Graft Bleed / Duplicate Dissolved) through the generic
-currency branch. Headless smoke (scratchpad smoke-economy.mjs, dev server /play/): seeded
-500 Chitin renders, an organ buy spends 500 → 440 at the printed 60 cost, and the Lab shows
-the seeded 300 Tissue.
+- **GeneticVault:** new `.roulette-bay` card under the Daily Bio-Cache — banked count in
+  gold, viral ✺ core that breathes when loaded (`is-loaded`), "Spin the Wheel" primary CTA,
+  earn-path copy when empty. Verified by the headless probe (desktop) + `mobilecheck` CLEAN
+  across all 4 viewports.
+- **BioRoulette:** eyebrow "BOSS RUSH EXCLUSIVE" → "THE SPORE ENGINE"; spore counter tooltip
+  + side hint now name all four sources and the Vault bank.
+- **App:** roulette sessions carry `from: 'vault'` and exit back into the Vault via
+  `navBus.go('vault')` (50ms post-mount, the established idiom).
 
 ## Documentation changes
 
-`docs/ECONOMY.md` gained §8 (the localized map, faucet math, deliberate non-conversions,
-validation bars). `docs/GAME-STATE.md` gained the compressed system summary + the v48 anchor.
-`docs/MULLIGANS.md`/`docs/IDLE-HARVEST.md` prose still says essence/cores in places — the
-registry rows + ECONOMY.md §8 are canonical; flagged below as debt. Graphs regenerated.
+- `docs/BOSS-RUSH.md` §roulette — rewritten header + THE SPORE BANK / THE VAULT BAY sections.
+- `docs/REWARD-PRESENTATION.md` — the roulette headless-verification gap struck through and
+  closed.
+- `docs/GAME-STATE.md` — schema anchor bumped to `CURRENT_VERSION = 48`.
+- `docs/CHANGELOG-PIPELINE.md` — no change needed (pipeline untouched; notes regenerated).
+- DIL edge added (`system:boss-rush provides system:hub-shell` — the spore-engine contract);
+  `docs/DIL_GRAPH.md` + `docs/DEPENDENCY_GRAPH.md` regenerated.
 
 ## Save changes
 
-`CURRENT_VERSION` 47 → 48. New root fields `hiveMaterials` + `mulliganTissue` (defaults 0,
-floor/clamp sanitizers). Reconcile-on-load seeds fire ONLY when the field is ABSENT on an
-invested save: hive `60 + 20 × Σ organ levels`, tissue `25 + 8 × Σ graft slot levels` —
-pinned in `localizedEconomy.test.ts` (seeded, sanitized-not-reseeded, fresh-account-0 cases).
+- **v47 → v48:** `bioSpores: number` (banked Roulette ammo). Additive: missing ⇒ 0; sanitizer
+  floors junk/negatives and caps at 999 (deliberately far above `ROULETTE.sporeCap` 40 so a
+  future session-cap change never burns a bank). `grantRouletteRewards` debits the bank by the
+  session spend (clamped at 0 — a legacy rush session larger than the bank can't go negative).
 
 ## Known edge cases
 
-- The bleed split applies only to PREMIUM (epic+) containers with Mulligans unlocked —
-  common/rare containers still bleed pure essence (mid-catalog tissue pace depends on it).
-- `rollIdleHarvest` pushes the Chitin line LAST so a BLOOM's guaranteed rare stays
-  `lines[0]` (idleHarvest.test pins that); display order is mergeIdleReceiptLines' sort.
-- The registry glob test rejects `scripts/**` and `*.test.ts` in `files` — keep registry
-  file lists to non-test `src/` paths.
-- The Harvest screen's advice line and NodeCard use `.hv-sec-s`/`.hv-node-buy` selectors the
-  smoke depends on.
+- **Bank vs session:** a session plays `min(bank, sporeCap=40)`; the remainder stays banked
+  and the bay re-arms on return. Over-spend clamps at 0 (pinned in bioRoulette.test).
+- **Rush lane order matters:** `App.handleEnd` banks BEFORE opening so carried quest/pass
+  spores ride the same session and consumption stays uniform. Zero EARNED spores ⇒ no forced
+  popup even with a carried bank (deliberate — the bank surfaces via the vault badge/chain).
+- **Abandoning the wheel** (closing the app mid-ceremony) grants nothing and consumes nothing
+  — `collect()` is the only spend path, so it's player-favorable and dupe-free.
+- **rouletteBus is menu-only** (App guard) so a stray emit can never yank a live run; emits on
+  an empty bank no-op.
+- **BP milestone lanes are ADDITIVE after the filler fallback** — pushing before it would
+  displace the %10 container milestones (levels 20/40/60/80/100 premium, 50/100 free overlap).
+  Keep any future lane after the `p.length === 0` / `f.length === 0` checks.
 
 ## Remaining technical debt
 
-- `docs/MULLIGANS.md` + `docs/IDLE-HARVEST.md` body prose predates the wallet swap in a few
-  paragraphs (registry + ECONOMY.md §8 are the tiebreakers).
-- The sim's old-run-economy income table is a documented assumption; when the analytics
-  platform accumulates real cur_gain rollups, recalibrate `RUN_CORES_PER_DAY` from data.
+- The dev opener (`?debug&roulette=N`) plays phantom spores outside the bank (fine for debug —
+  consumption clamps at 0 — but it diverges from the "sessions play the bank" model).
+- `bossKilled` spore toast fires during combat (the placard buffer holds it until a toaster
+  mounts — verified behavior, but worth a glance in a live full-mode run).
 
 ## Recommended next tasks
 
-1. Localize Nucleus + Hero Symbiote organ growth onto Tissue (or a sibling wallet) — the
-   flagged future candidates (`src/state/meta.ts` nucleus/symbiote grow APIs).
-2. Recalibrate sim assumptions from live analytics (`scripts/sim-localized-economy.ts`
-   header constants) once prod rollups exist.
-3. Sweep MULLIGANS.md / IDLE-HARVEST.md prose to the new wallets.
+1. Live Boss Rush playtest of the full loop (rush earns + carried bank → one session) — the
+   only lane still verified by reasoning rather than headless probe is the post-rush popup
+   with a pre-existing bank.
+2. Consider a `rouletteCollects`-style weekly quest that AWARDS spores on wheel collects
+   (currently collects only credit quests; a small closed loop could deepen the habit).
+3. The Vault bay could preview the current board tier (`boardTier(rushBestWave)`) so deep
+   accounts see their ×N multiplier before spinning (`state/bioRoulette.ts boardTier`).
 
 ## Future expansion hooks
 
-- `CurrencyDomain` union + `currencyProblems()` (`src/core/currencies.ts`) — a new system's
-  wallet is one row; the laws hold the map.
-- `IDLE.hiveMatsShare` (`src/core/config.ts`) — remote-tunable-shaped knob for the Chitin lane.
-- `ExpeditionReward.chitin?` (`src/core/expeditions.ts`) — any road can haul Chitin.
-- `meta.grantMulliganTissue` (`src/state/meta.ts`) — the faucet API for future Tissue sources.
+- **New spore source:** pay `{ kind: 'bioSpores', qty }` from any PassReward table (quests,
+  pass, login, mail all inherit banking + placards + the vault badge), or call
+  `meta.addBioSpores(n, source)` for direct lanes. Never mount `BioRoulette` directly.
+- **`rouletteBus` (state/navBus.ts):** any future surface (Command Center widget, Results
+  upsell) can open the banked session with one `rouletteBus.open()` call.
+- **`vault.spores` notification source** already carries the bay into badges, recommendations
+  and the Ready Chain — a bigger bank could raise its score via `count` later.

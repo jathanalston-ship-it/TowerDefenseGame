@@ -1,6 +1,6 @@
 # DIL_GRAPH.md — the Design Intelligence Layer (GENERATED — `npm run dil -- regen`)
 
-> **The project's brain** (docs/DIL.md). 875 nodes · 1642 edges, built from the live
+> **The project's brain** (docs/DIL.md). 875 nodes · 1643 edges, built from the live
 > registries + curated knowledge (src/dev/dil/). **Query it instead of searching the repo:**
 > `npm run dil -- node <id>` · `affects <id>` · `requires <id>` · `missing <kind> <edge>` ·
 > `checklist tower <kind>` · `find <text>`. Edge kinds are bidirectional (19 kinds).
@@ -213,6 +213,7 @@ graph LR
   system_analytics["Player Telemetry & Analytics"] -->|provides| concept_power_score["Power Score"]
   system_daily_login["Daily Bio-Cache (login streak)"] -->|provides| system_genome_rank["Genome Rank (ultimate mastery ladder)"]
   system_daily_login["Daily Bio-Cache (login streak)"] -->|provides| system_collection["Collections / Codex"]
+  system_boss_rush["Boss Rush"] -->|provides| system_hub_shell["Hub Shell & Home"]
   concept_power_score["Power Score"] -->|displays| system_campaign["Campaign"]
   system_account_level["Account Level (evergreen meta-progression)"] -->|provides| system_loot["Loot & Bio-Containers"]
   system_contracts["Champion Contracts"] -->|provides| system_genome_rank["Genome Rank (ultimate mastery ladder)"]
@@ -487,6 +488,7 @@ graph LR
   system_daily_login["Daily Bio-Cache (login streak)"] -->|consumes| system_battle_pass["Battle Pass (Season)"]
   system_daily_login["Daily Bio-Cache (login streak)"] -->|provides| system_genome_rank["Genome Rank (ultimate mastery ladder)"]
   system_daily_login["Daily Bio-Cache (login streak)"] -->|provides| system_collection["Collections / Codex"]
+  system_boss_rush["Boss Rush"] -->|provides| system_hub_shell["Hub Shell & Home"]
   system_hub_shell["Hub Shell & Home"] -->|consumes| system_campaign["Campaign"]
   system_living_battlefield["Living Battlefield"] -->|consumes| system_assimilation["Assimilation Index"]
   system_account_level["Account Level (evergreen meta-progression)"] -->|provides| system_loot["Loot & Bio-Containers"]
@@ -931,6 +933,7 @@ _at: src/ui/BossRushScreen.tsx, src/state/bioRoulette.ts, src/ui/BioRoulette.tsx
   - consumes → `system:meta-store` — owns save field 'rushStamina'
   - rewards → `currency:genome-cores` — pays PER BOSS DEFEATED
   - consumes → `currency:stamina` — attempt gating
+  - provides → `system:hub-shell` — BANKED BIO-SPORES (save.bioSpores, v48 — BOSS-RUSH.md §roulette): the wheel is a game-wide spore ENGINE, no longer rush-exclusive. Sources: rush runs (banked in App handleEnd BEFORE the ceremony opens with the whole bank), FIRST kill of each boss chassis any mode (the idempotent bossesSlain registrar in meta), quest finaleRewards rows, and Battle Pass milestone lanes (free %25 / premium %20, pushed AFTER the filler fallback so nothing is displaced). PassReward kind 'bioSpores' pays through applyRewardList (bank cap 999 = the sanitizer clamp); a wheel session CONSUMES its spend in grantRouletteRewards. The Vault's Roulette bay (GeneticVault.tsx) fires rouletteBus.open() → App opens min(bank, ROULETTE.sporeCap) menu-only and returns to the vault; vault.spores notification source lights the badge/Ready-Chain. New spore sources: pay the kind via any reward table OR meta.addBioSpores(n, source) — never mount BioRoulette directly.
   - requiredBy ← `system:field-research`
   - taughtBy ← `help:boss-rush`
   - taughtBy ← `help:bio-roulette`
@@ -1997,7 +2000,7 @@ _at: src/ui/Hub.tsx, src/ui/navModel.ts, src/ui/MobileShell.tsx, src/ui/CommandC
   - documentedBy ← `doc:ONE-MORE-RUN.md`
   - documentedBy ← `doc:HUD.md`
   - documentedBy ← `doc:PROGRESSION-LOOP.md`
-  - _…20 more (query: `npm run dil -- node system:hub-shell`)_
+  - _…21 more (query: `npm run dil -- node system:hub-shell`)_
 
 ### `system:run-ui` — In-Run HUD & Results
 

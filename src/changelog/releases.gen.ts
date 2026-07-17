@@ -1294,6 +1294,14 @@ export const RELEASES: Release[] = [
       {
         "cat": "Towers",
         "text": "Localized economy redesign: Chitin + Mulligan Tissue wallets (save v48)"
+      },
+      {
+        "cat": "Website",
+        "text": "Rituals: chronicle + graphs + site regen for the localized economy batch"
+      },
+      {
+        "cat": "Gameplay",
+        "text": "Bio-Roulette game-wide: banked spores, multi-source drops, Vault bay"
       }
     ]
   },

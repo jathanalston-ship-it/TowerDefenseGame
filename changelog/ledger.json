@@ -1,6 +1,6 @@
 {
-  "lastSha": "64016884ed5a8142b89972e38954ec15e5f050b8",
-  "commitsSinceDraft": 6,
+  "lastSha": "13a11cc61ecb2b136c223b4ad02528e8d5eb03fc",
+  "commitsSinceDraft": 9,
   "content": {
     "tower": [
       "needle",
@@ -2797,6 +2797,14 @@
         {
           "cat": "Towers",
           "text": "Localized economy redesign: Chitin + Mulligan Tissue wallets (save v48)"
+        },
+        {
+          "cat": "Website",
+          "text": "Rituals: chronicle + graphs + site regen for the localized economy batch"
+        },
+        {
+          "cat": "Gameplay",
+          "text": "Bio-Roulette game-wide: banked spores, multi-source drops, Vault bay"
         }
       ]
     }
@@ -5097,6 +5105,30 @@
       "text": "Localized economy redesign: Chitin + Mulligan Tissue wallets (save v48)",
       "internal": false,
       "needsReview": false
+    },
+    {
+      "sha": "d8002dc4a9b2267e067af72d4c851b7b70e8e9bb",
+      "date": "2026-07-17",
+      "cat": "Website",
+      "text": "Rituals: chronicle + graphs + site regen for the localized economy batch",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "3af05a05b5f53615eedc1cc45f04a3ff546cb261",
+      "date": "2026-07-17",
+      "cat": "Gameplay",
+      "text": "Bio-Roulette game-wide: banked spores, multi-source drops, Vault bay",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "13a11cc61ecb2b136c223b4ad02528e8d5eb03fc",
+      "date": "2026-07-17",
+      "cat": "Framework",
+      "text": "Docs + rituals: roulette-integration batch (handoff, status, notes, validation)",
+      "internal": true,
+      "needsReview": true
     }
   ]
 }
