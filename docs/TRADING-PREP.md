@@ -84,7 +84,7 @@ legal today; seasonal rulesets filter here without touching equipment/arena code
 
 ## 6. The Auction House — BUILT (docs/AUCTION-HOUSE.md)
 
-Everything this section once listed now exists: `migrations/0006_auction.sql` (listings/
+Everything this section once listed now exists: `migrations/0007_auction.sql` (listings/
 bids/wallets/ledger/trades/history/authority/flags), `functions/api/auction/*` behind the
 shared eligibility + engine validation, item escrow + settlement with provenance
 transfers, and `ui/AuctionHouse.tsx` reading `tradeEligibility` for every button state —

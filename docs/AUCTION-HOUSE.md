@@ -194,7 +194,7 @@ indexed-affix column is the scale-up hook, §10).
   src/core/marketAuthority.test.ts src/core/marketCatalog.test.ts` — 45 market tests.
 - Moderation: `curl -H "x-mod-key: $MOD_KEY" https://<host>/api/auction/flags?unreviewed=1`;
   ack with `POST {"flagIds":[…]}`. Set the secret: `wrangler pages secret put MOD_KEY`.
-- Migration: `wrangler d1 migrations apply <db> --remote` (0006_auction.sql).
+- Migration: `wrangler d1 migrations apply <db> --remote` (0007_auction.sql).
 - Ledger audit (money conservation in SQL):
   `SELECT (SELECT COALESCE(SUM(amount),0) FROM market_wallet_ledger WHERE player_id != '@burn')
         - (SELECT COALESCE(SUM(balance+escrow),0) FROM market_wallets) AS drift;` — must be 0.
