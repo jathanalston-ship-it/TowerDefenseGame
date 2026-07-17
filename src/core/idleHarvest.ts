@@ -391,3 +391,70 @@ export function idleSuggestion(nodes: IdleNodeLevels, cores: number, ctx: IdleGa
   if (cheapest) return { kind: 'buy', ...cheapest }; // still the target — the UI shows the price
   return gated ? { kind: 'gate', ...gated } : null;
 }
+
+// ── Harvest receipt lines (docs/IDLE-HARVEST.md §presentation) ────────────────────────────
+// The collect ceremony's display model. Raw lines arrive one-per-rolled-grant (the same
+// lane can roll several times in a long absence); mergeIdleReceiptLines folds them into ONE
+// row per thing — summed quantities, materials combined with zero components dropped —
+// ordered currencies → shards → materials → specials, so the ceremony reads as a haul,
+// never as a log.
+
+export interface IdleReceiptLine {
+  /** Glyph fallback (specials render it; currency rows render their CurrencyIcon instead). */
+  icon: string;
+  /** Full text fallback + accessibility label. Rebuilt after merging. */
+  label: string;
+  rare: boolean;
+  /** CurrencyIcon id for currency-backed rows ('genomeCores', 'geneEssence', 'ichor',
+   *  'towerShards', 'heroShards'). Merge key when present. */
+  cur?: string;
+  qty?: number;
+  /** Trailing qualifier kept out of the merge key's amount (e.g. '× every tower'). */
+  suffix?: string;
+  /** Materials row: component quantities (zeros dropped at render; all-zero rows dropped). */
+  mats?: { mutagen: number; scrap: number; catalyst: number };
+}
+
+const CUR_LABEL: Record<string, string> = {
+  genomeCores: 'Genome Cores', geneEssence: 'Gene Essence', ichor: 'Ichor',
+  towerShards: 'Strain Samples', heroShards: 'Apex Genome',
+};
+const CUR_ORDER = ['genomeCores', 'geneEssence', 'ichor', 'towerShards', 'heroShards'];
+
+export function mergeIdleReceiptLines(lines: readonly IdleReceiptLine[]): IdleReceiptLine[] {
+  const byCur = new Map<string, IdleReceiptLine>();
+  let mats: { mutagen: number; scrap: number; catalyst: number } | null = null;
+  let matsRare = false;
+  const specials: IdleReceiptLine[] = [];
+  for (const l of lines) {
+    if (l.mats) {
+      mats = mats
+        ? { mutagen: mats.mutagen + l.mats.mutagen, scrap: mats.scrap + l.mats.scrap, catalyst: mats.catalyst + l.mats.catalyst }
+        : { ...l.mats };
+      matsRare = matsRare || l.rare;
+    } else if (l.cur && typeof l.qty === 'number') {
+      const key = `${l.cur}|${l.suffix ?? ''}`;
+      const prior = byCur.get(key);
+      if (prior) {
+        prior.qty = (prior.qty ?? 0) + l.qty;
+        prior.rare = prior.rare || l.rare;
+      } else {
+        byCur.set(key, { ...l });
+      }
+    } else {
+      specials.push(l); // discrete finds (containers, modifiers, caches) stay individual
+    }
+  }
+  const out: IdleReceiptLine[] = [...byCur.values()]
+    .sort((a, b) => CUR_ORDER.indexOf(a.cur ?? '') - CUR_ORDER.indexOf(b.cur ?? ''))
+    .map((l) => ({ ...l, label: `${(l.qty ?? 0).toLocaleString('en-US')} ${CUR_LABEL[l.cur ?? ''] ?? l.label}${l.suffix ? ` ${l.suffix}` : ''}` }));
+  if (mats && mats.mutagen + mats.scrap + mats.catalyst > 0) {
+    const parts: string[] = [];
+    if (mats.mutagen > 0) parts.push(`${mats.mutagen} Mutagen`);
+    if (mats.scrap > 0) parts.push(`${mats.scrap} Scrap`);
+    if (mats.catalyst > 0) parts.push(`${mats.catalyst} Catalyst`);
+    out.push({ icon: '⚒', label: parts.join(' · '), rare: matsRare, mats });
+  }
+  out.push(...specials);
+  return out;
+}

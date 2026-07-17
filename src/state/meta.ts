@@ -29,8 +29,8 @@ import type { EmergencyPick, ResearchBoost, ResearchCategory, ResearchRewardDef 
 import type { PremiumGrant, PremiumOfferDef } from '../core/premium';
 import type { HeroForkTier, HeroUnlockReq, LootRarity, ResolvedHeroKit, UpgradeDef } from '../core/config';
 import { primeCatalystCost, primeCost, primeMult } from '../core/prime';
-import { IDLE_DROPS, IDLE_NODES, IDLE_NODE_BY_ID, eligibleIdleDrops, idleAccrual, idleGateLabel, idleNodeCost, idleNodeGate, idleSuggestion, rollIdleHarvest, idleGrantValue } from '../core/idleHarvest';
-import type { IdleAccrual, IdleGateContext, IdleGateReq, IdleGrant, IdleNodeDef } from '../core/idleHarvest';
+import { IDLE_DROPS, IDLE_NODES, IDLE_NODE_BY_ID, eligibleIdleDrops, idleAccrual, idleGateLabel, idleNodeCost, idleNodeGate, idleSuggestion, mergeIdleReceiptLines, rollIdleHarvest, idleGrantValue } from '../core/idleHarvest';
+import type { IdleAccrual, IdleGateContext, IdleGateReq, IdleGrant, IdleNodeDef, IdleReceiptLine } from '../core/idleHarvest';
 import { Rng } from '../core/rng';
 import type {
   HeroKind,
@@ -1737,7 +1737,7 @@ export function sanitizeCommanderName(v: string): string | null {
 
 // ── Idle Harvest plumbing (docs/IDLE-HARVEST.md) — pure helpers meta's actions share ─────────
 
-export interface IdleReceiptLine { icon: string; label: string; rare: boolean }
+export type { IdleReceiptLine } from '../core/idleHarvest'; // display model lives beside the merge
 export interface IdleHarvestReceipt {
   lines: IdleReceiptLine[];
   rawHours: number; effHours: number; capHours: number; full: boolean;
@@ -1867,26 +1867,29 @@ function idleGateContext(save: SaveData): IdleGateContext {
  *  registry row (core) + one case here — the whole integration contract. */
 function applyIdleGrant(next: SaveData, g: IdleGrant, rng: () => number, meta_: { icon: string; name: string; rare: boolean }, lines: IdleReceiptLine[]): SaveData {
   const push = (label: string): void => { lines.push({ icon: meta_.icon, label, rare: meta_.rare }); };
+  const pushCur = (cur: string, qty: number, suffix?: string): void => {
+    lines.push({ icon: meta_.icon, label: `${qty} ${cur}`, rare: meta_.rare, cur, qty, ...(suffix ? { suffix } : {}) });
+  };
   switch (g.kind) {
     case 'cores':
-      push(`${g.qty} Genome Cores`);
+      pushCur('genomeCores', g.qty);
       return { ...next, shards: next.shards + g.qty, lifetimeShards: next.lifetimeShards + g.qty };
     case 'mats':
-      push(`Materials — ⊕${g.mutagen} · ◳${g.scrap} · ✷${g.catalyst}`);
+      lines.push({ icon: '⚒', label: 'Materials', rare: meta_.rare, mats: { mutagen: g.mutagen, scrap: g.scrap, catalyst: g.catalyst } });
       return { ...next, mats: { mutagen: next.mats.mutagen + g.mutagen, scrap: next.mats.scrap + g.scrap, catalyst: next.mats.catalyst + g.catalyst } };
     case 'essence':
-      push(`${g.qty} Gene Essence`);
+      pushCur('geneEssence', g.qty);
       return { ...next, geneEssence: next.geneEssence + g.qty };
     case 'towerShards': {
       const towerShards = { ...next.towerShards };
       for (const k of towerShardPool(next)) towerShards[k] = (towerShards[k] ?? 0) + g.qtyEach;
-      push(`${g.qtyEach} Strain Samples × every tower`);
+      pushCur('towerShards', g.qtyEach, '× every tower');
       return { ...next, towerShards }; // banks even on max-Star lanes (Prime fuel — docs/PRIME-STRAINS.md)
     }
     case 'heroShards': {
       const heroShards = { ...next.heroShards };
       for (const k of HERO_ORDER) heroShards[k] = (heroShards[k] ?? 0) + g.qtyEach;
-      push(`${g.qtyEach} Apex Genome × every hero`);
+      pushCur('heroShards', g.qtyEach, '× every hero');
       return { ...next, heroShards };
     }
     case 'mulligan': {
@@ -1910,7 +1913,7 @@ function applyIdleGrant(next: SaveData, g: IdleGrant, rng: () => number, meta_: 
       push('Run Cache');
       return { ...next, pendingContainers: [...next.pendingContainers, { kind: 'cache', chestId: RUN_CHEST }] };
     case 'ichor':
-      push(`${g.qty} Ichor`);
+      pushCur('ichor', g.qty);
       return { ...next, ichor: next.ichor + g.qty, lifetimeIchor: next.lifetimeIchor + g.qty };
   }
 }
@@ -4242,7 +4245,10 @@ export const meta = {
     }
     const xpFold = foldAccountXp(next, roll.xp, now);
     next = xpFold.save;
-    if (roll.xp > 0) lines.push({ icon: '⬆', label: `${roll.xp} Account XP`, rare: false });
+    // One row per THING: same-lane repeat rolls fold together, materials combine with zero
+    // components dropped, and the XP footer lands after the haul (the ceremony's order).
+    const merged = mergeIdleReceiptLines(lines);
+    if (roll.xp > 0) merged.push({ icon: '⬆', label: `${roll.xp} Account XP`, rare: false });
     const effPct = Math.round(acc.offlineEff * 100);
     persist({
       ...next,
@@ -4278,7 +4284,7 @@ export const meta = {
     }
     this.evaluateAchievements();
     return {
-      lines,
+      lines: merged,
       rawHours: acc.rawHours, effHours: acc.effHours, capHours: acc.capHours, full: acc.full,
       bloom: roll.bloom, xp: roll.xp, value: Math.round(value), efficiencyPct: effPct,
       suggestion: idleSuggestion(store.get().idle.nodes, store.get().shards, ctx),

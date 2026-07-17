@@ -15,7 +15,7 @@ import {
   IDLE_DROPS, IDLE_NODES, IDLE_NODE_BY_ID,
   eligibleIdleDrops, idleAccrual, idleBloomChance, idleCapHours, idleGateLabel, idleGateMet,
   idleGrantValue, idleNodeCost, idleNodeGate, idleOfflineEff, idleOverflowFrac,
-  idleRatePerHour, idleSoft, idleSuggestion, rollIdleHarvest,
+  idleRatePerHour, idleSoft, idleSuggestion, mergeIdleReceiptLines, rollIdleHarvest,
 } from './idleHarvest';
 import type { IdleGateContext, IdleNodeLevels } from './idleHarvest';
 import { ECON, IDLE } from './config';
@@ -314,5 +314,39 @@ describe('THE guardrail — idle < active at every band, including worst cases',
     expect(idleGrowth).toBeLessThan(activeGrowth + 1e-9);
     // …and the base rate is a trickle against the run-end shard anchor.
     expect(IDLE.baseCoresPerHour).toBeLessThanOrEqual(ECON.shardsPerWave);
+  });
+});
+
+describe('mergeIdleReceiptLines — the ceremony reads as a haul, never a log', () => {
+  const cur = (cur: string, qty: number, suffix?: string): import('./idleHarvest').IdleReceiptLine =>
+    ({ icon: '·', label: `${qty} ${cur}`, rare: false, cur, qty, ...(suffix ? { suffix } : {}) });
+
+  it('folds repeat rolls of the same lane into one summed row', () => {
+    const out = mergeIdleReceiptLines([cur('genomeCores', 14), cur('genomeCores', 14), cur('ichor', 3)]);
+    expect(out.map((l) => l.label)).toEqual(['28 Genome Cores', '3 Ichor']);
+    expect(out[0].qty).toBe(28);
+  });
+
+  it('combines material rolls and drops zero components — an all-zero roll vanishes', () => {
+    const mats = (m: number, s: number, c: number): import('./idleHarvest').IdleReceiptLine =>
+      ({ icon: '⚒', label: 'Materials', rare: false, mats: { mutagen: m, scrap: s, catalyst: c } });
+    const out = mergeIdleReceiptLines([mats(3, 3, 0), mats(3, 3, 0), mats(0, 0, 0)]);
+    expect(out).toHaveLength(1);
+    expect(out[0].label).toBe('6 Mutagen · 6 Scrap'); // no "· 0 Catalyst" noise, ever
+    expect(mergeIdleReceiptLines([mats(0, 0, 0)])).toHaveLength(0);
+  });
+
+  it('orders currencies → shards → materials → specials; specials stay individual', () => {
+    const special = (label: string): import('./idleHarvest').IdleReceiptLine => ({ icon: '◈', label, rare: true });
+    const out = mergeIdleReceiptLines([
+      special('rare Bio-Container'),
+      { icon: '⚒', label: 'Materials', rare: false, mats: { mutagen: 1, scrap: 0, catalyst: 0 } },
+      cur('towerShards', 1, '× every tower'),
+      cur('genomeCores', 9),
+      special('Run Cache'),
+    ]);
+    expect(out.map((l) => l.label)).toEqual([
+      '9 Genome Cores', '1 Strain Samples × every tower', '1 Mutagen', 'rare Bio-Container', 'Run Cache',
+    ]);
   });
 });

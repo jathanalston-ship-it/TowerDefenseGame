@@ -20,37 +20,80 @@ import { HiveOrganism } from './components/HiveOrganism';
 function pct(n: number): number { return Math.max(0, Math.min(100, Math.round(n * 100))); }
 
 // ── The collect ceremony (shared by the screen + the arrival) ────────────────────────────────
+// Reads as a HAUL, not a log (docs/IDLE-HARVEST.md §presentation): merged one-row-per-thing
+// rewards (core/idleHarvest.mergeIdleReceiptLines), real currency icons with the amount as
+// the loudest element, labelled stat blocks with a BRIMMED badge, discrete finds framed
+// rare, the Account XP footer kept quiet, and the grow-next suggestion as a true call to
+// action. Every section cascades in; reduced-motion stills it all in CSS.
+
+/** CurrencyIcon ids the receipt can carry (materials render name-chips instead). */
+const CEREMONY_CURS = new Set(['genomeCores', 'geneEssence', 'ichor', 'towerShards', 'heroShards']);
+
+function CeremonyLine({ l, delay }: { l: IdleHarvestReceipt['lines'][number]; delay: number }): JSX.Element {
+  const cur = l.cur && CEREMONY_CURS.has(l.cur) ? l.cur : null;
+  return (
+    <div className={`hv-line${l.rare ? ' is-rare' : ''}`} style={{ animationDelay: `${delay}s` }}>
+      <span className="hv-line-i" aria-hidden>
+        {cur ? <CurrencyIcon id={cur as Parameters<typeof CurrencyIcon>[0]['id']} size={18} title="" /> : l.icon}
+      </span>
+      {cur && typeof l.qty === 'number' ? (
+        <span className="hv-line-t">
+          <b className="hv-line-qty">{l.qty.toLocaleString('en-US')}</b>
+          <span className="hv-line-name">{l.label.replace(/^[\d,]+\s*/, '')}</span>
+        </span>
+      ) : l.mats ? (
+        <span className="hv-line-t hv-line-mats">
+          {l.mats.mutagen > 0 && <span className="hv-mat"><i aria-hidden>⊕</i><b>{l.mats.mutagen}</b> Mutagen</span>}
+          {l.mats.scrap > 0 && <span className="hv-mat"><i aria-hidden>◳</i><b>{l.mats.scrap}</b> Scrap</span>}
+          {l.mats.catalyst > 0 && <span className="hv-mat"><i aria-hidden>✷</i><b>{l.mats.catalyst}</b> Catalyst</span>}
+        </span>
+      ) : (
+        <span className="hv-line-t"><span className="hv-line-name">{l.label}</span></span>
+      )}
+      {l.rare && <span className="hv-line-rare">RARE</span>}
+    </div>
+  );
+}
+
 function HarvestCeremony({ r, onClose, onGrow }: { r: IdleHarvestReceipt; onClose: () => void; onGrow?: () => void }): JSX.Element {
+  const xp = r.lines.find((l) => l.icon === '⬆');
+  const haul = r.lines.filter((l) => l !== xp);
   return (
     <div className="hv-cer-backdrop" onClick={onClose}>
       <div className={`hv-cer${r.bloom ? ' is-bloom' : ''}`} onClick={(e) => e.stopPropagation()} role="dialog" aria-label="Hive production collected">
         <div className="hv-cer-eyebrow">{r.bloom ? '❉ THE HIVE BLOOMED ❉' : '⬢ HIVE PRODUCTION COMPLETE ⬢'}</div>
+        {r.bloom && <div className="hv-cer-bloomline">A rare surge doubled this harvest.</div>}
         <div className="hv-cer-pods" aria-hidden>
-          {Array.from({ length: 5 }, (_, i) => <span key={i} className="hv-pod" style={{ animationDelay: `${i * 0.12}s` }} />)}
-        </div>
-        <div className="hv-cer-stats">
-          <span><b>{fmtIdleHours(r.rawHours)}</b> away</span>
-          <span><b>{fmtIdleHours(r.effHours)}</b> banked{r.full ? ' · BRIMMED' : ''}</span>
-          <span><b>{r.efficiencyPct}%</b> efficiency</span>
-        </div>
-        <div className="hv-cer-lines">
-          {r.lines.map((l, i) => (
-            <div key={i} className={`hv-line${l.rare ? ' is-rare' : ''}`} style={{ animationDelay: `${0.25 + i * 0.14}s` }}>
-              <span className="hv-line-i" aria-hidden>{l.icon}</span>
-              <span className="hv-line-t">{l.label}</span>
-              {l.rare && <span className="hv-line-rare">RARE</span>}
-            </div>
+          {Array.from({ length: 5 }, (_, i) => (
+            <span key={i} className="hv-pod" style={{ animationDelay: `${i * 0.1}s` }}><span className="hv-pod-glow" /></span>
           ))}
         </div>
+        <div className="hv-cer-stats">
+          <div className="hv-stat"><b>{fmtIdleHours(r.rawHours)}</b><span>away</span></div>
+          <div className="hv-stat-sep" aria-hidden />
+          <div className="hv-stat">
+            <b>{fmtIdleHours(r.effHours)}</b>
+            <span>banked{r.full && <em className="hv-brim" title="Storage was full — grow Storage Tissue to bank longer absences.">BRIMMED</em>}</span>
+          </div>
+          <div className="hv-stat-sep" aria-hidden />
+          <div className="hv-stat"><b>{r.efficiencyPct}%</b><span>efficiency</span></div>
+        </div>
+        <div className="hv-cer-kicker">The Hive produced</div>
+        <div className="hv-cer-lines">
+          {haul.map((l, i) => <CeremonyLine key={i} l={l} delay={0.3 + i * 0.11} />)}
+        </div>
+        {xp && <div className="hv-cer-xp" style={{ animationDelay: `${0.3 + haul.length * 0.11}s` }}>⬆ {xp.label}</div>}
         {r.suggestion && r.suggestion.kind === 'buy' && (
           <button className="hv-cer-grow" onClick={() => { onGrow?.(); onClose(); }}>
-            Grow next: {r.suggestion.node.glyph} {r.suggestion.node.name} · {r.suggestion.cost.toLocaleString('en-US')} <CurrencyIcon id="genomeCores" size={12} title="Genome Cores" />
+            <span className="hv-grow-k">Grow next</span>
+            <span className="hv-grow-n">{r.suggestion.node.glyph} {r.suggestion.node.name}</span>
+            <span className="hv-grow-c">{r.suggestion.cost.toLocaleString('en-US')} <CurrencyIcon id="genomeCores" size={12} title="Genome Cores" /></span>
           </button>
         )}
         {r.suggestion && r.suggestion.kind === 'gate' && (
           <div className="hv-cer-gate">Next horizon: {r.suggestion.node.name} awaits — keep progressing.</div>
         )}
-        <button className="hv-cer-close" onClick={onClose}>Return to the Hive</button>
+        <button className="hv-cer-close primary" onClick={onClose}>Return to the Hive</button>
       </div>
     </div>
   );

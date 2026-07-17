@@ -129,9 +129,16 @@ Client-only idle games cannot fully trust the device clock; this is the bounded-
   efficiency / full-ETA, HARVEST disabled until the 5-minute warm-up.
 - **The arrival** (`HarvestArrival`, mounted by the Hub once the screen is revealed): a
   once-per-session strip when ≥30 banked minutes await — Harvest or Later.
-- **The ceremony** (`HarvestCeremony`): pods burst, time-away / banked / efficiency stats,
-  staggered reward flyouts with RARE tags, BLOOM variant, and a "grow this next" suggestion
-  (`idleSuggestion` — the cheapest ungated node, or the nearest gate as a horizon line).
+- **The ceremony** (`HarvestCeremony`): pods hatch with glow rings, LABELLED stat blocks
+  (away / banked / efficiency, BRIMMED as a badge with grow-storage tooltip), then the haul.
+  Receipt rows are MERGED before display (`mergeIdleReceiptLines`, core/idleHarvest.ts): one
+  row per thing — repeat rolls of the same lane sum ("28 Genome Cores", never two "14"s),
+  materials combine into named chips with zero components DROPPED (no "0 Catalyst" noise,
+  an all-zero roll vanishes), currencies render their real `CurrencyIcon` with the amount as
+  the loudest element, discrete finds (containers, modifiers, caches) stay individual with
+  rare framing, and Account XP sits as a quiet dashed footer. Order: currencies → shards →
+  materials → specials — a haul, never a log. BLOOM variant goes gold with a one-line
+  explanation; the "GROW NEXT" chip is a labelled call-to-action (kicker / node / cost).
 - **The grow ceremony** (NodeCard): a successful node buy must FEEL like biology taking —
   the `graftCrack` cue (the house upgrade sound; the old `'upgrade'` id was unregistered and
   silent), a caustic ring bursting off the card, the glyph swelling, and the new level flaring
