@@ -1274,6 +1274,18 @@ export const RELEASES: Release[] = [
       {
         "cat": "Gameplay",
         "text": "Hub Ready Chain: the live harvest queue that never forgets earned value"
+      },
+      {
+        "cat": "Website",
+        "text": "Rituals: chronicle + site regen, handoff + status board for the Ready Chain"
+      },
+      {
+        "cat": "Gameplay",
+        "text": "Ready Chain pass 2: reveal-gate stops + measured multi-stop ride"
+      },
+      {
+        "cat": "UI",
+        "text": "Reward ceremonies: the physical moment + Bio-Roulette anticipation pass"
       }
     ]
   },

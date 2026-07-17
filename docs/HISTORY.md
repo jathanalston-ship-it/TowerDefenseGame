@@ -303,3 +303,7 @@
 - `5d8c03a` **[Website]** Rituals: chronicle + site regen, handoff + status board for the effect language _(internal)_
 - `24c5d39` **[Website]** Rituals: chronicle + site regen, handoff + status board for the effect language
 - `81a73c0` **[Gameplay]** Hub Ready Chain: the live harvest queue that never forgets earned value
+- `c7d9a24` **[Website]** Rituals: chronicle + site regen, handoff + status board for the Ready Chain
+- `ac8925d` **[Gameplay]** Ready Chain pass 2: reveal-gate stops + measured multi-stop ride
+- ⚑ `38146b3` **[Framework]** Ready Chain pass 3: portrait ride measured — record in HUB-FLOW.md _(internal)_
+- `c46b149` **[UI]** Reward ceremonies: the physical moment + Bio-Roulette anticipation pass

@@ -1,6 +1,6 @@
 {
-  "lastSha": "81a73c09beec152bc23f5ac624a481ad775d3888",
-  "commitsSinceDraft": 0,
+  "lastSha": "c46b149e411cdb65b92f70b22fbae8e79b9fbbdd",
+  "commitsSinceDraft": 4,
   "content": {
     "tower": [
       "needle",
@@ -2777,6 +2777,18 @@
         {
           "cat": "Gameplay",
           "text": "Hub Ready Chain: the live harvest queue that never forgets earned value"
+        },
+        {
+          "cat": "Website",
+          "text": "Rituals: chronicle + site regen, handoff + status board for the Ready Chain"
+        },
+        {
+          "cat": "Gameplay",
+          "text": "Ready Chain pass 2: reveal-gate stops + measured multi-stop ride"
+        },
+        {
+          "cat": "UI",
+          "text": "Reward ceremonies: the physical moment + Bio-Roulette anticipation pass"
         }
       ]
     }
@@ -5027,6 +5039,38 @@
       "date": "2026-07-17",
       "cat": "Gameplay",
       "text": "Hub Ready Chain: the live harvest queue that never forgets earned value",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "c7d9a245f496d2c83debf1a228a86a3e91e590d3",
+      "date": "2026-07-17",
+      "cat": "Website",
+      "text": "Rituals: chronicle + site regen, handoff + status board for the Ready Chain",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "ac8925dfc24fffe5ab2a4440d80ba390792da4b2",
+      "date": "2026-07-17",
+      "cat": "Gameplay",
+      "text": "Ready Chain pass 2: reveal-gate stops + measured multi-stop ride",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "38146b34abaac153b34ed82434a8423df6497780",
+      "date": "2026-07-17",
+      "cat": "Framework",
+      "text": "Ready Chain pass 3: portrait ride measured — record in HUB-FLOW.md",
+      "internal": true,
+      "needsReview": true
+    },
+    {
+      "sha": "c46b149e411cdb65b92f70b22fbae8e79b9fbbdd",
+      "date": "2026-07-17",
+      "cat": "UI",
+      "text": "Reward ceremonies: the physical moment + Bio-Roulette anticipation pass",
       "internal": false,
       "needsReview": false
     }
