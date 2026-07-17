@@ -273,3 +273,5 @@
 ## 2026-07-17
 
 - `ab95670` **[Gameplay]** Arena recognition layer + the relay bring-up: live human-vs-human PvP
+- `f30c8d6` **[Website]** Chronicle + site regen for the arena recognition / relay batch
+- `5522dbc` **[Backend]** Live-PvP brief deltas: private bouts, the season ladder, the match sweep

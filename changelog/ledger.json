@@ -1,6 +1,6 @@
 {
-  "lastSha": "ab956702edf79068e1156c5c4a23ccacbdb55de6",
-  "commitsSinceDraft": 6,
+  "lastSha": "5522dbc9f2b73afe40485e7d7cd83641e735fb8b",
+  "commitsSinceDraft": 8,
   "content": {
     "tower": [
       "needle",
@@ -2677,6 +2677,14 @@
         {
           "cat": "Gameplay",
           "text": "Arena recognition layer + the relay bring-up: live human-vs-human PvP"
+        },
+        {
+          "cat": "Website",
+          "text": "Chronicle + site regen for the arena recognition / relay batch"
+        },
+        {
+          "cat": "Backend",
+          "text": "Live-PvP brief deltas: private bouts, the season ladder, the match sweep"
         }
       ]
     }
@@ -4687,6 +4695,22 @@
       "date": "2026-07-17",
       "cat": "Gameplay",
       "text": "Arena recognition layer + the relay bring-up: live human-vs-human PvP",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "f30c8d6ea42218743a84e861d1484e7609c2e005",
+      "date": "2026-07-17",
+      "cat": "Website",
+      "text": "Chronicle + site regen for the arena recognition / relay batch",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "5522dbc9f2b73afe40485e7d7cd83641e735fb8b",
+      "date": "2026-07-17",
+      "cat": "Backend",
+      "text": "Live-PvP brief deltas: private bouts, the season ladder, the match sweep",
       "internal": false,
       "needsReview": false
     }

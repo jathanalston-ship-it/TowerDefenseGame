@@ -1176,6 +1176,14 @@ export const RELEASES: Release[] = [
       {
         "cat": "Gameplay",
         "text": "Arena recognition layer + the relay bring-up: live human-vs-human PvP"
+      },
+      {
+        "cat": "Website",
+        "text": "Chronicle + site regen for the arena recognition / relay batch"
+      },
+      {
+        "cat": "Backend",
+        "text": "Live-PvP brief deltas: private bouts, the season ladder, the match sweep"
       }
     ]
   },
