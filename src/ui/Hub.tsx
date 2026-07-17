@@ -12,7 +12,8 @@ import { audio } from '../audio/sound';
 import { music } from '../audio/music';
 import { AudioToggles } from './components/AudioToggles';
 import { ACCOUNT_CURRENCY } from '../core/currencies';
-import { CurrencyIcon } from './components/CurrencyIcon';
+import { WalletChip } from './components/WalletChip';
+import { CeremonyLayer } from './components/CeremonyLayer';
 import { autoGenePref, setAutoGenePref } from '../state/prefs';
 import { notifications } from '../state/notifications';
 import '../state/notificationSources'; // registers the default menu badges (side-effect import)
@@ -343,6 +344,7 @@ export function Hub({
       <LabAtmosphere />
       {lab.era > 0 && <div className="hub-contam" aria-hidden data-era={lab.era} />}
       <WardrobeReveal />
+      <CeremonyLayer />
       {flashOffer && (
         <FlashOfferPopup
           offer={flashOffer}
@@ -456,11 +458,13 @@ export function Hub({
               here. Chips reveal with their currency (docs/PROGRESSION-GATING.md §economy): a chip
               never precedes its purpose, so the first-session top bar reads calm. */}
           <AccountXpBar compact />
-          <span className="hub-cur"><CurrencyIcon id="genomeCores" size={15} /> {save.shards} <span className="hub-cur-l">{ACCOUNT_CURRENCY.name}</span></span>
-          {featureRevealed(save, 'cur:ichor') && <span className="hub-cur"><CurrencyIcon id="ichor" size={15} /> {save.ichor} <span className="hub-cur-l">Ichor</span></span>}
-          {featureRevealed(save, 'cur:cells') && <span className="hub-cur"><CurrencyIcon id="ascendantCells" size={15} /> {cells} <span className="hub-cur-l">Cells</span></span>}
+          {/* Rolling chips (docs/REWARD-PRESENTATION.md §wallet): values ROLL on change and
+              bump when the CeremonyLayer's icon flights arrive (data-cur is the target hook). */}
+          <WalletChip cur="genomeCores" value={save.shards} label={ACCOUNT_CURRENCY.name} />
+          {featureRevealed(save, 'cur:ichor') && <WalletChip cur="ichor" value={save.ichor} label="Ichor" />}
+          {featureRevealed(save, 'cur:cells') && <WalletChip cur="ascendantCells" value={cells} label="Cells" />}
           {featureRevealed(save, 'cur:mats') && (
-            <span className="hub-cur" title="Materials — Mutagen · Scrap · Catalyst (Armory crafting)">
+            <span className="hub-cur" data-cur="mats" title="Materials — Mutagen · Scrap · Catalyst (Armory crafting)">
               ⊕ {save.mats.mutagen} · ◳ {save.mats.scrap} · ✷ {save.mats.catalyst} <span className="hub-cur-l">Materials</span>
             </span>
           )}

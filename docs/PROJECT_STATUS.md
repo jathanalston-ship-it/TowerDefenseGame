@@ -3,7 +3,24 @@
 > Maintained at the END of every session (paired with `docs/AI_HANDOFF.md` — the constitution's
 > workflow step 4). This is the "where are we?" answer; `docs/GAME-STATE.md` remains the deeper
 > per-system built-vs-planned index, `docs/PROJECT_MANIFEST.md` the system map.
-> **Last updated:** 2026-07-17h (**READY CHAIN — USABILITY PASS 2** (user-directed): the
+> **Last updated:** 2026-07-17i (**THE REWARD CEREMONY OVERHAUL** (user brief) —
+> REWARD-PRESENTATION.md §ceremony/§roulette. Audit: the reward BUS already announces every
+> grant (18 meta push points; tiered merge placards) — the silent layer was the WALLET.
+> Shipped: **CeremonyLayer** (rides `rewardToast.tap()` — a particle burst at the claim
+> point, a currency-icon FLIGHT arcing into its `data-cur` top-bar chip, the chip BUMPS on
+> arrival; tier-scaled, fold/concurrency-limited, reduced-motion disables wholesale) +
+> **WalletChip** (counters ROLL prev→next and lift gold while gaining) — every current AND
+> future bus-announced reward inherits the physical moment with zero wiring. **Bio-Roulette
+> signature pass** (presentation-only, model untouched): orifice pre-launch CONTRACTION +
+> overshoot eject with a spit cue (spores are spat, not spawned), deceleration-lap PASS-OVER
+> blips + rate-limited ticks whose spacing widens as the ease-out slows (the roulette
+> tension read), jackpot double-gold SHOCKWAVE, tally rows POP per absorb. Verified: the
+> ceremony probe on the live pass-claim path (5 flights · 9 bursts · 5 bumps · cores chip
+> rolled 0→149); suite 2434 green; mobilecheck CLEAN. Honest gap: the roulette pass is
+> build+review-verified (it only mounts after a real Boss Rush) — flag for live playtest.
+> Previous below.)
+>
+> **2026-07-17h** (**READY CHAIN — USABILITY PASS 2** (user-directed): the
 > multi-stop ride, measured. One REAL fix: chain stops now filter by `featureRevealed`
 > (a source can ripen before its wing unlocks — the Hive ripens pre-Harvest-reveal — and
 > an ungated stop dead-ended on the sealed-feature briefing; pinned in readyChain.test).

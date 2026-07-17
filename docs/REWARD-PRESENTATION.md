@@ -69,3 +69,36 @@ the "replay milestone" affordance), `prefers-reduced-motion` → instant.
   tracked (`RunStats.integrityLost`, 0 = no Nucleus damage): the Bio-Containers category shows a
   Flawless first-clear bonus-cache verdict (earned/missed) driven by `RunOutcome.flawlessCache`. A
   standalone "Flawless" combat stat could still slot in as a `RewardStat` with no engine change.
+
+## §ceremony (2026-07-17) — the physical reward moment (as built)
+
+**Audit result:** the bus (`state/rewardToast.ts`) already announces every grant surface
+(18 push points in meta — runs, pass, quests, cache, harvest, expeditions, market,
+exchange, evolution, collection rank-ups, tutorial…), and the placard stack scales tiers
+t0–t3 with merge folding. The missing layer was the WALLET: counters snapped silently and
+nothing physically arrived. That layer is now `ui/components/CeremonyLayer.tsx` +
+`WalletChip.tsx`:
+
+- **CeremonyLayer** taps the bus (observe-only): every event fires a particle BURST at the
+  claim point (the last pointer-down; tier-scaled 5/7/10 sparks) and — for types with a
+  top-bar home (cores/ichor/cells/materials) — an icon FLIGHT that arcs into the chip,
+  which BUMPS on arrival. Same-type flights fold within 260ms; concurrency bounded (8);
+  `prefers-reduced-motion` disables the whole layer (placards still tell the story).
+  Because every surface announces on the bus, every current and FUTURE reward inherits
+  this with zero wiring.
+- **WalletChip** rolls value changes prev→next (ease-out, ~0.6s), lifts gold while
+  gaining, and carries the `data-cur` flight target. Types without a persistent chip
+  (shard pools, XP, items) burst only — their placard's nav is the pointer.
+- Verified headlessly on the live pass-claim path: 5 flights · 9 bursts · 5 bumps · the
+  cores chip rolled 0→149. Small rewards stay instant (nothing blocks, nothing modal).
+
+## §roulette (2026-07-17) — the signature-machine anticipation pass
+
+Presentation-only (the model still pre-rolls everything): the orifice now CONTRACTS for
+0.35s before each launch and overshoots on the eject with a wet spit cue — spores are spat,
+not spawned; in the deceleration lap every pod the spore sweeps BLIPS (scale + rim flare)
+with a rate-limited tick whose spacing widens as the ease-out slows — the roulette tension
+read; a JACKPOT landing detonates a double gold shockwave across the organ; the tally rows
+POP as counts grow (remount key carries the count). Reduced-motion still resolves to the
+readable still. Known gap: the roulette only mounts after a real Boss Rush, so this pass is
+verified by build + review, not headlessly — flag for the next live Boss Rush playtest.

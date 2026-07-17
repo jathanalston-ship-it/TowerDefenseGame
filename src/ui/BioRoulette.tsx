@@ -31,6 +31,8 @@ interface Spore {
   theta0: number; // launch angle
   turns: number; // full rotations before settling (2..4 — varies the show)
   done: boolean; // tallied
+  spat?: boolean; // the orifice EJECT cue fired (once per spore)
+  lastPod?: number; // last pod swept in the deceleration lap (drives the pass-over ticks)
 }
 
 interface Burst { x: number; y: number; at: number; color: string; big: boolean }
@@ -79,9 +81,12 @@ export function BioRoulette({ spores, onExit }: { spores: number; onExit: () => 
   const stateRef = useRef({
     landed: reduced ? spores : 0,
     glow: new Map<number, number>(),
+    passGlow: new Map<number, number>(), // pass-over blips — the deceleration lap's anticipation
     bursts: [] as Burst[],
+    shock: null as { x: number; y: number; at: number } | null, // jackpot landing shockwave
     streak: 0, // §surge — live pity meter (mirrors the model's walk as spores land)
     surgeFlash: -9, // clock stamp of the last surge landing (screen pulse)
+    lastTickAt: -9, // pass-tick audio rate limit
     revealAt: reduced ? 0 : -1,
   });
 
@@ -185,8 +190,11 @@ export function BioRoulette({ spores, onExit }: { spores: number; onExit: () => 
         const px = cx + Math.cos(a) * R;
         const py = cy + Math.sin(a) * R;
         const glow = Math.max(0, (st.glow.get(i) ?? -9) + 0.9 - now); // 0.9s flare after an absorb
+        // Pass-over blip (anticipation): the pod a decelerating spore just swept scales up
+        // for a beat — the wheel's tick, made flesh.
+        const pass = Math.max(0, (st.passGlow.get(i) ?? -9) + 0.35 - now) / 0.35;
         const premium = isPremiumPod(board[i]);
-        const pulse = 1 + Math.sin(now * 2 + i) * 0.03 + glow * 0.3;
+        const pulse = 1 + Math.sin(now * 2 + i) * 0.03 + glow * 0.3 + pass * 0.14;
         const r = Math.max(24, R * 0.19) * pulse;
         const pc = cssColor(board[i].color);
         if (glow > 0) {
@@ -210,8 +218,8 @@ export function BioRoulette({ spores, onExit }: { spores: number; onExit: () => 
         fill.addColorStop(1, 'rgba(16, 11, 22, 0.94)');
         ctx.fillStyle = fill;
         ctx.fill();
-        ctx.strokeStyle = glow > 0 ? '#ffd65c' : premium ? pc : 'rgba(182, 77, 255, 0.55)';
-        ctx.lineWidth = glow > 0 ? 3 : premium ? 2.2 : 1.6;
+        ctx.strokeStyle = glow > 0 ? '#ffd65c' : pass > 0 ? `rgba(255, 230, 168, ${0.45 + 0.5 * pass})` : premium ? pc : 'rgba(182, 77, 255, 0.55)';
+        ctx.lineWidth = glow > 0 ? 3 : pass > 0 ? 2.6 : premium ? 2.2 : 1.6;
         ctx.stroke();
         // §jackpot — the crowned pod: a slow-pulsing double gold ring + ×3 badge.
         if (i === jackpot) {
@@ -246,7 +254,20 @@ export function BioRoulette({ spores, onExit }: { spores: number; onExit: () => 
       }
 
       // ── The central orifice — sphincter fringe + launch pulse + the SURGE arc (§surge) ──
-      const oR = R * 0.2 * (1 + Math.sin(now * 2.2) * 0.05);
+      // PRE-LAUNCH CONTRACTION (anticipation): the mouth squeezes in the 0.35s before each
+      // launch, then overshoots on the eject — every spore is SPAT, not spawned.
+      let squeeze = 1;
+      for (const sp of sporesList) {
+        if (sp.done) continue;
+        const dt = sp.launchAt - now;
+        if (dt > 0 && dt < 0.35) squeeze = Math.min(squeeze, 1 - 0.28 * (1 - dt / 0.35));
+        else if (dt <= 0 && dt > -0.12) squeeze = Math.max(squeeze, 1 + 0.18 * (1 + dt / 0.12));
+        if (!sp.spat && dt <= 0 && dt > -0.2) {
+          sp.spat = true;
+          audio.cue('place'); // the wet eject thunk
+        }
+      }
+      const oR = R * 0.2 * (1 + Math.sin(now * 2.2) * 0.05) * squeeze;
       for (let i = 0; i < 8; i++) {
         // Tendril fringe flexing around the mouth.
         const a = (i / 8) * TAU + now * 0.35;
@@ -326,6 +347,20 @@ export function BioRoulette({ spores, onExit }: { spores: number; onExit: () => 
           return { a: targetA, rad: R - 30 + s * 26, size: (sp.surge ? 12 : 9) * (1 - s) };
         };
         const main = pos(t);
+        // PASS-OVER TICKS (the anticipation device): in the deceleration lap, every pod the
+        // spore sweeps blips + ticks — the ease-out spacing makes the ticks slow naturally,
+        // exactly the roulette tension read. Rate-limited so overlapping spores never rattle.
+        if (t < SPIN_T && t / SPIN_T > 0.45) {
+          const podAt = Math.floor((((main.a + Math.PI / 2) / TAU) % 1 + 1) % 1 * board.length) % board.length;
+          if (sp.lastPod !== podAt) {
+            sp.lastPod = podAt;
+            st.passGlow.set(podAt, now);
+            if (now - st.lastTickAt > 0.09) {
+              st.lastTickAt = now;
+              audio.cue('hover');
+            }
+          }
+        }
         const color = sp.surge ? '#e24dff' : '#ffe6a8';
         const glowColor = sp.surge ? '#c86bff' : '#ffd65c';
         // Comet trail: 5 ghosts sampled back along the SAME path — honest momentum, no state.
@@ -348,6 +383,26 @@ export function BioRoulette({ spores, onExit }: { spores: number; onExit: () => 
         // Landing spark burst + the audio cue fire exactly once, at the absorb threshold.
         if (t > SPIN_T + SETTLE_T + ABSORB_T - 0.05 && !sp.done) {
           st.bursts.push({ x, y, at: now, color: sp.surge ? '#e24dff' : cssColor(board[sp.target].color), big: sp.surge || sp.target === jackpot });
+          // The JACKPOT landing detonates a gold shockwave across the organ.
+          if (sp.target === jackpot) st.shock = { x, y, at: now };
+        }
+      }
+      // Jackpot shockwave: one expanding double gold ring, 0.7s.
+      if (st.shock) {
+        const s = (now - st.shock.at) / 0.7;
+        if (s >= 1) st.shock = null;
+        else {
+          const d = easeOut(s) * R * 1.4;
+          ctx.beginPath();
+          ctx.arc(st.shock.x, st.shock.y, Math.max(1, d), 0, TAU);
+          ctx.strokeStyle = `rgba(255, 214, 92, ${0.55 * (1 - s)})`;
+          ctx.lineWidth = 5 * (1 - s) + 1;
+          ctx.stroke();
+          ctx.beginPath();
+          ctx.arc(st.shock.x, st.shock.y, Math.max(1, d * 0.72), 0, TAU);
+          ctx.strokeStyle = `rgba(255, 240, 200, ${0.3 * (1 - s)})`;
+          ctx.lineWidth = 2.5 * (1 - s) + 0.6;
+          ctx.stroke();
         }
       }
       // Spark bursts (0.5s of radial sparks; surge/jackpot bursts run bigger).
@@ -428,7 +483,8 @@ export function BioRoulette({ spores, onExit }: { spores: number; onExit: () => 
         <div className="roulette-side-k">Absorbed</div>
         {tally.length === 0 && <div className="roulette-empty">The organ waits…</div>}
         {tally.map((t) => (
-          <div className={`roulette-row${t.jackpot ? ' is-jackpot' : ''}`} key={t.label}>
+          // key includes the count: a fresh absorb REMOUNTS only its row ⇒ the pop replays.
+          <div className={`roulette-row${t.jackpot ? ' is-jackpot' : ''}`} key={`${t.label}:${t.count}`}>
             <i style={{ background: t.color }} />
             <span>{t.label}{t.jackpot ? ' — JACKPOT ×3' : ''}</span>
             <b>×{t.count}</b>

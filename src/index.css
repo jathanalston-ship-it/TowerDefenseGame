@@ -6076,6 +6076,50 @@ kbd {
 .hub-cur { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
 .hub-cur-k { font-size: 14px; }
 .hub-cur-l { color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; }
+/* ── Ceremony layer (docs/REWARD-PRESENTATION.md §ceremony): the physical reward moment.
+   Chips lift while rolling upward, bump when an icon flight lands; bursts bloom at the
+   claim point; flights arc from claim → wallet. All decorative, all reduced-motion-gated. ── */
+.hub-cur.is-gaining { color: var(--gold); }
+.hub-cur.is-bumped { animation: cur-bump 0.45s ease; }
+@keyframes cur-bump {
+  0% { transform: scale(1); filter: none; }
+  35% { transform: scale(1.16); filter: drop-shadow(0 0 8px var(--gold)); }
+  100% { transform: scale(1); filter: none; }
+}
+.cer-layer { position: fixed; inset: 0; z-index: 340; pointer-events: none; }
+.cer-fly {
+  position: fixed;
+  left: 0;
+  top: 0;
+  transform: translate(var(--x0), var(--y0)) scale(1.25);
+  opacity: 0.95;
+  animation: cer-travel 0.68s cubic-bezier(0.25, 0.7, 0.3, 1) forwards;
+  filter: drop-shadow(0 0 6px rgba(255, 214, 92, 0.55));
+}
+.cer-fly b { font-size: 20px; font-weight: 800; }
+@keyframes cer-travel {
+  0% { transform: translate(var(--x0), var(--y0)) scale(1.3); opacity: 0.95; }
+  18% { transform: translate(var(--x0), calc(var(--y0) - 26px)) scale(1.15); opacity: 1; }
+  100% { transform: translate(var(--x1), var(--y1)) scale(0.5); opacity: 0.25; }
+}
+.cer-burst { position: fixed; width: 0; height: 0; }
+.cer-burst i {
+  position: absolute;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--cb, var(--gold));
+  transform: rotate(var(--a)) translateX(0);
+  animation: cer-spark 0.62s ease-out forwards;
+}
+@keyframes cer-spark {
+  0% { transform: rotate(var(--a)) translateX(2px) scale(1); opacity: 1; }
+  100% { transform: rotate(var(--a)) translateX(34px) scale(0.3); opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hub-cur.is-bumped { animation: none; }
+  .cer-layer { display: none; }
+}
 .hub-cur-r { margin-left: auto; color: var(--muted); }
 .hub-cur-r b { color: var(--text); }
 
@@ -10408,7 +10452,15 @@ kbd {
 .roulette-tier { padding: 2px 9px; font-size: 10px; font-weight: 800; letter-spacing: 0.12em; color: var(--gold); border: 1px solid color-mix(in srgb, var(--gold) 45%, var(--line)); border-radius: 999px; background: color-mix(in srgb, var(--gold) 8%, transparent); }
 .roulette-jack { font-size: 11px; color: var(--muted); }
 .roulette-row.is-jackpot span, .roulette-row.is-jackpot b { color: var(--gold); }
-.roulette-row { animation: ui-rise var(--dur-3) var(--ease-out) both; }
+/* Each absorb remounts its row (key carries the count) — the tally POPS as it grows. */
+.roulette-row { animation: roulette-row-pop 0.28s var(--ease-out) both; }
+@keyframes roulette-row-pop {
+  0% { opacity: 0.4; transform: scale(1.12); }
+  100% { opacity: 1; transform: scale(1); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .roulette-row { animation: none; }
+}
 .roulette-surge-word { color: var(--viral); }
 @media (max-width: 700px) {
   .roulette-screen { grid-template-columns: 1fr; grid-template-rows: auto minmax(300px, 46vh) auto; }
