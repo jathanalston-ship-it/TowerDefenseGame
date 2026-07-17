@@ -145,6 +145,7 @@ export type PassReward =
   | { kind: 'container'; rarity: 'common' | 'rare' | 'epic' | 'legendary'; count: number }
   | { kind: 'runCache'; count: number }
   | { kind: 'rushStamina'; qty: number }
+  | { kind: 'bioSpores'; qty: number } // banked Bio-Roulette ammo (save.bioSpores)
   | { kind: 'cosmetic'; id: string } // a Wardrobe item (already-owned on repeat → replacement)
   | { kind: 'phenotype'; family: string } // one unowned phenotype of the family, rolled at claim
   | { kind: 'passive'; id: string } // permanent passive (once EVER → replacement on repeats)
@@ -162,6 +163,7 @@ export function rewardLabel(r: PassReward): { icon: string; label: string } {
     case 'container': return { icon: '◈', label: `${r.count}× ${r.rarity} Bio-Container` };
     case 'runCache': return { icon: '⬢', label: `${r.count}× Run Cache` };
     case 'rushStamina': return { icon: '☠', label: `${r.qty} Rush Stamina` };
+    case 'bioSpores': return { icon: '✺', label: `${r.qty} Bio-Spore${r.qty === 1 ? '' : 's'} (Roulette)` };
     case 'cosmetic': return { icon: '❖', label: wardrobeItem(r.id)?.name ?? r.id };
     case 'phenotype': return { icon: '🧬', label: `${r.family[0].toUpperCase()}${r.family.slice(1)} Phenotype` };
     case 'passive': return { icon: '♾', label: passPassive(r.id)?.name ?? r.id };
@@ -182,6 +184,7 @@ export function rewardShort(r: PassReward): string {
     case 'container': return `${r.rarity} cache`;
     case 'runCache': return r.count > 1 ? `${r.count}× Run Cache` : 'Run Cache';
     case 'rushStamina': return `${r.qty} Stamina`;
+    case 'bioSpores': return r.qty > 1 ? `${r.qty} Bio-Spores` : 'Bio-Spore';
     case 'cosmetic': return wardrobeItem(r.id)?.name ?? 'Cosmetic';
     case 'phenotype': return 'Phenotype';
     case 'passive': return passPassive(r.id)?.name ?? 'Passive';
@@ -298,6 +301,9 @@ export function seasonTracks(seasonId: string): SeasonTracks {
     if (fpIdx >= 0 && freePassives[fpIdx]) f.push({ kind: 'passive', id: freePassives[fpIdx] });
     if (level === BP.levels) f.push({ kind: 'stack' }, { kind: 'container', rarity: 'legendary', count: 1 });
     if (f.length === 0) f.push(...fillerFree(level));
+    // Bio-Spore lane (docs/BOSS-RUSH.md §roulette): ADDITIVE after the filler fallback so no
+    // existing reward is displaced. Free track: 4 per season (25/50/75/100).
+    if (level % 25 === 0) f.push({ kind: 'bioSpores', qty: 1 });
     free.push(f);
 
     // PREMIUM — richer filler; the taste levels (1/50/99) are pinned generous; 100 is the crown.
@@ -311,6 +317,8 @@ export function seasonTracks(seasonId: string): SeasonTracks {
     if (level === 99) p.push({ kind: 'ichor', qty: 25 }, { kind: 'container', rarity: 'epic', count: 1 });
     if (level === BP.levels) p.push({ kind: 'container', rarity: 'legendary', count: 2 });
     if (p.length === 0) p.push(...fillerPremium(level));
+    // Premium spore lane: 5 per season (20/40/60/80/100) — additive, same rule as free.
+    if (level % 20 === 0) p.push({ kind: 'bioSpores', qty: 1 });
     premium.push(p);
   }
   const tracks = { free, premium };

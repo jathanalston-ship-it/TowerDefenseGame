@@ -165,6 +165,22 @@ describe('save export / import', () => {
     }
   });
 
+  it('sanitizes the Bio-Spore bank (v48: 0 for pre-v48 saves, floors junk, caps at 999)', () => {
+    const legacy = { ...defaultSave() } as Record<string, unknown>;
+    delete legacy.bioSpores;
+    const r0 = parseImport(JSON.stringify(legacy));
+    expect(r0.ok).toBe(true);
+    if (r0.ok) expect(r0.data.bioSpores).toBe(0);
+    const bad = { ...defaultSave(), bioSpores: 1e9 } as unknown as Record<string, unknown>;
+    const r1 = parseImport(JSON.stringify(bad));
+    expect(r1.ok).toBe(true);
+    if (r1.ok) expect(r1.data.bioSpores).toBe(999); // forged bank clamps
+    const neg = { ...defaultSave(), bioSpores: -4.5 } as unknown as Record<string, unknown>;
+    const r2 = parseImport(JSON.stringify(neg));
+    expect(r2.ok).toBe(true);
+    if (r2.ok) expect(r2.data.bioSpores).toBe(0);
+  });
+
   it('sanitizes the expedition mastery ledger (v27: known ids, whole counts; pre-v27 deep-fills)', () => {
     const bad = {
       ...defaultSave(),

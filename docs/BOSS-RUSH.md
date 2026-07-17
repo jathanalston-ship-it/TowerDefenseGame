@@ -145,16 +145,40 @@ Infinite depth lane:
   next +2 Ichor**), the Profile's Boss Rush section, and Results (`outcome.rushProgress` —
   record line + an "Ichor Bled" row on a new record).
 
-## §roulette — the Bio-Roulette (2026-07)
+## §roulette — the Bio-Roulette (2026-07; game-wide spore engine 2026-07)
 
-The Boss Rush-exclusive SECOND reward screen (after Results): an enormous living wheel of
-flesh — twelve reward pods ring a central orifice that launches the run's **Bio-Spores** one
-by one. Model: `state/bioRoulette.ts` (pure); ceremony: `ui/BioRoulette.tsx` (canvas);
-collection: `meta.grantRouletteRewards`.
+The game's slot-ceremony reward engine — an enormous living wheel of flesh: twelve reward
+pods ring a central orifice that launches **Bio-Spores** one by one. Born Boss Rush-exclusive;
+now a game-wide **spore economy** (the ceremony still pops after spore-earning rush runs, and
+the banked lane spins from the Vault). Model: `state/bioRoulette.ts` (pure); ceremony:
+`ui/BioRoulette.tsx` (canvas); collection: `meta.grantRouletteRewards`.
 
+- **THE SPORE BANK (v48, `save.bioSpores`)** — every source deposits into one account-wide
+  bank (cap 999 = the sanitizer clamp); a wheel session withdraws exactly what it plays.
+  Sources:
+  - **Boss Rush** (below — the founding lane): earned spores bank in `App.handleEnd` via
+    `meta.addBioSpores`, THEN the ceremony opens with `min(bank, sporeCap)` — carried
+    quest/pass spores ride along in the same session.
+  - **First-kill chassis (any mode):** the idempotent `bossesSlain` registrar in meta banks
+    **+1 the first time each boss chassis ever dies** — campaign/infinite/daily all feed the
+    wheel.
+  - **Quest finales:** every weekly finale pays `{ kind: 'bioSpores' }` (+1); the main
+    questline escalates I/II/III → 1/2/3.
+  - **Battle Pass milestones:** the season tables push a spore lane AFTER the filler fallback
+    (free track: levels %25 → 4/season; premium: %20 → 5/season) — additive, nothing displaced.
+  `PassReward` gained the `bioSpores` kind (labels ✺), `applyRewardList` banks it, and
+  `eventsForPassRewards` + the `REWARD_TYPES` row placard it (nav → "Spin the Bio-Roulette").
+- **THE VAULT BAY (`ui/GeneticVault.tsx`)** — the wheel's hub door, beside the Daily
+  Bio-Cache: shows the bank, pulses when loaded, **Spin the Wheel** fires `rouletteBus.open()`
+  (`state/navBus.ts`) → App opens a session on the bank (menu-only guard; no-op at 0) and the
+  exit returns TO the Vault (`from: 'vault'` → `navBus.go('vault')`). The `vault.spores`
+  notification source lights the vault badge/Ready-Chain while spores sit banked. Headless
+  probe: seed bank → bay → spin → collect → bank 0 / ledger advanced / bay disarmed (the
+  wheel's first full headless verification).
 - **Spores** (`sporesFor` / `sporesFromParts`): **1 per NEW lifetime-record boss** (the
   `rushBestBoss` delta finishRun already computes — `rushProgress.newRecordBosses`) **+ 1 per
-  5 bosses felled that run** (volume lane), capped at 40. Zero spores ⇒ no ceremony.
+  5 bosses felled that run** (volume lane), capped at 40 per session. Zero EARNED spores ⇒ no
+  forced ceremony (a carried bank stays spendable from the Vault).
 - **The board is FRESH every run** (`rollBoard(rng, roster, tier)`): 12 weighted pods —
   tower/hero shards dominate, cores/scrap/essence fill the middle, a small Ichor pod tempts,
   **Bio-Gear is VERY rare (weight 2)** and a **Bio-Container EXTREMELY rare (weight 1)**.
@@ -175,13 +199,16 @@ collection: `meta.grantRouletteRewards`.
   ~0.55s apart, spin the organ under cubic-decel momentum, wobble to rest at their pod, get
   ABSORBED (pod flare + tally tick). **Reveal All** resolves the remainder instantly; **Absorb
   All** collects in one persist. Even "Collect & Skip" collects — spores are never lost.
-- **Flow:** `App.handleEnd` arms the ceremony from `rushProgress`; while pending, EVERY
-  Results exit routes through it; its exit returns to the menu. The stamina entry pay moved to
-  `App.startBossRush` so terminal launches and Results replays pay exactly once.
-- **Ledgers:** `stats.rouletteSpores` (lifetime, additive) + achievements `roulette_first` /
-  `roulette_50` + a timeline beat; Help entry `bio-roulette` (auto What's New).
+- **Flow:** `App.handleEnd` banks then arms the ceremony from `rushProgress`; while pending,
+  EVERY Results exit routes through it; a rush-launched exit returns to the menu, a
+  vault-launched one to the Vault. The stamina entry pay moved to `App.startBossRush` so
+  terminal launches and Results replays pay exactly once.
+- **Ledgers:** `stats.rouletteSpores` (lifetime, additive; `grantRouletteRewards` also debits
+  the bank by the session spend) + achievements `roulette_first` / `roulette_50` + a timeline
+  beat; Help entry `bio-roulette` (auto What's New).
 - Tests: `state/bioRoulette.test.ts` (spore math, board composition/weights, 20k-roll
-  distribution, collection grants incl. the achievements composite).
+  distribution, collection grants incl. the achievements composite, the banked-spore economy:
+  cap/consume/clamp, the pass-claim interpreter path, season+finale source coverage).
 
 ## Extension seams (deliberate)
 

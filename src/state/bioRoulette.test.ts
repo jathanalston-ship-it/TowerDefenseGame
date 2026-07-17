@@ -5,6 +5,8 @@ import { describe, it, expect } from 'vitest';
 import { ROULETTE, boardTier, isPremiumPod, rollBoard, rollJackpot, rollOutcome, rollOutcomes, rollOutcomesWithSurge, sporesFor, sporesFromParts, summarizeRewards, tripleReward } from './bioRoulette';
 import { meta } from './meta';
 import { Rng } from '../core/rng';
+import { BP, seasonTracks, xpToReach } from '../core/battlePass';
+import { MAIN_QUESTLINE, WEEKLY_QUESTS } from '../core/quests';
 
 const rng = (seed: number): (() => number) => {
   const r = new Rng(seed);
@@ -176,5 +178,42 @@ describe('one-click collection (meta.grantRouletteRewards)', () => {
     const outcomes = rollOutcomes(rng(12), board, 9);
     meta.grantRouletteRewards(outcomes.map((o) => board[o].reward), 9);
     expect(meta.get().stats.rouletteSpores).toBe(9);
+  });
+});
+
+describe('the banked-spore economy (§roulette — game-wide integration)', () => {
+  it('addBioSpores banks capped at 999; a session consumes its spend and never goes negative', () => {
+    freshMeta();
+    meta.addBioSpores(5, 'Quest finale');
+    expect(meta.get().bioSpores).toBe(5);
+    meta.addBioSpores(2000, 'dev');
+    expect(meta.get().bioSpores).toBe(999);
+    meta.grantRouletteRewards([{ kind: 'cores', qty: 1 }], 40);
+    expect(meta.get().bioSpores).toBe(999 - 40);
+    meta.grantRouletteRewards([{ kind: 'cores', qty: 1 }], 5000); // over-spend clamps
+    expect(meta.get().bioSpores).toBe(0);
+  });
+
+  it('a Battle Pass milestone claim banks a spore through the shared interpreter', () => {
+    freshMeta();
+    const t0 = BP.epochMs + 5;
+    meta.grantPassXp('test', xpToReach(26), t0);
+    expect(meta.get().bioSpores).toBe(0);
+    expect(meta.claimPassLevel('free', 25, t0)).not.toBeNull(); // free milestone 25 carries the spore lane
+    expect(meta.get().bioSpores).toBe(1);
+  });
+
+  it('every season pays spores on BOTH tracks; every quest finale banks at least one', () => {
+    for (const sid of ['s1', 's2']) {
+      const tracks = seasonTracks(sid);
+      const count = (t: 'free' | 'premium'): number =>
+        tracks[t].flatMap((rs) => rs).reduce((n, r) => n + (r.kind === 'bioSpores' ? r.qty : 0), 0);
+      expect(count('free'), `${sid} free spores`).toBeGreaterThanOrEqual(4);
+      expect(count('premium'), `${sid} premium spores`).toBeGreaterThanOrEqual(5);
+    }
+    for (const q of [...WEEKLY_QUESTS, ...MAIN_QUESTLINE]) {
+      const spores = q.finaleRewards.reduce((n, r) => n + (r.kind === 'bioSpores' ? r.qty : 0), 0);
+      expect(spores, `${q.id} finale spores`).toBeGreaterThanOrEqual(1);
+    }
   });
 });

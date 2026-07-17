@@ -59,9 +59,9 @@ import { dailyMulliganAssignment } from '../core/mulligan';
 import type { MulliganState } from '../core/mulligan';
 import type { DailyPlan } from '../core/daily';
 import { HERO_ORDER, TOWER_ORDER } from '../core/config';
-import { sporesFromParts } from '../state/bioRoulette';
+import { ROULETTE, sporesFromParts } from '../state/bioRoulette';
 import { tutorial } from '../state/tutorial';
-import { cutsceneBus, navBus } from '../state/navBus';
+import { cutsceneBus, navBus, rouletteBus } from '../state/navBus';
 import { TutorialRunner } from './TutorialRunner';
 import { DeployScreen } from './DeployScreen';
 import { ArenaView } from './ArenaView';
@@ -217,9 +217,10 @@ export function App(): JSX.Element {
   meta.use(); // subscribe App so the HUD Tour / What's New react to save changes (unlocks, tour completion)
 
   const [deployInfo, setDeployInfo] = useState<DeployInfo | null>(null);
-  // Bio-Roulette (docs/BOSS-RUSH.md §roulette): spores earned by the LAST settled rush run —
-  // Results routes through the ceremony while this is pending; its exit clears it.
-  const [roulette, setRoulette] = useState<{ spores: number } | null>(null);
+  // Bio-Roulette (docs/BOSS-RUSH.md §roulette): a pending wheel session — spores + where it
+  // exits back to. A rush that earned spores routes Results through the ceremony; the Vault's
+  // Roulette bay opens the BANKED spores from the hub and returns there.
+  const [roulette, setRoulette] = useState<{ spores: number; from?: 'vault' } | null>(null);
   // Dev affordance (?debug&roulette=N): open the Bio-Roulette ceremony directly — the same
   // pre-rolled pipeline, granted on collect like a real run. Debug builds only.
   useEffect(() => {
@@ -227,6 +228,15 @@ export function App(): JSX.Element {
     const n = Number(new URL(window.location.href).searchParams.get('roulette'));
     if (Number.isFinite(n) && n > 0) { setRoulette({ spores: Math.min(40, Math.floor(n)) }); setScreen('roulette'); }
   }, []);
+  // Hub surfaces (the Vault bay) fire rouletteBus to spin the banked spores. Menu-only —
+  // never yanks a live run — and a no-op on an empty bank (the bay disables itself anyway).
+  useEffect(() => rouletteBus.onOpen(() => {
+    if (screen !== 'menu') return;
+    const bank = Math.min(ROULETTE.sporeCap, meta.get().bioSpores);
+    if (bank <= 0) return;
+    setRoulette({ spores: bank, from: 'vault' });
+    setScreen('roulette');
+  }), [screen]);
   const begin = useCallback((mode: RunMode, stage: StageConfig | null = null, extraRunEffects: CardEffect[] = []) => {
     seedRef.current = (Date.now() ^ Math.floor(Math.random() * 0xffffffff)) >>> 0;
     // Snapshot permanent progression + hero choice + equipped loadout at run start
@@ -358,10 +368,13 @@ export function App(): JSX.Element {
       telemetry.emit('stage_clear', { d: `c${campaignStageRef.current}` });
     }
     // Bio-Roulette spores (docs/BOSS-RUSH.md §roulette): record delta + volume, from the parts
-    // finishRun just computed. Zero spores ⇒ no ceremony (Results exits straight to the menu).
+    // finishRun just computed. Earned spores BANK first (save.bioSpores), then the ceremony
+    // plays the whole bank (carried quest/pass spores ride along), capped per session. Zero
+    // earned ⇒ no forced ceremony — a carried bank stays spendable from the Vault bay.
     if (outcome.rushProgress) {
       const spores = sporesFromParts(outcome.rushProgress.newRecordBosses, outcome.rushProgress.bossKills);
-      setRoulette(spores > 0 ? { spores } : null);
+      if (spores > 0) meta.addBioSpores(spores, 'Boss Rush');
+      setRoulette(spores > 0 ? { spores: Math.min(ROULETTE.sporeCap, meta.get().bioSpores) } : null);
     } else {
       setRoulette(null);
     }
@@ -569,7 +582,16 @@ export function App(): JSX.Element {
       )}
       <UpdateToast />
       {screen === 'roulette' && roulette && (
-        <BioRoulette spores={roulette.spores} onExit={() => { setRoulette(null); setScreen('menu'); }} />
+        <BioRoulette
+          spores={roulette.spores}
+          onExit={() => {
+            const from = roulette.from;
+            setRoulette(null);
+            setScreen('menu');
+            // A Vault-launched session lands back in the Vault (the Hub mounts next tick).
+            if (from === 'vault') setTimeout(() => navBus.go('vault'), 50);
+          }}
+        />
       )}
       {/* Hero Slot Unlock — the biggest milestone; shows first, over Results. Dismiss → reveals the
           Evolution Unlock beneath it (if this run also raised the Star Cap). */}

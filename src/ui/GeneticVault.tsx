@@ -11,7 +11,8 @@ import { RARITIES, costOf, rarityRegistry } from '../core/loot';
 import { VaultReveal } from './VaultReveal';
 import { BioCacheCard } from './BioCache';
 import { NextUp } from './HubLanding';
-import { navBus } from '../state/navBus';
+import { navBus, rouletteBus } from '../state/navBus';
+import { ROULETTE } from '../state/bioRoulette';
 import { compareItemPower } from '../state/itemPower';
 import { recordVaultOpen, vaultLedger } from '../state/prefs';
 import { telemetry } from '../net/telemetry';
@@ -135,6 +136,32 @@ export function GeneticVault(): JSX.Element {
           the vault nav badge lights while today's cache is sealed). Same self-contained card
           as the home board — one component, two surfaces. */}
       <BioCacheCard />
+
+      {/* Bio-Roulette bay (docs/BOSS-RUSH.md §roulette) — the wheel's hub door: spores banked
+          from Boss Rush, first-kill chassis, quest finales and Season Pass milestones spin
+          HERE, the same way containers crack here. Empty ⇒ disabled with the earn paths named. */}
+      {(() => {
+        const bank = save.bioSpores;
+        const session = Math.min(bank, ROULETTE.sporeCap);
+        return (
+          <div className={`roulette-bay${bank > 0 ? ' is-loaded' : ''}`} data-guide="vault-roulette">
+            <span className="roulette-bay-core" aria-hidden>✺</span>
+            <div className="roulette-bay-body">
+              <div className="vault-h">
+                Bio-Roulette{bank > 0 && <b style={{ color: 'var(--gold)' }}> · {bank} spore{bank === 1 ? '' : 's'} banked</b>}
+              </div>
+              <div className="roulette-bay-sub">
+                {bank > 0
+                  ? `Feed ${session} Bio-Spore${session === 1 ? '' : 's'} to the wheel — every pod pays, one is jackpot.`
+                  : 'Earn Bio-Spores from Boss Rush, first-time boss kills, quest finales and Season Pass milestones — then spin them here.'}
+              </div>
+            </div>
+            <button className="primary roulette-bay-spin" disabled={bank <= 0} onClick={() => rouletteBus.open()}>
+              ✺ Spin the Wheel
+            </button>
+          </div>
+        );
+      })()}
 
       {/* Ready to crack — the stockpile + the open action */}
       <div className="vault-ready" data-guide="vault-ready">

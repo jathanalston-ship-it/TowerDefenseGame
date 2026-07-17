@@ -100,5 +100,7 @@ not spawned; in the deceleration lap every pod the spore sweeps BLIPS (scale + r
 with a rate-limited tick whose spacing widens as the ease-out slows — the roulette tension
 read; a JACKPOT landing detonates a double gold shockwave across the organ; the tally rows
 POP as counts grow (remount key carries the count). Reduced-motion still resolves to the
-readable still. Known gap: the roulette only mounts after a real Boss Rush, so this pass is
-verified by build + review, not headlessly — flag for the next live Boss Rush playtest.
+readable still. ~~Known gap: the roulette only mounts after a real Boss Rush~~ — CLOSED by the
+game-wide spore integration (BOSS-RUSH.md §roulette): the Vault's Roulette bay spins the
+banked lane, so the wheel is headlessly reachable (seed `bioSpores` → vault → spin → collect;
+probe verifies bank consumption, the lifetime ledger, and the return-to-vault routing).

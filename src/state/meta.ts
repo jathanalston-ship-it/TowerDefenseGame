@@ -389,6 +389,11 @@ function applyRewardList(
         lines.push({ icon: '☠', label: `${r.qty} Rush Stamina` });
         events.push({ type: 'stamina', qty: r.qty });
         break;
+      case 'bioSpores':
+        next = { ...next, bioSpores: Math.min(999, next.bioSpores + r.qty) };
+        lines.push({ icon: '✺', label: `${r.qty} Bio-Spore${r.qty === 1 ? '' : 's'} — Roulette ammo` });
+        events.push({ type: 'bioSpores', qty: r.qty });
+        break;
       case 'cosmetic': {
         const def = wardrobeItem(r.id);
         if (!def) break;
@@ -602,7 +607,10 @@ gameEvents.on('bossKilled', (e) => {
   const chassis = bossDef(e.defId)?.chassis ?? e.defId.split('_')[1] ?? e.defId;
   const save = store.get();
   if (save.bossesSlain.includes(chassis)) return;
-  persist({ ...save, bossesSlain: [...save.bossesSlain, chassis] });
+  // First kill of a NEW chassis (any mode) also banks one Bio-Spore — the Roulette's
+  // assimilation lane (docs/BOSS-RUSH.md §roulette). Idempotent by the same guard above.
+  persist({ ...save, bossesSlain: [...save.bossesSlain, chassis], bioSpores: Math.min(999, save.bioSpores + 1) });
+  rewardToast.push({ type: 'bioSpores', qty: 1, source: 'New chassis assimilated' });
 });
 
 // NEMESIS revenge (docs/NEMESIS.md): killing YOUR nemesis pays tier-scaled blood-price cores,
@@ -6043,14 +6051,26 @@ export const meta = {
     return { ok: true, free: false };
   },
 
+  /** Bank Bio-Spores (Roulette ammo) from any source — quest finales and pass milestones go
+   *  through applyRewardList instead; this is the direct lane (Boss Rush runs, dev grants). */
+  addBioSpores(n: number, source: string): void {
+    const amt = Math.max(0, Math.floor(n));
+    if (amt <= 0) return;
+    const save = store.get();
+    persist({ ...save, bioSpores: Math.min(999, save.bioSpores + amt) });
+    rewardToast.push({ type: 'bioSpores', qty: amt, source });
+  },
+
   /** One-click Bio-Roulette collection (docs/BOSS-RUSH.md §roulette): fold every landed pod
    *  into the account in a single persist, advance the lifetime spore ledger, then re-poll
    *  achievements (the roulette ladder unlocks + toasts through the normal channel). */
   grantRouletteRewards(rewards: RouletteReward[], spores: number): void {
     const save = store.get();
+    const spent = Math.max(0, Math.floor(spores));
     let next: SaveData = {
       ...save,
-      stats: { ...save.stats, rouletteSpores: save.stats.rouletteSpores + Math.max(0, Math.floor(spores)) },
+      bioSpores: Math.max(0, save.bioSpores - spent), // a session consumes its banked ammo
+      stats: { ...save.stats, rouletteSpores: save.stats.rouletteSpores + spent },
       timeline: pushTimeline(save.timeline, '✺', `Bio-Roulette — ${spores} spore${spores === 1 ? '' : 's'} absorbed`),
     };
     for (const r of rewards) {

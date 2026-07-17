@@ -251,6 +251,13 @@ describe('eventsForPassRewards — the applyRewardList reward language', () => {
     expect(e.type).toBe('newKind2027');
     expect(e.qty).toBe(9);
   });
+
+  it('bioSpores maps to a registered type whose jump lands on the Vault bay', () => {
+    expect(eventsForPassRewards([{ kind: 'bioSpores', qty: 2 }])).toEqual([{ type: 'bioSpores', qty: 2 }]);
+    const def = rewardTypeOf('bioSpores');
+    expect(def?.merge).toBe('sum');
+    expect(def?.nav?.key).toBe('vault');
+  });
 });
 
 // The visible-cap constant is a UI contract; pin it so the stack never regresses to spam.

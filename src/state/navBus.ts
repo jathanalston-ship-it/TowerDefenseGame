@@ -37,3 +37,20 @@ export const cutsceneBus = {
     return () => { premiereSubs.delete(fn); };
   },
 };
+
+// Same shape, different cargo: hub surfaces (the Vault's Roulette bay) ask the App shell to
+// open a Bio-Roulette session on the BANKED spores (docs/BOSS-RUSH.md §roulette). The App
+// reads the bank and no-ops at zero, so callers just fire.
+type OpenFn = () => void;
+
+const rouletteSubs = new Set<OpenFn>();
+
+export const rouletteBus = {
+  open(): void {
+    for (const fn of rouletteSubs) fn();
+  },
+  onOpen(fn: OpenFn): () => void {
+    rouletteSubs.add(fn);
+    return () => { rouletteSubs.delete(fn); };
+  },
+};

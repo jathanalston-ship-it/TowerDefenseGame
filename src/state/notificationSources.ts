@@ -41,6 +41,16 @@ registerNotification({
   reason: () => 'Daily Bio-Cache sealed',
 });
 
+// Bio-Roulette bank — banked spores wait on the Vault's Roulette bay (docs/BOSS-RUSH.md
+// §roulette). Same channel logic as the cache: the bay renders on the vault, so the badge
+// clears where the action is.
+registerNotification({
+  id: 'vault.spores',
+  channel: 'vault',
+  count: (s) => (s.bioSpores > 0 ? 1 : 0),
+  reason: (s) => `${s.bioSpores} Bio-Spore${s.bioSpores === 1 ? '' : 's'} banked for the Roulette`,
+});
+
 // Idle Harvest — the Hive has banked a ceremony-worthy haul (docs/IDLE-HARVEST.md). Cheap
 // timestamp math only (no collection/power folds — this runs on every badge poll).
 registerNotification({

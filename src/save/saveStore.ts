@@ -248,6 +248,10 @@ export interface SaveData {
   //    build-in-progress stalls; fresh accounts stay 0 (golden-safe). ──
   hiveMaterials: number;
   mulliganTissue: number;
+  // ── Bio-Spores (v48, docs/BOSS-RUSH.md §roulette) — banked Bio-Roulette ammunition. Earned from
+  //    Boss Rush, first-kill boss chassis (any mode), quest finales and Battle Pass milestones;
+  //    consumed by a wheel session (state/meta grantRouletteRewards). Additive ⇒ 0 for old saves. ──
+  bioSpores: number;
   // ── Gene Card DISCOVERY (v46, docs/CARDS.md §discovery) — the Archive's membership set:
   //    card ids the account has discovered (starters + Bio-Container finds). Drafting and
   //    permanent upgrades key on membership. Migration seeds STARTER_GENES ∪ every card the
@@ -513,6 +517,9 @@ export interface TutorialSave {
 // Mulligan graft wallet, replacing Gene Essence there). Missing ⇒ seeded from existing
 // investment (Σ organ levels / Σ graft levels) so a migrating build never stalls; 0 when
 // the account never touched the system (fresh accounts byte-identical).
+// ALSO v48: BANKED BIO-SPORES (docs/BOSS-RUSH.md §roulette) — `bioSpores` (Bio-Roulette ammo
+// banked across sources: Boss Rush, first-kill chassis, quest finales, Battle Pass milestones;
+// spent by a wheel session). Missing ⇒ 0 — purely additive.
 export const CURRENT_VERSION = 48;
 
 /** The placeholder every save is born with — the Commander designation prompt fires
@@ -816,6 +823,7 @@ export function defaultSave(): SaveData {
     geneEssence: 0,
     hiveMaterials: 0,
     mulliganTissue: 0,
+    bioSpores: 0,
     genesDiscovered: [...STARTER_GENES], // the teaching set — every account starts with it
 
     createdAt: 0, // stamped by the first settle — defaultSave() must stay deterministic
@@ -1362,6 +1370,9 @@ function withDefaults(data: SaveData): SaveData {
       }
       return graftLevels > 0 ? 25 + 8 * graftLevels : 0;
     })(),
+    // v48: banked Bio-Roulette spores (pre-v48 ⇒ 0). Clamped well above ROULETTE.sporeCap so a
+    // session cap change never silently burns a bank; negative/junk ⇒ 0.
+    bioSpores: Math.max(0, Math.min(999, Math.floor(Number((data as { bioSpores?: unknown }).bioSpores) || 0))),
     // v21→v22: Player Profile — identity fields + the milestone timeline (pre-v22 ⇒ defaults;
     // createdAt stays 0 until the first settle stamps it).
     createdAt: Math.max(0, Math.floor(Number((data as { createdAt?: unknown }).createdAt) || 0)),

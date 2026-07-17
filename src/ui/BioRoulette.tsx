@@ -457,7 +457,7 @@ export function BioRoulette({ spores, onExit }: { spores: number; onExit: () => 
     <div className="roulette-screen" role="dialog" aria-label="Bio-Roulette">
       <div className="roulette-head">
         <div>
-          <div className="roulette-eyebrow">BOSS RUSH EXCLUSIVE</div>
+          <div className="roulette-eyebrow">THE SPORE ENGINE</div>
           <h1 className="roulette-title">BIO-ROULETTE</h1>
           <div className="roulette-meta">
             {tier > 1 && (
@@ -470,7 +470,7 @@ export function BioRoulette({ spores, onExit }: { spores: number; onExit: () => 
             </span>
           </div>
         </div>
-        <div className="roulette-spores" title="1 per new lifetime-record boss + 1 per 5 bosses felled this run">
+        <div className="roulette-spores" title="Earned from Boss Rush, first-time boss kills, quest finales and Season Pass milestones — banked spores spin from the Vault">
           ✺ Bio-Spores <b>{Math.max(0, spores - landedCount)}</b> / {spores}
         </div>
       </div>
@@ -501,10 +501,12 @@ export function BioRoulette({ spores, onExit }: { spores: number; onExit: () => 
           </button>
         </div>
         <p className="roulette-hint">
-          Spores are earned by the gauntlet — one per NEW lifetime-record boss, one per{' '}
-          {ROULETTE.sporesPerVolume} bosses felled. Every pod pays; the wheel only decides how much.
-          A streak of {ROULETTE.surgeAt} common landings arms a <b className="roulette-surge-word">Mutation Surge</b> —
-          the next spore is forced into the premium pods.
+          Spores flow in from everywhere: the gauntlet (one per NEW lifetime-record boss, one per{' '}
+          {ROULETTE.sporesPerVolume} bosses felled), the FIRST kill of each boss chassis in any mode,
+          quest finales and Season Pass milestones — unspent spores bank in the Genetic Vault.
+          Every pod pays; the wheel only decides how much. A streak of {ROULETTE.surgeAt} common
+          landings arms a <b className="roulette-surge-word">Mutation Surge</b> — the next spore is
+          forced into the premium pods.
         </p>
       </aside>
     </div>
