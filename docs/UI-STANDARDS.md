@@ -35,6 +35,12 @@
 
 - **The 2/4 grid:** paddings and gaps in 2px steps, preferring 4 · 6 · 8 · 10 · 12 · 14 · 16 ·
   20 · 24. No odd one-off values in new rules.
+- **§measure — ONE desktop content width for hub screens:** every screen in the hub content
+  area caps at `--screen-max` (1120px), centered, via `.hub-screen > *` — never author a
+  per-screen `max-width`/`width` cap (the Store at 820, landings at 980, and fluid Home once
+  made every wing a different column width; `.hub { width: 100% }` pins the shell against
+  `.app`'s shrink-to-fit centering). A screen needing an internal narrower column does it on
+  an INNER element, and any screen-root width that must exist points at `var(--screen-max)`.
 - Panel padding: 14–18px. Chip/pill padding: `4px 10px` (small) / `6px 12px` (default).
   Grid/list gaps: 8–12px. Section separation: 16–24px.
 - Alignment: flex rows use `align-items: center` (or `baseline` for text+number pairs) — never

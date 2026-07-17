@@ -103,6 +103,9 @@
   --s3: 12px;
   --s4: 16px;
   --s5: 24px;
+  /* ONE desktop content measure for every hub screen (docs/UI-STANDARDS.md §measure) —
+     screens cap here and center, so switching wings never jumps the column width. */
+  --screen-max: 1120px;
   --r-xs: 4px;
   --r-sm: 8px;
   --r-md: 12px;
@@ -5263,6 +5266,12 @@ kbd {
 
 /* ── Headquarters hub — the inter-run menu system (replaces the long scroll) ─── */
 .hub {
+  /* .app centers its children shrink-to-fit (align-items: center) — without an explicit
+     width the WHOLE shell (rail included) used to resize to each screen's intrinsic
+     content and float, so switching wings jumped the rail and the column (the
+     "every screen is a different width" bug). The shell always spans the viewport;
+     the .hub-screen > * measure rule owns the content column. */
+  width: 100%;
   height: 100vh;
   display: grid;
   grid-template-columns: 216px 1fr;
@@ -5765,7 +5774,7 @@ kbd {
 }
 
 /* ── Hub landing pages (ui/HubLanding.tsx) ─────────────────────────────────── */
-.hubl { display: flex; flex-direction: column; gap: 14px; max-width: 980px; }
+.hubl { display: flex; flex-direction: column; gap: 14px; } /* width: the shared .hub-screen measure */
 .hubl-head { display: flex; align-items: center; gap: 14px; padding: 14px 16px; border: 1px solid color-mix(in srgb, var(--hub-accent) 35%, var(--line)); border-radius: var(--r-lg); background: linear-gradient(135deg, color-mix(in srgb, var(--hub-accent) 9%, transparent), transparent 60%); }
 .hubl-glyph { font-size: 34px; color: var(--hub-accent); text-shadow: 0 0 18px color-mix(in srgb, var(--hub-accent) 55%, transparent); }
 .hubl-title { margin: 0; font-size: 20px; letter-spacing: 0.08em; }
@@ -6027,6 +6036,14 @@ kbd {
 }
 
 .hub-screen { flex: 1; min-height: 0; overflow-y: auto; padding: 22px; padding-bottom: calc(22px + var(--safe-b)); }
+/* THE STANDARD MEASURE (docs/UI-STANDARDS.md §measure): every screen in the content area
+   caps at --screen-max, centered — the Store was 820px centered, landings 980px left-aligned,
+   Home fluid: three visibly different column widths when switching wings. One rule owns the
+   measure for every current and future screen; .menu screens additionally drop their
+   full-page 6vh offset inside the shell (the shell's own padding is the vertical rhythm).
+   No-op at ≤1366w viewports, where the content area is already narrower than the cap. */
+.hub-screen > * { width: 100%; max-width: var(--screen-max); margin-inline: auto; }
+.hub-screen > .menu { margin-block: 0; }
 
 /* ── Narrow shell (docs/RESPONSIVE-DESIGN.md): the nav rail becomes an off-canvas drawer.
    One codebase — the same nav, presented as a sheet; the burger lives in the topbar. ── */
@@ -6581,7 +6598,7 @@ kbd {
 }
 
 /* Genetic Vault */
-.vault { max-width: 760px; }
+.vault { max-width: var(--screen-max); }
 .vault-stage { display: flex; gap: 44px; align-items: flex-start; margin: 18px 0 22px; padding: 22px; background: var(--panel); border: 1px solid var(--line); border-radius: var(--r-md); }
 .vault-h { font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin-bottom: 12px; }
 .vault-fill { margin-top: 10px; font-size: 13px; color: var(--text); text-align: center; }
@@ -7506,7 +7523,7 @@ kbd {
 
 /* ── Prep-terminal SHELL (Infinite · Boss Rush share .play-*): hero column + side rail on
    desktop, one column under 900px. Was unstyled block flow — one long scroll on every screen. ── */
-.play-screen { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: var(--s4); align-items: start; max-width: 1120px; }
+.play-screen { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: var(--s4); align-items: start; max-width: var(--screen-max); }
 @media (max-width: 900px) { .play-screen { grid-template-columns: minmax(0, 1fr); } }
 .play-hero { min-width: 0; }
 .play-side { display: flex; flex-direction: column; gap: var(--s3); min-width: 0; }
@@ -7540,7 +7557,7 @@ kbd {
 .camp-node:hover .camp-node-dot { filter: drop-shadow(0 0 6px var(--biome)) brightness(1.25); }
 .camp-deploy.primary { animation: cc-cta-breathe 5.5s ease-in-out infinite; }
 
-.camp-map-panel { width: min(1000px, 100%); }
+.camp-map-panel { width: min(var(--screen-max), 100%); }
 .camp-map-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
 .camp-map-meta { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
 .camp-record { font-size: 13px; color: var(--muted); white-space: nowrap; }
@@ -8885,7 +8902,7 @@ kbd {
 .rr-replay { border-color: var(--viral); color: #fff; }
 
 /* ═══ PLAYER PROFILE — the account dashboard (docs/PROFILE.md; ui/PlayerProfile) ═══ */
-.pf { display: flex; flex-direction: column; gap: 14px; width: min(1060px, 100%); }
+.pf { display: flex; flex-direction: column; gap: 14px; width: min(var(--screen-max), 100%); }
 .pf-block {
   padding: 14px 16px 16px;
   border-radius: var(--r-md);
@@ -9665,7 +9682,7 @@ kbd {
 @media (prefers-reduced-motion: reduce) { .ix-card { animation: none; } }
 
 /* ── THE WARDROBE (docs/COSMETICS.md §wardrobe) — cosmetics hub, ceremony, themes, season pass ── */
-.wd-panel { max-width: 1060px; }
+.wd-panel { max-width: var(--screen-max); }
 .wd-title-new { margin-left: 10px; font-size: 11px; letter-spacing: 0.12em; color: var(--caustic); border: 1px solid color-mix(in srgb, var(--caustic) 45%, transparent); border-radius: 999px; padding: 2px 8px; }
 .wd-tabs { display: flex; flex-wrap: wrap; gap: 6px; margin: 10px 0 6px; }
 .wd-tab { min-height: 28px; padding: 4px 12px; font-size: 12px; letter-spacing: 0.08em; color: var(--muted); background: var(--panel-2); border: 1px solid var(--line); border-radius: 999px; transition: color var(--dur-2) var(--ease-out), border-color var(--dur-2) var(--ease-out); }
@@ -9760,7 +9777,7 @@ kbd {
 /* ── Season Pass — the living season terminal (docs/BATTLEPASS.md §ui). The SeasonDef
       palette (--bp/--bp-glow/--bp-bg) drives EVERY layer: ambience, medallion, ring, spine,
       chrome. All ambient motion is CSS transforms/opacity and stilled under reduced motion. */
-.bp { --bpx: var(--bp, var(--viral)); position: relative; isolation: isolate; max-width: 1100px; margin: 0 auto; }
+.bp { --bpx: var(--bp, var(--viral)); position: relative; isolation: isolate; max-width: var(--screen-max); margin: 0 auto; }
 .bp > :not(.bp-atmo) { position: relative; z-index: 1; }
 
 /* Ambient layer: breathing aurora blobs, a slow ray wheel, the season glyph falling as petals. */
@@ -10793,7 +10810,7 @@ kbd {
 @keyframes cs-coda-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
 
 /* ── Bio-Dex Codex shell (docs/COLLECTION.md §screen) — masthead, wings, tile drill-in ── */
-.cx { display: flex; flex-direction: column; gap: 10px; width: min(1060px, 100%); }
+.cx { display: flex; flex-direction: column; gap: 10px; width: min(var(--screen-max), 100%); }
 .cx-mast { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
 .cx-mast-sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
 .cx-mast-stats { display: flex; align-items: center; gap: 10px; }
@@ -11357,7 +11374,7 @@ kbd {
 .pf-rack-owned { font-size: 11px; color: var(--muted); }
 
 /* ── Expedition Command (ExpeditionScreen.tsx, docs/EXPEDITIONS.md §screen) ── */
-.exb { display: flex; flex-direction: column; gap: 14px; width: min(1060px, 100%); }
+.exb { display: flex; flex-direction: column; gap: 14px; width: min(var(--screen-max), 100%); }
 .exb { --exb-r0: var(--caustic); --exb-r1: var(--gold); --exb-r2: var(--bad); }
 .exb-mast { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
 .exb-mast-chips { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
