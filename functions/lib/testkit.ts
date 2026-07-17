@@ -34,6 +34,14 @@ export class FakeD1 {
   marketAuthority: Row | null = null;
   marketWindows = new Map<number, Row>();
   marketFlags: Row[] = [];
+  // ── Analytics platform (docs/ANALYTICS.md §server) ──
+  anDaily = new Map<string, Row>(); // key: day|kind|dim|ver
+  anEvents: Row[] = [];
+  anPlayers = new Map<string, Row>(); // key: player_id
+  anSessions = new Map<string, Row>(); // key: session
+  anActivity = new Set<string>(); // key: player_id|day
+  anErrors = new Map<string, Row>(); // key: hash
+  anFlags: Row | null = null;
 
   prepare(sql: string): FakeStatement {
     return new FakeStatement(this, sql.replace(/\s+/g, ' ').trim());
@@ -352,6 +360,8 @@ class FakeStatement {
     }
     const auction = auctionExec(db, sql, args);
     if (auction) return auction;
+    const analyticsPlatform = anExec(db, sql, args);
+    if (analyticsPlatform) return analyticsPlatform;
     if (sql === 'SELECT 1') return { rows: [{ 1: 1 }], changes: 0 };
     throw new Error(`FakeD1: unsupported query — add a fake for it:\n${sql}`);
   }
@@ -892,6 +902,140 @@ function searchListings(db: FakeD1, sql: string, args: unknown[]): ExecOut {
   else if (sql.includes('ORDER BY COALESCE(buy_now, bid, ask) DESC')) rows.sort((a, b) => price(b) - price(a));
   else rows.sort((a, b) => num(b.created_at) - num(a.created_at));
   return { rows: rows.slice(num(offset), num(offset) + num(limit)), changes: 0 };
+}
+
+// ── Analytics platform query fakes (docs/ANALYTICS.md §server) ────────────────
+// Structural interpretation of exactly the SQL anHost + the an/dev endpoints issue.
+
+function anExec(db: FakeD1, sql: string, args: unknown[]): ExecOut | null {
+  // Writes (the ingest fold)
+  if (sql.startsWith('INSERT INTO an_daily')) {
+    const key = `${args[0]}|${args[1]}|${args[2]}|${args[3]}`;
+    const ex = db.anDaily.get(key);
+    db.anDaily.set(key, ex
+      ? { ...ex, n: num(ex.n) + num(args[4]), sum: num(ex.sum) + num(args[5]), sum2: num(ex.sum2) + num(args[6]) }
+      : { day: args[0], kind: args[1], dim: args[2], ver: args[3], n: args[4], sum: args[5], sum2: args[6] });
+    return { rows: [], changes: 1 };
+  }
+  if (sql.startsWith('INSERT INTO an_events')) {
+    db.anEvents.push({
+      id: db.anEvents.length + 1, player_id: args[0], session: args[1], kind: args[2], at: args[3],
+      screen: args[4], mode: args[5], dim: args[6], val: args[7], extras: args[8], ver: args[9], day: args[10],
+    });
+    return { rows: [], changes: 1 };
+  }
+  if (sql.startsWith('INSERT INTO an_errors')) {
+    const hash = String(args[0]);
+    const ex = db.anErrors.get(hash);
+    db.anErrors.set(hash, ex
+      ? { ...ex, last_at: args[1], count: num(ex.count) + 1, ver: args[4] }
+      : { hash, first_at: args[1], last_at: args[1], count: 1, msg: args[2], stack: args[3], ver: args[4] });
+    return { rows: [], changes: 1 };
+  }
+  if (sql.startsWith('INSERT INTO an_players')) {
+    const id = String(args[0]);
+    const ex = db.anPlayers.get(id);
+    db.anPlayers.set(id, ex
+      ? { ...ex, last_seen: args[1], last_ver: args[2], region: args[3], platform: args[4], lang: args[5],
+          power: args[6], stage: args[7], sessions: num(ex.sessions) + num(args[8]), revenue_cents: num(ex.revenue_cents) + num(args[9]) }
+      : { player_id: id, first_seen: args[1], last_seen: args[1], first_ver: args[2], last_ver: args[2], region: args[3],
+          platform: args[4], lang: args[5], power: args[6], stage: args[7], sessions: args[8], revenue_cents: args[9] });
+    return { rows: [], changes: 1 };
+  }
+  if (sql.startsWith('INSERT INTO an_sessions')) {
+    const id = String(args[0]);
+    const ex = db.anSessions.get(id);
+    db.anSessions.set(id, ex
+      ? { ...ex, last_ping: args[3], dur_sec: Math.max(num(ex.dur_sec), num(args[6])), events: num(ex.events) + num(args[7]) }
+      : { session: id, player_id: args[1], started_at: args[2], last_ping: args[3], ver: args[4], region: args[5], dur_sec: args[6], events: args[7] });
+    return { rows: [], changes: 1 };
+  }
+  if (sql.startsWith('INSERT OR IGNORE INTO an_activity')) {
+    db.anActivity.add(`${args[0]}|${args[1]}`);
+    return { rows: [], changes: 1 };
+  }
+  if (sql.startsWith('INSERT INTO an_flags')) {
+    db.anFlags = { id: 1, doc: args[0], rev: args[1], updated_at: args[2] };
+    return { rows: [], changes: 1 };
+  }
+  // Retention pruning + the deletion right
+  if (sql.startsWith('DELETE FROM an_events WHERE day <')) {
+    db.anEvents = db.anEvents.filter((e) => String(e.day) >= String(args[0]));
+    return { rows: [], changes: 0 };
+  }
+  if (sql.startsWith('DELETE FROM an_sessions WHERE last_ping <')) {
+    for (const [k, v] of db.anSessions) if (num(v.last_ping) < num(args[0])) db.anSessions.delete(k);
+    return { rows: [], changes: 0 };
+  }
+  if (sql.startsWith('DELETE FROM an_daily WHERE day <')) {
+    for (const [k, v] of db.anDaily) if (String(v.day) < String(args[0])) db.anDaily.delete(k);
+    return { rows: [], changes: 0 };
+  }
+  if (sql.startsWith('DELETE FROM an_activity WHERE day <')) {
+    for (const k of db.anActivity) if (k.split('|')[1] < String(args[0])) db.anActivity.delete(k);
+    return { rows: [], changes: 0 };
+  }
+  if (sql.startsWith('DELETE FROM an_events WHERE player_id')) {
+    db.anEvents = db.anEvents.filter((e) => e.player_id !== args[0]);
+    return { rows: [], changes: 0 };
+  }
+  if (sql.startsWith('DELETE FROM an_sessions WHERE player_id')) {
+    for (const [k, v] of db.anSessions) if (v.player_id === args[0]) db.anSessions.delete(k);
+    return { rows: [], changes: 0 };
+  }
+  if (sql.startsWith('DELETE FROM an_activity WHERE player_id')) {
+    for (const k of db.anActivity) if (k.startsWith(`${args[0]}|`)) db.anActivity.delete(k);
+    return { rows: [], changes: 0 };
+  }
+  if (sql.startsWith('DELETE FROM an_players WHERE player_id')) {
+    return { rows: [], changes: db.anPlayers.delete(String(args[0])) ? 1 : 0 };
+  }
+  // Reads (the dev API)
+  if (sql.startsWith('SELECT day, kind, dim, ver, n, sum, sum2 FROM an_daily')) {
+    let rows = [...db.anDaily.values()].filter((r) => String(r.day) >= String(args[0]));
+    if (sql.includes('AND kind = ?2')) rows = rows.filter((r) => r.kind === args[1]);
+    return { rows, changes: 0 };
+  }
+  if (sql.startsWith('SELECT COUNT(*) AS c FROM an_activity WHERE day = ?1')) {
+    return { rows: [{ c: [...db.anActivity].filter((k) => k.endsWith(`|${args[0]}`)).length }], changes: 0 };
+  }
+  if (sql.startsWith('SELECT COUNT(*) AS c FROM an_sessions WHERE last_ping > ?1')) {
+    return { rows: [{ c: [...db.anSessions.values()].filter((s) => num(s.last_ping) > num(args[0])).length }], changes: 0 };
+  }
+  if (sql.startsWith('SELECT COUNT(*) AS c FROM an_players')) {
+    return { rows: [{ c: db.anPlayers.size }], changes: 0 };
+  }
+  if (sql.startsWith('SELECT SUM(revenue_cents) AS s FROM an_players')) {
+    return { rows: [{ s: [...db.anPlayers.values()].reduce((s, p) => s + num(p.revenue_cents), 0) }], changes: 0 };
+  }
+  if (sql.startsWith('SELECT player_id, first_seen FROM an_players WHERE first_seen >= ?1')) {
+    return { rows: [...db.anPlayers.values()].filter((p) => num(p.first_seen) >= num(args[0])).map((p) => ({ player_id: p.player_id, first_seen: p.first_seen })), changes: 0 };
+  }
+  if (sql.startsWith('SELECT player_id, day FROM an_activity WHERE day >= ?1')) {
+    const rows = [...db.anActivity].map((k) => ({ player_id: k.slice(0, k.lastIndexOf('|')), day: k.slice(k.lastIndexOf('|') + 1) }))
+      .filter((r) => r.day >= String(args[0]));
+    return { rows, changes: 0 };
+  }
+  if (sql.startsWith('SELECT day FROM an_activity WHERE player_id = ?1')) {
+    const rows = [...db.anActivity].filter((k) => k.startsWith(`${args[0]}|`)).map((k) => ({ day: k.slice(k.lastIndexOf('|') + 1) }))
+      .sort((a, b) => (a.day < b.day ? 1 : -1)).slice(0, 60);
+    return { rows, changes: 0 };
+  }
+  if (sql.includes('FROM an_players WHERE player_id = ?1')) {
+    const row = db.anPlayers.get(String(args[0]));
+    return { rows: row ? [row] : [], changes: 0 };
+  }
+  if (sql.includes('FROM an_events WHERE player_id = ?1')) {
+    const rows = db.anEvents.filter((e) => e.player_id === args[0]).sort((a, b) => num(b.at) - num(a.at)).slice(0, 200);
+    return { rows, changes: 0 };
+  }
+  if (sql.includes('FROM an_errors ORDER BY last_at DESC')) {
+    return { rows: [...db.anErrors.values()].sort((a, b) => num(b.last_at) - num(a.last_at)).slice(0, 100), changes: 0 };
+  }
+  if (sql.startsWith('SELECT doc, rev FROM an_flags')) {
+    return { rows: db.anFlags ? [{ doc: db.anFlags.doc, rev: db.anFlags.rev }] : [], changes: 0 };
+  }
+  return null;
 }
 
 // ── Context builders ──────────────────────────────────────────────────────────

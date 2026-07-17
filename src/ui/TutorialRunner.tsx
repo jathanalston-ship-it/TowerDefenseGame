@@ -6,7 +6,9 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { audio } from '../audio/sound';
+import { telemetry } from '../net/telemetry';
 import { tutorial } from '../state/tutorial';
+import { currentCheckpoint } from '../core/tutorial';
 import { navBus } from '../state/navBus';
 import { meta, metaModifiers } from '../state/meta';
 import type { TutorialRewardSummary } from '../state/meta';
@@ -49,11 +51,25 @@ export function TutorialRunner({ onExit }: { onExit: () => void }): JSX.Element 
     if (game) game.god = true;
   }, [game]);
 
+  // Tutorial funnel telemetry (docs/ANALYTICS.md §tutorial): every checkpoint REACHED emits
+  // once; a skip emits the abandon point — the funnel + abandonment insight read these.
+  const stepRef = useRef<string | null>(null);
+  const cp = session ? currentCheckpoint(session.progress, session.def) : null;
+  useEffect(() => {
+    if (cp && cp.id !== stepRef.current) {
+      stepRef.current = cp.id;
+      telemetry.emit('tut', { d: cp.id });
+    }
+  }, [cp]);
+
   const wasActive = useRef(false);
   useEffect(() => {
     if (session) {
       wasActive.current = true;
     } else if (wasActive.current) {
+      if (tutorial.lastEndReason() === 'skipped' && stepRef.current) {
+        telemetry.emit('tut', { d: `abandon:${stepRef.current}` });
+      }
       if (tutorial.lastEndReason() === 'completed') {
         audio.cue('tut_done'); // graduation — the rising ceremony stinger
         const r = meta.grantTutorialRewards('combat'); // idempotent — null on a replay

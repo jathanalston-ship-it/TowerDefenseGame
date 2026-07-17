@@ -19,6 +19,7 @@ import { wardrobeItem, WARDROBE_RARITY_COLOR } from '../core/wardrobe';
 import { CurrencyIcon } from './components/CurrencyIcon';
 import { audio } from '../audio/sound';
 import { adProvider } from '../ads/provider';
+import { telemetry } from '../net/telemetry';
 
 function fmtLeft(ms: number): string {
   const d = Math.floor(ms / 86_400_000);
@@ -271,7 +272,9 @@ export function BattlePassScreen({ onStore }: { onStore?: () => void } = {}): JS
           <button
             className="bp-ad"
             onClick={() => {
+              telemetry.emit('ad', { d: 'bp:start' });
               void adProvider.show().then((r) => {
+                telemetry.emit('ad', { d: `bp:${r === 'completed' ? 'complete' : 'abort'}` });
                 if (r === 'completed' && meta.adAdvancePass(Date.now())) audio.cue('power');
               });
             }}

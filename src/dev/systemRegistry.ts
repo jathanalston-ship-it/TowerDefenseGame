@@ -541,6 +541,14 @@ export const SYSTEMS: SystemDef[] = [
     collection: null, achievements: [], localization: 'inline-en', docs: ['docs/UI-STANDARDS.md', 'docs/STYLE-GUIDE.md', 'docs/UI-MOTION.md', 'docs/VISUAL_IDENTITY.md', 'docs/UI_STYLE_GUIDE.md', 'docs/DESIGN_LANGUAGE.md', 'docs/RESPONSIVE-DESIGN.md'],
   },
   {
+    id: 'analytics', name: 'Player Telemetry & Analytics',
+    purpose: 'The unified gameplay-intelligence platform (docs/ANALYTICS.md): ONE registry row per event (core/analyticsEvents.ts — dims/values/extras/rollup/durable/sampling all declared as data, shared verbatim by client emitter, server ingest, and sims), a batched fail-soft client pipe (net/telemetry.ts — auto-context batches, O(1) session folds for FPS/heat/currency, localStorage outbox, sendBeacon drain, Settings opt-out + guest silence), the automatic-insights engine (core/analyticsInsights.ts — z-tested findings: worst tower, abandonment hotspots, funnel cliffs, economy bottlenecks), and the A/B-ready remote-config whitelist (core/remoteConfig.ts — UI/meta lane ONLY; deterministic FNV bucket assignment). The legacy anonymous counter beacon (net/events.ts) is a separate lane with a separate promise (counts, not people).',
+    files: ['src/core/analyticsEvents.ts', 'src/core/analyticsInsights.ts', 'src/core/remoteConfig.ts', 'src/net/telemetry.ts'],
+    dependsOn: ['meta-store', 'accounts'], powerScore: 'batch context carries the account Power Score (read-only)', save: [], tutorial: [], help: [],
+    hud: [], ui: ['Settings → Gameplay Analytics toggle (Hub)'], collection: null, achievements: [],
+    localization: 'inline-en', docs: ['docs/ANALYTICS.md'],
+  },
+  {
     id: 'dev-registry', name: 'System Registry & Design Intelligence Layer', purpose: 'THIS registry + the doc-sync/validation generators + the DIL (src/dev/dil/*): the typed knowledge graph over every system/entity/concept — query with `npm run dil` instead of searching the repo (docs/DIL.md).',
     files: ['src/dev/*', 'src/dev/dil/*'],
     dependsOn: [], powerScore: null, save: [], tutorial: [], help: [], hud: [], ui: [], collection: null, achievements: [],

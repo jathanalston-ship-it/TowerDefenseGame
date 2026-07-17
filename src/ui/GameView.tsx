@@ -46,6 +46,7 @@ import { MODULE_LABEL } from '../core/boss';
 import type { BossModuleKind } from '../core/boss';
 import { currentCheckpoint } from '../core/tutorial';
 import { audio } from '../audio/sound';
+import { telemetry } from '../net/telemetry';
 import { setActiveGame } from '../debug/debug';
 import { attachRecorder, MAX_REPLAY_BYTES } from '../core/replay';
 import type { Recorder, ReplayCtorArgs } from '../core/replay';
@@ -158,7 +159,7 @@ export function GameView({
   daily?: { modifierIds: string[]; towerPool: TowerKind[]; megaBoss?: MegaEncounter }; // Daily Run (docs/DAILY-RUN.md): modifiers + trial pool + the rare Mega variant (docs/MEGA-BOSS.md §daily)
   mulliganOverride?: Partial<Record<TowerKind, MulliganState>>; // Daily's seeded organisms (docs/MULLIGANS.md §daily) — substitutes the account's for this run
   onEnd: (r: RunResult) => void;
-  onAbandon: () => void;
+  onAbandon: (wave?: number) => void;
   tutorial?: boolean; // TUTORIAL mode: don't bank loot + don't auto-hand-off on run end (the tutorial director drives completion)
   onReady?: (g: Game) => void; // fires once with the live game so the tutorial director can script beats
 }): JSX.Element {
@@ -575,6 +576,7 @@ export function GameView({
         if (pausedRef.current || tutPausedRef.current) { last = now; raf = requestAnimationFrame(loop); return; }
         const dt = (now - last) / 1000;
         last = now;
+        telemetry.fpsTick(dt); // O(1) histogram bump — the session's FPS summary lane
         // Hitstop: a brief view-loop freeze on a juicy event (a branch-tier purchase). The sim is
         // paused, but cues/shake/render still run below — so the screen shakes + the banner pops
         // against a frozen battlefield. advance() never reads this, so stepping stays deterministic.
@@ -923,7 +925,9 @@ export function GameView({
           }
         }
       } else if (k === 'q' || k === 'Q') {
+        const wasArmed = game.armedAbility;
         game.armAbility();
+        if (!wasArmed && game.armedAbility) telemetry.emit('ability', { d: heroKind, v: 1 });
       } else if (k === 'e' || k === 'E') {
         setEvoOpen((v) => !v); // Hero Combat Console (docs/HERO-EVOLUTION.md §console)
       } else if (k === 'f' || k === 'F') {
@@ -1109,7 +1113,7 @@ export function GameView({
                     mastery, gear, or bio-containers. This can't be undone.
                   </div>
                   <div className="pause-row">
-                    <button className="set-danger" onClick={(e) => { e.stopPropagation(); onAbandon(); }}>Forfeit &amp; Quit</button>
+                    <button className="set-danger" onClick={(e) => { e.stopPropagation(); onAbandon(game.waveIndex); }}>Forfeit &amp; Quit</button>
                     <button onClick={(e) => { e.stopPropagation(); setConfirmAbandon(false); }}>Keep Playing</button>
                   </div>
                 </>

@@ -12,6 +12,11 @@ export const RELEASES: Release[] = [
     "entries": [
       {
         "cat": "Gameplay",
+        "text": "New system: Player Telemetry & Analytics",
+        "major": true
+      },
+      {
+        "cat": "Gameplay",
         "text": "New achievement: Perennial",
         "major": true
       },

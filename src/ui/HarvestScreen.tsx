@@ -16,6 +16,7 @@ import { NextUp } from './HubLanding';
 import { navBus } from '../state/navBus';
 import { CurrencyIcon } from './components/CurrencyIcon';
 import { HiveOrganism } from './components/HiveOrganism';
+import { telemetry } from '../net/telemetry';
 
 function pct(n: number): number { return Math.max(0, Math.min(100, Math.round(n * 100))); }
 
@@ -116,7 +117,11 @@ export function HarvestArrival({ onVisitHarvest }: { onVisitHarvest: () => void 
       <button className="primary hv-arrive-go" onClick={() => {
         arrivalShown = true;
         const r = meta.collectIdleHarvest();
-        if (r) { audio.cue('chest'); setReceipt(r); } else setDismissed(true);
+        if (r) {
+          telemetry.emit('idle_collect', { v: Math.max(0, Math.min(10_000, Math.round(v.accrual.effHours * 10))) });
+          audio.cue('chest');
+          setReceipt(r);
+        } else setDismissed(true);
       }}>Harvest</button>
       <button className="hv-arrive-later" onClick={() => { arrivalShown = true; setDismissed(true); }}>Later</button>
     </div>
@@ -200,7 +205,11 @@ export function HarvestScreen(): JSX.Element {
             disabled={!v.collectable}
             onClick={() => {
               const r = meta.collectIdleHarvest();
-              if (r) { audio.cue('chest'); setReceipt(r); }
+              if (r) {
+                telemetry.emit('idle_collect', { v: Math.max(0, Math.min(10_000, Math.round(a.effHours * 10))) });
+                audio.cue('chest');
+                setReceipt(r);
+              }
             }}
           >
             {v.collectable ? 'HARVEST' : `Warming — ready in ${Math.max(1, Math.ceil(IDLE.minCollectMinutes - a.rawHours * 60))}m`}

@@ -7,6 +7,7 @@ import { useEffect, useState } from 'react';
 import { meta } from '../../state/meta';
 import type { GenomePromotion } from '../../state/meta';
 import { audio } from '../../audio/sound';
+import { telemetry } from '../../net/telemetry';
 
 const CATEGORY_COLOR: Record<string, string> = {
   journey: 'var(--caustic)',
@@ -69,7 +70,10 @@ export function GenomePromotionCinematic(): JSX.Element | null {
   });
   const p = queue.length > 0 ? queue[0] : null;
   useEffect(() => {
-    if (p) audio.cue('promotion');
+    if (p) {
+      audio.cue('promotion');
+      telemetry.emit('rank', { d: `r${p.index}` }); // Genome Rank milestone lane
+    }
   }, [p?.index]); // eslint-disable-line react-hooks/exhaustive-deps
   if (!p) return null;
   const dismiss = (): void => setQueue((q) => q.slice(1));

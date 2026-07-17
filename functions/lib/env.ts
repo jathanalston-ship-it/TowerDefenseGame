@@ -17,6 +17,9 @@ export interface Env {
   RESET_EMAIL_WEBHOOK?: string;
   /** Moderation key for /api/auction/flags (header x-mod-key). Absent ⇒ endpoint 503. */
   MOD_KEY?: string;
+  /** Developer analytics key for /api/dev/* (header x-dev-key) — the desktop dev app's
+   *  credential (docs/ANALYTICS.md §devapp). Absent ⇒ the whole dev API 503s (closed). */
+  DEV_KEY?: string;
   /** 'production' | 'preview' — production refuses sk_test_ keys. */
   ENVIRONMENT?: string;
 }

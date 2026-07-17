@@ -114,6 +114,15 @@ export const onRequestDelete: PagesFunction<Env> = async ({ request, env }) => {
   const auth = await authorize(env, playerId, url.searchParams.get('token'), url.searchParams.get('session'), row);
   if (auth !== 'ok') return err(403, auth);
   await env.DB.prepare('DELETE FROM cloud_saves WHERE player_id = ?1').bind(playerId).run();
+  // The deletion right covers gameplay analytics too (docs/ANALYTICS.md §privacy): purge
+  // this player's raw events, sessions, activity spine, and headline row. Daily rollups
+  // are population aggregates with no per-player data — nothing to erase there.
+  await env.DB.batch([
+    env.DB.prepare('DELETE FROM an_events WHERE player_id = ?1').bind(playerId),
+    env.DB.prepare('DELETE FROM an_sessions WHERE player_id = ?1').bind(playerId),
+    env.DB.prepare('DELETE FROM an_activity WHERE player_id = ?1').bind(playerId),
+    env.DB.prepare('DELETE FROM an_players WHERE player_id = ?1').bind(playerId),
+  ]);
   return json({ ok: true, existed: true });
 };
 

@@ -1,0 +1,472 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>ASSIMILATION Mission Control</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  /* ── Mission Control — dark ops console (self-contained; no external assets) ── */
+  :root {
+    --bg: #0b0f0d; --panel: #111714; --panel2: #151d19; --line: #223028;
+    --ink: #cfe3d6; --muted: #7d9488; --accent: #5ad19a; --accent2: #5ad1ff;
+    --warn: #ffc857; --bad: #ff5d73; --good: #5ad19a; --viral: #c98bff;
+    font-size: 14px;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  body { background: var(--bg); color: var(--ink); font: 13px/1.45 'Segoe UI', system-ui, sans-serif; height: 100vh; overflow: hidden; }
+  #app { display: grid; grid-template-columns: 200px 1fr; height: 100vh; }
+  /* rail */
+  #rail { background: var(--panel); border-right: 1px solid var(--line); padding: 14px 10px; display: flex; flex-direction: column; gap: 2px; overflow-y: auto; }
+  #rail h1 { font-size: 13px; letter-spacing: .18em; color: var(--accent); padding: 2px 8px 10px; }
+  #rail h1 small { display: block; color: var(--muted); letter-spacing: .04em; font-size: 10px; font-weight: 400; }
+  #navbtns { display: flex; flex-direction: column; gap: 2px; }
+  .navbtn { text-align: left; background: none; border: 0; color: var(--muted); padding: 7px 10px; border-radius: 7px; cursor: pointer; font: inherit; }
+  .navbtn:hover { background: var(--panel2); color: var(--ink); }
+  .navbtn.on { background: var(--panel2); color: var(--accent); box-shadow: inset 2px 0 0 var(--accent); }
+  #conn { margin-top: auto; padding: 8px 10px; color: var(--muted); font-size: 11px; border-top: 1px solid var(--line); }
+  #conn b { color: var(--accent); font-weight: 600; }
+  /* main */
+  #main { overflow-y: auto; padding: 18px 22px 40px; }
+  h2 { font-size: 16px; letter-spacing: .08em; margin-bottom: 4px; }
+  .sub { color: var(--muted); margin-bottom: 16px; }
+  .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 10px; margin-bottom: 18px; }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; }
+  .card .k { color: var(--muted); font-size: 11px; letter-spacing: .1em; text-transform: uppercase; }
+  .card .v { font-size: 22px; font-weight: 650; margin-top: 2px; }
+  .card .d { color: var(--muted); font-size: 11px; margin-top: 2px; }
+  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; margin-bottom: 14px; }
+  .panel h3 { font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: var(--accent2); margin-bottom: 10px; }
+  table { width: 100%; border-collapse: collapse; }
+  th { text-align: left; color: var(--muted); font-size: 11px; letter-spacing: .08em; text-transform: uppercase; padding: 4px 8px; border-bottom: 1px solid var(--line); }
+  td { padding: 5px 8px; border-bottom: 1px solid #182119; font-variant-numeric: tabular-nums; }
+  tr:hover td { background: var(--panel2); }
+  .num { text-align: right; }
+  .chip { display: inline-block; padding: 1px 8px; border-radius: 20px; font-size: 11px; border: 1px solid var(--line); color: var(--muted); }
+  .chip.action { color: var(--bad); border-color: var(--bad); }
+  .chip.watch { color: var(--warn); border-color: var(--warn); }
+  .chip.info { color: var(--muted); }
+  .chip.sig { color: var(--accent2); border-color: var(--accent2); }
+  .bar { height: 8px; border-radius: 4px; background: var(--panel2); overflow: hidden; }
+  .bar i { display: block; height: 100%; background: var(--accent); }
+  .row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 12px; }
+  select, input[type=text], input[type=password], input[type=number], textarea {
+    background: var(--panel2); color: var(--ink); border: 1px solid var(--line); border-radius: 7px; padding: 6px 9px; font: inherit;
+  }
+  textarea { width: 100%; min-height: 260px; font-family: ui-monospace, monospace; font-size: 12px; }
+  button.act { background: var(--accent); color: #06231a; border: 0; border-radius: 7px; padding: 7px 14px; font: inherit; font-weight: 650; cursor: pointer; }
+  button.act.ghost { background: var(--panel2); color: var(--ink); border: 1px solid var(--line); }
+  .err { background: #2a1418; border: 1px solid var(--bad); color: #ffb9c4; padding: 10px 14px; border-radius: 8px; margin-bottom: 14px; white-space: pre-wrap; }
+  .heat { display: grid; grid-template-columns: repeat(12, 26px); gap: 3px; }
+  .heat i { width: 26px; height: 26px; border-radius: 4px; background: var(--accent); display: block; }
+  svg text { fill: var(--muted); font-size: 10px; }
+  .mono { font-family: ui-monospace, monospace; font-size: 12px; }
+  .findings { display: flex; flex-direction: column; gap: 8px; }
+  .finding { background: var(--panel2); border: 1px solid var(--line); border-left-width: 3px; border-radius: 8px; padding: 10px 12px; }
+  .finding.action { border-left-color: var(--bad); }
+  .finding.watch { border-left-color: var(--warn); }
+  .finding.info { border-left-color: var(--line); }
+  .finding b { font-size: 13px; }
+  .finding p { color: var(--muted); margin-top: 3px; }
+  /* connect gate */
+  #gate { position: fixed; inset: 0; background: var(--bg); display: grid; place-items: center; z-index: 10; }
+  #gate .box { width: 420px; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 26px; }
+  #gate h1 { color: var(--accent); letter-spacing: .16em; font-size: 15px; margin-bottom: 2px; }
+  #gate .sub { margin-bottom: 18px; }
+  #gate label { display: block; color: var(--muted); font-size: 11px; letter-spacing: .1em; text-transform: uppercase; margin: 12px 0 4px; }
+  #gate input { width: 100%; }
+  #gate button { margin-top: 18px; width: 100%; }
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+<div id="gate">
+  <div class="box">
+    <h1>◉ MISSION CONTROL</h1>
+    <div class="sub">ASSIMILATION developer analytics — standalone desktop console.</div>
+    <label>API base URL</label>
+    <input id="g-base" type="text" placeholder="https://your-game.pages.dev">
+    <label>Dev key (x-dev-key)</label>
+    <input id="g-key" type="password" placeholder="the DEV_KEY secret">
+    <button class="act" id="g-go">Connect</button>
+    <div id="g-err" class="err hidden" style="margin-top:14px"></div>
+  </div>
+</div>
+
+<div id="app" class="hidden">
+  <nav id="rail">
+    <h1>◉ MISSION CONTROL<small>ASSIMILATION analytics</small></h1>
+    <div id="navbtns"></div>
+    <div id="conn"></div>
+  </nav>
+  <main id="main"></main>
+</div>
+
+<script>
+'use strict';
+// ── State & API ──────────────────────────────────────────────────────────────
+const S = {
+  base: localStorage.getItem('mc.base') || '',
+  key: localStorage.getItem('mc.key') || '',
+  view: 'overview',
+  cache: new Map(), // path → {at, data} (30s TTL — snappy view switches, honest data)
+};
+async function api(path, opts = {}) {
+  const hit = !opts.method && S.cache.get(path);
+  if (hit && Date.now() - hit.at < 30_000) return hit.data;
+  const res = await fetch(S.base + path, {
+    method: opts.method || 'GET',
+    headers: { 'x-dev-key': S.key, ...(opts.body ? { 'content-type': 'application/json' } : {}) },
+    body: opts.body ? JSON.stringify(opts.body) : undefined,
+  });
+  if (!res.ok) throw new Error(`${res.status} ${await res.text().catch(() => '')}`.trim());
+  const data = opts.raw ? await res.text() : await res.json();
+  if (!opts.method) S.cache.set(path, { at: Date.now(), data });
+  return data;
+}
+const $ = (sel) => document.querySelector(sel);
+const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const fmt = (n) => Number(n ?? 0).toLocaleString();
+const usd = (c) => '$' + (Number(c ?? 0) / 100).toFixed(2);
+const pct = (x) => (100 * x).toFixed(1) + '%';
+
+// ── Rollup helpers (rows: {day,kind,dim,ver,n,sum,sum2}) ─────────────────────
+function byDay(rows, field = 'n') {
+  const m = new Map();
+  for (const r of rows) m.set(r.day, (m.get(r.day) || 0) + Number(r[field]));
+  return [...m.entries()].sort((a, b) => a[0] < b[0] ? -1 : 1);
+}
+function byDim(rows, field = 'n') {
+  const m = new Map();
+  for (const r of rows) m.set(r.dim, (m.get(r.dim) || 0) + Number(r[field]));
+  return [...m.entries()].sort((a, b) => b[1] - a[1]);
+}
+function twoPropZ(x1, n1, x2, n2) {
+  if (n1 === 0 || n2 === 0) return 0;
+  const p = (x1 + x2) / (n1 + n2), se = Math.sqrt(p * (1 - p) * (1 / n1 + 1 / n2));
+  return se === 0 ? 0 : ((x1 / n1) - (x2 / n2)) / se;
+}
+
+// ── Tiny SVG charts ──────────────────────────────────────────────────────────
+function lineChart(pairs, { w = 720, h = 160, color = 'var(--accent)' } = {}) {
+  if (pairs.length === 0) return '<div class="sub">no data in range</div>';
+  const max = Math.max(1, ...pairs.map(p => p[1]));
+  const px = (i) => 40 + i * (w - 60) / Math.max(1, pairs.length - 1);
+  const py = (v) => 12 + (h - 40) * (1 - v / max);
+  const pts = pairs.map((p, i) => `${px(i)},${py(p[1])}`).join(' ');
+  const labels = pairs.filter((_, i) => i % Math.ceil(pairs.length / 8) === 0 || i === pairs.length - 1);
+  return `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">
+    <text x="4" y="16">${fmt(max)}</text><text x="4" y="${h - 28}">0</text>
+    <polyline fill="none" stroke="${color}" stroke-width="2" points="${pts}"/>
+    ${pairs.map((p, i) => `<circle cx="${px(i)}" cy="${py(p[1])}" r="2.5" fill="${color}"><title>${p[0]}: ${fmt(p[1])}</title></circle>`).join('')}
+    ${labels.map((p) => `<text x="${px(pairs.indexOf(p))}" y="${h - 6}" text-anchor="middle">${p[0].slice(5)}</text>`).join('')}
+  </svg>`;
+}
+function hbars(entries, { max = null, color = 'var(--accent)', fmtV = fmt } = {}) {
+  const top = max ?? Math.max(1, ...entries.map(e => e[1]));
+  return entries.map(([k, v]) => `
+    <tr><td>${esc(k)}</td><td style="width:45%"><div class="bar"><i style="width:${Math.min(100, 100 * v / top)}%;background:${color}"></i></div></td>
+    <td class="num">${fmtV(v)}</td></tr>`).join('');
+}
+
+// ── Views ────────────────────────────────────────────────────────────────────
+const VIEWS = [
+  ['overview', 'Overview'], ['insights', 'Insights'], ['series', 'Series Explorer'],
+  ['balance', 'Balance'], ['economy', 'Economy'], ['retention', 'Retention'],
+  ['heatmap', 'Heatmaps'], ['players', 'Player Lookup'], ['errors', 'Errors'],
+  ['flags', 'Remote Config'], ['export', 'Export'],
+];
+
+async function vOverview(el) {
+  const o = await api('/api/dev/overview');
+  const runs = await api('/api/dev/series?kind=run_start&days=30');
+  el.innerHTML = `
+    <h2>OVERVIEW</h2><div class="sub">The live pulse — refreshes on view switch (30 s cache).</div>
+    <div class="cards">
+      <div class="card"><div class="k">Players online</div><div class="v" style="color:var(--accent)">${fmt(o.live)}</div><div class="d">heartbeat &lt; 2.5 min</div></div>
+      <div class="card"><div class="k">DAU today</div><div class="v">${fmt(o.dau.today)}</div><div class="d">yesterday ${fmt(o.dau.yesterday)}</div></div>
+      <div class="card"><div class="k">Players total</div><div class="v">${fmt(o.playersTotal)}</div></div>
+      <div class="card"><div class="k">Revenue today</div><div class="v">${usd(o.today.revenueCents)}</div><div class="d">lifetime ${usd(o.revenueCentsTotal)}</div></div>
+      <div class="card"><div class="k">Sessions today</div><div class="v">${fmt(o.today.sessions)}</div><div class="d">${fmt(o.week.sessions)} this week</div></div>
+      <div class="card"><div class="k">Runs today</div><div class="v">${fmt(o.today.runs)}</div><div class="d">${fmt(o.week.runs)} this week</div></div>
+      <div class="card"><div class="k">Errors today</div><div class="v" style="color:${o.today.errors > 0 ? 'var(--warn)' : 'inherit'}">${fmt(o.today.errors)}</div><div class="d">${fmt(o.week.errors)} this week</div></div>
+      <div class="card"><div class="k">Purchases today</div><div class="v">${fmt(o.today.purchases)}</div></div>
+    </div>
+    <div class="panel"><h3>Runs started — 30 days</h3>${lineChart(byDay(runs.rows))}</div>
+    <div class="panel"><h3>Version mix (sessions, 7 d)</h3><table><tbody>${hbars(o.versions.map(v => [v.ver || '(unstamped)', v.sessions]))}</tbody></table></div>`;
+}
+
+async function vInsights(el) {
+  const r = await api('/api/dev/insights?days=30');
+  el.innerHTML = `
+    <h2>AUTOMATIC INSIGHTS</h2><div class="sub">Statistically-tested findings over the last ${r.days} days — action → watch → info. ✓z marks |z| ≥ 1.96.</div>
+    <div class="findings">${r.findings.length === 0 ? '<div class="sub">Nothing significant yet — needs more data.</div>' : r.findings.map(f => `
+      <div class="finding ${f.severity}">
+        <span class="chip ${f.severity}">${f.severity.toUpperCase()}</span>
+        ${f.significant ? '<span class="chip sig">✓ z=' + (f.z?.toFixed(2) ?? '—') + '</span>' : ''}
+        <span class="chip">n=${fmt(f.sample)}</span>
+        <b> ${esc(f.title)}</b>
+        <p>${esc(f.detail)}</p>
+      </div>`).join('')}</div>`;
+}
+
+async function vSeries(el, kind = 'run_end', days = 30) {
+  const kinds = await api('/api/dev/series?kind=kinds');
+  const r = await api(`/api/dev/series?kind=${kind}&days=${days}`);
+  const doc = kinds.kinds.find(k => k.kind === kind)?.doc ?? '';
+  el.innerHTML = `
+    <h2>SERIES EXPLORER</h2><div class="sub">Every registry event is queryable — zero per-kind wiring.</div>
+    <div class="row">
+      <select id="se-kind">${kinds.kinds.map(k => `<option ${k.kind === kind ? 'selected' : ''}>${k.kind}</option>`).join('')}</select>
+      <select id="se-days">${[7, 14, 30, 60, 90].map(d => `<option ${d === days ? 'selected' : ''}>${d}</option>`).join('')}</select>
+      <span class="sub" style="margin:0">${esc(doc)}</span>
+    </div>
+    <div class="panel"><h3>Events / day</h3>${lineChart(byDay(r.rows))}</div>
+    <div class="panel"><h3>Value sum / day</h3>${lineChart(byDay(r.rows, 'sum'), { color: 'var(--accent2)' })}</div>
+    <div class="panel"><h3>Top dimensions</h3><table><tbody>${hbars(byDim(r.rows).slice(0, 25)) || ''}</tbody></table></div>`;
+  $('#se-kind').onchange = (e) => vSeries(el, e.target.value, days);
+  $('#se-days').onchange = (e) => vSeries(el, kind, Number(e.target.value));
+}
+
+async function usageTable(fieldKind, winKind, label) {
+  const f = await api(`/api/dev/series?kind=${fieldKind}&days=30`);
+  const w = winKind ? await api(`/api/dev/series?kind=${winKind}&days=30`) : null;
+  const fields = new Map(byDim(f.rows));
+  const wins = w ? new Map(byDim(w.rows)) : null;
+  const totF = [...fields.values()].reduce((a, b) => a + b, 0);
+  const totW = wins ? [...wins.values()].reduce((a, b) => a + b, 0) : 0;
+  const rows = [...fields.entries()].map(([dim, n]) => {
+    const won = wins ? (wins.get(dim) || 0) : null;
+    const z = wins ? twoPropZ(won, n, totW - won, totF - n) : null;
+    return { dim, n, won, rate: wins ? won / Math.max(1, n) : null, z };
+  }).sort((a, b) => (a.rate ?? 0) - (b.rate ?? 0) || b.n - a.n);
+  return `<div class="panel"><h3>${label}</h3><table>
+    <thead><tr><th>id</th><th class="num">uses</th>${wins ? '<th class="num">wins</th><th class="num">win %</th><th class="num">z</th>' : ''}</tr></thead>
+    <tbody>${rows.slice(0, 40).map(r => `<tr><td>${esc(r.dim)}</td><td class="num">${fmt(r.n)}</td>${wins ? `
+      <td class="num">${fmt(r.won)}</td>
+      <td class="num" style="color:${r.n >= 30 && r.z <= -1.96 ? 'var(--bad)' : r.n >= 30 && r.z >= 1.96 ? 'var(--good)' : 'inherit'}">${pct(r.rate)}</td>
+      <td class="num">${r.z.toFixed(2)}</td>` : ''}</tr>`).join('')}</tbody></table></div>`;
+}
+
+async function vBalance(el) {
+  el.innerHTML = '<h2>BALANCE</h2><div class="sub">30-day usage + win rates. Red/green win% = statistically significant vs the pooled baseline (n ≥ 30).</div><div id="bal"></div>';
+  const parts = await Promise.all([
+    usageTable('tw_field', 'tw_win', 'Towers — fielded vs won'),
+    usageTable('hero_pick', 'hero_win', 'Heroes — picked vs won'),
+    usageTable('gene_use', null, 'Gene cards — drafted (30 d)'),
+    usageTable('equip_use', null, 'Equipment — worn in finished runs'),
+    usageTable('mull_use', null, 'Mulligan hosts — active in runs'),
+    usageTable('ability', null, 'Hero abilities — manual arms'),
+  ]);
+  $('#bal').innerHTML = parts.join('');
+}
+
+async function vEconomy(el) {
+  const g = await api('/api/dev/series?kind=cur_gain&days=30');
+  const s = await api('/api/dev/series?kind=cur_spend&days=30');
+  const box = await api('/api/dev/series?kind=box_open&days=30');
+  const rare = await api('/api/dev/series?kind=loot_rare&days=30');
+  const cur = (rows) => {
+    const m = new Map();
+    for (const r of rows.rows) {
+      const c = String(r.dim).split(':')[0];
+      m.set(c, (m.get(c) || 0) + Number(r.sum));
+    }
+    return m;
+  };
+  const gains = cur(g), spends = cur(s);
+  const currencies = [...new Set([...gains.keys(), ...spends.keys()])];
+  el.innerHTML = `
+    <h2>ECONOMY</h2><div class="sub">Faucets vs sinks per currency (30 d sums). Coverage &lt; 90 % = players outspending earnings → bottleneck.</div>
+    <div class="panel"><h3>Currency flow</h3><table>
+      <thead><tr><th>currency</th><th class="num">earned</th><th class="num">spent</th><th class="num">coverage</th></tr></thead>
+      <tbody>${currencies.map(c => {
+        const e = gains.get(c) || 0, sp = spends.get(c) || 0, cov = sp === 0 ? Infinity : e / sp;
+        return `<tr><td>${esc(c)}</td><td class="num">${fmt(e)}</td><td class="num">${fmt(sp)}</td>
+          <td class="num" style="color:${cov < 0.9 ? 'var(--bad)' : 'inherit'}">${cov === Infinity ? '∞' : pct(cov)}</td></tr>`;
+      }).join('')}</tbody></table></div>
+    <div class="panel"><h3>Gain sources (top 20)</h3><table><tbody>${hbars(byDim(g.rows, 'sum').slice(0, 20))}</tbody></table></div>
+    <div class="panel"><h3>Spend sinks</h3><table><tbody>${hbars(byDim(s.rows, 'sum').slice(0, 20), { color: 'var(--bad)' })}</tbody></table></div>
+    <div class="panel"><h3>Containers opened (by band)</h3><table><tbody>${hbars(byDim(box.rows, 'sum'), { color: 'var(--viral)' })}</tbody></table></div>
+    <div class="panel"><h3>Rare+ finds</h3><table><tbody>${hbars(byDim(rare.rows), { color: 'var(--warn)' })}</tbody></table></div>`;
+}
+
+async function vRetention(el) {
+  const r = await api('/api/dev/insights?days=60');
+  const co = r.cohorts || [];
+  const tot = co.reduce((a, c) => a + c.size, 0);
+  const w = (f) => tot === 0 ? 0 : co.reduce((a, c) => a + c[f], 0) / tot;
+  el.innerHTML = `
+    <h2>RETENTION</h2><div class="sub">Cohorts by first-seen day (60 d window) from the activity spine.</div>
+    <div class="cards">
+      <div class="card"><div class="k">New players (60 d)</div><div class="v">${fmt(tot)}</div></div>
+      <div class="card"><div class="k">D1</div><div class="v">${pct(w('d1'))}</div></div>
+      <div class="card"><div class="k">D7</div><div class="v">${pct(w('d7'))}</div></div>
+      <div class="card"><div class="k">D30</div><div class="v">${pct(w('d30'))}</div></div>
+    </div>
+    <div class="panel"><h3>Cohorts</h3><table>
+      <thead><tr><th>first seen</th><th class="num">size</th><th class="num">D1</th><th class="num">D7</th><th class="num">D30</th></tr></thead>
+      <tbody>${co.slice().reverse().map(c => `<tr><td>${c.cohortDay}</td><td class="num">${fmt(c.size)}</td>
+        <td class="num">${c.size ? pct(c.d1 / c.size) : '—'}</td><td class="num">${c.size ? pct(c.d7 / c.size) : '—'}</td>
+        <td class="num">${c.size ? pct(c.d30 / c.size) : '—'}</td></tr>`).join('')}</tbody></table></div>`;
+}
+
+async function vHeatmap(el, screen = null) {
+  const r = await api('/api/dev/series?kind=heat&days=14');
+  const screens = new Map();
+  for (const row of r.rows) {
+    const [sc, cell] = String(row.dim).split(':');
+    if (!screens.has(sc)) screens.set(sc, new Map());
+    const g = screens.get(sc);
+    g.set(Number(cell), (g.get(Number(cell)) || 0) + Number(row.sum || row.n));
+  }
+  const names = [...screens.keys()].sort();
+  const cur = screen && screens.has(screen) ? screen : names[0];
+  const grid = screens.get(cur) || new Map();
+  const max = Math.max(1, ...grid.values());
+  el.innerHTML = `
+    <h2>INTERACTION HEATMAPS</h2><div class="sub">Tap density folded client-side into a 12×8 grid per screen (14 d).</div>
+    <div class="row"><select id="hm-s">${names.map(n => `<option ${n === cur ? 'selected' : ''}>${n}</option>`).join('')}</select></div>
+    ${names.length === 0 ? '<div class="sub">No heat data yet.</div>' : `
+    <div class="panel"><h3>${esc(cur)}</h3><div class="heat">
+      ${Array.from({ length: 96 }, (_, i) => {
+        const v = grid.get(i) || 0;
+        return `<i style="opacity:${v === 0 ? 0.06 : 0.15 + 0.85 * v / max}" title="cell ${i}: ${fmt(v)} taps"></i>`;
+      }).join('')}
+    </div></div>`}`;
+  const sel = $('#hm-s');
+  if (sel) sel.onchange = (e) => vHeatmap(el, e.target.value);
+}
+
+async function vPlayers(el) {
+  el.innerHTML = `
+    <h2>PLAYER LOOKUP</h2><div class="sub">Pseudonymous id → headline + durable-event timeline. This is ALL the platform stores about one player.</div>
+    <div class="row"><input id="pl-id" type="text" size="42" placeholder="player id (uuid)"><button class="act" id="pl-go">Look up</button></div>
+    <div id="pl-out"></div>`;
+  $('#pl-go').onclick = async () => {
+    const out = $('#pl-out');
+    try {
+      const r = await api(`/api/dev/player?id=${encodeURIComponent($('#pl-id').value.trim())}`);
+      const p = r.player;
+      out.innerHTML = `
+        <div class="cards">
+          <div class="card"><div class="k">Sessions</div><div class="v">${fmt(p.sessions)}</div></div>
+          <div class="card"><div class="k">Revenue</div><div class="v">${usd(p.revenue_cents)}</div></div>
+          <div class="card"><div class="k">Power</div><div class="v">${fmt(p.power)}</div><div class="d">stage ${p.stage}</div></div>
+          <div class="card"><div class="k">Region / platform</div><div class="v">${esc(p.region || '—')}</div><div class="d">${esc(p.platform)} · ${esc(p.lang)} · ${esc(p.last_ver)}</div></div>
+          <div class="card"><div class="k">First seen</div><div class="v" style="font-size:14px">${new Date(p.first_seen).toISOString().slice(0, 10)}</div><div class="d">last ${new Date(p.last_seen).toISOString().slice(0, 16).replace('T', ' ')}</div></div>
+          <div class="card"><div class="k">Active days (60 d)</div><div class="v">${fmt(r.activity.length)}</div></div>
+        </div>
+        <div class="panel"><h3>Durable timeline (newest first)</h3><table>
+          <thead><tr><th>when</th><th>kind</th><th>screen</th><th>dim</th><th class="num">value</th><th>extras</th></tr></thead>
+          <tbody>${r.events.map(e => `<tr><td>${new Date(e.at).toISOString().slice(0, 16).replace('T', ' ')}</td>
+            <td>${esc(e.kind)}</td><td>${esc(e.screen ?? '')}</td><td>${esc(e.dim ?? '')}</td>
+            <td class="num">${e.val ?? ''}</td><td class="mono">${esc((e.extras ?? '').slice(0, 90))}</td></tr>`).join('')}</tbody></table></div>`;
+    } catch (e) { out.innerHTML = `<div class="err">${esc(e.message)}</div>`; }
+  };
+}
+
+async function vErrors(el) {
+  const r = await api('/api/dev/errors');
+  el.innerHTML = `
+    <h2>ERRORS & CRASHES</h2><div class="sub">Hash-deduped runtime errors from the field (message + stack head, truncated client-side).</div>
+    <div class="panel"><table>
+      <thead><tr><th>hash</th><th class="num">count</th><th>last seen</th><th>ver</th><th>message</th><th>stack head</th></tr></thead>
+      <tbody>${r.errors.length === 0 ? '<tr><td colspan="6" class="sub">No errors recorded. 🎉</td></tr>' : r.errors.map(e => `
+        <tr><td class="mono">${esc(e.hash)}</td><td class="num" style="color:${e.count > 50 ? 'var(--bad)' : 'inherit'}">${fmt(e.count)}</td>
+        <td>${new Date(e.last_at).toISOString().slice(0, 16).replace('T', ' ')}</td><td>${esc(e.ver)}</td>
+        <td>${esc(e.msg)}</td><td class="mono">${esc(e.stack)}</td></tr>`).join('')}</tbody></table></div>`;
+}
+
+async function vFlags(el) {
+  const r = await api('/api/dev/flags');
+  el.innerHTML = `
+    <h2>REMOTE CONFIG & EXPERIMENTS</h2>
+    <div class="sub">rev ${r.rev}. Saved documents pass the client's whitelist sanitizer — only ui./meta./store./market./an. keys survive, numbers clamp to bounds, sim inputs can never enter.</div>
+    <div class="panel"><h3>Document (edit + save)</h3>
+      <textarea id="fl-doc">${esc(JSON.stringify(r.effective, null, 2))}</textarea>
+      <div class="row" style="margin-top:10px"><button class="act" id="fl-save">Save (rev ${r.rev + 1})</button><span id="fl-msg" class="sub" style="margin:0"></span></div>
+    </div>`;
+  $('#fl-save').onclick = async () => {
+    try {
+      const body = JSON.parse($('#fl-doc').value);
+      const res = await api('/api/dev/flags', { method: 'PUT', body });
+      $('#fl-msg').textContent = `Saved — rev ${res.rev}. Clients pick it up within ~1 min.`;
+      S.cache.clear();
+    } catch (e) { $('#fl-msg').textContent = 'Failed: ' + e.message; }
+  };
+}
+
+async function vExport(el) {
+  el.innerHTML = `
+    <h2>EXPORT</h2><div class="sub">Daily rollup rows — the source every view derives from. CSV opens in any spreadsheet.</div>
+    <div class="row">
+      <label>Days <input id="ex-days" type="number" value="30" min="1" max="400" style="width:70px"></label>
+      <label>Kind <input id="ex-kind" type="text" placeholder="(all)" style="width:140px"></label>
+      <button class="act" id="ex-csv">Download CSV</button>
+      <button class="act ghost" id="ex-json">Download JSON</button>
+    </div>
+    <div id="ex-msg" class="sub"></div>`;
+  const dl = async (format) => {
+    const days = Number($('#ex-days').value) || 30;
+    const kind = $('#ex-kind').value.trim();
+    const path = `/api/dev/export?days=${days}${kind ? `&kind=${encodeURIComponent(kind)}` : ''}${format === 'csv' ? '&format=csv' : ''}`;
+    try {
+      const text = await api(path, { raw: true, method: 'GET' });
+      const blob = new Blob([text], { type: format === 'csv' ? 'text/csv' : 'application/json' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `an_daily_${days}d${kind ? '_' + kind : ''}.${format}`;
+      a.click();
+      URL.revokeObjectURL(a.href);
+      $('#ex-msg').textContent = 'Downloaded.';
+    } catch (e) { $('#ex-msg').innerHTML = `<span class="err">${esc(e.message)}</span>`; }
+  };
+  $('#ex-csv').onclick = () => dl('csv');
+  $('#ex-json').onclick = () => dl('json');
+}
+
+const RENDER = {
+  overview: vOverview, insights: vInsights, series: (el) => vSeries(el), balance: vBalance,
+  economy: vEconomy, retention: vRetention, heatmap: (el) => vHeatmap(el), players: vPlayers,
+  errors: vErrors, flags: vFlags, export: vExport,
+};
+
+// ── Shell ────────────────────────────────────────────────────────────────────
+async function show(view) {
+  S.view = view;
+  document.querySelectorAll('.navbtn').forEach(b => b.classList.toggle('on', b.dataset.v === view));
+  const el = $('#main');
+  el.innerHTML = '<div class="sub">loading…</div>';
+  try { await RENDER[view](el); }
+  catch (e) { el.innerHTML = `<div class="err">API error — ${esc(e.message)}\n\nCheck the base URL, the DEV_KEY, and that migration 0008 is applied.</div>`; }
+}
+function boot() {
+  $('#navbtns').innerHTML = VIEWS.map(([v, label]) => `<button class="navbtn" data-v="${v}">${label}</button>`).join('');
+  document.querySelectorAll('.navbtn').forEach(b => b.onclick = () => show(b.dataset.v));
+  $('#conn').innerHTML = `Connected to<br><b>${esc(S.base)}</b><br><button class="navbtn" id="disc" style="padding:4px 0;margin-top:4px">⏻ Disconnect</button>`;
+  $('#disc').onclick = () => { localStorage.removeItem('mc.key'); location.reload(); };
+  $('#gate').classList.add('hidden');
+  $('#app').classList.remove('hidden');
+  show('overview');
+}
+$('#g-go').onclick = async () => {
+  const base = $('#g-base').value.trim().replace(/\/+$/, '');
+  const key = $('#g-key').value.trim();
+  const errEl = $('#g-err');
+  errEl.classList.add('hidden');
+  try {
+    const res = await fetch(base + '/api/dev/overview', { headers: { 'x-dev-key': key } });
+    if (!res.ok) throw new Error(res.status === 403 ? 'Wrong dev key.' : res.status === 503 ? 'DEV_KEY is not configured on the server.' : `HTTP ${res.status}`);
+    S.base = base; S.key = key;
+    localStorage.setItem('mc.base', base);
+    localStorage.setItem('mc.key', key);
+    boot();
+  } catch (e) {
+    errEl.textContent = 'Connection failed — ' + e.message;
+    errEl.classList.remove('hidden');
+  }
+};
+if (S.base && S.key) { $('#g-base').value = S.base; boot(); } else if (S.base) { $('#g-base').value = S.base; }
+</script>
+</body>
+</html>

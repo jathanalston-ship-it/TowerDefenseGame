@@ -8,6 +8,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { meta, metaModifiers, highestCampaignStage } from '../state/meta';
+import { telemetry } from '../net/telemetry';
 import { genomeSections, FUTURE_LOCKED } from '../state/evolutionHQ';
 import type { GenomeSection, GenomeCardView } from '../state/evolutionHQ';
 import { organizeList, toggleIn } from '../state/listOrg';
@@ -186,7 +187,9 @@ export function EvolutionHQ(): JSX.Element {
   // EVERY buy button holds-to-repeat now (QOL) — the loop needs the success signal back
   // (false stops the hold at a cap or an unaffordable step).
   const onBuyRunaway = (id: string): boolean => {
+    const before = meta.get().shards;
     if (!meta.buyUpgrade(id)) return false;
+    telemetry.flowSpend('cores:upgrade', before - meta.get().shards); // spend fold (docs/ANALYTICS.md §economy)
     setJustBought(id);
     if (timer.current) clearTimeout(timer.current);
     timer.current = setTimeout(() => setJustBought(null), 620);

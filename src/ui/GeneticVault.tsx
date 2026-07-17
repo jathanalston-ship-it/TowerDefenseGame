@@ -14,6 +14,7 @@ import { NextUp } from './HubLanding';
 import { navBus } from '../state/navBus';
 import { compareItemPower } from '../state/itemPower';
 import { recordVaultOpen, vaultLedger } from '../state/prefs';
+import { telemetry } from '../net/telemetry';
 
 /** Merge N cracked containers into ONE ceremony (Open Five/Ten): items concatenate in crack
  * order; the best pull drives the ceremony scale; the label counts the batch. */
@@ -98,6 +99,14 @@ export function GeneticVault(): JSX.Element {
     if (opened.length === 0) { setOpening(null); return; }
     const merged = mergeCracked(opened);
     for (const c of opened) recordVaultOpen(c.label, c.chest.topRarity, c.chest.items.length);
+    // Telemetry: container-open lane, one event per rarity band (docs/ANALYTICS.md §economy).
+    // The cracked label IS the band ("Rare", "Run Cache") — slugged into a bounded token.
+    const byBand = new Map<string, number>();
+    for (const c of opened) {
+      const band = c.label.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '').slice(0, 24) || 'box';
+      byBand.set(band, (byBand.get(band) ?? 0) + 1);
+    }
+    for (const [band, n] of byBand) telemetry.emit('box_open', { d: band, v: Math.min(200, n) });
     setOpening(merged);
     setCrackSeq((n) => n + 1);
   };

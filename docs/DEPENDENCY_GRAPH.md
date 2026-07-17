@@ -210,6 +210,8 @@ graph TD
   audio --> engine
   devtools --> meta_store
   devtools --> assimilation
+  analytics --> meta_store
+  analytics --> accounts
 ```
 
 ## Impact index
@@ -222,7 +224,7 @@ graph TD
 | **Campaign** (`campaign`) | `engine` · `biomes` · `bosses` · `difficulty` · `power` | `daily` · `towers` · `heroes` · `loot` · `gene-cards` · `prestige` · `progression-gating` | ⚡ recommended-power display; first-clear rewards move account Power indirectly | `campaign` | `docs/CAMPAIGN.md` · `docs/CAMPAIGN-EVENTS.md` · `docs/MODE-IDENTITY.md` · `docs/STAGES.md` |
 | **Infinite Mode** (`infinite`) | `engine` · `loot` · `difficulty` | — | — | `bestWave` | `docs/ENDLESS-SCALING.md` · `docs/MODE-IDENTITY.md` |
 | **Public Intelligence Layer** (`pil`) | `dev-registry` | — | — | — | `docs/PIL.md` |
-| **Account Platform** (`accounts`) | `meta-store` · `profile` | `onboarding` | — | — | `docs/ACCOUNTS.md` · `docs/DEPLOYMENT.md` |
+| **Account Platform** (`accounts`) | `meta-store` · `profile` | `onboarding` · `analytics` | — | — | `docs/ACCOUNTS.md` · `docs/DEPLOYMENT.md` |
 | **Boss Rush** (`boss-rush`) | `engine` · `bosses` · `loot` · `difficulty` | `field-research` | — | `rushBestWave` · `rushBestBoss` · `rushStamina` | `docs/BOSS-RUSH.md` · `docs/MODE-IDENTITY.md` |
 | **Daily Run** (`daily`) | `engine` · `campaign` · `biomes` · `bosses` · `towers` | `premium` · `field-research` · `net-backend` · `liveops` · `directives` | ⚡ recommended-power readiness on the day card | `daily` | `docs/DAILY-RUN.md` · `docs/MODE-IDENTITY.md` |
 | **Mulligan System** (`mulligans`) | `content-infra` · `towers` · `power` · `meta-store` | `nucleus` · `hero-symbiotes` | ⚡ a DEDICATED, separately-inspectable PowerParts.mulligans bucket (accountMulliganPower) — modifiers × rarity × level; exactly 1 until an organism is fully assembled | `mulligans` · `mulliganDex` | `docs/MULLIGANS.md` |
@@ -272,7 +274,7 @@ graph TD
 | **In-Run HUD & Results** (`run-ui`) | `engine` · `meta-store` · `power` · `assimilation` | — | ⚡ renders live run Power | — | `docs/HUD.md` · `docs/READABILITY.md` · `docs/REWARD-PRESENTATION.md` |
 | **Notifications** (`notifications`) | `meta-store` | `hub-shell` | — | — | `docs/NOTIFICATIONS.md` · `docs/HIVE-INTEL.md` |
 | **Progress Prediction** (`prediction`) | `power` | `hub-shell` | ⚡ consumes the score as its input signal | `prediction` | `docs/PREDICTION.md` |
-| **Meta Store & Save** (`meta-store`) | `content-infra` | `accounts` · `mulligans` · `field-research` · `net-backend` · `arena` · `nucleus` · `hero-symbiotes` · `idle-harvest` · `hive-construction` · `daily-login` · `liveops` · `directives` · `contracts` · `infestation` · `chronicle` · `expeditions` · `nemesis` · `cosmetics` · `battle-pass` · `quests` · `onboarding` · `account-level` · `genome-rank` · `progression-gating` · `hub-shell` · `run-ui` · `notifications` · `cutscenes` · `security` · `devtools` | ⚡ recomputes the account score on every persist | `ALL (owner)` | `docs/DEV-RESET.md` · `docs/SCALABILITY.md` · `docs/PROJECT_MANIFEST.md` |
+| **Meta Store & Save** (`meta-store`) | `content-infra` | `accounts` · `mulligans` · `field-research` · `net-backend` · `arena` · `nucleus` · `hero-symbiotes` · `idle-harvest` · `hive-construction` · `daily-login` · `liveops` · `directives` · `contracts` · `infestation` · `chronicle` · `expeditions` · `nemesis` · `cosmetics` · `battle-pass` · `quests` · `onboarding` · `account-level` · `genome-rank` · `progression-gating` · `hub-shell` · `run-ui` · `notifications` · `cutscenes` · `security` · `devtools` · `analytics` | ⚡ recomputes the account score on every persist | `ALL (owner)` | `docs/DEV-RESET.md` · `docs/SCALABILITY.md` · `docs/PROJECT_MANIFEST.md` |
 | **Bosses** (`bosses`) | `engine` · `content-infra` | `engine` · `campaign` · `boss-rush` · `daily` · `nemesis` · `mega-bosses` | — | `bossesSlain` | `docs/BOSS-DESIGN.md` |
 | **Mega Bosses** (`mega-bosses`) | `engine` · `content-infra` · `bosses` | `cutscenes` | ⚡ megaBosses collection category weight | `megaProgress` | `docs/MEGA-BOSS.md` |
 | **Story Cutscenes & Memory Archive** (`cutscenes`) | `mega-bosses` · `meta-store` · `audio` | `quests` | — | — | `docs/CUTSCENES.md` |
@@ -287,6 +289,7 @@ graph TD
 | **Assimilation Index** (`assimilation`) | — | `engine` · `run-ui` · `living-battlefield` · `devtools` | ⚡ CONSUMES the live run Power Score as its dominant contributor (never feeds Power) | — | `docs/ASSIMILATION.md` |
 | **Dev Tools & Debug** (`devtools`) | `meta-store` · `assimilation` | — | — | — | `docs/DEV-RESET.md` |
 | **Shared UI Component Kit** (`ui-kit`) | — | — | — | — | `docs/UI-STANDARDS.md` · `docs/STYLE-GUIDE.md` · `docs/UI-MOTION.md` · `docs/VISUAL_IDENTITY.md` · `docs/UI_STYLE_GUIDE.md` · `docs/DESIGN_LANGUAGE.md` · `docs/RESPONSIVE-DESIGN.md` |
+| **Player Telemetry & Analytics** (`analytics`) | `meta-store` · `accounts` | — | ⚡ batch context carries the account Power Score (read-only) | — | `docs/ANALYTICS.md` |
 | **System Registry & Design Intelligence Layer** (`dev-registry`) | — | `pil` | — | — | `docs/DIL.md` · `docs/DEPENDENCY_GRAPH.md` · `docs/ENGINEERING-AUDIT.md` · `docs/GAME_CONSTITUTION.md` · `docs/PROJECT_STATUS.md` · `docs/AI_HANDOFF.md` |
 
 ## Per-system detail — the full blast radius
@@ -387,14 +390,14 @@ graph TD
 
 - **Files:** `src/account/accountStore.ts` · `src/account/providers.ts` · `src/save/envelope.ts` · `src/save/merge.ts` · `src/net/syncEngine.ts` · `src/net/connectivity.ts` · `src/ui/components/AccountPanel.tsx` · `src/state/guestMode.ts`
 - **Depends on:** `meta-store` · `profile`
-- **Consumers — what breaks if you change this:** `onboarding`
+- **Consumers — what breaks if you change this:** `onboarding` · `analytics`
 - **Power Score:** — (intentionally none)
 - **Save fields:** —
 - **Tutorial:** — · **Help mechanics:** —
 - **HUD surfaces:** — · **UI screens:** `AccountPanel` · `WelcomeGate` · `ConflictModal` · `PlayerProfile` · `Hub`
 - **Collection:** — · **Achievements:** —
 - **Localization:** inline English strings (no i18n layer yet — this field enumerates the surface for the day it lands)
-- **Docs to update on change:** `docs/ACCOUNTS.md` · `docs/DEPLOYMENT.md` · `docs/TUTORIAL.md` · `docs/HELP.md` · `docs/TUTORIAL-AUDIT.md` · `docs/GUIDED-UNLOCKS.md`
+- **Docs to update on change:** `docs/ACCOUNTS.md` · `docs/DEPLOYMENT.md` · `docs/TUTORIAL.md` · `docs/HELP.md` · `docs/TUTORIAL-AUDIT.md` · `docs/GUIDED-UNLOCKS.md` · `docs/ANALYTICS.md`
 
 ### Boss Rush (`boss-rush`)
 
@@ -1137,14 +1140,14 @@ graph TD
 
 - **Files:** `src/state/meta.ts` · `src/state/store.ts` · `src/state/prefs.ts` · `src/state/devReset.ts` · `src/save/*` · `src/ui/SaveManager.tsx`
 - **Depends on:** `content-infra`
-- **Consumers — what breaks if you change this:** `accounts` · `mulligans` · `field-research` · `net-backend` · `arena` · `nucleus` · `hero-symbiotes` · `idle-harvest` · `hive-construction` · `daily-login` · `liveops` · `directives` · `contracts` · `infestation` · `chronicle` · `expeditions` · `nemesis` · `cosmetics` · `battle-pass` · `quests` · `onboarding` · `account-level` · `genome-rank` · `progression-gating` · `hub-shell` · `run-ui` · `notifications` · `cutscenes` · `security` · `devtools`
+- **Consumers — what breaks if you change this:** `accounts` · `mulligans` · `field-research` · `net-backend` · `arena` · `nucleus` · `hero-symbiotes` · `idle-harvest` · `hive-construction` · `daily-login` · `liveops` · `directives` · `contracts` · `infestation` · `chronicle` · `expeditions` · `nemesis` · `cosmetics` · `battle-pass` · `quests` · `onboarding` · `account-level` · `genome-rank` · `progression-gating` · `hub-shell` · `run-ui` · `notifications` · `cutscenes` · `security` · `devtools` · `analytics`
 - **Power Score:** recomputes the account score on every persist
 - **Save fields:** `ALL (owner)`
 - **Tutorial:** — · **Help mechanics:** —
 - **HUD surfaces:** — · **UI screens:** `SaveManager`
 - **Collection:** — · **Achievements:** —
 - **Localization:** inline English strings (no i18n layer yet — this field enumerates the surface for the day it lands)
-- **Docs to update on change:** `docs/DEV-RESET.md` · `docs/SCALABILITY.md` · `docs/PROJECT_MANIFEST.md` · `docs/ACCOUNTS.md` · `docs/DEPLOYMENT.md` · `docs/MULLIGANS.md` · `docs/RESEARCH.md` · `docs/WEBSITE.md` · `docs/REPLAY-SHARE.md` · `docs/ARENA.md` · `docs/ARENA_MATCH_REPORT.md` · `docs/NUCLEUS.md` · `docs/HERO-SYMBIOTES.md` · `docs/IDLE-HARVEST.md` · `docs/HIVE-CONSTRUCTION.md` · `docs/HOME-BASE.md` · `docs/DAILY-LOGIN.md` · `docs/DAILY-RUN.md` · `docs/ECONOMY.md` · `docs/LIVEOPS.md` · `docs/CONTRACTS.md` · `docs/INFESTATION.md` · `docs/CHANGELOG-PIPELINE.md` · `docs/EXPEDITIONS.md` · `docs/NEMESIS.md` · `docs/COSMETICS.md` · `docs/BATTLEPASS.md` · `docs/QUESTS.md` · `docs/TUTORIAL.md` · `docs/HELP.md` · `docs/TUTORIAL-AUDIT.md` · `docs/GUIDED-UNLOCKS.md` · `docs/ACCOUNT-LEVEL.md` · `docs/GENOME-RANK.md` · `docs/PROGRESSION-GATING.md` · `docs/UNLOCK-TREE.md` · `docs/COMMAND-CENTER.md` · `docs/ONE-MORE-RUN.md` · `docs/HUD.md` · `docs/PROGRESSION-LOOP.md` · `docs/UX-CONSOLIDATION.md` · `docs/READABILITY.md` · `docs/REWARD-PRESENTATION.md` · `docs/NOTIFICATIONS.md` · `docs/HIVE-INTEL.md` · `docs/CUTSCENES.md` · `docs/SECURITY.md`
+- **Docs to update on change:** `docs/DEV-RESET.md` · `docs/SCALABILITY.md` · `docs/PROJECT_MANIFEST.md` · `docs/ACCOUNTS.md` · `docs/DEPLOYMENT.md` · `docs/MULLIGANS.md` · `docs/RESEARCH.md` · `docs/WEBSITE.md` · `docs/REPLAY-SHARE.md` · `docs/ARENA.md` · `docs/ARENA_MATCH_REPORT.md` · `docs/NUCLEUS.md` · `docs/HERO-SYMBIOTES.md` · `docs/IDLE-HARVEST.md` · `docs/HIVE-CONSTRUCTION.md` · `docs/HOME-BASE.md` · `docs/DAILY-LOGIN.md` · `docs/DAILY-RUN.md` · `docs/ECONOMY.md` · `docs/LIVEOPS.md` · `docs/CONTRACTS.md` · `docs/INFESTATION.md` · `docs/CHANGELOG-PIPELINE.md` · `docs/EXPEDITIONS.md` · `docs/NEMESIS.md` · `docs/COSMETICS.md` · `docs/BATTLEPASS.md` · `docs/QUESTS.md` · `docs/TUTORIAL.md` · `docs/HELP.md` · `docs/TUTORIAL-AUDIT.md` · `docs/GUIDED-UNLOCKS.md` · `docs/ACCOUNT-LEVEL.md` · `docs/GENOME-RANK.md` · `docs/PROGRESSION-GATING.md` · `docs/UNLOCK-TREE.md` · `docs/COMMAND-CENTER.md` · `docs/ONE-MORE-RUN.md` · `docs/HUD.md` · `docs/PROGRESSION-LOOP.md` · `docs/UX-CONSOLIDATION.md` · `docs/READABILITY.md` · `docs/REWARD-PRESENTATION.md` · `docs/NOTIFICATIONS.md` · `docs/HIVE-INTEL.md` · `docs/CUTSCENES.md` · `docs/SECURITY.md` · `docs/ANALYTICS.md`
 
 ### Bosses (`bosses`)
 
@@ -1355,6 +1358,21 @@ graph TD
 - **Collection:** — · **Achievements:** —
 - **Localization:** inline English strings (no i18n layer yet — this field enumerates the surface for the day it lands)
 - **Docs to update on change:** `docs/UI-STANDARDS.md` · `docs/STYLE-GUIDE.md` · `docs/UI-MOTION.md` · `docs/VISUAL_IDENTITY.md` · `docs/UI_STYLE_GUIDE.md` · `docs/DESIGN_LANGUAGE.md` · `docs/RESPONSIVE-DESIGN.md`
+
+### Player Telemetry & Analytics (`analytics`)
+
+*The unified gameplay-intelligence platform (docs/ANALYTICS.md): ONE registry row per event (core/analyticsEvents.ts — dims/values/extras/rollup/durable/sampling all declared as data, shared verbatim by client emitter, server ingest, and sims), a batched fail-soft client pipe (net/telemetry.ts — auto-context batches, O(1) session folds for FPS/heat/currency, localStorage outbox, sendBeacon drain, Settings opt-out + guest silence), the automatic-insights engine (core/analyticsInsights.ts — z-tested findings: worst tower, abandonment hotspots, funnel cliffs, economy bottlenecks), and the A/B-ready remote-config whitelist (core/remoteConfig.ts — UI/meta lane ONLY; deterministic FNV bucket assignment). The legacy anonymous counter beacon (net/events.ts) is a separate lane with a separate promise (counts, not people).*
+
+- **Files:** `src/core/analyticsEvents.ts` · `src/core/analyticsInsights.ts` · `src/core/remoteConfig.ts` · `src/net/telemetry.ts`
+- **Depends on:** `meta-store` · `accounts`
+- **Consumers — what breaks if you change this:** —
+- **Power Score:** batch context carries the account Power Score (read-only)
+- **Save fields:** —
+- **Tutorial:** — · **Help mechanics:** —
+- **HUD surfaces:** — · **UI screens:** `Settings → Gameplay Analytics toggle (Hub)`
+- **Collection:** — · **Achievements:** —
+- **Localization:** inline English strings (no i18n layer yet — this field enumerates the surface for the day it lands)
+- **Docs to update on change:** `docs/ANALYTICS.md`
 
 ### System Registry & Design Intelligence Layer (`dev-registry`)
 

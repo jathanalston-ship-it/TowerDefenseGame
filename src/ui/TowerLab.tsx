@@ -8,6 +8,7 @@
 import { useMemo, useState } from 'react';
 import { meta, towerProgress } from '../state/meta';
 import { audio } from '../audio/sound';
+import { telemetry } from '../net/telemetry';
 import { STAR, TOWER_DEFS, TOWER_ORDER } from '../core/config';
 import { forksOf } from '../core/stars';
 import type { TowerKind } from '../core/types';
@@ -170,7 +171,9 @@ export function TowerLab(): JSX.Element {
   };
 
   const upgrade = (k: TowerKind, fromStar: number): void => {
+    const before = meta.get().towerShards[k] ?? 0;
     if (!meta.buyStar(k)) return;
+    telemetry.flowSpend('tshards:star', before - (meta.get().towerShards[k] ?? 0));
     const toStar = fromStar + 1;
     const cv = ceremonyView(meta.get(), k, toStar);
     setCeremony({ kind: k, name: TOWER_DEFS[k].name, color: TOWER_DEFS[k].color, toStar, ...cv });

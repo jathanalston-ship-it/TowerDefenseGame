@@ -1,6 +1,7 @@
 import type { Game } from '../core/game';
 import { HERO_DEFS, TOWER_DEFS } from '../core/config';
 import { audio } from '../audio/sound';
+import { telemetry } from '../net/telemetry';
 import type { HudSnapshot } from '../core/types';
 import { meta, masteryLevel } from '../state/meta';
 import { BiomassIcon, BoltIcon, HeroIcon } from './components/Icon';
@@ -193,7 +194,9 @@ export function Toolbar({
           style={{ ['--cd' as string]: hud.hero.abilityReady ? 1 : Math.max(0, Math.min(1, 1 - hud.hero.abilityCd / Math.max(0.01, heroDef.ability.cooldown))) }}
           onClick={() => {
             audio.resume();
+            const wasArmed = game.armedAbility;
             game.armAbility();
+            if (!wasArmed && game.armedAbility) telemetry.emit('ability', { d: hud.hero.kind, v: 1 });
             refresh();
           }}
         >

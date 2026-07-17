@@ -1,0 +1,25 @@
+{
+  "name": "assimilation-devapp",
+  "productName": "ASSIMILATION Mission Control",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Developer analytics desktop app for ASSIMILATION — a standalone Electron tool, separate from the game and the website.",
+  "main": "main.cjs",
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder --publish never"
+  },
+  "devDependencies": {
+    "electron": "^31.3.0",
+    "electron-builder": "^24.13.3"
+  },
+  "build": {
+    "appId": "com.assimilation.devapp",
+    "productName": "ASSIMILATION Mission Control",
+    "files": ["main.cjs", "ui/**"],
+    "directories": { "output": "dist" },
+    "win": { "target": "nsis" },
+    "mac": { "target": "dmg", "category": "public.app-category.developer-tools" },
+    "linux": { "target": "AppImage", "category": "Development" }
+  }
+}

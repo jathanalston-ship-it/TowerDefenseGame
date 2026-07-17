@@ -39,7 +39,8 @@
     "unlocks": "vite-node scripts/gen-unlocks.ts",
     "relay": "vite-node scripts/arena-relay.ts",
     "arena:sweep": "vite-node scripts/arena-match-sweep.ts",
-    "sim:market": "vite-node scripts/sim-market.ts"
+    "sim:market": "vite-node scripts/sim-market.ts",
+    "sim:analytics": "vite-node scripts/sim-analytics.ts"
   },
   "dependencies": {
     "react": "^18.3.1",

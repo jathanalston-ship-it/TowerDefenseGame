@@ -177,6 +177,8 @@ export function pruneCards(cards: readonly ToastCard[], now: number): ToastCard[
 
 type EventFn = (e: RewardEvent) => void;
 const subs = new Set<EventFn>();
+/** Observe-only listeners (telemetry): see every push, never consume the hold buffer. */
+const taps = new Set<EventFn>();
 /** Events pushed with no toaster mounted (run end, boot) hold here and flush on mount. */
 const held: RewardEvent[] = [];
 const HELD_MAX = 40;
@@ -184,6 +186,7 @@ const HELD_MAX = 40;
 export const rewardToast = {
   /** Announce one reward. Safe with no toaster mounted (bounded hold buffer). */
   push(e: RewardEvent): void {
+    for (const fn of taps) fn(e);
     if (subs.size === 0) {
       held.push(e);
       if (held.length > HELD_MAX) held.splice(0, held.length - HELD_MAX);
@@ -203,6 +206,12 @@ export const rewardToast = {
       for (const e of flush) fn(e);
     }
     return () => { subs.delete(fn); };
+  },
+  /** Observe rewards without rendering them (analytics). Held events are NOT replayed —
+   *  the hold buffer belongs to the toaster; a tap only sees pushes from now on. */
+  tap(fn: EventFn): () => void {
+    taps.add(fn);
+    return () => { taps.delete(fn); };
   },
 };
 

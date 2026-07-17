@@ -10,6 +10,7 @@
 // guarantee it independently).
 
 import { meta } from '../state/meta';
+import { telemetry } from './telemetry';
 import { guestModeActive } from '../state/guestMode';
 import type { PremiumReceipt } from '../state/meta';
 import type { PremiumOfferDef } from '../core/premium';
@@ -110,6 +111,10 @@ export async function resumePendingClaims(): Promise<ClaimOutcome> {
     if (body.status === 'paid' && body.offerId && body.receiptId) {
       const receipt = meta.applyVerifiedPurchase(body.offerId, body.receiptId);
       if (receipt) {
+        // Revenue telemetry (docs/ANALYTICS.md §money): the ONE spot every verified
+        // purchase passes through, stamped with the server-priced SKU in cents.
+        telemetry.emit('buy', { d: body.offerId, v: Math.max(0, Math.round(receipt.offer.priceUsd * 100)) });
+        void telemetry.flush(); // money events don't wait for the cadence
         pendingReveal = receipt;
         return { kind: 'delivered', receipt };
       }

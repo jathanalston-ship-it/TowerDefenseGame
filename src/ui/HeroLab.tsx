@@ -20,6 +20,7 @@ import { HeroPortrait } from './components/HeroPortrait';
 import { ProgressBar } from './components/ProgressBar';
 import { CurrencyIcon } from './components/CurrencyIcon';
 import { audio } from '../audio/sound';
+import { telemetry } from '../net/telemetry';
 import { MobileSection } from './components/MobileSection';
 import { SymbioteChamber } from './SymbioteChamber';
 import { BestBuyStrip } from './components/BestBuyStrip';
@@ -390,7 +391,10 @@ export function HeroLab(): JSX.Element {
                 <button
                   className={`shop-buy wide ${d.canBuyStar ? 'is-afford' : ''}`}
                   disabled={d.nextStarCost === null || !d.canBuyStar}
-                  onClick={() => meta.buyHeroStar(focus)}
+                  onClick={() => {
+                    const before = meta.get().heroShards[focus] ?? 0;
+                    if (meta.buyHeroStar(focus)) telemetry.flowSpend('hshards:star', before - (meta.get().heroShards[focus] ?? 0));
+                  }}
                 >
                   {d.nextStarCost === null ? 'MAX STARS' : <>Add Star · {d.nextStarCost} <CurrencyIcon id="heroShards" color={c} size={13} title="" /> (have {d.shards})</>}
                 </button>
@@ -412,7 +416,10 @@ export function HeroLab(): JSX.Element {
                 <button
                   className={`shop-buy wide ${d.prime.affordable ? 'is-afford' : ''}`}
                   disabled={!d.prime.affordable}
-                  onClick={() => meta.buyHeroPrime(focus)}
+                  onClick={() => {
+                    const before = meta.get().heroShards[focus] ?? 0;
+                    if (meta.buyHeroPrime(focus)) telemetry.flowSpend('hshards:prime', before - (meta.get().heroShards[focus] ?? 0));
+                  }}
                   title={d.prime.catalyst > 0 ? `${d.prime.shards} Apex Genome + ${d.prime.catalyst} Catalyst` : `${d.prime.shards} Apex Genome`}
                 >
                   Prime L{d.prime.level + 1} · {d.prime.shards} <CurrencyIcon id="heroShards" color={c} size={13} title="" />{d.prime.catalyst > 0 ? <> + {d.prime.catalyst} ✷</> : null} (have {d.shards})

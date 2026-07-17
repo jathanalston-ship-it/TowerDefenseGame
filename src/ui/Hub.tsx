@@ -16,6 +16,7 @@ import { CurrencyIcon } from './components/CurrencyIcon';
 import { autoGenePref, setAutoGenePref } from '../state/prefs';
 import { notifications } from '../state/notifications';
 import '../state/notificationSources'; // registers the default menu badges (side-effect import)
+import { telemetry } from '../net/telemetry';
 import { CommandCenter } from './CommandCenter';
 import { InfiniteScreen } from './InfiniteScreen';
 import { BossRushScreen } from './BossRushScreen';
@@ -108,6 +109,14 @@ function SettingsScreen({ onReplayTutorial, onReplayTour, onReplayIntro }: { onR
     setAutoGene(next);
     setAutoGenePref(next);
   };
+  // Gameplay analytics opt-out (docs/ANALYTICS.md §privacy): off = the pipe drops everything
+  // already queued and sends nothing further. Guests never send regardless of this switch.
+  const [telem, setTelem] = useState(telemetry.isEnabled());
+  const toggleTelem = (): void => {
+    const next = !telem;
+    setTelem(next);
+    telemetry.setEnabled(next);
+  };
   return (
     <div className="hub-cols">
       {/* Column split by concern — DATA (save, account, cloud) | BEHAVIOR (prefs, help,
@@ -147,6 +156,12 @@ function SettingsScreen({ onReplayTutorial, onReplayTour, onReplayIntro }: { onR
             <span>Auto Gene Selection<small>Auto-draft the ◆ PICK card after a 10s countdown.</small></span>
             <button className={`set-switch ${autoGene ? 'on' : ''}`} onClick={toggleAutoGene} aria-pressed={autoGene}>
               {autoGene ? 'On' : 'Off'}
+            </button>
+          </label>
+          <label className="set-toggle">
+            <span>Gameplay Analytics<small>Anonymous usage data (balance &amp; stability). No names, no personal info — ever.</small></span>
+            <button className={`set-switch ${telem ? 'on' : ''}`} onClick={toggleTelem} aria-pressed={telem}>
+              {telem ? 'On' : 'Off'}
             </button>
           </label>
         </div>
@@ -238,7 +253,10 @@ export function Hub({
 
   // Keep watermarks clamped to the live save (re-light a dot after claim/open/reset)
   // and latch any newly-satisfied reveals (the write side of the gating framework).
-  useEffect(() => { notifications.sync(save); meta.latchNewReveals(); }, [save]);
+  useEffect(() => {
+    notifications.sync(save);
+    for (const id of meta.latchNewReveals()) telemetry.emit('unlock', { d: id }); // feature-reveal lane
+  }, [save]);
 
   // Hub scene → menu music (audio/music.ts §scenes): each wing of the Command Center biases the
   // NEXT menu pick toward its scene-tagged themes — rotation (not this) actually switches tracks,
@@ -278,6 +296,10 @@ export function Hub({
 
   const go = (k: NavKey): void => {
     audio.cue('ui');
+    // Telemetry: the screen-view lane, plus "a lit badge drew this click" (docs/ANALYTICS.md
+    // §screens) — read BEFORE markSeen clears it.
+    if ((notifications.badges(save)[k] ?? 0) > 0) telemetry.emit('notif', { d: `${k}:act` });
+    telemetry.screen(k);
     notifications.markSeen(k, save); // viewing a menu clears its badge immediately
     meta.noteNavVisit(k); // exposure ledger (docs/PROGRESSION-GATING.md §director)
     setNav(k);

@@ -1412,3 +1412,19 @@ endpoint tests (67 functions total).
 **Limitations.** No away-notifications (sources are save-pure; placards on next visit);
 affix/collection filters are client-side over pages; the settle-gate crash window is
 repairable via the documented ledger scan.
+
+## Compressed system summary — Player Telemetry & Analytics (docs/ANALYTICS.md)
+
+**Architecture.** One shared event registry (`core/analyticsEvents.ts`) declares every event completely (dim/value/extras/rollup/durable/sample); the client pipe (`net/telemetry.ts`), the server ingest (`functions/api/an/ingest.ts` → `functions/lib/anHost.ts`), and the scale sim all validate against the SAME rows. Wire shape is batch-context (player/session/platform/ver/lang/power/stage once) + minimal per-event fields. Hot signals fold client-side O(1): 61-bucket FPS histogram, 12×8 heat grid per screen, currency FlowFolds, djb2 error hashes, waveBand loss dims. Server storage is bounded BY CONSTRUCTION: daily rollups key (day, kind, dim, ver) — cardinality is vocabulary × days, independent of players (validated: 1k → 5,125 rows vs 100k → 6,272 over 7 days, 12M events). Durable kinds additionally keep raw rows (timelines) with retention pruning piggybacked on session starts. `core/analyticsInsights.ts` turns rollups into z-tested ranked findings; `core/remoteConfig.ts` is the A/B layer (whitelist sanitizer + deterministic FNV bucket assignment). The dashboard is a SEPARATE downloadable Electron app (`devapp/` — never in the vite build) talking to DEV_KEY-gated `/api/dev/*` (CORS-answered for its file:// renderer).
+
+**Public APIs.** Client: `telemetry.start({power,stage})`, `emit(kind, {d,v,x})`, `screen(k)`, `mode(m)`, `flowGain/flowSpend(dim, amount)`, `fpsTick(dt)`, `setEnabled(on)`. Server: `POST /api/an/ingest`, `GET /api/config` (public sanitized remote config), `GET /api/dev/{overview,series,insights,player,errors,export,flags}` (+ PUT flags). Shared: `acceptBatch`, `foldRollups`, `computeInsights(rows, cohorts)`, `sanitizeRemoteConfig`, `bucketFor(playerId, exp)`.
+
+**Extension points.** New event = one AN_EVENTS row + one emit call (series explorer/export/rollups pick it up with zero further wiring). New insight = one function pushing Findings. New remote flag/number = one whitelisted row with bounds. New reward source = nothing (the rewardToast `tap()` inherits it). New spend sink = 2-line balance-delta fold.
+
+**Assumptions.** Player ids are the existing pseudonymous account UUIDs; dims are bounded machine tokens (digit-stripped source slugs); region/device are server-derived only; the sim (`core/game.ts`) has ZERO analytics imports; remote config can never name a sim input (namespace whitelist is test-enforced); the legacy anonymous counter lane (`net/events.ts`) is separate and untouched.
+
+**Privacy.** Guest Mode sends nothing; Settings → Gameplay Analytics opt-out drops queue+folds; `DELETE /api/save` purges an_events/an_sessions/an_activity/an_players; raw rows expire (30 d / 400 d durable); privacy page §Gameplay analytics discloses it.
+
+**Hooks.** `ab_assign` emission activates when the client consumes `/api/config` (sanitizer + bucket math already live/tested); `an.sampleFps` remote number can drive the FPS sample rate; niche sinks adopt the spend-fold pattern as wanted.
+
+**Limitations.** `ability` counts manual arm transitions, not autocast volleys; spend folds cover the four primary sinks; Electron binaries build locally only (`cd devapp && npm run dist` — installer downloads are never committed; sandbox CI can't fetch the Electron binary, UI verified headlessly instead).

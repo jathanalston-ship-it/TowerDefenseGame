@@ -2,6 +2,8 @@ import { Suspense, lazy, useCallback, useEffect, useRef, useState } from 'react'
 import { Hub } from './Hub';
 import { resumePendingClaims } from '../net/checkout';
 import { initEvents, trackEvent } from '../net/events';
+import { telemetry } from '../net/telemetry';
+import { waveBand } from '../core/analyticsEvents';
 import { GameView } from './GameView';
 import { Results } from './Results';
 // Debug tooling is dev/opt-in only (?debug) — lazy-loaded so production players
@@ -51,7 +53,7 @@ import { HeroSlotUnlock } from './HeroSlotUnlock';
 import type { HeroSlotUnlockData } from './HeroSlotUnlock';
 import { difficultyPref, musicPref, sfxPref } from '../state/prefs';
 import { BioRoulette } from './BioRoulette';
-import { isBossRushUnlocked, isDailyUnlocked, isInfiniteUnlocked } from '../save/derive';
+import { highestCampaignStage, isBossRushUnlocked, isDailyUnlocked, isInfiniteUnlocked } from '../save/derive';
 import { dailyKey, generateDaily, pickDailyHero } from '../core/daily';
 import { dailyMulliganAssignment } from '../core/mulligan';
 import type { MulliganState } from '../core/mulligan';
@@ -83,6 +85,52 @@ function clearReplayParam(): void {
 
 /** How long the deployment interstitial breathes before the battlefield mounts. */
 const DEPLOY_MS = 1600;
+
+/** Where a run ended, as a bounded telemetry dim: campaign pins the stage, everything else
+ *  the wave band ('campaign:c12' / 'endless:w21-25') — docs/ANALYTICS.md §runs. */
+function runLocDim(mode: RunMode, campaignStage: number, wave: number): string {
+  const loc = mode === 'campaign' ? `c${campaignStage}` : waveBand(wave);
+  return `${mode.toLowerCase()}:${loc}`;
+}
+
+/** The run-summary telemetry (docs/ANALYTICS.md §runs): one durable run_end plus the
+ *  per-tower/hero/gene/equipment/mulligan usage lanes the balance dashboards live on.
+ *  Reads the SAVE for loadout context; emits are fail-soft and cost microseconds. */
+function emitRunTelemetry(result: RunResult, mode: RunMode, campaignStage: number): void {
+  const save = meta.get();
+  const modeTok = mode.toLowerCase();
+  const fielded = (Object.entries(result.stats.towerBuilds) as [TowerKind, number][]).filter(([, n]) => n > 0);
+  telemetry.emit('run_end', {
+    d: modeTok,
+    v: Math.max(0, Math.floor(result.wave)),
+    x: {
+      won: result.won ? 1 : 0,
+      stage: result.campaignStage ?? 0,
+      diff: (result.difficulty ?? 'standard').slice(0, 20),
+      hero: result.stats.heroId.slice(0, 24),
+      towers: fielded.map(([k]) => k).join(',').slice(0, 160),
+      dur: Math.max(0, Math.round(result.durationSec ?? 0)),
+      doctrine: (result.doctrine ?? 'none').slice(0, 24),
+    },
+  });
+  if (!result.won) telemetry.emit('run_loss', { d: runLocDim(mode, campaignStage, result.wave) });
+  for (const [kind, builds] of fielded) {
+    telemetry.emit('tw_field', { d: kind, v: Math.min(500, builds) });
+    if (result.won) telemetry.emit('tw_win', { d: kind });
+    if (save.mulligans[kind]?.slots?.some(Boolean)) telemetry.emit('mull_use', { d: kind });
+  }
+  telemetry.emit('hero_pick', { d: result.stats.heroId });
+  if (result.won) telemetry.emit('hero_win', { d: result.stats.heroId });
+  for (const cardId of [...new Set(result.stats.cardIds)].slice(0, 24)) telemetry.emit('gene_use', { d: cardId });
+  const inv = save.equipment.inventory;
+  const wornDefs = new Set<string>();
+  for (const uid of Object.values(save.equipment.loadouts[result.stats.heroId as HeroKind] ?? {})) {
+    const item = uid ? inv.find((i) => i.uid === uid) : undefined;
+    if (item) wornDefs.add(item.defId);
+  }
+  for (const defId of wornDefs) telemetry.emit('equip_use', { d: defId });
+  telemetry.emit('power', { v: Math.min(100_000_000, Math.max(0, Math.round(meta.power().score))) });
+}
 
 export function App(): JSX.Element {
   // First launch / after an Account Reset → open straight into the Combat Tutorial (its own mode).
@@ -200,6 +248,7 @@ export function App(): JSX.Element {
     effectsRef.current = [...meta.genomeRunEffects(), ...meta.collectionRunEffects(), ...meta.trophyRunEffects(), ...meta.infestationRunEffects(), ...meta.cutsceneRunEffects(), ...meta.mulliganGlobalEffects(), ...meta.battlePassRunEffects(), ...extraRunEffects];
     modeRef.current = mode;
     stageRef.current = stage;
+    telemetry.mode(mode.toLowerCase()); // events during the run stamp this mode
     // The deployment interstitial (docs/HUD.md §deploy): a short mode-aware breath instead of
     // being thrown straight onto the battlefield. The playing screen mounts after DEPLOY_MS.
     const diffName = DIFFICULTIES[difficultyRef.current]?.name ?? 'Standard';
@@ -301,7 +350,13 @@ export function App(): JSX.Element {
       result.rewardMult = stageRef.current?.rewardMult;
       result.difficulty = 'standard';
     }
+    // First-clear detection for stage_clear telemetry — read BEFORE finishRun raises it.
+    const prevCleared = modeRef.current === 'campaign' ? (meta.get().campaign.cleared[difficultyRef.current] ?? 0) : 0;
     const outcome = meta.finishRun(result);
+    emitRunTelemetry(result, modeRef.current, campaignStageRef.current);
+    if (modeRef.current === 'campaign' && result.won && campaignStageRef.current > prevCleared) {
+      telemetry.emit('stage_clear', { d: `c${campaignStageRef.current}` });
+    }
     // Bio-Roulette spores (docs/BOSS-RUSH.md §roulette): record delta + volume, from the parts
     // finishRun just computed. Zero spores ⇒ no ceremony (Results exits straight to the menu).
     if (outcome.rushProgress) {
@@ -320,7 +375,8 @@ export function App(): JSX.Element {
 
   // Abandon: forfeit ALL rewards and go straight to the menu — NO finishRun, and roll back the
   // run's live-banked loot. The deliberate opposite of handleEnd.
-  const handleAbandon = useCallback(() => {
+  const handleAbandon = useCallback((wave?: number) => {
+    telemetry.emit('run_quit', { d: runLocDim(modeRef.current, campaignStageRef.current, wave ?? 0) });
     meta.abandonRun();
     setScreen('menu');
   }, []);
@@ -373,6 +429,13 @@ export function App(): JSX.Element {
   const [purchaseNote, setPurchaseNote] = useState<string | null>(null);
   useEffect(() => {
     initEvents(); // privacy-friendly aggregate counters (docs/WEBSITE.md §analytics)
+    // The telemetry pipe (docs/ANALYTICS.md §client): providers hand it batch context
+    // lazily so it never imports meta. Boot-to-interactive lands as the 'load' event.
+    telemetry.start({
+      power: () => Math.max(0, Math.round(meta.power().score)),
+      stage: () => highestCampaignStage(meta.get()),
+    });
+    telemetry.loaded();
     void resumePendingClaims().then((o) => {
       if (o.kind === 'delivered') setPurchaseNote(`✷ Purchase delivered — ${o.receipt.offer.name}. Open the Premium Store to view it.`);
       else if (o.kind === 'cancelled') setPurchaseNote('Checkout cancelled — nothing was charged.');
@@ -386,8 +449,13 @@ export function App(): JSX.Element {
   // Autoplay policy: the FIRST start is armed on the first pointer gesture; category switches
   // afterwards are immediate. GameView drives combat/boss/victory/defeat itself.
   useEffect(() => {
-    if (screen === 'playing') trackEvent('run_start');
-    if (screen === 'results') trackEvent('run_end');
+    if (screen === 'playing') {
+      trackEvent('run_start');
+      telemetry.emit('run_start', { d: modeRef.current.toLowerCase() });
+      telemetry.screen('battlefield');
+    }
+    if (screen === 'results') { trackEvent('run_end'); telemetry.screen('results'); }
+    if (screen === 'menu') telemetry.mode('menu'); // back on the hub — events stamp menu again
   }, [screen]);
 
   useEffect(() => {

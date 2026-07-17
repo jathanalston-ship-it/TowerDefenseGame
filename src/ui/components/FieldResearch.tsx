@@ -14,6 +14,7 @@ import type { EmergencyPick, ResearchCategory, ResearchRewardDef } from '../../c
 import { adProvider, researchLaneEnabled } from '../../ads/provider';
 import { audio } from '../../audio/sound';
 import { trackEvent } from '../../net/events';
+import { telemetry } from '../../net/telemetry';
 import { Popup } from './Popup';
 
 const CATEGORY_LABEL: Record<ResearchCategory, string> = {
@@ -38,7 +39,9 @@ function fmtCountdown(ms: number): string {
 
 /** One study → claim round-trip. Resolves null when the study didn't complete. */
 async function runStudy(rewardId: string, pick?: EmergencyPick): Promise<PremiumReceipt | null> {
+  telemetry.emit('ad', { d: 'research:start' });
   const verdict = await adProvider.show();
+  telemetry.emit('ad', { d: `research:${verdict === 'completed' ? 'complete' : 'abort'}` });
   trackEvent(verdict === 'completed' ? 'research_view' : 'research_abort');
   if (verdict !== 'completed') return null;
   meta.recordResearchView();

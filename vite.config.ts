@@ -1,5 +1,8 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
+import { readFileSync } from 'node:fs';
+
+const pkg = JSON.parse(readFileSync(new URL('./package.json', import.meta.url), 'utf8')) as { version: string };
 
 // Static build for Cloudflare Pages (docs/WEBSITE.md §architecture).
 // - The GAME app builds from play/index.html → served at /play/.
@@ -10,6 +13,9 @@ import react from '@vitejs/plugin-react';
 export default defineConfig({
   plugins: [react()],
   appType: 'mpa',
+  // Telemetry batches stamp the app version so dashboards can compare releases
+  // (docs/ANALYTICS.md §client). Single source of truth: package.json.
+  define: { __APP_VERSION__: JSON.stringify(pkg.version) },
   build: {
     outDir: 'dist',
     target: 'es2020',

@@ -19,6 +19,7 @@ import { affectsOf } from './cardAffects';
 import { GeneCardArt, geneRarityColor } from './components/GeneCardArt';
 import { CurrencyIcon } from './components/CurrencyIcon';
 import { audio } from '../audio/sound';
+import { telemetry } from '../net/telemetry';
 import { highestCampaignStage } from '../save/derive';
 import { Popup } from './components/Popup';
 import { BestBuyStrip } from './components/BestBuyStrip';
@@ -117,7 +118,12 @@ function GeneInspect({ id, onClose }: { id: string; onClose: () => void }): JSX.
   const { def } = row;
   const aff = affectsOf(row.subject);
   const rc = geneRarityColor(def.rarity);
-  const buy = (): void => { if (meta.upgradeGene(id)) audio.cue('draft'); };
+  const buy = (): void => {
+    const before = meta.get().geneEssence;
+    if (!meta.upgradeGene(id)) return;
+    telemetry.flowSpend('essence:gene', before - meta.get().geneEssence);
+    audio.cue('draft');
+  };
   const doTranscend = (): void => {
     if (pickT && meta.transcendGene(id, pickT)) { audio.cue('jackpot'); setPickT(null); }
   };
