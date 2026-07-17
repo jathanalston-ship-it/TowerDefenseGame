@@ -1241,6 +1241,14 @@ export const RELEASES: Release[] = [
       {
         "cat": "Security",
         "text": "Market Liquidity Engine: the authority's buy side — stale fair listings, never farmable"
+      },
+      {
+        "cat": "Website",
+        "text": "Rituals: chronicle + site regen, handoff + status board for the liquidity engine"
+      },
+      {
+        "cat": "Backend",
+        "text": "Player telemetry, analytics & developer intelligence platform"
       }
     ]
   },

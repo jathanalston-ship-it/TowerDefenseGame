@@ -1,6 +1,6 @@
 # DIL_GRAPH.md — the Design Intelligence Layer (GENERATED — `npm run dil -- regen`)
 
-> **The project's brain** (docs/DIL.md). 862 nodes · 1613 edges, built from the live
+> **The project's brain** (docs/DIL.md). 867 nodes · 1624 edges, built from the live
 > registries + curated knowledge (src/dev/dil/). **Query it instead of searching the repo:**
 > `npm run dil -- node <id>` · `affects <id>` · `requires <id>` · `missing <kind> <edge>` ·
 > `checklist tower <kind>` · `find <text>`. Edge kinds are bidirectional (19 kinds).
@@ -26,7 +26,7 @@
 
 ### Power Score Index
 
-`system:engine` · `system:power` · `system:campaign` · `system:daily` · `system:mulligans` · `system:premium` · `system:arena` · `system:towers` · `system:mastery` · `system:heroes` · `system:equipment` · `system:crafting` · `system:loot` · `system:gene-cards` · `system:nucleus` · `system:hero-symbiotes` · `system:idle-harvest` · `system:shards-economy` · `system:collection` · `system:evolution-hq` · `system:prestige` · `system:splice-market` · `system:achievements` · `system:cosmetics` · `system:battle-pass` · `system:quests` · `system:run-ui` · `system:prediction` · `system:meta-store` · `system:mega-bosses` · `system:assimilation`
+`system:engine` · `system:power` · `system:campaign` · `system:daily` · `system:mulligans` · `system:premium` · `system:arena` · `system:towers` · `system:mastery` · `system:heroes` · `system:equipment` · `system:crafting` · `system:loot` · `system:gene-cards` · `system:nucleus` · `system:hero-symbiotes` · `system:idle-harvest` · `system:shards-economy` · `system:collection` · `system:evolution-hq` · `system:prestige` · `system:splice-market` · `system:achievements` · `system:cosmetics` · `system:battle-pass` · `system:quests` · `system:run-ui` · `system:prediction` · `system:meta-store` · `system:mega-bosses` · `system:assimilation` · `system:analytics`
 
 ### Audio Index
 
@@ -38,7 +38,7 @@
 
 ### Testing Index
 
-`system:engine` · `system:content-infra` · `system:power` · `system:campaign` · `system:pil` · `system:accounts` · `system:boss-rush` · `system:daily` · `system:mulligans` · `system:premium` · `system:net-backend` · `system:online-foundation` · `system:arena` · `system:towers` · `system:mastery` · `system:heroes` · `system:hero-cinematics` · `system:equipment` · `system:crafting` · `system:loot` · `system:gene-cards` · `system:nucleus` · `system:hero-symbiotes` · `system:idle-harvest` · `system:collection` · `system:evolution-hq` · `system:hive-construction` · `system:daily-login` · `system:prestige` · `system:currencies` · `system:splice-market` · `system:achievements` · `system:stats` · `system:liveops` · `system:directives` · `system:contracts` · `system:infestation` · `system:chronicle` · `system:cosmetics` · `system:battle-pass` · `system:quests` · `system:profile` · `system:onboarding` · `system:account-level` · `system:genome-rank` · `system:progression-gating` · `system:hub-shell` · `system:notifications` · `system:prediction` · `system:meta-store` · `system:bosses` · `system:mega-bosses` · `system:cutscenes` · `system:security` · `system:biomes` · `system:doctrines` · `system:difficulty` · `system:website` · `system:rendering` · `system:living-battlefield` · …3 more
+`system:engine` · `system:content-infra` · `system:power` · `system:campaign` · `system:pil` · `system:accounts` · `system:boss-rush` · `system:daily` · `system:mulligans` · `system:premium` · `system:net-backend` · `system:online-foundation` · `system:arena` · `system:towers` · `system:mastery` · `system:heroes` · `system:hero-cinematics` · `system:equipment` · `system:crafting` · `system:loot` · `system:gene-cards` · `system:nucleus` · `system:hero-symbiotes` · `system:idle-harvest` · `system:collection` · `system:evolution-hq` · `system:hive-construction` · `system:daily-login` · `system:prestige` · `system:currencies` · `system:splice-market` · `system:achievements` · `system:stats` · `system:liveops` · `system:directives` · `system:contracts` · `system:infestation` · `system:chronicle` · `system:cosmetics` · `system:battle-pass` · `system:quests` · `system:profile` · `system:onboarding` · `system:account-level` · `system:genome-rank` · `system:progression-gating` · `system:hub-shell` · `system:notifications` · `system:prediction` · `system:meta-store` · `system:bosses` · `system:mega-bosses` · `system:cutscenes` · `system:security` · `system:biomes` · `system:doctrines` · `system:difficulty` · `system:website` · `system:rendering` · `system:living-battlefield` · …4 more
 
 ### Developer Tooling Index
 
@@ -167,6 +167,7 @@ graph LR
   system_net_backend["Backend lanes (net/)"] -->|consumes| system_online_foundation["Online Foundation"]
   system_rendering["Rendering & VFX"] -->|consumes| system_engine["Sim Engine"]
   system_hub_shell["Hub Shell & Home"] -->|modifies| system_progression_gating["Progression Gating & Director"]
+  system_analytics["Player Telemetry & Analytics"] -->|consumes| system_hub_shell["Hub Shell & Home"]
 ```
 
 ### Power Score Map
@@ -204,6 +205,7 @@ graph LR
   system_meta_store["Meta Store & Save"] -->|provides| concept_power_score["Power Score"]
   system_mega_bosses["Mega Bosses"] -->|provides| concept_power_score["Power Score"]
   system_assimilation["Assimilation Index"] -->|provides| concept_power_score["Power Score"]
+  system_analytics["Player Telemetry & Analytics"] -->|provides| concept_power_score["Power Score"]
   system_daily_login["Daily Bio-Cache (login streak)"] -->|provides| system_genome_rank["Genome Rank (ultimate mastery ladder)"]
   system_daily_login["Daily Bio-Cache (login streak)"] -->|provides| system_collection["Collections / Codex"]
   concept_power_score["Power Score"] -->|displays| system_campaign["Campaign"]
@@ -464,6 +466,8 @@ graph LR
   system_audio["Audio"] -->|dependsOn| system_engine["Sim Engine"]
   system_devtools["Dev Tools & Debug"] -->|dependsOn| system_meta_store["Meta Store & Save"]
   system_devtools["Dev Tools & Debug"] -->|dependsOn| system_assimilation["Assimilation Index"]
+  system_analytics["Player Telemetry & Analytics"] -->|dependsOn| system_meta_store["Meta Store & Save"]
+  system_analytics["Player Telemetry & Analytics"] -->|dependsOn| system_accounts["Account Platform"]
   concept_replays["Replays"] -->|dependsOn| concept_determinism["Determinism"]
   concept_daily_seed["Daily Seed"] -->|dependsOn| concept_determinism["Determinism"]
   concept_golden_test["Golden Test"] -->|tests| concept_determinism["Determinism"]
@@ -502,6 +506,7 @@ graph LR
   system_nemesis["Nemesis & Trophies"] -->|consumes| system_mega_bosses["Mega Bosses"]
   system_net_backend["Backend lanes (net/)"] -->|consumes| system_online_foundation["Online Foundation"]
   system_rendering["Rendering & VFX"] -->|consumes| system_engine["Sim Engine"]
+  system_analytics["Player Telemetry & Analytics"] -->|consumes| system_hub_shell["Hub Shell & Home"]
 ```
 
 ### Presentation Couplings Map
@@ -553,7 +558,7 @@ ONE account-strength number folded from every permanent bucket + the in-run temp
   - providedBy ← `system:heroes` — hero stars/evolution feed permanent + temporary buckets
   - providedBy ← `system:equipment` — equipped items score via itemPower into the gear bucket
   - providedBy ← `system:crafting` — reforged items re-score through the gear bucket
-  - _…28 more (query: `npm run dil -- node concept:power-score`)_
+  - _…29 more (query: `npm run dil -- node concept:power-score`)_
 
 ### `concept:determinism` — Determinism
 
@@ -571,6 +576,7 @@ A run is a pure function of seed + inputs — the invariant behind replays, fair
   - conflictsWith ← `system:mastery` — LOOPS ARE XP-METERED, NEVER LEVEL-WINDOWED (MASTERY.md §10.2): the ×1.12 mastery level curve makes a level-windowed loop 2 cost ×83,522 loop 1 — trackLevelFromXp walks BASE_LOOP_REQS × 1.25^prestige from masteryEvolution[key].xpAt; loop 1 must stay EXACTLY mastery levels 1..100 (100-step parity test) — do not touch MASTERY.reqGrowth or the walk without re-running scripts/sim-mastery-evolution.ts
   - conflictsWith ← `system:gene-cards` — the DRAFT POOL is the discovered set passed at LAUNCH (GameView → RunOptions.draftPool); the no-options sim path keeps the legacy ungated catalog so goldens stay byte-identical — never filter draftCards by discovery INSIDE the sim, and never roll discovery from sim code (meta-only, Math.random)
   - extendedBy ← `system:online-foundation` — DETERMINISTIC LOCKSTEP (ONLINE-FOUNDATION.md §2–3): a PvP match is TWO sims from one shared seed; only COMMANDS cross the wire; applyArenaCommand (core/online.ts) is the ONE application path (local echo, mirror, AI alike) so anti-cheat holds by construction (commands are intents — the sim itself rejects forged affordability); the MIRROR is FRONTIER-BOUNDED (never simulates past the newest received sender tick) so commands apply on their EXACT stamped ticks — the live mirror and a command-log replay are byte-identical, which makes replayRemoteFromLog the rollback AND the reconnect primitive; digest beacons (arenaStateDigest, quantized ×16) compare at exact ticks and SELF-HEAL through resyncReq on mismatch
+  - _…1 more (query: `npm run dil -- node concept:determinism`)_
 
 ### `concept:golden-test` — Golden Test
 
@@ -639,6 +645,7 @@ Every system is built for the CLAUDE.md content targets (100 towers, 30 heroes, 
   - extendedBy ← `system:hub-shell` — LIST ORG (state/listOrg.ts): organizeList<T> over a DATA spec (searchText/sorts/filters/groups/lead) — query → AND-chips → stable sort → lead-first (favorites/pins) → grouping; per-surface prefs via listOrgPrefs (sort/filters/group/collapsed, NEVER the query — stale searches trap); shared ui/components/ListControls (.lc-*) + .lc-group folds; applied to Tower Lab (class folds), Hero Lab, Evolution HQ (Affordable/Hide-maxed), Gene Archive (persisted + rarity sort), Armory — a NEW long-list screen is one spec + one control row, never hand-rolled list logic
   - extendedBy ← `system:hub-shell` — REWARD TOASTS (state/rewardToast.ts): every reward announces via ONE registry-driven placard stack — a new reward type is one REWARD_TYPES row (art/unit/merge/tier/nav), never a bespoke display; placards are pushed AT GRANT TIME in meta.ts (applyRewardList returns events; claim seams pushMany with a source string) — never from screens; the bus HOLDS events while no toaster is mounted (runs flush on hub return); dedicated full-screen ceremonies (vault clutch, roulette, premium receipts, research reveal, genome-rank cinematic) do NOT double-placard — see the NOTIFICATIONS.md coverage table before wiring a new reward lane
   - extendedBy ← `system:online-foundation` — AUCTION HOUSE (core/auction.ts + marketAuthority.ts + marketCatalog.ts): ONE rulebook, three hosts — the engine emits LedgerOps (server maps→D1 wallet ledger; sim maps→agent wallets); the AUTHORITY is bounded smooth levers (fee/tax/baseline/recBias, ≤6%/window, two-speed EWMA inflation index) advanced lazily in maintainMarket (market_windows PK = exactly-once tick, NO daemon); the CATALOG derives families/exclusivity/neverTrade from content registries — new cards/defs/cosmetics inherit market eligibility with zero wiring; ANY economy change must re-run npm run sim:market (10 scenarios, all must stay healthy)
+  - extendedBy ← `system:analytics` — UNIFIED EVENTS (core/analyticsEvents.ts): ONE AN_EVENTS row declares an event completely (dim/value/extras/rollup/durable/sample) and is validated identically by the client emitter, the server ingest, and the sims — a future event is one row + one telemetry.emit call; hot signals NEVER leave raw (61-bucket FPS histogram, 12×8 heat grid, FlowFold currency sums, djb2 error hashes, waveBand loss dims) so rollup cardinality = kinds×dims×versions×days, INDEPENDENT of player count — that structural bound is the whole 100k-player scale story
 
 ## Currencies (8)
 
@@ -742,7 +749,7 @@ The premium reserve — never farmable; bled from achievements, collection ranks
 
   - rewardedBy ← `system:daily-login` — a rare small lane (weight 3, clamped 2–6/day) — deliberately below the never-farmable premium posture thresholds
 
-## Systems (72)
+## Systems (73)
 
 ### `system:engine` — Sim Engine
 
@@ -888,10 +895,12 @@ _at: src/account/accountStore.ts, src/account/providers.ts, src/save/envelope.ts
   - gates → `system:premium` — GUEST MODE (state/guestMode.ts — sessionStorage flag): meta boots the SaveStore on session storage and EVERY network seam short-circuits on guestModeActive() (ensureGuestRegistered/beginCheckout → {ok:false,error:'guest-mode'}; syncStep noops; leaderboard submits + event flushes drop); the account store is NEVER written while the flag is up (no durable onboarded mark — the WelcomeGate hides via the flag) so closing the browser leaves zero trace; conversion = the normal AuthForms flow calling meta.commitGuestSession() (swapStorage to durable + purge the session copy) BEFORE syncNow
   - conflictsWith → `system:meta-store` — cloud sync merges the same save blob the local store owns — schema changes need BOTH migration paths
   - requiredBy ← `system:onboarding`
+  - requiredBy ← `system:analytics`
   - documentedBy ← `doc:ACCOUNTS.md`
   - documentedBy ← `doc:DEPLOYMENT.md`
   - testedBy ← `test:src/net/syncEngine.test.ts`
   - testedBy ← `test:src/save/envelope.test.ts`
+  - extendedBy ← `system:analytics` — PRIVACY POSTURE (ANALYTICS.md §privacy): pseudonymous account UUID only; GUEST MODE SENDS NOTHING (enabled() checks guestModeActive first); Settings → Gameplay Analytics toggle (assimilation.an.optout) drops the queue + folds immediately; region derives SERVER-side from request.cf.country; the /api/save deletion lane also purges analytics rows — one door for "forget me"; the legacy anonymous counter beacon (net/events.ts) is a SEPARATE lane with a separate promise and stays untouched
 
 ### `system:boss-rush` — Boss Rush
 
@@ -1965,7 +1974,7 @@ _at: src/ui/Hub.tsx, src/ui/navModel.ts, src/ui/MobileShell.tsx, src/ui/CommandC
   - documentedBy ← `doc:HUD.md`
   - documentedBy ← `doc:PROGRESSION-LOOP.md`
   - documentedBy ← `doc:UX-CONSOLIDATION.md`
-  - _…14 more (query: `npm run dil -- node system:hub-shell`)_
+  - _…15 more (query: `npm run dil -- node system:hub-shell`)_
 
 ### `system:run-ui` — In-Run HUD & Results
 
@@ -2039,7 +2048,7 @@ _at: src/state/meta.ts, src/state/store.ts, src/state/prefs.ts, src/state/devRes
   - consumedBy ← `system:mulligans` — owns save field 'mulligans'
   - consumedBy ← `system:mulligans` — owns save field 'mulliganDex'
   - consumedBy ← `system:premium` — owns save field 'premium'
-  - _…118 more (query: `npm run dil -- node system:meta-store`)_
+  - _…119 more (query: `npm run dil -- node system:meta-store`)_
 
 ### `system:bosses` — Bosses
 
@@ -2322,6 +2331,24 @@ _at: src/ui/components/Icon.tsx, src/ui/components/ProgressBar.tsx, src/ui/compo
   - documentedBy ← `doc:UI_STYLE_GUIDE.md`
   - documentedBy ← `doc:DESIGN_LANGUAGE.md`
   - documentedBy ← `doc:RESPONSIVE-DESIGN.md`
+
+### `system:analytics` — Player Telemetry & Analytics
+
+The unified gameplay-intelligence platform (docs/ANALYTICS.md): ONE registry row per event (core/analyticsEvents.ts — dims/values/extras/rollup/durable/sampling all declared as data, shared verbatim by client emitter, server ingest, and sims), a batched fail-soft client pipe (net/telemetry.ts — auto-context batches, O(1) session folds for FPS/heat/currency, localStorage outbox, sendBeacon drain, Settings opt-out + guest silence), the automatic-insights engine (core/analyticsInsights.ts — z-tested findings: worst tower, abandonment hotspots, funnel cliffs, economy bottlenecks), and the A/B-ready remote-config whitelist (core/remoteConfig.ts — UI/meta lane ONLY; deterministic FNV bucket assignment). The legacy anonymous counter beacon (net/events.ts) is a separate lane with a separate promise (counts, not people).
+
+_at: src/core/analyticsEvents.ts, src/core/analyticsInsights.ts, src/core/remoteConfig.ts, src/net/telemetry.ts_
+
+  - dependsOn → `system:meta-store`
+  - dependsOn → `system:accounts`
+  - provides → `concept:power-score` — batch context carries the account Power Score (read-only)
+  - extends → `concept:scalability` — UNIFIED EVENTS (core/analyticsEvents.ts): ONE AN_EVENTS row declares an event completely (dim/value/extras/rollup/durable/sample) and is validated identically by the client emitter, the server ingest, and the sims — a future event is one row + one telemetry.emit call; hot signals NEVER leave raw (61-bucket FPS histogram, 12×8 heat grid, FlowFold currency sums, djb2 error hashes, waveBand loss dims) so rollup cardinality = kinds×dims×versions×days, INDEPENDENT of player count — that structural bound is the whole 100k-player scale story
+  - consumes → `system:hub-shell` — GAIN COVERAGE VIA THE TOAST BUS: telemetry taps rewardToast (state/rewardToast.ts tap() — observe-only, never consumes the hold buffer that belongs to the mounted toaster) so EVERY current and future reward source inherits cur_gain + loot_rare tracking for free; spends ride 2-line balance-delta folds at the four lab buy handlers — a new sink adopts the same pattern, never a bespoke pipeline
+  - conflictsWith → `concept:determinism` — REMOTE CONFIG FIREWALL (core/remoteConfig.ts): every remote key MUST live in ui./meta./store./market./an. namespaces (remoteConfigProblems() enforces) and numbers clamp to declared bounds — a remote value can NEVER feed the deterministic sim, replays, or goldens; A/B buckets are pure FNV-1a(playerId|salt)%10000 so assignment needs no server and never touches Math.random; telemetry itself stays OUT of core/game.ts — the sim has zero analytics imports
+  - extends → `system:accounts` — PRIVACY POSTURE (ANALYTICS.md §privacy): pseudonymous account UUID only; GUEST MODE SENDS NOTHING (enabled() checks guestModeActive first); Settings → Gameplay Analytics toggle (assimilation.an.optout) drops the queue + folds immediately; region derives SERVER-side from request.cf.country; the /api/save deletion lane also purges analytics rows — one door for "forget me"; the legacy anonymous counter beacon (net/events.ts) is a SEPARATE lane with a separate promise and stays untouched
+  - documentedBy ← `doc:ANALYTICS.md`
+  - testedBy ← `test:src/core/analyticsEvents.test.ts`
+  - testedBy ← `test:src/core/analyticsInsights.test.ts`
+  - testedBy ← `test:src/core/remoteConfig.test.ts`
 
 ### `system:dev-registry` — System Registry & Design Intelligence Layer
 
@@ -3435,13 +3462,14 @@ _at: site/guides.ts → /guides/prestige/_
 - `achievement:arena_crown` — Claim Arena Pass level 100 — a permanently arena-exclusive strain is yours forever. _(partOf `system:achievements`, rewards `currency:genome-cores`, references `system:arena`)_
 - `achievement:arena_perennial` — Close three Arena seasons with a record on the books. _(partOf `system:achievements`, rewards `currency:genome-cores`, references `system:arena`)_
 
-## Documentation (176)
+## Documentation (177)
 
 - `doc:ACCOUNT-LEVEL.md` — project documentation _(documents `system:account-level`)_
 - `doc:ACCOUNTS.md` — project documentation _(documents `system:accounts`)_
 - `doc:ADAPTATION.md` — project documentation _(documents `system:mastery`)_
 - `doc:ADVANCED-SYSTEMS.md` — project documentation
 - `doc:AI_HANDOFF.md` — project documentation _(documents `system:dev-registry`)_
+- `doc:ANALYTICS.md` — project documentation _(documents `system:analytics`)_
 - `doc:ARCHITECTURE-AUDIT.md` — project documentation
 - `doc:ARCHITECTURE.md` — project documentation _(documents `system:engine`)_
 - `doc:ARENA.md` — project documentation _(documents `system:arena`)_
@@ -3614,13 +3642,15 @@ _at: site/guides.ts → /guides/prestige/_
 - `doc:VOWS.md` — project documentation _(documents `system:prestige`)_
 - `doc:WEBSITE.md` — project documentation _(documents `system:field-research`, documents `system:website`)_
 
-## Tests (279)
+## Tests (282)
 
 - `test:src/audio/music.test.ts` — automated validation _(tests `system:audio`)_
 - `test:src/changelog/classify.test.ts` — automated validation _(tests `system:chronicle`)_
 - `test:src/core/ability.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/core/accountLevel.test.ts` — automated validation _(tests `system:account-level`)_
 - `test:src/core/adaptation.test.ts` — automated validation _(tests `system:mastery`)_
+- `test:src/core/analyticsEvents.test.ts` — automated validation _(tests `system:analytics`)_
+- `test:src/core/analyticsInsights.test.ts` — automated validation _(tests `system:analytics`)_
 - `test:src/core/arena.test.ts` — automated validation _(tests `system:arena`)_
 - `test:src/core/arenaAi.test.ts` — automated validation _(tests `system:arena`)_
 - `test:src/core/arenaMatch.test.ts` — automated validation _(tests `system:arena`)_
@@ -3740,6 +3770,7 @@ _at: site/guides.ts → /guides/prestige/_
 - `test:src/core/reactor.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/core/reforge.test.ts` — automated validation _(tests `system:crafting`)_
 - `test:src/core/registry.test.ts` — automated validation _(tests `system:content-infra`)_
+- `test:src/core/remoteConfig.test.ts` — automated validation _(tests `system:analytics`)_
 - `test:src/core/replay.test.ts` — automated validation _(tests `system:net-backend`)_
 - `test:src/core/revenant.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/core/riptide.test.ts` — automated validation _(tests `system:engine`)_

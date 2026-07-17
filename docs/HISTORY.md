@@ -293,3 +293,5 @@
 - `9a186ed` **[UI]** Fix the Parasite Nest screen flood: clamp attack anticipation at the source
 - ⚑ `50c2e8b` **[Framework]** Regen DIL graph + validation report after rebase over the auction batch _(internal)_
 - `b78bb01` **[Security]** Market Liquidity Engine: the authority's buy side — stale fair listings, never farmable
+- `a56f193` **[Website]** Rituals: chronicle + site regen, handoff + status board for the liquidity engine
+- `c939ba4` **[Backend]** Player telemetry, analytics & developer intelligence platform

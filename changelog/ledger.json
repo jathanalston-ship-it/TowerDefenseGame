@@ -1,6 +1,6 @@
 {
-  "lastSha": "b78bb01eac3c2f20cb4cc0ae6ffd4c0f176b003a",
-  "commitsSinceDraft": 0,
+  "lastSha": "c939ba41e6413c2a813fe41ab210c3b884f77610",
+  "commitsSinceDraft": 2,
   "content": {
     "tower": [
       "needle",
@@ -305,6 +305,7 @@
       "assimilation",
       "devtools",
       "ui-kit",
+      "analytics",
       "dev-registry"
     ]
   },
@@ -1511,6 +1512,11 @@
       "title": "The Living World Update",
       "sealed": false,
       "entries": [
+        {
+          "cat": "Gameplay",
+          "text": "New system: Player Telemetry & Analytics",
+          "major": true
+        },
         {
           "cat": "Gameplay",
           "text": "New achievement: Perennial",
@@ -2737,6 +2743,14 @@
         {
           "cat": "Security",
           "text": "Market Liquidity Engine: the authority's buy side — stale fair listings, never farmable"
+        },
+        {
+          "cat": "Website",
+          "text": "Rituals: chronicle + site regen, handoff + status board for the liquidity engine"
+        },
+        {
+          "cat": "Backend",
+          "text": "Player telemetry, analytics & developer intelligence platform"
         }
       ]
     }
@@ -4907,6 +4921,22 @@
       "date": "2026-07-17",
       "cat": "Security",
       "text": "Market Liquidity Engine: the authority's buy side — stale fair listings, never farmable",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "a56f193a40ec688bcda88dd024a44fea3676a995",
+      "date": "2026-07-17",
+      "cat": "Website",
+      "text": "Rituals: chronicle + site regen, handoff + status board for the liquidity engine",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "c939ba41e6413c2a813fe41ab210c3b884f77610",
+      "date": "2026-07-17",
+      "cat": "Backend",
+      "text": "Player telemetry, analytics & developer intelligence platform",
       "internal": false,
       "needsReview": false
     }
