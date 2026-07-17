@@ -14,9 +14,13 @@ import {
 } from '../src/core/auction';
 import type { LedgerOp, LiveListing } from '../src/core/auction';
 import {
-  auditMarket, authorityTick, baselineDemandScale, defaultAuthorityState, emptyMetrics, planBaselineRestock,
+  auditMarket, authorityTick, baselineDemandScale, buybackBudget, defaultAuthorityState,
+  emptyMetrics, planBaselineRestock, planBuybacks,
 } from '../src/core/marketAuthority';
-import type { AuthorityState, BaselineCatalogEntry, ListingEvent, MarketFlag, MarketMetrics } from '../src/core/marketAuthority';
+import type {
+  AuthorityState, BaselineCatalogEntry, BuybackCandidate, ListingEvent, MarketFlag,
+  MarketMetrics, SellerBuybackRecord,
+} from '../src/core/marketAuthority';
 import type { MarketHistoryPoint, TradeEvent } from '../src/core/trading';
 
 const DAY = 24 * 3_600_000;
@@ -49,6 +53,8 @@ interface Scenario {
   maxRatio?: number;
   /** Assert the authority visibly engaged (fees or index moved) — the anti-inflation proof. */
   expectEngaged?: boolean;
+  /** Assert the liquidity engine provided velocity (low-population scenarios). */
+  expectBuybacks?: boolean;
   expectFlags?: ('selfDealing' | 'circular' | 'rapidRelist' | 'monopoly' | 'priceOutlier' | 'priceFixing' | 'rapidTransfer')[];
 }
 
@@ -73,6 +79,9 @@ const ANCHOR: Record<string, number> = { common: 20, uncommon: 60, rare: 200, ex
 
 interface World {
   rng: Rng;
+  /** The liquidity engine's OWN stream (mirrors the server, where buyback entropy is
+   *  independent) — agent behavior stays byte-identical with the engine on or off. */
+  buyRng: Rng;
   now: number;
   day: number;
   agents: Agent[];
@@ -87,9 +96,12 @@ interface World {
   prevMetrics: MarketMetrics | null;
   burned: number;
   minted: number; // faucet deposits (tracked for conservation)
+  injected: number; // authority buyback payments — the ONLY other money inflow (§buybacks)
   escrowOut: number; // charges not yet returned (running escrow)
   seq: number;
   flags: MarketFlag[];
+  buybackLog: { day: number; familyKey: string; sellerId: string; price: number }[];
+  buybackBySeller: Map<string, SellerBuybackRecord & { day: number }>;
   daySales: { familyKey: string; price: number }[];
   dayOpened: number;
   dayTraderSet: Set<string>;
@@ -327,6 +339,68 @@ function runDay(w: World, sc: Scenario): void {
     for (let k = live; k < authTarget; k++) openFor(w, authorityAgent, order.familyKey, order.price, order.price, true);
   }
 
+  // Market Liquidity Engine (§buybacks): the authority's BUY side, driven by the same pure
+  // planner the server runs. Mirrors the host exactly: player-only estimates, flagged sellers
+  // invisible, budget from this window's burns, purchases settle via the REAL buyNow engine
+  // with the payment tracked as an explicit external injection.
+  {
+    const flaggedIds = new Set<string>();
+    for (const f of w.flags) {
+      const d = f as unknown as Record<string, unknown>;
+      for (const k of ['sellerId', 'fromId', 'toId']) if (typeof d[k] === 'string') flaggedIds.add(d[k] as string);
+    }
+    const sellerFamCount = new Map<string, number>();
+    for (const l of w.listings.values()) {
+      if (l.state !== 'active' || l.authority) continue;
+      const key = `${l.sellerId}|${l.familyKey}`;
+      sellerFamCount.set(key, (sellerFamCount.get(key) ?? 0) + 1);
+    }
+    const SIM_GUIDE: Record<string, number> = { common: 30, uncommon: 80, rare: 220 }; // = HOST.defaultGuide
+    const candidates: BuybackCandidate[] = [];
+    for (const l of w.listings.values()) {
+      if (l.state !== 'active' || l.authority || l.bid !== null || l.buyNow === null) continue;
+      const cat = CATALOG.find((c) => c.familyKey === l.familyKey);
+      if (!cat) continue;
+      const stats = statsFor(w, l.familyKey);
+      candidates.push({
+        listingId: l.listingId, sellerId: l.sellerId, familyKey: l.familyKey,
+        cat: cat.cat, rarity: cat.rarity, exclusive: cat.exclusive,
+        price: l.buyNow, createdAt: l.createdAt, endsAt: l.endsAt, hasBid: false,
+        estimate: stats.estimatedValue ?? SIM_GUIDE[cat.rarity] ?? null,
+        velocityPerDay: stats.salesPerDay, transfers: 0,
+        sellerFlagged: flaggedIds.has(l.sellerId), itemFlagged: false,
+        sellerFamilyListings: sellerFamCount.get(`${l.sellerId}|${l.familyKey}`) ?? 1,
+      });
+    }
+    const sellerRecords = new Map<string, SellerBuybackRecord>();
+    for (const [id, rec] of w.buybackBySeller) {
+      sellerRecords.set(id, { boughtToday: rec.day === w.day ? rec.boughtToday : 0, lastAt: rec.lastAt });
+    }
+    const orders = planBuybacks(candidates, {
+      now: w.now, budget: buybackBudget(w.burned - prevBurn), uniqueTraders: m.uniqueTraders,
+      windowSales: m.sales, sellerRecords, rng: () => w.buyRng.next(),
+    });
+    for (const o of orders) {
+      const l = w.listings.get(o.listingId)!;
+      if (l.state !== 'active') continue;
+      const r = buyNow(l, '@authority', w.now, w.authority.taxMult);
+      if (!r.ok) continue;
+      for (const op of r.ops) {
+        if (op.op === 'charge') { w.injected += op.amount; w.escrowOut += op.amount; }
+        else if (op.op === 'credit') { const a = w.byId.get(op.playerId); if (a) a.wallet += op.amount; w.escrowOut -= op.amount; }
+        else if (op.op === 'burn') { w.burned += op.amount; w.escrowOut -= op.amount; }
+        else { const a = w.byId.get(op.playerId); if (a) a.wallet += op.amount; w.escrowOut -= op.amount; } // refund (unreachable: bid-free)
+      }
+      w.listings.set(o.listingId, r.value.listing);
+      // Absorbed, not resold; NOT recorded as a sale — history/metrics stay player-demand-only.
+      w.buybackLog.push({ day: w.day, familyKey: o.familyKey, sellerId: o.sellerId, price: o.price });
+      const rec = w.buybackBySeller.get(o.sellerId);
+      w.buybackBySeller.set(o.sellerId, {
+        boughtToday: rec && rec.day === w.day ? rec.boughtToday + 1 : 1, lastAt: w.now, day: w.day,
+      });
+    }
+  }
+
   // Audit window (the moderation feed).
   if (w.day % 7 === 0) {
     const playerTrades = w.trades.slice(-4000).filter((t) => t.fromId !== '@authority' && t.toId !== '@authority');
@@ -350,6 +424,11 @@ interface Health {
   conservationError: number;
   flagKinds: string[];
   exclusiveAuthorityListings: number;
+  authorityBuys: number;
+  ichorInjected: number;
+  ichorBurned: number;
+  exclusiveBuybacks: number;
+  suspectBuybacks: number; // buybacks from bot/manipulator personas (must be zero)
 }
 
 const FULL_BASKET = ['eq:chitin', 'gene:ember_a', 'gene:vine_b', 'cos:ember'];
@@ -376,10 +455,10 @@ function runScenario(sc: Scenario, seed: number): Health {
   }
   const initialWealth = agents.reduce((s, a) => s + a.wallet, 0);
   const w: World = {
-    rng, now: 1_700_000_000_000, day: 1, agents, byId: new Map(agents.map((a) => [a.id, a])),
+    rng, buyRng: new Rng((seed ^ 0x5eed_b0b) >>> 0), now: 1_700_000_000_000, day: 1, agents, byId: new Map(agents.map((a) => [a.id, a])),
     floorByFamily: new Map(), listings: new Map(), history: new Map(),
     trades: [], listingEvents: [], authority: defaultAuthorityState(), prevMetrics: null,
-    burned: 0, minted: 0, escrowOut: 0, seq: 0, flags: [], daySales: [], dayOpened: 0, dayTraderSet: new Set(),
+    burned: 0, minted: 0, injected: 0, escrowOut: 0, seq: 0, flags: [], buybackLog: [], buybackBySeller: new Map(), daySales: [], dayOpened: 0, dayTraderSet: new Set(),
   };
   let startBasket = 0;
   let startCommons = 0;
@@ -395,7 +474,7 @@ function runScenario(sc: Scenario, seed: number): Health {
   const endBasket = basketPrice(w, FULL_BASKET);
   const endCommons = basketPrice(w, COMMONS_BASKET);
   const wallets = w.agents.reduce((s, a) => s + a.wallet, 0);
-  const conservationError = wallets + w.escrowOut + w.burned - w.minted - initialWealth;
+  const conservationError = wallets + w.escrowOut + w.burned - w.minted - w.injected - initialWealth;
   const active = [...w.listings.values()].filter((l) => l.state === 'active');
   const totalSales = w.trades.length;
   return {
@@ -411,6 +490,14 @@ function runScenario(sc: Scenario, seed: number): Health {
     conservationError,
     flagKinds: [...new Set(w.flags.map((f) => f.kind))],
     exclusiveAuthorityListings: [...w.listings.values()].filter((l) => l.authority && CATALOG.find((c) => c.familyKey === l.familyKey)?.exclusive).length,
+    authorityBuys: w.buybackLog.length,
+    ichorInjected: w.injected,
+    ichorBurned: w.burned,
+    exclusiveBuybacks: w.buybackLog.filter((b) => CATALOG.find((c) => c.familyKey === b.familyKey)?.exclusive).length,
+    suspectBuybacks: w.buybackLog.filter((b) => {
+      const persona = w.byId.get(b.sellerId)?.persona;
+      return persona === 'bot' || persona === 'manipulator';
+    }).length,
   };
 }
 
@@ -422,7 +509,7 @@ const SCENARIOS: Scenario[] = [
     shock: (day, w) => { if (day === 1) for (const a of w.agents) a.items.push('eq:chitin'); } },
   { name: 'deflation (drop flood, poor buyers)', days: 400, faucetPerDay: 6, dropsPerDay: 3, agents: [
     { persona: 'casual', count: 50, wallet: 120 }, { persona: 'f2p', count: 60, wallet: 30 }] },
-  { name: 'low population', days: 600, faucetPerDay: 25, dropsPerDay: 1, agents: [
+  { name: 'low population', days: 600, faucetPerDay: 25, dropsPerDay: 1, expectBuybacks: true, agents: [
     { persona: 'casual', count: 8, wallet: 250 }, { persona: 'f2p', count: 5, wallet: 60 }] },
   { name: 'high population', days: 250, faucetPerDay: 30, dropsPerDay: 1, maxRatio: 8, expectEngaged: true, agents: [
     { persona: 'casual', count: 500, wallet: 300 }, { persona: 'f2p', count: 300, wallet: 60 }, { persona: 'whale', count: 20, wallet: 20_000 }] },
@@ -452,6 +539,13 @@ for (let i = 0; i < SCENARIOS.length; i++) {
   if (h.priceRatio > maxRatio || h.priceRatio < 1 / maxRatio) problems.push(`full basket ran away ×${h.priceRatio.toFixed(2)} (band ±×${maxRatio})`);
   if (h.commonsRatio > 3 || h.commonsRatio < 1 / 3) problems.push(`COMMONS basket ×${h.commonsRatio.toFixed(2)} — F2P affordability broken`);
   if (h.totalSales === 0) problems.push('market completely dead (zero sales)');
+  // Liquidity engine (§buybacks) health: never exclusive, never a flagged persona, always a
+  // sideshow to player trade, and structurally sink-positive (burns ≥ injections).
+  if (h.exclusiveBuybacks > 0) problems.push(`AUTHORITY BOUGHT EXCLUSIVES (${h.exclusiveBuybacks})`);
+  if (h.suspectBuybacks > 0) problems.push(`AUTHORITY PAID A FLAGGED-PERSONA SELLER (${h.suspectBuybacks})`);
+  if (h.authorityBuys > h.totalSales * 0.25) problems.push(`buybacks dominate trade (${h.authorityBuys} vs ${h.totalSales} sales)`);
+  if (h.ichorInjected > h.ichorBurned) problems.push(`liquidity engine net-inflationary (injected ${h.ichorInjected} > burned ${h.ichorBurned})`);
+  if (sc.expectBuybacks && h.authorityBuys === 0) problems.push('liquidity engine never engaged in a quiet market');
   if (h.authority.feeMult > 2.5 || h.authority.taxMult > 2) problems.push('authority left its bounds');
   if (sc.expectEngaged && h.authority.feeMult < 1.15 && h.authority.inflationIdx < 1.02) problems.push('authority never engaged under inflation pressure');
   for (const k of sc.expectFlags ?? []) {
@@ -459,7 +553,8 @@ for (let i = 0; i < SCENARIOS.length; i++) {
   }
   const line = `${problems.length === 0 ? '✓' : '✗'} ${sc.name}: ${h.days}d · sales ${h.totalSales} · basket ×${h.priceRatio.toFixed(2)} commons ×${h.commonsRatio.toFixed(2)} ` +
     `· stale ${(h.staleFrac * 100).toFixed(0)}% · fee×${h.authority.feeMult.toFixed(2)} tax×${h.authority.taxMult.toFixed(2)} ` +
-    `base ${h.authority.baselineLevel.toFixed(1)} idx ${h.authority.inflationIdx.toFixed(3)} · flags [${h.flagKinds.join(', ')}]`;
+    `base ${h.authority.baselineLevel.toFixed(1)} idx ${h.authority.inflationIdx.toFixed(3)} ` +
+    `· buybacks ${h.authorityBuys} (inj ${h.ichorInjected} / burn ${h.ichorBurned}) · flags [${h.flagKinds.join(', ')}]`;
   report.push(line);
   if (problems.length > 0) {
     failures++;

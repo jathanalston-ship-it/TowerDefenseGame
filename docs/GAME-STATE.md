@@ -1365,6 +1365,16 @@ pair row; new lane = one CouplingTarget; new drop = one IDLE_DROPS row. Rank/are
 already feed the engine; future systems add multipliers at the same optional-arg seam.
 ## Compressed system summary — Auction House & Market Authority (docs/AUCTION-HOUSE.md)
 
+> **2026-07 addendum — Market Liquidity Engine (§buybacks):** the authority now has a BUY
+> side: `planBuybacks` (core) + `runBuybacks` (host tick) may purchase a stale, fairly
+> priced foundational listing — funded by `min(2000, max(40, prevBurns × 0.5))` (structurally
+> sink-positive), crypto-rng selection + 0.55 accept roll (never guaranteed), capped 3/window
+> · 1/family/window · 1/seller/day + 6h cooldown, valuation corridor ×0.2–×1.05 of the
+> family estimate, flagged sellers/items invisible, bid-carrying listings untouchable (the
+> sold-gate requires `bid IS NULL`), trades ride `authority = 2` and never feed history or
+> demand metrics. Sim gate: all 10 scenarios green incl. buybacks ≤ 25% of trade, never from
+> flagged personas, injections ≪ burns.
+
 **Architecture.** One rulebook, three hosts. `core/auction.ts` — the pure listing state
 machine (open→bid/buyNow→settle/expire/cancel) emitting `LedgerOp` money movements +
 price stats (`familyStats`→`recommendedPrice`) + the shared search model. `core/

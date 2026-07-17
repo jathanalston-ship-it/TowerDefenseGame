@@ -6,10 +6,11 @@
 
 import { describe, expect, it } from 'vitest';
 import {
-  AUTHORITY_BOUNDS, auditMarket, authorityTick, baselineEligible, defaultAuthorityState,
-  effectiveFees, emptyMetrics, planBaselineRestock,
+  AUTHORITY_BOUNDS, BUYBACK, auditMarket, authorityTick, baselineEligible, buybackActivity,
+  buybackBudget, defaultAuthorityState, effectiveFees, emptyMetrics, planBaselineRestock,
+  planBuybacks,
 } from './marketAuthority';
-import type { BaselineCatalogEntry, ListingEvent, MarketMetrics } from './marketAuthority';
+import type { BaselineCatalogEntry, BuybackCandidate, ListingEvent, MarketMetrics } from './marketAuthority';
 import { openListing } from './auction';
 import type { LiveListing } from './auction';
 import type { TradeEvent } from './trading';
@@ -137,5 +138,90 @@ describe('manipulation detectors', () => {
     ];
     const flags = auditMarket(trades, [], [], () => 100);
     expect(flags.some((f) => f.kind === 'circular')).toBe(true);
+  });
+});
+
+// ── Market Liquidity Engine (§buybacks) — the buy side can never be farmed ─────
+describe('planBuybacks — liquidity without exploitability', () => {
+  const seeded = (seq: number[]): (() => number) => {
+    let i = 0;
+    return () => seq[i++ % seq.length];
+  };
+  const cand = (over: Partial<BuybackCandidate> = {}): BuybackCandidate => ({
+    listingId: `L${Math.floor((over.createdAt ?? 0) + (over.price ?? 0))}.${over.listingId ?? ''}`,
+    sellerId: 'seller1', familyKey: 'eq:chitin', cat: 'equipment', rarity: 'common',
+    exclusive: false, price: 100, createdAt: 0, endsAt: 48 * 3_600_000, hasBid: false,
+    estimate: 100, velocityPerDay: 0.2, transfers: 0, sellerFlagged: false,
+    itemFlagged: false, sellerFamilyListings: 1, ...over,
+  });
+  const NOW = 24 * 3_600_000; // half a 48h duration old — comfortably stale
+  const plan = (cands: BuybackCandidate[], over: Partial<Parameters<typeof planBuybacks>[1]> = {}) =>
+    planBuybacks(cands, { now: NOW, budget: 10_000, uniqueTraders: 0, sellerRecords: new Map(), rng: seeded([0.01]), ...over });
+
+  it('buys a stale, fairly priced foundational listing (the happy path exists)', () => {
+    expect(plan([cand({ listingId: 'a' })])).toHaveLength(1);
+  });
+
+  it('never touches exclusives, out-of-band rarities, or vetoed rows — regardless of price', () => {
+    expect(plan([cand({ exclusive: true })])).toHaveLength(0); // seasonal/limited/prestige/arena/promo
+    expect(plan([cand({ rarity: 'legendary' })])).toHaveLength(0);
+    expect(plan([cand({ cat: 'geneCard', rarity: 'rare' })])).toHaveLength(0); // epic+/rare genes stay player-driven
+    expect(plan([cand({ authorityEligible: false })])).toHaveLength(0);
+    // The explicit flag widens the band — but exclusivity still always wins.
+    expect(plan([cand({ rarity: 'rare', authorityEligible: true })])).toHaveLength(1);
+    expect(plan([cand({ rarity: 'rare', authorityEligible: true, exclusive: true })])).toHaveLength(0);
+  });
+
+  it('never overpays and never rewards suppression bait (the valuation corridor)', () => {
+    expect(plan([cand({ price: 106, estimate: 100 })])).toHaveLength(0); // > ×1.05
+    expect(plan([cand({ price: 105, estimate: 100 })])).toHaveLength(1); // the corridor edge
+    expect(plan([cand({ price: 19, estimate: 100 })])).toHaveLength(0); // < ×0.2 — bait
+    expect(plan([cand({ estimate: null })])).toHaveLength(0); // no signal ⇒ no purchase
+  });
+
+  it('leaves the market alone where players are already trading', () => {
+    expect(plan([cand({ hasBid: true })])).toHaveLength(0); // a bid IS demand
+    expect(plan([cand({ velocityPerDay: 2 })])).toHaveLength(0); // fast families need no help
+    expect(plan([cand({ createdAt: NOW - 3_600_000 })])).toHaveLength(0); // not stale yet
+  });
+
+  it('screens manipulation shapes: flags, mule chains, dupe walls', () => {
+    expect(plan([cand({ sellerFlagged: true })])).toHaveLength(0);
+    expect(plan([cand({ itemFlagged: true })])).toHaveLength(0);
+    expect(plan([cand({ transfers: 3 })])).toHaveLength(0);
+    expect(plan([cand({ sellerFamilyListings: 3 })])).toHaveLength(0);
+  });
+
+  it('enforces budget, per-window, per-family and per-seller caps', () => {
+    const many = Array.from({ length: 10 }, (_, i) =>
+      cand({ listingId: `c${i}`, familyKey: `eq:f${i}`, sellerId: `s${i}` }));
+    // Window cap: even with budget for all ten, at most maxPerWindow.
+    expect(plan(many).length).toBeLessThanOrEqual(BUYBACK.maxPerWindow);
+    // Budget: 100 Ichor buys exactly one 100-priced listing.
+    expect(plan(many, { budget: 100 })).toHaveLength(1);
+    // Family cap: ten listings, one family ⇒ one purchase.
+    const oneFamily = Array.from({ length: 10 }, (_, i) => cand({ listingId: `f${i}`, sellerId: `s${i}` }));
+    expect(plan(oneFamily).length).toBeLessThanOrEqual(1);
+    // Seller daily cap: a seller bought once today is invisible until tomorrow.
+    const rec = new Map([['seller1', { boughtToday: 1, lastAt: 0 }]]);
+    expect(plan([cand({})], { sellerRecords: rec })).toHaveLength(0);
+    // Cooldown: a purchase minutes ago blocks another even with boughtToday 0.
+    const cool = new Map([['seller1', { boughtToday: 0, lastAt: NOW - 60_000 }]]);
+    expect(plan([cand({})], { sellerRecords: cool })).toHaveLength(0);
+  });
+
+  it('is never guaranteed: the accept roll can pass on a perfect candidate', () => {
+    // rng draws: shuffle draw(s), then the accept roll — force the roll to fail.
+    expect(plan([cand({})], { rng: seeded([0.99]) })).toHaveLength(0);
+    // And population starves it: a busy market buys (almost) nothing.
+    expect(buybackActivity(0)).toBeCloseTo(BUYBACK.quietBoost);
+    expect(buybackActivity(BUYBACK.busyFade)).toBe(0);
+    expect(plan([cand({})], { uniqueTraders: 100 })).toHaveLength(0);
+  });
+
+  it('funds itself strictly from sinks: budget ≤ cap, ≥ floor, scales with prior burns', () => {
+    expect(buybackBudget(0)).toBe(BUYBACK.budgetFloor);
+    expect(buybackBudget(1_000)).toBe(500);
+    expect(buybackBudget(1e9)).toBe(BUYBACK.budgetCap);
   });
 });

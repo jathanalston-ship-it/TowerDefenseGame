@@ -18,6 +18,7 @@ import { onRequestGet as historyGet } from './api/auction/history';
 import { onRequestGet as mineGet } from './api/auction/mine';
 import { onRequestGet as flagsGet, onRequestPost as flagsPost } from './api/auction/flags';
 import { sha256Hex } from './lib/crypto';
+import { maintainMarket } from './lib/auctionHost';
 import type { Env } from './lib/env';
 import { listingFee, minNextBid, saleTax } from '../src/core/trading';
 import { CARD_POOL } from '../src/core/cards';
@@ -88,7 +89,12 @@ function conservation(env: Env): void {
   }
   let burned = 0;
   for (const l of db(env).marketLedger.values()) if (l.player_id === '@burn') burned += Number(l.amount);
-  expect(held + burned + withdrawn).toBe(deposited);
+  // The liquidity engine's buybacks INJECT Ichor from outside the wallet system (the seller's
+  // proceeds + the sale tax) — measured explicitly from authority=2 trades so the identity
+  // stays EXACT: nothing else may ever create money (docs/AUCTION-HOUSE.md §buybacks).
+  let injected = 0;
+  for (const t of db(env).marketTrades.values()) if (Number(t.authority) === 2) injected += Number(t.price);
+  expect(held + burned + withdrawn).toBe(deposited + injected);
 }
 
 describe('wallet — exactly-once deposits/withdrawals behind the schema guards', () => {
@@ -393,5 +399,114 @@ describe('mine + flags — the private and moderation surfaces', () => {
     const ack = await res(await flagsPost(ctx(postJson('https://x/api/auction/flags', { flagIds: [1] }, { 'x-mod-key': 'modsecret' }), env)));
     expect(ack.reviewed).toBe(1);
     expect(db(env).marketFlags[0].reviewed).toBe(1);
+  });
+});
+
+// ── Market Liquidity Engine (§buybacks) — the authority's BUY side over real SQL ─────────
+describe('Market Liquidity Engine — buybacks through the window tick', () => {
+  /** Seed a stale, bid-free player listing (+ its item row) directly — endpoint listings are
+   *  born `now`, and staleness needs a past created_at. */
+  function seedStaleListing(env: Env, opts: {
+    id: string; sellerId: string; price: number; rarity?: string; familyKey?: string;
+    category?: string; ageH?: number; bid?: number | null; fraud?: boolean; transfers?: number;
+  }): void {
+    const now = Date.now();
+    const created = now - (opts.ageH ?? 24) * 3_600_000;
+    const gid = `${opts.sellerId}/${opts.id}`;
+    db(env).marketItems.set(gid, {
+      global_item_id: gid, ref_key: `equipment:${opts.id}`, category: opts.category ?? 'equipment',
+      family_key: opts.familyKey ?? EQ_FAMILY, rarity: opts.rarity ?? 'common', season: 0,
+      owner_id: opts.sellerId, state: 'escrow', source: 'drop', transfers: opts.transfers ?? 0,
+      history: '[]', payload: '{}', fraud_flag: opts.fraud ? 1 : 0, created_at: created,
+    });
+    db(env).marketListings.set(opts.id, {
+      listing_id: opts.id, global_item_id: gid, family_key: opts.familyKey ?? EQ_FAMILY,
+      category: opts.category ?? 'equipment', rarity: opts.rarity ?? 'common',
+      seller_id: opts.sellerId, season: 0, ask: opts.price, buy_now: opts.price,
+      bid: opts.bid ?? null, bidder_id: null, ends_at: created + 48 * 3_600_000,
+      created_at: created, closed_at: null, state: 'active', fee_paid: 0, authority: 0,
+    });
+  }
+
+  /** Drive N hourly window ticks (the accept roll is real entropy — a miss across 40 windows
+   *  has probability ≈ 0.45⁴⁰ ≈ 1e-14, so "eventually bought" is deterministic in practice;
+   *  the same horizon makes "never bought" a sound gate test in the other direction). */
+  async function tickWindows(env: Env, n: number): Promise<void> {
+    const base = Date.now();
+    for (let i = 1; i <= n; i++) await maintainMarket(env, base + i * 3_600_000);
+  }
+
+  it('buys a stale fairly-priced common, pays the seller, absorbs the item — exactly once', async () => {
+    const env = makeEnv();
+    await seedPlayer(env, SELLER);
+    idleAuthority(env);
+    // Price at the common seed guidance (30) — inside the valuation corridor with no history.
+    seedStaleListing(env, { id: 'L-stale', sellerId: SELLER, price: 30 });
+    await tickWindows(env, 40);
+    const l = db(env).marketListings.get('L-stale')!;
+    expect(l.state).toBe('sold');
+    const trade = db(env).marketTrades.get('L-stale')!;
+    expect(trade.buyer_id).toBe('@authority');
+    expect(Number(trade.authority)).toBe(2);
+    // Seller paid EXACTLY like a normal sale: proceeds credit + tax burn, item absorbed.
+    const proceeds = db(env).marketLedger.get('sale:L-stale:seller');
+    expect(proceeds?.player_id).toBe(SELLER);
+    expect(Number(proceeds?.amount)).toBeGreaterThan(0);
+    expect(db(env).marketLedger.get('sale:L-stale:tax')?.player_id).toBe('@burn');
+    expect(db(env).marketItems.get(`${SELLER}/L-stale`)?.owner_id).toBe('@authority');
+    conservation(env);
+  });
+
+  it('never buys exclusives, overpriced, bid-carrying, flagged, or mule-chained listings', async () => {
+    const env = makeEnv();
+    await seedPlayer(env, SELLER);
+    idleAuthority(env);
+    // An exclusive family (exotic equipment exists in the registry) at a fair price.
+    const exotic = ALL_ITEMS.find((d) => d.exotic)!;
+    seedStaleListing(env, { id: 'L-excl', sellerId: SELLER, price: 30, familyKey: equipmentFamilyKey(exotic.id, 'exotic'), rarity: 'exotic' });
+    // A common priced far above its valuation (the farm shape).
+    seedStaleListing(env, { id: 'L-over', sellerId: SELLER, price: 5_000 });
+    // A common with a live bid (the market is working — untouchable).
+    seedStaleListing(env, { id: 'L-bid', sellerId: SELLER, price: 30, bid: 20 });
+    // A fraud-flagged item and a mule-chained one.
+    seedStaleListing(env, { id: 'L-flag', sellerId: SELLER, price: 30, fraud: true });
+    seedStaleListing(env, { id: 'L-mule', sellerId: SELLER, price: 30, transfers: 5 });
+    await tickWindows(env, 40);
+    // Expiring back to the seller is fine (their clocks run out mid-test) — the ONLY failure
+    // shape is the authority having bought one of them.
+    for (const id of ['L-excl', 'L-over', 'L-bid', 'L-flag', 'L-mule']) {
+      const trade = db(env).marketTrades.get(id);
+      expect(trade === undefined || Number(trade.authority) !== 2, id).toBe(true);
+      expect(db(env).marketLedger.has(`sale:${id}:seller`) ? db(env).marketTrades.get(id)?.buyer_id !== '@authority' : true, id).toBe(true);
+    }
+    conservation(env);
+  });
+
+  it('caps a seller at one buyback per day — a wall of fair listings cannot be farmed', async () => {
+    const env = makeEnv();
+    await seedPlayer(env, SELLER);
+    idleAuthority(env);
+    // Five DIFFERENT eligible families from one seller, all stale and fairly priced.
+    const fams = [...new Set(stockableFamilies().filter((f) => f.cat === 'equipment').map((f) => f.familyKey))].slice(0, 5);
+    fams.forEach((f, i) => seedStaleListing(env, { id: `L-w${i}`, sellerId: SELLER, price: 30, familyKey: f }));
+    // One UTC day of window ticks (24 windows inside the same day bucket, anchored to the
+    // day start so every tick lands in one UTC day).
+    const dayStart = Date.now() - (Date.now() % 86_400_000);
+    for (let i = 8; i < 20; i++) await maintainMarket(env, dayStart + i * 3_600_000);
+    const bought = [...db(env).marketTrades.values()].filter((t) => Number(t.authority) === 2 && t.seller_id === SELLER);
+    expect(bought.length).toBeLessThanOrEqual(1); // sellerDailyCap — never a payday wall
+    conservation(env);
+  });
+
+  it('buyback trades never feed price history or the demand metrics', async () => {
+    const env = makeEnv();
+    await seedPlayer(env, SELLER);
+    idleAuthority(env);
+    seedStaleListing(env, { id: 'L-hist', sellerId: SELLER, price: 30 });
+    await tickWindows(env, 40);
+    expect(db(env).marketListings.get('L-hist')!.state).toBe('sold'); // (≈1e-14 miss chance)
+    // No market_history fold for the family from the buyback settlement.
+    const histRows = [...db(env).marketHistory.values()].filter((h) => h.family_key === EQ_FAMILY);
+    expect(histRows.every((h) => Number(h.sales) === 0)).toBe(true);
   });
 });

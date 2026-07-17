@@ -194,6 +194,174 @@ export function baselineDemandScale(uniqueTraders: number): number {
   return Math.max(1, Math.min(8, uniqueTraders / 40));
 }
 
+// ── Market Liquidity Engine (docs/AUCTION-HOUSE.md §buybacks) — the BUY side ─────────────
+// The authority may quietly purchase a stale, fairly-priced FOUNDATIONAL listing so the
+// market keeps transacting when player demand is thin. It exists to reward fair listing and
+// keep velocity alive — never to compete with players, never to be farmable:
+//
+//   • Funded by sinks: a window's budget is a fraction of the PREVIOUS window's burns
+//     (fees + taxes). The authority can never inject more than the market destroyed, so the
+//     engine is structurally inflation-safe — no budget accumulates, nothing carries over.
+//   • Never guaranteed: candidates are rng-shuffled and every pick must ALSO pass an accept
+//     roll scaled by population — a perfectly stale, perfectly priced listing can still go
+//     unbought this window. There is no sequence of actions that forces a purchase.
+//   • Never overpays: the bar is the family's estimated value (the same recency-weighted
+//     median players see) — a listing above `maxPremium × estimate` is invisible to the
+//     engine, and one below `minValueFrac × estimate` (suppression bait / wash shapes) is
+//     skipped rather than rewarded.
+//   • Player demand always wins: listings with a standing bid are the market working —
+//     untouchable; families already selling at `velocityCeiling`/day need no help.
+export const BUYBACK = {
+  budgetBurnFrac: 0.5, // window budget = prior-window burns × this — injection ≤ sinks, forever
+  budgetFloor: 40, // a dead-quiet market can still absorb one cheap common per window
+  budgetCap: 2_000, // hard per-window ceiling no matter how hot the sinks ran
+  minAgeFrac: 0.35, // stale = bid-free and older than this fraction of its full duration
+  maxPremium: 1.05, // never pay above estimate × this — overpricing is invisible, not negotiable
+  minValueFrac: 0.2, // never reward listings priced under estimate × this (suppression bait)
+  velocityCeiling: 1.5, // families already moving ≥ this many sales/day need no liquidity
+  maxTransfers: 2, // much-travelled items (mule/relist chains) are never bought
+  maxPerWindow: 3, // absolute purchase-count ceiling per window (before population scaling)
+  maxPerFamilyPerWindow: 1, // one purchase per family per window — never a family sweep
+  sellerDailyCap: 1, // one buyback per seller per UTC day
+  sellerCooldownMs: 6 * 3_600_000, // and never twice within 6h across the day boundary
+  maxSellerFamilyListings: 2, // a seller flooding one family (dupe wall) disqualifies it all
+  acceptChance: 0.55, // the per-candidate roll — even perfect candidates are never certain
+  quietBoost: 1.5, // activity multiplier as the market empties…
+  busyFade: 40, // …fading to ~0 as unique traders/window approach this (players ARE the liquidity)
+  velocityFade: 12, // …and equally as player sales/window approach this — a market that is
+  // TRANSACTING needs no stabilizer even when supply is glutted (deflation floods otherwise
+  // pull the engine into a third of all trade; the sim's dominance gate pinned this).
+} as const;
+
+/** The rarity bands the engine may ever buy ("Authority Eligible" by category — the same
+ *  FOUNDATIONAL philosophy as baseline stock, one band wider on equipment). Exclusives
+ *  (seasonal/limited/prestige/arena/promotional — the catalog's `exclusive` law) are never
+ *  eligible regardless of rarity, and `authorityEligible: false` vetoes a row outright. */
+export const BUYBACK_MAX_RARITY: Record<BaselineCatalogEntry['cat'], ReadonlySet<string>> = {
+  geneCard: new Set(['common', 'uncommon']),
+  equipment: new Set(['common', 'uncommon']),
+  cosmetic: new Set(['rare']), // the cultivate entry band — "baseline cosmetics"
+};
+
+/** One stale-listing candidate the host offers the planner (all inputs server-derived). */
+export interface BuybackCandidate {
+  listingId: string;
+  sellerId: string;
+  familyKey: string;
+  cat: BaselineCatalogEntry['cat'];
+  rarity: string;
+  exclusive: boolean;
+  /** What the authority would pay — the listing's buy-now (bid-free listings only). */
+  price: number;
+  createdAt: number;
+  endsAt: number;
+  hasBid: boolean;
+  /** Family estimated value (stats line players see); null = no signal ⇒ never bought. */
+  estimate: number | null;
+  velocityPerDay: number;
+  transfers: number;
+  sellerFlagged: boolean; // any unreviewed manipulation flag names this seller
+  itemFlagged: boolean; // fraud_flag on the item row
+  sellerFamilyListings: number; // this seller's ACTIVE listings in the same family
+  /** Per-item override hook: true widens the band for a specifically flagged item;
+   *  false vetoes. Exclusivity still always wins. */
+  authorityEligible?: boolean;
+}
+
+/** A seller's recent buyback record (the host derives it from authority=2 trades). */
+export interface SellerBuybackRecord { boughtToday: number; lastAt: number }
+
+/** One planned purchase (the host settles it with the normal sale discipline). */
+export interface BuybackOrder { listingId: string; sellerId: string; familyKey: string; price: number }
+
+/** Category/rarity/exclusivity eligibility — the hard identity gate. */
+export function buybackEligible(c: Pick<BuybackCandidate, 'cat' | 'rarity' | 'exclusive' | 'authorityEligible'>): boolean {
+  if (c.exclusive) return false; // seasonal/limited/prestige/arena/promo: player-driven forever
+  if (c.authorityEligible === false) return false;
+  if (c.authorityEligible === true) return true; // explicit flag widens the band (never exclusivity)
+  return BUYBACK_MAX_RARITY[c.cat].has(c.rarity);
+}
+
+/** Population/velocity coupling: a quiet market gets a modest boost; EITHER pressure —
+ *  many traders or healthy sales velocity — starves the engine, so player-to-player trade
+ *  dominates whenever players are present AND whenever they are already transacting. */
+export function buybackActivity(uniqueTraders: number, windowSales = 0): number {
+  const pressure = Math.max(uniqueTraders / BUYBACK.busyFade, windowSales / BUYBACK.velocityFade);
+  return Math.max(0, Math.min(BUYBACK.quietBoost, BUYBACK.quietBoost * (1 - pressure)));
+}
+
+/** The window's spend ceiling, funded strictly by the previous window's sinks. */
+export function buybackBudget(prevWindowBurned: number): number {
+  return Math.min(BUYBACK.budgetCap, Math.max(BUYBACK.budgetFloor, Math.round(prevWindowBurned * BUYBACK.budgetBurnFrac)));
+}
+
+/**
+ * Plan this window's buybacks. Pure and rng-injected: hosts pass real entropy (the server's
+ * crypto source), the sim passes its seeded stream — tests replay byte-for-byte.
+ * Every gate in one place, in order: identity band → market-health (bids/velocity) →
+ * staleness → valuation corridor → manipulation screens → randomized selection under
+ * budget + per-window / per-family / per-seller caps.
+ */
+export function planBuybacks(
+  candidates: readonly BuybackCandidate[],
+  opts: {
+    now: number;
+    budget: number;
+    uniqueTraders: number;
+    /** Player sales in the observed window (buybacks excluded) — the velocity pressure. */
+    windowSales?: number;
+    sellerRecords: ReadonlyMap<string, SellerBuybackRecord>;
+    rng: () => number; // [0,1)
+  },
+): BuybackOrder[] {
+  const activity = buybackActivity(opts.uniqueTraders, opts.windowSales ?? 0);
+  const maxCount = Math.min(BUYBACK.maxPerWindow, Math.floor(BUYBACK.maxPerWindow * activity + 0.999));
+  if (maxCount <= 0 || opts.budget <= 0) return [];
+  const eligible = candidates.filter((c) => {
+    if (!buybackEligible(c)) return false;
+    if (c.hasBid) return false; // a live bid IS the market working — untouchable
+    if (c.velocityPerDay >= BUYBACK.velocityCeiling) return false; // players already buy these
+    const age = opts.now - c.createdAt;
+    const duration = Math.max(1, c.endsAt - c.createdAt);
+    if (age < duration * BUYBACK.minAgeFrac) return false; // not stale yet
+    if (c.estimate === null || c.estimate <= 0) return false; // no valuation signal ⇒ no purchase
+    if (c.price > c.estimate * BUYBACK.maxPremium) return false; // never reward overpricing
+    if (c.price < c.estimate * BUYBACK.minValueFrac) return false; // never reward suppression bait
+    if (c.transfers > BUYBACK.maxTransfers) return false; // mule/relist chains
+    if (c.sellerFlagged || c.itemFlagged) return false; // manipulation screens (flag ⇒ invisible)
+    if (c.sellerFamilyListings > BUYBACK.maxSellerFamilyListings) return false; // dupe walls
+    return true;
+  });
+  if (eligible.length === 0) return [];
+  // Fisher–Yates on the injected rng — candidate ORDER is never age/price/anything gameable.
+  const pool = [...eligible];
+  for (let i = pool.length - 1; i > 0; i--) {
+    const j = Math.floor(opts.rng() * (i + 1));
+    [pool[i], pool[j]] = [pool[j], pool[i]];
+  }
+  const orders: BuybackOrder[] = [];
+  const familiesBought = new Map<string, number>();
+  const sellersBought = new Map<string, number>();
+  let spent = 0;
+  for (const c of pool) {
+    if (orders.length >= maxCount) break;
+    if (spent + c.price > opts.budget) continue;
+    if ((familiesBought.get(c.familyKey) ?? 0) >= BUYBACK.maxPerFamilyPerWindow) continue;
+    const rec = opts.sellerRecords.get(c.sellerId);
+    const takenNow = sellersBought.get(c.sellerId) ?? 0;
+    if ((rec?.boughtToday ?? 0) + takenNow >= BUYBACK.sellerDailyCap) continue;
+    if (rec !== undefined && opts.now - rec.lastAt < BUYBACK.sellerCooldownMs) continue;
+    // The accept roll: population-scaled, applied LAST — passing every gate above still
+    // never guarantees a purchase this window.
+    if (opts.rng() >= BUYBACK.acceptChance * Math.min(1, activity)) continue;
+    orders.push({ listingId: c.listingId, sellerId: c.sellerId, familyKey: c.familyKey, price: c.price });
+    spent += c.price;
+    familiesBought.set(c.familyKey, (familiesBought.get(c.familyKey) ?? 0) + 1);
+    sellersBought.set(c.sellerId, takenNow + 1);
+  }
+  return orders;
+}
+
 // ── Manipulation detectors beyond trading.ts (relisting, monopoly, fixing) ───
 export interface ListingEvent { at: number; sellerId: string; familyKey: string; refKey: string; action: 'open' | 'cancel'; ask: number }
 

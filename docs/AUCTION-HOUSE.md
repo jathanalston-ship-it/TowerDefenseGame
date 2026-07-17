@@ -120,6 +120,48 @@ that grows exactly when inflation does). It can NEVER stock: seasonal/limited/ev
 battle-pass/quest/achievement cosmetics, exotic equipment, epic+ genes, or anything
 `neverTrade` — enforced three times (catalog exclusivity, `baselineEligible` band, tests).
 
+## 5b. §buybacks — the Market Liquidity Engine (the authority's BUY side)
+
+The authority may quietly PURCHASE a stale, fairly-priced foundational player listing so
+the market keeps transacting when player demand is thin — liquidity, never competition.
+Pure planner: `planBuybacks` (`core/marketAuthority.ts`, `BUYBACK` tunables); host
+execution: `runBuybacks` inside the same exactly-once window tick; the sim drives the
+identical planner daily. The seller is paid EXACTLY like any sale (proceeds + live-tax
+burn); the item is ABSORBED (owner `@authority` — never resold, so absorbed stock can't
+re-enter and depress prices; baseline supply is synthesized separately). Trade rows carry
+`authority = 2`.
+
+**Funding — structurally sink-positive:** a window's budget is
+`min(2000, max(40, prevWindowBurns × 0.5))`. Nothing accumulates or carries over; across
+every sim scenario injections run 0.01–4% of burns. The D1 ledger identity (§9) is
+unchanged (proceeds are ordinary ledger rows); the CLOSED-SUPPLY identity gains one
+explicit term: `held + burned + withdrawn = deposited + Σ price(authority=2 trades)` —
+nothing else may ever create Ichor.
+
+**The brief's demands, mapped to mechanisms:**
+
+| Demand | Mechanism |
+|---|---|
+| Eligibility: commons/uncommons + baseline cosmetics only | `BUYBACK_MAX_RARITY` band (gene c/u · equipment c/u · cosmetic entry-band rare) |
+| Never: limited/seasonal/prestige/arena/promo/mythic | catalog `exclusive ∥ neverTrade` is an absolute veto (same law as baseline stock) |
+| "Authority Eligible" flag | `AUTHORITY_ELIGIBLE_OVERRIDES` (marketCatalog) — hand-curated; widens the band, never past exclusivity |
+| Listing age / staleness | bid-free + older than 35% of its duration; buy-now listings only |
+| Supply/demand/velocity awareness | families selling ≥ 1.5/day are skipped; `velocityFade` starves the engine as player sales/window rise |
+| Player population coupling | `busyFade`: activity ~×1.5 in a dead market → 0 as unique traders/window approach 40 |
+| Price vs historical average | the valuation corridor: pay ≤ ×1.05 of the family estimate (the recency-weighted median players see), skip < ×0.2 (suppression bait); no history ⇒ conservative per-rarity seed guidance |
+| Randomized timing / never guaranteed | crypto-entropy shuffle + a 0.55 accept roll per pick — no action sequence forces a purchase |
+| Budget limits / daily caps | per-window budget above; ≤ 3 buys/window; ≤ 1 per family/window |
+| Per-seller caps + cooldowns | 1 buyback per seller per UTC day + 6h cooldown |
+| Duplicate listing detection | a seller with > 2 active same-family listings disqualifies that family (dupe walls) |
+| Inflation/suppression/wash/relist detection | any seller named by an UNREVIEWED `market_flags` row is invisible to the engine (the §6 detectors are the sensor suite); `fraud_flag` items and items with > 2 transfers (mule/relist chains) are skipped |
+| Alt-account detection | heuristic, not identity-graph: per-seller caps + flag vetoes + the §6 pair/chain detectors bound what any cluster of accounts can extract (see §12) |
+| Player trades dominate | buybacks are excluded from sales metrics AND price history (no self-referential price support), and the sim gate pins buybacks ≤ 25% of trades in every scenario |
+
+**Race discipline:** the sold-gate `UPDATE … WHERE state='active' AND bid IS NULL` means a
+player bid landing in the window race always beats the authority at the SQL level; the
+trade INSERT + money statements follow the §7 conditioning exactly (op ids share the
+`sale:<listingId>:*` family — a listing settles once, ever).
+
 ## 6. Anti-manipulation (flag, never auto-punish)
 
 Detectors (`auditMarket`, ~twice daily over 7d of trades + 24h of listing events):
@@ -200,7 +242,7 @@ indexed-affix column is the scale-up hook, §10).
         - (SELECT COALESCE(SUM(balance+escrow),0) FROM market_wallets) AS drift;` — must be 0.
 - Stranded-settlement repair scan (the §7 crash window):
   `SELECT t.listing_id FROM market_trades t LEFT JOIN market_wallet_ledger l
-     ON l.op_id = 'sale:' || t.listing_id || ':seller' WHERE t.authority = 0 AND l.op_id IS NULL;`
+     ON l.op_id = 'sale:' || t.listing_id || ':seller' WHERE t.authority IN (0, 2) AND l.op_id IS NULL;`
 
 ## 10. Foundational design — what a future category inherits
 
@@ -224,10 +266,11 @@ Adding a tradable category (or any new content in an existing one):
 `scripts/sim-market.ts`: persona agents (F2P / casual / whale / manipulator / bot) with
 utility anchors and rational bidding, ~3,820 simulated days across **inflation, deflation,
 low population, high population, market crash, whale spending, F2P-only, rare scarcity,
-bots + manipulators, baseline** — every scenario must hold: exact money conservation,
-commons-basket affordability within [⅓, ×3] of calibration, full-basket bands, exclusives
-never stocked, authority levers inside bounds and ENGAGING under pressure, every planted
-fraud pattern flagged. Current run: **all 10 healthy** with the levers live-charging
+bots + manipulators, baseline** — every scenario must hold: exact money conservation
+(now including the buyback-injection term), commons-basket affordability within [⅓, ×3] of
+calibration, full-basket bands, exclusives never stocked NOR bought, authority levers
+inside bounds and ENGAGING under pressure, every planted fraud pattern flagged, buybacks
+never from flagged personas, never exceeding 25% of trade, and never out-injecting burns. Current run: **all 10 healthy** with the levers live-charging
 (inflation idx 1.18 → fee ×1.6 tax ×1.8; bot scenario raises rapidTransfer, circular,
 priceOutlier, selfDealing, rapidRelist, priceFixing). Unit layer: engine lifecycle +
 conservation, authority bounds/step caps/illiquidity override, catalog exclusivity +
@@ -245,3 +288,11 @@ tests).
   remains the cross-owner thread); metadata continuity is by ref, not row.
 - The settle-gate crash window (§7) — shared with the established purchase discipline,
   repairable via the §9 scan; no player-visible loss (item + trade row both persist).
+- Liquidity-engine anti-exploit is HEURISTIC where identity is unknowable (§5b): true
+  alt-account/wash graphs need identity infrastructure this architecture doesn't have.
+  The bound is economic — per-seller caps, flag vetoes, the valuation corridor and the
+  sink-funded budget cap what any account cluster can extract to a few fairly-priced
+  commons per day, paid at market value. Revisit only with telemetry showing farming
+  despite the bounds.
+- `busyFade`/`velocityFade` are per-WINDOW semantics (server: 1 UTC hour; sim: 1 day) —
+  the same deliberate host-dependence as the rest of the window vocabulary.

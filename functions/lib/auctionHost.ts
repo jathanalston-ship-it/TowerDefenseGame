@@ -23,13 +23,16 @@ import { isSyncToken } from './validate';
 import { sessionAccount } from './accounts';
 import { familyStats, recommendedPrice, settleExpired } from '../../src/core/auction';
 import type { LiveListing } from '../../src/core/auction';
+import { saleTax } from '../../src/core/trading';
 import type { MarketHistoryPoint, TradeEvent } from '../../src/core/trading';
 import {
-  auditMarket, authorityTick, baselineDemandScale, defaultAuthorityState, emptyMetrics,
-  planBaselineRestock,
+  auditMarket, authorityTick, baselineDemandScale, buybackBudget,
+  defaultAuthorityState, emptyMetrics, planBaselineRestock, planBuybacks,
 } from '../../src/core/marketAuthority';
-import type { AuthorityState, ListingEvent, MarketMetrics } from '../../src/core/marketAuthority';
-import { baselineCatalog, marketFamily } from '../../src/core/marketCatalog';
+import type {
+  AuthorityState, BuybackCandidate, ListingEvent, MarketMetrics, SellerBuybackRecord,
+} from '../../src/core/marketAuthority';
+import { AUTHORITY_ELIGIBLE_OVERRIDES, baselineCatalog, marketFamily } from '../../src/core/marketCatalog';
 
 // ── Host tunables (server policy — engine/economy rules live in src/core) ─────
 export const HOST = {
@@ -41,6 +44,7 @@ export const HOST = {
   maxDeposit: 250_000,
   payloadMaxChars: 4_096,
   pageCap: 40, // search pagination ceiling
+  buybackCandidateCap: 60, // stale rows considered per tick (liquidity engine, §buybacks)
   /** Seed guidance when a family has no history and no floor (per catalog rarity). */
   defaultGuide: { common: 30, uncommon: 80, rare: 220 } as Record<string, number>,
 } as const;
@@ -229,7 +233,7 @@ export async function foldFamilyDay(env: Env, familyKey: string, atMs: number): 
 
 /** The post-settlement money/item movements — runs EXACTLY ONCE per listing because only
  *  the request whose trade INSERT actually inserted calls it (the purchases discipline). */
-async function applySaleEffects(env: Env, row: ListingRow, sale: { buyerId: string; price: number; tax: number; proceeds: number }, now: number, viaEscrow: boolean): Promise<void> {
+async function applySaleEffects(env: Env, row: ListingRow, sale: { buyerId: string; price: number; tax: number; proceeds: number }, now: number, viaEscrow: boolean, foldHistory = true): Promise<void> {
   const stmts: D1PreparedStatement[] = [];
   if (viaEscrow) {
     // The winning bid was escrowed at bid time — consume it (holdings finally leave the buyer).
@@ -271,7 +275,10 @@ async function applySaleEffects(env: Env, row: ListingRow, sale: { buyerId: stri
     `UPDATE market_items SET owner_id = ?2, state = 'delivered', transfers = transfers + 1, history = ?3 WHERE global_item_id = ?1`,
   ).bind(row.global_item_id, sale.buyerId, JSON.stringify(history)));
   await env.DB.batch(stmts);
-  await foldFamilyDay(env, row.family_key, now);
+  // Buybacks (authority=2) never fold into price history: the estimates that AUTHORIZE a
+  // purchase must reflect player demand only — the engine feeding its own valuation would
+  // be a walkable price-support loop (docs/AUCTION-HOUSE.md §buybacks).
+  if (foldHistory) await foldFamilyDay(env, row.family_key, now);
 }
 
 /** Settle one due listing (standing bid wins; bid-free expires back to the seller). */
@@ -332,7 +339,7 @@ export async function computeWindowMetrics(env: Env, windowKey: number): Promise
   const end = start + HOST.windowMs;
   const m = emptyMetrics(windowKey);
   const trade = await env.DB.prepare(
-    'SELECT COUNT(*) AS n, COALESCE(SUM(price), 0) AS vol, COALESCE(AVG(price), 0) AS avgp FROM market_trades WHERE at >= ?1 AND at < ?2',
+    'SELECT COUNT(*) AS n, COALESCE(SUM(price), 0) AS vol, COALESCE(AVG(price), 0) AS avgp FROM market_trades WHERE at >= ?1 AND at < ?2 AND authority != 2',
   ).bind(start, end).first<{ n: number; vol: number; avgp: number }>();
   m.sales = trade?.n ?? 0;
   m.saleVolume = trade?.vol ?? 0;
@@ -460,6 +467,128 @@ function authorityRefKey(familyKey: string, windowKey: number, i: number): strin
   return `eq:auth-${parts[1] ?? 'x'}-${windowKey}.${i}`; // synthetic instance uid
 }
 
+// ── Market Liquidity Engine (docs/AUCTION-HOUSE.md §buybacks) — the authority's BUY side ──
+/** The tick's buyback pass: gather stale bid-free player listings (+ item provenance),
+ *  screen manipulation signals, let the pure planner pick under budget/caps/rng, then settle
+ *  each pick with the EXACT sale discipline (sold-gate → trade INSERT → conditioned money).
+ *  The sold-gate additionally requires `bid IS NULL`, so a player bid landing in the race
+ *  window always beats the authority — player demand wins at the SQL level, not by luck. */
+async function runBuybacks(env: Env, m: MarketMetrics, state: AuthorityState, now: number): Promise<void> {
+  const budget = buybackBudget(m.ichorBurned);
+  const cands = await env.DB.prepare(
+    `SELECT l.listing_id, l.global_item_id, l.family_key, l.category, l.rarity, l.seller_id,
+            l.buy_now, l.bid, l.ends_at, l.created_at, i.transfers, i.fraud_flag
+     FROM market_listings l JOIN market_items i ON i.global_item_id = l.global_item_id
+     WHERE l.state = 'active' AND l.authority = 0 AND l.bid IS NULL AND l.buy_now IS NOT NULL
+     ORDER BY l.created_at LIMIT ?1`,
+  ).bind(HOST.buybackCandidateCap).all<{
+    listing_id: string; global_item_id: string; family_key: string; category: string;
+    rarity: string; seller_id: string; buy_now: number; bid: number | null;
+    ends_at: number; created_at: number; transfers: number; fraud_flag: number;
+  }>();
+  if (cands.results.length === 0) return;
+  // Manipulation screen: any seller named by an UNREVIEWED recent flag is invisible to the
+  // engine (flag ⇒ moderation decides; the authority never pays a suspect meanwhile).
+  const flagRows = await env.DB.prepare(
+    'SELECT detail FROM market_flags WHERE reviewed = 0 AND at >= ?1 LIMIT 200',
+  ).bind(now - HOST.auditTradeDays * 86_400_000).all<{ detail: string }>();
+  const flagged = new Set<string>();
+  for (const r of flagRows.results) {
+    try {
+      const d = JSON.parse(r.detail) as Record<string, unknown>;
+      for (const k of ['sellerId', 'fromId', 'toId'] as const) {
+        if (typeof d[k] === 'string') flagged.add(d[k] as string);
+      }
+    } catch { /* an unparseable flag never widens eligibility */ }
+  }
+  // Per-seller recent buybacks → daily cap + cooldown records (a 30h lookback covers both).
+  const recRows = await env.DB.prepare(
+    'SELECT seller_id, at FROM market_trades WHERE authority = 2 AND at >= ?1 ORDER BY at DESC LIMIT 200',
+  ).bind(now - 30 * 3_600_000).all<{ seller_id: string; at: number }>();
+  const dayStart = now - (now % 86_400_000);
+  const sellerRecords = new Map<string, SellerBuybackRecord>();
+  for (const r of recRows.results) {
+    const rec = sellerRecords.get(r.seller_id) ?? { boughtToday: 0, lastAt: 0 };
+    if (r.at >= dayStart) rec.boughtToday++;
+    rec.lastAt = Math.max(rec.lastAt, r.at);
+    sellerRecords.set(r.seller_id, rec);
+  }
+  // Dupe walls: a seller's ACTIVE same-family listing counts.
+  const sfRows = await env.DB.prepare(
+    "SELECT seller_id, family_key, COUNT(*) AS n FROM market_listings WHERE state = 'active' AND authority = 0 GROUP BY seller_id, family_key LIMIT 500",
+  ).all<{ seller_id: string; family_key: string; n: number }>();
+  const sellerFam = new Map(sfRows.results.map((r) => [`${r.seller_id}|${r.family_key}`, r.n]));
+  // Valuation inputs — the SAME stats line players see (floors + 14d history).
+  const floors = await env.DB.prepare(
+    "SELECT family_key, MIN(COALESCE(buy_now, ask)) AS m FROM market_listings WHERE state = 'active' GROUP BY family_key",
+  ).all<{ family_key: string; m: number }>();
+  const floorMap = new Map(floors.results.map((r) => [r.family_key, r.m]));
+  const hist = await env.DB.prepare(
+    'SELECT family_key, day, sales, median_price, low_price, high_price FROM market_history WHERE day >= ?1',
+  ).bind(daysAgoKey(now, 14)).all<{ family_key: string; day: string; sales: number; median_price: number; low_price: number; high_price: number }>();
+  const histMap = new Map<string, MarketHistoryPoint[]>();
+  for (const h of hist.results) {
+    const list = histMap.get(h.family_key) ?? [];
+    list.push({ day: h.day, sales: h.sales, medianPrice: h.median_price, lowPrice: h.low_price, highPrice: h.high_price });
+    histMap.set(h.family_key, list);
+  }
+  const candidates: BuybackCandidate[] = cands.results.map((r) => {
+    const fam = marketFamily(r.family_key);
+    const stats = familyStats(histMap.get(r.family_key) ?? [], floorMap.get(r.family_key) ?? null);
+    return {
+      listingId: r.listing_id,
+      sellerId: r.seller_id,
+      familyKey: r.family_key,
+      cat: (fam?.cat ?? r.category) as BuybackCandidate['cat'],
+      rarity: r.rarity,
+      exclusive: fam ? fam.exclusive || fam.neverTrade : true, // unknown family ⇒ never buy
+      price: r.buy_now,
+      createdAt: r.created_at,
+      endsAt: r.ends_at,
+      hasBid: r.bid !== null,
+      // No player history yet ⇒ the rarity's seed guidance is the (conservative) valuation.
+      estimate: stats.estimatedValue ?? HOST.defaultGuide[r.rarity] ?? null,
+      velocityPerDay: stats.salesPerDay,
+      transfers: r.transfers,
+      sellerFlagged: flagged.has(r.seller_id),
+      itemFlagged: r.fraud_flag === 1,
+      sellerFamilyListings: sellerFam.get(`${r.seller_id}|${r.family_key}`) ?? 1,
+      authorityEligible: AUTHORITY_ELIGIBLE_OVERRIDES[r.family_key],
+    };
+  });
+  // Real entropy — purchase timing/selection is not derivable from anything a player sees.
+  const rng = (): number => {
+    const b = new Uint32Array(1);
+    crypto.getRandomValues(b);
+    return b[0] / 4_294_967_296;
+  };
+  const orders = planBuybacks(candidates, { now, budget, uniqueTraders: m.uniqueTraders, windowSales: m.sales, sellerRecords, rng });
+  for (const o of orders) {
+    const row = await listingById(env, o.listingId);
+    if (!row || row.state !== 'active' || row.authority !== 0 || row.bid !== null) continue;
+    const price = row.buy_now;
+    if (price === null) continue;
+    const tax = Math.min(price, Math.ceil(saleTax(price) * Math.max(1, state.taxMult)));
+    const gate = await env.DB.batch([
+      env.DB.prepare(
+        `UPDATE market_listings SET state = 'sold', closed_at = ?2 WHERE listing_id = ?1 AND state = 'active' AND bid IS NULL`,
+      ).bind(row.listing_id, now),
+      env.DB.prepare(
+        `INSERT INTO market_trades (listing_id, global_item_id, family_key, seller_id, buyer_id, price, tax, authority, at)
+         SELECT ?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9
+         WHERE EXISTS (SELECT 1 FROM market_listings WHERE listing_id = ?1 AND state = 'sold')
+         ON CONFLICT(listing_id) DO NOTHING`,
+      ).bind(row.listing_id, row.global_item_id, row.family_key, row.seller_id, '@authority', price, tax, 2, now),
+    ]);
+    if (gate[1].meta.changes === 1) {
+      // The seller is paid EXACTLY like any sale (proceeds credit + tax burn + custody to
+      // '@authority'); the item retires from circulation — the baseline lane synthesizes its
+      // own supply, so absorbed stock never re-enters and depresses prices.
+      await applySaleEffects(env, row, { buyerId: '@authority', price, tax, proceeds: Math.max(0, price - tax) }, now, false, false);
+    }
+  }
+}
+
 // ── Fraud audit (periodic; flags only — moderation decides, never auto-punish) ──
 export async function runAudit(env: Env, now: number): Promise<void> {
   const since = now - HOST.auditTradeDays * 86_400_000;
@@ -472,7 +601,7 @@ export async function runAudit(env: Env, now: number): Promise<void> {
   const medians = new Map<string, number>();
   for (const h of hist.results) if (h.sales > 0 && !medians.has(h.family_key)) medians.set(h.family_key, h.median_price);
   const trades: TradeEvent[] = tradeRows.results
-    .filter((t) => t.authority !== 1)
+    .filter((t) => t.authority === 0) // player↔player only — authority sales AND buybacks are not fraud shapes
     .map((t) => ({
       at: t.at, itemKey: t.global_item_id.slice(t.global_item_id.indexOf('/') + 1),
       fromId: t.seller_id, toId: t.buyer_id, price: t.price, medianPrice: medians.get(t.family_key) ?? 0,
@@ -529,6 +658,7 @@ export async function maintainMarket(env: Env, now: number): Promise<AuthoritySt
       await env.DB.prepare('UPDATE market_windows SET metrics = ?2 WHERE window_key = ?1')
         .bind(windowKey, JSON.stringify(metrics)).run();
       await restockBaseline(env, state, metrics.uniqueTraders, now);
+      await runBuybacks(env, metrics, state, now);
       if (windowKey % HOST.auditEveryWindows === 0) await runAudit(env, now);
     } else {
       state = await readAuthority(env); // another request won the tick — read its result

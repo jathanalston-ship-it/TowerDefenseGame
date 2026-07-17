@@ -481,6 +481,48 @@ function auctionExec(db: FakeD1, sql: string, args: unknown[]): ExecOut | null {
     return listingUpdate(db, sql, args);
   }
   if (!sql.startsWith('SELECT')) return auctionExecTail(db, sql, args);
+  // Liquidity engine (§buybacks): stale bid-free player listings joined with item provenance.
+  if (sql.includes('FROM market_listings l JOIN market_items i ON i.global_item_id = l.global_item_id')) {
+    const rows = activeListings(db)
+      .filter((l) => num(l.authority) === 0 && l.bid === null && l.buy_now !== null)
+      .sort((a, b) => num(a.created_at) - num(b.created_at))
+      .slice(0, num(args[0]))
+      .map((l) => {
+        const item = db.marketItems.get(String(l.global_item_id));
+        return {
+          listing_id: l.listing_id, global_item_id: l.global_item_id, family_key: l.family_key,
+          category: l.category, rarity: l.rarity, seller_id: l.seller_id, buy_now: l.buy_now,
+          bid: l.bid, ends_at: l.ends_at, created_at: l.created_at,
+          transfers: num(item?.transfers ?? 0), fraud_flag: num(item?.fraud_flag ?? 0),
+        };
+      });
+    return { rows, changes: 0 };
+  }
+  // Liquidity engine: dupe walls — a seller's active same-family listing counts.
+  if (sql.includes("COUNT(*) AS n FROM market_listings WHERE state = 'active' AND authority = 0 GROUP BY seller_id, family_key")) {
+    const map = new Map<string, number>();
+    for (const l of activeListings(db)) {
+      if (num(l.authority) !== 0) continue;
+      const key = `${String(l.seller_id)}|${String(l.family_key)}`;
+      map.set(key, (map.get(key) ?? 0) + 1);
+    }
+    return { rows: [...map].slice(0, 500).map(([k, n]) => ({ seller_id: k.slice(0, k.indexOf('|')), family_key: k.slice(k.indexOf('|') + 1), n })), changes: 0 };
+  }
+  // Liquidity engine: recent buyback trades (per-seller daily cap + cooldown records).
+  if (sql.includes('FROM market_trades WHERE authority = 2 AND at >= ?1')) {
+    const rows = [...db.marketTrades.values()]
+      .filter((t) => num(t.authority) === 2 && num(t.at) >= num(args[0]))
+      .sort((a, b) => num(b.at) - num(a.at)).slice(0, 200)
+      .map((t) => ({ seller_id: t.seller_id, at: t.at }));
+    return { rows, changes: 0 };
+  }
+  // Liquidity engine: unreviewed manipulation flags (sellers named there are invisible).
+  if (sql.startsWith('SELECT detail FROM market_flags WHERE reviewed = 0 AND at >= ?1')) {
+    const rows = [...db.marketFlags.values()]
+      .filter((f) => num(f.reviewed) === 0 && num(f.at) >= num(args[0]))
+      .slice(0, 200).map((f) => ({ detail: f.detail }));
+    return { rows, changes: 0 };
+  }
   if (sql.includes('FROM market_listings WHERE listing_id = ?1')) {
     const row = db.marketListings.get(String(args[0]));
     return { rows: row ? [row] : [], changes: 0 };
@@ -553,7 +595,7 @@ function auctionExec(db: FakeD1, sql: string, args: unknown[]): ExecOut | null {
     return { rows, changes: 0 };
   }
   if (sql.startsWith('SELECT COUNT(*) AS n, COALESCE(SUM(price), 0) AS vol')) {
-    const inWin = [...db.marketTrades.values()].filter((t) => num(t.at) >= num(args[0]) && num(t.at) < num(args[1]));
+    const inWin = [...db.marketTrades.values()].filter((t) => num(t.at) >= num(args[0]) && num(t.at) < num(args[1]) && num(t.authority) !== 2);
     const vol = inWin.reduce((a, t) => a + num(t.price), 0);
     return { rows: [{ n: inWin.length, vol, avgp: inWin.length > 0 ? vol / inWin.length : 0 }], changes: 0 };
   }

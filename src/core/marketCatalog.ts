@@ -122,6 +122,13 @@ export function stockableFamilies(): MarketFamily[] {
   return marketFamilies().filter((f) => !f.exclusive && !f.neverTrade && baselineEligible({ familyKey: f.familyKey, cat: f.cat, rarity: f.rarity, exclusive: f.exclusive }));
 }
 
+/** "Authority Eligible" overrides (docs/AUCTION-HOUSE.md §buybacks) — the per-family data
+ *  hook for the liquidity engine: `true` widens the buyback band for a specific family,
+ *  `false` vetoes one outright. EMPTY by design today; exclusivity always wins regardless.
+ *  This is deliberately a hand-curated map, never derived — flagging an item for buyback
+ *  support is a design decision, not a registry property. */
+export const AUTHORITY_ELIGIBLE_OVERRIDES: Readonly<Record<string, boolean>> = {};
+
 /** Content-integrity check (registered beside the other registry validators):
  *  unique keys, non-empty names, and at least one stockable family per category
  *  (the baseline lane must never silently die as content evolves). */
