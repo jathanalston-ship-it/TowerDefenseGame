@@ -1258,6 +1258,14 @@ export const RELEASES: Release[] = [
       {
         "cat": "Website",
         "text": "Regen DIL graph, dependency graph, chronicle + site over the merged analytics batch"
+      },
+      {
+        "cat": "Framework",
+        "text": "Reward Architecture Initiative: five-loop map, chaining, value-neutral drips"
+      },
+      {
+        "cat": "Gene Cards",
+        "text": "Effect language: digit-free draft text generated from card effects"
       }
     ]
   },

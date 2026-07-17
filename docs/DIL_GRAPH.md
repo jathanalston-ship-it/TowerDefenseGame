@@ -1,6 +1,6 @@
 # DIL_GRAPH.md — the Design Intelligence Layer (GENERATED — `npm run dil -- regen`)
 
-> **The project's brain** (docs/DIL.md). 870 nodes · 1630 edges, built from the live
+> **The project's brain** (docs/DIL.md). 871 nodes · 1632 edges, built from the live
 > registries + curated knowledge (src/dev/dil/). **Query it instead of searching the repo:**
 > `npm run dil -- node <id>` · `affects <id>` · `requires <id>` · `missing <kind> <edge>` ·
 > `checklist tower <kind>` · `find <text>`. Edge kinds are bidirectional (19 kinds).
@@ -123,6 +123,7 @@ graph LR
   system_heroes["Heroes"] -->|consumes| currency_hero_shards["Hero Shards"]
   system_shards_economy["Shards & Star Economy"] -->|consumes| currency_materials["Materials (mutagen/scrap/catalyst)"]
   system_gene_cards["Gene Cards (draft + permanent evolution)"] -->|consumes| currency_gene_essence["Gene Essence"]
+  system_gene_cards["Gene Cards (draft + permanent evolution)"] -->|modifies| system_hub_shell["Hub Shell & Home"]
   system_nucleus["Nucleus Mulligans"] -->|modifies| system_rendering["Rendering & VFX"]
   system_mulligans["Mulligan System"] -->|consumes| currency_gene_essence["Gene Essence"]
   system_equipment["Equipment & Armory"] -->|consumes| currency_materials["Materials (mutagen/scrap/catalyst)"]
@@ -161,7 +162,6 @@ graph LR
   system_nemesis["Nemesis & Trophies"] -->|modifies| system_engine["Sim Engine"]
   system_nemesis["Nemesis & Trophies"] -->|consumes| system_mega_bosses["Mega Bosses"]
   system_mastery["Mastery / Adaptation"] -->|modifies| system_hub_shell["Hub Shell & Home"]
-  system_gene_cards["Gene Cards (draft + permanent evolution)"] -->|modifies| system_hub_shell["Hub Shell & Home"]
   system_loot["Loot & Bio-Containers"] -->|modifies| system_hub_shell["Hub Shell & Home"]
   system_hive_construction["Hive Construction"] -->|modifies| system_idle_harvest["Idle Harvest"]
   system_net_backend["Backend lanes (net/)"] -->|consumes| system_online_foundation["Online Foundation"]
@@ -517,6 +517,7 @@ graph LR
 ```mermaid
 graph LR
   system_prestige["Prestige (Molt / Ascendant)"] -->|modifies| system_difficulty["Difficulty"]
+  system_gene_cards["Gene Cards (draft + permanent evolution)"] -->|modifies| system_hub_shell["Hub Shell & Home"]
   system_nucleus["Nucleus Mulligans"] -->|modifies| system_rendering["Rendering & VFX"]
   system_audio["Audio"] -->|visualizes| system_assimilation["Assimilation Index"]
   system_mulligans["Mulligan System"] -->|modifies| system_rendering["Rendering & VFX"]
@@ -536,7 +537,6 @@ graph LR
   system_mastery["Mastery / Adaptation"] -->|modifies| concept_power_score["Power Score"]
   system_mastery["Mastery / Adaptation"] -->|modifies| system_hub_shell["Hub Shell & Home"]
   system_gene_cards["Gene Cards (draft + permanent evolution)"] -->|modifies| concept_power_score["Power Score"]
-  system_gene_cards["Gene Cards (draft + permanent evolution)"] -->|modifies| system_hub_shell["Hub Shell & Home"]
   system_loot["Loot & Bio-Containers"] -->|modifies| system_hub_shell["Hub Shell & Home"]
   system_hive_construction["Hive Construction"] -->|modifies| system_idle_harvest["Idle Harvest"]
   system_hub_shell["Hub Shell & Home"] -->|modifies| system_progression_gating["Progression Gating & Director"]
@@ -1307,7 +1307,7 @@ _at: src/core/loot.ts, src/core/lootQueue.ts, src/core/progressionLoot.ts, src/s
 
 Between-wave drafts + the permanent Archive: Essence-funded levels, gates, loadouts, Transcendence (maxed-card second lines), Ascension backend.
 
-_at: src/core/cards.ts, src/core/geneCards.ts, src/core/geneDiscovery.ts, src/core/geneUpgrades.ts, src/core/geneTranscend.ts, src/core/geneEssence.ts, src/core/geneLoadout.ts, src/state/geneArchive.ts, src/ui/GeneArchive.tsx, src/ui/DraftModal.tsx, src/ui/cardAffects.tsx, src/ui/components/GeneCardArt.tsx_
+_at: src/core/cards.ts, src/core/effectLanguage.ts, src/core/geneCards.ts, src/core/geneDiscovery.ts, src/core/geneUpgrades.ts, src/core/geneTranscend.ts, src/core/geneEssence.ts, src/core/geneLoadout.ts, src/state/geneArchive.ts, src/ui/GeneArchive.tsx, src/ui/DraftModal.tsx, src/ui/cardAffects.tsx, src/ui/components/GeneCardArt.tsx_
 
   - dependsOn → `system:content-infra`
   - dependsOn → `system:power`
@@ -1322,6 +1322,7 @@ _at: src/core/cards.ts, src/core/geneCards.ts, src/core/geneDiscovery.ts, src/co
   - consumes → `currency:gene-essence` — Archive leveling
   - provides → `concept:power-score` — Transcendence (geneTranscend.ts) made mortarPoolDuration/corrosionSlow/killFractureSplash/bonusTowerSlots/integrityRegenPerWave SCORED fields — permanent second lines must be Power-visible (validate.ts errors on an invisible family option; cardProblems on overrides)
   - conflictsWith → `concept:golden-test` — Transcendence rides effectiveGeneEffects 4th arg + RunOptions.geneTranscends — untranscended saves MUST fold byte-identical (transcendPowerMult ×1, stale ids drop in the sanitizer); options may never use boot-only fields (dead on mid-run draft)
+  - modifies → `system:hub-shell` — EFFECT LANGUAGE (core/effectLanguage.ts — docs/CARDS.md §language): CardOption.lines/effects carry standardized DIGIT-FREE text generated from the SAME leveled effects a pick applies (game.ts snapshot/chooseCard feed effectiveGeneEffects into cardToOption); FIELD_VOCAB is a TOTAL Record over RunModifiers keys (typecheck fails on a new field until vocab is authored), IMPACT_SCALE 8 bands + EFFECT_CATEGORIES 12-color palette are THE game-wide effect vocabulary — new content describes effects via describeEffects/describeCard, never hand-written stat text (CardDef.simple is the only override; CardDef.description stays the precise technical line for detail expansion)
   - extends → `system:loot` — GENE DISCOVERY (core/geneDiscovery.ts): save.genesDiscovered IS ownership — starters free (16 ungated commons), everything else recovered from Bio-Containers (openContainer additive lane: rollGeneDiscovery → discover extends the archive / echo pays Gene Essence, never a dead pull); rarity pools open on campaign milestones 0/8/15/30/60 with per-card unlock gates ON TOP; undiscovered weight ×(1+7·(1−completion)) fades as the archive fills — rebalance ONLY via GENE_DISCOVERY + scripts/sim-gene-discovery.ts
   - conflictsWith → `concept:determinism` — the DRAFT POOL is the discovered set passed at LAUNCH (GameView → RunOptions.draftPool); the no-options sim path keeps the legacy ungated catalog so goldens stay byte-identical — never filter draftCards by discovery INSIDE the sim, and never roll discovery from sim code (meta-only, Math.random)
   - modifies → `concept:power-score` — discovery credits the cards codex (CollectionContext.genesDiscovered → tier 1 = Discovered) so each find is small permanent Power via the Collection fold; a FRESH account therefore reads base × collection(starters) ≈ +5 — powerIntegration/profile tests pin this shape; upgrade Power (geneCollectionPowerMult over save.genes) is a separate lane, unchanged
@@ -1338,7 +1339,7 @@ _at: src/core/cards.ts, src/core/geneCards.ts, src/core/geneDiscovery.ts, src/co
   - documentedBy ← `doc:CARDS.md`
   - documentedBy ← `doc:GENE-AUDIT-REPORT.md`
   - documentedBy ← `guide:gene-cards`
-  - _…9 more (query: `npm run dil -- node system:gene-cards`)_
+  - _…10 more (query: `npm run dil -- node system:gene-cards`)_
 
 ### `system:nucleus` — Nucleus Mulligans
 
@@ -1980,7 +1981,7 @@ _at: src/ui/Hub.tsx, src/ui/navModel.ts, src/ui/MobileShell.tsx, src/ui/CommandC
   - documentedBy ← `doc:ONE-MORE-RUN.md`
   - documentedBy ← `doc:HUD.md`
   - documentedBy ← `doc:PROGRESSION-LOOP.md`
-  - _…17 more (query: `npm run dil -- node system:hub-shell`)_
+  - _…18 more (query: `npm run dil -- node system:hub-shell`)_
 
 ### `system:run-ui` — In-Run HUD & Results
 
@@ -3662,7 +3663,7 @@ _at: site/guides.ts → /guides/prestige/_
 - `doc:VOWS.md` — project documentation _(documents `system:prestige`)_
 - `doc:WEBSITE.md` — project documentation _(documents `system:field-research`, documents `system:website`)_
 
-## Tests (283)
+## Tests (284)
 
 - `test:src/audio/music.test.ts` — automated validation _(tests `system:audio`)_
 - `test:src/changelog/classify.test.ts` — automated validation _(tests `system:chronicle`)_
@@ -3717,6 +3718,7 @@ _at: site/guides.ts → /guides/prestige/_
 - `test:src/core/draftcadence.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/core/earlyBrood.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/core/economyDirector.test.ts` — automated validation _(tests `system:currencies`)_
+- `test:src/core/effectLanguage.test.ts` — automated validation _(tests `system:gene-cards`)_
 - `test:src/core/endlessTaper.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/core/enemies.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/core/engagement.test.ts` — automated validation _(tests `system:engine`)_

@@ -297,3 +297,7 @@
 - `c939ba4` **[Backend]** Player telemetry, analytics & developer intelligence platform
 - `04fe4c4` **[Website]** Regen DIL graph, dependency graph, chronicle + site over the merged analytics batch
 - ⚑ `461eb0b` **[Framework]** Handoff notes for the analytics platform session _(internal)_
+- `6cbf1dd` **[Framework]** Reward Architecture Initiative: five-loop map, chaining, value-neutral drips
+- `4680ab8` **[Framework]** Handoff notes for the reward architecture session _(internal)_
+- `55435bd` **[Gene Cards]** Effect language: digit-free draft text generated from card effects
+- `5d8c03a` **[Website]** Rituals: chronicle + site regen, handoff + status board for the effect language _(internal)_

@@ -3,7 +3,28 @@
 > Maintained at the END of every session (paired with `docs/AI_HANDOFF.md` — the constitution's
 > workflow step 4). This is the "where are we?" answer; `docs/GAME-STATE.md` remains the deeper
 > per-system built-vs-planned index, `docs/PROJECT_MANIFEST.md` the system map.
-> **Last updated:** 2026-07-17e (**THE MARKET LIQUIDITY ENGINE** — the Market Authority's
+> **Last updated:** 2026-07-17f (**THE GENE-DRAFT EFFECT LANGUAGE** — the in-run draft
+> readability overhaul (user brief; CARDS.md §language). `src/core/effectLanguage.ts` is the
+> game-wide descriptor system: an 8-band impact scale (Very Slightly → Overwhelmingly,
+> configurable thresholds), a 12-category color/glyph palette (Damage deep red ▲ … Tower
+> Effects light blue ⌂; glyphs carry the colorblind channel), and a **TOTAL** per-
+> RunModifiers-field vocabulary (`FIELD_VOCAB` — a new sim field is a TYPE ERROR until its
+> phrasing is authored). `describeCard` folds effects (muls compound, adds sum, flags dedupe)
+> and emits digit-free `EffectLine`s — drawbacks phrase as "But …" and sort last; the precise
+> numbers live only in the per-line `exact`. The DTO (`CardOption.lines/effects`) is built
+> from the LEVELED effects a pick will actually apply (`effectiveGeneEffects` at the seams in
+> game.ts). DraftModal rebuilt on it: name → procedural art + subject badge → colored bold
+> keywords → meaningful-only synergy chip; exact values behind hover-dwell 550ms / hold Shift
+> / long-press 450ms (release-click suppressed) with the live "YOUR GENE STACK" before→after
+> + Gene-stack Power diff; keyword bloom reduced-motion-gated; uncommon rarity chrome fixed.
+> `CardDef.simple` is the lone hand-text override (unused). Buy-now audit: the auction house
+> already ships the optional, ichor-intensive seller buy-now — no change needed. Coverage:
+> 16 effectLanguage units (no digits at L0 AND max level for all 111 cards; vocab totality;
+> collision guard), headless 2-wave draft probe with screenshots, suite 2388 green, validate
+> PASS, mobilecheck CLEAN. Adoption path for older surfaces recorded in CARDS.md §language.
+> Previous below.)
+>
+> **2026-07-17e** (**THE MARKET LIQUIDITY ENGINE** — the Market Authority's
 > BUY side (AUCTION-HOUSE.md §5b, user brief executed): the authority may quietly purchase a
 > stale, fairly-priced FOUNDATIONAL listing (commons/uncommons + entry-band cosmetics;
 > catalog exclusives/neverTrade an absolute veto; `AUTHORITY_ELIGIBLE_OVERRIDES` the

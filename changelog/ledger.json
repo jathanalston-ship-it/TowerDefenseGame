@@ -1,6 +1,6 @@
 {
-  "lastSha": "461eb0bbbbc25f9a7a362398069b9d1792a2f342",
-  "commitsSinceDraft": 4,
+  "lastSha": "5d8c03a3c5e37d8169c0128d6d7fb242ea191cc8",
+  "commitsSinceDraft": 8,
   "content": {
     "tower": [
       "needle",
@@ -2761,6 +2761,14 @@
         {
           "cat": "Website",
           "text": "Regen DIL graph, dependency graph, chronicle + site over the merged analytics batch"
+        },
+        {
+          "cat": "Framework",
+          "text": "Reward Architecture Initiative: five-loop map, chaining, value-neutral drips"
+        },
+        {
+          "cat": "Gene Cards",
+          "text": "Effect language: digit-free draft text generated from card effects"
         }
       ]
     }
@@ -4965,6 +4973,38 @@
       "text": "Handoff notes for the analytics platform session",
       "internal": true,
       "needsReview": true
+    },
+    {
+      "sha": "6cbf1ddec12de04c2348f0fe13c9606b177bff1b",
+      "date": "2026-07-17",
+      "cat": "Framework",
+      "text": "Reward Architecture Initiative: five-loop map, chaining, value-neutral drips",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "4680ab8d103642d58655a3203fba9cd82c54ebe1",
+      "date": "2026-07-17",
+      "cat": "Framework",
+      "text": "Handoff notes for the reward architecture session",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "55435bd01cc6eb81a435a4640b2eec71214f62d1",
+      "date": "2026-07-17",
+      "cat": "Gene Cards",
+      "text": "Effect language: digit-free draft text generated from card effects",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "5d8c03a3c5e37d8169c0128d6d7fb242ea191cc8",
+      "date": "2026-07-17",
+      "cat": "Website",
+      "text": "Rituals: chronicle + site regen, handoff + status board for the effect language",
+      "internal": true,
+      "needsReview": false
     }
   ]
 }
