@@ -15,6 +15,7 @@
 
 import { CARD_POOL } from './cards';
 import type { CardDef } from './cards';
+import { STARTER_GENES } from './geneDiscovery';
 import { ALL_ITEMS, RARITY_ORDER } from './equipment';
 import type { EquipDef, Rarity } from './equipment';
 import { WARDROBE_ITEMS } from './wardrobe';
@@ -33,8 +34,10 @@ export interface MarketFamily {
   rarity: string;
   /** The Market Authority must never stock this as baseline supply. */
   exclusive: boolean;
-  /** The server refuses listings outright (categorical bans — empty set today, the seam
-   *  future rulesets fill; per-instance binding is itemIdentity's job). */
+  /** The server refuses listings outright. The one categorical ban today: content the save
+   *  SANITIZER re-seeds on every load (starter genes, starter wardrobe items) — selling a
+   *  thing that self-heals back would be an infinite Ichor printer. Per-instance binding
+   *  stays itemIdentity's job. */
   neverTrade: boolean;
 }
 
@@ -78,9 +81,10 @@ let byKey: Map<string, MarketFamily> | null = null;
 /** The full derived catalog (built once, cached — registries are static content). */
 export function marketFamilies(): MarketFamily[] {
   if (cache) return cache;
+  const starterGenes = new Set(STARTER_GENES);
   const out: MarketFamily[] = [];
   for (const c of CARD_POOL) {
-    out.push({ familyKey: geneFamilyKey(c.id), cat: 'geneCard', name: c.name, rarity: c.rarity, exclusive: geneExclusive(c), neverTrade: false });
+    out.push({ familyKey: geneFamilyKey(c.id), cat: 'geneCard', name: c.name, rarity: c.rarity, exclusive: geneExclusive(c), neverTrade: starterGenes.has(c.id) });
   }
   for (const d of ALL_ITEMS) {
     for (const r of RARITY_ORDER) {
@@ -91,7 +95,7 @@ export function marketFamilies(): MarketFamily[] {
     }
   }
   for (const w of WARDROBE_ITEMS) {
-    out.push({ familyKey: cosmeticFamilyKey(w.id), cat: 'cosmetic', name: w.name, rarity: w.rarity, exclusive: wardrobeExclusive(w), neverTrade: false });
+    out.push({ familyKey: cosmeticFamilyKey(w.id), cat: 'cosmetic', name: w.name, rarity: w.rarity, exclusive: wardrobeExclusive(w), neverTrade: w.source.kind === 'starter' });
   }
   for (const c of cosmeticRegistry.active()) {
     out.push({ familyKey: cosmeticFamilyKey(c.id), cat: 'cosmetic', name: c.name, rarity: c.rarity, exclusive: classicCosmeticExclusive(c), neverTrade: false });
@@ -106,14 +110,16 @@ export function marketFamily(key: string): MarketFamily | undefined {
 }
 
 /** The Market Authority's restock input (core/marketAuthority.planBaselineRestock) — every
- *  family, classified; the authority's own band + exclusivity rules pick the stockable set. */
+ *  family, classified; the authority's own band + exclusivity rules pick the stockable set.
+ *  neverTrade families ride the `exclusive` channel: never stocked either way. */
 export function baselineCatalog(): BaselineCatalogEntry[] {
-  return marketFamilies().map((f) => ({ familyKey: f.familyKey, cat: f.cat, rarity: f.rarity, exclusive: f.exclusive }));
+  return marketFamilies().map((f) => ({ familyKey: f.familyKey, cat: f.cat, rarity: f.rarity, exclusive: f.exclusive || f.neverTrade }));
 }
 
-/** The families the authority may actually stock (derived; used by hosts + tests). */
+/** The families the authority may actually stock (derived; used by hosts + tests).
+ *  neverTrade families are excluded too — everyone already owns the self-healing starters. */
 export function stockableFamilies(): MarketFamily[] {
-  return marketFamilies().filter((f) => !f.exclusive && baselineEligible({ familyKey: f.familyKey, cat: f.cat, rarity: f.rarity, exclusive: f.exclusive }));
+  return marketFamilies().filter((f) => !f.exclusive && !f.neverTrade && baselineEligible({ familyKey: f.familyKey, cat: f.cat, rarity: f.rarity, exclusive: f.exclusive }));
 }
 
 /** Content-integrity check (registered beside the other registry validators):

@@ -136,7 +136,7 @@ export const SYSTEMS: SystemDef[] = [
   },
   {
     id: 'online-foundation', name: 'Online Foundation', purpose: 'The authoritative online architecture every online feature inherits (docs/ONLINE-FOUNDATION.md): the replicated command vocabulary + ONE applyArenaCommand path onto the Game intents, the versioned wire protocol (deterministic lockstep — only commands cross the wire; command-log replay IS rollback/reconnect), state digests (desync/tamper alarm), the server-authority policy table, and the Auction House backend prep — per-item provenance stamps (source/time/season/bound/ownership history, self-healing coverage on every load) + trade eligibility/fees/fraud heuristics denominated in Ichor (docs/TRADING-PREP.md). No trading gameplay/UI exists by design.',
-    files: ['src/core/online.ts', 'src/core/itemIdentity.ts', 'src/core/trading.ts', 'src/core/auction.ts', 'src/core/marketAuthority.ts', 'src/core/marketCatalog.ts', 'src/net/arenaTransport.ts', 'src/net/arenaSession.ts', 'src/net/arenaMatchmaker.ts'],
+    files: ['src/core/online.ts', 'src/core/itemIdentity.ts', 'src/core/trading.ts', 'src/core/auction.ts', 'src/core/marketAuthority.ts', 'src/core/marketCatalog.ts', 'src/net/arenaTransport.ts', 'src/net/arenaSession.ts', 'src/net/arenaMatchmaker.ts', 'src/net/auctionHouse.ts', 'src/state/auctionHouse.ts', 'src/ui/AuctionHouse.tsx'],
     dependsOn: ['engine', 'content-infra', 'splice-market'], powerScore: null, save: ['provenance'], tutorial: [], help: [],
     hud: [], ui: [], collection: null, achievements: [],
     localization: 'inline-en', docs: ['docs/ONLINE-FOUNDATION.md', 'docs/TRADING-PREP.md'],

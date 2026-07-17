@@ -63,6 +63,18 @@ export const SECURITY_ACTIONS: Record<string, ActionPolicy> = {
     id: 'market.ichorOffer', category: 'economy', level: 'strict', limit: S({ count: 4 }), cooldownMs: 700, dedupeMs: 1500,
     analytics: 'sec_market_ichor', doc: 'Ichor Exchange barter lot purchase (reserve-scaled).', at: META,
   },
+  'auction.list': {
+    id: 'auction.list', category: 'economy', level: 'strict', limit: S({ count: 4 }), cooldownMs: 700, dedupeMs: 1500,
+    analytics: 'sec_auction_list', doc: 'Auction House escrow-out: a server-accepted listing removes the local copy (docs/AUCTION-HOUSE.md §client).', at: META,
+  },
+  'auction.deliver': {
+    id: 'auction.deliver', category: 'claim', level: 'moderate', limit: M({ count: 20 }), dedupeMs: 400,
+    analytics: 'sec_auction_deliver', doc: 'Materialize Auction House deliveries/returns (server-confirmed payloads only).', at: META,
+  },
+  'auction.wallet': {
+    id: 'auction.wallet', category: 'network', level: 'strict', limit: S({ count: 6 }), cooldownMs: 1000, dedupeMs: 2000,
+    analytics: 'sec_auction_wallet', doc: 'Market-wallet deposit/withdraw round-trip (exactly-once by op id server-side).', at: 'src/state/auctionHouse.ts',
+  },
 
   // ── Claims (one-way grants — ceremonies happen once) ──
   'research.claim': {

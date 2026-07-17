@@ -1,6 +1,6 @@
 # UNLOCK-TREE.md — the complete progression reveal timeline (GENERATED — `npm run unlocks`)
 
-> 30 features under progression gating (docs/PROGRESSION-GATING.md): every hub
+> 31 features under progression gating (docs/PROGRESSION-GATING.md): every hub
 > screen and wallet chip, in learning-curve order. "Possible" = earliest a lucky account can
 > reveal it; "guaranteed" = the campaign stage that opens it regardless of drops.
 
@@ -33,6 +33,7 @@
 | 19 | ❖ **Phenotype Lab** `phenotypes` | screen | Clear Campaign Stage 7 · 7 to go | S7 | S7 | Phenotype Lab (`phenotype-lab`) | Pure luxury — cosmetics wait until the mechanical wardrobe is full and Gene Essence has a purpose beyond upgrades. |
 | 21 | ☠ **Boss Rush** `bossrush` | screen | Clear Campaign Stage 9 · 9 to go | start | S9 | Boss Rush (`boss-rush`) | The established gate: the skill-check pillar arrives once builds are real. History grandfathers. |
 | 21.5 | ⚔ **The Proving Grounds** `arena` | screen | Clear Campaign Stage 9 · 9 to go | S9 | S9 | The Arena (Live PvP) (`arena`) | PvP demands a REAL build to be fair or fun — it reveals beside Boss Rush (the solo skill check, the stage-9 guarantee line) so the first ranked match is fought with towers, genes and a hero worth ranking (docs/ARENA.md). |
+| 21.7 | ⚖ **Auction House** `auction` | screen | Clear Campaign Stage 9 · 9 to go | S9 | S9 | Auction House (`auction-house`) | Trading is an EARNED capability (docs/TRADING-PREP.md fraud friction). The floor reveals at the stage-9 guarantee line beside the Arena — one stage of window-shopping teaches prices before TRADE.minCampaignStage (10, server-enforced) lets the first listing through. |
 | 22 | 🩸 **Ichor** `cur:ichor` | currency | Bleed your first Ichor | start | S3 | — | Shows with its first drop, or when the Splice Market (its sink) reveals — a currency chip never precedes its purpose. |
 | 23 | ⊕ **Materials** `cur:mats` | currency | Find crafting materials | start | S6 | — | Crafting materials appear the moment the first container drops some — alongside the gear they reforge. Stage 6 backstops a dry streak. |
 | 24 | ✦ **Ascendant Cells** `cur:cells` | currency | Molt for the first time | start | S9 | — | Teased one stage before Prestige unlocks (10) so the Molt pitch lands with a visible wallet; earned Cells reveal it regardless. |
@@ -47,4 +48,4 @@
 - **Stage 5** — ☀ Daily Run · ▤ Bio-Dex · ❁ Season Pass
 - **Stage 6** — ⬣ Hive Production · ⇢ Expedition Command · ❑ Gear Codex · ⊕ Materials
 - **Stage 7** — ⊛ Mulligan Lab · ☣ Adaptation Chamber · ❖ Phenotype Lab
-- **Stage 9** — ☠ Boss Rush · ⚔ The Proving Grounds · ✦ Ascendant Cells
+- **Stage 9** — ☠ Boss Rush · ⚔ The Proving Grounds · ⚖ Auction House · ✦ Ascendant Cells

@@ -18,7 +18,7 @@ import { t } from '../i18n';
 export type NavKey =
   | 'home' | 'campaign' | 'infinite' | 'bossrush' | 'daily' | 'quests' | 'season' | 'arena'
   | 'towers' | 'heroes' | 'expeditions' | 'evolution' | 'adaptation' | 'genes' | 'mulligans' | 'hive' | 'harvest'
-  | 'vault' | 'market' | 'equipment' | 'gearcodex' | 'phenotypes' | 'collection'
+  | 'vault' | 'market' | 'auction' | 'equipment' | 'gearcodex' | 'phenotypes' | 'collection'
   | 'store'
   | 'profile' | 'settings' | 'help';
 
@@ -67,6 +67,7 @@ export const navGroups = (): NavGroup[] => [
   ] },
   { id: 'trade', title: t('nav.group.trade'), accent: 'var(--caustic)', hub: { glyph: '◆', blurb: t('hub.blurb.trade') }, items: [
     { key: 'market', label: t('nav.market'), mono: '◆' },
+    { key: 'auction', label: t('nav.auction'), mono: '⚖' }, // player-driven Auction House (docs/AUCTION-HOUSE.md)
     { key: 'equipment', label: t('nav.equipment'), mono: '⛨' },
     { key: 'gearcodex', label: t('nav.gearcodex'), mono: '❑' },
     { key: 'phenotypes', label: t('nav.phenotypes'), mono: '❖' },

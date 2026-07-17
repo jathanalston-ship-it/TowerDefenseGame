@@ -37,6 +37,7 @@ import { AdaptationChamber } from './AdaptationChamber';
 import { EquipmentPanel } from './EquipmentPanel';
 import { GeneticVault } from './GeneticVault';
 import { SpliceMarket } from './SpliceMarket';
+import { AuctionHouse } from './AuctionHouse';
 import { EvolutionHQ } from './EvolutionHQ';
 import { HelpWiki } from './HelpWiki';
 import { CollectionScreen } from './CollectionPanel';
@@ -491,6 +492,7 @@ export function Hub({
           {nav === 'harvest' && <HarvestScreen />}
           {nav === 'vault' && <GeneticVault />}
           {nav === 'market' && <SpliceMarket />}
+          {nav === 'auction' && <AuctionHouse />}
           {nav === 'equipment' && <EquipmentPanel />}
           {nav === 'quests' && <QuestBoard />}
           {nav === 'season' && <BattlePassScreen onStore={() => go('store')} />}

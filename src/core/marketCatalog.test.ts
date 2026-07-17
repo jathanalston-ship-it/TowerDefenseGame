@@ -12,6 +12,7 @@ import { baselineEligible } from './marketAuthority';
 import { CARD_POOL } from './cards';
 import { ALL_ITEMS, RARITY_ORDER } from './equipment';
 import { WARDROBE_ITEMS } from './wardrobe';
+import { STARTER_GENES } from './geneDiscovery';
 
 describe('derivation — registries project into families', () => {
   it('covers every card, every equip def × rarity, and every cosmetic', () => {
@@ -52,6 +53,23 @@ describe('exclusivity — the authority never touches player-scarcity items', ()
     }
     for (const cat of ['equipment', 'cosmetic', 'geneCard'] as const) {
       expect(stockable.some((f) => f.cat === cat)).toBe(true);
+    }
+  });
+
+  it('sanitizer-seeded content can NEVER trade or be stocked (the infinite-printer guard)', () => {
+    // Starter genes and starter wardrobe items self-heal on every load
+    // (saveStore sanitizers) — selling one would mint Ichor forever.
+    const starters = WARDROBE_ITEMS.filter((w) => w.source.kind === 'starter');
+    expect(starters.length).toBeGreaterThan(0);
+    for (const w of starters) expect(marketFamily(cosmeticFamilyKey(w.id))?.neverTrade).toBe(true);
+    for (const id of STARTER_GENES) {
+      const fam = marketFamily(geneFamilyKey(id));
+      if (fam) expect(fam.neverTrade).toBe(true);
+    }
+    for (const f of stockableFamilies()) expect(f.neverTrade).toBe(false);
+    for (const r of baselineCatalog()) {
+      const fam = marketFamily(r.familyKey)!;
+      if (fam.neverTrade) expect(r.exclusive).toBe(true); // rides the exclusive channel into restock
     }
   });
 

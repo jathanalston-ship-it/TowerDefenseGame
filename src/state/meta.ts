@@ -139,7 +139,8 @@ import type { ArenaDivisionDef, ArenaMatchClaim, ArenaSave } from '../core/arena
 import { ARENA_PASS, arenaExclusiveLabel, arenaPassLevelOf, arenaPassTrack, arenaSeasonInfo } from '../core/arenaPass';
 import type { ArenaExclusiveId, ArenaPassLevelRewards, ArenaSeasonInfo } from '../core/arenaPass';
 import type { ArenaBootBundle } from '../core/arenaMatch';
-import { stampAcquisition } from '../core/itemIdentity';
+import { itemProvenance, parseRefKey, stampAcquisition } from '../core/itemIdentity';
+import { cosmeticFamilyKey, equipmentFamilyKey, geneFamilyKey, marketFamily } from '../core/marketCatalog';
 import { LOGIN, loginTargetValue, milestoneContainer, rollLoginBundle, streakMult } from '../core/loginStreak';
 import { PERFECT_WEEK, activeContracts, contractReport, contractSatisfied, contractWeekKey } from '../core/contracts';
 import type { ContractRunFacts } from '../core/contracts';
@@ -1912,6 +1913,19 @@ function applyIdleGrant(next: SaveData, g: IdleGrant, rng: () => number, meta_: 
       push(`${g.qty} Ichor`);
       return { ...next, ichor: next.ichor + g.qty, lifetimeIchor: next.lifetimeIchor + g.qty };
   }
+}
+
+/** One listable thing in the Auction House Sell tab (docs/AUCTION-HOUSE.md §client). */
+export interface AuctionSellable {
+  refKey: string;
+  cat: 'equipment' | 'geneCard' | 'cosmetic';
+  name: string;
+  familyKey: string;
+  rarity: string;
+  season: number;
+  source: string;
+  payload: Record<string, unknown>;
+  blocks: ('bound' | 'equipped' | 'neverTrade')[];
 }
 
 export const meta = {
@@ -6431,6 +6445,198 @@ export const meta = {
       lastSalvage: null,
     });
     return true;
+  },
+
+  // ── Auction House custody (docs/AUCTION-HOUSE.md §client) ────────────────────
+  // The SERVER is the trade truth; these methods only move things across the save↔market
+  // boundary. Ordering is server-first: the store calls the endpoint, and only a 200 moves
+  // the local copy (auctionEscrowOut) — auctionReconcile self-heals the crash window by
+  // removing anything the server shows actively listed that still exists locally.
+  // (AuctionSellable is declared beside SaveData imports at the top of this file's types.)
+
+  /** Everything the account could list right now, with per-item block reasons. The Sell tab
+   *  renders this read-model verbatim; the server re-validates every fact independently. */
+  auctionSellables(): AuctionSellable[] {
+    const save = store.get();
+    const out: AuctionSellable[] = [];
+    const stampOf = (refKey: string): { season: number; source: string; bound: boolean } => {
+      const s = itemProvenance(save.provenance, parseRefKey(refKey)!);
+      return { season: s?.season ?? 0, source: s?.source ?? 'legacy', bound: s?.bound === true };
+    };
+    for (const item of save.equipment.inventory) {
+      if (item.locked || item.favorite) continue; // protected gear never even offers itself
+      const refKey = `eq:${item.uid}`;
+      const p = stampOf(refKey);
+      const blocks: ('bound' | 'equipped' | 'neverTrade')[] = [];
+      if (p.bound) blocks.push('bound');
+      if (this.isItemEquipped(item.uid)) blocks.push('equipped');
+      out.push({
+        refKey, cat: 'equipment', name: itemDef(item.defId)?.name ?? item.defId,
+        familyKey: equipmentFamilyKey(item.defId, item.rarity), rarity: item.rarity,
+        season: p.season, source: p.source, payload: { kind: 'equipment', item }, blocks,
+      });
+    }
+    for (const id of save.genesDiscovered) {
+      const def = cardRegistry.get(id);
+      if (!def) continue;
+      const fam = marketFamily(geneFamilyKey(id));
+      if (!fam) continue;
+      const refKey = `gene:${id}`;
+      const p = stampOf(refKey);
+      const blocks: ('bound' | 'equipped' | 'neverTrade')[] = [];
+      if (fam.neverTrade) blocks.push('neverTrade');
+      if (p.bound) blocks.push('bound');
+      out.push({
+        refKey, cat: 'geneCard', name: def.name, familyKey: fam.familyKey, rarity: def.rarity,
+        season: p.season, source: p.source, payload: { kind: 'gene', id }, blocks,
+      });
+    }
+    const cosmetic = (id: string, name: string): void => {
+      const fam = marketFamily(cosmeticFamilyKey(id));
+      if (!fam) return;
+      const refKey = `cos:${id}`;
+      const p = stampOf(refKey);
+      const blocks: ('bound' | 'equipped' | 'neverTrade')[] = [];
+      if (fam.neverTrade) blocks.push('neverTrade');
+      if (p.bound) blocks.push('bound');
+      out.push({
+        refKey, cat: 'cosmetic', name, familyKey: fam.familyKey, rarity: fam.rarity,
+        season: p.season, source: p.source, payload: { kind: 'cosmetic', id }, blocks,
+      });
+    };
+    for (const id of save.wardrobe.owned) cosmetic(id, wardrobeItem(id)?.name ?? id);
+    for (const id of save.cosmetics.owned) cosmetic(id, cosmeticById(id)?.name ?? id);
+    return out;
+  },
+
+  /** Remove a just-listed thing from the save (the server accepted the listing). Equipment
+   *  instances leave the inventory; gene/cosmetic UNLOCKS leave the account (quantity is
+   *  always 1 — selling your only copy removes access, the confirm dialog says so). */
+  auctionEscrowOut(refKey: string): boolean {
+    if (!guardOk('auction.list', refKey)) return false;
+    const ref = parseRefKey(refKey);
+    if (!ref) return false;
+    const save = store.get();
+    if (ref.cat === 'equipment') {
+      const item = save.equipment.inventory.find((i) => i.uid === ref.id);
+      if (!item || item.locked || item.favorite || this.isItemEquipped(ref.id)) return false;
+      persist({ ...save, equipment: { ...save.equipment, inventory: save.equipment.inventory.filter((i) => i.uid !== ref.id) } });
+      return true;
+    }
+    if (marketFamily(ref.cat === 'geneCard' ? geneFamilyKey(ref.id) : cosmeticFamilyKey(ref.id))?.neverTrade !== false) return false;
+    if (ref.cat === 'geneCard') {
+      if (!save.genesDiscovered.includes(ref.id)) return false;
+      persist({ ...save, genesDiscovered: save.genesDiscovered.filter((id) => id !== ref.id) });
+      return true;
+    }
+    if (save.wardrobe.owned.includes(ref.id)) {
+      const equipped = Object.fromEntries(Object.entries(save.wardrobe.equipped).filter(([, v]) => v !== ref.id));
+      persist({
+        ...save,
+        wardrobe: {
+          ...save.wardrobe,
+          owned: save.wardrobe.owned.filter((id) => id !== ref.id),
+          favorites: save.wardrobe.favorites.filter((id) => id !== ref.id),
+          equipped: equipped as typeof save.wardrobe.equipped,
+        },
+      });
+      return true;
+    }
+    if (save.cosmetics.owned.includes(ref.id)) {
+      const strip = <K extends string>(m: Partial<Record<K, string>>): Partial<Record<K, string>> =>
+        Object.fromEntries(Object.entries(m).filter(([, v]) => v !== ref.id)) as Partial<Record<K, string>>;
+      persist({
+        ...save,
+        cosmetics: { owned: save.cosmetics.owned.filter((id) => id !== ref.id), towers: strip(save.cosmetics.towers), heroes: strip(save.cosmetics.heroes) },
+      });
+      return true;
+    }
+    return false;
+  },
+
+  /** Materialize market deliveries (won purchases, returned cancellations/expiries) into the
+   *  save. Payloads are the documented client-attested boundary — every shape is validated
+   *  and unknown ones are skipped (never a crash, never a partial write). Returns what
+   *  landed so the caller can raise placards. */
+  auctionDeliver(rows: { refKey: string; payloadJson: string; season: number; transfers: number }[]): { refKey: string; cat: string; name: string; rarity: string }[] {
+    if (!guardOk('auction.deliver')) return [];
+    const delivered: { refKey: string; cat: string; name: string; rarity: string }[] = [];
+    for (const row of rows) {
+      const save = store.get();
+      let payload: Record<string, unknown>;
+      try { payload = JSON.parse(row.payloadJson) as Record<string, unknown>; } catch { continue; }
+      const grant = (payload.grant ?? payload) as Record<string, unknown>;
+      const stamp = (refKey: string): void => {
+        const ref = parseRefKey(refKey);
+        if (!ref) return;
+        const s = stampAcquisition(store.get().provenance, ref, 'Auction House', Date.now(), Math.max(0, row.season));
+        s.transfers = Math.max(s.transfers, Math.floor(row.transfers) || 0);
+      };
+      if (grant.kind === 'equipment' && grant.item && typeof grant.item === 'object') {
+        const raw = grant.item as OwnedItem;
+        const def = itemDef(String(raw.defId));
+        if (!def || typeof raw.rarity !== 'string' || !Array.isArray(raw.affixes)) continue;
+        const uid = typeof raw.uid === 'string' && raw.uid.length > 0 && !save.equipment.inventory.some((i) => i.uid === raw.uid)
+          ? raw.uid // keep the instance identity — eq:<uid> is the provenance thread across owners
+          : `a${Date.now().toString(36)}${Math.floor(Math.random() * 1e6).toString(36)}`;
+        const item: OwnedItem = { ...raw, uid, source: 'Auction House', locked: false, favorite: false, seen: false };
+        persist({ ...save, equipment: { ...save.equipment, inventory: [...save.equipment.inventory, item] } });
+        stamp(`eq:${uid}`);
+        delivered.push({ refKey: `eq:${uid}`, cat: 'equipment', name: def.name, rarity: item.rarity });
+      } else if (grant.kind === 'equipment' && typeof grant.defId === 'string') {
+        const def = itemDef(grant.defId);
+        if (!def) continue;
+        const rarity = typeof grant.rarity === 'string' ? grant.rarity : 'common';
+        const item = rollItem(Math.random, def, rarity as OwnedItem['rarity'], undefined, 'Market Authority');
+        persist({ ...save, equipment: { ...save.equipment, inventory: [...save.equipment.inventory, item] } });
+        stamp(`eq:${item.uid}`);
+        delivered.push({ refKey: `eq:${item.uid}`, cat: 'equipment', name: def.name, rarity });
+      } else if (grant.kind === 'gene' && typeof grant.id === 'string') {
+        const def = cardRegistry.get(grant.id);
+        if (!def) continue;
+        if (!save.genesDiscovered.includes(grant.id)) {
+          persist({ ...save, genesDiscovered: [...save.genesDiscovered, grant.id] });
+        }
+        stamp(`gene:${grant.id}`);
+        delivered.push({ refKey: `gene:${grant.id}`, cat: 'geneCard', name: def.name, rarity: def.rarity });
+      } else if (grant.kind === 'cosmetic' && typeof grant.id === 'string') {
+        const wd = wardrobeItem(grant.id);
+        if (wd) {
+          if (!save.wardrobe.owned.includes(grant.id)) {
+            persist({ ...save, wardrobe: { ...save.wardrobe, owned: [...save.wardrobe.owned, grant.id], pendingReveal: [...save.wardrobe.pendingReveal, grant.id] } });
+          }
+          stamp(`cos:${grant.id}`);
+          delivered.push({ refKey: `cos:${grant.id}`, cat: 'cosmetic', name: wd.name, rarity: wd.rarity });
+        } else {
+          const classic = cosmeticById(grant.id);
+          if (!classic) continue;
+          if (!save.cosmetics.owned.includes(grant.id)) {
+            persist({ ...save, cosmetics: { ...save.cosmetics, owned: [...save.cosmetics.owned, grant.id] } });
+          }
+          stamp(`cos:${grant.id}`);
+          delivered.push({ refKey: `cos:${grant.id}`, cat: 'cosmetic', name: classic.name, rarity: classic.rarity });
+        }
+      }
+    }
+    return delivered;
+  },
+
+  /** Self-heal the crash window between a server-accepted listing and the local removal:
+   *  anything the server shows ACTIVELY listed by us that still exists locally leaves now. */
+  auctionReconcile(activeRefKeys: readonly string[]): number {
+    let removed = 0;
+    for (const refKey of activeRefKeys) {
+      const ref = parseRefKey(refKey);
+      if (!ref) continue;
+      const save = store.get();
+      const present = ref.cat === 'equipment'
+        ? save.equipment.inventory.some((i) => i.uid === ref.id)
+        : ref.cat === 'geneCard'
+          ? save.genesDiscovered.includes(ref.id)
+          : save.wardrobe.owned.includes(ref.id) || save.cosmetics.owned.includes(ref.id);
+      if (present && this.auctionEscrowOut(refKey)) removed++;
+    }
+    return removed;
   },
 
   /** Pure guard (docs/EQUIPMENT.md §safeguards): may this owned item be salvaged? False for a

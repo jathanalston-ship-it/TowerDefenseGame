@@ -235,6 +235,9 @@ export const FEATURES: FeatureDef[] = [
   { kind: 'screen', id: 'arena', name: 'The Proving Grounds', glyph: '⚔', order: 21.5,
     blurb: 'Live PvP: two hives, one assault, one survivor.', condition: { kind: 'stage', stage: 9 },
     because: 'PvP demands a REAL build to be fair or fun — it reveals beside Boss Rush (the solo skill check, the stage-9 guarantee line) so the first ranked match is fought with towers, genes and a hero worth ranking (docs/ARENA.md).', teach: 'arena' },
+  { kind: 'screen', id: 'auction', name: 'Auction House', glyph: '⚖', order: 21.7,
+    blurb: 'Trade gene cards, gear and cosmetics with other players.', condition: { kind: 'stage', stage: 9 },
+    because: 'Trading is an EARNED capability (docs/TRADING-PREP.md fraud friction). The floor reveals at the stage-9 guarantee line beside the Arena — one stage of window-shopping teaches prices before TRADE.minCampaignStage (10, server-enforced) lets the first listing through.', teach: 'auction-house' },
 
   // ── Currencies (top bar) — appear when they exist or their sink reveals. ──
   { kind: 'currency', id: 'cur:ichor', name: 'Ichor', glyph: '🩸', order: 22,

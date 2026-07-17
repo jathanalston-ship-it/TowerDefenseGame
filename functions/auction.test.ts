@@ -21,6 +21,7 @@ import { sha256Hex } from './lib/crypto';
 import type { Env } from './lib/env';
 import { listingFee, minNextBid, saleTax } from '../src/core/trading';
 import { CARD_POOL } from '../src/core/cards';
+import { STARTER_GENES } from '../src/core/geneDiscovery';
 import { ALL_ITEMS } from '../src/core/equipment';
 import { equipmentFamilyKey, geneFamilyKey, marketFamily, stockableFamilies } from '../src/core/marketCatalog';
 
@@ -31,7 +32,8 @@ const TOKEN = 'a'.repeat(64);
 
 const EQ_DEF = ALL_ITEMS.find((d) => !d.exotic)!;
 const EQ_FAMILY = equipmentFamilyKey(EQ_DEF.id, 'common');
-const GENE = CARD_POOL.find((c) => c.rarity === 'common')!;
+// A non-starter common: starters are sanitizer-seeded ⇒ neverTrade (the printer guard).
+const GENE = CARD_POOL.find((c) => c.rarity === 'common' && !(STARTER_GENES as readonly string[]).includes(c.id))!;
 const GENE_FAMILY = geneFamilyKey(GENE.id);
 
 async function seedPlayer(env: Env, playerId: string, opts: { stage?: number; balance?: number; ageDays?: number } = {}): Promise<void> {
