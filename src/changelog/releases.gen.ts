@@ -1172,6 +1172,10 @@ export const RELEASES: Release[] = [
       {
         "cat": "Website",
         "text": "Chronicle + graphs + site regen after the Proving Grounds rebase"
+      },
+      {
+        "cat": "Gameplay",
+        "text": "Arena recognition layer + the relay bring-up: live human-vs-human PvP"
       }
     ]
   },

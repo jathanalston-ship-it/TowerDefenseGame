@@ -1,6 +1,6 @@
 {
-  "lastSha": "aab74f5af56054808d66daf47c4770bfe28e5a24",
-  "commitsSinceDraft": 5,
+  "lastSha": "ab956702edf79068e1156c5c4a23ccacbdb55de6",
+  "commitsSinceDraft": 6,
   "content": {
     "tower": [
       "needle",
@@ -2673,6 +2673,10 @@
         {
           "cat": "Website",
           "text": "Chronicle + graphs + site regen after the Proving Grounds rebase"
+        },
+        {
+          "cat": "Gameplay",
+          "text": "Arena recognition layer + the relay bring-up: live human-vs-human PvP"
         }
       ]
     }
@@ -4675,6 +4679,14 @@
       "date": "2026-07-16",
       "cat": "Developer Tools",
       "text": "Online Foundation saga: docs, DIL knowledge, manifest, status board, validation record",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "ab956702edf79068e1156c5c4a23ccacbdb55de6",
+      "date": "2026-07-17",
+      "cat": "Gameplay",
+      "text": "Arena recognition layer + the relay bring-up: live human-vs-human PvP",
       "internal": false,
       "needsReview": false
     }
