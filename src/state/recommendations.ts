@@ -13,6 +13,8 @@ import { notifications } from './notifications';
 import './notificationSources'; // the default sources are this engine's candidate pool — register them
 import { nextReveals } from './unlocks';
 import { highestCampaignStage } from '../save/derive';
+import { loopOfNav } from '../core/rewardLoops';
+import type { LoopId } from '../core/rewardLoops';
 import type { SaveData } from '../save/saveStore';
 import type { NavKey } from '../ui/navModel';
 
@@ -25,6 +27,7 @@ export interface Recommendation {
   label: string; // the action, e.g. "3 quest rewards claimable"
   why: string; // one-line context under the label
   score: number; // rank weight — claims beat spends beat browsing
+  loop: LoopId | null; // which reward loop the action belongs to (core/rewardLoops.ts)
 }
 
 /** How each notification CHANNEL classifies as an action. Score encodes the reward-loop
@@ -49,7 +52,11 @@ const CHANNEL_CLASS: Partial<Record<string, { kind: RecKind; score: number; why:
   profile: { kind: 'browse', score: 14, why: 'Fresh milestones on your record' },
 };
 
-export interface RecSource { id: string; recs(save: SaveData): Recommendation[] }
+/** Candidates are authored WITHOUT the loop tag — the engine derives it from the nav
+ *  (core/rewardLoops.loopOfNav), so sources can never mis-classify themselves. */
+export type RecDraft = Omit<Recommendation, 'loop'>;
+
+export interface RecSource { id: string; recs(save: SaveData): RecDraft[] }
 
 const extraSources: RecSource[] = [];
 
@@ -61,12 +68,17 @@ export function registerRecSource(src: RecSource): void {
 }
 
 /** Ranked recommendations. `navs` filters to one hub's screens (landing pages);
- *  `limit` caps the list (default 3). The list is never empty: a PLAY action backstops. */
+ *  `limit` caps the list (default 3). `rotateFrom` is the LOOP ROTATION seam
+ *  (docs/REWARD-ARCHITECTURE.md §chaining): actions in a DIFFERENT loop than the one just
+ *  touched get a nudge and same-loop actions a damp, so sessions naturally flow
+ *  claim → open → upgrade → collect → play instead of circling one wing. The nudge is
+ *  smaller than a rank band — a waiting CLAIM still outranks a rotated browse.
+ *  The list is never empty: a PLAY action backstops. */
 export function recommendationsFor(
   save: SaveData,
-  opts: { navs?: readonly NavKey[]; limit?: number } = {},
+  opts: { navs?: readonly NavKey[]; limit?: number; rotateFrom?: LoopId | null } = {},
 ): Recommendation[] {
-  const out: Recommendation[] = [];
+  const out: RecDraft[] = [];
 
   // 1) Every unseen notification, classified by its channel (reasons are the labels).
   const reasons = notifications.reasons(save);
@@ -110,7 +122,16 @@ export function recommendationsFor(
     score: 10,
   });
 
-  const scoped = opts.navs ? out.filter((r) => opts.navs!.includes(r.nav)) : out;
-  const pool = scoped.length > 0 ? scoped : out.filter((r) => r.kind === 'play'); // a quiet hub still guides somewhere
+  // Tag every candidate with its reward loop, then apply the rotation nudge: after the
+  // player touches a loop, other loops' actions rise a step (+8) and same-loop actions
+  // settle a step (−6). Both are inside one rank band, so urgency ordering (claim > open
+  // > spend…) is never overturned — rotation breaks TIES toward flowing across loops.
+  const tagged: Recommendation[] = out.map((r) => {
+    const loop = loopOfNav(r.nav);
+    const rot = opts.rotateFrom && loop ? (loop === opts.rotateFrom ? -6 : 8) : 0;
+    return { ...r, loop, score: r.score + rot };
+  });
+  const scoped = opts.navs ? tagged.filter((r) => opts.navs!.includes(r.nav)) : tagged;
+  const pool = scoped.length > 0 ? scoped : tagged.filter((r) => r.kind === 'play'); // a quiet hub still guides somewhere
   return pool.sort((a, b) => b.score - a.score).slice(0, opts.limit ?? 3);
 }

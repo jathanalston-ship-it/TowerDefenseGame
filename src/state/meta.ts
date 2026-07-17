@@ -20,7 +20,7 @@ import { hasSlainMega, highestCampaignStage, isBossRushUnlocked, isCutsceneUnloc
 import { CUTSCENES, cutsceneEffects, cutsceneForMega } from '../core/cutscenes';
 import type { CutsceneDef } from '../core/cutscenes';
 import { downloadText, readTextFile } from '../save/saveFile';
-import { TOWER_DEFS, CAMPAIGN_REWARDS, CHESTS, DAILY, ECON, ECONOMY_ADAPTIVE, EQUIP_DROP_CHANCE, HERO_DEFS, HERO_ORDER, HERO_SLOTS, IDLE, INFINITE_REWARD_QUALIFY_FRAC, MASTERY, META_UPGRADES, RUN_CHEST, RUSH, STAR, TOWER_ORDER, campaignStarCap, chestForWave, endlessLootTaper, endlessTaper, heroForkTiers, heroSkillCount, resolveHeroKit, upgradeEffectUnits } from '../core/config';
+import { TOWER_DEFS, CAMPAIGN_REWARDS, campaignSurveyBonus, CHESTS, DAILY, ECON, ECONOMY_ADAPTIVE, EQUIP_DROP_CHANCE, HERO_DEFS, HERO_ORDER, HERO_SLOTS, IDLE, INFINITE_REWARD_QUALIFY_FRAC, MASTERY, META_UPGRADES, RUN_CHEST, RUSH, STAR, TOWER_ORDER, campaignStarCap, chestForWave, endlessLootTaper, endlessTaper, heroForkTiers, heroSkillCount, resolveHeroKit, upgradeEffectUnits } from '../core/config';
 import { dailyKey, isPrevDayKey } from '../core/daily';
 import { offerAvailable, offerValueIchor, premiumOfferById } from '../core/premium';
 import { flashOverview, flashPopupCandidate, flashStatus } from './flashOffers';
@@ -2296,11 +2296,12 @@ export const meta = {
       researchBoost.coresMult *= b.coresMult ?? 1;
     }
     const xpMults = { tower: xpMultsRaw.tower * masteryTaper * researchBoost.towerXpMult, hero: xpMultsRaw.hero * masteryTaper * researchBoost.heroXpMult };
-    // One-time discovery payout on a brand-new stage clear (+ a milestone kicker every Nth stage).
+    // One-time discovery payout on a brand-new stage clear (+ the Sector Survey drip — the
+    // old every-5th milestone lump paid evenly per stage, docs/REWARD-ARCHITECTURE.md).
     const firstClearBonus = firstClear
       ? Math.round(
           (CAMPAIGN_REWARDS.firstClearCore + CAMPAIGN_REWARDS.firstClearCorePerStage * stageNo +
-            (stageNo % CAMPAIGN_REWARDS.milestoneEvery === 0 ? CAMPAIGN_REWARDS.milestoneCore : 0)) * cb.campaignRewardMult, // Biomes codex: +Campaign Rewards
+            campaignSurveyBonus(stageNo)) * cb.campaignRewardMult, // Biomes codex: +Campaign Rewards
         )
       : 0;
     // Failed FRONTIER attempt → partial "field data" consolation (BALANCE_REPORT push-futility):

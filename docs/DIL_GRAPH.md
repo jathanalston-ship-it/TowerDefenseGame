@@ -1,6 +1,6 @@
 # DIL_GRAPH.md — the Design Intelligence Layer (GENERATED — `npm run dil -- regen`)
 
-> **The project's brain** (docs/DIL.md). 867 nodes · 1624 edges, built from the live
+> **The project's brain** (docs/DIL.md). 870 nodes · 1630 edges, built from the live
 > registries + curated knowledge (src/dev/dil/). **Query it instead of searching the repo:**
 > `npm run dil -- node <id>` · `affects <id>` · `requires <id>` · `missing <kind> <edge>` ·
 > `checklist tower <kind>` · `find <text>`. Edge kinds are bidirectional (19 kinds).
@@ -38,7 +38,7 @@
 
 ### Testing Index
 
-`system:engine` · `system:content-infra` · `system:power` · `system:campaign` · `system:pil` · `system:accounts` · `system:boss-rush` · `system:daily` · `system:mulligans` · `system:premium` · `system:net-backend` · `system:online-foundation` · `system:arena` · `system:towers` · `system:mastery` · `system:heroes` · `system:hero-cinematics` · `system:equipment` · `system:crafting` · `system:loot` · `system:gene-cards` · `system:nucleus` · `system:hero-symbiotes` · `system:idle-harvest` · `system:collection` · `system:evolution-hq` · `system:hive-construction` · `system:daily-login` · `system:prestige` · `system:currencies` · `system:splice-market` · `system:achievements` · `system:stats` · `system:liveops` · `system:directives` · `system:contracts` · `system:infestation` · `system:chronicle` · `system:cosmetics` · `system:battle-pass` · `system:quests` · `system:profile` · `system:onboarding` · `system:account-level` · `system:genome-rank` · `system:progression-gating` · `system:hub-shell` · `system:notifications` · `system:prediction` · `system:meta-store` · `system:bosses` · `system:mega-bosses` · `system:cutscenes` · `system:security` · `system:biomes` · `system:doctrines` · `system:difficulty` · `system:website` · `system:rendering` · `system:living-battlefield` · …4 more
+`system:engine` · `system:content-infra` · `system:power` · `system:campaign` · `system:pil` · `system:accounts` · `system:boss-rush` · `system:daily` · `system:mulligans` · `system:premium` · `system:net-backend` · `system:online-foundation` · `system:arena` · `system:towers` · `system:mastery` · `system:heroes` · `system:hero-cinematics` · `system:equipment` · `system:crafting` · `system:loot` · `system:gene-cards` · `system:nucleus` · `system:hero-symbiotes` · `system:idle-harvest` · `system:collection` · `system:evolution-hq` · `system:hive-construction` · `system:daily-login` · `system:prestige` · `system:currencies` · `system:splice-market` · `system:achievements` · `system:stats` · `system:liveops` · `system:directives` · `system:contracts` · `system:infestation` · `system:chronicle` · `system:cosmetics` · `system:battle-pass` · `system:quests` · `system:profile` · `system:onboarding` · `system:account-level` · `system:genome-rank` · `system:progression-gating` · `system:hub-shell` · `system:notifications` · `system:prediction` · `system:meta-store` · `system:bosses` · `system:mega-bosses` · `system:cutscenes` · `system:security` · `system:biomes` · `system:doctrines` · `system:difficulty` · `system:website` · `system:rendering` · `system:living-battlefield` · …5 more
 
 ### Developer Tooling Index
 
@@ -168,6 +168,7 @@ graph LR
   system_rendering["Rendering & VFX"] -->|consumes| system_engine["Sim Engine"]
   system_hub_shell["Hub Shell & Home"] -->|modifies| system_progression_gating["Progression Gating & Director"]
   system_analytics["Player Telemetry & Analytics"] -->|consumes| system_hub_shell["Hub Shell & Home"]
+  system_reward_architecture["Reward Loop Architecture"] -->|modifies| system_hub_shell["Hub Shell & Home"]
 ```
 
 ### Power Score Map
@@ -468,6 +469,8 @@ graph LR
   system_devtools["Dev Tools & Debug"] -->|dependsOn| system_assimilation["Assimilation Index"]
   system_analytics["Player Telemetry & Analytics"] -->|dependsOn| system_meta_store["Meta Store & Save"]
   system_analytics["Player Telemetry & Analytics"] -->|dependsOn| system_accounts["Account Platform"]
+  system_reward_architecture["Reward Loop Architecture"] -->|dependsOn| system_progression_gating["Progression Gating & Director"]
+  system_reward_architecture["Reward Loop Architecture"] -->|dependsOn| system_hub_shell["Hub Shell & Home"]
   concept_replays["Replays"] -->|dependsOn| concept_determinism["Determinism"]
   concept_daily_seed["Daily Seed"] -->|dependsOn| concept_determinism["Determinism"]
   concept_golden_test["Golden Test"] -->|tests| concept_determinism["Determinism"]
@@ -537,6 +540,7 @@ graph LR
   system_loot["Loot & Bio-Containers"] -->|modifies| system_hub_shell["Hub Shell & Home"]
   system_hive_construction["Hive Construction"] -->|modifies| system_idle_harvest["Idle Harvest"]
   system_hub_shell["Hub Shell & Home"] -->|modifies| system_progression_gating["Progression Gating & Director"]
+  system_reward_architecture["Reward Loop Architecture"] -->|modifies| system_hub_shell["Hub Shell & Home"]
 ```
 
 ## Concepts (8)
@@ -646,6 +650,7 @@ Every system is built for the CLAUDE.md content targets (100 towers, 30 heroes, 
   - extendedBy ← `system:hub-shell` — REWARD TOASTS (state/rewardToast.ts): every reward announces via ONE registry-driven placard stack — a new reward type is one REWARD_TYPES row (art/unit/merge/tier/nav), never a bespoke display; placards are pushed AT GRANT TIME in meta.ts (applyRewardList returns events; claim seams pushMany with a source string) — never from screens; the bus HOLDS events while no toaster is mounted (runs flush on hub return); dedicated full-screen ceremonies (vault clutch, roulette, premium receipts, research reveal, genome-rank cinematic) do NOT double-placard — see the NOTIFICATIONS.md coverage table before wiring a new reward lane
   - extendedBy ← `system:online-foundation` — AUCTION HOUSE (core/auction.ts + marketAuthority.ts + marketCatalog.ts): ONE rulebook, three hosts — the engine emits LedgerOps (server maps→D1 wallet ledger; sim maps→agent wallets); the AUTHORITY is bounded smooth levers (fee/tax/baseline/recBias, ≤6%/window, two-speed EWMA inflation index) advanced lazily in maintainMarket (market_windows PK = exactly-once tick, NO daemon); the CATALOG derives families/exclusivity/neverTrade from content registries — new cards/defs/cosmetics inherit market eligibility with zero wiring; ANY economy change must re-run npm run sim:market (10 scenarios, all must stay healthy)
   - extendedBy ← `system:analytics` — UNIFIED EVENTS (core/analyticsEvents.ts): ONE AN_EVENTS row declares an event completely (dim/value/extras/rollup/durable/sample) and is validated identically by the client emitter, the server ingest, and the sims — a future event is one row + one telemetry.emit call; hot signals NEVER leave raw (61-bucket FPS histogram, 12×8 heat grid, FlowFold currency sums, djb2 error hashes, waveBand loss dims) so rollup cardinality = kinds×dims×versions×days, INDEPENDENT of player count — that structural bound is the whole 100k-player scale story
+  - extendedBy ← `system:reward-architecture` — THE LOOP REGISTRY (core/rewardLoops.ts): ~40 REWARD_SOURCES rows classify every pathway into 5 loops with feeds[] — rewardLoopProblems() FAILS THE BUILD on a dead-end source (feeds only its own loop), a single-cadence loop, an unfed loop, or a broken 5-loop chain; a NEW reward source is one row and inherits rotation/handoffs/docs. Rebalance rule of the house: convert lumps to drips ONLY at exactly-equal window totals (campaignSurveyBonus = milestoneCore/milestoneEvery per stage, pinned; landmark cadence stays every-5th for map/finales) — never raise totals, never touch loot-meter EV or MODE_REWARDS identity lanes
 
 ## Currencies (8)
 
@@ -749,7 +754,7 @@ The premium reserve — never farmable; bled from achievements, collection ranks
 
   - rewardedBy ← `system:daily-login` — a rare small lane (weight 3, clamped 2–6/day) — deliberately below the never-farmable premium posture thresholds
 
-## Systems (73)
+## Systems (74)
 
 ### `system:engine` — Sim Engine
 
@@ -1933,6 +1938,7 @@ _at: src/state/unlocks.ts, src/state/progressionDirector.ts, src/state/navBus.ts
   - consumes → `system:meta-store` — owns save field 'director'
   - gates → `system:hub-shell` — nav entries, wallet chips and home widgets reveal via the FEATURES registry (teasers = next two reveals)
   - extends → `system:onboarding` — screen-linked mechanics rows delegate unlock predicates to featureRevealed — What's New fires exactly when a wing reveals
+  - requiredBy ← `system:reward-architecture`
   - documentedBy ← `doc:PROGRESSION-GATING.md`
   - documentedBy ← `doc:UNLOCK-TREE.md`
   - testedBy ← `test:src/state/progressionDirector.test.ts`
@@ -1968,13 +1974,13 @@ _at: src/ui/Hub.tsx, src/ui/navModel.ts, src/ui/MobileShell.tsx, src/ui/CommandC
   - requiredBy ← `system:battle-pass`
   - requiredBy ← `system:quests`
   - requiredBy ← `system:profile`
+  - requiredBy ← `system:reward-architecture`
   - documentedBy ← `doc:COMMAND-CENTER.md`
   - documentedBy ← `doc:HOME-BASE.md`
   - documentedBy ← `doc:ONE-MORE-RUN.md`
   - documentedBy ← `doc:HUD.md`
   - documentedBy ← `doc:PROGRESSION-LOOP.md`
-  - documentedBy ← `doc:UX-CONSOLIDATION.md`
-  - _…15 more (query: `npm run dil -- node system:hub-shell`)_
+  - _…17 more (query: `npm run dil -- node system:hub-shell`)_
 
 ### `system:run-ui` — In-Run HUD & Results
 
@@ -2349,6 +2355,19 @@ _at: src/core/analyticsEvents.ts, src/core/analyticsInsights.ts, src/core/remote
   - testedBy ← `test:src/core/analyticsEvents.test.ts`
   - testedBy ← `test:src/core/analyticsInsights.test.ts`
   - testedBy ← `test:src/core/remoteConfig.test.ts`
+
+### `system:reward-architecture` — Reward Loop Architecture
+
+The master map of every reward pathway (docs/REWARD-ARCHITECTURE.md): core/rewardLoops.ts classifies ~40 sources into the five loops (collection/progression/upgrade/reward/economy) with machine-enforced laws — no source dead-ends in its own loop, every loop pays at multiple cadences, the full five-loop chain exists from any start. state/loopFlow.ts (session-scoped) + the rotation nudge in state/recommendations.ts hand sessions across loops (+8 other-loop/−6 same-loop, never overturning claim urgency); NextUp handoffs sit on finished claim surfaces. Rebalances are value-neutral drips: the Sector Survey (campaignSurveyBonus — the every-5th milestone lump paid per stage at identical window totals) and the Hive arrival threshold 30→20 min. Reward Frequency > Reward Quantity, validated by npm run sim:rewards personas.
+
+_at: src/core/rewardLoops.ts, src/state/loopFlow.ts_
+
+  - dependsOn → `system:progression-gating`
+  - dependsOn → `system:hub-shell`
+  - extends → `concept:scalability` — THE LOOP REGISTRY (core/rewardLoops.ts): ~40 REWARD_SOURCES rows classify every pathway into 5 loops with feeds[] — rewardLoopProblems() FAILS THE BUILD on a dead-end source (feeds only its own loop), a single-cadence loop, an unfed loop, or a broken 5-loop chain; a NEW reward source is one row and inherits rotation/handoffs/docs. Rebalance rule of the house: convert lumps to drips ONLY at exactly-equal window totals (campaignSurveyBonus = milestoneCore/milestoneEvery per stage, pinned; landmark cadence stays every-5th for map/finales) — never raise totals, never touch loot-meter EV or MODE_REWARDS identity lanes
+  - modifies → `system:hub-shell` — LOOP ROTATION (state/loopFlow.ts + recommendations rotateFrom): Hub.go notes the touched loop (SESSION-scoped, never saved); recs get +8 other-loop/−6 same-loop — deliberately inside one rank band so claims still outrank rotated browses (the ~8% single-lit-wing sessions correctly stay put); NextUp passes rotateFrom=loopOfNav(exclude) and now also renders on the Quest Board (all claimed) and Season Pass (nothing claimable) — a finished claim surface hands off, never dead-ends; validate with npm run sim:rewards (4 personas: value flat exact, frequency up, advanced-loops ≈5/5)
+  - documentedBy ← `doc:REWARD-ARCHITECTURE.md`
+  - testedBy ← `test:src/core/rewardLoops.test.ts`
 
 ### `system:dev-registry` — System Registry & Design Intelligence Layer
 
@@ -3462,7 +3481,7 @@ _at: site/guides.ts → /guides/prestige/_
 - `achievement:arena_crown` — Claim Arena Pass level 100 — a permanently arena-exclusive strain is yours forever. _(partOf `system:achievements`, rewards `currency:genome-cores`, references `system:arena`)_
 - `achievement:arena_perennial` — Close three Arena seasons with a record on the books. _(partOf `system:achievements`, rewards `currency:genome-cores`, references `system:arena`)_
 
-## Documentation (177)
+## Documentation (178)
 
 - `doc:ACCOUNT-LEVEL.md` — project documentation _(documents `system:account-level`)_
 - `doc:ACCOUNTS.md` — project documentation _(documents `system:accounts`)_
@@ -3605,6 +3624,7 @@ _at: site/guides.ts → /guides/prestige/_
 - `doc:RESEARCH.md` — project documentation _(documents `system:field-research`)_
 - `doc:RESPONSIVE-DESIGN.md` — project documentation _(documents `system:ui-kit`)_
 - `doc:RETENTION-ANALYSIS.md` — project documentation
+- `doc:REWARD-ARCHITECTURE.md` — project documentation _(documents `system:reward-architecture`)_
 - `doc:REWARD-PRESENTATION.md` — project documentation _(documents `system:loot`, documents `system:run-ui`)_
 - `doc:ROADMAP.md` — project documentation
 - `doc:RUN-IDENTITY.md` — project documentation
@@ -3642,7 +3662,7 @@ _at: site/guides.ts → /guides/prestige/_
 - `doc:VOWS.md` — project documentation _(documents `system:prestige`)_
 - `doc:WEBSITE.md` — project documentation _(documents `system:field-research`, documents `system:website`)_
 
-## Tests (282)
+## Tests (283)
 
 - `test:src/audio/music.test.ts` — automated validation _(tests `system:audio`)_
 - `test:src/changelog/classify.test.ts` — automated validation _(tests `system:chronicle`)_
@@ -3773,6 +3793,7 @@ _at: site/guides.ts → /guides/prestige/_
 - `test:src/core/remoteConfig.test.ts` — automated validation _(tests `system:analytics`)_
 - `test:src/core/replay.test.ts` — automated validation _(tests `system:net-backend`)_
 - `test:src/core/revenant.test.ts` — automated validation _(tests `system:engine`)_
+- `test:src/core/rewardLoops.test.ts` — automated validation _(tests `system:reward-architecture`)_
 - `test:src/core/riptide.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/core/rng.test.ts` — automated validation _(tests `system:content-infra`)_
 - `test:src/core/runEvents.test.ts` — automated validation _(tests `system:engine`)_

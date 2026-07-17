@@ -7,7 +7,7 @@
 
 import type { SaveData } from '../save/saveStore';
 import type { TimelineEvent } from '../core/types';
-import { CAMPAIGN_REWARDS, HERO_DEFS, HERO_ORDER, TOWER_DEFS, TOWER_ORDER } from '../core/config';
+import { CAMPAIGN_REWARDS, campaignSurveyBonus, HERO_DEFS, HERO_ORDER, TOWER_DEFS, TOWER_ORDER } from '../core/config';
 import { adaptVisualTier } from '../core/adaptation';
 import { isHeroUnlocked, isTowerUnlocked, masteryLevel, accountPowerParts, collectionContextOf } from '../state/meta';
 import { composePower } from '../core/power';
@@ -96,10 +96,10 @@ export function homeFrontier(save: SaveData, power: number): HomeFrontier {
     rec,
     ready: power >= rec,
     isMilestone,
-    firstClearCore:
+    firstClearCore: Math.round(
       CAMPAIGN_REWARDS.firstClearCore +
       CAMPAIGN_REWARDS.firstClearCorePerStage * stage +
-      (isMilestone ? CAMPAIGN_REWARDS.milestoneCore : 0),
+      campaignSurveyBonus(stage)), // the dripped milestone lump — must mirror meta.finishRun
   };
 }
 

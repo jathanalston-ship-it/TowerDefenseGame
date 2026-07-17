@@ -1,6 +1,6 @@
 {
-  "lastSha": "c939ba41e6413c2a813fe41ab210c3b884f77610",
-  "commitsSinceDraft": 2,
+  "lastSha": "461eb0bbbbc25f9a7a362398069b9d1792a2f342",
+  "commitsSinceDraft": 4,
   "content": {
     "tower": [
       "needle",
@@ -306,6 +306,7 @@
       "devtools",
       "ui-kit",
       "analytics",
+      "reward-architecture",
       "dev-registry"
     ]
   },
@@ -1512,6 +1513,11 @@
       "title": "The Living World Update",
       "sealed": false,
       "entries": [
+        {
+          "cat": "Gameplay",
+          "text": "New system: Reward Loop Architecture",
+          "major": true
+        },
         {
           "cat": "Gameplay",
           "text": "New system: Player Telemetry & Analytics",
@@ -2751,6 +2757,10 @@
         {
           "cat": "Backend",
           "text": "Player telemetry, analytics & developer intelligence platform"
+        },
+        {
+          "cat": "Website",
+          "text": "Regen DIL graph, dependency graph, chronicle + site over the merged analytics batch"
         }
       ]
     }
@@ -4939,6 +4949,22 @@
       "text": "Player telemetry, analytics & developer intelligence platform",
       "internal": false,
       "needsReview": false
+    },
+    {
+      "sha": "04fe4c4141faf020e0034dd4127d77ca0f9b21d7",
+      "date": "2026-07-17",
+      "cat": "Website",
+      "text": "Regen DIL graph, dependency graph, chronicle + site over the merged analytics batch",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "461eb0bbbbc25f9a7a362398069b9d1792a2f342",
+      "date": "2026-07-17",
+      "cat": "Framework",
+      "text": "Handoff notes for the analytics platform session",
+      "internal": true,
+      "needsReview": true
     }
   ]
 }

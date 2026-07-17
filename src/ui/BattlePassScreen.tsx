@@ -20,6 +20,8 @@ import { CurrencyIcon } from './components/CurrencyIcon';
 import { audio } from '../audio/sound';
 import { adProvider } from '../ads/provider';
 import { telemetry } from '../net/telemetry';
+import { NextUp } from './HubLanding';
+import { navBus } from '../state/navBus';
 
 function fmtLeft(ms: number): string {
   const d = Math.floor(ms / 86_400_000);
@@ -258,6 +260,10 @@ export function BattlePassScreen({ onStore }: { onStore?: () => void } = {}): JS
           </div>
         </div>
       </header>
+
+      {/* Loop handoff (docs/REWARD-ARCHITECTURE.md §chaining): with nothing claimable the
+          season screen points at the next loop's ready action instead of dead-ending. */}
+      {claimables === 0 && <NextUp save={save} exclude="season" go={(k) => navBus.go(k)} />}
 
       <div className="bp-controls">
         <button className="primary bp-claimall" disabled={claimables === 0} onClick={claimAll}>

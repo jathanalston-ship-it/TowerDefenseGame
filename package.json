@@ -40,7 +40,8 @@
     "relay": "vite-node scripts/arena-relay.ts",
     "arena:sweep": "vite-node scripts/arena-match-sweep.ts",
     "sim:market": "vite-node scripts/sim-market.ts",
-    "sim:analytics": "vite-node scripts/sim-analytics.ts"
+    "sim:analytics": "vite-node scripts/sim-analytics.ts",
+    "sim:rewards": "vite-node scripts/sim-rewards.ts"
   },
   "dependencies": {
     "react": "^18.3.1",

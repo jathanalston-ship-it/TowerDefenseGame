@@ -12,6 +12,11 @@ export const RELEASES: Release[] = [
     "entries": [
       {
         "cat": "Gameplay",
+        "text": "New system: Reward Loop Architecture",
+        "major": true
+      },
+      {
+        "cat": "Gameplay",
         "text": "New system: Player Telemetry & Analytics",
         "major": true
       },
@@ -1249,6 +1254,10 @@ export const RELEASES: Release[] = [
       {
         "cat": "Backend",
         "text": "Player telemetry, analytics & developer intelligence platform"
+      },
+      {
+        "cat": "Website",
+        "text": "Regen DIL graph, dependency graph, chronicle + site over the merged analytics batch"
       }
     ]
   },

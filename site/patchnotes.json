@@ -27,6 +27,10 @@
     "items": [
       {
         "cat": "Gameplay",
+        "text": "★ New system: Reward Loop Architecture"
+      },
+      {
+        "cat": "Gameplay",
         "text": "★ New system: Player Telemetry & Analytics"
       },
       {
@@ -1184,6 +1188,10 @@
       {
         "cat": "Backend",
         "text": "Player telemetry, analytics & developer intelligence platform"
+      },
+      {
+        "cat": "Website",
+        "text": "Regen DIL graph, dependency graph, chronicle + site over the merged analytics batch"
       }
     ]
   },

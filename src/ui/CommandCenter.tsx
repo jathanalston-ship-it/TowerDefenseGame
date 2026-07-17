@@ -38,6 +38,7 @@ import { InfestationBoard } from './components/InfestationBoard';
 import { GrowthPanel } from './components/GrowthPanel';
 import { armyView, buildHomeView, homeRegistry } from './homeModel';
 import { recommendationsFor } from '../state/recommendations';
+import { loopFlow } from '../state/loopFlow';
 import { RecommendStrip } from './HubLanding';
 import { t } from '../i18n';
 import { hiveIntel } from '../state/hiveIntel';
@@ -163,7 +164,7 @@ const WIDGETS: Record<string, (ctx: WidgetCtx) => ReactNode> = {
   'recommend': (c) => (
     <section className="cc-recommend" aria-label={t('hub.landing.recommended')}>
       <span className="cc-panel-h">✦ {t('hub.landing.recommended').toUpperCase()}</span>
-      <RecommendStrip recs={recommendationsFor(c.save, { limit: 3 })} go={(k) => c.go(k)} />
+      <RecommendStrip recs={recommendationsFor(c.save, { limit: 3, rotateFrom: loopFlow.last() })} go={(k) => c.go(k)} />
     </section>
   ),
   // (UX consolidation, docs/MISSION-CONTROL.md: the old next-goal banner is ABSORBED into

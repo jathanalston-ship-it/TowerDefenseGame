@@ -11,7 +11,7 @@
 // (state/unlocks FEATURES). PURE over SaveData; consumers memoize per revision.
 
 import type { SaveData } from '../save/saveStore';
-import { CAMPAIGN_REWARDS } from '../core/config';
+import { CAMPAIGN_REWARDS, campaignSurveyBonus } from '../core/config';
 import { recommendedPowerScore } from '../core/campaign';
 import { composePower } from '../core/power';
 import { accountPowerParts } from './meta';
@@ -51,7 +51,7 @@ function primaryObjective(save: SaveData, power: number, plan: AdvisorPlan): Mis
   const rec = recommendedPowerScore(stage, diff);
   const ready = power >= rec;
   const isMilestone = stage % CAMPAIGN_REWARDS.milestoneEvery === 0;
-  const core = CAMPAIGN_REWARDS.firstClearCore + CAMPAIGN_REWARDS.firstClearCorePerStage * stage + (isMilestone ? CAMPAIGN_REWARDS.milestoneCore : 0);
+  const core = Math.round(CAMPAIGN_REWARDS.firstClearCore + CAMPAIGN_REWARDS.firstClearCorePerStage * stage + campaignSurveyBonus(stage));
   return {
     id: `descend:${diff}:${stage}`,
     tier: 'primary',

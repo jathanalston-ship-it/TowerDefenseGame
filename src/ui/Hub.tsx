@@ -17,6 +17,7 @@ import { autoGenePref, setAutoGenePref } from '../state/prefs';
 import { notifications } from '../state/notifications';
 import '../state/notificationSources'; // registers the default menu badges (side-effect import)
 import { telemetry } from '../net/telemetry';
+import { loopFlow } from '../state/loopFlow';
 import { CommandCenter } from './CommandCenter';
 import { InfiniteScreen } from './InfiniteScreen';
 import { BossRushScreen } from './BossRushScreen';
@@ -300,6 +301,7 @@ export function Hub({
     // §screens) — read BEFORE markSeen clears it.
     if ((notifications.badges(save)[k] ?? 0) > 0) telemetry.emit('notif', { d: `${k}:act` });
     telemetry.screen(k);
+    loopFlow.note(k); // loop rotation (docs/REWARD-ARCHITECTURE.md §chaining): remember the wing touched
     notifications.markSeen(k, save); // viewing a menu clears its badge immediately
     meta.noteNavVisit(k); // exposure ledger (docs/PROGRESSION-GATING.md §director)
     setNav(k);

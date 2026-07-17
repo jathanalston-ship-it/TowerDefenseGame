@@ -15,6 +15,8 @@ import type { MissionDef, QuestDef } from '../core/quests';
 import { cutsceneDef } from '../core/cutscenes';
 import { wardrobeItem, WARDROBE_RARITY_COLOR } from '../core/wardrobe';
 import { ContractsCard } from './components/ContractsCard';
+import { NextUp } from './HubLanding';
+import { navBus } from '../state/navBus';
 import { audio } from '../audio/sound';
 
 function fmtLeft(ms: number): string {
@@ -176,6 +178,9 @@ export function QuestBoard(): JSX.Element {
       <h1 className="title">QUEST BOARD {claimableNow > 0 && <span className="qb-claimable-chip">◈ {claimableNow} to claim</span>}</h1>
       <p className="subtitle">Directives from the deep — weekly orders and the story of the descent.</p>
       {burst && <ClaimBurst burst={burst} />}
+      {/* Loop handoff (docs/REWARD-ARCHITECTURE.md §chaining): a fully-claimed board hands
+          the session to the next loop instead of dead-ending on grayed buttons. */}
+      {claimableNow === 0 && <NextUp save={meta.get()} exclude="quests" go={(k) => navBus.go(k)} />}
 
       <section className="panel qb-weekly" data-guide="quest-weekly" aria-label="This week's quest">
         <header className="qb-w-head">

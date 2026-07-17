@@ -2116,13 +2116,27 @@ export const INFINITE_REWARD_QUALIFY_FRAC = 0.5;
 export const CAMPAIGN_REWARDS = {
   firstClearCore: 25, // base one-time Genome Cores for a never-cleared stage …
   firstClearCorePerStage: 4, // … + this per stage number (deeper discovery pays more)
-  milestoneEvery: 5, // every Nth cleared stage …
-  milestoneCore: 100, // … a bonus Genome Cores chunk
+  // The Sector Survey drip (docs/REWARD-ARCHITECTURE.md §rebalance, 2026-07): the old
+  // "+100 cores every 5th stage" lump now pays as milestoneCore/milestoneEvery per stage —
+  // SAME total over any milestoneEvery-stage window (the value-neutrality contract,
+  // pinned by rewardLoops.test), five times the payout events. milestoneEvery still
+  // marks every 5th stage for map landmarks + authored event finales — the LANDMARK
+  // cadence and the MONEY cadence are deliberately decoupled.
+  milestoneEvery: 5, // every Nth cleared stage is a LANDMARK (map + authored finale) …
+  milestoneCore: 100, // … and this many Cores per window, paid as a per-stage survey drip
   // Failed FRONTIER attempts recover partial "field data" (BALANCE_REPORT №1-3 push-futility):
   // this fraction of the stage's first-clear value, scaled by how deep the attempt survived.
   // Frontier-only + replaced by the full first-clear once the stage falls ⇒ never farmable.
   attemptFrac: 0.25,
 };
+
+/** The per-stage Sector Survey bonus — the milestone chunk dripped evenly so every
+ *  first clear pays it (Reward Frequency > Reward Quantity). Exactly
+ *  milestoneCore/milestoneEvery, so any milestoneEvery-stage window totals the old lump. */
+export function campaignSurveyBonus(stageNo: number): number {
+  void stageNo; // flat drip today; the arg keeps the seam open for future shaping
+  return CAMPAIGN_REWARDS.milestoneCore / CAMPAIGN_REWARDS.milestoneEvery;
+}
 
 // ── Battlefield / arena ─────────────────────────────────────────────────────
 // Open vertical arena (map.ts owns CELL/COLS/ROWS/WIDTH/HEIGHT). Enemies spawn
@@ -2409,7 +2423,10 @@ export const IDLE = {
   capHoursBeyond: 12, // each Capacity level past the ladder adds this many hours (infinite)
   softScaleL0: 50, // the log-easing scale shared by every ×-multiplier node (see prime's curve)
   minCollectMinutes: 5, // below this the hopper is "still warming" — no collect (keeps receipts meaningful)
-  ceremonyMinutes: 30, // arrival ceremony auto-plays at ≥ this much banked time (else collect from the screen)
+  // Arrival ceremony threshold, lowered 30 → 20 (docs/REWARD-ARCHITECTURE.md §rebalance):
+  // a returning session greets a ripe hopper more often. Pure presentation frequency —
+  // accrual math and yields are untouched (remote-tunable via ui.arrivalMinMinutes).
+  ceremonyMinutes: 20,
   maxContainersPerCollect: 2, // hard fairness cap on container-class drops in ONE collect
   bloomBudgetMult: 2, // a Special-Events BLOOM doubles the collect's budget + guarantees a rare
   // Clock-integrity bound (docs/IDLE-HARVEST.md §integrity): a FUTURE accrual anchor freezes

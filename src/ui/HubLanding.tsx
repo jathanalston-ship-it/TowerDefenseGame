@@ -11,6 +11,7 @@ import type { SaveData } from '../save/saveStore';
 import { t } from '../i18n';
 import { featureRevealed, featureView, type FeatureView } from '../state/unlocks';
 import { recommendationsFor, type Recommendation } from '../state/recommendations';
+import { loopOfNav } from '../core/rewardLoops';
 import type { NavGroup, NavKey } from './navModel';
 
 /** The recommendation strip — shared by hub landings, the mobile tab indexes, and the
@@ -37,7 +38,9 @@ export function RecommendStrip({ recs, go, compact }: { recs: Recommendation[]; 
  *  this strip so "nothing left here" always answers "…so do THIS next". Excludes the screen
  *  it sits on; the engine's play backstop guarantees at least one row. */
 export function NextUp({ save, exclude, go }: { save: SaveData; exclude: NavKey; go: (k: NavKey) => void }): JSX.Element | null {
-  const recs = recommendationsFor(save, { limit: 3 }).filter((r) => r.nav !== exclude).slice(0, 2);
+  // Loop rotation (docs/REWARD-ARCHITECTURE.md §chaining): hand the session to a DIFFERENT
+  // loop than the surface it's standing on — claim → open → upgrade → play, never a circle.
+  const recs = recommendationsFor(save, { limit: 3, rotateFrom: loopOfNav(exclude) }).filter((r) => r.nav !== exclude).slice(0, 2);
   if (recs.length === 0) return null;
   return (
     <div className="hubl-nextup">

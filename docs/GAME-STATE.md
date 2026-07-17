@@ -1428,3 +1428,17 @@ repairable via the documented ledger scan.
 **Hooks.** `ab_assign` emission activates when the client consumes `/api/config` (sanitizer + bucket math already live/tested); `an.sampleFps` remote number can drive the FPS sample rate; niche sinks adopt the spend-fold pattern as wanted.
 
 **Limitations.** `ability` counts manual arm transitions, not autocast volleys; spend folds cover the four primary sinks; Electron binaries build locally only (`cd devapp && npm run dist` — installer downloads are never committed; sandbox CI can't fetch the Electron binary, UI verified headlessly instead).
+
+## Compressed system summary — Reward Loop Architecture (docs/REWARD-ARCHITECTURE.md)
+
+**Architecture.** `core/rewardLoops.ts` is the master map: ~40 `REWARD_SOURCES` rows classify every reward pathway into the five loops (collection / progression / upgrade / reward / economy), each declaring `feeds[]` (loops its output advances), cadence, nav, and implementation anchor. `rewardLoopProblems()` machine-enforces the laws: no source dead-ends in its own loop, every loop pays at ≥2 cadences, every loop is cross-fed, and `fullLoopChain()` proves the five-loop cycle from any start. `state/loopFlow.ts` (session-scoped, never saved) remembers the last-touched loop; `recommendationsFor(..., {rotateFrom})` nudges other-loop actions +8 / same-loop −6 — inside one rank band so claim urgency is never overturned. `NextUp` handoffs render on finished claim surfaces (Vault, Harvest, Quest Board, Season Pass) with `rotateFrom=loopOfNav(exclude)`.
+
+**Rebalances (value-neutral by contract).** Sector Survey drip: the +100◆-every-5th-stage milestone lump now pays `campaignSurveyBonus()` = 20◆ on every first clear — any 5-stage window totals exactly the old lump (test-pinned); landmark cadence (map landmarks, authored finales, Evolution-Cap copy) stays every-5th. Hive arrival ceremony threshold 30→20 min (presentation frequency only; accrual untouched). meta.finishRun, homeModel, and missionControl share the one helper so previews can't drift.
+
+**Public APIs.** `LOOPS`, `REWARD_SOURCES`, `sourcesInLoop`, `loopGraph`, `loopOfNav(nav)`, `fullLoopChain(start)`, `rewardLoopProblems()`; `loopFlow.note(nav)/last()`; `campaignSurveyBonus(stage)`; `recommendationsFor(save, {rotateFrom})` (recs now carry `loop`).
+
+**Extension points.** New reward source = one registry row (build fails if it dead-ends). New claim surface = render `<NextUp exclude={nav}/>` in its all-claimed state. Survey drip shaping = change `campaignSurveyBonus` body (window-total test guards neutrality).
+
+**Validation.** `npm run sim:rewards`: 4 personas × 14 days — value FLAT exact (800◆ = 800◆ over 40 clears), 5× survey payout events, ceremonies never decrease, hub sessions touch ~2 loops, session output ADVANCES ~5/5 loops, rotation never reduces coverage. `rewardLoops.test.ts` pins the structural laws + real-nav validity + the ≥60% sub-weekly cadence share.
+
+**Limitations.** Rotation forgets on reload (session-scoped by design); `loopOfNav` assigns each screen ONE primary loop; the persona sim's readiness probabilities are documented assumptions (structural laws are pinned independently).
