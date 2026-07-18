@@ -12726,3 +12726,59 @@ div.ah-spark { display: flex; align-items: center; justify-content: center; heig
 .front-strip-inc { font-size: 11px; letter-spacing: 0.08em; color: #ff8fa0; flex: none; }
 .front-strip-n { font-size: 11px; min-width: 18px; height: 18px; border-radius: 999px; background: var(--gold, #ffd24d); color: #1a1408; display: inline-flex; align-items: center; justify-content: center; font-weight: 700; flex: none; }
 .front-strip-go { opacity: 0.6; flex: none; }
+
+/* LIVE EVENTS home banner + claim console (CommandCenter — LIVE-EVENTS.md §4/§6): the theme
+   owner headlines, sibling horizons chip, and the bar unfolds into per-event cards
+   (challenges → tokens → track → shop). Accent flows from the event def via --ev/--evc
+   custom props — a new registry event needs ZERO css here. */
+.cc-events { border: 1px solid color-mix(in srgb, var(--ev) 55%, var(--line)); border-radius: var(--r-md); background: linear-gradient(120deg, color-mix(in srgb, var(--ev) 14%, var(--panel-2)), var(--panel-2) 70%); box-shadow: 0 0 22px -12px var(--ev); }
+.cc-ev-bar { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; width: 100%; padding: 12px 16px; background: none; border: 0; color: inherit; font: inherit; text-align: left; cursor: pointer; }
+.cc-ev-major { display: flex; align-items: center; gap: 12px; flex: 1; min-width: 240px; }
+.cc-ev-logo { font-size: 34px; line-height: 1; color: var(--ev); filter: drop-shadow(0 0 9px color-mix(in srgb, var(--ev-glow) 60%, transparent)); }
+.cc-ev-body { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.cc-ev-k { font-size: 10px; font-weight: 800; letter-spacing: 0.2em; color: var(--ev); }
+.cc-ev-name { font-size: 18px; font-weight: 800; letter-spacing: 0.02em; color: var(--text); }
+.cc-ev-tag { font-size: 12px; color: var(--dim); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cc-ev-chip { display: inline-flex; align-items: center; gap: 6px; padding: 5px 11px; font-size: 12px; font-weight: 700; letter-spacing: 0.04em; color: var(--text); border: 1px solid color-mix(in srgb, var(--evc) 50%, var(--line)); border-radius: 999px; background: color-mix(in srgb, var(--evc) 10%, transparent); }
+.cc-ev-chip b { color: var(--evc); font-variant-numeric: tabular-nums; }
+.cc-ev-open { margin-left: auto; font-size: 10px; font-weight: 800; letter-spacing: 0.12em; color: var(--dim); white-space: nowrap; }
+.cc-ev-open.has-ready { color: var(--gold); text-shadow: 0 0 9px color-mix(in srgb, var(--gold) 55%, transparent); }
+.cc-ev-console { display: grid; grid-template-columns: repeat(auto-fit, minmax(270px, 1fr)); gap: 10px; padding: 0 12px 12px; border-top: 1px solid color-mix(in srgb, var(--ev) 30%, var(--line)); padding-top: 12px; }
+.cc-evc { display: flex; flex-direction: column; gap: 8px; padding: 10px 12px; border: 1px solid color-mix(in srgb, var(--evc) 40%, var(--line)); border-radius: var(--r-md); background: color-mix(in srgb, var(--evc) 6%, var(--panel)); }
+.cc-evc-head { display: flex; align-items: center; gap: 9px; }
+.cc-evc-logo { font-size: 20px; line-height: 1; color: var(--evc); }
+.cc-evc-title { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.cc-evc-name { font-size: 13px; font-weight: 800; color: var(--text); }
+.cc-evc-h { font-size: 10px; font-weight: 800; letter-spacing: 0.12em; color: var(--evc); }
+.cc-evc-wallet { margin-left: auto; font-size: 13px; font-weight: 800; color: var(--evc); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.cc-evc-sec { display: flex; flex-direction: column; gap: 5px; }
+.cc-evc-k { font-size: 10px; font-weight: 800; letter-spacing: 0.12em; color: var(--dim); }
+.cc-evc-ch { display: flex; align-items: center; gap: 7px; font-size: 12px; color: var(--text); }
+.cc-evc-ch.is-done { color: var(--dim); }
+.cc-evc-chname { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cc-evc-chbar { flex: 1; min-width: 34px; height: 4px; border-radius: 999px; background: rgba(255, 255, 255, 0.07); overflow: hidden; }
+.cc-evc-chbar i { display: block; height: 100%; background: var(--evc); }
+.cc-evc-chn { font-size: 11px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.cc-evc-tok { font-size: 11px; font-weight: 700; color: var(--evc); font-variant-numeric: tabular-nums; }
+.cc-evc-track { display: flex; flex-wrap: wrap; gap: 6px; }
+.cc-evc-m { display: inline-flex; align-items: center; gap: 6px; padding: 4px 8px; font-size: 11px; border: 1px solid var(--line); border-radius: var(--r-sm); background: rgba(255, 255, 255, 0.04); }
+.cc-evc-m.is-claimed { opacity: 0.5; }
+.cc-evc-m.is-ready { border-color: var(--evc); box-shadow: 0 0 10px -4px var(--evc); }
+.cc-evc-mat { color: var(--muted); font-weight: 700; font-variant-numeric: tabular-nums; }
+.cc-evc-mi { font-size: 12px; line-height: 1; }
+.cc-evc-got { color: var(--evc); font-weight: 800; }
+.cc-evc-claim, .cc-evc-buy { padding: 3px 8px; font-size: 10px; font-weight: 800; letter-spacing: 0.08em; color: var(--text); border: 1px solid var(--evc); border-radius: var(--r-sm); background: color-mix(in srgb, var(--evc) 20%, transparent); cursor: pointer; font-variant-numeric: tabular-nums; }
+.cc-evc-claim:hover, .cc-evc-buy:hover:not(:disabled) { filter: brightness(1.2); }
+.cc-evc-buy:disabled { opacity: 0.45; cursor: default; }
+.cc-evc-shoprow { display: flex; align-items: center; gap: 7px; font-size: 12px; color: var(--text); }
+.cc-evc-shopname { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cc-evc-stock { margin-left: auto; font-size: 10px; font-weight: 700; letter-spacing: 0.06em; color: var(--dim); white-space: nowrap; }
+@media (max-width: 700px) { .cc-ev-name { font-size: 16px; } .cc-ev-tag { display: none; } .cc-ev-open { display: none; } }
+
+/* LIVE EVENT hub ambience (LIVE-EVENTS.md §4): the theme owner tints the war room — the
+   vars land on :root from wardrobeDressing (data-event carries the owner's hubMutation
+   token). Subtle by design: identity, not wallpaper; a new event needs zero css. */
+:root[data-event] .hub { background: radial-gradient(900px 480px at 82% -8%, color-mix(in srgb, var(--event-accent) 9%, transparent), transparent), radial-gradient(1200px 600px at 18% -10%, rgba(110, 123, 255, 0.08), transparent), var(--bg); }
+
+/* Deploy interstitial live-event flavor line (the visuals.loadingLine seam). */
+.deploy-event { margin-top: 10px; font-size: 12px; font-weight: 700; letter-spacing: 0.06em; color: var(--ev); text-shadow: 0 0 10px color-mix(in srgb, var(--ev) 45%, transparent); }

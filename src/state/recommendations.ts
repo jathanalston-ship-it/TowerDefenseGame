@@ -49,6 +49,10 @@ export const CHANNEL_CLASS: Partial<Record<string, { kind: RecKind; score: numbe
   hive: { kind: 'spend', score: 50, why: 'An organ tier is within budget' },
   equipment: { kind: 'spend', score: 46, why: 'New gear is sitting unequipped' },
   market: { kind: 'spend', score: 40, why: 'Stock rotates on a timer — good lots expire' },
+  // Live-event ledgers clear when the window rotates (docs/LIVE-EVENTS.md §3) — claims here
+  // are the only time-limited claims in the game, so they rank with the season pass. The
+  // 'home' channel IS the event console's address (the Command Center banner expands into it).
+  home: { kind: 'claim', score: 87, why: 'Live-event rewards expire with the window' },
   // The QUICK FINISHER (docs/REWARD-FREQUENCY.md §wind-down): a free short-mode entry that
   // fills a session tail once claims/opens run dry — scored below every upgrade so it only
   // surfaces when the chain is spent, exactly the "what do I do now?" moment it answers.

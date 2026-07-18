@@ -47,6 +47,7 @@ import { hiveIntel } from '../state/hiveIntel';
 import { evolutionRoadmap } from '../state/evolutionRoadmap';
 import type { HomeView, HomeZone } from './homeModel';
 import type { NavKey } from './Hub';
+import { LiveEventsPanel } from './components/LiveEventsPanel';
 
 type RunRecap = { result: RunResult; outcome: RunOutcome } | null;
 
@@ -125,6 +126,10 @@ export function CommandCenter({
 
   return (
     <div className="cchome">
+      {/* LIVE EVENTS — loud and proud, the first read on home (LIVE-EVENTS.md §4): the
+          theme owner headlines, the other two horizons ride as chips, and the banner
+          unfolds into the claim console (challenges → tokens → track → shop). */}
+      <LiveEventsPanel />
       {recap.length > 0 && (
         <section className="mc-recap" aria-label="Since your last run">
           <span className="mc-recap-h">Since your last run</span>

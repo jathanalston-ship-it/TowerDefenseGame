@@ -380,6 +380,30 @@ export function activeLiveEvents(now: number): ActiveLiveEvent[] {
   });
 }
 
+
+/** The active trio's reward-lane boosts folded into ONE multiplier bag (×1 baseline) — the
+ *  liveops-shaped half the consumers multiply WITH liveopsMods() (liveops cannot import
+ *  this module without a cycle, so composition happens at the consumption sites). */
+export function liveEventLaneMods(now: number): Required<LiveEventMods> {
+  const m: Required<LiveEventMods> = { dailyCoreMult: 1, rushShardMult: 1, endlessShardMult: 1, campaignShardMult: 1, essenceMult: 1, materialsMult: 1, megaIchorMult: 1, lootMult: 1 };
+  for (const a of activeLiveEvents(now)) {
+    const mods = a.def.mods ?? {};
+    for (const k of Object.keys(m) as (keyof Required<LiveEventMods>)[]) m[k] *= mods[k] ?? 1;
+  }
+  return m;
+}
+
+// The wall-clock fold the meta consumers call — NEUTRAL under tests, mirroring liveops'
+// FIXED_TEST_NOW convention (liveops.ts). The trio is ALWAYS live (no lane-quiet date
+// exists), so this is the only way loot/economy assertions stay independent of the day CI
+// runs; the pure fold above stays directly pinned by liveEventsMeta.test.ts.
+const isTest = typeof import.meta !== 'undefined' && (import.meta as unknown as { env?: { MODE?: string } }).env?.MODE === 'test';
+export function liveEventLaneModsNow(): Required<LiveEventMods> {
+  return isTest
+    ? { dailyCoreMult: 1, rushShardMult: 1, endlessShardMult: 1, campaignShardMult: 1, essenceMult: 1, materialsMult: 1, megaIchorMult: 1, lootMult: 1 }
+    : liveEventLaneMods(Date.now());
+}
+
 /** THE theme owner — exactly one identity dresses the hub (major > medium > short). */
 export function themeOwner(now: number): ActiveLiveEvent {
   return activeLiveEvents(now)[0];

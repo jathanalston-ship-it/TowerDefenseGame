@@ -28,6 +28,7 @@ import { sanitizeGeneSave } from '../core/geneCards';
 import { STARTER_GENES } from '../core/geneDiscovery';
 import { cardRegistry } from '../core/cards';
 import { sanitizeGeneLoadout, sanitizeGeneSlots } from '../core/geneLoadout';
+import { activeLiveEvents, eventTrack } from '../core/liveEvents';
 import type { GeneSave } from '../core/geneCards';
 import { MULLIGAN_RARITY, MULLIGAN_SLOTS, emptyMulligan, levelCap, mulliganRegistry } from '../core/mulligan';
 import { emptyNucleus, sanitizeNucleus } from '../core/nucleus';
@@ -264,6 +265,13 @@ export interface SaveData {
   //    Boss Rush, first-kill boss chassis (any mode), quest finales and Battle Pass milestones;
   //    consumed by a wheel session (state/meta grantRouletteRewards). Additive ⇒ 0 for old saves. ──
   bioSpores: number;
+  // ── Live Events (v49, docs/LIVE-EVENTS.md §4/§6) — the per-window event ledgers, ALL keyed
+  //    `eventId:window` so rotation retires state structurally: `tokens` (the event currency
+  //    banks, capped by each def), `claimed` (track milestone `at` values already paid),
+  //    `shopBought` (per-row purchase counts against finite stock). The sanitizer prunes any
+  //    key not currently active (stale windows evaporate = the anti-inflation contract);
+  //    absent ⇒ empty ledgers (additive, golden-safe). ──
+  liveEvents: { tokens: Record<string, number>; claimed: Record<string, number[]>; shopBought: Record<string, Record<string, number>>; progress: Record<string, Record<string, number>> };
   // ── Gene Card DISCOVERY (v46, docs/CARDS.md §discovery) — the Archive's membership set:
   //    card ids the account has discovered (starters + Bio-Container finds). Drafting and
   //    permanent upgrades key on membership. Migration seeds STARTER_GENES ∪ every card the
@@ -537,7 +545,55 @@ export interface TutorialSave {
 // regional tribute watermarks), defenses (dayKey → defended sector, bounded ring) and
 // lastIncursionDay (incursion resolution cursor). All empty on pre-v49 saves ⇒ additive,
 // fresh accounts byte-identical.
+// ALSO v49: LIVE EVENT LEDGERS (docs/LIVE-EVENTS.md §6) — `liveEvents` {tokens, claimed,
+// shopBought, progress}, every key `eventId:window`; the sanitizer prunes keys outside the
+// currently ACTIVE trio, so rotation retires state and the ledger is structurally bounded.
+// Missing ⇒ empty ledgers — purely additive, golden-safe.
 export const CURRENT_VERSION = 49;
+
+/** v49 Live Event ledgers: shape-check + clamp against the LIVE defs, prune stale windows.
+ *  Wall-clock use is deliberate — staleness IS a function of now (same rule the claim paths
+ *  apply); tests exercise it by seeding keys for the active trio vs long-dead windows. */
+function sanitizeLiveEvents(raw: unknown): { tokens: Record<string, number>; claimed: Record<string, number[]>; shopBought: Record<string, Record<string, number>>; progress: Record<string, Record<string, number>> } {
+  const out = { tokens: {} as Record<string, number>, claimed: {} as Record<string, number[]>, shopBought: {} as Record<string, Record<string, number>>, progress: {} as Record<string, Record<string, number>> };
+  if (!raw || typeof raw !== 'object') return out;
+  const byKey = new Map(activeLiveEvents(Date.now()).map((a) => [a.key, a.def]));
+  const r = raw as { tokens?: Record<string, unknown>; claimed?: Record<string, unknown>; shopBought?: Record<string, unknown> };
+  for (const [k, v] of Object.entries(r.tokens ?? {})) {
+    const def = byKey.get(k);
+    if (!def?.currency) continue; // stale window (or currency-less event) ⇒ prune
+    const n = Math.max(0, Math.min(def.currency.cap, Math.floor(Number(v) || 0)));
+    if (n > 0) out.tokens[k] = n;
+  }
+  for (const [k, v] of Object.entries(r.claimed ?? {})) {
+    const def = byKey.get(k);
+    if (!def || !Array.isArray(v)) continue;
+    const valid = new Set(eventTrack(def).map((m) => m.at));
+    const kept = [...new Set(v.map((x) => Math.floor(Number(x) || 0)).filter((x) => valid.has(x)))];
+    if (kept.length > 0) out.claimed[k] = kept;
+  }
+  for (const [k, v] of Object.entries((r as { progress?: Record<string, unknown> }).progress ?? {})) {
+    const def = byKey.get(k);
+    if (!def?.challenges || !v || typeof v !== 'object') continue;
+    const rows: Record<string, number> = {};
+    for (const ch of def.challenges) {
+      const n = Math.floor(Number((v as Record<string, unknown>)[ch.id]) || 0);
+      if (n > 0) rows[ch.id] = Math.min(ch.target, n);
+    }
+    if (Object.keys(rows).length > 0) out.progress[k] = rows;
+  }
+  for (const [k, v] of Object.entries(r.shopBought ?? {})) {
+    const def = byKey.get(k);
+    if (!def?.shop || !v || typeof v !== 'object') continue;
+    const rows: Record<string, number> = {};
+    for (const row of def.shop) {
+      const n = Math.floor(Number((v as Record<string, unknown>)[row.id]) || 0);
+      if (n > 0) rows[row.id] = Math.min(row.stock, n);
+    }
+    if (Object.keys(rows).length > 0) out.shopBought[k] = rows;
+  }
+  return out;
+}
 
 /** The placeholder every save is born with — the Commander designation prompt fires
  *  while the name is still exactly this (components/CommanderName.tsx). */
@@ -841,6 +897,7 @@ export function defaultSave(): SaveData {
     hiveMaterials: 0,
     mulliganTissue: 0,
     bioSpores: 0,
+    liveEvents: { tokens: {}, claimed: {}, shopBought: {}, progress: {} },
     genesDiscovered: [...STARTER_GENES], // the teaching set — every account starts with it
 
     createdAt: 0, // stamped by the first settle — defaultSave() must stay deterministic
@@ -1412,6 +1469,10 @@ function withDefaults(data: SaveData): SaveData {
     // v48: banked Bio-Roulette spores (pre-v48 ⇒ 0). Clamped well above ROULETTE.sporeCap so a
     // session cap change never silently burns a bank; negative/junk ⇒ 0.
     bioSpores: Math.max(0, Math.min(999, Math.floor(Number((data as { bioSpores?: unknown }).bioSpores) || 0))),
+    // v49: Live Event ledgers (docs/LIVE-EVENTS.md §6). Keys are `eventId:window`; anything
+    // not in the CURRENTLY-ACTIVE key set prunes on load — rotation retires state, tokens are
+    // use-it-or-lose-it (the anti-inflation contract), and the ledger can never grow unbounded.
+    liveEvents: sanitizeLiveEvents((data as { liveEvents?: unknown }).liveEvents),
     // v21→v22: Player Profile — identity fields + the milestone timeline (pre-v22 ⇒ defaults;
     // createdAt stays 0 until the first settle stamps it).
     createdAt: Math.max(0, Math.floor(Number((data as { createdAt?: unknown }).createdAt) || 0)),

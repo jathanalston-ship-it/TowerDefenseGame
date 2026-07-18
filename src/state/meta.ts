@@ -144,7 +144,8 @@ import { cosmeticFamilyKey, equipmentFamilyKey, geneFamilyKey, marketFamily } fr
 import { LOGIN, loginTargetValue, milestoneContainer, rollLoginBundle, streakMult } from '../core/loginStreak';
 import { PERFECT_WEEK, activeContracts, contractReport, contractSatisfied, contractWeekKey } from '../core/contracts';
 import type { ContractRunFacts } from '../core/contracts';
-import { MAIN_QUESTLINE, QUESTS, foldCredit, missionById, questById, questComplete, msToWeeklyRotation, weeklyQuestFor, weeklyWindow } from '../core/quests';
+import { MAIN_QUESTLINE, QUESTS, foldCredit, missionById, missionCredit, questById, questComplete, msToWeeklyRotation, weeklyQuestFor, weeklyWindow } from '../core/quests';
+import { activeLiveEvents, eventTrack, liveEventLaneModsNow } from '../core/liveEvents';
 import type { MissionDef, QuestDef, QuestMetaEvent, QuestRunFacts } from '../core/quests';
 import { cutsceneDef } from '../core/cutscenes';
 import { cutsceneBus } from './navBus';
@@ -449,6 +450,34 @@ function applyRewardList(
     }
   }
   return { next, lines, stamina, events };
+}
+
+
+/** Live-event challenge crediting (docs/LIVE-EVENTS.md §6): every creditQuests seam (runs,
+ *  containers, expeditions, roulette, pass levels) also feeds the ACTIVE trio's challenges.
+ *  Crossing a target banks its tokens once (wallet-capped); progress is per `eventId:window`
+ *  so rotation retires it structurally. */
+function creditEventChallenges(ev: { type: 'run'; facts: QuestRunFacts } | QuestMetaEvent, now: number): void {
+  let le = store.get().liveEvents;
+  let changed = false;
+  for (const a of activeLiveEvents(now)) {
+    const cur = a.def.currency;
+    if (!cur || !a.def.challenges) continue;
+    for (const ch of a.def.challenges) {
+      const credit = missionCredit(ch.cond, ev);
+      if (credit <= 0) continue;
+      const prev = le.progress[a.key]?.[ch.id] ?? 0;
+      if (prev >= ch.target) continue;
+      const next = Math.min(ch.target, prev + credit);
+      le = { ...le, progress: { ...le.progress, [a.key]: { ...(le.progress[a.key] ?? {}), [ch.id]: next } } };
+      changed = true;
+      if (next >= ch.target) {
+        le = { ...le, tokens: { ...le.tokens, [a.key]: Math.min(cur.cap, (le.tokens[a.key] ?? 0) + ch.tokens) } };
+        rewardToast.push({ type: 'eventTokens', qty: ch.tokens, name: cur.name, source: `${a.def.name} — ${ch.name}` });
+      }
+    }
+  }
+  if (changed) persist({ ...store.get(), liveEvents: le });
 }
 
 /** Pass XP a quest claim banks (docs/QUESTS.md §credit) — manual claims and rollover mail
@@ -2425,7 +2454,9 @@ export const meta = {
       claimed: dirBase.claimed,
     };
 
-    const lo = liveopsMods();
+    const loBase = liveopsMods();
+    const loEv = liveEventLaneModsNow(); // the identity events' lane boosts stack in (LIVE-EVENTS.md §4)
+    const lo = Object.fromEntries((Object.keys(loBase) as (keyof typeof loBase)[]).map((k) => [k, loBase[k] * loEv[k]])) as typeof loBase;
     const dailyCoreBonus = dailyRewarded
       ? Math.round((DAILY.reward.clearCores + Math.min(DAILY.reward.streakBonusCap, dailyStreak - 1) * DAILY.reward.streakBonus) * asc.coreGainMult * asc.dailyBonusMult * lo.dailyCoreMult)
       : 0;
@@ -3073,7 +3104,9 @@ export const meta = {
     // LiveOps calendar lanes (docs/LIVEOPS.md): essence/material windows scale each reward AT ITS
     // SOURCE scalar (before it feeds both the reveal item and the grant), so the ceremony always
     // shows exactly what was banked. Every lane is ×1 outside its window — inert baseline.
-    const lo = liveopsMods();
+    const loBase = liveopsMods();
+    const loEv = liveEventLaneModsNow(); // the identity events' lane boosts stack in (LIVE-EVENTS.md §4)
+    const lo = Object.fromEntries((Object.keys(loBase) as (keyof typeof loBase)[]).map((k) => [k, loBase[k] * loEv[k]])) as typeof loBase;
     const { drop, pity } = rollMaterialDrop({
       containerRarity: chest.topRarity, power, campaignStage: highestCampaignStage(save), pity: save.matPity, rng: Math.random,
     });
@@ -4775,6 +4808,7 @@ export const meta = {
    *  reach their target here enter the lifetime `missionsDone` codex (docs/QUESTS.md §credit).
    *  Returns the missions COMPLETED by this event (finishRun surfaces them on Results). */
   creditQuests(ev: { type: 'run'; facts: QuestRunFacts } | QuestMetaEvent, now = Date.now()): MissionDef[] {
+    creditEventChallenges(ev, now); // live-event challenges ride the SAME judged vocabulary (LIVE-EVENTS.md §6)
     this.pollWeeklyQuest(now);
     const save = store.get();
     const q = save.quests;
@@ -6246,6 +6280,51 @@ export const meta = {
     this.grantPassXp('roulette', 30); // the wheel feeds the season too (docs/BATTLEPASS.md §xp)
     this.creditQuests({ type: 'roulette', n: 1 }); // …and the directive layer (docs/QUESTS.md §credit)
     this.evaluateAchievements();
+  },
+
+  /** Claim a live-event track milestone (docs/LIVE-EVENTS.md §6): threshold claim — the
+   *  token bank must have REACHED `at` (tokens are the ladder, not spent here). Pays through
+   *  applyRewardList, so repeat-window permanents substitute automatically. */
+  claimEventMilestone(eventKey: string, at: number, now = Date.now()): PremiumReceiptLine[] | null {
+    if (!guardOk('event.claim')) return null;
+    const a = activeLiveEvents(now).find((x) => x.key === eventKey);
+    if (!a) return null;
+    const save = store.get();
+    const le = save.liveEvents;
+    const milestone = eventTrack(a.def).find((m) => m.at === at);
+    if (!milestone) return null;
+    if ((le.claimed[eventKey] ?? []).includes(at)) return null;
+    if ((le.tokens[eventKey] ?? 0) < at) return null;
+    const { next, lines, stamina, events } = applyRewardList(save, milestone.rewards, QUESTS.repeatFinale, null, `event:${a.def.id}`);
+    persist({ ...next, liveEvents: { ...le, claimed: { ...le.claimed, [eventKey]: [...(le.claimed[eventKey] ?? []), at] } } });
+    if (stamina > 0) this.grantRushStamina(stamina, now);
+    rewardToast.pushMany(a.def.name, events);
+    this.evaluateAchievements();
+    return lines;
+  },
+
+  /** Buy a live-event shop row — the token SINK: finite stock, spends the window bank. */
+  buyEventShopRow(eventKey: string, rowId: string, now = Date.now()): PremiumReceiptLine[] | null {
+    if (!guardOk('event.buy')) return null;
+    const a = activeLiveEvents(now).find((x) => x.key === eventKey);
+    const row = a?.def.shop?.find((r) => r.id === rowId);
+    if (!a || !row) return null;
+    const save = store.get();
+    const le = save.liveEvents;
+    const bought = le.shopBought[eventKey]?.[rowId] ?? 0;
+    if (bought >= row.stock || (le.tokens[eventKey] ?? 0) < row.costTokens) return null;
+    const { next, lines, stamina, events } = applyRewardList(save, row.rewards, QUESTS.repeatFinale, null, `event:${a.def.id}`);
+    persist({
+      ...next,
+      liveEvents: {
+        ...le,
+        tokens: { ...le.tokens, [eventKey]: (le.tokens[eventKey] ?? 0) - row.costTokens },
+        shopBought: { ...le.shopBought, [eventKey]: { ...(le.shopBought[eventKey] ?? {}), [rowId]: bought + 1 } },
+      },
+    });
+    if (stamina > 0) this.grantRushStamina(stamina, now);
+    rewardToast.pushMany(`${a.def.name} — ${row.name}`, events);
+    return lines;
   },
 
   /** Grant stamina (market packs, future daily rewards) — overflow-capped, regen state kept. */

@@ -228,6 +228,14 @@ export const SECURITY_ACTIONS: Record<string, ActionPolicy> = {
     id: 'login.claim', category: 'economy', level: 'strict', limit: S({ count: 3 }), cooldownMs: 1000, dedupeMs: 2500,
     analytics: 'sec_login_claim', doc: 'Open the Daily Bio-Cache (docs/DAILY-LOGIN.md) — once per UTC day by the save-side key gate; the guard just blunts spam.', at: META,
   },
+  'event.claim': {
+    id: 'event.claim', category: 'claim', level: 'moderate', limit: M({ count: 20 }), dedupeMs: 600,
+    analytics: 'sec_event_claim', doc: 'Live-event track milestone claim (docs/LIVE-EVENTS.md §6) — threshold-gated by the token bank; clearing a backlog in one burst is legitimate.', at: META,
+  },
+  'event.buy': {
+    id: 'event.buy', category: 'economy', level: 'moderate', limit: M({ count: 20 }), dedupeMs: 400,
+    analytics: 'sec_event_buy', doc: 'Live-event shop purchase (docs/LIVE-EVENTS.md §6) — spends window-scoped tokens against finite stock.', at: META,
+  },
 
   // ── Network (server budgets — client-side courtesy limits on top of server truth) ──
   'sync.push': {
@@ -271,6 +279,8 @@ export const GUARDED_META_METHODS: Record<string, string> = {
   adAdvancePass: 'pass.ad',
   claimWardrobeMilestone: 'wardrobe.claim',
   claimDirective: 'directive.claim',
+  claimEventMilestone: 'event.claim',
+  buyEventShopRow: 'event.buy',
   claimExpedition: 'expedition.claim',
   claimQuestMission: 'quest.claim',
   claimQuestFinale: 'quest.claim',

@@ -55,6 +55,7 @@ export const REWARD_TYPES: readonly RewardTypeDef[] = [
   { id: 'scrap', unit: 'Scrap', art: { kind: 'glyph', glyph: '◳', color: 'var(--muted)' }, merge: 'sum' },
   { id: 'catalyst', unit: 'Catalyst', art: { kind: 'glyph', glyph: '✷', color: '#ff9d3c' }, merge: 'sum', tier: 2 },
   { id: 'stamina', unit: 'Rush Stamina', art: { kind: 'glyph', glyph: '☠', color: 'var(--r-epic)' }, merge: 'sum' },
+  { id: 'eventTokens', unit: 'Event Tokens', art: { kind: 'glyph', glyph: '\u2726', color: 'var(--gold)' }, merge: 'sum', tier: 1, nav: { key: 'home', label: 'View the Live Event' } },
   { id: 'bioSpores', unit: 'Bio-Spores', art: { kind: 'glyph', glyph: '✺', color: 'var(--viral)' }, merge: 'sum', tier: 1, nav: { key: 'vault', label: 'Spin the Bio-Roulette' } },
   { id: 'container', unit: 'Bio-Container', art: { kind: 'container' }, merge: 'count', tier: 1, nav: { key: 'vault', label: 'Open in the Vault' } },
   { id: 'runCache', unit: 'Run Cache', art: { kind: 'glyph', glyph: '⬢', color: 'var(--cache)' }, merge: 'count', nav: { key: 'vault', label: 'Open in the Vault' } },

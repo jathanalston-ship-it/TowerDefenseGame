@@ -5,6 +5,7 @@
 
 import { useState } from 'react';
 import { pickTip } from './tips';
+import { themeOwner } from '../core/liveEvents';
 
 export interface DeployInfo {
   title: string; // "STAGE 31 — VERDANT HIVE" / "INFINITE MODE" / "QUICK SKIRMISH"
@@ -15,6 +16,7 @@ export interface DeployInfo {
 
 export function DeployScreen({ info }: { info: DeployInfo }): JSX.Element {
   const [tip] = useState(pickTip); // one tip per deployment
+  const ev = themeOwner(Date.now()).def; // live-event flavor line (LIVE-EVENTS.md §4 visuals seam)
   return (
     <div className="deploy" style={{ ['--dp' as string]: info.accent }} role="status" aria-label="Deploying">
       <div className="deploy-core" aria-hidden>
@@ -29,6 +31,11 @@ export function DeployScreen({ info }: { info: DeployInfo }): JSX.Element {
       <div className="deploy-sub">{info.sub}</div>
       {info.warn && <div className="deploy-warn" role="alert">{info.warn}</div>}
       <div className="deploy-bar" aria-hidden><span /></div>
+      {ev.visuals?.loadingLine && (
+        <div className="deploy-event" style={{ ['--ev' as string]: ev.theme.accent }}>
+          <span aria-hidden>{ev.theme.logo}</span> {ev.visuals.loadingLine}
+        </div>
+      )}
       <div className="deploy-tip"><span className="deploy-tip-k">TIP</span>{tip}</div>
     </div>
   );

@@ -22,6 +22,7 @@ import { ALL_SECTORS, CLAIMABLE_TIERS, REGIONS, TRIBUTE_MIN_TIERS, effectiveLeve
 import { weekKey } from '../core/accountLevel';
 import { BP, levelOf } from '../core/battlePass';
 import { evolutionRosterSignal } from '../ui/evolutionTrackModel';
+import { activeLiveEvents, eventTrack } from '../core/liveEvents';
 
 // Genetic Vault — unopened bio-containers banked from runs, waiting to be cracked.
 registerNotification({
@@ -283,4 +284,44 @@ registerNotification({
     return n;
   },
   reason: (_s, n) => `${n} Front action${n === 1 ? '' : 's'} waiting`,
+});
+
+// Live Events (docs/LIVE-EVENTS.md §6) — the claim console lives on the Command Center, so
+// both sources ride the 'home' channel. Landing on home self-acks the badge dot, but the
+// watermark-free live() lane keeps the Ready Chain lit — a claimable milestone never goes dark.
+registerNotification({
+  id: 'event.claimable',
+  channel: 'home',
+  count: (s) => {
+    let n = 0;
+    for (const a of activeLiveEvents(Date.now())) {
+      if (!a.def.currency) continue;
+      const bank = s.liveEvents.tokens[a.key] ?? 0;
+      const claimed = s.liveEvents.claimed[a.key] ?? [];
+      for (const m of eventTrack(a.def)) if (bank >= m.at && !claimed.includes(m.at)) n++;
+    }
+    return n;
+  },
+  reason: (_s, n) => `${n} event milestone${n === 1 ? '' : 's'} claimable`,
+});
+
+// The use-it-or-lose-it warning (docs/LIVE-EVENTS.md §3): a window closing within a day while
+// the token bank still buys something — an unclaimed reached milestone or a stocked shop row.
+registerNotification({
+  id: 'event.endingSoon',
+  channel: 'home',
+  count: (s) => {
+    const now = Date.now();
+    let n = 0;
+    for (const a of activeLiveEvents(now)) {
+      if (!a.def.currency || a.endsAt - now > 86_400_000) continue;
+      const bank = s.liveEvents.tokens[a.key] ?? 0;
+      const claimed = s.liveEvents.claimed[a.key] ?? [];
+      const claimable = eventTrack(a.def).some((m) => bank >= m.at && !claimed.includes(m.at));
+      const buyable = (a.def.shop ?? []).some((r) => bank >= r.costTokens && (s.liveEvents.shopBought[a.key]?.[r.id] ?? 0) < r.stock);
+      if (claimable || buyable) n++;
+    }
+    return n;
+  },
+  reason: (_s, n) => `${n} event window${n === 1 ? '' : 's'} closing on unspent rewards`,
 });

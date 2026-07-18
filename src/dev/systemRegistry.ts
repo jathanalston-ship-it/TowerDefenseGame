@@ -303,10 +303,10 @@ export const SYSTEMS: SystemDef[] = [
   },
   {
     id: 'liveops', name: 'LiveOps calendar', purpose: 'Deterministic UTC event calendar (docs/LIVEOPS.md): weekend surge, a 4-way rotating weekly spotlight (rush/depth/campaign/apex-raid), recurring Mutation Wednesday / Spore Tide / Prime Hunt beats, monthly Harvest Moon + Reclamation peaks and the quarterly Bloom Cycle fold ×1-baseline lane multipliers (cores/essence/materials/mega-ichor/loot, category-tagged) into finishRun + openContainer; a schedule engine (windowEnd/nextWindow) drives the hub console countdowns + UP NEXT forecast. Clock pinned to a spotlight-only Monday under tests.',
-    files: ['src/core/liveops.ts', 'src/core/liveEvents.ts', 'src/core/eventOps.ts', 'src/ui/components/LiveEventsStrip.tsx'],
-    dependsOn: ['meta-store', 'daily'], powerScore: null, save: [], tutorial: [], help: [], hud: [],
-    ui: ['LiveEventsStrip'], collection: null, achievements: [],
-    localization: 'inline-en', docs: ['docs/LIVEOPS.md'],
+    files: ['src/core/liveops.ts', 'src/core/liveEvents.ts', 'src/core/eventOps.ts', 'src/ui/components/LiveEventsStrip.tsx', 'src/ui/components/LiveEventsPanel.tsx'],
+    dependsOn: ['meta-store', 'daily'], powerScore: null, save: ['liveEvents'], tutorial: [], help: [], hud: [],
+    ui: ['LiveEventsStrip', 'LiveEventsPanel'], collection: null, achievements: [],
+    localization: 'inline-en', docs: ['docs/LIVEOPS.md', 'docs/LIVE-EVENTS.md'],
   },
   {
     id: 'directives', name: 'Weekly Directives', purpose: 'The cumulative liveops engagement ladder (docs/LIVEOPS.md §directives): a deterministic UTC 3-directive board + shared capstone, progress banked across every run from run facts at finishRun (kills/wins/waves/boss+mega kills/weak-points/damage/flawless/towers), meta-only milestone + capstone rewards claimed in the console. Golden-safe (fresh save = 0 progress); the claim path is guarded by the security registry.',

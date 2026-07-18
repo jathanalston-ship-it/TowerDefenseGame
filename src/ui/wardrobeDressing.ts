@@ -9,10 +9,12 @@ import type { SaveData } from '../save/saveStore';
 import { audio } from '../audio/sound';
 import { music } from '../audio/music';
 import { setWardrobeKit } from '../render/wardrobeFx';
+import { themeOwner } from '../core/liveEvents';
 
 export function applyWardrobeDressing(save: SaveData): void {
   const w = equippedWardrobe(save);
   const root = document.documentElement;
+  const ev = themeOwner(Date.now()).def; // the live-event theme owner dresses the hub too (LIVE-EVENTS.md §4)
 
   // Interface shells — data attributes for the CSS variants (absent attr = classic shell).
   const attr = (name: string, css?: string): void => {
@@ -33,6 +35,13 @@ export function applyWardrobeDressing(save: SaveData): void {
   root.style.setProperty('--wd-wave', w.waveTheme?.accent ?? '');
   root.style.setProperty('--wd-select', w.heroSelectFx?.accent ?? '');
 
+  // Live-event hub mutation — data-event carries the owner's CSS token; the accent vars feed
+  // generic ambient rules (index.css), so a NEW event themes the hub with zero CSS authoring.
+  attr('data-event', ev.visuals?.hubMutation ?? ev.id);
+  root.style.setProperty('--event-accent', ev.theme.accent);
+  root.style.setProperty('--event-glow', ev.theme.glow);
+  root.style.setProperty('--event-bg', ev.theme.bg);
+
   // Audio packs — global cue-family variants (per-unit Phenotype variants still win).
   audio.setWardrobeCues({
     tower: w.towerAudio?.cue,
@@ -47,7 +56,14 @@ export function applyWardrobeDressing(save: SaveData): void {
     p && p.rootShift !== undefined && p.bpmMult !== undefined && p.brightness !== undefined
       ? { rootShift: p.rootShift, bpmMult: p.bpmMult, brightness: p.brightness }
       : undefined;
-  music.setWardrobe({ menu: transform(w.musicPack), combat: transform(w.combatMusic) });
+  // The event's menu re-voicing (the SeasonDef.music seam) composes WITH an equipped pack:
+  // shifts add, tempo multiplies, brightness averages — either alone passes through unchanged.
+  const menuBase = transform(w.musicPack);
+  const evMusic = ev.audio?.music;
+  const menu = menuBase && evMusic
+    ? { rootShift: menuBase.rootShift + evMusic.rootShift, bpmMult: menuBase.bpmMult * evMusic.bpmMult, brightness: (menuBase.brightness + evMusic.brightness) / 2 }
+    : evMusic ?? menuBase;
+  music.setWardrobe({ menu, combat: transform(w.combatMusic) });
 
   // The renderer kit — nucleus/battlefield/trail/FX/reskins (module state; runs read it).
   setWardrobeKit({

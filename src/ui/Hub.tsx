@@ -69,6 +69,7 @@ import { LabAtmosphere } from './LabAtmosphere';
 import { labState } from './homeBaseTiers';
 import { PowerBadge } from './components/PowerScore';
 import { navGroups, mobileTabs, tabOf, type NavKey, type NavGroupId, type MobileTabKey } from './navModel';
+import { activeLiveEvents } from '../core/liveEvents';
 import { MobileTabBar, MobileTabIndex, MobilePageHead } from './MobileShell';
 import { useLayoutProfile } from './layoutProfile';
 import { HubLanding } from './HubLanding';
@@ -273,8 +274,10 @@ export function Hub({
     return () => music.setScene(null); // leaving the hub (into a run) clears the bias
   }, [nav]);
   // Wardrobe dressing (docs/COSMETICS.md §wardrobe): re-apply the equipped payloads to the
-  // shell/audio/music/render kit whenever an equip changes. Idempotent + cheap.
-  useEffect(() => { applyWardrobeDressing(save); }, [save.wardrobe.equipped]);
+  // shell/audio/music/render kit whenever an equip changes — or the live-event rotation flips
+  // mid-session (the trio key changes at most daily; three Math.floor calls per render).
+  const eventKey = activeLiveEvents(Date.now()).map((a) => a.key).join();
+  useEffect(() => { applyWardrobeDressing(save); }, [save.wardrobe.equipped, eventKey]);
   // Season heartbeat: advance the pass + weekly-quest windows while the hub is open
   // (rollovers auto-claim earned rewards — mail, never loss).
   useEffect(() => {
