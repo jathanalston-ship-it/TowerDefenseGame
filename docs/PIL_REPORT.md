@@ -1,38 +1,39 @@
 # PIL_REPORT.md — Public Intelligence Layer report (GENERATED — `npm run pil -- regen`)
 
-> The public-facing sync ledger (docs/PIL.md): 48 pages · 6 assets tracked against the DIL.
+> The public-facing sync ledger (docs/PIL.md): 49 pages · 6 assets tracked against the DIL.
 
 ## Structural audit — ✅ clean
 
-## Staleness (advisory) — 28 page/ref pair(s) to re-review
+## Staleness (advisory) — 29 page/ref pair(s) to re-review
 - `index.html` references **system:infinite** whose source changed 2026-07-14
 - `features/index.html` references **system:infinite** whose source changed 2026-07-14
-- `encyclopedia/enemies/index.html` references **system:bosses** whose source changed 2026-07-11
-- `guides/beginner/index.html` references **guide:beginner** whose source changed 2026-07-14
-- `guides/towers/index.html` references **guide:towers** whose source changed 2026-07-14
-- `guides/heroes/index.html` references **guide:heroes** whose source changed 2026-07-14
-- `guides/gene-cards/index.html` references **guide:gene-cards** whose source changed 2026-07-14
-- `guides/bosses/index.html` references **guide:bosses** whose source changed 2026-07-14
-- `guides/bosses/index.html` references **system:bosses** whose source changed 2026-07-11
-- `guides/mega-bosses/index.html` references **guide:mega-bosses** whose source changed 2026-07-14
-- `guides/power-score/index.html` references **guide:power-score** whose source changed 2026-07-14
-- `guides/progression/index.html` references **guide:progression** whose source changed 2026-07-14
-- `guides/campaign/index.html` references **guide:campaign** whose source changed 2026-07-14
-- `guides/infinite/index.html` references **guide:infinite** whose source changed 2026-07-14
+- `encyclopedia/enemies/index.html` references **system:bosses** whose source changed 2026-07-15
+- `guides/beginner/index.html` references **guide:beginner** whose source changed 2026-07-18
+- `guides/towers/index.html` references **guide:towers** whose source changed 2026-07-18
+- `guides/heroes/index.html` references **guide:heroes** whose source changed 2026-07-18
+- `guides/gene-cards/index.html` references **guide:gene-cards** whose source changed 2026-07-18
+- `guides/bosses/index.html` references **guide:bosses** whose source changed 2026-07-18
+- `guides/bosses/index.html` references **system:bosses** whose source changed 2026-07-15
+- `guides/mega-bosses/index.html` references **guide:mega-bosses** whose source changed 2026-07-18
+- `guides/power-score/index.html` references **guide:power-score** whose source changed 2026-07-18
+- `guides/progression/index.html` references **guide:progression** whose source changed 2026-07-18
+- `guides/campaign/index.html` references **guide:campaign** whose source changed 2026-07-18
+- `guides/infinite/index.html` references **guide:infinite** whose source changed 2026-07-18
 - `guides/infinite/index.html` references **system:infinite** whose source changed 2026-07-14
-- `guides/boss-rush/index.html` references **guide:boss-rush** whose source changed 2026-07-14
-- `guides/daily/index.html` references **guide:daily** whose source changed 2026-07-14
-- `guides/mulligans/index.html` references **guide:mulligans** whose source changed 2026-07-14
-- `guides/collections/index.html` references **guide:collections** whose source changed 2026-07-14
-- `guides/mastery/index.html` references **guide:mastery** whose source changed 2026-07-14
-- `guides/doctrines/index.html` references **guide:doctrines** whose source changed 2026-07-14
-- `guides/contracts/index.html` references **guide:contracts** whose source changed 2026-07-14
-- `guides/quests/index.html` references **guide:quests** whose source changed 2026-07-14
-- `guides/account-progression/index.html` references **guide:account-progression** whose source changed 2026-07-14
-- `guides/nemesis/index.html` references **guide:nemesis** whose source changed 2026-07-14
-- `guides/equipment/index.html` references **guide:equipment** whose source changed 2026-07-14
-- `guides/prestige/index.html` references **guide:prestige** whose source changed 2026-07-14
-- `blog/living-battlefield/index.html` references **system:living-battlefield** whose source changed 2026-07-11
+- `guides/boss-rush/index.html` references **guide:boss-rush** whose source changed 2026-07-18
+- `guides/daily/index.html` references **guide:daily** whose source changed 2026-07-18
+- `guides/mulligans/index.html` references **guide:mulligans** whose source changed 2026-07-18
+- `guides/collections/index.html` references **guide:collections** whose source changed 2026-07-18
+- `guides/mastery/index.html` references **guide:mastery** whose source changed 2026-07-18
+- `guides/doctrines/index.html` references **guide:doctrines** whose source changed 2026-07-18
+- `guides/contracts/index.html` references **guide:contracts** whose source changed 2026-07-18
+- `guides/quests/index.html` references **guide:quests** whose source changed 2026-07-18
+- `guides/account-progression/index.html` references **guide:account-progression** whose source changed 2026-07-18
+- `guides/nemesis/index.html` references **guide:nemesis** whose source changed 2026-07-18
+- `guides/equipment/index.html` references **guide:equipment** whose source changed 2026-07-18
+- `guides/prestige/index.html` references **guide:prestige** whose source changed 2026-07-18
+- `guides/live-events/index.html` references **guide:live-events** whose source changed 2026-07-18
+- `blog/living-battlefield/index.html` references **system:living-battlefield** whose source changed 2026-07-15
 
 ## Page inventory
 - `/` — Home → system:towers, system:heroes, system:campaign, system:infinite, system:boss-rush, concept:power-score
@@ -76,6 +77,7 @@
 - `/guides/nemesis/` — Nemesis Guide — The Grudge Ladder → guide:nemesis, system:nemesis
 - `/guides/equipment/` — Equipment Guide — The Armory → guide:equipment, system:equipment
 - `/guides/prestige/` — Prestige Guide — The Ascendant Layer → guide:prestige, system:prestige
+- `/guides/live-events/` — Live Events Guide — The Rotating Hive → guide:live-events
 - `/blog/determinism/` — Dev Blog — determinism → concept:determinism
 - `/blog/equipment-identity/` — Dev Blog — equipment-identity → system:equipment
 - `/blog/every-cast-a-set-piece/` — Dev Blog — every-cast-a-set-piece → (static)

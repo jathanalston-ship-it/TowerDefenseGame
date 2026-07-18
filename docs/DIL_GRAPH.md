@@ -1,6 +1,6 @@
 # DIL_GRAPH.md — the Design Intelligence Layer (GENERATED — `npm run dil -- regen`)
 
-> **The project's brain** (docs/DIL.md). 880 nodes · 1649 edges, built from the live
+> **The project's brain** (docs/DIL.md). 883 nodes · 1657 edges, built from the live
 > registries + curated knowledge (src/dev/dil/). **Query it instead of searching the repo:**
 > `npm run dil -- node <id>` · `affects <id>` · `requires <id>` · `missing <kind> <edge>` ·
 > `checklist tower <kind>` · `find <text>`. Edge kinds are bidirectional (19 kinds).
@@ -34,7 +34,7 @@
 
 ### Teaching Index
 
-`tutorial:combat` · `help:mission-control` · `help:hive-intel` · `help:evolution-roadmap` · `help:power-advisor` · `help:field-guides` · `help:hive-core` · `help:biomorph-conveyor` · `help:strain-evolution` · `help:boss-sieges` · `help:boss-rush` · `help:bio-roulette` · `help:gene-essence` · `help:field-research` · `help:splice-market` · `help:auction-house` · `help:daily-login` · `help:hive-construction` · `help:gene-archive` · `help:gene-loadout` · `help:biomass` · `help:wave-rhythm` · `help:game-speed` · `help:emergency-defense` · `help:power-score` · `help:account-level` · `help:genome-rank` · `help:towers` · `help:tower-stars` · `help:tower-mastery` · `help:mastery-evolution` · `help:tower-branches` · `help:adaptation` · `help:mulligans` · `help:nucleus` · `help:gene-cards` · `help:heroes` · `help:hero-evolution` · `help:hero-slots` · `help:equipment` · `help:equipment-reforge` · `help:gear-codex` · `help:genome-core` · `help:prestige` · `help:ascension` · `help:containers` · `help:loot-meter` · `help:collection-codex` · `help:phenotype-lab` · `help:idle-harvest` · `help:arena` · `help:expeditions` · `help:quests` · `help:season-pass` · `help:premium-store` · `help:campaign` · `help:infinite` · `help:daily-run` · `help:contracts` · `help:biomes` · …23 more
+`tutorial:combat` · `help:mission-control` · `help:hive-intel` · `help:evolution-roadmap` · `help:power-advisor` · `help:field-guides` · `help:hive-core` · `help:biomorph-conveyor` · `help:strain-evolution` · `help:boss-sieges` · `help:boss-rush` · `help:bio-roulette` · `help:gene-essence` · `help:field-research` · `help:splice-market` · `help:auction-house` · `help:daily-login` · `help:hive-construction` · `help:gene-archive` · `help:gene-loadout` · `help:biomass` · `help:wave-rhythm` · `help:game-speed` · `help:emergency-defense` · `help:power-score` · `help:account-level` · `help:genome-rank` · `help:towers` · `help:tower-stars` · `help:tower-mastery` · `help:mastery-evolution` · `help:tower-branches` · `help:adaptation` · `help:mulligans` · `help:nucleus` · `help:gene-cards` · `help:heroes` · `help:hero-evolution` · `help:hero-slots` · `help:equipment` · `help:equipment-reforge` · `help:gear-codex` · `help:genome-core` · `help:prestige` · `help:ascension` · `help:containers` · `help:loot-meter` · `help:collection-codex` · `help:phenotype-lab` · `help:idle-harvest` · `help:arena` · `help:expeditions` · `help:quests` · `help:season-pass` · `help:premium-store` · `help:campaign` · `help:infinite` · `help:infestation` · `help:daily-run` · `help:contracts` · …25 more
 
 ### Testing Index
 
@@ -82,7 +82,7 @@ graph LR
   system_stats["Lifetime Stats"] -->|consumes| system_meta_store["Meta Store & Save"]
   system_directives["Weekly Directives"] -->|consumes| system_meta_store["Meta Store & Save"]
   system_contracts["Champion Contracts"] -->|consumes| system_meta_store["Meta Store & Save"]
-  system_infestation["Infestation Map"] -->|consumes| system_meta_store["Meta Store & Save"]
+  system_infestation["Infestation Map — THE FRONT"] -->|consumes| system_meta_store["Meta Store & Save"]
   system_chronicle["Chronicle (patch-note pipeline)"] -->|consumes| system_meta_store["Meta Store & Save"]
   system_expeditions["Hero Expeditions"] -->|consumes| system_meta_store["Meta Store & Save"]
   system_nemesis["Nemesis & Trophies"] -->|consumes| system_meta_store["Meta Store & Save"]
@@ -174,6 +174,8 @@ graph LR
   system_analytics["Player Telemetry & Analytics"] -->|consumes| system_hub_shell["Hub Shell & Home"]
   system_currencies["Currencies & Economy Framework"] -->|modifies| system_idle_harvest["Idle Harvest"]
   system_currencies["Currencies & Economy Framework"] -->|modifies| system_mulligans["Mulligan System"]
+  system_infestation["Infestation Map — THE FRONT"] -->|modifies| system_hub_shell["Hub Shell & Home"]
+  system_infestation["Infestation Map — THE FRONT"] -->|modifies| system_expeditions["Hero Expeditions"]
 ```
 
 ### Power Score Map
@@ -381,9 +383,9 @@ graph LR
   system_contracts["Champion Contracts"] -->|dependsOn| system_account_level["Account Level (evergreen meta-progression)"]
   system_contracts["Champion Contracts"] -->|dependsOn| system_genome_rank["Genome Rank (ultimate mastery ladder)"]
   system_contracts["Champion Contracts"] -->|consumes| system_meta_store["Meta Store & Save"]
-  system_infestation["Infestation Map"] -->|dependsOn| system_meta_store["Meta Store & Save"]
-  system_infestation["Infestation Map"] -->|dependsOn| system_hub_shell["Hub Shell & Home"]
-  system_infestation["Infestation Map"] -->|consumes| system_meta_store["Meta Store & Save"]
+  system_infestation["Infestation Map — THE FRONT"] -->|dependsOn| system_meta_store["Meta Store & Save"]
+  system_infestation["Infestation Map — THE FRONT"] -->|dependsOn| system_hub_shell["Hub Shell & Home"]
+  system_infestation["Infestation Map — THE FRONT"] -->|consumes| system_meta_store["Meta Store & Save"]
   system_chronicle["Chronicle (patch-note pipeline)"] -->|dependsOn| system_meta_store["Meta Store & Save"]
   system_chronicle["Chronicle (patch-note pipeline)"] -->|consumes| system_meta_store["Meta Store & Save"]
   system_expeditions["Hero Expeditions"] -->|dependsOn| system_heroes["Heroes"]
@@ -553,6 +555,8 @@ graph LR
   system_hub_shell["Hub Shell & Home"] -->|modifies| system_progression_gating["Progression Gating & Director"]
   system_currencies["Currencies & Economy Framework"] -->|modifies| system_idle_harvest["Idle Harvest"]
   system_currencies["Currencies & Economy Framework"] -->|modifies| system_mulligans["Mulligan System"]
+  system_infestation["Infestation Map — THE FRONT"] -->|modifies| system_hub_shell["Hub Shell & Home"]
+  system_infestation["Infestation Map — THE FRONT"] -->|modifies| system_expeditions["Hero Expeditions"]
 ```
 
 ## Concepts (8)
@@ -611,7 +615,7 @@ Six seeded runs pinned byte-for-byte (core/golden.test.ts) — the tripwire for 
   - conflictsWith ← `system:hub-shell` — HOME WIDGET FIBER INVARIANT (2026-07, CommandCenter.tsx CCWidget): the home zone renders each widget through the CCWidget COMPONENT (<CCWidget/>), never by calling the widget function inline — an inline render(ctx) flattens every widget's hooks into CommandCenter's own list, so a `when` gate flipping a widget in/out between renders (e.g. command-feed keying off pendingContainers/shards) trips React's "rendered more hooks than during the previous render" and the ErrorBoundary blanks the hub. Unit tests can't see it (React UI); the MOBILE GATE (npm run mobilecheck, run by validate) catches it on the developed-profile sweep. Any new home widget with hooks + a volatile `when` MUST route through CCWidget
   - conflictsWith ← `system:hero-cinematics` — cast-less runs (the golden autoplay) must never touch the cinematic path: pendingImpactSystem is length-gated, castEvents only written on cast — and any test asserting cast RESULTS must step past the def’s impactDelay before asserting (riptide/vitriol tests show the ride-through pattern)
   - conflictsWith ← `system:cosmetics` — skins/visual tiers must stay render-only; any def stat touched for looks breaks the pinned seeds
-  - _…1 more (query: `npm run dil -- node concept:golden-test`)_
+  - _…2 more (query: `npm run dil -- node concept:golden-test`)_
 
 ### `concept:progression-gates` — Progression Gates
 
@@ -798,7 +802,7 @@ _at: src/core/game.ts, src/core/combat.ts, src/core/status.ts, src/core/targetin
   - requiredBy ← `system:onboarding`
   - requiredBy ← `system:run-ui`
   - requiredBy ← `system:bosses`
-  - _…208 more (query: `npm run dil -- node system:engine`)_
+  - _…209 more (query: `npm run dil -- node system:engine`)_
 
 ### `system:content-infra` — Content Infrastructure
 
@@ -1586,6 +1590,7 @@ _at: src/core/currencies.ts, src/core/economyDirector.ts, src/ui/components/Curr
   - documentedBy ← `doc:ECONOMY_FORMULAS.md`
   - testedBy ← `test:src/core/currencies.test.ts`
   - testedBy ← `test:src/core/economyDirector.test.ts`
+  - extendedBy ← `system:infestation` — WAR SPOILS pay LOCALIZED wallets through applyRewardList (new PassReward kind hiveMats → Chitin; Reach/Basin pay towerShardsAll/heroShardsAll, Fields cores, Saturated adds a rare container): tierClaims[sectorId] is a HIGH-WATERMARK ledger (a fallen-and-reclimbed sector never re-pays), tribute stamps tributeWeeks[regionId]=weekKey once per ISO week scaled by regionHeldTiers/16; budgets are LAW (npm run sim:front): full-map spoils ≤15k core-eq, full-hold tribute ≤15% weekly active income — retune tierReward/tributeFor ONLY with the sim green
 
 ### `system:splice-market` — Splice Market & Ichor
 
@@ -1718,15 +1723,20 @@ _at: src/core/contracts.ts, src/ui/components/ContractsCard.tsx_
   - testedBy ← `test:src/core/contracts.test.ts`
   - referencedBy ← `system:quests` — contracts are the quest-adjacent weekly SKILL checks — same board (ContractsCard mounts in QuestBoard), same run-facts DNA (QuestRunFacts extends ContractRunFacts)
 
-### `system:infestation` — Infestation Map
+### `system:infestation` — Infestation Map — THE FRONT
 
-The persistent conquest meta (docs/INFESTATION.md): four regions x four sectors; every finished run feeds a target with SPILLOVER (overflow pours into the same region, then the emptiest anywhere), sectors climb named TIERS (Dormant->Foothold->Colony->Stronghold->Saturated), saturation halves decay, a fully-saturated region ENTRENCHES (bonus x1.25). Passives scale by LIVE fractions; neglect decays lazily from wall-clock timestamps (nothing ticks). Pin a sector, a region (feeds its emptiest), or spread. A LIVING canvas territory map (render/infestationMap.ts): organic region lobes + creeping cell fills + pinned pulse + feed reticle + entrenchment auras, with an a11y button overlay.
+The persistent conquest meta (docs/INFESTATION.md): four regions x four sectors; every finished run feeds a target with SPILLOVER, sectors climb named TIERS (Dormant->Foothold->Colony->Stronghold->Saturated), saturation halves decay, a fully-saturated region ENTRENCHES (bonus x1.25 + a 4th expedition slot). THE FRONT overhaul (v49, docs/INFESTATION.md §front) made the map a war, not a widget: held tiers mint ONE-TIME claims (region-flavored localized wallets via applyRewardList kind hiveMats et al), held regions pay a WEEKLY tribute (ISO-week watermark), a daily HOTSPOT lands feeds x1.5, one held sector a day suffers an INCURSION (win a run that feeds it to defend; an undefended day bites -12 on lazy resolution, bounded to ONE bite per return), and DEPLOY (state/frontDeploy.ts, session-scoped) arms one run with the region warp composed at game.ts's single warp fold (absent => byte-identical; dailies/Arena excluded). The screen moved to the PLAY hub (nav infestation, stage-8 reveal); the Command Center board collapsed to the one-line FrontStrip.
 
-_at: src/core/infestation.ts, src/render/infestationMap.ts, src/ui/components/InfestationBoard.tsx_
+_at: src/core/infestation.ts, src/render/infestationMap.ts, src/ui/components/InfestationBoard.tsx, src/ui/FrontScreen.tsx, src/state/frontDeploy.ts_
 
   - dependsOn → `system:meta-store`
   - dependsOn → `system:hub-shell`
   - consumes → `system:meta-store` — owns save field 'infestation'
+  - extends → `system:currencies` — WAR SPOILS pay LOCALIZED wallets through applyRewardList (new PassReward kind hiveMats → Chitin; Reach/Basin pay towerShardsAll/heroShardsAll, Fields cores, Saturated adds a rare container): tierClaims[sectorId] is a HIGH-WATERMARK ledger (a fallen-and-reclimbed sector never re-pays), tribute stamps tributeWeeks[regionId]=weekKey once per ISO week scaled by regionHeldTiers/16; budgets are LAW (npm run sim:front): full-map spoils ≤15k core-eq, full-hold tribute ≤15% weekly active income — retune tierReward/tributeFor ONLY with the sim green
+  - conflictsWith → `concept:golden-test` — DEPLOY WARP GOLDEN SAFETY: RunOptions.sectorWarp joins the ONE director fold in game.ts (doctrine ∘ vows ∘ sectorWarp) — absent ⇒ byte-identical golden path; the warp is SESSION-scoped (state/frontDeploy.ts, consumed ONCE at boot via consumeWarp) and GameView passes it only when !daily && !tutorial (Arena boots elsewhere) — never persist it, never widen the band past REGION_WARPS [0.9,1.2]
+  - modifies → `system:hub-shell` — THE FRONT surfaces: full screen in the PLAY hub (nav infestation, stage-8 FEATURES reveal — the guaranteed timeline's ONE open beat; moving it needs the reveal-pacing law green), Command Center collapsed to the one-line FrontStrip (region bars + hotspot + INCURSION warn + claim badge), notification source front.war (tier claims + tributes + today's undefended incursion), NextUp handoff when nothing is claimable; incursion resolution is LAZY and BOUNDED — pollFront/finishRun advance the lastIncursionDay cursor by at most YESTERDAY, so a lapsed player eats at most ONE bite (INCURSION_BITE 12) + natural decay
+  - modifies → `system:expeditions` — ENTRENCHMENT PERK: expeditionSlotsFor(entrenchedRegionCount) = EXPEDITION_SLOTS + 1 while ANY region is entrenched (capped at one — felt, not stacked); BOTH readers must agree: expeditionsView slotsFree and the startExpedition gate compute it from the same isEntrenched count
+  - taughtBy ← `help:infestation`
   - documentedBy ← `doc:INFESTATION.md`
   - testedBy ← `test:src/render/infestationMap.test.ts`
 
@@ -1753,6 +1763,7 @@ _at: src/core/expeditions.ts, src/ui/ExpeditionScreen.tsx_
   - rewards → `currency:materials` — mission payouts
   - taughtBy ← `help:expeditions`
   - documentedBy ← `doc:EXPEDITIONS.md`
+  - modifiedBy ← `system:infestation` — ENTRENCHMENT PERK: expeditionSlotsFor(entrenchedRegionCount) = EXPEDITION_SLOTS + 1 while ANY region is entrenched (capped at one — felt, not stacked); BOTH readers must agree: expeditionsView slotsFree and the startExpedition gate compute it from the same isEntrenched count
 
 ### `system:nemesis` — Nemesis & Trophies
 
@@ -1901,7 +1912,7 @@ _at: src/ui/InitCutscene.tsx, src/render/introScenes.ts, src/core/tutorial.ts, s
   - contains ← `help:strain-evolution`
   - contains ← `help:boss-sieges`
   - contains ← `help:boss-rush`
-  - _…62 more (query: `npm run dil -- node system:onboarding`)_
+  - _…63 more (query: `npm run dil -- node system:onboarding`)_
 
 ### `system:account-level` — Account Level (evergreen meta-progression)
 
@@ -2005,7 +2016,7 @@ _at: src/ui/Hub.tsx, src/ui/navModel.ts, src/ui/MobileShell.tsx, src/ui/CommandC
   - documentedBy ← `doc:ONE-MORE-RUN.md`
   - documentedBy ← `doc:HUD.md`
   - documentedBy ← `doc:PROGRESSION-LOOP.md`
-  - _…23 more (query: `npm run dil -- node system:hub-shell`)_
+  - _…24 more (query: `npm run dil -- node system:hub-shell`)_
 
 ### `system:run-ui` — In-Run HUD & Results
 
@@ -2259,7 +2270,7 @@ _at: src/net/replayShare.ts_
   - contains ← `guide:progression`
   - contains ← `guide:campaign`
   - contains ← `guide:infinite`
-  - _…14 more (query: `npm run dil -- node system:website`)_
+  - _…15 more (query: `npm run dil -- node system:website`)_
 
 ### `system:rendering` — Rendering & VFX
 
@@ -3118,7 +3129,7 @@ _at: src/core/tutorial.ts_
   - teaches → `system:onboarding`
   - teaches → `system:run-ui`
 
-## Help Topics (60)
+## Help Topics (61)
 
 - `help:mission-control` — Your standing orders — the answer to "what should I do now?" _(partOf `system:onboarding`, teaches `system:power`)_
 - `help:hive-intel` — The live intel feed — banked value, ready moves, recent milestones. _(partOf `system:onboarding`, teaches `system:notifications`)_
@@ -3176,12 +3187,13 @@ _at: src/core/tutorial.ts_
 - `help:premium-store` — Optional support — never the path. _(partOf `system:onboarding`)_
 - `help:campaign` — The main progression path — descend, stage by stage. _(partOf `system:onboarding`, teaches `system:campaign`)_
 - `help:infinite` — Endless, escalating waves — chase a best. _(partOf `system:onboarding`, teaches `system:infinite`)_
+- `help:infestation` — The territory war — hold sectors, collect tribute, answer incursions. _(partOf `system:onboarding`, teaches `system:infestation`)_
 - `help:daily-run` — One seed per day — the same gauntlet worldwide. _(partOf `system:onboarding`)_
 - `help:contracts` — Three weekly constraint runs — same board for everyone. _(partOf `system:onboarding`, teaches `system:contracts`)_
 - `help:biomes` — Shifting environments with their own modifiers. _(partOf `system:onboarding`, teaches `system:biomes`)_
 - `help:bosses` — Multi-phase threats with big rewards. _(partOf `system:onboarding`, teaches `system:bosses`)_
 
-## Site Guides (22)
+## Site Guides (23)
 
 ### `guide:beginner` — Beginner Guide — Your First Runs
 
@@ -3387,6 +3399,14 @@ _at: site/guides.ts → /guides/prestige/_
 
   - partOf → `system:website`
   - documents → `system:prestige`
+
+### `guide:live-events` — Live Events Guide — The Rotating Hive
+
+Three event horizons run at once — surges, seasons and epochs — each with its own identity, currency, reward track and ceremony.
+
+_at: site/guides.ts → /guides/live-events/_
+
+  - partOf → `system:website`
 
 ## Achievements (121)
 
@@ -3696,7 +3716,7 @@ _at: site/guides.ts → /guides/prestige/_
 - `doc:VOWS.md` — project documentation _(documents `system:prestige`)_
 - `doc:WEBSITE.md` — project documentation _(documents `system:field-research`, documents `system:website`)_
 
-## Tests (290)
+## Tests (291)
 
 - `test:src/audio/music.test.ts` — automated validation _(tests `system:audio`)_
 - `test:src/changelog/classify.test.ts` — automated validation _(tests `system:chronicle`)_
@@ -3921,6 +3941,7 @@ _at: site/guides.ts → /guides/prestige/_
 - `test:src/state/evolutioncap.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/state/expeditions.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/state/flashOffers.test.ts` — automated validation _(tests `system:premium`)_
+- `test:src/state/front.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/state/geneArchive.test.ts` — automated validation _(tests `system:gene-cards`)_
 - `test:src/state/geneDiscoveryMeta.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/state/geneStress.test.ts` — automated validation _(tests `system:engine`)_

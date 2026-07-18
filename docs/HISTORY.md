@@ -318,3 +318,10 @@
 - `eaf734f` **[Gameplay]** Reward Frequency Engineering: measured-hour instrument + bands + quick-finisher
 - ⚑ `ee95b17` **[Framework]** Docs + rituals: reward-frequency batch (handoff, status, notes, validation) _(internal)_
 - `0205703` **[Framework]** Live Event framework: three-horizon rotating identity engine + validation
+- `150cdba` **[Framework]** Docs + rituals: live-event framework batch (handoff, status, notes, validation)
+- `7d31e85` **[Gameplay]** Event economies: duration-scaled tracks, window-scoped currencies, repeat safety
+- `941c6aa` **[Gameplay]** Event gameplay mutations + ceremony identity contracts
+- `154c7f1` **[Gameplay]** Live event operations: remote override contract, scheduler, kill switch, reports
+- `e379d6a` **[Website]** Website: Live Events guide; docs: canonical wallet notes + sync verify
+- `274cfbb` **[Website]** Website home: self-computing Live Events strip (always current, zero regen)
+- `4c63715` **[Gameplay]** The Front: infestation map war overhaul (save v49)

@@ -1310,6 +1310,34 @@ export const RELEASES: Release[] = [
       {
         "cat": "Framework",
         "text": "Live Event framework: three-horizon rotating identity engine + validation"
+      },
+      {
+        "cat": "Framework",
+        "text": "Docs + rituals: live-event framework batch (handoff, status, notes, validation)"
+      },
+      {
+        "cat": "Gameplay",
+        "text": "Event economies: duration-scaled tracks, window-scoped currencies, repeat safety"
+      },
+      {
+        "cat": "Gameplay",
+        "text": "Event gameplay mutations + ceremony identity contracts"
+      },
+      {
+        "cat": "Gameplay",
+        "text": "Live event operations: remote override contract, scheduler, kill switch, reports"
+      },
+      {
+        "cat": "Website",
+        "text": "Website: Live Events guide; docs: canonical wallet notes + sync verify"
+      },
+      {
+        "cat": "Website",
+        "text": "Website home: self-computing Live Events strip (always current, zero regen)"
+      },
+      {
+        "cat": "Gameplay",
+        "text": "The Front: infestation map war overhaul (save v49)"
       }
     ]
   },

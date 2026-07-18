@@ -50,7 +50,7 @@ export const SOURCE_VERB: Record<string, InteractionVerb> = {
   collections_ranks: 'rankUp', gene_discovery: 'discover', wardrobe: 'discover',
   boss_trophies: 'discover', gear_codex: 'discover',
   splice_market: 'collect', ichor_exchange: 'collect', auction_house: 'collect',
-  premium_store: 'open', infestation: 'progress',
+  premium_store: 'open', infestation: 'progress', front_claims: 'claim',
 };
 export function verbTotalityProblems(): string[] {
   const out: string[] = [];

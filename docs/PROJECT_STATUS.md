@@ -3,7 +3,27 @@
 > Maintained at the END of every session (paired with `docs/AI_HANDOFF.md` — the constitution's
 > workflow step 4). This is the "where are we?" answer; `docs/GAME-STATE.md` remains the deeper
 > per-system built-vs-planned index, `docs/PROJECT_MANIFEST.md` the system map.
-> **Last updated:** 2026-07-18n (**EVENT ECONOMIES & LIMITED REWARD TRACKS** (user brief) —
+> **Last updated:** 2026-07-18o (**THE FRONT — Infestation map war overhaul** (user brief:
+> "flat and irrelevant… taking up a lot of space and clutter for not much") —
+> docs/INFESTATION.md §front, save **v49** (`infestation.tierClaims/tributeWeeks/defenses/
+> lastIncursionDay` — additive; NOTE for the live-events consumer batch: v49 is now TAKEN,
+> event tokens land as v50). The map pays, attacks back, and deploys: one-time TIER SPOILS
+> per sector (high-watermark ledger — never re-pays; region-themed localized wallets via
+> applyRewardList, new PassReward kind `hiveMats`; Saturated adds a rare container), weekly
+> REGIONAL TRIBUTE (ISO-week watermark × held tiers/16, min 2), daily HOTSPOT (feeds ×1.5),
+> daily INCURSION (win a run that feeds it to defend; undefended bites −12 on LAZY BOUNDED
+> resolution — ≤ ONE bite per return), DEPLOY (session warp → RunOptions.sectorWarp at the
+> one director fold; absent ⇒ byte-identical; dailies/tutorial/Arena excluded), entrenchment
+> +1 expedition slot (capped). Screen: PLAY hub (stage-8 reveal — the timeline's one open
+> beat), Command Center collapsed to the one-line FrontStrip (the clutter fix), front.war
+> notifications. SATURATED_AT=99.5 (exact-100 transiently unreachable under lazy decay).
+> Laws: `npm run sim:front` — spoils ≤15k core-eq (14,720), tribute ≤15% weekly income
+> (14.3%), no-death-spiral, rotation, hazard↔payoff pairing. front.test.ts 12/12; suite
+> 2493 green; validate PASS; live smoke 14/14 (strip, reveal, claim +130 Chitin, deploy
+> pin). Cross-batch: `front_claims` classified 'claim' in the frequency instrument;
+> PIL report regen'd. Previous below.)
+>
+> **2026-07-18n** (**EVENT ECONOMIES & LIMITED REWARD TRACKS** (user brief) —
 > LIVE-EVENTS.md §6. Every event now carries a full temporary ecosystem: thematic
 > window-scoped currencies (exist ONLY while live; stale keys prune = the anti-inflation),
 > `eventTrack()` miniature battle passes — authored SPINE + deterministic consumable filler
