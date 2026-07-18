@@ -316,3 +316,5 @@
 
 - ⚑ `ea92165` **[Framework]** Docs + rituals: roulette-integration batch (handoff, status, notes, validation) _(internal)_
 - `eaf734f` **[Gameplay]** Reward Frequency Engineering: measured-hour instrument + bands + quick-finisher
+- ⚑ `ee95b17` **[Framework]** Docs + rituals: reward-frequency batch (handoff, status, notes, validation) _(internal)_
+- `0205703` **[Framework]** Live Event framework: three-horizon rotating identity engine + validation

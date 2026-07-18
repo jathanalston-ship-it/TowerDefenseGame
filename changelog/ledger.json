@@ -1,6 +1,6 @@
 {
-  "lastSha": "eaf734f487c65ead718ded802ea65429fe7cb36a",
-  "commitsSinceDraft": 0,
+  "lastSha": "0205703a264c3d81b0fcf7f3ad1a5b9e9f310b11",
+  "commitsSinceDraft": 2,
   "content": {
     "tower": [
       "needle",
@@ -2809,6 +2809,10 @@
         {
           "cat": "Gameplay",
           "text": "Reward Frequency Engineering: measured-hour instrument + bands + quick-finisher"
+        },
+        {
+          "cat": "Framework",
+          "text": "Live Event framework: three-horizon rotating identity engine + validation"
         }
       ]
     }
@@ -5147,6 +5151,22 @@
       "date": "2026-07-18",
       "cat": "Gameplay",
       "text": "Reward Frequency Engineering: measured-hour instrument + bands + quick-finisher",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "ee95b17e26c8bd9d38e385453e229aa7a044367d",
+      "date": "2026-07-18",
+      "cat": "Framework",
+      "text": "Docs + rituals: reward-frequency batch (handoff, status, notes, validation)",
+      "internal": true,
+      "needsReview": true
+    },
+    {
+      "sha": "0205703a264c3d81b0fcf7f3ad1a5b9e9f310b11",
+      "date": "2026-07-18",
+      "cat": "Framework",
+      "text": "Live Event framework: three-horizon rotating identity engine + validation",
       "internal": false,
       "needsReview": false
     }

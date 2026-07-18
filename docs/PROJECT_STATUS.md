@@ -3,7 +3,22 @@
 > Maintained at the END of every session (paired with `docs/AI_HANDOFF.md` — the constitution's
 > workflow step 4). This is the "where are we?" answer; `docs/GAME-STATE.md` remains the deeper
 > per-system built-vs-planned index, `docs/PROJECT_MANIFEST.md` the system map.
-> **Last updated:** 2026-07-18l (**REWARD FREQUENCY ENGINEERING** (user brief) —
+> **Last updated:** 2026-07-18m (**LIVE EVENT FRAMEWORK** (user brief) — docs/LIVE-EVENTS.md,
+> the foundational rotating-identity engine. `core/liveEvents.ts`: three independent horizons
+> from the shared Monday epoch (SHORT 3d ring-of-3 · MEDIUM 14d ring-of-3 · MAJOR 91d
+> ring-of-2), ALWAYS simultaneously live; `themeOwner()` (major>medium>short) dresses the hub
+> while the others chip — the overlap-readability law, validated accent-distinct across every
+> rotation alignment. Every package COMPOSES an existing vocabulary (PassReward tracks,
+> MissionCond challenges, daily-modifier gameplay ids = the sim-safe boot seam, LiveEventMods
+> lane boosts, SeasonDef.music re-voicing), so a future event is ONE LIVE_EVENTS_V2 row.
+> Anti-inflation: window-scoped tokens + wallet caps + per-day mint budgets that DECREASE
+> with duration (220/180/120 core-eq), enforced per window. 8 launch events authored with
+> full identity packages. `npm run sim:events`: 3 years walked — 3 live/day, accents distinct
+> every day, rings even, ownership flips only on epoch bounds, yearly mint flat within 5%.
+> Suite 2470 green. NEXT: the consumer wiring batch (LIVE-EVENTS.md §4 seam map — save v49
+> tokens, meta claims, hub data-event theming, notifications, liveopsMods fold). Previous below.)
+>
+> **2026-07-18l** (**REWARD FREQUENCY ENGINEERING** (user brief) —
 > docs/REWARD-FREQUENCY.md, the permanent MACHINE-ENFORCED philosophy: maximize meaningful
 > interactions/hour, never by raising values. `core/rewardFrequency.ts`: a 10-verb
 > interaction taxonomy TOTAL over REWARD_SOURCES (`SOURCE_VERB` — a new pathway fails the

@@ -4,91 +4,86 @@
 > before committing. Read together with docs/PROJECT_STATUS.md and the latest
 > docs/VALIDATION_REPORT.md. Next session: start at docs/PROJECT_MANIFEST.md.
 
-- **Generated:** 2026-07-18 00:21 UTC · **Diff scope:** working tree vs HEAD
-- **Branch:** claude/zen-hawking-rh1gxl · **HEAD:** eaf734f
+- **Generated:** 2026-07-18 03:15 UTC · **Diff scope:** working tree vs HEAD
+- **Branch:** claude/zen-hawking-rh1gxl · **HEAD:** 0205703
 
 ## Summary of work completed
 
-REWARD FREQUENCY ENGINEERING (commit eaf734f — docs/REWARD-FREQUENCY.md, PROJECT_STATUS
-17l): the brief's "maximize meaningful interactions/hour without raising values" became a
-machine-enforced philosophy. `core/rewardFrequency.ts` walks six personas' sessions
-minute-by-minute with beat rates DERIVED from live data (real weekly quests via
-`missionCredit`, the real BP curve, the measured Ready-Chain tap economy) and gates the
-bands in the test suite. The instrument found ONE real drought — long-run personas' 7–9
-minute session tails — fixed value-neutrally by surfacing the already-existing free daily
-gauntlet entry (`rush.freeEntry` notification + `bossrush` play-lane recommendation at
-score 34, so it fires exactly when the claim chain is spent). The one thing to know:
-**every new REWARD_SOURCES row must also name its verb in SOURCE_VERB** or
-`verbTotalityProblems()` fails the build. The working-tree diff this scaffold saw is the
-Chronicle regen only.
+LIVE EVENT FRAMEWORK (commit 0205703 — docs/LIVE-EVENTS.md, PROJECT_STATUS 18m): the
+foundational rotating-identity engine. `core/liveEvents.ts` runs three independent horizons
+(short 3d×3 / medium 14d×3 / major 91d×2 rings from `BP.epochMs`) that are ALWAYS
+simultaneously live; `themeOwner()` (major > medium > short) owns the hub identity while the
+others chip. Every package composes an EXISTING vocabulary (PassReward tracks, MissionCond
+challenges, daily-modifier gameplay, LiveEventMods lane boosts, SeasonDef.music re-voicing),
+so a future event is one `LIVE_EVENTS_V2` row. `liveEventProblems()` + `npm run sim:events`
+(3 years walked) enforce rotation coverage, accent-distinct overlaps, and flat yearly mint
+under per-day budgets. **The one thing to know: the CORE framework is complete and gated;
+the consumer wiring (save v49 tokens module, meta claims, hub theming, Events UI,
+notifications, liveopsMods fold) is the mapped next batch — see LIVE-EVENTS.md §4.**
 
 ## Files modified
 
 - Source (1): `src/changelog/releases.gen.ts`
 - Tests (0): —
-- Docs (2): `docs/HISTORY.md`, `docs/devlog/DRAFT-2026-07-18.md`
-- (Committed just prior, same batch: core/rewardFrequency.ts + test,
-  scripts/sim-reward-frequency.ts, notificationSources, recommendations, registry, DIL,
-  package.json `sim:frequency`, docs/REWARD-FREQUENCY.md.)
+- Docs (1): `docs/HISTORY.md`
+- (Committed just prior, same batch: core/liveEvents.ts + test, scripts/sim-live-events.ts,
+  docs/LIVE-EVENTS.md, registry claim, DIL edge, package.json `sim:events`.)
 
 ## Systems affected (from the dependency registry)
 
 - **chronicle** — `src/changelog/releases.gen.ts`
-- **reward-architecture** — core/rewardFrequency.ts joins its files; the frequency
-  contract DIL edge documents the SOURCE_VERB + value-neutrality rules.
-- **notifications** — `rush.freeEntry` source; `bossrush` CHANNEL_CLASS 'play' row.
+- **liveops** — gained core/liveEvents.ts (the identity layer beside the multiplier
+  calendar); DIL edge documents the composition + anti-inflation laws.
 
 ## Power Score changes
 
-None — the initiative is rhythm-only; no grant, rate, or total changed anywhere
-(§6 balancing log in REWARD-FREQUENCY.md records every decision at value delta 0).
+None — the framework grants nothing yet (claims land with the meta batch, through
+applyRewardList like every other track).
 
 ## UI changes
 
-No layout changes. Behavioral: the bossrush hub door/badge lights while today's free
-gauntlet entry is unused, and Recommended-Now/NextUp can hand a spent session tail to it
-(kind 'play', score 34 — below every claim/open/upgrade by design). Existing surfaces
-render it; mobilecheck unaffected (no CSS/DOM changes).
+None this batch — deliberately. The consumer seam map (LIVE-EVENTS.md §4) specifies the
+hub `data-event` theming, the LiveEventsStrip extension, notifications, and the Events
+surface for the wiring batch.
 
 ## Documentation changes
 
-- `docs/REWARD-FREQUENCY.md` — NEW: the philosophy, bands table, measured baseline,
-  finding→redesign, per-surface review, balancing-decisions log, inheritance contract.
-- `docs/CHANGELOG-PIPELINE.md` — no change needed (pipeline untouched).
+- `docs/LIVE-EVENTS.md` — NEW: rotation contract, package vocabulary, anti-inflation laws,
+  consumer seam map (status column), launch calendar.
+- `docs/CHANGELOG-PIPELINE.md` — no change needed.
 - DIL_GRAPH + DEPENDENCY_GRAPH regenerated.
 
 ## Save changes
 
-None.
+None yet — the `liveEvents` tokens/claims module is specified (window-scoped
+`eventId:window` keys, stale-prune sanitizer) for the wiring batch as save v49.
 
 ## Known edge cases
 
-- `personaHour` takes max-over-trials for maxGap/peak (worst case, not average) — bands
-  are strict; a flaky beat-rate change shows up as an intermittent band failure, which is
-  intended (fix the rhythm, not the test).
-- The wind-down models tails ≥5.5 min; shorter tails cannot arithmetically breach the
-  6-min gap ceiling (documented in §6).
-- `SOURCE_VERB` has a stale-row guard too — deleting a REWARD_SOURCES row requires
-  removing its verb row (both directions enforced).
+- The readability validator walks the FULL ring super-cycle LCM in 3-day steps — adding
+  events lengthens the walk; it stays fast (day-granular) but don't tighten the step.
+- `windowMintBudget` prices in coarse core-equivalents (documented weights) — it is an
+  inflation GUARD, not an economy pricing source (sim:economy owns value).
+- Gameplay modifiers are daily-modifier ids by contract — `liveEventProblems()` rejects
+  unknown ids, so renames in dailyModifiers.ts surface here immediately.
 
 ## Remaining technical debt
 
-- The walk's in-run cadences (draft ≈2.6min, meter fill 0.55/run) are documented
-  assumptions mirroring config-scale numbers — recalibrate from analytics FlowFold
-  rollups when production data exists (same hook as the economy sim's income table).
+- Variant packages (enemy/boss tints/titles) are declared + validated but have no renderer
+  consumer yet — the seam map marks them "declared; renderer wiring future".
 
 ## Recommended next tasks
 
-1. Feed live analytics into the persona shapes (`FREQUENCY_PERSONAS` facts) once
-   cur_gain/session rollups accumulate — the instrument then measures REAL cohorts.
-2. Consider a `daily.run` quick-finisher source beside `rush.freeEntry` (the daily run is
-   the second short-form mode; same two-line pattern).
-3. A Results-screen "tail chip" (UI): when the recommendation layer's top rec is the
-   quick finisher, show it on Results directly — one fewer hop to the wind-down.
+1. THE WIRING BATCH (LIVE-EVENTS.md §4, top to bottom): save v49 `liveEvents` module →
+   meta actions (creditEventChallenges at the finishRun/quest seams, claimEventMilestone,
+   buyEventShopRow via applyRewardList) → `liveopsMods()` fold of active horizon mods →
+   hub `data-event` + CSS vars from `themeOwner()` → event notifications (live/endingSoon)
+   → LiveEventsStrip rows for the three horizons → music re-voicing hookup.
+2. Events hub surface (a landing card on the play hub or the existing liveops console).
+3. Renderer variant overlays (tint/title) via the visuals seam.
 
 ## Future expansion hooks
 
-- `SOURCE_VERB` + `verbTotalityProblems()` (core/rewardFrequency.ts) — new pathway = one
-  registry row + one verb row, automatically measured.
-- `FREQUENCY_BANDS` — the tunable contract; raise floors as content density grows.
-- `walkSession` beat cadences — swap documented assumptions for analytics-derived rates.
+- `LiveEventDefV2.future` — namespaced bag for consumers that don't exist yet.
+- Ring growth: push a row; every invariant is ring-size-derived (sim asserts this).
+- `EVENT_HORIZONS` — a fourth horizon would be one record entry + ring rows.

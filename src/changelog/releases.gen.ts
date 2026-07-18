@@ -1306,6 +1306,10 @@ export const RELEASES: Release[] = [
       {
         "cat": "Gameplay",
         "text": "Reward Frequency Engineering: measured-hour instrument + bands + quick-finisher"
+      },
+      {
+        "cat": "Framework",
+        "text": "Live Event framework: three-horizon rotating identity engine + validation"
       }
     ]
   },
