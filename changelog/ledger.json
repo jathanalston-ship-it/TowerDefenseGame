@@ -1,6 +1,6 @@
 {
-  "lastSha": "fdbf2676c8cbb4a473b537689c3f90c32d8493bf",
-  "commitsSinceDraft": 0,
+  "lastSha": "9e7cbd9c31dc21555e1c43215f400aa31586eab0",
+  "commitsSinceDraft": 2,
   "content": {
     "tower": [
       "needle",
@@ -2849,6 +2849,10 @@
         {
           "cat": "Gameplay",
           "text": "Live events wired end-to-end: v49 ledgers, claims console, hub dress, lane fold"
+        },
+        {
+          "cat": "UI",
+          "text": "The Landscape Mandate: phones play horizontal only (rotate gate + mobilecheck v3)"
         }
       ]
     }
@@ -5275,6 +5279,22 @@
       "date": "2026-07-18",
       "cat": "Gameplay",
       "text": "Live events wired end-to-end: v49 ledgers, claims console, hub dress, lane fold",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "9630ec9b33a61db2f348d850e7fcfc12bd9a30e6",
+      "date": "2026-07-18",
+      "cat": "Framework",
+      "text": "Rituals: v50 ledger split (twin's v49 reservation honored), seam map wired, handoff",
+      "internal": true,
+      "needsReview": true
+    },
+    {
+      "sha": "9e7cbd9c31dc21555e1c43215f400aa31586eab0",
+      "date": "2026-07-18",
+      "cat": "UI",
+      "text": "The Landscape Mandate: phones play horizontal only (rotate gate + mobilecheck v3)",
       "internal": false,
       "needsReview": false
     }

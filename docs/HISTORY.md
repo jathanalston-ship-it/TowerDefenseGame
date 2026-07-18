@@ -327,3 +327,5 @@
 - `4c63715` **[Gameplay]** The Front: infestation map war overhaul (save v49)
 - `f9a7f06` **[Gameplay]** Docs + rituals: The Front batch (handoff, status, notes, frequency verb)
 - `fdbf267` **[Gameplay]** Live events wired end-to-end: v49 ledgers, claims console, hub dress, lane fold
+- ⚑ `9630ec9` **[Framework]** Rituals: v50 ledger split (twin's v49 reservation honored), seam map wired, handoff _(internal)_
+- `9e7cbd9` **[UI]** The Landscape Mandate: phones play horizontal only (rotate gate + mobilecheck v3)

@@ -1346,6 +1346,10 @@ export const RELEASES: Release[] = [
       {
         "cat": "Gameplay",
         "text": "Live events wired end-to-end: v49 ledgers, claims console, hub dress, lane fold"
+      },
+      {
+        "cat": "UI",
+        "text": "The Landscape Mandate: phones play horizontal only (rotate gate + mobilecheck v3)"
       }
     ]
   },
