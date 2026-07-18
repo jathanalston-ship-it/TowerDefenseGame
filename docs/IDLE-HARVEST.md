@@ -1,5 +1,11 @@
 # IDLE-HARVEST.md — the permanent passive lane
 
+> **Wallet note (2026-07, ECONOMY.md §8):** this doc predates the localized-economy split in
+> a few paragraphs. Canonical: Hive-Production organs price in **Chitin** (`hiveMaterials`)
+> and tower Mulligan grafts in **Mulligan Tissue** (`mulliganTissue`) — the currency
+> registry and ECONOMY.md §8 are the tiebreakers wherever older prose says Cores/Essence.
+
+
 > **MERGED (2026-07):** the harvest is now the OUTPUT of the Hive organism — read
 > **docs/HIVE-PRODUCTION.md** first (couplings, synergies, the shared living diagram).
 > Everything below (accrual, tree, drops, guardrail) still holds as the production model.

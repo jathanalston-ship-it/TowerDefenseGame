@@ -354,4 +354,22 @@ export const GUIDES: Guide[] = [
       ] },
     ],
   },
+  {
+    slug: 'live-events', title: 'Live Events Guide — The Rotating Hive', category: 'Modes',
+    summary: 'Three event horizons run at once — surges, seasons and epochs — each with its own identity, currency, reward track and ceremony.',
+    sections: [
+      { h: 'Three horizons, always live', body: [
+        'ASSIMILATION runs three event layers simultaneously: a 3-day <b>Surge</b> (Ember Tide, Spore Bloom, Static Night), a 2-week <b>Season</b> (The Great Hunt, Deep Current, Red Famine) and a 3-month <b>Epoch</b> (Assimilation, Overgrowth). They rotate on independent, worldwide-deterministic clocks — the hub wears the Epoch\u2019s identity while the shorter events surface as chips, so the calendar is always readable at a glance.',
+      ] },
+      { h: 'Event currencies and reward tracks', body: [
+        'Each event mints its own token — Ember Spores, Hunt Marks, Epoch Strands and the rest — earned ONLY from that event\u2019s challenges and gone when the event rotates. Tokens climb a miniature battle pass scaled to the event\u2019s length (5 levels for a surge, 10 for a season, 18 for an epoch); every level pays, and longer events carry strictly richer ladders. Tokens cannot be bought: playing the event is the only lever.',
+      ] },
+      { h: 'Playing differently', body: [
+        'Events transform the run itself: unique hazards (Thermal Fissures, Static Veils), pickups (Pollen Clusters, Seed Pods), hero and tower buffs, temporary Mega Bosses and event-tinted battlefields. Each event also ends in its own reward ceremony machine — a bio-reactor, an incubation pod, a DNA sequencer — never the same machine as another live event, so you always know which event just paid you.',
+      ] },
+      { h: 'Repeats respect veterans', body: [
+        'When an event returns, any permanent reward you already own substitutes into a compensation bundle automatically — duplicate unlocks are impossible, and most of every track is consumable value, so a repeat window is still worth playing from level one.',
+      ] },
+    ],
+  },
 ];

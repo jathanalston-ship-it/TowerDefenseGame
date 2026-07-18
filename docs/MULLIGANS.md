@@ -1,5 +1,11 @@
 # MULLIGANS.md — the Mulligan System
 
+> **Wallet note (2026-07, ECONOMY.md §8):** this doc predates the localized-economy split in
+> a few paragraphs. Canonical: Hive-Production organs price in **Chitin** (`hiveMaterials`)
+> and tower Mulligan grafts in **Mulligan Tissue** (`mulliganTissue`) — the currency
+> registry and ECONOMY.md §8 are the tiebreakers wherever older prose says Cores/Essence.
+
+
 A permanent **endgame progression pillar**, the tower twin of Hero Equipment — but deliberately
 **not** a copy. A **Mulligan** is a *biomechanical secondary organism* grafted onto a tower, which
 the player **assembles from genetic modifiers**. The resulting organism grows a **procedurally
