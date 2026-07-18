@@ -1,6 +1,6 @@
 # DIL_GRAPH.md — the Design Intelligence Layer (GENERATED — `npm run dil -- regen`)
 
-> **The project's brain** (docs/DIL.md). 887 nodes · 1667 edges, built from the live
+> **The project's brain** (docs/DIL.md). 889 nodes · 1669 edges, built from the live
 > registries + curated knowledge (src/dev/dil/). **Query it instead of searching the repo:**
 > `npm run dil -- node <id>` · `affects <id>` · `requires <id>` · `missing <kind> <edge>` ·
 > `checklist tower <kind>` · `find <text>`. Edge kinds are bidirectional (19 kinds).
@@ -8,7 +8,7 @@
 ## Gap report (the graph's own radar)
 
 - **Systems with no test:** `system:infinite`, `system:field-research`, `system:shards-economy`, `system:i18n`, `system:expeditions`, `system:nemesis`, `system:run-ui`, `system:devtools`, `system:ui-kit`
-- **Docs referenced by no system (review for retirement):** `ADVANCED-SYSTEMS.md`, `ARCHITECTURE-AUDIT.md`, `AUCTION-HOUSE.md`, `BACKLOG.md`, `BALANCE_ARCHITECTURE.md`, `BRANCH-EVOLUTION.md`, `BUGFIX-LOG.md`, `CONTENT-ROADMAP.md`, `DEV-FRAMEWORKS.md`, `DIL_GRAPH.md`, `EA-DESIGN-AUDIT.md`, `ENEMIES.md`, `ENEMY-ROSTER.md`, `GAME-STATE.md`, `HISTORY.md`, `HIVE-PRODUCTION.md`, `HIVE-SIEGE.md`, `HUB-FLOW.md`, `IDENTITY-AUDIT.md`, `LIVING-HIVE.md` · …22 more
+- **Docs referenced by no system (review for retirement):** `ADVANCED-SYSTEMS.md`, `ARCHITECTURE-AUDIT.md`, `AUCTION-HOUSE.md`, `BACKLOG.md`, `BALANCE_ARCHITECTURE.md`, `BRANCH-EVOLUTION.md`, `BUGFIX-LOG.md`, `COGLOAD_REPORT.md`, `CONTENT-ROADMAP.md`, `DEV-FRAMEWORKS.md`, `DIL_GRAPH.md`, `EA-DESIGN-AUDIT.md`, `ENEMIES.md`, `ENEMY-ROSTER.md`, `GAME-STATE.md`, `HISTORY.md`, `HIVE-PRODUCTION.md`, `HIVE-SIEGE.md`, `HUB-FLOW.md`, `IDENTITY-AUDIT.md` · …23 more
 
 ## Indexes
 
@@ -619,7 +619,7 @@ Six seeded runs pinned byte-for-byte (core/golden.test.ts) — the tripwire for 
   - conflictsWith ← `system:hub-shell` — HOME WIDGET FIBER INVARIANT (2026-07, CommandCenter.tsx CCWidget): the home zone renders each widget through the CCWidget COMPONENT (<CCWidget/>), never by calling the widget function inline — an inline render(ctx) flattens every widget's hooks into CommandCenter's own list, so a `when` gate flipping a widget in/out between renders (e.g. command-feed keying off pendingContainers/shards) trips React's "rendered more hooks than during the previous render" and the ErrorBoundary blanks the hub. Unit tests can't see it (React UI); the MOBILE GATE (npm run mobilecheck, run by validate) catches it on the developed-profile sweep. Any new home widget with hooks + a volatile `when` MUST route through CCWidget
   - conflictsWith ← `system:hero-cinematics` — cast-less runs (the golden autoplay) must never touch the cinematic path: pendingImpactSystem is length-gated, castEvents only written on cast — and any test asserting cast RESULTS must step past the def’s impactDelay before asserting (riptide/vitriol tests show the ride-through pattern)
   - conflictsWith ← `system:cosmetics` — skins/visual tiers must stay render-only; any def stat touched for looks breaks the pinned seeds
-  - _…2 more (query: `npm run dil -- node concept:golden-test`)_
+  - _…3 more (query: `npm run dil -- node concept:golden-test`)_
 
 ### `concept:progression-gates` — Progression Gates
 
@@ -2377,8 +2377,9 @@ _at: src/debug/*, src/ui/DebugPanel.tsx, src/ui/DevTools.tsx_
 
 Reusable presentation components every screen composes (icons, bars, count-ups) — the component library.
 
-_at: src/ui/components/Icon.tsx, src/ui/iconLanguage.tsx, src/ui/components/ProgressBar.tsx, src/ui/components/useCountUp.ts, src/ui/components/usePressRepeat.ts, src/ui/components/AudioToggles.tsx, src/ui/components/MobileSection.tsx, src/ui/layoutProfile.ts, src/ui/components/ResponsiveDebug.tsx, src/ui/components/RotateGate.tsx_
+_at: src/ui/components/Icon.tsx, src/ui/iconLanguage.tsx, src/ui/components/Detail.tsx, src/ui/components/ProgressBar.tsx, src/ui/components/useCountUp.ts, src/ui/components/usePressRepeat.ts, src/ui/components/AudioToggles.tsx, src/ui/components/MobileSection.tsx, src/ui/layoutProfile.ts, src/ui/components/ResponsiveDebug.tsx, src/ui/components/RotateGate.tsx_
 
+  - conflictsWith → `concept:golden-test` — ATTENTION BUDGET (docs/INFO-HIERARCHY.md §2, npm run cogload): at most 2 attention-band animators (≤3.6s infinite pulse/breathe/glow) visible per screen — the ONE that breathes is the recommendation; ready-states live in the ambient band (>3.6s), badges announce finitely (nav-badge-pulse ×6) then rest; cogload exits 1 on violation, so a new always-on fast pulse anywhere is a BUILD-BREAKING decision, not a style choice; demote numbers via components/Detail.tsx (Layer 3 behind intent), never delete them
   - extends → `concept:scalability` — ICON LANGUAGE (ui/iconLanguage.tsx, docs/ICON-LANGUAGE.md): ONE library federates every identity axis — ACTIONS (verb glyph+token+label; the act-<verb> CSS classes MIRROR the table, change together), EFFECT_CATEGORIES, CURRENCIES, REWARD_TYPES art, statusRegistry + STATUS_GLYPHS, nav/FEATURES glyphs; dev/iconLanguage.test.ts is the INHERITANCE CONTRACT — a new currency/reward/status/screen without a face fails CI; glyphs unique per axis, cross-axis reuse only for the same concept family; color never the sole channel (a11y)
   - gates → `system:hub-shell` — LANDSCAPE MANDATE: phones play horizontal ONLY — touch+portrait renders RotateGate (full-screen hold, z 100000, live-event tinted, clears on rotate via useLayoutProfile); touch+landscape IS the phone game (narrow-shell drawer + stacked run; the .game bands fire on (max-width:900px),(max-height:520px) so 926-wide phones stack); mouse windows never gated. mobilecheck v3 walks 844×390/926×428 through the drawer + tutorial at 844×390 + asserts gate coverage on portrait and gate ABSENCE on playable orientations; the v2 portrait tab shell is legacy (mouse-narrow only, un-walked). The store app shell locks orientation natively — the gate is the browser half of the platform split
   - documentedBy ← `doc:UI-STANDARDS.md`
@@ -2389,6 +2390,7 @@ _at: src/ui/components/Icon.tsx, src/ui/iconLanguage.tsx, src/ui/components/Prog
   - documentedBy ← `doc:DESIGN_LANGUAGE.md`
   - documentedBy ← `doc:RESPONSIVE-DESIGN.md`
   - documentedBy ← `doc:ICON-LANGUAGE.md`
+  - documentedBy ← `doc:INFO-HIERARCHY.md`
 
 ### `system:analytics` — Player Telemetry & Analytics
 
@@ -3545,7 +3547,7 @@ _at: site/guides.ts → /guides/live-events/_
 - `achievement:arena_crown` — Claim Arena Pass level 100 — a permanently arena-exclusive strain is yours forever. _(partOf `system:achievements`, rewards `currency:genome-cores`, references `system:arena`)_
 - `achievement:arena_perennial` — Close three Arena seasons with a record on the books. _(partOf `system:achievements`, rewards `currency:genome-cores`, references `system:arena`)_
 
-## Documentation (182)
+## Documentation (184)
 
 - `doc:ACCOUNT-LEVEL.md` — project documentation _(documents `system:account-level`)_
 - `doc:ACCOUNTS.md` — project documentation _(documents `system:accounts`)_
@@ -3575,6 +3577,7 @@ _at: site/guides.ts → /guides/live-events/_
 - `doc:CARDS.md` — project documentation _(documents `system:gene-cards`)_
 - `doc:CHANGELOG-PIPELINE.md` — project documentation _(documents `system:chronicle`)_
 - `doc:CODEMAP.md` — project documentation _(documents `system:engine`, documents `system:content-infra`)_
+- `doc:COGLOAD_REPORT.md` — project documentation
 - `doc:COLLECTION.md` — project documentation _(documents `system:collection`)_
 - `doc:COMBAT-VISUAL-STANDARDS.md` — project documentation _(documents `system:rendering`)_
 - `doc:COMMAND-CENTER.md` — project documentation _(documents `system:hub-shell`)_
@@ -3637,6 +3640,7 @@ _at: site/guides.ts → /guides/live-events/_
 - `doc:IDENTITY-AUDIT.md` — project documentation
 - `doc:IDLE-HARVEST.md` — project documentation _(documents `system:idle-harvest`)_
 - `doc:INFESTATION.md` — project documentation _(documents `system:infestation`)_
+- `doc:INFO-HIERARCHY.md` — project documentation _(documents `system:ui-kit`)_
 - `doc:LEXICON.md` — project documentation _(documents `system:currencies`)_
 - `doc:LIVE-EVENTS.md` — project documentation _(documents `system:liveops`)_
 - `doc:LIVEOPS.md` — project documentation _(documents `system:liveops`, documents `system:directives`)_

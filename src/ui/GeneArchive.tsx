@@ -22,6 +22,7 @@ import { audio } from '../audio/sound';
 import { telemetry } from '../net/telemetry';
 import { highestCampaignStage } from '../save/derive';
 import { Popup } from './components/Popup';
+import { Detail } from './components/Detail';
 import { BestBuyStrip } from './components/BestBuyStrip';
 
 /** Compact preview phrase for one Transcendence-option effect (§Transcendence). The pools only
@@ -101,7 +102,9 @@ function GeneTile({ row, onOpen }: { row: GeneArchiveRow; onOpen: () => void }):
           ) : (
             <span className="ga-unowned" title={row.hint ?? undefined}>◈ {row.hint}</span>
           )}
-          {row.powerMult > 1 && <span className="ga-pow" title="Permanent Power contribution">⚙ +{Math.round((row.powerMult - 1) * 100)}%</span>}
+          {/* Optimization data (Layer 3 — docs/INFO-HIERARCHY.md): the exact Power % lives in
+              the inspect screen's power line; the tile keeps a quiet mark only. */}
+          {row.powerMult > 1 && <span className="ga-pow" title={`Contributes permanent Power — inspect for the exact figure`}>⚙</span>}
         </span>
       </span>
     </button>
@@ -503,16 +506,18 @@ export function GeneArchive(): JSX.Element {
         Spend Gene Essence to permanently upgrade a card; it applies every time you draft it.
       </div>
       <BestBuyStrip surface="genes" />
-      {/* Discovery completion (docs/CARDS.md §discovery) — the collection header: overall %
-          plus the five-tier ladder, so "something exciting remains" is always visible. */}
+      {/* Discovery completion (docs/CARDS.md §discovery) — Layer 1 keeps the % + bar (the
+          outcome); the five-tier ratio ladder folds behind a Detail (docs/INFO-HIERARCHY.md). */}
       <div className="ga-completion" role="group" aria-label="Archive completion">
         <span className="ga-comp-pct">{sum.completionPct}%</span>
         <span className="ga-comp-bar" aria-hidden><i style={{ width: `${sum.completionPct}%` }} /></span>
-        {sum.byRarity.map((b) => b.total > 0 && (
-          <span className="ga-comp-tier" key={b.rarity} style={{ ['--rc' as string]: geneRarityColor(b.rarity) }} title={`${b.rarity}: ${b.have}/${b.total} discovered`}>
-            {b.have}/{b.total}
-          </span>
-        ))}
+        <Detail summary="tier breakdown">
+          {sum.byRarity.map((b) => b.total > 0 && (
+            <span className="ga-comp-tier" key={b.rarity} style={{ ['--rc' as string]: geneRarityColor(b.rarity) }} title={`${b.rarity}: ${b.have}/${b.total} discovered`}>
+              {b.have}/{b.total}
+            </span>
+          ))}
+        </Detail>
       </div>
 
       {/* In-place help (Task 11) — the whole loop in five lines, one tap away. */}

@@ -3,7 +3,27 @@
 > Maintained at the END of every session (paired with `docs/AI_HANDOFF.md` — the constitution's
 > workflow step 4). This is the "where are we?" answer; `docs/GAME-STATE.md` remains the deeper
 > per-system built-vs-planned index, `docs/PROJECT_MANIFEST.md` the system map.
-> **Last updated:** 2026-07-18u (**ICON LANGUAGE — the universal visual language** (user
+> **Last updated:** 2026-07-18v (**INFO HIERARCHY + THE COGNITIVE-LOAD BUDGET** (user
+> brief: three information layers; "players should only think about the next 30 seconds").
+> NEW INSTRUMENT `npm run cogload` (scripts/cogload.ts): walks every registry screen
+> (developed profile, desktop + landscape phone) measuring Layer-1 reality — attention-band
+> animators (≤3.6s infinite pulse/breathe, visible), digit-runs, text chars, hero-CTA and
+> badge counts → docs/COGLOAD_REPORT.md; **attn ≤ 2 is a HARD exit-1 budget**. Baseline
+> run: **32/68 measurements OVER** (nav badges pulsing forever on every screen, 15 Boss-
+> Rush skulls, 9 Hero-Lab HP auras, topbar chips). THE RE-BANDING (10 CSS rules): badges
+> announce-then-rest (×6 finite), ready-states + decorative auras to the ambient band
+> (>3.6s), the recommendation keeps the ONLY fast breathe — now **68/68 pass** and the
+> single breather on nearly every screen IS the answer to "what's the one most valuable
+> thing" (bbs/sale). NEW `components/Detail.tsx` — the sanctioned Layer-2/3 fold (native
+> details, quiet ◆ chip); adopted: Gene Archive tier ratios fold (%+bar stay at L1), gene
+> tile's exact Power % demoted to a quiet ⚙ (figure lives in inspect — demote, never
+> delete). docs/INFO-HIERARCHY.md is the permanent standard (three layers, the bands,
+> outcomes-before-digits, persona findings, future-screen rules); DIL conflictsWith edge
+> makes a new always-on fast pulse a build-breaking decision. Verified: suite 2518 green,
+> mobilecheck CLEAN (caught + fixed a tier-chip spill at 1024w — Detail body now wraps),
+> validate PASS, cogload PASS. Previous below.)
+>
+> **2026-07-18u** (**ICON LANGUAGE — the universal visual language** (user
 > brief: icon-first UX overhaul; "text is confirmation, visuals are communication").
 > NEW `src/ui/iconLanguage.tsx` federates every identity axis the game already carried
 > (EFFECT_CATEGORIES glyph/color, CURRENCIES silhouettes, REWARD_TYPES art, statusRegistry
