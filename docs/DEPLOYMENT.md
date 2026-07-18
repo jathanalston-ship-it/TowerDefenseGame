@@ -158,6 +158,15 @@ production and preview get **different** Stripe keys (live vs test mode).
 - `git push` to the production branch → Pages builds (`npm ci` +
   `npm run build` = typecheck (app + functions) + Vite) and deploys atomically.
   Every other branch/PR gets an isolated preview URL with the same functions.
+- **CI production contract (`.github/workflows/deploy.yml`)** — a green run MEANS
+  production changed: the job (1) PATCHes the Pages project's `production_branch` to the
+  deploying branch on every run (the create-time `--production-branch` flag only counts on
+  the first-ever deploy — a project born under another branch silently turns every later
+  deploy into a hash-URL *preview* while production sits frozen; this happened once and is
+  now structurally impossible to miss), (2) stamps `dist/version.json` with the commit
+  SHA, and (3) polls the LIVE production host (subdomain resolved from the API) until it
+  serves that exact SHA — mismatch after 5 minutes fails the workflow. `GET
+  /version.json` on production is also the human check for "did my deploy land?".
 - CLI alternative: `npm run deploy` (wrangler direct upload).
 - Schema changes: add `migrations/000N_*.sql` → `npm run db:migrate`
   (`db:migrate:local` for the local dev database).
@@ -253,6 +262,8 @@ Manual test flow with Stripe test cards: docs/STRIPE-SETUP.md §6.
 ## 10. Deployment verification checklist (after every production deploy)
 
 - [ ] Game loads at the production URL; hard-refresh shows the new build
+- [ ] `GET /version.json` on the production host returns the pushed commit SHA
+      (CI enforces this automatically — a red `deploy` run means production did NOT change)
 - [ ] `GET /api/health` → `{ ok: true, db: true, stripe: true, webhook: true, turnstile: true, dayTickets: true, environment: "production" }`
 - [ ] DevTools → Network: `/assets/*` served with `cache-control: immutable`; response headers include the CSP
 - [ ] A **test-mode preview** purchase completes end-to-end (Stripe test card `4242 4242 4242 4242`) and delivers ONCE

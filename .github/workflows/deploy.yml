@@ -2,6 +2,11 @@
 # Runs the repo's blessed deploy path (npm run build → wrangler pages deploy dist) on every push
 # to the development branch, and on demand via "Run workflow".
 #
+# CONTRACT: a green run MEANS production changed. The job pins the project's
+# production_branch to the deploying branch (a create-time-only flag caused deploys to land
+# as previews while production sat frozen), stamps dist/version.json with the commit SHA,
+# and fails unless the LIVE production URL serves that exact SHA within 5 minutes.
+#
 # REQUIRED repo secrets (Settings → Secrets and variables → Actions):
 #   CLOUDFLARE_API_TOKEN   — dash.cloudflare.com → My Profile → API Tokens → Create Token →
 #                            "Edit Cloudflare Workers"/Pages template (needs Pages:Edit).
@@ -39,12 +44,46 @@ jobs:
       - name: Build (typecheck + vite + sw stamp)
         run: npm run build
 
-      - name: Deploy to Cloudflare Pages
+      - name: Stamp the deploy marker
+        run: printf '{"sha":"%s","at":"%s"}\n' "${GITHUB_SHA}" "$(date -u +%FT%TZ)" > dist/version.json
+
+      - name: Deploy to Cloudflare Pages (PRODUCTION)
         if: ${{ env.CLOUDFLARE_API_TOKEN != '' && env.CLOUDFLARE_ACCOUNT_ID != '' }}
         run: |
           # Idempotent: create the project on first ever deploy, then upload dist.
           npx wrangler@3 pages project create assimilate --production-branch "${GITHUB_REF_NAME}" 2>/dev/null || true
+          # The create-time flag only counts on the FIRST-ever deploy. If the project was born
+          # under another branch, every later deploy from this one silently lands as a hash-URL
+          # PREVIEW and production never changes (the "site didn't update" incident). Pin the
+          # production branch on EVERY run so this branch's deploys are always production.
+          curl -fsS -X PATCH \
+            "https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/pages/projects/assimilate" \
+            -H "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}" -H "Content-Type: application/json" \
+            --data "{\"production_branch\":\"${GITHUB_REF_NAME}\"}" > /dev/null
           npx wrangler@3 pages deploy dist --project-name assimilate --branch "${GITHUB_REF_NAME}" --commit-hash "${GITHUB_SHA}"
+
+      - name: Verify PRODUCTION serves this exact commit
+        if: ${{ env.CLOUDFLARE_API_TOKEN != '' && env.CLOUDFLARE_ACCOUNT_ID != '' }}
+        run: |
+          # THE GUARD: a deploy that does not change the production URL is a FAILURE, never a
+          # green run. Resolve the project's canonical production host from the API (the
+          # pages.dev subdomain can differ from the project name), then poll it for the
+          # version marker stamped above. Mismatch after 5 minutes turns the workflow red.
+          SUBDOMAIN=$(curl -fsS \
+            "https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/pages/projects/assimilate" \
+            -H "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}" | jq -r '.result.subdomain')
+          echo "Production host: https://${SUBDOMAIN}"
+          LIVE=""
+          for i in $(seq 1 30); do
+            LIVE=$(curl -fsS -H 'Cache-Control: no-cache' "https://${SUBDOMAIN}/version.json?ci=${GITHUB_SHA}" | jq -r '.sha' 2>/dev/null || true)
+            [ "${LIVE}" = "${GITHUB_SHA}" ] && break
+            sleep 10
+          done
+          if [ "${LIVE}" != "${GITHUB_SHA}" ]; then
+            echo "::error::Production https://${SUBDOMAIN} serves '${LIVE:-nothing}' but this run deployed ${GITHUB_SHA} — the deploy did NOT reach production (check the project's production_branch)."
+            exit 1
+          fi
+          echo "Verified: https://${SUBDOMAIN} serves ${GITHUB_SHA}"
 
       - name: Secrets missing — deploy skipped
         if: ${{ env.CLOUDFLARE_API_TOKEN == '' || env.CLOUDFLARE_ACCOUNT_ID == '' }}
