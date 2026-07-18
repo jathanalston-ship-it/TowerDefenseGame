@@ -3,7 +3,26 @@
 > Maintained at the END of every session (paired with `docs/AI_HANDOFF.md` — the constitution's
 > workflow step 4). This is the "where are we?" answer; `docs/GAME-STATE.md` remains the deeper
 > per-system built-vs-planned index, `docs/PROJECT_MANIFEST.md` the system map.
-> **Last updated:** 2026-07-18p (**LIVE EVENTS WIRED END-TO-END** (queue #347) — the
+> **Last updated:** 2026-07-18q (**THE LANDSCAPE MANDATE** (user brief: "the entire
+> vertical mobile layout … standardized for horizontal play ONLY … upgrade interfaces are
+> far too intensive") — RESPONSIVE-DESIGN.md §0b. Phones play horizontal only:
+> `RotateGate.tsx` full-screen hold on touch+portrait (phones AND portrait tablets;
+> live-event tinted; z 100000; clears the frame the device rotates via useLayoutProfile —
+> never raw width); touch+landscape IS the phone game (☰ drawer shell + stacked run — the
+> `.game` bands now fire on `(max-width:900px),(max-height:520px)` so 926×428-class phones
+> stack instead of getting the crushed desktop grid, the one real layout fix the flip
+> surfaced); mouse windows never gated (desktop untouched). **mobilecheck v3**: gate
+> viewports desktop-1366 · landscape-844×390 · landscape-926×428 · tablet-land-1024×768 ·
+> portrait-390×844(gate) · tablet-768×1024(gate); door→landing→card walk through the
+> drawer; landscape run contract (≥44px ▶ Start Wave on-screen, board ≥40% height, tray);
+> tutorial walk moved to 844×390 (passes); rotate-gate coverage + gate-leak-absence
+> asserted; v2 portrait tab-shell walk retired (MobileShell legacy, mouse-narrow only).
+> Platform split: browser=gate, store app shell locks orientation natively (no change
+> needed there). CLEAN first full pass; suite 2503 green; validate PASS. Queue: Auction
+> House brief (#351) then website deploy-verify (#352 — CI deploys are landing as PREVIEW
+> URLs, production branch pin needed) then recommendations prominence (#350). Previous below.)
+>
+> **2026-07-18p** (**LIVE EVENTS WIRED END-TO-END** (queue #347) — the
 > identity engine's consumer batch, docs/LIVE-EVENTS.md §4 seam map now ✅ across the
 > meta/UI layer. Save **v50** (`liveEvents` {tokens, claimed, shopBought, progress},
 > `eventId:window` keys; sanitizer prunes dead windows + clamps cap/target/stock — the

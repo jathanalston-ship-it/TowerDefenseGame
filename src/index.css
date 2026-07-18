@@ -2698,9 +2698,11 @@ canvas.board {
     flex-basis: 168px;
   }
 }
-@media (max-width: 900px) {
-  /* Below desktop the layout stacks and the page is allowed to scroll again
-     (the no-vertical-scroll guarantee targets 1080p+ desktop). */
+@media (max-width: 900px), (max-height: 520px) {
+  /* Below desktop — or in the SHORT landscape-phone band (RESPONSIVE-DESIGN.md §landscape:
+     926×428-class phones are wider than 900 but must stack like phones) — the layout
+     stacks and the page is allowed to scroll again (the no-vertical-scroll guarantee
+     targets 1080p+ desktop). */
   .game {
     height: auto;
     max-height: none;
@@ -2843,7 +2845,7 @@ canvas.board {
 }
 
 /* Tablet / small laptop */
-@media (max-width: 900px) {
+@media (max-width: 900px), (max-height: 520px) {
   .game {
     width: 98vw;
   }
@@ -12782,3 +12784,15 @@ div.ah-spark { display: flex; align-items: center; justify-content: center; heig
 
 /* Deploy interstitial live-event flavor line (the visuals.loadingLine seam). */
 .deploy-event { margin-top: 10px; font-size: 12px; font-weight: 700; letter-spacing: 0.06em; color: var(--ev); text-shadow: 0 0 10px color-mix(in srgb, var(--ev) 45%, transparent); }
+
+/* ROTATE GATE (RotateGate.tsx — RESPONSIVE-DESIGN.md §landscape): the portrait-phone hold.
+   Sits above every overlay — a hard gate, not a toast. The device silhouette turns on a
+   loop so the ask reads without words; reduced-motion holds the final landscape pose. */
+.rotate-gate { position: fixed; inset: 0; z-index: 100000; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; padding: 28px; text-align: center; background: radial-gradient(640px 420px at 50% 30%, color-mix(in srgb, var(--ev) 12%, transparent), transparent), var(--bg); }
+.rotate-gate-device { width: 44px; height: 76px; border: 3px solid var(--ev); border-radius: var(--r-sm); position: relative; animation: rotate-gate-turn 2.6s ease-in-out infinite; box-shadow: 0 0 22px -8px var(--ev-glow); }
+.rotate-gate-device i { position: absolute; left: 50%; bottom: 5px; width: 12px; height: 3px; margin-left: -6px; border-radius: 2px; background: var(--ev); }
+@keyframes rotate-gate-turn { 0%, 22% { transform: rotate(0deg); } 58%, 100% { transform: rotate(90deg); } }
+@media (prefers-reduced-motion: reduce) { .rotate-gate-device { animation: none; transform: rotate(90deg); } }
+.rotate-gate-title { font-size: 20px; font-weight: 800; letter-spacing: 0.16em; color: var(--text); }
+.rotate-gate-body { font-size: 13px; line-height: 1.55; color: var(--muted); max-width: 300px; }
+.rotate-gate-ev { font-size: 11px; font-weight: 700; letter-spacing: 0.08em; color: var(--ev); }

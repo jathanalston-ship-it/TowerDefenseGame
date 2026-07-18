@@ -1,36 +1,37 @@
-// MOBILE LAYOUT GATE (npm run mobilecheck) — every screen, small-phone honest.
+// MOBILE LAYOUT GATE v3 (npm run mobilecheck) — phones play HORIZONTAL ONLY.
 //
-// Serves the current dist/ build and enforces BOTH intentional interfaces
-// (docs/RESPONSIVE-DESIGN.md §mobile-shell):
-//   • DESKTOP — the COMPRESSED rail (front doors only): every screen is reached door →
-//     hub landing → [data-nav] card (direct doors like HOME/Store short-circuit), and the
-//     landing pages themselves are audited along the way.
-//   • PORTRAIT — the phone game: the five-tab bottom bar must exist (≥44px tabs), every tab
-//     index row must be SELF-DESCRIBING (name + blurb — a first-timer reads what a screen is
-//     before entering), every row must drill in (back header present) and return, and the
-//     live run must present the combat dock contract: fixed wave dock with a ≥44px on-screen
-//     ▶ Start Wave, visible board, reachable tower tray.
+// Serves the current dist/ build and enforces the landscape mandate
+// (docs/RESPONSIVE-DESIGN.md §landscape — the upgrade consoles are widescreen organisms):
+//   • DESKTOP / TABLET-LANDSCAPE — the COMPRESSED rail (front doors only): every screen is
+//     reached door → hub landing → [data-nav] card (direct doors like HOME/Store
+//     short-circuit), and the landing pages themselves are audited along the way.
+//   • LANDSCAPE PHONES — the SAME door→landing→card walk through the narrow-shell drawer
+//     (the ☰ burger opens the off-canvas rail), plus the live-run contract: a ≥44px
+//     on-screen ▶ Start Wave, a visible board, a reachable tower tray.
+//   • PORTRAIT touch viewports (phones AND portrait tablets) — the ROTATE GATE contract:
+//     the full-screen hold must cover the viewport and nothing else is walked (portrait is
+//     not a play mode; the gate IS the screen).
 // Every audited surface also passes the layout audit: no horizontal overflow, no clipped
 // text, no sub-24px targets, no off-screen interactives, no unreachable popups.
 //
 // FUTURE-CONTENT AUTO-COVERAGE (the contract that makes new work mobile-safe by default):
-//   1. src/ui/navModel.ts is the ONLY nav list — the desktop rail, the portrait tabs, this
-//      script, and navModel.test.ts all derive from it (a screen outside it cannot compile).
-//   2. navModel.test.ts proves every NavKey sits in exactly one tab and has an unlock-registry
-//      blurb, so the portrait index row for any future screen exists and explains itself.
-//   3. This gate walks rows BY DISCOVERY (whatever the index pages render), so a new screen is
-//      swept, drilled, and audited the day it ships — there is no second list to update.
+//   1. src/ui/navModel.ts is the ONLY nav list — the desktop rail, this script, and
+//      navModel.test.ts all derive from it (a screen outside it cannot compile).
+//   2. This gate walks doors BY DISCOVERY (whatever the rail/landings render), so a new
+//      screen is swept and audited the day it ships — there is no second list to update.
 // `npm run validate` runs this gate. Options:
 //   --no-build   reuse dist/ as-is (validate builds beforehand anyway)
 //   --port 4321  fixed port (default: 4310)
-//   --full       sweep the complete published viewport matrix (includes landscape phones)
+//   --full       sweep the complete published viewport matrix (small-landscape floor,
+//                large phones, big tablets, ultrawide)
 //
-// Landscape phones are NOT in the default gate: the game is designed vertical-only on
-// phones (the shell targets portrait; rotation is not a supported play mode).
+// Portrait walking retired 2026-07-18 (the v2 tab-shell contract): the game is landscape-
+// only on touch devices — RotateGate.tsx holds portrait; the future store APP SHELL locks
+// orientation natively, so this same gate covers both halves of the platform split.
 
 import { spawn, execSync } from 'node:child_process';
 import { chromium } from 'playwright-core';
-import { navGroups, mobileTabs } from '../src/ui/navModel';
+import { navGroups } from '../src/ui/navModel';
 
 const args = process.argv.slice(2).filter((a) => a !== '--');
 const PORT = Number(args[args.indexOf('--port') + 1] || 0) || 4310;
@@ -38,15 +39,16 @@ const CHROME = process.env.MOBILECHECK_CHROMIUM ?? '/opt/pw-browsers/chromium_he
 
 // The nav universe — derived, never hand-listed (see auto-coverage contract above).
 const NAVS = navGroups().flatMap((g) => g.items.map((i) => i.key));
-const TABS = mobileTabs();
 
-// The LAYOUT-PROFILE matrix (docs/RESPONSIVE-DESIGN.md §gate): desktop, mainstream portrait,
-// smallest portrait, tablet portrait. Portrait viewports run the TAB-SHELL walk; desktop runs
-// the rail walk. `--full` adds the long tail (including landscape, kept honest but ungated).
+// The LANDSCAPE-MANDATE matrix (docs/RESPONSIVE-DESIGN.md §gate): desktop, the two
+// mainstream landscape phones, tablet landscape (the desktop interface), and the portrait
+// touch shapes that must show the ROTATE GATE. `--full` adds the long tail.
 const GATE_VIEWPORTS = [
   { name: 'desktop-1366x768', width: 1366, height: 768 },
+  { name: 'landscape-844x390', width: 844, height: 390 },
+  { name: 'landscape-926x428', width: 926, height: 428 },
+  { name: 'tablet-land-1024x768', width: 1024, height: 768 },
   { name: 'portrait-390x844', width: 390, height: 844 },
-  { name: 'portrait-320x568', width: 320, height: 568 },
   { name: 'tablet-768x1024', width: 768, height: 1024 },
 ];
 const FULL_VIEWPORTS = [
@@ -54,29 +56,27 @@ const FULL_VIEWPORTS = [
   { name: 'desktop-1920x1080', width: 1920, height: 1080 },
   { name: 'desktop-2560x1440', width: 2560, height: 1440 },
   { name: 'ultrawide-3440x1440', width: 3440, height: 1440 },
-  { name: 'portrait-360x640', width: 360, height: 640 },
-  { name: 'portrait-375x812', width: 375, height: 812 },
-  { name: 'portrait-412x915', width: 412, height: 915 },
-  { name: 'portrait-430x932', width: 430, height: 932 },
-  { name: 'landscape-844x390', width: 844, height: 390 },
+  { name: 'landscape-667x375', width: 667, height: 375 },
   { name: 'landscape-932x430', width: 932, height: 430 },
-  { name: 'tablet-820x1180', width: 820, height: 1180 },
-  { name: 'tablet-1024x1366', width: 1024, height: 1366 },
+  { name: 'portrait-320x568', width: 320, height: 568 },
+  { name: 'portrait-430x932', width: 430, height: 932 },
+  { name: 'tablet-land-1180x820', width: 1180, height: 820 },
 ];
 const VIEWPORTS = args.includes('--full') ? FULL_VIEWPORTS : GATE_VIEWPORTS;
-// The TUTORIAL WALK — portrait phones are where reachability historically broke; every
-// checkpoint's cue target, callout, and controls must sit on-screen.
+// The TUTORIAL WALK — now proven at the landscape-phone floor; every checkpoint's cue
+// target, callout, and controls must sit on-screen at 844×390.
 const TUTORIAL_VIEWPORTS = [
-  { name: 'portrait-375x812', width: 375, height: 812 },
+  { name: 'landscape-844x390', width: 844, height: 390 },
 ];
 const TAP_MIN = 24; // px — WCAG 2.5.8 minimum target size
-const TAB_MIN = 44; // px — the bottom bar is the primary thumb surface; it gets the full floor
 
 interface Violation { screen: string; vp: string; kind: string; detail: string }
 
-/** A viewport is portrait-shell territory when height ≥ width and width ≤ 900 (layoutProfile). */
-function isPortrait(vp: { width: number; height: number }): boolean {
-  return vp.height >= vp.width && vp.width <= 900;
+/** Mirror of layoutProfile.compute() — the script routes each viewport the way the app will. */
+function profileOf(vp: { width: number; height: number }): 'portrait' | 'landscape' | 'desktop' {
+  if (vp.height >= vp.width && vp.width <= 900) return 'portrait';
+  if (vp.width > vp.height && vp.height <= 520) return 'landscape';
+  return 'desktop';
 }
 
 async function main(): Promise<void> {
@@ -99,6 +99,19 @@ async function main(): Promise<void> {
       await page.goto(`http://localhost:${PORT}/play/?debug`, { waitUntil: 'networkidle' });
       await page.waitForTimeout(800);
       await page.addStyleTag({ content: '.debug-panel { display: none !important; }' });
+
+      // PORTRAIT touch viewports: the ROTATE GATE is the whole contract — the hold must own
+      // the screen (phones play horizontal only); nothing else is walked here.
+      if (profileOf(vp) === 'portrait') {
+        violations.push(...(await rotateGateContract(page, vp.name)));
+        if (pageErrs.length) violations.push({ screen: '(any)', vp: vp.name, kind: 'pageerror', detail: pageErrs[0] });
+        await ctx.close();
+        continue;
+      }
+      // Landscape/desktop: the gate must NEVER leak into a playable orientation.
+      const gateLeak = await page.evaluate(() => !!document.querySelector('.rotate-gate'));
+      if (gateLeak) violations.push({ screen: 'hub-fresh', vp: vp.name, kind: 'gate-leak', detail: 'rotate gate rendered in a playable orientation' });
+
       await dismiss(page);
       // Minute-0 layout gate: the FRESH hub (4 revealed navs + teasers) must itself be clean.
       violations.push(...(await audit(page, 'hub-fresh', vp.name, touch)));
@@ -129,12 +142,12 @@ async function main(): Promise<void> {
       await page.addStyleTag({ content: '.debug-panel { display: none !important; }' });
       await dismiss(page);
 
-      if (isPortrait(vp)) violations.push(...(await portraitShellWalk(page, vp.name)));
+      if (profileOf(vp) === 'landscape') violations.push(...(await landscapeRailWalk(page, vp.name)));
       else violations.push(...(await desktopRailWalk(page, vp.name, touch)));
 
       // Live board: deploy the frontier and audit the combat screen itself.
+      await openDrawer(page); // narrow shells park HOME in the ☰ drawer
       await page.evaluate(() => {
-        (document.querySelector('[data-mtab="home"]') as HTMLElement | null)?.click();
         (document.querySelector('[data-nav="home"]') as HTMLElement | null)?.click();
       });
       await page.waitForTimeout(380);
@@ -151,16 +164,16 @@ async function main(): Promise<void> {
       const inRun = await page.evaluate(() => !!document.querySelector('canvas.board'));
       if (inRun) {
         violations.push(...(await audit(page, 'in-run', vp.name, touch)));
-        if (isPortrait(vp)) violations.push(...(await portraitRunContract(page, vp.name)));
+        if (profileOf(vp) === 'landscape') violations.push(...(await landscapeRunContract(page, vp.name)));
       } else violations.push({ screen: 'in-run', vp: vp.name, kind: 'unreachable', detail: 'could not enter a run from Home' });
       if (pageErrs.length) violations.push({ screen: '(any)', vp: vp.name, kind: 'pageerror', detail: pageErrs[0] });
       await ctx.close();
     }
 
-    // ── TUTORIAL WALK (docs/RESPONSIVE-DESIGN.md §tutorial) — the reachability contract.
-    // Fresh profile → the combat tutorial auto-starts → step EVERY checkpoint and assert the
-    // cue target, callout and controls are on-screen. This is the regression gate for the
-    // "portrait couldn't finish the tutorial" class of bug: pointing at nothing FAILS the build.
+    // ── TUTORIAL WALK (docs/RESPONSIVE-DESIGN.md §tutorial) — the reachability contract,
+    // now proven at the landscape-phone floor. Fresh profile → the combat tutorial
+    // auto-starts → step EVERY checkpoint and assert the cue target, callout and controls
+    // are on-screen. Pointing at nothing FAILS the build.
     for (const vp of TUTORIAL_VIEWPORTS) {
       const ctx = await browser.newContext({ viewport: { width: vp.width, height: vp.height }, hasTouch: true });
       const page = await ctx.newPage();
@@ -220,7 +233,7 @@ async function main(): Promise<void> {
     await browser.close();
 
     if (violations.length === 0) {
-      console.log(`mobilecheck: CLEAN — ${NAVS.length} nav screens (registry-derived) + in-run × ${VIEWPORTS.map((v) => v.name).join('/')}, portrait tab-shell walked, no overflow/clipped text/sub-${TAP_MIN}px targets.`);
+      console.log(`mobilecheck: CLEAN — ${NAVS.length} nav screens (registry-derived) + in-run × ${VIEWPORTS.map((v) => v.name).join('/')}, landscape drawer walked, rotate gate holds portrait, no overflow/clipped text/sub-${TAP_MIN}px targets.`);
       process.exit(0);
     }
     console.error(`mobilecheck: ${violations.length} violation(s)`);
@@ -277,117 +290,102 @@ async function desktopRailWalk(page: import('playwright-core').Page, vpName: str
   return out;
 }
 
-/** Portrait phones/tablets: the tab shell — the bar, the index rows, the drill-down, the return. */
-async function portraitShellWalk(page: import('playwright-core').Page, vpName: string): Promise<Violation[]> {
+/** The ROTATE GATE contract (RotateGate.tsx): a portrait touch viewport shows the hold —
+ *  full-coverage, titled, above everything — and that IS the screen (nothing to walk). */
+async function rotateGateContract(page: import('playwright-core').Page, vpName: string): Promise<Violation[]> {
+  return page.evaluate((vpName) => {
+    const out: { screen: string; vp: string; kind: string; detail: string }[] = [];
+    const push = (kind: string, detail: string): void => { out.push({ screen: 'rotate-gate', vp: vpName, kind, detail }); };
+    const gate = document.querySelector<HTMLElement>('.rotate-gate');
+    if (!gate) { push('gate-missing', 'portrait touch viewport did not render the rotate gate'); return out; }
+    const r = gate.getBoundingClientRect();
+    if (r.left > 2 || r.top > 2 || r.right < window.innerWidth - 2 || r.bottom < window.innerHeight - 2) {
+      push('gate-partial', `gate covers ${Math.round(r.width)}×${Math.round(r.height)} of ${window.innerWidth}×${window.innerHeight}`);
+    }
+    const title = (gate.querySelector('.rotate-gate-title')?.textContent ?? '').trim();
+    if (title.length < 4) push('gate-mute', `gate title '${title}'`);
+    const z = Number(getComputedStyle(gate).zIndex) || 0;
+    if (z < 99999) push('gate-underlay', `z-index ${z} — overlays could cover the hold`);
+    return out;
+  }, vpName);
+}
+
+/** Open the narrow-shell ☰ drawer if this shell parks the rail off-canvas (no-op on wide). */
+async function openDrawer(page: import('playwright-core').Page): Promise<void> {
+  const opened = await page.evaluate(() => {
+    const nav = document.querySelector('.hub-nav');
+    const burger = document.querySelector<HTMLElement>('.hub-burger');
+    if (burger && burger.offsetParent !== null && nav && !nav.classList.contains('is-open')) { burger.click(); return true; }
+    return false;
+  });
+  if (opened) await page.waitForTimeout(300);
+}
+
+/** Landscape phones: the SAME door→landing→card discovery walk as desktop, through the
+ *  narrow-shell drawer (☰ opens the off-canvas rail before each door hop). */
+async function landscapeRailWalk(page: import('playwright-core').Page, vpName: string): Promise<Violation[]> {
   const out: Violation[] = [];
-
-  // 1. The bottom bar: all five tabs, visible, thumb-sized.
-  const bar = await page.evaluate((TAB_MIN) => {
-    const tabs = [...document.querySelectorAll<HTMLElement>('.mtab-bar [data-mtab]')];
-    return {
-      keys: tabs.map((t) => t.dataset.mtab),
-      bad: tabs
-        .filter((t) => { const r = t.getBoundingClientRect(); return r.height < TAB_MIN || t.offsetParent === null; })
-        .map((t) => `${t.dataset.mtab} ${Math.round(t.getBoundingClientRect().height)}px`),
-      labels: tabs.filter((t) => ((t.querySelector('.mtab-l')?.textContent ?? '').trim().length ?? 0) < 2).map((t) => t.dataset.mtab),
-    };
-  }, TAB_MIN);
-  for (const tab of TABS) {
-    if (!bar.keys.includes(tab.key)) out.push({ screen: 'tab-bar', vp: vpName, kind: 'tab-missing', detail: `tab '${tab.key}' not rendered` });
-  }
-  for (const b of bar.bad) out.push({ screen: 'tab-bar', vp: vpName, kind: 'tab-size', detail: `tab ${b} < ${TAB_MIN}px` });
-  for (const l of bar.labels ?? []) out.push({ screen: 'tab-bar', vp: vpName, kind: 'tab-unlabelled', detail: `tab '${l}' has no text label` });
-
-  // 2. Walk every tab: index rows are self-describing; each row drills in and returns.
-  const seen = new Set<string>();
-  for (const tab of TABS.filter((t) => t.key !== 'home')) {
-    await page.evaluate((k) => (document.querySelector(`[data-mtab="${k}"]`) as HTMLElement | null)?.click(), tab.key);
-    await page.waitForTimeout(450);
-    const rows = await page.evaluate(() =>
-      [...document.querySelectorAll<HTMLElement>('.mnav-index .mnav-row')].map((r) => ({
-        nav: r.dataset.nav ?? '',
-        name: (r.querySelector('.mnav-name')?.textContent ?? '').trim(),
-        blurb: (r.querySelector('.mnav-blurb')?.textContent ?? '').trim(),
-        h: Math.round(r.getBoundingClientRect().height),
-        locked: r.classList.contains('is-locked'),
-      })));
-    if (rows.length === 0) {
-      out.push({ screen: `tab-${tab.key}`, vp: vpName, kind: 'empty-index', detail: 'tab index rendered zero rows on a developed profile' });
-      continue;
-    }
-    for (const r of rows) {
-      if (!tab.navs.includes(r.nav as (typeof tab.navs)[number])) out.push({ screen: `tab-${tab.key}`, vp: vpName, kind: 'stray-row', detail: `row '${r.nav}' does not belong to this tab` });
-      if (r.name.length < 3) out.push({ screen: `tab-${tab.key}`, vp: vpName, kind: 'row-unnamed', detail: `row '${r.nav}' name '${r.name}'` });
-      if (r.blurb.length < 8) out.push({ screen: `tab-${tab.key}`, vp: vpName, kind: 'row-mute', detail: `row '${r.nav}' has no first-timer blurb` });
-      if (r.h < TAB_MIN) out.push({ screen: `tab-${tab.key}`, vp: vpName, kind: 'row-size', detail: `row '${r.nav}' ${r.h}px < ${TAB_MIN}px` });
-    }
-    out.push(...(await audit(page, `tab-${tab.key}-index`, vpName, true)));
-    // Drill every row (locked rows open their unlock briefing — that must work too).
-    for (const r of rows) {
-      seen.add(r.nav);
-      await page.evaluate((n) => (document.querySelector(`.mnav-row[data-nav="${n}"]`) as HTMLElement | null)?.click(), r.nav);
-      await page.waitForTimeout(650);
-      await dismiss(page);
-      const head = await page.evaluate(() => ({
-        present: !!document.querySelector('.mpage-head'),
-        title: (document.querySelector('.mpage-title')?.textContent ?? '').trim(),
-        backH: Math.round(document.querySelector('.mpage-back')?.getBoundingClientRect().height ?? 0),
-      }));
-      if (!head.present) out.push({ screen: r.nav, vp: vpName, kind: 'no-back-header', detail: 'drilled-in screen has no back header' });
-      else {
-        if (head.title.length < 3) out.push({ screen: r.nav, vp: vpName, kind: 'untitled-page', detail: `page title '${head.title}'` });
-        if (head.backH < 36) out.push({ screen: r.nav, vp: vpName, kind: 'back-size', detail: `back button ${head.backH}px` });
+  let missing = 0;
+  const hubOf = new Map(navGroups().flatMap((g) => g.items.map((i) => [i.key, g.id] as const)));
+  const auditedHubs = new Set<string>();
+  for (const nav of NAVS) {
+    await openDrawer(page);
+    const direct = await page.evaluate((n) => {
+      const el = document.querySelector(`.hub-nav [data-nav="${n}"]`) as HTMLElement | null;
+      if (el) el.click();
+      return !!el;
+    }, nav);
+    if (!direct) {
+      const hub = hubOf.get(nav) ?? '';
+      const doorOpen = await page.evaluate((h) => {
+        const el = document.querySelector(`[data-hub="${h}"]`) as HTMLElement | null;
+        if (el) el.click();
+        return !!el;
+      }, hub);
+      if (!doorOpen) { missing++; continue; }
+      await page.waitForTimeout(450);
+      if (!auditedHubs.has(hub)) {
+        auditedHubs.add(hub);
+        out.push(...(await audit(page, `hub-${hub}`, vpName, true)));
       }
-      out.push(...(await audit(page, r.nav, vpName, true)));
-      await page.evaluate(() => (document.querySelector('.mpage-back') as HTMLElement | null)?.click());
-      await page.waitForTimeout(400);
-      const backOnIndex = await page.evaluate(() => !!document.querySelector('.mnav-index'));
-      if (!backOnIndex) {
-        out.push({ screen: r.nav, vp: vpName, kind: 'back-broken', detail: 'back did not return to the tab index' });
-        await page.evaluate((k) => (document.querySelector(`[data-mtab="${k}"]`) as HTMLElement | null)?.click(), tab.key);
-        await page.waitForTimeout(400);
-      }
+      const card = await page.evaluate((n) => {
+        const el = document.querySelector(`.hubl-grid [data-nav="${n}"]`) as HTMLElement | null;
+        if (el) el.click();
+        return !!el;
+      }, nav);
+      if (!card) { missing++; continue; }
     }
+    await page.waitForTimeout(650);
+    await dismiss(page);
+    out.push(...(await audit(page, nav, vpName, true)));
   }
-  // Home tab: jumps straight to the Command Center (no index page).
-  await page.evaluate(() => (document.querySelector('[data-mtab="home"]') as HTMLElement | null)?.click());
-  await page.waitForTimeout(500);
-  await dismiss(page);
-  out.push(...(await audit(page, 'home', vpName, true)));
-  seen.add('home');
-
-  // 3. Coverage floor: a gating/shell regression that empties the indexes must fail loudly.
-  if (seen.size < Math.min(15, NAVS.length)) {
-    out.push({ screen: 'tab-shell', vp: vpName, kind: 'coverage-collapse', detail: `only ${seen.size} screens reachable through the tab shell on a developed profile` });
-  }
+  if (missing > 6) out.push({ screen: 'hub', vp: vpName, kind: 'rail-coverage', detail: `${missing}/${NAVS.length} registry navs unreachable via drawer→landing on a developed profile` });
   return out;
 }
 
-/** The portrait combat dock contract: the primary loop must be playable one-handed. */
-function portraitRunContract(page: import('playwright-core').Page, vpName: string): Promise<Violation[]> {
+/** The landscape combat contract: the board dominates the short viewport, the primary
+ *  action is thumb-sized and on-screen, the tray is reachable. (The dock may be inline —
+ *  fixed positioning was the PORTRAIT dock's law, retired with it.) */
+function landscapeRunContract(page: import('playwright-core').Page, vpName: string): Promise<Violation[]> {
   return page.evaluate((vpName) => {
     const out: { screen: string; vp: string; kind: string; detail: string }[] = [];
     const push = (kind: string, detail: string): void => { out.push({ screen: 'in-run', vp: vpName, kind, detail }); };
-    const dock = document.querySelector<HTMLElement>('.build-controls');
-    if (!dock) push('dock-missing', 'no .build-controls in the run DOM');
+    const sb = document.querySelector<HTMLElement>('.start-btn');
+    if (!sb) push('startwave-missing', 'no ▶ Start Wave button during prep');
     else {
-      if (getComputedStyle(dock).position !== 'fixed') push('dock-not-fixed', `position=${getComputedStyle(dock).position}`);
-      const sb = document.querySelector<HTMLElement>('.start-btn');
-      if (!sb) push('startwave-missing', 'no ▶ Start Wave button during prep');
-      else {
-        const r = sb.getBoundingClientRect();
-        if (r.height < 44) push('startwave-size', `▶ Start Wave ${Math.round(r.height)}px tall (< 44)`);
-        if (!(r.top >= 0 && r.bottom <= window.innerHeight)) push('startwave-offscreen', `▶ Start Wave spans ${Math.round(r.top)}..${Math.round(r.bottom)} of ${window.innerHeight}`);
+      const r = sb.getBoundingClientRect();
+      if (r.height < 44) push('startwave-size', `▶ Start Wave ${Math.round(r.height)}px tall (< 44)`);
+      if (!(r.top >= 0 && r.bottom <= window.innerHeight && r.left >= 0 && r.right <= window.innerWidth)) {
+        push('startwave-offscreen', `▶ Start Wave spans ${Math.round(r.top)}..${Math.round(r.bottom)} of ${window.innerHeight}`);
       }
     }
     const board = document.querySelector<HTMLElement>('canvas.board');
     if (!board) push('board-missing', 'no battlefield canvas');
     else {
       const r = board.getBoundingClientRect();
-      if (r.height < window.innerHeight * 0.25) push('board-crushed', `board ${Math.round(r.height)}px (< 25% of ${window.innerHeight})`);
+      if (r.height < window.innerHeight * 0.4) push('board-crushed', `board ${Math.round(r.height)}px (< 40% of ${window.innerHeight})`);
     }
-    const rail = document.querySelector<HTMLElement>('.toolbar');
-    if (!rail) push('tray-missing', 'no tower build tray');
+    if (!document.querySelector('.toolbar')) push('tray-missing', 'no tower build tray');
     return out;
   }, vpName);
 }

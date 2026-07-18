@@ -1351,7 +1351,7 @@ graph TD
 
 *Reusable presentation components every screen composes (icons, bars, count-ups) — the component library.*
 
-- **Files:** `src/ui/components/Icon.tsx` · `src/ui/components/ProgressBar.tsx` · `src/ui/components/useCountUp.ts` · `src/ui/components/usePressRepeat.ts` · `src/ui/components/AudioToggles.tsx` · `src/ui/components/MobileSection.tsx` · `src/ui/layoutProfile.ts` · `src/ui/components/ResponsiveDebug.tsx`
+- **Files:** `src/ui/components/Icon.tsx` · `src/ui/components/ProgressBar.tsx` · `src/ui/components/useCountUp.ts` · `src/ui/components/usePressRepeat.ts` · `src/ui/components/AudioToggles.tsx` · `src/ui/components/MobileSection.tsx` · `src/ui/layoutProfile.ts` · `src/ui/components/ResponsiveDebug.tsx` · `src/ui/components/RotateGate.tsx`
 - **Depends on:** —
 - **Consumers — what breaks if you change this:** —
 - **Power Score:** — (intentionally none)

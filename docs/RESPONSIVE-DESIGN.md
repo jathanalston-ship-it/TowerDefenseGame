@@ -14,8 +14,8 @@ The UI is not "one layout resized" — it is THREE interfaces sharing one identi
 | profile | rule | intent |
 |---|---|---|
 | `desktop` | everything else (incl. landscape tablets / Deck / ultrawide) | information-rich, pointer-first |
-| `landscape` | wider than tall AND height ≤ 520px | phone rotated: NOT a supported play mode (kept honest, never designed for) |
-| `portrait` | taller than wide AND width ≤ 900px | **the phone game** (§mobile-shell): tab bar + index pages + drill-down screens |
+| `landscape` | wider than tall AND height ≤ 520px | **the phone game** (§landscape): drawer nav + stacked run — phones play horizontal ONLY |
+| `portrait` | taller than wide AND width ≤ 900px | touch ⇒ the **ROTATE GATE** (`RotateGate.tsx` — the full-screen hold); mouse-narrow windows keep the compact shell |
 
 Components branch via `useLayoutProfile()`; new CSS keys on `html[data-layout="…"]` /
 `html[data-coarse="1"]`. The legacy width bands below (860/900/640/Deck) remain the underlying
@@ -26,6 +26,32 @@ One rAF-debounced resize listener feeds the store; profile reads are cached (fre
 unreachable controls, no tutorial cues pointing at off-screen targets, no horizontal scrolling,
 no clipped text, no off-screen popups — at ANY supported size. `npm run mobilecheck` (in
 `npm run validate`) fails the build on each of these.
+
+## 0b. The LANDSCAPE MANDATE (2026-07-18) — phones play horizontal only
+
+The vertical phone game was retired by decision: the upgrade consoles are widescreen
+organisms and portrait could not carry them. The contract now:
+
+- **Touch + portrait ⇒ the ROTATE GATE** (`src/ui/components/RotateGate.tsx`): a full-screen
+  hold above every overlay (z 100000), live-event tinted, cleared the same frame the device
+  rotates (it reads `useLayoutProfile()`, never raw width). Phones AND portrait tablets.
+- **Touch + landscape ⇒ the phone game**: the narrow-shell drawer (☰ opens the off-canvas
+  rail; ≤900px width band) + the stacked run layout. The run/`.game` bands fire on
+  `(max-width: 900px), (max-height: 520px)` — 926×428-class phones are WIDER than 900 but
+  must stack like phones; the height clause is the landscape-phone catch.
+- **Mouse windows are never gated** — desktop is unchanged at any window shape; a narrow
+  desktop window keeps the compact drawer shell it always had.
+- **The platform split**: this gate is the mobile-BROWSER half. The store APP SHELL
+  (iOS/Android, future Capacitor wrap) locks orientation natively, so the gate simply never
+  fires there — shipping needs no change on this side.
+- **`npm run mobilecheck` v3 enforces all of it**: the door→landing→card walk runs at
+  844×390 and 926×428 (through the drawer) + tablet-landscape 1024×768 + desktop; the
+  in-run landscape contract (≥44px on-screen ▶ Start Wave, board ≥40% of the viewport
+  height, tray present); the tutorial walk completes at 844×390; portrait touch viewports
+  must show the gate full-coverage (and it must NEVER leak into a playable orientation).
+- The v2 portrait tab shell (`MobileShell.tsx`, §mobile-shell below) remains in the code for
+  mouse-narrow windows only — it is no longer a supported PHONE surface and is no longer
+  CI-walked; treat §mobile-shell as legacy reference.
 
 ## 1. The platform matrix (what we design for and test at)
 

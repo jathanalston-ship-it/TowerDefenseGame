@@ -267,10 +267,18 @@ Content — not systems — is the binding constraint (see EA-DESIGN-AUDIT). The
   `<html>` (`data-layout`, `data-coarse`) + `useLayoutProfile()` — three intentional interfaces
 - ✅ **Portrait run shell scrolls** (100dvh + overflow-y) — fixed the tutorial-blocking clipped column
 - ✅ **Adaptive tutorial**: auto scroll-into-view per checkpoint, callout flip+clamp, no off-screen arrows
-- ✅ **Responsive gate** (`npm run mobilecheck`, in validate): registry-derived screen sweep
-  (navModel) at desktop/portrait×2/tablet-portrait + portrait tab-shell walk + combat-dock
-  contract + tutorial walk + popup detector; landscape phones out of the default gate
-  (vertical-only play); `--full` = full published matrix; DebugPanel 📐 visualizer
+- ✅ **THE LANDSCAPE MANDATE** (RESPONSIVE-DESIGN.md §0b, 2026-07-18): phones play
+  horizontal ONLY — touch+portrait renders the full-screen `RotateGate` (live-event tinted,
+  clears the frame the device rotates); touch+landscape IS the phone game (drawer shell +
+  stacked run; the `.game` bands fire on `(max-width:900px),(max-height:520px)` so
+  926-wide phones stack); mouse windows never gated; the store app shell locks orientation
+  natively (the browser gate is one half of the platform split)
+- ✅ **Responsive gate v3** (`npm run mobilecheck`, in validate): registry-derived
+  door→landing→card sweep at desktop-1366 + landscape-844×390 + landscape-926×428 (through
+  the ☰ drawer) + tablet-landscape-1024×768; landscape run contract (≥44px on-screen
+  ▶ Start Wave, board ≥40% height, tray); tutorial walk at 844×390; rotate-gate coverage
+  asserted on portrait phone AND portrait tablet, gate-leak asserted absent on playable
+  orientations; `--full` = full published matrix; DebugPanel 📐 visualizer
 - ✅ **Portrait shell — the phone game** (docs/RESPONSIVE-DESIGN.md §3b, 2026-07 rebuild):
   `src/ui/navModel.ts` (single nav IA source: groups + five-tab mapping + `tabOf`) ·
   `src/ui/MobileShell.tsx` (fixed bottom tab bar, self-describing index pages fed by

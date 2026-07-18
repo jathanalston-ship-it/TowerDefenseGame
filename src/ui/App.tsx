@@ -70,6 +70,7 @@ import type { ArenaTransport } from '../net/arenaTransport';
 import type { DeployInfo } from './DeployScreen';
 import { DIFFICULTIES } from '../core/difficulty';
 import { initLayoutProfile } from './layoutProfile';
+import { RotateGate } from './components/RotateGate';
 
 initLayoutProfile(); // stamp data-layout/data-coarse on <html> before first paint (docs/RESPONSIVE-DESIGN.md)
 
@@ -488,6 +489,10 @@ export function App(): JSX.Element {
 
   return (
     <div className="app">
+      {/* Phones play horizontal ONLY (RESPONSIVE-DESIGN.md §landscape) — the gate covers
+          every screen state (hub, deploy, run, overlays) and clears the frame the device
+          rotates. Mouse-pointer windows are never gated. */}
+      <RotateGate />
       {screen === 'menu' && purchaseNote && (
         <div className="purchase-note" role="status">
           <span>{purchaseNote}</span>

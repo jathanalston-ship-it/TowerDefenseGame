@@ -4,10 +4,24 @@
 > before committing. Read together with docs/PROJECT_STATUS.md and the latest
 > docs/VALIDATION_REPORT.md. Next session: start at docs/PROJECT_MANIFEST.md.
 
-- **Generated:** 2026-07-18 05:23 UTC · **Diff scope:** the Live Events wiring batch (2026-07-18p)
-- **Branch:** claude/zen-hawking-rh1gxl · **HEAD:** fdbf267 (+ the rituals commit that carries this file)
+- **Generated:** 2026-07-18 06:00 UTC · **Diff scope:** the Landscape Mandate batch (2026-07-18q; 18p = Live Events wiring, see PROJECT_STATUS)
+- **Branch:** claude/zen-hawking-rh1gxl
 
-## Summary of work completed
+## THIS batch (2026-07-18q): the Landscape Mandate
+
+Phones play horizontal ONLY. `RotateGate.tsx` (claimed under `ui-kit`) holds touch+portrait
+full-screen (clears on rotate via `useLayoutProfile`); touch+landscape is the phone game
+(drawer shell + stacked run — the `.game` bands fire on `(max-width:900px),(max-height:520px)`
+so 926-wide phones stack); mouse windows never gated. `scripts/mobilecheck.ts` v3: landscape
+walk through the ☰ drawer at 844×390 + 926×428, tablet-land 1024×768, landscape run
+contract, tutorial at 844×390, rotate-gate coverage + leak-absence assertions; the v2
+portrait tab-shell walk is retired (MobileShell = legacy, mouse-narrow only). Docs:
+RESPONSIVE-DESIGN.md §0b + GAME-STATE responsive section. CLEAN first pass; validate PASS.
+NEXT IN QUEUE: #351 Auction House (Mulligan organs + integration audit + visual overhaul),
+#352 website deploy-verify (CI lands PREVIEW deploys — pin production_branch via the CF API
+in deploy.yml, then verify the live URL), #350 recommendations prominence.
+
+## Summary of work completed (2026-07-18p — the previous batch this session)
 
 The Live Event framework's CONSUMER batch — the queue's #347: the identity engine now
 touches the player. Save **v50** adds the `liveEvents` window-scoped ledgers
