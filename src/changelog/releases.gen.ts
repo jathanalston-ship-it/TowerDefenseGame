@@ -1378,6 +1378,14 @@ export const RELEASES: Release[] = [
       {
         "cat": "Visuals",
         "text": "Icon Language: the universal visual language + inheritance contract"
+      },
+      {
+        "cat": "Website",
+        "text": "Rituals: chronicle + site + handoff/status boards for the icon-language batch"
+      },
+      {
+        "cat": "UI",
+        "text": "Info hierarchy: the cognitive-load budget, measured and enforced"
       }
     ]
   },

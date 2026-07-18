@@ -1,6 +1,6 @@
 {
-  "lastSha": "399935b2aa9e9a7f6f39593f8eeb880e51370b83",
-  "commitsSinceDraft": 0,
+  "lastSha": "9c8643398cca654818b222efc7b5f2eb7ef71a3f",
+  "commitsSinceDraft": 2,
   "content": {
     "tower": [
       "needle",
@@ -2881,6 +2881,14 @@
         {
           "cat": "Visuals",
           "text": "Icon Language: the universal visual language + inheritance contract"
+        },
+        {
+          "cat": "Website",
+          "text": "Rituals: chronicle + site + handoff/status boards for the icon-language batch"
+        },
+        {
+          "cat": "UI",
+          "text": "Info hierarchy: the cognitive-load budget, measured and enforced"
         }
       ]
     }
@@ -5387,6 +5395,22 @@
       "date": "2026-07-18",
       "cat": "Visuals",
       "text": "Icon Language: the universal visual language + inheritance contract",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "5c2cf07ba9ab879ec4692ae04cdd5a4a92043f48",
+      "date": "2026-07-18",
+      "cat": "Website",
+      "text": "Rituals: chronicle + site + handoff/status boards for the icon-language batch",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "9c8643398cca654818b222efc7b5f2eb7ef71a3f",
+      "date": "2026-07-18",
+      "cat": "UI",
+      "text": "Info hierarchy: the cognitive-load budget, measured and enforced",
       "internal": false,
       "needsReview": false
     }

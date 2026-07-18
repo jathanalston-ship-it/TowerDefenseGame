@@ -337,3 +337,5 @@
 - `071cbf3` **[UI]** Recommended decisions lead every screen (the prominence pass)
 - `5bca3ba` **[Website]** Chronicle + site sync for the prominence batch
 - `399935b` **[Visuals]** Icon Language: the universal visual language + inheritance contract
+- `5c2cf07` **[Website]** Rituals: chronicle + site + handoff/status boards for the icon-language batch
+- `9c86433` **[UI]** Info hierarchy: the cognitive-load budget, measured and enforced
