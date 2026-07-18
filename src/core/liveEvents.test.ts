@@ -107,3 +107,15 @@ describe('the economy laws', () => {
     }
   });
 });
+
+describe('gameplay mutations & ceremony identity (§7)', () => {
+  it('every event names a ceremony machine and a gameplay package', () => {
+    for (const e of LIVE_EVENTS_V2) {
+      expect(e.ceremony, e.id).toBeDefined();
+      expect(e.gameplay, e.id).toBeDefined();
+    }
+  });
+  it('co-active triples never share a ceremony (validated law) and defs have distinct pacing', () => {
+    expect(liveEventProblems()).toEqual([]);
+  });
+});

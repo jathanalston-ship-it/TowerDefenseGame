@@ -69,6 +69,46 @@ export interface EventVariantPackage {
   bossTitle?: string; // "Herald of the Bloom"
 }
 
+/** Reward-ceremony identities (docs/LIVE-EVENTS.md §7) — each event names its MACHINE, and
+ *  co-active events must never share one (validated like accents), so players associate the
+ *  presentation with the event instantly. NOT reskins: each id carries its own pacing/
+ *  anticipation/reveal contract that the ceremony renderer implements per machine. */
+export type CeremonyId =
+  | 'mutation-chamber' | 'dna-sequencer' | 'organic-slots' | 'incubation-pod'
+  | 'hive-excavation' | 'evolution-chamber' | 'bio-reactor' | 'living-wheel';
+export interface CeremonyDef {
+  id: CeremonyId;
+  /** Beat length between reveals (pacing identity — slots rattle, incubation breathes). */
+  paceMs: number;
+  anticipation: 'charge' | 'crank' | 'heartbeat' | 'dig' | 'sequence' | 'pressure';
+  reveal: 'burst' | 'hatch' | 'unearth' | 'printout' | 'spin-stop' | 'boil-over';
+  soundSet: string; // audio cue family prefix (renderer maps to synth voices)
+}
+export const CEREMONIES: Record<CeremonyId, CeremonyDef> = {
+  'mutation-chamber': { id: 'mutation-chamber', paceMs: 900, anticipation: 'pressure', reveal: 'burst', soundSet: 'mutate' },
+  'dna-sequencer': { id: 'dna-sequencer', paceMs: 450, anticipation: 'sequence', reveal: 'printout', soundSet: 'sequence' },
+  'organic-slots': { id: 'organic-slots', paceMs: 300, anticipation: 'crank', reveal: 'spin-stop', soundSet: 'slots' },
+  'incubation-pod': { id: 'incubation-pod', paceMs: 1400, anticipation: 'heartbeat', reveal: 'hatch', soundSet: 'incubate' },
+  'hive-excavation': { id: 'hive-excavation', paceMs: 800, anticipation: 'dig', reveal: 'unearth', soundSet: 'dig' },
+  'evolution-chamber': { id: 'evolution-chamber', paceMs: 1100, anticipation: 'charge', reveal: 'burst', soundSet: 'evolve' },
+  'bio-reactor': { id: 'bio-reactor', paceMs: 700, anticipation: 'pressure', reveal: 'boil-over', soundSet: 'reactor' },
+  'living-wheel': { id: 'living-wheel', paceMs: 550, anticipation: 'crank', reveal: 'spin-stop', soundSet: 'roulette' },
+};
+
+/** Gameplay mutation package — every axis rides an EXISTING boot-time, sim-safe seam:
+ *  runEffects (CardEffect[], the App extraRunEffects path) for hero/tower buffs; daily
+ *  modifier ids for enemy/boss pressure; the daily plan's megaBoss vocabulary for temporary
+ *  raid bosses; declared ids for hazards/pickups/containers (renderer + loot seams). */
+export interface EventGameplayPackage {
+  heroBuff?: { name: string; desc: string };
+  towerBuff?: { name: string; desc: string };
+  hazard?: { id: string; name: string; desc: string };
+  pickup?: { id: string; name: string; desc: string };
+  tempMegaBoss?: string; // mega encounter id (the daily-plan megaBoss vocabulary)
+  eventContainer?: { rarity: 'rare' | 'epic'; name: string };
+  biomeTint?: string; // battlefield backdrop tint (renderer seam)
+}
+
 export type EventHorizon = 'short' | 'medium' | 'major';
 
 export interface LiveEventDefV2 {
@@ -88,6 +128,8 @@ export interface LiveEventDefV2 {
   track?: EventTrackMilestone[]; // milestones over tokens earned (claims are meta-side)
   challenges?: EventChallenge[]; // pay tokens through the quest judge
   gameplayModifiers?: string[]; // DAILY MODIFIER ids — boot-time, sim-safe, opt-in per run
+  gameplay?: EventGameplayPackage; // the wider mutation axes (buffs/hazards/pickups/megas)
+  ceremony?: CeremonyId; // the event's reward-presentation machine (distinct when co-active)
   hubDecorations?: string[]; // additional CSS tokens (garlands, membranes, banners)
   variants?: EventVariantPackage;
   shop?: EventShopRow[]; // token sink (anti-inflation guard #2: finite stock)
@@ -131,6 +173,7 @@ export const LIVE_EVENTS_V2: LiveEventDefV2[] = [
     track: [{ at: 15, rewards: [{ kind: 'cores', qty: 120 }] }, { at: 35, rewards: [{ kind: 'mats', scrap: 10, mutagen: 2 }] }],
     gameplayModifiers: ['blood_frenzy'],
     variants: { enemyTint: '#ff6a3c', enemySuffix: 'Emberborn' },
+    ceremony: 'bio-reactor', gameplay: { towerBuff: { name: 'Vent-Fired Chambers', desc: 'Towers vent heat: attack tempo rises near thermal fissures.' }, hazard: { id: 'thermal_fissure', name: 'Thermal Fissure', desc: 'Lanes crack open and scorch anything standing in them.' }, biomeTint: '#3a140a' },
     lore: [{ title: 'Vent Reading I', body: 'The heat is not geological. Something breathes down there.' }],
   },
   {
@@ -147,6 +190,7 @@ export const LIVE_EVENTS_V2: LiveEventDefV2[] = [
     track: [{ at: 15, rewards: [{ kind: 'geneEssence', qty: 90 }] }, { at: 33, rewards: [{ kind: 'container', rarity: 'rare', count: 1 }] }],
     gameplayModifiers: ['regeneration'],
     variants: { enemyTint: '#7ddc5a', enemySuffix: 'Blooming' },
+    ceremony: 'incubation-pod', gameplay: { heroBuff: { name: 'Pollen Symbiosis', desc: 'Heroes regenerate amid the drifting bloom.' }, pickup: { id: 'pollen_cluster', name: 'Pollen Cluster', desc: 'Drifting clusters burst into biomass when collected.' }, biomeTint: '#12240a' },
     lore: [{ title: 'Pollen Census', body: 'Every spore lands. None of them die. Count again.' }],
   },
   {
@@ -163,6 +207,7 @@ export const LIVE_EVENTS_V2: LiveEventDefV2[] = [
     track: [{ at: 15, rewards: [{ kind: 'ichor', qty: 6 }] }, { at: 33, rewards: [{ kind: 'cores', qty: 160 }] }],
     gameplayModifiers: ['myopia'],
     variants: { bossTint: '#41d0e8', bossTitle: 'Signal-Bearer' },
+    ceremony: 'dna-sequencer', gameplay: { hazard: { id: 'static_veil', name: 'Static Veil', desc: 'Rolling interference dims tower sight lines.' }, tempMegaBoss: 'signal_bearer', biomeTint: '#071018' },
     lore: [{ title: 'Intercept 88.1', body: 'We stopped decoding it when it started answering.' }],
   },
   // ── MEDIUM ring (14-day seasons; ring of 3 ⇒ a 6-week cycle) ──
@@ -190,6 +235,7 @@ export const LIVE_EVENTS_V2: LiveEventDefV2[] = [
     gameplayModifiers: ['ironhide'],
     variants: { bossTint: '#e8b234', bossTitle: 'Bountied' },
     achievements: [], collections: [],
+    ceremony: 'hive-excavation', gameplay: { towerBuff: { name: 'Marked Quarry', desc: 'Bountied bosses take focused fire from all towers.' }, eventContainer: { rarity: 'rare', name: 'Bounty Crate' }, biomeTint: '#241c08' },
     lore: [{ title: 'The Ledger', body: 'The hive does not hate its prey. It keeps accounts.' }],
   },
   {
@@ -215,6 +261,7 @@ export const LIVE_EVENTS_V2: LiveEventDefV2[] = [
     ],
     gameplayModifiers: ['dormancy'],
     variants: { enemyTint: '#4de0c4', enemySuffix: 'Tide-Borne' },
+    ceremony: 'organic-slots', gameplay: { heroBuff: { name: 'Pressure Adaptation', desc: 'Heroes move faster the deeper the descent runs.' }, pickup: { id: 'shell_drift', name: 'Shell Drift', desc: 'Tidal shells wash across lanes carrying loot.' }, biomeTint: '#062028' },
     lore: [{ title: 'Depth Chart', body: 'The map ends. The current does not.' }],
   },
   {
@@ -240,6 +287,7 @@ export const LIVE_EVENTS_V2: LiveEventDefV2[] = [
     ],
     gameplayModifiers: ['famine', 'scarcity'],
     variants: { enemyTint: '#ff4d6d', enemySuffix: 'Starved' },
+    ceremony: 'mutation-chamber', gameplay: { hazard: { id: 'blight_soil', name: 'Blighted Soil', desc: 'Starved ground taxes biomass income on afflicted plots.' }, eventContainer: { rarity: 'rare', name: 'Ration Cache' }, biomeTint: '#240a10' },
     lore: [{ title: 'Tithe Record', body: 'Hunger is the oldest doctrine. The hive merely wrote it down.' }],
   },
   // ── MAJOR ring (91-day epochs; ring of 2 ⇒ a two-season year arc) ──
@@ -269,6 +317,7 @@ export const LIVE_EVENTS_V2: LiveEventDefV2[] = [
     gameplayModifiers: ['infestation'],
     variants: { bossTint: '#b64dff', bossTitle: 'Remembered' },
     unlockReq: { campaignStage: 3 },
+    ceremony: 'evolution-chamber', gameplay: { heroBuff: { name: 'Inherited Memory', desc: 'Heroes begin runs with an extra gene draft.' }, tempMegaBoss: 'the_remembered', eventContainer: { rarity: 'epic', name: 'Memory Vault' }, biomeTint: '#150a20' },
     lore: [
       { title: 'Stratum I', body: 'Assimilation is not conquest. It is curation.' },
       { title: 'Stratum II', body: 'Ask the hive what it keeps. The answer is: everything that held.' },
@@ -300,6 +349,7 @@ export const LIVE_EVENTS_V2: LiveEventDefV2[] = [
     gameplayModifiers: ['overrun'],
     variants: { enemyTint: '#66bb6a', enemySuffix: 'Overgrown' },
     unlockReq: { campaignStage: 3 },
+    ceremony: 'living-wheel', gameplay: { towerBuff: { name: 'Rootbound Grafts', desc: 'Towers grow: sustained placement thickens their armor.' }, pickup: { id: 'seed_pod', name: 'Seed Pod', desc: 'Falling pods sprout temporary blockers when collected.' }, biomeTint: '#0c1c08' },
     lore: [
       { title: 'Ring Count I', body: 'The rings do not mark years. They mark appetites.' },
       { title: 'Ring Count II', body: 'Prune nothing. The hive is watching what you keep.' },
@@ -436,9 +486,15 @@ export function liveEventProblems(): string[] {
   const superDays = [3 * RING.short.length, 14 * RING.medium.length, 91 * RING.major.length].reduce(lcm);
   for (let d = 0; d < superDays; d += 3) {
     const t = BP.epochMs + d * 86_400_000 + 3_600_000;
-    const accents = activeLiveEvents(t).map((a) => a.def.theme.accent.toLowerCase());
+    const act = activeLiveEvents(t);
+    const accents = act.map((a) => a.def.theme.accent.toLowerCase());
     if (new Set(accents).size !== accents.length) {
       out.push(`day +${d}: co-active events share an accent (${accents.join(', ')}) — overlap unreadable`);
+      break;
+    }
+    const cers = act.map((a) => a.def.ceremony).filter((c): c is CeremonyId => !!c);
+    if (new Set(cers).size !== cers.length) {
+      out.push(`day +${d}: co-active events share a ceremony (${cers.join(', ')}) — recognition broken`);
       break;
     }
   }

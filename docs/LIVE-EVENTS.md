@@ -99,3 +99,28 @@ f2p-regular 0.70 / veteran 0.85 / whale 1.00 of each pool: new players reach ≥
 track, the full pool completes each track exactly (no dead tail, no overshoot — tokens are
 engagement-only, unpurchasable, so whales cannot skip), and repeat value holds. Long-term
 engagement is the only lever that moves an event track.
+
+## 7. Gameplay mutations & reward ceremonies (2026-07)
+
+**Gameplay** — every event carries an `EventGameplayPackage` beside its daily-modifier ids:
+hero/tower buffs (named, ride the boot-time `runEffects` seam), unique hazards and pickups
+(declared ids for the renderer/engine seams), temporary Mega Bosses (the daily plan's
+`megaBoss` vocabulary), event-only containers, and a battlefield `biomeTint`. All axes are
+boot-time and declarative — the deterministic sim is never branched mid-run.
+
+**Ceremonies** — `CEREMONIES` is the machine registry: mutation-chamber, dna-sequencer,
+organic-slots, incubation-pod, hive-excavation, evolution-chamber, bio-reactor,
+living-wheel. Each carries its own pacing (`paceMs` 300–1400), anticipation (charge/crank/
+heartbeat/dig/sequence/pressure), reveal style (burst/hatch/unearth/printout/spin-stop/
+boil-over) and sound-set family — contracts the ceremony renderer implements PER machine,
+not reskins. Every event names one; a new validator law guarantees co-active triples never
+share a ceremony (checked across the full rotation super-cycle, like accents), so the
+presentation IS the event's signature. Assignments: Ember Tide→bio-reactor, Spore Bloom→
+incubation-pod, Static Night→dna-sequencer, Great Hunt→hive-excavation, Deep Current→
+organic-slots, Red Famine→mutation-chamber, Epoch of Assimilation→evolution-chamber,
+Epoch of Overgrowth→living-wheel.
+
+**Hub mutation** — the visuals package already carries hubMutation/bgEffect/menuTransition/
+notificationStyle per event; §4's `data-event` seam applies them at the hub root, and the
+gameplay package's biomeTint extends the identity onto the battlefield. The renderer batch
+implements the machines and ambience; the contracts (and their recognition laws) are final.
