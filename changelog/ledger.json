@@ -1,6 +1,6 @@
 {
-  "lastSha": "13a11cc61ecb2b136c223b4ad02528e8d5eb03fc",
-  "commitsSinceDraft": 9,
+  "lastSha": "eaf734f487c65ead718ded802ea65429fe7cb36a",
+  "commitsSinceDraft": 0,
   "content": {
     "tower": [
       "needle",
@@ -2805,6 +2805,10 @@
         {
           "cat": "Gameplay",
           "text": "Bio-Roulette game-wide: banked spores, multi-source drops, Vault bay"
+        },
+        {
+          "cat": "Gameplay",
+          "text": "Reward Frequency Engineering: measured-hour instrument + bands + quick-finisher"
         }
       ]
     }
@@ -5129,6 +5133,22 @@
       "text": "Docs + rituals: roulette-integration batch (handoff, status, notes, validation)",
       "internal": true,
       "needsReview": true
+    },
+    {
+      "sha": "ea9216512c5ad0e33549183d7c9f4f6d75d139c1",
+      "date": "2026-07-18",
+      "cat": "Framework",
+      "text": "Docs + rituals: roulette-integration batch (handoff, status, notes, validation)",
+      "internal": true,
+      "needsReview": true
+    },
+    {
+      "sha": "eaf734f487c65ead718ded802ea65429fe7cb36a",
+      "date": "2026-07-18",
+      "cat": "Gameplay",
+      "text": "Reward Frequency Engineering: measured-hour instrument + bands + quick-finisher",
+      "internal": false,
+      "needsReview": false
     }
   ]
 }

@@ -312,3 +312,7 @@
 - `d8002dc` **[Website]** Rituals: chronicle + graphs + site regen for the localized economy batch
 - `3af05a0` **[Gameplay]** Bio-Roulette game-wide: banked spores, multi-source drops, Vault bay
 - ⚑ `13a11cc` **[Framework]** Docs + rituals: roulette-integration batch (handoff, status, notes, validation) _(internal)_
+## 2026-07-18
+
+- ⚑ `ea92165` **[Framework]** Docs + rituals: roulette-integration batch (handoff, status, notes, validation) _(internal)_
+- `eaf734f` **[Gameplay]** Reward Frequency Engineering: measured-hour instrument + bands + quick-finisher

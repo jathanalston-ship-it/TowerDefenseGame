@@ -1302,6 +1302,10 @@ export const RELEASES: Release[] = [
       {
         "cat": "Gameplay",
         "text": "Bio-Roulette game-wide: banked spores, multi-source drops, Vault bay"
+      },
+      {
+        "cat": "Gameplay",
+        "text": "Reward Frequency Engineering: measured-hour instrument + bands + quick-finisher"
       }
     ]
   },

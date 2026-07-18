@@ -3,7 +3,23 @@
 > Maintained at the END of every session (paired with `docs/AI_HANDOFF.md` — the constitution's
 > workflow step 4). This is the "where are we?" answer; `docs/GAME-STATE.md` remains the deeper
 > per-system built-vs-planned index, `docs/PROJECT_MANIFEST.md` the system map.
-> **Last updated:** 2026-07-17k (**BIO-ROULETTE GAME-WIDE** (user brief: "integrate the
+> **Last updated:** 2026-07-18l (**REWARD FREQUENCY ENGINEERING** (user brief) —
+> docs/REWARD-FREQUENCY.md, the permanent MACHINE-ENFORCED philosophy: maximize meaningful
+> interactions/hour, never by raising values. `core/rewardFrequency.ts`: a 10-verb
+> interaction taxonomy TOTAL over REWARD_SOURCES (`SOURCE_VERB` — a new pathway fails the
+> build until classified), six personas (playstyle × spend × band; run shapes mirror the
+> BP-economy archetypes) walked minute-by-minute with beat rates DERIVED live (real weekly
+> quests via missionCredit, the real BP curve, the measured Ready-Chain tap economy), and
+> FREQUENCY_BANDS as a suite gate: 25–110/hour, gaps ≤6min, taps/interaction ≤2.4, choices
+> 4–60/h, peak ≤10/min, verb spread ≥6. Baseline measured 53.9–64.0/h, taps/i 0.85–0.95.
+> The instrument found ONE drought — long-run personas' 7–9min session tails ("what do I
+> do now?", measured) — fixed VALUE-NEUTRALLY: the QUICK FINISHER wind-down surfaces the
+> already-existing free daily gauntlet entry (`rush.freeEntry` notification + `bossrush`
+> 'play' CHANNEL_CLASS at score 34 — recommends exactly when the chain is spent; zero new
+> grants, §6 decisions log pins every delta at 0). `npm run sim:frequency` prints the
+> diagnostic hour maps. Suite 2463 green. Previous below.)
+>
+> **2026-07-17k** (**BIO-ROULETTE GAME-WIDE** (user brief: "integrate the
 > roulette wheel into as many logical areas as possible") — BOSS-RUSH.md §roulette. The
 > wheel graduates from rush-exclusive to the game's SPORE ENGINE via one banked economy:
 > `save.bioSpores` (v48; sanitizer floors junk, caps 999). Sources: Boss Rush (App.handleEnd
