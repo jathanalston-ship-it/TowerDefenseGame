@@ -292,7 +292,7 @@ graph TD
 | **Dev Tools & Debug** (`devtools`) | `meta-store` · `assimilation` | — | — | — | `docs/DEV-RESET.md` |
 | **Shared UI Component Kit** (`ui-kit`) | — | — | — | — | `docs/UI-STANDARDS.md` · `docs/STYLE-GUIDE.md` · `docs/UI-MOTION.md` · `docs/VISUAL_IDENTITY.md` · `docs/UI_STYLE_GUIDE.md` · `docs/DESIGN_LANGUAGE.md` · `docs/RESPONSIVE-DESIGN.md` |
 | **Player Telemetry & Analytics** (`analytics`) | `meta-store` · `accounts` | — | ⚡ batch context carries the account Power Score (read-only) | — | `docs/ANALYTICS.md` |
-| **Reward Loop Architecture** (`reward-architecture`) | `progression-gating` · `hub-shell` | — | — | — | `docs/REWARD-ARCHITECTURE.md` |
+| **Reward Loop Architecture** (`reward-architecture`) | `progression-gating` · `hub-shell` | — | — | — | `docs/REWARD-ARCHITECTURE.md` · `docs/REWARD-FREQUENCY.md` |
 | **System Registry & Design Intelligence Layer** (`dev-registry`) | — | `pil` | — | — | `docs/DIL.md` · `docs/DEPENDENCY_GRAPH.md` · `docs/ENGINEERING-AUDIT.md` · `docs/GAME_CONSTITUTION.md` · `docs/PROJECT_STATUS.md` · `docs/AI_HANDOFF.md` |
 
 ## Per-system detail — the full blast radius
@@ -1075,7 +1075,7 @@ graph TD
 - **HUD surfaces:** — · **UI screens:** `Hub (nav gating + FeatureLocked)` · `WhatsNew (unlock ceremony)` · `HudTour (revealed stops)` · `CommandCenter (widget gates)`
 - **Collection:** — · **Achievements:** —
 - **Localization:** inline English strings (no i18n layer yet — this field enumerates the surface for the day it lands)
-- **Docs to update on change:** `docs/PROGRESSION-GATING.md` · `docs/UNLOCK-TREE.md` · `docs/REWARD-ARCHITECTURE.md`
+- **Docs to update on change:** `docs/PROGRESSION-GATING.md` · `docs/UNLOCK-TREE.md` · `docs/REWARD-ARCHITECTURE.md` · `docs/REWARD-FREQUENCY.md`
 
 ### Hub Shell & Home (`hub-shell`)
 
@@ -1090,7 +1090,7 @@ graph TD
 - **HUD surfaces:** — · **UI screens:** `Hub` · `CommandCenter` · `ProgressDashboard`
 - **Collection:** — · **Achievements:** —
 - **Localization:** inline English strings (no i18n layer yet — this field enumerates the surface for the day it lands)
-- **Docs to update on change:** `docs/COMMAND-CENTER.md` · `docs/HOME-BASE.md` · `docs/ONE-MORE-RUN.md` · `docs/HUD.md` · `docs/PROGRESSION-LOOP.md` · `docs/UX-CONSOLIDATION.md` · `docs/HIVE-CONSTRUCTION.md` · `docs/INFESTATION.md` · `docs/COSMETICS.md` · `docs/BATTLEPASS.md` · `docs/QUESTS.md` · `docs/PROFILE.md` · `docs/REWARD-ARCHITECTURE.md`
+- **Docs to update on change:** `docs/COMMAND-CENTER.md` · `docs/HOME-BASE.md` · `docs/ONE-MORE-RUN.md` · `docs/HUD.md` · `docs/PROGRESSION-LOOP.md` · `docs/UX-CONSOLIDATION.md` · `docs/HIVE-CONSTRUCTION.md` · `docs/INFESTATION.md` · `docs/COSMETICS.md` · `docs/BATTLEPASS.md` · `docs/QUESTS.md` · `docs/PROFILE.md` · `docs/REWARD-ARCHITECTURE.md` · `docs/REWARD-FREQUENCY.md`
 
 ### In-Run HUD & Results (`run-ui`)
 
@@ -1381,16 +1381,16 @@ graph TD
 
 *The master map of every reward pathway (docs/REWARD-ARCHITECTURE.md): core/rewardLoops.ts classifies ~40 sources into the five loops (collection/progression/upgrade/reward/economy) with machine-enforced laws — no source dead-ends in its own loop, every loop pays at multiple cadences, the full five-loop chain exists from any start. state/loopFlow.ts (session-scoped) + the rotation nudge in state/recommendations.ts hand sessions across loops (+8 other-loop/−6 same-loop, never overturning claim urgency); NextUp handoffs sit on finished claim surfaces. Rebalances are value-neutral drips: the Sector Survey (campaignSurveyBonus — the every-5th milestone lump paid per stage at identical window totals) and the Hive arrival threshold 30→20 min. Reward Frequency > Reward Quantity, validated by npm run sim:rewards personas.*
 
-- **Files:** `src/core/rewardLoops.ts` · `src/state/loopFlow.ts`
+- **Files:** `src/core/rewardLoops.ts` · `src/state/loopFlow.ts` · `src/core/rewardFrequency.ts`
 - **Depends on:** `progression-gating` · `hub-shell`
 - **Consumers — what breaks if you change this:** —
 - **Power Score:** — (intentionally none)
 - **Save fields:** —
 - **Tutorial:** — · **Help mechanics:** —
-- **HUD surfaces:** — · **UI screens:** `loop-rotated Recommended-Now strip` · `NextUp handoffs (Vault/Harvest/Quests/Season)`
+- **HUD surfaces:** — · **UI screens:** `loop-rotated Recommended-Now strip` · `NextUp handoffs (Vault/Harvest/Quests/Season)` · `quick-finisher rec (rush.freeEntry wind-down)`
 - **Collection:** — · **Achievements:** —
 - **Localization:** inline English strings (no i18n layer yet — this field enumerates the surface for the day it lands)
-- **Docs to update on change:** `docs/REWARD-ARCHITECTURE.md`
+- **Docs to update on change:** `docs/REWARD-ARCHITECTURE.md` · `docs/REWARD-FREQUENCY.md`
 
 ### System Registry & Design Intelligence Layer (`dev-registry`)
 

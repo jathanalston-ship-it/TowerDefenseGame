@@ -551,10 +551,10 @@ export const SYSTEMS: SystemDef[] = [
   {
     id: 'reward-architecture', name: 'Reward Loop Architecture',
     purpose: 'The master map of every reward pathway (docs/REWARD-ARCHITECTURE.md): core/rewardLoops.ts classifies ~40 sources into the five loops (collection/progression/upgrade/reward/economy) with machine-enforced laws — no source dead-ends in its own loop, every loop pays at multiple cadences, the full five-loop chain exists from any start. state/loopFlow.ts (session-scoped) + the rotation nudge in state/recommendations.ts hand sessions across loops (+8 other-loop/−6 same-loop, never overturning claim urgency); NextUp handoffs sit on finished claim surfaces. Rebalances are value-neutral drips: the Sector Survey (campaignSurveyBonus — the every-5th milestone lump paid per stage at identical window totals) and the Hive arrival threshold 30→20 min. Reward Frequency > Reward Quantity, validated by npm run sim:rewards personas.',
-    files: ['src/core/rewardLoops.ts', 'src/state/loopFlow.ts'],
+    files: ['src/core/rewardLoops.ts', 'src/state/loopFlow.ts', 'src/core/rewardFrequency.ts'],
     dependsOn: ['progression-gating', 'hub-shell'], powerScore: null, save: [], tutorial: [], help: [],
-    hud: [], ui: ['loop-rotated Recommended-Now strip', 'NextUp handoffs (Vault/Harvest/Quests/Season)'], collection: null, achievements: [],
-    localization: 'inline-en', docs: ['docs/REWARD-ARCHITECTURE.md'],
+    hud: [], ui: ['loop-rotated Recommended-Now strip', 'NextUp handoffs (Vault/Harvest/Quests/Season)', 'quick-finisher rec (rush.freeEntry wind-down)'], collection: null, achievements: [],
+    localization: 'inline-en', docs: ['docs/REWARD-ARCHITECTURE.md', 'docs/REWARD-FREQUENCY.md'],
   },
   {
     id: 'dev-registry', name: 'System Registry & Design Intelligence Layer', purpose: 'THIS registry + the doc-sync/validation generators + the DIL (src/dev/dil/*): the typed knowledge graph over every system/entity/concept — query with `npm run dil` instead of searching the repo (docs/DIL.md).',

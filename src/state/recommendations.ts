@@ -49,6 +49,10 @@ export const CHANNEL_CLASS: Partial<Record<string, { kind: RecKind; score: numbe
   hive: { kind: 'spend', score: 50, why: 'An organ tier is within budget' },
   equipment: { kind: 'spend', score: 46, why: 'New gear is sitting unequipped' },
   market: { kind: 'spend', score: 40, why: 'Stock rotates on a timer — good lots expire' },
+  // The QUICK FINISHER (docs/REWARD-FREQUENCY.md §wind-down): a free short-mode entry that
+  // fills a session tail once claims/opens run dry — scored below every upgrade so it only
+  // surfaces when the chain is spent, exactly the "what do I do now?" moment it answers.
+  bossrush: { kind: 'play', score: 34, why: 'A free gauntlet entry expires at reset — a quick finisher' },
   store: { kind: 'browse', score: 20, why: "Today's rotation hasn't been seen" },
   collection: { kind: 'browse', score: 16, why: 'New codex entries to inspect' },
   profile: { kind: 'browse', score: 14, why: 'Fresh milestones on your record' },

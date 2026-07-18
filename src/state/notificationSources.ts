@@ -51,6 +51,17 @@ registerNotification({
   reason: (s) => `${s.bioSpores} Bio-Spore${s.bioSpores === 1 ? '' : 's'} banked for the Roulette`,
 });
 
+// Boss Rush — today's FREE gauntlet entry is still unused (docs/BOSS-RUSH.md §stamina).
+// The quick-finisher surface (docs/REWARD-FREQUENCY.md §wind-down): a ~6-minute mode the
+// recommendation layer can hand a short session tail to once claims run dry. ISO keys
+// compare lexically, so a forged future freeDay simply waits (same rule as the claim gate).
+registerNotification({
+  id: 'rush.freeEntry',
+  channel: 'bossrush',
+  count: (s) => (s.rushStamina.freeDay < dailyKey() ? 1 : 0),
+  reason: () => 'Free gauntlet entry — expires at reset',
+});
+
 // Idle Harvest — the Hive has banked a ceremony-worthy haul (docs/IDLE-HARVEST.md). Cheap
 // timestamp math only (no collection/power folds — this runs on every badge poll).
 registerNotification({
