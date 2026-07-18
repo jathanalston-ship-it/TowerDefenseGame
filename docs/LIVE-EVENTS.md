@@ -53,17 +53,20 @@ gameplay + rewards + currencies + UI + music + hub + enemies + notifications + c
 
 | Package | Consumer seam | Status |
 |---|---|---|
-| mods | `liveopsMods()` fold (finishRun lanes) | contract defined; fold wiring next batch |
-| theme/visuals/hubMutation | hub root `data-event` + CSS vars (the `--nav-accent` pattern) | next batch (UI) |
-| audio.music | the SeasonDef.music re-voicing seam (music engine already consumes it) | next batch |
-| currency/track/challenges/shop | save module `liveEvents` (v49) + meta claim actions + applyRewardList | next batch |
+| mods | `liveopsMods()` fold (finishRun lanes) | ✅ wired — `liveEventLaneModsNow()` multiplies in at meta's two fold sites (test-neutral, the liveops FIXED_TEST_NOW convention) |
+| theme/visuals/hubMutation | hub root `data-event` + `--event-*` vars via `applyWardrobeDressing` (re-dressed when the trio flips); `loadingLine` on the DeployScreen | ✅ wired |
+| audio.music | the SeasonDef.music re-voicing seam — the owner's transform composes with equipped Wardrobe packs (shifts add, tempo multiplies, brightness averages) | ✅ wired |
+| currency/track/challenges/shop | save module `liveEvents` (v50) + meta claim actions + applyRewardList | ✅ wired (2026-07-18) |
 | gameplayModifiers | the daily `modifierIds` boot path (App → GameView options) | next batch (opt-in toggle) |
 | variants | renderer tint/name overlay seam | declared; renderer wiring future |
-| notifications | `registerNotification` (event.live / event.endingSoon) | next batch |
+| notifications | `registerNotification` — `event.claimable` + `event.endingSoon` on channel `home` (the console's address; the Ready Chain reads the live() lane) | ✅ wired |
 | collections/achievements/lore | codex + achievements registries | declared; rows land with UI batch |
 
-The framework is COMPLETE and validated at the core layer; consumers attach to declared
-packages without touching the registry — that is the "no architectural changes" guarantee.
+The framework is COMPLETE and wired end-to-end at the meta/UI layer (2026-07-18): the
+Command Center's `LiveEventsPanel` is the banner + claim console (challenges → track →
+shop). Remaining seams (gameplayModifiers opt-in toggle, renderer variants/ceremonies,
+codex/achievement rows) attach to declared packages without touching the registry — that
+is the "no architectural changes" guarantee.
 
 ## 5. Authored launch calendar
 

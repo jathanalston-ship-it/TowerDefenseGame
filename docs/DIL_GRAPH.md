@@ -1,6 +1,6 @@
 # DIL_GRAPH.md — the Design Intelligence Layer (GENERATED — `npm run dil -- regen`)
 
-> **The project's brain** (docs/DIL.md). 883 nodes · 1657 edges, built from the live
+> **The project's brain** (docs/DIL.md). 884 nodes · 1661 edges, built from the live
 > registries + curated knowledge (src/dev/dil/). **Query it instead of searching the repo:**
 > `npm run dil -- node <id>` · `affects <id>` · `requires <id>` · `missing <kind> <edge>` ·
 > `checklist tower <kind>` · `find <text>`. Edge kinds are bidirectional (19 kinds).
@@ -8,7 +8,7 @@
 ## Gap report (the graph's own radar)
 
 - **Systems with no test:** `system:infinite`, `system:field-research`, `system:shards-economy`, `system:i18n`, `system:expeditions`, `system:nemesis`, `system:run-ui`, `system:devtools`, `system:ui-kit`
-- **Docs referenced by no system (review for retirement):** `ADVANCED-SYSTEMS.md`, `ARCHITECTURE-AUDIT.md`, `AUCTION-HOUSE.md`, `BACKLOG.md`, `BALANCE_ARCHITECTURE.md`, `BRANCH-EVOLUTION.md`, `BUGFIX-LOG.md`, `CONTENT-ROADMAP.md`, `DEV-FRAMEWORKS.md`, `DIL_GRAPH.md`, `EA-DESIGN-AUDIT.md`, `ENEMIES.md`, `ENEMY-ROSTER.md`, `GAME-STATE.md`, `HISTORY.md`, `HIVE-PRODUCTION.md`, `HIVE-SIEGE.md`, `HUB-FLOW.md`, `IDENTITY-AUDIT.md`, `LIVE-EVENTS.md` · …23 more
+- **Docs referenced by no system (review for retirement):** `ADVANCED-SYSTEMS.md`, `ARCHITECTURE-AUDIT.md`, `AUCTION-HOUSE.md`, `BACKLOG.md`, `BALANCE_ARCHITECTURE.md`, `BRANCH-EVOLUTION.md`, `BUGFIX-LOG.md`, `CONTENT-ROADMAP.md`, `DEV-FRAMEWORKS.md`, `DIL_GRAPH.md`, `EA-DESIGN-AUDIT.md`, `ENEMIES.md`, `ENEMY-ROSTER.md`, `GAME-STATE.md`, `HISTORY.md`, `HIVE-PRODUCTION.md`, `HIVE-SIEGE.md`, `HUB-FLOW.md`, `IDENTITY-AUDIT.md`, `LIVING-HIVE.md` · …22 more
 
 ## Indexes
 
@@ -80,6 +80,7 @@ graph LR
   system_splice_market["Splice Market & Ichor"] -->|consumes| system_meta_store["Meta Store & Save"]
   system_achievements["Achievements"] -->|consumes| system_meta_store["Meta Store & Save"]
   system_stats["Lifetime Stats"] -->|consumes| system_meta_store["Meta Store & Save"]
+  system_liveops["LiveOps calendar"] -->|consumes| system_meta_store["Meta Store & Save"]
   system_directives["Weekly Directives"] -->|consumes| system_meta_store["Meta Store & Save"]
   system_contracts["Champion Contracts"] -->|consumes| system_meta_store["Meta Store & Save"]
   system_infestation["Infestation Map — THE FRONT"] -->|consumes| system_meta_store["Meta Store & Save"]
@@ -172,6 +173,7 @@ graph LR
   system_rendering["Rendering & VFX"] -->|consumes| system_engine["Sim Engine"]
   system_hub_shell["Hub Shell & Home"] -->|modifies| system_progression_gating["Progression Gating & Director"]
   system_analytics["Player Telemetry & Analytics"] -->|consumes| system_hub_shell["Hub Shell & Home"]
+  system_liveops["LiveOps calendar"] -->|modifies| system_meta_store["Meta Store & Save"]
   system_currencies["Currencies & Economy Framework"] -->|modifies| system_idle_harvest["Idle Harvest"]
   system_currencies["Currencies & Economy Framework"] -->|modifies| system_mulligans["Mulligan System"]
   system_infestation["Infestation Map — THE FRONT"] -->|modifies| system_hub_shell["Hub Shell & Home"]
@@ -372,6 +374,7 @@ graph LR
   system_stats["Lifetime Stats"] -->|consumes| system_meta_store["Meta Store & Save"]
   system_liveops["LiveOps calendar"] -->|dependsOn| system_meta_store["Meta Store & Save"]
   system_liveops["LiveOps calendar"] -->|dependsOn| system_daily["Daily Run"]
+  system_liveops["LiveOps calendar"] -->|consumes| system_meta_store["Meta Store & Save"]
   system_directives["Weekly Directives"] -->|dependsOn| system_meta_store["Meta Store & Save"]
   system_directives["Weekly Directives"] -->|dependsOn| system_liveops["LiveOps calendar"]
   system_directives["Weekly Directives"] -->|dependsOn| system_daily["Daily Run"]
@@ -553,6 +556,7 @@ graph LR
   system_loot["Loot & Bio-Containers"] -->|modifies| system_hub_shell["Hub Shell & Home"]
   system_hive_construction["Hive Construction"] -->|modifies| system_idle_harvest["Idle Harvest"]
   system_hub_shell["Hub Shell & Home"] -->|modifies| system_progression_gating["Progression Gating & Director"]
+  system_liveops["LiveOps calendar"] -->|modifies| system_meta_store["Meta Store & Save"]
   system_currencies["Currencies & Economy Framework"] -->|modifies| system_idle_harvest["Idle Harvest"]
   system_currencies["Currencies & Economy Framework"] -->|modifies| system_mulligans["Mulligan System"]
   system_infestation["Infestation Map — THE FRONT"] -->|modifies| system_hub_shell["Hub Shell & Home"]
@@ -802,7 +806,7 @@ _at: src/core/game.ts, src/core/combat.ts, src/core/status.ts, src/core/targetin
   - requiredBy ← `system:onboarding`
   - requiredBy ← `system:run-ui`
   - requiredBy ← `system:bosses`
-  - _…209 more (query: `npm run dil -- node system:engine`)_
+  - _…210 more (query: `npm run dil -- node system:engine`)_
 
 ### `system:content-infra` — Content Infrastructure
 
@@ -1660,15 +1664,18 @@ _at: src/state/stats.ts_
 
 Deterministic UTC event calendar (docs/LIVEOPS.md): weekend surge, a 4-way rotating weekly spotlight (rush/depth/campaign/apex-raid), recurring Mutation Wednesday / Spore Tide / Prime Hunt beats, monthly Harvest Moon + Reclamation peaks and the quarterly Bloom Cycle fold ×1-baseline lane multipliers (cores/essence/materials/mega-ichor/loot, category-tagged) into finishRun + openContainer; a schedule engine (windowEnd/nextWindow) drives the hub console countdowns + UP NEXT forecast. Clock pinned to a spotlight-only Monday under tests.
 
-_at: src/core/liveops.ts, src/core/liveEvents.ts, src/core/eventOps.ts, src/ui/components/LiveEventsStrip.tsx_
+_at: src/core/liveops.ts, src/core/liveEvents.ts, src/core/eventOps.ts, src/ui/components/LiveEventsStrip.tsx, src/ui/components/LiveEventsPanel.tsx_
 
   - dependsOn → `system:meta-store`
   - dependsOn → `system:daily`
+  - consumes → `system:meta-store` — owns save field 'liveEvents'
   - modifies → `system:hub-shell` — LIVE EVENT FRAMEWORK (core/liveEvents.ts — LIVE-EVENTS.md): three independent rotation horizons (short 3d×3 / medium 14d×3 / major 91d×2 rings from BP.epochMs) always simultaneously live; themeOwner() = major>medium>short dresses the hub, others chip. Packages COMPOSE existing vocabularies ONLY: PassReward tracks, quest MissionCond challenges, daily-modifier-id gameplay (boot-time, sim-safe), LiveEventMods lane boosts, SeasonDef.music re-voicing. Anti-inflation: window-scoped tokens (eventId:window, stale keys prune), wallet caps, per-day mint budgets short 220>medium 180>major 120 core-eq validated per window; 3y sim pins flat yearly mint. A new event is ONE LIVE_EVENTS_V2 row — liveEventProblems() gates ids/modifiers/budgets/reachability/ring sizes/accent-distinct overlaps.
   - balances → `concept:power-score` — event reward lanes (cores/essence/materials/mega-ichor/loot) fatten meta INCOME, never gameplay strength — ×1 baseline off-window so the calendar can never warp a run
+  - modifies → `system:meta-store` — LIVE-EVENT WIRING (v50): creditQuests() front-runs creditEventChallenges() so ALL five judged credit seams (runs/containers/expeditions/roulette/passLevels) pay event tokens with zero extra wiring; window-scoped ledgers live in save.liveEvents {tokens,claimed,shopBought,progress} (sanitizeLiveEvents prunes stale eventId:window keys + clamps caps/targets/stock on load); claimEventMilestone (threshold claim, tokens NOT spent) + buyEventShopRow (the sink) pay via applyRewardList → repeat-safe; liveEventLaneMods(now) multiplies WITH liveopsMods() at meta's two lo-fold sites (cycle-free composition); themeOwner() dresses hub root (data-event + --event-* vars) AND menu music via applyWardrobeDressing; LiveEventsPanel (CommandCenter) is banner + claim console; event.claimable/event.endingSoon ride channel home (CHANNEL_CLASS claim 87)
   - requiredBy ← `system:directives`
   - requiredBy ← `system:contracts`
   - documentedBy ← `doc:LIVEOPS.md`
+  - documentedBy ← `doc:LIVE-EVENTS.md`
   - testedBy ← `test:src/core/eventOps.test.ts`
   - testedBy ← `test:src/core/liveEvents.test.ts`
   - testedBy ← `test:src/core/liveops.test.ts`
@@ -2093,7 +2100,7 @@ _at: src/state/meta.ts, src/state/store.ts, src/state/prefs.ts, src/state/devRes
   - consumedBy ← `system:mulligans` — owns save field 'mulligans'
   - consumedBy ← `system:mulligans` — owns save field 'mulliganDex'
   - consumedBy ← `system:premium` — owns save field 'premium'
-  - _…121 more (query: `npm run dil -- node system:meta-store`)_
+  - _…123 more (query: `npm run dil -- node system:meta-store`)_
 
 ### `system:bosses` — Bosses
 
@@ -3624,7 +3631,7 @@ _at: site/guides.ts → /guides/live-events/_
 - `doc:IDLE-HARVEST.md` — project documentation _(documents `system:idle-harvest`)_
 - `doc:INFESTATION.md` — project documentation _(documents `system:infestation`)_
 - `doc:LEXICON.md` — project documentation _(documents `system:currencies`)_
-- `doc:LIVE-EVENTS.md` — project documentation
+- `doc:LIVE-EVENTS.md` — project documentation _(documents `system:liveops`)_
 - `doc:LIVEOPS.md` — project documentation _(documents `system:liveops`, documents `system:directives`)_
 - `doc:LIVING-BATTLEFIELD.md` — project documentation _(documents `system:living-battlefield`)_
 - `doc:LIVING-HIVE.md` — project documentation
@@ -3716,7 +3723,7 @@ _at: site/guides.ts → /guides/live-events/_
 - `doc:VOWS.md` — project documentation _(documents `system:prestige`)_
 - `doc:WEBSITE.md` — project documentation _(documents `system:field-research`, documents `system:website`)_
 
-## Tests (291)
+## Tests (292)
 
 - `test:src/audio/music.test.ts` — automated validation _(tests `system:audio`)_
 - `test:src/changelog/classify.test.ts` — automated validation _(tests `system:chronicle`)_
@@ -3957,6 +3964,7 @@ _at: site/guides.ts → /guides/live-events/_
 - `test:src/state/itemDetails.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/state/itemPower.test.ts` — automated validation _(tests `system:power`)_
 - `test:src/state/listOrg.test.ts` — automated validation _(tests `system:hub-shell`)_
+- `test:src/state/liveEventsMeta.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/state/localizedEconomy.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/state/loginMeta.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/state/lootbox.test.ts` — automated validation _(tests `system:loot`)_

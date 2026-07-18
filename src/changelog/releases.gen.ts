@@ -1338,6 +1338,14 @@ export const RELEASES: Release[] = [
       {
         "cat": "Gameplay",
         "text": "The Front: infestation map war overhaul (save v49)"
+      },
+      {
+        "cat": "Gameplay",
+        "text": "Docs + rituals: The Front batch (handoff, status, notes, frequency verb)"
+      },
+      {
+        "cat": "Gameplay",
+        "text": "Live events wired end-to-end: v49 ledgers, claims console, hub dress, lane fold"
       }
     ]
   },

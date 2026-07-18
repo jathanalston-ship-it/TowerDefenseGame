@@ -1,6 +1,6 @@
 {
-  "lastSha": "4c63715b1eaedd220c1a265eabf0b2b29484fa2d",
-  "commitsSinceDraft": 9,
+  "lastSha": "fdbf2676c8cbb4a473b537689c3f90c32d8493bf",
+  "commitsSinceDraft": 0,
   "content": {
     "tower": [
       "needle",
@@ -2841,6 +2841,14 @@
         {
           "cat": "Gameplay",
           "text": "The Front: infestation map war overhaul (save v49)"
+        },
+        {
+          "cat": "Gameplay",
+          "text": "Docs + rituals: The Front batch (handoff, status, notes, frequency verb)"
+        },
+        {
+          "cat": "Gameplay",
+          "text": "Live events wired end-to-end: v49 ledgers, claims console, hub dress, lane fold"
         }
       ]
     }
@@ -5251,6 +5259,22 @@
       "date": "2026-07-18",
       "cat": "Gameplay",
       "text": "The Front: infestation map war overhaul (save v49)",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "f9a7f06622a3c0ab62e865ad0e5886d30be25471",
+      "date": "2026-07-18",
+      "cat": "Gameplay",
+      "text": "Docs + rituals: The Front batch (handoff, status, notes, frequency verb)",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "fdbf2676c8cbb4a473b537689c3f90c32d8493bf",
+      "date": "2026-07-18",
+      "cat": "Gameplay",
+      "text": "Live events wired end-to-end: v49 ledgers, claims console, hub dress, lane fold",
       "internal": false,
       "needsReview": false
     }

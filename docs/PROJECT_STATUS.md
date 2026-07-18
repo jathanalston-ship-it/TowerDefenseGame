@@ -3,7 +3,31 @@
 > Maintained at the END of every session (paired with `docs/AI_HANDOFF.md` — the constitution's
 > workflow step 4). This is the "where are we?" answer; `docs/GAME-STATE.md` remains the deeper
 > per-system built-vs-planned index, `docs/PROJECT_MANIFEST.md` the system map.
-> **Last updated:** 2026-07-18o (**THE FRONT — Infestation map war overhaul** (user brief:
+> **Last updated:** 2026-07-18p (**LIVE EVENTS WIRED END-TO-END** (queue #347) — the
+> identity engine's consumer batch, docs/LIVE-EVENTS.md §4 seam map now ✅ across the
+> meta/UI layer. Save **v50** (`liveEvents` {tokens, claimed, shopBought, progress},
+> `eventId:window` keys; sanitizer prunes dead windows + clamps cap/target/stock — the
+> twin's 18o note honored: v49 stayed The Front's). `creditQuests` front-runs
+> `creditEventChallenges` ⇒ all five judged credit seams pay event tokens for free
+> (target-cross banks tokens, wallet-capped, toasts `eventTokens` ✦). `claimEventMilestone`
+> (THRESHOLD claim — tokens are the ladder, never spent) + `buyEventShopRow` (the finite
+> -stock sink), both via applyRewardList (repeat-safe) and guarded (`event.claim`/
+> `event.buy`). Lane fold: `liveEventLaneModsNow()` × liveopsMods at both meta sites —
+> NEUTRAL under tests (the liveops FIXED_TEST_NOW convention; the trio is ALWAYS live, no
+> lane-quiet date exists — pinned by test). Hub dress: `applyWardrobeDressing` sets
+> `data-event` + `--event-*` vars and composes the owner's menu-music re-voicing with
+> Wardrobe packs; Hub re-dresses when the trio key flips. UI: **LiveEventsPanel** — the
+> Command Center's first read (owner headline + sibling chips + "N TO CLAIM") unfolding
+> into the claim console (challenges → track → shop, per-event accents); DeployScreen
+> `loadingLine`; `event.claimable`/`event.endingSoon` on channel `home` (CHANNEL_CLASS
+> claim 87 → Ready Chain). Verified: suite 2503 green (liveEventsMeta.test 10/10),
+> mobilecheck CLEAN, live headless probe (real trio renders: Epoch of Assimilation ◈
+> owner + Great Hunt ◎ + Spore Bloom ❁; 18/10/5 track cells; hub tinted purple).
+> GAME-STATE gained the ✅ BUILT compressed summary. Remaining declared-not-wired:
+> gameplayModifiers opt-in toggle, renderer ceremonies/variants, codex/achievement rows.
+> Previous below.)
+>
+> **2026-07-18o** (**THE FRONT — Infestation map war overhaul** (user brief:
 > "flat and irrelevant… taking up a lot of space and clutter for not much") —
 > docs/INFESTATION.md §front, save **v49** (`infestation.tierClaims/tributeWeeks/defenses/
 > lastIncursionDay` — additive; NOTE for the live-events consumer batch: v49 is now TAKEN,

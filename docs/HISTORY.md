@@ -325,3 +325,5 @@
 - `e379d6a` **[Website]** Website: Live Events guide; docs: canonical wallet notes + sync verify
 - `274cfbb` **[Website]** Website home: self-computing Live Events strip (always current, zero regen)
 - `4c63715` **[Gameplay]** The Front: infestation map war overhaul (save v49)
+- `f9a7f06` **[Gameplay]** Docs + rituals: The Front batch (handoff, status, notes, frequency verb)
+- `fdbf267` **[Gameplay]** Live events wired end-to-end: v49 ledgers, claims console, hub dress, lane fold

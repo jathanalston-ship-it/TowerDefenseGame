@@ -5,21 +5,21 @@
 ## Structural audit — ✅ clean
 
 ## Staleness (advisory) — 29 page/ref pair(s) to re-review
-- `index.html` references **system:infinite** whose source changed 2026-07-14
-- `features/index.html` references **system:infinite** whose source changed 2026-07-14
-- `encyclopedia/enemies/index.html` references **system:bosses** whose source changed 2026-07-15
+- `index.html` references **system:infinite** whose source changed 2026-07-16
+- `features/index.html` references **system:infinite** whose source changed 2026-07-16
+- `encyclopedia/enemies/index.html` references **system:bosses** whose source changed 2026-07-16
 - `guides/beginner/index.html` references **guide:beginner** whose source changed 2026-07-18
 - `guides/towers/index.html` references **guide:towers** whose source changed 2026-07-18
 - `guides/heroes/index.html` references **guide:heroes** whose source changed 2026-07-18
 - `guides/gene-cards/index.html` references **guide:gene-cards** whose source changed 2026-07-18
 - `guides/bosses/index.html` references **guide:bosses** whose source changed 2026-07-18
-- `guides/bosses/index.html` references **system:bosses** whose source changed 2026-07-15
+- `guides/bosses/index.html` references **system:bosses** whose source changed 2026-07-16
 - `guides/mega-bosses/index.html` references **guide:mega-bosses** whose source changed 2026-07-18
 - `guides/power-score/index.html` references **guide:power-score** whose source changed 2026-07-18
 - `guides/progression/index.html` references **guide:progression** whose source changed 2026-07-18
 - `guides/campaign/index.html` references **guide:campaign** whose source changed 2026-07-18
 - `guides/infinite/index.html` references **guide:infinite** whose source changed 2026-07-18
-- `guides/infinite/index.html` references **system:infinite** whose source changed 2026-07-14
+- `guides/infinite/index.html` references **system:infinite** whose source changed 2026-07-16
 - `guides/boss-rush/index.html` references **guide:boss-rush** whose source changed 2026-07-18
 - `guides/daily/index.html` references **guide:daily** whose source changed 2026-07-18
 - `guides/mulligans/index.html` references **guide:mulligans** whose source changed 2026-07-18
@@ -33,7 +33,7 @@
 - `guides/equipment/index.html` references **guide:equipment** whose source changed 2026-07-18
 - `guides/prestige/index.html` references **guide:prestige** whose source changed 2026-07-18
 - `guides/live-events/index.html` references **guide:live-events** whose source changed 2026-07-18
-- `blog/living-battlefield/index.html` references **system:living-battlefield** whose source changed 2026-07-15
+- `blog/living-battlefield/index.html` references **system:living-battlefield** whose source changed 2026-07-16
 
 ## Page inventory
 - `/` — Home → system:towers, system:heroes, system:campaign, system:infinite, system:boss-rush, concept:power-score

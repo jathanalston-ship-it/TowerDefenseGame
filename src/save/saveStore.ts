@@ -545,13 +545,14 @@ export interface TutorialSave {
 // regional tribute watermarks), defenses (dayKey → defended sector, bounded ring) and
 // lastIncursionDay (incursion resolution cursor). All empty on pre-v49 saves ⇒ additive,
 // fresh accounts byte-identical.
-// ALSO v49: LIVE EVENT LEDGERS (docs/LIVE-EVENTS.md §6) — `liveEvents` {tokens, claimed,
+// v49→v50: LIVE EVENT LEDGERS (docs/LIVE-EVENTS.md §6) — `liveEvents` {tokens, claimed,
 // shopBought, progress}, every key `eventId:window`; the sanitizer prunes keys outside the
 // currently ACTIVE trio, so rotation retires state and the ledger is structurally bounded.
-// Missing ⇒ empty ledgers — purely additive, golden-safe.
-export const CURRENT_VERSION = 49;
+// Missing ⇒ empty ledgers — purely additive, golden-safe. (v49 was reserved by The Front —
+// the twin batch's coordination note — so the ledgers take their own number.)
+export const CURRENT_VERSION = 50;
 
-/** v49 Live Event ledgers: shape-check + clamp against the LIVE defs, prune stale windows.
+/** v50 Live Event ledgers: shape-check + clamp against the LIVE defs, prune stale windows.
  *  Wall-clock use is deliberate — staleness IS a function of now (same rule the claim paths
  *  apply); tests exercise it by seeding keys for the active trio vs long-dead windows. */
 function sanitizeLiveEvents(raw: unknown): { tokens: Record<string, number>; claimed: Record<string, number[]>; shopBought: Record<string, Record<string, number>>; progress: Record<string, Record<string, number>> } {
