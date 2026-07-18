@@ -35,6 +35,20 @@ export function homePage(ctx: HomeCtx): string {
     </div>
   </div>
 </section>
+<section class="section" id="live-events"><div class="shell-wrap">
+  <h2>Live right now</h2>
+  <div id="ev-strip" class="cards cards-3" aria-live="polite"></div>
+  <script>(function(){
+    var EPOCH=1783296000000;
+    var H=[{p:91,ring:[["\u25c8","Epoch of Assimilation","#b64dff","The hive remembers everything it has eaten."],["\u2b22","Epoch of Overgrowth","#66bb6a","Growth without permission."]]},
+           {p:14,ring:[["\u25ce","The Great Hunt","#e8b234","Every chassis has a bounty."],["\u224b","Deep Current","#4de0c4","What the tide carries up."],["\u2715","Red Famine","#ff4d6d","Scarcity sharpens the hive."]]},
+           {p:3,ring:[["\ud83d\udf02","Ember Tide","#ff6a3c","The strata burn from below."],["\u2741","Spore Bloom","#7ddc5a","The air itself germinates."],["\u2301","Static Night","#41d0e8","The dark between signals."]]}];
+    var L=["EPOCH","SEASON","SURGE"],now=Date.now(),el=document.getElementById('ev-strip'),h='';
+    for(var i=0;i<H.length;i++){var d=H[i].p*86400000,w=Math.max(0,Math.floor((now-EPOCH)/d));var e=H[i].ring[w%H[i].ring.length];var ends=EPOCH+(w+1)*d;var days=Math.max(1,Math.ceil((ends-now)/86400000));
+      h+='<div class="card" style="border-color:'+e[2]+'"><h3 style="color:'+e[2]+'">'+e[0]+' '+e[1]+'</h3><p>'+e[3]+'</p><p class="more">'+L[i]+' \u00b7 ends in '+days+'d</p></div>';}
+    el.innerHTML=h;})();</script>
+</div></section>
+
 
 <section class="section"><div class="shell-wrap">
   <h2>Watch the hive at work</h2>
