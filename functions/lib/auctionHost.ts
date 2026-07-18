@@ -457,6 +457,7 @@ function authorityGrant(familyKey: string, cat: string, rarity: string): Record<
   const parts = familyKey.split('.');
   if (cat === 'geneCard') return { kind: 'gene', id: parts.slice(1).join('.') };
   if (cat === 'cosmetic') return { kind: 'cosmetic', id: parts.slice(1).join('.') };
+  if (cat === 'mulliganPiece') return { kind: 'mulligan', id: parts.slice(1, -1).join('.'), rarity }; // mul.<id>.<rarity>
   return { kind: 'equipment', defId: parts[1] ?? '', rarity };
 }
 
@@ -464,6 +465,7 @@ function authorityRefKey(familyKey: string, windowKey: number, i: number): strin
   const parts = familyKey.split('.');
   if (parts[0] === 'gene') return `gene:${parts.slice(1).join('.')}`;
   if (parts[0] === 'cos') return `cos:${parts.slice(1).join('.')}`;
+  if (parts[0] === 'mul') return `mul:${parts.slice(1, -1).join('.')}`; // the family's rarity suffix is not part of the ref
   return `eq:auth-${parts[1] ?? 'x'}-${windowKey}.${i}`; // synthetic instance uid
 }
 

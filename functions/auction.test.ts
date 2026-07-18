@@ -24,7 +24,8 @@ import { listingFee, minNextBid, saleTax } from '../src/core/trading';
 import { CARD_POOL } from '../src/core/cards';
 import { STARTER_GENES } from '../src/core/geneDiscovery';
 import { ALL_ITEMS } from '../src/core/equipment';
-import { equipmentFamilyKey, geneFamilyKey, marketFamily, stockableFamilies } from '../src/core/marketCatalog';
+import { equipmentFamilyKey, geneFamilyKey, marketFamily, mulliganFamilyKey, stockableFamilies } from '../src/core/marketCatalog';
+import { mulliganRegistry } from '../src/core/mulligan';
 
 const SELLER = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
 const BUYER = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb';
@@ -236,6 +237,28 @@ describe('buy-now — exactly-once settlement with full distribution', () => {
     const again = await buyPost(ctx(postJson('https://x/api/auction/buy', { playerId: RIVAL, token: TOKEN, listingId }), env));
     expect(again.status).toBe(409); // one settlement per listing, ever
     expect(db(env).marketHistory.size).toBeGreaterThan(0); // price history folded
+    conservation(env);
+  });
+
+  it('a mulligan piece round-trips the wire — the grant payload lands byte-intact for delivery', async () => {
+    const env = makeEnv();
+    idleAuthority(env);
+    await seedPlayer(env, SELLER);
+    await seedPlayer(env, BUYER);
+    const pieceId = mulliganRegistry.ids()[0];
+    const payload = { kind: 'mulligan', id: pieceId, rarity: 'common' };
+    const listed = await res(await listPost(ctx(postJson('https://x/api/auction/list', listBody(SELLER, {}, {
+      refKey: `mul:${pieceId}`, familyKey: mulliganFamilyKey(pieceId, 'common'), rarity: 'common',
+      source: 'Bio-Container', payload,
+    })), env)));
+    expect(listed.ok).toBe(true);
+    const listingId = (listed.listing as { listingId: string }).listingId;
+    const buy = await res(await buyPost(ctx(postJson('https://x/api/auction/buy', { playerId: BUYER, token: TOKEN, listingId }), env)));
+    expect(buy.ok).toBe(true);
+    const item = db(env).marketItems.get(`${SELLER}/mul:${pieceId}`)!;
+    expect(item.owner_id).toBe(BUYER);
+    expect(item.state).toBe('delivered');
+    expect(JSON.parse(String(item.payload))).toEqual(payload); // exactly what auctionDeliver consumes
     conservation(env);
   });
 });

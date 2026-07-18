@@ -21,6 +21,10 @@ import { connectivity } from '../net/connectivity';
 const RARITY_TINT: Record<string, string> = {
   common: 'var(--muted)', uncommon: 'var(--vital)', rare: 'var(--r-rare)',
   epic: 'var(--r-epic)', legendary: 'var(--r-legendary)', exotic: 'var(--viral)',
+  ascendant: 'var(--r-mythic)',
+};
+const CAT_GLYPH: Record<string, string> = {
+  geneCard: '⌬', equipment: '⛨', cosmetic: '❖', mulliganPiece: '⊛',
 };
 
 function famName(key: string): string {
@@ -51,9 +55,10 @@ export function AuctionHouse(): JSX.Element {
   return (
     <div className="ah-root">
       <header className="ah-head">
-        <div>
+        <div className="ah-mast">
+          <span className="ah-kicker">Market · Player Exchange</span>
           <h2>⚖ Auction House</h2>
-          <p className="ah-dim">Player-to-player trading — gene cards, bio-gear, cosmetics. Priced in Ichor.</p>
+          <p className="ah-dim ah-sub">Gene cards, bio-gear, cosmetics, mulligan organs — traded organism to organism, priced in Ichor.</p>
         </div>
         <WalletCard ichor={save.ichor} />
       </header>
@@ -102,9 +107,17 @@ function WalletCard({ ichor }: { ichor: number }): JSX.Element {
   };
   return (
     <div className="ah-wallet">
-      <div className="ah-wrow"><span className="ah-dim">Game Ichor</span><b>◆ {ichor.toLocaleString()}</b></div>
-      <div className="ah-wrow"><span className="ah-dim">Market wallet</span><b>◆ {(w?.balance ?? 0).toLocaleString()}</b></div>
-      {w && w.escrow > 0 && <div className="ah-wrow"><span className="ah-dim">In active bids</span><span>◆ {w.escrow.toLocaleString()}</span></div>}
+      <div className="ah-wtop">
+        <div className="ah-wcol">
+          <span className="ah-wlabel">Market wallet</span>
+          <b className="ah-whero">◆ {(w?.balance ?? 0).toLocaleString()}</b>
+          {w && w.escrow > 0 && <span className="ah-wesc">◆ {w.escrow.toLocaleString()} escrowed in bids</span>}
+        </div>
+        <div className="ah-wcol ah-wside">
+          <span className="ah-wlabel">Game Ichor</span>
+          <b>◆ {ichor.toLocaleString()}</b>
+        </div>
+      </div>
       <div className="ah-wmove">
         <input inputMode="numeric" placeholder="Amount" value={amt} onChange={(e) => setAmt(e.target.value)} aria-label="Wallet amount" />
         <button type="button" onClick={() => void move('deposit')} disabled={st.busy}>Deposit</button>
@@ -128,6 +141,7 @@ function BrowseTab({ onOpen }: { onOpen: (listingId: string) => void }): JSX.Ele
           { id: 'geneCard', label: '⌬ Genes', on: q.cat === 'geneCard', onToggle: () => run({ cat: q.cat === 'geneCard' ? undefined : 'geneCard' }) },
           { id: 'equipment', label: '⛨ Gear', on: q.cat === 'equipment', onToggle: () => run({ cat: q.cat === 'equipment' ? undefined : 'equipment' }) },
           { id: 'cosmetic', label: '❖ Cosmetics', on: q.cat === 'cosmetic', onToggle: () => run({ cat: q.cat === 'cosmetic' ? undefined : 'cosmetic' }) },
+          { id: 'mulliganPiece', label: '⊛ Mulligans', on: q.cat === 'mulliganPiece', onToggle: () => run({ cat: q.cat === 'mulliganPiece' ? undefined : 'mulliganPiece' }) },
         ]}
         sort={{
           value: q.sort,
@@ -156,17 +170,19 @@ function BrowseTab({ onOpen }: { onOpen: (listingId: string) => void }): JSX.Ele
 
 function ListingCard({ l, skew, onOpen }: { l: WireListing; skew: number; onOpen: () => void }): JSX.Element {
   return (
-    <button type="button" className="ah-card" onClick={onOpen} style={{ borderColor: RARITY_TINT[l.rarity] ?? 'var(--muted)' }}>
+    <button type="button" className="ah-card" onClick={onOpen} style={{ ['--rc' as string]: RARITY_TINT[l.rarity] ?? 'var(--muted)' }}>
+      <span className="ah-card-glyph" aria-hidden>{CAT_GLYPH[l.cat] ?? '◈'}</span>
       <div className="ah-card-name">{famName(l.familyKey)}</div>
       <div className="ah-card-sub">
-        <span style={{ color: RARITY_TINT[l.rarity] }}>{l.rarity}</span>
-        {l.authority ? <span className="ah-dim" title="Baseline stock — always common essentials, never exclusives."> · market stock</span> : null}
+        <span className="ah-card-rar">{l.rarity}</span>
+        {l.authority ? <span className="ah-stockchip" title="Baseline stock — always common essentials, never exclusives.">⚕ stock</span> : null}
       </div>
       <div className="ah-card-price">
-        {l.buyNow !== null && <span>◆ {l.buyNow.toLocaleString()}</span>}
-        {l.buyNow === null && <span>bid ◆ {(l.bid ?? l.ask).toLocaleString()}</span>}
+        {l.buyNow !== null && <b>◆ {l.buyNow.toLocaleString()}</b>}
+        {l.buyNow === null && <b>◆ {(l.bid ?? l.ask).toLocaleString()}</b>}
+        {l.buyNow === null && <span className="ah-dim">bid</span>}
       </div>
-      <div className="ah-card-ends ah-dim">{l.authority ? 'restocked' : endsIn(l.endsAt, skew)}{l.bid !== null && !l.authority ? ` · ${l.bidderId ? 'bid war' : ''}` : ''}</div>
+      <div className="ah-card-ends ah-dim">{l.authority ? 'restocked' : endsIn(l.endsAt, skew)}{l.bid !== null && !l.authority && l.bidderId ? ' · bid war' : ''}</div>
     </button>
   );
 }
@@ -195,12 +211,13 @@ function ListingSheet({ listing, myId, onClose }: { listing: WireListing; myId: 
   return (
     <Popup>
       <div className="ah-scrim" onClick={onClose}>
-        <div className="ah-sheet" role="dialog" aria-label={famName(listing.familyKey)} onClick={(e) => e.stopPropagation()}>
+        <div className="ah-sheet" role="dialog" aria-label={famName(listing.familyKey)} onClick={(e) => e.stopPropagation()} style={{ ['--rc' as string]: RARITY_TINT[listing.rarity] ?? 'var(--caustic)' }}>
           <header className="ah-sheet-head">
             <div>
+              <span className="ah-sheet-glyph" aria-hidden>{CAT_GLYPH[listing.cat] ?? '◈'}</span>
               <h3>{famName(listing.familyKey)}</h3>
-              <span style={{ color: RARITY_TINT[listing.rarity] }}>{listing.rarity}</span>
-              {listing.authority && <span className="ah-dim"> · market stock</span>}
+              <span className="ah-card-rar">{listing.rarity}</span>
+              {listing.authority && <span className="ah-stockchip">⚕ stock</span>}
             </div>
             <button type="button" className="ah-x" onClick={onClose} aria-label="Close">✕</button>
           </header>
@@ -262,6 +279,7 @@ function Sparkline({ points }: { points: number[] }): JSX.Element {
   const pts = points.map((p, i) => `${(i / (points.length - 1)) * w},${h - 6 - ((p - lo) / span) * (h - 12)}`).join(' ');
   return (
     <svg className="ah-spark" viewBox={`0 0 ${w} ${h}`} role="img" aria-label="Price history">
+      <polygon points={`0,${h} ${pts} ${w},${h}`} fill="var(--caustic)" opacity="0.12" />
       <polyline points={pts} fill="none" stroke="var(--caustic)" strokeWidth="2" strokeLinejoin="round" />
     </svg>
   );
@@ -290,6 +308,7 @@ function SellTab({ onPick }: { onPick: (s: AuctionSellable) => void }): JSX.Elem
           { id: 'geneCard', label: '⌬ Genes', on: cat === 'geneCard', onToggle: () => setCat(cat === 'geneCard' ? undefined : 'geneCard') },
           { id: 'equipment', label: '⛨ Gear', on: cat === 'equipment', onToggle: () => setCat(cat === 'equipment' ? undefined : 'equipment') },
           { id: 'cosmetic', label: '❖ Cosmetics', on: cat === 'cosmetic', onToggle: () => setCat(cat === 'cosmetic' ? undefined : 'cosmetic') },
+          { id: 'mulliganPiece', label: '⊛ Mulligans', on: cat === 'mulliganPiece', onToggle: () => setCat(cat === 'mulliganPiece' ? undefined : 'mulliganPiece') },
         ]}
         shown={{ shown: rows.length, total: stock.length }}
         right={<span className="ah-dim">{listedToday}/{TRADE.maxListingsPerDay} listings today</span>}
@@ -300,12 +319,13 @@ function SellTab({ onPick }: { onPick: (s: AuctionSellable) => void }): JSX.Elem
           return (
             <button
               key={s.refKey} type="button" className={`ah-card${blocked ? ' ah-blocked' : ''}`}
-              style={{ borderColor: RARITY_TINT[s.rarity] ?? 'var(--muted)' }}
+              style={{ ['--rc' as string]: RARITY_TINT[s.rarity] ?? 'var(--muted)' }}
               onClick={() => { if (!blocked) onPick(s); }}
               title={s.blocks.length > 0 ? blockCopy(s.blocks[0]) : undefined}
             >
+              <span className="ah-card-glyph" aria-hidden>{CAT_GLYPH[s.cat] ?? '◈'}</span>
               <div className="ah-card-name">{s.name}</div>
-              <div className="ah-card-sub"><span style={{ color: RARITY_TINT[s.rarity] }}>{s.rarity}</span><span className="ah-dim"> · {catLabel(s.cat)}</span></div>
+              <div className="ah-card-sub"><span className="ah-card-rar">{s.rarity}</span><span className="ah-dim"> · {catLabel(s.cat)}</span></div>
               <div className="ah-card-ends ah-dim">{s.blocks.length > 0 ? blockCopy(s.blocks[0]) : 'Tap to list'}</div>
             </button>
           );
@@ -343,11 +363,12 @@ function SellSheet({ s, onClose }: { s: AuctionSellable; onClose: () => void }):
   return (
     <Popup>
       <div className="ah-scrim" onClick={onClose}>
-        <div className="ah-sheet" role="dialog" aria-label={`List ${s.name}`} onClick={(e) => e.stopPropagation()}>
+        <div className="ah-sheet" role="dialog" aria-label={`List ${s.name}`} onClick={(e) => e.stopPropagation()} style={{ ['--rc' as string]: RARITY_TINT[s.rarity] ?? 'var(--caustic)' }}>
           <header className="ah-sheet-head">
             <div>
+              <span className="ah-sheet-glyph" aria-hidden>{CAT_GLYPH[s.cat] ?? '◈'}</span>
               <h3>List {s.name}</h3>
-              <span style={{ color: RARITY_TINT[s.rarity] }}>{s.rarity}</span><span className="ah-dim"> · {catLabel(s.cat)}</span>
+              <span className="ah-card-rar">{s.rarity}</span><span className="ah-dim"> · {catLabel(s.cat)}</span>
             </div>
             <button type="button" className="ah-x" onClick={onClose} aria-label="Close">✕</button>
           </header>
@@ -396,36 +417,42 @@ function MineTab({ myId, onOpen }: { myId: string; onOpen: (listingId: string) =
   return (
     <section className="ah-mine">
       {note && <div className="ah-note">{note}</div>}
-      <h3>Active listings ({active.length})</h3>
-      {active.length === 0 && <p className="ah-dim">Nothing on the block. The Sell tab lists in two taps.</p>}
-      {active.map((l) => (
-        <div key={l.listingId} className="ah-row">
-          <span className="ah-row-name">{famName(l.familyKey)}</span>
-          <span className="ah-dim">{l.bid !== null ? `bid ◆ ${l.bid.toLocaleString()}` : `ask ◆ ${l.ask.toLocaleString()}`}{l.buyNow !== null ? ` · now ◆ ${l.buyNow.toLocaleString()}` : ''}</span>
-          <span className="ah-dim">{endsIn(l.endsAt, st.clockSkewMs)}</span>
-          <button type="button" disabled={l.bid !== null || st.busy} title={l.bid !== null ? 'Bids lock a listing in.' : undefined} onClick={() => void doCancel(l.listingId)}>Cancel</button>
-        </div>
-      ))}
-      <h3>My bids ({m.bids.length})</h3>
-      {m.bids.length === 0 && <p className="ah-dim">No standing bids.</p>}
-      {m.bids.map((l) => (
-        <div key={l.listingId} className="ah-row">
-          <span className="ah-row-name">{famName(l.familyKey)}</span>
-          <span className={l.bidderId === myId ? 'ah-lead' : 'ah-outbid'}>{l.bidderId === myId ? `leading ◆ ${(l.bid ?? 0).toLocaleString()}` : 'outbid'}</span>
-          <span className="ah-dim">{endsIn(l.endsAt, st.clockSkewMs)}</span>
-          <button type="button" onClick={() => onOpen(l.listingId)}>View</button>
-        </div>
-      ))}
-      <h3>Recent trades</h3>
-      {m.trades.length === 0 && <p className="ah-dim">No settlements yet.</p>}
-      {m.trades.map((t) => (
-        <div key={t.listing_id} className="ah-row">
-          <span className="ah-row-name">{famName(t.family_key)}</span>
-          <span className={t.seller_id === myId ? 'ah-lead' : ''}>{t.seller_id === myId ? `sold +◆ ${(t.price - t.tax).toLocaleString()}` : `bought −◆ ${t.price.toLocaleString()}`}</span>
-          <span className="ah-dim">{new Date(t.at).toLocaleDateString()}</span>
-        </div>
-      ))}
-      {closed.length > 0 && <>
+      <div className="ah-sec">
+        <h3>Active listings ({active.length})</h3>
+        {active.length === 0 && <p className="ah-dim">Nothing on the block. The Sell tab lists in two taps.</p>}
+        {active.map((l) => (
+          <div key={l.listingId} className="ah-row">
+            <span className="ah-row-name">{famName(l.familyKey)}</span>
+            <span className="ah-dim">{l.bid !== null ? `bid ◆ ${l.bid.toLocaleString()}` : `ask ◆ ${l.ask.toLocaleString()}`}{l.buyNow !== null ? ` · now ◆ ${l.buyNow.toLocaleString()}` : ''}</span>
+            <span className="ah-dim">{endsIn(l.endsAt, st.clockSkewMs)}</span>
+            <button type="button" disabled={l.bid !== null || st.busy} title={l.bid !== null ? 'Bids lock a listing in.' : undefined} onClick={() => void doCancel(l.listingId)}>Cancel</button>
+          </div>
+        ))}
+      </div>
+      <div className="ah-sec">
+        <h3>My bids ({m.bids.length})</h3>
+        {m.bids.length === 0 && <p className="ah-dim">No standing bids.</p>}
+        {m.bids.map((l) => (
+          <div key={l.listingId} className="ah-row">
+            <span className="ah-row-name">{famName(l.familyKey)}</span>
+            <span className={l.bidderId === myId ? 'ah-lead' : 'ah-outbid'}>{l.bidderId === myId ? `leading ◆ ${(l.bid ?? 0).toLocaleString()}` : 'outbid'}</span>
+            <span className="ah-dim">{endsIn(l.endsAt, st.clockSkewMs)}</span>
+            <button type="button" onClick={() => onOpen(l.listingId)}>View</button>
+          </div>
+        ))}
+      </div>
+      <div className="ah-sec">
+        <h3>Recent trades</h3>
+        {m.trades.length === 0 && <p className="ah-dim">No settlements yet.</p>}
+        {m.trades.map((t) => (
+          <div key={t.listing_id} className="ah-row">
+            <span className="ah-row-name">{famName(t.family_key)}</span>
+            <span className={t.seller_id === myId ? 'ah-lead' : ''}>{t.seller_id === myId ? `sold +◆ ${(t.price - t.tax).toLocaleString()}` : `bought −◆ ${t.price.toLocaleString()}`}</span>
+            <span className="ah-dim">{new Date(t.at).toLocaleDateString()}</span>
+          </div>
+        ))}
+      </div>
+      {closed.length > 0 && <div className="ah-sec">
         <h3>Closed listings</h3>
         {closed.map((l) => (
           <div key={l.listingId} className="ah-row ah-dim">
@@ -434,16 +461,16 @@ function MineTab({ myId, onOpen }: { myId: string; onOpen: (listingId: string) =
             <span>{l.buyNow !== null ? `◆ ${l.buyNow.toLocaleString()}` : `◆ ${l.ask.toLocaleString()}`}</span>
           </div>
         ))}
-      </>}
+      </div>}
     </section>
   );
 }
 
 // ── Copy helpers ─────────────────────────────────────────────────────────────
 function catLabel(cat: string): string {
-  return cat === 'geneCard' ? 'Gene Card' : cat === 'equipment' ? 'Bio-Gear' : 'Cosmetic';
+  return cat === 'geneCard' ? 'Gene Card' : cat === 'equipment' ? 'Bio-Gear' : cat === 'mulliganPiece' ? 'Mulligan Modifier' : 'Cosmetic';
 }
-function blockCopy(b: 'bound' | 'equipped' | 'neverTrade'): string {
+function blockCopy(b: 'bound' | 'equipped' | 'neverTrade' | 'slotted'): string {
   if (b === 'neverTrade') return 'Starter kit — never tradable';
   return tradeBlockLabel(b);
 }

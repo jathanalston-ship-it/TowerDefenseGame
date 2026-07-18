@@ -84,7 +84,7 @@ import { essenceForDuplicates, essenceTranscendCost, essenceUpgradeCost, rollEss
 import { GENE_LOADOUT_SLOTS } from '../core/geneLoadout';
 import { ADAPT_RESPEC, ANTIGEN, adaptationEffect, adaptNodesFor, adaptPointsEarned, adaptVisualTier, antigenEarned, canPickAdapt, respecCost } from '../core/adaptation';
 import type { AdaptNode } from '../core/adaptation';
-import { MULLIGAN_GATE_MEGAS, MULLIGAN_RARITY, MULLIGAN_SLOTS, accountMulliganPower, adaptationOf, ascendCost, emptyMulligan, identityMulligan, isMaxLevel, isMulliganActive, makeSlot, modifierHost, mulliganRegistry, nextRarity, rarityAtLeast, reforgeSlotCount, resolveMulligan, rollRarity, seedFor, upgradeCost as mulliganUpgradeCost } from '../core/mulligan';
+import { DUP_TISSUE, MULLIGAN_GATE_MEGAS, MULLIGAN_RARITY, MULLIGAN_SLOTS, accountMulliganPower, adaptationOf, ascendCost, emptyMulligan, identityMulligan, isMaxLevel, isMulliganActive, makeSlot, modifierHost, mulliganRegistry, nextRarity, rarityAtLeast, reforgeSlotCount, resolveMulligan, rollRarity, seedFor, upgradeCost as mulliganUpgradeCost } from '../core/mulligan';
 import {
   NUCLEUS_CHAMBERS, chamberAdaptation, isChamberActive, nucleusGateProgress, nucleusPower,
   nucleusRegistry, organChamber, organGrowCost, organLevelCap, organUpgradeCost, resolveNucleus,
@@ -140,7 +140,7 @@ import { ARENA_PASS, arenaExclusiveLabel, arenaPassLevelOf, arenaPassTrack, aren
 import type { ArenaExclusiveId, ArenaPassLevelRewards, ArenaSeasonInfo } from '../core/arenaPass';
 import type { ArenaBootBundle } from '../core/arenaMatch';
 import { itemProvenance, parseRefKey, stampAcquisition } from '../core/itemIdentity';
-import { cosmeticFamilyKey, equipmentFamilyKey, geneFamilyKey, marketFamily } from '../core/marketCatalog';
+import { cosmeticFamilyKey, equipmentFamilyKey, geneFamilyKey, marketFamily, mulliganFamilyKey } from '../core/marketCatalog';
 import { LOGIN, loginTargetValue, milestoneContainer, rollLoginBundle, streakMult } from '../core/loginStreak';
 import { PERFECT_WEEK, activeContracts, contractReport, contractSatisfied, contractWeekKey } from '../core/contracts';
 import type { ContractRunFacts } from '../core/contracts';
@@ -1985,14 +1985,14 @@ function applyIdleGrant(next: SaveData, g: IdleGrant, rng: () => number, meta_: 
 /** One listable thing in the Auction House Sell tab (docs/AUCTION-HOUSE.md §client). */
 export interface AuctionSellable {
   refKey: string;
-  cat: 'equipment' | 'geneCard' | 'cosmetic';
+  cat: 'equipment' | 'geneCard' | 'cosmetic' | 'mulliganPiece';
   name: string;
   familyKey: string;
   rarity: string;
   season: number;
   source: string;
   payload: Record<string, unknown>;
-  blocks: ('bound' | 'equipped' | 'neverTrade')[];
+  blocks: ('bound' | 'equipped' | 'neverTrade' | 'slotted')[];
 }
 
 export const meta = {
@@ -3242,7 +3242,6 @@ export const meta = {
       } else {
         // §localized: a fully-sequenced catalog dissolves duplicates into MULLIGAN TISSUE — the
         // same numbers the old Gene-Essence table paid (a currency swap, never new value).
-        const DUP_TISSUE: Record<MulliganRarity, number> = { common: 30, uncommon: 50, rare: 90, epic: 160, legendary: 280, ascendant: 500 };
         dupeTissue = DUP_TISSUE[rar];
         const dupId = modIds[Math.floor(Math.random() * modIds.length)];
         chest.items.push({
@@ -6781,6 +6780,23 @@ export const meta = {
     };
     for (const id of save.wardrobe.owned) cosmetic(id, wardrobeItem(id)?.name ?? id);
     for (const id of save.cosmetics.owned) cosmetic(id, cosmeticById(id)?.name ?? id);
+    // Tower Mulligan pieces (docs/MULLIGANS.md): the dex entry IS the ownership — the piece
+    // trades at its sequenced rarity. A grafted piece must unslot first ('slotted'); a piece
+    // bound into a reforge-LOCKED organism can never leave it, which reads as 'bound'.
+    for (const [id, rar] of Object.entries(save.mulliganDex)) {
+      const def = mulliganRegistry.get(id);
+      if (!def) continue;
+      const refKey = `mul:${id}`;
+      const p = stampOf(refKey);
+      const host = modifierHost(save.mulligans, id);
+      const blocks: AuctionSellable['blocks'] = [];
+      if (p.bound) blocks.push('bound');
+      if (host) blocks.push(save.mulligans[host as TowerKind]?.locked ? 'bound' : 'slotted');
+      out.push({
+        refKey, cat: 'mulliganPiece', name: def.name, familyKey: mulliganFamilyKey(id, rar), rarity: rar,
+        season: p.season, source: p.source, payload: { kind: 'mulligan', id, rarity: rar }, blocks,
+      });
+    }
     return out;
   },
 
@@ -6796,6 +6812,15 @@ export const meta = {
       const item = save.equipment.inventory.find((i) => i.uid === ref.id);
       if (!item || item.locked || item.favorite || this.isItemEquipped(ref.id)) return false;
       persist({ ...save, equipment: { ...save.equipment, inventory: save.equipment.inventory.filter((i) => i.uid !== ref.id) } });
+      return true;
+    }
+    if (ref.cat === 'mulliganPiece') {
+      // The physical gate is the SLOT: a grafted piece never leaves the account (unslot
+      // first; a reforge-locked organism refuses forever — same rule the Sell tab shows).
+      if (!save.mulliganDex[ref.id] || modifierHost(save.mulligans, ref.id)) return false;
+      const dex = { ...save.mulliganDex };
+      delete dex[ref.id];
+      persist({ ...save, mulliganDex: dex });
       return true;
     }
     if (marketFamily(ref.cat === 'geneCard' ? geneFamilyKey(ref.id) : cosmeticFamilyKey(ref.id))?.neverTrade !== false) return false;
@@ -6874,6 +6899,20 @@ export const meta = {
         }
         stamp(`gene:${grant.id}`);
         delivered.push({ refKey: `gene:${grant.id}`, cat: 'geneCard', name: def.name, rarity: def.rarity });
+      } else if (grant.kind === 'mulligan' && typeof grant.id === 'string') {
+        const def = mulliganRegistry.get(grant.id);
+        if (!def) continue;
+        const rarity = (typeof grant.rarity === 'string' && grant.rarity in MULLIGAN_RARITY ? grant.rarity : 'common') as MulliganRarity;
+        if (save.mulliganDex[grant.id]) {
+          // Already sequenced — the pillar's duplicate law applies (DUP_TISSUE), exactly as
+          // if the piece had dropped from a container: dissolve, never a second copy.
+          persist({ ...save, mulliganTissue: save.mulliganTissue + DUP_TISSUE[rarity] });
+          delivered.push({ refKey: `mul:${grant.id}`, cat: 'mulliganTissue', name: `${def.name} — dissolved (+${DUP_TISSUE[rarity]} Tissue)`, rarity });
+        } else {
+          persist({ ...save, mulliganDex: { ...save.mulliganDex, [grant.id]: rarity } });
+          stamp(`mul:${grant.id}`);
+          delivered.push({ refKey: `mul:${grant.id}`, cat: 'mulliganPiece', name: def.name, rarity });
+        }
       } else if (grant.kind === 'cosmetic' && typeof grant.id === 'string') {
         const wd = wardrobeItem(grant.id);
         if (wd) {
@@ -6908,7 +6947,9 @@ export const meta = {
         ? save.equipment.inventory.some((i) => i.uid === ref.id)
         : ref.cat === 'geneCard'
           ? save.genesDiscovered.includes(ref.id)
-          : save.wardrobe.owned.includes(ref.id) || save.cosmetics.owned.includes(ref.id);
+          : ref.cat === 'mulliganPiece'
+            ? !!save.mulliganDex[ref.id]
+            : save.wardrobe.owned.includes(ref.id) || save.cosmetics.owned.includes(ref.id);
       if (present && this.auctionEscrowOut(refKey)) removed++;
     }
     return removed;

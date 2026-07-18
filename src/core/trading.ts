@@ -48,6 +48,7 @@ export type TradeBlock =
   | 'accountAge' // account younger than TRADE.minAccountAgeDays
   | 'listingCap' // daily listing budget spent
   | 'equipped' // equipment currently worn by a hero (unequip first)
+  | 'slotted' // Mulligan modifier grafted into an organism (unslot first; reforge-locked = never)
   | 'category'; // not a tradable category at all (defense-in-depth)
 
 export interface TradeContext {
@@ -57,6 +58,8 @@ export interface TradeContext {
   guest: boolean;
   /** The ref is currently equipped in a hero loadout (equipment only). */
   equipped?: boolean;
+  /** The ref is currently grafted into a tower organism (mulliganPiece only). */
+  slotted?: boolean;
 }
 
 export interface TradeEligibility {
@@ -64,7 +67,7 @@ export interface TradeEligibility {
   blocks: TradeBlock[];
 }
 
-const CATEGORY_SET: ReadonlySet<string> = new Set(['equipment', 'cosmetic', 'geneCard'] satisfies TradableCategory[]);
+const CATEGORY_SET: ReadonlySet<string> = new Set(['equipment', 'cosmetic', 'geneCard', 'mulliganPiece'] satisfies TradableCategory[]);
 
 /** The ONE eligibility evaluation — client UI and server validation both call this. */
 export function tradeEligibility(ref: TradableRef, stamp: ProvenanceStamp | null, ctx: TradeContext): TradeEligibility {
@@ -76,6 +79,7 @@ export function tradeEligibility(ref: TradableRef, stamp: ProvenanceStamp | null
   if (ctx.accountAgeDays < TRADE.minAccountAgeDays) blocks.push('accountAge');
   if (ctx.listedToday >= TRADE.maxListingsPerDay) blocks.push('listingCap');
   if (ref.cat === 'equipment' && ctx.equipped) blocks.push('equipped');
+  if (ref.cat === 'mulliganPiece' && ctx.slotted) blocks.push('slotted');
   return { ok: blocks.length === 0, blocks };
 }
 
@@ -88,6 +92,7 @@ export function tradeBlockLabel(block: TradeBlock): string {
     case 'accountAge': return `Accounts must be ${TRADE.minAccountAgeDays} days old to trade.`;
     case 'listingCap': return `Daily listing limit reached (${TRADE.maxListingsPerDay}).`;
     case 'equipped': return 'Unequip this gear before listing it.';
+    case 'slotted': return 'This modifier is grafted into an organism — unslot it first.';
     case 'category': return 'This cannot be traded.';
   }
 }

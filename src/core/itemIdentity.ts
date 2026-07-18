@@ -25,10 +25,11 @@ export const ITEM_IDENTITY = {
 } as const;
 
 /** The ONLY categories prepared for trading (docs/TRADING-PREP.md §categories):
- *  cosmetics, equipment, Gene Cards. Nothing else may enter the market. */
-export type TradableCategory = 'equipment' | 'cosmetic' | 'geneCard';
+ *  cosmetics, equipment, Gene Cards, and (2026-07) tower Mulligan modifiers — the piece
+ *  UNLOCK trades (dex entry at its sequenced rarity), never a slotted graft. */
+export type TradableCategory = 'equipment' | 'cosmetic' | 'geneCard' | 'mulliganPiece';
 
-export const TRADABLE_CATEGORIES: readonly TradableCategory[] = ['equipment', 'cosmetic', 'geneCard'];
+export const TRADABLE_CATEGORIES: readonly TradableCategory[] = ['equipment', 'cosmetic', 'geneCard', 'mulliganPiece'];
 
 /** A reference to one tradable thing. `id` is the OwnedItem.uid for equipment (instances),
  *  the registry id for cosmetics/gene cards (account-level unlocks). */
@@ -39,7 +40,7 @@ export interface TradableRef {
 
 /** Stable ledger key — compact, collision-free across categories. */
 export function refKey(ref: TradableRef): string {
-  const prefix = ref.cat === 'equipment' ? 'eq' : ref.cat === 'cosmetic' ? 'cos' : 'gene';
+  const prefix = ref.cat === 'equipment' ? 'eq' : ref.cat === 'cosmetic' ? 'cos' : ref.cat === 'mulliganPiece' ? 'mul' : 'gene';
   return `${prefix}:${ref.id}`;
 }
 
@@ -49,7 +50,8 @@ export function parseRefKey(key: string): TradableRef | null {
   if (i <= 0 || i === key.length - 1) return null;
   const prefix = key.slice(0, i);
   const id = key.slice(i + 1);
-  const cat: TradableCategory | null = prefix === 'eq' ? 'equipment' : prefix === 'cos' ? 'cosmetic' : prefix === 'gene' ? 'geneCard' : null;
+  const cat: TradableCategory | null =
+    prefix === 'eq' ? 'equipment' : prefix === 'cos' ? 'cosmetic' : prefix === 'gene' ? 'geneCard' : prefix === 'mul' ? 'mulliganPiece' : null;
   return cat ? { cat, id } : null;
 }
 
@@ -119,6 +121,8 @@ export interface OwnedRefs {
   equipmentUids: readonly string[];
   cosmeticIds: readonly string[];
   geneCardIds: readonly string[];
+  /** Owned tower Mulligan modifier ids (mulliganDex keys — account-level unlocks). */
+  mulliganPieceIds?: readonly string[];
   /** Refs that must be FORCED bound (arena exclusives — self-healing security: even a hand-
    *  edited save re-binds on load). Keys are refKey() strings. */
   forceBoundKeys?: ReadonlySet<string>;
@@ -134,6 +138,7 @@ export function reconcileProvenance(ledger: ProvenanceLedger, owned: OwnedRefs):
   for (const uid of owned.equipmentUids) stampAcquisition(ledger, { cat: 'equipment', id: uid }, 'legacy', 0, 0);
   for (const id of owned.cosmeticIds) stampAcquisition(ledger, { cat: 'cosmetic', id }, 'legacy', 0, 0);
   for (const id of owned.geneCardIds) stampAcquisition(ledger, { cat: 'geneCard', id }, 'legacy', 0, 0);
+  for (const id of owned.mulliganPieceIds ?? []) stampAcquisition(ledger, { cat: 'mulliganPiece', id }, 'legacy', 0, 0);
   const live = new Set(owned.equipmentUids);
   for (const key of Object.keys(ledger)) {
     const ref = parseRefKey(key);

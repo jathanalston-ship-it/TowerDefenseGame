@@ -4,12 +4,14 @@
 > ledger (v47). **Deliberately NO Auction House gameplay or UI exists** — this is the complete
 > backend preparation so the future market lands without architectural rewrites. Related:
 > `ONLINE-FOUNDATION.md` (authority model), `MARKET.md` (Ichor identity + faucets),
-> `EQUIPMENT.md`, `COSMETICS.md`, `GENE-EVOLUTION.md` (the three tradable categories).
+> `EQUIPMENT.md`, `COSMETICS.md`, `GENE-EVOLUTION.md`, `MULLIGANS.md` (the four tradable
+> categories).
 
 ## 0. Scope contract
 
-- **Tradable categories: cosmetics, equipment, Gene Cards. ONLY.** (`TRADABLE_CATEGORIES`) —
-  currencies, shards, containers, progression are structurally untradable.
+- **Tradable categories: cosmetics, equipment, Gene Cards, Mulligan pieces. ONLY.**
+  (`TRADABLE_CATEGORIES`) — currencies, shards, containers, progression are structurally
+  untradable. (Mulligan pieces joined 2026-07: the DEX UNLOCK trades, never a slotted graft.)
 - **Denomination: Ichor.** Fees and taxes are Ichor sinks (`TRADE.listingFeeFrac` 5% up-front,
   `TRADE.saleTaxFrac` 10% at settlement) — the future market is economically integrated with
   `MARKET.md`'s premium currency from day one.
@@ -30,7 +32,7 @@ Every owned tradable carries a **ProvenanceStamp**:
 | `history` | prior owner player-ids, capped at `ITEM_IDENTITY.historyCap` |
 
 Ledger keys: `eq:<uid>` (equipment instances) · `cos:<id>` (wardrobe + phenotype cosmetics) ·
-`gene:<id>` (gene cards).
+`gene:<id>` (gene cards) · `mul:<pieceId>` (mulligan dex unlocks).
 
 **The coverage invariant (self-healing):** `reconcileProvenance` runs on EVERY load (and on
 `defaultSave()` itself): anything owned-but-unstamped gains a `legacy` stamp; stamps for dead
@@ -49,7 +51,8 @@ Origin is immutable — `stampAcquisition` is first-writer-wins.
 
 `tradeEligibility(ref, stamp, ctx)` → `{ok, blocks[]}` — the ONE evaluation, imported by both
 the future UI and the server functions. Block axes: `bound` · `guest` · `campaign`
-(< stage 10) · `accountAge` (< 3 days) · `listingCap` (12/day) · `equipped` · `category`.
+(< stage 10) · `accountAge` (< 3 days) · `listingCap` (12/day) · `equipped` · `slotted`
+(a grafted mulligan piece — unslot first) · `category`.
 Every block has human copy (`tradeBlockLabel`).
 
 ## 3. The market's economic architecture (constants + types, no implementation)

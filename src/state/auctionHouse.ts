@@ -87,7 +87,11 @@ async function deliverPending(mine: MinePayload): Promise<void> {
   })));
   if (delivered.length > 0) {
     toast(delivered.map((d) => ({
-      type: d.cat === 'equipment' ? 'equipment' : d.cat === 'geneCard' ? 'geneCard' : 'cosmetic',
+      type: d.cat === 'equipment' ? 'equipment'
+        : d.cat === 'geneCard' ? 'geneCard'
+          : d.cat === 'mulliganPiece' ? 'mulligan'
+            : d.cat === 'mulliganTissue' ? 'mulliganTissue' // owned-piece delivery dissolved (the duplicate law)
+              : 'cosmetic',
       name: d.name, rarity: d.rarity,
     })));
   }

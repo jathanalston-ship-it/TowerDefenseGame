@@ -1386,6 +1386,18 @@ pair row; new lane = one CouplingTarget; new drop = one IDLE_DROPS row. Rank/are
 already feed the engine; future systems add multipliers at the same optional-arg seam.
 ## Compressed system summary — Auction House & Market Authority (docs/AUCTION-HOUSE.md)
 
+> **2026-07 addendum — mulliganPiece, the FOURTH tradable category:** `mul:<pieceId>`
+> refKeys trade the DEX UNLOCK (`save.mulliganDex`); families are `mul.<piece>.<rarity>`
+> (per sequenced rarity, the equipment precedent); baseline/buyback bands common+uncommon
+> (epic+ exclusive). Custody: a grafted piece is `slotted` (unslot first), a reforge-LOCKED
+> host reads `bound`, escrow-out removes the dex entry, delivery sequences an unowned piece
+> at the listing's rarity or dissolves an owned one to Tissue via `DUP_TISSUE` (the pillar's
+> duplicate law). Landed by the §10 checklist — endpoints/engine/UI needed no structural
+> change (two authority-grant lines + chips). Pinned by `src/state/auctionCustody.test.ts`
+> (8 client-custody tests) + a wire round-trip in `functions/auction.test.ts`. The screen
+> also got its visual overhaul: mastheaded exchange floor, `--rc` rarity-washed specimen
+> cards with category glyphs (⌬ ⛨ ❖ ⊛), segmented pill tabs, membrane wallet, tinted sheets.
+>
 > **2026-07 addendum — Market Liquidity Engine (§buybacks):** the authority now has a BUY
 > side: `planBuybacks` (core) + `runBuybacks` (host tick) may purchase a stale, fairly
 > priced foundational listing — funded by `min(2000, max(40, prevBurns × 0.5))` (structurally
@@ -1423,7 +1435,7 @@ Meta custody: `auctionSellables/auctionEscrowOut/auctionDeliver/auctionReconcile
 **Assumptions.** Trading needs a synced identity (session or cloud-save token; guests
 refused). Deposits + listing payloads are client-attested (documented trust boundary —
 audit lane + moderation watch; everything else server-truth). Quantity is always 1;
-gene/cosmetic trades move THE UNLOCK.
+gene/cosmetic/mulligan trades move THE UNLOCK (owned mulligan deliveries dissolve to Tissue).
 
 **Verification.** `npm run sim:market` — 10 mandated scenarios (~3,820 days) all healthy:
 exact conservation, commons affordable everywhere, exclusives never stocked, authority

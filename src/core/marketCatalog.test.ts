@@ -51,7 +51,7 @@ describe('exclusivity — the authority never touches player-scarcity items', ()
       expect(f.exclusive).toBe(false);
       expect(baselineEligible({ familyKey: f.familyKey, cat: f.cat, rarity: f.rarity, exclusive: false })).toBe(true);
     }
-    for (const cat of ['equipment', 'cosmetic', 'geneCard'] as const) {
+    for (const cat of ['equipment', 'cosmetic', 'geneCard', 'mulliganPiece'] as const) {
       expect(stockable.some((f) => f.cat === cat)).toBe(true);
     }
   });

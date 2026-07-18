@@ -1593,6 +1593,7 @@ function reconcileSaveProvenance(save: SaveData): SaveData {
     equipmentUids: save.equipment.inventory.map((i) => i.uid),
     cosmeticIds: [...save.wardrobe.owned, ...save.cosmetics.owned],
     geneCardIds: save.genesDiscovered,
+    mulliganPieceIds: Object.keys(save.mulliganDex),
   });
   return save;
 }

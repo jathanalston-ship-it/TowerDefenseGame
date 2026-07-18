@@ -146,7 +146,7 @@ export function effectiveFees(state: AuthorityState): { listingFeeFrac: number; 
  *  gene gated/rarity>uncommon, …); the rule here just enforces it. */
 export interface BaselineCatalogEntry {
   familyKey: string;
-  cat: 'equipment' | 'cosmetic' | 'geneCard';
+  cat: 'equipment' | 'cosmetic' | 'geneCard' | 'mulliganPiece';
   rarity: string;
   exclusive: boolean;
 }
@@ -156,6 +156,7 @@ const BASELINE_MAX_RARITY: Record<BaselineCatalogEntry['cat'], ReadonlySet<strin
   geneCard: new Set(['common', 'uncommon']),
   equipment: new Set(['common']),
   cosmetic: new Set(['rare']), // 'cultivate' basics sit at rare — the entry band
+  mulliganPiece: new Set(['common', 'uncommon']), // the genes band — humble sequences only
 };
 
 export function baselineEligible(e: BaselineCatalogEntry): boolean {
@@ -241,6 +242,7 @@ export const BUYBACK_MAX_RARITY: Record<BaselineCatalogEntry['cat'], ReadonlySet
   geneCard: new Set(['common', 'uncommon']),
   equipment: new Set(['common', 'uncommon']),
   cosmetic: new Set(['rare']), // the cultivate entry band — "baseline cosmetics"
+  mulliganPiece: new Set(['common', 'uncommon']), // the genes band — the liquidity floor mirrors baseline
 };
 
 /** One stale-listing candidate the host offers the planner (all inputs server-derived). */

@@ -22,6 +22,8 @@ import { WARDROBE_ITEMS } from './wardrobe';
 import type { WardrobeItemDef } from './wardrobe';
 import { cosmeticRegistry } from './cosmetics';
 import type { CosmeticDef } from './cosmetics';
+import { MULLIGAN_RARITY, mulliganRegistry } from './mulligan';
+import type { MulliganRarity } from './mulligan';
 import type { TradableCategory } from './itemIdentity';
 import type { BaselineCatalogEntry } from './marketAuthority';
 import { baselineEligible } from './marketAuthority';
@@ -52,6 +54,11 @@ export function equipmentFamilyKey(defId: string, rarity: string): string {
 export function cosmeticFamilyKey(id: string): string {
   return `cos.${id}`;
 }
+/** Mulligan-piece families are per-piece PER-RARITY (the equipment precedent): the same
+ *  modifier sequenced at Common and at Legendary are different market identities. */
+export function mulliganFamilyKey(pieceId: string, rarity: string): string {
+  return `mul.${pieceId}.${rarity}`;
+}
 
 // ── Exclusivity rules (reviewable in one place — docs/AUCTION-HOUSE.md §baseline) ──
 /** Ultra-rare genes stay out of baseline stock at ANY future band (defense in depth on top
@@ -73,6 +80,11 @@ function wardrobeExclusive(def: WardrobeItemDef): boolean {
  *  rewards are earned exclusives. */
 function classicCosmeticExclusive(def: CosmeticDef): boolean {
   return def.source !== 'cultivate';
+}
+/** Mulligan pieces: the high-rarity sequences are chase pulls — never baseline stock
+ *  (the same defense-in-depth shape as genes; the authority band stops earlier anyway). */
+function mulliganExclusive(rarity: MulliganRarity): boolean {
+  return rarity === 'epic' || rarity === 'legendary' || rarity === 'ascendant';
 }
 
 let cache: MarketFamily[] | null = null;
@@ -99,6 +111,15 @@ export function marketFamilies(): MarketFamily[] {
   }
   for (const c of cosmeticRegistry.active()) {
     out.push({ familyKey: cosmeticFamilyKey(c.id), cat: 'cosmetic', name: c.name, rarity: c.rarity, exclusive: classicCosmeticExclusive(c), neverTrade: false });
+  }
+  for (const id of mulliganRegistry.ids()) {
+    const def = mulliganRegistry.get(id)!;
+    for (const r of Object.keys(MULLIGAN_RARITY) as MulliganRarity[]) {
+      out.push({
+        familyKey: mulliganFamilyKey(id, r), cat: 'mulliganPiece', name: `${def.name} (${r})`,
+        rarity: r, exclusive: mulliganExclusive(r), neverTrade: false,
+      });
+    }
   }
   cache = out;
   return out;
@@ -140,7 +161,7 @@ export function marketCatalogProblems(): string[] {
     seen.add(f.familyKey);
     if (!f.name) problems.push(`market family without a name: ${f.familyKey}`);
   }
-  for (const cat of ['equipment', 'cosmetic', 'geneCard'] as const) {
+  for (const cat of ['equipment', 'cosmetic', 'geneCard', 'mulliganPiece'] as const) {
     if (!stockableFamilies().some((f) => f.cat === cat)) {
       problems.push(`no baseline-stockable ${cat} family — the authority's ${cat} lane is dead`);
     }

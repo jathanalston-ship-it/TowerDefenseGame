@@ -1,8 +1,8 @@
 # AUCTION-HOUSE.md — the player-driven market & Market Stabilization System
 
 > The complete trading economy: player listings in Ichor across **Gene Cards, Equipment
-> (Bio-Gear), and Cosmetics** — no other category may trade — stabilized by an invisible,
-> always-running **Market Authority**. This document is the single reference for the
+> (Bio-Gear), Cosmetics, and Mulligan Modifiers** — no other category may trade —
+> stabilized by an invisible, always-running **Market Authority**. This document is the single reference for the
 > economy rules, pricing intelligence, item metadata, transaction validation, the
 > authority's levers, the security model, expansion hooks, and the developer tools.
 >
@@ -40,7 +40,7 @@ All tunables in `core/trading.ts` `TRADE`:
 
 | Rule | Value | Why |
 |---|---|---|
-| Categories | geneCard, equipment, cosmetic | The launch trio; `TRADABLE_CATEGORIES` is the gate |
+| Categories | geneCard, equipment, cosmetic, mulliganPiece | The launch trio + the organ lane (2026-07, the §10 checklist's first proof); `TRADABLE_CATEGORIES` is the gate |
 | Currency | Ichor | The premium-adjacent sink currency — trading gives it a player-set exchange rate |
 | Listing fee | 5% of buy-now/ask, min 1, **burned** | Spam brake + baseline Ichor sink; non-refundable so relist-churn costs |
 | Sale tax | 10% of price, **burned** | The big anti-inflation sink; scales ×1–×2 under the authority |
@@ -48,7 +48,7 @@ All tunables in `core/trading.ts` `TRADE`:
 | Durations | 12 / 24 / 48 h | Short enough to keep the book live, long enough to cross time zones |
 | Bid rule | full escrow, +5% min increment, 120s anti-snipe | Sniping loses to the extension; escrow makes bids real money |
 | Account gates | campaign stage 10, 3-day age, 12 listings/day | Trading is an EARNED capability (fraud friction) — server-derived, never client-claimed |
-| Quantity | always 1 | Equipment trades the instance; gene/cosmetic trades **the unlock** — selling your only copy removes access (the confirm dialog says so) |
+| Quantity | always 1 | Equipment trades the instance; gene/cosmetic/mulligan trades **the unlock** — selling your only copy removes access (the confirm dialog says so). A grafted mulligan piece must unslot first (`slotted` block); a reforge-LOCKED host binds its pieces forever; delivering an already-owned piece dissolves to Mulligan Tissue by the pillar's own duplicate law (`DUP_TISSUE`) |
 
 **Money conservation is an invariant, not a hope:** every Ichor entering the market
 (deposits) equals wallet holdings + burns + withdrawals, exactly. The sim asserts it after
@@ -71,7 +71,9 @@ is the cross-account provenance thread the fraud audit chains on.
 
 ## 4. Pricing intelligence
 
-Per FAMILY (the aggregation identity — `gene.<id>`, `eq.<def>.<rarity>`, `cos.<id>`):
+Per FAMILY (the aggregation identity — `gene.<id>`, `eq.<def>.<rarity>`, `cos.<id>`,
+`mul.<piece>.<rarity>` — mulligans family per SEQUENCED rarity, the equipment precedent:
+mixing rarities would poison the price stats):
 
 - **History**: one row per (family, UTC day) — sales, median, low, high — folded at
   settlement from real trades, served 30 days back (`/api/auction/history`).
@@ -216,9 +218,12 @@ the first listing — one stage of window-shopping). Browse: indexed filters (ca
 rarity, price band, family set — free text resolves to family keys client-side against
 the shared catalog; the server never scans names), four sorts, pagination, family sheet
 with sparkline + stats + recommended price. Sell: `meta.auctionSellables()` (block
-reasons: bound/equipped/neverTrade), recommended-price prefill, fee preview at the LIVE
-multiplier, only-copy warning. My Market: wallet, listings + cancel, bids with
-leading/outbid state, trades, ledger.
+reasons: bound/equipped/neverTrade/slotted — slotted is the mulligan gate: unslot the
+graft before listing; a reforge-locked host reads as bound), recommended-price prefill,
+fee preview at the LIVE multiplier, only-copy warning. My Market: wallet, listings +
+cancel, bids with leading/outbid state, trades, ledger. Mulligan delivery: an unowned
+piece sequences into `mulliganDex` at the listing's rarity; an owned one dissolves to
+Tissue (`DUP_TISSUE[rarity]`) — never a duplicate.
 
 Custody is **server-first**: only a 200 moves the save (`auctionEscrowOut` /
 `auctionDeliver`, provenance-stamped); `auctionReconcile` self-heals the crash window on
@@ -255,7 +260,10 @@ Adding a tradable category (or any new content in an existing one):
    prefix, a catalog projection, a payload grant shape in `meta.auctionDeliver`, and a
    baseline band row in `marketAuthority.BASELINE_MAX_RARITY`. Engine, endpoints, search,
    authority, audit, wallet, UI tabs and docs need **no changes** — nothing keys on
-   concrete ids.
+   concrete ids. Proven 2026-07: `mulliganPiece` (`mul:` refKeys, `mul.<piece>.<rarity>`
+   families, common/uncommon baseline band, `slotted` block, owned-delivery Tissue
+   dissolve) landed by exactly this checklist — the server accepted `mul` listings with
+   zero endpoint edits beyond the two authority-grant lines.
 3. Open hooks: `SellerRecord` (trust surface), `pvpLegality` (season rulesets),
    per-affix search columns when listing volume justifies them, push notifications for
    outbid/sold (needs a save-pure channel), regional shards (windowKey already namespaces

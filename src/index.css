@@ -12594,82 +12594,143 @@ html[data-debug-layout] body::after {
 .draft-reroll b { color: var(--gold); }
 .draft-reroll i { margin-left: 8px; opacity: 0.55; font-style: normal; font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; }
 
-/* ── AUCTION HOUSE (ui/AuctionHouse.tsx — docs/AUCTION-HOUSE.md §client) ──────────────── */
+/* ── AUCTION HOUSE (ui/AuctionHouse.tsx — docs/AUCTION-HOUSE.md §client) ──────────────────
+   The exchange floor: a mastheaded trading terminal. Rarity flows through --rc (set inline
+   per card/sheet) so every specimen card, wash, and sheet band tints itself; category glyphs
+   (⌬ ⛨ ❖ ⊛) watermark what kind of organ is on the block. */
 .ah-root { display: flex; flex-direction: column; gap: 14px; }
-.ah-head { display: flex; gap: 14px; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; }
-.ah-head h2 { margin: 0 0 4px; font-size: 20px; }
+.ah-head { display: flex; gap: 14px; align-items: stretch; justify-content: space-between; flex-wrap: wrap; }
+.ah-mast { display: flex; flex-direction: column; justify-content: center; }
+.ah-kicker { font-size: 10px; letter-spacing: 0.28em; text-transform: uppercase; color: var(--caustic); opacity: 0.85; }
+.ah-head h2 { margin: 2px 0 4px; font-size: 26px; letter-spacing: 0.02em; }
+.ah-sub { margin: 0; font-size: 12px; max-width: 46ch; }
 .ah-dim { color: var(--muted); }
-.ah-gate { padding: 24px; text-align: center; }
+.ah-gate {
+  max-width: 420px; margin: 40px auto; padding: 24px; text-align: center;
+  border: 1px solid var(--line-strong); border-radius: var(--r-md);
+  background: radial-gradient(120% 100% at 50% 0%, color-mix(in srgb, var(--caustic) 8%, transparent), transparent 60%), var(--panel);
+}
 .ah-gate h2 { font-size: 20px; }
 .ah-banner {
   padding: 8px 12px; border: 1px solid var(--line-strong); border-radius: var(--r-sm);
   background: var(--panel-2); font-size: 12px;
 }
-.ah-hot { border-color: var(--viral); }
-.ah-warn { color: var(--viral); font-size: 12px; margin: 6px 0 0; }
+.ah-hot { border-color: var(--viral); color: var(--viral); animation: ah-hot-breathe 2.4s ease-in-out infinite; }
+@keyframes ah-hot-breathe {
+  0%, 100% { box-shadow: 0 0 0 0 transparent; }
+  50% { box-shadow: 0 0 14px -4px var(--viral); }
+}
+.ah-warn { color: var(--viral); font-size: 12px; margin: 8px 0 0; padding: 7px 10px; border: 1px solid color-mix(in srgb, var(--viral) 45%, transparent); border-radius: var(--r-xs); background: color-mix(in srgb, var(--viral) 8%, transparent); }
 .ah-note { font-size: 12px; color: var(--caustic); margin-top: 6px; }
 .ah-fine { font-size: 11px; margin: 6px 0 0; }
-.ah-empty { padding: 18px 4px; }
+.ah-empty { padding: 18px 4px; text-align: center; }
 
+/* §wallet — the membrane vault: market balance is the hero figure */
 .ah-wallet {
-  min-width: 240px; padding: 10px 12px; border: 1px solid var(--line); border-radius: var(--r-md);
-  background: var(--panel); display: flex; flex-direction: column; gap: 4px;
+  min-width: 260px; padding: 10px 14px; border-radius: var(--r-md);
+  border: 1px solid color-mix(in srgb, var(--gold) 30%, var(--line));
+  background: radial-gradient(140% 120% at 100% 0%, color-mix(in srgb, var(--gold) 9%, transparent), transparent 55%), var(--panel);
+  display: flex; flex-direction: column; gap: 6px;
 }
-.ah-wrow { display: flex; justify-content: space-between; gap: 12px; font-size: 13px; }
-.ah-wmove { display: flex; gap: 6px; margin-top: 6px; }
+.ah-wtop { display: flex; gap: 16px; justify-content: space-between; align-items: flex-start; }
+.ah-wcol { display: flex; flex-direction: column; gap: 1px; }
+.ah-wside { text-align: right; font-size: 13px; }
+.ah-wlabel { font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--muted); }
+.ah-whero { font-size: 20px; color: var(--gold); font-weight: 700; line-height: 1.15; }
+.ah-wesc { font-size: 11px; color: var(--muted); }
+.ah-wmove { display: flex; gap: 6px; margin-top: 2px; }
 .ah-wmove input { width: 90px; min-width: 0; flex: 1; }
 .ah-wmove button { font-size: 12px; }
 
-.ah-tabs { display: flex; gap: 6px; border-bottom: 1px solid var(--line); }
-.ah-tab {
-  position: relative; padding: 8px 14px; background: none; border: none; border-bottom: 2px solid transparent;
-  color: var(--muted); font-size: 13px; cursor: pointer; transition: color var(--dur-2);
+/* §tabs — segmented console pills */
+.ah-tabs {
+  display: flex; gap: 4px; padding: 4px; align-self: flex-start; max-width: 100%;
+  border: 1px solid var(--line); border-radius: 999px; background: var(--panel-deep);
 }
-.ah-tab.on { color: var(--caustic); border-bottom-color: var(--caustic); }
+.ah-tab {
+  position: relative; padding: 7px 16px; border: 1px solid transparent; border-radius: 999px;
+  background: none; color: var(--muted); font-size: 13px; font-weight: 600; letter-spacing: 0.04em;
+  cursor: pointer; transition: color var(--dur-2) var(--ease-out), background var(--dur-2) var(--ease-out), border-color var(--dur-2) var(--ease-out);
+}
+.ah-tab:hover { color: var(--text, #e8eef7); }
+.ah-tab.on {
+  color: var(--caustic); background: color-mix(in srgb, var(--caustic) 12%, transparent);
+  border-color: color-mix(in srgb, var(--caustic) 40%, transparent);
+}
 .ah-dot {
-  position: absolute; top: 6px; right: 4px; width: 7px; height: 7px; border-radius: 50%;
-  background: var(--caustic);
+  position: absolute; top: 4px; right: 7px; width: 7px; height: 7px; border-radius: 50%;
+  background: var(--caustic); box-shadow: 0 0 6px var(--caustic);
 }
 .ah-refresh { font-size: 14px; }
 
+/* §cards — rarity-washed specimen tiles */
 .ah-grid {
-  display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 8px; margin-top: 10px;
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(164px, 1fr)); gap: 8px; margin-top: 10px;
 }
 .ah-card {
-  text-align: left; padding: 10px; border: 1px solid var(--line); border-left-width: 3px;
-  border-radius: var(--r-sm); background: var(--panel); cursor: pointer; display: flex;
-  flex-direction: column; gap: 3px; transition: background var(--dur-2);
+  --rc: var(--muted);
+  position: relative; overflow: hidden; text-align: left; padding: 10px 12px;
+  border: 1px solid color-mix(in srgb, var(--rc) 35%, var(--line)); border-left: 3px solid var(--rc);
+  border-radius: var(--r-sm);
+  background: linear-gradient(155deg, color-mix(in srgb, var(--rc) 10%, transparent), transparent 48%), var(--panel);
+  cursor: pointer; display: flex; flex-direction: column; gap: 3px;
+  transition: transform var(--dur-2) var(--ease-out), border-color var(--dur-2) var(--ease-out), box-shadow var(--dur-2) var(--ease-out);
 }
-.ah-card:hover { background: var(--panel-2); }
-.ah-card.ah-blocked { opacity: 0.55; cursor: default; }
-.ah-card-name { font-size: 13px; font-weight: 600; }
-.ah-card-sub { font-size: 11px; }
-.ah-card-price { font-size: 14px; color: var(--gold); }
+.ah-card:hover {
+  transform: translateY(-2px);
+  border-color: color-mix(in srgb, var(--rc) 70%, var(--line));
+  box-shadow: 0 8px 20px -10px color-mix(in srgb, var(--rc) 50%, transparent);
+}
+.ah-card.ah-blocked { opacity: 0.55; cursor: default; filter: saturate(0.4); }
+.ah-card.ah-blocked:hover { transform: none; box-shadow: none; }
+.ah-card-glyph { position: absolute; top: 6px; right: 9px; font-size: 16px; color: var(--rc); opacity: 0.55; pointer-events: none; }
+.ah-card-name { font-size: 13px; font-weight: 600; padding-right: 20px; }
+.ah-card-sub { display: flex; align-items: center; gap: 6px; font-size: 11px; }
+.ah-card-rar { color: var(--rc, var(--muted)); font-weight: 600; letter-spacing: 0.04em; text-transform: capitalize; }
+.ah-stockchip {
+  display: inline-flex; align-items: center; gap: 3px; padding: 1px 7px; border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--caustic) 40%, transparent);
+  color: var(--caustic); font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase;
+}
+.ah-card-price { display: flex; align-items: baseline; gap: 6px; margin-top: 2px; }
+.ah-card-price b { font-size: 16px; color: var(--gold); font-weight: 700; }
+.ah-card-price span { font-size: 11px; }
 .ah-card-ends { font-size: 11px; }
 .ah-pager { display: flex; gap: 10px; align-items: center; justify-content: center; margin-top: 12px; }
 
+/* §sheets — the detail/list dialogs inherit the specimen's rarity band */
 .ah-scrim {
   position: fixed; inset: 0; z-index: 90; background: rgba(4, 7, 12, 0.72);
   display: flex; align-items: center; justify-content: center; padding: 14px;
 }
 .ah-sheet {
-  width: min(440px, 100%); max-height: min(84vh, 640px); overflow: auto; padding: 14px;
-  border: 1px solid var(--line-strong); border-radius: var(--r-md); background: var(--panel);
+  --rc: var(--caustic);
+  width: min(460px, 100%); max-height: min(86vh, 660px); overflow: auto; padding: 14px 16px;
+  border: 1px solid color-mix(in srgb, var(--rc) 45%, var(--line-strong)); border-radius: var(--r-md);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--rc) 9%, transparent), transparent 90px), var(--panel);
+  box-shadow: 0 18px 50px -18px rgba(0, 0, 0, 0.7);
 }
 .ah-sheet-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
-.ah-sheet-head h3 { margin: 0 0 2px; font-size: 16px; }
+.ah-sheet-head h3 { display: inline; margin: 0 6px 2px 0; font-size: 16px; }
+.ah-sheet-glyph { color: var(--rc); margin-right: 6px; font-size: 14px; }
 .ah-x { background: none; border: none; color: var(--muted); font-size: 14px; cursor: pointer; }
 .ah-prices { margin: 10px 0; }
 .ah-spark { width: 100%; height: 56px; display: block; background: var(--panel-deep); border-radius: var(--r-xs); padding: 4px 0; font-size: 11px; }
 div.ah-spark { display: flex; align-items: center; justify-content: center; height: 40px; }
-.ah-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 6px 12px; margin-top: 8px; }
-.ah-stat { display: flex; flex-direction: column; font-size: 12px; }
+.ah-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 6px; margin-top: 8px; }
+.ah-stat {
+  display: flex; flex-direction: column; font-size: 12px; padding: 5px 8px;
+  border: 1px solid var(--line); border-radius: var(--r-xs); background: rgba(255, 255, 255, 0.02);
+}
+.ah-stat b { color: var(--gold); }
 .ah-buyrow { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; align-items: stretch; }
 .ah-primary {
-  padding: 9px 14px; border-radius: var(--r-sm); border: 1px solid var(--caustic);
-  background: color-mix(in srgb, var(--caustic) 16%, var(--panel)); color: var(--text, #e8eef7);
-  font-size: 13px; font-weight: 600; cursor: pointer;
+  padding: 10px 16px; border-radius: var(--r-sm); border: 1px solid var(--caustic);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--caustic) 24%, var(--panel)), color-mix(in srgb, var(--caustic) 11%, var(--panel)));
+  color: var(--text, #e8eef7); font-size: 13px; font-weight: 700; letter-spacing: 0.04em; cursor: pointer;
+  transition: filter var(--dur-2) var(--ease-out), transform var(--dur-2) var(--ease-out);
 }
+.ah-primary:hover:not(:disabled) { filter: brightness(1.12); transform: translateY(-1px); }
 .ah-primary:disabled { opacity: 0.5; cursor: default; }
 .ah-bid { display: flex; gap: 6px; flex: 1; min-width: 200px; }
 .ah-bid input { width: 100px; min-width: 0; flex: 1; }
@@ -12683,20 +12744,25 @@ div.ah-spark { display: flex; align-items: center; justify-content: center; heig
 }
 .ah-chip.on { border-color: var(--caustic); color: var(--caustic); }
 
-.ah-mine h3 { font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); margin: 16px 0 6px; }
+/* §my market — boxed ledger sections */
+.ah-sec { border: 1px solid var(--line); border-radius: var(--r-md); background: var(--panel); padding: 10px 12px; margin-bottom: 10px; }
+.ah-sec > p { margin: 2px 0; font-size: 12px; }
+.ah-mine h3 { font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--muted); margin: 0 0 8px; }
 .ah-row {
   display: flex; gap: 10px; align-items: center; padding: 7px 10px; border: 1px solid var(--line);
-  border-radius: var(--r-sm); background: var(--panel); font-size: 12px; margin-bottom: 6px; flex-wrap: wrap;
+  border-radius: var(--r-sm); background: var(--panel-2); font-size: 12px; margin-bottom: 6px; flex-wrap: wrap;
 }
+.ah-row:last-child { margin-bottom: 0; }
 .ah-row-name { font-weight: 600; flex: 1; min-width: 120px; }
 .ah-lead { color: var(--vital); }
 .ah-outbid { color: var(--viral); }
 
 @media (max-width: 480px) {
   .ah-wallet { min-width: 0; width: 100%; }
-  .ah-grid { grid-template-columns: repeat(auto-fill, minmax(136px, 1fr)); }
+  .ah-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
   .ah-sheet { max-height: 88vh; }
   .ah-form input { width: 90px; }
+  .ah-head h2 { font-size: 20px; }
 }
 
 /* ── THE FRONT (FrontScreen.tsx, docs/INFESTATION.md §front) ── */

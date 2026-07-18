@@ -58,6 +58,11 @@ export const MULLIGAN_MARK = '⊛';
 export const MULLIGAN_MAX_LEVEL = 20;
 export const MULLIGAN_SLOTS = 3;
 
+/** The duplicate-dissolve law (docs/MULLIGANS.md §localized): a piece the account already
+ *  owns converts to Mulligan Tissue at these rates — the container pull AND an Auction
+ *  House delivery of an owned piece both pay through this one table. */
+export const DUP_TISSUE: Record<MulliganRarity, number> = { common: 30, uncommon: 50, rare: 90, epic: 160, legendary: 280, ascendant: 500 };
+
 export function rarityAtLeast(a: MulliganRarity, b: MulliganRarity): boolean {
   return MULLIGAN_RARITY[a].tier >= MULLIGAN_RARITY[b].tier;
 }
