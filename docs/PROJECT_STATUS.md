@@ -3,7 +3,19 @@
 > Maintained at the END of every session (paired with `docs/AI_HANDOFF.md` — the constitution's
 > workflow step 4). This is the "where are we?" answer; `docs/GAME-STATE.md` remains the deeper
 > per-system built-vs-planned index, `docs/PROJECT_MANIFEST.md` the system map.
-> **Last updated:** 2026-07-18m (**LIVE EVENT FRAMEWORK** (user brief) — docs/LIVE-EVENTS.md,
+> **Last updated:** 2026-07-18n (**EVENT ECONOMIES & LIMITED REWARD TRACKS** (user brief) —
+> LIVE-EVENTS.md §6. Every event now carries a full temporary ecosystem: thematic
+> window-scoped currencies (exist ONLY while live; stale keys prune = the anti-inflation),
+> `eventTrack()` miniature battle passes — authored SPINE + deterministic consumable filler
+> to duration-scaled ladders (TRACK_LEVELS short 5 · medium 10 · major 18; longer = richer
+> under the per-day budgets), every level pays and is reachable (validated). REPEATS:
+> tracks pay via applyRewardList so owned permanents substitute into compensation — no
+> duplicate unlock possible; filler is consumable-only (test-pinned) ⇒ veteran repeat value
+> ≥70%. Persona sims (new 0.45/f2p 0.70/vet 0.85/whale 1.0 pool completion): new players
+> reach ≥40% of every track, full pool completes exactly (tokens engagement-only,
+> unpurchasable — whales cannot skip). Suite green. Previous below.)
+>
+> **2026-07-18m** (**LIVE EVENT FRAMEWORK** (user brief) — docs/LIVE-EVENTS.md,
 > the foundational rotating-identity engine. `core/liveEvents.ts`: three independent horizons
 > from the shared Monday epoch (SHORT 3d ring-of-3 · MEDIUM 14d ring-of-3 · MAJOR 91d
 > ring-of-2), ALWAYS simultaneously live; `themeOwner()` (major>medium>short) dresses the hub

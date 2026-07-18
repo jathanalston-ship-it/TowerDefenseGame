@@ -73,3 +73,29 @@ SHORT: Ember Tide 🜂 (heat/loot) · Spore Bloom ❁ (growth/essence) · Static
 (memory/purple) · Epoch of Overgrowth ⬢ (growth/green). Every event ships theme, visuals,
 audio re-voicing, lane boost, currency, challenges, track, gameplay modifier, variants and
 lore; mediums/majors add shops.
+
+## 6. Event economies & limited reward tracks (2026-07)
+
+**Currencies** — each event's `currency` is its thematic token (Ember Spores 🜂, Bloom
+Pollen ❁, Static Charge ⌁, Hunt Marks ◎, Current Shells ≋, Famine Tithes ✕, Epoch
+Strands ◈, Growth Rings ⬢), earned ONLY from that event's challenges, wallet-capped, and
+window-scoped: `eventId:window` keys mean the currency literally stops existing when the
+event rotates (stale keys prune on load — the disappearance IS the anti-inflation).
+
+**Tracks** — `eventTrack(def)` builds the miniature battle pass: authored milestones are
+the SPINE (signature rewards at their thresholds) and deterministic consumable filler
+completes the ladder to `TRACK_LEVELS` (short 5 · medium 10 · major 18 — length scales
+with duration, and per-window mint budgets make longer events strictly richer). Every
+level pays, every level is reachable from the challenge pool, all validated.
+
+**Repeats** — tracks pay through meta `applyRewardList`, so permanent kinds (cosmetics,
+passives, phenotypes) substitute into the compensation bundle when already owned: no
+duplicate permanent unlock is possible, ever, by construction. Generated filler is
+consumable-only (test-pinned), so a veteran's repeat window retains ≥70% of fresh value
+(permanent-unlock share capped at 30% of track rewards, sim-enforced).
+
+**Persona validation** (`npm run sim:events`) — completion rates new-player 0.45 /
+f2p-regular 0.70 / veteran 0.85 / whale 1.00 of each pool: new players reach ≥40% of every
+track, the full pool completes each track exactly (no dead tail, no overshoot — tokens are
+engagement-only, unpurchasable, so whales cannot skip), and repeat value holds. Long-term
+engagement is the only lever that moves an event track.

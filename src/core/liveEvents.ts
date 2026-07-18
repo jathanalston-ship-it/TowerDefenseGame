@@ -352,7 +352,7 @@ export function windowMintBudget(e: LiveEventDefV2): number {
       default: return 100; // cosmetic/passive/stack — bounded flat weight
     }
   };
-  const track = (e.track ?? []).flatMap((m) => m.rewards).reduce((a, r) => a + iv(r), 0);
+  const track = eventTrack(e).flatMap((m) => m.rewards).reduce((a, r) => a + iv(r), 0);
   const shop = (e.shop ?? []).flatMap((s) => Array.from({ length: s.stock }, () => s.rewards).flat()).reduce((a, r) => a + iv(r), 0);
   return track + shop;
 }
@@ -360,6 +360,41 @@ export function windowMintBudget(e: LiveEventDefV2): number {
 /** Per-DAY mint ceilings (core-equivalents) — horizons are budgeted by duration, so a short
  *  surge can never out-pay an epoch pro-rata (docs/LIVE-EVENTS.md §economy). */
 export const MINT_BUDGET_PER_DAY: Record<EventHorizon, number> = { short: 220, medium: 180, major: 120 };
+
+// ── Duration-scaled reward tracks (docs/LIVE-EVENTS.md §tracks) ──────────────────────────
+// Every event's track is a miniature battle pass: authored milestones are the SPINE (the
+// event's signature rewards, kept at their token thresholds) and generated filler levels
+// complete the ladder to the horizon's length — every level pays, exactly like the season
+// tables' filler cadence. Tracks pay through meta applyRewardList, which is what makes
+// REPEATS safe automatically: permanent kinds (cosmetic/passive/phenotype) substitute into
+// the compensation bundle when already owned — no duplicate unlock can ever grant twice,
+// and veterans keep receiving value (validated below at ≥70% of fresh-window value).
+export const TRACK_LEVELS: Record<EventHorizon, number> = { short: 5, medium: 10, major: 18 };
+
+/** The full per-level track: authored spine + deterministic filler to TRACK_LEVELS length,
+ *  spread evenly across the earnable token range. Pure and cached-free (cheap). */
+export function eventTrack(e: LiveEventDefV2): EventTrackMilestone[] {
+  const target = TRACK_LEVELS[e.horizon];
+  const spine = [...(e.track ?? [])].sort((a, b) => a.at - b.at);
+  const maxTokens = (e.challenges ?? []).reduce((a, c) => a + c.tokens, 0);
+  if (maxTokens <= 0) return spine;
+  const need = Math.max(0, target - spine.length);
+  const taken = new Set(spine.map((m) => m.at));
+  const filler: EventTrackMilestone[] = [];
+  const scale = e.horizon === 'major' ? 3 : e.horizon === 'medium' ? 2 : 1;
+  for (let i = 1; filler.length < need && i <= target * 3; i++) {
+    const at = Math.max(1, Math.round((maxTokens * i) / (target + 1)));
+    if (taken.has(at)) continue;
+    taken.add(at);
+    // Filler cadence — consumables only (repeat-neutral by construction), horizon-scaled.
+    const r: PassReward = i % 4 === 0 ? { kind: 'mats', scrap: 4 * scale, mutagen: scale }
+      : i % 3 === 0 ? { kind: 'geneEssence', qty: 25 * scale }
+      : i % 2 === 0 ? { kind: 'cores', qty: 40 * scale }
+      : { kind: 'ichor', qty: scale };
+    filler.push({ at, rewards: [r] });
+  }
+  return [...spine, ...filler].sort((a, b) => a.at - b.at);
+}
 
 /** Registry integrity + the readability and economy laws. Empty ⇒ the framework holds. */
 export function liveEventProblems(): string[] {
@@ -381,6 +416,16 @@ export function liveEventProblems(): string[] {
       if (topMilestone > maxTokens) out.push(`${e.id}: track milestone at ${topMilestone} unreachable (max earnable ${maxTokens})`);
     }
     for (const ch of e.challenges ?? []) if (ch.target <= 0) out.push(`${e.id}/${ch.id}: non-positive target`);
+    // Track laws: full ladder length, every level pays, every level reachable.
+    if (e.currency) {
+      const full = eventTrack(e);
+      if (full.length < TRACK_LEVELS[e.horizon]) out.push(`${e.id}: track has ${full.length} levels < ${TRACK_LEVELS[e.horizon]} for ${e.horizon}`);
+      const maxTokens = (e.challenges ?? []).reduce((a, c) => a + c.tokens, 0);
+      for (const m of full) {
+        if (m.rewards.length === 0) out.push(`${e.id}: empty track level at ${m.at}`);
+        if (m.at > maxTokens) out.push(`${e.id}: track level at ${m.at} unreachable (max ${maxTokens})`);
+      }
+    }
   }
   // Ring sizes — the brief's rotation contract (grows freely; never empty).
   if (RING.short.length < 3) out.push(`short ring has ${RING.short.length} events (< 3)`);
