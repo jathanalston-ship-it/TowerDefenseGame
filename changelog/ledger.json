@@ -1,6 +1,6 @@
 {
-  "lastSha": "8376a539ed16bcc3dc11fbd56bfe944164049ba6",
-  "commitsSinceDraft": 4,
+  "lastSha": "b32121c21ee0ca2acc3a9edfbad3b5f28d54ea5e",
+  "commitsSinceDraft": 6,
   "content": {
     "tower": [
       "needle",
@@ -2861,6 +2861,10 @@
         {
           "cat": "Towers",
           "text": "Auction House: mulligan organs trade + full-integration audit + visual overhaul"
+        },
+        {
+          "cat": "Website",
+          "text": "Rituals: chronicle + site sync + handoff/status board for the auction batch"
         }
       ]
     }
@@ -5320,6 +5324,22 @@
       "cat": "Towers",
       "text": "Auction House: mulligan organs trade + full-integration audit + visual overhaul",
       "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "fb091beed1950a332725eca7bc25cb737cab934b",
+      "date": "2026-07-18",
+      "cat": "Website",
+      "text": "Rituals: chronicle + site sync + handoff/status board for the auction batch",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "b32121c21ee0ca2acc3a9edfbad3b5f28d54ea5e",
+      "date": "2026-07-18",
+      "cat": "Gameplay",
+      "text": "Deploy contract: green means PRODUCTION changed (pin + stamp + live verify)",
+      "internal": true,
       "needsReview": false
     }
   ]

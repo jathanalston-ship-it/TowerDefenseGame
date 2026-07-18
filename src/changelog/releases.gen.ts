@@ -1358,6 +1358,10 @@ export const RELEASES: Release[] = [
       {
         "cat": "Towers",
         "text": "Auction House: mulligan organs trade + full-integration audit + visual overhaul"
+      },
+      {
+        "cat": "Website",
+        "text": "Rituals: chronicle + site sync + handoff/status board for the auction batch"
       }
     ]
   },

@@ -3,7 +3,26 @@
 > Maintained at the END of every session (paired with `docs/AI_HANDOFF.md` — the constitution's
 > workflow step 4). This is the "where are we?" answer; `docs/GAME-STATE.md` remains the deeper
 > per-system built-vs-planned index, `docs/PROJECT_MANIFEST.md` the system map.
-> **Last updated:** 2026-07-18r (**AUCTION HOUSE — MULLIGAN ORGANS + FULL AUDIT + VISUAL
+> **Last updated:** 2026-07-18s (**WEBSITE DEPLOY FIXED + THE PRODUCTION-VERIFY CONTRACT**
+> (queue #352, user brief: "update the website. make sure it's actually updated … implement
+> something that ensures that never happens again"). ROOT CAUSE found and fixed: wrangler's
+> `--production-branch` flag only applies on FIRST-ever project creation — the Pages project
+> `assimilate` was born under an earlier branch, so every deploy from zen-hawking landed as
+> a hash-URL **preview** while https://assimilate-69x.pages.dev kept serving the frozen old
+> build, with CI green the whole time. deploy.yml now (1) PATCHes the project's
+> `production_branch` to the deploying branch on EVERY run, (2) stamps `dist/version.json`
+> with GITHUB_SHA, (3) post-deploy resolves the canonical production host from the API and
+> polls `/version.json` until it serves that exact SHA — mismatch after 5 min exits 1, so
+> **a deploy that doesn't change production can never be green again** (the never-again
+> guard). PROVEN LIVE on run #201 (b32121c): poll 1 hit 404 (the stale build had no
+> version.json — the incident caught in the act), poll 2 `Verified: assimilate-69x.pages.dev
+> serves b32121c…`. Production now carries the full current build: auction house (mulligan
+> organs + overhaul), Landscape Mandate, Live Events, The Front, regenerated marketing pages
+> + v2026.07.09 patch notes. Human check: `GET /version.json` on production =
+> pushed SHA (DEPLOYMENT.md §5 + checklist row). Queue next: #350 recommendations
+> prominence. Previous below.)
+>
+> **2026-07-18r** (**AUCTION HOUSE — MULLIGAN ORGANS + FULL AUDIT + VISUAL
 > OVERHAUL** (queue #351, user brief: "add mulligan organs into the auction house … make
 > sure the auction house is fully functional and integrated … do a visual overhaul").
 > **mulliganPiece is the FOURTH tradable category**, landed by the AUCTION-HOUSE §10

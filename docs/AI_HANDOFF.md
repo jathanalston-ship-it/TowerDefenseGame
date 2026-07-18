@@ -86,10 +86,10 @@ never pruned).
 
 ## Recommended next tasks
 
-1. **#352 Website deploy fix + never-again guard** (user-ordered next): pin Pages
-   production_branch via CF API in `.github/workflows/deploy.yml`, stamp the build with
-   GITHUB_SHA (stamp-sw precedent), add a post-deploy step that curls the PRODUCTION URL's
-   marker and exits 1 on mismatch; then verify the live home actually updates.
+1. ~~#352 Website deploy fix + never-again guard~~ — **SHIPPED same session** (b32121c):
+   production_branch pinned every run + version.json stamp + post-deploy production-URL
+   verify that fails the workflow on mismatch; proven live on run #201 (production now
+   serves the current build at assimilate-69x.pages.dev).
 2. **#350 Recommended-decisions prominence pass**: RecommendStrip/Best-Purchase/NextUp as
    the first visual read on every screen that has one.
 

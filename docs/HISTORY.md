@@ -331,3 +331,5 @@
 - `9e7cbd9` **[UI]** The Landscape Mandate: phones play horizontal only (rotate gate + mobilecheck v3)
 - `c35b6fb` **[Website]** Chronicle + site sync for the landscape-mandate batch
 - `8376a53` **[Towers]** Auction House: mulligan organs trade + full-integration audit + visual overhaul
+- `fb091be` **[Website]** Rituals: chronicle + site sync + handoff/status board for the auction batch
+- `b32121c` **[Gameplay]** Deploy contract: green means PRODUCTION changed (pin + stamp + live verify) _(internal)_
