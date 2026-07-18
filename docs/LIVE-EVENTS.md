@@ -124,3 +124,39 @@ Epoch of Overgrowth→living-wheel.
 notificationStyle per event; §4's `data-event` seam applies them at the hub root, and the
 gameplay package's biomeTint extends the identity onto the battlefield. The renderer batch
 implements the machines and ambience; the contracts (and their recognition laws) are final.
+
+## 8. Live operations platform (2026-07)
+
+**Architecture** — the deterministic calendar IS the baseline service: standard rotations
+ship in data and need no server, ever (the "no client update" guarantee, absolute).
+`core/eventOps.ts` layers the REMOTE contract on top: a single `EventOpsConfig` JSON
+document (served by the accounts backend's config channel — same origin as save sync,
+cached client-side, `rev`-monotonic) that `resolveEvents(now, config, debug)` applies over
+`activeLiveEvents`. Absent/offline/invalid config ⇒ the pure calendar unchanged.
+
+**Scheduler** — `schedule[]` entries place any registry event into its horizon slot for an
+exact UTC window (future scheduling, holidays, anniversaries, crossovers, manual
+activation); recurrence is the rings themselves; `kill[]` is the emergency shutdown (the
+ring's next member fills the slot — a horizon can never go dark, and the publish gate
+rejects a document that would empty a ring); `preview[]` gates events to ?debug clients
+(developer previews / testing events); `tuning{}` is the hotfix lane — track/token/shop/
+mods scales, hard-clamped to safe bands (0.5–1.5×) so no config typo can inflate the
+economy past the validated budgets. `eventOpsProblems()` is the publish gate: the ops
+dashboard runs the SAME validator the client trusts.
+
+**Remote-adjustable** — reward values (trackScale), currencies (tokenScale), duration
+(schedule windows), drop-lane boosts (modsScale), store inventory (shopStockDelta),
+challenges/music/visual packages (registry data — a scheduled placement swaps the whole
+identity package). Structural changes beyond the clamps ship as data updates by design:
+the clamps ARE the no-3am-disaster guarantee.
+
+**Analytics & reports** — event participation rides the existing analytics platform
+(AN_EVENTS rows with the event id as a bounded dim); `EventWindowReport` is the post-event
+report contract (participation, completion %, claims, tokens minted/expired, realized
+core-eq vs budget, D1 retention, satisfaction + difficulty proxies, average depth) filed
+per `eventId:window` by the functions/ report job after each window closes.
+
+**Future categories** — holiday/crossover/anniversary events are ordinary registry rows
+placed by the scheduler; community challenges, global boss fights, faction wars and
+limited PvP seasons ship through the namespaced `future` bags (config + event def) that
+old clients ignore — new categories are data + one consumer, never a redesign.

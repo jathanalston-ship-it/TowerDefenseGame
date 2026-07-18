@@ -1,6 +1,6 @@
 # DIL_GRAPH.md — the Design Intelligence Layer (GENERATED — `npm run dil -- regen`)
 
-> **The project's brain** (docs/DIL.md). 879 nodes · 1648 edges, built from the live
+> **The project's brain** (docs/DIL.md). 880 nodes · 1649 edges, built from the live
 > registries + curated knowledge (src/dev/dil/). **Query it instead of searching the repo:**
 > `npm run dil -- node <id>` · `affects <id>` · `requires <id>` · `missing <kind> <edge>` ·
 > `checklist tower <kind>` · `find <text>`. Edge kinds are bidirectional (19 kinds).
@@ -1655,7 +1655,7 @@ _at: src/state/stats.ts_
 
 Deterministic UTC event calendar (docs/LIVEOPS.md): weekend surge, a 4-way rotating weekly spotlight (rush/depth/campaign/apex-raid), recurring Mutation Wednesday / Spore Tide / Prime Hunt beats, monthly Harvest Moon + Reclamation peaks and the quarterly Bloom Cycle fold ×1-baseline lane multipliers (cores/essence/materials/mega-ichor/loot, category-tagged) into finishRun + openContainer; a schedule engine (windowEnd/nextWindow) drives the hub console countdowns + UP NEXT forecast. Clock pinned to a spotlight-only Monday under tests.
 
-_at: src/core/liveops.ts, src/core/liveEvents.ts, src/ui/components/LiveEventsStrip.tsx_
+_at: src/core/liveops.ts, src/core/liveEvents.ts, src/core/eventOps.ts, src/ui/components/LiveEventsStrip.tsx_
 
   - dependsOn → `system:meta-store`
   - dependsOn → `system:daily`
@@ -1664,6 +1664,7 @@ _at: src/core/liveops.ts, src/core/liveEvents.ts, src/ui/components/LiveEventsSt
   - requiredBy ← `system:directives`
   - requiredBy ← `system:contracts`
   - documentedBy ← `doc:LIVEOPS.md`
+  - testedBy ← `test:src/core/eventOps.test.ts`
   - testedBy ← `test:src/core/liveEvents.test.ts`
   - testedBy ← `test:src/core/liveops.test.ts`
   - plannedBy ← `system:website` — community spotlight + seasonal event pages once events ship
@@ -3695,7 +3696,7 @@ _at: site/guides.ts → /guides/prestige/_
 - `doc:VOWS.md` — project documentation _(documents `system:prestige`)_
 - `doc:WEBSITE.md` — project documentation _(documents `system:field-research`, documents `system:website`)_
 
-## Tests (289)
+## Tests (290)
 
 - `test:src/audio/music.test.ts` — automated validation _(tests `system:audio`)_
 - `test:src/changelog/classify.test.ts` — automated validation _(tests `system:chronicle`)_
@@ -3757,6 +3758,7 @@ _at: site/guides.ts → /guides/prestige/_
 - `test:src/core/engagement.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/core/equipment.behavior.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/core/equipment.test.ts` — automated validation _(tests `system:equipment`)_
+- `test:src/core/eventOps.test.ts` — automated validation _(tests `system:liveops`)_
 - `test:src/core/events.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/core/evolutioncap.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/core/expansion.test.ts` — automated validation _(tests `system:engine`)_
