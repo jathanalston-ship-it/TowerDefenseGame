@@ -43,7 +43,8 @@
     "sim:analytics": "vite-node scripts/sim-analytics.ts",
     "sim:rewards": "vite-node scripts/sim-rewards.ts",
     "sim:economy": "vite-node scripts/sim-localized-economy.ts",
-    "sim:frequency": "vite-node scripts/sim-reward-frequency.ts"
+    "sim:frequency": "vite-node scripts/sim-reward-frequency.ts",
+    "sim:events": "vite-node scripts/sim-live-events.ts"
   },
   "dependencies": {
     "react": "^18.3.1",

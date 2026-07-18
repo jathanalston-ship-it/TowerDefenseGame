@@ -1,6 +1,6 @@
 # DIL_GRAPH.md — the Design Intelligence Layer (GENERATED — `npm run dil -- regen`)
 
-> **The project's brain** (docs/DIL.md). 877 nodes · 1646 edges, built from the live
+> **The project's brain** (docs/DIL.md). 879 nodes · 1648 edges, built from the live
 > registries + curated knowledge (src/dev/dil/). **Query it instead of searching the repo:**
 > `npm run dil -- node <id>` · `affects <id>` · `requires <id>` · `missing <kind> <edge>` ·
 > `checklist tower <kind>` · `find <text>`. Edge kinds are bidirectional (19 kinds).
@@ -8,7 +8,7 @@
 ## Gap report (the graph's own radar)
 
 - **Systems with no test:** `system:infinite`, `system:field-research`, `system:shards-economy`, `system:i18n`, `system:expeditions`, `system:nemesis`, `system:run-ui`, `system:devtools`, `system:ui-kit`
-- **Docs referenced by no system (review for retirement):** `ADVANCED-SYSTEMS.md`, `ARCHITECTURE-AUDIT.md`, `AUCTION-HOUSE.md`, `BACKLOG.md`, `BALANCE_ARCHITECTURE.md`, `BRANCH-EVOLUTION.md`, `BUGFIX-LOG.md`, `CONTENT-ROADMAP.md`, `DEV-FRAMEWORKS.md`, `DIL_GRAPH.md`, `EA-DESIGN-AUDIT.md`, `ENEMIES.md`, `ENEMY-ROSTER.md`, `GAME-STATE.md`, `HISTORY.md`, `HIVE-PRODUCTION.md`, `HIVE-SIEGE.md`, `HUB-FLOW.md`, `IDENTITY-AUDIT.md`, `LIVING-HIVE.md` · …22 more
+- **Docs referenced by no system (review for retirement):** `ADVANCED-SYSTEMS.md`, `ARCHITECTURE-AUDIT.md`, `AUCTION-HOUSE.md`, `BACKLOG.md`, `BALANCE_ARCHITECTURE.md`, `BRANCH-EVOLUTION.md`, `BUGFIX-LOG.md`, `CONTENT-ROADMAP.md`, `DEV-FRAMEWORKS.md`, `DIL_GRAPH.md`, `EA-DESIGN-AUDIT.md`, `ENEMIES.md`, `ENEMY-ROSTER.md`, `GAME-STATE.md`, `HISTORY.md`, `HIVE-PRODUCTION.md`, `HIVE-SIEGE.md`, `HUB-FLOW.md`, `IDENTITY-AUDIT.md`, `LIVE-EVENTS.md` · …23 more
 
 ## Indexes
 
@@ -115,6 +115,7 @@ graph LR
   system_infinite["Infinite Mode"] -->|rewards| currency_genome_cores["Genome Cores (◆)"]
   system_boss_rush["Boss Rush"] -->|rewards| currency_genome_cores["Genome Cores (◆)"]
   system_boss_rush["Boss Rush"] -->|consumes| currency_stamina["Rush Stamina"]
+  system_liveops["LiveOps calendar"] -->|modifies| system_hub_shell["Hub Shell & Home"]
   system_reward_architecture["Reward Loop Architecture"] -->|modifies| system_hub_shell["Hub Shell & Home"]
   system_daily["Daily Run"] -->|rewards| currency_genome_cores["Genome Cores (◆)"]
   system_expeditions["Hero Expeditions"] -->|rewards| currency_materials["Materials (mutagen/scrap/catalyst)"]
@@ -524,6 +525,7 @@ graph LR
 ```mermaid
 graph LR
   system_prestige["Prestige (Molt / Ascendant)"] -->|modifies| system_difficulty["Difficulty"]
+  system_liveops["LiveOps calendar"] -->|modifies| system_hub_shell["Hub Shell & Home"]
   system_reward_architecture["Reward Loop Architecture"] -->|modifies| system_hub_shell["Hub Shell & Home"]
   system_notifications["Notifications"] -->|modifies| system_hub_shell["Hub Shell & Home"]
   system_gene_cards["Gene Cards (draft + permanent evolution)"] -->|modifies| system_hub_shell["Hub Shell & Home"]
@@ -1653,14 +1655,16 @@ _at: src/state/stats.ts_
 
 Deterministic UTC event calendar (docs/LIVEOPS.md): weekend surge, a 4-way rotating weekly spotlight (rush/depth/campaign/apex-raid), recurring Mutation Wednesday / Spore Tide / Prime Hunt beats, monthly Harvest Moon + Reclamation peaks and the quarterly Bloom Cycle fold ×1-baseline lane multipliers (cores/essence/materials/mega-ichor/loot, category-tagged) into finishRun + openContainer; a schedule engine (windowEnd/nextWindow) drives the hub console countdowns + UP NEXT forecast. Clock pinned to a spotlight-only Monday under tests.
 
-_at: src/core/liveops.ts, src/ui/components/LiveEventsStrip.tsx_
+_at: src/core/liveops.ts, src/core/liveEvents.ts, src/ui/components/LiveEventsStrip.tsx_
 
   - dependsOn → `system:meta-store`
   - dependsOn → `system:daily`
+  - modifies → `system:hub-shell` — LIVE EVENT FRAMEWORK (core/liveEvents.ts — LIVE-EVENTS.md): three independent rotation horizons (short 3d×3 / medium 14d×3 / major 91d×2 rings from BP.epochMs) always simultaneously live; themeOwner() = major>medium>short dresses the hub, others chip. Packages COMPOSE existing vocabularies ONLY: PassReward tracks, quest MissionCond challenges, daily-modifier-id gameplay (boot-time, sim-safe), LiveEventMods lane boosts, SeasonDef.music re-voicing. Anti-inflation: window-scoped tokens (eventId:window, stale keys prune), wallet caps, per-day mint budgets short 220>medium 180>major 120 core-eq validated per window; 3y sim pins flat yearly mint. A new event is ONE LIVE_EVENTS_V2 row — liveEventProblems() gates ids/modifiers/budgets/reachability/ring sizes/accent-distinct overlaps.
   - balances → `concept:power-score` — event reward lanes (cores/essence/materials/mega-ichor/loot) fatten meta INCOME, never gameplay strength — ×1 baseline off-window so the calendar can never warp a run
   - requiredBy ← `system:directives`
   - requiredBy ← `system:contracts`
   - documentedBy ← `doc:LIVEOPS.md`
+  - testedBy ← `test:src/core/liveEvents.test.ts`
   - testedBy ← `test:src/core/liveops.test.ts`
   - plannedBy ← `system:website` — community spotlight + seasonal event pages once events ship
 
@@ -2000,7 +2004,7 @@ _at: src/ui/Hub.tsx, src/ui/navModel.ts, src/ui/MobileShell.tsx, src/ui/CommandC
   - documentedBy ← `doc:ONE-MORE-RUN.md`
   - documentedBy ← `doc:HUD.md`
   - documentedBy ← `doc:PROGRESSION-LOOP.md`
-  - _…22 more (query: `npm run dil -- node system:hub-shell`)_
+  - _…23 more (query: `npm run dil -- node system:hub-shell`)_
 
 ### `system:run-ui` — In-Run HUD & Results
 
@@ -3507,7 +3511,7 @@ _at: site/guides.ts → /guides/prestige/_
 - `achievement:arena_crown` — Claim Arena Pass level 100 — a permanently arena-exclusive strain is yours forever. _(partOf `system:achievements`, rewards `currency:genome-cores`, references `system:arena`)_
 - `achievement:arena_perennial` — Close three Arena seasons with a record on the books. _(partOf `system:achievements`, rewards `currency:genome-cores`, references `system:arena`)_
 
-## Documentation (180)
+## Documentation (181)
 
 - `doc:ACCOUNT-LEVEL.md` — project documentation _(documents `system:account-level`)_
 - `doc:ACCOUNTS.md` — project documentation _(documents `system:accounts`)_
@@ -3599,6 +3603,7 @@ _at: site/guides.ts → /guides/prestige/_
 - `doc:IDLE-HARVEST.md` — project documentation _(documents `system:idle-harvest`)_
 - `doc:INFESTATION.md` — project documentation _(documents `system:infestation`)_
 - `doc:LEXICON.md` — project documentation _(documents `system:currencies`)_
+- `doc:LIVE-EVENTS.md` — project documentation
 - `doc:LIVEOPS.md` — project documentation _(documents `system:liveops`, documents `system:directives`)_
 - `doc:LIVING-BATTLEFIELD.md` — project documentation _(documents `system:living-battlefield`)_
 - `doc:LIVING-HIVE.md` — project documentation
@@ -3690,7 +3695,7 @@ _at: site/guides.ts → /guides/prestige/_
 - `doc:VOWS.md` — project documentation _(documents `system:prestige`)_
 - `doc:WEBSITE.md` — project documentation _(documents `system:field-research`, documents `system:website`)_
 
-## Tests (288)
+## Tests (289)
 
 - `test:src/audio/music.test.ts` — automated validation _(tests `system:audio`)_
 - `test:src/changelog/classify.test.ts` — automated validation _(tests `system:chronicle`)_
@@ -3788,6 +3793,7 @@ _at: site/guides.ts → /guides/prestige/_
 - `test:src/core/itemIdentity.test.ts` — automated validation _(tests `system:online-foundation`)_
 - `test:src/core/keystones.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/core/knell.test.ts` — automated validation _(tests `system:engine`)_
+- `test:src/core/liveEvents.test.ts` — automated validation _(tests `system:liveops`)_
 - `test:src/core/liveops.test.ts` — automated validation _(tests `system:liveops`)_
 - `test:src/core/loginStreak.test.ts` — automated validation _(tests `system:daily-login`)_
 - `test:src/core/loot.test.ts` — automated validation _(tests `system:loot`)_

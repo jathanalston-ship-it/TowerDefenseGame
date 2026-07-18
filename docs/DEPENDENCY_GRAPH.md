@@ -841,7 +841,7 @@ graph TD
 
 *Deterministic UTC event calendar (docs/LIVEOPS.md): weekend surge, a 4-way rotating weekly spotlight (rush/depth/campaign/apex-raid), recurring Mutation Wednesday / Spore Tide / Prime Hunt beats, monthly Harvest Moon + Reclamation peaks and the quarterly Bloom Cycle fold ×1-baseline lane multipliers (cores/essence/materials/mega-ichor/loot, category-tagged) into finishRun + openContainer; a schedule engine (windowEnd/nextWindow) drives the hub console countdowns + UP NEXT forecast. Clock pinned to a spotlight-only Monday under tests.*
 
-- **Files:** `src/core/liveops.ts` · `src/ui/components/LiveEventsStrip.tsx`
+- **Files:** `src/core/liveops.ts` · `src/core/liveEvents.ts` · `src/ui/components/LiveEventsStrip.tsx`
 - **Depends on:** `meta-store` · `daily`
 - **Consumers — what breaks if you change this:** `directives` · `contracts`
 - **Power Score:** — (intentionally none)
