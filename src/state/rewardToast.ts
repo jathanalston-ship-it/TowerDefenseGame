@@ -243,6 +243,7 @@ export function eventsForPassRewards(rewards: readonly PassRewardLike[], names?:
       case 'ichor': out.push({ type: 'ichor', qty: r.qty }); break;
       case 'cores': out.push({ type: 'genomeCores', qty: r.qty }); break;
       case 'geneEssence': out.push({ type: 'geneEssence', qty: r.qty }); break;
+      case 'hiveMats': out.push({ type: 'hiveMaterials', qty: r.qty }); break;
       case 'mats':
         if (r.mutagen) out.push({ type: 'mutagen', qty: r.mutagen });
         if (r.scrap) out.push({ type: 'scrap', qty: r.scrap });

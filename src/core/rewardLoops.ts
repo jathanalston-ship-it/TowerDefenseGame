@@ -135,8 +135,10 @@ export const REWARD_SOURCES: RewardSourceDef[] = [
     gives: 'Player listings + authority baseline: genes/equipment/cosmetics for Ichor', at: 'core/auction.ts · functions/api/auction' },
   { id: 'premium_store', name: 'Premium Store & flash offers', loop: 'economy', feeds: ['reward', 'collection'], cadence: 'onDemand', nav: 'store',
     gives: 'Ichor bundles, passes, premium containers (verified purchases)', at: 'core/premium.ts · net/checkout.ts' },
-  { id: 'infestation', name: 'Infestation territory passives', loop: 'economy', feeds: ['reward', 'progression'], cadence: 'passive', nav: 'campaign',
-    gives: 'Sector conquest → persistent regional bonuses feeding every run', at: 'core/infestation lane · infestationRunEffects' },
+  { id: 'infestation', name: 'Front territory passives', loop: 'economy', feeds: ['reward', 'progression'], cadence: 'passive', nav: 'infestation',
+    gives: 'Sector conquest → persistent regional bonuses feeding every run; entrenchment opens a 4th expedition slot', at: 'core/infestation lane · infestationRunEffects' },
+  { id: 'front_claims', name: 'Front spoils & tribute', loop: 'reward', feeds: ['upgrade', 'economy', 'progression'], cadence: 'weekly', nav: 'infestation',
+    gives: 'One-time tier spoils + weekly regional tribute in localized wallets (Chitin/strain/apex/cores)', at: 'meta.claimFrontTier/claimFrontTribute · docs/INFESTATION.md §front' },
 ];
 
 export const SOURCE_BY_ID: Record<string, RewardSourceDef> = Object.fromEntries(REWARD_SOURCES.map((s) => [s.id, s]));

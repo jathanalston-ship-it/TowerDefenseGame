@@ -9,6 +9,8 @@
 // of this; bonuses fold into runs as ordinary run effects (like gear/trophies).
 
 import type { CardEffect, RunModNumberKey } from './cards';
+import type { DoctrineWarp } from './doctrines';
+import type { PassReward } from './battlePass';
 
 export interface SectorDef {
   id: string;
@@ -75,12 +77,17 @@ export const ENTRENCH_MULT = 1.25;
 const ENTRENCH_AT = 0.995; // float-tolerant "all four saturated"
 
 // ── Sector TIERS — named thresholds the map + warnings speak in (docs §tiers). ──
+/** Saturated starts a hair under the cap: a sector WRITTEN at 100 decays past exactly-100
+ *  within seconds, so a strict threshold would make the top tier a split-second state. At
+ *  99.5 (half-rate decay ⇒ ~½ day of hold per cap write) Saturated is a real, maintainable
+ *  band — THE FRONT's tier claims and tribute count on it (docs/INFESTATION.md §front). */
+export const SATURATED_AT = 99.5;
 export const SECTOR_TIERS = [
   { at: 0, name: 'Dormant' },
   { at: 1, name: 'Foothold' },
   { at: 35, name: 'Colony' },
   { at: 70, name: 'Stronghold' },
-  { at: 100, name: 'Saturated' },
+  { at: SATURATED_AT, name: 'Saturated' },
 ] as const;
 
 export interface SectorTier {
@@ -214,4 +221,111 @@ export function feedInfestation(
     cursor = inRegion.length > 0 ? emptiestOf(inRegion, next, now) : anywhere.length > 0 ? emptiestOf(anywhere, next, now) : null;
   }
   return { sectors: next, fed };
+}
+
+// ═══ THE FRONT (docs/INFESTATION.md §front, 2026-07) — territory that pays, attacks back, and
+// deploys. The overhaul that makes the map MATTER: held tiers mint one-time CLAIMS, held
+// ground pays a weekly regional TRIBUTE (localized wallets — docs/ECONOMY.md §localized), a
+// daily HOTSPOT concentrates feeds, INCURSIONS bite neglected strongholds, and DEPLOY
+// composes a small region warp onto the run at game.ts's single warp fold site (absent ⇒
+// identity — golden-safe, like vows). Everything here stays pure and lazy: day/week keys
+// arrive as arguments, meta owns every write. ═══
+
+/** Deterministic uint hash for day-keyed rotation (djb2 — matches the save checksum family). */
+function hashKey(s: string): number {
+  let h = 5381;
+  for (let i = 0; i < s.length; i++) h = ((h << 5) + h + s.charCodeAt(i)) | 0;
+  return h >>> 0;
+}
+
+// ── Deploy warps — hazard-up + reward-up regional flavor (every field inside [0.9, 1.2]).
+//    Composed ONLY on an explicit Deploy (state/frontDeploy.ts arms one run); dailies and
+//    the Arena never carry them (fair shared boards). ──
+export const REGION_WARPS: Record<string, { warp: DoctrineWarp; blurb: string }> = {
+  fringe: { warp: { countMult: 1.08, bountyMult: 1.12 }, blurb: 'Swollen spore economy — thicker waves, richer bounties.' },
+  reach: { warp: { hpMult: 1.12, rewardMult: 1.06 }, blurb: 'Calcified foes — harder shells, better salvage.' },
+  basin: { warp: { speedMult: 1.08, rewardMult: 1.06 }, blurb: 'Borrowed instinct — faster prey, keener spoils.' },
+  fields: { warp: { countMult: 1.15, hpMult: 0.95, bountyMult: 1.05 }, blurb: 'The fat of the land — swarming, softer, and generous.' },
+};
+
+/** The warp a deploy into `sectorId` fights under (undefined for junk ids — no reshaping). */
+export function deployWarp(sectorId: string): DoctrineWarp | undefined {
+  const region = regionOfSector(sectorId);
+  return region ? REGION_WARPS[region.id]?.warp : undefined;
+}
+
+// ── Tier claims — one-time spoils per sector per named tier (Colony / Stronghold / Saturated).
+//    Region-flavored into the LOCALIZED wallets: the Fringe pays Chitin (the Hive build
+//    wallet), the Reach pays strain, the Basin pays apex, the Fields pay the account wallet.
+//    One-time CONTENT (like achievements), not income — the sim bounds the full-map total. ──
+export const CLAIMABLE_TIERS = [2, 3, 4] as const; // indexes into SECTOR_TIERS (Colony+)
+
+export function tierReward(regionId: string, tierIndex: number): PassReward[] {
+  const saturatedBonus: PassReward[] = tierIndex >= 4 ? [{ kind: 'container', rarity: 'rare', count: 1 }] : [];
+  switch (regionId) {
+    case 'fringe': return [{ kind: 'hiveMats', qty: tierIndex === 2 ? 40 : tierIndex === 3 ? 90 : 150 }, ...saturatedBonus];
+    case 'reach': return [{ kind: 'towerShardsAll', qtyEach: tierIndex === 2 ? 2 : tierIndex === 3 ? 4 : 6 }, ...saturatedBonus];
+    case 'basin': return [{ kind: 'heroShardsAll', qtyEach: tierIndex === 2 ? 2 : tierIndex === 3 ? 3 : 5 }, ...saturatedBonus];
+    default: return [{ kind: 'cores', qty: tierIndex === 2 ? 120 : tierIndex === 3 ? 260 : 400 }, ...saturatedBonus];
+  }
+}
+
+// ── Weekly tribute — held ground pays its keeper (claimed on the map, once per ISO week). ──
+/** Σ of held tier indexes across a region (0..16) — the tribute scale. */
+export function regionHeldTiers(region: RegionDef, sectors: Record<string, SectorState | undefined>, now: number): number {
+  return region.sectors.reduce((a, s) => a + tierOf(effectiveLevel(sectors[s.id], now)).index, 0);
+}
+
+export const TRIBUTE_MIN_TIERS = 2; // something must actually be HELD before tribute flows
+const TRIBUTE_MAX = 16; // four sectors at Saturated
+
+/** The region's weekly tribute at `heldTiers` — base scaled by hold, zero rows dropped. */
+export function tributeFor(regionId: string, heldTiers: number): PassReward[] {
+  const frac = Math.max(0, Math.min(1, heldTiers / TRIBUTE_MAX));
+  const rows: PassReward[] =
+    regionId === 'fringe' ? [{ kind: 'hiveMats', qty: Math.round(60 * frac) }]
+    : regionId === 'reach' ? [{ kind: 'towerShardsAll', qtyEach: Math.round(2 * frac) }]
+    : regionId === 'basin' ? [{ kind: 'heroShardsAll', qtyEach: Math.round(2 * frac) }]
+    : [{ kind: 'cores', qty: Math.round(120 * frac) }];
+  return rows.filter((r) => ('qty' in r ? r.qty > 0 : 'qtyEach' in r ? r.qtyEach > 0 : true));
+}
+
+// ── The daily hotspot — "somewhere to be today": feeds into it land ×HOTSPOT_FEED_MULT. ──
+export const HOTSPOT_FEED_MULT = 1.5;
+
+export function hotspotSectorId(dayKey: string): string {
+  return ALL_SECTORS[hashKey(`hot:${dayKey}`) % ALL_SECTORS.length].id;
+}
+
+// ── Incursions — decay with a face. Each day one held sector (Colony+) comes under attack;
+//    a WON run that feeds it that day defends it. An undefended incursion BITES the sector
+//    when the next day's first write resolves it. Deliberately bounded: only the most recent
+//    unresolved day ever bites (a lapsed player returns to at most ONE bite + natural decay —
+//    pressure, never a death spiral; sim-front pins it). ──
+export const INCURSION_BITE = 12; // levels torn off an undefended sector
+export const INCURSION_MIN_TIER = 2; // only real holdings are worth attacking
+
+/** Today's incursion target, or null when nothing worth attacking is held. */
+export function incursionSectorId(dayKey: string, sectors: Record<string, SectorState | undefined>, now: number): string | null {
+  const eligible = ALL_SECTORS.filter((s) => tierOf(effectiveLevel(sectors[s.id], now)).index >= INCURSION_MIN_TIER);
+  if (eligible.length === 0) return null;
+  return eligible[hashKey(`inc:${dayKey}`) % eligible.length].id;
+}
+
+/** Resolve ONE past day's incursion: if `dayKey` had a target and it wasn't defended, the
+ *  bite lands (eligibility approximated on current levels — documented; the map only moves
+ *  a few points a day). Pure — returns the next sectors record + what was bitten. */
+export function resolveIncursionBite(
+  sectors: Record<string, SectorState | undefined>,
+  dayKey: string,
+  defenses: Record<string, string>,
+  now: number,
+): { sectors: Record<string, SectorState>; bitten: string | null } {
+  const next: Record<string, SectorState> = {};
+  for (const [id, st] of Object.entries(sectors)) if (st) next[id] = st;
+  const target = incursionSectorId(dayKey, sectors, now);
+  if (!target || defenses[dayKey] === target) return { sectors: next, bitten: null };
+  const lvl = effectiveLevel(next[target], now);
+  next[target] = { level: Math.max(0, lvl - INCURSION_BITE), updatedAt: now };
+  return { sectors: next, bitten: target };
 }

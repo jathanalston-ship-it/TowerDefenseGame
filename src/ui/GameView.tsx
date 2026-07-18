@@ -20,6 +20,7 @@ import { HERO_ORDER, TOWER_ORDER } from '../core/config';
 import type { ResolvedHeroKit } from '../core/config';
 import { AUTOSTART_KEY } from '../state/prefs';
 import { masteryLevel, meta, equippedCosmeticThemes } from '../state/meta';
+import { frontDeploy } from '../state/frontDeploy';
 import { announcePower } from '../state/powerEvents';
 import { announceMasteryLevelUp } from '../state/masteryEvents';
 import type { LiveMasteryView } from '../state/masteryEvents';
@@ -181,6 +182,9 @@ export function GameView({
     // MOLT VOWS (docs/VOWS.md): the armed wager warps every run of the cycle EXCEPT the shared
     // daily gauntlet (fair worldwide board — same exclusion as the nemesis) and the tutorial.
     ...(!daily && !tutorial && meta.get().prestige.vows.length > 0 ? { vows: meta.get().prestige.vows } : {}),
+    // THE FRONT (docs/INFESTATION.md §front): an explicit Deploy arms exactly ONE run with its
+    // region warp — consumed at boot, never on the shared daily board or the tutorial sandbox.
+    ...(!daily && !tutorial ? frontDeploy.consumeWarp() : {}),
     geneLevels: meta.geneLevels(),
     geneTranscends: meta.geneTranscends(), // chosen Transcendence second lines (§Transcendence)
     // Nucleus Mulligans (docs/NUCLEUS.md): the Hive's own chamber organs fold at boot. Kept OUT of

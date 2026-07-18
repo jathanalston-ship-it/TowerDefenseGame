@@ -17,7 +17,7 @@ import { trophyById, TROPHY_SLOT_THRESHOLDS } from '../core/trophies';
 import { vowById, MAX_VOWS } from '../core/vows';
 import { hiveOrganById } from '../core/hiveOrgans';
 import { expeditionById, EXPEDITION_SLOTS } from '../core/expeditions';
-import { ALL_SECTORS, SECTOR_CAP, isValidInfestTarget } from '../core/infestation';
+import { ALL_SECTORS, REGIONS, SECTOR_CAP, isValidInfestTarget } from '../core/infestation';
 import type { PrestigeState } from '../core/prestige';
 import { sanitizeProgress } from '../core/tutorial';
 import type { TutorialProgress } from '../core/tutorial';
@@ -127,7 +127,19 @@ export interface SaveData {
   //    + per-mission mastery ledger (v27: completions per defId → permanent reward bonus). ──
   expeditions: { active: { defId: string; hero: HeroKind; endsAt: number }[]; mastery: Record<string, number> };
   // ── Infestation map (v26, docs/INFESTATION.md) — sector conquest {level, updatedAt} + target. ──
-  infestation: { target: string | null; sectors: Record<string, { level: number; updatedAt: number }> };
+  // ── Infestation / THE FRONT (v49, docs/INFESTATION.md §front) — the conquest ledger grew
+  //    claims: `tierClaims` = highest tier index already claimed per sector (one-time spoils);
+  //    `tributeWeeks` = last ISO week each region's tribute was collected; `defenses` =
+  //    dayKey → sector defended that day (bounded ring); `lastIncursionDay` = the newest
+  //    dayKey whose incursion was resolved. All additive ⇒ pre-v49 saves default empty. ──
+  infestation: {
+    target: string | null;
+    sectors: Record<string, { level: number; updatedAt: number }>;
+    tierClaims: Record<string, number>;
+    tributeWeeks: Record<string, string>;
+    defenses: Record<string, string>;
+    lastIncursionDay: string;
+  };
   // ── Patch notes (v28, docs/CHANGELOG-PIPELINE.md) — last release id seen (drives the
   //    Update Briefing) + a permanent opt-out. ──
   patchNotes: { seen: string; optOut: boolean };
@@ -520,7 +532,12 @@ export interface TutorialSave {
 // ALSO v48: BANKED BIO-SPORES (docs/BOSS-RUSH.md §roulette) — `bioSpores` (Bio-Roulette ammo
 // banked across sources: Boss Rush, first-kill chassis, quest finales, Battle Pass milestones;
 // spent by a wheel session). Missing ⇒ 0 — purely additive.
-export const CURRENT_VERSION = 48;
+// v48→v49: THE FRONT (docs/INFESTATION.md §front) — the Infestation overhaul's claim ledgers
+// on `infestation`: tierClaims (one-time tier spoils per sector), tributeWeeks (weekly
+// regional tribute watermarks), defenses (dayKey → defended sector, bounded ring) and
+// lastIncursionDay (incursion resolution cursor). All empty on pre-v49 saves ⇒ additive,
+// fresh accounts byte-identical.
+export const CURRENT_VERSION = 49;
 
 /** The placeholder every save is born with — the Commander designation prompt fires
  *  while the name is still exactly this (components/CommanderName.tsx). */
@@ -771,7 +788,7 @@ export function defaultSave(): SaveData {
     equippedTrophies: [],
     vengeance: [],
     expeditions: { active: [], mastery: {} },
-    infestation: { target: null, sectors: {} },
+    infestation: { target: null, sectors: {}, tierClaims: {}, tributeWeeks: {}, defenses: {}, lastIncursionDay: '' },
     patchNotes: { seen: '', optOut: false },
     premium: { purchases: {}, lastRotatingBuyKey: '', seenKey: '', totalSpentUsd: 0, claimedReceipts: [], pendingCheckout: null, flash: {}, lastFlashShownAt: 0 },
     totalRuns: 0,
@@ -1269,8 +1286,8 @@ function withDefaults(data: SaveData): SaveData {
       return { active, mastery };
     })(),
     infestation: ((): SaveData['infestation'] => {
-      const raw = (data as { infestation?: { target?: unknown; sectors?: unknown } }).infestation;
-      const out: SaveData['infestation'] = { target: null, sectors: {} };
+      const raw = (data as { infestation?: { target?: unknown; sectors?: unknown; tierClaims?: unknown; tributeWeeks?: unknown; defenses?: unknown; lastIncursionDay?: unknown } }).infestation;
+      const out: SaveData['infestation'] = { target: null, sectors: {}, tierClaims: {}, tributeWeeks: {}, defenses: {}, lastIncursionDay: '' };
       if (!raw || typeof raw !== 'object') return out;
       // A pin may be a sector OR a region id (docs/INFESTATION.md §pins).
       if (typeof raw.target === 'string' && isValidInfestTarget(raw.target)) out.target = raw.target;
@@ -1283,6 +1300,28 @@ function withDefaults(data: SaveData): SaveData {
           if (level > 0) out.sectors[k] = { level, updatedAt };
         }
       }
+      // v49 (THE FRONT): claim ledgers — unknown ids drop, tiers clamp to 0..4, the defense
+      // ring keeps only the newest 14 day-keys (all it is ever read for is yesterday).
+      if (raw.tierClaims && typeof raw.tierClaims === 'object') {
+        for (const [k, v] of Object.entries(raw.tierClaims as Record<string, unknown>)) {
+          if (!ALL_SECTORS.some((x) => x.id === k)) continue;
+          const t = Math.max(0, Math.min(4, Math.floor(Number(v) || 0)));
+          if (t > 0) out.tierClaims[k] = t;
+        }
+      }
+      if (raw.tributeWeeks && typeof raw.tributeWeeks === 'object') {
+        for (const [k, v] of Object.entries(raw.tributeWeeks as Record<string, unknown>)) {
+          if (REGIONS.some((r) => r.id === k) && typeof v === 'string') out.tributeWeeks[k] = v.slice(0, 12);
+        }
+      }
+      if (raw.defenses && typeof raw.defenses === 'object') {
+        const entries = Object.entries(raw.defenses as Record<string, unknown>)
+          .filter(([, v]) => typeof v === 'string' && ALL_SECTORS.some((x) => x.id === v))
+          .sort(([a], [b]) => (a < b ? -1 : 1))
+          .slice(-14);
+        for (const [k, v] of entries) out.defenses[k.slice(0, 12)] = v as string;
+      }
+      if (typeof raw.lastIncursionDay === 'string') out.lastIncursionDay = raw.lastIncursionDay.slice(0, 12);
       return out;
     })(),
     stats: mergeStats(d.stats, data.stats),

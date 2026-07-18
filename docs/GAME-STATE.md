@@ -6,7 +6,7 @@
 > build disagree, **the build wins and this file is the tiebreaker.** Prefer reading this over
 > re-reading a system's implementation (per CLAUDE.md "Trust existing architecture").
 >
-> **Save schema:** `CURRENT_VERSION = 48` (additive migrations via `withDefaults` + per-field
+> **Save schema:** `CURRENT_VERSION = 49` (additive migrations via `withDefaults` + per-field
 > sanitizers; checksummed blob). **Stack:** React + TypeScript + Vite static SPA, deterministic sim
 > core in `src/core/` (no React/DOM), Canvas renderer, browser-local saves. Tests: `npm test`
 > (Vitest) — the golden characterization test pins the sim byte-for-byte.
@@ -675,14 +675,27 @@ sink ≈ hour-400 at endgame income — re-tune as the library grows.
   flags); generates in-game Update Briefing data (save v28 `patchNotes`), website
   patch-notes page data, docs/HISTORY.md, dev-blog drafts every ≥10 commits —
   CHANGELOG-PIPELINE.md
-- ✅ **Infestation Map** (**overhauled**): 4 regions × 4 sectors; every run feeds with
-  **spillover** (overflow → same region → emptiest anywhere), sectors climb named **tiers**
-  (Dormant→Foothold→Colony→Stronghold→Saturated), saturation **halves decay**, a full region
-  **entrenches** (bonus ×1.25); pin a sector/region/spread; regions pay live-scaled run
-  passives, lazy wall-clock decay. **LIVING canvas territory map** (`render/infestationMap.ts`):
-  organic region lobes + creeping cell fills + pinned pulse + feed reticle + entrenchment auras
-  + just-fed flashes, DPR-aware, visibility-paused, reduced-motion still, a11y button overlay;
-  richer `infestationView` with tiers + decay forecasts + map totals — INFESTATION.md
+- ✅ **Infestation Map — THE FRONT** (**war overhaul**, save **v49**): 4 regions × 4 sectors;
+  every run feeds with **spillover** (overflow → same region → emptiest anywhere), sectors climb
+  named **tiers** (Dormant→Foothold→Colony→Stronghold→Saturated at `SATURATED_AT` 99.5 — exact-100
+  was transiently unreachable under lazy decay), saturation **halves decay**, a full region
+  **entrenches** (bonus ×1.25 **+1 expedition slot** via `expeditionSlotsFor`); pin a
+  sector/region/spread; regions pay live-scaled run passives, lazy wall-clock decay. **The war
+  layer** (`§front`): one-time **tier spoils** per sector (high-watermark `tierClaims` ledger —
+  never re-pays; region-themed localized wallets via `applyRewardList`, new PassReward kind
+  `hiveMats`; Saturated adds a rare container), weekly **tribute** per region (ISO-week
+  watermark, scaled by held tiers/16, min 2), daily **hotspot** (feeds ×1.5), daily
+  **incursion** on a held sector (win a run that feeds it to defend; undefended bites −12 on
+  **lazy bounded** resolution — `lastIncursionDay` cursor, at most ONE bite per return), and
+  **deploy** (session-scoped `frontDeploy` warp → `RunOptions.sectorWarp` at the single director
+  fold; absent ⇒ byte-identical; dailies/tutorial/Arena excluded). Budgets law-checked by
+  `npm run sim:front` (spoils ≤15k core-eq, tribute ≤15% weekly income, no death spiral,
+  rotation). **Screen**: PLAY hub → The Front (`FrontScreen`, stage-8 reveal, `front.war`
+  notification source); Command Center collapsed to the one-line `FrontStrip`. **LIVING canvas
+  territory map** (`render/infestationMap.ts`): organic region lobes + creeping cell fills +
+  pinned pulse + feed reticle + entrenchment auras + just-fed flashes, DPR-aware,
+  visibility-paused, reduced-motion still, a11y button overlay; `frontView` read-model (hotspot,
+  incursion, pending claims, tributes) beside `infestationView` — INFESTATION.md
 
 ### Online foundation & Arena (docs/ONLINE-FOUNDATION.md · docs/ARENA.md · docs/TRADING-PREP.md)
 - ✅ **ONLINE FOUNDATION** (2026-07, save **v47**): the authoritative architecture every online

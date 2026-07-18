@@ -1,6 +1,6 @@
 # UNLOCK-TREE.md — the complete progression reveal timeline (GENERATED — `npm run unlocks`)
 
-> 31 features under progression gating (docs/PROGRESSION-GATING.md): every hub
+> 32 features under progression gating (docs/PROGRESSION-GATING.md): every hub
 > screen and wallet chip, in learning-curve order. "Possible" = earliest a lucky account can
 > reveal it; "guaranteed" = the campaign stage that opens it regardless of drops.
 
@@ -31,6 +31,7 @@
 | 18 | ⊛ **Mulligan Lab** `mulligans` | screen | Discover a Mulligan modifier | start | S7 | Mulligan Organisms (`mulligans`) | Reveals with the first discovered modifier (container luck), stage 7 as backstop — the deepest tower system waits for tower fluency. |
 | 18.5 | ☣ **Adaptation Chamber** `adaptation` | screen | Earn your first Antigen | start | S7 | Adaptation & Antigen (`adaptation`) | Reveals with the first account-faucet Antigen (achievements/depth/traces — usually stages 2–4, the moment there is something to spend); the stage-7 backbone joins the deep-specialization beat (Mulligans/Phenotypes) because every earlier beat already sits at the reveal ceiling. |
 | 19 | ❖ **Phenotype Lab** `phenotypes` | screen | Clear Campaign Stage 7 · 7 to go | S7 | S7 | Phenotype Lab (`phenotype-lab`) | Pure luxury — cosmetics wait until the mechanical wardrobe is full and Gene Essence has a purpose beyond upgrades. |
+| 20 | ⛬ **The Front** `infestation` | screen | Clear Campaign Stage 8 · 8 to go | S8 | S8 | The Front (`infestation`) | Territory only means something once runs are flowing and modes exist to feed it — stage 8 is the timeline's one OPEN reveal beat (the ≤3-per-stage pacing law), landing the war a breath before Boss Rush completes the farm ring (docs/INFESTATION.md §front). |
 | 21 | ☠ **Boss Rush** `bossrush` | screen | Clear Campaign Stage 9 · 9 to go | start | S9 | Boss Rush (`boss-rush`) | The established gate: the skill-check pillar arrives once builds are real. History grandfathers. |
 | 21.5 | ⚔ **The Proving Grounds** `arena` | screen | Clear Campaign Stage 9 · 9 to go | S9 | S9 | The Arena (Live PvP) (`arena`) | PvP demands a REAL build to be fair or fun — it reveals beside Boss Rush (the solo skill check, the stage-9 guarantee line) so the first ranked match is fought with towers, genes and a hero worth ranking (docs/ARENA.md). |
 | 21.7 | ⚖ **Auction House** `auction` | screen | Clear Campaign Stage 9 · 9 to go | S9 | S9 | Auction House (`auction-house`) | Trading is an EARNED capability (docs/TRADING-PREP.md fraud friction). The floor reveals at the stage-9 guarantee line beside the Arena — one stage of window-shopping teaches prices before TRADE.minCampaignStage (10, server-enforced) lets the first listing through. |
@@ -48,4 +49,5 @@
 - **Stage 5** — ☀ Daily Run · ▤ Bio-Dex · ❁ Season Pass
 - **Stage 6** — ⬣ Hive Production · ⇢ Expedition Command · ❑ Gear Codex · ⊕ Materials
 - **Stage 7** — ⊛ Mulligan Lab · ☣ Adaptation Chamber · ❖ Phenotype Lab
+- **Stage 8** — ⛬ The Front
 - **Stage 9** — ☠ Boss Rush · ⚔ The Proving Grounds · ⚖ Auction House · ✦ Ascendant Cells

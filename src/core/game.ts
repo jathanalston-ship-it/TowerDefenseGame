@@ -146,6 +146,7 @@ export interface RunOptions {
   difficulty?: string; // universal difficulty id (default 'standard' = identity/golden path)
   doctrine?: string; // exclusive run-start build commitment (default 'none' = no effects)
   vows?: string[]; // armed Molt Vows (docs/VOWS.md) — cycle-wide handicap warps composed ONTO the doctrine's; absent/[] ⇒ identity (golden path). Dailies never pass this (fair shared board).
+  sectorWarp?: DoctrineWarp; // THE FRONT deploy flavor (docs/INFESTATION.md §front) — a region warp composed onto doctrine × vows for ONE explicitly-deployed run. Absent ⇒ identity (golden path); dailies/Arena never pass it (fair shared boards).
   stage?: StageConfig; // campaign mode: the procedurally generated stage to run (campaign.ts)
   heroRoster?: HeroKind[]; // the fielded hero slots (HEROES.md). Omitted / [heroKind] ⇒ single hero (golden path)
   heroEquip?: Partial<Record<HeroKind, CardEffect[]>>; // PER-HERO equipment effects — each hero's gear affects only that hero
@@ -761,9 +762,11 @@ export class Game {
     // MOLT VOWS (docs/VOWS.md) compose ONTO the doctrine warp right here — multiplying, not
     // replacing: mult axes multiply, additive axes add, and with no vows the doctrine's warp
     // passes through UNTOUCHED (referential identity — the golden path never sees a new object).
+    // THE FRONT's deploy warp (docs/INFESTATION.md §front) composes LAST through the same
+    // seam — absent (every non-deployed run) it is a no-op passthrough, so goldens hold.
     this.dd = createDirector({
       difficulty: this.stage ? this.stage.scaling : resolveDifficulty(opts.difficulty),
-      warp: composeWarps(resolveDoctrine(opts.doctrine).warp, combinedVowWarp(opts.vows)),
+      warp: composeWarps(composeWarps(resolveDoctrine(opts.doctrine).warp, combinedVowWarp(opts.vows)), opts.sectorWarp),
       stageEnemySpeedMult: this.stage ? this.stage.enemySpeedMult : 1,
     });
     this.diff = this.dd.difficulty; // doctrine damage already folded (the director's ONE fold site)

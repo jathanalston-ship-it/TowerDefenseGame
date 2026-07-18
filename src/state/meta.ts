@@ -162,9 +162,9 @@ import { labEra, labScore } from '../ui/homeBaseTiers'; // pure model (no DOM) �
 import { sumValues } from '../core/math';
 import type { VowDef } from '../core/vows';
 import type { DoctrineWarp } from '../core/doctrines';
-import { EXPEDITION_DEFS, EXPEDITION_SLOTS, expeditionById, expeditionMult, expeditionOutcome, masteryBonus, rollRareFind, scaleReward, sumRewards } from '../core/expeditions';
+import { EXPEDITION_DEFS, expeditionById, expeditionMult, expeditionOutcome, expeditionSlotsFor, masteryBonus, rollRareFind, scaleReward, sumRewards } from '../core/expeditions';
 import type { ExpeditionDef, ExpeditionOutcome, ExpeditionReward, RareFind } from '../core/expeditions';
-import { ALL_SECTORS, REGIONS, effectiveLevel, feedInfestation, infestationEffects, isEntrenched, isValidInfestTarget, regionFraction, resolveFeedTarget, runInfestGain, tierHoldDays, tierOf, zeroInDays } from '../core/infestation';
+import { ALL_SECTORS, CLAIMABLE_TIERS, HOTSPOT_FEED_MULT, INCURSION_BITE, REGIONS, SATURATED_AT, SECTOR_TIERS, TRIBUTE_MIN_TIERS, effectiveLevel, feedInfestation, hotspotSectorId, incursionSectorId, infestationEffects, isEntrenched, isValidInfestTarget, regionFraction, regionHeldTiers, regionOfSector, resolveFeedTarget, resolveIncursionBite, runInfestGain, tierHoldDays, tierOf, tierReward, tributeFor, zeroInDays } from '../core/infestation';
 import type { SectorTier } from '../core/infestation';
 import { RELEASES } from '../changelog/releases.gen';
 import type { Release } from '../changelog/types';
@@ -347,6 +347,11 @@ function applyRewardList(
         next = { ...next, geneEssence: next.geneEssence + r.qty };
         lines.push({ icon: '⌬', label: `${r.qty} Gene Essence` });
         events.push({ type: 'geneEssence', qty: r.qty });
+        break;
+      case 'hiveMats': // Chitin (docs/ECONOMY.md §localized) — the Front's Fringe lanes pay it
+        next = { ...next, hiveMaterials: next.hiveMaterials + r.qty };
+        lines.push({ icon: '⬣', label: `${r.qty} Chitin` });
+        events.push({ type: 'hiveMaterials', qty: r.qty });
         break;
       case 'mats':
         next = { ...next, mats: { ...next.mats, mutagen: next.mats.mutagen + (r.mutagen ?? 0), scrap: next.mats.scrap + (r.scrap ?? 0), catalyst: next.mats.catalyst + (r.catalyst ?? 0) } };
@@ -1613,6 +1618,19 @@ export interface InfestationMapView {
   dormant: boolean; // nothing infested anywhere — the home board shows a teaser, not an empty map
 }
 
+/** THE FRONT read-model (docs/INFESTATION.md §front) — the war layer over the territory map:
+ * today's hotspot + incursion, the claimable tier spoils and weekly tributes, and the deploy
+ * flavor per region. The home strip renders a compression of this; the Front screen, all of it. */
+export interface FrontView {
+  hotspot: { id: string; name: string; regionName: string; mult: number };
+  /** Today's attack on a held sector, or null while nothing ≥ Colony is held. */
+  incursion: { id: string; name: string; defended: boolean; bite: number } | null;
+  /** Sectors with unclaimed tier spoils (one card claims everything pending on the sector). */
+  tierClaims: { id: string; name: string; regionId: string; tierName: string; rewards: PassReward[] }[];
+  tributes: { regionId: string; name: string; heldTiers: number; claimable: boolean; rewards: PassReward[] }[];
+  claimableCount: number; // tier cards + claimable tributes + an undefended live incursion
+}
+
 /** The result of cracking one container open in the Vault — the rolled rewards plus a
  * display label + accent for the reveal ceremony (rarity name, or the cache's name). */
 export interface CrackedContainer {
@@ -2682,11 +2700,32 @@ export const meta = {
     const infestGain = runInfestGain(result.wave, result.won);
     let nextInfestation = save.infestation;
     if (infestGain > 0) {
+      // THE FRONT (docs/INFESTATION.md §front): resolve yesterday's incursion BEFORE feeding
+      // (an undefended attack bites the pre-feed board), boost hotspot feeds, and record a
+      // defense when a WON run feeds today's attacked sector.
+      const frontDay = dayKey(infestNow);
+      const frontYesterday = dayKey(infestNow - 86_400_000);
+      let frontSectors = save.infestation.sectors as Record<string, { level: number; updatedAt: number } | undefined>;
+      let lastIncursionDay = save.infestation.lastIncursionDay;
+      if (lastIncursionDay < frontYesterday) {
+        const bite = resolveIncursionBite(frontSectors, frontYesterday, save.infestation.defenses, infestNow);
+        frontSectors = bite.sectors;
+        lastIncursionDay = frontYesterday;
+      }
       // Pin may be a sector OR a region (feed its emptiest); overflow SPILLS instead of
       // wasting — same region first, then the emptiest anywhere (docs/INFESTATION.md §spillover).
-      const targetId = resolveFeedTarget(save.infestation.target, save.infestation.sectors, infestNow);
-      const fedResult = feedInfestation(save.infestation.sectors, targetId, infestGain, infestNow);
-      nextInfestation = { ...save.infestation, sectors: fedResult.sectors };
+      const targetId = resolveFeedTarget(save.infestation.target, frontSectors, infestNow);
+      const boosted = targetId === hotspotSectorId(frontDay) ? Math.round(infestGain * HOTSPOT_FEED_MULT) : infestGain;
+      const fedResult = feedInfestation(frontSectors, targetId, boosted, infestNow);
+      // DEFENSE CREDIT: a WON run whose feed touched today's attacked sector holds it. The
+      // ring stays bounded (newest 14 day-keys) — it is only ever read for yesterday.
+      const incursion = incursionSectorId(frontDay, frontSectors, infestNow);
+      let defenses = save.infestation.defenses;
+      if (result.won && incursion && fedResult.fed.some((f) => f.id === incursion)) {
+        const entries = Object.entries({ ...defenses, [frontDay]: incursion }).sort(([a], [b]) => (a < b ? -1 : 1)).slice(-14);
+        defenses = Object.fromEntries(entries);
+      }
+      nextInfestation = { ...save.infestation, sectors: fedResult.sectors, defenses, lastIncursionDay };
     }
     // Account XP (docs/ACCOUNT-LEVEL.md): the run's play fold — kills, waves, bosses, mode beats.
     // Acquisition/achievement XP land in their own folds; this is the "playing pays" lane.
@@ -3464,7 +3503,7 @@ export const meta = {
       sectorDetails[x.id] = {
         id: x.id, name: x.name, level: lvl, tier: tierOf(lvl),
         zeroInDays: zeroInDays(raw[x.id], now), tierHoldDays: tierHoldDays(raw[x.id], now),
-        saturated: lvl >= 99.995,
+        saturated: lvl >= SATURATED_AT, // one band with the Saturated tier (docs §front)
       };
     }
     const regions = REGIONS.map((def) => {
@@ -3494,6 +3533,104 @@ export const meta = {
   /** The map's region passives, folded into every run like gear. [] on a fresh board. */
   infestationRunEffects(now = Date.now()): CardEffect[] {
     return infestationEffects(store.get().infestation.sectors, now);
+  },
+
+  // ── THE FRONT (docs/INFESTATION.md §front) — the war layer: claims, tribute, incursions. ──
+  /** The Front's read-model: today's hotspot + incursion, claimable tier spoils, tributes. */
+  frontView(now = Date.now()): FrontView {
+    const s = store.get();
+    const raw = s.infestation.sectors;
+    const day = dayKey(now);
+    const hotId = hotspotSectorId(day);
+    const hotDef = ALL_SECTORS.find((x) => x.id === hotId)!;
+    const incId = incursionSectorId(day, raw, now);
+    const tierClaims: FrontView['tierClaims'] = [];
+    for (const x of ALL_SECTORS) {
+      const region = regionOfSector(x.id)!;
+      const cur = tierOf(effectiveLevel(raw[x.id], now)).index;
+      const claimed = s.infestation.tierClaims[x.id] ?? 0;
+      const pending = CLAIMABLE_TIERS.filter((t) => t <= cur && t > claimed);
+      if (pending.length === 0) continue;
+      tierClaims.push({
+        id: x.id, name: x.name, regionId: region.id, tierName: SECTOR_TIERS[cur].name,
+        rewards: pending.flatMap((t) => tierReward(region.id, t)),
+      });
+    }
+    const wk = weekKey(now);
+    const tributes = REGIONS.map((r) => {
+      const heldTiers = regionHeldTiers(r, raw, now);
+      const rewards = tributeFor(r.id, heldTiers);
+      const claimable = heldTiers >= TRIBUTE_MIN_TIERS && rewards.length > 0 && s.infestation.tributeWeeks[r.id] !== wk;
+      return { regionId: r.id, name: r.name, heldTiers, claimable, rewards };
+    });
+    const incursion = incId
+      ? { id: incId, name: ALL_SECTORS.find((x) => x.id === incId)!.name, defended: s.infestation.defenses[day] === incId, bite: INCURSION_BITE }
+      : null;
+    return {
+      hotspot: { id: hotId, name: hotDef.name, regionName: regionOfSector(hotId)!.name, mult: HOTSPOT_FEED_MULT },
+      incursion,
+      tierClaims,
+      tributes,
+      claimableCount: tierClaims.length + tributes.filter((t) => t.claimable).length + (incursion && !incursion.defended ? 1 : 0),
+    };
+  },
+
+  /** Claim every pending tier reward on a sector (one card, all unclaimed tiers up to the
+   *  live one — a sector that fell and re-climbed never pays twice). Guarded + exactly-once. */
+  claimFrontTier(sectorId: string): boolean {
+    if (!guardOk('front.claim', sectorId)) return false;
+    const s = store.get();
+    const region = regionOfSector(sectorId);
+    if (!region) return false;
+    const now = Date.now();
+    const cur = tierOf(effectiveLevel(s.infestation.sectors[sectorId], now)).index;
+    const claimed = s.infestation.tierClaims[sectorId] ?? 0;
+    const pending = CLAIMABLE_TIERS.filter((t) => t <= cur && t > claimed);
+    if (pending.length === 0) return false;
+    const rewards = pending.flatMap((t) => tierReward(region.id, t));
+    const res = applyRewardList(s, rewards, { ichor: 0, cores: 0 }, null, 'front');
+    const name = ALL_SECTORS.find((x) => x.id === sectorId)?.name ?? sectorId;
+    rewardToast.pushMany(`The Front — ${name} ${SECTOR_TIERS[cur].name}`, res.events);
+    persist({
+      ...res.next,
+      infestation: { ...res.next.infestation, tierClaims: { ...res.next.infestation.tierClaims, [sectorId]: Math.max(...pending) } },
+      timeline: pushTimeline(res.next.timeline, '⛬', `The Front — ${name} secured at ${SECTOR_TIERS[cur].name}`),
+    });
+    return true;
+  },
+
+  /** Collect a region's weekly tribute (held tiers scale it; once per ISO week per region). */
+  claimFrontTribute(regionId: string): boolean {
+    if (!guardOk('front.claim', regionId)) return false;
+    const s = store.get();
+    const region = REGIONS.find((r) => r.id === regionId);
+    if (!region) return false;
+    const now = Date.now();
+    const wk = weekKey(now);
+    if (s.infestation.tributeWeeks[regionId] === wk) return false;
+    const heldTiers = regionHeldTiers(region, s.infestation.sectors, now);
+    if (heldTiers < TRIBUTE_MIN_TIERS) return false;
+    const rewards = tributeFor(regionId, heldTiers);
+    if (rewards.length === 0) return false;
+    const res = applyRewardList(s, rewards, { ichor: 0, cores: 0 }, null, 'front');
+    rewardToast.pushMany(`The Front — ${region.name} tribute`, res.events);
+    persist({
+      ...res.next,
+      infestation: { ...res.next.infestation, tributeWeeks: { ...res.next.infestation.tributeWeeks, [regionId]: wk } },
+      timeline: pushTimeline(res.next.timeline, '⛬', `The Front — ${region.name} pays tribute (${heldTiers} tiers held)`),
+    });
+    return true;
+  },
+
+  /** Advance the incursion cursor outside runs (the Front screen polls on mount): an
+   *  undefended past attack bites at most ONCE per return — bounded pressure, never a
+   *  death spiral (natural decay handles the rest of an absence). Idempotent per day. */
+  pollFront(now = Date.now()): void {
+    const s = store.get();
+    const yesterday = dayKey(now - 86_400_000);
+    if (s.infestation.lastIncursionDay >= yesterday) return;
+    const res = resolveIncursionBite(s.infestation.sectors, yesterday, s.infestation.defenses, now);
+    persist({ ...s, infestation: { ...s.infestation, sectors: res.sectors, lastIncursionDay: yesterday } });
   },
 
   // ── Story cutscenes (docs/CUTSCENES.md) — the Memory Archive. ──
@@ -3606,7 +3743,8 @@ export const meta = {
         };
       }),
       benched,
-      slotsFree: EXPEDITION_SLOTS - s.expeditions.active.length,
+      // Held territory opens roads (docs/INFESTATION.md §front): entrenchment pays +1 slot.
+      slotsFree: expeditionSlotsFor(REGIONS.filter((r) => isEntrenched(r, s.infestation.sectors, now)).length) - s.expeditions.active.length,
       offers: EXPEDITION_DEFS.map((def) => {
         const runs = s.expeditions.mastery[def.id] ?? 0;
         return {
@@ -3627,7 +3765,7 @@ export const meta = {
     const s = store.get();
     const def = expeditionById(defId);
     if (!def) return false;
-    if (s.expeditions.active.length >= EXPEDITION_SLOTS) return false;
+    if (s.expeditions.active.length >= expeditionSlotsFor(REGIONS.filter((r) => isEntrenched(r, s.infestation.sectors, now)).length)) return false;
     if (!isHeroUnlocked(s, hero)) return false; // milestone heroes derive — never in the array
     if (this.fieldedLoadout().includes(hero)) return false; // the front line stays home
     if (s.expeditions.active.some((e) => e.hero === hero)) return false; // already away

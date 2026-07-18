@@ -106,6 +106,13 @@ export const EXPEDITION_DEFS: ExpeditionDef[] = [
 /** Concurrent away-missions the hive can support. */
 export const EXPEDITION_SLOTS = 3;
 
+/** Live slot count — held territory opens roads: an ENTRENCHED Front region (docs/
+ *  INFESTATION.md §front) grants +1 concurrent expedition (capped at one bonus slot;
+ *  the perk is FELT, not stacked). 0 entrenched ⇒ exactly EXPEDITION_SLOTS. */
+export function expeditionSlotsFor(entrenchedRegions: number): number {
+  return EXPEDITION_SLOTS + (entrenchedRegions > 0 ? 1 : 0);
+}
+
 /** Reward-multiplier knobs (the claim-time stack — see expeditionMult). */
 export const STAR_BONUS = 0.1; // +10% per hero star
 export const AFFINITY_MULT = 1.25; // class-matched hero

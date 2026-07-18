@@ -55,6 +55,7 @@ import { MusicDebug } from './MusicDebug';
 import { GeneArchive } from './GeneArchive';
 import { HiveScreen } from './HiveScreen';
 import { HarvestArrival, HarvestScreen } from './HarvestScreen';
+import { FrontScreen } from './FrontScreen';
 import { Wardrobe } from './Wardrobe';
 import { BattlePassScreen } from './BattlePassScreen';
 import { QuestBoard } from './QuestBoard';
@@ -523,6 +524,7 @@ export function Hub({
           {nav === 'genes' && <GeneArchive />}
           {nav === 'hive' && <HiveScreen />}
           {nav === 'harvest' && <HarvestScreen />}
+          {nav === 'infestation' && <FrontScreen />}
           {nav === 'vault' && <GeneticVault />}
           {nav === 'market' && <SpliceMarket />}
           {nav === 'auction' && <AuctionHouse />}

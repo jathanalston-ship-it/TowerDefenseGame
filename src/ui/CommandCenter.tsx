@@ -34,7 +34,7 @@ import { LiveEventsStrip } from './components/LiveEventsStrip';
 import { BioCacheCard } from './BioCache';
 import { DirectivesCard } from './components/DirectivesCard';
 import { ContractsCard } from './components/ContractsCard';
-import { InfestationBoard } from './components/InfestationBoard';
+import { FrontStrip } from './FrontScreen';
 import { GrowthPanel } from './components/GrowthPanel';
 import { armyView, buildHomeView, homeRegistry } from './homeModel';
 import { recommendationsFor } from '../state/recommendations';
@@ -196,7 +196,9 @@ const WIDGETS: Record<string, (ctx: WidgetCtx) => ReactNode> = {
   'growth': (c) => <GrowthPanel save={c.save} go={(k) => c.go(k as NavKey)} />,
   'directives': () => <DirectivesCard />,
   'contracts': () => <ContractsCard />,
-  'infestation': () => <InfestationBoard />,
+  // THE FRONT (docs/INFESTATION.md §front): the old full-size home board collapsed into a
+  // one-line strip — fractions + today's beats; the full map lives on its own screen now.
+  'infestation': () => <FrontStrip />,
   'mission-control': MissionControl,
   'forecast': (c) => (
     <div className="cc-forecast">

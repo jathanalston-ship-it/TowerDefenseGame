@@ -139,6 +139,7 @@ export type PassReward =
   | { kind: 'ichor'; qty: number }
   | { kind: 'cores'; qty: number }
   | { kind: 'geneEssence'; qty: number }
+  | { kind: 'hiveMats'; qty: number } // Chitin (docs/ECONOMY.md §localized) — the Front's Fringe spoils pay it
   | { kind: 'mats'; mutagen?: number; scrap?: number; catalyst?: number }
   | { kind: 'towerShardsAll'; qtyEach: number }
   | { kind: 'heroShardsAll'; qtyEach: number }
@@ -157,6 +158,7 @@ export function rewardLabel(r: PassReward): { icon: string; label: string } {
     case 'ichor': return { icon: '◆', label: `${r.qty} Ichor` };
     case 'cores': return { icon: '⬡', label: `${r.qty} Genome Cores` };
     case 'geneEssence': return { icon: '⌬', label: `${r.qty} Gene Essence` };
+    case 'hiveMats': return { icon: '⬣', label: `${r.qty} Chitin` };
     case 'mats': return { icon: '⚒', label: `Materials ⊕${r.mutagen ?? 0}·◳${r.scrap ?? 0}·✷${r.catalyst ?? 0}` };
     case 'towerShardsAll': return { icon: '✦', label: `${r.qtyEach} Strain Samples × all towers` };
     case 'heroShardsAll': return { icon: '✦', label: `${r.qtyEach} Apex Genome × all heroes` };
@@ -178,6 +180,7 @@ export function rewardShort(r: PassReward): string {
     case 'ichor': return `${r.qty} Ichor`;
     case 'cores': return `${r.qty} Cores`;
     case 'geneEssence': return `${r.qty} Essence`;
+    case 'hiveMats': return `${r.qty} Chitin`;
     case 'mats': return 'Materials';
     case 'towerShardsAll': return `Samples ×${r.qtyEach}`;
     case 'heroShardsAll': return `Genome ×${r.qtyEach}`;

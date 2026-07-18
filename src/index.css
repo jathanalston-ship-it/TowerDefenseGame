@@ -12696,3 +12696,33 @@ div.ah-spark { display: flex; align-items: center; justify-content: center; heig
   .ah-sheet { max-height: 88vh; }
   .ah-form input { width: 90px; }
 }
+
+/* ── THE FRONT (FrontScreen.tsx, docs/INFESTATION.md §front) ── */
+.front-screen { display: flex; flex-direction: column; gap: 14px; }
+.front-today { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.front-chip { font-size: 11px; letter-spacing: 0.08em; padding: 6px 10px; border: 1px solid var(--line); border-radius: var(--r-sm); background: rgba(255, 255, 255, 0.03); }
+.front-chip em { font-style: normal; opacity: 0.75; }
+.front-chip.is-hot { border-color: rgba(255, 184, 77, 0.5); color: #ffb84d; }
+.front-chip.is-inc { border-color: rgba(224, 49, 75, 0.55); color: #ff8fa0; }
+.front-chip.is-inc.is-held { border-color: rgba(127, 224, 122, 0.5); color: #7fe07a; }
+.front-defend { font-size: 12px; padding: 6px 12px; border-radius: var(--r-sm); border: 1px solid rgba(224, 49, 75, 0.55); background: rgba(224, 49, 75, 0.12); color: #ff8fa0; cursor: pointer; }
+.front-sec-h { font-size: 11px; letter-spacing: 0.16em; opacity: 0.75; margin: 4px 0 8px; }
+.front-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 10px; }
+.front-card { display: flex; flex-direction: column; gap: 6px; padding: 10px 12px; border: 1px solid var(--line); border-radius: var(--r-md); background: rgba(255, 255, 255, 0.03); }
+.front-card.is-idle { opacity: 0.6; }
+.front-card b { font-size: 13px; }
+.front-card-t { font-size: 11px; letter-spacing: 0.08em; color: var(--gold, #ffd24d); }
+.front-card-r { font-size: 12px; opacity: 0.85; }
+.front-card button { align-self: flex-start; font-size: 12px; padding: 6px 12px; border-radius: var(--r-sm); cursor: pointer; }
+
+/* The Command Center strip — one line where the full board used to sit. */
+.front-strip { display: flex; align-items: center; gap: 10px; width: 100%; padding: 8px 12px; border: 1px solid var(--line); border-radius: var(--r-md); background: rgba(255, 255, 255, 0.03); cursor: pointer; color: inherit; text-align: left; }
+.front-strip:hover { border-color: rgba(255, 255, 255, 0.25); }
+.front-strip-k { font-size: 11px; letter-spacing: 0.16em; opacity: 0.85; flex: none; }
+.front-strip-regs { display: flex; gap: 4px; flex: 1 1 auto; min-width: 60px; height: 8px; align-items: stretch; }
+.front-strip-reg { flex: 1; border-radius: var(--r-xs); background: linear-gradient(90deg, var(--rc) calc(var(--fr) * 100%), rgba(255, 255, 255, 0.08) calc(var(--fr) * 100%)); opacity: 0.9; }
+.front-strip-reg.is-ent { box-shadow: 0 0 6px var(--rc); }
+.front-strip-hot { font-size: 11px; color: #ffb84d; flex: none; }
+.front-strip-inc { font-size: 11px; letter-spacing: 0.08em; color: #ff8fa0; flex: none; }
+.front-strip-n { font-size: 11px; min-width: 18px; height: 18px; border-radius: 999px; background: var(--gold, #ffd24d); color: #1a1408; display: inline-flex; align-items: center; justify-content: center; font-weight: 700; flex: none; }
+.front-strip-go { opacity: 0.6; flex: none; }

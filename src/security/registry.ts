@@ -162,6 +162,10 @@ export const SECURITY_ACTIONS: Record<string, ActionPolicy> = {
     id: 'idle.collect', category: 'economy', level: 'moderate', limit: M(), cooldownMs: 1500, dedupeMs: 2000,
     analytics: 'sec_idle', doc: 'Idle Harvest collect (docs/IDLE-HARVEST.md) — time-gated upstream by minCollectMinutes; the guard stops replay hammering.', at: META,
   },
+  'front.claim': {
+    id: 'front.claim', category: 'economy', level: 'moderate', limit: M({ count: 20 }), dedupeMs: 400,
+    analytics: 'sec_front', doc: 'The Front claims (docs/INFESTATION.md §front) — tier spoils are exactly-once per sector ledger, tributes once per ISO week; the guard stops replay hammering.', at: META,
+  },
 
   // ── Permanent progression ──
   'progress.star': {
@@ -290,6 +294,8 @@ export const GUARDED_META_METHODS: Record<string, string> = {
   buyHeroPrime: 'progress.star',
   collectIdleHarvest: 'idle.collect',
   buyIdleNode: 'progress.upgrade',
+  claimFrontTier: 'front.claim',
+  claimFrontTribute: 'front.claim',
   unlockTower: 'progress.unlock',
   unlockHero: 'progress.unlock',
   buyUpgrade: 'progress.upgrade',

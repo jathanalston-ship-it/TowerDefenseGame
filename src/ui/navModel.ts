@@ -16,7 +16,7 @@
 import { t } from '../i18n';
 
 export type NavKey =
-  | 'home' | 'campaign' | 'infinite' | 'bossrush' | 'daily' | 'quests' | 'season' | 'arena'
+  | 'home' | 'campaign' | 'infinite' | 'bossrush' | 'daily' | 'quests' | 'season' | 'arena' | 'infestation'
   | 'towers' | 'heroes' | 'expeditions' | 'evolution' | 'adaptation' | 'genes' | 'mulligans' | 'hive' | 'harvest'
   | 'vault' | 'market' | 'auction' | 'equipment' | 'gearcodex' | 'phenotypes' | 'collection'
   | 'store'
@@ -46,6 +46,7 @@ export const navGroups = (): NavGroup[] => [
     { key: 'bossrush', label: t('nav.bossrush'), mono: '☠' },
     { key: 'daily', label: t('nav.daily'), mono: '☀' },
     { key: 'arena', label: t('nav.arena'), mono: '⚔' }, // The Proving Grounds (docs/ARENA.md)
+    { key: 'infestation', label: t('nav.infestation'), mono: '⛬' }, // THE FRONT — territory war (docs/INFESTATION.md §front)
   ] },
   // Every claim/open surface in one hub — the CLAIM beat of the loop lives here, so "what do
   // I have waiting?" is one place, not five.

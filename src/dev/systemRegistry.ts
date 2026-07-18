@@ -330,10 +330,10 @@ export const SYSTEMS: SystemDef[] = [
     localization: 'inline-en', docs: ['docs/CONTRACTS.md'],
   },
   {
-    id: 'infestation', name: 'Infestation Map', purpose: 'The persistent conquest meta (docs/INFESTATION.md): four regions x four sectors; every finished run feeds a target with SPILLOVER (overflow pours into the same region, then the emptiest anywhere), sectors climb named TIERS (Dormant->Foothold->Colony->Stronghold->Saturated), saturation halves decay, a fully-saturated region ENTRENCHES (bonus x1.25). Passives scale by LIVE fractions; neglect decays lazily from wall-clock timestamps (nothing ticks). Pin a sector, a region (feeds its emptiest), or spread. A LIVING canvas territory map (render/infestationMap.ts): organic region lobes + creeping cell fills + pinned pulse + feed reticle + entrenchment auras, with an a11y button overlay.',
-    files: ['src/core/infestation.ts', 'src/render/infestationMap.ts', 'src/ui/components/InfestationBoard.tsx'],
+    id: 'infestation', name: 'Infestation Map — THE FRONT', purpose: 'The persistent conquest meta (docs/INFESTATION.md): four regions x four sectors; every finished run feeds a target with SPILLOVER, sectors climb named TIERS (Dormant->Foothold->Colony->Stronghold->Saturated), saturation halves decay, a fully-saturated region ENTRENCHES (bonus x1.25 + a 4th expedition slot). THE FRONT overhaul (v49, docs/INFESTATION.md §front) made the map a war, not a widget: held tiers mint ONE-TIME claims (region-flavored localized wallets via applyRewardList kind hiveMats et al), held regions pay a WEEKLY tribute (ISO-week watermark), a daily HOTSPOT lands feeds x1.5, one held sector a day suffers an INCURSION (win a run that feeds it to defend; an undefended day bites -12 on lazy resolution, bounded to ONE bite per return), and DEPLOY (state/frontDeploy.ts, session-scoped) arms one run with the region warp composed at game.ts\'s single warp fold (absent => byte-identical; dailies/Arena excluded). The screen moved to the PLAY hub (nav infestation, stage-8 reveal); the Command Center board collapsed to the one-line FrontStrip.',
+    files: ['src/core/infestation.ts', 'src/render/infestationMap.ts', 'src/ui/components/InfestationBoard.tsx', 'src/ui/FrontScreen.tsx', 'src/state/frontDeploy.ts'],
     dependsOn: ['meta-store', 'hub-shell'], powerScore: null, save: ['infestation'],
-    tutorial: [], help: [], hud: [], ui: ['CommandCenter (infestation board)'], collection: null, achievements: [],
+    tutorial: [], help: ['infestation'], hud: [], ui: ['FrontScreen (The Front)', 'CommandCenter (FrontStrip)'], collection: null, achievements: [],
     localization: 'inline-en', docs: ['docs/INFESTATION.md'],
   },
   {

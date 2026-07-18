@@ -18,6 +18,8 @@ import { HERO_ORDER, IDLE, TOWER_DEFS, TOWER_ORDER } from '../core/config';
 import { marketWindow } from '../core/market';
 import { dailyKey } from '../core/daily';
 import { MAIN_QUESTLINE, questComplete, weeklyQuestFor } from '../core/quests';
+import { ALL_SECTORS, CLAIMABLE_TIERS, REGIONS, TRIBUTE_MIN_TIERS, effectiveLevel, incursionSectorId, regionHeldTiers, tierOf } from '../core/infestation';
+import { weekKey } from '../core/accountLevel';
 import { BP, levelOf } from '../core/battlePass';
 import { evolutionRosterSignal } from '../ui/evolutionTrackModel';
 
@@ -256,4 +258,29 @@ registerNotification({
     return n + (sig.claimable > 0 || sig.ready ? 1 : 0);
   }, 0),
   reason: (_s, n) => `${n} hero evolution track${n === 1 ? '' : 's'} ready`,
+});
+
+// THE FRONT (docs/INFESTATION.md §front) — unclaimed tier spoils, an uncollected weekly
+// tribute, or a live undefended incursion. Cheap: 16 effective-level reads per poll, no
+// meta folds. Channel = the map's own screen (a real nav — the readyChain contract).
+registerNotification({
+  id: 'front.war',
+  channel: 'infestation',
+  count: (s) => {
+    const now = Date.now();
+    let n = 0;
+    for (const x of ALL_SECTORS) {
+      const cur = tierOf(effectiveLevel(s.infestation.sectors[x.id], now)).index;
+      if (CLAIMABLE_TIERS.some((t) => t <= cur && t > (s.infestation.tierClaims[x.id] ?? 0))) n += 1;
+    }
+    const wk = weekKey(now);
+    for (const r of REGIONS) {
+      if (s.infestation.tributeWeeks[r.id] === wk) continue;
+      if (regionHeldTiers(r, s.infestation.sectors, now) >= TRIBUTE_MIN_TIERS) n += 1;
+    }
+    const inc = incursionSectorId(dailyKey(), s.infestation.sectors, now);
+    if (inc && s.infestation.defenses[dailyKey()] !== inc) n += 1;
+    return n;
+  },
+  reason: (_s, n) => `${n} Front action${n === 1 ? '' : 's'} waiting`,
 });
