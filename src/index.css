@@ -5936,6 +5936,17 @@ kbd {
 .hubl-att-in { margin-left: auto; font-size: 11px; color: var(--muted); white-space: nowrap; }
 .hubl-recs { display: flex; flex-direction: column; gap: 5px; }
 .hubl-rec { display: flex; align-items: center; gap: 10px; padding: 8px 12px; border: 1px solid var(--line); border-radius: var(--r-md); background: var(--panel); cursor: pointer; text-align: left; transition: border-color var(--dur-2), transform var(--dur-2); }
+/* §prominence — the TOP recommendation is the screen's first eye-catch: accent-washed,
+   breathing, its arrow lit. Full-size strips only; compact (NextUp) rows stay quiet. */
+.hubl-recs:not(.is-compact) .hubl-rec:first-child {
+  --breathe-c: var(--hub-accent, var(--caustic));
+  border-color: color-mix(in srgb, var(--hub-accent, var(--caustic)) 55%, var(--line));
+  border-left: 3px solid var(--hub-accent, var(--caustic));
+  background: linear-gradient(100deg, color-mix(in srgb, var(--hub-accent, var(--caustic)) 12%, transparent), transparent 60%), var(--panel);
+  animation: bbs-breathe 3.2s ease-in-out infinite;
+}
+.hubl-recs:not(.is-compact) .hubl-rec:first-child .hubl-rec-l { font-size: 14px; }
+.hubl-recs:not(.is-compact) .hubl-rec:first-child .hubl-rec-go { color: var(--hub-accent, var(--caustic)); }
 .hubl-rec:hover { border-color: var(--viral); transform: translateX(2px); }
 .hubl-rec-k { font-size: 10px; font-weight: 800; letter-spacing: 0.14em; padding: 2px 7px; border-radius: var(--r-xs); background: color-mix(in srgb, var(--viral) 16%, transparent); color: var(--viral); white-space: nowrap; }
 .hubl-rec[data-reckind='claim'] .hubl-rec-k, .hubl-rec[data-reckind='open'] .hubl-rec-k { background: color-mix(in srgb, var(--gold) 16%, transparent); color: var(--gold); }
@@ -10313,12 +10324,21 @@ kbd {
   .qb-claimable-chip, .qb-m-readydot, .qb-m-claim, .qb-burst-ring, .qb-burst-chip { animation: none; }
 }
 
-/* ── Best-value strip (components/BestBuyStrip.tsx) — the purchase advisor headline ── */
-.bbs { display: flex; align-items: baseline; flex-wrap: wrap; gap: 6px 14px; margin: 8px 0 10px; padding: 8px 12px;
-  border: 1px solid color-mix(in srgb, var(--gold) 35%, var(--line-strong)); border-radius: var(--r-sm);
-  background: linear-gradient(90deg, color-mix(in srgb, var(--gold) 10%, transparent), transparent 70%); font-size: 12px; }
-.bbs-k { font-size: 10px; font-weight: 900; letter-spacing: 0.14em; color: var(--gold); }
-.bbs-pick { color: var(--text); }
+/* ── Best-value strip (components/BestBuyStrip.tsx) — the purchase advisor headline.
+   THE FIRST EYE-CATCH on every many-options surface: a gold-washed banner with a breathing
+   edge, the pick at reading size, and the quick-buy as the screen's brightest pill. ── */
+.bbs { display: flex; align-items: center; flex-wrap: wrap; gap: 6px 14px; margin: 8px 0 12px; padding: 10px 14px;
+  border: 1px solid color-mix(in srgb, var(--gold) 45%, var(--line-strong)); border-left: 3px solid var(--gold);
+  border-radius: var(--r-sm);
+  background: linear-gradient(100deg, color-mix(in srgb, var(--gold) 14%, transparent), color-mix(in srgb, var(--gold) 4%, transparent) 55%, transparent), var(--panel);
+  font-size: 12px; animation: bbs-breathe 3.2s ease-in-out infinite; }
+@keyframes bbs-breathe {
+  0%, 100% { box-shadow: 0 0 0 0 transparent; }
+  50% { box-shadow: 0 0 16px -6px color-mix(in srgb, var(--breathe-c, var(--gold)) 60%, transparent); }
+}
+.bbs-k { font-size: 10px; font-weight: 900; letter-spacing: 0.14em; color: var(--gold);
+  padding: 2px 8px; border: 1px solid color-mix(in srgb, var(--gold) 45%, transparent); border-radius: 999px; white-space: nowrap; }
+.bbs-pick { color: var(--text); font-size: 13px; }
 .bbs-pick b { color: var(--gold); }
 .bbs-save { font-style: normal; color: var(--warn); font-weight: 700; }
 .bbs-next { color: var(--muted); font-size: 11px; }

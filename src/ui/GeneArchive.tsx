@@ -502,6 +502,7 @@ export function GeneArchive(): JSX.Element {
         Your permanent Gene Card collection — {sum.owned}/{sum.total} discovered · {sum.levels}/{sum.maxLevels} levels evolved{sum.transcended > 0 ? <> · <span className="ga-transcended">❂ {sum.transcended} transcended</span></> : ''}.
         Spend Gene Essence to permanently upgrade a card; it applies every time you draft it.
       </div>
+      <BestBuyStrip surface="genes" />
       {/* Discovery completion (docs/CARDS.md §discovery) — the collection header: overall %
           plus the five-tier ladder, so "something exciting remains" is always visible. */}
       <div className="ga-completion" role="group" aria-label="Archive completion">
@@ -513,7 +514,6 @@ export function GeneArchive(): JSX.Element {
           </span>
         ))}
       </div>
-      <BestBuyStrip surface="genes" />
 
       {/* In-place help (Task 11) — the whole loop in five lines, one tap away. */}
       <details className="ga-help">

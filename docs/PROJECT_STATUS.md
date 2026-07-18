@@ -3,7 +3,21 @@
 > Maintained at the END of every session (paired with `docs/AI_HANDOFF.md` — the constitution's
 > workflow step 4). This is the "where are we?" answer; `docs/GAME-STATE.md` remains the deeper
 > per-system built-vs-planned index, `docs/PROJECT_MANIFEST.md` the system map.
-> **Last updated:** 2026-07-18s (**WEBSITE DEPLOY FIXED + THE PRODUCTION-VERIFY CONTRACT**
+> **Last updated:** 2026-07-18t (**RECOMMENDED-DECISIONS PROMINENCE PASS** (queue #350):
+> the ranked next-step is now the FIRST EYE-CATCH on every screen that surfaces one.
+> `.bbs` (Best-Value strip — EvolutionHQ/TowerLab/HeroLab/GeneArchive) redesigned from a
+> quiet one-liner into a gold-washed banner: left accent bar, pill kicker, 13px pick,
+> breathing edge (`bbs-breathe`, `--breathe-c` parameterized). GeneArchive's strip moved
+> ABOVE the completion bar (first read under the title). Hub landings + Command Center:
+> the TOP `.hubl-rec` row (full-size strips only, never compact NextUp) gets the hero
+> treatment — hub-accent wash, 3px left bar, 14px label, lit arrow, same breathing edge —
+> so the eye lands on "do this next" before the grid. MulliganLab reco tiles + the CC
+> ready chain already had prominence (left as-is). CSS-led, zero logic; verified live
+> (Mission Hub landing + Tower Lab + Gene Archive screenshots), mobilecheck CLEAN,
+> uiStandards green, validate PASS. Queue is now EMPTY — #350/#351/#352 all shipped.
+> Previous below.)
+>
+> **2026-07-18s** (**WEBSITE DEPLOY FIXED + THE PRODUCTION-VERIFY CONTRACT**
 > (queue #352, user brief: "update the website. make sure it's actually updated … implement
 > something that ensures that never happens again"). ROOT CAUSE found and fixed: wrangler's
 > `--production-branch` flag only applies on FIRST-ever project creation — the Pages project

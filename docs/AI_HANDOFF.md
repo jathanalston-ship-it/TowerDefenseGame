@@ -90,8 +90,9 @@ never pruned).
    production_branch pinned every run + version.json stamp + post-deploy production-URL
    verify that fails the workflow on mismatch; proven live on run #201 (production now
    serves the current build at assimilate-69x.pages.dev).
-2. **#350 Recommended-decisions prominence pass**: RecommendStrip/Best-Purchase/NextUp as
-   the first visual read on every screen that has one.
+2. ~~#350 Recommended-decisions prominence pass~~ — **SHIPPED same session**: `.bbs`
+   hero banner + top `.hubl-rec` hub-accent hero row + GeneArchive strip promoted above
+   the completion bar. The queue is empty; next work comes from the user.
 
 ## Future expansion hooks
 
