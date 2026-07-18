@@ -1362,6 +1362,14 @@ export const RELEASES: Release[] = [
       {
         "cat": "Website",
         "text": "Rituals: chronicle + site sync + handoff/status board for the auction batch"
+      },
+      {
+        "cat": "Gameplay",
+        "text": "Status board + chronicle: production-verify contract proven live (run #201)"
+      },
+      {
+        "cat": "UI",
+        "text": "Recommended decisions lead every screen (the prominence pass)"
       }
     ]
   },

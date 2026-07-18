@@ -333,3 +333,5 @@
 - `8376a53` **[Towers]** Auction House: mulligan organs trade + full-integration audit + visual overhaul
 - `fb091be` **[Website]** Rituals: chronicle + site sync + handoff/status board for the auction batch
 - `b32121c` **[Gameplay]** Deploy contract: green means PRODUCTION changed (pin + stamp + live verify) _(internal)_
+- `e718412` **[Gameplay]** Status board + chronicle: production-verify contract proven live (run #201)
+- `071cbf3` **[UI]** Recommended decisions lead every screen (the prominence pass)

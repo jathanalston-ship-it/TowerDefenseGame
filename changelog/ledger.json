@@ -1,6 +1,6 @@
 {
-  "lastSha": "b32121c21ee0ca2acc3a9edfbad3b5f28d54ea5e",
-  "commitsSinceDraft": 6,
+  "lastSha": "071cbf3b80092141f3b3d984c4023035eaa73469",
+  "commitsSinceDraft": 8,
   "content": {
     "tower": [
       "needle",
@@ -2865,6 +2865,14 @@
         {
           "cat": "Website",
           "text": "Rituals: chronicle + site sync + handoff/status board for the auction batch"
+        },
+        {
+          "cat": "Gameplay",
+          "text": "Status board + chronicle: production-verify contract proven live (run #201)"
+        },
+        {
+          "cat": "UI",
+          "text": "Recommended decisions lead every screen (the prominence pass)"
         }
       ]
     }
@@ -5340,6 +5348,22 @@
       "cat": "Gameplay",
       "text": "Deploy contract: green means PRODUCTION changed (pin + stamp + live verify)",
       "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "e718412a3d2cd81e6a69e57a5aaff1997321a2d8",
+      "date": "2026-07-18",
+      "cat": "Gameplay",
+      "text": "Status board + chronicle: production-verify contract proven live (run #201)",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "071cbf3b80092141f3b3d984c4023035eaa73469",
+      "date": "2026-07-18",
+      "cat": "UI",
+      "text": "Recommended decisions lead every screen (the prominence pass)",
+      "internal": false,
       "needsReview": false
     }
   ]
