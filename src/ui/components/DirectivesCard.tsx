@@ -57,7 +57,7 @@ export function DirectivesCard(): JSX.Element {
               {d.claimed
                 ? <span className="dir-claimed">✓ Claimed</span>
                 : d.complete
-                  ? <button className="dir-claim" onClick={() => claim(d.id)}>Claim {rewardChips(d.reward)}</button>
+                  ? <button className="dir-claim act-claim" onClick={() => claim(d.id)}>Claim {rewardChips(d.reward)}</button>
                   : <span className="dir-pay">{rewardChips(d.reward)}</span>}
             </span>
           </div>
@@ -73,7 +73,7 @@ export function DirectivesCard(): JSX.Element {
         {v.capstone.claimed
           ? <span className="dir-claimed">✓ Claimed</span>
           : v.capstone.earned
-            ? <button className="dir-claim is-cap" onClick={() => claim('__capstone')}>Claim {rewardChips(v.capstone.reward)}</button>
+            ? <button className="dir-claim is-cap act-claim" onClick={() => claim('__capstone')}>Claim {rewardChips(v.capstone.reward)}</button>
             : <span className="dir-pay">{rewardChips(v.capstone.reward)}</span>}
       </div>
     </div>

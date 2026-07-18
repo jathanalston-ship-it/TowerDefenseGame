@@ -1,6 +1,6 @@
 # DIL_GRAPH.md — the Design Intelligence Layer (GENERATED — `npm run dil -- regen`)
 
-> **The project's brain** (docs/DIL.md). 885 nodes · 1664 edges, built from the live
+> **The project's brain** (docs/DIL.md). 887 nodes · 1667 edges, built from the live
 > registries + curated knowledge (src/dev/dil/). **Query it instead of searching the repo:**
 > `npm run dil -- node <id>` · `affects <id>` · `requires <id>` · `missing <kind> <edge>` ·
 > `checklist tower <kind>` · `find <text>`. Edge kinds are bidirectional (19 kinds).
@@ -669,6 +669,7 @@ Every system is built for the CLAUDE.md content targets (100 towers, 30 heroes, 
   - extendedBy ← `system:hub-shell` — LIST ORG (state/listOrg.ts): organizeList<T> over a DATA spec (searchText/sorts/filters/groups/lead) — query → AND-chips → stable sort → lead-first (favorites/pins) → grouping; per-surface prefs via listOrgPrefs (sort/filters/group/collapsed, NEVER the query — stale searches trap); shared ui/components/ListControls (.lc-*) + .lc-group folds; applied to Tower Lab (class folds), Hero Lab, Evolution HQ (Affordable/Hide-maxed), Gene Archive (persisted + rarity sort), Armory — a NEW long-list screen is one spec + one control row, never hand-rolled list logic
   - extendedBy ← `system:hub-shell` — REWARD TOASTS (state/rewardToast.ts): every reward announces via ONE registry-driven placard stack — a new reward type is one REWARD_TYPES row (art/unit/merge/tier/nav), never a bespoke display; placards are pushed AT GRANT TIME in meta.ts (applyRewardList returns events; claim seams pushMany with a source string) — never from screens; the bus HOLDS events while no toaster is mounted (runs flush on hub return); dedicated full-screen ceremonies (vault clutch, roulette, premium receipts, research reveal, genome-rank cinematic) do NOT double-placard — see the NOTIFICATIONS.md coverage table before wiring a new reward lane
   - extendedBy ← `system:online-foundation` — AUCTION HOUSE (core/auction.ts + marketAuthority.ts + marketCatalog.ts): ONE rulebook, three hosts — the engine emits LedgerOps (server maps→D1 wallet ledger; sim maps→agent wallets); the AUTHORITY is bounded smooth levers (fee/tax/baseline/recBias, ≤6%/window, two-speed EWMA inflation index) advanced lazily in maintainMarket (market_windows PK = exactly-once tick, NO daemon); the CATALOG derives families/exclusivity/neverTrade from content registries — new cards/defs/cosmetics inherit market eligibility with zero wiring; ANY economy change must re-run npm run sim:market (10 scenarios, all must stay healthy)
+  - extendedBy ← `system:ui-kit` — ICON LANGUAGE (ui/iconLanguage.tsx, docs/ICON-LANGUAGE.md): ONE library federates every identity axis — ACTIONS (verb glyph+token+label; the act-<verb> CSS classes MIRROR the table, change together), EFFECT_CATEGORIES, CURRENCIES, REWARD_TYPES art, statusRegistry + STATUS_GLYPHS, nav/FEATURES glyphs; dev/iconLanguage.test.ts is the INHERITANCE CONTRACT — a new currency/reward/status/screen without a face fails CI; glyphs unique per axis, cross-axis reuse only for the same concept family; color never the sole channel (a11y)
   - extendedBy ← `system:analytics` — UNIFIED EVENTS (core/analyticsEvents.ts): ONE AN_EVENTS row declares an event completely (dim/value/extras/rollup/durable/sample) and is validated identically by the client emitter, the server ingest, and the sims — a future event is one row + one telemetry.emit call; hot signals NEVER leave raw (61-bucket FPS histogram, 12×8 heat grid, FlowFold currency sums, djb2 error hashes, waveBand loss dims) so rollup cardinality = kinds×dims×versions×days, INDEPENDENT of player count — that structural bound is the whole 100k-player scale story
   - extendedBy ← `system:reward-architecture` — THE LOOP REGISTRY (core/rewardLoops.ts): ~40 REWARD_SOURCES rows classify every pathway into 5 loops with feeds[] — rewardLoopProblems() FAILS THE BUILD on a dead-end source (feeds only its own loop), a single-cadence loop, an unfed loop, or a broken 5-loop chain; a NEW reward source is one row and inherits rotation/handoffs/docs. Rebalance rule of the house: convert lumps to drips ONLY at exactly-equal window totals (campaignSurveyBonus = milestoneCore/milestoneEvery per stage, pinned; landmark cadence stays every-5th for map/finales) — never raise totals, never touch loot-meter EV or MODE_REWARDS identity lanes
   - extendedBy ← `system:currencies` — LOCALIZED WALLET LAWS (core/currencies.ts): every CurrencyDef declares domain (the ONE system it upgrades; 'account' reserved for Genome Cores + Ichor) and earnedFrom (≥2 distinct gameplay sources; prestige exempt — Molt IS its identity); currencyProblems() enforces unique names/colors and ONE specialized wallet per domain, so "add a currency" = one registry row and the anti-overlap law holds itself. Adding a CurrencyId forces every Record<CurrencyId,…> surface at compile time (CurrencyIcon SVG map)
@@ -2376,8 +2377,9 @@ _at: src/debug/*, src/ui/DebugPanel.tsx, src/ui/DevTools.tsx_
 
 Reusable presentation components every screen composes (icons, bars, count-ups) — the component library.
 
-_at: src/ui/components/Icon.tsx, src/ui/components/ProgressBar.tsx, src/ui/components/useCountUp.ts, src/ui/components/usePressRepeat.ts, src/ui/components/AudioToggles.tsx, src/ui/components/MobileSection.tsx, src/ui/layoutProfile.ts, src/ui/components/ResponsiveDebug.tsx, src/ui/components/RotateGate.tsx_
+_at: src/ui/components/Icon.tsx, src/ui/iconLanguage.tsx, src/ui/components/ProgressBar.tsx, src/ui/components/useCountUp.ts, src/ui/components/usePressRepeat.ts, src/ui/components/AudioToggles.tsx, src/ui/components/MobileSection.tsx, src/ui/layoutProfile.ts, src/ui/components/ResponsiveDebug.tsx, src/ui/components/RotateGate.tsx_
 
+  - extends → `concept:scalability` — ICON LANGUAGE (ui/iconLanguage.tsx, docs/ICON-LANGUAGE.md): ONE library federates every identity axis — ACTIONS (verb glyph+token+label; the act-<verb> CSS classes MIRROR the table, change together), EFFECT_CATEGORIES, CURRENCIES, REWARD_TYPES art, statusRegistry + STATUS_GLYPHS, nav/FEATURES glyphs; dev/iconLanguage.test.ts is the INHERITANCE CONTRACT — a new currency/reward/status/screen without a face fails CI; glyphs unique per axis, cross-axis reuse only for the same concept family; color never the sole channel (a11y)
   - gates → `system:hub-shell` — LANDSCAPE MANDATE: phones play horizontal ONLY — touch+portrait renders RotateGate (full-screen hold, z 100000, live-event tinted, clears on rotate via useLayoutProfile); touch+landscape IS the phone game (narrow-shell drawer + stacked run; the .game bands fire on (max-width:900px),(max-height:520px) so 926-wide phones stack); mouse windows never gated. mobilecheck v3 walks 844×390/926×428 through the drawer + tutorial at 844×390 + asserts gate coverage on portrait and gate ABSENCE on playable orientations; the v2 portrait tab shell is legacy (mouse-narrow only, un-walked). The store app shell locks orientation natively — the gate is the browser half of the platform split
   - documentedBy ← `doc:UI-STANDARDS.md`
   - documentedBy ← `doc:STYLE-GUIDE.md`
@@ -2386,6 +2388,7 @@ _at: src/ui/components/Icon.tsx, src/ui/components/ProgressBar.tsx, src/ui/compo
   - documentedBy ← `doc:UI_STYLE_GUIDE.md`
   - documentedBy ← `doc:DESIGN_LANGUAGE.md`
   - documentedBy ← `doc:RESPONSIVE-DESIGN.md`
+  - documentedBy ← `doc:ICON-LANGUAGE.md`
 
 ### `system:analytics` — Player Telemetry & Analytics
 
@@ -2438,9 +2441,9 @@ _at: src/dev/*, src/dev/dil/*_
   - testedBy ← `test:src/dev/balanceReport.test.ts`
   - testedBy ← `test:src/dev/dil/dil.test.ts`
   - testedBy ← `test:src/dev/foundationsUX.test.ts`
+  - testedBy ← `test:src/dev/iconLanguage.test.ts`
   - testedBy ← `test:src/dev/mobileContent.test.ts`
-  - testedBy ← `test:src/dev/progressionSim.test.ts`
-  - _…3 more (query: `npm run dil -- node system:dev-registry`)_
+  - _…4 more (query: `npm run dil -- node system:dev-registry`)_
 
 ## Towers (22)
 
@@ -3542,7 +3545,7 @@ _at: site/guides.ts → /guides/live-events/_
 - `achievement:arena_crown` — Claim Arena Pass level 100 — a permanently arena-exclusive strain is yours forever. _(partOf `system:achievements`, rewards `currency:genome-cores`, references `system:arena`)_
 - `achievement:arena_perennial` — Close three Arena seasons with a record on the books. _(partOf `system:achievements`, rewards `currency:genome-cores`, references `system:arena`)_
 
-## Documentation (181)
+## Documentation (182)
 
 - `doc:ACCOUNT-LEVEL.md` — project documentation _(documents `system:account-level`)_
 - `doc:ACCOUNTS.md` — project documentation _(documents `system:accounts`)_
@@ -3630,6 +3633,7 @@ _at: site/guides.ts → /guides/live-events/_
 - `doc:HUB-FLOW.md` — project documentation
 - `doc:HUD.md` — project documentation _(documents `system:hub-shell`, documents `system:run-ui`)_
 - `doc:I18N.md` — project documentation _(documents `system:i18n`)_
+- `doc:ICON-LANGUAGE.md` — project documentation _(documents `system:ui-kit`)_
 - `doc:IDENTITY-AUDIT.md` — project documentation
 - `doc:IDLE-HARVEST.md` — project documentation _(documents `system:idle-harvest`)_
 - `doc:INFESTATION.md` — project documentation _(documents `system:infestation`)_
@@ -3726,7 +3730,7 @@ _at: site/guides.ts → /guides/live-events/_
 - `doc:VOWS.md` — project documentation _(documents `system:prestige`)_
 - `doc:WEBSITE.md` — project documentation _(documents `system:field-research`, documents `system:website`)_
 
-## Tests (293)
+## Tests (294)
 
 - `test:src/audio/music.test.ts` — automated validation _(tests `system:audio`)_
 - `test:src/changelog/classify.test.ts` — automated validation _(tests `system:chronicle`)_
@@ -3897,6 +3901,7 @@ _at: site/guides.ts → /guides/live-events/_
 - `test:src/dev/balanceReport.test.ts` — automated validation _(tests `system:dev-registry`)_
 - `test:src/dev/dil/dil.test.ts` — automated validation _(tests `system:dev-registry`)_
 - `test:src/dev/foundationsUX.test.ts` — automated validation _(tests `system:dev-registry`)_
+- `test:src/dev/iconLanguage.test.ts` — automated validation _(tests `system:dev-registry`)_
 - `test:src/dev/mobileContent.test.ts` — automated validation _(tests `system:dev-registry`)_
 - `test:src/dev/pil/pil.test.ts` — automated validation _(tests `system:pil`)_
 - `test:src/dev/progressionSim.test.ts` — automated validation _(tests `system:dev-registry`)_

@@ -201,7 +201,7 @@ export function HarvestScreen(): JSX.Element {
             <span>{a.full ? 'BRIMMED — collect now' : `full in ${fmtIdleHours(toFullH)}`}</span>
           </div>
           <button
-            className={`primary hv-collect${v.collectable ? ' is-ready' : ''}${a.full ? ' is-brimmed' : ''}`}
+            className={`primary hv-collect act-collect${v.collectable ? ' is-ready' : ''}${a.full ? ' is-brimmed' : ''}`}
             disabled={!v.collectable}
             onClick={() => {
               const r = meta.collectIdleHarvest();

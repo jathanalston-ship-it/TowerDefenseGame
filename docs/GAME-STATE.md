@@ -765,6 +765,36 @@ sink ≈ hour-400 at endgame income — re-tune as the library grows.
 
 ---
 
+## Compressed system summary — Icon Language (docs/ICON-LANGUAGE.md)
+
+**Architecture.** `ui/iconLanguage.tsx` — ONE library FEDERATING every identity axis (it
+never duplicates a source of truth): ACTIONS (the new verb/state table: 19 rows, glyph +
+color token + label), STATS (display chips; deliberately aliases effect-category glyphs
+for identical concepts), STATUS_GLYPHS (player glyph per statusRegistry id; def stays the
+color source), plus pass-throughs to EFFECT_CATEGORIES / CURRENCIES / REWARD_TYPES art /
+nav + FEATURES glyphs / --r-* rarity tokens.
+
+**Public APIs.** `ACTIONS`, `STATS`, `STATUS_GLYPHS`, `statusIcon(id)`, `effectIcon(cat)`,
+`currencyColor(id)`, `<Ico a=…|stat=…|status=… title?>` (aria-hidden unless titled — the
+icon confirms text, never replaces it). CSS: `.ico` primitive + `.act-<verb>` button
+classes (::before glyph injection, decorative; the block MIRRORS the ACTIONS table).
+
+**Extension points.** New verb → ACTIONS row + mirrored .act-* rule; new status → a
+STATUS_GLYPHS entry (test-forced); new currency/reward/screen → their own registries
+already demand identities. New surfaces speak via `<Ico>` or act-* classes.
+
+**Assumptions.** Glyphs unique within an axis; cross-axis reuse only for the same concept
+family (⛨ equip↔equipment, ✚ healing↔regen, ⇣/⇡ slow/haste). Color never the sole channel;
+action colors are CSS tokens (both test-enforced).
+
+**Verification.** `dev/iconLanguage.test.ts` — the INHERITANCE CONTRACT (caught the
+glyph-less 'haste' status on its first run). uiStandards + mobilecheck cover scale/a11y
+floors (11px glyphs at 390px width).
+
+**Known limitations.** Long-tail secondary buttons adopt act-* opportunistically (every
+major PRIMARY CTA speaks now); a shared 3-tier tooltip primitive is deferred ui-kit work;
+bestiary/inspector status-glyph adoption rides those screens' next touch.
+
 ## Compressed system summary — Resonance Beam + content unlock gating
 
 **Architecture.** The 9th tower, **Resonance Coil** (`coil`, `Resonant` class, amber `#f5b83d`), adds

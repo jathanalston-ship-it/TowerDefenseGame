@@ -3,7 +3,31 @@
 > Maintained at the END of every session (paired with `docs/AI_HANDOFF.md` — the constitution's
 > workflow step 4). This is the "where are we?" answer; `docs/GAME-STATE.md` remains the deeper
 > per-system built-vs-planned index, `docs/PROJECT_MANIFEST.md` the system map.
-> **Last updated:** 2026-07-18t (**RECOMMENDED-DECISIONS PROMINENCE PASS** (queue #350):
+> **Last updated:** 2026-07-18u (**ICON LANGUAGE — the universal visual language** (user
+> brief: icon-first UX overhaul; "text is confirmation, visuals are communication").
+> NEW `src/ui/iconLanguage.tsx` federates every identity axis the game already carried
+> (EFFECT_CATEGORIES glyph/color, CURRENCIES silhouettes, REWARD_TYPES art, statusRegistry
+> colors, nav/FEATURES glyphs, --r-* rarity tokens) and adds the missing one: **ACTIONS** —
+> 19 verbs/states (claim ✹ collect ⤓ open ◉ upgrade ⇧ equip ⛨ merge ⧓ replace ⇄ spend ◆
+> play ▶ accept ✔ cancel ✕ recommended ⚡ locked 🔒 new ✧ completed ✓ unavailable ⊘ ready ◈
+> browse ⌕ unlock 🔓), codifying the precedents the UI already spoke. STATUS_GLYPHS gives
+> all 16 statuses player glyphs (slow ⇣ / haste ⇡ direction pair). **THE INHERITANCE
+> CONTRACT: dev/iconLanguage.test.ts** — a new currency/reward/status/screen without a face
+> fails CI (it caught 'haste' on its first run); glyphs unique per axis; action colors must
+> be tokens. `<Ico>` primitive + `.act-<verb>` button classes (CSS mirrors the table; never
+> double a glyph the text already carries; label never dropped — a11y). SPOKEN TODAY: verb
+> icons on every major primary CTA (quest/directive/pass/event claims, harvest collect,
+> vault opens ×5, tower Mutate, gene Upgrade, hero-gear Equip); draft-card keywords carry
+> their category glyph inline (FxLine chokepoint); Tower Lab stat chips (▲ DPS ◎ RANGE
+> ≫ CADENCE ⟁ POWER); landing attention rows lead with the target screen's glyph; rec kind
+> chips lead with the verb glyph. docs/ICON-LANGUAGE.md is the permanent standard
+> (+ UI-STANDARDS §5 pointer). Verified: suite 2518 green (301 files, +iconLanguage
+> drift test), typecheck 0, build, mobilecheck CLEAN, validate PASS, live screenshots
+> (Tower Lab + Mission Hub landing). Deferred honestly (doc §6): long-tail secondary
+> buttons adopt act-* as screens are touched; shared 3-tier tooltip primitive is future
+> ui-kit work. Previous below.)
+>
+> **2026-07-18t** (**RECOMMENDED-DECISIONS PROMINENCE PASS** (queue #350):
 > the ranked next-step is now the FIRST EYE-CATCH on every screen that surfaces one.
 > `.bbs` (Best-Value strip — EvolutionHQ/TowerLab/HeroLab/GeneArchive) redesigned from a
 > quiet one-liner into a gold-washed banner: left accent bar, pill kicker, 13px pick,

@@ -202,11 +202,11 @@ export function GeneticVault(): JSX.Element {
             </div>
             <div className="vault-actions">
               <button className="primary vault-crack" data-guide="vault-crack" onClick={() => crack(1)}>◈ Open One</button>
-              {pending.length >= 5 && <button className="vault-crack" onClick={() => crack(5)}>Open Five</button>}
-              {pending.length >= 10 && <button className="vault-crack" onClick={() => crack(10)}>Open Ten</button>}
-              {pending.length >= 50 && <button className="vault-crack" onClick={() => crack(50)}>Open 50</button>}
-              {pending.length >= 100 && <button className="vault-crack" onClick={() => crack(100)}>Open 100</button>}
-              {pending.length >= 2 && <button className="vault-crack" onClick={() => crack(pending.length)}>Open All ({pending.length})</button>}
+              {pending.length >= 5 && <button className="vault-crack act-open" onClick={() => crack(5)}>Open Five</button>}
+              {pending.length >= 10 && <button className="vault-crack act-open" onClick={() => crack(10)}>Open Ten</button>}
+              {pending.length >= 50 && <button className="vault-crack act-open" onClick={() => crack(50)}>Open 50</button>}
+              {pending.length >= 100 && <button className="vault-crack act-open" onClick={() => crack(100)}>Open 100</button>}
+              {pending.length >= 2 && <button className="vault-crack act-open" onClick={() => crack(pending.length)}>Open All ({pending.length})</button>}
               <span className="vault-left">{pending.length} banked</span>
             </div>
           </>

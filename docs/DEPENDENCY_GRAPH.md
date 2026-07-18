@@ -290,7 +290,7 @@ graph TD
 | **Audio** (`audio`) | `engine` | `cutscenes` · `living-battlefield` | — | — | `docs/MUSIC.md` · `docs/GAME-FEEL.md` |
 | **Assimilation Index** (`assimilation`) | — | `engine` · `run-ui` · `living-battlefield` · `devtools` | ⚡ CONSUMES the live run Power Score as its dominant contributor (never feeds Power) | — | `docs/ASSIMILATION.md` |
 | **Dev Tools & Debug** (`devtools`) | `meta-store` · `assimilation` | — | — | — | `docs/DEV-RESET.md` |
-| **Shared UI Component Kit** (`ui-kit`) | — | — | — | — | `docs/UI-STANDARDS.md` · `docs/STYLE-GUIDE.md` · `docs/UI-MOTION.md` · `docs/VISUAL_IDENTITY.md` · `docs/UI_STYLE_GUIDE.md` · `docs/DESIGN_LANGUAGE.md` · `docs/RESPONSIVE-DESIGN.md` |
+| **Shared UI Component Kit** (`ui-kit`) | — | — | — | — | `docs/UI-STANDARDS.md` · `docs/STYLE-GUIDE.md` · `docs/UI-MOTION.md` · `docs/VISUAL_IDENTITY.md` · `docs/UI_STYLE_GUIDE.md` · `docs/DESIGN_LANGUAGE.md` · `docs/RESPONSIVE-DESIGN.md` · `docs/ICON-LANGUAGE.md` |
 | **Player Telemetry & Analytics** (`analytics`) | `meta-store` · `accounts` | — | ⚡ batch context carries the account Power Score (read-only) | — | `docs/ANALYTICS.md` |
 | **Reward Loop Architecture** (`reward-architecture`) | `progression-gating` · `hub-shell` | — | — | — | `docs/REWARD-ARCHITECTURE.md` · `docs/REWARD-FREQUENCY.md` |
 | **System Registry & Design Intelligence Layer** (`dev-registry`) | — | `pil` | — | — | `docs/DIL.md` · `docs/DEPENDENCY_GRAPH.md` · `docs/ENGINEERING-AUDIT.md` · `docs/GAME_CONSTITUTION.md` · `docs/PROJECT_STATUS.md` · `docs/AI_HANDOFF.md` |
@@ -1351,7 +1351,7 @@ graph TD
 
 *Reusable presentation components every screen composes (icons, bars, count-ups) — the component library.*
 
-- **Files:** `src/ui/components/Icon.tsx` · `src/ui/components/ProgressBar.tsx` · `src/ui/components/useCountUp.ts` · `src/ui/components/usePressRepeat.ts` · `src/ui/components/AudioToggles.tsx` · `src/ui/components/MobileSection.tsx` · `src/ui/layoutProfile.ts` · `src/ui/components/ResponsiveDebug.tsx` · `src/ui/components/RotateGate.tsx`
+- **Files:** `src/ui/components/Icon.tsx` · `src/ui/iconLanguage.tsx` · `src/ui/components/ProgressBar.tsx` · `src/ui/components/useCountUp.ts` · `src/ui/components/usePressRepeat.ts` · `src/ui/components/AudioToggles.tsx` · `src/ui/components/MobileSection.tsx` · `src/ui/layoutProfile.ts` · `src/ui/components/ResponsiveDebug.tsx` · `src/ui/components/RotateGate.tsx`
 - **Depends on:** —
 - **Consumers — what breaks if you change this:** —
 - **Power Score:** — (intentionally none)
@@ -1360,7 +1360,7 @@ graph TD
 - **HUD surfaces:** `(embedded everywhere)` · **UI screens:** `(embedded everywhere)`
 - **Collection:** — · **Achievements:** —
 - **Localization:** inline English strings (no i18n layer yet — this field enumerates the surface for the day it lands)
-- **Docs to update on change:** `docs/UI-STANDARDS.md` · `docs/STYLE-GUIDE.md` · `docs/UI-MOTION.md` · `docs/VISUAL_IDENTITY.md` · `docs/UI_STYLE_GUIDE.md` · `docs/DESIGN_LANGUAGE.md` · `docs/RESPONSIVE-DESIGN.md`
+- **Docs to update on change:** `docs/UI-STANDARDS.md` · `docs/STYLE-GUIDE.md` · `docs/UI-MOTION.md` · `docs/VISUAL_IDENTITY.md` · `docs/UI_STYLE_GUIDE.md` · `docs/DESIGN_LANGUAGE.md` · `docs/RESPONSIVE-DESIGN.md` · `docs/ICON-LANGUAGE.md`
 
 ### Player Telemetry & Analytics (`analytics`)
 

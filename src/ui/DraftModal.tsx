@@ -42,6 +42,7 @@ function FxLine({ l, primary }: { l: EffectLine; primary: boolean }): JSX.Elemen
       {l.pre}
       {l.keyword && (
         <b className={`fx-kw${l.tier >= 5 ? ' fx-kw-hi' : ''}`} style={{ color: cat.color }}>
+          <i className="fx-kw-g" aria-hidden>{cat.glyph}</i>
           {l.keyword}
         </b>
       )}

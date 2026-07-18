@@ -266,7 +266,7 @@ export function BattlePassScreen({ onStore }: { onStore?: () => void } = {}): JS
       {claimables === 0 && <NextUp save={save} exclude="season" go={(k) => navBus.go(k)} />}
 
       <div className="bp-controls">
-        <button className="primary bp-claimall" disabled={claimables === 0} onClick={claimAll}>
+        <button className="primary bp-claimall act-claim" disabled={claimables === 0} onClick={claimAll}>
           Claim all{claimables > 0 ? ` (${claimables})` : ''}
         </button>
         {view.levelPrice !== null && (

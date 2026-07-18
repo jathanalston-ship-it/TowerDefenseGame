@@ -231,7 +231,7 @@ export function EquipmentPanel(): JSX.Element {
             {gearPicks[0].replaces && <i className="eq-replaces"> · replaces {gearPicks[0].replaces}</i>}
           </span>
           <button
-            className="eq-equip-now"
+            className="eq-equip-now act-equip"
             onClick={() => { meta.equip(gearPicks[0].hero, gearPicks[0].slot, gearPicks[0].uid); audio.cue('ui'); }}
           >
             Equip

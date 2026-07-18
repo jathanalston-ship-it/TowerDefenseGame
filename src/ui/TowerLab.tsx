@@ -21,6 +21,7 @@ import { StarCeremony } from './StarCeremony';
 import { labPrefs, setLabPrefs } from '../state/prefs';
 import { organizeList, toggleIn } from '../state/listOrg';
 import { BestBuyStrip } from './components/BestBuyStrip';
+import { Ico } from './iconLanguage';
 import { LAB_SORTS, ceremonyView, futurePath, labRoster, masteryPanelModel, towerLabModel } from './towerLabModel';
 import type { LabSort, StepView, TowerLabModel } from './towerLabModel';
 import { EvolutionTrackPanel } from './EvolutionTrack';
@@ -392,12 +393,12 @@ export function TowerLab(): JSX.Element {
                 {m.stats.map((s) => (
                   <span className="tl-stat" key={s.label}>
                     <span className="tl-stat-v" style={{ color: m.color }}>{s.value}</span>
-                    <span className="tl-stat-k">{s.label}</span>
+                    <span className="tl-stat-k"><Ico stat={s.label.toLowerCase()} />{s.label}</span>
                   </span>
                 ))}
                 <span className="tl-stat">
                   <span className="tl-stat-v tl2-gold">+{num(contribution[selected])}</span>
-                  <span className="tl-stat-k">Power</span>
+                  <span className="tl-stat-k"><Ico stat="power" />Power</span>
                 </span>
               </div>
               <button className="tl2-codex" onClick={() => setCodexKind(selected)}>⤢ Evolution Codex — every stage &amp; both branches</button>
@@ -467,7 +468,7 @@ export function TowerLab(): JSX.Element {
                 </button>
               ) : (
                 <button
-                  className={`primary tl-mutate${m.affordable ? ' is-afford' : ''}${m.capLocked ? ' is-locked' : ''}`}
+                  className={`primary tl-mutate${m.affordable ? ' is-afford' : ''}${m.capLocked ? ' is-locked' : ''}${!m.locked && !m.maxed && !m.capLocked ? ' act-upgrade' : ''}`}
                   disabled={m.maxed || !m.affordable}
                   onClick={() => { if (!m.locked) upgrade(selected, m.stars); }}
                   title={m.locked ? 'Synthesize this tower first' : m.capLocked && m.capUnlock ? `Locked until Campaign Stage ${m.capUnlock.stage}` : undefined}

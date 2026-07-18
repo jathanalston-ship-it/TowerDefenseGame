@@ -11,6 +11,7 @@ import type { SaveData } from '../save/saveStore';
 import { t } from '../i18n';
 import { featureRevealed, featureView, type FeatureView } from '../state/unlocks';
 import { recommendationsFor, type Recommendation } from '../state/recommendations';
+import { ACTIONS } from './iconLanguage';
 import { readyChain } from '../state/readyChain';
 import { loopOfNav } from '../core/rewardLoops';
 import type { NavGroup, NavKey } from './navModel';
@@ -23,7 +24,7 @@ export function RecommendStrip({ recs, go, compact }: { recs: Recommendation[]; 
     <div className={`hubl-recs${compact ? ' is-compact' : ''}`}>
       {recs.map((r) => (
         <button key={r.id} type="button" className="hubl-rec" data-reckind={r.kind} onClick={() => go(r.nav)}>
-          <span className="hubl-rec-k">{r.kind.toUpperCase()}</span>
+          <span className="hubl-rec-k">{ACTIONS[r.kind].glyph} {r.kind.toUpperCase()}</span>
           <span className="hubl-rec-body">
             <span className="hubl-rec-l">{r.label}</span>
             {!compact && <span className="hubl-rec-w">{r.why}</span>}
@@ -136,6 +137,7 @@ export function HubLanding({
           <div className="hubl-att">
             {attention.map(({ k, line }) => (
               <button key={`${k}:${line}`} type="button" className="hubl-att-row" onClick={() => go(k)}>
+                <span className="hubl-att-g" aria-hidden>{featureView(save, k).def.glyph}</span>
                 <span className="hubl-att-l">{line}</span>
                 <span className="hubl-att-in" aria-hidden>{featureView(save, k).def.name} →</span>
               </button>

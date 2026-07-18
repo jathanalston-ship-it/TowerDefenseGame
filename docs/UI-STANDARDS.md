@@ -69,6 +69,10 @@ with every radius in **30–70%** (near-elliptical, sculpted; enforced by uiStan
   (see the Gene Archive's gated Upgrade button).
 - Press feedback at `--dur-1`; hover at `--dur-2`; never remove the focus outline without
   replacing it.
+- **Verb icons (docs/ICON-LANGUAGE.md):** a primary CTA speaks its verb visually — add the
+  matching `act-<verb>` class (claim ✹ · collect ⤓ · open ◉ · upgrade ⇧ · equip ⛨ · play ▶ …)
+  or render `<Ico a="…">` from `ui/iconLanguage.tsx`. Never double a glyph the button's text
+  already contains; never drop the text label (the icon confirms, text remains).
 
 ## 6. Tooltip standards
 

@@ -272,7 +272,7 @@ function GeneInspect({ id, onClose }: { id: string; onClose: () => void }): JSX.
             <span className="ga-maxed big">{row.transcend ? '❂ TRANSCENDED' : 'FULLY EVOLVED'}</span>
           ) : (
             <button
-              className={`primary ga-buy${row.upgradeable ? ' is-ready' : ''}`}
+              className={`primary ga-buy${row.upgradeable ? ' is-ready act-upgrade' : ''}`}
               disabled={!row.upgradeable}
               onClick={buy}
               title={!row.owned ? 'Draft this card in a run first' : !row.gateMet ? `Requires Campaign Stage ${row.gateStage}` : !row.canAfford ? 'Not enough Gene Essence' : undefined}

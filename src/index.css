@@ -10324,6 +10324,35 @@ kbd {
   .qb-claimable-chip, .qb-m-readydot, .qb-m-claim, .qb-burst-ring, .qb-burst-chip { animation: none; }
 }
 
+/* ── Icon Language primitive (ui/iconLanguage.tsx — docs/ICON-LANGUAGE.md) ──
+   The inline action/stat/status glyph: it CONFIRMS the adjacent text (a11y: never the sole
+   channel). Color arrives inline from the library; shape+spacing live here. */
+.ico { font-style: normal; display: inline-block; margin-right: 6px; line-height: 1; }
+.ico.is-tail { margin-right: 0; margin-left: 6px; }
+.ico.is-solo { margin-right: 0; }
+
+/* §density — icon-language marks on info surfaces */
+.fx-kw-g { font-style: normal; margin-right: 4px; font-size: 11px; opacity: 0.9; }
+.hubl-att-g { font-size: 14px; color: var(--hub-accent, var(--caustic)); flex: none; }
+
+/* §verbs — action classes for BUTTONS: add `act-<verb>` beside a button's own class and its
+   leading glyph arrives from the ACTIONS table (ui/iconLanguage.tsx — the values below MIRROR
+   that table; change them together). ::before keeps the glyph decorative for screen readers —
+   the button's text still carries the verb. */
+.act-claim::before { content: '✹ '; color: var(--gold); }
+.act-collect::before { content: '⤓ '; color: var(--gold); }
+.act-open::before { content: '◉ '; color: var(--cache, var(--gold)); }
+.act-upgrade::before { content: '⇧ '; color: var(--viral); }
+.act-equip::before { content: '⛨ '; color: var(--vital); }
+.act-merge::before { content: '⧓ '; color: var(--caustic); }
+.act-replace::before { content: '⇄ '; color: var(--caustic); }
+.act-spend::before { content: '◆ '; }
+.act-play::before { content: '▶ '; }
+.act-unlock::before { content: '🔓 '; }
+/* Verb glyphs on FILLED buttons inherit the button's own text color (contrast beats tint);
+   the tinted variants above fire on quiet/outline buttons only. */
+.primary[class*='act-']::before, .btn-primary[class*='act-']::before, .ah-primary[class*='act-']::before { color: inherit; }
+
 /* ── Best-value strip (components/BestBuyStrip.tsx) — the purchase advisor headline.
    THE FIRST EYE-CATCH on every many-options surface: a gold-washed banner with a breathing
    edge, the pick at reading size, and the quick-buy as the screen's brightest pill. ── */

@@ -76,7 +76,7 @@ function EventCard({ a, save }: { a: ActiveLiveEvent; save: SaveData }): JSX.Ele
                   {isClaimed && <span className="cc-evc-got" aria-label="Claimed">✓</span>}
                   {ready && (
                     <button
-                      className="cc-evc-claim"
+                      className="cc-evc-claim act-claim"
                       onClick={() => { if (meta.claimEventMilestone(a.key, m.at)) audio.cue('chest'); }}
                     >
                       CLAIM

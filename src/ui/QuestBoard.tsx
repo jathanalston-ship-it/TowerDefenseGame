@@ -49,7 +49,7 @@ function MissionRow({ mi, cur, claimed, onClaim }: {
         {claimed
           ? <span className="qb-m-done" aria-label="Claimed">✓</span>
           : earned
-            ? <button className="qb-m-claim" onClick={onClaim}>Claim</button>
+            ? <button className="qb-m-claim act-claim" onClick={onClaim}>Claim</button>
             : null}
       </div>
     </div>
