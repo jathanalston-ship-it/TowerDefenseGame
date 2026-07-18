@@ -1,6 +1,6 @@
 {
-  "lastSha": "071cbf3b80092141f3b3d984c4023035eaa73469",
-  "commitsSinceDraft": 8,
+  "lastSha": "399935b2aa9e9a7f6f39593f8eeb880e51370b83",
+  "commitsSinceDraft": 0,
   "content": {
     "tower": [
       "needle",
@@ -2873,6 +2873,14 @@
         {
           "cat": "UI",
           "text": "Recommended decisions lead every screen (the prominence pass)"
+        },
+        {
+          "cat": "Website",
+          "text": "Chronicle + site sync for the prominence batch"
+        },
+        {
+          "cat": "Visuals",
+          "text": "Icon Language: the universal visual language + inheritance contract"
         }
       ]
     }
@@ -5363,6 +5371,22 @@
       "date": "2026-07-18",
       "cat": "UI",
       "text": "Recommended decisions lead every screen (the prominence pass)",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "5bca3bab43824d0614370f2b7e83e087b9e9bc4b",
+      "date": "2026-07-18",
+      "cat": "Website",
+      "text": "Chronicle + site sync for the prominence batch",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "399935b2aa9e9a7f6f39593f8eeb880e51370b83",
+      "date": "2026-07-18",
+      "cat": "Visuals",
+      "text": "Icon Language: the universal visual language + inheritance contract",
       "internal": false,
       "needsReview": false
     }

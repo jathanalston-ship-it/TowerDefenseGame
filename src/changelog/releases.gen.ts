@@ -1370,6 +1370,14 @@ export const RELEASES: Release[] = [
       {
         "cat": "UI",
         "text": "Recommended decisions lead every screen (the prominence pass)"
+      },
+      {
+        "cat": "Website",
+        "text": "Chronicle + site sync for the prominence batch"
+      },
+      {
+        "cat": "Visuals",
+        "text": "Icon Language: the universal visual language + inheritance contract"
       }
     ]
   },
