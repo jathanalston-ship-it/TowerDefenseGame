@@ -4,126 +4,99 @@
 > before committing. Read together with docs/PROJECT_STATUS.md and the latest
 > docs/VALIDATION_REPORT.md. Next session: start at docs/PROJECT_MANIFEST.md.
 
-- **Generated:** 2026-07-18 06:00 UTC · **Diff scope:** the Landscape Mandate batch (2026-07-18q; 18p = Live Events wiring, see PROJECT_STATUS)
-- **Branch:** claude/zen-hawking-rh1gxl
+- **Generated:** 2026-07-18 08:34 UTC · **Diff scope:** batch commit 8376a53 + rituals
+- **Branch:** claude/zen-hawking-rh1gxl · **HEAD:** 8376a53
 
-## THIS batch (2026-07-18q): the Landscape Mandate
+## Summary of work completed
 
-Phones play horizontal ONLY. `RotateGate.tsx` (claimed under `ui-kit`) holds touch+portrait
-full-screen (clears on rotate via `useLayoutProfile`); touch+landscape is the phone game
-(drawer shell + stacked run — the `.game` bands fire on `(max-width:900px),(max-height:520px)`
-so 926-wide phones stack); mouse windows never gated. `scripts/mobilecheck.ts` v3: landscape
-walk through the ☰ drawer at 844×390 + 926×428, tablet-land 1024×768, landscape run
-contract, tutorial at 844×390, rotate-gate coverage + leak-absence assertions; the v2
-portrait tab-shell walk is retired (MobileShell = legacy, mouse-narrow only). Docs:
-RESPONSIVE-DESIGN.md §0b + GAME-STATE responsive section. CLEAN first pass; validate PASS.
-NEXT IN QUEUE: #351 Auction House (Mulligan organs + integration audit + visual overhaul),
-#352 website deploy-verify (CI lands PREVIEW deploys — pin production_branch via the CF API
-in deploy.yml, then verify the live URL), #350 recommendations prominence.
-
-## Summary of work completed (2026-07-18p — the previous batch this session)
-
-The Live Event framework's CONSUMER batch — the queue's #347: the identity engine now
-touches the player. Save **v50** adds the `liveEvents` window-scoped ledgers
-(tokens/claimed/shopBought/progress; the sanitizer prunes dead windows on load);
-`creditQuests` front-runs `creditEventChallenges` so every judged credit seam pays event
-tokens with zero extra wiring; `claimEventMilestone`/`buyEventShopRow` (guarded:
-`event.claim`/`event.buy`) pay through `applyRewardList` (repeat-safe by construction);
-`liveEventLaneModsNow()` multiplies the trio's lane boosts into both liveops fold sites
-(NEUTRAL under tests — the liveops FIXED_TEST_NOW convention, pinned by test);
-`applyWardrobeDressing` dresses the hub root (`data-event` + `--event-*` vars) and
-composes the theme owner's menu-music re-voicing with Wardrobe packs; the Command
-Center's **LiveEventsPanel** is the loud-and-proud banner that unfolds into the claim
-console (challenges → track → shop); DeployScreen shows the owner's `loadingLine`;
-`event.claimable`/`event.endingSoon` ride channel `home` (CHANNEL_CLASS claim 87 → the
-Ready Chain). One thing the next session must know: **the twin batch (The Front) took
-v49 mid-flight — the ledgers were re-numbered to v50 per its coordination note; both
-sets are additive and the merged tree is green.**
+Auction House batch (#351): **mulliganPiece is the fourth tradable category** —
+`mul:<pieceId>` trades the dex UNLOCK through the full spine (itemIdentity refKeys →
+trading `slotted` block → marketCatalog `mul.<piece>.<rarity>` families → authority
+common/uncommon bands → meta custody: sellables/escrow-out/deliver-with-Tissue-dissolve/
+reconcile → auctionHost authority grants → UI chips). The screen also got its **visual
+overhaul**: mastheaded exchange floor, `--rc` rarity-washed specimen cards with category
+glyphs (⌬ ⛨ ❖ ⊛), segmented pill tabs, membrane wallet, tinted sheets, boxed My-Market
+sections — verified live at desktop + landscape-phone. The one thing to know: **an owned
+piece delivered from the market dissolves to Tissue via `DUP_TISSUE` (core/mulligan.ts,
+now exported)** — the pillar's duplicate law, shared with container opens; never grant a
+second copy.
 
 ## Files modified
 
-- Source: `src/save/saveStore.ts` (v50 + sanitizeLiveEvents), `src/state/meta.ts`
-  (creditEventChallenges + claim/buy actions + two lane-fold sites),
-  `src/core/liveEvents.ts` (liveEventLaneMods/Now), `src/ui/components/LiveEventsPanel.tsx`
-  (NEW), `src/ui/CommandCenter.tsx`, `src/ui/DeployScreen.tsx`, `src/ui/Hub.tsx`
-  (re-dress dep), `src/ui/wardrobeDressing.ts`, `src/state/notificationSources.ts`,
-  `src/state/recommendations.ts`, `src/state/rewardToast.ts` (eventTokens row),
-  `src/security/registry.ts` (event.claim/event.buy), `src/index.css`,
-  `src/dev/systemRegistry.ts`, `src/dev/dil/knowledge.ts`, `src/changelog/releases.gen.ts`
-- Tests: `src/state/liveEventsMeta.test.ts` (NEW — 10 tests)
-- Docs: `docs/LIVE-EVENTS.md` (seam map → wired), `docs/GAME-STATE.md` (v50 anchor +
-  compressed Live Events summary), `docs/DIL_GRAPH.md`, `docs/DEPENDENCY_GRAPH.md`,
-  `docs/PIL_REPORT.md`, `docs/HISTORY.md`, `docs/devlog/DRAFT-2026-07-18.md`
+- Source (17): core/{itemIdentity,trading,mulligan,marketCatalog,marketAuthority}.ts,
+  save/saveStore.ts, state/{meta,auctionHouse,unlocks}.ts, ui/AuctionHouse.tsx, index.css,
+  functions/lib/auctionHost.ts, dev/dil/knowledge.ts, changelog/releases.gen.ts (+ site regen)
+- Tests (3): `src/state/auctionCustody.test.ts` (NEW, 8 custody tests),
+  functions/auction.test.ts (+1 wire round-trip), core/marketCatalog.test.ts (category loop)
+- Docs (5): AUCTION-HOUSE.md, TRADING-PREP.md, GAME-STATE.md, DIL_GRAPH.md, HISTORY.md
 
 ## Systems affected (from the dependency registry)
 
-- **liveops** — the identity engine's consumer wiring (panel file + save module claimed)
-- **meta-store** — crediting seam, claim/buy actions, lane folds
-- **save** — v50 `liveEvents` module + sanitizer
-- **notifications / recommendations** — home-channel sources + CHANNEL_CLASS row
-- **security** — two new guarded actions
-- **chronicle** — releases regen
+- **online-foundation** — market catalog/authority/custody spine (mulliganPiece lane)
+- **mulligans** — DUP_TISSUE export; dex is now a trade surface
+- **meta-store** — auctionSellables/EscrowOut/Deliver/Reconcile mulligan branches
+- **net-backend** — auctionHost authority grants for `mul.` families
+- **chronicle** — releases.gen.ts (notes run)
 
 ## Power Score changes
 
-None — event rewards flow through `applyRewardList` (existing kinds); tokens are
-engagement-scoped and carry no power.
+None — trading moves ownership, never stats; delivery reuses the existing sequence/dissolve
+paths that already fold into Power.
 
 ## UI changes
 
-The Command Center's first read is now the Live Events banner (theme owner headline +
-sibling chips + claimable count) which expands into the per-event claim console; the hub
-background tints with the owner's accent (`:root[data-event] .hub`); DeployScreen gained
-the event flavor line. Verified by a live headless probe (banner + console open with the
-real trio, 3 cards, 9 challenges, 33 track cells, 4 shop rows, `data-event` set) and
-`npm run mobilecheck` CLEAN; uiStandards 6/6 (type + tracking on scale).
+`ui/AuctionHouse.tsx` + the `ah-` CSS block (index.css): masthead (kicker/display
+title/subtitle naming mulligan organs), membrane wallet (market balance = hero figure),
+segmented pill tabs, rarity-washed cards driven by `--rc` with glyph watermarks + `⚕ stock`
+chip, tinted detail/sell sheets with area-filled sparkline, boxed My-Market ledger
+sections, breathing hot-market banner, upgraded guest gate. mobilecheck CLEAN (29 screens ×
+6 viewports); uiStandards green; live screenshots verified at 1440×900 + 844×390.
 
 ## Documentation changes
 
-`docs/LIVE-EVENTS.md` §4 statuses flipped to wired (with the consumer names);
-`docs/GAME-STATE.md` gained the ✅ BUILT compressed summary + v50 anchor;
-`docs/CHANGELOG-PIPELINE.md` — no change needed (pipeline untouched, artifacts regen'd).
+- `docs/AUCTION-HOUSE.md` — categories row, family formats (+`mul.<piece>.<rarity>`),
+  §8 client custody (slotted block + Tissue dissolve), §10 checklist proof note.
+- `docs/TRADING-PREP.md` — four categories, `mul:` ledger key, `slotted` block axis.
+- `docs/GAME-STATE.md` — 2026-07 mulliganPiece addendum on the market summary.
+- `docs/CHANGELOG-PIPELINE.md` — no change needed (notes pipeline untouched).
 
 ## Save changes
 
-`CURRENT_VERSION = 50`: `liveEvents` `{tokens, claimed, shopBought, progress}` under
-`eventId:window` keys — additive, empty on migration, fresh accounts byte-identical.
-`sanitizeLiveEvents` clamps to live defs (cap/target/stock) and prunes stale windows
-(wall-clock deliberate — staleness IS a function of now). v49 remains The Front's.
+None this batch — `mulliganDex` custody mutations ride the existing v50 shape;
+provenance gains `mul:` stamps via the established reconcile path (account-level,
+never pruned).
 
 ## Known edge cases
 
-- The trio is ALWAYS live, so the meta-consumed lane fold pins ×1 under tests
-  (`liveEventLaneModsNow`); the pure `liveEventLaneMods(now)` carries the real math —
-  never call the pure one from meta without re-deriving the test story.
-- A hub left idle across a UTC window flip re-dresses on the next render (any save write
-  or interaction) — accepted; the banner/console recompute per render and never go stale.
-- `event.endingSoon` counts only windows that still buy something (claimable milestone or
-  affordable stocked shop row) — token dust below every threshold stays silent by design.
-- Claims are threshold-based over tokens EARNED (never spent); the shop is the only sink.
+- A grafted piece lists as blocked (`slotted`); a **reforge-LOCKED host reads `bound`** —
+  locked organisms never release pieces, so the block is permanent for that piece.
+- The server cannot know slot state: `listItem` gates on client blocks BEFORE the network
+  call, and `auctionEscrowOut` re-checks `modifierHost` after a 200 (refuses, keeping the
+  save consistent even if a stale client raced a graft).
+- Fixture trap: TowerKind ids only (`mortar`, not `gatling`) — the save sanitizer silently
+  drops organisms under unknown tower keys; starter genes are neverTrade, so tests needing
+  a sellable gene must inject a non-starter.
 
 ## Remaining technical debt
 
-- The claim console lives on home; if a dedicated Events screen ever lands, move the
-  notification channel + toast nav with it (one string each).
-- `eventOps` remote-config channel (accounts backend) is still contract-only — the pure
-  calendar is the shipping baseline.
+- sim-market's synthetic family list doesn't model mulligan lanes (deliberate: it tests
+  the engine generically; real-catalog coverage lives in the restock host test).
+- Browse in dev shows "Reading the market…" with no local D1 — the offline banner only
+  fires on connectivity loss, not on API absence (cosmetic, dev-only).
 
 ## Recommended next tasks
 
-1. **#348 LANDSCAPE REFIT P1** — flip mobilecheck to landscape-only viewports + rotate
-   gate BEFORE any layout work (contract-first, or CI breaks). Entry:
-   `scripts/mobilecheck.ts`, `docs/RESPONSIVE-DESIGN.md`.
-2. **#349 LANDSCAPE REFIT P2–P4** — screens/in-run/tutorial refit; mobile-browser vs
-   iOS-app split (Capacitor shell + orientation lock).
-3. **#350 Recommended-decisions prominence** — first eye-catch on every screen
-   (`RecommendStrip`, Best-Purchase strips, cc-chain, NextUp).
+1. **#352 Website deploy fix + never-again guard** (user-ordered next): pin Pages
+   production_branch via CF API in `.github/workflows/deploy.yml`, stamp the build with
+   GITHUB_SHA (stamp-sw precedent), add a post-deploy step that curls the PRODUCTION URL's
+   marker and exits 1 on mismatch; then verify the live home actually updates.
+2. **#350 Recommended-decisions prominence pass**: RecommendStrip/Best-Purchase/NextUp as
+   the first visual read on every screen that has one.
 
 ## Future expansion hooks
 
-- `LiveEventDefV2.gameplayModifiers` → the daily `modifierIds` boot path (App →
-  GameView options) — the declared opt-in toggle seam, still unconsumed.
-- `CEREMONIES` registry + `EventGameplayPackage` (hazard/pickup/tempMegaBoss/biomeTint)
-  → renderer batch; `variants` → `render/wardrobeFx.ts`-style tint seam.
-- `EventOpsConfig.future` + `LiveEventDefV2.future` — namespaced bags for
-  community/global-boss/faction/PvP event categories.
+- `core/marketCatalog.ts` `mulliganFamilyKey`/`mulliganExclusive` — rarity-band tuning in
+  one place if organ liquidity needs widening.
+- `meta.auctionDeliver` grant switch — the pattern for any fifth category's payload shape.
+- `ui/AuctionHouse.tsx` `CAT_GLYPH`/`RARITY_TINT` — extend per new category/rarity; sheets
+  and cards inherit via `--rc` automatically.

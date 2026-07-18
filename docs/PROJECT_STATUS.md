@@ -3,7 +3,34 @@
 > Maintained at the END of every session (paired with `docs/AI_HANDOFF.md` — the constitution's
 > workflow step 4). This is the "where are we?" answer; `docs/GAME-STATE.md` remains the deeper
 > per-system built-vs-planned index, `docs/PROJECT_MANIFEST.md` the system map.
-> **Last updated:** 2026-07-18q (**THE LANDSCAPE MANDATE** (user brief: "the entire
+> **Last updated:** 2026-07-18r (**AUCTION HOUSE — MULLIGAN ORGANS + FULL AUDIT + VISUAL
+> OVERHAUL** (queue #351, user brief: "add mulligan organs into the auction house … make
+> sure the auction house is fully functional and integrated … do a visual overhaul").
+> **mulliganPiece is the FOURTH tradable category**, landed by the AUCTION-HOUSE §10
+> checklist: `mul:<pieceId>` trades the DEX UNLOCK (`save.mulliganDex`); families
+> `mul.<piece>.<rarity>` per SEQUENCED rarity (equipment precedent); baseline + buyback
+> bands common/uncommon only (epic+ player-exclusive). Custody law: grafted ⇒ `slotted`
+> block (unslot first), reforge-LOCKED host ⇒ `bound` (permanent), escrow-out deletes the
+> dex entry server-first, delivery sequences an unowned piece at the listing rarity or
+> **dissolves an owned one to Tissue via `DUP_TISSUE`** (now exported from core/mulligan —
+> the pillar's own duplicate law, shared with container opens). Server needed only two
+> authority-grant lines (shared-catalog inheritance proven); `listItem` gates on client
+> blocks BEFORE the wire since the server can't see slot state. Pinned by NEW
+> `src/state/auctionCustody.test.ts` (8 custody tests) + a byte-intact wire round-trip in
+> functions/auction.test.ts (22/22). VISUAL OVERHAUL of ui/AuctionHouse.tsx + the `ah-`
+> CSS block: mastheaded exchange floor (kicker/display title/membrane wallet with market
+> balance as hero), segmented pill tabs, `--rc` rarity-washed specimen cards with category
+> glyphs ⌬ ⛨ ❖ ⊛ + `⚕ stock` chip, tinted sheets with area-filled sparkline, boxed
+> My-Market sections, breathing hot banner; `ascendant` joins RARITY_TINT (--r-mythic).
+> Verified: suite 2512 green (300 files), typecheck 0, build, **sim-market 10/10
+> healthy**, **mobilecheck CLEAN**, uiStandards green, live screenshots desktop+844×390.
+> Docs: AUCTION-HOUSE/TRADING-PREP/GAME-STATE + DIL edge (`system:mulligans extends
+> system:online-foundation`) + stale provenance note fixed. Queue next: **#352 website
+> deploy-verify with the permanent production-URL guard** (user: "make sure it's actually
+> updated … implement something that ensures that never happens again"), then #350
+> recommendations prominence. Previous below.)
+>
+> **2026-07-18q** (**THE LANDSCAPE MANDATE** (user brief: "the entire
 > vertical mobile layout … standardized for horizontal play ONLY … upgrade interfaces are
 > far too intensive") — RESPONSIVE-DESIGN.md §0b. Phones play horizontal only:
 > `RotateGate.tsx` full-screen hold on touch+portrait (phones AND portrait tablets;

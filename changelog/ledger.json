@@ -1,6 +1,6 @@
 {
-  "lastSha": "9e7cbd9c31dc21555e1c43215f400aa31586eab0",
-  "commitsSinceDraft": 2,
+  "lastSha": "8376a539ed16bcc3dc11fbd56bfe944164049ba6",
+  "commitsSinceDraft": 4,
   "content": {
     "tower": [
       "needle",
@@ -2853,6 +2853,14 @@
         {
           "cat": "UI",
           "text": "The Landscape Mandate: phones play horizontal only (rotate gate + mobilecheck v3)"
+        },
+        {
+          "cat": "Website",
+          "text": "Chronicle + site sync for the landscape-mandate batch"
+        },
+        {
+          "cat": "Towers",
+          "text": "Auction House: mulligan organs trade + full-integration audit + visual overhaul"
         }
       ]
     }
@@ -5295,6 +5303,22 @@
       "date": "2026-07-18",
       "cat": "UI",
       "text": "The Landscape Mandate: phones play horizontal only (rotate gate + mobilecheck v3)",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "c35b6fb246c0d3000dbc6d621352e5d94e1d5d57",
+      "date": "2026-07-18",
+      "cat": "Website",
+      "text": "Chronicle + site sync for the landscape-mandate batch",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "8376a539ed16bcc3dc11fbd56bfe944164049ba6",
+      "date": "2026-07-18",
+      "cat": "Towers",
+      "text": "Auction House: mulligan organs trade + full-integration audit + visual overhaul",
       "internal": false,
       "needsReview": false
     }

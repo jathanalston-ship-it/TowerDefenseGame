@@ -1350,6 +1350,14 @@ export const RELEASES: Release[] = [
       {
         "cat": "UI",
         "text": "The Landscape Mandate: phones play horizontal only (rotate gate + mobilecheck v3)"
+      },
+      {
+        "cat": "Website",
+        "text": "Chronicle + site sync for the landscape-mandate batch"
+      },
+      {
+        "cat": "Towers",
+        "text": "Auction House: mulligan organs trade + full-integration audit + visual overhaul"
       }
     ]
   },

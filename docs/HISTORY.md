@@ -329,3 +329,5 @@
 - `fdbf267` **[Gameplay]** Live events wired end-to-end: v49 ledgers, claims console, hub dress, lane fold
 - ⚑ `9630ec9` **[Framework]** Rituals: v50 ledger split (twin's v49 reservation honored), seam map wired, handoff _(internal)_
 - `9e7cbd9` **[UI]** The Landscape Mandate: phones play horizontal only (rotate gate + mobilecheck v3)
+- `c35b6fb` **[Website]** Chronicle + site sync for the landscape-mandate batch
+- `8376a53` **[Towers]** Auction House: mulligan organs trade + full-integration audit + visual overhaul
