@@ -3,7 +3,22 @@
 > Maintained at the END of every session (paired with `docs/AI_HANDOFF.md` — the constitution's
 > workflow step 4). This is the "where are we?" answer; `docs/GAME-STATE.md` remains the deeper
 > per-system built-vs-planned index, `docs/PROJECT_MANIFEST.md` the system map.
-> **Last updated:** 2026-07-19ad (**MEGA-BOSS STALL FIX + WEBSITE FRESHNESS PIPELINE +
+> **Last updated:** 2026-07-19ae (**BOSS RUSH FREE-ENTRY BADGE — VOLATILE DAILY
+> WATERMARKS** (user: "add a notification on boss rush mission tab when you have a free
+> one"). The source + every badge surface already existed; the bug was the watermark
+> model — count is 1 today AND 1 tomorrow (fresh free entry each reset), so ONE un-acted
+> visit stamped seen=1 and went dark FOREVER. Fix: `NotificationSource.volatile: 'daily'`
+> (notifications.ts): the seen-mark counts only on its stamp day (`<id>@d` numeric-ISO
+> sidecar in the same persisted record — no migration; stale-day stamp ⇒ "never seen" ⇒
+> badge re-lights at reset while the count stands; markSeen stamps today; sync untouched
+> — @d keys are not source ids). Applied to `rush.freeEntry` ONLY (persistent watermarks
+> remain correct for drop-on-action counts; login/idle.ripe flagged in handoff for
+> per-UX review). Test: notifications.test rollover law (badge → seen → day rolls →
+> badge again) via `__setNotifDayForTests`. Docs: NOTIFICATIONS.md +§volatile. Verified:
+> typecheck 0, suite 305/2585 green, validate PASS. NEXT (user-queued): mega weak-point
+> hit sounds + wave-blocking megas outside campaign + fight-feel pass. Previous below.)
+>
+> **2026-07-19ad** (**MEGA-BOSS STALL FIX + WEBSITE FRESHNESS PIPELINE +
 > LAB ADAPTATION LINKS** (user reports: Voraxis fight "boss just stops"/projectiles ignore
 > the body once weak points are down; site not updating with new patch notes; labs need
 > Adaptation links). **MEGA FIX** (engine, golden-safe — megas absent from golden runs,

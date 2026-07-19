@@ -83,6 +83,10 @@ registerNotification({
   channel: 'bossrush',
   count: (s) => (s.rushStamina.freeDay < dailyKey() ? 1 : 0),
   reason: () => 'Free gauntlet entry — expires at reset',
+  // The count is 1 today AND 1 tomorrow (a fresh free entry every reset) — a persistent
+  // watermark from one un-acted visit would suppress the badge FOREVER (the reported
+  // "no notification for the free run"). Daily volatility re-lights it each reset.
+  volatile: 'daily',
 });
 
 // Idle Harvest — the Hive has banked a ceremony-worthy haul (docs/IDLE-HARVEST.md). Cheap

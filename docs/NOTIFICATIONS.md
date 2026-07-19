@@ -184,3 +184,13 @@ Unknown types still render (generic glyph card) — a new grant can never be sil
 `eventsForPassRewards` maps the `applyRewardList` reward language (`cores`, `mats`,
 `container`, …) to events, so quest/pass/login/mission content needs no toast code at
 all. Tests: `src/state/rewardToast.test.ts` (registry coverage, merge/prune rules, bus).
+
+## §volatile — daily watermark lifetime (2026-07-19)
+
+`NotificationSource.volatile: 'daily'` makes the seen-watermark count only on the day it
+was stamped (`<id>@d` sidecar key beside the watermark — same record, no migration). Use
+it for RECURRING SAME-COUNT offers: the free Boss Rush entry counts 1 today and 1 again
+tomorrow, so a persistent watermark from one un-acted visit would suppress the badge
+forever. At day rollover the badge re-lights while the count still stands; viewing quiets
+it for that day only. `rush.freeEntry` is the first volatile source; apply deliberately —
+persistent watermarks remain correct for cumulative/actionable counts that DROP on action.

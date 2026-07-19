@@ -14,6 +14,7 @@
 // Nothing in the menus changes.
 
 import { createStore } from './store';
+import { dailyKey } from '../core/daily';
 import type { SaveData } from '../save/saveStore';
 
 export interface NotificationSource {
@@ -27,6 +28,12 @@ export interface NotificationSource {
    *  the unseen count, e.g. "3 Bio-Containers to open". Smart notifications render these
    *  instead of bare dots; omit for sources whose channel name already says it all. */
   reason?: (save: SaveData, unseen: number) => string;
+  /** Watermark lifetime (docs/NOTIFICATIONS.md §volatile). `'daily'`: the seen-mark only
+   *  suppresses the badge on the day it was stamped — at day rollover the badge re-lights
+   *  if the count still stands. For recurring same-count offers (today's free Boss Rush
+   *  entry: count is 1 today AND 1 tomorrow), a plain watermark would otherwise go dark
+   *  forever after one un-acted visit. Omit for the default persistent watermark. */
+  volatile?: 'daily';
 }
 
 const sources: NotificationSource[] = [];
@@ -56,6 +63,24 @@ function persistSeen(next: Record<string, number>): void {
   try { localStorage.setItem(SEEN_KEY, JSON.stringify(next)); } catch { /* storage unavailable */ }
 }
 
+// ── Volatile-daily watermarks (§volatile) ────────────────────────────────────
+// A volatile source's ack only counts on the day it was stamped; the stamp-day lives
+// beside the watermark under `<id>@d` (numeric ISO day, e.g. 20260719 — same record, no
+// migration). Reads treat a stale-day stamp as "never seen", so the badge re-lights at
+// rollover while the count still stands.
+let dayOverride: number | null = null;
+/** TEST ONLY: pin "today" for volatile-watermark tests (null restores the real day). */
+export function __setNotifDayForTests(day: number | null): void {
+  dayOverride = day;
+}
+function dayStamp(): number {
+  return dayOverride ?? Number(dailyKey().replace(/-/g, ''));
+}
+function ackOf(s: NotificationSource, seen: Record<string, number>): number {
+  if (s.volatile === 'daily' && seen[`${s.id}@d`] !== dayStamp()) return 0;
+  return seen[s.id] ?? 0;
+}
+
 export const notifications = {
   /** Subscribe React to seen-watermark changes (pair with meta.use() for the save). */
   use: seenStore.use,
@@ -67,7 +92,7 @@ export const notifications = {
     const out: Record<string, number> = {};
     for (const s of sources) {
       const count = Math.max(0, s.count(save));
-      const ack = Math.min(seen[s.id] ?? 0, count); // never "seen" more than currently exist
+      const ack = Math.min(ackOf(s, seen), count); // never "seen" more than currently exist
       const unseen = count - ack;
       if (unseen > 0) out[s.channel] = (out[s.channel] ?? 0) + unseen;
     }
@@ -83,7 +108,7 @@ export const notifications = {
     const out: Record<string, string[]> = {};
     for (const s of sources) {
       const count = Math.max(0, s.count(save));
-      const unseen = count - Math.min(seen[s.id] ?? 0, count);
+      const unseen = count - Math.min(ackOf(s, seen), count);
       if (unseen <= 0) continue;
       (out[s.channel] ??= []).push(s.reason ? s.reason(save, unseen) : `${unseen} new`);
     }
@@ -114,6 +139,7 @@ export const notifications = {
       if (s.channel !== channel) continue;
       const count = Math.max(0, s.count(save));
       if (next[s.id] !== count) { next[s.id] = count; changed = true; }
+      if (s.volatile === 'daily' && next[`${s.id}@d`] !== dayStamp()) { next[`${s.id}@d`] = dayStamp(); changed = true; }
     }
     if (changed) persistSeen(next);
   },

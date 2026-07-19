@@ -349,3 +349,4 @@
 - `0d0ab92` **[UI]** Cosmetic provenance & collector prestige: derived eras/badges/lore, museum Collector Panel, honest census seams
 - `093aa43` **[Towers]** Tower idle postures: three-state behavior layer for all 22 towers
 - `e67e372` **[Visuals]** Living battlefield: organism anticipation, idle life, and reactivity
+- `63ebc02` **[Mega Bosses]** Mega-boss stall fix, self-sealing patch notes, lab adaptation links

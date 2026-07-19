@@ -3,12 +3,17 @@
     "date": "2026-07-19",
     "title": "Update",
     "categories": [
-      "Visuals"
+      "Visuals",
+      "Mega Bosses"
     ],
     "items": [
       {
         "cat": "Visuals",
         "text": "Living battlefield: organism anticipation, idle life, and reactivity"
+      },
+      {
+        "cat": "Mega Bosses",
+        "text": "Mega-boss stall fix, self-sealing patch notes, lab adaptation links"
       }
     ]
   },

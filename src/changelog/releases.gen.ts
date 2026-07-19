@@ -13,6 +13,10 @@ export const RELEASES: Release[] = [
       {
         "cat": "Visuals",
         "text": "Living battlefield: organism anticipation, idle life, and reactivity"
+      },
+      {
+        "cat": "Mega Bosses",
+        "text": "Mega-boss stall fix, self-sealing patch notes, lab adaptation links"
       }
     ]
   },

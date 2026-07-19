@@ -1,6 +1,6 @@
 {
-  "lastSha": "e67e3725e23cc344ddffa4fcffdafecdff5f15e8",
-  "commitsSinceDraft": 0,
+  "lastSha": "63ebc02d6ec53bbba1da36f296f4584a73c7aa1b",
+  "commitsSinceDraft": 1,
   "content": {
     "tower": [
       "needle",
@@ -2935,6 +2935,10 @@
         {
           "cat": "Visuals",
           "text": "Living battlefield: organism anticipation, idle life, and reactivity"
+        },
+        {
+          "cat": "Mega Bosses",
+          "text": "Mega-boss stall fix, self-sealing patch notes, lab adaptation links"
         }
       ]
     }
@@ -5521,6 +5525,14 @@
       "date": "2026-07-19",
       "cat": "Visuals",
       "text": "Living battlefield: organism anticipation, idle life, and reactivity",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "63ebc02d6ec53bbba1da36f296f4584a73c7aa1b",
+      "date": "2026-07-19",
+      "cat": "Mega Bosses",
+      "text": "Mega-boss stall fix, self-sealing patch notes, lab adaptation links",
       "internal": false,
       "needsReview": false
     }

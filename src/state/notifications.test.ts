@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { notifications, registerNotification } from './notifications';
+import { __setNotifDayForTests, notifications, registerNotification } from './notifications';
 import type { SaveData } from '../save/saveStore';
 
 // The sources under test ignore the save (they read mutable closures), so a stub is fine.
@@ -46,5 +46,21 @@ describe('notification badges', () => {
 
     registerNotification({ id: 'test.none', channel: 'none', count: () => 0 });
     expect('none' in notifications.badges(SAVE)).toBe(false); // empty channels omitted
+  });
+});
+
+describe('volatile daily watermarks (docs/NOTIFICATIONS.md §volatile — the free Boss Rush entry)', () => {
+  it('re-lights at day rollover while the count still stands; markSeen only holds same-day', () => {
+    // The recurring-offer shape: 1 today, 1 again tomorrow (a fresh free entry each reset).
+    registerNotification({ id: 'test.freeRun', channel: 'freerun', count: () => 1, volatile: 'daily' });
+    __setNotifDayForTests(20260719);
+    expect(notifications.badges(SAVE).freerun).toBe(1); // day 1: badge up
+    notifications.markSeen('freerun', SAVE);
+    expect(notifications.badges(SAVE).freerun ?? 0).toBe(0); // viewed → quiet for TODAY
+    __setNotifDayForTests(20260720); // reset passes; the count is still 1 (a NEW free entry)
+    expect(notifications.badges(SAVE).freerun).toBe(1); // the badge is back — never dark forever
+    notifications.markSeen('freerun', SAVE);
+    expect(notifications.badges(SAVE).freerun ?? 0).toBe(0); // and clears again for the new day
+    __setNotifDayForTests(null);
   });
 });
