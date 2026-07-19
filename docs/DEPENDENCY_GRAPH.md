@@ -979,16 +979,16 @@ graph TD
 
 ### The Wardrobe (Cosmetics) (`cosmetics`)
 
-*The cosmetics ECOSYSTEM (docs/COSMETICS.md): unit Phenotypes (six theme families × every tower/hero, generator-driven) PLUS the account Wardrobe — 34 global cosmetic kinds in four groups (arena FX / audio packs / interface shells / commander identity) on one validated registry with typed unlock sources (campaign/depth/daily/rush/roulette/achievements/collection ranks/Ichor boutique/battle pass/milestones/events). Payloads are flat presentation params consumed by the dressing layer (root attrs + cue families + music transforms + renderer kit). Six collection codices, milestone reward track, persisted unlock-ceremony queue. Save v31 wardrobe record.*
+*The cosmetics ECOSYSTEM (docs/COSMETICS.md): unit Phenotypes (six theme families × every tower/hero, generator-driven) PLUS the account Wardrobe — 34 global cosmetic kinds in four groups (arena FX / audio packs / interface shells / commander identity) on one validated registry with typed unlock sources (campaign/depth/daily/rush/roulette/achievements/collection ranks/Ichor boutique/battle pass/milestones/events). Payloads are flat presentation params consumed by the dressing layer (root attrs + cue families + music transforms + renderer kit). Six collection codices, milestone reward track, persisted unlock-ceremony queue. v53 TWO-STATE OWNERSHIP (§claiming): every lane delivers an UNCLAIMED tradable instance into the Specimen Vault (wardrobe.inventory, uid-stamped provenance); CLAIMING binds forever (owned = the claimed set every consumer reads) and activates a tiny saturating per-lane account bonus (starters bonus-less by POWER_BASE law). Save v31 wardrobe record + v53 inventory/granted.*
 
-- **Files:** `src/core/cosmetics.ts` · `src/core/wardrobe.ts` · `src/ui/PhenotypeLab.tsx` · `src/ui/Wardrobe.tsx` · `src/ui/wardrobeDressing.ts` · `src/ui/components/WardrobeReveal.tsx` · `src/render/wardrobeFx.ts`
+- **Files:** `src/core/cosmetics.ts` · `src/core/wardrobe.ts` · `src/ui/PhenotypeLab.tsx` · `src/ui/Wardrobe.tsx` · `src/ui/SpecimenVault.tsx` · `src/ui/wardrobeDressing.ts` · `src/ui/components/WardrobeReveal.tsx` · `src/render/wardrobeFx.ts`
 - **Depends on:** `meta-store` · `collection` · `hub-shell`
 - **Consumers — what breaks if you change this:** `daily-login` · `contracts` · `nemesis` · `battle-pass` · `quests`
 - **Power Score:** via the collection codex weights (tiny, cosmetic-first)
 - **Save fields:** `cosmetics` · `wardrobe`
 - **Tutorial:** — · **Help mechanics:** —
-- **HUD surfaces:** — · **UI screens:** `Wardrobe` · `PhenotypeLab` · `WardrobeReveal`
-- **Collection:** towerSkins/heroSkins + four wardrobe codices · **Achievements:** —
+- **HUD surfaces:** — · **UI screens:** `Wardrobe` · `PhenotypeLab` · `SpecimenVault` · `WardrobeReveal`
+- **Collection:** towerSkins/heroSkins + four wardrobe codices (CLAIMED-only since v53) · **Achievements:** —
 - **Localization:** inline English strings (no i18n layer yet — this field enumerates the surface for the day it lands)
 - **Docs to update on change:** `docs/COSMETICS.md` · `docs/DAILY-LOGIN.md` · `docs/DAILY-RUN.md` · `docs/ECONOMY.md` · `docs/CONTRACTS.md` · `docs/NEMESIS.md` · `docs/BATTLEPASS.md` · `docs/QUESTS.md`
 

@@ -18,7 +18,7 @@ import { t } from '../i18n';
 export type NavKey =
   | 'home' | 'campaign' | 'infinite' | 'bossrush' | 'daily' | 'quests' | 'season' | 'arena' | 'infestation' | 'metabolism'
   | 'towers' | 'heroes' | 'expeditions' | 'evolution' | 'adaptation' | 'genes' | 'mulligans' | 'hive' | 'harvest'
-  | 'vault' | 'market' | 'auction' | 'equipment' | 'gearcodex' | 'phenotypes' | 'collection'
+  | 'vault' | 'market' | 'auction' | 'equipment' | 'gearcodex' | 'phenotypes' | 'specimens' | 'collection'
   | 'store'
   | 'profile' | 'settings' | 'help';
 
@@ -73,6 +73,7 @@ export const navGroups = (): NavGroup[] => [
     { key: 'equipment', label: t('nav.equipment'), mono: '⛨' },
     { key: 'gearcodex', label: t('nav.gearcodex'), mono: '❑' },
     { key: 'phenotypes', label: t('nav.phenotypes'), mono: '❖' },
+    { key: 'specimens', label: t('nav.specimens'), mono: '⧉' }, // unclaimed cosmetic stock (docs/COSMETICS.md §claiming)
   ] },
   // The Premium Store sits in its OWN group — monetization stays visibly separate from
   // gameplay progression (docs/PREMIUM-STORE.md §philosophy). Headerless: the divider +

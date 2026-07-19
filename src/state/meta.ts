@@ -123,7 +123,8 @@ import { collectionView, unlockedRewards, collectionBonusEffects, collectionEcon
 import type { CollectionContext, CollectionEconomyBonuses, CollectionReward, CollectionView, CollectionRankUp, CollectionCategoryId } from '../core/collection';
 import { cosmeticById, cosmeticRegistry, cultivatePool, nemesisPool, CULTIVATE_COST } from '../core/cosmetics';
 import {
-  earnedAutoItems, wardrobeItem, wardrobeItemsOf, wardrobeMilestone, WARDROBE_ITEMS, WARDROBE_KINDS, WARDROBE_MILESTONES,
+  cosmeticBonus, earnedAutoItems, effectiveWardrobeBonuses, newCosmeticUid, sourceLabel,
+  WARDROBE_LANE_INFO, wardrobeItem, wardrobeItemsOf, wardrobeMilestone, WARDROBE_ITEMS, WARDROBE_KINDS, WARDROBE_MILESTONES,
 } from '../core/wardrobe';
 import type { WardrobeItemDef, WardrobeKind, WardrobePayload, WardrobeUnlockCtx, WardrobeMilestone } from '../core/wardrobe';
 import {
@@ -139,7 +140,7 @@ import type { ArenaDivisionDef, ArenaMatchClaim, ArenaSave } from '../core/arena
 import { ARENA_PASS, arenaExclusiveLabel, arenaPassLevelOf, arenaPassTrack, arenaSeasonInfo } from '../core/arenaPass';
 import type { ArenaExclusiveId, ArenaPassLevelRewards, ArenaSeasonInfo } from '../core/arenaPass';
 import type { ArenaBootBundle } from '../core/arenaMatch';
-import { itemProvenance, parseRefKey, stampAcquisition } from '../core/itemIdentity';
+import { bindItem, itemProvenance, parseRefKey, refKey, stampAcquisition } from '../core/itemIdentity';
 import { cosmeticFamilyKey, equipmentFamilyKey, geneFamilyKey, marketFamily, mulliganFamilyKey } from '../core/marketCatalog';
 import { LOGIN, loginTargetValue, milestoneContainer, rollLoginBundle, streakMult } from '../core/loginStreak';
 import { PERFECT_WEEK, activeContracts, contractReport, contractSatisfied, contractWeekKey } from '../core/contracts';
@@ -238,9 +239,23 @@ function battlePassEffectsOf(save: SaveData): CardEffect[] {
   return out;
 }
 
+/** CLAIMED-cosmetic permanent bonuses as run effects (v53, docs/COSMETICS.md §bonuses) —
+ *  the saturated per-lane fold expressed in the SAME CardEffect vocabulary as the Battle Pass
+ *  permanents. Empty on a fresh save (starters carry no bonus) ⇒ golden-safe, POWER_BASE-safe. */
+function wardrobeEffectsOf(save: SaveData): CardEffect[] {
+  const eff = effectiveWardrobeBonuses(save.wardrobe.owned);
+  const out: CardEffect[] = [];
+  if (eff.towerDamage > 0) out.push({ op: 'mul', field: 'towerDamageMult', value: 1 + eff.towerDamage } as CardEffect);
+  if (eff.heroDamage > 0) out.push({ op: 'mul', field: 'heroDamageMult', value: 1 + eff.heroDamage } as CardEffect);
+  if (eff.biomass > 0) out.push({ op: 'mul', field: 'biomassMult', value: 1 + eff.biomass } as CardEffect);
+  if (eff.fireRate > 0) out.push({ op: 'mul', field: 'towerFireRateMult', value: 1 + eff.fireRate } as CardEffect);
+  return out;
+}
+
 /** Collection codex economy bonuses COMPOSED with the Battle Pass permanent econ passives —
  *  the one read every econ consumer (mastery XP, loot quality, run rewards) goes through.
- *  Neutral on a fresh save (docs/BATTLEPASS.md §permanents). */
+ *  Neutral on a fresh save (docs/BATTLEPASS.md §permanents). v53 adds the claimed-cosmetic
+ *  econ lanes (masteryXp → both XP mults, bossLoot, runReward) — same neutrality guarantee. */
 function accountEconomyBonuses(save: SaveData): CollectionEconomyBonuses {
   const out = { ...collectionEconomyBonuses(collectionView(collectionContextOf(save))) };
   for (const id of save.battlePass.permanents) {
@@ -249,6 +264,11 @@ function accountEconomyBonuses(save: SaveData): CollectionEconomyBonuses {
     if (p.econ.key === 'lootQualityTier') out.lootQualityTier += p.econ.value;
     else out[p.econ.key] *= 1 + p.econ.value;
   }
+  const wb = effectiveWardrobeBonuses(save.wardrobe.owned);
+  out.towerXpMult *= 1 + wb.masteryXp;
+  out.heroXpMult *= 1 + wb.masteryXp;
+  out.bossLootMult *= 1 + wb.bossLoot;
+  out.campaignRewardMult *= 1 + wb.runReward;
   return out;
 }
 
@@ -300,11 +320,40 @@ export interface QuestsView {
   missionsDone: number; // lifetime missions completed (the codex count)
 }
 
+/** THE cosmetic delivery chokepoint (v53, docs/COSMETICS.md §claiming): EVERY acquisition
+ *  lane lands an UNCLAIMED instance in the Specimen Vault — tradable, bonus-less, unequippable
+ *  until the player CLAIMS it (meta.claimCosmetic). Stamps the instance's provenance (cos:uid),
+ *  records the granted ledger (the once-per-source gate), and queues the arrival reveal on the
+ *  FIRST copy only (duplicates are quiet trade goods). Null ⇒ unknown item (caller skips). */
+function receiveCosmetic(draft: SaveData, id: string, src: string, now: number): { next: SaveData; first: boolean } | null {
+  const def = wardrobeItem(id);
+  if (!def) return null;
+  const inst = { uid: newCosmeticUid(), item: id, at: now, src };
+  const provenance = { ...draft.provenance };
+  stampAcquisition(provenance, { cat: 'cosmetic', id: inst.uid }, src, now, arenaSeasonIndex(now));
+  const first = !draft.wardrobe.granted.includes(id);
+  return {
+    first,
+    next: {
+      ...draft,
+      provenance,
+      wardrobe: {
+        ...draft.wardrobe,
+        inventory: [...draft.wardrobe.inventory, inst],
+        granted: first ? [...draft.wardrobe.granted, id] : draft.wardrobe.granted,
+        pendingReveal: first ? [...draft.wardrobe.pendingReveal, id] : draft.wardrobe.pendingReveal,
+      },
+    },
+  };
+}
+
 /** Apply a PassReward list to a save draft (no persist, no claim ledgers) — THE reward
  *  interpreter, shared by Battle Pass levels and Quest claims (docs/QUESTS.md reuses the pass
- *  reward language). Repeat-safe: an already-owned permanent/cosmetic/phenotype pays the given
- *  replacement bundle instead (boosts never stack across rotations). `seasonForStack` credits
- *  'stack' completions (Battle Pass only — quest rewards never author it). */
+ *  reward language). Repeat-safe: an already-owned permanent/phenotype pays the given
+ *  replacement bundle instead (boosts never stack across rotations). Cosmetics are the v53
+ *  exception: they ALWAYS deliver an unclaimed instance — duplicates are tradable stock for
+ *  the future Auction House, never substituted away. `seasonForStack` credits 'stack'
+ *  completions (Battle Pass only — quest rewards never author it). */
 function applyRewardList(
   draft: SaveData,
   rewards: PassReward[],
@@ -407,15 +456,16 @@ function applyRewardList(
         events.push({ type: 'mulliganTissue', qty: r.qty });
         break;
       case 'cosmetic': {
-        const def = wardrobeItem(r.id);
-        if (!def) break;
-        if (next.wardrobe.owned.includes(r.id)) replacement(def.name);
-        else {
-          next = { ...next, wardrobe: { ...next.wardrobe, owned: [...next.wardrobe.owned, r.id], pendingReveal: [...next.wardrobe.pendingReveal, r.id] } };
-          stampCosmetic(r.id);
-          lines.push({ icon: '❖', label: def.name });
-          events.push({ type: 'cosmetic', name: def.name });
-        }
+        const got = receiveCosmetic(next, r.id, provenanceSource, Date.now());
+        if (!got) break;
+        next = got.next;
+        const def = wardrobeItem(r.id)!;
+        lines.push({
+          icon: '❖',
+          label: got.first ? `${def.name} — in the Specimen Vault (claim to bind)` : `${def.name} — duplicate specimen (tradable)`,
+          rarity: def.rarity,
+        });
+        events.push({ type: 'cosmetic', name: def.name });
         break;
       }
       case 'phenotype': {
@@ -549,14 +599,10 @@ function grantQuestFinale(draft: SaveData, quest: QuestDef): { next: SaveData; l
   }
   const item = wardrobeItem(quest.finaleCosmetic);
   if (item && !next.quests.once.includes(cosKey)) {
-    next = {
-      ...next,
-      quests: { ...next.quests, once: [...next.quests.once, cosKey] },
-      wardrobe: next.wardrobe.owned.includes(item.id)
-        ? next.wardrobe
-        : { ...next.wardrobe, owned: [...next.wardrobe.owned, item.id], pendingReveal: [...next.wardrobe.pendingReveal, item.id] },
-    };
-    lines.push({ icon: '❖', label: `${item.name} — quest exclusive` });
+    next = { ...next, quests: { ...next.quests, once: [...next.quests.once, cosKey] } };
+    const got = receiveCosmetic(next, item.id, `Quest — ${quest.name}`, Date.now());
+    if (got) next = got.next;
+    lines.push({ icon: '❖', label: `${item.name} — quest exclusive, in the Specimen Vault`, rarity: item.rarity });
     events.push({ type: 'cosmetic', name: item.name });
   }
   next = {
@@ -987,6 +1033,9 @@ export function accountPowerParts(save: SaveData, temporary = 1): PowerParts {
   const collectionMult = effectsPower(collectionBonusEffects(collectionView(collectionContextOf(save))));
   // Battle Pass permanents + Perennial stacks are the same class of strength (docs/BATTLEPASS.md).
   const battlePassMult = effectsPower(battlePassEffectsOf(save));
+  // Claimed-cosmetic permanent bonuses (v53, docs/COSMETICS.md §bonuses) — ×1 on a fresh save
+  // (starters carry no bonus), so POWER_BASE holds and only CLAIMING moves the needle.
+  const wardrobeMult = effectsPower(wardrobeEffectsOf(save));
   // Unlocked hero slots beyond the first are account strength (a fielded extra champion) — the
   // hero-slot twin of the tower bonusSlots fold (POWER-AUDIT.md).
   const heroSlotMult = 1 + HERO_SLOT_POWER * Math.max(0, heroSlotsUnlocked(save) - 1);
@@ -999,7 +1048,7 @@ export function accountPowerParts(save: SaveData, temporary = 1): PowerParts {
     // upgrade raises Power. Towers/heroes/equipment/temporary are the other buckets.
     // Permanent gene-card upgrades are account strength → they fold into `meta` via the scale-safe
     // gene collection multiplier (1 until Task 4 authors upgrade levels; docs/GENE-EVOLUTION.md).
-    meta: mm.towerDamageMult * effectsPower(genomeRunEffects(save)) * metaExtras * collectionMult * battlePassMult * geneCollectionPowerMult(save.genes) * heroSlotMult * evolutionMult,
+    meta: mm.towerDamageMult * effectsPower(genomeRunEffects(save)) * metaExtras * collectionMult * battlePassMult * wardrobeMult * geneCollectionPowerMult(save.genes) * heroSlotMult * evolutionMult,
     towers: geomean(TOWER_ORDER.map((k) => tp[k].damageMult)),
     heroes: geomean(HERO_ORDER.map((k) => hp[k].damageMult)),
     equipment: equipmentPower(save),
@@ -4003,20 +4052,18 @@ export const meta = {
   pollWardrobeUnlocks(): WardrobeItemDef[] {
     const fresh = earnedAutoItems(this.wardrobeUnlockCtx());
     const save = store.get();
-    const owned = new Set(save.wardrobe.owned);
-    const grants = fresh.filter((d) => !owned.has(d.id));
+    const granted = new Set(save.wardrobe.granted); // once per SOURCE — ever (v53)
+    const grants = fresh.filter((d) => !granted.has(d.id));
     if (grants.length === 0) return [];
-    let timeline = save.timeline;
-    for (const d of grants) timeline = pushTimeline(timeline, '❖', `Wardrobe — ${d.name} unlocked`);
-    persist({
-      ...save,
-      timeline,
-      wardrobe: {
-        ...save.wardrobe,
-        owned: [...save.wardrobe.owned, ...grants.map((d) => d.id)],
-        pendingReveal: [...save.wardrobe.pendingReveal, ...grants.map((d) => d.id)],
-      },
-    });
+    const now = Date.now();
+    let next: SaveData = save;
+    for (const d of grants) {
+      const got = receiveCosmetic(next, d.id, sourceLabel(d.source), now);
+      if (got) next = got.next;
+    }
+    let timeline = next.timeline;
+    for (const d of grants) timeline = pushTimeline(timeline, '❖', `Wardrobe — ${d.name} acquired`);
+    persist({ ...next, timeline });
     return grants;
   },
 
@@ -4064,31 +4111,75 @@ export const meta = {
     persist({ ...save, wardrobe: { ...save.wardrobe, seen: [...save.wardrobe.seen, ...unseen] } });
   },
 
-  /** Buy a boutique item with Ichor (cosmetics never rotate out of the boutique). */
+  /** Buy a boutique item with Ichor (cosmetics never rotate out of the boutique). The boutique
+   *  is curated, not a mint: one copy per account (granted-gated), delivered UNCLAIMED. */
   buyWardrobeItem(id: string): boolean {
     if (!guardOk('wardrobe.buy', id)) return false;
     const save = store.get();
     const def = wardrobeItem(id);
-    if (!def || def.source.kind !== 'shop' || save.wardrobe.owned.includes(id)) return false;
+    if (!def || def.source.kind !== 'shop' || save.wardrobe.granted.includes(id)) return false;
     if (save.ichor < def.source.ichor) return false;
+    const got = receiveCosmetic(save, id, 'Ichor Boutique', Date.now());
+    if (!got) return false;
     persist({
-      ...save,
-      ichor: save.ichor - def.source.ichor,
-      timeline: pushTimeline(save.timeline, '❖', `Boutique — ${def.name} acquired`),
-      wardrobe: { ...save.wardrobe, owned: [...save.wardrobe.owned, id], pendingReveal: [...save.wardrobe.pendingReveal, id] },
+      ...got.next,
+      ichor: got.next.ichor - def.source.ichor,
+      timeline: pushTimeline(got.next.timeline, '❖', `Boutique — ${def.name} acquired`),
     });
     return true;
   },
 
-  /** Direct grant (events / dev / future lanes). Idempotent; queues the ceremony. */
+  /** Direct grant (events / dev / future lanes). Once per id; delivers to the Vault. */
   grantWardrobeItem(id: string): boolean {
     const save = store.get();
-    if (!wardrobeItem(id) || save.wardrobe.owned.includes(id)) return false;
+    if (!wardrobeItem(id) || save.wardrobe.granted.includes(id)) return false;
+    const got = receiveCosmetic(save, id, 'Grant', Date.now());
+    if (!got) return false;
+    persist(got.next);
+    return true;
+  },
+
+  /** CLAIM a cosmetic — the irreversible account-bind (v53, docs/COSMETICS.md §claiming).
+   *  Consumes ONE unclaimed instance from the Specimen Vault, moves its id into the claimed
+   *  set (equip gates, collection codices, achievements and the permanent bonus fold all key
+   *  on it), carries the instance's acquisition origin into the permanent provenance stamp and
+   *  BINDS it (no unbind exists, by policy). Claiming a duplicate of an already-claimed id is
+   *  refused — duplicates stay in the vault as pure trade goods. */
+  claimCosmetic(uid: string, now = Date.now()): PremiumReceiptLine[] | null {
+    if (!guardOk('cosmetic.claim', uid)) return null;
+    const save = store.get();
+    const inst = save.wardrobe.inventory.find((i) => i.uid === uid);
+    const def = inst ? wardrobeItem(inst.item) : undefined;
+    if (!inst || !def) return null;
+    if (save.wardrobe.owned.includes(inst.item)) return null; // already bound — the dupe stays tradable
+    const provenance = { ...save.provenance };
+    delete provenance[refKey({ cat: 'cosmetic', id: inst.uid })]; // the instance dies with the claim
+    stampAcquisition(provenance, { cat: 'cosmetic', id: inst.item }, inst.src, inst.at || now, arenaSeasonIndex(now));
+    bindItem(provenance, { cat: 'cosmetic', id: inst.item }); // irreversible: never tradable again
     persist({
       ...save,
-      wardrobe: { ...save.wardrobe, owned: [...save.wardrobe.owned, id], pendingReveal: [...save.wardrobe.pendingReveal, id] },
+      provenance,
+      timeline: pushTimeline(save.timeline, '❖', `Assimilated — ${def.name} bound to the genome`),
+      wardrobe: {
+        ...save.wardrobe,
+        inventory: save.wardrobe.inventory.filter((i) => i.uid !== uid),
+        owned: [...save.wardrobe.owned, inst.item], // stays unseen → the Wardrobe's NEW badge
+      },
     });
-    return true;
+    const lines: PremiumReceiptLine[] = [{ icon: '❖', label: `${def.name} — permanently bound`, rarity: def.rarity }];
+    const bonus = cosmeticBonus(def);
+    if (bonus) {
+      const info = WARDROBE_LANE_INFO[bonus.lane];
+      lines.push({ icon: info.icon, label: `+${parseFloat((bonus.value * 100).toFixed(2))}% ${info.label} — forever` });
+    }
+    rewardToast.push({ type: 'cosmetic', name: def.name, source: 'Assimilated' });
+    this.evaluateAchievements(); // the claimed set moved — collections/achievements re-poll
+    return lines;
+  },
+
+  /** Claimed-cosmetic bonuses as run effects (the App boot fold — docs/COSMETICS.md §bonuses). */
+  wardrobeRunEffects(): CardEffect[] {
+    return wardrobeEffectsOf(store.get());
   },
 
   /** Drain the unlock-ceremony queue (the reveal overlay consumes it). */
@@ -4157,12 +4248,16 @@ export const meta = {
           lines.push({ icon: '✦', label: `${r.qtyEach} Apex Genome × every hero` });
           break;
         }
-        case 'item':
-          if (wardrobeItem(r.id) && !next.wardrobe.owned.includes(r.id)) {
-            next = { ...next, wardrobe: { ...next.wardrobe, owned: [...next.wardrobe.owned, r.id], pendingReveal: [...next.wardrobe.pendingReveal, r.id] } };
-            lines.push({ icon: '❖', label: wardrobeItem(r.id)!.name });
+        case 'item': {
+          if (!next.wardrobe.granted.includes(r.id)) {
+            const got = receiveCosmetic(next, r.id, 'Cosmetic milestone', Date.now());
+            if (got) {
+              next = got.next;
+              lines.push({ icon: '❖', label: `${wardrobeItem(r.id)!.name} — in the Specimen Vault` });
+            }
           }
           break;
+        }
       }
     }
     persist({ ...next, timeline: pushTimeline(next.timeline, '❖', `Milestone — ${def.name} claimed`) });
@@ -6973,10 +7068,9 @@ export const meta = {
       } else if (grant.kind === 'cosmetic' && typeof grant.id === 'string') {
         const wd = wardrobeItem(grant.id);
         if (wd) {
-          if (!save.wardrobe.owned.includes(grant.id)) {
-            persist({ ...save, wardrobe: { ...save.wardrobe, owned: [...save.wardrobe.owned, grant.id], pendingReveal: [...save.wardrobe.pendingReveal, grant.id] } });
-          }
-          stamp(`cos:${grant.id}`);
+          // v53: the jackpot is NEVER wasted — a repeat roll delivers a tradable duplicate.
+          const got = receiveCosmetic(save, grant.id, 'Daily Bio-Cache', Date.now());
+          if (got) persist(got.next);
           delivered.push({ refKey: `cos:${grant.id}`, cat: 'cosmetic', name: wd.name, rarity: wd.rarity });
         } else {
           const classic = cosmeticById(grant.id);

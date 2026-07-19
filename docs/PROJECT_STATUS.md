@@ -3,7 +3,41 @@
 > Maintained at the END of every session (paired with `docs/AI_HANDOFF.md` — the constitution's
 > workflow step 4). This is the "where are we?" answer; `docs/GAME-STATE.md` remains the deeper
 > per-system built-vs-planned index, `docs/PROJECT_MANIFEST.md` the system map.
-> **Last updated:** 2026-07-19y (**EVENT EXCHANGE SHOPS & LIMITED-TIME EVENT ECONOMIES**
+> **Last updated:** 2026-07-19z (**TWO-STATE COSMETIC OWNERSHIP — INVENTORY, CLAIMING,
+> COLLECTION & ACCOUNT BINDING** (user brief: receiving a cosmetic must NOT unlock it;
+> UNCLAIMED = tradable/auctionable/no bonus, CLAIMED = irreversible bind + equip +
+> collections + permanent passive; AH backend prep; data-driven for decades). Save
+> v52→**v53**. CORE (`core/wardrobe.ts`): `CosmeticInstance` {uid,item,at,src} +
+> `newCosmeticUid` (ci_ prefix); 7 saturating bonus lanes (towerDamage/heroDamage/
+> biomass/fireRate via run CardEffect mults · masteryXp/bossLoot/runReward via
+> CollectionEconomyBonuses — ZERO new consumption sites) with rarity magnitudes
+> 0.2–0.8%/claim, per-lane `eff = 0.06·(1−e^(−raw/0.06))` (first claim ~full value,
+> complete collection ≈ +4.4%/lane, future content can never compound past the cap);
+> `cosmeticFamily` (11 source-derived AH shelves) + BONUS/FAMILY override maps;
+> `wardrobeProblems()` laws — **starters carry NO bonus** (pre-owned on fresh saves:
+> POWER_BASE/golden safety). SAVE/META: `wardrobe.inventory` (sanitized, capped 999) +
+> `wardrobe.granted` (once-per-source gate; migration seeds from owned — **pre-v53
+> `owned` stays CLAIMED, nothing taken away**); ONE delivery chokepoint
+> `receiveCosmetic` feeds applyRewardList/poll/boutique/milestones/quest-finales/
+> login-drop (substitution RETIRED for cosmetics — repeat tracks mint tradable DUPES,
+> the AH supply trickle; jackpots never wasted); `meta.claimCosmetic(uid)` (guard
+> `cosmetic.claim` + GUARDED_META_METHODS row) consumes the instance, binds provenance
+> (`cos:wd_*` bound forever, origin carried; `cos:ci_*` instance stamps pruned by the
+> extended reconcile), activates the bonus (`wardrobeEffectsOf` beside
+> battlePassEffectsOf in App boot + Power `meta` bucket as `wardrobeMult`;
+> `accountEconomyBonuses` composes econ lanes). UI: **Specimen Vault** screen (nav
+> `specimens`, Trade wing, ⧉; reveal-on-NEED via new `cosmeticInventory` condition +
+> stage-8 backstop — a vault you cannot open would strand every cosmetic): search/
+> ownership chips/group+sort filters/dupe counts/TRADABLE vs BOUND chips/bonus lines/
+> favorites/240-card window, finite assimilation ceremony ("+X% lane — forever");
+> WardrobeReveal arrival copy retuned ("SPECIMEN ACQUIRED — claim it in the Vault");
+> `cosmetic.unclaimed` notification channel; teach row + i18n ×3. Tests: wardrobe.test
+> +6 laws, wardrobeMeta rewritten (15), login/quests assertions → Vault. Verified:
+> typecheck 0, suite 302/2549 green, build, mobilecheck CLEAN (31 screens — Vault
+> auto-joined), cogload 72/72 in budget, validate PASS, live headless claim probe
+> (ceremony + achievements/Account-XP cascade). Previous below.)
+>
+> **2026-07-19y** (**EVENT EXCHANGE SHOPS & LIMITED-TIME EVENT ECONOMIES**
 > (user brief: themed per-event storefronts as the PRIMARY event-currency sink; purchase
 > limits; "almost have enough for one more thing"; repeats never worthless; data-only
 > future shops). Save v51→**v52**. SCHEMA (`core/liveEvents.ts`): `EventStorefront`

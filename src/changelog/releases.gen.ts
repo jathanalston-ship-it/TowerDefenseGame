@@ -1403,6 +1403,10 @@ export const RELEASES: Release[] = [
       {
         "cat": "UX",
         "text": "Menu UX overhaul: wayfinding frame, nav history, audit-driven polish"
+      },
+      {
+        "cat": "Gameplay",
+        "text": "Event Exchange Shops: themed storefronts, purchase limits, forever ledger (save v52)"
       }
     ]
   },

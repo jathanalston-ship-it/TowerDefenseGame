@@ -123,6 +123,10 @@ export interface OwnedRefs {
   geneCardIds: readonly string[];
   /** Owned tower Mulligan modifier ids (mulliganDex keys — account-level unlocks). */
   mulliganPieceIds?: readonly string[];
+  /** UNCLAIMED cosmetic instance uids (v53, docs/COSMETICS.md §claiming) — 'ci_' prefixed,
+   *  stamped like equipment instances and pruned when the instance leaves (claimed or traded).
+   *  CLAIMED cosmetics stay under their registry id ('cos:wd_*'), permanent + bound. */
+  cosmeticInstanceUids?: readonly string[];
   /** Refs that must be FORCED bound (arena exclusives — self-healing security: even a hand-
    *  edited save re-binds on load). Keys are refKey() strings. */
   forceBoundKeys?: ReadonlySet<string>;
@@ -139,11 +143,16 @@ export function reconcileProvenance(ledger: ProvenanceLedger, owned: OwnedRefs):
   for (const id of owned.cosmeticIds) stampAcquisition(ledger, { cat: 'cosmetic', id }, 'legacy', 0, 0);
   for (const id of owned.geneCardIds) stampAcquisition(ledger, { cat: 'geneCard', id }, 'legacy', 0, 0);
   for (const id of owned.mulliganPieceIds ?? []) stampAcquisition(ledger, { cat: 'mulliganPiece', id }, 'legacy', 0, 0);
+  for (const uid of owned.cosmeticInstanceUids ?? []) stampAcquisition(ledger, { cat: 'cosmetic', id: uid }, 'legacy', 0, 0);
   const live = new Set(owned.equipmentUids);
+  const liveInstances = new Set(owned.cosmeticInstanceUids ?? []);
   for (const key of Object.keys(ledger)) {
     const ref = parseRefKey(key);
     if (!ref) { delete ledger[key]; continue; } // junk keys never survive a load
     if (ref.cat === 'equipment' && !live.has(ref.id)) delete ledger[key];
+    // Cosmetic INSTANCE stamps ('ci_' uids) die with their instance — claimed/registry-id
+    // cosmetic stamps ('wd_*') are permanent like the unlocks they describe.
+    if (ref.cat === 'cosmetic' && ref.id.startsWith('ci_') && !liveInstances.has(ref.id)) delete ledger[key];
   }
   if (owned.forceBoundKeys) {
     for (const key of owned.forceBoundKeys) {

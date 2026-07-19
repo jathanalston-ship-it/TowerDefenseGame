@@ -519,3 +519,154 @@ const MILESTONE_BY_ID = new Map(WARDROBE_MILESTONES.map((m) => [m.id, m] as cons
 export function wardrobeMilestone(id: string): WardrobeMilestone | undefined {
   return MILESTONE_BY_ID.get(id);
 }
+
+// ── Two-state ownership (v53, docs/COSMETICS.md §claiming) ─────────────────────
+// A cosmetic arrives UNCLAIMED: an instance in the Specimen Vault (save.wardrobe.inventory) —
+// tradable, auctionable, NO bonus, NOT equippable, NOT in collections. CLAIMING is the
+// irreversible account-bind: the instance is consumed, the id joins save.wardrobe.owned (the
+// claimed set every existing consumer already reads — equip gates, collection codices,
+// dressing), the provenance stamp binds, and the item's permanent passive activates.
+// Duplicates of a claimed id stay in the vault as pure trade goods (claiming twice is refused).
+
+/** One unclaimed cosmetic instance. `item` is the registry id; `src` is the human acquisition
+ *  source carried into the claimed provenance stamp; `at` is the acquisition epoch ms. */
+export interface CosmeticInstance {
+  uid: string; // 'ci_' prefixed — distinguishes instance stamps (cos:ci_*) from claimed (cos:wd_*)
+  item: string;
+  at: number;
+  src: string;
+}
+
+let cosmeticUidSeq = 0;
+/** Device-unique instance uid (the equipment newUid pattern; global uniqueness is the trade
+ *  server's namespace — core/itemIdentity globalItemId). */
+export function newCosmeticUid(): string {
+  return `ci_${Date.now().toString(36)}_${(cosmeticUidSeq++).toString(36)}`;
+}
+
+// ── Permanent claim bonuses (docs/COSMETICS.md §bonuses) ───────────────────────
+// Every claimed NON-STARTER cosmetic feeds one bonus LANE. Lanes speak the two PROVEN account
+// vocabularies only — run CardEffect mul fields (the battlePassEffectsOf seam) and the
+// CollectionEconomyBonuses keys (the accountEconomyBonuses seam) — so consumption needs ZERO
+// new sites. Starters carry NO bonus BY LAW: they are pre-owned on a fresh save, and any
+// weight would move a fresh account off POWER_BASE (the 1002 bug) and break golden runs.
+// Per-lane totals SATURATE (cap · (1 − e^(−raw/cap))): early claims pay full value, a complete
+// collection approaches the cap, and future content can never compound past it — worthwhile
+// forever, mandatory never.
+
+export type WardrobeBonusLane =
+  | 'towerDamage' | 'heroDamage' | 'biomass' | 'fireRate' // run lanes (CardEffect mul)
+  | 'masteryXp' | 'bossLoot' | 'runReward'; // econ lanes (CollectionEconomyBonuses)
+
+export interface WardrobeBonus { lane: WardrobeBonusLane; value: number }
+
+export const WARDROBE_LANE_INFO: Record<WardrobeBonusLane, { label: string; icon: string; apply: 'run' | 'econ'; desc: string }> = {
+  towerDamage: { label: 'Tower Damage', icon: '✸', apply: 'run', desc: 'All tower damage' },
+  heroDamage: { label: 'Hero Damage', icon: '⚚', apply: 'run', desc: 'All hero damage' },
+  biomass: { label: 'Biomass Income', icon: '⬢', apply: 'run', desc: 'In-run biomass income' },
+  fireRate: { label: 'Fire Rate', icon: '≫', apply: 'run', desc: 'All tower fire rate' },
+  masteryXp: { label: 'Mastery XP', icon: '⇧', apply: 'econ', desc: 'Tower and hero mastery XP' },
+  bossLoot: { label: 'Boss Loot', icon: '☠', apply: 'econ', desc: 'Boss kill rewards' },
+  runReward: { label: 'Run Rewards', icon: '⬡', apply: 'econ', desc: 'End-of-run rewards' },
+};
+export const WARDROBE_BONUS_LANES = Object.keys(WARDROBE_LANE_INFO) as WardrobeBonusLane[];
+
+/** Per-claim magnitude by rarity (fractions — 0.002 = +0.2%). Tiny by design. */
+export const WARDROBE_BONUS_BY_RARITY: Record<WardrobeRarity, number> = {
+  common: 0.002, rare: 0.0035, epic: 0.0055, legendary: 0.008,
+};
+
+/** The per-lane asymptote a complete-and-then-some collection approaches (6%). */
+export const WARDROBE_LANE_CAP = 0.06;
+
+/** Default lane per kind — the thematic mapping (override per item via BONUS_OVERRIDES). */
+const KIND_LANE: Record<WardrobeKind, WardrobeBonusLane> = {
+  towerFx: 'towerDamage', projectileTrail: 'towerDamage', towerAudio: 'towerDamage', cardFrame: 'towerDamage',
+  heroFx: 'heroDamage', heroSelectFx: 'heroDamage', heroVoice: 'heroDamage', banner: 'heroDamage',
+  placementFx: 'biomass', battlefieldTheme: 'biomass', uiTheme: 'biomass', profileBg: 'biomass',
+  waveTheme: 'fireRate', stageIntro: 'fireRate', cursorTheme: 'fireRate', hudTheme: 'fireRate',
+  musicPack: 'masteryXp', combatMusic: 'masteryXp', notifSound: 'masteryXp', emblem: 'masteryXp', title: 'masteryXp',
+  enemyTheme: 'bossLoot', bossTheme: 'bossLoot', megaTheme: 'bossLoot', enemyAudio: 'bossLoot', defeatScreen: 'bossLoot',
+  nucleusSkin: 'runReward', lootTheme: 'runReward', rouletteTheme: 'runReward', victoryScreen: 'runReward',
+  nameColor: 'runReward', nameplate: 'runReward', prestigeBorder: 'runReward', collectionBorder: 'runReward',
+};
+
+/** Per-item lane/value overrides (id → bonus) — the balancing knob when a signature piece
+ *  should pay off-theme. Values still bound by the legendary magnitude (wardrobeProblems). */
+const BONUS_OVERRIDES: Record<string, WardrobeBonus> = {};
+
+/** The item's permanent claim bonus — null for starters (pre-owned ⇒ zero by LAW: POWER_BASE
+ *  and golden runs depend on a fresh account folding to neutral). */
+export function cosmeticBonus(d: WardrobeItemDef): WardrobeBonus | null {
+  if (d.source.kind === 'starter') return null;
+  return BONUS_OVERRIDES[d.id] ?? { lane: KIND_LANE[d.kind], value: WARDROBE_BONUS_BY_RARITY[d.rarity] };
+}
+
+/** Raw per-lane sums over a CLAIMED id set (unknown ids ignored — sanitizer-tolerant). */
+export function wardrobeBonusTotals(claimedIds: Iterable<string>): Record<WardrobeBonusLane, number> {
+  const out = Object.fromEntries(WARDROBE_BONUS_LANES.map((l) => [l, 0])) as Record<WardrobeBonusLane, number>;
+  for (const id of claimedIds) {
+    const d = wardrobeItem(id);
+    const b = d ? cosmeticBonus(d) : null;
+    if (b) out[b.lane] += b.value;
+  }
+  return out;
+}
+
+/** Saturated per-lane totals — THE fold every consumer reads (0 on a fresh save: starters
+ *  carry no bonus, so run effects and econ mults stay neutral ⇒ golden-safe, POWER_BASE-safe). */
+export function effectiveWardrobeBonuses(claimedIds: Iterable<string>): Record<WardrobeBonusLane, number> {
+  const raw = wardrobeBonusTotals(claimedIds);
+  const out = {} as Record<WardrobeBonusLane, number>;
+  for (const lane of WARDROBE_BONUS_LANES) {
+    out[lane] = raw[lane] <= 0 ? 0 : WARDROBE_LANE_CAP * (1 - Math.exp(-raw[lane] / WARDROBE_LANE_CAP));
+  }
+  return out;
+}
+
+// ── Collection families (docs/COSMETICS.md §families) ──────────────────────────
+// The Auction House's browse taxonomy + the inventory's curation shelves. Derived from the
+// acquisition lane (override per item via FAMILY_OVERRIDES) — a future cosmetic inherits a
+// family from its source with zero authoring.
+const FAMILY_OVERRIDES: Record<string, string> = {};
+
+export function cosmeticFamily(d: WardrobeItemDef): string {
+  const o = FAMILY_OVERRIDES[d.id];
+  if (o) return o;
+  switch (d.source.kind) {
+    case 'starter': return 'Origin Growth';
+    case 'campaign': return 'Campaign Relics';
+    case 'infinite': return 'Abyssal Salvage';
+    case 'daily': case 'login': case 'login-drop': return 'Devotion';
+    case 'rush': case 'roulette': return 'Trophies of the Rush';
+    case 'achievement': return 'Commendations';
+    case 'collection': case 'milestone': return 'Archivist Court';
+    case 'shop': return 'Boutique Line';
+    case 'battlepass': return 'Season Vault';
+    case 'event': return 'Event Exclusives';
+    case 'quest': return 'Contract Seals';
+  }
+}
+
+/** Whole-catalog laws (build/test gate — the liveEventProblems pattern):
+ *  starters carry no bonus, overrides stay within the legendary magnitude and name real
+ *  items/lanes, and every non-starter item resolves a bonus + family. */
+export function wardrobeProblems(): string[] {
+  const out: string[] = [];
+  const maxValue = WARDROBE_BONUS_BY_RARITY.legendary;
+  for (const [id, b] of Object.entries(BONUS_OVERRIDES)) {
+    if (!wardrobeItem(id)) out.push(`bonus override for unknown item ${id}`);
+    if (!WARDROBE_BONUS_LANES.includes(b.lane)) out.push(`bonus override ${id}: unknown lane ${b.lane}`);
+    if (b.value <= 0 || b.value > maxValue) out.push(`bonus override ${id}: value ${b.value} outside (0, ${maxValue}]`);
+  }
+  for (const id of Object.keys(FAMILY_OVERRIDES)) {
+    if (!wardrobeItem(id)) out.push(`family override for unknown item ${id}`);
+  }
+  for (const d of wardrobeRegistry.all()) {
+    const b = cosmeticBonus(d);
+    if (d.source.kind === 'starter' && b !== null) out.push(`starter ${d.id} must carry no bonus (POWER_BASE law)`);
+    if (d.source.kind !== 'starter' && b === null) out.push(`${d.id} resolves no bonus`);
+    if (cosmeticFamily(d).length === 0) out.push(`${d.id} resolves no family`);
+  }
+  return out;
+}

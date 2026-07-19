@@ -37,6 +37,7 @@ export type UnlockCondition =
   | { kind: 'mats' } // any crafting material held
   | { kind: 'molted' } // has prestiged at least once
   | { kind: 'antigen' } // any account-faucet Antigen earned (achievements/depth/traces — mastery-sourced income reveals via the stage backbone)
+  | { kind: 'cosmeticInventory' } // an unclaimed cosmetic specimen sits in the Vault (v53 — reveal-on-need)
   | { kind: 'rushHistory' } // pre-gate Boss Rush accounts (grandfather)
   | { kind: 'dailyHistory' } // pre-gate Daily accounts (grandfather)
   | { kind: 'any'; of: UnlockCondition[] }; // first satisfied wins (progress = max)
@@ -68,6 +69,7 @@ export function evalCondition(c: UnlockCondition, save: SaveData): ConditionView
       return { done: have >= c.count, progress: Math.min(1, have / c.count), label: `Draft ${c.count} different Gene Cards · ${Math.max(0, c.count - have)} to go` };
     }
     case 'mulligans': return flag(Object.keys(save.mulliganDex ?? {}).length > 0, 'Discover a Mulligan modifier');
+    case 'cosmeticInventory': return flag((save.wardrobe.inventory ?? []).length > 0, 'Receive a cosmetic specimen');
     case 'ichor': return flag((save.lifetimeIchor ?? 0) > 0 || save.ichor > 0, 'Bleed your first Ichor');
     case 'mats': return flag(save.mats.mutagen + save.mats.scrap + save.mats.catalyst > 0, 'Find crafting materials');
     case 'molted': return flag((save.prestige?.molts ?? 0) > 0, 'Molt for the first time');
@@ -230,6 +232,9 @@ export const FEATURES: FeatureDef[] = [
   { kind: 'screen', id: 'phenotypes', name: 'Phenotype Lab', glyph: '❖', order: 19,
     blurb: 'Cosmetic phenotypes for every strain and champion.', condition: { kind: 'stage', stage: 7 },
     because: 'Pure luxury — cosmetics wait until the mechanical wardrobe is full and Gene Essence has a purpose beyond upgrades.', teach: 'phenotype-lab' },
+  { kind: 'screen', id: 'specimens', name: 'Specimen Vault', glyph: '⧉', order: 19.1,
+    blurb: 'Unclaimed cosmetics — tradable stock until you bind them.', condition: { kind: 'any', of: [{ kind: 'cosmeticInventory' }, { kind: 'stage', stage: 8 }] },
+    because: 'Reveal-on-NEED (the mulligans/antigen pattern): the moment the first specimen lands, its arrival card points here and the claim decision must be reachable — a vault the player cannot open would strand every two-state cosmetic (docs/COSMETICS.md §claiming). The stage-8 backstop takes the last slot inside the ≤3-per-stage law.', teach: 'specimens' },
   // Moved to the foundational block below (operator decision 2026-07): the store door is
   // open from minute 0 — see the always-on rows. Kept as a comment so the stage-8 slot's
   // original design intent ("the game proves itself before it asks") stays on record.

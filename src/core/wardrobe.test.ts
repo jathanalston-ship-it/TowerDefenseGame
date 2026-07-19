@@ -4,8 +4,10 @@
 
 import { describe, expect, it } from 'vitest';
 import {
-  boutiqueItems, earnedAutoItems, isAutoSource, seasonItems, sourceLabel, starterItems,
-  WARDROBE_KINDS, WARDROBE_MILESTONES, wardrobeItem, wardrobeItemsOf, wardrobeRegistry,
+  boutiqueItems, cosmeticBonus, cosmeticFamily, earnedAutoItems, effectiveWardrobeBonuses,
+  isAutoSource, newCosmeticUid, seasonItems, sourceLabel, starterItems,
+  WARDROBE_BONUS_BY_RARITY, WARDROBE_BONUS_LANES, WARDROBE_KINDS, WARDROBE_LANE_CAP,
+  WARDROBE_MILESTONES, wardrobeItem, wardrobeItemsOf, wardrobeProblems, wardrobeRegistry,
 } from './wardrobe';
 import type { WardrobeUnlockCtx } from './wardrobe';
 import { achievementById } from '../state/achievements';
@@ -103,5 +105,58 @@ describe('the auto-unlock evaluator', () => {
     for (const d of earnedAutoItems(maxed)) {
       expect(['shop', 'battlepass', 'milestone', 'event', 'quest', 'starter', 'login-drop']).not.toContain(d.source.kind);
     }
+  });
+});
+
+describe('two-state ownership & claim bonuses (v53 — docs/COSMETICS.md §claiming/§bonuses)', () => {
+  it('the catalog laws hold (wardrobeProblems clean)', () => {
+    expect(wardrobeProblems()).toEqual([]);
+  });
+
+  it('starters carry NO bonus (POWER_BASE + golden law); every other item pays its rarity', () => {
+    for (const d of wardrobeRegistry.all()) {
+      const b = cosmeticBonus(d);
+      if (d.source.kind === 'starter') expect(b, d.id).toBeNull();
+      else {
+        expect(b, d.id).not.toBeNull();
+        expect(b!.value).toBeGreaterThan(0);
+        expect(b!.value).toBeLessThanOrEqual(WARDROBE_BONUS_BY_RARITY.legendary);
+      }
+    }
+  });
+
+  it('a starters-only claimed set folds to ZERO in every lane (fresh account neutral)', () => {
+    const eff = effectiveWardrobeBonuses(starterItems().map((d) => d.id));
+    for (const lane of WARDROBE_BONUS_LANES) expect(eff[lane]).toBe(0);
+  });
+
+  it('lanes saturate: monotonic, early claims near-full value, full catalog under the cap', () => {
+    const all = wardrobeRegistry.all().map((d) => d.id);
+    const eff = effectiveWardrobeBonuses(all);
+    for (const lane of WARDROBE_BONUS_LANES) {
+      expect(eff[lane]).toBeGreaterThan(0); // every lane is populated by the kind mapping
+      expect(eff[lane]).toBeLessThan(WARDROBE_LANE_CAP); // asymptote never reached
+    }
+    // The FIRST claim in a lane pays nearly its nominal value (saturation bites late).
+    const epic = wardrobeRegistry.all().find((d) => d.source.kind !== 'starter' && d.rarity === 'epic')!;
+    const single = effectiveWardrobeBonuses([epic.id]);
+    const nominal = WARDROBE_BONUS_BY_RARITY.epic;
+    expect(single[cosmeticBonus(epic)!.lane]).toBeGreaterThan(nominal * 0.9);
+    // Monotonic: claiming one more item strictly raises its lane.
+    const without = effectiveWardrobeBonuses(all.filter((id) => id !== epic.id));
+    expect(eff[cosmeticBonus(epic)!.lane]).toBeGreaterThan(without[cosmeticBonus(epic)!.lane]);
+  });
+
+  it('every item resolves a collection family; event exclusives shelve together', () => {
+    for (const d of wardrobeRegistry.all()) expect(cosmeticFamily(d).length).toBeGreaterThan(0);
+    for (const d of wardrobeRegistry.all().filter((x) => x.source.kind === 'event')) {
+      expect(cosmeticFamily(d)).toBe('Event Exclusives');
+    }
+  });
+
+  it('instance uids are ci_-prefixed and unique across a burst', () => {
+    const uids = Array.from({ length: 200 }, () => newCosmeticUid());
+    expect(new Set(uids).size).toBe(200);
+    for (const u of uids) expect(u.startsWith('ci_')).toBe(true);
   });
 });

@@ -149,6 +149,7 @@ const EN = {
   'results.shareReplay': '⧉ Share replay',
   // ── Phenotype Lab (docs/COSMETICS.md) ──
   'nav.phenotypes': 'Wardrobe',
+  'nav.specimens': 'Specimen Vault',
   'nav.mulligans': 'Mulligans',
   'nav.hive': 'The Hive',
   'nav.harvest': 'Hive Production',
@@ -302,6 +303,7 @@ const ES: Record<MsgKey, string> = {
   'daily.theater.bad': 'Ese código no se pudo decodificar — comprueba que copiaste todo.',
   'results.shareReplay': '⧉ Compartir repetición',
   'nav.phenotypes': 'Vestuario',
+  'nav.specimens': 'Bóveda de Especímenes',
   'nav.mulligans': 'Mulligans',
   'nav.hive': 'La Colmena',
   'nav.harvest': 'Producción de Colmena',
@@ -450,6 +452,7 @@ const PT: Record<MsgKey, string> = {
   'daily.theater.bad': 'Esse código não pôde ser decodificado — confira se copiou tudo.',
   'results.shareReplay': '⧉ Compartilhar replay',
   'nav.phenotypes': 'Guarda-Roupa',
+  'nav.specimens': 'Cofre de Espécimes',
   'nav.mulligans': 'Mulligans',
   'nav.hive': 'A Colmeia',
   'nav.harvest': 'Produção da Colmeia',

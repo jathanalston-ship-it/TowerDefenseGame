@@ -1,6 +1,6 @@
 {
-  "lastSha": "d44e891f1a7954854bc1209f49220e883618592f",
-  "commitsSinceDraft": 5,
+  "lastSha": "0fe4247ed64fb6e700c34f5c2f9c8a20ca7c252e",
+  "commitsSinceDraft": 6,
   "content": {
     "tower": [
       "needle",
@@ -2907,6 +2907,10 @@
         {
           "cat": "UX",
           "text": "Menu UX overhaul: wayfinding frame, nav history, audit-driven polish"
+        },
+        {
+          "cat": "Gameplay",
+          "text": "Event Exchange Shops: themed storefronts, purchase limits, forever ledger (save v52)"
         }
       ]
     }
@@ -5453,6 +5457,14 @@
       "date": "2026-07-19",
       "cat": "UX",
       "text": "Menu UX overhaul: wayfinding frame, nav history, audit-driven polish",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "0fe4247ed64fb6e700c34f5c2f9c8a20ca7c252e",
+      "date": "2026-07-19",
+      "cat": "Gameplay",
+      "text": "Event Exchange Shops: themed storefronts, purchase limits, forever ledger (save v52)",
       "internal": false,
       "needsReview": false
     }

@@ -109,3 +109,78 @@ audio kinds, Randomize, NEW badges (persisted `seen`), collection % chips.
 source + payload → the registry validates the payload against its kind's `NEEDS`, the
 codex/milestones/boutique/battle-pass tables pick it up, the dressing layer needs nothing
 new unless you invent a NEW preset id (then: one CSS class or one renderer branch).
+
+## §claiming — two-state ownership & the Specimen Vault (v53, 2026-07)
+
+**The two states.** A cosmetic ARRIVES as an **UNCLAIMED instance** in the Specimen Vault
+(`save.wardrobe.inventory` — `{uid, item, at, src}`, uid `ci_`-prefixed): tradable,
+auction-eligible, **no bonus, not equippable, not in collections**. **CLAIMING**
+(`meta.claimCosmetic(uid)`, guard `cosmetic.claim`) is the irreversible account-bind: the
+instance is consumed, the id joins `save.wardrobe.owned` — the CLAIMED set that every
+pre-v53 consumer already reads (equip gates, the four wardrobe codices, achievements,
+dressing) — the provenance stamp binds (`cos:wd_*`, origin carried from the instance,
+`bound: true`, no unbind exists), and the piece's permanent bonus activates. Claiming a
+duplicate of a claimed id is REFUSED — dupes stay in the Vault as pure trade stock.
+
+**Delivery is ONE chokepoint** (`receiveCosmetic` in state/meta): applyRewardList's
+`cosmetic` case, the auto-unlock poll, the Boutique, milestone exclusives, quest finales,
+the login-drop jackpot and direct grants all land instances. The old owned-substitution is
+RETIRED for cosmetics: repeatable reward tracks now mint **tradable duplicates** (the
+Auction House's supply trickle); once-ever gates (quest `once`, event lifetime rows, the
+`granted` ledger for auto/boutique/direct lanes) keep non-repeatable lanes single-copy.
+`wardrobe.granted` records every id ever delivered — the once-per-source gate that
+replaced owned-gating. **Migration (v52→v53):** existing `owned` stays claimed unchanged
+— nothing is taken away; `granted` seeds from it; `inventory` starts empty.
+
+**Provenance / Auction House readiness** (docs/TRADING-PREP.md): instances stamp
+`cos:<uid>` (source, time, arena season, transfers, owner history) and the reconcile pass
+prunes instance stamps whose uid is gone; claimed stamps (`cos:wd_*`) are permanent and
+bound. Tradable status = an unclaimed instance; auction eligibility = unclaimed (bound
+never trades again); unique identity = the instance uid (`globalItemId` namespaces it at
+the trade boundary); rarity/family metadata ride the registry.
+
+**UI:** the **Specimen Vault** screen (nav `specimens`, Market hub — reveal-on-need: the
+`cosmeticInventory` condition opens it the moment the first specimen lands, stage-8
+backstop). Search, ownership chips (Awaiting/Bound/All), group + sort (recent/rarity/
+name/duplicates) filters, dupe counts, tradable/bound chips, per-item bonus line, favorite
+stars on bound pieces, bounded 240-card render window (thousands-scale: narrow, don't
+virtualize). Claiming plays the finite **assimilation ceremony** (rarity-tinted card,
+bonus reveal, "Woven in"). Arrival reveals (`WardrobeReveal`) now read "SPECIMEN ACQUIRED
+— claim it in the Vault". Notification source `cosmetic.unclaimed` (channel `specimens`)
+counts distinct items awaiting the decision.
+
+## §bonuses — permanent claim bonuses (v53)
+
+Every claimed **non-starter** cosmetic feeds ONE bonus lane; starters are bonus-less BY
+LAW (`wardrobeProblems`) — they are pre-owned on a fresh save, and any weight would move a
+fresh account off POWER_BASE and break golden runs. Lanes speak the two PROVEN account
+vocabularies only, so consumption needed zero new sites:
+
+| Lane | Vocabulary | Kinds (default mapping) |
+|---|---|---|
+| towerDamage | run `towerDamageMult` | towerFx, projectileTrail, towerAudio, cardFrame |
+| heroDamage | run `heroDamageMult` | heroFx, heroSelectFx, heroVoice, banner |
+| biomass | run `biomassMult` | placementFx, battlefieldTheme, uiTheme, profileBg |
+| fireRate | run `towerFireRateMult` | waveTheme, stageIntro, cursorTheme, hudTheme |
+| masteryXp | econ `towerXpMult`+`heroXpMult` | musicPack, combatMusic, notifSound, emblem, title |
+| bossLoot | econ `bossLootMult` | enemyTheme, bossTheme, megaTheme, enemyAudio, defeatScreen |
+| runReward | econ `campaignRewardMult` | nucleusSkin, lootTheme, rouletteTheme, victoryScreen, nameColor, nameplate, prestigeBorder, collectionBorder |
+
+Magnitude by rarity (`WARDROBE_BONUS_BY_RARITY`): common +0.2%, rare +0.35%, epic +0.55%,
+legendary +0.8%. Per-item overrides via `BONUS_OVERRIDES` (bounded ≤ legendary). **Lanes
+SATURATE** — `effective = CAP·(1−e^(−raw/CAP))`, `WARDROBE_LANE_CAP = 0.06`: the first
+claim in a lane pays ~full value, a complete collection approaches +6%/lane (~4.4% at
+launch content), and future catalog growth can never compound past the cap — worthwhile
+forever, mandatory never. Consumption: `wardrobeEffectsOf` folds run lanes beside the
+Battle Pass permanents (App boot effects + the Power `meta` bucket via `wardrobeMult`);
+`accountEconomyBonuses` composes the econ lanes. Fresh save ⇒ all lanes 0 ⇒ golden-safe,
+POWER_BASE-safe (pinned by wardrobe.test + wardrobeMeta.test).
+
+## §families — collection families (v53)
+
+`cosmeticFamily(def)` derives the browse/AH taxonomy from the acquisition lane (override
+per item via `FAMILY_OVERRIDES`): Origin Growth (starter), Campaign Relics, Abyssal
+Salvage (infinite), Devotion (daily/login), Trophies of the Rush (rush/roulette),
+Commendations (achievements), Archivist Court (collection/milestone), Boutique Line,
+Season Vault (battlepass), Event Exclusives, Contract Seals (quests). A future cosmetic
+inherits its family from its source with zero authoring.

@@ -6,7 +6,7 @@
 > build disagree, **the build wins and this file is the tiebreaker.** Prefer reading this over
 > re-reading a system's implementation (per CLAUDE.md "Trust existing architecture").
 >
-> **Save schema:** `CURRENT_VERSION = 52` (additive migrations via `withDefaults` + per-field
+> **Save schema:** `CURRENT_VERSION = 53` (additive migrations via `withDefaults` + per-field
 > sanitizers; checksummed blob). **Stack:** React + TypeScript + Vite static SPA, deterministic sim
 > core in `src/core/` (no React/DOM), Canvas renderer, browser-local saves. Tests: `npm test`
 > (Vitest) — the golden characterization test pins the sim byte-for-byte.
@@ -617,7 +617,18 @@ sink ≈ hour-400 at endgame income — re-tune as the library grows.
   trail/FX params). Save v31 wardrobe record (equips/favorites/seen/milestones/persisted
   reveal queue); Wardrobe screen (tabs+search+filters+audition+randomize), unlock ceremony,
   6 collection codices (skins pay Biomass ×1.03 each; wardrobe codices are zero-power,
-  paid via the claimable milestone track) — COSMETICS.md §wardrobe
+  paid via the claimable milestone track) — COSMETICS.md §wardrobe. **v53 TWO-STATE
+  OWNERSHIP** (COSMETICS.md §claiming/§bonuses/§families): every lane delivers an
+  UNCLAIMED tradable instance into the **Specimen Vault** (`wardrobe.inventory`,
+  uid-stamped provenance, ONE `receiveCosmetic` chokepoint; substitution retired —
+  repeats mint tradable dupes, `granted` gates once-per-source lanes);
+  `meta.claimCosmetic` (guard `cosmetic.claim`) binds forever (owned = the claimed set
+  all consumers already read; provenance `cos:wd_*` bound) and activates ONE of 7
+  saturating bonus lanes (cap 6%/lane, `eff = cap(1−e^(−raw/cap))`; rarity 0.2–0.8%
+  per claim; starters bonus-less BY LAW — POWER_BASE/golden safety); Vault screen (nav
+  `specimens`, reveal-on-need `cosmeticInventory` condition), assimilation ceremony,
+  `cosmetic.unclaimed` notifications; migration keeps pre-v53 `owned` claimed — nothing
+  taken away
 - ✅ **Battle Pass (seasons)**: 100-level dual-track, 14-day rotation (max-window tamper
   rule, rollover auto-claim mail), two launch seasons (Crimson Bloom ❁ / Abyssal Tide ≋ —
   unique palette/music re-voice/crown rewards), XP from runs/achievements/expeditions/

@@ -38,7 +38,7 @@ import type { HeroSymbioteState } from '../core/heroSymbiote';
 import { reforgeModById } from '../core/mulliganReforge';
 import type { MulliganRarity, MulliganSlot, MulliganState } from '../core/mulligan';
 import { starterItems, wardrobeItem, wardrobeMilestone, WARDROBE_KINDS } from '../core/wardrobe';
-import type { WardrobeKind } from '../core/wardrobe';
+import type { CosmeticInstance, WardrobeKind } from '../core/wardrobe';
 import { BP, passPassive, seasonById } from '../core/battlePass';
 import { missionById, questById } from '../core/quests';
 import { ARENA, ARENA_HISTORY_CAP, ARENA_SETTLED_CAP, defaultArenaSave } from '../core/arena';
@@ -340,11 +340,18 @@ export interface SaveData {
   //    nothing retroactively (a veteran's first visit is a celebration, not a side-effect).
   masteryEvolution: Record<string, { claimedUpTo: number; prestige: number; xpAt: number }>;
   // ── Wardrobe (v31, docs/COSMETICS.md §wardrobe) — account cosmetics beyond unit Phenotypes:
-  //    owned item ids (starter rows seeded on load), ONE equipped id per kind ({} = classic
-  //    look everywhere ⇒ golden-safe), favorites + seen (NEW badges), claimed cosmetic
-  //    milestones, and the unlock-ceremony queue (persisted so run-end unlocks survive reload). ──
+  //    `owned` is the CLAIMED (account-bound) set (starter rows seeded on load) — the ONLY set
+  //    equip gates, collection codices, and the claim-bonus fold read; ONE equipped id per kind
+  //    ({} = classic look everywhere ⇒ golden-safe), favorites + seen (NEW badges), claimed
+  //    cosmetic milestones, and the unlock-ceremony queue (persisted across reload).
+  //    v53 (§claiming): `inventory` holds UNCLAIMED cosmetic instances (tradable, no bonus,
+  //    not equippable — the Auction House's stock; uid-stamped in the provenance ledger) and
+  //    `granted` records every id EVER delivered (the once-per-source gate for auto lanes,
+  //    the boutique, and direct grants — duplicates only flow from repeatable reward tracks). ──
   wardrobe: {
     owned: string[];
+    inventory: CosmeticInstance[];
+    granted: string[];
     equipped: Partial<Record<WardrobeKind, string>>;
     favorites: string[];
     seen: string[];
@@ -561,7 +568,12 @@ export interface TutorialSave {
 // v51→v52: EVENT SHOPS (docs/LIVE-EVENTS.md §shops) — `liveEvents.lifetimeBought`
 // (`eventId:rowId` → count, NEVER pruned: the exclusive lane's once-ever contract) +
 // daily/weekly restock counters as `rowId@period` keys inside shopBought (window-pruned).
-export const CURRENT_VERSION = 52;
+// v52→v53: TWO-STATE COSMETICS (docs/COSMETICS.md §claiming) — `wardrobe.inventory`
+// (UNCLAIMED tradable instances {uid,item,at,src}) + `wardrobe.granted` (ids ever delivered —
+// the once-per-source gate). MIGRATION: pre-v53 `owned` stays CLAIMED unchanged (equips,
+// collections, ceremonies all keep their history — nothing is taken away); granted seeds
+// from owned, inventory starts empty. Purely additive, golden-safe.
+export const CURRENT_VERSION = 53;
 
 // ── v51 Metabolism ledger (docs/METABOLISM.md) — the save SHAPE lives here (saveStore owns
 // module shapes); the track registry + curve math live in state/metabolism.ts. ──
@@ -1105,8 +1117,11 @@ function sanitizeCosmetics(raw: unknown): SaveData['cosmetics'] {
  *  equipped ({} = the classic look everywhere — golden-safe). */
 function defaultWardrobe(): SaveData['wardrobe'] {
   const starters = starterItems().map((d) => d.id);
-  return { owned: [...starters], equipped: {}, favorites: [], seen: [...starters], milestones: [], pendingReveal: [] };
+  return { owned: [...starters], inventory: [], granted: [...starters], equipped: {}, favorites: [], seen: [...starters], milestones: [], pendingReveal: [] };
 }
+
+/** Cap on stored unclaimed instances — generous (thousands-scale UI) but bounded. */
+const COSMETIC_INV_CAP = 999;
 
 function sanitizeWardrobe(raw: unknown): SaveData['wardrobe'] {
   const out = defaultWardrobe();
@@ -1116,9 +1131,32 @@ function sanitizeWardrobe(raw: unknown): SaveData['wardrobe'] {
     Array.isArray(v) ? [...new Set(v.filter((x): x is string => typeof x === 'string' && wardrobeItem(x) !== undefined))] : [];
   out.owned = [...new Set([...out.owned, ...ids(o.owned)])]; // starters are always owned
   const ownedSet = new Set(out.owned);
+  // v53 UNCLAIMED instances: shape-checked, known items only, unique uids, bounded. Dupes of
+  // claimed ids stay (pure trade goods); junk instances evaporate.
+  if (Array.isArray(o.inventory)) {
+    const seenUids = new Set<string>();
+    for (const v of o.inventory) {
+      if (out.inventory.length >= COSMETIC_INV_CAP) break;
+      if (!v || typeof v !== 'object') continue;
+      const inst = v as Partial<CosmeticInstance>;
+      if (typeof inst.uid !== 'string' || inst.uid.length === 0 || seenUids.has(inst.uid)) continue;
+      if (typeof inst.item !== 'string' || wardrobeItem(inst.item) === undefined) continue;
+      seenUids.add(inst.uid);
+      out.inventory.push({
+        uid: inst.uid.slice(0, 40),
+        item: inst.item,
+        at: typeof inst.at === 'number' && Number.isFinite(inst.at) && inst.at > 0 ? Math.floor(inst.at) : 0,
+        src: typeof inst.src === 'string' && inst.src.length > 0 ? inst.src.slice(0, 40) : 'legacy',
+      });
+    }
+  }
+  // v53 granted ledger: claimed ⇒ granted (migration seeds pre-v53 saves from `owned`), plus
+  // everything sitting unclaimed in the vault — the once-per-source gate stays airtight.
+  out.granted = [...new Set([...out.owned, ...ids(o.granted), ...out.inventory.map((i) => i.item)])];
   out.favorites = ids(o.favorites).filter((id) => ownedSet.has(id));
   out.seen = [...new Set([...out.seen, ...ids(o.seen)])];
-  out.pendingReveal = ids(o.pendingReveal).filter((id) => ownedSet.has(id));
+  const held = new Set([...out.owned, ...out.inventory.map((i) => i.item)]); // reveals need a live copy
+  out.pendingReveal = ids(o.pendingReveal).filter((id) => held.has(id));
   if (o.milestones && Array.isArray(o.milestones)) {
     out.milestones = [...new Set(o.milestones.filter((x): x is string => typeof x === 'string' && wardrobeMilestone(x) !== undefined))];
   }
@@ -1646,6 +1684,7 @@ function reconcileSaveProvenance(save: SaveData): SaveData {
     cosmeticIds: [...save.wardrobe.owned, ...save.cosmetics.owned],
     geneCardIds: save.genesDiscovered,
     mulliganPieceIds: Object.keys(save.mulliganDex),
+    cosmeticInstanceUids: save.wardrobe.inventory.map((i) => i.uid), // v53 unclaimed vault
   });
   return save;
 }

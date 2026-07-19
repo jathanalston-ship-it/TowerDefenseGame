@@ -48,8 +48,8 @@ export function WardrobeReveal(): JSX.Element | null {
       <div className="wdr-veil" role="dialog" aria-label={`${queue.length} cosmetics unlocked`}>
         <div className="wdr-card wdr-batch-card">
           <div className="wdr-burst" aria-hidden><i /><i /><i /><i /><i /><i /></div>
-          <div className="wdr-eyebrow">WARDROBE UNLOCKS</div>
-          <div className="wdr-name">{queue.length} cosmetics joined your wardrobe</div>
+          <div className="wdr-eyebrow">SPECIMENS ACQUIRED</div>
+          <div className="wdr-name">{queue.length} specimens landed in the Vault</div>
           <div className="wdr-batch" role="list">
             {queue.map((q) => (
               <span key={q.id} role="listitem" className="wdr-batch-row" style={{ ['--rc' as string]: WARDROBE_RARITY_COLOR[q.rarity] } as CSSProperties}>
@@ -60,7 +60,7 @@ export function WardrobeReveal(): JSX.Element | null {
             ))}
           </div>
           <button className="primary wdr-next" onClick={() => { setQueue([]); audio.cue('reveal'); }}>
-            Wear them well
+            To the Specimen Vault — claim to bind
           </button>
         </div>
       </div>
@@ -71,20 +71,20 @@ export function WardrobeReveal(): JSX.Element | null {
     <div className="wdr-veil" role="dialog" aria-label={`Cosmetic unlocked — ${d.name}`} onClick={next}>
       <div className={`wdr-card is-${d.rarity}`} style={{ ['--rc' as string]: rc, ['--pc' as string]: d.payload.accent ?? rc } as CSSProperties}>
         <div className="wdr-burst" aria-hidden><i /><i /><i /><i /><i /><i /></div>
-        <div className="wdr-eyebrow">WARDROBE UNLOCK · {kind.name}</div>
+        <div className="wdr-eyebrow">SPECIMEN ACQUIRED · {kind.name}</div>
         <div className="wdr-icon" aria-hidden>{d.payload.glyph ?? kind.icon}</div>
         <div className="wdr-rarity" style={{ color: rc }}>{d.rarity.toUpperCase()}</div>
         <div className="wdr-name">{d.name}</div>
         <p className="wdr-desc">{d.desc}</p>
         <div className="wdr-src">{sourceLabel(d.source)}</div>
         <button className="primary wdr-next" onClick={(e) => { e.stopPropagation(); next(); }}>
-          {idx + 1 < queue.length ? `Next (${idx + 1}/${queue.length})` : 'Wear it well'}
+          {idx + 1 < queue.length ? `Next (${idx + 1}/${queue.length})` : 'Claim it in the Vault'}
         </button>
         {queue.length - idx > 2 && (
           // A backlog (fast progress, restored save) can queue DOZENS of ceremonies — never
           // hold the player hostage to the chain: one tap banks the rest without the theater.
           <button className="wdr-skipall" onClick={(e) => { e.stopPropagation(); setQueue([]); audio.cue('ui'); }}>
-            Wear all {queue.length - idx} — skip the ceremony
+            Bank all {queue.length - idx} — skip the ceremony
           </button>
         )}
       </div>

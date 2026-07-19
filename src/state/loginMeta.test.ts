@@ -194,6 +194,8 @@ describe('identity surfaces ride the lifetime count', () => {
     for (let i = 0; i < 7; i++) meta.claimLogin(day(i));
     expect(meta.genomeSnapshot().lifetimeLogins).toBe(7);
     expect(meta.genomeRank().rating).toBeGreaterThan(rating0);
-    expect(meta.get().wardrobe.owned).toContain('wd_title_the_devoted');
+    // v53 two-state: the devotion title lands UNCLAIMED in the Specimen Vault.
+    expect(meta.get().wardrobe.granted).toContain('wd_title_the_devoted');
+    expect(meta.get().wardrobe.inventory.some((i) => i.item === 'wd_title_the_devoted')).toBe(true);
   });
 });

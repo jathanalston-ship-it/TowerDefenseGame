@@ -64,6 +64,16 @@ registerNotification({
   reason: (_s, n) => `${n} milestone${n === 1 ? '' : 's'} ready to digest`,
 });
 
+// Specimen Vault — unclaimed cosmetics wait on the claim-or-trade decision (v53,
+// docs/COSMETICS.md §claiming). Counts ITEMS not instances: five dupes of one piece are
+// one decision, not five badges.
+registerNotification({
+  id: 'cosmetic.unclaimed',
+  channel: 'specimens',
+  count: (s) => new Set(s.wardrobe.inventory.map((i) => i.item)).size,
+  reason: (_s, n) => `${n} specimen${n === 1 ? '' : 's'} await assimilation`,
+});
+
 // Boss Rush — today's FREE gauntlet entry is still unused (docs/BOSS-RUSH.md §stamina).
 // The quick-finisher surface (docs/REWARD-FREQUENCY.md §wind-down): a ~6-minute mode the
 // recommendation layer can hand a short session tail to once claims run dry. ISO keys

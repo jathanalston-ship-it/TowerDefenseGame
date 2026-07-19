@@ -240,6 +240,10 @@ export const SECURITY_ACTIONS: Record<string, ActionPolicy> = {
     id: 'metabolism.claim', category: 'claim', level: 'moderate', limit: M({ count: 30 }), dedupeMs: 400,
     analytics: 'sec_metabolism_claim', doc: 'Metabolism milestone claim (docs/METABOLISM.md) — threshold-gated by lifetime ledgers; one call clears a whole track, and clearing every track in a burst is legitimate.', at: META,
   },
+  'cosmetic.claim': {
+    id: 'cosmetic.claim', category: 'claim', level: 'moderate', limit: M({ count: 40 }), dedupeMs: 250,
+    analytics: 'sec_cosmetic_claim', doc: 'Cosmetic account-bind (docs/COSMETICS.md §claiming) — consumes one unclaimed Vault instance, irreversibly; a collector binding a backlog in a burst is legitimate.', at: META,
+  },
 
   // ── Network (server budgets — client-side courtesy limits on top of server truth) ──
   'sync.push': {
@@ -286,6 +290,7 @@ export const GUARDED_META_METHODS: Record<string, string> = {
   claimEventMilestone: 'event.claim',
   buyEventShopRow: 'event.buy',
   claimMetabolism: 'metabolism.claim',
+  claimCosmetic: 'cosmetic.claim',
   claimExpedition: 'expedition.claim',
   claimQuestMission: 'quest.claim',
   claimQuestFinale: 'quest.claim',

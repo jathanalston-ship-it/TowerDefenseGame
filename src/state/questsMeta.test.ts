@@ -116,7 +116,9 @@ describe('the weekly finale', () => {
     const s = meta.get();
     expect(s.quests.once).toContain('cutscene:wk_red_harvest');
     expect(s.quests.once).toContain('cosmetic:wk_red_harvest');
-    expect(s.wardrobe.owned).toContain('wd_projectiletrail_reaper_s_wake');
+    // v53 two-state: the exclusive lands UNCLAIMED in the Specimen Vault.
+    expect(s.wardrobe.inventory.some((i) => i.item === 'wd_projectiletrail_reaper_s_wake')).toBe(true);
+    expect(s.wardrobe.granted).toContain('wd_projectiletrail_reaper_s_wake');
     expect(s.wardrobe.pendingReveal).toContain('wd_projectiletrail_reaper_s_wake');
     expect(isCutsceneUnlocked(s, cutsceneDef('story:red_harvest')!)).toBe(true);
     expect(s.quests.questCompletions['wk_red_harvest']).toBe(1);
@@ -150,7 +152,8 @@ describe('the weekly finale', () => {
     const s = meta.get();
     expect(s.quests.questCompletions['wk_red_harvest']).toBe(2);
     expect(s.quests.once.filter((k) => k === 'cutscene:wk_red_harvest')).toHaveLength(1);
-    expect(s.wardrobe.owned.filter((id) => id === 'wd_projectiletrail_reaper_s_wake')).toHaveLength(1);
+    // Once-gated: the repeat mints NO second copy of the quest exclusive (v53 Vault model).
+    expect(s.wardrobe.inventory.filter((i) => i.item === 'wd_projectiletrail_reaper_s_wake')).toHaveLength(1);
     // The receipt itemizes: the auto-claimed flawless mission (14), the finale's 30, and the
     // substitution bundle. (Wallet delta stays ≥ their sum — evaluateAchievements may add
     // cross-system payouts on top, e.g. a lifetime-cores threshold crossing.)
@@ -243,7 +246,7 @@ describe('the main questline', () => {
     expect(lines).not.toBeNull();
     const s = meta.get();
     expect(s.quests.main.completions).toEqual(['mq_awakening']);
-    expect(s.wardrobe.owned).toContain('wd_emblem_first_eye');
+    expect(s.wardrobe.inventory.some((i) => i.item === 'wd_emblem_first_eye')).toBe(true); // v53 Vault
     expect(isCutsceneUnlocked(s, cutsceneDef('story:mq_awakening')!)).toBe(true);
     const after = meta.quests(T0);
     expect(after.main[0].state).toBe('done');

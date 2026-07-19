@@ -256,7 +256,7 @@ export function App(): JSX.Element {
 
     // Battlefield-global run effects: Genome Core seam + collection bonuses + any Campaign-event
     // Mutation boon the player chose before deploying (docs/CAMPAIGN-EVENTS.md).
-    effectsRef.current = [...meta.genomeRunEffects(), ...meta.collectionRunEffects(), ...meta.trophyRunEffects(), ...meta.infestationRunEffects(), ...meta.cutsceneRunEffects(), ...meta.mulliganGlobalEffects(), ...meta.battlePassRunEffects(), ...extraRunEffects];
+    effectsRef.current = [...meta.genomeRunEffects(), ...meta.collectionRunEffects(), ...meta.trophyRunEffects(), ...meta.infestationRunEffects(), ...meta.cutsceneRunEffects(), ...meta.mulliganGlobalEffects(), ...meta.battlePassRunEffects(), ...meta.wardrobeRunEffects(), ...extraRunEffects];
     modeRef.current = mode;
     stageRef.current = stage;
     telemetry.mode(mode.toLowerCase()); // events during the run stamp this mode

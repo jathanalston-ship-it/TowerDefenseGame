@@ -58,6 +58,7 @@ import { HarvestArrival, HarvestScreen } from './HarvestScreen';
 import { MetabolismScreen } from './MetabolismScreen';
 import { FrontScreen } from './FrontScreen';
 import { Wardrobe } from './Wardrobe';
+import { SpecimenVault } from './SpecimenVault';
 import { BattlePassScreen } from './BattlePassScreen';
 import { QuestBoard } from './QuestBoard';
 import { WardrobeReveal } from './components/WardrobeReveal';
@@ -598,6 +599,7 @@ export function Hub({
           {nav === 'quests' && <QuestBoard />}
           {nav === 'season' && <BattlePassScreen onStore={() => go('store')} />}
           {nav === 'phenotypes' && <Wardrobe />}
+          {nav === 'specimens' && <SpecimenVault />}
           {nav === 'collection' && <CollectionScreen />}
           {nav === 'store' && <PremiumStore />}
           {nav === 'profile' && <PlayerProfile onNavigate={(k) => go(k as NavKey)} />}
