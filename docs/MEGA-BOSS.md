@@ -197,6 +197,47 @@ The raid bar states WHY hp moves slowly instead of looking stuck:
 Each chip's tooltip names the weak-point counter that removes it (`MegaBannerSnapshot.
 regenActive/armored`; sealed derives from the open-organ list being empty).
 
+## §feel (2026-07-19) — the fight-timeline probe + the organ drought valve
+
+**"The fight feels janky" is now a number.** `npm run sim:mega` (`scripts/sim-mega-feel.ts`)
+runs REAL fights (10-tower forward board, ravager hero, live wave plans) across
+campaign/infinite/boss-rush × voraxis/meridia × t1/t3 and measures what the player's HP bar
+actually does — the rebuild-decision instrument:
+
+- **uptime** — % of fight time the boss hp is visibly falling;
+- **longest flat** — worst continuous stretch with no net hp loss, split by cause (regen
+  outpacing chip vs nothing landing);
+- **organ cadence** — windows opened/burst/expired + mean gap between openings;
+- **rotation & pacing** — telegraphs/interrupts/staggers, per-phase seconds, kill time vs
+  the reward model's expected bar, death-sequence seconds, waves held.
+
+It measures **fight time only**: campaign's draft pauses the whole sim (`paused` includes
+`'draft'`) and prep/settle freeze the mega (`megaBossSystem`/`towerSystem` only run in the
+`'wave'` branch of `step`) — the harness plays those beats like an impatient player
+(`chooseCard` first option, `startWave` immediately) and excludes them from the timeline.
+**The first probe draft missed this and read a "585 s campaign stall" that was actually the
+draft picker sitting open** — a harness bug worth remembering: any campaign instrument must
+drive the between-wave beats or it measures the menu, not the game.
+
+Enforced thresholds (exit 1): continuous modes flat ≤ 12 s / uptime ≥ 50 %; campaign
+(chunky by design — guns split between defense duty and the raid) flat ≤ 26 s / uptime ≥ 30 %.
+Measured 2026-07-19 (all PASS): kills 34–61 s of fight time vs 75–97 s reward bars, uptime
+69–80 %, longest flat 1.2–2.7 s, organ mean gap 4–10.5 s, death sequence 3.5 s, campaign
+holding 2 waves. **Verdict: no functionality rebuild warranted** — the earlier jank reports
+trace to the fixed targeting stall (§targeting), silent raid strikes (§modes), and waves
+slipping past live megas (§modes).
+
+**Organ drought valve** (`MEGA.organDroughtSec`, `megaOrganDrought` in game.ts): destroyed
+organs never return, so cast/timer triggers no-op on their scars — a persisting campaign
+mega that spends every destructible while hp still sits above the next `hpBelow` trigger
+would have zero windows left. When NOTHING has been open for `organDroughtSec` (22 s), the
+organism REGROWS one spent organ round-robin (`droughtRotor`; fresh hp, fresh window,
+"IT REGROWS —" float + `wpOpen` cue). Healthy fights never reach it (mean gap 4–10.5 s);
+`rt.lastOrganOpenAt` is stamped by every opening. Pinned by megaboss.test §organ drought
+valve (all-specs-destroyed ⇒ reopen within the window; a permanently-open organ ⇒ the valve
+stays silent and the rotor never moves). Golden-safe: the valve lives inside
+`megaBossSystem`, which never runs without a mega.
+
 ## §lone siege (2026-07) — the last thing standing turns on the Hive
 
 Before this pass, a mega whose wave plan was spent just **sat there soaking** — its aura verbs

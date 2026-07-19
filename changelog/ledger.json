@@ -1,6 +1,6 @@
 {
-  "lastSha": "e14695e5bfa5139e13fc7995070453cd7eb64e7f",
-  "commitsSinceDraft": 2,
+  "lastSha": "cdcec460861fda4cca8c07767eb5d21e626ce41c",
+  "commitsSinceDraft": 3,
   "content": {
     "tower": [
       "needle",
@@ -2943,6 +2943,10 @@
         {
           "cat": "Bosses",
           "text": "Boss Rush free-entry badge: volatile daily notification watermarks"
+        },
+        {
+          "cat": "Mega Bosses",
+          "text": "Mega bosses: raid hit audio + waves hold for the kill outside campaign"
         }
       ]
     }
@@ -5545,6 +5549,14 @@
       "date": "2026-07-19",
       "cat": "Bosses",
       "text": "Boss Rush free-entry badge: volatile daily notification watermarks",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "cdcec460861fda4cca8c07767eb5d21e626ce41c",
+      "date": "2026-07-19",
+      "cat": "Mega Bosses",
+      "text": "Mega bosses: raid hit audio + waves hold for the kill outside campaign",
       "internal": false,
       "needsReview": false
     }

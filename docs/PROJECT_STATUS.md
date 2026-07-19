@@ -3,7 +3,37 @@
 > Maintained at the END of every session (paired with `docs/AI_HANDOFF.md` — the constitution's
 > workflow step 4). This is the "where are we?" answer; `docs/GAME-STATE.md` remains the deeper
 > per-system built-vs-planned index, `docs/PROJECT_MANIFEST.md` the system map.
-> **Last updated:** 2026-07-19af (**MEGA-BOSS FOLLOW-UP — RAID HIT AUDIO + WAVE-BLOCKING
+> **Last updated:** 2026-07-19ag (**MEGA FIGHT-TIMELINE PROBE + ORGAN DROUGHT
+> VALVE — REBUILD VERDICT: NOT WARRANTED** (user: "fight timeline probe please." — the
+> instrument the af-handoff promised, grounding the "may have to rebuild" question in
+> numbers). PROBE: `npm run sim:mega` (scripts/sim-mega-feel.ts) runs 5 REAL fights
+> (10-tower forward board, ravager, live wave plans; voraxis campaign/infinite/rush t1,
+> meridia infinite t1, voraxis infinite t3) and measures hp-bar uptime, longest flat
+> stretch (+regen attribution), organ open/burst/expire cadence, telegraphs/interrupts/
+> staggers, per-phase seconds, kill vs `megaExpectedKillSec`, death-seq, waves held; exit
+> 1 outside THRESH (continuous flat ≤12s/uptime ≥50%; campaign ≤26s/≥30% — chunky by
+> design). MEASURED (all PASS): kills 34–61s fight-time vs 75–97s reward bars, uptime
+> 69–80%, flat ≤2.7s, organ gap 4–10.5s, death 3.5s, campaign holds 2 waves ⇒ **no
+> functionality rebuild**. THE TRAP THE FIRST DRAFT HIT (now a DIL edge + MEGA-BOSS.md
+> §feel): campaign's between-wave DRAFT pauses advance() entirely and megaBossSystem/
+> towerSystem run only in step's 'wave' branch — the un-driven harness measured a phantom
+> "585s stall" that was the draft picker; any campaign instrument must chooseCard +
+> startWave and count fight-time only. VALVE (real pathology kept from the analysis):
+> destroyed organs never return ⇒ cast/timer triggers no-op on scars ⇒ a persisting mega
+> with all destructibles spent + hp above the next hpBelow trigger has ZERO windows.
+> `MEGA.organDroughtSec` 22s + `megaOrganDrought` (game.ts, called in megaBossSystem's wp
+> lifecycle): nothing open for 22s ⇒ REGROW one spent organ round-robin (`droughtRotor`,
+> fresh hp/window, "IT REGROWS" float + wpOpen cue); `rt.lastOrganOpenAt` stamped by every
+> opening (openWeakPoint fresh-push + regrow paths). Healthy fights never reach it.
+> Golden-safe (inside megaBossSystem — never runs megaless; 12/12 pins green). Tests:
+> megaboss.test §organ drought valve (all-specs-destroyed ⇒ reopen ≤ window, fresh hp,
+> rotor advanced; permanently-open organ ⇒ valve silent, rotor 0) — 32/32, full suite
+> 305 files/2589, build, validate PASS. MEGA-BOSS.md +§feel; knowledge.ts +1 edge (DIL
+> regen 899 nodes/1691 edges). Next: play-validate campaign-10 live; if the between-wave
+> freeze still reads as "invincibility", fix is PRESENTATION (dormant pose during prep),
+> not sim. Previous below.)
+>
+> **2026-07-19af** (**MEGA-BOSS FOLLOW-UP — RAID HIT AUDIO + WAVE-BLOCKING
 > MEGAS OUTSIDE CAMPAIGN** (user-queued: silent weak-point strikes; megas must count as
 > wave enemies everywhere but campaign). AUDIO: raid strikes bypass projectiles ⇒ no
 > impact cue ever fired — `megaHitSfx()` plays one throttled `hit` (≥0.15s across the

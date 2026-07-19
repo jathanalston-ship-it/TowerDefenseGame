@@ -554,6 +554,7 @@ export const MEGA = {
   // DPS-race clock: kill it, keep interrupting, or bleed out. Its own spawns never break the
   // siege — only a resumed wave plan does.
   siegeGraceSec: 8, // quiet seconds before the organism turns on the Hive
+  organDroughtSec: 22, // no organ open for this long ⇒ the organism REGROWS a spent one (a persisting mega whose destructibles are all spent must never run out of counterplay)
   siegeLashEvery: 13, // opening seconds between lashes (the first arrives on the half-beat)
   siegeLashEveryMin: 8, // the cadence floor as landed blows compound
   siegeLashRamp: 0.88, // per landed lash: next interval × this
@@ -725,6 +726,10 @@ export interface MegaRuntime {
   lashT: number;
   lashWindup: number;
   lashes: number;
+  /** Sim-time an organ last OPENED — the drought valve's clock (docs/MEGA-BOSS.md §feel). */
+  lastOrganOpenAt: number;
+  /** Round-robin cursor so drought regrowth cycles the def's specs deterministically. */
+  droughtRotor: number;
   // Encounter statistics (RunStats + collection + achievements).
   wpDestroyed: number;
   wpKinds: WeakPointKind[];
@@ -780,6 +785,8 @@ export function createMegaRuntime(def: MegaBossDef, enc: MegaEncounter, encounte
     lashT: 0,
     lashWindup: 0,
     lashes: 0,
+    lastOrganOpenAt: 0,
+    droughtRotor: 0,
     wpDestroyed: 0,
     wpKinds: [],
     interrupts: 0,

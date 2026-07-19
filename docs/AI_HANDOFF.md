@@ -4,54 +4,60 @@
 > before committing. Read together with docs/PROJECT_STATUS.md and the latest
 > docs/VALIDATION_REPORT.md. Next session: start at docs/PROJECT_MANIFEST.md.
 
-- **Generated:** 2026-07-19 19:28 UTC · **Diff scope:** working tree vs HEAD
-- **Branch:** claude/zen-hawking-rh1gxl · **HEAD:** e14695e
+- **Generated:** 2026-07-19 20:02 UTC · **Diff scope:** working tree vs HEAD
+- **Branch:** claude/zen-hawking-rh1gxl · **HEAD:** cdcec46
 
 ## Summary of work completed
 
-MEGA-BOSS FOLLOW-UP (user-queued): (1) raid strikes were SILENT — the raid path bypasses
-projectiles so no impact cue ever fired; `megaHitSfx()` now plays one throttled `hit`
-(≥0.15 s apart across the whole raid — beam per-frame ticks can never machine-gun).
-(2) WAVE-BLOCKING MEGAS: in every mode except campaign a living mega now holds its wave
-open (`checkWaveEnd` gate — previously only daily/campaign-finales held, so an
-infinite/rush wave could slip past a live mega in the reinforcement-pulse gap, part of
-the reported jank). Campaign remains the one mode where a mega persists across waves;
-its finale still holds. The one thing to know: goldens are byte-identical (the gate only
-engages with a live mega, and megas never appear in golden runs) — pinned by the mega
-suite's new §modes pair (endless holds + releases on death; campaign mid-stage completes
-past it).
+FIGHT-TIMELINE PROBE (user-requested): `npm run sim:mega` (scripts/sim-mega-feel.ts) runs
+five REAL mega fights across campaign/infinite/boss-rush and measures the HP bar's truth —
+uptime, longest flat stretch (+ regen attribution), organ cadence, rotation, per-phase
+pacing, kill vs reward bar. **Verdict: no rebuild warranted** — all modes measure healthy
+(kills 34–61 s fight time, uptime 69–80 %, flat ≤ 2.7 s, organ gap 4–10.5 s). The one thing
+the next session must know: the first probe draft read a phantom "585 s campaign stall"
+that was actually the BETWEEN-WAVE DRAFT — `paused` includes `'draft'` and
+megaBossSystem/towerSystem only run in the `'wave'` branch, so any campaign instrument must
+drive `chooseCard`/`startWave` and measure fight time only (now a DIL edge). Also shipped
+the ORGAN DROUGHT VALVE (`MEGA.organDroughtSec` 22 s, `megaOrganDrought`): a persisting
+mega whose destructibles are all spent regrows one organ round-robin ("IT REGROWS") so
+campaign can never run out of counterplay — the spent-organ pathology is real even though
+the measured stall was not.
 
 ## Files modified
 
-- Source (2): `src/changelog/releases.gen.ts`, `src/core/game.ts`
+- Source (4): `src/changelog/releases.gen.ts`, `src/core/game.ts`, `src/core/megaboss.ts`, `src/dev/dil/knowledge.ts`
 - Tests (1): `src/core/megaboss.test.ts`
-- Docs (3): `docs/HISTORY.md`, `docs/MEGA-BOSS.md`, `docs/VALIDATION_REPORT.md`
+- Docs (4): `docs/DIL_GRAPH.md`, `docs/HISTORY.md`, `docs/MEGA-BOSS.md`, `docs/VALIDATION_REPORT.md`
+- New instrument: `scripts/sim-mega-feel.ts` (+ `sim:mega` npm script)
 
 ## Systems affected (from the dependency registry)
 
 - **chronicle** — `src/changelog/releases.gen.ts`
+- **dev-registry** — `src/dev/dil/knowledge.ts`
 - **engine** — `src/core/game.ts`
-- Consumer ring (verify, unchanged): arena, audio, boss-rush, bosses, campaign, daily, hero-cinematics, heroes, infinite, living-battlefield, mega-bosses, nemesis, onboarding, online-foundation, rendering, run-ui
+- **mega-bosses** — `src/core/megaboss.ts`
+- Consumer ring (verify, unchanged): arena, audio, boss-rush, bosses, campaign, cutscenes, daily, hero-cinematics, heroes, infinite, living-battlefield, nemesis, onboarding, online-foundation, pil, rendering, run-ui
 
 ## Power Score changes
 
-TODO: a Power-relevant system changed — state what moved (scale, buckets, preview surfaces) and which tests pin it.
+None — `organDroughtSec` is fight-pacing only and the new `MegaRuntime` fields
+(`lastOrganOpenAt`, `droughtRotor`) are runtime state; no Power source, bucket, or preview
+surface moved. (megaboss.ts is power-adjacent via the reward model, which is untouched —
+`megaExpectedKillSec` is only READ by the probe.)
 
 ## UI changes
 
-Surfaces in the blast radius: `App (UpdateBriefing popup)`, `GameView`, `Hud`, `Toolbar`, `BuildControls`, `Inspector`, `BuildPanel`
-
-- Audible only: raid strikes on weak points and body chips now play the standard combat
-  hit cue, throttled. No component/CSS change.
-- Behavioral: infinite/boss-rush waves hold while a mega stands (lone-siege pressure
-  keeps the fight active); campaign unchanged mid-stage.
-- Coverage: megaboss.test §modes (2 new laws) + full suite; no DOM surface moved.
+None — no component/CSS change. Player-visible additions are in-sim presentation only:
+the "IT REGROWS — <ORGAN>" float + `wpOpen` cue when the drought valve fires. Coverage:
+megaboss.test §organ drought valve (2 laws) + the probe's five headless fights.
 
 ## Documentation changes
 
-Registry says these move with the touched systems: `docs/CHANGELOG-PIPELINE.md`, `docs/ARCHITECTURE.md`, `docs/CODEMAP.md`, `docs/DESIGN.md`, `docs/CAMPAIGN.md`, `docs/CAMPAIGN-EVENTS.md`, `docs/MODE-IDENTITY.md`, `docs/STAGES.md`, `docs/ENDLESS-SCALING.md`, `docs/BOSS-RUSH.md`, `docs/DAILY-RUN.md`, `docs/ONLINE-FOUNDATION.md`, `docs/TRADING-PREP.md`, `docs/ARENA.md`, `docs/ARENA_MATCH_REPORT.md`, `docs/HEROES.md`, `docs/HERO-FRAMEWORK.md`, `docs/HERO-EVOLUTION.md`, `docs/HERO-SELECTION.md`, `docs/SLOTS.md`, `docs/HERO-CINEMATICS.md`, `docs/NEMESIS.md`, `docs/TUTORIAL.md`, `docs/HELP.md`, `docs/TUTORIAL-AUDIT.md`, `docs/GUIDED-UNLOCKS.md`, `docs/HUD.md`, `docs/READABILITY.md`, `docs/REWARD-PRESENTATION.md`, `docs/BOSS-DESIGN.md`, `docs/MEGA-BOSS.md`, `docs/RENDER-PIPELINE.md`, `docs/TOWER-VISUAL-EVOLUTION.md`, `docs/GAME-FEEL.md`, `docs/CAMERA.md`, `docs/COMBAT-VISUAL-STANDARDS.md`, `docs/LIVING-BATTLEFIELD.md`, `docs/MUSIC.md`
-
-- Updated: `docs/MEGA-BOSS.md` (+§modes + raid-audio note). The rest: no change needed.
+- Updated: `docs/MEGA-BOSS.md` (+§feel — probe model, thresholds, measured numbers,
+  drought valve, the draft-freeze harness lesson), `docs/DIL_GRAPH.md` (regen; +1
+  mega-bosses↔campaign conflictsWith edge), `docs/HISTORY.md` + `src/changelog/releases.gen.ts`
+  (chronicle), `docs/VALIDATION_REPORT.md` (PASS). The rest of the registry ring: no change
+  needed (no mode/hero/UI behavior moved).
 
 ## Save changes
 
@@ -59,29 +65,39 @@ None — save layer untouched.
 
 ## Known edge cases
 
-- The wave-hold gate keys on `this.mega !== null` FIRST — zero cost and zero behavior
-  change on every megaless run (golden safety by construction).
-- `megaHitSfx` throttle state is sim-time (`megaHitSfxT`) — deterministic, but do not
-  move the cue into the renderer (pause/speed must keep audio cadence honest).
-- Daily variant: the explicit `megaDailyEnc !== null` term is redundant with
-  `mode !== 'campaign'` today but kept as documentation of intent.
+- The valve deliberately REGROWS destroyed organs (fresh hp/window) — "destroyed specs
+  never return" now has exactly one exception, drought recovery; the scar ledger
+  (wpDestroyed/wpKinds) still counts every rupture. Lore cover: "IT REGROWS".
+- Voraxis' Armored Growth (`window: 0`, until-destroyed) can sit open indefinitely on a
+  passive board — the valve correctly stays silent then (§valve law 2: rotor never moves
+  while anything is open).
+- The probe's campaign thresholds (flat ≤ 26 s / uptime ≥ 30 %) are looser than continuous
+  (≤ 12 s / ≥ 50 %) because guns split between defense duty and the raid mid-wave —
+  measured headroom is large (1.2 s / 80 %).
+- `sim:mega` exits 1 on threshold breach — safe for CI, but it runs real fights (~40 s);
+  it is NOT part of `npm run validate` by design.
 
 ## Remaining technical debt
 
-- "Fight still feels kind of janky" (user) — the stall fix + wave-hold + audio address
-  the named symptoms; if jank reports persist after play-validation, the next candidate
-  is a dedicated mega probe capturing the full fight timeline (phase pacing, window
-  cadence, death-sequence feel) before any rebuild decision.
+- The probe's board is fixed (10 forward towers, ravager, god). A weak-board sweep (3–5
+  towers, no hero) would characterize the valve's firing envelope empirically; today only
+  the unit tests exercise it.
+- `mega.deathT > 0` ticks are excluded from fight time but the death sequence is measured
+  on the wall clock — fine while death runs un-gated in every mode; revisit if a mode ever
+  pauses mid-collapse.
 
 ## Recommended next tasks
 
-1. Play-validate a campaign-10 Voraxis fight AND an infinite mega (user's arenas).
-2. If feel reports persist: build the fight-timeline probe (entry: megaboss.test raid
-   harness + a scripts/sim-mega-feel.ts instrument) before considering a rebuild.
+1. Play-validate campaign-10 Voraxis live (`npm run dev`) — confirm the between-wave
+   freeze reads as intentional now that the fight itself measures healthy; if it still
+   feels like "invincibility", the fix is presentation (e.g. a dormant/burrowed pose
+   during prep), not sim.
+2. Optional: weak-board probe run (entry: `scripts/sim-mega-feel.ts` BOARD/`placed >= 10`)
+   to watch the drought valve fire in a real fight.
 
 ## Future expansion hooks
 
-- `megaHitSfx()` — the single raid-audio chokepoint; per-weak-point-kind timbres would
-  hang off the `wp.kind` at its two call sites.
-- The `checkWaveEnd` mega gate — a future mode joins the wave-hold rule by default
-  (anything not 'campaign' holds); opting out is a one-term change.
+- `scripts/sim-mega-feel.ts` `runs[]` — add any def/tier/mode/seed as a one-liner; THRESH
+  is the single feel contract.
+- `MEGA.organDroughtSec` — the one knob for drought cadence; `megaOrganDrought` (game.ts)
+  is the seam for smarter regrowth policies (e.g. prefer non-heart organs, tier-scaled hp).

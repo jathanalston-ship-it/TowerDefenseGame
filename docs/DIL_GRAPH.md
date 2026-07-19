@@ -1,6 +1,6 @@
 # DIL_GRAPH.md — the Design Intelligence Layer (GENERATED — `npm run dil -- regen`)
 
-> **The project's brain** (docs/DIL.md). 899 nodes · 1690 edges, built from the live
+> **The project's brain** (docs/DIL.md). 899 nodes · 1691 edges, built from the live
 > registries + curated knowledge (src/dev/dil/). **Query it instead of searching the repo:**
 > `npm run dil -- node <id>` · `affects <id>` · `requires <id>` · `missing <kind> <edge>` ·
 > `checklist tower <kind>` · `find <text>`. Edge kinds are bidirectional (19 kinds).
@@ -892,7 +892,7 @@ _at: src/core/campaign.ts, src/core/campaignEvents.ts, src/core/hash.ts, src/ui/
   - documentedBy ← `doc:CAMPAIGN-EVENTS.md`
   - documentedBy ← `doc:MODE-IDENTITY.md`
   - documentedBy ← `doc:STAGES.md`
-  - _…6 more (query: `npm run dil -- node system:campaign`)_
+  - _…7 more (query: `npm run dil -- node system:campaign`)_
 
 ### `system:infinite` — Infinite Mode
 
@@ -2178,6 +2178,7 @@ _at: src/core/megaboss.ts, src/render/megaboss.ts_
   - balances → `system:towers` — the ADAPT verb (Myriad) armors against the top-damage tower kind from a per-kind ledger at the raid-fire seams — single-kind stacking is punished by design; heroes bypass it
   - conflictsWith → `system:towers` — RAID GEOMETRY CONTRACT: organ descent (MEGA.minWeakPointY..maxWeakPointY, validator-enforced) + bodyBandY are calibrated to the REAL slot grid (map.ts pads y 740–900) and the shortest combat reach (maul 170) — moving pads, shrinking ranges, or authoring organs outside the band silently makes the raid untargetable (the Voraxis targeting bug)
   - conflictsWith → `system:engine` — HIVE-GUARDIAN OVERRIDE (game.ts megaRaidYield): raid targeting YIELDS while the Core is threatened (attackers locked / enemies past FINAL_DEFENSE_TOP_Y) — organ priority without it tunnels sparse early boards while wave 1 eats the Hive (the stage-10 contract wipe); any new raid-fire seam must consult the flag
+  - conflictsWith → `system:campaign` — FIGHT-TIME-ONLY MEASUREMENT (docs/MEGA-BOSS.md §feel): megaBossSystem/towerSystem run ONLY in the wave branch of step, and phase draft PAUSES advance entirely — any campaign mega instrument (scripts/sim-mega-feel.ts, npm run sim:mega) must drive chooseCard + startWave and exclude non-wave ticks, or it measures the menu (the phantom 585s stall); the organ drought valve (MEGA.organDroughtSec, megaOrganDrought) guarantees a spent-organ persisting mega regrows counterplay
   - gates → `system:loot` — THE AWAKENING GATE (docs/LOOTBOX.md §meter): the Bio-Container loot meter banks NOTHING until megaProgress.slain is non-empty (hasSlainMega) — syncRunLoot + finishRun queue leg both check it; run/stage caches, market ichor containers and the daily Bio-Cache bypass the meter and stay live from run 1
   - balances → `concept:power-score` — campaign mega stages display a RAID-PREMIUM recommended-power bar (campaign.ts C.megaStagePremium ×1.8, label/readiness only — enemy stats never read it): the raid is real threat the wave budget never priced in, and the sawtooth ladder is pinned by progressionLoop.test invariant 1
   - gates → `system:cutscenes` — ENFORCED CONTENT CONTRACT: every MEGA_BOSS_DEFS id must ship a defeat cutscene — cutscenes.test.ts fails the build without one

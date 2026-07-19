@@ -3277,10 +3277,12 @@ export class Game {
           wp.hp = wp.maxHp;
           wp.window = WEAK_POINT_DEFS[wp.kind].window;
           wp.emergeT = 0;
+          rt.lastOrganOpenAt = this.time;
           this.pushSfx('wpOpen');
         }
       }
     }
+    this.megaOrganDrought(def, rt);
     // ── LONE SIEGE (docs/MEGA-BOSS.md §lone siege): the organism never lets the fight stall.
     //    Once the wave plan is spent and the field has gone bare, it TURNS ON THE HIVE — direct,
     //    telegraphed HIVE LASHES on a cadence that tightens with every landed blow. Its own
@@ -3518,8 +3520,41 @@ export class Game {
       hp, maxHp: hp, armor: wd.armor, state: 'open', window: wd.window,
       regrow: 0, emergeT: 0, hitFlash: 0,
     });
+    rt.lastOrganOpenAt = this.time; // every opening resets the drought clock
     this.floats.push({ x: spec.x * WIDTH, y: spec.y - 26, text: `WEAK POINT — ${wd.name.toUpperCase()}`, color: def.palette.glow, life: 1.8 });
     this.pushSfx('wpOpen');
+  }
+
+  /** ORGAN DROUGHT VALVE (docs/MEGA-BOSS.md §feel): a persisting organism must never run out
+   *  of counterplay. Destroyed organs never return, so cast/timer triggers no-op on their
+   *  scars — a long campaign fight that spends every destructible while hp still sits above
+   *  the next hpBelow trigger would have ZERO windows left, only armored body chip vs regen.
+   *  When NOTHING has been open for organDroughtSec, the organism REGROWS one spent organ
+   *  (fresh hp, fresh window, same authored spec — cycled round-robin so long fights rotate
+   *  the whole kit). Healthy fights never reach the valve (probe-measured mean organ gap is
+   *  4–10s); the scar ledger (wpDestroyed/wpKinds) keeps counting every rupture. */
+  private megaOrganDrought(def: MegaBossDef, rt: MegaRuntime): void {
+    if (rt.weakPoints.some((w) => w.state === 'open')) return;
+    if (this.time - rt.lastOrganOpenAt < MEGA.organDroughtSec) return;
+    for (let n = 0; n < def.weakPoints.length; n++) {
+      const i = (rt.droughtRotor + n) % def.weakPoints.length;
+      const existing = rt.weakPoints.find((w) => w.spec === i);
+      if (existing) {
+        existing.state = 'open';
+        existing.hp = existing.maxHp;
+        existing.window = WEAK_POINT_DEFS[existing.kind].window;
+        existing.emergeT = 0;
+        existing.regrow = 0;
+        rt.lastOrganOpenAt = this.time;
+        rt.droughtRotor = i + 1;
+        this.floats.push({ x: existing.x, y: existing.y - 26, text: `IT REGROWS — ${WEAK_POINT_DEFS[existing.kind].name.toUpperCase()}`, color: megaBossDef(rt.defId)?.palette.glow ?? '#fff', life: 1.8 });
+        this.pushSfx('wpOpen');
+        return;
+      }
+      this.openWeakPoint(def, rt, i); // spec never seen this fight — a plain first opening
+      rt.droughtRotor = i + 1;
+      return;
+    }
   }
 
   /** Nearest OPEN weak point within `range` of (x,y), or null. */

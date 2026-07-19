@@ -656,3 +656,54 @@ describe('§modes (2026-07-19) — a mega counts as part of its wave outside cam
     expect((g as unknown as Guts).mega).not.toBeNull();
   });
 });
+
+describe('§organ drought valve (docs/MEGA-BOSS.md §feel) — counterplay can never run out', () => {
+  interface WpRec {
+    spec: number; kind: string; x: number; y: number; hp: number; maxHp: number; armor: number;
+    state: string; window: number; regrow: number; emergeT: number; hitFlash: number;
+  }
+  type Guts = { mega: { weakPoints: WpRec[]; lastOrganOpenAt: number; droughtRotor: number } | null };
+
+  it('with EVERY spec destroyed-forever, the organism regrows one organ within organDroughtSec', () => {
+    // The pathology the valve exists for: a persisting campaign mega whose destructible organs
+    // are all spent while its hp sits far above the next hpBelow trigger — cast/timer openings
+    // no-op on destroyed records, so without the valve the fight has zero counterplay left.
+    const g = new Game(23, NO_META, undefined, undefined, undefined, { mode: 'campaign' });
+    g.god = true;
+    g.spawnMegaBoss({ defId: 'voraxis', tier: 1 }, 'campaign');
+    g.startWave();
+    const rt = (g as unknown as Guts).mega!;
+    const def = MEGA_BOSS_DEFS.voraxis;
+    for (let i = 0; i < 60 * 8; i++) g.advance(SIM_DT); // let the opener choreography materialize
+    for (const wp of rt.weakPoints) wp.state = 'destroyed';
+    for (let i = 0; i < def.weakPoints.length; i++) { // unseen specs become scars too — no fresh trigger can fire
+      if (rt.weakPoints.some((w) => w.spec === i)) continue;
+      const s = def.weakPoints[i];
+      rt.weakPoints.push({ spec: i, kind: s.kind, x: s.x * WIDTH, y: s.y, hp: 0, maxHp: 100, armor: 0, state: 'destroyed', window: 0, regrow: Infinity, emergeT: 1, hitFlash: 0 });
+    }
+    expect(rt.weakPoints).toHaveLength(def.weakPoints.length);
+    let reopenedAt = -1; // seconds after the spend
+    for (let i = 0; i < 60 * (MEGA.organDroughtSec + 6) && reopenedAt < 0; i++) {
+      g.advance(SIM_DT);
+      if (rt.weakPoints.some((w) => w.state === 'open')) reopenedAt = (i + 1) / 60;
+    }
+    expect(reopenedAt).toBeGreaterThan(0); // the valve fired…
+    expect(reopenedAt).toBeLessThanOrEqual(MEGA.organDroughtSec + 6); // …inside the drought contract
+    const open = rt.weakPoints.find((w) => w.state === 'open')!;
+    expect(open.hp).toBe(open.maxHp); // a REGROWN organ: fresh hp, fresh window — a real second chance
+    expect(rt.droughtRotor).toBe(open.spec + 1); // round-robin cursor advanced past it
+  });
+
+  it('the valve stays silent while any window is open (it is a drought valve, not a faucet)', () => {
+    const g = new Game(29, NO_META, undefined, undefined, undefined, { mode: 'campaign' });
+    g.god = true;
+    g.spawnMegaBoss({ defId: 'voraxis', tier: 1 }, 'campaign');
+    g.startWave();
+    const rt = (g as unknown as Guts).mega!;
+    // Voraxis' Armored Growth opens at phase entry with window 0 (until destroyed) — with no
+    // towers it stays open forever, so no drought can exist and the rotor must never move.
+    for (let i = 0; i < 60 * (MEGA.organDroughtSec + 10); i++) g.advance(SIM_DT);
+    expect(rt.weakPoints.some((w) => w.state === 'open')).toBe(true);
+    expect(rt.droughtRotor).toBe(0);
+  });
+});

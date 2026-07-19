@@ -21,6 +21,10 @@ export const RELEASES: Release[] = [
       {
         "cat": "Bosses",
         "text": "Boss Rush free-entry badge: volatile daily notification watermarks"
+      },
+      {
+        "cat": "Mega Bosses",
+        "text": "Mega bosses: raid hit audio + waves hold for the kill outside campaign"
       }
     ]
   },
