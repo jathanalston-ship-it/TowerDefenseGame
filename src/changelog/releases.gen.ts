@@ -12,6 +12,11 @@ export const RELEASES: Release[] = [
     "entries": [
       {
         "cat": "Gameplay",
+        "text": "New system: Metabolism (Milestones)",
+        "major": true
+      },
+      {
+        "cat": "Gameplay",
         "text": "New system: Reward Loop Architecture",
         "major": true
       },
@@ -1386,6 +1391,10 @@ export const RELEASES: Release[] = [
       {
         "cat": "UI",
         "text": "Info hierarchy: the cognitive-load budget, measured and enforced"
+      },
+      {
+        "cat": "Website",
+        "text": "Chronicle + site sync for the info-hierarchy batch"
       }
     ]
   },

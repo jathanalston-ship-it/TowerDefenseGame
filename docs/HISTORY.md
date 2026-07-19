@@ -339,3 +339,4 @@
 - `399935b` **[Visuals]** Icon Language: the universal visual language + inheritance contract
 - `5c2cf07` **[Website]** Rituals: chronicle + site + handoff/status boards for the icon-language batch
 - `9c86433` **[UI]** Info hierarchy: the cognitive-load budget, measured and enforced
+- `044f787` **[Website]** Chronicle + site sync for the info-hierarchy batch

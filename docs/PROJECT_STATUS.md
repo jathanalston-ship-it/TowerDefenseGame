@@ -3,7 +3,33 @@
 > Maintained at the END of every session (paired with `docs/AI_HANDOFF.md` — the constitution's
 > workflow step 4). This is the "where are we?" answer; `docs/GAME-STATE.md` remains the deeper
 > per-system built-vs-planned index, `docs/PROJECT_MANIFEST.md` the system map.
-> **Last updated:** 2026-07-18v (**INFO HIERARCHY + THE COGNITIVE-LOAD BUDGET** (user
+> **Last updated:** 2026-07-19w (**METABOLISM — the recursive progression system** (user
+> brief: "the game should reward players for interacting with reward systems"; Claude's
+> lore name: Metabolism, screen 'Milestones'). NEW `src/state/metabolism.ts` — 22 infinite
+> milestone tracks over LIFETIME ledgers in 4 categories (Conquest ⚔ / Assimilation ❈ /
+> Evolution ⇧ / Rituals ✹). **Derive-first:** value(save) reads ledgers the game already
+> keeps, so veterans back-fill instantly; only FOUR ritual counters (containersOpened /
+> sporesAbsorbed / questsClaimed / passClaimed — the recursive heart: claiming rewards IS
+> a tracked verb) needed single chokepoint writes via `bumpCounter`. **Curves:** 1/2/5
+> nice-number thresholds forced strictly past prev (×2–2.5/step), rewards ceil(×1.35^tier)
+> — rewardGrowth < thresholdGrowth is THE anti-inflation invariant (per-tier EV decay
+> pinned by 19 tests). **Rewards speak applyRewardList BY CONSTRUCTION** (MetaRewardType ⊂
+> PassReward kinds; new kind `mulliganTissue`; bpXp rides grantPassXp post-persist);
+> `meta.claimMetabolism` batch-claims a track under guard `metabolism.claim` (registry +
+> GUARDED_META_METHODS row). Save v50→v51 (`metabolism` shape OWNED BY saveStore —
+> state/metabolism reads the type; core/ was wrong, boundaries.test forbids core→save).
+> SURFACES: MetabolismScreen in the Rewards hub (nav ✹ 'Milestones', stage-8 FEATURES
+> reveal — the back-fill bundle IS the reveal gift; mechanics teach row; notification
+> channel `metabolism` + CHANNEL_CLASS claim 85 → auto Ready-Chain). NEW GATE `npm run
+> sim:metabolism`: 5 personas × 120 days — no flooding (steady ≤10 tiers/day; veteran
+> day-1 jackpot 128 ≤ 200), no dead 30-day window for ANY persona (the zero-prebank
+> ritual counters keep veterans alive post-backfill — deliberate), window income decays,
+> steady-state ≤95 core-eq/day (minor share). A future system = ONE TrackDef row.
+> Verified: typecheck 0, suite 2535 green (302 files), build, mobilecheck CLEAN (30
+> screens), cogload 70/70 (metabolism: attn 1 = the hero Digest CTA), validate PASS.
+> docs/METABOLISM.md is the standard. Previous below.)
+>
+> **2026-07-18v** (**INFO HIERARCHY + THE COGNITIVE-LOAD BUDGET** (user
 > brief: three information layers; "players should only think about the next 30 seconds").
 > NEW INSTRUMENT `npm run cogload` (scripts/cogload.ts): walks every registry screen
 > (developed profile, desktop + landscape phone) measuring Layer-1 reality — attention-band

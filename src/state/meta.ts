@@ -146,6 +146,7 @@ import { PERFECT_WEEK, activeContracts, contractReport, contractSatisfied, contr
 import type { ContractRunFacts } from '../core/contracts';
 import { MAIN_QUESTLINE, QUESTS, foldCredit, missionById, missionCredit, questById, questComplete, msToWeeklyRotation, weeklyQuestFor, weeklyWindow } from '../core/quests';
 import { activeLiveEvents, eventTrack, liveEventLaneModsNow } from '../core/liveEvents';
+import { META_CATS, bumpCounter, metaTrack, rewardsFor, toPassRewards, trackView } from './metabolism';
 import type { MissionDef, QuestDef, QuestMetaEvent, QuestRunFacts } from '../core/quests';
 import { cutsceneDef } from '../core/cutscenes';
 import { cutsceneBus } from './navBus';
@@ -399,6 +400,11 @@ function applyRewardList(
         next = { ...next, bioSpores: Math.min(999, next.bioSpores + r.qty) };
         lines.push({ icon: '✺', label: `${r.qty} Bio-Spore${r.qty === 1 ? '' : 's'} — Roulette ammo` });
         events.push({ type: 'bioSpores', qty: r.qty });
+        break;
+      case 'mulliganTissue':
+        next = { ...next, mulliganTissue: next.mulliganTissue + r.qty };
+        lines.push({ icon: '⊛', label: `${r.qty} Mulligan Tissue` });
+        events.push({ type: 'mulliganTissue', qty: r.qty });
         break;
       case 'cosmetic': {
         const def = wardrobeItem(r.id);
@@ -3263,6 +3269,7 @@ export const meta = {
       lifetimeIchor: save.lifetimeIchor + ichorBleed,
       equipment: { ...save.equipment, inventory: [...save.equipment.inventory, ...chest.equipment] },
       pendingContainers: rest,
+      metabolism: bumpCounter(save.metabolism, 'containersOpened'), // Hatchery Habit (docs/METABOLISM.md)
     });
     this.creditQuests({ type: 'containers', n: 1 }); // the Vault feeds the directive layer (docs/QUESTS.md §credit)
     return { chest, label, color };
@@ -4245,7 +4252,7 @@ export const meta = {
     const season = seasonForWindow(bp.window);
     const rewards = seasonTracks(season.id)[track][level - 1];
     const { next, lines, stamina, events } = applyPassRewards(save, season, rewards, track, level);
-    persist(next);
+    persist({ ...next, metabolism: bumpCounter(next.metabolism, 'passClaimed') }); // Season Communion (docs/METABOLISM.md)
     if (stamina > 0) this.grantRushStamina(stamina, now);
     this.evaluateAchievements();
     rewardToast.pushMany(`Battle Pass — Level ${level}`, events);
@@ -4851,6 +4858,7 @@ export const meta = {
     const claimed = [...lane.claimed, missionId];
     persist({
       ...res.next,
+      metabolism: bumpCounter(res.next.metabolism, 'questsClaimed'), // Directive Devotion (docs/METABOLISM.md)
       quests: {
         ...res.next.quests,
         ...(quest.lane === 'weekly'
@@ -6242,6 +6250,7 @@ export const meta = {
       ...save,
       bioSpores: Math.max(0, save.bioSpores - spent), // a session consumes its banked ammo
       stats: { ...save.stats, rouletteSpores: save.stats.rouletteSpores + spent },
+      metabolism: bumpCounter(save.metabolism, 'sporesAbsorbed', spent), // Roulette Communion (docs/METABOLISM.md)
       timeline: pushTimeline(save.timeline, '✺', `Bio-Roulette — ${spores} spore${spores === 1 ? '' : 's'} absorbed`),
     };
     for (const r of rewards) {
@@ -6323,6 +6332,41 @@ export const meta = {
     });
     if (stamina > 0) this.grantRushStamina(stamina, now);
     rewardToast.pushMany(`${a.def.name} — ${row.name}`, events);
+    return lines;
+  },
+
+  /** Claim EVERY reached-but-unclaimed tier on one Metabolism track in a single gesture →
+   *  combined receipt lines (null = nothing claimable). Tier payouts run through
+   *  applyRewardList tier by tier (each tier's grown qty honored); bpXp rows feed the season
+   *  lane post-persist (the claimQuestMission pattern). Guarded ONCE for the whole batch — a
+   *  veteran's ten-tier back-fill is one gesture, not ten (the openContainers reasoning). */
+  claimMetabolism(trackId: string, now = Date.now()): PremiumReceiptLine[] | null {
+    if (!guardOk('metabolism.claim', trackId)) return null;
+    const def = metaTrack(trackId);
+    if (!def) return null;
+    const save = store.get();
+    const v = trackView(save, def);
+    if (v.claimable <= 0) return null;
+    let next = save;
+    const lines: PremiumReceiptLine[] = [];
+    const events: ToastEvents = [];
+    let stamina = 0;
+    let bpXp = 0;
+    for (let tier = v.claimed; tier < v.reached; tier++) {
+      const rows = rewardsFor(def, tier);
+      for (const r of rows) if (r.type === 'bpXp') bpXp += r.qty;
+      const res = applyRewardList(next, toPassRewards(rows), QUESTS.repeatFinale, null, 'metabolism');
+      next = res.next; lines.push(...res.lines); events.push(...res.events); stamina += res.stamina;
+    }
+    persist({ ...next, metabolism: { ...next.metabolism, claimed: { ...next.metabolism.claimed, [def.id]: v.reached } } });
+    if (stamina > 0) this.grantRushStamina(stamina, now);
+    if (bpXp > 0) {
+      this.grantPassXp('metabolism', bpXp, now);
+      lines.push({ icon: '❁', label: `+${bpXp} Season XP` });
+      events.push({ type: 'bpXp', qty: bpXp });
+    }
+    rewardToast.pushMany(`${META_CATS[def.cat].label} — ${def.name}`, events);
+    this.evaluateAchievements();
     return lines;
   },
 

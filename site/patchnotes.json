@@ -27,6 +27,10 @@
     "items": [
       {
         "cat": "Gameplay",
+        "text": "★ New system: Metabolism (Milestones)"
+      },
+      {
+        "cat": "Gameplay",
         "text": "★ New system: Reward Loop Architecture"
       },
       {
@@ -1320,6 +1324,10 @@
       {
         "cat": "UI",
         "text": "Info hierarchy: the cognitive-load budget, measured and enforced"
+      },
+      {
+        "cat": "Website",
+        "text": "Chronicle + site sync for the info-hierarchy batch"
       }
     ]
   },

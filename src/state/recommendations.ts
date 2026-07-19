@@ -40,6 +40,7 @@ export const CHANNEL_CLASS: Partial<Record<string, { kind: RecKind; score: numbe
   quests: { kind: 'claim', score: 90, why: 'Earned rewards are waiting on the Quest Board' },
   season: { kind: 'claim', score: 88, why: 'Season Pass levels are earned but unclaimed' },
   expeditions: { kind: 'claim', score: 86, why: 'Returned teams hold their spoils until you debrief' },
+  metabolism: { kind: 'claim', score: 85, why: 'Lifetime milestones are reached but undigested' },
   harvest: { kind: 'claim', score: 84, why: 'The Hive kept producing while you were away' },
   vault: { kind: 'open', score: 80, why: 'Banked containers do nothing until cracked' },
   towers: { kind: 'upgrade', score: 60, why: 'Affordable upgrades are idle power' },

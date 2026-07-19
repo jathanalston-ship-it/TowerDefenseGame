@@ -1,6 +1,6 @@
 {
-  "lastSha": "9c8643398cca654818b222efc7b5f2eb7ef71a3f",
-  "commitsSinceDraft": 2,
+  "lastSha": "044f787570544a566d5b2dbf3d3ed48f6bf86ffe",
+  "commitsSinceDraft": 3,
   "content": {
     "tower": [
       "needle",
@@ -260,6 +260,7 @@
       "nucleus",
       "hero-symbiotes",
       "idle-harvest",
+      "metabolism",
       "shards-economy",
       "collection",
       "evolution-hq",
@@ -1513,6 +1514,11 @@
       "title": "The Living World Update",
       "sealed": false,
       "entries": [
+        {
+          "cat": "Gameplay",
+          "text": "New system: Metabolism (Milestones)",
+          "major": true
+        },
         {
           "cat": "Gameplay",
           "text": "New system: Reward Loop Architecture",
@@ -2889,6 +2895,10 @@
         {
           "cat": "UI",
           "text": "Info hierarchy: the cognitive-load budget, measured and enforced"
+        },
+        {
+          "cat": "Website",
+          "text": "Chronicle + site sync for the info-hierarchy batch"
         }
       ]
     }
@@ -5411,6 +5421,14 @@
       "date": "2026-07-18",
       "cat": "UI",
       "text": "Info hierarchy: the cognitive-load budget, measured and enforced",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "044f787570544a566d5b2dbf3d3ed48f6bf86ffe",
+      "date": "2026-07-18",
+      "cat": "Website",
+      "text": "Chronicle + site sync for the info-hierarchy batch",
       "internal": false,
       "needsReview": false
     }

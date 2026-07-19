@@ -23,6 +23,7 @@ import { weekKey } from '../core/accountLevel';
 import { BP, levelOf } from '../core/battlePass';
 import { evolutionRosterSignal } from '../ui/evolutionTrackModel';
 import { activeLiveEvents, eventTrack } from '../core/liveEvents';
+import { metabolismClaimable } from './metabolism';
 
 // Genetic Vault — unopened bio-containers banked from runs, waiting to be cracked.
 registerNotification({
@@ -52,6 +53,15 @@ registerNotification({
   channel: 'vault',
   count: (s) => (s.bioSpores > 0 ? 1 : 0),
   reason: (s) => `${s.bioSpores} Bio-Spore${s.bioSpores === 1 ? '' : 's'} banked for the Roulette`,
+});
+
+// Metabolism — lifetime milestones reached but undigested (docs/METABOLISM.md). Derive-first:
+// normal play crosses thresholds on its own, so this lights up without any dedicated grind.
+registerNotification({
+  id: 'metabolism.claimable',
+  channel: 'metabolism',
+  count: (s) => metabolismClaimable(s),
+  reason: (_s, n) => `${n} milestone${n === 1 ? '' : 's'} ready to digest`,
 });
 
 // Boss Rush — today's FREE gauntlet entry is still unused (docs/BOSS-RUSH.md §stamina).

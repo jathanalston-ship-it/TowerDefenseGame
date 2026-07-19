@@ -236,6 +236,10 @@ export const SECURITY_ACTIONS: Record<string, ActionPolicy> = {
     id: 'event.buy', category: 'economy', level: 'moderate', limit: M({ count: 20 }), dedupeMs: 400,
     analytics: 'sec_event_buy', doc: 'Live-event shop purchase (docs/LIVE-EVENTS.md §6) — spends window-scoped tokens against finite stock.', at: META,
   },
+  'metabolism.claim': {
+    id: 'metabolism.claim', category: 'claim', level: 'moderate', limit: M({ count: 30 }), dedupeMs: 400,
+    analytics: 'sec_metabolism_claim', doc: 'Metabolism milestone claim (docs/METABOLISM.md) — threshold-gated by lifetime ledgers; one call clears a whole track, and clearing every track in a burst is legitimate.', at: META,
+  },
 
   // ── Network (server budgets — client-side courtesy limits on top of server truth) ──
   'sync.push': {
@@ -281,6 +285,7 @@ export const GUARDED_META_METHODS: Record<string, string> = {
   claimDirective: 'directive.claim',
   claimEventMilestone: 'event.claim',
   buyEventShopRow: 'event.buy',
+  claimMetabolism: 'metabolism.claim',
   claimExpedition: 'expedition.claim',
   claimQuestMission: 'quest.claim',
   claimQuestFinale: 'quest.claim',

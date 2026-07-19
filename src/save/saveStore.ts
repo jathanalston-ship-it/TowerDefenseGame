@@ -272,6 +272,9 @@ export interface SaveData {
   //    key not currently active (stale windows evaporate = the anti-inflation contract);
   //    absent ⇒ empty ledgers (additive, golden-safe). ──
   liveEvents: { tokens: Record<string, number>; claimed: Record<string, number[]>; shopBought: Record<string, Record<string, number>>; progress: Record<string, Record<string, number>> };
+  // ── Metabolism (schema v51, docs/METABOLISM.md) — the recursive-progression ledger:
+  //    four chokepoint counters + per-track claimed tiers. Everything else DERIVES live. ──
+  metabolism: MetabolismSave;
   // ── Gene Card DISCOVERY (v46, docs/CARDS.md §discovery) — the Archive's membership set:
   //    card ids the account has discovered (starters + Bio-Container finds). Drafting and
   //    permanent upgrades key on membership. Migration seeds STARTER_GENES ∪ every card the
@@ -550,8 +553,35 @@ export interface TutorialSave {
 // currently ACTIVE trio, so rotation retires state and the ledger is structurally bounded.
 // Missing ⇒ empty ledgers — purely additive, golden-safe. (v49 was reserved by The Front —
 // the twin batch's coordination note — so the ledgers take their own number.)
-export const CURRENT_VERSION = 50;
+// v50→v51: METABOLISM (docs/METABOLISM.md) — `metabolism` {counters, claimed}: the
+// recursive-progression ledger. Missing ⇒ zero counters (derived tracks back-fill free).
+export const CURRENT_VERSION = 51;
 
+// ── v51 Metabolism ledger (docs/METABOLISM.md) — the save SHAPE lives here (saveStore owns
+// module shapes); the track registry + curve math live in state/metabolism.ts. ──
+export interface MetabolismSave {
+  /** The four unledgered verbs, fed by single meta chokepoints. Everything else derives. */
+  counters: { containersOpened: number; sporesAbsorbed: number; questsClaimed: number; passClaimed: number };
+  /** Per-track CLAIMED tier count (tiers are claimed in order; reached-but-unclaimed = claimable). */
+  claimed: Record<string, number>;
+}
+export function defaultMetabolism(): MetabolismSave {
+  return { counters: { containersOpened: 0, sporesAbsorbed: 0, questsClaimed: 0, passClaimed: 0 }, claimed: {} };
+}
+
+function sanitizeMetabolism(raw: unknown): MetabolismSave {
+  const d = defaultMetabolism();
+  if (typeof raw !== 'object' || raw === null) return d;
+  const o = raw as { counters?: Record<string, unknown>; claimed?: Record<string, unknown> };
+  const num = (v: unknown): number => Math.max(0, Math.floor(Number(v) || 0));
+  if (typeof o.counters === 'object' && o.counters !== null) {
+    for (const k of Object.keys(d.counters) as (keyof MetabolismSave['counters'])[]) d.counters[k] = num(o.counters[k]);
+  }
+  if (typeof o.claimed === 'object' && o.claimed !== null) {
+    for (const [k, v] of Object.entries(o.claimed)) { const n = num(v); if (n > 0) d.claimed[k] = n; }
+  }
+  return d;
+}
 /** v50 Live Event ledgers: shape-check + clamp against the LIVE defs, prune stale windows.
  *  Wall-clock use is deliberate — staleness IS a function of now (same rule the claim paths
  *  apply); tests exercise it by seeding keys for the active trio vs long-dead windows. */
@@ -899,6 +929,7 @@ export function defaultSave(): SaveData {
     mulliganTissue: 0,
     bioSpores: 0,
     liveEvents: { tokens: {}, claimed: {}, shopBought: {}, progress: {} },
+    metabolism: defaultMetabolism(),
     genesDiscovered: [...STARTER_GENES], // the teaching set — every account starts with it
 
     createdAt: 0, // stamped by the first settle — defaultSave() must stay deterministic
@@ -1474,6 +1505,8 @@ function withDefaults(data: SaveData): SaveData {
     // not in the CURRENTLY-ACTIVE key set prunes on load — rotation retires state, tokens are
     // use-it-or-lose-it (the anti-inflation contract), and the ledger can never grow unbounded.
     liveEvents: sanitizeLiveEvents((data as { liveEvents?: unknown }).liveEvents),
+    // v50→v51: Metabolism ledger — counters floor to ints; claimed clamps in trackView.
+    metabolism: sanitizeMetabolism((data as { metabolism?: unknown }).metabolism),
     // v21→v22: Player Profile — identity fields + the milestone timeline (pre-v22 ⇒ defaults;
     // createdAt stays 0 until the first settle stamps it).
     createdAt: Math.max(0, Math.floor(Number((data as { createdAt?: unknown }).createdAt) || 0)),

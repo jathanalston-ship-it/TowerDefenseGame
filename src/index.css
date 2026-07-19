@@ -12927,3 +12927,46 @@ div.ah-spark { display: flex; align-items: center; justify-content: center; heig
 .rotate-gate-title { font-size: 20px; font-weight: 800; letter-spacing: 0.16em; color: var(--text); }
 .rotate-gate-body { font-size: 13px; line-height: 1.55; color: var(--muted); max-width: 300px; }
 .rotate-gate-ev { font-size: 11px; font-weight: 700; letter-spacing: 0.08em; color: var(--ev); }
+
+/* ── METABOLISM — the Milestones screen (docs/METABOLISM.md §screen) ─────────────────────
+   Progress-first rows; the hero Digest CTA is this screen's ONE attention-band animator
+   (docs/INFO-HIERARCHY.md §2) — rows signal readiness with color only. */
+.mtb-screen { display: flex; flex-direction: column; gap: 14px; }
+.mtb-ledger { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; margin-top: 6px; font-size: 12px; color: var(--muted); }
+.mtb-led-b b { color: var(--gold); }
+.mtb-dtl { font-size: 12px; }
+.mtb-heroRow { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; padding: 12px 14px; border-radius: var(--r-md);
+  border: 1px solid color-mix(in srgb, var(--gold) 45%, transparent);
+  background: linear-gradient(120deg, color-mix(in srgb, var(--gold) 12%, transparent), transparent 60%); }
+.mtb-hero-g { font-size: 26px; flex-shrink: 0; }
+.mtb-hero-t { flex: 1; min-width: 180px; display: flex; flex-direction: column; gap: 2px; font-size: 13px; }
+.mtb-hero-s { font-size: 11px; color: var(--muted); }
+.mtb-hero-cta { animation: mtb-hero-breathe 2.8s ease-in-out infinite; }
+@keyframes mtb-hero-breathe {
+  0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--gold) 45%, transparent); }
+  50% { box-shadow: 0 0 14px 3px color-mix(in srgb, var(--gold) 30%, transparent); }
+}
+.mtb-all { font-size: 11px; padding: 6px 10px; border-radius: var(--r-sm); border: 1px solid var(--line); background: transparent; color: var(--muted); cursor: pointer; }
+.mtb-all:hover { color: var(--text); border-color: var(--gold); }
+.mtb-cat-h { display: flex; align-items: baseline; gap: 8px; margin: 4px 0 8px; font-size: 13px; letter-spacing: 0.08em; text-transform: uppercase; }
+.mtb-cat-n { font-style: normal; font-size: 11px; color: var(--gold); text-transform: none; letter-spacing: 0; }
+.mtb-rows { display: flex; flex-direction: column; gap: 8px; }
+.mtb-row { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border: 1px solid var(--line); border-radius: var(--r-sm); }
+.mtb-row.is-ready { border-color: color-mix(in srgb, var(--gold) 55%, transparent); background: color-mix(in srgb, var(--gold) 5%, transparent); }
+.mtb-glyph { width: 26px; text-align: center; font-size: 16px; flex-shrink: 0; }
+.mtb-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+.mtb-line1 { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; min-width: 0; }
+.mtb-name { font-size: 13px; }
+.mtb-tier { font-size: 10px; color: var(--caustic); border: 1px solid color-mix(in srgb, var(--caustic) 45%, transparent); padding: 0 5px; border-radius: 999px; white-space: nowrap; }
+.mtb-pay { display: flex; gap: 5px; flex-wrap: wrap; margin-left: auto; }
+.mtb-pay em { font-style: normal; font-size: 10px; color: var(--muted); border: 1px solid var(--line); padding: 1px 6px; border-radius: 999px; white-space: nowrap; }
+.mtb-row.is-ready .mtb-pay em { color: var(--gold); border-color: color-mix(in srgb, var(--gold) 40%, transparent); }
+.mtb-bar { height: 6px; border-radius: 999px; background: color-mix(in srgb, var(--line) 60%, transparent); overflow: hidden; }
+.mtb-fill { display: block; height: 100%; border-radius: 999px; background: linear-gradient(90deg, var(--viral), var(--gold)); }
+.mtb-line2 { font-size: 11px; color: var(--muted); }
+.mtb-claim { white-space: nowrap; flex-shrink: 0; }
+@media (prefers-reduced-motion: reduce) { .mtb-hero-cta { animation: none; } }
+@media (max-width: 760px) {
+  .mtb-pay { margin-left: 0; width: 100%; }
+  .mtb-heroRow .mtb-hero-cta { flex: 1; }
+}

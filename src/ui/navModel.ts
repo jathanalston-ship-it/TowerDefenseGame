@@ -16,7 +16,7 @@
 import { t } from '../i18n';
 
 export type NavKey =
-  | 'home' | 'campaign' | 'infinite' | 'bossrush' | 'daily' | 'quests' | 'season' | 'arena' | 'infestation'
+  | 'home' | 'campaign' | 'infinite' | 'bossrush' | 'daily' | 'quests' | 'season' | 'arena' | 'infestation' | 'metabolism'
   | 'towers' | 'heroes' | 'expeditions' | 'evolution' | 'adaptation' | 'genes' | 'mulligans' | 'hive' | 'harvest'
   | 'vault' | 'market' | 'auction' | 'equipment' | 'gearcodex' | 'phenotypes' | 'collection'
   | 'store'
@@ -56,6 +56,7 @@ export const navGroups = (): NavGroup[] => [
     { key: 'vault', label: t('nav.vault'), mono: '◈' },
     { key: 'expeditions', label: t('nav.expeditions'), mono: '⇢' }, // Hero Expeditions (docs/EXPEDITIONS.md)
     { key: 'harvest', label: t('nav.harvest'), mono: '⬣' }, // Idle Harvest (docs/IDLE-HARVEST.md)
+    { key: 'metabolism', label: t('nav.metabolism'), mono: '✹' }, // Metabolism milestones (docs/METABOLISM.md)
   ] },
   { id: 'progression', title: t('nav.group.progression'), accent: 'var(--kinetic)', hub: { glyph: '✷', blurb: t('hub.blurb.progression') }, items: [
     { key: 'towers', label: t('nav.towers'), mono: 'T' },

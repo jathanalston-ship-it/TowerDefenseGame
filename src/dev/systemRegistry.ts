@@ -234,6 +234,14 @@ export const SYSTEMS: SystemDef[] = [
     localization: 'inline-en', docs: ['docs/IDLE-HARVEST.md'],
   },
   {
+    id: 'metabolism', name: 'Metabolism (Milestones)', purpose: 'The recursive progression layer (docs/METABOLISM.md): every lifetime quantity — kills, discoveries, claims, rituals — climbs an infinite nice-number milestone ladder whose payouts grow strictly slower than thresholds (the anti-inflation invariant). Derive-first: veterans back-fill on load; only four ritual counters need chokepoint writes.',
+    files: ['src/state/metabolism.ts', 'src/ui/MetabolismScreen.tsx'],
+    dependsOn: ['meta-store', 'battle-pass', 'notifications', 'security'], powerScore: 'none — pure economy (milestones pay currencies/containers, never Power directly)', save: ['metabolism'],
+    tutorial: [], help: ['metabolism'], hud: [],
+    ui: ['MetabolismScreen'], collection: 'none (the tracks ARE the recognition layer)', achievements: [],
+    localization: 'inline-en', docs: ['docs/METABOLISM.md'],
+  },
+  {
     id: 'shards-economy', name: 'Shards & Star Economy', purpose: 'Strain Samples / Apex Genome income + star cost curves + the PRIME infinite ladder past ★max (docs/PRIME-STRAINS.md; direct lanes bank, container opens convert duplicates).',
     files: ['src/core/prime.ts'],
     dependsOn: ['loot'], powerScore: 'stars bought with shards move the permanent bucket; PRIME levels ride the towers/heroes geomeans', save: ['shards', 'lifetimeShards'],

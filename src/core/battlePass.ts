@@ -147,6 +147,7 @@ export type PassReward =
   | { kind: 'runCache'; count: number }
   | { kind: 'rushStamina'; qty: number }
   | { kind: 'bioSpores'; qty: number } // banked Bio-Roulette ammo (save.bioSpores)
+  | { kind: 'mulliganTissue'; qty: number } // graft currency (docs/MULLIGANS.md) — Metabolism pays it
   | { kind: 'cosmetic'; id: string } // a Wardrobe item (already-owned on repeat → replacement)
   | { kind: 'phenotype'; family: string } // one unowned phenotype of the family, rolled at claim
   | { kind: 'passive'; id: string } // permanent passive (once EVER → replacement on repeats)
@@ -166,6 +167,7 @@ export function rewardLabel(r: PassReward): { icon: string; label: string } {
     case 'runCache': return { icon: '⬢', label: `${r.count}× Run Cache` };
     case 'rushStamina': return { icon: '☠', label: `${r.qty} Rush Stamina` };
     case 'bioSpores': return { icon: '✺', label: `${r.qty} Bio-Spore${r.qty === 1 ? '' : 's'} (Roulette)` };
+    case 'mulliganTissue': return { icon: '⊛', label: `${r.qty} Mulligan Tissue` };
     case 'cosmetic': return { icon: '❖', label: wardrobeItem(r.id)?.name ?? r.id };
     case 'phenotype': return { icon: '🧬', label: `${r.family[0].toUpperCase()}${r.family.slice(1)} Phenotype` };
     case 'passive': return { icon: '♾', label: passPassive(r.id)?.name ?? r.id };
@@ -188,6 +190,7 @@ export function rewardShort(r: PassReward): string {
     case 'runCache': return r.count > 1 ? `${r.count}× Run Cache` : 'Run Cache';
     case 'rushStamina': return `${r.qty} Stamina`;
     case 'bioSpores': return r.qty > 1 ? `${r.qty} Bio-Spores` : 'Bio-Spore';
+    case 'mulliganTissue': return `${r.qty} Tissue`;
     case 'cosmetic': return wardrobeItem(r.id)?.name ?? 'Cosmetic';
     case 'phenotype': return 'Phenotype';
     case 'passive': return passPassive(r.id)?.name ?? 'Passive';

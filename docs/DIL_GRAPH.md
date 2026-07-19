@@ -1,6 +1,6 @@
 # DIL_GRAPH.md — the Design Intelligence Layer (GENERATED — `npm run dil -- regen`)
 
-> **The project's brain** (docs/DIL.md). 889 nodes · 1669 edges, built from the live
+> **The project's brain** (docs/DIL.md). 893 nodes · 1680 edges, built from the live
 > registries + curated knowledge (src/dev/dil/). **Query it instead of searching the repo:**
 > `npm run dil -- node <id>` · `affects <id>` · `requires <id>` · `missing <kind> <edge>` ·
 > `checklist tower <kind>` · `find <text>`. Edge kinds are bidirectional (19 kinds).
@@ -26,7 +26,7 @@
 
 ### Power Score Index
 
-`system:engine` · `system:power` · `system:campaign` · `system:daily` · `system:mulligans` · `system:premium` · `system:arena` · `system:towers` · `system:mastery` · `system:heroes` · `system:equipment` · `system:crafting` · `system:loot` · `system:gene-cards` · `system:nucleus` · `system:hero-symbiotes` · `system:idle-harvest` · `system:shards-economy` · `system:collection` · `system:evolution-hq` · `system:prestige` · `system:splice-market` · `system:achievements` · `system:cosmetics` · `system:battle-pass` · `system:quests` · `system:run-ui` · `system:prediction` · `system:meta-store` · `system:mega-bosses` · `system:assimilation` · `system:analytics`
+`system:engine` · `system:power` · `system:campaign` · `system:daily` · `system:mulligans` · `system:premium` · `system:arena` · `system:towers` · `system:mastery` · `system:heroes` · `system:equipment` · `system:crafting` · `system:loot` · `system:gene-cards` · `system:nucleus` · `system:hero-symbiotes` · `system:idle-harvest` · `system:metabolism` · `system:shards-economy` · `system:collection` · `system:evolution-hq` · `system:prestige` · `system:splice-market` · `system:achievements` · `system:cosmetics` · `system:battle-pass` · `system:quests` · `system:run-ui` · `system:prediction` · `system:meta-store` · `system:mega-bosses` · `system:assimilation` · `system:analytics`
 
 ### Audio Index
 
@@ -34,11 +34,11 @@
 
 ### Teaching Index
 
-`tutorial:combat` · `help:mission-control` · `help:hive-intel` · `help:evolution-roadmap` · `help:power-advisor` · `help:field-guides` · `help:hive-core` · `help:biomorph-conveyor` · `help:strain-evolution` · `help:boss-sieges` · `help:boss-rush` · `help:bio-roulette` · `help:gene-essence` · `help:field-research` · `help:splice-market` · `help:auction-house` · `help:daily-login` · `help:hive-construction` · `help:gene-archive` · `help:gene-loadout` · `help:biomass` · `help:wave-rhythm` · `help:game-speed` · `help:emergency-defense` · `help:power-score` · `help:account-level` · `help:genome-rank` · `help:towers` · `help:tower-stars` · `help:tower-mastery` · `help:mastery-evolution` · `help:tower-branches` · `help:adaptation` · `help:mulligans` · `help:nucleus` · `help:gene-cards` · `help:heroes` · `help:hero-evolution` · `help:hero-slots` · `help:equipment` · `help:equipment-reforge` · `help:gear-codex` · `help:genome-core` · `help:prestige` · `help:ascension` · `help:containers` · `help:loot-meter` · `help:collection-codex` · `help:phenotype-lab` · `help:idle-harvest` · `help:arena` · `help:expeditions` · `help:quests` · `help:season-pass` · `help:premium-store` · `help:campaign` · `help:infinite` · `help:infestation` · `help:daily-run` · `help:contracts` · …25 more
+`tutorial:combat` · `help:mission-control` · `help:hive-intel` · `help:evolution-roadmap` · `help:power-advisor` · `help:field-guides` · `help:hive-core` · `help:biomorph-conveyor` · `help:strain-evolution` · `help:boss-sieges` · `help:boss-rush` · `help:bio-roulette` · `help:gene-essence` · `help:field-research` · `help:splice-market` · `help:auction-house` · `help:daily-login` · `help:hive-construction` · `help:gene-archive` · `help:gene-loadout` · `help:biomass` · `help:wave-rhythm` · `help:game-speed` · `help:emergency-defense` · `help:power-score` · `help:account-level` · `help:genome-rank` · `help:towers` · `help:tower-stars` · `help:tower-mastery` · `help:mastery-evolution` · `help:tower-branches` · `help:adaptation` · `help:mulligans` · `help:nucleus` · `help:gene-cards` · `help:heroes` · `help:hero-evolution` · `help:hero-slots` · `help:equipment` · `help:equipment-reforge` · `help:gear-codex` · `help:genome-core` · `help:prestige` · `help:ascension` · `help:containers` · `help:loot-meter` · `help:collection-codex` · `help:phenotype-lab` · `help:idle-harvest` · `help:metabolism` · `help:arena` · `help:expeditions` · `help:quests` · `help:season-pass` · `help:premium-store` · `help:campaign` · `help:infinite` · `help:infestation` · `help:daily-run` · …26 more
 
 ### Testing Index
 
-`system:engine` · `system:content-infra` · `system:power` · `system:campaign` · `system:pil` · `system:accounts` · `system:boss-rush` · `system:daily` · `system:mulligans` · `system:premium` · `system:net-backend` · `system:online-foundation` · `system:arena` · `system:towers` · `system:mastery` · `system:heroes` · `system:hero-cinematics` · `system:equipment` · `system:crafting` · `system:loot` · `system:gene-cards` · `system:nucleus` · `system:hero-symbiotes` · `system:idle-harvest` · `system:collection` · `system:evolution-hq` · `system:hive-construction` · `system:daily-login` · `system:prestige` · `system:currencies` · `system:splice-market` · `system:achievements` · `system:stats` · `system:liveops` · `system:directives` · `system:contracts` · `system:infestation` · `system:chronicle` · `system:cosmetics` · `system:battle-pass` · `system:quests` · `system:profile` · `system:onboarding` · `system:account-level` · `system:genome-rank` · `system:progression-gating` · `system:hub-shell` · `system:notifications` · `system:prediction` · `system:meta-store` · `system:bosses` · `system:mega-bosses` · `system:cutscenes` · `system:security` · `system:biomes` · `system:doctrines` · `system:difficulty` · `system:website` · `system:rendering` · `system:living-battlefield` · …5 more
+`system:engine` · `system:content-infra` · `system:power` · `system:campaign` · `system:pil` · `system:accounts` · `system:boss-rush` · `system:daily` · `system:mulligans` · `system:premium` · `system:net-backend` · `system:online-foundation` · `system:arena` · `system:towers` · `system:mastery` · `system:heroes` · `system:hero-cinematics` · `system:equipment` · `system:crafting` · `system:loot` · `system:gene-cards` · `system:nucleus` · `system:hero-symbiotes` · `system:idle-harvest` · `system:metabolism` · `system:collection` · `system:evolution-hq` · `system:hive-construction` · `system:daily-login` · `system:prestige` · `system:currencies` · `system:splice-market` · `system:achievements` · `system:stats` · `system:liveops` · `system:directives` · `system:contracts` · `system:infestation` · `system:chronicle` · `system:cosmetics` · `system:battle-pass` · `system:quests` · `system:profile` · `system:onboarding` · `system:account-level` · `system:genome-rank` · `system:progression-gating` · `system:hub-shell` · `system:notifications` · `system:prediction` · `system:meta-store` · `system:bosses` · `system:mega-bosses` · `system:cutscenes` · `system:security` · `system:biomes` · `system:doctrines` · `system:difficulty` · `system:website` · `system:rendering` · …6 more
 
 ### Developer Tooling Index
 
@@ -71,6 +71,7 @@ graph LR
   system_nucleus["Nucleus Mulligans"] -->|consumes| system_meta_store["Meta Store & Save"]
   system_hero_symbiotes["Hero Symbiotes"] -->|consumes| system_meta_store["Meta Store & Save"]
   system_idle_harvest["Idle Harvest"] -->|consumes| system_meta_store["Meta Store & Save"]
+  system_metabolism["Metabolism (Milestones)"] -->|consumes| system_meta_store["Meta Store & Save"]
   system_shards_economy["Shards & Star Economy"] -->|consumes| system_meta_store["Meta Store & Save"]
   system_evolution_hq["Evolution HQ (Genome Cores)"] -->|consumes| system_meta_store["Meta Store & Save"]
   system_hive_construction["Hive Construction"] -->|consumes| system_meta_store["Meta Store & Save"]
@@ -201,6 +202,7 @@ graph LR
   system_nucleus["Nucleus Mulligans"] -->|provides| concept_power_score["Power Score"]
   system_hero_symbiotes["Hero Symbiotes"] -->|provides| concept_power_score["Power Score"]
   system_idle_harvest["Idle Harvest"] -->|provides| concept_power_score["Power Score"]
+  system_metabolism["Metabolism (Milestones)"] -->|provides| concept_power_score["Power Score"]
   system_shards_economy["Shards & Star Economy"] -->|provides| concept_power_score["Power Score"]
   system_collection["Collections / Codex"] -->|provides| concept_power_score["Power Score"]
   system_evolution_hq["Evolution HQ (Genome Cores)"] -->|provides| concept_power_score["Power Score"]
@@ -345,6 +347,11 @@ graph LR
   system_idle_harvest["Idle Harvest"] -->|dependsOn| system_collection["Collections / Codex"]
   system_idle_harvest["Idle Harvest"] -->|dependsOn| system_account_level["Account Level (evergreen meta-progression)"]
   system_idle_harvest["Idle Harvest"] -->|consumes| system_meta_store["Meta Store & Save"]
+  system_metabolism["Metabolism (Milestones)"] -->|dependsOn| system_meta_store["Meta Store & Save"]
+  system_metabolism["Metabolism (Milestones)"] -->|dependsOn| system_battle_pass["Battle Pass (Season)"]
+  system_metabolism["Metabolism (Milestones)"] -->|dependsOn| system_notifications["Notifications"]
+  system_metabolism["Metabolism (Milestones)"] -->|dependsOn| system_security["Game Action Security Layer"]
+  system_metabolism["Metabolism (Milestones)"] -->|consumes| system_meta_store["Meta Store & Save"]
   system_shards_economy["Shards & Star Economy"] -->|dependsOn| system_loot["Loot & Bio-Containers"]
   system_shards_economy["Shards & Star Economy"] -->|consumes| system_meta_store["Meta Store & Save"]
   system_collection["Collections / Codex"] -->|dependsOn| system_content_infra["Content Infrastructure"]
@@ -582,7 +589,7 @@ ONE account-strength number folded from every permanent bucket + the in-run temp
   - providedBy ← `system:heroes` — hero stars/evolution feed permanent + temporary buckets
   - providedBy ← `system:equipment` — equipped items score via itemPower into the gear bucket
   - providedBy ← `system:crafting` — reforged items re-score through the gear bucket
-  - _…29 more (query: `npm run dil -- node concept:power-score`)_
+  - _…30 more (query: `npm run dil -- node concept:power-score`)_
 
 ### `concept:determinism` — Determinism
 
@@ -673,6 +680,7 @@ Every system is built for the CLAUDE.md content targets (100 towers, 30 heroes, 
   - extendedBy ← `system:analytics` — UNIFIED EVENTS (core/analyticsEvents.ts): ONE AN_EVENTS row declares an event completely (dim/value/extras/rollup/durable/sample) and is validated identically by the client emitter, the server ingest, and the sims — a future event is one row + one telemetry.emit call; hot signals NEVER leave raw (61-bucket FPS histogram, 12×8 heat grid, FlowFold currency sums, djb2 error hashes, waveBand loss dims) so rollup cardinality = kinds×dims×versions×days, INDEPENDENT of player count — that structural bound is the whole 100k-player scale story
   - extendedBy ← `system:reward-architecture` — THE LOOP REGISTRY (core/rewardLoops.ts): ~40 REWARD_SOURCES rows classify every pathway into 5 loops with feeds[] — rewardLoopProblems() FAILS THE BUILD on a dead-end source (feeds only its own loop), a single-cadence loop, an unfed loop, or a broken 5-loop chain; a NEW reward source is one row and inherits rotation/handoffs/docs. Rebalance rule of the house: convert lumps to drips ONLY at exactly-equal window totals (campaignSurveyBonus = milestoneCore/milestoneEvery per stage, pinned; landmark cadence stays every-5th for map/finales) — never raise totals, never touch loot-meter EV or MODE_REWARDS identity lanes
   - extendedBy ← `system:currencies` — LOCALIZED WALLET LAWS (core/currencies.ts): every CurrencyDef declares domain (the ONE system it upgrades; 'account' reserved for Genome Cores + Ichor) and earnedFrom (≥2 distinct gameplay sources; prestige exempt — Molt IS its identity); currencyProblems() enforces unique names/colors and ONE specialized wallet per domain, so "add a currency" = one registry row and the anti-overlap law holds itself. Adding a CurrencyId forces every Record<CurrencyId,…> surface at compile time (CurrencyIcon SVG map)
+  - extendedBy ← `system:metabolism` — DERIVE-FIRST MILESTONES (state/metabolism.ts): every META_TRACKS row watches a lifetime ledger via value(save) — veterans back-fill on load, zero writes; ONLY four ritual counters need chokepoints (openContainer/grantRouletteRewards/claimQuestMission/claimPassLevel → bumpCounter). Curves: nice-number 1/2/5 ladder forced strictly past prev (×2–2.5/step effective), rewards ceil(base×1.35^tier) — rewardGrowth < thresholdGrowth is THE anti-inflation invariant (EV per action strictly decays, pinned per-tier by metabolism.test). A future system is ONE TrackDef row; value() must read lifetime ledgers (lifetimeShards), never spendable balances (shards). MetaRewardType is BY CONSTRUCTION the applyRewardList vocabulary (toPassRewards; bpXp rides grantPassXp post-persist; mulliganTissue added to PassReward for it). claimMetabolism batch-claims a whole track under guard metabolism.claim and deliberately feeds NO counter — the recursion terminates. No Power by design
 
 ## Currencies (8)
 
@@ -776,7 +784,7 @@ The premium reserve — never farmable; bled from achievements, collection ranks
 
   - rewardedBy ← `system:daily-login` — a rare small lane (weight 3, clamped 2–6/day) — deliberately below the never-farmable premium posture thresholds
 
-## Systems (74)
+## Systems (75)
 
 ### `system:engine` — Sim Engine
 
@@ -1442,6 +1450,23 @@ _at: src/core/idleHarvest.ts, src/ui/HarvestScreen.tsx_
   - modifiedBy ← `system:hive-construction` — MERGED LOOP (core/hiveProduction.ts): every built organ tier feeds ONE themed production lane (ORGAN_COUPLINGS — validator fails an organ with no coupling); fully-grown organ PAIRS reveal HIVE_SYNERGIES; hiveProductionBonus(built) is a caps-clamped bundle consumed by idleAccrual/rollIdleHarvest through OPTIONAL identity-default args — goldens/fresh saves byte-unchanged, NO save migration; guardrail re-proven with organs MAXED (hiveProduction.test.ts); organs still NEVER touch combat Power; both screens share ui/components/HiveOrganism.tsx (Growth ⇄ Production tabs) — never rebuild the diagram per screen
   - modifiedBy ← `system:currencies` — CHITIN (hiveMaterials, v48): Hive-Production organs (buyIdleNode/idleNodeCost/idleSuggestion + idleView.affordable/chitin) price in Chitin, NEVER Genome Cores; income = a GUARANTEED hopper top-slice (IDLE.hiveMatsShare of the budget BEFORE the weighted roll — deterministic so organ growth is never drought-gated; the slice comes OUT of the budget, total harvest value unchanged; the lane lands LAST in roll order so a BLOOM's rare still leads) + scavenge-expedition lanes value-SWAPPED from cores at 1:1 (patrol 15+15, harvest 80+30, graveyard 250+90 — old totals pinned in localizedEconomy.test) + the Chitin Lode rare find; migration seeds 60+20×Σ organ levels when the field is absent; pace parity ±25% pinned by npm run sim:economy
 
+### `system:metabolism` — Metabolism (Milestones)
+
+The recursive progression layer (docs/METABOLISM.md): every lifetime quantity — kills, discoveries, claims, rituals — climbs an infinite nice-number milestone ladder whose payouts grow strictly slower than thresholds (the anti-inflation invariant). Derive-first: veterans back-fill on load; only four ritual counters need chokepoint writes.
+
+_at: src/state/metabolism.ts, src/ui/MetabolismScreen.tsx_
+
+  - dependsOn → `system:meta-store`
+  - dependsOn → `system:battle-pass`
+  - dependsOn → `system:notifications`
+  - dependsOn → `system:security`
+  - provides → `concept:power-score` — none — pure economy (milestones pay currencies/containers, never Power directly)
+  - consumes → `system:meta-store` — owns save field 'metabolism'
+  - extends → `concept:scalability` — DERIVE-FIRST MILESTONES (state/metabolism.ts): every META_TRACKS row watches a lifetime ledger via value(save) — veterans back-fill on load, zero writes; ONLY four ritual counters need chokepoints (openContainer/grantRouletteRewards/claimQuestMission/claimPassLevel → bumpCounter). Curves: nice-number 1/2/5 ladder forced strictly past prev (×2–2.5/step effective), rewards ceil(base×1.35^tier) — rewardGrowth < thresholdGrowth is THE anti-inflation invariant (EV per action strictly decays, pinned per-tier by metabolism.test). A future system is ONE TrackDef row; value() must read lifetime ledgers (lifetimeShards), never spendable balances (shards). MetaRewardType is BY CONSTRUCTION the applyRewardList vocabulary (toPassRewards; bpXp rides grantPassXp post-persist; mulliganTissue added to PassReward for it). claimMetabolism batch-claims a whole track under guard metabolism.claim and deliberately feeds NO counter — the recursion terminates. No Power by design
+  - taughtBy ← `help:metabolism`
+  - documentedBy ← `doc:METABOLISM.md`
+  - testedBy ← `test:src/state/metabolism.test.ts`
+
 ### `system:shards-economy` — Shards & Star Economy
 
 Strain Samples / Apex Genome income + star cost curves + the PRIME infinite ladder past ★max (docs/PRIME-STRAINS.md; direct lanes bank, container opens convert duplicates).
@@ -1840,6 +1865,7 @@ _at: src/core/battlePass.ts, src/ui/BattlePassScreen.tsx_
   - consumes → `system:premium` — the store 'bp_premium' season SKU and the 250-Ichor door set the SAME per-season flag; offerValueIchor hardcodes 250 (functions/ bundle stays lean) and battlePass.test.ts pins it against BP.premiumIchor; the FIRST-ever purchase is always the half-price 'bp_premium_first' SKU (seasonOfferFor shows one door; meta.offerPurchasable refuses while premium is owned this window)
   - conflictsWith → `concept:golden-test` — permanents/stacks fold at the META seams (effects + accountEconomyBonuses) only — a fresh save must fold NOTHING or the pinned seeds break
   - requiredBy ← `system:arena`
+  - requiredBy ← `system:metabolism`
   - requiredBy ← `system:daily-login`
   - requiredBy ← `system:quests`
   - documentedBy ← `doc:BATTLEPASS.md`
@@ -1922,7 +1948,7 @@ _at: src/ui/InitCutscene.tsx, src/render/introScenes.ts, src/core/tutorial.ts, s
   - contains ← `help:strain-evolution`
   - contains ← `help:boss-sieges`
   - contains ← `help:boss-rush`
-  - _…63 more (query: `npm run dil -- node system:onboarding`)_
+  - _…64 more (query: `npm run dil -- node system:onboarding`)_
 
 ### `system:account-level` — Account Level (evergreen meta-progression)
 
@@ -2056,6 +2082,7 @@ _at: src/state/notifications.ts, src/state/notificationSources.ts, src/state/rew
   - modifies → `system:hub-shell` — CEREMONY LAYER (ui/components/CeremonyLayer.tsx + WalletChip.tsx — REWARD-PRESENTATION.md §ceremony): the physical reward moment rides rewardToast.tap() — burst at the claim point, icon flight into the data-cur wallet chip, chip bump on arrival, WalletChip rolls prev→next; every bus-announced grant (all 18 meta push points) inherits it with ZERO per-surface wiring, and a silent grant is a bug in the SOURCE (push the bus), never a reason to wire the layer directly. reduced-motion disables the whole layer; placards remain the announcer.
   - modifies → `system:hub-shell` — READY CHAIN (state/readyChain.ts — docs/HUB-FLOW.md): the hub's live harvest queue derives from notifications.live() (NO seen-watermark — badges/reasons stay the attention lane, the chain is the truth lane; a visited-but-unclaimed reward must never go dark) classified by the SAME exported CHANNEL_CLASS claim/open vocabulary as recommendations. Surfaces: Command Center centerpiece leads the recommend widget, hub doors + landing cards + portrait tabs/rows pulse via chainNavs() (readiness BREATHES via .is-ready, novelty stays the numeric badge), NextUp hands node→node with the remaining count before falling back to rotated recommendations. A future claim surface joins by registering a notification source — no chain wiring.
   - provides → `system:hub-shell` — THE CLAIM POPUP (2026-07, NOTIFICATIONS.md §claim-popups): every hub claim — quest missions/finales, pass levels/claim-all/premium unlock, weekly directives, wardrobe milestones — pushes its PremiumReceiptLine[] to state/rewardToast; ONE RewardToaster (App, menu only) presents it bold + itemized. The "view it" jump derives from receipt ICONS (single-sourced in meta.applyRewardList/rewardLabel — change an icon there and update rewardToast DESTINATIONS) and routes via navBus. Ceremonial reveals (BioCache, VaultReveal, WardrobeReveal, PremiumStore, SpoilsCard, GenomePromotion) deliberately stay bespoke — the popup is the RECEIPT layer, not the ceremony layer
+  - requiredBy ← `system:metabolism`
   - requiredBy ← `system:hub-shell`
   - taughtBy ← `help:hive-intel`
   - documentedBy ← `doc:NOTIFICATIONS.md`
@@ -2103,7 +2130,7 @@ _at: src/state/meta.ts, src/state/store.ts, src/state/prefs.ts, src/state/devRes
   - consumedBy ← `system:mulligans` — owns save field 'mulligans'
   - consumedBy ← `system:mulligans` — owns save field 'mulliganDex'
   - consumedBy ← `system:premium` — owns save field 'premium'
-  - _…123 more (query: `npm run dil -- node system:meta-store`)_
+  - _…125 more (query: `npm run dil -- node system:meta-store`)_
 
 ### `system:bosses` — Bosses
 
@@ -2191,6 +2218,7 @@ _at: src/security/actionGuard.ts, src/security/registry.ts, src/security/tabArbi
   - consumes → `concept:determinism` — guards live OUTSIDE the sim: wall-clock rate limits on in-run verbs would corrupt replays/dailies/goldens — in-run spam is absorbed at the UI input boundary instead
   - conflictsWith → `concept:golden-test` — the guard layer is window-gated INERT in Node — the deterministic suite + economy personas hammer meta methods by design; a jsdom test environment would silently activate it (keep tests in Node or setSecurityEnabled(false))
   - modifies → `system:meta-store` — tabArbiter: the newest writing tab owns the save — persist() stops disk writes in stale tabs (storage-event takeover latch) and finishRun replays return the settle-once cached outcome; both inherited by all future mutations/run modes
+  - requiredBy ← `system:metabolism`
   - documentedBy ← `doc:SECURITY.md`
   - testedBy ← `test:src/security/actionGuard.test.ts`
   - testedBy ← `test:src/security/tabArbiter.test.ts`
@@ -3144,7 +3172,7 @@ _at: src/core/tutorial.ts_
   - teaches → `system:onboarding`
   - teaches → `system:run-ui`
 
-## Help Topics (61)
+## Help Topics (62)
 
 - `help:mission-control` — Your standing orders — the answer to "what should I do now?" _(partOf `system:onboarding`, teaches `system:power`)_
 - `help:hive-intel` — The live intel feed — banked value, ready moves, recent milestones. _(partOf `system:onboarding`, teaches `system:notifications`)_
@@ -3195,6 +3223,7 @@ _at: src/core/tutorial.ts_
 - `help:collection-codex` — Rank badges, bonuses and Power for everything you catalogue. _(partOf `system:onboarding`)_
 - `help:phenotype-lab` — Cosmetic phenotypes for every strain and champion. _(partOf `system:onboarding`)_
 - `help:idle-harvest` — The Hive is the engine; the harvest is its output. It produces while you are away — collect on return, grow the body to produce more. _(partOf `system:onboarding`, teaches `system:idle-harvest`)_
+- `help:metabolism` — The organism digests everything you do. Every lifetime quantity — kills, discoveries, claims, rituals — climbs an endless milestone ladder, and every reached tier pays. _(partOf `system:onboarding`, teaches `system:metabolism`)_
 - `help:arena` — Ranked live PvP: mirrored battlefields, one shared assault, the survivor takes the rating. _(partOf `system:onboarding`, teaches `system:arena`)_
 - `help:expeditions` — Benched heroes run real-time away-missions and return carrying Cores, Essence and materials. _(partOf `system:onboarding`, teaches `system:expeditions`)_
 - `help:quests` — Weekly directives and the story questline. _(partOf `system:onboarding`)_
@@ -3547,7 +3576,7 @@ _at: site/guides.ts → /guides/live-events/_
 - `achievement:arena_crown` — Claim Arena Pass level 100 — a permanently arena-exclusive strain is yours forever. _(partOf `system:achievements`, rewards `currency:genome-cores`, references `system:arena`)_
 - `achievement:arena_perennial` — Close three Arena seasons with a record on the books. _(partOf `system:achievements`, rewards `currency:genome-cores`, references `system:arena`)_
 
-## Documentation (184)
+## Documentation (185)
 
 - `doc:ACCOUNT-LEVEL.md` — project documentation _(documents `system:account-level`)_
 - `doc:ACCOUNTS.md` — project documentation _(documents `system:accounts`)_
@@ -3651,6 +3680,7 @@ _at: site/guides.ts → /guides/live-events/_
 - `doc:MARKET.md` — project documentation _(documents `system:splice-market`)_
 - `doc:MASTERY.md` — project documentation _(documents `system:mastery`)_
 - `doc:MEGA-BOSS.md` — project documentation _(documents `system:mega-bosses`)_
+- `doc:METABOLISM.md` — project documentation _(documents `system:metabolism`)_
 - `doc:MISSION-CONTROL.md` — project documentation _(documents `system:power`)_
 - `doc:MODE-IDENTITY.md` — project documentation _(documents `system:campaign`, documents `system:infinite`, documents `system:boss-rush`)_
 - `doc:MULLIGANS.md` — project documentation _(documents `system:mulligans`)_
@@ -3734,7 +3764,7 @@ _at: site/guides.ts → /guides/live-events/_
 - `doc:VOWS.md` — project documentation _(documents `system:prestige`)_
 - `doc:WEBSITE.md` — project documentation _(documents `system:field-research`, documents `system:website`)_
 
-## Tests (294)
+## Tests (295)
 
 - `test:src/audio/music.test.ts` — automated validation _(tests `system:audio`)_
 - `test:src/changelog/classify.test.ts` — automated validation _(tests `system:chronicle`)_
@@ -3986,6 +4016,7 @@ _at: site/guides.ts → /guides/live-events/_
 - `test:src/state/mechanics.test.ts` — automated validation _(tests `system:onboarding`)_
 - `test:src/state/megacollection.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/state/meta.test.ts` — automated validation _(tests `system:meta-store`)_
+- `test:src/state/metabolism.test.ts` — automated validation _(tests `system:metabolism`)_
 - `test:src/state/missionControl.test.ts` — automated validation _(tests `system:power`)_
 - `test:src/state/modeGates.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/state/mulligan.test.ts` — automated validation _(tests `system:engine`)_

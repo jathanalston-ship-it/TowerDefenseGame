@@ -104,6 +104,10 @@ graph TD
   idle_harvest --> genome_rank
   idle_harvest --> collection
   idle_harvest --> account_level
+  metabolism --> meta_store
+  metabolism --> battle_pass
+  metabolism --> notifications
+  metabolism --> security
   shards_economy --> loot
   collection --> content_infra
   collection --> stats
@@ -246,6 +250,7 @@ graph TD
 | **Nucleus Mulligans** (`nucleus`) | `mulligans` · `content-infra` · `power` · `meta-store` · `genome-rank` | — | ⚡ nucleusPower multiplies the mulligans PowerParts bucket (×1 while no chamber is complete); organs are SUPPORT-only — towerDamageMult is registry-banned | `nucleus` | `docs/NUCLEUS.md` |
 | **Hero Symbiotes** (`hero-symbiotes`) | `mulligans` · `heroes` · `content-infra` · `power` · `meta-store` · `genome-rank` | — | ⚡ accountSymbiotePower multiplies the mulligans PowerParts bucket (×1 while no slot is complete); the kit TYPE has no damage/cooldown stat fields — the no-equipment-duplication contract | `heroSymbiotes` | `docs/HERO-SYMBIOTES.md` |
 | **Idle Harvest** (`idle-harvest`) | `meta-store` · `genome-rank` · `collection` · `account-level` | `arena` | ⚡ none — pure economy by design (idle must never buy Power); the idle codex is identity-only | `idle` | `docs/IDLE-HARVEST.md` |
+| **Metabolism (Milestones)** (`metabolism`) | `meta-store` · `battle-pass` · `notifications` · `security` | — | ⚡ none — pure economy (milestones pay currencies/containers, never Power directly) | `metabolism` | `docs/METABOLISM.md` |
 | **Shards & Star Economy** (`shards-economy`) | `loot` | `towers` · `heroes` · `gene-cards` · `hive-construction` | ⚡ stars bought with shards move the permanent bucket; PRIME levels ride the towers/heroes geomeans | `shards` · `lifetimeShards` | `docs/SHARD-ECONOMY.md` · `docs/ECONOMY.md` · `docs/PRIME-STRAINS.md` |
 | **Collections / Codex** (`collection`) | `content-infra` · `stats` | `idle-harvest` · `daily-login` · `cosmetics` · `quests` · `profile` · `genome-rank` | ⚡ completion feeds the collection bucket | — | `docs/COLLECTION.md` |
 | **Evolution HQ (Genome Cores)** (`evolution-hq`) | `content-infra` · `prestige` | `prestige` | ⚡ META_UPGRADES fold into the permanent bucket | `upgrades` | `docs/EVOLUTION-HQ.md` · `docs/GENOME-CORE.md` · `docs/EVOLUTION-CAP.md` |
@@ -265,7 +270,7 @@ graph TD
 | **Hero Expeditions** (`expeditions`) | `heroes` · `meta-store` | — | — | `expeditions` | `docs/EXPEDITIONS.md` |
 | **Nemesis & Trophies** (`nemesis`) | `engine` · `bosses` · `meta-store` · `cosmetics` | — | — | `nemesis` · `equippedTrophies` · `vengeance` | `docs/NEMESIS.md` |
 | **The Wardrobe (Cosmetics)** (`cosmetics`) | `meta-store` · `collection` · `hub-shell` | `daily-login` · `contracts` · `nemesis` · `battle-pass` · `quests` | ⚡ via the collection codex weights (tiny, cosmetic-first) | `cosmetics` · `wardrobe` | `docs/COSMETICS.md` |
-| **Battle Pass (Season)** (`battle-pass`) | `meta-store` · `cosmetics` · `premium` · `hub-shell` | `arena` · `daily-login` · `quests` | ⚡ permanents + Perennial stacks fold into the meta bucket | `battlePass` | `docs/BATTLEPASS.md` |
+| **Battle Pass (Season)** (`battle-pass`) | `meta-store` · `cosmetics` · `premium` · `hub-shell` | `arena` · `metabolism` · `daily-login` · `quests` | ⚡ permanents + Perennial stacks fold into the meta bucket | `battlePass` | `docs/BATTLEPASS.md` |
 | **Quests & Missions** (`quests`) | `meta-store` · `battle-pass` · `contracts` · `cutscenes` · `cosmetics` · `collection` · `hub-shell` | — | ⚡ quest/mission codices carry small collection weights | `quests` | `docs/QUESTS.md` |
 | **Player Profile** (`profile`) | `stats` · `power` · `achievements` · `collection` · `prestige` · `hub-shell` | `accounts` · `onboarding` | — | `createdAt` · `profileName` · `profileFrame` · `profileSigil` · `timeline` | `docs/PROFILE.md` |
 | **Tutorials, Help & Onboarding** (`onboarding`) | `engine` · `meta-store` · `profile` · `accounts` | `progression-gating` | — | `tutorial` · `help` | `docs/TUTORIAL.md` · `docs/HELP.md` · `docs/TUTORIAL-AUDIT.md` · `docs/GUIDED-UNLOCKS.md` |
@@ -274,13 +279,13 @@ graph TD
 | **Progression Gating & Director** (`progression-gating`) | `meta-store` · `campaign` · `onboarding` | `reward-architecture` | — | `director` | `docs/PROGRESSION-GATING.md` · `docs/UNLOCK-TREE.md` |
 | **Hub Shell & Home** (`hub-shell`) | `meta-store` · `notifications` · `prediction` · `power` | `hive-construction` · `infestation` · `cosmetics` · `battle-pass` · `quests` · `profile` · `reward-architecture` | — | — | `docs/COMMAND-CENTER.md` · `docs/HOME-BASE.md` · `docs/ONE-MORE-RUN.md` · `docs/HUD.md` · `docs/PROGRESSION-LOOP.md` · `docs/UX-CONSOLIDATION.md` |
 | **In-Run HUD & Results** (`run-ui`) | `engine` · `meta-store` · `power` · `assimilation` | — | ⚡ renders live run Power | — | `docs/HUD.md` · `docs/READABILITY.md` · `docs/REWARD-PRESENTATION.md` |
-| **Notifications** (`notifications`) | `meta-store` | `hub-shell` | — | — | `docs/NOTIFICATIONS.md` · `docs/HIVE-INTEL.md` |
+| **Notifications** (`notifications`) | `meta-store` | `metabolism` · `hub-shell` | — | — | `docs/NOTIFICATIONS.md` · `docs/HIVE-INTEL.md` |
 | **Progress Prediction** (`prediction`) | `power` | `hub-shell` | ⚡ consumes the score as its input signal | `prediction` | `docs/PREDICTION.md` |
-| **Meta Store & Save** (`meta-store`) | `content-infra` | `accounts` · `mulligans` · `field-research` · `net-backend` · `arena` · `nucleus` · `hero-symbiotes` · `idle-harvest` · `hive-construction` · `daily-login` · `liveops` · `directives` · `contracts` · `infestation` · `chronicle` · `expeditions` · `nemesis` · `cosmetics` · `battle-pass` · `quests` · `onboarding` · `account-level` · `genome-rank` · `progression-gating` · `hub-shell` · `run-ui` · `notifications` · `cutscenes` · `security` · `devtools` · `analytics` | ⚡ recomputes the account score on every persist | `ALL (owner)` | `docs/DEV-RESET.md` · `docs/SCALABILITY.md` · `docs/PROJECT_MANIFEST.md` |
+| **Meta Store & Save** (`meta-store`) | `content-infra` | `accounts` · `mulligans` · `field-research` · `net-backend` · `arena` · `nucleus` · `hero-symbiotes` · `idle-harvest` · `metabolism` · `hive-construction` · `daily-login` · `liveops` · `directives` · `contracts` · `infestation` · `chronicle` · `expeditions` · `nemesis` · `cosmetics` · `battle-pass` · `quests` · `onboarding` · `account-level` · `genome-rank` · `progression-gating` · `hub-shell` · `run-ui` · `notifications` · `cutscenes` · `security` · `devtools` · `analytics` | ⚡ recomputes the account score on every persist | `ALL (owner)` | `docs/DEV-RESET.md` · `docs/SCALABILITY.md` · `docs/PROJECT_MANIFEST.md` |
 | **Bosses** (`bosses`) | `engine` · `content-infra` | `engine` · `campaign` · `boss-rush` · `daily` · `nemesis` · `mega-bosses` | — | `bossesSlain` | `docs/BOSS-DESIGN.md` |
 | **Mega Bosses** (`mega-bosses`) | `engine` · `content-infra` · `bosses` | `cutscenes` | ⚡ megaBosses collection category weight | `megaProgress` | `docs/MEGA-BOSS.md` |
 | **Story Cutscenes & Memory Archive** (`cutscenes`) | `mega-bosses` · `meta-store` · `audio` | `quests` | — | — | `docs/CUTSCENES.md` |
-| **Game Action Security Layer** (`security`) | `meta-store` · `net-backend` | — | — | — | `docs/SECURITY.md` |
+| **Game Action Security Layer** (`security`) | `meta-store` · `net-backend` | `metabolism` | — | — | `docs/SECURITY.md` |
 | **Biomes** (`biomes`) | `content-infra` | `engine` · `campaign` · `daily` | — | — | `docs/BIOMES.md` |
 | **Doctrines** (`doctrines`) | `content-infra` · `gene-cards` · `difficulty` | — | — | — | `docs/DOCTRINES.md` · `docs/MODE-IDENTITY.md` |
 | **Difficulty** (`difficulty`) | `content-infra` | `engine` · `campaign` · `infinite` · `boss-rush` · `doctrines` | — | — | `docs/DIFFICULTY.md` · `docs/DIFFICULTY_DIRECTOR.md` |
@@ -687,6 +692,21 @@ graph TD
 - **Localization:** inline English strings (no i18n layer yet — this field enumerates the surface for the day it lands)
 - **Docs to update on change:** `docs/IDLE-HARVEST.md` · `docs/ARENA.md` · `docs/ARENA_MATCH_REPORT.md`
 
+### Metabolism (Milestones) (`metabolism`)
+
+*The recursive progression layer (docs/METABOLISM.md): every lifetime quantity — kills, discoveries, claims, rituals — climbs an infinite nice-number milestone ladder whose payouts grow strictly slower than thresholds (the anti-inflation invariant). Derive-first: veterans back-fill on load; only four ritual counters need chokepoint writes.*
+
+- **Files:** `src/state/metabolism.ts` · `src/ui/MetabolismScreen.tsx`
+- **Depends on:** `meta-store` · `battle-pass` · `notifications` · `security`
+- **Consumers — what breaks if you change this:** —
+- **Power Score:** none — pure economy (milestones pay currencies/containers, never Power directly)
+- **Save fields:** `metabolism`
+- **Tutorial:** — · **Help mechanics:** `metabolism`
+- **HUD surfaces:** — · **UI screens:** `MetabolismScreen`
+- **Collection:** none (the tracks ARE the recognition layer) · **Achievements:** —
+- **Localization:** inline English strings (no i18n layer yet — this field enumerates the surface for the day it lands)
+- **Docs to update on change:** `docs/METABOLISM.md`
+
 ### Shards & Star Economy (`shards-economy`)
 
 *Strain Samples / Apex Genome income + star cost curves + the PRIME infinite ladder past ★max (docs/PRIME-STRAINS.md; direct lanes bank, container opens convert duplicates).*
@@ -978,14 +998,14 @@ graph TD
 
 - **Files:** `src/core/battlePass.ts` · `src/ui/BattlePassScreen.tsx`
 - **Depends on:** `meta-store` · `cosmetics` · `premium` · `hub-shell`
-- **Consumers — what breaks if you change this:** `arena` · `daily-login` · `quests`
+- **Consumers — what breaks if you change this:** `arena` · `metabolism` · `daily-login` · `quests`
 - **Power Score:** permanents + Perennial stacks fold into the meta bucket
 - **Save fields:** `battlePass`
 - **Tutorial:** — · **Help mechanics:** —
 - **HUD surfaces:** — · **UI screens:** `BattlePassScreen`
 - **Collection:** grants land in the wardrobe codices · **Achievements:** —
 - **Localization:** inline English strings (no i18n layer yet — this field enumerates the surface for the day it lands)
-- **Docs to update on change:** `docs/BATTLEPASS.md` · `docs/ARENA.md` · `docs/ARENA_MATCH_REPORT.md` · `docs/DAILY-LOGIN.md` · `docs/DAILY-RUN.md` · `docs/ECONOMY.md` · `docs/QUESTS.md`
+- **Docs to update on change:** `docs/BATTLEPASS.md` · `docs/ARENA.md` · `docs/ARENA_MATCH_REPORT.md` · `docs/METABOLISM.md` · `docs/DAILY-LOGIN.md` · `docs/DAILY-RUN.md` · `docs/ECONOMY.md` · `docs/QUESTS.md`
 
 ### Quests & Missions (`quests`)
 
@@ -1113,14 +1133,14 @@ graph TD
 
 - **Files:** `src/state/notifications.ts` · `src/state/notificationSources.ts` · `src/state/rewardToast.ts` · `src/state/recommendations.ts` · `src/state/readyChain.ts` · `src/state/hiveIntel.ts` · `src/ui/components/RewardToaster.tsx` · `src/ui/components/CeremonyLayer.tsx` · `src/ui/components/WalletChip.tsx` · `src/ui/HubLanding.tsx`
 - **Depends on:** `meta-store`
-- **Consumers — what breaks if you change this:** `hub-shell`
+- **Consumers — what breaks if you change this:** `metabolism` · `hub-shell`
 - **Power Score:** — (intentionally none)
 - **Save fields:** —
 - **Tutorial:** — · **Help mechanics:** `hive-intel`
 - **HUD surfaces:** `nav badges` · **UI screens:** `Hub (badges)` · `RewardToaster (claim popups)`
 - **Collection:** collection channel badge · **Achievements:** —
 - **Localization:** inline English strings (no i18n layer yet — this field enumerates the surface for the day it lands)
-- **Docs to update on change:** `docs/NOTIFICATIONS.md` · `docs/HIVE-INTEL.md` · `docs/COMMAND-CENTER.md` · `docs/HOME-BASE.md` · `docs/ONE-MORE-RUN.md` · `docs/HUD.md` · `docs/PROGRESSION-LOOP.md` · `docs/UX-CONSOLIDATION.md`
+- **Docs to update on change:** `docs/NOTIFICATIONS.md` · `docs/HIVE-INTEL.md` · `docs/METABOLISM.md` · `docs/COMMAND-CENTER.md` · `docs/HOME-BASE.md` · `docs/ONE-MORE-RUN.md` · `docs/HUD.md` · `docs/PROGRESSION-LOOP.md` · `docs/UX-CONSOLIDATION.md`
 
 ### Progress Prediction (`prediction`)
 
@@ -1143,14 +1163,14 @@ graph TD
 
 - **Files:** `src/state/meta.ts` · `src/state/store.ts` · `src/state/prefs.ts` · `src/state/devReset.ts` · `src/save/*` · `src/ui/SaveManager.tsx`
 - **Depends on:** `content-infra`
-- **Consumers — what breaks if you change this:** `accounts` · `mulligans` · `field-research` · `net-backend` · `arena` · `nucleus` · `hero-symbiotes` · `idle-harvest` · `hive-construction` · `daily-login` · `liveops` · `directives` · `contracts` · `infestation` · `chronicle` · `expeditions` · `nemesis` · `cosmetics` · `battle-pass` · `quests` · `onboarding` · `account-level` · `genome-rank` · `progression-gating` · `hub-shell` · `run-ui` · `notifications` · `cutscenes` · `security` · `devtools` · `analytics`
+- **Consumers — what breaks if you change this:** `accounts` · `mulligans` · `field-research` · `net-backend` · `arena` · `nucleus` · `hero-symbiotes` · `idle-harvest` · `metabolism` · `hive-construction` · `daily-login` · `liveops` · `directives` · `contracts` · `infestation` · `chronicle` · `expeditions` · `nemesis` · `cosmetics` · `battle-pass` · `quests` · `onboarding` · `account-level` · `genome-rank` · `progression-gating` · `hub-shell` · `run-ui` · `notifications` · `cutscenes` · `security` · `devtools` · `analytics`
 - **Power Score:** recomputes the account score on every persist
 - **Save fields:** `ALL (owner)`
 - **Tutorial:** — · **Help mechanics:** —
 - **HUD surfaces:** — · **UI screens:** `SaveManager`
 - **Collection:** — · **Achievements:** —
 - **Localization:** inline English strings (no i18n layer yet — this field enumerates the surface for the day it lands)
-- **Docs to update on change:** `docs/DEV-RESET.md` · `docs/SCALABILITY.md` · `docs/PROJECT_MANIFEST.md` · `docs/ACCOUNTS.md` · `docs/DEPLOYMENT.md` · `docs/MULLIGANS.md` · `docs/RESEARCH.md` · `docs/WEBSITE.md` · `docs/REPLAY-SHARE.md` · `docs/ARENA.md` · `docs/ARENA_MATCH_REPORT.md` · `docs/NUCLEUS.md` · `docs/HERO-SYMBIOTES.md` · `docs/IDLE-HARVEST.md` · `docs/HIVE-CONSTRUCTION.md` · `docs/HOME-BASE.md` · `docs/DAILY-LOGIN.md` · `docs/DAILY-RUN.md` · `docs/ECONOMY.md` · `docs/LIVEOPS.md` · `docs/LIVE-EVENTS.md` · `docs/CONTRACTS.md` · `docs/INFESTATION.md` · `docs/CHANGELOG-PIPELINE.md` · `docs/EXPEDITIONS.md` · `docs/NEMESIS.md` · `docs/COSMETICS.md` · `docs/BATTLEPASS.md` · `docs/QUESTS.md` · `docs/TUTORIAL.md` · `docs/HELP.md` · `docs/TUTORIAL-AUDIT.md` · `docs/GUIDED-UNLOCKS.md` · `docs/ACCOUNT-LEVEL.md` · `docs/GENOME-RANK.md` · `docs/PROGRESSION-GATING.md` · `docs/UNLOCK-TREE.md` · `docs/COMMAND-CENTER.md` · `docs/ONE-MORE-RUN.md` · `docs/HUD.md` · `docs/PROGRESSION-LOOP.md` · `docs/UX-CONSOLIDATION.md` · `docs/READABILITY.md` · `docs/REWARD-PRESENTATION.md` · `docs/NOTIFICATIONS.md` · `docs/HIVE-INTEL.md` · `docs/CUTSCENES.md` · `docs/SECURITY.md` · `docs/ANALYTICS.md`
+- **Docs to update on change:** `docs/DEV-RESET.md` · `docs/SCALABILITY.md` · `docs/PROJECT_MANIFEST.md` · `docs/ACCOUNTS.md` · `docs/DEPLOYMENT.md` · `docs/MULLIGANS.md` · `docs/RESEARCH.md` · `docs/WEBSITE.md` · `docs/REPLAY-SHARE.md` · `docs/ARENA.md` · `docs/ARENA_MATCH_REPORT.md` · `docs/NUCLEUS.md` · `docs/HERO-SYMBIOTES.md` · `docs/IDLE-HARVEST.md` · `docs/METABOLISM.md` · `docs/HIVE-CONSTRUCTION.md` · `docs/HOME-BASE.md` · `docs/DAILY-LOGIN.md` · `docs/DAILY-RUN.md` · `docs/ECONOMY.md` · `docs/LIVEOPS.md` · `docs/LIVE-EVENTS.md` · `docs/CONTRACTS.md` · `docs/INFESTATION.md` · `docs/CHANGELOG-PIPELINE.md` · `docs/EXPEDITIONS.md` · `docs/NEMESIS.md` · `docs/COSMETICS.md` · `docs/BATTLEPASS.md` · `docs/QUESTS.md` · `docs/TUTORIAL.md` · `docs/HELP.md` · `docs/TUTORIAL-AUDIT.md` · `docs/GUIDED-UNLOCKS.md` · `docs/ACCOUNT-LEVEL.md` · `docs/GENOME-RANK.md` · `docs/PROGRESSION-GATING.md` · `docs/UNLOCK-TREE.md` · `docs/COMMAND-CENTER.md` · `docs/ONE-MORE-RUN.md` · `docs/HUD.md` · `docs/PROGRESSION-LOOP.md` · `docs/UX-CONSOLIDATION.md` · `docs/READABILITY.md` · `docs/REWARD-PRESENTATION.md` · `docs/NOTIFICATIONS.md` · `docs/HIVE-INTEL.md` · `docs/CUTSCENES.md` · `docs/SECURITY.md` · `docs/ANALYTICS.md`
 
 ### Bosses (`bosses`)
 
@@ -1203,14 +1223,14 @@ graph TD
 
 - **Files:** `src/security/actionGuard.ts` · `src/security/registry.ts` · `src/security/tabArbiter.ts` · `src/ui/SecurityPulse.tsx`
 - **Depends on:** `meta-store` · `net-backend`
-- **Consumers — what breaks if you change this:** —
+- **Consumers — what breaks if you change this:** `metabolism`
 - **Power Score:** — (intentionally none)
 - **Save fields:** —
 - **Tutorial:** — · **Help mechanics:** —
 - **HUD surfaces:** — · **UI screens:** `SecurityPulse`
 - **Collection:** — · **Achievements:** —
 - **Localization:** inline English strings (no i18n layer yet — this field enumerates the surface for the day it lands)
-- **Docs to update on change:** `docs/SECURITY.md`
+- **Docs to update on change:** `docs/SECURITY.md` · `docs/METABOLISM.md`
 
 ### Biomes (`biomes`)
 
