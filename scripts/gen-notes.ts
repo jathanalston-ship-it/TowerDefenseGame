@@ -88,7 +88,16 @@ function commitsSince(lastSha: string): RawCommit[] {
 // ── Release assembly ─────────────────────────────────────────────────────────
 function openRelease(ledger: Ledger, date: string): Release {
   const last = ledger.releases[ledger.releases.length - 1];
-  if (last && !last.sealed) return last;
+  if (last && !last.sealed) {
+    // AUTO-SEAL BY DATE (docs/CHANGELOG-PIPELINE.md §releases): an open release only absorbs
+    // commits from its own calendar day — the first commit of a NEWER day seals it and opens a
+    // fresh date-keyed release, so the site's "latest patch" header rolls forward without
+    // anyone remembering `--seal` (which still works for deliberate mid-day cuts). Same-day
+    // commits keep appending, exactly as before.
+    if (last.date === date) return last;
+    last.sealed = true;
+    console.log(`Auto-sealed ${last.id} (${last.entries.length} entries) — new work is dated ${date}.`);
+  }
   const sameDay = ledger.releases.filter((r) => r.date === date).length;
   const rel: Release = {
     id: `v${date.replaceAll('-', '.')}${sameDay > 0 ? `.${sameDay + 1}` : ''}`,

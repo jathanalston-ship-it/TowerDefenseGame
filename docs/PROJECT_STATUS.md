@@ -3,7 +3,40 @@
 > Maintained at the END of every session (paired with `docs/AI_HANDOFF.md` — the constitution's
 > workflow step 4). This is the "where are we?" answer; `docs/GAME-STATE.md` remains the deeper
 > per-system built-vs-planned index, `docs/PROJECT_MANIFEST.md` the system map.
-> **Last updated:** 2026-07-19ac (**LIVING BATTLEFIELD — ANTICIPATION, IDLE LIFE &
+> **Last updated:** 2026-07-19ad (**MEGA-BOSS STALL FIX + WEBSITE FRESHNESS PIPELINE +
+> LAB ADAPTATION LINKS** (user reports: Voraxis fight "boss just stops"/projectiles ignore
+> the body once weak points are down; site not updating with new patch notes; labs need
+> Adaptation links). **MEGA FIX** (engine, golden-safe — megas absent from golden runs,
+> pins untouched): the stall was towerMegaFire's body-chip gate `enemies.length === 0` —
+> one add alive ANYWHERE froze every out-of-reach tower while the boss's own summons kept
+> the field populated (the "invincibility phase" feel; progress only flowed in post-wave
+> quiet = "killable on the last wave"). Rule now mirrors heroes: a tower with NO prey in
+> ITS OWN reach chips the armored body (`towerHasTarget` — the idle batch's helper is now
+> the shared gate), applied to projectile towers + Coil + Siphon; weak-point priority,
+> megaRaidYield (Hive outranks raid), wave duty all UNCHANGED; mobile units keep the
+> bare-field rule (they pursue). COMMUNICATION: MegaBannerSnapshot +regenActive/+armored;
+> raid-bar chips `CARAPACE SEALED · CHIPPING` (no organ open, !exposed/!staggered) /
+> `▲ REGENERATING` / `◆ ARMORED` with counter-naming tooltips (MEGA-BOSS.md §damage-gate
+> honesty + §targeting stall note). Pinned: megaboss.test §stall audit (red before fix —
+> back-row maw + sealed organs + one pinned add ⇒ dmgByKind.maw > 0, hp bleeds) — suite
+> 28/28. **WEBSITE**: deploys were healthy (CI SHA-verify green, secrets set — checked
+> live run e67e372); staleness was EDITORIAL: one open release absorbed 10 days
+> ("The Living World Update" v2026.07.09, 332 entries) while the site advertised July 9.
+> Chronicle gen-notes now **AUTO-SEALS BY DATE** (first commit of a newer day seals +
+> opens a fresh date-keyed release — v2026.07.19 opened itself live; `--seal` remains for
+> mid-day cuts); deploy.yml re-runs `npm run site` at HEAD (ephemeral, fetch-depth: 0 —
+> deployed /news/ always includes the deploying commit; committed artifacts stay the
+> reviewable record, one batch behind); secrets-missing soft-skip → HARD FAIL (a push
+> that cannot change production is red); `src/changelog/siteSync.test.ts` = the regen
+> drift gate (ledger ↔ releases.gen ↔ patchnotes.json ↔ rendered /news/, the DIL
+> pattern) + auto-seal-lag law. Revert: DEPLOYMENT.md §rollback (CDN-level rollback +
+> one-commit git revert). CHANGELOG-PIPELINE.md §releases updated. **LABS**: TowerLab
+> (.tl-adapt-go) + HeroLab (.hsec-golink) real "☣ Open Adaptation Chamber ▸" buttons via
+> navBus.go('adaptation'). Verified: typecheck 0, suite 305 files/2584 green (one DIL
+> regen), build, mobilecheck CLEAN (31), cogload in budget, validate PASS. Previous
+> below.)
+>
+> **2026-07-19ac** (**LIVING BATTLEFIELD — ANTICIPATION, IDLE LIFE &
 > BIOLOGICAL REACTIVITY** (user brief: full battlefield animation/immersion pass, "the
 > battlefield should never appear motionless"; anticipation state bridging idle↔combat;
 > per-tower personality; environmental reactions; enemy reactions; layered ambient

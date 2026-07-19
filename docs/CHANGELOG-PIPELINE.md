@@ -51,6 +51,21 @@ git commits ──▶ classifier ──▶ changelog/ledger.json (machine state 
 
 - Releases are date-keyed: `v2026.07.09` (a `.2` suffix when a sealed release shares a
   date). The **open** (unsealed) release absorbs new commits; `--seal` freezes it.
+- **AUTO-SEAL BY DATE** (the "site never updates" fix): an open release only absorbs
+  commits from its own calendar day — the first processed commit of a NEWER day seals it
+  and opens a fresh date-keyed release automatically. The site's "latest patch" header
+  therefore rolls forward daily with zero human involvement; `--seal` remains for
+  deliberate mid-day cuts. (Before this, one open release absorbed 10 days of work while
+  the site kept advertising its original date.)
+- **CI freshness**: `.github/workflows/deploy.yml` re-runs `npm run site` at HEAD before
+  building (ephemeral — never committed back), so the DEPLOYED /news/ includes every
+  commit up to and including the deploying one. The committed artifacts stay the
+  reviewable record and inherently lag exactly one batch.
+- **Drift gate**: `src/changelog/siteSync.test.ts` fails the suite when releases.gen.ts,
+  site/patchnotes.json or public/news/index.html lag the ledger — same contract as the
+  DIL graph regen test. Fix is always `npm run site`.
+- **Revert**: everything is committed data — `git revert <sha>` + push redeploys the
+  previous notes atomically (docs/DEPLOYMENT.md §rollback for the instant CDN-level path).
 - Player tracking: `save.patchNotes.seen` holds the last release id seen (save v28).
   The briefing shows everything newer, once, on the menu. Fresh accounts baseline
   silently. `optOut` is the permanent "never show again" (reversible).

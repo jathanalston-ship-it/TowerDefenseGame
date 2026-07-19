@@ -581,3 +581,37 @@ describe('Daily Mega variant (docs/MEGA-BOSS.md §daily)', () => {
     expect(g.getRenderState().megaBoss).not.toBeNull();
   });
 });
+
+describe('§stall audit (2026-07-19) — the fight must never go damage-dead', () => {
+  it('a tower with NO prey in its own reach chips the body even while adds live elsewhere', () => {
+    // The reported stall: all weak points down + any add alive anywhere ⇒ towers refused to
+    // touch the body (the old gate was a BARE-FIELD check), so the boss "just stopped" while
+    // its own summons kept the field populated. The contract now mirrors the hero rule: a
+    // tower that was going to do NOTHING turns its guns on the mountain instead.
+    type Guts = { mega: { weakPoints: { state: string }[]; dmgByKind: Record<string, number>; hp: number; maxHp: number } };
+    const g = new Game(31, NO_META, undefined, 'ravager', undefined, { megaDaily: { defId: 'voraxis', tier: 1 } });
+    g.god = true;
+    g.debugAddBiomass(8000);
+    // ONE short-range brawler at the BACK row — its 170px reach covers no add at the top.
+    const back = [...towerSlots].sort((a, b) => b.y - a.y)[0];
+    expect(g.placeTower('maw', back.x, back.y)).toBe(true);
+    g.startWave();
+    const rt = (g as unknown as Guts).mega;
+    for (let i = 0; i < 60; i++) g.advance(SIM_DT); // let the opener organ emerge
+    // Seal every weak point (the between-window state) and keep ONE add alive far away.
+    for (let i = 0; i < 60 * 12; i++) {
+      for (const wp of rt.weakPoints) if (wp.state === 'open') wp.state = 'closed';
+      g.debugSpawn('runner', g.enemies.length === 0 ? 1 : 0);
+      for (const e of g.enemies) { e.x = 40; e.y = 60; } // pinned at the top — outside the maw's reach
+      g.advance(SIM_DT);
+    }
+    // The maw joined the raid: tower-attributed body damage exists and the organism bled.
+    expect(rt.dmgByKind['maw'] ?? 0).toBeGreaterThan(0);
+    expect(rt.hp).toBeLessThan(rt.maxHp);
+    // And the banner carries the damage-gate fields the HUD chips read (timer organs may
+    // have reopened on the final tick — the sealed chip itself is trivial JSX off this list).
+    const banner = g.getSnapshot().megaBanner!;
+    expect(typeof banner.regenActive).toBe('boolean');
+    expect(typeof banner.armored).toBe('boolean');
+  });
+});

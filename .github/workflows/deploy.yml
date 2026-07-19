@@ -32,6 +32,8 @@ jobs:
       CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Chronicle reads git history since ledger.lastSha — a shallow clone starves it
 
       - uses: actions/setup-node@v4
         with:
@@ -40,6 +42,14 @@ jobs:
 
       - name: Install
         run: npm ci
+
+      - name: Refresh patch notes + site (ephemeral — deployed, never committed back)
+        # The committed artifacts stay the reviewable record; this re-runs the same
+        # deterministic generators at HEAD so the DEPLOYED /news/ always includes every
+        # commit up to and including this one (the committed copy inherently lags one
+        # batch — notes run before the batch commit exists). Same classifier, same QC:
+        # flagged/internal entries still never publish.
+        run: npm run site
 
       - name: Build (typecheck + vite + sw stamp)
         run: npm run build
@@ -85,7 +95,12 @@ jobs:
           fi
           echo "Verified: https://${SUBDOMAIN} serves ${GITHUB_SHA}"
 
-      - name: Secrets missing — deploy skipped
+      - name: Secrets missing — FAIL loudly
         if: ${{ env.CLOUDFLARE_API_TOKEN == '' || env.CLOUDFLARE_ACCOUNT_ID == '' }}
         run: |
-          echo "::notice::Build succeeded, but CLOUDFLARE_API_TOKEN / CLOUDFLARE_ACCOUNT_ID repo secrets are not set — production deploy skipped. Add them under Settings → Secrets and variables → Actions, then re-run this workflow."
+          # The bootstrap grace period is over: secrets are configured and production deploys
+          # are live. If they ever vanish (expired token, deleted secret), a push that cannot
+          # deploy must turn RED — a silently-skipped deploy is exactly the "site never
+          # updates" failure this workflow exists to prevent.
+          echo "::error::CLOUDFLARE_API_TOKEN / CLOUDFLARE_ACCOUNT_ID repo secrets are missing — production did NOT change. Restore them under Settings → Secrets and variables → Actions."
+          exit 1

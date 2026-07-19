@@ -25,6 +25,7 @@ import { Ico } from './iconLanguage';
 import { LAB_SORTS, ceremonyView, futurePath, labRoster, masteryPanelModel, towerLabModel } from './towerLabModel';
 import type { LabSort, StepView, TowerLabModel } from './towerLabModel';
 import { EvolutionTrackPanel } from './EvolutionTrack';
+import { navBus } from '../state/navBus';
 import { evolutionRosterSignal } from './evolutionTrackModel';
 
 interface CeremonyState {
@@ -522,7 +523,8 @@ export function TowerLab(): JSX.Element {
           <EvolutionTrackPanel subject="tower" unit={selected} name={m.name} color={m.color} />
 
           <div className="tl2-block">
-            <p className="tl-adapt-moved">☣ Antigen specialization lives in the <b>Adaptation Chamber</b> (Progression wing) — every strain and champion tree in one place, with a suggested-next advisor.</p>
+            <p className="tl-adapt-moved">☣ Antigen specialization lives in the <b>Adaptation Chamber</b> — every strain and champion tree in one place, with a suggested-next advisor.</p>
+            <button className="tl-adapt-go" onClick={() => navBus.go('adaptation')}>☣ Open Adaptation Chamber ▸</button>
           </div>
         </div>
       </div>

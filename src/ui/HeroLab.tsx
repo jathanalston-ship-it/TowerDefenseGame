@@ -26,6 +26,7 @@ import { SymbioteChamber } from './SymbioteChamber';
 import { BestBuyStrip } from './components/BestBuyStrip';
 import { EvolutionTrackPanel } from './EvolutionTrack';
 import { useLayoutProfile } from './layoutProfile';
+import { navBus } from '../state/navBus';
 import type { HeroCollectionEntry } from '../state/meta';
 
 const RARITY_VAR: Record<string, string> = {
@@ -465,7 +466,9 @@ export function HeroLab(): JSX.Element {
             ) : (
               <p className="hsec-desc">Mastery rises forever as this hero fights — ranks and perks unlock with use.</p>
             )}
-            <p className="hsec-hint">Each Mastery Rank grants 1 Antigen — spend it in the Adaptation Chamber (Progression wing).</p>
+            <p className="hsec-hint">Each Mastery Rank grants 1 Antigen — spend it in the Adaptation Chamber.{' '}
+              <button className="hsec-golink" onClick={() => navBus.go('adaptation')}>☣ Open Adaptation Chamber ▸</button>
+            </p>
             <EvolutionTrackPanel subject="hero" unit={focus} name={d.def.name} color={c} />
           </Section>
 

@@ -59,15 +59,20 @@ choreographs its own openings; phases change the choreography. Destroyed organs 
 
 **Targeting — every damage source joins the raid, no manual control:**
 
-- **Projectile towers** (`towerMegaFire`): prioritize an open weak point in range; with an
-  empty field they chip the armored body (`bodyChipMult`), each striking the **highest point
-  of the mass its range reaches** (`megaBodyY` — long guns hit the high band at
-  `MEGA.bodyBandY`, short guns need the §lone siege descent). Pure-tempo kinds with
+- **Projectile towers** (`towerMegaFire`): prioritize an open weak point in range; a tower
+  with **no prey in its own reach** chips the armored body (`bodyChipMult`), each striking
+  the **highest point of the mass its range reaches** (`megaBodyY` — long guns hit the high
+  band at `MEGA.bodyBandY`, short guns need the §lone siege descent). *(2026-07-19 stall
+  fix: the gate was a bare-FIELD check — one add alive anywhere froze every out-of-reach
+  tower, the reported "boss just stops" dead-time. The rule now mirrors the heroes': a gun
+  that was going to do nothing turns on the mountain; a gun with live prey in range still
+  fights the wave first, and `megaRaidYield` still parks the whole raid when the Hive is
+  threatened. Pinned by megaboss.test.ts §stall audit.)* Pure-tempo kinds with
   `damage: 0` (the Effigy) are **skipped** — they keep their field kit instead of burning
   casts on zero-damage tracers.
 - **Beam towers** get the same two legs at their own seams (beams branch before
   `towerMegaFire`): the **Coil** channels an organ (lock encodes as `beamTarget = -1000 -
-  spec`) and falls to the body chip when no window is open; the **Siphon** tethers an organ
+  spec`) and falls to the body chip when no window is open and no prey is in its reach; the **Siphon** tethers an organ
   (`beamX/beamY` ride the stalk) and drains the body between windows — a one-way leech, it
   banks no biomass from the organism.
 - **Heroes** (`heroMegaRaid`): when the line is clear they MARCH on the organism — seek the
@@ -164,6 +169,19 @@ registry-driven.
 - **ADAPT** (Myriad): studies the per-tower-kind damage ledger (`rt.dmgByKind`, tracked at the
   raid-fire seams) and armors against the argmax kind for its duration (`×magnitude` damage
   from that kind only; heroes bypass it). The HUD chips it as `ADAPTED·<KIND>`.
+
+## §damage-gate honesty (2026-07-19) — the bar never freezes silently
+
+The raid bar states WHY hp moves slowly instead of looking stuck:
+
+- `CARAPACE SEALED · CHIPPING` — no organ is open; idle guns are in armored-chip mode
+  (`bodyChipMult`), never frozen. Shown only when neither exposed nor staggered.
+- `▲ REGENERATING` — phase regen (or daily evolution stacks) is actively healing and no
+  Regen Gland rupture is suppressing it.
+- `◆ ARMORED` — body armor is up, blunting chips until an Armor Node rupture.
+
+Each chip's tooltip names the weak-point counter that removes it (`MegaBannerSnapshot.
+regenActive/armored`; sealed derives from the open-organ list being empty).
 
 ## §lone siege (2026-07) — the last thing standing turns on the Hive
 

@@ -1,6 +1,6 @@
 {
-  "lastSha": "093aa43dab2284b68b13374bce8ca3128712e1c8",
-  "commitsSinceDraft": 9,
+  "lastSha": "e67e3725e23cc344ddffa4fcffdafecdff5f15e8",
+  "commitsSinceDraft": 0,
   "content": {
     "tower": [
       "needle",
@@ -1512,7 +1512,7 @@
       "id": "v2026.07.09",
       "date": "2026-07-09",
       "title": "The Living World Update",
-      "sealed": false,
+      "sealed": true,
       "entries": [
         {
           "cat": "Gameplay",
@@ -2923,6 +2923,18 @@
         {
           "cat": "Towers",
           "text": "Tower idle postures: three-state behavior layer for all 22 towers"
+        }
+      ]
+    },
+    {
+      "id": "v2026.07.19",
+      "date": "2026-07-19",
+      "title": "Update",
+      "sealed": false,
+      "entries": [
+        {
+          "cat": "Visuals",
+          "text": "Living battlefield: organism anticipation, idle life, and reactivity"
         }
       ]
     }
@@ -5501,6 +5513,14 @@
       "date": "2026-07-19",
       "cat": "Towers",
       "text": "Tower idle postures: three-state behavior layer for all 22 towers",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "e67e3725e23cc344ddffa4fcffdafecdff5f15e8",
+      "date": "2026-07-19",
+      "cat": "Visuals",
+      "text": "Living battlefield: organism anticipation, idle life, and reactivity",
       "internal": false,
       "needsReview": false
     }

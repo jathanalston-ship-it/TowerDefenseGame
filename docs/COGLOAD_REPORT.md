@@ -7,12 +7,12 @@
 | screen | vp | attn | attention animators | digits | chars | primaries | badges |
 |---|---|---|---|---|---|---|---|
 | home | desktop-1366 | 2 | cur-pulse bbs-breathe | 30 | 1115 | 1 | 5 |
+| market | desktop-1366 | 2 | cur-pulse×2 | 27 | 867 | 0 | 1 |
 | genes | desktop-1366 | 1 | bbs-breathe | 61 | 1840 | 0 | 2 |
 | evolution | desktop-1366 | 1 | bbs-breathe | 47 | 1091 | 1 | 3 |
 | towers | desktop-1366 | 1 | bbs-breathe | 44 | 1036 | 1 | 3 |
 | heroes | desktop-1366 | 1 | bbs-breathe | 33 | 1068 | 1 | 3 |
 | metabolism | desktop-1366 | 1 | mtb-hero-breathe | 29 | 1059 | 1 | 3 |
-| market | desktop-1366 | 1 | cur-pulse | 27 | 873 | 0 | 1 |
 | genes | land-844 | 1 | bbs-breathe | 23 | 576 | 0 | 0 |
 | store | desktop-1366 | 1 | ps-sale-pulse | 21 | 1079 | 1 | 1 |
 | vault | desktop-1366 | 1 | bc-breathe | 17 | 788 | 2 | 4 |
@@ -56,16 +56,16 @@
 | hive | desktop-1366 | 0 | — | 14 | 1163 | 0 | 2 |
 | daily | land-844 | 0 | — | 14 | 279 | 0 | 0 |
 | phenotypes | land-844 | 0 | — | 14 | 721 | 2 | 0 |
-| settings | desktop-1366 | 0 | — | 13 | 1989 | 1 | 0 |
 | equipment | desktop-1366 | 0 | — | 12 | 544 | 0 | 1 |
+| settings | desktop-1366 | 0 | — | 12 | 1989 | 1 | 0 |
 | adaptation | land-844 | 0 | — | 12 | 498 | 2 | 0 |
 | expeditions | desktop-1366 | 0 | — | 11 | 585 | 0 | 4 |
 | infestation | land-844 | 0 | — | 11 | 639 | 3 | 0 |
+| settings | land-844 | 0 | — | 11 | 676 | 1 | 0 |
 | quests | land-844 | 0 | — | 10 | 304 | 0 | 0 |
 | equipment | land-844 | 0 | — | 10 | 387 | 0 | 0 |
 | profile | land-844 | 0 | — | 10 | 504 | 1 | 0 |
 | campaign | land-844 | 0 | — | 9 | 300 | 0 | 0 |
-| settings | land-844 | 0 | — | 9 | 676 | 1 | 0 |
 | auction | desktop-1366 | 0 | — | 8 | 487 | 0 | 1 |
 | bossrush | land-844 | 0 | — | 8 | 334 | 1 | 0 |
 | specimens | land-844 | 0 | — | 8 | 1022 | 1 | 0 |

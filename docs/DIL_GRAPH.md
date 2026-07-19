@@ -1,6 +1,6 @@
 # DIL_GRAPH.md — the Design Intelligence Layer (GENERATED — `npm run dil -- regen`)
 
-> **The project's brain** (docs/DIL.md). 898 nodes · 1689 edges, built from the live
+> **The project's brain** (docs/DIL.md). 899 nodes · 1690 edges, built from the live
 > registries + curated knowledge (src/dev/dil/). **Query it instead of searching the repo:**
 > `npm run dil -- node <id>` · `affects <id>` · `requires <id>` · `missing <kind> <edge>` ·
 > `checklist tower <kind>` · `find <text>`. Edge kinds are bidirectional (19 kinds).
@@ -817,7 +817,7 @@ _at: src/core/game.ts, src/core/combat.ts, src/core/status.ts, src/core/targetin
   - requiredBy ← `system:onboarding`
   - requiredBy ← `system:run-ui`
   - requiredBy ← `system:bosses`
-  - _…212 more (query: `npm run dil -- node system:engine`)_
+  - _…213 more (query: `npm run dil -- node system:engine`)_
 
 ### `system:content-infra` — Content Infrastructure
 
@@ -3775,10 +3775,11 @@ _at: site/guides.ts → /guides/live-events/_
 - `doc:VOWS.md` — project documentation _(documents `system:prestige`)_
 - `doc:WEBSITE.md` — project documentation _(documents `system:field-research`, documents `system:website`)_
 
-## Tests (297)
+## Tests (298)
 
 - `test:src/audio/music.test.ts` — automated validation _(tests `system:audio`)_
 - `test:src/changelog/classify.test.ts` — automated validation _(tests `system:chronicle`)_
+- `test:src/changelog/siteSync.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/core/ability.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/core/accountLevel.test.ts` — automated validation _(tests `system:account-level`)_
 - `test:src/core/adaptation.test.ts` — automated validation _(tests `system:mastery`)_

@@ -1167,6 +1167,15 @@ export function GameView({
                   <i className="mega-cast-fill" style={{ width: `${hud.megaBanner.telegraph.frac * 100}%` }} />
                 </span>
               )}
+              {/* Damage-gate honesty (docs/MEGA-BOSS.md §hud): when nothing is open, SAY so —
+                  the fight is in armored-chip mode, not frozen. Regen/armor explain a slow bar. */}
+              {hud.megaBanner.weakPoints.length === 0 && !hud.megaBanner.exposed && !hud.megaBanner.staggered && (
+                <span className="mega-chip mega-chip-sealed" title="No organs are open — idle guns chip the armored body at reduced damage until the next window opens">CARAPACE SEALED · CHIPPING</span>
+              )}
+              {hud.megaBanner.regenActive && <span className="mega-chip mega-chip-regen" title="The organism is regenerating — rupture a Regen Gland to stop it">▲ REGENERATING</span>}
+              {hud.megaBanner.armored && !hud.megaBanner.exposed && !hud.megaBanner.staggered && (
+                <span className="mega-chip mega-chip-armor" title="Body armor blunts chip damage — an Armor Node rupture breaks it">◆ ARMORED</span>
+              )}
               {hud.megaBanner.effects.map((fx) => <span key={fx} className="mega-chip">{fx}</span>)}
             </div>
             {hud.megaBanner.weakPoints.length > 0 && (

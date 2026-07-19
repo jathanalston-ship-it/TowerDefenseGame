@@ -239,6 +239,10 @@ export interface MegaBannerSnapshot {
   stagger: number; // posture meter 0..1 (weak-point ruptures fill it — docs/MEGA-BOSS.md §stagger)
   staggered: boolean; // TOPPLED — organ windows frozen, the burst window is NOW
   exposed: boolean;
+  /** The organism is actively self-healing right now (phase regen not suppressed). */
+  regenActive: boolean;
+  /** Body armor is up — chips are blunted until an armor-break rupture. */
+  armored: boolean;
   effects: string[]; // live manipulation chips (e.g. 'HASTE', 'LEECH'; '*' = passive)
   weakPoints: { kind: string; name: string; hpPct: number; note: string }[]; // OPEN organs
   glow: string; // palette glow hex (bar tinting)

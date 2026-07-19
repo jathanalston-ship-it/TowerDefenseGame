@@ -316,3 +316,22 @@ Until both exist the workflow builds (CI signal) and prints a notice instead of 
 deploy step is idempotent: it creates the `assimilate` Pages project on the first ever run.
 Note: this is the DIRECT-UPLOAD flow (matching `npm run deploy`); do not also git-connect the
 same Pages project in the dashboard, or the two will fight over production.
+
+**Contract hardening (2026-07-19):** the workflow now (a) re-runs `npm run site` at HEAD
+before building, so deployed patch notes are always current to the deploying commit
+(committed artifacts remain the reviewable record), and (b) **fails RED when the
+Cloudflare secrets are missing** — the bootstrap-era soft skip is gone; a push that cannot
+change production is a failure by definition.
+
+## §rollback — undoing a faulty deploy
+
+Two speeds, both safe:
+
+1. **Instant (CDN-level, no commit)** — Cloudflare dashboard → Workers & Pages →
+   `assimilate` → Deployments → pick the previous deployment → **Rollback**; or
+   `npx wrangler@3 pages deployment list --project-name assimilate` and re-promote from
+   the dashboard. Production flips atomically to the prior build. Follow up with the git
+   revert below so the next push doesn't re-deploy the fault.
+2. **Source-of-truth (one commit)** — `git revert <bad-sha> && git push` on the deploying
+   branch. CI rebuilds, redeploys, and the verify gate confirms production serves the
+   reverted tree. Chronicle artifacts are committed data, so notes/news revert with it.

@@ -5,10 +5,22 @@ import type { Release } from './types';
 /** Player-facing releases, newest first. */
 export const RELEASES: Release[] = [
   {
+    "id": "v2026.07.19",
+    "date": "2026-07-19",
+    "title": "Update",
+    "sealed": false,
+    "entries": [
+      {
+        "cat": "Visuals",
+        "text": "Living battlefield: organism anticipation, idle life, and reactivity"
+      }
+    ]
+  },
+  {
     "id": "v2026.07.09",
     "date": "2026-07-09",
     "title": "The Living World Update",
-    "sealed": false,
+    "sealed": true,
     "entries": [
       {
         "cat": "Gameplay",

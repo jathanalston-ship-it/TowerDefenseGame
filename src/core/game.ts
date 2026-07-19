@@ -3578,8 +3578,13 @@ export class Game {
       t.cooldown = def.fireInterval / rateMult;
       return true;
     }
-    // Body chip: only when there is NOTHING else to shoot (the raid's between-window sustain).
-    if (this.enemies.length === 0) {
+    // Body chip: the between-window sustain. A tower with NO prey in ITS OWN reach was going
+    // to do nothing at all — it turns its guns on the mountain instead (mirrors the hero
+    // rule; the old BARE-FIELD gate let one add anywhere freeze every out-of-reach tower,
+    // the reported "boss just stops" stall). Towers with live prey in range still fight the
+    // wave first (fall through), and megaRaidYield above parks the raid while the Hive is
+    // threatened.
+    if (!this.towerHasTarget(t.x, t.y, range, def.minRange ?? 0)) {
       const bx = Math.max(WIDTH * 0.2, Math.min(WIDTH * 0.8, t.x));
       const by = this.megaBodyY(t.y, range);
       if (dist2(t.x, t.y, bx, by) <= range * range) {
@@ -4411,9 +4416,10 @@ export class Game {
         return;
       }
       if (t.beamTarget <= -1000) { t.beamTarget = -1; t.beamHeat = 0; } // organ gone — the lock drops cold
-      // Between windows with an EMPTY field the beam grinds the anchored body instead —
-      // armored chip, no resonance ramp on dead chitin (docs/MEGA-BOSS.md §targeting).
-      if (this.enemies.length === 0) {
+      // Between windows, a beam with NO prey in its own reach grinds the anchored body
+      // instead — armored chip, no resonance ramp on dead chitin (docs/MEGA-BOSS.md
+      // §targeting; same no-dead-sentry rule as towerMegaFire).
+      if (!this.towerHasTarget(t.x, t.y, range, 0)) {
         const bx = Math.max(WIDTH * 0.2, Math.min(WIDTH * 0.8, t.x));
         const by = this.megaBodyY(t.y, range);
         if (dist2(t.x, t.y, bx, by) <= r2) {
@@ -4606,7 +4612,7 @@ export class Game {
         t.cooldown = Math.max(0, t.cooldown - dt);
         return;
       }
-      if (this.enemies.length === 0) {
+      if (!this.towerHasTarget(t.x, t.y, range, 0)) { // no prey in reach ⇒ drain the mountain (no dead sentries)
         const bx = Math.max(WIDTH * 0.2, Math.min(WIDTH * 0.8, t.x));
         const by = this.megaBodyY(t.y, range);
         if (dist2(t.x, t.y, bx, by) <= range * range) {
@@ -7915,6 +7921,8 @@ export class Game {
       stagger: rt.stagger,
       staggered: this.time < rt.staggeredUntil,
       exposed: this.time < rt.exposedUntil,
+      regenActive: ((def.phases[rt.phase].regenPerSec ?? 0) > 0 || rt.evolveStacks > 0) && this.time >= rt.regenOffUntil && rt.hp < rt.maxHp,
+      armored: rt.armor > 0,
       effects: view.effects,
       weakPoints: rt.weakPoints
         .filter((w) => w.state === 'open')
