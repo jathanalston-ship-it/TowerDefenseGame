@@ -424,6 +424,7 @@ export interface MegaBossView {
   staggered: boolean; // TOPPLED — organ windows frozen, body takes bonus damage
   exposed: boolean; // heart window — the renderer floods the body with glow
   deathT: number; // > 0: the death sequence is playing
+  burrow: number; // §dormancy 0 surfaced → 1 buried between waves (presentation only)
   weakPoints: MegaWeakPoint[];
   effects: string[]; // short HUD labels for the live manipulations (e.g. 'HASTE', 'LEECH')
   // LONE SIEGE (docs/MEGA-BOSS.md §lone siege): null while shepherding a wave. While sieging,
@@ -2493,6 +2494,7 @@ export class Game {
       this.projectileSystem(dt);
       this.floatSystem(dt);
       this.particleSystem(dt);
+      if (this.mega !== null) this.megaDormancySystem(dt); // §dormancy: the organism burrows as the wave winds down
       if (this.settleTimer <= 0) this.endWave();
       return;
     }
@@ -2565,6 +2567,7 @@ export class Game {
       this.heroSystem(dt);
       this.floatSystem(dt);
       this.particleSystem(dt);
+      if (this.mega !== null) this.megaDormancySystem(dt); // §dormancy: a persisting mega stays buried through prep
       // Auto-start: count the prep timer down to the next wave when the player enabled it AND has
       // taken their first setup action (autoStartReady). Off by default ⇒ the manual-start golden
       // run is byte-identical; consumes no rng. While armed-but-not-ready the countdown is frozen
@@ -3213,6 +3216,15 @@ export class Game {
       }
       return;
     }
+    // §dormancy: combat is live — the organism SURFACES. Presentation only (the rotation
+    // below never waits for the pose); the one-shot cue fires on the first emerging tick.
+    if (rt.burrow > 0) {
+      if (rt.burrow >= 1) {
+        this.pushSfx('megaBurrow');
+        this.spawnParticles(WIDTH / 2, MEGA.anchorY + 60, PARTICLE.bossfall, def.palette.glow);
+      }
+      rt.burrow = Math.max(0, rt.burrow - dt / MEGA.burrowOutSec);
+    }
     const phase = def.phases[rt.phase];
     rt.stunned = Math.max(0, rt.stunned - dt);
     // Self-regeneration (phase trait + daily evolution stacks; the regen organ cancels it).
@@ -3555,6 +3567,21 @@ export class Game {
       rt.droughtRotor = i + 1;
       return;
     }
+  }
+
+  /** §dormancy (docs/MEGA-BOSS.md): outside combat megaBossSystem/towerSystem never run, so a
+   *  persisting mega is frozen by DESIGN — this pose makes that read as intentional instead of
+   *  "invincibility". The organism BURROWS into the ridge (renderer sinks the mass, the raid
+   *  bar greys out); the next wave's first ticks surface it again. Presentation only — no
+   *  combat number moves with `burrow`. Ticked from step's settle + prep/draft branches. */
+  private megaDormancySystem(dt: number): void {
+    const rt = this.mega;
+    if (rt === null || rt.deathT > 0 || rt.burrow >= 1) return;
+    if (rt.burrow <= 0) { // the one-shot descent cue — soil folds over the mass
+      this.pushSfx('megaBurrow');
+      this.spawnParticles(WIDTH / 2, MEGA.anchorY + 60, PARTICLE.bossfall, megaBossDef(rt.defId)?.palette.glow ?? '#fff');
+    }
+    rt.burrow = Math.min(1, rt.burrow + dt / MEGA.burrowInSec);
   }
 
   /** Nearest OPEN weak point within `range` of (x,y), or null. */
@@ -7749,6 +7776,7 @@ export class Game {
       staggered: this.time < rt.staggeredUntil,
       exposed: this.time < rt.exposedUntil,
       deathT: rt.deathT,
+      burrow: rt.burrow,
       weakPoints: rt.weakPoints,
       effects,
       siege: sieging ? { windupFrac: rt.lashWindup > 0 ? 1 - rt.lashWindup / MEGA.siegeLashTelegraph : 0 } : null,
@@ -7971,7 +7999,10 @@ export class Game {
       stagger: rt.stagger,
       staggered: this.time < rt.staggeredUntil,
       exposed: this.time < rt.exposedUntil,
-      regenActive: ((def.phases[rt.phase].regenPerSec ?? 0) > 0 || rt.evolveStacks > 0) && this.time >= rt.regenOffUntil && rt.hp < rt.maxHp,
+      // §dormancy: buried between waves — the greyed bar must not claim active regen (nothing
+      // ticks while dormant), so the regen chip is gated on being surfaced.
+      dormant: rt.burrow >= 0.5,
+      regenActive: rt.burrow < 0.5 && ((def.phases[rt.phase].regenPerSec ?? 0) > 0 || rt.evolveStacks > 0) && this.time >= rt.regenOffUntil && rt.hp < rt.maxHp,
       armored: rt.armor > 0,
       effects: view.effects,
       weakPoints: rt.weakPoints

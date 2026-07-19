@@ -10713,6 +10713,17 @@ kbd {
 }
 .mega-banner.is-exposed { box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6), 0 0 40px color-mix(in srgb, var(--mega, #ff5d73) 65%, transparent); }
 .mega-banner.is-stunned { filter: saturate(0.6); }
+/* §dormancy (docs/MEGA-BOSS.md): BURROWED between waves — the whole bar recedes with the
+   organism: desaturated, dimmed, glow gone; the transition eases both ways with the pose. */
+.mega-banner { transition: opacity var(--dur-3) ease, filter var(--dur-3) ease; }
+.mega-banner.is-dormant {
+  opacity: 0.55;
+  filter: saturate(0.25);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6);
+  border-color: color-mix(in srgb, var(--mega, #ff5d73) 40%, #555);
+}
+.mega-banner.is-dormant .mega-hp-fill { background: linear-gradient(90deg, #4a4a52, #6b6b74); }
+.mega-chip-dormant { color: #b9b2a6; border-color: rgba(185, 178, 166, 0.5); }
 .mega-banner-row { display: flex; align-items: baseline; gap: 8px; margin-bottom: 5px; }
 .mega-name { font-weight: 900; letter-spacing: 0.1em; color: var(--mega, #ff5d73); font-size: 14px; }
 .mega-title { font-size: 10px; color: var(--muted); letter-spacing: 0.08em; flex: 1; }

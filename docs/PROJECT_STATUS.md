@@ -3,7 +3,36 @@
 > Maintained at the END of every session (paired with `docs/AI_HANDOFF.md` — the constitution's
 > workflow step 4). This is the "where are we?" answer; `docs/GAME-STATE.md` remains the deeper
 > per-system built-vs-planned index, `docs/PROJECT_MANIFEST.md` the system map.
-> **Last updated:** 2026-07-19ag (**MEGA FIGHT-TIMELINE PROBE + ORGAN DROUGHT
+> **Last updated:** 2026-07-19ah (**MEGA DORMANCY — BETWEEN-WAVE BURROW POSE +
+> GREYED RAID BAR** (user: burrow/in-between phase during build phase and between waves;
+> health bar greys/fades). The between-wave freeze is by design (megaBossSystem/towerSystem
+> run only in step's 'wave' branch) but a frozen full-color boss read as "invincibility" —
+> now the freeze has body language. SIM (presentation-only state): `MegaRuntime.burrow`
+> 0→1 + factory init; `MEGA.burrowInSec` 1.4/`burrowOutSec` 0.9; `megaDormancySystem`
+> (game.ts) ticks burrow IN from step's settle + prep branches (one-shot `megaBurrow` cue
+> + descent particles; skips dying megas); megaBossSystem's first live ticks ease it OUT
+> (one-shot cue at the burrow≥1 edge). No combat number reads burrow — probe numbers
+> byte-stable, goldens 12/12 (every path gated on `mega !== null`). VIEWS:
+> `MegaBossView.burrow`; `MegaBannerSnapshot.dormant` (burrow ≥ 0.5) with `regenActive`
+> gated off while dormant (grey bar never claims healing). RENDER (render/megaboss.ts):
+> `burrowOf` smoothstep (death overrides → 0); body RECEDES up into the ridge
+> (translate + fade) over a new `drawBurrowMound` — low breathing ridge-line, soil seams
+> leaking palette glow, periodic ground tremor; organs + siege arm retract via wrapper
+> (fully buried draws nothing); vignette fades ×(1−0.8·bur), frozen telegraphs/stagger
+> frame suppressed at bur ≥ 0.5, heartbeat slows/fades. AUDIO: `sMegaBurrow` soil rumble
+> (sound.ts) + 'megaBurrow' case. HUD (GameView + index.css): `.mega-banner.is-dormant`
+> (desaturate/dim, `--dur-3` transitions — uiStandards gate rejects non-token durations;
+> first draft failed it), grey hp fill, ALL combat chips + open-organ list yield to
+> `⛰ BURROWED — RESURFACES WITH THE WAVE`. Tests: megaboss.test §dormancy (mid-wave never
+> dormant; buried through prep — via chooseCard, the draft PAUSES advance; hp frozen both
+> ways; resurfaces ≤ burrowOutSec) — 33/33; suite 305/2590, build, validate PASS (mobile
+> gate incl.). Headless dist smoke (scratchpad burrow-probe.mjs, game entry
+> /play/index.html): fight → dormant:false; prep → is-dormant class + BURROWED chip;
+> resurfaced → false; zero page errors; screenshots burrow-1/2/3. MEGA-BOSS.md +§dormancy.
+> Next: live play-validate the cadence + optional per-motif dormant silhouettes
+> (drawBurrowMound seam). Previous below.)
+>
+> **2026-07-19ag** (**MEGA FIGHT-TIMELINE PROBE + ORGAN DROUGHT
 > VALVE — REBUILD VERDICT: NOT WARRANTED** (user: "fight timeline probe please." — the
 > instrument the af-handoff promised, grounding the "may have to rebuild" question in
 > numbers). PROBE: `npm run sim:mega` (scripts/sim-mega-feel.ts) runs 5 REAL fights

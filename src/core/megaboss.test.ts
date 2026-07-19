@@ -707,3 +707,37 @@ describe('§organ drought valve (docs/MEGA-BOSS.md §feel) — counterplay can n
     expect(rt.droughtRotor).toBe(0);
   });
 });
+
+describe('§dormancy (docs/MEGA-BOSS.md) — between waves the organism burrows', () => {
+  type Guts = { mega: { burrow: number; hp: number } | null };
+
+  it('a campaign mega buries through prep (banner dormant) and resurfaces with the next wave', () => {
+    const g = new Game(37, NO_META, undefined, undefined, undefined, { mode: 'campaign' });
+    g.god = true;
+    g.spawnMegaBoss({ defId: 'voraxis', tier: 1 }, 'campaign');
+    g.startWave();
+    const rt = (g as unknown as Guts).mega!;
+    // Mid-wave: surfaced and fighting — never dormant.
+    for (let i = 0; i < 60 * 3; i++) g.advance(SIM_DT);
+    expect(rt.burrow).toBe(0);
+    expect(g.getSnapshot().megaBanner!.dormant).toBe(false);
+    // Clear the wave (campaign completes past a standing mega — §modes) → settle → prep.
+    for (let i = 0; i < 60 * 40 && g.phase === 'wave'; i++) {
+      for (const e of g.enemies) e.hp = -1;
+      g.advance(SIM_DT);
+    }
+    expect(g.phase).not.toBe('wave');
+    if (g.phase === 'draft' && g.draft !== null) g.chooseCard(g.draft[0].id); // the draft modal pauses the sim — play it
+    for (let i = 0; i < 60 * 3; i++) g.advance(SIM_DT); // prep ticks — the descent completes
+    expect(rt.burrow).toBe(1); // fully buried…
+    expect(g.getSnapshot().megaBanner!.dormant).toBe(true); // …and the bar says why (greyed)
+    const hpBuried = rt.hp;
+    for (let i = 0; i < 60 * 5; i++) g.advance(SIM_DT);
+    expect(rt.hp).toBe(hpBuried); // nothing moves while buried — the grey bar never lies
+    // The next wave surfaces it inside burrowOutSec.
+    g.startWave();
+    for (let i = 0; i < 60 * 2; i++) g.advance(SIM_DT);
+    expect(rt.burrow).toBe(0);
+    expect(g.getSnapshot().megaBanner!.dormant).toBe(false);
+  });
+});

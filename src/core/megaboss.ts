@@ -555,6 +555,11 @@ export const MEGA = {
   // siege — only a resumed wave plan does.
   siegeGraceSec: 8, // quiet seconds before the organism turns on the Hive
   organDroughtSec: 22, // no organ open for this long ⇒ the organism REGROWS a spent one (a persisting mega whose destructibles are all spent must never run out of counterplay)
+  // §dormancy (docs/MEGA-BOSS.md): between waves the whole fight is frozen by design
+  // (megaBossSystem only runs in combat) — the organism BURROWS so the pause reads as
+  // intentional, not "invincibility". Presentation only: no sim number moves with it.
+  burrowInSec: 1.4, // seconds to sink into the ridge when the wave ends
+  burrowOutSec: 0.9, // seconds to resurface once the next wave is live
   siegeLashEvery: 13, // opening seconds between lashes (the first arrives on the half-beat)
   siegeLashEveryMin: 8, // the cadence floor as landed blows compound
   siegeLashRamp: 0.88, // per landed lash: next interval × this
@@ -730,6 +735,9 @@ export interface MegaRuntime {
   lastOrganOpenAt: number;
   /** Round-robin cursor so drought regrowth cycles the def's specs deterministically. */
   droughtRotor: number;
+  /** §dormancy burrow depth, 0 surfaced → 1 buried between waves. PRESENTATION ONLY —
+   *  no combat system reads it; the renderer sinks the mass and the raid bar greys out. */
+  burrow: number;
   // Encounter statistics (RunStats + collection + achievements).
   wpDestroyed: number;
   wpKinds: WeakPointKind[];
@@ -787,6 +795,7 @@ export function createMegaRuntime(def: MegaBossDef, enc: MegaEncounter, encounte
     lashes: 0,
     lastOrganOpenAt: 0,
     droughtRotor: 0,
+    burrow: 0,
     wpDestroyed: 0,
     wpKinds: [],
     interrupts: 0,

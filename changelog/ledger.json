@@ -1,6 +1,6 @@
 {
-  "lastSha": "cdcec460861fda4cca8c07767eb5d21e626ce41c",
-  "commitsSinceDraft": 3,
+  "lastSha": "7825b3daa37de2eb4ed1c056739b1778e84bcf3a",
+  "commitsSinceDraft": 4,
   "content": {
     "tower": [
       "needle",
@@ -2947,6 +2947,10 @@
         {
           "cat": "Mega Bosses",
           "text": "Mega bosses: raid hit audio + waves hold for the kill outside campaign"
+        },
+        {
+          "cat": "Gameplay",
+          "text": "Mega fight-timeline probe + organ drought valve: rebuild verdict grounded in numbers"
         }
       ]
     }
@@ -5557,6 +5561,14 @@
       "date": "2026-07-19",
       "cat": "Mega Bosses",
       "text": "Mega bosses: raid hit audio + waves hold for the kill outside campaign",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "7825b3daa37de2eb4ed1c056739b1778e84bcf3a",
+      "date": "2026-07-19",
+      "cat": "Gameplay",
+      "text": "Mega fight-timeline probe + organ drought valve: rebuild verdict grounded in numbers",
       "internal": false,
       "needsReview": false
     }

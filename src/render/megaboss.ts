@@ -41,6 +41,57 @@ function collapseOf(v: MegaView): number {
   return v.deathT > 0 ? Math.min(1, Math.max(0, 1 - v.deathT / 3.5)) : 0;
 }
 
+/** §dormancy burrow factor (smoothstepped): 0 surfaced → 1 buried. Death overrides — a
+ *  collapsing organism never recedes mid-ceremony. */
+function burrowOf(v: MegaView): number {
+  if (v.deathT > 0) return 0;
+  const b = Math.min(1, Math.max(0, v.burrow));
+  return b * b * (3 - 2 * b);
+}
+
+/** §dormancy buried pose: the mass is gone — a low breathing ridge-line remains, soil seams
+ *  leaking its glow, with a slow periodic tremor ("the tremor between waves is its patience
+ *  running out"). Draws UNDER the receding body so the transition crossfades naturally. */
+function drawBurrowMound(ctx: Ctx, v: MegaView, now: number, bur: number): void {
+  const body = hexRgb(themedMegaColor(v.palette.body));
+  const glo = hexRgb(themedMegaColor(v.palette.glow));
+  const breathe = 1 + Math.sin(now * 0.55) * 0.06; // slow, buried breathing
+  const yb = 40 + 12 * breathe;
+  ctx.save();
+  ctx.globalAlpha = bur;
+  ctx.fillStyle = rgba(body, 0.55);
+  ctx.beginPath();
+  ctx.moveTo(-90, -40);
+  ctx.lineTo(-90, yb);
+  const lobes = 7;
+  for (let i = 0; i <= lobes; i++) {
+    const x = -90 + ((WIDTH + 180) / lobes) * i;
+    const y = yb + Math.sin(i * 2.3 + now * 0.25) * 6 * breathe;
+    const px = -90 + ((WIDTH + 180) / lobes) * (i - 0.5);
+    ctx.quadraticCurveTo(px, y + 14, x, y);
+  }
+  ctx.lineTo(WIDTH + 90, -40);
+  ctx.closePath();
+  ctx.fill();
+  // Soil seams: cracks where its light leaks through — buried, not gone.
+  for (let i = 0; i < 4; i++) {
+    const sx = WIDTH * (0.16 + i * 0.22) + Math.sin(i * 5.1) * 30;
+    const p = pulse(now, 3.2 + i * 0.7, 0.2, 0.8);
+    glow(ctx, sx, yb - 4, 24 + p * 14, rgba(glo, 0.08 + p * 0.09));
+  }
+  // The tremor: a brief ground-line shiver every few seconds.
+  const trem = Math.max(0, Math.sin(now * 0.9)) ** 12;
+  if (trem > 0.01) {
+    ctx.strokeStyle = rgba(glo, 0.3 * trem);
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(-90, yb + 9 + trem * 3);
+    ctx.lineTo(WIDTH + 90, yb + 9 - trem * 3);
+    ctx.stroke();
+  }
+  ctx.restore();
+}
+
 // ── Render-side one-shots (module state, render-only): the CAST flash fires the frame a
 //    telegraph resolves into its strike, and each weak point's RUPTURE burst fires on its
 //    open→destroyed edge. One mega exists at a time, so plain module scope is safe — and
@@ -73,10 +124,16 @@ export function drawMegaBody(ctx: Ctx, v: MegaView, now: number): void {
   const breathe = dead ? 1 + Math.sin(now * 14) * 0.01 * (1 - collapse) : 1 + Math.sin(now * 0.9) * (0.018 + tier * 0.004);
   const sag = collapse * 60 + staggerEase * 26; // the mass slumps as it dies (and when TOPPLED)
   const baseY = (v.anchorY + 90) * breathe + sag; // the ridge's lower edge center line
-  const alpha = dead ? 1 - collapse * 0.55 : 1;
+  // §dormancy: between waves the whole mass RECEDES up into the ridge (burrow 0→1) while the
+  // mound below crossfades in; fully buried draws only the mound (cheap, and reads "waiting").
+  const bur = burrowOf(v);
+  if (bur > 0) drawBurrowMound(ctx, v, now, bur);
+  if (bur >= 0.999) return;
+  const alpha = (dead ? 1 - collapse * 0.55 : 1) * (1 - bur);
 
   ctx.save();
   ctx.globalAlpha = alpha;
+  if (bur > 0) ctx.translate(0, -bur * (v.anchorY + 200)); // sink behind the ridge line
 
   // Depth layers, back → front: three ridge silhouettes, each an undulating closed shape spanning
   // beyond both screen edges — the battlefield exists BENEATH this thing.
@@ -573,6 +630,15 @@ export function drawMegaOrgans(ctx: Ctx, v: MegaView, now: number): void {
   const body = hexRgb(v.palette.body);
   const collapse = collapseOf(v);
   if (collapse >= 1) return;
+  // §dormancy: organs (and the siege arm) retract with the receding mass — fully buried
+  // draws nothing; partial burrow rides the same upward slide + fade as the body.
+  const bur = burrowOf(v);
+  if (bur >= 0.999) return;
+  ctx.save();
+  if (bur > 0) {
+    ctx.translate(0, -bur * (v.anchorY + 200));
+    ctx.globalAlpha = 1 - bur;
+  }
   const rootY = v.anchorY + 84;
   for (const wp of v.weakPoints) {
     // Rupture edge-detect: the frame an organ dies, arm its one-shot burst (render-only).
@@ -737,6 +803,7 @@ export function drawMegaOrgans(ctx: Ctx, v: MegaView, now: number): void {
       glow(ctx, x0, y0 + 18, 12, rgba(glo, 0.2 + pulse(now, 1.6, 0, 0.15)));
     }
   }
+  ctx.restore(); // §dormancy wrapper
 }
 
 function easeOut(t: number): number {
@@ -934,9 +1001,13 @@ export function drawMegaShots(ctx: Ctx, rs: RenderState): void {
 export function drawMegaVignette(ctx: Ctx, v: MegaView, now: number): void {
   const glo = hexRgb(v.palette.glow);
   const collapse = collapseOf(v);
+  // §dormancy: the buried organism's presence leaves the frame with it — only a faint
+  // residue of the tint remains (the mound's seams carry "still here" on the field itself).
+  const bur = burrowOf(v);
   // Ambient dread: an edge tint that deepens with phase, floods on exposure, guts in death.
   let a = 0.045 + v.phase * 0.02 + (v.exposed ? 0.05 : 0) + (v.telegraph ? v.telegraph.frac * 0.03 : 0);
   if (collapse > 0) a = 0.12 * (1 - collapse) + collapse * 0.05;
+  a *= 1 - bur * 0.8;
   const g = ctx.createRadialGradient(WIDTH / 2, HEIGHT * 0.45, HEIGHT * 0.3, WIDTH / 2, HEIGHT * 0.45, HEIGHT * 0.75);
   g.addColorStop(0, 'rgba(0,0,0,0)');
   g.addColorStop(1, rgba(glo, Math.min(0.2, a)));
@@ -945,7 +1016,7 @@ export function drawMegaVignette(ctx: Ctx, v: MegaView, now: number): void {
   // Telegraph warning band: the top of the frame — where the organism lives — heats up
   // across the windup, hammering "look UP now" without blocking the field. A CATACLYSM
   // windup burns RED, twice as deep, twice as fast — the one you cannot ignore.
-  if (v.telegraph && collapse === 0) {
+  if (v.telegraph && collapse === 0 && bur < 0.5) { // a frozen mid-windup telegraph must not burn while buried
     const cata = v.telegraph.kind === 'cataclysm';
     const f = v.telegraph.frac;
     const col = cata ? hexRgb('#ff5d73') : glo;
@@ -957,7 +1028,7 @@ export function drawMegaVignette(ctx: Ctx, v: MegaView, now: number): void {
     ctx.fillRect(0, 0, WIDTH, HEIGHT * depth);
   }
   // Staggered: a thin gold edge-light frames the burst window (the field says NOW too).
-  if (v.staggered && collapse === 0) {
+  if (v.staggered && collapse === 0 && bur < 0.5) {
     ctx.strokeStyle = rgba('255, 210, 77', 0.25 + pulse(now, 0.5) * 0.2);
     ctx.lineWidth = 3;
     ctx.strokeRect(1.5, 1.5, WIDTH - 3, HEIGHT - 3);
@@ -968,8 +1039,9 @@ export function drawMegaVignette(ctx: Ctx, v: MegaView, now: number): void {
     ctx.fillRect(0, 0, WIDTH, HEIGHT);
   }
   // A slow heartbeat of the whole frame while the organism lives (subliminal presence).
+  // Buried, it beats slower and fainter — patience, not pressure.
   if (collapse === 0) {
-    ctx.fillStyle = rgba(glo, pulse(now, 2.8, 0, 0.02));
+    ctx.fillStyle = rgba(glo, pulse(now, bur >= 0.5 ? 4.6 : 2.8, 0, 0.02 * (1 - bur * 0.6)));
     ctx.fillRect(0, 0, WIDTH, HEIGHT);
   }
 }

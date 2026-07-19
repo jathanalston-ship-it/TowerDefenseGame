@@ -352,3 +352,4 @@
 - `63ebc02` **[Mega Bosses]** Mega-boss stall fix, self-sealing patch notes, lab adaptation links
 - `e14695e` **[Bosses]** Boss Rush free-entry badge: volatile daily notification watermarks
 - `cdcec46` **[Mega Bosses]** Mega bosses: raid hit audio + waves hold for the kill outside campaign
+- `7825b3d` **[Gameplay]** Mega fight-timeline probe + organ drought valve: rebuild verdict grounded in numbers

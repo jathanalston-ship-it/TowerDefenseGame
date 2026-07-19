@@ -238,6 +238,33 @@ valve (all-specs-destroyed ⇒ reopen within the window; a permanently-open orga
 stays silent and the rotor never moves). Golden-safe: the valve lives inside
 `megaBossSystem`, which never runs without a mega.
 
+## §dormancy (2026-07-19) — between waves the organism BURROWS
+
+Outside combat the mega is frozen by DESIGN (megaBossSystem/towerSystem only run in the
+`'wave'` branch; the draft pauses everything) — but a frozen full-color boss read as
+"invincibility phases" (user report). Now the freeze has a body language:
+
+- **The pose** (`MegaRuntime.burrow` 0→1, presentation only — no combat number reads it):
+  the wave's settle beat starts the descent (`MEGA.burrowInSec` 1.4 s, ticked by
+  `megaDormancySystem` from step's settle + prep branches); the mass RECEDES up into the
+  ridge and a low breathing **mound** remains — soil seams leaking palette glow, a slow
+  periodic ground tremor ("the tremor between waves is its patience running out"). Organs
+  and the siege arm retract with it; the vignette/heartbeat fades to a faint slow residue.
+  The next wave's first ticks surface it again (`burrowOutSec` 0.9 s) — the fight below
+  never waits for the pose. Both transitions play the `megaBurrow` soil-rumble cue +
+  descent/emergence particles.
+- **The bar** (`MegaBannerSnapshot.dormant`, true at burrow ≥ 0.5): the raid banner greys
+  out (`.mega-banner.is-dormant` — desaturated, dimmed, glow gone) and every combat chip
+  yields to one explanation: `⛰ BURROWED — RESURFACES WITH THE WAVE`. `regenActive` is
+  gated off while dormant (nothing ticks — the grey bar never claims healing), and a
+  frozen mid-windup telegraph is suppressed on both the banner and the vignette band.
+- **Death overrides**: a collapsing organism never recedes (`burrowOf` returns 0 while
+  `deathT > 0`), and the dormancy tick skips dying megas.
+
+Pinned by megaboss.test §dormancy (mid-wave never dormant; buried through prep with the
+banner saying why and hp frozen both directions; resurfaced within `burrowOutSec` of the
+next wave). Golden-safe: every dormancy path is gated on `this.mega !== null`.
+
 ## §lone siege (2026-07) — the last thing standing turns on the Hive
 
 Before this pass, a mega whose wave plan was spent just **sat there soaking** — its aura verbs

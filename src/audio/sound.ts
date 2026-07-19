@@ -287,6 +287,10 @@ function sMegaDeath(): void { // the collapse: a long dying groan, structure fai
   noise(1.8, 0.14, 2200, 120); tone(30, 2.4, 'sine', 0.32, 18);
   tone(1046, 0.5, 'sine', 0.07, 523); // one thin gleam over the ruin — the reward is coming
 }
+function sMegaBurrow(): void { // §dormancy: earth swallows / releases the mass — deep soil rumble, no shriek
+  tone(42, 1.1, 'sine', 0.22, 26); tone(66, 0.8, 'sawtooth', 0.08, 30);
+  noise(0.9, 0.09, 500, 90); noise(0.35, 0.06, 1800, 500);
+}
 function sMine(): void { // spore-mine burst: wet pop + acid fizz (docs/SOWER.md)
   noise(0.22, 0.16, 1600, 300); tone(180, 0.18, 'sine', 0.2, 70); noise(0.3, 0.06, 5200, 2000);
 }
@@ -593,6 +597,7 @@ export const audio = {
         case 'wpOpen': sWpOpen(); break;
         case 'wpBreak': sWpBreak(); break;
         case 'megaDeath': sMegaDeath(); break;
+        case 'megaBurrow': sMegaBurrow(); break;
         case 'draft': sDraft(); break;
         case 'graftPulse': sGraftPulse(); break;
         case 'graftSquelch': sGraftSquelch(); break;

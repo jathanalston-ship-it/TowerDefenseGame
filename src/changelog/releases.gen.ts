@@ -25,6 +25,10 @@ export const RELEASES: Release[] = [
       {
         "cat": "Mega Bosses",
         "text": "Mega bosses: raid hit audio + waves hold for the kill outside campaign"
+      },
+      {
+        "cat": "Gameplay",
+        "text": "Mega fight-timeline probe + organ drought valve: rebuild verdict grounded in numbers"
       }
     ]
   },

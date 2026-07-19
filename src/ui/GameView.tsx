@@ -1144,7 +1144,7 @@ export function GameView({
           </div>
         )}
         {hud.megaBanner && (
-          <div className={`mega-banner${hud.megaBanner.exposed ? ' is-exposed' : ''}${hud.megaBanner.stunned ? ' is-stunned' : ''}${hud.megaBanner.staggered ? ' is-staggered' : ''}`} style={{ ['--mega']: hud.megaBanner.glow } as CSSProperties}>
+          <div className={`mega-banner${hud.megaBanner.exposed ? ' is-exposed' : ''}${hud.megaBanner.stunned ? ' is-stunned' : ''}${hud.megaBanner.staggered ? ' is-staggered' : ''}${hud.megaBanner.dormant ? ' is-dormant' : ''}`} style={{ ['--mega']: hud.megaBanner.glow } as CSSProperties}>
             <div className="mega-banner-row">
               <span className="mega-name">{hud.megaBanner.name}</span>
               <span className="mega-title">{hud.megaBanner.title}</span>
@@ -1158,27 +1158,34 @@ export function GameView({
               <div className={`mega-stagger-fill${hud.megaBanner.staggered ? ' is-full' : ''}`} style={{ width: `${(hud.megaBanner.staggered ? 1 : hud.megaBanner.stagger) * 100}%` }} />
             </div>
             <div className="mega-banner-row2">
-              {hud.megaBanner.staggered && <span className="mega-chip mega-chip-staggered">STAGGERED — POUR IT ON</span>}
-              {hud.megaBanner.stunned && !hud.megaBanner.staggered && <span className="mega-chip mega-chip-stun">STUNNED</span>}
-              {hud.megaBanner.exposed && <span className="mega-chip mega-chip-exposed">EXPOSED</span>}
-              {hud.megaBanner.telegraph && (
-                <span className={`mega-chip mega-chip-cast${hud.megaBanner.telegraph.kind === 'cataclysm' ? ' is-cataclysm' : ''}`}>
-                  {hud.megaBanner.telegraph.kind === 'cataclysm' ? '⚠ CATACLYSM — INTERRUPT IT' : hud.megaBanner.telegraph.kind.toUpperCase()}
-                  <i className="mega-cast-fill" style={{ width: `${hud.megaBanner.telegraph.frac * 100}%` }} />
-                </span>
+              {/* §dormancy: buried between waves — ONE chip explains the greyed bar; every
+                  combat chip yields (a frozen telegraph/effect list would lie while dormant). */}
+              {hud.megaBanner.dormant && (
+                <span className="mega-chip mega-chip-dormant" title="The organism has burrowed between waves — it cannot be damaged and does nothing until the next wave surfaces it">⛰ BURROWED — RESURFACES WITH THE WAVE</span>
               )}
-              {/* Damage-gate honesty (docs/MEGA-BOSS.md §hud): when nothing is open, SAY so —
-                  the fight is in armored-chip mode, not frozen. Regen/armor explain a slow bar. */}
-              {hud.megaBanner.weakPoints.length === 0 && !hud.megaBanner.exposed && !hud.megaBanner.staggered && (
-                <span className="mega-chip mega-chip-sealed" title="No organs are open — idle guns chip the armored body at reduced damage until the next window opens">CARAPACE SEALED · CHIPPING</span>
-              )}
-              {hud.megaBanner.regenActive && <span className="mega-chip mega-chip-regen" title="The organism is regenerating — rupture a Regen Gland to stop it">▲ REGENERATING</span>}
-              {hud.megaBanner.armored && !hud.megaBanner.exposed && !hud.megaBanner.staggered && (
-                <span className="mega-chip mega-chip-armor" title="Body armor blunts chip damage — an Armor Node rupture breaks it">◆ ARMORED</span>
-              )}
-              {hud.megaBanner.effects.map((fx) => <span key={fx} className="mega-chip">{fx}</span>)}
+              {!hud.megaBanner.dormant && <>
+                {hud.megaBanner.staggered && <span className="mega-chip mega-chip-staggered">STAGGERED — POUR IT ON</span>}
+                {hud.megaBanner.stunned && !hud.megaBanner.staggered && <span className="mega-chip mega-chip-stun">STUNNED</span>}
+                {hud.megaBanner.exposed && <span className="mega-chip mega-chip-exposed">EXPOSED</span>}
+                {hud.megaBanner.telegraph && (
+                  <span className={`mega-chip mega-chip-cast${hud.megaBanner.telegraph.kind === 'cataclysm' ? ' is-cataclysm' : ''}`}>
+                    {hud.megaBanner.telegraph.kind === 'cataclysm' ? '⚠ CATACLYSM — INTERRUPT IT' : hud.megaBanner.telegraph.kind.toUpperCase()}
+                    <i className="mega-cast-fill" style={{ width: `${hud.megaBanner.telegraph.frac * 100}%` }} />
+                  </span>
+                )}
+                {/* Damage-gate honesty (docs/MEGA-BOSS.md §hud): when nothing is open, SAY so —
+                    the fight is in armored-chip mode, not frozen. Regen/armor explain a slow bar. */}
+                {hud.megaBanner.weakPoints.length === 0 && !hud.megaBanner.exposed && !hud.megaBanner.staggered && (
+                  <span className="mega-chip mega-chip-sealed" title="No organs are open — idle guns chip the armored body at reduced damage until the next window opens">CARAPACE SEALED · CHIPPING</span>
+                )}
+                {hud.megaBanner.regenActive && <span className="mega-chip mega-chip-regen" title="The organism is regenerating — rupture a Regen Gland to stop it">▲ REGENERATING</span>}
+                {hud.megaBanner.armored && !hud.megaBanner.exposed && !hud.megaBanner.staggered && (
+                  <span className="mega-chip mega-chip-armor" title="Body armor blunts chip damage — an Armor Node rupture breaks it">◆ ARMORED</span>
+                )}
+                {hud.megaBanner.effects.map((fx) => <span key={fx} className="mega-chip">{fx}</span>)}
+              </>}
             </div>
-            {hud.megaBanner.weakPoints.length > 0 && (
+            {!hud.megaBanner.dormant && hud.megaBanner.weakPoints.length > 0 && (
               <div className="mega-wps">
                 {hud.megaBanner.weakPoints.map((w) => (
                   <span key={w.kind} className="mega-wp" title={w.note}>
