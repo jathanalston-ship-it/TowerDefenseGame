@@ -184,3 +184,45 @@ Salvage (infinite), Devotion (daily/login), Trophies of the Rush (rush/roulette)
 Commendations (achievements), Archivist Court (collection/milestone), Boutique Line,
 Season Vault (battlepass), Event Exclusives, Contract Seals (quests). A future cosmetic
 inherits its family from its source with zero authoring.
+
+## §provenance — item history & collector prestige (v53, 2026-07)
+
+Guiding rule: **a cosmetic becomes more interesting the longer it exists** — and every
+fact the museum shows is DERIVED, never authored per item, so tens of thousands of future
+cosmetics get full provenance for free.
+
+- **Eras** (`COSMETIC_ERAS` + `cosmeticEra`): every item resolves a release era
+  ({id, label, year, version, blurb}); the whole launch catalog is `genesis` ("The
+  Founding Catalog", v2026.07). A future content wave = ONE era row + `ERA_OVERRIDES`
+  entries for its items. `First introduced` renders from the era's version tag.
+- **Availability** (`cosmeticAvailability`): `reissued` > `retired` (curated
+  `RETIRED_ITEMS`/`REISSUED_ITEMS` sets, disjoint by validator law) > `limited`
+  (time-boxed sources: event/battlepass/login-drop/quest) > `available`. Retirement is a
+  data decision, never a code change.
+- **Legacy badges** (`COSMETIC_BADGES` + `cosmeticBadges`): 13-badge registry
+  (Founder ◈, First Edition ①, Event Exclusive ☄, Season Vault ❁, Contract Seal ✪,
+  Limited Distribution ◇, Retired ⌛, Reissued ↻, Legacy ☗, Anniversary ✦, Community
+  Challenge ⚑, Tournament Exclusive ⚔, Developer Reward ⌬). Derivations are TRUTHFUL
+  (source/era/availability-driven; Legacy emerges only with age — era.year < current
+  year); the membership badges join only via `BADGE_OVERRIDES` rows. Pinned by
+  wardrobe.test: no derivation can mint a membership badge.
+- **Hive Archives** (`HIVE_ARCHIVES` + `cosmeticLore`): curated lore blurbs (≤400 chars
+  by law) in the Hive Archives voice; every event-source item MUST have one (validator) —
+  the museum's headliners. Everything else may add entries over time (content, not code).
+- **Census & market seams** (`cosmeticCensus`/`cosmeticMarket` + provider setters):
+  network-wide copy counts and auction price history return **null until a server feeds
+  them** — the client NEVER fabricates numbers; the UI renders "— awaiting network
+  census". Contract: docs/TRADING-PREP.md §7 (census source of truth = the durable
+  `cos_claim` analytics row emitted at the Specimen Vault's claim ceremony — the ONLY
+  claim surface).
+- **The read-model** (`meta.collectorView(id)` → `CollectorView`): one call joins def +
+  era + availability + badges + lore + family (+completion) + YOUR relationship (claimed,
+  copies held, the provenance stamp — bound `cos:<id>` when claimed, else the newest
+  instance's `cos:<uid>`) + census/market. The **Collector Panel** (SpecimenVault card
+  tap, rendered through the Popup portal) presents it museum-style: rarity-lit specimen
+  plate, badge chips, Archives shelf, provenance ledger rows, your-copy line, family
+  completion meter. Zero ambient animators; `svCereIn` is the one finite entrance.
+
+Validator laws (`wardrobeProblems`): eras unique/non-empty; every override/set/lore key
+names a real item; RETIRED ∩ REISSUED = ∅; badge ids unique; lore length ≤400. Tests:
+wardrobe.test 'provenance & collector prestige' + wardrobeMeta.test 'collectorView'.

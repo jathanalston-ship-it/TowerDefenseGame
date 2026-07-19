@@ -345,3 +345,4 @@
 - `d4c29fa` **[UI]** Metabolism: the recursive progression system (save v51, Milestones screen)
 - `d44e891` **[UX]** Menu UX overhaul: wayfinding frame, nav history, audit-driven polish
 - `0fe4247` **[Gameplay]** Event Exchange Shops: themed storefronts, purchase limits, forever ledger (save v52)
+- `5466dce` **[Gameplay]** Two-state cosmetics: Specimen Vault, claiming, permanent bonuses (save v53)

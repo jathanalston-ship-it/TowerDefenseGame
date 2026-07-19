@@ -648,9 +648,149 @@ export function cosmeticFamily(d: WardrobeItemDef): string {
   }
 }
 
+// ── Provenance & collector prestige (docs/COSMETICS.md §provenance) ────────────
+// "A cosmetic should become more interesting the longer it exists." Every item carries
+// PERMANENT release provenance (era → year/version/story), an availability status, a
+// derived set of LEGACY BADGES, and — for the curated pieces — a Hive Archives lore entry.
+// Everything DERIVES from data the registry already has (source, rarity, era) plus small
+// override maps, so a future cosmetic generates its provenance with zero engineering; a
+// future release WAVE is one COSMETIC_ERAS row + override rows (a content task).
+
+/** A release era — the item's "printing". Eras are appended, never edited (history). */
+export interface CosmeticEra {
+  id: string;
+  label: string;
+  year: number;
+  version: string; // the chronicle release the wave shipped in
+  blurb: string;
+}
+
+export const COSMETIC_ERAS: CosmeticEra[] = [
+  { id: 'genesis', label: 'The Founding Catalog', year: 2026, version: 'v2026.07', blurb: 'Present at first light — the catalog ASSIMILATION launched with.' },
+];
+const ERA_BY_ID = new Map(COSMETIC_ERAS.map((e) => [e.id, e] as const));
+/** itemId → era id for post-launch waves (absent ⇒ genesis — the founding printing). */
+const ERA_OVERRIDES: Record<string, string> = {};
+
+export function cosmeticEra(d: WardrobeItemDef): CosmeticEra {
+  return ERA_BY_ID.get(ERA_OVERRIDES[d.id] ?? 'genesis') ?? COSMETIC_ERAS[0];
+}
+
+/** Ids no longer obtainable (their source dried up — the mechanism; empty at launch). */
+const RETIRED: ReadonlySet<string> = new Set<string>();
+/** Ids brought BACK after retirement (a reissue clears retired status; disjoint by law). */
+const REISSUED: ReadonlySet<string> = new Set<string>();
+
+export type CosmeticAvailability = 'available' | 'limited' | 'retired' | 'reissued';
+
+/** Availability status — retired/reissued from the sets; 'limited' DERIVES from sources
+ *  that are time-boxed or luck-boxed (events, seasons, the login jackpot, quest finales). */
+export function cosmeticAvailability(d: WardrobeItemDef): CosmeticAvailability {
+  if (REISSUED.has(d.id)) return 'reissued';
+  if (RETIRED.has(d.id)) return 'retired';
+  const s = d.source.kind;
+  if (s === 'event' || s === 'battlepass' || s === 'login-drop' || s === 'quest') return 'limited';
+  return 'available';
+}
+
+/** The legacy-badge vocabulary (docs/COSMETICS.md §badges) — prestige, never power. The
+ *  last four are membership badges: no derivation earns them; content joins via
+ *  BADGE_OVERRIDES when a matching program ships (data, not engineering). */
+export interface CosmeticBadgeDef { id: string; label: string; glyph: string; desc: string }
+export const COSMETIC_BADGES: CosmeticBadgeDef[] = [
+  { id: 'founder', label: 'Founder Item', glyph: '◈', desc: 'Issued to every founding account at first boot.' },
+  { id: 'firstEdition', label: 'First Edition', glyph: '①', desc: 'The original printing of this piece — its founding era.' },
+  { id: 'eventExclusive', label: 'Event Exclusive', glyph: '☄', desc: 'Obtainable only while its live event runs.' },
+  { id: 'seasonVault', label: 'Season Vault', glyph: '❁', desc: 'Sealed inside a rotating Battle Pass season.' },
+  { id: 'contractSeal', label: 'Contract Seal', glyph: '✪', desc: 'A quest finale exclusive — earned, once, by the story.' },
+  { id: 'limitedDistribution', label: 'Limited Distribution', glyph: '◇', desc: 'Enters circulation only through rare or time-boxed channels.' },
+  { id: 'retired', label: 'Retired', glyph: '⌛', desc: 'Its source has closed — no new copies will ever mint.' },
+  { id: 'reissued', label: 'Reissued', glyph: '↻', desc: 'Returned to circulation after a retirement.' },
+  { id: 'legacy', label: 'Legacy', glyph: '☗', desc: 'From an earlier year of the Hive — it has seen things.' },
+  { id: 'anniversary', label: 'Anniversary', glyph: '✦', desc: 'Struck for a birthday of the Hive.' },
+  { id: 'communityChallenge', label: 'Community Challenge', glyph: '⚑', desc: 'Earned by the whole player-base, together.' },
+  { id: 'tournamentExclusive', label: 'Tournament Exclusive', glyph: '⚔', desc: 'Won where commanders fight commanders.' },
+  { id: 'developerReward', label: 'Developer Reward', glyph: '⌬', desc: 'Placed in a specific pair of hands by the developers.' },
+];
+const BADGE_BY_ID = new Map(COSMETIC_BADGES.map((b) => [b.id, b] as const));
+/** Extra badge memberships per item (anniversary/community/tournament/developer live here). */
+const BADGE_OVERRIDES: Record<string, string[]> = {};
+
+/** The item's badges, derived + membership overrides. Pure; `now` only feeds `legacy`. */
+export function cosmeticBadges(d: WardrobeItemDef, now = Date.now()): CosmeticBadgeDef[] {
+  const ids: string[] = [];
+  if (d.source.kind === 'starter') ids.push('founder');
+  if (cosmeticEra(d).id === 'genesis') ids.push('firstEdition');
+  if (d.source.kind === 'event') ids.push('eventExclusive');
+  if (d.source.kind === 'battlepass') ids.push('seasonVault');
+  if (d.source.kind === 'quest') ids.push('contractSeal');
+  if (d.source.kind === 'login-drop' || (d.source.kind === 'shop' && d.rarity === 'legendary')) ids.push('limitedDistribution');
+  const avail = cosmeticAvailability(d);
+  if (avail === 'retired') ids.push('retired');
+  if (avail === 'reissued') ids.push('reissued');
+  if (cosmeticEra(d).year < new Date(now).getUTCFullYear()) ids.push('legacy');
+  for (const extra of BADGE_OVERRIDES[d.id] ?? []) if (!ids.includes(extra)) ids.push(extra);
+  return ids.map((id) => BADGE_BY_ID.get(id)!).filter(Boolean);
+}
+
+// ── The Hive Archives (docs/COSMETICS.md §lore) — curated collector lore. Concise, in the
+// research-log voice; desc stays the display flavor, the archive entry is the HISTORY. ──
+const HIVE_ARCHIVES: Record<string, string> = {
+  wd_projectiletrail_petalfall: 'Bloom Cycle recovery report: impacts that shed petals instead of shrapnel. Botany and ballistics are still disputing custody of the file.',
+  wd_towerfx_ventglow_chassis: 'Archive armor-log 44: chassis plating recovered from emplacements that survived a full Ember Tide. The seams never cooled again. Sold only across the Slag Exchange counter, one per commander.',
+  wd_projectiletrail_bloomcast: 'Pollen census, appendix C: rounds fired through a bloom front germinate mid-flight. The Bazaar keeper insists this is a feature of the ammunition, not the air.',
+  wd_emblem_signal_eater: 'Intercept 88.1 ended when something answered. The Dead Channel issues this mark to whoever it decides did the silencing.',
+  wd_title_apex_contractor: 'Trophy Row ledger: every bounty posted during a Great Hunt, honored in full, by one signature. The Row does not repeat itself.',
+  wd_herofx_tideglass_aura: 'Silt Market manifest: light bent through pressure-formed glass, worn as a second skin. Divers who wear it stop describing the deep as dark.',
+  wd_nameplate_lean_times: 'Ration Board cutting, famine-year chitin. The Board stamps one plaque per commander who kept a hive fed through a Red Famine.',
+  wd_nucleusskin_remembered_heart: 'Memory Vault deposit 001: a heart that archives every beat it has taken. Withdrawals only — the hive already made the deposits.',
+  wd_battlefieldtheme_overgrown_reach: 'Seedhouse projection: the arena as the canopy will one day leave it. The Seedhouse sells futures, not seeds.',
+  wd_nucleusskin_apex_crown: 'Crimson Bloom terminal record: the season’s final flower, grown once per pass, crowned in falling petals. Season One never returns to its first printing.',
+  wd_nucleusskin_event_horizon: 'Abyssal Tide capstone: light bends toward it and does not leave. Recovered from the deepest recorded claim of Season Two.',
+  wd_projectiletrail_gilded_thread: 'Research note, metallurgy wing: molten gold drawn thin enough to follow a projectile. The thread does not break; the target does.',
+  wd_projectiletrail_void_wake: 'Recovered specimen: rounds that remember being somewhere darker. Ballistics declined to file a report.',
+  wd_megatheme_void_colossi: 'Mutation history, colossal class: the Tide’s final shape, dressed in event-horizon violet. Witnesses agree the color arrived before the body.',
+  wd_bosstheme_neon_tyrants: 'Hive marquee culture, brief flowering of: tyrants lit like a midnight venue. The lights were their idea.',
+  wd_herofx_crimson_command: 'Field report, command doctrine: every cast a declaration in arterial red. Morale effects measurable at two hundred meters.',
+  wd_title_the_devoted: 'Devotion registry, week one: seven consecutive returns to the Bio-Cache. The hive notices who comes back.',
+};
+
+/** The item's Hive Archives entry (null = no curated lore yet — the panel omits the shelf). */
+export function cosmeticLore(d: WardrobeItemDef): string | null {
+  return HIVE_ARCHIVES[d.id] ?? null;
+}
+
+// ── Census & market seams (docs/TRADING-PREP.md §census) — SERVER-fed after the Auction
+// House launches. Providers return null until then; UI renders an honest placeholder,
+// NEVER a fabricated number. The claim telemetry row (cos_claim) is the census's source. ──
+export interface CosmeticCensus {
+  introduced: number; // copies ever minted, all accounts
+  claimed: number; // copies ever account-bound
+  tradable: number; // copies currently unclaimed across all accounts
+  bound: number; // copies currently bound
+  asOf: number; // epoch ms of the server aggregate
+}
+export interface CosmeticMarketRecord {
+  sales: number; // Auction House settlements for this item
+  last: number; // most recent sale price
+  average: number;
+  high: number;
+  low: number;
+  asOf: number;
+}
+export type CosmeticCensusProvider = (itemId: string) => CosmeticCensus | null;
+export type CosmeticMarketProvider = (itemId: string) => CosmeticMarketRecord | null;
+let censusProvider: CosmeticCensusProvider = () => null;
+let marketProvider: CosmeticMarketProvider = () => null;
+export function setCosmeticCensusProvider(p: CosmeticCensusProvider): void { censusProvider = p; }
+export function setCosmeticMarketProvider(p: CosmeticMarketProvider): void { marketProvider = p; }
+export function cosmeticCensus(itemId: string): CosmeticCensus | null { return censusProvider(itemId); }
+export function cosmeticMarket(itemId: string): CosmeticMarketRecord | null { return marketProvider(itemId); }
+
 /** Whole-catalog laws (build/test gate — the liveEventProblems pattern):
  *  starters carry no bonus, overrides stay within the legendary magnitude and name real
- *  items/lanes, and every non-starter item resolves a bonus + family. */
+ *  items/lanes, every non-starter item resolves a bonus + family, and the provenance
+ *  tables stay coherent (real ids everywhere, disjoint retired/reissued, unique eras). */
 export function wardrobeProblems(): string[] {
   const out: string[] = [];
   const maxValue = WARDROBE_BONUS_BY_RARITY.legendary;
@@ -667,6 +807,29 @@ export function wardrobeProblems(): string[] {
     if (d.source.kind === 'starter' && b !== null) out.push(`starter ${d.id} must carry no bonus (POWER_BASE law)`);
     if (d.source.kind !== 'starter' && b === null) out.push(`${d.id} resolves no bonus`);
     if (cosmeticFamily(d).length === 0) out.push(`${d.id} resolves no family`);
+  }
+  // Provenance coherence (§provenance): eras unique + non-empty; every override/lore/set
+  // key names a REAL item; era overrides name real eras; retired/reissued disjoint;
+  // badge memberships name real membership badges.
+  if (COSMETIC_ERAS.length === 0) out.push('COSMETIC_ERAS must not be empty');
+  if (new Set(COSMETIC_ERAS.map((e) => e.id)).size !== COSMETIC_ERAS.length) out.push('duplicate era ids');
+  if (new Set(COSMETIC_BADGES.map((b) => b.id)).size !== COSMETIC_BADGES.length) out.push('duplicate badge ids');
+  for (const [id, era] of Object.entries(ERA_OVERRIDES)) {
+    if (!wardrobeItem(id)) out.push(`era override for unknown item ${id}`);
+    if (!ERA_BY_ID.has(era)) out.push(`era override ${id}: unknown era ${era}`);
+  }
+  for (const id of RETIRED) if (!wardrobeItem(id)) out.push(`retired set names unknown item ${id}`);
+  for (const id of REISSUED) {
+    if (!wardrobeItem(id)) out.push(`reissued set names unknown item ${id}`);
+    if (RETIRED.has(id)) out.push(`${id} is both retired and reissued (reissue REPLACES retirement)`);
+  }
+  for (const [id, badges] of Object.entries(BADGE_OVERRIDES)) {
+    if (!wardrobeItem(id)) out.push(`badge override for unknown item ${id}`);
+    for (const b of badges) if (!BADGE_BY_ID.has(b)) out.push(`badge override ${id}: unknown badge ${b}`);
+  }
+  for (const id of Object.keys(HIVE_ARCHIVES)) {
+    if (!wardrobeItem(id)) out.push(`Hive Archives entry for unknown item ${id}`);
+    if ((HIVE_ARCHIVES[id] ?? '').length > 400) out.push(`Hive Archives ${id}: entry exceeds 400 chars (stay concise)`);
   }
   return out;
 }

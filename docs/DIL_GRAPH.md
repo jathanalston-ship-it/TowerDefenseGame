@@ -1,6 +1,6 @@
 # DIL_GRAPH.md — the Design Intelligence Layer (GENERATED — `npm run dil -- regen`)
 
-> **The project's brain** (docs/DIL.md). 895 nodes · 1683 edges, built from the live
+> **The project's brain** (docs/DIL.md). 895 nodes · 1684 edges, built from the live
 > registries + curated knowledge (src/dev/dil/). **Query it instead of searching the repo:**
 > `npm run dil -- node <id>` · `affects <id>` · `requires <id>` · `missing <kind> <edge>` ·
 > `checklist tower <kind>` · `find <text>`. Edge kinds are bidirectional (19 kinds).
@@ -225,6 +225,7 @@ graph LR
   system_account_level["Account Level (evergreen meta-progression)"] -->|provides| system_loot["Loot & Bio-Containers"]
   system_contracts["Champion Contracts"] -->|provides| system_genome_rank["Genome Rank (ultimate mastery ladder)"]
   system_notifications["Notifications"] -->|provides| system_hub_shell["Hub Shell & Home"]
+  system_cosmetics["The Wardrobe (Cosmetics)"] -->|provides| system_online_foundation["Online Foundation"]
 ```
 
 ### Determinism Map
@@ -530,6 +531,7 @@ graph LR
   system_net_backend["Backend lanes (net/)"] -->|consumes| system_online_foundation["Online Foundation"]
   system_rendering["Rendering & VFX"] -->|consumes| system_engine["Sim Engine"]
   system_analytics["Player Telemetry & Analytics"] -->|consumes| system_hub_shell["Hub Shell & Home"]
+  system_cosmetics["The Wardrobe (Cosmetics)"] -->|provides| system_online_foundation["Online Foundation"]
 ```
 
 ### Presentation Couplings Map
@@ -1117,7 +1119,7 @@ _at: src/core/online.ts, src/core/itemIdentity.ts, src/core/trading.ts, src/core
   - consumedBy ← `system:net-backend` — AUCTION ATOMICITY (functions/lib/auctionHost.ts): wallet CHECKs (balance/escrow ≥0) + the partial UNIQUE active-listing index turn violations into FULL batch rollbacks; ordering = state transition FIRST, every money statement CONDITIONED on it via WHERE EXISTS (lost races charge nothing); exactly-once anchors: market_trades PK, wallet-ledger op-id PK, market_windows PK; client custody is SERVER-FIRST (meta.auctionEscrowOut only after 200; auctionReconcile self-heals; wallet ops ride a localStorage outbox with the same op id across restarts)
   - extendedBy ← `system:mulligans` — MULLIGAN PIECES TRADE (2026-07, the fourth category): mul:<pieceId> trades the DEX UNLOCK (save.mulliganDex) — families mul.<piece>.<rarity> per SEQUENCED rarity (equipment precedent; mixed rarities poison price stats); baseline/buyback bands common+uncommon only; a grafted piece blocks as slotted (unslot first), a reforge-LOCKED host reads bound, escrow-out deletes the dex entry, delivery sequences an unowned piece at the listing rarity or dissolves an owned one to Tissue via DUP_TISSUE (core/mulligan.ts — the pillar duplicate law, shared with container opens); pinned by state/auctionCustody.test.ts + a functions wire round-trip
   - extendedBy ← `system:arena` — PRIVATE BOUTS + THE LADDER + THE SWEEP (ARENA.md §private/§ladder/§sweep): findPrivateMatch joins the direct room pm:<season>:<CODE> (codes normalize; the broker fills DIRECT rooms with the same paired handshake, first-in = role 0) with a gate that DROPS the bracket but keeps proto/season/boot/fingerprint; ArenaMatchSetup.friendly plays the full ruleset and NEVER settles (no rating/rewards/pass XP ⇒ nothing to win-trade — ArenaView branches settle vs friendly verdict); Quick Match is deliberately unshipped (pool-splitting — one mm:-prefix away if wanted); GET /api/arena/ladder reads arena_ratings top 50 + you-rank (names stored sanitized on report — migration 0006; tags derive from stored player_id); npm run arena:sweep is the bulk AI-vs-AI stability harness (every match terminates, every claim passes arenaClaimProblem, rating deltas sign-correct) → docs/ARENA_MATCH_REPORT.md
-  - _…2 more (query: `npm run dil -- node system:online-foundation`)_
+  - _…3 more (query: `npm run dil -- node system:online-foundation`)_
 
 ### `system:arena` — Arena (Live PvP)
 
@@ -1822,7 +1824,7 @@ _at: src/core/trophies.ts, src/core/nemesis.ts_
 
 ### `system:cosmetics` — The Wardrobe (Cosmetics)
 
-The cosmetics ECOSYSTEM (docs/COSMETICS.md): unit Phenotypes (six theme families × every tower/hero, generator-driven) PLUS the account Wardrobe — 34 global cosmetic kinds in four groups (arena FX / audio packs / interface shells / commander identity) on one validated registry with typed unlock sources (campaign/depth/daily/rush/roulette/achievements/collection ranks/Ichor boutique/battle pass/milestones/events). Payloads are flat presentation params consumed by the dressing layer (root attrs + cue families + music transforms + renderer kit). Six collection codices, milestone reward track, persisted unlock-ceremony queue. v53 TWO-STATE OWNERSHIP (§claiming): every lane delivers an UNCLAIMED tradable instance into the Specimen Vault (wardrobe.inventory, uid-stamped provenance); CLAIMING binds forever (owned = the claimed set every consumer reads) and activates a tiny saturating per-lane account bonus (starters bonus-less by POWER_BASE law). Save v31 wardrobe record + v53 inventory/granted.
+The cosmetics ECOSYSTEM (docs/COSMETICS.md): unit Phenotypes (six theme families × every tower/hero, generator-driven) PLUS the account Wardrobe — 34 global cosmetic kinds in four groups (arena FX / audio packs / interface shells / commander identity) on one validated registry with typed unlock sources (campaign/depth/daily/rush/roulette/achievements/collection ranks/Ichor boutique/battle pass/milestones/events). Payloads are flat presentation params consumed by the dressing layer (root attrs + cue families + music transforms + renderer kit). Six collection codices, milestone reward track, persisted unlock-ceremony queue. v53 TWO-STATE OWNERSHIP (§claiming): every lane delivers an UNCLAIMED tradable instance into the Specimen Vault (wardrobe.inventory, uid-stamped provenance); CLAIMING binds forever (owned = the claimed set every consumer reads) and activates a tiny saturating per-lane account bonus (starters bonus-less by POWER_BASE law). PROVENANCE layer (§provenance): derived eras/availability/legacy badges/Hive Archives lore + null-provider census/market seams; meta.collectorView joins it all for the Vault Collector Panel (museum inspection, Popup-portaled). Save v31 wardrobe record + v53 inventory/granted.
 
 _at: src/core/cosmetics.ts, src/core/wardrobe.ts, src/ui/PhenotypeLab.tsx, src/ui/Wardrobe.tsx, src/ui/SpecimenVault.tsx, src/ui/wardrobeDressing.ts, src/ui/components/WardrobeReveal.tsx, src/render/wardrobeFx.ts_
 
@@ -1837,6 +1839,7 @@ _at: src/core/cosmetics.ts, src/core/wardrobe.ts, src/ui/PhenotypeLab.tsx, src/u
   - conflictsWith → `concept:power-score` — wardrobe codices carry ZERO powerWeight — starter items are pre-owned, so any weight moves a fresh account off POWER_BASE (the 1002 bug)
   - conflictsWith → `concept:golden-test` — skins/visual tiers must stay render-only; any def stat touched for looks breaks the pinned seeds
   - extends → `system:online-foundation` — TWO-STATE OWNERSHIP (v53): every cosmetic ARRIVES as an UNCLAIMED instance in the Specimen Vault (wardrobe.inventory {uid,item,at,src}, ci_-prefixed uids stamped cos:<uid> in the provenance ledger, pruned with the instance) — tradable/auction-eligible, NO bonus, NOT equippable, NOT in collections. CLAIMING (meta.claimCosmetic, guard cosmetic.claim, ONE delivery chokepoint receiveCosmetic feeds every lane) is the irreversible bind: instance consumed, id joins wardrobe.owned (the CLAIMED set every pre-v53 consumer already reads — equip/codices/dressing untouched BY CONSTRUCTION), provenance stamp cos:wd_* binds forever. Substitution RETIRED for cosmetics: repeat reward tracks mint tradable DUPES (AH supply); wardrobe.granted is the once-per-source gate for auto/boutique/direct lanes. BONUSES: claimed non-starters feed 7 saturating lanes (cap 0.06, eff=cap(1−e^(−raw/cap))) expressed ONLY in the two proven vocabularies (run CardEffect mults beside battlePassEffectsOf + accountEconomyBonuses keys) — starters bonus-less BY LAW (POWER_BASE/golden safety, wardrobeProblems). Vault screen nav specimens (Trade wing) reveals-on-need via the cosmeticInventory condition (a vault you cannot open would strand every cosmetic). Migration: pre-v53 owned stays claimed — nothing taken away
+  - provides → `system:online-foundation` — PROVENANCE & COLLECTOR PRESTIGE (v53): every museum fact DERIVES, none is authored per item — cosmeticEra (COSMETIC_ERAS, launch catalog = genesis; a future wave = ONE era row + ERA_OVERRIDES), cosmeticAvailability (reissued > retired > limited(time-boxed sources) > available; RETIRED/REISSUED curated disjoint sets — retirement is data, never code), cosmeticBadges (13-badge registry with TRUTHFUL source/era/age derivations — Legacy emerges only with years, membership badges join ONLY via BADGE_OVERRIDES, pinned by wardrobe.test), cosmeticLore (HIVE_ARCHIVES, ≤400 chars law; every event-source item MUST carry an entry). Census/market are NULL-PROVIDER seams (setCosmeticCensusProvider/setCosmeticMarketProvider): the client NEVER fabricates network numbers — the UI shows "awaiting network census" until the AH feeds them (TRADING-PREP.md §7), and the future census source is the durable cos_claim analytics row emitted ONLY in SpecimenVault claim() (the state layer stays telemetry-free). meta.collectorView(id) is the ONE museum read (def+era+availability+badges+lore+family completion+your stamp+census/market); the Collector Panel renders through the Popup portal — screen-transition transforms make .screen the fixed-position containing block, so EVERY vault overlay must portal (components/Popup.tsx)
   - requiredBy ← `system:daily-login`
   - requiredBy ← `system:contracts`
   - requiredBy ← `system:nemesis`

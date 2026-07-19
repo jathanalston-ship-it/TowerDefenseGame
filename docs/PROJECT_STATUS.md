@@ -3,7 +3,42 @@
 > Maintained at the END of every session (paired with `docs/AI_HANDOFF.md` — the constitution's
 > workflow step 4). This is the "where are we?" answer; `docs/GAME-STATE.md` remains the deeper
 > per-system built-vs-planned index, `docs/PROJECT_MANIFEST.md` the system map.
-> **Last updated:** 2026-07-19z (**TWO-STATE COSMETIC OWNERSHIP — INVENTORY, CLAIMING,
+> **Last updated:** 2026-07-19aa (**COSMETIC PROVENANCE, ITEM HISTORY & COLLECTOR
+> PRESTIGE** (user brief: "a cosmetic should become more interesting the longer it
+> exists" — permanent per-item history, museum presentation, organic rarity prestige,
+> legacy badges, AH-ready census, fully data-driven at tens-of-thousands scale). NO
+> save bump — everything DERIVES from v53 state. CORE (`core/wardrobe.ts`):
+> `CosmeticEra`/`COSMETIC_ERAS` (launch = genesis "The Founding Catalog" v2026.07; a
+> future wave = ONE era row + `ERA_OVERRIDES`); `cosmeticAvailability` (reissued >
+> retired > limited(time-boxed sources) > available; curated `RETIRED_ITEMS`/
+> `REISSUED_ITEMS` disjoint sets — retirement is data); `COSMETIC_BADGES` (13 rows:
+> Founder ◈ / First Edition ① / Event Exclusive ☄ / Season Vault ❁ / Contract Seal ✪ /
+> Limited Distribution ◇ / Retired ⌛ / Reissued ↻ / Legacy ☗ / Anniversary ✦ /
+> Community Challenge ⚑ / Tournament Exclusive ⚔ / Developer Reward ⌬) with TRUTHFUL
+> derivations (Legacy emerges only with age; membership badges ONLY via
+> `BADGE_OVERRIDES` — pinned: no derivation can mint them); `HIVE_ARCHIVES` lore (17
+> entries, ≤400-char law, EVERY event item must carry one); census/market
+> NULL-PROVIDER seams (`setCosmeticCensusProvider`/`setCosmeticMarketProvider` — the
+> client NEVER fabricates network numbers; TRADING-PREP.md §7 documents the endpoint
+> contract, census source of truth = the new durable `cos_claim` analytics row emitted
+> ONLY in SpecimenVault's claim handler). `wardrobeProblems` +5 provenance laws.
+> META: `meta.collectorView(id)` → `CollectorView` (def+era+availability+badges+lore+
+> family completion+claimed/copiesHeld+your stamp (bound `cos:<id>` else newest
+> instance `cos:<uid>`)+census/market) — pure read, no state mutation. UI
+> (SpecimenVault): **Collector Panel** museum overlay on card tap — static rarity-lit
+> plate, badge chips, HIVE ARCHIVES shelf, 9 provenance ledger rows (honest "awaiting
+> network census/market data" placeholders pre-AH), bonus line, your-copy history,
+> claim CTA (same claim() handler), family completion meter; attn 0 holds, `svCereIn`
+> the one finite entrance. **FIX: both vault overlays now Popup-portaled** — the
+> screen-transition transform made `.screen` the fixed containing block (panel
+> measured off-center/clipped headlessly; components/Popup.tsx is the law for every
+> screen dialog). Tests: wardrobe.test +5 provenance laws (20), wardrobeMeta +3
+> collectorView (18). Verified: typecheck 0, suite 302 files/2557 green, build,
+> mobilecheck CLEAN (31), cogload in budget, validate PASS, headless probe
+> (tap→museum→claim from panel→bound flip: family 0/9→1/9, eligible Yes→No — bound).
+> Previous below.)
+>
+> **2026-07-19z** (**TWO-STATE COSMETIC OWNERSHIP — INVENTORY, CLAIMING,
 > COLLECTION & ACCOUNT BINDING** (user brief: receiving a cosmetic must NOT unlock it;
 > UNCLAIMED = tradable/auctionable/no bonus, CLAIMED = irreversible bind + equip +
 > collections + permanent passive; AH backend prep; data-driven for decades). Save

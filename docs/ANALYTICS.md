@@ -54,9 +54,10 @@ The launch taxonomy (~37 kinds) covers: sessions & retention (`ses_start/ses_pin
 `quit_loc`), screens (`nav` with dwell, `heat`, `notif`, `tut`), runs & progression
 (`run_start/run_end/run_loss/run_quit`, `stage_clear`, `power`, `xp`, `rank`, `unlock`),
 loadout usage (`tw_field/tw_win/tw_up/tw_strain`, `hero_pick/hero_win`, `ability`,
-`equip_use`, `mull_use`, `gene_use`), economy (`box_open`, `loot_rare`, `cur_gain/cur_spend`,
-`idle_collect`), health (`fps`, `load`, `net`, `err`), money (`buy`, `ad`), and experiments
-(`ab_assign`).
+`equip_use`, `mull_use`, `gene_use`), economy (`box_open`, `loot_rare`, `cos_claim` — the
+durable cosmetic account-bind, the future network census source (docs/TRADING-PREP.md §7),
+`cur_gain/cur_spend`, `idle_collect`), health (`fps`, `load`, `net`, `err`), money (`buy`,
+`ad`), and experiments (`ab_assign`).
 
 ## §client — the telemetry pipe (`src/net/telemetry.ts`)
 

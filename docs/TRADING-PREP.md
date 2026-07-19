@@ -95,12 +95,37 @@ plus the invisible Market Authority (core/marketAuthority.ts) this prep layer an
 **docs/AUCTION-HOUSE.md is the market's reference now**; this document stays canonical for
 the identity/eligibility/fee vocabulary it defines.
 
+## 7. Cosmetic census & market-record contract (v53 provenance layer)
+
+The Collector Panel (docs/COSMETICS.md §provenance) displays network-wide facts per
+cosmetic — copies introduced/claimed/tradable/bound, auction sale counts and price history.
+The client NEVER fabricates these numbers: `core/wardrobe.ts` exposes two provider seams
+that return `null` until a server feeds them, and the UI renders an honest placeholder
+("awaiting network census") for null.
+
+- **`CosmeticCensus`** `{ introduced, claimed, tradable, bound, asOf }` — set via
+  `setCosmeticCensusProvider`, read via `cosmeticCensus(itemId)`. Server source of truth:
+  `introduced` = count of delivery events (every `receiveCosmetic` on every account),
+  `claimed`/`bound` = count of `cos_claim` analytics events (the durable per-item claim
+  row emitted at the Specimen Vault's claim ceremony — the ONLY claim surface),
+  `tradable` = introduced − claimed − (instances consumed by future trades/sinks).
+- **`CosmeticMarketRecord`** `{ sales, last, average, high, low, asOf }` — set via
+  `setCosmeticMarketProvider`, read via `cosmeticMarket(itemId)`. Server source of truth:
+  the auction `trades` table (0007_auction.sql), aggregated per cosmetic item id at
+  settlement time.
+- **Endpoint shape (future)**: one read-only
+  `GET /api/census/cosmetics?ids=wd_a,wd_b` returning `{ [itemId]: { census, market } }`,
+  cached aggressively (asOf is the honesty timestamp) — the boot sequence installs both
+  providers from one fetch. Until that endpoint ships, the seams stay null and the museum
+  stays honest.
+
 ## Known limitations
 
-- Gene-card and cosmetic trades transfer the UNLOCK (account-level id), not an instance —
-  a design decision the listing flow must respect (quantity is always 1, and selling your only
+- Gene-card trades transfer the UNLOCK (account-level id), not an instance — a design
+  decision the listing flow must respect (quantity is always 1, and selling your only
   copy removes access; the future UI must confirm exactly like equipment's destruction
-  safeguards).
+  safeguards). Cosmetics left this model in v53: the tradable unit is now the UNCLAIMED
+  `CosmeticInstance` (uid-stamped like equipment); claimed cosmetics are bound forever.
 - Equipment `history` starts at the ledger's birth — pre-v47 provenance is honestly `legacy`.
 - Client clocks stamp `at` for offline acquisitions; the server re-stamps on first listing
   (server truth at the trade boundary).

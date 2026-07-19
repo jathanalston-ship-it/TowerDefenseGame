@@ -9,7 +9,8 @@ import { meta, equippedWardrobe } from './meta';
 import { defaultSave, serializeExport } from '../save/saveStore';
 import type { SaveData } from '../save/saveStore';
 import {
-  boutiqueItems, cosmeticBonus, starterItems, wardrobeItem, wardrobeRegistry, WARDROBE_MILESTONES,
+  boutiqueItems, cosmeticBonus, cosmeticFamily, setCosmeticCensusProvider, starterItems,
+  wardrobeItem, wardrobeRegistry, WARDROBE_MILESTONES,
 } from '../core/wardrobe';
 
 beforeEach(() => meta.reset());
@@ -265,5 +266,56 @@ describe('resolution & sanitizer (the v53 migration laws)', () => {
     expect(w.favorites).toHaveLength(0);
     expect(w.milestones).toHaveLength(0);
     expect(w.pendingReveal).toEqual([real.id]); // held in the Vault → reveal survives
+  });
+});
+
+describe('collectorView (the museum read-model — docs/COSMETICS.md §provenance)', () => {
+  it('joins the full record for a Vault-held item, and claiming flips it in place', () => {
+    meta.pollWardrobeUnlocks(); // Bronze Fret arrives through the REAL delivery chokepoint
+    const id = 'wd_collectionborder_bronze_fret';
+    const v1 = meta.collectorView(id)!;
+    expect(v1.def.id).toBe(id);
+    expect(v1.era.id).toBe('genesis');
+    expect(v1.availability).toBe('available'); // collection-lane — earnable forever
+    expect(v1.badges.length).toBeGreaterThanOrEqual(1);
+    expect(v1.claimed).toBe(false);
+    expect(v1.copiesHeld).toBe(1);
+    // The unclaimed view reads the INSTANCE stamp (receiveCosmetic wrote it).
+    expect(v1.stamp).not.toBeNull();
+    expect(v1.stamp!.at).toBeGreaterThan(0);
+    expect(v1.stamp!.bound).toBe(false);
+    expect(v1.family).toBe(cosmeticFamily(v1.def));
+    expect(v1.familyTotal).toBeGreaterThan(0);
+    expect(v1.census).toBeNull(); // honest pre-AH
+    expect(v1.market).toBeNull();
+    const uid = meta.get().wardrobe.inventory.find((i) => i.item === id)!.uid;
+    meta.claimCosmetic(uid);
+    const v2 = meta.collectorView(id)!;
+    expect(v2.claimed).toBe(true);
+    expect(v2.copiesHeld).toBe(0);
+    expect(v2.stamp!.bound).toBe(true); // now the PERMANENT bound stamp
+    expect(v2.familyClaimed).toBe(v1.familyClaimed + 1); // the shelf moved
+  });
+
+  it('unknown ids are null; never-delivered catalog items still get a museum page', () => {
+    expect(meta.collectorView('wd_nope')).toBeNull();
+    const untouched = boutiqueItems()[0];
+    const v = meta.collectorView(untouched.id)!;
+    expect(v.claimed).toBe(false);
+    expect(v.copiesHeld).toBe(0);
+    expect(v.stamp).toBeNull(); // catalog-only visit — no copy, no history
+    expect(v.era.id).toBe('genesis');
+    // Starters ship claimed ⇒ their family reads complete on a fresh account.
+    const starter = meta.collectorView(starterItems()[0].id)!;
+    expect(starter.claimed).toBe(true);
+    expect(starter.familyClaimed).toBe(starter.familyTotal);
+  });
+
+  it('the census seam feeds the view when a provider is installed (and only then)', () => {
+    const id = starterItems()[0].id;
+    setCosmeticCensusProvider((x) => (x === id ? { introduced: 100, claimed: 60, tradable: 40, bound: 60, asOf: 1 } : null));
+    expect(meta.collectorView(id)!.census?.claimed).toBe(60);
+    expect(meta.collectorView(boutiqueItems()[0].id)!.census).toBeNull();
+    setCosmeticCensusProvider(() => null); // restore the pre-launch default
   });
 });

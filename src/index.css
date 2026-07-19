@@ -13054,7 +13054,7 @@ div.ah-spark { display: flex; align-items: center; justify-content: center; heig
   border: 1px solid var(--line); border-radius: var(--r-sm); }
 .sv-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 10px; }
 .sv-card { display: flex; flex-direction: column; gap: 6px; padding: 10px 12px; background: var(--panel);
-  border: 1px solid color-mix(in srgb, var(--svr) 35%, var(--line)); border-radius: var(--r-md); }
+  border: 1px solid color-mix(in srgb, var(--svr) 35%, var(--line)); border-radius: var(--r-md); cursor: pointer; }
 .sv-card.is-claimed { border-color: var(--line); }
 .sv-top { display: flex; align-items: center; gap: 8px; }
 .sv-glyph { width: 30px; height: 30px; display: grid; place-items: center; font-size: 16px; color: var(--svr);
@@ -13094,3 +13094,44 @@ div.ah-spark { display: flex; align-items: center; justify-content: center; heig
   0% { transform: scale(0.86); opacity: 0; }
   100% { transform: scale(1); opacity: 1; }
 }
+/* Collector Panel (docs/COSMETICS.md §provenance) — the museum page. Rarity lighting is
+   STATIC (radial plate + glow); svCereIn reused as the one finite entrance. */
+.sv-cp { position: fixed; inset: 0; z-index: 3900; display: grid; place-items: center; padding: 16px;
+  background: rgba(4, 6, 10, 0.72); animation: fade-in var(--dur-2) var(--ease-out); }
+.sv-cp-card { position: relative; display: flex; flex-direction: column; gap: 12px; width: min(520px, 94vw);
+  max-height: 86vh; overflow-y: auto; padding: 20px 22px; background: var(--panel);
+  border: 1px solid color-mix(in srgb, var(--svr) 55%, var(--line)); border-radius: var(--r-lg);
+  box-shadow: 0 0 60px -18px var(--svr); animation: svCereIn var(--dur-4) var(--ease-spring); }
+.sv-cp-x { position: absolute; top: 10px; right: 10px; width: 30px; height: 30px; display: grid; place-items: center;
+  font-size: 13px; color: var(--muted); background: transparent; border: 1px solid var(--line);
+  border-radius: var(--r-sm); cursor: pointer; }
+.sv-cp-x:hover { color: var(--text); border-color: var(--gold); }
+.sv-cp-head { display: flex; flex-direction: column; align-items: center; gap: 4px; text-align: center; }
+.sv-cp-glyph { width: 84px; height: 84px; display: grid; place-items: center; font-size: 40px; color: var(--svr);
+  background: radial-gradient(circle at 50% 30%, color-mix(in srgb, var(--svr) 26%, transparent), transparent 70%);
+  border: 1px solid color-mix(in srgb, var(--svr) 45%, var(--line)); border-radius: var(--r-md); }
+.sv-cp-name { font-size: 20px; margin-top: 4px; }
+.sv-cp-sub { font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+.sv-cp-badges { display: flex; flex-wrap: wrap; justify-content: center; gap: 5px; margin-top: 4px; }
+.sv-cp-badge { display: inline-flex; align-items: center; gap: 5px; padding: 3px 9px; font-style: normal;
+  font-size: 10px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted);
+  border: 1px solid color-mix(in srgb, var(--svr) 40%, var(--line)); border-radius: 999px; }
+.sv-cp-badge i { font-style: normal; color: var(--svr); }
+.sv-cp-lore { margin: 0; padding: 10px 12px; border-left: 2px solid var(--svr);
+  background: color-mix(in srgb, var(--svr) 6%, transparent); border-radius: var(--r-xs); }
+.sv-cp-lore-k { display: block; font-size: 10px; font-weight: 800; letter-spacing: 0.24em; color: var(--svr);
+  margin-bottom: 4px; }
+.sv-cp-lore p { margin: 0; font-size: 12px; line-height: 1.55; color: var(--muted); font-style: italic; }
+.sv-cp-rows { display: flex; flex-direction: column; margin: 0; }
+.sv-cp-row { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding: 5px 0;
+  border-bottom: 1px dashed color-mix(in srgb, var(--line) 60%, transparent); }
+.sv-cp-row dt { font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--dim); flex-shrink: 0; }
+.sv-cp-row dd { margin: 0; font-size: 12px; color: var(--text); text-align: right; }
+.sv-cp-bonus { margin: 0; font-size: 12px; font-weight: 700; color: var(--vital); text-align: center; }
+.sv-cp-copy { margin: 0; font-size: 11px; line-height: 1.5; color: var(--muted); text-align: center; }
+.sv-cp-claim { align-self: center; padding: 8px 22px; font-size: 13px; }
+.sv-cp-fam { display: flex; align-items: center; gap: 10px; padding-top: 10px; border-top: 1px solid var(--line);
+  font-size: 11px; color: var(--muted); }
+.sv-cp-fam-bar { flex: 1; height: 5px; background: rgba(255, 255, 255, 0.06); border-radius: 999px; overflow: hidden; }
+.sv-cp-fam-bar i { display: block; height: 100%; background: var(--svr); border-radius: 999px; }
+.sv-cp-fam-n { font-variant-numeric: tabular-nums; color: var(--text); }

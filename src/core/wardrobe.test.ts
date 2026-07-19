@@ -4,12 +4,14 @@
 
 import { describe, expect, it } from 'vitest';
 import {
-  boutiqueItems, cosmeticBonus, cosmeticFamily, earnedAutoItems, effectiveWardrobeBonuses,
-  isAutoSource, newCosmeticUid, seasonItems, sourceLabel, starterItems,
+  boutiqueItems, cosmeticAvailability, cosmeticBadges, cosmeticBonus, cosmeticCensus,
+  cosmeticEra, cosmeticFamily, cosmeticLore, cosmeticMarket, earnedAutoItems,
+  effectiveWardrobeBonuses, isAutoSource, newCosmeticUid, seasonItems,
+  setCosmeticCensusProvider, sourceLabel, starterItems,
   WARDROBE_BONUS_BY_RARITY, WARDROBE_BONUS_LANES, WARDROBE_KINDS, WARDROBE_LANE_CAP,
   WARDROBE_MILESTONES, wardrobeItem, wardrobeItemsOf, wardrobeProblems, wardrobeRegistry,
 } from './wardrobe';
-import type { WardrobeUnlockCtx } from './wardrobe';
+import type { WardrobeItemDef, WardrobeUnlockCtx } from './wardrobe';
 import { achievementById } from '../state/achievements';
 import { SEASONS } from './battlePass';
 
@@ -158,5 +160,64 @@ describe('two-state ownership & claim bonuses (v53 — docs/COSMETICS.md §claim
     const uids = Array.from({ length: 200 }, () => newCosmeticUid());
     expect(new Set(uids).size).toBe(200);
     for (const u of uids) expect(u.startsWith('ci_')).toBe(true);
+  });
+});
+
+describe('provenance & collector prestige (docs/COSMETICS.md §provenance)', () => {
+  it('every item resolves an era, an availability, and at least one badge', () => {
+    for (const d of wardrobeRegistry.all()) {
+      const era = cosmeticEra(d);
+      expect(era.id.length).toBeGreaterThan(0);
+      expect(era.year).toBeGreaterThanOrEqual(2026);
+      expect(['available', 'limited', 'retired', 'reissued']).toContain(cosmeticAvailability(d));
+      // Genesis catalog ⇒ everything carries First Edition at minimum.
+      expect(cosmeticBadges(d).length).toBeGreaterThanOrEqual(1);
+    }
+  });
+
+  it('badges derive truthfully from the source lanes', () => {
+    const byId = (d: WardrobeItemDef) => cosmeticBadges(d).map((b) => b.id);
+    for (const d of wardrobeRegistry.all()) {
+      const ids = byId(d);
+      expect(ids.includes('founder')).toBe(d.source.kind === 'starter');
+      expect(ids.includes('eventExclusive')).toBe(d.source.kind === 'event');
+      expect(ids.includes('seasonVault')).toBe(d.source.kind === 'battlepass');
+      expect(ids.includes('contractSeal')).toBe(d.source.kind === 'quest');
+      expect(ids.includes('firstEdition')).toBe(true); // one era so far — all first printings
+      // No derivation mints the membership badges — they join only via overrides (empty now).
+      for (const m of ['anniversary', 'communityChallenge', 'tournamentExclusive', 'developerReward']) {
+        expect(ids, `${d.id} minted membership badge ${m}`).not.toContain(m);
+      }
+    }
+  });
+
+  it('legacy emerges with time, never at birth', () => {
+    const d = wardrobeRegistry.all()[0];
+    const birthYear = Date.UTC(cosmeticEra(d).year, 6, 1);
+    expect(cosmeticBadges(d, birthYear).map((b) => b.id)).not.toContain('legacy');
+    const threeYearsOn = Date.UTC(cosmeticEra(d).year + 3, 6, 1);
+    expect(cosmeticBadges(d, threeYearsOn).map((b) => b.id)).toContain('legacy');
+  });
+
+  it('time-boxed sources read limited; the curated archives stay concise', () => {
+    for (const d of wardrobeRegistry.all()) {
+      if (['event', 'battlepass', 'login-drop', 'quest'].includes(d.source.kind)) {
+        expect(cosmeticAvailability(d)).toBe('limited');
+      }
+      const lore = cosmeticLore(d);
+      if (lore) expect(lore.length).toBeLessThanOrEqual(400);
+    }
+    // Every event-shop signature carries an archive entry (the museum's headliners).
+    for (const d of wardrobeRegistry.all().filter((x) => x.source.kind === 'event')) {
+      expect(cosmeticLore(d), `${d.id} needs a Hive Archives entry`).not.toBeNull();
+    }
+  });
+
+  it('census/market providers are honest seams — null before the Auction House, live after', () => {
+    expect(cosmeticCensus('wd_anything')).toBeNull();
+    expect(cosmeticMarket('wd_anything')).toBeNull();
+    setCosmeticCensusProvider((id) => (id === 'wd_x' ? { introduced: 10, claimed: 4, tradable: 5, bound: 4, asOf: 1 } : null));
+    expect(cosmeticCensus('wd_x')?.claimed).toBe(4);
+    setCosmeticCensusProvider(() => null); // restore the pre-launch default for other tests
   });
 });

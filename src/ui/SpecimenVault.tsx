@@ -11,13 +11,15 @@
 import { useMemo, useState } from 'react';
 import { meta } from '../state/meta';
 import { audio } from '../audio/sound';
+import { telemetry } from '../net/telemetry';
 import {
-  cosmeticBonus, cosmeticFamily, WARDROBE_GROUP_LABEL, WARDROBE_LANE_INFO,
+  cosmeticBonus, cosmeticFamily, sourceLabel, WARDROBE_GROUP_LABEL, WARDROBE_LANE_INFO,
   WARDROBE_RARITY_COLOR, wardrobeKind, wardrobeRegistry,
 } from '../core/wardrobe';
-import type { CosmeticInstance, WardrobeGroup, WardrobeItemDef } from '../core/wardrobe';
-import type { PremiumReceiptLine } from '../state/meta';
+import type { CosmeticAvailability, CosmeticEra, CosmeticInstance, WardrobeGroup, WardrobeItemDef } from '../core/wardrobe';
+import type { CollectorView, PremiumReceiptLine } from '../state/meta';
 import { Detail } from './components/Detail';
+import { Popup } from './components/Popup';
 
 interface VaultRow {
   def: WardrobeItemDef;
@@ -38,13 +40,18 @@ function bonusLine(def: WardrobeItemDef): string | null {
   return `+${parseFloat((b.value * 100).toFixed(2))}% ${info.label}`;
 }
 
-function RowCard({ row, onClaim }: { row: VaultRow; onClaim: (uid: string) => void }): JSX.Element {
+function RowCard({ row, onClaim, onInspect }: { row: VaultRow; onClaim: (uid: string) => void; onInspect: (id: string) => void }): JSX.Element {
   const { def, instances, claimed } = row;
   const kind = wardrobeKind(def.kind);
   const bonus = bonusLine(def);
   const fav = meta.get().wardrobe.favorites.includes(def.id);
   return (
-    <article className={`sv-card${claimed ? ' is-claimed' : ''}`} style={{ ['--svr' as string]: WARDROBE_RARITY_COLOR[def.rarity] }}>
+    <article
+      className={`sv-card${claimed ? ' is-claimed' : ''}`}
+      style={{ ['--svr' as string]: WARDROBE_RARITY_COLOR[def.rarity] }}
+      title={`${def.name} — collector record`}
+      onClick={() => { audio.cue('ui'); onInspect(def.id); }}
+    >
       <header className="sv-top">
         <span className="sv-glyph" aria-hidden>{def.payload.glyph ?? kind.icon}</span>
         <span className="sv-title">
@@ -56,7 +63,7 @@ function RowCard({ row, onClaim }: { row: VaultRow; onClaim: (uid: string) => vo
             className={`sv-fav${fav ? ' is-on' : ''}`}
             title={fav ? 'Unfavorite' : 'Favorite'}
             aria-label={fav ? 'Unfavorite' : 'Favorite'}
-            onClick={() => { audio.cue('ui'); meta.toggleWardrobeFavorite(def.id); }}
+            onClick={(e) => { e.stopPropagation(); audio.cue('ui'); meta.toggleWardrobeFavorite(def.id); }}
           >
             {fav ? '★' : '☆'}
           </button>
@@ -72,12 +79,104 @@ function RowCard({ row, onClaim }: { row: VaultRow; onClaim: (uid: string) => vo
         </span>
         {bonus && <span className="sv-bonus" title="Permanent account bonus, activated by claiming">{bonus}{claimed ? ' — active' : ''}</span>}
         {!claimed && instances.length > 0 && (
-          <button className="primary act-claim sv-claim" onClick={() => onClaim(instances[0].uid)}>
+          <button className="primary act-claim sv-claim" onClick={(e) => { e.stopPropagation(); onClaim(instances[0].uid); }}>
             ✓ Claim
           </button>
         )}
       </footer>
     </article>
+  );
+}
+
+const AVAILABILITY_LABEL: Record<CosmeticAvailability, string> = {
+  available: 'In circulation — still earnable',
+  limited: 'Limited distribution window',
+  retired: 'Retired from circulation',
+  reissued: 'Reissued — back in circulation',
+};
+
+/** "July 2026" from the era's version tag (v2026.07); year alone when the tag has no month. */
+function introducedLabel(era: CosmeticEra): string {
+  const m = /\.(\d{1,2})$/.exec(era.version);
+  if (!m) return String(era.year);
+  const month = Math.min(12, Math.max(1, parseInt(m[1], 10)));
+  return `${new Date(Date.UTC(era.year, month - 1, 1)).toLocaleString(undefined, { month: 'long', timeZone: 'UTC' })} ${era.year}`;
+}
+
+/** The museum page (docs/COSMETICS.md §provenance) — every row derived from
+ *  meta.collectorView; the census/market rows stay HONEST placeholders until the Auction
+ *  House feeds the network seams. Finite entrance only (INFO-HIERARCHY: zero ambient
+ *  animators — the rarity lighting is static). */
+function CollectorPanel({ view, claimUid, onClaim, onClose }: {
+  view: CollectorView; claimUid: string | null; onClaim: (uid: string) => void; onClose: () => void;
+}): JSX.Element {
+  const { def } = view;
+  const kind = wardrobeKind(def.kind);
+  const bonus = bonusLine(def);
+  const censusRows: [string, string][] = view.census
+    ? [
+        ['Copies claimed (network)', view.census.claimed.toLocaleString()],
+        ['Still tradable (network)', view.census.tradable.toLocaleString()],
+      ]
+    : [['Network census', '— awaiting network census']];
+  const marketRow: [string, string] = view.market
+    ? ['Auction record', `${view.market.sales.toLocaleString()} sales · last ${view.market.last.toLocaleString()} Ichor`]
+    : ['Auction record', '— awaiting market data'];
+  const rows: [string, string][] = [
+    ['Released during', `${view.era.label} · ${view.era.year}`],
+    ['First introduced', introducedLabel(view.era)],
+    ['Originally earned by', sourceLabel(def.source)],
+    ['Availability', AVAILABILITY_LABEL[view.availability]],
+    ['Currently owned by', view.claimed ? 'This account — bound' : 'This account — unclaimed'],
+    ...censusRows,
+    marketRow,
+    ['Collection status', view.claimed ? 'Claimed — counted in your collection' : 'Unclaimed — claim to collect'],
+    ['Auction eligible', view.copiesHeld > 0 ? `Yes — ${view.copiesHeld} tradable ${view.copiesHeld === 1 ? 'copy' : 'copies'}` : 'No — bound'],
+  ];
+  return (
+    <div className="sv-cp" role="dialog" aria-label={`${def.name} — collector record`} onClick={onClose}>
+      <div className="sv-cp-card" style={{ ['--svr' as string]: WARDROBE_RARITY_COLOR[def.rarity] }} onClick={(e) => e.stopPropagation()}>
+        <button className="sv-cp-x" aria-label="Close" onClick={onClose}>✕</button>
+        <header className="sv-cp-head">
+          <span className="sv-cp-glyph" aria-hidden>{def.payload.glyph ?? kind.icon}</span>
+          <b className="sv-cp-name">{def.name}</b>
+          <span className="sv-cp-sub">{def.rarity.toUpperCase()} · {kind.name} · {view.family}</span>
+          {view.badges.length > 0 && (
+            <span className="sv-cp-badges">
+              {view.badges.map((b) => <em key={b.id} className="sv-cp-badge" title={b.desc}><i aria-hidden>{b.glyph}</i>{b.label}</em>)}
+            </span>
+          )}
+        </header>
+        {view.lore && (
+          <blockquote className="sv-cp-lore">
+            <span className="sv-cp-lore-k">HIVE ARCHIVES</span>
+            <p>{view.lore}</p>
+          </blockquote>
+        )}
+        <dl className="sv-cp-rows">
+          {rows.map(([k, v]) => <div key={k} className="sv-cp-row"><dt>{k}</dt><dd>{v}</dd></div>)}
+        </dl>
+        {bonus && <p className="sv-cp-bonus">{bonus} — {view.claimed ? 'active' : 'activates on claim'}</p>}
+        {view.stamp && (
+          <p className="sv-cp-copy">
+            Your copy: acquired {view.stamp.at > 0 ? new Date(view.stamp.at).toLocaleDateString() : 'before the ledger'} · {view.stamp.source}
+            {view.stamp.season > 0 ? ` · Season ${view.stamp.season}` : ''} · {view.stamp.transfers === 0
+              ? 'original owner'
+              : `${view.stamp.transfers} prior transfer${view.stamp.transfers === 1 ? '' : 's'}`}
+          </p>
+        )}
+        {!view.claimed && claimUid && (
+          <button className="primary act-claim sv-cp-claim" onClick={() => onClaim(claimUid)}>✓ Claim</button>
+        )}
+        <footer className="sv-cp-fam">
+          <span>{view.family}</span>
+          <span className="sv-cp-fam-bar" aria-hidden>
+            <i style={{ width: `${view.familyTotal > 0 ? Math.round((view.familyClaimed / view.familyTotal) * 100) : 0}%` }} />
+          </span>
+          <span className="sv-cp-fam-n">{view.familyClaimed}/{view.familyTotal} bound</span>
+        </footer>
+      </div>
+    </div>
   );
 }
 
@@ -106,6 +205,7 @@ export function SpecimenVault(): JSX.Element {
   const [sort, setSort] = useState<SortKey>('recent');
   const [q, setQ] = useState('');
   const [cere, setCere] = useState<{ def: WardrobeItemDef; lines: PremiumReceiptLine[] } | null>(null);
+  const [inspect, setInspect] = useState<string | null>(null);
 
   const rows = useMemo<VaultRow[]>(() => {
     const byItem = new Map<string, CosmeticInstance[]>();
@@ -148,7 +248,11 @@ export function SpecimenVault(): JSX.Element {
     const inst = save.wardrobe.inventory.find((i) => i.uid === uid);
     const def = inst ? wardrobeRegistry.get(inst.item) : undefined;
     const lines = meta.claimCosmetic(uid);
-    if (lines && def) { audio.cue('chest'); setCere({ def, lines }); }
+    if (lines && def) {
+      audio.cue('chest');
+      telemetry.emit('cos_claim', { d: def.id }); // the future network census counts these
+      setCere({ def, lines });
+    }
   };
 
   return (
@@ -212,12 +316,22 @@ export function SpecimenVault(): JSX.Element {
         </p>
       ) : (
         <div className="sv-grid">
-          {shown.slice(0, SHOW_CAP).map((r) => <RowCard key={r.def.id} row={r} onClaim={claim} />)}
+          {shown.slice(0, SHOW_CAP).map((r) => <RowCard key={r.def.id} row={r} onClaim={claim} onInspect={setInspect} />)}
         </div>
       )}
       {shown.length > SHOW_CAP && <p className="sv-more">{shown.length - SHOW_CAP} more — narrow the filters.</p>}
 
-      {cere && <ClaimCeremony def={cere.def} lines={cere.lines} onDone={() => setCere(null)} />}
+      {(() => {
+        // The museum page recomputes live from the store — a claim while it is open flips
+        // its ownership/family rows in place (meta.use() re-renders on persist). Rendered
+        // through the Popup portal: the screen-transition transform would otherwise make
+        // the screen the fixed-position containing block (see components/Popup.tsx).
+        const view = inspect ? meta.collectorView(inspect) : null;
+        if (!view) return null;
+        const claimUid = save.wardrobe.inventory.find((i) => i.item === inspect)?.uid ?? null;
+        return <Popup><CollectorPanel view={view} claimUid={claimUid} onClaim={claim} onClose={() => setInspect(null)} /></Popup>;
+      })()}
+      {cere && <Popup><ClaimCeremony def={cere.def} lines={cere.lines} onDone={() => setCere(null)} /></Popup>}
     </div>
   );
 }

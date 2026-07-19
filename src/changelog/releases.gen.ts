@@ -1407,6 +1407,10 @@ export const RELEASES: Release[] = [
       {
         "cat": "Gameplay",
         "text": "Event Exchange Shops: themed storefronts, purchase limits, forever ledger (save v52)"
+      },
+      {
+        "cat": "Gameplay",
+        "text": "Two-state cosmetics: Specimen Vault, claiming, permanent bonuses (save v53)"
       }
     ]
   },

@@ -1,6 +1,6 @@
 {
-  "lastSha": "0fe4247ed64fb6e700c34f5c2f9c8a20ca7c252e",
-  "commitsSinceDraft": 6,
+  "lastSha": "5466dce37621f89f21702a433aed15291ee34b0c",
+  "commitsSinceDraft": 7,
   "content": {
     "tower": [
       "needle",
@@ -2911,6 +2911,10 @@
         {
           "cat": "Gameplay",
           "text": "Event Exchange Shops: themed storefronts, purchase limits, forever ledger (save v52)"
+        },
+        {
+          "cat": "Gameplay",
+          "text": "Two-state cosmetics: Specimen Vault, claiming, permanent bonuses (save v53)"
         }
       ]
     }
@@ -5465,6 +5469,14 @@
       "date": "2026-07-19",
       "cat": "Gameplay",
       "text": "Event Exchange Shops: themed storefronts, purchase limits, forever ledger (save v52)",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "5466dce37621f89f21702a433aed15291ee34b0c",
+      "date": "2026-07-19",
+      "cat": "Gameplay",
+      "text": "Two-state cosmetics: Specimen Vault, claiming, permanent bonuses (save v53)",
       "internal": false,
       "needsReview": false
     }

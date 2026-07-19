@@ -123,10 +123,14 @@ import { collectionView, unlockedRewards, collectionBonusEffects, collectionEcon
 import type { CollectionContext, CollectionEconomyBonuses, CollectionReward, CollectionView, CollectionRankUp, CollectionCategoryId } from '../core/collection';
 import { cosmeticById, cosmeticRegistry, cultivatePool, nemesisPool, CULTIVATE_COST } from '../core/cosmetics';
 import {
-  cosmeticBonus, earnedAutoItems, effectiveWardrobeBonuses, newCosmeticUid, sourceLabel,
+  cosmeticAvailability, cosmeticBadges, cosmeticBonus, cosmeticCensus, cosmeticEra, cosmeticFamily,
+  cosmeticLore, cosmeticMarket, earnedAutoItems, effectiveWardrobeBonuses, newCosmeticUid, sourceLabel,
   WARDROBE_LANE_INFO, wardrobeItem, wardrobeItemsOf, wardrobeMilestone, WARDROBE_ITEMS, WARDROBE_KINDS, WARDROBE_MILESTONES,
 } from '../core/wardrobe';
-import type { WardrobeItemDef, WardrobeKind, WardrobePayload, WardrobeUnlockCtx, WardrobeMilestone } from '../core/wardrobe';
+import type {
+  CosmeticAvailability, CosmeticBadgeDef, CosmeticCensus, CosmeticEra, CosmeticMarketRecord,
+  WardrobeItemDef, WardrobeKind, WardrobePayload, WardrobeUnlockCtx, WardrobeMilestone,
+} from '../core/wardrobe';
 import {
   BP, PASS_PASSIVES, levelBuyPrice, levelOf, msToPassEnd, passPassive, passWindow, rewardLabel, seasonForWindow, seasonTracks, xpToReach,
 } from '../core/battlePass';
@@ -141,6 +145,7 @@ import { ARENA_PASS, arenaExclusiveLabel, arenaPassLevelOf, arenaPassTrack, aren
 import type { ArenaExclusiveId, ArenaPassLevelRewards, ArenaSeasonInfo } from '../core/arenaPass';
 import type { ArenaBootBundle } from '../core/arenaMatch';
 import { bindItem, itemProvenance, parseRefKey, refKey, stampAcquisition } from '../core/itemIdentity';
+import type { ProvenanceStamp } from '../core/itemIdentity';
 import { cosmeticFamilyKey, equipmentFamilyKey, geneFamilyKey, marketFamily, mulliganFamilyKey } from '../core/marketCatalog';
 import { LOGIN, loginTargetValue, milestoneContainer, rollLoginBundle, streakMult } from '../core/loginStreak';
 import { PERFECT_WEEK, activeContracts, contractReport, contractSatisfied, contractWeekKey } from '../core/contracts';
@@ -345,6 +350,32 @@ function receiveCosmetic(draft: SaveData, id: string, src: string, now: number):
       },
     },
   };
+}
+
+/** MUSEUM READ-MODEL (docs/COSMETICS.md §provenance) — everything the Collector Panel shows
+ *  for ONE cosmetic, joined in one call: the catalog def, its core provenance derivations
+ *  (era / availability / badges / lore / family), YOUR relationship to it (claimed, copies
+ *  held, the provenance stamp), family completion, and the network census/market seams —
+ *  null until the Auction House feeds them (the UI shows an honest placeholder, never an
+ *  invented number). Purely derived: nothing here is stored per item, so every future
+ *  cosmetic gets a full museum page for free. */
+export interface CollectorView {
+  def: WardrobeItemDef;
+  era: CosmeticEra;
+  availability: CosmeticAvailability;
+  badges: CosmeticBadgeDef[];
+  lore: string | null; // Hive Archives entry (curated — most items have none)
+  family: string; // collection shelf (cosmeticFamily — the AH browse taxonomy)
+  familyClaimed: number; // catalog ids in this family bound to THIS account
+  familyTotal: number; // catalog ids in this family
+  claimed: boolean; // bound to this account (wardrobe.owned)
+  copiesHeld: number; // unclaimed instances in the Vault (dupes included)
+  /** The stamp shown as "your copy's" history: the BOUND copy's permanent stamp
+   *  (cos:<itemId>) when claimed, else the newest held instance's (cos:<uid>),
+   *  else null (never delivered — a catalog-only museum visit). */
+  stamp: ProvenanceStamp | null;
+  census: CosmeticCensus | null; // network copy counts (null pre-AH)
+  market: CosmeticMarketRecord | null; // auction price history (null pre-AH)
 }
 
 /** Apply a PassReward list to a save draft (no persist, no claim ledgers) — THE reward
@@ -4180,6 +4211,35 @@ export const meta = {
   /** Claimed-cosmetic bonuses as run effects (the App boot fold — docs/COSMETICS.md §bonuses). */
   wardrobeRunEffects(): CardEffect[] {
     return wardrobeEffectsOf(store.get());
+  },
+
+  /** The Collector Panel's one read (docs/COSMETICS.md §provenance). Null ⇒ unknown item. */
+  collectorView(id: string): CollectorView | null {
+    const def = wardrobeItem(id);
+    if (!def) return null;
+    const save = store.get();
+    const claimed = save.wardrobe.owned.includes(id);
+    const held = save.wardrobe.inventory.filter((i) => i.item === id);
+    let newestUid: string | null = null;
+    let newestAt = -1;
+    for (const i of held) if (i.at > newestAt) { newestAt = i.at; newestUid = i.uid; }
+    const stamp = (claimed ? itemProvenance(save.provenance, { cat: 'cosmetic', id }) : null)
+      ?? (newestUid ? itemProvenance(save.provenance, { cat: 'cosmetic', id: newestUid }) : null);
+    const family = cosmeticFamily(def);
+    const owned = new Set(save.wardrobe.owned);
+    let familyTotal = 0;
+    let familyClaimed = 0;
+    for (const d of WARDROBE_ITEMS) {
+      if (cosmeticFamily(d) !== family) continue;
+      familyTotal += 1;
+      if (owned.has(d.id)) familyClaimed += 1;
+    }
+    return {
+      def, era: cosmeticEra(def), availability: cosmeticAvailability(def),
+      badges: cosmeticBadges(def), lore: cosmeticLore(def), family,
+      familyClaimed, familyTotal, claimed, copiesHeld: held.length, stamp,
+      census: cosmeticCensus(id), market: cosmeticMarket(id),
+    };
   },
 
   /** Drain the unlock-ceremony queue (the reveal overlay consumes it). */

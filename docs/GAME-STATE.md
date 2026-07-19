@@ -628,7 +628,11 @@ sink ≈ hour-400 at endgame income — re-tune as the library grows.
   per claim; starters bonus-less BY LAW — POWER_BASE/golden safety); Vault screen (nav
   `specimens`, reveal-on-need `cosmeticInventory` condition), assimilation ceremony,
   `cosmetic.unclaimed` notifications; migration keeps pre-v53 `owned` claimed — nothing
-  taken away
+  taken away. **Provenance & collector prestige** (COSMETICS.md §provenance): derived
+  eras/availability/13 legacy badges/Hive Archives lore + null-provider census/market
+  seams (client never fabricates network numbers; durable `cos_claim` analytics row is
+  the future census source); `meta.collectorView` joins the museum record for the Vault's
+  Collector Panel (card tap, Popup-portaled, family completion meter)
 - ✅ **Battle Pass (seasons)**: 100-level dual-track, 14-day rotation (max-window tamper
   rule, rollover auto-claim mail), two launch seasons (Crimson Bloom ❁ / Abyssal Tide ≋ —
   unique palette/music re-voice/crown rewards), XP from runs/achievements/expeditions/

@@ -115,6 +115,7 @@ export const AN_EVENTS: AnEventDef[] = [
   // ── Loot & economy ──
   E('box_open', 'Container opened — dim = rarity; value = count.', { dim: 'token', value: { min: 1, max: 200 } }),
   E('loot_rare', 'Rare+ find — dim = kind:rarity.', { dim: 'token' }),
+  E('cos_claim', 'Cosmetic claimed (account-bind) — dim = item id. Feeds the future network census (TRADING-PREP.md §census).', { dim: 'token', durable: true }),
   E('cur_gain', 'Currency earned (session fold) — dim = currency:source; value = amount.', { dim: 'token', value: { min: 1, max: 10_000_000 } }),
   E('cur_spend', 'Currency spent (session fold) — dim = currency:sink; value = amount.', { dim: 'token', value: { min: 1, max: 10_000_000 } }),
   E('idle_collect', 'Hive Production collected — value = banked hours ×10.', { value: { min: 0, max: 10_000 } }),
