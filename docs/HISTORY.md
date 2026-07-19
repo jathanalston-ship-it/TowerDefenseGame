@@ -353,3 +353,4 @@
 - `e14695e` **[Bosses]** Boss Rush free-entry badge: volatile daily notification watermarks
 - `cdcec46` **[Mega Bosses]** Mega bosses: raid hit audio + waves hold for the kill outside campaign
 - `7825b3d` **[Gameplay]** Mega fight-timeline probe + organ drought valve: rebuild verdict grounded in numbers
+- `45cd4f8` **[Gameplay]** Mega dormancy: the organism burrows between waves, the raid bar greys out

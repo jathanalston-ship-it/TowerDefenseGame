@@ -55,6 +55,7 @@ function burrowOf(v: MegaView): number {
 function drawBurrowMound(ctx: Ctx, v: MegaView, now: number, bur: number): void {
   const body = hexRgb(themedMegaColor(v.palette.body));
   const glo = hexRgb(themedMegaColor(v.palette.glow));
+  const acc = hexRgb(themedMegaColor(v.palette.accent));
   const breathe = 1 + Math.sin(now * 0.55) * 0.06; // slow, buried breathing
   const yb = 40 + 12 * breathe;
   ctx.save();
@@ -79,6 +80,9 @@ function drawBurrowMound(ctx: Ctx, v: MegaView, now: number, bur: number): void 
     const p = pulse(now, 3.2 + i * 0.7, 0.2, 0.8);
     glow(ctx, sx, yb - 4, 24 + p * 14, rgba(glo, 0.08 + p * 0.09));
   }
+  // Per-motif dormant signature (§dormancy identity): the SAME anatomy drawMotif animates
+  // awake, in a sleeping register — so seven buried megas never read as one grey mound.
+  drawDormantMotif(ctx, v, now, yb, body, glo, acc);
   // The tremor: a brief ground-line shiver every few seconds.
   const trem = Math.max(0, Math.sin(now * 0.9)) ** 12;
   if (trem > 0.01) {
@@ -90,6 +94,157 @@ function drawBurrowMound(ctx: Ctx, v: MegaView, now: number, bur: number): void 
     ctx.stroke();
   }
   ctx.restore();
+}
+
+/** The buried pose's identity layer — one quiet signature per motif, echoing the awake
+ *  anatomy (drawMotif) so the mound is unmistakably THIS organism. Runs inside
+ *  drawBurrowMound's save block (globalAlpha already carries the burrow fade); everything
+ *  here is slow and small: an organism asleep, not a fight. A new motif earns a case here
+ *  alongside its drawMotif case — or falls back to the plain mound until it does. */
+function drawDormantMotif(ctx: Ctx, v: MegaView, now: number, yb: number, body: string, glo: string, acc: string): void {
+  const cx = WIDTH * 0.5;
+  switch (v.motif) {
+    case 'maw': {
+      // Tusk TIPS breach the soil along the mound — the jaw at rest just under the surface,
+      // grinding sideways almost imperceptibly.
+      const grind = Math.sin(now * 0.22) * 3;
+      ctx.fillStyle = rgba(acc, 0.75);
+      for (let i = 0; i < 7; i++) {
+        const x = WIDTH * (0.14 + 0.12 * i) + Math.sin(i * 2.6) * 8 + grind;
+        const h = 8 + (i % 3) * 4;
+        const y = yb + 2 + Math.sin(i * 2.1) * 3;
+        ctx.beginPath();
+        ctx.moveTo(x - 4, y);
+        ctx.quadraticCurveTo(x, y - h * 0.5, x + (i % 2 === 0 ? 2 : -2), y - h);
+        ctx.lineTo(x + 4, y);
+        ctx.closePath();
+        ctx.fill();
+      }
+      break;
+    }
+    case 'choir': {
+      // Distant spire tips above the ridge, each wearing a tiny bell glint — the cathedral
+      // sleeps but the hour still tolls, faintly.
+      for (let i = 0; i < 3; i++) {
+        const sx = WIDTH * (0.22 + 0.28 * i);
+        const h = 26 + (i % 2) * 12;
+        ctx.strokeStyle = rgba(body, 0.75);
+        ctx.lineWidth = 3 - i * 0.5;
+        ctx.beginPath();
+        ctx.moveTo(sx, yb + 4);
+        ctx.lineTo(sx + Math.sin(i * 2.1) * 3, yb - h);
+        ctx.stroke();
+        const toll = 0.35 + 0.3 * Math.sin(now * 0.8 + i * 2.1);
+        drawDot(ctx, sx + Math.sin(i * 2.1) * 3, yb - h - 3, 2.4, rgba(glo, toll));
+      }
+      break;
+    }
+    case 'shepherd': {
+      // One pale crook crests the mound, bone chimes hanging still-but-for-the-wind.
+      const rx = cx + WIDTH * 0.18;
+      ctx.strokeStyle = rgba(acc, 0.7);
+      ctx.lineWidth = 3.5;
+      ctx.beginPath();
+      ctx.moveTo(rx, yb + 6);
+      ctx.quadraticCurveTo(rx + 5, yb - 34, rx + 26, yb - 40);
+      ctx.quadraticCurveTo(rx + 45, yb - 43, rx + 40, yb - 26);
+      ctx.stroke();
+      const sway = Math.sin(now * 0.5) * 4;
+      ctx.strokeStyle = rgba(acc, 0.45);
+      ctx.lineWidth = 1.1;
+      ctx.beginPath();
+      ctx.moveTo(rx + 38, yb - 27);
+      ctx.lineTo(rx + 38 + sway, yb - 6);
+      ctx.stroke();
+      for (let b = 1; b <= 2; b++) drawDot(ctx, rx + 38 + sway * (b / 2), yb - 27 + b * 10, 2, rgba(acc, 0.75));
+      break;
+    }
+    case 'tide': {
+      // The medusa bell rides LOW over the mound, translucent, streamer tips trailing into
+      // the soil — and a slow tide-ring breathes outward on its own unhurried clock.
+      ctx.fillStyle = rgba(glo, 0.07);
+      ctx.beginPath();
+      ctx.ellipse(cx, yb - 6, WIDTH * 0.18, 20, 0, Math.PI, 0);
+      ctx.fill();
+      ctx.strokeStyle = rgba(glo, 0.3);
+      ctx.lineWidth = 1.4;
+      ctx.beginPath();
+      ctx.ellipse(cx, yb - 6, WIDTH * 0.18, 20, 0, Math.PI, 0);
+      ctx.stroke();
+      for (let i = 0; i < 3; i++) {
+        const sx = cx + (i - 1) * WIDTH * 0.1;
+        const drift = Math.sin(now * 0.35 + i * 1.7) * 8;
+        ctx.strokeStyle = rgba(glo, 0.22);
+        ctx.lineWidth = 1.2;
+        ctx.beginPath();
+        ctx.moveTo(sx, yb - 6);
+        ctx.quadraticCurveTo(sx + drift, yb + 4, sx + drift * 0.5, yb + 12);
+        ctx.stroke();
+      }
+      const tide = (now * 0.18) % 1;
+      ctx.strokeStyle = rgba(glo, (1 - tide) * 0.18);
+      ctx.lineWidth = 1.2;
+      ctx.beginPath();
+      ctx.ellipse(cx, yb - 4, WIDTH * (0.06 + tide * 0.3), 6 + tide * 14, 0, Math.PI, 0);
+      ctx.stroke();
+      break;
+    }
+    case 'tithe': {
+      // Gilded scale-plates half-sunk along the mound line, and one golden bead sinking
+      // into a seam — the ledger never fully closes.
+      ctx.fillStyle = rgba(acc, 0.6);
+      for (let i = 0; i < 6; i++) {
+        const x = WIDTH * (0.2 + 0.12 * i);
+        const y = yb + 1 + Math.sin(i * 1.9) * 3;
+        ctx.beginPath();
+        ctx.moveTo(x, y - 5);
+        ctx.lineTo(x + 5, y);
+        ctx.lineTo(x, y + 3);
+        ctx.lineTo(x - 5, y);
+        ctx.closePath();
+        ctx.fill();
+      }
+      const f = (now * 0.22) % 1;
+      drawDot(ctx, WIDTH * 0.38, yb - 14 + f * 16, 2, rgba(glo, (1 - f) * 0.6));
+      break;
+    }
+    case 'gorge': {
+      // A half-buried gullet bulge still swallowing on a slow cycle, pale tooth-tips beside
+      // it — the larder is DOWN there, and the meal continues.
+      const gulp = Math.max(0, Math.sin(now * 0.3)) ** 3;
+      ctx.fillStyle = rgba(body, 0.8);
+      ctx.beginPath();
+      ctx.ellipse(cx + Math.sin(now * 0.3) * 10, yb - 4 - gulp * 5, 26 + gulp * 8, 10 + gulp * 4, 0, Math.PI, 0);
+      ctx.fill();
+      ctx.fillStyle = rgba('230, 224, 210', 0.7);
+      for (let i = 0; i < 5; i++) {
+        const tx = cx - 44 + 88 * (i / 4) + (i % 2 === 0 ? -34 : 34);
+        ctx.beginPath();
+        ctx.moveTo(tx - 3, yb + 2);
+        ctx.lineTo(tx, yb - 5 - (i % 2) * 2);
+        ctx.lineTo(tx + 3, yb + 2);
+        ctx.closePath();
+        ctx.fill();
+      }
+      break;
+    }
+    case 'myriad': {
+      // Three lesser eyes at the soil line, lids heavy — one drifts open now and then to
+      // study the field, then closes. It remembers even in its sleep.
+      for (let i = 0; i < 3; i++) {
+        const ex = WIDTH * (0.24 + 0.26 * i);
+        const watch = Math.max(0, Math.sin(now * 0.28 + i * 2.6)) ** 6; // rare slow opens
+        const open = 0.15 + watch * 0.85;
+        const r = 4.5 + (i % 2);
+        ctx.fillStyle = rgba('12, 8, 10', 0.8);
+        ctx.beginPath();
+        ctx.ellipse(ex, yb - 2, r * 1.5, r * open, 0, 0, TAU);
+        ctx.fill();
+        drawDot(ctx, ex, yb - 2, r * 0.5 * open, rgba(glo, 0.5 + watch * 0.4));
+      }
+      break;
+    }
+  }
 }
 
 // ── Render-side one-shots (module state, render-only): the CAST flash fires the frame a

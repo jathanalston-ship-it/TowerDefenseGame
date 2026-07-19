@@ -29,6 +29,10 @@ export const RELEASES: Release[] = [
       {
         "cat": "Gameplay",
         "text": "Mega fight-timeline probe + organ drought valve: rebuild verdict grounded in numbers"
+      },
+      {
+        "cat": "Gameplay",
+        "text": "Mega dormancy: the organism burrows between waves, the raid bar greys out"
       }
     ]
   },

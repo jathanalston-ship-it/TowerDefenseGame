@@ -3,7 +3,26 @@
 > Maintained at the END of every session (paired with `docs/AI_HANDOFF.md` — the constitution's
 > workflow step 4). This is the "where are we?" answer; `docs/GAME-STATE.md` remains the deeper
 > per-system built-vs-planned index, `docs/PROJECT_MANIFEST.md` the system map.
-> **Last updated:** 2026-07-19ah (**MEGA DORMANCY — BETWEEN-WAVE BURROW POSE +
+> **Last updated:** 2026-07-19ai (**DORMANT IDENTITY LAYER — SEVEN SLEEPING
+> SILHOUETTES** (user: "do that identity layer."). `drawDormantMotif`
+> (render/megaboss.ts, inside drawBurrowMound's save block — inherits the burrow fade)
+> gives every mega a per-motif buried pose echoing its awake drawMotif anatomy: maw
+> tusk-tips slowly grinding through the soil · choir spire-tips with tolling bell-glints ·
+> shepherd crook + hanging bone chimes · tide medusa-bell riding low + a breathing
+> tide-ring · tithe gilded scales + one bead forever sinking into a seam · gorge
+> half-buried gullet still swallowing beside pale teeth · myriad heavy-lidded eyes, one
+> drifting open to study the field. Render-only (no sim/save/power surface moved; goldens
+> untouched by construction); a new motif earns a case beside its drawMotif case or falls
+> back to the plain mound. Gotcha caught: drawBurrowMound now computes `acc` (first draft
+> passed it uncomputed — typecheck). VERIFIED: full suite 305/2590 green, build; headless
+> canvas-bitmap sweep (burrow-motifs.mjs — spawn each def in PREP where megaDormancySystem
+> buries it with no wave; capture canvas.toDataURL top band, bypassing HUD DOM):
+> all 7 dormant=true, zero page errors, burrow-m-<defId>.png ×7 visually distinct.
+> MEGA-BOSS.md §dormancy +identity paragraph. NEXT (user-queued): HIVE INTELLIGENCE —
+> universal in-run best-upgrade system (task #401; foundation: bestPurchase advisor +
+> conveyor placement heuristics; must never touch golden runs). Previous below.)
+>
+> **2026-07-19ah** (**MEGA DORMANCY — BETWEEN-WAVE BURROW POSE +
 > GREYED RAID BAR** (user: burrow/in-between phase during build phase and between waves;
 > health bar greys/fades). The between-wave freeze is by design (megaBossSystem/towerSystem
 > run only in step's 'wave' branch) but a frozen full-color boss read as "invincibility" —

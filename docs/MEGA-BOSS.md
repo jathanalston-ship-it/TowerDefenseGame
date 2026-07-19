@@ -250,6 +250,14 @@ Outside combat the mega is frozen by DESIGN (megaBossSystem/towerSystem only run
   ridge and a low breathing **mound** remains — soil seams leaking palette glow, a slow
   periodic ground tremor ("the tremor between waves is its patience running out"). Organs
   and the siege arm retract with it; the vignette/heartbeat fades to a faint slow residue.
+  **Identity layer** (`drawDormantMotif`): each motif sleeps in its own silhouette over the
+  shared mound, echoing its `drawMotif` anatomy — maw: tusk tips breaching the soil, slowly
+  grinding; choir: spire tips with tolling bell-glints; shepherd: one pale crook + hanging
+  bone chimes; tide: the medusa bell riding low with a breathing tide-ring; tithe: gilded
+  scales half-sunk + one bead forever sinking into a seam; gorge: a half-buried gullet still
+  swallowing beside pale teeth; myriad: heavy-lidded lesser eyes, one drifting open now and
+  then to study the field. A new motif earns a case here beside its drawMotif case, or falls
+  back to the plain mound.
   The next wave's first ticks surface it again (`burrowOutSec` 0.9 s) — the fight below
   never waits for the pose. Both transitions play the `megaBurrow` soil-rumble cue +
   descent/emergence particles.

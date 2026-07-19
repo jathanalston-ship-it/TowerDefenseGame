@@ -1,6 +1,6 @@
 {
-  "lastSha": "7825b3daa37de2eb4ed1c056739b1778e84bcf3a",
-  "commitsSinceDraft": 4,
+  "lastSha": "45cd4f8d9b5d42bff2544f3cb1a90bce59db1607",
+  "commitsSinceDraft": 5,
   "content": {
     "tower": [
       "needle",
@@ -2951,6 +2951,10 @@
         {
           "cat": "Gameplay",
           "text": "Mega fight-timeline probe + organ drought valve: rebuild verdict grounded in numbers"
+        },
+        {
+          "cat": "Gameplay",
+          "text": "Mega dormancy: the organism burrows between waves, the raid bar greys out"
         }
       ]
     }
@@ -5569,6 +5573,14 @@
       "date": "2026-07-19",
       "cat": "Gameplay",
       "text": "Mega fight-timeline probe + organ drought valve: rebuild verdict grounded in numbers",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "45cd4f8d9b5d42bff2544f3cb1a90bce59db1607",
+      "date": "2026-07-19",
+      "cat": "Gameplay",
+      "text": "Mega dormancy: the organism burrows between waves, the raid bar greys out",
       "internal": false,
       "needsReview": false
     }
