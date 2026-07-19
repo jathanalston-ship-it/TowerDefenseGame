@@ -92,6 +92,29 @@ Checklist per screen: combine · simplify · dedupe · collapse · scrolling/cli
 | Collection / Season / Phenotypes / Store | ✅ keep | Collection layers; store never guide-pushed |
 | Profile / Settings / Help | ✅ keep | Help gained the five Foundation rows + guide replays |
 
+## Wayfinding — the navigation frame (2026-07 menu-UX pass)
+
+Every non-home hub screen inherits ONE thin bar from the Hub chokepoint
+(`ui/components/ScreenHeader.tsx` — registry-driven from `navModel.groupOf`, zero
+per-screen wiring):
+
+- **Back ‹** walks a real 32-stop nav HISTORY (`Hub.goBack`); a dry stack falls back
+  screen → its hub landing → home. Touch gets the iOS edge swipe-back (start ≤28px from
+  the left edge, >70px travel) on the screen container — never fights horizontal scrollers.
+- **Breadcrumb** `group ▸ screen` — the group name opens the hub landing (the parent).
+- **Sibling chips** — every REVEALED screen of the same group, one tap away with unseen
+  badge dots (glyph-only under 900px). Moving between related pages never round-trips
+  the hub; the landing remains the browse/teaser surface, the chips are the shortcut.
+- **Page transition**: the screen section re-keys per navigation and plays one finite
+  220ms fade-rise (`hub-screen-in`); reduced-motion stills it. Attention-budget-neutral.
+- Portrait keeps `MobilePageHead`; the landscape drawer world and desktop share the frame.
+
+Rules: new screens inherit the frame automatically (it renders above FeatureLocked, so
+even locked screens carry location + back). Never add a per-screen back button or a
+second breadcrumb; screen bodies start at `screen-h`, and the 34–48px gradient `.title`
+is reserved for the FeatureLocked unlock briefing (the name IS that moment). Full audit
+record: docs/UX-AUDIT-2026-07.md.
+
 ## How to extend without regressing
 
 - A new wing (stage ≤ 4 guarantee) **must** add a `GUIDES` row — `guidedUnlocks.test.ts` fails

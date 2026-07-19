@@ -1395,6 +1395,10 @@ export const RELEASES: Release[] = [
       {
         "cat": "Website",
         "text": "Chronicle + site sync for the info-hierarchy batch"
+      },
+      {
+        "cat": "UI",
+        "text": "Metabolism: the recursive progression system (save v51, Milestones screen)"
       }
     ]
   },

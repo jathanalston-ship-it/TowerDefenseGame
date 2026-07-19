@@ -3,7 +3,30 @@
 > Maintained at the END of every session (paired with `docs/AI_HANDOFF.md` — the constitution's
 > workflow step 4). This is the "where are we?" answer; `docs/GAME-STATE.md` remains the deeper
 > per-system built-vs-planned index, `docs/PROJECT_MANIFEST.md` the system map.
-> **Last updated:** 2026-07-19w (**METABOLISM — the recursive progression system** (user
+> **Last updated:** 2026-07-19x (**MENU UX / VISUAL HIERARCHY / NAVIGATION OVERHAUL** (user
+> brief: "less clutter, better direction, faster navigation, more visual satisfaction").
+> AUDIT-FIRST: every registry screen captured headlessly (desktop 1366 + landscape 844,
+> developed profile) and reviewed against premium-mobile principles — findings + fixes
+> recorded in **docs/UX-AUDIT-2026-07.md**. THE WAYFINDING FRAME (the batch's core):
+> `ui/components/ScreenHeader.tsx`, rendered ONCE by the Hub on every non-home screen
+> (above FeatureLocked — even locked screens carry location/back; portrait keeps
+> MobilePageHead): back ‹ over a REAL 32-stop nav history (`Hub.goBack`; dry stack falls
+> back screen → its landing → home), breadcrumb `group ▸ screen` (parent opens the
+> landing), revealed-SIBLING chips with unseen dots (one-tap moves inside a wing — hub
+> round-trips dead; glyph-only ≤900px), iOS edge swipe-back on touch (start ≤28px, >70px
+> travel — never fights scrollers), and a finite 220ms `hub-screen-in` page transition
+> (reduced-motion-safe, attention-budget-neutral). CHOKEPOINT FIXES from the audit:
+> Quest Board/Premium Store/Daily Run display titles → standard `screen-h` (~110px of
+> chrome reclaimed; the gradient `.title` now belongs to the unlock briefing alone);
+> hub-landing "All quiet" now consults the LIVE lane (no more "quiet" above glowing
+> claim cards — new `stillReady` line, i18n ×3); wardrobe unlock BACKLOGS (6+) collapse
+> to one summary card instead of a 21-tap "Next" chain (per-card theater stays ≤5);
+> triple-zero Materials chip hides. Honest deferrals in UX-AUDIT §4 (lab pre-content
+> stacks, deploy-CTA reframe, ready-state chips). Verified: typecheck 0, suite 2535
+> green, build, mobilecheck CLEAN (30 screens × 6 viewports), cogload 70/70, live probes
+> (sibling jump, double-back, fresh-boot tutorial funnel), validate PASS. Previous below.)
+>
+> **2026-07-19w** (**METABOLISM — the recursive progression system** (user
 > brief: "the game should reward players for interacting with reward systems"; Claude's
 > lore name: Metabolism, screen 'Milestones'). NEW `src/state/metabolism.ts` — 22 infinite
 > milestone tracks over LIFETIME ledgers in 4 categories (Conquest ⚔ / Assimilation ❈ /

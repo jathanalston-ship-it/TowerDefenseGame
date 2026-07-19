@@ -40,6 +40,33 @@ export function WardrobeReveal(): JSX.Element | null {
     }
   };
 
+  // A BACKLOG is a bank statement, not a moment (docs/COSMETICS.md §wardrobe): six-plus
+  // queued unlocks (fast progress, restored save) collapse into ONE summary card — every
+  // item named, one gesture. Per-card theater stays for the live-play trickle (≤5).
+  if (queue.length > 5) {
+    return (
+      <div className="wdr-veil" role="dialog" aria-label={`${queue.length} cosmetics unlocked`}>
+        <div className="wdr-card wdr-batch-card">
+          <div className="wdr-burst" aria-hidden><i /><i /><i /><i /><i /><i /></div>
+          <div className="wdr-eyebrow">WARDROBE UNLOCKS</div>
+          <div className="wdr-name">{queue.length} cosmetics joined your wardrobe</div>
+          <div className="wdr-batch" role="list">
+            {queue.map((q) => (
+              <span key={q.id} role="listitem" className="wdr-batch-row" style={{ ['--rc' as string]: WARDROBE_RARITY_COLOR[q.rarity] } as CSSProperties}>
+                <i aria-hidden>{q.payload.glyph ?? wardrobeKind(q.kind).icon}</i>
+                <b>{q.name}</b>
+                <em>{q.rarity}</em>
+              </span>
+            ))}
+          </div>
+          <button className="primary wdr-next" onClick={() => { setQueue([]); audio.cue('reveal'); }}>
+            Wear them well
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="wdr-veil" role="dialog" aria-label={`Cosmetic unlocked — ${d.name}`} onClick={next}>
       <div className={`wdr-card is-${d.rarity}`} style={{ ['--rc' as string]: rc, ['--pc' as string]: d.payload.accent ?? rc } as CSSProperties}>

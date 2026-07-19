@@ -57,8 +57,10 @@ export function DailyScreen({ onStartDaily, onSpectate }: { onStartDaily: () => 
 
   return (
     <div className="menu daily-screen">
-      <h1 className="title">DAILY RUN</h1>
-      <p className="subtitle">One seed · one world · every player faces the same gauntlet. Resets in <b>{fmtCountdown(msUntilDailyReset())}</b>.</p>
+      <header className="screen-h">
+        <h2>Daily Run</h2>
+        <p className="screen-sub">One seed · one world · every player faces the same gauntlet. Resets in <b>{fmtCountdown(msUntilDailyReset())}</b>.</p>
+      </header>
 
       <div className="hub-cols daily-cols">
         {/* ── The day's contract ── */}

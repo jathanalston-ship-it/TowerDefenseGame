@@ -4,113 +4,107 @@
 > before committing. Read together with docs/PROJECT_STATUS.md and the latest
 > docs/VALIDATION_REPORT.md. Next session: start at docs/PROJECT_MANIFEST.md.
 
-- **Generated:** 2026-07-19 00:40 UTC · **Diff scope:** working tree vs HEAD
-- **Branch:** claude/zen-hawking-rh1gxl · **HEAD:** 044f787
+- **Generated:** 2026-07-19 01:58 UTC · **Diff scope:** working tree vs HEAD
+- **Branch:** claude/zen-hawking-rh1gxl · **HEAD:** d4c29fa
 
 ## Summary of work completed
 
-METABOLISM (docs/METABOLISM.md) — the recursive progression system, shipped end-to-end:
-22 infinite milestone tracks over lifetime ledgers (derive-first — veterans back-fill on
-load; only four ritual counters needed chokepoint writes), nice-number thresholds that
-grow ×1.8/tier vs rewards ×1.35/tier (the anti-inflation invariant, machine-pinned), a
-guarded batch-claim action paying through applyRewardList, and the Milestones screen in
-the Rewards hub (stage-8 reveal, one attention animator, cogload-clean). The one thing
-the next session must know: the module lives in `src/state/metabolism.ts`, NOT core/ —
-its value() functions read whole SaveData, and core/boundaries.test forbids core→save
-imports; the save SHAPE (MetabolismSave/defaultMetabolism/sanitizer) is owned by
-saveStore itself (v51).
+MENU UX / NAVIGATION OVERHAUL (docs/UX-AUDIT-2026-07.md): every registry screen was
+captured headlessly and audited against premium-mobile principles, then fixed at
+chokepoints. The big piece is the WAYFINDING FRAME — `ui/components/ScreenHeader.tsx`
+rendered once by the Hub on every non-home screen: back ‹ over a real 32-stop nav
+history, breadcrumb `group ▸ screen` (parent opens the landing), sibling chips for
+one-tap moves inside a wing (no more hub round-trips), plus a finite 220ms page
+transition and iOS edge swipe-back on touch. The one thing the next session must know:
+the frame is registry-driven and renders ABOVE FeatureLocked — new screens inherit it
+with zero wiring; never add per-screen back buttons or a second breadcrumb.
 
 ## Files modified
 
-- Source (17): `src/changelog/releases.gen.ts`, `src/core/battlePass.ts`, `src/dev/dil/knowledge.ts`, `src/dev/systemRegistry.ts`, `src/i18n/index.ts`, `src/index.css`, `src/save/saveStore.ts`, `src/security/registry.ts`, `src/state/mechanics.ts`, `src/state/meta.ts`, `src/state/notificationSources.ts`, `src/state/recommendations.ts`, `src/state/unlocks.ts`, `src/ui/Hub.tsx`, `src/ui/navModel.ts`, `src/state/metabolism.ts`, `src/ui/MetabolismScreen.tsx`
-- Tests (1): `src/state/metabolism.test.ts`
-- Scripts (2): `scripts/sim-metabolism.ts` (new — `npm run sim:metabolism`), `package.json`
-- Docs (7): `docs/COGLOAD_REPORT.md`, `docs/DEPENDENCY_GRAPH.md`, `docs/DIL_GRAPH.md`, `docs/GAME-STATE.md`, `docs/HISTORY.md`, `docs/UNLOCK-TREE.md`, `docs/METABOLISM.md` (new)
+- Source (11): `src/changelog/releases.gen.ts`, `src/dev/systemRegistry.ts`, `src/i18n/index.ts`, `src/index.css`, `src/ui/DailyScreen.tsx`, `src/ui/Hub.tsx`, `src/ui/HubLanding.tsx`, `src/ui/PremiumStore.tsx`, `src/ui/QuestBoard.tsx`, `src/ui/components/WardrobeReveal.tsx`, `src/ui/components/ScreenHeader.tsx`
+- Tests (0): — (contract coverage rides the existing instruments: mobilecheck walks all 30 screens through the new frame; cogload re-measured 70/70)
+- Docs (7): `docs/COGLOAD_REPORT.md`, `docs/DEPENDENCY_GRAPH.md`, `docs/DIL_GRAPH.md`, `docs/HISTORY.md`, `docs/UX-CONSOLIDATION.md`, `docs/VALIDATION_REPORT.md`, `docs/UX-AUDIT-2026-07.md`
 
 ## Systems affected (from the dependency registry)
 
-- **battle-pass** — `src/core/battlePass.ts`
 - **chronicle** — `src/changelog/releases.gen.ts`
-- **dev-registry** — `src/dev/dil/knowledge.ts`, `src/dev/systemRegistry.ts`
-- **hub-shell** — `src/ui/Hub.tsx`, `src/ui/navModel.ts`
+- **cosmetics** — `src/ui/components/WardrobeReveal.tsx`
+- **daily** — `src/ui/DailyScreen.tsx`
+- **dev-registry** — `src/dev/systemRegistry.ts`
+- **hub-shell** — `src/ui/Hub.tsx`, `src/ui/components/ScreenHeader.tsx`
 - **i18n** — `src/i18n/index.ts`
-- **meta-store** — `src/save/saveStore.ts`, `src/state/meta.ts`
-- **metabolism** — `src/state/metabolism.ts`, `src/ui/MetabolismScreen.tsx`
-- **notifications** — `src/state/notificationSources.ts`, `src/state/recommendations.ts`
-- **onboarding** — `src/state/mechanics.ts`
-- **progression-gating** — `src/state/unlocks.ts`
-- **security** — `src/security/registry.ts`
-- Consumer ring (verify, unchanged): account-level, accounts, analytics, arena, contracts, cosmetics, cutscenes, daily-login, devtools, directives, expeditions, field-research, genome-rank, hero-symbiotes, hive-construction, idle-harvest, infestation, liveops, mulligans, nemesis, net-backend, nucleus, pil, profile, quests, reward-architecture, run-ui
+- **notifications** — `src/ui/HubLanding.tsx`
+- **premium** — `src/ui/PremiumStore.tsx`
+- **quests** — `src/ui/QuestBoard.tsx`
+- Consumer ring (verify, unchanged): battle-pass, contracts, daily-login, directives, field-research, hive-construction, infestation, liveops, metabolism, nemesis, net-backend, pil, profile, reward-architecture
 
 ## Power Score changes
 
-None by design — Metabolism pays currencies/containers/season XP, never stats (the
-system-registry row records powerScore 'none'). The battle-pass change is a new
-PassReward kind (`mulliganTissue`), a currency grant with no Power surface.
+None — pure presentation/navigation batch; no economy or stat surface moved.
 
 ## UI changes
 
-New `MetabolismScreen` (nav `metabolism`, Rewards group, '✹ Milestones'): masthead ledger
-+ `<Detail>` curve fold, hero Digest row (the screen's ONE attention-band animator,
-`mtb-hero-breathe` 2.8s), four category sections with progress-bar-dominant track rows and
-act-claim CTAs; "Digest all" batches every track. Hub routes the screen behind the
-standard FeatureLocked stage-8 reveal; the rail badge and Ready Chain pick it up through
-the generic notification channel. Verified: mobilecheck CLEAN (30 screens × 6 viewports),
-cogload 70/70 in budget (metabolism: attn 1), full build.
+- **ScreenHeader** on every non-home hub screen (desktop + landscape drawer; portrait
+  keeps MobilePageHead): back ‹ (nav history; dry stack falls back screen → landing →
+  home), breadcrumb with clickable parent, revealed-sibling chips with unseen badge dots
+  (glyph-only ≤900px). Touch gets edge swipe-back (start ≤28px, >70px travel).
+- **Page transition**: `.hub-screen` plays one finite fade-rise per navigation
+  (reduced-motion stills it; attention-budget neutral — cogload 70/70).
+- **Title normalization**: Quest Board / Premium Store / Daily Run dropped the 34–48px
+  gradient `.title` for the standard `screen-h` (content starts ~110px earlier); the
+  gradient stays only on the FeatureLocked unlock briefing.
+- **Hub landing truthfulness**: the "All quiet" line now consults the LIVE lane; with
+  seen-but-unclaimed stops it says "Earned rewards below are still waiting" instead.
+- **Wardrobe backlog batching**: 6+ queued unlock ceremonies collapse to ONE summary card
+  (all items named + rarity-tinted); per-card theater stays for ≤5 (the live trickle).
+- **Top bar**: the Materials chip hides while all three mats are zero.
+- Verified: mobilecheck CLEAN (30 screens × 6 viewports incl. drawer walk), cogload
+  70/70, live headless probes (sibling jump quests→milestones, double-back to landing,
+  fresh-boot funnel confirmed tutorial-first).
 
 ## Documentation changes
 
-`docs/METABOLISM.md` NEW (architecture, curves, interpreter contract, claim flow,
-surfaces, extension contract, persona-sim gates, invariants). Regenerated:
-DEPENDENCY_GRAPH, DIL_GRAPH, UNLOCK-TREE (33 features), COGLOAD_REPORT, HISTORY (notes).
-`docs/GAME-STATE.md` save-schema anchor bumped to v51. All other listed docs: no change
-needed (blast-radius listing only — no behavior in their systems moved).
+`docs/UX-AUDIT-2026-07.md` NEW (principles, findings→fixes table, per-screen notes,
+honest deferrals, first-time-player contract). `docs/UX-CONSOLIDATION.md` gained the
+§wayfinding standard (the frame's rules). DEPENDENCY_GRAPH/DIL_GRAPH/COGLOAD_REPORT
+regenerated. All other listed docs: no change needed (blast-radius listing only).
 
 ## Save changes
 
-`CURRENT_VERSION` 50 → 51. New field `metabolism: MetabolismSave` `{ counters:
-{containersOpened, sporesAbsorbed, questsClaimed, passClaimed}, claimed: Record<trackId,
-tiers> }` — shape/default/sanitizer owned by saveStore (interface exported there;
-state/metabolism imports the type). Sanitizer floors counters to ints ≥ 0, keeps only
-positive claimed entries; trackView clamps claimed ≤ reached at read time. Migration is
-pure deep-fill (missing ⇒ defaults) — pinned by the v50→v51 round-trip tests in
-`src/state/metabolism.test.ts` (old export without the field imports clean; junk sanitizes).
+None — save layer untouched.
 
 ## Known edge cases
 
-- The four ritual counters start at ZERO for every account at v51 — that is deliberate
-  (fresh low-base ladders keep a veteran's board alive after the back-fill jackpot; the
-  persona sim models this and depends on it).
-- `claimMetabolism` deliberately feeds no counter — claiming milestones must not be a
-  milestone (the recursion terminates).
-- `grantRouletteRewards` bumps `sporesAbsorbed` by SPORES SPENT (quantity), not sessions.
-- nice-rounding could flatten neighbouring thresholds on the raw ×1.8 curve; `threshold()`
-  forces every step past `nice(prev × 1.8)` — the strict-increase test guards this.
-- Track `value()` must read LIFETIME ledgers (`lifetimeShards`), never spendable balances
-  (`shards`) — a spendable source would let claims un-reach.
+- `goBack()` restores landings as real stops; from a screen with an EMPTY history it
+  climbs to the screen's own hub landing, then home — never a dead end.
+- The swipe-back only arms when the touch STARTS within 28px of the left viewport edge —
+  deliberate, so horizontal scrollers (conveyor, card rows) never trigger it.
+- ScreenHeader filters siblings by `featureRevealed`; a hub with one revealed screen
+  renders no chip row (breadcrumb + back only).
+- The wardrobe batch card takes over at >5 queued reveals; exactly 5 still plays five
+  cards (skip-all remains from 3+).
+- The "phantom panel" in two audit captures was the wardrobe ceremony mid-open, not a
+  layout bug — do not chase it.
 
 ## Remaining technical debt
 
-- MetabolismScreen claims per-track; the reward placards merge, but a "Digest all" over
-  many tracks fires one toast group per track — acceptable (bounded ≤22), could batch
-  into a single ceremony later.
-- The sim's accrual model is linear per track (documented simplification); if live pacing
-  telemetry lands, feed real rates into `MID_RATES`.
+- Pre-content band stacks on the labs (Gene Archive 6 bands, Tower Lab 4) — recorded in
+  UX-AUDIT §4; per-screen surgery deferred deliberately.
+- Sibling chips show unseen dots only; ready-state (gold ring) coloring is a candidate
+  for the next prominence pass.
 
 ## Recommended next tasks
 
-1. Wire Metabolism into the Rewards hub LANDING page member cards (ui/HubLanding.tsx) if
-   the next prominence pass wants the claimable count on the door itself.
-2. Consider a collection/achievement recognition row for deep metabolism tiers (e.g.
-   "reach T10 on any track") — recognition currently lives in the tracks themselves.
-3. Localize the MetabolismScreen strings (inline-en today, like sibling screens).
+1. Lab pre-content compression (fold advisor + completion + meta bands into one
+   composite band) — start with GeneArchive.tsx; the audit doc names the bands.
+2. Home deploy CTA outcome-first reframe ("Fight anyway — recommended Power not met") —
+   CommandCenter `.mc-campaign` CTA, effect-language vocabulary.
+3. Consider ScreenHeader ready-state chips (readyChain membership → gold ring).
 
 ## Future expansion hooks
 
-- `META_TRACKS` (src/state/metabolism.ts) — a future system integrates by adding ONE
-  TrackDef row; curves/claims/guard/screen/badge/recommendation are generic.
-- `MetaRewardType` + `toPassRewards()` — extend alongside `PassReward` when a new
-  interpreter kind lands (mulliganTissue shows the pattern).
-- `bumpCounter` (state/metabolism.ts) — the single write path if a fifth unledgered verb
-  ever needs a ritual counter (add the field to MetabolismSave in saveStore + one
-  chokepoint call).
+- `ScreenHeader` props are registry-driven (`navModel.groupOf`) — a new screen in any
+  group inherits breadcrumb/back/siblings with zero wiring; a future in-run breadcrumb
+  could reuse the same component with a synthetic group.
+- `Hub.goBack`/`histRef` — the history stack is the seam for browser-history binding
+  (popstate) if the SPA ever wants URL-addressable screens.

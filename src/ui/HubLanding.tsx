@@ -148,8 +148,14 @@ export function HubLanding({
 
       <section className="hubl-sec" aria-label={t('hub.landing.recommended')}>
         <div className="hubl-sec-h">✦ {t('hub.landing.recommended')}</div>
-        {attention.length === 0 && recs.every((r) => r.kind === 'play') && (
+        {/* "All quiet" must agree with the LIVE lane the member cards read — a hub with
+            seen-but-unclaimed stops still glowing below never claims to be quiet
+            (docs/HUB-FLOW.md §surfaces: the landing never hides earned value). */}
+        {attention.length === 0 && recs.every((r) => r.kind === 'play') && keys.every((k) => !chainOf.has(k)) && (
           <p className="hubl-quiet">{t('hub.landing.quiet')}</p>
+        )}
+        {attention.length === 0 && recs.every((r) => r.kind === 'play') && keys.some((k) => chainOf.has(k)) && (
+          <p className="hubl-quiet">{t('hub.landing.stillReady')}</p>
         )}
         <RecommendStrip recs={recs} go={go} />
       </section>

@@ -4,7 +4,7 @@
 // level; dense screens lay out in columns and the content area is the only scroll region.
 
 import { t, useLocale, setLocale, getLocale, LOCALES } from '../i18n';
-import { useEffect, useMemo, useState, type CSSProperties, type MutableRefObject } from 'react';
+import { useEffect, useMemo, useRef, useState, type CSSProperties, type MutableRefObject } from 'react';
 import { meta } from '../state/meta';
 import type { RunOutcome, RunResult } from '../state/meta';
 import type { ReplayRecord } from '../core/replay';
@@ -69,7 +69,8 @@ import { applyWardrobeDressing } from './wardrobeDressing';
 import { LabAtmosphere } from './LabAtmosphere';
 import { labState } from './homeBaseTiers';
 import { PowerBadge } from './components/PowerScore';
-import { navGroups, mobileTabs, tabOf, type NavKey, type NavGroupId, type MobileTabKey } from './navModel';
+import { navGroups, mobileTabs, tabOf, groupOf, type NavKey, type NavGroupId, type MobileTabKey } from './navModel';
+import { ScreenHeader } from './components/ScreenHeader';
 import { activeLiveEvents } from '../core/liveEvents';
 import { MobileTabBar, MobileTabIndex, MobilePageHead } from './MobileShell';
 import { useLayoutProfile } from './layoutProfile';
@@ -305,8 +306,21 @@ export function Hub({
     return () => window.clearInterval(t);
   }, [guest]);
 
+  // ── Nav history (docs/UX-CONSOLIDATION.md §wayfinding): every navigation remembers where
+  // it came from, so the ScreenHeader's ‹ and the touch swipe-back walk REAL history instead
+  // of guessing a parent. Falls back landing → home when the stack runs dry.
+  const histRef = useRef<{ nav: NavKey; landing: NavGroupId | null }[]>([]);
+  const pushHist = (): void => {
+    const top = histRef.current[histRef.current.length - 1];
+    if (top && top.nav === nav && top.landing === landing) return; // no duplicate stops
+    histRef.current.push({ nav, landing });
+    if (histRef.current.length > 32) histRef.current.shift();
+  };
+
   const go = (k: NavKey): void => {
+    if (k === nav && landing === null && !mIndex) return; // already here — no-op, no history churn
     audio.cue('ui');
+    pushHist();
     // Telemetry: the screen-view lane, plus "a lit badge drew this click" (docs/ANALYTICS.md
     // §screens) — read BEFORE markSeen clears it.
     if ((notifications.badges(save)[k] ?? 0) > 0) telemetry.emit('notif', { d: `${k}:act` });
@@ -322,9 +336,43 @@ export function Hub({
 
   /** Open a hub's landing page (desktop group headers; landing rows drill in via go). */
   const goLanding = (id: NavGroupId): void => {
+    if (landing === id) return;
     audio.cue('ui');
+    pushHist();
     setLanding(id);
     setNavOpen(false);
+  };
+
+  /** Walk back one real stop; dry stack falls back screen → its hub landing → home. */
+  const goBack = (): void => {
+    const prev = histRef.current.pop();
+    audio.cue('ui');
+    if (prev) {
+      setNav(prev.nav);
+      setLanding(prev.landing);
+      setNavOpen(false);
+      setMIndex(false);
+      if (prev.landing === null) { telemetry.screen(prev.nav); notifications.markSeen(prev.nav, save); }
+      return;
+    }
+    if (landing === null && nav !== 'home') { setLanding(groupOf(nav).id); return; }
+    if (landing !== null) { setLanding(null); setNav('home'); return; }
+  };
+
+  // Touch swipe-back (the iOS-standard edge gesture): a drag that STARTS on the left edge
+  // and travels right without much vertical wander walks history. Edge-start only, so
+  // horizontal scrollers and the canvas never fight it; inert without a touch screen.
+  const swipeRef = useRef<{ x: number; y: number; edge: boolean } | null>(null);
+  const onScreenTouchStart = (e: React.TouchEvent): void => {
+    const t = e.touches[0];
+    swipeRef.current = { x: t.clientX, y: t.clientY, edge: t.clientX <= 28 };
+  };
+  const onScreenTouchEnd = (e: React.TouchEvent): void => {
+    const s = swipeRef.current;
+    swipeRef.current = null;
+    if (!s || !s.edge) return;
+    const t = e.changedTouches[0];
+    if (t.clientX - s.x > 70 && Math.abs(t.clientY - s.y) < 48) goBack();
   };
 
   // Portrait tab bar: HOME jumps straight to the Command Center; the rest open their index page.
@@ -468,14 +516,21 @@ export function Hub({
           <WalletChip cur="genomeCores" value={save.shards} label={ACCOUNT_CURRENCY.name} />
           {featureRevealed(save, 'cur:ichor') && <WalletChip cur="ichor" value={save.ichor} label="Ichor" />}
           {featureRevealed(save, 'cur:cells') && <WalletChip cur="ascendantCells" value={cells} label="Cells" />}
-          {featureRevealed(save, 'cur:mats') && (
+          {/* A triple-zero mats chip is pure top-bar noise — the wallet reappears with the
+              first drop (docs/INFO-HIERARCHY.md §3: numbers only when a decision needs them). */}
+          {featureRevealed(save, 'cur:mats') && save.mats.mutagen + save.mats.scrap + save.mats.catalyst > 0 && (
             <span className="hub-cur" data-cur="mats" title="Materials — Mutagen · Scrap · Catalyst (Armory crafting)">
               ⊕ {save.mats.mutagen} · ◳ {save.mats.scrap} · ✷ {save.mats.catalyst} <span className="hub-cur-l">Materials</span>
             </span>
           )}
         </header>
 
-        <section className="hub-screen" key={mobileShell && mIndex ? `midx-${mTab}` : landing ?? nav}>
+        <section
+          className="hub-screen"
+          key={mobileShell && mIndex ? `midx-${mTab}` : landing ?? nav}
+          onTouchStart={onScreenTouchStart}
+          onTouchEnd={onScreenTouchEnd}
+        >
           {!mobileShell && landing !== null ? (
             <HubLanding
               group={navGroups().find((g) => g.id === landing) ?? navGroups()[0]}
@@ -505,6 +560,12 @@ export function Hub({
               backLabel={mobileTabs().find((tb) => tb.key === tabOf(nav))?.label ?? t('mnav.home')}
               onBack={() => { setMTab(tabOf(nav)); setMIndex(true); }}
             />
+          )}
+          {/* The wayfinding frame (docs/UX-CONSOLIDATION.md §wayfinding): breadcrumb + back +
+              sibling switcher on every screen except the Home root. Portrait keeps its own
+              MobilePageHead above. */}
+          {!mobileShell && nav !== 'home' && (
+            <ScreenHeader nav={nav} save={save} badges={badges} onBack={goBack} go={go} onGroup={() => goLanding(groupOf(nav).id)} />
           )}
           {/* Any screen whose feature hasn't revealed shows its unlock briefing instead —
               one gate for every wing (the old per-mode ModeLocked, generalized). */}

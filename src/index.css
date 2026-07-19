@@ -12970,3 +12970,51 @@ div.ah-spark { display: flex; align-items: center; justify-content: center; heig
   .mtb-pay { margin-left: 0; width: 100%; }
   .mtb-heroRow .mtb-hero-cta { flex: 1; }
 }
+
+/* ── SCREEN HEADER — the wayfinding frame (docs/UX-CONSOLIDATION.md §wayfinding) ─────────
+   One thin bar on every non-home screen: back ‹ + breadcrumb (group ▸ screen) + sibling
+   chips. Quiet by design — it frames the screen, never competes with it. */
+.scrh { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; min-height: 34px; margin-bottom: 2px; }
+.scrh-back { width: 30px; height: 30px; flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center;
+  font-size: 18px; line-height: 1; padding: 0 0 2px; color: var(--muted); background: transparent;
+  border: 1px solid var(--line); border-radius: var(--r-sm); cursor: pointer;
+  transition: color var(--dur-2) var(--ease-out), border-color var(--dur-2) var(--ease-out), transform var(--dur-1) var(--ease-out); }
+.scrh-back:hover { color: var(--text); border-color: var(--gold); }
+.scrh-back:active { transform: scale(0.92); }
+.scrh-crumb { display: inline-flex; align-items: center; gap: 7px; font-size: 12px; min-width: 0; }
+.scrh-parent { padding: 2px 4px; font-size: 12px; color: var(--muted); background: transparent; border: 0; cursor: pointer;
+  transition: color var(--dur-2) var(--ease-out); white-space: nowrap; }
+.scrh-parent:hover { color: var(--text); }
+.scrh-sep { color: var(--muted); opacity: 0.6; font-size: 10px; }
+.scrh-here { color: var(--text); font-weight: 700; white-space: nowrap; }
+.scrh-sibs { margin-left: auto; display: inline-flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.scrh-sib { position: relative; display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px; font-size: 11px;
+  color: var(--muted); background: transparent; border: 1px solid var(--line); border-radius: 999px; cursor: pointer;
+  transition: color var(--dur-2) var(--ease-out), border-color var(--dur-2) var(--ease-out), transform var(--dur-1) var(--ease-out); }
+.scrh-sib em { font-style: normal; }
+.scrh-sib:hover { color: var(--text); border-color: color-mix(in srgb, var(--gold) 55%, transparent); }
+.scrh-sib:active { transform: scale(0.95); }
+.scrh-sib.is-here { color: var(--text); border-color: var(--gold); cursor: default; background: color-mix(in srgb, var(--gold) 9%, transparent); }
+.scrh-b { width: 6px; height: 6px; border-radius: 50%; background: var(--gold); flex-shrink: 0; }
+@media (max-width: 900px) {
+  .scrh-sib em { display: none; } /* glyph-only chips on narrow shells — the title carries the name */
+  .scrh-sib { padding: 4px 8px; }
+}
+
+/* Page transition (docs/UI-MOTION.md): the hub screen re-keys per navigation — one quiet
+   fade-rise per arrival. Finite by definition; reduced-motion stills it. */
+.hub-screen { animation: hub-screen-in var(--dur-3) var(--ease-out); }
+@keyframes hub-screen-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .hub-screen { animation: none; } }
+
+/* Wardrobe backlog summary (docs/COSMETICS.md §wardrobe): 6+ queued unlocks read as ONE
+   bank-statement card — every item named, one gesture, no 21-tap ceremonies. */
+.wdr-batch-card { max-width: 520px; }
+.wdr-batch { display: flex; flex-direction: column; gap: 4px; max-height: 44vh; overflow-y: auto;
+  margin: 10px 0 14px; padding-right: 4px; text-align: left; }
+.wdr-batch-row { display: flex; align-items: center; gap: 9px; padding: 5px 10px;
+  border: 1px solid color-mix(in srgb, var(--rc) 35%, transparent); border-radius: var(--r-sm); font-size: 12px; }
+.wdr-batch-row i { font-style: normal; width: 20px; text-align: center; color: var(--rc); flex-shrink: 0; }
+.wdr-batch-row b { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.wdr-batch-row em { margin-left: auto; font-style: normal; font-size: 10px; letter-spacing: 0.08em;
+  text-transform: uppercase; color: var(--rc); flex-shrink: 0; }

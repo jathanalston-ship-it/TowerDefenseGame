@@ -226,11 +226,13 @@ export function PremiumStore(): JSX.Element {
 
   return (
     <div className="menu pstore">
-      <h1 className="title">PREMIUM STORE</h1>
-      <p className="subtitle">
-        Acceleration, never obligation — purchases save time and add variety, and move Power by <b>zero</b> until you invest them.
-        Everything here is earnable in play.
-      </p>
+      <header className="screen-h">
+        <h2>Premium Store</h2>
+        <p className="screen-sub">
+          Acceleration, never obligation — purchases save time and add variety, and move Power by <b>zero</b> until you invest them.
+          Everything here is earnable in play.
+        </p>
+      </header>
 
       {guest && (
         <div className="ps-guestmode" role="note">

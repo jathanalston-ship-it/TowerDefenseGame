@@ -175,8 +175,10 @@ export function QuestBoard(): JSX.Element {
 
   return (
     <div className="menu qb" style={{ ['--qa' as string]: wk.quest.accent } as CSSProperties}>
-      <h1 className="title">QUEST BOARD {claimableNow > 0 && <span className="qb-claimable-chip">◈ {claimableNow} to claim</span>}</h1>
-      <p className="subtitle">Directives from the deep — weekly orders and the story of the descent.</p>
+      <header className="screen-h">
+        <h2>Quest Board {claimableNow > 0 && <span className="qb-claimable-chip">◈ {claimableNow} to claim</span>}</h2>
+        <p className="screen-sub">Directives from the deep — weekly orders and the story of the descent.</p>
+      </header>
       {burst && <ClaimBurst burst={burst} />}
       {/* Loop handoff (docs/REWARD-ARCHITECTURE.md §chaining): a fully-claimed board hands
           the session to the next loop instead of dead-ending on grayed buttons. */}

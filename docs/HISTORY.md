@@ -340,3 +340,6 @@
 - `5c2cf07` **[Website]** Rituals: chronicle + site + handoff/status boards for the icon-language batch
 - `9c86433` **[UI]** Info hierarchy: the cognitive-load budget, measured and enforced
 - `044f787` **[Website]** Chronicle + site sync for the info-hierarchy batch
+## 2026-07-19
+
+- `d4c29fa` **[UI]** Metabolism: the recursive progression system (save v51, Milestones screen)

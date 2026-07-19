@@ -1,6 +1,6 @@
 {
-  "lastSha": "044f787570544a566d5b2dbf3d3ed48f6bf86ffe",
-  "commitsSinceDraft": 3,
+  "lastSha": "d4c29faf1c0511ca2aa1ed7b3fbe94c1d6fb3c2e",
+  "commitsSinceDraft": 4,
   "content": {
     "tower": [
       "needle",
@@ -2899,6 +2899,10 @@
         {
           "cat": "Website",
           "text": "Chronicle + site sync for the info-hierarchy batch"
+        },
+        {
+          "cat": "UI",
+          "text": "Metabolism: the recursive progression system (save v51, Milestones screen)"
         }
       ]
     }
@@ -5429,6 +5433,14 @@
       "date": "2026-07-18",
       "cat": "Website",
       "text": "Chronicle + site sync for the info-hierarchy batch",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "d4c29faf1c0511ca2aa1ed7b3fbe94c1d6fb3c2e",
+      "date": "2026-07-19",
+      "cat": "UI",
+      "text": "Metabolism: the recursive progression system (save v51, Milestones screen)",
       "internal": false,
       "needsReview": false
     }
