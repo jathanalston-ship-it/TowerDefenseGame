@@ -7,7 +7,7 @@
 | screen | vp | attn | attention animators | digits | chars | primaries | badges |
 |---|---|---|---|---|---|---|---|
 | home | desktop-1366 | 2 | cur-pulse bbs-breathe | 30 | 1115 | 1 | 5 |
-| market | desktop-1366 | 2 | cur-pulse×2 | 28 | 847 | 0 | 1 |
+| market | desktop-1366 | 2 | cur-pulse×2 | 27 | 853 | 0 | 1 |
 | genes | desktop-1366 | 1 | bbs-breathe | 61 | 1840 | 0 | 2 |
 | evolution | desktop-1366 | 1 | bbs-breathe | 47 | 1091 | 1 | 3 |
 | towers | desktop-1366 | 1 | bbs-breathe | 44 | 1036 | 1 | 3 |
@@ -22,7 +22,7 @@
 | hub:trade | desktop-1366 | 1 | bbs-breathe | 10 | 1106 | 1 | 2 |
 | hub:play | desktop-1366 | 1 | bbs-breathe | 9 | 787 | 0 | 4 |
 | evolution | land-844 | 1 | bbs-breathe | 9 | 328 | 1 | 0 |
-| market | land-844 | 1 | cur-pulse | 9 | 293 | 0 | 0 |
+| market | land-844 | 1 | cur-pulse | 9 | 294 | 0 | 0 |
 | hub:progression | desktop-1366 | 1 | bbs-breathe | 8 | 887 | 0 | 2 |
 | hub:account | desktop-1366 | 1 | bbs-breathe | 8 | 951 | 1 | 1 |
 | vault | land-844 | 1 | bc-breathe | 8 | 411 | 2 | 0 |
@@ -60,10 +60,10 @@
 | adaptation | land-844 | 0 | — | 12 | 498 | 2 | 0 |
 | expeditions | desktop-1366 | 0 | — | 11 | 585 | 0 | 4 |
 | infestation | land-844 | 0 | — | 11 | 639 | 3 | 0 |
+| settings | land-844 | 0 | — | 11 | 636 | 1 | 0 |
 | quests | land-844 | 0 | — | 10 | 305 | 0 | 0 |
 | equipment | land-844 | 0 | — | 10 | 386 | 0 | 0 |
 | profile | land-844 | 0 | — | 10 | 464 | 1 | 0 |
-| settings | land-844 | 0 | — | 10 | 636 | 1 | 0 |
 | campaign | land-844 | 0 | — | 9 | 300 | 0 | 0 |
 | auction | desktop-1366 | 0 | — | 8 | 472 | 0 | 1 |
 | help | desktop-1366 | 0 | — | 8 | 1648 | 1 | 1 |

@@ -10,7 +10,7 @@
 import { useState } from 'react';
 import { meta } from '../../state/meta';
 import { audio } from '../../audio/sound';
-import { EVENT_HORIZONS, activeLiveEvents, eventTrack } from '../../core/liveEvents';
+import { EVENT_HORIZONS, activeLiveEvents, eventTrack, shopRowView } from '../../core/liveEvents';
 import type { ActiveLiveEvent } from '../../core/liveEvents';
 import { rewardLabel } from '../../core/battlePass';
 import type { SaveData } from '../../save/saveStore';
@@ -25,7 +25,7 @@ function EventCard({ a, save }: { a: ActiveLiveEvent; save: SaveData }): JSX.Ele
   const bank = save.liveEvents.tokens[a.key] ?? 0;
   const claimed = save.liveEvents.claimed[a.key] ?? [];
   const progress = save.liveEvents.progress[a.key] ?? {};
-  const bought = save.liveEvents.shopBought[a.key] ?? {};
+  const [burst, setBurst] = useState<string | null>(null); // one-shot purchase flash (finite — attn-budget safe)
   return (
     <article className="cc-evc" style={{ ['--evc' as string]: def.theme.accent }}>
       <header className="cc-evc-head">
@@ -91,19 +91,44 @@ function EventCard({ a, save }: { a: ActiveLiveEvent; save: SaveData }): JSX.Ele
 
       {cur && def.shop && def.shop.length > 0 && (
         <div className="cc-evc-sec">
-          <span className="cc-evc-k">EVENT SHOP · SPEND {cur.name.toUpperCase()}</span>
+          {def.storefront ? (
+            <div className="cc-evc-store">
+              <span className="cc-evc-storename">{def.storefront.name}</span>
+              <span className="cc-evc-keeper">“{def.storefront.keeper}”</span>
+            </div>
+          ) : (
+            <span className="cc-evc-k">EVENT SHOP · SPEND {cur.name.toUpperCase()}</span>
+          )}
           {def.shop.map((row) => {
-            const left = row.stock - (bought[row.id] ?? 0);
-            const afford = left > 0 && bank >= row.costTokens;
+            // The read model is the ONE arbiter: limits, per-period stock, the forever
+            // ledger for lifetime signatures, and the "almost affordable" hook.
+            const v = shopRowView(a, row, save.liveEvents, Date.now());
+            const owned = v.onceEver && v.soldOut;
+            const chip = v.onceEver ? 'ONCE EVER' : v.restocks ? v.restocks.toUpperCase() : null;
             return (
-              <div className="cc-evc-shoprow" key={row.id}>
+              <div
+                className={`cc-evc-shoprow${v.almost ? ' is-almost' : ''}${v.soldOut ? ' is-out' : ''}${burst === row.id ? ' is-burst' : ''}`}
+                key={row.id}
+                onAnimationEnd={() => { if (burst === row.id) setBurst(null); }}
+              >
                 <span className="cc-evc-mi" aria-hidden>{rewardLabel(row.rewards[0]).icon}</span>
-                <span className="cc-evc-shopname">{row.name}</span>
-                <span className="cc-evc-stock">{left > 0 ? `×${left} left` : 'SOLD OUT'}</span>
+                <span className="cc-evc-shopname">
+                  {row.name}
+                  {chip && <i className="cc-evc-lim">{chip}</i>}
+                  {row.bpXp ? <i className="cc-evc-lim is-xp">+{row.bpXp} SEASON XP</i> : null}
+                </span>
+                <span className={`cc-evc-stock${v.almost ? ' is-hook' : ''}`}>
+                  {owned ? 'OWNED ✓'
+                    : v.soldOut ? (v.restocks ? `RESTOCKS ${v.restocks.toUpperCase()}` : 'SOLD OUT')
+                    : v.almost ? `${row.costTokens - bank} MORE ${cur.glyph}`
+                    : `×${v.left} left`}
+                </span>
                 <button
                   className="cc-evc-buy"
-                  disabled={!afford}
-                  onClick={() => { if (meta.buyEventShopRow(a.key, row.id)) audio.cue('power'); }}
+                  disabled={!v.affordable}
+                  onClick={() => {
+                    if (meta.buyEventShopRow(a.key, row.id)) { audio.cue(v.onceEver ? 'chest' : 'power'); setBurst(row.id); }
+                  }}
                 >
                   {row.costTokens}{cur.glyph}
                 </button>

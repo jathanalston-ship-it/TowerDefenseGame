@@ -3,7 +3,41 @@
 > Maintained at the END of every session (paired with `docs/AI_HANDOFF.md` — the constitution's
 > workflow step 4). This is the "where are we?" answer; `docs/GAME-STATE.md` remains the deeper
 > per-system built-vs-planned index, `docs/PROJECT_MANIFEST.md` the system map.
-> **Last updated:** 2026-07-19x (**MENU UX / VISUAL HIERARCHY / NAVIGATION OVERHAUL** (user
+> **Last updated:** 2026-07-19y (**EVENT EXCHANGE SHOPS & LIMITED-TIME EVENT ECONOMIES**
+> (user brief: themed per-event storefronts as the PRIMARY event-currency sink; purchase
+> limits; "almost have enough for one more thing"; repeats never worthless; data-only
+> future shops). Save v51→**v52**. SCHEMA (`core/liveEvents.ts`): `EventStorefront`
+> {name, keeper, blurb} required on every shop (co-active-name-distinct across the
+> super-cycle — validator law, like accents/ceremonies); `ShopLimit = window | daily |
+> weekly | lifetime` on `EventShopRow` (+`bpXp` rider). **Limits live in the LEDGER KEY
+> shape:** window rows = plain rowId in window-pruned `shopBought`; daily/weekly =
+> composite `rowId@isoDay` / `rowId@W<week from BP.epochMs>` (expiry is structural — the
+> window prune retires them, no cron); lifetime = `liveEvents.lifetimeBought[eventId:rowId]`,
+> the ONE ledger sanitizeLiveEvents NEVER prunes, so signature exclusives stay sold when
+> an event returns. `shopRowView()` = the single arbiter (bought/left/soldOut/restocks/
+> onceEver/affordable + `almost` ≥70% banked — the "one more thing" hook);
+> `meta.buyEventShopRow` rewritten through it (guard event.buy, applyRewardList
+> substitution, bpXp → grantPassXp('event-shop') post-persist + receipt + toast,
+> storefront-named toasts). CONTENT: all 8 events got storefronts (Slag Exchange / Pollen
+> Bazaar / Dead Channel / Trophy Row / Silt Market / Ration Board / Memory Vault /
+> Seedhouse) + 8 event-exclusive wardrobe pieces behind once-EVER rows; mint budgets now
+> count restocked limit rows + bpXp×0.5 (all 8 validator-CLEAN under horizon budgets).
+> UI (LiveEventsPanel): storefront header + keeper quote, limit chips, OWNED ✓ /
+> RESTOCKS states, static almost-ring + "N MORE ⟨glyph⟩", one-shot evcBurst purchase
+> flash (finite — cogload-neutral); live headless probe confirmed a real purchase fires
+> burst + OWNED + the wardrobe ceremony via the normal reward bus. LAWS (`npm run
+> sim:eventshops`, greedy persona day-walks): NO persona clears a shop in one window
+> (whale included — tokens are engagement-only), new ≥1 / F2P ≥2 buys per event (ember/
+> spore cheap rows split 2-stock to grant casual granularity, same mint), repeat windows
+> absorb ≥70% veteran income + non-lifetime inventory out-costs the full pool (no
+> worthless return), hook coverage 20/32 ≥ 20% floor. Also: coarse-pointer checkboxes
+> 24→26px (exactly-at-floor rects measured fractionally under on the 926×428 sweep).
+> Tests: liveEventsMeta 10→14 (lifetime forever-ledger, composite keys, bpXp lane,
+> sanitizer keeps lifetimeBought). Docs: LIVE-EVENTS §6b, GAME-STATE v52 anchor +
+> summary, DIL edge + regen. Verified: typecheck 0, suite 302 files/2539 green, build,
+> mobilecheck CLEAN, cogload 70/70 in budget, validate PASS. Previous below.)
+>
+> **2026-07-19x** (**MENU UX / VISUAL HIERARCHY / NAVIGATION OVERHAUL** (user
 > brief: "less clutter, better direction, faster navigation, more visual satisfaction").
 > AUDIT-FIRST: every registry screen captured headlessly (desktop 1366 + landscape 844,
 > developed profile) and reviewed against premium-mobile principles — findings + fixes

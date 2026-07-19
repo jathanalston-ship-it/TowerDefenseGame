@@ -265,13 +265,16 @@ export interface SaveData {
   //    Boss Rush, first-kill boss chassis (any mode), quest finales and Battle Pass milestones;
   //    consumed by a wheel session (state/meta grantRouletteRewards). Additive ⇒ 0 for old saves. ──
   bioSpores: number;
-  // ── Live Events (v49, docs/LIVE-EVENTS.md §4/§6) — the per-window event ledgers, ALL keyed
+  // ── Live Events (v49, docs/LIVE-EVENTS.md §4/§6) — the per-window event ledgers, keyed
   //    `eventId:window` so rotation retires state structurally: `tokens` (the event currency
   //    banks, capped by each def), `claimed` (track milestone `at` values already paid),
-  //    `shopBought` (per-row purchase counts against finite stock). The sanitizer prunes any
-  //    key not currently active (stale windows evaporate = the anti-inflation contract);
-  //    absent ⇒ empty ledgers (additive, golden-safe). ──
-  liveEvents: { tokens: Record<string, number>; claimed: Record<string, number[]>; shopBought: Record<string, Record<string, number>>; progress: Record<string, Record<string, number>> };
+  //    `shopBought` (per-row purchase counts against finite stock; daily/weekly limit rows
+  //    count under composite `rowId@period` keys — v52, docs/LIVE-EVENTS.md §shops). The
+  //    sanitizer prunes any key not currently active (stale windows evaporate = the
+  //    anti-inflation contract). The ONE exception is `lifetimeBought` (`eventId:rowId`,
+  //    v52): never pruned, so a signature exclusive stays sold when its event returns.
+  //    Absent ⇒ empty ledgers (additive, golden-safe). ──
+  liveEvents: { tokens: Record<string, number>; claimed: Record<string, number[]>; shopBought: Record<string, Record<string, number>>; progress: Record<string, Record<string, number>>; lifetimeBought: Record<string, number> };
   // ── Metabolism (schema v51, docs/METABOLISM.md) — the recursive-progression ledger:
   //    four chokepoint counters + per-track claimed tiers. Everything else DERIVES live. ──
   metabolism: MetabolismSave;
@@ -555,7 +558,10 @@ export interface TutorialSave {
 // the twin batch's coordination note — so the ledgers take their own number.)
 // v50→v51: METABOLISM (docs/METABOLISM.md) — `metabolism` {counters, claimed}: the
 // recursive-progression ledger. Missing ⇒ zero counters (derived tracks back-fill free).
-export const CURRENT_VERSION = 51;
+// v51→v52: EVENT SHOPS (docs/LIVE-EVENTS.md §shops) — `liveEvents.lifetimeBought`
+// (`eventId:rowId` → count, NEVER pruned: the exclusive lane's once-ever contract) +
+// daily/weekly restock counters as `rowId@period` keys inside shopBought (window-pruned).
+export const CURRENT_VERSION = 52;
 
 // ── v51 Metabolism ledger (docs/METABOLISM.md) — the save SHAPE lives here (saveStore owns
 // module shapes); the track registry + curve math live in state/metabolism.ts. ──
@@ -585,8 +591,8 @@ function sanitizeMetabolism(raw: unknown): MetabolismSave {
 /** v50 Live Event ledgers: shape-check + clamp against the LIVE defs, prune stale windows.
  *  Wall-clock use is deliberate — staleness IS a function of now (same rule the claim paths
  *  apply); tests exercise it by seeding keys for the active trio vs long-dead windows. */
-function sanitizeLiveEvents(raw: unknown): { tokens: Record<string, number>; claimed: Record<string, number[]>; shopBought: Record<string, Record<string, number>>; progress: Record<string, Record<string, number>> } {
-  const out = { tokens: {} as Record<string, number>, claimed: {} as Record<string, number[]>, shopBought: {} as Record<string, Record<string, number>>, progress: {} as Record<string, Record<string, number>> };
+function sanitizeLiveEvents(raw: unknown): { tokens: Record<string, number>; claimed: Record<string, number[]>; shopBought: Record<string, Record<string, number>>; progress: Record<string, Record<string, number>>; lifetimeBought: Record<string, number> } {
+  const out = { tokens: {} as Record<string, number>, claimed: {} as Record<string, number[]>, shopBought: {} as Record<string, Record<string, number>>, progress: {} as Record<string, Record<string, number>>, lifetimeBought: {} as Record<string, number> };
   if (!raw || typeof raw !== 'object') return out;
   const byKey = new Map(activeLiveEvents(Date.now()).map((a) => [a.key, a.def]));
   const r = raw as { tokens?: Record<string, unknown>; claimed?: Record<string, unknown>; shopBought?: Record<string, unknown> };
@@ -617,11 +623,24 @@ function sanitizeLiveEvents(raw: unknown): { tokens: Record<string, number>; cla
     const def = byKey.get(k);
     if (!def?.shop || !v || typeof v !== 'object') continue;
     const rows: Record<string, number> = {};
-    for (const row of def.shop) {
-      const n = Math.floor(Number((v as Record<string, unknown>)[row.id]) || 0);
-      if (n > 0) rows[row.id] = Math.min(row.stock, n);
+    for (const [rk, rv] of Object.entries(v as Record<string, unknown>)) {
+      // Plain keys are window-limited rows; `rowId@period` keys are daily/weekly restock
+      // counters (docs/LIVE-EVENTS.md §shops). Both clamp to the row's per-period stock;
+      // stale-period keys prune with the window like everything else here.
+      const rowId = rk.includes('@') ? rk.slice(0, rk.indexOf('@')) : rk;
+      const row = def.shop.find((s) => s.id === rowId);
+      if (!row) continue;
+      const n = Math.floor(Number(rv) || 0);
+      if (n > 0) rows[rk] = Math.min(row.stock, n);
     }
     if (Object.keys(rows).length > 0) out.shopBought[k] = rows;
+  }
+  // v52: the LIFETIME purchase ledger — `${eventId}:${rowId}` keys survive window rotation
+  // FOREVER (the exclusive lane's once-ever contract). Deliberately not pruned against the
+  // live registry: a retired event's history must keep blocking a re-buy if it returns.
+  for (const [k, v] of Object.entries((raw as { lifetimeBought?: Record<string, unknown> }).lifetimeBought ?? {})) {
+    const n = Math.floor(Number(v) || 0);
+    if (n > 0) out.lifetimeBought[k] = Math.min(9, n);
   }
   return out;
 }
@@ -928,7 +947,7 @@ export function defaultSave(): SaveData {
     hiveMaterials: 0,
     mulliganTissue: 0,
     bioSpores: 0,
-    liveEvents: { tokens: {}, claimed: {}, shopBought: {}, progress: {} },
+    liveEvents: { tokens: {}, claimed: {}, shopBought: {}, progress: {}, lifetimeBought: {} },
     metabolism: defaultMetabolism(),
     genesDiscovered: [...STARTER_GENES], // the teaching set — every account starts with it
 

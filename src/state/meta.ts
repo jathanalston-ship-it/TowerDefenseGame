@@ -145,7 +145,7 @@ import { LOGIN, loginTargetValue, milestoneContainer, rollLoginBundle, streakMul
 import { PERFECT_WEEK, activeContracts, contractReport, contractSatisfied, contractWeekKey } from '../core/contracts';
 import type { ContractRunFacts } from '../core/contracts';
 import { MAIN_QUESTLINE, QUESTS, foldCredit, missionById, missionCredit, questById, questComplete, msToWeeklyRotation, weeklyQuestFor, weeklyWindow } from '../core/quests';
-import { activeLiveEvents, eventTrack, liveEventLaneModsNow } from '../core/liveEvents';
+import { activeLiveEvents, eventTrack, liveEventLaneModsNow, rowLedgerKey, shopRowView } from '../core/liveEvents';
 import { META_CATS, bumpCounter, metaTrack, rewardsFor, toPassRewards, trackView } from './metabolism';
 import type { MissionDef, QuestDef, QuestMetaEvent, QuestRunFacts } from '../core/quests';
 import { cutsceneDef } from '../core/cutscenes';
@@ -6311,7 +6311,12 @@ export const meta = {
     return lines;
   },
 
-  /** Buy a live-event shop row — the token SINK: finite stock, spends the window bank. */
+  /** Buy a live-event shop row — the token SINK (docs/LIVE-EVENTS.md §shops): finite stock
+   *  per limit window, spends the window bank. `shopRowView` is the ONE arbiter of remaining
+   *  stock — daily/weekly rows count under composite `rowId@period` keys (window pruning
+   *  retires them for free), lifetime rows under the never-pruned `eventId:rowId` ledger so a
+   *  signature piece stays sold across every future return of the event. A `bpXp` rider feeds
+   *  the season lane post-persist (the claimQuestMission pattern — bpXp is not a PassReward). */
   buyEventShopRow(eventKey: string, rowId: string, now = Date.now()): PremiumReceiptLine[] | null {
     if (!guardOk('event.buy')) return null;
     const a = activeLiveEvents(now).find((x) => x.key === eventKey);
@@ -6319,19 +6324,27 @@ export const meta = {
     if (!a || !row) return null;
     const save = store.get();
     const le = save.liveEvents;
-    const bought = le.shopBought[eventKey]?.[rowId] ?? 0;
-    if (bought >= row.stock || (le.tokens[eventKey] ?? 0) < row.costTokens) return null;
+    const view = shopRowView(a, row, le, now);
+    if (view.soldOut || !view.affordable) return null;
     const { next, lines, stamina, events } = applyRewardList(save, row.rewards, QUESTS.repeatFinale, null, `event:${a.def.id}`);
+    const lifetimeKey = `${a.def.id}:${row.id}`;
     persist({
       ...next,
       liveEvents: {
         ...le,
         tokens: { ...le.tokens, [eventKey]: (le.tokens[eventKey] ?? 0) - row.costTokens },
-        shopBought: { ...le.shopBought, [eventKey]: { ...(le.shopBought[eventKey] ?? {}), [rowId]: bought + 1 } },
+        ...((row.limit ?? 'window') === 'lifetime'
+          ? { lifetimeBought: { ...le.lifetimeBought, [lifetimeKey]: view.bought + 1 } }
+          : { shopBought: { ...le.shopBought, [eventKey]: { ...(le.shopBought[eventKey] ?? {}), [rowLedgerKey(row, now)]: view.bought + 1 } } }),
       },
     });
     if (stamina > 0) this.grantRushStamina(stamina, now);
-    rewardToast.pushMany(`${a.def.name} — ${row.name}`, events);
+    if (row.bpXp) {
+      this.grantPassXp('event-shop', row.bpXp, now);
+      lines.push({ icon: '❁', label: `+${row.bpXp} Season XP` });
+      events.push({ type: 'bpXp', qty: row.bpXp });
+    }
+    rewardToast.pushMany(`${a.def.storefront?.name ?? a.def.name} — ${row.name}`, events);
     return lines;
   },
 

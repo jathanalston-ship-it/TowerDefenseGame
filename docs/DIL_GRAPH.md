@@ -1,6 +1,6 @@
 # DIL_GRAPH.md — the Design Intelligence Layer (GENERATED — `npm run dil -- regen`)
 
-> **The project's brain** (docs/DIL.md). 894 nodes · 1680 edges, built from the live
+> **The project's brain** (docs/DIL.md). 894 nodes · 1681 edges, built from the live
 > registries + curated knowledge (src/dev/dil/). **Query it instead of searching the repo:**
 > `npm run dil -- node <id>` · `affects <id>` · `requires <id>` · `missing <kind> <edge>` ·
 > `checklist tower <kind>` · `find <text>`. Edge kinds are bidirectional (19 kinds).
@@ -1700,6 +1700,7 @@ _at: src/core/liveops.ts, src/core/liveEvents.ts, src/core/eventOps.ts, src/ui/c
   - modifies → `system:hub-shell` — LIVE EVENT FRAMEWORK (core/liveEvents.ts — LIVE-EVENTS.md): three independent rotation horizons (short 3d×3 / medium 14d×3 / major 91d×2 rings from BP.epochMs) always simultaneously live; themeOwner() = major>medium>short dresses the hub, others chip. Packages COMPOSE existing vocabularies ONLY: PassReward tracks, quest MissionCond challenges, daily-modifier-id gameplay (boot-time, sim-safe), LiveEventMods lane boosts, SeasonDef.music re-voicing. Anti-inflation: window-scoped tokens (eventId:window, stale keys prune), wallet caps, per-day mint budgets short 220>medium 180>major 120 core-eq validated per window; 3y sim pins flat yearly mint. A new event is ONE LIVE_EVENTS_V2 row — liveEventProblems() gates ids/modifiers/budgets/reachability/ring sizes/accent-distinct overlaps.
   - balances → `concept:power-score` — event reward lanes (cores/essence/materials/mega-ichor/loot) fatten meta INCOME, never gameplay strength — ×1 baseline off-window so the calendar can never warp a run
   - modifies → `system:meta-store` — LIVE-EVENT WIRING (v50): creditQuests() front-runs creditEventChallenges() so ALL five judged credit seams (runs/containers/expeditions/roulette/passLevels) pay event tokens with zero extra wiring; window-scoped ledgers live in save.liveEvents {tokens,claimed,shopBought,progress} (sanitizeLiveEvents prunes stale eventId:window keys + clamps caps/targets/stock on load); claimEventMilestone (threshold claim, tokens NOT spent) + buyEventShopRow (the sink) pay via applyRewardList → repeat-safe; liveEventLaneMods(now) multiplies WITH liveopsMods() at meta's two lo-fold sites (cycle-free composition); themeOwner() dresses hub root (data-event + --event-* vars) AND menu music via applyWardrobeDressing; LiveEventsPanel (CommandCenter) is banner + claim console; event.claimable/event.endingSoon ride channel home (CHANNEL_CLASS claim 87)
+  - extends → `system:cosmetics` — EVENT EXCHANGE SHOPS (v52): every event ships a THEMED storefront {name,keeper,blurb} + inventory purely in data (a future shop = rows on the event def; storefront names co-active-distinct across the super-cycle, validator law). Purchase limits live in the LEDGER KEY SHAPE: window rows plain rowId, daily/weekly composite rowId@isoDay / rowId@W<week> inside window-pruned shopBought (expiry is structural), lifetime signatures in liveEvents.lifetimeBought[eventId:rowId] — the ONE never-pruned ledger, so wd_* event exclusives (8 authored, source {kind:event}) stay sold when the event returns. shopRowView() is the single arbiter (bought/left/soldOut/restocks/onceEver/affordable + almost ≥70% banked — the UI hook); buyEventShopRow enforces it, pays via applyRewardList (owned permanents substitute), routes bpXp riders through grantPassXp(event-shop) post-persist (bpXp is NOT a PassReward kind), and toasts under the storefront name. Laws: ≥4 rows + storefront required; clear ≥1.3× pool; cheapest ≤0.35× pool; lifetime rows permanent-kinds-only; mint budget counts restocks + bpXp×0.5. npm run sim:eventshops pins: no persona clears a window (whale included), new ≥1 / F2P ≥2 buys, repeat windows absorb ≥70% veteran income (non-lifetime inventory out-costs the pool — no worthless return), hook coverage ≥20%
   - requiredBy ← `system:directives`
   - requiredBy ← `system:contracts`
   - documentedBy ← `doc:LIVEOPS.md`
@@ -1847,7 +1848,7 @@ _at: src/core/cosmetics.ts, src/core/wardrobe.ts, src/ui/PhenotypeLab.tsx, src/u
   - consumedBy ← `system:contracts` — marquee rows pay pt_gilded_* phenotypes under a pinned POOL INVARIANT: length % 3 == 0 and marquees EXACTLY at indices ≡ 0 mod 3 — one Gilded marquee per weekly window; off-stride marquees give some weeks two and others none
   - consumedBy ← `system:battle-pass` — reward tables DERIVE cosmetic placement from wardrobe battlepass sources — battlePass.test.ts fails if an item slot and the table disagree
   - consumedBy ← `system:quests` — every quest's finaleCosmetic must be a wardrobe item with source {kind:'quest',quest} (never auto-unlocks; sourceLabel's QUEST_NAMES map is pinned against quest names by quests.test)
-  - _…1 more (query: `npm run dil -- node system:cosmetics`)_
+  - _…2 more (query: `npm run dil -- node system:cosmetics`)_
 
 ### `system:battle-pass` — Battle Pass (Season)
 

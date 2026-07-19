@@ -2825,8 +2825,9 @@ canvas.board {
   }
   input[type='checkbox'],
   input[type='radio'] {
-    width: 24px;
-    height: 24px; /* WCAG 2.5.8 floor — the wrapping label extends the true target further */
+    width: 26px;
+    height: 26px; /* above the 24px WCAG 2.5.8 floor with margin — sub-pixel scaling can shave
+                     a hair off the measured rect, and exactly-at-floor fails the strict check */
   }
   summary {
     min-height: 44px;
@@ -12903,9 +12904,25 @@ div.ah-spark { display: flex; align-items: center; justify-content: center; heig
 .cc-evc-claim, .cc-evc-buy { padding: 3px 8px; font-size: 10px; font-weight: 800; letter-spacing: 0.08em; color: var(--text); border: 1px solid var(--evc); border-radius: var(--r-sm); background: color-mix(in srgb, var(--evc) 20%, transparent); cursor: pointer; font-variant-numeric: tabular-nums; }
 .cc-evc-claim:hover, .cc-evc-buy:hover:not(:disabled) { filter: brightness(1.2); }
 .cc-evc-buy:disabled { opacity: 0.45; cursor: default; }
-.cc-evc-shoprow { display: flex; align-items: center; gap: 7px; font-size: 12px; color: var(--text); }
+.cc-evc-shoprow { display: flex; align-items: center; gap: 7px; padding: 2px 4px; border-radius: var(--r-xs); font-size: 12px; color: var(--text); }
 .cc-evc-shopname { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .cc-evc-stock { margin-left: auto; font-size: 10px; font-weight: 700; letter-spacing: 0.06em; color: var(--dim); white-space: nowrap; }
+/* Event Exchange storefront identity (LIVE-EVENTS.md §shops): the keeper's counter, not a menu. */
+.cc-evc-store { display: flex; flex-direction: column; gap: 1px; padding-bottom: 2px; border-bottom: 1px solid color-mix(in srgb, var(--evc) 35%, transparent); }
+.cc-evc-storename { font-size: 13px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: var(--evc); }
+.cc-evc-keeper { font-size: 11px; font-style: italic; color: var(--muted); }
+.cc-evc-lim { margin-left: 6px; padding: 1px 4px; font-size: 10px; font-style: normal; font-weight: 800; letter-spacing: 0.06em; color: var(--muted); border: 1px solid var(--line); border-radius: var(--r-xs); vertical-align: 1px; }
+.cc-evc-lim.is-xp { color: var(--evc); border-color: color-mix(in srgb, var(--evc) 50%, transparent); }
+.cc-evc-shoprow.is-out { opacity: 0.55; }
+/* The "one more thing" hook: banked ≥70% of the price — a static accent ring, no animator. */
+.cc-evc-shoprow.is-almost { border: 1px solid color-mix(in srgb, var(--evc) 45%, transparent); background: color-mix(in srgb, var(--evc) 7%, transparent); }
+.cc-evc-stock.is-hook { color: var(--evc); }
+/* One-shot purchase flash (finite ⇒ attention-budget neutral; reduced-motion kills it globally). */
+.cc-evc-shoprow.is-burst { animation: evcBurst var(--dur-4) var(--ease-out); }
+@keyframes evcBurst {
+  0% { background: color-mix(in srgb, var(--evc) 38%, transparent); transform: scale(1.02); }
+  100% { background: transparent; transform: scale(1); }
+}
 @media (max-width: 700px) { .cc-ev-name { font-size: 16px; } .cc-ev-tag { display: none; } .cc-ev-open { display: none; } }
 
 /* LIVE EVENT hub ambience (LIVE-EVENTS.md §4): the theme owner tints the war room — the

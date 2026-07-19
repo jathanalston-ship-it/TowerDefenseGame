@@ -59,7 +59,30 @@ export interface EventCurrency {
 }
 export interface EventTrackMilestone { at: number; rewards: PassReward[] } // `at` = tokens earned
 export interface EventChallenge { id: string; name: string; cond: MissionCond; target: number; tokens: number }
-export interface EventShopRow { id: string; name: string; costTokens: number; rewards: PassReward[]; stock: number }
+
+/** Purchase-limit vocabulary (docs/LIVE-EVENTS.md §shops). `stock` counts PER PERIOD:
+ *  window (default) = this event window; daily/weekly = the UTC day/ISO week inside it
+ *  (restocks while the window runs); lifetime = once EVER across every repeat (the
+ *  exclusive lane — survives rotation in save.liveEvents.lifetimeBought and MUST sell a
+ *  permanent kind so repeats substitute, never re-mint). */
+export type ShopLimit = 'window' | 'daily' | 'weekly' | 'lifetime';
+export interface EventShopRow {
+  id: string;
+  name: string;
+  costTokens: number;
+  rewards: PassReward[];
+  stock: number;
+  limit?: ShopLimit; // default 'window'
+  bpXp?: number; // Season XP rider — granted via the season lane post-persist (not a PassReward)
+}
+
+/** The themed storefront identity (docs/LIVE-EVENTS.md §shops) — every event's shop is a
+ *  PLACE with a keeper voice, not a list. Colors/glyph ride the event theme. */
+export interface EventStorefront {
+  name: string; // "The Bio Bazaar", "Corruption Vault" — the bespoke marque
+  keeper: string; // one flavor line in the shop's voice ("The vents pay in kind.")
+  blurb: string; // what this economy IS — sets the spend mood
+}
 export interface EventVariantPackage {
   /** Renderer-side tint/name overlays (visuals seam — never sim stats; sim pressure comes
    *  from gameplayMods' daily-modifier ids, which the engine already folds at boot). */
@@ -132,7 +155,8 @@ export interface LiveEventDefV2 {
   ceremony?: CeremonyId; // the event's reward-presentation machine (distinct when co-active)
   hubDecorations?: string[]; // additional CSS tokens (garlands, membranes, banners)
   variants?: EventVariantPackage;
-  shop?: EventShopRow[]; // token sink (anti-inflation guard #2: finite stock)
+  storefront?: EventStorefront; // the shop's bespoke identity (required with a shop — validated)
+  shop?: EventShopRow[]; // token sink (anti-inflation guard #2: finite stock per limit period)
   questSet?: string[]; // bonus mission ids surfaced on the Quest Board while live
   collections?: string[]; // codex entry ids revealed by participation
   achievements?: string[]; // achievement ids scoped to the event
@@ -171,6 +195,13 @@ export const LIVE_EVENTS_V2: LiveEventDefV2[] = [
       { id: 'ember_win', name: 'Hold Through the Heat', cond: { kind: 'wins' }, target: 2, tokens: 20 },
     ],
     track: [{ at: 15, rewards: [{ kind: 'cores', qty: 120 }] }, { at: 35, rewards: [{ kind: 'mats', scrap: 10, mutagen: 2 }] }],
+    storefront: { name: 'The Slag Exchange', keeper: 'The vents pay in kind. Spend before they cool.', blurb: 'A furnace-side counter trading Ember Spores for what the heat leaves behind.' },
+    shop: [
+      { id: 'ember_sig', name: 'Ventglow Chassis', costTokens: 30, rewards: [{ kind: 'cosmetic', id: 'wd_towerfx_ventglow_chassis' }], stock: 1, limit: 'lifetime' },
+      { id: 'ember_cache', name: 'Slag-Sealed Cache', costTokens: 22, rewards: [{ kind: 'container', rarity: 'rare', count: 1 }], stock: 1 },
+      { id: 'ember_cores', name: 'Cinder Payout', costTokens: 12, rewards: [{ kind: 'cores', qty: 50 }], stock: 1 },
+      { id: 'ember_mats', name: 'Vent Scrapings', costTokens: 8, rewards: [{ kind: 'mats', scrap: 3 }], stock: 2 },
+    ],
     gameplayModifiers: ['blood_frenzy'],
     variants: { enemyTint: '#ff6a3c', enemySuffix: 'Emberborn' },
     ceremony: 'bio-reactor', gameplay: { towerBuff: { name: 'Vent-Fired Chambers', desc: 'Towers vent heat: attack tempo rises near thermal fissures.' }, hazard: { id: 'thermal_fissure', name: 'Thermal Fissure', desc: 'Lanes crack open and scorch anything standing in them.' }, biomeTint: '#3a140a' },
@@ -188,6 +219,13 @@ export const LIVE_EVENTS_V2: LiveEventDefV2[] = [
       { id: 'bloom_open', name: 'Crack the Husks', cond: { kind: 'containersOpened' }, target: 4, tokens: 15 },
     ],
     track: [{ at: 15, rewards: [{ kind: 'geneEssence', qty: 90 }] }, { at: 33, rewards: [{ kind: 'container', rarity: 'rare', count: 1 }] }],
+    storefront: { name: 'The Pollen Bazaar', keeper: 'Everything here took root somewhere it should not have.', blurb: 'A drifting stall-garden where Bloom Pollen buys living goods.' },
+    shop: [
+      { id: 'bloom_sig', name: 'Bloomcast Trail', costTokens: 30, rewards: [{ kind: 'cosmetic', id: 'wd_projectiletrail_bloomcast' }], stock: 1, limit: 'lifetime' },
+      { id: 'bloom_ess', name: 'Pressed Pollen Brick', costTokens: 6, rewards: [{ kind: 'geneEssence', qty: 28 }], stock: 2 },
+      { id: 'bloom_cache', name: 'Husk-Bound Cache', costTokens: 22, rewards: [{ kind: 'container', rarity: 'rare', count: 1 }], stock: 1 },
+      { id: 'bloom_spore', name: 'Viable Spore', costTokens: 15, rewards: [{ kind: 'bioSpores', qty: 1 }], stock: 1 },
+    ],
     gameplayModifiers: ['regeneration'],
     variants: { enemyTint: '#7ddc5a', enemySuffix: 'Blooming' },
     ceremony: 'incubation-pod', gameplay: { heroBuff: { name: 'Pollen Symbiosis', desc: 'Heroes regenerate amid the drifting bloom.' }, pickup: { id: 'pollen_cluster', name: 'Pollen Cluster', desc: 'Drifting clusters burst into biomass when collected.' }, biomeTint: '#12240a' },
@@ -204,7 +242,14 @@ export const LIVE_EVENTS_V2: LiveEventDefV2[] = [
       { id: 'static_boss', name: 'Silence the Broadcast', cond: { kind: 'bossKillsTotal' }, target: 6, tokens: 20 },
       { id: 'static_flawless', name: 'No Signal Lost', cond: { kind: 'flawlessWins' }, target: 1, tokens: 15 },
     ],
-    track: [{ at: 15, rewards: [{ kind: 'ichor', qty: 6 }] }, { at: 33, rewards: [{ kind: 'cores', qty: 160 }] }],
+    track: [{ at: 15, rewards: [{ kind: 'ichor', qty: 4 }] }, { at: 33, rewards: [{ kind: 'cores', qty: 160 }] }],
+    storefront: { name: 'The Dead Channel', keeper: 'No receipts. The static keeps its own accounts.', blurb: 'A counter that only exists between broadcasts, trading charge for salvage.' },
+    shop: [
+      { id: 'static_sig', name: 'Signal Eater Emblem', costTokens: 30, rewards: [{ kind: 'cosmetic', id: 'wd_emblem_signal_eater' }], stock: 1, limit: 'lifetime' },
+      { id: 'static_ichor', name: 'Condensed Interference', costTokens: 14, rewards: [{ kind: 'ichor', qty: 3 }], stock: 1 },
+      { id: 'static_cores', name: 'Scavenged Frequencies', costTokens: 12, rewards: [{ kind: 'cores', qty: 70 }], stock: 1 },
+      { id: 'static_mats', name: 'Off-Air Salvage', costTokens: 10, rewards: [{ kind: 'mats', scrap: 6 }], stock: 1 },
+    ],
     gameplayModifiers: ['myopia'],
     variants: { bossTint: '#41d0e8', bossTitle: 'Signal-Bearer' },
     ceremony: 'dna-sequencer', gameplay: { hazard: { id: 'static_veil', name: 'Static Veil', desc: 'Rolling interference dims tower sight lines.' }, tempMegaBoss: 'signal_bearer', biomeTint: '#071018' },
@@ -228,9 +273,13 @@ export const LIVE_EVENTS_V2: LiveEventDefV2[] = [
       { at: 70, rewards: [{ kind: 'bioSpores', qty: 2 }] },
       { at: 110, rewards: [{ kind: 'container', rarity: 'epic', count: 1 }] },
     ],
+    storefront: { name: 'The Trophy Row', keeper: 'Bring marks. Leave heavier.', blurb: 'A hunters’ exchange where every shelf was paid for in bounties.' },
     shop: [
+      { id: 'hunt_sig', name: 'Apex Contractor Title', costTokens: 85, rewards: [{ kind: 'cosmetic', id: 'wd_title_apex_contractor' }], stock: 1, limit: 'lifetime' },
       { id: 'hunt_cache', name: 'Bounty Cache', costTokens: 45, rewards: [{ kind: 'container', rarity: 'rare', count: 1 }], stock: 2 },
       { id: 'hunt_stamina', name: 'Tracker Rations', costTokens: 30, rewards: [{ kind: 'rushStamina', qty: 4 }], stock: 2 },
+      { id: 'hunt_daily', name: 'Day Bounty', costTokens: 8, rewards: [{ kind: 'cores', qty: 45 }], stock: 1, limit: 'daily' },
+      { id: 'hunt_spore', name: 'Trophy Spore', costTokens: 25, rewards: [{ kind: 'bioSpores', qty: 1 }], stock: 2 },
     ],
     gameplayModifiers: ['ironhide'],
     variants: { bossTint: '#e8b234', bossTitle: 'Bountied' },
@@ -255,9 +304,13 @@ export const LIVE_EVENTS_V2: LiveEventDefV2[] = [
       { at: 70, rewards: [{ kind: 'towerShardsAll', qtyEach: 5 }] },
       { at: 110, rewards: [{ kind: 'container', rarity: 'epic', count: 1 }] },
     ],
+    storefront: { name: 'The Silt Market', keeper: 'The tide brings it up. We only sort it.', blurb: 'Stalls of pressure-cured salvage, priced in whatever shells the current carries.' },
     shop: [
+      { id: 'current_sig', name: 'Tideglass Aura', costTokens: 85, rewards: [{ kind: 'cosmetic', id: 'wd_herofx_tideglass_aura' }], stock: 1, limit: 'lifetime' },
       { id: 'current_essence', name: 'Abyssal Concentrate', costTokens: 40, rewards: [{ kind: 'geneEssence', qty: 140 }], stock: 2 },
       { id: 'current_cache', name: 'Tide-Locked Cache', costTokens: 50, rewards: [{ kind: 'container', rarity: 'rare', count: 1 }], stock: 2 },
+      { id: 'current_daily', name: 'Morning Dredge', costTokens: 8, rewards: [{ kind: 'geneEssence', qty: 40 }], stock: 1, limit: 'daily' },
+      { id: 'current_tissue', name: 'Cured Graft-Silt', costTokens: 20, rewards: [{ kind: 'mulliganTissue', qty: 35 }], stock: 2 },
     ],
     gameplayModifiers: ['dormancy'],
     variants: { enemyTint: '#4de0c4', enemySuffix: 'Tide-Borne' },
@@ -281,9 +334,13 @@ export const LIVE_EVENTS_V2: LiveEventDefV2[] = [
       { at: 70, rewards: [{ kind: 'cores', qty: 300 }] },
       { at: 110, rewards: [{ kind: 'heroShardsAll', qtyEach: 4 }] },
     ],
+    storefront: { name: 'The Ration Board', keeper: 'Everything is priced at what it cost someone.', blurb: 'The famine ledger made walkable — scarce goods against tithes, no haggling.' },
     shop: [
+      { id: 'famine_sig', name: 'Lean Times Nameplate', costTokens: 85, rewards: [{ kind: 'cosmetic', id: 'wd_nameplate_lean_times' }], stock: 1, limit: 'lifetime' },
       { id: 'famine_mats', name: 'Emergency Stores', costTokens: 40, rewards: [{ kind: 'mats', scrap: 20, catalyst: 2 }], stock: 2 },
       { id: 'famine_spore', name: 'Preserved Spore', costTokens: 55, rewards: [{ kind: 'bioSpores', qty: 1 }], stock: 1 },
+      { id: 'famine_daily', name: 'Daily Ration', costTokens: 8, rewards: [{ kind: 'mats', scrap: 5 }], stock: 1, limit: 'daily' },
+      { id: 'famine_cache', name: 'Requisitioned Cache', costTokens: 30, rewards: [{ kind: 'runCache', count: 1 }], stock: 1 },
     ],
     gameplayModifiers: ['famine', 'scarcity'],
     variants: { enemyTint: '#ff4d6d', enemySuffix: 'Starved' },
@@ -310,9 +367,14 @@ export const LIVE_EVENTS_V2: LiveEventDefV2[] = [
       { at: 260, rewards: [{ kind: 'container', rarity: 'legendary', count: 1 }] },
       { at: 340, rewards: [{ kind: 'ichor', qty: 30 }] },
     ],
+    storefront: { name: 'The Memory Vault', keeper: 'Withdrawals only. The hive already made the deposits.', blurb: 'An archive-bank whose shelves are indexed in everything ever assimilated.' },
     shop: [
+      { id: 'epoch_sig', name: 'Remembered Heart', costTokens: 260, rewards: [{ kind: 'cosmetic', id: 'wd_nucleusskin_remembered_heart' }], stock: 1, limit: 'lifetime' },
       { id: 'epoch_leg', name: 'Strand-Woven Vault', costTokens: 160, rewards: [{ kind: 'container', rarity: 'legendary', count: 1 }], stock: 1 },
       { id: 'epoch_ess', name: 'Compiled Memory', costTokens: 70, rewards: [{ kind: 'geneEssence', qty: 260 }], stock: 3 },
+      { id: 'epoch_weekly', name: 'Weekly Stipend', costTokens: 20, rewards: [{ kind: 'cores', qty: 130 }], stock: 1, limit: 'weekly' },
+      { id: 'epoch_bpxp', name: 'Season Infusion', costTokens: 35, rewards: [{ kind: 'cores', qty: 60 }], bpXp: 120, stock: 4 },
+      { id: 'epoch_spores', name: 'Archived Spores', costTokens: 45, rewards: [{ kind: 'bioSpores', qty: 2 }], stock: 3 },
     ],
     gameplayModifiers: ['infestation'],
     variants: { bossTint: '#b64dff', bossTitle: 'Remembered' },
@@ -342,9 +404,14 @@ export const LIVE_EVENTS_V2: LiveEventDefV2[] = [
       { at: 260, rewards: [{ kind: 'heroShardsAll', qtyEach: 8 }, { kind: 'cores', qty: 400 }] },
       { at: 340, rewards: [{ kind: 'container', rarity: 'legendary', count: 1 }] },
     ],
+    storefront: { name: 'The Seedhouse', keeper: 'Plant nothing you are not prepared to lose the map to.', blurb: 'A germinating warehouse where Growth Rings buy things that keep growing.' },
     shop: [
+      { id: 'grow_sig', name: 'Overgrown Reach', costTokens: 260, rewards: [{ kind: 'cosmetic', id: 'wd_battlefieldtheme_overgrown_reach' }], stock: 1, limit: 'lifetime' },
       { id: 'grow_cache', name: 'Seed Vault', costTokens: 160, rewards: [{ kind: 'container', rarity: 'legendary', count: 1 }], stock: 1 },
       { id: 'grow_mats', name: 'Cutting Bundle', costTokens: 60, rewards: [{ kind: 'mats', mutagen: 6, scrap: 18, catalyst: 4 }], stock: 3 },
+      { id: 'grow_weekly', name: 'Weekly Harvest', costTokens: 20, rewards: [{ kind: 'mats', scrap: 14, mutagen: 2 }], stock: 1, limit: 'weekly' },
+      { id: 'grow_bpxp', name: 'Canopy Infusion', costTokens: 35, rewards: [{ kind: 'cores', qty: 60 }], bpXp: 120, stock: 4 },
+      { id: 'grow_shards', name: 'Rooted Genome', costTokens: 60, rewards: [{ kind: 'heroShardsAll', qtyEach: 3 }], stock: 2 },
     ],
     gameplayModifiers: ['overrun'],
     variants: { enemyTint: '#66bb6a', enemySuffix: 'Overgrown' },
@@ -409,26 +476,100 @@ export function themeOwner(now: number): ActiveLiveEvent {
   return activeLiveEvents(now)[0];
 }
 
-/** Total value a window can MINT (track + full shop) in Genome-Core-equivalents — the
- *  anti-inflation budget the validator caps per horizon. Coarse IV weights on purpose. */
+/** Coarse core-equivalent value of one PassReward — the shared IV table the budget and the
+ *  shop-economy sim both price with. Coarse on purpose. */
+export function rewardIv(r: PassReward): number {
+  switch (r.kind) {
+    case 'cores': return r.qty;
+    case 'ichor': return r.qty * 25;
+    case 'geneEssence': return r.qty * 0.8;
+    case 'mulliganTissue': return r.qty * 0.8;
+    case 'mats': return (r.mutagen ?? 0) * 30 + (r.scrap ?? 0) * 6 + (r.catalyst ?? 0) * 45;
+    case 'towerShardsAll': case 'heroShardsAll': return r.qtyEach * 60;
+    case 'container': return r.count * (r.rarity === 'legendary' ? 700 : r.rarity === 'epic' ? 320 : 140);
+    case 'runCache': return r.count * 100;
+    case 'rushStamina': return r.qty * 15;
+    case 'bioSpores': return r.qty * 60;
+    default: return 100; // cosmetic/passive/stack — bounded flat weight
+  }
+}
+
+/** A shop row's stock across ONE window under its limit (docs/LIVE-EVENTS.md §shops):
+ *  daily/weekly restock inside the window; lifetime counts once (its only mint, ever). */
+export function rowWindowStock(e: LiveEventDefV2, s: EventShopRow): number {
+  const days = EVENT_HORIZONS[e.horizon].periodDays;
+  switch (s.limit ?? 'window') {
+    case 'daily': return s.stock * days;
+    case 'weekly': return s.stock * Math.ceil(days / 7);
+    case 'lifetime': return s.stock; // once EVER — conservatively charged to every window's budget
+    case 'window': return s.stock;
+  }
+}
+
+/** Total value a window can MINT (track + full shop at window stock) in core-equivalents —
+ *  the anti-inflation budget the validator caps per horizon. */
 export function windowMintBudget(e: LiveEventDefV2): number {
-  const iv = (r: PassReward): number => {
-    switch (r.kind) {
-      case 'cores': return r.qty;
-      case 'ichor': return r.qty * 25;
-      case 'geneEssence': return r.qty * 0.8;
-      case 'mats': return (r.mutagen ?? 0) * 30 + (r.scrap ?? 0) * 6 + (r.catalyst ?? 0) * 45;
-      case 'towerShardsAll': case 'heroShardsAll': return r.qtyEach * 60;
-      case 'container': return r.count * (r.rarity === 'legendary' ? 700 : r.rarity === 'epic' ? 320 : 140);
-      case 'runCache': return r.count * 100;
-      case 'rushStamina': return r.qty * 15;
-      case 'bioSpores': return r.qty * 60;
-      default: return 100; // cosmetic/passive/stack — bounded flat weight
-    }
-  };
-  const track = eventTrack(e).flatMap((m) => m.rewards).reduce((a, r) => a + iv(r), 0);
-  const shop = (e.shop ?? []).flatMap((s) => Array.from({ length: s.stock }, () => s.rewards).flat()).reduce((a, r) => a + iv(r), 0);
+  const track = eventTrack(e).flatMap((m) => m.rewards).reduce((a, r) => a + rewardIv(r), 0);
+  const shop = (e.shop ?? []).reduce((a, s) => {
+    const per = s.rewards.reduce((x, r) => x + rewardIv(r), 0) + (s.bpXp ?? 0) * 0.5;
+    return a + per * rowWindowStock(e, s);
+  }, 0);
   return track + shop;
+}
+
+/** Everything the shop can charge across ONE window (tokens) — the choice-pressure gauge. */
+export function shopWindowClearCost(e: LiveEventDefV2): number {
+  return (e.shop ?? []).reduce((a, s) => a + s.costTokens * rowWindowStock(e, s), 0);
+}
+
+// ── The shop read model (docs/LIVE-EVENTS.md §shops) — pure over the save's liveEvents
+// ledgers; meta enforcement, the storefront UI, and the economy sim all read THIS. ──────
+/** Structural slice of save.liveEvents this module may read (core never imports save/). */
+export interface LiveEventLedgers {
+  tokens: Record<string, number>;
+  shopBought: Record<string, Record<string, number>>;
+  lifetimeBought: Record<string, number>;
+}
+
+const isoDay = (now: number): string => new Date(now).toISOString().slice(0, 10);
+/** ISO week key (Monday epoch — the same week the horizons ride). */
+const isoWeek = (now: number): string => `W${Math.floor((now - BP.epochMs) / (7 * 86_400_000))}`;
+
+/** The shopBought ledger key for a row at `now` — period-scoped for daily/weekly restocks. */
+export function rowLedgerKey(row: EventShopRow, now: number): string {
+  switch (row.limit ?? 'window') {
+    case 'daily': return `${row.id}@${isoDay(now)}`;
+    case 'weekly': return `${row.id}@${isoWeek(now)}`;
+    default: return row.id;
+  }
+}
+
+export interface ShopRowView {
+  row: EventShopRow;
+  bought: number; // inside the CURRENT limit period (lifetime: ever)
+  left: number;
+  soldOut: boolean;
+  restocks: 'daily' | 'weekly' | null; // surfaced as the row's cadence chip
+  onceEver: boolean; // the exclusive lane
+  affordable: boolean;
+  almost: boolean; // ≥70% of the price banked — the "one more challenge" hook
+}
+
+export function shopRowView(a: ActiveLiveEvent, row: EventShopRow, le: LiveEventLedgers, now: number): ShopRowView {
+  const limit = row.limit ?? 'window';
+  const bought = limit === 'lifetime'
+    ? le.lifetimeBought[`${a.def.id}:${row.id}`] ?? 0
+    : le.shopBought[a.key]?.[rowLedgerKey(row, now)] ?? 0;
+  const left = Math.max(0, row.stock - bought);
+  const bank = le.tokens[a.key] ?? 0;
+  return {
+    row, bought, left,
+    soldOut: left <= 0,
+    restocks: limit === 'daily' ? 'daily' : limit === 'weekly' ? 'weekly' : null,
+    onceEver: limit === 'lifetime',
+    affordable: left > 0 && bank >= row.costTokens,
+    almost: left > 0 && bank < row.costTokens && bank >= row.costTokens * 0.7,
+  };
 }
 
 /** Per-DAY mint ceilings (core-equivalents) — horizons are budgeted by duration, so a short
@@ -490,6 +631,33 @@ export function liveEventProblems(): string[] {
       if (topMilestone > maxTokens) out.push(`${e.id}: track milestone at ${topMilestone} unreachable (max earnable ${maxTokens})`);
     }
     for (const ch of e.challenges ?? []) if (ch.target <= 0) out.push(`${e.id}/${ch.id}: non-positive target`);
+    // SHOP LAWS (docs/LIVE-EVENTS.md §shops) — the event economy contract:
+    //   every event with a currency runs a themed storefront (the PRIMARY sink), priced so
+    //   one window can never clear it (meaningful choices) while the cheapest shelf stays
+    //   inside a casual window's earnings; exclusives (lifetime rows) sell PERMANENT kinds
+    //   only, so repeat windows substitute instead of re-minting.
+    if (e.currency) {
+      const earnable = (e.challenges ?? []).reduce((a, c) => a + c.tokens, 0);
+      if (!e.shop || e.shop.length < 4) out.push(`${e.id}: shop has ${e.shop?.length ?? 0} rows (< 4 — the storefront is the primary sink)`);
+      if (e.shop && !e.storefront) out.push(`${e.id}: shop without a storefront identity`);
+      if (e.shop && e.shop.length > 0 && earnable > 0) {
+        const clear = shopWindowClearCost(e);
+        if (clear < earnable * 1.3) out.push(`${e.id}: shop clears at ${clear} tokens < 1.3× earnable ${earnable} — no purchasing decisions`);
+        const cheapest = Math.min(...e.shop.map((s) => s.costTokens));
+        if (cheapest > earnable * 0.35) out.push(`${e.id}: cheapest shelf ${cheapest} > 35% of earnable ${earnable} — casual windows buy nothing`);
+        const rowIds = new Set<string>();
+        for (const s of e.shop) {
+          if (rowIds.has(s.id)) out.push(`${e.id}: duplicate shop row id '${s.id}'`);
+          rowIds.add(s.id);
+          if (s.costTokens <= 0 || s.stock <= 0) out.push(`${e.id}/${s.id}: non-positive cost or stock`);
+          if (s.costTokens > e.currency.cap) out.push(`${e.id}/${s.id}: costs ${s.costTokens} > wallet cap ${e.currency.cap} — unbuyable`);
+          if ((s.limit ?? 'window') === 'lifetime') {
+            const permanent = s.rewards.every((r) => r.kind === 'cosmetic' || r.kind === 'passive' || r.kind === 'phenotype');
+            if (!permanent || s.rewards.length === 0) out.push(`${e.id}/${s.id}: lifetime rows must sell permanent kinds only (repeat substitution)`);
+          }
+        }
+      }
+    }
     // Track laws: full ladder length, every level pays, every level reachable.
     if (e.currency) {
       const full = eventTrack(e);
@@ -519,6 +687,11 @@ export function liveEventProblems(): string[] {
     const cers = act.map((a) => a.def.ceremony).filter((c): c is CeremonyId => !!c);
     if (new Set(cers).size !== cers.length) {
       out.push(`day +${d}: co-active events share a ceremony (${cers.join(', ')}) — recognition broken`);
+      break;
+    }
+    const fronts = act.map((a) => a.def.storefront?.name).filter((n): n is string => !!n);
+    if (new Set(fronts).size !== fronts.length) {
+      out.push(`day +${d}: co-active events share a storefront name (${fronts.join(', ')})`);
       break;
     }
   }

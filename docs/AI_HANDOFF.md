@@ -4,107 +4,125 @@
 > before committing. Read together with docs/PROJECT_STATUS.md and the latest
 > docs/VALIDATION_REPORT.md. Next session: start at docs/PROJECT_MANIFEST.md.
 
-- **Generated:** 2026-07-19 01:58 UTC · **Diff scope:** working tree vs HEAD
-- **Branch:** claude/zen-hawking-rh1gxl · **HEAD:** d4c29fa
+- **Generated:** 2026-07-19 06:18 UTC · **Diff scope:** working tree vs HEAD
+- **Branch:** claude/zen-hawking-rh1gxl · **HEAD:** d44e891
 
 ## Summary of work completed
 
-MENU UX / NAVIGATION OVERHAUL (docs/UX-AUDIT-2026-07.md): every registry screen was
-captured headlessly and audited against premium-mobile principles, then fixed at
-chokepoints. The big piece is the WAYFINDING FRAME — `ui/components/ScreenHeader.tsx`
-rendered once by the Hub on every non-home screen: back ‹ over a real 32-stop nav
-history, breadcrumb `group ▸ screen` (parent opens the landing), sibling chips for
-one-tap moves inside a wing (no more hub round-trips), plus a finite 220ms page
-transition and iOS edge swipe-back on touch. The one thing the next session must know:
-the frame is registry-driven and renders ABOVE FeatureLocked — new screens inherit it
-with zero wiring; never add per-screen back buttons or a second breadcrumb.
+EVENT EXCHANGE SHOPS (save v52, docs/LIVE-EVENTS.md §shops): every live event's shop grew
+into a themed storefront — identity ({name, keeper, blurb} on the def, co-active-distinct
+by validator law), a purchase-limit vocabulary (window / daily / weekly / lifetime), and
+authored inventories for all 8 events incl. 8 event-exclusive wardrobe pieces behind
+once-EVER signature rows. The one thing the next session must know: **limits live in the
+ledger KEY shape** — daily/weekly counts use composite `rowId@period` keys inside the
+window-pruned `shopBought` table (expiry is structural, no cron), while lifetime purchases
+write `liveEvents.lifetimeBought[eventId:rowId]`, the ONE ledger `sanitizeLiveEvents`
+never prunes, so a returning event's exclusives stay sold. `shopRowView()` (core) is the
+single arbiter of stock/affordability/the ≥70%-banked "almost" hook — never recompute
+those in UI or meta.
 
 ## Files modified
 
-- Source (11): `src/changelog/releases.gen.ts`, `src/dev/systemRegistry.ts`, `src/i18n/index.ts`, `src/index.css`, `src/ui/DailyScreen.tsx`, `src/ui/Hub.tsx`, `src/ui/HubLanding.tsx`, `src/ui/PremiumStore.tsx`, `src/ui/QuestBoard.tsx`, `src/ui/components/WardrobeReveal.tsx`, `src/ui/components/ScreenHeader.tsx`
-- Tests (0): — (contract coverage rides the existing instruments: mobilecheck walks all 30 screens through the new frame; cogload re-measured 70/70)
-- Docs (7): `docs/COGLOAD_REPORT.md`, `docs/DEPENDENCY_GRAPH.md`, `docs/DIL_GRAPH.md`, `docs/HISTORY.md`, `docs/UX-CONSOLIDATION.md`, `docs/VALIDATION_REPORT.md`, `docs/UX-AUDIT-2026-07.md`
+- Source (8): `src/changelog/releases.gen.ts`, `src/core/liveEvents.ts`, `src/core/wardrobe.ts`, `src/dev/dil/knowledge.ts`, `src/index.css`, `src/save/saveStore.ts`, `src/state/meta.ts`, `src/ui/components/LiveEventsPanel.tsx`
+- Tests (1): `src/state/liveEventsMeta.test.ts` (limit vocabulary: lifetime forever-ledger + re-buy refusal, composite daily/weekly keys, bpXp rider → season lane, sanitizer keeps lifetimeBought)
+- Docs (6): `docs/COGLOAD_REPORT.md`, `docs/DIL_GRAPH.md`, `docs/GAME-STATE.md`, `docs/HISTORY.md`, `docs/LIVE-EVENTS.md`, `docs/VALIDATION_REPORT.md`
+- New instrument: `scripts/sim-event-shops.ts` (`npm run sim:eventshops`) + package.json entry
 
 ## Systems affected (from the dependency registry)
 
 - **chronicle** — `src/changelog/releases.gen.ts`
-- **cosmetics** — `src/ui/components/WardrobeReveal.tsx`
-- **daily** — `src/ui/DailyScreen.tsx`
-- **dev-registry** — `src/dev/systemRegistry.ts`
-- **hub-shell** — `src/ui/Hub.tsx`, `src/ui/components/ScreenHeader.tsx`
-- **i18n** — `src/i18n/index.ts`
-- **notifications** — `src/ui/HubLanding.tsx`
-- **premium** — `src/ui/PremiumStore.tsx`
-- **quests** — `src/ui/QuestBoard.tsx`
-- Consumer ring (verify, unchanged): battle-pass, contracts, daily-login, directives, field-research, hive-construction, infestation, liveops, metabolism, nemesis, net-backend, pil, profile, reward-architecture
+- **cosmetics** — `src/core/wardrobe.ts` (8 event-exclusive rows, source {kind:'event'})
+- **dev-registry** — `src/dev/dil/knowledge.ts` (v52 shops edge)
+- **liveops** — `src/core/liveEvents.ts`, `src/ui/components/LiveEventsPanel.tsx`
+- **meta-store** — `src/save/saveStore.ts`, `src/state/meta.ts`
+- Consumer ring (verify, unchanged): account-level, accounts, analytics, arena, battle-pass, contracts, cutscenes, daily-login, devtools, directives, expeditions, field-research, genome-rank, hero-symbiotes, hive-construction, hub-shell, idle-harvest, infestation, metabolism, mulligans, nemesis, net-backend, notifications, nucleus, onboarding, pil, progression-gating, quests, run-ui, security
 
 ## Power Score changes
 
-None — pure presentation/navigation batch; no economy or stat surface moved.
+None — shop rewards are meta INCOME only (cosmetics, cores, essence, ichor, mats,
+containers, bio-spores, season XP); no stat surface, scale, or preview moved. The mint
+budgets (`windowMintBudget` now counts restocked limit rows + bpXp×0.5) bound the income
+side; `liveEventProblems()` + `npm run sim:events` pin it.
 
 ## UI changes
 
-- **ScreenHeader** on every non-home hub screen (desktop + landscape drawer; portrait
-  keeps MobilePageHead): back ‹ (nav history; dry stack falls back screen → landing →
-  home), breadcrumb with clickable parent, revealed-sibling chips with unseen badge dots
-  (glyph-only ≤900px). Touch gets edge swipe-back (start ≤28px, >70px travel).
-- **Page transition**: `.hub-screen` plays one finite fade-rise per navigation
-  (reduced-motion stills it; attention-budget neutral — cogload 70/70).
-- **Title normalization**: Quest Board / Premium Store / Daily Run dropped the 34–48px
-  gradient `.title` for the standard `screen-h` (content starts ~110px earlier); the
-  gradient stays only on the FeatureLocked unlock briefing.
-- **Hub landing truthfulness**: the "All quiet" line now consults the LIVE lane; with
-  seen-but-unclaimed stops it says "Earned rewards below are still waiting" instead.
-- **Wardrobe backlog batching**: 6+ queued unlock ceremonies collapse to ONE summary card
-  (all items named + rarity-tinted); per-card theater stays for ≤5 (the live trickle).
-- **Top bar**: the Materials chip hides while all three mats are zero.
-- Verified: mobilecheck CLEAN (30 screens × 6 viewports incl. drawer walk), cogload
-  70/70, live headless probes (sibling jump quests→milestones, double-back to landing,
-  fresh-boot funnel confirmed tutorial-first).
+- **LiveEventsPanel** shop section became the storefront: name + keeper quote header
+  (themed by the existing `--evc` accent), per-row limit chips (ONCE EVER / DAILY /
+  WEEKLY / +N SEASON XP), owned ("OWNED ✓") vs sold-out ("RESTOCKS DAILY/WEEKLY" when
+  restocking) states, the `almost` hook (static accent ring + "N MORE ⟨glyph⟩" — banked
+  ≥70% of the price), and a one-shot `evcBurst` purchase flash (finite ⇒ attention-budget
+  neutral; global reduced-motion kills it). Lifetime signature buys cue 'chest', others
+  'power'; the wardrobe unlock ceremony fires automatically through the reward bus.
+- **Coarse-pointer checkboxes** 24px→26px (generic rule): exactly-at-floor rects measured
+  fractionally under 24px on the 926×428 sweep (season screen's filter checkbox) and
+  failed the strict `< 24` gate — the margin makes every current/future checkbox safe.
+- Verified: headless storefront probe (three live storefronts render, chips/almost/owned
+  states confirmed live incl. a real purchase → burst + OWNED + wardrobe ceremony +
+  wallet roll), mobilecheck CLEAN (30 screens × 6 viewports), cogload all-70 inside the
+  attention budget.
 
 ## Documentation changes
 
-`docs/UX-AUDIT-2026-07.md` NEW (principles, findings→fixes table, per-screen notes,
-honest deferrals, first-time-player contract). `docs/UX-CONSOLIDATION.md` gained the
-§wayfinding standard (the frame's rules). DEPENDENCY_GRAPH/DIL_GRAPH/COGLOAD_REPORT
-regenerated. All other listed docs: no change needed (blast-radius listing only).
+`docs/LIVE-EVENTS.md` gained §6b "Event Exchange Shops" (identity/limits/laws/sim).
+`docs/GAME-STATE.md`: save anchor `CURRENT_VERSION = 52`, Live-Events compressed summary
+retitled v52 + new Exchange-Shops paragraph + APIs/validation rows. `docs/DIL_GRAPH.md`
+regenerated from the new knowledge edge. COGLOAD_REPORT/VALIDATION_REPORT/HISTORY
+regenerated by instruments. All other registry-listed docs: no change needed (blast-radius
+listing only).
 
 ## Save changes
 
-None — save layer untouched.
+`CURRENT_VERSION` 51 → **52**. New field `liveEvents.lifetimeBought: Record<string,
+number>` (keys `eventId:rowId`, clamped ≤9, NEVER pruned against the live registry — a
+retired event's history must keep blocking re-buys). `sanitizeLiveEvents.shopBought` now
+accepts composite `rowId@period` keys (still clamps to row stock, prunes unknown rows;
+stale periods evaporate with their window). Migration is additive (withDefaults fills
+empty); round-trip covered by liveEventsMeta.test.ts "save sanitizer" + "purchase limits"
+suites.
 
 ## Known edge cases
 
-- `goBack()` restores landings as real stops; from a screen with an EMPTY history it
-  climbs to the screen's own hub landing, then home — never a dead end.
-- The swipe-back only arms when the touch STARTS within 28px of the left viewport edge —
-  deliberate, so horizontal scrollers (conveyor, card rows) never trigger it.
-- ScreenHeader filters siblings by `featureRevealed`; a hub with one revealed screen
-  renders no chip row (breadcrumb + back only).
-- The wardrobe batch card takes over at >5 queued reveals; exactly 5 still plays five
-  cards (skip-all remains from 3+).
-- The "phantom panel" in two audit captures was the wardrobe ceremony mid-open, not a
-  layout bug — do not chase it.
+- A lifetime row's count lives ONLY in `lifetimeBought`; a stray/hacked `shopBought`
+  entry for such a row is dead data (never read) and prunes with the window — don't
+  "fix" the sanitizer to migrate it.
+- `rowLedgerKey` weeks are indexed from `BP.epochMs` (Mondays), NOT ISO calendar weeks —
+  weekly restocks flip in lockstep with every other liveops week boundary.
+- The sim's daily-restock model buys greedily cheapest-first; personas share identical
+  behavior, only income rates differ. The hook-coverage law (≥20% of persona-windows end
+  ≥50% banked) is pinned WELL below observed reality (currently 20/32) — retune shop rows
+  freely, the floor only catches collapse.
+- Short events (3d) intentionally allow only 1–2 F2P buys; the ≥2 law holds because ember
+  and spore's cheapest rows were split into 2-stock halves (same total mint, validator
+  re-verified under budget).
+- The `.bp-filter` checkbox flag was a measurement-margin issue, not a layout regression —
+  the 26px rule is the durable fix; don't add per-component patches.
 
 ## Remaining technical debt
 
-- Pre-content band stacks on the labs (Gene Archive 6 bands, Tower Lab 4) — recorded in
-  UX-AUDIT §4; per-screen surgery deferred deliberately.
-- Sibling chips show unseen dots only; ready-state (gold ring) coloring is a candidate
-  for the next prominence pass.
+- The storefront renders inside the Command Center's event console; a dedicated
+  full-screen "bazaar" visit (ambient music hooks, keeper barks) is a future presentation
+  batch — the data contract (`storefront`, ceremonies) already carries what it needs.
+- `EventShopRow.bpXp` is charged at a flat ×0.5 core-eq in the mint budget; if bpXp rows
+  proliferate, derive the charge from BP pacing instead (one constant in
+  `windowMintBudget`).
 
 ## Recommended next tasks
 
-1. Lab pre-content compression (fold advisor + completion + meta bands into one
-   composite band) — start with GeneArchive.tsx; the audit doc names the bands.
-2. Home deploy CTA outcome-first reframe ("Fight anyway — recommended Power not met") —
-   CommandCenter `.mc-campaign` CTA, effect-language vocabulary.
-3. Consider ScreenHeader ready-state chips (readyChain membership → gold ring).
+1. Storefront ambience pass — keeper bark lines on purchase (data already on
+   `storefront.keeper`), event-ceremony machine for signature buys (CEREMONIES registry,
+   `src/core/liveEvents.ts`).
+2. Notification source `event.shopAlmost` — surface the `almost` hook on the home channel
+   when a bank crosses 70% of a signature price (`src/state/notificationSources.ts`, use
+   `shopRowView`).
+3. ScreenHeader ready-state chips (carried from the UX batch — gold ring on readyChain
+   membership).
 
 ## Future expansion hooks
 
-- `ScreenHeader` props are registry-driven (`navModel.groupOf`) — a new screen in any
-  group inherits breadcrumb/back/siblings with zero wiring; a future in-run breadcrumb
-  could reuse the same component with a synthetic group.
-- `Hub.goBack`/`histRef` — the history stack is the seam for browser-history binding
-  (popstate) if the SPA ever wants URL-addressable screens.
+- `ShopLimit` union (`src/core/liveEvents.ts`) — a future `'seasonal'` limit is one union
+  member + one `rowLedgerKey` case (key it `rowId@S<seasonIndex>`); the sanitizer's
+  composite-key loop already passes unknown suffixes through the same clamp path.
+- `EventStorefront` — extend with `barks?: string[]` / `music?: SeasonMusic` for the
+  ambience batch; every consumer reads it optionally.
+- `shopRowView.almost` threshold (0.7) — the one knob for the wanting-state tuning; UI
+  and the future notification source both read the view, so one change moves both.

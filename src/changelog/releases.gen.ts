@@ -1399,6 +1399,10 @@ export const RELEASES: Release[] = [
       {
         "cat": "UI",
         "text": "Metabolism: the recursive progression system (save v51, Milestones screen)"
+      },
+      {
+        "cat": "UX",
+        "text": "Menu UX overhaul: wayfinding frame, nav history, audit-driven polish"
       }
     ]
   },

@@ -1,6 +1,6 @@
 {
-  "lastSha": "d4c29faf1c0511ca2aa1ed7b3fbe94c1d6fb3c2e",
-  "commitsSinceDraft": 4,
+  "lastSha": "d44e891f1a7954854bc1209f49220e883618592f",
+  "commitsSinceDraft": 5,
   "content": {
     "tower": [
       "needle",
@@ -2903,6 +2903,10 @@
         {
           "cat": "UI",
           "text": "Metabolism: the recursive progression system (save v51, Milestones screen)"
+        },
+        {
+          "cat": "UX",
+          "text": "Menu UX overhaul: wayfinding frame, nav history, audit-driven polish"
         }
       ]
     }
@@ -5441,6 +5445,14 @@
       "date": "2026-07-19",
       "cat": "UI",
       "text": "Metabolism: the recursive progression system (save v51, Milestones screen)",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "d44e891f1a7954854bc1209f49220e883618592f",
+      "date": "2026-07-19",
+      "cat": "UX",
+      "text": "Menu UX overhaul: wayfinding frame, nav history, audit-driven polish",
       "internal": false,
       "needsReview": false
     }

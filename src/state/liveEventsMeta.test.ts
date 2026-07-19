@@ -12,7 +12,7 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import { meta } from './meta';
 import { notifications } from './notifications';
 import './notificationSources';
-import { activeLiveEvents, eventTrack, liveEventLaneMods, liveEventLaneModsNow } from '../core/liveEvents';
+import { activeLiveEvents, eventTrack, liveEventLaneMods, liveEventLaneModsNow, rowLedgerKey } from '../core/liveEvents';
 import { missionCredit } from '../core/quests';
 import type { QuestRunFacts } from '../core/quests';
 import { defaultSave, serializeExport } from '../save/saveStore';
@@ -100,6 +100,7 @@ describe('save sanitizer (window-scoped ledgers)', () => {
         claimed: { [a.key]: [eventTrack(a.def)[0].at, 123456, eventTrack(a.def)[0].at] },
         progress: { [a.key]: { [ch.id]: ch.target + 99, bogus: 5 } },
         shopBought: a.def.shop ? { [a.key]: { [a.def.shop[0].id]: a.def.shop[0].stock + 7 } } : {},
+        lifetimeBought: { 'retired_event:sig_row': 3 },
       },
     }));
     const le = meta.get().liveEvents;
@@ -109,6 +110,9 @@ describe('save sanitizer (window-scoped ledgers)', () => {
     expect(le.claimed[a.key]).toEqual([eventTrack(a.def)[0].at]); // deduped, invalid at dropped
     expect(le.progress[a.key]).toEqual({ [ch.id]: ch.target }); // clamped, bogus id dropped
     if (a.def.shop) expect(le.shopBought[a.key]).toEqual({ [a.def.shop[0].id]: a.def.shop[0].stock });
+    // lifetimeBought is the ONE ledger that survives every rotation — a retired event's
+    // signature purchase must still block the re-buy when the event returns next year.
+    expect(le.lifetimeBought['retired_event:sig_row']).toBe(3);
   });
 });
 
@@ -136,11 +140,11 @@ describe('milestone claims (threshold — tokens are the ladder, not spent)', ()
 });
 
 describe('event shop (the token sink)', () => {
-  const a = trio.find((x) => x.def.currency && x.def.shop && x.def.shop.length > 0);
+  const a = trio.find((x) => x.def.currency && x.def.shop?.some((r) => !r.limit));
 
   it('spends the bank, counts stock, and sells out', () => {
-    if (!a) return; // every medium/major ships a shop — some rotation alignment could go shopless
-    const row = a.def.shop![0];
+    if (!a) return; // every event ships window rows — some rotation alignment could go shopless
+    const row = a.def.shop!.find((r) => !r.limit)!; // plain window row (shop[0] is the lifetime signature)
     const bank = row.costTokens * (row.stock + 1);
     const cap = a.def.currency!.cap;
     inject((s) => ({ ...s, liveEvents: { ...s.liveEvents, tokens: { [a.key]: Math.min(cap, bank) } } }));
@@ -152,6 +156,62 @@ describe('event shop (the token sink)', () => {
     expect(le.shopBought[a.key]?.[row.id]).toBe(bought);
     expect(le.tokens[a.key]).toBe(Math.min(cap, bank) - bought * row.costTokens);
     expect(meta.buyEventShopRow(a.key, 'no_such_row', NOW)).toBeNull();
+  });
+});
+
+describe('purchase limits (the v52 vocabulary — docs/LIVE-EVENTS.md §shops)', () => {
+  it('lifetime rows write the forever ledger, never the windowed table, and refuse a re-buy', () => {
+    // Every authored event leads with a lifetime signature row, so the trio always has one.
+    const a = trio.find((x) => x.def.currency && x.def.shop?.some((r) => r.limit === 'lifetime'))!;
+    const row = a.def.shop!.find((r) => r.limit === 'lifetime')!;
+    inject((s) => ({ ...s, liveEvents: { ...s.liveEvents, tokens: { [a.key]: a.def.currency!.cap } } }));
+    expect(meta.buyEventShopRow(a.key, row.id, NOW)).not.toBeNull();
+    const le = meta.get().liveEvents;
+    expect(le.lifetimeBought[`${a.def.id}:${row.id}`]).toBe(1);
+    expect(le.shopBought[a.key]?.[row.id]).toBeUndefined(); // the windowed table stays clean
+    expect(meta.buyEventShopRow(a.key, row.id, NOW)).toBeNull(); // once EVER — tokens remain
+    expect(meta.get().liveEvents.tokens[a.key]).toBe(a.def.currency!.cap - row.costTokens);
+  });
+
+  it('a prior-window lifetime purchase (injected ledger) blocks the buy on event return', () => {
+    const a = trio.find((x) => x.def.currency && x.def.shop?.some((r) => r.limit === 'lifetime'))!;
+    const row = a.def.shop!.find((r) => r.limit === 'lifetime')!;
+    inject((s) => ({
+      ...s,
+      liveEvents: {
+        ...s.liveEvents,
+        tokens: { [a.key]: a.def.currency!.cap },
+        lifetimeBought: { [`${a.def.id}:${row.id}`]: 1 }, // bought during a PAST window
+      },
+    }));
+    expect(meta.buyEventShopRow(a.key, row.id, NOW)).toBeNull();
+  });
+
+  it('daily/weekly rows count under composite period keys (window pruning retires them)', () => {
+    const a = trio.find((x) => x.def.currency && x.def.shop?.some((r) => r.limit === 'daily' || r.limit === 'weekly'));
+    if (!a) return; // today every medium ships a daily and every major a weekly — belt and braces
+    const row = a.def.shop!.find((r) => r.limit === 'daily' || r.limit === 'weekly')!;
+    inject((s) => ({ ...s, liveEvents: { ...s.liveEvents, tokens: { [a.key]: a.def.currency!.cap } } }));
+    let bought = 0;
+    while (meta.buyEventShopRow(a.key, row.id, NOW) !== null) bought++;
+    expect(bought).toBe(row.stock); // caps out the PERIOD stock…
+    const key = rowLedgerKey(row, NOW);
+    expect(key).toContain('@'); // …under a composite `rowId@period` key
+    const le = meta.get().liveEvents;
+    expect(le.shopBought[a.key]?.[key]).toBe(bought);
+    expect(le.shopBought[a.key]?.[row.id]).toBeUndefined();
+  });
+
+  it('a bpXp rider feeds the season lane and stamps the receipt', () => {
+    const a = trio.find((x) => x.def.currency && x.def.shop?.some((r) => r.bpXp));
+    if (!a) return; // both majors carry a Season-Infusion row, and one major is always live
+    const row = a.def.shop!.find((r) => r.bpXp)!;
+    inject((s) => ({ ...s, liveEvents: { ...s.liveEvents, tokens: { [a.key]: a.def.currency!.cap } } }));
+    const xpBefore = meta.get().battlePass.xp;
+    const lines = meta.buyEventShopRow(a.key, row.id, NOW);
+    expect(lines).not.toBeNull();
+    expect(lines!.some((l) => l.label === `+${row.bpXp} Season XP`)).toBe(true);
+    expect(meta.get().battlePass.xp).toBe(xpBefore + row.bpXp!);
   });
 });
 

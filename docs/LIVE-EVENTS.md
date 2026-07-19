@@ -103,6 +103,40 @@ track, the full pool completes each track exactly (no dead tail, no overshoot �
 engagement-only, unpurchasable, so whales cannot skip), and repeat value holds. Long-term
 engagement is the only lever that moves an event track.
 
+## 6b. Event Exchange Shops (§shops, v52, 2026-07)
+
+**Storefront identity** — every event's shop is a THEMED counter, not a menu: `storefront`
+{name, keeper, blurb} (The Slag Exchange, The Pollen Bazaar, The Dead Channel, The Trophy
+Row, The Silt Market, The Ration Board, The Memory Vault, The Seedhouse). Names must be
+distinct across every co-active triple of the rotation super-cycle (validator law, like
+accents/ceremonies). A future event ships a complete storefront purely in data — zero
+engineering.
+
+**Purchase limits** — `EventShopRow.limit`: `window` (default — stock for the whole
+window), `daily` / `weekly` (restocking), `lifetime` (once EVER, across every return of the
+event). The limit lives in the LEDGER KEY shape: window rows count under plain `rowId`,
+daily/weekly under composite `rowId@isoDay` / `rowId@W<week>` (window pruning retires them
+for free), lifetime under `liveEvents.lifetimeBought[eventId:rowId]` — the ONE ledger the
+sanitizer never prunes, so a retired event's signature stays sold when it returns.
+`shopRowView(a,row,ledgers,now)` (core) is the single arbiter of bought/left/soldOut/
+restocks/affordable — plus `almost` (banked ≥70% of the price), the UI's "one more thing"
+hook. `meta.buyEventShopRow` enforces it (guard `event.buy`), pays through
+`applyRewardList` (owned permanents substitute), and routes a `bpXp` rider through
+`grantPassXp('event-shop')` post-persist with a receipt line + toast (bpXp is not a
+PassReward kind). Signature purchases toast under the storefront's name and fire the
+wardrobe unlock ceremony via the normal reward bus.
+
+**Balancing laws (machine-enforced)** — `liveEventProblems()`: every shop ≥4 rows +
+storefront required; window clear-cost ≥1.3× the earnable pool (no persona clears a shop
+in one window — "significant investment" means MORE WINDOWS, tokens are unpurchasable);
+cheapest row ≤0.35× the pool (new players always buy something); lifetime rows contain
+permanent kinds only; the per-window mint budget counts restocked limit rows AND bpXp
+riders (×0.5 core-eq). `npm run sim:eventshops` walks greedy personas day-by-day: whales
+still end wanting, F2P regulars afford ≥2 buys, new players ≥1, repeat windows (signatures
+owned) absorb ≥70% of a veteran's income and the non-lifetime inventory alone out-costs a
+full pool — no event is ever worthless on return. Hook coverage ≥20% of persona-windows
+end ≥50% banked toward the next purchase.
+
 ## 7. Gameplay mutations & reward ceremonies (2026-07)
 
 **Gameplay** — every event carries an `EventGameplayPackage` beside its daily-modifier ids:

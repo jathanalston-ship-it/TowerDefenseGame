@@ -238,6 +238,16 @@ const ROWS: Row[] = [
   ['projectileTrail', 'Static Rift', 'epic', { kind: 'shop', ichor: 100 }, { trail: 'static', accent: '#9adfff' }, 'Shots tear briefly visible seams in the air.'],
   ['projectileTrail', 'Gilded Thread', 'legendary', bp('s1', 70, 'premium'), { trail: 'gilded', accent: '#ffd24d' }, 'The champion’s wake — molten gold, drawn thin.'],
   ['projectileTrail', 'Petalfall', 'epic', { kind: 'event', event: 'bloom_cycle' }, { trail: 'petal', accent: '#ff9ab8' }, 'Bloom Cycle exclusive — every impact sheds petals.'],
+  // ── Event-shop exclusives (docs/LIVE-EVENTS.md §shops) — each event's storefront sells
+  //    ONE signature piece on a lifetime row; repeats substitute via applyRewardList. ──
+  ['towerFx', 'Ventglow Chassis', 'epic', { kind: 'event', event: 'ember_tide' }, { fx: 'embers', accent: '#ff6a3c' }, 'Slag Exchange exclusive — emplacements run furnace-hot, seams glowing.'],
+  ['projectileTrail', 'Bloomcast', 'epic', { kind: 'event', event: 'spore_bloom' }, { trail: 'petal', accent: '#7ddc5a' }, 'Pollen Bazaar exclusive — every shot germinates mid-flight.'],
+  ['emblem', 'Signal Eater', 'epic', { kind: 'event', event: 'static_night' }, { glyph: '⌁', accent: '#41d0e8' }, 'Dead Channel exclusive — the mark of whoever silenced the broadcast.'],
+  ['title', 'Apex Contractor', 'epic', { kind: 'event', event: 'great_hunt' }, { text: 'Apex Contractor' }, 'Trophy Row exclusive — every bounty honored, in full.'],
+  ['heroFx', 'Tideglass Aura', 'epic', { kind: 'event', event: 'deep_current' }, { accent: '#4de0c4', glow: '#9adfff' }, 'Silt Market exclusive — champions move wrapped in pressure-bent light.'],
+  ['nameplate', 'Lean Times', 'epic', { kind: 'event', event: 'red_famine' }, { accent: '#ff4d6d', bg: '#1a070d' }, 'Ration Board exclusive — a plaque cut from famine-year chitin.'],
+  ['nucleusSkin', 'Remembered Heart', 'legendary', { kind: 'event', event: 'assimilation_epoch' }, { accent: '#b64dff', glow: '#e0b8ff', fx: 'pulse' }, 'Memory Vault exclusive — a heart that archives every beat it has ever taken.'],
+  ['battlefieldTheme', 'Overgrown Reach', 'legendary', { kind: 'event', event: 'overgrowth_epoch' }, { accent: '#66bb6a', bg: '#0c1c08' }, 'Seedhouse exclusive — the arena as the canopy will one day leave it.'],
   ['projectileTrail', 'Void Wake', 'legendary', bp('s2', 85, 'premium'), { trail: 'void', accent: '#8a6ff0' }, 'Rounds that remember being somewhere darker.'],
   ['towerFx', 'Spore Bloom', 'common', { kind: 'daily', clears: 5 }, { fx: 'spores', accent: '#a9e069' }, 'Idle towers exhale a soft green drift.'],
   ['towerFx', 'Ember Motes', 'rare', { kind: 'campaign', stage: 15 }, { fx: 'embers', accent: '#ff9a5c' }, 'Warm sparks orbit every emplacement.'],

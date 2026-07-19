@@ -343,3 +343,4 @@
 ## 2026-07-19
 
 - `d4c29fa` **[UI]** Metabolism: the recursive progression system (save v51, Milestones screen)
+- `d44e891` **[UX]** Menu UX overhaul: wayfinding frame, nav history, audit-driven polish
