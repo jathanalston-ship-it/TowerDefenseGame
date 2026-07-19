@@ -17,7 +17,7 @@ describe('Final Defense Zone — emergency activation', () => {
   // In 'prep' the sim runs emergencySystem but not enemyMoveSystem, so positions we set
   // stay put — a clean, deterministic way to drive the zone-detection logic.
   it('activates only while an enemy is inside the zone', () => {
-    const game = new Game(123, NO_META);
+    const game = new Game(123, NO_META, undefined, undefined, undefined, { disableIdle: true });
     game.debugSpawn('runner');
     const e = game.enemies[game.enemies.length - 1];
 
@@ -32,7 +32,7 @@ describe('Final Defense Zone — emergency activation', () => {
   });
 
   it('focuses the in-zone enemy NEAREST the Hive Core (priority 2)', () => {
-    const game = new Game(123, NO_META);
+    const game = new Game(123, NO_META, undefined, undefined, undefined, { disableIdle: true });
     game.debugSpawn('runner');
     game.debugSpawn('runner');
     const a = game.enemies[game.enemies.length - 2];
@@ -56,7 +56,7 @@ describe('Final Defense Zone — range override', () => {
   // the zone (~600px away). Pin a tank there: only the emergency override can make the
   // parasite target — and thus Infect — it. Infection is parasite-only, isolating the proof.
   function parasiteReaches(targetY: number): boolean {
-    const game = new Game(123, NO_META);
+    const game = new Game(123, NO_META, undefined, undefined, undefined, { disableIdle: true });
     game.debugAddBiomass(10000);
     game.placeTower('parasite', towerSlots[0].x, towerSlots[0].y); // forward-left ≈ (60, 780)
     game.startWave();

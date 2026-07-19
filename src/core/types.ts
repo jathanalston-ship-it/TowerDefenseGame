@@ -281,6 +281,16 @@ export interface Tower {
   beamBank?: number;
   beamX?: number;
   beamY?: number;
+  // ── Idle posture (docs/TOWER-IDLE.md) — the three-state contract. `prep` (0..1) eases up while
+  //    nothing is engageable and snaps down in combat; the renderer derives ALL transition motion
+  //    from it (no discrete snapping). `idleCharge` banks the secondary behavior (windup charge
+  //    0..1, or gestated reserve volleys 0..N); `idleCd` paces ranging/trickle cadences;
+  //    `choirDmg` is the decaying damage bonus RECEIVED from an unengaged choir tower. All spawn
+  //    at 0 and stay 0 under RunOptions.disableIdle ⇒ the legacy sim is reproducible exactly. ──
+  prep: number;
+  idleCharge: number;
+  idleCd: number;
+  choirDmg: number;
 }
 
 export interface Projectile {
@@ -628,6 +638,11 @@ export interface SelectedPlacedTower {
   strain: number; // STRAIN level 1..5 (docs/STRAIN.md) — the in-run evolution layer
   strainName: string | null; // current strain mutation's name (null at Strain I)
   branchName: string | null; // committed branch's display name (null = unbranched)
+  // ── Idle posture (docs/TOWER-IDLE.md §7): the live three-state read + the tower's named
+  //    secondary behavior, auto-derived from IDLE_BEHAVIORS (zero per-tower UI code). ──
+  idleState: 'combat' | 'transition' | 'preparation';
+  idleName: string; // the behavior's display name ("Salivating Gape")
+  idleBlurb: string; // its one-line tooltip
   branches: BranchOffer[];
   // ── Tower management (docs/TOWER-MANAGEMENT.md) ──
   sell: TowerSellQuote; // refund breakdown for the Sell confirm dialog

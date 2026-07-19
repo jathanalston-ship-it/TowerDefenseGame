@@ -14,7 +14,9 @@ import type { MetaModifiers, TowerKind } from './types';
 const NO_META: MetaModifiers = { towerDamageMult: 1, biomassMult: 1, heroDamageMult: 1, integrityBonus: 0, bonusSlots: 0 };
 
 function gameWith(kind: TowerKind, strain = 1, seed = 7, slot = 0): Game {
-  const g = new Game(seed, NO_META);
+  // Legacy sim (disableIdle): the expansion kits' choreography (flee/refreeze/spit windows)
+  // is pinned without idle openers — the idle layer is covered by towerIdle.test.ts.
+  const g = new Game(seed, NO_META, undefined, undefined, undefined, { disableIdle: true });
   const sl = towerSlots[slot];
   expect(g.placeTower(kind, sl.x, sl.y)).toBe(true);
   const t = g.towers[0];
@@ -137,7 +139,7 @@ describe('Amber Chrysalis — the elite warden', () => {
 describe('Wailing Effigy — the dread totem', () => {
   // Place near the Hive so the field covers the crust (slot index high = deep placement).
   function effigyNearHive(strain = 1): Game {
-    const g = new Game(7, NO_META);
+    const g = new Game(7, NO_META, undefined, undefined, undefined, { disableIdle: true });
     // deepest available slot = closest to the core
     const slots = towerSlots.filter((s) => s.index < g.unlockedSlots);
     const deep = slots.reduce((a, b) => (a.y > b.y ? a : b));

@@ -64,7 +64,9 @@ import {
   MINION_DEFS,
   MINION_CAP,
   GRAVEBIND,
+  TOWER_IDLE,
 } from './config';
+import { IDLE_BEHAVIORS, towerIdleState } from './towerIdle';
 import type { CinematicActor, CinematicMotion, EnemyDef, HeroAbilityDef, HeroDef, MinionDef, ResolvedHeroKit, TowerDef } from './config';
 import { DANGER_CAM, initialDangerCamera, stepDangerCamera } from './dangerCamera';
 import type { DangerCameraState } from './dangerCamera';
@@ -175,6 +177,11 @@ export interface RunOptions {
    *  wave-vs-wave by design). One gate at spawnMegaBoss covers every mode. Absent/false ⇒
    *  unchanged cadence (golden-safe). */
   noMega?: boolean;
+  /** DEV/INSTRUMENT ONLY (docs/TOWER-IDLE.md §5): disable the idle-posture layer entirely —
+   *  postures stay 0, banks never fill, field towers resume their legacy empty pulses. The
+   *  sim then reproduces the PRE-IDLE behavior exactly (the A/B baseline for the balance
+   *  instrument + the isolation regression test). Shipping UI never sets this. */
+  disableIdle?: boolean;
 }
 
 /** Fold a declarative effect into the run modifiers (mul/add/flag; grants handled at boot). */
@@ -520,6 +527,12 @@ export class Game {
   pools: Pool[] = [];
   private nemesisSpec: { defId: string; slain: number } | null = null; // docs/NEMESIS.md — spawn-time boss buff
   private readonly noMega: boolean; // docs/ARENA.md §ruleset — suppress every Mega Boss encounter (PvP)
+  private readonly disableIdle: boolean; // docs/TOWER-IDLE.md §5 — dev/instrument A/B flag (legacy sim)
+  // ── Idle-posture run counters (docs/TOWER-IDLE.md §7) — surfaced to the balance instrument. ──
+  idleOpeners = 0; // charged windup/reserve payloads released
+  idleRangingShots = 0; // idle suppression casts fired (Spore Drift …)
+  idleBiomass = 0; // biomass trickled by unengaged towers
+  idleMended = 0; // Nucleus integrity mended by unengaged towers
   floats: FloatingText[] = [];
   particles: Particle[] = [];
   deathEvents: DeathEvent[] = []; // presentation-only ENEMY-DEATH buffer for the assimilation gore VFX
@@ -674,6 +687,7 @@ export class Game {
   private castRangeMult = 1;
   private castMinRange = 0; // artillery DEADZONE (px) for the active cast — enemies closer can't be targeted (0 = none; docs/TOWERS.md §deadzone)
   private castExcludeFrozen = false; // Chrysalis Twin Cocoon: current cast skips frozen victims // identity-range multiplier for the active tower cast (1 = base; docs/RANGE.md §8)
+  private castStatusAmountBonus = 0; // idle-opener STATUS enrichment (docs/TOWER-IDLE.md) — added to every status amount this cast applies (0 = identity, every non-opener cast)
   private castProjectileMutators: readonly string[] = EMPTY_STR; // star-kit mutators for the active cast
   private castProjectileSkin: string | undefined = undefined; // branch cosmetic id tagged onto shots (undefined = base)
   private castProjectileSkinTier = 0;
@@ -736,6 +750,7 @@ export class Game {
     this.favoriteTower = opts.favorite ?? 'needle';
     this.nemesisSpec = opts.nemesis ?? null;
     this.noMega = opts.noMega === true; // arena ruleset flag (docs/ARENA.md) — false ⇒ golden path
+    this.disableIdle = opts.disableIdle === true; // instrument A/B flag (docs/TOWER-IDLE.md §5)
     this.unlockedKinds = new Set(opts.unlocked ?? TOWER_ORDER);
     // Progression-gated gene cards the account has earned (default = none ⇒ only the ungated catalog
     // is draftable, so a fresh account / the golden sim is byte-identical).
@@ -1217,26 +1232,29 @@ export class Game {
   }
 
   /** Apply a status request to an enemy — the one place a StatusType maps to its field.
-   * (The Part 3 status framework will replace these direct fields with managed stacks.) */
+   * (The Part 3 status framework will replace these direct fields with managed stacks.)
+   * `castStatusAmountBonus` (docs/TOWER-IDLE.md — a charged opener's enrichment) is added to
+   * the authored amount here; 0 on every non-opener cast ⇒ identity. */
   private applyStatus(e: Enemy, status: StatusApplication): void {
+    const amount = this.castStatusAmountBonus > 0 ? status.amount + this.castStatusAmountBonus : status.amount;
     switch (status.kind) {
       case 'Fracture':
-        this.addFracture(e, status.amount);
+        this.addFracture(e, amount);
         break;
       case 'Corrosion':
-        e.corrosion = status.amount;
+        e.corrosion = amount;
         break;
       case 'Infection':
-        this.infect(e, status.amount);
+        this.infect(e, amount);
         break;
       case 'Disruption':
-        e.disrupt = status.amount;
+        e.disrupt = amount;
         break;
       case 'Mark': // Vital reaction fuel (Marrow Siphon) — capped stacks, harvested in reactions
-        e.mark = Math.min(STATUS.markMax, e.mark + status.amount);
+        e.mark = Math.min(STATUS.markMax, e.mark + amount);
         break;
       case 'Resonance': // Resonant reaction fuel (Resonance Coil) — capped stacks, shattered in reactions
-        e.resonance = Math.min(STATUS.resonanceMax, e.resonance + status.amount);
+        e.resonance = Math.min(STATUS.resonanceMax, e.resonance + amount);
         break;
       // The expansion statuses ride the universal framework (status.ts): amount is SECONDS,
       // scaled by the owning tower's identity run-mod. A refractory marker (stacks 0) means
@@ -1244,14 +1262,14 @@ export class Game {
       case 'Freeze': {
         if (this.applyEffect(e, 'freeze')) {
           const st = e.statuses?.find((x) => x.id === 'freeze');
-          if (st && st.stacks > 0) st.remaining = status.amount * this.mods.chrysalisFreezeDurationMult;
+          if (st && st.stacks > 0) st.remaining = amount * this.mods.chrysalisFreezeDurationMult;
         }
         break;
       }
       case 'Fear': {
         if (this.applyEffect(e, 'fear')) {
           const st = e.statuses?.find((x) => x.id === 'fear');
-          if (st && st.stacks > 0) st.remaining = status.amount * this.mods.effigyDreadDurationMult;
+          if (st && st.stacks > 0) st.remaining = amount * this.mods.effigyDreadDurationMult;
         }
         break;
       }
@@ -1630,6 +1648,9 @@ export class Game {
       moving: this.movingTowerId === t.id,
       strain: t.strain,
       strainName: strainRegistry.get(`${t.kind}:${t.strain}`)?.name ?? null,
+      idleState: this.phase === 'wave' ? towerIdleState(t.prep) : 'preparation', // build phase = full preparation (matches the renderer's treatment)
+      idleName: IDLE_BEHAVIORS[t.kind].name,
+      idleBlurb: IDLE_BEHAVIORS[t.kind].blurb,
     };
   }
 
@@ -1948,6 +1969,10 @@ export class Game {
       pulseCd: 0,
       mutatedAt: -100, // never mutated ⇒ no grow-in / flash (a fresh, unbranched silhouette)
       movedAt: -100, // never relocated ⇒ no landing-impact FX
+      prep: 0, // idle posture (docs/TOWER-IDLE.md) — born combat-taut; eases up when unengaged
+      idleCharge: 0,
+      idleCd: 0,
+      choirDmg: 0,
       beamTarget: -1, // Resonance Beam: not channeling (inert for every non-coil kind)
       beamHeat: 0, // resonance charge (0..1)
     });
@@ -4021,6 +4046,9 @@ export class Game {
       this.masteryAccrual[t.kind].activeTime += dt; // usage signal (every deployed tower)
       if (t.strain > 1) this.strainBirthTick(t, dt); // STRAIN births (harvester / brood) — any kind
       if (def.firing === 'support') {
+        // Systolic Reserve (docs/TOWER-IDLE.md): the heart reads its NEIGHBORHOOD — a calm
+        // sense radius means preparation (the trickle mend); a threat inside snaps it taut.
+        this.towerIdlePosture(t, this.towerHasTarget(t.x, t.y, TOWER_IDLE.reactorSenseRadius, 0), dt);
         if (t.tier > 0) this.supportBranchPulse(t, dt); // branched reactor: pulse its mutations
         continue; // base economy/overcharge handled in economySystem
       }
@@ -4060,7 +4088,6 @@ export class Game {
         continue;
       }
       t.cooldown -= dt;
-      if (t.cooldown > 0) continue;
       const prog = this.towerProgress[t.kind]; // permanent per-kind buffs (stars + mastery)
       // Per-instance branch upgrade kit (TOWER-BRANCHES.md). Null when unbranched ⇒ every
       // fold below reduces to the base path ⇒ golden byte-identical (autoplay never branches).
@@ -4068,10 +4095,33 @@ export class Game {
       // Bonus math flows through the universal modifier framework (combineMult). Factored into
       // towerAttackMods so the beam path shares the EXACT math; the projectile result is bit-identical.
       const { dmgMult, rateMult } = this.towerAttackMods(t, def, prog, bk, ksDmg, runBuffDmg, resoClass);
-      // MEGA raid-fire (docs/MEGA-BOSS.md): an OPEN weak point inside this tower's reach takes
-      // absolute priority over normal targets; with none and an empty field, the tower chips the
-      // anchored body instead. Handles its own cooldown; gated ⇒ zero cost without a mega.
-      if (this.mega !== null && this.mega.deathT === 0 && this.towerMegaFire(t, def, prog, bk, dmgMult, rateMult)) continue;
+      // A ranging cast (docs/TOWER-IDLE.md — idle suppression fire) rides the normal cast path
+      // below with weakened globals; latched here so the fold + bookkeeping know.
+      let rangingCast = false;
+      if (this.mega !== null && this.mega.deathT === 0) {
+        // MEGA raid-fire (docs/MEGA-BOSS.md): an OPEN weak point inside this tower's reach takes
+        // absolute priority over normal targets; with none and an empty field, the tower chips the
+        // anchored body instead. Handles its own cooldown; gated ⇒ zero cost without a mega.
+        // A standing mega IS engagement (docs/TOWER-IDLE.md): posture reads combat, banks hold.
+        this.towerIdlePosture(t, true, dt);
+        if (t.cooldown > 0) continue;
+        if (this.towerMegaFire(t, def, prog, bk, dmgMult, rateMult)) continue;
+      } else {
+        // THE ENGAGEMENT TEST (docs/TOWER-IDLE.md §1): any living enemy inside effective reach,
+        // outside the deadzone. Unengaged towers ease into PREPARATION and run their secondary
+        // behavior instead of casting (field towers no longer pulse empty air — deliberate).
+        let effRange = def.range * (prog.rangeMult ?? 1) * (bk?.rangeMult ?? 1) * this.megaFx.towerRange;
+        if (t.kind === 'maw') effRange *= this.mods.mawCleaveRadiusMult;
+        if (t.kind === 'polyp') effRange *= this.mods.polypFieldMult;
+        const engaged = this.disableIdle || this.towerHasTarget(t.x, t.y, effRange, def.minRange ?? 0);
+        this.towerIdlePosture(t, engaged, dt);
+        if (!engaged) {
+          const row = IDLE_BEHAVIORS[t.kind];
+          if (row.verb !== 'ranging' || row.ranging === undefined || t.idleCd > 0 || t.cooldown > 0 || this.enemies.length === 0) continue;
+          rangingCast = true; // Spore Drift: a weak long-reach volley through the normal pipeline
+        }
+        if (t.cooldown > 0) continue;
+      }
       // The tower's attack is a list of reusable AbilityComponents (data), run by the
       // shared executor — no per-firing branches. The targeting profile drives which
       // enemies its projectiles pick; cooldown resets only if it acted (no target = wait).
@@ -4098,6 +4148,7 @@ export class Game {
       this.castScratch.damageMult = dmgMult;
       this.castScratch.target = null;
       this.castScratch.pierce = 0;
+      this.castStatusAmountBonus = 0;
       // STRAIN hooks (docs/STRAIN.md §framework): resolved per cast, EMPTY at Strain I (zero
       // rng, zero work ⇒ pre-strain runs byte-identical). Fragmentation rides the projectile.
       const sk = resolveStrain(t.kind, t.strain);
@@ -4113,6 +4164,26 @@ export class Game {
       this.castVenom = sk.venomMark ?? null;
       this.castEcho = sk.echoShell ?? null;
       this.castFragKnockback = sk.fragmentsKnockback === true;
+      // ── Idle-posture folds (docs/TOWER-IDLE.md §2). A RANGING cast weakens the whole volley
+      //    (suppression, not power); a banked WINDUP amplifies the OPENING cast, interpolated by
+      //    charge. Both ride the shared cast globals, so stars/branches/cards compose untouched. ──
+      const idleRow = IDLE_BEHAVIORS[t.kind];
+      let openerCharge = 0;
+      if (rangingCast && idleRow.ranging !== undefined) {
+        const rg = idleRow.ranging;
+        this.castScratch.damageMult *= rg.dmgFrac;
+        this.castRangeMult *= rg.reachMult;
+        this.castSplashMult *= rg.splashFrac;
+      } else if (!this.disableIdle && idleRow.verb === 'windup' && idleRow.open !== undefined && t.idleCharge >= TOWER_IDLE.readyAt) {
+        openerCharge = t.idleCharge;
+        const o = idleRow.open;
+        if (o.dmgMult !== undefined) this.castScratch.damageMult *= 1 + (o.dmgMult - 1) * openerCharge;
+        if (o.rangeMult !== undefined) this.castRangeMult *= 1 + (o.rangeMult - 1) * openerCharge;
+        if (o.splashMult !== undefined) this.castSplashMult *= 1 + (o.splashMult - 1) * openerCharge;
+        if (o.extraProjectiles !== undefined) this.castExtraProjectiles += Math.round(o.extraProjectiles * openerCharge);
+        if (o.pierce !== undefined) this.castScratch.pierce += Math.round(o.pierce * openerCharge);
+        if (o.statusBonus !== undefined) this.castStatusAmountBonus = o.statusBonus * openerCharge;
+      }
       let acted = runAbilities(this.actx, TOWER_ABILITIES[t.kind], this.castScratch);
       // Secondary firing organ (twin-cast): the WHOLE cast repeats once on the proc — a new
       // volley, not extra projectiles (that axis belongs to stars/branches). During an APEX
@@ -4138,7 +4209,21 @@ export class Game {
       if (bk && bk.extraAbilities.length) acted = runAbilities(this.actx, bk.extraAbilities, this.castScratch) || acted;
       if (acted) {
         if (sk.staticCharge !== undefined) this.obeliskStrainPulse(t, sk); // STRAIN static field rides the pulse
-        t.cooldown = def.fireInterval / rateMult;
+        if (rangingCast && idleRow.ranging !== undefined) {
+          // Suppression volley (docs/TOWER-IDLE.md): its own cadence; primary readiness stays
+          // hot (cooldown ≤ 0) so real engagement still opens instantly.
+          t.idleCd = idleRow.ranging.cadence / rateMult;
+          t.cooldown = 0;
+          this.idleRangingShots++;
+        } else if (!this.disableIdle && idleRow.verb === 'reserve' && idleRow.reserve !== undefined && t.idleCharge >= 1) {
+          // A gestated reserve round: the next follows at burst tempo, spending the clutch.
+          t.idleCharge -= 1;
+          t.cooldown = idleRow.reserve.burstInterval / rateMult;
+          this.idleOpeners++;
+        } else {
+          t.cooldown = def.fireInterval / rateMult;
+        }
+        if (openerCharge > 0) { t.idleCharge = 0; this.idleOpeners++; } // the windup released
         // Branch sensory signature (TOWER-BRANCHES.md §1): a muzzle spray + sound on every shot.
         // Cosmetic only (FX rng + sfx queue) ⇒ golden-safe; bk is null on the unbranched/autoplay path.
         if (bk) this.emitBranchSignature(bk, t.x, t.y - 6, t.tier);
@@ -4146,6 +4231,7 @@ export class Game {
       }
     }
     // Reset the per-cast kit so later systems (hero casts) see base values, not a tower's.
+    this.castStatusAmountBonus = 0;
     this.castFragment = null;
     this.castRicochet = null;
     this.castKnockback = 0;
@@ -4192,8 +4278,92 @@ export class Game {
     const dampenMult = this.time < t.dampenedUntil ? 1 - t.dampenFrac : 1;
     const rateMult = combineMult(this.mods.towerFireRateMult, prog.fireRateMult, ocRate, heroHaste, bk ? bk.fireRateMult : 1) * this.biomeTowerRate() * dampenMult * this.megaFx.towerRate;
     const reso = resoClass !== null && def.combatClass === resoClass ? 1 + this.mods.classResonanceBonus : 1;
-    const dmgMult = combineMult(this.mods.towerDamageMult, prog.damageMult, ocDmg, ksDmg, reso, heroDmgAura, runBuffDmg, bk ? bk.damageMult : 1) * biomeClassDmg * this.towerCorruptionMult(t);
+    // Idle-choir song (docs/TOWER-IDLE.md — Sepulchral Chorus): an unengaged choir tower grants
+    // nearby towers a small damage bonus; ×1 whenever no choir sings (golden/disableIdle path).
+    const choir = t.choirDmg > 0 ? 1 + t.choirDmg : 1;
+    const dmgMult = combineMult(this.mods.towerDamageMult, prog.damageMult, ocDmg, ksDmg, reso, heroDmgAura, runBuffDmg, bk ? bk.damageMult : 1) * biomeClassDmg * this.towerCorruptionMult(t) * choir;
     return { dmgMult, rateMult };
+  }
+
+  /** THE ENGAGEMENT TEST (docs/TOWER-IDLE.md §1): any living enemy inside `range`, outside the
+   *  deadzone. Mirrors the targeting query's reach so a tower never idles while it could act. */
+  private towerHasTarget(x: number, y: number, range: number, minRange: number): boolean {
+    const r2 = range * range;
+    const m2 = minRange * minRange;
+    for (const e of this.enemies) {
+      if (!e.alive) continue;
+      const d2 = dist2(x, y, e.x, e.y);
+      if (d2 <= r2 && d2 >= m2) return true;
+    }
+    return false;
+  }
+
+  /** IDLE POSTURE + secondary-behavior accrual (docs/TOWER-IDLE.md). Runs every tick for every
+   *  tower on every firing path: eases `prep` (the renderer's transition scalar), decays a
+   *  received choir bonus, and — while unengaged — banks windup charge / gestates reserves,
+   *  counts ranging cadence, pays trickles, and sings the choir. Preheat/tending execute inside
+   *  their bespoke systems (beam/trap/summon) but share this posture bookkeeping. Under
+   *  `disableIdle` only the choir decay runs (everything is 0 ⇒ zero work — the legacy sim). */
+  private towerIdlePosture(t: Tower, engaged: boolean, dt: number): void {
+    if (t.choirDmg > 0) t.choirDmg = Math.max(0, t.choirDmg - TOWER_IDLE.choirDecay * t.choirDmg * dt);
+    if (this.disableIdle) return;
+    if (engaged) {
+      if (t.prep > 0) t.prep = Math.max(0, t.prep - dt / TOWER_IDLE.fallTime);
+      return;
+    }
+    if (t.prep < 1) t.prep = Math.min(1, t.prep + dt / TOWER_IDLE.riseTime);
+    const row = IDLE_BEHAVIORS[t.kind];
+    switch (row.verb) {
+      case 'windup': {
+        if (t.idleCharge < 1) {
+          const time = (row.chargeTime ?? 5) / Math.max(0.1, this.mods.towerIdleChargeMult);
+          const next = Math.min(1, t.idleCharge + dt / time);
+          if (next >= 1) this.pushSfx('tprep_ready'); // the bank fills — once per idle cycle
+          t.idleCharge = next;
+        }
+        break;
+      }
+      case 'reserve': {
+        const r = row.reserve;
+        if (r !== undefined && t.idleCharge < r.volleys) {
+          const time = (row.chargeTime ?? 5) / Math.max(0.1, this.mods.towerIdleChargeMult);
+          const next = Math.min(r.volleys, t.idleCharge + (r.volleys * dt) / time);
+          if (next >= r.volleys && t.idleCharge < r.volleys) this.pushSfx('tprep_ready');
+          t.idleCharge = next;
+        }
+        break;
+      }
+      case 'ranging':
+        if (t.idleCd > 0) t.idleCd -= dt;
+        break;
+      case 'trickle': {
+        const tr = row.trickle;
+        if (tr === undefined) break;
+        if (tr.biomassPerSec !== undefined) {
+          const gain = tr.biomassPerSec * dt;
+          this.biomass += gain;
+          this.idleBiomass += gain;
+        }
+        if (tr.integrityPerSec !== undefined && this.integrity > 0 && this.integrity < this.maxIntegrity) {
+          const mend = Math.min(this.maxIntegrity - this.integrity, tr.integrityPerSec * dt);
+          this.integrity += mend;
+          this.idleMended += mend;
+        }
+        break;
+      }
+      case 'choir': {
+        const c = row.choir;
+        if (c === undefined) break;
+        const r2 = c.radius * c.radius;
+        for (const nb of this.towers) {
+          if (nb.id !== t.id && dist2(t.x, t.y, nb.x, nb.y) <= r2 && nb.choirDmg < c.dmgBonus) nb.choirDmg = c.dmgBonus;
+        }
+        break;
+      }
+      case 'preheat':
+      case 'tending':
+        break; // executed in beamTowerSystem / trapTowerSystem / roostSystem
+    }
   }
 
   /** RESONANCE BEAM (Resonance Coil, firing 'beam') — the roster's sustained-focus MELTER, and a
@@ -4264,12 +4434,23 @@ export class Game {
     const picks = this.pickTargets(t.x, t.y, range, nTargets, profile);
     if (!primary) primary = picks[0] ?? null;
     if (!primary) {
-      // Nothing in reach: the beam sputters — resonance bleeds off and the lock drops.
+      // Nothing in reach: the beam sputters — the lock drops. Under the idle contract the heat
+      // DRIFTS to the Harmonic Reserve floor (docs/TOWER-IDLE.md — decays down to it, climbs
+      // slowly up to it) so the beam re-opens pre-ramped; legacy path bleeds to zero.
+      this.towerIdlePosture(t, false, dt);
       t.beamTarget = -1;
-      t.beamHeat = Math.max(0, t.beamHeat - BEAM.heatDecayPerSec * dt);
+      if (this.disableIdle) {
+        t.beamHeat = Math.max(0, t.beamHeat - BEAM.heatDecayPerSec * dt);
+      } else {
+        const floor = IDLE_BEHAVIORS.coil.preheat?.floor ?? 0;
+        t.beamHeat = t.beamHeat > floor
+          ? Math.max(floor, t.beamHeat - BEAM.heatDecayPerSec * dt)
+          : Math.min(floor, t.beamHeat + TOWER_IDLE.preheatRisePerSec * dt);
+      }
       t.cooldown = Math.max(0, t.cooldown - dt); // keep the proc pulse ticking down
       return;
     }
+    this.towerIdlePosture(t, true, dt); // channeling = combat posture
     // Sustained focus RAMPS; a NEW lock starts cold. Fire rate speeds the ramp.
     if (primary.id !== t.beamTarget) { t.beamTarget = primary.id; t.beamHeat = 0; }
     else t.beamHeat = Math.min(1, t.beamHeat + BEAM.heatPerSec * rateMult * dt);
@@ -4457,10 +4638,14 @@ export class Game {
     // slowly. Target-agnostic: switching prey never resets it, so it rewards feeding a kill-rich lane.
     let heat = Math.max(0, (t.beamHeat ?? 0) - SIPHON.gorgeDecayPerSec * dt);
     if (primary === null) {
+      // Root Draw (docs/TOWER-IDLE.md): between meals the roots drink the soil — the trickle
+      // verb pays inside towerIdlePosture. Posture eases into preparation.
+      this.towerIdlePosture(t, false, dt);
       t.beamTarget = -1;
       t.beamX = undefined;
       t.beamY = undefined;
     } else {
+      this.towerIdlePosture(t, true, dt); // draining = combat posture
       t.beamTarget = primary.id; // the primary tether drives the main ray visual
       t.beamX = primary.x;
       t.beamY = primary.y;
@@ -4534,8 +4719,15 @@ export class Game {
   /** Seed one mine per cadence while below the tower's cap (stars/branches/cards raise it). */
   private trapTowerSystem(t: Tower, dt: number, def: TowerDef, prog: TowerMods, bk: ResolvedBranchKit | null, dmgMult: number, rateMult: number): void {
     t.cooldown -= dt;
+    // Fallow Tilling (docs/TOWER-IDLE.md): with nothing in planting reach the gardener works
+    // HARDER — +1 mine cap and a faster plant cadence. Engaged (enemies walking the garden),
+    // it returns to the base tempo. disableIdle ⇒ tending never true ⇒ legacy behavior.
+    const tending = !this.disableIdle
+      && !this.towerHasTarget(t.x, t.y, def.range * (prog.rangeMult ?? 1) * (bk?.rangeMult ?? 1), 0);
+    this.towerIdlePosture(t, !tending, dt);
+    const tend = tending ? IDLE_BEHAVIORS.sower.tending : undefined;
     if (t.cooldown > 0) return;
-    const cap = MINES.maxPerTower + (prog.extraProjectiles ?? 0) + (bk?.extraProjectiles ?? 0) + Math.max(0, Math.floor(this.mods.sowerExtraMines));
+    const cap = MINES.maxPerTower + (prog.extraProjectiles ?? 0) + (bk?.extraProjectiles ?? 0) + Math.max(0, Math.floor(this.mods.sowerExtraMines)) + (tend?.capBonus ?? 0);
     let owned = 0;
     for (const m of this.mines) if (m.towerId === t.id) owned++;
     if (owned >= cap) {
@@ -4565,7 +4757,7 @@ export class Game {
       arm: MINES.armSec, blast, damage: def.damage * dmgMult, corrosion: MINES.corrosionSec,
     });
     this.spawnParticles(px, py, PARTICLE.spore, def.color, 0.5); // the bud takes root
-    t.cooldown = def.fireInterval / rateMult;
+    t.cooldown = def.fireInterval / (rateMult * (tend?.rateMult ?? 1));
     if (bk) this.emitBranchSignature(bk, px, py, t.tier); // the garden grows in branch matter
   }
 
@@ -7186,6 +7378,11 @@ export class Game {
    *  the shared damage/range folds are baked into each hatch like a mine bakes its blast. */
   private roostSystem(t: Tower, dt: number, def: TowerDef, prog: TowerMods, bk: ResolvedBranchKit | null, dmgMult: number, rateMult: number): void {
     t.cooldown -= dt;
+    // Brood Tending (docs/TOWER-IDLE.md): a CALM leash is mothering time — eggs hatch faster
+    // (below) and perched drakes mend at double rate (drakeBrain reads the posture scalar).
+    const calm = !this.disableIdle
+      && !this.towerHasTarget(t.x, t.y, def.range * (prog.rangeMult ?? 1) * (bk?.rangeMult ?? 1), 0);
+    this.towerIdlePosture(t, !calm, dt);
     if (t.cooldown > 0) return;
     let fielded = 0;
     for (const m of this.minions) if (m.alive && m.roostId === t.id) fielded++; // ≤ MINION_CAP ⇒ bounded
@@ -7197,7 +7394,7 @@ export class Game {
     }
     const unit = ROOST.unitByTier[Math.max(0, Math.min(ROOST.unitByTier.length - 1, tier - 1))];
     this.hatchDrake(t, unit, dmgMult, (prog.rangeMult ?? 1) * (bk?.rangeMult ?? 1));
-    t.cooldown = def.fireInterval / Math.max(0.05, rateMult);
+    t.cooldown = def.fireInterval / (Math.max(0.05, rateMult) * (calm ? IDLE_BEHAVIORS.roost.tending?.rateMult ?? 1 : 1));
   }
 
   /** One drake hatches from the roost: the unit def scaled by the roost's folds — claws by the
@@ -7230,7 +7427,13 @@ export class Game {
     const homeY = m.homeY ?? m.y;
     if (m.perched === true) {
       // Mending at the perch: regenerate (star kit deepens it), hold position, rejoin once fit.
-      const regen = (def.perchRegen ?? 10) * (1 + (this.towerProgress.roost.roostRegenBonus ?? 0));
+      let regen = (def.perchRegen ?? 10) * (1 + (this.towerProgress.roost.roostRegenBonus ?? 0));
+      // Brood Tending (docs/TOWER-IDLE.md): a calm roost mothers harder — the perch mends at
+      // double rate while the leash is quiet (the roost's posture scalar IS the calm signal).
+      if (!this.disableIdle && m.roostId !== undefined) {
+        const roost = this.towers.find((x) => x.id === m.roostId);
+        if (roost !== undefined && roost.prep > 0.5) regen *= IDLE_BEHAVIORS.roost.tending?.regenMult ?? 1;
+      }
       m.hp = Math.min(m.maxHp, m.hp + regen * dt);
       if (m.hp >= m.maxHp * ROOST.reengageFrac) m.perched = false;
       if (dist(m.x, m.y, homeX, homeY) > 6) {

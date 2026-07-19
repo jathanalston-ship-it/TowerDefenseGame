@@ -529,9 +529,9 @@ graph TD
 
 ### Towers, Stars, Branches, Strain & Codex (`towers`)
 
-*Tower roster; permanent Star evolutions; in-run Branch specialization; the in-run STRAIN evolution layer (docs/STRAIN.md); the Codex.*
+*Tower roster; permanent Star evolutions; in-run Branch specialization; the in-run STRAIN evolution layer (docs/STRAIN.md); the Codex. IDLE POSTURES (docs/TOWER-IDLE.md): the three-state COMBAT/TRANSITION/PREPARATION contract — every kind carries one data-driven secondary behavior (core/towerIdle.ts registry, validator-bounded) executed in game.towerSystem; RunOptions.disableIdle reproduces the legacy sim exactly.*
 
-- **Files:** `src/core/stars.ts` · `src/core/branches.ts` · `src/core/branchTree.ts` · `src/core/strains.ts` · `src/core/conveyor.ts` · `src/ui/TowerLab.tsx` · `src/ui/TowerCodex.tsx` · `src/ui/TowerPortrait.tsx` · `src/ui/towerLabModel.ts` · `src/ui/towerCodexModel.ts` · `src/ui/StarCeremony.tsx` · `src/ui/components/BranchTree.tsx`
+- **Files:** `src/core/stars.ts` · `src/core/branches.ts` · `src/core/branchTree.ts` · `src/core/strains.ts` · `src/core/conveyor.ts` · `src/core/towerIdle.ts` · `src/ui/TowerLab.tsx` · `src/ui/TowerCodex.tsx` · `src/ui/TowerPortrait.tsx` · `src/ui/towerLabModel.ts` · `src/ui/towerCodexModel.ts` · `src/ui/StarCeremony.tsx` · `src/ui/components/BranchTree.tsx`
 - **Depends on:** `content-infra` · `shards-economy` · `campaign`
 - **Consumers — what breaks if you change this:** `engine` · `daily` · `mulligans` · `contracts`
 - **Power Score:** stars/branches feed permanent + temporary buckets

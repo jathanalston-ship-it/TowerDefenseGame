@@ -1,6 +1,6 @@
 # DIL_GRAPH.md — the Design Intelligence Layer (GENERATED — `npm run dil -- regen`)
 
-> **The project's brain** (docs/DIL.md). 895 nodes · 1684 edges, built from the live
+> **The project's brain** (docs/DIL.md). 897 nodes · 1686 edges, built from the live
 > registries + curated knowledge (src/dev/dil/). **Query it instead of searching the repo:**
 > `npm run dil -- node <id>` · `affects <id>` · `requires <id>` · `missing <kind> <edge>` ·
 > `checklist tower <kind>` · `find <text>`. Edge kinds are bidirectional (19 kinds).
@@ -8,7 +8,7 @@
 ## Gap report (the graph's own radar)
 
 - **Systems with no test:** `system:infinite`, `system:field-research`, `system:shards-economy`, `system:i18n`, `system:expeditions`, `system:nemesis`, `system:run-ui`, `system:devtools`, `system:ui-kit`
-- **Docs referenced by no system (review for retirement):** `ADVANCED-SYSTEMS.md`, `ARCHITECTURE-AUDIT.md`, `AUCTION-HOUSE.md`, `BACKLOG.md`, `BALANCE_ARCHITECTURE.md`, `BRANCH-EVOLUTION.md`, `BUGFIX-LOG.md`, `COGLOAD_REPORT.md`, `CONTENT-ROADMAP.md`, `DEV-FRAMEWORKS.md`, `DIL_GRAPH.md`, `EA-DESIGN-AUDIT.md`, `ENEMIES.md`, `ENEMY-ROSTER.md`, `GAME-STATE.md`, `HISTORY.md`, `HIVE-PRODUCTION.md`, `HIVE-SIEGE.md`, `HUB-FLOW.md`, `IDENTITY-AUDIT.md` · …24 more
+- **Docs referenced by no system (review for retirement):** `ADVANCED-SYSTEMS.md`, `ARCHITECTURE-AUDIT.md`, `AUCTION-HOUSE.md`, `BACKLOG.md`, `BALANCE_ARCHITECTURE.md`, `BRANCH-EVOLUTION.md`, `BUGFIX-LOG.md`, `COGLOAD_REPORT.md`, `CONTENT-ROADMAP.md`, `DEV-FRAMEWORKS.md`, `DIL_GRAPH.md`, `EA-DESIGN-AUDIT.md`, `ENEMIES.md`, `ENEMY-ROSTER.md`, `GAME-STATE.md`, `HISTORY.md`, `HIVE-PRODUCTION.md`, `HIVE-SIEGE.md`, `HUB-FLOW.md`, `IDENTITY-AUDIT.md` · …25 more
 
 ## Indexes
 
@@ -817,7 +817,7 @@ _at: src/core/game.ts, src/core/combat.ts, src/core/status.ts, src/core/targetin
   - requiredBy ← `system:onboarding`
   - requiredBy ← `system:run-ui`
   - requiredBy ← `system:bosses`
-  - _…211 more (query: `npm run dil -- node system:engine`)_
+  - _…212 more (query: `npm run dil -- node system:engine`)_
 
 ### `system:content-infra` — Content Infrastructure
 
@@ -1157,9 +1157,9 @@ _at: src/core/arena.ts, src/core/arenaPass.ts, src/core/arenaAi.ts, src/core/are
 
 ### `system:towers` — Towers, Stars, Branches, Strain & Codex
 
-Tower roster; permanent Star evolutions; in-run Branch specialization; the in-run STRAIN evolution layer (docs/STRAIN.md); the Codex.
+Tower roster; permanent Star evolutions; in-run Branch specialization; the in-run STRAIN evolution layer (docs/STRAIN.md); the Codex. IDLE POSTURES (docs/TOWER-IDLE.md): the three-state COMBAT/TRANSITION/PREPARATION contract — every kind carries one data-driven secondary behavior (core/towerIdle.ts registry, validator-bounded) executed in game.towerSystem; RunOptions.disableIdle reproduces the legacy sim exactly.
 
-_at: src/core/stars.ts, src/core/branches.ts, src/core/branchTree.ts, src/core/strains.ts, src/core/conveyor.ts, src/ui/TowerLab.tsx, src/ui/TowerCodex.tsx, src/ui/TowerPortrait.tsx, src/ui/towerLabModel.ts, src/ui/towerCodexModel.ts, src/ui/StarCeremony.tsx, src/ui/components/BranchTree.tsx_
+_at: src/core/stars.ts, src/core/branches.ts, src/core/branchTree.ts, src/core/strains.ts, src/core/conveyor.ts, src/core/towerIdle.ts, src/ui/TowerLab.tsx, src/ui/TowerCodex.tsx, src/ui/TowerPortrait.tsx, src/ui/towerLabModel.ts, src/ui/towerCodexModel.ts, src/ui/StarCeremony.tsx, src/ui/components/BranchTree.tsx_
 
   - dependsOn → `system:content-infra`
   - dependsOn → `system:shards-economy`
@@ -1174,6 +1174,7 @@ _at: src/core/stars.ts, src/core/branches.ts, src/core/branchTree.ts, src/core/s
   - extends → `system:engine` — DRACONIC pair (2026-07, TOWERS.md §draconic): TowerFiring gained 'arc' (Wyrmwing Glaive — a RETURNING blade: out to effective range piercing everything, hitIds clears at the turnaround, dies back at the origin; pure kinematics in the projectile step, extra-projectile channels = extra blades, pierce mutators are no-ops for it) and 'summon' (Drake Roost — game.roostSystem incubates a standing brood; damage/rate/range folds bake into each hatch like mine plant-time stats). Both LOCKED by default (unlockStage 22/26 + shards) ⇒ goldens byte-identical without re-pin
   - consumes → `system:engine` — HERO-AI MINIONS (roost drakes): MinionDef.heroAI dispatches minionSystem to game.drakeBrain (deepest-threat + elites-first targeting, rally leash around homeX/homeY, retreat-to-perch < ROOST.retreatFrac with perchRegen × (1 + towerProgress.roost.roostRegenBonus), re-engage at reengageFrac) — wisp/harvester/broodling never reach it (flag-gated ⇒ byte-identical). Unit TIER climbs ROOST.unitByTier via the 'brood' star/branch grant vocabulary (roostBroodBonus/roostTierBonus/roostRegenBonus on ResolvedStarKit) — upgrades improve the UNITS, functionally AND visually (drakeling→drake→wyrmspawn defs)
   - references → `system:engine` — REACTION TRIO (2026-07, TOWERS.md §reactionTrio — Miasma Lung/Chitin Bell/Acid Lancet): the first roster growth with ZERO new sim verbs — all three compose TowerDef.abilities (aura+Infection fog · aura+Resonance react-slam · homing 130-dmg cull + Corrosion + minRange 120 deadzone). CAVEAT: a firing:'field' def WITHOUT explicit abilities inherits the DERIVED Disruption pulse kit (deriveTowerAbilities) — a field tower with its own identity MUST author abilities. Lung=second Viral, Bell=second Resonant (the two 1-tower class gaps closed); all double-gated (18/240 · 24/380 · 34/560) ⇒ goldens byte-identical. Adding a tower forces 6 new Mulligan catalog pieces (CATALOG_PER_TOWER contract, 2 per category)
+  - extends → `system:engine` — IDLE POSTURES (TOWER-IDLE.md): every tower holds ONE of three states — COMBAT (targets engageable) / PREPARATION (secondary behavior running) / TRANSITION (the continuous `prep` scalar 0..1 on Tower IS the animation — renderer eases from it, nothing snaps). ONE engagement test per tick (towerHasTarget: living enemy inside effective reach, outside deadzone — field towers no longer pulse empty air, DELIBERATE); unengaged towers run their IDLE_BEHAVIORS row (core/towerIdle.ts, validator-bounded, exactly one per kind): windup (banked opener via the cast globals — dmg/range/splash/pierce/projectiles/castStatusAmountBonus), reserve (gestated burst volleys), ranging (parasite Spore Drift — weak 2×-reach suppression through the NORMAL cast pipeline: mastery/cues/reactions inherited), preheat (coil heat floors at 0.35), tending (sower cap+rate, roost hatch+perch-regen — the roost tower prep>0.5 IS the drake-brain calm signal), trickle (reactor mends integrity, siphon draws biomass), choir (ossuary +5% dmg to towers in 250, decaying choirDmg on the RECEIVER). Payoff magnitude scales INVERSELY with range band (short-reach idles most ⇒ biggest openers; the long-range meta corrective — no range nerfs). RunOptions.disableIdle reproduces the pre-idle sim BYTE-EXACTLY (pinned: golden.test GOLDEN_LEGACY block) — goldens re-pinned deliberately (wave/kills/won identical every seed; integrity only improved). RunModifiers.towerIdleChargeMult is the future card/gear hook. Mechanism suites (strains/strainVerbs/sower/finaldefense/expansion) run legacy fixtures; towerIdle.test.ts owns the layer
   - requiredBy ← `system:engine`
   - requiredBy ← `system:daily`
   - requiredBy ← `system:mulligans`
@@ -1186,7 +1187,7 @@ _at: src/core/stars.ts, src/core/branches.ts, src/core/branchTree.ts, src/core/s
   - contains ← `tower:maw`
   - contains ← `tower:chrysalis`
   - contains ← `tower:effigy`
-  - _…36 more (query: `npm run dil -- node system:towers`)_
+  - _…37 more (query: `npm run dil -- node system:towers`)_
 
 ### `system:mastery` — Mastery / Adaptation
 
@@ -3582,7 +3583,7 @@ _at: site/guides.ts → /guides/live-events/_
 - `achievement:arena_crown` — Claim Arena Pass level 100 — a permanently arena-exclusive strain is yours forever. _(partOf `system:achievements`, rewards `currency:genome-cores`, references `system:arena`)_
 - `achievement:arena_perennial` — Close three Arena seasons with a record on the books. _(partOf `system:achievements`, rewards `currency:genome-cores`, references `system:arena`)_
 
-## Documentation (186)
+## Documentation (187)
 
 - `doc:ACCOUNT-LEVEL.md` — project documentation _(documents `system:account-level`)_
 - `doc:ACCOUNTS.md` — project documentation _(documents `system:accounts`)_
@@ -3751,6 +3752,7 @@ _at: site/guides.ts → /guides/live-events/_
 - `doc:STYLE-GUIDE.md` — project documentation _(documents `system:ui-kit`)_
 - `doc:TOWER-BRANCHES.md` — project documentation _(documents `system:towers`)_
 - `doc:TOWER-CODEX.md` — project documentation _(documents `system:towers`)_
+- `doc:TOWER-IDLE.md` — project documentation
 - `doc:TOWER-LAB.md` — project documentation _(documents `system:towers`)_
 - `doc:TOWER-MANAGEMENT.md` — project documentation
 - `doc:TOWER-STARS.md` — project documentation _(documents `system:towers`)_
@@ -3771,7 +3773,7 @@ _at: site/guides.ts → /guides/live-events/_
 - `doc:VOWS.md` — project documentation _(documents `system:prestige`)_
 - `doc:WEBSITE.md` — project documentation _(documents `system:field-research`, documents `system:website`)_
 
-## Tests (295)
+## Tests (296)
 
 - `test:src/audio/music.test.ts` — automated validation _(tests `system:audio`)_
 - `test:src/changelog/classify.test.ts` — automated validation _(tests `system:chronicle`)_
@@ -3929,6 +3931,7 @@ _at: site/guides.ts → /guides/live-events/_
 - `test:src/core/summon.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/core/targeting.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/core/targetlast.test.ts` — automated validation _(tests `system:engine`)_
+- `test:src/core/towerIdle.test.ts` — automated validation _(tests `system:towers`)_
 - `test:src/core/towerManagement.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/core/towers.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/core/tutorial.test.ts` — automated validation _(tests `system:onboarding`)_

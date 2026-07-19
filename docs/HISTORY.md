@@ -346,3 +346,4 @@
 - `d44e891` **[UX]** Menu UX overhaul: wayfinding frame, nav history, audit-driven polish
 - `0fe4247` **[Gameplay]** Event Exchange Shops: themed storefronts, purchase limits, forever ledger (save v52)
 - `5466dce` **[Gameplay]** Two-state cosmetics: Specimen Vault, claiming, permanent bonuses (save v53)
+- `0d0ab92` **[UI]** Cosmetic provenance & collector prestige: derived eras/badges/lore, museum Collector Panel, honest census seams

@@ -4,138 +4,133 @@
 > before committing. Read together with docs/PROJECT_STATUS.md and the latest
 > docs/VALIDATION_REPORT.md. Next session: start at docs/PROJECT_MANIFEST.md.
 
-- **Generated:** 2026-07-19 09:35 UTC · **Diff scope:** working tree vs HEAD
-- **Branch:** claude/zen-hawking-rh1gxl · **HEAD:** 5466dce
+- **Generated:** 2026-07-19 16:55 UTC · **Diff scope:** working tree vs HEAD
+- **Branch:** claude/zen-hawking-rh1gxl · **HEAD:** 0d0ab92
 
 ## Summary of work completed
 
-COSMETIC PROVENANCE & COLLECTOR PRESTIGE (v53 layer, docs/COSMETICS.md §provenance):
-every cosmetic now resolves a **derived museum record** — release era, availability
-(retired/reissued/limited/available), 13 truthful legacy badges, curated Hive Archives
-lore, and null-provider census/market seams — joined by `meta.collectorView(id)` and
-presented in the Specimen Vault's new **Collector Panel** (card tap). The one thing the
-next session must know: **nothing here is authored per item and the client NEVER
-fabricates network numbers** — census/market return null until a server installs
-providers (TRADING-PREP.md §7; the future census source is the new durable `cos_claim`
-analytics row, emitted ONLY in SpecimenVault's claim handler — the state layer stays
-telemetry-free). Also fixed in passing: BOTH vault overlays now render through the
-Popup portal — the screen-transition transform made `.screen` the fixed-position
-containing block, off-centering every overlay on short screens.
+TOWER IDLE POSTURES (docs/TOWER-IDLE.md) — "a tower should never feel asleep." Every
+tower now carries a continuous `prep` scalar (0..1) driven by a per-tick engagement
+test; the renderer eases ALL idle/combat transition motion from it, and each of the
+22 kinds has an identity secondary behavior from 7 data-driven verbs in
+`src/core/towerIdle.ts` (banked openers, gestated volleys, Spore Drift ranging shots,
+beam preheat, trap/brood tending, biomass/integrity trickle, damage choir).
+Long-range towers bank slower for smaller payoffs (anti-range-meta corrective, no
+range nerfs). The one thing the next session must know: **`RunOptions.disableIdle`
+reproduces the pre-idle sim byte-exactly** (pinned by golden.test.ts GOLDEN_LEGACY);
+the live GOLDEN block was deliberately re-pinned (wave/kills/won identical on all six
+seeds, integrity only improved or held). Measured via the new `npm run sim:idle`:
+Σintegrity 725 vs 701 legacy, short-range damage share held/rose, mortar share flat.
 
 ## Files modified
 
-- Source (8): `src/changelog/releases.gen.ts`, `src/core/analyticsEvents.ts`, `src/core/wardrobe.ts`, `src/dev/dil/knowledge.ts`, `src/dev/systemRegistry.ts`, `src/index.css`, `src/state/meta.ts`, `src/ui/SpecimenVault.tsx`
-- Tests (2): `src/core/wardrobe.test.ts` (+5 'provenance & collector prestige' laws), `src/state/wardrobeMeta.test.ts` (+3 'collectorView' joins)
-- Docs (9): `docs/ANALYTICS.md`, `docs/COGLOAD_REPORT.md`, `docs/COSMETICS.md` (§provenance), `docs/DEPENDENCY_GRAPH.md`, `docs/DIL_GRAPH.md`, `docs/GAME-STATE.md`, `docs/HISTORY.md`, `docs/TRADING-PREP.md` (§7 census/market contract + stale cosmetic-unlock bullet corrected), `docs/VALIDATION_REPORT.md`
+- Source (16): `src/audio/sound.ts`, `src/changelog/releases.gen.ts`, `src/core/cards.ts`, `src/core/config.ts`, `src/core/effectLanguage.ts`, `src/core/game.ts`, `src/core/sim.testutil.ts`, `src/core/types.ts`, `src/dev/dil/knowledge.ts`, `src/dev/systemRegistry.ts`, `src/index.css`, `src/render/renderer.ts`, `src/render/towerEvolution.ts`, `src/ui/Inspector.tsx`, `src/ui/TowerCodex.tsx`, `src/core/towerIdle.ts`
+- Tests (8): `src/core/expansion.test.ts`, `src/core/finaldefense.test.ts`, `src/core/golden.test.ts`, `src/core/sower.test.ts`, `src/core/strainVerbs.test.ts`, `src/core/strains.test.ts`, `src/render/towerEvolution.test.ts`, `src/core/towerIdle.test.ts`
+- Docs (8): `docs/COGLOAD_REPORT.md`, `docs/DEPENDENCY_GRAPH.md`, `docs/DIL_GRAPH.md`, `docs/GAME-STATE.md`, `docs/HISTORY.md`, `docs/TOWERS.md`, `docs/VALIDATION_REPORT.md`, `docs/TOWER-IDLE.md`
+- Also: `package.json` (`sim:idle` script), `scripts/sim-tower-idle.ts` (balance instrument)
 
 ## Systems affected (from the dependency registry)
 
-- **cosmetics** — `src/core/wardrobe.ts` (eras/availability/badges/HIVE_ARCHIVES/census+market seams + wardrobeProblems provenance laws), `src/ui/SpecimenVault.tsx` (CollectorPanel + Popup-portaled overlays + `cos_claim` emit)
-- **meta-store** — `src/state/meta.ts` (`CollectorView` interface + `meta.collectorView` read-model; no state mutation added)
-- **analytics** — `src/core/analyticsEvents.ts` (ONE new row: `cos_claim`, dim=item id, durable)
-- **dev-registry** — knowledge edge (provenance layer) + cosmetics purpose note; graphs regenerated
-- **chronicle** — `releases.gen.ts` regen (previous batch's commit chronicled)
-- Consumer ring (verify, unchanged): battle-pass/quests/daily-login/liveops/collection — no grant-path or claim-path behavior moved this batch
+- **audio** — `src/audio/sound.ts`
+- **chronicle** — `src/changelog/releases.gen.ts`
+- **content-infra** — `src/core/config.ts`, `src/core/types.ts`
+- **dev-registry** — `src/dev/dil/knowledge.ts`, `src/dev/systemRegistry.ts`
+- **engine** — `src/core/game.ts`, `src/core/sim.testutil.ts`
+- **gene-cards** — `src/core/cards.ts`, `src/core/effectLanguage.ts`
+- **rendering** — `src/render/renderer.ts`, `src/render/towerEvolution.ts`
+- **run-ui** — `src/ui/Inspector.tsx`
+- **towers** — `src/ui/TowerCodex.tsx`, `src/core/towerIdle.ts`
+- Consumer ring (verify, unchanged): arena, biomes, boss-rush, bosses, campaign, collection, contracts, currencies, cutscenes, daily, difficulty, doctrines, equipment, evolution-hq, hero-cinematics, hero-symbiotes, heroes, infinite, living-battlefield, loot, mastery, mega-bosses, meta-store, mulligans, nemesis, nucleus, onboarding, online-foundation, pil, power, premium, website
 
 ## Power Score changes
 
-None. The provenance layer is read-only derivation: `collectorView` reads existing
-state, badges/eras/lore are pure functions of the catalog, and census/market are null
-seams. No bonus values, lanes, folds, or weights moved — pinned unchanged by the
-existing wardrobe.test saturation laws and wardrobeMeta.test power test (2557/2557
-suite green).
+None. Idle postures are in-run flavor of towers the account already owns — account
+Power stands still by design (docs/TOWER-IDLE.md §7); the untouched power suite pins
+it. The only new modifier channel is `RunModifiers.towerIdleChargeMult` (default 1,
+registered in effectLanguage FIELD_VOCAB) — a run-scoped hook for future cards/gear,
+not an account-power source.
 
 ## UI changes
 
-- **Collector Panel** (SpecimenVault): tapping any vault card opens the museum page —
-  static rarity-lit specimen plate, badge chips (glyph+label, desc tooltips), HIVE
-  ARCHIVES lore shelf (omitted when no entry), 9 provenance ledger rows (Released
-  during / First introduced / Originally earned by / Availability / Currently owned by /
-  Network census / Auction record / Collection status / Auction eligible — census and
-  market rows show the honest "— awaiting network census / market data" placeholders
-  pre-AH), bonus line, your-copy history (acquired date · source · season · transfers
-  from the provenance stamp), claim CTA (unclaimed only — same `claim()` handler as the
-  card), family completion meter footer. Zero ambient animators (cogload attn 0 holds);
-  `svCereIn` reused as the one finite entrance.
-- **Popup-portal fix**: CollectorPanel AND ClaimCeremony now render through
-  `components/Popup.tsx` — verified headlessly (panel geometry measured: was centering
-  against the transformed `.screen` box, top clipped off-viewport; now viewport-centered).
-- Headless probe (scratchpad probe-collector.ts): card tap → full museum page → claim
-  from panel → ceremony stacks above → page flips to bound in place (family 0/9 → 1/9,
-  Auction eligible Yes → No — bound, claim CTA gone). mobilecheck CLEAN (31 screens),
-  cogload in budget, uiStandards-conformant fonts/tracking/radii.
+Surfaces in the blast radius: `MusicDebug (Settings dev console)`, `(audible)`, `App (UpdateBriefing popup)`, `GameView`, `Hud`, `Toolbar`, `BuildControls`, `Inspector`, `BuildPanel`, `GeneArchive`, `DraftModal`, `gene splash`, `the battlefield itself`, `Results`, `ALL`, `TowerLab`, `TowerCodex`, `StarCeremony`, `tower rail`
+
+- **Battlefield (renderer)**: posture breathing (period/amplitude ride `prep`), a
+  filling preparation ring + ready halo on banking towers, work-motes on giving
+  verbs, choir filaments between the Ossuary and its beneficiaries. No layout change.
+- **Inspector**: new `mut-idle` state chip (COMBAT/TRANSITION/PREPARATION + behavior
+  name, blurb tooltip) + a behavior line in Host vitals; outside the wave phase the
+  chip reads PREPARATION to match the renderer's build-phase treatment.
+- **TowerCodex**: `.codex-idle` identity line (behavior name + blurb) per tower.
+- **Audio**: `tprep_ready` quiet cue when a bank fills (once per idle cycle).
+- Headless coverage: live probe (scratchpad probe-idle.ts) entered a real run,
+  confirmed chip PREPARATION during build → COMBAT on engagement → back to
+  PREPARATION post-wave, zero pageerrors; mobilecheck CLEAN, cogload budgets hold.
 
 ## Documentation changes
 
-`docs/COSMETICS.md` gained §provenance (eras/availability/badges/archives/census/
-collectorView/panel + validator laws). `docs/TRADING-PREP.md` gained §7 (census +
-market-record contract: shapes, server sources of truth incl. the `cos_claim` census
-lane, the future GET /api/census/cosmetics endpoint) and its Known-limitations bullet
-now records that cosmetics left the unlock-transfer model in v53 (instances are the
-tradable unit). `docs/ANALYTICS.md` taxonomy line lists `cos_claim`. GAME-STATE wardrobe
-summary gained the provenance paragraph (anchor stays `CURRENT_VERSION = 53`).
-DIL edge added (system:cosmetics provides system:online-foundation — the provenance
-note) + DIL_GRAPH/DEPENDENCY_GRAPH regenerated. All other registry-listed docs: no
-change needed (blast-radius listing only).
+- Updated this batch: `docs/TOWER-IDLE.md` (NEW — canonical; incl. §9 measured
+  balance findings), `docs/TOWERS.md` (idle-postures pointer), `docs/GAME-STATE.md`
+  (towers row + IDLE POSTURES summary), `docs/DEPENDENCY_GRAPH.md` +
+  `docs/DIL_GRAPH.md` (regen), `docs/HISTORY.md` (Chronicle), `docs/VALIDATION_REPORT.md`,
+  `docs/COGLOAD_REPORT.md`.
+- The wider registry list above: no change needed — no save format, no Power scale,
+  no mode/economy behavior moved; tower-facing docs point at TOWER-IDLE.md via
+  TOWERS.md rather than duplicating it.
 
 ## Save changes
 
-None — save layer untouched. The entire layer derives from the existing v53 shape
-(catalog + `wardrobe.owned/inventory` + the provenance ledger); `CURRENT_VERSION`
-stays 53 and no sanitizer moved.
+None — save layer untouched. Tower idle fields (`prep`, `idleCharge`, `idleCd`,
+`choirDmg`) are run-temporary on the Tower entity, never persisted; CURRENT_VERSION
+stays 53.
 
 ## Known edge cases
 
-- **Fixed overlays under screen transitions**: any `position: fixed` overlay rendered
-  INSIDE `.screen` centers against the screen box, not the viewport (the transition
-  transform persists as the containing block). Always return overlays through
-  `components/Popup.tsx` — this batch retrofitted both vault overlays; check any new
-  screen dialog against this.
-- **Hand-injected instances read "legacy"**: instances that skip `receiveCosmetic`
-  (e.g. probe-seeded saves) get honest `legacy` reconcile stamps (at: 0 renders
-  "acquired before the ledger"). Real deliveries carry source/at — claiming carries
-  them into the permanent bound stamp (probe-verified: "Pollen Bazaar · Season 1").
-- **The unclaimed view's stamp** is the NEWEST instance's; older dupes keep their own
-  stamps until claimed/pruned. The bound stamp always wins once claimed.
-- **`introducedLabel` month parsing** reads the era version tag (`v2026.07` → July
-  2026) and falls back to the year alone for tags without a month — a future era with
-  a non-standard version never crashes the panel.
-- **Availability wording**: battlepass/event/quest/login-drop sources read "Limited
-  distribution window" even while their window is live — the availability derivation
-  is about source class, not live calendar state (deliberate; the calendar is liveops').
+- **Field/aura towers no longer pulse empty air**: the engagement test gates casts on
+  a living enemy in reach outside the deadzone. Deliberate (documented in
+  TOWER-IDLE.md §1) — but any future test that counts aura ticks on an empty board
+  will read 0; use `{ disableIdle: true }` for legacy choreography.
+- **Mechanism suites pin their own choreography with `disableIdle: true`**
+  (strainVerbs, strains, sower, finaldefense, expansion — rationale comments at each
+  site). New mechanism tests should follow that pattern; the composed whole is pinned
+  by the goldens and towerIdle.test.ts.
+- **Mortar cannot use the 'ranging' verb** (its 960 range covers the lane; its only
+  idle moments have no legal ranging target either) — that's why parasite owns Spore
+  Drift and mortar is windup. Don't "fix" mortar back to ranging.
+- **Ossuary choir decays one tick between grants** — steady-state receiver `choirDmg`
+  sits just under the configured bonus (towerIdle.test.ts asserts the band, not
+  equality).
+- **The Inspector chip is phase-aware**: outside `phase === 'wave'` it reports
+  PREPARATION regardless of the scalar (matches the renderer's build-phase
+  treatment). Tests asserting `idleState` mid-build must expect 'preparation'.
 
 ## Remaining technical debt
 
-- `RETIRED_ITEMS`/`REISSUED_ITEMS`/`BADGE_OVERRIDES`/`ERA_OVERRIDES` are empty —
-  the curation knobs exist with validator laws but no rows are authored yet (correct
-  for a launch catalog that is all first-edition genesis).
-- The census/market endpoint (`GET /api/census/cosmetics`) is documented but not
-  implemented — the seams stay null until the Auction House server work lands.
-- CollectorPanel shows season only via the your-copy stamp; a battle-pass season NAME
-  row (from `def.source.season`) was folded into "Originally earned by" (sourceLabel
-  already names the season) — revisit only if players ask for a dedicated row.
+- The sim:idle instrument's slot-order placement leaves maw with 0 engagements on
+  the mixed board (placement artifact, identical in both A/B arms — the verdict is
+  unaffected). A follow-up could place per-kind boards for per-verb uptime curves.
+- `TOWER_IDLE` naming: plain `IDLE` in config.ts belongs to the Idle Harvest system —
+  the doc calls this out, but the near-collision remains a trap for grep-driven edits.
 
 ## Recommended next tasks
 
-1. Auction House cosmetic listings — `wardrobe.inventory` instances into the AH
-   surface (`src/ui/AuctionHouse.tsx`), tradable = unclaimed instance, settle via
-   `recordTransfer` + instance move; the census endpoint (TRADING-PREP.md §7) can land
-   with it and light up the panel's network rows.
-2. Curate the first BADGE_OVERRIDES/lore expansion — e.g. anniversary rows when the
-   first anniversary era ships (pure data, `wardrobeProblems` bounds it).
-3. Vault polish carried from last batch — bulk-claim ("Bind all commons"), family
-   shelf headers in the grid.
+1. **Gene cards/equipment that ride the new hook** — author cards multiplying
+   `towerIdleChargeMult` (entry: `src/core/cards.ts` catalog + effectLanguage
+   keyword 'idle preparation speed' already registered).
+2. **Per-verb achievement/statistics surfacing** — run counters exist on Game
+   (`idleOpeners`, `idleRangingShots`, `idleBiomass`, `idleMended`); wire into
+   Results and the achievements registry (entry: `src/core/achievements.ts`,
+   `src/ui/Results.tsx`).
+3. **Arena/PvP parity check** — basilisk/ossuary rows exist and validate, but no
+   arena-side balance measurement was run (entry: `scripts/sim-arena-*` harnesses).
 
 ## Future expansion hooks
 
-- `ERA_OVERRIDES` / `COSMETIC_ERAS` (`src/core/wardrobe.ts`) — a future content wave
-  is ONE era row + per-item override rows; `cosmeticEra` resolves everything else.
-- `RETIRED_ITEMS`/`REISSUED_ITEMS` sets — retirement/reissue is a data decision;
-  `cosmeticAvailability` + badges + the panel react automatically.
-- `setCosmeticCensusProvider`/`setCosmeticMarketProvider` — the boot sequence installs
-  both from one fetch when the census endpoint ships; every UI surface lights up with
-  zero component changes.
-- `CollectorView` (`src/state/meta.ts`) — the AH item-inspection page can reuse the
-  same read-model verbatim (it already carries tradable counts + the stamp).
-- `cos_claim` durable row — server-side aggregation per item id IS the census
-  `claimed` column; no additional client instrumentation needed.
+- `src/core/towerIdle.ts` — `IdleBehaviorDef` rows are the single tuning surface;
+  `towerIdleProblems()` bounds any new row (add a verb by extending `TowerIdleVerb`
+  + one accrual case in `game.towerIdlePosture`).
+- `src/core/cards.ts` — `RunModifiers.towerIdleChargeMult` (default 1) is the
+  card/equipment/strain seam; folded at every `chargeTime` read.
+- `src/core/game.ts` — `RunOptions.disableIdle` (dev/instrument only) is the
+  permanent legacy A/B seam for balance instruments.
+- `src/core/types.ts` — `SelectedPlacedTower.idleState/idleName/idleBlurb` feed any
+  future tooltip/HUD surface without new sim reads.

@@ -162,6 +162,9 @@ function sTfThud(i: number, vf = 1): void { tone((120 - i * 6) * vf, 0.13, 'sine
 function sTfWet(i: number, vf = 1): void { noise(0.05, 0.06, (1400 - i * 120) * vf, 500 * vf); tone((300 - i * 15) * vf, 0.05, 'triangle', 0.045, 170 * vf); } // wet organic blip
 function sTfZap(i: number, vf = 1): void { tone((640 + i * 45) * vf, 0.07, 'sawtooth', 0.05, 1500 * vf); noise(0.03, 0.03, 5200 * vf); } // psionic zap
 function sTfTing(i: number, vf = 1): void { tone((1400 - i * 60) * vf, 0.09, 'sine', 0.045, 1900 * vf); tone((2050 - i * 80) * vf, 0.06, 'sine', 0.025); } // crystalline ting
+// IDLE READY (docs/TOWER-IDLE.md §6): a tower's preparation bank fills — a very quiet, wet
+// two-note swallow (once per idle cycle by construction; `i` staggers simultaneous banks).
+function sPrepReady(i: number): void { tone(340 + i * 30, 0.11, 'sine', 0.026, 520); tone(520 + i * 40, 0.08, 'sine', 0.018, 760); }
 /** Phenotype sfx variants → pitch factors (audible identity shift on the same synth). */
 const VARIANT_PITCH: Record<string, number> = { deep: 0.72, crisp: 1.32, wet: 0.86, aetheric: 1.16 };
 
@@ -540,6 +543,7 @@ export const audio = {
         case 'tfire_wet': for (let i = 0; i < Math.min(3, n); i++) sTfWet(i, vf); break;
         case 'tfire_zap': for (let i = 0; i < Math.min(3, n); i++) sTfZap(i, vf); break;
         case 'tfire_ting': for (let i = 0; i < Math.min(2, n); i++) sTfTing(i, vf); break;
+        case 'tprep_ready': for (let i = 0; i < Math.min(2, n); i++) sPrepReady(i); break;
         case 'status_dot': for (let i = 0; i < Math.min(2, n); i++) sStatusDot(i); break;
         case 'status_control': for (let i = 0; i < Math.min(2, n); i++) sStatusControl(i); break;
         case 'shred': for (let i = 0; i < Math.min(2, n); i++) sShred(); break;

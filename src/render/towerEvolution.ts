@@ -599,7 +599,7 @@ export function drawBranchPortrait(
 ): void {
   const tw: Tower = {
     id: 0, kind: 'needle', x, y, slot: 0, cooldown: 0, overcharged: false, bornAt: -100,
-    disabledUntil: 0, dampenedUntil: 0, dampenFrac: 0, branchId, tier, strain: 1, strainCd: 0, pulseCd: 0, mutatedAt: -100, movedAt: -100, beamTarget: -1, beamHeat: 0,
+    disabledUntil: 0, dampenedUntil: 0, dampenFrac: 0, branchId, tier, strain: 1, strainCd: 0, pulseCd: 0, mutatedAt: -100, movedAt: -100, prep: 0, idleCharge: 0, idleCd: 0, choirDmg: 0, beamTarget: -1, beamHeat: 0,
   };
   drawTowerEvolution(ctx, tw, now, r, BRANCH_EVOLUTION[branchId]?.color ?? '#ffffff', 0);
 }

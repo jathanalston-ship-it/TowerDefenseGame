@@ -31,7 +31,7 @@ describe('double gate (docs/TOWERS.md §expansion)', () => {
 
 describe('the trap loop', () => {
   it('seeds mines up-lane on its cadence, up to its cap, and they detonate with Corrosion', () => {
-    const g = new Game(7, NO_META, undefined, 'ravager', undefined, { unlocked: ALL_TOWERS });
+    const g = new Game(7, NO_META, undefined, 'ravager', undefined, { unlocked: ALL_TOWERS, disableIdle: true });
     g.god = true;
     g.debugAddBiomass(2000);
     let placed = false;
@@ -64,7 +64,7 @@ describe('the trap loop', () => {
   });
 
   it('a sold Sower withers its whole field (no orphaned mines)', () => {
-    const g = new Game(3, NO_META, undefined, 'ravager', undefined, { unlocked: ALL_TOWERS });
+    const g = new Game(3, NO_META, undefined, 'ravager', undefined, { unlocked: ALL_TOWERS, disableIdle: true });
     g.god = true;
     g.debugAddBiomass(2000);
     for (const s of forwardSlots) if (g.placeTower('sower', s.x, s.y)) break;
@@ -78,7 +78,7 @@ describe('the trap loop', () => {
 
   it('is fully deterministic for a fixed seed', () => {
     const run = (): string => {
-      const g = new Game(42, NO_META, undefined, 'ravager', undefined, { unlocked: ALL_TOWERS });
+      const g = new Game(42, NO_META, undefined, 'ravager', undefined, { unlocked: ALL_TOWERS, disableIdle: true });
       g.god = true;
       g.debugAddBiomass(2000);
       for (const s of forwardSlots) if (g.placeTower('sower', s.x, s.y)) break;

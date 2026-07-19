@@ -51,7 +51,30 @@ import { autoplay } from './sim.testutil';
 // the run structure held exactly: **wave (12), kills (196), and the 'won' outcome are IDENTICAL
 // on every seed** — only integrity/biomass moved (rhythm shifts kill timing at the margins; three
 // seeds kept their integrity to the point). Any FURTHER drift is unintended.
+// Re-pinned 2026-07 for TOWER IDLE POSTURES (docs/TOWER-IDLE.md): every tower now runs a
+// SECONDARY BEHAVIOR while nothing is engageable — a DELIBERATE gameplay change for the whole
+// roster ("a tower should never feel asleep"). Autoplay fields needle/mortar/reactor, so the
+// drift comes from three behaviors: Spindle Tension (needle's charged opening volley), Ranged
+// Solution (mortar's heavier plotted opener) and Systolic Reserve (the reactor mending the
+// Hive between threats). The run structure held exactly: **wave (12), kills (196), and the
+// 'won' outcome are IDENTICAL on every seed** — integrity only IMPROVED or held (openers land
+// earlier kills, the reactor mends chip damage; seeds 42/777/12345 gained 9–12) and biomass
+// moved a few percent from kill-timing shifts. The `disableIdle` block below pins the ENTIRE
+// pre-idle baseline — the layer is proven cleanly gated, so any drift THERE is a real
+// regression in untouched sim code. Any FURTHER drift here is unintended.
 const GOLDEN: Record<number, { wave: number; kills: number; integrity: number; biomass: number; phase: string }> = {
+  1: { wave: 12, kills: 196, integrity: 145, biomass: 10194, phase: 'won' },
+  7: { wave: 12, kills: 196, integrity: 215, biomass: 9241, phase: 'won' },
+  42: { wave: 12, kills: 196, integrity: 170, biomass: 8480, phase: 'won' },
+  777: { wave: 12, kills: 196, integrity: 170, biomass: 9343, phase: 'won' },
+  2024: { wave: 12, kills: 196, integrity: 100, biomass: 13477, phase: 'won' },
+  12345: { wave: 12, kills: 196, integrity: 100, biomass: 9455, phase: 'won' },
+};
+
+/** The PRE-IDLE baseline (the pins as they stood before TOWER-IDLE.md), reproduced exactly
+ *  under RunOptions.disableIdle — the isolation contract: the idle layer, switched off, is
+ *  byte-invisible. If THIS block drifts, untouched sim code changed. */
+const GOLDEN_LEGACY: Record<number, { wave: number; kills: number; integrity: number; biomass: number; phase: string }> = {
   1: { wave: 12, kills: 196, integrity: 145, biomass: 10131, phase: 'won' },
   7: { wave: 12, kills: 196, integrity: 212, biomass: 9291, phase: 'won' },
   42: { wave: 12, kills: 196, integrity: 161, biomass: 8514, phase: 'won' },
@@ -64,6 +87,15 @@ describe('golden outcomes (gameplay must not drift)', () => {
   for (const [seedStr, expected] of Object.entries(GOLDEN)) {
     it(`seed ${seedStr}`, () => {
       const o = autoplay(Number(seedStr));
+      expect({ wave: o.wave, kills: o.kills, integrity: o.integrity, biomass: o.biomass, phase: o.phase }).toEqual(expected);
+    });
+  }
+});
+
+describe('golden isolation (disableIdle reproduces the pre-idle sim exactly)', () => {
+  for (const [seedStr, expected] of Object.entries(GOLDEN_LEGACY)) {
+    it(`seed ${seedStr} (legacy)`, () => {
+      const o = autoplay(Number(seedStr), 600, { disableIdle: true });
       expect({ wave: o.wave, kills: o.kills, integrity: o.integrity, biomass: o.biomass, phase: o.phase }).toEqual(expected);
     });
   }

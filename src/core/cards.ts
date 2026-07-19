@@ -43,6 +43,7 @@ export interface RunModifiers {
   polypFieldMult: number; // scales the Undertow Polyp's field radius (its identity-range) — docs/POLYP.md
   glaiveExtraBlades: number; // +blades per Wyrmwing Glaive throw (rides the extraProjectiles channel) — docs/TOWERS.md §glaive
   roostBroodSize: number; // +drakes each Drake Roost keeps fielded (its brood cap) — docs/TOWERS.md §roost
+  towerIdleChargeMult: number; // scales idle windup/gestation speed (docs/TOWER-IDLE.md) — the future card/gear hook. 1 = base
   heroDamageMult: number;
   heroCooldownMult: number;
   // Run-start (construction-time) behavioral knobs — folded ONCE when the run boots, so they
@@ -135,6 +136,7 @@ export function defaultRunModifiers(): RunModifiers {
     polypFieldMult: 1,
     glaiveExtraBlades: 0,
     roostBroodSize: 0,
+    towerIdleChargeMult: 1,
     heroDamageMult: 1,
     heroCooldownMult: 1,
     startBiomassBonus: 0,

@@ -48,7 +48,8 @@
     "sim:events": "vite-node scripts/sim-live-events.ts",
     "sim:front": "vite-node scripts/sim-front.ts",
     "sim:metabolism": "vite-node scripts/sim-metabolism.ts",
-    "sim:eventshops": "vite-node scripts/sim-event-shops.ts"
+    "sim:eventshops": "vite-node scripts/sim-event-shops.ts",
+    "sim:idle": "vite-node scripts/sim-tower-idle.ts"
   },
   "dependencies": {
     "react": "^18.3.1",

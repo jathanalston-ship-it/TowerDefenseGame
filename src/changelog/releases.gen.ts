@@ -1411,6 +1411,10 @@ export const RELEASES: Release[] = [
       {
         "cat": "Gameplay",
         "text": "Two-state cosmetics: Specimen Vault, claiming, permanent bonuses (save v53)"
+      },
+      {
+        "cat": "UI",
+        "text": "Cosmetic provenance & collector prestige: derived eras/badges/lore, museum Collector Panel, honest census seams"
       }
     ]
   },

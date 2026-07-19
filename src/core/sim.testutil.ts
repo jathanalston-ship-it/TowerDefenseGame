@@ -2,6 +2,7 @@
 // Not a test file itself (no *.test suffix) — just the harness both import.
 
 import { Game } from './game';
+import type { RunOptions } from './game';
 import { SIM_DT } from './config';
 import { towerSlots } from './map';
 import type { MetaModifiers, TowerKind } from './types';
@@ -26,8 +27,8 @@ export interface AutoOutcome {
 }
 
 /** Deterministic strategy: build 3 towers each prep, auto-draft card 0, run waves. */
-export function autoplay(seed: number, maxSeconds = 600): AutoOutcome {
-  const game = new Game(seed, NO_META);
+export function autoplay(seed: number, maxSeconds = 600, opts: RunOptions = {}): AutoOutcome {
+  const game = new Game(seed, NO_META, undefined, undefined, undefined, opts);
   let t = 0;
   let sawShred = false;
   let guard = 0;

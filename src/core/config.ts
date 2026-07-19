@@ -43,6 +43,18 @@ export const SETTLE = {
   projectileFade: 0.3, // seconds a target-less projectile coasts + fades out before it's released
 };
 
+/** IDLE POSTURE pacing (docs/TOWER-IDLE.md) — the three-state contract's global tempo. Per-tower
+ *  behavior magnitudes live in core/towerIdle.ts; these are the shared easing/readiness rules.
+ *  (TOWER_IDLE — the account Idle HARVEST system owns the plain IDLE name.) */
+export const TOWER_IDLE = {
+  riseTime: 1.2, // seconds for `prep` to ease 0→1 once nothing is engageable (the transition IN)
+  fallTime: 0.35, // seconds for `prep` to snap 1→0 when combat resumes (the transition OUT)
+  readyAt: 0.25, // minimum banked windup charge before an opener consumes (micro-idles don't fire)
+  choirDecay: 2.5, // per-second decay rate of a received choir bonus once the song stops
+  preheatRisePerSec: 0.12, // beam-heat climb toward the preheat floor while unengaged (~3s to 0.35)
+  reactorSenseRadius: 340, // the Flesh Reactor's "calm neighborhood" — no enemy inside ⇒ Systolic Reserve
+};
+
 // ── Towers ────────────────────────────────────────────────────────────────
 export interface TowerDef {
   kind: TowerKind;

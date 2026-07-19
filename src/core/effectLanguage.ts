@@ -125,6 +125,7 @@ export const FIELD_VOCAB: Record<keyof RunModifiers & string, FieldVocab | null>
   spireChainJumps: { mode: 'count', cat: 'tower', unit: 0.3, pre: `${T.spire.name} arcs leap to {N} more `, kwOne: 'victim', kwMany: 'victims', tail: '.', exactNoun: 'arc hops' },
   glaiveExtraBlades: { mode: 'count', cat: 'tower', unit: 0.3, pre: 'Adds {N} extra ', kwOne: 'blade', kwMany: 'blades', tail: ` to every ${T.glaive.name} throw.`, exactNoun: 'blades per throw' },
   roostBroodSize: { mode: 'count', cat: 'tower', unit: 0.35, pre: `Every ${T.roost.name} fields {N} more `, kwOne: 'drake', kwMany: 'drakes', tail: '.', exactNoun: 'drakes per Roost' },
+  towerIdleChargeMult: { mode: 'mult', cat: 'tower', kw: 'idle preparation speed' },
   bonusTowerSlots: { mode: 'count', cat: 'tower', unit: 0.45, pre: 'Unlocks {N} extra ', kwOne: 'tower emplacement', kwMany: 'tower emplacements', tail: ' for this run.', exactNoun: 'tower emplacements (this run)' },
   // ── shred / crit lane ──
   fractureBonusStacks: { mode: 'count', cat: 'critical', unit: 0.08, pre: 'Adds {N} extra max ', kwOne: 'Fracture', kwMany: 'Fracture', tail: ' stack{s} — a deeper shred.', exactNoun: 'max Fracture stacks' },

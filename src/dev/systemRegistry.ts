@@ -150,8 +150,8 @@ export const SYSTEMS: SystemDef[] = [
     localization: 'inline-en', docs: ['docs/ARENA.md', 'docs/ARENA_MATCH_REPORT.md'],
   },
   {
-    id: 'towers', name: 'Towers, Stars, Branches, Strain & Codex', purpose: 'Tower roster; permanent Star evolutions; in-run Branch specialization; the in-run STRAIN evolution layer (docs/STRAIN.md); the Codex.',
-    files: ['src/core/stars.ts', 'src/core/branches.ts', 'src/core/branchTree.ts', 'src/core/strains.ts', 'src/core/conveyor.ts', 'src/ui/TowerLab.tsx', 'src/ui/TowerCodex.tsx', 'src/ui/TowerPortrait.tsx', 'src/ui/towerLabModel.ts', 'src/ui/towerCodexModel.ts', 'src/ui/StarCeremony.tsx', 'src/ui/components/BranchTree.tsx'],
+    id: 'towers', name: 'Towers, Stars, Branches, Strain & Codex', purpose: 'Tower roster; permanent Star evolutions; in-run Branch specialization; the in-run STRAIN evolution layer (docs/STRAIN.md); the Codex. IDLE POSTURES (docs/TOWER-IDLE.md): the three-state COMBAT/TRANSITION/PREPARATION contract — every kind carries one data-driven secondary behavior (core/towerIdle.ts registry, validator-bounded) executed in game.towerSystem; RunOptions.disableIdle reproduces the legacy sim exactly.',
+    files: ['src/core/stars.ts', 'src/core/branches.ts', 'src/core/branchTree.ts', 'src/core/strains.ts', 'src/core/conveyor.ts', 'src/core/towerIdle.ts', 'src/ui/TowerLab.tsx', 'src/ui/TowerCodex.tsx', 'src/ui/TowerPortrait.tsx', 'src/ui/towerLabModel.ts', 'src/ui/towerCodexModel.ts', 'src/ui/StarCeremony.tsx', 'src/ui/components/BranchTree.tsx'],
     dependsOn: ['content-infra', 'shards-economy', 'campaign'], powerScore: 'stars/branches feed permanent + temporary buckets', save: ['towerStars', 'towerPrime', 'towerShards', 'towerMasteryXp', 'towerForks'],
     tutorial: ['combat'], help: ['towers', 'tower-stars', 'tower-branches'], hud: ['tower rail', 'Inspector'], ui: ['TowerLab', 'TowerCodex', 'StarCeremony'],
     collection: 'towers category (usage tiers)', achievements: [], localization: 'inline-en',

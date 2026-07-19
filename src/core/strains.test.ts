@@ -63,7 +63,9 @@ describe('power (§power)', () => {
 
 describe('the live loop (§framework in the sim)', () => {
   function gameWith(kind: TowerKind, strain: number, seed = 7): Game {
-    const g = new Game(seed, NO_META);
+    // Legacy sim (disableIdle): the strain loop is pinned without idle openers shifting
+    // application timing — the idle layer is covered by towerIdle.test.ts.
+    const g = new Game(seed, NO_META, undefined, undefined, undefined, { disableIdle: true });
     const slot = towerSlots[0];
     expect(g.placeTower(kind, slot.x, slot.y)).toBe(true);
     const t = g.towers[0];
@@ -187,7 +189,7 @@ describe('the live loop (§framework in the sim)', () => {
   });
 
   it('adrenal jolt (reactor II): overcharged towers open the wave with cooldown 0', () => {
-    const g = new Game(7, NO_META);
+    const g = new Game(7, NO_META, undefined, undefined, undefined, { disableIdle: true });
     // a reactor + the nearest orthogonal slot (within the 90px support radius)
     const s0 = towerSlots[0];
     expect(g.placeTower('reactor', s0.x, s0.y)).toBe(true);
@@ -204,7 +206,7 @@ describe('the live loop (§framework in the sim)', () => {
   });
 
   it('synaptic weave (reactor IV): chained reactors overcharge FARTHER than a lone one', () => {
-    const g = new Game(7, NO_META);
+    const g = new Game(7, NO_META, undefined, undefined, undefined, { disableIdle: true });
     g.biomass = 10000; // fund the three placements — geometry is what's under test
     const s0 = towerSlots[0];
     expect(g.placeTower('reactor', s0.x, s0.y)).toBe(true);

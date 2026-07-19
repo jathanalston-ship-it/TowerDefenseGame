@@ -3,7 +3,45 @@
 > Maintained at the END of every session (paired with `docs/AI_HANDOFF.md` — the constitution's
 > workflow step 4). This is the "where are we?" answer; `docs/GAME-STATE.md` remains the deeper
 > per-system built-vs-planned index, `docs/PROJECT_MANIFEST.md` the system map.
-> **Last updated:** 2026-07-19aa (**COSMETIC PROVENANCE, ITEM HISTORY & COLLECTOR
+> **Last updated:** 2026-07-19ab (**TOWER IDLE POSTURES — COMPLETE FUNCTIONALITY &
+> IDLE BEHAVIOR OVERHAUL** (user brief: "a tower should never feel asleep" — three
+> states COMBAT/TRANSITION/PREPARATION, every tower ≥1 identity secondary behavior,
+> no two alike, reduce long-range practical dominance WITHOUT nerfing range, animated
+> transitions, data-driven, balance-simulated). NO save bump — Tower fields are
+> run-temporary. Canonical doc **docs/TOWER-IDLE.md**. ENGINE: `prep` scalar 0..1 per
+> tower (rises 1/1.2s unengaged, falls 1/0.35s engaged — the renderer eases ALL
+> transition motion from it; engagement = living enemy in effective range outside
+> deadzone via `towerHasTarget`; field towers no longer pulse empty air —
+> deliberate); 7 sim verbs in data (`core/towerIdle.ts` IDLE_BEHAVIORS, 22 rows,
+> `towerIdleProblems()` validator-bounded): windup (banked opener via cast globals
+> incl. new `castStatusAmountBonus`), reserve (gestated volleys), ranging (parasite
+> Spore Drift: weak 2×-reach shots through the NORMAL cast pipeline), preheat (coil
+> 0.35 heat floor), tending (sower cap+1/rate×1.3; roost hatch×1.5 + perch regen×2),
+> trickle (reactor +0.55 integrity/s; siphon +0.8 biomass/s), choir (ossuary +5% dmg
+> aura, decaying `choirDmg` folded in towerAttackMods). Long-range corrective:
+> payoffs scale INVERSELY with range band, charge times scale WITH it (maw 3.5s ×2
+> vs mortar 8s ×1.35). Tunables `TOWER_IDLE` (config.ts; plain IDLE = Idle Harvest);
+> hook `RunModifiers.towerIdleChargeMult` (FIELD_VOCAB registered).
+> **`RunOptions.disableIdle` reproduces the pre-idle sim BYTE-EXACTLY** — pinned
+> forever as golden.test.ts GOLDEN_LEGACY; live GOLDEN deliberately re-pinned
+> (wave/kills/won identical ALL six seeds; integrity only improved/held). Mechanism
+> suites (strainVerbs/strains/sower/finaldefense/expansion) pin their own
+> choreography with `{ disableIdle: true }` + rationale comments. PRESENTATION:
+> posture breathing, filling preparation ring + ready halo, work-motes, ossuary
+> choir filaments, `tprep_ready` quiet cue; Inspector `mut-idle` chip
+> (state+behavior name, phase-aware: build phase reads PREPARATION) + Host-vitals
+> blurb; TowerCodex `.codex-idle` identity line. Public counters idleOpeners/
+> idleRangingShots/idleBiomass/idleMended + `getMasteryAccrual()`. MEASURED (`npm
+> run sim:idle`, new instrument, A/B vs disableIdle, mixed 6-kind board × seeds
+> 1/7/42/777): 4/4 wins both arms, Σintegrity 725 vs 701, short-range damage share
+> HELD/ROSE, mortar share flat 70.7% vs 70.6% — no range amplification (findings in
+> TOWER-IDLE.md §9). Tests: towerIdle.test.ts (8) + goldens incl. isolation block;
+> suite 303 files/2571 green, typecheck 0, build, mobilecheck CLEAN (31), cogload in
+> budget, validate PASS, live headless probe (chip PREPARATION→COMBAT→PREPARATION
+> across a real wave, zero pageerrors). Power: NO change (in-run flavor; untouched
+> power suite pins it). Previous below.)
+>
+> **2026-07-19aa** (**COSMETIC PROVENANCE, ITEM HISTORY & COLLECTOR
 > PRESTIGE** (user brief: "a cosmetic should become more interesting the longer it
 > exists" — permanent per-item history, museum presentation, organic rarity prestige,
 > legacy badges, AH-ready census, fully data-driven at tens-of-thousands scale). NO

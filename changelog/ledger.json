@@ -1,6 +1,6 @@
 {
-  "lastSha": "5466dce37621f89f21702a433aed15291ee34b0c",
-  "commitsSinceDraft": 7,
+  "lastSha": "0d0ab92d28d2df16a146ac4fb7b0eec41754208d",
+  "commitsSinceDraft": 8,
   "content": {
     "tower": [
       "needle",
@@ -2915,6 +2915,10 @@
         {
           "cat": "Gameplay",
           "text": "Two-state cosmetics: Specimen Vault, claiming, permanent bonuses (save v53)"
+        },
+        {
+          "cat": "UI",
+          "text": "Cosmetic provenance & collector prestige: derived eras/badges/lore, museum Collector Panel, honest census seams"
         }
       ]
     }
@@ -5477,6 +5481,14 @@
       "date": "2026-07-19",
       "cat": "Gameplay",
       "text": "Two-state cosmetics: Specimen Vault, claiming, permanent bonuses (save v53)",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "0d0ab92d28d2df16a146ac4fb7b0eec41754208d",
+      "date": "2026-07-19",
+      "cat": "UI",
+      "text": "Cosmetic provenance & collector prestige: derived eras/badges/lore, museum Collector Panel, honest census seams",
       "internal": false,
       "needsReview": false
     }

@@ -7,6 +7,7 @@ import { useState } from 'react';
 import { meta } from '../state/meta';
 import { TowerPortrait } from './TowerPortrait';
 import { STAR_PREVIEW_STAGES, towerCodex } from './towerCodexModel';
+import { IDLE_BEHAVIORS } from '../core/towerIdle';
 import type { TowerKind } from '../core/types';
 
 type View = { kind: 'star'; star: number } | { kind: 'branch'; branchIdx: number; tier: number };
@@ -31,6 +32,8 @@ export function TowerCodex({ kind, onClose }: { kind: TowerKind; onClose: () => 
           <span className="codex-name" style={{ color: accent }}>{cx.name}</span>
           <span className="class-badge" style={{ background: accent }}>{cx.combatClass}</span>
         </div>
+        {/* Idle posture identity (docs/TOWER-IDLE.md §7) — auto-derived, zero per-tower copy. */}
+        <p className="codex-idle"><b>{IDLE_BEHAVIORS[cx.kind].name}</b> — {IDLE_BEHAVIORS[cx.kind].blurb}</p>
 
         <div className="codex-body">
           {/* LEFT: the living preview portrait + what's on screen */}

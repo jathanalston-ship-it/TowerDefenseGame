@@ -230,6 +230,13 @@ export function Inspector({
           {stats.shots > 1 && <span>Targets <b>×{stats.shots}</b></span>}
         </div>
 
+        {/* Idle posture (docs/TOWER-IDLE.md §7): the live three-state read + the named
+            secondary behavior — auto-derived from the registry, zero per-tower copy. */}
+        <div className={`mut-idle is-${sp.idleState}`} title={sp.idleBlurb}>
+          <span className="mut-idle-k">{sp.idleState.toUpperCase()}</span>
+          <span className="mut-idle-n">{sp.idleName}</span>
+        </div>
+
         {/* Branch lock warning (pre-commit, one line; the commit overlay re-warns on the click). */}
         {hasBranches && !committedId && (
           <p className="mut-warn" role="note">⚠ <b>Tier 1 locks the path</b> for the run.</p>
@@ -267,6 +274,7 @@ export function Inspector({
           {(TOWER_DEFS[sp.kind].minRange ?? 0) > 0 && (
             <p className="mut-deadzone">Deadzone {TOWER_DEFS[sp.kind].minRange} — no-fire inside.</p>
           )}
+          <p className="mut-deadzone">{sp.idleName} — {sp.idleBlurb}</p>
           <MulliganLive state={mulliganStates?.[sp.kind]} kind={sp.kind} />
           <MasteryLive kind={sp.kind} color={`var(--${cls})`} live={liveMastery?.[sp.kind]} />
         </details>

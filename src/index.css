@@ -4085,6 +4085,8 @@ kbd {
 .codex-close { position: absolute; top: 12px; right: 12px; background: none; border: none; color: var(--muted); font-size: 16px; cursor: pointer; }
 .codex-close:hover { color: var(--text); transform: none; background: none; }
 .codex-eyebrow { font-size: 11px; letter-spacing: 0.24em; text-transform: uppercase; color: var(--muted); }
+.codex-idle { margin: 2px 0 0; font-size: 11px; line-height: 1.5; color: var(--muted); }
+.codex-idle b { color: var(--text); }
 .codex-title { display: flex; align-items: center; gap: 10px; margin: 3px 0 14px; }
 .codex-name { font-size: 26px; font-weight: 900; }
 .codex-body { display: grid; grid-template-columns: 1fr 300px; gap: 18px; }
@@ -6939,6 +6941,15 @@ kbd {
 /* The combat-profile strip — one wrap row instead of the old six-row grid. */
 .mut-statline { display: flex; flex-wrap: wrap; gap: 4px 10px; font-size: 11px; color: var(--muted); font-variant-numeric: tabular-nums; }
 .mut-statline b { color: var(--text); font-weight: 700; }
+
+/* Idle posture read (docs/TOWER-IDLE.md §7): the live three-state chip + behavior name.
+   Static styling — the STATE is the information; motion lives on the battlefield body. */
+.mut-idle { display: flex; align-items: center; gap: 7px; margin-top: 6px; font-size: 11px; }
+.mut-idle-k { padding: 1px 7px; font-size: 10px; font-weight: 800; letter-spacing: 0.08em;
+  border: 1px solid var(--line); border-radius: 999px; color: var(--muted); }
+.mut-idle.is-combat .mut-idle-k { color: var(--kinetic); border-color: color-mix(in srgb, var(--kinetic) 55%, transparent); }
+.mut-idle.is-preparation .mut-idle-k { color: var(--vital); border-color: color-mix(in srgb, var(--vital) 55%, transparent); }
+.mut-idle-n { color: var(--text); font-weight: 700; }
 
 /* Host vitals fold — Strain/Mulligan/Mastery live one tap away, below the decision. */
 .mut-host { margin-top: 10px; border: 1px solid var(--line); border-radius: var(--r-sm); background: rgba(255, 255, 255, 0.015); }

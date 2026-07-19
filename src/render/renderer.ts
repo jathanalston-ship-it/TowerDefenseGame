@@ -24,6 +24,7 @@ import {
   towerSlots,
 } from '../core/map';
 import { HERO_DEFS, HERO_PHASE_FLASH, MINION_DEFS, PERF, TOWER_DEFS } from '../core/config';
+import { IDLE_BEHAVIORS } from '../core/towerIdle';
 import type { RenderState } from '../core/game';
 import type { TowerFiring, EnemyKind, HeroKind } from '../core/types';
 import { THEME, ENEMY_SHAPE, ENEMY_TIER, ENEMY_BODY, ENEMY_VARIANT, ENEMY_ACCENT, hexRgb, rgba } from './theme';
@@ -394,6 +395,29 @@ export function drawGame(
     const s = (1 + 0.016 * Math.sin(t * (combat ? 1.5 : 1.05) + tw.id * 1.7)) * (1 + (fed > 0.01 ? fed * 0.13 : 0));
     ctx.save(); ctx.translate(tw.x, tw.y); ctx.scale(s, s); ctx.translate(-tw.x, -tw.y);
     drawTower(ctx, tw, t, cosmeticTiers[tw.kind] ?? 0, tw.id === rs.selectedPlacedId, starTiers[tw.kind] ?? 0, adaptTiers[tw.kind] ?? 0, towerSkins[tw.kind], mulligans[tw.kind], combat);
+    ctx.restore();
+  }
+  // Choir threads (docs/TOWER-IDLE.md §6 — Sepulchral Chorus): an unengaged choir tower sings
+  // faint filaments to every tower carrying its bonus, so the support READS as a direction.
+  // Alpha rides the singer's prep — combat exhales the threads with the posture.
+  for (const tw of rs.towers) {
+    const song = IDLE_BEHAVIORS[tw.kind].choir;
+    if (song === undefined || (tw.prep ?? 0) < 0.4) continue;
+    const r2 = song.radius * song.radius;
+    ctx.save();
+    ctx.strokeStyle = rgba(hexRgb(TOWER_DEFS[tw.kind].color), 0.16 * tw.prep);
+    ctx.lineWidth = 1;
+    for (const nb of rs.towers) {
+      if (nb.id === tw.id || nb.choirDmg <= 0) continue;
+      const dx = nb.x - tw.x;
+      const dy = nb.y - tw.y;
+      if (dx * dx + dy * dy > r2) continue;
+      const sway = Math.sin(t * 1.1 + nb.id) * 6;
+      ctx.beginPath();
+      ctx.moveTo(tw.x, tw.y - 8);
+      ctx.quadraticCurveTo((tw.x + nb.x) / 2 + sway, (tw.y + nb.y) / 2 - 14, nb.x, nb.y - 6);
+      ctx.stroke();
+    }
     ctx.restore();
   }
   drawLandingImpacts(ctx, rs, t); // relocation landing impact
@@ -1160,7 +1184,11 @@ function drawTower(ctx: CanvasRenderingContext2D, tw: RenderState['towers'][numb
     }
     ctx.restore();
   }
-  const breathe = pulse(now + tw.id, 2, 0.97, 1.03);
+  // IDLE POSTURE breathing (docs/TOWER-IDLE.md §6): the posture scalar (0 = combat-taut,
+  // 1 = full preparation) eases the breath DEEPER and SLOWER while nothing is engageable —
+  // the sim's continuous `prep` IS the transition animation, so states never snap.
+  const prep = tw.prep ?? 0;
+  const breathe = pulse(now + tw.id, 2 + prep * 1.4, 0.97 - prep * 0.02, 1.03 + prep * 0.035);
   // cooldown counts down from fireInterval → 0; it's highest right after a shot.
   const fresh = def.fireInterval > 0 ? Math.min(1, Math.max(0, (tw.cooldown / def.fireInterval - 0.7) / 0.3)) : 0;
   // GROWTH (TOWER-BRANCHES.md §9): a branched tower's whole silhouette swells with its tier, so an
@@ -1237,6 +1265,44 @@ function drawTower(ctx: CanvasRenderingContext2D, tw: RenderState['towers'][numb
     ctx.translate(tw.x, tw.y + r * Math.max(0, -pers.sy) * anticip * 0.6); // a crouch sinks into the socket
     ctx.scale(1 + pers.sx * anticip, 1 + pers.sy * anticip);
     ctx.translate(-tw.x, -tw.y);
+  }
+
+  // IDLE POSTURE state read (docs/TOWER-IDLE.md §6): while preparing, the banked secondary
+  // behavior draws as a FILLING ARC around the base — windup charge, gestating reserve
+  // volleys, or the coil's preheat — and rests as a soft ready halo at a full bank. The
+  // giving verbs (trickle/tending/choir/ranging) breathe a slow work-mote instead. Alpha
+  // rides `prep`, so combat exhales the whole read smoothly (no snapping, no residue).
+  if (prep > 0.05) {
+    const idleRow = IDLE_BEHAVIORS[tw.kind];
+    const bank = idleRow.verb === 'preheat'
+      ? Math.min(1, (tw.beamHeat ?? 0) / Math.max(0.01, idleRow.preheat?.floor ?? 1))
+      : idleRow.verb === 'reserve'
+        ? Math.min(1, tw.idleCharge / Math.max(1, idleRow.reserve?.volleys ?? 1))
+        : idleRow.verb === 'windup'
+          ? Math.min(1, tw.idleCharge)
+          : 0;
+    if (bank > 0.01) {
+      ctx.save();
+      ctx.globalAlpha = 0.38 * prep;
+      ctx.strokeStyle = skin?.glow ?? kcolor;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(tw.x, tw.y, r * 1.25, -Math.PI / 2, -Math.PI / 2 + bank * Math.PI * 2);
+      ctx.stroke();
+      ctx.restore();
+      if (bank >= 0.999) {
+        glowDisc(ctx, tw.x, tw.y - r * 0.5, r * (0.55 + 0.06 * Math.sin(now * 2 + tw.id)), rgba(hexRgb(skin?.glow ?? kcolor), 0.14 * prep));
+      }
+    } else if ((idleRow.verb === 'trickle' || idleRow.verb === 'tending' || idleRow.verb === 'choir' || idleRow.verb === 'ranging') && prep > 0.5) {
+      const ph = (now * 0.45 + tw.id * 0.37) % 1;
+      glowDisc(
+        ctx,
+        tw.x + Math.sin(now * 1.3 + tw.id) * r * 0.3,
+        tw.y - r * (0.6 + ph * 1.1),
+        2.4 * (1 - ph),
+        rgba(hexRgb(skin?.glow ?? kcolor), 0.38 * (1 - ph) * prep),
+      );
+    }
   }
 
   // The procedural TURRET body (render/towerForms.ts) — a rooted structure + firing apparatus that

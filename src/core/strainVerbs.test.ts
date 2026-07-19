@@ -19,7 +19,9 @@ const dbg = (g: Game): { debugSpawn: (k: EnemyKind, n: number) => void } => g as
 /** A funded board of `count` towers of one kind, all pinned to `strain`, caches refreshed. The
  *  strain field is a framework test seam (acquisition is the conveyor's job at runtime). */
 function board(kind: TowerKind, strain: number, count = 1, seed = 7): Game {
-  const g = new Game(seed, NO_META);
+  // Legacy sim (disableIdle): strain-verb choreography is pinned without idle openers
+  // perturbing volley counts/rng — the idle layer is covered by towerIdle.test.ts.
+  const g = new Game(seed, NO_META, undefined, undefined, undefined, { disableIdle: true });
   g.biomass = 1_000_000;
   let placed = 0;
   for (const s of towerSlots) {
@@ -346,7 +348,7 @@ describe('Wailing Effigy ladder (§identity)', () => {
 
 describe('projectile pool: STRAIN payloads never leak and never drop (review regression)', () => {
   it('a reused pooled shot does NOT inherit a prior strained cast’s venom (the leak)', () => {
-    const g = new Game(7, NO_META);
+    const g = new Game(7, NO_META, undefined, undefined, undefined, { disableIdle: true });
     const gg = g as unknown as {
       castVenom: { threshold: number; burstFrac: number } | null;
       spawnProjectile: (x: number, y: number, tx: number, ty: number, speed: number, targetId: number, damage: number, behavior: string, splash: number, sourceKind: string | null) => void;
@@ -367,7 +369,7 @@ describe('projectile pool: STRAIN payloads never leak and never drop (review reg
   });
 
   it('a COLD-allocated shot (empty pool) still carries its strain payload (the drop)', () => {
-    const g = new Game(7, NO_META);
+    const g = new Game(7, NO_META, undefined, undefined, undefined, { disableIdle: true });
     const gg = g as unknown as {
       castFragment: { count: number; damageFrac: number; radius: number } | null;
       spawnProjectile: (x: number, y: number, tx: number, ty: number, speed: number, targetId: number, damage: number, behavior: string, splash: number, sourceKind: string | null) => void;

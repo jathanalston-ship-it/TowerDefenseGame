@@ -6,6 +6,11 @@ Siphon), and the **trap** tower (§trap: Blight Sower). Companion to `DESIGN.md`
 `PROGRESSION.md` (scaling math). **This doc is canonical for tower names, classes, and the
 reaction framework** — it supersedes the placeholder tower names used in the earlier bible.
 
+> **Idle postures:** what every tower does when NOT firing — the three-state
+> COMBAT/TRANSITION/PREPARATION contract, the 7 secondary-behavior verbs, all 22
+> per-tower rows, and the long-range balance corrective — is canonical in
+> **`TOWER-IDLE.md`** (data: `src/core/towerIdle.ts`).
+
 > **Reconciliation note (read once):** the launch towers are pure bio-horror
 > (flesh/bone/parasite/nerve/biomass) and include **no ice unit**, so the **Cryo**
 > class is **retired from launch** and **Vital** (flesh/biomass/sustain — already
