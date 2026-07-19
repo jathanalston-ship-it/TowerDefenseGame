@@ -33,6 +33,7 @@ import type { BodyForm } from './enemyForms';
 import { ingestDeaths, updateGore, drawGoreFloor, drawGorePieces, goreThrob } from './gore';
 import { drawAbilityCinematics } from './abilityCinematics';
 import { attackAnticipation, drawTowerForm, drawTowerSignature, FORM_ANTICIPATION, TOWER_FORM } from './towerForms';
+import { drawOrganismEmissions, organismAlert, organismPose, updateOrganisms } from './organism';
 import {
   chevronDown,
   drawShape,
@@ -387,6 +388,10 @@ export function drawGame(
   drawGoreFloor(ctx);
   drawOverchargeLinks(ctx, rs);
   const combat = rs.phase === 'wave' && rs.enemies.length > 0; // anticipation only makes sense with prey
+  // LIVING ORGANISM pass (render/organism.ts): approach-alert / threat bearing / recovery /
+  // environmental tremor for every tower, updated once per frame with staggered scans.
+  updateOrganisms(rs);
+  const towerFx = rs.enemies.length < PERF.lodEnemyCount; // organism emissions obey the same LOD line
   for (const tw of rs.towers) {
     const fed = goreThrob(`t${tw.id}`); // XP shards just coalesced in ⇒ a satisfying feed-throb
     // BREATH (VISUAL_IDENTITY.md §motion): every organism idles ALIVE — a ~1.6% slow swell,
@@ -394,7 +399,7 @@ export function drawGame(
     // The feed-throb stacks multiplicatively on the same transform.
     const s = (1 + 0.016 * Math.sin(t * (combat ? 1.5 : 1.05) + tw.id * 1.7)) * (1 + (fed > 0.01 ? fed * 0.13 : 0));
     ctx.save(); ctx.translate(tw.x, tw.y); ctx.scale(s, s); ctx.translate(-tw.x, -tw.y);
-    drawTower(ctx, tw, t, cosmeticTiers[tw.kind] ?? 0, tw.id === rs.selectedPlacedId, starTiers[tw.kind] ?? 0, adaptTiers[tw.kind] ?? 0, towerSkins[tw.kind], mulligans[tw.kind], combat);
+    drawTower(ctx, tw, t, cosmeticTiers[tw.kind] ?? 0, tw.id === rs.selectedPlacedId, starTiers[tw.kind] ?? 0, adaptTiers[tw.kind] ?? 0, towerSkins[tw.kind], mulligans[tw.kind], combat, towerFx);
     ctx.restore();
   }
   // Choir threads (docs/TOWER-IDLE.md §6 — Sepulchral Chorus): an unengaged choir tower sings
@@ -432,7 +437,7 @@ export function drawGame(
   // statusFullDetail, reduced in the busy band, suppressed past the LOD line. Bosses/elites
   // stay full-quality regardless (priority rendering — the important reads never degrade).
   const fxQ: StatusFxQuality = !detail ? 0 : rs.enemies.length < PERF.statusFullDetail ? 2 : 1;
-  updateEnemyMotion(rs.enemies, t, detail); // per-id velocity + spawn age + hit edges + death reaping (presentation only)
+  updateEnemyMotion(rs.enemies, t, detail, rs.towers, rs.megaBoss ? { x: 360, y: rs.megaBoss.anchorY } : null); // per-id velocity + spawn age + hit edges + gaze + death reaping (presentation only)
   if (detail) drawDeathEchoes(ctx, t); // fading crumples UNDER the living bodies
   for (const e of rs.enemies) drawEnemy(ctx, e, detail, t, fxQ);
   drawImpactSparks(ctx, t); // hit-confirmation starbursts OVER the bodies they struck
@@ -1152,7 +1157,7 @@ function drawCosmeticAura(ctx: CanvasRenderingContext2D, x: number, y: number, r
 /** Per-kind resolved Mulligan the renderer needs to draw its organism (docs/MULLIGANS.md). */
 export interface MulliganRender { resolved: ResolvedMulligan; visualSeed: number; animSeed: number; projectile?: MulliganProjectileSkin | null }
 
-function drawTower(ctx: CanvasRenderingContext2D, tw: RenderState['towers'][number], now: number, tier = 0, selected = false, stars = 0, adaptTier = 0, skin?: CosmeticTheme, mulligan?: MulliganRender, combat = false): void {
+function drawTower(ctx: CanvasRenderingContext2D, tw: RenderState['towers'][number], now: number, tier = 0, selected = false, stars = 0, adaptTier = 0, skin?: CosmeticTheme, mulligan?: MulliganRender, combat = false, fxDetail = true): void {
   const def = TOWER_DEFS[tw.kind];
   // Phenotype re-expression (docs/COSMETICS.md): the equipped skin's primary replaces the
   // def color EVERYWHERE this body paints; absent skin ⇒ the exact pre-cosmetics look.
@@ -1244,6 +1249,21 @@ function drawTower(ctx: CanvasRenderingContext2D, tw: RenderState['towers'][numb
   // (render-only fields), so an idle siphon — and every non-siphon tower — draws nothing here.
   if (tw.kind === 'siphon' && tw.beamX !== undefined && tw.beamY !== undefined) {
     drawSiphonBeam(ctx, tw.x, tw.y - r * 0.2, tw.beamX, tw.beamY, tw.beamHeat ?? 0, now, kcolor, tw.id);
+  }
+
+  // LIVING ORGANISM pose (docs/LIVING-BATTLEFIELD.md §organisms): one composed transform —
+  // threat lean + capped turn toward the approaching lane, pressure swell/aperture gape while
+  // alert, idle micro-twitch, post-shot recovery wobble, environmental tremor jitter. Applied
+  // AFTER the beam/shadow (world-anchored) and around everything that IS the body, so the
+  // whole organism reacts as one. Amplitudes are capped inside organismPose — subtle by law.
+  const oPose = organismPose(tw.kind, tw.id, r, now);
+  const posed = oPose.dx !== 0 || oPose.dy !== 0 || oPose.rot !== 0 || oPose.scaleX !== 1 || oPose.scaleY !== 1;
+  if (posed) {
+    ctx.save();
+    ctx.translate(tw.x + oPose.dx, tw.y + oPose.dy);
+    ctx.rotate(oPose.rot);
+    ctx.scale(oPose.scaleX, oPose.scaleY);
+    ctx.translate(-tw.x, -tw.y);
   }
 
   // ATTACK ANTICIPATION (docs/COMBAT-VISUAL-STANDARDS.md §towers): across the final stretch of
@@ -1381,6 +1401,14 @@ function drawTower(ctx: CanvasRenderingContext2D, tw: RenderState['towers'][numb
   // body form (VISUAL_IDENTITY.md §silhouette); no-op for the kinds handled above or unique forms.
   drawTowerSignature(ctx, tw.kind, tw.x, tw.y, r, kcolor, now, fresh, breathe, tw.id);
   if (strained) ctx.restore(); // end of the anticipation wind-up transform
+  if (posed) ctx.restore(); // end of the living-organism pose
+  // Ambient organism EMISSIONS (world-anchored, outside the pose): spores drift, saliva
+  // ropes, drakelings peek, broodlings skitter — amplitude rides the approach alert and the
+  // deep-idle posture, so the body is never fully still and combat exhales the air life.
+  if (fxDetail) {
+    const oLife = Math.max(organismAlert(tw.id), prep * 0.5);
+    drawOrganismEmissions(ctx, tw.kind, tw.id, tw.x, tw.y, r, skin?.glow ?? kcolor, now, oLife);
+  }
 
   // Mastery cosmetic: a veteran "halo" that grows with the tower's mastery RANK (MASTERY.md
   // visual mutations). Pure cosmetic — tier 0 (a fresh save) renders identically.
@@ -1830,7 +1858,7 @@ function drawEnemyShells(ctx: CanvasRenderingContext2D, rs: RenderState): void {
 // ── Enemy MOTION tracker (presentation-only, like heroTrail) — per-id smoothed screen velocity +
 //    spawn age, so bodies BANK/BOB as they move, EMERGE on spawn, and leave a crumple ECHO on death.
 //    Keyed by enemy id, pruned each frame. Never read by the sim (golden-safe). ─────────────────────
-interface EnemyMotion { x: number; y: number; vx: number; vy: number; spawnT: number; seen: number; kind: EnemyKind; hitF: number; sparkT: number; flavor: DeathFlavor | null; flavorHue: string | null }
+interface EnemyMotion { x: number; y: number; vx: number; vy: number; spawnT: number; seen: number; kind: EnemyKind; hitF: number; sparkT: number; flavor: DeathFlavor | null; flavorHue: string | null; gazeA: number; gazeW: number; gazeTA: number; gazeTW: number }
 const enemyMotion = new Map<number, EnemyMotion>();
 interface DeathEcho { form: BodyForm; x: number; y: number; r: number; color: string; seed: number; accent: number; phase: number; t0: number; flavor: DeathFlavor | null; flavorHue: string | null }
 const deathEchoes: DeathEcho[] = [];
@@ -1846,12 +1874,12 @@ const ECHO_T = 0.3; // seconds a death crumple lingers
 const FLAVOR_ECHO_T = 0.45; // status-flavored deaths (shatter/embers/…) play a touch longer
 
 /** Refresh the tracker from this frame's live enemies; reap the vanished into death echoes. */
-function updateEnemyMotion(enemies: RenderState['enemies'], t: number, detail: boolean): void {
+function updateEnemyMotion(enemies: RenderState['enemies'], t: number, detail: boolean, towers?: RenderState['towers'], megaAt?: { x: number; y: number } | null): void {
   motionFrame++;
   for (const e of enemies) {
     if (e.boss) continue; // framework bosses use the chassis renderer, not body-forms
     const m = enemyMotion.get(e.id);
-    if (!m) { enemyMotion.set(e.id, { x: e.x, y: e.y, vx: 0, vy: 0, spawnT: t, seen: motionFrame, kind: e.kind, hitF: e.hitFlash, sparkT: 0, flavor: null, flavorHue: null }); continue; }
+    if (!m) { enemyMotion.set(e.id, { x: e.x, y: e.y, vx: 0, vy: 0, spawnT: t, seen: motionFrame, kind: e.kind, hitF: e.hitFlash, sparkT: 0, flavor: null, flavorHue: null, gazeA: Math.PI / 2, gazeW: 0, gazeTA: Math.PI / 2, gazeTW: 0 }); continue; }
     const dx = e.x - m.x, dy = e.y - m.y;
     if (dx * dx + dy * dy > 40000) { // >200px jump ⇒ id reuse (new run) or a blink ⇒ re-emerge, not velocity
       m.x = e.x; m.y = e.y; m.vx = 0; m.vy = 0; m.spawnT = t; m.kind = e.kind; m.seen = motionFrame; continue;
@@ -1865,6 +1893,32 @@ function updateEnemyMotion(enemies: RenderState['enemies'], t: number, detail: b
       m.sparkT = t;
     }
     m.hitF = e.hitFlash;
+    // GAZE (docs/LIVING-BATTLEFIELD.md §organisms/enemies): bodies LOOK at what threatens
+    // them — the mega boss when one looms, else the nearest tower ahead. Staggered scans
+    // (~1/8 frames per body), eased every frame, drawn as a tiny eye-glint. Detail-gated.
+    if (detail && (motionFrame + e.id) % 8 === 0) {
+      if (megaAt) {
+        m.gazeTA = Math.atan2(megaAt.y - e.y, megaAt.x - e.x);
+        m.gazeTW = 0.8; // everything watches the raid organism
+      } else if (towers && towers.length > 0) {
+        let bd = 320 * 320;
+        let bx = 0, by = 0, found = false;
+        for (const tw of towers) {
+          if (tw.y < e.y - 40) continue; // only what lies AHEAD threatens the descent
+          const d2 = (tw.x - e.x) * (tw.x - e.x) + (tw.y - e.y) * (tw.y - e.y);
+          if (d2 < bd) { bd = d2; bx = tw.x; by = tw.y; found = true; }
+        }
+        if (found) {
+          m.gazeTA = Math.atan2(by - e.y, bx - e.x);
+          m.gazeTW = Math.max(0.3, 1 - Math.sqrt(bd) / 320);
+        } else m.gazeTW = 0;
+      } else m.gazeTW = 0;
+    }
+    m.gazeW += (m.gazeTW - m.gazeW) * 0.1;
+    let gda = m.gazeTA - m.gazeA;
+    while (gda > Math.PI) gda -= Math.PI * 2;
+    while (gda < -Math.PI) gda += Math.PI * 2;
+    m.gazeA += gda * 0.12;
     // Death-flavor snapshot: remember the dominant affliction so the DEATH can react to it
     // (frozen shatter / burning collapse / spore burst / corrosive dissolve).
     const fl = deathFlavorOf(e);
@@ -2179,6 +2233,15 @@ function drawEnemy(
     ctx.scale(bodyXf.sx, bodyXf.sy);
     ctx.translate(-e.x, -drawY);
   }
+  // SHATTER STAGGER (docs/LIVING-BATTLEFIELD.md §organisms/enemies): the instant a shield
+  // breaks, the body reels — a brief rotation wobble riding the sim's shieldFlash window.
+  const stag = detail && !e.boss ? Math.min(1, (e.shieldFlash ?? 0) / 0.3) : 0;
+  if (stag > 0.01) {
+    ctx.save();
+    ctx.translate(e.x, drawY);
+    ctx.rotate(Math.sin(t * 26 + e.id) * 0.12 * stag);
+    ctx.translate(-e.x, -drawY);
+  }
 
   // body + a tier-weighted rim so it reads as a solid, threat-ranked unit. A framework boss
   // renders its CHASSIS body plan (render/bossChassis.ts — five silhouettes, own palette,
@@ -2201,8 +2264,15 @@ function drawEnemy(
     });
   }
   else drawShape(ctx, shape, e.x, drawY, r, e.boss ? bcol : def.color);
+  if (stag > 0.01) ctx.restore();
   if (bodyXf) ctx.restore();
   if (detail) {
+    // EYE-GLINT gaze (LIVING-BATTLEFIELD §organisms/enemies): a bright speck slides to the
+    // body's leading edge, aimed where the tracker says this creature is looking.
+    const gz = e.boss ? undefined : enemyMotion.get(e.id);
+    if (gz && gz.gazeW > 0.25) {
+      glowDisc(ctx, e.x + Math.cos(gz.gazeA) * r * 0.42, drawY + Math.sin(gz.gazeA) * r * 0.42, 1.4, `rgba(255,255,255,${(0.38 * gz.gazeW).toFixed(3)})`);
+    }
 
     // Shield bubble — a front-arc barrier facing the descent, alpha by remaining charge;
     // it SHATTERS visibly the instant it breaks (sim sets shieldFlash at 0-cross).

@@ -165,6 +165,17 @@ function sTfTing(i: number, vf = 1): void { tone((1400 - i * 60) * vf, 0.09, 'si
 // IDLE READY (docs/TOWER-IDLE.md §6): a tower's preparation bank fills — a very quiet, wet
 // two-note swallow (once per idle cycle by construction; `i` staggers simultaneous banks).
 function sPrepReady(i: number): void { tone(340 + i * 30, 0.11, 'sine', 0.026, 520); tone(520 + i * 40, 0.08, 'sine', 0.018, 760); }
+// ── LIVING ORGANISM ambience (docs/LIVING-BATTLEFIELD.md §organisms/audio): the quiet
+//    per-family murmurs the ambience director rotates through while towers anticipate or
+//    breathe deep-idle. DELIBERATELY faint (peaks ≤ ~0.035, well under every combat cue),
+//    each a layered one-shot — the throttle in render/organism.ts guarantees no looping.
+function sOrgHeart(): void { tone(64, 0.16, 'sine', 0.03, 52); tone(58, 0.13, 'sine', 0.024); }
+function sOrgBreath(): void { noise(0.55, 0.014, 900, 500); tone(120, 0.4, 'sine', 0.012, 96); }
+function sOrgBone(): void { tone(210, 0.05, 'triangle', 0.028, 140); tone(150, 0.07, 'triangle', 0.02, 96); }
+function sOrgAcid(): void { tone(430, 0.06, 'sine', 0.02, 300); tone(560, 0.05, 'sine', 0.016, 380); noise(0.14, 0.008, 2400); }
+function sOrgSpore(): void { noise(0.4, 0.012, 3600, 2200); }
+function sOrgChirp(): void { tone(880, 0.045, 'triangle', 0.02, 1150); tone(1240, 0.04, 'triangle', 0.014, 990); }
+function sOrgHum(): void { tone(96, 0.5, 'sine', 0.018, 102); tone(192, 0.4, 'sine', 0.01); }
 /** Phenotype sfx variants → pitch factors (audible identity shift on the same synth). */
 const VARIANT_PITCH: Record<string, number> = { deep: 0.72, crisp: 1.32, wet: 0.86, aetheric: 1.16 };
 
@@ -544,6 +555,13 @@ export const audio = {
         case 'tfire_zap': for (let i = 0; i < Math.min(3, n); i++) sTfZap(i, vf); break;
         case 'tfire_ting': for (let i = 0; i < Math.min(2, n); i++) sTfTing(i, vf); break;
         case 'tprep_ready': for (let i = 0; i < Math.min(2, n); i++) sPrepReady(i); break;
+        case 'org_heart': sOrgHeart(); break;
+        case 'org_breath': sOrgBreath(); break;
+        case 'org_bone': sOrgBone(); break;
+        case 'org_acid': sOrgAcid(); break;
+        case 'org_spore': sOrgSpore(); break;
+        case 'org_chirp': sOrgChirp(); break;
+        case 'org_hum': sOrgHum(); break;
         case 'status_dot': for (let i = 0; i < Math.min(2, n); i++) sStatusDot(i); break;
         case 'status_control': for (let i = 0; i < Math.min(2, n); i++) sStatusControl(i); break;
         case 'shred': for (let i = 0; i < Math.min(2, n); i++) sShred(); break;

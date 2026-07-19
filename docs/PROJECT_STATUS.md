@@ -3,7 +3,46 @@
 > Maintained at the END of every session (paired with `docs/AI_HANDOFF.md` — the constitution's
 > workflow step 4). This is the "where are we?" answer; `docs/GAME-STATE.md` remains the deeper
 > per-system built-vs-planned index, `docs/PROJECT_MANIFEST.md` the system map.
-> **Last updated:** 2026-07-19ab (**TOWER IDLE POSTURES — COMPLETE FUNCTIONALITY &
+> **Last updated:** 2026-07-19ac (**LIVING BATTLEFIELD — ANTICIPATION, IDLE LIFE &
+> BIOLOGICAL REACTIVITY** (user brief: full battlefield animation/immersion pass, "the
+> battlefield should never appear motionless"; anticipation state bridging idle↔combat;
+> per-tower personality; environmental reactions; enemy reactions; layered ambient
+> audio; throttled performance; reusable Living Organism framework; must NOT affect
+> balance). **ZERO `src/core/` edits — goldens byte-identical by construction.** NEW
+> `src/render/organism.ts` (claimed under living-battlefield): per-kind
+> `OrganismProfile` {orient, gape, swell, twitch, tremor, emission, voice} resolved
+> FORM_PERSONA (12 body-form personas) → CLASS_VOICE (Caustic=acid/Viral=spore/
+> Vital=heart) → per-kind OVERRIDES (22 identity rows: maw chatters+drips, needle
+> tracks the lane, roost peeks drakelings, lung deep-inhales…); `organismProblems()`
+> validator (bounds + twitch>0 — "never motionless" is law). Runtime per tower id
+> (module cache, frame-stamp reaped): approach-ALERT eased from STAGGERED proximity
+> scans (~1/6 frames, 1/12 past PERF.lodEnemyCount; band = (range, range×1.8] —
+> strictly OUTSIDE range so combat never double-animates), threat BEARING (shortest-arc
+> ease, rest = up-field), RECOVERY settle armed on cooldown fire-edges, TREMOR fed by
+> deathEvents (overkill ≥0.55 → 140px radial shock), ult castEvents, mega telegraph/
+> phase (global megaRumble), hiveHitPulse — all exponential decay. `organismPose()`
+> (amplitude-capped AT THE SOURCE: rot ≤0.09 rad, scales ~±5%) wraps the body draw in
+> renderer drawTower AFTER the siphon beam/shadow (world-anchored things never swing);
+> `drawOrganismEmissions()` world-anchored per-family air life (spores lift, drips
+> rope, sparks glint, drones peek, crawlers skitter, wisps spiral — deterministic trig,
+> zero alloc, life = max(alert, prep×0.5) so between-waves still breathes), LOD-gated
+> via drawTower's new `fxDetail` param. ENEMIES (renderer motion tracker): GAZE
+> bearing eased toward nearest tower ahead (staggered ~1/8 frames; mega boss overrides
+> — everything watches the raid organism) drawn as an eye-glint; SHIELD-SHATTER
+> stagger wobble riding sim shieldFlash; fear trembling + hit flinch already owned by
+> statusFx/enemyForms (kept). AUDIO: 7 quiet `org_*` synths (heart/breath/bone/acid/
+> spore/chirp/hum, peaks ≤0.035) + `pollAmbientCue()` director (GameView RAF poll,
+> bioStage precedent): ≥2.6s gap, silent past 26 enemies, calm breaths 2.5× rarer —
+> layered one-shots, loops impossible. MEASURED: updateOrganisms 2–13µs/frame @ 15
+> towers × 3–72 enemies (whole stub-ctx drawGame 1.6–3.2ms) — a rounding error. Tests:
+> organism.test.ts (8: profile laws, alert rise/exhale, in-range zeroing, shock
+> radius, recovery decay, director gap/din). Verified: typecheck 0, suite 303 files/
+> 2579 green (2 batch-hygiene fixes: AI_HANDOFF dead path, DIL regen), build,
+> mobilecheck CLEAN (31), cogload in budget, validate PASS, live probe zero pageerrors
+> + org-prep/anticipation/combat shots. Docs: LIVING-BATTLEFIELD.md +§Organisms
+> (canonical), TOWER-IDLE.md §7 cross-ref, GAME-STATE towers row. Previous below.)
+>
+> **2026-07-19ab** (**TOWER IDLE POSTURES — COMPLETE FUNCTIONALITY &
 > IDLE BEHAVIOR OVERHAUL** (user brief: "a tower should never feel asleep" — three
 > states COMBAT/TRANSITION/PREPARATION, every tower ≥1 identity secondary behavior,
 > no two alike, reduce long-range practical dominance WITHOUT nerfing range, animated

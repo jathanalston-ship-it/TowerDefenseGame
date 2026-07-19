@@ -1,6 +1,6 @@
 # DIL_GRAPH.md — the Design Intelligence Layer (GENERATED — `npm run dil -- regen`)
 
-> **The project's brain** (docs/DIL.md). 897 nodes · 1686 edges, built from the live
+> **The project's brain** (docs/DIL.md). 898 nodes · 1689 edges, built from the live
 > registries + curated knowledge (src/dev/dil/). **Query it instead of searching the repo:**
 > `npm run dil -- node <id>` · `affects <id>` · `requires <id>` · `missing <kind> <edge>` ·
 > `checklist tower <kind>` · `find <text>`. Edge kinds are bidirectional (19 kinds).
@@ -2339,13 +2339,13 @@ _at: src/render/*, src/core/dangerCamera.ts_
   - testedBy ← `test:src/render/assimilationFx.test.ts`
   - testedBy ← `test:src/render/equipmentArt.test.ts`
   - testedBy ← `test:src/render/heroEvolution.test.ts`
-  - _…17 more (query: `npm run dil -- node system:rendering`)_
+  - _…19 more (query: `npm run dil -- node system:rendering`)_
 
 ### `system:living-battlefield` — Living Battlefield
 
-A hidden per-run "biomass" (towers/strain/branches/stars/mastery/mulligans + heroes/gear + kills/boss/mega + wave + Power Score + biome) drives an evolution STAGE 0–5 that terraforms the arena beneath the entities: data-driven Environmental Influence Profiles per tower/mulligan/hero/gene (hash-default ⇒ new content needs no code), regional blooms from towers/nucleus/combat/mega, nucleus organ, biome adaptation, boss/mega scars, ambient life. Render-only + inert at Stage 0 ⇒ golden-safe.
+A hidden per-run "biomass" (towers/strain/branches/stars/mastery/mulligans + heroes/gear + kills/boss/mega + wave + Power Score + biome) drives an evolution STAGE 0–5 that terraforms the arena beneath the entities: data-driven Environmental Influence Profiles per tower/mulligan/hero/gene (hash-default ⇒ new content needs no code), regional blooms from towers/nucleus/combat/mega, nucleus organ, biome adaptation, boss/mega scars, ambient life. Render-only + inert at Stage 0 ⇒ golden-safe. + LIVING ORGANISMS (render/organism.ts): the ENTITY life layer — per-tower approach-ANTICIPATION (alert eased from staggered proximity scans, threat-bearing lean, aperture/swell pose), post-shot recovery settle, environmental TREMOR (heavy deaths/hero ults/mega telegraphs/hive impacts), per-kind ambient emissions (spores/drips/sparks/drones/crawlers/wisps) + a throttled ambience director (org_* murmur cues); profiles auto-derive from body form + combat class ⇒ future towers inherit free. Enemy side: gaze-at-threat glints, shield-shatter stagger (statusFx already owns fear trembling). All render-side module state ⇒ sim untouched, goldens byte-identical.
 
-_at: src/render/livingBattlefield.ts_
+_at: src/render/livingBattlefield.ts, src/render/organism.ts_
 
   - dependsOn → `system:rendering`
   - dependsOn → `system:engine`
@@ -2354,8 +2354,10 @@ _at: src/render/livingBattlefield.ts_
   - consumes → `concept:determinism` — terrain evolution is render-side; inert at stage 0
   - consumes → `system:assimilation` — terrain stage comes from tierAt(game.assimilation.index) — ONE source of truth with music/HUD mood
   - plans → `system:biomes` — per-biome bespoke terrain flora beyond the BIOME_FLORA tint map
+  - extends → `system:rendering` — LIVING ORGANISMS (render/organism.ts, LIVING-BATTLEFIELD.md §organisms): render-side entity-life layer — per-tower approach-anticipation (alert/bearing from staggered scans of rs.enemies vs effective range), recovery settle on fire edges, environmental tremor (deathEvents overkill, ult castEvents, mega telegraph/phase, hiveHitPulse), per-kind emissions + org_* ambience director polled by GameView. Profiles derive from TOWER_FORM + combatClass with per-kind overrides (organismProblems validator). ZERO sim writes: goldens byte-identical; updateOrganisms ≤13µs/frame measured.
   - documentedBy ← `doc:LIVING-BATTLEFIELD.md`
   - testedBy ← `test:src/render/livingBattlefield.test.ts`
+  - testedBy ← `test:src/render/organism.test.ts`
 
 ### `system:audio` — Audio
 
@@ -3773,7 +3775,7 @@ _at: site/guides.ts → /guides/live-events/_
 - `doc:VOWS.md` — project documentation _(documents `system:prestige`)_
 - `doc:WEBSITE.md` — project documentation _(documents `system:field-research`, documents `system:website`)_
 
-## Tests (296)
+## Tests (297)
 
 - `test:src/audio/music.test.ts` — automated validation _(tests `system:audio`)_
 - `test:src/changelog/classify.test.ts` — automated validation _(tests `system:chronicle`)_
@@ -3966,6 +3968,7 @@ _at: site/guides.ts → /guides/live-events/_
 - `test:src/render/introScenes.test.ts` — automated validation _(tests `system:rendering`, tests `system:onboarding`)_
 - `test:src/render/livingBattlefield.test.ts` — automated validation _(tests `system:rendering`, tests `system:living-battlefield`)_
 - `test:src/render/mulliganOrganism.test.ts` — automated validation _(tests `system:rendering`, tests `system:mulligans`)_
+- `test:src/render/organism.test.ts` — automated validation _(tests `system:rendering`, tests `system:living-battlefield`)_
 - `test:src/render/renderer.test.ts` — automated validation _(tests `system:rendering`)_
 - `test:src/render/starEvolution.test.ts` — automated validation _(tests `system:rendering`)_
 - `test:src/render/statusFx.test.ts` — automated validation _(tests `system:rendering`)_

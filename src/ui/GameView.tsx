@@ -4,6 +4,7 @@ import type { RunMode } from '../core/game';
 import type { StageConfig } from '../core/campaign';
 import { drawGame } from '../render/renderer';
 import type { Pointer, MulliganRender } from '../render/renderer';
+import { pollAmbientCue } from '../render/organism';
 import { setGoreAnchors } from '../render/gore';
 import { WIDTH as BOARD_W, HEIGHT as BOARD_H } from '../core/map';
 import { getAssimilationDebug } from '../render/livingBattlefield';
@@ -693,6 +694,13 @@ export function GameView({
         // The Living Battlefield terrain reads the SAME canonical Assimilation Index as the mood FX
         // above (game.assimilation.index) ⇒ ground evolution, music floor and HUD glow stay coherent.
         drawGame(ctx, rs, pointerRef.current, cosmeticTiers, starTiers, adaptTiers, heroStarTiers, heroEvoRef.current, skins.towers, skins.heroes, mulliganRender, heroGearRender, power, game.assimilation.index, heroSymbioteRender);
+        // Living Organism ambience (docs/LIVING-BATTLEFIELD.md §organisms/audio): the render-side
+        // murmur director — at most one quiet per-family cue every few seconds (anticipation
+        // murmurs while enemies close in, rarer calm breaths between waves), silent under din.
+        if (game.phase === 'wave' || game.phase === 'prep') {
+          const orgCue = pollAmbientCue(rs, now);
+          if (orgCue) audio.cue(orgCue);
+        }
         // Living Battlefield reactivity (docs/LIVING-BATTLEFIELD.md §audio): a subtle organic swell when the
         // arena deepens a stage — never on the first frame (avoids a cue on load), never on decrease.
         {

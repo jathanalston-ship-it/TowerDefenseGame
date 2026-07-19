@@ -1415,6 +1415,10 @@ export const RELEASES: Release[] = [
       {
         "cat": "UI",
         "text": "Cosmetic provenance & collector prestige: derived eras/badges/lore, museum Collector Panel, honest census seams"
+      },
+      {
+        "cat": "Towers",
+        "text": "Tower idle postures: three-state behavior layer for all 22 towers"
       }
     ]
   },

@@ -1,6 +1,6 @@
 {
-  "lastSha": "0d0ab92d28d2df16a146ac4fb7b0eec41754208d",
-  "commitsSinceDraft": 8,
+  "lastSha": "093aa43dab2284b68b13374bce8ca3128712e1c8",
+  "commitsSinceDraft": 9,
   "content": {
     "tower": [
       "needle",
@@ -2919,6 +2919,10 @@
         {
           "cat": "UI",
           "text": "Cosmetic provenance & collector prestige: derived eras/badges/lore, museum Collector Panel, honest census seams"
+        },
+        {
+          "cat": "Towers",
+          "text": "Tower idle postures: three-state behavior layer for all 22 towers"
         }
       ]
     }
@@ -5489,6 +5493,14 @@
       "date": "2026-07-19",
       "cat": "UI",
       "text": "Cosmetic provenance & collector prestige: derived eras/badges/lore, museum Collector Panel, honest census seams",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "093aa43dab2284b68b13374bce8ca3128712e1c8",
+      "date": "2026-07-19",
+      "cat": "Towers",
+      "text": "Tower idle postures: three-state behavior layer for all 22 towers",
       "internal": false,
       "needsReview": false
     }

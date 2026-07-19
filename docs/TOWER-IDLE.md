@@ -136,6 +136,12 @@ The posture scalar drives everything; nothing snaps:
   opener (it lands louder by being a bigger hit), ranging shells reuse the lob
   thud at reduced gain. Wardrobe tower-family pitch variants apply (same tags).
 
+> **Extended by the LIVING ORGANISM layer** (LIVING-BATTLEFIELD.md §organisms,
+> `render/organism.ts`): approach-ANTICIPATION (enemies closing in but not yet in
+> range) bridges PREPARATION→COMBAT presentation-side, plus per-kind emissions,
+> environmental tremor, recovery settles and the org_* ambience director. Render-only —
+> the sim contract in this doc is unchanged.
+
 ## 7. Integration map
 
 - **Inspector / Tower Codex / Lab**: state chip (COMBAT/TRANSITION/PREPARATION)

@@ -129,3 +129,77 @@ evolution stage instantly on a live run. Backed by `setStageOverride` / `setLivi
   trees) can be added by extending the motif set and a biome→motif bias map — no gameplay code changes.
 - Stage thresholds and per-source weights live as constants at the top of `livingBattlefield.ts` for
   easy balancing.
+
+## Organisms — the entity life layer (`src/render/organism.ts`)
+
+The terrain above evolves; this layer makes the ENTITIES on it live. "The battlefield
+should never appear motionless": every tower is a continuously reacting organism, every
+enemy visibly attends to what threatens it — all render-side, all module-local state,
+ZERO sim writes (the golden contract stays byte-identical by construction; the suite
+proves it with an untouched `src/core/`).
+
+### Towers — anticipation, recovery, tremor, emissions
+
+- **Approach-ANTICIPATION** bridges TOWER-IDLE.md's PREPARATION and COMBAT: an `alert`
+  scalar eases up while enemies close within `(range, range × 1.8]` — outside range, so
+  the sim's engagement posture is untouched — and exhales fast once combat or passage
+  resolves it. Staggered proximity scans (each tower ~1/6 frames, 1/12 past the enemy
+  LOD line) keep the O(towers × enemies) pass a rounding error.
+- **Pose** (`organismPose`, amplitude-capped at the source): threat-bearing lean + a
+  capped turn toward the approaching lane (`orient`), aperture gape + pressure swell
+  (`gape`/`swell`), an always-on idle micro-twitch (`twitch` — an organism is never
+  motionless, enforced by the validator), a damped post-shot RECOVERY settle armed on
+  cooldown fire-edges, and an environmental TREMOR jitter. One composed transform wraps
+  the whole body draw (beam rays and ground shadows stay world-anchored outside it).
+- **Environmental reactions**: heavy deaths (`DeathEvent.overkill ≥ 0.55` or fat
+  bounties) slam a radial shock into towers within 140 px; hero ULTIMATE casts pulse the
+  neighbourhood; a mega boss telegraph/phase-turn braces the whole garrison (`megaRumble`
+  floor); `hiveHitPulse` shudders it. All decay exponentially — flinches, not seizures.
+- **Ambient EMISSIONS** (world-anchored, outside the pose; LOD-gated): per-family
+  particle language — `spores` lift and disperse, `drips` bead and rope off the
+  aperture, `sparks` glint, `drones` peek from brood-holes and duck back, `crawlers`
+  skitter the rooted base, `wisps` spiral the body. Deterministic trig of `(now, id)` —
+  zero allocation, zero retained state. Amplitude = max(alert, deep-idle prep × 0.5), so
+  between waves the garrison still breathes and combat exhales the air life.
+
+### Profiles — data, not code (the scale contract)
+
+`OrganismProfile { orient, gape, swell, twitch, tremor, emission, voice }` resolves as:
+**body-form persona** (FORM_PERSONA — how that anatomy behaves) → **combat-class
+voice** (Caustic hisses acid, Viral breathes spores, Vital beats a heart) → optional
+**per-kind override** (the identity sharpeners: the Maw's chattering gape + saliva, the
+Needle's lane-tracking spindle, the Roost's peeking drakelings, the Lung's deep inhale).
+A NEW tower inherits a complete living body from its form + class with zero organism
+code; `organismProblems()` bounds every field (and rejects `twitch = 0`).
+
+### Enemies — reactive bodies
+
+- **Gaze**: each body eases a gaze bearing toward the nearest tower ahead (staggered
+  ~1/8-frame scans), overridden by a looming mega boss — drawn as a bright eye-glint at
+  the leading edge. Detail-gated; bosses excluded (the chassis owns their theater).
+- **Hit flinch**: already owned by `enemyForms` (`flinch` from the sim hitFlash) — kept.
+- **Fear/stun trembling**: already owned by `statusFx`'s control-state body transform — kept.
+- **Shield-shatter STAGGER** (new): the moment a shield breaks, the body reels with a
+  brief rotation wobble riding the sim's `shieldFlash` window.
+
+### Audio — the ambience director
+
+`pollAmbientCue()` (polled by GameView each frame, `bioStage`/`graftPulse` precedent):
+at most ONE quiet cue per ~2.6 s, rotating across alert towers' `voice` families
+(`org_heart/breath/bone/acid/spore/chirp/hum` — peaks ≤ ~0.035, far under combat cues);
+calm deep-idle breaths run 2.5× rarer; silent entirely past ~26 enemies (combat din owns
+the mix). Layered one-shots by construction — the throttle makes loops impossible.
+
+### Performance (measured)
+
+`updateOrganisms` alone: **2–13 µs/frame** at 15 towers × 3–72 enemies (stub-ctx probe;
+whole drawGame 1.6–3.2 ms there). Staggered scans halve cadence past `PERF.lodEnemyCount`;
+emissions ride the same LOD flag; shocks cap at 24/frame. Tunables live in the `ORGANISM`
+const (render-side pacing, deliberately NOT in core config — nothing here is balance).
+
+### Invariants
+
+- No function in `organism.ts` writes to `RenderState`, the sim, or the save.
+- Pose amplitudes are capped inside `organismPose` — call sites cannot make it lurch.
+- The alert band starts strictly OUTSIDE effective range: in-range prey belongs to the
+  combat/idle systems, so anticipation can never double-animate an engaged tower.

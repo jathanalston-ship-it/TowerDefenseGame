@@ -4,133 +4,124 @@
 > before committing. Read together with docs/PROJECT_STATUS.md and the latest
 > docs/VALIDATION_REPORT.md. Next session: start at docs/PROJECT_MANIFEST.md.
 
-- **Generated:** 2026-07-19 16:55 UTC · **Diff scope:** working tree vs HEAD
-- **Branch:** claude/zen-hawking-rh1gxl · **HEAD:** 0d0ab92
+- **Generated:** 2026-07-19 17:54 UTC · **Diff scope:** working tree vs HEAD
+- **Branch:** claude/zen-hawking-rh1gxl · **HEAD:** 093aa43
 
 ## Summary of work completed
 
-TOWER IDLE POSTURES (docs/TOWER-IDLE.md) — "a tower should never feel asleep." Every
-tower now carries a continuous `prep` scalar (0..1) driven by a per-tick engagement
-test; the renderer eases ALL idle/combat transition motion from it, and each of the
-22 kinds has an identity secondary behavior from 7 data-driven verbs in
-`src/core/towerIdle.ts` (banked openers, gestated volleys, Spore Drift ranging shots,
-beam preheat, trap/brood tending, biomass/integrity trickle, damage choir).
-Long-range towers bank slower for smaller payoffs (anti-range-meta corrective, no
-range nerfs). The one thing the next session must know: **`RunOptions.disableIdle`
-reproduces the pre-idle sim byte-exactly** (pinned by golden.test.ts GOLDEN_LEGACY);
-the live GOLDEN block was deliberately re-pinned (wave/kills/won identical on all six
-seeds, integrity only improved or held). Measured via the new `npm run sim:idle`:
-Σintegrity 725 vs 701 legacy, short-range damage share held/rose, mortar share flat.
+LIVING BATTLEFIELD — ORGANISM PASS (LIVING-BATTLEFIELD.md §organisms): "the battlefield
+should never appear motionless." A new render-only entity-life framework
+(`src/render/organism.ts`) gives every tower approach-ANTICIPATION (alert + threat-bearing
+lean while enemies close in OUTSIDE range — the presentation bridge between TOWER-IDLE
+PREPARATION and COMBAT), a damped post-shot recovery settle, environmental TREMOR
+(heavy deaths, hero ults, mega-boss telegraphs, hive impacts), per-kind ambient
+emissions (spores/drips/sparks/drones/crawlers/wisps), and a throttled `org_*` murmur
+ambience director; enemies gained gaze-at-threat glints and shield-shatter stagger.
+Profiles auto-derive from body form + combat class with per-kind overrides — future
+towers inherit a living body free. The one thing the next session must know: **zero
+`src/core/` edits — the goldens are byte-identical by construction** (the suite ran on
+an untouched sim), and `updateOrganisms` measures 2–13 µs/frame, a rounding error.
 
 ## Files modified
 
-- Source (16): `src/audio/sound.ts`, `src/changelog/releases.gen.ts`, `src/core/cards.ts`, `src/core/config.ts`, `src/core/effectLanguage.ts`, `src/core/game.ts`, `src/core/sim.testutil.ts`, `src/core/types.ts`, `src/dev/dil/knowledge.ts`, `src/dev/systemRegistry.ts`, `src/index.css`, `src/render/renderer.ts`, `src/render/towerEvolution.ts`, `src/ui/Inspector.tsx`, `src/ui/TowerCodex.tsx`, `src/core/towerIdle.ts`
-- Tests (8): `src/core/expansion.test.ts`, `src/core/finaldefense.test.ts`, `src/core/golden.test.ts`, `src/core/sower.test.ts`, `src/core/strainVerbs.test.ts`, `src/core/strains.test.ts`, `src/render/towerEvolution.test.ts`, `src/core/towerIdle.test.ts`
-- Docs (8): `docs/COGLOAD_REPORT.md`, `docs/DEPENDENCY_GRAPH.md`, `docs/DIL_GRAPH.md`, `docs/GAME-STATE.md`, `docs/HISTORY.md`, `docs/TOWERS.md`, `docs/VALIDATION_REPORT.md`, `docs/TOWER-IDLE.md`
-- Also: `package.json` (`sim:idle` script), `scripts/sim-tower-idle.ts` (balance instrument)
+- Source (7): `src/audio/sound.ts`, `src/changelog/releases.gen.ts`, `src/dev/dil/knowledge.ts`, `src/dev/systemRegistry.ts`, `src/render/renderer.ts`, `src/ui/GameView.tsx`, `src/render/organism.ts`
+- Tests (1): `src/render/organism.test.ts`
+- Docs (9): `docs/AI_HANDOFF.md`, `docs/COGLOAD_REPORT.md`, `docs/DEPENDENCY_GRAPH.md`, `docs/DIL_GRAPH.md`, `docs/GAME-STATE.md`, `docs/HISTORY.md`, `docs/LIVING-BATTLEFIELD.md`, `docs/TOWER-IDLE.md`, `docs/VALIDATION_REPORT.md`
 
 ## Systems affected (from the dependency registry)
 
 - **audio** — `src/audio/sound.ts`
 - **chronicle** — `src/changelog/releases.gen.ts`
-- **content-infra** — `src/core/config.ts`, `src/core/types.ts`
 - **dev-registry** — `src/dev/dil/knowledge.ts`, `src/dev/systemRegistry.ts`
-- **engine** — `src/core/game.ts`, `src/core/sim.testutil.ts`
-- **gene-cards** — `src/core/cards.ts`, `src/core/effectLanguage.ts`
-- **rendering** — `src/render/renderer.ts`, `src/render/towerEvolution.ts`
-- **run-ui** — `src/ui/Inspector.tsx`
-- **towers** — `src/ui/TowerCodex.tsx`, `src/core/towerIdle.ts`
-- Consumer ring (verify, unchanged): arena, biomes, boss-rush, bosses, campaign, collection, contracts, currencies, cutscenes, daily, difficulty, doctrines, equipment, evolution-hq, hero-cinematics, hero-symbiotes, heroes, infinite, living-battlefield, loot, mastery, mega-bosses, meta-store, mulligans, nemesis, nucleus, onboarding, online-foundation, pil, power, premium, website
+- **living-battlefield** — `src/render/organism.ts`
+- **rendering** — `src/render/renderer.ts`, `src/render/organism.ts`
+- **run-ui** — `src/ui/GameView.tsx`
+- Consumer ring (verify, unchanged): cutscenes, hero-cinematics, pil
 
 ## Power Score changes
 
-None. Idle postures are in-run flavor of towers the account already owns — account
-Power stands still by design (docs/TOWER-IDLE.md §7); the untouched power suite pins
-it. The only new modifier channel is `RunModifiers.towerIdleChargeMult` (default 1,
-registered in effectLanguage FIELD_VOCAB) — a run-scoped hook for future cards/gear,
-not an account-power source.
+None — pure presentation. No modifier, no account state, no sim read-back; the power
+suite is untouched and there is nothing for it to see.
 
 ## UI changes
 
-Surfaces in the blast radius: `MusicDebug (Settings dev console)`, `(audible)`, `App (UpdateBriefing popup)`, `GameView`, `Hud`, `Toolbar`, `BuildControls`, `Inspector`, `BuildPanel`, `GeneArchive`, `DraftModal`, `gene splash`, `the battlefield itself`, `Results`, `ALL`, `TowerLab`, `TowerCodex`, `StarCeremony`, `tower rail`
+Surfaces in the blast radius: `MusicDebug (Settings dev console)`, `(audible)`, `App (UpdateBriefing popup)`, `the battlefield itself`, `Results`, `ALL`
 
-- **Battlefield (renderer)**: posture breathing (period/amplitude ride `prep`), a
-  filling preparation ring + ready halo on banking towers, work-motes on giving
-  verbs, choir filaments between the Ossuary and its beneficiaries. No layout change.
-- **Inspector**: new `mut-idle` state chip (COMBAT/TRANSITION/PREPARATION + behavior
-  name, blurb tooltip) + a behavior line in Host vitals; outside the wave phase the
-  chip reads PREPARATION to match the renderer's build-phase treatment.
-- **TowerCodex**: `.codex-idle` identity line (behavior name + blurb) per tower.
-- **Audio**: `tprep_ready` quiet cue when a bank fills (once per idle cycle).
-- Headless coverage: live probe (scratchpad probe-idle.ts) entered a real run,
-  confirmed chip PREPARATION during build → COMBAT on engagement → back to
-  PREPARATION post-wave, zero pageerrors; mobilecheck CLEAN, cogload budgets hold.
+- **Battlefield towers**: one composed organism pose around each body (threat lean +
+  capped turn, gape/swell while alert, idle micro-twitch, recovery wobble after shots,
+  tremor jitter on shocks) + world-anchored per-family emissions. Beams and ground
+  shadows deliberately sit OUTSIDE the pose (no swing).
+- **Battlefield enemies**: eye-glint gaze toward the nearest tower ahead (mega boss
+  overrides), shield-shatter stagger wobble. Fear trembling and hit flinch were already
+  owned by statusFx/enemyForms — untouched.
+- **Audio**: 7 new quiet `org_*` synths (heart/breath/bone/acid/spore/chirp/hum, peaks
+  ≤ ~0.035) cued by the ambience director GameView polls each frame — one cue per
+  ~2.6 s max, silent past ~26 enemies, calm breaths 2.5× rarer than anticipation
+  murmurs. Sparse one-shots; loops are impossible by construction.
+- Headless coverage: live probe (scratchpad probe-organism.ts) ran a real wave with the
+  new layers — zero pageerrors, PREPARATION→COMBAT→PREPARATION chip regression held;
+  screenshots org-prep/org-anticipation/org-combat captured; mobilecheck CLEAN,
+  cogload budgets hold (canvas layers are outside its DOM scope by design).
 
 ## Documentation changes
 
-- Updated this batch: `docs/TOWER-IDLE.md` (NEW — canonical; incl. §9 measured
-  balance findings), `docs/TOWERS.md` (idle-postures pointer), `docs/GAME-STATE.md`
-  (towers row + IDLE POSTURES summary), `docs/DEPENDENCY_GRAPH.md` +
-  `docs/DIL_GRAPH.md` (regen), `docs/HISTORY.md` (Chronicle), `docs/VALIDATION_REPORT.md`,
-  `docs/COGLOAD_REPORT.md`.
-- The wider registry list above: no change needed — no save format, no Power scale,
-  no mode/economy behavior moved; tower-facing docs point at TOWER-IDLE.md via
-  TOWERS.md rather than duplicating it.
+- Updated this batch: `docs/LIVING-BATTLEFIELD.md` (+§Organisms — canonical for the
+  entity-life layer), `docs/TOWER-IDLE.md` (§7 cross-ref: organism layer extends the
+  presentation, sim contract unchanged), `docs/GAME-STATE.md` (towers row + LIVING
+  ORGANISMS summary), `docs/DEPENDENCY_GRAPH.md` + `docs/DIL_GRAPH.md` (regen),
+  `docs/HISTORY.md` (Chronicle), `docs/VALIDATION_REPORT.md`, `docs/COGLOAD_REPORT.md`.
+- The wider registry list: no change needed — no camera, HUD, cutscene, or pipeline
+  contract moved; COMBAT-VISUAL-STANDARDS' anticipation section still describes the
+  pre-shot windup (unchanged); the approach-anticipation is documented at its owner
+  (LIVING-BATTLEFIELD §organisms).
 
 ## Save changes
 
-None — save layer untouched. Tower idle fields (`prep`, `idleCharge`, `idleCd`,
-`choirDmg`) are run-temporary on the Tower entity, never persisted; CURRENT_VERSION
-stays 53.
+None — save layer untouched. All organism state is render-module-local and reaped with
+its towers/enemies.
 
 ## Known edge cases
 
-- **Field/aura towers no longer pulse empty air**: the engagement test gates casts on
-  a living enemy in reach outside the deadzone. Deliberate (documented in
-  TOWER-IDLE.md §1) — but any future test that counts aura ticks on an empty board
-  will read 0; use `{ disableIdle: true }` for legacy choreography.
-- **Mechanism suites pin their own choreography with `disableIdle: true`**
-  (strainVerbs, strains, sower, finaldefense, expansion — rationale comments at each
-  site). New mechanism tests should follow that pattern; the composed whole is pinned
-  by the goldens and towerIdle.test.ts.
-- **Mortar cannot use the 'ranging' verb** (its 960 range covers the lane; its only
-  idle moments have no legal ranging target either) — that's why parasite owns Spore
-  Drift and mortar is windup. Don't "fix" mortar back to ranging.
-- **Ossuary choir decays one tick between grants** — steady-state receiver `choirDmg`
-  sits just under the configured bonus (towerIdle.test.ts asserts the band, not
-  equality).
-- **The Inspector chip is phase-aware**: outside `phase === 'wave'` it reports
-  PREPARATION regardless of the scalar (matches the renderer's build-phase
-  treatment). Tests asserting `idleState` mid-build must expect 'preparation'.
+- **The alert band starts strictly OUTSIDE effective range** — in-range prey belongs to
+  combat (attackAnticipation) and the sim's idle postures. Don't "fix" alert to include
+  in-range enemies; that would double-animate engaged towers.
+- **organism.ts keys state by tower id and reaps by frame-stamp** (the enemyMotion
+  pattern). A new run reuses ids; `__resetOrganisms()` exists for tests but production
+  relies on natural convergence (alert/tremor decay in <1 s) — fine because RenderState
+  ids stay unique within a run.
+- **`updateOrganisms` uses rs.time for dt** — pause freezes the layer with the rest of
+  the presentation (consistent with every pulse() in the renderer).
+- **Emissions are LOD-gated by the enemy-count detail flag** passed into drawTower
+  (`fxDetail`); the pose itself always runs (micro-cost) so towers never go corpse-still
+  even in a 300-enemy swarm.
+- **The ambience director cues by profile voice, not per-tower** — two alert towers of
+  the same kind produce one murmur stream, throttled globally; per-tower audio would
+  stack into noise.
 
 ## Remaining technical debt
 
-- The sim:idle instrument's slot-order placement leaves maw with 0 engagements on
-  the mixed board (placement artifact, identical in both A/B arms — the verdict is
-  unaffected). A follow-up could place per-kind boards for per-verb uptime curves.
-- `TOWER_IDLE` naming: plain `IDLE` in config.ts belongs to the Idle Harvest system —
-  the doc calls this out, but the near-collision remains a trap for grep-driven edits.
+- Enemy gaze scans all towers per staggered enemy (≤27 towers — cheap today). If the
+  tower cap ever grows 10×, reuse the organism layer's per-tower spatial data instead.
+- The mega-boss gaze anchor assumes arena center x=360 (`updateEnemyMotion` call site);
+  a future multi-lane arena should pass the mega's true x.
 
 ## Recommended next tasks
 
-1. **Gene cards/equipment that ride the new hook** — author cards multiplying
-   `towerIdleChargeMult` (entry: `src/core/cards.ts` catalog + effectLanguage
-   keyword 'idle preparation speed' already registered).
-2. **Per-verb achievement/statistics surfacing** — run counters exist on Game
-   (`idleOpeners`, `idleRangingShots`, `idleBiomass`, `idleMended`); wire into
-   Results and the achievements registry (entry: `src/core/achievements.ts`,
-   `src/ui/Results.tsx`).
-3. **Arena/PvP parity check** — basilisk/ossuary rows exist and validate, but no
-   arena-side balance measurement was run (entry: `scripts/sim-arena-*` harnesses).
+1. **Per-biome emission palettes** — tint organism emissions by biome accent (entry:
+   `drawOrganismEmissions` color param at its renderer call site).
+2. **Settings toggle for battlefield ambience** (entry: the `pollAmbientCue` call in
+   `src/ui/GameView.tsx`'s RAF loop + the existing audio settings block) if players
+   want murmur-free audio.
+3. **Boss-side organism profiles** — bosses currently opt out of gaze/stagger (chassis
+   theater); a per-chassis reaction row could plug into `render/bossChassis.ts`.
 
 ## Future expansion hooks
 
-- `src/core/towerIdle.ts` — `IdleBehaviorDef` rows are the single tuning surface;
-  `towerIdleProblems()` bounds any new row (add a verb by extending `TowerIdleVerb`
-  + one accrual case in `game.towerIdlePosture`).
-- `src/core/cards.ts` — `RunModifiers.towerIdleChargeMult` (default 1) is the
-  card/equipment/strain seam; folded at every `chargeTime` read.
-- `src/core/game.ts` — `RunOptions.disableIdle` (dev/instrument only) is the
-  permanent legacy A/B seam for balance instruments.
-- `src/core/types.ts` — `SelectedPlacedTower.idleState/idleName/idleBlurb` feed any
-  future tooltip/HUD surface without new sim reads.
+- `src/render/organism.ts` — `OVERRIDES` rows sharpen any kind's personality;
+  `FORM_PERSONA`/`CLASS_VOICE` auto-cover new content; `organismProblems()` bounds it.
+- `OrganismEmission`/`OrganismVoice` unions — add a family by extending the union + one
+  case in `drawOrganismEmissions` / one synth in `sound.ts`.
+- `ORGANISM` const — render-side pacing knobs (approach band, scan cadence, ambient
+  gap/din cap) in one place.
+- `battlefieldNerves()` — aggregate alert 0..1, exported for any future surface (music
+  intensity, HUD tension glow) that wants the garrison's nerves as a signal.
