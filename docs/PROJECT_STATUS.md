@@ -3,7 +3,24 @@
 > Maintained at the END of every session (paired with `docs/AI_HANDOFF.md` — the constitution's
 > workflow step 4). This is the "where are we?" answer; `docs/GAME-STATE.md` remains the deeper
 > per-system built-vs-planned index, `docs/PROJECT_MANIFEST.md` the system map.
-> **Last updated:** 2026-07-19ae (**BOSS RUSH FREE-ENTRY BADGE — VOLATILE DAILY
+> **Last updated:** 2026-07-19af (**MEGA-BOSS FOLLOW-UP — RAID HIT AUDIO + WAVE-BLOCKING
+> MEGAS OUTSIDE CAMPAIGN** (user-queued: silent weak-point strikes; megas must count as
+> wave enemies everywhere but campaign). AUDIO: raid strikes bypass projectiles ⇒ no
+> impact cue ever fired — `megaHitSfx()` plays one throttled `hit` (≥0.15s across the
+> whole raid; sim-time throttle `megaHitSfxT`, deterministic; beams can never
+> machine-gun) at both `megaHitWeakPoint` and `megaHitBody`. MODES: `checkWaveEnd` gate
+> now `mega !== null && (daily || mode !== 'campaign' || finale)` — Infinite/Boss Rush
+> waves HOLD until the organism falls (previously only daily/campaign-finales held; a
+> wave could slip past a live mega in the reinforcement-pulse gap — part of the reported
+> jank); lone siege supplies pressure while held; CAMPAIGN remains the one mode where a
+> mega persists across waves (finale still holds). Golden-safe by construction (gate
+> keys on a live mega; megas absent from golden runs — 12/12 pins untouched). Tests:
+> megaboss.test §modes (endless holds + releases on death; campaign mid-stage completes
+> past it) — suite 30/30, full 305 files/2587 green, build, validate PASS. MEGA-BOSS.md
+> +§modes + raid-audio note. Feel-rebuild decision deferred until play-validation
+> (handoff names the timeline-probe next step). Previous below.)
+>
+> **2026-07-19ae** (**BOSS RUSH FREE-ENTRY BADGE — VOLATILE DAILY
 > WATERMARKS** (user: "add a notification on boss rush mission tab when you have a free
 > one"). The source + every badge surface already existed; the bug was the watermark
 > model — count is 1 today AND 1 tomorrow (fresh free entry each reset), so ONE un-acted

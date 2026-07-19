@@ -615,6 +615,7 @@ export class Game {
   private mega: MegaRuntime | null = null;
   private megaFx: MegaFieldFx = { ...NEUTRAL_MEGA_FX };
   private megaShots: MegaShot[] = [];
+  private megaHitSfxT = -1; // last raid-strike cue time (throttle — beams tick every frame)
   // Hive-guardian override (§targeting): true while the Core is threatened — towers/beams
   // yield raid duty to normal targeting. Derived per tick in megaBossSystem; only read while
   // a mega is live, so it is inert (and never derived) on every other run.
@@ -3598,6 +3599,15 @@ export class Game {
     return false;
   }
 
+  /** Raid strikes were SILENT (user report) — the raid path bypasses projectiles, so the normal
+   *  impact cue never fired. One throttled 'hit' across the whole raid: per-frame beam ticks
+   *  and a full volley alike read as steady combat, never a machine-gun of cues. */
+  private megaHitSfx(): void {
+    if (this.time - this.megaHitSfxT < 0.15) return;
+    this.megaHitSfxT = this.time;
+    this.pushSfx('hit');
+  }
+
   /** Apply a hit to a weak point (its own armor; no boss armor). Destruction fires the consequence. */
   private megaHitWeakPoint(wp: MegaWeakPoint, raw: number, sx: number, sy: number, color: string): void {
     const applied = damageAfter(raw, 1, wp.armor);
@@ -3605,6 +3615,7 @@ export class Game {
     wp.hitFlash = 0.15;
     this.statDamageDealt += applied;
     this.megaShots.push({ x0: sx, y0: sy, x1: wp.x, y1: wp.y, life: 0.14, color });
+    this.megaHitSfx();
     if (wp.hp <= 0 && wp.state === 'open') this.destroyWeakPoint(wp);
   }
 
@@ -3618,6 +3629,7 @@ export class Game {
     rt.hp -= applied;
     this.statDamageDealt += applied;
     this.megaShots.push({ x0: sx, y0: sy, x1: tx, y1: ty, life: 0.14, color });
+    this.megaHitSfx();
   }
 
   /** A weak point falls: a chunk of boss HP + its mapped consequence + the full ceremony. */
@@ -6774,10 +6786,13 @@ export class Game {
 
   private checkWaveEnd(): void {
     if (this.phase !== 'wave' || this.settleTimer > 0) return; // already winding down
-    // A living Mega Boss HOLDS its encounter open (docs/MEGA-BOSS.md): the Daily variant never
-    // wave-clears at all, and a campaign mega-stage cannot present its finale until the organism
-    // falls — megaBossSystem keeps overtime reinforcements arriving instead of the wave plan.
-    if (this.mega !== null && (this.megaDailyEnc !== null || (this.mode === 'campaign' && this.waveIndex >= this.totalWaves))) return;
+    // A living Mega Boss HOLDS its encounter open (docs/MEGA-BOSS.md §modes): in every mode
+    // EXCEPT campaign the organism counts as part of its wave — the wave cannot complete until
+    // it falls (previously only daily/campaign-finales held, so an infinite/rush wave could
+    // slip past a live mega in the gap before its reinforcement pulse — the reported jank).
+    // The lone-siege loop supplies pressure while it stands. CAMPAIGN is the one mode where a
+    // mega persists across waves; only its FINAL wave holds for the kill (the stage finale).
+    if (this.mega !== null && (this.megaDailyEnc !== null || this.mode !== 'campaign' || this.waveIndex >= this.totalWaves)) return;
     if (this.spawnedAll && this.spawnQueue.length === 0 && this.rushPending.length === 0 && this.enemies.length === 0) {
       this.minions.length = 0; // temporary summons don't outlive the wave they were called into
       if (gameEvents.hasListeners('waveCompleted')) gameEvents.emit('waveCompleted', { wave: this.waveIndex, endless: this.mode === 'endless' });

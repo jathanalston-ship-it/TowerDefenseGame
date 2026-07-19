@@ -4,53 +4,54 @@
 > before committing. Read together with docs/PROJECT_STATUS.md and the latest
 > docs/VALIDATION_REPORT.md. Next session: start at docs/PROJECT_MANIFEST.md.
 
-- **Generated:** 2026-07-19 19:14 UTC · **Diff scope:** working tree vs HEAD
-- **Branch:** claude/zen-hawking-rh1gxl · **HEAD:** 63ebc02
+- **Generated:** 2026-07-19 19:28 UTC · **Diff scope:** working tree vs HEAD
+- **Branch:** claude/zen-hawking-rh1gxl · **HEAD:** e14695e
 
 ## Summary of work completed
 
-BOSS RUSH FREE-ENTRY BADGE (user report: no notification on the Boss Rush tab when a free
-run is available). The source (`rush.freeEntry`, channel `bossrush`) already existed and
-every surface renders channel badges — the bug was the WATERMARK MODEL: the count is 1
-today and 1 again tomorrow (a fresh free entry each reset), so one un-acted visit stamped
-seen=1 and suppressed the badge FOREVER. Fix: `NotificationSource.volatile: 'daily'` — the
-seen-mark only counts on the day it was stamped (numeric-ISO `<id>@d` sidecar key in the
-same watermark record; no migration; stale-day stamps read as "never seen"). Applied to
-`rush.freeEntry` only (deliberate — persistent watermarks stay correct for counts that
-drop on action). The one thing to know: `__setNotifDayForTests` pins "today" for rollover
-tests; the badge now re-lights every reset on the hub door, landing card, and mobile nav.
+MEGA-BOSS FOLLOW-UP (user-queued): (1) raid strikes were SILENT — the raid path bypasses
+projectiles so no impact cue ever fired; `megaHitSfx()` now plays one throttled `hit`
+(≥0.15 s apart across the whole raid — beam per-frame ticks can never machine-gun).
+(2) WAVE-BLOCKING MEGAS: in every mode except campaign a living mega now holds its wave
+open (`checkWaveEnd` gate — previously only daily/campaign-finales held, so an
+infinite/rush wave could slip past a live mega in the reinforcement-pulse gap, part of
+the reported jank). Campaign remains the one mode where a mega persists across waves;
+its finale still holds. The one thing to know: goldens are byte-identical (the gate only
+engages with a live mega, and megas never appear in golden runs) — pinned by the mega
+suite's new §modes pair (endless holds + releases on death; campaign mid-stage completes
+past it).
 
 ## Files modified
 
-- Source (3): `src/changelog/releases.gen.ts`, `src/state/notificationSources.ts`, `src/state/notifications.ts`
-- Tests (1): `src/state/notifications.test.ts`
-- Docs (3): `docs/HISTORY.md`, `docs/NOTIFICATIONS.md`, `docs/VALIDATION_REPORT.md`
+- Source (2): `src/changelog/releases.gen.ts`, `src/core/game.ts`
+- Tests (1): `src/core/megaboss.test.ts`
+- Docs (3): `docs/HISTORY.md`, `docs/MEGA-BOSS.md`, `docs/VALIDATION_REPORT.md`
 
 ## Systems affected (from the dependency registry)
 
 - **chronicle** — `src/changelog/releases.gen.ts`
-- **notifications** — `src/state/notificationSources.ts`, `src/state/notifications.ts`
-- Consumer ring (verify, unchanged): hub-shell, metabolism
+- **engine** — `src/core/game.ts`
+- Consumer ring (verify, unchanged): arena, audio, boss-rush, bosses, campaign, daily, hero-cinematics, heroes, infinite, living-battlefield, mega-bosses, nemesis, onboarding, online-foundation, rendering, run-ui
 
 ## Power Score changes
 
-None — no Power-relevant system touched.
+TODO: a Power-relevant system changed — state what moved (scale, buckets, preview surfaces) and which tests pin it.
 
 ## UI changes
 
-Surfaces in the blast radius: `App (UpdateBriefing popup)`, `Hub (badges)`, `RewardToaster (claim popups)`, `nav badges`
+Surfaces in the blast radius: `App (UpdateBriefing popup)`, `GameView`, `Hud`, `Toolbar`, `BuildControls`, `Inspector`, `BuildPanel`
 
-No component/CSS change — the fix is model-level, so the existing badge renderings (hub
-door aggregate, HubLanding card, mobile nav row, reason tooltips) light up via the same
-`notifications.badges()` read. Coverage: notifications.test rollover case (badge → seen →
-day rollover → badge again); validate's mobile gate green.
+- Audible only: raid strikes on weak points and body chips now play the standard combat
+  hit cue, throttled. No component/CSS change.
+- Behavioral: infinite/boss-rush waves hold while a mega stands (lone-siege pressure
+  keeps the fight active); campaign unchanged mid-stage.
+- Coverage: megaboss.test §modes (2 new laws) + full suite; no DOM surface moved.
 
 ## Documentation changes
 
-Registry says these move with the touched systems: `docs/CHANGELOG-PIPELINE.md`, `docs/NOTIFICATIONS.md`, `docs/HIVE-INTEL.md`, `docs/METABOLISM.md`, `docs/COMMAND-CENTER.md`, `docs/HOME-BASE.md`, `docs/ONE-MORE-RUN.md`, `docs/HUD.md`, `docs/PROGRESSION-LOOP.md`, `docs/UX-CONSOLIDATION.md`
+Registry says these move with the touched systems: `docs/CHANGELOG-PIPELINE.md`, `docs/ARCHITECTURE.md`, `docs/CODEMAP.md`, `docs/DESIGN.md`, `docs/CAMPAIGN.md`, `docs/CAMPAIGN-EVENTS.md`, `docs/MODE-IDENTITY.md`, `docs/STAGES.md`, `docs/ENDLESS-SCALING.md`, `docs/BOSS-RUSH.md`, `docs/DAILY-RUN.md`, `docs/ONLINE-FOUNDATION.md`, `docs/TRADING-PREP.md`, `docs/ARENA.md`, `docs/ARENA_MATCH_REPORT.md`, `docs/HEROES.md`, `docs/HERO-FRAMEWORK.md`, `docs/HERO-EVOLUTION.md`, `docs/HERO-SELECTION.md`, `docs/SLOTS.md`, `docs/HERO-CINEMATICS.md`, `docs/NEMESIS.md`, `docs/TUTORIAL.md`, `docs/HELP.md`, `docs/TUTORIAL-AUDIT.md`, `docs/GUIDED-UNLOCKS.md`, `docs/HUD.md`, `docs/READABILITY.md`, `docs/REWARD-PRESENTATION.md`, `docs/BOSS-DESIGN.md`, `docs/MEGA-BOSS.md`, `docs/RENDER-PIPELINE.md`, `docs/TOWER-VISUAL-EVOLUTION.md`, `docs/GAME-FEEL.md`, `docs/CAMERA.md`, `docs/COMBAT-VISUAL-STANDARDS.md`, `docs/LIVING-BATTLEFIELD.md`, `docs/MUSIC.md`
 
-- Updated: `docs/NOTIFICATIONS.md` (+§volatile). The rest: no change needed — no channel
-  taxonomy, toast, or hub-flow contract moved.
+- Updated: `docs/MEGA-BOSS.md` (+§modes + raid-audio note). The rest: no change needed.
 
 ## Save changes
 
@@ -58,29 +59,29 @@ None — save layer untouched.
 
 ## Known edge cases
 
-- Volatile watermarks key off `dailyKey()` (the same day authority as the free entry
-  itself), so badge day-rollover and stamina reset can never disagree.
-- The `@d` sidecar lives in the SAME localStorage record as watermarks — `sync()` never
-  clamps it (it iterates sources by id, and `@d` keys are not source ids).
-- Old persisted watermarks lack `@d` → read as stale → the badge shows once post-update,
-  then stamps normally. Deliberate (fail toward visibility).
+- The wave-hold gate keys on `this.mega !== null` FIRST — zero cost and zero behavior
+  change on every megaless run (golden safety by construction).
+- `megaHitSfx` throttle state is sim-time (`megaHitSfxT`) — deterministic, but do not
+  move the cue into the renderer (pause/speed must keep audio cadence honest).
+- Daily variant: the explicit `megaDailyEnc !== null` term is redundant with
+  `mode !== 'campaign'` today but kept as documentation of intent.
 
 ## Remaining technical debt
 
-- Other daily-shaped 0|1 sources (`daily` login cache, `idle.ripe`) share the latent
-  suppress-forever pattern but their screens' single action drops the count on visit in
-  practice; apply `volatile: 'daily'` per-source only after checking each screen's UX.
+- "Fight still feels kind of janky" (user) — the stall fix + wave-hold + audio address
+  the named symptoms; if jank reports persist after play-validation, the next candidate
+  is a dedicated mega probe capturing the full fight timeline (phase pacing, window
+  cadence, death-sequence feel) before any rebuild decision.
 
 ## Recommended next tasks
 
-1. **Mega boss follow-up (user-queued)**: weak-point hits play no impact sound
-   (megaHitWeakPoint/megaHitBody push no sfx — entry: `src/core/game.ts` + a throttled
-   cue); ALL modes except campaign must treat a live mega as wave-blocking (entry: the
-   wave-completion gate at the `spawnedAll && … && enemies.length === 0` check, keyed on
-   `rt.encounter`); campaign keeps multi-wave persistence; general fight-feel audit.
-2. Consider `volatile: 'daily'` for the login-cache source after UX review.
+1. Play-validate a campaign-10 Voraxis fight AND an infinite mega (user's arenas).
+2. If feel reports persist: build the fight-timeline probe (entry: megaboss.test raid
+   harness + a scripts/sim-mega-feel.ts instrument) before considering a rebuild.
 
 ## Future expansion hooks
 
-- `NotificationSource.volatile` — extend the union (e.g. `'weekly'`) with one case in
-  `dayStamp()`-adjacent logic when a weekly-cadence offer needs the same treatment.
+- `megaHitSfx()` — the single raid-audio chokepoint; per-weak-point-kind timbres would
+  hang off the `wp.kind` at its two call sites.
+- The `checkWaveEnd` mega gate — a future mode joins the wave-hold rule by default
+  (anything not 'campaign' holds); opting out is a one-term change.

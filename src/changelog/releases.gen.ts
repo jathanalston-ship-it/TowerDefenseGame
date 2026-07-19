@@ -17,6 +17,10 @@ export const RELEASES: Release[] = [
       {
         "cat": "Mega Bosses",
         "text": "Mega-boss stall fix, self-sealing patch notes, lab adaptation links"
+      },
+      {
+        "cat": "Bosses",
+        "text": "Boss Rush free-entry badge: volatile daily notification watermarks"
       }
     ]
   },

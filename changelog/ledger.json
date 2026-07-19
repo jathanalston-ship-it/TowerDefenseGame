@@ -1,6 +1,6 @@
 {
-  "lastSha": "63ebc02d6ec53bbba1da36f296f4584a73c7aa1b",
-  "commitsSinceDraft": 1,
+  "lastSha": "e14695e5bfa5139e13fc7995070453cd7eb64e7f",
+  "commitsSinceDraft": 2,
   "content": {
     "tower": [
       "needle",
@@ -2939,6 +2939,10 @@
         {
           "cat": "Mega Bosses",
           "text": "Mega-boss stall fix, self-sealing patch notes, lab adaptation links"
+        },
+        {
+          "cat": "Bosses",
+          "text": "Boss Rush free-entry badge: volatile daily notification watermarks"
         }
       ]
     }
@@ -5533,6 +5537,14 @@
       "date": "2026-07-19",
       "cat": "Mega Bosses",
       "text": "Mega-boss stall fix, self-sealing patch notes, lab adaptation links",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "e14695e5bfa5139e13fc7995070453cd7eb64e7f",
+      "date": "2026-07-19",
+      "cat": "Bosses",
+      "text": "Boss Rush free-entry badge: volatile daily notification watermarks",
       "internal": false,
       "needsReview": false
     }

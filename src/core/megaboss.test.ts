@@ -615,3 +615,44 @@ describe('§stall audit (2026-07-19) — the fight must never go damage-dead', (
     expect(typeof banner.armored).toBe('boolean');
   });
 });
+
+describe('§modes (2026-07-19) — a mega counts as part of its wave outside campaign', () => {
+  type Guts = { mega: { hp: number; deathT: number } | null };
+
+  it('ENDLESS: the wave cannot complete while the organism stands; its death releases it', () => {
+    const g = new Game(13, NO_META, undefined, undefined, undefined, { mode: 'endless' });
+    g.god = true;
+    g.spawnMegaBoss({ defId: 'voraxis', tier: 1 }, 'infinite');
+    g.startWave();
+    const wave0 = g.waveIndex;
+    // Drain the wave plan + every reinforcement the moment it lands: the field goes bare
+    // over and over — exactly the gap waves used to slip through.
+    for (let i = 0; i < 60 * 30; i++) {
+      for (const e of g.enemies) e.hp = -1;
+      g.advance(SIM_DT);
+    }
+    expect(g.phase).toBe('wave'); // held open by the living mega
+    expect(g.waveIndex).toBe(wave0);
+    // The kill releases the wave (death sequence, then the normal settle/clear flow).
+    (g as unknown as Guts).mega!.hp = -1;
+    for (let i = 0; i < 60 * 30 && g.phase === 'wave'; i++) {
+      for (const e of g.enemies) e.hp = -1;
+      g.advance(SIM_DT);
+    }
+    expect(g.phase).not.toBe('wave');
+  });
+
+  it('CAMPAIGN (mid-stage): the mega persists — the wave completes past it', () => {
+    const g = new Game(13, NO_META, undefined, undefined, undefined, { mode: 'campaign' });
+    g.god = true;
+    g.spawnMegaBoss({ defId: 'voraxis', tier: 1 }, 'campaign');
+    g.startWave();
+    expect(g.waveIndex).toBeLessThan(g.totalWaves); // mid-stage, not the finale
+    for (let i = 0; i < 60 * 40 && g.phase === 'wave'; i++) {
+      for (const e of g.enemies) e.hp = -1;
+      g.advance(SIM_DT);
+    }
+    expect(g.phase).not.toBe('wave'); // wave cleared with the organism still standing
+    expect((g as unknown as Guts).mega).not.toBeNull();
+  });
+});

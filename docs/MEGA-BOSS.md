@@ -170,6 +170,20 @@ registry-driven.
   raid-fire seams) and armors against the argmax kind for its duration (`×magnitude` damage
   from that kind only; heroes bypass it). The HUD chips it as `ADAPTED·<KIND>`.
 
+## §modes (2026-07-19) — the mega is part of its wave everywhere but campaign
+
+`checkWaveEnd` holds a wave OPEN while a mega stands in every mode except campaign: in
+Infinite and Boss Rush the organism counts as a wave enemy — the wave cannot complete
+until it falls (previously only daily/campaign-finales held, so a wave could slip past a
+live mega in the gap before its reinforcement pulse). The lone-siege loop supplies
+pressure while it stands. **Campaign is the one mode where a mega persists across
+waves**; only the stage's FINAL wave holds for the kill. Pinned by megaboss.test §modes
+(endless holds + release-on-death; campaign mid-stage completes past it).
+
+**Raid audio:** raid strikes bypass projectiles, so they never fired the impact cue —
+`megaHitSfx()` now plays one throttled `hit` (≥0.15 s apart across the whole raid: beam
+per-frame ticks and full volleys read as steady combat, never a cue machine-gun).
+
 ## §damage-gate honesty (2026-07-19) — the bar never freezes silently
 
 The raid bar states WHY hp moves slowly instead of looking stuck:
