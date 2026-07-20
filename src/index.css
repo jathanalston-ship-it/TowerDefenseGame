@@ -7059,6 +7059,36 @@ kbd {
 .speed-btn:hover:not(:disabled) { color: var(--text); transform: none; background: var(--panel-3); }
 .speed-btn.on:hover:not(:disabled) { color: #0c1119; background: var(--kinetic); }
 .speed-note { position: absolute; top: 52px; right: 12px; z-index: 45; display: flex; align-items: center; gap: 10px; max-width: min(340px, 90%); padding: 8px 12px; border-radius: var(--r-md); border: 1px solid color-mix(in srgb, var(--kinetic) 45%, var(--line)); background: color-mix(in srgb, var(--kinetic) 10%, var(--panel)); box-shadow: var(--shadow-sm); font-size: 12px; line-height: 1.4; animation: ui-rise var(--dur-3) var(--ease-out) both; }
+/* HIVE INTELLIGENCE (docs/HIVE-MIND.md): the in-run executive. Lives beside the speed
+   cluster in both prep and combat; the core LED breathes only while a worthwhile purchase
+   is affordable (one attention animator, INFO-HIERARCHY compliant). */
+.hive-mind-btn {
+  position: absolute; top: 10px; right: 218px; z-index: 30;
+  display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px;
+  border-radius: 999px; border: 1px solid var(--line-strong);
+  background: rgba(8, 12, 20, 0.82); backdrop-filter: blur(4px);
+  color: var(--dim); font-size: 11px; font-weight: 800; letter-spacing: 0.06em;
+  transition: color var(--dur-2) ease, border-color var(--dur-2) ease, box-shadow var(--dur-2) ease;
+}
+.hive-mind-btn .hive-mind-core { width: 7px; height: 7px; border-radius: 50%; background: var(--line-strong); }
+.hive-mind-btn.is-ready {
+  color: #cfe9ff; border-color: color-mix(in srgb, #8fd0ff 55%, var(--line-strong));
+  box-shadow: 0 0 14px color-mix(in srgb, #8fd0ff 30%, transparent);
+}
+.hive-mind-btn.is-ready .hive-mind-core { background: #8fd0ff; animation: mega-chip-pulse 1.2s ease-in-out infinite alternate; box-shadow: 0 0 8px #8fd0ff; }
+.hive-mind-btn:hover:not(:disabled) { color: var(--text); }
+.hive-ticker {
+  /* Hug the right edge — right:218 (under the button) overlaps the centered Start Wave popup. */
+  position: absolute; top: 52px; right: 10px; z-index: 45;
+  display: flex; flex-direction: column; gap: 2px; max-width: min(300px, 80%);
+  padding: 8px 12px; border-radius: var(--r-md);
+  border: 1px solid color-mix(in srgb, #8fd0ff 45%, var(--line));
+  background: color-mix(in srgb, #8fd0ff 8%, var(--panel));
+  box-shadow: var(--shadow-sm); font-size: 11px; line-height: 1.45; pointer-events: none;
+  animation: ui-rise var(--dur-3) var(--ease-out) both, gene-splash-out var(--dur-4) ease-in 3.4s forwards;
+}
+.hive-ticker b { color: #8fd0ff; font-size: 10px; letter-spacing: 0.08em; }
+.hive-ticker span { color: var(--text); }
 .speed-note button { flex: none; padding: 4px 12px; border-radius: 999px; font-size: 11px; font-weight: 800; }
 @media (max-width: 640px) { .speed-ctl { right: 96px; } }
 

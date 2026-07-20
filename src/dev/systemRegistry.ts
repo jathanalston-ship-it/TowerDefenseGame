@@ -44,6 +44,14 @@ export interface SystemDef {
 
 export const SYSTEMS: SystemDef[] = [
   {
+    id: 'hive-mind', name: 'Hive Intelligence (in-run)', purpose: 'The in-run best-upgrade executive (player-facing HIVE INTELLIGENCE button): a pure provider-registry planner over every Biomass purchase (branch tiers, hero evolution, auto-cast, conveyor deploy/merge — future sinks register one provider), exact power-per-cost scoring with context multipliers (sparse board, heavy wave, pinned reserve), deterministic pulse execution through the same public APIs manual clicks use. Golden-safe: only the player button calls it. Distinct from state/hiveIntel.ts (the HUB intel FEED).',
+    files: ['src/core/hivemind.ts'],
+    dependsOn: ['engine', 'content-infra', 'towers', 'heroes', 'power'],
+    powerScore: 'reads the temporary bucket for exact purchase deltas (never writes)', save: [], tutorial: [], help: [],
+    hud: ['GameView (◈ HIVE INTELLIGENCE button + pulse ticker)'], ui: ['GameView'], collection: null, achievements: [],
+    localization: 'inline-en', docs: ['docs/HIVE-MIND.md'],
+  },
+  {
     id: 'engine', name: 'Sim Engine', purpose: 'Deterministic fixed-timestep simulation — the Game, combat, statuses, targeting, spawning, run events.',
     files: ['src/core/game.ts', 'src/core/combat.ts', 'src/core/status.ts', 'src/core/targeting.ts', 'src/core/reactions.ts', 'src/core/spawndirector.ts', 'src/core/runEvents.ts', 'src/core/events.ts', 'src/core/map.ts', 'src/core/ability.ts', 'src/core/mutators.ts', 'src/core/modifiers.ts', 'src/core/simharness.ts', 'src/core/director.ts', 'src/core/sim.testutil.ts'],
     dependsOn: ['content-infra', 'towers', 'heroes', 'gene-cards', 'bosses', 'biomes', 'difficulty', 'assimilation'],

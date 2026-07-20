@@ -65,7 +65,9 @@ import {
   MINION_CAP,
   GRAVEBIND,
   TOWER_IDLE,
+  HIVE_MIND,
 } from './config';
+import { hivePlan, type HiveAction } from './hivemind';
 import { IDLE_BEHAVIORS, towerIdleState } from './towerIdle';
 import type { CinematicActor, CinematicMotion, EnemyDef, HeroAbilityDef, HeroDef, MinionDef, ResolvedHeroKit, TowerDef } from './config';
 import { DANGER_CAM, initialDangerCamera, stepDangerCamera } from './dangerCamera';
@@ -1315,6 +1317,12 @@ export class Game {
 
   /** Buy the next tier of `branchId` on a placed tower. The first purchase LOCKS the tower
    *  into that branch for the run; later purchases must match it and step 1→5. */
+  /** The REAL next-tier price (0-based ladder; Scarcity daily multiplies) — the single pricing
+   *  source shared by buyBranchTier, the Inspector, and Hive Intelligence's planner. */
+  branchTierCost(kind: TowerKind, tier: number): number {
+    return Math.round(BRANCH_COSTS[kind][tier] * this.dailyFx.branchCostMult);
+  }
+
   buyBranchTier(towerId: number, branchId: string): 'ok' | 'locked' | 'maxed' | 'poor' | 'badTower' {
     const t = this.towers.find((tw) => tw.id === towerId);
     if (!t) return 'badTower';
@@ -1322,7 +1330,7 @@ export class Game {
     if (!b || b.tower !== t.kind) return 'badTower';
     if (t.branchId && t.branchId !== branchId) return 'locked'; // committed elsewhere
     if (t.tier >= 5) return 'maxed';
-    const cost = Math.round(BRANCH_COSTS[t.kind][t.tier] * this.dailyFx.branchCostMult); // next tier's cost (0-based ladder; ×1 without Scarcity)
+    const cost = this.branchTierCost(t.kind, t.tier); // next tier's cost (0-based ladder)
     if (this.biomass < cost) return 'poor';
     const powerBefore = effectsPower(this.powerEffects()); // runtime Power validator (cold path)
     this.biomass -= cost;
@@ -2384,6 +2392,61 @@ export class Game {
    *  via the shared effectsPower bridge, so every purchase raises the global Power Score. */
   heroEvoEffects(): CardEffect[] {
     return heroEvoEffects(this.heroEvoLevels);
+  }
+
+  /** Read-only view of the run's Hero Evolution levels (Hive Intelligence's planner input). */
+  heroEvoLevelsView(): Readonly<Record<string, number>> {
+    return this.heroEvoLevels;
+  }
+
+  // ── HIVE INTELLIGENCE (docs/HIVE-MIND.md) — the in-run best-upgrade executive ────────────
+  //    Player-triggered ONLY (the HUD button): golden autoplay never calls these, so every
+  //    golden seed is untouched by construction. All purchases ride the same public APIs a
+  //    manual click uses — Power audit, ceremonies and stats all fire normally.
+
+  /** The ranked plan (best value first) — what a pulse WOULD buy right now. Pure read. */
+  hiveEvaluate(): HiveAction[] {
+    if (this.phase === 'won' || this.phase === 'lost') return [];
+    return hivePlan(this);
+  }
+
+  // The HUD's readiness glow, recomputed at most twice a sim-second (getSnapshot runs at UI
+  // rate; the plan walk is cheap but not free). Presentation cache only — never sim input.
+  private hiveReadyCache = false;
+  private hiveReadyAt = -1;
+  private hiveReadySnapshot(): boolean {
+    if (this.hiveReadyAt < 0 || this.time - this.hiveReadyAt >= 0.5 || this.time < this.hiveReadyAt) {
+      this.hiveReadyCache = this.hiveEvaluate().length > 0;
+      this.hiveReadyAt = this.time;
+    }
+    return this.hiveReadyCache;
+  }
+
+  /** Execute one HIVE INTELLIGENCE pulse: buy the best action, re-plan (costs and curves move
+   *  with every purchase), repeat until nothing worthwhile remains, the reserve is reached, or
+   *  the per-pulse cap trips. Returns the report the HUD renders as the action ticker. */
+  hivePulse(opts?: { maxActions?: number }): { spent: number; actions: { label: string; detail: string; cost: number }[] } {
+    const cap = opts?.maxActions ?? HIVE_MIND.maxActionsPerPulse;
+    // The reserve is pinned ONCE from the wallet the pulse started with — re-planning after
+    // each buy must never re-shrink it (that would asymptotically spend toward zero).
+    const reserveFloor = Math.max(HIVE_MIND.reserveMin, Math.floor(this.biomass * HIVE_MIND.reserveFrac));
+    const actions: { label: string; detail: string; cost: number }[] = [];
+    let spent = 0;
+    for (let i = 0; i < cap; i++) {
+      if (this.phase === 'won' || this.phase === 'lost') break;
+      const plan = hivePlan(this, { reserveFloor });
+      const best = plan[0];
+      if (!best) break;
+      const before = this.biomass;
+      if (!best.exec(this)) break; // a provider mispriced reality — stop rather than thrash
+      spent += before - this.biomass;
+      actions.push({ label: best.label, detail: best.detail, cost: best.cost });
+      // The battlefield announces the actor (each purchase's own ceremony already fired).
+      this.floats.push({ x: WIDTH / 2, y: 330 + actions.length * 22, text: `◈ ${best.label}`, color: '#8fd0ff', life: 1.6 });
+    }
+    if (actions.length > 0) this.pushSfx('splice');
+    this.hiveReadyAt = -1; // the wallet moved — recompute the button glow immediately
+    return { spent, actions };
   }
 
   /** ALL of the run's TEMPORARY power contributors as CardEffect[] — drafted gene cards + Hero
@@ -7909,6 +7972,7 @@ export class Game {
       selectedHero: this.selectedHeroView(),
       anticipation: this.nextAnticipation(),
       autoStart: this.autoStart,
+      hiveReady: this.hiveReadySnapshot(),
       autoStartIn: this.autoStart && this.autoStartReady && this.phase === 'prep' ? Math.max(0, this.prepCountdown) : 0,
       autoStartWaiting: this.autoStart && !this.autoStartReady,
       autocast: { unlocked: this.autocastUnlocked, on: this.autocastOn, cost: HERO_AUTOCAST.cost, affordable: this.biomass >= HERO_AUTOCAST.cost },

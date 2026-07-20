@@ -756,6 +756,9 @@ export interface HudSnapshot {
   // Primary-hero AUTO-CAST (docs/HEROES.md): an in-run Biomass unlock + free toggle. Once unlocked,
   // the primary hero auto-fires its signature ability on cooldown (like the fielded slots 2+).
   autocast: { unlocked: boolean; on: boolean; cost: number; affordable: boolean };
+  /** HIVE INTELLIGENCE (docs/HIVE-MIND.md): ≥1 worthwhile purchase is affordable right now —
+   *  the HUD button glows. Lightly cached in the sim (~0.5 s), so it may lag a beat. */
+  hiveReady: boolean;
   // Hero Evolution (docs/HERO-EVOLUTION.md) — per-category levels bought this run + total owned.
   // The UI renders costs/effects/affordability from the shared HERO_EVO_CATEGORIES + live biomass.
   heroEvo: { levels: Record<string, number>; totalOwned: number };

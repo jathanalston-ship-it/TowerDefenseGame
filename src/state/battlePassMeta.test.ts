@@ -3,13 +3,20 @@
 // XP grants + level-ups, permanents-once with repeat replacements, the Perennial stack,
 // rollover auto-claim, the max-window tamper rule, and the effects/econ folds.
 
-import { beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { meta } from './meta';
 import { BP, levelOf, seasonForWindow, seasonTracks, xpToReach } from '../core/battlePass';
 
 const T0 = BP.epochMs + 5; // window 0, Crimson Bloom
 
-beforeEach(() => meta.reset());
+// Deep meta chains (achievement/run XP grants) default `now` to the wall clock; once the real
+// date leaves window 0, an unpinned Date.now() inside a claim chain rolls the season over
+// MID-TEST and resets the claim record. Pin Date to T0 so the suite is hermetic on any day.
+beforeEach(() => {
+  vi.useFakeTimers({ now: T0, toFake: ['Date'] });
+  meta.reset();
+});
+afterEach(() => vi.useRealTimers());
 
 describe('XP & levels', () => {
   it('grants XP, detects level-ups, caps at 100', () => {

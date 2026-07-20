@@ -3,7 +3,49 @@
 > Maintained at the END of every session (paired with `docs/AI_HANDOFF.md` — the constitution's
 > workflow step 4). This is the "where are we?" answer; `docs/GAME-STATE.md` remains the deeper
 > per-system built-vs-planned index, `docs/PROJECT_MANIFEST.md` the system map.
-> **Last updated:** 2026-07-19ai (**DORMANT IDENTITY LAYER — SEVEN SLEEPING
+> **Last updated:** 2026-07-20a (**HIVE INTELLIGENCE — UNIVERSAL IN-RUN
+> BEST-UPGRADE EXECUTIVE** (user-queued task #401). One HUD button, every Biomass sink,
+> power-first ranking, full manual control retained. ENGINE: `src/core/hivemind.ts` — pure
+> planner over a structural `HiveGame` interface (public Game members only; zero runtime
+> Game import). FOUNDATION RULE: `registerHiveProvider({ id, enumerate })` — a future
+> Biomass sink ships one provider and is ranked/executed/announced/validated forever;
+> never edit the planner per-system. Five built-ins: branch tiers (exact ratio-based power
+> delta via `effectsPower` product decomposition — `powerDelta` = base×(newVar/oldVar−1)),
+> heroEvo (same exactness), autocast unlock, conveyor deploy (honest authored-stat
+> heuristic — deployments deliberately never enter the temp-Power bucket; support kinds
+> score lattice adjacency ≤ `HIVE_MIND.adjacencyPx` 90 px — slot col/row are FINE-grid, a
+> |Δ|===1 test never matches; combat kinds most-forward + centered + monoculture penalty),
+> strain merge (mirrors strainFromConveyor's tier>strain>id target rule). Context layer in
+> ONE `applyContext()`: sparse board ⇒ deploy/merge ×1.6; heavy next wave (authored-HP
+> threshold — ENEMY_TIER lives in render) ⇒ ×1.15; every multiplier writes
+> `HiveAction.detail`. `Game.hivePulse()` execute-best/re-plan loop —
+> **PINNED-RESERVE CONTRACT (DIL edge): reserveFloor computed ONCE from the starting
+> wallet**; per-iteration recomputation asymptotically spends to 0 (first sim draft: 87
+> violations/cohort → pin → 0). Exec ONLY through public buy APIs (Power audit + ceremonies
+> ride normally; `branchTierCost()` made public so planner + buyBranchTier share pricing).
+> UI (GameView + index.css): `◈ HIVE INTELLIGENCE` pill left of speed ctl, LED breathes on
+> `hud.hiveReady` (~0.5 s sim-time cache, invalidated post-pulse); `.hive-ticker` action
+> report at right:10 (right:218 covered the Start Wave popup — caught by smoke screenshot);
+> per-action battlefield floats + splice cue. GOLDEN-SAFE BY CONSTRUCTION: only the
+> player's button calls hivePulse. VALIDATION: hivemind.test.ts 7/7 (reserve law, rank
+> monotonic, multi-buy audit-clean, determinism, free-starter at 0 biomass, placement
+> geometry, full pulse); `npm run sim:hive` (scripts/sim-hive.ts — 6 endless seeds, 900 s,
+> identical funded 4-tower openings, drafts driven — the draft-pause trap): manual depth
+> 12.3/power 1.87 · **hive 19.3/37.9 (+57 %)** · mixed-cadence 20.8/35.6, 0 reserve
+> violations, mixed ≥ hive ⇒ no dominant pulse spam. Headless dist smoke (hive-probe.mjs):
+> click spent 1146/3220 across 11 actions, ticker + floats live, zero page errors.
+> ALSO FIXED (exposed when UTC rolled to 2026-07-20 mid-session): battlePassMeta.test —
+> deep meta chains default now=Date.now() (evaluateAchievements→grantPassXp) so the T0
+> window-0 pin broke at the 07-20 window-1 boundary: season rolled over MID-TEST wiping
+> claims; suite now pins `vi.useFakeTimers({ now: T0, toFake: ['Date'] })`. liveEventsMeta
+> .test — great_hunt rotated out; today's trio has NO single-run-completable challenge, so
+> the minting assertion now drives ceil(target/perRunCredit) heavy runs (bound ≤ 64)
+> derived from authored data. systemRegistry files glob: scripts/ paths unsupported —
+> hive-mind entry lists src/core/hivemind.ts only. Suite 306/2597 green, build, validate
+> PASS. docs/HIVE-MIND.md NEW (naming: vs docs/HIVE-INTEL.md, the HUB feed). NEXT: modes
+> UI seam (`hivePulse({maxActions})`), Help/teach row for the button. Previous below.)
+>
+> **2026-07-19ai** (**DORMANT IDENTITY LAYER — SEVEN SLEEPING
 > SILHOUETTES** (user: "do that identity layer."). `drawDormantMotif`
 > (render/megaboss.ts, inside drawBurrowMound's save block — inherits the burrow fade)
 > gives every mega a per-motif buried pose echoing its awake drawMotif anatomy: maw

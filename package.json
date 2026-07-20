@@ -50,7 +50,8 @@
     "sim:metabolism": "vite-node scripts/sim-metabolism.ts",
     "sim:eventshops": "vite-node scripts/sim-event-shops.ts",
     "sim:idle": "vite-node scripts/sim-tower-idle.ts",
-    "sim:mega": "vite-node scripts/sim-mega-feel.ts"
+    "sim:mega": "vite-node scripts/sim-mega-feel.ts",
+    "sim:hive": "vite-node scripts/sim-hive.ts"
   },
   "dependencies": {
     "react": "^18.3.1",

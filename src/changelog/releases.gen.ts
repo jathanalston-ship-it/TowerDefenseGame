@@ -11,6 +11,11 @@ export const RELEASES: Release[] = [
     "sealed": false,
     "entries": [
       {
+        "cat": "Gameplay",
+        "text": "New system: Hive Intelligence (in-run)",
+        "major": true
+      },
+      {
         "cat": "Visuals",
         "text": "Living battlefield: organism anticipation, idle life, and reactivity"
       },
@@ -33,6 +38,10 @@ export const RELEASES: Release[] = [
       {
         "cat": "Gameplay",
         "text": "Mega dormancy: the organism burrows between waves, the raid bar greys out"
+      },
+      {
+        "cat": "Visuals",
+        "text": "Mega dormancy identity layer: seven sleeping silhouettes over the burrow mound"
       }
     ]
   },

@@ -1958,6 +1958,26 @@ export function heroForkTiers(kind: HeroKind, stars: number): HeroForkTier[] {
 // same (then a free toggle). Off by default ⇒ the golden run never auto-casts. One-time purchase.
 export const HERO_AUTOCAST = { cost: 220 } as const;
 
+/** HIVE INTELLIGENCE (docs/HIVE-MIND.md) — the in-run best-upgrade executive's one tunable
+ *  table. Scoring is exact power-per-cost where power exists; these knobs cover the honest
+ *  heuristics (deployment strength, QoL) and the context layer. Golden-safe: nothing reads
+ *  these outside a player-triggered pulse. */
+export const HIVE_MIND = {
+  reserveFrac: 0.1, // a pulse never spends below this fraction of current Biomass…
+  reserveMin: 0, // …or below this absolute floor (0 = fraction only)
+  maxActionsPerPulse: 12, // hard cap per button press (multi-buy, never a runaway loop)
+  sparseBoardCount: 6, // fewer towers than this ⇒ deployments/merges get priority
+  sparseDeployMult: 1.6, // …by this much ("guns first")
+  bossPrepMult: 1.15, // heavy wave incoming ⇒ every strength buy matters more
+  heavyHpThreshold: 320, // a previewed enemy at/above this authored HP counts as "heavy"
+  deployGainScale: 0.012, // authored dps → power-comparable gain units
+  supportDeployGain: 7, // no-damage organisms (auras/economy): flat pre-scale weight
+  autocastGain: 0.04, // the auto-cast unlock's QoL gain (≈ a cheap branch tier)
+  monoculturePenalty: 40, // slot-score penalty for stacking a kind beside itself (px units)
+  adjacencyPx: 90, // lattice-neighbor radius (matches the reactor's overcharge geometry)
+  minValue: 1e-6, // actions below this value are noise — never bought
+} as const;
+
 // Revenant blink (behavior 'phase'): seconds the teleport streak/after-image lingers. The sim sets
 // Hero.phaseT to this on each blink-strike + decays it; the renderer normalizes alpha by the same
 // value. Purely cosmetic (render-only fields) ⇒ never perturbs the pinned sim.

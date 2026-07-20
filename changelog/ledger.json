@@ -1,6 +1,6 @@
 {
-  "lastSha": "45cd4f8d9b5d42bff2544f3cb1a90bce59db1607",
-  "commitsSinceDraft": 5,
+  "lastSha": "3902e9f34881649052fa2219b1a8c37a3f511e63",
+  "commitsSinceDraft": 6,
   "content": {
     "tower": [
       "needle",
@@ -234,6 +234,7 @@
       "arena_perennial"
     ],
     "system": [
+      "hive-mind",
       "engine",
       "content-infra",
       "power",
@@ -2933,6 +2934,11 @@
       "sealed": false,
       "entries": [
         {
+          "cat": "Gameplay",
+          "text": "New system: Hive Intelligence (in-run)",
+          "major": true
+        },
+        {
           "cat": "Visuals",
           "text": "Living battlefield: organism anticipation, idle life, and reactivity"
         },
@@ -2955,6 +2961,10 @@
         {
           "cat": "Gameplay",
           "text": "Mega dormancy: the organism burrows between waves, the raid bar greys out"
+        },
+        {
+          "cat": "Visuals",
+          "text": "Mega dormancy identity layer: seven sleeping silhouettes over the burrow mound"
         }
       ]
     }
@@ -5581,6 +5591,14 @@
       "date": "2026-07-19",
       "cat": "Gameplay",
       "text": "Mega dormancy: the organism burrows between waves, the raid bar greys out",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "3902e9f34881649052fa2219b1a8c37a3f511e63",
+      "date": "2026-07-19",
+      "cat": "Visuals",
+      "text": "Mega dormancy identity layer: seven sleeping silhouettes over the burrow mound",
       "internal": false,
       "needsReview": false
     }

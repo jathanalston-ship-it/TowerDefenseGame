@@ -295,6 +295,9 @@ export function GameView({
   //    byte-identical simulation at any speed. Auto-slow triggers fire once per run each.
   const [speed, setSpeedState] = useState(1);
   const [speedNote, setSpeedNote] = useState<string | null>(null);
+  // HIVE INTELLIGENCE (docs/HIVE-MIND.md): the pulse report ticker — what the hive just
+  // bought, fading on its own (keyed by `at` so every pulse restarts the animation).
+  const [hiveTicker, setHiveTicker] = useState<{ at: number; lines: string[]; spent: number } | null>(null);
   const autoSlowFired = useRef({ finale: false, record: false, danger: false }); // finale/record: once per RUN; danger: once per WAVE (re-armed in prep)
   const setSpeed = useCallback((x: number) => {
     game.timeScale = x;
@@ -1088,6 +1091,33 @@ export function GameView({
           <div className="speed-note" role="status">
             <span>⏱ {speedNote}</span>
             <button onClick={() => setSpeedNote(null)}>OK</button>
+          </div>
+        )}
+        {/* HIVE INTELLIGENCE (docs/HIVE-MIND.md): one press evaluates EVERY biomass purchase
+            and executes the best ones — glowing whenever something worthwhile is affordable.
+            Manual play is untouched; the ticker names each action the hive took. */}
+        {!tutorial && (hud.phase === 'prep' || hud.phase === 'wave') && (
+          <button
+            className={`hive-mind-btn${hud.hiveReady ? ' is-ready' : ''}`}
+            onClick={() => {
+              audio.resume();
+              const rep = game.hivePulse();
+              if (rep.actions.length > 0) setHiveTicker({ at: Date.now(), lines: rep.actions.map((a) => a.label), spent: rep.spent });
+              refresh();
+            }}
+            title={hud.hiveReady
+              ? 'Hive Intelligence — evaluate every Biomass purchase and execute the best ones (keeps a reserve; manual play is untouched)'
+              : 'Hive Intelligence — nothing worthwhile is affordable right now'}
+          >
+            <i className="hive-mind-core" aria-hidden />
+            ◈ HIVE INTELLIGENCE
+          </button>
+        )}
+        {hiveTicker && (
+          <div className="hive-ticker" key={hiveTicker.at} role="status">
+            <b>◈ HIVE INTELLIGENCE{hiveTicker.spent > 0 ? ` · −${hiveTicker.spent} Biomass` : ''}</b>
+            {hiveTicker.lines.slice(0, 6).map((l) => <span key={l}>{l}</span>)}
+            {hiveTicker.lines.length > 6 && <span>+{hiveTicker.lines.length - 6} more</span>}
           </div>
         )}
         {(hud.phase === 'prep' || hud.phase === 'wave') && (

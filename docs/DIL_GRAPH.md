@@ -1,6 +1,6 @@
 # DIL_GRAPH.md — the Design Intelligence Layer (GENERATED — `npm run dil -- regen`)
 
-> **The project's brain** (docs/DIL.md). 899 nodes · 1691 edges, built from the live
+> **The project's brain** (docs/DIL.md). 902 nodes · 1700 edges, built from the live
 > registries + curated knowledge (src/dev/dil/). **Query it instead of searching the repo:**
 > `npm run dil -- node <id>` · `affects <id>` · `requires <id>` · `missing <kind> <edge>` ·
 > `checklist tower <kind>` · `find <text>`. Edge kinds are bidirectional (19 kinds).
@@ -26,7 +26,7 @@
 
 ### Power Score Index
 
-`system:engine` · `system:power` · `system:campaign` · `system:daily` · `system:mulligans` · `system:premium` · `system:arena` · `system:towers` · `system:mastery` · `system:heroes` · `system:equipment` · `system:crafting` · `system:loot` · `system:gene-cards` · `system:nucleus` · `system:hero-symbiotes` · `system:idle-harvest` · `system:metabolism` · `system:shards-economy` · `system:collection` · `system:evolution-hq` · `system:prestige` · `system:splice-market` · `system:achievements` · `system:cosmetics` · `system:battle-pass` · `system:quests` · `system:run-ui` · `system:prediction` · `system:meta-store` · `system:mega-bosses` · `system:assimilation` · `system:analytics`
+`system:hive-mind` · `system:engine` · `system:power` · `system:campaign` · `system:daily` · `system:mulligans` · `system:premium` · `system:arena` · `system:towers` · `system:mastery` · `system:heroes` · `system:equipment` · `system:crafting` · `system:loot` · `system:gene-cards` · `system:nucleus` · `system:hero-symbiotes` · `system:idle-harvest` · `system:metabolism` · `system:shards-economy` · `system:collection` · `system:evolution-hq` · `system:prestige` · `system:splice-market` · `system:achievements` · `system:cosmetics` · `system:battle-pass` · `system:quests` · `system:run-ui` · `system:prediction` · `system:meta-store` · `system:mega-bosses` · `system:assimilation` · `system:analytics`
 
 ### Audio Index
 
@@ -38,7 +38,7 @@
 
 ### Testing Index
 
-`system:engine` · `system:content-infra` · `system:power` · `system:campaign` · `system:pil` · `system:accounts` · `system:boss-rush` · `system:daily` · `system:mulligans` · `system:premium` · `system:net-backend` · `system:online-foundation` · `system:arena` · `system:towers` · `system:mastery` · `system:heroes` · `system:hero-cinematics` · `system:equipment` · `system:crafting` · `system:loot` · `system:gene-cards` · `system:nucleus` · `system:hero-symbiotes` · `system:idle-harvest` · `system:metabolism` · `system:collection` · `system:evolution-hq` · `system:hive-construction` · `system:daily-login` · `system:prestige` · `system:currencies` · `system:splice-market` · `system:achievements` · `system:stats` · `system:liveops` · `system:directives` · `system:contracts` · `system:infestation` · `system:chronicle` · `system:cosmetics` · `system:battle-pass` · `system:quests` · `system:profile` · `system:onboarding` · `system:account-level` · `system:genome-rank` · `system:progression-gating` · `system:hub-shell` · `system:notifications` · `system:prediction` · `system:meta-store` · `system:bosses` · `system:mega-bosses` · `system:cutscenes` · `system:security` · `system:biomes` · `system:doctrines` · `system:difficulty` · `system:website` · `system:rendering` · …6 more
+`system:hive-mind` · `system:engine` · `system:content-infra` · `system:power` · `system:campaign` · `system:pil` · `system:accounts` · `system:boss-rush` · `system:daily` · `system:mulligans` · `system:premium` · `system:net-backend` · `system:online-foundation` · `system:arena` · `system:towers` · `system:mastery` · `system:heroes` · `system:hero-cinematics` · `system:equipment` · `system:crafting` · `system:loot` · `system:gene-cards` · `system:nucleus` · `system:hero-symbiotes` · `system:idle-harvest` · `system:metabolism` · `system:collection` · `system:evolution-hq` · `system:hive-construction` · `system:daily-login` · `system:prestige` · `system:currencies` · `system:splice-market` · `system:achievements` · `system:stats` · `system:liveops` · `system:directives` · `system:contracts` · `system:infestation` · `system:chronicle` · `system:cosmetics` · `system:battle-pass` · `system:quests` · `system:profile` · `system:onboarding` · `system:account-level` · `system:genome-rank` · `system:progression-gating` · `system:hub-shell` · `system:notifications` · `system:prediction` · `system:meta-store` · `system:bosses` · `system:mega-bosses` · `system:cutscenes` · `system:security` · `system:biomes` · `system:doctrines` · `system:difficulty` · `system:website` · …7 more
 
 ### Developer Tooling Index
 
@@ -141,6 +141,7 @@ graph LR
   system_equipment["Equipment & Armory"] -->|modifies| system_rendering["Rendering & VFX"]
   system_bosses["Bosses"] -->|modifies| system_rendering["Rendering & VFX"]
   system_genome_rank["Genome Rank (ultimate mastery ladder)"] -->|consumes| system_account_level["Account Level (evergreen meta-progression)"]
+  system_hive_mind["Hive Intelligence (in-run)"] -->|consumes| system_engine["Sim Engine"]
   system_heroes["Heroes"] -->|consumes| system_mega_bosses["Mega Bosses"]
   system_heroes["Heroes"] -->|consumes| system_stats["Lifetime Stats"]
   system_mulligans["Mulligan System"] -->|consumes| system_towers["Towers, Stars, Branches, Strain & Codex"]
@@ -185,6 +186,7 @@ graph LR
 
 ```mermaid
 graph LR
+  system_hive_mind["Hive Intelligence (in-run)"] -->|provides| concept_power_score["Power Score"]
   system_engine["Sim Engine"] -->|provides| concept_power_score["Power Score"]
   system_power["Power Score"] -->|provides| concept_power_score["Power Score"]
   system_campaign["Campaign"] -->|provides| concept_power_score["Power Score"]
@@ -232,6 +234,11 @@ graph LR
 
 ```mermaid
 graph LR
+  system_hive_mind["Hive Intelligence (in-run)"] -->|dependsOn| system_engine["Sim Engine"]
+  system_hive_mind["Hive Intelligence (in-run)"] -->|dependsOn| system_content_infra["Content Infrastructure"]
+  system_hive_mind["Hive Intelligence (in-run)"] -->|dependsOn| system_towers["Towers, Stars, Branches, Strain & Codex"]
+  system_hive_mind["Hive Intelligence (in-run)"] -->|dependsOn| system_heroes["Heroes"]
+  system_hive_mind["Hive Intelligence (in-run)"] -->|dependsOn| system_power["Power Score"]
   system_engine["Sim Engine"] -->|dependsOn| system_content_infra["Content Infrastructure"]
   system_engine["Sim Engine"] -->|dependsOn| system_towers["Towers, Stars, Branches, Strain & Codex"]
   system_engine["Sim Engine"] -->|dependsOn| system_heroes["Heroes"]
@@ -507,6 +514,7 @@ graph LR
   system_living_battlefield["Living Battlefield"] -->|consumes| system_assimilation["Assimilation Index"]
   system_account_level["Account Level (evergreen meta-progression)"] -->|provides| system_loot["Loot & Bio-Containers"]
   system_genome_rank["Genome Rank (ultimate mastery ladder)"] -->|consumes| system_account_level["Account Level (evergreen meta-progression)"]
+  system_hive_mind["Hive Intelligence (in-run)"] -->|consumes| system_engine["Sim Engine"]
   system_heroes["Heroes"] -->|consumes| system_mega_bosses["Mega Bosses"]
   system_heroes["Heroes"] -->|consumes| system_stats["Lifetime Stats"]
   system_mulligans["Mulligan System"] -->|consumes| system_towers["Towers, Stars, Branches, Strain & Codex"]
@@ -579,6 +587,7 @@ graph LR
 ONE account-strength number folded from every permanent bucket + the in-run temporary bucket (core/power.ts).
 
   - displays → `system:campaign` — recommended-power readiness on stage cards
+  - providedBy ← `system:hive-mind` — reads the temporary bucket for exact purchase deltas (never writes)
   - providedBy ← `system:engine` — emits the TEMPORARY in-run bucket (game.powerEffects)
   - providedBy ← `system:power` — IS the model (buckets, effectsPower, FIELD_WEIGHT)
   - providedBy ← `system:campaign` — recommended-power display; first-clear rewards move account Power indirectly
@@ -590,8 +599,7 @@ ONE account-strength number folded from every permanent bucket + the in-run temp
   - providedBy ← `system:mastery` — mastery multiplier folds into the permanent bucket
   - providedBy ← `system:heroes` — hero stars/evolution feed permanent + temporary buckets
   - providedBy ← `system:equipment` — equipped items score via itemPower into the gear bucket
-  - providedBy ← `system:crafting` — reforged items re-score through the gear bucket
-  - _…30 more (query: `npm run dil -- node concept:power-score`)_
+  - _…31 more (query: `npm run dil -- node concept:power-score`)_
 
 ### `concept:determinism` — Determinism
 
@@ -786,7 +794,23 @@ The premium reserve — never farmable; bled from achievements, collection ranks
 
   - rewardedBy ← `system:daily-login` — a rare small lane (weight 3, clamped 2–6/day) — deliberately below the never-farmable premium posture thresholds
 
-## Systems (75)
+## Systems (76)
+
+### `system:hive-mind` — Hive Intelligence (in-run)
+
+The in-run best-upgrade executive (player-facing HIVE INTELLIGENCE button): a pure provider-registry planner over every Biomass purchase (branch tiers, hero evolution, auto-cast, conveyor deploy/merge — future sinks register one provider), exact power-per-cost scoring with context multipliers (sparse board, heavy wave, pinned reserve), deterministic pulse execution through the same public APIs manual clicks use. Golden-safe: only the player button calls it. Distinct from state/hiveIntel.ts (the HUB intel FEED).
+
+_at: src/core/hivemind.ts_
+
+  - dependsOn → `system:engine`
+  - dependsOn → `system:content-infra`
+  - dependsOn → `system:towers`
+  - dependsOn → `system:heroes`
+  - dependsOn → `system:power`
+  - provides → `concept:power-score` — reads the temporary bucket for exact purchase deltas (never writes)
+  - consumes → `system:engine` — PINNED-RESERVE PULSE CONTRACT (docs/HIVE-MIND.md §scoring): Game.hivePulse computes the reserve ONCE from the wallet at pulse start and threads it through every hivePlan re-plan — per-iteration recomputation on the shrinking wallet asymptotically spends to zero (sim:hive caught 87 violations before the pin). New Biomass sinks join via registerHiveProvider (core/hivemind.ts) — one provider, no planner/UI/sim changes; execute ONLY through the public API a manual click uses so the Power audit + ceremonies fire
+  - documentedBy ← `doc:HIVE-MIND.md`
+  - testedBy ← `test:src/core/hivemind.test.ts`
 
 ### `system:engine` — Sim Engine
 
@@ -805,6 +829,7 @@ _at: src/core/game.ts, src/core/combat.ts, src/core/status.ts, src/core/targetin
   - provides → `concept:power-score` — emits the TEMPORARY in-run bucket (game.powerEffects)
   - provides → `concept:determinism` — fixed-timestep sim, seeded rng, render/sim wall
   - modifies → `system:rendering` — STATUS FX CONTRACT (2026-07, COMBAT-VISUAL-STANDARDS.md): every StatusEffectDef carries a MANDATORY fx trait block (hue/glow/pulse/overlay/particles — validator-rejected without it); render/statusFx.ts MERGES all live statuses per body (blended hue, deduped overlays, budgeted emitters) — never draw a bespoke per-status ring in the renderer again
+  - requiredBy ← `system:hive-mind`
   - requiredBy ← `system:campaign`
   - requiredBy ← `system:infinite`
   - requiredBy ← `system:boss-rush`
@@ -816,8 +841,7 @@ _at: src/core/game.ts, src/core/combat.ts, src/core/status.ts, src/core/targetin
   - requiredBy ← `system:nemesis`
   - requiredBy ← `system:onboarding`
   - requiredBy ← `system:run-ui`
-  - requiredBy ← `system:bosses`
-  - _…213 more (query: `npm run dil -- node system:engine`)_
+  - _…215 more (query: `npm run dil -- node system:engine`)_
 
 ### `system:content-infra` — Content Infrastructure
 
@@ -825,6 +849,7 @@ Registry<T>, validation, config tunables, shared types/math/rng/spatial — the 
 
 _at: src/core/registry.ts, src/core/validate.ts, src/core/config.ts, src/core/types.ts, src/core/math.ts, src/core/rng.ts, src/core/spatial.ts, src/core/features.ts, src/vite-env.d.ts_
 
+  - requiredBy ← `system:hive-mind`
   - requiredBy ← `system:engine`
   - requiredBy ← `system:power`
   - requiredBy ← `system:mulligans`
@@ -836,8 +861,7 @@ _at: src/core/registry.ts, src/core/validate.ts, src/core/config.ts, src/core/ty
   - requiredBy ← `system:equipment`
   - requiredBy ← `system:loot`
   - requiredBy ← `system:gene-cards`
-  - requiredBy ← `system:nucleus`
-  - _…18 more (query: `npm run dil -- node system:content-infra`)_
+  - _…19 more (query: `npm run dil -- node system:content-infra`)_
 
 ### `system:power` — Power Score
 
@@ -849,6 +873,7 @@ _at: src/core/power.ts, src/state/itemPower.ts, src/state/powerEvents.ts, src/st
   - provides → `concept:power-score` — IS the model (buckets, effectsPower, FIELD_WEIGHT)
   - consumes → `system:meta-store` — owns save field 'powerLog'
   - extends → `system:hub-shell` — POWER ATLAS (state/powerAtlas.ts): one row per Power system — best next move via the exact advisors (bestPurchase, now incl. a `heroes` surface + Prime rows for max-◈ units; adaptationPicks; equipAdvisor.ts free exact gear swaps with a one-click Equip in the Armory) + honest tend notes (Mulligan completion / Archive %). The Command Center `growth` widget (ui/components/GrowthPanel.tsx, homeRegistry order 15, gated on the towers reveal) renders it; save.powerLog (v43, bounded 90-day daily ledger, state/powerLog.ts — written by meta.notePowerSnapshot on boot + debounced power gains, browser-only) feeds its weekly delta + sparkline and the Profile Power Breakdown trend
+  - requiredBy ← `system:hive-mind`
   - requiredBy ← `system:campaign`
   - requiredBy ← `system:mulligans`
   - requiredBy ← `system:premium`
@@ -860,8 +885,7 @@ _at: src/core/power.ts, src/state/itemPower.ts, src/state/powerEvents.ts, src/st
   - requiredBy ← `system:nucleus`
   - requiredBy ← `system:hero-symbiotes`
   - requiredBy ← `system:profile`
-  - requiredBy ← `system:genome-rank`
-  - _…24 more (query: `npm run dil -- node system:power`)_
+  - _…25 more (query: `npm run dil -- node system:power`)_
 
 ### `system:campaign` — Campaign
 
@@ -1175,6 +1199,7 @@ _at: src/core/stars.ts, src/core/branches.ts, src/core/branchTree.ts, src/core/s
   - consumes → `system:engine` — HERO-AI MINIONS (roost drakes): MinionDef.heroAI dispatches minionSystem to game.drakeBrain (deepest-threat + elites-first targeting, rally leash around homeX/homeY, retreat-to-perch < ROOST.retreatFrac with perchRegen × (1 + towerProgress.roost.roostRegenBonus), re-engage at reengageFrac) — wisp/harvester/broodling never reach it (flag-gated ⇒ byte-identical). Unit TIER climbs ROOST.unitByTier via the 'brood' star/branch grant vocabulary (roostBroodBonus/roostTierBonus/roostRegenBonus on ResolvedStarKit) — upgrades improve the UNITS, functionally AND visually (drakeling→drake→wyrmspawn defs)
   - references → `system:engine` — REACTION TRIO (2026-07, TOWERS.md §reactionTrio — Miasma Lung/Chitin Bell/Acid Lancet): the first roster growth with ZERO new sim verbs — all three compose TowerDef.abilities (aura+Infection fog · aura+Resonance react-slam · homing 130-dmg cull + Corrosion + minRange 120 deadzone). CAVEAT: a firing:'field' def WITHOUT explicit abilities inherits the DERIVED Disruption pulse kit (deriveTowerAbilities) — a field tower with its own identity MUST author abilities. Lung=second Viral, Bell=second Resonant (the two 1-tower class gaps closed); all double-gated (18/240 · 24/380 · 34/560) ⇒ goldens byte-identical. Adding a tower forces 6 new Mulligan catalog pieces (CATALOG_PER_TOWER contract, 2 per category)
   - extends → `system:engine` — IDLE POSTURES (TOWER-IDLE.md): every tower holds ONE of three states — COMBAT (targets engageable) / PREPARATION (secondary behavior running) / TRANSITION (the continuous `prep` scalar 0..1 on Tower IS the animation — renderer eases from it, nothing snaps). ONE engagement test per tick (towerHasTarget: living enemy inside effective reach, outside deadzone — field towers no longer pulse empty air, DELIBERATE); unengaged towers run their IDLE_BEHAVIORS row (core/towerIdle.ts, validator-bounded, exactly one per kind): windup (banked opener via the cast globals — dmg/range/splash/pierce/projectiles/castStatusAmountBonus), reserve (gestated burst volleys), ranging (parasite Spore Drift — weak 2×-reach suppression through the NORMAL cast pipeline: mastery/cues/reactions inherited), preheat (coil heat floors at 0.35), tending (sower cap+rate, roost hatch+perch-regen — the roost tower prep>0.5 IS the drake-brain calm signal), trickle (reactor mends integrity, siphon draws biomass), choir (ossuary +5% dmg to towers in 250, decaying choirDmg on the RECEIVER). Payoff magnitude scales INVERSELY with range band (short-reach idles most ⇒ biggest openers; the long-range meta corrective — no range nerfs). RunOptions.disableIdle reproduces the pre-idle sim BYTE-EXACTLY (pinned: golden.test GOLDEN_LEGACY block) — goldens re-pinned deliberately (wave/kills/won identical every seed; integrity only improved). RunModifiers.towerIdleChargeMult is the future card/gear hook. Mechanism suites (strains/strainVerbs/sower/finaldefense/expansion) run legacy fixtures; towerIdle.test.ts owns the layer
+  - requiredBy ← `system:hive-mind`
   - requiredBy ← `system:engine`
   - requiredBy ← `system:daily`
   - requiredBy ← `system:mulligans`
@@ -1186,8 +1211,7 @@ _at: src/core/stars.ts, src/core/branches.ts, src/core/branchTree.ts, src/core/s
   - contains ← `tower:obelisk`
   - contains ← `tower:maw`
   - contains ← `tower:chrysalis`
-  - contains ← `tower:effigy`
-  - _…37 more (query: `npm run dil -- node system:towers`)_
+  - _…38 more (query: `npm run dil -- node system:towers`)_
 
 ### `system:mastery` — Mastery / Adaptation
 
@@ -1242,6 +1266,7 @@ _at: src/core/heroIdentity.ts, src/core/heroLore.ts, src/core/heroEvolution.ts, 
   - consumes → `system:stats` — the lifetimeKills HeroUnlockReq axis (Carrion, 20k from stats.lifetimeKills) — the FIFTH milestone lens; the corpse ledger both gates the necromancer and is what it thematically feeds on
   - extends → `system:engine` — GRAVEBIND (game.raiseFromCorpse, the Carrion): the death seam raises corpses as thralls — null-gated on the cached gravebindHero (roster boot, keyed by passive.kind) so every other run incl. golden autoplay is inert; tunables in config.GRAVEBIND; thralls ride the existing minion pool under MINION_CAP
   - extends → `system:engine` — CINDERWYRM (HEROES.md §6): HeroBehavior gained 'swoop' (game.updateSwoopHero) — the flying strafe brain: strike on the fly-by, Corrosion via WYRM.corrodePerStrike, then BANK THROUGH to Hero.bankX/bankY = WYRM.bankDist past the victim (sim fields for the flight, absent on every other hero). Unlock bossSlain 5 ⇒ never on a fresh account ⇒ golden-safe; wings render behavior-keyed (drawHeroWings) so a future flyer inherits them
+  - requiredBy ← `system:hive-mind`
   - requiredBy ← `system:engine`
   - requiredBy ← `system:hero-cinematics`
   - requiredBy ← `system:equipment`
@@ -1253,8 +1278,7 @@ _at: src/core/heroIdentity.ts, src/core/heroLore.ts, src/core/heroEvolution.ts, 
   - contains ← `hero:vitriol`
   - contains ← `hero:revenant`
   - contains ← `hero:knell`
-  - contains ← `hero:wyrm`
-  - _…17 more (query: `npm run dil -- node system:heroes`)_
+  - _…18 more (query: `npm run dil -- node system:heroes`)_
 
 ### `system:hero-cinematics` — Hero Ability Cinematics
 
@@ -3586,7 +3610,7 @@ _at: site/guides.ts → /guides/live-events/_
 - `achievement:arena_crown` — Claim Arena Pass level 100 — a permanently arena-exclusive strain is yours forever. _(partOf `system:achievements`, rewards `currency:genome-cores`, references `system:arena`)_
 - `achievement:arena_perennial` — Close three Arena seasons with a record on the books. _(partOf `system:achievements`, rewards `currency:genome-cores`, references `system:arena`)_
 
-## Documentation (187)
+## Documentation (188)
 
 - `doc:ACCOUNT-LEVEL.md` — project documentation _(documents `system:account-level`)_
 - `doc:ACCOUNTS.md` — project documentation _(documents `system:accounts`)_
@@ -3669,6 +3693,7 @@ _at: site/guides.ts → /guides/live-events/_
 - `doc:HISTORY.md` — project documentation
 - `doc:HIVE-CONSTRUCTION.md` — project documentation _(documents `system:hive-construction`)_
 - `doc:HIVE-INTEL.md` — project documentation _(documents `system:notifications`)_
+- `doc:HIVE-MIND.md` — project documentation _(documents `system:hive-mind`)_
 - `doc:HIVE-PRODUCTION.md` — project documentation
 - `doc:HIVE-SIEGE.md` — project documentation
 - `doc:HOME-BASE.md` — project documentation _(documents `system:hive-construction`, documents `system:hub-shell`)_
@@ -3776,7 +3801,7 @@ _at: site/guides.ts → /guides/live-events/_
 - `doc:VOWS.md` — project documentation _(documents `system:prestige`)_
 - `doc:WEBSITE.md` — project documentation _(documents `system:field-research`, documents `system:website`)_
 
-## Tests (298)
+## Tests (299)
 
 - `test:src/audio/music.test.ts` — automated validation _(tests `system:audio`)_
 - `test:src/changelog/classify.test.ts` — automated validation _(tests `system:chronicle`)_
@@ -3871,6 +3896,7 @@ _at: site/guides.ts → /guides/live-events/_
 - `test:src/core/hiveOrgans.test.ts` — automated validation _(tests `system:hive-construction`)_
 - `test:src/core/hiveProduction.test.ts` — automated validation _(tests `system:hive-construction`)_
 - `test:src/core/hiveSiege.test.ts` — automated validation _(tests `system:engine`)_
+- `test:src/core/hivemind.test.ts` — automated validation _(tests `system:hive-mind`)_
 - `test:src/core/identity.test.ts` — automated validation _(tests `system:profile`)_
 - `test:src/core/idleHarvest.test.ts` — automated validation _(tests `system:idle-harvest`)_
 - `test:src/core/itemIdentity.test.ts` — automated validation _(tests `system:online-foundation`)_

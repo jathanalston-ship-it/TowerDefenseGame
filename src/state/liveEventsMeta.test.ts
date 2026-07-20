@@ -63,9 +63,17 @@ describe('challenge crediting (the creditQuests seam)', () => {
         (n, ch) => n + (missionCredit(ch.cond, ev) >= ch.target ? ch.tokens : 0), 0);
       expect(le.tokens[a.key] ?? 0).toBe(Math.min(cur.cap, minted));
     }
-    // The heavy run completes at least one challenge somewhere in any rotation alignment
-    // (every event ships a kills/wave/win-verb challenge by authoring convention).
-    expect(Object.values(le.tokens).some((n) => n > 0)).toBe(true);
+    // Belt and braces: minting must be REACHABLE in every rotation alignment. One heavy run
+    // is not always enough (alignments exist where every live challenge is a multi-run
+    // counter — e.g. deep_current's "8 runs"), so drive exactly as many runs as the easiest
+    // authored challenge needs. An alignment no amount of running can mint in is an
+    // authoring bug this line is meant to catch.
+    const runsNeeded = Math.min(...trio.flatMap((a) =>
+      (a.def.currency && a.def.challenges ? a.def.challenges : [])
+        .map((ch) => { const per = missionCredit(ch.cond, ev); return per > 0 ? Math.ceil(ch.target / per) : Infinity; })));
+    expect(runsNeeded).toBeLessThanOrEqual(64);
+    for (let r = 1; r < runsNeeded; r++) meta.creditQuests(heavyRun(), NOW);
+    expect(Object.values(meta.get().liveEvents.tokens).some((n) => n > 0)).toBe(true);
   });
 
   it('progress is monotonic and target-clamped across repeat runs', () => {
