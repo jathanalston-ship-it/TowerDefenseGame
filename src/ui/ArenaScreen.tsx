@@ -209,7 +209,7 @@ export function ArenaScreen({ onLaunchMatch }: { onLaunchMatch: (setup: ArenaMat
   const endsHours = Math.max(0, Math.floor((view.season.endsInMs % 86_400_000) / 3_600_000));
 
   return (
-    <div className="scr" data-tut="arena" style={{ ['--acc' as string]: view.season.accent }}>
+    <div className="scr" data-tut="arena" data-guide="arena-console" style={{ ['--acc' as string]: view.season.accent }}>
       <header className="scr-head">
         <div>
           <h2>{view.season.glyph} THE PROVING GROUNDS</h2>

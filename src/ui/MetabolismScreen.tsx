@@ -105,7 +105,7 @@ export function MetabolismScreen(): JSX.Element {
         const rows = views.filter((v) => v.def.cat === c);
         const ready = rows.reduce((a, v) => a + v.claimable, 0);
         return (
-          <section key={c} className="mtb-cat">
+          <section key={c} className="mtb-cat" data-guide="mtb-cats">
             <h3 className="mtb-cat-h">
               <span aria-hidden>{META_CATS[c].glyph}</span> {META_CATS[c].label}
               {ready > 0 && <em className="mtb-cat-n">{ready} ready</em>}

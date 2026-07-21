@@ -316,7 +316,7 @@ export function CollectionScreen(): JSX.Element {
       ) : (
         <>
           <div className="cx-wing-sub">Every category ranks Bronze → Ascendant — open one for its reward track, bonuses and entries.</div>
-          <div className="cx-tiles">
+          <div className="cx-tiles" data-guide="collection-tiles">
             {view.categories.map((c) => <CategoryTile key={c.id} c={c} onOpen={() => { audio.cue('ui'); setOpenCat(c.id); }} />)}
           </div>
         </>

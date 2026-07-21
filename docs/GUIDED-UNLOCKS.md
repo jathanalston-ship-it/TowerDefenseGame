@@ -40,13 +40,14 @@ Spend-screen guides point the practice step at the **Power Advisor's** BEST VALU
 a parallel truth. The Help wiki replays any guide (`▶ Field guide`) via the same `guideBus`; the
 HUD Tour is the sibling first-launch orientation (both ride the same primitives + reward ledger).
 
-## Coverage is ENFORCED
+## Coverage is ENFORCED — the full curve
 
-Every `FEATURES` screen with a `teach` value and `guaranteedByStage ≤ 4` (the new-player window),
-except `campaign` (owned by the Combat Tutorial + Mission Control) and the Premium Store (never
-guide-pushed), **must** have a guide — `src/state/guidedUnlocks.test.ts` fails until a new early
-wing's guide row exists. Later wings (stage 5+) may add rows any time; the framework is
-content-agnostic.
+**Every** `FEATURES` screen with a `teach` value carries a guide, except `campaign` (owned by the
+Combat Tutorial + Mission Control) and the Premium Store (never guide-pushed) —
+`src/state/guidedUnlocks.test.ts` derives the required set from the unlock registry itself, so a
+future wing fails CI until its guide row exists. (Shipped in two waves: the stage ≤ 4 new-player
+window first, then the full later-wing set — modes and spend-decision screens use gentler practice
+steps: a guide never forces a run start or a purchase.)
 
 ## Verification
 

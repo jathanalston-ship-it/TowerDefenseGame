@@ -71,7 +71,7 @@ export function FrontScreen(): JSX.Element {
       )}
 
       {/* Weekly tribute — one card per region; held tiers scale the payout. */}
-      <section aria-label="Weekly tribute">
+      <section aria-label="Weekly tribute" data-guide="front-tribute">
         <div className="front-sec-h">WEEKLY TRIBUTE — held tiers pay their keeper</div>
         <div className="front-cards">
           {v.tributes.map((t) => (
@@ -90,7 +90,7 @@ export function FrontScreen(): JSX.Element {
       </section>
 
       {/* Deploy — fight where you feed; each region twists the run its own way. */}
-      <section aria-label="Deploy">
+      <section aria-label="Deploy" data-guide="front-deploy">
         <div className="front-sec-h">DEPLOY — fight where you feed (one run, the region's rules)</div>
         <div className="front-cards">
           {REGIONS.map((r) => (

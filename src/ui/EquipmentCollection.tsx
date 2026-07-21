@@ -57,7 +57,7 @@ export function EquipmentCollection(): JSX.Element {
   };
 
   return (
-    <div className="screen equip-codex" style={{ padding: '18px 22px' }}>
+    <div className="screen equip-codex" data-guide="gearcodex-root" style={{ padding: '18px 22px' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', flexWrap: 'wrap', gap: 10 }}>
         <div>
           <h2 style={{ margin: 0 }}>Equipment Codex</h2>

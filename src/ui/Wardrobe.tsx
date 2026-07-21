@@ -164,7 +164,7 @@ function BoutiqueTab(): JSX.Element {
   const owned = new Set(save.wardrobe.owned);
   const items = boutiqueItems();
   return (
-    <div className="wd-boutique">
+    <div className="wd-boutique" data-guide="wardrobe-boutique">
       <p className="panel-sub">The black market's vanity wing — every piece stays in stock forever, priced in Ichor.</p>
       <div className="wd-grid">
         {items.map((d) => (

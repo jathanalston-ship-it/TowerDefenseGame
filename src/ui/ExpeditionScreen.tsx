@@ -128,7 +128,7 @@ export function ExpeditionScreen(): JSX.Element {
       </section>
 
       {/* ── MISSION BOARD — the offer wall ── */}
-      <section className="exb-board" aria-label="Mission board">
+      <section className="exb-board" data-guide="exb-board" aria-label="Mission board">
         <div className="exb-h">Mission Board</div>
         {view.slotsFree === 0 && (
           <div className="exb-empty">All away-slots filled — claim a returning team to send the next.</div>

@@ -46,7 +46,7 @@ export function AdaptationChamber(): JSX.Element {
   const heroes = units.filter((u) => u.subject === 'hero');
 
   return (
-    <div className="adc">
+    <div className="adc" data-guide="adapt-root">
       {/* ── MASTHEAD ── */}
       <div className="adc-mast">
         <div>
@@ -67,7 +67,7 @@ export function AdaptationChamber(): JSX.Element {
 
       {/* ── ADVISOR — the optimized next picks, account-wide ── */}
       {picks.length > 0 && (
-        <section className="adc-advisor" aria-label="Suggested adaptations">
+        <section className="adc-advisor" data-guide="adapt-advisor" aria-label="Suggested adaptations">
           <div className="adc-h">Suggested Next — exact Power gain per pick</div>
           <div className="adc-picks">
             {picks.map((p) => {

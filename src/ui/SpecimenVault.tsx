@@ -315,7 +315,7 @@ export function SpecimenVault(): JSX.Element {
             : 'Nothing matches this filter.'}
         </p>
       ) : (
-        <div className="sv-grid">
+        <div className="sv-grid" data-guide="sv-grid">
           {shown.slice(0, SHOW_CAP).map((r) => <RowCard key={r.def.id} row={r} onClaim={claim} onInspect={setInspect} />)}
         </div>
       )}

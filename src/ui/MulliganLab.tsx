@@ -288,7 +288,7 @@ export function MulliganLab(): JSX.Element {
 
       <div className="mgl-body">
         {/* ── Host rail: one row per tower, organism status at a glance (scales to a 100-tower roster) ── */}
-        <div className="mgl-rail" role="tablist" aria-label="Graft hosts">
+        <div className="mgl-rail" data-guide="mulligan-rail" role="tablist" aria-label="Graft hosts">
           {view.towers.map((t) => (
             <button
               key={t.kind}

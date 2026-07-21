@@ -1,25 +1,26 @@
 // GUIDED UNLOCKS (docs/GUIDED-UNLOCKS.md — Foundation #3). Pins the coalescing contract: guides
-// key off the SAME teach rows the unlock registry announces, cover the entire new-player window
-// (every screen guaranteed by stage 4) automatically, anchor only declared [data-guide] marks,
-// and honor the anti-wordiness contract (playtest finding: wordy = skipped).
+// key off the SAME teach rows the unlock registry announces, cover EVERY taught wing on the
+// learning curve automatically, anchor only declared [data-guide] marks, and honor the
+// anti-wordiness contract (playtest finding: wordy = skipped).
 
 import { describe, it, expect } from 'vitest';
 import { GUIDES, guideFor } from './guidedUnlocks';
-import { FEATURES, guaranteedByStage } from './unlocks';
+import { FEATURES } from './unlocks';
 import { MECHANIC_BY_ID } from './mechanics';
 
-// The new-player window: screens the learning curve GUARANTEES by campaign stage 4. `campaign`
-// is owned by the Combat Tutorial + Mission Control; the store is never guide-pushed.
+// EVERY taught screen wing must carry a guide — a future wing fails this test until its guide
+// row exists. Exclusions by design: `campaign` (the Combat Tutorial + Mission Control own it)
+// and the store (never guide-pushed).
 const requiredTeach = FEATURES
-  .filter((f) => f.kind === 'screen' && f.teach && guaranteedByStage(f.condition) <= 4)
+  .filter((f) => f.kind === 'screen' && f.teach)
   .filter((f) => f.id !== 'campaign' && f.id !== 'store')
   .map((f) => ({ teach: f.teach as string, nav: f.id }));
 
-describe('Guided Unlocks — every early wing walks you through itself', () => {
-  it('covers the ENTIRE new-player window, derived from the unlock registry itself', () => {
+describe('Guided Unlocks — every wing walks you through itself', () => {
+  it('covers EVERY taught wing on the learning curve, derived from the unlock registry itself', () => {
     for (const r of requiredTeach) {
       const g = guideFor(r.teach);
-      expect(g, `screen "${r.nav}" (teach: ${r.teach}) unlocks by stage 4 but has no guide`).toBeTruthy();
+      expect(g, `screen "${r.nav}" (teach: ${r.teach}) has no guide — add a GUIDES row`).toBeTruthy();
       expect(g!.nav).toBe(r.nav); // the guide lands on the same wing the door opens
     }
   });

@@ -128,6 +128,144 @@ export const GUIDES: GuideDef[] = [
         text: 'Organs drink Cores, Essence and materials — a long goal worth saving toward.' },
     ],
   },
+
+  // ── The later wings (stage 5+): same contract, gentler practice — modes and spend-decision
+  //    screens never force a run or a purchase; the walkthrough points, the player chooses. ──
+  {
+    mech: 'daily-run', nav: 'daily', reward: 15,
+    steps: [
+      { anchor: '[data-guide="daily-deploy"]', title: 'One seed, worldwide',
+        text: 'Everyone plays the same run today — same map, same waves, same hero.' },
+      { anchor: '[data-guide="daily-deploy"]', title: 'Come back tomorrow',
+        text: 'One reward per day, a fresh seed at midnight UTC — a quick daily ritual.' },
+    ],
+  },
+  {
+    mech: 'collection-codex', nav: 'collection', reward: 15,
+    steps: [
+      { anchor: '[data-guide="collection-tiles"]', title: 'Discovery itself pays',
+        text: 'Everything you meet is catalogued — filling ranks mints real rewards.' },
+      { anchor: '[data-guide="collection-tiles"]', interact: true, title: 'Open a wing',
+        text: 'Tap any category to browse what you have found — and what is still hiding.' },
+    ],
+  },
+  {
+    mech: 'season-pass', nav: 'season', reward: 15,
+    steps: [
+      { anchor: '[data-guide="bp-track"]', title: 'Everything feeds the season',
+        text: 'Runs, achievements, expeditions — all of it banks Season XP. You never grind FOR the pass.' },
+      { anchor: '[data-guide="bp-claim"]', interact: true, title: 'Claim as you level',
+        text: 'Unclaimed rewards mail themselves at rollover — but claiming now feels better.' },
+    ],
+  },
+  {
+    mech: 'idle-harvest', nav: 'harvest', reward: 15,
+    steps: [
+      { anchor: '[data-guide="hv-advice"]', title: 'The Hive works while you rest',
+        text: 'Time away banks a harvest — your first return pays a ceremony.' },
+      { anchor: '[data-guide="hv-arrive"]', title: 'Collect on arrival',
+        text: 'The arrival card holds what accrued — it brims after long absences, so visit daily.' },
+    ],
+  },
+  {
+    mech: 'expeditions', nav: 'expeditions', reward: 15,
+    steps: [
+      { anchor: '[data-guide="exb-board"]', title: 'Benched heroes forage',
+        text: 'Champions you are not fielding can work the ruins — nothing idle, ever.' },
+      { anchor: '[data-guide="exb-board"]', interact: true, title: 'Open a mission',
+        text: 'Tap a mission to read its risk, duration and finds — then send who fits.' },
+    ],
+  },
+  {
+    mech: 'gear-codex', nav: 'gearcodex', reward: 15,
+    steps: [
+      { anchor: '[data-guide="gearcodex-root"]', title: 'The full armory gallery',
+        text: 'Every item that exists — owned pieces in color, undiscovered ones as silhouettes.' },
+      { anchor: '[data-guide="gearcodex-root"]', title: 'Silhouettes are goals',
+        text: 'Set pages show what each completed set pays — chase the missing piece.' },
+    ],
+  },
+  {
+    mech: 'mulligans', nav: 'mulligans', reward: 15,
+    steps: [
+      { anchor: '[data-guide="mulligan-rail"]', title: 'Graft living organisms',
+        text: 'Modifiers from containers graft onto towers — assembled organisms grow real Power.' },
+      { anchor: '[data-guide="mulligan-rail"]', interact: true, title: 'Pick a host',
+        text: 'Select a specimen to see its graft slots and what each discovered piece would add.' },
+    ],
+  },
+  {
+    mech: 'adaptation', nav: 'adaptation', reward: 15,
+    steps: [
+      { anchor: '[data-guide="adapt-root"]', title: 'Rewrite behavior with Antigen',
+        text: 'Adaptations change HOW a strain fights — build-defining picks, not stat bumps.' },
+      { anchor: '[data-guide="adapt-advisor"]', title: 'Spend with counsel',
+        text: 'Antigen is scarce — the advisor names the strongest pick before you commit.' },
+    ],
+  },
+  {
+    mech: 'phenotype-lab', nav: 'phenotypes', reward: 15,
+    steps: [
+      { anchor: '[data-guide="wardrobe-boutique"]', title: 'Pure style, zero stats',
+        text: 'Phenotypes reskin your strains and champions — cosmetic only, forever yours.' },
+      { anchor: '[data-guide="wardrobe-boutique"]', title: 'Essence buys looks too',
+        text: 'Spare Gene Essence has a luxury sink here once your upgrades are ahead.' },
+    ],
+  },
+  {
+    mech: 'metabolism', nav: 'metabolism', reward: 15,
+    steps: [
+      { anchor: '[data-guide="mtb-cats"]', title: 'Everything you did, banked',
+        text: 'Milestones track lifetime feats across every system — tiers fill from play you already logged.' },
+      { anchor: '[data-guide="mtb-cats"]', interact: true, title: 'Digest a tier',
+        text: 'Claim a ready tier — your history since day one just paid out.' },
+    ],
+  },
+  {
+    mech: 'infestation', nav: 'infestation', reward: 15,
+    steps: [
+      { anchor: '[data-guide="front-tribute"]', title: 'Held ground pays tribute',
+        text: 'Sectors you hold pay a weekly tribute — territory is income, not a trophy.' },
+      { anchor: '[data-guide="front-deploy"]', title: 'Fight where you feed',
+        text: 'Deploying into a region twists the run by its rules — and advances your hold there.' },
+    ],
+  },
+  {
+    mech: 'boss-rush', nav: 'bossrush', reward: 15,
+    steps: [
+      { anchor: '[data-guide="rush-start"]', title: 'The gauntlet',
+        text: 'Wave N is N bosses — no swarm filler, just the column growing every wave.' },
+      { anchor: '[data-guide="rush-start"]', title: 'Records bleed Ichor',
+        text: 'New 5-boss records pay Ichor, new 10-boss records drop containers — push past, never match.' },
+    ],
+  },
+  {
+    mech: 'specimens', nav: 'specimens', reward: 15,
+    steps: [
+      { anchor: '[data-guide="sv-grid"]', title: 'Cosmetics wait here',
+        text: 'Won specimens arrive UNCLAIMED — nothing applies until you assimilate it.' },
+      { anchor: '[data-guide="sv-grid"]', interact: true, title: 'Inspect a specimen',
+        text: 'Tap one to see its provenance and claim it into your wardrobe.' },
+    ],
+  },
+  {
+    mech: 'arena', nav: 'arena', reward: 15,
+    steps: [
+      { anchor: '[data-guide="arena-console"]', title: 'Prove the build',
+        text: 'Live head-to-head — same seed, same waves, your account against theirs.' },
+      { anchor: '[data-guide="arena-console"]', title: 'Ranked or friendly',
+        text: 'Season matches move your ladder; private bouts settle nothing — spar freely.' },
+    ],
+  },
+  {
+    mech: 'auction-house', nav: 'auction', reward: 15,
+    steps: [
+      { anchor: '[data-guide="ah-market"]', title: 'The player market',
+        text: 'Real listings from real accounts — bid or buy out with Ichor.' },
+      { anchor: '[data-guide="ah-market"]', interact: true, title: 'Open a listing',
+        text: 'Tap any listing to read it — bids escrow safely, losers are refunded in full.' },
+    ],
+  },
 ];
 
 const BY_MECH: ReadonlyMap<string, GuideDef> = new Map(GUIDES.map((g) => [g.mech, g]));

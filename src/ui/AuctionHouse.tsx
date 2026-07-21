@@ -154,7 +154,7 @@ function BrowseTab({ onOpen }: { onOpen: (listingId: string) => void }): JSX.Ele
         right={<button type="button" className="ah-refresh" onClick={() => void auctionHouse.refresh()} title="Refresh">⟳</button>}
       />
       {st.browse.length === 0 && <p className="ah-dim ah-empty">{st.phase === 'loading' ? 'Reading the market…' : 'No listings match — widen the filters or check back soon.'}</p>}
-      <div className="ah-grid">
+      <div className="ah-grid" data-guide="ah-market">
         {st.browse.map((l) => <ListingCard key={l.listingId} l={l} skew={st.clockSkewMs} onOpen={() => onOpen(l.listingId)} />)}
       </div>
       {(q.page > 0 || st.browseHasMore) && (

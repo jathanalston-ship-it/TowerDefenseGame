@@ -111,7 +111,7 @@ export function HarvestArrival({ onVisitHarvest }: { onVisitHarvest: () => void 
   if (receipt) return <HarvestCeremony r={receipt} onClose={() => { setReceipt(null); setDismissed(true); }} onGrow={onVisitHarvest} />;
   if (arrivalShown || dismissed || !ripe) return null;
   return (
-    <div className="hv-arrive" role="status">
+    <div className="hv-arrive" data-guide="hv-arrive" role="status">
       <span className="hv-arrive-glyph" aria-hidden>⬢</span>
       <span className="hv-arrive-t">The Hive kept harvesting — <b>{fmtIdleHours(v.accrual.effHours)}</b> banked{v.accrual.full ? ' (brimmed)' : ''}.</span>
       <button className="primary hv-arrive-go" onClick={() => {
@@ -244,7 +244,7 @@ export function HarvestScreen(): JSX.Element {
           </div>
         )}
         {/* The adaptive recommendation: storage pressure beats everything, then the tree's own suggestion. */}
-        <div className="hv-advice">
+        <div className="hv-advice" data-guide="hv-advice">
           {a.full
             ? <>◉ Storage is BRIMMED — harvest now, then grow <button className="hv-advice-link" onClick={() => navBus.go('hive')}>Storage Tissue in the Hive</button> or Harvest Capacity below.</>
             : a.rawHours / a.capHours > 0.8

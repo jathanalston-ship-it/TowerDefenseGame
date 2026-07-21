@@ -113,7 +113,7 @@ export function DailyScreen({ onStartDaily, onSpectate }: { onStartDaily: () => 
             <span className="daily-power-you">you {formatPower(power)} {ready ? '✓' : '⚠'}</span>
           </div>
 
-          <button className="primary daily-deploy" onClick={onStartDaily}>
+          <button className="primary daily-deploy" data-guide="daily-deploy" onClick={onStartDaily}>
             {clearedToday ? '↻ Replay Today’s Run' : playedToday ? '↻ Try Again' : '☀ Deploy'}
           </button>
           {clearedToday && <div className="daily-note">Cleared today ✓ — the daily reward is banked; replays are for the record.</div>}

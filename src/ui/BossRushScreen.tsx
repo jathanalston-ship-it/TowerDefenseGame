@@ -82,7 +82,7 @@ export function BossRushScreen({
 
         <div className="play-cta">
           <button
-            className="primary play-start rush-start"
+            className="primary play-start rush-start" data-guide="rush-start"
             onClick={start}
             disabled={!canEnter}
             title={canEnter ? 'Wave N = N assembled bosses, forever' : 'Out of stamina — it regenerates over time'}
