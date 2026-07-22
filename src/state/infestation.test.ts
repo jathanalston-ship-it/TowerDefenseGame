@@ -7,10 +7,17 @@ import type { RunResult } from './meta';
 import { defaultLifetimeStats } from '../save/saveStore';
 import { HERO_ORDER, TOWER_ORDER } from '../core/config';
 import {
-  ALL_SECTORS, DECAY_PER_DAY, ENTRENCH_MULT, GAIN_CAP_PER_RUN, REGIONS, SATURATED_DECAY_MULT,
-  effectiveLevel, feedInfestation, infestationEffects, resolveFeedTarget, runInfestGain, tierHoldDays, tierOf, zeroInDays,
+  ALL_SECTORS, DECAY_PER_DAY, ENTRENCH_MULT, GAIN_CAP_PER_RUN, HOTSPOT_FEED_MULT, REGIONS, SATURATED_DECAY_MULT,
+  effectiveLevel, feedInfestation, hotspotSectorId, infestationEffects, resolveFeedTarget, runInfestGain, tierHoldDays, tierOf, zeroInDays,
 } from '../core/infestation';
 import type { RunStats } from '../core/types';
+
+/** The daily HOTSPOT pays HOTSPOT_FEED_MULT on feeds — these finishRun tests run against the
+ *  REAL clock, so any expectation on a fed sector must scale by whether that sector happens to
+ *  be TODAY's hotspot (otherwise the suite goes red on the days the rotation lands there). */
+const todayHot = hotspotSectorId(new Date().toISOString().slice(0, 10));
+const hotScaled = (base: number, sectorId: string): number =>
+  Math.round(base * (sectorId === todayHot ? HOTSPOT_FEED_MULT : 1));
 
 function run(wave: number, won: boolean): RunResult {
   const zero = { kills: 0, damage: 0, activeTime: 0 };
@@ -117,19 +124,19 @@ describe('infestation × finishRun', () => {
     expect(meta.setInfestTarget(target)).toBe(true);
     meta.finishRun(run(10, true));
     const lvl1 = meta.infestationView().sectors[target];
-    expect(Math.round(lvl1)).toBe(20);
+    expect(Math.round(lvl1)).toBe(hotScaled(20, target));
     meta.finishRun(run(10, false));
     const lvl2 = meta.infestationView().sectors[target];
-    expect(Math.round(lvl2)).toBe(30);
+    expect(Math.round(lvl2)).toBe(hotScaled(30, target));
   });
 
   it('auto-spreads to the emptiest sector when nothing is pinned', () => {
     meta.reset();
     meta.finishRun(run(8, true)); // 16 points land somewhere (the emptiest = first empty)
     const view = meta.infestationView();
-    const fed = Object.values(view.sectors).filter((v) => v > 0);
-    expect(fed).toHaveLength(1);
-    expect(Math.round(fed[0])).toBe(16);
+    const fedIds = Object.keys(view.sectors).filter((id) => view.sectors[id] > 0);
+    expect(fedIds).toHaveLength(1);
+    expect(Math.round(view.sectors[fedIds[0]])).toBe(hotScaled(16, fedIds[0]));
   });
 
   it('rejects junk targets but accepts REGION pins (feeding the region\'s emptiest)', () => {
@@ -142,7 +149,7 @@ describe('infestation × finishRun', () => {
     const view = meta.infestationView();
     const fedInRegion = region.sectors.filter((x) => view.sectors[x.id] > 0);
     expect(fedInRegion).toHaveLength(1);
-    expect(Math.round(view.sectors[fedInRegion[0].id])).toBe(20);
+    expect(Math.round(view.sectors[fedInRegion[0].id])).toBe(hotScaled(20, fedInRegion[0].id));
     expect(view.feedsInto).toBeTruthy(); // the preview names the next destination
   });
 
