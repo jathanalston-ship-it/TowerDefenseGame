@@ -256,8 +256,10 @@ Anchored to selectors, measured, viewport-clamped — never hard-coded positions
 re-layout cannot push a lesson over its subject:
 
 - **`cue.callout.avoid`** — a selector the bubble must never overlap. Every lesson shown while a
-  wave runs (`wave-1`, `hero-ability`, `graduation`) avoids `canvas.board`; the draft lesson
-  anchors BELOW `.overlay .cards` and avoids it. On overlap the `Callout` primitive re-seats the
+  wave runs (`wave-1`, `hero-ability`, `graduation`) — and every lesson that asks for a slot tap
+  (`place-needle`, `second-tower`: the conveyor bubble used to sit on the very slot lattice it
+  asked the player to tap) — avoids `canvas.board`; the draft lesson anchors BELOW
+  `.overlay .cards` and avoids it. On overlap the `Callout` primitive re-seats the
   bubble BESIDE the region first (left/right, nearest the anchor; a target-less bubble rides low,
   bottom-aligned), then below/above, rejecting any seat that leaves the viewport or covers the
   target.

@@ -88,8 +88,8 @@ describe('combat lesson plan', () => {
     expect(def.waves).toBe(2); // the HUD reports this, not the host stage's length
   });
 
-  it('every lesson shown while a wave runs keeps its bubble off the lane', () => {
-    for (const id of ['wave-1', 'hero-ability', 'graduation']) {
+  it('every lesson shown while a wave runs — or asking for a slot tap — keeps its bubble off the lane', () => {
+    for (const id of ['place-needle', 'wave-1', 'second-tower', 'hero-ability', 'graduation']) {
       expect(def.checkpoints.find((c) => c.id === id)?.cue?.callout?.avoid, id).toBe('canvas.board');
     }
     expect(def.checkpoints.find((c) => c.id === 'gene-card')?.cue?.callout?.avoid).toBe('.overlay .cards');

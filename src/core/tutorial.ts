@@ -130,7 +130,7 @@ export function sanitizeProgress(raw: unknown, def?: TutorialDef): TutorialProgr
 // NATURAL ORDER (onboarding pass 2026-11, docs/TUTORIAL-AUDIT.md §G): the lessons follow the real
 // run rhythm — wave → draft → build → wave — so the wave counter only ever climbs, and the Hero
 // Ability is taught DURING wave 2 with enemies on the field (a cast in an empty build phase did
-// nothing visible). Every lesson shown while a wave runs `avoid`s the lane.
+// nothing visible). Every lesson shown while a wave runs — or asking for a slot tap — `avoid`s the lane.
 const LANE = 'canvas.board';
 const ABILITY_BUTTON = '[data-tut="ability"] .ability-btn';
 export const COMBAT_TUTORIAL: TutorialDef = {
@@ -146,7 +146,7 @@ export const COMBAT_TUTORIAL: TutorialDef = {
         callout: { eyebrow: 'UPLINK 02 · FUEL', text: 'Biomass is this run’s fuel — enemies drop it, you spend it. Everything you grow comes from this counter.', target: '[data-tut="biomass"]', side: 'bottom' } } },
     { id: 'place-needle', title: 'Deploy your Needle Spitter', advance: { kind: 'event', event: 'tower-placed' },
       cue: { arrow: { target: '[data-tut="tower-card-first"]', from: 'top' }, canvasFocus: { x: 480, y: 780, zoom: 1.03 },
-        callout: { eyebrow: 'UPLINK 03 · FIRST GROWTH', text: 'The starred card is your FAVORITE — always available, every run. Select it, then click a glowing slot on the field.', target: '[data-tut="tower-card-first"]', side: 'top' } } },
+        callout: { eyebrow: 'UPLINK 03 · FIRST GROWTH', text: 'The starred card is your FAVORITE — always available, every run. Select it, then click a glowing slot on the field.', target: '[data-tut="tower-card-first"]', side: 'top', avoid: LANE } } },
     { id: 'wave-1', title: 'Survive Wave 1', advance: { kind: 'event', event: 'wave-completed' },
       milestone: { label: 'The line holds', cores: 25 },
       cue: { callout: { eyebrow: 'UPLINK 04 · CONTACT', text: 'Wave 1 incoming. Your towers aim and fire on their own — hold the line.', avoid: LANE } } },
@@ -161,7 +161,7 @@ export const COMBAT_TUTORIAL: TutorialDef = {
         callout: { eyebrow: 'UPLINK 06 · THE LOOP', text: 'Every kill in Wave 1 paid Biomass — kills fund growth, growth brings bigger kills. That loop is the whole run.', target: '[data-tut="biomass"]', side: 'bottom' } } },
     { id: 'second-tower', title: 'Deploy from the Conveyor', advance: { kind: 'event', event: 'tower-placed' },
       cue: { arrow: { target: '[data-tut="conveyor"]', from: 'top' },
-        callout: { eyebrow: 'UPLINK 07 · THE CONVEYOR', text: 'New organisms GROW on the Biomorph Conveyor beside your favorite — your first is ready, free. Deploy it (or your favorite again) onto a second slot.', target: '[data-tut="conveyor"]', side: 'top' } } },
+        callout: { eyebrow: 'UPLINK 07 · THE CONVEYOR', text: 'New organisms GROW on the Biomorph Conveyor beside your favorite — your first is ready, free. Deploy it (or your favorite again) onto a second slot.', target: '[data-tut="conveyor"]', side: 'top', avoid: LANE } } },
     { id: 'inspect', title: 'Inspect your towers', advance: { kind: 'continue' },
       cue: { spotlight: '.side-panel.inspector',
         callout: { eyebrow: 'UPLINK 08 · KNOW YOUR STRAIN', text: 'Tap any placed tower to open this Inspector — stats, Mastery, and (deeper in) Branch mutations. Look around, then continue.', target: '.side-panel.inspector', side: 'left' } } },
