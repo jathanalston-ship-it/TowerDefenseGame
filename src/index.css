@@ -8195,7 +8195,7 @@ kbd {
 .tut-ctl:hover { color: var(--text); border-color: var(--vital); }
 .tut-skip { color: var(--dim); }
 /* Skip confirm — names what a first-run Skip forfeits (docs/TUTORIAL.md §graduation). */
-.tut-skip-confirm { max-width: 320px; padding: 12px 14px; border-radius: var(--r-md); background: var(--panel); border: 1px solid var(--line-strong); box-shadow: 0 12px 32px -14px #000; }
+.tut-skip-confirm { width: 300px; max-width: calc(100vw - 24px); padding: 12px 14px; border-radius: var(--r-md); background: var(--panel); border: 1px solid var(--line-strong); box-shadow: 0 12px 32px -14px #000; }
 .tut-skip-q { font-size: 13px; font-weight: 800; color: var(--text); margin-bottom: 4px; }
 .tut-skip-cost { font-size: 12px; line-height: 1.45; color: var(--muted); margin-bottom: 10px; }
 .tut-skip-btns { display: flex; gap: 8px; justify-content: flex-end; }
