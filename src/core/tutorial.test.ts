@@ -75,3 +75,29 @@ describe('registry', () => {
     expect(tutorialDef('nope')).toBeUndefined();
   });
 });
+
+// Onboarding pass 2026-11 (docs/TUTORIAL-AUDIT.md §G): the lesson plan follows the REAL run
+// rhythm and never teaches over its own subject.
+describe('combat lesson plan', () => {
+  const ids = def.checkpoints.map((c) => c.id);
+
+  it('runs in natural wave → draft → build → wave order', () => {
+    expect(ids.indexOf('gene-card')).toBe(ids.indexOf('wave-1') + 1); // the draft deals as wave 1 settles
+    expect(ids.indexOf('hero-ability')).toBeGreaterThan(ids.indexOf('second-tower')); // after the build lessons …
+    expect(ids.indexOf('graduation')).toBe(ids.indexOf('hero-ability') + 1); // … taught DURING wave 2
+    expect(def.waves).toBe(2); // the HUD reports this, not the host stage's length
+  });
+
+  it('every lesson shown while a wave runs — or asking for a slot tap — keeps its bubble off the lane', () => {
+    for (const id of ['place-needle', 'wave-1', 'second-tower', 'hero-ability', 'graduation']) {
+      expect(def.checkpoints.find((c) => c.id === id)?.cue?.callout?.avoid, id).toBe('canvas.board');
+    }
+    expect(def.checkpoints.find((c) => c.id === 'gene-card')?.cue?.callout?.avoid).toBe('.overlay .cards');
+  });
+
+  it('the ability arrow targets the real ability BUTTON, not the whole pod', () => {
+    const cue = def.checkpoints.find((c) => c.id === 'hero-ability')?.cue;
+    expect(cue?.arrow?.target).toBe('[data-tut="ability"] .ability-btn');
+    expect(cue?.callout?.target).toBe(cue?.arrow?.target);
+  });
+});

@@ -93,13 +93,6 @@ export function Commissioning({ reward, onClose }: { reward: TutorialRewardSumma
     void ensureGuestRegistered(); // lazy + fail-soft (the WelcomeGate contract)
     finish();
   };
-  // GUEST MODE from the ceremony — the SAFEGUARD's "keep nothing" stance: the graduate life
-  // moves onto session storage (playable now, gone with the browser). finish() already skips
-  // the durable onboarded mark while the flag is up.
-  const asGuestMode = (): void => {
-    meta.enterGuestSession();
-    finish();
-  };
 
   return (
     <div className="tut-reward commission" role="dialog" aria-label="Commissioning">
@@ -210,19 +203,17 @@ export function Commissioning({ reward, onClose }: { reward: TutorialRewardSumma
             {auth === 'none' ? (
               <div className="acct-welcome-btns">
                 {guest && <div className="acct-note">{t('commission.account.guestmode')}</div>}
+                {/* ONE guest choice (onboarding pass 2026-11): the volatile session-only Guest Mode
+                    sat beside "Continue as Guest" with near-identical wording — and right after a
+                    payout it only offered a way to lose it. It lives on the WelcomeGate tryout. */}
                 <button className="acct-btn primary big" onClick={asGuest}>{t('commission.account.guest')}</button>
+                {!guest && <div className="acct-note">{t('commission.account.guest.hint')}</div>}
                 <button className="acct-btn big" onClick={() => setAuth('register')} disabled={!online} title={online ? undefined : t('commission.account.offline')}>
                   {t('commission.account.create')}
                 </button>
                 <button className="acct-btn big" onClick={() => setAuth('signin')} disabled={!online} title={online ? undefined : t('commission.account.offline')}>
                   {t('commission.account.signin')}
                 </button>
-                {!guest && (
-                  <>
-                    <button className="acct-btn ghost" onClick={asGuestMode}>{t('commission.account.guestmode.opt')}</button>
-                    <div className="acct-note">{t('commission.account.guestmode.hint')}</div>
-                  </>
-                )}
                 {!online && <div className="acct-note">{t('commission.account.offline')}</div>}
               </div>
             ) : (

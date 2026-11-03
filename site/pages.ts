@@ -13,6 +13,7 @@ export interface HomeCtx {
   counts: { towers: number; heroes: number; enemies: number; biomes: number; bosses: number; doctrines: number };
   featuredTower: { name: string; blurb: string; color: string };
   featuredHero: { name: string; blurb: string; color: string };
+  featuredWeek: number; // the rotation week both picks came from (stamped for the drift test)
 }
 
 export function homePage(ctx: HomeCtx): string {
@@ -86,7 +87,7 @@ ${adSlot('home-below-trailer', 'banner')}
         ? `<h3><a href="/news/">${esc(ctx.latestPatch.title)}</a></h3><p>${esc(ctx.latestPatch.date)} · ${esc(ctx.latestPatch.categories.slice(0, 4).join(', '))}</p>`
         : '<h3><a href="/news/">Patch notes</a></h3><p>The full change history, categorized and searchable.</p>'}
       <a class="more" href="/news/">All patch notes →</a></div>
-    <div class="widget"><div class="k">Featured Tower</div>
+    <div class="widget" data-week="${ctx.featuredWeek}"><div class="k">Featured Tower</div>
       <h3><span class="swatch" style="background:${esc(ctx.featuredTower.color)}"></span>${esc(ctx.featuredTower.name)}</h3>
       <p>${esc(ctx.featuredTower.blurb)}</p>
       <a class="more" href="/guides/towers/">Tower guide →</a></div>

@@ -16,6 +16,7 @@ import { CARD_POOL } from '../core/cards';
 import { TOWER_ORDER, HERO_ORDER } from '../core/config';
 import { GENE_LOADOUT_SLOTS } from '../core/geneLoadout';
 import { ASSIMILATION_TIERS } from '../core/assimilation';
+import { COMBAT_TUTORIAL } from '../core/tutorial';
 
 export const REPO_ROOT = join(__dirname, '..', '..');
 
@@ -41,6 +42,8 @@ export function docAnchors(): DocAnchor[] {
     { doc: 'docs/GAME-STATE.md', contains: `| Towers | ${TOWER_ORDER.length} |`, why: 'tower count drifted (TOWER_ORDER)' },
     { doc: 'docs/GAME-STATE.md', contains: `| Heroes | ${HERO_ORDER.length} |`, why: 'hero count drifted (HERO_ORDER)' },
     { doc: 'docs/GAME-STATE.md', contains: gates, why: 'gene campaign gates drifted (GENE_LEVEL_GATES)' },
+    { doc: 'docs/TUTORIAL.md', contains: `The encounter is **${COMBAT_TUTORIAL.waves} waves**`, why: 'combat tutorial wave count drifted (COMBAT_TUTORIAL.waves — the HUD reports it)' },
+    { doc: 'docs/TUTORIAL.md', contains: `| 3 | Cold-open banner → **Combat Tutorial** | ${COMBAT_TUTORIAL.checkpoints.length} lessons, ${COMBAT_TUTORIAL.waves} waves |`, why: 'combat tutorial lesson count drifted (COMBAT_TUTORIAL.checkpoints)' },
     { doc: 'docs/GENE-EVOLUTION.md', contains: `GENE_POWER_SCALE = ${GENE_POWER_SCALE}`, why: 'gene power calibration drifted (GENE_POWER_SCALE)' },
     { doc: 'docs/GENE-EVOLUTION.md', contains: `| Essence / shard | ${ESSENCE_PER_SHARD.common} | ${ESSENCE_PER_SHARD.uncommon} | ${ESSENCE_PER_SHARD.rare} | ${ESSENCE_PER_SHARD.epic} | ${ESSENCE_PER_SHARD.legendary} | ${ESSENCE_PER_SHARD.mythic} |`, why: 'duplicate-conversion rates drifted (ESSENCE_PER_SHARD)' },
     { doc: 'docs/GENE-EVOLUTION.md', contains: `${ESSENCE_COST.baseByCardRarity.common}`, why: 'essence cost base drifted (ESSENCE_COST.common)' },

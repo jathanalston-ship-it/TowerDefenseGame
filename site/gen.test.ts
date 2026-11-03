@@ -3,10 +3,11 @@
 // every internal link resolves, the sitemap is complete, no placeholder copy survives, and the
 // committed public/ output cannot drift from the generator (the docs:graph pattern).
 
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { buildSite, loadPatchNotes } from './build';
+import { FEATURE_WEEK_MS } from './encyclopedia';
 import { allNavPaths, DOMAIN, PLAY_PATH } from './config';
 import { POSTS } from './blog';
 import { GUIDES } from './guides';
@@ -95,7 +96,14 @@ describe('site generation — structure', () => {
 
 describe('site generation — committed output stays in sync (run `npm run site`)', () => {
   it('public/ matches the generator byte-for-byte', () => {
-    for (const [servedPath, content] of site) {
+    // The home page's featured picks rotate WEEKLY — regenerate at the week the committed page
+    // was built in (its `data-week` stamp), so this pins content drift, not the calendar.
+    const stamp = /data-week="(\d+)"/.exec(readFileSync('public/index.html', 'utf8'))?.[1];
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(stamp ? Number(stamp) * FEATURE_WEEK_MS : Date.now());
+    let pinned: Map<string, string>;
+    try { pinned = buildSite(); } finally { vi.useRealTimers(); }
+    for (const [servedPath, content] of pinned) {
       const rel = servedPath.endsWith('/') ? servedPath + 'index.html' : servedPath;
       const file = join('public', rel);
       expect(existsSync(file), `${file} missing — run \`npm run site\``).toBe(true);

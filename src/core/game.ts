@@ -517,6 +517,11 @@ export class Game {
   // drafts are HELD (the director releases one exactly when the gene-card lesson teaches it) and
   // auto-start stays inert — so the lessons and the live game can never desync.
   tutorialMode = false;
+  // Tutorial READ-MODEL (docs/TUTORIAL.md §accuracy): the lesson's scripted wave count. When > 0
+  // the HUD snapshot reports it as the run length and drops the host stage's finale
+  // anticipations (boss / cache tiers), so the lesson never advertises a 12-wave run it won't
+  // play. Presentation only — no sim system reads it (golden-safe: 0 everywhere else).
+  tutorialWaves = 0;
   // Auto-start ARMING gate (mode-agnostic): even with autoStart ON, the countdown stays frozen
   // until the player takes their FIRST setup action this run — places a tower OR manually starts
   // wave 1. This stops an armed Auto Wave from firing (and taking damage) before the player has
@@ -7377,12 +7382,24 @@ export class Game {
   }
 
   /** Tutorial beats (tutorialMode only — the director calls these to script the lessons). The
-   *  gene-card lesson releases the held draft here, from prep, exactly when it teaches drafting. */
+   *  gene-card lesson releases the held draft here exactly when it teaches drafting: during the
+   *  SETTLE beat right after a clear (endWave then flips to the draft in natural wave → draft →
+   *  build order, so the HUD's wave counter never steps backwards), or from prep (a resumed
+   *  lesson on a fresh board). Never mid-fight. */
   openTutorialDraft(): void {
-    if (!this.tutorialMode || this.phase !== 'prep') return;
+    if (!this.tutorialMode) return;
+    const settling = this.phase === 'wave' && this.settleTimer > 0;
+    if (this.phase !== 'prep' && !settling) return;
     this.draft = draftCards(this.rng, 3, this.waveIndex, this.fieldedKinds(), this.unlockedCardIds, this.draftPool);
     this.draftRerolled = false;
-    this.phase = 'draft';
+    if (!settling) this.phase = 'draft'; // settling: endWave() reveals it when the field winds down
+  }
+
+  /** Recharge the primary hero's ability so the ability lesson can never stall on a cooldown
+   *  the player burned earlier (same contract as the biomass top-up: tutorial-only, never a nerf). */
+  tutorialReadyAbility(): void {
+    if (!this.tutorialMode) return;
+    this.primaryHero.abilityCd = 0;
   }
 
   /** Top the Biomass bank up to `min` so a build lesson can never stall unaffordable. */
@@ -7903,7 +7920,7 @@ export class Game {
     return {
       phase: this.phase,
       wave: this.waveIndex,
-      totalWaves: this.totalWaves,
+      totalWaves: this.tutorialWaves > 0 ? this.tutorialWaves : this.totalWaves,
       biomass: Math.floor(this.biomass),
       integrity: Math.ceil(this.integrity),
       maxIntegrity: this.maxIntegrity,
@@ -7970,7 +7987,7 @@ export class Game {
       runEvent: this.activeRunEvent,
       runHeadline: this.runPlan?.headline || undefined,
       selectedHero: this.selectedHeroView(),
-      anticipation: this.nextAnticipation(),
+      anticipation: this.tutorialWaves > 0 ? [] : this.nextAnticipation(), // the lesson has no finale to anticipate
       autoStart: this.autoStart,
       hiveReady: this.hiveReadySnapshot(),
       autoStartIn: this.autoStart && this.autoStartReady && this.phase === 'prep' ? Math.max(0, this.prepCountdown) : 0,

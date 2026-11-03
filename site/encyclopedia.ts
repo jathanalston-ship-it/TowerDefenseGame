@@ -58,9 +58,14 @@ export function doctrineCodex(): string {
 
 /** A rotating "featured" pick — deterministic by ISO week, so the homepage changes weekly
  *  without a server. */
+export const FEATURE_WEEK_MS = 7 * 24 * 3600 * 1000;
+/** The rotation week the picks are drawn from (stamped into the home page as `data-week`, so
+ *  the drift test can regenerate at the SAME week — it pins content, not the calendar). */
+export function featuredWeek(): number {
+  return Math.floor(Date.now() / FEATURE_WEEK_MS);
+}
 export function featuredOfWeek<T>(list: T[], salt: number): T {
-  const week = Math.floor(Date.now() / (7 * 24 * 3600 * 1000));
-  return list[(week + salt) % list.length];
+  return list[(featuredWeek() + salt) % list.length];
 }
 export function featuredTower(): { name: string; blurb: string; color: string } {
   const t = featuredOfWeek(Object.values(TOWER_DEFS), 0);

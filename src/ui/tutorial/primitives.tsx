@@ -53,14 +53,27 @@ export function TutorialArrow({ rect, from = 'top' }: { rect: DOMRect | null; fr
   return <div className={`tut-arrow from-${from}`} style={style} aria-hidden>➤</div>;
 }
 
-/** Tooltip callout bubble anchored to a target side, or centered when there's no target. */
+/** True when a box overlaps a rect (strictly — touching edges is fine). */
+export function overlaps(x: number, y: number, w: number, h: number, r: DOMRect): boolean {
+  return x < r.right && x + w > r.left && y < r.bottom && y + h > r.top;
+}
+
+/** Tooltip callout bubble anchored to a target side, or centered when there's no target.
+ * `avoid` is a region the bubble must never cover (the lane during a wave, the draft row being
+ * taught): if the anchored/centered spot overlaps it, the bubble re-seats beside it — the
+ * candidate (left / right / below / above) nearest its anchor that fits the viewport and clears
+ * both the region and the target. `gap` widens the target offset (room for a same-side arrow). */
 export function Callout({
   rect,
   side = 'bottom',
+  avoid = null,
+  gap: gapProp = 14,
   children,
 }: {
   rect: DOMRect | null;
   side?: Side;
+  avoid?: DOMRect | null;
+  gap?: number;
   children: ReactNode;
 }): JSX.Element {
   // MEASURED-BOX POSITIONING (docs/RESPONSIVE-DESIGN.md §tutorial): the bubble's REAL width and
@@ -107,9 +120,9 @@ export function Callout({
     // No target (placeholder lessons) OR a target the overlay is still scrolling toward —
     // a centered bubble is always readable; it re-anchors the moment the target arrives.
     style = { left: clampX((vw - dims.w) / 2), top: clampY(vh * 0.46 - dims.h / 2) };
-    cls = 'side-center';
+    cls = avoid ? 'side-free' : 'side-center'; // an avoiding bubble keeps the compact width
   } else {
-    const gap = 14;
+    const gap = gapProp;
     const cx = rect.left + rect.width / 2;
     const cy = rect.top + rect.height / 2;
     // Flip when the preferred side genuinely lacks room (exact — dims are measured).
@@ -124,6 +137,44 @@ export function Callout({
       s === 'left' ? { left: clampX(rect.left - gap - dims.w), top: clampY(cy - dims.h / 2) } :
       { left: clampX(rect.right + gap), top: clampY(cy - dims.h / 2) };
     cls = `side-${s}`;
+  }
+  // AVOID ZONE: never cover the region the lesson is about. Candidates sit BESIDE the region
+  // first (left / right — above/below a tall lane is where the HUD and toolbar live), then
+  // below / above; the one nearest the anchor that fits wholly on-screen and clears the region
+  // + the target wins. A target-less bubble rides LOW beside the region (bottom-aligned —
+  // clear of the side panels' headline content). Nothing fits (a region wider than the shell)
+  // ⇒ keep the anchored spot — the phone dock contract covers narrow shells.
+  if (avoid && !offViewport(avoid)) {
+    const g = 14;
+    const x0 = style.left as number;
+    const y0 = style.top as number;
+    if (overlaps(x0, y0, dims.w, dims.h, avoid)) {
+      const anchored = !!rect && !offViewport(rect);
+      const ax = anchored ? rect!.left + rect!.width / 2 : x0 + dims.w / 2;
+      const ay = anchored ? rect!.top + rect!.height / 2 : y0 + dims.h / 2;
+      const sideY = anchored ? clampY(y0) : clampY(avoid.bottom - dims.h);
+      const fits = (x: number, y: number): boolean =>
+        x >= pad && y >= pad && x + dims.w <= vw - pad && y + dims.h <= vh - pad &&
+        !overlaps(x, y, dims.w, dims.h, avoid) && !(anchored && overlaps(x, y, dims.w, dims.h, rect!));
+      const tiers: [number, number, Side][][] = [
+        [[avoid.left - g - dims.w, sideY, 'left'], [avoid.right + g, sideY, 'right']],
+        [[clampX(x0), avoid.bottom + g, 'bottom'], [clampX(x0), avoid.top - g - dims.h, 'top']],
+      ];
+      let best: [number, number, Side] | null = null;
+      for (const tier of tiers) {
+        let bestD = Infinity;
+        for (const c of tier) {
+          if (!fits(c[0], c[1])) continue;
+          const d = Math.hypot(c[0] + dims.w / 2 - ax, c[1] + dims.h / 2 - ay);
+          if (d < bestD) { bestD = d; best = c; }
+        }
+        if (best) break;
+      }
+      if (best) {
+        style = { left: best[0], top: best[1] };
+        cls = `side-free avoid-${best[2]}`;
+      }
+    }
   }
   // The hard ceiling is GEOMETRIC: the box may never cross the bottom edge, so its max height is
   // whatever room exists below its computed top — airtight even while a measurement is one frame
@@ -167,10 +218,14 @@ export function Typewriter({ text }: { text: string }): JSX.Element {
     return () => clearInterval(id);
   }, [text]);
   const typing = shown < text.length;
+  // The untyped remainder is laid out INVISIBLY, so the bubble has its final size from the first
+  // frame: a measured callout never grows mid-transmission (growing used to walk a lane-avoiding
+  // bubble back over the lane, or a top-anchored one down over its own arrow, until it re-seated).
   return (
     <span className="tut-type" onClick={typing ? () => setShown(text.length) : undefined}>
       {text.slice(0, shown)}
       {typing && <i className="tut-caret" aria-hidden>▌</i>}
+      {typing && <span className="tut-type-rest" aria-hidden>{text.slice(shown)}</span>}
     </span>
   );
 }

@@ -17,6 +17,8 @@ describe('tutorial completion rewards (idempotent on replay)', () => {
     expect(afterFirst.tutorial.rewarded).toContain('combat');
     expect(afterFirst.equipment.inventory.length).toBe(before.equipment.inventory.length + 1); // 1 gear piece
     expect(afterFirst.pendingContainers.length).toBe(before.pendingContainers.length + 1); // 1 container
+    expect(r1!.containers).toBe(1);
+    expect(r1!.items).toBe(1);
     expect(r1!.powerAfter).toBeGreaterThanOrEqual(r1!.powerBefore); // visible Power Score increase
     expect(r1!.achievement).toBe('Assimilation Protocol'); // achievement unlocked
 
@@ -48,25 +50,73 @@ describe('mid-lesson milestone rewards (idempotent per checkpoint)', () => {
   });
 });
 
-describe('HUD Tour completion (skip is seen, never paid)', () => {
-  it('a skip marks the tour done without the container; a later finish cannot double-dip', () => {
+describe('THE graduation payout (one reveal for the whole onboarding — docs/TUTORIAL.md §graduation)', () => {
+  it('pays the tutorial + former tour ledgers together, once, as ONE summary', () => {
     meta.reset();
     meta.completeTutorial('combat');
     const before = meta.get();
-    expect(meta.completeHudTour(false)).toBeNull(); // skip: no grant …
+    expect(meta.pendingOnboardingReward()).toEqual({ cores: 300, containers: 2, containerRarity: 'rare' }); // the Skip confirm's numbers
+
+    const r = meta.grantOnboardingRewards();
+    expect(r).not.toBeNull();
+    expect(r!.cores).toBe(300); // 150 per ledger — exactly what tutorial + tour paid before the merge
+    expect(r!.towerShards).toBe(30);
+    expect(r!.heroShards).toBe(40);
+    expect(r!.containers).toBe(2);
+    expect(r!.items).toBe(2);
+    expect(r!.achievement).toBe('Assimilation Protocol');
+    expect(r!.powerAfter).toBeGreaterThanOrEqual(r!.powerBefore);
     const after = meta.get();
-    expect(after.help.hudTour).toBe(true); // … but it never re-forces
-    expect(after.pendingContainers.length).toBe(before.pendingContainers.length);
-    expect(meta.completeHudTour(true)).toBeNull(); // already done — a replay finish grants nothing
+    expect(after.tutorial.rewarded).toEqual(expect.arrayContaining(['combat', 'hudtour']));
+    expect(after.pendingContainers.length).toBe(before.pendingContainers.length + 2);
+    expect(after.equipment.inventory.length).toBe(before.equipment.inventory.length + 2);
+    const uids = after.equipment.inventory.map((i) => i.uid);
+    expect(new Set(uids).size).toBe(uids.length); // same-millisecond grants never collide
+    expect(meta.pendingOnboardingReward()).toBeNull(); // nothing left — a replay's Skip forfeits nothing
+
+    // Replay → nothing re-granted, and the tour that follows pays nothing either (no 2nd card).
+    expect(meta.grantOnboardingRewards()).toBeNull();
+    expect(meta.completeHudTour()).toBeNull();
+    expect(meta.get().shards).toBe(after.shards);
+    expect(meta.get().pendingContainers.length).toBe(after.pendingContainers.length);
   });
 
-  it('a genuine finish grants the one-time container', () => {
+  it('a save that already claimed one ledger is paid only the remainder', () => {
     meta.reset();
     meta.completeTutorial('combat');
+    meta.grantTutorialRewards('hudtour'); // a pre-merge skipper who finished the old tour …
+    const r = meta.grantOnboardingRewards(); // … then completes the trial on a replay
+    expect(r!.cores).toBe(150);
+    expect(r!.containers).toBe(1);
+    expect(meta.grantOnboardingRewards()).toBeNull();
+  });
+});
+
+describe('HUD Tour completion (pays nothing of its own — Finish and Skip are identical)', () => {
+  it('a tutorial SKIPPER gets nothing from the tour, and cannot farm it', () => {
+    meta.reset();
+    meta.completeTutorial('combat'); // a Skip also marks the tutorial complete — but never pays
     const before = meta.get();
-    const r = meta.completeHudTour(true);
+    expect(meta.completeHudTour()).toBeNull();
+    const after = meta.get();
+    expect(after.help.hudTour).toBe(true); // seen — never re-forces
+    expect(after.pendingContainers.length).toBe(before.pendingContainers.length);
+    expect(after.shards).toBe(before.shards);
+    expect(meta.completeHudTour()).toBeNull(); // replay: idempotent
+    expect(meta.pendingOnboardingReward()).not.toBeNull(); // still claimable by finishing a replay
+  });
+
+  it('a LEGACY graduate still owed the old tour grant is paid it at tour end — exactly once', () => {
+    meta.reset();
+    meta.completeTutorial('combat');
+    meta.grantTutorialRewards('combat'); // graduated under the old two-part promise, tour pending
+    const before = meta.get();
+    const r = meta.completeHudTour(); // Finish or Skip — the same call, so a Skip forfeits nothing
     expect(r).not.toBeNull();
+    expect(r!.cores).toBe(150);
     expect(meta.get().pendingContainers.length).toBe(before.pendingContainers.length + 1);
-    expect(meta.completeHudTour(true)).toBeNull(); // idempotent
+    expect(meta.get().tutorial.rewarded).toContain('hudtour');
+    expect(meta.completeHudTour()).toBeNull(); // idempotent
+    expect(meta.grantOnboardingRewards()).toBeNull(); // and a later replay owes nothing
   });
 });

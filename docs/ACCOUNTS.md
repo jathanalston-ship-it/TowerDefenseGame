@@ -73,10 +73,12 @@ saves are grandfathered — the gate never nags a device that already has a life
 ## Guest Mode — the session-only tryout
 
 For players who want to try the game with **no strings at all**: no purchases, no name, no saved
-data. Offered on BOTH account-decision surfaces — the WelcomeGate's third option (fresh profile)
-and the COMMISSIONING SAFEGUARD step's "keep nothing" stance (the graduate life moves onto session
-storage, playable now, gone with the browser). Distinct from the durable device-guest above —
-Guest Mode is *volatile by contract*.
+data. Offered on the WelcomeGate (its third option, fresh profile). The COMMISSIONING SAFEGUARD
+step no longer offers it (2026-11, docs/TUTORIAL-AUDIT.md §G11): beside "Continue as Guest" it read
+as a near-duplicate, and right after the graduation payout its only effect was to make that payout
+vanish at browser close — the step now has ONE guest choice. A player already IN Guest Mode still
+sees the step's conversion note. Distinct from the durable device-guest above — Guest Mode is
+*volatile by contract*.
 
 - **Flag:** `src/state/guestMode.ts` — sessionStorage `assimilate.guestMode` (+ `useGuestMode()`
   hook). A mid-session reload stays in the tryout; closing the browser ends it.

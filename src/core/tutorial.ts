@@ -17,8 +17,11 @@ export type CheckpointTrigger =
 export interface CheckpointCue {
   spotlight?: string; // CSS selector to highlight (dims the rest + pulses an outline)
   arrow?: { target: string; from?: 'top' | 'bottom' | 'left' | 'right' };
-  /** `eyebrow` is the transmission header over the callout (the cinematic's RELAY 7 voice). */
-  callout?: { eyebrow?: string; text: string; target?: string; side?: 'top' | 'bottom' | 'left' | 'right' };
+  /** `eyebrow` is the transmission header over the callout (the cinematic's RELAY 7 voice).
+   *  `avoid` is a selector the bubble must NEVER cover — the lane while a wave runs, the draft
+   *  row being taught: the presentation layer re-seats the bubble beside that region (measured,
+   *  viewport-clamped), so layout changes elsewhere can't push a lesson over its own subject. */
+  callout?: { eyebrow?: string; text: string; target?: string; side?: 'top' | 'bottom' | 'left' | 'right'; avoid?: string };
   focus?: string; // camera-focus target selector (scrolled into view when the checkpoint activates)
   /** Smart tutorial camera: ease the battlefield view gently toward this BOARD-space point while
    * the checkpoint is active (render-side only — GameView owns the smoothing; it never snaps). */
@@ -41,6 +44,9 @@ export interface TutorialDef {
   id: string;
   name: string;
   checkpoints: TutorialCheckpoint[];
+  /** The scripted encounter's wave count — the HUD reports THIS as the run length (and drops the
+   *  host stage's finale objectives) so the lesson never advertises waves it won't play. */
+  waves?: number;
 }
 
 export type TutorialStatus = 'active' | 'paused';
@@ -121,9 +127,16 @@ export function sanitizeProgress(raw: unknown, def?: TutorialDef): TutorialProgr
 // COPY DISCIPLINE (playtest 2026-07: "too wordy — both testers skipped"): every callout is ≤2
 // short sentences, verb-first, and describes EXACTLY the world on screen. The lessons run on the
 // REAL deployment model — the favorite card + the Biomorph Conveyor — never a tutorial-only rail.
+// NATURAL ORDER (onboarding pass 2026-11, docs/TUTORIAL-AUDIT.md §G): the lessons follow the real
+// run rhythm — wave → draft → build → wave — so the wave counter only ever climbs, and the Hero
+// Ability is taught DURING wave 2 with enemies on the field (a cast in an empty build phase did
+// nothing visible). Every lesson shown while a wave runs — or asking for a slot tap — `avoid`s the lane.
+const LANE = 'canvas.board';
+const ABILITY_BUTTON = '[data-tut="ability"] .ability-btn';
 export const COMBAT_TUTORIAL: TutorialDef = {
   id: 'combat',
   name: 'Combat Tutorial',
+  waves: 2,
   checkpoints: [
     { id: 'hive-core', title: 'Protect the Hive Core', advance: { kind: 'continue' },
       cue: { spotlight: '[data-tut="hive-core"]', canvasFocus: { x: 480, y: 880, zoom: 1.05 },
@@ -133,30 +146,31 @@ export const COMBAT_TUTORIAL: TutorialDef = {
         callout: { eyebrow: 'UPLINK 02 · FUEL', text: 'Biomass is this run’s fuel — enemies drop it, you spend it. Everything you grow comes from this counter.', target: '[data-tut="biomass"]', side: 'bottom' } } },
     { id: 'place-needle', title: 'Deploy your Needle Spitter', advance: { kind: 'event', event: 'tower-placed' },
       cue: { arrow: { target: '[data-tut="tower-card-first"]', from: 'top' }, canvasFocus: { x: 480, y: 780, zoom: 1.03 },
-        callout: { eyebrow: 'UPLINK 03 · FIRST GROWTH', text: 'The starred card is your FAVORITE — always available, every run. Select it, then click a glowing slot on the field.', target: '[data-tut="tower-card-first"]', side: 'top' } } },
+        callout: { eyebrow: 'UPLINK 03 · FIRST GROWTH', text: 'The starred card is your FAVORITE — always available, every run. Select it, then click a glowing slot on the field.', target: '[data-tut="tower-card-first"]', side: 'top', avoid: LANE } } },
     { id: 'wave-1', title: 'Survive Wave 1', advance: { kind: 'event', event: 'wave-completed' },
       milestone: { label: 'The line holds', cores: 25 },
-      cue: { callout: { eyebrow: 'UPLINK 04 · CONTACT', text: 'Wave 1 incoming. Your towers aim and fire on their own — hold the line.' } } },
-    { id: 'first-kill', title: 'Kills became Biomass', advance: { kind: 'continue' },
-      cue: { spotlight: '[data-tut="biomass"]',
-        callout: { eyebrow: 'UPLINK 05 · THE LOOP', text: 'Held it. Every kill paid Biomass — kills fund growth, growth brings bigger kills. That loop is the whole run.', target: '[data-tut="biomass"]', side: 'bottom' } } },
-    { id: 'second-tower', title: 'Deploy from the Conveyor', advance: { kind: 'event', event: 'tower-placed' },
-      cue: { arrow: { target: '[data-tut="conveyor"]', from: 'top' },
-        callout: { eyebrow: 'UPLINK 06 · THE CONVEYOR', text: 'New organisms GROW on the Biomorph Conveyor beside your favorite — your first is ready, free. Deploy it (or your favorite again) onto a second slot.', target: '[data-tut="conveyor"]', side: 'top' } } },
-    { id: 'hero-ability', title: 'Use your Hero ability', advance: { kind: 'event', event: 'hero-ability' },
-      cue: { arrow: { target: '[data-tut="ability"]', from: 'bottom' },
-        callout: { eyebrow: 'UPLINK 07 · THE HERO', text: 'Your Hero fights on its own — the Active Ability is yours. Arm it (button or Q), then click the field.', target: '[data-tut="ability"]', side: 'top' } } },
+      cue: { callout: { eyebrow: 'UPLINK 04 · CONTACT', text: 'Wave 1 incoming. Your towers aim and fire on their own — hold the line.', avoid: LANE } } },
     { id: 'gene-card', title: 'Draft a Gene Card', advance: { kind: 'event', event: 'card-chosen' },
       milestone: { label: 'First strain isolated', essence: 10 },
-      // focus: the draft mounts mid-step (when its wave settles) — the reachability scroll
-      // brings it into view the moment it appears, on any layout.
+      // The draft deals as wave 1 settles (natural order). focus: the reachability scroll brings
+      // the row into view the moment it mounts; the bubble sits BELOW the row, never on a card.
       cue: { focus: '.overlay .cards',
-        callout: { eyebrow: 'UPLINK 08 · EVOLUTION', text: 'Draft a Gene Card: the boost lasts this run, the card joins your permanent Archive forever. Pick one.' } } },
+        callout: { eyebrow: 'UPLINK 05 · EVOLUTION', text: 'Every cleared wave deals a Gene Card. The boost lasts this run; the card joins your permanent Archive. Pick one.', target: '.overlay .cards', side: 'bottom', avoid: '.overlay .cards' } } },
+    { id: 'first-kill', title: 'Kills became Biomass', advance: { kind: 'continue' },
+      cue: { spotlight: '[data-tut="biomass"]',
+        callout: { eyebrow: 'UPLINK 06 · THE LOOP', text: 'Every kill in Wave 1 paid Biomass — kills fund growth, growth brings bigger kills. That loop is the whole run.', target: '[data-tut="biomass"]', side: 'bottom' } } },
+    { id: 'second-tower', title: 'Deploy from the Conveyor', advance: { kind: 'event', event: 'tower-placed' },
+      cue: { arrow: { target: '[data-tut="conveyor"]', from: 'top' },
+        callout: { eyebrow: 'UPLINK 07 · THE CONVEYOR', text: 'New organisms GROW on the Biomorph Conveyor beside your favorite — your first is ready, free. Deploy it (or your favorite again) onto a second slot.', target: '[data-tut="conveyor"]', side: 'top', avoid: LANE } } },
     { id: 'inspect', title: 'Inspect your towers', advance: { kind: 'continue' },
       cue: { spotlight: '.side-panel.inspector',
-        callout: { eyebrow: 'UPLINK 09 · KNOW YOUR STRAIN', text: 'Tap any placed tower to open this Inspector — stats, Mastery, and (deeper in) Branch mutations. Look around, then continue.', target: '.side-panel.inspector', side: 'left' } } },
+        callout: { eyebrow: 'UPLINK 08 · KNOW YOUR STRAIN', text: 'Tap any placed tower to open this Inspector — stats, Mastery, and (deeper in) Branch mutations. Look around, then continue.', target: '.side-panel.inspector', side: 'left' } } },
+    { id: 'hero-ability', title: 'Use your Hero ability', advance: { kind: 'event', event: 'hero-ability' },
+      // The director launches wave 2 as this lesson opens — the cast lands on a live swarm.
+      cue: { arrow: { target: ABILITY_BUTTON, from: 'top' },
+        callout: { eyebrow: 'UPLINK 09 · THE HERO', text: 'Wave 2 is here. Your Hero fights on its own — its Ability is yours: arm it (button or Q), then click on the swarm.', target: ABILITY_BUTTON, side: 'top', avoid: LANE } } },
     { id: 'graduation', title: 'Hold the line', advance: { kind: 'event', event: 'wave-completed' },
-      cue: { callout: { eyebrow: 'FINAL UPLINK · GRADUATION', text: 'You know the loop — build, evolve, hold. One more wave, on your own.' } } },
+      cue: { callout: { eyebrow: 'FINAL UPLINK · GRADUATION', text: 'You know the loop — build, evolve, hold. Finish Wave 2 on your own.', avoid: LANE } } },
   ],
 };
 

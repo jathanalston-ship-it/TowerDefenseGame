@@ -22,19 +22,21 @@ in every surface automatically as the player unlocks it.
   `helpMechanics()` (wiki list), `whatsNew()` (pending queue),
   `archiveMechanics(ids)` (mark seen), `primeHelp()` (boot: silently archive
   everything already unlocked so existing saves never flood), `shouldHudTour()`
-  / `completeHudTour()` (one-time, grants the Tutorial Bio-Container via the
-  idempotent `grantTutorialRewards` ledger **and re-primes** so onboarding
-  unlocks don't cascade as popups).
+  / `completeHudTour()` (one-time; pays nothing of its own since the onboarding
+  payout merged into the tutorial's ONE graduation — docs/TUTORIAL.md
+  §graduation — except a LEGACY graduate's owed `hudtour` ledger; it **re-primes**
+  so onboarding unlocks don't cascade as popups).
 - **UI** — `WhatsNew.tsx` (front-of-queue card, "Got it · N more",
   `archiveMechanics` on close), `HelpWiki.tsx` (search + category index +
   What/Why/Where/Next + "Watch out" (`mistakes`) detail + cross-links to
   *unlocked* mechanics only + a Field Orientation replay button),
   `HudTour.tsx` — **Field Orientation**: an ANCHORED tour that spotlights the
   real Hub element per stop (`data-nav`/`data-tour` anchors; centered fallback
-  when hidden) and teaches WHAT / WHY / WHEN / what unlocks LATER. Back/Next
-  confirmed clicks; finish → reward reveal; Skip marks seen without paying
-  (`completeHudTour(false)`). Replayable from Help or Settings — never
-  re-grants. Mounted in `App.tsx` (tour/What's New, menu only) + `Hub.tsx`
+  when hidden) and teaches WHAT / WHY / WHEN / what unlocks LATER — FOUR stops
+  (next fight → rewards → spend → profile & help; docs/TUTORIAL.md
+  §onboarding-flow). Back/Next confirmed clicks; Finish and Skip are identical
+  (`completeHudTour()` — nothing to forfeit). Replayable from Help or
+  Settings — never re-grants. Mounted in `App.tsx` (tour/What's New, menu only) + `Hub.tsx`
   (`help` nav key).
 - **Loading tips (`src/ui/tips.ts`)** — a fourth, lighter surface: one-line
   teachers rotated per visit at the foot of the Play screen (`.mc-tip`). Pure
@@ -45,7 +47,8 @@ in every surface automatically as the player unlocks it.
 ## Public APIs (callers use these)
 
 `meta.helpMechanics() | whatsNew() | archiveMechanics(ids) | primeHelp() |
-shouldHudTour() | completeHudTour(grant)`. UI reads via `meta.use()` for reactivity.
+shouldHudTour() | completeHudTour()` + the graduation pair `grantOnboardingRewards() |
+pendingOnboardingReward()` (docs/TUTORIAL.md §graduation). UI reads via `meta.use()` for reactivity.
 
 ## Extension points
 

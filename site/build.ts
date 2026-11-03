@@ -11,7 +11,7 @@ import { GUIDES } from './guides';
 import { POSTS } from './blog';
 import {
   biomeCount, biomeEncyclopedia, bossCount, bossGallery, doctrineCodex, doctrineCount,
-  enemyCompendium, enemyCount, featuredHero, featuredTower, heroCount, heroTable, towerCount, towerTable,
+  enemyCompendium, enemyCount, featuredHero, featuredTower, featuredWeek, heroCount, heroTable, towerCount, towerTable,
 } from './encyclopedia';
 import {
   aboutPage, contactPage, cookiesPage, creditsPage, faqPage, featuresPage, homePage,
@@ -54,6 +54,7 @@ export function buildSite(root = process.cwd()): Map<string, string> {
       counts: { towers: towerCount(), heroes: heroCount(), enemies: enemyCount(), biomes: biomeCount(), bosses: bossCount(), doctrines: doctrineCount() },
       featuredTower: featuredTower(),
       featuredHero: featuredHero(),
+      featuredWeek: featuredWeek(),
     }),
   ));
 

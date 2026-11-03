@@ -28,7 +28,9 @@ describe('mechanics registry (Help + What\'s New spine)', () => {
   it('completing the HUD Tour archives onboarding unlocks so What\'s New never cascades', () => {
     meta.importText(serializeExport(defaultSave()));
     meta.primeHelp(); // fresh boot prime: nothing non-core unlocked yet
-    meta.completeHudTour(); // grants shards/gear/a Bio-Container ⇒ unlocks several foundational systems
+    meta.completeTutorial('combat');
+    meta.grantOnboardingRewards(); // the graduation: shards/gear/Bio-Containers ⇒ unlocks several foundational systems
+    meta.completeHudTour(); // the tour that follows archives them
     // Those were just introduced during onboarding ⇒ they must NOT queue as What's New popups.
     const announced = meta.whatsNew().map((m) => m.id);
     for (const id of ['equipment', 'containers', 'tower-stars', 'genome-core']) {

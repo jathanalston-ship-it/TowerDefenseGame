@@ -12,9 +12,10 @@
 import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import { audio } from '../../audio/sound';
 import { tutorial } from '../../state/tutorial';
+import { meta } from '../../state/meta';
 import { currentCheckpoint } from '../../core/tutorial';
 import { useTargetRect } from './useTargetRect';
-import { Callout, CameraFocus, ContinuePrompt, ObjectiveTracker, Spotlight, TutorialArrow, Typewriter } from './primitives';
+import { Callout, CameraFocus, ContinuePrompt, ObjectiveTracker, Spotlight, TutorialArrow, Typewriter, overlaps } from './primitives';
 
 const OPEN_MS = 3400; // the cold-open banner's hold (tap dismisses sooner)
 
@@ -28,8 +29,26 @@ export function TutorialOverlay(): JSX.Element | null {
   const spotlightRect = useTargetRect(cue?.spotlight);
   const arrowRect = useTargetRect(cue?.arrow?.target);
   const calloutRect = useTargetRect(cue?.callout?.target);
+  const avoidRect = useTargetRect(cue?.callout?.avoid); // the region this lesson must never cover
+  // What the Pause/Skip controls must never sit on (desktop seat — see ctlStyle below).
+  const podRect = useTargetRect(session ? '[data-tut="ability"]' : null);
+  const bubbleRect = useTargetRect(session ? '.tut-callout' : null);
+  const pillRect = useTargetRect(session ? '.tut-objective' : null);
+  const laneRect = useTargetRect(session ? 'canvas.board' : null);
+  const [ctlEl, setCtlEl] = useState<HTMLDivElement | null>(null); // callback ref: (re)mounts re-arm the observer
+  const [ctlSize, setCtlSize] = useState({ w: 200, h: 34 });
+  useEffect(() => {
+    if (!ctlEl) return undefined;
+    const read = (): void => setCtlSize((d) => (d.w === ctlEl.offsetWidth && d.h === ctlEl.offsetHeight ? d : { w: ctlEl.offsetWidth, h: ctlEl.offsetHeight }));
+    read();
+    const ro = new ResizeObserver(read);
+    ro.observe(ctlEl);
+    return () => ro.disconnect();
+  }, [ctlEl]);
 
   const paused = session?.progress.status === 'paused';
+  // The Skip confirm (open ⇔ non-null): what a Skip would forfeit right now.
+  const [skipCost, setSkipCost] = useState<ReturnType<typeof meta.pendingOnboardingReward>>(null);
   const advanceKind = cp?.advance.kind;
   const advanceMs = cp && cp.advance.kind === 'timed' ? cp.advance.ms : 0;
 
@@ -100,6 +119,28 @@ export function TutorialOverlay(): JSX.Element | null {
     );
   }
 
+  // DESKTOP CONTROL SEAT (onboarding pass 2026-11): the bottom-right corner sat ON the hero
+  // ability button at 1366×768 (a click on "Apex Leap" paused the trial). Measured, not assumed:
+  // the controls take the first seat that is fully on-screen and clears the ability pod, the
+  // board, the lesson bubble, its arrow and its spotlight — just above the pod (right-aligned),
+  // else under the objective pill — falling back to the CSS corner when neither fits (e.g. a
+  // stacked narrow shell, where both would sit on the board). Phones keep the CSS strip.
+  const vwNow = typeof window !== 'undefined' ? window.innerWidth : 1280;
+  const vhNow = typeof window !== 'undefined' ? window.innerHeight : 800;
+  let ctlStyle: CSSProperties | undefined;
+  if (vwNow > 700 && podRect) {
+    const blockers = [podRect, laneRect, bubbleRect, arrowRect, spotlightRect].filter((r): r is DOMRect => r !== null);
+    const free = (x: number, y: number): boolean =>
+      x >= 8 && y >= 8 && x + ctlSize.w <= vwNow - 8 && y + ctlSize.h <= vhNow - 8 &&
+      !blockers.some((r) => overlaps(x, y, ctlSize.w, ctlSize.h, r));
+    const seats: [number, number][] = [
+      [podRect.right - ctlSize.w, podRect.top - 10 - ctlSize.h],
+      [18, (pillRect?.bottom ?? 152) + 8],
+    ];
+    const seat = seats.find(([x, y]) => free(x, y));
+    if (seat) ctlStyle = { left: seat[0], top: seat[1], right: 'auto', bottom: 'auto' };
+  }
+
   const total = session.def.checkpoints.length;
   const step = session.progress.checkpoint + 1;
   const calloutText = cue?.callout?.text ?? cp.title;
@@ -126,7 +167,13 @@ export function TutorialOverlay(): JSX.Element | null {
         </div>
       )}
 
-      <Callout rect={calloutRect} side={cue?.callout?.side}>
+      {/* An arrow on the SAME side of the SAME target gets clear air between it and the bubble. */}
+      <Callout
+        rect={calloutRect}
+        side={cue?.callout?.side}
+        avoid={avoidRect}
+        gap={cue?.arrow && cue.callout?.target === cue.arrow.target && (cue.arrow.from ?? 'top') === (cue.callout.side ?? 'bottom') ? 44 : 14}
+      >
         {cue?.callout?.eyebrow && <div className="tut-callout-eyebrow">{cue.callout.eyebrow}</div>}
         {/* Narrow shells hide the floating objective pill (no room beside callouts/controls) —
             the counter rides inside the callout there instead. Desktop hides this line. */}
@@ -138,17 +185,44 @@ export function TutorialOverlay(): JSX.Element | null {
 
       {/* On phones the pills live in the top strip — when a spotlight holds that band (the
           Hive-Core lesson), they drop just below its ring so the spotlit HUD stays pristine.
-          The CSS var only applies inside the phone block; desktop keeps its bottom corner. */}
+          The CSS var only applies inside the phone block. Desktop: see ctlStyle. */}
       <div
+        ref={setCtlEl}
         className="tut-controls"
-        style={spotlightRect && spotlightRect.top < 96
+        style={ctlStyle ?? (spotlightRect && spotlightRect.top < 96
           ? ({ ['--tut-ctl-top' as string]: `${Math.round(spotlightRect.bottom + 14)}px` } as CSSProperties)
-          : undefined}
+          : undefined)}
       >
-        <button className="tut-ctl" onClick={() => (paused ? tutorial.resume() : tutorial.pause())}>
-          {paused ? 'Resume' : 'Pause'}
-        </button>
-        <button className="tut-ctl tut-skip" onClick={() => tutorial.skip()}>Skip Tutorial</button>
+        {skipCost ? (
+          // A Skip never SILENTLY forfeits the graduation (docs/TUTORIAL.md §graduation): name the
+          // cost and the way back. A replay (nothing left to pay) skips straight through.
+          <div className="tut-skip-confirm" role="alertdialog" aria-label="Skip the tutorial?">
+            <div className="tut-skip-q">Skip the trial?</div>
+            <div className="tut-skip-cost">
+              You forfeit the graduation reward — +{skipCost.cores} Genome Cores, {skipCost.containers} {skipCost.containerRarity}{' '}
+              Bio-Container{skipCost.containers === 1 ? '' : 's'} and more. Replay the trial from Settings any time to claim it.
+            </div>
+            <div className="tut-skip-btns">
+              <button className="tut-ctl" onClick={() => setSkipCost(null)}>Keep training</button>
+              <button className="tut-ctl tut-skip" onClick={() => tutorial.skip()}>Skip anyway</button>
+            </div>
+          </div>
+        ) : (
+          <>
+            <button className="tut-ctl" onClick={() => (paused ? tutorial.resume() : tutorial.pause())}>
+              {paused ? 'Resume' : 'Pause'}
+            </button>
+            <button
+              className="tut-ctl tut-skip"
+              onClick={() => {
+                const cost = meta.pendingOnboardingReward();
+                if (cost) setSkipCost(cost); else tutorial.skip();
+              }}
+            >
+              Skip Tutorial
+            </button>
+          </>
+        )}
       </div>
 
       {paused && <div className="tut-paused-veil" aria-hidden>Paused</div>}

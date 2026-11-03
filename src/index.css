@@ -8187,12 +8187,18 @@ kbd {
 /* Transmission voice: the eyebrow over a callout + the typewriter caret. */
 .tut-callout-eyebrow { font-size: 10px; font-weight: 800; letter-spacing: 0.24em; color: var(--gold); margin-bottom: 6px; }
 .tut-caret { font-style: normal; color: var(--vital); animation: tut-caret 0.7s steps(1) infinite; }
+.tut-type-rest { visibility: hidden; } /* reserves the final layout while the text types in */
 @keyframes tut-caret { 50% { opacity: 0; } }
 /* Controls (bottom-right) */
 .tut-controls { position: fixed; bottom: calc(20px + var(--safe-b)); right: calc(20px + var(--safe-r)); display: flex; gap: 10px; }
 .tut-ctl { padding: 8px 16px; font-size: 12px; font-weight: 700; border-radius: var(--r-sm); border: 1px solid var(--line-strong); background: var(--panel); color: var(--muted); cursor: pointer; }
 .tut-ctl:hover { color: var(--text); border-color: var(--vital); }
 .tut-skip { color: var(--dim); }
+/* Skip confirm — names what a first-run Skip forfeits (docs/TUTORIAL.md §graduation). */
+.tut-skip-confirm { width: 300px; max-width: calc(100vw - 24px); padding: 12px 14px; border-radius: var(--r-md); background: var(--panel); border: 1px solid var(--line-strong); box-shadow: 0 12px 32px -14px #000; }
+.tut-skip-q { font-size: 13px; font-weight: 800; color: var(--text); margin-bottom: 4px; }
+.tut-skip-cost { font-size: 12px; line-height: 1.45; color: var(--muted); margin-bottom: 10px; }
+.tut-skip-btns { display: flex; gap: 8px; justify-content: flex-end; }
 .tut-paused-veil { position: fixed; inset: 0; display: grid; place-items: center; font-size: 26px; font-weight: 800; letter-spacing: 0.2em; text-transform: uppercase; color: var(--muted); background: rgba(4, 7, 12, 0.55); }
 
 /* ── THE PHONE DOCK (docs/TUTORIAL.md §phone) — placed AFTER the base .tut rules so the
