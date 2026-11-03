@@ -361,3 +361,21 @@ export function offerValueMultiple(offer: PremiumOfferDef): number {
   const parIchor = offer.priceUsd * PREMIUM.ichorPerUsd;
   return parIchor > 0 ? offerValueIchor(offer) / parIchor : 1;
 }
+
+// ── Paid random-content containers (docs/PREMIUM-STORE.md §paid-loot-boxes) ───
+// Some jurisdictions (e.g. Belgium, the Netherlands) restrict real-money purchases whose
+// contents are drawn at random. Whether a SKU is such a product is DERIVED from its grants —
+// never a hand list — so a new offer is classified the moment it is authored. The Record makes
+// the decision exhaustive: adding a PremiumGrant kind fails typecheck until it is classified.
+export const GRANT_RANDOM_CONTENT: Record<PremiumGrant['grant'], boolean> = {
+  ichor: false, cores: false, geneEssence: false, mats: false, towerShardsAll: false, heroShardsAll: false,
+  rushStamina: false, battlePassPremium: false,
+  container: true, // cracks in the Vault: contents rolled from the container's drop table
+  runCache: true, // a standard Run Cache container: same
+  equipment: true, // fixed rarity, but WHICH item is rolled by the generator
+};
+
+/** True when any grant of this offer delivers randomly drawn contents (containers / rolled gear). */
+export function offerHasRandomContent(offer: PremiumOfferDef): boolean {
+  return offer.grants.some((g) => GRANT_RANDOM_CONTENT[g.grant]);
+}

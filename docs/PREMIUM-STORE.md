@@ -93,6 +93,30 @@ always clears (receipts carry `sandbox: true`, the UI says so out loud). Wiring 
 (Stripe / Steam / App Store) replaces exactly one step inside `meta.purchaseOffer` — offers,
 grants, safeguards, and UI are untouched. Until then the store is a fully-testable sandbox.
 
+## Paid random containers — the region switch (`§paid-loot-boxes`)
+
+Some jurisdictions (e.g. **Belgium, the Netherlands**) restrict real-money purchases whose contents are
+drawn at random. The store therefore carries a switch:
+
+- **Derived property.** `offerHasRandomContent(offer)` (core/premium.ts) is computed from the grants via
+  the exhaustive `GRANT_RANDOM_CONTENT` table (`container`, `runCache`, `equipment` = random; adding a grant
+  kind fails typecheck until it is classified). It is never a hand-maintained SKU list.
+- **Server (authoritative).** `POST /api/store/checkout` answers `451 region-restricted` for those SKUs when
+  Cloudflare's `request.cf.country` is in `PAID_LOOTBOX_BLOCKED_COUNTRIES` (comma list; **unset = `BE,NL`**,
+  `""` = nowhere). An unknown country (no `cf`, `XX`, Tor `T1`) is refused when `ENVIRONMENT=production`
+  and allowed in preview/dev. Logic: `functions/lib/lootbox.ts`; tests: `functions/lootbox.test.ts`.
+- **Config.** `GET /api/config` adds `paidRandomContainers: boolean` for the caller (cache is `private` —
+  a shared edge copy would leak one country's answer to another).
+- **Client.** The Premium Store and the flash-sale popup hide those SKUs when not allowed
+  (`src/net/storeRegion.ts`). Fail-soft policy: with real-money checkout (`VITE_CHECKOUT_PROVIDER=stripe`) an
+  unknown answer HIDES them (safe for restricted regions; Ichor, the Season Pass and deterministic packs stay);
+  in the sandbox/static build only an explicit "blocked" hides, so the offline game keeps its whole store.
+- **OPEN LEGAL QUESTION — needs a human decision before launch.** Ichor bought with money and then spent on
+  containers in the Splice Market is *arguably still a paid loot box* (money → virtual currency → random
+  container). This switch only covers SKUs that grant containers/gear **directly**. Options for counsel:
+  also gate Ichor bundles in restricted regions, disclose odds in-store, or remove the Ichor→container path
+  for those regions. Do not launch paid Ichor in BE/NL without that sign-off.
+
 ## Expandability
 
 A holiday / anniversary / creator / collab offer is **one `registerPremiumOffer` call** with a

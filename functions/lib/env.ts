@@ -20,6 +20,9 @@ export interface Env {
   /** Developer analytics key for /api/dev/* (header x-dev-key) — the desktop dev app's
    *  credential (docs/ANALYTICS.md §devapp). Absent ⇒ the whole dev API 503s (closed). */
   DEV_KEY?: string;
+  /** Comma list of ISO country codes where SKUs with random-content containers cannot be bought
+   *  with real money (lib/lootbox.ts). Unset => "BE,NL"; "" => none. */
+  PAID_LOOTBOX_BLOCKED_COUNTRIES?: string;
   /** 'production' | 'preview' — production refuses sk_test_ keys. */
   ENVIRONMENT?: string;
 }

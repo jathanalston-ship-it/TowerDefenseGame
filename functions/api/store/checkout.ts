@@ -10,7 +10,8 @@ import { verifyTurnstile } from '../../lib/turnstile';
 import { isPlayerId } from '../../lib/validate';
 import { createCheckoutSession } from '../../lib/stripeApi';
 import { offerCapReached, offerPriceCents } from '../../lib/purchases';
-import { premiumOfferById } from '../../../src/core/premium';
+import { offerHasRandomContent, premiumOfferById } from '../../../src/core/premium';
+import { paidRandomContainersAllowed } from '../../lib/lootbox';
 
 interface Body {
   offerId?: string;
@@ -34,6 +35,11 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
   if (!offer) return err(400, 'unknown-offer');
   const cents = offerPriceCents(offer.id);
   if (cents === null || cents < 50) return err(400, 'unknown-offer'); // Stripe minimum charge
+
+  // Jurisdiction gate: paid random-content containers are restricted in some regions (lib/lootbox.ts).
+  if (offerHasRandomContent(offer) && !paidRandomContainersAllowed(request, env)) {
+    return err(451, 'region-restricted', 'This offer contains random containers and is not available in your region.');
+  }
 
   // Bot gate on the money endpoint (skipped only when no secret is configured — dev).
   const turnstile = await verifyTurnstile(env.TURNSTILE_SECRET_KEY, body.turnstileToken, ip);

@@ -11,9 +11,10 @@ import type { PremiumReceipt } from '../state/meta';
 import { useGuestMode } from '../state/guestMode';
 import { audio } from '../audio/sound';
 import { CHECKOUT_PROVIDER, beginCheckout, takePendingReveal } from '../net/checkout';
+import { usePaidRandomVisible } from '../net/storeRegion';
 import { trackEvent } from '../net/events';
 import {
-  ICHOR_BUNDLES, PERMANENT_PACKS, activeEventOffers, offerAvailable, offerValueIchor,
+  ICHOR_BUNDLES, PERMANENT_PACKS, activeEventOffers, offerAvailable, offerHasRandomContent, offerValueIchor,
   offerValueMultiple, seasonOfferFor, todaysRotatingOffer,
 } from '../core/premium';
 import type { PremiumGrant, PremiumOfferDef } from '../core/premium';
@@ -175,6 +176,9 @@ function RevealCeremony({ receipt, onClose }: { receipt: PremiumReceipt; onClose
 export function PremiumStore(): JSX.Element {
   const save = meta.use();
   const guest = useGuestMode();
+  // Region switch (docs/PREMIUM-STORE.md §paid-loot-boxes): SKUs with random containers are hidden where not allowed.
+  const randomOk = usePaidRandomVisible();
+  const sellable = (o: PremiumOfferDef): boolean => randomOk || !offerHasRandomContent(o);
   const [confirm, setConfirm] = useState<PremiumOfferDef | null>(null);
   const [receipt, setReceipt] = useState<PremiumReceipt | null>(null);
   // Live clock: ticks the rotation countdown + flips the rotating slot at UTC midnight.
@@ -187,7 +191,7 @@ export function PremiumStore(): JSX.Element {
   }, []);
 
   const rotating = todaysRotatingOffer(key);
-  const events = activeEventOffers(key);
+  const events = activeEventOffers(key).filter(sellable);
   const boughtToday = save.premium.lastRotatingBuyKey === key;
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -203,8 +207,8 @@ export function PremiumStore(): JSX.Element {
   const seasonSku = seasonOfferFor(save.premium.purchases);
   const premiumOwned = save.battlePass.premium;
   // Flash sales visible this second: live windows tick down; expired/owned drop off.
-  const flash = flashOverview(save, Date.now()).filter((f) => f.status === 'live');
-  const buy = (o: PremiumOfferDef): void => { if (guest) return; setError(null); setConfirm(o); };
+  const flash = flashOverview(save, Date.now()).filter((f) => f.status === 'live' && sellable(f.offer));
+  const buy = (o: PremiumOfferDef): void => { if (guest || !sellable(o)) return; setError(null); setConfirm(o); };
   const doPurchase = (): void => {
     if (!confirm || busy || guest) return; // guest gate covers the sandbox grant path too
     if (CHECKOUT_PROVIDER === 'stripe') {
@@ -271,7 +275,9 @@ export function PremiumStore(): JSX.Element {
       {/* Today's limited pack + live events */}
       <div className="ps-section-h">Today’s Limited Pack <span className="ps-rot">rotates in {fmtCountdown(msUntilDailyReset())}</span></div>
       <div className="ps-row">
-        <OfferCard offer={rotating} hero unavailable={guest || boughtToday} note={boughtToday ? 'Purchased today ✓' : 'One per day'} onBuy={buy} />
+        {sellable(rotating)
+          ? <OfferCard offer={rotating} hero unavailable={guest || boughtToday} note={boughtToday ? 'Purchased today ✓' : 'One per day'} onBuy={buy} />
+          : <div className="ps-sandbox">Today’s pack isn’t available in your region.</div>}
         {events.map((o) => (
           <OfferCard key={o.id} offer={o} hero
             unavailable={guest || !offerAvailable(o, key, save.premium.purchases, save.premium.lastRotatingBuyKey)}
@@ -282,7 +288,7 @@ export function PremiumStore(): JSX.Element {
       {/* Permanent packs */}
       <div className="ps-section-h">Permanent Packs <span className="ps-rot">once per account</span></div>
       <div className="ps-row">
-        {PERMANENT_PACKS.map((o) => {
+        {PERMANENT_PACKS.filter(sellable).map((o) => {
           const owned = (save.premium.purchases[o.id] ?? 0) >= (o.limit ?? Infinity);
           return <OfferCard key={o.id} offer={o} hero unavailable={guest || owned} note={owned ? 'Owned ✓' : o.audience} onBuy={buy} />;
         })}
