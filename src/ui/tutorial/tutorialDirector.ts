@@ -3,8 +3,9 @@
 // bus, and (2) SCRIPTS every game beat the lessons depend on, so the game can never outrun the
 // lesson plan: it owns game.tutorialMode (which holds the natural post-wave drafts), starts each
 // tutorial wave itself, releases the held draft exactly when the gene-card lesson arrives, tops up
-// Biomass so a build lesson can't stall unaffordable, and pre-selects a tower for the Inspector
-// lesson. Pure wiring: it only calls the same control methods the player could.
+// Biomass so a build lesson can't stall unaffordable, pre-selects a tower for the Inspector
+// lesson, and launches wave 2 under the Hero-ability lesson (a cast needs a live swarm). Pure
+// wiring: it only calls the same control methods the player could (plus the tutorial-only seams).
 
 import { useEffect } from 'react';
 import type { Game } from '../../core/game';
@@ -35,10 +36,14 @@ export function useTutorialDirector(game: Game | null): void {
   const wantEvent = cp && cp.advance.kind === 'event' ? cp.advance.event : null;
 
   // Gate the game to the lesson plan for the whole tutorial run (holds natural drafts, keeps
-  // auto-start inert). Never set on normal runs — golden seeds are untouched.
+  // auto-start inert) and make the HUD report the LESSON's length, not the host stage's 12
+  // waves + finale objectives. Never set on normal runs — golden seeds are untouched.
+  const lessonWaves = session?.def.waves ?? 0;
   useEffect(() => {
-    if (game) game.tutorialMode = true;
-  }, [game]);
+    if (!game) return;
+    game.tutorialMode = true;
+    if (lessonWaves > 0) game.tutorialWaves = lessonWaves; // kept through the hand-off frame
+  }, [game, lessonWaves]);
 
   // Event bridge — re-armed per checkpoint. Advancing is guarded on the checkpoint still being
   // current, so a burst of the same event (e.g. many kills in a frame) only advances ONCE.
@@ -61,18 +66,19 @@ export function useTutorialDirector(game: Game | null): void {
     const t = setTimeout(() => {
       switch (cpId) {
         case 'wave-1':
-        case 'graduation':
           // The tutorial owns every wave start (the console is locked) — nothing can begin
           // before its lesson, and no lesson waits on a wave nobody started.
           if (game.phase === 'prep') game.startWave();
           break;
+        case 'gene-card':
+          // Release the held draft exactly when the lesson teaches it — immediately, inside
+          // wave 1's settle beat, so it deals in natural wave → draft → build order and the
+          // HUD wave counter never steps back (a resumed board in prep opens it from there).
+          // tutorialMode suppressed the natural roll, so this is the FIRST draft the player sees.
+          game.openTutorialDraft();
+          break;
         case 'second-tower':
           game.tutorialEnsureBiomass(SECOND_TOWER_BIOMASS);
-          break;
-        case 'gene-card':
-          // Release the held draft exactly when the lesson teaches it (tutorialMode suppressed
-          // the natural post-wave roll, so this is the FIRST draft the player sees).
-          game.openTutorialDraft();
           break;
         case 'inspect': {
           // Show the Inspector with a real subject: pre-select the player's first tower.
@@ -80,8 +86,24 @@ export function useTutorialDirector(game: Game | null): void {
           if (first) game.selectPlacedTower(first.id);
           break;
         }
+        case 'hero-ability':
+          // Teach the cast on a LIVE swarm: close the Inspector, make sure the ability is
+          // charged (a veteran may have burned it in wave 1), then launch wave 2.
+          game.selectPlacedTower(null);
+          game.tutorialReadyAbility();
+          if (game.phase === 'prep') game.startWave();
+          break;
+        case 'graduation':
+          // Wave 2 normally still runs (it launched with the ability lesson). A slow caster can
+          // outlast it — the line already held, so graduate; a resumed fresh board starts its wave.
+          if (game.phase === 'prep') {
+            if (lessonWaves > 0 && game.waveIndex >= lessonWaves) {
+              if (tutorial.current()?.id === 'graduation') tutorial.advance();
+            } else game.startWave();
+          }
+          break;
       }
-    }, cpId === 'wave-1' || cpId === 'graduation' ? 600 : 350);
+    }, cpId === 'gene-card' ? 0 : cpId === 'wave-1' || cpId === 'hero-ability' || cpId === 'graduation' ? 600 : 350);
     return () => clearTimeout(t);
-  }, [game, cpId, attempt]);
+  }, [game, cpId, attempt, lessonWaves]);
 }

@@ -8193,6 +8193,11 @@ kbd {
 .tut-ctl { padding: 8px 16px; font-size: 12px; font-weight: 700; border-radius: var(--r-sm); border: 1px solid var(--line-strong); background: var(--panel); color: var(--muted); cursor: pointer; }
 .tut-ctl:hover { color: var(--text); border-color: var(--vital); }
 .tut-skip { color: var(--dim); }
+/* Skip confirm — names what a first-run Skip forfeits (docs/TUTORIAL.md §graduation). */
+.tut-skip-confirm { max-width: 320px; padding: 12px 14px; border-radius: var(--r-md); background: var(--panel); border: 1px solid var(--line-strong); box-shadow: 0 12px 32px -14px #000; }
+.tut-skip-q { font-size: 13px; font-weight: 800; color: var(--text); margin-bottom: 4px; }
+.tut-skip-cost { font-size: 12px; line-height: 1.45; color: var(--muted); margin-bottom: 10px; }
+.tut-skip-btns { display: flex; gap: 8px; justify-content: flex-end; }
 .tut-paused-veil { position: fixed; inset: 0; display: grid; place-items: center; font-size: 26px; font-weight: 800; letter-spacing: 0.2em; text-transform: uppercase; color: var(--muted); background: rgba(4, 7, 12, 0.55); }
 
 /* ── THE PHONE DOCK (docs/TUTORIAL.md §phone) — placed AFTER the base .tut rules so the

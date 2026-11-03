@@ -32,6 +32,7 @@ function cueSelectors(): string[] {
     if (c.spotlight) sels.push(c.spotlight);
     if (c.arrow) sels.push(c.arrow.target);
     if (c.callout?.target) sels.push(c.callout.target);
+    if (c.callout?.avoid) sels.push(c.callout.avoid);
     if (c.focus) sels.push(c.focus);
   }
   return sels;

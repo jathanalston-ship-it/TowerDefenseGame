@@ -12,6 +12,7 @@
 import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import { audio } from '../../audio/sound';
 import { tutorial } from '../../state/tutorial';
+import { meta } from '../../state/meta';
 import { currentCheckpoint } from '../../core/tutorial';
 import { useTargetRect } from './useTargetRect';
 import { Callout, CameraFocus, ContinuePrompt, ObjectiveTracker, Spotlight, TutorialArrow, Typewriter } from './primitives';
@@ -28,8 +29,11 @@ export function TutorialOverlay(): JSX.Element | null {
   const spotlightRect = useTargetRect(cue?.spotlight);
   const arrowRect = useTargetRect(cue?.arrow?.target);
   const calloutRect = useTargetRect(cue?.callout?.target);
+  const avoidRect = useTargetRect(cue?.callout?.avoid); // the region this lesson must never cover
 
   const paused = session?.progress.status === 'paused';
+  // The Skip confirm (open ⇔ non-null): what a Skip would forfeit right now.
+  const [skipCost, setSkipCost] = useState<ReturnType<typeof meta.pendingOnboardingReward>>(null);
   const advanceKind = cp?.advance.kind;
   const advanceMs = cp && cp.advance.kind === 'timed' ? cp.advance.ms : 0;
 
@@ -126,7 +130,13 @@ export function TutorialOverlay(): JSX.Element | null {
         </div>
       )}
 
-      <Callout rect={calloutRect} side={cue?.callout?.side}>
+      {/* An arrow on the SAME side of the SAME target gets clear air between it and the bubble. */}
+      <Callout
+        rect={calloutRect}
+        side={cue?.callout?.side}
+        avoid={avoidRect}
+        gap={cue?.arrow && cue.callout?.target === cue.arrow.target && (cue.arrow.from ?? 'top') === (cue.callout.side ?? 'bottom') ? 44 : 14}
+      >
         {cue?.callout?.eyebrow && <div className="tut-callout-eyebrow">{cue.callout.eyebrow}</div>}
         {/* Narrow shells hide the floating objective pill (no room beside callouts/controls) —
             the counter rides inside the callout there instead. Desktop hides this line. */}
@@ -145,10 +155,36 @@ export function TutorialOverlay(): JSX.Element | null {
           ? ({ ['--tut-ctl-top' as string]: `${Math.round(spotlightRect.bottom + 14)}px` } as CSSProperties)
           : undefined}
       >
-        <button className="tut-ctl" onClick={() => (paused ? tutorial.resume() : tutorial.pause())}>
-          {paused ? 'Resume' : 'Pause'}
-        </button>
-        <button className="tut-ctl tut-skip" onClick={() => tutorial.skip()}>Skip Tutorial</button>
+        {skipCost ? (
+          // A Skip never SILENTLY forfeits the graduation (docs/TUTORIAL.md §graduation): name the
+          // cost and the way back. A replay (nothing left to pay) skips straight through.
+          <div className="tut-skip-confirm" role="alertdialog" aria-label="Skip the tutorial?">
+            <div className="tut-skip-q">Skip the trial?</div>
+            <div className="tut-skip-cost">
+              You forfeit the graduation reward — +{skipCost.cores} Genome Cores, {skipCost.containers} {skipCost.containerRarity}{' '}
+              Bio-Container{skipCost.containers === 1 ? '' : 's'} and more. Replay the trial from Settings any time to claim it.
+            </div>
+            <div className="tut-skip-btns">
+              <button className="tut-ctl" onClick={() => setSkipCost(null)}>Keep training</button>
+              <button className="tut-ctl tut-skip" onClick={() => tutorial.skip()}>Skip anyway</button>
+            </div>
+          </div>
+        ) : (
+          <>
+            <button className="tut-ctl" onClick={() => (paused ? tutorial.resume() : tutorial.pause())}>
+              {paused ? 'Resume' : 'Pause'}
+            </button>
+            <button
+              className="tut-ctl tut-skip"
+              onClick={() => {
+                const cost = meta.pendingOnboardingReward();
+                if (cost) setSkipCost(cost); else tutorial.skip();
+              }}
+            >
+              Skip Tutorial
+            </button>
+          </>
+        )}
       </div>
 
       {paused && <div className="tut-paused-veil" aria-hidden>Paused</div>}

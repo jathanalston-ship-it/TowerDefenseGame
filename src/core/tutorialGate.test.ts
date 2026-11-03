@@ -7,6 +7,7 @@
 import { describe, it, expect } from 'vitest';
 import { Game } from './game';
 import { SIM_DT } from './config';
+import { gameEvents } from './events';
 import type { MetaModifiers } from './types';
 
 const NO_META: MetaModifiers = { towerDamageMult: 1, biomassMult: 1, heroDamageMult: 1, integrityBonus: 0, bonusSlots: 0 };
@@ -55,6 +56,57 @@ describe('tutorial gates (game.tutorialMode)', () => {
     g.startWave();
     g.openTutorialDraft(); // mid-wave: never yanks a live fight into a draft
     expect(g.phase).toBe('wave');
+  });
+
+  it('released inside the settle beat, the draft deals in NATURAL order (the wave counter never steps back)', () => {
+    const g = new Game(1, NO_META);
+    g.tutorialMode = true;
+    g.startWave();
+    // Cull until the clear fires (the wave is won, the field settling) — exactly when the director
+    // hears waveCompleted and the gene-card lesson opens.
+    let cleared = false;
+    const off = gameEvents.on('waveCompleted', () => { cleared = true; });
+    for (let i = 0; i < 60 * 30 && !cleared; i++) {
+      for (const e of g.enemies) { e.hp = 0; e.alive = false; }
+      g.advance(SIM_DT);
+    }
+    off();
+    expect(cleared).toBe(true);
+    expect(g.phase).toBe('wave'); // settling
+    g.openTutorialDraft();
+    expect(g.phase).toBe('wave'); // not yanked mid-settle — endWave() reveals it
+    const seen: number[] = [];
+    for (let i = 0; i < 60 * 4 && g.phase !== 'draft'; i++) {
+      g.advance(SIM_DT);
+      const s = g.getSnapshot();
+      seen.push(s.phase === 'prep' ? s.wave + 1 : Math.max(1, s.wave)); // the HUD's displayed wave
+    }
+    expect(g.phase).toBe('draft');
+    expect(g.draft?.length).toBe(3);
+    expect(seen.every((w) => w === 1)).toBe(true); // wave 1 → draft 1: never a "2" then "1"
+  });
+
+  it('tutorialWaves makes the HUD report the LESSON length, with no host-stage finale objectives', () => {
+    const g = new Game(1, NO_META);
+    expect(g.getSnapshot().totalWaves).toBe(g.totalWaves);
+    expect(g.getSnapshot().anticipation.length).toBeGreaterThan(0); // e.g. "Brood Tyrant at wave 12"
+    g.tutorialWaves = 2;
+    expect(g.getSnapshot().totalWaves).toBe(2);
+    expect(g.getSnapshot().anticipation).toEqual([]);
+    expect(g.totalWaves).not.toBe(2); // read-model only: the sim's own wave plan is untouched
+  });
+
+  it('tutorialReadyAbility recharges the hero only in tutorial mode', () => {
+    const g = new Game(1, NO_META);
+    g.armAbility();
+    g.click(480, 400); // cast → cooldown
+    const cd = g.getSnapshot().hero.abilityCd;
+    expect(cd).toBeGreaterThan(0);
+    g.tutorialReadyAbility();
+    expect(g.getSnapshot().hero.abilityCd).toBe(cd); // inert outside the tutorial
+    g.tutorialMode = true;
+    g.tutorialReadyAbility();
+    expect(g.getSnapshot().hero.abilityReady).toBe(true);
   });
 
   it('tutorialEnsureBiomass tops up only in tutorial mode, never down', () => {

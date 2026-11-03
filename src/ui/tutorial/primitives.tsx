@@ -53,14 +53,27 @@ export function TutorialArrow({ rect, from = 'top' }: { rect: DOMRect | null; fr
   return <div className={`tut-arrow from-${from}`} style={style} aria-hidden>➤</div>;
 }
 
-/** Tooltip callout bubble anchored to a target side, or centered when there's no target. */
+/** True when a box overlaps a rect (strictly — touching edges is fine). */
+function overlaps(x: number, y: number, w: number, h: number, r: DOMRect): boolean {
+  return x < r.right && x + w > r.left && y < r.bottom && y + h > r.top;
+}
+
+/** Tooltip callout bubble anchored to a target side, or centered when there's no target.
+ * `avoid` is a region the bubble must never cover (the lane during a wave, the draft row being
+ * taught): if the anchored/centered spot overlaps it, the bubble re-seats beside it — the
+ * candidate (left / right / below / above) nearest its anchor that fits the viewport and clears
+ * both the region and the target. `gap` widens the target offset (room for a same-side arrow). */
 export function Callout({
   rect,
   side = 'bottom',
+  avoid = null,
+  gap: gapProp = 14,
   children,
 }: {
   rect: DOMRect | null;
   side?: Side;
+  avoid?: DOMRect | null;
+  gap?: number;
   children: ReactNode;
 }): JSX.Element {
   // MEASURED-BOX POSITIONING (docs/RESPONSIVE-DESIGN.md §tutorial): the bubble's REAL width and
@@ -107,9 +120,9 @@ export function Callout({
     // No target (placeholder lessons) OR a target the overlay is still scrolling toward —
     // a centered bubble is always readable; it re-anchors the moment the target arrives.
     style = { left: clampX((vw - dims.w) / 2), top: clampY(vh * 0.46 - dims.h / 2) };
-    cls = 'side-center';
+    cls = avoid ? 'side-free' : 'side-center'; // an avoiding bubble keeps the compact width
   } else {
-    const gap = 14;
+    const gap = gapProp;
     const cx = rect.left + rect.width / 2;
     const cy = rect.top + rect.height / 2;
     // Flip when the preferred side genuinely lacks room (exact — dims are measured).
@@ -124,6 +137,39 @@ export function Callout({
       s === 'left' ? { left: clampX(rect.left - gap - dims.w), top: clampY(cy - dims.h / 2) } :
       { left: clampX(rect.right + gap), top: clampY(cy - dims.h / 2) };
     cls = `side-${s}`;
+  }
+  // AVOID ZONE: never cover the region the lesson is about. Candidates sit beside the region on
+  // each side (aligned to the first choice's other axis), clamped; the first that fits wholly
+  // on-screen and clears the region + the target, nearest the anchor, wins. Nothing fits (a
+  // region wider than the shell) ⇒ keep the anchored spot — the dock contract covers phones.
+  if (avoid && !offViewport(avoid)) {
+    const g = 14;
+    const x0 = style.left as number;
+    const y0 = style.top as number;
+    if (overlaps(x0, y0, dims.w, dims.h, avoid)) {
+      const ax = rect && !offViewport(rect) ? rect.left + rect.width / 2 : x0 + dims.w / 2;
+      const ay = rect && !offViewport(rect) ? rect.top + rect.height / 2 : y0 + dims.h / 2;
+      const fits = (x: number, y: number): boolean =>
+        x >= pad && y >= pad && x + dims.w <= vw - pad && y + dims.h <= vh - pad &&
+        !overlaps(x, y, dims.w, dims.h, avoid) && !(rect && overlaps(x, y, dims.w, dims.h, rect));
+      const cands: [number, number, Side][] = [
+        [avoid.left - g - dims.w, clampY(y0), 'left'],
+        [avoid.right + g, clampY(y0), 'right'],
+        [clampX(x0), avoid.bottom + g, 'bottom'],
+        [clampX(x0), avoid.top - g - dims.h, 'top'],
+      ];
+      let best: [number, number, Side] | null = null;
+      let bestD = Infinity;
+      for (const c of cands) {
+        if (!fits(c[0], c[1])) continue;
+        const d = Math.hypot(c[0] + dims.w / 2 - ax, c[1] + dims.h / 2 - ay);
+        if (d < bestD) { bestD = d; best = c; }
+      }
+      if (best) {
+        style = { left: best[0], top: best[1] };
+        cls = `side-free avoid-${best[2]}`;
+      }
+    }
   }
   // The hard ceiling is GEOMETRIC: the box may never cross the bottom edge, so its max height is
   // whatever room exists below its computed top — airtight even while a measurement is one frame
