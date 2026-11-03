@@ -34,6 +34,7 @@ export function TutorialOverlay(): JSX.Element | null {
   const podRect = useTargetRect(session ? '[data-tut="ability"]' : null);
   const bubbleRect = useTargetRect(session ? '.tut-callout' : null);
   const pillRect = useTargetRect(session ? '.tut-objective' : null);
+  const laneRect = useTargetRect(session ? 'canvas.board' : null);
   const [ctlEl, setCtlEl] = useState<HTMLDivElement | null>(null); // callback ref: (re)mounts re-arm the observer
   const [ctlSize, setCtlSize] = useState({ w: 200, h: 34 });
   useEffect(() => {
@@ -120,14 +121,18 @@ export function TutorialOverlay(): JSX.Element | null {
 
   // DESKTOP CONTROL SEAT (onboarding pass 2026-11): the bottom-right corner sat ON the hero
   // ability button at 1366×768 (a click on "Apex Leap" paused the trial). Measured, not assumed:
-  // the controls take the first seat that clears the ability pod, the lesson bubble, its arrow
-  // and its spotlight — just above the pod (right-aligned), else under the objective pill —
-  // falling back to the CSS corner only when the pod isn't mounted. Phones keep the CSS strip.
+  // the controls take the first seat that is fully on-screen and clears the ability pod, the
+  // board, the lesson bubble, its arrow and its spotlight — just above the pod (right-aligned),
+  // else under the objective pill — falling back to the CSS corner when neither fits (e.g. a
+  // stacked narrow shell, where both would sit on the board). Phones keep the CSS strip.
   const vwNow = typeof window !== 'undefined' ? window.innerWidth : 1280;
+  const vhNow = typeof window !== 'undefined' ? window.innerHeight : 800;
   let ctlStyle: CSSProperties | undefined;
   if (vwNow > 700 && podRect) {
-    const blockers = [podRect, bubbleRect, arrowRect, spotlightRect].filter((r): r is DOMRect => r !== null);
-    const free = (x: number, y: number): boolean => y >= 8 && !blockers.some((r) => overlaps(x, y, ctlSize.w, ctlSize.h, r));
+    const blockers = [podRect, laneRect, bubbleRect, arrowRect, spotlightRect].filter((r): r is DOMRect => r !== null);
+    const free = (x: number, y: number): boolean =>
+      x >= 8 && y >= 8 && x + ctlSize.w <= vwNow - 8 && y + ctlSize.h <= vhNow - 8 &&
+      !blockers.some((r) => overlaps(x, y, ctlSize.w, ctlSize.h, r));
     const seats: [number, number][] = [
       [podRect.right - ctlSize.w, podRect.top - 10 - ctlSize.h],
       [18, (pillRect?.bottom ?? 152) + 8],
