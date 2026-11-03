@@ -6528,53 +6528,6 @@ kbd {
 .msec[open] > .msec-h { border-bottom: 1px solid var(--line); }
 .msec-content { padding: 10px 12px 12px; }
 
-/* ── Portrait combat (docs/RESPONSIVE-DESIGN.md §mobile-shell) ────────────────────
-   The run screen reads top-to-bottom: compact HUD strip → battlefield → tower tray →
-   panels; the wave-prep briefing becomes a FIXED BOTTOM DOCK so ▶ Start Wave is
-   always under the thumb (it slides away when the wave runs — the board gets the room). */
-[data-layout='portrait'] .hud { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; padding: 6px 8px; }
-[data-layout='portrait'] .hud .hud-vital, [data-layout='portrait'] .hud .hud-loot { grid-column: 1 / -1; }
-/* Desktop cells carry hard min-width floors (.hud-hero is 150px) — wider than a portrait grid
-   track, so their text rendered past the screen edge (the clipped hero-HP bug). Cells shed
-   their floors; the hero cell spans a full row so label + bar + value fit honestly. */
-[data-layout='portrait'] .hud .hud-cell { min-width: 0; }
-[data-layout='portrait'] .hud .hud-hero { grid-column: 1 / -1; }
-/* The wave module must stay ONE grid item — the ≤900px `.hz { display:contents }` rule would
-   scatter its eyebrow/hint/pips into separate cells (hz-c IS the module). */
-[data-layout='portrait'] .hud .hz-c { display: flex; flex-direction: column; gap: 2px; grid-column: 1 / -1; min-width: 0; }
-[data-layout='portrait'] .hud .hud-cell { padding: 6px 8px; }
-[data-layout='portrait'] .hud .hud-v { font-size: 16px; }
-[data-layout='portrait'] .hud .hud-sub { font-size: 10px; }
-[data-layout='portrait'] .hud .hud-mini { display: none; }
-[data-layout='portrait'] .hud .wm-chips { display: none; } /* biome/doctrine detail stays on desktop; the dock's threat list carries portrait intel */
-[data-layout='portrait'] canvas.board { max-height: 42vh; }
-[data-layout='portrait'] .build-controls {
-  position: fixed;
-  top: auto;
-  bottom: 0;
-  z-index: 640; /* over the run column; under modals/drawers (690+) */
-  padding: 8px 10px calc(8px + var(--safe-b));
-  background: linear-gradient(180deg, transparent, rgba(4, 7, 12, 0.82) 34%);
-  transform: translateY(14px); /* rises from the bottom edge, not the sky */
-}
-[data-layout='portrait'] .build-controls.is-visible { transform: translateY(0); }
-[data-layout='portrait'] .build-bar {
-  width: 100%;
-  max-width: none;
-  flex-direction: column;
-  align-items: stretch;
-  gap: 8px;
-}
-[data-layout='portrait'] .wb-brief { min-width: 0; max-width: 100%; }
-[data-layout='portrait'] .wb-threats { flex-wrap: nowrap; overflow-x: auto; width: 100%; max-width: 100%; min-width: 0; padding-bottom: 2px; scrollbar-width: none; }
-[data-layout='portrait'] .wb-threats::-webkit-scrollbar { display: none; }
-[data-layout='portrait'] .wb-actions { border-left: none; padding-left: 0; border-top: 1px solid rgba(255, 255, 255, 0.07); padding-top: 8px; }
-[data-layout='portrait'] .start-btn { width: 100%; justify-content: center; min-height: 48px; } /* explicit — the 44px coarse-pointer floor doesn't reach headless verification */
-[data-layout='portrait'] .start-btn .hotkey { display: none; } /* phones have no space bar */
-/* While the dock is up (prep), the scrolling run column keeps its tail reachable above it. */
-[data-layout='portrait'] .game[data-hphase='prep'] { padding-bottom: 236px; }
-[data-layout='portrait'] .speed-ctl { top: 6px; right: 122px; }
-[data-layout='portrait'] .pause-btn { top: 6px; right: 6px; }
 /* Tab switch / menu open: the screen content RISES into place. `.hub-screen` remounts on every
    nav change (key={nav}), so this fires per switch — one animation; the panels inside ride
    along (animating each separately would double the motion). */
@@ -13193,3 +13146,424 @@ div.ah-spark { display: flex; align-items: center; justify-content: center; heig
 .sv-cp-fam-bar { flex: 1; height: 5px; background: rgba(255, 255, 255, 0.06); border-radius: 999px; overflow: hidden; }
 .sv-cp-fam-bar i { display: block; height: 100%; background: var(--svr); border-radius: 999px; }
 .sv-cp-fam-n { font-variant-numeric: tabular-nums; color: var(--text); }
+
+/* ═══ RUN LAYOUT v2 (docs/RESPONSIVE-DESIGN.md §run · docs/HUD.md §layout) ═══════════════════
+   THE BOARD IS THE GAME. Every profile sizes the chrome AROUND a maximal 3:4 battlefield and
+   nothing in the run screen overlaps anything else:
+     desktop   — one slim HUD row · board-height stage · compact tower deck; panels flank it.
+     portrait  — HUD strip · run-controls row · full-width board · drawer/hero row · tower rail.
+     landscape — HUD column │ board at full viewport height │ tower column; panels are drawers.
+   Keyed on the layout profile (html[data-layout]) and placed LAST so it wins over the legacy
+   width bands above without !important. Layout is fixed per profile: no in-run element grows
+   the chrome, so the board never resizes mid-run. */
+
+/* ── Run-controls strip (all profiles): speed · Hive Intelligence · Pause share one flex row
+      reserved at the top of the board; the Hive ticker / speed note ride its free left end. ── */
+.game { --strip: 40px; --ctl-h: 32px; }
+html[data-coarse='1'] .game { --strip: 50px; --ctl-h: 44px; }
+.run-ctl {
+  position: absolute;
+  top: 4px;
+  left: 6px;
+  right: 6px;
+  height: var(--ctl-h);
+  z-index: 48; /* over the boss/mega bars (40/41) and mutation fx (45); under the pause veil (50) */
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+  pointer-events: none;
+}
+.run-ctl > * { pointer-events: auto; }
+.run-ctl .speed-ctl,
+.run-ctl .hive-mind-btn,
+.run-ctl .pause-btn,
+.run-ctl .hive-ticker,
+.run-ctl .speed-note { position: static; flex: none; }
+.run-ctl .speed-ctl { order: 1; height: var(--ctl-h); align-items: stretch; }
+.run-ctl .speed-btn { min-height: 0; }
+.run-ctl .pause-btn { order: 2; height: var(--ctl-h); min-height: 0; display: inline-flex; align-items: center; }
+.run-ctl .hive-mind-btn { height: var(--ctl-h); min-height: 0; }
+.run-ctl .hive-ticker,
+.run-ctl .speed-note { order: -1; margin-right: auto; flex: 0 1 auto; min-width: 0; max-width: none; max-height: 100%; }
+.run-ctl .hive-ticker {
+  /* One compact two-line log (header, then the actions joined) living IN the strip — it can
+     never cover the wave briefing or Start Wave again. */
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  padding: 2px 10px;
+  font-size: 11px;
+  line-height: 1.3;
+}
+.run-ctl .hive-ticker b { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.run-ctl .hive-ticker span + span::before { content: ' · '; color: var(--muted); }
+.run-ctl .speed-note { padding: 4px 6px 4px 10px; font-size: 11px; line-height: 1.25; }
+.run-ctl .speed-note span { overflow: hidden; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
+.run-ctl .speed-note button { min-height: 0; }
+html[data-coarse='1'] .run-ctl .speed-ctl { padding: 0; }
+html[data-coarse='1'] .run-ctl .speed-btn { min-width: 40px; }
+html[data-coarse='1'] .cv-btn { min-height: 40px; }
+/* Everything that used to share the board's top edge now starts BELOW the strip. */
+.build-controls { top: var(--strip, 0px); padding-top: 2px; }
+.boss-banner,
+.mega-banner { top: calc(var(--strip, 6px) + 4px); }
+/* A burrowed Mega waits out the build phase mid-board, clear of the wave briefing. */
+.build-controls.is-visible ~ .mega-banner { top: auto; bottom: 42%; }
+
+/* ── DESKTOP: slim HUD row + compact deck → the stage (and board) take the height ── */
+html[data-layout='desktop'] .game {
+  height: 100vh;
+  height: 100dvh;
+  max-height: none;
+  width: 100%;
+  margin: 0;
+  padding: 6px calc(6px + var(--safe-r)) calc(6px + var(--safe-b)) calc(6px + var(--safe-l));
+  gap: 6px;
+  overflow: hidden;
+}
+html[data-layout='desktop'] .stage { display: flex; flex-direction: row; overflow: hidden; gap: 6px; }
+html[data-layout='desktop'] .stage .canvas-wrap { order: 0; flex: 1 1 auto; }
+html[data-layout='desktop'] canvas.board { max-height: min(100%, 960px); }
+html[data-layout='desktop'] .side-panel,
+html[data-layout='desktop'] .side-panel.inspector.is-mutate { flex: 0 0 200px; width: auto; max-height: none; }
+html[data-layout='desktop'] .build-panel { flex-direction: column; flex-wrap: nowrap; }
+html[data-layout='desktop'] .toolbar { order: 0; flex-wrap: nowrap; overflow: visible; }
+@media (max-width: 1100px) {
+  html[data-layout='desktop'] .side-panel,
+  html[data-layout='desktop'] .side-panel.inspector.is-mutate { flex-basis: 168px; }
+}
+/* The HUD: ONE fixed-height row. Zones stay flex; cells shed their tall stacks. */
+html[data-layout='desktop'] .hud {
+  height: 62px;
+  flex-wrap: nowrap;
+  gap: 10px;
+  padding: 4px 10px;
+}
+html[data-layout='desktop'] .hud .hz-l,
+html[data-layout='desktop'] .hud .hz-r { display: flex; gap: 8px; }
+html[data-layout='desktop'] .hud-cell { padding: 3px 10px 5px; gap: 2px; min-width: 0; }
+html[data-layout='desktop'] .hud .hz-r > .hud-cell { flex: none; } /* readouts keep their width; the Core bar flexes */
+html[data-layout='desktop'] .wm-chip { white-space: nowrap; }
+html[data-layout='desktop'] .hud-v { font-size: clamp(16px, 1.15vw, 22px); }
+html[data-layout='desktop'] .hud-vital { min-width: 170px; }
+html[data-layout='desktop'] .hud-hero { min-width: 132px; }
+html[data-layout='desktop'] .hud-loot { min-width: 140px; }
+/* Hive Core: the siege readout joins the label row instead of growing the cell. */
+html[data-layout='desktop'] .hud-vital { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-content: center; column-gap: 8px; }
+html[data-layout='desktop'] .hud-vital > .hud-k { grid-column: 1; grid-row: 1; }
+html[data-layout='desktop'] .hud-vital > .hud-siege-row { grid-column: 2; grid-row: 1; margin: 0; }
+html[data-layout='desktop'] .hud-vital > .hud-vital-row { grid-column: 1 / -1; grid-row: 2; }
+/* Biomass: the income rate rides beside the value. */
+html[data-layout='desktop'] .hud-biomass { display: grid; grid-template-columns: auto auto; justify-content: start; align-items: baseline; align-content: center; column-gap: 6px; }
+html[data-layout='desktop'] .hud-biomass > .hud-k { grid-column: 1 / -1; }
+/* The wave module: big number left; phase · hint · chips stacked beside it. */
+html[data-layout='desktop'] .hud-wave-mod {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-areas: 'num eyebrow' 'num hint' 'pips chips';
+  column-gap: 10px;
+  row-gap: 1px;
+  align-content: center;
+  justify-items: start;
+  text-align: left;
+  min-width: 0;
+  max-width: 38%;
+  padding: 0 8px;
+}
+html[data-layout='desktop'] .hud-wave-mod > .wm-main { grid-area: num; align-self: center; }
+html[data-layout='desktop'] .hud-wave-mod .wm-num { font-size: 26px; }
+html[data-layout='desktop'] .hud-wave-mod > .wm-eyebrow { grid-area: eyebrow; }
+html[data-layout='desktop'] .hud-wave-mod > .wave-pips { grid-area: pips; margin: 0; align-self: center; }
+html[data-layout='desktop'] .hud-wave-mod > .phase-hint { grid-area: hint; max-width: 100%; font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+html[data-layout='desktop'] .hud-wave-mod > .wm-chips {
+  /* ONE chip row: chips that don't fit wrap onto a clipped second line — whole chips drop,
+     none is ever cut mid-word (the biome/objective detail also lives in the Run Build panel). */
+  grid-area: chips;
+  margin: 0;
+  justify-content: flex-start;
+  flex-wrap: wrap;
+  row-gap: 4px;
+  height: 16px;
+  overflow: hidden;
+}
+/* The deck: one compact row (card blurbs live in the tooltip) below 1000px of height. */
+@media (max-height: 1000px) {
+  html[data-layout='desktop'] .tcard-blurb { display: none; }
+  html[data-layout='desktop'] .tcard { min-width: 148px; min-height: 0; padding: 7px 12px 8px; }
+  html[data-layout='desktop'] .toolbar { padding: 5px 10px; gap: 8px; }
+}
+/* The deck's height is FIXED (its tallest content: a ready conveyor pod), so pods arriving or
+   deploying never resize the stage — the board must not breathe mid-run. */
+html[data-layout='desktop'] .toolbar { height: 88px; align-items: center; }
+@media (min-height: 1001px) {
+  html[data-layout='desktop'] .toolbar { height: 116px; }
+}
+/* Desktop: the emergency alarm replaces the hint line in the bar (the old under-bar float
+   landed on the board's control strip). */
+html[data-layout='desktop'] .hud-wave-mod > .phase-emergency { grid-area: hint; position: static; transform: none; width: auto; padding: 0 8px; font-size: 10px; animation: emergency-flash 1.4s ease-in-out infinite; }
+html[data-layout='desktop'] .hud-wave-mod:has(> .phase-emergency) > .phase-hint { visibility: hidden; }
+/* Transient wave-module banners announce below the control strip, not on top of it. */
+.hud-wave-mod > .biome-enter { top: calc(100% + 64px); }
+.hud-wave-mod > .run-event-banner { top: calc(100% + 56px); }
+
+/* ── PHONES (portrait + landscape): one grid, no page scroll, panels become drawers ── */
+:is(html[data-layout='portrait'], html[data-layout='landscape']) .game {
+  display: grid;
+  width: 100%;
+  height: 100vh;
+  height: 100dvh;
+  max-height: none;
+  margin: 0;
+  padding: calc(4px + var(--safe-t)) calc(4px + var(--safe-r)) calc(4px + var(--safe-b)) calc(4px + var(--safe-l));
+  gap: 4px;
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+:is(html[data-layout='portrait'], html[data-layout='landscape']) .game .stage,
+:is(html[data-layout='portrait'], html[data-layout='landscape']) .game .toolbar { display: contents; }
+:is(html[data-layout='portrait'], html[data-layout='landscape']) .toolbar > .spacer { display: none; }
+:is(html[data-layout='portrait'], html[data-layout='landscape']) .hud { grid-area: hud; order: 0; }
+:is(html[data-layout='portrait'], html[data-layout='landscape']) .stage .canvas-wrap { grid-area: board; order: 0; flex: none; width: auto; min-width: 0; min-height: 0; }
+:is(html[data-layout='portrait'], html[data-layout='landscape']) canvas.board { max-width: min(100%, 720px); max-height: min(100%, 960px); }
+:is(html[data-layout='portrait'], html[data-layout='landscape']) .tower-rail { grid-area: tools; }
+:is(html[data-layout='portrait'], html[data-layout='landscape']) .hero-pod { grid-area: hero; justify-content: center; min-width: 0; gap: 6px; }
+:is(html[data-layout='portrait'], html[data-layout='landscape']) .hero-disc { display: none; }
+:is(html[data-layout='portrait'], html[data-layout='landscape']) .game .hotkey { display: none; } /* no keyboard on a phone */
+/* Drawer toggles: horizontal labelled tabs (the desktop vertical rails would eat width). */
+:is(html[data-layout='portrait'], html[data-layout='landscape']) .panel-rail {
+  grid-area: lrail;
+  flex-direction: row;
+  align-self: stretch;
+  min-height: 44px;
+  padding: 0 10px;
+  gap: 6px;
+}
+:is(html[data-layout='portrait'], html[data-layout='landscape']) .panel-rail.right { grid-area: rrail; }
+:is(html[data-layout='portrait'], html[data-layout='landscape']) .panel-rail .rail-label { writing-mode: horizontal-tb; font-size: 10px; letter-spacing: 0.1em; }
+:is(html[data-layout='portrait'], html[data-layout='landscape']) .panel-rail[aria-expanded='true'] { color: var(--text); border-color: var(--line-strong); }
+/* The side panels are OVERLAY DRAWERS from their own edge, over a tap-to-close veil. */
+:is(html[data-layout='portrait'], html[data-layout='landscape']) .side-panel {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  z-index: 650;
+  width: min(340px, 88vw);
+  max-height: none;
+  flex: none;
+  flex-direction: column;
+  flex-wrap: nowrap;
+  border-radius: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: calc(10px + var(--safe-t)) 12px calc(10px + var(--safe-b));
+  box-shadow: 0 0 44px rgba(0, 0, 0, 0.65);
+}
+:is(html[data-layout='portrait'], html[data-layout='landscape']) .side-panel.build-panel { left: 0; padding-left: calc(12px + var(--safe-l)); }
+:is(html[data-layout='portrait'], html[data-layout='landscape']) .side-panel.inspector,
+:is(html[data-layout='portrait'], html[data-layout='landscape']) .side-panel.inspector.is-mutate { right: 0; max-height: none; padding-right: calc(12px + var(--safe-r)); }
+.run-drawer-veil { position: fixed; inset: 0; z-index: 649; background: rgba(2, 4, 8, 0.55); animation: pause-in 0.18s ease-out both; }
+/* Full-screen run overlays: the draft, the pause card and the Hero Console own the viewport
+   on a phone instead of squeezing into the board's box. */
+:is(html[data-layout='portrait'], html[data-layout='landscape']) .canvas-wrap > .overlay,
+:is(html[data-layout='portrait'], html[data-layout='landscape']) .pause-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 640;
+  padding: calc(10px + var(--safe-t)) calc(10px + var(--safe-r)) calc(10px + var(--safe-b)) calc(10px + var(--safe-l));
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  justify-content: flex-start; /* centered via auto margins below — a tall draft scrolls from its TOP */
+}
+:is(html[data-layout='portrait'], html[data-layout='landscape']) .canvas-wrap > .overlay > :first-child { margin-top: auto; }
+:is(html[data-layout='portrait'], html[data-layout='landscape']) .canvas-wrap > .overlay > :last-child { margin-bottom: auto; }
+:is(html[data-layout='portrait'], html[data-layout='landscape']) .evo-menu.hcc {
+  position: fixed;
+  top: calc(6px + var(--safe-t));
+  width: min(980px, calc(100vw - 12px - var(--safe-l) - var(--safe-r)));
+  max-height: calc(100dvh - 12px - var(--safe-t) - var(--safe-b));
+  z-index: 655;
+}
+/* Compact run controls: labelled-but-short keys, ≥40px targets. */
+:is(html[data-layout='portrait'], html[data-layout='landscape']) .run-ctl .hive-mind-btn { font-size: 0; padding: 0 10px; gap: 5px; }
+:is(html[data-layout='portrait'], html[data-layout='landscape']) .run-ctl .hive-mind-btn::after { content: '◈ HIVE'; font-size: 11px; letter-spacing: 0.06em; }
+:is(html[data-layout='portrait'], html[data-layout='landscape']) .run-ctl .speed-ctl { padding: 0 2px; }
+:is(html[data-layout='portrait'], html[data-layout='landscape']) .run-ctl .speed-btn { min-width: 40px; padding: 0 6px; }
+:is(html[data-layout='portrait'], html[data-layout='landscape']) .run-ctl .pause-btn { font-size: 0; min-width: 44px; justify-content: center; padding: 0 10px; }
+:is(html[data-layout='portrait'], html[data-layout='landscape']) .run-ctl .pause-btn::before { content: '❚❚'; font-size: 13px; }
+:is(html[data-layout='portrait'], html[data-layout='landscape']) .run-ctl .pause-btn[aria-label='Resume']::before { content: '▶'; }
+/* The wave briefing, compacted: one scrollable intel row · Start Wave · the two autos. */
+:is(html[data-layout='portrait'], html[data-layout='landscape']) .build-controls { padding: 2px 4px 0; }
+:is(html[data-layout='portrait'], html[data-layout='landscape']) .build-bar {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 6px;
+  width: 100%;
+  max-width: none;
+  padding: 6px 8px;
+}
+:is(html[data-layout='portrait'], html[data-layout='landscape']) .build-bar * { min-width: 0; }
+:is(html[data-layout='portrait'], html[data-layout='landscape']) .wb-brief { flex-direction: row; align-items: center; justify-content: flex-start; gap: 8px; max-width: 100%; overflow-x: auto; scrollbar-width: none; }
+:is(html[data-layout='portrait'], html[data-layout='landscape']) .wb-brief::-webkit-scrollbar { display: none; }
+:is(html[data-layout='portrait'], html[data-layout='landscape']) .wb-head { flex: none; flex-wrap: nowrap; white-space: nowrap; }
+:is(html[data-layout='portrait'], html[data-layout='landscape']) .wb-threats { flex: none; flex-wrap: nowrap; max-width: none; }
+:is(html[data-layout='portrait'], html[data-layout='landscape']) .wb-actions { border: none; padding: 0; gap: 6px; flex-wrap: nowrap; }
+:is(html[data-layout='portrait'], html[data-layout='landscape']) .build-bar .start-btn { width: 100%; justify-content: center; min-height: 44px; }
+:is(html[data-layout='portrait'], html[data-layout='landscape']) .wb-autos { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; flex-wrap: nowrap; }
+:is(html[data-layout='portrait'], html[data-layout='landscape']) .auto-btn { min-height: 40px; display: inline-flex; align-items: center; justify-content: center; padding: 4px 8px; font-size: 11px; }
+/* The tower rail: the deck's glass, carried by the rail itself (the toolbar box dissolves). */
+:is(html[data-layout='portrait'], html[data-layout='landscape']) .tower-rail {
+  min-width: 0;
+  min-height: 0;
+  max-width: none;
+  gap: 6px;
+  padding: 5px 6px;
+  flex-wrap: nowrap;
+  background: linear-gradient(180deg, var(--panel) 0%, var(--panel-deep) 100%);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+}
+:is(html[data-layout='portrait'], html[data-layout='landscape']) .tcard { flex: none; min-width: 0; min-height: 0; padding: 7px 10px 8px; scroll-snap-align: start; }
+:is(html[data-layout='portrait'], html[data-layout='landscape']) .tcard-blurb { display: none; }
+:is(html[data-layout='portrait'], html[data-layout='landscape']) .tcard-name { font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+:is(html[data-layout='portrait'], html[data-layout='landscape']) .conveyor { flex: none; margin-left: 0; padding: 4px 6px 7px; }
+:is(html[data-layout='portrait'], html[data-layout='landscape']) .cv-slot { padding: 4px 6px 5px; gap: 3px; }
+:is(html[data-layout='portrait'], html[data-layout='landscape']) .cv-btn { min-height: 40px; }
+:is(html[data-layout='portrait'], html[data-layout='landscape']) .autocast-btn { min-height: 44px; }
+:is(html[data-layout='portrait'], html[data-layout='landscape']) .cv-btn.cv-deploy { flex: 1.8; }
+:is(html[data-layout='portrait'], html[data-layout='landscape']) .cv-btn.cv-strainb { flex: 1.2; }
+/* HUD cells shed their desktop floors; the zones dissolve into the profile grid. */
+:is(html[data-layout='portrait'], html[data-layout='landscape']) .hud { display: grid; gap: 4px; padding: 4px; height: auto; align-content: start; }
+:is(html[data-layout='portrait'], html[data-layout='landscape']) .hud .hz-l,
+:is(html[data-layout='portrait'], html[data-layout='landscape']) .hud .hz-r { display: contents; }
+:is(html[data-layout='portrait'], html[data-layout='landscape']) .hud .hud-cell { min-width: 0; padding: 3px 8px 5px; gap: 2px; flex-basis: auto; }
+:is(html[data-layout='portrait'], html[data-layout='landscape']) .hud .hud-v { font-size: 16px; }
+:is(html[data-layout='portrait'], html[data-layout='landscape']) .hud .hud-sub { font-size: 10px; }
+:is(html[data-layout='portrait'], html[data-layout='landscape']) .hud .hud-k { font-size: 10px; letter-spacing: 0.1em; }
+:is(html[data-layout='portrait'], html[data-layout='landscape']) .hud .hud-hero-row { gap: 5px; }
+:is(html[data-layout='portrait'], html[data-layout='landscape']) .hud .hud-hero-row .bar { min-width: 20px; }
+:is(html[data-layout='portrait'], html[data-layout='landscape']) .hud .hud-threat { display: none; } /* alive/killed live in the Status drawer */
+:is(html[data-layout='portrait'], html[data-layout='landscape']) .hud .hud-loot { grid-column: 1 / -1; }
+:is(html[data-layout='portrait'], html[data-layout='landscape']) .hud .hud-vital { display: grid; grid-template-columns: minmax(0, 1fr) auto; column-gap: 6px; align-content: center; }
+:is(html[data-layout='portrait'], html[data-layout='landscape']) .hud .hud-vital > .hud-k { grid-column: 1; grid-row: 1; }
+:is(html[data-layout='portrait'], html[data-layout='landscape']) .hud .hud-vital > .hud-siege-row { grid-column: 2; grid-row: 1; margin: 0; gap: 6px; }
+:is(html[data-layout='portrait'], html[data-layout='landscape']) .hud .hud-vital > .hud-vital-row { grid-column: 1 / -1; grid-row: 2; }
+:is(html[data-layout='portrait'], html[data-layout='landscape']) .hud .hud-biomass { display: grid; grid-template-columns: auto auto; justify-content: start; align-items: baseline; column-gap: 6px; }
+:is(html[data-layout='portrait'], html[data-layout='landscape']) .hud .hud-biomass > .hud-k { grid-column: 1 / -1; }
+:is(html[data-layout='portrait'], html[data-layout='landscape']) .hud .hud-wave-mod {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-areas: 'eyebrow eyebrow' 'num pips' 'hint hint';
+  column-gap: 8px;
+  row-gap: 1px;
+  align-content: center;
+  justify-items: start;
+  text-align: left;
+  min-width: 0;
+  padding: 3px 8px;
+}
+:is(html[data-layout='portrait'], html[data-layout='landscape']) .hud-wave-mod > .wm-eyebrow { grid-area: eyebrow; font-size: 10px; letter-spacing: 0.16em; }
+:is(html[data-layout='portrait'], html[data-layout='landscape']) .hud-wave-mod > .wm-main { grid-area: num; }
+:is(html[data-layout='portrait'], html[data-layout='landscape']) .hud-wave-mod .wm-num { font-size: 20px; }
+:is(html[data-layout='portrait'], html[data-layout='landscape']) .hud-wave-mod > .wave-pips { grid-area: pips; margin: 0; align-self: center; flex-wrap: wrap; }
+:is(html[data-layout='portrait'], html[data-layout='landscape']) .hud-wave-mod > .phase-hint { grid-area: hint; max-width: 100%; font-size: 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+:is(html[data-layout='portrait'], html[data-layout='landscape']) .hud-wave-mod > .wm-chips { display: none; } /* objectives + biome live in the Run Build drawer */
+:is(html[data-layout='portrait'], html[data-layout='landscape']) .hud-wave-mod > .phase-emergency { grid-area: hint; position: static; transform: none; width: auto; font-size: 10px; padding: 0 6px; animation: emergency-flash 1.4s ease-in-out infinite; }
+:is(html[data-layout='portrait'], html[data-layout='landscape']) .hud-wave-mod:has(> .phase-emergency) > .phase-hint { visibility: hidden; }
+/* Transient announcements center over the battlefield (not over neighbouring HUD cells). */
+:is(html[data-layout='portrait'], html[data-layout='landscape']) .hud-wave-mod > .biome-enter,
+:is(html[data-layout='portrait'], html[data-layout='landscape']) .hud-wave-mod > .run-event-banner { position: fixed; top: 38%; left: 50%; margin: 0; z-index: 60; }
+
+/* ── PORTRAIT: HUD strip · [controls strip + full-width board] · drawers/hero row · rail ── */
+html[data-layout='portrait'] .game {
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-rows: auto minmax(0, 1fr) 46px 86px; /* fixed rows — pods arriving never resize the board */
+  grid-template-areas:
+    'hud   hud  hud'
+    'board board board'
+    'lrail hero rrail'
+    'tools tools tools';
+}
+html[data-layout='portrait'] .hud { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+html[data-layout='portrait'] .hud .hud-vital { grid-column: 1 / 5; grid-row: 1; }
+html[data-layout='portrait'] .hud .hud-wave-mod { grid-column: 5 / 7; grid-row: 1; grid-template-areas: 'eyebrow eyebrow' 'num pips'; }
+html[data-layout='portrait'] .hud .hud-wave-mod > .phase-hint { display: none; }
+html[data-layout='portrait'] .hud .hud-biomass { grid-column: 1 / 3; grid-row: 2; }
+html[data-layout='portrait'] .hud .hud-power { grid-column: 3 / 5; grid-row: 2; }
+html[data-layout='portrait'] .hud .hud-hero { grid-column: 5 / 7; grid-row: 2; }
+/* The controls strip is a real row ABOVE the board (the canvas never sits under it). */
+html[data-layout='portrait'] .canvas-wrap { padding-top: var(--strip); align-items: flex-start; }
+html[data-layout='portrait'] .tower-rail { align-items: center; overflow-x: auto; overflow-y: hidden; scroll-snap-type: x proximity; scrollbar-width: none; }
+html[data-layout='portrait'] .tower-rail::-webkit-scrollbar { display: none; }
+html[data-layout='portrait'] .tcard { width: 150px; }
+html[data-layout='portrait'] .cv-slot { min-width: 220px; }
+
+html[data-layout='portrait'] .run-ctl .hive-ticker,
+html[data-layout='portrait'] .run-ctl .speed-note {
+  /* the strip is too narrow beside the keys — the log announces over the board's mid-field */
+  position: fixed;
+  top: 52%;
+  left: calc(8px + var(--safe-l));
+  right: calc(8px + var(--safe-r));
+  width: fit-content;
+  max-width: calc(100vw - 16px - var(--safe-l) - var(--safe-r));
+  max-height: none;
+  margin: 0 auto;
+  -webkit-line-clamp: 8;
+}
+
+/* ── LANDSCAPE: HUD column │ board at full height │ tower column ── */
+html[data-layout='landscape'] .game {
+  --bh: calc(100dvh - var(--safe-t) - var(--safe-b) - 8px);
+  --bw: min(calc(var(--bh) * 3 / 4), calc(100vw - var(--safe-l) - var(--safe-r) - 16px - 360px));
+  --col: calc((100vw - var(--safe-l) - var(--safe-r) - 16px - var(--bw)) / 2);
+  grid-template-columns: minmax(0, 1fr) var(--bw) minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr) 46px;
+  grid-template-areas:
+    'hud   board tools'
+    'rails board hero';
+}
+html[data-layout='landscape'] .panel-rail { grid-area: rails; justify-self: start; }
+html[data-layout='landscape'] .panel-rail.right { grid-area: rails; justify-self: end; }
+html[data-layout='landscape'] .hud { grid-template-columns: repeat(2, minmax(0, 1fr)); align-self: start; }
+html[data-layout='landscape'] .hud .hud-vital,
+html[data-layout='landscape'] .hud .hud-wave-mod,
+html[data-layout='landscape'] .hud .hud-hero { grid-column: 1 / -1; }
+html[data-layout='landscape'] .hud .hud-wave-mod { grid-template-columns: auto auto minmax(0, 1fr); grid-template-areas: 'eyebrow num pips' 'hint hint hint'; align-items: center; }
+/* Controls live at the top of the tower column; the wave briefing docks at the foot of the HUD
+   column — the board itself carries no chrome. */
+html[data-layout='landscape'] .run-ctl {
+  position: fixed;
+  top: calc(4px + var(--safe-t));
+  right: calc(4px + var(--safe-r));
+  left: auto;
+  width: var(--col);
+}
+html[data-layout='landscape'] .tower-rail { margin-top: calc(var(--ctl-h) + 4px); flex-direction: column; align-items: stretch; overflow-y: auto; overflow-x: hidden; scrollbar-width: thin; }
+html[data-layout='landscape'] .tcard { width: 100%; }
+html[data-layout='landscape'] .conveyor { flex-direction: column; padding: 6px; }
+html[data-layout='landscape'] .run-ctl .hive-ticker,
+html[data-layout='landscape'] .run-ctl .speed-note {
+  /* the column is too narrow for a log beside the keys — it announces over the board's top edge */
+  position: fixed;
+  top: calc(6px + var(--safe-t));
+  left: calc(4px + var(--safe-l) + var(--col) + 4px + 6px);
+  width: calc(var(--bw) - 12px);
+  max-width: none;
+  max-height: none;
+  margin: 0;
+  -webkit-line-clamp: 4;
+}
+html[data-layout='landscape'] .build-controls {
+  position: fixed;
+  top: auto;
+  bottom: calc(4px + var(--safe-b) + 44px + 4px);
+  left: calc(4px + var(--safe-l));
+  right: auto;
+  width: var(--col);
+  padding: 0;
+}
+html[data-layout='landscape'] .boss-banner,
+html[data-layout='landscape'] .mega-banner { top: 6px; width: calc(100% - 12px); }
+html[data-layout='landscape'] .build-controls.is-visible ~ .mega-banner { top: 6px; bottom: auto; }

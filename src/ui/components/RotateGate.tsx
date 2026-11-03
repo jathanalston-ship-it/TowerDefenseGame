@@ -1,4 +1,5 @@
-// ROTATE GATE (docs/RESPONSIVE-DESIGN.md §landscape) — phones play HORIZONTAL ONLY.
+// ROTATE GATE (docs/RESPONSIVE-DESIGN.md §landscape) — phone HUB screens are HORIZONTAL ONLY.
+// A live run is exempt: the battlefield is portrait-shaped and has a real portrait layout.
 // A touch device held portrait gets this full-screen hold instead of the game: the upgrade
 // consoles and the war room are widescreen organisms and portrait can't carry them. The
 // gate reads the layout profile (never raw width), so rotating the device dismisses it on
@@ -8,12 +9,13 @@
 // Platform seam: the future iOS/Android APP SHELL locks orientation natively (the gate is
 // the mobile-BROWSER half of the split), so shipping this to stores needs no change here.
 
-import { useLayoutProfile } from '../layoutProfile';
+import { useInRun, useLayoutProfile } from '../layoutProfile';
 import { themeOwner } from '../../core/liveEvents';
 
 export function RotateGate(): JSX.Element | null {
   const { profile, coarse } = useLayoutProfile();
-  if (profile !== 'portrait' || !coarse) return null;
+  const inRun = useInRun(); // the battlefield has its own portrait layout — never gate a live run
+  if (profile !== 'portrait' || !coarse || inRun) return null;
   const ev = themeOwner(Date.now()).def; // the live theme owner tints the hold screen too
   return (
     <div className="rotate-gate" role="status" aria-live="polite" style={{ ['--ev' as string]: ev.theme.accent, ['--ev-glow' as string]: ev.theme.glow }}>

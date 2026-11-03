@@ -79,3 +79,19 @@ export const layout = {
 export function useLayoutProfile(): LayoutState {
   return useSyncExternalStore(layout.subscribe, layout.get);
 }
+
+// IN-RUN flag (docs/RESPONSIVE-DESIGN.md §run): GameView marks the battlefield mounted. The run
+// screen has real portrait AND landscape phone layouts, so the rotate gate stands down while it
+// is up (hub screens stay landscape-only on touch). Shares the profile listeners.
+let inRun = false;
+
+export function setInRun(on: boolean): void {
+  if (inRun === on) return;
+  inRun = on;
+  for (const fn of listeners) fn();
+}
+
+/** React hook — true while a run (GameView) is mounted. */
+export function useInRun(): boolean {
+  return useSyncExternalStore(layout.subscribe, () => inRun);
+}

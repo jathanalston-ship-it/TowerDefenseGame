@@ -225,11 +225,9 @@ export function Hud({ hud, power, onOpenConsole, tutorial = false, doctrine = nu
           {hud.phase === 'prep'
             ? tutorial
               ? 'Build & upgrade — the lesson launches each wave'
-              : layout.profile === 'portrait'
-                ? 'Build & upgrade — tap ▶ Start Wave below'
-                : layout.coarse
-                  ? 'Build & upgrade — tap ▶ Start Wave when ready'
-                  : 'Build & upgrade — press SPACE to start the wave'
+              : layout.coarse
+                ? 'Build & upgrade — tap ▶ Start Wave when ready'
+                : 'Build & upgrade — press SPACE to start the wave'
             : hud.phase === 'wave'
               ? `${hud.enemiesAlive} hostiles in the field`
               : hud.phase === 'draft'
