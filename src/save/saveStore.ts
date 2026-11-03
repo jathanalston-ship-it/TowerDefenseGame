@@ -15,6 +15,8 @@ import { defaultPrestige } from '../core/prestige';
 import { cosmeticById } from '../core/cosmetics';
 import { trophyById, TROPHY_SLOT_THRESHOLDS } from '../core/trophies';
 import { vowById, MAX_VOWS } from '../core/vows';
+import { THREAT_MAX, THREAT_MODES, clampThreat } from '../core/threat';
+import type { ThreatMode } from '../core/threat';
 import { hiveOrganById } from '../core/hiveOrgans';
 import { expeditionById, EXPEDITION_SLOTS } from '../core/expeditions';
 import { ALL_SECTORS, REGIONS, SECTOR_CAP, isValidInfestTarget } from '../core/infestation';
@@ -278,6 +280,10 @@ export interface SaveData {
   // ── Metabolism (schema v51, docs/METABOLISM.md) — the recursive-progression ledger:
   //    four chokepoint counters + per-track claimed tiers. Everything else DERIVES live. ──
   metabolism: MetabolismSave;
+  // ── THREAT LADDER (schema v55, docs/THREAT.md) — the best CLEARED Threat level per mode
+  //    (0 = none above the baseline; THREAT_MAX caps it). Feeds the picker's ceiling, the
+  //    automation gate and cosmetic milestones — never Power. ──
+  threat: Record<ThreatMode, number>;
   // ── Gene Card DISCOVERY (v46, docs/CARDS.md §discovery) — the Archive's membership set:
   //    card ids the account has discovered (starters + Bio-Container finds). Drafting and
   //    permanent upgrades key on membership. Migration seeds STARTER_GENES ∪ every card the
@@ -573,7 +579,11 @@ export interface TutorialSave {
 // the once-per-source gate). MIGRATION: pre-v53 `owned` stays CLAIMED unchanged (equips,
 // collections, ceremonies all keep their history — nothing is taken away); granted seeds
 // from owned, inventory starts empty. Purely additive, golden-safe.
-export const CURRENT_VERSION = 53;
+// v53→v55: THREAT LADDER (docs/THREAT.md) — `threat` {campaign, endless, bossRush}: the best
+// CLEARED Threat level per mode. Pre-v55 (version < 55) ⇒ all 0 (the baseline is DERIVED from
+// existing records, so veterans start one rung up, never re-earning Threat 0). Integers clamped
+// to [0, THREAT_MAX]. Purely additive, golden-safe. (v54 is reserved by a parallel track.)
+export const CURRENT_VERSION = 55;
 
 // ── v51 Metabolism ledger (docs/METABOLISM.md) — the save SHAPE lives here (saveStore owns
 // module shapes); the track registry + curve math live in state/metabolism.ts. ──
@@ -585,6 +595,14 @@ export interface MetabolismSave {
 }
 export function defaultMetabolism(): MetabolismSave {
   return { counters: { containersOpened: 0, sporesAbsorbed: 0, questsClaimed: 0, passClaimed: 0 }, claimed: {} };
+}
+
+/** v55 THREAT ledger: every mode present, whole numbers in [0, THREAT_MAX]; junk ⇒ 0. */
+function sanitizeThreat(raw: unknown): Record<ThreatMode, number> {
+  const o = typeof raw === 'object' && raw !== null ? (raw as Record<string, unknown>) : {};
+  const out = {} as Record<ThreatMode, number>;
+  for (const m of THREAT_MODES) out[m] = clampThreat(Number(o[m]) || 0, THREAT_MAX);
+  return out;
 }
 
 function sanitizeMetabolism(raw: unknown): MetabolismSave {
@@ -961,6 +979,7 @@ export function defaultSave(): SaveData {
     bioSpores: 0,
     liveEvents: { tokens: {}, claimed: {}, shopBought: {}, progress: {}, lifetimeBought: {} },
     metabolism: defaultMetabolism(),
+    threat: { campaign: 0, endless: 0, bossRush: 0 },
     genesDiscovered: [...STARTER_GENES], // the teaching set — every account starts with it
 
     createdAt: 0, // stamped by the first settle — defaultSave() must stay deterministic
@@ -1564,6 +1583,8 @@ function withDefaults(data: SaveData): SaveData {
     liveEvents: sanitizeLiveEvents((data as { liveEvents?: unknown }).liveEvents),
     // v50→v51: Metabolism ledger — counters floor to ints; claimed clamps in trackView.
     metabolism: sanitizeMetabolism((data as { metabolism?: unknown }).metabolism),
+    // v53→v55: Threat ladder records — missing (pre-v55) or junk ⇒ 0 per mode.
+    threat: sanitizeThreat((data as { threat?: unknown }).threat),
     // v21→v22: Player Profile — identity fields + the milestone timeline (pre-v22 ⇒ defaults;
     // createdAt stays 0 until the first settle stamps it).
     createdAt: Math.max(0, Math.floor(Number((data as { createdAt?: unknown }).createdAt) || 0)),

@@ -18,6 +18,7 @@ import { CAMPAIGN_REWARDS, CHESTS, chestForWave } from '../core/config';
 import { DIFFICULTIES, DIFFICULTY_IDS } from '../core/difficulty';
 import { difficultyPref, setDifficultyPref } from '../state/prefs';
 import { CurrencyIcon } from './components/CurrencyIcon';
+import { ThreatPicker } from './components/ThreatPicker';
 
 const WINDOW = 8; // nodes shown at once (a window over the infinite ladder)
 const ROW = 64, TOP = 44, MIDX = 150, AMP = 98; // serpentine descent layout (SVG units)
@@ -267,6 +268,7 @@ export function CampaignScreen({
             </div>
           )}
 
+          {focusState === 'cleared' && <ThreatPicker mode="campaign" />}
           <button className={`camp-deploy ${focusState === 'current' ? 'primary' : ''}`} disabled={focusState === 'locked'} onClick={() => deploy(focus)}>
             {focusState === 'locked' ? `Clear Stage ${frontier} first` : focusState === 'cleared' ? 'Replay ▸' : 'Deploy ▸'}
           </button>

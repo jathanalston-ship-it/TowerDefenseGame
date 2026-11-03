@@ -22,6 +22,7 @@ import { masteryRewardById } from '../core/mastery';
 import { ACCOUNT_TITLE_BY_ID } from '../core/accountLevel';
 import { genomeTitleName } from '../core/genomeRank';
 import { foundingTitleName, sigilById } from '../core/identity';
+import { THREAT_MODES, threatTitleName } from '../core/threat';
 import type { SigilDef } from '../core/identity';
 import { divisionForRating } from '../core/arena';
 import { ARENA_EXCLUSIVES, ARENA_PASS, arenaPassLevelOf } from '../core/arenaPass';
@@ -252,7 +253,15 @@ export const PROFILE_FRAMES: ProfileFrame[] = [
   { id: 'abyssal', name: 'Abyssal Lattice', blurb: 'Reach Infinite Depth 100.', unlocked: (s) => s.bestWave >= 100 },
   { id: 'archivist', name: 'Archivist Halo', blurb: 'Reach 50% Archive discovery.', unlocked: (s) => collectionView(collectionContextOf(s)).pct >= 0.5 },
   { id: 'apex', name: 'Apex Aureole', blurb: 'Unlock 15 achievements.', unlocked: (s) => s.achievements.length >= 15 },
+  // THREAT LADDER milestones (docs/THREAT.md) — cosmetic badges, never Power.
+  { id: 'threat5', name: 'Threat Crown', blurb: 'Clear Threat 5 in any mode.', unlocked: (s) => bestThreat(s) >= 5 },
+  { id: 'threat10', name: 'Apex Threat Halo', blurb: 'Clear Threat 10 in any mode.', unlocked: (s) => bestThreat(s) >= 10 },
 ];
+
+/** The account's best cleared Threat level across every ladder mode (0 = none). */
+function bestThreat(s: SaveData): number {
+  return Math.max(0, ...THREAT_MODES.map((m) => s.threat?.[m] ?? 0));
+}
 
 export interface BannerModel {
   name: string;
@@ -275,7 +284,7 @@ export interface BannerModel {
  * Genome Rank titles and the commissioning FOUNDING titles share the equipped-title slot, so
  * every display surface resolves through this one chain. */
 export function titleName(id: string): string {
-  return masteryRewardById(id)?.name ?? ACCOUNT_TITLE_BY_ID.get(id)?.name ?? genomeTitleName(id) ?? foundingTitleName(id) ?? id;
+  return masteryRewardById(id)?.name ?? ACCOUNT_TITLE_BY_ID.get(id)?.name ?? genomeTitleName(id) ?? foundingTitleName(id) ?? threatTitleName(id) ?? id;
 }
 
 export function playerBanner(save: SaveData): BannerModel {

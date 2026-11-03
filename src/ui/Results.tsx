@@ -22,6 +22,7 @@ import { FieldResearchCard } from './components/FieldResearch';
 import { rewardLine } from './components/AccountXpBar';
 import { audio } from '../audio/sound';
 import { ShareReplayButton } from './components/ShareReplay';
+import { ThreatResult } from './components/ThreatPicker';
 import { ACCOUNT_CURRENCY } from '../core/currencies';
 
 export function Results({
@@ -474,6 +475,7 @@ export function Results({
         onReplay={onReplay}
         cliffhanger={
           <>
+            <ThreatResult outcome={outcome.threat} />
             {/* The macro-loop routing — the wall/breakthrough moment lands HERE (PROGRESSION-LOOP.md) */}
             <LoopDirective difficultyId={result.difficulty} />
             {/* Daily runs recorded an input log — offer the share code right at the result. */}

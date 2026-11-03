@@ -44,6 +44,24 @@ export function setDifficultyPref(mode: DiffMode, id: string): void {
   }
 }
 
+// THREAT LADDER (docs/THREAT.md): the level the player last picked per ladder mode (a device pref,
+// like difficulty). Callers CLAMP it to what the save has earned — a stale value can't over-reach.
+export function threatPref(mode: 'campaign' | 'endless' | 'bossRush'): number {
+  try {
+    return Math.max(0, Math.floor(Number(localStorage.getItem(`assimilate.threat.${mode}`)) || 0));
+  } catch {
+    return 0;
+  }
+}
+
+export function setThreatPref(mode: 'campaign' | 'endless' | 'bossRush', level: number): void {
+  try {
+    localStorage.setItem(`assimilate.threat.${mode}`, String(Math.max(0, Math.floor(level))));
+  } catch {
+    /* storage unavailable */
+  }
+}
+
 // ── Audio prefs — SFX and Music are INDEPENDENT toggles (Settings + the pause menu).
 // 'audioOn' is the legacy key (SFX); 'musicOn' joined when the music engine landed.
 export function sfxPref(): boolean {

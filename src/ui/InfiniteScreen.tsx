@@ -18,6 +18,7 @@ import { createDirector, doctrineEconomy, hazardRating, modeLootMult } from '../
 import { difficultyPref, setDifficultyPref } from '../state/prefs';
 import { PredictionPanel } from './PredictionPanel';
 import { LoopDirective } from './NextGoalBanner';
+import { ThreatPicker } from './components/ThreatPicker';
 
 /** Compact ×-multiplier for the forecast ladder (deep HP walls reach ×10⁷ under fast protocols). */
 function fmtMult(v: number): string {
@@ -121,6 +122,7 @@ export function InfiniteScreen({
 
         {/* ── DOCTRINE SELECTION — the shared commitment picker (components/DoctrinePicker):
             family groups, lock seals, mastery rank pips, hazard priced at THIS difficulty ── */}
+        <ThreatPicker mode="endless" />
         <DoctrinePicker value={doctrine} onChange={setDoctrine} difficultyId={diff} />
       </div>
 

@@ -58,6 +58,8 @@ export function mergeSaves(a: SaveData, b: SaveData): SaveData {
     heroMasteryXp: maxByKey(p.heroMasteryXp as Record<string, number>, s.heroMasteryXp as Record<string, number>) as SaveData['heroMasteryXp'],
     towerKills: maxByKey(p.towerKills as Record<string, number>, s.towerKills as Record<string, number>) as SaveData['towerKills'],
     heroKills: maxByKey(p.heroKills as Record<string, number>, s.heroKills as Record<string, number>) as SaveData['heroKills'],
+    // Threat ladder (v55, docs/THREAT.md): the best cleared level per mode is a monotonic record.
+    threat: maxByKey(p.threat ?? {}, s.threat ?? {}) as SaveData['threat'],
     stats,
   };
 }

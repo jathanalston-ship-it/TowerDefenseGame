@@ -5,7 +5,7 @@
 
 import { describe, it, expect } from 'vitest';
 import { Game } from './game';
-import { hiveBestSlot } from './hivemind';
+import { AUTOMATION_POLICY, AUTOMATION_THREAT_REASON, automationGate, hiveBestSlot } from './hivemind';
 import { SIM_DT } from './config';
 import { HIVE_MIND } from './config';
 import { effectsPower } from './power';
@@ -16,7 +16,7 @@ const NO_META: MetaModifiers = { towerDamageMult: 1, biomassMult: 1, heroDamageM
 const forward = [...towerSlots].sort((a, b) => a.y - b.y);
 
 function boot(seed: number): Game {
-  const g = new Game(seed, NO_META, undefined, 'ravager', undefined, { mode: 'endless' });
+  const g = new Game(seed, NO_META, undefined, 'ravager', undefined, { mode: 'endless', automationAllowed: true });
   g.debugAddBiomass(3000);
   g.placeTower('needle', forward[0].x, forward[0].y);
   g.placeTower('mortar', forward[1].x, forward[1].y);
@@ -36,7 +36,7 @@ describe('hive intelligence — plan', () => {
   });
 
   it('plans nothing (but free actions) when the wallet is empty', () => {
-    const g = new Game(11, NO_META, undefined, 'ravager', undefined, { mode: 'endless' });
+    const g = new Game(11, NO_META, undefined, 'ravager', undefined, { mode: 'endless', automationAllowed: true });
     // No debug biomass beyond the run's starting wallet: drain it.
     (g as unknown as { biomass: number }).biomass = 0;
     for (const a of g.hiveEvaluate()) expect(a.cost).toBe(0);
@@ -64,7 +64,7 @@ describe('hive intelligence — pulse', () => {
   });
 
   it('deploys the free starter organism even at an empty wallet', () => {
-    const g = new Game(17, NO_META, undefined, 'ravager', undefined, { mode: 'endless' });
+    const g = new Game(17, NO_META, undefined, 'ravager', undefined, { mode: 'endless', automationAllowed: true });
     (g as unknown as { biomass: number }).biomass = 0;
     const towers0 = g.towers.length;
     const hasFreeGift = g.conveyor.some((c) => c.free === true && c.readyAt <= g.time);
@@ -107,5 +107,44 @@ describe('hive intelligence — placement (docs/HIVE-MIND.md §placement)', () =
       g.hivePulse();
       expect(g.towers.length).toBeGreaterThanOrEqual(towers0); // deploy/merge both legal outcomes
     }
+  });
+});
+
+describe('the automation gate — solved content only (docs/HIVE-MIND.md §solved-content)', () => {
+  const base = { tutorial: false, contentCleared: false, threat: 0, threatCleared: 0 };
+
+  it('policy: Infinite always; Campaign only on cleared stages; Rush/Daily/Skirmish/tutorial never', () => {
+    expect(automationGate({ ...base, mode: 'endless' }).allowed).toBe(true);
+    expect(automationGate({ ...base, mode: 'campaign', contentCleared: true }).allowed).toBe(true);
+    const frontier = automationGate({ ...base, mode: 'campaign', contentCleared: false });
+    expect(frontier).toEqual({ allowed: false, reason: AUTOMATION_POLICY.campaign.reason });
+    expect(frontier.reason).toMatch(/cleared/);
+    for (const mode of ['bossRush', 'daily', 'stage'] as const) {
+      const g = automationGate({ ...base, mode, contentCleared: true });
+      expect(g.allowed, mode).toBe(false);
+      expect(g.reason, mode).toBeTruthy();
+    }
+    expect(automationGate({ ...base, mode: 'endless', tutorial: true }).allowed).toBe(false);
+  });
+
+  it('a Threat level above the mode’s best cleared level is a frontier too', () => {
+    expect(automationGate({ ...base, mode: 'endless', threat: 3, threatCleared: 3 }).allowed).toBe(true);
+    expect(automationGate({ ...base, mode: 'endless', threat: 4, threatCleared: 3 })).toEqual({ allowed: false, reason: AUTOMATION_THREAT_REASON });
+    expect(automationGate({ ...base, mode: 'campaign', contentCleared: true, threat: 1, threatCleared: 0 }).allowed).toBe(false);
+  });
+
+  it('the Game fails CLOSED: without the run option the pulse never acts and the button never glows', () => {
+    const g = new Game(7, NO_META, undefined, 'ravager', undefined, { mode: 'endless' });
+    g.debugAddBiomass(3000);
+    g.placeTower('needle', forward[0].x, forward[0].y);
+    g.placeTower('mortar', forward[1].x, forward[1].y);
+    expect(g.automationAllowed).toBe(false);
+    expect(g.hiveEvaluate()).toEqual([]);
+    const before = g.biomass;
+    expect(g.hivePulse()).toEqual({ spent: 0, actions: [] });
+    expect(g.biomass).toBe(before);
+    expect(g.getSnapshot().hiveReady).toBe(false);
+    // The same board with the option set acts (the planner itself is unchanged).
+    expect(boot(7).hiveEvaluate().length).toBeGreaterThan(0);
   });
 });

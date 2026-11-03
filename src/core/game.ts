@@ -151,6 +151,7 @@ export interface RunOptions {
   difficulty?: string; // universal difficulty id (default 'standard' = identity/golden path)
   doctrine?: string; // exclusive run-start build commitment (default 'none' = no effects)
   vows?: string[]; // armed Molt Vows (docs/VOWS.md) — cycle-wide handicap warps composed ONTO the doctrine's; absent/[] ⇒ identity (golden path). Dailies never pass this (fair shared board).
+  threat?: number; // THREAT LADDER level (docs/THREAT.md) — stacked warp rungs composed LAST through the director. 0/omitted ⇒ identity (golden path); the meta layer passes it only on solved content (Campaign replays / Infinite / Boss Rush)
   sectorWarp?: DoctrineWarp; // THE FRONT deploy flavor (docs/INFESTATION.md §front) — a region warp composed onto doctrine × vows for ONE explicitly-deployed run. Absent ⇒ identity (golden path); dailies/Arena never pass it (fair shared boards).
   stage?: StageConfig; // campaign mode: the procedurally generated stage to run (campaign.ts)
   heroRoster?: HeroKind[]; // the fielded hero slots (HEROES.md). Omitted / [heroKind] ⇒ single hero (golden path)
@@ -166,6 +167,11 @@ export interface RunOptions {
   startingGenes?: string[]; // Starting Gene Loadout: card ids that AUTO-ACTIVATE at run boot (each at its permanent level). Empty/omitted ⇒ nothing applied (golden path)
   unlockedCardIds?: readonly string[]; // PROGRESSION-gated gene-card ids (CardDef.unlock) the account has earned — injected into the draft pool. Omitted ⇒ only ungated cards (golden path)
   draftPool?: readonly string[]; // DISCOVERED gene-card ids (docs/CARDS.md §discovery) — when present, drafts draw ONLY these (∩ the other gates). Omitted ⇒ legacy pool (golden path unchanged)
+  /** THE AUTOMATION GATE (docs/HIVE-MIND.md §solved-content): may this run use Hive Intelligence +
+   *  Auto Gene? The META layer decides from the save (core/hivemind.ts automationGate — solved
+   *  content only) and passes the verdict; the sim never reads the save. Omitted ⇒ false (fail
+   *  closed). Never affects the sim itself — only whether the pulse may act. */
+  automationAllowed?: boolean;
   // Daily Run (docs/DAILY-RUN.md): the day's TWO modifier ids, resolved once at boot into the
   // neutral-defaulted ResolvedEffects struct the sim reads. Omitted ⇒ NEUTRAL (golden path).
   // The day's 3-tower Conveyor pool rides the existing `unlocked` + `favorite` options.
@@ -722,6 +728,10 @@ export class Game {
   // (its unlocked set holds one) — then every deal whose eligible pool holds a rule card offers one.
   // A fresh account (and the golden sim) earns none ⇒ off ⇒ zero extra draws, byte-identical drafts.
   private readonly ruleSlot: boolean;
+  /** Whether Hive Intelligence may act this run (RunOptions.automationAllowed — fail closed). */
+  readonly automationAllowed: boolean;
+  /** The run's THREAT LADDER level (docs/THREAT.md) — 0 = baseline. Display only (the director owns the warp). */
+  readonly threat: number;
   deployments = 0; // player deployments this run — drives the universal cost curve
   selectedConveyorId: number | null = null; // a READY organism armed for placement (docs/STRAIN.md §conveyor)
   private conveyorSeq = 0; // branch tier tagged onto shots (drives projectile evolution; 0 = base)
@@ -764,6 +774,8 @@ export class Game {
     // Progression-gated gene cards the account has earned (default = none ⇒ only the ungated catalog
     // is draftable, so a fresh account / the golden sim is byte-identical).
     this.unlockedCardIds = new Set(opts.unlockedCardIds ?? []);
+    this.automationAllowed = opts.automationAllowed === true;
+    this.threat = Math.max(0, Math.floor(opts.threat ?? 0));
     this.ruleSlot = [...this.unlockedCardIds].some((id) => { const c = cardRegistry.get(id); return c !== undefined && isRuleChangingCard(c); });
     this.draftPool = opts.draftPool ? new Set(opts.draftPool) : undefined;
     // Daily Run (docs/DAILY-RUN.md): resolve the day's modifiers ONCE into the neutral-defaulted
@@ -793,6 +805,7 @@ export class Game {
       difficulty: this.stage ? this.stage.scaling : resolveDifficulty(opts.difficulty),
       warp: composeWarps(composeWarps(resolveDoctrine(opts.doctrine).warp, combinedVowWarp(opts.vows)), opts.sectorWarp),
       stageEnemySpeedMult: this.stage ? this.stage.enemySpeedMult : 1,
+      threat: opts.threat, // THREAT LADDER (docs/THREAT.md) — composes last; 0/omitted ⇒ passthrough
     });
     this.diff = this.dd.difficulty; // doctrine damage already folded (the director's ONE fold site)
     this.warp = this.dd.queueWarp();
@@ -2440,7 +2453,7 @@ export class Game {
 
   /** The ranked plan (best value first) — what a pulse WOULD buy right now. Pure read. */
   hiveEvaluate(): HiveAction[] {
-    if (this.phase === 'won' || this.phase === 'lost') return [];
+    if (!this.automationAllowed || this.phase === 'won' || this.phase === 'lost') return [];
     return hivePlan(this);
   }
 
@@ -2466,6 +2479,7 @@ export class Game {
     const reserveFloor = Math.max(HIVE_MIND.reserveMin, Math.floor(this.biomass * HIVE_MIND.reserveFrac));
     const actions: { label: string; detail: string; cost: number }[] = [];
     let spent = 0;
+    if (!this.automationAllowed) return { spent, actions }; // frontier content: the decisions stay the player's
     for (let i = 0; i < cap; i++) {
       if (this.phase === 'won' || this.phase === 'lost') break;
       const plan = hivePlan(this, { reserveFloor });
@@ -8010,6 +8024,7 @@ export class Game {
       anticipation: this.nextAnticipation(),
       autoStart: this.autoStart,
       hiveReady: this.hiveReadySnapshot(),
+      threat: this.threat,
       autoStartIn: this.autoStart && this.autoStartReady && this.phase === 'prep' ? Math.max(0, this.prepCountdown) : 0,
       autoStartWaiting: this.autoStart && !this.autoStartReady,
       autocast: { unlocked: this.autocastUnlocked, on: this.autocastOn, cost: HERO_AUTOCAST.cost, affordable: this.biomass >= HERO_AUTOCAST.cost },

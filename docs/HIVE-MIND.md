@@ -8,8 +8,9 @@
 
 ## The player contract
 
-- One clearly visible HUD button, live in every phase of every run: **◈ HIVE INTELLIGENCE**.
+- One clearly visible HUD button in every run's prep + combat phases: **◈ HIVE INTELLIGENCE**.
   It GLOWS when at least one worthwhile purchase is affordable (the `hiveReady` snapshot flag).
+  It ACTS only on **solved content** (§solved-content) — elsewhere it is visibly off and says why.
 - Pressing it runs one **pulse**: evaluate every currently-available Biomass purchase, execute
   the best ones (multi-buy) until nothing worthwhile remains or Biomass hits the reserve.
 - Every action it takes is announced on the battlefield ("◈ Evolved Bone Mortar", "◈ Placed
@@ -65,6 +66,34 @@ members only — no Game import at runtime, no cycles, unit-testable with a stub
     single `applyContext()` — additive, and every multiplier must name its reason in
     `HiveAction.detail` (the tooltip/toast explains WHY).
 
+## §solved-content — automation never replaces a frontier decision (2026-11)
+
+`npm run sim:hive` shows the mind out-surviving the scripted manual policy by ~57% — so on a
+FRONTIER stage, unrestricted, the best play would be pressing one button. Hive Intelligence and
+**Auto Gene** (automatic draft picks) therefore run only on content the account has already beaten:
+
+| Run | Hive Intelligence + Auto Gene | Why |
+|---|---|---|
+| **Infinite** | ON | the farm — solved content by design |
+| **Campaign replay** (stage ≤ cleared on that difficulty track) | ON | farming / replaying a beaten stage |
+| Campaign **frontier** stage | off — *"Unlocks on stages you've cleared"* | the decisions ARE the content |
+| **Boss Rush** | off — *"every run chases a record"* | its payouts are new-record lanes; every run is a frontier |
+| **Daily** | off — *"one shared, fair board"* | a worldwide, replay-verified leaderboard |
+| **Quick Skirmish** | off — *"practice is played by hand"* | the practice sandbox |
+| **Tutorial** | off (button hidden) | the lesson is the decisions |
+| Any **Threat** level above the mode's best cleared (docs/THREAT.md) | off — *"Unlocks at Threat levels you've cleared"* | a new rung is a frontier |
+
+Wiring (the sim never reads the save): the pure policy is `automationGate()` in
+`core/hivemind.ts` (`AUTOMATION_POLICY` — one data row per mode); `save/derive.ts automationFor()`
+evaluates it from the save once at run mount (GameView) and threads ONE run option,
+**`RunOptions.automationAllowed`** — **fail-closed** (omitted ⇒ false). With it false,
+`hiveEvaluate()` returns `[]` (the button never glows) and `hivePulse()` is a no-op; GameView
+disables the pill and prints the reason inside it, forces the draft manual (`DraftModal
+forceManual`), and BuildControls shows Auto Gene as **LOCKED** with the reason. **Auto Wave and game
+speed stay available everywhere** (pure convenience); the purchased hero **auto-cast** is an in-run
+upgrade, not governed here. Headless instruments that model solved content (sim-hive, the hivemind
+tests) pass `automationAllowed: true` explicitly.
+
 ## §placement — where the mind puts a tower
 
 Deterministic slot scoring in `hiveBestSlot` (data-driven, no per-kind code):
@@ -95,7 +124,7 @@ biomass efficiency (spent/earned), actions taken, reserve violations (must be 0)
 HI ≥ baseline mean depth (the mind must never make a run worse), and no reserve violation.
 Latest results live at the bottom of this file; re-run after balance changes.
 
-## Results (2026-07-19 — 6 endless seeds, 900 s cap, identical 4-tower openings)
+## Results (re-run 2026-11-03 with `automationAllowed: true` — identical to 2026-07-19; 6 endless seeds, 900 s cap, identical 4-tower openings)
 
 | cohort | mean depth | mean live Power | biomass spent | actions/run | reserve violations |
 |---|---|---|---|---|---|

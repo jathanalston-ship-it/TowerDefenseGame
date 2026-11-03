@@ -17,6 +17,7 @@ import { EFFECT_CATEGORIES, FIELD_VOCAB, foldEffects } from '../core/effectLangu
 import type { EffectLine } from '../core/effectLanguage';
 import { effectsPower } from '../core/power';
 import type { CardEffect } from '../core/cards';
+import { cardRegistry, isRuleChangingCard } from '../core/cards';
 import type { CardOption } from '../core/types';
 
 // Higher = rarer. Unknown tiers sort as 0, so new rarities slot in by adding a key.
@@ -313,6 +314,8 @@ export function DraftModal({
                   <span className="card-affects-name">{aff.label}</span>
                 </span>
                 <span className="card-syn">{o.category}</span>
+                {/* RULE genes (docs/CARDS.md §rules) change HOW the run plays — badge them (derived from the ops). */}
+                {cardRegistry.get(o.id) && isRuleChangingCard(cardRegistry.get(o.id)!) && <span className="card-rule" title="Rule gene — changes how the run plays, not just a number">⚙ RULE</span>}
               </span>
             </span>
             <span className="card-fx">

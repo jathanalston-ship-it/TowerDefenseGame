@@ -29,6 +29,8 @@ import type { DoctrineWarp } from './doctrines';
 import { resolveDoctrine, DOCTRINES, doctrineRankBonus } from './doctrines';
 import type { DoctrineDef } from './doctrines';
 import { DIRECTOR_ADAPTIVE, ENDLESS, MODE_REWARDS, WAVE_BOUNTY_GROWTH, WAVE_HP_GROWTH } from './config';
+import { threatRewardMult, threatWarp } from './threat';
+import { composeWarps } from './vows';
 
 /** Player-relative inputs for the adaptive factors. All optional; omitted ⇒ neutral (×1).
  *  powerRatio = actual/expected account power for the content (1 = on-curve);
@@ -47,6 +49,9 @@ export interface DirectorInputs {
   /** Campaign stage's own enemy-speed axis (1 elsewhere). */
   stageEnemySpeedMult?: number;
   adaptive?: AdaptiveInputs;
+  /** THREAT LADDER level (docs/THREAT.md) — its stacked warp composes LAST onto `warp`. 0/omitted ⇒
+   *  the warp passes through untouched (referential identity — golden-safe). */
+  threat?: number;
 }
 
 /** One run's scaling policy: every threat curve and economy scalar the run will use,
@@ -60,7 +65,7 @@ export class RunDirector {
 
   constructor(inputs: DirectorInputs) {
     const base = inputs.difficulty;
-    this.warp = inputs.warp ?? {};
+    this.warp = composeWarps(inputs.warp, threatWarp(inputs.threat ?? 0)) ?? {};
     // Doctrine damage reshapes the run's difficulty once, up front — exactly the old
     // constructor fold in game.ts, now owned here so no system re-implements it.
     this.difficulty = this.warp.damageMult
@@ -197,6 +202,12 @@ export function doctrineEconomy(doctrineId?: string, rank = 0): { rewardMult: nu
     rewardMult: (w.rewardMult ?? 1) * doctrineRankBonus(rank),
     essenceFor: (wave) => (w.essencePerWave ? Math.floor(w.essencePerWave * wave) : 0),
   };
+}
+
+/** The Threat ladder's run-END economy (docs/THREAT.md): the reward multiplier the settle feeds into
+ *  the economy director's named `threat.reward` factor (cores + loot). Threat 0 ⇒ exactly ×1. */
+export function threatEconomy(level = 0): { rewardMult: number } {
+  return { rewardMult: threatRewardMult(level) };
 }
 
 /** The progression-loot quality tier: difficulty tilt + prestige Fortune + codex bonus,

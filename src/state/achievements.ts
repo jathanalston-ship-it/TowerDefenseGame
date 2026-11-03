@@ -22,6 +22,7 @@ import { ARENA } from '../core/arena';
 import { DOCTRINE_RANK_MAX, doctrineRank, doctrineRegistry } from '../core/doctrines';
 import type { DoctrineFamily } from '../core/doctrines';
 import { highestCampaignStage } from '../save/derive';
+import { THREAT_MODES } from '../core/threat';
 import type { TowerKind } from '../core/types';
 import type { SaveData } from '../save/saveStore';
 
@@ -65,6 +66,8 @@ const doctrineFamiliesWon = (s: SaveData): Set<DoctrineFamily> =>
 const maxDoctrineRank = (s: SaveData): number =>
   Math.max(0, ...doctrineRegistry.ids().filter((id) => id !== 'none')
     .map((id) => doctrineRank(id, s.stats.doctrineWins[id] ?? 0, s.stats.doctrineBestWave[id] ?? 0)));
+/** Best cleared Threat level across the ladder modes (docs/THREAT.md). */
+const bestThreat = (s: SaveData): number => Math.max(0, ...THREAT_MODES.map((m) => s.threat?.[m] ?? 0));
 const towerUse = (s: SaveData, k: TowerKind): number => s.stats.towerUsage[k] ?? 0;
 const heroUse = (s: SaveData, k: string): number => s.stats.heroUsage[k] ?? 0;
 const towersOwned = (s: SaveData): number => TOWER_ORDER.filter((k) => (TOWER_DEFS[k].unlockShards ?? 0) <= 0 || (s.towerUnlocked ?? []).includes(k)).length;
@@ -135,6 +138,13 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     desc: `Defeat ${n} bosses in Boss Rush (lifetime).`, reward: 40 + i * 60,
     test: (c) => c.save.stats.rushBossKills >= n,
     progress: (c) => ({ cur: c.save.stats.rushBossKills, max: n }),
+  })),
+
+  // ── Threat ladder (docs/THREAT.md — the opt-in replay axis; recognition only, never Power) ──
+  ...([[3, 'Raised the Stakes'], [5, 'Into the Red'], [10, 'The Apex Horde Falls']] as const).map(([n, name], i): AchievementDef => ({
+    id: `threat_${n}`, name, desc: `Clear Threat ${n} in any mode (Campaign replay, Infinite or Boss Rush).`, reward: [30, 60, 150][i],
+    test: (c) => bestThreat(c.save) >= n,
+    progress: (c) => ({ cur: bestThreat(c.save), max: n }),
   })),
 
   // ── Doctrines (docs/DOCTRINES.md — the run-commitment mastery axis) ──
