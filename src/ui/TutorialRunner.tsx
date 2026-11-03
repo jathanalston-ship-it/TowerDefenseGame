@@ -72,7 +72,9 @@ export function TutorialRunner({ onExit }: { onExit: () => void }): JSX.Element 
       }
       if (tutorial.lastEndReason() === 'completed') {
         audio.cue('tut_done'); // graduation — the rising ceremony stinger
-        const r = meta.grantTutorialRewards('combat'); // idempotent — null on a replay
+        // THE one graduation payout (docs/TUTORIAL.md §graduation) — every onboarding ledger
+        // still unclaimed, in one reveal. Idempotent — null on a replay.
+        const r = meta.grantOnboardingRewards();
         if (r) { setReward(r); return; }
       }
       // A SKIPPER wants to play, not read (playtest 2026-07: both testers skipped) — land them on

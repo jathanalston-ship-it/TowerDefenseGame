@@ -1843,10 +1843,33 @@ export interface TutorialRewardSummary {
   towerShards: number; // per-tower shard grant
   heroShards: number; // shard grant for the selected hero
   containerRarity: string; // the guaranteed Tutorial Bio-Container's rarity
+  containers: number; // how many Tutorial Bio-Containers landed (the graduation pays both ledgers)
   itemName: string; // the basic Hero Equipment piece granted
+  items: number; // how many copies of it
   achievement: string | null; // achievement unlocked ('Assimilation Protocol'), or null if already had it
   powerBefore: number;
   powerAfter: number; // the visible Power Score increase
+}
+
+/** One onboarding ledger's payout (docs/TUTORIAL.md §graduation) — paid once per ledger id. */
+const TUTORIAL_GRANT = { cores: 150, towerShards: 15, heroShards: 20, containerRarity: 'rare', itemDefId: 'w_quill' } as const;
+/** The onboarding ledgers the ONE graduation reveal pays together: the Combat Tutorial's own
+ *  grant + the one the Field Orientation used to pay at its finish (merged 2026-11 so a new
+ *  player gets a single reward moment and a tour Skip can never forfeit anything). */
+const ONBOARDING_LEDGERS = ['combat', 'hudtour'] as const;
+
+/** Fold two ledger payouts into one reveal summary (counts add; Power spans both). */
+function mergeTutorialRewards(a: TutorialRewardSummary, b: TutorialRewardSummary): TutorialRewardSummary {
+  return {
+    ...a,
+    cores: a.cores + b.cores,
+    towerShards: a.towerShards + b.towerShards,
+    heroShards: a.heroShards + b.heroShards,
+    containers: a.containers + b.containers,
+    items: a.items + b.items,
+    achievement: a.achievement ?? b.achievement,
+    powerAfter: b.powerAfter,
+  };
 }
 
 /** Roll each awarded loot-queue box's reward table, fold the shards into the running
@@ -7316,13 +7339,13 @@ export const meta = {
     const save = store.get();
     if (save.tutorial.rewarded.includes(id)) return null; // already paid — replays never duplicate
     const powerBefore = composePower(accountPowerParts(save)).score;
-    const CORES = 150, TSHARD = 15, HSHARD = 20;
+    const { cores: CORES, towerShards: TSHARD, heroShards: HSHARD, containerRarity, itemDefId } = TUTORIAL_GRANT;
     const hero = save.selectedHero;
     const towerShards = { ...save.towerShards };
     for (const k of towerShardPool(save)) towerShards[k] = (towerShards[k] ?? 0) + TSHARD; // a little of every gate-eligible tower currency
     const heroShards = { ...save.heroShards, [hero]: (save.heroShards[hero] ?? 0) + HSHARD };
-    const container: PendingContainer = { kind: 'loot', rarity: 'rare' }; // the guaranteed Tutorial Bio-Container
-    const item: OwnedItem = { uid: `tut-${Date.now().toString(36)}`, defId: 'w_quill', rarity: 'rare', affixes: [] };
+    const container: PendingContainer = { kind: 'loot', rarity: containerRarity }; // the guaranteed Tutorial Bio-Container
+    const item: OwnedItem = { uid: `tut-${id}-${Date.now().toString(36)}`, defId: itemDefId, rarity: 'rare', affixes: [] };
     persist(foldAccountXp({
       ...save,
       shards: save.shards + CORES,
@@ -7335,11 +7358,30 @@ export const meta = {
     }, ACCOUNT_XP.tutorialComplete).save); // onboarding completion is account history (docs/ACCOUNT-LEVEL.md)
     const unlocked = this.evaluateAchievements(); // grants tutorial_complete (completeTutorial ran first)
     return {
-      cores: CORES, towerShards: TSHARD, heroShards: HSHARD, containerRarity: 'rare',
-      itemName: itemDef('w_quill')?.name ?? 'Weapon',
+      cores: CORES, towerShards: TSHARD, heroShards: HSHARD, containerRarity, containers: 1,
+      itemName: itemDef(itemDefId)?.name ?? 'Weapon', items: 1,
       achievement: unlocked.includes('tutorial_complete') ? 'Assimilation Protocol' : null,
       powerBefore, powerAfter: composePower(accountPowerParts(store.get())).score,
     };
+  },
+  /** THE graduation payout (docs/TUTORIAL.md §graduation) — called once on the Combat
+   *  Tutorial's genuine completion. Pays every onboarding ledger still unclaimed (the tutorial's
+   *  own + the one the Field Orientation used to pay) as ONE summary for ONE reveal. Each
+   *  ledger stays independently idempotent: a save that already claimed either is paid only
+   *  the remainder, and a replay pays nothing (null). */
+  grantOnboardingRewards(): TutorialRewardSummary | null {
+    let total: TutorialRewardSummary | null = null;
+    for (const id of ONBOARDING_LEDGERS) {
+      const r = this.grantTutorialRewards(id);
+      if (r) total = total ? mergeTutorialRewards(total, r) : r;
+    }
+    return total;
+  },
+  /** What the graduation would still pay (the tutorial Skip confirm names it), or null when
+   *  every onboarding ledger is already claimed — a replay's Skip forfeits nothing. */
+  pendingOnboardingReward(): { cores: number; containers: number; containerRarity: string } | null {
+    const unpaid = ONBOARDING_LEDGERS.filter((id) => !store.get().tutorial.rewarded.includes(id)).length;
+    return unpaid === 0 ? null : { cores: TUTORIAL_GRANT.cores * unpaid, containers: unpaid, containerRarity: TUTORIAL_GRANT.containerRarity };
   },
 
   /** Grant a mid-lesson MILESTONE reward (docs/TUTORIAL.md) — small, one-time per account,
@@ -7549,14 +7591,17 @@ export const meta = {
     const s = store.get();
     return !s.help.hudTour && s.tutorial.completed.includes('combat');
   },
-  /** Mark the HUD Tour done and (on a genuine FINISH — not a skip) grant its one-time Tutorial
-   *  Bio-Container (idempotent — reuses the tutorial reward ledger so it never double-grants).
-   *  Returns the reward summary, or null. */
-  completeHudTour(grant = true): TutorialRewardSummary | null {
+  /** Mark the HUD Tour done (Finish OR Skip — identical: the tour pays nothing of its own since
+   *  the onboarding payout merged into the tutorial's ONE graduation reveal, so a Skip can never
+   *  forfeit anything). The one exception is a LEGACY save that graduated under the old two-part
+   *  promise (the 'combat' ledger paid, 'hudtour' still owed): it is paid that remainder here,
+   *  either way the tour ends. Idempotent. Returns the reward summary, or null. */
+  completeHudTour(): TutorialRewardSummary | null {
     const s = store.get();
     if (s.help.hudTour) return null;
     persist({ ...s, help: { ...s.help, hudTour: true } });
-    const reward = grant ? this.grantTutorialRewards('hudtour') : null;
+    const owed = s.tutorial.rewarded.includes('combat') && !s.tutorial.rewarded.includes('hudtour');
+    const reward = owed ? this.grantTutorialRewards('hudtour') : null;
     // Onboarding (the Combat Tutorial + this HUD Tour) just introduced the foundational systems —
     // and its rewards unlock several at once (shards → Tower Stars, gear → Equipment, a Bio-Container,
     // Genome Cores). Archive everything unlocked so far so the What's New queue doesn't cascade for

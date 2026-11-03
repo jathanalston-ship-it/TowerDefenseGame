@@ -1,7 +1,8 @@
 // One-time payout reveal primitives. `RewardRows` renders a TutorialRewardSummary's grant list +
-// Power delta (shared by the Commissioning ceremony's GRADUATION step and the Hud Tour payout);
-// `TutorialRewardReveal` is the standalone overlay the Hud Tour shows (the tutorial's own
-// completion goes through the full Commissioning instead — docs/PROFILE.md §commissioning).
+// Power delta (shared by the Commissioning ceremony's GRADUATION step — THE onboarding reward
+// moment — and the legacy Hud Tour remainder); `TutorialRewardReveal` is the standalone overlay
+// the Hud Tour shows ONLY for a pre-merge save still owed the old tour grant (docs/TUTORIAL.md
+// §graduation; the tutorial's own completion goes through the full Commissioning instead).
 
 import { formatPower } from '../../core/power';
 import { CurrencyIcon } from '../components/CurrencyIcon';
@@ -14,8 +15,8 @@ export function RewardRows({ reward }: { reward: TutorialRewardSummary }): JSX.E
     { icon: <CurrencyIcon id="genomeCores" size={15} title="" />, label: 'Genome Cores', v: `+${reward.cores}` },
     { icon: '✦', label: 'Strain Samples · each tower', v: `+${reward.towerShards}` },
     { icon: '✦', label: 'Apex Genome', v: `+${reward.heroShards}` },
-    { icon: '◈', label: 'Tutorial Bio-Container', v: `${cap(reward.containerRarity)} · in the Vault` },
-    { icon: '⚔', label: 'Hero Equipment', v: reward.itemName },
+    { icon: '◈', label: `Tutorial Bio-Container${reward.containers > 1 ? 's' : ''}`, v: `${reward.containers > 1 ? `${reward.containers}× ` : ''}${cap(reward.containerRarity)} · in the Vault` },
+    { icon: '⚔', label: 'Hero Equipment', v: `${reward.items > 1 ? `${reward.items}× ` : ''}${reward.itemName}` },
   ];
   if (reward.achievement) rows.push({ icon: '🏆', label: 'Achievement', v: reward.achievement });
   return (
