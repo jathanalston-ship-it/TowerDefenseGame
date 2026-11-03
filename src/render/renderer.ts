@@ -19,10 +19,10 @@ import {
   ROWS,
   WIDTH,
   nucleusPoint,
-  obstacleCells,
   slotAt,
   towerSlots,
 } from '../core/map';
+import { navFieldFor } from '../core/mapLayouts';
 import { HERO_DEFS, HERO_PHASE_FLASH, MINION_DEFS, PERF, TOWER_DEFS } from '../core/config';
 import { IDLE_BEHAVIORS } from '../core/towerIdle';
 import type { RenderState } from '../core/game';
@@ -243,7 +243,7 @@ export function drawGame(
   drawAmbientMotes(ctx, t); // drifting spores — the air is alive
   drawSpawnZone(ctx, t);
   drawDefenseZone(ctx, t, pressure);
-  drawObstacles(ctx);
+  drawObstacles(ctx, rs.layoutId);
 
   const occupied = new Set(rs.towers.map((tw) => tw.slot));
   drawHiveTendrils(ctx, rs, t);
@@ -676,10 +676,11 @@ function drawDefenseZone(ctx: CanvasRenderingContext2D, t: number, pressure: num
   ctx.fillText('— HOLD THE LINE —', 8, DEFENSE_TOP_Y - 6);
 }
 
-function drawObstacles(ctx: CanvasRenderingContext2D): void {
+function drawObstacles(ctx: CanvasRenderingContext2D, layoutId: string): void {
   // Chitin outcrops, not flat plates: base fill + a lit top-left bevel, a shadowed
-  // bottom-right edge, and a couple of hash-keyed growth nodules per cell.
-  for (const o of obstacleCells) {
+  // bottom-right edge, and a couple of hash-keyed growth nodules per cell. The ACTIVE layout's
+  // cells (docs/MAP-LAYOUTS.md) — drawn per frame, so an Infinite re-layout shows immediately.
+  for (const o of navFieldFor(layoutId).cells) {
     const x0 = o.x - CELL / 2;
     const y0 = o.y - CELL / 2;
     ctx.fillStyle = THEME.obstacle.fill;

@@ -42,6 +42,14 @@ identity is its roster bias + hazard; the modifier/hazard are telegraphed labels
 monotonic, spike-free function of stage — see §3). A battlefield hazard-zone sim is a future
 hook. Adding a biome = one data row.
 
+### 2b. Arena layout
+
+`layout = layoutForStage(stage)` — the battlefield's obstacle geometry (docs/MAP-LAYOUTS.md).
+Stages 1–3 are authored onboarding pins (`CAMPAIGN_LAYOUT_PINS`: the tutorial's classic arena,
+then one new routing idea per stage); every later stage draws a biome-flavored layout
+(native ×3, minStage-gated, never the previous stage's), independent of difficulty. The stage
+preview names it; the Game builds its flow field from it.
+
 ---
 
 ## 3. Smooth scaling (no spikes)
@@ -194,4 +202,5 @@ boss           = assembleBoss(rng, stage)        // finale; boss difficulty scal
 - "Loot quality" scales via reward/loot points (more & better boxes), not yet an explicit
   rarity-tier bias.
 - Biome topology / node-graph routes (STAGES.md §5) are out of scope here — this framework
-  is the seeded stage generator they would build on.
+  is the seeded stage generator they would build on. Battlefield GEOMETRY per stage is live
+  (docs/MAP-LAYOUTS.md).

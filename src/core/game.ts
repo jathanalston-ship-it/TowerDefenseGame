@@ -13,15 +13,14 @@ import {
   HEIGHT,
   REACH_Y,
   WIDTH,
-  flowDirAt,
-  goalDistanceAt,
   inFinalDefenseZone,
   nucleusPoint,
   slotAt,
-  topSpawn,
   towerSlots,
 } from './map';
-import type { TowerSlot } from './map';
+import type { NavField, TowerSlot } from './map';
+import { DEFAULT_LAYOUT_ID, layoutById, layoutIdForDepth, layoutSpawn, navFieldFor } from './mapLayouts';
+import type { MapLayoutDef } from './mapLayouts';
 import {
   COMBAT,
   ECON,
@@ -184,6 +183,10 @@ export interface RunOptions {
    *  sim then reproduces the PRE-IDLE behavior exactly (the A/B baseline for the balance
    *  instrument + the isolation regression test). Shipping UI never sets this. */
   disableIdle?: boolean;
+  /** PIN the arena layout (docs/MAP-LAYOUTS.md) by id — overrides the stage's layout and
+   *  Infinite's rotation. Absent ⇒ stage.layout (Campaign/Daily) → Infinite's depth rotation →
+   *  the classic arena (Skirmish, tutorial, golden autoplay — byte-identical). */
+  layout?: string;
 }
 
 /** Fold a declarative effect into the run modifiers (mul/add/flag; grants handled at boot). */
@@ -330,6 +333,7 @@ export interface RenderState {
   // transition, and pulses a hazard telegraph. Stage mode reports NEUTRAL_BIOME.
   biome: { id: string; name: string; accent: string };
   biomeFlash: number; // 0..1 transition flash (Infinite); 0 in Stage/Campaign steady state
+  layoutId: string; // the active arena layout (docs/MAP-LAYOUTS.md) — the renderer draws its obstacles
   hazardActive: boolean; // the biome's hazard pulse is firing right now (telegraph)
   // Mega Boss (docs/MEGA-BOSS.md) — null on every run without one (the overwhelming majority).
   megaBoss: MegaBossView | null;
@@ -462,6 +466,13 @@ export class Game {
   // hazard hooks below. Campaign = the stage's biome (fixed); Infinite = rotates by depth; Stage =
   // NEUTRAL_BIOME (identity ×1/+0/no-hazard ⇒ every biome read is byte-identical → golden-safe).
   private activeBiome: Biome;
+  // The arena LAYOUT (docs/MAP-LAYOUTS.md) + the NavField this Game owns for it — every flow/
+  // goal-distance query resolves here, so concurrent Games never share map state. Infinite
+  // re-points it as biomes rotate (unless pinned).
+  private layout: MapLayoutDef;
+  private nav: NavField;
+  private readonly layoutPinned: boolean;
+  private readonly goalDistance = (px: number, py: number): number => this.nav.goalDistanceAt(px, py);
   private biomeFlash = 0; // render-only: eased 1→0 after an Infinite-mode biome transition (surfaced via RenderState)
   // Run Identity (docs/RUN-IDENTITY.md): a seed-derived plan of discrete per-wave EVENTS + a run-wide
   // ANOMALY, layered onto Campaign/Endless via a DEDICATED rng stream (never this.rng). null in Stage
@@ -799,6 +810,10 @@ export class Game {
     // (rotating as the run deepens — see startEndlessWave / startBossRushWave); Stage uses the
     // identity biome (golden-safe).
     this.activeBiome = this.stage ? this.stage.biome : this.mode === 'endless' || this.mode === 'bossRush' ? biomeForDepth(1) : NEUTRAL_BIOME;
+    // Layout: an explicit pin → the stage's layout → Infinite's rotation → the classic arena.
+    this.layoutPinned = opts.layout !== undefined;
+    this.layout = layoutById(opts.layout ?? this.stage?.layout ?? (this.mode === 'endless' ? layoutIdForDepth(1) : DEFAULT_LAYOUT_ID));
+    this.nav = navFieldFor(this.layout.id);
     this.geneLevels = opts.geneLevels ?? {}; // permanent gene levels; empty ⇒ base effects (golden-safe)
     this.geneTranscends = opts.geneTranscends ?? {}; // chosen second lines; empty ⇒ none (golden-safe)
     if (this.mode === 'endless' || this.mode === 'bossRush') this.director = new Director(() => this.rng.next(), this.diff, this.mode === 'endless');
@@ -2078,6 +2093,13 @@ export class Game {
     this.pushSfx('biome');
   }
 
+  /** Switch the arena layout (Infinite rotation). Wave starts only — the field is clear then. */
+  private enterLayout(id: string): void {
+    if (id === this.layout.id) return;
+    this.layout = layoutById(id);
+    this.nav = navFieldFor(this.layout.id);
+  }
+
   startWave(): void {
     if (this.phase !== 'prep') return;
     // Starting a wave (manually, or via a now-armed auto-start) is the other trigger that ARMS
@@ -2152,6 +2174,7 @@ export class Game {
     this.waveIndex++; // = Depth
     const depth = this.waveIndex;
     this.enterBiome(biomeForDepth(depth)); // Infinite: rotate ecosystems as the run goes deep
+    if (!this.layoutPinned) this.enterLayout(layoutIdForDepth(depth)); // …and reshape the arena with them
     const w = this.director!.next(depth, this.activeBiome);
     // Endless uses its OWN intensity curves (geometric HP, gradual bounty) — NOT the linear stage
     // curve — so the wall behaves as docs/ENDLESS-SCALING.md describes. Speed/damage are applied
@@ -2678,7 +2701,7 @@ export class Game {
   private spawnOne(kind: EnemyKind, hpMult: number, bountyMult: number, elite = false): void {
     if (this.enemies.length >= PERF.maxEnemies) return; // entity budget
     const def = ENEMY_DEFS[kind];
-    const spawn = topSpawn(this.rng.next());
+    const spawn = layoutSpawn(this.layout, this.rng.next());
     // Daily Infestation: per-spawn elite promotion off the DEDICATED daily rng (never consumed at
     // chance 0 ⇒ every other mode's rng sequence is untouched).
     if (this.dailyFx.eliteChance > 0 && !elite && this.dailyRng.next() < this.dailyFx.eliteChance) elite = true;
@@ -2753,7 +2776,7 @@ export class Game {
     this.enemies.push({
       id: this.nextId++,
       kind: 'tyrant', // borrows the boss-tier visual; behavior is driven by the runtime
-      x: topSpawn(this.rng.next()).x,
+      x: layoutSpawn(this.layout, this.rng.next()).x,
       y: 8,
       hp,
       maxHp: hp,
@@ -5025,7 +5048,7 @@ export class Game {
       const focus = this.emergencyFocus(x, y, Infinity, minR2, n); // in-zone, ANY range (still outside the deadzone)
       if (focus.length > 0) return focus;
     }
-    sortByProfile(out, profile, { tx: x, ty: y, goalDistance: goalDistanceAt, rng: this.targetRng });
+    sortByProfile(out, profile, { tx: x, ty: y, goalDistance: this.goalDistance, rng: this.targetRng });
     return out.slice(0, n);
   }
 
@@ -5506,7 +5529,7 @@ export class Game {
         vx = (dx / l) * b.seek;
         vy = (dy / l) * b.seek;
       } else {
-        const dir = flowDirAt(e.x, e.y);
+        const dir = this.nav.flowDirAt(e.x, e.y);
         vx = dir.x * b.seek;
         vy = dir.y * b.seek;
       }
@@ -5821,7 +5844,7 @@ export class Game {
     let best = Infinity;
     for (const e of this.enemies) {
       if (!e.alive || dist2(h.x, h.y, e.x, e.y) > r2) continue;
-      const gd = goalDistanceAt(e.x, e.y);
+      const gd = this.nav.goalDistanceAt(e.x, e.y);
       if (gd < best) { best = gd; target = e; }
     }
     if (target) this.castHeroAbility(h, target.x, target.y);
@@ -5851,7 +5874,7 @@ export class Game {
         let best = Infinity;
         for (const e of this.enemies) {
           if (!e.alive || dist2(h.x, h.y, e.x, e.y) > r2) continue;
-          const gd = goalDistanceAt(e.x, e.y);
+          const gd = this.nav.goalDistanceAt(e.x, e.y);
           if (gd < best) { best = gd; target = e; }
         }
         if (target === null) continue; // nothing to hit — hold (no cooldown paid until it fires)
@@ -6006,7 +6029,7 @@ export class Game {
     for (const e of this.enemies) {
       if (!e.alive) continue;
       if (dist2(h.x, h.y, e.x, e.y) > aggro2) continue;
-      const gd = goalDistanceAt(e.x, e.y);
+      const gd = this.nav.goalDistanceAt(e.x, e.y);
       if (gd < bestAny) {
         bestAny = gd;
         fallback = e;
@@ -6087,7 +6110,7 @@ export class Game {
     let threat: Enemy | null = null;
     for (const e of this.enemies) {
       if (!e.alive || e.y < zoneTop) continue; // only the ones at/into the zone matter
-      const gd = goalDistanceAt(e.x, e.y);
+      const gd = this.nav.goalDistanceAt(e.x, e.y);
       if (gd < best) {
         best = gd;
         threat = e;
@@ -6149,7 +6172,7 @@ export class Game {
       if (!e.alive) continue;
       const d2 = dist2(h.x, h.y, e.x, e.y);
       if (d2 > aggro2) continue;
-      const gd = goalDistanceAt(e.x, e.y);
+      const gd = this.nav.goalDistanceAt(e.x, e.y);
       if (gd < bestAny) { bestAny = gd; lineup = e; }
       if (d2 <= range2 && gd < bestInRange) { bestInRange = gd; target = e; }
     }
@@ -6252,7 +6275,7 @@ export class Game {
     let bestElite = Infinity;
     for (const e of this.enemies) {
       if (!e.alive || dist2(h.x, h.y, e.x, e.y) > aggro2) continue;
-      const gd = goalDistanceAt(e.x, e.y);
+      const gd = this.nav.goalDistanceAt(e.x, e.y);
       if (gd < best) { best = gd; target = e; }
       if (e.elite && gd < bestElite) { bestElite = gd; elite = e; }
     }
@@ -7600,7 +7623,7 @@ export class Game {
     const leash2 = m.range * m.range;
     this.grid.forNeighbors(homeX, homeY, m.range, (e) => {
       if (!e.alive || dist2(homeX, homeY, e.x, e.y) > leash2) return;
-      const gd = goalDistanceAt(e.x, e.y);
+      const gd = this.nav.goalDistanceAt(e.x, e.y);
       if (gd < best) { best = gd; deepest = e; }
       if (e.elite && gd < bestElite) { bestElite = gd; elite = e; }
     });
@@ -7763,6 +7786,7 @@ export class Game {
       effectiveRanges: this.towerEffectiveRange,
       biome: { id: this.activeBiome.id, name: this.activeBiome.name, accent: this.activeBiome.accent },
       biomeFlash: this.biomeFlash,
+      layoutId: this.layout.id,
       hazardActive: hazardActive(this.activeBiome, this.time),
       megaBoss: this.megaBossView(),
       megaShots: this.megaShots,

@@ -19,6 +19,7 @@ import type { Biome, BiomeCategory } from './biomes';
 import { campaignMegaFor } from './megaboss';
 import { POWER_BASE } from './power';
 import { campaignEventForStage, campaignEventStamp } from './campaignEvents';
+import { pickLayoutId } from './mapLayouts';
 import type { CampaignEventDef, CampaignEventStamp } from './campaignEvents';
 
 // Biomes are the shared ecosystem layer (docs/BIOMES.md), used by BOTH Campaign and Infinite
@@ -150,6 +151,9 @@ export interface StageConfig {
   scaling: DifficultyDef; // combined variant×stage → Game's `this.diff`
   enemySpeedMult: number;
   rewardMult: number; // end-of-run shard/loot multiplier (currency + loot quality)
+  /** The arena layout id (docs/MAP-LAYOUTS.md) — the battlefield's obstacle geometry. Optional:
+   *  a hand-built StageConfig without one plays the classic arena. */
+  layout?: string;
   /** OPTIONAL authored campaign event (docs/CAMPAIGN-EVENTS.md) — an Elite Rush / Boss Gauntlet /
    *  Genome Cache / Mutation choice this stage carries. Undefined on most stages (and always on the
    *  golden/stage path). Its mechanical levers are already folded into the fields above; this stamp
@@ -323,6 +327,7 @@ export function generateStage(stage: number, difficultyId = 'standard'): StageCo
     stage: st,
     difficulty: difficultyId,
     biome,
+    layout: layoutForStage(st),
     modifierName: biome.modifierName,
     hazardName: biome.mods.hazard.name,
     hazardDesc: biome.mods.hazard.desc,
@@ -393,6 +398,23 @@ export const BIOME_REGION = 5;
 /** The biome a stage belongs to. Regions cycle through BIOMES; appending a biome extends the world. */
 export function biomeForStage(stage: number): Biome {
   return BIOMES[Math.floor((Math.max(1, Math.floor(stage)) - 1) / BIOME_REGION) % BIOMES.length];
+}
+
+// ── Arena layouts (docs/MAP-LAYOUTS.md §selection) ──────────────────────────────────────────────
+/** Authored onboarding pins (the CAMPAIGN_BOSSES pattern): the tutorial's arena opens the Descent,
+ *  then each early stage introduces ONE new routing idea. Every other stage rolls biome-flavored. */
+export const CAMPAIGN_LAYOUT_PINS: Record<number, string> = { 1: 'classic', 2: 'open_maw', 3: 'twin_lanes' };
+const stageLayoutMemo: string[] = []; // [stage-1] → layout id, filled forward (no-repeat reads the previous pick)
+
+/** The arena layout a campaign stage plays — deterministic in the stage alone (every difficulty
+ *  shares the battlefield), biome-native layouts weighted up, never the previous stage's layout. */
+export function layoutForStage(stage: number): string {
+  const st = Math.max(1, Math.floor(stage));
+  for (let s = stageLayoutMemo.length + 1; s <= st; s++) {
+    const prev = stageLayoutMemo[s - 2];
+    stageLayoutMemo.push(CAMPAIGN_LAYOUT_PINS[s] ?? pickLayoutId(new Rng(stageSeed(s, 'layout')), s, biomeForStage(s).id, prev));
+  }
+  return stageLayoutMemo[st - 1];
 }
 
 /** Recommended account Power Score for a stage — SAME scale as meta.powerScore() (1.0 = fresh),

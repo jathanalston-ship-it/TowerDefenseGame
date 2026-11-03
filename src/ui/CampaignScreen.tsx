@@ -10,6 +10,7 @@ import { PredictionPanel } from './PredictionPanel';
 import { LoopDirective } from './NextGoalBanner';
 import { audio } from '../audio/sound';
 import { BIOME_REGION, campaignMapView, generateStage, recommendedPowerScore, stageUnlocks, upcomingGates } from '../core/campaign';
+import { layoutById } from '../core/mapLayouts';
 import { ENEMY_DEFS } from '../core/config';
 import { nextGoals } from '../state/nextGoal';
 import { ProgressBar } from './components/ProgressBar';
@@ -182,6 +183,7 @@ export function CampaignScreen({
           <div className="camp-detail-mods">
             <span className="camp-mod" title="Biome modifier">{cfg.modifierName}</span>
             <span className="camp-mod hazard" title={cfg.hazardDesc}>⚠ {cfg.hazardName}</span>
+            <span className="camp-mod" title={layoutById(cfg.layout).blurb}>⌗ {layoutById(cfg.layout).name}</span>
           </div>
 
           {/* Authored campaign event (docs/CAMPAIGN-EVENTS.md): telegraph + the Mutation choice. */}

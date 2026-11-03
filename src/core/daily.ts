@@ -18,6 +18,7 @@ import { assembleBoss } from './boss';
 import type { BossDef } from './boss';
 import { dailyModifierRegistry, dailyModifierById } from './dailyModifiers';
 import { MEGA, megaBossRegistry } from './megaboss';
+import { pickLayoutId } from './mapLayouts';
 import type { MegaEncounter } from './megaboss';
 
 // XOR constants seeding each sub-stream (distinct per concern — the Game-ctor convention).
@@ -30,6 +31,7 @@ const S_MOD = 0x0d1f0f05;
 const S_MUSIC = 0x0405c610;
 const S_HERO = 0x4845524f; // 'HERO'
 const S_MEGA = 0x4d454741; // 'MEGA' — the rare Mega variant roll (docs/MEGA-BOSS.md §daily)
+const S_LAYOUT = 0x1a70a7e5; // the day's arena layout (docs/MAP-LAYOUTS.md §selection)
 
 /** The fully-rolled plan for one UTC day. All fields are plain data (no live entities), so it
  *  serializes, ships to the UI, and drives the Phase-2 reward/ownership gating unchanged. */
@@ -129,6 +131,8 @@ export function generateDaily(key: string): DailyPlan {
   const stage: StageConfig = {
     ...baseStage,
     biome,
+    // The day's arena: a biome-flavored roll on its own stream (the whole world shares it).
+    layout: pickLayoutId(new Rng((seed ^ S_LAYOUT) >>> 0), effectiveStage, biome.id),
     modifierName: biome.modifierName,
     hazardName: biome.mods.hazard.name,
     hazardDesc: biome.mods.hazard.desc,

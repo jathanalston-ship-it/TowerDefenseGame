@@ -44,6 +44,7 @@ import type { CardEffect } from '../core/cards';
 import type { RunMode } from '../core/game';
 import type { ResolvedHeroKit } from '../core/config';
 import { generateStage, recommendedPowerScore } from '../core/campaign';
+import { layoutById } from '../core/mapLayouts';
 import { resolveCampaignBoon } from '../core/campaignEvents';
 import type { StageConfig } from '../core/campaign';
 import { formatPower } from '../core/power';
@@ -272,13 +273,13 @@ export function App(): JSX.Element {
     };
     setDeployInfo(
       mode === 'campaign' && stage
-        ? { title: `STAGE ${campaignStageRef.current} — ${stage.biome.name.toUpperCase()}`, sub: `The Descent · ${diffName}`, accent: stage.biome.accent, warn: campaignWarn() }
+        ? { title: `STAGE ${campaignStageRef.current} — ${stage.biome.name.toUpperCase()}`, sub: `The Descent · ${layoutById(stage.layout).name} · ${diffName}`, accent: stage.biome.accent, warn: campaignWarn() }
         : mode === 'endless'
           ? { title: 'INFINITE MODE', sub: `AI Director · infinite depth · ${diffName}`, accent: 'var(--viral, #c98bff)' }
           : mode === 'bossRush'
             ? { title: 'BOSS RUSH', sub: `The gauntlet · wave N = N bosses · ${diffName}`, accent: 'var(--danger, #ff5d73)' }
             : mode === 'daily' && stage
-              ? { title: `DAILY RUN — ${stage.biome.name.toUpperCase()}`, sub: 'One seed · one world · 20 waves', accent: stage.biome.accent }
+              ? { title: `DAILY RUN — ${stage.biome.name.toUpperCase()}`, sub: `One seed · one world · ${layoutById(stage.layout).name} · 20 waves`, accent: stage.biome.accent }
               : { title: 'QUICK SKIRMISH', sub: 'The authored 12-wave defense', accent: 'var(--kinetic, #5ad1ff)' },
     );
     setScreen('deploying');
