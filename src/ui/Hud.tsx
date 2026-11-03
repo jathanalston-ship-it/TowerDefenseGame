@@ -340,7 +340,8 @@ export function Hud({ hud, power, onOpenConsole, tutorial = false, doctrine = nu
               />
               <span className="hud-v hud-v-sm">
                 {Math.round(hud.hero.hp)}
-                <span className="hud-sub">/{Math.round(hud.hero.maxHp)}</span>
+                {/* ceil, like the snapshot's hp — a fractional max (Vitality ×1.08) must never read 249/248 */}
+                <span className="hud-sub">/{Math.ceil(hud.hero.maxHp)}</span>
               </span>
             </div>
           )}

@@ -444,7 +444,7 @@ export function Inspector({
         ) : (
           <div className="ho-vitals">
             <ProgressBar value={hud.hero.hp} max={hud.hero.maxHp} color={heroDef.color} height={10} className="bar-hero" label="Hero HP" />
-            <span className="ho-hp">{Math.round(hud.hero.hp)}<i>/{Math.round(hud.hero.maxHp)}</i></span>
+            <span className="ho-hp">{Math.round(hud.hero.hp)}<i>/{Math.ceil(hud.hero.maxHp)}</i></span>
             {hud.hero.shield > 0 && <span className="ho-shield" title="Shield">⛨ {hud.hero.shield}</span>}
           </div>
         )}
