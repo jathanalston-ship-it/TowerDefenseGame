@@ -138,6 +138,12 @@ MUCH / WHERE, readable in under a second.
   mounted (run end, boot) **hold in a bounded buffer (40) and flush on mount** — a
   reward announcement is never silently dropped; run earnings placard the moment the
   player returns to the hub.
+- **Post-run calm (2026-11):** a held burst flushes through `coalesceHeld` — more than
+  `ACHIEVEMENT_COLLAPSE_AT` (3) achievement placards become ONE `achievements` summary card
+  ("5 achievements · +170 Genome Cores", `items` expandable via "Show all", 7s life, re-armed
+  while read). An achievement event's `qty` is its Core reward. App mounts the toaster
+  `held` while any What's New card is up, so post-run placards land AFTER the unlock
+  summary instead of under it.
 - **Queue rules:** identical rewards (`type:name`) landing within **4s merge** —
   `+100 +250 +75` becomes one `+425` card that pulses, re-arms its lifetime, and jumps
   back to the front; differing sources blend to "Multiple sources". `merge:'count'`

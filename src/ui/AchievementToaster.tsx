@@ -27,6 +27,7 @@ export function AchievementToaster(): null {
       if (!def) continue;
       rewardToast.push({
         type: 'achievement',
+        qty: def.reward ?? 0, // the Core reward — a collapsed burst sums it ("5 achievements · +180 Cores")
         name: def.name,
         source: 'Achievement Unlocked',
         rarity: (def.reward ?? 0) >= 100 ? 'epic' : undefined,

@@ -9,7 +9,7 @@
 import type { CSSProperties } from 'react';
 import type { SaveData } from '../save/saveStore';
 import { t } from '../i18n';
-import { featureRevealed, featureView, type FeatureView } from '../state/unlocks';
+import { featureRevealed, featureView, isOpenNav, type FeatureView } from '../state/unlocks';
 import { recommendationsFor, type Recommendation } from '../state/recommendations';
 import { ACTIONS } from './iconLanguage';
 import { readyChain } from '../state/readyChain';
@@ -108,7 +108,9 @@ export function HubLanding({
   // Hub completion = mean of the member rings that exist (some screens have no natural metric).
   const ringVals = keys.map((k) => progress[k]).filter((v): v is number => v !== undefined);
   const completion = ringVals.length > 0 ? ringVals.reduce((a, b) => a + b, 0) / ringVals.length : null;
-  const attention = keys.flatMap((k) => (reasons[k] ?? []).map((line) => ({ k, line })));
+  // Attention rows are doors — a sealed wing's reason (a free Boss Rush entry at Stage 1) never
+  // becomes a row that opens onto a lock (docs/NOTIFICATIONS.md §recommendations).
+  const attention = keys.filter((k) => isOpenNav(save, k)).flatMap((k) => (reasons[k] ?? []).map((line) => ({ k, line })));
   const recs = recommendationsFor(save, { navs: keys, limit: 3 });
   const fresh = recentlyUnlocked(save, keys);
   // LIVE readiness per member screen (docs/HUB-FLOW.md §surfaces): a seen-but-unclaimed

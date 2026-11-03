@@ -621,8 +621,9 @@ export function App(): JSX.Element {
           it never overlaps the summary. On the hub (e.g. a star-buy unlock) it toasts as usual. */}
       <AchievementToaster />
       {/* Claim receipts (docs/NOTIFICATIONS.md §claim-popups) — hub claims only, so the
-          popup can never cover a live run. */}
-      {screen === 'menu' && <RewardToaster />}
+          popup can never cover a live run. Held while an unlock announcement is up: the
+          post-run placards (achievements…) land AFTER the What's New card/summary, collapsed. */}
+      {screen === 'menu' && <RewardToaster held={meta.whatsNew().length > 0} />}
       {screen === 'menu' && <PowerToaster />}
       {/* Account level-ups earned off-run (star buys, molts …) celebrate here; run-settle level-ups
           render inline on Results instead, so the toaster only drains on the menu. */}

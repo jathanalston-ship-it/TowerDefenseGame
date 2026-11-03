@@ -9,7 +9,7 @@ import { highestCampaignStage } from '../save/derive'; // cycle-free (never impo
 // Screen-linked rows delegate their unlock to the progression-gating registry
 // (docs/PROGRESSION-GATING.md) so the What's New card fires the moment its nav entry reveals —
 // ONE source of truth for "when does this system exist".
-import { featureRevealed } from './unlocks';
+import { FEATURE_BY_ID, featureRevealed, isOpenNav } from './unlocks';
 
 export type MechanicCategory = 'Basics' | 'Towers' | 'Heroes' | 'Progression' | 'Modes' | 'World';
 
@@ -533,4 +533,33 @@ export function unlockedMechanics(save: SaveData): MechanicDef[] {
 export function pendingAnnouncements(save: SaveData): MechanicDef[] {
   const seen = new Set(save.help?.seen ?? []);
   return MECHANICS.filter((m) => !m.core && !seen.has(m.id) && isMechanicUnlocked(m, save));
+}
+
+/** What's New batching (docs/GUIDED-UNLOCKS.md §batching): this many queued announcements (or
+ *  more) collapse into ONE summary card — a first run can unlock a dozen systems at once, and a
+ *  dozen WHAT/WHY/WHERE/NEXT walls teach nothing. One or two keep the full per-system card. */
+export const WHATS_NEW_SUMMARY_AT = 3;
+
+const CATEGORY_GLYPH: Record<MechanicCategory, string> = {
+  Basics: '◎', Towers: '⌖', Heroes: '✦', Progression: '⬆', Modes: '⬡', World: '⛬',
+};
+
+export interface UnlockSummaryRow {
+  id: string;
+  glyph: string; // the wing's own sigil (FEATURES) when it has one, else the category glyph
+  title: string;
+  line: string; // the one-line hook (MechanicDef.summary)
+  nav: string | null; // an OPEN destination for the row's "Open" action, else null
+}
+
+/** One row per newly-available system for the summary card. The full briefing is never lost —
+ *  archiving files every card into the Help wiki (and a guided wing still teaches on "Open"). */
+export function unlockSummaryRows(queue: readonly MechanicDef[], save: SaveData): UnlockSummaryRow[] {
+  return queue.map((m) => ({
+    id: m.id,
+    glyph: (m.nav && FEATURE_BY_ID.get(m.nav)?.glyph) || CATEGORY_GLYPH[m.category],
+    title: m.title,
+    line: m.summary,
+    nav: m.nav && isOpenNav(save, m.nav) ? m.nav : null,
+  }));
 }
