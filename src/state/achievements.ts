@@ -163,7 +163,9 @@ export const ACHIEVEMENTS: AchievementDef[] = [
   { id: 'idle_tree25', name: 'Cultivated Depths', desc: 'Grow 25 total Hive Evolution levels.', reward: 60, test: (c) => Object.values(c.save.idle.nodes).reduce((a, n) => a + n, 0) >= 25, progress: (c) => ({ cur: Object.values(c.save.idle.nodes).reduce((a, n) => a + n, 0), max: 25 }) },
 
   // ── Hidden (surprise milestones — concealed until earned) ──
-  { id: 'apex_slayer', name: 'Apex Slayer', desc: 'Slay a Brood Tyrant.', hidden: true, reward: 75, test: (c) => (c.save.stats.killsByEnemy.tyrant ?? 0) >= 1 },
+  // killsByEnemy.tyrant counts EVERY boss: framework bosses (Apex Bombard, Viral Matriarch…) use the
+  // 'tyrant' kind as their render proxy. The copy names what the test actually measures — any boss.
+  { id: 'apex_slayer', name: 'Apex Slayer', desc: 'Slay your first boss.', hidden: true, reward: 75, test: (c) => (c.save.stats.killsByEnemy.tyrant ?? 0) >= 1 },
   { id: 'annihilation', name: 'Annihilation', desc: 'Deal 1,000,000 total damage (lifetime).', hidden: true, reward: 100, test: (c) => c.save.stats.totalDamage >= 1_000_000, progress: (c) => ({ cur: c.save.stats.totalDamage, max: 1_000_000 }) },
   // Bestiary milestone (docs/COLLECTION.md): hunt every Deep-Fauna fusion strain at least once.
   { id: 'deep_fauna', name: 'Deep Fauna', desc: 'Slay all five Deep-Fauna strains.', hidden: true, reward: 90,

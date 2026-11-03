@@ -8,10 +8,14 @@ import { useEffect } from 'react';
 import { meta } from '../state/meta';
 import { music } from '../audio/music';
 import type { RunOutcome, RunResult } from '../state/meta';
-import { MASTERY, ENEMY_DEFS, HERO_DEFS, HERO_ORDER, TOWER_DEFS, TOWER_ORDER } from '../core/config';
+import { MASTERY, HERO_DEFS, HERO_ORDER, TOWER_DEFS, TOWER_ORDER } from '../core/config';
 import { DOCTRINES } from '../core/doctrines';
-import type { EnemyKind } from '../core/types';
+import { recommendedPowerScore } from '../core/campaign';
 import { rarityRank, rarityRegistry } from '../core/loot';
+import { defeatDebrief, highestThreat } from '../state/runDebrief';
+import type { DefeatDebrief } from '../state/runDebrief';
+import { isOpenNav } from '../state/unlocks';
+import { navBus } from '../state/navBus';
 import { masteryRewardById } from '../core/mastery';
 import { RewardReveal } from './RewardReveal';
 import type { AchievementItem, RewardCategory, RewardStat } from './RewardReveal';
@@ -23,6 +27,35 @@ import { rewardLine } from './components/AccountXpBar';
 import { audio } from '../audio/sound';
 import { ShareReplayButton } from './components/ShareReplay';
 import { ACCOUNT_CURRENCY } from '../core/currencies';
+
+/** The defeat debrief (docs/REWARD-PRESENTATION.md §debrief) — always visible under the title on
+ *  a loss: how close the run came, what got through, and ONE concrete next step. */
+function DebriefPanel({ d, onGo }: { d: DefeatDebrief; onGo: (nav: string) => void }): JSX.Element {
+  const where = d.totalWaves > 0 ? `Fell on wave ${d.wave} of ${d.totalWaves}` : `Fell at depth ${d.wave}`;
+  const boss = d.bosses[0];
+  return (
+    <div className="rr-debrief" role="note" aria-label="What went wrong" onClick={(e) => e.stopPropagation()}>
+      <div className="rr-debrief-close">
+        <b>{where}</b>
+        {boss && <span> · {boss.name} had <b className="rr-debrief-hp">{boss.hpPct}%</b> HP left</span>}
+      </div>
+      {d.threats.length > 0 && (
+        <div className="rr-debrief-leak">
+          <span className="rr-debrief-k">Got through</span>
+          {d.threats.map((t) => (
+            <span key={t.key} className="rr-debrief-src">
+              <b style={{ color: t.color }}>{t.name}</b> {Math.round(t.share * 100)}%
+            </span>
+          ))}
+        </div>
+      )}
+      <div className="rr-debrief-tip">
+        <span>▸ {d.tip}</span>
+        {d.tipNav && <button type="button" className="rr-debrief-go" onClick={() => onGo(d.tipNav!)}>Go ▸</button>}
+      </div>
+    </div>
+  );
+}
 
 export function Results({
   result,
@@ -47,14 +80,15 @@ export function Results({
     TOWER_ORDER.reduce((s, k) => s + Math.max(0, outcome.mastery[k].toLevel - outcome.mastery[k].fromLevel), 0) +
     HERO_ORDER.reduce((s, k) => s + Math.max(0, outcome.heroMastery[k].toLevel - outcome.heroMastery[k].fromLevel), 0);
 
-  // Highest Threat = the toughest enemy (by base HP) the player actually put down this run.
-  let threat: { name: string; color: string } | null = null;
-  let threatHp = -1;
-  for (const [k, n] of Object.entries(result.stats.killsByEnemy)) {
-    if (n <= 0) continue;
-    const d = ENEMY_DEFS[k as EnemyKind];
-    if (d && d.hp > threatHp) { threatHp = d.hp; threat = { name: d.name, color: d.color }; }
-  }
+  // Highest Threat = the toughest thing the player actually put down this run — a slain boss by
+  // its REAL name (framework bosses borrow the 'tyrant' kind; state/runDebrief resolves it).
+  const threat = highestThreat(result.stats);
+  // Defeat debrief (docs/REWARD-PRESENTATION.md §debrief): how close, what got through, one step.
+  const debrief = defeatDebrief(result, {
+    power: meta.power().score,
+    rec: result.campaignStage ? recommendedPowerScore(result.campaignStage, result.difficulty ?? 'standard') : 0,
+    canOpen: (nav) => isOpenNav(meta.get(), nav),
+  });
 
   // Bio-containers banked this run, grouped by rarity (rarest first) + the guaranteed run cache.
   const lootCounts = new Map<string, number>();
@@ -468,6 +502,7 @@ export function Results({
     <div className="menu results-screen">
       <RewardReveal
         title={title}
+        banner={debrief ? <DebriefPanel d={debrief} onGo={(nav) => { onContinue(); window.setTimeout(() => navBus.go(nav), 60); }} /> : undefined}
         categories={categories}
         achievements={achievements}
         onContinue={onContinue}
