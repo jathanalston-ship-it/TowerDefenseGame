@@ -166,7 +166,8 @@ a.tag:hover { color: var(--vital); border-color: var(--vital); text-decoration: 
 .home-hero { position: relative; padding: 96px 0 70px; text-align: center; overflow: hidden; border-bottom: 1px solid var(--line); }
 .home-hero::after { content: ''; position: absolute; inset: 0; pointer-events: none; background: radial-gradient(80% 90% at 50% 115%, rgba(182, 232, 74, 0.14), transparent 55%), radial-gradient(60% 70% at 50% -20%, rgba(201, 139, 255, 0.12), transparent 60%); }
 .home-hero .eyebrow { animation: rise 0.9s var(--ease) both; }
-.home-title { font-size: clamp(46px, 9vw, 92px); font-weight: 900; letter-spacing: 0.12em; margin: 10px 0; background: linear-gradient(100deg, var(--red), var(--violet) 45%, var(--cyan)); -webkit-background-clip: text; background-clip: text; color: transparent; filter: drop-shadow(0 0 34px rgba(184, 107, 255, 0.3)); animation: rise 1.1s var(--ease) 0.1s both; }
+/* 30px floor: the 12-letter wordmark (+0.12em tracking) must fit a 320–390px phone — 46px clipped. */
+.home-title { font-size: clamp(30px, 9vw, 92px); font-weight: 900; letter-spacing: 0.12em; margin: 10px 0; background: linear-gradient(100deg, var(--red), var(--violet) 45%, var(--cyan)); -webkit-background-clip: text; background-clip: text; color: transparent; filter: drop-shadow(0 0 34px rgba(184, 107, 255, 0.3)); animation: rise 1.1s var(--ease) 0.1s both; }
 .home-tag { font-size: clamp(16px, 2.4vw, 21px); color: var(--muted); margin: 0 auto 30px; max-width: 640px; animation: rise 1.1s var(--ease) 0.25s both; }
 .hero-ctas { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; animation: rise 1.1s var(--ease) 0.4s both; }
 .btn-primary { padding: 16px 34px; font-size: 17px; font-weight: 800; letter-spacing: 0.08em; background: linear-gradient(120deg, var(--vital), #8fd032); color: #0a1408; border-radius: 12px; box-shadow: 0 0 34px -8px var(--vital); }
