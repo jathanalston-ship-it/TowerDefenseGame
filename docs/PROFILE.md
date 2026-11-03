@@ -102,8 +102,9 @@ first-launch WelcomeGate that *completers never even saw*) are unified into **TH
 COMMISSIONING** (`ui/tutorial/Commissioning.tsx`) — fired once, at genuine tutorial
 completion, in four skippable steps:
 
-1. **GRADUATION** — the one-time reward payout (shared `RewardRows` primitives with the
-   Hud Tour's reveal).
+1. **GRADUATION** — THE onboarding reward moment: one reveal of every unclaimed onboarding
+   ledger (`meta.grantOnboardingRewards`, docs/TUTORIAL.md §graduation — the tour no longer
+   pays a second card). Shared `RewardRows` primitives with the legacy tour remainder reveal.
 2. **DESIGNATION** — the commander name: server-mirrored sanitizer, live preview, and a
    one-tap callsign generator (`core/identity.ts suggestCommanderName` — always
    sanitizer-clean). Auto-skipped for already-named veterans; skipping defers to the
@@ -116,7 +117,9 @@ completion, in four skippable steps:
 4. **SAFEGUARD** — the account decision, folded in from the accounts platform (guest /
    create account / sign in — the exported `AuthForms`), asked *after* the player has
    something to lose. Completing any route marks the device onboarded, arms the sync
-   engine, and takes the first mirror.
+   engine, and takes the first mirror. ONE guest choice — "Continue as Guest" (durable, on
+   this device) with a one-line note; the session-only Guest Mode is not offered here (it
+   sat beside it with near-identical wording and would discard the graduate's payout).
 
 **Save:** `profileSigil: string | null` (additive; junk sanitizes to null). Both name steps
 preview the full identity including the register number (§designation-tags). **Skippers**

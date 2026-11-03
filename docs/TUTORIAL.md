@@ -7,11 +7,14 @@ lessons taught over a LIVE simplified game (see "Combat Tutorial — shipped" be
 ## Combat Tutorial — shipped (GATED flow; audit record: docs/TUTORIAL-AUDIT.md)
 
 Ten checkpoints (`COMBAT_TUTORIAL` in `core/tutorial.ts`) teach through play, each unlocking only
-on a CONFIRMED player action (event trigger) or acknowledgement — never a timer: protect the Hive
-Core → Biomass → place a Needle → survive Wave 1 → kills-became-Biomass recap → second tower →
-Hero ability → Gene Card draft → tower Inspect → graduate. The Gene Card step teaches BOTH halves
-of the system (GENE-EVOLUTION.md): the drafted boost is run-only, but the card joins the permanent
-Gene Archive.
+on a CONFIRMED player action (event trigger) or acknowledgement — never a timer, in the REAL run
+rhythm (wave → draft → build → wave; §onboarding-flow): protect the Hive Core → Biomass → place a
+Needle → survive Wave 1 → Gene Card draft (dealt as wave 1 settles) → kills-became-Biomass recap →
+second tower from the Conveyor → tower Inspect → Hero ability (wave 2 launches with the lesson, so
+the cast lands on a live swarm) → graduate (finish wave 2). The encounter is **2 waves**
+(`COMBAT_TUTORIAL.waves`), and the HUD says so. The Gene Card step teaches BOTH halves of the
+system (GENE-EVOLUTION.md): the drafted boost is run-only, but the card joins the permanent Gene
+Archive.
 
 - **The game is gated to the lesson plan (`game.tutorialMode`).** Set only by the director, never
   on a golden run. While on: natural post-wave drafts are HELD (`endWave` skips the roll), the
@@ -21,25 +24,31 @@ Gene Archive.
 - **Director (`ui/tutorial/tutorialDirector.ts`).** Bridges the game event bus onto the abstract
   lesson signals (`tower-placed`, `hero-ability`, `card-chosen`, `wave-completed` …) — advancing
   the CURRENT step once, guarded against bursts — and scripts EVERY beat: starts each tutorial
-  wave, releases the held draft via `game.openTutorialDraft()` exactly at the gene-card lesson,
-  tops the bank up (`game.tutorialEnsureBiomass`) so the build lesson can't stall, and pre-selects
-  the first tower for the Inspector lesson.
+  wave (wave 2 with the Hero-ability lesson), releases the held draft via
+  `game.openTutorialDraft()` inside wave 1's settle beat (so it deals in natural order and the
+  wave counter never steps back), tops the bank up (`game.tutorialEnsureBiomass`) so the build
+  lesson can't stall, pre-selects the first tower for the Inspector lesson, recharges the ability
+  (`game.tutorialReadyAbility`) for its lesson, and sets `game.tutorialWaves` — a HUD read-model
+  override so the run length reads 2 and the host stage's finale objectives (boss / cache tiers)
+  never appear. A slow caster who outlasts wave 2 graduates on reaching the final step.
 - **Live encounter.** `TutorialRunner` hosts a real `<GameView tutorial onReady=…>` (fail-safe: a
   huge Integrity bonus so the core can't fall) + the `TutorialOverlay`. The `tutorial` flag skips
   loot banking and the auto run-end hand-off; the tutorial's Pause also freezes the SIM.
 - **Non-blocking guidance + smart camera.** Board steps use an arrow + callout anchored to the
-  EXACT element (`data-tut="tower-card-first"`, ability pod), pointer-through, viewport-clamped
-  clear of the slot lattice; the objective pill sits below the HUD. `cue.canvasFocus` glides the
-  battlefield view toward a board point (eased, ≤6 % zoom — never snaps).
+  EXACT element (`data-tut="tower-card-first"`, the ability BUTTON `[data-tut="ability"]
+  .ability-btn`), pointer-through, viewport-clamped clear of the slot lattice; the objective pill
+  sits below the HUD. `cue.canvasFocus` glides the battlefield view toward a board point (eased,
+  ≤6 % zoom — never snaps). See §desktop-contract for the never-cover rules.
 - **Rewards.** Mid-flow MILESTONES (`checkpoint.milestone` → `meta.grantTutorialMilestone`,
   ledger `save.tutorial.milestones`): +25 Genome Cores for surviving Wave 1, +10 Gene Essence at
   the first draft — celebrated by an overlay toast. First COMPLETION (gated on the store's end
-  reason — a Skip never pays) grants Genome Cores + Tower/Hero Shards + a guaranteed **rare
-  Tutorial Bio-Container** + a basic Hero weapon + the *Assimilation Protocol* achievement —
-  shown as the GRADUATION step of **THE COMMISSIONING** (`ui/tutorial/Commissioning.tsx`,
-  docs/PROFILE.md §commissioning) — the post-tutorial account-creation ceremony that then walks
-  designation → sigil + founding-title oath → the account safeguard. Replays re-teach but
-  **never re-grant** (all three ledgers), and never re-run the ceremony.
+  reason — a Skip never pays) pays **THE graduation** (§graduation): 300 Genome Cores + 30
+  Strain Samples per tower + 40 Apex Genome + **2 rare Tutorial Bio-Containers** + 2 basic Hero
+  weapons + the *Assimilation Protocol* achievement — shown ONCE, as the GRADUATION step of
+  **THE COMMISSIONING** (`ui/tutorial/Commissioning.tsx`, docs/PROFILE.md §commissioning) — the
+  post-tutorial account-creation ceremony that then walks designation → sigil + founding-title
+  oath → the account safeguard. Replays re-teach but **never re-grant** (all ledgers), and
+  never re-run the ceremony.
 
 Below is the underlying architecture (unchanged; the lessons are data + presentation props on it).
 
@@ -193,6 +202,76 @@ game no longer uses** (a classic full tower rail; real runs use the Biomorph Con
 - **Skippers land on Campaign.** A tutorial Skip routes to the Campaign screen (one Deploy from
   the real Stage 1) instead of the bare hub — a skipper wants to play, not navigate
   (`TutorialRunner` → `navBus.go('campaign')`). Skip still marks the tutorial seen (never
-  re-forced) and never pays rewards.
+  re-forced) and never pays rewards — and since 2026-11 it first confirms what it forfeits
+  (§graduation).
 - Stage 1's opening waves are the **Early Brood** (ENEMIES.md §early-brood) — four weak
   teaching enemies, so "figure it out on my own" is a safe, legible first hour.
+
+---
+
+## §onboarding-flow — one short, accurate onboarding (2026-11 pass; audit: TUTORIAL-AUDIT.md §G)
+
+A fresh account's whole first-time path, in order — **one** reward moment:
+
+| # | Beat | Steps | Skippable |
+|---|---|---|---|
+| 1 | Marketing home → **Play Free** | — | — |
+| 2 | "Incoming transmission" → opening cutscene | 1 tap + film | yes (Skip) |
+| 3 | Cold-open banner → **Combat Tutorial** | 10 lessons, 2 waves | yes (Skip confirm, §graduation) |
+| 4 | **THE COMMISSIONING** — GRADUATION (the ONE reward reveal) → designation → identity → safeguard | 4 cards | every card |
+| 5 | Hub → **Field Orientation** | 4 stops | yes — pays nothing, so nothing is lost |
+
+Field Orientation (`ui/HudTour.tsx` `TOUR`) is cut from 10 stops (of 16 authored) to the four a graduate needs on
+minute one, in the order they act: **Your Next Fight** (`.mc-campaign`) → **Rewards Hub**
+(the Vault, where the graduation containers wait) → **Evolution Hub** (where the Cores are
+spent) → **Profile & Help** (account, settings, the Field Manual, replays). Every other wing
+announces itself with its own What's New card when it reveals. A combat-tutorial skipper's tour
+drops the not-yet-revealed stops (typically 2 remain).
+
+## §graduation — ONE payout, idempotent ledgers
+
+`meta.grantOnboardingRewards()` runs once on the tutorial's genuine completion and pays every
+onboarding ledger still unclaimed — `combat` (the tutorial's grant) and `hudtour` (the grant
+the Field Orientation used to pay at its finish, which produced a SECOND identical
+"Assimilation Protocol" card) — merged into ONE `TutorialRewardSummary` (counts add:
+`containers`, `items`). Totals are exactly what tutorial + tour paid before the merge; the
+per-ledger numbers live in `TUTORIAL_GRANT` (state/meta.ts).
+
+- **Idempotent per ledger** (`save.tutorial.rewarded`): a replay pays nothing; a save that
+  already claimed either ledger is paid only the remainder. Grant uids carry the ledger id, so
+  two grants in the same millisecond never collide.
+- **The tour pays nothing** — Finish and Skip call the same `completeHudTour()`. The one
+  exception is a LEGACY save that graduated under the old two-part promise (`combat` paid,
+  `hudtour` owed): the tour's end (either button) pays that remainder with the standalone
+  `TutorialRewardReveal`. A tutorial skipper is never paid by the tour.
+- **No silent forfeit.** The tutorial's *Skip Tutorial* opens a confirm naming what is lost
+  (`meta.pendingOnboardingReward()` — "+300 Genome Cores, 2 rare Bio-Containers and more") and
+  the way back (replay from Settings — the ledgers are still unclaimed, so a later genuine
+  completion pays in full). When nothing is pending (a replay) Skip is immediate.
+- The reveal shows the Power line only for a real gain (the grants are spendables).
+
+## §desktop-contract — a lesson never covers what it teaches
+
+Anchored to selectors, measured, viewport-clamped — never hard-coded positions, so a HUD/board
+re-layout cannot push a lesson over its subject:
+
+- **`cue.callout.avoid`** — a selector the bubble must never overlap. Every lesson shown while a
+  wave runs (`wave-1`, `hero-ability`, `graduation`) avoids `canvas.board`; the draft lesson
+  anchors BELOW `.overlay .cards` and avoids it. On overlap the `Callout` primitive re-seats the
+  bubble BESIDE the region first (left/right, nearest the anchor; a target-less bubble rides low,
+  bottom-aligned), then below/above, rejecting any seat that leaves the viewport or covers the
+  target.
+- **Stable size.** The `Typewriter` lays the untyped remainder out invisibly, so a bubble never
+  grows mid-transmission (growth used to walk it back over the lane / its own arrow).
+- **Arrow + bubble on the same side of the same target** get a 44 px gap (the arrow sits in it).
+- **Pause / Skip (desktop)** take the first measured seat clear of the ability pod, the bubble,
+  its arrow and spotlight — just above the pod (right-aligned), else under the objective pill. The
+  old bottom-right corner sat on *Apex Leap* at 1366×768.
+- **Truthful HUD.** `game.tutorialWaves` (read-model only — no sim system reads it) makes the
+  snapshot report the lesson's 2 waves and no finale anticipations: "Survive 2 more waves" →
+  "Final wave — finish it", no "Brood Tyrant at wave 12" / "Mutagen Vault at wave 7".
+
+Verified live (Playwright, fresh context, 1440×900 + 1366×768): every step screenshotted with a
+geometry audit — no bubble on the lane during a wave, none on a draft card, the ability arrow on
+`.ability-btn` with nothing over it, controls never on the pod, wave counter sequence `[1, 2]`,
+10 lessons + 4 Commissioning cards before the hub, exactly one reward card, 4 tour stops.

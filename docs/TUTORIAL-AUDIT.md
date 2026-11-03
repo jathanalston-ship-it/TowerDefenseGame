@@ -73,3 +73,37 @@ resulting architecture is documented in docs/TUTORIAL.md; this file is the audit
   locked, wave-completed advance, both milestone toasts, held draft released at the lesson,
   inspector pre-selected, reward reveal — then the anchored Field Orientation (Back/Next/Skip)
   with zero page errors.
+
+---
+
+## G. Onboarding pass — 2026-11-03 (fresh-account headless playtest)
+
+**Method:** a fresh-context Playwright walk of the whole first-time path (marketing → Play Free →
+transmission/cutscene → all 10 lessons with real clicks → Commissioning → Field Orientation) at
+1440×900 and 1366×768, screenshotting every step and auditing geometry (bubble vs lane / draft
+cards / ability button, arrow target, control seats, HUD wave text). Architecture:
+docs/TUTORIAL.md §onboarding-flow, §graduation, §desktop-contract.
+
+| # | Finding | Severity | Resolution |
+|---|---|---|---|
+| G1 | **Two identical reward cards.** The Commissioning paid the tutorial grant; the 10-stop Field Orientation then paid a second "Assimilation Protocol" card (`completeHudTour → grantTutorialRewards('hudtour')`). Skipping the tour silently forfeited it. | HIGH | ONE graduation: `meta.grantOnboardingRewards()` pays both ledgers as one summary at tutorial completion (same totals); the tour pays nothing (Finish ≡ Skip). Legacy saves owed `hudtour` are paid it at tour end either way; every ledger stays idempotent. |
+| G2 | The Field Orientation was 10 stops of WHAT/WHY/WHEN/LATER right after a 4-card ceremony. | MED | Cut to 4 stops in act order: next fight → rewards → spend → profile & help. Other wings keep their What's New cards. |
+| G3 | The tutorial's Skip silently forfeited the graduation. | MED | Skip opens a confirm naming the cost (`pendingOnboardingReward`) and the replay route; a replay (nothing pending) skips at once. |
+| G4 | Wave-1 callout (no target → centered) sat ON the lane during combat. | HIGH | `cue.callout.avoid = canvas.board`: the bubble re-seats beside the lane (measured, clamped); same for the ability + graduation lessons. |
+| G5 | The draft lesson's centered bubble covered the middle draft card. | HIGH | Anchored below `.overlay .cards` with the row as its avoid zone. |
+| G6 | The ability arrow pointed at the pod's centre — onto the tutorial's own Pause button. At 1366×768 the Pause/Skip pills also sat ON *Apex Leap* (a click on the ability paused the trial). | HIGH | Arrow + bubble target `[data-tut="ability"] .ability-btn` from above (44 px arrow gap); desktop controls take a measured seat clear of the pod / bubble / arrow / spotlight. |
+| G7 | The ability was taught in the build phase — the cast hit an empty field. | MED | Lesson order follows the real rhythm: the ability lesson launches wave 2 (and recharges the ability), graduation finishes it. |
+| G8 | HUD claimed a 12-wave run: "/12", "Survive 11 more waves", "Brood Tyrant at wave 12", "Mutagen Vault at wave 7" — the lesson ends after wave 2. | MED | `game.tutorialWaves` read-model (`COMBAT_TUTORIAL.waves = 2`): "/2", "Survive 2 more waves" → "Final wave — finish it", no finale anticipations. Sim untouched (goldens byte-identical). |
+| G9 | Wave counter stepped BACK (2/12 → 1/12) when the held draft opened from the build phase. | LOW | The draft now deals inside wave 1's settle beat (`openTutorialDraft` accepts the settle window), so the order is wave → draft → build; counter sequence `[1, 2]`. |
+| G10 | Callouts grew while typing — a lane-avoiding bubble crept back over the lane, a top-anchored one over its arrow. | LOW | `Typewriter` reserves the untyped remainder invisibly; bubbles have their final size from frame one. |
+| G11 | Commissioning SAFEGUARD offered "Continue as Guest" AND "Play in Guest Mode" side by side (near-identical wording; the latter discards the graduate's progress at browser close). | MED | One "Continue as Guest" + a one-line note (saved on this device; add an account from Profile any time). Session-only Guest Mode stays on the WelcomeGate. |
+| G12 | Graduation reveal read "Power Score 1,005 → 1,005". | LOW | The Power line shows only for a real gain. |
+
+**Verification:** `state/tutorialRewards.test.ts` (one-summary graduation, remainder-only,
+legacy tour remainder, skipper gets nothing from the tour, same-ms uid uniqueness),
+`core/tutorialGate.test.ts` (settle-window draft keeps the displayed wave at 1, `tutorialWaves`
+read-model, `tutorialReadyAbility` gate), `core/tutorial.test.ts` (natural order, `avoid` on
+every in-wave lesson, ability arrow on the button), `dev/tutorialAnchors.test.ts` (avoid
+selectors resolve). Live: both viewports — 0 bubble/lane, bubble/card, control/pod overlaps;
+1 reward card; 10 lessons + 4 Commissioning cards before the hub; 4 tour stops; skipper path
+shows the confirm, lands, 2-stop tour, no reward card.
