@@ -9,7 +9,7 @@
 // Pure data + functions: no DOM, no state, no Math.random. cards.ts imports at runtime;
 // the CardDef/CardEffect imports below are type-only (the accepted back-edge pattern).
 
-import type { CardDef, CardEffect, RunModifiers } from './cards';
+import type { CardDef, CardEffect, HookEvent, RunModifiers } from './cards';
 import type { StatusType } from './types';
 import { TOWER_DEFS } from './config';
 import { effectsPower } from './power';
@@ -175,6 +175,13 @@ const FLAG_VOCAB: Record<string, { cat: EffectCategory; pre: string; kw: string;
   heroCorrosionAura: { cat: 'debuff', pre: 'The Hero radiates ', kw: 'Corrosion', post: ' to nearby enemies.', tier: 4, exact: 'Hero Corrosion aura' },
 };
 
+// Hero stances (the heroAnchor string knob) — where the hero idles between fights.
+const ANCHOR_VOCAB: Record<string, string> = {
+  nucleus: ' guards the Nucleus between fights.',
+  line: ' holds the front line between fights.',
+  towers: ' holds among your towers between fights.',
+};
+
 // Statuses → the category their affliction reads as (shred = the crit lane; slows/holds = CC).
 const STATUS_CAT: Partial<Record<StatusType, EffectCategory>> = {
   Fracture: 'critical', Corrosion: 'debuff', Infection: 'debuff', Disruption: 'debuff',
@@ -187,11 +194,16 @@ const MUTATOR_VOCAB: Record<string, { pre: string; kw: string; post: string; cat
 };
 
 // Hook events → subject phrasing (plural drives verb agreement).
-const EVENT_VOCAB: Record<string, { label: string; plural: boolean; short: string }> = {
+const EVENT_VOCAB: Record<HookEvent, { label: string; plural: boolean; short: string }> = {
   enemyKilled: { label: 'Slain enemies', plural: true, short: 'kill' },
   waveStarted: { label: 'Every wave start', plural: false, short: 'wave start' },
   abilityCast: { label: 'Every Hero ability cast', plural: false, short: 'ability cast' },
   waveCleared: { label: 'Every cleared wave', plural: false, short: 'wave clear' },
+  // Rule events (docs/CARDS.md §rules)
+  eliteKilled: { label: 'Slain elites and bosses', plural: true, short: 'elite kill' },
+  nucleusHit: { label: 'Every blow on the Nucleus', plural: false, short: 'Nucleus hit' },
+  towerDeployed: { label: 'Every tower deployment', plural: false, short: 'deployment' },
+  strainRaised: { label: 'Every Strain raise', plural: false, short: 'Strain raise' },
 };
 
 // Instant resource ops.
@@ -274,8 +286,11 @@ function describeEffect(e: CardEffect): EffectLine | null {
       if (!f) return null;
       return { pre: f.pre, keyword: f.kw, post: f.post, cat: f.cat, tier: f.tier, good: true, exact: f.exact };
     }
-    case 'set':
+    case 'set': {
+      const stance = e.field === 'heroAnchor' ? ANCHOR_VOCAB[e.value] : undefined;
+      if (stance) return { pre: 'The ', keyword: 'Hero', post: stance, cat: 'hero', tier: 2, good: true, exact: `${e.field} = ${e.value}` };
       return { pre: 'Re-anchors the ', keyword: 'Hero', post: "'s battlefield stance.", cat: 'hero', tier: 2, good: true, exact: `${e.field} = ${e.value}` };
+    }
     case 'biomass': case 'integrity': case 'heroHp': {
       if (e.value === 0) return null;
       const v = INSTANT_VOCAB[e.op];

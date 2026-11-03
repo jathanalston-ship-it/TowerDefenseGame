@@ -103,6 +103,16 @@ describe('card subject — what it AFFECTS (derived from effects)', () => {
     // Draconic signature sets — Glaive blades + Roost brood
     second_wing: 'glaive', bladestorm_communion: 'glaive',
     spare_egg: 'roost', blackened_sky: 'roost',
+    // RULE GENES (docs/CARDS.md §rules) — hero strike grants pin HERO; cast-point bursts pin HERO,
+    // Nucleus retaliation pins HIVE, deploy/strain bursts are army-wide; kill spreads keep their
+    // status's tower identity (the plague_vector convention) unless they mix statuses.
+    splinter_venom: 'hero', caustic_strikes: 'hero', acid_etching: 'mortar', shatter_lattice: 'global',
+    patient_zero: 'hero', contagion_bloom: 'parasite', septic_breach: 'hive', synaptic_burst: 'hero',
+    cryo_fang: 'hero', dread_spores: 'hive', recycler_glands: 'economy', strain_tithe: 'economy',
+    mutagenic_shock: 'global', static_wake: 'global', lancing_sinew: 'global', impaling_lattice: 'global',
+    sapper_cradle: 'hive', bulwark_instinct: 'hero', pack_leader: 'hero', vanguard_stance: 'hero',
+    chain_reflex: 'hero', blood_tithe: 'economy', trophy_hunter: 'economy', apex_contagion: 'global',
+    hive_martyrdom: 'global',
   };
   const tagOf = (s: CardSubject): string => (s.kind === 'tower' ? s.tower : s.kind);
 

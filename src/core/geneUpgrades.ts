@@ -673,4 +673,142 @@ export const GENE_UPGRADES: Record<string, GeneUpgradeLevel[]> = {
     { effects: [{ op: 'mul', field: 'biomassMult', value: 1.06 }], note: 'Veins of gold — +6% biomass.' },
     { effects: [{ op: 'mul', field: 'biomassMult', value: 1.05 }, { op: 'add', field: 'damagePerTower', value: 0.01 }], note: 'The rot is WEALTH — +5% biomass, +1% per tower.' },
   ],
+  // ════════════════ RULE GENES (docs/CARDS.md §rules) — levels SHARPEN the rule (bigger bursts,
+  // a second hook) and carry the scored rider that keeps every level Power-visible. ════════════════
+  splinter_venom: [ // common → 3
+    { effects: [{ op: 'mul', field: 'heroDamageMult', value: 1.06 }], note: 'Barbed edge — +6% hero damage.' },
+    { effects: [{ op: 'add', field: 'fractureBonusStacks', value: 1 }, { op: 'mul', field: 'heroDamageMult', value: 1.03 }], note: 'Deeper splinters — +1 max Fracture stack.' },
+    { effects: [{ op: 'grant', grant: { kind: 'heroAttackStatus', status: 'Fracture', amount: 1 } }, { op: 'mul', field: 'heroAttackSpeedMult', value: 1.05 }], note: 'Twin splinters — each strike Fractures twice; +5% hero attack speed.' },
+  ],
+  caustic_strikes: [ // common → 3
+    { effects: [{ op: 'mul', field: 'poolDpsMult', value: 1.08 }], note: 'Stronger acid — Corrosion ticks +8% harder.' },
+    { effects: [{ op: 'mul', field: 'heroDamageMult', value: 1.06 }], note: 'Etched claws — +6% hero damage.' },
+    { effects: [{ op: 'add', field: 'corrosionSlowBonus', value: 0.05 }, { op: 'mul', field: 'heroAttackSpeedMult', value: 1.05 }], note: 'Clinging film — Corrosion slows +5% more; +5% hero attack speed.' },
+  ],
+  acid_etching: [ // uncommon → 3
+    { effects: [{ op: 'mul', field: 'poolDpsMult', value: 1.1 }], note: 'Hotter splash — Corrosion ticks +10% harder.' },
+    { effects: [{ op: 'add', field: 'corrosionSlowBonus', value: 0.05 }, { op: 'mul', field: 'towerDamageMult', value: 1.03 }], note: 'Sticky acid — Corrosion slows +5% more.' },
+    { effects: [{ op: 'hook', hook: { on: 'enemyKilled', action: { do: 'spreadStatus', status: 'Corrosion', amount: 3, radius: 110 } } }, { op: 'mul', field: 'poolDpsMult', value: 1.08 }], note: 'Burst sacs — kills ALSO splash Corrosion 110px wide.' },
+  ],
+  shatter_lattice: [ // rare → 4
+    { effects: [{ op: 'add', field: 'fractureBonusStacks', value: 2 }], note: 'Deeper lattice — +2 max Fracture stacks.' },
+    { effects: [{ op: 'mul', field: 'towerDamageMult', value: 1.05 }], note: 'Load-bearing cracks — +5% tower damage.' },
+    { effects: [{ op: 'add', field: 'reactionRepeats', value: 1 }], note: 'Echoing SHRED — status reactions re-fire once more.' },
+    { effects: [{ op: 'hook', hook: { on: 'enemyKilled', action: { do: 'spreadStatus', status: 'Fracture', amount: 1, radius: 120 } } }, { op: 'add', field: 'fractureBonusStacks', value: 2 }], note: 'Total collapse — kills splinter Fracture 120px wide; +2 stacks.' },
+  ],
+  patient_zero: [ // uncommon → 3
+    { effects: [{ op: 'mul', field: 'parasiteInfectionMult', value: 1.1 }], note: 'Virulent strain — +10% Infection damage.' },
+    { effects: [{ op: 'mul', field: 'heroDamageMult', value: 1.06 }], note: 'Feverish host — +6% hero damage.' },
+    { effects: [{ op: 'hook', hook: { on: 'enemyKilled', action: { do: 'spreadStatus', status: 'Infection', amount: 1, radius: 80 } } }, { op: 'mul', field: 'parasiteInfectionMult', value: 1.08 }], note: 'Index case — slain foes pass 1 Infection on.' },
+  ],
+  contagion_bloom: [ // common → 3
+    { effects: [{ op: 'mul', field: 'parasiteInfectionMult', value: 1.08 }], note: 'Riper spores — +8% Infection damage.' },
+    { effects: [{ op: 'mul', field: 'towerDamageMult', value: 1.04 }], note: 'Opportunist — +4% tower damage.' },
+    { effects: [{ op: 'hook', hook: { on: 'eliteKilled', action: { do: 'spreadStatus', status: 'Infection', amount: 2, radius: 180 } } }, { op: 'mul', field: 'parasiteInfectionMult', value: 1.06 }], note: 'Pandemic bloom — the burst reaches 180px.' },
+  ],
+  septic_breach: [ // rare → 4
+    { effects: [{ op: 'mul', field: 'parasiteInfectionMult', value: 1.1 }], note: 'Septic load — +10% Infection damage.' },
+    { effects: [{ op: 'add', field: 'integrityRegenPerWave', value: 10 }, { op: 'mul', field: 'parasiteInfectionMult', value: 1.04 }], note: 'Scar tissue — restore 10 Integrity each wave.' },
+    { effects: [{ op: 'mul', field: 'towerDamageMult', value: 1.05 }], note: 'Fever response — +5% tower damage.' },
+    { effects: [{ op: 'hook', hook: { on: 'nucleusHit', action: { do: 'spreadStatus', status: 'Corrosion', amount: 2, radius: 110 } } }, { op: 'mul', field: 'parasiteInfectionMult', value: 1.08 }], note: 'Necrotic breach — the eruption also corrodes (SHRED fuel).' },
+  ],
+  synaptic_burst: [ // common → 3
+    { effects: [{ op: 'mul', field: 'heroCooldownMult', value: 0.94 }], note: 'Quicker synapse — −6% ability cooldown.' },
+    { effects: [{ op: 'add', field: 'obeliskVulnerabilityBonus', value: 0.05 }], note: 'Overload — Disrupted foes take +5% more damage.' },
+    { effects: [{ op: 'hook', hook: { on: 'abilityCast', action: { do: 'spreadStatus', status: 'Disruption', amount: 2.5, radius: 200 } } }, { op: 'mul', field: 'heroAbilityRadiusMult', value: 1.08 }], note: 'Grand mal — the burst reaches 200px; +8% ability radius.' },
+  ],
+  cryo_fang: [ // uncommon → 3
+    { effects: [{ op: 'mul', field: 'chrysalisFreezeDurationMult', value: 1.1 }], note: 'Deep cold — encasements hold +10% longer.' },
+    { effects: [{ op: 'mul', field: 'heroAttackSpeedMult', value: 1.06 }], note: 'Snap bite — +6% hero attack speed.' },
+    { effects: [{ op: 'mul', field: 'heroDamageMult', value: 1.05 }, { op: 'mul', field: 'chrysalisFreezeDurationMult', value: 1.06 }], note: 'Shatter strike — +5% hero damage.' },
+  ],
+  dread_spores: [ // common → 3
+    { effects: [{ op: 'mul', field: 'effigyDreadDurationMult', value: 1.1 }], note: 'Lingering panic — Fear lasts +10% longer.' },
+    { effects: [{ op: 'add', field: 'integrityRegenPerWave', value: 8 }], note: 'Calm after — restore 8 Integrity each wave.' },
+    { effects: [{ op: 'hook', hook: { on: 'nucleusHit', action: { do: 'spreadStatus', status: 'Fear', amount: 1, radius: 160 } } }, { op: 'mul', field: 'effigyDreadDurationMult', value: 1.06 }], note: 'Spore cloud — the panic reaches 160px.' },
+  ],
+  recycler_glands: [ // common → 3
+    { effects: [{ op: 'mul', field: 'biomassMult', value: 1.05 }], note: 'Efficient gut — +5% biomass.' },
+    { effects: [{ op: 'add', field: 'sellRefundFrac', value: 0.04 }], note: 'Reclaim ducts — tower sell refunds +4%.' },
+    { effects: [{ op: 'hook', hook: { on: 'towerDeployed', action: { do: 'biomass', value: 15 } } }, { op: 'mul', field: 'biomassMult', value: 1.04 }], note: 'Closed loop — each deployment sheds 15 more Biomass.' },
+  ],
+  strain_tithe: [ // uncommon → 3
+    { effects: [{ op: 'mul', field: 'biomassMult', value: 1.05 }], note: 'Tithe collectors — +5% biomass.' },
+    { effects: [{ op: 'mul', field: 'towerDamageMult', value: 1.04 }], note: 'Strong lineage — +4% tower damage.' },
+    { effects: [{ op: 'hook', hook: { on: 'strainRaised', action: { do: 'biomass', value: 25 } } }, { op: 'mul', field: 'biomassMult', value: 1.04 }], note: 'Compound tithe — each Strain raise refunds 25 more.' },
+  ],
+  mutagenic_shock: [ // rare → 4
+    { effects: [{ op: 'add', field: 'fractureBonusStacks', value: 2 }], note: 'Mutagen load — +2 max Fracture stacks.' },
+    { effects: [{ op: 'add', field: 'obeliskVulnerabilityBonus', value: 0.06 }], note: 'Nerve shock — Disrupted foes take +6% more damage.' },
+    { effects: [{ op: 'mul', field: 'towerDamageMult', value: 1.05 }], note: 'Volatile strains — +5% tower damage.' },
+    { effects: [{ op: 'hook', hook: { on: 'strainRaised', action: { do: 'spreadStatus', status: 'Corrosion', amount: 3, radius: 140 } } }, { op: 'add', field: 'reactionRepeats', value: 1 }], note: 'Full detonation — the blast also corrodes; reactions re-fire once more.' },
+  ],
+  static_wake: [ // uncommon → 3
+    { effects: [{ op: 'add', field: 'obeliskSlowBonus', value: 0.05 }, { op: 'add', field: 'obeliskVulnerabilityBonus', value: 0.03 }], note: 'Heavier static — Disruption slows +5% more.' },
+    { effects: [{ op: 'mul', field: 'towerFireRateMult', value: 1.04 }], note: 'Charged roots — +4% tower fire rate.' },
+    { effects: [{ op: 'hook', hook: { on: 'towerDeployed', action: { do: 'spreadStatus', status: 'Disruption', amount: 2.5, radius: 180 } } }, { op: 'add', field: 'obeliskVulnerabilityBonus', value: 0.04 }], note: 'Thunderhead — the wake reaches 180px.' },
+  ],
+  lancing_sinew: [ // uncommon → 3
+    { effects: [{ op: 'mul', field: 'towerDamageMult', value: 1.04 }], note: 'Taut sinew — +4% tower damage.' },
+    { effects: [{ op: 'add', field: 'needleExtraProjectiles', value: 1 }], note: 'Spare lance — the Needle Spitter fires +1 needle.' },
+    { effects: [{ op: 'mul', field: 'towerFireRateMult', value: 1.05 }], note: 'Rapid lancing — +5% tower fire rate.' },
+  ],
+  impaling_lattice: [ // epic → 4
+    { effects: [{ op: 'mul', field: 'towerDamageMult', value: 1.06 }], note: 'Hardened spines — +6% tower damage.' },
+    { effects: [{ op: 'mul', field: 'towerFireRateMult', value: 1.05 }], note: 'Reflex reload — +5% tower fire rate (claws back the drag).' },
+    { effects: [{ op: 'add', field: 'fractureBonusStacks', value: 2 }, { op: 'mul', field: 'towerDamageMult', value: 1.03 }], note: 'Splitting bolts — +2 max Fracture stacks.' },
+    { effects: [{ op: 'mul', field: 'towerDamageMult', value: 1.06 }, { op: 'mul', field: 'splashRadiusMult', value: 1.1 }], note: 'Skewer field — +6% tower damage, +10% splash radius.' },
+  ],
+  sapper_cradle: [ // rare → 4
+    { effects: [{ op: 'add', field: 'integrityRegenPerWave', value: 10 }], note: 'Mending cradle — restore 10 Integrity each wave.' },
+    { effects: [{ op: 'add', field: 'damagePerTower', value: 0.01 }], note: 'Dense colony — +1% damage per tower fielded.' },
+    { effects: [{ op: 'mul', field: 'towerDamageMult', value: 1.05 }], note: 'Rooted battery — +5% tower damage.' },
+    { effects: [{ op: 'hook', hook: { on: 'towerDeployed', action: { do: 'heal', value: 10 } } }, { op: 'add', field: 'damagePerTower', value: 0.01 }], note: 'Living walls — each deployment knits 10 more Integrity.' },
+  ],
+  bulwark_instinct: [ // common → 3
+    { effects: [{ op: 'add', field: 'heroArmor', value: 0.05 }], note: 'Braced stance — 5% hero damage reduction.' },
+    { effects: [{ op: 'add', field: 'integrityRegenPerWave', value: 8 }], note: 'Warden — restore 8 Integrity each wave.' },
+    { effects: [{ op: 'hook', hook: { on: 'waveStarted', action: { do: 'shield', value: 120, seconds: 6 } } }, { op: 'mul', field: 'heroDamageMult', value: 1.05 }], note: 'Living rampart — the shield swells to 120 HP; +5% hero damage.' },
+  ],
+  pack_leader: [ // uncommon → 3
+    { effects: [{ op: 'add', field: 'heroTowerHasteAura', value: 0.04 }], note: 'Rallying cry — the aura quickens +4% more.' },
+    { effects: [{ op: 'add', field: 'heroTowerDamageAura', value: 0.05 }], note: 'Alpha scent — towers in the aura deal +5% damage.' },
+    { effects: [{ op: 'add', field: 'heroAuraRadius', value: 40 }, { op: 'add', field: 'heroTowerHasteAura', value: 0.04 }], note: 'Wide den — the aura reaches 40px farther.' },
+  ],
+  vanguard_stance: [ // rare → 4
+    { effects: [{ op: 'mul', field: 'heroDamageMult', value: 1.06 }], note: 'Forward fury — +6% hero damage.' },
+    { effects: [{ op: 'add', field: 'heroArmor', value: 0.05 }], note: 'Shield wall — 5% hero damage reduction.' },
+    { effects: [{ op: 'mul', field: 'heroAbilityRadiusMult', value: 1.1 }], note: 'Sweeping charge — +10% ability radius.' },
+    { effects: [{ op: 'grant', grant: { kind: 'heroAttackAbility', component: { type: 'explosion', radius: 56, damage: 5 } } }, { op: 'mul', field: 'heroDamageMult', value: 1.05 }], note: 'Breaker — every strike bursts a SECOND time.' },
+  ],
+  chain_reflex: [ // rare → 4
+    { effects: [{ op: 'mul', field: 'heroAttackSpeedMult', value: 1.05 }], note: 'Faster reflex — +5% hero attack speed.' },
+    { effects: [{ op: 'mul', field: 'heroDamageMult', value: 1.06 }], note: 'Conductive nerves — +6% hero damage.' },
+    { effects: [{ op: 'add', field: 'heroCritChance', value: 0.05 }], note: 'Arc flash — +5% hero crit chance.' },
+    { effects: [{ op: 'grant', grant: { kind: 'heroAttackAbility', component: { type: 'chain', jumps: 1, range: 110, damage: 6 } } }, { op: 'mul', field: 'heroDamageMult', value: 1.04 }], note: 'Forked reflex — a second arc leaps from every strike.' },
+  ],
+  blood_tithe: [ // uncommon → 3
+    { effects: [{ op: 'add', field: 'integrityRegenPerWave', value: 10 }], note: 'Blood clot — restore 10 Integrity each wave.' },
+    { effects: [{ op: 'mul', field: 'biomassMult', value: 1.06 }], note: 'Easing the tithe — +6% biomass (offsets the cut).' },
+    { effects: [{ op: 'hook', hook: { on: 'nucleusHit', action: { do: 'biomass', value: 8 } } }, { op: 'mul', field: 'towerDamageMult', value: 1.04 }], note: 'Blood price — each blow pays 8 more Biomass.' },
+  ],
+  trophy_hunter: [ // rare → 4
+    { effects: [{ op: 'mul', field: 'towerDamageMult', value: 1.05 }], note: 'Hunter’s focus — +5% tower damage.' },
+    { effects: [{ op: 'add', field: 'executeThreshold', value: 0.03 }], note: 'Finishing blow — execute non-elites below 3% HP.' },
+    { effects: [{ op: 'mul', field: 'biomassMult', value: 1.05 }], note: 'Taxidermy — +5% biomass.' },
+    { effects: [{ op: 'hook', hook: { on: 'eliteKilled', action: { do: 'biomass', value: 40 } } }, { op: 'mul', field: 'towerDamageMult', value: 1.04 }], note: 'Trophy wall — elite/boss kills shed 40 more Biomass.' },
+  ],
+  apex_contagion: [ // epic → 4
+    { effects: [{ op: 'add', field: 'fractureBonusStacks', value: 2 }], note: 'Apex strain — +2 max Fracture stacks.' },
+    { effects: [{ op: 'mul', field: 'poolDpsMult', value: 1.1 }], note: 'Caustic bloom — Corrosion ticks +10% harder.' },
+    { effects: [{ op: 'add', field: 'reactionRepeats', value: 1 }], note: 'Chain SHRED — reactions re-fire once more.' },
+    { effects: [{ op: 'hook', hook: { on: 'eliteKilled', action: { do: 'spreadStatus', status: 'Infection', amount: 3, radius: 140 } } }, { op: 'mul', field: 'towerDamageMult', value: 1.06 }], note: 'Extinction event — the detonation also infects; +6% tower damage.' },
+  ],
+  hive_martyrdom: [ // legendary → 5
+    { effects: [{ op: 'add', field: 'integrityRegenPerWave', value: 12 }], note: 'Martyr’s flesh — restore 12 Integrity each wave.' },
+    { effects: [{ op: 'mul', field: 'effigyDreadDurationMult', value: 1.1 }], note: 'Deeper terror — Fear lasts +10% longer.' },
+    { effects: [{ op: 'mul', field: 'towerDamageMult', value: 1.05 }], note: 'Vengeful hive — +5% tower damage.' },
+    { effects: [{ op: 'mul', field: 'biomassMult', value: 1.06 }], note: 'Sacrament — +6% biomass.' },
+    { effects: [{ op: 'hook', hook: { on: 'nucleusHit', action: { do: 'shield', value: 60, seconds: 4 } } }, { op: 'mul', field: 'towerDamageMult', value: 1.05 }], note: 'Saint of the swarm — each blow also shields the hero (60 HP).' },
+  ],
 };
