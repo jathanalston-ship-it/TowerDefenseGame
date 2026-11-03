@@ -586,6 +586,11 @@ export class Game {
   private statIntegrityLost = 0; // cumulative Nucleus integrity damage taken (0 = flawless run)
   private statKillsByEnemy: Record<EnemyKind, number> = zeroEnemyCounts();
   private statTowerBuilds: Record<TowerKind, number> = zeroTowerCounts();
+  // Defeat debrief ledgers (docs/REWARD-PRESENTATION.md §debrief) — read-only observation, like
+  // the stats above: WHO hurt the Hive (enemy kind, or `boss:`/`mega:` + display name) and the
+  // framework bosses actually slain BY NAME (killsByEnemy books them under the 'tyrant' proxy).
+  private statHiveDamageBy: Record<string, number> = {};
+  private statBossesSlain: string[] = [];
 
   // Raw effects of gene cards drafted this run — retained so the run's TEMPORARY Power bucket can be
   // scored live (effectsPower) for the HUD/menus. Reset per run (fresh Game). Golden-safe: unused by sim.
@@ -2859,6 +2864,7 @@ export class Game {
             const before = this.integrity;
             this.integrity = Math.max(0, this.integrity - (chan.amount ?? 12));
             this.statIntegrityLost += before - this.integrity; // flawless-run tracking (regen can't redeem it)
+            this.noteHiveDamage(`boss:${b.name}`, before - this.integrity);
           }
           this.floats.push({ x: nucleusPoint.x, y: nucleusPoint.y - 16, text: 'BREACH!', color: '#ff5d73', life: 1 });
           b.telegraph = null;
@@ -3075,6 +3081,7 @@ export class Game {
             const before = this.integrity;
             this.integrity = Math.max(0, this.integrity - (crush.amount ?? 6) * dt);
             this.statIntegrityLost += before - this.integrity; // flawless-run tracking (regen can't redeem it)
+            this.noteHiveDamage(`boss:${b.name}`, before - this.integrity);
           }
           b.telegraph = 'CORE CRUSH';
         }
@@ -3525,6 +3532,7 @@ export class Game {
         if (!this.god) {
           this.integrity -= dmg;
           this.statIntegrityLost += dmg; // flawless-run tracking, same ledger as siege shells
+          this.noteHiveDamage(`mega:${def.name}`, dmg);
           this.hiveRecentDamage += dmg;
           this.hiveHitPulse = Math.min(1, this.hiveHitPulse + 0.5 + dmg * 0.012);
         }
@@ -3551,6 +3559,7 @@ export class Game {
     if (!this.god) {
       this.integrity -= dmg;
       this.statIntegrityLost += dmg; // same ledger as siege shells + the cataclysm
+      this.noteHiveDamage(`mega:${def.name}`, dmg);
       this.hiveRecentDamage += dmg;
       this.hiveHitPulse = Math.min(1, this.hiveHitPulse + 0.5 + dmg * 0.012);
     }
@@ -4021,7 +4030,7 @@ export class Game {
     for (const s of this.enemyShells) {
       s.t += dt / s.duration;
       if (s.t >= 1) {
-        if (!this.god) { this.integrity -= s.damage; this.statIntegrityLost += s.damage; } // flawless-run tracking (siege lands on impact)
+        if (!this.god) { this.integrity -= s.damage; this.statIntegrityLost += s.damage; this.noteHiveDamage(s.src ?? 'siege', s.damage); } // flawless-run tracking (siege lands on impact)
         this.floats.push({ x: s.targetX, y: s.targetY - 18, text: `-${s.damage}`, color: '#ff8a3d', life: 0.9 });
         this.spawnParticles(s.targetX, s.targetY, PARTICLE.breach, s.color);
       }
@@ -5453,7 +5462,7 @@ export class Game {
             const dist = Math.hypot(nucleusPoint.x - e.x, nucleusPoint.y - e.y);
             this.enemyShells.push({
               x: e.x, y: e.y, targetX: nucleusPoint.x, targetY: nucleusPoint.y,
-              t: 0, duration: Math.max(0.5, dist / 260), damage: def.siege.damage, color: def.color,
+              t: 0, duration: Math.max(0.5, dist / 260), damage: def.siege.damage, color: def.color, src: e.kind,
             });
             this.pushSfx('breach');
           }
@@ -5688,6 +5697,7 @@ export class Game {
       const dmg = Math.round(e.damage * this.bossPhaseDamageMult(e));
       this.integrity -= dmg;
       this.statIntegrityLost += dmg; // flawless-run tracking (regen can't redeem it)
+      this.noteHiveDamage(e.boss ? `boss:${e.boss.name}` : e.kind, dmg);
       this.hiveRecentDamage += e.damage;
       this.hiveHitPulse = Math.min(1, this.hiveHitPulse + 0.25 + e.damage * 0.012);
     }
@@ -5705,6 +5715,11 @@ export class Game {
     }
   }
 
+  /** Defeat-debrief ledger (RunStats.hiveDamageBy): observation only — never read by the sim. */
+  private noteHiveDamage(key: string, dmg: number): void {
+    if (dmg > 0) this.statHiveDamageBy[key] = (this.statHiveDamageBy[key] ?? 0) + dmg;
+  }
+
   /** Suicide detonation at the Core (docs/HIVE-SIEGE.md §suicide): one burst — integrity + a
    *  hero-catching blast — then the attacker is GONE (no lingering melee). Mirrors the manual
    *  bookkeeping the old breach removal did, since this bypasses an hp-death. */
@@ -5714,6 +5729,7 @@ export class Game {
       const dmg = Math.round(e.damage * this.bossPhaseDamageMult(e));
       this.integrity -= dmg;
       this.statIntegrityLost += dmg; // flawless-run tracking (regen can't redeem it)
+      this.noteHiveDamage(e.boss ? `boss:${e.boss.name}` : e.kind, dmg);
       this.hiveRecentDamage += e.damage;
       this.hiveHitPulse = Math.min(1, this.hiveHitPulse + 0.4 + e.damage * 0.012);
     }
@@ -6683,6 +6699,7 @@ export class Game {
         if (e.boss) {
           this.bossDeathSpectacle(e); // a boss death is an event, not a pop
           this.runBossKills++; // RunStats.bossKills — Boss Rush rewards + lifetime ledgers key off it
+          if (!this.statBossesSlain.includes(e.boss.name)) this.statBossesSlain.push(e.boss.name); // RunStats.bossesSlain (names, observation)
         }
         if (e.boss && e.boss.splitsLeft > 0) this.splitBoss(e); // Mitotic Horror: cleave into smaller copies
         if (e.bounty >= 20) {
@@ -8141,6 +8158,24 @@ export class Game {
     return out;
   }
 
+  /** Bosses still standing when the Nucleus fell, with the HP fraction they had left (split
+   *  children pool under their parent's name; the anchored mega joins as its own row). */
+  private bossHpAtDefeat(): { name: string; hpFrac: number }[] {
+    const pools = new Map<string, { hp: number; max: number }>();
+    for (const e of this.enemies) {
+      if (!e.alive || !e.boss) continue;
+      const p = pools.get(e.boss.name) ?? { hp: 0, max: 0 };
+      p.hp += Math.max(0, e.hp);
+      p.max += Math.max(1, e.maxHp);
+      pools.set(e.boss.name, p);
+    }
+    const out = [...pools].map(([name, p]) => ({ name, hpFrac: Math.min(1, p.hp / p.max) }));
+    const mega = this.mega;
+    const megaName = mega ? megaBossDef(mega.defId)?.name : undefined;
+    if (mega && megaName && mega.hp > 0) out.push({ name: megaName, hpFrac: Math.min(1, mega.hp / Math.max(1, mega.maxHp)) });
+    return out;
+  }
+
   /** Raw statistics observed this run — banked into lifetime stats at run end. */
   getRunStats(): RunStats {
     return {
@@ -8162,6 +8197,11 @@ export class Game {
       ...(this.phase === 'lost'
         ? { bossesAtDefeat: this.enemies.filter((e) => e.alive && e.boss).map((e) => e.boss!.defId) }
         : {}),
+      // Defeat debrief (docs/REWARD-PRESENTATION.md §debrief) — observation-only ledgers.
+      totalWaves: this.mode === 'endless' || this.mode === 'bossRush' ? 0 : this.totalWaves,
+      hiveDamageBy: { ...this.statHiveDamageBy },
+      bossesSlain: [...this.statBossesSlain],
+      ...(this.phase === 'lost' ? { bossHpAtDefeat: this.bossHpAtDefeat() } : {}),
       // Mega Boss block — present only when a mega was ENCOUNTERED this run, so every existing
       // fixture (and every ordinary run) serializes exactly as before.
       ...(this.statMegaSeen

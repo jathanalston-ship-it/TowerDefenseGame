@@ -162,6 +162,7 @@ export interface EnemyShell {
   duration: number; // total flight seconds
   damage: number; // integrity damage on impact
   color: string; // the firing enemy's hue (shell + trail tint)
+  src?: string; // the firing enemy's kind — the defeat debrief's hive-damage ledger key (observation only)
 }
 
 /** An armed SPORE MINE planted by the Blight Sower (docs/SOWER.md) — pre-placed area denial.
@@ -555,6 +556,15 @@ export interface RunStats {
   bossKills?: number;
   /** Boss defIds still alive when the Nucleus fell (docs/NEMESIS.md) — empty/absent on wins. */
   bossesAtDefeat?: string[]; // bosses defeated this run (docs/BOSS-RUSH.md rewards key off it — additive for old fixtures)
+  // ── Defeat debrief (docs/REWARD-PRESENTATION.md §debrief) — observation only, additive. ──
+  totalWaves?: number; // the run's authored/generated wave count (0 = open-ended: Infinite / Boss Rush)
+  /** Nucleus integrity damage by source: an EnemyKind, or `boss:<name>` / `mega:<name>`. */
+  hiveDamageBy?: Record<string, number>;
+  /** Display names of framework bosses slain (deduped). killsByEnemy books them under the
+   *  'tyrant' render proxy, so THIS is the honest "which boss fell" record. */
+  bossesSlain?: string[];
+  /** LOSS only: bosses still standing when the Nucleus fell, with their remaining HP fraction. */
+  bossHpAtDefeat?: { name: string; hpFrac: number }[];
   // ── Mega Boss encounters (docs/MEGA-BOSS.md) — additive for old fixtures. ──
   megaKills?: MegaKillStat[]; // one entry per Mega Boss defeated this run (rewards + collection)
   weakPointsDestroyed?: number; // weak points burst this run (collection + achievements)

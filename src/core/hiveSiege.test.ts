@@ -11,6 +11,7 @@ import { ENEMY_DEFS, HIVE, SIM_DT } from './config';
 import { nucleusPoint } from './map';
 import { applyStatus, STATUS_EFFECTS } from './status';
 import type { Enemy, MetaModifiers } from './types';
+import type { BossDef } from './boss';
 
 const NO_META: MetaModifiers = { towerDamageMult: 1, biomassMult: 1, heroDamageMult: 1, integrityBonus: 100000, bonusSlots: 0 };
 
@@ -218,5 +219,55 @@ describe('flawless-run damage tracking (RunStats.integrityLost)', () => {
     const lost = int0 - g.integrity;
     expect(lost).toBeGreaterThan(0); // the siege actually landed
     expect(g.getRunStats().integrityLost).toBe(lost); // counter == real damage (no double-count, no miss)
+  });
+});
+
+// Defeat debrief ledgers (docs/REWARD-PRESENTATION.md §debrief): WHO hurt the Hive and WHICH boss
+// fell are pure observation — they must account for every point of damage, name framework bosses
+// by their real name (not the 'tyrant' render proxy), and never feed back into the sim.
+describe('defeat debrief ledgers (RunStats.hiveDamageBy / bossesSlain / bossHpAtDefeat)', () => {
+  const testBoss = (name: string): BossDef => ({
+    id: `debrief_${name}`, name, chassis: 'bruiser', hpMult: 1, radius: 30, color: '#ffffff',
+    bounty: 100, damage: 10, modules: [], phases: [{ threshold: 1, modules: [] }], modifiers: [],
+  });
+
+  it('books every point of Core damage by its source — melee and artillery alike', () => {
+    const g = lab();
+    inject(g, 'runner', nucleusPoint.x, HIVE.convergeY + 20);
+    inject(g, 'siegeworm', nucleusPoint.x, nucleusPoint.y - 200);
+    run(g, 8);
+    const s = g.getRunStats();
+    const by = s.hiveDamageBy ?? {};
+    expect(by.runner ?? 0).toBeGreaterThan(0);
+    expect(by.siegeworm ?? 0).toBeGreaterThan(0); // shells carry their firer's kind to impact
+    const total = Object.values(by).reduce((a, n) => a + n, 0);
+    expect(total).toBeCloseTo(s.integrityLost, 6); // the ledger IS the integrity ledger, split by source
+  });
+
+  it('names a slain framework boss (it is booked under the tyrant proxy in killsByEnemy)', () => {
+    const g = lab();
+    g.spawnBoss(testBoss('Apex Bombard'));
+    const boss = g.enemies.find((e) => e.boss)!;
+    boss.hp = 0;
+    g.advance(SIM_DT);
+    const s = g.getRunStats();
+    expect(s.bossesSlain).toEqual(['Apex Bombard']);
+    expect(s.killsByEnemy.tyrant).toBe(1); // the proxy count — why presentation must read bossesSlain
+  });
+
+  it('a loss records the standing boss and how much HP it had left; its hits are keyed by name', () => {
+    const g = lab();
+    g.integrity = 30;
+    g.spawnBoss(testBoss('Viral Matriarch'));
+    const boss = g.enemies.find((e) => e.boss)!;
+    boss.x = nucleusPoint.x;
+    boss.y = HIVE.convergeY + 20;
+    boss.hp = boss.maxHp * 0.25;
+    for (let i = 0; i < 4000 && g.phase !== 'lost'; i++) g.advance(SIM_DT);
+    expect(g.phase).toBe('lost');
+    const s = g.getRunStats();
+    expect(s.bossHpAtDefeat?.[0]?.name).toBe('Viral Matriarch');
+    expect(s.bossHpAtDefeat?.[0]?.hpFrac).toBeCloseTo(0.25, 1);
+    expect(s.hiveDamageBy?.['boss:Viral Matriarch'] ?? 0).toBeGreaterThan(0);
   });
 });
