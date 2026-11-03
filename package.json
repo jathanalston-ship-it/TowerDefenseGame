@@ -24,6 +24,7 @@
     "verify-leaderboard": "vite-node scripts/verify-leaderboard.ts",
     "mobilecheck": "vite-node scripts/mobilecheck.ts",
     "cogload": "vite-node scripts/cogload.ts",
+    "probe:first-session": "vite-node scripts/first-session-probe.ts",
     "preflight": "vite-node scripts/preflight.ts",
     "test": "vitest run",
     "site": "vite-node scripts/gen-notes.ts && vite-node scripts/gen-site.ts",
