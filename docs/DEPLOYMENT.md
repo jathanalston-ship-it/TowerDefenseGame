@@ -118,6 +118,7 @@ go in `.dev.vars` (gitignored). `ENVIRONMENT` needs no setup — it ships in
 | `DAY_TICKET_SECRET` | server | recommended | random 32+ bytes hex (`openssl rand -hex 32`) |
 | `MOD_KEY` | server | for auction moderation | secret for `/api/auction/flags` (docs/AUCTION-HOUSE.md §6); absent ⇒ lane closed (503) |
 | `DEV_KEY` | server | for the dev analytics app | secret for `/api/dev/*` (docs/ANALYTICS.md §devapp); absent ⇒ dev API closed (503) |
+| `PAID_LOOTBOX_BLOCKED_COUNTRIES` | server | optional | comma list of ISO country codes where SKUs with random containers are refused at checkout and hidden in the store (default `BE,NL`; `""` = none; unknown country refused in production) — docs/PREMIUM-STORE.md §paid-loot-boxes |
 | `ENVIRONMENT` | server | recommended | `production` / `preview` — production refuses `sk_test_` keys |
 
 Rules: **never** put a secret in a `VITE_` variable; never commit real values;
@@ -187,7 +188,7 @@ production and preview get **different** Stripe keys (live vs test mode).
 |---|---|
 | Production build | `npm run build` — tsc strict (app + functions) then Vite |
 | Tree shaking / minification | Vite/Rollup + esbuild defaults (ES2020 target) |
-| Code splitting | stable `vendor` chunk (react) + lazy `DebugPanel`; the game ships as one app chunk on purpose (everything is needed at boot; more slicing = waterfalls, not wins) |
+| Code splitting | **§code-splitting** — stable `vendor` chunk (react) + an entry chunk holding the sim/state core, shell and Home; every hub screen, the in-run `GameView`, `Results`, tutorial runner, cutscene player, arena/replay views and dev panels are `React.lazy` (`src/ui/lazyNamed.ts`, one chunk each, `Suspense` + `ScreenFallback`). Entry gzip 775 → 470 KB. `main.tsx` warms GameView/Results/TutorialRunner at idle; the service worker PRECACHES every emitted JS/CSS (`scripts/stamp-sw.mjs` injects the list into `sw.js`), so offline play and post-deploy stale tabs still find their chunks. New screens MUST use `lazyNamed`; `npm run probe:first-session` budgets the boot JS |
 | Asset hashing / versioning | all bundles content-hashed under `/assets/*` |
 | Browser caching | `_headers`: `/assets/*` immutable 1y; HTML short-cache; `/api/*` no-store |
 | Compression | Cloudflare serves Brotli/gzip at the edge automatically |

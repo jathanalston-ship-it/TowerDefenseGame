@@ -19,9 +19,14 @@ const SHELL = [
   '/fonts/exo2-var.woff2', '/fonts/chakra-petch-500.woff2', '/fonts/chakra-petch-600.woff2', '/fonts/chakra-petch-700.woff2',
 ];
 
+// Every hashed JS/CSS chunk of THIS build, stamped in by scripts/stamp-sw.mjs. The game is
+// code-split (lazy hub screens), so offline play needs the lazy chunks too — precaching them
+// also means an open tab can still load a chunk after a newer deploy removed it from the CDN.
+const PRECACHE = /*__PRECACHE__*/[];
+
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(CACHE).then((c) => c.addAll(SHELL)).catch(() => undefined),
+    caches.open(CACHE).then((c) => c.addAll(SHELL.concat(PRECACHE))).catch(() => undefined),
   );
 });
 

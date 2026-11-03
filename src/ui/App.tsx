@@ -4,8 +4,8 @@ import { resumePendingClaims } from '../net/checkout';
 import { initEvents, trackEvent } from '../net/events';
 import { telemetry } from '../net/telemetry';
 import { waveBand } from '../core/analyticsEvents';
-import { GameView } from './GameView';
-import { Results } from './Results';
+const GameView = lazyNamed(() => import('./GameView'), 'GameView');
+const Results = lazyNamed(() => import('./Results'), 'Results');
 // Debug tooling is dev/opt-in only (?debug) — lazy-loaded so production players
 // never download it and the boot chunk stays lean.
 const DebugPanel = lazy(() => import('./DebugPanel').then((m) => ({ default: m.DebugPanel })));
@@ -23,15 +23,15 @@ import { featureRevealed } from '../state/unlocks';
 import { UpdateBriefing } from './UpdateBriefing';
 import { CommanderName } from './components/CommanderName';
 import { InitCutscene, introSeen } from './InitCutscene';
-import { CutscenePlayer } from './CutscenePlayer';
+const CutscenePlayer = lazyNamed(() => import('./CutscenePlayer'), 'CutscenePlayer');
 import { cutsceneDef } from '../core/cutscenes';
 import { UpdateToast } from './components/UpdateToast';
 import { SecurityPulse } from './SecurityPulse';
-import { SpectateView } from './SpectateView';
+const SpectateView = lazyNamed(() => import('./SpectateView'), 'SpectateView');
 import { decodeReplayCode } from '../net/replayShare';
 import type { ReplayRecord } from '../core/replay';
 import { startSyncEngine } from '../net/syncEngine';
-import { HudTour } from './HudTour';
+const HudTour = lazyNamed(() => import('./HudTour'), 'HudTour');
 import { WelcomeGate, ConflictModal } from './components/AccountPanel';
 import { isDebugEnabled } from '../debug/debug';
 import { meta, metaModifiers } from '../state/meta';
@@ -47,12 +47,12 @@ import { generateStage, recommendedPowerScore } from '../core/campaign';
 import { resolveCampaignBoon } from '../core/campaignEvents';
 import type { StageConfig } from '../core/campaign';
 import { formatPower } from '../core/power';
-import { EvolutionUnlock } from './EvolutionUnlock';
+const EvolutionUnlock = lazyNamed(() => import('./EvolutionUnlock'), 'EvolutionUnlock');
 import type { EvolutionUnlockData } from './EvolutionUnlock';
-import { HeroSlotUnlock } from './HeroSlotUnlock';
+const HeroSlotUnlock = lazyNamed(() => import('./HeroSlotUnlock'), 'HeroSlotUnlock');
 import type { HeroSlotUnlockData } from './HeroSlotUnlock';
 import { difficultyPref, musicPref, sfxPref } from '../state/prefs';
-import { BioRoulette } from './BioRoulette';
+const BioRoulette = lazyNamed(() => import('./BioRoulette'), 'BioRoulette');
 import { highestCampaignStage, isBossRushUnlocked, isDailyUnlocked, isInfiniteUnlocked } from '../save/derive';
 import { dailyKey, generateDaily, pickDailyHero } from '../core/daily';
 import { dailyMulliganAssignment } from '../core/mulligan';
@@ -62,15 +62,17 @@ import { HERO_ORDER, TOWER_ORDER } from '../core/config';
 import { ROULETTE, sporesFromParts } from '../state/bioRoulette';
 import { tutorial } from '../state/tutorial';
 import { cutsceneBus, navBus, rouletteBus } from '../state/navBus';
-import { TutorialRunner } from './TutorialRunner';
+const TutorialRunner = lazyNamed(() => import('./TutorialRunner'), 'TutorialRunner');
 import { DeployScreen } from './DeployScreen';
-import { ArenaView } from './ArenaView';
+const ArenaView = lazyNamed(() => import('./ArenaView'), 'ArenaView');
 import type { ArenaMatchSetup } from '../core/arenaMatch';
 import type { ArenaTransport } from '../net/arenaTransport';
 import type { DeployInfo } from './DeployScreen';
 import { DIFFICULTIES } from '../core/difficulty';
 import { initLayoutProfile } from './layoutProfile';
 import { RotateGate } from './components/RotateGate';
+import { lazyNamed } from './lazyNamed';
+import { ScreenFallback } from './components/ScreenFallback';
 
 initLayoutProfile(); // stamp data-layout/data-coarse on <html> before first paint (docs/RESPONSIVE-DESIGN.md)
 
@@ -519,16 +521,16 @@ export function App(): JSX.Element {
       )}
       {screen === 'menu' && arenaSetup && (
         <div style={{ position: 'fixed', inset: 0, zIndex: 60 }}>
-          <ArenaView
+          <Suspense fallback={<ScreenFallback />}><ArenaView
             setup={arenaSetup}
             transport={arenaTransportRef.current}
             onExit={() => { arenaTransportRef.current = null; setArenaSetup(null); }}
-          />
+          /></Suspense>
         </div>
       )}
       {screen === 'deploying' && deployInfo && <DeployScreen info={deployInfo} />}
       {screen === 'playing' && (
-        <GameView
+        <Suspense fallback={<ScreenFallback />}><GameView
           seed={seedRef.current}
           mods={modsRef.current}
           progress={progRef.current}
@@ -549,16 +551,16 @@ export function App(): JSX.Element {
           mulliganOverride={dailyMulligansRef.current ?? undefined}
           onEnd={handleEnd}
           onAbandon={handleAbandon}
-        />
+        /></Suspense>
       )}
       {screen === 'results' && last && (
-        <Results result={last.result} outcome={last.outcome} onContinue={afterResults} onReplay={roulette ? afterResults : replayRun} />
+        <Suspense fallback={<ScreenFallback />}><Results result={last.result} outcome={last.outcome} onContinue={afterResults} onReplay={roulette ? afterResults : replayRun} /></Suspense>
       )}
-      {screen === 'tutorial' && <TutorialRunner onExit={toMenu} />}
+      {screen === 'tutorial' && <Suspense fallback={<ScreenFallback />}><TutorialRunner onExit={toMenu} /></Suspense>}
       {/* Replay Theater — a full-screen overlay; never mounts over a LIVE run (the daily
           screen and shared links are menu-side surfaces, but guard it anyway). */}
       {spectate && screen !== 'playing' && (
-        <SpectateView record={spectate} onExit={() => { setSpectate(null); clearReplayParam(); }} />
+        <Suspense fallback={<ScreenFallback />}><SpectateView record={spectate} onExit={() => { setSpectate(null); clearReplayParam(); }} /></Suspense>
       )}
       {introActive && (
         <InitCutscene
@@ -573,7 +575,7 @@ export function App(): JSX.Element {
       {/* Story premieres — first mega defeats, played in order after the reward summary
           (docs/CUTSCENES.md §autoplay). Fullscreen over whatever the run exits into. */}
       {!introActive && cutsceneQueue.length > 0 && cutsceneDef(cutsceneQueue[0]) && (
-        <CutscenePlayer
+        <Suspense fallback={null}><CutscenePlayer
           key={cutsceneQueue[0]}
           def={cutsceneDef(cutsceneQueue[0])!}
           onDone={() => {
@@ -583,11 +585,11 @@ export function App(): JSX.Element {
               return rest;
             });
           }}
-        />
+        /></Suspense>
       )}
       <UpdateToast />
       {screen === 'roulette' && roulette && (
-        <BioRoulette
+        <Suspense fallback={<ScreenFallback />}><BioRoulette
           spores={roulette.spores}
           onExit={() => {
             const from = roulette.from;
@@ -596,16 +598,16 @@ export function App(): JSX.Element {
             // A Vault-launched session lands back in the Vault (the Hub mounts next tick).
             if (from === 'vault') setTimeout(() => navBus.go('vault'), 50);
           }}
-        />
+        /></Suspense>
       )}
       {/* Hero Slot Unlock — the biggest milestone; shows first, over Results. Dismiss → reveals the
           Evolution Unlock beneath it (if this run also raised the Star Cap). */}
       {screen === 'results' && heroSlotUnlock && (
-        <HeroSlotUnlock unlock={heroSlotUnlock} onClose={() => setHeroSlotUnlock(null)} />
+        <Suspense fallback={null}><HeroSlotUnlock unlock={heroSlotUnlock} onClose={() => setHeroSlotUnlock(null)} /></Suspense>
       )}
       {/* Evolution Unlock sequence — dramatic, over the Results screen; dismiss → continue to Results. */}
       {screen === 'results' && !heroSlotUnlock && evoUnlock && (
-        <EvolutionUnlock unlock={evoUnlock} onClose={() => setEvoUnlock(null)} />
+        <Suspense fallback={null}><EvolutionUnlock unlock={evoUnlock} onClose={() => setEvoUnlock(null)} /></Suspense>
       )}
       {debugOn && <Suspense fallback={null}><DebugPanel /></Suspense>}
       {/* Off-menu, run-end milestones are shown inline on Results — suppress the floating toast so
@@ -624,7 +626,7 @@ export function App(): JSX.Element {
       <LootToaster />
       {/* Onboarding + discovery (menu only): the HUD Tour runs once after the tutorial, then the
           "What's New?" queue announces each newly-unlocked mechanic. */}
-      {screen === 'menu' && tourActive && <HudTour onClose={() => setTourActive(false)} />}
+      {screen === 'menu' && tourActive && <Suspense fallback={null}><HudTour onClose={() => setTourActive(false)} /></Suspense>}
       {/* Guided Unlock (docs/GUIDED-UNLOCKS.md): "Show me ▸" on a What's New card walks the new
           wing itself — the card queue waits (WhatsNew unmounts) until the walkthrough closes. */}
       {screen === 'menu' && !tourActive && guided && <GuidedUnlock guide={guided} onClose={() => setGuided(null)} />}
