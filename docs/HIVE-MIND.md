@@ -10,6 +10,9 @@
 
 - One clearly visible HUD button, live in every phase of every run: **◈ HIVE INTELLIGENCE**.
   It GLOWS when at least one worthwhile purchase is affordable (the `hiveReady` snapshot flag).
+  It lives in the run-controls strip beside speed + Pause (docs/HUD.md §layout; phones show
+  the short key "◈ HIVE"); the pulse report ticker rides the strip's free end as a two-line log
+  (phones: a toast over the board) — it never covers the wave briefing or ▶ Start Wave.
 - Pressing it runs one **pulse**: evaluate every currently-available Biomass purchase, execute
   the best ones (multi-buy) until nothing worthwhile remains or Biomass hits the reserve.
 - Every action it takes is announced on the battlefield ("◈ Evolved Bone Mortar", "◈ Placed
