@@ -562,6 +562,9 @@ export class Game {
   // Run-only: constructed empty, never saved, reset by a fresh Game. Neutral bundle ⇒ golden-safe.
   private heroEvoLevels: HeroEvoLevels = {};
   private evo: HeroEvoMods = NEUTRAL_HERO_EVO;
+  // Flat max-HP granted mid-run by `heroHp` card effects (Battle Stims, Thick Hide…), per hero kind.
+  // Folded into heroMaxHpFor so a max-HP recompute (Vitality) never drops it. Empty ⇒ golden-safe.
+  private heroFlatMaxHp: Partial<Record<HeroKind, number>> = {};
   // Per-tower-kind permanent buffs (stars + mastery), frozen at construction so a
   // run stays deterministic; identity for a fresh save.
   private towerProgress: TowerProgress;
@@ -1033,9 +1036,9 @@ export class Game {
   //    run-wide Evolution bundle (this.evo). Centralized so gear + Evolution stack in ONE place and
   //    the HUD/panel read the same numbers combat does. Neutral evo ⇒ identical to before (golden). ──
 
-  /** Effective hero max HP: base × gear survivability × Evolution Vitality. */
+  /** Effective hero max HP: base × gear survivability × Evolution Vitality + flat card HP. */
   private heroMaxHpFor(kind: HeroKind): number {
-    return HERO_DEFS[kind].maxHp * (this.heroHmods[kind] ?? this.mods).heroMaxHpMult * this.evo.maxHpMult;
+    return HERO_DEFS[kind].maxHp * (this.heroHmods[kind] ?? this.mods).heroMaxHpMult * this.evo.maxHpMult + (this.heroFlatMaxHp[kind] ?? 0);
   }
   /** Target-independent hero damage multiplier: gear × biome × stars/mastery × Evolution Lethality. */
   private heroDamageMult(h: Hero): number {
@@ -2379,6 +2382,7 @@ export class Game {
         const delta = newMax - h.maxHp;
         h.maxHp = newMax;
         if (delta > 0 && !h.down) h.hp = Math.min(newMax, h.hp + delta);
+        else h.hp = Math.min(newMax, h.hp); // never let current HP exceed the new max
       }
     }
     this.pushSfx('splice'); // the evolution/mutation cue — a satisfying purchase sound
@@ -2507,6 +2511,7 @@ export class Game {
       },
       healHero: (n) => {
         const h = this.primaryHero;
+        this.heroFlatMaxHp[h.kind] = (this.heroFlatMaxHp[h.kind] ?? 0) + n; // so heroMaxHpFor keeps it
         h.maxHp += n;
         h.hp += n;
       },

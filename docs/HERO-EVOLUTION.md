@@ -26,7 +26,10 @@ interrupts gameplay.
   `heroMaxHpFor` · `heroDamageMult` · `heroSpeed` · `heroHaste` (attack + pulse cadence) ·
   `heroAbilityCooldownFor` · `heroAbilityRadiusFor` · `healHeroBy` (healing received) ·
   `rollHeroCrit` · armor in `heroContactDamage`. `buyHeroEvolution(id)` spends Biomass, bumps the
-  level, re-derives `evo`, and grows/heals live maxHp on a Vitality buy. `fieldHero(kind)` is the
+  level, re-derives `evo`, and grows/heals live maxHp on a Vitality buy. `heroMaxHpFor` also adds the
+  run's flat card max-HP (`heroHp` ops — Battle Stims, Thick Hide…, tracked per kind in
+  `heroFlatMaxHp`), so a Vitality recompute never drops it (fixed: 359/248 HP after an auto-buy).
+  `fieldHero(kind)` is the
   forward hero-unlock seam — a mid-run hero inherits `evo` because `makeHero` reads it live.
 - **Power (`core/power.ts`):** the 5 new fields (`heroAttackSpeedMult`, `heroCritChance`,
   `heroCritDamageBonus`, `heroHealingMult`, `heroArmor`) are real `RunModifiers` fields, scored by
