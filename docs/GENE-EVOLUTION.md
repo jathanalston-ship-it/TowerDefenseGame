@@ -53,7 +53,10 @@ Permanent gene upgrades are account strength → folded into the account `meta` 
 `geneCollectionPowerMult(save.genes)`. **Calibration:** `GENE_POWER_SCALE = 0.081` — the 92-card
 library's per-card deltas sum to ≈18.24 fully maxed, so a completed library reads ≈**×2.48** on the
 meta bucket (a major pillar, comparable to stars/prestige; a mid-game third ≈×1.5). Linear aggregation
-keeps it sane at 500+ cards; re-measure the sum when the library grows (the test pins the ×2–2.6 band).
+keeps it sane at 500+ cards; re-measure the sum when the library grows. Re-measured 2026-11 with the
+131-card library (incl. the 25 Rule Genes, docs/CARDS.md §rules): Σ ≈ 25.66 ⇒ a completed library
+reads ≈×3.08 — the scale was deliberately NOT re-cut (no existing account's Power moves);
+geneArchive.test pins the ×2–3.2 band.
 
 **Every improvement moves Power immediately** — `meta.upgradeGene` persists → the account score
 recomputes; the Archive's upgrade preview ("Power N → M, +Δ") is computed with the REAL model

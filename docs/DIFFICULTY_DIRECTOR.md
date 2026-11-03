@@ -54,7 +54,9 @@ under a threat budget); the **Spawn Director** decides *when/where* (emission me
 ## 3. Inputs and axes
 
 **`DirectorInputs`**: `difficulty` (resolved `DifficultyDef` — campaign passes its combined
-per-stage def), `warp` (doctrine protocol), `stageEnemySpeedMult`, `adaptive` (§6).
+per-stage def), `warp` (doctrine protocol), `stageEnemySpeedMult`, `adaptive` (§6), `threat` (the
+Threat ladder level — `threatWarp(level)` composes LAST onto `warp` via `composeWarps`; 0/omitted is a
+referential passthrough — docs/THREAT.md). `threatEconomy(level)` is the ladder's run-end reward policy.
 
 **Threat axes** (per run): enemy HP, damage (folded once into the run's difficulty), speed
 (static stage×variant product + endless depth curve), spawn rate, queue warps (hp/bounty/
