@@ -30,7 +30,11 @@ export function RewardRows({ reward }: { reward: TutorialRewardSummary }): JSX.E
           </div>
         ))}
       </div>
-      <div className="tut-reward-power">Power Score&nbsp; <b>{formatPower(reward.powerBefore)} → {formatPower(reward.powerAfter)}</b></div>
+      {/* Only a real gain is celebrated — an unchanged "1,005 → 1,005" read as a broken payout
+          (the grants are spendables: their Power lands when they're invested). */}
+      {reward.powerAfter > reward.powerBefore && (
+        <div className="tut-reward-power">Power Score&nbsp; <b>{formatPower(reward.powerBefore)} → {formatPower(reward.powerAfter)}</b></div>
+      )}
     </>
   );
 }

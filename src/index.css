@@ -8187,6 +8187,7 @@ kbd {
 /* Transmission voice: the eyebrow over a callout + the typewriter caret. */
 .tut-callout-eyebrow { font-size: 10px; font-weight: 800; letter-spacing: 0.24em; color: var(--gold); margin-bottom: 6px; }
 .tut-caret { font-style: normal; color: var(--vital); animation: tut-caret 0.7s steps(1) infinite; }
+.tut-type-rest { visibility: hidden; } /* reserves the final layout while the text types in */
 @keyframes tut-caret { 50% { opacity: 0; } }
 /* Controls (bottom-right) */
 .tut-controls { position: fixed; bottom: calc(20px + var(--safe-b)); right: calc(20px + var(--safe-r)); display: flex; gap: 10px; }

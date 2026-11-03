@@ -54,7 +54,7 @@ export function TutorialArrow({ rect, from = 'top' }: { rect: DOMRect | null; fr
 }
 
 /** True when a box overlaps a rect (strictly — touching edges is fine). */
-function overlaps(x: number, y: number, w: number, h: number, r: DOMRect): boolean {
+export function overlaps(x: number, y: number, w: number, h: number, r: DOMRect): boolean {
   return x < r.right && x + w > r.left && y < r.bottom && y + h > r.top;
 }
 
@@ -138,32 +138,37 @@ export function Callout({
       { left: clampX(rect.right + gap), top: clampY(cy - dims.h / 2) };
     cls = `side-${s}`;
   }
-  // AVOID ZONE: never cover the region the lesson is about. Candidates sit beside the region on
-  // each side (aligned to the first choice's other axis), clamped; the first that fits wholly
-  // on-screen and clears the region + the target, nearest the anchor, wins. Nothing fits (a
-  // region wider than the shell) ⇒ keep the anchored spot — the dock contract covers phones.
+  // AVOID ZONE: never cover the region the lesson is about. Candidates sit BESIDE the region
+  // first (left / right — above/below a tall lane is where the HUD and toolbar live), then
+  // below / above; the one nearest the anchor that fits wholly on-screen and clears the region
+  // + the target wins. A target-less bubble rides LOW beside the region (bottom-aligned —
+  // clear of the side panels' headline content). Nothing fits (a region wider than the shell)
+  // ⇒ keep the anchored spot — the phone dock contract covers narrow shells.
   if (avoid && !offViewport(avoid)) {
     const g = 14;
     const x0 = style.left as number;
     const y0 = style.top as number;
     if (overlaps(x0, y0, dims.w, dims.h, avoid)) {
-      const ax = rect && !offViewport(rect) ? rect.left + rect.width / 2 : x0 + dims.w / 2;
-      const ay = rect && !offViewport(rect) ? rect.top + rect.height / 2 : y0 + dims.h / 2;
+      const anchored = !!rect && !offViewport(rect);
+      const ax = anchored ? rect!.left + rect!.width / 2 : x0 + dims.w / 2;
+      const ay = anchored ? rect!.top + rect!.height / 2 : y0 + dims.h / 2;
+      const sideY = anchored ? clampY(y0) : clampY(avoid.bottom - dims.h);
       const fits = (x: number, y: number): boolean =>
         x >= pad && y >= pad && x + dims.w <= vw - pad && y + dims.h <= vh - pad &&
-        !overlaps(x, y, dims.w, dims.h, avoid) && !(rect && overlaps(x, y, dims.w, dims.h, rect));
-      const cands: [number, number, Side][] = [
-        [avoid.left - g - dims.w, clampY(y0), 'left'],
-        [avoid.right + g, clampY(y0), 'right'],
-        [clampX(x0), avoid.bottom + g, 'bottom'],
-        [clampX(x0), avoid.top - g - dims.h, 'top'],
+        !overlaps(x, y, dims.w, dims.h, avoid) && !(anchored && overlaps(x, y, dims.w, dims.h, rect!));
+      const tiers: [number, number, Side][][] = [
+        [[avoid.left - g - dims.w, sideY, 'left'], [avoid.right + g, sideY, 'right']],
+        [[clampX(x0), avoid.bottom + g, 'bottom'], [clampX(x0), avoid.top - g - dims.h, 'top']],
       ];
       let best: [number, number, Side] | null = null;
-      let bestD = Infinity;
-      for (const c of cands) {
-        if (!fits(c[0], c[1])) continue;
-        const d = Math.hypot(c[0] + dims.w / 2 - ax, c[1] + dims.h / 2 - ay);
-        if (d < bestD) { bestD = d; best = c; }
+      for (const tier of tiers) {
+        let bestD = Infinity;
+        for (const c of tier) {
+          if (!fits(c[0], c[1])) continue;
+          const d = Math.hypot(c[0] + dims.w / 2 - ax, c[1] + dims.h / 2 - ay);
+          if (d < bestD) { bestD = d; best = c; }
+        }
+        if (best) break;
       }
       if (best) {
         style = { left: best[0], top: best[1] };
@@ -213,10 +218,14 @@ export function Typewriter({ text }: { text: string }): JSX.Element {
     return () => clearInterval(id);
   }, [text]);
   const typing = shown < text.length;
+  // The untyped remainder is laid out INVISIBLY, so the bubble has its final size from the first
+  // frame: a measured callout never grows mid-transmission (growing used to walk a lane-avoiding
+  // bubble back over the lane, or a top-anchored one down over its own arrow, until it re-seated).
   return (
     <span className="tut-type" onClick={typing ? () => setShown(text.length) : undefined}>
       {text.slice(0, shown)}
       {typing && <i className="tut-caret" aria-hidden>▌</i>}
+      {typing && <span className="tut-type-rest" aria-hidden>{text.slice(shown)}</span>}
     </span>
   );
 }
