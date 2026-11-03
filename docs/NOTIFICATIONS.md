@@ -114,6 +114,15 @@ Rendered: hub landings, mobile tab indexes (compact), the Command Center 'recomm
 widget, and the `NextUp` strip mounted on claim-surface empty states (vault empty,
 harvest warming). Tests: `src/state/recommendations.test.ts`.
 
+**Never advise a sealed destination.** A notification source can count before its wing
+reveals (today's free Boss Rush entry, quest/pass/milestone claims at Stage 1). Every
+guidance surface asks ONE question — `isOpenNav(save, nav)` in `state/unlocks.ts` (a gated
+`FEATURES` screen must be revealed; navs outside the registry are open) — and drops the
+candidate otherwise: recommendations, the Next-Goal spine (`nextGoals` — its `reveal` goal
+already phrases the next sealed wing as a goal, "Unlock the Hero Hall"), Mission Control's
+Advisor row, the prediction panel's lever lines, and the loop directive's farm advice
+(Infinite named only once open). The Ready Chain applied the same rule first.
+
 ## §reward-toasts — the reward placard stack
 
 **Every reward in the game announces through ONE config-driven placard system** — a

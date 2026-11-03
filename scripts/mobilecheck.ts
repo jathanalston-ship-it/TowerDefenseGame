@@ -153,7 +153,7 @@ async function main(): Promise<void> {
       await page.waitForTimeout(380);
       await page.evaluate(() => {
         const btns = [...document.querySelectorAll('button')].filter((b) => (b as HTMLElement).offsetParent !== null);
-        for (const label of ['Continue Campaign', 'Deploy Under-Powered', 'Deploy', 'Begin']) {
+        for (const label of ['Continue Campaign', 'Fight anyway', 'Deploy', 'Begin']) {
           const b = btns.find((x) => (x.textContent ?? '').includes(label));
           if (b) { (b as HTMLElement).click(); return; }
         }

@@ -113,7 +113,7 @@ import type { RouletteReward } from './bioRoulette';
 import type { Prediction } from '../core/predict';
 import { unlockedMechanics, pendingAnnouncements } from './mechanics';
 import type { MechanicDef } from './mechanics';
-import { unlatchedReveals } from './unlocks';
+import { featureRevealed, unlatchedReveals } from './unlocks';
 import { ACCOUNT_XP, accountLevelReward, levelFromXp, levelProgress, monthKey, nextMilestone, weekKey } from '../core/accountLevel';
 import type { AccountLevelReward } from '../core/accountLevel';
 import { genomeAdvice, genomeBreakdown, genomeRankReward, genomeRating, rankFromRating, rankName, romanNumeral } from '../core/genomeRank';
@@ -1110,8 +1110,9 @@ function predictionRecommendations(save: SaveData, mode: 'campaign' | 'infinite'
   const gear = equipmentPower(save);
   const molts = save.prestige?.molts ?? 0;
   if (mode === 'campaign' && cleared < estimate - 2) out.push('Campaign progression recommended — you can push several stages deeper.');
-  if (maxTowerStars === 0) out.push('Tower Stars will significantly improve success — buy one in the Tower Lab.');
-  if (gear <= 1.01) out.push('Equipment quality is below expected — gear up a hero in the Armory.');
+  // Lever advice only names a wing the player can actually open (never advise a sealed screen).
+  if (maxTowerStars === 0 && featureRevealed(save, 'towers')) out.push('Tower Stars will significantly improve success — buy one in the Tower Lab.');
+  if (gear <= 1.01 && featureRevealed(save, 'equipment')) out.push('Equipment quality is below expected — gear up a hero in the Armory.');
   if (molts === 0 && cleared >= 10) out.push('Consider Prestiging for a permanent, compounding power multiplier.');
   return out.slice(0, 2);
 }

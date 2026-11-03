@@ -18,12 +18,14 @@
 // (readiness meter), Infinite (what this farm feeds).
 
 import type { SaveData } from '../save/saveStore';
-import { highestCampaignStage } from '../save/derive';
+import { highestCampaignStage, isInfiniteUnlocked } from '../save/derive';
 import { recommendedPowerScore } from '../core/campaign';
 import { defaultCalib, predictInfinite } from '../core/predict';
 import { composePower } from '../core/power';
 import { resolveDifficulty } from '../core/difficulty';
+import { MODE_UNLOCKS, READINESS } from '../core/config';
 import { accountPowerParts } from './meta';
+import { lastFlawlessClearPref } from './prefs';
 
 export type LoopPhase = 'advance-campaign' | 'farm-infinite';
 
@@ -35,6 +37,7 @@ export interface LoopState {
   readiness: number; // power / requiredPower — ≥ 1 means the wall is open
   powerShort: number; // Power Score still missing for the frontier (0 when ready)
   farmDepth: number; // estimated Infinite frontier — where farming pays best right now
+  infiniteOpen: boolean; // the farm half of the loop is unlocked (advice never points at a sealed mode)
 }
 
 /** Classify the account's position in the Campaign↔Infinite loop. `difficultyId` is the
@@ -58,13 +61,40 @@ export function loopState(save: SaveData, difficultyId = 'standard'): LoopState 
     readiness,
     powerShort: Math.max(0, Math.ceil(requiredPower - p.score)),
     farmDepth,
+    infiniteOpen: isInfiniteUnlocked(save),
   };
 }
 
+// ── Deploy readiness (docs/PROGRESSION-LOOP.md §readiness) — ONE rule for every surface that
+//    shows a campaign deploy (home CTA, Campaign map, deploy briefing, loop directive). ──
+
+/** 'ready' = at/above the recommendation · 'close' = inside READINESS.warnBelow (no warning) ·
+ *  'under' = genuinely under-powered (the honest, calm warning). Pure. */
+export type DeployReadiness = 'ready' | 'close' | 'under';
+
+export function readinessBand(power: number, rec: number): DeployReadiness {
+  if (rec <= 0 || power >= rec) return 'ready';
+  return power >= rec * READINESS.warnBelow ? 'close' : 'under';
+}
+
+/** The band a deploy at `stage` should SHOW: the pure band, calmed to 'close' when this device's
+ *  last campaign run was a flawless clear of the stage right before it (the board just proved
+ *  itself — a warning there reads as a lie). */
+export function deployReadiness(power: number, rec: number, stage: number, diff: string): DeployReadiness {
+  const band = readinessBand(power, rec);
+  if (band !== 'under') return band;
+  const f = lastFlawlessClearPref();
+  return f && f.diff === diff && f.stage === stage - 1 ? 'close' : 'under';
+}
+
 /** One-line, screen-ready advice for the loop position — the wall/breakthrough copy shared by
- *  Results, Campaign, and Infinite so the loop reads identically everywhere. */
-export function loopAdvice(ls: LoopState): string {
-  return ls.phase === 'advance-campaign'
-    ? `Power target met — Stage ${ls.frontierStage} is breakable now.`
-    : `Stage ${ls.frontierStage} wall: ${ls.powerShort.toLocaleString()} Power short. Farm Infinite (~Depth ${ls.farmDepth}) — loot, Mastery and genes bank permanently.`;
+ *  Results, Campaign, and Infinite so the loop reads identically everywhere. `band` lets a caller
+ *  pass the calmed deploy band; a 'close' frontier reads as a push, never a wall. Farm advice
+ *  only names Infinite once it is unlocked (never advise a sealed destination). */
+export function loopAdvice(ls: LoopState, band: DeployReadiness = readinessBand(ls.power, ls.requiredPower)): string {
+  if (ls.phase === 'advance-campaign') return `Power target met — Stage ${ls.frontierStage} is breakable now.`;
+  if (band !== 'under') return `Stage ${ls.frontierStage} is within reach — ${ls.powerShort.toLocaleString()} Power under the recommendation. Push it.`;
+  return ls.infiniteOpen
+    ? `Stage ${ls.frontierStage} wall: ${ls.powerShort.toLocaleString()} Power short. Farm Infinite (~Depth ${ls.farmDepth}) — loot, Mastery and genes bank permanently.`
+    : `Stage ${ls.frontierStage} wall: ${ls.powerShort.toLocaleString()} Power short. Replay cleared stages — loot, Mastery and genes bank permanently. Infinite opens at Stage ${MODE_UNLOCKS.infinite}.`;
 }

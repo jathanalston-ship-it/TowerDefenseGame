@@ -8,6 +8,7 @@ import { describe, it, expect } from 'vitest';
 import { missionControl } from './missionControl';
 import { nextGoals } from './nextGoal';
 import { defaultSave } from '../save/saveStore';
+import { isOpenNav } from './unlocks';
 
 describe('Mission Control — the one derivation that answers "what should I do?"', () => {
   it('PRIMARY is the campaign frontier, with progress/reward/nav always present', () => {
@@ -20,7 +21,7 @@ describe('Mission Control — the one derivation that answers "what should I do?
   });
 
   it('SECONDARY carries the anticipation spine verbatim — one fact, one value', () => {
-    const s = { ...defaultSave(), heroShards: { ...defaultSave().heroShards, shepherd: 42 } };
+    const s = { ...defaultSave(), campaign: { cleared: { standard: 2 }, bestTime: {} }, heroShards: { ...defaultSave().heroShards, shepherd: 42 } };
     const m = missionControl(s);
     const spine = nextGoals(s, 3);
     const row = m.secondary.find((o) => o.id === spine[0].id);
@@ -39,10 +40,22 @@ describe('Mission Control — the one derivation that answers "what should I do?
   });
 
   it('a funded account gets the Advisor top move as a secondary, with its EXACT gain', () => {
-    const m = missionControl({ ...defaultSave(), shards: 800 });
+    const s = { ...defaultSave(), shards: 800, lifetimeShards: 800 }; // earned Cores reveal the Evolution HQ
+    const m = missionControl(s);
     const adv = m.secondary.find((o) => o.id === 'advisor:top');
     expect(adv).toBeTruthy();
-    expect(adv!.powerGain).toBe(m.plan.moves[0].powerDelta); // same engine, same number
+    const top = m.plan.moves.find((mv) => isOpenNav(s, mv.nav))!;
+    expect(adv!.powerGain).toBe(top.powerDelta); // same engine, same number
+  });
+
+  it('never points a secondary row at a sealed wing (advice must lead somewhere usable)', () => {
+    // Banked Cores on a save whose Evolution HQ is still sealed (no Cores ever EARNED), plus
+    // shards toward a hero whose Hall is sealed: the Advisor/goal engines may know these moves,
+    // but Mission Control must not offer a jump into a lock.
+    const s = { ...defaultSave(), shards: 800, heroShards: { ...defaultSave().heroShards, shepherd: 42 } };
+    const m = missionControl(s);
+    for (const o of m.secondary) expect(isOpenNav(s, o.nav)).toBe(true);
+    expect(m.secondary.some((o) => o.id === 'release:shepherd')).toBe(false);
   });
 
   it('LONG-TERM walks the unlock learning curve in authored order, capped at 3', () => {

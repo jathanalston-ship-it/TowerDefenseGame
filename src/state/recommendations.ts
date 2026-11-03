@@ -11,7 +11,7 @@
 
 import { notifications } from './notifications';
 import './notificationSources'; // the default sources are this engine's candidate pool — register them
-import { nextReveals } from './unlocks';
+import { isOpenNav, nextReveals } from './unlocks';
 import { highestCampaignStage } from '../save/derive';
 import { loopOfNav } from '../core/rewardLoops';
 import type { LoopId } from '../core/rewardLoops';
@@ -137,7 +137,10 @@ export function recommendationsFor(
   // player touches a loop, other loops' actions rise a step (+8) and same-loop actions
   // settle a step (−6). Both are inside one rank band, so urgency ordering (claim > open
   // > spend…) is never overturned — rotation breaks TIES toward flowing across loops.
-  const tagged: Recommendation[] = out.map((r) => {
+  // A candidate whose destination is still SEALED never surfaces: a source can count before
+  // its wing reveals (a free Boss Rush entry, quest rewards before the Quest Board) and the
+  // action would dead-end on a lock — progression gating owns the reveal (the readyChain rule).
+  const tagged: Recommendation[] = out.filter((r) => isOpenNav(save, r.nav)).map((r) => {
     const loop = loopOfNav(r.nav);
     const rot = opts.rotateFrom && loop ? (loop === opts.rotateFrom ? -6 : 8) : 0;
     return { ...r, loop, score: r.score + rot };

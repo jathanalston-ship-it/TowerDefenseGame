@@ -2111,6 +2111,14 @@ export const MODE_UNLOCKS = {
   // (2026-07 stage-gate review, docs/DIFFICULTY.md §curve).
 };
 
+// Deploy-readiness presentation (docs/PROGRESSION-LOOP.md §readiness). The recommendation is a
+// guide, not a gate: an account within `warnBelow` of a stage's recommended Power deploys with
+// NO warning (a 2% gap is noise next to placement skill), and none directly after a flawless
+// clear of the previous stage. Below it, the warning stays honest — outcome-first, never alarm.
+export const READINESS = {
+  warnBelow: 0.9, // Power ≥ 90% of recommended ⇒ "ready enough" — no under-powered warning
+};
+
 // Deep-Strain content gate (docs/SIPHON.md §gate): clearing Campaign Stage 15 is the SINGLE
 // milestone that opens the deep roster — the five Deep-Strain gene cards enter the draft AND the
 // Marrow Siphon's shards begin dropping (before this, the tower is invisible to the loot pool). A

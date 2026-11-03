@@ -57,6 +57,21 @@ required.
 `ui/NextGoalBanner.tsx`): **Results** (the wall/breakthrough moment lands with the run's
 outcome), **Campaign** (readiness meter above the roadmap rail), **Infinite** (why you're
 farming — the experiment feeds the frontier's bar). One engine, identical copy everywhere.
+Farm advice names Infinite only once it is unlocked (`ls.infiniteOpen`); before Stage
+`MODE_UNLOCKS.infinite` the wall copy says "replay cleared stages" and phrases Infinite as a
+goal ("opens at Stage 3"), never as an action.
+
+### §readiness — the deploy warning is calm and honest
+
+`readinessBand(power, rec)` → `'ready'` (≥ rec) · `'close'` (≥ `READINESS.warnBelow` × rec,
+config: 0.9) · `'under'`. `deployReadiness(power, rec, stage, diff)` additionally calms an
+`'under'` band to `'close'` on the stage right after a FLAWLESS clear of the previous one (a
+device-local memory, `prefs.lastFlawlessClearPref`, written by `App.handleEnd` on every campaign
+settle — so the calm lasts exactly one attempt). Only `'under'` warns, and the copy is
+outcome-first: the home CTA reads **"Fight anyway — recommended Power not met"**, the Campaign
+map flags the fact row, the deploy briefing carries one calm line, and `LoopDirective` shows a
+PUSH phase ("within reach") instead of a wall. `phase` itself stays the strict ≥ 1 split — the
+invariants and the progression simulator are untouched; the band is presentation only.
 
 ## 5. What is deliberately NOT pinned here — the time axis
 

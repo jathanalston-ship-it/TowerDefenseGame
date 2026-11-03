@@ -15,14 +15,15 @@
 // The TIME axis (how long each wall takes) is deliberately not pinned here — that is the
 // progression simulator's domain (docs/PROGRESSION-LOOP.md §time).
 
-import { describe, it, expect } from 'vitest';
-import { loopAdvice, loopState } from './progressionLoop';
+import { describe, it, expect, vi } from 'vitest';
+import { deployReadiness, loopAdvice, loopState, readinessBand } from './progressionLoop';
+import { setLastFlawlessClearPref } from './prefs';
 import { accountPowerParts } from './meta';
 import { composePower } from '../core/power';
 import { recommendedPowerScore } from '../core/campaign';
 import { defaultSave } from '../save/saveStore';
 import type { SaveData } from '../save/saveStore';
-import { HERO_ORDER, HERO_SLOTS, INFINITE_REWARD_QUALIFY_FRAC, META_UPGRADES, MODE_REWARDS, STAR, TOWER_ORDER, campaignStarCap } from '../core/config';
+import { HERO_ORDER, HERO_SLOTS, INFINITE_REWARD_QUALIFY_FRAC, META_UPGRADES, MODE_REWARDS, MODE_UNLOCKS, READINESS, STAR, TOWER_ORDER, campaignStarCap } from '../core/config';
 import { GENE_LEVEL_GATES, geneLevelCapForStage } from '../core/geneCards';
 import { cardRegistry } from '../core/cards';
 import { prestigeMult, prestigeStageReq } from '../core/prestige';
@@ -139,5 +140,49 @@ describe('loop enforcement invariants', () => {
     const strong = { ...fresh, towerMasteryXp: { ...fresh.towerMasteryXp } };
     for (const k of TOWER_ORDER) strong.towerMasteryXp[k] = 5_000_000;
     expect(loopState(strong).farmDepth).toBeGreaterThan(loopState(fresh).farmDepth);
+  });
+});
+
+// Deploy readiness (docs/PROGRESSION-LOOP.md §readiness): ONE calm rule for every deploy surface.
+describe('deploy readiness — calm inside tolerance, honest below it', () => {
+  it('bands: ready at/above the recommendation, close inside READINESS.warnBelow, under below it', () => {
+    expect(readinessBand(1050, 1050)).toBe('ready');
+    expect(readinessBand(1028, 1050)).toBe('close'); // the playtest's "1,028 / 1,050" — no warning
+    expect(readinessBand(Math.ceil(1000 * READINESS.warnBelow), 1000)).toBe('close');
+    expect(readinessBand(Math.floor(1000 * READINESS.warnBelow) - 1, 1000)).toBe('under');
+    expect(readinessBand(1125, 51039)).toBe('under'); // genuinely under-powered stays honest
+  });
+
+  it('never warns on the stage right after a flawless clear — and only that stage', () => {
+    const mem = new Map<string, string>();
+    vi.stubGlobal('localStorage', {
+      getItem: (k: string) => mem.get(k) ?? null,
+      setItem: (k: string, v: string) => { mem.set(k, v); },
+      removeItem: (k: string) => { mem.delete(k); },
+    });
+    try {
+      expect(deployReadiness(500, 1000, 2, 'standard')).toBe('under');
+      setLastFlawlessClearPref({ diff: 'standard', stage: 1 });
+      expect(deployReadiness(500, 1000, 2, 'standard')).toBe('close'); // directly after the flawless clear
+      expect(deployReadiness(500, 1000, 3, 'standard')).toBe('under'); // a different stage
+      expect(deployReadiness(500, 1000, 2, 'hardened')).toBe('under'); // a different track
+      setLastFlawlessClearPref(null); // the next campaign settle ends the calm
+      expect(deployReadiness(500, 1000, 2, 'standard')).toBe('under');
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+
+  it('loop advice never names a sealed mode and reads a near-miss as a push', () => {
+    const fresh = defaultSave();
+    const s1 = { ...fresh, campaign: { ...fresh.campaign, cleared: { standard: 1 } } };
+    const ls = loopState(s1);
+    expect(ls.infiniteOpen).toBe(false);
+    const wall = { ...ls, phase: 'farm-infinite' as const, power: 100, requiredPower: 1000, powerShort: 900 };
+    expect(loopAdvice(wall)).not.toContain('Farm Infinite'); // Infinite is sealed until Stage 3
+    expect(loopAdvice(wall)).toContain(`Infinite opens at Stage ${MODE_UNLOCKS.infinite}`);
+    const near = { ...wall, power: 980, powerShort: 20 };
+    expect(loopAdvice(near)).toContain('within reach'); // inside tolerance: a push, not a wall
+    expect(loopAdvice({ ...wall, infiniteOpen: true })).toContain('Farm Infinite');
   });
 });

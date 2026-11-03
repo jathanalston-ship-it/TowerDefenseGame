@@ -19,7 +19,7 @@ import {
   heroCollection, towerStarCost, nextHeroStarCost, evolutionStarCap, heroSlotsUnlocked,
   collectionContextOf,
 } from './meta';
-import { nextReveals } from './unlocks';
+import { isOpenNav, nextReveals } from './unlocks';
 
 /** One imminent reward the player is close to earning. `progress` is 0..1 toward it. */
 export interface NextGoal {
@@ -165,8 +165,11 @@ export function nextGoals(save: SaveData, limit = 6): NextGoal[] {
   }
 
   // Closest-to-done first; ties broken by kind priority (a near unlock beats a near collection).
+  // A goal whose destination is still sealed never surfaces (never advise a locked wing) — the
+  // `reveal` goal above already phrases the next sealed wing as the goal ("Unlock the Hero Hall").
   const KIND_RANK: Record<NextGoal['kind'], number> = { 'hero-release': 0, evolution: 1, reveal: 2, 'campaign-gate': 3, prestige: 4, collection: 5 };
   return goals
+    .filter((g) => isOpenNav(save, g.nav))
     .sort((a, b) => b.progress - a.progress || KIND_RANK[a.kind] - KIND_RANK[b.kind])
     .slice(0, limit);
 }

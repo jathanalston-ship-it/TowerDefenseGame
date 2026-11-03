@@ -18,7 +18,7 @@ import { accountPowerParts } from './meta';
 import { nextGoals } from './nextGoal';
 import { advisorPlan } from './powerAdvisor';
 import type { AdvisorPlan } from './powerAdvisor';
-import { FEATURES, evalCondition, featureRevealed } from './unlocks';
+import { FEATURES, evalCondition, featureRevealed, isOpenNav } from './unlocks';
 import { difficultyPref } from './prefs';
 
 export interface MissionObjective {
@@ -111,7 +111,7 @@ export function missionControl(save: SaveData): MissionControlModel {
       remaining: `${save.pendingContainers.length} ready`, reward: 'Gear · shards · materials', nav: 'vault',
     });
   }
-  const top = plan.moves[0];
+  const top = plan.moves.find((m) => isOpenNav(save, m.nav)); // never a move in a sealed wing
   if (top) {
     secondary.push({
       id: 'advisor:top', tier: 'secondary', title: top.label, why: `Fastest Power in ${top.system}.`,

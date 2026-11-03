@@ -2,6 +2,10 @@ import { describe, it, expect } from 'vitest';
 import { nextGoals } from './nextGoal';
 import { towerStarCost } from './meta';
 import { defaultSave } from '../save/saveStore';
+import { isOpenNav } from './unlocks';
+
+/** A stage-2 account — the Hero Hall (a Release goal's destination) is revealed. */
+const hall = () => ({ ...defaultSave(), campaign: { cleared: { standard: 2 }, bestTime: {} } });
 
 describe('Next-Goal engine (the anticipation spine)', () => {
   it('always returns at least one imminent goal (a screen is never a dead end)', () => {
@@ -9,7 +13,7 @@ describe('Next-Goal engine (the anticipation spine)', () => {
   });
 
   it('surfaces a locked hero as a Release goal with correct progress + remaining', () => {
-    const s = { ...defaultSave(), heroShards: { ...defaultSave().heroShards, shepherd: 42 } };
+    const s = { ...hall(), heroShards: { ...defaultSave().heroShards, shepherd: 42 } };
     const g = nextGoals(s).find((x) => x.id === 'release:shepherd');
     expect(g).toBeTruthy();
     expect(g!.kind).toBe('hero-release');
@@ -25,7 +29,7 @@ describe('Next-Goal engine (the anticipation spine)', () => {
   });
 
   it('ranks closest-to-done first', () => {
-    const s = { ...defaultSave(), heroShards: { ...defaultSave().heroShards, shepherd: 55, overseer: 5 } };
+    const s = { ...hall(), heroShards: { ...defaultSave().heroShards, shepherd: 55, overseer: 5 } };
     const goals = nextGoals(s);
     for (let i = 1; i < goals.length; i++) expect(goals[i - 1].progress).toBeGreaterThanOrEqual(goals[i].progress);
     // Shepherd at 55/60 (0.92) should outrank Overseer at 5/100 (0.05).
@@ -44,5 +48,15 @@ describe('Next-Goal engine (the anticipation spine)', () => {
     expect(evo!.kind).toBe('evolution');
     expect(evo!.progress).toBeGreaterThan(0);
     expect(evo!.progress).toBeLessThan(1);
+  });
+
+  it('never surfaces a goal whose destination is still sealed — the reveal goal phrases it instead', () => {
+    // Fresh account: the Hero Hall is sealed (stage 2), so "Release Shepherd" would be a jump
+    // into a lock. It must not appear; the wing itself shows up as the "Unlock the …" goal.
+    const s = { ...defaultSave(), heroShards: { ...defaultSave().heroShards, shepherd: 42 } };
+    const goals = nextGoals(s);
+    expect(goals.some((g) => g.kind === 'hero-release')).toBe(false);
+    for (const g of goals) expect(isOpenNav(s, g.nav)).toBe(true);
+    expect(goals.length).toBeGreaterThan(0); // still never a dead end
   });
 });

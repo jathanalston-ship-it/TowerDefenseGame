@@ -288,6 +288,13 @@ export function featureRevealed(save: SaveData, id: string): boolean {
   return featureView(save, id).revealed;
 }
 
+/** May guidance point HERE? (docs/NOTIFICATIONS.md §recommendations — never advise a sealed
+ *  destination.) A gated screen must be revealed; navs outside the registry (sub-routes,
+ *  always-on surfaces) are open by definition. Every advice surface asks this one question. */
+export function isOpenNav(save: SaveData, nav: string): boolean {
+  return !FEATURE_BY_ID.has(nav) || featureRevealed(save, nav);
+}
+
 /** Feature ids whose conditions hold now but were never latched — meta.latchNewReveals persists
  *  these (the moment a reveal ceremony may fire). */
 export function unlatchedReveals(save: SaveData): string[] {

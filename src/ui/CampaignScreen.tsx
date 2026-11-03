@@ -17,6 +17,8 @@ import { formatPower } from '../core/power';
 import { CAMPAIGN_REWARDS, CHESTS, chestForWave } from '../core/config';
 import { DIFFICULTIES, DIFFICULTY_IDS } from '../core/difficulty';
 import { difficultyPref, setDifficultyPref } from '../state/prefs';
+import { deployReadiness } from '../state/progressionLoop';
+import { isInfiniteUnlocked } from '../save/derive';
 import { CurrencyIcon } from './components/CurrencyIcon';
 
 const WINDOW = 8; // nodes shown at once (a window over the infinite ladder)
@@ -64,6 +66,8 @@ export function CampaignScreen({
   const focusState = focus <= cleared ? 'cleared' : focus === frontier ? 'current' : 'locked';
   const rec = recommendedPowerScore(focus, diff);
   const ready = power >= rec;
+  const underPowered = deployReadiness(power, rec, focus, diff) === 'under'; // the only band that warns
+  const infiniteOpen = isInfiniteUnlocked(save); // remedy copy never points at a sealed mode
   const firstClearCore = CAMPAIGN_REWARDS.firstClearCore + CAMPAIGN_REWARDS.firstClearCorePerStage * focus +
     (focus % CAMPAIGN_REWARDS.milestoneEvery === 0 ? CAMPAIGN_REWARDS.milestoneCore : 0);
 
@@ -246,10 +250,10 @@ export function CampaignScreen({
             </div>
           )}
 
-          <div className={`camp-power ${ready ? 'ok' : 'low'}`}>
+          <div className={`camp-power ${underPowered ? 'low' : 'ok'}`}>
             <span>Recommended Power</span>
             <b>{formatPower(rec)}</b>
-            <span className="camp-power-you">you {formatPower(power)} {ready ? '✓' : '⚠'}</span>
+            <span className="camp-power-you">you {formatPower(power)} {ready ? '✓' : underPowered ? '⚠' : ''}</span>
           </div>
 
           <div className="camp-rewards">
@@ -274,9 +278,9 @@ export function CampaignScreen({
               and the under-powered path names its remedy — the Infinite farm (the macro loop). */}
           {focus === frontier && (
             <div className="camp-fieldnote">
-              {ready
+              {!underPowered
                 ? <>Failed attempts still recover up to {Math.round(CAMPAIGN_REWARDS.attemptFrac * 100)}% of the discovery data.</>
-                : <>Under-powered — farm <b>Infinite</b> to close the gap, or push anyway: failed attempts recover up to {Math.round(CAMPAIGN_REWARDS.attemptFrac * 100)}% of the discovery data.</>}
+                : <>Recommended Power not met — {infiniteOpen ? <>farm <b>Infinite</b></> : 'replay cleared stages'} to close the gap, or fight anyway: failed attempts recover up to {Math.round(CAMPAIGN_REWARDS.attemptFrac * 100)}% of the discovery data.</>}
             </div>
           )}
         </aside>

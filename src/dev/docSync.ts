@@ -13,7 +13,7 @@ import { CURRENT_VERSION } from '../save/saveStore';
 import { GENE_LEVEL_GATES, GENE_POWER_SCALE } from '../core/geneCards';
 import { ESSENCE_PER_SHARD, ESSENCE_COST } from '../core/geneEssence';
 import { CARD_POOL } from '../core/cards';
-import { TOWER_ORDER, HERO_ORDER } from '../core/config';
+import { TOWER_ORDER, HERO_ORDER, READINESS } from '../core/config';
 import { GENE_LOADOUT_SLOTS } from '../core/geneLoadout';
 import { ASSIMILATION_TIERS } from '../core/assimilation';
 
@@ -40,6 +40,7 @@ export function docAnchors(): DocAnchor[] {
     { doc: 'docs/GAME-STATE.md', contains: `| Cards (genes) | ${CARD_POOL.length} |`, why: 'card count drifted (CARD_POOL)' },
     { doc: 'docs/GAME-STATE.md', contains: `| Towers | ${TOWER_ORDER.length} |`, why: 'tower count drifted (TOWER_ORDER)' },
     { doc: 'docs/GAME-STATE.md', contains: `| Heroes | ${HERO_ORDER.length} |`, why: 'hero count drifted (HERO_ORDER)' },
+    { doc: 'docs/PROGRESSION-LOOP.md', contains: `config: ${READINESS.warnBelow})`, why: 'deploy-warning tolerance drifted (config.READINESS.warnBelow)' },
     { doc: 'docs/GAME-STATE.md', contains: gates, why: 'gene campaign gates drifted (GENE_LEVEL_GATES)' },
     { doc: 'docs/GENE-EVOLUTION.md', contains: `GENE_POWER_SCALE = ${GENE_POWER_SCALE}`, why: 'gene power calibration drifted (GENE_POWER_SCALE)' },
     { doc: 'docs/GENE-EVOLUTION.md', contains: `| Essence / shard | ${ESSENCE_PER_SHARD.common} | ${ESSENCE_PER_SHARD.uncommon} | ${ESSENCE_PER_SHARD.rare} | ${ESSENCE_PER_SHARD.epic} | ${ESSENCE_PER_SHARD.legendary} | ${ESSENCE_PER_SHARD.mythic} |`, why: 'duplicate-conversion rates drifted (ESSENCE_PER_SHARD)' },
