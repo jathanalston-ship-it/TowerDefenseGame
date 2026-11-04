@@ -8,6 +8,8 @@ import { pollAmbientCue } from '../render/organism';
 import { setGoreAnchors } from '../render/gore';
 import { WIDTH as BOARD_W, HEIGHT as BOARD_H } from '../core/map';
 import { getAssimilationDebug } from '../render/livingBattlefield';
+import { runOutro } from '../render/runOutro'; // run-end outro FX + Results backdrop (docs/SIGNATURE-MOMENTS.md §2)
+import type { RunBackdropImage } from '../render/runOutro';
 import { resolveMulligan } from '../core/mulligan';
 import type { MulliganState } from '../core/mulligan';
 import { deriveMulliganProjectile } from '../render/mulliganOrganism';
@@ -91,10 +93,6 @@ function addTrauma(current: number, impulse: number): number {
   return Math.min(cap, current + impulse * (cap / (cap + current)));
 }
 
-// How long the battlefield outro lingers before the summary takes over (a beat, then auto-advance;
-// a tap skips it). Shorter under reduced motion (motionScale 0) — still a pause, never a hard cut.
-const OUTRO_HOLD_MS = { full: 3400, reduced: 1200 } as const;
-
 // A pointer that travels more than this (screen px) between press and release is a DRAG,
 // not a tap — we swallow the click so a stray drag never places a tower, casts an ability,
 // or moves the rally point by accident.
@@ -163,7 +161,7 @@ export function GameView({
   threat?: number; // THREAT LADDER level (docs/THREAT.md) — App passes it only on ladder modes
   daily?: { modifierIds: string[]; towerPool: TowerKind[]; megaBoss?: MegaEncounter }; // Daily Run (docs/DAILY-RUN.md): modifiers + trial pool + the rare Mega variant (docs/MEGA-BOSS.md §daily)
   mulliganOverride?: Partial<Record<TowerKind, MulliganState>>; // Daily's seeded organisms (docs/MULLIGANS.md §daily) — substitutes the account's for this run
-  onEnd: (r: RunResult) => void;
+  onEnd: (r: RunResult, backdrop?: RunBackdropImage) => void; // backdrop: the run's last frame for Results
   onAbandon: (wave?: number) => void;
   tutorial?: boolean; // TUTORIAL mode: don't bank loot + don't auto-hand-off on run end (the tutorial director drives completion)
   onReady?: (g: Game) => void; // fires once with the live game so the tutorial director can script beats
@@ -774,6 +772,7 @@ export function GameView({
         // above (game.assimilation.index) ⇒ ground evolution, music floor and HUD glow stay coherent.
         drawGame(ctx, rs, pointerRef.current, cosmeticTiers, starTiers, adaptTiers, heroStarTiers, heroEvoRef.current, skins.towers, skins.heroes, mulliganRender, heroGearRender, power, game.assimilation.index, heroSymbioteRender);
         drawImpacts(ctx, now); // boss-fall rings + ult impact frames ride the same camera kick
+        runOutro.frame(ctx, now); // run-end outro FX (victory wash clock · defeat drain + cracks) — no-op mid-run
         // Living Organism ambience (docs/LIVING-BATTLEFIELD.md §organisms/audio): the render-side
         // murmur director — at most one quiet per-family cue every few seconds (anticipation
         // murmurs while enemies close in, rarer calm breaths between waves), silent under din.
@@ -942,13 +941,16 @@ export function GameView({
         const over = !tutorial && (game.phase === 'won' || game.phase === 'lost');
         if (over && !outroRef.current && !endedRef.current) {
           outroRef.current = { won: game.phase === 'won', startedAt: now };
+          runOutro.begin(game.phase === 'won', now, rs, canvas);
           setHud(game.getSnapshot());
           setOutro({ won: game.phase === 'won', endless: game.mode === 'endless' || game.mode === 'bossRush' });
         }
         // After the linger (or a tap), hand off to the End-of-Run Summary.
-        if (outroRef.current && !endedRef.current && (skipRef.current || now - outroRef.current.startedAt >= (viewFeel.motion > 0 ? OUTRO_HOLD_MS.full : OUTRO_HOLD_MS.reduced))) {
+        // The hold is data (render/runOutro.ts OUTRO.holdMs — shorter on a win, a short static beat under
+        // reduced motion); the final frame rides along as Results' backdrop.
+        if (outroRef.current && !endedRef.current && (skipRef.current || now - outroRef.current.startedAt >= runOutro.holdMs(outroRef.current.won))) {
           endedRef.current = true;
-          onEndRef.current({ wave: game.waveIndex, kills: game.kills, won: game.phase === 'won', mastery: game.getMasteryAccrual(), heroMastery: game.getHeroMasteryAccrual(), stats: game.getRunStats(), endless: game.mode === 'endless', durationSec: game.time, doctrine, dailyReplay: packReplay(recorderRef.current, game) });
+          onEndRef.current({ wave: game.waveIndex, kills: game.kills, won: game.phase === 'won', mastery: game.getMasteryAccrual(), heroMastery: game.getHeroMasteryAccrual(), stats: game.getRunStats(), endless: game.mode === 'endless', durationSec: game.time, doctrine, dailyReplay: packReplay(recorderRef.current, game) }, runOutro.capture());
         }
         raf = requestAnimationFrame(loop);
       } catch (err) {
@@ -960,6 +962,7 @@ export function GameView({
     raf = requestAnimationFrame(loop);
     return () => {
       cancelAnimationFrame(raf);
+      runOutro.end(); // release the outro bakes if the run unmounts mid-linger
     };
   }, [game]);
 

@@ -91,6 +91,15 @@ nearest enemy** (idle wander under LOD), the **nucleus organ** (roots/sacs/blink
 ring), a **combat flare** where the line is pressed hardest, a mega bloom, fading combat scorch
 (two-arc fills, no gradients), and **ambient spores/floating eyes** over the entities.
 
+## The victory wash (docs/SIGNATURE-MOMENTS.md §2)
+
+At a run's VICTORY the terraform washes outward from the Hive Core to the board edges. It is
+the SAME bake, not a fork: `bakeAssimilatedBoard(a, biomeId, accent)` runs `deriveTerraform` +
+`buildBake` on the run's own regions at the Living stage / full reach, tinted the biome accent
+(`resolveAccent`, now exported). `render/runOutro.ts` owns the reveal (a growing clip from the
+nucleus, driven by GameView's wall-clock outro clock) and draws it from `drawGame` right after
+this layer — under the entities. Render-only; inert outside a victory outro.
+
 ## Audio
 
 A single subtle organic swell (`bioStage` cue) plays **only when the arena deepens a stage** — never on

@@ -1,6 +1,6 @@
 # DIL_GRAPH.md — the Design Intelligence Layer (GENERATED — `npm run dil -- regen`)
 
-> **The project's brain** (docs/DIL.md). 954 nodes · 1832 edges, built from the live
+> **The project's brain** (docs/DIL.md). 956 nodes · 1837 edges, built from the live
 > registries + curated knowledge (src/dev/dil/). **Query it instead of searching the repo:**
 > `npm run dil -- node <id>` · `affects <id>` · `requires <id>` · `missing <kind> <edge>` ·
 > `checklist tower <kind>` · `find <text>`. Edge kinds are bidirectional (19 kinds).
@@ -191,6 +191,7 @@ graph LR
   system_daily["Daily Run"] -->|consumes| system_map_layouts["Arena Layouts"]
   system_infinite["Infinite Mode"] -->|consumes| system_map_layouts["Arena Layouts"]
   system_progression_gating["Progression Gating & Director"] -->|modifies| system_hub_shell["Hub Shell & Home"]
+  system_run_ui["In-Run HUD & Results"] -->|consumes| system_living_battlefield["Living Battlefield"]
 ```
 
 ### Power Score Map
@@ -576,6 +577,7 @@ graph LR
   system_account_level["Account Level (evergreen meta-progression)"] -->|dependsOn| system_notifications["Notifications"]
   system_rendering["Rendering & VFX"] -->|provides| system_audio["Audio"]
   system_website["Marketing Website"] -->|dependsOn| system_run_ui["In-Run HUD & Results"]
+  system_run_ui["In-Run HUD & Results"] -->|consumes| system_living_battlefield["Living Battlefield"]
 ```
 
 ### Presentation Couplings Map
@@ -892,7 +894,7 @@ _at: src/core/game.ts, src/core/combat.ts, src/core/status.ts, src/core/targetin
   - requiredBy ← `system:nemesis`
   - requiredBy ← `system:onboarding`
   - requiredBy ← `system:run-ui`
-  - _…238 more (query: `npm run dil -- node system:engine`)_
+  - _…239 more (query: `npm run dil -- node system:engine`)_
 
 ### `system:content-infra` — Content Infrastructure
 
@@ -2166,13 +2168,13 @@ _at: src/ui/Hub.tsx, src/ui/navModel.ts, src/ui/MobileShell.tsx, src/ui/componen
   - documentedBy ← `doc:ONE-MORE-RUN.md`
   - documentedBy ← `doc:HUD.md`
   - documentedBy ← `doc:PROGRESSION-LOOP.md`
-  - _…28 more (query: `npm run dil -- node system:hub-shell`)_
+  - _…29 more (query: `npm run dil -- node system:hub-shell`)_
 
 ### `system:run-ui` — In-Run HUD & Results
 
 The battlefield interface: HUD, toolbar, inspector, build panel, results + reward reveal.
 
-_at: src/ui/GameView.tsx, src/ui/components/CentreStage.tsx, src/ui/Hud.tsx, src/ui/Toolbar.tsx, src/ui/BuildControls.tsx, src/ui/BuildPanel.tsx, src/ui/Inspector.tsx, src/ui/Results.tsx, src/state/runDebrief.ts, src/ui/RewardReveal.tsx, src/ui/RewardPreview.tsx_
+_at: src/ui/GameView.tsx, src/ui/components/CentreStage.tsx, src/ui/Hud.tsx, src/ui/Toolbar.tsx, src/ui/BuildControls.tsx, src/ui/BuildPanel.tsx, src/ui/Inspector.tsx, src/ui/Results.tsx, src/state/runDebrief.ts, src/ui/RewardReveal.tsx, src/ui/RewardPreview.tsx, src/render/runOutro.ts, src/ui/components/RunBackdrop.tsx_
 
   - dependsOn → `system:engine`
   - dependsOn → `system:meta-store`
@@ -2182,10 +2184,13 @@ _at: src/ui/GameView.tsx, src/ui/components/CentreStage.tsx, src/ui/Hud.tsx, src
   - provides → `concept:responsive` — RUN LAYOUT v2 (index.css §RUN LAYOUT v2, RESPONSIVE-DESIGN.md §run): per-profile grids around a max 3:4 board — desktop slim fixed HUD row + fixed deck; landscape HUD column | full-height board | tower column (run keys + briefing fixed into the columns via --bw/--col); portrait HUD strip / keys strip / full-width board / drawer+hero row / rail. Fixed chrome heights so nothing mid-run resizes the board; side panels are drawers on phones (bottom sheets in portrait); the rotate gate stands down while GameView is mounted (layoutProfile.setInRun); mobilecheck phoneRunContract + runChromeContract pin it (no scroll, no chrome overlap)
   - dependsOn → `system:campaign` — RESULTS NEXT STAGE: a Campaign WIN offers "Stage N+1 ▸" as the Results primary (App.startNextStage = the Campaign map Deploy path — campaign difficulty pref + notePredictionBaseline + the event’s default boon + begin() readiness briefing), only while N+1 is open on that track; replay stays secondary ("↻ Replay"), a loss reads "↻ Try again"; Continue stays LAST in the row (first-session probe clicks the last continue)
   - dependsOn → `system:ui-kit` — RUN-FLOW HOLD: layoutProfile.setInRun takes a named holder — GameView holds "battlefield", App holds "run-flow" across deploying/playing/results, so a portrait phone run never shows the rotate gate over its deploy breath or Results; the gate returns with the hub (RESPONSIVE-DESIGN.md §run)
+  - consumes → `system:living-battlefield` — RUN-END OUTRO (render/runOutro.ts): VICTORY reveals livingBattlefield.bakeAssimilatedBoard (the SAME deriveTerraform+buildBake at Living stage / full reach, biome-accent tint) by a growing clip from the nucleus, drawn from drawGame right after the terraform (drawVictoryWash — no-op unless the canvas is the live board, so SpectateView is safe); DEFEAT drains colour + reveals seeded cracks from breachPoint. Driven by GameView wall-clock, never sim time; OUTRO.holdMs replaces GameView OUTRO_HOLD_MS
+  - references → `system:hub-shell` — RESULTS BACKDROP: runOutro.capture() → one ~third-size JPEG data URL + the board rect (viewport fractions) → GameView.onEnd(result, backdrop) → App last-run state (dropped when screen leaves results; App preloads the lazy Results chunk while playing) → Results({ backdrop }) → RunBackdrop (rect while the viewport keeps its shape, else contain-fit). Absent ⇒ the old dark room (Arena, replay, tutorial, crash path)
   - taughtBy ← `tutorial:combat`
   - documentedBy ← `doc:HUD.md`
   - documentedBy ← `doc:READABILITY.md`
   - documentedBy ← `doc:REWARD-PRESENTATION.md`
+  - testedBy ← `test:src/render/runOutro.test.ts`
   - testedBy ← `test:src/state/runDebrief.test.ts`
   - modifiedBy ← `system:notifications` — AUTO-CLAIM (state/autoClaim.ts, NOTIFICATIONS.md §auto-claim): Results mounts AutoClaimSummary once per result (WeakMap settle-once) → quest missions / pass levels / metabolism tiers / evolution-track nodes on REVEALED systems claim inside rewardToast.capture() and read back as ONE "Also earned" row; finales + EVOLVE stay manual; tier-3 rewards still toast; prefs.autoClaimPref (Settings) switches it off
   - conflictsWith ← `system:onboarding` — DESKTOP TEACHING CONTRACT (docs/TUTORIAL-AUDIT.md §G, 2026-11): every lesson shown while a wave runs or asking for a slot tap declares callout.avoid = canvas.board (the bubble re-seats beside the lane, measured + clamped); the draft lesson anchors BELOW .overlay .cards; the ability lesson targets [data-tut="ability"] .ability-btn and runs DURING wave 2; desktop Pause/Skip take a measured seat clear of [data-tut="ability"]. A HUD/board re-layout must keep canvas.board, .ability-btn and data-tut="ability" (tutorialAnchors.test resolves them) — positions are never hard-coded
@@ -2512,7 +2517,7 @@ _at: src/render/*, src/core/dangerCamera.ts_
   - testedBy ← `test:src/render/assimilationFx.test.ts`
   - testedBy ← `test:src/render/equipmentArt.test.ts`
   - testedBy ← `test:src/render/feel.test.ts`
-  - _…23 more (query: `npm run dil -- node system:rendering`)_
+  - _…24 more (query: `npm run dil -- node system:rendering`)_
 
 ### `system:living-battlefield` — Living Battlefield
 
@@ -2533,6 +2538,7 @@ _at: src/render/livingBattlefield.ts, src/render/organism.ts, src/render/gutters
   - testedBy ← `test:src/render/gutters.test.ts`
   - testedBy ← `test:src/render/livingBattlefield.test.ts`
   - testedBy ← `test:src/render/organism.test.ts`
+  - consumedBy ← `system:run-ui` — RUN-END OUTRO (render/runOutro.ts): VICTORY reveals livingBattlefield.bakeAssimilatedBoard (the SAME deriveTerraform+buildBake at Living stage / full reach, biome-accent tint) by a growing clip from the nucleus, drawn from drawGame right after the terraform (drawVictoryWash — no-op unless the canvas is the live board, so SpectateView is safe); DEFEAT drains colour + reveals seeded cracks from breachPoint. Driven by GameView wall-clock, never sim time; OUTRO.holdMs replaces GameView OUTRO_HOLD_MS
 
 ### `system:audio` — Audio
 
@@ -4023,7 +4029,7 @@ _at: site/guides.ts → /guides/live-events/_
 - `doc:VOWS.md` — project documentation _(documents `system:prestige`)_
 - `doc:WEBSITE.md` — project documentation _(documents `system:field-research`, documents `system:website`)_
 
-## Tests (325)
+## Tests (327)
 
 - `test:src/audio/cues.test.ts` — automated validation _(tests `system:audio`)_
 - `test:src/audio/music.test.ts` — automated validation _(tests `system:audio`)_
@@ -4234,6 +4240,7 @@ _at: site/guides.ts → /guides/live-events/_
 - `test:src/render/mulliganOrganism.test.ts` — automated validation _(tests `system:rendering`, tests `system:mulligans`)_
 - `test:src/render/organism.test.ts` — automated validation _(tests `system:rendering`, tests `system:living-battlefield`)_
 - `test:src/render/renderer.test.ts` — automated validation _(tests `system:rendering`)_
+- `test:src/render/runOutro.test.ts` — automated validation _(tests `system:rendering`, tests `system:run-ui`)_
 - `test:src/render/starEvolution.test.ts` — automated validation _(tests `system:rendering`)_
 - `test:src/render/statusFx.test.ts` — automated validation _(tests `system:rendering`)_
 - `test:src/render/statusVfx.test.ts` — automated validation _(tests `system:rendering`)_
@@ -4338,6 +4345,7 @@ _at: site/guides.ts → /guides/live-events/_
 - `test:src/state/wardrobeMeta.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/ui/HubLanding.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/ui/browserBack.test.ts` — automated validation _(tests `system:hub-shell`)_
+- `test:src/ui/components/RunBackdrop.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/ui/components/loadoutStrip.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/ui/components/sectionNav.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/ui/components/topbarTouch.test.ts` — automated validation _(tests `system:engine`)_

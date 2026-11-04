@@ -81,20 +81,62 @@ freezing.
 
 ## 2. Victory carries into Results
 
-**Today:** VICTORY holds a frozen board for 3.4 s (`OUTRO_HOLD_MS`), then Results opens as a
-540 px panel floating in a black void.
+> **Status: BUILT (2026-11, Batch 3 track S2).** `src/render/runOutro.ts` (the FX + the snapshot),
+> `src/ui/components/RunBackdrop.tsx` (Results' backdrop), index.css §S2 (veil, settle beat,
+> backdrop filters). Render/UI only — the sim, goldens and replays are untouched.
 
-**Target:** the board *assimilates* — the Living Battlefield's terraform (docs/LIVING-BATTLEFIELD.md)
-washes outward from the Hive Core to the edges over ~1.4 s — then the final frame is kept as a
-blurred, darkened backdrop behind Results instead of black. Defeat gets its own grammar: the
-board desaturates and cracks from the breach point.
+**Before:** VICTORY held a frozen board for 3.4 s under a viewport-centred veil (which hid the
+Hive Core at the bottom of the board), then Results opened as a panel floating in a black void.
 
-**Hooks:** the renderer already bakes a terraform layer; add a `victoryWash(t)` uniform-style
-parameter driven by GameView's outro clock. Results takes an optional backdrop image (one
-`canvas.toDataURL` snapshot at outro end, released on unmount).
+**As built — beat sheet** (wall-clock from GameView's outro clock; never sim time):
+| t | VICTORY | DEFEAT |
+|---|---|---|
+| 0 | The veil becomes a spotlight on the board's rect (the chrome recedes, the board stays lit) | same spotlight |
+| 0–1.4 s | The terraform **washes outward from the Hive Core** to the farthest corner (ease-out), under the entities, tinted the **biome accent**, a soft wavefront riding its edge | colour **drains** (0–0.9 s) and **cracks spread from the breach point** (0–1.5 s), the Nucleus's red light bleeding through them |
+| 1.4 s → | The washed network beats with the terraform's own heartbeat | the drained, cracked board holds |
+| hold − 350 ms | **Settle:** the live board eases into Results' look (blur + dim) and the title fades | same |
+| hold | Results lands on that same frame: the board laid back where it stood, blurred **8 px**, at **40 %** brightness | same |
 
-**Taste choices:** wash colour (biome accent vs. hive gold) · backdrop blur strength · whether the
-outro hold shortens to ~2 s once the wash carries the moment.
+Victory hold **2400 ms** (defeat 3400 ms · reduced motion 1200 ms) — a tap still skips at once.
+The wash **1400 ms**; the defeat cracks 1500 ms.
+
+**How it works**
+- **Reuses the terraform, doesn't fork it.** `livingBattlefield.bakeAssimilatedBoard(a, biome,
+  accent)` runs the SAME `deriveTerraform` + `buildBake` with the run's own regions at the Living
+  stage / full reach — "this board, fully assimilated". `runOutro` reveals it with a growing clip
+  from the nucleus inside `drawGame` (`drawVictoryWash`, right after the Living Battlefield), so
+  towers and heroes stand on the assimilated ground. One bake at the outro start; per frame two
+  clipped blits + a tint fill + four arc strokes.
+- **Defeat grammar.** The breach point is the Core's surface facing the attacker nearest it
+  (`breachPoint`); `deriveCracks` is a seeded walk (deterministic per breach, fanned toward the
+  board, tapering, forking ≤ 2 deep), baked once and revealed by the same growing clip; the drain
+  is one `saturation`-blend fill + a dim, over the finished frame.
+- **The backdrop.** At the hand-off `runOutro.capture()` draws the canvas into a third-size
+  canvas → ONE JPEG data URL (~20–40 KB) + the board's on-screen rect (viewport fractions). It
+  rides `GameView.onEnd(result, backdrop)` into App's last-run state → `Results({ backdrop })` →
+  `RunBackdrop`: the board layer at its captured rect (contain-fitted and centred if the viewport
+  changed shape — a rotated phone) over a heavily-blurred cover fill of the same image. App drops
+  the image when the screen leaves Results; nothing is retained in the module (no object URLs).
+  App also preloads the lazy Results chunk while the run plays, so no "Loading…" frame lands
+  between the board and Results.
+- **Degrades to today's look** wherever no outro ran: the replay theater (its canvas never
+  matches the live board, so the hook is a no-op), the Arena, the tutorial (no outro), the
+  crash "End Run" path, headless.
+- **Reduced motion** (`viewFeel.motion = 0`): no wash, no spreading, no settle — the end state
+  (fully washed / drained + cracked) shows at once under the same title; the backdrop still lands.
+
+**Taste values (data — retune here):** `OUTRO` in `src/render/runOutro.ts` (hold per outcome, wash
+duration + tint source `'biome' | 'tier' | '#hex'` + ground/glow/tint alphas + wavefront strokes,
+defeat drain/dim/crack shape/colour, snapshot scale/quality, settle ms); the backdrop's
+`--rb-blur 8px · --rb-dim 0.4` and the cover fill's `--rb-fill-*` in index.css §S2.
+
+**Measured** (headless Chromium, 1440×900, ~150 enemies on the board, `performance.now()` around
+`frame()` + `drawVictoryWash()`, ≥ 320 frames each): victory **0.09 ms/frame**, defeat **0.23
+ms/frame**. One-offs: the bake at the outro's first frame (median ~25 ms — the same painter the
+terraform already runs on every stage step), the snapshot at the hand-off (6–9 ms, ~15–25 KB).
+Three victories in a row + 12 forced begin/capture cycles leave the DOM node count flat (no
+retained canvases). Results text contrast over the backdrop: no new element under 4.5:1 at
+1440×900 or 390×844 (the translucent achievement card gets the room's old floor, `--bg`).
 
 ---
 

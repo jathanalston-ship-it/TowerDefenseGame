@@ -85,6 +85,21 @@ keeps `↻ Infect Again`. Continue is the primary while the sequence plays and s
 plain button the moment `Stage N+1 ▸` appears; it always stays LAST (the hub door — the first-session probe
 clicks the last continue). The forward/replay buttons appear once the sequence settles.
 
+## §backdrop (2026-11) — Results sits on the board
+
+`Results({ backdrop })` paints the run's last frame behind the capsule instead of a black void
+(docs/SIGNATURE-MOMENTS.md §2): `ui/components/RunBackdrop.tsx` lays the board back exactly where
+it stood (contain-fitted if the viewport changed shape) blurred 8 px at 40 % brightness over a
+heavily-blurred cover fill of the same image (index.css §S2 `--rb-*`). The image is one small JPEG
+data URL from `render/runOutro.ts capture()`, carried by `GameView.onEnd(result, backdrop)` into
+App's last-run state and dropped when the screen leaves Results. With a backdrop the screen itself
+no longer fades in (the board is already there) — only the capsule does — and the sticky action
+row's readability band is feathered at its sides so it never reads as a slab. Absent (replay
+theater, Arena, tutorial, crash path) ⇒ the dark room as before. Every behaviour above — Stage
+N+1 ▸ + boon, the top-anchored capsule, the pause under milestone cinematics, Skip — is
+unchanged; text keeps its contrast over the backdrop (measured per text node at 1440×900 and
+390×844: no element newly under 4.5:1 — the translucent achievement card sits on `--bg`).
+
 ## Player controls
 
 Skip (reveal all instantly), click-anywhere to fast-forward one beat, manual

@@ -93,6 +93,7 @@ bug-hunt pass (scope, method, verdict) so "we looked" is auditable.
 | 81 | Home's Hive Intel feed (and the Vault history) could drop or double a row; React warned about duplicate keys on every mid/late-game boot. | Rows were keyed by timestamp alone, and one action can stamp several timeline milestones or container opens in the same millisecond. | Keys/ids carry the row's position too (`intel:tl:<at>:<i>`, vault history `<at>:<i>`). Found by a 26-screen × 3-depth error sweep (no crashes or boundary fallbacks anywhere); test in hiveIntel.test. |
 | 82 | A boss dying on a slow frame (more than ~25 ms of work before the draw — common on phones) crashed the run with "radius is negative". | The boss-fall impact ring was stamped with `performance.now()` mid-frame but drawn with the frame's earlier rAF time, so its age — and its eased radius — went negative and `arc()` threw. | `render/impactFx.ts` clamps the age at 0; `impactFx.test.ts` reproduces the throw without the clamp. Found by the S1 track. |
 | 83 | The last kill's gore froze mid-burst through the settle and the draft. | Gore animated on `rs.time`, which stops during the settle. | Gore uses `RenderState.fxTime` (stepCount × SIM_DT), a presentation clock that keeps running. |
+| 84 | The run-end veil hid the Hive Core and the board's edges at the moment of victory or defeat. | A viewport-centred radial veil darkened everything outside a central circle. | The veil is a spotlight on the board's own rect (`--outro-*` set from the canvas rect at outro start). Found by the S2 track. |
 
 ---
 

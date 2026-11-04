@@ -255,7 +255,7 @@ function pushScar(s: Scar): void {
 
 /** Resolve a biome accent to a colour for adaptation. Handles `#hex` and `var(--x)` (via the DOM, cached). */
 const accentCache = new Map<string, Col | null>();
-function resolveAccent(accent: string): Col | null {
+export function resolveAccent(accent: string): Col | null {
   if (accentCache.has(accent)) return accentCache.get(accent)!;
   let out: Col | null = null;
   if (accent.startsWith('#')) out = hex(accent);
@@ -377,7 +377,7 @@ function ensureSpec(a: Assimilation, biomeId: string, key: string): TerraformSpe
 const FLESH_BASE: Col = [50, 21, 29];
 const FLESH_HI: Col = [128, 46, 62];
 const FADE_SECS = 0.85;
-interface Bake { base: HTMLCanvasElement; glow: HTMLCanvasElement }
+export interface Bake { base: HTMLCanvasElement; glow: HTMLCanvasElement }
 let curBake: Bake | null = null;
 let prevBake: Bake | null = null;
 let curKey = '';
@@ -740,6 +740,16 @@ export function drawLivingBattlefield(ctx: Ctx, rs: RenderState, data: LBContext
   return a;
 }
 
+/** VICTORY WASH (docs/SIGNATURE-MOMENTS.md §2): the SAME terraform bake, painted as this board looks
+ *  once fully assimilated (Living stage, full reach — every tower, the nucleus and the frontier
+ *  merged) and tinted toward `accent` (`#hex` or `var(--x)`). One-off at run end; render/runOutro.ts
+ *  reveals it outward from the Hive Core. Null headless (no offscreen canvas). */
+export function bakeAssimilatedBoard(a: Assimilation, biomeId: string, accent: string): Bake | null {
+  if (typeof document === 'undefined') return null;
+  const full: Assimilation = { ...a, stage: STAGE_COUNT - 1, progress: 1, intensity: 1 };
+  return buildBake(full, resolveAccent(accent), deriveTerraform(full, biomeId));
+}
+
 /** ROOTING (stage-0 invasion): a per-tower root system — mottled stain + wobbled tendrils
  *  crawling out of the socket seams, deterministic per region seed, pulsing on the slow
  *  breath. Alpha-capped and cheap (≤5 curves/tower, 3 under LOD); attenuates as the staged
@@ -1005,4 +1015,4 @@ export function crustGeometry(stage: number): { reach: number; crust: number; cr
 // The painters + field the periphery continues past the board edge (coordinate-explicit, so they
 // paint anywhere — the gutters call them at x < 0 / x > WIDTH).
 export type { Col };
-export { hex, css, mix, shade, hash01, infectionField, lipY, paintVein, paintFlora, paintEyeSocket, resolveAccent, BIOME_FLORA };
+export { hex, css, mix, shade, hash01, infectionField, lipY, paintVein, paintFlora, paintEyeSocket, BIOME_FLORA }; // resolveAccent: exported at its declaration
