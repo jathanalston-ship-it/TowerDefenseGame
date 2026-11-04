@@ -95,7 +95,7 @@ import { nemesisTraits } from './nemesis';
 import { MINES } from './config';
 import { MEGA, NEUTRAL_MEGA_FX, WEAK_POINT_DEFS, campaignMegaFor, createMegaRuntime, foldMegaFx, infiniteMegaFor, megaBossDef, rushMegaFor } from './megaboss';
 import type { MegaAbility, MegaBossDef, MegaEncounter, MegaFieldFx, MegaMotif, MegaRuntime, MegaWeakPoint } from './megaboss';
-import { BOSS, BEAM, DIRECTOR, REACTIONS, RUSH, CHESTS, chestForWave, spawnCount } from './config';
+import { BOSS, BEAM, DIRECTOR, REACTIONS, RUSH, CHESTS, chestForWave, rushStrength, spawnCount } from './config';
 import { pendingReaction } from './reactions';
 import type { ReactionDef } from './reactions';
 import { Director } from './director';
@@ -186,6 +186,11 @@ export interface RunOptions {
    *  wave-vs-wave by design). One gate at spawnMegaBoss covers every mode. Absent/false ⇒
    *  unchanged cadence (golden-safe). */
   noMega?: boolean;
+  /** BOSS RUSH ONLY (docs/BOSS-RUSH.md §wall): the account Power Score the gauntlet is sized to —
+   *  boss HP × clamp((rushPower / RUSH.powerRef)^RUSH.powerExp, RUSH.powerScaleMin, ∞). The meta
+   *  layer passes meta.power().score at launch (recorded in the replay ctor args like every option).
+   *  Omitted ⇒ RUSH.powerRef (×1 — the probe-tuned curve); ignored by every other mode. */
+  rushPower?: number;
   /** DEV/INSTRUMENT ONLY (docs/TOWER-IDLE.md §5): disable the idle-posture layer entirely —
    *  postures stay 0, banks never fill, field towers resume their legacy empty pulses. The
    *  sim then reproduces the PRE-IDLE behavior exactly (the A/B baseline for the balance
@@ -574,6 +579,8 @@ export class Game {
   pools: Pool[] = [];
   private nemesisSpec: { defId: string; slain: number } | null = null; // docs/NEMESIS.md — spawn-time boss buff
   private readonly noMega: boolean; // docs/ARENA.md §ruleset — suppress every Mega Boss encounter (PvP)
+  private readonly rushHpScale: number; // Boss Rush §wall: the account-sizing factor S (1 in every other mode); blended in by depth (rushSizing)
+  private rushColumnDue = 0; // Boss Rush §wall: sim time the NEXT column marches in regardless (0 = no column pending)
   private readonly disableIdle: boolean; // docs/TOWER-IDLE.md §5 — dev/instrument A/B flag (legacy sim)
   // ── Idle-posture run counters (docs/TOWER-IDLE.md §7) — surfaced to the balance instrument. ──
   idleOpeners = 0; // charged windup/reserve payloads released
@@ -706,7 +713,7 @@ export class Game {
   private waveStartIntegrity = 0; // integrity when the current wave began (drives FLAWLESS)
   private prepCountdown = AUTO_START_DELAY; // prep seconds left before an auto-start fires
   private wavesSinceDraft = 0; // endless cadence: waves cleared since the last Gene Card draft
-  private rushPending: { at: number; tl: number; ramp: number }[] = []; // Boss Rush: staggered boss deployments still due this wave (time-sorted; ramp = the strength curve's HP/damage scale)
+  private rushPending: { at: number; tl: number; ramp: number; hp: number }[] = []; // Boss Rush: staggered boss deployments still due this wave (time-sorted; ramp = the strength curve's HP/damage scale)
   private runBossKills = 0; // bosses defeated this run (RunStats.bossKills; Boss Rush rewards key off it)
   private nextId = 1;
   private armorBreakUntil = new Map<number, number>();
@@ -814,6 +821,9 @@ export class Game {
     this.favoriteTower = opts.favorite ?? 'needle';
     this.nemesisSpec = opts.nemesis ?? null;
     this.noMega = opts.noMega === true; // arena ruleset flag (docs/ARENA.md) — false ⇒ golden path
+    this.rushHpScale = opts.mode === 'bossRush'
+      ? Math.max(RUSH.powerScaleMin, Math.pow(Math.max(1, opts.rushPower ?? RUSH.powerRef) / RUSH.powerRef, RUSH.powerExp))
+      : 1;
     this.disableIdle = opts.disableIdle === true; // instrument A/B flag (docs/TOWER-IDLE.md §5)
     this.unlockedKinds = new Set(opts.unlocked ?? TOWER_ORDER);
     // Progression-gated gene cards the account has earned (default = none ⇒ only the ungated catalog
@@ -2293,28 +2303,36 @@ export class Game {
   /** Boss Rush wave (docs/BOSS-RUSH.md): wave N deploys N procedural bosses in a staggered siege
    * column, screened by a THINNED director squad. The escort rides the endless intensity curves;
    * the bosses scale by Threat Level, so depth raises boss QUALITY as the count raises pressure. */
-  private startBossRushWave(): void {
+  private startBossRushWave(overlap = false): void {
     this.waveIndex++; // = Depth = boss count this wave
     const depth = this.waveIndex;
     this.enterBiome(biomeForDepth(depth)); // rotate ecosystems like Infinite
     const w = this.director!.next(depth, this.activeBiome);
-    this.spawnQueue = this.spawner.scheduleDirected(
+    // Thin the escort to a skirmish screen (deterministic keep-every-Nth) — the bosses ARE the wave.
+    const escort = this.spawner.scheduleDirected(
       w,
       this.time,
       this.endlessHpMult(depth),
       this.endlessBountyMult(depth),
       this.diff.spawnRateMult,
-    );
-    // Thin the escort to a skirmish screen (deterministic keep-every-Nth) — the bosses ARE the wave.
-    this.spawnQueue = this.spawnQueue.filter((_, i) => i % RUSH.escortKeepEvery === 0);
+    ).filter((_, i) => i % RUSH.escortKeepEvery === 0);
     // The siege column: N bosses at this depth's Threat Level, deployed on a stagger so each
     // arrival reads (and the Nucleus never eats one simultaneous wall of grips).
     const tl = RUSH.bossTlBase + RUSH.bossTlPerWave * (depth - 1);
-    // Strength curve: early columns field REDUCED bosses (ease-in), deep columns OVERLOAD past
-    // ×1 so a wall always forms — one curve, probe-tuned (docs/BOSS-RUSH.md §balance).
-    const ramp = Math.min(RUSH.strengthCap, RUSH.strengthBase + RUSH.strengthPerWave * (depth - 1));
-    this.rushPending = [];
-    for (let i = 0; i < depth; i++) this.rushPending.push({ at: this.time + i * RUSH.bossStagger, tl, ramp });
+    // Strength curve (docs/BOSS-RUSH.md §wall): early columns field REDUCED bosses (ease-in), the
+    // linear climb runs to geoFromWave, then the column grows GEOMETRICALLY — a wall always forms.
+    const ramp = rushStrength(depth);
+    const column: { at: number; tl: number; ramp: number; hp: number }[] = [];
+    const hp = this.rushSizing(depth);
+    for (let i = 0; i < depth; i++) column.push({ at: this.time + i * RUSH.bossStagger, tl, ramp, hp });
+    // THE COLUMN DOESN'T WAIT (§wall): an overlapping column marches in ON TOP of the survivors —
+    // what is still due from the column before is KEPT and merged back (time-sorted) after this
+    // column's escort takes the doctrine warp (so leftovers are never warped twice).
+    const leftover = overlap ? this.spawnQueue : [];
+    this.spawnQueue = escort;
+    this.rushPending = overlap ? [...this.rushPending, ...column].sort((a, b) => a.at - b.at) : column;
+    if (overlap) this.floats.push({ x: WIDTH / 2, y: 300, text: `THE COLUMN DOESN'T WAIT — ${depth} MORE`, color: '#ff5d73', life: 2.4 });
+    this.rushColumnDue = this.time + (depth - 1) * RUSH.bossStagger + RUSH.columnGraceSec;
     // Mega Boss cadence in the gauntlet (docs/MEGA-BOSS.md): every MEGA.rushEvery-th column is
     // ALSO overseen by a mega — the ultimate rush pressure. Never two at once (window skipped).
     if (this.mega === null) {
@@ -2326,6 +2344,7 @@ export class Game {
     this.applyWaveStartStrains(); // STRAIN reactor verbs (adrenal jolt / glut surge)
     this.phase = 'wave';
     this.applyDoctrineWarp(); // doctrine protocols reshape the escort queue (no-op without a warp)
+    if (leftover.length > 0) this.spawnQueue = [...leftover, ...this.spawnQueue].sort((a, b) => a.at - b.at);
     this.pushSfx('wave');
     if (this.events.hasListeners('waveStarted')) this.events.emit('waveStarted', { wave: depth, endless: false });
   }
@@ -2681,6 +2700,8 @@ export class Game {
     if (this.phase === 'wave') {
       this.spawnSystem();
       if (this.rushPending.length > 0) this.rushSpawnSystem(); // Boss Rush only — empty otherwise
+      // Boss Rush §wall: a column still standing past its grace window is joined by the next one.
+      if (this.rushColumnDue > 0 && this.time >= this.rushColumnDue && this.settleTimer <= 0) this.startBossRushWave(true);
       this.rebuildGrid(); // one O(n) rebuild feeds every proximity query this tick
       if (this.corruptionPools.length > 0) {
       for (const cp of this.corruptionPools) cp.t -= dt;
@@ -2785,8 +2806,16 @@ export class Game {
   private rushSpawnSystem(): void {
     while (this.rushPending.length > 0 && this.rushPending[0].at <= this.time) {
       const p = this.rushPending.shift()!;
-      this.spawnProceduralBoss(p.tl, p.ramp);
+      this.spawnProceduralBoss(p.tl, p.ramp, p.hp);
     }
+  }
+
+  /** Boss Rush §wall: the account-sizing HP factor at a depth — S^t, t ramping 0 → 1 across
+   *  RUSH.powerRampFrom → powerRampTo (the opening duels stay the warm-up). 1 in every other mode. */
+  private rushSizing(depth: number): number {
+    if (this.rushHpScale === 1) return 1;
+    const t = Math.max(0, Math.min(1, (depth - RUSH.powerRampFrom) / Math.max(1, RUSH.powerRampTo - RUSH.powerRampFrom)));
+    return Math.pow(this.rushHpScale, t);
   }
 
   private spawnOne(kind: EnemyKind, hpMult: number, bountyMult: number, elite = false): void {
@@ -8166,6 +8195,7 @@ export class Game {
           : null,
       endless: this.mode === 'endless',
       bossRush: this.mode === 'bossRush',
+      rushColumnIn: this.phase === 'wave' && this.rushColumnDue > this.time && this.settleTimer <= 0 ? Math.ceil(this.rushColumnDue - this.time) : null,
       biome: {
         id: this.activeBiome.id,
         name: this.activeBiome.name,
@@ -8196,6 +8226,8 @@ export class Game {
     if (this.mode === 'bossRush') {
       // Wave N = N bosses — the next siege line is ALWAYS worth dreading (docs/BOSS-RUSH.md).
       const nextWave = this.waveIndex + 1;
+      // §wall: mid-wave the rail counts down to the column that marches in regardless.
+      if (this.phase === 'wave' && this.rushColumnDue > this.time && this.settleTimer <= 0) out.push(`Wave ${nextWave} marches in ${Math.ceil(this.rushColumnDue - this.time)}s — clear the column`);
       out.push(`${nextWave} ${nextWave === 1 ? 'boss' : 'bosses'} at wave ${nextWave}`);
       let since = this.wavesSinceDraft;
       let w = this.phase === 'wave' ? this.waveIndex - 1 : this.waveIndex;
@@ -8295,7 +8327,7 @@ export class Game {
   }
 
   /** Assemble + register + spawn a procedural boss at a Threat Level (director/endless). */
-  spawnProceduralBoss(tl: number, strengthScale = 1): void {
+  spawnProceduralBoss(tl: number, strengthScale = 1, hpScale = 1): void {
     let def = assembleBoss(() => this.rng.next(), tl, this.activeBiome.mods.bossChassisBias);
     // Boss Rush entry columns (ramped waves 1–3): re-roll a burrower vanguard — tunneling under
     // the WHOLE defense line is uncounterable on an opening board (probe-verified wipe). From
@@ -8309,10 +8341,11 @@ export class Game {
     // Same chassis + same ⌊TL⌋ assemble under the same id — uniquify so concurrent bosses
     // (Boss Rush fields many at once) never swap each other's def resolution mid-fight.
     if (this.procBosses.has(def.id)) def.id = `${def.id}_${this.nextId}`;
-    if (strengthScale !== 1) {
+    if (strengthScale !== 1 || hpScale !== 1) {
       // Boss Rush strength curve: HP + contact damage ease in early, overload deep — but damage
-      // caps sooner (RUSH.damageCap) so deep walls are out-tanked, not one-shot roulette.
-      def.hpMult *= strengthScale;
+      // caps sooner (RUSH.damageCap) so deep walls are out-tanked, not one-shot roulette. HP also
+      // carries the account sizing (§wall: rushSizing — 1 in every other mode).
+      def.hpMult *= strengthScale * hpScale;
       def.damage = Math.round(def.damage * Math.min(RUSH.damageCap, strengthScale));
     }
     // Boss Rush: FLAT bounty — the assembled TL-scaled bounty made the column fund the very

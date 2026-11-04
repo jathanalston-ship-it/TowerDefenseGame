@@ -176,6 +176,7 @@ export function GameView({
   const game = (gameRef.current ??= newRecordedGame(recorderRef, !!daily && !tutorial, seed, mods, progress, heroKind, heroProgress, {
     runEffects, mode, stage, difficulty, doctrine, heroRoster, heroEquip, setEffects, heroAbilityKits,
     threat, automationAllowed: automation.allowed, // Threat ladder (docs/THREAT.md) + the automation gate
+    ...(mode === 'bossRush' ? { rushPower: meta.power().score } : {}), // Boss Rush §wall: the column is sized to the account's Power
     // Daily Run (docs/DAILY-RUN.md): the day's 3-tower trial pool REPLACES the account roster for
     // this run (favorite = the pool's first kind so nothing leaks a 4th kind); its two modifiers
     // ride the dedicated option. Off-daily, the account's own favorite/roster apply as always.

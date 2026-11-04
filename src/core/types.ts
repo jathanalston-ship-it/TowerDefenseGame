@@ -763,6 +763,7 @@ export interface HudSnapshot {
   mutation: MutationBanner | null; // a transient "tier purchased" banner (the branch-upgrade moment)
   endless: boolean; // true in Endless mode (HUD shows Depth instead of Wave N/12)
   bossRush: boolean; // true in Boss Rush mode (HUD shows the boss-count wave identity, docs/BOSS-RUSH.md)
+  rushColumnIn: number | null; // Boss Rush §wall: whole seconds until the next column marches in regardless (null = none pending)
   // Active biome (docs/BIOMES.md) — the HUD shows its name/accent + a hazard telegraph. In Stage
   // mode this is the NEUTRAL identity (the HUD suppresses the chip when there is no real biome).
   biome: { id: string; name: string; accent: string; modifier: string; hazardName: string; hazardActive: boolean };

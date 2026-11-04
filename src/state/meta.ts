@@ -2785,7 +2785,7 @@ export const meta = {
     const infiniteQualifyWave = result.endless
       ? Math.floor(save.bestWave * INFINITE_REWARD_QUALIFY_FRAC)
       : isRush
-        ? Math.floor(save.rushBestWave * INFINITE_REWARD_QUALIFY_FRAC) // Boss Rush inherits the same anti-farm rule, keyed to ITS record
+        ? Math.floor(Math.min(save.rushBestWave, RUSH.qualifyRecordCap) * INFINITE_REWARD_QUALIFY_FRAC) // Boss Rush inherits the same anti-farm rule, keyed to ITS record (capped — docs/BOSS-RUSH.md §wall)
         : 0;
     const cacheEligible = result.endless || isRush ? result.wave >= infiniteQualifyWave : isCampaign ? result.won : true;
     // Infinite also forfeits its loot when short; campaign/quick keep loot earned by progress (only the

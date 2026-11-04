@@ -13,7 +13,8 @@ import { CURRENT_VERSION } from '../save/saveStore';
 import { GENE_LEVEL_GATES, GENE_LEVEL_POWER_FLOOR, GENE_POWER_SCALE } from '../core/geneCards';
 import { ESSENCE_PER_SHARD, ESSENCE_COST } from '../core/geneEssence';
 import { CARD_POOL } from '../core/cards';
-import { TOWER_ORDER, HERO_ORDER, READINESS } from '../core/config';
+import { TOWER_ORDER, HERO_ORDER, READINESS, RUSH, GEAR_RARITY_BANDS } from '../core/config';
+import { MEGA_HUNT } from '../core/megaboss';
 import { GENE_LOADOUT_SLOTS } from '../core/geneLoadout';
 import { ASSIMILATION_TIERS } from '../core/assimilation';
 import { COMBAT_TUTORIAL } from '../core/tutorial';
@@ -58,6 +59,11 @@ export function docAnchors(): DocAnchor[] {
     { doc: 'docs/PROJECT_MANIFEST.md', contains: 'gates at stages 15/30/50/75', why: 'manifest gene-gate summary drifted (GENE_LEVEL_GATES)' },
     { doc: 'docs/ASSIMILATION.md', contains: `${ASSIMILATION_TIERS.length} evolution tiers`, why: 'tier count drifted (ASSIMILATION_TIERS)' },
     { doc: 'docs/GENOME-CORE.md', contains: `imprintPerMolt ${PRESTIGE.molt.imprintPerMolt} · imprintMax ${PRESTIGE.molt.imprintMax}`, why: 'Molt Imprint retention drifted (core/prestige.ts PRESTIGE.molt)' },
+    { doc: 'docs/BOSS-RUSH.md', contains: `\`columnGraceSec\` (${RUSH.columnGraceSec} s)`, why: 'Boss Rush column grace drifted (RUSH.columnGraceSec, §wall)' },
+    { doc: 'docs/BOSS-RUSH.md', contains: `× geoGrowth (${RUSH.geoGrowth}) per wave past geoFromWave`, why: 'Boss Rush geometric growth drifted (RUSH.geoGrowth, §wall)' },
+    { doc: 'docs/BOSS-RUSH.md', contains: `\`+RUSH.corePerBoss\` (${RUSH.corePerBoss}) Genome Cores and \`+RUSH.lootPerBoss\` (${RUSH.lootPerBoss})`, why: 'Boss Rush per-boss payout drifted (RUSH.corePerBoss/lootPerBoss)' },
+    { doc: 'docs/MEGA-BOSS.md', contains: `\`rankCoreFrac\` (${MEGA_HUNT.rankCoreFrac})`, why: 'Mega Hunt rank bounty drifted (MEGA_HUNT.rankCoreFrac, §hunt)' },
+    { doc: 'docs/EQUIPMENT.md', contains: `i33+: ${GEAR_RARITY_BANDS.find((b) => b.fromIlvl === 33)?.legendary}% Rampant · ${(GEAR_RARITY_BANDS.find((b) => b.fromIlvl === 33)?.exotic ?? 0) * 100}% Apex`, why: 'gear rarity band drifted (GEAR_RARITY_BANDS, §gear-chase)' },
     // Identity trilogy (docs/UI_STYLE_GUIDE.md) — pinned to the LIVE :root tokens.
     { doc: 'docs/UI_STYLE_GUIDE.md', contains: `--kinetic ${cssToken('kinetic')}`, why: 'class-hue palette drifted (src/index.css --kinetic)' },
     { doc: 'docs/UI_STYLE_GUIDE.md', contains: `--viral ${cssToken('viral')}`, why: 'class-hue palette drifted (src/index.css --viral)' },

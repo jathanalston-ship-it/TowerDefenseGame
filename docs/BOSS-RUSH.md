@@ -33,10 +33,20 @@ Mode identity next to the other pillars (docs/MODE-IDENTITY.md):
   zero-cost no-op in every other mode) deploys due bosses via `spawnProceduralBoss(tl, strength)`.
 - **Threat Level curve:** `tl = RUSH.bossTlBase + RUSH.bossTlPerWave × (depth − 1)` — depth raises
   boss QUALITY (modules/phases/HP/damage via `assembleBoss`) while the count raises pressure.
-- **Strength curve:** boss HP × `min(strengthCap, strengthBase + strengthPerWave × (depth − 1))`
-  (0.4 → 1.0 at wave 4 → 2.6 deep); contact damage rides the same curve but caps at `damageCap`
-  (1.5) so deep walls are out-tanked, not one-shot roulette. TL alone can't wall a run: its module
-  and phase counts saturate, and its bounty used to self-fund the defense.
+- **Strength curve** (`rushStrength(depth)`, config.ts — §wall): boss HP × `strengthBase +
+  strengthPerWave × (min(depth, geoFromWave) − 1)` (0.4 → 1.0 at wave 4 → 2.2 at wave 10), then
+  **× geoGrowth (1.25) per wave past geoFromWave, uncapped**; contact damage rides the same curve
+  but caps at `damageCap` (1.5) so deep walls are out-tanked, not one-shot roulette. TL alone can't
+  wall a run: its module and phase counts saturate, and its bounty used to self-fund the defense.
+- **Sized to the account** (§wall): boss HP also × `S^t`, `S = max(powerScaleMin, (Power /
+  powerRef)^powerExp)` with the Power the run starts at (`RunOptions.rushPower`, recorded in replay
+  ctor args), `t` ramping 0 → 1 across waves `powerRampFrom → powerRampTo` (4 → 10) — the opening
+  duels stay the warm-up, the column catches up to the account by wave 10.
+- **The column doesn't wait** (§wall): `columnGraceSec` (28 s) after a wave's LAST boss deploys,
+  the next column marches in on top of whatever still stands (`startBossRushWave(overlap)`: escort
+  and bosses MERGE time-sorted, the doctrine warp touches only the new escort; no prep, no draft).
+  The HUD counts it down on every layout (`HudSnapshot.rushColumnIn` → "next column in Ns"; the
+  desktop anticipation chip reads "Wave N marches in Ns — clear the column").
 - **Decoupled economy:** rush bosses pay a FLAT `RUSH.bossBounty` (95) instead of the TL-scaled
   assembled bounty (income ∝ N while threat ∝ N × strength — otherwise every difficulty lever was
   self-cancelling), and the run opens with `RUSH.openingBiomass` extra build funds so wave 1's
@@ -60,8 +70,8 @@ Mode identity next to the other pillars (docs/MODE-IDENTITY.md):
 
 ## Rewards & records (`src/state/meta.ts` finishRun)
 
-- **Per-boss lanes:** `+RUSH.corePerBoss` Genome Cores and `+RUSH.lootPerBoss` loot points per
-  boss defeated (× difficulty economy scalar × prestige gain mults). Wave N holds N bosses, so a
+- **Per-boss lanes:** `+RUSH.corePerBoss` (3) Genome Cores and `+RUSH.lootPerBoss` (27) loot points per
+  boss defeated (×1.5 with §wall — runs end in minutes now, so per-minute pay holds its old band) (× difficulty economy scalar × prestige gain mults). Wave N holds N bosses, so a
   push to wave N pays on ~N(N+1)/2 bosses — slaying is the payout, not surviving.
 - The wave/kill formulas still run under token mode mults (`MODE_REWARDS.core/loot/mastery
   .bossRush`) so the mode can't out-farm the other pillars' lanes.
@@ -69,10 +79,14 @@ Mode identity next to the other pillars (docs/MODE-IDENTITY.md):
   (most bosses felled in a SINGLE run — the lifetime-record band base P3's Ichor faucet keys on).
   `save.bestWave` is untouched by rush runs.
 - **Qualify gate:** like Infinite, a run must reach ≥ `INFINITE_REWARD_QUALIFY_FRAC` (50%) of
-  `rushBestWave` to bank ANY container (`rewardBlocked.reason: 'rush-short'`).
+  `min(rushBestWave, RUSH.qualifyRecordCap)` (14) to bank ANY container (`rewardBlocked.reason:
+  'rush-short'`) — the cap keeps a pre-§wall veteran record (waves 30+) from locking the
+  containers forever.
 - **Lifetime ledgers:** `stats.rushRuns`, `stats.rushBossKills` (additive `LifetimeStats` fields).
-- **Prediction:** its own self-calibrating channel (`prediction.bossRush`, `predictBossRush` —
-  compressed reach curve: ~3 waves per power doubling) with baselines noted at launch.
+- **Prediction:** its own self-calibrating channel (`prediction.bossRush`, `predictBossRush`) with
+  baselines noted at launch — since §wall the base model is the measured sized wall:
+  `predictWall (10) + predictPerDoubling (0.15) × log2(Power / powerRef)`; a record floors it only
+  up to model + 3 (a pre-wall veteran record never inflates it).
 - Timeline: a `☠ Boss Rush record — Wave N` milestone per 5-wave record band.
 
 ## UI surfaces
@@ -111,7 +125,38 @@ uncapped damage overload one-shot every persona equally → `damageCap` restores
 
 Intent holds: runs are SHORT and dense (~5–10 sim-minutes), records move in single waves, and the
 per-boss payout makes every extra kill visible. Tune `strengthPerWave` first (the wall), then
-`bossBounty` (the snowball), then the payout lanes.
+`bossBounty` (the snowball), then the payout lanes. *(The table above is the 2026-07 probe on
+power-less personas; §wall below supersedes it for real accounts.)*
+
+## §wall — every account meets a wall (2026-11)
+
+**The audit (G1):** real progression-simulated accounts never fell — 8h / 60h / 100h accounts sat at
+waves 28–36 with ~100% integrity when a 30-minute cap stopped the bot (doc target: falling at wave
+7–10 within 5–10 min), 82–87% of the run idle, 6–7 decisions/min. The 2026-07 probe personas
+(`towerDamageMult` ×1/×2/×3.5 on fresh saves) were far weaker than real accounts (14k → 600k Power),
+the linear strength curve capped at ×2.6 by wave 12, and a wave that could not be cleared just
+waited.
+
+**The wall** = the geometric curve past wave 10 + the Power sizing + the column that doesn't wait
+(all in the sim contract above; tunables in `RUSH`). Re-tuned on G1's FROZEN progression-sim
+accounts (the same saves before/after; competent-player autopilot, instant prep, 30-minute cap):
+
+| Account (Power) | Before: fall wave · minutes | After: fall wave (5 seeds) · median minutes | Rush Cores/min before → after | Decisions/min · idle share before → after |
+|---|---|---|---|---|
+| 1h (15k) | 25* / 10 / 8 · 7.5 | 10 / 9 / 12 / 12 / 16 · 6.8 | 14.5 → 30 | 13.5 · 0.68 → 14.5 · 0.67 |
+| 4h (14k, post-Molt) | 31* / 10 / 8 · 7.0 | 9 / 7 / 7 / 11 / 8 · 3.9 | 16 → 24 | 12.9 · 0.68 → 17.8 · 0.54 |
+| 8h (92k) | 31* / 29* / 32* · 30 | 12 / 8 / 8 / 10 / 9 · 3.8 | 33 → 26 | 7.0 · 0.82 → 18.9 · 0.51 |
+| 60h (452k) | 36* / 35* / 36* · 30 | 10 / 12 / 9 / 14 / 9 · 4.2 | 42 → 35 | 6.1 · 0.87 → 19.2 · 0.55 |
+| 100h (611k) | 35* / 35* / 36* · 30 | 10 / 12 / 10 / 15 / 10 · 4.2 | 42 → 38 | 6.3 · 0.86 → 20.0 · 0.53 |
+
+\* still standing at the 30-minute cap. Minutes are bot time with INSTANT prep and drafts — a human
+adds their build beats. Cores/min = the per-boss lane at its tuning (2 before, 3 after). The
+Boss Rush mega at wave 5 is often where a mid account's first overlap starts — the organism holds
+its wave while the next column marches in. Tests: `bossrush.test.ts` (§wall: curve, sizing,
+overlap), `bossrushMeta.test.ts` (capped qualify gate), `predict.test.ts`.
+
+**Known risk:** `rushBestBoss` records set under the stall (400–650 bosses) are out of reach now, so
+those veterans' Ichor record bands stay silent until a record epoch exists (a save-field decision).
 
 ## §stamina — the session fuel (2026-07)
 

@@ -3,6 +3,9 @@
 // intelligent ESTIMATES, never guarantees: a base model over Power Score + history, corrected by a
 // learned per-mode bias that quietly improves as real results come in. No DOM/save/sim imports.
 
+import { POWER_BASE } from './power';
+import { RUSH } from './config';
+
 /** Persisted, self-improving calibration for one prediction channel (campaign | infinite). */
 export interface PredictCalib {
   bias: number; // additive correction learned from (actual − estimate); 0 for a fresh account
@@ -29,7 +32,6 @@ export interface Prediction {
 // Tunables (placeholder balance; the calibration bias corrects the base over time).
 const POW_TO_STAGE = 6; // stages per doubling of power
 const POW_TO_WAVE = 9; // infinite waves per doubling of power
-const POW_TO_RUSH = 3; // boss-rush waves per doubling of power (wave N = N bosses ⇒ compressed depth)
 const LEARN_RATE = 0.35; // how fast the bias tracks new results
 
 /** log2(1 + x), guarded ≥ 0. The universal "how many doublings of power" axis. */
@@ -83,8 +85,12 @@ export function predictInfinite(powerMult: number, bestWave: number, difficultyM
 /** Estimated Boss Rush WAVE (docs/BOSS-RUSH.md). Wave N fields N bosses, so depth is far
  *  shallower than Infinite — a compressed reach curve with the same self-calibration. */
 export function predictBossRush(powerMult: number, rushBestWave: number, difficultyMult: number, calib: PredictCalib): Prediction {
-  const reach = (POW_TO_RUSH * doublings(powerMult)) / Math.max(1, difficultyMult);
-  const raw = Math.max(rushBestWave * 0.9, 3 + reach);
+  // The column is SIZED to the account (docs/BOSS-RUSH.md §wall), so reach is the measured reference
+  // wall plus a sliver per doubling of Power over the reference account (fit, not derived).
+  const rel = Math.max(1, (powerMult * POWER_BASE) / RUSH.powerRef);
+  const reach = RUSH.predictWall + (RUSH.predictPerDoubling * Math.log2(rel)) / Math.max(1, difficultyMult);
+  // A record near the model floors the estimate (a pre-wall veteran record never inflates it).
+  const raw = Math.max(reach, Math.min(rushBestWave, reach + 3) * 0.9);
   return assemble(raw, 1, calib, powerMult);
 }
 

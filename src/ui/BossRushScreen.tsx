@@ -138,7 +138,8 @@ export function BossRushScreen({
         <RushLadder upTo={5} />
         <div className="rush-rules">
           <div className="rush-rule"><b>☠ Wave N = N bosses</b><span>Assembled from the Boss Registry — stronger chassis, more siege organs and phases as you go deep. A thinned swarm escorts them.</span></div>
-          <div className="rush-rule"><b>⌬ Gene Card every 2 waves</b><span>A fixed draft cadence — steady power injections against a linearly growing siege line.</span></div>
+          <div className="rush-rule"><b>⏱ The column doesn't wait</b><span>{RUSH.columnGraceSec}s after a wave's last boss deploys, the next column marches in on top of whatever still stands. Past wave {RUSH.geoFromWave} the bosses grow ×{RUSH.geoGrowth} per wave — and they are sized to your Power Score, so the wall is always yours to break.</span></div>
+          <div className="rush-rule"><b>⌬ Gene Card every 2 waves</b><span>A fixed draft cadence on every CLEARED pair of waves — a column that marches in early skips its card.</span></div>
           <div className="rush-rule"><b>◈ Paid per boss felled</b><span>+{RUSH.corePerBoss} Genome Cores and +{RUSH.lootPerBoss} loot points per boss — slaying is the payout, not surviving.</span></div>
         </div>
       </div>
