@@ -1,6 +1,6 @@
 # DIL_GRAPH.md — the Design Intelligence Layer (GENERATED — `npm run dil -- regen`)
 
-> **The project's brain** (docs/DIL.md). 922 nodes · 1760 edges, built from the live
+> **The project's brain** (docs/DIL.md). 923 nodes · 1760 edges, built from the live
 > registries + curated knowledge (src/dev/dil/). **Query it instead of searching the repo:**
 > `npm run dil -- node <id>` · `affects <id>` · `requires <id>` · `missing <kind> <edge>` ·
 > `checklist tower <kind>` · `find <text>`. Edge kinds are bidirectional (19 kinds).
@@ -8,7 +8,7 @@
 ## Gap report (the graph's own radar)
 
 - **Systems with no test:** `system:infinite`, `system:field-research`, `system:shards-economy`, `system:i18n`, `system:expeditions`, `system:nemesis`, `system:devtools`, `system:ui-kit`
-- **Docs referenced by no system (review for retirement):** `ADVANCED-SYSTEMS.md`, `ARCHITECTURE-AUDIT.md`, `AUCTION-HOUSE.md`, `BACKLOG.md`, `BALANCE_ARCHITECTURE.md`, `BRANCH-EVOLUTION.md`, `BUGFIX-LOG.md`, `COGLOAD_REPORT.md`, `CONTENT-ROADMAP.md`, `DEV-FRAMEWORKS.md`, `DIL_GRAPH.md`, `EA-DESIGN-AUDIT.md`, `ENEMIES.md`, `ENEMY-ROSTER.md`, `FIRST-SESSION-PROBE.md`, `FIRST_SESSION_REPORT.md`, `GAME-STATE.md`, `HISTORY.md`, `HIVE-PRODUCTION.md`, `HIVE-SIEGE.md` · …27 more
+- **Docs referenced by no system (review for retirement):** `ADVANCED-SYSTEMS.md`, `ARCHITECTURE-AUDIT.md`, `AUCTION-HOUSE.md`, `BACKLOG.md`, `BALANCE_ARCHITECTURE.md`, `BRANCH-EVOLUTION.md`, `BUGFIX-LOG.md`, `COGLOAD_REPORT.md`, `CONTENT-ROADMAP.md`, `DEV-FRAMEWORKS.md`, `DIL_GRAPH.md`, `EA-DESIGN-AUDIT.md`, `ENEMIES.md`, `ENEMY-ROSTER.md`, `FIRST-SESSION-PROBE.md`, `FIRST_SESSION_REPORT.md`, `GAME-STATE.md`, `HISTORY.md`, `HIVE-PRODUCTION.md`, `HIVE-SIEGE.md` · …28 more
 
 ## Indexes
 
@@ -3723,7 +3723,7 @@ _at: site/guides.ts → /guides/live-events/_
 - `achievement:arena_crown` — Claim Arena Pass level 100 — a permanently arena-exclusive strain is yours forever. _(partOf `system:achievements`, rewards `currency:genome-cores`, references `system:arena`)_
 - `achievement:arena_perennial` — Close three Arena seasons with a record on the books. _(partOf `system:achievements`, rewards `currency:genome-cores`, references `system:arena`)_
 
-## Documentation (192)
+## Documentation (193)
 
 - `doc:ACCOUNT-LEVEL.md` — project documentation _(documents `system:account-level`)_
 - `doc:ACCOUNTS.md` — project documentation _(documents `system:accounts`)_
@@ -3885,6 +3885,7 @@ _at: site/guides.ts → /guides/live-events/_
 - `doc:SECURITY-AUDIT.md` — project documentation
 - `doc:SECURITY.md` — project documentation _(documents `system:security`)_
 - `doc:SHARD-ECONOMY.md` — project documentation _(documents `system:shards-economy`)_
+- `doc:SIGNATURE-MOMENTS.md` — project documentation
 - `doc:SIMULATION-FRAMEWORK.md` — project documentation _(documents `system:prestige`)_
 - `doc:SIPHON.md` — project documentation
 - `doc:SLOTS.md` — project documentation _(documents `system:heroes`)_
