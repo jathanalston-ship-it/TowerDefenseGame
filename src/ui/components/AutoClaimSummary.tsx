@@ -4,7 +4,7 @@
 // in a single line, so the hub comes back with decisions waiting — not seven claim chores.
 // Self-contained: Results mounts it with one line; nothing else in the results flow changes.
 
-import { useState } from 'react';
+import { useLayoutEffect, useState } from 'react';
 import { meta } from '../../state/meta';
 import { autoClaimSettled, type AutoClaimReport } from '../../state/autoClaim';
 import { autoClaimPref, setAutoClaimPref } from '../../state/prefs';
@@ -44,7 +44,11 @@ export function summarizeRewards(events: readonly RewardEvent[]): string[] {
 }
 
 export function AutoClaimSummary({ settle }: { settle: object }): JSX.Element | null {
-  const [report] = useState(() => settleOnce(settle));
+  // Settling CLAIMS rewards (a store write that other components react to), so it runs in a layout
+  // effect — never during render (React forbids updating another component mid-render) — and
+  // still lands before the first paint. settleOnce is idempotent per settle key (StrictMode-safe).
+  const [report, setReport] = useState<AutoClaimReport | null>(null);
+  useLayoutEffect(() => { setReport(settleOnce(settle)); }, [settle]);
   if (!report) return null;
   const parts = summarizeRewards(report.events);
   if (parts.length === 0) return null;
