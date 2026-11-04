@@ -3,7 +3,19 @@
 > Maintained at the END of every session (paired with `docs/AI_HANDOFF.md` — the constitution's
 > workflow step 4). This is the "where are we?" answer; `docs/GAME-STATE.md` remains the deeper
 > per-system built-vs-planned index, `docs/PROJECT_MANIFEST.md` the system map.
-> **Last updated:** 2026-11-04d (**DEPLOYED** — the batch below + its follow-ups are LIVE: the deploy
+> **Last updated:** 2026-11-04e (**DEPLOYED — Batch 3 "Moments That Land" + a hotfix**. Hotfix first
+> (`51d4fb7`, run #227, owner OK): a boss dying on a slow frame no longer crashes the run (impactFx age
+> clamp); menu ceremonies/toasts can no longer cover a live Arena match (`menuIdle`). Then Batch 3
+> (`e447108`, run #228 green, owner approved the frame sheets): the four signature moments — last-kill
+> beat (`render/lastKill.ts`), victory wash / defeat cracks → Results on the final frame
+> (`render/runOutro.ts`, `RunBackdrop`), living gutters (`render/gutters.ts`), films that move + Mega
+> premieres that show their monster (`render/filmDirection.ts`, `drawMegaPose`). QA found + fixed: feed /
+> vault-history duplicate keys, AutoClaimSummary claiming during render, the news-page sync test's
+> sampler. VALIDATION: validate PASS (2930/2930, mobile gate clean), first-session probe in budget, a
+> 26-screen × 3-depth error sweep and a 166-button press sweep clean, every mode smoke-run. NEXT: Batch G
+> ("the grind") — grind audits G1 (the run) + G2 (the meta loop) are in; tracks GR1/GR2/GM1/GM2 running.)
+>
+> **2026-11-04d** (**DEPLOYED** — the batch below + its follow-ups are LIVE: the deploy
 > branch `claude/zen-hawking-rh1gxl` was fast-forwarded to `136330f` with the owner's go-ahead; deploy run
 > #226 green (CI polls production until it serves that SHA). Follow-ups shipped with it: Infection has
 > an owner (`Enemy.infectedBy`, Miasma Lung's spread picks work); area grants take `at: 'victim'` (34
