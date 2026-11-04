@@ -6,7 +6,8 @@
 
 import { meta } from '../state/meta';
 import { nextGoals } from '../state/nextGoal';
-import { deployReadiness, loopAdvice, loopState } from '../state/progressionLoop';
+import { deployReadiness, loopAdviceLink, loopState } from '../state/progressionLoop';
+import { AdviceGo } from './components/AdviceLink';
 
 const pct = (p: number): number => Math.round(p * 100);
 
@@ -18,10 +19,11 @@ export function LoopDirective({ difficultyId }: { difficultyId?: string }): JSX.
   const ls = loopState(meta.get(), difficultyId);
   const band = deployReadiness(ls.power, ls.requiredPower, ls.frontierStage, difficultyId ?? 'standard');
   const farm = band === 'under';
+  const advice = loopAdviceLink(ls, band); // the line + the screen it names ("Farm Infinite" → Go ▸)
   return (
     <div className={`loop-directive ${farm ? 'is-farm' : 'is-push'}`}>
       <span className="loop-k">{farm ? (ls.infiniteOpen ? '∞ FARM PHASE' : '⟳ BUILD PHASE') : '◈ PUSH PHASE'}</span>
-      <span className="loop-line">{loopAdvice(ls, band)}</span>
+      <span className="loop-line">{advice.text} <AdviceGo nav={advice.nav} /></span>
       <span className="loop-meter" aria-hidden>
         <i style={{ width: `${Math.min(100, Math.round(ls.readiness * 100))}%` }} />
       </span>

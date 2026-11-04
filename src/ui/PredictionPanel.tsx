@@ -3,6 +3,7 @@
 // soft recommendations. Estimates, never guarantees. Reads the reactive save via meta.predict.
 
 import { meta } from '../state/meta';
+import { AdviceGo } from './components/AdviceLink';
 
 const TREND = {
   up: { icon: '↑', label: 'Improving', cls: 'up' },
@@ -16,7 +17,7 @@ export function PredictionPanel({ mode, difficultyId, label }: {
   label: string; // e.g. 'Campaign Stage' / 'Infinite Wave'
 }): JSX.Element {
   meta.use(); // re-render when progression changes
-  const { p, recommendations } = meta.predict(mode, difficultyId);
+  const { p, advice } = meta.predict(mode, difficultyId);
   const t = TREND[p.trend];
   const scaleMax = Math.max(1, p.high * 1.15);
   const pct = (n: number): number => Math.min(100, Math.max(0, (n / scaleMax) * 100));
@@ -40,9 +41,9 @@ export function PredictionPanel({ mode, difficultyId, label }: {
         <div className="predict-marker" style={{ left: `${pct(p.estimate)}%` }} />
       </div>
       <div className="predict-range">Likely range <b>{p.low}–{p.high}</b> · sharpens as you play</div>
-      {recommendations.length > 0 && (
+      {advice.length > 0 && (
         <ul className="predict-recs">
-          {recommendations.map((r) => <li key={r}>{r}</li>)}
+          {advice.map((r) => <li key={r.text}>{r.text} <AdviceGo nav={r.nav} /></li>)}
         </ul>
       )}
     </div>
