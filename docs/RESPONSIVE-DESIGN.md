@@ -49,7 +49,8 @@ around the BIGGEST board the viewport allows (`src/index.css` §RUN LAYOUT v2 �
 - **The rotate gate stands down for a live run** (`layoutProfile.setInRun`, set by GameView):
   hub screens stay landscape-only on touch (§0b), the run plays in either orientation.
   **The whole run FLOW** (2026-11): holds are named — GameView holds `'battlefield'`, App holds
-  `'run-flow'` while the screen is `deploying` / `playing` / `results` — so a portrait run's deploy
+  `'run-flow'` while the screen is `deploying` / `playing` / `results` / `roulette` (the Bio-Roulette that
+  closes a Boss Rush run — verified at 390×844) — so a portrait run's deploy
   breath and its Results (+ the milestone cinematics over it) are never covered by "TURN YOUR
   DEVICE"; the gate returns the moment Continue lands on the hub. Results at 390×844: no page
   scroll either way (the capsule takes `100dvh − padding`, the haze is clipped), the action row

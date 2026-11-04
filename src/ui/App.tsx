@@ -517,7 +517,9 @@ export function App(): JSX.Element {
   // breath, the battlefield and Results (+ its milestone cinematics) — plays in either
   // orientation; the rotate gate returns with the hub.
   useEffect(() => {
-    setInRun(screen === 'deploying' || screen === 'playing' || screen === 'results', 'run-flow');
+    // The Bio-Roulette ceremony closes a Boss Rush run (and the Vault's spore bay) — it belongs to the
+    // same flow, so a portrait phone never meets the rotate gate between the run and its payout.
+    setInRun(screen === 'deploying' || screen === 'playing' || screen === 'results' || screen === 'roulette', 'run-flow');
   }, [screen]);
 
   useEffect(() => {
