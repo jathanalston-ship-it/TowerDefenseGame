@@ -53,10 +53,16 @@ The risk of stacking waves is always the player's decision (Hive Intelligence do
 the speed / Hive / Pause cluster, so its arrival never shifts them; the label collapses to
 `⏩ +N` on narrow boards). **Space** calls early mid-wave and starts the wave in prep.
 
-## Measured (the G1 harness, competent-player bot calling when the field is quiet)
+## Measured (the G1 harness — the same 16 replay/frontier runs per account, with vs without a bot
+that calls whenever ≤ 2 enemies are alive and the wave hasn't cost integrity)
 
-See the Batch G GR1 report table (docs/DIFFICULTY_DIRECTOR.md §6a "Measured") — dead-time share
-and wave-seconds per winning run, before/after.
+| account | calls / run | median winning wave-seconds | idle share | wins | flawless wins |
+|---|---|---|---|---|---|
+| 8 h (S29) | 0 → 5.3 | 424 → 371 (−12 %) | 0.65 → 0.66 | 10 → 7 of 16 | 8/10 → 4/7 |
+| 100 h (S80) | 0 → 7.0 | 1305 → 890 (−32 %) | 0.84 → 0.79 | 12 → 10 of 16 | 8/12 → 9/10 |
+
+It does what it should: real tempo (a third of the wave time at 100 h) for real risk (the eager bot
+lost more runs — a human picks safer moments).
 
 ## Known limitations
 

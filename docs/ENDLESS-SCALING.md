@@ -193,7 +193,21 @@ are unchanged):
   the Core braces, so the end takes several waves. Mega lashes/cataclysms are untouched (their
   telegraphs are the counterplay).
 
-{{SQUEEZE_MEASURED}}
+Shipped: `fromDepth` 10 · `rise` 0.04 · `cap` 1.4 · `easeAt` 0.1 · `ease` 0.2 · `floor` 0.85 ·
+`waveLossCap` 0.34 · `overflowMult` 0.1.
+
+**Measured (G1 harness, Infinite × 3 seeds, 2400 s cap, 8 h + 100 h accounts, isolated processes):**
+
+| | before | after |
+|---|---|---|
+| waves that cost integrity before the run ended (mean, deaths only) | 3.0 | 4.8 |
+| share of all integrity lost in the FATAL wave (mean) | 73 % | 38 % |
+| depth reached (8 h: s1/s2/s3) | 64† / 46 / 52 | 57† / 46 / 57 |
+| depth reached (100 h: s1/s2/s3) | 80 / 96 / 73 | 79 / 96 / 56 |
+
+† still alive at the 2400 s cap. The first fit (cap 2, no floor, overflow ×0.2) cost up to ~20 depths
+of record on the 100 h account and one collapse still wiped 303 integrity in a wave; the shipped band
+keeps records within a few depths (one seed −17) while the end is a squeeze over several waves.
 
 ---
 

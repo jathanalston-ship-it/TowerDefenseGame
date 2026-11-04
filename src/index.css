@@ -14052,7 +14052,7 @@ html[data-layout='landscape'] .build-controls.is-visible ~ .mega-banner { top: 6
   display: inline-flex; align-items: center; gap: 5px; padding: 0 12px;
   border-radius: 999px; border: 1px solid color-mix(in srgb, #b6e84a 55%, var(--line-strong));
   background: rgba(8, 12, 20, 0.82); backdrop-filter: blur(4px);
-  color: #dff5b0; font-size: 11px; font-weight: 800; letter-spacing: 0.05em; white-space: nowrap;
+  color: #dff5b0; font-size: 11px; font-weight: 800; letter-spacing: 0.06em; white-space: nowrap;
   box-shadow: 0 0 12px color-mix(in srgb, #b6e84a 22%, transparent);
   transition: border-color var(--dur-2) ease, box-shadow var(--dur-2) ease;
 }
