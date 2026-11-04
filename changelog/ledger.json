@@ -1,6 +1,6 @@
 {
-  "lastSha": "f4e1d81060d2b095394c1e43931f9b1d030818f7",
-  "commitsSinceDraft": 0,
+  "lastSha": "fcebe803e25f0296cc29a00e5f9afc2907aed901",
+  "commitsSinceDraft": 2,
   "content": {
     "tower": [
       "needle",
@@ -3817,6 +3817,10 @@
         {
           "cat": "Bug Fixes",
           "text": "The Mega bar no longer covers the gene draft’s header, and the Boss Rush tray no longer clips its last pod on wide screens"
+        },
+        {
+          "cat": "Bug Fixes",
+          "text": "No far-off ladder rungs or 3-digit run counts on an early account's goal board"
         }
       ]
     }
@@ -7828,6 +7832,22 @@
       "cat": "Developer Tools",
       "text": "Before/after harness tables for the opening, live threat, Early Call and the Infinite squeeze",
       "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "af0a09281303724e8b66d091668226ad28600fe0",
+      "date": "2026-11-04",
+      "cat": "Developer Tools",
+      "text": "Batch G website + docs pass — \"The Grind\" devlog, curated release, guides, manifest, GAME-STATE",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "fcebe803e25f0296cc29a00e5f9afc2907aed901",
+      "date": "2026-11-04",
+      "cat": "Bug Fixes",
+      "text": "No far-off ladder rungs or 3-digit run counts on an early account's goal board",
+      "internal": false,
       "needsReview": false
     }
   ]

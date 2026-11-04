@@ -537,3 +537,5 @@
 - `0b7238a` **[Bosses]** Bossrush: the record restarts with the wall — v56 record epoch + a fresh board
 - `5c0d80f` **[Framework]** Notes: seal v2026.11.04.3 'Moments That Land' — it shipped in run #228 _(internal)_
 - `fba557b` **[Developer Tools]** Before/after harness tables for the opening, live threat, Early Call and the Infinite squeeze _(internal)_
+- `af0a092` **[Developer Tools]** Batch G website + docs pass — "The Grind" devlog, curated release, guides, manifest, GAME-STATE _(internal)_
+- `fcebe80` **[Bug Fixes]** No far-off ladder rungs or 3-digit run counts on an early account's goal board
