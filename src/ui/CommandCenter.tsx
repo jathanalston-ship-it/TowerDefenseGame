@@ -42,6 +42,8 @@ import { readyChain } from '../state/readyChain';
 import { featureView, isOpenNav } from '../state/unlocks';
 import { rewardVisible } from '../state/rewardVisibility';
 import { loopFlow } from '../state/loopFlow';
+import { loopState } from '../state/progressionLoop';
+import { INCOME, etaLabel, incomePerRun, runsToStage } from '../state/income';
 import { RecommendStrip } from './HubLanding';
 import { t } from '../i18n';
 import { hiveIntel } from '../state/hiveIntel';
@@ -254,13 +256,31 @@ function Vitals({ save, view, go }: WidgetCtx): ReactNode {
 }
 
 /** Mission control — CONTINUE CAMPAIGN dominates; the primary decision of every visit. */
-function MissionControl({ save, view, go, start, onStartCampaign, doctrineRef }: WidgetCtx): ReactNode {
+function MissionControl({ save, view, go, start, onStartCampaign, onStartEndless, doctrineRef }: WidgetCtx): ReactNode {
   const { diff, stage, cleared, cfg, rec, ready, band, isMilestone, firstClearCore } = view.frontier;
   const underPowered = band === 'under'; // the only band that warns (docs/PROGRESSION-LOOP.md §readiness)
   // Foundation #1 (docs/MISSION-CONTROL.md): the objective ledger under the deploy card — the
   // one model that answers "what else should I do, and where is this going". Absorbs the old
   // standalone next-goal banner (one main-zone panel instead of two).
   const mc = useMemo(() => missionControl(save), [save]);
+  // THE LOOP ON THE BUTTON (docs/COMMAND-CENTER.md §cta · PROGRESSION-LOOP.md): genuinely
+  // under-powered with Infinite open ⇒ the PRIMARY action is the farm the directive prescribes —
+  // with the readiness a run is gaining at the live income — and the frontier fight steps down to
+  // a secondary button. (A 'close' band is a push, never a farm: the deploy stays primary.)
+  const farm = useMemo(() => {
+    if (!underPowered || !isInfiniteUnlocked(save)) return null;
+    const ls = loopState(save, diff);
+    const g = incomePerRun(save, 'lnPower'); // per-run Power growth (log) — the same rate the goal ETAs use
+    // The per-run gain + ETA speak only once the ledger has OBSERVED a few runs — a migrated
+    // veteran's lifetime-average prior over-states depth growth (early stages were fast).
+    const observed = (save.income?.runs ?? 0) >= INCOME.priorRuns;
+    return {
+      depth: ls.farmDepth,
+      readinessPct: Math.round(ls.readiness * 100),
+      gainPts: observed ? Math.round(ls.readiness * (Math.exp(g) - 1) * 1000) / 10 : 0,
+      eta: observed ? etaLabel(runsToStage(save, stage, ls.power)) : null,
+    };
+  }, [save, underPowered, diff, stage]);
   // Doctrine commitment (docs/DOCTRINES.md): the field shows the pick; tapping it unfolds the
   // shared picker (lock seals + rank pips) — no more blind dropdown on the campaign path.
   const [doctrine, setDoctrine] = useState(doctrineRef.current || 'none');
@@ -318,14 +338,38 @@ function MissionControl({ save, view, go, start, onStartCampaign, doctrineRef }:
         </div>
       </div>
       <RewardPreview heading="Possible Rewards" chips={campaignRewards} className="mc-rewards" />
-      <div className="mc-cta">
-        <button
-          className={`primary mc-deploy${underPowered ? ' is-underready' : ''}`}
-          onClick={() => start(() => onStartCampaign(stage))}
-          title={underPowered ? `Recommended Power ${formatPower(rec)} — you have ${formatPower(power)}. Failed frontier attempts still recover partial field data.` : undefined}
-        >
-          <PlayIcon /> {underPowered ? 'Fight anyway — recommended Power not met' : 'Continue Campaign'}
-        </button>
+      <div className={`mc-cta${farm ? ' is-farm' : ''}`}>
+        {farm ? (
+          <div className="mc-farm">
+            <button
+              className="primary mc-deploy is-farm"
+              onClick={() => start(onStartEndless)}
+              title={`Stage ${stage} asks for ${formatPower(rec)} Power — you have ${formatPower(power)}. Infinite banks loot, Mastery and genes permanently.`}
+            >
+              <PlayIcon /> Farm Infinite <small>~Depth {farm.depth}</small>
+            </button>
+            <span className="mc-farm-gain">
+              Stage {stage} readiness <b>{farm.readinessPct}%</b>
+              {farm.gainPts > 0 && <> · +{farm.gainPts}% per run</>}
+              {farm.eta && <> · ready in {farm.eta}</>}
+            </span>
+            <button
+              className="mc-fight-anyway"
+              onClick={() => start(() => onStartCampaign(stage))}
+              title={`Recommended Power ${formatPower(rec)} — you have ${formatPower(power)}. Failed frontier attempts still recover partial field data.`}
+            >
+              Fight Stage {stage} anyway ▸
+            </button>
+          </div>
+        ) : (
+          <button
+            className={`primary mc-deploy${underPowered ? ' is-underready' : ''}`}
+            onClick={() => start(() => onStartCampaign(stage))}
+            title={underPowered ? `Recommended Power ${formatPower(rec)} — you have ${formatPower(power)}. Failed frontier attempts still recover partial field data.` : undefined}
+          >
+            <PlayIcon /> {underPowered ? 'Fight anyway — recommended Power not met' : 'Continue Campaign'}
+          </button>
+        )}
         <div className="mc-setup">
           <div className="play-field">
             <span className="play-field-k">Difficulty</span>

@@ -76,3 +76,25 @@ lifetime + total Runaway levels — the budget is finally on the screen that spe
 **sticky section jump rail** (chips with per-category completion, `scrollIntoView`), and the
 Runaway card style (`is-runaway`: viral accent, ∞ badge, decade progress bar for rhythm
 without a fake cap, cores-sunk readout, **hold-to-repeat buying** via `usePressRepeat`).
+
+## §rebuild (2026-11, Batch G) — one-tap post-Molt rebuild
+
+After every Molt the engine re-climbs: the G2 traces show 21–50 Genome levels re-bought BY HAND
+each cycle. Once an account has Molted, the treasury band carries **⟳ Rebuild by Best Value**
+whenever an unlocked, unmaxed upgrade is affordable:
+
+- **Plan** — `genomeRebuildPlan(save)` (state/evolutionHQ.ts) spends the treasury greedily along
+  the EXISTING Best Value ranking (bestPurchase's key: exact Power gained per Core, ties toward
+  the cheaper level), re-ranked after EVERY level. Only `PowerParts.meta` reads `save.upgrades`
+  — extracted as `meta.genomeUpgradeFactor` (accountPowerParts multiplies it in first, same
+  evaluation order, so Power is byte-identical) — so each candidate is scored by swapping that
+  one factor into ONE full parts computation: microseconds per score (the first version re-ran
+  the full scorer per step and froze a phone for ~2.5 s on a 59-level plan). Its first pick is
+  pinned to the Best Value strip's `bestAffordable`. Capped at `REBUILD.maxSteps` (120) per tap.
+- **Confirm** — a dialog lists every upgrade (`L from → L to`, Cores), the total spend and
+  `Power before → after`. The after-Power is scored on `genomeRebuildSave(save, steps)` — the
+  SAME pure builder the apply uses, so the preview IS the outcome (pinned by evolutionHQ.test).
+- **Apply** — `meta.applyGenomeRebuild(steps)` (guard `progress.rebuild`): re-validates every
+  step against the live save (level, cost, gate, wallet) and refuses wholesale on any drift (the
+  dialog re-plans); otherwise ONE persist, the same Account XP per level as `buyUpgrade`, one
+  Power announcement, and a one-line summary under the treasury.

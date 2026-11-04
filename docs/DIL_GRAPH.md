@@ -1,6 +1,6 @@
 # DIL_GRAPH.md — the Design Intelligence Layer (GENERATED — `npm run dil -- regen`)
 
-> **The project's brain** (docs/DIL.md). 961 nodes · 1851 edges, built from the live
+> **The project's brain** (docs/DIL.md). 974 nodes · 1883 edges, built from the live
 > registries + curated knowledge (src/dev/dil/). **Query it instead of searching the repo:**
 > `npm run dil -- node <id>` · `affects <id>` · `requires <id>` · `missing <kind> <edge>` ·
 > `checklist tower <kind>` · `find <text>`. Edge kinds are bidirectional (19 kinds).
@@ -22,7 +22,7 @@
 
 ### Economy / Reward Index
 
-`currency:biomass` · `currency:genome-cores` · `currency:tower-shards` · `currency:hero-shards` · `currency:gene-essence` · `currency:materials` · `currency:stamina` · `currency:ichor` · `system:campaign` · `system:infinite` · `system:boss-rush` · `system:daily` · `system:loot` · `system:daily-login` · `system:achievements` · `system:directives` · `system:expeditions` · `system:mega-bosses` · `system:doctrines` · `enemy:runner` · `enemy:mite` · `enemy:husk` · `enemy:flea` · `enemy:mold` · `enemy:skulker` · `enemy:larva` · `enemy:rusher` · `enemy:darter` · `enemy:lasher` · `enemy:brute` · `enemy:tank` · `enemy:golem` · `enemy:colossus` · `enemy:bulwark` · `enemy:warden` · `enemy:knitter` · `enemy:revenant` · `enemy:burrower` · `enemy:molerat` · `enemy:flyer` · `enemy:wisp` · `enemy:gargoyle` · `enemy:cystwraith` · `enemy:broodmother` · `enemy:hivecaller` · `enemy:mender` · `enemy:cantor` · `enemy:bomber` · `enemy:popper` · `enemy:sapper` · `enemy:cataclyst` · `enemy:siegeworm` · `enemy:spitter` · `enemy:stratovore` · `enemy:broodweaver` · `enemy:zealot` · `enemy:carrier` · `enemy:entrencher` · `enemy:oracle` · `enemy:glutling` · …135 more
+`currency:biomass` · `currency:genome-cores` · `currency:tower-shards` · `currency:hero-shards` · `currency:gene-essence` · `currency:materials` · `currency:stamina` · `currency:ichor` · `system:campaign` · `system:infinite` · `system:boss-rush` · `system:daily` · `system:loot` · `system:daily-login` · `system:achievements` · `system:directives` · `system:expeditions` · `system:mega-bosses` · `system:doctrines` · `enemy:runner` · `enemy:mite` · `enemy:husk` · `enemy:flea` · `enemy:mold` · `enemy:skulker` · `enemy:larva` · `enemy:rusher` · `enemy:darter` · `enemy:lasher` · `enemy:brute` · `enemy:tank` · `enemy:golem` · `enemy:colossus` · `enemy:bulwark` · `enemy:warden` · `enemy:knitter` · `enemy:revenant` · `enemy:burrower` · `enemy:molerat` · `enemy:flyer` · `enemy:wisp` · `enemy:gargoyle` · `enemy:cystwraith` · `enemy:broodmother` · `enemy:hivecaller` · `enemy:mender` · `enemy:cantor` · `enemy:bomber` · `enemy:popper` · `enemy:sapper` · `enemy:cataclyst` · `enemy:siegeworm` · `enemy:spitter` · `enemy:stratovore` · `enemy:broodweaver` · `enemy:zealot` · `enemy:carrier` · `enemy:entrencher` · `enemy:oracle` · `enemy:glutling` · …146 more
 
 ### Power Score Index
 
@@ -96,6 +96,7 @@ graph LR
   system_account_level["Account Level (evergreen meta-progression)"] -->|consumes| system_meta_store["Meta Store & Save"]
   system_genome_rank["Genome Rank (ultimate mastery ladder)"] -->|consumes| system_meta_store["Meta Store & Save"]
   system_progression_gating["Progression Gating & Director"] -->|consumes| system_meta_store["Meta Store & Save"]
+  system_hub_shell["Hub Shell & Home"] -->|consumes| system_meta_store["Meta Store & Save"]
   system_prediction["Progress Prediction"] -->|consumes| system_meta_store["Meta Store & Save"]
   system_meta_store["Meta Store & Save"] -->|consumes| system_meta_store["Meta Store & Save"]
   system_bosses["Bosses"] -->|consumes| system_meta_store["Meta Store & Save"]
@@ -194,6 +195,11 @@ graph LR
   system_infinite["Infinite Mode"] -->|consumes| system_map_layouts["Arena Layouts"]
   system_progression_gating["Progression Gating & Director"] -->|modifies| system_hub_shell["Hub Shell & Home"]
   system_run_ui["In-Run HUD & Results"] -->|consumes| system_living_battlefield["Living Battlefield"]
+  system_daily_login["Daily Bio-Cache (login streak)"] -->|consumes| system_hub_shell["Hub Shell & Home"]
+  system_collection["Collections / Codex"] -->|consumes| system_equipment["Equipment & Armory"]
+  system_genome_rank["Genome Rank (ultimate mastery ladder)"] -->|consumes| system_prestige["Prestige (Molt / Ascendant)"]
+  system_achievements["Achievements"] -->|consumes| system_hub_shell["Hub Shell & Home"]
+  system_evolution_hq["Evolution HQ (Genome Cores)"] -->|consumes| system_power["Power Score"]
 ```
 
 ### Power Score Map
@@ -476,6 +482,7 @@ graph LR
   system_hub_shell["Hub Shell & Home"] -->|dependsOn| system_notifications["Notifications"]
   system_hub_shell["Hub Shell & Home"] -->|dependsOn| system_prediction["Progress Prediction"]
   system_hub_shell["Hub Shell & Home"] -->|dependsOn| system_power["Power Score"]
+  system_hub_shell["Hub Shell & Home"] -->|consumes| system_meta_store["Meta Store & Save"]
   system_run_ui["In-Run HUD & Results"] -->|dependsOn| system_engine["Sim Engine"]
   system_run_ui["In-Run HUD & Results"] -->|dependsOn| system_meta_store["Meta Store & Save"]
   system_run_ui["In-Run HUD & Results"] -->|dependsOn| system_power["Power Score"]
@@ -583,6 +590,11 @@ graph LR
   system_rendering["Rendering & VFX"] -->|provides| system_audio["Audio"]
   system_website["Marketing Website"] -->|dependsOn| system_run_ui["In-Run HUD & Results"]
   system_run_ui["In-Run HUD & Results"] -->|consumes| system_living_battlefield["Living Battlefield"]
+  system_daily_login["Daily Bio-Cache (login streak)"] -->|consumes| system_hub_shell["Hub Shell & Home"]
+  system_collection["Collections / Codex"] -->|consumes| system_equipment["Equipment & Armory"]
+  system_genome_rank["Genome Rank (ultimate mastery ladder)"] -->|consumes| system_prestige["Prestige (Molt / Ascendant)"]
+  system_achievements["Achievements"] -->|consumes| system_hub_shell["Hub Shell & Home"]
+  system_evolution_hq["Evolution HQ (Genome Cores)"] -->|consumes| system_power["Power Score"]
 ```
 
 ### Presentation Couplings Map
@@ -782,7 +794,7 @@ The permanent meta currency — genome upgrades, rewards, achievement payouts.
   - rewardedBy ← `achievement:specialist` — +25 on unlock
   - rewardedBy ← `achievement:mulligan_grafted` — +25 on unlock
   - rewardedBy ← `achievement:mulligan_splicer` — +40 on unlock
-  - _…125 more (query: `npm run dil -- node currency:genome-cores`)_
+  - _…136 more (query: `npm run dil -- node currency:genome-cores`)_
 
 ### `currency:tower-shards` — Tower Shards (✦)
 
@@ -901,7 +913,7 @@ _at: src/core/game.ts, src/core/combat.ts, src/core/status.ts, src/core/targetin
   - requiredBy ← `system:nemesis`
   - requiredBy ← `system:onboarding`
   - requiredBy ← `system:run-ui`
-  - _…240 more (query: `npm run dil -- node system:engine`)_
+  - _…241 more (query: `npm run dil -- node system:engine`)_
 
 ### `system:content-infra` — Content Infrastructure
 
@@ -945,7 +957,7 @@ _at: src/core/power.ts, src/state/itemPower.ts, src/state/powerEvents.ts, src/st
   - requiredBy ← `system:nucleus`
   - requiredBy ← `system:hero-symbiotes`
   - requiredBy ← `system:profile`
-  - _…26 more (query: `npm run dil -- node system:power`)_
+  - _…27 more (query: `npm run dil -- node system:power`)_
 
 ### `system:campaign` — Campaign
 
@@ -1214,7 +1226,7 @@ _at: src/core/online.ts, src/core/itemIdentity.ts, src/core/trading.ts, src/core
   - conflictsWith ← `system:engine` — ONE GAME = ONE BUS: meta.ts records boss/Mega kills for the PLAYER off the app-wide gameEvents bus, so any Game that is not the player’s own run (SpectateView replay, ArenaMatch remote mirror + its rollback rebuild, replayRun verification) MUST call game.isolateEvents() — otherwise someone else’s kills credit this save.
   - consumedBy ← `system:net-backend` — AUCTION ATOMICITY (functions/lib/auctionHost.ts): wallet CHECKs (balance/escrow ≥0) + the partial UNIQUE active-listing index turn violations into FULL batch rollbacks; ordering = state transition FIRST, every money statement CONDITIONED on it via WHERE EXISTS (lost races charge nothing); exactly-once anchors: market_trades PK, wallet-ledger op-id PK, market_windows PK; client custody is SERVER-FIRST (meta.auctionEscrowOut only after 200; auctionReconcile self-heals; wallet ops ride a localStorage outbox with the same op id across restarts)
   - extendedBy ← `system:mulligans` — MULLIGAN PIECES TRADE (2026-07, the fourth category): mul:<pieceId> trades the DEX UNLOCK (save.mulliganDex) — families mul.<piece>.<rarity> per SEQUENCED rarity (equipment precedent; mixed rarities poison price stats); baseline/buyback bands common+uncommon only; a grafted piece blocks as slotted (unslot first), a reforge-LOCKED host reads bound, escrow-out deletes the dex entry, delivery sequences an unowned piece at the listing rarity or dissolves an owned one to Tissue via DUP_TISSUE (core/mulligan.ts — the pillar duplicate law, shared with container opens); pinned by state/auctionCustody.test.ts + a functions wire round-trip
-  - _…4 more (query: `npm run dil -- node system:online-foundation`)_
+  - _…5 more (query: `npm run dil -- node system:online-foundation`)_
 
 ### `system:arena` — Arena (Live PvP)
 
@@ -1390,6 +1402,7 @@ _at: src/core/equipment.ts, src/render/equipmentArt.ts, src/ui/EquipmentPanel.ts
   - documentedBy ← `guide:equipment`
   - testedBy ← `test:src/core/equipment.test.ts`
   - testedBy ← `test:src/render/equipmentArt.test.ts`
+  - consumedBy ← `system:collection` — PERMANENT GEAR CODEX (v56 equipment.discovered): meta.persist folds every def entering the inventory (any path) into the ledger at the ONE chokepoint (withGearDiscoveries); gearDiscovered(save) = ledger ∪ inventory feeds collectionContextOf.ownedDefIds (Collection %, its Power, Quartermaster), genomeSnapshot.gearRatio and the container isNew badge — salvaging the last copy never un-discovers. Migration backfills from the held inventory; merge = union
 
 ### `system:crafting` — Crafting / Reforge
 
@@ -1604,6 +1617,7 @@ _at: src/core/collection.ts, src/ui/CollectionPanel.tsx_
   - dependsOn → `system:stats`
   - provides → `concept:power-score` — completion feeds the collection bucket
   - consumes → `system:doctrines` — the doctrines codex tier IS 1 + doctrineRank over the stats ledgers ('none' never rows) — one ladder shared with the picker, so never author parallel codex thresholds; fresh save = 0 runs ⇒ tier 0 ⇒ golden-safe
+  - consumes → `system:equipment` — PERMANENT GEAR CODEX (v56 equipment.discovered): meta.persist folds every def entering the inventory (any path) into the ledger at the ONE chokepoint (withGearDiscoveries); gearDiscovered(save) = ledger ∪ inventory feeds collectionContextOf.ownedDefIds (Collection %, its Power, Quartermaster), genomeSnapshot.gearRatio and the container isNew badge — salvaging the last copy never un-discovers. Migration backfills from the held inventory; merge = union
   - requiredBy ← `system:idle-harvest`
   - requiredBy ← `system:daily-login`
   - requiredBy ← `system:cosmetics`
@@ -1627,6 +1641,7 @@ _at: src/state/evolutionHQ.ts, src/ui/EvolutionHQ.tsx, src/ui/EvolutionUnlock.ts
   - dependsOn → `system:prestige`
   - provides → `concept:power-score` — META_UPGRADES fold into the permanent bucket
   - consumes → `system:meta-store` — owns save field 'upgrades'
+  - consumes → `system:power` — ONE-TAP GENOME REBUILD (docs/EVOLUTION-HQ.md §rebuild): genomeRebuildPlan greedy-spends the treasury along bestPurchase.purchaseCandidates('evolution') by RELATIVE Power gain per Core (only the bought upgrade re-scored per step); the confirm's after-Power is scored on meta.genomeRebuildSave — the SAME pure builder meta.applyGenomeRebuild (guard progress.rebuild) applies, refusing wholesale on drift. Account XP per level as buyUpgrade (never moves Power — pinned)
   - requiredBy ← `system:prestige`
   - taughtBy ← `help:genome-core`
   - documentedBy ← `doc:EVOLUTION-HQ.md`
@@ -1673,6 +1688,7 @@ _at: src/core/loginStreak.ts, src/ui/BioCache.tsx_
   - rewards → `system:cosmetics` — login-drop jackpot (~1-in-220) grants login-EXCLUSIVE items (Ichor Wake / Caul Filigree) so the Ichor boutique inventory is never devalued; the login auto-lane pays devotion titles/plaque/banner/border off lifetime claims
   - provides → `system:genome-rank` — lifetimeLogins is a journey source (weight 40, depth 0.7/1.6) — attendance credits breadth, never Power
   - provides → `system:collection` — the Devotion codex (6 lifetime milestones + best-streak watermark) is ZERO-POWER; its rank-ups bleed Ichor via the shared collection-rank faucet
+  - consumes → `system:hub-shell` — BIO-CACHE §income (v56): every cache carries one guaranteed Core line = min(LOGIN.incomeMinutes × coresPerMinute, LOGIN.incomeRunCap × coresPerRun) × streakMult — read from the income ledger (state/income.ts); frozen at the claim in login.incomeCores (post-claim view shows what was paid); the card values the cache in Genome Cores (IV ÷ LANE_VALUE.cores + the line) — the old "≈ N◆" used the Core glyph for IV
   - taughtBy ← `help:daily-login`
   - documentedBy ← `doc:DAILY-LOGIN.md`
   - documentedBy ← `doc:DAILY-RUN.md`
@@ -1706,7 +1722,7 @@ _at: src/core/prestige.ts, src/core/ascendant.ts, src/core/vows.ts, src/ui/Prest
   - documentedBy ← `guide:prestige`
   - testedBy ← `test:src/core/ascendant.test.ts`
   - testedBy ← `test:src/core/prestige.test.ts`
-  - _…1 more (query: `npm run dil -- node system:prestige`)_
+  - _…2 more (query: `npm run dil -- node system:prestige`)_
 
 ### `system:currencies` — Currencies & Economy Framework
 
@@ -1764,6 +1780,7 @@ _at: src/state/achievements.ts, src/ui/AchievementPanel.tsx, src/ui/AchievementT
   - consumes → `system:meta-store` — owns save field 'achievements'
   - rewards → `currency:genome-cores` — auto-granted on unlock
   - consumes → `system:doctrines` — doctrine_first/breadth/families/exemplar read the stats doctrine ledgers registry-checked — stale/unknown ledger ids never count as commitment
+  - consumes → `system:hub-shell` — ACHIEVEMENT LADDERS (docs/PROGRESSION-SYSTEMS.md §ladders): LADDER_FAMILIES data rows generate 30 geometric rungs per lifetime ledger (ids ladder_<family>_<n>, reading the income ledger's meters via readMeter) — small Core rewards through the shared payout, never Power. Kept out of AUTHORED_ACHIEVEMENTS (gallery count, Profile showcase, Genome Rank ratio); the gallery shows one card per family; DIL nodes carry each family's first rung only. BossRushScreen keys on the rush_ prefix — ladder ids never collide
   - requiredBy ← `system:profile`
   - contains ← `achievement:tutorial_complete`
   - contains ← `achievement:first_run`
@@ -1776,7 +1793,7 @@ _at: src/state/achievements.ts, src/ui/AchievementPanel.tsx, src/ui/AchievementT
   - contains ← `achievement:star3`
   - contains ← `achievement:specialist`
   - contains ← `achievement:hero_shard`
-  - _…120 more (query: `npm run dil -- node system:achievements`)_
+  - _…131 more (query: `npm run dil -- node system:achievements`)_
 
 ### `system:stats` — Lifetime Stats
 
@@ -1947,6 +1964,7 @@ _at: src/core/cosmetics.ts, src/core/wardrobe.ts, src/ui/PhenotypeLab.tsx, src/u
   - conflictsWith → `concept:golden-test` — skins/visual tiers must stay render-only; any def stat touched for looks breaks the pinned seeds
   - extends → `system:online-foundation` — TWO-STATE OWNERSHIP (v53): every cosmetic ARRIVES as an UNCLAIMED instance in the Specimen Vault (wardrobe.inventory {uid,item,at,src}, ci_-prefixed uids stamped cos:<uid> in the provenance ledger, pruned with the instance) — tradable/auction-eligible, NO bonus, NOT equippable, NOT in collections. CLAIMING (meta.claimCosmetic, guard cosmetic.claim, ONE delivery chokepoint receiveCosmetic feeds every lane) is the irreversible bind: instance consumed, id joins wardrobe.owned (the CLAIMED set every pre-v53 consumer already reads — equip/codices/dressing untouched BY CONSTRUCTION), provenance stamp cos:wd_* binds forever. Substitution RETIRED for cosmetics: repeat reward tracks mint tradable DUPES (AH supply); wardrobe.granted is the once-per-source gate for auto/boutique/direct lanes. BONUSES: claimed non-starters feed 7 saturating lanes (cap 0.06, eff=cap(1−e^(−raw/cap))) expressed ONLY in the two proven vocabularies (run CardEffect mults beside battlePassEffectsOf + accountEconomyBonuses keys) — starters bonus-less BY LAW (POWER_BASE/golden safety, wardrobeProblems). Vault screen nav specimens (Trade wing) reveals-on-need via the cosmeticInventory condition (a vault you cannot open would strand every cosmetic). Migration: pre-v53 owned stays claimed — nothing taken away
   - provides → `system:online-foundation` — PROVENANCE & COLLECTOR PRESTIGE (v53): every museum fact DERIVES, none is authored per item — cosmeticEra (COSMETIC_ERAS, launch catalog = genesis; a future wave = ONE era row + ERA_OVERRIDES), cosmeticAvailability (reissued > retired > limited(time-boxed sources) > available; RETIRED/REISSUED curated disjoint sets — retirement is data, never code), cosmeticBadges (13-badge registry with TRUTHFUL source/era/age derivations — Legacy emerges only with years, membership badges join ONLY via BADGE_OVERRIDES, pinned by wardrobe.test), cosmeticLore (HIVE_ARCHIVES, ≤400 chars law; every event-source item MUST carry an entry). Census/market are NULL-PROVIDER seams (setCosmeticCensusProvider/setCosmeticMarketProvider): the client NEVER fabricates network numbers — the UI shows "awaiting network census" until the AH feeds them (TRADING-PREP.md §7), and the future census source is the durable cos_claim analytics row emitted ONLY in SpecimenVault claim() (the state layer stays telemetry-free). meta.collectorView(id) is the ONE museum read (def+era+availability+badges+lore+family completion+your stamp+census/market); the Collector Panel renders through the Popup portal — screen-transition transforms make .screen the fixed-position containing block, so EVERY vault overlay must portal (components/Popup.tsx)
+  - extends → `system:online-foundation` — CLAIM-ALL (docs/COSMETICS.md §claim-all): meta.claimAllCosmetics(['common']) (guard cosmetic.claimAll) binds ONE instance per COMMON id via claimCosmeticDraft — the same pure draft step claimCosmetic now uses — in one persist; rare+ stays a per-item decision; dupes stay tradable; SpecimenVault still emits cos_claim once per bound id (the census source)
   - requiredBy ← `system:daily-login`
   - requiredBy ← `system:contracts`
   - requiredBy ← `system:nemesis`
@@ -2105,6 +2123,7 @@ _at: src/core/genomeRank.ts, src/ui/components/GenomeRankPanel.tsx_
   - consumes → `concept:power-score` — power is the strength category source; if its live share exceeds 35% the sim dominance guard trips (retune exp/div in the table)
   - references → `system:mastery` — grank_<n> titles share save.equippedTitle — always resolve display through titleName() (profile.ts), never per-registry lookups
   - conflictsWith → `concept:golden-test` — promotion rewards are meta-only (cores/ichor/containers/titles) — NO gameplay passives may ride ranks, or goldens and pay-to-win both break
+  - consumes → `system:prestige` — PEAK POWER (v56 genomeRank.peakPower): genomeSnapshot.powerScore = max(peak, live) — a Molt's Power trough never demotes the named rank (G2: 5 demotions in 150h → 0). withPeakPower raises it at every settle, at the top of pollGenomePromotions (the migration seed) and from the PRE-Molt save in meta.molt(). Power itself (scores, previews, readiness) is untouched. achievementRatio counts AUTHORED achievements only (ladder rungs would dilute it)
   - requiredBy ← `system:nucleus`
   - requiredBy ← `system:hero-symbiotes`
   - requiredBy ← `system:idle-harvest`
@@ -2145,12 +2164,13 @@ _at: src/state/unlocks.ts, src/state/progressionDirector.ts, src/state/navBus.ts
 
 The nav shell + the Command Center home: registry-driven widgets, living World Status, mission control, feed/roadmap/army, dashboards.
 
-_at: src/ui/Hub.tsx, src/ui/navModel.ts, src/ui/MobileShell.tsx, src/ui/components/ScreenHeader.tsx, src/ui/CommandCenter.tsx, src/ui/DeployScreen.tsx, src/ui/homeModel.ts, src/ui/WorldStatus.tsx, src/ui/ProgressDashboard.tsx, src/ui/NextGoalBanner.tsx, src/state/nextGoal.ts, src/state/progressionLoop.ts, src/ui/hubProgress.ts, src/ui/homeBaseTiers.ts, src/ui/LabAtmosphere.tsx, src/ui/App.tsx, src/ui/ErrorBoundary.tsx, src/main.tsx, src/net/swRegister.ts, src/ui/components/UpdateToast.tsx, src/ui/components/Popup.tsx, src/state/listOrg.ts, src/ui/components/ListControls.tsx, src/ui/components/HostTabs.tsx, src/ui/browserBack.ts, src/ui/components/ScreenBoundary.tsx, src/ui/components/AdviceLink.tsx_
+_at: src/ui/Hub.tsx, src/ui/navModel.ts, src/ui/MobileShell.tsx, src/ui/components/ScreenHeader.tsx, src/ui/CommandCenter.tsx, src/ui/DeployScreen.tsx, src/ui/homeModel.ts, src/ui/WorldStatus.tsx, src/ui/ProgressDashboard.tsx, src/ui/NextGoalBanner.tsx, src/state/nextGoal.ts, src/state/income.ts, src/state/progressionLoop.ts, src/ui/hubProgress.ts, src/ui/homeBaseTiers.ts, src/ui/LabAtmosphere.tsx, src/ui/App.tsx, src/ui/ErrorBoundary.tsx, src/main.tsx, src/net/swRegister.ts, src/ui/components/UpdateToast.tsx, src/ui/components/Popup.tsx, src/state/listOrg.ts, src/ui/components/ListControls.tsx, src/ui/components/HostTabs.tsx, src/ui/browserBack.ts, src/ui/components/ScreenBoundary.tsx, src/ui/components/AdviceLink.tsx_
 
   - dependsOn → `system:meta-store`
   - dependsOn → `system:notifications`
   - dependsOn → `system:prediction`
   - dependsOn → `system:power`
+  - consumes → `system:meta-store` — owns save field 'income'
   - consumes → `system:campaign` — buildHomeView generates the campaign frontier ONCE per save change — home widgets read ctx.view, never re-derive models
   - references → `system:collection` — home surfaces show CollectionView.pct (discovery); mixing in rank-weighted .completion once put two contradictory percentages on one board
   - modifies → `system:notifications` — FOLDED SCREENS (navModel FOLDED_NAVS): harvest+expeditions → hive, metabolism → quests, specimens → phenotypes, gearcodex → equipment. Hub.go resolves hostOf() + requestHostTab (ui/components/HostTabs.tsx; each host mounts <HostedScreen>), badges/reasons roll up via foldCounts/foldLines and chainNavs map through hostOf — a folded NavKey is still a valid notification channel / reward-loop nav / deep link
@@ -2167,6 +2187,7 @@ _at: src/ui/Hub.tsx, src/ui/navModel.ts, src/ui/MobileShell.tsx, src/ui/componen
   - conflictsWith → `system:run-ui` — BROWSER BACK (ui/browserBack.ts): one same-URL guard history entry; Back mid-run → runBus.pause (GameView subscribes — Back NEVER exits a run) + beforeunload while live; in the hub → dismiss stack top (Popup/useDismiss) else Hub.goBack via registerHubBack({atRoot, back}). Hub keeps posRef in sync inside go/goLanding/goBack so atRoot() is right between popstate and commit — a new nav entry point must update posRef + call syncBackGuard().
   - modifies → `system:notifications` — ONE FACT, ONE OWNER (2026-11): hub door badge = doorBadge() = member SCREENS with a decision (never summed counts); landings render cards FIRST and recommendationsFor({skip}) drops reason-derived recs + chain stops the cards already show (no "needs attention" strip); Home Recommended-Now skips Ready-Chain navs. A hub with one open screen (soleOpenScreen) is a direct door carrying data-nav — mobilecheck/cogload walks click it as a direct door.
   - provides → `system:prediction` — ADVICE IS A LINK: guidance returns {text, nav?} (loopAdviceLink, meta.predict().advice) and renders <AdviceGo nav> — only inside the Hub (HubScreen context), never to the open screen, never sealed (isOpenNav). Keep loopAdvice()/predict().recommendations string APIs for other callers.
+  - consumes → `system:meta-store` — HONEST GOAL ETAs (docs/ONE-MORE-RUN.md §eta, save v56 `income`): state/income.ts INCOME_METERS (lifetime Cores, stage, ln peak Power, playSec, kills, damage, Molts, Mega kills, Weak Points, Infinite/Rush records, containers, per-unit Strain/Apex WEALTH = balance + everything already bought) are ticked ONCE per settle in meta.finishRun (withIncome — deltas settle→settle so containers opened between runs count; spending never reads as negative; `runCores` is a DIRECT sample = the settle's cycleShards delta, so achievement/rank/login Cores never count as run pay). nextGoals sorts by etaRuns (runsToGain / runsToStage — live Power ≥ the stage's recommendation ⇒ one run per stage, else the observed stage pace); the Results cliffhanger may say "one more run" ONLY at etaRuns ≤ INCOME.honestRuns. Molt goal = both gates (cycle Cores to the first offerable mint ÷ Resonance × vows, AND the stage gate), id prestige:<n>; ONE achievement-ladder goal (nearest rung)
   - requiredBy ← `system:hive-construction`
   - requiredBy ← `system:infestation`
   - requiredBy ← `system:cosmetics`
@@ -2179,7 +2200,7 @@ _at: src/ui/Hub.tsx, src/ui/navModel.ts, src/ui/MobileShell.tsx, src/ui/componen
   - documentedBy ← `doc:ONE-MORE-RUN.md`
   - documentedBy ← `doc:HUD.md`
   - documentedBy ← `doc:PROGRESSION-LOOP.md`
-  - _…29 more (query: `npm run dil -- node system:hub-shell`)_
+  - _…31 more (query: `npm run dil -- node system:hub-shell`)_
 
 ### `system:run-ui` — In-Run HUD & Results
 
@@ -2273,7 +2294,7 @@ _at: src/state/meta.ts, src/state/store.ts, src/state/prefs.ts, src/state/devRes
   - consumedBy ← `system:mulligans` — owns save field 'mulligans'
   - consumedBy ← `system:mulligans` — owns save field 'mulliganDex'
   - consumedBy ← `system:premium` — owns save field 'premium'
-  - _…127 more (query: `npm run dil -- node system:meta-store`)_
+  - _…130 more (query: `npm run dil -- node system:meta-store`)_
 
 ### `system:bosses` — Bosses
 
@@ -3719,7 +3740,7 @@ _at: site/guides.ts → /guides/live-events/_
 
   - partOf → `system:website`
 
-## Achievements (127)
+## Achievements (138)
 
 - `achievement:tutorial_complete` — Complete the Combat Tutorial. _(partOf `system:achievements`, rewards `currency:genome-cores`)_
 - `achievement:first_run` — Finish your first run. _(partOf `system:achievements`, rewards `currency:genome-cores`)_
@@ -3848,6 +3869,17 @@ _at: site/guides.ts → /guides/live-events/_
 - `achievement:arena_wins100` — Win 100 Arena matches (lifetime). _(partOf `system:achievements`, rewards `currency:genome-cores`, references `system:arena`)_
 - `achievement:arena_crown` — Claim Arena Pass level 100 — a permanently arena-exclusive strain is yours forever. _(partOf `system:achievements`, rewards `currency:genome-cores`, references `system:arena`)_
 - `achievement:arena_perennial` — Close three Arena seasons with a record on the books. _(partOf `system:achievements`, rewards `currency:genome-cores`, references `system:arena`)_
+- `achievement:ladder_culling_1` — Reach 150,000 enemies killed (lifetime). _(partOf `system:achievements`, rewards `currency:genome-cores`)_
+- `achievement:ladder_carnage_1` — Reach 5,000,000 damage dealt (lifetime). _(partOf `system:achievements`, rewards `currency:genome-cores`)_
+- `achievement:ladder_hoard_1` — Reach 100,000 Genome Cores earned (lifetime). _(partOf `system:achievements`, rewards `currency:genome-cores`)_
+- `achievement:ladder_vaults_1` — Reach 1,000 Bio-Containers opened. _(partOf `system:achievements`, rewards `currency:genome-cores`)_
+- `achievement:ladder_hours_1` — Reach 50 hours of play. _(partOf `system:achievements`, rewards `currency:genome-cores`)_
+- `achievement:ladder_molts_1` — Reach 50 Molts. _(partOf `system:achievements`, rewards `currency:genome-cores`)_
+- `achievement:ladder_leviathans_1` — Reach 20 Mega Bosses felled. _(partOf `system:achievements`, rewards `currency:genome-cores`)_
+- `achievement:ladder_depth_1` — Reach 160 Infinite Depth. _(partOf `system:achievements`, rewards `currency:genome-cores`)_
+- `achievement:ladder_gauntlet_1` — Reach 15 Boss Rush wave. _(partOf `system:achievements`, rewards `currency:genome-cores`)_
+- `achievement:ladder_skulls_1` — Reach 500 Boss Rush bosses (lifetime). _(partOf `system:achievements`, rewards `currency:genome-cores`)_
+- `achievement:ladder_anatomy_1` — Reach 250 Weak Points destroyed. _(partOf `system:achievements`, rewards `currency:genome-cores`)_
 
 ## Documentation (193)
 
@@ -4045,7 +4077,7 @@ _at: site/guides.ts → /guides/live-events/_
 - `doc:VOWS.md` — project documentation _(documents `system:prestige`)_
 - `doc:WEBSITE.md` — project documentation _(documents `system:field-research`, documents `system:website`)_
 
-## Tests (330)
+## Tests (332)
 
 - `test:src/audio/cues.test.ts` — automated validation _(tests `system:audio`)_
 - `test:src/audio/music.test.ts` — automated validation _(tests `system:audio`)_
@@ -4265,6 +4297,7 @@ _at: site/guides.ts → /guides/live-events/_
 - `test:src/render/towerEvolution.test.ts` — automated validation _(tests `system:rendering`)_
 - `test:src/save/envelope.test.ts` — automated validation _(tests `system:meta-store`, tests `system:accounts`)_
 - `test:src/save/saveStore.test.ts` — automated validation _(tests `system:meta-store`)_
+- `test:src/save/v56.test.ts` — automated validation _(tests `system:meta-store`)_
 - `test:src/security/actionGuard.test.ts` — automated validation _(tests `system:security`)_
 - `test:src/security/securityRegistry.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/security/tabArbiter.test.ts` — automated validation _(tests `system:security`)_
@@ -4299,6 +4332,7 @@ _at: site/guides.ts → /guides/live-events/_
 - `test:src/state/geneArchive.test.ts` — automated validation _(tests `system:gene-cards`)_
 - `test:src/state/geneDiscoveryMeta.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/state/geneStress.test.ts` — automated validation _(tests `system:engine`)_
+- `test:src/state/grind.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/state/guidedUnlocks.test.ts` — automated validation _(tests `system:onboarding`)_
 - `test:src/state/heroCollection.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/state/heroLab.test.ts` — automated validation _(tests `system:engine`)_

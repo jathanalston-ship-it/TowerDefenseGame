@@ -40,7 +40,7 @@ describe('the day gate — once per UTC day', () => {
     expect(receipt).not.toBeNull();
     expect(receipt!.streak).toBe(1);
     expect(receipt!.lifetime).toBe(1);
-    expect(meta.get().login).toEqual({ last: keyOf(day(0)), streak: 1, best: 1, lifetime: 1 });
+    expect(meta.get().login).toEqual({ last: keyOf(day(0)), streak: 1, best: 1, lifetime: 1, incomeCores: 0 }); // v56: no run yet ⇒ no income line
   });
 
   it('the SAME day refuses a second claim and moves nothing', () => {
@@ -90,7 +90,7 @@ describe('the streak — compounds daily, breaks soft', () => {
     const r3 = meta.claimLogin(day(2))!;
     expect(r3.streak).toBe(3);
     expect(r3.mult).toBeGreaterThan(r2.mult);
-    expect(meta.get().login).toEqual({ last: keyOf(day(2)), streak: 3, best: 3, lifetime: 3 });
+    expect(meta.get().login).toEqual({ last: keyOf(day(2)), streak: 3, best: 3, lifetime: 3, incomeCores: 0 });
   });
 
   it('a missed day resets ONLY the multiplier — lifetime and best survive', () => {
@@ -135,7 +135,7 @@ describe('the record — sanitizer + self-healing clock', () => {
     meta.claimLogin(day(1));
     const blob = serializeExport(meta.get());
     const back = parseImport(blob);
-    expect(back.ok && back.data.login).toEqual({ last: keyOf(day(1)), streak: 2, best: 2, lifetime: 2 });
+    expect(back.ok && back.data.login).toEqual({ last: keyOf(day(1)), streak: 2, best: 2, lifetime: 2, incomeCores: 0 });
   });
 
   it('folds junk to safe values (types, negatives, absurd calendar keys)', () => {

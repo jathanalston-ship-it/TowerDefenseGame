@@ -28,9 +28,12 @@ describe('Next-Goal engine (the anticipation spine)', () => {
     expect(nextGoals(s).some((x) => x.kind === 'hero-release')).toBe(false);
   });
 
-  it('ranks closest-to-done first', () => {
+  it('with no income measured yet (every ETA unknown), ties rank closest-to-done first', () => {
+    // §eta: goals sort by honest run ETA (grind.test pins that); a fresh account has no income,
+    // so every ETA ties at ∞ and the progress tie-break decides — the pre-§eta order.
     const s = { ...hall(), heroShards: { ...defaultSave().heroShards, shepherd: 55, overseer: 5 } };
     const goals = nextGoals(s);
+    for (const g of goals) expect(g.etaRuns).toBe(Infinity);
     for (let i = 1; i < goals.length; i++) expect(goals[i - 1].progress).toBeGreaterThanOrEqual(goals[i].progress);
     // Shepherd at 55/60 (0.92) should outrank Overseer at 5/100 (0.05).
     const shep = goals.findIndex((g) => g.id === 'release:shepherd');

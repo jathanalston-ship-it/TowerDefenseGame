@@ -8,6 +8,7 @@ import { meta } from '../../state/meta';
 import type { GenomePromotion } from '../../state/meta';
 import { audio } from '../../audio/sound';
 import { telemetry } from '../../net/telemetry';
+import { formatPower } from '../../core/power';
 
 const CATEGORY_COLOR: Record<string, string> = {
   journey: 'var(--caustic)',
@@ -18,8 +19,13 @@ const CATEGORY_COLOR: Record<string, string> = {
 
 /** The Profile block: emblem, progress to the next rank, top contributions, and the Advisor. */
 export function GenomeRankPanel({ onNavigate }: { onNavigate?: (nav: string) => void }): JSX.Element {
-  meta.use();
+  const save = meta.use();
   const v = meta.genomeRank();
+  // §peak (docs/GENOME-RANK.md): the Power axis banks the PEAK — show the permanent part vs this
+  // cycle's live climb, so a Molt's Power trough reads as a re-climb, never a demotion.
+  const live = meta.power().score;
+  const peak = Math.max(save.genomeRank.peakPower ?? 0, live);
+  const cyclePct = peak > 0 ? Math.min(100, Math.round((live / peak) * 100)) : 100;
   const rows = meta.genomeBreakdown().slice(0, 6);
   const advice = meta.genomeAdvice(3);
   const pct = Math.min(100, Math.round((v.into / Math.max(1, v.need)) * 100));
@@ -33,6 +39,13 @@ export function GenomeRankPanel({ onNavigate }: { onNavigate?: (nav: string) => 
           <span className="grk-name">{v.name}</span>
           <span className="grk-sub">Genome Rating <b>{v.rating.toLocaleString()}</b> · next rank at {v.next.toLocaleString()}</span>
           <span className="grk-bar" aria-hidden><i style={{ width: `${pct}%` }} /></span>
+          <span className="grk-peak" title="The rank's Power axis reads your PEAK Power — Molting never lowers it">
+            Permanent: Power axis locked at your peak <b>{formatPower(peak)}</b>
+            {' · '}
+            {live < peak
+              ? <>this cycle {formatPower(live)} ({cyclePct}% of the way back) — the rank holds</>
+              : <>this cycle is AT your peak — every gain now raises the rank</>}
+          </span>
         </div>
       </div>
       <div className="grk-cols">

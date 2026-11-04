@@ -7,6 +7,7 @@ import { createStore } from './store';
 import { applyDevReset } from './devReset';
 import {
   SaveStore,
+  defaultIncome,
   defaultSave,
   durableStorageLike,
   parseImport,
@@ -16,6 +17,7 @@ import {
 } from '../save/saveStore';
 import type { BackupMeta, ImportResult, SaveData } from '../save/saveStore';
 import { enterGuestMode, exitGuestMode, guestModeActive } from './guestMode';
+import { coresPerMinute, coresPerRun, incomeMeters, tickIncome } from './income';
 import { hasSlainMega, highestCampaignStage, isBossRushUnlocked, isCutsceneUnlocked, isDailyUnlocked, threatMaxFor, unlockedCutsceneIds } from '../save/derive';
 import { CUTSCENES, cutsceneEffects, cutsceneForMega } from '../core/cutscenes';
 import type { CutsceneDef } from '../core/cutscenes';
@@ -57,7 +59,7 @@ import { accumulateStats } from './stats';
 import { DEVICE_PREF_KEYS } from './prefs';
 import { announcePower, onPowerGain } from './powerEvents';
 import { withPowerLogged } from './powerLog';
-import { ACHIEVEMENTS, achievementById, checkAchievements, rewardFor } from './achievements';
+import { AUTHORED_ACHIEVEMENTS, achievementById, authoredEarned, checkAchievements, rewardFor } from './achievements';
 import type { AchievementDef, RunSummary } from './achievements';
 import { ALL_ITEMS, CAPPED_GRANT_ITEMS, EQUIP_SLOTS, emptyLoadout, itemDef, loadoutEffects, rollItem, rollItemDrop, rollItemForDepth, teamSetEffects } from '../core/equipment';
 import type { EquipSlot, Loadout, OwnedItem } from '../core/equipment';
@@ -149,7 +151,7 @@ import type { ArenaBootBundle } from '../core/arenaMatch';
 import { bindItem, itemProvenance, parseRefKey, refKey, stampAcquisition } from '../core/itemIdentity';
 import type { ProvenanceStamp } from '../core/itemIdentity';
 import { cosmeticFamilyKey, equipmentFamilyKey, geneFamilyKey, marketFamily, mulliganFamilyKey } from '../core/marketCatalog';
-import { LOGIN, loginTargetValue, milestoneContainer, rollLoginBundle, streakMult } from '../core/loginStreak';
+import { LANE_VALUE, LOGIN, loginIncomeCores, loginTargetValue, milestoneContainer, rollLoginBundle, streakMult } from '../core/loginStreak';
 import { PERFECT_WEEK, activeContracts, contractReport, contractSatisfied, contractWeekKey } from '../core/contracts';
 import type { ContractRunFacts } from '../core/contracts';
 import { MAIN_QUESTLINE, QUESTS, foldCredit, missionById, missionCredit, questById, questComplete, msToWeeklyRotation, weeklyQuestFor, weeklyWindow } from '../core/quests';
@@ -586,7 +588,11 @@ export interface LoginView {
   target: number; // today's IV budget
   todayLines: { icon: string; label: string }[]; // today's bundle (identical pre/post claim)
   todayMilestone: 'rare' | 'epic' | 'legendary' | null;
-  tomorrow: { mult: number; target: number; milestone: 'rare' | 'epic' | 'legendary' | null };
+  /** §income (v56): today's income-scaled Core line (live pre-claim, frozen once claimed). */
+  incomeCores: number;
+  /** Today's whole cache in Genome-Core terms (IV lanes at the exchange rate + the income line). */
+  valueCores: number;
+  tomorrow: { mult: number; target: number; milestone: 'rare' | 'epic' | 'legendary' | null; incomeCores: number; valueCores: number };
   msToReset: number; // to the next UTC midnight
 }
 
@@ -666,10 +672,20 @@ function applyPassRewards(
   return { events: res.events, next, lines: res.lines, stamina: res.stamina };
 }
 
+/** Every equipment def EVER owned (v56 ledger ∪ the live inventory — a save built in a test or
+ *  mid-migration without the ledger still credits what it holds). */
+export function gearDiscovered(save: SaveData): Set<string> {
+  const set = new Set(save.equipment.discovered ?? []);
+  for (const it of save.equipment.inventory) set.add(it.defId);
+  return set;
+}
+
 export function collectionContextOf(save: SaveData): CollectionContext {
   return {
     stats: save.stats,
-    ownedDefIds: new Set(save.equipment.inventory.map((i) => i.defId)),
+    // v56: the PERMANENT Gear Codex credit (docs/EQUIPMENT.md §codex) — ever owned, not
+    // currently held, so salvaging the last copy never un-discovers an entry.
+    ownedDefIds: gearDiscovered(save),
     bestWave: save.bestWave,
     bossesSlain: new Set(save.bossesSlain),
     megaSlain: new Set(save.megaProgress.slain),
@@ -926,6 +942,7 @@ const marketSeedOf = (s: SaveData): number => (s.createdAt || 0) >>> 0;
 let persistFlushTimer: ReturnType<typeof setTimeout> | null = null;
 
 function persist(next: SaveData): void {
+  next = withGearDiscoveries(next);
   store.set(next);
   noteClock();
   // Cross-tab arbitration (docs/SECURITY.md §tabs): once another tab owns the save, THIS
@@ -945,6 +962,102 @@ function persist(next: SaveData): void {
       stampWriter();
     }, 300);
   }
+}
+
+/** v56 Gear Codex ledger (docs/EQUIPMENT.md §codex): every def that enters the inventory — by
+ *  ANY path (containers, crafting, grants, trades, undo-salvage) — is folded into the permanent
+ *  `equipment.discovered` set at this one chokepoint, so the credit can never be missed and never
+ *  shrinks. Cheap: only runs when the inventory array actually changed (reference check). */
+function withGearDiscoveries(next: SaveData): SaveData {
+  const prev = store.get();
+  if (next.equipment === prev.equipment || next.equipment.inventory === prev.equipment.inventory) {
+    // Inventory untouched — keep the ledger (a rebuilt equipment object must not drop it).
+    if (next.equipment.discovered === undefined && prev.equipment.discovered !== undefined) {
+      return { ...next, equipment: { ...next.equipment, discovered: prev.equipment.discovered } };
+    }
+    return next;
+  }
+  const known = next.equipment.discovered ?? prev.equipment.discovered ?? [];
+  const set = new Set(known);
+  let added = false;
+  for (const it of next.equipment.inventory) if (!set.has(it.defId)) { set.add(it.defId); added = true; }
+  if (!added && next.equipment.discovered === known) return next;
+  return { ...next, equipment: { ...next.equipment, discovered: added ? [...set] : known } };
+}
+
+/** One step of the post-Molt GENOME REBUILD (docs/EVOLUTION-HQ.md §rebuild): buy upgrade `id`
+ *  from `level - 1` to `level` for `cost` Genome Cores. */
+export interface GenomeRebuildStep { id: string; level: number; cost: number }
+
+/** The save after buying `steps` in order — Cores spent, levels raised — or null when any step no
+ *  longer matches the save (level/cost/gate/wallet drifted). PURE (no Account-XP fold: that is a
+ *  side-effecting ceremony the apply adds, and it never moves Power). The planner's Power preview
+ *  and meta.applyGenomeRebuild both run THIS builder, so the preview IS the outcome. */
+export function genomeRebuildSave(save: SaveData, steps: readonly GenomeRebuildStep[]): SaveData | null {
+  let shards = save.shards;
+  const upgrades = { ...save.upgrades };
+  for (const st of steps) {
+    const def = META_UPGRADES.find((u) => u.id === st.id);
+    if (!def || !upgradeUnlocked(save, def)) return null;
+    const lvl = upgrades[st.id] ?? 0;
+    if (lvl !== st.level - 1 || lvl >= def.maxLevel) return null;
+    const cost = upgradeCost(def, lvl);
+    if (cost !== st.cost || cost > shards) return null;
+    shards -= cost;
+    upgrades[st.id] = lvl + 1;
+  }
+  return { ...save, shards, upgrades };
+}
+
+/** The cosmetic BIND as a pure draft step (docs/COSMETICS.md §claiming) — shared by the single
+ *  claim and claim-all so both bind identically: consume the instance, stamp + bind provenance,
+ *  join the claimed set, log the timeline. null = unknown instance/def or an already-bound id. */
+function claimCosmeticDraft(save: SaveData, uid: string, now: number, logTimeline = true): { next: SaveData; def: WardrobeItemDef; lines: PremiumReceiptLine[] } | null {
+  const inst = save.wardrobe.inventory.find((i) => i.uid === uid);
+  const def = inst ? wardrobeItem(inst.item) : undefined;
+  if (!inst || !def) return null;
+  if (save.wardrobe.owned.includes(inst.item)) return null; // already bound — the dupe stays tradable
+  const provenance = { ...save.provenance };
+  delete provenance[refKey({ cat: 'cosmetic', id: inst.uid })]; // the instance dies with the claim
+  stampAcquisition(provenance, { cat: 'cosmetic', id: inst.item }, inst.src, inst.at || now, arenaSeasonIndex(now));
+  bindItem(provenance, { cat: 'cosmetic', id: inst.item }); // irreversible: never tradable again
+  const next: SaveData = {
+    ...save,
+    provenance,
+    timeline: logTimeline ? pushTimeline(save.timeline, '❖', `Assimilated — ${def.name} bound to the genome`) : save.timeline,
+    wardrobe: {
+      ...save.wardrobe,
+      inventory: save.wardrobe.inventory.filter((i) => i.uid !== uid),
+      owned: [...save.wardrobe.owned, inst.item], // stays unseen → the Wardrobe's NEW badge
+    },
+  };
+  const lines: PremiumReceiptLine[] = [{ icon: '❖', label: `${def.name} — permanently bound`, rarity: def.rarity }];
+  const bonus = cosmeticBonus(def);
+  if (bonus) {
+    const info = WARDROBE_LANE_INFO[bonus.lane];
+    lines.push({ icon: info.icon, label: `+${parseFloat((bonus.value * 100).toFixed(2))}% ${info.label} — forever` });
+  }
+  return { next, def, lines };
+}
+
+/** v56 Genome Rank PEAK Power (docs/GENOME-RANK.md §peak): raise `target`'s stored peak to the
+ *  live Power of `from` (the same save, or the pre-Molt one). Monotone; returns `target`
+ *  untouched (same reference) when the peak already covers it. */
+function withPeakPower(target: SaveData, from: SaveData): SaveData {
+  const live = composePower(accountPowerParts(from)).score;
+  const peak = Math.max(target.genomeRank.peakPower ?? 0, from.genomeRank.peakPower ?? 0);
+  if (live <= peak && (target.genomeRank.peakPower ?? 0) === peak) return target;
+  return { ...target, genomeRank: { ...target.genomeRank, peakPower: Math.max(peak, live) } };
+}
+
+/** v56 income ledger tick (docs/ONE-MORE-RUN.md §eta): fold this settle's meter readings into the
+ *  per-run moving average. The codex count is supplied here (it needs meta's collection context). */
+function withIncome(settled: SaveData, before: SaveData): SaveData {
+  const specimens = collectionView(collectionContextOf(settled)).discovered;
+  // The run's OWN Core pay (the settle adds exactly shardsEarned to the Molt cycle) — a direct
+  // sample, so achievement/rank/login grants never read as run income.
+  const runCores = Math.max(0, settled.prestige.cycleShards - before.prestige.cycleShards);
+  return { ...settled, income: tickIncome(before.income ?? defaultIncome(), incomeMeters(settled, { specimens }), settled.totalRuns, { runCores }) };
 }
 
 // Arm the cross-tab arbiter once at boot (window-gated inside; inert under Node). A takeover
@@ -1046,12 +1159,14 @@ function equipmentPower(save: SaveData): number {
 /** The account Power contributors folded from the save (docs/POWER-SCORE.md). `temporary`
  * carries in-run buffs (gene cards / branches); it is 1 for the at-rest account view. Prestige
  * is already inside metaModifiers.towerDamageMult (the P bucket), so it counts via `meta`. */
-export function accountPowerParts(save: SaveData, temporary = 1): PowerParts {
+/** The Genome-UPGRADE-dependent factor of PowerParts.meta — the ONLY part of the account Power
+ *  that reads save.upgrades: the tower-damage proxy (metaModifiers, which also carries the P
+ *  bucket) × the genome run-effects × the hero/biomass/integrity/slot extras. accountPowerParts
+ *  multiplies it in first (same evaluation order as before the extraction); the Evolution HQ
+ *  rebuild planner scores many upgrade maps against ONE full parts computation with it
+ *  (docs/EVOLUTION-HQ.md §rebuild). */
+export function genomeUpgradeFactor(save: SaveData): number {
   const mm = metaModifiers(save);
-  // Mulligan-EXCLUDED tower progress for the towers bucket: the Mulligan's Power is credited to its
-  // own dedicated bucket below, never double-counted through the towers geomean (docs/MULLIGANS.md).
-  const tp = towerProgress(save, false);
-  const hp = heroProgress(save);
   // Prestige + Ascendant global damage is captured ONCE via mm.towerDamageMult; pass the UPGRADE-only
   // hero multiple to metaExtrasPower so Apex Genome / Rich Biomass / Reinforced Nucleus / Hive
   // Emplacements all move Power without double-counting prestige (POWER-SCORE.md coverage guarantee).
@@ -1062,6 +1177,14 @@ export function accountPowerParts(save: SaveData, temporary = 1): PowerParts {
     integrityMult: 1 + mm.integrityBonus / ECON.baseIntegrity,
     bonusSlots: mm.bonusSlots,
   });
+  return mm.towerDamageMult * effectsPower(genomeRunEffects(save)) * metaExtras;
+}
+
+export function accountPowerParts(save: SaveData, temporary = 1): PowerParts {
+  // Mulligan-EXCLUDED tower progress for the towers bucket: the Mulligan's Power is credited to its
+  // own dedicated bucket below, never double-counted through the towers geomean (docs/MULLIGANS.md).
+  const tp = towerProgress(save, false);
+  const hp = heroProgress(save);
   // Collection completion bonuses are permanent account strength → their offense folds into `meta`.
   const collectionMult = effectsPower(collectionBonusEffects(collectionView(collectionContextOf(save))));
   // Battle Pass permanents + Perennial stacks are the same class of strength (docs/BATTLEPASS.md).
@@ -1081,7 +1204,7 @@ export function accountPowerParts(save: SaveData, temporary = 1): PowerParts {
     // upgrade raises Power. Towers/heroes/equipment/temporary are the other buckets.
     // Permanent gene-card upgrades are account strength → they fold into `meta` via the scale-safe
     // gene collection multiplier (1 until Task 4 authors upgrade levels; docs/GENE-EVOLUTION.md).
-    meta: mm.towerDamageMult * effectsPower(genomeRunEffects(save)) * metaExtras * collectionMult * battlePassMult * wardrobeMult * geneCollectionPowerMult(save.genes) * heroSlotMult * evolutionMult,
+    meta: genomeUpgradeFactor(save) * collectionMult * battlePassMult * wardrobeMult * geneCollectionPowerMult(save.genes) * heroSlotMult * evolutionMult,
     towers: geomean(TOWER_ORDER.map((k) => tp[k].damageMult)),
     heroes: geomean(HERO_ORDER.map((k) => hp[k].damageMult)),
     equipment: equipmentPower(save),
@@ -2229,6 +2352,22 @@ export const meta = {
     return true;
   },
 
+  /** ONE-TAP GENOME REBUILD (docs/EVOLUTION-HQ.md §rebuild) — apply a confirmed plan
+   *  (state/evolutionHQ genomeRebuildPlan, the Best Value ranking) in ONE guarded persist. Refused
+   *  (false, nothing spent) if the save drifted since the plan was shown — the UI re-plans. Pays
+   *  the same Account XP per level as buyUpgrade and announces ONE Power change. */
+  applyGenomeRebuild(steps: readonly GenomeRebuildStep[]): boolean {
+    if (!guardOk('progress.rebuild')) return false;
+    if (steps.length === 0) return false;
+    const save = store.get();
+    const next = genomeRebuildSave(save, steps);
+    if (!next) return false;
+    const powerBefore = meta.power().score;
+    persist(foldAccountXp(next, steps.length * ACCOUNT_XP.acquisition).save);
+    announcePower(`Genome rebuild — ${steps.length} level${steps.length === 1 ? '' : 's'}`, powerBefore, meta.power().score);
+    return true;
+  },
+
   // ── Prestige (MOLT) ─────────────────────────────────────────────────────────
 
   /** A read-model for the Prestige UI: current P-bucket multiplier, balances, and the
@@ -2361,7 +2500,7 @@ export const meta = {
     if (highestCampaignStage(save) < prestigeStageReq(save.prestige.molts)) return false; // campaign gate (PROGRESSION.md)
     saveStore.backup(); // ascensions are big + irreversible — keep a recoverable snapshot
     persist(foldAccountXp({
-      ...moltedSave(save, gain),
+      ...withPeakPower(moltedSave(save, gain), save), // v56: the pre-Molt Power is banked as the Genome Rank peak first
       timeline: pushTimeline(save.timeline, '◬', `MOLT ${save.prestige.molts + 1} — ${gain} Ascendant Cells${save.prestige.vows.length > 0 ? ` (×${vowYieldProduct(save.prestige.vows).toFixed(2)} vow wager honoured)` : ''}`), // profile milestone
     }, ACCOUNT_XP.molt).save); // a MOLT is a chapter of account history (docs/ACCOUNT-LEVEL.md)
     return true;
@@ -3057,7 +3196,7 @@ export const meta = {
       prestige: { ...save.prestige, cycleShards: save.prestige.cycleShards + shardsEarned },
       campaign: nextCampaign,
     };
-    persist(foldAccountXp(settled, runXp).save);
+    persist(foldAccountXp(withIncome(withPeakPower(settled, settled), save), runXp).save); // v56: peak Power + the per-run income ledger
     runLootBanked = 0; // this run is settled — re-arm the live-bank cycle for the next run
     runContainersBanked = [];
     // Run-end milestones (extract, kills, mastery, …). The Results screen shows these inline AFTER
@@ -3331,10 +3470,10 @@ export const meta = {
     const power = composePower(accountPowerParts(save)).score;
     if (Math.random() < EQUIP_DROP_CHANCE) {
       const item = rollItemForDepth(Math.random, highestCampaignStage(save), save.bestWave);
-      // FIRST DISCOVERY (docs/LOOTBOX.md §opening-flow): the def isn't in the inventory yet —
-      // the collection's own "discovered" definition. Each open persists before the next, so
-      // the second copy in a multi-open batch is correctly NOT new.
-      const isNew = !save.equipment.inventory.some((i) => i.defId === item.defId);
+      // FIRST DISCOVERY (docs/LOOTBOX.md §opening-flow): the def was never owned — the Gear
+      // Codex's PERMANENT ledger (v56, GM1: salvaging the last copy no longer re-arms NEW). Each
+      // open persists before the next, so the second copy in a multi-open batch is NOT new.
+      const isNew = !gearDiscovered(save).has(item.defId);
       chest.items.push({ type: 'equipment', rarity: item.rarity, item, isNew });
       chest.equipment.push(item);
     }
@@ -4340,34 +4479,45 @@ export const meta = {
    *  refused — duplicates stay in the vault as pure trade goods. */
   claimCosmetic(uid: string, now = Date.now()): PremiumReceiptLine[] | null {
     if (!guardOk('cosmetic.claim', uid)) return null;
-    const save = store.get();
-    const inst = save.wardrobe.inventory.find((i) => i.uid === uid);
-    const def = inst ? wardrobeItem(inst.item) : undefined;
-    if (!inst || !def) return null;
-    if (save.wardrobe.owned.includes(inst.item)) return null; // already bound — the dupe stays tradable
-    const provenance = { ...save.provenance };
-    delete provenance[refKey({ cat: 'cosmetic', id: inst.uid })]; // the instance dies with the claim
-    stampAcquisition(provenance, { cat: 'cosmetic', id: inst.item }, inst.src, inst.at || now, arenaSeasonIndex(now));
-    bindItem(provenance, { cat: 'cosmetic', id: inst.item }); // irreversible: never tradable again
-    persist({
-      ...save,
-      provenance,
-      timeline: pushTimeline(save.timeline, '❖', `Assimilated — ${def.name} bound to the genome`),
-      wardrobe: {
-        ...save.wardrobe,
-        inventory: save.wardrobe.inventory.filter((i) => i.uid !== uid),
-        owned: [...save.wardrobe.owned, inst.item], // stays unseen → the Wardrobe's NEW badge
-      },
-    });
-    const lines: PremiumReceiptLine[] = [{ icon: '❖', label: `${def.name} — permanently bound`, rarity: def.rarity }];
-    const bonus = cosmeticBonus(def);
-    if (bonus) {
-      const info = WARDROBE_LANE_INFO[bonus.lane];
-      lines.push({ icon: info.icon, label: `+${parseFloat((bonus.value * 100).toFixed(2))}% ${info.label} — forever` });
-    }
-    rewardToast.push({ type: 'cosmetic', name: def.name, source: 'Assimilated' });
+    const res = claimCosmeticDraft(store.get(), uid, now);
+    if (!res) return null;
+    persist(res.next);
+    rewardToast.push({ type: 'cosmetic', name: res.def.name, source: 'Assimilated' });
     this.evaluateAchievements(); // the claimed set moved — collections/achievements re-poll
-    return lines;
+    return res.lines;
+  },
+
+  /** CLAIM ALL — bind every unclaimed specimen of the given rarities in ONE guarded action
+   *  (docs/COSMETICS.md §claim-all). The no-choice backlog only: by default commons, so rare-and-
+   *  above keep their per-item decision (bind vs keep liquid for the Auction House). One instance
+   *  per item id (duplicates stay tradable, exactly as a manual claim leaves them); each bind is
+   *  the same draft step as claimCosmetic, folded into a single persist. Returns the bound
+   *  defs + receipt lines (empty when nothing qualifies, null when the guard refuses). */
+  claimAllCosmetics(rarities: readonly string[] = ['common'], now = Date.now()): { ids: string[]; names: string[]; lines: PremiumReceiptLine[] } | null {
+    if (!guardOk('cosmetic.claimAll')) return null;
+    const allow = new Set(rarities);
+    let draft = store.get();
+    const ids: string[] = [];
+    const names: string[] = [];
+    const lines: PremiumReceiptLine[] = [];
+    const seen = new Set<string>();
+    // Oldest first, so the provenance/timeline reads in acquisition order.
+    for (const inst of [...draft.wardrobe.inventory].sort((a, b) => a.at - b.at)) {
+      const def = wardrobeItem(inst.item);
+      if (!def || !allow.has(def.rarity) || seen.has(inst.item) || draft.wardrobe.owned.includes(inst.item)) continue;
+      const res = claimCosmeticDraft(draft, inst.uid, now, false); // ONE timeline line for the batch (the 60-entry rail must not flood)
+      if (!res) continue;
+      seen.add(inst.item);
+      draft = res.next;
+      ids.push(def.id);
+      names.push(def.name);
+      lines.push(...res.lines);
+    }
+    if (names.length === 0) return { ids, names, lines };
+    persist({ ...draft, timeline: pushTimeline(draft.timeline, '❖', `Assimilated ${names.length} common specimen${names.length === 1 ? '' : 's'} — bound to the genome`) });
+    rewardToast.push({ type: 'cosmetic', name: `${names.length} specimen${names.length === 1 ? '' : 's'}`, source: 'Assimilated' });
+    this.evaluateAchievements();
+    return { ids, names, lines };
   },
 
   /** Claimed-cosmetic bonuses as run effects (the App boot fold — docs/COSMETICS.md §bonuses). */
@@ -4640,9 +4790,16 @@ export const meta = {
     const todayStreak = claimedToday ? l.streak : nextStreak;
     const todayLines = today.rewards.map((r) => rewardLabel(r));
     if (today.passXp > 0) todayLines.push({ icon: '✚', label: `${today.passXp} Season XP` });
+    // §income (docs/DAILY-LOGIN.md): minutes of the LIVE Core income — frozen at the claim.
+    const cpm = coresPerMinute(save);
+    const cpr = coresPerRun(save);
+    const incomeCores = claimedToday ? (l.incomeCores ?? 0) : loginIncomeCores(cpm, nextStreak, cpr);
+    if (incomeCores > 0) todayLines.push({ icon: '⬡', label: `${incomeCores.toLocaleString('en-US')} Genome Cores · ${LOGIN.incomeMinutes} min of your income` });
     // Tomorrow assumes the streak holds (today claimed) — that IS the anticipation pitch.
     const tomorrowStreak = todayStreak + 1;
     const tomorrowLifetime = claimedToday ? l.lifetime : l.lifetime + 1;
+    const tomorrowIncome = loginIncomeCores(cpm, tomorrowStreak, cpr);
+    const tomorrowTarget = loginTargetValue(tomorrowLifetime, tomorrowStreak);
     return {
       claimable,
       todayKey,
@@ -4654,10 +4811,14 @@ export const meta = {
       target: today.target,
       todayLines,
       todayMilestone: today.milestone,
+      incomeCores,
+      valueCores: Math.round(today.target / LANE_VALUE.cores) + incomeCores,
       tomorrow: {
         mult: streakMult(tomorrowStreak),
-        target: loginTargetValue(tomorrowLifetime, tomorrowStreak),
+        target: tomorrowTarget,
         milestone: milestoneContainer(tomorrowStreak),
+        incomeCores: tomorrowIncome,
+        valueCores: Math.round(tomorrowTarget / LANE_VALUE.cores) + tomorrowIncome,
       },
       msToReset: Date.UTC(new Date(now).getUTCFullYear(), new Date(now).getUTCMonth(), new Date(now).getUTCDate() + 1) - now,
     };
@@ -4675,12 +4836,20 @@ export const meta = {
     const nextStreak = isPrevDayKey(save.login.last, key) ? save.login.streak + 1 : 1;
     const bundle = rollLoginBundle(key, save.login.lifetime, nextStreak);
     const res = applyRewardList(save, bundle.rewards, LOGIN.repeatReplacement, null);
+    // §income (v56): the guaranteed Core line — minutes of the live income × the streak. Plain
+    // reward Cores (never the Molt mint metric, like every other granted Core).
+    const incomeCores = loginIncomeCores(coresPerMinute(save), nextStreak, coresPerRun(save));
+    if (incomeCores > 0) {
+      res.next = { ...res.next, shards: res.next.shards + incomeCores, lifetimeShards: res.next.lifetimeShards + incomeCores };
+      res.lines.push({ icon: '⬡', label: `${incomeCores.toLocaleString('en-US')} Genome Cores · ${LOGIN.incomeMinutes} min of your income` });
+      res.events.push({ type: 'genomeCores', qty: incomeCores });
+    }
     rewardToast.pushMany(`Daily Bio-Cache — Day ${nextStreak}`, res.events);
     const lifetime = save.login.lifetime + 1;
     const best = Math.max(save.login.best, nextStreak);
     persist({
       ...res.next,
-      login: { last: key, streak: nextStreak, best, lifetime },
+      login: { last: key, streak: nextStreak, best, lifetime, incomeCores },
       timeline: pushTimeline(res.next.timeline, '◈', `Daily Bio-Cache opened — day ${lifetime}, streak ${nextStreak} (×${streakMult(nextStreak).toFixed(2)})`),
     });
     if (res.stamina > 0) this.grantRushStamina(res.stamina, now);
@@ -7603,7 +7772,9 @@ export const meta = {
       lifetimeLogins: save.login.lifetime,
       contractsHonoured: save.contracts.completed.length,
       idleLifetimeHours: save.idle.lifetimeHours,
-      powerScore: composePower(accountPowerParts(save)).score,
+      // v56 (docs/GENOME-RANK.md §peak): the Power axis reads the PEAK — a Molt's trough is a
+      // cycle reset, not a demotion. max() keeps it exact before the first poll raises the peak.
+      powerScore: Math.max(save.genomeRank.peakPower ?? 0, composePower(accountPowerParts(save)).score),
       molts: save.prestige.molts,
       masteryLevels,
       lifetimeIchor: save.lifetimeIchor,
@@ -7626,9 +7797,11 @@ export const meta = {
         return sum / (heroes * (SYMBIOTE_SLOTS + 1));
       })(),
       heroRatio: (HERO_ORDER.filter((k) => isHeroUnlocked(save, k)).length / heroes + Math.min(1, sumRec(save.heroStars) / (heroes * 10))) / 2,
-      gearRatio: new Set(save.equipment.inventory.map((i) => i.defId)).size / ALL_ITEMS.length,
+      gearRatio: gearDiscovered(save).size / ALL_ITEMS.length, // v56: permanent discoveries
       geneRatio: ((save.genesDiscovered ?? []).length / cards + Math.min(1, geneLevels / (cards * 3))) / 2,
-      achievementRatio: (save.achievements ?? []).length / ACHIEVEMENTS.length,
+      // Authored set only (docs/PROGRESSION-SYSTEMS.md §ladders): the generated ladders are an
+      // endless trickle — counting them would dilute the ratio and shrink every rating.
+      achievementRatio: authoredEarned(save.achievements ?? []) / AUTHORED_ACHIEVEMENTS.length,
       collectionCompletion: collectionView(collectionContextOf(save)).completion,
       cosmeticRatio: (save.cosmetics.owned.length / cosmeticRegistry.ids().length + save.wardrobe.owned.length / WARDROBE_ITEMS.length) / 2,
       passScore: Math.min(1, save.battlePass.permanents.length / PASS_PASSIVES.length)
@@ -7651,12 +7824,16 @@ export const meta = {
    *  reward (cores/ichor/container + the rank title) and queue its promotion for the cinematic.
    *  Idempotent: the watermark persists WITH the rewards, so a crash can't double-pay. */
   pollGenomePromotions(): GenomePromotion[] {
+    // v56 (docs/GENOME-RANK.md §peak): bank the live Power as the peak first — this poll runs at
+    // every settle and on the menu drain, so the peak (the migration seed included) stays current.
+    const peaked = withPeakPower(store.get(), store.get());
+    if (peaked !== store.get()) persist(peaked);
     const save = store.get();
     const view = rankFromRating(genomeRating(this.genomeSnapshot()));
     const from = Math.max(1, save.genomeRank.celebrated);
     if (view.index <= from) return [];
     const fresh: GenomePromotion[] = [];
-    let draft: SaveData = { ...save, genomeRank: { celebrated: view.index } };
+    let draft: SaveData = { ...save, genomeRank: { ...save.genomeRank, celebrated: view.index } };
     let timeline = draft.timeline;
     for (let i = from + 1; i <= view.index; i++) {
       const reward = genomeRankReward(i);

@@ -149,6 +149,17 @@ bonus reveal, "Woven in"). Arrival reveals (`WardrobeReveal`) now read "SPECIMEN
 — claim it in the Vault". Notification source `cosmetic.unclaimed` (channel `specimens`)
 counts distinct items awaiting the decision.
 
+**§claim-all (2026-11, Batch G).** The G2 audit found 31–36 specimens awaiting manual claims
+at stage 30–80 with no batch control. The Vault masthead now carries the shared `ClaimAll`
+control ("Claim all (N) · commons") whenever unbound COMMON specimens wait:
+`meta.claimAllCosmetics(['common'])` (its own guard, `cosmetic.claimAll` — one action for the
+whole backlog) binds ONE instance per item id through the same pure draft step as a single
+claim (`claimCosmeticDraft` — provenance stamp + bind, claimed set, timeline), folded into one
+persist; duplicates stay tradable exactly as a manual claim leaves them. Rare and above are
+NEVER batched — binding vs keeping a piece liquid for the Auction House stays a per-item
+decision. One finite batch receipt lists the bound names + bonus lines; the census telemetry
+(`cos_claim`) still fires once per bound id.
+
 ## §bonuses — permanent claim bonuses (v53)
 
 Every claimed **non-starter** cosmetic feeds ONE bonus lane; starters are bonus-less BY

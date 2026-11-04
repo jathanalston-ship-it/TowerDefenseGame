@@ -236,7 +236,7 @@ export function PlayerProfile({ onNavigate }: { onNavigate?: (nav: string) => vo
         <div className="pf-goals">
           {goals.map((g) => (
             <button key={g.id} type="button" className="pf-goal" style={{ ['--gc' as string]: g.color }} onClick={() => onNavigate?.(g.nav)}>
-              <span className="pf-goal-top"><b>{g.label}</b><i>{g.remaining}</i></span>
+              <span className="pf-goal-top"><b>{g.label}</b><i>{g.remaining} · {g.eta}</i></span>
               <span className="pf-goal-bar" aria-hidden><i style={{ width: `${Math.round(g.progress * 100)}%` }} /></span>
               <span className="pf-goal-reward">{g.reward}</span>
             </button>

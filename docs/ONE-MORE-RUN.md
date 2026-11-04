@@ -106,6 +106,46 @@ Then **every surface renders from it**:
 Because it's a pure read-model over the existing save, it's **cheap, testable, and
 non-invasive** — the same pattern as `vaultReveal`, `heroCollection`, `predict`.
 
+### §eta — honest goals (2026-11, Batch G "the grind")
+
+The G2 audit caught the engine overpromising: sorted by raw progress, a stage-80 Results screen
+said "YOU'RE ALMOST THERE — 90 % · Trinity Avatar · 9 Campaign stages — one more run" for a goal
+~48 h away, the Molt goal vanished once its stage gate was met (even with 84 % of the cells
+minted), and the list shrank from 8 goals to 3 by stage 80. Now:
+
+- **Every goal carries `etaRuns` + `eta`** — runs until it lands at the player's LIVE income.
+  Each kind turns its remaining amount into runs through `state/income.ts`:
+  `runsToGain(save, meter, amount)` (Apex Genome / Strain Samples per unit, run Genome Cores,
+  codex specimens, ladder ledgers) or `runsToStage(save, stage, livePower)` — one run per stage
+  while LIVE Power already meets the stage's recommendation; at a wall, the account's own
+  observed stage pace (it already contains the Molt sawtooth and farm runs — a peak-Power model
+  promised "one more run" for 20–30 runs of post-Molt re-climb), with the ln-Power growth as the
+  fallback when no pace is observed yet. Reveals use their condition (`stage`/`runs`/`any`).
+- **Sorted by ETA** (ties: progress, then kind). The cliffhanger may only say **"one more run"**
+  when `etaRuns ≤ INCOME.honestRuns` (2); otherwise it reads **"Next milestone — ~N runs … at
+  your current pace"** (calm styling, no "almost there"). Mission Control, the Campaign rail and
+  the Profile goal list append the ETA words.
+- **The Molt goal** (id `prestige:<n>` — each Molt is a new milestone) is built from BOTH gates:
+  the cycle Genome Cores toward the first offerable mint (`shardsForCells(minCells ÷ Resonance ×
+  vow product)`, ETA at the RUN-Core rate — the mint counts run pay only) and the stage gate — it
+  never disappears while a Molt is ahead, and a ready Molt surfaces as "ready now".
+- **One achievement-ladder goal** (the nearest rung, docs/PROGRESSION-SYSTEMS.md §ladders) keeps
+  the board populated at every depth.
+
+**The income ledger** (`save.income`, v56): at every settle `meta.finishRun` reads every meter
+(`INCOME_METERS` — lifetime Cores, cleared stage, ln peak Power, play-seconds, kills, damage,
+Molts, Mega kills, Weak Points, Infinite/Boss-Rush records, containers opened, per-unit
+Strain/Apex WEALTH = balance + everything that currency already bought; the codex count is
+injected by meta) and folds the delta since the previous settle into a per-run moving average
+(weight 1/(n + `priorRuns`) while young, then `alphaMin` = 0.1 — the newest ~10 runs dominate).
+The first observation seeds every rate with the lifetime average as a prior (a migrated veteran
+gets estimates on run one; they sharpen within ~10 runs). Deltas settle→settle, so containers
+opened between runs count; spending never reads as negative income (wealth meters). `runCores`
+is a DIRECT per-run sample (the settle's Molt-cycle delta — achievement/rank/login Cores never
+read as run pay). Measured on the G2 cadence trace (average persona, seed 2000, 150 h): the
+cliffhanger's "one more run" kept within 2 runs **41 % → 85 %** (median actual ÷ stated ETA = 1.0,
+IQR 1–1.33); goals listed at stage 80: 3 → 5.
+
 ---
 
 ## 5. The Mutation Meter (a new always-present in-run anticipation loop)

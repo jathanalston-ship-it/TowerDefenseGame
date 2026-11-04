@@ -68,8 +68,11 @@ config: 0.9) · `'under'`. `deployReadiness(power, rec, stage, diff)` additional
 `'under'` band to `'close'` on the stage right after a FLAWLESS clear of the previous one (a
 device-local memory, `prefs.lastFlawlessClearPref`, written by `App.handleEnd` on every campaign
 settle — so the calm lasts exactly one attempt). Only `'under'` warns, and the copy is
-outcome-first: the home CTA reads **"Fight anyway — recommended Power not met"**, the Campaign
-map flags the fact row, the deploy briefing carries one calm line, and `LoopDirective` shows a
+outcome-first: with Infinite open the home's PRIMARY button becomes the farm the directive
+prescribes — **"Farm Infinite ~Depth N"** with the frontier's readiness, the readiness one run
+gains at the live income and the stage ETA (docs/COMMAND-CENTER.md §cta) — and the frontier fight
+steps down to a secondary **"Fight Stage N anyway ▸"** (before Infinite opens the CTA still reads
+"Fight anyway — recommended Power not met"), the Campaign map flags the fact row, the deploy briefing carries one calm line, and `LoopDirective` shows a
 PUSH phase ("within reach") instead of a wall. `phase` itself stays the strict ≥ 1 split — the
 invariants and the progression simulator are untouched; the band is presentation only.
 

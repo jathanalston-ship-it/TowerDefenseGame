@@ -293,7 +293,7 @@ graph TD
 | **Account Level (evergreen meta-progression)** (`account-level`) | `meta-store` · `loot` | `idle-harvest` · `contracts` · `genome-rank` | — | `accountXp` | `docs/ACCOUNT-LEVEL.md` |
 | **Genome Rank (ultimate mastery ladder)** (`genome-rank`) | `meta-store` · `account-level` · `power` · `collection` | `nucleus` · `hero-symbiotes` · `idle-harvest` · `contracts` | — | `genomeRank` | `docs/GENOME-RANK.md` |
 | **Progression Gating & Director** (`progression-gating`) | `meta-store` · `campaign` · `onboarding` | `reward-architecture` | — | `director` | `docs/PROGRESSION-GATING.md` · `docs/UNLOCK-TREE.md` |
-| **Hub Shell & Home** (`hub-shell`) | `meta-store` · `notifications` · `prediction` · `power` | `hive-construction` · `infestation` · `cosmetics` · `battle-pass` · `quests` · `profile` · `reward-architecture` | — | — | `docs/COMMAND-CENTER.md` · `docs/HOME-BASE.md` · `docs/ONE-MORE-RUN.md` · `docs/HUD.md` · `docs/PROGRESSION-LOOP.md` · `docs/UX-CONSOLIDATION.md` |
+| **Hub Shell & Home** (`hub-shell`) | `meta-store` · `notifications` · `prediction` · `power` | `hive-construction` · `infestation` · `cosmetics` · `battle-pass` · `quests` · `profile` · `reward-architecture` | — | `income` | `docs/COMMAND-CENTER.md` · `docs/HOME-BASE.md` · `docs/ONE-MORE-RUN.md` · `docs/HUD.md` · `docs/PROGRESSION-LOOP.md` · `docs/UX-CONSOLIDATION.md` |
 | **In-Run HUD & Results** (`run-ui`) | `engine` · `meta-store` · `power` · `assimilation` | — | ⚡ renders live run Power | — | `docs/HUD.md` · `docs/READABILITY.md` · `docs/REWARD-PRESENTATION.md` |
 | **Notifications** (`notifications`) | `meta-store` | `metabolism` · `hub-shell` | — | — | `docs/NOTIFICATIONS.md` · `docs/HIVE-INTEL.md` |
 | **Progress Prediction** (`prediction`) | `power` | `hub-shell` | ⚡ consumes the score as its input signal | `prediction` | `docs/PREDICTION.md` |
@@ -1134,11 +1134,11 @@ graph TD
 
 *The nav shell + the Command Center home: registry-driven widgets, living World Status, mission control, feed/roadmap/army, dashboards.*
 
-- **Files:** `src/ui/Hub.tsx` · `src/ui/navModel.ts` · `src/ui/MobileShell.tsx` · `src/ui/components/ScreenHeader.tsx` · `src/ui/CommandCenter.tsx` · `src/ui/DeployScreen.tsx` · `src/ui/homeModel.ts` · `src/ui/WorldStatus.tsx` · `src/ui/ProgressDashboard.tsx` · `src/ui/NextGoalBanner.tsx` · `src/state/nextGoal.ts` · `src/state/progressionLoop.ts` · `src/ui/hubProgress.ts` · `src/ui/homeBaseTiers.ts` · `src/ui/LabAtmosphere.tsx` · `src/ui/App.tsx` · `src/ui/ErrorBoundary.tsx` · `src/main.tsx` · `src/net/swRegister.ts` · `src/ui/components/UpdateToast.tsx` · `src/ui/components/Popup.tsx` · `src/state/listOrg.ts` · `src/ui/components/ListControls.tsx` · `src/ui/components/HostTabs.tsx` · `src/ui/browserBack.ts` · `src/ui/components/ScreenBoundary.tsx` · `src/ui/components/AdviceLink.tsx`
+- **Files:** `src/ui/Hub.tsx` · `src/ui/navModel.ts` · `src/ui/MobileShell.tsx` · `src/ui/components/ScreenHeader.tsx` · `src/ui/CommandCenter.tsx` · `src/ui/DeployScreen.tsx` · `src/ui/homeModel.ts` · `src/ui/WorldStatus.tsx` · `src/ui/ProgressDashboard.tsx` · `src/ui/NextGoalBanner.tsx` · `src/state/nextGoal.ts` · `src/state/income.ts` · `src/state/progressionLoop.ts` · `src/ui/hubProgress.ts` · `src/ui/homeBaseTiers.ts` · `src/ui/LabAtmosphere.tsx` · `src/ui/App.tsx` · `src/ui/ErrorBoundary.tsx` · `src/main.tsx` · `src/net/swRegister.ts` · `src/ui/components/UpdateToast.tsx` · `src/ui/components/Popup.tsx` · `src/state/listOrg.ts` · `src/ui/components/ListControls.tsx` · `src/ui/components/HostTabs.tsx` · `src/ui/browserBack.ts` · `src/ui/components/ScreenBoundary.tsx` · `src/ui/components/AdviceLink.tsx`
 - **Depends on:** `meta-store` · `notifications` · `prediction` · `power`
 - **Consumers — what breaks if you change this:** `hive-construction` · `infestation` · `cosmetics` · `battle-pass` · `quests` · `profile` · `reward-architecture`
 - **Power Score:** — (intentionally none)
-- **Save fields:** —
+- **Save fields:** `income`
 - **Tutorial:** — · **Help mechanics:** —
 - **HUD surfaces:** — · **UI screens:** `Hub` · `CommandCenter` · `ProgressDashboard`
 - **Collection:** — · **Achievements:** —

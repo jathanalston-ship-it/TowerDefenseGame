@@ -4,7 +4,7 @@
 // so a new item appears here automatically. Menu-only, read-only ⇒ golden-safe.
 
 import { useMemo } from 'react';
-import { meta } from '../state/meta';
+import { gearDiscovered, meta } from '../state/meta';
 import {
   ALL_ITEMS, EQUIP_SLOTS, SETS, SLOT_LABELS, RARITY_ORDER, rarityColorOf, rarityLabelOf,
 } from '../core/equipment';
@@ -36,22 +36,25 @@ export function EquipmentCollection(): JSX.Element {
     }
     return best;
   }, [save.equipment.inventory]);
-  const discovered = Object.keys(owned).length;
+  // v56 (docs/EQUIPMENT.md §codex): discovery is PERMANENT — an entry stays revealed after its
+  // last copy is salvaged; "held" (the best rarity you own right now) is the separate fact.
+  const found = useMemo(() => gearDiscovered(save), [save.equipment]);
+  const discovered = ALL_ITEMS.filter((d) => found.has(d.id)).length;
 
   const card = (def: EquipDef): JSX.Element => {
     const rar = owned[def.id];
-    const isOwned = !!rar;
+    const isOwned = found.has(def.id);
     const showRar = rar ?? 'common';
     const col = rarityColorOf(showRar);
     return (
-      <div key={def.id} title={isOwned ? def.desc : 'Undiscovered — find it in a Bio-Container'}
+      <div key={def.id} title={isOwned ? (rar ? def.desc : `${def.desc} — discovered (none held right now)`) : 'Undiscovered — find it in a Bio-Container'}
         style={{ width: 116, opacity: isOwned ? 1 : 0.4, filter: isOwned ? 'none' : 'grayscale(0.7)', textAlign: 'center' }}>
         <div style={{ position: 'relative' }}>
           <ItemArt def={def} rarity={showRar} size={100} />
           {!isOwned && <span style={{ position: 'absolute', inset: 0, display: 'grid', placeItems: 'center', fontSize: 24 }}>🔒</span>}
         </div>
         <div style={{ fontSize: 11.5, fontWeight: 600, color: isOwned ? col : '#8890a8', marginTop: 3, lineHeight: 1.1 }}>{def.name}</div>
-        <div style={{ fontSize: 10, opacity: 0.6 }}>{isOwned ? rarityLabelOf(showRar) : '— · '}{SLOT_LABELS[def.slot]}</div>
+        <div style={{ fontSize: 10, opacity: 0.6 }}>{isOwned ? (rar ? rarityLabelOf(showRar) : 'Discovered') : '— · '}{isOwned ? ' · ' : ''}{SLOT_LABELS[def.slot]}</div>
       </div>
     );
   };
@@ -77,12 +80,12 @@ export function EquipmentCollection(): JSX.Element {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(240px,1fr))', gap: 10 }}>
             {Object.values(SETS).map((set) => {
               const members = ALL_ITEMS.filter((d) => d.setId === set.id);
-              const ownedCount = members.filter((d) => owned[d.id]).length;
+              const ownedCount = members.filter((d) => found.has(d.id)).length;
               return (
                 <div key={set.id} style={{ border: '1px solid rgba(255,255,255,0.12)', borderRadius: 8, padding: '8px 10px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 600, fontSize: 13 }}>
                     <span>{set.name}</span>
-                    <span style={{ opacity: 0.6, fontSize: 11 }}>{ownedCount}/{members.length} owned</span>
+                    <span style={{ opacity: 0.6, fontSize: 11 }}>{ownedCount}/{members.length} discovered</span>
                   </div>
                   <div style={{ fontSize: 11.5, opacity: 0.85, marginTop: 3 }}>
                     <b>(2)</b> {set.bonus2.map(fmtEffect).join(', ')}
@@ -114,7 +117,7 @@ export function EquipmentCollection(): JSX.Element {
             scroll; folded, it reads as an index with live discovery counts) ── */}
       {EQUIP_SLOTS.map((slot) => {
         const items = ALL_ITEMS.filter((d) => d.slot === slot);
-        const found = items.filter((d) => owned[d.id]).length;
+        const foundN = items.filter((d) => found.has(d.id)).length;
         const grid = (
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12 }}>
             {items.map(card)}
@@ -122,7 +125,7 @@ export function EquipmentCollection(): JSX.Element {
         );
         if (portrait) {
           return (
-            <MobileSection key={slot} title={`${SLOT_LABELS[slot]}s`} hint="Tap to browse this slot's relics." count={`${found}/${items.length}`}>
+            <MobileSection key={slot} title={`${SLOT_LABELS[slot]}s`} hint="Tap to browse this slot's relics." count={`${foundN}/${items.length}`}>
               {grid}
             </MobileSection>
           );

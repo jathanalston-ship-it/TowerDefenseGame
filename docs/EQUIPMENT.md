@@ -416,6 +416,24 @@ Equipment is presented as a **collectible ARPG inventory**, not a list (`ui/Equi
 - **Future-proof:** rarity-agnostic colors (mythic-ready), optional `EquipDef.season` ribbon
   (seasonal-ready), data-driven grid (scales to hundreds).
 
+### §codex — permanent Gear Codex credit (v56, 2026-11)
+
+Discovery is a RECORD, not a holding. Before v56 "discovered" meant "currently in the
+inventory": salvaging the last copy un-discovered the entry, lowered Collection % (and its Power
++ Genome Rank share), re-armed the container NEW badge, and made the 159-item Quartermaster
+badge a hoarding chore. Now `equipment.discovered` (v56) holds every def id EVER owned:
+
+- **One chokepoint** — `meta.persist` folds any def that enters the inventory (containers,
+  crafting, grants, trades, undo-salvage — every path) into the ledger; it never shrinks.
+- **Readers** — `gearDiscovered(save)` (= ledger ∪ live inventory) feeds the collection
+  context (`ownedDefIds` → Collection %, its Power, the Quartermaster badge), the Genome Rank
+  `gearRatio`, and the container NEW badge (`isNew` = never owned). The Gear Codex screen shows
+  discovered entries revealed even when none is held ("Discovered"), with the best HELD rarity
+  as a separate fact.
+- **Save** — migration backfills from the current inventory (a pre-v56 save discovers exactly
+  what it holds — Collection/Power unchanged at load); sanitizer keeps strings ∪ inventory defs;
+  account merge = union. Reset clears it with the rest of the save.
+
 ---
 
 ## Acquisition & the Power comparison (as built)

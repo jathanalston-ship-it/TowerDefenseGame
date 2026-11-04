@@ -23,6 +23,8 @@ import { GUTTERS } from '../render/gutters';
 import { FILM } from '../render/filmDirection';
 import { PRESTIGE } from '../core/prestige';
 import { OUTRO } from '../render/runOutro';
+import { LOGIN } from '../core/loginStreak';
+import { INCOME } from '../state/income';
 
 export const REPO_ROOT = join(__dirname, '..', '..');
 
@@ -69,6 +71,8 @@ export function docAnchors(): DocAnchor[] {
     { doc: 'docs/BOSS-RUSH.md', contains: `\`+RUSH.corePerBoss\` (${RUSH.corePerBoss}) Genome Cores and \`+RUSH.lootPerBoss\` (${RUSH.lootPerBoss})`, why: 'Boss Rush per-boss payout drifted (RUSH.corePerBoss/lootPerBoss)' },
     { doc: 'docs/MEGA-BOSS.md', contains: `\`rankCoreFrac\` (${MEGA_HUNT.rankCoreFrac})`, why: 'Mega Hunt rank bounty drifted (MEGA_HUNT.rankCoreFrac, §hunt)' },
     { doc: 'docs/EQUIPMENT.md', contains: `i33+: ${GEAR_RARITY_BANDS.find((b) => b.fromIlvl === 33)?.legendary}% Rampant · ${(GEAR_RARITY_BANDS.find((b) => b.fromIlvl === 33)?.exotic ?? 0) * 100}% Apex`, why: 'gear rarity band drifted (GEAR_RARITY_BANDS, §gear-chase)' },
+    { doc: 'docs/DAILY-LOGIN.md', contains: `LOGIN.incomeMinutes (${LOGIN.incomeMinutes}), LOGIN.incomeRunCap (${LOGIN.incomeRunCap})`, why: 'Bio-Cache income line drifted (core/loginStreak.ts LOGIN.incomeMinutes / incomeRunCap)' },
+    { doc: 'docs/ONE-MORE-RUN.md', contains: `\`etaRuns ≤ INCOME.honestRuns\` (${INCOME.honestRuns})`, why: '"one more run" honesty threshold drifted (state/income.ts INCOME.honestRuns)' },
     // Identity trilogy (docs/UI_STYLE_GUIDE.md) — pinned to the LIVE :root tokens.
     { doc: 'docs/UI_STYLE_GUIDE.md', contains: `--kinetic ${cssToken('kinetic')}`, why: 'class-hue palette drifted (src/index.css --kinetic)' },
     { doc: 'docs/UI_STYLE_GUIDE.md', contains: `--viral ${cssToken('viral')}`, why: 'class-hue palette drifted (src/index.css --viral)' },

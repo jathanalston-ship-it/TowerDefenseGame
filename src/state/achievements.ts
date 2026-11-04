@@ -25,6 +25,8 @@ import { highestCampaignStage } from '../save/derive';
 import { THREAT_MODES } from '../core/threat';
 import type { TowerKind } from '../core/types';
 import type { SaveData } from '../save/saveStore';
+import { romanNumeral } from '../core/genomeRank';
+import { readMeter } from './income';
 
 /** Minimal run summary (structurally a subset of RunResult — avoids a meta import). */
 export interface RunSummary {
@@ -53,6 +55,114 @@ export interface AchievementDef {
   test: (c: AchievementCtx) => boolean;
   /** Optional lifetime progress for the gallery bar (run-only goals omit it). */
   progress?: (c: AchievementCtx) => AchievementProgress;
+  /** Ladder rung (docs/PROGRESSION-SYSTEMS.md §ladders) — generated, not authored. Ladder rows
+   *  stay OUT of the authored totals (gallery count, Genome Rank ratio) so an endless family
+   *  can never dilute what a player already earned. */
+  ladder?: { family: string; tier: number };
+}
+
+// ── ACHIEVEMENT LADDERS (docs/PROGRESSION-SYSTEMS.md §ladders) ─────────────────────────────
+// The authored set front-loads recognition (18 unlocks in the first 3 hours, none after ~100h).
+// Ladders keep it alive at depth: one DATA row per lifetime ledger generates a finite run of
+// tiers at GEOMETRIC thresholds — a counter growing at a steady pace crosses a tier at a steady
+// trickle forever (cadence ≈ 1 / (t · ln ratio)). Each family starts where the authored ladder for
+// that ledger ends. Recognition + a small Core reward only (the shared achievement payout: Cores
+// + Ichor bleed + Account/Season XP) — never Power. Meters are the INCOME ledger's own readings
+// (state/income.ts), so a ladder tier's ETA on the goal board uses the same live income.
+export interface LadderFamily {
+  id: string;
+  title: string; // rung name = `${title} ${roman tier}`
+  meter: string; // INCOME_METERS id — the lifetime ledger the rung reads
+  start: number; // tier-I threshold (in meter units)
+  ratio: number; // geometric growth per tier
+  tiers: number; // finite ladder (the generated set stays bounded)
+  reward: number; // tier-I Genome Cores; rung n pays reward·√n
+  unit: string; // player-facing unit after the number
+  scale?: number; // display divisor (play-seconds → hours)
+}
+
+export const LADDER_FAMILIES: LadderFamily[] = [
+  { id: 'culling', title: 'Culling Engine', meter: 'kills', start: 150_000, ratio: 1.15, tiers: 40, reward: 30, unit: 'enemies killed (lifetime)' },
+  { id: 'carnage', title: 'Carnage Index', meter: 'damage', start: 5_000_000, ratio: 1.2, tiers: 40, reward: 30, unit: 'damage dealt (lifetime)' },
+  { id: 'hoard', title: 'Genome Hoard', meter: 'cores', start: 100_000, ratio: 1.15, tiers: 40, reward: 30, unit: 'Genome Cores earned (lifetime)' },
+  { id: 'vaults', title: 'Vault Breaker', meter: 'containers', start: 1_000, ratio: 1.15, tiers: 40, reward: 25, unit: 'Bio-Containers opened' },
+  { id: 'hours', title: 'Hours in the Hive', meter: 'playSec', start: 50 * 3600, ratio: 1.15, tiers: 40, reward: 25, unit: 'hours of play', scale: 3600 },
+  { id: 'molts', title: 'Eternal Molt', meter: 'molts', start: 50, ratio: 1.2, tiers: 30, reward: 50, unit: 'Molts' },
+  { id: 'leviathans', title: 'Leviathan Ledger', meter: 'megaKills', start: 20, ratio: 1.3, tiers: 30, reward: 50, unit: 'Mega Bosses felled' },
+  { id: 'depth', title: 'Abyssal Record', meter: 'bestWave', start: 160, ratio: 1.1, tiers: 30, reward: 40, unit: 'Infinite Depth' },
+  { id: 'gauntlet', title: 'Gauntlet Depth', meter: 'rushWave', start: 15, ratio: 1.2, tiers: 30, reward: 40, unit: 'Boss Rush wave' },
+  { id: 'skulls', title: 'Skull Tithe', meter: 'rushBosses', start: 500, ratio: 1.3, tiers: 30, reward: 40, unit: 'Boss Rush bosses (lifetime)' },
+  { id: 'anatomy', title: 'Anatomist', meter: 'weakPoints', start: 250, ratio: 1.3, tiers: 30, reward: 30, unit: 'Weak Points destroyed' },
+];
+
+/** Two significant figures — thresholds read as round, earned numbers ("220,000", not 216,000). */
+function niceNumber(v: number): number {
+  if (v < 100) return Math.round(v);
+  const mag = Math.pow(10, Math.floor(Math.log10(v)) - 1);
+  return Math.round(v / mag) * mag;
+}
+
+/** Tier thresholds (1-based tier → meter value), strictly increasing. Pure. */
+export function ladderThresholds(f: LadderFamily): number[] {
+  const out: number[] = [];
+  for (let t = 0; t < f.tiers; t++) {
+    const v = niceNumber(f.start * Math.pow(f.ratio, t));
+    out.push(out.length > 0 && v <= out[out.length - 1] ? out[out.length - 1] + 1 : v);
+  }
+  return out;
+}
+
+const fmtLadder = (f: LadderFamily, n: number): string => Math.round(n / (f.scale ?? 1)).toLocaleString('en-US');
+
+function ladderRows(): AchievementDef[] {
+  const rows: AchievementDef[] = [];
+  for (const f of LADDER_FAMILIES) {
+    ladderThresholds(f).forEach((need, i) => {
+      const tier = i + 1;
+      rows.push({
+        id: `ladder_${f.id}_${tier}`,
+        name: `${f.title} ${romanNumeral(tier)}`,
+        desc: `Reach ${fmtLadder(f, need)} ${f.unit}.`,
+        reward: Math.round(f.reward * Math.sqrt(tier)),
+        ladder: { family: f.id, tier },
+        test: (c) => readMeter(c.save, f.meter) >= need,
+        progress: (c) => ({ cur: Math.floor(readMeter(c.save, f.meter) / (f.scale ?? 1)), max: Math.round(need / (f.scale ?? 1)) }),
+      });
+    });
+  }
+  return rows;
+}
+
+/** The NEXT unearned rung of every ladder family (the goal board picks the nearest by ETA). */
+export interface LadderGoal {
+  family: string;
+  name: string;
+  remaining: string;
+  reward: string;
+  progress: number; // 0..1 across THIS rung (previous threshold → this one)
+  meter: string;
+  need: number; // meter units still to go
+}
+export function ladderGoals(save: SaveData): LadderGoal[] {
+  const out: LadderGoal[] = [];
+  for (const f of LADDER_FAMILIES) {
+    const now = readMeter(save, f.meter);
+    const th = ladderThresholds(f);
+    const i = th.findIndex((need) => now < need);
+    if (i < 0) continue; // the family is complete
+    const prev = i > 0 ? th[i - 1] : 0;
+    const left = th[i] - now;
+    out.push({
+      family: f.id,
+      name: `${f.title} ${romanNumeral(i + 1)}`,
+      remaining: `${fmtLadder(f, Math.max(f.scale ?? 1, left))} more ${f.unit.replace(/ \(lifetime\)$/, '')}`,
+      reward: `Achievement · +${Math.round(f.reward * Math.sqrt(i + 1))} Genome Cores`,
+      progress: Math.max(0, Math.min(1, (now - prev) / Math.max(1, th[i] - prev))),
+      meter: f.meter,
+      need: left,
+    });
+  }
+  return out;
 }
 
 const maxStars = (s: SaveData): number => Math.max(0, ...TOWER_ORDER.map((k) => s.towerStars[k] ?? 0));
@@ -287,7 +397,19 @@ export const ACHIEVEMENTS: AchievementDef[] = [
   { id: 'arena_wins100', name: 'Warlord of the Grounds', desc: 'Win 100 Arena matches (lifetime).', reward: 120, test: (c) => c.save.arena.lifetimeWins >= 100, progress: (c) => ({ cur: c.save.arena.lifetimeWins, max: 100 }) },
   { id: 'arena_crown', name: 'The Season Crown', desc: 'Claim Arena Pass level 100 — a permanently arena-exclusive strain is yours forever.', reward: 150, test: (c) => c.save.arena.exclusives.length >= 1 },
   { id: 'arena_perennial', name: 'Perennial', desc: 'Close three Arena seasons with a record on the books.', reward: 50, test: (c) => c.save.arena.history.length >= 3, progress: (c) => ({ cur: c.save.arena.history.length, max: 3 }) },
+  // ── Ladders (generated — docs/PROGRESSION-SYSTEMS.md §ladders) ──
+  ...ladderRows(),
 ];
+
+/** The AUTHORED set (ladders excluded) — the gallery's count and the Genome Rank ratio read it. */
+export const AUTHORED_ACHIEVEMENTS: AchievementDef[] = ACHIEVEMENTS.filter((a) => !a.ladder);
+const AUTHORED_IDS = new Set(AUTHORED_ACHIEVEMENTS.map((a) => a.id));
+/** How many of the save's earned ids are authored (non-ladder) achievements. */
+export function authoredEarned(ids: readonly string[]): number {
+  let n = 0;
+  for (const id of ids) if (AUTHORED_IDS.has(id)) n++;
+  return n;
+}
 
 /** Total completed Evolution loops (prestiges) across every tower and hero. */
 function evolutionLoops(s: SaveData): number {
@@ -318,8 +440,9 @@ export function checkAchievements(ctx: AchievementCtx): AchievementDef[] {
   return ACHIEVEMENTS.filter((a) => !have.has(a.id) && a.test(ctx));
 }
 
+const BY_ID = new Map(ACHIEVEMENTS.map((a) => [a.id, a]));
 export function achievementById(id: string): AchievementDef | undefined {
-  return ACHIEVEMENTS.find((a) => a.id === id);
+  return BY_ID.get(id);
 }
 
 /** Total Genome Cores a set of newly-unlocked achievements grants. */

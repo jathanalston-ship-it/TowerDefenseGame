@@ -4,8 +4,11 @@
 
 import { META_UPGRADES, upgradeEffectUnits } from '../core/config';
 import type { GenomeCategory, UpgradeDef } from '../core/config';
-import { upgradeCost, upgradeLevel, upgradeUnlocked } from './meta';
+import { accountPowerParts, genomeRebuildSave, genomeUpgradeFactor, upgradeCost, upgradeLevel, upgradeUnlocked } from './meta';
+import type { GenomeRebuildStep } from './meta';
 import type { SaveData } from '../save/saveStore';
+import { composePower } from '../core/power';
+import { powerBreakdown } from './profile';
 
 export interface GenomeCardView {
   id: string;
@@ -154,4 +157,73 @@ function unlockLabel(u: UpgradeDef): string {
     case 'bossesSlain': return `Slay ${g.bosses} distinct boss archetypes`;
     case 'totalBiomass': return `Harvest ${g.biomass.toLocaleString('en-US')} biomass (lifetime)`;
   }
+}
+
+// ── ONE-TAP GENOME REBUILD (docs/EVOLUTION-HQ.md §rebuild) ─────────────────────────────────────
+// After a Molt the engine re-climbs: 20–50 Genome levels re-bought by hand every cycle. The
+// rebuild spends the treasury along the EXISTING Best Value ranking (state/bestPurchase — exact
+// Power per Core, the strip at the top of this screen) as one confirmable plan, re-ranked after
+// every level. Only PowerParts.meta reads save.upgrades (meta.genomeUpgradeFactor), so each
+// candidate is scored by swapping that one factor into ONE full parts computation — the same
+// Power the Best Value strip reports, at microseconds per score (a 100-level plan stays instant on
+// a phone). The after-Power is then scored IN FULL on the apply's own builder.
+export const REBUILD = {
+  maxSteps: 120, // a plan longer than this is split across taps (the confirm stays readable)
+} as const;
+
+export interface GenomeRebuildPlan {
+  steps: GenomeRebuildStep[];
+  rows: { id: string; name: string; from: number; to: number; cores: number }[]; // per-upgrade summary, plan order
+  cores: number;
+  powerBefore: number;
+  powerAfter: number; // = powerBreakdown(genomeRebuildSave(save, steps)) — the apply's own builder
+}
+
+export function genomeRebuildPlan(save: SaveData, maxSteps: number = REBUILD.maxSteps): GenomeRebuildPlan {
+  const powerBefore = powerBreakdown(save).score;
+  const parts = accountPowerParts(save);
+  const rest = parts.meta / Math.max(1e-12, genomeUpgradeFactor(save)); // every non-upgrade factor of `meta`
+  const scoreOf = (upgrades: Record<string, number>): number =>
+    composePower({ ...parts, meta: rest * genomeUpgradeFactor({ ...save, upgrades }) }).score;
+  const defs = META_UPGRADES.filter((u) => upgradeUnlocked(save, u));
+  const steps: GenomeRebuildStep[] = [];
+  let upgrades = { ...save.upgrades };
+  let shards = save.shards;
+  let base = scoreOf(upgrades);
+  while (steps.length < maxSteps) {
+    // The Best Value pick: the affordable next level with the most Power per Core right now
+    // (bestPurchase's ranking key; ties toward the cheaper commitment).
+    let pick: { id: string; level: number; cost: number; value: number; score: number } | null = null;
+    for (const def of defs) {
+      const level = upgrades[def.id] ?? 0;
+      if (level >= def.maxLevel) continue;
+      const cost = upgradeCost(def, level);
+      if (cost <= 0 || cost > shards) continue;
+      const score = scoreOf({ ...upgrades, [def.id]: level + 1 });
+      const value = (score - base) / cost;
+      if (value > 0 && (!pick || value > pick.value || (value === pick.value && cost < pick.cost))) pick = { id: def.id, level, cost, value, score };
+    }
+    if (!pick) break;
+    steps.push({ id: pick.id, level: pick.level + 1, cost: pick.cost });
+    upgrades = { ...upgrades, [pick.id]: pick.level + 1 };
+    shards -= pick.cost;
+    base = pick.score;
+  }
+  const rows: GenomeRebuildPlan['rows'] = [];
+  const byId = new Map<string, GenomeRebuildPlan['rows'][number]>();
+  for (const st of steps) {
+    const row = byId.get(st.id);
+    if (row) { row.to = st.level; row.cores += st.cost; continue; }
+    const def = META_UPGRADES.find((u) => u.id === st.id)!;
+    const fresh = { id: st.id, name: def.name, from: st.level - 1, to: st.level, cores: st.cost };
+    byId.set(st.id, fresh);
+    rows.push(fresh);
+  }
+  const after = steps.length > 0 ? genomeRebuildSave(save, steps) : save;
+  return {
+    steps, rows,
+    cores: steps.reduce((a, s) => a + s.cost, 0),
+    powerBefore,
+    powerAfter: after ? powerBreakdown(after).score : powerBefore,
+  };
 }

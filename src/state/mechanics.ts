@@ -4,6 +4,7 @@
 // one data row: its help content, unlock gate, category, cross-links, and where to find it. Pure over
 // SaveData — never touches the sim.
 
+import { LOGIN } from '../core/loginStreak';
 import type { SaveData } from '../save/saveStore';
 import { highestCampaignStage } from '../save/derive'; // cycle-free (never import meta here)
 // Screen-linked rows delegate their unlock to the progression-gating registry
@@ -47,8 +48,8 @@ export const MECHANICS: MechanicDef[] = [
   //    tutorial handoff introduce them — a What's New card for the guidance layer would be noise).
   { id: 'mission-control', title: 'Mission Control', category: 'Basics', core: true, nav: 'home', links: ['power-advisor', 'hive-intel'],
     summary: 'Your standing orders — the answer to "what should I do now?"',
-    what: 'The Command Center’s centerpiece: your next Campaign stage with its recommended Power, an objective ledger of the best side-moves (each with live progress and reward), and the AHEAD strip of wings you’ll unlock next.',
-    why: 'You should never have to guess what to do. Every row says what, why, and what it pays.',
+    what: 'The Command Center’s centerpiece: your next Campaign stage with its recommended Power, an objective ledger of the best side-moves (each with live progress, reward and an honest ETA in runs at your current income), and the AHEAD strip of wings you’ll unlock next. When you are genuinely under-powered, the main button becomes “Farm Infinite” — with the readiness each run gains — and fighting the stage anyway steps down to a smaller button.',
+    why: 'You should never have to guess what to do. Every row says what, why, what it pays — and how many runs it really is away.',
     where: 'The top of the Command Center — the home screen.',
     next: 'Tap any objective row to jump straight to that job.',
     mistakes: 'Deploying far under the recommended Power is a wall, not a challenge — the ledger’s +Power rows are the fastest way back to “Ready”.' },
@@ -161,8 +162,8 @@ export const MECHANICS: MechanicDef[] = [
   { id: 'daily-login', title: 'Daily Bio-Cache', category: 'Progression', nav: 'home', links: ['splice-market'],
     summary: 'One living cache per day — its value compounds for every consecutive day you answer.',
     what: 'Every UTC day the hive grows a Bio-Cache on the home board. Its contents are generated fresh each day (Cores, Gene Essence, samples, materials, containers, Season XP — even rare exclusives), but their VALUE follows one curve: a base that grows with your lifetime claims, times a streak multiplier that rises a little EVERY consecutive day and never stops rising.',
-    why: 'It is the only income that pays you for simply showing up — and the streak multiplier makes an unbroken habit worth real compounding value. Milestone days (7 / 30 / 100 / every full year) seal a guaranteed Bio-Container on top.',
-    where: 'The home Command Center, right under your next goal. The pod pulses while today’s cache is sealed.',
+    why: `It is the only income that pays you for simply showing up — and the streak multiplier makes an unbroken habit worth real compounding value. Every cache also carries a guaranteed Genome Core line worth ${LOGIN.incomeMinutes} minutes of YOUR current run income (× the streak, never more than one run’s worth), so it stays worth opening at any depth. Milestone days (7 / 30 / 100 / every full year) seal a guaranteed Bio-Container on top.`,
+    where: 'The home Command Center, right under your next goal. The pod pulses while today’s cache is sealed; its value reads in Genome Cores.',
     next: 'Missing a day only resets the multiplier — your lifetime count, Devotion codex, titles and Genome Rank credit are permanent.',
     mistakes: 'Do not hoard the claim: an unclaimed day cannot be recovered, and the streak breaks at the second missed midnight.',
     unlock: (s) => s.totalRuns >= 1 },
@@ -236,7 +237,7 @@ export const MECHANICS: MechanicDef[] = [
     what: 'A hidden Genome Rating weighs your progress across EVERY system — campaign, infinite, towers, heroes, genes, collections, cosmetics, more. Crossing thresholds promotes your Rank: Dormant, Emergent, Adaptive … Living Catastrophe, then forever beyond.',
     why: 'It rewards BREADTH: mastering many systems outranks grinding one. Promotions pay one-time prestige rewards and exclusive titles.',
     where: 'The emblem, rating breakdown and Progress Advisor live on your Profile.',
-    next: 'Open the Advisor — it names the easiest rating waiting for you right now.',
+    next: 'Open the Advisor — it names the easiest rating waiting for you right now. The Power share of your rating counts your PEAK Power, so a Molt never demotes you: the panel shows how far this cycle has climbed back.',
     mistakes: 'No single system can carry the rating — its weight is capped by design. When one lane walls, the Advisor always has another.',
     unlock: (s) => s.totalRuns >= 3 },
   // ── Towers ──
@@ -366,9 +367,9 @@ export const MECHANICS: MechanicDef[] = [
   { id: 'gear-codex', title: 'Gear Codex', category: 'Heroes', nav: 'gearcodex', links: ['equipment'],
     summary: 'The full equipment gallery — sets, silhouettes, and set bonuses.',
     what: 'The Gear Codex is the collection gallery over equipment: every item in the game rendered as its procedural art card with rarity and discovery status, grouped by SET with each set’s 2-piece / 4-piece bonuses previewed beside its members.',
-    why: 'Undiscovered silhouettes turn gear luck into goals — and reading set bonuses side by side is how archetype builds are planned.',
+    why: 'Undiscovered silhouettes turn gear luck into goals — and reading set bonuses side by side is how archetype builds are planned. Discovery is PERMANENT: salvaging your last copy of a piece never un-discovers it, so the Codex (and its Collection credit) only ever grows.',
     where: 'The Gear Codex tab inside the Armory (Market hub).',
-    next: 'Pick a set worth completing and chase its missing pieces through containers and reforges.',
+    next: 'Pick a set worth completing and chase its missing pieces through containers and reforges — salvage duplicates freely.',
     unlock: (s) => featureRevealed(s, 'gearcodex') },
   // ── Progression ──
   { id: 'genome-core', title: 'Genome Core Upgrades', category: 'Progression', nav: 'evolution', links: ['power-score', 'prestige'],
@@ -384,7 +385,7 @@ export const MECHANICS: MechanicDef[] = [
     what: `Molting sacrifices your banked Cores + your Genome upgrade levels to mint Ascendant Cells — a permanent, compounding global multiplier. From your second Molt on, the Molt Imprint keeps a share of every upgrade's levels: +${+(PRESTIGE.molt.imprintPerMolt * 100).toFixed(2)}% per Molt completed, up to ${Math.round(PRESTIGE.molt.imprintMax * 100)}% (rounded per upgrade).`,
     why: 'It is the "re-climb faster, push further" loop that breaks through a plateau. The Imprint keeps the cheap bottom of each upgrade ladder, so your Power dips instead of crashing — the dear top levels still have to be re-earned.',
     where: 'The Evolution HQ’s Ascension section — unlocks at Campaign Stage 10.',
-    next: 'Spend Ascendant Cells on the Ascendant Tree; each Molt requires a bit more Campaign depth.',
+    next: 'Spend Ascendant Cells on the Ascendant Tree; each Molt requires a bit more Campaign depth. After a Molt, Evolution HQ’s "Rebuild by Best Value" re-buys your Genome upgrades in one confirmed tap.',
     mistakes: 'Molting too early wastes the climb, too late wastes time — Molt when your Core income has clearly plateaued, not at the first opportunity.' },
   { id: 'ascension', title: 'Ascendant Tree', category: 'Progression', nav: 'evolution', links: ['prestige'],
     unlock: (s) => molts(s) >= 1,
@@ -453,7 +454,7 @@ export const MECHANICS: MechanicDef[] = [
     what: 'Every cosmetic you receive lands here first as a specimen — tradable and auction-ready, but granting nothing until claimed. CLAIM one and the bind is irreversible: it can be equipped, its collection codex counts it, and a tiny permanent account bonus (tower damage, mastery XP, boss loot…) activates. Each bonus lane saturates — early claims pay full value, a complete collection approaches the cap. Duplicates of a claimed cosmetic stay in the Specimen Cabinet as pure trade stock.',
     why: 'The choice is the economy: keep a specimen liquid for the future Auction House, or bind it for the permanent bonus and the collection. Neither answer is wrong — sellers fund other purchases, collectors compound small forever-bonuses.',
     where: 'The Specimen Cabinet tab inside the Phenotype Lab (Market hub), beside the Wardrobe it binds into. Specimens received earlier wait there.',
-    next: 'Claim the pieces you know you will keep — the bonus starts paying immediately and the ceremony only fires once per piece.',
+    next: 'Claim the pieces you know you will keep — the bonus starts paying immediately and the ceremony only fires once per piece. "Claim all" binds every waiting COMMON in one press; rare and above always stay your call.',
     mistakes: 'Claiming is FOREVER — a bound cosmetic can never be traded or auctioned again. If you are unsure whether a rare specimen is worth more to another commander, leave it unclaimed; it loses nothing by waiting.',
     unlock: (s) => featureRevealed(s, 'specimens') },
   { id: 'arena', title: 'The Arena (Live PvP)', category: 'Modes', nav: 'arena', links: ['idle-harvest', 'season-pass'],
