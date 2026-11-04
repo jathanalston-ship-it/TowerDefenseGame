@@ -1,6 +1,6 @@
 # DIL_GRAPH.md — the Design Intelligence Layer (GENERATED — `npm run dil -- regen`)
 
-> **The project's brain** (docs/DIL.md). 928 nodes · 1773 edges, built from the live
+> **The project's brain** (docs/DIL.md). 930 nodes · 1776 edges, built from the live
 > registries + curated knowledge (src/dev/dil/). **Query it instead of searching the repo:**
 > `npm run dil -- node <id>` · `affects <id>` · `requires <id>` · `missing <kind> <edge>` ·
 > `checklist tower <kind>` · `find <text>`. Edge kinds are bidirectional (19 kinds).
@@ -239,6 +239,7 @@ graph LR
   system_notifications["Notifications"] -->|provides| system_hub_shell["Hub Shell & Home"]
   system_cosmetics["The Wardrobe (Cosmetics)"] -->|provides| system_online_foundation["Online Foundation"]
   system_ui_kit["Shared UI Component Kit"] -->|provides| system_notifications["Notifications"]
+  system_rendering["Rendering & VFX"] -->|provides| system_audio["Audio"]
 ```
 
 ### Determinism Map
@@ -570,6 +571,7 @@ graph LR
   system_onboarding["Tutorials, Help & Onboarding"] -->|dependsOn| system_cutscenes["Story Cutscenes & Memory Archive"]
   system_ui_kit["Shared UI Component Kit"] -->|provides| system_notifications["Notifications"]
   system_account_level["Account Level (evergreen meta-progression)"] -->|dependsOn| system_notifications["Notifications"]
+  system_rendering["Rendering & VFX"] -->|provides| system_audio["Audio"]
   system_website["Marketing Website"] -->|dependsOn| system_run_ui["In-Run HUD & Results"]
 ```
 
@@ -2475,6 +2477,7 @@ _at: src/render/*, src/core/dangerCamera.ts_
   - consumes → `system:audio` — statusApplied event (applyEffect, hasListeners-gated ⇒ golden-safe) → GameView plays throttled category cues (status_dot / status_control); the four legacy fast-field statuses do NOT emit — only framework applications
   - consumes → `system:engine` — enemy silhouette accents: theme.ENEMY_ACCENT round-robins slot 0..2 per ENEMY_BODY form family in DECLARATION ORDER — keep family groups contiguous so new kinds auto-take the next free slot
   - consumes → `system:engine` — COOLDOWN DRIFT CONTRACT (BUGFIX-LOG #16): the projectile fire path ticks t.cooldown -= dt EVERY tick and resets only if (acted) — a tower that cannot act (raid lull, empty lane, out-of-range prey) drifts its cooldown arbitrarily far below zero, BY DESIGN (sim-harmless; the fire gate is > 0; goldens + arena lockstep replays pin the ticking). ANY render/UI consumer of tw.cooldown MUST clamp: fresh already does, and the anticipation wind-up goes through attackAnticipation (render/towerForms.ts — [0..1] by construction, pinned in renderer.test.ts) because its ctx.scale transform sits OUTSIDE drawTower's 2.2× body ceiling (the Parasite-Nest screen flood was exactly this: 60s of drift → ×2,785 nest scale). Never feed raw cooldown into a visual factor
+  - provides → `system:audio` — ONE FEEL TABLE (render/feel.ts FEEL): per-cue shake + view-only hit-stop (GameView) AND duck + stinger (sound.ts) live in the same row — a new cue gets its feel from one line; src/audio/cues.test.ts fails on any cue/pushSfx/stinger literal that resolves to neither a sound.ts case nor a FEEL row. Centre-stage text (WAVE N, boss/mega intros + falls, weak-point callouts, the canvas tier banner) must go through the GameView Announcer (ANNOUNCE priorities) — never mount/draw a new centre card directly
   - requiredBy ← `system:hero-cinematics`
   - requiredBy ← `system:living-battlefield`
   - documentedBy ← `doc:RENDER-PIPELINE.md`
@@ -2486,8 +2489,8 @@ _at: src/render/*, src/core/dangerCamera.ts_
   - testedBy ← `test:src/render/abilityCinematics.test.ts`
   - testedBy ← `test:src/render/assimilationFx.test.ts`
   - testedBy ← `test:src/render/equipmentArt.test.ts`
-  - testedBy ← `test:src/render/heroEvolution.test.ts`
-  - _…19 more (query: `npm run dil -- node system:rendering`)_
+  - testedBy ← `test:src/render/feel.test.ts`
+  - _…20 more (query: `npm run dil -- node system:rendering`)_
 
 ### `system:living-battlefield` — Living Battlefield
 
@@ -2527,7 +2530,7 @@ _at: src/audio/*, src/ui/MusicDebug.tsx_
   - contains ← `music:cinema`
   - documentedBy ← `doc:MUSIC.md`
   - documentedBy ← `doc:GAME-FEEL.md`
-  - _…6 more (query: `npm run dil -- node system:audio`)_
+  - _…8 more (query: `npm run dil -- node system:audio`)_
 
 ### `system:assimilation` — Assimilation Index
 
@@ -2561,7 +2564,7 @@ _at: src/debug/*, src/ui/DebugPanel.tsx, src/ui/DevTools.tsx_
 
 Reusable presentation components every screen composes (icons, bars, count-ups) — the component library.
 
-_at: src/ui/components/Icon.tsx, src/ui/iconLanguage.tsx, src/ui/components/Detail.tsx, src/ui/components/ProgressBar.tsx, src/ui/components/useCountUp.ts, src/ui/components/usePressRepeat.ts, src/ui/components/AudioToggles.tsx, src/ui/components/MobileSection.tsx, src/ui/components/ChipPopover.tsx, src/ui/components/SectionNav.tsx, src/ui/components/LoadoutStrip.tsx, src/ui/layoutProfile.ts, src/ui/components/ResponsiveDebug.tsx, src/ui/components/RotateGate.tsx, src/ui/components/ScreenFallback.tsx, src/ui/lazyNamed.ts, src/ui/components/ClaimAll.tsx_
+_at: src/ui/components/Icon.tsx, src/ui/iconLanguage.tsx, src/ui/components/Detail.tsx, src/ui/components/ProgressBar.tsx, src/ui/components/useCountUp.ts, src/ui/components/usePressRepeat.ts, src/ui/components/AudioToggles.tsx, src/ui/components/MobileSection.tsx, src/ui/components/ChipPopover.tsx, src/ui/components/SectionNav.tsx, src/ui/components/LoadoutStrip.tsx, src/ui/layoutProfile.ts, src/ui/components/ResponsiveDebug.tsx, src/ui/components/RotateGate.tsx, src/ui/components/ScreenFallback.tsx, src/ui/lazyNamed.ts, src/ui/components/ClaimAll.tsx, src/ui/components/MotionSettings.tsx_
 
   - conflictsWith → `concept:golden-test` — ATTENTION BUDGET (docs/INFO-HIERARCHY.md §2, npm run cogload): at most 2 attention-band animators (≤3.6s infinite pulse/breathe/glow) visible per screen — the ONE that breathes is the recommendation; ready-states live in the ambient band (>3.6s), badges announce finitely (nav-badge-pulse ×6) then rest; cogload exits 1 on violation, so a new always-on fast pulse anywhere is a BUILD-BREAKING decision, not a style choice; demote numbers via components/Detail.tsx (Layer 3 behind intent), never delete them
   - extends → `concept:scalability` — ICON LANGUAGE (ui/iconLanguage.tsx, docs/ICON-LANGUAGE.md): ONE library federates every identity axis — ACTIONS (verb glyph+token+label; the act-<verb> CSS classes MIRROR the table, change together), EFFECT_CATEGORIES, CURRENCIES, REWARD_TYPES art, statusRegistry + STATUS_GLYPHS, nav/FEATURES glyphs; dev/iconLanguage.test.ts is the INHERITANCE CONTRACT — a new currency/reward/status/screen without a face fails CI; glyphs unique per axis, cross-axis reuse only for the same concept family; color never the sole channel (a11y)
@@ -3938,8 +3941,9 @@ _at: site/guides.ts → /guides/live-events/_
 - `doc:VOWS.md` — project documentation _(documents `system:prestige`)_
 - `doc:WEBSITE.md` — project documentation _(documents `system:field-research`, documents `system:website`)_
 
-## Tests (313)
+## Tests (315)
 
+- `test:src/audio/cues.test.ts` — automated validation _(tests `system:audio`)_
 - `test:src/audio/music.test.ts` — automated validation _(tests `system:audio`)_
 - `test:src/changelog/classify.test.ts` — automated validation _(tests `system:chronicle`)_
 - `test:src/changelog/siteSync.test.ts` — automated validation _(tests `system:engine`)_
@@ -4132,6 +4136,7 @@ _at: site/guides.ts → /guides/live-events/_
 - `test:src/render/abilityCinematics.test.ts` — automated validation _(tests `system:rendering`, tests `system:hero-cinematics`)_
 - `test:src/render/assimilationFx.test.ts` — automated validation _(tests `system:rendering`, tests `system:assimilation`)_
 - `test:src/render/equipmentArt.test.ts` — automated validation _(tests `system:rendering`, tests `system:equipment`)_
+- `test:src/render/feel.test.ts` — automated validation _(tests `system:rendering`)_
 - `test:src/render/heroEvolution.test.ts` — automated validation _(tests `system:rendering`)_
 - `test:src/render/heroSymbiotes.test.ts` — automated validation _(tests `system:rendering`, tests `system:hero-symbiotes`)_
 - `test:src/render/infestationMap.test.ts` — automated validation _(tests `system:rendering`, tests `system:infestation`)_
