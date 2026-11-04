@@ -229,23 +229,57 @@ describe('LIVE adaptive threat (§6a)', () => {
     expect(playTo({}).launched.every((m) => m === 1)).toBe(true);
   });
 
-  it('spares the opening, scales waves ≥ liveFromWave and the boss body, capped', () => {
+  type LiveDd = {
+    liveThreatParts: (m: number, staticSpeed?: number) => { hp: number; pace: number; speed: number };
+    liveRatio: (base: number, temp: number, towers: number) => number;
+  };
+  const ddOf = (g: Game): LiveDd => anyG(g).dd as LiveDd;
+
+  it('spares the opening, scales waves ≥ liveFromWave and the boss body, capped — the chip shows the APPLIED multiplier', () => {
     const off = playTo({});
-    const on = playTo({ livePowerBase: 1e6 }); // a hugely over-powered board ⇒ the cap binds
+    const on = playTo({ livePowerBase: 1e6 }); // a hugely over-powered board ⇒ the caps bind
+    const g = new Game(3, NO_META, undefined, undefined, undefined, { mode: 'campaign', stage: tinyStage(), livePowerBase: 1e6 });
+    const p = ddOf(g).liveThreatParts(DIRECTOR_ADAPTIVE.liveCap, anyG(g).stageSpeedMult as number);
     for (let w = 1; w <= on.launched.length; w++) {
-      expect(on.launched[w - 1]).toBe(w >= DIRECTOR_ADAPTIVE.liveFromWave ? DIRECTOR_ADAPTIVE.liveCap : 1);
+      if (w < DIRECTOR_ADAPTIVE.liveFromWave) expect(on.launched[w - 1]).toBe(1);
+      else expect(on.launched[w - 1]).toBeCloseTo(p.hp * p.pace * p.speed, 9);
     }
-    // a boss body takes the WHOLE live multiplier up to its own cap (it can't be paced or pulled)
-    expect(on.bossHp / off.bossHp).toBeCloseTo(DIRECTOR_ADAPTIVE.liveBossCap, 9);
+    // a boss body takes the WHOLE live multiplier up to its own cap — it can't be paced or pulled
+    expect(on.bossHp / off.bossHp).toBeCloseTo(DIRECTOR_ADAPTIVE.liveBossCap, 6);
   });
 
-  it('the live multiplier splits into HP × spawn pace; ×1 is exactly {1, 1}', () => {
-    const g = new Game(3, NO_META, undefined, undefined, undefined, { mode: 'campaign', stage: generateStage(12), livePowerBase: 1e6 });
-    const dd = anyG(g).dd as { liveThreatParts: (m: number) => { hp: number; pace: number } };
-    expect(dd.liveThreatParts(1)).toEqual({ hp: 1, pace: 1 });
-    const p = dd.liveThreatParts(DIRECTOR_ADAPTIVE.liveCap);
-    expect(p.hp * p.pace).toBeCloseTo(DIRECTOR_ADAPTIVE.liveCap, 12); // the work rate still rises ×m
-    expect(p.pace).toBeGreaterThan(1);
+  it('the live multiplier splits HP × pace × speed; ×1 is exactly {1, 1, 1}; speed never breaks the readability ceiling', () => {
+    const dd = ddOf(new Game(3, NO_META, undefined, undefined, undefined, { mode: 'campaign', stage: generateStage(12), livePowerBase: 1e6 }));
+    expect(dd.liveThreatParts(1)).toEqual({ hp: 1, pace: 1, speed: 1 });
+    expect(dd.liveThreatParts(1, 1.6)).toEqual({ hp: 1, pace: 1, speed: 1 });
+    for (const staticSpeed of [1, 1.3, 1.6, 1.9]) {
+      const p = dd.liveThreatParts(64, staticSpeed);
+      expect(p.speed).toBeGreaterThanOrEqual(1);
+      expect(staticSpeed * p.speed).toBeLessThanOrEqual(Math.max(staticSpeed, DIRECTOR_ADAPTIVE.liveSpeedCeiling) + 1e-9);
+      expect(p.hp).toBeGreaterThanOrEqual(1);
+      expect(p.pace).toBeGreaterThanOrEqual(1);
+    }
+  });
+
+  it('the board term counts towers fielded vs the opening build (upward only)', () => {
+    const dd = ddOf(new Game(3, NO_META, undefined, undefined, undefined, { mode: 'campaign', stage: generateStage(12), livePowerBase: 1 }));
+    const open = DIRECTOR_ADAPTIVE.liveBoardOpening;
+    expect(dd.liveRatio(1, 1, 0)).toBe(1); // an empty board is never a discount
+    expect(dd.liveRatio(1, 1, open)).toBe(1);
+    expect(dd.liveRatio(2, 3, open * 4)).toBeCloseTo(2 * 3 * Math.pow(4, DIRECTOR_ADAPTIVE.liveBoardExp), 12);
+  });
+
+  it('starts at liveFromStage — the onboarding Stages 1–3 keep their calibrated curve', () => {
+    for (let st = 1; st <= 6; st++) {
+      const g = new Game(3, NO_META, undefined, undefined, undefined, { mode: 'campaign', stage: generateStage(st), livePowerBase: 1e6 });
+      expect(anyG(g).livePowerBase === null, `stage ${st}`).toBe(st < DIRECTOR_ADAPTIVE.liveFromStage);
+    }
+  });
+
+  it('the live speed rides the queued spawn (absent on every non-adaptive run — golden-safe)', () => {
+    const plain = new Game(3, NO_META, undefined, undefined, undefined, { mode: 'campaign', stage: tinyStage() });
+    plain.startWave();
+    expect((anyG(plain).spawnQueue as { speedMult?: number }[]).every((q) => q.speedMult === undefined)).toBe(true);
   });
 
   it('an under-powered board is never propped up', () => {

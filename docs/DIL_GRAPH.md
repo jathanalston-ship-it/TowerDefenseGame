@@ -1,6 +1,6 @@
 # DIL_GRAPH.md — the Design Intelligence Layer (GENERATED — `npm run dil -- regen`)
 
-> **The project's brain** (docs/DIL.md). 979 nodes · 1895 edges, built from the live
+> **The project's brain** (docs/DIL.md). 979 nodes · 1896 edges, built from the live
 > registries + curated knowledge (src/dev/dil/). **Query it instead of searching the repo:**
 > `npm run dil -- node <id>` · `affects <id>` · `requires <id>` · `missing <kind> <edge>` ·
 > `checklist tower <kind>` · `find <text>`. Edge kinds are bidirectional (19 kinds).
@@ -200,6 +200,7 @@ graph LR
   system_genome_rank["Genome Rank (ultimate mastery ladder)"] -->|consumes| system_prestige["Prestige (Molt / Ascendant)"]
   system_achievements["Achievements"] -->|consumes| system_hub_shell["Hub Shell & Home"]
   system_evolution_hq["Evolution HQ (Genome Cores)"] -->|consumes| system_power["Power Score"]
+  system_towers["Towers, Stars, Branches, Strain & Codex"] -->|modifies| system_difficulty["Difficulty"]
   system_difficulty["Difficulty"] -->|modifies| system_campaign["Campaign"]
   system_campaign["Campaign"] -->|consumes| system_towers["Towers, Stars, Branches, Strain & Codex"]
   system_difficulty["Difficulty"] -->|modifies| system_infinite["Infinite Mode"]
@@ -647,6 +648,7 @@ graph LR
   system_infestation["Infestation Map — THE FRONT"] -->|modifies| system_expeditions["Hero Expeditions"]
   system_map_layouts["Arena Layouts"] -->|modifies| system_engine["Sim Engine"]
   system_progression_gating["Progression Gating & Director"] -->|modifies| system_hub_shell["Hub Shell & Home"]
+  system_towers["Towers, Stars, Branches, Strain & Codex"] -->|modifies| system_difficulty["Difficulty"]
   system_difficulty["Difficulty"] -->|modifies| system_campaign["Campaign"]
   system_difficulty["Difficulty"] -->|modifies| system_infinite["Infinite Mode"]
 ```
@@ -1296,6 +1298,7 @@ _at: src/core/stars.ts, src/core/branches.ts, src/core/branchTree.ts, src/core/s
   - references → `system:engine` — REACTION TRIO (2026-07, TOWERS.md §reactionTrio — Miasma Lung/Chitin Bell/Acid Lancet): the first roster growth with ZERO new sim verbs — all three compose TowerDef.abilities (aura+Infection fog · aura+Resonance react-slam · homing 130-dmg cull + Corrosion + minRange 120 deadzone). CAVEAT: a firing:'field' def WITHOUT explicit abilities inherits the DERIVED Disruption pulse kit (deriveTowerAbilities) — a field tower with its own identity MUST author abilities. Lung=second Viral, Bell=second Resonant (the two 1-tower class gaps closed); all double-gated (18/240 · 24/380 · 34/560) ⇒ goldens byte-identical. Adding a tower forces 6 new Mulligan catalog pieces (CATALOG_PER_TOWER contract, 2 per category)
   - extends → `system:engine` — IDLE POSTURES (TOWER-IDLE.md): every tower holds ONE of three states — COMBAT (targets engageable) / PREPARATION (secondary behavior running) / TRANSITION (the continuous `prep` scalar 0..1 on Tower IS the animation — renderer eases from it, nothing snaps). ONE engagement test per tick (towerHasTarget: living enemy inside effective reach, outside deadzone — field towers no longer pulse empty air, DELIBERATE); unengaged towers run their IDLE_BEHAVIORS row (core/towerIdle.ts, validator-bounded, exactly one per kind): windup (banked opener via the cast globals — dmg/range/splash/pierce/projectiles/castStatusAmountBonus), reserve (gestated burst volleys), ranging (parasite Spore Drift — weak 2×-reach suppression through the NORMAL cast pipeline: mastery/cues/reactions inherited), preheat (coil heat floors at 0.35), tending (sower cap+rate, roost hatch+perch-regen — the roost tower prep>0.5 IS the drake-brain calm signal), trickle (reactor mends integrity, siphon draws biomass), choir (ossuary +5% dmg to towers in 250, decaying choirDmg on the RECEIVER). Payoff magnitude scales INVERSELY with range band (short-reach idles most ⇒ biggest openers; the long-range meta corrective — no range nerfs). RunOptions.disableIdle reproduces the pre-idle sim BYTE-EXACTLY (pinned: golden.test GOLDEN_LEGACY block) — goldens re-pinned deliberately (wave/kills/won identical every seed; integrity only improved). RunModifiers.towerIdleChargeMult is the future card/gear hook. Mechanism suites (strains/strainVerbs/sower/finaldefense/expansion) run legacy fixtures; towerIdle.test.ts owns the layer
   - references → `system:engine` — tower extraAbilities run with cast.x/y = the TOWER position; a debuff/explosion/aura component with at: 'victim' centres on cast.target (the primary victim a projectile / chain / Coil or Siphon beam set) instead — every grant whose text says around/near/beside the victim carries it (branches.test.ts guard). No victim that cast ⇒ the component does nothing.
+  - modifies → `system:difficulty` — LIVE BOARD TERM (§6a/§7): towers FIELDED vs DIRECTOR_ADAPTIVE.liveBoardOpening feed the Campaign live ratio (the Power Score temporary bucket misses board size); the live multiplier lands as HP × spawn pace × enemy SPEED (speed capped so stage × live ≤ liveSpeedCeiling = the endless readability cap) — the HUD ADAPTED chip shows the applied product
   - requiredBy ← `system:hive-mind`
   - requiredBy ← `system:engine`
   - requiredBy ← `system:daily`
@@ -2518,6 +2521,7 @@ _at: src/core/difficulty.ts, src/core/difficultyDirector.ts_
   - testedBy ← `test:src/core/difficultyDirector.test.ts`
   - modifiedBy ← `system:prestige` — MOLT VOWS (core/vows.ts): armed wagers compose their DoctrineWarp onto the doctrine at the ONE director fold site (composeWarps — mult axes multiply, additive add; none armed = referential passthrough)
   - modifiedBy ← `system:threat` — THREAT LADDER (docs/THREAT.md): createDirector({ threat }) composes threatWarp(level) LAST via composeWarps (Threat 0 ⇒ referential passthrough ⇒ golden-safe); threatEconomy(level).rewardMult feeds the economy director’s named threat.reward factor; a Threat above the mode’s best cleared level also closes the automation gate
+  - _…1 more (query: `npm run dil -- node system:difficulty`)_
 
 ### `system:website` — Marketing Website
 

@@ -114,12 +114,23 @@ export class RunDirector {
     return this.liveThreatMult(powerRatio, DIRECTOR_ADAPTIVE.liveBossCap);
   }
 
-  /** Split a live multiplier into enemy HP × spawn PACE (§6a "pace, not sponge"): HP × m^(1−s),
-   *  spawn rate × m^s with s = DIRECTOR_ADAPTIVE.livePaceShare, so the work the board must do per
-   *  second still rises ×m — but as pressure, not as a slower slog. m = 1 ⇒ exactly {1, 1}. */
-  liveThreatParts(m: number): { hp: number; pace: number } {
-    const s = DIRECTOR_ADAPTIVE.livePaceShare;
-    return { hp: Math.pow(m, 1 - s), pace: Math.pow(m, s) };
+  /** Split a live multiplier three ways (§6a): enemy HP × m^h, spawn PACE × m^p and enemy SPEED ×
+   *  m^s (h = 1 − p − s; p = livePaceShare, s = liveSpeedShare). Speed adds threat while SHORTENING
+   *  waves, so it is bounded by readability: the run's static enemy speed × the live part never
+   *  exceeds liveSpeedCeiling (the endless readability cap). m = 1 ⇒ exactly {1, 1, 1}. */
+  liveThreatParts(m: number, staticSpeed = 1): { hp: number; pace: number; speed: number } {
+    const p = DIRECTOR_ADAPTIVE.livePaceShare;
+    const s = DIRECTOR_ADAPTIVE.liveSpeedShare;
+    const speedRoom = Math.max(1, DIRECTOR_ADAPTIVE.liveSpeedCeiling / Math.max(1e-9, staticSpeed));
+    return { hp: Math.pow(m, 1 - p - s), pace: Math.pow(m, p), speed: Math.min(speedRoom, Math.pow(m, s)) };
+  }
+
+  /** The LIVE board-power ratio (§6a/§7): the account's Power vs the stage (livePowerBase) × the run's
+   *  temporary Power × the BOARD — towers fielded vs the opening build, which the Power Score's
+   *  temporary bucket never sees (a board grows 2 → 18 towers). Upward-only board term (≥ 1). */
+  liveRatio(livePowerBase: number, tempPower: number, towersFielded: number): number {
+    const board = Math.max(1, towersFielded / DIRECTOR_ADAPTIVE.liveBoardOpening);
+    return livePowerBase * tempPower * Math.pow(board, DIRECTOR_ADAPTIVE.liveBoardExp);
   }
 
   /** Bounty/biomass multiplier for a 0-based wave index. */

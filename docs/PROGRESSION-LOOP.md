@@ -64,7 +64,14 @@ goal ("opens at Stage 3"), never as an action.
 ### §readiness — the deploy warning is calm and honest
 
 `readinessBand(power, rec)` → `'ready'` (≥ rec) · `'close'` (≥ `READINESS.warnBelow` × rec,
-config: 0.9) · `'under'`. `deployReadiness(power, rec, stage, diff)` additionally calms an
+config: 0.7) · `'under'`. **Calibrated to outcomes** (Batch G follow-up, the GR1 harness: ~600
+Campaign runs on the 8 h / 100 h accounts at Power ÷ recommended 0.24–8, with the board-aware live
+threat of docs/DIFFICULTY_DIRECTOR.md §6a): below 0.7 the account won 17 % (8 h) / 41 % (100 h) —
+'under' means *you'll probably lose*; 0.7–1.0 won 78 % / 62 % — 'close' means *push it*; ≥ 1.0 won
+~80–95 %. The old 0.9 cut warned (and turned Home's CTA into "Farm Infinite") on stages won ~2 in 3.
+Known limit: a very young account (0.75 h) still wins ~2 in 3 even below 0.3 — the onboarding
+stages' recommendation is conservative; recommendedPowerScore itself was deliberately not rescaled
+(it feeds ETAs, previews and the progression simulator). `deployReadiness(power, rec, stage, diff)` additionally calms an
 `'under'` band to `'close'` on the stage right after a FLAWLESS clear of the previous one (a
 device-local memory, `prefs.lastFlawlessClearPref`, written by `App.handleEnd` on every campaign
 settle — so the calm lasts exactly one attempt). Only `'under'` warns, and the copy is
