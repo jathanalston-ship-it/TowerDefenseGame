@@ -5,10 +5,11 @@
 // Only CONTAINER opens still convert maxed duplicates (the deliberate hold-vs-crack tension;
 // pinned by the lootbox suite). This file pins the BANKING side of that contract.
 
-import { describe, it, expect } from 'vitest';
-import { meta } from './meta';
-import { defaultSave } from '../save/saveStore';
-import { STAR, TOWER_ORDER } from '../core/config';
+import { describe, it, expect, vi } from 'vitest';
+import { meta, towerShardNeed } from './meta';
+import { defaultSave, serializeExport } from '../save/saveStore';
+import { STAR, TOWER_DEFS, TOWER_ORDER } from '../core/config';
+import { Rng } from '../core/rng';
 import type { PremiumOfferDef } from '../core/premium';
 
 describe('direct shard lanes bank for Prime (no auto-conversion)', () => {
@@ -46,6 +47,56 @@ describe('direct shard lanes bank for Prime (no auto-conversion)', () => {
     for (let i = 0; i < STAR.maxTowerStars; i++) expect(meta.buyStar('needle')).toBe(true); // the REAL seam to ★max
     expect(meta.buyTowerPrime('needle')).toBe(true); // …and the banked lane feeds the new sink
     expect(meta.get().towerPrime.needle).toBe(1);
+    meta.reset();
+  });
+});
+
+// CONTAINER opens convert the campaign-capped SURPLUS (BALANCE_ARCHITECTURE.md §9, 2026-11): a tower
+// whose bank already funds its unlock + every remaining ★ can never spend another shard (★ tiers past
+// the Evolution Cap wait on stages 120–300), so its container shards convert to Essence like a maxed
+// tower's. Shards that still fund a future ★ keep banking.
+describe('container opens: surplus past the remaining ★ ladder converts to Essence', () => {
+  it('towerShardNeed = unlock price (if locked) + every remaining ★; 0 at ★max', () => {
+    const save = defaultSave();
+    expect(towerShardNeed(save, 'needle')).toBe(10230); // a starter at ★0: the whole ladder
+    save.towerStars.needle = 7;
+    expect(towerShardNeed(save, 'needle')).toBe(1280 + 2560 + 5120);
+    save.towerStars.needle = STAR.maxTowerStars;
+    expect(towerShardNeed(save, 'needle')).toBe(0); // ★max — the original maxed rule
+    expect(towerShardNeed(save, 'maw')).toBe((TOWER_DEFS.maw.unlockShards ?? 0) + 10230); // locked: unlock first
+  });
+
+  function openAll(bankAtNeed: boolean): { save: ReturnType<typeof meta.get>; before: ReturnType<typeof meta.get>; towerDupeNotes: number } {
+    const rng = new Rng(0x5ea1);
+    const spy = vi.spyOn(Math, 'random').mockImplementation(() => rng.next());
+    try {
+      const base = defaultSave();
+      base.campaign = { ...base.campaign, cleared: { standard: 60 } }; // Evolution Cap ★5 — towers capped below ★max
+      for (const k of TOWER_ORDER) {
+        base.towerStars[k] = 5;
+        base.towerShards[k] = bankAtNeed ? towerShardNeed(base, k) : 0;
+      }
+      meta.importText(serializeExport(base));
+      meta.debugAddLootPoints(6000);
+      const before = meta.get();
+      let towerDupeNotes = 0;
+      for (let c = meta.openContainer(); c; c = meta.openContainer()) {
+        towerDupeNotes += c.chest.items.filter((i) => i.type === 'event' && /Duplicate .* Tower/.test(i.note ?? '')).length;
+      }
+      return { save: meta.get(), before, towerDupeNotes };
+    } finally {
+      spy.mockRestore();
+    }
+  }
+
+  it('a bank that funds the whole ladder converts every granted shard; an empty bank keeps them', () => {
+    const full = openAll(true);
+    for (const k of TOWER_ORDER) expect(full.save.towerShards[k], k).toBe(full.before.towerShards[k]); // nothing piles up dead
+    expect(full.towerDupeNotes).toBeGreaterThan(0); // …it surfaces as Duplicate → Essence on the reveal
+    const empty = openAll(false);
+    const banked = TOWER_ORDER.reduce((n, k) => n + (empty.save.towerShards[k] ?? 0) - (empty.before.towerShards[k] ?? 0), 0);
+    expect(banked).toBeGreaterThan(0); // shards that still fund a future ★ bank as before
+    expect(empty.towerDupeNotes).toBe(0);
     meta.reset();
   });
 });

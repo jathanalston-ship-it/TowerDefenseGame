@@ -126,6 +126,10 @@ shards it grants are diffed against the pre-open save. For any **max-Star** towe
 = 10) or **unlocked max-Star** hero (`STAR.maxStars` = 5), those excess shards can't buy more stars, so
 they are **reverted from the shard total and converted to Gene Essence** instead — shown immediately on
 the reveal as a `geneEssence` event pull with the reason (e.g. *"Duplicate Legendary Hero"*).
+**Campaign-capped surplus (2026-11):** a tower below ★max converts too, but only the part of the grant
+its bank can never spend — shards past `towerShardNeed` (its unlock + every remaining ★; ★ tiers past
+the Evolution Cap wait on stages 120–300). Shards that still fund a future ★ keep banking
+(docs/SHARD-ECONOMY.md §7; BALANCE_ARCHITECTURE.md §9).
 
 Formula: `essence = flooredShards × ESSENCE_PER_SHARD[containerRarity]` (`core/geneEssence.ts`):
 

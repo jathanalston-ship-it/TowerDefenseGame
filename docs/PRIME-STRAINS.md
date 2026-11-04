@@ -66,7 +66,7 @@ duplicate→Essence conversions is now:
 
 | Lane | Behavior with Prime |
 |---|---|
-| **Container opens** | STILL convert maxed duplicates to Gene Essence (rarity-scaled, window-boosted — the dominant Essence source, unchanged) |
+| **Container opens** | STILL convert maxed duplicates to Gene Essence (rarity-scaled, window-boosted — the dominant Essence source, unchanged); since 2026-11 also a below-★max tower's SURPLUS past its whole remaining ladder (docs/SHARD-ECONOMY.md §7) |
 | **Direct lanes** (level-ups, quest/season/pass claims, milestones, premium packs) | **BANK** — the old `settleDirectShardGrants` "leak closer" is retired; grants keep flowing into the unit's shard lane as Prime fuel |
 
 That split is the design: the player *chooses* between holding direct income for Prime depth
