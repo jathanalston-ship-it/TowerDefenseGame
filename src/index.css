@@ -14043,3 +14043,39 @@ html[data-layout='landscape'] .build-controls.is-visible ~ .mega-banner { top: 6
       letterbox bar + the grade's dark fade sit under the upper/lower bands, so copy always reads. ── */
 .intro-stage.is-copy-upper { align-items: start; padding-top: calc(max(4.5vh, 26px) + 6vh); }
 .intro-stage.is-copy-lower { align-items: end; padding-bottom: calc(max(4.5vh, 26px) + 5vh); }
+
+/* ── GR2 · Batch G "the grind" — draft fit, Splice, mission-card wave 1, debrief reads, tray fit ──
+      (docs/CARDS.md §fit · §splice, docs/CAMPAIGN.md §mission-card, docs/REWARD-PRESENTATION.md §debrief) */
+/* SPLICE: the run-controls strip's Biomass outlet — appears only once the bank reaches the price. */
+.splice-btn {
+  flex: none; display: inline-flex; align-items: center; gap: 5px;
+  height: var(--ctl-h); min-height: 0; padding: 0 12px;
+  border-radius: 999px; border: 1px solid color-mix(in srgb, var(--caustic) 55%, var(--line-strong));
+  background: rgba(10, 14, 8, 0.86); backdrop-filter: blur(4px);
+  color: color-mix(in srgb, var(--caustic) 75%, var(--text)); font-size: 11px; font-weight: 800; letter-spacing: 0.06em;
+  box-shadow: 0 0 12px color-mix(in srgb, var(--caustic) 22%, transparent);
+  transition: color var(--dur-2) ease, box-shadow var(--dur-2) ease;
+}
+.splice-btn b { color: var(--text); font-variant-numeric: tabular-nums; }
+.splice-btn:hover { color: var(--text); box-shadow: 0 0 16px color-mix(in srgb, var(--caustic) 38%, transparent); }
+.wave-cleared.draft-splice-eyebrow { color: var(--caustic); text-shadow: 0 0 16px color-mix(in srgb, var(--caustic) 45%, transparent); }
+/* DRAFT FIT: a card whose subject barely matters to this run says so (muted — information, not alarm). */
+.card-offbuild { font-size: 11px; font-weight: 700; color: var(--muted); }
+/* Mission card: what wave 1 actually sends (bosses, then fliers, then the biggest packs). */
+.camp-wave1 { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; margin-top: 6px; }
+.camp-wave1 > .cd-k { margin-right: 4px; }
+.camp-enemy.is-flier { color: #cfe9ff; border-color: color-mix(in srgb, #8fd0ff 60%, var(--line)); }
+.camp-enemy.is-boss { color: var(--danger); border-color: color-mix(in srgb, var(--danger) 60%, var(--line)); }
+/* Defeat debrief reads: board vs a typical winning board · when anti-air first landed. */
+.rr-debrief-reads { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 16px; font-size: 13px; color: var(--muted); }
+.rr-debrief-read { display: inline-flex; flex-wrap: wrap; align-items: baseline; gap: 0 5px; }
+.rr-debrief-read > .rr-debrief-k { margin-right: 3px; }
+.rr-debrief-read b { color: var(--text); }
+.rr-debrief-read.is-bad b { color: var(--danger); }
+/* Conveyor tray (G1: clipped at 1440×900 in Boss Rush): the desktop deck is a FIXED-height single row,
+   so a full belt (3 ready + 1 growing) must never wrap a second row out of it — pods share the width
+   instead (a definite width ⇒ the growing → ready state still never reflows a pod; they shrink only
+   when the row is genuinely full). */
+html[data-layout='desktop'] .tower-rail { flex-wrap: nowrap; min-width: 0; }
+html[data-layout='desktop'] .conveyor { flex: 0 1 auto; min-width: 0; }
+html[data-layout='desktop'] .cv-slot { flex: 0 1 auto; width: 240px; min-width: 180px; }

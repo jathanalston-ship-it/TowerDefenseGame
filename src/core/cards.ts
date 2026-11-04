@@ -6,7 +6,7 @@ import type { CardOption, CardRarity, CardCategory, CardSubject, StatusType, Tow
 import type { AbilityComponent } from './ability';
 import type { Rng } from './rng';
 import { Registry } from './registry';
-import { DEEP_STRAIN_STAGE, SELL, TOWER_ORDER } from './config';
+import { DEEP_STRAIN_STAGE, DRAFT_FEATURES, DRAFT_FIT, SELL, TOWER_ORDER } from './config';
 import { GENE_UPGRADES } from './geneUpgrades';
 import { effectsPower } from './power'; // type-only back-edges elsewhere ⇒ no runtime cycle
 import { describeCard } from './effectLanguage'; // same pattern: its cards.ts imports are type-only
@@ -692,8 +692,11 @@ export function isRuleChangingCard(def: CardDef): boolean {
  * §expansion — a card for a tower you cannot deploy is a dead draft). `unlockedCardIds` re-admits
  * PROGRESSION-gated cards (CardDef.unlock) the account has earned; a gated card NOT in the set is
  * dropped, so a fresh account (and the golden sim) draws only the ungated catalog ⇒ byte-identical.
- * `ruleSlot` arms THE RULE SLOT (below) — the meta-earned guarantee that a deal offers a rule card. */
-export function draftCards(rng: Rng, count = 3, wave = 0, allowedTowers?: ReadonlySet<TowerKind>, unlockedCardIds?: ReadonlySet<string>, draftPool?: ReadonlySet<string>, ruleSlot = false): CardDef[] {
+ * `ruleSlot` arms THE RULE SLOT (below) — the meta-earned guarantee that a deal offers a rule card.
+ * `fit` (DRAFT FIT, docs/CARDS.md §fit) weights the pick WITHIN the rolled rarity by relevance ×
+ * recency and keeps the rule slot to fielded subjects. Absent ⇒ the uniform pick (golden path) —
+ * the rng draw count is the same either way (one per card). */
+export function draftCards(rng: Rng, count = 3, wave = 0, allowedTowers?: ReadonlySet<TowerKind>, unlockedCardIds?: ReadonlySet<string>, draftPool?: ReadonlySet<string>, ruleSlot = false, fit?: DraftFit): CardDef[] {
   const active = cardRegistry.active().filter((c) => {
     if (draftPool && !draftPool.has(c.id)) return false; // discovery overhaul: only DISCOVERED strands draft (absent ⇒ legacy/golden pool)
     if (c.unlock && !unlockedCardIds?.has(c.id)) return false; // progression-gated & not yet earned
@@ -712,18 +715,80 @@ export function draftCards(rng: Rng, count = 3, wave = 0, allowedTowers?: Readon
     const pool = active.filter((c) => c.rarity === rarity && !used.has(c.id));
     const source = pool.length > 0 ? pool : active.filter((c) => !used.has(c.id));
     if (source.length === 0) break;
-    const card = rng.pick(source);
+    const card = fit ? fitPick(rng, source, fit) : rng.pick(source);
     used.add(card.id);
     chosen.push(card);
   }
   // THE RULE SLOT (docs/CARDS.md §rules): when armed and the deal holds no rule-changing card while
   // the eligible pool does, the LAST slot is re-dealt from the eligible rule cards — so a build-
   // defining choice is always on the table. Off by default ⇒ zero extra rng draws (golden-safe).
+  // With DRAFT FIT the slot only re-deals rules whose subject the run actually fields (§fit).
   if (ruleSlot && chosen.length > 0 && !chosen.some(isRuleChangingCard)) {
-    const rules = active.filter((c) => isRuleChangingCard(c) && !used.has(c.id));
-    if (rules.length > 0) chosen[chosen.length - 1] = rng.pick(rules);
+    const rules = active.filter((c) => isRuleChangingCard(c) && !used.has(c.id) && (!fit || draftFitOf(c, fit) >= DRAFT_FIT.ruleMinFit));
+    if (rules.length > 0) chosen[chosen.length - 1] = fit ? fitPick(rng, rules, fit) : rng.pick(rules);
   }
   return chosen;
+}
+
+// ── DRAFT FIT (docs/CARDS.md §fit) — deal the cards that matter to THIS run ─────────────────────────
+
+/** A read of the live run the Game builds for each deal (pure data — the sim owns the numbers). */
+export interface DraftFit {
+  /** 0..1 share of the run's damage per tower kind (before any damage lands: share of the board). */
+  towerShare: Partial<Record<TowerKind, number>>;
+  /** 0..1 share of the run's damage dealt by the heroes (0 with no hero fielded). */
+  heroShare: number;
+  /** Banked Biomass ÷ the next deploy cost — how much "more Biomass" is still worth. */
+  bankRatio: number;
+  /** Card ids offered in the last DRAFT_FIT.recentDeals deals (dealing only — never shown). */
+  recent?: ReadonlySet<string>;
+}
+
+/** How well a card fits THIS run, 0..1 — relevance only (no recency): a tower/hero card scales with
+ *  its subject's damage share (floored, so a pivot stays possible), an economy card fades as banked
+ *  Biomass piles up, a global/hive card is neutral. Subject comes from cardSubject (derived from the
+ *  effects), so a NEW card fits correctly with no table edit. */
+export function draftFitOf(def: CardDef, fit: DraftFit): number {
+  const byShare = (share: number): number => DRAFT_FIT.floor + (1 - DRAFT_FIT.floor) * Math.min(1, Math.max(0, share) / DRAFT_FIT.shareForFull);
+  const s = cardSubject(def);
+  switch (s.kind) {
+    case 'tower': return byShare(fit.towerShare[s.tower] ?? 0);
+    case 'hero': return byShare(fit.heroShare);
+    case 'economy': return Math.max(DRAFT_FIT.economyFloor, 1 / (1 + Math.max(0, fit.bankRatio) / DRAFT_FIT.economyBankRef));
+    default: return 1;
+  }
+}
+
+/** One weighted draw (exactly one rng.next(), like rng.pick): fit × the recency penalty. */
+function fitPick(rng: Rng, source: readonly CardDef[], fit: DraftFit): CardDef {
+  return rng.pickWeighted(source.map((c) => [c, draftFitOf(c, fit) * (fit.recent?.has(c.id) ? DRAFT_FIT.recentMult : 1)] as const));
+}
+
+/** THE ◆PICK (docs/CARDS.md §fit): the option that best fits this run — fit × (relative Power gain +
+ *  DRAFT_FIT.pickBase). effectsPower is a product of independent per-effect factors, so an option's
+ *  relative gain is effectsPower(its effects) − 1 whatever the run already holds. An option without a
+ *  fit (draftFit off) counts as 1 ⇒ the strongest by Power. First wins ties. Auto Gene drafts this. */
+export function draftPickIndex(options: readonly CardOption[]): number {
+  let best = 0;
+  let bestScore = -Infinity;
+  options.forEach((o, i) => {
+    const score = (o.fit ?? 1) * (effectsPower(o.effects) - 1 + DRAFT_FIT.pickBase);
+    if (score > bestScore) { bestScore = score; best = i; }
+  });
+  return best;
+}
+
+/** The draft features one run gets (RunOptions draftFit / openingDraft / splice) — decided once by the
+ *  app from the mode, the stage and the account's Campaign depth. Data: config DRAFT_FEATURES. */
+export interface DraftFeatures { draftFit?: boolean; openingDraft?: boolean; splice?: boolean }
+export function draftFeaturesFor(c: { mode: string; stage?: number; tutorial: boolean; campaignCleared: number }): DraftFeatures {
+  if (c.tutorial) return {}; // the lesson is the base flow
+  const o = DRAFT_FEATURES.opening;
+  return {
+    draftFit: true,
+    ...(o.modes.includes(c.mode) && (c.stage ?? 0) >= o.fromStage ? { openingDraft: true } : {}),
+    ...(c.campaignCleared >= DRAFT_FEATURES.splice.fromCleared || DRAFT_FEATURES.splice.sharedBoardModes.includes(c.mode) ? { splice: true } : {}),
+  };
 }
 
 /**

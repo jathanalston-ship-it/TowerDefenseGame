@@ -16,6 +16,8 @@ import { Game } from '../core/game';
 import type { RunOptions } from '../core/game';
 import { CAMPAIGN_LAYOUT_PINS, generateStage } from '../core/campaign';
 import { playPersona } from '../core/sim.testutil';
+import { draftFeaturesFor } from '../core/cards';
+import { highestCampaignStage } from '../save/derive';
 import type { CampaignPersona, PersonaOutcome } from '../core/sim.testutil';
 
 const SEEDS = Array.from({ length: 12 }, (_, i) => 1000 + (i + 1) * 7919);
@@ -46,6 +48,9 @@ function freshCampaignGame(stageNum: number, seed: number): Game {
     startingGenes: meta.startingGenes(),
     unlockedCardIds: meta.unlockedCardIds(),
     draftPool: meta.discoveredGeneIds(),
+    // DRAFT FIT et al. (docs/CARDS.md §fit) — the app derives these per run (GameView); a fresh account
+    // gets draft fit only (no opening draft below its stage, no Splice before its Campaign clear).
+    ...draftFeaturesFor({ mode: 'campaign', stage: stageNum, tutorial: false, campaignCleared: highestCampaignStage(save) }),
   };
   return new Game(seed, metaModifiers(save), meta.towerProgress(), meta.selectedHero(), meta.heroProgress(), opts);
 }

@@ -1203,6 +1203,46 @@ export const DRAFT_REROLL = {
   base: 30, // biomass at wave 0…
   perWave: 5, // …plus this per cleared wave
 };
+
+/** DRAFT FIT (docs/CARDS.md §fit — Batch G "the grind"): every offer is weighted by how much its
+ *  SUBJECT matters to THIS run, so a draft deals cards for the army you actually fight with. Read only
+ *  when RunOptions.draftFit is on (the app sets it; the golden path never does ⇒ byte-identical).
+ *  Fit is 0..1: tower/hero cards scale with that subject's live damage share, economy cards fade as
+ *  banked Biomass piles up, global/hive cards are neutral (1). */
+export const DRAFT_FIT = {
+  floor: 0.15, // fit of a tower/hero card whose subject deals ~0 % of the run's damage (never 0 — a pivot stays possible)
+  shareForFull: 0.4, // a subject dealing ≥ this damage share fits fully (1.0); linear below
+  heroPrior: 0.15, // hero damage share assumed before any damage lands (G1 audit: the hero deals 5–25 %)
+  favoritePrior: 2, // an EMPTY board counts the favorite as this many towers (it is always deployable)
+  economyBankRef: 4, // economy fit = 1 / (1 + banked / (this × the next deploy cost))…
+  economyFloor: 0.05, // …never below this
+  recentDeals: 2, // a card offered in the last N deals…
+  recentMult: 0.35, // …is dealt with this weight multiplier (no same-card carousel)
+  ruleMinFit: 0.3, // THE RULE SLOT re-deals only from rule cards at least this relevant (fielded subjects)
+  pickBase: 0.03, // ◆PICK score = fit × (relative Power gain + this) — a 0-Power rule/instant card still ranks by fit
+  offBuild: 0.35, // the draft card flags "off-build" below this fit
+} as const;
+
+/** Which draft features a run gets (docs/CARDS.md §fit / §opening / §splice) — decided ONCE by the app
+ *  from the mode + account depth (cards.ts draftFeaturesFor) and threaded as RunOptions. Never in the
+ *  tutorial (the lesson is the base flow). */
+export const DRAFT_FEATURES = {
+  /** OPENING DRAFT: a draft before wave 1 — only where the choice decides the run: Campaign stages
+   *  from `fromStage` (the rarity pools open at Campaign 8, so the deal holds real build choices). */
+  opening: { modes: ['campaign'] as readonly string[], fromStage: 8 },
+  /** SPLICE (Constitution rule 7 gate): unlocks once the account has cleared this Campaign stage —
+   *  except on SHARED boards (the Daily), where every player gets the same rules regardless of depth. */
+  splice: { fromCleared: 5, sharedBoardModes: ['daily'] as readonly string[] },
+} as const;
+
+/** SPLICE (docs/CARDS.md §splice): banked Biomass past the threshold buys an EXTRA gene-card draft
+ *  (pick 1 of 3) in the build phase. The price IS the threshold: `costDeploys` × the next deploy cost
+ *  (so it tracks the run's economy), × `growth` per splice already bought this run — optional, legible,
+ *  and self-limiting. A recorded input (core/replay.ts) — Daily replays reproduce it. */
+export const SPLICE = {
+  costDeploys: 8,
+  growth: 1.8, // GR2 harness (8 h acct, Infinite, 6 seeds): 1.6 → +7.2 waves (5.2 splices/run) · 1.8 → +4.5 (3.7) · 2.0 → +2.8
+};
 // The opening prep (before any wave) gets a longer window once the player places their first
 // tower, so auto-start doesn't rush the initial build-out.
 export const AUTO_START_FIRST_DELAY = 8; // seconds granted on the first tower of the opening prep

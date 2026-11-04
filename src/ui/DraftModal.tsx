@@ -18,7 +18,8 @@ import { EFFECT_CATEGORIES, FIELD_VOCAB, foldEffects } from '../core/effectLangu
 import type { EffectLine } from '../core/effectLanguage';
 import { effectsPower } from '../core/power';
 import type { CardEffect } from '../core/cards';
-import { cardRegistry, isRuleChangingCard } from '../core/cards';
+import { cardRegistry, draftPickIndex, isRuleChangingCard } from '../core/cards';
+import { DRAFT_FIT } from '../core/config';
 import type { CardOption } from '../core/types';
 
 // Higher = rarer. Unknown tiers sort as 0, so new rarities slot in by adding a key.
@@ -138,9 +139,12 @@ export function DraftModal({
   biomass = 0,
   onReroll,
   chosen,
+  kind = 'wave',
 }: {
   options: CardOption[];
   clearedWave?: number;
+  /** Why this draft opened (docs/CARDS.md): a cleared wave, the run's OPENING draft, or a SPLICE. */
+  kind?: 'wave' | 'opening' | 'splice';
   onPick: (id: string) => void;
   /** Tutorial: the draft lesson must be a confirmed player choice — never the auto countdown. */
   forceManual?: boolean;
@@ -154,11 +158,9 @@ export function DraftModal({
   // Synergy callouts fire ONLY when meaningful: ≥2 drafted cards already share the category.
   const catCount = new Map<string, number>();
   for (const c of chosen ?? []) catCount.set(c.category, (catCount.get(c.category) ?? 0) + 1);
-  // Recommend the highest-rarity option (first on ties) to speed the call.
-  let best = 0;
-  for (let i = 1; i < options.length; i++) {
-    if ((RARITY_RANK[options[i].rarity] ?? 0) > (RARITY_RANK[options[best].rarity] ?? 0)) best = i;
-  }
+  // ◆PICK (docs/CARDS.md §fit): the option that best FITS this run — fit × Power gain (G1: the old
+  // highest-rarity pick matched the strongest option only 46 % of the time). Auto Gene drafts it.
+  const best = draftPickIndex(options);
 
   // Auto Gene Selection (opt-in, persisted): a visible countdown that auto-drafts the
   // recommended card unless the player picks first. Fixed for the life of this draft.
@@ -282,10 +284,14 @@ export function DraftModal({
   return (
     <div className={`overlay${committed ? ' is-committing' : ''}`}>
       <div className="draft-head">
-        {clearedWave ? <div className="wave-cleared">◆ WAVE {clearedWave} CLEARED ◆</div> : null}
-        <h2>DRAFT A GENE CARD</h2>
+        {kind === 'opening'
+          ? <div className="wave-cleared">◆ OPENING DRAFT ◆</div>
+          : kind === 'splice'
+            ? <div className="wave-cleared draft-splice-eyebrow">◆ SPLICE · EXTRA DRAFT ◆</div>
+            : clearedWave ? <div className="wave-cleared">◆ WAVE {clearedWave} CLEARED ◆</div> : null}
+        <h2>{kind === 'opening' ? 'CHOOSE YOUR OPENING GENE' : 'DRAFT A GENE CARD'}</h2>
         <p className="draft-sub">
-          Powers this run only — press <kbd>1</kbd>–<kbd>{options.length}</kbd> or <kbd>Enter</kbd> for the pick.
+          {kind === 'opening' ? 'Pick the gene this run builds around — ' : 'Powers this run only — '}press <kbd>1</kbd>–<kbd>{options.length}</kbd> or <kbd>Enter</kbd> for the pick.
           Hold <kbd>Shift</kbd> (or long-press) for exact numbers.
         </p>
         {auto && (
@@ -343,7 +349,7 @@ export function DraftModal({
             <span className="card-hotkey">{i + 1}</span>
             <span className="card-top">
               <span className="card-rarity">{o.rarity}</span>
-              {i === best && <span className="card-rec">◆ PICK</span>}
+              {i === best && <span className="card-rec" title="Best fit for this run — Power gain weighed by how much of your damage it touches">◆ PICK</span>}
             </span>
             <span className="card-name">{o.name}</span>
             {/* Artwork + "what it affects": tower icon+color+name, or HERO / GLOBAL /
@@ -363,6 +369,10 @@ export function DraftModal({
             <span className="card-fx">
               {o.lines.map((l, k) => <FxLine key={k} l={l} primary={k === 0} />)}
             </span>
+            {/* DRAFT FIT (docs/CARDS.md §fit): name a card whose subject barely matters to this run. */}
+            {o.fit !== undefined && o.fit < DRAFT_FIT.offBuild && (
+              <span className="card-offbuild" title="Its subject deals little of this run's damage — or your Biomass bank already overflows">◇ Off-build for this run</span>
+            )}
             {(catCount.get(o.category) ?? 0) >= 2 && (
               <span className="card-pair">◈ Pairs with your {o.category} build ×{catCount.get(o.category)}</span>
             )}

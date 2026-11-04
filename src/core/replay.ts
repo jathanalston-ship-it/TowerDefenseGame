@@ -28,6 +28,9 @@ export const REPLAY_METHODS = [
   'strainFromConveyor', 'discardConveyor',
   'sellTower', 'beginMove', 'cancelMove',
   'chooseCard', 'buyBranchTier', 'buyHeroEvolution',
+  // Draft spends (docs/CARDS.md §reroll · §splice): each re-deal draws the sim rng and moves Biomass,
+  // so an unrecorded reroll/splice made an honest Daily DIVERGE on replay.
+  'rerollDraft', 'splice',
 ] as const;
 
 export interface ReplayEvent {

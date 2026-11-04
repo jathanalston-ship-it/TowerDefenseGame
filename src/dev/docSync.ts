@@ -13,7 +13,7 @@ import { CURRENT_VERSION } from '../save/saveStore';
 import { GENE_LEVEL_GATES, GENE_LEVEL_POWER_FLOOR, GENE_POWER_SCALE } from '../core/geneCards';
 import { ESSENCE_PER_SHARD, ESSENCE_COST } from '../core/geneEssence';
 import { CARD_POOL } from '../core/cards';
-import { TOWER_ORDER, HERO_ORDER, READINESS } from '../core/config';
+import { TOWER_ORDER, HERO_ORDER, READINESS, DRAFT_FEATURES, SPLICE, HIVE_MIND } from '../core/config';
 import { GENE_LOADOUT_SLOTS } from '../core/geneLoadout';
 import { ASSIMILATION_TIERS } from '../core/assimilation';
 import { COMBAT_TUTORIAL } from '../core/tutorial';
@@ -58,6 +58,11 @@ export function docAnchors(): DocAnchor[] {
     { doc: 'docs/PROJECT_MANIFEST.md', contains: 'gates at stages 15/30/50/75', why: 'manifest gene-gate summary drifted (GENE_LEVEL_GATES)' },
     { doc: 'docs/ASSIMILATION.md', contains: `${ASSIMILATION_TIERS.length} evolution tiers`, why: 'tier count drifted (ASSIMILATION_TIERS)' },
     { doc: 'docs/GENOME-CORE.md', contains: `imprintPerMolt ${PRESTIGE.molt.imprintPerMolt} · imprintMax ${PRESTIGE.molt.imprintMax}`, why: 'Molt Imprint retention drifted (core/prestige.ts PRESTIGE.molt)' },
+    // Batch G (GR2): draft fit · opening draft · Splice · the Hive opening — doc-stated tunables.
+    { doc: 'docs/CARDS.md', contains: `\`SPLICE.costDeploys\` (${SPLICE.costDeploys}) × the next deploy cost × \`SPLICE.growth\` (${SPLICE.growth})`, why: 'Splice price drifted (config.ts SPLICE)' },
+    { doc: 'docs/CARDS.md', contains: `Campaign runs from Stage **${DRAFT_FEATURES.opening.fromStage}**`, why: 'opening-draft gate drifted (config.ts DRAFT_FEATURES.opening)' },
+    { doc: 'docs/CARDS.md', contains: `Campaign Stage **${DRAFT_FEATURES.splice.fromCleared}**`, why: 'Splice unlock drifted (config.ts DRAFT_FEATURES.splice)' },
+    { doc: 'docs/HIVE-MIND.md', contains: `\`thinBoardTowers\` = ${HIVE_MIND.thinBoardTowers}`, why: 'Hive thin-board hold drifted (config.ts HIVE_MIND.thinBoardTowers)' },
     // Identity trilogy (docs/UI_STYLE_GUIDE.md) — pinned to the LIVE :root tokens.
     { doc: 'docs/UI_STYLE_GUIDE.md', contains: `--kinetic ${cssToken('kinetic')}`, why: 'class-hue palette drifted (src/index.css --kinetic)' },
     { doc: 'docs/UI_STYLE_GUIDE.md', contains: `--viral ${cssToken('viral')}`, why: 'class-hue palette drifted (src/index.css --viral)' },
