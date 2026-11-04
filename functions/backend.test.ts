@@ -8,11 +8,12 @@ import { onRequestPost as lbSubmit } from './api/leaderboard/submit';
 import { onRequestGet as lbTop } from './api/leaderboard/top';
 import { designationTag } from '../src/core/identity';
 import { ctx, makeEnv, postJson } from './lib/testkit';
-import { utcWeekKey } from './lib/period';
+import { RUSH_BOARD_EPOCH, utcWeekKey } from './lib/period';
 import { hashStr } from '../src/core/hash';
 import { dailySeed as clientDailySeed } from '../src/core/daily';
 
 const PLAYER = '11111111-2222-4333-8444-555555555555';
+const OTHER_ID_PRE = '77777777-6666-4555-8444-333333333333';
 const TOKEN = 'a'.repeat(64);
 
 const blob = JSON.stringify({ schemaVersion: 23, data: { ok: true } });
@@ -156,6 +157,19 @@ describe('/api/leaderboard', () => {
     const body = (await top.json()) as { dayKey: string; entries: { score: number }[] };
     expect(body.dayKey).toBe(utcWeekKey()); // the forged key was ignored
     expect(body.entries[0].score).toBe(4_200);
+  });
+
+  it('bossRush: buckets under the record epoch — a pre-wall row (key \'\') is never read (docs/BOSS-RUSH.md §epoch)', async () => {
+    const e = makeEnv();
+    // A pre-wall all-time row, stored under the old empty key.
+    await e.DB.prepare('INSERT INTO leaderboard (mode, day_key, player_id, name, score, wave, power, submitted_at, replay, verified) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, 0)')
+      .bind('bossRush', '', OTHER_ID_PRE, 'Veteran', 650, 35, 0, 1, null).run();
+    const res = await submit(e, { mode: 'bossRush', dayKey: '', ticket: undefined, score: 42, wave: 10 });
+    expect(res.status).toBe(200);
+    const top = await lbTop(ctx(new Request('https://g.test/api/leaderboard/top?mode=bossRush', { headers: { 'cf-connecting-ip': '4.4.4.9' } }), e));
+    const body = (await top.json()) as { dayKey: string; entries: { score: number }[] };
+    expect(body.dayKey).toBe(RUSH_BOARD_EPOCH);
+    expect(body.entries.map((x) => x.score)).toEqual([42]); // the 650 pre-wall row stays archived
   });
 });
 

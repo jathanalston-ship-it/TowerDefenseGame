@@ -1,6 +1,6 @@
 # DIL_GRAPH.md — the Design Intelligence Layer (GENERATED — `npm run dil -- regen`)
 
-> **The project's brain** (docs/DIL.md). 974 nodes · 1883 edges, built from the live
+> **The project's brain** (docs/DIL.md). 975 nodes · 1885 edges, built from the live
 > registries + curated knowledge (src/dev/dil/). **Query it instead of searching the repo:**
 > `npm run dil -- node <id>` · `affects <id>` · `requires <id>` · `missing <kind> <edge>` ·
 > `checklist tower <kind>` · `find <text>`. Edge kinds are bidirectional (19 kinds).
@@ -595,6 +595,7 @@ graph LR
   system_genome_rank["Genome Rank (ultimate mastery ladder)"] -->|consumes| system_prestige["Prestige (Molt / Ascendant)"]
   system_achievements["Achievements"] -->|consumes| system_hub_shell["Hub Shell & Home"]
   system_evolution_hq["Evolution HQ (Genome Cores)"] -->|consumes| system_power["Power Score"]
+  system_boss_rush["Boss Rush"] -->|dependsOn| system_net_backend["Backend lanes (net/)"]
 ```
 
 ### Presentation Couplings Map
@@ -913,7 +914,7 @@ _at: src/core/game.ts, src/core/combat.ts, src/core/status.ts, src/core/targetin
   - requiredBy ← `system:nemesis`
   - requiredBy ← `system:onboarding`
   - requiredBy ← `system:run-ui`
-  - _…241 more (query: `npm run dil -- node system:engine`)_
+  - _…242 more (query: `npm run dil -- node system:engine`)_
 
 ### `system:content-infra` — Content Infrastructure
 
@@ -1059,6 +1060,7 @@ _at: src/ui/BossRushScreen.tsx, src/state/bioRoulette.ts, src/ui/BioRoulette.tsx
   - consumes → `currency:stamina` — attempt gating
   - provides → `system:hub-shell` — BANKED BIO-SPORES (save.bioSpores, v48 — BOSS-RUSH.md §roulette): the wheel is a game-wide spore ENGINE, no longer rush-exclusive. Sources: rush runs (banked in App handleEnd BEFORE the ceremony opens with the whole bank), FIRST kill of each boss chassis any mode (the idempotent bossesSlain registrar in meta), quest finaleRewards rows, and Battle Pass milestone lanes (free %25 / premium %20, pushed AFTER the filler fallback so nothing is displaced). PassReward kind 'bioSpores' pays through applyRewardList (bank cap 999 = the sanitizer clamp); a wheel session CONSUMES its spend in grantRouletteRewards. The Vault's Roulette bay (GeneticVault.tsx) fires rouletteBus.open() → App opens min(bank, ROULETTE.sporeCap) menu-only and returns to the vault; vault.spores notification source lights the badge/Ready-Chain. New spore sources: pay the kind via any reward table OR meta.addBioSpores(n, source) — never mount BioRoulette directly.
   - dependsOn → `system:power` — THE WALL (BOSS-RUSH.md §wall): boss HP sized to RunOptions.rushPower (meta.power().score at launch, GameView) — S^t ramped waves 4→10; plus geometric rushStrength past wave 10 and the column overlap (columnGraceSec). predictBossRush is FIT to the measured wall (predictWall/predictPerDoubling), not derived
+  - dependsOn → `system:net-backend` — RECORD EPOCH (BOSS-RUSH.md §epoch, save v56): migrate() archives a pre-v56 rushBestBoss to rushLegacyBestBoss (display only) and restarts the record; the bossRush board buckets under RUSH_BOARD_EPOCH (functions/lib/period.ts ≡ src/net/leaderboard.ts, pinned by leaderboardEpoch.test) — a new epoch bumps BOTH
   - requiredBy ← `system:field-research`
   - requiredBy ← `system:threat`
   - taughtBy ← `help:boss-rush`
@@ -1197,6 +1199,7 @@ _at: src/net/identity.ts, src/net/checkout.ts, src/net/cloudSave.ts, src/net/syn
   - extendedBy ← `system:arena` — SERVER AUTHORITY (ARENA.md §7): settleArenaMatch (guarded arena.settle, exactly-once by matchId in save.arena.settledMatchIds) and functions/api/arena/report.ts run the SAME shared validators (arenaClaimProblem/ratingDelta/arenaMatchRewards from src/core/arena.ts — the premium.ts shared-import precedent); the server derives rating from STORED state and rewards from its OWN division read — client amounts are never fields in the protocol; net/arenaReport.ts is fail-soft (offline/guest ⇒ local settle stands, reconciled later)
   - extendedBy ← `system:online-foundation` — THE RELAY (ONLINE-FOUNDATION.md §relay): human matchmaking = ArenaScreen racing findArenaOpponent (net/arenaMatchmaker.ts) against the 20s AI window — paired {room,role} → hello/loadout/boot → peerProblem gate (proto/season/LIVE bracket/bootBundleProblem/fingerprint) → role 0 proposes ready{matchId,seed}, role 1 ECHOES it (the accept); RelayTransport.setRoom re-targets reconnects at the assigned r<n> room so a mid-match rejoin NEVER re-enters the mm: pool (a stranger's cmds would corrupt the mirror); the ws server is the PURE RelayBroker (functions/lib/arenaRelayRoom.ts — pairing keys mm:s<season>.p<log2 power band>, verbatim forwarding, unpaired-ping answering, rooms HELD for the reconnect window) bound by scripts/arena-relay.ts (npm run relay, ws devDep) — portable to a Durable Object verbatim because the broker has no node imports
   - extendedBy ← `system:online-foundation` — MARKET LIQUIDITY ENGINE (AUCTION-HOUSE.md §5b): the authority's BUY side — planBuybacks (core/marketAuthority.ts, BUYBACK tunables) picks stale bid-free fairly-priced FOUNDATIONAL listings (BUYBACK_MAX_RARITY band; catalog exclusive/neverTrade is an absolute veto; AUTHORITY_ELIGIBLE_OVERRIDES is the hand-curated widening hook) under a sink-funded budget (min(cap, max(floor, prevWindowBurns × 0.5)) — injections can never outrun burns), crypto-rng shuffle + accept roll (NEVER guaranteed — no farmable sequence exists), caps 3/window · 1/family/window · 1/seller/UTC-day + 6h cooldown, valuation corridor ×0.2–×1.05 of the family estimate (overpricing is invisible, suppression bait unrewarded), velocity+population fades (busyFade/velocityFade — players ARE the liquidity); host runBuybacks settles with the normal sale discipline BUT the sold-gate adds AND bid IS NULL (a racing player bid always wins), buyer @authority, trade authority=2, item ABSORBED (never resold), and buybacks are EXCLUDED from market_history + demand metrics (no self-referential price support); conservation identity gains the explicit injection term (held+burned+withdrawn = deposited + Σ authority-2 prices); sim: all 10 scenarios must stay green with buybacks ≤ 25% of trade, never from flagged personas
+  - requiredBy ← `system:boss-rush` — RECORD EPOCH (BOSS-RUSH.md §epoch, save v56): migrate() archives a pre-v56 rushBestBoss to rushLegacyBestBoss (display only) and restarts the record; the bossRush board buckets under RUSH_BOARD_EPOCH (functions/lib/period.ts ≡ src/net/leaderboard.ts, pinned by leaderboardEpoch.test) — a new epoch bumps BOTH
 
 ### `system:online-foundation` — Online Foundation
 
@@ -4077,7 +4080,7 @@ _at: site/guides.ts → /guides/live-events/_
 - `doc:VOWS.md` — project documentation _(documents `system:prestige`)_
 - `doc:WEBSITE.md` — project documentation _(documents `system:field-research`, documents `system:website`)_
 
-## Tests (332)
+## Tests (333)
 
 - `test:src/audio/cues.test.ts` — automated validation _(tests `system:audio`)_
 - `test:src/audio/music.test.ts` — automated validation _(tests `system:audio`)_
@@ -4271,6 +4274,7 @@ _at: site/guides.ts → /guides/live-events/_
 - `test:src/i18n/i18n.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/net/arenaMatchmaker.test.ts` — automated validation _(tests `system:online-foundation`)_
 - `test:src/net/arenaNetcode.test.ts` — automated validation _(tests `system:engine`)_
+- `test:src/net/leaderboardEpoch.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/net/replayShare.test.ts` — automated validation _(tests `system:net-backend`, tests `system:website`)_
 - `test:src/net/storeRegion.test.ts` — automated validation _(tests `system:premium`)_
 - `test:src/net/syncEngine.test.ts` — automated validation _(tests `system:accounts`, tests `system:net-backend`)_

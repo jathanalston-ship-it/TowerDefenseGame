@@ -110,3 +110,33 @@ describe('v56 account merge', () => {
     expect(m.genomeRank.celebrated).toBe(2); // the watermark stays the primary's (its rewards were paid there)
   });
 });
+
+describe('v56 Boss Rush record epoch (docs/BOSS-RUSH.md §epoch)', () => {
+  it('a pre-v56 record is archived and the live record restarts; the depth record is kept', () => {
+    const res = parseImport(v55Blob({ rushBestBoss: 650, rushBestWave: 35 }));
+    expect(res.ok).toBe(true);
+    if (!res.ok) return;
+    expect(res.data.rushBestBoss).toBe(0);
+    expect(res.data.rushLegacyBestBoss).toBe(650);
+    expect(res.data.rushBestWave).toBe(35);
+  });
+
+  it('runs once: a v56 save keeps its record (and a junk legacy field sanitizes to 0)', () => {
+    const fresh = { ...defaultSave(), rushBestBoss: 42, rushLegacyBestBoss: 650 };
+    const res = parseImport(serializeExport(fresh));
+    expect(res.ok).toBe(true);
+    if (!res.ok) return;
+    expect(res.data.rushBestBoss).toBe(42);
+    expect(res.data.rushLegacyBestBoss).toBe(650);
+    const junk = parseImport(v55Blob({ rushBestBoss: 0, rushLegacyBestBoss: 'x' }));
+    expect(junk.ok && junk.data.rushLegacyBestBoss).toBe(0);
+  });
+
+  it('merge keeps the higher of each record', () => {
+    const a = { ...defaultSave(), rushBestBoss: 12, rushLegacyBestBoss: 650 };
+    const b = { ...defaultSave(), rushBestBoss: 30, rushLegacyBestBoss: 0 };
+    const m = mergeSaves(a, b);
+    expect(m.rushBestBoss).toBe(30);
+    expect(m.rushLegacyBestBoss).toBe(650);
+  });
+});

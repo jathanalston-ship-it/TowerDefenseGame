@@ -36,7 +36,7 @@ export const SAVE_MODULES: readonly SaveModuleDef[] = [
   { id: 'genes', fields: ['genes', 'geneSlots', 'geneLoadout', 'cardsSeen'] },
   { id: 'campaign', fields: ['campaign', 'nemesis', 'vengeance'] },
   { id: 'infinite', fields: ['bestWave'] },
-  { id: 'bossRush', fields: ['rushBestWave', 'rushBestBoss', 'rushStamina'] },
+  { id: 'bossRush', fields: ['rushBestWave', 'rushBestBoss', 'rushLegacyBestBoss', 'rushStamina'] },
   { id: 'daily', fields: ['daily', 'contracts'] },
   { id: 'collections', fields: ['unlockedLore', 'bossesSlain', 'megaProgress', 'cosmetics', 'equippedTrophies'] },
   { id: 'loot', fields: ['lootQueue', 'pendingContainers', 'market', 'premium'] },

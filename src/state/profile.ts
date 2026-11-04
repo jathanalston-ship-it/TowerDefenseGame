@@ -167,6 +167,7 @@ profileRegistry.registerAll([
     stats: (s) => [
       { id: 'rush-best', label: 'Deepest Wave', value: String(s.rushBestWave), color: 'var(--danger)' },
       { id: 'rush-record', label: 'Best Single Run', value: `${s.rushBestBoss} bosses` },
+      ...(s.rushLegacyBestBoss > 0 ? [{ id: 'rush-legacy', label: 'Pre-wall Record', value: `${s.rushLegacyBestBoss} bosses`, hint: 'Set before Boss Rush got its wall — the record restarted so new records pay Ichor again.' }] : []),
       { id: 'rush-lifetime', label: 'Lifetime Bosses Felled', value: String(s.stats.rushBossKills), color: 'var(--gold)' },
       { id: 'rush-runs', label: 'Gauntlet Runs', value: String(s.stats.rushRuns) },
       { id: 'rush-ichor', label: 'Next Ichor Band', value: `${s.rushBestBoss}/${nextRushIchorAt(s.rushBestBoss)}`, hint: 'Every NEW 5-boss single-run record bleeds Ichor; every 10th drops a Bio-Container.' },

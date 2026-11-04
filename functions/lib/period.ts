@@ -3,6 +3,11 @@
 // stays import-isolated from the game bundle, and these are two tiny pure formulas. The
 // SERVER derives the bucket key itself, so a client can never submit into a past period.
 
+/** The Boss Rush board's record epoch (docs/BOSS-RUSH.md §epoch): Boss Rush got its wall in v56,
+ *  so the board restarted under this bucket key — pre-wall rows stay stored under '' but are never
+ *  read. Mirrored by src/net/leaderboard.ts RUSH_BOARD_EPOCH (a test pins them equal). */
+export const RUSH_BOARD_EPOCH = 'wall-1';
+
 /** ISO week key (UTC, Thursday-anchored): "2026-W28". */
 export function utcWeekKey(now = Date.now()): string {
   const d = new Date(now);

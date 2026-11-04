@@ -15,7 +15,7 @@ import { verifyTurnstile } from '../../lib/turnstile';
 import { timingSafeEqualStr } from '../../lib/crypto';
 import { isDayKey, isIntInRange, isPlayerId, sanitizeName } from '../../lib/validate';
 import { mintDayTicket, utcDayKey } from '../daily/seed';
-import { utcMonthKey, utcWeekKey } from '../../lib/period';
+import { RUSH_BOARD_EPOCH, utcMonthKey, utcWeekKey } from '../../lib/period';
 
 // Generous but finite claim bounds — anything outside is a rejected forgery. The account-XP
 // modes (docs/ACCOUNT-LEVEL.md §leaderboards) carry lifetime XP as `score` and the account
@@ -74,6 +74,7 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
   // land in the current period (no tickets needed: XP within a period only grows).
   if (body.mode === 'weeklyXp') dayKey = utcWeekKey();
   if (body.mode === 'monthlyXp') dayKey = utcMonthKey();
+  if (body.mode === 'bossRush') dayKey = RUSH_BOARD_EPOCH; // the record epoch (docs/BOSS-RUSH.md §epoch)
 
   const name = sanitizeName(body.name);
   // Replay blob (daily only): stored verbatim for offline re-simulation. A better score

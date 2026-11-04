@@ -33,6 +33,10 @@ export interface LbView {
   you: { rank: number; score: number; wave: number } | null;
 }
 
+/** The Boss Rush board's record epoch (docs/BOSS-RUSH.md §epoch) — mirrors functions/lib/period.ts
+ *  (the server derives the bucket itself; a test pins the two equal). */
+export const RUSH_BOARD_EPOCH = 'wall-1';
+
 const SENT_KEY = 'assimilate.lb.sent';
 
 function sentMap(): Record<string, number> {
@@ -81,7 +85,8 @@ export function currentClaim(mode: LbMode): { score: number; wave: number; dayKe
     return v.rating > 0 ? { score: v.rating, wave: v.index, dayKey: '' } : null;
   }
   if (save.rushBestBoss <= 0) return null;
-  return { score: save.rushBestBoss, wave: save.rushBestWave, dayKey: '' };
+  // The record epoch keys the "already sent" memory too, so a pre-wall send can't mute new claims.
+  return { score: save.rushBestBoss, wave: save.rushBestWave, dayKey: RUSH_BOARD_EPOCH };
 }
 
 /** Submit the current best for `mode` if it improved since the last submission.

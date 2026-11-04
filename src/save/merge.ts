@@ -45,6 +45,7 @@ export function mergeSaves(a: SaveData, b: SaveData): SaveData {
     bestWave: Math.max(p.bestWave, s.bestWave),
     rushBestWave: Math.max(p.rushBestWave, s.rushBestWave),
     rushBestBoss: Math.max(p.rushBestBoss, s.rushBestBoss),
+    rushLegacyBestBoss: Math.max(p.rushLegacyBestBoss, s.rushLegacyBestBoss),
     totalRuns: Math.max(p.totalRuns, s.totalRuns),
     lifetimeShards: Math.max(p.lifetimeShards, s.lifetimeShards),
     lifetimeIchor: Math.max(p.lifetimeIchor, s.lifetimeIchor),

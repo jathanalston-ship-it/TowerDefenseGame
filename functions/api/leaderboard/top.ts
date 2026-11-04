@@ -7,7 +7,7 @@ import { rateLimit } from '../../lib/rateLimit';
 import { isDayKey, isPlayerId } from '../../lib/validate';
 import { designationTag } from '../../../src/core/identity';
 import { utcDayKey } from '../daily/seed';
-import { utcMonthKey, utcWeekKey } from '../../lib/period';
+import { RUSH_BOARD_EPOCH, utcMonthKey, utcWeekKey } from '../../lib/period';
 
 const TOP_N = 20;
 const MODES = new Set(['daily', 'bossRush', 'accountLevel', 'weeklyXp', 'monthlyXp', 'genomeRating']);
@@ -19,11 +19,13 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
   const mode = url.searchParams.get('mode');
   if (mode === null || !MODES.has(mode)) return err(400, 'bad-mode');
   // Bucket key per mode: daily takes the requested day; the period XP boards always read the
-  // server's CURRENT period (matching submit); all-time boards live under the empty key.
+  // server's CURRENT period (matching submit); Boss Rush reads its record epoch; the other
+  // all-time boards live under the empty key.
   const dayKey =
     mode === 'daily' ? ((v) => (isDayKey(v) ? v : utcDayKey()))(url.searchParams.get('dayKey'))
     : mode === 'weeklyXp' ? utcWeekKey()
     : mode === 'monthlyXp' ? utcMonthKey()
+    : mode === 'bossRush' ? RUSH_BOARD_EPOCH // the record epoch (docs/BOSS-RUSH.md §epoch)
     : '';
   const playerId = url.searchParams.get('playerId');
 

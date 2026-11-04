@@ -151,6 +151,12 @@ export function BossRushScreen({
         <div className="records play-records">
           <div className="record"><div className="k">Deepest Wave</div><div className="v" style={{ color: 'var(--danger, #ff5d73)' }}>{save.rushBestWave}</div></div>
           <div className="record"><div className="k">Best Single Run</div><div className="v">{save.rushBestBoss} bosses</div></div>
+          {/* The record epoch (docs/BOSS-RUSH.md §epoch): the pre-wall record, archived — shown, never chased. */}
+          {save.rushLegacyBestBoss > 0 && (
+            <div className="record" title="Set before Boss Rush got its wall — the record restarted so new records pay Ichor again.">
+              <div className="k">Pre-wall Record</div><div className="v" style={{ color: 'var(--muted)' }}>{save.rushLegacyBestBoss} bosses</div>
+            </div>
+          )}
           <div className="record"><div className="k">Lifetime Bosses</div><div className="v" style={{ color: 'var(--gold)' }}>{save.stats.rushBossKills}</div></div>
           <div className="record"><div className="k">Gauntlet Runs</div><div className="v">{save.stats.rushRuns}</div></div>
         </div>

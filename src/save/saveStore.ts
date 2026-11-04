@@ -55,6 +55,7 @@ export interface SaveData {
   // ── Boss Rush records (docs/BOSS-RUSH.md) — additive; 0 for older saves ──
   rushBestWave: number; // deepest Boss Rush wave reached (reward-qualify gate + prediction floor)
   rushBestBoss: number; // most bosses defeated in a SINGLE rush run (the lifetime-record band base)
+  rushLegacyBestBoss: number; // v56 record epoch (docs/BOSS-RUSH.md §epoch): the pre-wall single-run record, archived — display only
   // Boss Rush stamina (docs/BOSS-RUSH.md §stamina) — lazily regenerated from updatedAt; the
   // day key records the last FREE daily entry (ISO date, UTC).
   rushStamina: { value: number; updatedAt: number; freeDay: string };
@@ -605,6 +606,11 @@ export interface TutorialSave {
 // rating's Power axis; absent ⇒ 0, raised to the live score on first read), `income` (the per-run
 // income ledger; absent ⇒ empty, it fills from the next settle) and `login.incomeCores` (the
 // claimed day's income line). Merge: discovered = union, peakPower = max. Golden-safe.
+// Also v56 — the Boss Rush RECORD EPOCH (docs/BOSS-RUSH.md §epoch): Boss Rush got its wall, so a
+// pre-v56 `rushBestBoss` (set when waves waited forever — 400–650 bosses) is unbeatable. migrate()
+// archives it to `rushLegacyBestBoss` (display only) and restarts the record at 0, so its Ichor
+// bands and the (re-keyed) leaderboard pay again. `rushBestWave` is kept (its readers are capped).
+// Merge: max.
 export const CURRENT_VERSION = 56;
 
 // ── v56 Income ledger (docs/ONE-MORE-RUN.md §eta) — the SHAPE lives here; meters + math in
@@ -975,6 +981,7 @@ export function defaultSave(): SaveData {
     bestWave: 0,
     rushBestWave: 0,
     rushBestBoss: 0,
+    rushLegacyBestBoss: 0,
     rushStamina: { value: 100, updatedAt: 0, freeDay: '' },
     research: { day: '', claims: {}, pendingBoosts: [], lifetime: { views: 0, claims: {} } },
     daily: { lastKey: '', lastWave: 0, bestWave: 0, completions: 0, streak: 0, rewardedKey: '', lastReplay: null },
@@ -1682,6 +1689,7 @@ function withDefaults(data: SaveData): SaveData {
     // Boss Rush records (docs/BOSS-RUSH.md): pre-rush saves ⇒ 0 (additive).
     rushBestWave: Math.max(0, Math.floor(Number((data as { rushBestWave?: unknown }).rushBestWave) || 0)),
     rushBestBoss: Math.max(0, Math.floor(Number((data as { rushBestBoss?: unknown }).rushBestBoss) || 0)),
+    rushLegacyBestBoss: Math.max(0, Math.floor(Number((data as { rushLegacyBestBoss?: unknown }).rushLegacyBestBoss) || 0)),
     rushStamina: sanitizeRushStamina((data as { rushStamina?: unknown }).rushStamina),
     // Daily Run ledger (docs/DAILY-RUN.md): pre-daily saves ⇒ a fresh ledger (additive).
     research: sanitizeResearch((data as { research?: unknown }).research),
@@ -2050,7 +2058,7 @@ function isSaveData(v: unknown): v is SaveData {
 }
 
 /** Ordered migrations v(n) -> v(n+1). Append-only; never remove old steps. */
-function migrate(_version: number, data: unknown): unknown {
+function migrate(version: number, data: unknown): unknown {
   // v1→v2 (tower progression), v2→v3 (hero progression + roster, lifetime stats +
   // achievements), v3→v4 (loot queue), v4→v5 (tower star-fork picks), and v5→v6 (mastery
   // identity: titles/lore) — plus v8→v9 (per-tower lifetime kills) and v9→v10 (campaign progression) — are all additive: withDefaults() deep-fills the new records, the
@@ -2058,6 +2066,13 @@ function migrate(_version: number, data: unknown): unknown {
   // identity arrays, and the prestige block (v6→v7; v7→v8 adds the Ascendant Tree node map,
   // deep-filled by sanitizePrestige). v8→v9 adds per-hero kills + favorite-equipment, deep-filled
   // by withDefaults. Structural changes add steps here.
+  // v55→v56: the Boss Rush record epoch (docs/BOSS-RUSH.md §epoch) — archive the pre-wall
+  // single-run record and restart it. Runs once: a v56 blob never re-enters this step.
+  if (version < 56 && typeof data === 'object' && data !== null) {
+    const o = data as { rushBestBoss?: unknown; rushLegacyBestBoss?: unknown };
+    const old = Math.max(0, Math.floor(Number(o.rushBestBoss) || 0));
+    if (old > 0) return { ...o, rushBestBoss: 0, rushLegacyBestBoss: Math.max(old, Math.floor(Number(o.rushLegacyBestBoss) || 0)) };
+  }
   return data;
 }
 

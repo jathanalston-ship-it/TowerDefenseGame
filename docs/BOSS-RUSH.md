@@ -76,7 +76,8 @@ Mode identity next to the other pillars (docs/MODE-IDENTITY.md):
 - The wave/kill formulas still run under token mode mults (`MODE_REWARDS.core/loot/mastery
   .bossRush`) so the mode can't out-farm the other pillars' lanes.
 - **Own records, never Infinite's:** `save.rushBestWave` (depth record) and `save.rushBestBoss`
-  (most bosses felled in a SINGLE run — the lifetime-record band base P3's Ichor faucet keys on).
+  (most bosses felled in a SINGLE run — the lifetime-record band base P3's Ichor faucet keys on;
+  restarted at the v56 record epoch, §epoch).
   `save.bestWave` is untouched by rush runs.
 - **Qualify gate:** like Infinite, a run must reach ≥ `INFINITE_REWARD_QUALIFY_FRAC` (50%) of
   `min(rushBestWave, RUSH.qualifyRecordCap)` (14) to bank ANY container (`rewardBlocked.reason:
@@ -155,8 +156,22 @@ Boss Rush mega at wave 5 is often where a mid account's first overlap starts —
 its wave while the next column marches in. Tests: `bossrush.test.ts` (§wall: curve, sizing,
 overlap), `bossrushMeta.test.ts` (capped qualify gate), `predict.test.ts`.
 
-**Known risk:** `rushBestBoss` records set under the stall (400–650 bosses) are out of reach now, so
-those veterans' Ichor record bands stay silent until a record epoch exists (a save-field decision).
+## §epoch — the record restarts with the wall (save v56, owner decision 2026-11-04)
+
+Records set under the stall (400–650 bosses) were out of reach once the wall landed, which would
+have silenced those veterans' Ichor record bands and frozen the board. So the record restarted:
+- **Save:** `migrate()` (save/saveStore.ts, v55→v56, runs once) archives a pre-v56
+  `rushBestBoss` to `save.rushLegacyBestBoss` and sets the live record to 0. The legacy value is
+  display only ("Pre-wall Record" on the Boss Rush screen and the Profile) and never pays.
+  `rushBestWave` is kept — its readers are already capped (`RUSH.qualifyRecordCap`, the prediction
+  floor) and it gates the Threat baseline and the Bio-Roulette board tier. Merge: max of both.
+- **Ichor bands pay again** from 0 (~2 Ichor per new 5-boss band, a container per 10-band) — a
+  veteran re-earns roughly 20–25 Ichor at a typical depth. Accepted by the owner.
+- **Leaderboard:** the `bossRush` board buckets under `RUSH_BOARD_EPOCH` ('wall-1'; server
+  `functions/lib/period.ts`, mirrored client-side in `src/net/leaderboard.ts`, pinned equal by
+  `leaderboardEpoch.test.ts`). Pre-wall rows stay stored under the old empty key and are never read.
+  The client's "already sent" memory is keyed by the epoch too, so a pre-wall send can't mute a new
+  claim. A future epoch = bump the constant (and the save migration, if records must restart).
 
 ## §stamina — the session fuel (2026-07)
 
