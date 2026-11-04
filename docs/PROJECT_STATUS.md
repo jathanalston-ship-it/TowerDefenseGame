@@ -3,8 +3,8 @@
 > Maintained at the END of every session (paired with `docs/AI_HANDOFF.md` — the constitution's
 > workflow step 4). This is the "where are we?" answer; `docs/GAME-STATE.md` remains the deeper
 > per-system built-vs-planned index, `docs/PROJECT_MANIFEST.md` the system map.
-> **Last updated:** 2026-11-04f (**BATCH G "THE GRIND" — merged + validated on `claude/beautiful-feynman-qdyilo`,
-> awaiting the owner's release go-ahead.** Four tracks from the G1/G2 grind audits: GR1 the run (Campaign
+> **Last updated:** 2026-11-04f (**DEPLOYED — BATCH G "THE GRIND"** (`2524c2d`, run #229 green; owner approved
+> the release with live-threat caps 3/4).** Four tracks from the G1/G2 grind audits: GR1 the run (Campaign
 > opening rules + answering gift, the LIVE adaptive threat on waves ≥ 4 / bosses, Early Call, the Infinite
 > squeeze), GR2 in-run decisions (draft fit, ◆PICK = fit × Power, the opening draft, Splice, the Hive
 > opening, debrief Board/Anti-air reads, mission-card wave 1), GM1 goals + recognition (save v56: income
@@ -22,8 +22,8 @@
 > (3019/3019, mobile gate clean, doc anchors clean); first-session probe PASS (0 errors, first tower
 > 8.4 s, boot JS 548.5 KB); pil audit CLEAN; live checks desktop + 844×390. Website: release v2026.11.04.4
 > "The Grind" (16 curated entries; v2026.11.04.3 sealed), devlog `the-grind`, features/roadmap/guides,
-> media re-shot. NEXT: release on the owner's go-ahead; then §7 — a board-size term in the live ratio +
-> a stage-curve re-anchor.)
+> media re-shot. NEXT: §7 — a board-size term in the live ratio + a stage-curve re-anchor (restores frontier
+> challenge without padding runs).)
 >
 > **2026-11-04e** (**DEPLOYED — Batch 3 "Moments That Land" + a hotfix**. Hotfix first
 > (`51d4fb7`, run #227, owner OK): a boss dying on a slow frame no longer crashes the run (impactFx age

@@ -3743,7 +3743,7 @@
       "id": "v2026.11.04.4",
       "date": "2026-11-04",
       "title": "The Grind",
-      "sealed": false,
+      "sealed": true,
       "entries": [
         {
           "cat": "Gameplay",
