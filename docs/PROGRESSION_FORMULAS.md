@@ -45,7 +45,7 @@ power** — the loop's resistance (PROGRESSION-LOOP.md invariant 1).
 | Hero slots (meta) | `1 + HERO_SLOT_POWER × (slots−1)` | slots gated by stage (`HERO_SLOTS`) |
 | Tower stars | per-star damage tiers (geomean over kinds) | ★cap gated by stage (`campaignStarCap`), ★10 max |
 | Tower/hero mastery | level = f(XP) with rising `masteryReq`; +damage/level | **saturates in Power** (log): a texture lever, never the carry — pinned |
-| Equipment | item level `powerItemLevel(powerScore)` — drops track account power | multiplicative buffer, self-scaling |
+| Equipment | item level `itemLevelForDepth(stage, bestWave)` — log in depth, uncapped; rarity per item-level band (docs/EQUIPMENT.md §gear-chase) | multiplicative buffer, self-scaling |
 
 **Interlock (pinned):** no single bucket suffices deep (mastery-only plateaus below stage
 31's bar); the stage-cap basket clears every next stage with ≥50% slack through stage 90;

@@ -2822,8 +2822,30 @@ chestRegistry.registerAll(Object.values(CHESTS));
 export const RUN_CHEST = 'standard';
 
 /** Probability that cracking a container ALSO yields equipment (docs/EQUIPMENT.md). At most ONE item
- *  per container; its rarity scales with the account Power Score (not run depth). Centralized tunable. */
+ *  per container; its item level + rarity band follow the account's DEPTH (ITEM_LEVEL_CURVE). Centralized tunable. */
 export const EQUIP_DROP_CHANCE = 0.5;
+
+/** THE GEAR CHASE (docs/EQUIPMENT.md §gear-chase, 2026-11): a container drop's ITEM LEVEL derives from the
+ *  account's DEPTH — the deepest cleared Campaign stage, or Infinite's best wave × `infiniteWeight` when
+ *  that reads deeper — on a LOG curve with NO cap: ilvl = 1 + perLn × ln(1 + depth / depthScale).
+ *  Stage 10 ≈ i10 · 30 ≈ i20 · 60 ≈ i27 · 100 ≈ i33 (T6 affixes, maxTierForIlvl) · 150 ≈ i38 · 300 ≈ i47:
+ *  every band of play raises the ceiling and the curve never flattens into a wall. Replaced the
+ *  Power-linear ilvl that capped at 30 by ≈ hour 3 and froze the chase (BALANCE_ARCHITECTURE §10). */
+export const ITEM_LEVEL_CURVE = { perLn: 13.5, depthScale: 10, infiniteWeight: 0.5 };
+
+/** Rarity odds per ITEM-LEVEL BAND (docs/EQUIPMENT.md §gear-chase). A row covers item levels from
+ *  `fromIlvl` up to the next row (8-level bands = the affix-tier ceilings). `common…legendary` are
+ *  RELATIVE weights; `exotic` is the ABSOLUTE chance the drop is an Apex (hand-designed fixed item).
+ *  Deeper bands lift the rare tail without ever making Rampant/Apex routine (≈ 1 per hour mid-game,
+ *  ≈ 2 per hour deep — was 4–6 per hour in EVERY band). One row per band; append to extend. */
+export const GEAR_RARITY_BANDS: readonly { fromIlvl: number; common: number; rare: number; epic: number; legendary: number; exotic: number }[] = [
+  { fromIlvl: 1, common: 70, rare: 26, epic: 4, legendary: 0, exotic: 0 },
+  { fromIlvl: 9, common: 56, rare: 32, epic: 10, legendary: 2, exotic: 0.005 },
+  { fromIlvl: 17, common: 45, rare: 34, epic: 16.5, legendary: 4.5, exotic: 0.01 },
+  { fromIlvl: 25, common: 37, rare: 35, epic: 21, legendary: 7, exotic: 0.015 },
+  { fromIlvl: 33, common: 31, rare: 34, epic: 25, legendary: 10, exotic: 0.025 },
+  { fromIlvl: 41, common: 27, rare: 33, epic: 28, legendary: 12, exotic: 0.03 },
+];
 
 /** Crafting-material drop from a container (docs/EQUIPMENT.md §Materials) — the SECONDARY source,
  *  deliberately below EQUIP_DROP_CHANCE so equipment stays the primary crafting feeder. At most one

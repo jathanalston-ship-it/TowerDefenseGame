@@ -116,7 +116,7 @@ export function ItemDetails({
             <div className="id-sub">
               <span style={{ color: c }}>{rarityLabelOf(item.rarity)}</span> · {SLOT_LABELS[def.slot]}
               {def.weaponType ? ` · ${cap(def.weaponType)}` : def.armorType ? ` · ${cap(def.armorType)}` : ''}
-              {item.ilvl !== undefined && <span title="Item level"> · i{item.ilvl}</span>}
+              {item.ilvl !== undefined && <span title={`Item level ${item.ilvl} — affixes roll up to T${ceiling}. Deeper Campaign stages drop higher item levels.`}> · i{item.ilvl}</span>}
             </div>
             <div className="id-power" title="Power Score — this item's contribution to your strength">⚙ {power} <span>Power</span></div>
             <p className="id-desc">{def.desc}</p>

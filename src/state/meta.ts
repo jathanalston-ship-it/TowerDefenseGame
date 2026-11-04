@@ -59,7 +59,7 @@ import { announcePower, onPowerGain } from './powerEvents';
 import { withPowerLogged } from './powerLog';
 import { ACHIEVEMENTS, achievementById, checkAchievements, rewardFor } from './achievements';
 import type { AchievementDef, RunSummary } from './achievements';
-import { ALL_ITEMS, CAPPED_GRANT_ITEMS, EQUIP_SLOTS, emptyLoadout, itemDef, loadoutEffects, rollItem, rollItemDrop, rollItemForPower, teamSetEffects } from '../core/equipment';
+import { ALL_ITEMS, CAPPED_GRANT_ITEMS, EQUIP_SLOTS, emptyLoadout, itemDef, loadoutEffects, rollItem, rollItemDrop, rollItemForDepth, teamSetEffects } from '../core/equipment';
 import type { EquipSlot, Loadout, OwnedItem } from '../core/equipment';
 import { ICHOR, ichorForAchievement, ichorForBossRecord, ichorForDepthRecord, marketWindow, nextRushIchorAt, rollIchorDrop, rollRushVaultRarity, rollStock, vaultsForBossRecord } from '../core/market';
 import type { MarketSlot } from '../core/market';
@@ -3276,13 +3276,13 @@ export const meta = {
       persist({ ...save, pendingContainers: rest });
       return null;
     }
-    // Unified equipment drop (docs/EQUIPMENT.md): ~50% chance per container, AT MOST ONE item, rarity
-    // scaled to the account Power Score (early Common → late Legendary/Exotic; no run-depth spikes).
-    // Folded into the reveal (chest.items/equipment) + inventory here so BOTH container kinds award
-    // gear identically — equipment no longer drops per-roll from the chest pools.
+    // Unified equipment drop (docs/EQUIPMENT.md §gear-chase): ~50% chance per container, AT MOST ONE
+    // item, stamped with the account's DEPTH item level (uncapped log curve) and rolled from that
+    // level's rarity band. Folded into the reveal (chest.items/equipment) + inventory here so BOTH
+    // container kinds award gear identically — equipment no longer drops per-roll from the chest pools.
     const power = composePower(accountPowerParts(save)).score;
     if (Math.random() < EQUIP_DROP_CHANCE) {
-      const item = rollItemForPower(Math.random, power);
+      const item = rollItemForDepth(Math.random, highestCampaignStage(save), save.bestWave);
       // FIRST DISCOVERY (docs/LOOTBOX.md §opening-flow): the def isn't in the inventory yet —
       // the collection's own "discovered" definition. Each open persists before the next, so
       // the second copy in a multi-open batch is correctly NOT new.

@@ -11,9 +11,15 @@ import {
   teamSetEffects,
   rerollAffixes,
   rollItem,
-  rollItemForPower,
+  rollItemForDepth,
+  rollItemDrop,
+  gearRarityOdds,
+  itemLevelForDepth,
+  maxTierForIlvl,
+  RARITY_ORDER,
   transmute,
 } from './equipment';
+import { GEAR_RARITY_BANDS } from './config';
 
 const mk = (seed: number): (() => number) => {
   const r = new Rng(seed);
@@ -95,8 +101,44 @@ describe('Details-screen support: affix explanations + item provenance', () => {
   });
 
   it('rolled items are stamped with a source (Vault gear says so)', () => {
-    expect(rollItemForPower(mk(3), 5000).source).toBe('Genetic Vault');
+    expect(rollItemForDepth(mk(3), 40).source).toBe('Genetic Vault');
     expect(rollItem(mk(3), WEAPONS[0], 'rare').source).toBe('Genetic Vault'); // default
     expect(rollItem(mk(3), WEAPONS[0], 'rare', 5, 'Run Extraction').source).toBe('Run Extraction');
+  });
+});
+
+describe('the gear chase (docs/EQUIPMENT.md §gear-chase)', () => {
+  it('every band\'s odds sum to 1 and the rare tail never shrinks with depth', () => {
+    let prevTail = -1;
+    for (const b of GEAR_RARITY_BANDS) {
+      const o = gearRarityOdds(b.fromIlvl);
+      expect(RARITY_ORDER.reduce((a, r) => a + o[r], 0)).toBeCloseTo(1, 9);
+      const tail = o.legendary + o.exotic;
+      expect(tail).toBeGreaterThanOrEqual(prevTail);
+      prevTail = tail;
+    }
+    expect(gearRarityOdds(1).legendary + gearRarityOdds(1).exotic).toBe(0); // the opening band is Inert/Active
+    expect(gearRarityOdds(500)).toEqual(gearRarityOdds(GEAR_RARITY_BANDS[GEAR_RARITY_BANDS.length - 1].fromIlvl));
+  });
+
+  it('the roll reproduces the quoted odds (previews == outcomes) and Apex only comes from exotic defs', () => {
+    const rng = mk(77);
+    const ilvl = 34;
+    const N = 20000;
+    const n: Record<string, number> = {};
+    for (let i = 0; i < N; i++) {
+      const it = rollItemDrop(rng, ilvl);
+      n[it.rarity] = (n[it.rarity] ?? 0) + 1;
+      expect(it.ilvl).toBe(ilvl);
+      expect(it.rarity === 'exotic').toBe(!!itemDef(it.defId)!.exotic);
+      for (const a of it.affixes) expect(a.tier).toBeLessThanOrEqual(maxTierForIlvl(ilvl));
+    }
+    const odds = gearRarityOdds(ilvl);
+    for (const r of RARITY_ORDER) expect(Math.abs((n[r] ?? 0) / N - odds[r])).toBeLessThan(0.012);
+  });
+
+  it('deep accounts reach T6 affixes (the old ilvl cap of 30 stopped at T5)', () => {
+    expect(maxTierForIlvl(itemLevelForDepth(30))).toBeLessThan(6);
+    expect(maxTierForIlvl(itemLevelForDepth(100))).toBe(6);
   });
 });

@@ -12,8 +12,9 @@ import { audio } from '../audio/sound';
 import { HERO_DEFS } from '../core/config';
 import type { HeroKind } from '../core/types';
 import {
-  EQUIP_SLOTS, RARITY_ORDER, SETS, SLOT_LABELS, activeSets, affixDef, emptyLoadout, itemDef, itemScore, loadoutScore, rarityColorOf, rarityLabelOf,
+  EQUIP_SLOTS, RARITY_ORDER, SETS, SLOT_LABELS, activeSets, affixDef, emptyLoadout, gearChaseView, itemDef, itemScore, loadoutScore, maxTierForIlvl, rarityColorOf, rarityLabelOf,
 } from '../core/equipment';
+import { highestCampaignStage } from '../save/derive';
 import type { EquipSlot, OwnedItem, Rarity } from '../core/equipment';
 import { ItemArt, rarityColor } from './components/ItemArt';
 import { setHueOf } from '../render/equipmentArt';
@@ -169,7 +170,7 @@ function ArmoryBody(): JSX.Element {
           <div className="ic-meta">
             <span className="ic-rarity" style={{ color: c }}>{rarityLabelOf(item.rarity)}</span>
             <span> · {SLOT_LABELS[def.slot]}{def.weaponType ? ` · ${cap(def.weaponType)}` : def.armorType ? ` · ${cap(def.armorType)}` : ''}</span>
-            {item.ilvl !== undefined && <span className="ic-ilvl" title="Item level"> · i{item.ilvl}</span>}
+            {item.ilvl !== undefined && <span className="ic-ilvl" title={`Item level ${item.ilvl} — its affixes roll up to T${maxTierForIlvl(item.ilvl)}. Deeper Campaign stages drop higher item levels.`}> · i{item.ilvl}</span>}
             <span className="ic-power" title="Power Score"> · ⚙ {itemScore(item)}</span>
           </div>
           {!equipped && <div className="ic-compare"><PowerDelta cmp={compareItemPower(save, item, focus)} /></div>}
@@ -218,6 +219,18 @@ function ArmoryBody(): JSX.Element {
         <span className="equip-mats">⊕ {save.mats.mutagen} · ◳ {save.mats.scrap} · ✷ {save.mats.catalyst}</span>
       </div>
       <div className="panel-sub">Gearing <b>{focusName}</b> — equip one per slot; gear folds into your next run. Each hero keeps its own loadout.</div>
+      {/* THE GEAR CHASE (docs/EQUIPMENT.md §gear-chase): what the Vault drops at this depth + the next
+          stage that raises it — read from the same functions the drop rolls (previews == outcomes). */}
+      {(() => {
+        const chase = gearChaseView(highestCampaignStage(save), save.bestWave);
+        const pct = (x: number): string => `${(x * 100).toFixed(x < 0.1 ? 1 : 0)}%`;
+        return (
+          <div className="armory-chase" data-guide="armory-chase">
+            Vault drops now: <b>i{chase.ilvl}</b> · affixes to <b>T{chase.maxTier}</b> · {rarityLabelOf('legendary')} <b>{pct(chase.odds.legendary)}</b> · {rarityLabelOf('exotic')} <b>{pct(chase.odds.exotic)}</b>
+            {chase.next && <> — deeper at Stage {chase.next.stage} (i{chase.next.ilvl}{chase.next.maxTier > chase.maxTier ? `, T${chase.next.maxTier}` : ''})</>}
+          </div>
+        );
+      })()}
 
       {/* Undo-Salvage: the last dismantle is recoverable until the next one overwrites the buffer. */}
       {save.lastSalvage && (

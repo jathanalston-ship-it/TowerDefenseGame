@@ -422,10 +422,60 @@ Equipment is presented as a **collectible ARPG inventory**, not a list (`ui/Equi
 
 **One acquisition path.** Equipment no longer drops per-roll from chest pools. Every container crack has
 a **~50% chance** (`EQUIP_DROP_CHANCE`, config) to also yield **at most ONE** item, unified across run
-caches + loot-queue boxes (`meta.openContainer`). Its rarity scales with the account **Power Score** —
-`powerItemLevel(score)` maps score → an item level (fresh ⇒ Common floor; climbs smoothly; capped so
-late-game reads Legendary/Exotic-capable without run-depth spikes) → the existing `rollItemDrop` ladder
-via `rollItemForPower`. Folded into the Vault reveal + inventory in one place.
+caches + loot-queue boxes (`meta.openContainer`). Its item level + rarity follow the account's
+**depth** — `rollItemForDepth(rng, stage, bestWave)` (§gear-chase below). Folded into the Vault
+reveal + inventory in one place.
+
+### §gear-chase — depth-driven item level + rarity bands (2026-11)
+
+**The audit (G2):** item level used to be `powerItemLevel(score)` — linear in Power, **capped at 30**,
+reached at ~5,350 Power (≈ hour 3). From then on every drop was ~20% Rampant, ~10% Apex, ~20% Inert
+forever (4–6 Rampant/Apex drops per hour in EVERY hour band), and the T6 affix tier was unreachable
+(i30 caps at T5). The chase ended in the third hour.
+
+**Now (all data, `core/config.ts`):**
+
+- **`ITEM_LEVEL_CURVE`** — `itemLevelForDepth(stage, bestWave) = 1 + perLn × ln(1 + depth/depthScale)`,
+  depth = max(deepest cleared Campaign stage, Infinite best × `infiniteWeight`). Log-shaped and
+  **uncapped**: Stage 10 ≈ i10 · 30 ≈ i20 · 60 ≈ i27 · 100 ≈ i33 (**T6 affixes**, `maxTierForIlvl`)
+  · 150 ≈ i38 · 300 ≈ i47. Campaign stage survives a Molt, so the level never drops.
+- **`GEAR_RARITY_BANDS`** — one row per 8-level band (the affix-tier ceilings): relative weights for
+  Inert/Active/Virulent/Rampant + an absolute Apex chance. `gearRarityOdds(ilvl)` is the ONE source
+  the roll AND the Armory read (previews == outcomes, pinned by a 20k-roll test). Opening band:
+  no Rampant/Apex; i33+: 10% Rampant · 2.5% Apex; i41+: 12% · 3%.
+- **Apex is its own roll** — `rollItemDrop` rolls the rarity first, then draws an exotic-locked def
+  only on an Apex roll (exotics no longer ride the uniform def pick at a flat ~10%).
+- **The Armory shows the chase** (`gearChaseView`): "Vault drops now: i23 · affixes to T4 · Rampant
+  4.5% · Apex 1.0% — deeper at Stage 51 (i25, T5)"; the item-level chip's tooltip names its tier
+  ceiling.
+- **No pity.** A gear pity counter would need a save field (none may be added in this batch); the
+  container meter's own pity still backstops container rarity.
+
+**Measured** (progression sim, `average` + `efficient` personas × 3 seeds × 400h, seeded loot;
+median; before = the Power-linear ilvl; the gear change ALONE):
+
+| Hour band | Rampant+Apex / h (before → after) | Upgrade-over-equipped / h | T6 drops / h | Drop ilvl after |
+|---|---|---|---|---|
+| 0–1h | 4.0 → 0 | 7 → 5 | 0 | i5–11 |
+| 1–3h | 5.5 → 0.5 | 1.5 → 1.5 | 0 | i12–17 |
+| 3–10h | 4.0 → 0.9 | 0.43 → 1.0 | 0 | i18–19 |
+| 10–30h | 4.1 → 0.9 | 0.15 → 0.2 | 0 | i19–22 |
+| 30–50h | 4.0 → 1.1 | 0.05 → 0.2 | 0 | i22–25 |
+| 50–100h | 4.0 → 1.3 | 0.04 → 0 | 0 | i25–30 |
+| 100–150h | 4.8 → 1.5 | 0.02 → 0.04 | 0 → 0 | i30–33 |
+| 150–250h | 4.9 → 2.2 | 0.01 → 0.03 | 0 → 3.2 | i33–36 |
+| 250–400h | 5.4 → 2.3 | 0.02 → 0.01 | 0 → 3.5 | i36–39 |
+
+(average persona; the efficient persona reads the same shape.) Pacing impact of the gear change
+alone: stage @100h 80 → 78 / @400h 159 → 155 (average), 89 → 82 / 160 → 159 (efficient) — gear
+Power now ramps over the whole game instead of front-loading into hour 1–3; the mid-game dip
+(stage @30h 48 → 39) is what the Mega premium re-measure (docs/MEGA-BOSS.md §hunt) gives back.
+
+**Known limitation (measured, not fixed here):** item Power is dominated by the DEF's base effects —
+affix tiers move a Rampant's median `itemPowerScore` only ~6% from i10 to i40 (p50 344 → 364), so
+once each slot holds a top Apex def, "upgrade over equipped" stays rare at depth even with T6
+reachable. The next lever is an item-level magnitude term on base effects (a design call: it would
+rescale every owned item's Power).
 
 **Power comparison (▲/▼/=).** `state/itemPower.compareItemPower(save, item, hero)` returns the Power
 Score delta vs whatever that hero wears in the same slot (`{ delta, verdict, candidate, equipped,

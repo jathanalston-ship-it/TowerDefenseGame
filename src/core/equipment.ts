@@ -12,6 +12,7 @@
 
 import type { CardEffect } from './cards';
 import { Registry } from './registry';
+import { GEAR_RARITY_BANDS, ITEM_LEVEL_CURVE } from './config';
 
 export type EquipSlot = 'weapon' | 'armor' | 'relic';
 export type Rarity = 'common' | 'rare' | 'epic' | 'legendary' | 'exotic';
@@ -523,34 +524,80 @@ export function rollItem(rng: Rng, def: EquipDef, rarity: Rarity, ilvl?: number,
   return item;
 }
 
-/** A run-end drop: a slot-balanced random item, rarity weighted by how deep the run got, stamped
- *  with an item level from the run depth (the Reforge tier ceiling). */
-export function rollItemDrop(rng: Rng, wave: number, source = 'Run Extraction'): OwnedItem {
+// ── The gear chase (docs/EQUIPMENT.md §gear-chase) — depth → item level → rarity band ──────────
+
+/** The item level a drop at this account DEPTH is stamped with: log-shaped and UNCAPPED
+ *  (ITEM_LEVEL_CURVE), so every stretch of play raises the affix ceiling (T6 at i33 ≈ Stage 100).
+ *  `stage` = deepest cleared Campaign stage; `bestWave` = the Infinite record, folded in at
+ *  `infiniteWeight` when it reads deeper. Pure + monotonic in both; a fresh account reads i1. */
+export function itemLevelForDepth(stage: number, bestWave = 0): number {
+  const c = ITEM_LEVEL_CURVE;
+  const depth = Math.max(0, stage, bestWave * c.infiniteWeight);
+  return Math.max(1, Math.round(1 + c.perLn * Math.log(1 + depth / c.depthScale)));
+}
+
+/** The GEAR_RARITY_BANDS row an item level rolls from (the deepest band starting at/below it). */
+export function gearRarityBand(ilvl: number): (typeof GEAR_RARITY_BANDS)[number] {
+  let band = GEAR_RARITY_BANDS[0];
+  for (const b of GEAR_RARITY_BANDS) if (ilvl >= b.fromIlvl) band = b;
+  return band;
+}
+
+/** Drop odds (0..1 per rarity, summing to 1) at an item level — the ONE source the roll AND every
+ *  surface quoting odds read (previews == outcomes). */
+export function gearRarityOdds(ilvl: number): Record<Rarity, number> {
+  const b = gearRarityBand(ilvl);
+  const w = b.common + b.rare + b.epic + b.legendary;
+  const rest = 1 - b.exotic;
+  return { common: (rest * b.common) / w, rare: (rest * b.rare) / w, epic: (rest * b.epic) / w, legendary: (rest * b.legendary) / w, exotic: b.exotic };
+}
+
+/** Per-slot item pools split by exotic lock — an Apex roll draws a hand-designed exotic, every
+ *  other rarity draws a regular def (so exotics no longer ride the uniform def pick). */
+const EXOTIC_BY_SLOT: Record<EquipSlot, EquipDef[]> = {
+  weapon: WEAPONS.filter((d) => d.exotic), armor: ARMOR.filter((d) => d.exotic), relic: RELICS.filter((d) => d.exotic),
+};
+const REGULAR_BY_SLOT: Record<EquipSlot, EquipDef[]> = {
+  weapon: WEAPONS.filter((d) => !d.exotic), armor: ARMOR.filter((d) => !d.exotic), relic: RELICS.filter((d) => !d.exotic),
+};
+
+/** An equipment drop: a slot-balanced item stamped with item level `ilvl` (the Reforge tier
+ *  ceiling), its rarity rolled from that level's band (gearRarityOdds). */
+export function rollItemDrop(rng: Rng, ilvl: number, source = 'Run Extraction'): OwnedItem {
   // Pick a SLOT uniformly, then an item within it — so Weapon / Armor / Relic each drop at a 1/3
   // share regardless of how many items each category defines (equal category representation).
   const slot = pick(rng, ['weapon', 'armor', 'relic'] as EquipSlot[]);
-  const def = pick(rng, BY_SLOT[slot]);
-  const ilvl = Math.max(1, Math.round(wave));
-  if (def.exotic) return rollItem(rng, def, 'exotic', ilvl, source);
-  // deeper → better floor
-  const roll = rng() + Math.min(0.35, wave * 0.03);
-  const rarity: Rarity = roll > 1.15 ? 'legendary' : roll > 0.9 ? 'epic' : roll > 0.55 ? 'rare' : 'common';
-  return rollItem(rng, def, rarity, ilvl, source);
+  const level = Math.max(1, Math.round(ilvl));
+  const odds = gearRarityOdds(level);
+  let r = rng();
+  let rarity: Rarity = 'common';
+  for (const k of RARITY_ORDER) { r -= odds[k]; if (r < 0) { rarity = k; break; } }
+  if (rarity === 'exotic' && EXOTIC_BY_SLOT[slot].length === 0) rarity = 'legendary'; // a slot with no Apex defs
+  const def = pick(rng, rarity === 'exotic' ? EXOTIC_BY_SLOT[slot] : REGULAR_BY_SLOT[slot]);
+  return rollItem(rng, def, rarity, level, source);
 }
 
-/** Map an account Power Score → an equipment item level, so a container's gear rarity tracks account
- *  STRENGTH (not run depth). A fresh account (score ≈ base) floors at ilvl 1 (Common); it climbs
- *  smoothly and caps at 30 so late-game reads Legendary/Exotic-capable without spikes. `base` is
- *  POWER_BASE, passed in to avoid a power↔equipment import cycle. Pure + monotonic. */
-export function powerItemLevel(powerScore: number, base = 1000): number {
-  return Math.max(1, Math.min(30, Math.round((powerScore - base) / 150) + 1));
+/** The chase line the Armory shows (docs/EQUIPMENT.md §gear-chase): today's drop item level, its
+ *  affix ceiling + rare-tail odds, and the next Campaign stage that raises either. Reads the SAME
+ *  functions the drop rolls (previews == outcomes). Pure. */
+export function gearChaseView(stage: number, bestWave = 0): {
+  ilvl: number; maxTier: number; odds: Record<Rarity, number>; next: { stage: number; ilvl: number; maxTier: number } | null;
+} {
+  const ilvl = itemLevelForDepth(stage, bestWave);
+  const maxTier = maxTierForIlvl(ilvl);
+  const band = gearRarityBand(ilvl);
+  let next: { stage: number; ilvl: number; maxTier: number } | null = null;
+  for (let s = Math.max(0, Math.floor(stage)) + 1; s <= stage + 500; s++) {
+    const l = itemLevelForDepth(s, bestWave);
+    if (maxTierForIlvl(l) !== maxTier || gearRarityBand(l) !== band) { next = { stage: s, ilvl: l, maxTier: maxTierForIlvl(l) }; break; }
+  }
+  return { ilvl, maxTier, odds: gearRarityOdds(ilvl), next };
 }
 
-/** A power-scaled equipment drop: ONE item whose rarity floor + ilvl track the account Power Score,
- *  reusing the wave→rarity ladder via powerItemLevel. This is the single acquisition path used when a
- *  container yields gear (docs/EQUIPMENT.md). */
-export function rollItemForPower(rng: Rng, powerScore: number, base = 1000): OwnedItem {
-  return rollItemDrop(rng, powerItemLevel(powerScore, base), 'Genetic Vault');
+/** The Vault's equipment drop: ONE item at the account's depth item level (itemLevelForDepth).
+ *  This is the single acquisition path used when a container yields gear (docs/EQUIPMENT.md). */
+export function rollItemForDepth(rng: Rng, stage: number, bestWave = 0): OwnedItem {
+  return rollItemDrop(rng, itemLevelForDepth(stage, bestWave), 'Genetic Vault');
 }
 
 // ── Reroll & craft hooks (the optimization sink — bounded, deterministic-ish) ──
