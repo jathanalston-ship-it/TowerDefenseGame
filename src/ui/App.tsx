@@ -547,6 +547,9 @@ export function App(): JSX.Element {
   // Browser/Android BACK walks the game, never out of it (docs/HUB-FLOW.md §back): the hub's
   // own history, a Pause during a live run (+ a beforeunload warning), a hold on everything else.
   useBrowserBack(screen === 'playing' || screen === 'tutorial' ? 'run' : screen === 'menu' && !arenaSetup ? 'menu' : 'other');
+  // A live Arena match renders OVER the hub (screen stays 'menu'): ceremonies, toasts and prompts
+  // wait until it ends — a real-time PvP field must never be covered (their queues persist).
+  const menuIdle = screen === 'menu' && !arenaSetup;
 
   return (
     <div className="app">
@@ -679,30 +682,30 @@ export function App(): JSX.Element {
       {/* Claim receipts (docs/NOTIFICATIONS.md §claim-popups) — hub claims only, so the
           popup can never cover a live run. Held while an unlock announcement is up: the
           post-run placards (achievements…) land AFTER the What's New card/summary, collapsed. */}
-      {screen === 'menu' && <RewardToaster held={meta.whatsNew().length > 0} />}
-      {screen === 'menu' && <PowerToaster />}
+      {menuIdle && <RewardToaster held={meta.whatsNew().length > 0} />}
+      {menuIdle && <PowerToaster />}
       {/* Account level-ups earned off-run (star buys, molts …) celebrate here; run-settle level-ups
           render inline on Results instead, so the toaster only drains on the menu — and waits
           behind an unlock announcement exactly like the reward placards (same `held` gate). */}
-      {screen === 'menu' && <AccountLevelToast held={meta.whatsNew().length > 0} />}
+      {menuIdle && <AccountLevelToast held={meta.whatsNew().length > 0} />}
       {/* Genome Rank promotions (docs/GENOME-RANK.md) — the full-screen ceremony, menu only. */}
-      {screen === 'menu' && <GenomePromotionCinematic />}
+      {menuIdle && <GenomePromotionCinematic />}
       {/* Loot-fill toast — bio-container earned on the live meter; queued, never interrupts play. */}
       <LootToaster />
       {/* Onboarding + discovery (menu only): the HUD Tour runs once after the tutorial, then the
           "What's New?" queue announces each newly-unlocked mechanic. */}
-      {screen === 'menu' && tourActive && <Suspense fallback={null}><HudTour onClose={() => setTourActive(false)} /></Suspense>}
+      {menuIdle && tourActive && <Suspense fallback={null}><HudTour onClose={() => setTourActive(false)} /></Suspense>}
       {/* Guided Unlock (docs/GUIDED-UNLOCKS.md): "Show me ▸" on a What's New card walks the new
           wing itself — the card queue waits (WhatsNew unmounts) until the walkthrough closes. */}
-      {screen === 'menu' && !tourActive && guided && <GuidedUnlock guide={guided} onClose={() => setGuided(null)} />}
-      {screen === 'menu' && !tourActive && !guided && <WhatsNew />}
-      {screen === 'menu' && !tourActive && !guided && <UpdateBriefing />}
+      {menuIdle && !tourActive && guided && <GuidedUnlock guide={guided} onClose={() => setGuided(null)} />}
+      {menuIdle && !tourActive && !guided && <WhatsNew />}
+      {menuIdle && !tourActive && !guided && <UpdateBriefing />}
       {/* Commander designation: the FIRST prompt an unnamed save sees on reaching the hub
           (i.e. immediately after the tutorial completes or is skipped). */}
-      {screen === 'menu' && !tourActive && <CommanderName />}
+      {menuIdle && !tourActive && <CommanderName />}
       {/* Account platform (docs/ACCOUNTS.md): first-launch choice + the sync engine's
           conflict resolution — the modal can surface during ANY screen (a push can 409). */}
-      {screen === 'menu' && <WelcomeGate />}
+      {menuIdle && <WelcomeGate />}
       <ConflictModal />
       {/* Game Action Security Layer feedback (docs/SECURITY.md §feedback) — the one visible
           surface of the guard engine: a throttled "hold on" pulse when an action is blocked. */}
