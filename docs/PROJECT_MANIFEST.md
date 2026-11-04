@@ -541,8 +541,12 @@ ladders. 4. Every permanent progression source must move the Power Score (valida
   `render/` draws, never mutates; status fx TRAITS are data on `StatusEffectDef` (core).
 - **Files:** `render/renderer.ts` (battlefield), `render/statusFx.ts` (status merge + painters),
   `render/towerForms.ts` (`FORM_ANTICIPATION`), `render/towerEvolution.ts` (evolving tower
-  bodies), `render/feel.ts` (FEEL table + centre-stage `Announcer`), `render/impactFx.ts`
-  (boss-fall rings, ult impact frames), particle spawn in `core/game.ts` (`ParticleKind`s), CSS motion tokens in
+  bodies), `render/feel.ts` (FEEL table + centre-stage `Announcer` + `LAST_KILL`), `render/impactFx.ts`
+  (boss-fall rings, ult impact frames), the Batch 3 signature moments — `render/lastKill.ts` (the
+  wave's last-kill beat), `render/runOutro.ts` + `ui/components/RunBackdrop.tsx` (victory wash /
+  defeat cracks → Results on the final frame), `render/gutters.ts` + `ui/components/LivingGutters.tsx`
+  (the biome past the board edge), `render/filmDirection.ts` + `megaboss.ts drawMegaPose` (films that
+  move; premieres paint the real Mega) — see `SIGNATURE-MOMENTS.md`, particle spawn in `core/game.ts` (`ParticleKind`s), CSS motion tokens in
   `index.css`. Docs: **`COMBAT-VISUAL-STANDARDS.md`** (the feel contract + future-content
   checklist), `TOWER-VISUAL-EVOLUTION.md`, `RENDER-PIPELINE.md`, `UI-MOTION.md`,
   `PLACEHOLDER-ART.md`.

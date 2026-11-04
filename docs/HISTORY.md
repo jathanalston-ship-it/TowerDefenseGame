@@ -493,3 +493,22 @@
 - `136330f` **[Framework]** Notes: sync Chronicle artifacts to HEAD _(internal)_
 - `f5f137b` **[Bug Fixes]** A boss falling on a slow frame no longer crashes the run (negative ring radius)
 - `9471429` **[Bug Fixes]** No ceremony or toast can cover a live Arena match
+- `91326a2` **[Developer Tools]** Status: the polish batch and its follow-ups are live (deploy run #226) _(internal)_
+- `2f714f3` **[Gameplay]** The last kill of a wave lands — view-time dip, camera nudge, fanfare on the kill
+- `db9713b` **[Visuals]** Living gutters — the biome continues past the board edge
+- `8e820a7` **[UI]** Outro: victory washes the board, defeat cracks it, Results sits on the final frame
+- `3a7a183` **[Developer Tools]** Outro: SIGNATURE-MOMENTS §2 BUILT + backdrop/wash notes, anchors, DIL edges _(internal)_
+- `f53eb23` **[Bug Fixes]** Css: living gutters crossfade uses the motion tokens
+- `34255fe` **[Music]** Living gutters carry an equipped Wardrobe battlefield theme
+- `c064ea0` **[Developer Tools]** The last-kill beat — SIGNATURE-MOMENTS §1 BUILT, GAME-FEEL §last kill, CAMERA nudge rule _(internal)_
+- `7d9100d` **[Mega Bosses]** Megaboss: drawMegaPose — paint one mega WITHOUT a live Game
+- `7250ede` **[Bug Fixes]** Outro: stay on the design scale (radius token, annotated settle transition); crack wound reads the data colour
+- `5cbd31b` **[Bug Fixes]** A boss falling on a slow frame no longer crashes the run (negative ring radius)
+- `245f36f` **[Bug Fixes]** Ui: feed and vault-history rows no longer collide on same-millisecond timestamps
+- `97b1ca1` **[Visuals]** Cutscenes: films that move — direction layers + premieres that show their monster
+- `8a60413` **[Bug Fixes]** The achievement card keeps its contrast over the backdrop; record the S2 measurements
+- `009d88d` **[Bug Fixes]** Settle auto-claims after render, not during it
+- `06756cd` **[Developer Tools]** Cutscenes: §direction + §premieres; SIGNATURE-MOMENTS §3 built with taste values + measurements _(internal)_
+- `efb705c` **[Bug Fixes]** No ceremony or toast can cover a live Arena match
+- `51d4fb7` **[Bosses]** Hotfix notes — boss-fall crash and Arena pop-ups, player-facing _(internal)_
+- `7ae5119` **[Bug Fixes]** Intro: lift the Hive Core on short (phone-landscape) stages so its copy keeps the lower band

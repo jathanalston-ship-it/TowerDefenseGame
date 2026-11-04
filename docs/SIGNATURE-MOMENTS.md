@@ -1,11 +1,11 @@
 # SIGNATURE-MOMENTS.md — Batch 3 storyboard (the four big "feel" moments)
 
-> **Status: PLANNED — design only.** The 2026-11 feel audit (see docs/GAME-FEEL.md for the feel
-> vocabulary) ranked these as the moments worth building once the polish foundations land. They
-> need the owner's eye on each one, so this doc fixes the beats, the hooks and the open taste
-> choices up front; implementation follows one moment at a time, each reviewed from a
-> frame-stepped capture before it ships. Hero-ultimate impact moved into the Batch 1+2 polish
-> pass, so it is not repeated here.
+> **Status: ALL FOUR BUILT (2026-11, Batch 3 — tracks S1–S4, integrated on
+> `claude/beautiful-feynman-qdyilo`).** The 2026-11 feel audit (see docs/GAME-FEEL.md for the feel
+> vocabulary) ranked these as the moments worth building once the polish foundations land. The lead
+> made the open taste calls as DATA values (each section names its table) so the owner can retune
+> them; each moment was reviewed from frame-stepped before/after/reduced-motion/phone contact sheets.
+> Hero-ultimate impact moved into the Batch 1+2 polish pass, so it is not repeated here.
 
 **Foundations these build on (Batch 1+2):** the centre-stage announcer queue (one owner for
 centre-screen banners), the feel table (one data row per event: shake, view-only hit-stop,

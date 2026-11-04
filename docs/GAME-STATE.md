@@ -1673,3 +1673,34 @@ is ~×3 instead of ×33–40 (first Molt unchanged; BALANCE_ARCHITECTURE §9.6).
 **Known limitations.** `BRANCH_HITSTOP` is set by the sim, outside the FEEL table. BALANCE_REPORT /
 PROGRESSION_REPORT still show the pre-Imprint sawtooth until the next full matrix render (§9.6).
 Signature moments (docs/SIGNATURE-MOMENTS.md) are designed, not built.
+
+## Compressed system summary — Signature Moments, Batch 3 (docs/SIGNATURE-MOMENTS.md) ✅ BUILT
+
+**Architecture.** Four render/UI-only moments on the Batch 1+2 feel foundations (FEEL table,
+centre-stage announcer, `motionScale`). The sim, goldens and replays are untouched: the one new sim
+signal is a presentation event on the Game's INSTANCE bus.
+- **Last kill (`render/lastKill.ts`, `LAST_KILL` in feel.ts):** the sim emits `waveLastKill
+  {wave,x,y,kill,boss,mega,final}` when a wave's field empties; GameView feeds `advance(dt × rate)` so
+  view time dips (50 %; 35 % and longer on boss/Mega waves), the camera leans ≤ 4 % toward the kill,
+  and the `clear` fanfare plays on the kill (DraftModal no longer plays it). Breach endings skip the
+  slow-mo; the run-winning clear leaves the fanfare to the victory music; Arena never plays it.
+  `RenderState.fxTime` keeps presentation clocks (gore) running through the settle.
+- **Victory → Results (`render/runOutro.ts`, `RunBackdrop`):** victory reveals the Living
+  Battlefield's terraform bake (`bakeAssimilatedBoard`) outward from the core in the biome accent;
+  defeat drains colour and cracks from the breach; the hold is 2.4 s (defeat 3.4 s); a third-size JPEG
+  of the final frame becomes Results' blurred (8 px) / dimmed (40 %) backdrop. Tunables: `OUTRO` +
+  `--rb-*`.
+- **Living gutters (`render/gutters.ts`, `LivingGutters`):** desktop-only static periphery bakes behind
+  the board (35 % brightness) from the same terrain painters; infestation creeps with the Assimilation
+  Index; Mega limbs reach in; re-baked on change (4 Hz check), zero per-frame work; phones skip it.
+- **Films that move (`render/filmDirection.ts`, `megaboss.ts drawMegaPose`):** every scene drifts
+  2–3 %, punches ≤ 6 % on `impact` beats and animates its mid layer on the score's beats; all seven Mega
+  premieres paint the real Mega (silhouette → weak points ignite → the fall); per-scene `copyAt`.
+
+**Extension points.** A new centre moment = an `ANNOUNCE` row; a new last-kill variant = a
+`LAST_KILL` row; a new film scene = a scene row (`copyAt`/`camera`/`punch`/`mega` default safely); a new
+Mega premiere is mandatory-tested to use `drawMegaPose`.
+
+**Known limitations.** At a calm start (Assimilation stage 0) the gutters read nearly black — the payoff
+grows with the infestation (`GUTTERS.brightness` is one value). The dimmer story painters move only
+modestly. A three-line caption can still graze the dim edge of the core/crown on 844×390 phones.

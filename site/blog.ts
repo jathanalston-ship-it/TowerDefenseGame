@@ -17,6 +17,32 @@ export interface BlogPost {
 
 export const POSTS: BlogPost[] = [
   {
+    slug: 'moments-that-land',
+    date: '2026-11-04',
+    title: 'Moments That Land: the last kill, a victory that takes the board, and films that finally move',
+    category: 'Release',
+    tags: ['game-feel', 'cutscenes', 'mega-bosses', 'presentation', 'design'],
+    summary: 'Four moments we storyboarded in the feel audit are in: the last kill of a wave slows time for a heartbeat, a victory washes the hive across the whole battlefield, the biome now continues past the board edge, and every Mega premiere finally shows its monster.',
+    body: `
+<p>When we audited how ASSIMILATION feels, four moments kept coming up. Each was a place where something big happened and the game barely noticed. We storyboarded all four, built them, and reviewed every one frame by frame before shipping. Each also has a still version for reduced motion, and a phone version.</p>
+<h2>The last kill of a wave</h2>
+<p>The final enemy of a wave used to pop like any other, and the wave-clear fanfare played later, when the gene draft opened. Now the last kill <b>lands</b>. Time slows to half speed for a heartbeat, the camera leans toward the kill, and the fanfare plays on the kill itself. When a boss or a Mega falls, the moment runs deeper and longer. The simulation is untouched: we simply play it back more slowly for a moment, so replays and leaderboards don't change. At 5× speed the beat is shorter, and if the wave ends because the last enemy breached, there's no slow-down at all.</p>
+<h2>A victory that takes the board</h2>
+<p>A win used to freeze the board for three and a half seconds and then float your summary in a black void. Now the hive <b>assimilates the battlefield</b>: the same terraforming you watch grow during a run sweeps outward from the Hive Core to the edges, in the colour of the biome you won in. Results then opens over a blurred, darkened copy of that final frame. Defeats get their own look: the colour drains from the board and cracks spread from where the line broke.</p>
+<h2>A battlefield without edges</h2>
+<p>On a desktop screen the board used to sit in a frame of flat black. Now the biome <b>continues past the edge</b>, dimmed so it never reads as playable space: the ground, its veins and flora, and, as your run's Assimilation rises, the infestation creeping outward. On a Mega stage, the organism's limbs reach in from beyond the frame. It's painted once and refreshed only when something changes, so it adds no work while you play, and phones skip it entirely.</p>
+<h2>Films that move, and premieres that show their monster</h2>
+<p>Our cutscenes were nearly still frames. Only a few percent of the pixels changed across a scene, and MERIDIA's own premiere never actually showed MERIDIA. Every scene now has three layers of motion: a slow camera drift, a middle layer that moves on the score's beats, and drifting particles in front. The camera also punches in on the big beats. Every Mega premiere now paints the real Mega with the same painter the raid uses: it rises from silhouette, its weak points ignite one by one, and it falls. Captions sit on the quiet part of each scene instead of on the brightest thing in it.</p>
+<h2>Fixed along the way</h2>
+<ul>
+<li>A boss dying on a slow frame (most often on phones) could end the run with an error. This shipped earlier today as a hotfix.</li>
+<li>Rank promotions and other pop-ups could cover a live Arena match. They now wait until the match is over (also in today's hotfix).</li>
+<li>The last enemy's death burst froze mid-air while the gene draft opened.</li>
+<li>Home's Hive Intel feed and the Vault history could drop or double a row.</li>
+</ul>
+`,
+  },
+  {
     slug: 'feel-and-flow',
     date: '2026-11-04',
     title: 'Feel and Flow: boss kills that land, a Back button that works, and three new answers',

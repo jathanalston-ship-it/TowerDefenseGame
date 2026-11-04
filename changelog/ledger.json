@@ -1,6 +1,6 @@
 {
-  "lastSha": "94714294286bea4371254b2ee3de8407c8c39aba",
-  "commitsSinceDraft": 5,
+  "lastSha": "d7a320af44bae38d9bb2c22cae53ea8b02989ac8",
+  "commitsSinceDraft": 0,
   "content": {
     "tower": [
       "needle",
@@ -3151,7 +3151,7 @@
       "id": "v2026.11.04.2",
       "date": "2026-11-04",
       "title": "Feel and Flow",
-      "sealed": false,
+      "sealed": true,
       "entries": [
         {
           "cat": "Towers",
@@ -3301,6 +3301,50 @@
         {
           "cat": "Bug Fixes",
           "text": "Rank promotions, level-ups and other pop-ups now wait until your Arena match is over instead of covering the field"
+        }
+      ]
+    },
+    {
+      "id": "v2026.11.04.3",
+      "date": "2026-11-04",
+      "title": "Moments That Land",
+      "sealed": false,
+      "entries": [
+        {
+          "cat": "Visuals",
+          "text": "The last kill of every wave lands: time slows for a heartbeat, the camera leans in, and the wave-clear fanfare plays on the kill itself — deeper and longer when a boss or Mega falls",
+          "major": true
+        },
+        {
+          "cat": "Visuals",
+          "text": "Victory feels like a takeover: the hive washes across the whole battlefield, and your summary opens over the board you just won. Defeats drain and crack the field from the breach point",
+          "major": true
+        },
+        {
+          "cat": "Visuals",
+          "text": "On desktop the battlefield no longer ends at the board edge: the biome, its veins and the creeping infestation continue into the frame around it, and a Mega’s limbs reach in from beyond",
+          "major": true
+        },
+        {
+          "cat": "Visuals",
+          "text": "Cutscenes move: the camera drifts and punches on the score’s beats, and every Mega premiere finally shows its monster — rising from silhouette, igniting its weak points, and falling",
+          "major": true
+        },
+        {
+          "cat": "Bug Fixes",
+          "text": "The last enemy’s death burst no longer freezes mid-air while the gene draft opens"
+        },
+        {
+          "cat": "Bug Fixes",
+          "text": "Home’s Hive Intel feed and the Vault history no longer drop or double a row"
+        },
+        {
+          "cat": "Bug Fixes",
+          "text": "The “Also earned” row on Results no longer trips over achievement pop-ups"
+        },
+        {
+          "cat": "Bug Fixes",
+          "text": "On phones held sideways, the opening film keeps its captions off the Hive Core"
         }
       ]
     }
@@ -6959,6 +7003,158 @@
       "date": "2026-11-04",
       "cat": "Bug Fixes",
       "text": "No ceremony or toast can cover a live Arena match",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "91326a28f5f2ca04b2babd27b65f8ddc2308f3a5",
+      "date": "2026-11-04",
+      "cat": "Developer Tools",
+      "text": "Status: the polish batch and its follow-ups are live (deploy run #226)",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "2f714f3b9493da2e4b13d2d2103353699edf771d",
+      "date": "2026-11-04",
+      "cat": "Gameplay",
+      "text": "The last kill of a wave lands — view-time dip, camera nudge, fanfare on the kill",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "db9713b6d3ebf7b7288f144035083b547543c01b",
+      "date": "2026-11-04",
+      "cat": "Visuals",
+      "text": "Living gutters — the biome continues past the board edge",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "8e820a74952137740ad99015f4bbf0798f857b11",
+      "date": "2026-11-04",
+      "cat": "UI",
+      "text": "Outro: victory washes the board, defeat cracks it, Results sits on the final frame",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "3a7a1835dbe84bd416ae451bee172c794d0b7d63",
+      "date": "2026-11-04",
+      "cat": "Developer Tools",
+      "text": "Outro: SIGNATURE-MOMENTS §2 BUILT + backdrop/wash notes, anchors, DIL edges",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "f53eb23ad20960c9ecaa12261ec5d8707c208718",
+      "date": "2026-11-04",
+      "cat": "Bug Fixes",
+      "text": "Css: living gutters crossfade uses the motion tokens",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "34255fe016bbc1a0074077c03471ccda7a253da5",
+      "date": "2026-11-04",
+      "cat": "Music",
+      "text": "Living gutters carry an equipped Wardrobe battlefield theme",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "c064ea0d6459f73bdaf521a711125a07d398d1f1",
+      "date": "2026-11-04",
+      "cat": "Developer Tools",
+      "text": "The last-kill beat — SIGNATURE-MOMENTS §1 BUILT, GAME-FEEL §last kill, CAMERA nudge rule",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "7d9100df74a11d916de123f6de6351e21e645dc6",
+      "date": "2026-11-04",
+      "cat": "Mega Bosses",
+      "text": "Megaboss: drawMegaPose — paint one mega WITHOUT a live Game",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "7250ede6d935b15016654aaca9ced2e674a5f253",
+      "date": "2026-11-04",
+      "cat": "Bug Fixes",
+      "text": "Outro: stay on the design scale (radius token, annotated settle transition); crack wound reads the data colour",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "5cbd31be004948f04fd1323d9c0da0690b912f73",
+      "date": "2026-11-04",
+      "cat": "Bug Fixes",
+      "text": "A boss falling on a slow frame no longer crashes the run (negative ring radius)",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "245f36f6b213ffb971990ff7bd639ea988bebe66",
+      "date": "2026-11-04",
+      "cat": "Bug Fixes",
+      "text": "Ui: feed and vault-history rows no longer collide on same-millisecond timestamps",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "97b1ca1d2990fd6586575ba40b64cd2e9b19534f",
+      "date": "2026-11-04",
+      "cat": "Visuals",
+      "text": "Cutscenes: films that move — direction layers + premieres that show their monster",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "8a604130294dd43ac948cab41fa93886553543f6",
+      "date": "2026-11-04",
+      "cat": "Bug Fixes",
+      "text": "The achievement card keeps its contrast over the backdrop; record the S2 measurements",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "009d88dc8a9852b2fe5b0263d87db13c83c49bb5",
+      "date": "2026-11-04",
+      "cat": "Bug Fixes",
+      "text": "Settle auto-claims after render, not during it",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "06756cd28b1be983619d0707592a9e220eb3bbd5",
+      "date": "2026-11-04",
+      "cat": "Developer Tools",
+      "text": "Cutscenes: §direction + §premieres; SIGNATURE-MOMENTS §3 built with taste values + measurements",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "efb705c5704e35c9ae08a1bf0c812a06ab70aad1",
+      "date": "2026-11-04",
+      "cat": "Bug Fixes",
+      "text": "No ceremony or toast can cover a live Arena match",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "51d4fb799d189730e1ea49580aa0ca910f08d541",
+      "date": "2026-11-04",
+      "cat": "Bosses",
+      "text": "Hotfix notes — boss-fall crash and Arena pop-ups, player-facing",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "7ae5119b7d77d9af193072038eb3967829ed34f4",
+      "date": "2026-11-04",
+      "cat": "Bug Fixes",
+      "text": "Intro: lift the Hive Core on short (phone-landscape) stages so its copy keeps the lower band",
       "internal": false,
       "needsReview": false
     }

@@ -5,10 +5,54 @@ import type { Release } from './types';
 /** Player-facing releases, newest first. */
 export const RELEASES: Release[] = [
   {
+    "id": "v2026.11.04.3",
+    "date": "2026-11-04",
+    "title": "Moments That Land",
+    "sealed": false,
+    "entries": [
+      {
+        "cat": "Visuals",
+        "text": "The last kill of every wave lands: time slows for a heartbeat, the camera leans in, and the wave-clear fanfare plays on the kill itself — deeper and longer when a boss or Mega falls",
+        "major": true
+      },
+      {
+        "cat": "Visuals",
+        "text": "Victory feels like a takeover: the hive washes across the whole battlefield, and your summary opens over the board you just won. Defeats drain and crack the field from the breach point",
+        "major": true
+      },
+      {
+        "cat": "Visuals",
+        "text": "On desktop the battlefield no longer ends at the board edge: the biome, its veins and the creeping infestation continue into the frame around it, and a Mega’s limbs reach in from beyond",
+        "major": true
+      },
+      {
+        "cat": "Visuals",
+        "text": "Cutscenes move: the camera drifts and punches on the score’s beats, and every Mega premiere finally shows its monster — rising from silhouette, igniting its weak points, and falling",
+        "major": true
+      },
+      {
+        "cat": "Bug Fixes",
+        "text": "The last enemy’s death burst no longer freezes mid-air while the gene draft opens"
+      },
+      {
+        "cat": "Bug Fixes",
+        "text": "Home’s Hive Intel feed and the Vault history no longer drop or double a row"
+      },
+      {
+        "cat": "Bug Fixes",
+        "text": "The “Also earned” row on Results no longer trips over achievement pop-ups"
+      },
+      {
+        "cat": "Bug Fixes",
+        "text": "On phones held sideways, the opening film keeps its captions off the Hive Core"
+      }
+    ]
+  },
+  {
     "id": "v2026.11.04.2",
     "date": "2026-11-04",
     "title": "Feel and Flow",
-    "sealed": false,
+    "sealed": true,
     "entries": [
       {
         "cat": "Towers",
