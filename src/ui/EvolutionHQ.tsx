@@ -1,5 +1,5 @@
 // Evolution HQ (docs/EVOLUTION-HQ.md) — the permanent-progression headquarters. A living-lab
-// backdrop, a Genome Cores treasury banner, a sticky section jump rail, a 10-stat account
+// backdrop, a Genome Cores treasury banner, SectionNav chips + folds (one per section), a 10-stat account
 // readout, the Genome Core upgrades grouped into category sections with rich cards — each
 // section capped catalog + ONE uncapped RUNAWAY sink card (§runaway: √level returns, geometric
 // cost, hold-to-repeat buying) — the Ascension (Molt + Ascendant Tree) block, and a
@@ -21,8 +21,7 @@ import { ProgressBar } from './components/ProgressBar';
 import { PowerPreview } from './components/PowerScore';
 import { CurrencyIcon } from './components/CurrencyIcon';
 import { usePressRepeat } from './components/usePressRepeat';
-import { MobileSection } from './components/MobileSection';
-import { useLayoutProfile } from './layoutProfile';
+import { SectionNav } from './components/SectionNav';
 import { PrestigePanel } from './PrestigePanel';
 import { BestBuyStrip } from './components/BestBuyStrip';
 
@@ -128,12 +127,13 @@ function RunawayCard({ card, curPower, onBuy, justBought }: {
   );
 }
 
-function SectionBlock({ section, curPower, onBuyRunaway, justBought }: {
+/** One Genome category's cards — a SectionNav section body (the section header carries the
+ *  category's icon, title, description and completion; one header, every layout profile). */
+function SectionGrid({ section, curPower, onBuyRunaway, justBought }: {
   section: GenomeSection; curPower: number;
   onBuyRunaway: (id: string) => boolean; justBought: string | null;
 }): JSX.Element {
-  const { profile } = useLayoutProfile();
-  const grid = (
+  return (
     <div className="evo-card-grid">
       {section.cards.map((c) => (
         c.infinite
@@ -141,40 +141,6 @@ function SectionBlock({ section, curPower, onBuyRunaway, justBought }: {
           : <GenomeCard key={c.id} card={c} curPower={curPower} onBuy={onBuyRunaway} justBought={justBought === c.id} />
       ))}
     </div>
-  );
-  // Portrait: the category folds — the HQ was a 25-screen scroll; folded, it reads as a
-  // table of contents and you open the category you came to spend in (the msec header
-  // replaces the desktop section head).
-  if (profile === 'portrait') {
-    return (
-      <MobileSection
-        title={`${section.icon} ${section.title}`}
-        hint={section.desc}
-        count={`${section.completionPct}%${section.endlessLevels > 0 ? ` · ∞${section.endlessLevels}` : ''}`}
-      >
-        {grid}
-      </MobileSection>
-    );
-  }
-  return (
-    <section className="evo-hq-section" id={`evo-sec-${section.category}`}>
-      <div className="evo-sec-head">
-        <span className="evo-sec-icon" aria-hidden>{section.icon}</span>
-        <div className="evo-sec-title-wrap">
-          <div className="evo-sec-title">{section.title}</div>
-          <div className="evo-sec-desc">{section.desc}</div>
-        </div>
-        <div className="evo-sec-prog">
-          <div className="evo-sec-pct">
-            {section.completionPct}%
-            {section.endlessLevels > 0 && <span className="evo-sec-endless" title="Runaway mutation levels (uncapped)">∞ {section.endlessLevels}</span>}
-          </div>
-          <ProgressBar value={section.boughtLevels} max={section.totalLevels} height={5} color="var(--viral)" label={`${section.title} completion`} />
-          <div className="evo-sec-meta">{section.boughtLevels}/{section.totalLevels} levels · <CurrencyIcon id="genomeCores" size={11} title="" /> {section.coresSpent.toLocaleString()} spent</div>
-        </div>
-      </div>
-      {grid}
-    </section>
   );
 }
 
@@ -223,12 +189,8 @@ export function EvolutionHQ(): JSX.Element {
   const prestige = meta.prestigeView();
   const towerCap = Math.min(SLOTS.permanentMax, SLOTS.initialUnlocked + mm.bonusSlots);
   const runawayLevels = sections.reduce((a, s) => a + s.endlessLevels, 0);
+  const firstAffordable = sections.find((sec) => sec.cards.some((c) => !c.completed && !c.locked && c.cost !== null && c.cost <= save.shards))?.category;
   const pct = (m: number): string => `×${m.toFixed(2)}`;
-  const { profile } = useLayoutProfile();
-  const portrait = profile === 'portrait'; // folded categories replace the jump rail + section heads
-  const jumpTo = (id: string): void => {
-    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  };
 
   return (
     <div className="evo-hq">
@@ -259,93 +221,58 @@ export function EvolutionHQ(): JSX.Element {
       />
       {sections.length === 0 && <div className="tl2-empty">No upgrades match — clear the search or filters.</div>}
 
-      {/* Jump rail — the HQ is long; every section is one tap away. (Desktop only: on portrait
-          the folded category headers below ARE the index, all visible in one viewport.) */}
-      {!portrait && (
-      <nav className="evo-jump" aria-label="Section navigation">
-        {sections.map((s) => (
-          <button key={s.category} className="evo-jump-chip" onClick={() => jumpTo(`evo-sec-${s.category}`)}>
-            <span aria-hidden>{s.icon}</span> {s.title}
-            <i className="evo-jump-pct">{s.completionPct}%{s.endlessLevels > 0 ? ` · ∞${s.endlessLevels}` : ''}</i>
-          </button>
-        ))}
-        <button className="evo-jump-chip" onClick={() => jumpTo('evo-sec-ascension')}>
-          <span aria-hidden>✸</span> Ascension
-        </button>
-      </nav>
-      )}
-
-      {/* Account statistics — the permanent state at a glance (portrait: folded, secondary
-          to the spending job this screen exists for). */}
-      <MobileSection title="Account stats" hint="Your permanent multipliers at a glance." count={formatPower(curPower)}>
-        <section className="evo-stats" aria-label="Permanent statistics">
-          <StatLine label="Total Power" value={formatPower(curPower)} accent="var(--gold)" />
-          <StatLine label="Permanent Damage" value={pct(mm.towerDamageMult)} />
-          <StatLine label="Permanent Biomass" value={pct(mm.biomassMult)} />
-          <StatLine label="Hero Strength" value={pct(mm.heroDamageMult)} />
-          <StatLine label="Tower Capacity" value={`${towerCap}`} />
-          <StatLine label="Prestige Multiplier" value={pct(prestige.mult)} accent="var(--viral)" />
-          <StatLine label="Runaway Levels" value={`∞ ${runawayLevels}`} accent="var(--viral)" />
-          <StatLine label="Lifetime Genome Cores" value={`${save.lifetimeShards}`} />
-          <StatLine label="Lifetime Ascendant Cells" value={`${save.prestige.lifetimeCells}`} accent="var(--viral)" />
-          <StatLine label="Campaign Depth" value={`Stage ${highestCampaignStage(save)}`} />
-        </section>
-      </MobileSection>
-
-      {/* Genome Core sections — one per category (capped catalog + the Runaway sink). */}
-      {sections.map((sec) => (
-        <SectionBlock key={sec.category} section={sec} curPower={curPower} onBuyRunaway={onBuyRunaway} justBought={justBought} />
-      ))}
-
-      {/* Ascension — Molt gate + Ascendant Tree (the existing panel, one source of truth). */}
-      {portrait ? (
-        <MobileSection title="✸ Ascension" hint="Sacrifice the Genome engine to mint Ascendant Cells — permanent power that never resets." count={`×${prestige.mult.toFixed(2)}`}>
-          <PrestigePanel />
-        </MobileSection>
-      ) : (
-      <section className="evo-hq-section evo-ascension" id="evo-sec-ascension">
-        <div className="evo-sec-head">
-          <span className="evo-sec-icon" aria-hidden>✸</span>
-          <div className="evo-sec-title-wrap">
-            <div className="evo-sec-title">Ascension</div>
-            <div className="evo-sec-desc">Sacrifice the Genome engine to mint Ascendant Cells — permanent power that never resets.</div>
-          </div>
-        </div>
-        <PrestigePanel />
-      </section>
-      )}
-
-      {/* Future Locked — the visible long horizon. */}
-      {portrait ? (
-        <MobileSection title="🔒 Future Evolution" hint="Deeper ascension layers, coming as the organism matures.">
-          <div className="evo-future-grid">
-            {FUTURE_LOCKED.map((f) => (
-              <div className="evo-future-card" key={f.name}>
-                <div className="evo-future-name">🔒 {f.name}</div>
-                <div className="evo-future-desc">{f.desc}</div>
-              </div>
-            ))}
-          </div>
-        </MobileSection>
-      ) : (
-      <section className="evo-hq-section evo-future">
-        <div className="evo-sec-head">
-          <span className="evo-sec-icon is-locked" aria-hidden>🔒</span>
-          <div className="evo-sec-title-wrap">
-            <div className="evo-sec-title">Future Evolution</div>
-            <div className="evo-sec-desc">Deeper ascension layers, coming as the organism matures.</div>
-          </div>
-        </div>
-        <div className="evo-future-grid">
-          {FUTURE_LOCKED.map((f) => (
-            <div className="evo-future-card" key={f.name}>
-              <div className="evo-future-name">🔒 {f.name}</div>
-              <div className="evo-future-desc">{f.desc}</div>
+      {/* The HQ is long: ONE SectionNav (components/SectionNav — sticky chips + folds remembered
+          per device) replaces the old jump rail and the portrait-only folds. By default only the
+          FIRST category holding something affordable opens (the reason you came — the rest read
+          as a table of contents with their %); searching opens all. */}
+      <SectionNav
+        screen="evolution"
+        label="Evolution HQ sections"
+        forceOpen={boardQuery.trim() !== ''}
+        sections={[
+          { id: 'stats', icon: '◑', title: 'Account stats', hint: 'Your permanent multipliers at a glance.', count: formatPower(curPower), defaultOpen: false, render: () => (
+            <section className="evo-stats" aria-label="Permanent statistics">
+              <StatLine label="Total Power" value={formatPower(curPower)} accent="var(--gold)" />
+              <StatLine label="Permanent Damage" value={pct(mm.towerDamageMult)} />
+              <StatLine label="Permanent Biomass" value={pct(mm.biomassMult)} />
+              <StatLine label="Hero Strength" value={pct(mm.heroDamageMult)} />
+              <StatLine label="Tower Capacity" value={`${towerCap}`} />
+              <StatLine label="Prestige Multiplier" value={pct(prestige.mult)} accent="var(--viral)" />
+              <StatLine label="Runaway Levels" value={`∞ ${runawayLevels}`} accent="var(--viral)" />
+              <StatLine label="Lifetime Genome Cores" value={`${save.lifetimeShards}`} />
+              <StatLine label="Lifetime Ascendant Cells" value={`${save.prestige.lifetimeCells}`} accent="var(--viral)" />
+              <StatLine label="Campaign Depth" value={`Stage ${highestCampaignStage(save)}`} />
+            </section>
+          ) },
+          // Genome Core sections — one per category (capped catalog + the Runaway sink).
+          ...sections.map((sec) => ({
+            id: sec.category, icon: sec.icon, title: sec.title, hint: sec.desc,
+            count: `${sec.completionPct}%${sec.endlessLevels > 0 ? ` · ∞${sec.endlessLevels}` : ''}`,
+            meta: (
+              <>
+                <ProgressBar value={sec.boughtLevels} max={sec.totalLevels} height={5} color="var(--viral)" label={`${sec.title} completion`} />
+                <span className="evo-sec-meta">{sec.boughtLevels}/{sec.totalLevels} levels · <CurrencyIcon id="genomeCores" size={11} title="" /> {sec.coresSpent.toLocaleString()} spent</span>
+              </>
+            ),
+            defaultOpen: sec.category === firstAffordable,
+            render: () => <SectionGrid section={sec} curPower={curPower} onBuyRunaway={onBuyRunaway} justBought={justBought} />,
+          })),
+          // Ascension — Molt gate + Ascendant Tree (the existing panel, one source of truth).
+          { id: 'ascension', icon: '✸', title: 'Ascension', hint: 'Sacrifice the Genome engine to mint Ascendant Cells — permanent power that never resets.',
+            count: `×${prestige.mult.toFixed(2)}`, defaultOpen: prestige.canMolt || prestige.cells > 0, render: () => <PrestigePanel /> },
+          // Future Locked — the visible long horizon.
+          { id: 'future', icon: '🔒', title: 'Future Evolution', hint: 'Deeper ascension layers, coming as the organism matures.', defaultOpen: false, render: () => (
+            <div className="evo-future-grid">
+              {FUTURE_LOCKED.map((f) => (
+                <div className="evo-future-card" key={f.name}>
+                  <div className="evo-future-name">🔒 {f.name}</div>
+                  <div className="evo-future-desc">{f.desc}</div>
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
-      </section>
-      )}
+          ) },
+        ]}
+      />
     </div>
   );
 }

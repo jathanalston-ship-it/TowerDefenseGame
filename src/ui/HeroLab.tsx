@@ -21,11 +21,11 @@ import { ProgressBar } from './components/ProgressBar';
 import { CurrencyIcon } from './components/CurrencyIcon';
 import { audio } from '../audio/sound';
 import { telemetry } from '../net/telemetry';
-import { MobileSection } from './components/MobileSection';
+import { SectionNav } from './components/SectionNav';
+import { isOpenNav } from '../state/unlocks';
 import { SymbioteChamber } from './SymbioteChamber';
 import { BestBuyStrip } from './components/BestBuyStrip';
 import { EvolutionTrackPanel } from './EvolutionTrack';
-import { useLayoutProfile } from './layoutProfile';
 import { navBus } from '../state/navBus';
 import type { HeroCollectionEntry } from '../state/meta';
 
@@ -34,31 +34,16 @@ const RARITY_VAR: Record<string, string> = {
   legendary: 'var(--r-legendary)', exotic: 'var(--viral)',
 };
 
-/** `fold` marks a SECONDARY section: on portrait it collapses behind a self-describing header
- *  (the showcase + Star buys stay inline — they are the screen's job); desktop is unchanged. */
-function Section({ title, accent, fold = false, hint, children }: { title: string; accent?: string; fold?: boolean; hint?: string; children: React.ReactNode }): JSX.Element {
-  const portrait = useLayoutProfile().profile === 'portrait';
-  if (fold && portrait) {
-    return <MobileSection title={title} hint={hint}>{children}</MobileSection>;
-  }
-  return (
-    <div className="hsec">
-      <div className="hsec-h" style={accent ? { color: accent } : undefined}>{title}</div>
-      {children}
-    </div>
-  );
-}
-
 /** Re-pickable ability forks (★5/★8, HEROES.md) — each option REWORKS one of the hero's already-
- *  unlocked abilities (not a bolt-on). Re-selectable any time; applied on the next run. Renders
- *  nothing until the first fork tier is reached, so pre-★5 heroes see no empty section. */
+ *  unlocked abilities (not a bolt-on). Re-selectable any time; applied on the next run. The hero
+ *  page lists the section only once the first fork tier is reached (no empty section pre-★5). */
 function HeroForkPaths({ kind, color }: { kind: HeroKind; color: string }): JSX.Element | null {
   meta.use(); // re-render on pick
   const tiers = meta.heroForkTiers(kind);
   if (tiers.length === 0) return null;
   const picks = meta.heroForkPicks(kind);
   return (
-    <Section title="Ability Forks" accent={color} fold hint="Divergent reworks of unlocked abilities — re-pickable.">
+    <>
       <p className="hsec-desc">Divergent evolutions that reshape an unlocked ability. Re-pickable; applied next run.</p>
       <div className="hl-forks">
         {tiers.map((t) => {
@@ -83,7 +68,7 @@ function HeroForkPaths({ kind, color }: { kind: HeroKind; color: string }): JSX.
           );
         })}
       </div>
-    </Section>
+    </>
   );
 }
 
@@ -197,6 +182,7 @@ export function HeroLab(): JSX.Element {
   const d = heroDetail(save, focus);
   const id = heroIdentity(focus); // the data-driven identity layer (docs/HERO-FRAMEWORK.md)
   const c = d.def.color;
+  const hasForks = meta.heroForkTiers(focus).length > 0;
   const slots = meta.heroSlots(); // Hero Slot progression (1 → 2 → 3; HEROES.md)
   const fieldedSet = new Set(meta.fieldedLoadout()); // heroes currently in the roster (any slot)
   const isPrimary = slots[0]?.kind === focus;
@@ -341,9 +327,11 @@ export function HeroLab(): JSX.Element {
           <div className="hstat"><span className="hstat-v">{d.runs}</span><span className="hstat-k">Runs Fielded</span></div>
         </div>
 
-        <div className="hero-sections">
-          {/* Combat Role */}
-          <Section title="Combat Role" accent={c}>
+        {/* The hero page's sections ride the ONE long-screen pattern (components/SectionNav):
+            sticky chips + folds remembered per device. The primary jobs (role, Stars) start
+            open; the deep secondary panels start folded behind a one-line hint. */}
+        <SectionNav screen="heroes" label={`${d.def.name} sections`} sections={[
+          { id: 'role', title: 'Combat Role', accent: c, render: () => (<>
             <div className="hsec-role">{d.lore.roleLabel}</div>
             <p className="hsec-desc">{d.lore.roleDesc}</p>
             <div className="hsec-ability">
@@ -356,10 +344,8 @@ export function HeroLab(): JSX.Element {
             {d.def.attackDamage > 0
               ? <div className="kv-row"><span>Strike</span><b>{d.def.attackDamage} dmg</b></div>
               : <div className="kv-row"><span>Support</span><b>field / utility</b></div>}
-          </Section>
-
-          {/* Hero Identity — the data-driven kit (docs/HERO-FRAMEWORK.md): passive · active · trait · scaling */}
-          <Section title="Hero Identity" accent={c} fold hint="Passive · active · trait · scaling, with strengths and weaknesses.">
+          </>) },
+          { id: 'identity', title: 'Hero Identity', accent: c, hint: 'Passive · active · trait · scaling, with strengths and weaknesses.', defaultOpen: false, render: () => (<>
             <div className="hkit">
               <div className="hkit-row"><span className="hkit-tag" style={{ borderColor: c, color: c }}>Passive</span><span className="hkit-body"><b>{id.passive.name}</b> — {id.passive.desc}</span></div>
               <div className="hkit-row"><span className="hkit-tag" style={{ borderColor: c, color: c }}>Active</span><span className="hkit-body"><b>{d.def.ability.name}</b> — {d.def.ability.blurb}</span></div>
@@ -376,10 +362,8 @@ export function HeroLab(): JSX.Element {
                 {id.weaknesses.map((w) => <span className="hsw-item" key={w}>− {w}</span>)}
               </div>
             </div>
-          </Section>
-
-          {/* Stars */}
-          <Section title="Star Progression" accent={c}>
+          </>) },
+          { id: 'stars', title: 'Star Progression', accent: c, count: `${d.stars}/${d.maxStars} ◈`, render: () => (<>
             <div className="pips big" aria-label={`${d.stars} of ${d.maxStars} stars`}>
               {Array.from({ length: d.maxStars }, (_, i) => (
                 <span key={i} className={`pip ${i < d.stars ? 'on' : ''}`} style={i < d.stars ? { color: c } : undefined}>◈</span>
@@ -437,19 +421,12 @@ export function HeroLab(): JSX.Element {
                 </p>
               </>
             )}
-          </Section>
-
-          {/* Ability Forks (★5/★8) — divergent reworks of the hero's unlocked abilities */}
-          <HeroForkPaths kind={focus} color={c} />
-
-          {/* Symbiotes (docs/HERO-SYMBIOTES.md) — the grafted-organism console: 3 gated slots ×
-              3 organ seats, per-slot adaptations, resonance, and the identity trials. */}
-          <Section title="Symbiote Chamber" accent={c} fold hint="Graft living organs — slots, adaptations, resonance, trials.">
+          </>) },
+          ...(hasForks ? [{ id: 'forks', title: 'Ability Forks', accent: c, hint: 'Divergent reworks of unlocked abilities — re-pickable.', defaultOpen: false, render: () => <HeroForkPaths kind={focus} color={c} /> }] : []),
+          { id: 'symbiote', title: 'Symbiote Chamber', accent: c, hint: 'Graft living organs — slots, adaptations, resonance, trials.', count: `⟡ ${d.symbiote.slotsActive}/${d.symbiote.slots}`, defaultOpen: false, render: () => (<>
             <SymbioteChamber kind={focus} />
-          </Section>
-
-          {/* Mastery */}
-          <Section title="Mastery" accent={c} fold hint="Lifetime rank, XP, and earned perks.">
+          </>) },
+          { id: 'mastery', title: 'Mastery', accent: c, hint: 'Lifetime rank, XP, and earned perks.', count: `Lv ${d.mastery.level}`, defaultOpen: false, render: () => (<>
             <div className="kv-row">
               <span>Rank</span>
               <b style={{ color: c }}>{d.mastery.rankTitle}</b>
@@ -467,13 +444,11 @@ export function HeroLab(): JSX.Element {
               <p className="hsec-desc">Mastery rises forever as this hero fights — ranks and perks unlock with use.</p>
             )}
             <p className="hsec-hint">Each Mastery Rank grants 1 Antigen — spend it in the Adaptation Chamber.{' '}
-              <button className="hsec-golink" onClick={() => navBus.go('adaptation')}>☣ Open Adaptation Chamber ▸</button>
+              {isOpenNav(save, 'adaptation') && <button className="hsec-golink" onClick={() => navBus.go('adaptation')}>☣ Open Adaptation Chamber ▸</button>}
             </p>
             <EvolutionTrackPanel subject="hero" unit={focus} name={d.def.name} color={c} />
-          </Section>
-
-          {/* Current Loadout */}
-          <Section title="Current Loadout" accent={c} fold hint="Equipped gear — manage it in the Armory.">
+          </>) },
+          { id: 'loadout', title: 'Current Loadout', accent: c, hint: 'Equipped gear — manage it in the Armory.', count: `${d.loadout.filter((l) => l.name).length}/${d.loadout.length}`, defaultOpen: false, render: () => (<>
             <div className="hero-loadout">
               {d.loadout.map((l) => (
                 <div className="hl-slot" key={l.slot}>
@@ -487,19 +462,19 @@ export function HeroLab(): JSX.Element {
               ))}
             </div>
             <div className="kv-row"><span>Favorite gear</span><b>{d.favoriteEquip ?? '—'}</b></div>
-            <p className="hsec-hint">Equip & craft gear in the Armory below ↓</p>
-          </Section>
-
-          {/* Specialization */}
-          <Section title="Specialization" accent={c} fold hint="How this hero wants to be built.">
+            <p className="hsec-hint">
+              {isOpenNav(save, 'equipment')
+                ? <>Equip &amp; craft gear in the Armory.{' '}<button className="hsec-golink" onClick={() => navBus.go('equipment')}>⛨ Open the Armory ▸</button></>
+                : 'Gear you find banks safely — the Armory opens on its own beat.'}
+            </p>
+          </>) },
+          { id: 'spec', title: 'Specialization', accent: c, hint: 'How this hero wants to be built.', defaultOpen: false, render: () => (<>
             <div className="hsec-role" style={{ color: c }}>{d.lore.specialization}</div>
             <p className="hsec-desc">
               {d.def.combatClass} discipline — this hero's build leans into its {d.lore.roleLabel.toLowerCase()} identity through stars, mastery, and gear.
             </p>
-          </Section>
-
-          {/* Future unlocks */}
-          <Section title="Future Progress" accent={c} fold hint="What this hero still has ahead.">
+          </>) },
+          { id: 'future', title: 'Future Progress', accent: c, hint: 'What this hero still has ahead.', defaultOpen: false, render: () => (<>
             {d.nextUnlocks.map((u, i) => (
               <div className="hunlock" key={i}>
                 <span className="hu-kind" style={{ borderColor: c, color: c }}>{u.kind}</span>
@@ -510,8 +485,8 @@ export function HeroLab(): JSX.Element {
               </div>
             ))}
             <p className="hsec-hint">One more run pushes every one of these forward.</p>
-          </Section>
-        </div>
+          </>) },
+        ]} />
         </>)}
       </div>
 
