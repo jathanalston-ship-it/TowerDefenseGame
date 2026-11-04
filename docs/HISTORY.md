@@ -415,3 +415,52 @@
 - `58adc87` **[UI]** Command strip: hide stats for screens that haven't opened yet
 - `a22f993` **[Backend]** BE/NL: real money never reaches a random outcome (Belgian reading, both countries)
 - ⚑ `2e6bd98` **[Framework]** Validation report: PASS over the BE/NL region rule (2738/2738) _(internal)_
+- `8e6a652` **[Website]** Website refresh to the current game + a standing freshness rule
+- `f73e8fb` **[Website]** Validation report: PASS over the website refresh (2738/2738) _(internal)_
+- `f02b35d` **[UI]** One name per screen: nav labels derive from the feature registry
+- `a6cc2dd` **[Developer Tools]** Readability floor: --dim reads 4.5:1, Season Pass labels 12px, contrast gauges
+- `a3635b5` **[UI]** Top-bar chips answer on tap: wallet + level popovers
+- `8fe67e2` **[UI]** Chip popovers escape the scrolling top bar; Materials chip shares them
+- ⚑ `fb789d5` **[Framework]** Vitest: never collect tests from agent worktrees under .claude/ _(internal)_
+- `d75d09a` **[Bosses]** Bio-Dex: count only real Brood Tyrants; Apex Slayer reads the run's boss kills
+- `a1e210c` **[Visuals]** Docs: SIGNATURE-MOMENTS.md — Batch 3 storyboard (last kill, victory carry-over, cutscenes, gutters) _(internal)_
+- ⚑ `a747db2` **[Framework]** Regenerate DIL graph for the SIGNATURE-MOMENTS doc node _(internal)_
+- `d82d035` **[UI]** Advice is a link: guidance that names a screen carries a Go ▸
+- `1536e1b` **[UI]** Browser/Android Back + Escape walk the game, never out of it
+- `cd97bba` **[UI]** Hub shell: local error boundary, chunk retry, no loading flash, honest doors, CTA above the fold
+- `06dd7b1` **[Gameplay]** Results: Stage N+1 from a Campaign win, a steady capsule, a reveal with a voice
+- `a0563aa` **[UX]** Intro → tutorial hand-off: the cold-open banner waits for the film, a gold afterglow lands it
+- `9481823` **[UI]** Hold the account level-up toast behind the unlock summary
+- `1896aa4` **[UI]** Portrait phones: keep the run layout through the deploy breath and Results
+- `a207f23` **[UI]** One claim pattern: shared ClaimAll on Quest Board / Season Pass / Milestones; a lean Vault reveal
+- ⚑ `907971d` **[Framework]** DIL: record the post-run feel + claim-pattern relationships _(internal)_
+- `088cac3` **[UI]** Pre-run LoadoutStrip + Campaign stage panel with a pinned launch footer
+- `2d53d23` **[UI]** SectionNav: one sticky-chip + fold pattern for the long screens
+- `118a95d` **[UI]** Docs: naming, readability, touch-info, long-screen and loadout standards _(internal)_
+- `4ab2230` **[Gameplay]** Cosmetic reward links name the Phenotype Lab, not the Wardrobe
+- `73b480c` **[UI]** Back guard: keep URL cleanups across a consume; theater is a modal, not a phase
+- ⚑ `1425203` **[Framework]** Docs: the --dim token value and the cogload readability gauge _(internal)_
+- ⚑ `543ca1c` **[Framework]** Regenerate DIL and dependency graphs after merging track N2 _(internal)_
+- `b188340` **[Gene Cards]** Hub prefetch: a landing warms its cards right after paint
+- `9ad5fc6` **[Bosses]** Boss Rush: "Boss strength" forecast row (Threat names only the ladder)
+- `0164ccf` **[Heroes]** Content: answer-roster towers, puzzle fauna, Myceliarch hero (WIP data rows)
+- `b73f734` **[Gameplay]** Field Guides open folded sections while they run
+- `2c01fd7` **[Visuals]** Feel table, centre-stage announcer and Motion device prefs
+- `21a597d` **[Audio]** Every cue resolves: feel-table ducks/stingers, new voices, cue coverage test
+- `ed96cef` **[Visuals]** Damage numbers that read, impact frames, flash gates
+- `8c25a7a` **[Bosses]** In-run battle feel: centre stage, boss kills land, pick moment, Motion settings
+- `5a4e2aa` **[Bosses]** Docs: feel table, centre stage, boss kills, pick moment, Motion settings _(internal)_
+- `aced530` **[Bosses]** GAME-FEEL: boss-arrival shake now names its FEEL row _(internal)_
+- `bf36eb1` **[Gameplay]** Live achievement bursts collapse into one toast, like held ones
+- `7e0dc4f` **[Gameplay]** Naming leftovers: Results "Toughest Kill"; Quest Board names the Phenotype Lab
+- `de0363c` **[Bosses]** Portrait: the Bio-Roulette after Boss Rush plays without the rotate gate
+- ⚑ `0f49fe3` **[Framework]** Regenerate dependency and DIL graphs after merging track F2 _(internal)_
+- `1dc1d85` **[Towers]** Content: tune answer roster + puzzle fauna, add mulligan pieces, tests, docs, achievements
+- ⚑ `7b4fb81` **[Framework]** Regenerate DIL and dependency graphs after merging track F1 _(internal)_
+- `50de37c` **[Website]** Hub prefetch: one idle slot per navigation, a landing within 100 ms
+- `b2358c8` **[Gameplay]** Season Pass: Claim all clears the whole backlog in one press
+- `dadbd62` **[Gameplay]** Help: Walls & Blockers mechanic row; document the answer roster's collection hooks
+- `27fb218` **[Gameplay]** Myceliarch: lifetime-kills milestone gate; Tick adaptations on live axes
+- `f509b89` **[Developer Tools]** Mobilecheck stops its preview server; drop the vault reveal's dead fast toggle
+- `890af79` **[Bosses]** Replay theater shows boss and Mega fall cards again
+- `315c205` **[Bosses]** A splitting boss falls once: bossKilled marks its last piece

@@ -12,6 +12,71 @@ export const RELEASES: Release[] = [
     "entries": [
       {
         "cat": "Gameplay",
+        "text": "New achievement: Every Question Answered",
+        "major": true
+      },
+      {
+        "cat": "Gameplay",
+        "text": "New achievement: The Gate Holds",
+        "major": true
+      },
+      {
+        "cat": "Gameplay",
+        "text": "New achievement: The Answer Key",
+        "major": true
+      },
+      {
+        "cat": "Enemies",
+        "text": "New enemy: Veil Moth",
+        "major": true
+      },
+      {
+        "cat": "Enemies",
+        "text": "New enemy: Wisp Mother",
+        "major": true
+      },
+      {
+        "cat": "Enemies",
+        "text": "New enemy: Shellback Bombard",
+        "major": true
+      },
+      {
+        "cat": "Enemies",
+        "text": "New enemy: Marrow Borer",
+        "major": true
+      },
+      {
+        "cat": "Enemies",
+        "text": "New enemy: Blight Moth",
+        "major": true
+      },
+      {
+        "cat": "Enemies",
+        "text": "New enemy: Chitin Scuttler",
+        "major": true
+      },
+      {
+        "cat": "Heroes",
+        "text": "New hero: Myceliarch",
+        "major": true
+      },
+      {
+        "cat": "Towers",
+        "text": "New tower: Keening Quill",
+        "major": true
+      },
+      {
+        "cat": "Towers",
+        "text": "New tower: Tick Battery",
+        "major": true
+      },
+      {
+        "cat": "Towers",
+        "text": "New tower: Gristle Warren",
+        "major": true
+      },
+      {
+        "cat": "Gameplay",
         "text": "New system: Threat Ladder",
         "major": true
       },
@@ -70,6 +135,154 @@ export const RELEASES: Release[] = [
       {
         "cat": "Backend",
         "text": "Belgium and the Netherlands: nothing that can end in a randomized reward is sold for money (loot-box law) — everything stays earnable in play"
+      },
+      {
+        "cat": "Website",
+        "text": "Website refresh to the current game + a standing freshness rule"
+      },
+      {
+        "cat": "UI",
+        "text": "One name per screen: nav labels derive from the feature registry"
+      },
+      {
+        "cat": "Developer Tools",
+        "text": "Readability floor: --dim reads 4.5:1, Season Pass labels 12px, contrast gauges"
+      },
+      {
+        "cat": "UI",
+        "text": "Top-bar chips answer on tap: wallet + level popovers"
+      },
+      {
+        "cat": "UI",
+        "text": "Chip popovers escape the scrolling top bar; Materials chip shares them"
+      },
+      {
+        "cat": "Bosses",
+        "text": "Bio-Dex: count only real Brood Tyrants; Apex Slayer reads the run's boss kills"
+      },
+      {
+        "cat": "UI",
+        "text": "Advice is a link: guidance that names a screen carries a Go ▸"
+      },
+      {
+        "cat": "UI",
+        "text": "Browser/Android Back + Escape walk the game, never out of it"
+      },
+      {
+        "cat": "UI",
+        "text": "Hub shell: local error boundary, chunk retry, no loading flash, honest doors, CTA above the fold"
+      },
+      {
+        "cat": "Gameplay",
+        "text": "Results: Stage N+1 from a Campaign win, a steady capsule, a reveal with a voice"
+      },
+      {
+        "cat": "UX",
+        "text": "Intro → tutorial hand-off: the cold-open banner waits for the film, a gold afterglow lands it"
+      },
+      {
+        "cat": "UI",
+        "text": "Hold the account level-up toast behind the unlock summary"
+      },
+      {
+        "cat": "UI",
+        "text": "Portrait phones: keep the run layout through the deploy breath and Results"
+      },
+      {
+        "cat": "UI",
+        "text": "One claim pattern: shared ClaimAll on Quest Board / Season Pass / Milestones; a lean Vault reveal"
+      },
+      {
+        "cat": "UI",
+        "text": "Pre-run LoadoutStrip + Campaign stage panel with a pinned launch footer"
+      },
+      {
+        "cat": "UI",
+        "text": "SectionNav: one sticky-chip + fold pattern for the long screens"
+      },
+      {
+        "cat": "Gameplay",
+        "text": "Cosmetic reward links name the Phenotype Lab, not the Wardrobe"
+      },
+      {
+        "cat": "UI",
+        "text": "Back guard: keep URL cleanups across a consume; theater is a modal, not a phase"
+      },
+      {
+        "cat": "Gene Cards",
+        "text": "Hub prefetch: a landing warms its cards right after paint"
+      },
+      {
+        "cat": "Bosses",
+        "text": "Boss Rush: \"Boss strength\" forecast row (Threat names only the ladder)"
+      },
+      {
+        "cat": "Heroes",
+        "text": "Content: answer-roster towers, puzzle fauna, Myceliarch hero (WIP data rows)"
+      },
+      {
+        "cat": "Gameplay",
+        "text": "Field Guides open folded sections while they run"
+      },
+      {
+        "cat": "Visuals",
+        "text": "Feel table, centre-stage announcer and Motion device prefs"
+      },
+      {
+        "cat": "Audio",
+        "text": "Every cue resolves: feel-table ducks/stingers, new voices, cue coverage test"
+      },
+      {
+        "cat": "Visuals",
+        "text": "Damage numbers that read, impact frames, flash gates"
+      },
+      {
+        "cat": "Bosses",
+        "text": "In-run battle feel: centre stage, boss kills land, pick moment, Motion settings"
+      },
+      {
+        "cat": "Gameplay",
+        "text": "Live achievement bursts collapse into one toast, like held ones"
+      },
+      {
+        "cat": "Gameplay",
+        "text": "Naming leftovers: Results \"Toughest Kill\"; Quest Board names the Phenotype Lab"
+      },
+      {
+        "cat": "Bosses",
+        "text": "Portrait: the Bio-Roulette after Boss Rush plays without the rotate gate"
+      },
+      {
+        "cat": "Towers",
+        "text": "Content: tune answer roster + puzzle fauna, add mulligan pieces, tests, docs, achievements"
+      },
+      {
+        "cat": "Website",
+        "text": "Hub prefetch: one idle slot per navigation, a landing within 100 ms"
+      },
+      {
+        "cat": "Gameplay",
+        "text": "Season Pass: Claim all clears the whole backlog in one press"
+      },
+      {
+        "cat": "Gameplay",
+        "text": "Help: Walls & Blockers mechanic row; document the answer roster's collection hooks"
+      },
+      {
+        "cat": "Gameplay",
+        "text": "Myceliarch: lifetime-kills milestone gate; Tick adaptations on live axes"
+      },
+      {
+        "cat": "Developer Tools",
+        "text": "Mobilecheck stops its preview server; drop the vault reveal's dead fast toggle"
+      },
+      {
+        "cat": "Bosses",
+        "text": "Replay theater shows boss and Mega fall cards again"
+      },
+      {
+        "cat": "Bosses",
+        "text": "A splitting boss falls once: bossKilled marks its last piece"
       }
     ]
   },

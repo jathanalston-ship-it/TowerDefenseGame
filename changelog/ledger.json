@@ -1,6 +1,6 @@
 {
-  "lastSha": "2e6bd98899f1734f5e3f933d36cef383e35f0ee1",
-  "commitsSinceDraft": 6,
+  "lastSha": "315c2052f6bfea7898ffcca78aa1ad3a1651fce8",
+  "commitsSinceDraft": 1,
   "content": {
     "tower": [
       "needle",
@@ -24,7 +24,10 @@
       "bell",
       "lancet",
       "basilisk",
-      "ossuary"
+      "ossuary",
+      "warren",
+      "tick",
+      "quill"
     ],
     "hero": [
       "ravager",
@@ -37,7 +40,8 @@
       "riptide",
       "carrion",
       "fovea",
-      "chimera"
+      "chimera",
+      "myceliarch"
     ],
     "enemy": [
       "runner",
@@ -83,7 +87,13 @@
       "glutling",
       "apex",
       "dreadnought",
-      "tyrant"
+      "tyrant",
+      "scuttler",
+      "blightmoth",
+      "borer",
+      "shellback",
+      "wispmother",
+      "veilmoth"
     ],
     "boss": [
       "progenitor",
@@ -172,6 +182,7 @@
       "apex_slayer",
       "annihilation",
       "deep_fauna",
+      "puzzle_fauna",
       "stage15",
       "stage30",
       "stage50",
@@ -214,6 +225,8 @@
       "field_vitriol",
       "field_revenant",
       "field_knell",
+      "field_myceliarch",
+      "answer_arsenal",
       "full_menagerie",
       "complete_arsenal",
       "deep_genome",
@@ -3069,6 +3082,71 @@
       "entries": [
         {
           "cat": "Gameplay",
+          "text": "New achievement: Every Question Answered",
+          "major": true
+        },
+        {
+          "cat": "Gameplay",
+          "text": "New achievement: The Gate Holds",
+          "major": true
+        },
+        {
+          "cat": "Gameplay",
+          "text": "New achievement: The Answer Key",
+          "major": true
+        },
+        {
+          "cat": "Enemies",
+          "text": "New enemy: Veil Moth",
+          "major": true
+        },
+        {
+          "cat": "Enemies",
+          "text": "New enemy: Wisp Mother",
+          "major": true
+        },
+        {
+          "cat": "Enemies",
+          "text": "New enemy: Shellback Bombard",
+          "major": true
+        },
+        {
+          "cat": "Enemies",
+          "text": "New enemy: Marrow Borer",
+          "major": true
+        },
+        {
+          "cat": "Enemies",
+          "text": "New enemy: Blight Moth",
+          "major": true
+        },
+        {
+          "cat": "Enemies",
+          "text": "New enemy: Chitin Scuttler",
+          "major": true
+        },
+        {
+          "cat": "Heroes",
+          "text": "New hero: Myceliarch",
+          "major": true
+        },
+        {
+          "cat": "Towers",
+          "text": "New tower: Keening Quill",
+          "major": true
+        },
+        {
+          "cat": "Towers",
+          "text": "New tower: Tick Battery",
+          "major": true
+        },
+        {
+          "cat": "Towers",
+          "text": "New tower: Gristle Warren",
+          "major": true
+        },
+        {
+          "cat": "Gameplay",
           "text": "New system: Threat Ladder",
           "major": true
         },
@@ -3127,6 +3205,154 @@
         {
           "cat": "Backend",
           "text": "Belgium and the Netherlands: nothing that can end in a randomized reward is sold for money (loot-box law) — everything stays earnable in play"
+        },
+        {
+          "cat": "Website",
+          "text": "Website refresh to the current game + a standing freshness rule"
+        },
+        {
+          "cat": "UI",
+          "text": "One name per screen: nav labels derive from the feature registry"
+        },
+        {
+          "cat": "Developer Tools",
+          "text": "Readability floor: --dim reads 4.5:1, Season Pass labels 12px, contrast gauges"
+        },
+        {
+          "cat": "UI",
+          "text": "Top-bar chips answer on tap: wallet + level popovers"
+        },
+        {
+          "cat": "UI",
+          "text": "Chip popovers escape the scrolling top bar; Materials chip shares them"
+        },
+        {
+          "cat": "Bosses",
+          "text": "Bio-Dex: count only real Brood Tyrants; Apex Slayer reads the run's boss kills"
+        },
+        {
+          "cat": "UI",
+          "text": "Advice is a link: guidance that names a screen carries a Go ▸"
+        },
+        {
+          "cat": "UI",
+          "text": "Browser/Android Back + Escape walk the game, never out of it"
+        },
+        {
+          "cat": "UI",
+          "text": "Hub shell: local error boundary, chunk retry, no loading flash, honest doors, CTA above the fold"
+        },
+        {
+          "cat": "Gameplay",
+          "text": "Results: Stage N+1 from a Campaign win, a steady capsule, a reveal with a voice"
+        },
+        {
+          "cat": "UX",
+          "text": "Intro → tutorial hand-off: the cold-open banner waits for the film, a gold afterglow lands it"
+        },
+        {
+          "cat": "UI",
+          "text": "Hold the account level-up toast behind the unlock summary"
+        },
+        {
+          "cat": "UI",
+          "text": "Portrait phones: keep the run layout through the deploy breath and Results"
+        },
+        {
+          "cat": "UI",
+          "text": "One claim pattern: shared ClaimAll on Quest Board / Season Pass / Milestones; a lean Vault reveal"
+        },
+        {
+          "cat": "UI",
+          "text": "Pre-run LoadoutStrip + Campaign stage panel with a pinned launch footer"
+        },
+        {
+          "cat": "UI",
+          "text": "SectionNav: one sticky-chip + fold pattern for the long screens"
+        },
+        {
+          "cat": "Gameplay",
+          "text": "Cosmetic reward links name the Phenotype Lab, not the Wardrobe"
+        },
+        {
+          "cat": "UI",
+          "text": "Back guard: keep URL cleanups across a consume; theater is a modal, not a phase"
+        },
+        {
+          "cat": "Gene Cards",
+          "text": "Hub prefetch: a landing warms its cards right after paint"
+        },
+        {
+          "cat": "Bosses",
+          "text": "Boss Rush: \"Boss strength\" forecast row (Threat names only the ladder)"
+        },
+        {
+          "cat": "Heroes",
+          "text": "Content: answer-roster towers, puzzle fauna, Myceliarch hero (WIP data rows)"
+        },
+        {
+          "cat": "Gameplay",
+          "text": "Field Guides open folded sections while they run"
+        },
+        {
+          "cat": "Visuals",
+          "text": "Feel table, centre-stage announcer and Motion device prefs"
+        },
+        {
+          "cat": "Audio",
+          "text": "Every cue resolves: feel-table ducks/stingers, new voices, cue coverage test"
+        },
+        {
+          "cat": "Visuals",
+          "text": "Damage numbers that read, impact frames, flash gates"
+        },
+        {
+          "cat": "Bosses",
+          "text": "In-run battle feel: centre stage, boss kills land, pick moment, Motion settings"
+        },
+        {
+          "cat": "Gameplay",
+          "text": "Live achievement bursts collapse into one toast, like held ones"
+        },
+        {
+          "cat": "Gameplay",
+          "text": "Naming leftovers: Results \"Toughest Kill\"; Quest Board names the Phenotype Lab"
+        },
+        {
+          "cat": "Bosses",
+          "text": "Portrait: the Bio-Roulette after Boss Rush plays without the rotate gate"
+        },
+        {
+          "cat": "Towers",
+          "text": "Content: tune answer roster + puzzle fauna, add mulligan pieces, tests, docs, achievements"
+        },
+        {
+          "cat": "Website",
+          "text": "Hub prefetch: one idle slot per navigation, a landing within 100 ms"
+        },
+        {
+          "cat": "Gameplay",
+          "text": "Season Pass: Claim all clears the whole backlog in one press"
+        },
+        {
+          "cat": "Gameplay",
+          "text": "Help: Walls & Blockers mechanic row; document the answer roster's collection hooks"
+        },
+        {
+          "cat": "Gameplay",
+          "text": "Myceliarch: lifetime-kills milestone gate; Tick adaptations on live axes"
+        },
+        {
+          "cat": "Developer Tools",
+          "text": "Mobilecheck stops its preview server; drop the vault reveal's dead fast toggle"
+        },
+        {
+          "cat": "Bosses",
+          "text": "Replay theater shows boss and Mega fall cards again"
+        },
+        {
+          "cat": "Bosses",
+          "text": "A splitting boss falls once: bossKilled marks its last piece"
         }
       ]
     }
@@ -6163,6 +6389,398 @@
       "text": "Validation report: PASS over the BE/NL region rule (2738/2738)",
       "internal": true,
       "needsReview": true
+    },
+    {
+      "sha": "8e6a65240b7fcbd5d928dd63936c9ccaa11f1eaf",
+      "date": "2026-11-04",
+      "cat": "Website",
+      "text": "Website refresh to the current game + a standing freshness rule",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "f73e8fbb0b6d8ecb32b9e3cbcffc78dfb071b775",
+      "date": "2026-11-04",
+      "cat": "Website",
+      "text": "Validation report: PASS over the website refresh (2738/2738)",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "f02b35dbbdc4ffcb73210f5989f82a2f437c4839",
+      "date": "2026-11-04",
+      "cat": "UI",
+      "text": "One name per screen: nav labels derive from the feature registry",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "a6cc2dd5d486deda9587d6d72d615c14c523c1ca",
+      "date": "2026-11-04",
+      "cat": "Developer Tools",
+      "text": "Readability floor: --dim reads 4.5:1, Season Pass labels 12px, contrast gauges",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "a3635b5dcf611915630f6a583f5261d1bfb99f70",
+      "date": "2026-11-04",
+      "cat": "UI",
+      "text": "Top-bar chips answer on tap: wallet + level popovers",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "8fe67e2bea0a1af86774202a39ecd2d53e9f1326",
+      "date": "2026-11-04",
+      "cat": "UI",
+      "text": "Chip popovers escape the scrolling top bar; Materials chip shares them",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "fb789d537cea646d96320955e934b360bebe232a",
+      "date": "2026-11-04",
+      "cat": "Framework",
+      "text": "Vitest: never collect tests from agent worktrees under .claude/",
+      "internal": true,
+      "needsReview": true
+    },
+    {
+      "sha": "d75d09ad6bfe5749b057fc7feba1eca2c3f0c7a2",
+      "date": "2026-11-04",
+      "cat": "Bosses",
+      "text": "Bio-Dex: count only real Brood Tyrants; Apex Slayer reads the run's boss kills",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "a1e210c0539aab193dd21fde5c21021861f6c63e",
+      "date": "2026-11-04",
+      "cat": "Visuals",
+      "text": "Docs: SIGNATURE-MOMENTS.md — Batch 3 storyboard (last kill, victory carry-over, cutscenes, gutters)",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "a747db25787c3ea2fd694f7f7837171c41599a87",
+      "date": "2026-11-04",
+      "cat": "Framework",
+      "text": "Regenerate DIL graph for the SIGNATURE-MOMENTS doc node",
+      "internal": true,
+      "needsReview": true
+    },
+    {
+      "sha": "d82d035ebd8f5c65296051f3a4d7ede4d2cc0ce1",
+      "date": "2026-11-04",
+      "cat": "UI",
+      "text": "Advice is a link: guidance that names a screen carries a Go ▸",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "1536e1bf234af69a43ade439f5cab3c483b27992",
+      "date": "2026-11-04",
+      "cat": "UI",
+      "text": "Browser/Android Back + Escape walk the game, never out of it",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "cd97bba967ded8f1268041f4b1c06eac822b6f17",
+      "date": "2026-11-04",
+      "cat": "UI",
+      "text": "Hub shell: local error boundary, chunk retry, no loading flash, honest doors, CTA above the fold",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "06dd7b150b59d2d8bbee904ddbd87eff04081f18",
+      "date": "2026-11-04",
+      "cat": "Gameplay",
+      "text": "Results: Stage N+1 from a Campaign win, a steady capsule, a reveal with a voice",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "a0563aa169cbc81c451992ac5a2166eaec81f950",
+      "date": "2026-11-04",
+      "cat": "UX",
+      "text": "Intro → tutorial hand-off: the cold-open banner waits for the film, a gold afterglow lands it",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "94818237db8eeb9be03660e063d2712edb29f4b6",
+      "date": "2026-11-04",
+      "cat": "UI",
+      "text": "Hold the account level-up toast behind the unlock summary",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "1896aa4ecd574b8be927fd4e42d19e1a094c241a",
+      "date": "2026-11-04",
+      "cat": "UI",
+      "text": "Portrait phones: keep the run layout through the deploy breath and Results",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "a207f23c58a14c261b0d30cf3b94f9eedf2ec5b3",
+      "date": "2026-11-04",
+      "cat": "UI",
+      "text": "One claim pattern: shared ClaimAll on Quest Board / Season Pass / Milestones; a lean Vault reveal",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "907971ddfe45e7b651523a93406418aef67e359b",
+      "date": "2026-11-04",
+      "cat": "Framework",
+      "text": "DIL: record the post-run feel + claim-pattern relationships",
+      "internal": true,
+      "needsReview": true
+    },
+    {
+      "sha": "088cac342b2fb2502ac75a571cff966eb0b64002",
+      "date": "2026-11-04",
+      "cat": "UI",
+      "text": "Pre-run LoadoutStrip + Campaign stage panel with a pinned launch footer",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "2d53d2377ce57afb3c528759a5e34cb931c2847f",
+      "date": "2026-11-04",
+      "cat": "UI",
+      "text": "SectionNav: one sticky-chip + fold pattern for the long screens",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "118a95da5418a332881e2951cb447f26fe7cafbc",
+      "date": "2026-11-04",
+      "cat": "UI",
+      "text": "Docs: naming, readability, touch-info, long-screen and loadout standards",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "4ab2230acc24e19c052035fea6a4cefd3dd01c7d",
+      "date": "2026-11-04",
+      "cat": "Gameplay",
+      "text": "Cosmetic reward links name the Phenotype Lab, not the Wardrobe",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "73b480cf2fbe55b779bfa3620e8436effb58e364",
+      "date": "2026-11-04",
+      "cat": "UI",
+      "text": "Back guard: keep URL cleanups across a consume; theater is a modal, not a phase",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "1425203afbb92f9bf4331b15233c4b980ca2ab86",
+      "date": "2026-11-04",
+      "cat": "Framework",
+      "text": "Docs: the --dim token value and the cogload readability gauge",
+      "internal": true,
+      "needsReview": true
+    },
+    {
+      "sha": "543ca1c08f69a9bd6feb5afd342c84d2dfaef197",
+      "date": "2026-11-04",
+      "cat": "Framework",
+      "text": "Regenerate DIL and dependency graphs after merging track N2",
+      "internal": true,
+      "needsReview": true
+    },
+    {
+      "sha": "b1883408ee80b98badad60a255ceefa7473f7d8b",
+      "date": "2026-11-04",
+      "cat": "Gene Cards",
+      "text": "Hub prefetch: a landing warms its cards right after paint",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "9ad5fc6d58d13cdfe1fd8ac7c3e59b5fac5bd31f",
+      "date": "2026-11-04",
+      "cat": "Bosses",
+      "text": "Boss Rush: \"Boss strength\" forecast row (Threat names only the ladder)",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "0164ccf852f5d62e2f505d59a8e9c9a543579bdd",
+      "date": "2026-11-04",
+      "cat": "Heroes",
+      "text": "Content: answer-roster towers, puzzle fauna, Myceliarch hero (WIP data rows)",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "b73f734597c1ac687e431faa01a52fd189ba1f65",
+      "date": "2026-11-04",
+      "cat": "Gameplay",
+      "text": "Field Guides open folded sections while they run",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "2c01fd7bfee2d5ff5417090131d55166f2635c4e",
+      "date": "2026-11-04",
+      "cat": "Visuals",
+      "text": "Feel table, centre-stage announcer and Motion device prefs",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "21a597de9f77ace3ee5944514246483b1af538f8",
+      "date": "2026-11-04",
+      "cat": "Audio",
+      "text": "Every cue resolves: feel-table ducks/stingers, new voices, cue coverage test",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "ed96cef2abc7ef92303ace26db380341189d1262",
+      "date": "2026-11-04",
+      "cat": "Visuals",
+      "text": "Damage numbers that read, impact frames, flash gates",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "8c25a7a8dc1b917b2f2281b896ff728b20d15395",
+      "date": "2026-11-04",
+      "cat": "Bosses",
+      "text": "In-run battle feel: centre stage, boss kills land, pick moment, Motion settings",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "5a4e2aa57f834b7480b08bd9ac762983c41c4096",
+      "date": "2026-11-04",
+      "cat": "Bosses",
+      "text": "Docs: feel table, centre stage, boss kills, pick moment, Motion settings",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "aced530c9d6fb6cb413b75f03916e3692068f8df",
+      "date": "2026-11-04",
+      "cat": "Bosses",
+      "text": "GAME-FEEL: boss-arrival shake now names its FEEL row",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "bf36eb120ba8e981d5f77bfa84f4a70e260066f6",
+      "date": "2026-11-04",
+      "cat": "Gameplay",
+      "text": "Live achievement bursts collapse into one toast, like held ones",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "7e0dc4f475bfd4d92a49c51fdaa66e88af30ba4a",
+      "date": "2026-11-04",
+      "cat": "Gameplay",
+      "text": "Naming leftovers: Results \"Toughest Kill\"; Quest Board names the Phenotype Lab",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "de0363c73b3f49a2ff0cd1d0f7f617a45a8eebdc",
+      "date": "2026-11-04",
+      "cat": "Bosses",
+      "text": "Portrait: the Bio-Roulette after Boss Rush plays without the rotate gate",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "0f49fe3aaa88623153cfafe8a9662b0beb53292a",
+      "date": "2026-11-04",
+      "cat": "Framework",
+      "text": "Regenerate dependency and DIL graphs after merging track F2",
+      "internal": true,
+      "needsReview": true
+    },
+    {
+      "sha": "1dc1d85e77c25abfd4a6fbd8057bc21306db7330",
+      "date": "2026-11-04",
+      "cat": "Towers",
+      "text": "Content: tune answer roster + puzzle fauna, add mulligan pieces, tests, docs, achievements",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "7b4fb81073953b87727db85d0f4a76a44c5a994c",
+      "date": "2026-11-04",
+      "cat": "Framework",
+      "text": "Regenerate DIL and dependency graphs after merging track F1",
+      "internal": true,
+      "needsReview": true
+    },
+    {
+      "sha": "50de37c03e85d7fb7318ba79d087bd88b91d69eb",
+      "date": "2026-11-04",
+      "cat": "Website",
+      "text": "Hub prefetch: one idle slot per navigation, a landing within 100 ms",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "b2358c853eeb6c8b0228f73662d0e781ee2ae04b",
+      "date": "2026-11-04",
+      "cat": "Gameplay",
+      "text": "Season Pass: Claim all clears the whole backlog in one press",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "dadbd627618106516ab5cb7a2abc549b49eabc8f",
+      "date": "2026-11-04",
+      "cat": "Gameplay",
+      "text": "Help: Walls & Blockers mechanic row; document the answer roster's collection hooks",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "27fb21868583282a9733588ec6d7db51a5dec7bf",
+      "date": "2026-11-04",
+      "cat": "Gameplay",
+      "text": "Myceliarch: lifetime-kills milestone gate; Tick adaptations on live axes",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "f509b894793ab158b8dd36732c2999f4a4ce05fd",
+      "date": "2026-11-04",
+      "cat": "Developer Tools",
+      "text": "Mobilecheck stops its preview server; drop the vault reveal's dead fast toggle",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "890af7900b70d7651b9451f0aa41adaf264821f4",
+      "date": "2026-11-04",
+      "cat": "Bosses",
+      "text": "Replay theater shows boss and Mega fall cards again",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "315c2052f6bfea7898ffcca78aa1ad3a1651fce8",
+      "date": "2026-11-04",
+      "cat": "Bosses",
+      "text": "A splitting boss falls once: bossKilled marks its last piece",
+      "internal": false,
+      "needsReview": false
     }
   ]
 }
