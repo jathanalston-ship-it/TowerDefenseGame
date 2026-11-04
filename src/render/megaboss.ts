@@ -1223,7 +1223,7 @@ export const MEGA_POSE = {
   silhouette: '#06080c', // the tone the palette resolves FROM during the reveal
   glowFloor: 0.3, // the eye/vein glow already shows this much in silhouette (a shape that WATCHES)
   steps: 16, // cached palette steps across the reveal (no per-frame colour math)
-  descend: 0.42, // organs hang this fraction of their raid descent (the film frames body + organs)
+  descend: 0.34, // organs hang this fraction of their raid descent (the film frames body + organs)
   flareHit: 0.16, // hit-flash seconds a full beat flare maps to (drawOrgan glows min(0.7, hit × 4))
 } as const;
 

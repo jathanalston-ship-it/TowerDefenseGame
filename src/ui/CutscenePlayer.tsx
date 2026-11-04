@@ -11,13 +11,18 @@ import { createPortal } from 'react-dom';
 import { audio } from '../audio/sound';
 import { music } from '../audio/music';
 import type { CutsceneDef } from '../core/cutscenes';
-import { CUTSCENE_REDUCED_T, drawCutsceneFrame } from '../render/cutsceneScenes';
+import { cutsceneMegaId, cutsceneStillT, drawCutsceneFrame } from '../render/cutsceneScenes';
+import type { CutsceneFrameSpec } from '../render/cutsceneScenes';
+import { motionPrefs, resolveMotion, systemReducedMotion } from '../state/prefs';
 
 const FADE_MS = 850; // scene-to-scene cross-dissolve (the intro's cut length)
 const CODA_MS = 6200; // how long the coda holds before auto-continue
-const reducedMotion = typeof window !== 'undefined' && !!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
 
 export function CutscenePlayer({ def, onDone }: { def: CutsceneDef; onDone: () => void }): JSX.Element {
+  // Reduced motion = THE motionScale (OS request unless Settings → Motion overrides it): one still
+  // per scene, no camera drift / punches / flashes. Resolved once per showing.
+  const [feel] = useState(() => resolveMotion(motionPrefs(), systemReducedMotion()));
+  const reducedMotion = feel.motion === 0;
   const [idx, setIdx] = useState(0);
   const [coda, setCoda] = useState(false);
   const doneRef = useRef(false);
@@ -95,6 +100,12 @@ export function CutscenePlayer({ def, onDone }: { def: CutsceneDef; onDone: () =
     size();
     window.addEventListener('resize', size);
     let raf = 0;
+    // One frame spec for the whole showing, mutated per frame (no per-frame allocation).
+    const prevSpec = { painter: def.scenes[0].painter, t: 0 };
+    const spec: CutsceneFrameSpec = {
+      painter: def.scenes[0].painter, t: 0, theme: def.palette, prev: null, fade: 1,
+      scene: null, prevScene: null, megaId: cutsceneMegaId(def), motion: feel.motion, flashes: feel.flashes,
+    };
     const frame = (): void => {
       const f = filmRef.current;
       const now = performance.now();
@@ -102,8 +113,11 @@ export function CutscenePlayer({ def, onDone }: { def: CutsceneDef; onDone: () =
       const w = cv.width / dpr;
       const h = cv.height / dpr;
       const cur = def.scenes[f.scene];
+      spec.painter = cur.painter;
+      spec.scene = cur;
       if (reducedMotion) {
-        drawCutsceneFrame(ctx, w, h, { painter: cur.painter, t: CUTSCENE_REDUCED_T[cur.painter], theme: def.palette, prev: null, fade: 1 });
+        spec.t = cutsceneStillT(cur);
+        drawCutsceneFrame(ctx, w, h, spec);
         return; // one still per scene — repainted when the scene remounts the effect
       }
       const t = (now - f.startedAt) / 1000;
@@ -114,13 +128,15 @@ export function CutscenePlayer({ def, onDone }: { def: CutsceneDef; onDone: () =
         }
       }
       const prevScene = f.prev >= 0 ? def.scenes[f.prev] : null;
-      drawCutsceneFrame(ctx, w, h, {
-        painter: cur.painter,
-        t,
-        theme: def.palette,
-        prev: prevScene ? { painter: prevScene.painter, t: (now - f.prevStartedAt) / 1000 } : null,
-        fade: prevScene ? Math.min(1, (now - f.startedAt) / FADE_MS) : 1,
-      });
+      spec.t = t;
+      spec.prevScene = prevScene;
+      if (prevScene) {
+        prevSpec.painter = prevScene.painter;
+        prevSpec.t = (now - f.prevStartedAt) / 1000;
+      }
+      spec.prev = prevScene ? prevSpec : null;
+      spec.fade = prevScene ? Math.min(1, (now - f.startedAt) / FADE_MS) : 1;
+      drawCutsceneFrame(ctx, w, h, spec);
       if (codaRef.current) {
         // the coda dims the film under its card — the memory settling into the archive
         ctx.fillStyle = 'rgba(3,5,9,0.55)';
@@ -141,7 +157,7 @@ export function CutscenePlayer({ def, onDone }: { def: CutsceneDef; onDone: () =
   // film inside the hub column.
   return createPortal(
     <div className="intro cutscene" role="dialog" aria-label={`Cutscene — ${def.title}`} onClick={advance}>
-      <div className="intro-stage">
+      <div className={`intro-stage is-copy-${coda ? 'center' : scene.copyAt ?? 'center'}`}>
         <canvas ref={canvasRef} className="intro-canvas" aria-hidden />
         <div className="intro-grade" aria-hidden />
         <div className="intro-bar intro-bar-top" aria-hidden />

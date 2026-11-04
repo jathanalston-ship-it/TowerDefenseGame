@@ -13965,3 +13965,9 @@ html[data-layout='landscape'] .build-controls.is-visible ~ .mega-banner { top: 6
 .motion-settings.is-compact .set-switch { padding: 4px 14px; min-height: 0; }
 .pause-settings .motion-settings .set-toggle { margin-top: 6px; }
 .motion-settings.is-compact .motion-shake input[type="range"] { width: 100px; }
+
+/* ── Film direction (docs/CUTSCENES.md §direction) — a scene's `copyAt` puts its copy on the
+      tableau's quiet band (the opening film + every story cutscene / Mega premiere). The
+      letterbox bar + the grade's dark fade sit under the upper/lower bands, so copy always reads. ── */
+.intro-stage.is-copy-upper { align-items: start; padding-top: calc(max(4.5vh, 26px) + 6vh); }
+.intro-stage.is-copy-lower { align-items: end; padding-bottom: calc(max(4.5vh, 26px) + 5vh); }

@@ -13,15 +13,19 @@
 //     boot) — the film literally lands you in the hive.
 //
 // Each scene is a full-screen PROCEDURAL canvas set-piece (render/introScenes.ts — the game's
-// own visual language, no assets) under a slow camera drift, letterboxed, film-graded.
-// prefers-reduced-motion swaps the animation for a hand-picked still per scene (gentle CSS
-// fades only) and skips the dive.
+// own visual language, no assets) under the film direction layers (render/filmDirection.ts:
+// drift, punches on `impact` beats, a beat-driven mid layer, particulate foreground),
+// letterboxed, film-graded, with each scene's copy on its quiet band (`copyAt`).
+// Reduced motion (the OS request unless Settings → Motion overrides it) swaps the animation
+// for a hand-picked still per scene (gentle CSS fades only) and skips the dive.
 
 import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { audio } from '../audio/sound';
 import { music } from '../audio/music';
 import { REDUCED_FRAME_T, drawDiveTransition, drawIntroFrame } from '../render/introScenes';
 import type { IntroVisual } from '../render/introScenes';
+import type { CutsceneBeat, CutsceneCamera, CutsceneCopyAt } from '../core/cutscenes';
+import { motionPrefs, resolveMotion, systemReducedMotion } from '../state/prefs';
 
 export const INTRO_SEEN_KEY = 'assimilate.introSeen';
 
@@ -53,21 +57,22 @@ export function useIntroPlaying(): boolean {
 
 /** A copy line staged onto the film at a scene-relative time (seconds). */
 interface SceneLine { at: number; text: string; em?: boolean }
-/** A sound-design beat fired at a scene-relative time — the cue syncs to the visuals. */
-interface SceneBeat { at: number; cue: string }
-
 export interface IntroScene {
   id: string;
   eyebrow?: string;
   lines: SceneLine[];
   visual: IntroVisual;
   durMs: number; // how long the film holds this scene before cutting
-  beats: SceneBeat[];
+  beats: CutsceneBeat[]; // `impact` beats land a camera punch (docs/CUTSCENES.md §direction)
+  copyAt?: CutsceneCopyAt; // the copy's quiet region (default 'center')
+  camera?: CutsceneCamera; // default: the painter's drift row (render/introScenes.ts DRIFT)
+  punch?: number; // punch zoom on impact beats (default FILM.punch.zoom; 0 = none)
 }
 
 /** The authored film — copy, staging and SOUND as data (edit here, not in the component).
  *  Beat times are tuned to the painters: pings ride the radar sweep (~5.7s/turn), the heart
- *  thumps on the core's 1.9s cycle, the title swell lands with the wordmark. */
+ *  thumps on the core's 1.9s cycle, the title swell lands with the wordmark. `copyAt` puts the
+ *  copy on each tableau's measured quiet band (never over the core's light). */
 export const SCENES: IntroScene[] = [
   {
     id: 'signal', eyebrow: 'DEEP CRUST RELAY 7', visual: 'signal', durMs: 8200,
@@ -76,34 +81,35 @@ export const SCENES: IntroScene[] = [
       { at: 2.6, text: '11,204 days of silence end.', em: true },
     ],
     beats: [
-      { at: 0.15, cue: 'cin_ping' }, { at: 1.6, cue: 'cin_alarm' }, { at: 2.9, cue: 'cin_ping' },
+      { at: 0.15, cue: 'cin_ping' }, { at: 1.6, cue: 'cin_alarm', impact: true }, { at: 2.9, cue: 'cin_ping' },
       { at: 4.4, cue: 'cin_ping' }, { at: 5.6, cue: 'cin_ping' }, { at: 6.5, cue: 'cin_ping' }, { at: 7.2, cue: 'cin_ping' },
     ],
   },
   {
-    id: 'below', visual: 'descent', durMs: 8600,
+    id: 'below', visual: 'descent', durMs: 8600, copyAt: 'upper',
     lines: [
       { at: 0.8, text: 'They came from below.' },
       { at: 3.2, text: 'Not an army — an APPETITE.', em: true },
     ],
     beats: [
-      { at: 0.1, cue: 'cin_rumble' }, { at: 2.6, cue: 'cin_shriek' }, { at: 4.2, cue: 'cin_rumble' },
+      { at: 0.1, cue: 'cin_rumble' }, { at: 2.6, cue: 'cin_shriek', impact: true }, { at: 4.2, cue: 'cin_rumble', impact: true },
       { at: 5.8, cue: 'cin_shriek' }, { at: 7.1, cue: 'cin_shriek' },
     ],
   },
   {
-    id: 'take', visual: 'veins', durMs: 8600,
+    id: 'take', visual: 'veins', durMs: 8600, copyAt: 'upper',
     lines: [
       { at: 0.8, text: 'Everything they touch, they take.' },
       { at: 3.4, text: 'Flesh. Steel. Thought.', em: true },
     ],
     beats: [
-      { at: 0.3, cue: 'cin_creep' }, { at: 2.2, cue: 'cin_snap' }, { at: 3.6, cue: 'cin_creep' },
-      { at: 5.2, cue: 'cin_snap' }, { at: 6.6, cue: 'cin_creep' },
+      { at: 0.3, cue: 'cin_creep' }, { at: 2.2, cue: 'cin_snap', impact: true }, { at: 3.6, cue: 'cin_creep' },
+      { at: 5.2, cue: 'cin_snap', impact: true }, { at: 6.6, cue: 'cin_creep' },
     ],
   },
   {
-    id: 'core', visual: 'core', durMs: 9400,
+    // the copy sits BELOW the Hive Core — the core is the brightest light in the film
+    id: 'core', visual: 'core', durMs: 9400, copyAt: 'lower',
     lines: [
       { at: 0.9, text: 'One organism refused to be eaten.' },
       { at: 3.6, text: 'You are its HIVE CORE —' },
@@ -112,19 +118,18 @@ export const SCENES: IntroScene[] = [
     // the heartbeat cue rides the painter's 1.9s double-thump cycle
     beats: [
       { at: 0.2, cue: 'cin_heart' }, { at: 2.1, cue: 'cin_heart' }, { at: 4.0, cue: 'cin_heart' },
-      { at: 4.6, cue: 'cin_bloom' }, { at: 5.9, cue: 'cin_heart' }, { at: 7.8, cue: 'cin_heart' }, { at: 8.3, cue: 'cin_bloom' },
+      { at: 4.6, cue: 'cin_bloom', impact: true }, { at: 5.9, cue: 'cin_heart' }, { at: 7.8, cue: 'cin_heart' }, { at: 8.3, cue: 'cin_bloom' },
     ],
   },
   {
     id: 'title', eyebrow: 'DEFEND · EVOLVE · CONSUME', visual: 'title', durMs: 0, // 0 = waits for the player
     lines: [{ at: 0.6, text: 'ASSIMILATION', em: true }],
-    beats: [{ at: 0.55, cue: 'cin_title' }],
+    beats: [{ at: 0.55, cue: 'cin_title', impact: true }],
   },
 ];
 
 const FADE_MS = 850; // scene-to-scene cross-dissolve
 const DIVE_MS = 1500; // the descent transition out of the film
-const reducedMotion = typeof window !== 'undefined' && !!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
 
 type Phase = 'gate' | 'film' | 'dive';
 
@@ -133,13 +138,17 @@ type Phase = 'gate' | 'film' | 'dive';
 export function InitCutscene({ onDone }: { onDone: (dived?: boolean) => void }): JSX.Element {
   const [phase, setPhase] = useState<Phase>('gate');
   useEffect(() => { setPlaying(true); return () => setPlaying(false); }, []);
+  // Reduced motion = THE motionScale (OS request unless Settings → Motion overrides it): stills,
+  // no camera drift / punches / flashes, no dive. Resolved once per showing.
+  const [feel] = useState(() => resolveMotion(motionPrefs(), systemReducedMotion()));
+  const reducedMotion = feel.motion === 0;
   const [idx, setIdx] = useState(0);
   const doneRef = useRef(false);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   // The cinematographer's clocks: current scene start, what it dissolved from, fired beats, dive start.
   const filmRef = useRef({
     visual: SCENES[0].visual as IntroVisual, startedAt: performance.now(), prev: null as IntroVisual | null, prevStartedAt: 0,
-    beatsFired: 0, diveAt: 0,
+    beatsFired: 0, diveAt: 0, scene: 0, prevScene: -1,
   });
   const phaseRef = useRef<Phase>('gate');
   phaseRef.current = phase;
@@ -198,6 +207,8 @@ export function InitCutscene({ onDone }: { onDone: (dived?: boolean) => void }):
       f.prev = f.visual;
       f.prevStartedAt = f.startedAt;
       f.visual = scene.visual;
+      f.prevScene = f.scene;
+      f.scene = idx;
       f.startedAt = performance.now();
       f.beatsFired = 0;
       audio.cue('cin_cut');
@@ -227,7 +238,7 @@ export function InitCutscene({ onDone }: { onDone: (dived?: boolean) => void }):
       const w = cv.width / dpr;
       const h = cv.height / dpr;
       if (reducedMotion) {
-        drawIntroFrame(ctx, w, h, f.visual, REDUCED_FRAME_T[f.visual], null, 0, 1);
+        drawIntroFrame(ctx, w, h, f.visual, REDUCED_FRAME_T[f.visual], null, 0, 1, SCENES[f.scene], null, 0, false);
         return; // one still per scene — repainted only when the scene (or size) changes
       }
       const t = (now - f.startedAt) / 1000;
@@ -240,7 +251,8 @@ export function InitCutscene({ onDone }: { onDone: (dived?: boolean) => void }):
         }
       }
       const fade = f.prev ? Math.min(1, (now - f.startedAt) / FADE_MS) : 1;
-      drawIntroFrame(ctx, w, h, f.visual, t, f.prev, (now - f.prevStartedAt) / 1000, fade);
+      drawIntroFrame(ctx, w, h, f.visual, t, f.prev, (now - f.prevStartedAt) / 1000, fade,
+        SCENES[f.scene], f.prevScene >= 0 ? SCENES[f.prevScene] : null, feel.motion, feel.flashes);
       if (phaseRef.current === 'dive') {
         const dt = (now - f.diveAt) / DIVE_MS;
         drawDiveTransition(ctx, w, h, dt);
@@ -290,7 +302,7 @@ export function InitCutscene({ onDone }: { onDone: (dived?: boolean) => void }):
   const diving = phase === 'dive';
   return (
     <div className="intro" role="dialog" aria-label="Initialization sequence" onClick={advance}>
-      <div className={`intro-stage is-${scene.visual} ${diving ? 'is-diving' : ''}`}>
+      <div className={`intro-stage is-${scene.visual} is-copy-${scene.copyAt ?? 'center'} ${diving ? 'is-diving' : ''}`}>
         <canvas ref={canvasRef} className="intro-canvas" aria-hidden />
         <div className="intro-grade" aria-hidden />
         <div className="intro-bar intro-bar-top" aria-hidden />
