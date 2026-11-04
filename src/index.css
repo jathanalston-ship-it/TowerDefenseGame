@@ -5976,11 +5976,6 @@ kbd {
 .hubl-sec { display: flex; flex-direction: column; gap: 7px; }
 .hubl-sec-h { font-size: 11px; font-weight: 800; letter-spacing: 0.2em; text-transform: uppercase; color: color-mix(in srgb, var(--hub-accent) 60%, var(--muted)); }
 .hubl-quiet { margin: 0; font-size: 12px; color: var(--muted); font-style: italic; }
-.hubl-att { display: flex; flex-direction: column; gap: 5px; }
-.hubl-att-row { display: flex; align-items: center; gap: 10px; padding: 8px 12px; border: 1px solid color-mix(in srgb, var(--gold) 30%, var(--line)); border-radius: var(--r-md); background: color-mix(in srgb, var(--gold) 5%, transparent); cursor: pointer; text-align: left; transition: border-color var(--dur-2), background var(--dur-2); }
-.hubl-att-row:hover { border-color: var(--gold); background: color-mix(in srgb, var(--gold) 10%, transparent); }
-.hubl-att-l { font-size: 13px; font-weight: 700; color: var(--gold); }
-.hubl-att-in { margin-left: auto; font-size: 11px; color: var(--muted); white-space: nowrap; }
 .hubl-recs { display: flex; flex-direction: column; gap: 5px; }
 .hubl-rec { display: flex; align-items: center; gap: 10px; padding: 8px 12px; border: 1px solid var(--line); border-radius: var(--r-md); background: var(--panel); cursor: pointer; text-align: left; transition: border-color var(--dur-2), transform var(--dur-2); }
 /* §prominence — the TOP recommendation is the screen's first eye-catch: accent-washed,
@@ -6021,6 +6016,22 @@ kbd {
 .hubl-nextup { display: flex; flex-direction: column; gap: 6px; margin-top: 10px; }
 .hubl-nextup-h { font-size: 10px; font-weight: 800; letter-spacing: 0.2em; text-transform: uppercase; color: var(--muted); }
 .hubl-nextup.is-chain .hubl-nextup-h { color: var(--gold); }
+/* ── Hub shell resilience + wayfinding (2026-11, docs/HUB-FLOW.md §back) ── */
+/* Popup's portal wrapper (components/Popup.tsx) — layout-neutral: the overlay inside it is
+   still the fixed, full-viewport element every popup selector targets. */
+.popup-root { display: contents; }
+/* Per-screen error boundary (components/ScreenBoundary.tsx): a local recovery card in the
+   content area — the rail and top bar stay live around it. */
+.screen-err { margin-top: 12px; padding: 22px 24px; display: flex; flex-direction: column; gap: 10px; border: 1px solid color-mix(in srgb, var(--danger) 35%, var(--line)); border-radius: var(--r-lg); background: var(--panel); }
+.screen-err-k { font-size: 12px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; color: var(--danger); }
+.screen-err-p { margin: 0; font-size: 14px; color: var(--text); line-height: 1.5; }
+.screen-err-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 4px; }
+/* ADVICE IS A LINK (components/AdviceLink.tsx) — the same compact "Go ▸" as the Results debrief. */
+.advice-go { display: inline-flex; vertical-align: middle; margin-left: 6px; padding: 4px 10px; font-size: 12px; }
+/* × HIT AREA — popup close buttons keep their small glyph but answer a ≥44px target: an
+   invisible centered pseudo-element extends the hit box (no layout shift). */
+:is(.id-close, .sv-cp-x, .codex-close, .ah-x, .purchase-note-x)::after { content: ''; position: absolute; left: 50%; top: 50%; width: 44px; height: 44px; transform: translate(-50%, -50%); }
+:is(.ah-x, .purchase-note-x) { position: relative; }
 .cc-recommend { display: flex; flex-direction: column; gap: 7px; }
 /* ── Ready Chain (docs/HUB-FLOW.md §surfaces) — the live harvest queue. Readiness
    BREATHES (slow glow, no layout shift); the unseen badge stays the novelty channel. ── */
@@ -6589,6 +6600,15 @@ kbd {
 .cc-widget { display: contents; }
 .cc-zone-row { display: grid; grid-template-columns: minmax(0, 1.7fr) minmax(240px, 1fr); gap: 14px; align-items: start; }
 @media (max-width: 900px) { .cc-zone-row { grid-template-columns: 1fr; } }
+/* HOME CTA ABOVE THE FOLD on landscape phones (≈390px tall — mobilecheck asserts it): the
+   deploy row leads the board, and inside Mission Control the deploy button follows the stage
+   header directly; the fact tiles + reward chips drop just below it. */
+html[data-layout='landscape'] .cchome > .cc-zone-row { order: -1; }
+html[data-layout='landscape'] .mc-campaign { display: flex; flex-direction: column; }
+html[data-layout='landscape'] .mc-campaign > .mc-cta { order: 1; margin-top: 12px; }
+html[data-layout='landscape'] .mc-campaign > :is(.mc-facts, .mc-rewards) { order: 2; }
+html[data-layout='landscape'] .mc-campaign > .mc-rewards { margin: 0; }
+html[data-layout='landscape'] .mc-campaign > .mc-ledger { order: 3; }
 .cc-panel-h { font-size: 11px; font-weight: 900; letter-spacing: 0.16em; color: var(--muted); }
 
 /* World Status — the living centerpiece */
@@ -10479,7 +10499,6 @@ kbd {
 
 /* §density — icon-language marks on info surfaces */
 .fx-kw-g { font-style: normal; margin-right: 4px; font-size: 11px; opacity: 0.9; }
-.hubl-att-g { font-size: 14px; color: var(--hub-accent, var(--caustic)); flex: none; }
 
 /* §verbs — action classes for BUTTONS: add `act-<verb>` beside a button's own class and its
    leading glyph arrives from the ACTIONS table (ui/iconLanguage.tsx — the values below MIRROR

@@ -90,6 +90,31 @@ to the next, so the practical navigation per visit drops even though the screen 
 unchanged. (Recorded decision; revisit only with evidence a specific page pair still
 causes real back-and-forth.)
 
+## §back — Back and Escape walk the game, never out of it (2026-11)
+
+`src/ui/browserBack.ts` — the browser/Android Back button and Escape share one model:
+
+| Where | Back | Escape |
+|---|---|---|
+| A layer is open (any `<Popup>` or a modal calling `useDismiss`) | closes the TOPMOST layer | same |
+| Another modal on screen (a ceremony, What's New, the HUD tour) | held — the hub never moves underneath | ignored by the hub |
+| Hub screen / landing | the Hub's `goBack` (same walk as the ScreenHeader ‹ and edge swipe-back) | same (never from inside a text field) |
+| Hub root (Home, empty history) | the browser's own Back (previous page / close the PWA) | nothing |
+| Live run (the tutorial included) | opens the **Pause sheet** — never exits (`runBus.pause` → GameView) | the run's own hotkeys |
+| Deploy / Results / roulette / arena match / replay theater | held | — |
+
+**Mechanism:** ONE guard history entry with the SAME URL sits above the app's entry while Back
+has an in-game meaning (`wantsGuard`); Back consumes it → `popstate` → act (`backStep`) →
+re-arm. Same URL ⇒ `?replay`/`?daily`/`?checkout`/`?session_id` deep links, the PWA
+`start_url` (/play) and the marketing site at the domain root are untouched; a stale guard at
+the root is consumed so Back never dead-ends. A `beforeunload` "leave site?" prompt is armed
+only while a run is live. **Popups:** `<Popup onClose>` wires Escape + a backdrop tap; without
+`onClose`, Escape is the keyboard twin of a backdrop tap (it clicks the overlay), so every
+existing popup whose backdrop dismisses closes for free. × buttons answer a 44px hit area.
+Pure decisions are pinned in `browserBack.test.ts`; the live walk (hub ← landing ← screen →
+leave, run → pause, item details/gene card Escape + Back, deep-link query kept, no hub
+prompt) was verified in headless Chromium.
+
 ## §validation
 
 - Unit: chain derivation (live vs unseen — a seen-but-unclaimed quest STAYS in the chain),

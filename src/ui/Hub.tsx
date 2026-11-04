@@ -7,6 +7,7 @@ import { t, useLocale, setLocale, getLocale, LOCALES } from '../i18n';
 import { Suspense, useEffect, useMemo, useRef, useState, type CSSProperties, type MutableRefObject } from 'react';
 import { meta } from '../state/meta';
 import type { RunOutcome, RunResult } from '../state/meta';
+import type { SaveData } from '../save/saveStore';
 import type { ReplayRecord } from '../core/replay';
 import { audio } from '../audio/sound';
 import { music } from '../audio/music';
@@ -21,7 +22,7 @@ import { notifications } from '../state/notifications';
 import '../state/notificationSources'; // registers the default menu badges (side-effect import)
 import { telemetry } from '../net/telemetry';
 import { loopFlow } from '../state/loopFlow';
-import { chainNavs } from '../state/readyChain';
+import { chainNavs, readyChain } from '../state/readyChain';
 import { CommandCenter } from './CommandCenter';
 const InfiniteScreen = lazyNamed(() => import('./InfiniteScreen'), 'InfiniteScreen');
 const BossRushScreen = lazyNamed(() => import('./BossRushScreen'), 'BossRushScreen');
@@ -74,9 +75,48 @@ import { ScreenHeader } from './components/ScreenHeader';
 import { activeLiveEvents } from '../core/liveEvents';
 import { MobileTabBar, MobileTabIndex, MobilePageHead } from './MobileShell';
 import { useLayoutProfile } from './layoutProfile';
-import { HubLanding } from './HubLanding';
+import { HubLanding, doorBadge, soleOpenScreen } from './HubLanding';
 import { lazyNamed } from './lazyNamed';
 import { ScreenFallback } from './components/ScreenFallback';
+import { ScreenBoundary } from './components/ScreenBoundary';
+import { HubScreen } from './components/AdviceLink';
+import { backPhase, hasOpenLayer, modalOnScreen, registerHubBack, syncBackGuard } from './browserBack';
+
+/** The lazily-split hub screens by nav key — the idle prefetch warms them through the SAME
+ *  lazyNamed thunks the render uses (static/always-booted screens are simply absent). */
+const LAZY_SCREENS: Partial<Record<NavKey, { preload(): Promise<void> }>> = {
+  campaign: CampaignScreen, infinite: InfiniteScreen, bossrush: BossRushScreen, arena: ArenaScreen, daily: DailyScreen,
+  towers: TowerLab, mulligans: MulliganLab, heroes: HeroLab, adaptation: AdaptationChamber, evolution: EvolutionHQ,
+  genes: GeneArchive, hive: HiveScreen, vault: GeneticVault, market: SpliceMarket, auction: AuctionHouse,
+  equipment: EquipmentPanel, quests: QuestBoard, season: BattlePassScreen, phenotypes: Wardrobe,
+  collection: CollectionScreen, profile: PlayerProfile, help: HelpWiki,
+  // Settings is inline here, but its panels are split — warm them together.
+  settings: { preload: () => Promise.all([SaveManager.preload(), CloudBackup.preload(), MusicDebug.preload(), DevTools.preload()]).then(() => undefined) },
+};
+
+/** Warm the open screens among `keys` (folded keys warm their host). PROD-only — the dev server
+ *  compiles on demand, like main.tsx's run-path warmup. */
+function prefetchScreens(save: SaveData, keys: readonly NavKey[]): void {
+  if (!import.meta.env.PROD) return;
+  for (const k of new Set(keys.map(hostOf))) if (featureRevealed(save, k)) void LAZY_SCREENS[k]?.preload();
+}
+
+/** Run `fn` when the browser idles — within 800 ms even on a board that never idles (the living
+ *  lab animates constantly). Returns the cancel. */
+function onIdle(fn: () => void): () => void {
+  if (typeof window.requestIdleCallback === 'function') {
+    const id = window.requestIdleCallback(fn, { timeout: 800 });
+    return () => window.cancelIdleCallback(id);
+  }
+  const id = setTimeout(fn, 500);
+  return () => clearTimeout(id);
+}
+
+/** Escape typed into a field belongs to the field, never to navigation. */
+function isTypingTarget(t: EventTarget | null): boolean {
+  const el = t as HTMLElement | null;
+  return !!el && (el.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName ?? ''));
+}
 
 // The nav IA (groups + portrait tabs) lives in navModel.ts — the single source of truth this
 // shell, the portrait shell, and the validation layer (navModel.test / mobilecheck) all share.
@@ -315,6 +355,10 @@ export function Hub({
   // it came from, so the ScreenHeader's ‹ and the touch swipe-back walk REAL history instead
   // of guessing a parent. Falls back landing → home when the stack runs dry.
   const histRef = useRef<{ nav: NavKey; landing: NavGroupId | null }[]>([]);
+  // Where the shell stands RIGHT NOW (synchronously — state lags a render): the browser-Back
+  // guard (ui/browserBack.ts) asks "is goBack at the root?" between a popstate and the commit.
+  const posRef = useRef<{ nav: NavKey; landing: NavGroupId | null }>({ nav, landing });
+  const atRoot = (): boolean => histRef.current.length === 0 && posRef.current.nav === 'home' && posRef.current.landing === null;
   const pushHist = (): void => {
     const top = histRef.current[histRef.current.length - 1];
     if (top && top.nav === nav && top.landing === landing) return; // no duplicate stops
@@ -341,15 +385,22 @@ export function Hub({
     setLanding(null); // a concrete destination leaves any hub landing
     setNavOpen(false); // picking a destination closes the narrow-shell drawer
     setMIndex(false); // and leaves any portrait index page
+    posRef.current = { nav: k, landing: null };
+    syncBackGuard(); // browser/Android Back now walks back here (docs/HUB-FLOW.md §back)
   };
 
   /** Open a hub's landing page (desktop group headers; landing rows drill in via go). */
   const goLanding = (id: NavGroupId): void => {
     if (landing === id) return;
+    // A hub with exactly ONE open screen has no landing — its door IS the screen.
+    const sole = soleOpenScreen(save, navGroups().find((g) => g.id === id) ?? navGroups()[0]);
+    if (sole) { go(sole); return; }
     audio.cue('ui');
     pushHist();
     setLanding(id);
     setNavOpen(false);
+    posRef.current = { nav, landing: id };
+    syncBackGuard();
   };
 
   /** Walk back one real stop; dry stack falls back screen → its hub landing → home. */
@@ -362,11 +413,33 @@ export function Hub({
       setNavOpen(false);
       setMIndex(false);
       if (prev.landing === null) { telemetry.screen(prev.nav); notifications.markSeen(prev.nav, save); }
-      return;
+      posRef.current = prev;
+    } else if (landing === null && nav !== 'home' && !soleOpenScreen(save, groupOf(nav))) {
+      setLanding(groupOf(nav).id); // a dry stack falls back screen → its hub landing…
+      posRef.current = { nav, landing: groupOf(nav).id };
+    } else if (landing !== null || nav !== 'home') {
+      setLanding(null); // …→ home (a one-screen hub has no landing to fall back to)
+      setNav('home');
+      posRef.current = { nav: 'home', landing: null };
     }
-    if (landing === null && nav !== 'home') { setLanding(groupOf(nav).id); return; }
-    if (landing !== null) { setLanding(null); setNav('home'); return; }
+    syncBackGuard();
   };
+  // The latest goBack for listeners registered once (Escape, the browser-Back guard).
+  const goBackRef = useRef(goBack);
+  goBackRef.current = goBack;
+  useEffect(() => registerHubBack({ atRoot, back: () => goBackRef.current() }), []); // eslint-disable-line react-hooks/exhaustive-deps
+  // ESCAPE = back in the hub (docs/HUB-FLOW.md §back) — only when nothing modal is up (an open
+  // Popup closes itself first via the dismiss stack), never from inside a text field, and never
+  // in a run/overlay phase (the run owns its own hotkeys and pause).
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent): void => {
+      if (e.key !== 'Escape' || e.repeat || e.defaultPrevented || isTypingTarget(e.target)) return;
+      if (backPhase() !== 'menu' || hasOpenLayer() || modalOnScreen() || atRoot()) return;
+      goBackRef.current();
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Touch swipe-back (the iOS-standard edge gesture): a drag that STARTS on the left edge
   // and travels right without much vertical wander walks history. Edge-start only, so
@@ -395,6 +468,17 @@ export function Hub({
 
   // What's New "Open ▸" CTA (and any future out-of-hub caller) navigates through the bus.
   useEffect(() => navBus.onGo((k) => go(k as NavKey)), []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // NO LOADING FLASH (docs/DEPLOYMENT.md §code-splitting): once the browser idles, warm the
+  // current hub's open member screens + the Ready Chain's next stop through the same lazyNamed
+  // thunks — the first visit renders the module directly (a hovered door warms its hub too).
+  // Idle-only: nothing competes with boot, and the boot closure is unchanged.
+  useEffect(() => onIdle(() => {
+    const s = meta.get();
+    const group = navGroups().find((g) => g.id === landing) ?? groupOf(nav);
+    const next = readyChain(s)[0]?.nav;
+    prefetchScreens(s, [...group.items.map((i) => i.key), ...(next ? [next] : [])]);
+  }), [nav, landing]);
 
   // Progressive UI contamination (VISUAL_IDENTITY.md §contamination): the instrument's own
   // chrome is slowly assimilated as the account deepens — SAME ladder as the evolving lab
@@ -439,7 +523,7 @@ export function Hub({
           >
             <span className="hub-door-g" aria-hidden>
               ⌂
-              {(badges.home ?? 0) > 0 && <span className="nav-badge" aria-hidden>{(badges.home ?? 0) > 1 ? ((badges.home ?? 0) > 9 ? '9+' : badges.home) : ''}</span>}
+              {(badges.home ?? 0) > 0 && <span className="nav-badge" aria-hidden />}
             </span>
             <span className="hub-door-l">{t('nav.home')}</span>
           </button>
@@ -448,7 +532,8 @@ export function Hub({
             // silent. HOME has its own door above, so it never counts toward the play hub.
             const items = group.items.filter((n) => n.key !== 'home' && navVisible(n.key));
             if (items.length === 0) return null;
-            const groupBadge = items.reduce((n, it) => n + (teaserOf.has(it.key) ? 0 : badges[it.key] ?? 0), 0);
+            // A door badge counts member SCREENS holding a decision, never their summed items.
+            const groupBadge = doorBadge(items.map((it) => it.key), badges, teaserOf);
             const groupWhy = items.flatMap((it) => reasons[it.key] ?? []).join(' · ');
             // A headerless hub IS its single screen (the Store) — its door navigates straight
             // there (a one-card landing would be a pointless hop); the divider + accent keep
@@ -476,19 +561,22 @@ export function Hub({
                 </div>
               );
             }
-            // The hub door: its badge aggregates the members, its tooltip lists the member
-            // REASONS, and clicking it opens the landing page (the only door to the screens).
+            // The hub door: its badge counts the members needing a decision, its tooltip lists
+            // the member REASONS, and clicking it opens the landing page — or, when the hub has
+            // exactly ONE open screen, that screen directly (a one-card landing is a dead hop).
             const active = landing === group.id || (landing === null && items.some((it) => it.key === nav));
             const ready = items.some((it) => !teaserOf.has(it.key) && chainSet.has(it.key));
+            const sole = soleOpenScreen(save, group);
             return (
               <button
                 type="button"
                 key={group.id}
                 data-hub={group.id}
+                data-nav={sole ?? undefined}
                 className={`hub-door${active ? ' on' : ''}${ready ? ' is-ready' : ''}`}
                 style={{ ['--nav-accent' as string]: group.accent } as CSSProperties}
-                onClick={() => goLanding(group.id)}
-                onPointerEnter={() => audio.cue('hover')}
+                onClick={() => (sole ? go(sole) : goLanding(group.id))}
+                onPointerEnter={() => { audio.cue('hover'); prefetchScreens(save, items.map((it) => it.key)); }}
                 aria-current={active ? 'page' : undefined}
                 title={groupWhy || group.hub.blurb}
                 aria-label={groupWhy ? `${group.title} — ${groupWhy}` : group.title}
@@ -498,7 +586,7 @@ export function Hub({
                   {groupBadge > 0 && <span className="nav-badge" aria-hidden>{groupBadge > 1 ? (groupBadge > 9 ? '9+' : groupBadge) : ''}</span>}
                 </span>
                 <span className="hub-door-l">{group.title}</span>
-                <span className="hub-door-chev" aria-hidden>›</span>
+                {!sole && <span className="hub-door-chev" aria-hidden>›</span>}
               </button>
             );
           })}
@@ -532,6 +620,7 @@ export function Hub({
         <section
           className="hub-screen"
           key={mobileShell && mIndex ? `midx-${mTab}` : landing ?? nav}
+          data-screen={landing === null && !(mobileShell && mIndex) ? nav : undefined}
           onTouchStart={onScreenTouchStart}
           onTouchEnd={onScreenTouchEnd}
         >
@@ -574,7 +663,9 @@ export function Hub({
           {/* Any screen whose feature hasn't revealed shows its unlock briefing instead —
               one gate for every wing (the old per-mode ModeLocked, generalized). */}
           {!featureRevealed(save, nav) && <FeatureLocked view={featureView(save, nav)} go={go} />}
-          {featureRevealed(save, nav) && <Suspense fallback={<ScreenFallback />}>
+          {/* One failed screen (a chunk that won't load, a render crash) stays LOCAL: the
+              boundary offers Retry + Back while the rail and every other screen keep working. */}
+          {featureRevealed(save, nav) && <HubScreen.Provider value={nav}><ScreenBoundary onBack={goBack}><Suspense fallback={<ScreenFallback />}>
           {nav === 'home' && (
             <CommandCenter onStart={onStart} onStartEndless={onStartEndless} onStartCampaign={onStartCampaign} go={go} last={last} onSeenLast={onSeenLast} doctrineRef={doctrineRef} />
           )}
@@ -603,7 +694,7 @@ export function Hub({
           {nav === 'profile' && <PlayerProfile onNavigate={(k) => go(k as NavKey)} />}
           {nav === 'settings' && <SettingsScreen onReplayTutorial={onReplayTutorial} onReplayTour={onReplayTour} onReplayIntro={onReplayIntro} />}
           {nav === 'help' && <HelpWiki onNavigate={(k) => go(k as NavKey)} onReplayTour={onReplayTour} />}
-          </Suspense>}
+          </Suspense></ScreenBoundary></HubScreen.Provider>}
           </>
           )}
         </section>

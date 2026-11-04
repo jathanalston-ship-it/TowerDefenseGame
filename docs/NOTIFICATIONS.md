@@ -78,16 +78,28 @@ from the same rows (Home / Battle / Rewards / Evolve / More — loop order).
   HOME + one door per hub (+ the Store's direct door — `headerless` groups ARE their single
   screen) and nothing else — no per-screen rows, rings, or teaser rows at the rail level.
   Clicking a door opens the hub's **landing page** (`src/ui/HubLanding.tsx`) — identity
-  header (glyph/promise/completion %), a "needs attention" strip of reason lines, the
-  recommendation panel, the screen grid (unlock-registry cards with badges/reasons/rings/
-  teasers — the ONLY desktop door to individual screens now), and a recently-unlocked shelf
-  (`director.revealed` within the last 5 runs). Fully registry-driven — a new screen in
-  navModel lands with everything for free; there is no per-hub layout.
+  header (glyph/promise/completion %), the screen grid FIRST (unlock-registry cards with
+  badges/reasons/rings/teasers — the ONLY desktop door to individual screens now; each card
+  OWNS its screen's reason line and live Ready-Chain line), the recommendation panel (only
+  what no card says — `recommendationsFor({ skip })` drops reason-derived recs and chain stops
+  for member screens, so it carries the play backstop / almost-unlocked pulls), and a
+  recently-unlocked shelf (`director.revealed` within the last 5 runs). The old "needs
+  attention" strip is gone (2026-11): it and the recs repeated every card verbatim — a fresh
+  Rewards Hub said "2 Bio-Containers" three times above one card. One fact, one owner.
+  Fully registry-driven — a new screen in navModel lands with everything for free.
+- **Direct doors (2026-11):** a hub with exactly ONE open screen (`soleOpenScreen` — HOME never
+  counts) has no landing: its door opens the screen (`data-nav` rides on the door, the chevron
+  drops), `goLanding` redirects, and a dry back-stack falls back to Home, not a one-card
+  landing. The Store's headerless rule, generalized (a fresh account's Mission, Rewards and
+  Evolution doors open Campaign, the Vault and Evolution HQ directly).
 - **Mobile:** the tab index pages render the same intelligence (compact recommendation
   strip + reason sublines on rows) — the landing and the index are the same idea at two
   widths.
-- Aggregate door badges sum the members (on the glyph corner); door tooltips list the
-  member reasons. The active door stays lit while any of its screens is open.
+- **Door badges count DECISIONS (2026-11):** a door's number is how many member screens hold
+  a decision (`doorBadge` — §decisions), never the sum of their item counts (which read "9+"
+  forever: "16 gene cards upgradeable" alone filled it). HOME's door is one screen → a dot.
+  Door tooltips list the member reasons; the active door stays lit while any of its screens
+  is open.
 - **Consumers of the old per-row anchors moved with it:** the HUD tour's wing stops
   spotlight `[data-hub]` doors (`nav` field keeps the reveal gate), and the mobilecheck
   desktop sweep walks door → landing → `[data-nav]` card.
@@ -179,6 +191,18 @@ candidate otherwise: recommendations, the Next-Goal spine (`nextGoals` — its `
 already phrases the next sealed wing as a goal, "Unlock the Hero Hall"), Mission Control's
 Advisor row, the prediction panel's lever lines, and the loop directive's farm advice
 (Infinite named only once open). The Ready Chain applied the same rule first.
+
+**Advice is a link (2026-11).** Guidance that names a screen returns `{ text, nav? }` —
+`loopAdviceLink` (state/progressionLoop.ts; `loopAdvice` stays the string API) and
+`meta.predict(...).advice` (the prediction panel's lever lines; `.recommendations` stays the
+string list) — and the surface renders `<AdviceGo nav>` (ui/components/AdviceLink.tsx), the same
+"Go ▸" the Results debrief uses. It renders only where it can work: inside the hub (the
+`HubScreen` context the Hub provides — off-hub surfaces like Results have no router), never to
+the screen already open, never to a sealed wing (`isOpenNav`). "Farm Infinite" → Infinite,
+"buy one in the Tower Lab" → Tower Lab, "gear up a hero in the Armory" → Armory.
+**One fact, one owner:** `recommendationsFor({ skip })` drops candidates another surface on
+the same page owns, before the cap and the play fallback — the Command Center's Recommended
+Now skips every Ready-Chain stop; a hub landing skips what its cards already say.
 
 ## §reward-toasts — the reward placard stack
 
