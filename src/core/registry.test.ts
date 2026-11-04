@@ -79,9 +79,11 @@ describe('core content is registry-derived (no hardcoded lists)', () => {
     // second Resonant, the Caustic executioner) = twenty towers; TEN heroes — the launch trio +
     // Vitriol/Revenant/Knell (one per combat class) + the Cinderwyrm (the flying second Caustic)
     // + the Riptide (water-form zone controller, second Kinetic) + the Carrion (charnel
-    // necromancer, second Vital) + the Fovea (executioner lance, second Neural)
-    expect(towerRegistry.size).toBe(22);
-    expect(heroRegistry.size).toBe(11);
+    // necromancer, second Vital) + the Fovea (executioner lance, second Neural). The answer roster
+    // (Warren/Tick/Quill — docs/TOWERS.md §answers) and the Myceliarch (the Viral gatekeeper)
+    // bring it to twenty-five towers (incl. the two arena crowns) and twelve heroes.
+    expect(towerRegistry.size).toBe(25);
+    expect(heroRegistry.size).toBe(12);
   });
 
   it('shipped content passes registry-driven validation', () => {

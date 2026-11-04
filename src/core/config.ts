@@ -545,7 +545,7 @@ export const TOWER_DEFS: Record<TowerKind, TowerDef> = {
     unlockStage: 10, // its shards drop once Campaign Stage 10 is cleared
     cost: 125,
     range: 520, // SEEDER — the first LONG-reach Viral organ (Nest 280 · Lung 250): it starts outbreaks far up-lane
-    fireInterval: 1.8,
+    fireInterval: 2.6, // a slow volley: Infection caps per host (STATUS.infectionMaxStacks), so reach + host COUNT is the value, not cadence
     damage: 4, // token impact — the Infection it plants (ramping, armor-ignoring, spreading) is the product
     projectileSpeed: 380,
     splash: 0,
@@ -563,10 +563,10 @@ export const TOWER_DEFS: Record<TowerKind, TowerDef> = {
     firing: 'homing', // a tuned bone quill — rings its mark, then the impact cracks it
     unlockShards: 460,
     unlockStage: 28, // its shards drop once Campaign Stage 28 is cleared (fills the 26→30 gate gap)
-    cost: 160,
+    cost: 150,
     range: 560, // SPOTTER — long reach; it cracks the front of the wave before the rest of the board arrives
-    fireInterval: 2.0,
-    damage: 16,
+    fireInterval: 1.7,
+    damage: 18,
     projectileSpeed: 760,
     splash: 0,
     color: '#9fe7e0',
@@ -575,7 +575,7 @@ export const TOWER_DEFS: Record<TowerKind, TowerDef> = {
     // Fracture + react then SHEARS it (REACTIONS.resoBurst + per Fracture stack, armor broken for
     // STATUS.shredArmorBreak s). Fracture stackers beside it make every shear bigger.
     abilities: [
-      { type: 'projectile', behavior: 'homing', damage: 16, speed: 760, range: 560 },
+      { type: 'projectile', behavior: 'homing', damage: 18, speed: 760, range: 560 },
       { type: 'status', status: { kind: 'Resonance', amount: 1 } },
     ],
   },
@@ -1053,17 +1053,17 @@ export const ENEMY_DEFS: Record<EnemyKind, EnemyDef> = {
   },
   // ── PUZZLE FAUNA (docs/ENEMIES.md §puzzle) — six trait fusions, each authored around the ONE answer
   //    it demands (EA-DESIGN-AUDIT #66). Pure data: every trait rides an existing gated hook, the
-  //    campaign entry stage auto-derives from the traits (they arrive staggered across stages 3–9),
+  //    campaign entry stage auto-derives from the traits (they arrive staggered across stages 4–9 — clear of the pinned 1–3 onboarding curve),
   //    and the scripted WAVES table never spawns them ⇒ the pinned golden run is byte-identical. ──
   scuttler: {
-    kind: 'scuttler', name: 'Chitin Scuttler', hp: 100, armor: 14, speed: 74, bounty: 26, damage: 5, radius: 10, color: '#c2a35a',
+    kind: 'scuttler', name: 'Chitin Scuttler', hp: 140, armor: 18, speed: 70, bounty: 32, damage: 5, radius: 11, color: '#c2a35a',
     behavior: { seek: 1.1, avoidTowers: 0.1, avoidHero: 0.3, separation: 0.4, jitter: 0.12, gait: { pulse: { period: 0.7, duty: 0.4, burst: 1.6, rest: 0.6 } } }, // a plated beetle in SKITTER-bursts: chip bounces off → armor-break (Shred/Shear) or armor-ignoring Infection
     attack: { interval: 1.0, windup: 0.35 }, // PLATED FAST: pincer snips
   },
   blightmoth: {
-    kind: 'blightmoth', name: 'Blight Moth', hp: 70, armor: 0, speed: 78, bounty: 24, damage: 6, radius: 11, color: '#b8d040',
-    explodeRadius: 80, explodeDamage: 30,
-    behavior: { seek: 1.1, avoidTowers: 0.1, avoidHero: 0.2, separation: 0.3, jitter: 0.14, flying: true, gait: { weave: { amp: 0.4, freq: 2.4 } } }, // an airborne BOMB fluttering over walls + blockers → intercept it at RANGE
+    kind: 'blightmoth', name: 'Blight Moth', hp: 220, armor: 3, speed: 60, bounty: 40, damage: 6, radius: 14, color: '#b8d040',
+    explodeRadius: 90, explodeDamage: 36,
+    behavior: { seek: 1.1, avoidTowers: 0.1, avoidHero: 0.2, separation: 0.3, jitter: 0.14, flying: true, gait: { weave: { amp: 0.4, freq: 2.0 } } }, // a slow, BLOATED airborne bomb drifting over walls + blockers → it takes real ranged DPS to intercept
     attack: { interval: 1.4, windup: 0.5 }, // SUICIDE: windup = the FUSE; one burst, then gone
   },
   borer: {
@@ -1912,9 +1912,9 @@ export const HERO_DEFS: Record<HeroKind, HeroDef> = {
     maxHp: 360, speed: 82, attackRange: 0, attackInterval: 0, attackDamage: 0, attackFracture: 0,
     aggroRange: 1400, contactRange: 26, respawnTime: 9,
     pulseInterval: 1.1, pulseRadius: 104, pulseDamage: 12, pulseDisrupt: 0.35, nucleusRegen: 0.6,
-    ability: { name: 'Sporefall', blurb: 'The warden bursts at the gate — heavy damage and deep Infection in everything caught, and the Hive drinks the rot to mend.', cooldown: 12, radius: 140, damage: 46, fracture: 0, disrupt: 0, infect: 3, heal: 20, particle: 'heroBloom', fxColor: '#e0b070', cinematic: { actor: 'bloomheart', motion: 'expand', impactDelay: 0.35 } },
+    ability: { name: 'Sporefall', blurb: 'A spore-burst erupts where the warden aims — heavy damage and deep Infection in everything caught, and the Hive drinks the rot to mend.', cooldown: 12, radius: 140, damage: 46, fracture: 0, disrupt: 0, infect: 3, heal: 20, particle: 'heroBloom', fxColor: '#e0b070', cinematic: { actor: 'bloomheart', motion: 'expand', impactDelay: 0.35 } },
     skills: [
-      { name: 'Mycelial Mantle', blurb: 'Hyphae knit over the warden — a self-shield, and a rot-burst that infects everything pressing it.', cooldown: 9, radius: 90, damage: 18, fracture: 0, disrupt: 0, infect: 2, heal: 0, shield: 70, shieldSeconds: 5, castOn: 'self', minEnemies: 1, particle: 'heroSpray', fxColor: '#c8e06a', cinematic: { actor: 'bloomheart', motion: 'self', impactDelay: 0 } },
+      { name: 'Mycelial Mantle', blurb: 'Hyphae knit over the warden — a self-shield, and a rot-burst that infects everything pressing it.', cooldown: 9, radius: 90, damage: 18, fracture: 0, disrupt: 0, infect: 2, heal: 0, shield: 70, shieldSeconds: 5, castOn: 'self', minEnemies: 1, particle: 'heroSpray', fxColor: '#c8e06a', cinematic: { actor: 'bloomheart', motion: 'self', impactDelay: 0.2 } },
       { name: 'Fruiting Body', blurb: 'A fungal eruption bursts up under the deepest intruder — heavy damage and a deep Infection seed.', cooldown: 10, radius: 80, damage: 40, fracture: 0, disrupt: 0, infect: 4, heal: 0, castOn: 'target', minEnemies: 1, particle: 'heroBurst', fxColor: '#f0c060', cinematic: { actor: 'bloomheart', motion: 'rise', impactDelay: 0.3 } },
     ],
     forks: [

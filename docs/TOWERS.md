@@ -761,3 +761,71 @@ rot, a detonating head). **Stars**: Weeping Wound (★1) → Twin Ballista (★2
 (★3) → Headsman/Pox Quarrel (★5) → *The Culling Stroke* (★9 — a third harpoon and every impact
 detonates). **Visual**: the `barrel` form (a drawn harpoon rail), diamond silhouette, `tfire_thud`
 release.
+
+---
+
+## Answer roster (§answers) — Gristle Warren · Tick Battery · Keening Quill
+
+Three organs designed as **answers** — each fills a role the board could not express, and each is
+the named counter to one of the puzzle enemies (docs/ENEMIES.md §puzzle). Like the reaction trio
+they add **zero sim verbs**: every mechanic composes the existing ability vocabulary (`summon`,
+`aura`, `debuff`, `projectile` + `status`, `chain`) from `TowerDef.abilities`, and all three are
+doubly gated (`unlockStage` + `unlockShards`) so no fresh/golden roster ever fields them. The gates
+deliberately fill the progression **droughts**: nothing unlocked between the Spitfang (stage 3) and
+the Deep-Strain pair (stage 15), and nothing between the Roost (26) and the Polyp (30).
+
+| | Gristle Warren | Tick Battery | Keening Quill |
+|---|---|---|---|
+| Class / delivery | **Vital** / `field` muster (`summon` + gnash `aura`) | **Viral** / `infest` (3-host `parasite` volley) | **Resonant** / `homing` + `status: Resonance` |
+| Role gap | the **BARRACKS** — body-blocking units that HOLD the lane (no tower did) | the first **long-reach Viral** seeder (Nest 280 · Lung 250 · Tick **520**) | the **ARMOR-BREAKER** spotter — a ranged Resonant (Coil 340 · Bell 230 · Quill **560**) |
+| Cost · range · cadence · hit | 115 · muster reach 230 · 4.5 s · 1 Gristle Thrall (150 hp) + 5-dmg gnash r 110 | 125 · 520 · 2.6 s · 4 dmg ×3 hosts + Infection 2 each | 150 · 560 · 1.7 s · 18 dmg + Resonance → impact Fracture ⇒ **Shear** (22 true + 2.5 s armor break) |
+| Beats | ground pushers, swarms, siegers parked at the crust (the held die in your kill-zone) | long dense waves, armored bodies (Infection ignores armor), regen that chip can't outpace | plate (Golem, Gargoyle, **Chitin Scuttler**); every chip tower after it bites through |
+| Loses to | **fliers + burrowers** (the body-block rule ignores them — **Blight Moth**, **Marrow Borer**), heavy hitters that chew walls fast | fast frail swarms that die before the ramp, short bursty elite waves | swarms (single mark per quill), anything unarmored (the shear is a bonus, not the payload); a **plague board** — Resonance + Infection RUPTURES (cashes out) the stacks |
+| Gate (stage · shards) | **6 · 110** (the second-friendliest unlock) | **10 · 180** | **28 · 460** (fills the 26→30 gap) |
+| Branches | **Meat Wall** (Sinew Hulks + cracking gnash) / **Swarming Gristle** (Gristlelings + Mark tithe) | **Patient Zero** (deeper plague, up to 6 hosts) / **Leech Swarm** (Mind Rot · Putrefy · Bloom Rot partners) | **Shattering Note** (crits, deeper Fracture ⇒ bigger shears, twin quill) / **Keening Chorus** (the keen `chain`-leaps the crowd) |
+| Star path | Gnashing Floor → Cracking Grip → *Hulkline / Litterline* (★3) → *Bonewall / Marrow Tithe* (★5) → **The Living Rampart** (★9) | Fat Ticks → Fourth Host → *Numbing / Acid Bite* (★3) → *Plague / Leech Volley* (★5) → **The Outbreak Battery** (★9) | Tuned Fletch → Hairline Fracture → *Siege / Swift Spotter* (★3 — highestHealth vs fastest) → *Shattering Pitch / Sympathetic Chord* (★5) → **The Breaking Note** (★9) |
+| Idle posture | *Knitting Gristle* — `trickle` 0.3 Integrity/s | *Engorged Clutch* — `reserve` 2 volleys | *Held Note* — `windup` ×1.4 dmg + pierce |
+| Visual | `nest` form + a burrow muster-mouth signature (an arm hauls the thrall out on each muster); `square` silhouette | `pod` form + clinging engorged ticks (they fling on the volley); `circle` silhouette | `antenna` form + twin tuning-fork tines that shiver on the keen; `triangle` silhouette |
+| Audio | `tfire_wet` (the muster) | `tfire_wet` (the fling) | `tfire_ting` (the keen) |
+
+**Gristle Warren — the barracks.** Its muster is the shared `summon` verb (`Game.summonMinions`):
+each cast, while a threat is inside the 230 px muster reach, a **Gristle Thrall** (`MINION_DEFS`:
+150 hp, 6 dmg, 72 speed, 13 s life) shoulders out and walks to the nearest enemy; the standing
+**body-block** rule (`minionBlock`) then stalls every *ground* enemy touching it while the board
+works. Upgrades CHOOSE the unit (Sinew Hulk 360 hp · Gristleling 60 hp / 110 speed) — data rows,
+never a per-unit code path — and the global `MINION_CAP` (16) is the wall's ceiling. Thralls are
+untouched by the tower damage fold (they are units, like the Roost's drakes before baking); the
+warren's own gnash `aura` is what earns mastery and scales with damage cards. **Counter-play is
+the puzzle fauna**: the Blight Moth flies over the wall and the Marrow Borer tunnels under it.
+
+**Tick Battery — patient zero.** A `projectile` component with the `parasite` behavior and
+`count: 3` — three ticks to three *distinct* hosts per volley, each seeding the parasite payload
+(`STATUS.infectionOnHit`); the native ramp + spread-on-death does the rest. Where the Nest drills
+ONE host deep and the Lung coats the crowd near itself, the Battery starts the outbreak **far up
+the lane**. Extra ticks are extra `projectile` COMPONENTS (stars/branches) because the parasite
+behavior ignores the `extraProjectiles` channel by design; statuses in its grants tag the PRIMARY
+host, turning each volley into a self-contained reaction (Mind Rot / Putrefy / Bloom Rot).
+
+**Keening Quill — the armor-breaker.** The `status: Resonance` component rings the mark at the
+cast; the homing impact's native Fracture + react then **SHEARS** it (`resonantshear`:
+`REACTIONS.resoBurst` + `resoPerStack` × Fracture stacks true damage, and **armor broken for
+`STATUS.shredArmorBreak` s** — for every tower, not just the Quill). Fracture stackers beside it
+(Needle, Spitfang, a Cracking-Grip Warren) make every shear bigger. Its ★3 fork picks *which* plate
+to crack — the heaviest (`highestHealth`) or the fastest (`fastest` — the Chitin Scuttler's
+answer). The Keening Chorus branch uses the `chain` verb, which starts at the struck mark, so the
+keen leaps through the bodies beside it.
+
+**Balance verification (2026-11 content pass).** Two probes, both headless (no `sim:report` — the
+shared machine). (1) *Controlled pinned-pack* — one tower vs a pinned pack for 12 s, total HP removed
+(direct + DoT + reactions) per 100 Biomass of cost: vs 4 Brutes, Spitfang 20.7 · Parasite 12.7 ·
+Lung 34.5 · Bell 22.9 · Lancet 20.3; the Tick lands between the Parasite and the Lung (Infection caps
+per host, so its value is reach + host count — a faster cadence bought nothing on a capped pack, so
+it ships at a slow 2.6 s volley — 30.8/100 b on Brutes); the Quill's SOLO output (~14/100 b) sits
+under the Spitfang's 20.7 on soft armor by design and only edges it on plate — its value is the armor
+break: Needle+Quill vs 4 Scuttlers 35.0 dps vs Needle+Spitfang 12.8, vs 2 Haulers 39.0 vs 15.6. `answerRoster.test.ts` pins both bands (Parasite < Tick ≤ Lung; Quill ≤
+Spitfang solo) and the partner-chip uplift. (2) *Campaign mixed board* (5 seeds, Stage 12 ×1, a fixed
+Spitfang+Needle opener with the probed tower in the remaining picks): Spitfang 5/5 (40 integrity
+lost) · Parasite 5/5 (18) · Lung 5/5 (32) · **Tick 5/5 (34)** · **Quill 4/5 (52)** · Bell 4/5 (59) ·
+Lancet 3/5 (62) · **Warren 4/5 (20)**; at Stage 9 the Warren board was the only one to finish
+flawless (0 lost vs 10–15) — it holds leaks, it does not out-damage. All three sit inside the
+existing spread: niches, not upgrades.

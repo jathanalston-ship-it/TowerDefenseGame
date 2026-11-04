@@ -75,6 +75,10 @@ const towersOwned = (s: SaveData): number => TOWER_ORDER.filter((k) => (TOWER_DE
 const heroesFielded = (s: SaveData): number => HERO_ORDER.filter((k) => heroUse(s, k) >= 1).length;
 // The Deep-Fauna fusion strains — the 'deep_fauna' Bestiary achievement tracks slaying each one.
 const DEEP_FAUNA_KINDS = ['zealot', 'carrier', 'entrencher', 'oracle', 'glutling'] as const;
+// The Puzzle Fauna (docs/ENEMIES.md §puzzle) — six fusions that each demand ONE answer.
+const PUZZLE_FAUNA_KINDS = ['scuttler', 'blightmoth', 'borer', 'shellback', 'wispmother', 'veilmoth'] as const;
+// The answer roster (docs/TOWERS.md §answers) — the barracks, the seeder, the armor-breaker.
+const ANSWER_TOWERS = ['warren', 'tick', 'quill'] as const;
 
 export const ACHIEVEMENTS: AchievementDef[] = [
   // ── Milestones (visible, save/run based) ──
@@ -183,6 +187,10 @@ export const ACHIEVEMENTS: AchievementDef[] = [
   { id: 'deep_fauna', name: 'Deep Fauna', desc: 'Slay all five Deep-Fauna strains.', hidden: true, reward: 90,
     test: (c) => DEEP_FAUNA_KINDS.every((k) => (c.save.stats.killsByEnemy[k] ?? 0) >= 1),
     progress: (c) => ({ cur: DEEP_FAUNA_KINDS.filter((k) => (c.save.stats.killsByEnemy[k] ?? 0) >= 1).length, max: DEEP_FAUNA_KINDS.length }) },
+  // Bestiary milestone: crack every Puzzle Fauna strain (each demands its own answer).
+  { id: 'puzzle_fauna', name: 'The Answer Key', desc: 'Slay all six Puzzle Fauna strains — every puzzle, answered.', hidden: true, reward: 90,
+    test: (c) => PUZZLE_FAUNA_KINDS.every((k) => (c.save.stats.killsByEnemy[k] ?? 0) >= 1),
+    progress: (c) => ({ cur: PUZZLE_FAUNA_KINDS.filter((k) => (c.save.stats.killsByEnemy[k] ?? 0) >= 1).length, max: PUZZLE_FAUNA_KINDS.length }) },
 
   // ── Deep-band ladder (BALANCE_REPORT unlock-cadence gap: the 150–400h band had almost no
   //    authored beats — every unlock below is a mid/late-game milestone with a progress bar,
@@ -249,6 +257,10 @@ export const ACHIEVEMENTS: AchievementDef[] = [
   { id: 'field_vitriol', name: 'Scorched Earth', desc: 'Field Vitriol, the siege caste, in a run.', reward: 30, test: (c) => heroUse(c.save, 'vitriol') >= 1 },
   { id: 'field_revenant', name: 'The Wraith Walks', desc: 'Field the Revenant — the phase-stalking assassin.', reward: 40, test: (c) => heroUse(c.save, 'revenant') >= 1 },
   { id: 'field_knell', name: 'For Whom the Bell', desc: 'Field the Knell — the resonance cast from your first Molt.', reward: 40, test: (c) => heroUse(c.save, 'knell') >= 1 },
+  { id: 'field_myceliarch', name: 'The Gate Holds', desc: 'Field the Myceliarch — the hive\'s immune response, rooted at the Core.', reward: 40, test: (c) => heroUse(c.save, 'myceliarch') >= 1 },
+  { id: 'answer_arsenal', name: 'Every Question Answered', desc: 'Deploy all three answer organs — the Gristle Warren, the Tick Battery and the Keening Quill.', reward: 55,
+    test: (c) => ANSWER_TOWERS.every((k) => towerUse(c.save, k) >= 1),
+    progress: (c) => ({ cur: ANSWER_TOWERS.filter((k) => towerUse(c.save, k) >= 1).length, max: ANSWER_TOWERS.length }) },
   { id: 'full_menagerie', name: 'Full Menagerie', desc: 'Field every hero at least once (lifetime).', reward: 75, test: (c) => heroesFielded(c.save) >= HERO_ORDER.length, progress: (c) => ({ cur: heroesFielded(c.save), max: HERO_ORDER.length }) },
   { id: 'complete_arsenal', name: 'Complete Arsenal', desc: 'Unlock every tower — the launch five, the expansion three, and both beam towers.', reward: 80, test: (c) => towersOwned(c.save) >= TOWER_ORDER.length, progress: (c) => ({ cur: towersOwned(c.save), max: TOWER_ORDER.length }) },
   { id: 'deep_genome', name: 'Deep Genome', desc: 'Discover 60 Gene strands — deep into the sealed pools.', reward: 60, test: (c) => discovered(c.save) >= 60, progress: (c) => ({ cur: discovered(c.save), max: 60 }) },

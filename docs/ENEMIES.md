@@ -423,3 +423,34 @@ framework's hunter axis). Goldens were re-pinned for this deliberately: pulses a
 **wave/kills/'won' held on every seed** — only integrity/biomass textures moved.
 
 A new enemy picks its gait in its def — one data block, guardrail-validated, no new code.
+
+## 12. Puzzle fauna (§puzzle) — six enemies that each demand ONE answer
+
+EA-DESIGN-AUDIT #66 ("the roster lacks *puzzle* enemies that demand specific towers") and #41 ("no
+cheap way to remix the roster"). Six more **trait fusions** — pure data, every trait riding an
+existing gated hook — each authored around the single answer it demands and the answer it
+punishes. None needs new sim code; the campaign entry stage **auto-derives** from the traits
+(`campaign.ts unlockStage` — hp tier × mechanics gate), so they arrive staggered across stages
+4–9 — deliberately clear of the pinned 1–3 onboarding curve (`campaignCurve.test.ts`); each joins ONE home biome as a third **signature** kind (×3 weight there, and appended to the
+Infinite director's shape rosters while that biome is active). The scripted `WAVES` table never
+spawns them ⇒ the pinned golden autoplay run is byte-identical.
+
+| Kind | Name | Fusion | Demands (the answer) | Punishes | Entry stage · home biome |
+|---|---|---|---|---|---|
+| `scuttler` | **Chitin Scuttler** | quick + heavy plate (140 hp · **armor 18** · speed 70) | armor-break: **Shred** (Needle + Mortar — the launch kit's marquee), **Shear** (Keening Quill — Swift Spotter fork), or armor-ignoring **Infection** (Nest / Tick / Lung); heavy single hits | chip towers — a 3-dmg Needle shot (or a 12-dmg Spitfang round) lands for the 1-damage floor; slow Fracture stacking can't keep pace with its skitter | **4** · Carapace Wastes (21–25) |
+| `blightmoth` | **Blight Moth** | flying + suicide — a slow, BLOATED airborne bomb (220 hp · speed 60 · blast 36 in r 90) | **interception at range** (Needle / Spitfang / Lancet / Tick) before it crosses; Fear (Effigy) turns it back | ground answers — it flies over obstacles **and over the Gristle Warren's walls** (body-block ignores fliers); its 220 hp takes real ranged DPS to drop before it arrives | **4** · Umbral Depths (46–50) |
+| `borer` | **Marrow Borer** | burrowing + regenerating (120 hp · armor 6 · **regen 20/s**) | **Infection** (keeps eating while it tunnels the gaps) or burst; even coverage | chip that loses it in a gap — the regen undoes it; walls — it tunnels **under** them | **6** · Necrotic Mire (6–10) |
+| `shellback` | **Shellback Bombard** | artillery + shield (200 hp · **shield 180** · siege r 240) | **PULL** (Undertow Polyp / Rift Anchor — dragging it breaks the siege lock), **Fear** (Effigy), long burst (Lancet) to crack the shell; Dissolve melts shields | short-range boards — it parks out of reach behind its shield and shells the Core | **7** · Molten Verge (31–35) |
+| `wispmother` | **Wisp Mother** | summoner of **fliers** (220 hp · births a Mind Wisp every 4.5 s) | **focus the womb at range** early (Lancet / Chrysalis / Quill Siege Spotter); anti-air coverage behind the line | ground-only lines — her brood is born FLYING, behind your walls | **9** · Neural Expanse (26–30) |
+| `veilmoth` | **Veil Moth** | flying + support (90 hp · shields allies **40** in r 100) | **kill the support first, at range** (long-range single target; Dissolve/burst through the topped-up shields) | AoE that spreads over a pack it keeps re-shielding from the air | **8** · Tempest Reach (36–40) |
+
+**Integration (all derived).** `ENEMY_DEFS` rows + the render rows (`ENEMY_SHAPE` reads the trait the
+counter keys on; `ENEMY_TIER`; `ENEMY_BODY`: beetle · moth · mole · mortar · broodsac · moth —
+appended so `ENEMY_ACCENT`'s round-robin leaves every earlier kind's accent untouched); death cues
+auto-classify (`enemyDeathCue`: crack · pop · crack · crack · squelch · screech — plate cracks, the bomb pops, the veil screeches); `DIRECTOR.cost`
+prices them beside their trait-family neighbours and the Shellback joins `heavyKinds` (the deep-tilt
+cap); gaits are authored to average ×1 (the guardrail). Bestiary, codex, `killsByEnemy` ledgers and
+the website tables derive from the registry. `puzzleFauna.test.ts` pins the derived entry stages,
+the home-biome signatures, the golden control (no puzzle kind in `WAVES`), and each puzzle's
+demanded answer in a live sim (the Scuttler shrugs off chip until it is sheared; the moth flies
+over a thrall wall; pull breaks the Shellback's siege lock).
