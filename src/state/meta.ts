@@ -1224,6 +1224,17 @@ export function heroStarCost(stars: number): number {
   return Math.round(STAR.heroBaseCost * Math.pow(STAR.heroCostMult, stars));
 }
 
+/** Tower Shards a tower can still SPEND on its ladder: its unlock price while locked + every
+ *  remaining ★ up to the top. A bank already at this level can never use another shard (★ tiers
+ *  past the Campaign Evolution Cap wait on stages 120–300 — hundreds of hours deep), so container
+ *  opens treat shards beyond it as duplicates (docs/SHARD-ECONOMY.md §7 surplus). 0 at ★max — the
+ *  original "maxed → convert" rule is the special case. */
+export function towerShardNeed(save: SaveData, kind: TowerKind): number {
+  let need = isTowerUnlocked(save, kind) ? 0 : (TOWER_DEFS[kind]?.unlockShards ?? 0);
+  for (let s = save.towerStars[kind] ?? 0; s < STAR.maxTowerStars; s++) need += towerStarCost(s);
+  return need;
+}
+
 export function nextStarCost(save: SaveData, kind: TowerKind): number | null {
   const stars = save.towerStars[kind] ?? 0;
   if (stars >= STAR.maxTowerStars) return null;
@@ -3272,7 +3283,8 @@ export const meta = {
       mats = { ...mats, [drop.mat]: mats[drop.mat] + matAmt };
     }
     // ── Gene Essence — duplicate conversion (docs/GENE-EVOLUTION.md §Economy). A tower/hero at MAX
-    //    Star progression can't spend more shards, so the shards GRANTED by this open (diffed from the
+    //    Star progression — or a tower whose bank already funds its whole remaining ★ ladder (the
+    //    campaign-capped surplus, 2026-11) — can't spend more shards, so the shards GRANTED by this open (diffed from the
     //    pre-open save, so it's path-agnostic + un-farmable) convert to Gene Essence, scaled by the
     //    container's rarity, instead of piling up dead. The excess is reverted from the shard totals so
     //    it never accumulates, and shown immediately on the reveal (a `geneEssence` event item). ──
@@ -3282,10 +3294,15 @@ export const meta = {
     let essenceGained = 0;
     let towerDupes = 0;
     for (const k of TOWER_ORDER) {
-      const granted = (towerShards[k] ?? 0) - (save.towerShards[k] ?? 0);
-      if (granted > 0 && (save.towerStars[k] ?? 0) >= STAR.maxTowerStars) {
-        towerShards[k] = save.towerShards[k] ?? 0; // maxed → don't accumulate; convert instead
-        towerDupes += granted;
+      const before = save.towerShards[k] ?? 0;
+      const granted = (towerShards[k] ?? 0) - before;
+      // SURPLUS → Essence (BALANCE_ARCHITECTURE.md §9): convert only what the bank can never spend —
+      // shards past the tower's unlock + every remaining ★ (towerShardNeed; 0 at ★max, so a maxed
+      // tower converts its whole grant exactly as before). Shards that still fund a future ★ bank.
+      const excess = Math.min(granted, (towerShards[k] ?? 0) - Math.max(before, towerShardNeed(save, k)));
+      if (excess > 0) {
+        towerShards[k] = (towerShards[k] ?? 0) - excess;
+        towerDupes += excess;
       }
     }
     let heroDupes = 0;

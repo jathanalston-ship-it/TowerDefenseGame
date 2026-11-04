@@ -11,7 +11,8 @@ import { PERSONAS, PERSONA_IDS } from './personas';
 import type { SimCheckpoint } from './progressionSim';
 
 function mkCp(p: Partial<SimCheckpoint> & { hours: number }): SimCheckpoint {
-  return { power: 100, stage: 5, bestWave: 20, molts: 0, runs: 10, farmRuns: 5, readiness: 0.5, unspentShards: 100, unlocks: 10, failedPushes: 0, accountLevel: 1, genomeRating: 0, ...p };
+  // peakPower defaults to the checkpoint power (a molt-free band's peak is where it ends).
+  return { power: 100, stage: 5, bestWave: 20, molts: 0, runs: 10, farmRuns: 5, readiness: 0.5, unspentShards: 100, unlocks: 10, failedPushes: 0, pushes: 0, accountLevel: 1, genomeRating: 0, ...p, peakPower: p.peakPower ?? p.power ?? 100 };
 }
 
 function mkRun(personaId: string, cps: SimCheckpoint[][]): PersonaRun {
@@ -71,6 +72,20 @@ describe('bottleneck detectors (synthetic traces — deterministic)', () => {
     expect(kinds).toContain('push-futility');
   });
 
+  it('dead-zone is molt-aware (shared with detectProblems): a post-Molt trough is not a stall', () => {
+    // The 2026-07 report flagged "Unlucky 10→50h: power 107,042→97,672" and "Campaign 150→400h:
+    // 7.15M→1.26M" — both bands held 7–25 Molts. Power is a sawtooth (each Molt resets the
+    // upgrade engine for permanent cells), so two checkpoints sample it at arbitrary phases.
+    const a = mkCp({ hours: 10, power: 107042, molts: 2, stage: 32, farmRuns: 16, runs: 48, unlocks: 270 });
+    const molted = mkCp({ hours: 50, power: 97672, molts: 9, stage: 55, farmRuns: 79, runs: 134, unlocks: 500 });
+    expect(detectBottlenecks([mkRun('unlucky', [[a, molted]])]).filter((x) => x.kind === 'dead-zone')).toEqual([]);
+    // The same flat band WITHOUT a Molt is still the real thing — farming that moved nothing.
+    const flat = { ...molted, molts: 2 };
+    const found = detectBottlenecks([mkRun('unlucky', [[a, flat]])]).filter((x) => x.kind === 'dead-zone');
+    expect(found).toHaveLength(1);
+    expect(found[0].evidence).toContain('farm runs');
+  });
+
   it('stays silent on a healthy band', () => {
     const a = mkCp({ hours: 10, power: 100, stage: 6, unlocks: 30, readiness: 0.4 });
     const b = mkCp({ hours: 50, power: 400, stage: 14, unlocks: 90, readiness: 0.6, runs: 40, farmRuns: 20, unspentShards: 300 });
@@ -90,6 +105,17 @@ describe('bottleneck detectors (synthetic traces — deterministic)', () => {
       .filter((x) => x.kind === 'power-spike');
     expect(found.length).toBe(1);
     expect(found[0].evidence).toContain('cohort median');
+  });
+
+  it('power-spike reads band PEAKS, not sawtooth phase: a trough→peak checkpoint pair is not a spike', () => {
+    // Measured 2026-11 (Campaign 50→150h, seed 9919): checkpoints read ×48.5 (the 50h sample sat
+    // in a post-Molt trough) while the band's peak grew ×13.3 against a ×9–15 cohort.
+    const mk = (p0: number, peak0: number, p1: number, peak1: number): SimCheckpoint[] => [
+      mkCp({ hours: 50, power: p0, peakPower: peak0, stage: 74, molts: 20, unlocks: 590 }),
+      mkCp({ hours: 150, power: p1, peakPower: peak1, stage: 127, molts: 40, unlocks: 880, runs: 300, farmRuns: 150 }),
+    ];
+    const cohort = [mk(400e3, 450e3, 4e6, 4.5e6), mk(420e3, 470e3, 4.4e6, 5e6), mk(90e3, 470e3, 4.4e6, 6.2e6)];
+    expect(detectBottlenecks([mkRun('campaign', cohort)]).filter((x) => x.kind === 'power-spike')).toEqual([]);
   });
 });
 

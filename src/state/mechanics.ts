@@ -126,7 +126,7 @@ export const MECHANICS: MechanicDef[] = [
     unlock: (s) => featureRevealed(s, 'bossrush') },
   { id: 'gene-essence', title: 'Gene Essence', category: 'Progression', nav: 'genes', links: ['gene-cards', 'gene-archive'],
     summary: 'Permanent currency that upgrades Gene Cards.',
-    what: 'Gene Essence is the permanent currency for upgrading Gene Cards in the Gene Archive. Its main source is AUTO-CONVERSION: once a tower or hero hits max Star (Evolution), any further duplicate Shards from Bio-Containers convert straight into Gene Essence — more for rarer duplicates. A small bonus also drops rarely from Bio-Containers.',
+    what: 'Gene Essence is the permanent currency for upgrading Gene Cards in the Gene Archive. Its main source is AUTO-CONVERSION: once a tower or hero hits max Star (Evolution) — or a tower already banks every Shard its remaining Stars could ever cost — any further duplicate Shards from Bio-Containers convert straight into Gene Essence — more for rarer duplicates. A small bonus also drops rarely from Bio-Containers.',
     why: 'It turns "wasted" duplicate Shards on maxed units into lasting progression, so cracking containers always advances you.',
     where: 'Shown on the Bio-Container reveal (e.g. "+45 Gene Essence · Duplicate Legendary Hero") and spent in the Gene Archive.',
     next: 'Bank Essence, then permanently level your Gene Cards in the Archive.',

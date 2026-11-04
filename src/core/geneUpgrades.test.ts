@@ -5,7 +5,8 @@
 import { describe, it, expect } from 'vitest';
 import { CARD_POOL, cardProblems } from './cards';
 import { GENE_UPGRADES } from './geneUpgrades';
-import { effectiveGeneEffects, geneMaxLevel, genePermanentPowerMult } from './geneCards';
+import { effectiveGeneEffects, GENE_LEVEL_POWER_FLOOR, GENE_POWER_SCALE, geneMaxLevel, genePermanentPowerMult } from './geneCards';
+import { POWER_BASE } from './power';
 
 describe('gene upgrades — every card, no exceptions', () => {
   it('every card in the pool has 3–5 authored levels and passes the validator', () => {
@@ -30,6 +31,19 @@ describe('gene upgrades — every card, no exceptions', () => {
         const p = genePermanentPowerMult(c, l);
         expect(p, `card '${c.id}' L${l} must raise permanent power`).toBeGreaterThan(prev);
         prev = p;
+      }
+    }
+  });
+
+  it('every LEVEL moves the DISPLAYED (integer) Power by ≥ 1 point, even on a fresh account', () => {
+    // The integer score rounds POWER_BASE × Π parts; a gene level adds POWER_BASE × (other parts ≥ 1)
+    // × GENE_POWER_SCALE × Δ(card mult). Light economy riders (Engorged Reactor L1 ⇒ ×1.005) used to
+    // round away on a young account (the [power-audit] warning) — GENE_LEVEL_POWER_FLOOR closes it.
+    expect(POWER_BASE * GENE_POWER_SCALE * GENE_LEVEL_POWER_FLOOR).toBeGreaterThan(1);
+    for (const c of CARD_POOL) {
+      for (let l = 1; l <= geneMaxLevel(c); l++) {
+        const step = POWER_BASE * GENE_POWER_SCALE * (genePermanentPowerMult(c, l) - genePermanentPowerMult(c, l - 1));
+        expect(step, `card '${c.id}' L${l} adds under one Power point`).toBeGreaterThan(1);
       }
     }
   });

@@ -144,3 +144,18 @@ a pool/grant that emits it. Nothing is missing from current sources.
   lives entirely on the **earn** side — directed shards (income for the entities you *field*),
   a duplicate→shard converter, or roster-scaled roll counts — none of which require touching
   the §2/§3 cost curves. That separation is what lets this survive to 30+ without a redo.
+
+## 7. Surplus — a bank that can never be spent converts (2026-11)
+
+Stars past the Campaign **Evolution Cap** (docs/EVOLUTION-CAP.md — ★6 at stage 80 … ★10 at stage 300)
+wait on campaign progress, and Prime opens only at ★10. Measured (BALANCE_ARCHITECTURE.md §9, corrected
+simulator, Lucky persona to 1,000 h): from ~400 h a tower's bank exceeds its unlock + every remaining ★
+and the excess piles up with nothing to buy — 384k dead Strain Samples by 1,000 h at stage 190.
+
+`towerShardNeed(save, kind)` (meta.ts) = unlock price while locked + Σ remaining ★ costs (0 at ★max).
+A container open now treats the part of a tower's grant **past** `max(bank, need)` as a duplicate —
+converted to Gene Essence on the reveal (*"Duplicate Rare Tower"*), exactly like a maxed tower's. At
+★max `need = 0`, so the original rule is the special case; a bank below its need banks as before, so a
+future ★ is never starved. Direct lanes (level-ups, quests, pass, packs) still BANK unconverted — the
+PRIME-STRAINS §economy split is unchanged. Heroes are not capped by campaign, so a hero's bank only
+outgrows its ladder at ★max, where the existing hero rule already converts.

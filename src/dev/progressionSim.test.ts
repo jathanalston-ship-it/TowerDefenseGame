@@ -8,7 +8,7 @@
 // made on the generated report (docs/PROGRESSION-LOOP.md §time).
 
 import { describe, it, expect, afterAll, vi } from 'vitest';
-import { detectProblems, simulateAccount } from './progressionSim';
+import { detectProblems, simulateAccount, withSeededLoot } from './progressionSim';
 import type { SimCheckpoint } from './progressionSim';
 import { meta } from '../state/meta';
 import { Rng } from '../core/rng';
@@ -19,7 +19,7 @@ import { accountLevelReward, levelFromXp } from '../core/accountLevel';
 import { rankFromRating } from '../core/genomeRank';
 
 function cp(p: Partial<SimCheckpoint> & { hours: number }): SimCheckpoint {
-  return { power: 1000, stage: 1, bestWave: 5, molts: 0, runs: 1, farmRuns: 0, readiness: 1, unspentShards: 0, unlocks: 0, failedPushes: 0, accountLevel: 1, genomeRating: 0, ...p };
+  return { power: 1000, stage: 1, bestWave: 5, molts: 0, runs: 1, farmRuns: 0, readiness: 1, unspentShards: 0, unlocks: 0, failedPushes: 0, pushes: 0, accountLevel: 1, genomeRating: 0, ...p, peakPower: p.peakPower ?? p.power ?? 1000 };
 }
 
 describe('problem detectors (synthetic traces)', () => {
@@ -39,6 +39,16 @@ describe('problem detectors (synthetic traces)', () => {
     expect(f.deadProgression).toEqual([]);
   });
 
+  it('withSeededLoot pins Math.random for the call and restores it after (reproducible matrices)', () => {
+    const real = Math.random;
+    const draw = (): number[] => withSeededLoot(42, () => [Math.random(), Math.random(), Math.random()]);
+    expect(draw()).toEqual(draw()); // same seed ⇒ same loot luck
+    expect(withSeededLoot(43, () => Math.random())).not.toBe(draw()[0]);
+    expect(Math.random).toBe(real); // restored, even for the next caller
+    expect(() => withSeededLoot(1, () => { throw new Error('boom'); })).toThrow('boom');
+    expect(Math.random).toBe(real); // …and restored on a throw
+  });
+
   it('flags a wall stall: same frontier, readiness flat, farming the whole band', () => {
     const f = detectProblems([
       cp({ hours: 10, stage: 30, readiness: 0.8, farmRuns: 0, power: 5000 }),
@@ -54,6 +64,14 @@ describe('problem detectors (synthetic traces)', () => {
     ]);
     expect(f.powerSpike).toEqual(['10h→50h']);
     expect(f.sinkExhaustion).toEqual(['10h→50h']);
+  });
+
+  it('a spike is peak-to-peak: a post-Molt trough checkpoint followed by a peak is not one', () => {
+    const f = detectProblems([
+      cp({ hours: 10, power: 1000, peakPower: 5000, molts: 2 }), // sampled just after a Molt
+      cp({ hours: 50, power: 9000, peakPower: 9000, molts: 10 }), // ×9 by checkpoint, ×1.8 peak-to-peak
+    ]);
+    expect(f.powerSpike).toEqual([]);
   });
 });
 

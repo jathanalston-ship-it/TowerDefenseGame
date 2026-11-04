@@ -65,6 +65,17 @@ export const DEFAULT_GENE_STATE: Readonly<GeneCardSave> = { level: 0 };
  *  grows again (geneArchive.test pins the ×2–2.6 band). */
 export const GENE_POWER_SCALE = 0.081;
 
+/** The minimum permanent Power step ONE gene level scores on its card (×(1 + floor)). A level's
+ *  raw step is effectsPower(level.effects); light economy/utility riders (Engorged Reactor L1:
+ *  +0.05 overcharge ⇒ ×1.005) landed under ONE displayed Power point on a young account
+ *  (POWER_BASE × GENE_POWER_SCALE × 0.005 ≈ 0.4 → rounded away — the [power-audit] warning), which
+ *  broke "every improvement moves Power immediately". With POWER_BASE × GENE_POWER_SCALE × floor
+ *  > 1, every level now adds ≥ 1 point on ANY account (every other Power part is ≥ 1) — the gene
+ *  lane's twin of itemRarityPower's flat floor for utility gear. Only power-VISIBLE levels lift (an
+ *  unscored level stays ×1, so cardProblems still rejects it). Measured 2026-11: 52 of 504 levels
+ *  lift; the maxed library moves ×3.078 → ×3.092 (BALANCE_ARCHITECTURE.md §9). */
+export const GENE_LEVEL_POWER_FLOOR = 0.0125;
+
 /** The permanent upgrade ceiling for a card (base-only = 1 until Task 4 authors levels). */
 export function geneMaxLevel(def: CardDef): number {
   return Math.max(1, def.maxLevel ?? 1);
@@ -152,14 +163,18 @@ export function geneArtKey(def: CardDef, state?: GeneCardSave): string | undefin
 }
 
 /** ONE card's PERMANENT power multiplier — the offense/strength added by its upgrade LEVELS only
- *  (the base effect is temporary, counted when the card is drafted). 1 at level 0. */
+ *  (the base effect is temporary, counted when the card is drafted). 1 at level 0. Each level
+ *  scores at least ×(1 + GENE_LEVEL_POWER_FLOOR) so it always moves the displayed Power. */
 export function genePermanentPowerMult(def: CardDef, level: number): number {
   const ups = def.upgrades;
   if (!ups || ups.length === 0 || level <= 0) return 1;
-  const delta: CardEffect[] = [];
+  let mult = 1;
   const cap = Math.min(level, ups.length);
-  for (let i = 0; i < cap; i++) delta.push(...ups[i].effects);
-  return effectsPower(delta);
+  for (let i = 0; i < cap; i++) {
+    const step = effectsPower(ups[i].effects);
+    mult *= step > 1 ? Math.max(step, 1 + GENE_LEVEL_POWER_FLOOR) : step;
+  }
+  return mult;
 }
 
 /** The WHOLE collection's permanent power multiplier, folded into the account Power Score. LINEAR

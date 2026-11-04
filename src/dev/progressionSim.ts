@@ -17,6 +17,7 @@ import { loopState } from '../state/progressionLoop';
 import { ENEMY_KINDS, HERO_ORDER, META_UPGRADES, TOWER_ORDER } from '../core/config';
 import type { EnemyKind, HeroKind, MasteryCount, TowerKind } from '../core/types';
 import { cardRegistry } from '../core/cards';
+import { transcendOptionsFor } from '../core/geneTranscend';
 import { itemPowerScore } from '../state/itemPower';
 import { EQUIP_SLOTS, itemDef } from '../core/equipment';
 import { sumValues } from '../core/math';
@@ -47,6 +48,20 @@ function mulberry32(seed: number): () => number {
     t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
     return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
   };
+}
+
+/** Run `fn` with the meta loot layer's RNG (it rolls `Math.random`) pinned to a seeded PRNG,
+ *  restoring the real one after. The policy RNG is already seeded per account; pinning the loot
+ *  RNG too makes a matrix REPRODUCIBLE, so a before/after balance diff compares like with like
+ *  (common random numbers) instead of two different luck draws (docs/SIMULATION-FRAMEWORK.md). */
+export function withSeededLoot<T>(seed: number, fn: () => T): T {
+  const real = Math.random;
+  Math.random = mulberry32(seed);
+  try {
+    return fn();
+  } finally {
+    Math.random = real;
+  }
 }
 
 function emptyCount(): MasteryCount {
@@ -133,6 +148,11 @@ function spendEverything(focus: Persona['focus'] = 'balanced'): void {
     for (let i = 0; i < cap && fn(); i++) { /* buy until refused */ }
   };
   for (const e of meta.heroCollection()) if (!e.unlocked && e.canUnlock) meta.unlockHero(e.kind);
+  // Synthesize every expansion tower its banked Tower Shards can claim (unlockTower guards the
+  // campaign gate + funds itself). The policy predated the expansion roster and never claimed
+  // one, so 16 of 21 towers stayed locked forever: their shards piled up as phantom "sink
+  // exhaustion" and their ★0 slots dragged the towers Power geomean (BALANCE_ARCHITECTURE §9).
+  for (const k of TOWER_ORDER) meta.unlockTower(k);
   const towerCap = focus === 'heroes' ? 4 : 20;
   const heroCap = focus === 'towers' ? 4 : 20;
   for (const k of TOWER_ORDER) guard(() => meta.buyStar(k), towerCap);
@@ -145,6 +165,14 @@ function spendEverything(focus: Persona['focus'] = 'balanced'): void {
   guard(() => meta.buyGeneSlot(), 6);
   const owned = meta.get().stats.uniqueCards;
   for (const id of owned) guard(() => meta.upgradeGene(id), focus === 'completionist' ? 24 : 12);
+  // Transcendence — Gene Essence's late sink on a MAXED card (docs/GENE-EVOLUTION.md
+  // §Transcendence): take the first option once (transcendGene guards max level + funds). Left
+  // unspent, Essence read as a wallet compounding with nothing to buy (2026-11 audit).
+  for (const id of owned) {
+    const def = cardRegistry.get(id);
+    const first = def ? transcendOptionsFor(def)[0] : undefined;
+    if (first && !meta.get().genes[id]?.transcend) meta.transcendGene(id, first.id);
+  }
   // Adaptation: spend free Antigen down each tower's tree (first pickable node per pass —
   // the ladder + campaign gates guard order). Real players spend this; leaving it unspent
   // made the deep band's acquisition cadence read emptier than the game actually is.
@@ -192,6 +220,10 @@ export interface SimCheckpoint {
   unspentShards: number; // sink-exhaustion signal (Genome Cores with nothing to buy)
   unlocks: number; // cumulative ACQUISITIONS (stars/upgrades/heroes/molts/genes/stages/feats) — the dopamine ledger
   failedPushes: number; // cumulative under-ready campaign attempts that FAILED (persona frustration)
+  pushes: number; // cumulative under-ready campaign attempts (won or lost) — failedPushes' denominator
+  peakPower: number; // highest post-run Power since the previous checkpoint — the band's PEAK. Power is a
+  //   sawtooth across Molts (each one resets the upgrade engine), so `power` samples it at an arbitrary
+  //   phase; band-over-band peak growth is the molt-phase-invariant growth signal (power-spike detector).
   accountLevel: number; // the evergreen lane (docs/ACCOUNT-LEVEL.md) — must rise every band
   genomeRating: number; // the mastery ladder (docs/GENOME-RANK.md) — breadth-weighted, must rise
 }
@@ -238,6 +270,8 @@ export function simulateAccount(seed: number, bands: number[], persona?: Persona
   let runs = 0;
   let farmRuns = 0;
   let failedPushes = 0;
+  let pushes = 0;
+  let peakPower = 0;
   const checkpoints: SimCheckpoint[] = [];
   let bandIx = 0;
 
@@ -264,6 +298,7 @@ export function simulateAccount(seed: number, bands: number[], persona?: Persona
       const stage = ls.frontierStage;
       const waves = WORLD.campaignWaves(stage);
       const won = rng() < Math.max(0.1, Math.min(0.95, ls.readiness));
+      pushes++;
       if (!won) failedPushes++;
       const played = won ? waves : Math.max(2, Math.round(waves * 0.6));
       const kills = Math.round(played * WORLD.killsPerWave * (0.9 + rng() * 0.2) * luck);
@@ -284,13 +319,15 @@ export function simulateAccount(seed: number, bands: number[], persona?: Persona
     if (!persona || rng() >= persona.spendSkip) spendEverything(persona?.focus);
     runs++;
     secs += result.wave * WORLD.secPerWave + menuSec;
+    const power = Math.round(meta.power().score);
+    peakPower = Math.max(peakPower, power);
 
     while (bandIx < bands.length && secs >= bands[bandIx] * 3600) {
       const s2 = meta.get();
       const ls2 = loopState(s2);
       checkpoints.push({
         hours: bands[bandIx],
-        power: Math.round(meta.power().score),
+        power,
         stage: ls2.frontierStage - 1,
         bestWave: s2.bestWave,
         molts: s2.prestige.molts,
@@ -300,14 +337,29 @@ export function simulateAccount(seed: number, bands: number[], persona?: Persona
         unspentShards: s2.shards,
         unlocks: progressSignature(),
         failedPushes,
+        pushes,
+        peakPower,
         accountLevel: levelFromXp(s2.accountXp.xp),
         genomeRating: genomeRating(meta.genomeSnapshot()),
       });
       bandIx++;
+      peakPower = power; // the next band's peak starts from where this one ends
     }
   }
 
   return { seed, checkpoints, flags: detectProblems(checkpoints) };
+}
+
+/** Dead progression = farming that produced no PERMANENT gains. A Molt inside the band is
+ *  permanent progress by definition (it converts the upgrade pile into compounding cells and
+ *  legitimately TROUGHS raw power at the checkpoint — Power is a sawtooth across Molts, so two
+ *  checkpoints sample it at arbitrary phases) — the flag fires only on molt-less flat bands, so
+ *  molt-timing can't masquerade as broken conversion (instrument correction 2026-07). ONE
+ *  definition shared by detectProblems and the persona report's dead-zone detector
+ *  (balanceReport.ts) — the report ran a molt-blind copy until 2026-11 and flagged sawtooth
+ *  troughs as stalls (BALANCE_ARCHITECTURE.md §9). */
+export function isDeadProgression(a: SimCheckpoint, b: SimCheckpoint): boolean {
+  return b.farmRuns > a.farmRuns && b.power < a.power * 1.01 && b.molts === a.molts;
 }
 
 /** Problem detectors — the automated read of a trace (dead zones, walls, spikes, sinks). */
@@ -318,15 +370,9 @@ export function detectProblems(cps: SimCheckpoint[]): SimFlags {
     const b = cps[i];
     const band = `${a.hours}h→${b.hours}h`;
     const farmed = b.farmRuns > a.farmRuns;
-    // Dead progression = farming that produced no PERMANENT gains. A Molt inside the band is
-    // permanent progress by definition (it converts the upgrade pile into compounding cells and
-    // legitimately TROUGHS raw power at the checkpoint) — the flag fires only on molt-less flat
-    // bands, so molt-timing can't masquerade as broken conversion (the artifact behind this
-    // detector's historical seed re-pins; instrument correction 2026-07, same family as the
-    // cohort-relative spike detector in balanceReport.ts).
-    if (farmed && b.power < a.power * 1.01 && b.molts === a.molts) flags.deadProgression.push(band);
+    if (isDeadProgression(a, b)) flags.deadProgression.push(band);
     if (farmed && b.stage === a.stage && b.readiness <= a.readiness + 0.005) flags.wallStall.push(band);
-    if (b.power > a.power * 8) flags.powerSpike.push(band);
+    if (b.peakPower > a.peakPower * 8) flags.powerSpike.push(band); // peak-to-peak: checkpoint Power samples the Molt sawtooth
     if (a.unspentShards > 5000 && b.unspentShards > a.unspentShards * 2) flags.sinkExhaustion.push(band);
   }
   return flags;

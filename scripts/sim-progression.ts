@@ -4,7 +4,7 @@
 // for balance decisions (CLAUDE.md: balance by simulation, not intuition).
 
 import { writeFileSync } from 'node:fs';
-import { WORLD, simulateAccount } from '../src/dev/progressionSim';
+import { WORLD, simulateAccount, withSeededLoot } from '../src/dev/progressionSim';
 import type { SimTrace } from '../src/dev/progressionSim';
 
 const arg = (name: string, fallback: number): number => {
@@ -20,7 +20,8 @@ const BANDS = [10, 50, 100, 250, 500, 1000, 3000].filter((b) => b <= HOURS);
 const t0 = Date.now();
 const traces: SimTrace[] = [];
 for (let i = 0; i < SEEDS; i++) {
-  traces.push(simulateAccount(1000 + i * 7919, BANDS));
+  const seed = 1000 + i * 7919;
+  traces.push(withSeededLoot(seed, () => simulateAccount(seed, BANDS))); // seeded loot ⇒ reproducible report
   process.stderr.write(`seed ${i + 1}/${SEEDS} done (${Math.round((Date.now() - t0) / 1000)}s)\n`);
 }
 
@@ -39,8 +40,8 @@ let md = `# PROGRESSION_REPORT.md — simulated player progression
 
 ## Hour-band medians (p50, with p10–p90 spread)
 
-| Hours | Power | Campaign stage | Infinite best | Molts | Account level | Genome rating | Runs | Farm share |
-|---|---|---|---|---|---|---|---|---|
+| Hours | Band-peak power | Power at checkpoint | Campaign stage | Infinite best | Molts | Account level | Genome rating | Runs | Farm share |
+|---|---|---|---|---|---|---|---|---|---|
 `;
 for (let b = 0; b < BANDS.length; b++) {
   const at = traces.map((t) => t.checkpoints[b]).filter(Boolean);
@@ -48,7 +49,7 @@ for (let b = 0; b < BANDS.length; b++) {
   const col = (f: (c: (typeof at)[0]) => number): string =>
     `${fmt(q(at.map(f), 0.5))} <sub>${fmt(q(at.map(f), 0.1))}–${fmt(q(at.map(f), 0.9))}</sub>`;
   const farm = at.map((c) => (c.runs > 0 ? (100 * c.farmRuns) / c.runs : 0));
-  md += `| ${BANDS[b]} | ${col((c) => c.power)} | ${col((c) => c.stage)} | ${col((c) => c.bestWave)} | ${col((c) => c.molts)} | ${col((c) => c.accountLevel)} | ${col((c) => c.genomeRating)} | ${col((c) => c.runs)} | ${Math.round(q(farm, 0.5))}% |\n`;
+  md += `| ${BANDS[b]} | ${col((c) => c.peakPower)} | ${col((c) => c.power)} | ${col((c) => c.stage)} | ${col((c) => c.bestWave)} | ${col((c) => c.molts)} | ${col((c) => c.accountLevel)} | ${col((c) => c.genomeRating)} | ${col((c) => c.runs)} | ${Math.round(q(farm, 0.5))}% |\n`;
 }
 
 const allFlags = { deadProgression: 0, wallStall: 0, powerSpike: 0, sinkExhaustion: 0 };
@@ -66,7 +67,7 @@ md += `
 |---|---|---|
 | Dead progression | ${allFlags.deadProgression} | farming that moves no power (broken conversion) |
 | Wall stall | ${allFlags.wallStall} | stuck at a frontier with flat readiness (impossible wall) |
-| Power spike | ${allFlags.powerSpike} | a band multiplying power ≥ ×8 (unsmooth texture) |
+| Power spike | ${allFlags.powerSpike} | a band whose PEAK Power is ≥ ×8 the previous band's peak (unsmooth texture) |
 | Sink exhaustion | ${allFlags.sinkExhaustion} | currency compounding with nothing to buy |
 
 ## Observations for the balance milestone
@@ -77,6 +78,8 @@ md += `
 - **Molt cadence**: molts-per-band shows how often the prestige ring cycles. If it reads like
   a per-session action rather than a milestone, raise \`PRESTIGE.molt.minCells\` /
   \`prestigeStageReq\` growth — decide on this evidence, then re-run this report.
+- **Power is a sawtooth across Molts** (each one resets the upgrade engine): read growth from the
+  band-peak column; checkpoint Power lands at an arbitrary phase of the current Molt cycle.
 - **Farm share** rises with hours as walls thicken (geometric bar vs logarithmic reach) —
   the loop working as designed. A farm share stuck at 0% deep would mean requirements are
   too soft; near 100% early would mean walls form too soon.
@@ -85,7 +88,7 @@ md += `
   (\`src/dev/progressionSim.test.ts\`).
 
 *Scale note:* thousands of accounts = \`npm run sim:progression -- --seeds 2000\` (runtime
-scales linearly; the policy is deterministic per seed except loot RNG).
+scales linearly; policy and loot RNG are both seeded per account, so the report is reproducible).
 `;
 
 writeFileSync(new URL('../docs/PROGRESSION_REPORT.md', import.meta.url), md);

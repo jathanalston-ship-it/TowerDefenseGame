@@ -148,7 +148,10 @@ Every strength API announces `before → after + SOURCE` through the powerEvents
   Evolution HQ, Gene Archive, equipment compares.
 - **Meta tripwire**: a declared strength source announcing a non-positive delta records into
   `powerAnnounceWarnings` + console.warn — the meta twin of `game.powerAuditWarnings`
-  (POWER-AUDIT.md). Sidegrade/unequip announcers pass `expectGain: false`.
+  (POWER-AUDIT.md). Sidegrade/unequip announcers pass `expectGain: false`. The tripwire compares
+  the ROUNDED score, so a scored-but-tiny step can still trip it on a young account: 52 light gene
+  levels (Engorged Reactor L1 ×1.005 …) did, until `GENE_LEVEL_POWER_FLOOR` (docs/GENE-EVOLUTION.md
+  §Power integration) guaranteed every gene level ≥ 1 displayed point (2026-11).
 
 
 ## §advisor — the Best-Purchase strip
