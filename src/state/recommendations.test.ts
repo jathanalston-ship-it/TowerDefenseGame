@@ -10,6 +10,7 @@ import { registerNotification, notifications } from './notifications';
 import { defaultSave } from '../save/saveStore';
 import type { SaveData } from '../save/saveStore';
 import { isOpenNav } from './unlocks';
+import { MODE_UNLOCKS } from '../core/config';
 
 function freshSave(): SaveData {
   return defaultSave();
@@ -79,7 +80,7 @@ describe('recommendationsFor — ranking and guarantees', () => {
 
   it('never recommends a sealed destination — the free gauntlet waits for Boss Rush to unlock', () => {
     // A stage-1 account: today's free Boss Rush entry COUNTS (freeDay is unset) but Boss Rush is
-    // sealed until Stage 9 — the Mission Hub must not lead with a door that opens onto a lock.
+    // sealed until MODE_UNLOCKS.bossRush — the Mission Hub must not lead with a door that opens onto a lock.
     const s: SaveData = { ...freshSave(), campaign: { cleared: { standard: 1 }, bestTime: {} } };
     const all = recommendationsFor(s, { limit: 50 });
     expect(all.some((r) => r.nav === 'bossrush')).toBe(false);
@@ -89,7 +90,7 @@ describe('recommendationsFor — ranking and guarantees', () => {
     expect(hub.length).toBeGreaterThan(0);
     expect(hub.every((r) => r.nav !== 'bossrush')).toBe(true);
     // Once the gate opens, the same source recommends the gauntlet again.
-    const open: SaveData = { ...freshSave(), campaign: { cleared: { standard: 9 }, bestTime: {} } };
+    const open: SaveData = { ...freshSave(), campaign: { cleared: { standard: MODE_UNLOCKS.bossRush }, bestTime: {} } };
     expect(recommendationsFor(open, { limit: 50 }).some((r) => r.nav === 'bossrush')).toBe(true);
   });
 });

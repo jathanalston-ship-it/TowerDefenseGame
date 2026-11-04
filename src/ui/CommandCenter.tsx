@@ -40,6 +40,7 @@ import { armyView, buildHomeView, homeRegistry } from './homeModel';
 import { recommendationsFor } from '../state/recommendations';
 import { readyChain } from '../state/readyChain';
 import { featureView } from '../state/unlocks';
+import { rewardVisible } from '../state/rewardVisibility';
 import { loopFlow } from '../state/loopFlow';
 import { RecommendStrip } from './HubLanding';
 import { t } from '../i18n';
@@ -463,7 +464,8 @@ function Modes({ start, onStart, onStartEndless, go, save }: WidgetCtx): ReactNo
   const rushRewards: PreviewChip[] = [
     { label: 'Cores / boss', color: 'var(--gold)' },
     { label: 'Loot / boss', color: 'var(--r-epic)' },
-    { label: 'Ichor / records', color: 'var(--viral)' },
+    // Never preview a currency the player hasn't met yet (state/rewardVisibility.ts).
+    ...(rewardVisible(save, 'ichor') ? [{ label: 'Ichor / records', color: 'var(--viral)' }] : []),
   ];
   const dailyRewards: PreviewChip[] = [
     { label: 'Genome Cores', color: 'var(--gold)' },

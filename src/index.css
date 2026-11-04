@@ -12728,6 +12728,8 @@ html[data-debug-layout] body::after {
 .guide-title { font-size: 16px; font-weight: 800; color: var(--text); margin-bottom: 4px; }
 .guide-text { font-size: 13px; line-height: 1.5; color: var(--muted); min-height: 2.6em; }
 .guide-btns { display: flex; align-items: center; gap: 10px; margin-top: 10px; }
+/* .tut-callout is pointer-events:none (only .tut-continue re-enables it) — every guide button must too, or a click falls through to the dim (the unclickable Skip). */
+.guide-btns button { pointer-events: auto; }
 .guide-btns .tut-continue { margin-left: auto; }
 .guide-skip { background: none; border: none; color: var(--muted); font-size: 11px; cursor: pointer; padding: 4px 0; }
 .guide-skip:hover { color: var(--text); }

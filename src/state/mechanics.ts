@@ -501,7 +501,7 @@ export const MECHANICS: MechanicDef[] = [
     next: 'Watch the replay of stronger clears from the Daily screen — the seed is shared, so their answers apply to your build.',
     unlock: (s) => featureRevealed(s, 'daily') },
   { id: 'contracts', title: 'Champion Contracts', category: 'Modes', nav: 'home', links: ['daily-run', 'gene-cards'],
-    unlock: (s) => s.totalRuns >= 1,
+    unlock: (s) => featureRevealed(s, 'daily'), // the board arrives with the daily rhythm (homeModel 'contracts' widget)
     summary: 'Three weekly constraint runs — same board for everyone.', media: 'Image: the contracts board',
     what: 'Champion Contracts are three authored challenges live each week — win flawlessly, forsake a tower class, field only one biological class. Every player sees the same board on the same UTC clock, any qualifying run counts automatically, and difficulty pips mark how hard each contract bites.',
     why: 'They pay Genome Cores AND Account XP on top of the run’s normal reward, the week’s MARQUEE contract carries an exclusive Gilded phenotype, and honouring all three in one week is a PERFECT WEEK — a bonus payout and a lifetime badge. Contracts also feed your Genome Rating.',
