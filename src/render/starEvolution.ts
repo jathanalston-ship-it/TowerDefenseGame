@@ -269,6 +269,38 @@ export const STAR_EVOLUTION: Record<TowerKind, StarEvolution> = {
       { at: 7, kind: 'arcs', count: 3 }, // the harmonics turned visible
       { at: 9, kind: 'nova' }, // the requiem chord
     ],
+  },  // Gristle Warren (Vital) — a burrow-mound → the living rampart: sinew sacs, hauling limbs, bone plating.
+  warren: {
+    growth: 0.024, // the mound swells with every litter
+    parts: [
+      { at: 1, kind: 'biomass', count: 3 }, // gristle sacs ripening around the mouth
+      { at: 3, kind: 'limbs', count: 3 }, // hauling arms reaching out of the burrow
+      { at: 5, kind: 'armor', count: 4 }, // bone plating — the wall grows a shell
+      { at: 7, kind: 'fangs', count: 2 }, // the gnashing gate
+      { at: 9, kind: 'nova' }, // the living rampart
+    ],
+  },
+  // Tick Battery (Viral) — a sac of ticks → the outbreak battery: brood pods, twitching legs, a contagion ring.
+  tick: {
+    growth: 0.022,
+    parts: [
+      { at: 1, kind: 'halo' }, // the first plague shimmer
+      { at: 3, kind: 'pods', count: 3 }, // brood sacs budding with fresh ticks
+      { at: 5, kind: 'limbs', count: 4 }, // twitching tick legs gripping the mound
+      { at: 7, kind: 'ripples', count: 2 }, // contagion rings — the outbreak made visible
+      { at: 9, kind: 'nova' }, // the outbreak battery
+    ],
+  },
+  // Keening Quill (Resonant) — a tuned bone → the breaking note: a resonant ring, racked quills, sound made visible.
+  quill: {
+    growth: 0.018, // a marksman's economy of mass — it gets TALLER in the read, not wider
+    parts: [
+      { at: 1, kind: 'glyphRing' }, // the standing note around the fork
+      { at: 3, kind: 'barbs', count: 4 }, // spare quills racked along the shaft
+      { at: 5, kind: 'arcs', count: 2 }, // the keen made visible
+      { at: 7, kind: 'spikes', count: 5 }, // a bladed resonator crest
+      { at: 9, kind: 'nova' }, // the breaking note
+    ],
   },
 };
 

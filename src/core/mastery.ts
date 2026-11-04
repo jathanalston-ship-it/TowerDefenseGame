@@ -270,6 +270,26 @@ const TOWER_TRACKS: { unit: TowerKind; rewards: MasteryReward[]; perks?: Mastery
       { at: 10, kind: 'lore', id: 'lore.lancet.1', name: 'Cull Doctrine', text: 'The swarm is a ledger. The Lancet is the red line drawn, patiently, through its largest entry.' },
       { at: 25, kind: 'title', id: 'title.lancet.headsman', name: 'Headsman' },
     ],
+  },  {
+    unit: 'warren',
+    rewards: [
+      { at: 10, kind: 'lore', id: 'lore.warren.1', name: 'Wall Doctrine', text: 'A tower kills what reaches it. The Warren decides what reaches anything — and spends its own flesh to make the answer no.' },
+      { at: 25, kind: 'title', id: 'title.warren.gristlewarden', name: 'Gristlewarden' },
+    ],
+  },
+  {
+    unit: 'tick',
+    rewards: [
+      { at: 10, kind: 'lore', id: 'lore.tick.1', name: 'Outbreak Doctrine', text: 'The Nest drills one body. The Battery never needs to — three bites far up the lane, and the wave carries the plague home for it.' },
+      { at: 25, kind: 'title', id: 'title.tick.patientzero', name: 'Patient Zero' },
+    ],
+  },
+  {
+    unit: 'quill',
+    rewards: [
+      { at: 10, kind: 'lore', id: 'lore.quill.1', name: 'Pitch Doctrine', text: 'Every shell has a note it shatters at. The Quill does not overpower plate — it finds the pitch, and lets the whole hive bite through.' },
+      { at: 25, kind: 'title', id: 'title.quill.shellbreaker', name: 'Shellbreaker' },
+    ],
   },
 ];
 
@@ -314,6 +334,12 @@ const HERO_TRACKS: { unit: HeroKind; rewards: MasteryReward[] }[] = [
     rewards: [
       { at: 10, kind: 'lore', id: 'lore.revenant.1', name: 'Revenant', text: 'It climbed back up from the deepest wave — the one nothing returns from. Now it steps between places that should not touch, and whatever it finds there, it infects.' },
       { at: 25, kind: 'title', id: 'title.revenant.wraith', name: 'The Wraith' },
+    ],
+  },  {
+    unit: 'myceliarch',
+    rewards: [
+      { at: 10, kind: 'lore', id: 'lore.myceliarch.1', name: 'Myceliarch', text: 'The hive grew an immune system and taught it patience. It does not chase the wave — it waits at the gate, and everything that breaches the line feeds the rot.' },
+      { at: 25, kind: 'title', id: 'title.myceliarch.gatewarden', name: 'The Gatewarden' },
     ],
   },
 ];

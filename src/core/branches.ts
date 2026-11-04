@@ -659,6 +659,89 @@ const BRANCHES: Branch[] = [
       { tier: 5, name: 'The Eternal Chorus', desc: 'The choir sings in chords of chords — deep resonance and a biting, reacting nave.', damageMult: 1.15, fireRateMult: 1.15, particle: 'railburst', impact: 'railburst', grants: [{ t: 'ability', components: [{ type: 'aura', radius: 275, damage: 11, status: { kind: 'Resonance', amount: 2 }, react: true }] }, { t: 'cosmetic', id: 'eternal' }] },
     ],
   },
+
+  // ════════════ GRISTLE WARREN (Vital, 'field' barracks) ════════════
+  // The wall. MEAT WALL musters FEWER, BIGGER blockers (Sinew Hulks) and cracks what they hold;
+  // SWARMING GRISTLE floods the lane with quick Gristlelings and MARKS the held for the harvest.
+  // Every extra body is another `summon` component on the muster cadence — the global MINION_CAP
+  // bounds the wall; the warren's gnash (aura) is what earns mastery. No new verbs.
+  {
+    id: 'warren_wall', tower: 'warren', name: 'Meat Wall',
+    theme: 'The warren grows its walls THICKER — hulking sinew that holds the lane while the board cracks what it holds.',
+    tiers: [
+      { tier: 1, name: 'Gnashing Gate', desc: 'The warren BITES what its walls hold — a heavier gnash at its foot.', damageMult: 1.15, particle: 'gore', sfx: 'br_gore', impact: 'gore', grants: [{ t: 'ability', components: [{ type: 'aura', radius: 125, damage: 8, react: true }] }] },
+      { tier: 2, name: 'Sinew Hulk', desc: 'Each muster adds a SINEW HULK — a thick, slow wall that holds a heavy for half a minute.', grants: [{ t: 'ability', components: [{ type: 'summon', unit: 'gristlehulk', count: 1 }] }] },
+      { tier: 3, name: 'Cracking Grip', desc: 'The held are CRACKED — Fracture around the warren (Shred / Shear fuel).', rangeMult: 1.1, grants: [{ t: 'ability', components: [{ type: 'debuff', radius: 140, status: { kind: 'Fracture', amount: 1 } }] }] },
+      { tier: 4, name: 'Bone Lattice', desc: 'A quicker muster — the walls go up faster and the gnash bites deeper.', fireRateMult: 1.12, damageMult: 1.1, particle: 'shrapnel', impact: 'shrapnel', grants: [{ t: 'ability', components: [{ type: 'aura', radius: 135, damage: 12, react: true }] }] },
+      { tier: 5, name: 'The Meat Wall', desc: 'A second Hulk per muster and a crushing, cracking gnash — nothing on foot gets past.', damageMult: 1.2, particle: 'shrapnel', impact: 'shrapnel', grants: [{ t: 'ability', components: [{ type: 'summon', unit: 'gristlehulk', count: 1 }, { type: 'debuff', radius: 150, status: { kind: 'Fracture', amount: 1 } }, { type: 'aura', radius: 150, damage: 16, react: true }] }, { t: 'cosmetic', id: 'meatwall' }] },
+    ],
+  },
+  {
+    id: 'warren_swarm', tower: 'warren', name: 'Swarming Gristle',
+    theme: 'The warren breeds FAST — quick Gristlelings flood the lane, and everything they hold is marked for the harvest.',
+    tiers: [
+      { tier: 1, name: 'Gristleling Litter', desc: 'Each muster adds a GRISTLELING — a quick, light wall that runs to plug the gap.', fireRateMult: 1.08, particle: 'vital', sfx: 'br_vital', impact: 'vital', grants: [{ t: 'ability', components: [{ type: 'summon', unit: 'gristling', count: 1 }] }] },
+      { tier: 2, name: 'Marrow Tithe', desc: 'The held are MARKED — Mark around the warren (Harvest / Ferment fuel: bursts + Biomass).', grants: [{ t: 'ability', components: [{ type: 'debuff', radius: 130, status: { kind: 'Mark', amount: 1 } }] }] },
+      { tier: 3, name: 'Quickened Brood', desc: 'The litters come faster — and another Gristleling joins each muster.', fireRateMult: 1.12, grants: [{ t: 'ability', components: [{ type: 'summon', unit: 'gristling', count: 1 }] }] },
+      { tier: 4, name: 'Feeding Frenzy', desc: 'The warren feeds on what its brood holds — a reacting gnash at its foot.', damageMult: 1.15, particle: 'vitalcore', impact: 'vitalcore', grants: [{ t: 'ability', components: [{ type: 'aura', radius: 130, damage: 10, react: true }] }] },
+      { tier: 5, name: 'The Swarming Warren', desc: 'Another Gristleling per muster and a deep marking gnash — the lane is a larder.', damageMult: 1.2, fireRateMult: 1.08, particle: 'vitalcore', impact: 'vitalcore', grants: [{ t: 'ability', components: [{ type: 'summon', unit: 'gristling', count: 1 }, { type: 'debuff', radius: 150, status: { kind: 'Mark', amount: 1 } }, { type: 'aura', radius: 150, damage: 12, react: true }] }, { t: 'cosmetic', id: 'swarmwarren' }] },
+    ],
+  },
+
+  // ════════════ TICK BATTERY (Viral, 'infest' long-reach seeder) ════════════
+  // The outbreak. PATIENT ZERO deepens the plague in every host (more stacks, more hosts);
+  // LEECH SWARM pairs the bite with partner statuses so each tick is a self-contained reaction
+  // (Mind Rot / Putrefy / Bloom Rot). Extra ticks ride `projectile` COMPONENTS — the parasite
+  // behavior ignores the extraProjectiles channel by design. Statuses tag the PRIMARY host.
+  {
+    id: 'tick_plague', tower: 'tick', name: 'Patient Zero',
+    theme: 'Every tick is an outbreak — deeper plague in every host, and more hosts per volley.',
+    tiers: [
+      { tier: 1, name: 'Engorged Ticks', desc: 'Fatter ticks — the first host takes a DEEPER Infection.', damageMult: 1.15, particle: 'infect', sfx: 'br_plague', impact: 'infect', grants: [{ t: 'ability', components: [{ type: 'status', status: { kind: 'Infection', amount: 1 } }] }] },
+      { tier: 2, name: 'Fourth Host', desc: 'A FOURTH tick per volley, hunting its own host.', grants: [{ t: 'ability', components: [{ type: 'projectile', behavior: 'parasite', damage: 4, speed: 380, range: 520, count: 1 }] }] },
+      { tier: 3, name: 'Fever Glands', desc: 'Quicker volleys — and the first host festers deeper still.', fireRateMult: 1.1, grants: [{ t: 'ability', components: [{ type: 'status', status: { kind: 'Infection', amount: 1 } }] }] },
+      { tier: 4, name: 'Brood Clutch', desc: 'A FIFTH tick per volley — the outbreak starts everywhere at once.', damageMult: 1.1, particle: 'pandemic', impact: 'pandemic', grants: [{ t: 'ability', components: [{ type: 'projectile', behavior: 'parasite', damage: 5, speed: 380, range: 520, count: 1 }] }] },
+      { tier: 5, name: 'Patient Zero', desc: 'Six hosts a volley and a plague that runs deep in the first — the lane is the outbreak.', damageMult: 1.2, particle: 'pandemic', impact: 'pandemic', grants: [{ t: 'ability', components: [{ type: 'projectile', behavior: 'parasite', damage: 6, speed: 380, range: 520, count: 1 }, { type: 'status', status: { kind: 'Infection', amount: 2 } }] }, { t: 'cosmetic', id: 'patientzero' }] },
+    ],
+  },
+  {
+    id: 'tick_leech', tower: 'tick', name: 'Leech Swarm',
+    theme: 'The bite carries more than plague — every tick is a self-contained REACTION in the host.',
+    tiers: [
+      { tier: 1, name: 'Numbing Saliva', desc: 'The bite NUMBS — Disruption in the first host (Mind Rot: the plague leaps).', damageMult: 1.1, particle: 'disrupt', sfx: 'br_spore', impact: 'disrupt', grants: [{ t: 'ability', components: [{ type: 'status', status: { kind: 'Disruption', amount: 0.8 } }] }] },
+      { tier: 2, name: 'Acid Mouthparts', desc: 'The bite BURNS — Corrosion in the first host (Putrefy: acid rot).', grants: [{ t: 'ability', components: [{ type: 'status', status: { kind: 'Corrosion', amount: 1.5 } }] }] },
+      { tier: 3, name: 'Leech Tide', desc: 'A longer leap and a FOURTH tick per volley.', rangeMult: 1.1, grants: [{ t: 'ability', components: [{ type: 'projectile', behavior: 'parasite', damage: 4, speed: 400, range: 560, count: 1 }] }] },
+      { tier: 4, name: 'Siphoning Bite', desc: 'The bite DRINKS — Mark in the first host (Bloom Rot: a burst + Biomass).', damageMult: 1.1, particle: 'venom', impact: 'venom', grants: [{ t: 'ability', components: [{ type: 'status', status: { kind: 'Mark', amount: 1 } }] }] },
+      { tier: 5, name: 'The Leech Swarm', desc: 'Two more ticks a volley and a numbing, burning bite — every host reacts.', damageMult: 1.2, particle: 'venom', impact: 'venom', grants: [{ t: 'ability', components: [{ type: 'projectile', behavior: 'parasite', damage: 5, speed: 400, range: 560, count: 2 }, { type: 'status', status: { kind: 'Disruption', amount: 1 } }] }, { t: 'cosmetic', id: 'leechswarm' }] },
+    ],
+  },
+
+  // ════════════ KEENING QUILL (Resonant, 'homing' armor-breaker) ════════════
+  // The note. SHATTERING NOTE perfects the single crack (crits, deeper Fracture ⇒ bigger shears,
+  // a second quill); KEENING CHORUS spreads it — the keen LEAPS victim to victim (the `chain`
+  // verb starts at the struck mark, so the crowd beside it bleeds too).
+  {
+    id: 'quill_shatter', tower: 'quill', name: 'Shattering Note',
+    theme: 'One note, one shell — the crack is honed until no plate on the lane survives the shear.',
+    tiers: [
+      { tier: 1, name: 'Tempered Quill', desc: 'A harder quill — vicious critical keens.', damageMult: 1.15, particle: 'spark', sfx: 'br_rail', impact: 'spark', grants: [{ t: 'ability', components: [{ type: 'crit', chance: 0.2, mult: 2, damage: 12 }] }] },
+      { tier: 2, name: 'Hairline Fracture', desc: 'The mark is CRACKED as the note lands — every shear bursts bigger.', grants: [{ t: 'ability', components: [{ type: 'status', status: { kind: 'Fracture', amount: 1 } }] }] },
+      { tier: 3, name: 'Double Keen', desc: 'A SECOND quill per draw, cracking its own mark.', fireRateMult: 1.06, grants: [{ t: 'projectile', extraProjectiles: 1 }] },
+      { tier: 4, name: 'Resonant Spur', desc: 'The quill passes THROUGH its mark — and rings deeper.', damageMult: 1.1, particle: 'railburst', impact: 'railburst', grants: [{ t: 'projectile', mutators: ['pierce1'] }, { t: 'ability', components: [{ type: 'status', status: { kind: 'Resonance', amount: 1 } }] }] },
+      { tier: 5, name: 'The Shattering Note', desc: 'The perfect pitch: deep cracks, killing crits — no shell survives the shear.', damageMult: 1.25, particle: 'railburst', impact: 'railburst', grants: [{ t: 'ability', components: [{ type: 'status', status: { kind: 'Fracture', amount: 2 } }, { type: 'crit', chance: 0.3, mult: 2.2, damage: 24 }] }, { t: 'cosmetic', id: 'shatternote' }] },
+    ],
+  },
+  {
+    id: 'quill_chorus', tower: 'quill', name: 'Keening Chorus',
+    theme: 'The note will not stay in one body — it LEAPS through the crowd, ringing every shell it touches.',
+    tiers: [
+      { tier: 1, name: 'Sympathetic Note', desc: 'The keen LEAPS to two bodies beside the mark.', fireRateMult: 1.08, particle: 'spark', sfx: 'br_storm', impact: 'spark', grants: [{ t: 'ability', components: [{ type: 'chain', jumps: 3, range: 120, damage: 10, falloff: 0.8, particle: 'spark' }] }] },
+      { tier: 2, name: 'Harmonic Fletching', desc: 'Quicker draws — the chorus finds its tempo.', fireRateMult: 1.1, grants: [{ t: 'ability', components: [{ type: 'status', status: { kind: 'Resonance', amount: 1 } }] }] },
+      { tier: 3, name: 'Chord Leap', desc: 'The leap carries farther and bites harder.', damageMult: 1.1, grants: [{ t: 'ability', components: [{ type: 'chain', jumps: 4, range: 140, damage: 14, falloff: 0.8, particle: 'spark' }] }] },
+      { tier: 4, name: 'Overtone Volley', desc: 'A SECOND quill per draw, starting a second chord.', damageMult: 1.08, particle: 'railburst', impact: 'railburst', grants: [{ t: 'projectile', extraProjectiles: 1 }] },
+      { tier: 5, name: 'The Keening Chorus', desc: 'The whole lane rings: a long, cruel leap through every shell near the mark.', damageMult: 1.2, fireRateMult: 1.08, particle: 'railburst', impact: 'railburst', grants: [{ t: 'ability', components: [{ type: 'chain', jumps: 5, range: 160, damage: 20, falloff: 0.82, particle: 'spark' }] }, { t: 'cosmetic', id: 'keenchorus' }] },
+    ],
+  },
 ];
 
 branchRegistry.registerAll(BRANCHES);

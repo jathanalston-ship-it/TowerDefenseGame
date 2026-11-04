@@ -114,7 +114,7 @@ export const BIOMES: Biome[] = [
       enemyHpMult: 1.08, enemySpeedMult: 0.96, enemyDamageMult: 1, enemyArmorBonus: 0, enemyRegenFrac: 0.018, bountyMult: 1.08,
       towerClassMult: { Viral: 1.15, Vital: 0.92 }, towerFireRateMult: 1,
       heroDamageMult: 1, heroCooldownMult: 1.05,
-      bias: { special: 1.6, swarm: 1.1 }, signature: ['knitter', 'revenant'], eliteMult: 1.1, bossChassisBias: { controller: 3 }, difficulty: 1.08,
+      bias: { special: 1.6, swarm: 1.1 }, signature: ['knitter', 'revenant', 'borer'], eliteMult: 1.1, bossChassisBias: { controller: 3 }, difficulty: 1.08,
       // Miasma is a PASSIVE hazard (period 0 ⇒ no pulse) — the ambient regen IS the threat; the
       // name/desc still surface on the Campaign ladder + HUD telegraph.
       hazard: { name: 'Miasma', desc: 'Rot seeps through the mire — the swarm regenerates.', period: 0, duration: 0, enemySpeedMult: 1, towerRateMult: 1 },
@@ -149,7 +149,7 @@ export const BIOMES: Biome[] = [
       enemyHpMult: 1.1, enemySpeedMult: 0.92, enemyDamageMult: 1, enemyArmorBonus: 6, enemyRegenFrac: 0, bountyMult: 1.05,
       towerClassMult: { Kinetic: 1.12, Caustic: 0.9 }, towerFireRateMult: 1,
       heroDamageMult: 1, heroCooldownMult: 1,
-      bias: { heavy: 1.6, special: 1.3 }, signature: ['bulwark', 'warden'], eliteMult: 1, bossChassisBias: { juggernaut: 3 }, difficulty: 1.15,
+      bias: { heavy: 1.6, special: 1.3 }, signature: ['bulwark', 'warden', 'scuttler'], eliteMult: 1, bossChassisBias: { juggernaut: 3 }, difficulty: 1.15,
       hazard: { name: 'Shellquake', desc: 'The ground heaves — towers misfire.', period: 22, duration: 4, enemySpeedMult: 1, towerRateMult: 0.9 },
     },
   },
@@ -160,7 +160,7 @@ export const BIOMES: Biome[] = [
       enemyHpMult: 0.94, enemySpeedMult: 1.05, enemyDamageMult: 1.1, enemyArmorBonus: 0, enemyRegenFrac: 0, bountyMult: 1.1,
       towerClassMult: { Neural: 1.12, Vital: 1.05 }, towerFireRateMult: 1,
       heroDamageMult: 1, heroCooldownMult: 0.95,
-      bias: { fast: 1.2, special: 1.4 }, signature: ['wisp', 'darter'], eliteMult: 1.1, bossChassisBias: { controller: 3 }, difficulty: 1.1,
+      bias: { fast: 1.2, special: 1.4 }, signature: ['wisp', 'darter', 'wispmother'], eliteMult: 1.1, bossChassisBias: { controller: 3 }, difficulty: 1.1,
       hazard: { name: 'Static Field', desc: 'A static surge — the swarm jolts, towers stutter.', period: 14, duration: 2.5, enemySpeedMult: 1.2, towerRateMult: 0.92 },
     },
   },
@@ -174,7 +174,7 @@ export const BIOMES: Biome[] = [
       enemyHpMult: 1.12, enemySpeedMult: 0.88, enemyDamageMult: 1.1, enemyArmorBonus: 4, enemyRegenFrac: 0, bountyMult: 1.06,
       towerClassMult: { Caustic: 1.12, Neural: 0.95 }, towerFireRateMult: 1,
       heroDamageMult: 1, heroCooldownMult: 1.04, // heat saps the hero's abilities
-      bias: { heavy: 1.5, special: 1.3 }, signature: ['brute', 'spitter'], eliteMult: 1, bossChassisBias: { artillery: 3 }, difficulty: 1.2,
+      bias: { heavy: 1.5, special: 1.3 }, signature: ['brute', 'spitter', 'shellback'], eliteMult: 1, bossChassisBias: { artillery: 3 }, difficulty: 1.2,
       hazard: { name: 'Eruption', desc: 'A lava surge whips the slow siege into a charge.', period: 19, duration: 3, enemySpeedMult: 1.2, towerRateMult: 1 },
     },
   },
@@ -189,7 +189,7 @@ export const BIOMES: Biome[] = [
       enemyHpMult: 1.1, enemySpeedMult: 0.94, enemyDamageMult: 1, enemyArmorBonus: 3, enemyRegenFrac: 0, bountyMult: 1.05,
       towerClassMult: { Neural: 1.05 }, towerFireRateMult: 1.08, // the charged air quickens every tower
       heroDamageMult: 1.05, heroCooldownMult: 0.96, // abilities recharge faster in the storm
-      bias: { special: 1.4, heavy: 1.2 }, signature: ['warden', 'cantor'], eliteMult: 1, bossChassisBias: { controller: 3 }, difficulty: 1.12,
+      bias: { special: 1.4, heavy: 1.2 }, signature: ['warden', 'cantor', 'veilmoth'], eliteMult: 1, bossChassisBias: { controller: 3 }, difficulty: 1.12,
       hazard: { name: 'Gale', desc: 'A gale rips through — the swarm surges on the wind.', period: 17, duration: 3, enemySpeedMult: 1.15, towerRateMult: 1 },
     },
   },
@@ -211,7 +211,7 @@ export const BIOMES: Biome[] = [
       enemyHpMult: 1, enemySpeedMult: 1.08, enemyDamageMult: 1, enemyArmorBonus: 0, enemyRegenFrac: 0.003, bountyMult: 1.08,
       towerClassMult: { Resonant: 1.08, Caustic: 0.96 }, towerFireRateMult: 1, // resonance carries in the dark
       heroDamageMult: 1, heroCooldownMult: 1.05, // the lightless deep slows minds
-      bias: { fast: 1.3, special: 1.2 }, signature: ['cystwraith', 'stratovore'], eliteMult: 1.05, bossChassisBias: { artillery: 2, controller: 2 }, difficulty: 1.3,
+      bias: { fast: 1.3, special: 1.2 }, signature: ['cystwraith', 'stratovore', 'blightmoth'], eliteMult: 1.05, bossChassisBias: { artillery: 2, controller: 2 }, difficulty: 1.3,
       hazard: { name: 'Lightless Surge', desc: 'The dark DEEPENS — the swarm pours through it.', period: 16, duration: 3, enemySpeedMult: 1.22, towerRateMult: 1 },
     },
   },

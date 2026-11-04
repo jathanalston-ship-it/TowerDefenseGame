@@ -1,6 +1,6 @@
 # DIL_GRAPH.md — the Design Intelligence Layer (GENERATED — `npm run dil -- regen`)
 
-> **The project's brain** (docs/DIL.md). 933 nodes · 1782 edges, built from the live
+> **The project's brain** (docs/DIL.md). 950 nodes · 1821 edges, built from the live
 > registries + curated knowledge (src/dev/dil/). **Query it instead of searching the repo:**
 > `npm run dil -- node <id>` · `affects <id>` · `requires <id>` · `missing <kind> <edge>` ·
 > `checklist tower <kind>` · `find <text>`. Edge kinds are bidirectional (19 kinds).
@@ -14,15 +14,15 @@
 
 ### Gameplay Index
 
-`tower:needle` · `tower:mortar` · `tower:reactor` · `tower:parasite` · `tower:obelisk` · `tower:maw` · `tower:chrysalis` · `tower:effigy` · `tower:coil` · `tower:siphon` · `tower:sower` · `tower:spire` · `tower:polyp` · `tower:spitfang` · `tower:rift` · `tower:glaive` · `tower:roost` · `tower:lung` · `tower:bell` · `tower:lancet` · `tower:basilisk` · `tower:ossuary` · `hero:ravager` · `hero:shepherd` · `hero:overseer` · `hero:vitriol` · `hero:revenant` · `hero:knell` · `hero:wyrm` · `hero:riptide` · `hero:carrion` · `hero:fovea` · `hero:chimera` · `enemy:runner` · `enemy:mite` · `enemy:husk` · `enemy:flea` · `enemy:mold` · `enemy:skulker` · `enemy:larva` · `enemy:rusher` · `enemy:darter` · `enemy:lasher` · `enemy:brute` · `enemy:tank` · `enemy:golem` · `enemy:colossus` · `enemy:bulwark` · `enemy:warden` · `enemy:knitter` · `enemy:revenant` · `enemy:burrower` · `enemy:molerat` · `enemy:flyer` · `enemy:wisp` · `enemy:gargoyle` · `enemy:cystwraith` · `enemy:broodmother` · `enemy:hivecaller` · `enemy:mender` · …47 more
+`tower:needle` · `tower:mortar` · `tower:reactor` · `tower:parasite` · `tower:obelisk` · `tower:maw` · `tower:chrysalis` · `tower:effigy` · `tower:coil` · `tower:siphon` · `tower:sower` · `tower:spire` · `tower:polyp` · `tower:spitfang` · `tower:rift` · `tower:glaive` · `tower:roost` · `tower:lung` · `tower:bell` · `tower:lancet` · `tower:basilisk` · `tower:ossuary` · `tower:warren` · `tower:tick` · `tower:quill` · `hero:ravager` · `hero:shepherd` · `hero:overseer` · `hero:vitriol` · `hero:revenant` · `hero:knell` · `hero:wyrm` · `hero:riptide` · `hero:carrion` · `hero:fovea` · `hero:chimera` · `hero:myceliarch` · `enemy:runner` · `enemy:mite` · `enemy:husk` · `enemy:flea` · `enemy:mold` · `enemy:skulker` · `enemy:larva` · `enemy:rusher` · `enemy:darter` · `enemy:lasher` · `enemy:brute` · `enemy:tank` · `enemy:golem` · `enemy:colossus` · `enemy:bulwark` · `enemy:warden` · `enemy:knitter` · `enemy:revenant` · `enemy:burrower` · `enemy:molerat` · `enemy:flyer` · `enemy:wisp` · `enemy:gargoyle` · …57 more
 
 ### Progression Index
 
-`system:hive-mind` · `system:campaign` · `system:accounts` · `system:premium` · `system:towers` · `system:loot` · `system:gene-cards` · `system:currencies` · `system:quests` · `system:progression-gating` · `system:hub-shell` · `system:notifications` · `system:meta-store` · `system:mega-bosses` · `system:cutscenes` · `system:security` · `system:doctrines` · `system:ui-kit` · `concept:progression-gates` · `currency:tower-shards` · `tower:maw` · `tower:chrysalis` · `tower:effigy` · `tower:coil` · `tower:siphon` · `tower:sower` · `tower:spire` · `tower:polyp` · `tower:spitfang` · `tower:rift` · `tower:glaive` · `tower:roost` · `tower:lung` · `tower:bell` · `tower:lancet` · `hero:vitriol` · `hero:revenant` · `hero:knell` · `hero:wyrm` · `hero:riptide` · `hero:carrion` · `hero:chimera`
+`system:hive-mind` · `system:campaign` · `system:accounts` · `system:premium` · `system:towers` · `system:loot` · `system:gene-cards` · `system:currencies` · `system:quests` · `system:progression-gating` · `system:hub-shell` · `system:notifications` · `system:meta-store` · `system:mega-bosses` · `system:cutscenes` · `system:security` · `system:doctrines` · `system:ui-kit` · `concept:progression-gates` · `currency:tower-shards` · `tower:maw` · `tower:chrysalis` · `tower:effigy` · `tower:coil` · `tower:siphon` · `tower:sower` · `tower:spire` · `tower:polyp` · `tower:spitfang` · `tower:rift` · `tower:glaive` · `tower:roost` · `tower:lung` · `tower:bell` · `tower:lancet` · `tower:warren` · `tower:tick` · `tower:quill` · `hero:vitriol` · `hero:revenant` · `hero:knell` · `hero:wyrm` · `hero:riptide` · `hero:carrion` · `hero:chimera` · `hero:myceliarch`
 
 ### Economy / Reward Index
 
-`currency:biomass` · `currency:genome-cores` · `currency:tower-shards` · `currency:hero-shards` · `currency:gene-essence` · `currency:materials` · `currency:stamina` · `currency:ichor` · `system:campaign` · `system:infinite` · `system:boss-rush` · `system:daily` · `system:loot` · `system:daily-login` · `system:achievements` · `system:directives` · `system:expeditions` · `system:doctrines` · `enemy:runner` · `enemy:mite` · `enemy:husk` · `enemy:flea` · `enemy:mold` · `enemy:skulker` · `enemy:larva` · `enemy:rusher` · `enemy:darter` · `enemy:lasher` · `enemy:brute` · `enemy:tank` · `enemy:golem` · `enemy:colossus` · `enemy:bulwark` · `enemy:warden` · `enemy:knitter` · `enemy:revenant` · `enemy:burrower` · `enemy:molerat` · `enemy:flyer` · `enemy:wisp` · `enemy:gargoyle` · `enemy:cystwraith` · `enemy:broodmother` · `enemy:hivecaller` · `enemy:mender` · `enemy:cantor` · `enemy:bomber` · `enemy:popper` · `enemy:sapper` · `enemy:cataclyst` · `enemy:siegeworm` · `enemy:spitter` · `enemy:stratovore` · `enemy:broodweaver` · `enemy:zealot` · `enemy:carrier` · `enemy:entrencher` · `enemy:oracle` · `enemy:glutling` · `enemy:apex` · …125 more
+`currency:biomass` · `currency:genome-cores` · `currency:tower-shards` · `currency:hero-shards` · `currency:gene-essence` · `currency:materials` · `currency:stamina` · `currency:ichor` · `system:campaign` · `system:infinite` · `system:boss-rush` · `system:daily` · `system:loot` · `system:daily-login` · `system:achievements` · `system:directives` · `system:expeditions` · `system:doctrines` · `enemy:runner` · `enemy:mite` · `enemy:husk` · `enemy:flea` · `enemy:mold` · `enemy:skulker` · `enemy:larva` · `enemy:rusher` · `enemy:darter` · `enemy:lasher` · `enemy:brute` · `enemy:tank` · `enemy:golem` · `enemy:colossus` · `enemy:bulwark` · `enemy:warden` · `enemy:knitter` · `enemy:revenant` · `enemy:burrower` · `enemy:molerat` · `enemy:flyer` · `enemy:wisp` · `enemy:gargoyle` · `enemy:cystwraith` · `enemy:broodmother` · `enemy:hivecaller` · `enemy:mender` · `enemy:cantor` · `enemy:bomber` · `enemy:popper` · `enemy:sapper` · `enemy:cataclyst` · `enemy:siegeworm` · `enemy:spitter` · `enemy:stratovore` · `enemy:broodweaver` · `enemy:zealot` · `enemy:carrier` · `enemy:entrencher` · `enemy:oracle` · `enemy:glutling` · `enemy:apex` · …134 more
 
 ### Power Score Index
 
@@ -34,7 +34,7 @@
 
 ### Teaching Index
 
-`tutorial:combat` · `help:mission-control` · `help:hive-intel` · `help:evolution-roadmap` · `help:power-advisor` · `help:field-guides` · `help:hive-core` · `help:biomorph-conveyor` · `help:strain-evolution` · `help:boss-sieges` · `help:boss-rush` · `help:bio-roulette` · `help:gene-essence` · `help:field-research` · `help:splice-market` · `help:auction-house` · `help:daily-login` · `help:hive-construction` · `help:gene-archive` · `help:gene-loadout` · `help:biomass` · `help:wave-rhythm` · `help:game-speed` · `help:emergency-defense` · `help:power-score` · `help:account-level` · `help:genome-rank` · `help:towers` · `help:tower-stars` · `help:tower-mastery` · `help:mastery-evolution` · `help:tower-branches` · `help:adaptation` · `help:mulligans` · `help:nucleus` · `help:gene-cards` · `help:heroes` · `help:hero-evolution` · `help:hero-slots` · `help:equipment` · `help:equipment-reforge` · `help:gear-codex` · `help:genome-core` · `help:prestige` · `help:ascension` · `help:containers` · `help:loot-meter` · `help:collection-codex` · `help:phenotype-lab` · `help:idle-harvest` · `help:metabolism` · `help:specimens` · `help:arena` · `help:expeditions` · `help:quests` · `help:season-pass` · `help:premium-store` · `help:campaign` · `help:infinite` · `help:threat` · …29 more
+`tutorial:combat` · `help:mission-control` · `help:hive-intel` · `help:evolution-roadmap` · `help:power-advisor` · `help:field-guides` · `help:hive-core` · `help:biomorph-conveyor` · `help:strain-evolution` · `help:boss-sieges` · `help:boss-rush` · `help:bio-roulette` · `help:gene-essence` · `help:field-research` · `help:splice-market` · `help:auction-house` · `help:daily-login` · `help:hive-construction` · `help:gene-archive` · `help:gene-loadout` · `help:biomass` · `help:wave-rhythm` · `help:game-speed` · `help:emergency-defense` · `help:power-score` · `help:account-level` · `help:genome-rank` · `help:towers` · `help:tower-stars` · `help:tower-mastery` · `help:blockers` · `help:mastery-evolution` · `help:tower-branches` · `help:adaptation` · `help:mulligans` · `help:nucleus` · `help:gene-cards` · `help:heroes` · `help:hero-evolution` · `help:hero-slots` · `help:equipment` · `help:equipment-reforge` · `help:gear-codex` · `help:genome-core` · `help:prestige` · `help:ascension` · `help:containers` · `help:loot-meter` · `help:collection-codex` · `help:phenotype-lab` · `help:idle-harvest` · `help:metabolism` · `help:specimens` · `help:arena` · `help:expeditions` · `help:quests` · `help:season-pass` · `help:premium-store` · `help:campaign` · `help:infinite` · …30 more
 
 ### Testing Index
 
@@ -677,7 +677,7 @@ Six seeded runs pinned byte-for-byte (core/golden.test.ts) — the tripwire for 
   - conflictsWith ← `system:hero-symbiotes` — every symbiote surface must stay inactive⇒identity: resolveHeroSymbiote power EXACTLY 1 / kit null while no slot is fully seated; a new kit verb needs BOTH an optional field (absent on fresh saves) AND a presence-gated seam read — an unconditional read or a default ≠ identity breaks the pinned seeds
   - conflictsWith ← `system:hub-shell` — HOME WIDGET FIBER INVARIANT (2026-07, CommandCenter.tsx CCWidget): the home zone renders each widget through the CCWidget COMPONENT (<CCWidget/>), never by calling the widget function inline — an inline render(ctx) flattens every widget's hooks into CommandCenter's own list, so a `when` gate flipping a widget in/out between renders (e.g. command-feed keying off pendingContainers/shards) trips React's "rendered more hooks than during the previous render" and the ErrorBoundary blanks the hub. Unit tests can't see it (React UI); the MOBILE GATE (npm run mobilecheck, run by validate) catches it on the developed-profile sweep. Any new home widget with hooks + a volatile `when` MUST route through CCWidget
   - conflictsWith ← `system:hero-cinematics` — cast-less runs (the golden autoplay) must never touch the cinematic path: pendingImpactSystem is length-gated, castEvents only written on cast — and any test asserting cast RESULTS must step past the def’s impactDelay before asserting (riptide/vitriol tests show the ride-through pattern)
-  - _…6 more (query: `npm run dil -- node concept:golden-test`)_
+  - _…7 more (query: `npm run dil -- node concept:golden-test`)_
 
 ### `concept:progression-gates` — Progression Gates
 
@@ -690,6 +690,7 @@ Depth/stage/shard requirements that stage content unlocks (towers, heroes, cards
   - gates → `hero:riptide` — progression unlock requirement
   - gates → `hero:carrion` — progression unlock requirement
   - gates → `hero:chimera` — progression unlock requirement
+  - gates → `hero:myceliarch` — progression unlock requirement
   - gates → `system:gene-cards` — 44 cards unlock by progression
   - gates → `system:towers` — locked kinds carry unlockShards + stage requirements
   - requiredBy ← `system:doctrines` — unlockStage campaign gates + doctrineRuns grandfathering (save/derive.ts)
@@ -752,7 +753,7 @@ THE run currency — dropped by kills, spent on towers/upgrades; dies with the r
   - consumedBy ← `tower:siphon` — placement cost 175
   - consumedBy ← `tower:sower` — placement cost 130
   - consumedBy ← `tower:spire` — placement cost 150
-  - _…55 more (query: `npm run dil -- node currency:biomass`)_
+  - _…64 more (query: `npm run dil -- node currency:biomass`)_
 
 ### `currency:genome-cores` — Genome Cores (◆)
 
@@ -770,7 +771,7 @@ The permanent meta currency — genome upgrades, rewards, achievement payouts.
   - rewardedBy ← `achievement:specialist` — +25 on unlock
   - rewardedBy ← `achievement:mulligan_grafted` — +25 on unlock
   - rewardedBy ← `achievement:mulligan_splicer` — +40 on unlock
-  - _…121 more (query: `npm run dil -- node currency:genome-cores`)_
+  - _…124 more (query: `npm run dil -- node currency:genome-cores`)_
 
 ### `currency:tower-shards` — Tower Shards (✦)
 
@@ -791,6 +792,9 @@ Per-tower permanent currency: unlocks locked towers, buys Star evolutions.
   - gates → `tower:lung` — 240 shards to unlock
   - gates → `tower:bell` — 380 shards to unlock
   - gates → `tower:lancet` — 560 shards to unlock
+  - gates → `tower:warren` — 110 shards to unlock
+  - gates → `tower:tick` — 180 shards to unlock
+  - gates → `tower:quill` — 460 shards to unlock
   - consumedBy ← `system:hive-construction` — Strain Sample lanes drain the per-kind wallet richest-first (roster tie-break) — kinds near an Evolution are touched last
   - rewardedBy ← `system:campaign` — stage rewards feed unlock gates
   - rewardedBy ← `system:loot` — chest pipeline
@@ -884,7 +888,7 @@ _at: src/core/game.ts, src/core/combat.ts, src/core/status.ts, src/core/targetin
   - requiredBy ← `system:nemesis`
   - requiredBy ← `system:onboarding`
   - requiredBy ← `system:run-ui`
-  - _…226 more (query: `npm run dil -- node system:engine`)_
+  - _…236 more (query: `npm run dil -- node system:engine`)_
 
 ### `system:content-infra` — Content Infrastructure
 
@@ -949,6 +953,7 @@ _at: src/core/campaign.ts, src/core/campaignEvents.ts, src/core/hash.ts, src/ui/
   - references → `system:engine` — EARLY BROOD (2026-07, ENEMIES.md §early-brood — husk/flea/mold/skulker): four WEAK trait-less walkers the DERIVED campaign gate admits from stage 1 (unlockStage = max(hpTier, mechGate); tier 1 needs effectiveHp < baseHp+hpPerTier = 92 AND zero role traits — flying alone gates stage 3). Wave-1 eligibility additionally needs threatCost ≤ unitCapBase 3, damage ≤ dmgCapBase 8, speed ≤ 100. A new weak enemy is defs + three render rows ONLY — cues/bestiary/ledgers auto-classify. Golden-safe because the pinned autoplay runs the SCRIPTED WAVES table (authored kinds), never generation; campaign/daily compositions re-roll freely (earlyBrood.test pins the contract + spawn frequency)
   - consumes → `system:map-layouts` — layoutForStage: CAMPAIGN_LAYOUT_PINS for the onboarding (1–3), then a memoized-forward biome-flavored no-repeat roll on Rng(stageSeed(s, layout)); adding a layout re-rolls un-pinned stages (generated, never saved)
   - conflictsWith → `system:infinite` — Run Identity invasions: campaign passes the STAGE enemyPool as invasionPool (an all-kinds pool dropped 8 colossi on stage 1); endless keeps ENEMY_KINDS
+  - conflictsWith → `concept:golden-test` — a new enemy whose DERIVED unlockStage is ≤ 3 re-rolls the pinned Stage 1–3 onboarding pools and moves campaignCurve.test — the puzzle fauna were tuned (EHP) to enter at ≥ 4; biome signatures also append to the Infinite director rosters while that biome is active
   - requiredBy ← `system:daily`
   - requiredBy ← `system:towers`
   - requiredBy ← `system:heroes`
@@ -1250,6 +1255,7 @@ _at: src/core/stars.ts, src/core/branches.ts, src/core/branchTree.ts, src/core/s
   - consumes → `system:engine` — HERO-AI MINIONS (roost drakes): MinionDef.heroAI dispatches minionSystem to game.drakeBrain (deepest-threat + elites-first targeting, rally leash around homeX/homeY, retreat-to-perch < ROOST.retreatFrac with perchRegen × (1 + towerProgress.roost.roostRegenBonus), re-engage at reengageFrac) — wisp/harvester/broodling never reach it (flag-gated ⇒ byte-identical). Unit TIER climbs ROOST.unitByTier via the 'brood' star/branch grant vocabulary (roostBroodBonus/roostTierBonus/roostRegenBonus on ResolvedStarKit) — upgrades improve the UNITS, functionally AND visually (drakeling→drake→wyrmspawn defs)
   - references → `system:engine` — REACTION TRIO (2026-07, TOWERS.md §reactionTrio — Miasma Lung/Chitin Bell/Acid Lancet): the first roster growth with ZERO new sim verbs — all three compose TowerDef.abilities (aura+Infection fog · aura+Resonance react-slam · homing 130-dmg cull + Corrosion + minRange 120 deadzone). CAVEAT: a firing:'field' def WITHOUT explicit abilities inherits the DERIVED Disruption pulse kit (deriveTowerAbilities) — a field tower with its own identity MUST author abilities. Lung=second Viral, Bell=second Resonant (the two 1-tower class gaps closed); all double-gated (18/240 · 24/380 · 34/560) ⇒ goldens byte-identical. Adding a tower forces 6 new Mulligan catalog pieces (CATALOG_PER_TOWER contract, 2 per category)
   - extends → `system:engine` — IDLE POSTURES (TOWER-IDLE.md): every tower holds ONE of three states — COMBAT (targets engageable) / PREPARATION (secondary behavior running) / TRANSITION (the continuous `prep` scalar 0..1 on Tower IS the animation — renderer eases from it, nothing snaps). ONE engagement test per tick (towerHasTarget: living enemy inside effective reach, outside deadzone — field towers no longer pulse empty air, DELIBERATE); unengaged towers run their IDLE_BEHAVIORS row (core/towerIdle.ts, validator-bounded, exactly one per kind): windup (banked opener via the cast globals — dmg/range/splash/pierce/projectiles/castStatusAmountBonus), reserve (gestated burst volleys), ranging (parasite Spore Drift — weak 2×-reach suppression through the NORMAL cast pipeline: mastery/cues/reactions inherited), preheat (coil heat floors at 0.35), tending (sower cap+rate, roost hatch+perch-regen — the roost tower prep>0.5 IS the drake-brain calm signal), trickle (reactor mends integrity, siphon draws biomass), choir (ossuary +5% dmg to towers in 250, decaying choirDmg on the RECEIVER). Payoff magnitude scales INVERSELY with range band (short-reach idles most ⇒ biggest openers; the long-range meta corrective — no range nerfs). RunOptions.disableIdle reproduces the pre-idle sim BYTE-EXACTLY (pinned: golden.test GOLDEN_LEGACY block) — goldens re-pinned deliberately (wave/kills/won identical every seed; integrity only improved). RunModifiers.towerIdleChargeMult is the future card/gear hook. Mechanism suites (strains/strainVerbs/sower/finaldefense/expansion) run legacy fixtures; towerIdle.test.ts owns the layer
+  - references → `system:engine` — tower extraAbilities run with cast.x/y = the TOWER position: a debuff/explosion/pool grant on a homing kit lands around the TOWER, not the struck target — chain is the only verb that starts at cast.target (the Keening Chorus uses it for "around the mark")
   - requiredBy ← `system:hive-mind`
   - requiredBy ← `system:engine`
   - requiredBy ← `system:daily`
@@ -1262,7 +1268,7 @@ _at: src/core/stars.ts, src/core/branches.ts, src/core/branchTree.ts, src/core/s
   - contains ← `tower:obelisk`
   - contains ← `tower:maw`
   - contains ← `tower:chrysalis`
-  - _…38 more (query: `npm run dil -- node system:towers`)_
+  - _…42 more (query: `npm run dil -- node system:towers`)_
 
 ### `system:mastery` — Mastery / Adaptation
 
@@ -1329,7 +1335,7 @@ _at: src/core/heroIdentity.ts, src/core/heroLore.ts, src/core/heroEvolution.ts, 
   - contains ← `hero:vitriol`
   - contains ← `hero:revenant`
   - contains ← `hero:knell`
-  - _…19 more (query: `npm run dil -- node system:heroes`)_
+  - _…21 more (query: `npm run dil -- node system:heroes`)_
 
 ### `system:hero-cinematics` — Hero Ability Cinematics
 
@@ -1751,7 +1757,7 @@ _at: src/state/achievements.ts, src/ui/AchievementPanel.tsx, src/ui/AchievementT
   - contains ← `achievement:star3`
   - contains ← `achievement:specialist`
   - contains ← `achievement:hero_shard`
-  - _…117 more (query: `npm run dil -- node system:achievements`)_
+  - _…120 more (query: `npm run dil -- node system:achievements`)_
 
 ### `system:stats` — Lifetime Stats
 
@@ -2039,7 +2045,7 @@ _at: src/ui/InitCutscene.tsx, src/render/introScenes.ts, src/core/tutorial.ts, s
   - contains ← `help:strain-evolution`
   - contains ← `help:boss-sieges`
   - contains ← `help:boss-rush`
-  - _…68 more (query: `npm run dil -- node system:onboarding`)_
+  - _…69 more (query: `npm run dil -- node system:onboarding`)_
 
 ### `system:account-level` — Account Level (evergreen meta-progression)
 
@@ -2646,7 +2652,7 @@ _at: src/dev/*, src/dev/dil/*_
   - testedBy ← `test:src/dev/mobileContent.test.ts`
   - _…5 more (query: `npm run dil -- node system:dev-registry`)_
 
-## Towers (22)
+## Towers (25)
 
 ### `tower:needle` — Needle Spitter
 
@@ -2683,6 +2689,7 @@ _at: src/core/config.ts TOWER_DEFS_
 
   - partOf → `system:towers`
   - consumes → `currency:biomass` — placement cost 130
+  - conflictsWith ← `tower:quill` — Resonance + Infection = RUPTURE consumes the plague stacks for a burst — a Keening Quill on a Viral board cashes Infection out early (pinned-pack probe: parasite+quill < parasite+spitfang vs tanks); its home is beside Fracture stackers (Shear)
 
 ### `tower:obelisk` — Neural Obelisk
 
@@ -2812,6 +2819,7 @@ _at: src/core/config.ts TOWER_DEFS_
   - partOf → `system:towers`
   - consumes → `currency:biomass` — placement cost 200
   - gatedBy ← `currency:tower-shards` — 520 shards to unlock
+  - conflictsWith ← `tower:warren` — MINION_CAP (16) is GLOBAL: Gristle Warren thralls, Drake Roost drakes and hero summons share it — a deep warren board can starve a roost of hatch slots (and vice versa). Tower-cast summons also ignore the tower damage fold and credit no mastery (minion hits carry a null source) — the warren earns mastery through its gnash aura
 
 ### `tower:lung` — Miasma Lung
 
@@ -2861,7 +2869,40 @@ _at: src/core/config.ts TOWER_DEFS_
   - partOf → `system:towers`
   - consumes → `currency:biomass` — placement cost 210
 
-## Heroes (11)
+### `tower:warren` — Gristle Warren
+
+Musters GRISTLE THRALLS that shoulder into the lane and HOLD it — walking walls of sinew. Fliers and burrowers pass them by.
+
+_at: src/core/config.ts TOWER_DEFS_
+
+  - partOf → `system:towers`
+  - consumes → `currency:biomass` — placement cost 115
+  - conflictsWith → `tower:roost` — MINION_CAP (16) is GLOBAL: Gristle Warren thralls, Drake Roost drakes and hero summons share it — a deep warren board can starve a roost of hatch slots (and vice versa). Tower-cast summons also ignore the tower damage fold and credit no mastery (minion hits carry a null source) — the warren earns mastery through its gnash aura
+  - gatedBy ← `currency:tower-shards` — 110 shards to unlock
+
+### `tower:tick` — Tick Battery
+
+Flings engorged ticks at THREE different hosts far up the lane — every bite seeds Infection. The Nest drills one; the Battery starts the outbreak everywhere.
+
+_at: src/core/config.ts TOWER_DEFS_
+
+  - partOf → `system:towers`
+  - consumes → `currency:biomass` — placement cost 125
+  - references → `system:towers` — the parasite projectile behavior IGNORES the extraProjectiles channel (ability.execProjectile adds extras only for homing/arc) and its impact infects via infect() (not applyStatus, so idle statusBonus misses it) — extra ticks must be projectile COMPONENTS in star/branch grants. Also: Infection spread radius reads ONLY towerProgress.parasite.infectionSpreadMult (game.spreadInfection), so infectionSpreadMult adaptation rows on any other Viral kind are inert — the Tick ships none
+  - gatedBy ← `currency:tower-shards` — 180 shards to unlock
+
+### `tower:quill` — Keening Quill
+
+Fires a keening quill that RINGS its mark — the impact cracks the shell and the note SHEARS it: a true-damage burst and a window where its armor is gone for every tower.
+
+_at: src/core/config.ts TOWER_DEFS_
+
+  - partOf → `system:towers`
+  - consumes → `currency:biomass` — placement cost 150
+  - conflictsWith → `tower:parasite` — Resonance + Infection = RUPTURE consumes the plague stacks for a burst — a Keening Quill on a Viral board cashes Infection out early (pinned-pack probe: parasite+quill < parasite+spitfang vs tanks); its home is beside Fracture stackers (Shear)
+  - gatedBy ← `currency:tower-shards` — 460 shards to unlock
+
+## Heroes (12)
 
 ### `hero:ravager` — Ravager
 
@@ -2958,7 +2999,17 @@ _at: src/core/config.ts HERO_DEFS_
   - partOf → `system:heroes`
   - gatedBy ← `concept:progression-gates` — progression unlock requirement
 
-## Enemies (44)
+### `hero:myceliarch` — Myceliarch
+
+A spore-burst erupts where the warden aims — heavy damage and deep Infection in everything caught, and the Hive drinks the rot to mend.
+
+_at: src/core/config.ts HERO_DEFS_
+
+  - partOf → `system:heroes`
+  - consumes → `system:heroes` — second guard brain + second viralVuln consumer: zero new sim code — the guard brain never auto-attacks, so its role pulse IS the weapon (pulseDamage/pulseDisrupt), and heroInfectionVulnBonus sums every viralVuln hero generically (stacks with the Revenant)
+  - gatedBy ← `concept:progression-gates` — progression unlock requirement
+
+## Enemies (50)
 
 - `enemy:runner` — baseline strain _(partOf `system:engine`, rewards `currency:biomass`)_
 - `enemy:mite` — baseline strain _(partOf `system:engine`, rewards `currency:biomass`)_
@@ -3004,6 +3055,12 @@ _at: src/core/config.ts HERO_DEFS_
 - `enemy:apex` — regen _(partOf `system:engine`, rewards `currency:biomass`)_
 - `enemy:dreadnought` — shielded, summoner _(partOf `system:engine`, rewards `currency:biomass`)_
 - `enemy:tyrant` — baseline strain _(partOf `system:engine`, rewards `currency:biomass`)_
+- `enemy:scuttler` — baseline strain _(partOf `system:engine`, rewards `currency:biomass`)_
+- `enemy:blightmoth` — volatile, flying _(partOf `system:engine`, rewards `currency:biomass`)_
+- `enemy:borer` — regen _(partOf `system:engine`, rewards `currency:biomass`)_
+- `enemy:shellback` — shielded, artillery _(partOf `system:engine`, rewards `currency:biomass`)_
+- `enemy:wispmother` — summoner _(partOf `system:engine`, rewards `currency:biomass`)_
+- `enemy:veilmoth` — flying _(partOf `system:engine`, rewards `currency:biomass`)_
 
 ## Bosses (13)
 
@@ -3343,7 +3400,7 @@ _at: src/core/tutorial.ts_
   - teaches → `system:onboarding`
   - teaches → `system:run-ui`
 
-## Help Topics (65)
+## Help Topics (66)
 
 - `help:mission-control` — Your standing orders — the answer to "what should I do now?" _(partOf `system:onboarding`, teaches `system:power`)_
 - `help:hive-intel` — The live intel feed — banked value, ready moves, recent milestones. _(partOf `system:onboarding`, teaches `system:notifications`)_
@@ -3374,6 +3431,7 @@ _at: src/core/tutorial.ts_
 - `help:towers` — Automated defenders you place with Biomass. _(partOf `system:onboarding`, teaches `system:towers`)_
 - `help:tower-stars` — Permanent tower power, bought with Strain Samples. _(partOf `system:onboarding`, teaches `system:towers`, teaches `system:shards-economy`)_
 - `help:tower-mastery` — Infinite craft levels from USING a tower — tracked live in every run. _(partOf `system:onboarding`)_
+- `help:blockers` — Friendly units that stand in the lane and HOLD whatever walks into them. _(partOf `system:onboarding`)_
 - `help:mastery-evolution` — Every tower and hero owns a 100-level reward helix that renews forever. _(partOf `system:onboarding`)_
 - `help:tower-branches` — Specialize a tower down a mutation path. _(partOf `system:onboarding`, teaches `system:towers`)_
 - `help:adaptation` — Per-tower talent trees bought with Antigen. _(partOf `system:onboarding`, teaches `system:mastery`)_
@@ -3626,7 +3684,7 @@ _at: site/guides.ts → /guides/live-events/_
 
   - partOf → `system:website`
 
-## Achievements (124)
+## Achievements (127)
 
 - `achievement:tutorial_complete` — Complete the Combat Tutorial. _(partOf `system:achievements`, rewards `currency:genome-cores`)_
 - `achievement:first_run` — Finish your first run. _(partOf `system:achievements`, rewards `currency:genome-cores`)_
@@ -3689,6 +3747,7 @@ _at: site/guides.ts → /guides/live-events/_
 - `achievement:apex_slayer` — Slay your first boss. _(partOf `system:achievements`, rewards `currency:genome-cores`)_
 - `achievement:annihilation` — Deal 1,000,000 total damage (lifetime). _(partOf `system:achievements`, rewards `currency:genome-cores`)_
 - `achievement:deep_fauna` — Slay all five Deep-Fauna strains. _(partOf `system:achievements`, rewards `currency:genome-cores`)_
+- `achievement:puzzle_fauna` — Slay all six Puzzle Fauna strains — every puzzle, answered. _(partOf `system:achievements`, rewards `currency:genome-cores`)_
 - `achievement:stage15` — Clear Campaign Stage 15. _(partOf `system:achievements`, rewards `currency:genome-cores`)_
 - `achievement:stage30` — Clear Campaign Stage 30. _(partOf `system:achievements`, rewards `currency:genome-cores`)_
 - `achievement:stage50` — Clear Campaign Stage 50. _(partOf `system:achievements`, rewards `currency:genome-cores`)_
@@ -3731,6 +3790,8 @@ _at: site/guides.ts → /guides/live-events/_
 - `achievement:field_vitriol` — Field Vitriol, the siege caste, in a run. _(partOf `system:achievements`, rewards `currency:genome-cores`)_
 - `achievement:field_revenant` — Field the Revenant — the phase-stalking assassin. _(partOf `system:achievements`, rewards `currency:genome-cores`)_
 - `achievement:field_knell` — Field the Knell — the resonance cast from your first Molt. _(partOf `system:achievements`, rewards `currency:genome-cores`)_
+- `achievement:field_myceliarch` — Field the Myceliarch — the hive's immune response, rooted at the Core. _(partOf `system:achievements`, rewards `currency:genome-cores`)_
+- `achievement:answer_arsenal` — Deploy all three answer organs — the Gristle Warren, the Tick Battery and the Keening Quill. _(partOf `system:achievements`, rewards `currency:genome-cores`)_
 - `achievement:full_menagerie` — Field every hero at least once (lifetime). _(partOf `system:achievements`, rewards `currency:genome-cores`)_
 - `achievement:complete_arsenal` — Unlock every tower — the launch five, the expansion three, and both beam towers. _(partOf `system:achievements`, rewards `currency:genome-cores`)_
 - `achievement:deep_genome` — Discover 60 Gene strands — deep into the sealed pools. _(partOf `system:achievements`, rewards `currency:genome-cores`)_
@@ -3949,7 +4010,7 @@ _at: site/guides.ts → /guides/live-events/_
 - `doc:VOWS.md` — project documentation _(documents `system:prestige`)_
 - `doc:WEBSITE.md` — project documentation _(documents `system:field-research`, documents `system:website`)_
 
-## Tests (318)
+## Tests (321)
 
 - `test:src/audio/cues.test.ts` — automated validation _(tests `system:audio`)_
 - `test:src/audio/music.test.ts` — automated validation _(tests `system:audio`)_
@@ -3960,6 +4021,7 @@ _at: site/guides.ts → /guides/live-events/_
 - `test:src/core/adaptation.test.ts` — automated validation _(tests `system:mastery`)_
 - `test:src/core/analyticsEvents.test.ts` — automated validation _(tests `system:analytics`)_
 - `test:src/core/analyticsInsights.test.ts` — automated validation _(tests `system:analytics`)_
+- `test:src/core/answerRoster.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/core/arena.test.ts` — automated validation _(tests `system:arena`)_
 - `test:src/core/arenaAi.test.ts` — automated validation _(tests `system:arena`)_
 - `test:src/core/arenaMatch.test.ts` — automated validation _(tests `system:arena`)_
@@ -4067,6 +4129,7 @@ _at: site/guides.ts → /guides/live-events/_
 - `test:src/core/modifiers.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/core/mulligan.test.ts` — automated validation _(tests `system:mulligans`)_
 - `test:src/core/mutators.test.ts` — automated validation _(tests `system:engine`)_
+- `test:src/core/myceliarch.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/core/nucleus.test.ts` — automated validation _(tests `system:nucleus`)_
 - `test:src/core/online.test.ts` — automated validation _(tests `system:online-foundation`)_
 - `test:src/core/pacing.test.ts` — automated validation _(tests `system:engine`)_
@@ -4078,6 +4141,7 @@ _at: site/guides.ts → /guides/live-events/_
 - `test:src/core/prepcountdown.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/core/prestige.test.ts` — automated validation _(tests `system:prestige`)_
 - `test:src/core/progressionLoot.test.ts` — automated validation _(tests `system:loot`)_
+- `test:src/core/puzzleFauna.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/core/quests.test.ts` — automated validation _(tests `system:quests`)_
 - `test:src/core/reactionTrio.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/core/reactions.test.ts` — automated validation _(tests `system:engine`)_

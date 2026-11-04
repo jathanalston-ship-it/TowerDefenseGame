@@ -409,6 +409,57 @@ crown (`HERO_EVOLUTION.wyrm`).
 **Synergy.** Corrosion on every pass primes **Shred** (Fracture sources — Needle/Ravager) and
 **Putrefy** (Infection — Parasite/Revenant); *Emberwake* amplifies the Bone Mortar, Vitriol, and
 the Wyrmwing Glaive's Ember Return branch — the draconic tower pairing it was bred beside.
+
+---
+
+## 8. MYCELIARCH — Viral (gatekeeper / last-line immune response) · **progression-gated** (§myceliarch)
+
+**Design gap it fills.** The roster had ONE obtainable Viral hero (the Revenant — the Chimera is
+arena-exclusive) and ONE `guard` brain (the Shepherd — a support that never kills). Nobody owned
+the **last line**: in siege combat the leak that reaches the Core is the run-ender, and every
+damaging hero stood up-lane. The Myceliarch is the guard that KILLS at the gate.
+
+**Lore.** The hive grew an immune system and taught it patience — a fungal warden rooted at the
+Core. It does not chase the wave; whatever breaches the line walks into the rot.
+
+**Role.** The `guard` brain (`game.updateGuardHero` — zero new sim code): it holds the defense
+zone and steps onto the deepest incursion, pulsing every 1.1 s. Where the Shepherd TENDS, the
+Myceliarch ROTS: a real damaging pulse with a sticky stagger, deep Infection seeded into
+everything at the gate, and the Revenant's *viralVuln* passive so the rot softens the crowd for
+the whole board.
+
+**Base kit.** Viral · 360 hp (tankier than the Shepherd) · speed 82 · **no auto-attack** (the guard
+brain never swings) · pulse **12 dmg / 1.1 s, r 104, 0.35 s Disruption** (the *Sticky Spores*
+stagger) · Nucleus regen 0.6/s · colour `#e0b070`. **Ult — Sporefall** (self-cast at the gate,
+12 s): 46 dmg in r 140, **Infection 3**, heals the Nucleus + itself 20 (`bloomheart` cinematic,
+*expand*, 0.35 s landing). **Kit skills** (★3/★7): *Mycelial Mantle* (self — a 70 shield for 5 s
+and an 18-dmg rot-burst, Infection 2) and *Fruiting Body* (an eruption under the deepest intruder —
+40 dmg, r 80, Infection 4). **Forks**: ★5 *Bloomwarden* (wider Sporefall, +15 heal) vs *Rotwarden*
+(+25 % Sporefall damage, +2 Infection); ★8 *Hyphal Fortress* (Mantle → a thicker shield on a
+shorter cycle) vs *Deathcap* (Fruiting Body → a colossal toxic bloom). **Identity**
+(heroIdentity): passive *Spore Rot* — INFECTED enemies take +14 % from ALL sources (stacks with the
+Revenant's *Virulent Presence*); trait *Sticky Spores*; scaling *Mycelial Bloom* (the rot deepens
+with run depth, +30 % cap); survival `cautious`.
+
+**Counter-play.** Strong vs leaks, swarms that reach the Core, siegers parked on the crust, and any
+board that already Infects (Parasite/Lung/Tick). Weak vs anything that never breaches — a
+well-built board starves it — and vs fast leakers that dart through one pulse; it has no reach
+up-lane and no single-target burst for a boss that stays out of the zone.
+
+**Unlock.** `{ kind: 'lifetimeKills', count: 8000 }` — the mycelium grows from the hive's dead (the
+Carrion, which RAISES the dead, waits at 20,000). A milestone, deliberately not a Shard claim: a
+Shard hero joins `heroShardUnlockPool` and would dilute a fresh account's Shepherd/Overseer drops by
+a quarter — as a milestone the fresh-save economy is byte-for-byte unchanged, and once earned its
+hero Shards fund Stars + forks like every hero. Never owned by a fresh account ⇒ golden-safe
+(autoplay fields the Ravager).
+
+**Visuals.** The `bell` silhouette (a gilled fungal cap) in fungal ochre; star anatomy grows a
+spore halo → rot-sacs → rooting hyphae → a gilled cap-crown → the mycelial bloom
+(`HERO_EVOLUTION.myceliarch`); symbiote stages read as chitin scutes → contagion rings → spore pods.
+
+**Synergy.** The Tick Battery and Miasma Lung seed Infection up-lane; whatever survives arrives
+pre-rotted into *Spore Rot*. Pair with a Gristle Warren: the walls HOLD the leak inside its pulse.
+
 ---
 
 ## Hero roster summary
@@ -425,6 +476,7 @@ the Wyrmwing Glaive's Ember Return branch — the draconic tower pairing it was 
 | **Riptide** | Kinetic | water-form zone controller | Medium (AoE chip + pools) | tidal pulses + undertow area denial + Waterlogged vulnerability (gated) |
 | **Carrion** | Vital | charnel necromancer | Low (fly-cloud chip) | GRAVEBIND — the fallen rise as corpse-scaled Risen Thralls that fight for the hive (gated) |
 | **Fovea** | Neural | rear-line executioner lance | **Colossal (single strikes)** | deletes elites/fat targets from extreme range + staggering glares (Shard-claimed) |
+| **Myceliarch** | Viral | gatekeeper / last-line guard | Medium (AoE pulse at the Core) | rots every leak at the gate — sticky stagger, deep Infection, Spore Rot vulnerability (gated: 8,000 lifetime kills) |
 
 Distinct roles, distinct classes, distinct failure modes. The "ideal" core
 (Ravager + Shepherd + Overseer) is a classic damage/sustain/control trinity — and

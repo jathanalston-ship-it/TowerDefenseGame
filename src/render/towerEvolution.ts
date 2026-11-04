@@ -38,7 +38,9 @@ export const BRANCH_COLOR: Record<string, string> = {
   lung_plague: '#ff8ae6', lung_choke: '#c0e84a',
   bell_dirge: '#d8b06a', bell_chorus: '#f0e0b0',
   lancet_headsman: '#f0f06a', lancet_venom: '#9fe06a',
-  basilisk_horizon: '#c9a8ff', basilisk_garden: '#9a7fe0', ossuary_requiem: '#d8ceb0', ossuary_chorus: '#f2ecd8',
+  basilisk_horizon: '#c9a8ff', basilisk_garden: '#9a7fe0', ossuary_requiem: '#d8ceb0', ossuary_chorus: '#f2ecd8',  warren_wall: '#e0775a', warren_swarm: '#ffbfa3',
+  tick_plague: '#d86bff', tick_leech: '#9fe06a',
+  quill_shatter: '#c8fff4', quill_chorus: '#7fd6ff',
 };
 
 /** The reusable "organ" vocabulary — each maps to a small pure drawer in PART_DRAWERS. */
@@ -561,6 +563,75 @@ export const BRANCH_EVOLUTION: Record<string, BranchEvolution> = {
       { at: 3, kind: 'ripples', count: 2 }, // standing chords
       { at: 4, kind: 'organs', count: 3 }, // new throats
       { at: 5, kind: 'nova' }, // the eternal chorus
+    ],
+  },
+  // WARREN ────────────────────────────────────────────────────────────────────
+  warren_wall: {
+    color: BRANCH_COLOR.warren_wall, growth: 0.055,
+    parts: [
+      { at: 1, kind: 'halo' },
+      { at: 1, kind: 'fangs', count: 2, per: 1 }, // the gnashing gate, widening per tier
+      { at: 2, kind: 'armor', count: 3, per: 1 }, // sinew-hulk plating, heavier per tier
+      { at: 3, kind: 'spikes', count: 4 }, // cracking bone spurs
+      { at: 4, kind: 'limbs', count: 3 }, // hauling arms
+      { at: 5, kind: 'nova' }, // the meat wall
+    ],
+  },
+  warren_swarm: {
+    color: BRANCH_COLOR.warren_swarm, growth: 0.05,
+    parts: [
+      { at: 1, kind: 'halo' },
+      { at: 1, kind: 'pods', count: 3, per: 1 }, // litter sacs, more per tier
+      { at: 2, kind: 'organs', count: 3 }, // marrow-tithe glands
+      { at: 3, kind: 'tendrils', count: 3 }, // feeding feelers
+      { at: 4, kind: 'biomass', count: 3 }, // the larder swelling
+      { at: 5, kind: 'nova' }, // the swarming warren
+    ],
+  },
+  // TICK ──────────────────────────────────────────────────────────────────────
+  tick_plague: {
+    color: BRANCH_COLOR.tick_plague, growth: 0.05,
+    parts: [
+      { at: 1, kind: 'halo' },
+      { at: 1, kind: 'biomass', count: 3, per: 1 }, // engorged sacs, swelling per tier
+      { at: 2, kind: 'pods', count: 3 }, // brood clutches
+      { at: 3, kind: 'ripples', count: 2 }, // the outbreak spreading
+      { at: 4, kind: 'organs', count: 3 }, // fever glands
+      { at: 5, kind: 'nova' }, // patient zero
+    ],
+  },
+  tick_leech: {
+    color: BRANCH_COLOR.tick_leech, growth: 0.05,
+    parts: [
+      { at: 1, kind: 'halo' },
+      { at: 1, kind: 'tendrils', count: 3, per: 1 }, // leech feelers, more per tier
+      { at: 2, kind: 'fangs', count: 2 }, // acid mouthparts
+      { at: 3, kind: 'barbs', count: 4 }, // barbed leaping legs
+      { at: 4, kind: 'organs', count: 3 }, // siphoning glands
+      { at: 5, kind: 'nova' }, // the leech swarm
+    ],
+  },
+  // QUILL ─────────────────────────────────────────────────────────────────────
+  quill_shatter: {
+    color: BRANCH_COLOR.quill_shatter, growth: 0.045,
+    parts: [
+      { at: 1, kind: 'halo' },
+      { at: 1, kind: 'barrel' }, // the tuned shaft, lengthening
+      { at: 2, kind: 'spikes', count: 4 }, // hairline-fracture spurs
+      { at: 3, kind: 'barbs', count: 4 }, // a racked second quill
+      { at: 4, kind: 'crown', count: 5 }, // the resonant spur crest
+      { at: 5, kind: 'nova' }, // the shattering note
+    ],
+  },
+  quill_chorus: {
+    color: BRANCH_COLOR.quill_chorus, growth: 0.045,
+    parts: [
+      { at: 1, kind: 'halo' },
+      { at: 1, kind: 'glyphRing' }, // the sympathetic ring
+      { at: 2, kind: 'arcs', count: 2, per: 1 }, // the leaping chord made visible, wilder per tier
+      { at: 3, kind: 'organs', count: 3 }, // chord nodes
+      { at: 4, kind: 'ripples', count: 2 }, // standing waves
+      { at: 5, kind: 'nova' }, // the keening chorus
     ],
   },
 };

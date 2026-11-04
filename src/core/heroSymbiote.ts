@@ -777,6 +777,14 @@ export const HERO_SYMBIOTE_GATES: Record<HeroKind, [SymbioteGate, SymbioteGate]>
       blurb: 'The final graft crowns a body stitched from every strain that ever held the arena — nothing left to take.',
       reqs: [rKills(10000), rStars(4), rMastery(12), rGenome(6, 'VI · Hiveborn'), rRush(9)] },
   ],
+  myceliarch: [
+    { slot: 2, title: 'THE ROOTED GATE', ichorCost: SYMBIOTE_ICHOR_II,
+      blurb: 'The second graft spreads only through a warden that has held the gate for half a campaign — hyphae that know where the line breaks.',
+      reqs: [rKills(1200), rStars(2), rMastery(8), rStage(30)] },
+    { slot: 3, title: 'THE MYCELIAL CROWN', ichorCost: SYMBIOTE_ICHOR_III,
+      blurb: 'The final graft fruits only on a warden steeped in ten thousand rotted intruders — the gate itself becomes a single organism.',
+      reqs: [rKills(10000), rStars(4), rMastery(12), rGenome(6, 'VI · Hiveborn'), rMolts(1)] },
+  ],
 };
 
 // Compile-time completeness above; runtime sanity for tests + tooling.

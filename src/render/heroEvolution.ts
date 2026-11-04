@@ -157,10 +157,22 @@ export const HERO_EVOLUTION: Record<HeroKind, HeroEvolution> = {
       { at: 5, kind: 'nova' }, // the arena's crown made flesh
     ],
   },
+  // Myceliarch (Viral gatekeeper) — the warden FRUITS: a spore halo → rot-sacs → rooting hyphae →
+  // a gilled cap-crown → the mycelial bloom.
+  myceliarch: {
+    growth: 0.05, // a warden that thickens where it stands
+    parts: [
+      { at: 1, kind: 'halo' }, // the spore cloud it breathes at the gate
+      { at: 2, kind: 'biomass', count: 3 }, // swelling rot-sacs
+      { at: 3, kind: 'limbs', count: 4 }, // rooting hyphae gripping the ground
+      { at: 4, kind: 'crown', count: 6 }, // a gilled fungal cap
+      { at: 5, kind: 'nova' }, // the mycelial bloom
+    ],
+  },
 };
 
 /** Stable per-kind phase offset so two heroes of different kinds don't pulse in lockstep. */
-const KIND_PHASE: Record<HeroKind, number> = { ravager: 1, shepherd: 2, overseer: 3, vitriol: 4, revenant: 5, knell: 6, wyrm: 7, riptide: 8, carrion: 9, fovea: 10, chimera: 11 };
+const KIND_PHASE: Record<HeroKind, number> = { ravager: 1, shepherd: 2, overseer: 3, vitriol: 4, revenant: 5, knell: 6, wyrm: 7, riptide: 8, carrion: 9, fovea: 10, chimera: 11, myceliarch: 12 };
 
 /** Body-silhouette scale from permanent STARS (the "bigger, prestige hero" read). Identity (1) at
  *  ★0; gentle per star so the marker never dwarfs the field (★5 ≈ 1.2–1.25×). */

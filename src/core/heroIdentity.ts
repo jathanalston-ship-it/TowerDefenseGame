@@ -172,6 +172,19 @@ export const HERO_IDENTITIES: Record<HeroKind, HeroIdentity> = {
     scaling: { name: 'Rising Tide', desc: 'The deeper the run, the harder the water grips (up to +30%).', kind: 'overload', perStack: 0.015, cap: 0.3 },
     survival: 'cautious',
   },
+  myceliarch: {
+    kind: 'myceliarch',
+    role: 'Gatekeeper — rooted at the Core, it rots whatever breaches the defense zone: a damaging spore pulse, a sticky stagger, and deep Infection at the gate.',
+    strengths: ['Kills at the LAST line — real AoE pulse where leaks happen', 'Seeds deep Infection the whole board exploits', 'Tanky, self-shielding, and it mends the Hive'],
+    weaknesses: ['Never leaves the gate — no reach up-lane', 'Slow — a fast leak darts past its pulse', 'Wasted when nothing breaches: a good board starves it'],
+    // Reuses the shared sim verbs (heroInfectionVulnBonus sums every viralVuln hero generically):
+    // the spore-rot it seeds softens what the towers are already shooting — shallower than the
+    // Revenant's presence (the Myceliarch brings a real damaging pulse of its own).
+    passive: { name: 'Spore Rot', desc: 'INFECTED enemies take extra damage from ALL sources — the rot it seeds at the gate softens everything still coming.', kind: 'viralVuln', amount: 0.14 },
+    trait: { name: 'Sticky Spores', desc: 'Its pulse CLINGS — everything caught at the gate is briefly staggered while the rot takes hold.', kind: 'broodTender' },
+    scaling: { name: 'Mycelial Bloom', desc: 'The deeper the run, the deeper its rot softens targets (up to +30%).', kind: 'virulence', perStack: 0.015, cap: 0.3 },
+    survival: 'cautious',
+  },
 };
 
 export function heroIdentity(kind: HeroKind): HeroIdentity {

@@ -86,6 +86,9 @@ const OVERRIDES: Partial<Record<TowerKind, Partial<OrganismProfile>>> = {
   lancet:    { orient: 1, gape: 0.25, voice: 'bone', emission: 'none' },  // the harpoon draws a bead
   basilisk:  { orient: 0.95, gape: 0.7, voice: 'hum', emission: 'none' }, // the lid peels, the eye fixes
   ossuary:   { twitch: 0.55, voice: 'bone', emission: 'wisps' },          // the choir stirs in the stacks
+  warren:    { swell: 0.8, twitch: 0.85, voice: 'heart', emission: 'crawlers' }, // thralls shoulder at the burrow-mouth
+  tick:      { orient: 0.5, swell: 0.75, twitch: 0.9, voice: 'chirp', emission: 'crawlers' }, // the clinging ticks twitch awake
+  quill:     { orient: 0.9, twitch: 0.3, voice: 'hum', emission: 'sparks' },  // the fork turns to the plate it will crack
 };
 
 const profileCache = new Map<TowerKind, OrganismProfile>();

@@ -259,6 +259,16 @@ export const MECHANICS: MechanicDef[] = [
     why: 'Each level is a small permanent damage bonus plus Power — and milestones unlock titles, lore, and mechanic perks. It never stops: ranks are infinite.',
     where: 'Select any placed tower in a run; the full ledger (lifetime kills, damage, best wave, next unlock) lives in the Tower Lab.',
     next: 'Chase the Lv 10 / 25 / 50 / 75 milestones — perks like extra pierce arrive there.' },
+  // Body-blocking as a TOWER verb (docs/TOWERS.md §answers — the Gristle Warren barracks); revealed
+  // once the account owns a unit-fielding organ, so a fresh save never sees the card.
+  { id: 'blockers', title: 'Walls & Blockers', category: 'Towers', nav: 'towers', links: ['towers'],
+    unlock: (s) => (s.towerUnlocked ?? []).some((k) => k === 'warren' || k === 'roost'),
+    summary: 'Friendly units that stand in the lane and HOLD whatever walks into them.', media: 'GIF: gristle thralls holding a brute',
+    what: 'Some organs field units — the Gristle Warren musters walls of sinew, the Drake Roost hatches drakes. A ground enemy that touches one STOPS and chews through it instead of advancing.',
+    why: 'Held enemies die inside your kill-zone — a cheap wall buys every other tower more shots.',
+    where: 'Deploy a Gristle Warren beside the lane; its thralls muster while a threat is inside its reach.',
+    next: 'Pair walls with splash and reactions — and cover the air: FLIERS and BURROWERS ignore walls.',
+    mistakes: 'Walls cannot stop fliers or burrowers (the Blight Moth flies over, the Marrow Borer tunnels under), and heavy hitters chew through them fast — they buy time, not kills.' },
   { id: 'mastery-evolution', title: 'Evolution Tracks', category: 'Progression', nav: 'towers', links: ['tower-mastery', 'power-score'],
     unlock: (s) => Object.values(s.towerMasteryXp).some((n) => (n ?? 0) > 0) || Object.values(s.heroMasteryXp).some((n) => (n ?? 0) > 0),
     summary: 'Every tower and hero owns a 100-level reward helix that renews forever.',

@@ -71,6 +71,11 @@ const AUTHORED: Record<string, Partial<HeroLore>> = {
     tagline: 'A living oculus behind the line — one look, one lance, one fewer giant.',
     specialization: 'Executioner Lance',
   },
+  myceliarch: {
+    title: 'Warden of the Gate',
+    tagline: 'The hive\'s immune response, rooted at the Core — whatever breaches the line walks into the rot.',
+    specialization: 'Spore Gatekeeper',
+  },
 };
 
 /** Resolve a hero's lore, deriving any unauthored field from its definition. */
