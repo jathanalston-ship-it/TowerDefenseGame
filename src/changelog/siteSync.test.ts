@@ -47,7 +47,9 @@ describe('Chronicle site sync (regen drift gate — run `npm run site`)', () => 
     expect(html).toContain(newest.title);
     // A concrete entry from the newest release must appear on the page (HTML-escape tolerant:
     // compare on a marker slice free of &<>" characters).
-    const sample = newest.entries[0].text.replace(/[&<>"']/g, ' ').split(/\s+/).filter((w) => w.length > 3).slice(0, 3).join(' ');
+    // The marker is a CONTIGUOUS run of the entry's text (up to its first escapable character), so
+    // short words in it ("of", "a") can't make the sample skip over text the page really shows.
+    const sample = newest.entries[0].text.split(/[&<>"'\u2018\u2019\u201c\u201d]/)[0].trim().slice(0, 32).trim();
     if (sample.length > 8) expect(html.replace(/&[a-z#0-9]+;/g, ' ').replace(/\s+/g, ' ')).toContain(sample);
   });
 
