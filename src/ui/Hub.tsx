@@ -34,9 +34,7 @@ import { navBus } from '../state/navBus';
 import { CampaignScreen } from './CampaignScreen';
 import { TowerLab } from './TowerLab';
 import { MulliganLab } from './MulliganLab';
-import { EquipmentCollection } from './EquipmentCollection';
 import { HeroLab } from './HeroLab';
-import { ExpeditionScreen } from './ExpeditionScreen';
 import { AdaptationChamber } from './AdaptationChamber';
 import { EquipmentPanel } from './EquipmentPanel';
 import { GeneticVault } from './GeneticVault';
@@ -54,11 +52,9 @@ import { DevTools } from './DevTools';
 import { MusicDebug } from './MusicDebug';
 import { GeneArchive } from './GeneArchive';
 import { HiveScreen } from './HiveScreen';
-import { HarvestArrival, HarvestScreen } from './HarvestScreen';
-import { MetabolismScreen } from './MetabolismScreen';
+import { HarvestArrival } from './HarvestScreen';
 import { FrontScreen } from './FrontScreen';
 import { Wardrobe } from './Wardrobe';
-import { SpecimenVault } from './SpecimenVault';
 import { BattlePassScreen } from './BattlePassScreen';
 import { QuestBoard } from './QuestBoard';
 import { WardrobeReveal } from './components/WardrobeReveal';
@@ -70,7 +66,8 @@ import { applyWardrobeDressing } from './wardrobeDressing';
 import { LabAtmosphere } from './LabAtmosphere';
 import { labState } from './homeBaseTiers';
 import { PowerBadge } from './components/PowerScore';
-import { navGroups, mobileTabs, tabOf, groupOf, type NavKey, type NavGroupId, type MobileTabKey } from './navModel';
+import { navGroups, mobileTabs, tabOf, groupOf, hostOf, foldCounts, foldLines, type NavKey, type NavGroupId, type MobileTabKey } from './navModel';
+import { requestHostTab } from './components/HostTabs';
 import { ScreenHeader } from './components/ScreenHeader';
 import { activeLiveEvents } from '../core/liveEvents';
 import { MobileTabBar, MobileTabIndex, MobilePageHead } from './MobileShell';
@@ -247,18 +244,20 @@ export function Hub({
   const cells = meta.prestigeView().cells;
   // Derived rail state — recomputed only when the save snapshot (or an ack) changes, not on
   // every shell render; navProgress walks every tower/hero/upgrade/card.
-  const badges = useMemo(() => notifications.badges(save), [save, ackTick]);
+  // Folded screens (navModel FOLDED_NAVS) light their HOST: a ripe Hive Production tab badges The Hive.
+  const badges = useMemo(() => foldCounts(notifications.badges(save)), [save, ackTick]);
   // Ready Chain pulse source (docs/HUB-FLOW.md §surfaces) — LIVE claim/open stops,
   // independent of the seen-watermarks: readiness breathes, novelty badges.
-  const chainSet = useMemo(() => chainNavs(save), [save]);
+  const chainSet = useMemo(() => new Set([...chainNavs(save)].map((k) => hostOf(k as NavKey))), [save]);
   // Smart-notification REASONS (docs/NOTIFICATIONS.md §reasons) — the WHY behind every badge,
   // rendered as nav tooltips, landing "needs attention" rows, and index-row sublines.
-  const reasons = useMemo(() => notifications.reasons(save), [save, ackTick]);
+  const reasons = useMemo(() => foldLines(notifications.reasons(save)), [save, ackTick]);
   const progress = useMemo(() => navProgress(save), [save]); // 0..1 completion rings per menu
   // Progression gating (docs/PROGRESSION-GATING.md): the nav lists REVEALED screens plus the
   // next two upcoming reveals as locked TEASERS (anticipation with live progress); everything
   // deeper stays hidden — the game reveals itself one learnable beat at a time.
-  const teasers = useMemo(() => nextReveals(save, 2), [save]);
+  // Folded tabs tease inside their host (HostTabs), so they never spend a nav teaser slot.
+  const teasers = useMemo(() => nextReveals(save, 8).filter((v) => hostOf(v.def.id as NavKey) === v.def.id).slice(0, 2), [save]);
   const teaserOf = new Map(teasers.map((v) => [v.def.id, v] as const));
   const navVisible = (k: NavKey): boolean => featureRevealed(save, k) || teaserOf.has(k);
 
@@ -318,7 +317,11 @@ export function Hub({
     if (histRef.current.length > 32) histRef.current.shift();
   };
 
-  const go = (k: NavKey): void => {
+  const go = (to: NavKey): void => {
+    // A folded screen (navModel FOLDED_NAVS) opens its HOST on the matching tab — every NavKey
+    // still deep-links; the host component owns the tab strip (ui/components/HostTabs.tsx).
+    const k = hostOf(to);
+    if (k !== to) requestHostTab(to);
     if (k === nav && landing === null && !mIndex) return; // already here — no-op, no history churn
     audio.cue('ui');
     pushHist();
@@ -582,15 +585,11 @@ export function Hub({
           {nav === 'daily' && <DailyScreen onStartDaily={onStartDaily} onSpectate={onSpectate} />}
           {nav === 'towers' && <TowerLab />}
           {nav === 'mulligans' && <MulliganLab />}
-          {nav === 'gearcodex' && <EquipmentCollection />}
           {nav === 'heroes' && <HeroLab />}
-          {nav === 'expeditions' && <ExpeditionScreen />}
           {nav === 'adaptation' && <AdaptationChamber />}
           {nav === 'evolution' && <EvolutionHQ />}
           {nav === 'genes' && <GeneArchive />}
           {nav === 'hive' && <HiveScreen />}
-          {nav === 'harvest' && <HarvestScreen />}
-          {nav === 'metabolism' && <MetabolismScreen />}
           {nav === 'infestation' && <FrontScreen />}
           {nav === 'vault' && <GeneticVault />}
           {nav === 'market' && <SpliceMarket />}
@@ -599,7 +598,6 @@ export function Hub({
           {nav === 'quests' && <QuestBoard />}
           {nav === 'season' && <BattlePassScreen onStore={() => go('store')} />}
           {nav === 'phenotypes' && <Wardrobe />}
-          {nav === 'specimens' && <SpecimenVault />}
           {nav === 'collection' && <CollectionScreen />}
           {nav === 'store' && <PremiumStore />}
           {nav === 'profile' && <PlayerProfile onNavigate={(k) => go(k as NavKey)} />}

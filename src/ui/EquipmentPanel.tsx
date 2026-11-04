@@ -20,6 +20,8 @@ import { setHueOf } from '../render/equipmentArt';
 import { PowerDelta } from './components/PowerDelta';
 import { compareItemPower } from '../state/itemPower';
 import { ItemDetails } from './ItemDetails';
+import { HostedScreen } from './components/HostTabs';
+import { EquipmentCollection } from './EquipmentCollection';
 
 type SortKey = 'power' | 'rarity' | 'name' | 'set' | 'newest';
 const SORTS: { key: SortKey; label: string }[] = [
@@ -33,7 +35,12 @@ function traitChips(item: OwnedItem): { key: string; label: string; locked: bool
   return item.affixes.map((a) => ({ key: a.affixId, label: `${affixDef(a.affixId)?.name ?? a.affixId} T${a.tier}`, locked: !!a.locked }));
 }
 
+/** The Armory host: equipment + the folded Gear Codex tab (navModel FOLDED_NAVS). */
 export function EquipmentPanel(): JSX.Element {
+  return <HostedScreen host="equipment" views={{ equipment: ArmoryBody, gearcodex: EquipmentCollection }} />;
+}
+
+function ArmoryBody(): JSX.Element {
   const save = meta.use();
   const { inventory } = save.equipment;
   // Exact free upgrades across the fielded roster (memoized per save revision).

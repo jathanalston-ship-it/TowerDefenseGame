@@ -15,6 +15,8 @@ import type { WardrobeGroup, WardrobeItemDef, WardrobeKindDef } from '../core/wa
 import { PhenotypeLab } from './PhenotypeLab';
 import { CurrencyIcon } from './components/CurrencyIcon';
 import { audio } from '../audio/sound';
+import { HostedScreen } from './components/HostTabs';
+import { SpecimenVault } from './SpecimenVault';
 
 type Tab = 'skins' | WardrobeGroup | 'boutique' | 'milestones';
 type OwnFilter = 'all' | 'owned' | 'locked' | 'new' | 'fav';
@@ -207,7 +209,13 @@ function MilestonesTab(): JSX.Element {
   );
 }
 
+/** The Phenotype Lab host: the Wardrobe + the folded Specimen Vault tab (navModel FOLDED_NAVS) —
+ *  unclaimed stock sits one tab away from the wardrobe it binds into. */
 export function Wardrobe(): JSX.Element {
+  return <HostedScreen host="phenotypes" views={{ phenotypes: WardrobeBody, specimens: SpecimenVault }} />;
+}
+
+function WardrobeBody(): JSX.Element {
   const save = meta.use();
   const [tab, setTab] = useState<Tab>('skins');
   const [filter, setFilter] = useState<OwnFilter>('all');

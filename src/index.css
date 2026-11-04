@@ -9323,6 +9323,16 @@ kbd {
 .wing-tab-body { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 .wing-tab-body b { font: 800 12px/1 'Chakra Petch', system-ui, sans-serif; letter-spacing: 0.1em; text-transform: uppercase; }
 .wing-tab-body i { font-style: normal; font-size: var(--fs-2xs); color: var(--dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+/* Host tabs (folded screens — ui/components/HostTabs.tsx): the next reveal sits locked; a
+   tab's pending decisions ride a small count pill. */
+.wing-tab { position: relative; }
+.wing-tab.is-locked { opacity: 0.55; cursor: default; }
+.wing-tab.is-locked:hover { transform: none; border-color: var(--line); }
+.wing-tab-badge {
+  position: absolute; top: 4px; right: 6px; min-width: 16px; height: 16px; padding: 0 4px;
+  border-radius: 999px; background: var(--vital); color: var(--bg);
+  font: 800 10px/16px 'Chakra Petch', system-ui, sans-serif; text-align: center;
+}
 @media (max-width: 640px) {
   .wing-tabs { grid-template-columns: repeat(2, minmax(0, 1fr)); position: static; }
 }
@@ -12410,10 +12420,6 @@ html[data-debug-layout] body::after {
 
 /* ── The living Hive organism (ui/components/HiveOrganism.tsx — docs/HIVE-PRODUCTION.md) ── */
 .hvo { border: 1px solid var(--line); border-radius: var(--r-lg); background: radial-gradient(ellipse at 50% 60%, color-mix(in srgb, var(--viral) 7%, transparent), transparent 70%), var(--panel); overflow: hidden; }
-.hvo-tabs { display: flex; gap: 2px; padding: 8px 10px 0; }
-.hvo-tab { padding: 5px 14px; font-size: 11px; font-weight: 800; letter-spacing: 0.12em; border: 1px solid var(--line); border-bottom: 0; border-radius: var(--r-md) var(--r-md) 0 0; background: transparent; color: var(--muted); cursor: pointer; transition: color var(--dur-2); }
-.hvo-tab.on { color: var(--viral); background: color-mix(in srgb, var(--viral) 8%, transparent); }
-.hvo-tab:not(.on):hover { color: var(--ink); }
 .hvo-svg { display: block; width: 100%; height: auto; max-height: 210px; }
 .hvo-vein { fill: none; stroke: color-mix(in srgb, var(--viral) 35%, transparent); stroke-width: 1.4; stroke-dasharray: 3 4; }
 .hvo-mote { fill: var(--caustic); filter: drop-shadow(0 0 3px var(--caustic)); }
