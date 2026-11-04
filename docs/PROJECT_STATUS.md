@@ -3,7 +3,29 @@
 > Maintained at the END of every session (paired with `docs/AI_HANDOFF.md` — the constitution's
 > workflow step 4). This is the "where are we?" answer; `docs/GAME-STATE.md` remains the deeper
 > per-system built-vs-planned index, `docs/PROJECT_MANIFEST.md` the system map.
-> **Last updated:** 2026-11-04e (**DEPLOYED — Batch 3 "Moments That Land" + a hotfix**. Hotfix first
+> **Last updated:** 2026-11-04f (**BATCH G "THE GRIND" — merged + validated on `claude/beautiful-feynman-qdyilo`,
+> awaiting the owner's release go-ahead.** Four tracks from the G1/G2 grind audits: GR1 the run (Campaign
+> opening rules + answering gift, the LIVE adaptive threat on waves ≥ 4 / bosses, Early Call, the Infinite
+> squeeze), GR2 in-run decisions (draft fit, ◆PICK = fit × Power, the opening draft, Splice, the Hive
+> opening, debrief Board/Anti-air reads, mission-card wave 1), GM1 goals + recognition (save v56: income
+> ledger → honest goal ETAs, farm-first Home CTA, permanent Gear Codex, Genome Rank peak Power, 11
+> achievement ladders, income-scaled Bio-Cache, Specimen claim-all, one-tap post-Molt rebuild), GM2 chases
+> + walls (uncapped depth item level + rarity bands, Mega premium ×1.15 + the Mega Hunt, the Boss Rush
+> wall). Owner decision: the Boss Rush RECORD EPOCH (v56 archives a pre-wall `rushBestBoss` to
+> `rushLegacyBestBoss`; the board re-keys under `RUSH_BOARD_EPOCH` — server functions change too). Lead
+> fixes: owed drafts deal through `dealDraft`; ladder rungs fold on Results; no far-off ladder goals / 3-digit
+> ETAs on an early goal board; **the DraftModal froze after an Early Call** (owed drafts back to back on a
+> locked mount — keyed per deal; found by the probe); mobilecheck enters via the farm-first CTA. GR1
+> follow-up: a matched-pair decomposition put ~¾ of the run-length growth on the live threat's HP → caps
+> 16/16 → 3/4 (100 h winning runs ×1.6–1.7 the old length instead of ×2.7; frontier win rates up to
+> ~82–87 % — the owner picks 3/4 vs 16/16 with the release). VALIDATION: validate PASS over e447108..HEAD
+> (3019/3019, mobile gate clean, doc anchors clean); first-session probe PASS (0 errors, first tower
+> 8.4 s, boot JS 548.5 KB); pil audit CLEAN; live checks desktop + 844×390. Website: release v2026.11.04.4
+> "The Grind" (16 curated entries; v2026.11.04.3 sealed), devlog `the-grind`, features/roadmap/guides,
+> media re-shot. NEXT: release on the owner's go-ahead; then §7 — a board-size term in the live ratio +
+> a stage-curve re-anchor.)
+>
+> **2026-11-04e** (**DEPLOYED — Batch 3 "Moments That Land" + a hotfix**. Hotfix first
 > (`51d4fb7`, run #227, owner OK): a boss dying on a slow frame no longer crashes the run (impactFx age
 > clamp); menu ceremonies/toasts can no longer cover a live Arena match (`menuIdle`). Then Batch 3
 > (`e447108`, run #228 green, owner approved the frame sheets): the four signature moments — last-kill
