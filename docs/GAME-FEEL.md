@@ -34,6 +34,48 @@ floating texts). No code — why / visual / audio per item.
   epic/legendary, floating motes over legendaries.
 - All spectacle respects `prefers-reduced-motion` (heavy animations collapse).
 
+## 0b. SHIPPED — the 2026-11 battle-feel pass
+
+### §feel table — one source for shake / hit-stop / duck / stinger
+`src/render/feel.ts` `FEEL` holds every per-event feel row (`shake` trauma impulse, view-only
+`hitstop` seconds, score `duck` [depth, recovery], musical `stinger`), keyed by cue id or named
+view moment (`bossArrive`, `bossFall`, `abilityImpact`, `masteryUp`). GameView applies shake +
+hit-stop for every drained sim cue and its own moments; `audio/sound.ts` reads the duck + stinger
+halves of the same rows. Key rows: boss fall **0.4 / 0.12 s**, ult impact **0.22 / 0.06 s**, mega
+death 0.6 / 0.12 s. Hit-stop never stacks (the longest pending wins) and is capped at the
+branch-purchase beat (0.12 s — the one hit-stop the sim still sets itself, `BRANCH_HITSTOP`).
+**Cue coverage is test-enforced:** `src/audio/cues.test.ts` statically scans src/ for every
+`cue('…')` / `pushSfx('…')` / `stinger('…')` literal (ternary branches included) plus the
+data-driven cue tables (tower fire, enemy death, branch kits, mega themes, film beats) and fails
+on any id that resolves to neither a sound.ts case nor a FEEL row. It caught arena
+`victory`/`defeat` and the maw reflux `shot` — all three now sound. Runs open on the `launch`
+swell; hero crits play a soft `crit` ching (rate-limited to one per 90 ms).
+
+### §centre-stage — one announcer owns the middle of the board
+WAVE N, the boss APEX THREAT card, the mega intro, the assimilation tier banner ("▲
+COLONIZATION", canvas-drawn), weak-point callouts and the boss/mega FALL cards all go through
+ONE priority queue (`Announcer` + the `ANNOUNCE` table: priority, slot ms, staleness budget).
+A higher-priority card preempts (the preempted card re-queues only if it had barely begun); a
+lower one waits its turn; a waiter older than its budget is dropped — old news never plays late.
+Ladder: mega fall 100 › mega intro 90 › boss fall 80 › boss intro 70 › weak point 50 › wave 40 ›
+tier 20. Each card keeps its look; the slot length reaches the CSS timeline as `--stage-ms`.
+
+### §boss kills — the kill LANDS
+A stage boss death pushes the `bossFall` cue (it used to borrow the Hive-*breach* alarm):
+trauma 0.4 + a 0.12 s view-only hit-stop + a duck + the `bossDown` stinger, its own crunch-boom
+voice, a gold shock ring at the body (`render/impactFx.ts`) and the FALLEN card through the
+announcer (the old 14 px "FELL" float is gone). A raid organism's death announces "<NAME>
+FALLS" as the top-priority card (title + organs ruptured · kill time · FLAWLESS); its centre
+callouts and organ labels fade within 0.3 s instead of lingering under it.
+
+### §draft — the pick moment
+Picking a gene card COMMITS for 350 ms (`PICK_COMMIT_MS`) before the draft resolves: the chosen
+card flares and lifts in its rarity colour, the others dissolve, and a `draftPick@tier` cue (a
+thunk + a riser that grows with rarity) replaces the generic click. Hover plays the faint
+`hover` tick, and both it and the EXACT VALUES dwell arm only after a REAL pointer move — a
+modal that opens under a still cursor no longer drops the opaque sheet over the card being
+revealed. Keyboard picks, Auto-Gene and the tutorial (`forceManual`) ride the same commit.
+
 ---
 
 ## 1. Philosophy
@@ -139,8 +181,17 @@ Items 1–5 (all S/M) deliver the **constant combat hum**; 8–9 + loot are the
 - **Caps & pooling everywhere:** shake cap, hit-stop cap (never chain), particle/voice pools (reuse the existing `PERF`/`PARTICLE` budgets); audio voice-stealing mirrors particle recycling.
 - **Aggregate, don't spam:** damage numbers and resource pickups *merge* under load.
 - **LOD juice:** the same `detail` flag that culls embellishments culls sparks/flinch/trails first; crits/reactions/boss FX are LOD-immune.
-- **Settings (live-service + accessibility):** Screen Shake %, Damage Numbers (off/crits/all), Reduce Motion (kills shake/hit-stop/idle sines), master + SFX + music volume, "fast feedback" mode for veterans (trims ceremony durations).
-- **Hit-stop is global but tiny** (≤90ms) and never stacks — it punctuates, it doesn't lag.
+- **Settings (live-service + accessibility) — SHIPPED 2026-11** (`ui/components/MotionSettings.tsx`,
+  in Settings and the in-run pause menu; device prefs `assimilate.motion` in `state/prefs.ts`):
+  **Screen shake** 0–100%, **Damage numbers** on/off, **Flashes** on/off. ONE `motionScale`
+  (`resolveMotion`) is 0 when the OS asks for reduced motion — unless the player flips the
+  **Allow motion** override shown only then — and it zeroes shake, the wave/boss push-in, the
+  assimilation camera breath, hit-stop and full-screen flashes (ascension bloom, biome and
+  mega-death flashes, the wave-breach and mutation flashes via `.game[data-motion|data-flashes]`).
+  Reduced motion also renders centre-stage cards static (they used to collapse to an invisible
+  0.01 s animation). Still open: master/SFX volume sliders, "fast feedback" ceremony trim.
+- **Hit-stop is global but tiny** (≤120 ms — the boss-fall / branch beat; ≤60 ms for ult
+  impacts) and never stacks — it punctuates, it doesn't lag.
 
 ---
 
