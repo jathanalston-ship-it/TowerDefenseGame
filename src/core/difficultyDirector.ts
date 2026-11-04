@@ -8,7 +8,7 @@
 //   • Stage curves         — campaign per-stage geometric scaling (composeStageDifficulty)
 //   • Wave/depth curves    — WAVE_*_GROWTH (scripted) and ENDLESS.* (infinite) from config
 //   • Mode reward identity — MODE_REWARDS (which mode pays which currency)
-//   • Adaptive seams       — power-ratio / recent-performance factors, weight-0 today (see below)
+//   • Adaptive seams       — power-ratio / recent-performance factors (see below; §6a live path)
 //
 // WHERE the factors APPLY (per-wave, per-spawn, per-settle) stays in the owning system — that
 // is simulation mechanics, not balance policy. The split matters for byte-identity: the sim
@@ -16,9 +16,11 @@
 // are bit-identical while the POLICY lives in one place.
 //
 // ADAPTIVE SEAMS: `DIRECTOR_ADAPTIVE` (config.ts) weights the player-relative factors
-// (powerRatio, recentPerformance) into the threat/reward chains. The weights ship at 0 —
-// composed into the formulas as an exact ×1 (IEEE-754 identity) — because balance changes
-// must come from the progression simulator, not intuition. Tuning them is a config edit.
+// (powerRatio, recentPerformance) into the threat/reward chains. Balance changes must come from
+// the progression simulator, not intuition; tuning them is a config edit. The threat weight is
+// live since the Batch G harness evidence — but only through liveThreatMult (§6a, fed per wave
+// launch by Campaign runs that opt in). The STATIC boot input is never supplied, so every curve
+// below still composes an exact ×1 (IEEE-754 identity).
 //
 // Pure data + math: no sim, no DOM, no state imports. Companions: the AI Director
 // (core/director.ts) COMPOSES waves under these scalars; the Spawn Director emits them.
@@ -35,7 +37,7 @@ import { composeWarps } from './vows';
 /** Player-relative inputs for the adaptive factors. All optional; omitted ⇒ neutral (×1).
  *  powerRatio = actual/expected account power for the content (1 = on-curve);
  *  recentPerformance = a signed recent-outcome score (0 = neutral). The progression-loop
- *  engine supplies these; nothing does yet, and the weights are 0 regardless. */
+ *  engine supplies these; nothing does yet (so the static path is ×1). The LIVE path is §6a. */
 export interface AdaptiveInputs {
   powerRatio?: number;
   recentPerformance?: number;
@@ -60,7 +62,7 @@ export class RunDirector {
   readonly difficulty: DifficultyDef; // warp damage folded ONCE here (the single fold site)
   readonly warp: DoctrineWarp;
   private readonly stageSpeed: number;
-  private readonly adaptiveThreat: number; // exact 1 while DIRECTOR_ADAPTIVE weights are 0
+  private readonly adaptiveThreat: number; // exact 1 while no static powerRatio is supplied
   private readonly adaptiveReward: number;
 
   constructor(inputs: DirectorInputs) {
@@ -95,6 +97,29 @@ export class RunDirector {
   /** Enemy-HP multiplier for a 0-based wave index (the sim multiplies its run-mods on top). */
   waveHpMult(idx0: number): number {
     return (1 + WAVE_HP_GROWTH * idx0) * this.difficulty.enemyHealthMult * this.adaptiveThreat;
+  }
+
+  /** LIVE adaptive threat (§6a): the threatPerPowerRatio seam fed with the run's LIVE board-power
+   *  ratio at a wave launch — ×(1 + w·(ratio−1)), clamped to [1, DIRECTOR_ADAPTIVE.liveCap]. Upward
+   *  only: an under-powered board is never propped up. The sim decides WHERE it applies (Campaign
+   *  waves ≥ liveFromWave + boss bodies); ratio ≤ 1 returns exactly 1. */
+  liveThreatMult(powerRatio: number, cap: number = DIRECTOR_ADAPTIVE.liveCap): number {
+    if (!(powerRatio > 1)) return 1;
+    return Math.min(cap, 1 + DIRECTOR_ADAPTIVE.threatPerPowerRatio * (powerRatio - 1));
+  }
+
+  /** The live multiplier on a BOSS body (§6a): the same seam, its own cap (liveBossCap). A boss can't
+   *  be paced or pulled, so the finale's answer to the snowball is the boss's whole HP. */
+  liveBossMult(powerRatio: number): number {
+    return this.liveThreatMult(powerRatio, DIRECTOR_ADAPTIVE.liveBossCap);
+  }
+
+  /** Split a live multiplier into enemy HP × spawn PACE (§6a "pace, not sponge"): HP × m^(1−s),
+   *  spawn rate × m^s with s = DIRECTOR_ADAPTIVE.livePaceShare, so the work the board must do per
+   *  second still rises ×m — but as pressure, not as a slower slog. m = 1 ⇒ exactly {1, 1}. */
+  liveThreatParts(m: number): { hp: number; pace: number } {
+    const s = DIRECTOR_ADAPTIVE.livePaceShare;
+    return { hp: Math.pow(m, 1 - s), pace: Math.pow(m, s) };
   }
 
   /** Bounty/biomass multiplier for a 0-based wave index. */

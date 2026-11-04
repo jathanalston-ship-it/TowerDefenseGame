@@ -110,6 +110,18 @@ export function BuildControls({
                 {forecast.heavy === 'boss' ? '◆ BOSS INBOUND' : '▲ ELITES'}
               </span>
             )}
+            {/* The Hive adapts (docs/DIFFICULTY_DIRECTOR.md §6a) / the Infinite squeeze (ENDLESS_SQUEEZE):
+                the enemy-HP multiplier this wave launches with — shown only when it is above ×1. */}
+            {(hud.endless ? hud.squeezePressure : hud.liveThreat) > 1.005 && (
+              <span className="wb-adapt tt" tabIndex={visible ? 0 : -1}>
+                ▲ {hud.endless ? 'SQUEEZED' : 'ADAPTED'} ×{(hud.endless ? hud.squeezePressure : hud.liveThreat).toFixed(1)}
+                <span className="tt-bubble">
+                  {hud.endless
+                    ? 'Your board has held flawless waves — the Hive squeezes harder (enemy HP). A wave that bleeds the Core eases it back.'
+                    : 'Your run’s live Power has outgrown this stage — from wave 4 (and on every boss) the Hive answers with tougher enemies.'}
+                </span>
+              </span>
+            )}
           </div>
           {preview && (
             <div className="wb-threats" aria-label="incoming enemies">

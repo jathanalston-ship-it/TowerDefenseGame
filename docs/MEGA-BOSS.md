@@ -97,7 +97,7 @@ choreographs its own openings; phases change the choreography. Destroyed organs 
 
 | Mode | Cadence | Notes |
 |---|---|---|
-| Campaign | every `MEGA.campaignEvery` (10) stages, forever | arrives wave 1, persists all stage; the finale holds — the organism enters the **§lone siege** — until it falls |
+| Campaign | every `MEGA.campaignEvery` (10) stages, forever | arrives with wave `CAMPAIGN_OPENING.megaArrivalWave` (3 — never with the opening build; docs/CAMPAIGN.md §opening), persists the rest of the stage; the finale holds — the organism enters the **§lone siege** — until it falls |
 | Infinite | every 20 waves | skipped while one lives (never two) |
 | Boss Rush | every 5 waves | oversees the siege column |
 | Daily | ~1-in-`dailyMegaOdds` (7) days | the **Mega variant**: no wave plan — the boss evolves (`dailyEvolveSec` stacks: haste + regen), reinforcements pulse, the run ends only when the Hive **or** the boss dies |

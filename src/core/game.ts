@@ -95,7 +95,7 @@ import { damageAfter, effectiveArmor, fractureCap, shredBurst } from './combat';
 import { CHASSIS, assembleBoss, bossDef } from './boss';
 import type { BossDef } from './boss';
 import { nemesisTraits } from './nemesis';
-import { MINES } from './config';
+import { CAMPAIGN_OPENING, DIRECTOR_ADAPTIVE, EARLY_CALL, ENDLESS_SQUEEZE, MINES } from './config';
 import { MEGA, NEUTRAL_MEGA_FX, WEAK_POINT_DEFS, campaignMegaFor, createMegaRuntime, foldMegaFx, infiniteMegaFor, megaBossDef, rushMegaFor } from './megaboss';
 import type { MegaAbility, MegaBossDef, MegaEncounter, MegaFieldFx, MegaMotif, MegaRuntime, MegaWeakPoint } from './megaboss';
 import { BOSS, BEAM, DIRECTOR, REACTIONS, RUSH, CHESTS, chestForWave, rushStrength, spawnCount } from './config';
@@ -130,7 +130,7 @@ import type { GameEventMap } from './events';
 import { branchesFor, branchRegistry, resolveBranchKit } from './branches';
 import { resolveStrain, strainRegistry, strainPowerEffects } from './strains';
 import type { StrainHooks } from './strains';
-import { CONVEYOR, deployCost, strainCost, recycleValue, rollKind, rollRarity, growDuration } from './conveyor';
+import { CONVEYOR, deployCost, strainCost, recycleValue, rollKind, rollRarity, growDuration, openingAnswerKinds } from './conveyor';
 import type { ConveyorItem } from './conveyor';
 import { NEUTRAL_EFFECTS, combinedEffects } from './dailyModifiers';
 import type { ResolvedEffects } from './dailyModifiers';
@@ -213,6 +213,17 @@ export interface RunOptions {
    *  Infinite's rotation. Absent ⇒ stage.layout (Campaign/Daily) → Infinite's depth rotation →
    *  the classic arena (Skirmish, tutorial, golden autoplay — byte-identical). */
   layout?: string;
+  /** EARLY CALL (docs/EARLY-CALL.md): may the player call the next wave mid-wave for a Biomass
+   *  bonus (callWaveEarly)? The app passes true for every run except the tutorial; the Arena never
+   *  does. Omitted ⇒ false (golden-safe: autoplay never calls). */
+  earlyCall?: boolean;
+  /** LIVE ADAPTIVE THREAT (docs/DIFFICULTY_DIRECTOR.md §6a), Campaign only: the account's Power ÷
+   *  the stage's recommended Power at boot. Present ⇒ waves ≥ DIRECTOR_ADAPTIVE.liveFromWave and
+   *  every boss body scale with the run's live Power ratio. Omitted ⇒ ×1 (golden-safe). */
+  livePowerBase?: number;
+  /** INFINITE SQUEEZE (config ENDLESS_SQUEEZE — docs/ENDLESS-SCALING.md §squeeze): the pressure band
+   *  + the per-wave breach ceiling. The app passes it for Infinite; the Arena never. Omitted ⇒ off. */
+  squeeze?: boolean;
 }
 
 /** Fold a declarative effect into the run modifiers (mul/add/flag; grants handled at boot). */
@@ -727,6 +738,18 @@ export class Game {
   private prepCountdown = AUTO_START_DELAY; // prep seconds left before an auto-start fires
   private wavesSinceDraft = 0; // endless cadence: waves cleared since the last Gene Card draft
   private rushPending: { at: number; tl: number; ramp: number; hp: number }[] = []; // Boss Rush: staggered boss deployments still due this wave (time-sorted; ramp = the strength curve's HP/damage scale)
+  // ── Batch G grind levers (all neutral unless the app opts the run in) ──
+  private readonly earlyCallAllowed: boolean; // RunOptions.earlyCall (docs/EARLY-CALL.md)
+  private readonly livePowerBase: number | null; // RunOptions.livePowerBase (§6a live adaptive threat; Campaign only)
+  private readonly squeezeOn: boolean; // RunOptions.squeeze (ENDLESS_SQUEEZE; Infinite only)
+  private waveLaunchedAt = 0; // sim time the latest wave launched (early-call minElapsed)
+  private waveSpawnEnd = 0; // last scheduled spawn time of the waves on the field (early-call skip credit)
+  private calledAhead = 0; // waves called early since the field last cleared (≤ EARLY_CALL.maxAhead)
+  private draftsOwed = 0; // gene drafts the called-over waves still owe — dealt back to back at the clear
+  /** The live adaptive multiplier the latest Campaign wave launched with (1 = none) — HUD intel. */
+  liveThreat = 1;
+  /** Infinite pressure-band HP multiplier (1 = none; ENDLESS_SQUEEZE). */
+  squeezePressure = 1;
   private runBossKills = 0; // bosses defeated this run (RunStats.bossKills; Boss Rush rewards key off it)
   private nextId = 1;
   private armorBreakUntil = new Map<number, number>();
@@ -855,6 +878,10 @@ export class Game {
     // is draftable, so a fresh account / the golden sim is byte-identical).
     this.unlockedCardIds = new Set(opts.unlockedCardIds ?? []);
     this.automationAllowed = opts.automationAllowed === true;
+    // Batch G grind levers — each off unless the app opts this run in (golden/Arena/probes unchanged).
+    this.earlyCallAllowed = opts.earlyCall === true;
+    this.livePowerBase = opts.mode === 'campaign' && opts.livePowerBase !== undefined && Number.isFinite(opts.livePowerBase) ? Math.max(0, opts.livePowerBase) : null;
+    this.squeezeOn = opts.squeeze === true && opts.mode === 'endless';
     this.threat = Math.max(0, Math.floor(opts.threat ?? 0));
     this.ruleSlot = [...this.unlockedCardIds].some((id) => { const c = cardRegistry.get(id); return c !== undefined && isRuleChangingCard(c); });
     this.draftPool = opts.draftPool ? new Set(opts.draftPool) : undefined;
@@ -1565,7 +1592,12 @@ export class Game {
     // tick (tutorials never tick the belt), latched by conveyorSeq.
     if (this.conveyorSeq === 0) {
       const deployed = new Set<TowerKind>();
-      const kind = rollKind(this.conveyorRng, deployed, this.favoriteTower, this.unlockedKinds);
+      // OPENING ANSWER (docs/STRAIN.md §opening): a Campaign gift is rolled from the owned kinds
+      // that answer the stage's opening threats (same rng draw count — only the pool narrows).
+      const answers = this.mode === 'campaign' && this.stage && this.stage.stage >= CONVEYOR.openingAnswerFromStage
+        ? openingAnswerKinds(this.stage.waves, this.unlockedKinds, this.favoriteTower)
+        : null;
+      const kind = rollKind(this.conveyorRng, deployed, this.favoriteTower, answers ?? this.unlockedKinds);
       const rar = rollRarity(this.conveyorRng, 0);
       this.conveyor.push({
         id: ++this.conveyorSeq, kind, rarity: rar.id, strain: rar.strain,
@@ -2237,6 +2269,12 @@ export class Game {
 
   startWave(): void {
     if (this.phase !== 'prep') return;
+    this.launchWave();
+    this.noteWaveLaunch();
+  }
+
+  /** Launch the next wave — from prep (startWave) or mid-wave over a live field (callWaveEarly). */
+  private launchWave(): void {
     // Starting a wave (manually, or via a now-armed auto-start) is the other trigger that ARMS
     // the auto-start countdown for the rest of the run (see autoStartReady). No-op once latched.
     this.autoStartReady = true;
@@ -2266,28 +2304,35 @@ export class Game {
     this.waveIndex++;
     const def = this.waves[this.waveIndex - 1];
     const idx0 = this.waveIndex - 1;
+    // LIVE adaptive threat (docs/DIFFICULTY_DIRECTOR.md §6a): exactly 1 unless a Campaign run opted
+    // in — then waves ≥ liveFromWave (chaff) and every boss body scale with the live Power ratio.
+    const ratio = this.livePowerRatio();
+    this.liveThreat = this.waveIndex >= DIRECTOR_ADAPTIVE.liveFromWave ? this.dd.liveThreatMult(ratio) : 1;
+    const wave = this.dd.liveThreatParts(this.liveThreat); // HP × spawn pace — exactly {1, 1} at ×1
+    const bossHp = this.dd.liveBossMult(ratio); // every boss body, any wave (exactly 1 at ratio ≤ 1)
     // The Spawn Director schedules the scripted wave; difficulty's spawn-rate knob (×1 at
     // Standard) tightens spacing. Byte-identical to the former inline loop at the defaults.
     this.spawnQueue = this.spawner.scheduleScripted(
       def,
       this.time,
-      this.hpMultFor(idx0),
+      this.hpMultFor(idx0) * wave.hp,
       this.bountyMultFor(idx0),
-      this.diff.spawnRateMult,
+      this.diff.spawnRateMult * wave.pace,
     );
     // Campaign: framework bosses aren't enemy-kinds, so the Game spawns them — the selected boss
     // caps the finale wave, the mini-boss (if any) anchors a middle wave. Both escorted by chaff.
     if (this.stage) {
-      if (this.waveIndex === this.totalWaves) this.spawnBoss(this.stage.boss);
-      else if (this.stage.miniBoss && this.waveIndex === this.stage.miniBossWave) this.spawnBoss(this.stage.miniBoss);
+      if (this.waveIndex === this.totalWaves) this.spawnBoss(this.stage.boss, bossHp);
+      else if (this.stage.miniBoss && this.waveIndex === this.stage.miniBossWave) this.spawnBoss(this.stage.miniBoss, bossHp);
       // Per-wave boss overrides (docs/DAILY-RUN.md §bosses): the Daily's seeded mid-boss roster.
       // Campaign leaves bossWaves undefined ⇒ this lookup never fires (golden-safe).
       const extraBoss = this.stage.bossWaves?.[this.waveIndex];
-      if (extraBoss) this.spawnBoss(extraBoss);
+      if (extraBoss) this.spawnBoss(extraBoss, bossHp);
       // Mega Boss stages (docs/MEGA-BOSS.md): every MEGA.campaignEvery-th campaign stage hosts one.
-      // It ARRIVES with wave 1 and persists across the whole stage; the stage cannot be cleared
-      // until it falls (checkWaveEnd holds the finale open with overtime reinforcements).
-      if (this.mode === 'campaign' && this.waveIndex === 1 && this.mega === null) {
+      // It ARRIVES with wave CAMPAIGN_OPENING.megaArrivalWave (clamped to the stage — never with the
+      // opening build, docs/CAMPAIGN.md §opening) and persists across the rest of the stage; the stage
+      // cannot be cleared until it falls (checkWaveEnd holds the finale open with overtime reinforcements).
+      if (this.mode === 'campaign' && this.waveIndex === Math.min(this.totalWaves, CAMPAIGN_OPENING.megaArrivalWave) && this.mega === null) {
         const enc = campaignMegaFor(this.stage.stage);
         if (enc) this.spawnMegaBoss(enc, 'campaign');
       }
@@ -2301,6 +2346,116 @@ export class Game {
     this.pushSfx('wave');
     if (this.events.hasListeners('waveStarted')) this.events.emit('waveStarted', { wave: this.waveIndex, endless: false });
     if (this.relicHooks.length) this.fireRelicHooks('waveStarted', null); // relic battlefield rules
+  }
+
+  /** Stamp a launch for the EARLY CALL credit: when it happened + when its last spawn is due. */
+  private noteWaveLaunch(): void {
+    this.waveLaunchedAt = this.time;
+    const q = this.spawnQueue;
+    const r = this.rushPending;
+    this.waveSpawnEnd = Math.max(this.time, q.length > 0 ? q[q.length - 1].at : 0, r.length > 0 ? r[r.length - 1].at : 0);
+  }
+
+  /** §6a live board-power ratio → the director's live threat multiplier. Exactly 1 unless this
+   *  Campaign run opted in (RunOptions.livePowerBase). Cold path: once per wave launch. */
+  private liveThreatNow(): number {
+    return this.dd.liveThreatMult(this.livePowerRatio());
+  }
+
+  /** The run's LIVE Power ratio (live run Power ÷ the stage's recommended Power) — 1 (neutral) unless
+   *  this Campaign run opted in via RunOptions.livePowerBase. */
+  private livePowerRatio(): number {
+    return this.livePowerBase === null ? 1 : this.livePowerBase * effectsPower(this.powerEffects());
+  }
+
+  /** HUD read of the live adaptive multiplier: in prep, what the NEXT wave would launch with right
+   *  now (the briefing — previews == outcomes while the board is unchanged); otherwise the current
+   *  wave's. Exactly 1 for every run that did not opt in. */
+  private liveThreatView(): number {
+    if (this.livePowerBase === null) return 1;
+    if (this.phase !== 'prep') return this.liveThreat;
+    return this.waveIndex + 1 >= DIRECTOR_ADAPTIVE.liveFromWave && this.waveIndex < this.totalWaves ? this.liveThreatNow() : 1;
+  }
+
+  /** EARLY CALL (docs/EARLY-CALL.md): the Biomass calling the next wave RIGHT NOW would pay, or -1
+   *  when no call is possible — off for this run (RunOptions.earlyCall), the tutorial, outside a
+   *  fight or during its settle beat, the Daily Mega, the final scripted wave, the stack cap
+   *  (EARLY_CALL.maxAhead), or the first EARLY_CALL.minElapsed seconds of a wave. The credit is
+   *  the skipped wait — the field's last scheduled spawn + clearAllowance, minus now (capped) —
+   *  priced at the NEXT wave's bounty multiplier × the run's Biomass multiplier. */
+  earlyCallBonus(): number {
+    if (!this.earlyCallAllowed || this.tutorialMode || this.phase !== 'wave' || this.settleTimer > 0) return -1;
+    if (this.megaDailyEnc !== null || this.calledAhead >= EARLY_CALL.maxAhead) return -1;
+    const open = this.mode === 'endless' || this.mode === 'bossRush';
+    if (!open && this.waveIndex >= this.totalWaves) return -1;
+    if (this.time - this.waveLaunchedAt < EARLY_CALL.minElapsed) return -1;
+    const skipped = Math.min(EARLY_CALL.maxSkipSeconds, Math.max(0, this.waveSpawnEnd + EARLY_CALL.clearAllowance - this.time));
+    const bounty = open ? this.endlessBountyMult(this.waveIndex + 1) : this.bountyMultFor(this.waveIndex);
+    return Math.round(EARLY_CALL.biomassPerSecond * skipped * bounty * this.mods.biomassMult);
+  }
+
+  /** Call the next wave NOW, over the live field (docs/EARLY-CALL.md). The waves overlap: the
+   *  called-over wave's unspawned tail keeps its schedule and the new wave's queue merges in by
+   *  time. Pays earlyCallBonus() up front; the called-over wave's per-wave beats still land — its
+   *  gene draft is OWED (dealt at the next clear) and Regenerative Carapace ticks now. A recorded
+   *  input (core/replay.ts REPLAY_METHODS). Returns false (nothing happens) when unavailable. */
+  callWaveEarly(): boolean {
+    const bonus = this.earlyCallBonus();
+    if (bonus < 0) return false;
+    if (this.shouldDraftThisWave()) this.draftsOwed++; // the called-over wave's card, dealt at the clear
+    if (this.mods.integrityRegenPerWave > 0) this.integrity = Math.min(this.maxIntegrity, this.integrity + this.mods.integrityRegenPerWave);
+    const carry = this.spawnQueue;
+    const carryRush = this.rushPending;
+    const prevEnd = this.waveSpawnEnd;
+    this.calledAhead++;
+    this.launchWave();
+    if (carry.length > 0) this.spawnQueue = [...carry, ...this.spawnQueue].sort((a, b) => a.at - b.at); // stable
+    if (carryRush.length > 0) this.rushPending = [...carryRush, ...this.rushPending].sort((a, b) => a.at - b.at);
+    this.noteWaveLaunch();
+    this.waveSpawnEnd = Math.max(this.waveSpawnEnd, prevEnd);
+    if (bonus > 0) {
+      this.biomass += bonus;
+      this.statBiomassEarned += bonus;
+      this.floats.push({ x: WIDTH / 2, y: 120, text: `EARLY CALL +${bonus}`, color: '#b6e84a', life: 1.4 });
+      this.pushSfx('splice'); // the reward's own cue, over the wave launch's
+    }
+    return true;
+  }
+
+  /** Deal one OWED draft (a wave called over early still earns its card). False when none is owed. */
+  private dealOwedDraft(): boolean {
+    while (this.draftsOwed > 0) {
+      this.draftsOwed--;
+      this.draft = this.dealDraft(); // THE deal seam (draft fit when on — docs/CARDS.md §fit)
+      this.draftKind = 'wave';
+      this.draftRerolled = false;
+      if (this.draft.length > 0) return true;
+    }
+    this.draft = null;
+    return false;
+  }
+
+  /** INFINITE SQUEEZE pressure band (ENDLESS_SQUEEZE): a flawless wave past fromDepth tightens the
+   *  HP pressure; a wave that drained ≥ easeAt of max integrity eases it (down to S.floor). At each clear. */
+  private updateSqueeze(): void {
+    const S = ENDLESS_SQUEEZE;
+    const loss = (this.waveStartIntegrity - this.integrity) / Math.max(1, this.maxIntegrity);
+    if (loss <= 0) {
+      if (this.waveIndex >= S.fromDepth) this.squeezePressure = Math.min(S.cap, this.squeezePressure * (1 + S.rise));
+    } else if (loss >= S.easeAt) {
+      this.squeezePressure = Math.max(S.floor, this.squeezePressure * (1 - S.ease));
+    }
+  }
+
+  /** INFINITE SQUEEZE breach ceiling: once THIS wave has drained ENDLESS_SQUEEZE.waveLossCap of max
+   *  integrity, the rest of a hit lands at ×overflowMult (the Core braces). Returns `dmg` untouched
+   *  unless the squeeze is on (golden-safe). */
+  private braceHiveDamage(dmg: number): number {
+    if (!this.squeezeOn) return dmg;
+    const cap = ENDLESS_SQUEEZE.waveLossCap * this.maxIntegrity;
+    const lost = Math.max(0, this.waveStartIntegrity - this.integrity);
+    const under = Math.max(0, Math.min(dmg, cap - lost));
+    return Math.round(under + (dmg - under) * ENDLESS_SQUEEZE.overflowMult);
   }
 
   /** Endless wave: the AI Director composes spawns from a depth-scaled threat budget; the
@@ -2317,7 +2472,7 @@ export class Game {
     this.spawnQueue = this.spawner.scheduleDirected(
       w,
       this.time,
-      this.endlessHpMult(depth),
+      this.endlessHpMult(depth) * this.squeezePressure, // ×1 unless the Infinite squeeze is on (ENDLESS_SQUEEZE)
       this.endlessBountyMult(depth),
       this.diff.spawnRateMult,
     );
@@ -2325,7 +2480,7 @@ export class Game {
     this.waveStartIntegrity = this.integrity;
     this.applyWaveStartStrains(); // STRAIN reactor verbs (adrenal jolt / glut surge)
     this.phase = 'wave';
-    if (w.spawnBoss) this.spawnProceduralBoss(depth, this.dd.endlessBossStrength(depth));
+    if (w.spawnBoss) this.spawnProceduralBoss(depth, this.dd.endlessBossStrength(depth) * this.squeezePressure);
     // Mega Boss cadence (docs/MEGA-BOSS.md): one every MEGA.infiniteEvery waves — but never two at
     // once (a surviving mega simply keeps dominating; the next window is skipped).
     if (this.mega === null) {
@@ -2489,6 +2644,7 @@ export class Game {
       if (this.events.hasListeners('cardChosen')) this.events.emit('cardChosen', { id: card.id, rarity: card.rarity });
     }
     this.draft = null;
+    if (this.dealOwedDraft()) return; // EARLY CALL: a called-over wave's card is next (stay in the draft)
     this.phase = 'prep';
     this.prepCountdown = AUTO_START_DELAY; // fresh countdown for the new prep
   }
@@ -2921,13 +3077,13 @@ export class Game {
    * enters with a BossRuntime the bossSystem drives through phases/modules. Used by
    * the director / endless / debug — never in the authored golden waves.
    */
-  spawnBoss(def: BossDef): void {
+  spawnBoss(def: BossDef, hpScale = 1): void {
     // NEMESIS (docs/NEMESIS.md): the boss that killed you returns HARDER — its GRUDGE LADDER
     // (core/nemesis.ts) folds `slain` into a full trait bundle (hp, bounty, armor, Nucleus
     // damage, siege cadence), not just HP. Rides ctor opts ⇒ replays reproduce it exactly;
     // absent (fresh saves, dailies) ⇒ every lever is ×1/+0 ⇒ identical to the base spawn.
     const nem = this.nemesisSpec !== null && this.nemesisSpec.defId === def.id ? nemesisTraits(this.nemesisSpec.slain) : null;
-    const hp = BOSS.baseHp * def.hpMult * (nem ? nem.hpMult : 1);
+    const hp = BOSS.baseHp * def.hpMult * (nem ? nem.hpMult : 1) * hpScale; // hpScale: §6a live threat (1 elsewhere)
     this.procBosses.set(def.id, def); // ensure bossSystem can always resolve this boss's def
     this.bossCount++;
     const splitter = def.modules.find((m) => m.kind === 'splitter');
@@ -4212,7 +4368,7 @@ export class Game {
     for (const s of this.enemyShells) {
       s.t += dt / s.duration;
       if (s.t >= 1) {
-        if (!this.god) { this.integrity -= s.damage; this.statIntegrityLost += s.damage; this.noteHiveDamage(s.src ?? 'siege', s.damage); } // flawless-run tracking (siege lands on impact)
+        if (!this.god) { const sd = this.braceHiveDamage(s.damage); this.integrity -= sd; this.statIntegrityLost += sd; this.noteHiveDamage(s.src ?? 'siege', sd); } // flawless-run tracking (siege lands on impact; Infinite breach ceiling)
         this.floats.push({ x: s.targetX, y: s.targetY - 18, text: `-${s.damage}`, color: '#ff8a3d', life: 0.9 });
         this.spawnParticles(s.targetX, s.targetY, PARTICLE.breach, s.color);
       }
@@ -5877,7 +6033,7 @@ export class Game {
    *  so a hundred attackers read as pressure, not confetti. */
   private hiveStrike(e: Enemy): void {
     if (!this.god) {
-      const dmg = Math.round(e.damage * this.bossPhaseDamageMult(e));
+      const dmg = this.braceHiveDamage(Math.round(e.damage * this.bossPhaseDamageMult(e))); // Infinite breach ceiling (identity elsewhere)
       this.integrity -= dmg;
       this.statIntegrityLost += dmg; // flawless-run tracking (regen can't redeem it)
       this.noteHiveDamage(e.boss ? `boss:${e.boss.name}` : e.kind, dmg);
@@ -5910,7 +6066,7 @@ export class Game {
   private detonate(e: Enemy, def: EnemyDef): void {
     if (!e.alive) return;
     if (!this.god) {
-      const dmg = Math.round(e.damage * this.bossPhaseDamageMult(e));
+      const dmg = this.braceHiveDamage(Math.round(e.damage * this.bossPhaseDamageMult(e))); // Infinite breach ceiling (identity elsewhere)
       this.integrity -= dmg;
       this.statIntegrityLost += dmg; // flawless-run tracking (regen can't redeem it)
       this.noteHiveDamage(e.boss ? `boss:${e.boss.name}` : e.kind, dmg);
@@ -7175,6 +7331,8 @@ export class Game {
       this.minions.length = 0; // temporary summons don't outlive the wave they were called into
       if (this.events.hasListeners('waveCompleted')) this.events.emit('waveCompleted', { wave: this.waveIndex, endless: this.mode === 'endless' });
       if (this.relicHooks.length) this.fireRelicHooks('waveCleared', null); // relic rule on a cleared wave
+      this.calledAhead = 0; // the field is clear — the EARLY CALL stack re-opens
+      if (this.squeezeOn) this.updateSqueeze(); // Infinite pressure band (before any regen redeems the loss)
       if (this.mods.integrityRegenPerWave > 0) { // Regenerative Carapace (gene card)
         this.integrity = Math.min(this.maxIntegrity, this.integrity + this.mods.integrityRegenPerWave);
       }
@@ -7241,8 +7399,8 @@ export class Game {
     // Stage + campaign clear (win) when their wave count is reached; endless + Boss Rush never win.
     if (this.mode !== 'endless' && this.mode !== 'bossRush' && this.waveIndex >= this.totalWaves) {
       this.phase = 'won';
-    } else if (this.draft && this.draft.length > 0) {
-      this.phase = 'draft';
+    } else if ((this.draft && this.draft.length > 0) || this.dealOwedDraft()) {
+      this.phase = 'draft'; // this wave's card — or one a called-over wave still owes (EARLY CALL)
     } else {
       // Endless skipped this wave's draft (CARDS.md §1) — no card to offer, so go build.
       this.phase = 'prep';
@@ -8303,6 +8461,9 @@ export class Game {
       spliceCost: this.spliceOn && this.phase === 'prep' && !this.tutorialMode && this.dailyFx.draftEveryWaves <= 0 ? this.spliceCost() : -1,
       // §reroll: the open draft's one paid re-deal — price, or -1 once used / in the tutorial.
       draftRerollCost: this.phase === 'draft' && this.draft !== null && !this.draftRerolled && !this.tutorialMode ? this.rerollCost() : -1,
+      earlyCall: this.earlyCallBonus(),
+      liveThreat: this.liveThreatView(),
+      squeezePressure: this.squeezePressure,
       selectedTower: this.selectedTower,
       selectedPlaced: this.selectedPlacedView(),
       armedAbility: this.armedAbility,

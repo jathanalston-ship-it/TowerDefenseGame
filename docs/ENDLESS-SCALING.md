@@ -171,6 +171,46 @@ in formula.*
 
 ---
 
+## 5b. The squeeze — attrition, not a cliff (§squeeze — Batch G)
+
+**Evidence (G1 grind audit):** Infinite ran FLAWLESS for ~48 waves, then one wave wiped the Core
+(303 integrity in the last wave); decision density ~3/min, 76–85 % of wave time idle. A geometric HP
+wall meets a board that either holds a whole wave or loses it — besiegers that reach the Core keep
+biting until killed, so the first failing wave is total.
+
+`ENDLESS_SQUEEZE` (config.ts), Infinite only via `RunOptions.squeeze` (GameView passes it for
+`mode === 'endless'`; the Arena — also `endless` — forces it off; headless probes that omit it
+are unchanged):
+
+- **Pressure band** (`Game.updateSqueeze`, at each clear): a flawless wave past `fromDepth` (10)
+  raises enemy-HP pressure ×(1 + `rise`) up to `cap`; a wave that drained ≥ `easeAt` of max
+  integrity eases it ×(1 − `ease`) down to `floor` (0.85 — a little mercy). The pressure multiplies
+  the scheduled endless HP and the procedural boss strength. A comfortable board meets the wall
+  sooner; a bleeding one limps on for a few waves instead of being kicked while down — the band
+  holds the board in chip damage, so the run ends through attrition. Shown on the wave briefing as `▲ SQUEEZED ×N` (`HudSnapshot.squeezePressure`).
+- **Breach ceiling** (`Game.braceHiveDamage`, every enemy hit / detonation / siege shell): once one
+  wave has drained `waveLossCap` of max integrity, the rest of each hit lands at ×`overflowMult` —
+  the Core braces, so the end takes several waves. Mega lashes/cataclysms are untouched (their
+  telegraphs are the counterplay).
+
+Shipped: `fromDepth` 10 · `rise` 0.04 · `cap` 1.4 · `easeAt` 0.1 · `ease` 0.2 · `floor` 0.85 ·
+`waveLossCap` 0.34 · `overflowMult` 0.1.
+
+**Measured (G1 harness, Infinite × 3 seeds, 2400 s cap, 8 h + 100 h accounts, isolated processes):**
+
+| | before | after |
+|---|---|---|
+| waves that cost integrity before the run ended (mean, deaths only) | 3.0 | 4.8 |
+| share of all integrity lost in the FATAL wave (mean) | 73 % | 38 % |
+| depth reached (8 h: s1/s2/s3) | 64† / 46 / 52 | 57† / 46 / 57 |
+| depth reached (100 h: s1/s2/s3) | 80 / 96 / 73 | 79 / 96 / 56 |
+
+† still alive at the 2400 s cap. The first fit (cap 2, no floor, overflow ×0.2) cost up to ~20 depths
+of record on the 100 h account and one collapse still wiped 303 integrity in a wave; the shipped band
+keeps records within a few depths (one seed −17) while the end is a squeeze over several waves.
+
+---
+
 ## 6. Anti-grind reward taper (§taper)
 
 **ENDLESS ONLY.** With a strong enough board a player can camp arbitrarily deep and grind the Loot Box

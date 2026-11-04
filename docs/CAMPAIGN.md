@@ -218,6 +218,56 @@ finales of stages 1–7 (waves and boss share the stage rng stream).
 
 ---
 
+## 5d. The opening — no more wave-1 coin flips (§opening — Batch G)
+
+**Evidence (the G1 grind audit — ~560 headless Campaign runs on progression-sim accounts at
+0.75 h / 8 h / 100 h, harness in the Batch G scratch `audit-grind/g1`):** runs were DECIDED in
+waves 1–3 — 90 % of losses by wave 3 (median wave-1 death 15.9 s), 93 % of Hive damage there, 78 %
+of wins flawless, boss/Mega waves ~2.7 integrity on average. The opening was a seed coin-flip:
+the belt's first organisms depend only on the run seed, wave 1 admitted airborne packs, and a
+Mega-hosting stage's organism surfaced WITH wave 1 (Stage 30: 0/3, dead in ~18 s).
+
+Four levers, all Campaign-only (the Daily and the golden `stage` path never see them):
+
+| Lever | Where | Rule |
+|---|---|---|
+| Airborne opening cap | `CAMPAIGN_OPENING.flyingUnitCap` → `composeStagePlan(…, opening)` | wave 1: fliers excluded from the pool (the budget goes to ground units); wave 2: flying groups trimmed to ≤ 4 units (a pure post-pass, no rng) |
+| Mega arrival | `CAMPAIGN_OPENING.megaArrivalWave` (3) → `game.ts` wave launch | the organism surfaces with wave 3 (clamped to the stage), never with the opening build |
+| The gift answers | `core/conveyor.ts` §opening (docs/STRAIN.md) | stage ≥ 4: the free run-start organism is an owned kind that answers the opening's threats (area DAMAGE for packs; never a summoner vs fliers), data-derived |
+| The finale answers the snowball | `DIRECTOR_ADAPTIVE` live path (docs/DIFFICULTY_DIRECTOR.md §6a) | waves ≥ 4 + every boss body scale with the run's live Power ratio (upward only, capped) |
+
+Stages 1–3 (`campaignCurve.test`) stay green: no fliers before Stage 3 anyway, the gift rule starts
+at Stage 4, and the live multiplier is booted exactly as GameView boots it in that test.
+
+**Measured (G1 harness, fixed account saves, frozen clock; the full GR1 set = replay + frontier+1/2/3/5/8 ×
+4 seeds + a 17–25-stage curve × 3 seeds per account + a 12-seed deep stage; before = HEAD, after = all
+four levers + the shipped §6a fit):**
+
+| metric | 8 h (S29) before → after | 100 h (S80) before → after |
+|---|---|---|
+| win % (all campaign runs) | 68 → 81 | 52 → 66 |
+| frontier win % (stages past cleared) | 51 → 72 | 41 → 51 |
+| losses after wave 3 | 3 % → 86 % | 13 % → 82 % |
+| wave-1 losses | 15 → 0 | 15 → 0 |
+| flawless wins | 72 % → 78 % | 55 % → 79 % |
+| Hive damage taken in waves 1–3 | 95 % → 21 % | 88 % → 37 % |
+| seed spread past cleared (curve wins s1/s2/s3) | 7 / 4 / 3 of 13 → 12 / 11 / 10 | 0 / 12 / 3 of 12 → 6 / 9 / 2 |
+| median winning wave-seconds | 286 → 460 | 307 → 1109 |
+
+Pooled over all three accounts: losses after wave 3 **9 % → 84 %**, Hive damage in waves 1–3 **92 % →
+27 %**, flawless wins 78 % → 83 %. The 0.75 h account still clears S6–S22 3/3 (unchanged).
+
+**Honest read.** The opening is no longer a coin flip and the losses now happen in waves 4+ and on
+bosses. But the opening lottery WAS most of the difficulty: with a reliable opening, frontier win rates
+rise (+21 points at 8 h, +10 at 100 h) and winning runs stay mostly flawless — the in-run snowball (×60–90
+temporary Power, 2 → 18 towers) out-scales anything the live seam can add at sane caps without turning
+waves into long HP slogs (median winning run ×1.6 at 8 h, ×3.6 at 100 h — the 100 h gift is a
+drag aura that also lengthens waves). Follow-ups for the balance owner: a board-size term in the live
+ratio (docs/DIFFICULTY_DIRECTOR.md §7), and a re-anchor of the late stage curve now that the opening
+no longer gates progression (BALANCE_ARCHITECTURE §8–9 pacing).
+
+---
+
 ## 6. Elites, mini-boss, boss
 
 ```

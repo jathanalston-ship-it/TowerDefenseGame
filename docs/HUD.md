@@ -83,6 +83,12 @@ profile (`src/index.css` §RUN LAYOUT v2; profiles in docs/RESPONSIVE-DESIGN.md 
   free left end as a two-line log. The wave briefing and the boss/mega bars start BELOW the
   strip (`--strip`), so they can never collide again (the pill used to sit on Start Wave and
   the boss bar; the ticker covered the briefing). A burrowed Mega waits mid-board during prep.
+  Mid-wave the strip also carries **⏩ Call early +N** (docs/EARLY-CALL.md) — the Start Wave
+  control's in-fight form, Biomass-green, at the LEFT of the right-anchored cluster so its
+  arrival never shifts speed/Hive/Pause; Space triggers it too. The wave briefing gains a
+  `▲ ADAPTED ×N` / `▲ SQUEEZED ×N` chip when the next wave launches tougher (docs/DIFFICULTY_DIRECTOR.md
+  §6a, docs/ENDLESS-SCALING.md §squeeze) — on phones it rides the briefing's scrollable row with
+  the forecast and ELITES chips.
 - **Phones** (portrait + landscape): the side panels are overlay DRAWERS (tap-to-close veil;
   the Inspector also opens itself for a tapped tower and for a tutorial cue that points at
   it), the run keys go compact (◈ HIVE · speed · ❚❚, ≥40px), and the draft, pause card and

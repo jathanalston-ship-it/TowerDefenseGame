@@ -55,9 +55,9 @@ export const SYSTEMS: SystemDef[] = [
     id: 'engine', name: 'Sim Engine', purpose: 'Deterministic fixed-timestep simulation — the Game, combat, statuses, targeting, spawning, run events.',
     files: ['src/core/game.ts', 'src/core/combat.ts', 'src/core/status.ts', 'src/core/targeting.ts', 'src/core/reactions.ts', 'src/core/spawndirector.ts', 'src/core/runEvents.ts', 'src/core/events.ts', 'src/core/map.ts', 'src/core/ability.ts', 'src/core/mutators.ts', 'src/core/modifiers.ts', 'src/core/simharness.ts', 'src/core/director.ts', 'src/core/sim.testutil.ts'],
     dependsOn: ['content-infra', 'towers', 'heroes', 'gene-cards', 'bosses', 'biomes', 'difficulty', 'assimilation'],
-    powerScore: 'emits the TEMPORARY in-run bucket (game.powerEffects)', save: [], tutorial: ['combat'], help: ['hive-core', 'biomass'],
+    powerScore: 'emits the TEMPORARY in-run bucket (game.powerEffects)', save: [], tutorial: ['combat'], help: ['hive-core', 'biomass', 'early-call'],
     hud: ['Hud', 'Toolbar', 'BuildControls', 'Inspector', 'BuildPanel'], ui: ['GameView'], collection: 'kills/usage feed collection tiers', achievements: [],
-    localization: 'inline-en', docs: ['docs/ARCHITECTURE.md', 'docs/CODEMAP.md', 'docs/DESIGN.md'],
+    localization: 'inline-en', docs: ['docs/ARCHITECTURE.md', 'docs/CODEMAP.md', 'docs/DESIGN.md', 'docs/EARLY-CALL.md'],
   },
   {
     id: 'content-infra', name: 'Content Infrastructure', purpose: 'Registry<T>, validation, config tunables, shared types/math/rng/spatial — the data-driven backbone.',
@@ -76,7 +76,7 @@ export const SYSTEMS: SystemDef[] = [
     id: 'campaign', name: 'Campaign', purpose: 'Procedural authored-feeling stages; depth is the master progression gate. Authored EVENTS (Elite Rush / Boss Gauntlet / Genome Cache / Mutation choice) punctuate the ladder via a data registry.',
     files: ['src/core/campaign.ts', 'src/core/campaignEvents.ts', 'src/core/hash.ts', 'src/ui/CampaignScreen.tsx', 'src/state/missionBrief.ts'],
     dependsOn: ['engine', 'biomes', 'bosses', 'difficulty', 'power'], powerScore: 'recommended-power display; first-clear rewards move account Power indirectly', save: ['campaign'],
-    tutorial: [], help: ['campaign'], hud: [], ui: ['CampaignScreen', 'CommandCenter'], collection: 'biome discovery', achievements: [],
+    tutorial: [], help: ['campaign', 'hive-adapts'], hud: [], ui: ['CampaignScreen', 'CommandCenter'], collection: 'biome discovery', achievements: [],
     localization: 'inline-en', docs: ['docs/CAMPAIGN.md', 'docs/CAMPAIGN-EVENTS.md', 'docs/MODE-IDENTITY.md', 'docs/STAGES.md'],
   },
   {

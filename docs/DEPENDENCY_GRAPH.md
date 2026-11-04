@@ -240,7 +240,7 @@ graph TD
 | System | Depends on | Consumers (break first) | Power Score | Save fields | Docs |
 |---|---|---|---|---|---|
 | **Hive Intelligence (in-run)** (`hive-mind`) | `engine` · `content-infra` · `towers` · `heroes` · `power` | — | ⚡ reads the temporary bucket for exact purchase deltas (never writes) | — | `docs/HIVE-MIND.md` |
-| **Sim Engine** (`engine`) | `content-infra` · `towers` · `heroes` · `gene-cards` · `bosses` · `biomes` · `difficulty` · `assimilation` | `hive-mind` · `campaign` · `infinite` · `boss-rush` · `daily` · `online-foundation` · `arena` · `heroes` · `hero-cinematics` · `nemesis` · `onboarding` · `run-ui` · `bosses` · `mega-bosses` · `map-layouts` · `rendering` · `living-battlefield` · `audio` | ⚡ emits the TEMPORARY in-run bucket (game.powerEffects) | — | `docs/ARCHITECTURE.md` · `docs/CODEMAP.md` · `docs/DESIGN.md` |
+| **Sim Engine** (`engine`) | `content-infra` · `towers` · `heroes` · `gene-cards` · `bosses` · `biomes` · `difficulty` · `assimilation` | `hive-mind` · `campaign` · `infinite` · `boss-rush` · `daily` · `online-foundation` · `arena` · `heroes` · `hero-cinematics` · `nemesis` · `onboarding` · `run-ui` · `bosses` · `mega-bosses` · `map-layouts` · `rendering` · `living-battlefield` · `audio` | ⚡ emits the TEMPORARY in-run bucket (game.powerEffects) | — | `docs/ARCHITECTURE.md` · `docs/CODEMAP.md` · `docs/DESIGN.md` · `docs/EARLY-CALL.md` |
 | **Content Infrastructure** (`content-infra`) | — | `hive-mind` · `engine` · `power` · `mulligans` · `premium` · `online-foundation` · `towers` · `mastery` · `heroes` · `equipment` · `loot` · `gene-cards` · `nucleus` · `hero-symbiotes` · `collection` · `evolution-hq` · `currencies` · `meta-store` · `bosses` · `mega-bosses` · `biomes` · `map-layouts` · `doctrines` · `threat` · `difficulty` · `website` | — | — | `docs/CODEMAP.md` · `docs/CORE-FRAMEWORKS.md` · `docs/AUTHORING.md` |
 | **Power Score** (`power`) | `content-infra` | `hive-mind` · `campaign` · `mulligans` · `premium` · `net-backend` · `arena` · `equipment` · `loot` · `gene-cards` · `nucleus` · `hero-symbiotes` · `profile` · `genome-rank` · `hub-shell` · `run-ui` · `prediction` | ⚡ IS the model (buckets, effectsPower, FIELD_WEIGHT) | `powerLog` | `docs/POWER-SCORE.md` · `docs/POWER-AUDIT.md` · `docs/POWER-ADVISOR.md` · `docs/MISSION-CONTROL.md` · `docs/EVOLUTION-ROADMAP.md` |
 | **Campaign** (`campaign`) | `engine` · `biomes` · `bosses` · `difficulty` · `power` | `daily` · `towers` · `heroes` · `loot` · `gene-cards` · `prestige` · `progression-gating` · `threat` | ⚡ recommended-power display; first-clear rewards move account Power indirectly | `campaign` | `docs/CAMPAIGN.md` · `docs/CAMPAIGN-EVENTS.md` · `docs/MODE-IDENTITY.md` · `docs/STAGES.md` |
@@ -344,11 +344,11 @@ graph TD
 - **Consumers — what breaks if you change this:** `hive-mind` · `campaign` · `infinite` · `boss-rush` · `daily` · `online-foundation` · `arena` · `heroes` · `hero-cinematics` · `nemesis` · `onboarding` · `run-ui` · `bosses` · `mega-bosses` · `map-layouts` · `rendering` · `living-battlefield` · `audio`
 - **Power Score:** emits the TEMPORARY in-run bucket (game.powerEffects)
 - **Save fields:** —
-- **Tutorial:** `combat` · **Help mechanics:** `hive-core` · `biomass`
+- **Tutorial:** `combat` · **Help mechanics:** `hive-core` · `biomass` · `early-call`
 - **HUD surfaces:** `Hud` · `Toolbar` · `BuildControls` · `Inspector` · `BuildPanel` · **UI screens:** `GameView`
 - **Collection:** kills/usage feed collection tiers · **Achievements:** —
 - **Localization:** inline English strings (no i18n layer yet — this field enumerates the surface for the day it lands)
-- **Docs to update on change:** `docs/ARCHITECTURE.md` · `docs/CODEMAP.md` · `docs/DESIGN.md` · `docs/HIVE-MIND.md` · `docs/CAMPAIGN.md` · `docs/CAMPAIGN-EVENTS.md` · `docs/MODE-IDENTITY.md` · `docs/STAGES.md` · `docs/ENDLESS-SCALING.md` · `docs/BOSS-RUSH.md` · `docs/DAILY-RUN.md` · `docs/ONLINE-FOUNDATION.md` · `docs/TRADING-PREP.md` · `docs/ARENA.md` · `docs/ARENA_MATCH_REPORT.md` · `docs/HEROES.md` · `docs/HERO-FRAMEWORK.md` · `docs/HERO-EVOLUTION.md` · `docs/HERO-SELECTION.md` · `docs/SLOTS.md` · `docs/HERO-CINEMATICS.md` · `docs/NEMESIS.md` · `docs/TUTORIAL.md` · `docs/HELP.md` · `docs/TUTORIAL-AUDIT.md` · `docs/GUIDED-UNLOCKS.md` · `docs/HUD.md` · `docs/READABILITY.md` · `docs/REWARD-PRESENTATION.md` · `docs/BOSS-DESIGN.md` · `docs/MEGA-BOSS.md` · `docs/MAP-LAYOUTS.md` · `docs/RENDER-PIPELINE.md` · `docs/TOWER-VISUAL-EVOLUTION.md` · `docs/GAME-FEEL.md` · `docs/CAMERA.md` · `docs/COMBAT-VISUAL-STANDARDS.md` · `docs/LIVING-BATTLEFIELD.md` · `docs/MUSIC.md`
+- **Docs to update on change:** `docs/ARCHITECTURE.md` · `docs/CODEMAP.md` · `docs/DESIGN.md` · `docs/EARLY-CALL.md` · `docs/HIVE-MIND.md` · `docs/CAMPAIGN.md` · `docs/CAMPAIGN-EVENTS.md` · `docs/MODE-IDENTITY.md` · `docs/STAGES.md` · `docs/ENDLESS-SCALING.md` · `docs/BOSS-RUSH.md` · `docs/DAILY-RUN.md` · `docs/ONLINE-FOUNDATION.md` · `docs/TRADING-PREP.md` · `docs/ARENA.md` · `docs/ARENA_MATCH_REPORT.md` · `docs/HEROES.md` · `docs/HERO-FRAMEWORK.md` · `docs/HERO-EVOLUTION.md` · `docs/HERO-SELECTION.md` · `docs/SLOTS.md` · `docs/HERO-CINEMATICS.md` · `docs/NEMESIS.md` · `docs/TUTORIAL.md` · `docs/HELP.md` · `docs/TUTORIAL-AUDIT.md` · `docs/GUIDED-UNLOCKS.md` · `docs/HUD.md` · `docs/READABILITY.md` · `docs/REWARD-PRESENTATION.md` · `docs/BOSS-DESIGN.md` · `docs/MEGA-BOSS.md` · `docs/MAP-LAYOUTS.md` · `docs/RENDER-PIPELINE.md` · `docs/TOWER-VISUAL-EVOLUTION.md` · `docs/GAME-FEEL.md` · `docs/CAMERA.md` · `docs/COMBAT-VISUAL-STANDARDS.md` · `docs/LIVING-BATTLEFIELD.md` · `docs/MUSIC.md`
 
 ### Content Infrastructure (`content-infra`)
 
@@ -363,7 +363,7 @@ graph TD
 - **HUD surfaces:** — · **UI screens:** —
 - **Collection:** — · **Achievements:** —
 - **Localization:** no player-facing strings
-- **Docs to update on change:** `docs/CODEMAP.md` · `docs/CORE-FRAMEWORKS.md` · `docs/AUTHORING.md` · `docs/HIVE-MIND.md` · `docs/ARCHITECTURE.md` · `docs/DESIGN.md` · `docs/POWER-SCORE.md` · `docs/POWER-AUDIT.md` · `docs/POWER-ADVISOR.md` · `docs/MISSION-CONTROL.md` · `docs/EVOLUTION-ROADMAP.md` · `docs/MULLIGANS.md` · `docs/PREMIUM-STORE.md` · `docs/PREMIUM-ECONOMY-REPORT.md` · `docs/ONLINE-FOUNDATION.md` · `docs/TRADING-PREP.md` · `docs/TOWER-STARS.md` · `docs/TOWER-BRANCHES.md` · `docs/TOWER-LAB.md` · `docs/TOWER-CODEX.md` · `docs/TOWERS.md` · `docs/STRAIN.md` · `docs/MASTERY.md` · `docs/ADAPTATION.md` · `docs/HEROES.md` · `docs/HERO-FRAMEWORK.md` · `docs/HERO-EVOLUTION.md` · `docs/HERO-SELECTION.md` · `docs/SLOTS.md` · `docs/EQUIPMENT.md` · `docs/EQUIPMENT-PHILOSOPHY.md` · `docs/LOOTBOX.md` · `docs/LOOT-PROGRESSION.md` · `docs/REWARD-PRESENTATION.md` · `docs/GENE-EVOLUTION.md` · `docs/CARDS.md` · `docs/GENE-AUDIT-REPORT.md` · `docs/NUCLEUS.md` · `docs/HERO-SYMBIOTES.md` · `docs/COLLECTION.md` · `docs/EVOLUTION-HQ.md` · `docs/GENOME-CORE.md` · `docs/EVOLUTION-CAP.md` · `docs/ECONOMY.md` · `docs/LEXICON.md` · `docs/ECONOMY_FORMULAS.md` · `docs/DEV-RESET.md` · `docs/SCALABILITY.md` · `docs/PROJECT_MANIFEST.md` · `docs/BOSS-DESIGN.md` · `docs/MEGA-BOSS.md` · `docs/BIOMES.md` · `docs/MAP-LAYOUTS.md` · `docs/DOCTRINES.md` · `docs/MODE-IDENTITY.md` · `docs/THREAT.md` · `docs/DIFFICULTY.md` · `docs/DIFFICULTY_DIRECTOR.md` · `docs/WEBSITE.md` · `docs/DEPLOYMENT.md`
+- **Docs to update on change:** `docs/CODEMAP.md` · `docs/CORE-FRAMEWORKS.md` · `docs/AUTHORING.md` · `docs/HIVE-MIND.md` · `docs/ARCHITECTURE.md` · `docs/DESIGN.md` · `docs/EARLY-CALL.md` · `docs/POWER-SCORE.md` · `docs/POWER-AUDIT.md` · `docs/POWER-ADVISOR.md` · `docs/MISSION-CONTROL.md` · `docs/EVOLUTION-ROADMAP.md` · `docs/MULLIGANS.md` · `docs/PREMIUM-STORE.md` · `docs/PREMIUM-ECONOMY-REPORT.md` · `docs/ONLINE-FOUNDATION.md` · `docs/TRADING-PREP.md` · `docs/TOWER-STARS.md` · `docs/TOWER-BRANCHES.md` · `docs/TOWER-LAB.md` · `docs/TOWER-CODEX.md` · `docs/TOWERS.md` · `docs/STRAIN.md` · `docs/MASTERY.md` · `docs/ADAPTATION.md` · `docs/HEROES.md` · `docs/HERO-FRAMEWORK.md` · `docs/HERO-EVOLUTION.md` · `docs/HERO-SELECTION.md` · `docs/SLOTS.md` · `docs/EQUIPMENT.md` · `docs/EQUIPMENT-PHILOSOPHY.md` · `docs/LOOTBOX.md` · `docs/LOOT-PROGRESSION.md` · `docs/REWARD-PRESENTATION.md` · `docs/GENE-EVOLUTION.md` · `docs/CARDS.md` · `docs/GENE-AUDIT-REPORT.md` · `docs/NUCLEUS.md` · `docs/HERO-SYMBIOTES.md` · `docs/COLLECTION.md` · `docs/EVOLUTION-HQ.md` · `docs/GENOME-CORE.md` · `docs/EVOLUTION-CAP.md` · `docs/ECONOMY.md` · `docs/LEXICON.md` · `docs/ECONOMY_FORMULAS.md` · `docs/DEV-RESET.md` · `docs/SCALABILITY.md` · `docs/PROJECT_MANIFEST.md` · `docs/BOSS-DESIGN.md` · `docs/MEGA-BOSS.md` · `docs/BIOMES.md` · `docs/MAP-LAYOUTS.md` · `docs/DOCTRINES.md` · `docs/MODE-IDENTITY.md` · `docs/THREAT.md` · `docs/DIFFICULTY.md` · `docs/DIFFICULTY_DIRECTOR.md` · `docs/WEBSITE.md` · `docs/DEPLOYMENT.md`
 
 ### Power Score (`power`)
 
@@ -389,7 +389,7 @@ graph TD
 - **Consumers — what breaks if you change this:** `daily` · `towers` · `heroes` · `loot` · `gene-cards` · `prestige` · `progression-gating` · `threat`
 - **Power Score:** recommended-power display; first-clear rewards move account Power indirectly
 - **Save fields:** `campaign`
-- **Tutorial:** — · **Help mechanics:** `campaign`
+- **Tutorial:** — · **Help mechanics:** `campaign` · `hive-adapts`
 - **HUD surfaces:** — · **UI screens:** `CampaignScreen` · `CommandCenter`
 - **Collection:** biome discovery · **Achievements:** —
 - **Localization:** inline English strings (no i18n layer yet — this field enumerates the surface for the day it lands)
@@ -573,7 +573,7 @@ graph TD
 - **HUD surfaces:** `tower rail` · `Inspector` · **UI screens:** `TowerLab` · `TowerCodex` · `StarCeremony`
 - **Collection:** towers category (usage tiers) · **Achievements:** —
 - **Localization:** inline English strings (no i18n layer yet — this field enumerates the surface for the day it lands)
-- **Docs to update on change:** `docs/TOWER-STARS.md` · `docs/TOWER-BRANCHES.md` · `docs/TOWER-LAB.md` · `docs/TOWER-CODEX.md` · `docs/TOWERS.md` · `docs/STRAIN.md` · `docs/HIVE-MIND.md` · `docs/ARCHITECTURE.md` · `docs/CODEMAP.md` · `docs/DESIGN.md` · `docs/DAILY-RUN.md` · `docs/MODE-IDENTITY.md` · `docs/MULLIGANS.md` · `docs/CONTRACTS.md`
+- **Docs to update on change:** `docs/TOWER-STARS.md` · `docs/TOWER-BRANCHES.md` · `docs/TOWER-LAB.md` · `docs/TOWER-CODEX.md` · `docs/TOWERS.md` · `docs/STRAIN.md` · `docs/HIVE-MIND.md` · `docs/ARCHITECTURE.md` · `docs/CODEMAP.md` · `docs/DESIGN.md` · `docs/EARLY-CALL.md` · `docs/DAILY-RUN.md` · `docs/MODE-IDENTITY.md` · `docs/MULLIGANS.md` · `docs/CONTRACTS.md`
 
 ### Mastery / Adaptation (`mastery`)
 
@@ -603,7 +603,7 @@ graph TD
 - **HUD surfaces:** `ability button` · `HeroSelectPanel` · **UI screens:** `HeroLab`
 - **Collection:** heroes category (usage tiers) · **Achievements:** —
 - **Localization:** inline English strings (no i18n layer yet — this field enumerates the surface for the day it lands)
-- **Docs to update on change:** `docs/HEROES.md` · `docs/HERO-FRAMEWORK.md` · `docs/HERO-EVOLUTION.md` · `docs/HERO-SELECTION.md` · `docs/SLOTS.md` · `docs/HIVE-MIND.md` · `docs/ARCHITECTURE.md` · `docs/CODEMAP.md` · `docs/DESIGN.md` · `docs/HERO-CINEMATICS.md` · `docs/EQUIPMENT.md` · `docs/EQUIPMENT-PHILOSOPHY.md` · `docs/HERO-SYMBIOTES.md` · `docs/EXPEDITIONS.md`
+- **Docs to update on change:** `docs/HEROES.md` · `docs/HERO-FRAMEWORK.md` · `docs/HERO-EVOLUTION.md` · `docs/HERO-SELECTION.md` · `docs/SLOTS.md` · `docs/HIVE-MIND.md` · `docs/ARCHITECTURE.md` · `docs/CODEMAP.md` · `docs/DESIGN.md` · `docs/EARLY-CALL.md` · `docs/HERO-CINEMATICS.md` · `docs/EQUIPMENT.md` · `docs/EQUIPMENT-PHILOSOPHY.md` · `docs/HERO-SYMBIOTES.md` · `docs/EXPEDITIONS.md`
 
 ### Hero Ability Cinematics (`hero-cinematics`)
 
@@ -678,7 +678,7 @@ graph TD
 - **HUD surfaces:** `DraftModal` · `BuildPanel` · `gene splash` · `Splice pill` · **UI screens:** `GeneArchive`
 - **Collection:** cards category (Gene Level labels) · **Achievements:** `collector`
 - **Localization:** inline English strings (no i18n layer yet — this field enumerates the surface for the day it lands)
-- **Docs to update on change:** `docs/GENE-EVOLUTION.md` · `docs/CARDS.md` · `docs/GENE-AUDIT-REPORT.md` · `docs/ARCHITECTURE.md` · `docs/CODEMAP.md` · `docs/DESIGN.md` · `docs/DOCTRINES.md` · `docs/MODE-IDENTITY.md`
+- **Docs to update on change:** `docs/GENE-EVOLUTION.md` · `docs/CARDS.md` · `docs/GENE-AUDIT-REPORT.md` · `docs/ARCHITECTURE.md` · `docs/CODEMAP.md` · `docs/DESIGN.md` · `docs/EARLY-CALL.md` · `docs/DOCTRINES.md` · `docs/MODE-IDENTITY.md`
 
 ### Nucleus Mulligans (`nucleus`)
 
@@ -1218,7 +1218,7 @@ graph TD
 - **HUD surfaces:** `boss bar` · **UI screens:** —
 - **Collection:** bosses category (chassis) · **Achievements:** —
 - **Localization:** inline English strings (no i18n layer yet — this field enumerates the surface for the day it lands)
-- **Docs to update on change:** `docs/BOSS-DESIGN.md` · `docs/ARCHITECTURE.md` · `docs/CODEMAP.md` · `docs/DESIGN.md` · `docs/CAMPAIGN.md` · `docs/CAMPAIGN-EVENTS.md` · `docs/MODE-IDENTITY.md` · `docs/STAGES.md` · `docs/BOSS-RUSH.md` · `docs/DAILY-RUN.md` · `docs/NEMESIS.md` · `docs/MEGA-BOSS.md`
+- **Docs to update on change:** `docs/BOSS-DESIGN.md` · `docs/ARCHITECTURE.md` · `docs/CODEMAP.md` · `docs/DESIGN.md` · `docs/EARLY-CALL.md` · `docs/CAMPAIGN.md` · `docs/CAMPAIGN-EVENTS.md` · `docs/MODE-IDENTITY.md` · `docs/STAGES.md` · `docs/BOSS-RUSH.md` · `docs/DAILY-RUN.md` · `docs/NEMESIS.md` · `docs/MEGA-BOSS.md`
 
 ### Mega Bosses (`mega-bosses`)
 
@@ -1278,7 +1278,7 @@ graph TD
 - **HUD surfaces:** `biome banner` · **UI screens:** `CampaignScreen`
 - **Collection:** biomes category · **Achievements:** —
 - **Localization:** inline English strings (no i18n layer yet — this field enumerates the surface for the day it lands)
-- **Docs to update on change:** `docs/BIOMES.md` · `docs/ARCHITECTURE.md` · `docs/CODEMAP.md` · `docs/DESIGN.md` · `docs/CAMPAIGN.md` · `docs/CAMPAIGN-EVENTS.md` · `docs/MODE-IDENTITY.md` · `docs/STAGES.md` · `docs/DAILY-RUN.md` · `docs/MAP-LAYOUTS.md`
+- **Docs to update on change:** `docs/BIOMES.md` · `docs/ARCHITECTURE.md` · `docs/CODEMAP.md` · `docs/DESIGN.md` · `docs/EARLY-CALL.md` · `docs/CAMPAIGN.md` · `docs/CAMPAIGN-EVENTS.md` · `docs/MODE-IDENTITY.md` · `docs/STAGES.md` · `docs/DAILY-RUN.md` · `docs/MAP-LAYOUTS.md`
 
 ### Arena Layouts (`map-layouts`)
 
@@ -1338,7 +1338,7 @@ graph TD
 - **HUD surfaces:** — · **UI screens:** `CampaignScreen` · `InfiniteScreen` · `CommandCenter`
 - **Collection:** — · **Achievements:** —
 - **Localization:** inline English strings (no i18n layer yet — this field enumerates the surface for the day it lands)
-- **Docs to update on change:** `docs/DIFFICULTY.md` · `docs/DIFFICULTY_DIRECTOR.md` · `docs/ARCHITECTURE.md` · `docs/CODEMAP.md` · `docs/DESIGN.md` · `docs/CAMPAIGN.md` · `docs/CAMPAIGN-EVENTS.md` · `docs/MODE-IDENTITY.md` · `docs/STAGES.md` · `docs/ENDLESS-SCALING.md` · `docs/BOSS-RUSH.md` · `docs/DOCTRINES.md` · `docs/THREAT.md`
+- **Docs to update on change:** `docs/DIFFICULTY.md` · `docs/DIFFICULTY_DIRECTOR.md` · `docs/ARCHITECTURE.md` · `docs/CODEMAP.md` · `docs/DESIGN.md` · `docs/EARLY-CALL.md` · `docs/CAMPAIGN.md` · `docs/CAMPAIGN-EVENTS.md` · `docs/MODE-IDENTITY.md` · `docs/STAGES.md` · `docs/ENDLESS-SCALING.md` · `docs/BOSS-RUSH.md` · `docs/DOCTRINES.md` · `docs/THREAT.md`
 
 ### Marketing Website (`website`)
 
@@ -1413,7 +1413,7 @@ graph TD
 - **HUD surfaces:** `screen veil + camera heartbeat (GameView)` · `canvas-frame glow` · **UI screens:** `AssimilationDebug (DebugPanel section)`
 - **Collection:** — · **Achievements:** —
 - **Localization:** no player-facing strings
-- **Docs to update on change:** `docs/ASSIMILATION.md` · `docs/ARCHITECTURE.md` · `docs/CODEMAP.md` · `docs/DESIGN.md` · `docs/HUD.md` · `docs/READABILITY.md` · `docs/REWARD-PRESENTATION.md` · `docs/LIVING-BATTLEFIELD.md` · `docs/DEV-RESET.md`
+- **Docs to update on change:** `docs/ASSIMILATION.md` · `docs/ARCHITECTURE.md` · `docs/CODEMAP.md` · `docs/DESIGN.md` · `docs/EARLY-CALL.md` · `docs/HUD.md` · `docs/READABILITY.md` · `docs/REWARD-PRESENTATION.md` · `docs/LIVING-BATTLEFIELD.md` · `docs/DEV-RESET.md`
 
 ### Dev Tools & Debug (`devtools`)
 

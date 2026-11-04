@@ -1247,6 +1247,19 @@ export const SPLICE = {
 // tower, so auto-start doesn't rush the initial build-out.
 export const AUTO_START_FIRST_DELAY = 8; // seconds granted on the first tower of the opening prep
 
+/** EARLY CALL (docs/EARLY-CALL.md): mid-wave, the player may call the NEXT wave now — the waves
+ *  overlap and the skipped wait pays Biomass. A recorded input (Game.callWaveEarly in REPLAY_METHODS);
+ *  opt-in per run (RunOptions.earlyCall — never the tutorial or the Arena). Auto Wave never calls
+ *  early: it only launches from prep. Every drafted card the called-over wave owed is still dealt
+ *  when the field clears (one per wave, back to back). */
+export const EARLY_CALL = {
+  minElapsed: 3, // seconds into a wave before a call is accepted (a double-tapped Start can't stack waves)
+  maxAhead: 2, // waves that may be called ahead of a clear field (2 ⇒ at most three waves overlap)
+  clearAllowance: 8, // seconds credited past the wave's last scheduled spawn (the walk its tail still needed)
+  maxSkipSeconds: 30, // the credited skip is capped …
+  biomassPerSecond: 2, // … and pays this per skipped second × the NEXT wave's bounty multiplier × the run's biomass mult
+};
+
 // ── Spawn scheduling (spawndirector.ts) ──────────────────────────────────────
 // The Spawn Director owns the MECHANICS of emitting spawns (spacing/timing/pacing),
 // decoupled from WHAT spawns (composition: WAVES / AI Director) and from enemy AI
@@ -2401,6 +2414,21 @@ export const CAMPAIGN_ONBOARDING = {
   spareSlot: { kind: 'enrager', cooldown: 9, amount: 1 } as const, // a 2nd sustain slot (the kit already channels) — the pool's enrager
 };
 
+// ── Campaign OPENING safety (docs/CAMPAIGN.md §opening; Batch G grind audit) ─────────────────
+// The headless audit found campaign runs DECIDED in waves 1–3 (90% of losses; median wave-1 death
+// 15.9 s) by a seed coin-flip: airborne packs in wave 1 vs whatever the belt happened to deal, and a
+// Mega that surfaced WITH wave 1. Generated Campaign stages only (composeStagePlan's `opening` arg —
+// the Daily and the golden `stage` path never pass it), so the tension moves to waves 4+ and bosses.
+export const CAMPAIGN_OPENING = {
+  /** Max AIRBORNE units per opening wave (index 0 = wave 1). 0 ⇒ fliers are excluded from that
+   *  wave's pool (the budget goes to ground units); n > 0 ⇒ flying groups are trimmed to n units.
+   *  Waves past the list are uncapped. */
+  flyingUnitCap: [0, 4] as readonly number[],
+  /** The wave a Mega-hosting stage's organism surfaces with (was hard-coded to wave 1 — the
+   *  0/3 Stage-30 wall: dead in ~18 s against a 2-tower board). Clamped to the stage's wave count. */
+  megaArrivalWave: 3,
+};
+
 // ── Battlefield / arena ─────────────────────────────────────────────────────
 // Open vertical arena (map.ts owns CELL/COLS/ROWS/WIDTH/HEIGHT). Enemies spawn
 // along the TOP edge and dynamically flow toward the BOTTOM edge (the line) via a
@@ -3130,6 +3158,25 @@ export const ENDLESS = {
   bossStrengthCap: 6, // … up to ×6 (a durable centerpiece; calibrated against the endless probe's boss-TTK)
 };
 
+/** INFINITE SQUEEZE (docs/ENDLESS-SCALING.md §squeeze — Batch G grind audit): Infinite was flawless
+ *  for ~48 waves, then ONE wave wiped the Core. Two levers turn the cliff into attrition, Infinite
+ *  only (RunOptions.squeeze — the Arena and headless probes that omit it are unchanged):
+ *  • the PRESSURE BAND — a flawless wave past `fromDepth` raises enemy HP pressure ×(1+rise) (to
+ *    `cap`); a wave that drains ≥ `easeAt` of max integrity eases it ×(1−ease) (down to `floor`), so
+ *    a comfortable board meets the wall sooner and a bleeding one limps on instead of being kicked;
+ *  • the BREACH CEILING — once one wave has drained `waveLossCap` of max integrity, further enemy
+ *    hits that wave land at ×`overflowMult` (the Core braces), so the end takes several waves. */
+export const ENDLESS_SQUEEZE = {
+  fromDepth: 10, // the band starts measuring here (the opening depths stay a pure build-up)
+  rise: 0.04, // ×(1+rise) enemy HP pressure per flawless wave …
+  cap: 1.4, // … up to this (the first fit's ×2 cost ~20 depths of record on a 100 h board; ×1.6 still ~15)
+  easeAt: 0.1, // a wave that drains ≥ this share of max integrity …
+  ease: 0.2, // … eases the pressure ×(1−ease) …
+  floor: 0.85, // … down to this: a bleeding board limps on a few waves (records hold; the end is a squeeze)
+  waveLossCap: 0.34, // per-wave breach ceiling (share of max integrity) …
+  overflowMult: 0.1, // … past it, enemy hits land at this fraction (0.2 still let one collapse wipe 303 in a wave)
+};
+
 // ── Infinite depth-camping taper (docs/MODE-IDENTITY.md §anti-grind, docs/ENDLESS-SCALING.md §taper) ──
 // ENDLESS ONLY. Loot-meter and Mastery-XP accrual earn FULL value through `startWave`, then a smooth
 // exponential decay toward `floor` — so camping ever deeper stops out-earning simply re-running. The
@@ -3167,12 +3214,28 @@ export function endlessLootTaper(wave: number): number {
 }
 
 // ── Universal Difficulty Director: ADAPTIVE factor weights (docs/DIFFICULTY_DIRECTOR.md) ──
-// Player-relative scaling seams composed into the director's threat/reward chains. They SHIP
-// AT 0 (an exact ×1 in every formula — IEEE-754 identity, golden-safe): balance changes must
-// come from the progression simulator, not intuition. Tuning them is a data edit here, ever.
+// Player-relative scaling seams composed into the director's threat/reward chains. Balance
+// changes must come from the progression simulator / harness, not intuition; tuning them is a
+// data edit here, ever. The STATIC boot-time path stays an exact ×1 (IEEE-754 identity, golden-
+// safe) because nothing supplies AdaptiveInputs.powerRatio.
 export const DIRECTOR_ADAPTIVE = {
-  threatPerPowerRatio: 0, // ×(1 + w·(powerRatio−1)) on enemy HP/damage curves
+  // ACTIVATED 2026-11 on harness evidence (docs/DIFFICULTY_DIRECTOR.md §6a — the Batch G grind
+  // audit): fed with the run's LIVE board power on Campaign waves ≥ liveFromWave + boss bodies.
+  threatPerPowerRatio: 0.5, // ×(1 + w·(powerRatio−1)) on enemy HP/damage curves
   rewardPerPerformance: 0, // ×(1 + w·recentPerformance) on bounty/reward curves
+  // LIVE board power: a Campaign run whose app passes RunOptions.livePowerBase (account Power ÷
+  // the stage's recommended Power) re-feeds the seam at every wave launch with that × the run's
+  // temporary Power (cards, Hero Evolution, branches, strains — ×60–90 by a 12-wave finale) — the
+  // snowball that made waves 4+ a formality meets a real finale. Upward only (never props a weak
+  // board up). Harness sweep (w 0.1→1, caps 3→64): small caps only stretched waves (87 % flawless,
+  // 3× longer); w 1 fit the 8 h account but crushed the 100 h one (25 % frontier wins) — 0.5/16 is
+  // the compromise (docs/DIFFICULTY_DIRECTOR.md §6a "Measured").
+  liveFromWave: 4, // waves before this are the opening (untouched — the opening build answers them)
+  liveCap: 16, // the live multiplier on chaff waves never exceeds this
+  // …and lands as PACE as much as HP (ENDLESS-SCALING "pace, not sponge"): HP × m^(1−s), spawn rate
+  // × m^s. Pace-heavy (s 0.75) proved EASIER (area boards love clumps); HP-only is a slog — 0.5.
+  livePaceShare: 0.5,
+  liveBossCap: 16, // a BOSS body takes the whole live multiplier (no pace split — it can't be paced or pulled) up to this
 };
 
 // ── Adaptive Economy Framework: income-seam weights (docs/ECONOMY_FORMULAS.md) ──

@@ -1,6 +1,6 @@
 # DIL_GRAPH.md — the Design Intelligence Layer (GENERATED — `npm run dil -- regen`)
 
-> **The project's brain** (docs/DIL.md). 975 nodes · 1885 edges, built from the live
+> **The project's brain** (docs/DIL.md). 979 nodes · 1895 edges, built from the live
 > registries + curated knowledge (src/dev/dil/). **Query it instead of searching the repo:**
 > `npm run dil -- node <id>` · `affects <id>` · `requires <id>` · `missing <kind> <edge>` ·
 > `checklist tower <kind>` · `find <text>`. Edge kinds are bidirectional (19 kinds).
@@ -34,7 +34,7 @@
 
 ### Teaching Index
 
-`tutorial:combat` · `help:mission-control` · `help:hive-intel` · `help:evolution-roadmap` · `help:power-advisor` · `help:field-guides` · `help:hive-core` · `help:biomorph-conveyor` · `help:strain-evolution` · `help:boss-sieges` · `help:boss-rush` · `help:bio-roulette` · `help:gene-essence` · `help:field-research` · `help:splice-market` · `help:auction-house` · `help:daily-login` · `help:hive-construction` · `help:gene-archive` · `help:gene-loadout` · `help:biomass` · `help:wave-rhythm` · `help:game-speed` · `help:emergency-defense` · `help:power-score` · `help:account-level` · `help:genome-rank` · `help:towers` · `help:tower-stars` · `help:tower-mastery` · `help:blockers` · `help:mastery-evolution` · `help:tower-branches` · `help:adaptation` · `help:mulligans` · `help:nucleus` · `help:gene-cards` · `help:splice` · `help:heroes` · `help:hero-evolution` · `help:hero-slots` · `help:equipment` · `help:equipment-reforge` · `help:gear-codex` · `help:genome-core` · `help:prestige` · `help:ascension` · `help:containers` · `help:loot-meter` · `help:mega-hunt` · `help:collection-codex` · `help:phenotype-lab` · `help:idle-harvest` · `help:metabolism` · `help:specimens` · `help:arena` · `help:expeditions` · `help:quests` · `help:season-pass` · `help:premium-store` · …32 more
+`tutorial:combat` · `help:mission-control` · `help:hive-intel` · `help:evolution-roadmap` · `help:power-advisor` · `help:field-guides` · `help:hive-core` · `help:biomorph-conveyor` · `help:strain-evolution` · `help:boss-sieges` · `help:boss-rush` · `help:bio-roulette` · `help:gene-essence` · `help:field-research` · `help:splice-market` · `help:auction-house` · `help:daily-login` · `help:hive-construction` · `help:gene-archive` · `help:gene-loadout` · `help:biomass` · `help:wave-rhythm` · `help:game-speed` · `help:early-call` · `help:emergency-defense` · `help:power-score` · `help:account-level` · `help:genome-rank` · `help:towers` · `help:tower-stars` · `help:tower-mastery` · `help:blockers` · `help:mastery-evolution` · `help:tower-branches` · `help:adaptation` · `help:mulligans` · `help:nucleus` · `help:gene-cards` · `help:splice` · `help:heroes` · `help:hero-evolution` · `help:hero-slots` · `help:equipment` · `help:equipment-reforge` · `help:gear-codex` · `help:genome-core` · `help:prestige` · `help:ascension` · `help:containers` · `help:loot-meter` · `help:mega-hunt` · `help:collection-codex` · `help:phenotype-lab` · `help:idle-harvest` · `help:metabolism` · `help:specimens` · `help:arena` · `help:expeditions` · `help:quests` · `help:season-pass` · …34 more
 
 ### Testing Index
 
@@ -200,6 +200,9 @@ graph LR
   system_genome_rank["Genome Rank (ultimate mastery ladder)"] -->|consumes| system_prestige["Prestige (Molt / Ascendant)"]
   system_achievements["Achievements"] -->|consumes| system_hub_shell["Hub Shell & Home"]
   system_evolution_hq["Evolution HQ (Genome Cores)"] -->|consumes| system_power["Power Score"]
+  system_difficulty["Difficulty"] -->|modifies| system_campaign["Campaign"]
+  system_campaign["Campaign"] -->|consumes| system_towers["Towers, Stars, Branches, Strain & Codex"]
+  system_difficulty["Difficulty"] -->|modifies| system_infinite["Infinite Mode"]
 ```
 
 ### Power Score Map
@@ -596,6 +599,8 @@ graph LR
   system_achievements["Achievements"] -->|consumes| system_hub_shell["Hub Shell & Home"]
   system_evolution_hq["Evolution HQ (Genome Cores)"] -->|consumes| system_power["Power Score"]
   system_boss_rush["Boss Rush"] -->|dependsOn| system_net_backend["Backend lanes (net/)"]
+  system_engine["Sim Engine"] -->|dependsOn| system_security["Game Action Security Layer"]
+  system_campaign["Campaign"] -->|consumes| system_towers["Towers, Stars, Branches, Strain & Codex"]
 ```
 
 ### Presentation Couplings Map
@@ -642,6 +647,8 @@ graph LR
   system_infestation["Infestation Map — THE FRONT"] -->|modifies| system_expeditions["Hero Expeditions"]
   system_map_layouts["Arena Layouts"] -->|modifies| system_engine["Sim Engine"]
   system_progression_gating["Progression Gating & Director"] -->|modifies| system_hub_shell["Hub Shell & Home"]
+  system_difficulty["Difficulty"] -->|modifies| system_campaign["Campaign"]
+  system_difficulty["Difficulty"] -->|modifies| system_infinite["Infinite Mode"]
 ```
 
 ## Concepts (8)
@@ -902,6 +909,7 @@ _at: src/core/game.ts, src/core/combat.ts, src/core/status.ts, src/core/targetin
   - provides → `concept:determinism` — fixed-timestep sim, seeded rng, render/sim wall
   - conflictsWith → `system:online-foundation` — ONE GAME = ONE BUS: meta.ts records boss/Mega kills for the PLAYER off the app-wide gameEvents bus, so any Game that is not the player’s own run (SpectateView replay, ArenaMatch remote mirror + its rollback rebuild, replayRun verification) MUST call game.isolateEvents() — otherwise someone else’s kills credit this save.
   - modifies → `system:rendering` — STATUS FX CONTRACT (2026-07, COMBAT-VISUAL-STANDARDS.md): every StatusEffectDef carries a MANDATORY fx trait block (hue/glow/pulse/overlay/particles — validator-rejected without it); render/statusFx.ts MERGES all live statuses per body (blended hue, deduped overlays, budgeted emitters) — never draw a bespoke per-status ring in the renderer again
+  - dependsOn → `system:security` — EARLY CALL (Game.callWaveEarly) is a recorded input — it MUST stay in core/replay.ts REPLAY_METHODS or Daily replays diverge; opt-in RunOptions.earlyCall (never tutorial/Arena — arenaMatch forces it off)
   - requiredBy ← `system:hive-mind`
   - requiredBy ← `system:campaign`
   - requiredBy ← `system:infinite`
@@ -914,7 +922,7 @@ _at: src/core/game.ts, src/core/combat.ts, src/core/status.ts, src/core/targetin
   - requiredBy ← `system:nemesis`
   - requiredBy ← `system:onboarding`
   - requiredBy ← `system:run-ui`
-  - _…242 more (query: `npm run dil -- node system:engine`)_
+  - _…245 more (query: `npm run dil -- node system:engine`)_
 
 ### `system:content-infra` — Content Infrastructure
 
@@ -981,6 +989,7 @@ _at: src/core/campaign.ts, src/core/campaignEvents.ts, src/core/hash.ts, src/ui/
   - consumes → `system:map-layouts` — layoutForStage: CAMPAIGN_LAYOUT_PINS for the onboarding (1–3), then a memoized-forward biome-flavored no-repeat roll on Rng(stageSeed(s, layout)); adding a layout re-rolls un-pinned stages (generated, never saved)
   - conflictsWith → `system:infinite` — Run Identity invasions: campaign passes the STAGE enemyPool as invasionPool (an all-kinds pool dropped 8 colossi on stage 1); endless keeps ENEMY_KINDS
   - conflictsWith → `concept:golden-test` — a new enemy whose DERIVED unlockStage is ≤ 3 re-rolls the pinned Stage 1–3 onboarding pools and moves campaignCurve.test — the puzzle fauna were tuned (EHP) to enter at ≥ 4; biome signatures also append to the Infinite director rosters while that biome is active
+  - consumes → `system:towers` — OPENING ANSWER GIFT (core/conveyor.ts §opening): the stage ≥ 4 run-start gift rolls from owned kinds whose TOWER DATA answers the opening threats (drag-damage aura, then area damage) — a new tower is classified by its stats; Stages 1–3 keep the plain roll (campaignCurve)
   - requiredBy ← `system:daily`
   - requiredBy ← `system:towers`
   - requiredBy ← `system:heroes`
@@ -990,10 +999,10 @@ _at: src/core/campaign.ts, src/core/campaignEvents.ts, src/core/hash.ts, src/ui/
   - requiredBy ← `system:progression-gating`
   - requiredBy ← `system:threat`
   - taughtBy ← `help:campaign`
+  - taughtBy ← `help:hive-adapts`
   - documentedBy ← `doc:CAMPAIGN.md`
   - documentedBy ← `doc:CAMPAIGN-EVENTS.md`
-  - documentedBy ← `doc:MODE-IDENTITY.md`
-  - _…12 more (query: `npm run dil -- node system:campaign`)_
+  - _…14 more (query: `npm run dil -- node system:campaign`)_
 
 ### `system:infinite` — Infinite Mode
 
@@ -1014,6 +1023,7 @@ _at: src/ui/InfiniteScreen.tsx_
   - documentedBy ← `guide:infinite`
   - balancedBy ← `system:difficulty` — endless threat curves
   - conflictsWith ← `system:campaign` — Run Identity invasions: campaign passes the STAGE enemyPool as invasionPool (an all-kinds pool dropped 8 colossi on stage 1); endless keeps ENEMY_KINDS
+  - modifiedBy ← `system:difficulty` — INFINITE SQUEEZE (ENDLESS_SQUEEZE, RunOptions.squeeze): pressure band (flawless → HP pressure up to cap; bleeding → eased to floor) + per-wave breach ceiling in Game.braceHiveDamage; the Arena (also endless) forces it off
 
 ### `system:pil` — Public Intelligence Layer
 
@@ -1298,7 +1308,7 @@ _at: src/core/stars.ts, src/core/branches.ts, src/core/branchTree.ts, src/core/s
   - contains ← `tower:obelisk`
   - contains ← `tower:maw`
   - contains ← `tower:chrysalis`
-  - _…42 more (query: `npm run dil -- node system:towers`)_
+  - _…43 more (query: `npm run dil -- node system:towers`)_
 
 ### `system:mastery` — Mastery / Adaptation
 
@@ -2086,7 +2096,7 @@ _at: src/ui/InitCutscene.tsx, src/render/introScenes.ts, src/core/tutorial.ts, s
   - contains ← `help:strain-evolution`
   - contains ← `help:boss-sieges`
   - contains ← `help:boss-rush`
-  - _…71 more (query: `npm run dil -- node system:onboarding`)_
+  - _…73 more (query: `npm run dil -- node system:onboarding`)_
 
 ### `system:account-level` — Account Level (evergreen meta-progression)
 
@@ -2396,6 +2406,7 @@ _at: src/security/actionGuard.ts, src/security/registry.ts, src/security/tabArbi
   - documentedBy ← `doc:SECURITY.md`
   - testedBy ← `test:src/security/actionGuard.test.ts`
   - testedBy ← `test:src/security/tabArbiter.test.ts`
+  - requiredBy ← `system:engine` — EARLY CALL (Game.callWaveEarly) is a recorded input — it MUST stay in core/replay.ts REPLAY_METHODS or Daily replays diverge; opt-in RunOptions.earlyCall (never tutorial/Arena — arenaMatch forces it off)
 
 ### `system:biomes` — Biomes
 
@@ -2493,6 +2504,8 @@ _at: src/core/difficulty.ts, src/core/difficultyDirector.ts_
   - balances → `system:campaign` — the Universal Difficulty Director owns every scaling policy
   - balances → `system:infinite` — endless threat curves
   - balances → `system:bosses` — CAMPAIGN ONBOARDING (DIFFICULTY_DIRECTOR.md §onboarding, CAMPAIGN.md §curve): campaignBossStrength scales the first stages’ finale body AND kit amounts via scaleBossStrength, and campaign.onboardingKit swaps sustain (heal/bulwark/carapace/phase-shield) for the telegraphed core-shot in every phase — a weaker body alone still out-healed a needle board (the binary stage-3 wall); the core-shot GRADES integrity loss by kill speed
+  - modifies → `system:campaign` — LIVE ADAPTIVE THREAT (§6a): DIRECTOR_ADAPTIVE.threatPerPowerRatio fed per wave launch with livePowerBase × effectsPower(powerEffects()) — Campaign waves ≥ liveFromWave (HP × spawn pace split) + every boss body; RunOptions.livePowerBase (GameView) opts in, omitted ⇒ ×1
+  - modifies → `system:infinite` — INFINITE SQUEEZE (ENDLESS_SQUEEZE, RunOptions.squeeze): pressure band (flawless → HP pressure up to cap; bleeding → eased to floor) + per-wave breach ceiling in Game.braceHiveDamage; the Arena (also endless) forces it off
   - requiredBy ← `system:engine`
   - requiredBy ← `system:campaign`
   - requiredBy ← `system:infinite`
@@ -3457,7 +3470,7 @@ _at: src/core/tutorial.ts_
   - teaches → `system:onboarding`
   - teaches → `system:run-ui`
 
-## Help Topics (68)
+## Help Topics (70)
 
 - `help:mission-control` — Your standing orders — the answer to "what should I do now?" _(partOf `system:onboarding`, teaches `system:power`)_
 - `help:hive-intel` — The live intel feed — banked value, ready moves, recent milestones. _(partOf `system:onboarding`, teaches `system:notifications`)_
@@ -3481,6 +3494,7 @@ _at: src/core/tutorial.ts_
 - `help:biomass` — In-run currency from kills. _(partOf `system:onboarding`, teaches `system:engine`)_
 - `help:wave-rhythm` — Fight, breathe, build — the run’s heartbeat. _(partOf `system:onboarding`)_
 - `help:game-speed` — 1× / 2× / 5× — the sim, byte-identical, just faster. _(partOf `system:onboarding`)_
+- `help:early-call` — Call the next wave mid-fight — the skipped wait pays Biomass. _(partOf `system:onboarding`, teaches `system:engine`)_
 - `help:emergency-defense` — The red line — when enemies reach the Final Defense Zone. _(partOf `system:onboarding`)_
 - `help:power-score` — Your account strength, one number. _(partOf `system:onboarding`, teaches `system:power`, teaches `system:prediction`)_
 - `help:account-level` — Every kill, wave, win and acquisition feeds one ever-rising level. _(partOf `system:onboarding`)_
@@ -3519,6 +3533,7 @@ _at: src/core/tutorial.ts_
 - `help:season-pass` — A rotating 100-level reward season fed by everything you play. _(partOf `system:onboarding`)_
 - `help:premium-store` — Optional support — never the path. _(partOf `system:onboarding`)_
 - `help:campaign` — The main progression path — descend, stage by stage. _(partOf `system:onboarding`, teaches `system:campaign`)_
+- `help:hive-adapts` — From wave 4, Campaign waves answer your board’s live Power. _(partOf `system:onboarding`, teaches `system:campaign`)_
 - `help:infinite` — Endless, escalating waves — chase a best. _(partOf `system:onboarding`, teaches `system:infinite`)_
 - `help:threat` — Opt-in Threat levels 0–10 — the replay ladder for content you’ve beaten. _(partOf `system:onboarding`, teaches `system:threat`)_
 - `help:infestation` — The territory war — hold sectors, collect tribute, answer incursions. _(partOf `system:onboarding`, teaches `system:infestation`)_
@@ -3884,7 +3899,7 @@ _at: site/guides.ts → /guides/live-events/_
 - `achievement:ladder_skulls_1` — Reach 500 Boss Rush bosses (lifetime). _(partOf `system:achievements`, rewards `currency:genome-cores`)_
 - `achievement:ladder_anatomy_1` — Reach 250 Weak Points destroyed. _(partOf `system:achievements`, rewards `currency:genome-cores`)_
 
-## Documentation (193)
+## Documentation (194)
 
 - `doc:ACCOUNT-LEVEL.md` — project documentation _(documents `system:account-level`)_
 - `doc:ACCOUNTS.md` — project documentation _(documents `system:accounts`)_
@@ -3937,6 +3952,7 @@ _at: site/guides.ts → /guides/live-events/_
 - `doc:DIL_GRAPH.md` — project documentation
 - `doc:DOCTRINES.md` — project documentation _(documents `system:doctrines`)_
 - `doc:EA-DESIGN-AUDIT.md` — project documentation
+- `doc:EARLY-CALL.md` — project documentation _(documents `system:engine`)_
 - `doc:ECONOMY.md` — project documentation _(documents `system:shards-economy`, documents `system:daily-login`, documents `system:currencies`)_
 - `doc:ECONOMY_FORMULAS.md` — project documentation _(documents `system:currencies`)_
 - `doc:ENDLESS-SCALING.md` — project documentation _(documents `system:infinite`)_
@@ -4080,7 +4096,7 @@ _at: site/guides.ts → /guides/live-events/_
 - `doc:VOWS.md` — project documentation _(documents `system:prestige`)_
 - `doc:WEBSITE.md` — project documentation _(documents `system:field-research`, documents `system:website`)_
 
-## Tests (333)
+## Tests (334)
 
 - `test:src/audio/cues.test.ts` — automated validation _(tests `system:audio`)_
 - `test:src/audio/music.test.ts` — automated validation _(tests `system:audio`)_
@@ -4164,6 +4180,7 @@ _at: site/guides.ts → /guides/live-events/_
 - `test:src/core/geneUpgrades.test.ts` — automated validation _(tests `system:gene-cards`)_
 - `test:src/core/genomeRank.test.ts` — automated validation _(tests `system:genome-rank`)_
 - `test:src/core/golden.test.ts` — automated validation _(tests `system:engine`)_
+- `test:src/core/grindLevers.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/core/heroCinematics.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/core/heroEquip.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/core/heroEvoGame.test.ts` — automated validation _(tests `system:engine`)_

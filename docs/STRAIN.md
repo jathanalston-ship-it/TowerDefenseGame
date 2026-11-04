@@ -75,6 +75,20 @@ saved on the account) is always deployable; every other tower arrives on a livin
 - **The run-start GIFT:** the very first organism is instantly ready and deploys FREE (no
   biomass, no advance on the universal curve) — it also recycles for 0, so it can never feed
   the economy. The belt opens with a decision, not a wait.
+- **The gift ANSWERS the opening (§opening — Batch G):** on a Campaign stage ≥
+  `CONVEYOR.openingAnswerFromStage` (4) the gift is rolled — same weights, same single draw on the
+  dedicated rng — from the owned kinds (favorite excluded) that answer the stage's OPENING threats,
+  instead of the whole roster. Both sides are derived from data (`core/conveyor.ts`
+  `openingThreats` / `OPENING_ANSWERS` / `damagesArea` — never a per-tower list). Threats: `pack`
+  (a group of ≥ `packGroup` 4 in the first `openingWaves` 3 waves) and `air` (fliers there).
+  Answer: a kit that DAMAGES an area — any splash, or a damaging aura/explosion/pool reaching
+  `areaRadius` 200 (today Mortar, Obelisk, Sower, Lung, Bell, Ossuary); summoners never answer `air`
+  (fliers can't be body-blocked). No owned answer ⇒ the plain roll. Fitted on the G1 harness's
+  forced-gift sweep (every owned kind × 7 stages × 2 seeds): on the 8 h account area-damage gifts
+  lost 5/24 runs in waves 1–3 vs 7/12 for the natural roll. Pure CONTROL kits (Effigy's Fear, the
+  Polyp/Rift pull) were even safer early but turned whole runs into unlosable slogs (Effigy-gift
+  boards: ~90 % wins, waves 4+ ×2–3 longer) — a pack is answered by killing it, not stalling it.
+  Stages 1–3 keep the plain gift (their chip-damage curve is calibrated on it — `campaignCurve.test`).
 - **Anti-farm rule:** new growth STARTS only during waves. An organism already in flight
   finishes its remaining seconds in the build phase, but nothing new is born there — with
   auto-wave off, idling between waves yields zero belt income (the flat recycler payout plus
