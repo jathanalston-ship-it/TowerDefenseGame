@@ -122,7 +122,8 @@ import { combineMult } from './modifiers';
 import { sortByProfile } from './targeting';
 import type { TargetingProfile } from './targeting';
 import { applyMutators } from './mutators';
-import { gameEvents } from './events';
+import { EventBus, gameEvents } from './events';
+import type { GameEventMap } from './events';
 import { branchesFor, branchRegistry, resolveBranchKit } from './branches';
 import { resolveStrain, strainRegistry, strainPowerEffects } from './strains';
 import type { StrainHooks } from './strains';
@@ -458,6 +459,18 @@ interface RunBuff {
 }
 
 export class Game {
+  /** Where this sim's gameplay events go (core/events.ts). The player's own run keeps the app-wide
+   *  bus. A sim that is NOT the player's run (the replay theater, the Arena opponent's mirror,
+   *  replay verification) calls isolateEvents(), so its kills never reach the player's save,
+   *  toasts or the live run's view. Emission stays hasListeners-gated either way. */
+  events: EventBus<GameEventMap> = gameEvents;
+
+  /** Give this sim a private event bus (returned for the caller's own listeners). */
+  isolateEvents(): EventBus<GameEventMap> {
+    this.events = new EventBus<GameEventMap>();
+    return this.events;
+  }
+
   phase: Phase = 'prep';
   /** Combat→Build settle countdown (s). > 0 after the last enemy dies: the wave is cleared but
    * the phase hasn't flipped yet — the battlefield winds down (see step's settle branch). */
@@ -809,6 +822,11 @@ export class Game {
     // The dedicated rng paces Infestation's elite rolls — consumed ONLY when that modifier is live.
     this.dailyFx = opts.daily ? combinedEffects(opts.daily.modifierIds) : NEUTRAL_EFFECTS;
     this.dailyRng = new Rng((seed ^ 0xda11f00d) >>> 0);
+    // A record from an OLDER build (a shared replay link, a Daily entry under verification, an
+    // Arena peer) predates kinds added since: they read neutral instead of throwing. A current
+    // input has every kind, so it is kept as-is (same object — golden-safe).
+    if (TOWER_ORDER.some((k) => !towerProgress[k])) towerProgress = { ...neutralTowerProgress(), ...towerProgress };
+    if (HERO_ORDER.some((k) => !heroProgress[k])) heroProgress = { ...neutralHeroProgress(), ...heroProgress };
     this.towerProgress = towerProgress;
     this.towerEffectiveRange = {} as Record<TowerKind, number>;
     for (const k of TOWER_ORDER) this.towerEffectiveRange[k] = TOWER_DEFS[k].range * (towerProgress[k].rangeMult ?? 1) * this.dailyFx.towerRangeMult;
@@ -1030,7 +1048,7 @@ export class Game {
   /** Build a hero runtime instance from its data-driven definition. */
   private makeHero(kind: HeroKind): Hero {
     const maxHp = this.heroMaxHpFor(kind); // gear survivability × Evolution Vitality — a mid-run hero inherits both
-    if (gameEvents.hasListeners('heroSpawned')) gameEvents.emit('heroSpawned', { kind });
+    if (this.events.hasListeners('heroSpawned')) this.events.emit('heroSpawned', { kind });
     return {
       kind,
       x: nucleusPoint.x,
@@ -1415,7 +1433,7 @@ export class Game {
     t.mutatedAt = this.time; // drives the grow-in + mutation flash (render-side)
     this.recomputeTowerCaches(); // overcharge adjacency unaffected, but keep caches coherent
     this.triggerMutationSpectacle(t, b, cost); // the "this feels important" moment
-    if (gameEvents.hasListeners('towerPlaced')) gameEvents.emit('towerPlaced', { id: t.id, kind: t.kind, slot: t.slot });
+    if (this.events.hasListeners('towerPlaced')) this.events.emit('towerPlaced', { id: t.id, kind: t.kind, slot: t.slot });
     this.auditTempPower(powerBefore, `Branch tier ${t.tier} (${b.name})`);
     return 'ok';
   }
@@ -1926,7 +1944,7 @@ export class Game {
     if (this.movingTowerId === id) this.movingTowerId = null;
     this.recomputeTowerCaches(); // overcharge adjacency + reactor count stay coherent
     this.sellFx(t, refund);
-    if (gameEvents.hasListeners('towerSold')) gameEvents.emit('towerSold', { id, kind: t.kind, slot: t.slot, refund });
+    if (this.events.hasListeners('towerSold')) this.events.emit('towerSold', { id, kind: t.kind, slot: t.slot, refund });
     return true;
   }
 
@@ -2004,7 +2022,7 @@ export class Game {
     this.spawnParticles(t.x, t.y, PARTICLE.mutate, TOWER_DEFS[t.kind].color); // land burst
     this.pushSfx('place');
     this.selectPlacedTower(t.id); // returns to Inspect automatically
-    if (gameEvents.hasListeners('towerPlaced')) gameEvents.emit('towerPlaced', { id: t.id, kind: t.kind, slot: t.slot });
+    if (this.events.hasListeners('towerPlaced')) this.events.emit('towerPlaced', { id: t.id, kind: t.kind, slot: t.slot });
     return 'ok';
   }
 
@@ -2068,7 +2086,7 @@ export class Game {
     // Rooting burst — the organism takes hold (fxRng: pure presentation, golden-safe).
     this.spawnParticles(slot.x, slot.y, PARTICLE.mutate, TOWER_DEFS[kind].color, 0.8);
     this.pushSfx('place');
-    if (gameEvents.hasListeners('towerPlaced')) gameEvents.emit('towerPlaced', { id: this.nextId - 1, kind, slot: slot.index });
+    if (this.events.hasListeners('towerPlaced')) this.events.emit('towerPlaced', { id: this.nextId - 1, kind, slot: slot.index });
     if (this.relicHooks.length) this.fireRelicHooks('towerDeployed', null, slot.x, slot.y); // rule genes (docs/CARDS.md §rules)
     // First setup action taken → ARM the auto-start countdown (see autoStartReady). Placing a
     // tower is one of the two triggers (the other is a manual startWave); latched for the run.
@@ -2187,7 +2205,7 @@ export class Game {
       this.waveStartIntegrity = this.integrity;
       this.phase = 'wave';
       this.pushSfx('wave');
-      if (gameEvents.hasListeners('waveStarted')) gameEvents.emit('waveStarted', { wave: this.waveIndex, endless: false });
+      if (this.events.hasListeners('waveStarted')) this.events.emit('waveStarted', { wave: this.waveIndex, endless: false });
       return;
     }
     if (this.waveIndex >= this.totalWaves) return;
@@ -2227,7 +2245,7 @@ export class Game {
     this.applyWaveStartStrains(); // STRAIN reactor verbs (adrenal jolt / glut surge)
     this.phase = 'wave';
     this.pushSfx('wave');
-    if (gameEvents.hasListeners('waveStarted')) gameEvents.emit('waveStarted', { wave: this.waveIndex, endless: false });
+    if (this.events.hasListeners('waveStarted')) this.events.emit('waveStarted', { wave: this.waveIndex, endless: false });
     if (this.relicHooks.length) this.fireRelicHooks('waveStarted', null); // relic battlefield rules
   }
 
@@ -2263,7 +2281,7 @@ export class Game {
     this.applyDoctrineWarp(); // doctrine protocols reshape the queue first (no-op without a warp)
     this.applyRunEvent(depth); // Run Identity: fold this depth's beat + anomaly
     this.pushSfx('wave');
-    if (gameEvents.hasListeners('waveStarted')) gameEvents.emit('waveStarted', { wave: depth, endless: true });
+    if (this.events.hasListeners('waveStarted')) this.events.emit('waveStarted', { wave: depth, endless: true });
   }
 
   /** Boss Rush wave (docs/BOSS-RUSH.md): wave N deploys N procedural bosses in a staggered siege
@@ -2303,7 +2321,7 @@ export class Game {
     this.phase = 'wave';
     this.applyDoctrineWarp(); // doctrine protocols reshape the escort queue (no-op without a warp)
     this.pushSfx('wave');
-    if (gameEvents.hasListeners('waveStarted')) gameEvents.emit('waveStarted', { wave: depth, endless: false });
+    if (this.events.hasListeners('waveStarted')) this.events.emit('waveStarted', { wave: depth, endless: false });
   }
 
   /** Run Identity (docs/RUN-IDENTITY.md): fold this wave's scheduled event + the run anomaly onto the
@@ -2405,7 +2423,7 @@ export class Game {
       this.chosenCardEffects.push(...effects); // retain for the live run-Power (temporary bucket)
       if (scored) this.auditTempPower(powerBefore, `Gene Card ${card.name}`);
       this.pushSfx('draft');
-      if (gameEvents.hasListeners('cardChosen')) gameEvents.emit('cardChosen', { id: card.id, rarity: card.rarity });
+      if (this.events.hasListeners('cardChosen')) this.events.emit('cardChosen', { id: card.id, rarity: card.rarity });
     }
     this.draft = null;
     this.phase = 'prep';
@@ -2895,8 +2913,8 @@ export class Game {
     });
     // Side-channel for the HUD/audio (docs/NEMESIS.md) — a nemesis entrance earns its roar.
     // No listeners on the headless/golden path ⇒ never emitted, never a determinism factor.
-    if (gameEvents.hasListeners('bossSpawned')) {
-      gameEvents.emit('bossSpawned', { defId: def.id, name: def.name, nemesis: !!nem, nemesisTier: nem ? nem.tier : 0 });
+    if (this.events.hasListeners('bossSpawned')) {
+      this.events.emit('bossSpawned', { defId: def.id, name: def.name, nemesis: !!nem, nemesisTier: nem ? nem.tier : 0 });
     }
   }
 
@@ -2926,7 +2944,7 @@ export class Game {
         e.hitFlash = FX.hitFlash;
         this.floats.push({ x: e.x, y: e.y - 26, text: 'MUTATING!', color: def.color, life: 1 });
         this.pushSfx('splice');
-        if (gameEvents.hasListeners('bossPhase')) gameEvents.emit('bossPhase', { defId: b.defId, name: b.name, phase: b.phase });
+        if (this.events.hasListeners('bossPhase')) this.events.emit('bossPhase', { defId: b.defId, name: b.name, phase: b.phase });
         for (const mi of entered.modules) {
           const rm = def.modules[mi];
           if (rm.kind !== 'rally') continue;
@@ -3336,7 +3354,7 @@ export class Game {
     this.spawnParticles(WIDTH / 2, MEGA.anchorY + 60, PARTICLE.bossfall, def.palette.glow);
     this.pushSfx('mega');
     this.pushSfx(def.themeCue);
-    if (gameEvents.hasListeners('megaSpawned')) gameEvents.emit('megaSpawned', { defId: def.id, name: def.name, tier: enc.tier, encounter });
+    if (this.events.hasListeners('megaSpawned')) this.events.emit('megaSpawned', { defId: def.id, name: def.name, tier: enc.tier, encounter });
   }
 
   /** Drive the anchored organism: rotation, weak-point lifecycle, phases, regen, the daily
@@ -3519,7 +3537,7 @@ export class Game {
       this.floats.push({ x: WIDTH / 2, y: MEGA.anchorY + 80, text: 'IT MUTATES', color: def.palette.glow, life: 2 });
       this.spawnParticles(WIDTH / 2, MEGA.anchorY + 50, PARTICLE.bossfall, def.palette.body);
       this.pushSfx('megaPhase');
-      if (gameEvents.hasListeners('megaPhase')) gameEvents.emit('megaPhase', { defId: def.id, phase: rt.phase });
+      if (this.events.hasListeners('megaPhase')) this.events.emit('megaPhase', { defId: def.id, phase: rt.phase });
     }
     foldMegaFx(def, rt, this.time, this.megaFx);
     if (rt.hp <= 0) this.beginMegaDeath(def, rt);
@@ -3932,8 +3950,8 @@ export class Game {
     this.floats.push({ x: wp.x, y: wp.y - 28, text: `${wd.name.toUpperCase()} DESTROYED`, color: '#ffd24d', life: 2 });
     this.floats.push({ x: wp.x, y: wp.y - 10, text: wd.hudNote, color: '#6effa8', life: 2.2 });
     this.pushSfx('wpBreak');
-    if (gameEvents.hasListeners('megaWeakPointDown')) {
-      gameEvents.emit('megaWeakPointDown', { defId: def.id, kind: wp.kind, note: wd.hudNote, interrupted });
+    if (this.events.hasListeners('megaWeakPointDown')) {
+      this.events.emit('megaWeakPointDown', { defId: def.id, kind: wp.kind, note: wd.hudNote, interrupted });
     }
   }
 
@@ -3962,8 +3980,8 @@ export class Game {
     this.spawnParticles(WIDTH * 0.3, MEGA.anchorY + 70, PARTICLE.bossfall, def.palette.body);
     this.spawnParticles(WIDTH * 0.7, MEGA.anchorY + 70, PARTICLE.bossfall, def.palette.accent);
     this.pushSfx('megaDeath');
-    if (gameEvents.hasListeners('megaKilled')) {
-      gameEvents.emit('megaKilled', {
+    if (this.events.hasListeners('megaKilled')) {
+      this.events.emit('megaKilled', {
         defId: rt.defId, tier: rt.tier, encounter: rt.encounter,
         killSec, perfect, weakPoints: rt.wpDestroyed, interrupts: rt.interrupts,
       });
@@ -5211,7 +5229,7 @@ export class Game {
           }
           this.pushSfx('hit');
           if (p.skin) this.spawnBranchImpact(p.x, p.y, p.skin, p.skinTier ?? 1); // branch-flavoured landing (cosmetic; un-skinned golden shots skip it)
-          if (gameEvents.hasListeners('projectileHit')) gameEvents.emit('projectileHit', { x: p.x, y: p.y, damage: p.damage, targetId: p.targetId, byTower: p.sourceKind });
+          if (this.events.hasListeners('projectileHit')) this.events.emit('projectileHit', { x: p.x, y: p.y, damage: p.damage, targetId: p.targetId, byTower: p.sourceKind });
           // STRAIN kill-chaining (docs/STRAIN.md §identity — Hungering Barbs): a shot that
           // KILLS leaps once to the nearest living victim (distinct from pierce, which passes
           // through regardless of the outcome).
@@ -5351,7 +5369,7 @@ export class Game {
       }
     }
     if (p.skin) this.spawnBranchImpact(p.x, p.y, p.skin, p.skinTier ?? 1); // siege fireball / acid splash, by branch+tier
-    if (gameEvents.hasListeners('projectileHit')) gameEvents.emit('projectileHit', { x: p.x, y: p.y, damage: p.damage, targetId: -1, byTower: p.sourceKind });
+    if (this.events.hasListeners('projectileHit')) this.events.emit('projectileHit', { x: p.x, y: p.y, damage: p.damage, targetId: -1, byTower: p.sourceKind });
     const r2 = p.splash * p.splash;
     this.grid.forNeighbors(p.x, p.y, p.splash, (e) => {
       if (!e.alive) return;
@@ -6552,7 +6570,7 @@ export class Game {
     if (this.relicHooks.length) this.fireRelicHooks('abilityCast', null, px, py); // relic/rule hooks fire at the cast point
     h.abilityCd = this.heroAbilityCooldownFor(h);
     this.pushSfx('ability');
-    if (gameEvents.hasListeners('heroAbilityUsed')) gameEvents.emit('heroAbilityUsed', { kind: h.kind }); // drives the Combat Tutorial (golden-safe: gated on a listener)
+    if (this.events.hasListeners('heroAbilityUsed')) this.events.emit('heroAbilityUsed', { kind: h.kind }); // drives the Combat Tutorial (golden-safe: gated on a listener)
     // The name rides ABOVE the zone (the caster repositions onto its centre) — never on its body,
     // and clear of the grouped damage total the view lands mid-zone at impact.
     this.floats.push({ x: px, y: py - Math.max(64, ab.radius + 18), text: crit.crit ? `${ab.name}! ✷CRIT` : `${ab.name}!`, color: crit.crit ? '#ffcf5a' : def.color, life: 0.8, kind: crit.crit ? 'crit' : undefined });
@@ -6665,8 +6683,8 @@ export class Game {
       if (p.particle) this.spawnParticles(p.x, p.y, PARTICLE[p.particle], p.fxColor); // the landing burst
       // The view's IMPACT FRAME (docs/HERO-CINEMATICS.md §impact): hit-stop + zone bloom + one
       // grouped damage total. Observation only — gated on a listener, so the sim is untouched.
-      if (p.ult && gameEvents.hasListeners('abilityImpact')) {
-        gameEvents.emit('abilityImpact', { hero: p.hero, x: p.x, y: p.y, radius: p.radius ?? 0, color: p.fxColor ?? HERO_DEFS[p.hero].color, damage: this.statDamageDealt - dealtBefore });
+      if (p.ult && this.events.hasListeners('abilityImpact')) {
+        this.events.emit('abilityImpact', { hero: p.hero, x: p.x, y: p.y, radius: p.radius ?? 0, color: p.fxColor ?? HERO_DEFS[p.hero].color, damage: this.statDamageDealt - dealtBefore });
       }
     }
   }
@@ -6808,16 +6826,16 @@ export class Game {
           this.floats.push({ x: e.x, y: e.y - 14, text: `+${Math.round(gain)}`, color: '#b6e84a', life: 0.8 });
         }
         // Gameplay events (gated: no payload built when nobody is listening).
-        if (gameEvents.hasListeners('enemyKilled')) {
-          gameEvents.emit('enemyKilled', { id: e.id, kind: e.kind, x: e.x, y: e.y, bounty: e.bounty, byTower: e.lastHitKind, isBoss: e.boss !== null });
+        if (this.events.hasListeners('enemyKilled')) {
+          this.events.emit('enemyKilled', { id: e.id, kind: e.kind, x: e.x, y: e.y, bounty: e.bounty, byTower: e.lastHitKind, isBoss: e.boss !== null });
         }
-        if (e.boss && gameEvents.hasListeners('bossKilled')) {
+        if (e.boss && this.events.hasListeners('bossKilled')) {
           const kdef = bossDef(e.boss.defId) ?? this.procBosses.get(e.boss.defId);
           // A splitter (Mitotic Horror) is ONE boss in pieces: `final` marks the last piece, so the
           // FALLEN card and nemesis revenge wait for it. Read-only scan, built only for listeners.
           const id = e.boss.defId;
           const final = e.boss.splitsLeft === 0 && !this.enemies.some((o) => o !== e && o.alive && o.boss?.defId === id);
-          gameEvents.emit('bossKilled', { defId: id, name: e.boss.name, x: e.x, y: e.y, epithet: kdef?.epithet, final });
+          this.events.emit('bossKilled', { defId: id, name: e.boss.name, x: e.x, y: e.y, epithet: kdef?.epithet, final });
         }
         if (this.relicHooks.length) this.fireRelicHooks('enemyKilled', e); // relic battlefield rules
         if (this.relicHooks.length && (e.elite || e.boss)) this.fireRelicHooks('eliteKilled', e); // rule genes (docs/CARDS.md §rules)
@@ -7045,7 +7063,7 @@ export class Game {
     if (this.mega !== null && (this.megaDailyEnc !== null || this.mode !== 'campaign' || this.waveIndex >= this.totalWaves)) return;
     if (this.spawnedAll && this.spawnQueue.length === 0 && this.rushPending.length === 0 && this.enemies.length === 0) {
       this.minions.length = 0; // temporary summons don't outlive the wave they were called into
-      if (gameEvents.hasListeners('waveCompleted')) gameEvents.emit('waveCompleted', { wave: this.waveIndex, endless: this.mode === 'endless' });
+      if (this.events.hasListeners('waveCompleted')) this.events.emit('waveCompleted', { wave: this.waveIndex, endless: this.mode === 'endless' });
       if (this.relicHooks.length) this.fireRelicHooks('waveCleared', null); // relic rule on a cleared wave
       if (this.mods.integrityRegenPerWave > 0) { // Regenerative Carapace (gene card)
         this.integrity = Math.min(this.maxIntegrity, this.integrity + this.mods.integrityRegenPerWave);
@@ -7203,8 +7221,8 @@ export class Game {
     // Presentation seam (docs/COMBAT-VISUAL-STANDARDS.md §audio): the view layer plays a
     // throttled category cue per application. hasListeners-gated ⇒ zero work, no payload,
     // byte-identical goldens on the subscriber-less path.
-    if (gameEvents.hasListeners('statusApplied')) {
-      gameEvents.emit('statusApplied', { id, category: d.category, x: e.x, y: e.y });
+    if (this.events.hasListeners('statusApplied')) {
+      this.events.emit('statusApplied', { id, category: d.category, x: e.x, y: e.y });
     }
     return true;
   }

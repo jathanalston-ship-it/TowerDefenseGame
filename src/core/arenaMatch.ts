@@ -135,6 +135,7 @@ export class ArenaMatch {
     this.setup = setup;
     this.localGame = bootGame(setup.seed, setup.local);
     this.remoteGame = bootGame(setup.seed, setup.remote);
+    this.remoteGame.isolateEvents(); // the opponent's field: its kills are not the player's
     this.aiCtl = setup.vsAi && setup.ai ? new AiController(setup.ai.controllerSeed, setup.ai.personality) : null;
     this.remoteFrontier = this.aiCtl ? Number.MAX_SAFE_INTEGER : 0;
   }
@@ -252,6 +253,7 @@ export class ArenaMatch {
    *  headlessly in well under a second (the deterministic sim's gift). */
   replayRemoteFromLog(targetTick = this.remoteGame.stepCount): void {
     const rebuilt = bootGame(this.seed, this.setup.remote);
+    rebuilt.isolateEvents();
     const advanceTo = (tick: number): void => {
       while (rebuilt.stepCount < tick) {
         const before = rebuilt.stepCount;

@@ -76,5 +76,6 @@ export class EventBus<M> {
   }
 }
 
-/** The single app-wide gameplay bus. The sim + meta emit here; UIs/systems subscribe. */
+/** The app-wide gameplay bus: the PLAYER's own run emits here (Game.events defaults to it) and
+ *  meta/UI subscribe. A sim that isn't the player's run gets a private bus (Game.isolateEvents). */
 export const gameEvents = new EventBus<GameEventMap>();

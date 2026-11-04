@@ -3,11 +3,12 @@
 
 import { describe, expect, it } from 'vitest';
 import { Game } from './game';
-import { SIM_DT } from './config';
+import { SIM_DT, TOWER_ORDER } from './config';
 import { towerSlots } from './map';
 import { attachRecorder, replayRun, verifyReplay } from './replay';
 import type { ReplayCtorArgs } from './replay';
 import type { MetaModifiers } from './types';
+import { gameEvents } from './events';
 
 const NO_META: MetaModifiers = { towerDamageMult: 1, biomassMult: 1, heroDamageMult: 1, integrityBonus: 0, bonusSlots: 0 };
 
@@ -86,5 +87,44 @@ describe('replay verification (R1)', () => {
     const a = playRecorded(seed).outcome;
     const b = playRecorded(seed).outcome;
     expect(a).toEqual(b);
+  });
+  // Someone else's run must never credit the player's save (meta.ts listens on the app-wide bus
+  // for boss/mega kills): the verifier, the replay theater and the Arena mirror isolate their sims.
+  it('replayRun never emits to the app-wide event bus', () => {
+    const { record } = playRecorded(4242);
+    let heard = 0;
+    const off = gameEvents.on('waveStarted', () => heard++);
+    try {
+      replayRun(record, 1_200);
+    } finally {
+      off();
+    }
+    expect(heard).toBe(0);
+  });
+
+  it('a record from an older build (missing a newer tower kind) still replays, identically', () => {
+    const { record } = playRecorded(31);
+    const full = replayRun(record, 1_200);
+    // Rebuild the args the way an older build would have sent them: no entry for the newest kind.
+    const tp = Object.fromEntries(TOWER_ORDER.slice(0, -1).map((k) => [k, { damageMult: 1, fireRateMult: 1 }]));
+    const old = { ...record, args: [record.args[0], record.args[1], tp] as unknown as typeof record.args };
+    expect(() => replayRun(old, 1_200)).not.toThrow();
+    expect(replayRun(old, 1_200)).toEqual(full);
+  });
+
+  it('an isolated game speaks only on its own bus; a default game on the app-wide one', () => {
+    let global = 0;
+    let own = 0;
+    const off = gameEvents.on('waveStarted', () => global++);
+    try {
+      const iso = new Game(5, NO_META);
+      iso.isolateEvents().on('waveStarted', () => own++);
+      iso.startWave();
+      expect([global, own]).toEqual([0, 1]);
+      new Game(5, NO_META).startWave();
+      expect([global, own]).toEqual([1, 1]);
+    } finally {
+      off();
+    }
   });
 });

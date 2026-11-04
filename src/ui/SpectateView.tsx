@@ -14,7 +14,6 @@ import { WIDTH, HEIGHT } from '../core/map';
 import type { ReplayRecord } from '../core/replay';
 import { drawGame } from '../render/renderer';
 import { Announcer, type Shown } from '../render/feel';
-import { gameEvents } from '../core/events';
 import { CentreStage, megaFallCard, type StageCard } from './components/CentreStage';
 import { audio } from '../audio/sound';
 import { music } from '../audio/music';
@@ -37,7 +36,9 @@ export function SpectateView({ record, onExit }: { record: ReplayRecord; onExit:
   useLocale();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const gameRef = useRef<Game | null>(null);
-  const game = (gameRef.current ??= new Game(...record.args));
+  // Someone else's run: a private event bus, so its kills never credit the viewer's save.
+  if (!gameRef.current) { gameRef.current = new Game(...record.args); gameRef.current.isolateEvents(); }
+  const game = gameRef.current;
   const idxRef = useRef(0); // next input event to apply
   const accRef = useRef(0); // banked sim-seconds awaiting whole steps
   const guardRef = useRef(0); // lifetime step budget (mirrors replayRun's runaway guard)
@@ -62,8 +63,8 @@ export function SpectateView({ record, onExit }: { record: ReplayRecord; onExit:
       const a = announcerRef.current!;
       if (!skippingRef.current && a.push(card, performance.now())) setStageCard(a.current);
     };
-    const offBoss = gameEvents.on('bossKilled', (e) => { if (e.final) announce({ kind: 'bossFall', name: e.name, epithet: e.epithet ?? '' }); });
-    const offMega = gameEvents.on('megaKilled', (e) => announce(megaFallCard(e)));
+    const offBoss = game.events.on('bossKilled', (e) => { if (e.final) announce({ kind: 'bossFall', name: e.name, epithet: e.epithet ?? '' }); });
+    const offMega = game.events.on('megaKilled', (e) => announce(megaFallCard(e)));
     return () => { offBoss(); offMega(); };
   }, []);
 

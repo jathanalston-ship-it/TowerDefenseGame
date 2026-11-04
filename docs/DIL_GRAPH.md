@@ -1,6 +1,6 @@
 # DIL_GRAPH.md — the Design Intelligence Layer (GENERATED — `npm run dil -- regen`)
 
-> **The project's brain** (docs/DIL.md). 950 nodes · 1822 edges, built from the live
+> **The project's brain** (docs/DIL.md). 950 nodes · 1823 edges, built from the live
 > registries + curated knowledge (src/dev/dil/). **Query it instead of searching the repo:**
 > `npm run dil -- node <id>` · `affects <id>` · `requires <id>` · `missing <kind> <edge>` ·
 > `checklist tower <kind>` · `find <text>`. Edge kinds are bidirectional (19 kinds).
@@ -875,6 +875,7 @@ _at: src/core/game.ts, src/core/combat.ts, src/core/status.ts, src/core/targetin
   - dependsOn → `system:assimilation`
   - provides → `concept:power-score` — emits the TEMPORARY in-run bucket (game.powerEffects)
   - provides → `concept:determinism` — fixed-timestep sim, seeded rng, render/sim wall
+  - conflictsWith → `system:online-foundation` — ONE GAME = ONE BUS: meta.ts records boss/Mega kills for the PLAYER off the app-wide gameEvents bus, so any Game that is not the player’s own run (SpectateView replay, ArenaMatch remote mirror + its rollback rebuild, replayRun verification) MUST call game.isolateEvents() — otherwise someone else’s kills credit this save.
   - modifies → `system:rendering` — STATUS FX CONTRACT (2026-07, COMBAT-VISUAL-STANDARDS.md): every StatusEffectDef carries a MANDATORY fx trait block (hue/glow/pulse/overlay/particles — validator-rejected without it); render/statusFx.ts MERGES all live statuses per body (blended hue, deduped overlays, budgeted emitters) — never draw a bespoke per-status ring in the renderer again
   - requiredBy ← `system:hive-mind`
   - requiredBy ← `system:campaign`
@@ -1196,10 +1197,10 @@ _at: src/core/online.ts, src/core/itemIdentity.ts, src/core/trading.ts, src/core
   - testedBy ← `test:src/core/marketCatalog.test.ts`
   - testedBy ← `test:src/core/online.test.ts`
   - testedBy ← `test:src/net/arenaMatchmaker.test.ts`
+  - conflictsWith ← `system:engine` — ONE GAME = ONE BUS: meta.ts records boss/Mega kills for the PLAYER off the app-wide gameEvents bus, so any Game that is not the player’s own run (SpectateView replay, ArenaMatch remote mirror + its rollback rebuild, replayRun verification) MUST call game.isolateEvents() — otherwise someone else’s kills credit this save.
   - consumedBy ← `system:net-backend` — AUCTION ATOMICITY (functions/lib/auctionHost.ts): wallet CHECKs (balance/escrow ≥0) + the partial UNIQUE active-listing index turn violations into FULL batch rollbacks; ordering = state transition FIRST, every money statement CONDITIONED on it via WHERE EXISTS (lost races charge nothing); exactly-once anchors: market_trades PK, wallet-ledger op-id PK, market_windows PK; client custody is SERVER-FIRST (meta.auctionEscrowOut only after 200; auctionReconcile self-heals; wallet ops ride a localStorage outbox with the same op id across restarts)
   - extendedBy ← `system:mulligans` — MULLIGAN PIECES TRADE (2026-07, the fourth category): mul:<pieceId> trades the DEX UNLOCK (save.mulliganDex) — families mul.<piece>.<rarity> per SEQUENCED rarity (equipment precedent; mixed rarities poison price stats); baseline/buyback bands common+uncommon only; a grafted piece blocks as slotted (unslot first), a reforge-LOCKED host reads bound, escrow-out deletes the dex entry, delivery sequences an unowned piece at the listing rarity or dissolves an owned one to Tissue via DUP_TISSUE (core/mulligan.ts — the pillar duplicate law, shared with container opens); pinned by state/auctionCustody.test.ts + a functions wire round-trip
-  - extendedBy ← `system:arena` — PRIVATE BOUTS + THE LADDER + THE SWEEP (ARENA.md §private/§ladder/§sweep): findPrivateMatch joins the direct room pm:<season>:<CODE> (codes normalize; the broker fills DIRECT rooms with the same paired handshake, first-in = role 0) with a gate that DROPS the bracket but keeps proto/season/boot/fingerprint; ArenaMatchSetup.friendly plays the full ruleset and NEVER settles (no rating/rewards/pass XP ⇒ nothing to win-trade — ArenaView branches settle vs friendly verdict); Quick Match is deliberately unshipped (pool-splitting — one mm:-prefix away if wanted); GET /api/arena/ladder reads arena_ratings top 50 + you-rank (names stored sanitized on report — migration 0006; tags derive from stored player_id); npm run arena:sweep is the bulk AI-vs-AI stability harness (every match terminates, every claim passes arenaClaimProblem, rating deltas sign-correct) → docs/ARENA_MATCH_REPORT.md
-  - _…3 more (query: `npm run dil -- node system:online-foundation`)_
+  - _…4 more (query: `npm run dil -- node system:online-foundation`)_
 
 ### `system:arena` — Arena (Live PvP)
 

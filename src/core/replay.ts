@@ -95,6 +95,7 @@ function cloneArgs(args: ReplayCtorArgs): ReplayCtorArgs {
 /** Re-run a record to completion (terminal phase) or its step/time budget. */
 export function replayRun(record: ReplayRecord, maxSimSeconds = 7_200): ReplayOutcome {
   const game = new Game(...record.args);
+  game.isolateEvents(); // a verifier: nothing it re-simulates may reach app listeners
   const g = game as unknown as Record<string, (...a: unknown[]) => unknown>;
   const maxSteps = Math.min(Math.ceil(maxSimSeconds / SIM_DT), Math.max(0, record.end) + 60);
   let guard = 0;
