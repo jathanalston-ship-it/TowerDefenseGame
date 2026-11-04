@@ -479,3 +479,12 @@
 - `2beef2e` **[Enemies]** Website media: new combat + Mega stills and trailer; combat still waits for the swarm to clear the first corridor
 - `038bb1f` **[Gameplay]** Validation report: PASS over the polish, content and economy batch (2847/2847, mobile gate clean, probe in budget) _(internal)_
 - `238e920` **[Developer Tools]** Mobilecheck/cogload: spawn vite directly so stopping the preview server leaves no orphan _(internal)_
+- `7c5156c` **[Framework]** Notes: sync Chronicle artifacts to HEAD _(internal)_
+- `5829fd0` **[Bug Fixes]** Upgrades that hit around the victim now land on the victim, not the tower
+- `014b772` **[Bug Fixes]** An infection spreads by the reach of the tower that laid it
+- `8662346` **[UI]** Pick the next stage's boon right on Results
+- `3cb429e` **[Gameplay]** Molt Imprint: a Molt keeps a growing share of every Genome upgrade's levels
+- `8a8643e` **[Gameplay]** Molt Chamber + Help: show what the Molt Imprint keeps and the Power after
+- `bb1f2be` **[Gameplay]** Docs: the Molt Imprint in the Genome Core, prestige and Molt Chamber docs _(internal)_
+- `bd7803f` **[Developer Tools]** Registry: the prestige entry names the Molt Imprint _(internal)_
+- `16f4d83` **[Balance]** Balance §9.6: the Molt trough decided — Molt Imprint, with the matrix _(internal)_

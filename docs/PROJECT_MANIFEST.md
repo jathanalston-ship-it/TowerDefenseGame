@@ -418,6 +418,9 @@ ladders. 4. Every permanent progression source must move the Power Score (valida
 - **Future expansion:** 1 of 6 designed prestige layers built (Speciation etc. are spec-only).
 - **Known limitations:** exactly that — deeper layers are documented, not implemented.
 - **Developer tips:** the multiplier is sqrt-mint → log-fold; don't linearize it "for clarity."
+  The MOLT IMPRINT (`moltImprint` / `imprintedUpgrades`, `PRESTIGE.molt.imprintPerMolt`/`imprintMax`)
+  keeps round(level × min(0.7, 0.0125 × Molts done)) of each upgrade; `meta.ts moltedSave` builds
+  both the Molt and `moltPowerPreview` — keep it the one builder (BALANCE_ARCHITECTURE §9.6).
 
 ## Currencies
 

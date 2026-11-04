@@ -22,7 +22,7 @@ export const POSTS: BlogPost[] = [
     title: 'Feel and Flow: boss kills that land, a Back button that works, and three new answers',
     category: 'Release',
     tags: ['game-feel', 'navigation', 'towers', 'heroes', 'enemies', 'economy'],
-    summary: 'The second update of the day is about how ASSIMILATION feels in the hand: boss kills with weight, centre-screen moments that take turns, a Back button that walks the game, one Claim all, three new towers, a new hero, six puzzle enemies and an honest look at the economy.',
+    summary: 'The second update of the day is about how ASSIMILATION feels in the hand: boss kills with weight, centre-screen moments that take turns, a Back button that walks the game, one Claim all, three new towers, a new hero, six puzzle enemies, an honest look at the economy and a Molt that no longer wipes everything.',
     body: `
 <p>The First Hour update was about taking things away. This one is about the moments that remain: what a boss kill feels like, what happens when you press Back, how many taps it takes to get where the game is pointing you. We recorded the battlefield frame by frame, walked every menu with a script that counts clicks, and fixed what we found.</p>
 <h2>Boss kills land</h2>
@@ -44,12 +44,16 @@ export const POSTS: BlogPost[] = [
 <p>The questions arrive from Stage 4: the plated <b>Chitin Scuttler</b>, the airborne <b>Blight Moth</b>, the burrowing <b>Marrow Borer</b>, the shielded <b>Shellback Bombard</b>, the <b>Veil Moth</b> that shields its flock, and the <b>Wisp Mother</b> that births fliers. Each one asks for a specific answer, and the first three stages are unchanged.</p>
 <h2>An honest look at the economy</h2>
 <p>Our balance simulator plays eleven kinds of player for 400 hours each. In July it raised seventeen warnings. Most of them turned out to be the simulator misreading its own data, mainly the Power drop after every Molt. With those fixed, three remain, and two real problems are now solved. Every Gene Card level visibly raises your Power, even small economy upgrades. And deep into the game, Strain Samples a tower can never spend turn into Gene Essence instead of piling up.</p>
+<p>The simulator also showed us the one thing that did hurt: the <b>Molt</b>. Every Molt bought your whole Genome engine back from zero, and the deeper you went the harder that landed. By a few hundred hours a Molt dropped your Power thirty-fold, and you spent most of each cycle unable to play your own frontier. Now a Molt leaves an <b>Imprint</b>. From your second Molt on, every Genome upgrade keeps a growing share of its levels (1.25% more per Molt, up to 70%). Those are the cheap bottom rungs of each ladder, so the climb back still costs. Power now dips about threefold instead of crashing, and a late Molt costs roughly half the hours to recover. The first Molt works exactly as before, and the Molt Chamber now shows what you keep and your Power after the Molt before you confirm.</p>
 <h2>Fixes worth naming</h2>
 <ul>
 <li>Watching a replay no longer adds its kills to your own Bestiary, Mega records or nemesis revenge.</li>
 <li>Replay links recorded before an update play again, and the replay theater shows boss falls.</li>
 <li>A Mitotic Horror falls once; its split pieces no longer each announce a kill.</li>
 <li>The Bio-Dex counts only real Brood Tyrants.</li>
+<li>Upgrades that promise an effect "around the victim" (Acid Lancet, Basilisk, Chrysalis, Siphon, Coil, Spire and Spitfang upgrades) now land on the struck enemy. They used to fire around the tower.</li>
+<li>Miasma Lung's infection-spread upgrades work: an infection now spreads by the reach of the tower that laid it.</li>
+<li>When the next stage offers a boon, "Stage N+1 ▸" on Results lets you pick it instead of taking the default.</li>
 </ul>
 <p>Next up are four signature moments: the last kill of a wave, victory carrying into Results, cutscenes that move, and a battlefield that continues past its edges. Each one ships only after we've reviewed it frame by frame.</p>
 `,

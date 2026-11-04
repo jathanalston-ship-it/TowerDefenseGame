@@ -133,6 +133,23 @@ export const RELEASES: Release[] = [
       {
         "cat": "Website",
         "text": "The website catches up: new devlog “Feel and Flow”, refreshed features, screenshots and trailer"
+      },
+      {
+        "cat": "Gameplay",
+        "text": "Molting no longer wipes your whole Genome engine: from your second Molt on, every upgrade keeps a growing share of its levels (+1.25% per Molt, up to 70%), so Power dips instead of crashing — and the Molt Chamber shows your Power after the Molt before you confirm",
+        "major": true
+      },
+      {
+        "cat": "Towers",
+        "text": "Upgrades that promise an effect around the victim (Acid Lancet, Basilisk, Chrysalis, Siphon, Coil, Spire, Spitfang) now land on the struck enemy instead of around the tower"
+      },
+      {
+        "cat": "Towers",
+        "text": "Miasma Lung’s infection-spread upgrades work: an infection now spreads by the reach of the tower that laid it"
+      },
+      {
+        "cat": "Gameplay",
+        "text": "“Stage N+1 ▸” on Results lets you pick the next stage’s boon instead of taking the default"
       }
     ]
   },

@@ -1,6 +1,6 @@
 {
-  "lastSha": "238e920d557a312208bf157227ad1f50e7cb2405",
-  "commitsSinceDraft": 5,
+  "lastSha": "11babe62dc7e2fe438dee875793f67de8299e14d",
+  "commitsSinceDraft": 0,
   "content": {
     "tower": [
       "needle",
@@ -3276,6 +3276,23 @@
         {
           "cat": "Website",
           "text": "The website catches up: new devlog “Feel and Flow”, refreshed features, screenshots and trailer"
+        },
+        {
+          "cat": "Gameplay",
+          "text": "Molting no longer wipes your whole Genome engine: from your second Molt on, every upgrade keeps a growing share of its levels (+1.25% per Molt, up to 70%), so Power dips instead of crashing — and the Molt Chamber shows your Power after the Molt before you confirm",
+          "major": true
+        },
+        {
+          "cat": "Towers",
+          "text": "Upgrades that promise an effect around the victim (Acid Lancet, Basilisk, Chrysalis, Siphon, Coil, Spire, Spitfang) now land on the struck enemy instead of around the tower"
+        },
+        {
+          "cat": "Towers",
+          "text": "Miasma Lung’s infection-spread upgrades work: an infection now spreads by the reach of the tower that laid it"
+        },
+        {
+          "cat": "Gameplay",
+          "text": "“Stage N+1 ▸” on Results lets you pick the next stage’s boon instead of taking the default"
         }
       ]
     }
@@ -6822,6 +6839,78 @@
       "date": "2026-11-04",
       "cat": "Developer Tools",
       "text": "Mobilecheck/cogload: spawn vite directly so stopping the preview server leaves no orphan",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "7c5156cdcc022205fdf31babcb5d63953f2b3b73",
+      "date": "2026-11-04",
+      "cat": "Framework",
+      "text": "Notes: sync Chronicle artifacts to HEAD",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "5829fd007a321b91ef1aa61e378ba44227c8cf66",
+      "date": "2026-11-04",
+      "cat": "Bug Fixes",
+      "text": "Upgrades that hit around the victim now land on the victim, not the tower",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "014b77298f0e2a9740555931d00572ff66a58bb1",
+      "date": "2026-11-04",
+      "cat": "Bug Fixes",
+      "text": "An infection spreads by the reach of the tower that laid it",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "8662346d5bd37c5e49fd5bb472c5434df47c7cfa",
+      "date": "2026-11-04",
+      "cat": "UI",
+      "text": "Pick the next stage's boon right on Results",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "3cb429ee391152fdf318d12db8cb3c4825f65e7b",
+      "date": "2026-11-04",
+      "cat": "Gameplay",
+      "text": "Molt Imprint: a Molt keeps a growing share of every Genome upgrade's levels",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "8a8643eaaf8412dcbd090f8b503c80b3bef00d0a",
+      "date": "2026-11-04",
+      "cat": "Gameplay",
+      "text": "Molt Chamber + Help: show what the Molt Imprint keeps and the Power after",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "bb1f2be6909db411c19f265d61561aae021994a3",
+      "date": "2026-11-04",
+      "cat": "Gameplay",
+      "text": "Docs: the Molt Imprint in the Genome Core, prestige and Molt Chamber docs",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "bd7803f5718035928185dc07310a0c1038ff9696",
+      "date": "2026-11-04",
+      "cat": "Developer Tools",
+      "text": "Registry: the prestige entry names the Molt Imprint",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "16f4d83fba3f5f0cfe17d8d8f7ff07478439bbe4",
+      "date": "2026-11-04",
+      "cat": "Balance",
+      "text": "Balance §9.6: the Molt trough decided — Molt Imprint, with the matrix",
       "internal": true,
       "needsReview": false
     }

@@ -94,17 +94,16 @@ None — save layer untouched.
 
 ## Remaining technical debt
 
-- Infection's death-spread reads only the Parasite's `infectionSpreadMult` (Miasma Lung's spread picks do nothing); Lancet/Basilisk "around the victim" grants fire at the tower — both queued as task cards by C3.
 - `BRANCH_HITSTOP` is sim-set, outside the FEEL table.
-- Post-Molt Power drops deepen with play time (×15–18 at 350h+) — BALANCE_ARCHITECTURE §9.5 watch items (Essence pile-up after ~700h, unspent Catalyst in sims).
-- Stage N+1 from Results takes the stage event's default boon.
+- BALANCE_REPORT.md / PROGRESSION_REPORT.md predate the Molt Imprint (re-render with the seeded matrix, ~70 min); acquisitions now count kept levels.
+- Essence pile-up after ~700h and unspent Catalyst in sims (BALANCE_ARCHITECTURE §9.5).
+- The Campaign persona's late pacing rose ~10% with the Imprint (the persona the trough hurt most) — watch it in the next report.
 
 ## Recommended next tasks
 
-1. Deploy this batch on the owner's go-ahead (fast-forward `claude/zen-hawking-rh1gxl`; CI is SHA-verified).
-2. Fix Infection spread ownership (`core/game.ts spreadInfection` — e.g. the strongest placed carrier sets the reach) and the extraAbilities cast origin (`cast.x/y`).
-3. Signature moments in order 1 → 2 → 4 → 3 (docs/SIGNATURE-MOMENTS.md), each reviewed from a frame-stepped capture.
-4. Address the post-Molt Power-drop feel (BALANCE_ARCHITECTURE §9.5).
+1. Signature moments in order 1 → 2 → 4 → 3 (docs/SIGNATURE-MOMENTS.md), each reviewed from a frame-stepped capture.
+2. Re-render BALANCE_REPORT / PROGRESSION_REPORT under the Molt Imprint and re-check the Campaign persona's pacing.
+3. Essence sinks past ~700h (BALANCE_ARCHITECTURE §9.5).
 
 ## Future expansion hooks
 

@@ -1663,8 +1663,13 @@ byte-identical and the save stays v55.
 feel = one FEEL row. New modal = `useDismiss(close)`. New long screen = `SectionNav` sections.
 New claim surface = `ClaimAll`. New non-player sim = `isolateEvents()`.
 
-**Known limitations.** Infection's death-spread reads only the Parasite's multiplier (Miasma
-Lung's spread picks do nothing) and Lancet/Basilisk "around the victim" grants fire at the tower
-(both queued as tasks). `BRANCH_HITSTOP` is set by the sim, outside the FEEL table. Stage N+1 takes
-the stage event's default boon. Post-Molt Power drops deepen with play time (BALANCE_ARCHITECTURE
-§9.5 watch items). Signature moments (docs/SIGNATURE-MOMENTS.md) are designed, not built.
+**Follow-up fixes (same release).** Infection has an owner (`Enemy.infectedBy`): the death-spread
+uses the infecting tower's reach, so Miasma Lung's spread picks work. Area grant components take
+`at: 'victim'` — 34 star/branch effects worded "around the victim" now land on it (Siphon grants get
+their drained target). Results offers Stage N+1's Mutation boon choice. The MOLT IMPRINT keeps
+round(level × min(0.7, 0.0125 × Molts done)) of every Genome upgrade, so a late Molt's Power drop
+is ~×3 instead of ×33–40 (first Molt unchanged; BALANCE_ARCHITECTURE §9.6).
+
+**Known limitations.** `BRANCH_HITSTOP` is set by the sim, outside the FEEL table. BALANCE_REPORT /
+PROGRESSION_REPORT still show the pre-Imprint sawtooth until the next full matrix render (§9.6).
+Signature moments (docs/SIGNATURE-MOMENTS.md) are designed, not built.
