@@ -127,8 +127,9 @@ liveBossMult   = r ≤ 1 ? 1 : min(liveBossCap, 1 + threatPerPowerRatio·(r − 
 liveThreatParts(m) = { hp: m^(1−s), pace: m^s }    s = livePaceShare            // "pace, not sponge"
 ```
 
-Shipped: `threatPerPowerRatio` 0.5 · `liveFromWave` 4 · `liveCap` 16 · `livePaceShare` 0.5 ·
-`liveBossCap` 16 (config.ts `DIRECTOR_ADAPTIVE`).
+Shipped: `threatPerPowerRatio` 0.5 · `liveFromWave` 4 · `liveCap` 3 · `livePaceShare` 0.5 ·
+`liveBossCap` 4 (config.ts `DIRECTOR_ADAPTIVE`; the first release used caps 16/16 — see the
+matched-pair decomposition below for why they came down).
 
 - **Where it lands:** a wave ≥ 4 schedules its chaff at HP × m^½ and spawn rate × m^½ (the work the
   board must do per second rises ×m, half of it as pressure instead of a slower slog); every boss
@@ -158,13 +159,36 @@ stage × 3 seeds; 8 h account S29 / 100 h account S80; all with the opening rule
 | w 1, ¾ pace, cap 64, boss 16 | 91 | 63 | 40 / 73 | 84 / 79 | 510 / 859 |
 | w 0.5, ½ pace, cap 32, boss 32 | 75 | 35 | 77 / 84 | 71 / 89 | 656 / 1233 |
 | w 1, ½ pace, cap 64, boss 64 | 58 | 25 | 86 / 83 | 62 / 85 | 802 / 1225 |
+| w 0.5, ½ pace, cap 16, boss 16 (first release) | 78 | 50 | 75 / 79 | 77 / 77 | 586 / 1230 |
+| w 0.5, ¾ pace, cap 16, boss 6 | 95 | 79 | 0 / 57 | 87 / 76 | 444 / 946 |
+| w 0.5, ½ pace, cap 6, boss 6 | 80 | 58 | 73 / 77 | 84 / 77 | 518 / 890 |
+| **w 0.5, ½ pace, cap 3, boss 4 (shipped)** | 91 | 77 | 40 / 57 | 84 / 75 | 441 / 876 |
 
 Lessons: an answering gift removes the opening lottery, which WAS most of the difficulty — every
 variant wins far more than before unless the live threat is large; pace-heavy splits are EASIER
 (area boards love clumps); HP is what bites, and it lengthens waves. One weight can't fit both
 accounts (w 1 suits 8 h, crushes 100 h) because the Power Score's temporary bucket doesn't track the
-board's real growth (18 towers vs 2 isn't in it). The shipped 0.5 / 16 is the compromise; the full
-before/after is in docs/CAMPAIGN.md §opening. Known limitation → §7 (a board-size input).
+board's real growth (18 towers vs 2 isn't in it). Known limitation → §7 (a board-size input).
+
+**Where the run length comes from — matched (stage, seed) pairs** (pairs that WIN both before and
+with the first release: 56 at 8 h, 43 at 100 h; same job order for every row, frozen clock; ratio =
+Σ winning wave-seconds ÷ the same pairs before):
+
+| lever stack | 8 h ratio | 100 h ratio | 100 h pairs still won | wave-1 losses |
+|---|---|---|---|---|
+| (a) opening rules only (flier caps + Mega wave 3; plain gift; live off) | ×1.01 | ×1.02 | 39/43 | 1 / 0 |
+| (b) + answering gift (drag aura first) | ×0.86 | ×1.18 | 42/43 | 0 / 0 |
+| (b′) + answering gift, AREA first | ×0.86 | ×1.14 | 38/43 | 0 / 1 |
+| (c) + live threat, first release (caps 16/16) | ×1.63 | ×2.67 | 35/43 | 0 / 0 |
+| (c′) area-first gift + caps 16/16 | ×1.63 | ×2.34 | 23/43 | 0 / 1 |
+| **(c″) + live threat, shipped caps 3/4** | ×1.08–1.10 | ×1.61–1.73 (run-order noise) | 41–42/43 | 0 / 0 |
+
+The ×3.6 headline at 100 h (first release) was ~¼ mix — more long, deep stages now winning — and
+~¾ the live threat's HP (waves 4+ went 238 → 725 s per run; the drag-aura gift added ~+16 %, an
+area-first order saved only 4 points while costing 100 h wins). Caps 3/4 keep the opening fix
+(wave-1 losses 0), keep losses mostly late (40 % / 57 % of losses after wave 3 vs 0 % before) and
+the Hive damage mostly past wave 3, at the price of a softer finale: frontier win rates rise more
+than with 16/16. The full before/after is in docs/CAMPAIGN.md §opening.
 
 ## 6b. Campaign onboarding boss strength (§onboarding)
 

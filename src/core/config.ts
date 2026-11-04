@@ -3113,15 +3113,16 @@ export const DIRECTOR_ADAPTIVE = {
   // the stage's recommended Power) re-feeds the seam at every wave launch with that × the run's
   // temporary Power (cards, Hero Evolution, branches, strains — ×60–90 by a 12-wave finale) — the
   // snowball that made waves 4+ a formality meets a real finale. Upward only (never props a weak
-  // board up). Harness sweep (w 0.1→1, caps 3→64): small caps only stretched waves (87 % flawless,
-  // 3× longer); w 1 fit the 8 h account but crushed the 100 h one (25 % frontier wins) — 0.5/16 is
-  // the compromise (docs/DIFFICULTY_DIRECTOR.md §6a "Measured").
+  // board up). Harness sweep (w 0.1→1, caps 3→64): w 1 fit the 8 h account but crushed the 100 h
+  // one (25 % frontier wins); 0.5 with caps 16/16 kept late losses but made a winning 100 h run
+  // ×2.7 longer on matched (stage, seed) pairs — the live HP, not the gift, was the slog. Caps 3/4
+  // land ×1.6 (docs/DIFFICULTY_DIRECTOR.md §6a "Measured").
   liveFromWave: 4, // waves before this are the opening (untouched — the opening build answers them)
-  liveCap: 16, // the live multiplier on chaff waves never exceeds this
+  liveCap: 3, // the live multiplier on chaff waves never exceeds this
   // …and lands as PACE as much as HP (ENDLESS-SCALING "pace, not sponge"): HP × m^(1−s), spawn rate
   // × m^s. Pace-heavy (s 0.75) proved EASIER (area boards love clumps); HP-only is a slog — 0.5.
   livePaceShare: 0.5,
-  liveBossCap: 16, // a BOSS body takes the whole live multiplier (no pace split — it can't be paced or pulled) up to this
+  liveBossCap: 4, // a BOSS body takes the whole live multiplier (no pace split — it can't be paced or pulled) up to this
 };
 
 // ── Adaptive Economy Framework: income-seam weights (docs/ECONOMY_FORMULAS.md) ──
