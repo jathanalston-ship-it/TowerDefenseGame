@@ -31,6 +31,7 @@ import { ACCOUNT_TITLES, MILESTONE_LEVELS, accountLevelReward } from '../core/ac
 import { LeaderboardBlock } from './components/LeaderboardBlock';
 import { GenomeRankPanel } from './components/GenomeRankPanel';
 import { Fold } from './components/MobileSection';
+import { ThreatRecord } from './components/ThreatPicker';
 import type { LbMode } from '../net/leaderboard';
 
 const CAREER_SECTIONS: ProfileSectionId[] = ['combat', 'economy', 'campaign', 'infinite', 'bossrush', 'pvp', 'collection'];
@@ -326,6 +327,7 @@ export function PlayerProfile({ onNavigate }: { onNavigate?: (nav: string) => vo
         </div>
       </section>
 
+      <ThreatRecord />
       {/* ── 2 · CAREER STATISTICS — registry-driven groups, each behind a scannable fold ── */}
       <section className="pf-block" aria-label="Career statistics">
         <div className="pf-h">Career Statistics</div>

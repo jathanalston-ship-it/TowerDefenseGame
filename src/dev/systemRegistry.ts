@@ -507,6 +507,15 @@ export const SYSTEMS: SystemDef[] = [
     localization: 'inline-en', docs: ['docs/DOCTRINES.md', 'docs/MODE-IDENTITY.md'],
   },
   {
+    id: 'threat', name: 'Threat Ladder', purpose: 'The opt-in per-mode difficulty ladder (Threat 0–10) — the main replay axis on SOLVED content (Campaign replays, Infinite, Boss Rush): each rung stacks one named DoctrineWarp modifier, composed through the difficulty director, pays a modest reward bonus through the economy director\'s `threat.reward` factor, and grants cosmetic milestones (titles, frames, achievements) — never Power.',
+    files: ['src/core/threat.ts', 'src/ui/components/ThreatPicker.tsx'],
+    dependsOn: ['content-infra', 'difficulty', 'campaign', 'infinite', 'boss-rush', 'reward-architecture', 'profile'],
+    powerScore: null, save: ['threat'], tutorial: [], help: ['threat'],
+    hud: ['wm-threat chip (run HUD wave module)'], ui: ['ThreatPicker (CampaignScreen replay panel, InfiniteScreen, BossRushScreen)', 'ThreatResult (Results)', 'ThreatRecord (PlayerProfile)'],
+    collection: null, achievements: ['threat_3', 'threat_5', 'threat_10'],
+    localization: 'inline-en', docs: ['docs/THREAT.md'],
+  },
+  {
     id: 'difficulty', name: 'Difficulty', purpose: 'Difficulty variants + the Universal Difficulty Director — ONE composition layer for every scaling policy (threat curves, doctrine warps, stage folds, mode economy).',
     files: ['src/core/difficulty.ts', 'src/core/difficultyDirector.ts'],
     dependsOn: ['content-infra'], powerScore: null, save: [], tutorial: [], help: [], hud: [], ui: ['CampaignScreen', 'InfiniteScreen', 'CommandCenter'],

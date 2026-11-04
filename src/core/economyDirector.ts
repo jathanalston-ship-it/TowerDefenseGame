@@ -75,6 +75,7 @@ export interface CoreShardInputs {
   endlessRewardMult: number; // difficulty reward × ascendant Infinity (endless only; 1 otherwise)
   modeCoreMult: number; // mode reward identity (difficultyDirector.modeCoreMult)
   doctrineRewardMult: number; // doctrine protocol run-end warp (1 without)
+  threatRewardMult?: number; // THREAT LADDER bonus (difficultyDirector.threatEconomy — docs/THREAT.md); omitted/1 ⇒ identity
   adaptive?: EconomyAdaptiveInputs;
 }
 
@@ -87,6 +88,7 @@ export function coreShardIncome(i: CoreShardInputs): Income {
     { id: 'difficulty.endlessReward', value: i.endlessRewardMult },
     { id: 'mode.core', value: i.modeCoreMult },
     { id: 'doctrine.reward', value: i.doctrineRewardMult },
+    { id: 'threat.reward', value: i.threatRewardMult ?? 1 }, // the Threat ladder (identity at Threat 0)
     { id: 'adaptive.income', value: adaptiveIncomeMult(i.adaptive) },
   ]);
 }
@@ -102,6 +104,7 @@ export interface LootPointInputs {
   containerRateMult: number; // difficulty economy axis (containers fill faster)
   bossLootMult: number; // Bosses codex bonus (×1 on a fresh account)
   endlessTaperMult?: number; // Infinite depth-camping taper (docs/MODE-IDENTITY.md §anti-grind); omitted/1 ⇒ identity
+  threatRewardMult?: number; // THREAT LADDER bonus (docs/THREAT.md); omitted/1 ⇒ identity
   adaptive?: EconomyAdaptiveInputs;
 }
 
@@ -115,6 +118,7 @@ export function lootPointIncome(i: LootPointInputs): Income {
     { id: 'difficulty.containerRate', value: i.containerRateMult },
     { id: 'collection.bossLoot', value: i.bossLootMult },
     { id: 'endless.taper', value: i.endlessTaperMult ?? 1 }, // Infinite depth-camping taper (identity elsewhere)
+    { id: 'threat.reward', value: i.threatRewardMult ?? 1 }, // the Threat ladder (identity at Threat 0)
     { id: 'adaptive.income', value: adaptiveIncomeMult(i.adaptive) },
   ]);
 }

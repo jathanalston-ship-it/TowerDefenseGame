@@ -16,7 +16,7 @@ import {
 } from '../save/saveStore';
 import type { BackupMeta, ImportResult, SaveData } from '../save/saveStore';
 import { enterGuestMode, exitGuestMode, guestModeActive } from './guestMode';
-import { hasSlainMega, highestCampaignStage, isBossRushUnlocked, isCutsceneUnlocked, isDailyUnlocked, unlockedCutsceneIds } from '../save/derive';
+import { hasSlainMega, highestCampaignStage, isBossRushUnlocked, isCutsceneUnlocked, isDailyUnlocked, threatMaxFor, unlockedCutsceneIds } from '../save/derive';
 import { CUTSCENES, cutsceneEffects, cutsceneForMega } from '../core/cutscenes';
 import type { CutsceneDef } from '../core/cutscenes';
 import { downloadText, readTextFile } from '../save/saveFile';
@@ -104,7 +104,9 @@ import type { MulliganRarity, MulliganState, ResolvedMulligan } from '../core/mu
 import type { PowerParts, PowerScore } from '../core/power';
 import { lootBias } from '../core/progressionLoot';
 import { resolveDifficulty } from '../core/difficulty';
-import { doctrineEconomy, economyFor, lootQualityTier, modeCoreMult, modeLootMult, modeMasteryMult } from '../core/difficultyDirector';
+import { doctrineEconomy, economyFor, lootQualityTier, modeCoreMult, modeLootMult, modeMasteryMult, threatEconomy } from '../core/difficultyDirector';
+import { settleThreat } from '../core/threat';
+import type { ThreatMode, ThreatOutcome } from '../core/threat';
 import { doctrineRank } from '../core/doctrines';
 import { FOUNDING_TITLES, sigilById } from '../core/identity';
 import { adaptiveIncomeMult, coreShardIncome, lootPointIncome } from '../core/economyDirector';
@@ -1694,6 +1696,7 @@ export interface RunResult {
   rewardMult?: number; // stage reward multiplier → scales end-of-run shards + loot quality
   durationSec?: number; // run length (sim seconds) — drives the campaign fastest-clear ledger
   doctrine?: string; // the run's doctrine — protocols pay run-end rewards (docs/MODE-IDENTITY.md §doctrines)
+  threat?: number; // THREAT LADDER level (docs/THREAT.md) — set by App on Campaign replays / Infinite / Boss Rush; ignored elsewhere
   dailyReplay?: string; // daily runs: the recorded input log (docs/SECURITY-AUDIT.md R1) — persisted with the day's best
   // ── Daily Run (docs/DAILY-RUN.md) — set by App for a 'daily' run: the day's UTC key. Drives the
   //    daily ledger (best wave / completions / streak) + the once-per-day clear reward. ──
@@ -1803,6 +1806,9 @@ export interface RunOutcome {
   // runs and campaign losses (the bonus doesn't apply). The bonus cache is granted only when
   // earned === true (firstClear AND noDamage); the other flags let the UI explain a miss.
   flawlessCache: { earned: boolean; firstClear: boolean; noDamage: boolean } | null;
+  // THREAT LADDER (docs/THREAT.md): the run's level, its reward multiplier, whether it cleared the
+  // mode's benchmark (and opened the next rung), and any milestone titles earned. Absent at Threat 0.
+  threat?: ThreatOutcome;
   // Account Level (docs/ACCOUNT-LEVEL.md): this settle's Account-XP delta — total gained (run +
   // achievements), the before/after levels, and every level crossed with its procedural reward.
   accountXp: AccountXpDelta;
@@ -2592,6 +2598,19 @@ export const meta = {
       ? doctrineRank(result.doctrine, save.stats.doctrineWins[result.doctrine] ?? 0, save.stats.doctrineBestWave[result.doctrine] ?? 0)
       : 0;
     const docEcon = doctrineEconomy(result.doctrine, docRank);
+    // THREAT LADDER (docs/THREAT.md): only the ladder modes carry a level (anything else settles at
+    // Threat 0 ⇒ ×1). Reward through the director's threatEconomy → the `threat.reward` factor; the
+    // per-mode record + milestone titles fold through the pure settleThreat.
+    const threatMode: ThreatMode | null = isRush ? 'bossRush' : result.endless ? 'endless' : isCampaign ? 'campaign' : null;
+    // Clamped to the PRE-run earned ceiling (defense in depth — the picker already clamps).
+    const threatLevel = threatMode ? Math.min(threatMaxFor(save, threatMode), Math.max(0, Math.floor(result.threat ?? 0))) : 0;
+    const threatEcon = threatEconomy(threatLevel);
+    const threatSettled = threatMode && threatLevel > 0
+      ? settleThreat(save.threat, threatMode, threatLevel, {
+        won: result.won, wave: result.wave, stage: result.campaignStage,
+        frontier: save.campaign.cleared[result.difficulty ?? 'standard'] ?? 0,
+      }, save.unlockedTitles, threatEcon.rewardMult)
+      : null;
     const doctrineEssence = docEcon.essenceFor(result.wave);
     // Adaptive income seam (docs/ECONOMY_FORMULAS.md §5, ACTIVATED 2026-07 — BALANCE_ARCHITECTURE
     // §7 round 3): the account's distance from its OWN frontier bar tilts settle income — behind
@@ -2612,6 +2631,7 @@ export const meta = {
       endlessRewardMult,
       modeCoreMult: coreMult,
       doctrineRewardMult: docEcon.rewardMult,
+      threatRewardMult: threatEcon.rewardMult,
       adaptive,
     }).total() * researchBoost.coresMult
       // LiveOps spotlight weeks: the live mode's lane gets its window multiplier.
@@ -2685,6 +2705,7 @@ export const meta = {
       // Infinite depth-camping taper (docs/MODE-IDENTITY.md §anti-grind) — same curve as the live
       // meter, keyed on result.wave so run-end and live banking agree. Identity for non-endless.
       endlessTaperMult: result.endless ? endlessLootTaper(result.wave) : 1,
+      threatRewardMult: threatEcon.rewardMult, // Threat ladder (identity at Threat 0)
       adaptive, // the same seam as cores — behind-the-bar accounts fill containers faster
     }).total()) + rushLootBonus;
     // Meter awakening (docs/LOOTBOX.md §meter): the loot QUEUE banks nothing until the account's
@@ -2921,8 +2942,9 @@ export const meta = {
       geneEssence: save.geneEssence + Math.round(doctrineEssence * asc.essenceGainMult * lo.essenceMult), // Corrupted Genome essence × Ascendant Alchemy × LiveOps essence lane (all ×1/0 by default)
       lootQueue: lootAdv.state,
       pendingContainers: [...pendingBase, ...newlyBanked], // bank the run-end remainder + cache (unopened); an unqualified Infinite run rolled its live loot back out of pendingBase
-      unlockedTitles,
+      unlockedTitles: threatSettled && threatSettled.outcome.titles.length > 0 ? [...unlockedTitles, ...threatSettled.outcome.titles] : unlockedTitles,
       unlockedLore,
+      threat: threatSettled ? threatSettled.record : save.threat, // v55 Threat records (docs/THREAT.md)
       // Prestige: this run's Shards count toward the current Molt cycle's mint metric.
       prestige: { ...save.prestige, cycleShards: save.prestige.cycleShards + shardsEarned },
       campaign: nextCampaign,
@@ -3006,6 +3028,7 @@ export const meta = {
       // play exactly once, after THIS run's reward summary (docs/CUTSCENES.md §autoplay).
       ...(pendingMegaCutscenes.length > 0 ? { megaCutscenes: pendingMegaCutscenes.splice(0) } : {}),
       flawlessCache,
+      ...(threatSettled ? { threat: threatSettled.outcome } : {}),
     };
     // Reward placards (docs/NOTIFICATIONS.md §reward-toasts): the run's account-level take,
     // announced through the global toaster. Pushed while Results is up ⇒ the bus HOLDS them

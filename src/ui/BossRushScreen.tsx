@@ -17,6 +17,7 @@ import { hazardRating, modeLootMult } from '../core/difficultyDirector';
 import { difficultyPref, setDifficultyPref } from '../state/prefs';
 import { ACHIEVEMENTS } from '../state/achievements';
 import { PredictionPanel } from './PredictionPanel';
+import { ThreatPicker } from './components/ThreatPicker';
 
 // The signature visual: the escalation ladder itself — wave N is N skulls. Reads as artwork
 // AND as the rules explanation in one glance (self-contained, no assets).
@@ -129,6 +130,7 @@ export function BossRushScreen({
           </label>
         </div>
 
+        <ThreatPicker mode="bossRush" />
         {/* ── The contract, visualized: the escalation ladder ── */}
         <RushLadder upTo={5} />
         <div className="rush-rules">

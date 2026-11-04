@@ -7,6 +7,10 @@ import { DEEP_STRAIN_STAGE, MODE_UNLOCKS } from '../core/config';
 import { CUTSCENES } from '../core/cutscenes';
 import type { CutsceneDef } from '../core/cutscenes';
 import type { DoctrineDef } from '../core/doctrines';
+import { automationGate } from '../core/hivemind';
+import type { AutomationMode } from '../core/hivemind';
+import { THREAT_BENCHMARK, threatMaxSelectable } from '../core/threat';
+import type { ThreatMode } from '../core/threat';
 import type { SaveData } from './saveStore';
 
 /** Highest Campaign stage cleared on ANY difficulty track — the player's furthest progress.
@@ -83,4 +87,45 @@ export function isCutsceneUnlocked(save: SaveData, def: CutsceneDef): boolean {
 /** Every unlocked cutscene id, in authored order (the Archive + the passive fold read this). */
 export function unlockedCutsceneIds(save: SaveData): string[] {
   return CUTSCENES.filter((c) => isCutsceneUnlocked(save, c)).map((c) => c.id);
+}
+
+// ── THREAT LADDER (docs/THREAT.md) — save-aware reads over the pure ladder ─────────────────
+
+/** The mode's Threat-0 benchmark, DERIVED from existing records so veterans start one rung up:
+ *  any cleared Campaign stage (a replay exists) / the Infinite depth / the Boss Rush wave record. */
+export function threatBaselineMet(save: SaveData, mode: ThreatMode): boolean {
+  if (mode === 'campaign') return highestCampaignStage(save) >= 1;
+  if (mode === 'endless') return save.bestWave >= THREAT_BENCHMARK.endless.wave;
+  return save.rushBestWave >= THREAT_BENCHMARK.bossRush.wave;
+}
+
+/** The mode's best CLEARED Threat level (0 = none above the baseline). */
+export function threatCleared(save: SaveData, mode: ThreatMode): number {
+  return save.threat?.[mode] ?? 0;
+}
+
+/** The highest Threat level the picker may offer in this mode right now. */
+export function threatMaxFor(save: SaveData, mode: ThreatMode): number {
+  return threatMaxSelectable(threatCleared(save, mode), threatBaselineMet(save, mode));
+}
+
+/** Is this Campaign stage already cleared on that difficulty track (a replay, not the frontier)? */
+export function campaignStageCleared(save: SaveData, stage: number, difficulty: string): boolean {
+  return stage >= 1 && stage <= (save.campaign?.cleared?.[difficulty] ?? 0);
+}
+
+/** THE AUTOMATION GATE, save-aware (docs/HIVE-MIND.md §solved-content): the meta layer's verdict
+ *  for one run, threaded into the sim as RunOptions.automationAllowed (+ the reason the HUD shows). */
+export function automationFor(
+  save: SaveData,
+  run: { mode: AutomationMode; tutorial: boolean; stage?: number; difficulty?: string; threat?: number },
+): { allowed: boolean; reason: string | null } {
+  const ladder: ThreatMode | null = run.mode === 'campaign' || run.mode === 'endless' || run.mode === 'bossRush' ? run.mode : null;
+  return automationGate({
+    mode: run.mode,
+    tutorial: run.tutorial,
+    contentCleared: run.mode === 'campaign' && run.stage !== undefined && campaignStageCleared(save, run.stage, run.difficulty ?? 'standard'),
+    threat: run.threat ?? 0,
+    threatCleared: ladder ? threatCleared(save, ladder) : 0,
+  });
 }

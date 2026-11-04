@@ -12,6 +12,7 @@ import type { HudSnapshot } from '../core/types';
 import { HERO_DEFS } from '../core/config';
 import { HERO_EVO, HERO_EVO_CATEGORIES, heroEvoCost } from '../core/heroEvolution';
 import { formatPower } from '../core/power';
+import { threatRungs } from '../core/threat';
 import { ProgressBar } from './components/ProgressBar';
 import { LootMeter } from './LootMeter';
 import { audio } from '../audio/sound';
@@ -234,7 +235,7 @@ export function Hud({ hud, power, onOpenConsole, tutorial = false, doctrine = nu
                 ? 'Choose a Gene Card'
                 : ' '}
         </div>
-        {(hud.biome.id !== 'neutral' || hud.anticipation.length > 0 || hud.runHeadline || doctrine || vows.length > 0) && (
+        {(hud.biome.id !== 'neutral' || hud.anticipation.length > 0 || hud.runHeadline || doctrine || vows.length > 0 || hud.threat > 0) && (
           <div className="wm-chips">
             {doctrine && (
               <span className="wm-chip wm-doc" title="This run's doctrine commitment (docs/DOCTRINES.md)">
@@ -244,6 +245,11 @@ export function Hud({ hud, power, onOpenConsole, tutorial = false, doctrine = nu
             {vows.length > 0 && (
               <span className="wm-chip wm-vow" title={`Molt Vows sworn (docs/VOWS.md) — the world is warped this whole cycle: ${vows.map((v) => v.name).join(' · ')}`}>
                 ⛧ {vows.map((v) => v.icon).join(' ')}
+              </span>
+            )}
+            {hud.threat > 0 && (
+              <span className="wm-chip wm-threat" title={`Threat ${hud.threat} (docs/THREAT.md) — ${threatRungs(hud.threat).map((r) => r.name).join(' · ')}`}>
+                ☣ THREAT {hud.threat}
               </span>
             )}
             {hud.biome.id !== 'neutral' && (

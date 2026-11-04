@@ -200,10 +200,15 @@ export type GrantSpec =
   | { kind: 'heroAttackAbility'; component: AbilityComponent }; // the hero's hits also run an ability component
 //   (cleave aura / chain / on-hit explosion / status / crit) — weapons RE-AUTHOR the attack
 
-/** A battlefield RULE: an action fired when a run event occurs (relics). */
-export type HookEvent = 'enemyKilled' | 'waveStarted' | 'abilityCast' | 'waveCleared';
+/** A battlefield RULE: an action fired when a run event occurs (relics + rule-changing gene cards).
+ *  The RULE events (docs/CARDS.md §rules) each fire from ONE sim seam with a trigger POINT:
+ *  eliteKilled (an elite/boss dies — at the corpse), nucleusHit (an enemy strikes the Nucleus — at
+ *  the attacker), towerDeployed (any tower lands on a slot — at the slot), strainRaised (a tower's
+ *  Strain rises — at the tower); abilityCast fires at the ability's cast point. */
+export type HookEvent = 'enemyKilled' | 'waveStarted' | 'abilityCast' | 'waveCleared'
+  | 'eliteKilled' | 'nucleusHit' | 'towerDeployed' | 'strainRaised';
 export type HookAction =
-  | { do: 'spreadStatus'; status: StatusType; amount: number; radius: number } // around the trigger point
+  | { do: 'spreadStatus'; status: StatusType; amount: number; radius: number } // around the trigger point (no point ⇒ no-op)
   | { do: 'biomass'; value: number } // grant biomass
   | { do: 'heal'; value: number } // restore Nucleus integrity
   | { do: 'shield'; value: number; seconds: number }; // grant the hero an absorb-shield
@@ -485,6 +490,42 @@ export const CARD_POOL: CardDef[] = [
   { id: 'veterans_lattice', name: 'Veteran’s Lattice', rarity: 'rare', category: 'economy', description: 'Old survivor’s architecture: +45 max & current Integrity; restore 15 Integrity each wave cleared.', effects: [{ op: 'integrity', value: 45 }, { op: 'add', field: 'integrityRegenPerWave', value: 15 }], unlock: { kind: 'totalRuns', runs: 25 } },
   { id: 'harvest_of_ten_thousand', name: 'Harvest of Ten Thousand', rarity: 'epic', category: 'mutation', description: 'Every kill splinters 2 Fracture into the pack; +10% tower fire rate.', effects: [{ op: 'add', field: 'killFractureSplash', value: 2 }, { op: 'mul', field: 'towerFireRateMult', value: 1.1 }], unlock: { kind: 'lifetimeKills', kills: 10000 } },
   { id: 'golden_rot', name: 'Golden Rot', rarity: 'legendary', category: 'economy', description: 'The rot is wealth: +30% biomass, +2% tower damage per tower fielded, sell refunds +10%.', effects: [{ op: 'mul', field: 'biomassMult', value: 1.3 }, { op: 'add', field: 'damagePerTower', value: 0.02 }, { op: 'add', field: 'sellRefundFrac', value: 0.1 }], unlock: { kind: 'totalBiomass', biomass: 150000 } },
+
+  // ════════════════ RULE GENES (25) — docs/CARDS.md §rules: build-defining cards that change HOW a run
+  // plays (reaction engines, conveyor/strain economy, placement, hero stance, risk/reward) through the
+  // rule ops (grant / hook / set / flag) — never a bare multiplier. Every one is progression-GATED on
+  // the Campaign (Stage 2+) so a fresh account's drafts — and the goldens — are byte-identical. Their
+  // permanent levels (geneUpgrades.ts) carry the scored riders that keep them Power-visible. ════════
+  // ── Reaction engines: SHRED (Fracture x Corrosion), Infection, Disruption, Freeze/Fear ──
+  { id: 'splinter_venom', name: 'Splinter Venom', rarity: 'common', category: 'crit', description: 'Hero strikes inflict 1 Fracture — your champion opens SHRED for any Corrosion on the field.', effects: [{ op: 'grant', grant: { kind: 'heroAttackStatus', status: 'Fracture', amount: 1 } }], unlock: { kind: 'campaignStage', stage: 2 } },
+  { id: 'caustic_strikes', name: 'Caustic Strikes', rarity: 'common', category: 'poison', description: 'Hero strikes corrode the target for 2s — the hero carries the Corrosion half of SHRED.', effects: [{ op: 'grant', grant: { kind: 'heroAttackStatus', status: 'Corrosion', amount: 2 } }], unlock: { kind: 'campaignStage', stage: 3 } },
+  { id: 'acid_etching', name: 'Acid Etching', rarity: 'uncommon', category: 'poison', description: 'Slain enemies splash 3s of Corrosion onto foes within 75px — every kill seeds the next reaction.', effects: [{ op: 'hook', hook: { on: 'enemyKilled', action: { do: 'spreadStatus', status: 'Corrosion', amount: 3, radius: 75 } } }], unlock: { kind: 'campaignStage', stage: 4 } },
+  { id: 'shatter_lattice', name: 'Shatter Lattice', rarity: 'rare', category: 'crit', description: 'Bone Mortar shells inflict Fracture, and every kill splinters 1 Fracture into foes within 80px — SHRED everywhere.', effects: [{ op: 'flag', field: 'mortarAppliesFracture' }, { op: 'hook', hook: { on: 'enemyKilled', action: { do: 'spreadStatus', status: 'Fracture', amount: 1, radius: 80 } } }], unlock: { kind: 'campaignStage', stage: 10 } },
+  { id: 'patient_zero', name: 'Patient Zero', rarity: 'uncommon', category: 'poison', description: 'Hero strikes infect the target (1 Infection) — the hero becomes the outbreak.', effects: [{ op: 'grant', grant: { kind: 'heroAttackStatus', status: 'Infection', amount: 1 } }], unlock: { kind: 'campaignStage', stage: 5 } },
+  { id: 'contagion_bloom', name: 'Contagion Bloom', rarity: 'common', category: 'poison', description: 'When an elite or boss dies its plague bursts: 4 Infection to foes within 130px.', effects: [{ op: 'hook', hook: { on: 'eliteKilled', action: { do: 'spreadStatus', status: 'Infection', amount: 4, radius: 130 } } }], unlock: { kind: 'campaignStage', stage: 3 } },
+  { id: 'septic_breach', name: 'Septic Breach', rarity: 'rare', category: 'poison', description: 'Every blow on the Nucleus erupts sepsis: 2 Infection to foes within 110px of the attacker.', effects: [{ op: 'hook', hook: { on: 'nucleusHit', action: { do: 'spreadStatus', status: 'Infection', amount: 2, radius: 110 } } }], unlock: { kind: 'campaignStage', stage: 11 } },
+  { id: 'synaptic_burst', name: 'Synaptic Burst', rarity: 'common', category: 'control', description: 'Every Hero ability cast unleashes 2.5s of Disruption on foes within 140px of the cast point.', effects: [{ op: 'hook', hook: { on: 'abilityCast', action: { do: 'spreadStatus', status: 'Disruption', amount: 2.5, radius: 140 } } }], unlock: { kind: 'campaignStage', stage: 2 } },
+  { id: 'cryo_fang', name: 'Cryo Fang', rarity: 'uncommon', category: 'control', description: 'Hero strikes encase the target in amber for 0.35s (refractory — never a perma-freeze).', effects: [{ op: 'grant', grant: { kind: 'heroAttackStatus', status: 'Freeze', amount: 0.35 } }], unlock: { kind: 'campaignStage', stage: 6 } },
+  { id: 'dread_spores', name: 'Dread Spores', rarity: 'common', category: 'control', description: 'Every blow on the Nucleus sprays panic spores: 1.5s of Fear to foes within 110px — attackers break off.', effects: [{ op: 'hook', hook: { on: 'nucleusHit', action: { do: 'spreadStatus', status: 'Fear', amount: 1.5, radius: 110 } } }], unlock: { kind: 'campaignStage', stage: 4 } },
+  // ── Conveyor / Strain economy rules ──
+  { id: 'recycler_glands', name: 'Recycler Glands', rarity: 'common', category: 'economy', description: 'Every tower deployment sheds 25 Biomass back — going wide pays for itself.', effects: [{ op: 'hook', hook: { on: 'towerDeployed', action: { do: 'biomass', value: 25 } } }], unlock: { kind: 'campaignStage', stage: 2 } },
+  { id: 'strain_tithe', name: 'Strain Tithe', rarity: 'uncommon', category: 'economy', description: 'Every Strain raise refunds 45 Biomass — merging organisms funds the next one.', effects: [{ op: 'hook', hook: { on: 'strainRaised', action: { do: 'biomass', value: 45 } } }], unlock: { kind: 'campaignStage', stage: 6 } },
+  { id: 'mutagenic_shock', name: 'Mutagenic Shock', rarity: 'rare', category: 'mutation', description: 'Every Strain raise detonates mutagen: 3 Fracture and 2s of Disruption to foes within 140px of the tower — merge mid-wave.', effects: [{ op: 'hook', hook: { on: 'strainRaised', action: { do: 'spreadStatus', status: 'Fracture', amount: 3, radius: 140 } } }, { op: 'hook', hook: { on: 'strainRaised', action: { do: 'spreadStatus', status: 'Disruption', amount: 2, radius: 140 } } }], unlock: { kind: 'campaignStage', stage: 12 } },
+  { id: 'static_wake', name: 'Static Wake', rarity: 'uncommon', category: 'control', description: 'Deploying a tower emits 2.5s of Disruption on foes within 120px — deploy INTO the wave.', effects: [{ op: 'hook', hook: { on: 'towerDeployed', action: { do: 'spreadStatus', status: 'Disruption', amount: 2.5, radius: 120 } } }], unlock: { kind: 'campaignStage', stage: 5 } },
+  // ── Slot / placement rules ──
+  { id: 'lancing_sinew', name: 'Lancing Sinew', rarity: 'uncommon', category: 'aoe', description: "Every tower's shots pierce +1 enemy — line your towers along the lane.", effects: [{ op: 'grant', grant: { kind: 'towerProjectileMutator', id: 'pierce1' } }], unlock: { kind: 'campaignStage', stage: 7 } },
+  { id: 'impaling_lattice', name: 'Impaling Lattice', rarity: 'epic', category: 'aoe', description: "Every tower's shots pierce +3 enemies — at −10% tower fire rate.", effects: [{ op: 'grant', grant: { kind: 'towerProjectileMutator', id: 'pierce3' } }, { op: 'mul', field: 'towerFireRateMult', value: 0.9 }], unlock: { kind: 'campaignStage', stage: 20 } },
+  { id: 'sapper_cradle', name: 'Sapper Cradle', rarity: 'rare', category: 'tower', description: 'Unlock one extra emplacement this run (max 6); every tower deployment knits 10 Nucleus Integrity.', effects: [{ op: 'add', field: 'bonusTowerSlots', value: 1 }, { op: 'hook', hook: { on: 'towerDeployed', action: { do: 'heal', value: 10 } } }], unlock: { kind: 'campaignStage', stage: 9 } },
+  // ── Hero stance rules ──
+  { id: 'bulwark_instinct', name: 'Bulwark Instinct', rarity: 'common', category: 'hero', description: 'The hero guards the Nucleus, and every wave start wraps it in an 80-HP shield (6s).', effects: [{ op: 'set', field: 'heroAnchor', value: 'nucleus' }, { op: 'hook', hook: { on: 'waveStarted', action: { do: 'shield', value: 80, seconds: 6 } } }], unlock: { kind: 'campaignStage', stage: 3 } },
+  { id: 'pack_leader', name: 'Pack Leader', rarity: 'uncommon', category: 'hero', description: 'The hero holds among your towers, quickening every tower within 100px (+8% fire rate).', effects: [{ op: 'set', field: 'heroAnchor', value: 'towers' }, { op: 'add', field: 'heroAuraRadius', value: 100 }, { op: 'add', field: 'heroTowerHasteAura', value: 0.08 }], unlock: { kind: 'campaignStage', stage: 7 } },
+  { id: 'vanguard_stance', name: 'Vanguard Stance', rarity: 'rare', category: 'hero', description: 'The hero holds the front line, and every strike bursts for 7 damage in a 56px radius.', effects: [{ op: 'set', field: 'heroAnchor', value: 'line' }, { op: 'grant', grant: { kind: 'heroAttackAbility', component: { type: 'explosion', radius: 56, damage: 7 } } }], unlock: { kind: 'campaignStage', stage: 10 } },
+  { id: 'chain_reflex', name: 'Chain Reflex', rarity: 'rare', category: 'hero', description: 'Every hero strike arcs to 2 more foes within 110px (9 damage, falling off per hop).', effects: [{ op: 'grant', grant: { kind: 'heroAttackAbility', component: { type: 'chain', jumps: 2, range: 110, damage: 9 } } }], unlock: { kind: 'campaignStage', stage: 14 } },
+  // ── Risk / reward rules ──
+  { id: 'blood_tithe', name: 'Blood Tithe', rarity: 'uncommon', category: 'economy', description: 'Every blow on the Nucleus pays 15 Biomass — but kills yield 10% less. Leaks become income.', effects: [{ op: 'hook', hook: { on: 'nucleusHit', action: { do: 'biomass', value: 15 } } }, { op: 'mul', field: 'biomassMult', value: 0.9 }], unlock: { kind: 'campaignStage', stage: 6 } },
+  { id: 'trophy_hunter', name: 'Trophy Hunter', rarity: 'rare', category: 'economy', description: 'Elite and boss kills shed 60 Biomass — but every enemy has +8% HP.', effects: [{ op: 'hook', hook: { on: 'eliteKilled', action: { do: 'biomass', value: 60 } } }, { op: 'mul', field: 'enemyHpRunMult', value: 1.08 }], unlock: { kind: 'campaignStage', stage: 11 } },
+  { id: 'apex_contagion', name: 'Apex Contagion', rarity: 'epic', category: 'mutation', description: 'When an elite or boss dies it detonates SHRED: 4 Fracture and 4s of Corrosion to foes within 140px.', effects: [{ op: 'hook', hook: { on: 'eliteKilled', action: { do: 'spreadStatus', status: 'Fracture', amount: 4, radius: 140 } } }, { op: 'hook', hook: { on: 'eliteKilled', action: { do: 'spreadStatus', status: 'Corrosion', amount: 4, radius: 140 } } }], unlock: { kind: 'campaignStage', stage: 18 } },
+  { id: 'hive_martyrdom', name: 'Hive Martyrdom', rarity: 'legendary', category: 'mutation', description: 'Every blow on the Nucleus panics foes within 140px (2s Fear) and pays 12 Biomass — but every enemy has +12% HP.', effects: [{ op: 'hook', hook: { on: 'nucleusHit', action: { do: 'spreadStatus', status: 'Fear', amount: 2, radius: 140 } } }, { op: 'hook', hook: { on: 'nucleusHit', action: { do: 'biomass', value: 12 } } }, { op: 'mul', field: 'enemyHpRunMult', value: 1.12 }], unlock: { kind: 'campaignStage', stage: 25 } },
 ];
 
 /** Per-effect invariants — shared by base effects AND every authored upgrade level. */
@@ -635,13 +676,24 @@ export function rollCardRarity(rng: Rng, wave: number, available: ReadonlySet<Ca
   return pool[pool.length - 1].rarity; // float-rounding guard
 }
 
+/** The effect OPS that change HOW the run plays rather than how big a number is (docs/CARDS.md
+ *  §rules): a boolean rule flag, a string stance, a run-wide capability grant, or a battlefield
+ *  hook. Derived from the DSL — never a hand-maintained card list — so a new card classifies itself. */
+export const RULE_CHANGING_OPS: ReadonlySet<CardEffect['op']> = new Set<CardEffect['op']>(['flag', 'set', 'grant', 'hook']);
+
+/** Whether a card is RULE-CHANGING: any base effect uses a rule op (RULE_CHANGING_OPS). */
+export function isRuleChangingCard(def: CardDef): boolean {
+  return def.effects.some((e) => RULE_CHANGING_OPS.has(e.op));
+}
+
 /** Draft `count` distinct cards: roll a depth-scaled rarity, then pick within it (falling
  * back to any remaining card if that tier is exhausted). `wave` drives the depth scaling.
  * `allowedTowers` drops cards whose SUBJECT tower is off the run's roster (docs/TOWERS.md
  * §expansion — a card for a tower you cannot deploy is a dead draft). `unlockedCardIds` re-admits
  * PROGRESSION-gated cards (CardDef.unlock) the account has earned; a gated card NOT in the set is
- * dropped, so a fresh account (and the golden sim) draws only the ungated catalog ⇒ byte-identical. */
-export function draftCards(rng: Rng, count = 3, wave = 0, allowedTowers?: ReadonlySet<TowerKind>, unlockedCardIds?: ReadonlySet<string>, draftPool?: ReadonlySet<string>): CardDef[] {
+ * dropped, so a fresh account (and the golden sim) draws only the ungated catalog ⇒ byte-identical.
+ * `ruleSlot` arms THE RULE SLOT (below) — the meta-earned guarantee that a deal offers a rule card. */
+export function draftCards(rng: Rng, count = 3, wave = 0, allowedTowers?: ReadonlySet<TowerKind>, unlockedCardIds?: ReadonlySet<string>, draftPool?: ReadonlySet<string>, ruleSlot = false): CardDef[] {
   const active = cardRegistry.active().filter((c) => {
     if (draftPool && !draftPool.has(c.id)) return false; // discovery overhaul: only DISCOVERED strands draft (absent ⇒ legacy/golden pool)
     if (c.unlock && !unlockedCardIds?.has(c.id)) return false; // progression-gated & not yet earned
@@ -663,6 +715,13 @@ export function draftCards(rng: Rng, count = 3, wave = 0, allowedTowers?: Readon
     const card = rng.pick(source);
     used.add(card.id);
     chosen.push(card);
+  }
+  // THE RULE SLOT (docs/CARDS.md §rules): when armed and the deal holds no rule-changing card while
+  // the eligible pool does, the LAST slot is re-dealt from the eligible rule cards — so a build-
+  // defining choice is always on the table. Off by default ⇒ zero extra rng draws (golden-safe).
+  if (ruleSlot && chosen.length > 0 && !chosen.some(isRuleChangingCard)) {
+    const rules = active.filter((c) => isRuleChangingCard(c) && !used.has(c.id));
+    if (rules.length > 0) chosen[chosen.length - 1] = rng.pick(rules);
   }
   return chosen;
 }
@@ -731,6 +790,13 @@ const STATUS_SUBJECT: Partial<Record<StatusType, SubjectTag>> = {
   Freeze: 'chrysalis', Fear: 'effigy',
 };
 
+// Rule EVENTS whose trigger is not an enemy carry the subject of the thing that fires them — a
+// cast-point burst is the HERO's, a Nucleus retaliation is the HIVE's, a deploy/strain burst comes
+// from any tower ⇒ army-wide. Kill events fall through to the spread status's tower identity.
+const EVENT_SUBJECT: Partial<Record<HookEvent, SubjectTag>> = {
+  abilityCast: 'hero', nucleusHit: 'hive', towerDeployed: 'global', strainRaised: 'global',
+};
+
 function effectSubject(e: CardEffect): SubjectTag {
   switch (e.op) {
     case 'mul': case 'add': case 'flag': case 'set':
@@ -745,7 +811,7 @@ function effectSubject(e: CardEffect): SubjectTag {
       if (a.do === 'biomass') return 'economy';
       if (a.do === 'heal') return 'hive';
       if (a.do === 'shield') return 'hero';
-      return STATUS_SUBJECT[a.status] ?? 'global'; // spreadStatus
+      return EVENT_SUBJECT[e.hook.on] ?? STATUS_SUBJECT[a.status] ?? 'global'; // spreadStatus
     }
   }
 }

@@ -37,6 +37,7 @@ export function BuildControls({
   hud,
   refresh,
   tutorialLock = false,
+  autoGeneLock = null,
 }: {
   game: Game;
   hud: HudSnapshot;
@@ -44,6 +45,9 @@ export function BuildControls({
   /** Tutorial: the director scripts every wave start — the console shows intel only, with the
    * launch controls held so the game can never outrun the lesson. */
   tutorialLock?: boolean;
+  /** THE AUTOMATION GATE (docs/HIVE-MIND.md §solved-content): non-null ⇒ Auto Gene is off for this
+   *  run (frontier content) and this is the reason shown. Auto Wave is never gated. */
+  autoGeneLock?: string | null;
 }): JSX.Element {
   const visible = hud.phase === 'prep' && (hud.endless || hud.bossRush || hud.wave < hud.totalWaves);
   // The preview only changes per wave — memo it so the ~10 Hz HUD refresh never re-aggregates.
@@ -170,10 +174,11 @@ export function BuildControls({
             </button>
             <button
               type="button"
-              className={`auto-btn ${autoGene ? 'is-on' : ''}`}
-              aria-pressed={autoGene}
+              className={`auto-btn ${autoGene && !autoGeneLock ? 'is-on' : ''}`}
+              aria-pressed={autoGene && !autoGeneLock}
               tabIndex={visible ? 0 : -1}
-              title="Auto-draft the recommended ◆ PICK gene card after a countdown (pick any card to override)"
+              disabled={!!autoGeneLock}
+              title={autoGeneLock ? `Auto Gene — ${autoGeneLock}` : 'Auto-draft the recommended ◆ PICK gene card after a countdown (pick any card to override)'}
               onClick={() => {
                 const next = !autoGene;
                 setAutoGene(next);
@@ -182,7 +187,7 @@ export function BuildControls({
             >
               <i className="wb-led" aria-hidden />
               ◆ Auto Gene
-              <b>{autoGene ? 'ON' : 'OFF'}</b>
+              <b>{autoGeneLock ? 'LOCKED' : autoGene ? 'ON' : 'OFF'}</b>
             </button>
           </div>}
         </div>

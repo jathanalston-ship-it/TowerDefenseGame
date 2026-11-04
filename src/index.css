@@ -7071,6 +7071,10 @@ kbd {
 }
 .hive-mind-btn.is-ready .hive-mind-core { background: #8fd0ff; animation: mega-chip-pulse 1.2s ease-in-out infinite alternate; box-shadow: 0 0 8px #8fd0ff; }
 .hive-mind-btn:hover:not(:disabled) { color: var(--text); }
+/* The AUTOMATION GATE (docs/HIVE-MIND.md §solved-content): off on frontier content — the reason
+   rides inside the pill (a disabled button shows no hover tooltip on every browser). */
+.hive-mind-btn:disabled { opacity: 0.72; cursor: not-allowed; }
+.hive-mind-why { font-size: 10px; font-weight: 600; letter-spacing: 0.02em; color: var(--muted); text-transform: none; }
 .hive-ticker {
   /* Hug the right edge — right:218 (under the button) overlaps the centered Start Wave popup. */
   position: absolute; top: 52px; right: 10px; z-index: 45;
@@ -7769,6 +7773,41 @@ kbd {
 .mc-doc-ro small { color: var(--muted); font-weight: 600; font-size: 11px; }
 .wm-doc { color: var(--viral); border-color: color-mix(in srgb, var(--viral) 32%, transparent); }
 .wm-vow { color: #e6a2ff; border-color: color-mix(in srgb, #e6a2ff 34%, transparent); letter-spacing: 0.08em; }
+/* ── THREAT LADDER (docs/THREAT.md) — header chip, pre-run picker, Results line, Profile record ── */
+.card-rule { align-self: flex-start; padding: 1px 6px; border-radius: 999px; border: 1px solid color-mix(in srgb, var(--gold) 45%, transparent); color: var(--gold); font-size: 10px; font-weight: 800; letter-spacing: 0.08em; }
+.wm-threat { color: var(--danger); border-color: color-mix(in srgb, var(--danger) 38%, transparent); letter-spacing: 0.08em; }
+.threat-pick { display: flex; flex-direction: column; gap: var(--s2); margin-top: var(--s3); padding: 10px 12px; border-radius: var(--r-md); border: 1px solid var(--line); background: var(--panel-2); }
+.threat-pick.is-on { border-color: color-mix(in srgb, var(--danger) 40%, var(--line)); }
+.threat-head { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s2) var(--s3); }
+.threat-k { font-size: 11px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: var(--danger); }
+.threat-step { display: inline-flex; align-items: center; gap: var(--s1); }
+.threat-step button { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; padding: 0; line-height: 1; border-radius: var(--r-sm); border: 1px solid var(--line-strong); background: var(--panel); color: var(--text); font-size: 16px; font-weight: 800; cursor: pointer; }
+.threat-step button:disabled { opacity: 0.35; cursor: default; }
+.threat-lv { min-width: 28px; text-align: center; font-size: 20px; font-weight: 800; font-variant-numeric: tabular-nums; color: var(--text); }
+.threat-pick.is-on .threat-lv { color: var(--danger); }
+.threat-reward { font-size: 12px; font-weight: 700; color: var(--gold); }
+.threat-best { margin-left: auto; font-size: 11px; color: var(--muted); }
+.threat-rungs { display: flex; flex-direction: column; gap: 3px; margin: 0; padding: 0; list-style: none; }
+.threat-rungs li { display: grid; grid-template-columns: 18px 1fr; column-gap: var(--s2); align-items: baseline; font-size: 12px; color: var(--muted); }
+.threat-rungs li span { grid-column: 2; line-height: 1.35; }
+.threat-rungs li i { font-style: normal; color: var(--danger); text-align: center; }
+.threat-rungs li b { color: var(--text); font-weight: 700; }
+.threat-rungs li.is-new b { color: var(--danger); }
+.threat-note { margin: 0; font-size: 11px; color: var(--muted); line-height: 1.45; }
+.threat-note.is-frontier { color: color-mix(in srgb, var(--gold) 80%, var(--muted)); }
+/* Results: a full-width banner ROW above the cliffhanger cards (the slot wraps only when it holds one). */
+.rr-cliff-slot:has(> .threat-result) { flex-wrap: wrap; }
+.threat-result { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px var(--s3); flex: 1 0 100%; box-sizing: border-box; margin-bottom: 6px; padding: 8px 12px; border-radius: var(--r-md); border: 1px solid color-mix(in srgb, var(--danger) 35%, var(--line)); background: var(--panel); font-size: 12px; line-height: 1.4; color: var(--muted); text-align: left; }
+.threat-result.is-up { box-shadow: 0 0 18px color-mix(in srgb, var(--danger) 22%, transparent); }
+.threat-result-up { color: var(--danger); letter-spacing: 0.06em; }
+.threat-result-title { color: var(--gold); font-weight: 700; }
+.threat-record { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: var(--s2); }
+.threat-rec { display: flex; flex-direction: column; gap: 2px; padding: 8px 10px; border-radius: var(--r-sm); border: 1px solid var(--line); background: var(--panel-2); }
+.threat-rec.is-on { border-color: color-mix(in srgb, var(--danger) 40%, var(--line)); }
+.threat-rec-k { font-size: 10px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+.threat-rec b { font-size: 16px; color: var(--text); }
+.threat-rec.is-on b { color: var(--danger); }
+.threat-rec-n { font-size: 11px; color: var(--muted); }
 .rr-doctrine { margin-top: 6px; font-size: 12px; font-weight: 700; letter-spacing: 0.12em; color: var(--viral); opacity: 0.9; }
 
 /* ── MOLT VOWS — the wager rail in the Molt Chamber (docs/VOWS.md) ── */
@@ -9243,6 +9282,8 @@ kbd {
 .pf-banner.frame-abyssal { --pfc: #5ffbf1; }
 .pf-banner.frame-archivist { --pfc: var(--gold); }
 .pf-banner.frame-apex { --pfc: var(--gold); border-width: 2px; }
+.pf-banner.frame-threat5 { --pfc: var(--danger); }
+.pf-banner.frame-threat10 { --pfc: var(--danger); border-width: 2px; }
 .pf-id { position: relative; display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
 .pf-name {
   font: 800 26px/1.1 'Chakra Petch', system-ui, sans-serif;
@@ -9299,6 +9340,8 @@ kbd {
 .pf-frame-dot.frame-abyssal { background: #5ffbf1; }
 .pf-frame-dot.frame-archivist { background: var(--gold); }
 .pf-frame-dot.frame-apex { background: linear-gradient(135deg, var(--gold), var(--viral)); }
+.pf-frame-dot.frame-threat5 { background: var(--danger); }
+.pf-frame-dot.frame-threat10 { background: linear-gradient(135deg, var(--danger), var(--gold)); }
 
 /* ── Wing sub-nav — in-screen pages (Profile, Bio-Dex, …): --wingc sets the accent ── */
 .wing-tabs {

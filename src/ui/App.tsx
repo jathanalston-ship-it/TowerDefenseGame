@@ -54,7 +54,8 @@ import type { HeroSlotUnlockData } from './HeroSlotUnlock';
 import { difficultyPref, musicPref, setLastFlawlessClearPref, sfxPref } from '../state/prefs';
 import { deployReadiness } from '../state/progressionLoop';
 const BioRoulette = lazyNamed(() => import('./BioRoulette'), 'BioRoulette');
-import { highestCampaignStage, isBossRushUnlocked, isDailyUnlocked, isInfiniteUnlocked } from '../save/derive';
+import { campaignStageCleared, highestCampaignStage, isBossRushUnlocked, isDailyUnlocked, isInfiniteUnlocked } from '../save/derive';
+import { chosenThreat } from './components/ThreatPicker';
 import { dailyKey, generateDaily, pickDailyHero } from '../core/daily';
 import { dailyMulliganAssignment } from '../core/mulligan';
 import type { MulliganState } from '../core/mulligan';
@@ -177,6 +178,9 @@ export function App(): JSX.Element {
   // identity ('standard' / 'none'), so an untouched menu plays exactly the baseline run.
   const difficultyRef = useRef('standard');
   const doctrineRef = useRef('none');
+  // THREAT LADDER (docs/THREAT.md): the level this run carries — resolved at launch (begin) from the
+  // mode's picker pref, clamped to what the save earned; 0 off the ladder modes / on frontier stages.
+  const threatRef = useRef(0);
 
   // Apply the persisted audio preferences once on boot (Settings + the pause menu write them).
   useEffect(() => {
@@ -262,6 +266,10 @@ export function App(): JSX.Element {
     effectsRef.current = [...meta.genomeRunEffects(), ...meta.collectionRunEffects(), ...meta.trophyRunEffects(), ...meta.infestationRunEffects(), ...meta.cutsceneRunEffects(), ...meta.mulliganGlobalEffects(), ...meta.battlePassRunEffects(), ...meta.wardrobeRunEffects(), ...extraRunEffects];
     modeRef.current = mode;
     stageRef.current = stage;
+    threatRef.current = mode === 'endless' || mode === 'bossRush' ? chosenThreat(mode)
+      : mode === 'campaign' && campaignStageCleared(meta.get(), campaignStageRef.current, difficultyRef.current) ? chosenThreat('campaign')
+        : 0; // Threat rides only solved content: Infinite, Boss Rush, and Campaign REPLAYS
+    const threatTag = threatRef.current > 0 ? ` · ☣ Threat ${threatRef.current}` : '';
     telemetry.mode(mode.toLowerCase()); // events during the run stamp this mode
     // The deployment interstitial (docs/HUD.md §deploy): a short mode-aware breath instead of
     // being thrown straight onto the battlefield. The playing screen mounts after DEPLOY_MS.
@@ -278,11 +286,11 @@ export function App(): JSX.Element {
     };
     setDeployInfo(
       mode === 'campaign' && stage
-        ? { title: `STAGE ${campaignStageRef.current} — ${stage.biome.name.toUpperCase()}`, sub: `The Descent · ${diffName}`, accent: stage.biome.accent, warn: campaignWarn() }
+        ? { title: `STAGE ${campaignStageRef.current} — ${stage.biome.name.toUpperCase()}`, sub: `The Descent · ${diffName}${threatTag}`, accent: stage.biome.accent, warn: campaignWarn() }
         : mode === 'endless'
-          ? { title: 'INFINITE MODE', sub: `AI Director · infinite depth · ${diffName}`, accent: 'var(--viral, #c98bff)' }
+          ? { title: 'INFINITE MODE', sub: `AI Director · infinite depth · ${diffName}${threatTag}`, accent: 'var(--viral, #c98bff)' }
           : mode === 'bossRush'
-            ? { title: 'BOSS RUSH', sub: `The gauntlet · wave N = N bosses · ${diffName}`, accent: 'var(--danger, #ff5d73)' }
+            ? { title: 'BOSS RUSH', sub: `The gauntlet · wave N = N bosses · ${diffName}${threatTag}`, accent: 'var(--danger, #ff5d73)' }
             : mode === 'daily' && stage
               ? { title: `DAILY RUN — ${stage.biome.name.toUpperCase()}`, sub: 'One seed · one world · 20 waves', accent: stage.biome.accent }
               : { title: 'QUICK SKIRMISH', sub: 'The authored 12-wave defense', accent: 'var(--kinetic, #5ad1ff)' },
@@ -349,6 +357,7 @@ export function App(): JSX.Element {
   }, [begin]);
 
   const handleEnd = useCallback((result: RunResult) => {
+    if (threatRef.current > 0) result.threat = threatRef.current; // Threat ladder settle (docs/THREAT.md)
     // Campaign: tag the result so finishRun unlocks the next stage + scales the rewards.
     if (modeRef.current === 'campaign') {
       result.campaignStage = campaignStageRef.current;
@@ -555,6 +564,7 @@ export function App(): JSX.Element {
           stage={stageRef.current ?? undefined}
           difficulty={difficultyRef.current}
           doctrine={doctrineRef.current}
+          threat={threatRef.current}
           daily={modeRef.current === 'daily' && dailyPlanRef.current
             ? { modifierIds: dailyPlanRef.current.modifierIds, towerPool: dailyPlanRef.current.towerPool, megaBoss: dailyPlanRef.current.megaBoss }
             : undefined}

@@ -22,7 +22,7 @@ const MAX_SIM_SEC = 900;
 interface RunResult { depth: number; power: number; spent: number; earned: number; actions: number; reserveViolations: number }
 
 function run(seed: number, pulseEvery: number): RunResult {
-  const g = new Game(seed, NO_META, undefined, 'ravager', undefined, { mode: 'endless' });
+  const g = new Game(seed, NO_META, undefined, 'ravager', undefined, { mode: 'endless', automationAllowed: true });
   g.debugAddBiomass(600); // identical opening bank for every cohort — the comparison stays fair
   const forward = [...towerSlots].sort((a, b) => a.y - b.y);
   let placed = 0;

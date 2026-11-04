@@ -21,6 +21,7 @@ import { HERO_ORDER, TOWER_ORDER } from '../core/config';
 import type { ResolvedHeroKit } from '../core/config';
 import { AUTOSTART_KEY } from '../state/prefs';
 import { masteryLevel, meta, equippedCosmeticThemes } from '../state/meta';
+import { automationFor } from '../save/derive';
 import { frontDeploy } from '../state/frontDeploy';
 import { announcePower } from '../state/powerEvents';
 import { announceMasteryLevelUp } from '../state/masteryEvents';
@@ -138,6 +139,7 @@ export function GameView({
   stage,
   difficulty,
   doctrine,
+  threat,
   daily,
   mulliganOverride,
   onEnd,
@@ -159,6 +161,7 @@ export function GameView({
   stage?: StageConfig;
   difficulty?: string;
   doctrine?: string;
+  threat?: number; // THREAT LADDER level (docs/THREAT.md) — App passes it only on ladder modes
   daily?: { modifierIds: string[]; towerPool: TowerKind[]; megaBoss?: MegaEncounter }; // Daily Run (docs/DAILY-RUN.md): modifiers + trial pool + the rare Mega variant (docs/MEGA-BOSS.md §daily)
   mulliganOverride?: Partial<Record<TowerKind, MulliganState>>; // Daily's seeded organisms (docs/MULLIGANS.md §daily) — substitutes the account's for this run
   onEnd: (r: RunResult) => void;
@@ -170,8 +173,12 @@ export function GameView({
   const gameRef = useRef<Game | null>(null);
   // Daily runs record their input log for leaderboard replay verification (core/replay.ts).
   const recorderRef = useRef<Recorder | null>(null);
+  // THE AUTOMATION GATE (docs/HIVE-MIND.md §solved-content): Hive Intelligence + Auto Gene only on
+  // content this account has beaten — decided ONCE from the save, threaded into the sim as an option.
+  const [automation] = useState(() => automationFor(meta.get(), { mode: mode ?? 'stage', tutorial: !!tutorial, stage: stage?.stage, difficulty: stage?.difficulty ?? difficulty, threat }));
   const game = (gameRef.current ??= newRecordedGame(recorderRef, !!daily && !tutorial, seed, mods, progress, heroKind, heroProgress, {
     runEffects, mode, stage, difficulty, doctrine, heroRoster, heroEquip, setEffects, heroAbilityKits,
+    threat, automationAllowed: automation.allowed, // Threat ladder (docs/THREAT.md) + the automation gate
     // Daily Run (docs/DAILY-RUN.md): the day's 3-tower trial pool REPLACES the account roster for
     // this run (favorite = the pool's first kind so nothing leaks a 4th kind); its two modifiers
     // ride the dedicated option. Off-daily, the account's own favorite/roster apply as always.
@@ -1085,7 +1092,7 @@ export function GameView({
             refresh();
           }}
         />
-        <BuildControls game={game} hud={hud} refresh={refresh} tutorialLock={!!tutorial && !!tutSession} />
+        <BuildControls game={game} hud={hud} refresh={refresh} tutorialLock={!!tutorial && !!tutSession} autoGeneLock={automation.allowed ? null : automation.reason} />
         {waveBanner && <div className="wave-breach" key={`br${waveBanner.at}`} aria-hidden />}
         {waveBanner && !bossIntro && (
           <div className="wave-banner" key={waveBanner.at} aria-hidden>
@@ -1150,18 +1157,22 @@ export function GameView({
         {!tutorial && (hud.phase === 'prep' || hud.phase === 'wave') && (
           <button
             className={`hive-mind-btn${hud.hiveReady ? ' is-ready' : ''}`}
+            disabled={!automation.allowed}
             onClick={() => {
               audio.resume();
               const rep = game.hivePulse();
               if (rep.actions.length > 0) setHiveTicker({ at: Date.now(), lines: rep.actions.map((a) => a.label), spent: rep.spent });
               refresh();
             }}
-            title={hud.hiveReady
-              ? 'Hive Intelligence — evaluate every Biomass purchase and execute the best ones (keeps a reserve; manual play is untouched)'
-              : 'Hive Intelligence — nothing worthwhile is affordable right now'}
+            title={!automation.allowed
+              ? `Hive Intelligence — ${automation.reason}`
+              : hud.hiveReady
+                ? 'Hive Intelligence — evaluate every Biomass purchase and execute the best ones (keeps a reserve; manual play is untouched)'
+                : 'Hive Intelligence — nothing worthwhile is affordable right now'}
           >
             <i className="hive-mind-core" aria-hidden />
             ◈ HIVE INTELLIGENCE
+            {!automation.allowed && <small className="hive-mind-why">{automation.reason}</small>}
           </button>
         )}
         {hiveTicker && (
@@ -1348,7 +1359,7 @@ export function GameView({
           <DraftModal
             options={hud.draft}
             clearedWave={hud.wave}
-            forceManual={!!tutorial}
+            forceManual={!!tutorial || !automation.allowed}
             rerollCost={hud.draftRerollCost}
             biomass={hud.biomass}
             chosen={hud.cards}

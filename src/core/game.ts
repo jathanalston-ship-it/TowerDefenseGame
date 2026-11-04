@@ -82,6 +82,7 @@ import {
   defaultRunModifiers,
   draftCards,
   endlessDraftInterval,
+  isRuleChangingCard,
 } from './cards';
 import type { CardContext, CardDef, CardEffect, HookEvent, HookSpec, RunModifiers } from './cards';
 import { branchPowerEffects, effectsPower } from './power';
@@ -150,6 +151,7 @@ export interface RunOptions {
   difficulty?: string; // universal difficulty id (default 'standard' = identity/golden path)
   doctrine?: string; // exclusive run-start build commitment (default 'none' = no effects)
   vows?: string[]; // armed Molt Vows (docs/VOWS.md) — cycle-wide handicap warps composed ONTO the doctrine's; absent/[] ⇒ identity (golden path). Dailies never pass this (fair shared board).
+  threat?: number; // THREAT LADDER level (docs/THREAT.md) — stacked warp rungs composed LAST through the director. 0/omitted ⇒ identity (golden path); the meta layer passes it only on solved content (Campaign replays / Infinite / Boss Rush)
   sectorWarp?: DoctrineWarp; // THE FRONT deploy flavor (docs/INFESTATION.md §front) — a region warp composed onto doctrine × vows for ONE explicitly-deployed run. Absent ⇒ identity (golden path); dailies/Arena never pass it (fair shared boards).
   stage?: StageConfig; // campaign mode: the procedurally generated stage to run (campaign.ts)
   heroRoster?: HeroKind[]; // the fielded hero slots (HEROES.md). Omitted / [heroKind] ⇒ single hero (golden path)
@@ -165,6 +167,11 @@ export interface RunOptions {
   startingGenes?: string[]; // Starting Gene Loadout: card ids that AUTO-ACTIVATE at run boot (each at its permanent level). Empty/omitted ⇒ nothing applied (golden path)
   unlockedCardIds?: readonly string[]; // PROGRESSION-gated gene-card ids (CardDef.unlock) the account has earned — injected into the draft pool. Omitted ⇒ only ungated cards (golden path)
   draftPool?: readonly string[]; // DISCOVERED gene-card ids (docs/CARDS.md §discovery) — when present, drafts draw ONLY these (∩ the other gates). Omitted ⇒ legacy pool (golden path unchanged)
+  /** THE AUTOMATION GATE (docs/HIVE-MIND.md §solved-content): may this run use Hive Intelligence +
+   *  Auto Gene? The META layer decides from the save (core/hivemind.ts automationGate — solved
+   *  content only) and passes the verdict; the sim never reads the save. Omitted ⇒ false (fail
+   *  closed). Never affects the sim itself — only whether the pulse may act. */
+  automationAllowed?: boolean;
   // Daily Run (docs/DAILY-RUN.md): the day's TWO modifier ids, resolved once at boot into the
   // neutral-defaulted ResolvedEffects struct the sim reads. Omitted ⇒ NEUTRAL (golden path).
   // The day's 3-tower Conveyor pool rides the existing `unlocked` + `favorite` options.
@@ -730,6 +737,14 @@ export class Game {
   readonly unlockedKinds: ReadonlySet<TowerKind>; // the run roster (UI rails read this too)
   private readonly unlockedCardIds: ReadonlySet<string>; // progression-gated gene cards the account has earned (draft injection)
   private readonly draftPool: ReadonlySet<string> | undefined; // DISCOVERED card ids — the exact draft pool when present (discovery overhaul)
+  // THE RULE SLOT (docs/CARDS.md §rules): armed once the account has EARNED any rule-changing gene
+  // (its unlocked set holds one) — then every deal whose eligible pool holds a rule card offers one.
+  // A fresh account (and the golden sim) earns none ⇒ off ⇒ zero extra draws, byte-identical drafts.
+  private readonly ruleSlot: boolean;
+  /** Whether Hive Intelligence may act this run (RunOptions.automationAllowed — fail closed). */
+  readonly automationAllowed: boolean;
+  /** The run's THREAT LADDER level (docs/THREAT.md) — 0 = baseline. Display only (the director owns the warp). */
+  readonly threat: number;
   deployments = 0; // player deployments this run — drives the universal cost curve
   selectedConveyorId: number | null = null; // a READY organism armed for placement (docs/STRAIN.md §conveyor)
   private conveyorSeq = 0; // branch tier tagged onto shots (drives projectile evolution; 0 = base)
@@ -772,6 +787,9 @@ export class Game {
     // Progression-gated gene cards the account has earned (default = none ⇒ only the ungated catalog
     // is draftable, so a fresh account / the golden sim is byte-identical).
     this.unlockedCardIds = new Set(opts.unlockedCardIds ?? []);
+    this.automationAllowed = opts.automationAllowed === true;
+    this.threat = Math.max(0, Math.floor(opts.threat ?? 0));
+    this.ruleSlot = [...this.unlockedCardIds].some((id) => { const c = cardRegistry.get(id); return c !== undefined && isRuleChangingCard(c); });
     this.draftPool = opts.draftPool ? new Set(opts.draftPool) : undefined;
     // Daily Run (docs/DAILY-RUN.md): resolve the day's modifiers ONCE into the neutral-defaulted
     // struct every hook reads (mults 1 / adds 0 without them ⇒ every read below is golden-safe).
@@ -800,6 +818,7 @@ export class Game {
       difficulty: this.stage ? this.stage.scaling : resolveDifficulty(opts.difficulty),
       warp: composeWarps(composeWarps(resolveDoctrine(opts.doctrine).warp, combinedVowWarp(opts.vows)), opts.sectorWarp),
       stageEnemySpeedMult: this.stage ? this.stage.enemySpeedMult : 1,
+      threat: opts.threat, // THREAT LADDER (docs/THREAT.md) — composes last; 0/omitted ⇒ passthrough
     });
     this.diff = this.dd.difficulty; // doctrine damage already folded (the director's ONE fold site)
     this.warp = this.dd.queueWarp();
@@ -901,6 +920,7 @@ export class Game {
         const effects = effectiveGeneEffects(card, this.geneLevels[card.id] ?? 0, 0, this.geneTranscends[card.id]);
         applyCard({ ...card, effects }, this.cardContext());
         for (const e of effects) if (e.op === 'grant' || e.op === 'hook') this.collectRunVerb(e);
+        this.foldIntoHeroBundles(effects);
         this.chosenCards.push(cardToOption(card, effects));
         this.chosenCardEffects.push(...effects);
       }
@@ -1205,8 +1225,28 @@ export class Game {
     }
   }
 
-  /** Run the equipped relics' battlefield rules for a run event (no-op without relic gear). */
-  private fireRelicHooks(on: HookEvent, e: Enemy | null): void {
+  /** A gene card applied AFTER boot (draft / Starting Gene Loadout) must also reach every PER-HERO
+   *  bundle: a geared or symbiote-grafted hero reads its own boot-time clones (hmods / hkit /
+   *  hstatuses), so a hero-scoped stat, stance or on-hit grant folded only into the globals would
+   *  silently skip it. No per-hero bundles (gear-less roster — the golden run) ⇒ a no-op. */
+  private foldIntoHeroBundles(effects: readonly CardEffect[]): void {
+    for (const e of effects) {
+      if ((e.op === 'mul' || e.op === 'add' || e.op === 'flag' || e.op === 'set') && HERO_SCOPED_FIELDS.has(e.field)) {
+        for (const hm of Object.values(this.heroHmods)) if (hm) applyRunEffect(hm, e);
+      } else if (e.op === 'grant' && e.grant.kind === 'heroAttackStatus') {
+        const st = { status: e.grant.status, amount: e.grant.amount };
+        for (const list of Object.values(this.heroStatuses)) list?.push(st);
+      } else if (e.op === 'grant' && e.grant.kind === 'heroAttackAbility') {
+        for (const kit of Object.values(this.heroKits)) kit?.push(e.grant.component);
+      }
+    }
+  }
+
+  /** Run the battlefield rules (relic gear + rule-changing gene cards) for a run event — a no-op
+   *  without hooks. A spread centers on the triggering enemy (excluded: it is the source), else on
+   *  the event's own point (ax, ay — the cast point / deploy slot / struck-from position); an event
+   *  with neither (wave start/clear) has nothing to spread from. */
+  private fireRelicHooks(on: HookEvent, e: Enemy | null, ax?: number, ay?: number): void {
     for (const h of this.relicHooks) {
       if (h.on !== on) continue;
       const a = h.action;
@@ -1220,10 +1260,14 @@ export class Game {
           ph.shield = Math.max(ph.shield, a.value);
           ph.shieldTime = Math.max(ph.shieldTime, a.seconds);
         }
-      } else if (a.do === 'spreadStatus' && e) {
+      } else if (a.do === 'spreadStatus') {
+        const cx = e ? e.x : ax;
+        const cy = e ? e.y : ay;
+        if (cx === undefined || cy === undefined) continue;
+        const srcId = e ? e.id : -1;
         const r2 = a.radius * a.radius;
-        this.grid.forNeighbors(e.x, e.y, a.radius, (n) => {
-          if (n.alive && n.id !== e.id && dist2(e.x, e.y, n.x, n.y) <= r2) {
+        this.grid.forNeighbors(cx, cy, a.radius, (n) => {
+          if (n.alive && n.id !== srcId && dist2(cx, cy, n.x, n.y) <= r2) {
             this.applyStatus(n, { kind: a.status, amount: a.amount });
           }
         });
@@ -1386,6 +1430,7 @@ export class Game {
       at: this.time,
     };
     this.auditTempPower(powerBefore, `Strain ${t.strain} (${t.kind})`);
+    if (this.relicHooks.length) this.fireRelicHooks('strainRaised', null, t.x, t.y); // rule genes (docs/CARDS.md §rules)
     return 'ok';
   }
 
@@ -2005,6 +2050,7 @@ export class Game {
     this.spawnParticles(slot.x, slot.y, PARTICLE.mutate, TOWER_DEFS[kind].color, 0.8);
     this.pushSfx('place');
     if (gameEvents.hasListeners('towerPlaced')) gameEvents.emit('towerPlaced', { id: this.nextId - 1, kind, slot: slot.index });
+    if (this.relicHooks.length) this.fireRelicHooks('towerDeployed', null, slot.x, slot.y); // rule genes (docs/CARDS.md §rules)
     // First setup action taken → ARM the auto-start countdown (see autoStartReady). Placing a
     // tower is one of the two triggers (the other is a manual startWave); latched for the run.
     this.autoStartReady = true;
@@ -2309,7 +2355,7 @@ export class Game {
     if (this.biomass < cost) return false;
     this.biomass -= cost;
     this.draftRerolled = true;
-    this.draft = draftCards(this.rng, 3, this.waveIndex, this.fieldedKinds(), this.unlockedCardIds, this.draftPool);
+    this.draft = draftCards(this.rng, 3, this.waveIndex, this.fieldedKinds(), this.unlockedCardIds, this.draftPool, this.ruleSlot);
     this.pushSfx('draft'); // the re-deal plays the same beat as the deal
     return true;
   }
@@ -2325,6 +2371,7 @@ export class Game {
       // Behavioral verbs (grant/hook) fold into the live sim arrays too — a drafted card can
       // add a projectile mutator / battlefield rule mid-run, not just at boot (equipment).
       for (const e of effects) if (e.op === 'grant' || e.op === 'hook') this.collectRunVerb(e);
+      this.foldIntoHeroBundles(effects);
       const scored = effectsPower(effects) > 1; // instant-only cards are legitimately unscored
       const powerBefore = scored ? effectsPower(this.powerEffects()) : 0;
       this.chosenCards.push(cardToOption(card, effects));
@@ -2420,7 +2467,7 @@ export class Game {
 
   /** The ranked plan (best value first) — what a pulse WOULD buy right now. Pure read. */
   hiveEvaluate(): HiveAction[] {
-    if (this.phase === 'won' || this.phase === 'lost') return [];
+    if (!this.automationAllowed || this.phase === 'won' || this.phase === 'lost') return [];
     return hivePlan(this);
   }
 
@@ -2446,6 +2493,7 @@ export class Game {
     const reserveFloor = Math.max(HIVE_MIND.reserveMin, Math.floor(this.biomass * HIVE_MIND.reserveFrac));
     const actions: { label: string; detail: string; cost: number }[] = [];
     let spent = 0;
+    if (!this.automationAllowed) return { spent, actions }; // frontier content: the decisions stay the player's
     for (let i = 0; i < cap; i++) {
       if (this.phase === 'won' || this.phase === 'lost') break;
       const plan = hivePlan(this, { reserveFloor });
@@ -5712,6 +5760,7 @@ export class Game {
       this.hiveHitPulse = Math.min(1, this.hiveHitPulse + 0.25 + e.damage * 0.012);
     }
     this.pushSfx('hiveHit');
+    if (this.relicHooks.length) this.fireRelicHooks('nucleusHit', null, e.x, e.y); // rule genes — the attacker is IN the burst
     // Impact FX at the bite point on the Core's surface (toward the attacker).
     const dx = e.x - nucleusPoint.x;
     const dy = e.y - nucleusPoint.y;
@@ -5747,6 +5796,7 @@ export class Game {
     e.sieging = false;
     if (e.boss) this.bossCount = Math.max(0, this.bossCount - 1);
     this.armorBreakUntil.delete(e.id);
+    if (this.relicHooks.length) this.fireRelicHooks('nucleusHit', null, e.x, e.y); // rule genes (docs/CARDS.md §rules)
     this.pushSfx('breach');
     if (!e.boss) this.pushSfx('edie_pop'); // the suicide's own volatile burst, under the Core-breach
     this.spawnParticles(e.x, e.y, PARTICLE.breach);
@@ -5923,7 +5973,7 @@ export class Game {
     this.castRangeMult = 1;
     if (delay === 0 && sk.particle) this.spawnParticles(px, py, PARTICLE[sk.particle], sk.fxColor); // the skill's unique cast VFX (fork-recoloured); a delayed payload bursts on LANDING instead
     (h.skillCd as number[])[i] = sk.cooldown * this.heroProgress[h.kind].cooldownMult; // stars/gear shave skill cds too
-    if (this.relicHooks.length) this.fireRelicHooks('abilityCast', null);
+    if (this.relicHooks.length) this.fireRelicHooks('abilityCast', null, px, py);
     this.pushSfx('ability');
     this.floats.push({ x: px, y: py - 18, text: sk.name, color: HERO_DEFS[h.kind].color, life: 0.7 });
   }
@@ -6467,7 +6517,7 @@ export class Game {
     this.pushCastEvent(h, ab, 'ult', px, py, fromX, fromY);
     this.castRangeMult = 1;
     if (delay === 0 && ab.particle) this.spawnParticles(px, py, PARTICLE[ab.particle], ab.fxColor); // the ult's unique cast VFX (fork-recoloured); a delayed payload bursts on LANDING instead
-    if (this.relicHooks.length) this.fireRelicHooks('abilityCast', null); // relic rule on ability cast
+    if (this.relicHooks.length) this.fireRelicHooks('abilityCast', null, px, py); // relic/rule hooks fire at the cast point
     h.abilityCd = this.heroAbilityCooldownFor(h);
     this.pushSfx('ability');
     if (gameEvents.hasListeners('heroAbilityUsed')) gameEvents.emit('heroAbilityUsed', { kind: h.kind }); // drives the Combat Tutorial (golden-safe: gated on a listener)
@@ -6724,6 +6774,7 @@ export class Game {
           gameEvents.emit('bossKilled', { defId: e.boss.defId, name: e.boss.name, x: e.x, y: e.y, epithet: kdef?.epithet });
         }
         if (this.relicHooks.length) this.fireRelicHooks('enemyKilled', e); // relic battlefield rules
+        if (this.relicHooks.length && (e.elite || e.boss)) this.fireRelicHooks('eliteKilled', e); // rule genes (docs/CARDS.md §rules)
         if (this.mods.killFractureSplash > 0) { // Viral Payload (gene card) — the kill seeds Fracture nearby
           this.grid.forNeighbors(e.x, e.y, KILL_FRACTURE_RANGE, (o) => {
             if (o.alive && o.id !== e.id) this.addFracture(o, this.mods.killFractureSplash);
@@ -6965,7 +7016,7 @@ export class Game {
         // Gene Card cadence (CARDS.md §1): campaign drafts every wave (generous); endless slows
         // the drip with depth so cards stay exciting and deep runs lean on permanent progression.
         if (!this.tutorialMode && this.shouldDraftThisWave()) {
-          this.draft = draftCards(this.rng, 3, this.waveIndex, this.fieldedKinds(), this.unlockedCardIds, this.draftPool); // depth-scaled rarity (CARDS.md §2); tower cards only for FIELDED kinds
+          this.draft = draftCards(this.rng, 3, this.waveIndex, this.fieldedKinds(), this.unlockedCardIds, this.draftPool, this.ruleSlot); // depth-scaled rarity (CARDS.md §2); tower cards only for FIELDED kinds
           this.draftRerolled = false; // a fresh deal re-arms the one paid reroll (§reroll)
         }
       }
@@ -7412,7 +7463,7 @@ export class Game {
     if (!this.tutorialMode) return;
     const settling = this.phase === 'wave' && this.settleTimer > 0;
     if (this.phase !== 'prep' && !settling) return;
-    this.draft = draftCards(this.rng, 3, this.waveIndex, this.fieldedKinds(), this.unlockedCardIds, this.draftPool);
+    this.draft = draftCards(this.rng, 3, this.waveIndex, this.fieldedKinds(), this.unlockedCardIds, this.draftPool, this.ruleSlot);
     this.draftRerolled = false;
     if (!settling) this.phase = 'draft'; // settling: endWave() reveals it when the field winds down
   }
@@ -7433,7 +7484,7 @@ export class Game {
   /** Open the 1-of-3 draft now (abandons any in-progress wave). */
   debugOpenDraft(): void {
     if (this.phase === 'won' || this.phase === 'lost') return;
-    this.draft = draftCards(this.rng, 3, this.waveIndex, this.fieldedKinds(), this.unlockedCardIds, this.draftPool);
+    this.draft = draftCards(this.rng, 3, this.waveIndex, this.fieldedKinds(), this.unlockedCardIds, this.draftPool, this.ruleSlot);
     this.draftRerolled = false;
     this.phase = 'draft';
   }
@@ -8012,6 +8063,7 @@ export class Game {
       anticipation: this.tutorialWaves > 0 ? [] : this.nextAnticipation(), // the lesson has no finale to anticipate
       autoStart: this.autoStart,
       hiveReady: this.hiveReadySnapshot(),
+      threat: this.threat,
       autoStartIn: this.autoStart && this.autoStartReady && this.phase === 'prep' ? Math.max(0, this.prepCountdown) : 0,
       autoStartWaiting: this.autoStart && !this.autoStartReady,
       autocast: { unlocked: this.autocastUnlocked, on: this.autocastOn, cost: HERO_AUTOCAST.cost, affordable: this.biomass >= HERO_AUTOCAST.cost },

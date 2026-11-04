@@ -213,6 +213,87 @@ an account's life:
 
 ---
 
+### §rules — Rule Genes: cards that change HOW you play (2026-11)
+
+Of the first 106 genes, ~100 were stat multipliers. The **Rule Genes** block (25 cards, the tail of
+`CARD_POOL`) adds build-defining choices that rewrite a run's rules through the **rule ops** —
+`grant` (a run-wide capability), `hook` (a battlefield rule fired by an event), `set` (a string
+stance) and `flag` (a boolean rule) — never a bare multiplier.
+
+**Rule-changing is derived, not listed.** `isRuleChangingCard(def)` is true when any BASE effect
+uses an op in `RULE_CHANGING_OPS` (`flag`/`set`/`grant`/`hook`). A future card classifies itself
+from its effects; there is no hand-maintained list (31 of 131 cards qualify today).
+
+**Gating (golden-safe).** Every Rule Gene carries a `campaignStage` unlock (Stage 2–25), so a
+fresh account's pool — and the golden sim's — is byte-identical. Discovery still applies on top
+(the rarity pools open at Campaign 0/8/15/30/60 — docs §discovery), so the commons arrive first.
+
+**THE RULE SLOT (the draft guarantee).** `draftCards(..., ruleSlot)`: when armed and a deal holds no
+rule-changing card while the eligible pool (discovered ∩ unlocked ∩ fielded) does, the LAST slot is
+re-dealt from the eligible rule cards. The Game arms it only once the account has EARNED a
+rule-changing gene (its `unlockedCardIds` holds one — i.e. Campaign Stage 2) ⇒ a fresh save and
+every golden seed draw zero extra rng and deal exactly as before. When nothing rule-changing is
+eligible, the armed deal is the unarmed deal (same rng stream — pinned by `ruleGenes.test.ts`).
+
+**Four rule events** extend the hook verb (`HookEvent`), each fired from ONE sim seam with a
+trigger POINT — a `spreadStatus` centers there (an event with no point, like a wave start, has
+nothing to spread from):
+
+| Event | Seam (game.ts) | Trigger point |
+|---|---|---|
+| `eliteKilled` | the kill block, after `enemyKilled`, when the corpse was an elite or boss | the corpse (excluded) |
+| `nucleusHit` | `hiveStrike` + `detonate` — every blow that lands on the Nucleus | the attacker (included) |
+| `towerDeployed` | `placeCore` — every tower placement (favorite deploy, conveyor, legacy) | the slot |
+| `strainRaised` | `raiseStrain` — every Strain level-up (merge) | the tower |
+| `abilityCast` *(now pointed)* | both hero cast sites | the cast point |
+
+Spread SUBJECT (the draft badge) follows the event: cast-point bursts are the HERO's, Nucleus
+retaliation is the HIVE's, deploy/strain bursts are army-wide; kill spreads keep the status's tower
+identity (the `plague_vector` convention). Language rows live in `effectLanguage.ts EVENT_VOCAB`
+(typed `Record<HookEvent, …>` — a new event cannot ship undescribed); hero stances read from
+`ANCHOR_VOCAB`.
+
+**Geared heroes get the rules too.** A drafted (or loadout-activated) gene's hero-scoped stat,
+stance and on-hit grant now also fold into every PER-HERO bundle (`foldIntoHeroBundles`) — before
+this, a geared hero's boot-time clone silently ignored mid-run hero cards. Gear-less runs (the
+golden path) have no bundles ⇒ no-op.
+
+| Archetype | Card (rarity · gate) | Rule |
+|---|---|---|
+| SHRED (Fracture × Corrosion) | **Splinter Venom** (C · 2) | hero strikes Fracture |
+| | **Caustic Strikes** (C · 3) | hero strikes corrode |
+| | **Acid Etching** (U · 4) | kills splash Corrosion |
+| | **Shatter Lattice** (R · 10) | Mortar Fractures + kills splinter Fracture |
+| | **Apex Contagion** (E · 18) | elite/boss deaths detonate Fracture + Corrosion |
+| Infection | **Patient Zero** (U · 5) | hero strikes infect |
+| | **Contagion Bloom** (C · 3) | elite/boss deaths burst Infection |
+| | **Septic Breach** (R · 11) | Nucleus blows erupt Infection |
+| Disruption / control | **Synaptic Burst** (C · 2) | ability casts Disrupt at the cast point |
+| | **Static Wake** (U · 5) | deployments Disrupt around the slot — deploy INTO the wave |
+| | **Cryo Fang** (U · 6) | hero strikes encase (refractory) |
+| | **Dread Spores** (C · 4) | Nucleus blows panic nearby attackers |
+| Conveyor / Strain economy | **Recycler Glands** (C · 2) | each deployment refunds 25 Biomass |
+| | **Strain Tithe** (U · 6) | each Strain raise refunds 45 Biomass |
+| | **Mutagenic Shock** (R · 12) | each Strain raise detonates Fracture + Disruption — merge mid-wave |
+| Slot / placement | **Lancing Sinew** (U · 7) | every tower's shots pierce +1 — line the lane |
+| | **Impaling Lattice** (E · 20) | pierce +3, −10% fire rate |
+| | **Sapper Cradle** (R · 9) | +1 emplacement; each deployment heals the Nucleus |
+| Hero stance | **Bulwark Instinct** (C · 3) | hero guards the Nucleus; wave starts shield it |
+| | **Pack Leader** (U · 7) | hero holds among towers with a haste aura |
+| | **Vanguard Stance** (R · 10) | hero holds the front line; strikes burst |
+| | **Chain Reflex** (R · 14) | hero strikes arc to 2 more foes |
+| Risk / reward | **Blood Tithe** (U · 6) | Nucleus blows pay Biomass; −10% kill biomass |
+| | **Trophy Hunter** (R · 11) | elite/boss kills pay 60; enemies +8% HP |
+| | **Hive Martyrdom** (L · 25) | Nucleus blows panic + pay; enemies +12% HP |
+
+**Power.** Rule ops are unscored by design (behavior, not numbers); every PERMANENT level of a Rule
+Gene carries a scored rider (`geneUpgrades.ts`), so the Power-visibility validator holds and
+upgrading one always moves Power. Their maxed riders are deliberately lighter than the stat cards'
+(avg +0.16 vs +0.21), lifting the maxed library from ≈×2.76 to ≈×3.08 on the meta bucket
+(`GENE_POWER_SCALE` unchanged so no existing account's Power moves; geneArchive.test band ×2–3.2).
+
+---
+
 ## 4. Synergy architecture (why cards *heavily* synergize)
 
 Three layered synergy engines guarantee builds compound rather than add:
