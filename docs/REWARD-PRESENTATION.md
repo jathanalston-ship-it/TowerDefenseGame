@@ -97,7 +97,8 @@ no longer fades in (the board is already there) — only the capsule does — an
 row's readability band is feathered at its sides so it never reads as a slab. Absent (replay
 theater, Arena, tutorial, crash path) ⇒ the dark room as before. Every behaviour above — Stage
 N+1 ▸ + boon, the top-anchored capsule, the pause under milestone cinematics, Skip — is
-unchanged; text keeps ≥ 4.5:1 over the backdrop (measured per text node, see the S2 report).
+unchanged; text keeps its contrast over the backdrop (measured per text node at 1440×900 and
+390×844: no element newly under 4.5:1 — the translucent achievement card sits on `--bg`).
 
 ## Player controls
 

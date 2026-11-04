@@ -96,8 +96,13 @@ duration + tint source `'biome' | 'tier' | '#hex'` + ground/glow/tint alphas + w
 defeat drain/dim/crack shape/colour, snapshot scale/quality, settle ms); the backdrop's
 `--rb-blur 8px · --rb-dim 0.4` and the cover fill's `--rb-fill-*` in index.css §S2.
 
-**Measured:** see the batch report — added cost during the outro ≪ 1 ms/frame at 1440×900 with
-~150 enemies; the one-off bake runs on the outro's first frame.
+**Measured** (headless Chromium, 1440×900, ~150 enemies on the board, `performance.now()` around
+`frame()` + `drawVictoryWash()`, ≥ 320 frames each): victory **0.09 ms/frame**, defeat **0.23
+ms/frame**. One-offs: the bake at the outro's first frame (median ~25 ms — the same painter the
+terraform already runs on every stage step), the snapshot at the hand-off (6–9 ms, ~15–25 KB).
+Three victories in a row + 12 forced begin/capture cycles leave the DOM node count flat (no
+retained canvases). Results text contrast over the backdrop: no new element under 4.5:1 at
+1440×900 or 390×844 (the translucent achievement card gets the room's old floor, `--bg`).
 
 ---
 
