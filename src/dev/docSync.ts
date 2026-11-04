@@ -17,7 +17,7 @@ import { TOWER_ORDER, HERO_ORDER, READINESS } from '../core/config';
 import { GENE_LOADOUT_SLOTS } from '../core/geneLoadout';
 import { ASSIMILATION_TIERS } from '../core/assimilation';
 import { COMBAT_TUTORIAL } from '../core/tutorial';
-import { FEEL, ANNOUNCE } from '../render/feel';
+import { FEEL, ANNOUNCE, LAST_KILL } from '../render/feel';
 import { PRESTIGE } from '../core/prestige';
 
 export const REPO_ROOT = join(__dirname, '..', '..');
@@ -65,6 +65,7 @@ export function docAnchors(): DocAnchor[] {
     { doc: 'docs/GAME-FEEL.md', contains: `boss fall **${FEEL.bossFall.shake} / ${FEEL.bossFall.hitstop} s**`, why: 'boss-fall feel drifted (render/feel.ts FEEL.bossFall)' },
     { doc: 'docs/GAME-FEEL.md', contains: `ult impact **${FEEL.abilityImpact.shake} / ${FEEL.abilityImpact.hitstop} s**`, why: 'ult impact feel drifted (render/feel.ts FEEL.abilityImpact)' },
     { doc: 'docs/HERO-CINEMATICS.md', contains: `trauma ${FEEL.abilityImpact.shake})`, why: 'ult impact kick drifted (render/feel.ts FEEL.abilityImpact)' },
+    { doc: 'docs/SIGNATURE-MOMENTS.md', contains: `\`LAST_KILL\` normal ${Math.round(LAST_KILL.normal.depth * 100)} % · ${LAST_KILL.normal.outMs} ms · boss ${Math.round(LAST_KILL.boss.depth * 100)} % · ${LAST_KILL.boss.outMs} ms · nudge ≤ ${Math.round(LAST_KILL.normal.zoom * 100)} %`, why: 'last-kill taste values drifted (render/feel.ts LAST_KILL)' },
     { doc: 'docs/GAME-FEEL.md', contains: `mega fall ${ANNOUNCE.megaFall.priority} › mega intro ${ANNOUNCE.megaIntro.priority} › boss fall ${ANNOUNCE.bossFall.priority} › boss intro ${ANNOUNCE.bossIntro.priority} › weak point ${ANNOUNCE.weakPoint.priority} › wave ${ANNOUNCE.wave.priority}`, why: 'centre-stage priority ladder drifted (render/feel.ts ANNOUNCE)' },
   ];
 }
