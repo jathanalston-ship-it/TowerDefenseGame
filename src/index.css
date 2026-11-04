@@ -57,7 +57,10 @@
   --line-strong: #3a4a63;
   --text: #d7e0ec;
   --muted: #8a97a8;
-  --dim: #5b6677;
+  /* --dim is the QUIETEST text tier, not a disabled grey: it must still read ≥ 4.5:1 on every
+     panel surface (--panel/--panel-2/--panel-3 and the --bg floor — src/dev/tokenContrast.test.ts).
+     Was #5b6677 (3.1:1 on --panel) — 86 call sites of unreadable small print. */
+  --dim: #808d9f;
 
   /* class hues */
   --kinetic: #5ad1ff;
@@ -10218,19 +10221,19 @@ kbd {
 .bp-ring-fill { fill: none; stroke: url(#bpRingInk); stroke-width: 5; stroke-linecap: round; filter: drop-shadow(0 0 4px color-mix(in srgb, var(--bpx) 60%, transparent)); transition: stroke-dashoffset var(--dur-4) var(--ease-out); }
 .bp-ring-lv { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
 .bp-ring-lv b { font: 800 20px/1 'Chakra Petch', system-ui, sans-serif; color: var(--bpx); font-variant-numeric: tabular-nums; }
-.bp-ring-lv i { font-style: normal; font-size: 10px; color: var(--dim); }
+.bp-ring-lv i { font-style: normal; font-size: 12px; color: var(--dim); }
 .bp-xp-block { flex: 1; min-width: 150px; }
 .bp-xpbar { position: relative; height: 10px; border-radius: 999px; background: var(--panel-deep); border: 1px solid var(--line); overflow: hidden; margin: 0 0 4px; }
 .bp-xpbar i { position: relative; display: block; height: 100%; border-radius: 999px; overflow: hidden; background: linear-gradient(90deg, var(--bpx), var(--bp-glow, #ffffff)); box-shadow: 0 0 10px color-mix(in srgb, var(--bpx) 45%, transparent); transition: width var(--dur-3) var(--ease-out); }
 .bp-xpbar i::after { content: ''; position: absolute; top: 0; bottom: 0; left: 0; width: 45%; background: linear-gradient(105deg, transparent 20%, rgba(255, 255, 255, 0.55) 50%, transparent 80%); animation: bp-shimmer 2.6s linear infinite; }
 @keyframes bp-shimmer { from { transform: translateX(-160%); } to { transform: translateX(320%); } }
-.bp-xpline { font-size: 11px; color: var(--dim); font-variant-numeric: tabular-nums; }
+.bp-xpline { font-size: 12px; color: var(--dim); font-variant-numeric: tabular-nums; }
 
 .bp-controls { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 10px 0; }
 .bp-claimall { min-height: 30px; }
-.bp-buylv, .bp-ad { min-height: 28px; font-size: 11px; letter-spacing: 0.06em; border-radius: 999px; border: 1px solid var(--line-strong); background: var(--panel-2); color: var(--text); padding: 4px 12px; }
-.bp-filter { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; color: var(--muted); min-height: 24px; }
-.bp-completion { margin-left: auto; font-size: 11px; letter-spacing: 0.08em; color: var(--muted); font-variant-numeric: tabular-nums; }
+.bp-buylv, .bp-ad { min-height: 28px; font-size: 12px; letter-spacing: 0.06em; border-radius: 999px; border: 1px solid var(--line-strong); background: var(--panel-2); color: var(--text); padding: 4px 12px; }
+.bp-filter { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted); min-height: 24px; }
+.bp-completion { margin-left: auto; font-size: 12px; letter-spacing: 0.08em; color: var(--muted); font-variant-numeric: tabular-nums; }
 
 /* The premium door: themed chrome, glyph watermark, a periodic light sweep. */
 .bp-upsell {
@@ -10277,7 +10280,9 @@ kbd {
 
 .bp-cell {
   position: relative; z-index: 1;
-  width: 84px; min-height: 62px;
+  /* 12px floor for tier + reward labels (docs/UI-STANDARDS.md §readability) — the cell widened
+     84→100px so the larger reward names still fit before ellipsis. */
+  width: 100px; min-height: 66px;
   padding: 4px 5px;
   display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
   background: linear-gradient(180deg, var(--panel-3), var(--panel-2));
@@ -10287,11 +10292,11 @@ kbd {
   transition: transform var(--dur-2) var(--ease-out), border-color var(--dur-2) var(--ease-out), box-shadow var(--dur-2) var(--ease-out);
 }
 .bp-cell:hover { transform: translateY(-2px); }
-.bp-cell-lv { font-size: 10px; color: var(--dim); font-variant-numeric: tabular-nums; }
+.bp-cell-lv { font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
 .bp-ricons { display: inline-flex; flex-direction: column; align-items: stretch; gap: 1px; max-width: 100%; transition: transform var(--dur-2) var(--ease-out); }
 .bp-rchip { display: flex; align-items: center; gap: 3px; max-width: 100%; }
 .bp-rchip-i { font-size: 13px; font-style: normal; line-height: 1; flex: none; }
-.bp-rchip-t { font-style: normal; font-size: 10px; line-height: 1.2; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.bp-rchip-t { font-style: normal; font-size: 12px; line-height: 1.2; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .bp-cell.is-claimable .bp-rchip-t { color: var(--text); }
 .bp-cell:hover .bp-ricons { transform: scale(1.08); }
 .bp-cell.is-claimable {
@@ -10305,7 +10310,7 @@ kbd {
 .bp-cell.is-claimed { opacity: 0.5; }
 .bp-cell.is-future { opacity: 0.75; }
 .bp-cell.is-gated { opacity: 0.55; background-image: repeating-linear-gradient(135deg, transparent 0 6px, rgba(255, 255, 255, 0.04) 6px 12px); }
-.bp-cell.is-crown { width: 88px; border-color: color-mix(in srgb, var(--bpx) 70%, var(--line)); box-shadow: 0 0 16px color-mix(in srgb, var(--bpx) 30%, transparent); }
+.bp-cell.is-crown { width: 104px; border-color: color-mix(in srgb, var(--bpx) 70%, var(--line)); box-shadow: 0 0 16px color-mix(in srgb, var(--bpx) 30%, transparent); }
 .bp-cell-rays {
   position: absolute; inset: -16px; z-index: -1; pointer-events: none;
   background: repeating-conic-gradient(from 0deg, color-mix(in srgb, var(--bpx) 25%, transparent) 0deg 10deg, transparent 10deg 32deg);
@@ -10338,10 +10343,10 @@ kbd {
 .bp-detail { border: 1px solid color-mix(in srgb, var(--bpx) 30%, var(--line)); border-radius: var(--r-md); background: linear-gradient(180deg, color-mix(in srgb, var(--bpx) 5%, var(--panel-2)), var(--panel-2)); padding: 10px 14px; margin-top: 10px; animation: ui-rise var(--dur-3) var(--ease-out) both; }
 .bp-detail-h { font-size: 12px; letter-spacing: 0.16em; color: var(--bpx); margin-bottom: 6px; }
 .bp-detail-cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
-.bp-detail-k { font-size: 11px; letter-spacing: 0.12em; color: var(--muted); margin-bottom: 4px; }
+.bp-detail-k { font-size: 12px; letter-spacing: 0.12em; color: var(--muted); margin-bottom: 4px; }
 .bp-detail-k.is-premium { color: var(--bpx); }
 .bp-detail-line { font-size: 12px; color: var(--text); padding: 2px 0; }
-.bp-detail-note { font-size: 11px; color: var(--dim); margin: 8px 0 0; }
+.bp-detail-note { font-size: 12px; color: var(--dim); margin: 8px 0 0; }
 
 @media (prefers-reduced-motion: reduce) {
   .bp-petal, .bp-atmo-aurora, .bp-atmo-rays,
