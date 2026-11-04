@@ -58,7 +58,7 @@ derive their values from here.
 | `--line-strong` | `#3a4a63` | active borders, dividers |
 | `--text` | `#d7e0ec` _(impl)_ | primary text |
 | `--text-muted` | `#8a97a8` _(impl)_ | secondary text |
-| `--text-dim` | `#5b6677` | disabled / tertiary |
+| `--dim` | `#808d9f` | tertiary text — still ≥ 4.5:1 on every panel (was #5b6677, 3.1:1; docs/UI-STANDARDS.md §readability) |
 
 Grid lines sit at **3% white** (barely visible) so the play area reads as *space*,
 not graph paper.

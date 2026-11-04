@@ -9,6 +9,7 @@ import { MECHANIC_BY_ID } from '../state/mechanics';
 import type { MechanicCategory, MechanicDef } from '../state/mechanics';
 import { guideBus, guideFor } from '../state/guidedUnlocks';
 import { navBus } from '../state/navBus';
+import { searchMechanics } from './helpSearch';
 
 const CATEGORY_ORDER: MechanicCategory[] = ['Basics', 'Towers', 'Heroes', 'Progression', 'Modes', 'World'];
 
@@ -19,10 +20,14 @@ export function HelpWiki({ onNavigate, onReplayTour }: { onNavigate?: (nav: stri
   const [selId, setSelId] = useState<string | null>(all[0]?.id ?? null);
 
   const q = query.trim().toLowerCase();
-  const filtered = q ? all.filter((m) => `${m.title} ${m.summary} ${m.what} ${m.category}`.toLowerCase().includes(q)) : all;
+  // Searching RANKS (ui/helpSearch.ts): title hits first, then summary, then body mentions —
+  // shown as one flat best-first list; the detail pane follows the top hit until you pick one.
+  const filtered = searchMechanics(all, q);
   const byCat = new Map<MechanicCategory, MechanicDef[]>();
   for (const m of filtered) { const l = byCat.get(m.category) ?? []; l.push(m); byCat.set(m.category, l); }
-  const sel = (selId && all.find((m) => m.id === selId)) || filtered[0] || null;
+  const sel = (q
+    ? (selId && filtered.find((m) => m.id === selId)) || filtered[0]
+    : (selId && all.find((m) => m.id === selId)) || filtered[0]) || null;
 
   return (
     <div className="panel help-wiki">
@@ -39,7 +44,15 @@ export function HelpWiki({ onNavigate, onReplayTour }: { onNavigate?: (nav: stri
 
       <div className="help-body">
         <nav className="help-index" aria-label="Mechanics">
-          {CATEGORY_ORDER.filter((c) => byCat.has(c)).map((c) => (
+          {q && filtered.length > 0 && (
+            <div className="help-cat">
+              <div className="help-cat-h">{filtered.length} result{filtered.length === 1 ? '' : 's'} · best match first</div>
+              {filtered.map((m) => (
+                <button key={m.id} className={`help-entry ${sel?.id === m.id ? 'on' : ''}`} onClick={() => setSelId(m.id)}>{m.title}</button>
+              ))}
+            </div>
+          )}
+          {!q && CATEGORY_ORDER.filter((c) => byCat.has(c)).map((c) => (
             <div className="help-cat" key={c}>
               <div className="help-cat-h">{c}</div>
               {byCat.get(c)!.map((m) => (

@@ -8,7 +8,7 @@
 
 import type { SaveData } from '../../save/saveStore';
 import type { NavKey } from '../navModel';
-import { groupOf } from '../navModel';
+import { groupOf, navLabel } from '../navModel';
 import { featureRevealed } from '../../state/unlocks';
 
 export function ScreenHeader({ nav, save, badges, onBack, go, onGroup }: {
@@ -22,6 +22,9 @@ export function ScreenHeader({ nav, save, badges, onBack, go, onGroup }: {
   const group = groupOf(nav);
   const current = group.items.find((i) => i.key === nav);
   const siblings = group.items.filter((i) => featureRevealed(save, i.key));
+  // Narrow shells label only the current chip and its neighbours (index.css `.is-near`) — the
+  // rest go glyph-only, so the row fits without hiding where you are or what sits next door.
+  const hereAt = siblings.findIndex((i) => i.key === nav);
   return (
     <div className="scrh" role="navigation" aria-label="Screen navigation">
       <button type="button" className="scrh-back" onClick={onBack} aria-label="Back" title="Back">‹</button>
@@ -30,15 +33,15 @@ export function ScreenHeader({ nav, save, badges, onBack, go, onGroup }: {
           <span aria-hidden>{group.hub.glyph}</span> {group.title}
         </button>
         <span className="scrh-sep" aria-hidden>▸</span>
-        <span className="scrh-here" aria-current="page">{current?.label ?? nav}</span>
+        <span className="scrh-here" aria-current="page">{current?.label ?? navLabel(nav)}</span>
       </span>
       {siblings.length > 1 && (
         <span className="scrh-sibs" aria-label={`Other ${group.title} screens`}>
-          {siblings.map((i) => (
+          {siblings.map((i, at) => (
             <button
               key={i.key}
               type="button"
-              className={`scrh-sib${i.key === nav ? ' is-here' : ''}`}
+              className={`scrh-sib${i.key === nav ? ' is-here' : hereAt >= 0 && Math.abs(at - hereAt) === 1 ? ' is-near' : ''}`}
               onClick={() => { if (i.key !== nav) go(i.key); }}
               aria-pressed={i.key === nav}
               title={i.label}

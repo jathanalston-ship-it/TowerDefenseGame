@@ -195,6 +195,37 @@ export function setListOrgPrefs(surface: string, patch: Partial<ListOrgPrefs>): 
   return next;
 }
 
+// ── Section collapse state (ui/components/SectionNav.tsx — docs/UI-STANDARDS.md §long-screens):
+// which sections of a long screen THIS device opened or folded, per screen. Only explicit
+// toggles are stored (`{ [screen]: { [sectionId]: open } }`); an unset id falls back to the
+// section's own default, so new sections never inherit a stale choice.
+const SECTIONS_KEY = 'assimilate.sections';
+
+export function sectionPrefs(screen: string): Record<string, boolean> {
+  try {
+    const all = JSON.parse(localStorage.getItem(SECTIONS_KEY) ?? '{}') as Record<string, unknown>;
+    const raw = all[screen];
+    if (!raw || typeof raw !== 'object') return {};
+    const out: Record<string, boolean> = {};
+    for (const [id, v] of Object.entries(raw as Record<string, unknown>)) if (typeof v === 'boolean') out[id] = v;
+    return out;
+  } catch {
+    return {};
+  }
+}
+
+export function setSectionPrefs(screen: string, patch: Record<string, boolean>): Record<string, boolean> {
+  const next = { ...sectionPrefs(screen), ...patch };
+  try {
+    const all = JSON.parse(localStorage.getItem(SECTIONS_KEY) ?? '{}') as Record<string, unknown>;
+    all[screen] = next;
+    localStorage.setItem(SECTIONS_KEY, JSON.stringify(all));
+  } catch {
+    /* storage unavailable — the session still toggles */
+  }
+  return next;
+}
+
 // ── Genetic Vault ledger — session-spanning opening history + counters (device-local;
 // presentation only, never progression). Capped list so it can't grow unbounded.
 const VAULT_KEY = 'assimilate.vault';
@@ -269,4 +300,5 @@ export const DEVICE_PREF_KEYS: readonly string[] = [
   LAB_KEY, // Tower Lab bench prefs (favorites/recents/selection/sort)
   VAULT_KEY, // Genetic Vault opening ledger (history/statistics)
   FLAWLESS_KEY, // readiness calm-down after a flawless campaign clear
+  SECTIONS_KEY, // SectionNav open/folded sections per long screen (ui/components/SectionNav.tsx)
 ];

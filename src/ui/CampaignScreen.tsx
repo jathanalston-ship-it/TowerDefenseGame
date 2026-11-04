@@ -22,6 +22,7 @@ import { deployReadiness } from '../state/progressionLoop';
 import { isInfiniteUnlocked } from '../save/derive';
 import { CurrencyIcon } from './components/CurrencyIcon';
 import { ThreatPicker } from './components/ThreatPicker';
+import { LoadoutStrip } from './components/LoadoutStrip';
 
 const WINDOW = 8; // nodes shown at once (a window over the infinite ladder)
 const ROW = 64, TOP = 44, MIDX = 150, AMP = 98; // serpentine descent layout (SVG units)
@@ -30,9 +31,12 @@ const pos = (i: number, stage: number): { x: number; y: number } => ({ x: MIDX +
 export function CampaignScreen({
   onStart,
   difficultyRef,
+  doctrineRef,
 }: {
   onStart: (stage: number, boonId?: string) => void;
   difficultyRef: MutableRefObject<string>;
+  /** The doctrine the next run carries (picked on Home) — shown on the loadout strip. */
+  doctrineRef?: MutableRefObject<string>;
 }): JSX.Element {
   const save = meta.use();
   const [diff, setDiff] = useState(() => difficultyPref('campaign')); // Campaign's OWN persisted difficulty
@@ -48,6 +52,9 @@ export function CampaignScreen({
   // (null = the default first option). Cleared whenever the focus moves to a different stage.
   const [boonPick, setBoonPick] = useState<string | null>(null);
   useEffect(() => { setBoonPick(null); }, [focus]);
+  // The run ESTIMATE folds behind a one-line summary (it used to push the map + deploy panel a
+  // full screen down); its full panel renders only while expanded.
+  const [estOpen, setEstOpen] = useState(false);
 
   const nodes = campaignMapView(cleared, diff, viewStart, WINDOW);
   const svgH = TOP * 2 + (WINDOW - 1) * ROW;
@@ -105,7 +112,20 @@ export function CampaignScreen({
         </div>
       </header>
 
-      <PredictionPanel mode="campaign" difficultyId={diff} label="Campaign Stage" />
+      {(() => {
+        const est = meta.predict('campaign', diff).p;
+        return (
+          <details className="camp-estimate" open={estOpen} onToggle={(e) => setEstOpen(e.currentTarget.open)}>
+            <summary>
+              <span className="camp-estimate-k">◇ Estimated stage</span>
+              <b>≈ {est.estimate}</b>
+              <span className="camp-estimate-r">likely {est.low}–{est.high}</span>
+              <span className="camp-estimate-more">{estOpen ? 'Hide details ▴' : 'Details ▾'}</span>
+            </summary>
+            {estOpen && <PredictionPanel mode="campaign" difficultyId={diff} label="Campaign Stage" />}
+          </details>
+        );
+      })()}
 
       {/* The macro-loop readiness meter — push when the frontier is open, farm Infinite when
           it isn't (docs/PROGRESSION-LOOP.md). */}
@@ -178,7 +198,11 @@ export function CampaignScreen({
         </div>
 
         {/* ── Focused stage ── */}
+        {/* The stage panel is STICKY on desktop (docs/CAMPAIGN.md §panel): its details scroll
+            inside, while the loadout, the Threat picker and Deploy/Replay stay pinned as its
+            footer — the act of launching is never a scroll away. */}
         <aside className="camp-detail" style={{ ['--biome' as string]: cfg.biome.accent }}>
+          <div className="camp-detail-body">
           <div className="camp-detail-stage">
             SECTOR {Math.floor((focus - 1) / BIOME_REGION) + 1} · STAGE {focus}
             {focus === frontier && <span className="camp-here">◂ frontier</span>}
@@ -217,11 +241,13 @@ export function CampaignScreen({
           )}
 
           {(() => {
-            const threat = Math.min(5, 1 + Math.floor(((cfg.scaling.enemyHealthMult - 1) + (cfg.scaling.enemyDamageMult - 1)) * 1.6));
+            // DANGER = the stage's own scaling rating (◆1–5). Deliberately NOT "Threat": that word
+            // names ONE thing — the opt-in Threat ladder picked below (docs/THREAT.md §naming).
+            const danger = Math.min(5, 1 + Math.floor(((cfg.scaling.enemyHealthMult - 1) + (cfg.scaling.enemyDamageMult - 1)) * 1.6));
             return (
-              <div className="camp-threat" title={`Enemy HP +${Math.round((cfg.scaling.enemyHealthMult - 1) * 100)}% · damage +${Math.round((cfg.scaling.enemyDamageMult - 1) * 100)}%`}>
-                <span className="cd-k">Threat</span>
-                <span className="camp-skulls">{'◆'.repeat(threat)}{'◇'.repeat(5 - threat)}</span>
+              <div className="camp-threat" title={`Stage danger — enemy HP +${Math.round((cfg.scaling.enemyHealthMult - 1) * 100)}% · damage +${Math.round((cfg.scaling.enemyDamageMult - 1) * 100)}%`}>
+                <span className="cd-k">Danger</span>
+                <span className="camp-skulls" aria-label={`Danger ${danger} of 5`}>{'◆'.repeat(danger)}{'◇'.repeat(5 - danger)}</span>
                 {cfg.rewardMult > 1 && <span className="camp-rmult">rewards ×{cfg.rewardMult.toFixed(1)}</span>}
               </div>
             );
@@ -274,10 +300,6 @@ export function CampaignScreen({
             </div>
           )}
 
-          {focusState === 'cleared' && <ThreatPicker mode="campaign" />}
-          <button className={`camp-deploy ${focusState === 'current' ? 'primary' : ''}`} disabled={focusState === 'locked'} onClick={() => deploy(focus)}>
-            {focusState === 'locked' ? `Clear Stage ${frontier} first` : focusState === 'cleared' ? 'Replay ▸' : 'Deploy ▸'}
-          </button>
           {/* Frontier field note: a failed push is never wasted (CAMPAIGN_REWARDS.attemptFrac),
               and the under-powered path names its remedy — the Infinite farm (the macro loop). */}
           {focus === frontier && (
@@ -287,6 +309,14 @@ export function CampaignScreen({
                 : <>Recommended Power not met — {infiniteOpen ? <>farm <b>Infinite</b></> : 'replay cleared stages'} to close the gap, or fight anyway: failed attempts recover up to {Math.round(CAMPAIGN_REWARDS.attemptFrac * 100)}% of the discovery data.</>}
             </div>
           )}
+          </div>
+          <div className="camp-detail-foot">
+            <LoadoutStrip doctrine={doctrineRef ? doctrineRef.current || 'none' : null} doctrineNav="home" />
+            {focusState === 'cleared' && <ThreatPicker mode="campaign" />}
+            <button className={`camp-deploy ${focusState === 'current' ? 'primary' : ''}`} disabled={focusState === 'locked'} onClick={() => deploy(focus)}>
+              {focusState === 'locked' ? `Clear Stage ${frontier} first` : focusState === 'cleared' ? 'Replay ▸' : 'Deploy ▸'}
+            </button>
+          </div>
         </aside>
       </div>
     </div>

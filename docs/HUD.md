@@ -12,13 +12,13 @@ Layout + visual specs for the in-run HUD. Derives all colors/type/spacing from
 The redesign below has been implemented and extended. The live combat HUD is now:
 
 - **Phase-reactive skin** (`data-hphase` on `.hud` + the `.game` shell): BUILD = calm green,
-  Biomass primary, Start Wave focal; COMBAT = heated accents, glowing wave module, Threat
+  Biomass primary, Start Wave focal; COMBAT = heated accents, glowing wave module, Pressure
   emphasized, Biomass softened; DANGER rides the committed emergency state (docs/CAMERA.md).
   The board frame tints with the phase.
 - **Three aligned zones** (`.hz-l/.hz-c/.hz-r`): LEFT survival (Hive integrity + slim loot
   progress) · CENTER the WAVE MODULE (eyebrow phase label, the big wave number + pips, status
   line, biome/boss/modifier chips, emergency/biome/run-event banners) · RIGHT power → biomass →
-  threat → hero. On the phone profiles the zones dissolve (`display: contents`) into the
+  pressure → hero. On the phone profiles the zones dissolve (`display: contents`) into the
   profile's HUD grid (§layout).
 - **Power cell** = the progression number: magnitude-tier accents (K/M/B/T hues), ambient conic
   border sweep, and a GAIN CELEBRATION (+Δ fly-up, scale pulse, 6-dot burst, throttled `power`
@@ -182,7 +182,7 @@ One panel, three contexts (whichever is selected/hovered):
 - **Upgrade details** (select an upgrade/star node): before→after stat deltas (green ↑), cost in the correct currency color, and a one-line flavor blurb.
 
 **Empty state:** when nothing is selected, show a compact **"Hive Status"** digest
-(towers built, kills, biomass/sec, threat level) so the panel is never dead space.
+(towers built, kills, biomass/sec, swarm pressure) so the panel is never dead space.
 
 ---
 

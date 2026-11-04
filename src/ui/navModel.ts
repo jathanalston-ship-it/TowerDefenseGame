@@ -12,8 +12,13 @@
 // identity (glyph + blurb) rendered by ui/HubLanding.tsx and the portrait tab indexes.
 //
 // Pure data + i18n only: no React, no DOM — importable from vite-node scripts and tests.
+//
+// ONE NAME PER SCREEN (docs/UI-STANDARDS.md §naming): a row's label + mono DERIVE from the feature
+// registry (state/unlocks.ts FEATURES — name + glyph), so the rail, breadcrumb and sibling chips
+// can never drift from the hub cards, advice and page titles. navModel.test.ts pins it.
 
-import { t } from '../i18n';
+import { screenName, t } from '../i18n';
+import { FEATURE_BY_ID } from '../state/unlocks';
 
 export type NavKey =
   | 'home' | 'campaign' | 'infinite' | 'bossrush' | 'daily' | 'quests' | 'season' | 'arena' | 'infestation' | 'metabolism'
@@ -36,51 +41,60 @@ export interface NavGroup {
   headerless?: boolean;
 }
 
+/** A screen's player-facing name in the current locale — the feature-registry name (the single
+ *  source), translated by id outside English. Folded tabs resolve too. */
+export function navLabel(k: NavKey): string {
+  return screenName(k, FEATURE_BY_ID.get(k)?.name ?? k);
+}
+
+/** One nav row, derived — never hand-labelled (the registry owns name + glyph). */
+const row = (key: NavKey): NavItem => ({ key, label: navLabel(key), mono: FEATURE_BY_ID.get(key)?.glyph ?? '·' });
+
 // Adding a screen is one row in the right hub — the renderer, badges, rings, landing pages,
 // and recommendations are generic.
 export const navGroups = (): NavGroup[] => [
   { id: 'play', title: t('nav.group.play'), accent: 'var(--vital)', hub: { glyph: '⬡', blurb: t('hub.blurb.play') }, items: [
-    { key: 'home', label: t('nav.home'), mono: '⌂' },
-    { key: 'campaign', label: t('nav.campaign'), mono: '⬡' },
-    { key: 'infinite', label: t('nav.infinite'), mono: '∞' },
-    { key: 'bossrush', label: t('nav.bossrush'), mono: '☠' },
-    { key: 'daily', label: t('nav.daily'), mono: '☀' },
-    { key: 'arena', label: t('nav.arena'), mono: '⚔' }, // The Proving Grounds (docs/ARENA.md)
-    { key: 'infestation', label: t('nav.infestation'), mono: '⛬' }, // THE FRONT — territory war (docs/INFESTATION.md §front)
+    row('home'),
+    row('campaign'),
+    row('infinite'),
+    row('bossrush'),
+    row('daily'),
+    row('arena'), // The Proving Grounds (docs/ARENA.md)
+    row('infestation'), // THE FRONT — territory war (docs/INFESTATION.md §front)
   ] },
   // Every claim/open surface in one hub — the CLAIM beat of the loop lives here, so "what do
   // I have waiting?" is one place, not five.
   { id: 'rewards', title: t('nav.group.rewards'), accent: 'var(--gold)', hub: { glyph: '✪', blurb: t('hub.blurb.rewards') }, items: [
-    { key: 'quests', label: t('nav.quests'), mono: '✪' },
-    { key: 'season', label: t('nav.season'), mono: '❁' },
-    { key: 'vault', label: t('nav.vault'), mono: '◈' },
+    row('quests'),
+    row('season'),
+    row('vault'),
   ] },
   { id: 'progression', title: t('nav.group.progression'), accent: 'var(--kinetic)', hub: { glyph: '✷', blurb: t('hub.blurb.progression') }, items: [
-    { key: 'towers', label: t('nav.towers'), mono: 'T' },
-    { key: 'heroes', label: t('nav.heroes'), mono: 'H' },
-    { key: 'evolution', label: t('nav.evolution'), mono: '✷' },
-    { key: 'adaptation', label: t('nav.adaptation'), mono: '☣' }, // Adaptation Chamber (docs/ADAPTATION.md)
-    { key: 'genes', label: t('nav.genes'), mono: '⌬' },
-    { key: 'mulligans', label: t('nav.mulligans'), mono: '⊛' },
-    { key: 'hive', label: t('nav.hive'), mono: '⬡' }, // Hive Construction (docs/HIVE-CONSTRUCTION.md)
+    row('towers'),
+    row('heroes'),
+    row('evolution'),
+    row('adaptation'), // Adaptation Chamber (docs/ADAPTATION.md)
+    row('genes'),
+    row('mulligans'),
+    row('hive'), // Hive Construction (docs/HIVE-CONSTRUCTION.md)
   ] },
   { id: 'trade', title: t('nav.group.trade'), accent: 'var(--caustic)', hub: { glyph: '◆', blurb: t('hub.blurb.trade') }, items: [
-    { key: 'market', label: t('nav.market'), mono: '◆' },
-    { key: 'auction', label: t('nav.auction'), mono: '⚖' }, // player-driven Auction House (docs/AUCTION-HOUSE.md)
-    { key: 'equipment', label: t('nav.equipment'), mono: '⛨' },
-    { key: 'phenotypes', label: t('nav.phenotypes'), mono: '❖' },
+    row('market'),
+    row('auction'), // player-driven Auction House (docs/AUCTION-HOUSE.md)
+    row('equipment'),
+    row('phenotypes'),
   ] },
   // The Premium Store sits in its OWN group — monetization stays visibly separate from
   // gameplay progression (docs/PREMIUM-STORE.md §philosophy). Headerless: the divider +
   // viral accent carry the separation; a "STORE" title over a "STORE" row said it twice.
   { id: 'store', title: t('nav.group.store'), accent: 'var(--viral)', headerless: true, hub: { glyph: '✷', blurb: t('hub.blurb.store') }, items: [
-    { key: 'store', label: t('nav.store'), mono: '✷' },
+    row('store'),
   ] },
   { id: 'account', title: t('nav.group.account'), accent: 'var(--muted)', hub: { glyph: '◑', blurb: t('hub.blurb.account') }, items: [
-    { key: 'profile', label: t('nav.profile'), mono: '◑' },
-    { key: 'collection', label: t('nav.collection'), mono: '▤' },
-    { key: 'help', label: t('nav.help'), mono: '?' },
-    { key: 'settings', label: t('nav.settings'), mono: '⚙' },
+    row('profile'),
+    row('collection'),
+    row('help'),
+    row('settings'),
   ] },
 ];
 

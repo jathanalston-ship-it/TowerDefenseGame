@@ -57,10 +57,10 @@ describe('locale store', () => {
   it('switching locales changes output', () => {
     setLocale('es');
     expect(getLocale()).toBe('es');
-    expect(t('nav.settings')).toBe('Ajustes');
+    expect(t('nav.home')).toBe('Inicio');
     setLocale('pt');
-    expect(t('nav.settings')).toBe('Opções');
+    expect(t('nav.home')).toBe('Início');
     setLocale('en');
-    expect(t('nav.settings')).toBe('Settings');
+    expect(t('nav.home')).toBe('Home');
   });
 });

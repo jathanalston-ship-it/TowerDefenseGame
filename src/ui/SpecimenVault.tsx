@@ -258,7 +258,7 @@ export function SpecimenVault(): JSX.Element {
   return (
     <div className="screen sv-screen">
       <header className="screen-h">
-        <h2>Specimen Vault</h2>
+        <h2>Specimen Cabinet</h2>
         <p className="screen-sub">
           Cosmetics arrive here unclaimed — tradable specimens. Claim one to bind it forever:
           equippable, collected, and paying its small permanent bonus. Or keep it liquid for

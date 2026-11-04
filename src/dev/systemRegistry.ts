@@ -404,7 +404,7 @@ export const SYSTEMS: SystemDef[] = [
   },
   {
     id: 'onboarding', name: 'Tutorials, Help & Onboarding', purpose: 'Combat Tutorial over a live sim, THE COMMISSIONING (post-tutorial account-creation ceremony: rewards, designation, sigil + founding-title oath, account safeguard), HUD Tour, mechanics-registry Help wiki, What\'s New, loading tips.',
-    files: ['src/ui/InitCutscene.tsx', 'src/render/introScenes.ts', 'src/core/tutorial.ts', 'src/state/tutorial.ts', 'src/state/mechanics.ts', 'src/ui/TutorialRunner.tsx', 'src/ui/tutorial/*', 'src/ui/HelpWiki.tsx', 'src/ui/WhatsNew.tsx', 'src/ui/HudTour.tsx', 'src/state/guidedUnlocks.ts', 'src/ui/GuidedUnlock.tsx', 'src/ui/tips.ts'],
+    files: ['src/ui/InitCutscene.tsx', 'src/render/introScenes.ts', 'src/core/tutorial.ts', 'src/state/tutorial.ts', 'src/state/mechanics.ts', 'src/ui/TutorialRunner.tsx', 'src/ui/tutorial/*', 'src/ui/HelpWiki.tsx', 'src/ui/helpSearch.ts', 'src/ui/WhatsNew.tsx', 'src/ui/HudTour.tsx', 'src/state/guidedUnlocks.ts', 'src/ui/GuidedUnlock.tsx', 'src/ui/tips.ts'],
     dependsOn: ['engine', 'meta-store', 'profile', 'accounts'], powerScore: null, save: ['tutorial', 'help'],
     tutorial: ['combat'], help: ['field-guides'], hud: ['TutorialOverlay'], ui: ['HelpWiki', 'WhatsNew', 'HudTour', 'CommandCenter (tips)'], collection: null,
     achievements: [], localization: 'inline-en', docs: ['docs/TUTORIAL.md', 'docs/HELP.md', 'docs/TUTORIAL-AUDIT.md', 'docs/GUIDED-UNLOCKS.md'],
@@ -568,7 +568,7 @@ export const SYSTEMS: SystemDef[] = [
   },
   {
     id: 'ui-kit', name: 'Shared UI Component Kit', purpose: 'Reusable presentation components every screen composes (icons, bars, count-ups) — the component library.',
-    files: ['src/ui/components/Icon.tsx', 'src/ui/iconLanguage.tsx', 'src/ui/components/Detail.tsx', 'src/ui/components/ProgressBar.tsx', 'src/ui/components/useCountUp.ts', 'src/ui/components/usePressRepeat.ts', 'src/ui/components/AudioToggles.tsx', 'src/ui/components/MobileSection.tsx', 'src/ui/layoutProfile.ts', 'src/ui/components/ResponsiveDebug.tsx', 'src/ui/components/RotateGate.tsx', 'src/ui/components/ScreenFallback.tsx', 'src/ui/lazyNamed.ts'],
+    files: ['src/ui/components/Icon.tsx', 'src/ui/iconLanguage.tsx', 'src/ui/components/Detail.tsx', 'src/ui/components/ProgressBar.tsx', 'src/ui/components/useCountUp.ts', 'src/ui/components/usePressRepeat.ts', 'src/ui/components/AudioToggles.tsx', 'src/ui/components/MobileSection.tsx', 'src/ui/components/ChipPopover.tsx', 'src/ui/components/SectionNav.tsx', 'src/ui/components/LoadoutStrip.tsx', 'src/ui/layoutProfile.ts', 'src/ui/components/ResponsiveDebug.tsx', 'src/ui/components/RotateGate.tsx', 'src/ui/components/ScreenFallback.tsx', 'src/ui/lazyNamed.ts'],
     dependsOn: [], powerScore: null, save: [], tutorial: [], help: [], hud: ['(embedded everywhere)'], ui: ['(embedded everywhere)'],
     collection: null, achievements: [], localization: 'inline-en', docs: ['docs/UI-STANDARDS.md', 'docs/STYLE-GUIDE.md', 'docs/UI-MOTION.md', 'docs/VISUAL_IDENTITY.md', 'docs/UI_STYLE_GUIDE.md', 'docs/DESIGN_LANGUAGE.md', 'docs/RESPONSIVE-DESIGN.md', 'docs/ICON-LANGUAGE.md', 'docs/INFO-HIERARCHY.md'],
   },

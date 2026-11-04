@@ -19,6 +19,7 @@ import { difficultyPref, setDifficultyPref } from '../state/prefs';
 import { PredictionPanel } from './PredictionPanel';
 import { LoopDirective } from './NextGoalBanner';
 import { ThreatPicker } from './components/ThreatPicker';
+import { LoadoutStrip } from './components/LoadoutStrip';
 
 /** Compact ×-multiplier for the forecast ladder (deep HP walls reach ×10⁷ under fast protocols). */
 function fmtMult(v: number): string {
@@ -89,6 +90,8 @@ export function InfiniteScreen({
             HAZARD <b className="inf-skulls">{'◆'.repeat(hazard)}{'◇'.repeat(5 - hazard)}</b>
           </span>
         </div>
+        {/* What this experiment fields — heroes, gear, genes, the protocol picked below. */}
+        <LoadoutStrip doctrine={doctrine} />
 
         <PredictionPanel mode="infinite" difficultyId={diff} label="Infinite Wave" />
 

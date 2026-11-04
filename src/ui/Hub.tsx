@@ -578,7 +578,7 @@ export function Hub({
           {nav === 'home' && (
             <CommandCenter onStart={onStart} onStartEndless={onStartEndless} onStartCampaign={onStartCampaign} go={go} last={last} onSeenLast={onSeenLast} doctrineRef={doctrineRef} />
           )}
-          {nav === 'campaign' && <CampaignScreen onStart={onStartCampaign} difficultyRef={difficultyRef} />}
+          {nav === 'campaign' && <CampaignScreen onStart={onStartCampaign} difficultyRef={difficultyRef} doctrineRef={doctrineRef} />}
           {nav === 'infinite' && <InfiniteScreen onStartEndless={onStartEndless} difficultyRef={difficultyRef} doctrineRef={doctrineRef} />}
           {nav === 'bossrush' && <BossRushScreen onStartBossRush={onStartBossRush} difficultyRef={difficultyRef} />}
           {nav === 'arena' && <ArenaScreen onLaunchMatch={onLaunchArenaMatch} />}

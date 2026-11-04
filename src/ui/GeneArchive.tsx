@@ -8,7 +8,7 @@
 import { useMemo, useState } from 'react';
 import { meta } from '../state/meta';
 import { geneArchiveRows, geneArchiveSummary } from '../state/geneArchive';
-import { listOrgPrefs, setListOrgPrefs } from '../state/prefs';
+import { listOrgPrefs, sectionPrefs, setListOrgPrefs, setSectionPrefs } from '../state/prefs';
 import type { GeneArchiveRow } from '../state/geneArchive';
 import { CARD_CATEGORY_LABEL, cardRegistry, cardSubject } from '../core/cards';
 import type { CardEffect } from '../core/cards';
@@ -24,6 +24,7 @@ import { highestCampaignStage } from '../save/derive';
 import { Popup } from './components/Popup';
 import { Detail } from './components/Detail';
 import { BestBuyStrip } from './components/BestBuyStrip';
+import { SectionNav } from './components/SectionNav';
 
 /** Compact preview phrase for one Transcendence-option effect (§Transcendence). The pools only
  *  author field-bearing mul/add ops, so this covers them fully: mul reads as ±%, a sub-1 add reads
@@ -425,6 +426,7 @@ export function GeneArchive(): JSX.Element {
   const save = meta.use();
   const rows = geneArchiveRows(save);
   const sum = geneArchiveSummary(save, rows);
+  const loadoutFilled = save.geneLoadout.slice(0, save.geneSlots).filter((g) => g !== null).length;
   const [inspectId, setInspectId] = useState<string | null>(null);
   const [equipSlot, setEquipSlot] = useState<number | null>(null); // armed slot: the next tile click equips
   const [query, setQuery] = useState('');
@@ -444,7 +446,9 @@ export function GeneArchive(): JSX.Element {
   const setFilter = (f: GeneFilter): void => { setFilterState(f); setListOrgPrefs('genes', { filters: [f] }); };
   const setSort = (s: GeneSort): void => { setSortState(s); setListOrgPrefs('genes', { sort: s }); };
   const setView = (v: 'folders' | 'all'): void => { setViewState(v); setListOrgPrefs('genes', { group: v === 'folders' ? 'folders' : null }); };
-  const [openFolders, setOpenFolders] = useState<Record<string, boolean>>({});
+  // Folder folds ride the same per-device collapse store as SectionNav (prefs.sectionPrefs —
+  // docs/UI-STANDARDS.md §long-screens): a toggle is remembered; untouched folders default below.
+  const [openFolders, setOpenFolders] = useState<Record<string, boolean>>(() => sectionPrefs('genes.folders'));
 
   const shown = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -465,6 +469,7 @@ export function GeneArchive(): JSX.Element {
     }
     return m;
   }, [shown]);
+  const firstUpFolder = FOLDER_ORDER.find((k) => (grouped.get(k) ?? []).some((r) => r.upgradeable));
 
   // Equip mode: an armed empty slot captures the next OWNED tile click (unowned refuse).
   const openTile = (r: GeneArchiveRow): void => {
@@ -506,111 +511,124 @@ export function GeneArchive(): JSX.Element {
         Spend Gene Essence to permanently upgrade a card; it applies every time you draft it.
       </div>
       <BestBuyStrip surface="genes" />
-      {/* Discovery completion (docs/CARDS.md §discovery) — Layer 1 keeps the % + bar (the
-          outcome); the five-tier ratio ladder folds behind a Detail (docs/INFO-HIERARCHY.md). */}
-      <div className="ga-completion" role="group" aria-label="Archive completion">
-        <span className="ga-comp-pct">{sum.completionPct}%</span>
-        <span className="ga-comp-bar" aria-hidden><i style={{ width: `${sum.completionPct}%` }} /></span>
-        <Detail summary="tier breakdown">
-          {sum.byRarity.map((b) => b.total > 0 && (
-            <span className="ga-comp-tier" key={b.rarity} style={{ ['--rc' as string]: geneRarityColor(b.rarity) }} title={`${b.rarity}: ${b.have}/${b.total} discovered`}>
-              {b.have}/{b.total}
-            </span>
-          ))}
-        </Detail>
-      </div>
-
-      {/* In-place help (Task 11) — the whole loop in five lines, one tap away. */}
-      <details className="ga-help">
-        <summary>How the Gene system works</summary>
-        <ul>
-          <li><b>Discover</b> — every strand is first RECOVERED from a Bio-Container (starters come free). Undiscovered cards show as silhouettes with an honest source hint; rarer pools open on Campaign milestones.</li>
-          <li><b>Draft</b> — only discovered strands appear in your between-wave drafts, so every discovery permanently widens your in-run options.</li>
-          <li><b>Gene Essence</b> — earned mainly by duplicate shards once a tower/hero is max Star, plus rare Bio-Container drops.</li>
-          <li><b>Upgrade</b> — each card has 3–5 permanent levels; every level adds real new effects and raises your Power Score immediately.</li>
-          <li><b>Campaign gates</b> — deeper levels unlock globally: L2 at Stage 15, L3 at 30, L4 at 50, L5 at 75.</li>
-          <li><b>Starting Genes</b> — equip up to five cards above; they auto-activate at their level when every run begins. <i>Card Ascension arrives in a future update.</i></li>
-          <li><b>❂ Transcendence</b> — a card at max level can spend a large sum of Essence on a permanent <i>second effect line</i>, chosen from its family's pool. Permanent — re-choosing costs full price.</li>
-        </ul>
-      </details>
-
-      {/* Starting Gene Loadout — equipped genes auto-activate when every run begins. */}
-      <LoadoutBar equipMode={equipSlot} onArmSlot={setEquipSlot} />
-
-      {/* The campaign gate ladder — what's unlocked and what to work toward, always visible. */}
-      <div className="ga-gates">
-        <span className="ga-gates-k">Gene levels unlocked: <b>L{sum.levelCap}</b></span>
-        {sum.nextGate && (
-          <span className="ga-gates-next">
-            NEXT · <b>L{sum.nextGate.level}</b> unlocks at <b>Campaign Stage {sum.nextGate.stage}</b> (you're at {sum.campaignStage})
-          </span>
-        )}
-        {sum.upgradeable > 0 && <span className="ga-gates-up">▲ {sum.upgradeable} upgrade{sum.upgradeable > 1 ? 's' : ''} available</span>}
-      </div>
-
-      {/* Search · filter · sort (Task 8) — pinned always lead, favorites next. */}
-      <div className="ga-controls">
-        <input
-          className="ga-search"
-          type="search"
-          placeholder="Search genes…"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          aria-label="Search gene cards"
-        />
-        <div className="ga-chips">
-          {FILTERS.map((f) => (
-            <button key={f.key} className={`ga-chip${filter === f.key ? ' on' : ''}`} onClick={() => setFilter(f.key)}>{f.label}</button>
-          ))}
-        </div>
-        <label className="ga-sort">Sort
-          <select value={sort} onChange={(e) => setSort(e.target.value as GeneSort)}>
-            {SORTS.map((s) => <option key={s.key} value={s.key}>{s.label}</option>)}
-          </select>
-        </label>
-        <div className="ga-view" role="group" aria-label="Archive view">
-          <button className={`ga-chip${!flat ? ' on' : ''}`} onClick={() => setView('folders')} disabled={query.trim() !== ''} title={query.trim() !== '' ? 'Search shows a flat list' : undefined}>▤ Folders</button>
-          <button className={`ga-chip${flat ? ' on' : ''}`} onClick={() => setView('all')}>☰ Full list</button>
-        </div>
-      </div>
-
-      {shown.length === 0 && <div className="ga-hint">No genes match — clear the search or filters.</div>}
-      {flat ? (
-        <div className={`ga-grid${equipSlot !== null ? ' is-equipping' : ''}`} onKeyDown={onGridKeyDown}>
-          {shown.map((r) => <GeneTile key={r.def.id} row={r} onOpen={() => openTile(r)} />)}
-        </div>
-      ) : (
-        <div className="ga-folders">
-          {FOLDER_ORDER.map((key) => {
-            const list = grouped.get(key);
-            if (!list || list.length === 0) return null;
-            const fm = folderMeta(key);
-            const ups = list.reduce((n, r) => n + (r.upgradeable ? 1 : 0), 0);
-            // A folder with an upgrade ready starts open — the ▲ is why the player came.
-            const isOpen = openFolders[key] ?? ups > 0;
-            const owned = list.reduce((n, r) => n + (r.owned ? 1 : 0), 0);
-            return (
-              <div className={`ga-folder${isOpen ? ' is-open' : ''}`} key={key}>
-                <button
-                  className="ga-folder-h"
-                  onClick={() => setOpenFolders((o) => ({ ...o, [key]: !isOpen }))}
-                  aria-expanded={isOpen}
-                >
-                  <span className="ga-folder-arrow" aria-hidden>{isOpen ? '▾' : '▸'}</span>
-                  <span className="ga-folder-name" style={{ color: fm.color }}>{fm.label}</span>
-                  <span className="ga-folder-count">{owned}/{list.length}</span>
-                  {ups > 0 && <span className="ga-folder-up">▲ {ups}</span>}
-                </button>
-                {isOpen && (
-                  <div className={`ga-grid${equipSlot !== null ? ' is-equipping' : ''}`} onKeyDown={onGridKeyDown}>
-                    {list.map((r) => <GeneTile key={r.def.id} row={r} onOpen={() => openTile(r)} />)}
-                  </div>
-                )}
+      {/* The archive's long preamble + catalog ride the ONE long-screen pattern
+          (components/SectionNav): sticky chips + folds remembered per device. Starting Genes
+          open while a slot is empty; the guide + gate ladder start folded. */}
+      <SectionNav
+        screen="genes"
+        label="Gene Archive sections"
+        sections={[
+          { id: 'loadout', icon: '⌬', title: 'Starting Genes', hint: 'Equipped genes auto-activate when every run begins.',
+            count: `${loadoutFilled}/${save.geneSlots}`, defaultOpen: loadoutFilled < save.geneSlots, render: () => (
+            /* Starting Gene Loadout — equipped genes auto-activate when every run begins. */
+            <LoadoutBar equipMode={equipSlot} onArmSlot={setEquipSlot} />
+          ) },
+          { id: 'cards', icon: '▤', title: 'Gene Collection', hint: 'Search, filter and upgrade every strand you have discovered.',
+            count: `${sum.owned}/${sum.total}${sum.upgradeable > 0 ? ` · ▲ ${sum.upgradeable}` : ''}`, render: () => (<>
+            {/* Discovery completion (docs/CARDS.md §discovery) — Layer 1 keeps the % + bar (the
+                outcome); the five-tier ratio ladder folds behind a Detail (docs/INFO-HIERARCHY.md).
+                It heads the Collection section it describes (the section chip carries owned/total). */}
+            <div className="ga-completion" role="group" aria-label="Archive completion">
+              <span className="ga-comp-pct">{sum.completionPct}%</span>
+              <span className="ga-comp-bar" aria-hidden><i style={{ width: `${sum.completionPct}%` }} /></span>
+              <Detail summary="tier breakdown">
+                {sum.byRarity.map((b) => b.total > 0 && (
+                  <span className="ga-comp-tier" key={b.rarity} style={{ ['--rc' as string]: geneRarityColor(b.rarity) }} title={`${b.rarity}: ${b.have}/${b.total} discovered`}>
+                    {b.have}/{b.total}
+                  </span>
+                ))}
+              </Detail>
+            </div>
+            {/* Search · filter · sort (Task 8) — pinned always lead, favorites next. */}
+            <div className="ga-controls">
+              <input
+                className="ga-search"
+                type="search"
+                placeholder="Search genes…"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                aria-label="Search gene cards"
+              />
+              <div className="ga-chips">
+                {FILTERS.map((f) => (
+                  <button key={f.key} className={`ga-chip${filter === f.key ? ' on' : ''}`} onClick={() => setFilter(f.key)}>{f.label}</button>
+                ))}
               </div>
-            );
-          })}
-        </div>
-      )}
+              <label className="ga-sort">Sort
+                <select value={sort} onChange={(e) => setSort(e.target.value as GeneSort)}>
+                  {SORTS.map((s) => <option key={s.key} value={s.key}>{s.label}</option>)}
+                </select>
+              </label>
+              <div className="ga-view" role="group" aria-label="Archive view">
+                <button className={`ga-chip${!flat ? ' on' : ''}`} onClick={() => setView('folders')} disabled={query.trim() !== ''} title={query.trim() !== '' ? 'Search shows a flat list' : undefined}>▤ Folders</button>
+                <button className={`ga-chip${flat ? ' on' : ''}`} onClick={() => setView('all')}>☰ Full list</button>
+              </div>
+            </div>
+
+            {shown.length === 0 && <div className="ga-hint">No genes match — clear the search or filters.</div>}
+            {flat ? (
+              <div className={`ga-grid${equipSlot !== null ? ' is-equipping' : ''}`} onKeyDown={onGridKeyDown}>
+                {shown.map((r) => <GeneTile key={r.def.id} row={r} onOpen={() => openTile(r)} />)}
+              </div>
+            ) : (
+              <div className="ga-folders">
+                {FOLDER_ORDER.map((key) => {
+                  const list = grouped.get(key);
+                  if (!list || list.length === 0) return null;
+                  const fm = folderMeta(key);
+                  const ups = list.reduce((n, r) => n + (r.upgradeable ? 1 : 0), 0);
+                  // The FIRST folder with an upgrade ready starts open — the ▲ is why the player
+                  // came; the rest read as a table of contents (their ▲ counts stay visible).
+                  const isOpen = openFolders[key] ?? key === firstUpFolder;
+                  const owned = list.reduce((n, r) => n + (r.owned ? 1 : 0), 0);
+                  return (
+                    <div className={`ga-folder${isOpen ? ' is-open' : ''}`} key={key}>
+                      <button
+                        className="ga-folder-h"
+                        onClick={() => setOpenFolders(setSectionPrefs('genes.folders', { [key]: !isOpen }))}
+                        aria-expanded={isOpen}
+                      >
+                        <span className="ga-folder-arrow" aria-hidden>{isOpen ? '▾' : '▸'}</span>
+                        <span className="ga-folder-name" style={{ color: fm.color }}>{fm.label}</span>
+                        <span className="ga-folder-count">{owned}/{list.length}</span>
+                        {ups > 0 && <span className="ga-folder-up">▲ {ups}</span>}
+                      </button>
+                      {isOpen && (
+                        <div className={`ga-grid${equipSlot !== null ? ' is-equipping' : ''}`} onKeyDown={onGridKeyDown}>
+                          {list.map((r) => <GeneTile key={r.def.id} row={r} onOpen={() => openTile(r)} />)}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </>) },
+          { id: 'guide', icon: '?', title: 'Levels & how genes work', hint: `Gene levels unlocked: L${sum.levelCap}${sum.nextGate ? ` · L${sum.nextGate.level} at Campaign Stage ${sum.nextGate.stage}` : ''}`,
+            defaultOpen: false, render: () => (<>
+            <div className="ga-gates">
+              <span className="ga-gates-k">Gene levels unlocked: <b>L{sum.levelCap}</b></span>
+              {sum.nextGate && (
+                <span className="ga-gates-next">
+                  NEXT · <b>L{sum.nextGate.level}</b> unlocks at <b>Campaign Stage {sum.nextGate.stage}</b> (you're at {sum.campaignStage})
+                </span>
+              )}
+              {sum.upgradeable > 0 && <span className="ga-gates-up">▲ {sum.upgradeable} upgrade{sum.upgradeable > 1 ? 's' : ''} available</span>}
+            </div>
+            <div className="ga-help">
+              <ul>
+                <li><b>Discover</b> — every strand is first RECOVERED from a Bio-Container (starters come free). Undiscovered cards show as silhouettes with an honest source hint; rarer pools open on Campaign milestones.</li>
+                <li><b>Draft</b> — only discovered strands appear in your between-wave drafts, so every discovery permanently widens your in-run options.</li>
+                <li><b>Gene Essence</b> — earned mainly by duplicate shards once a tower/hero is max Star, plus rare Bio-Container drops.</li>
+                <li><b>Upgrade</b> — each card has 3–5 permanent levels; every level adds real new effects and raises your Power Score immediately.</li>
+                <li><b>Campaign gates</b> — deeper levels unlock globally: L2 at Stage 15, L3 at 30, L4 at 50, L5 at 75.</li>
+                <li><b>Starting Genes</b> — equip up to five cards above; they auto-activate at their level when every run begins. <i>Card Ascension arrives in a future update.</i></li>
+                <li><b>❂ Transcendence</b> — a card at max level can spend a large sum of Essence on a permanent <i>second effect line</i>, chosen from its family's pool. Permanent — re-choosing costs full price.</li>
+              </ul>
+            </div>
+          </>) },
+        ]}
+      />
 
       {inspectId && <GeneInspect id={inspectId} onClose={() => setInspectId(null)} />}
     </div>

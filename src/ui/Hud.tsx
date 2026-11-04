@@ -1,8 +1,8 @@
 // Combat HUD (docs/HUD.md) — three aligned ZONES with a phase-reactive skin. LEFT: survival
 // (Hive integrity + loot progress). CENTER: the wave module — THE focal read (wave number,
-// pips, phase state, biome/boss/modifier chips). RIGHT: power · biomass · threat · hero.
+// pips, phase state, biome/boss/modifier chips). RIGHT: power · biomass · pressure · hero.
 // The whole bar re-skins per phase (data-hphase): BUILD is calm green with Biomass primary;
-// COMBAT heats the accents, emphasizes Wave + Threat and softens Biomass; DANGER rides the
+// COMBAT heats the accents, emphasizes Wave + Pressure and softens Biomass; DANGER rides the
 // committed emergency state (docs/CAMERA.md). Power gains celebrate in place: +Δ fly-up,
 // scale pulse, light sweep, particle burst, and a throttled cue — the progression number
 // should feel like the one that matters.
@@ -51,7 +51,8 @@ export function Hud({ hud, power, onOpenConsole, tutorial = false, doctrine = nu
     const lvl = hud.heroEvo.levels[c.id] ?? 0;
     return lvl < HERO_EVO.maxLevel && hud.biomass >= heroEvoCost(c, lvl, hud.heroEvo.totalOwned);
   });
-  // Threat = a readable pressure %, derived from the live swarm size (presentation only).
+  // PRESSURE = a readable swarm-load %, derived from the live swarm size (presentation only).
+  // Named apart from THREAT, which means one thing: the opt-in Threat ladder (docs/THREAT.md §naming).
   const threatPct = Math.min(100, Math.round((hud.enemiesAlive / 40) * 100));
   // Hive Siege pressure (docs/HIVE-SIEGE.md §UI): who's chewing, how fast, how long we last.
   const underAttack = hud.hiveAttackers > 0 && hud.phase === 'wave';
@@ -279,7 +280,7 @@ export function Hud({ hud, power, onOpenConsole, tutorial = false, doctrine = nu
         )}
       </div>
 
-      {/* ── RIGHT zone: power · biomass · threat · hero — aligned, equal rhythm ── */}
+      {/* ── RIGHT zone: power · biomass · pressure · hero — aligned, equal rhythm ── */}
       <div className="hz hz-r">
         <div className={`hud-cell hud-power tt is-t${powerTier(power)}${powerFx ? ' is-gain' : ''}`} tabIndex={0} data-tut="power">
           <div className="hud-k">Power</div>
@@ -307,9 +308,9 @@ export function Hud({ hud, power, onOpenConsole, tutorial = false, doctrine = nu
         </div>
 
         <div className={`hud-cell hud-mini hud-threat tt${hphase !== 'prep' && threatPct >= 60 ? ' is-hot' : ''}`} tabIndex={0}>
-          <div className="hud-k">Threat</div>
+          <div className="hud-k">Pressure</div>
           <div className="hud-v hud-v-sm" style={{ color: threatColor(threatPct) }}>{threatPct}%</div>
-          <span className="tt-bubble">Battlefield pressure · {hud.enemiesAlive} alive · {hud.kills} killed.</span>
+          <span className="tt-bubble">Swarm pressure — how crowded the field is · {hud.enemiesAlive} alive · {hud.kills} killed.</span>
         </div>
 
         <div

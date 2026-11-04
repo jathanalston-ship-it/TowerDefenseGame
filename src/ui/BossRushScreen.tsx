@@ -18,6 +18,7 @@ import { difficultyPref, setDifficultyPref } from '../state/prefs';
 import { ACHIEVEMENTS } from '../state/achievements';
 import { PredictionPanel } from './PredictionPanel';
 import { ThreatPicker } from './components/ThreatPicker';
+import { LoadoutStrip } from './components/LoadoutStrip';
 
 // The signature visual: the escalation ladder itself — wave N is N skulls. Reads as artwork
 // AND as the rules explanation in one glance (self-contained, no assets).
@@ -94,6 +95,8 @@ export function BossRushScreen({
             HAZARD <b className="inf-skulls">{'◆'.repeat(hazard)}{'◇'.repeat(5 - hazard)}</b>
           </span>
         </div>
+        {/* What the gauntlet fields — the rush runs doctrine-less (docs/DOCTRINES.md). */}
+        <LoadoutStrip doctrine={null} />
 
         {/* ── Stamina — the gauntlet's session fuel (docs/BOSS-RUSH.md §stamina) ── */}
         <div className={`rush-stamina${!canEnter ? ' is-empty' : ''}`} role="group" aria-label="Gauntlet stamina">

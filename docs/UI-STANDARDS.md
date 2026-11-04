@@ -80,6 +80,8 @@ with every radius in **30–70%** (near-elliptical, sculpted; enforced by uiStan
   friendly). Every icon-only control MUST carry one.
 - Content: one sentence, sentence case; state WHY when explaining a disabled control
   (`"Requires Campaign Stage 15"`), not just that it is.
+- A tooltip is hover-only — it may REPEAT what the screen shows, never be the only place an
+  essential explanation lives (touch has no hover): see §touch-info (`ChipPopover`).
 - Rich hover panels (equipment compare, hero profiles) are POPOVERS, not tooltips — they follow
   §9 panel rules and never trap the pointer.
 
@@ -128,6 +130,9 @@ with every radius in **30–70%** (near-elliptical, sculpted; enforced by uiStan
 | `useCountUp` | number reveal animation | copy-pasting rAF counters |
 | `PowerPreview` / `PowerToaster` | upgrade previews (current→new +impact) · gain toasts | bespoke power text or ad-hoc toasts |
 | `rarityColorOf` (core/equipment) | rarity → color, everywhere | inline rarity hexes |
+| `ChipPopover` | a chip that explains itself on TAP (wallet, level, materials) | title-only essentials |
+| `SectionNav` | any screen taller than ~3 viewports (§long-screens) | per-screen jump rails / fold logic |
+| `LoadoutStrip` | beside every run launch (§loadout) | re-listing loadout bits by hand |
 
 Adding a component: put it in `src/ui/components/`, register it in the `ui-kit` system
 (`src/dev/systemRegistry.ts`), document the row above.
@@ -162,3 +167,64 @@ Every list that grows with content (the targets: 100 towers, 30 heroes, 1000 upg
 - Shipped surfaces: Tower Lab (class folds + 8 sorts), Hero Lab (search/sorts/chips,
   locked-last), Evolution HQ (board search + Affordable now / Hide maxed, empty categories
   vanish), Gene Archive (persisted + Highest Rarity sort), Armory (persisted sort).
+
+## §naming (2026-11) — one name per screen
+
+Every hub screen has exactly ONE player-facing name, and it lives in ONE place: the feature
+registry (`state/unlocks.ts` `FEATURES[].name`, with its `glyph`). The rail, breadcrumb and
+sibling chips DERIVE from it (`ui/navModel.ts` `row()` / `navLabel()`), as do hub cards, advice
+("Open the …"), unlock ceremonies and page titles — so a screen can no longer be "Equipment" in
+the chips and "Armory" on its card. Other locales translate the name by screen id in
+`i18n` `SCREEN_NAMES` (a missing row falls back to English). `navModel.test.ts` pins it: every
+nav label equals its registry name, every mono equals its glyph, no two screens share a name,
+no screen icon is a bare letter, and "Vault" names exactly one place (the Genetic Vault — the
+cosmetics stock screen is the **Specimen Cabinet**). The rail's Home door (`nav.home`) is chrome,
+not a screen name. Rule for a new screen: add its `FEATURES` row (name + glyph) and its
+`SCREEN_NAMES` translations; never type a label into navModel.
+
+## §readability (2026-11) — contrast + size floors
+
+- **Text tokens are AA on every surface**: `--text`, `--muted` and `--dim` each read ≥ 4.5:1 on
+  `--bg`, `--panel`, `--panel-2`, `--panel-3` and `--panel-deep` (`src/dev/tokenContrast.test.ts`),
+  and keep their order (text > muted > dim). `--dim` moved #5b6677 (3.1:1) → #808d9f.
+- **12px floor** for anything a player reads to decide (tier labels, reward names, body copy,
+  control labels). Smaller is allowed only for DECORATIVE eyebrows/glyph badges, and only at
+  ≥ 4.5:1. The Season Pass track is the reference fix (10px → 12px, cells 84 → 100px).
+- `scripts/cogload.ts` reports, per screen, visible text under 12px and under 4.5:1 against its
+  nearest opaque background (`<12px` / `<4.5:1` columns) — a pressure gauge, never a failure.
+
+## §touch-info (2026-11) — essentials answer on tap
+
+A `title=` tooltip is hover-only: on touch it says nothing. Anything a player needs to UNDERSTAND
+the game (what a currency is, what the level chip means) must be reachable by a tap. The top-bar
+essentials are buttons that open a popover (`ui/components/ChipPopover.tsx` — fixed-positioned
+so a horizontally-scrolling top bar never clips it; closes on outside tap, Escape, scroll,
+resize): every wallet chip says what the currency is, where it is earned and links to where it
+is spent (only once that screen is open); the Materials and Account Level chips use the same
+popover. `ui/components/topbarTouch.test.ts` renders each essential and fails if one is
+title-only, and guards the Hub top bar against raw title-only chips. `title=` stays fine for
+redundant hints (an icon whose meaning is also in visible text).
+
+## §long-screens (2026-11) — SectionNav
+
+A screen taller than ~3 viewports uses `ui/components/SectionNav.tsx` — never its own jump rail
+or fold logic. Sections are DATA (`{ id, title, icon?, hint?, count?, meta?, defaultOpen?,
+render }`): a sticky row of anchor chips (one row, scrolls sideways; static on portrait, where
+the back header owns the edge) over collapsible sections. A chip opens its section and scrolls
+to it; a folded section shows its one-line hint and count, so the page reads as a table of
+contents; bodies render only while open. Open/folded state is a DEVICE pref per screen
+(`prefs.sectionPrefs` / `setSectionPrefs`, key `assimilate.sections`); unset ids use the
+section's default — prefer a data-driven default ("open when there is something to do here").
+`forceOpen` opens everything (an active search must never hide its hits in a fold). Shipped:
+Hero Hall (primary role/Stars open, deep panels folded), Evolution HQ (a category opens when it
+holds something affordable; Ascension when a Molt or Cells wait), Gene Archive (Starting Genes
+open while a slot is empty; the level gates + guide folded).
+
+## §loadout (2026-11) — show what the launch fields
+
+Every run launch shows `ui/components/LoadoutStrip.tsx` beside its button: fielded hero
+portraits, gear filled across the fielded heroes, starting genes slotted, and the doctrine —
+each segment a deep link to where it is changed (Hero Hall, Armory, Gene Archive, Home), shown
+only once that system has revealed and linked only when `isOpenNav`. It READS existing state
+(`loadoutSummary(save, doctrineId)`); empty slots read amber (a free upgrade). Mounted on the
+Campaign stage panel footer, the Infinite terminal and the Boss Rush terminal (doctrine-less).

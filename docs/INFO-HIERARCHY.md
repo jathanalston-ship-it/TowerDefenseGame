@@ -43,6 +43,14 @@ pulsing forever on every screen, 15 Boss-Rush skulls, 9 Hero-Lab HP auras); afte
 re-banding all 68 pass with the single breather being the recommendation on nearly every
 screen.
 
+The same walk REPORTS a readability gauge per screen (2026-11, never fails): `<12px` = visible
+text leaves under the 12px floor, `<4.5:1` = leaves under AA contrast against their nearest
+opaque background (docs/UI-STANDARDS.md §readability). The token floor itself is a unit test
+(`src/dev/tokenContrast.test.ts`); the gauge catches per-screen drift (opacity stacks, bespoke
+colors, 10px labels). The 2026-11 audit's worst case was the Season Pass (494 of 510 leaves at
+10px, 186 under 4.5:1) — after the token + 12px-floor pass it measures 1 under 4.5:1 and 400 of
+510 at 12px (the remaining 10px leaves are decorative glyph badges and lane eyebrows).
+
 ## 3. Numbers: outcomes before digits
 
 - The **impact scale** (`core/effectLanguage.IMPACT_SCALE` — "Slightly … Overwhelmingly")

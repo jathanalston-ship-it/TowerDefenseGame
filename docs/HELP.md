@@ -29,7 +29,11 @@ in every surface automatically as the player unlocks it.
 - **UI** — `WhatsNew.tsx` (front-of-queue card, "Got it · N more",
   `archiveMechanics` on close), `HelpWiki.tsx` (search + category index +
   What/Why/Where/Next + "Watch out" (`mistakes`) detail + cross-links to
-  *unlocked* mechanics only + a Field Orientation replay button),
+  *unlocked* mechanics only + a Field Orientation replay button; **§search** — a query
+  ranks via `ui/helpSearch.ts` `searchMechanics`: title-prefix → title-word → title →
+  summary → body/category, stable within a tier, shown as ONE flat best-first list whose
+  top hit fills the detail pane until you pick another — "threat" opens The Threat Ladder,
+  not Infinite; `helpSearch.test.ts`),
   `HudTour.tsx` — **Field Orientation**: an ANCHORED tour that spotlights the
   real Hub element per stop (`data-nav`/`data-tour` anchors; centered fallback
   when hidden) and teaches WHAT / WHY / WHEN / what unlocks LATER — FOUR stops

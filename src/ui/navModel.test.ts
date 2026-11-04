@@ -5,9 +5,10 @@
 // either and this suite — not a player — catches it.
 
 import { describe, expect, it } from 'vitest';
-import { FOLDED_NAVS, foldCounts, foldedInto, groupOf, hostOf, mobileTabs, navGroups, tabOf, type NavKey } from './navModel';
+import { FOLDED_NAVS, foldCounts, foldedInto, groupOf, hostOf, mobileTabs, navGroups, navLabel, tabOf, type NavKey } from './navModel';
 import { readFileSync } from 'node:fs';
-import { featureView } from '../state/unlocks';
+import { FEATURE_BY_ID, featureView } from '../state/unlocks';
+import { SCREEN_NAMES, setLocale } from '../i18n';
 import { defaultSave } from '../save/saveStore';
 
 const allNavKeys = (): NavKey[] => navGroups().flatMap((g) => g.items.map((i) => i.key));
@@ -88,6 +89,42 @@ describe('navModel — folded screens (side screens live as host tabs)', () => {
       const src = readFileSync(hostFile[host], 'utf-8');
       expect(src, `${host} host must mount <HostedScreen host="${host}">`).toContain(`<HostedScreen host="${host}"`);
       for (const k of foldedInto(host)) expect(src, `${host} must carry a '${k}' view`).toContain(`${k}:`);
+    }
+  });
+});
+
+describe('navModel — ONE name per screen (docs/UI-STANDARDS.md §naming)', () => {
+  const everyKey = (): NavKey[] => [...allNavKeys(), ...(Object.keys(FOLDED_NAVS) as NavKey[])];
+
+  it('every nav label equals its feature-registry name, and every mono its glyph', () => {
+    setLocale('en');
+    for (const g of navGroups()) {
+      for (const i of g.items) {
+        const def = FEATURE_BY_ID.get(i.key)!;
+        expect(i.label, `nav '${i.key}' label must be the registry name`).toBe(def.name);
+        expect(i.mono, `nav '${i.key}' mono must be the registry glyph`).toBe(def.glyph);
+      }
+    }
+    for (const k of everyKey()) expect(navLabel(k)).toBe(FEATURE_BY_ID.get(k)!.name);
+  });
+
+  it('no two screens share a name, and no screen icon is a bare letter', () => {
+    const names = everyKey().map((k) => FEATURE_BY_ID.get(k)!.name.toLowerCase());
+    expect(new Set(names).size, `duplicate screen names: ${names.join(', ')}`).toBe(names.length);
+    for (const k of everyKey()) expect(FEATURE_BY_ID.get(k)!.glyph, `'${k}' needs a real glyph (docs/ICON-LANGUAGE.md)`).not.toMatch(/^[A-Za-z]$/);
+    // "Vault" names exactly ONE place (the Genetic Vault) — the specimen screen is the Cabinet.
+    expect(names.filter((n) => /\bvault\b/.test(n))).toEqual(['genetic vault']);
+  });
+
+  it('every locale names every screen (translations keyed by screen id)', () => {
+    for (const locale of Object.keys(SCREEN_NAMES) as (keyof typeof SCREEN_NAMES)[]) {
+      for (const k of everyKey()) expect(SCREEN_NAMES[locale][k]?.trim(), `${locale}: missing screen name '${k}'`).toBeTruthy();
+    }
+    setLocale('es');
+    try {
+      expect(navGroups().flatMap((g) => g.items).find((i) => i.key === 'equipment')?.label).toBe(SCREEN_NAMES.es.equipment);
+    } finally {
+      setLocale('en');
     }
   });
 });

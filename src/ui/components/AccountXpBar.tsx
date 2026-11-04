@@ -11,6 +11,7 @@ import type { AccountLevelUp } from '../../state/meta';
 import { ACCOUNT_TITLE_BY_ID } from '../../core/accountLevel';
 import type { AccountLevelReward } from '../../core/accountLevel';
 import { audio } from '../../audio/sound';
+import { ChipPopover } from './ChipPopover';
 
 /** One-line reward summary for a level's payout (toast, Results, and the Profile preview).
  *  Shard grants BANK even on max-Star units (Prime fuel — docs/PRIME-STRAINS.md §economy). */
@@ -36,11 +37,22 @@ export function AccountXpBar({ compact = false }: { compact?: boolean }): JSX.El
   const v = meta.accountLevel();
   const pct = Math.min(100, Math.round((v.into / Math.max(1, v.need)) * 100));
   if (compact) {
+    // A top-bar essential answers on TAP (docs/UI-STANDARDS.md §touch-info) — not a hover title.
     return (
-      <span className="axp-chip" title={`Account Level ${v.level} — ${v.into}/${v.need} XP · next milestone L${v.nextMilestone}`}>
-        <b className="axp-lv">LV {v.level}</b>
-        <i className="axp-mini" aria-hidden><i style={{ width: `${pct}%` }} /></i>
-      </span>
+      <ChipPopover
+        className="axp-chip"
+        ariaLabel={`Account Level ${v.level} — ${v.into}/${v.need} XP`}
+        popLabel="Account Level"
+        face={<><b className="axp-lv">LV {v.level}</b><i className="axp-mini" aria-hidden><i style={{ width: `${pct}%` }} /></i></>}
+      >
+        {() => (
+          <>
+            <span className="chip-pop-h">Account Level <b>{v.level}</b></span>
+            <span className="chip-pop-p">{v.into.toLocaleString()} / {v.need.toLocaleString()} XP to the next level — every run, upgrade and achievement feeds it.</span>
+            <span className="chip-pop-k">Next milestone · L{v.nextMilestone}</span>
+          </>
+        )}
+      </ChipPopover>
     );
   }
   return (

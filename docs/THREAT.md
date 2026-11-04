@@ -100,6 +100,21 @@ to whole numbers in [0, 10] and drops unknown keys; account merges take per-mode
 | Achievements | `threat_3`, `threat_5`, `threat_10` | data rows |
 | Frames / titles | `PROFILE_FRAMES` `threat5`/`threat10`; `THREAT_TITLES` via `titleName` | data rows |
 
+## §naming — "Threat" means ONE thing
+
+**Threat** is this ladder and nothing else (☣ THREAT N, ×reward). Two neighbours that used to
+share the word were renamed (2026-11 polish):
+
+| Concept | Player-facing name | Where |
+|---|---|---|
+| The opt-in replay ladder (this doc) | **Threat** (☣ 0–10) | ThreatPicker, header chip, Results, Profile |
+| A Campaign stage's own scaling rating (◆1–5, `rewards ×N`) | **Danger** | Campaign stage panel (`CampaignScreen` `camp-threat` row) |
+| The in-run swarm-load meter (`enemiesAlive / 40` %) | **Pressure** | `Hud` right zone (`hud-threat` cell), Inspector status digest |
+
+A new surface that rates difficulty picks one of these three words by what it measures — never
+"Threat" for anything but the ladder. (Results' "Highest Threat" enemy line and Boss Rush's "Boss
+threat level" forecast row are owned by other screens and flagged for the same pass.)
+
 ## Known limitations / future hooks
 
 - Bosses (every mode, and Boss Rush's whole siege column) spawn from their own chassis/strength

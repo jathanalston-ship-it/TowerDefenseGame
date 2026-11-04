@@ -495,7 +495,7 @@ function applyRewardList(
         const def = wardrobeItem(r.id)!;
         lines.push({
           icon: '❖',
-          label: got.first ? `${def.name} — in the Specimen Vault (claim to bind)` : `${def.name} — duplicate specimen (tradable)`,
+          label: got.first ? `${def.name} — in the Specimen Cabinet (claim to bind)` : `${def.name} — duplicate specimen (tradable)`,
           rarity: def.rarity,
         });
         events.push({ type: 'cosmetic', name: def.name });
@@ -635,7 +635,7 @@ function grantQuestFinale(draft: SaveData, quest: QuestDef): { next: SaveData; l
     next = { ...next, quests: { ...next.quests, once: [...next.quests.once, cosKey] } };
     const got = receiveCosmetic(next, item.id, `Quest — ${quest.name}`, Date.now());
     if (got) next = got.next;
-    lines.push({ icon: '❖', label: `${item.name} — quest exclusive, in the Specimen Vault`, rarity: item.rarity });
+    lines.push({ icon: '❖', label: `${item.name} — quest exclusive, in the Specimen Cabinet`, rarity: item.rarity });
     events.push({ type: 'cosmetic', name: item.name });
   }
   next = {
@@ -4360,7 +4360,7 @@ export const meta = {
             const got = receiveCosmetic(next, r.id, 'Cosmetic milestone', Date.now());
             if (got) {
               next = got.next;
-              lines.push({ icon: '❖', label: `${wardrobeItem(r.id)!.name} — in the Specimen Vault` });
+              lines.push({ icon: '❖', label: `${wardrobeItem(r.id)!.name} — in the Specimen Cabinet` });
             }
           }
           break;

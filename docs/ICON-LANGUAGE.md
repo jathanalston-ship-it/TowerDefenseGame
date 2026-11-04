@@ -92,6 +92,13 @@ Adding content? You get an identity by construction, or CI stops you:
 - **States**: 🔒 locked/teasers, ✓ claimed rows, ◈ ready chain, NEW badges — pre-existing,
   now canonized.
 
+### Screens (2026-11)
+
+A screen's glyph lives ONCE, on its `state/unlocks.FEATURES` row; the nav mono (rail, sibling
+chips, landing cards, portrait index rows) derives from it (`ui/navModel` `row()`). No screen
+icon may be a bare letter (`navModel.test.ts`): Tower Lab is **♜** (a tower silhouette) and
+Hero Hall **♛** (the champion's crown), replacing the old `T` / `H` placeholders.
+
 ## 6. Known limitations / deferred
 
 - Long-tail secondary buttons adopt `act-*` classes opportunistically as screens are next
