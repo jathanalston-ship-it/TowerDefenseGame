@@ -39,7 +39,7 @@ import { GrowthPanel } from './components/GrowthPanel';
 import { armyView, buildHomeView, homeRegistry } from './homeModel';
 import { recommendationsFor } from '../state/recommendations';
 import { readyChain } from '../state/readyChain';
-import { featureView } from '../state/unlocks';
+import { featureView, isOpenNav } from '../state/unlocks';
 import { rewardVisible } from '../state/rewardVisibility';
 import { loopFlow } from '../state/loopFlow';
 import { RecommendStrip } from './HubLanding';
@@ -225,7 +225,7 @@ function Vitals({ save, view, go }: WidgetCtx): ReactNode {
   const vaults = view.vaultReady;
   const ach = (save.achievements ?? []).length;
   const acct = meta.accountLevel();
-  const vitals: { k: string; v: string; c?: string; nav?: NavKey; title: string }[] = [
+  const cells: { k: string; v: string; c?: string; nav?: NavKey; title: string }[] = [
     { k: 'Level', v: `LV ${acct.level}`, c: 'var(--viral)', nav: 'profile', title: `Account Level — ${acct.into}/${acct.need} XP toward L${acct.level + 1}` },
     { k: 'Power', v: formatPower(view.power), c: 'var(--gold)', nav: 'profile', title: 'Power Score — total account strength' },
     { k: 'Campaign', v: `Stage ${view.world.stage}`, nav: 'campaign', title: 'Deepest Campaign stage cleared' },
@@ -235,6 +235,7 @@ function Vitals({ save, view, go }: WidgetCtx): ReactNode {
     { k: 'Vaults', v: vaults > 0 ? `${vaults} ready` : '—', c: vaults > 0 ? 'var(--r-epic)' : undefined, nav: 'vault', title: 'Unopened Bio-Containers' },
     ...(ach > 0 ? [{ k: 'Achievements', v: `${ach}`, nav: 'profile' as NavKey, title: 'Achievements earned' }] : []),
   ];
+  const vitals = cells.filter((x) => !x.nav || isOpenNav(save, x.nav)); // a stat for a sealed screen is a tease with no door
   return (
     <section className="cc-vitals" aria-label="Command strip">
       <span className="cc-vitals-h">◉ COMMAND</span>

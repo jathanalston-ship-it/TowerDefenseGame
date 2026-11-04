@@ -54,6 +54,7 @@ bug-hunt pass (scope, method, verdict) so "we looked" is auditable.
 | 42 | Field Guide Skip / "Got it" could not be clicked. | `.tut-callout` is `pointer-events: none` and only `.tut-continue` re-enabled it, so clicks fell through to the dim. | `.guide-btns button { pointer-events: auto }`. |
 | 43 | The Champion Contracts What's New card fired at run 1, four stages before its board appeared. | Mechanic unlock was `totalRuns >= 1`; the Home widget reveals with Daily. | Mechanic unlocks with `featureRevealed('daily')`. |
 | 44 | The locked Boss Rush tile previewed "Ichor / records" before Ichor existed for the player. | Static preview chips. | The chip shows only once `rewardVisible('ichor')`. |
+| 45 | The Home Command strip showed "Infinite · Wave 6" and "Collection 4%" at Stage 1, before either screen existed for the player. | The vitals cells were static. | Cells filter through `unlocks.isOpenNav` like every other guidance surface. |
 
 ---
 
