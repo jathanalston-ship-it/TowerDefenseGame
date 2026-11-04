@@ -450,7 +450,8 @@ appended so `ENEMY_ACCENT`'s round-robin leaves every earlier kind's accent unto
 auto-classify (`enemyDeathCue`: crack · pop · crack · crack · squelch · screech — plate cracks, the bomb pops, the veil screeches); `DIRECTOR.cost`
 prices them beside their trait-family neighbours and the Shellback joins `heavyKinds` (the deep-tilt
 cap); gaits are authored to average ×1 (the guardrail). Bestiary, codex, `killsByEnemy` ledgers and
-the website tables derive from the registry. `puzzleFauna.test.ts` pins the derived entry stages,
+the website tables derive from the registry; the hidden Bestiary achievement *The Answer Key* asks
+for one kill of each. `puzzleFauna.test.ts` pins the derived entry stages,
 the home-biome signatures, the golden control (no puzzle kind in `WAVES`), and each puzzle's
 demanded answer in a live sim (the Scuttler shrugs off chip until it is sheared; the moth flies
 over a thrall wall; pull breaks the Shellback's siege lock).

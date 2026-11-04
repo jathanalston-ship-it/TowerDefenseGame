@@ -787,6 +787,7 @@ the Deep-Strain pair (stage 15), and nothing between the Roost (26) and the Poly
 | Idle posture | *Knitting Gristle* — `trickle` 0.3 Integrity/s | *Engorged Clutch* — `reserve` 2 volleys | *Held Note* — `windup` ×1.4 dmg + pierce |
 | Visual | `nest` form + a burrow muster-mouth signature (an arm hauls the thrall out on each muster); `square` silhouette | `pod` form + clinging engorged ticks (they fling on the volley); `circle` silhouette | `antenna` form + twin tuning-fork tines that shiver on the keen; `triangle` silhouette |
 | Audio | `tfire_wet` (the muster) | `tfire_wet` (the fling) | `tfire_ting` (the keen) |
+| Collection | 6 Mulligan pieces each (`OFFENSIVE_7`/`UTILITY_7`/`BIOLOGICAL_7` — Vital / Viral / Resonant flavor) · mastery lore + title (*Gristlewarden* · *Patient Zero* · *Shellbreaker*) · achievement *Every Question Answered* (deploy all three) · HUD Help *Walls & Blockers* (revealed when a Warren or Roost is owned) | | |
 
 **Gristle Warren — the barracks.** Its muster is the shared `summon` verb (`Game.summonMinions`):
 each cast, while a threat is inside the 230 px muster reach, a **Gristle Thrall** (`MINION_DEFS`:
