@@ -210,9 +210,10 @@ function bakeCracks(ox: number, oy: number, reach: number): HTMLCanvasElement {
   g.lineCap = 'round';
   g.lineJoin = 'round';
   // the wound at the breach
+  const [r, gg, b] = resolveAccent(OUTRO.defeat.colour) ?? [255, 93, 115];
   const wound = g.createRadialGradient(ox, oy, 0, ox, oy, 46);
-  wound.addColorStop(0, 'rgba(255, 93, 115, 0.55)');
-  wound.addColorStop(1, 'rgba(255, 93, 115, 0)');
+  wound.addColorStop(0, `rgba(${r | 0},${gg | 0},${b | 0},0.55)`);
+  wound.addColorStop(1, `rgba(${r | 0},${gg | 0},${b | 0},0)`);
   g.fillStyle = wound;
   g.fillRect(ox - 46, oy - 46, 92, 92);
   g.strokeStyle = 'rgba(5, 2, 5, 0.9)'; // the split ground

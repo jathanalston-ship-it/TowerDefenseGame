@@ -13983,16 +13983,16 @@ html[data-layout='landscape'] .build-controls.is-visible ~ .mega-banner { top: 6
   width: var(--outro-w, 100vw);
   height: var(--outro-h, 100vh);
   z-index: -1;
-  border-radius: 10px;
+  border-radius: var(--r-md);
   background: rgba(4, 6, 11, 0.2);
   box-shadow: 0 0 48px 200vmax rgba(4, 6, 11, 0.88), inset 0 0 56px rgba(4, 6, 11, 0.55);
   pointer-events: none;
 }
-.game[data-outro='settle'] canvas.board { filter: blur(var(--rb-blur)) brightness(var(--rb-dim)); transition: filter var(--outro-settle, 350ms) ease-in; }
+.game[data-outro='settle'] canvas.board { filter: blur(var(--rb-blur)) brightness(var(--rb-dim)); transition: filter var(--outro-settle, 350ms) ease-in; } /* bespoke: the settle length is data (runOutro OUTRO.settleMs) */
 .game[data-outro='settle'] .run-outro > * {
   color: transparent;
   text-shadow: 0 0 42px transparent;
-  transition: color var(--outro-settle, 350ms) ease-in, text-shadow var(--outro-settle, 350ms) ease-in;
+  transition: color var(--outro-settle, 350ms) ease-in, text-shadow var(--outro-settle, 350ms) ease-in; /* bespoke: OUTRO.settleMs */
 }
 .results-backdrop { position: fixed; inset: 0; z-index: -2; overflow: hidden; pointer-events: none; }
 .results-backdrop > div { position: absolute; background-repeat: no-repeat; }
