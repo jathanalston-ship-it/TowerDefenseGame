@@ -1,6 +1,6 @@
 # DIL_GRAPH.md — the Design Intelligence Layer (GENERATED — `npm run dil -- regen`)
 
-> **The project's brain** (docs/DIL.md). 950 nodes · 1821 edges, built from the live
+> **The project's brain** (docs/DIL.md). 950 nodes · 1822 edges, built from the live
 > registries + curated knowledge (src/dev/dil/). **Query it instead of searching the repo:**
 > `npm run dil -- node <id>` · `affects <id>` · `requires <id>` · `missing <kind> <edge>` ·
 > `checklist tower <kind>` · `find <text>`. Edge kinds are bidirectional (19 kinds).
@@ -1908,6 +1908,7 @@ _at: src/core/trophies.ts, src/core/nemesis.ts_
   - consumes → `system:mega-bosses` — mega + vengeance trophy organs; mega kills derive mega-source trophy ownership
   - documentedBy ← `doc:NEMESIS.md`
   - documentedBy ← `guide:nemesis`
+  - conflictsWith ← `system:bosses` — SPLITTERS ARE ONE BOSS IN PIECES: every Mitotic piece is a boss to the sim (runBossKills, death spectacle, bossKilled), so anything that means "the boss is dead" must read bossKilled.final (the last piece, core/game.ts deathSystem) — nemesis revenge and the FALLEN card (GameView + SpectateView) do.
 
 ### `system:cosmetics` — The Wardrobe (Cosmetics)
 
@@ -2262,6 +2263,7 @@ _at: src/core/boss.ts_
   - dependsOn → `system:content-infra`
   - consumes → `system:meta-store` — owns save field 'bossesSlain'
   - conflictsWith → `system:achievements` — framework bosses spawn as kind 'tyrant' (the Brood Tyrant render proxy) so killsByEnemy.tyrant counts EVERY boss: name bosses from RunStats.bossesSlain / runDebrief.highestThreat, and never write achievement/codex copy that promises 'a Brood Tyrant' off that count. The LIFETIME ledger (state/stats.accumulateStats) strips the proxy (tyrant − RunStats.bossKills), so the Bio-Dex counts real Brood Tyrants and Apex Slayer reads RunSummary.bossKills.
+  - conflictsWith → `system:nemesis` — SPLITTERS ARE ONE BOSS IN PIECES: every Mitotic piece is a boss to the sim (runBossKills, death spectacle, bossKilled), so anything that means "the boss is dead" must read bossKilled.final (the last piece, core/game.ts deathSystem) — nemesis revenge and the FALLEN card (GameView + SpectateView) do.
   - triggers → `system:audio` — bossPhase event → boss_phase mutation roar (GameView seam; the sim itself only pushes the splice crunch)
   - modifies → `system:rendering` — chassis SIGNATURES (CHASSIS_IDENTITY/SIGNATURE_OWNER, ownership validator-enforced) ride HudSnapshot: mortarStrikes + nullWells tick like corruptionPools and draw beside them; epithet + MODULE_LABEL kit chips feed the intro card/banner/defeat beat. Reaction true damage intentionally pierces the unstoppable march (same vocabulary as carapace-vs-Shred)
   - requiredBy ← `system:engine`

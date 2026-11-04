@@ -739,7 +739,7 @@ gameEvents.on('bossKilled', (e) => {
 gameEvents.on('bossKilled', (e) => {
   const save = store.get();
   const nem = save.nemesis;
-  if (!nem || nem.defId !== e.defId) return;
+  if (!nem || nem.defId !== e.defId || !e.final) return; // a splitting nemesis is repaid when its LAST piece dies
   const cores = vengeanceCores(nem.slain);
   const pool = nemesisPool().filter((d) => !save.cosmetics.owned.includes(d.id));
   const grant = pool.length > 0 ? pool[Math.floor(Math.random() * pool.length)] : null;

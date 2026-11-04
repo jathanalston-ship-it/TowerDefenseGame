@@ -404,7 +404,7 @@ export function GameView({
   // duck + stinger (FEEL.bossFall); here, a gold shock ring at the body and the centre-stage card.
   useEffect(() => gameEvents.on('bossKilled', (e) => {
     pushImpactRing(e.x, e.y, 150, '#ffd24d', performance.now());
-    announce({ kind: 'bossFall', name: e.name, epithet: e.epithet ?? '' });
+    if (e.final) announce({ kind: 'bossFall', name: e.name, epithet: e.epithet ?? '' }); // a splitter's pieces ring, the last one falls
   }), [announce]);
   // Boss PHASE SHIFT roar (docs/BOSS-DESIGN.md §phases): the sim's splice-crunch marks the cut;
   // this dedicated mutation roar gives the evolution a throat. Rides the bossPhase event.

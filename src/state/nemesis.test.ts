@@ -102,7 +102,11 @@ describe('nemesis lifecycle', () => {
     const before = meta.get();
     expect(before.nemesis?.slain).toBe(2);
     const chassis = bossDef('progenitor')!.chassis;
-    gameEvents.emit('bossKilled', { defId: 'progenitor', name: 'The Progenitor', x: 360, y: 200 });
+    // A piece that is NOT the last (a splitter's earlier body) settles nothing yet.
+    gameEvents.emit('bossKilled', { defId: 'progenitor', name: 'The Progenitor', x: 360, y: 200, final: false });
+    expect(meta.get().nemesis?.slain).toBe(2);
+    expect(meta.get().shards).toBe(before.shards);
+    gameEvents.emit('bossKilled', { defId: 'progenitor', name: 'The Progenitor', x: 360, y: 200, final: true });
     const after = meta.get();
     expect(after.nemesis).toBeNull();
     expect(after.shards - before.shards).toBe(vengeanceCores(2)); // 60 × slain(2) + tier bonus(0)
@@ -173,7 +177,7 @@ describe('trophy rack', () => {
     // Slay one boss of EACH chassis so all five chassis trophies unlock (owned ⇒ rack grows).
     const perChassis = new Map<string, string>();
     for (const [id, def] of Object.entries(BOSS_DEFS)) if (!perChassis.has(def.chassis)) perChassis.set(def.chassis, id);
-    for (const id of perChassis.values()) gameEvents.emit('bossKilled', { defId: id, name: id, x: 0, y: 0 });
+    for (const id of perChassis.values()) gameEvents.emit('bossKilled', { defId: id, name: id, x: 0, y: 0, final: true });
     const owned = meta.trophies().filter((t) => t.owned).map((t) => t.def.id);
     expect(owned.length).toBeGreaterThan(0);
     const rack0 = meta.trophyRack();

@@ -6813,7 +6813,11 @@ export class Game {
         }
         if (e.boss && gameEvents.hasListeners('bossKilled')) {
           const kdef = bossDef(e.boss.defId) ?? this.procBosses.get(e.boss.defId);
-          gameEvents.emit('bossKilled', { defId: e.boss.defId, name: e.boss.name, x: e.x, y: e.y, epithet: kdef?.epithet });
+          // A splitter (Mitotic Horror) is ONE boss in pieces: `final` marks the last piece, so the
+          // FALLEN card and nemesis revenge wait for it. Read-only scan, built only for listeners.
+          const id = e.boss.defId;
+          const final = e.boss.splitsLeft === 0 && !this.enemies.some((o) => o !== e && o.alive && o.boss?.defId === id);
+          gameEvents.emit('bossKilled', { defId: id, name: e.boss.name, x: e.x, y: e.y, epithet: kdef?.epithet, final });
         }
         if (this.relicHooks.length) this.fireRelicHooks('enemyKilled', e); // relic battlefield rules
         if (this.relicHooks.length && (e.elite || e.boss)) this.fireRelicHooks('eliteKilled', e); // rule genes (docs/CARDS.md §rules)

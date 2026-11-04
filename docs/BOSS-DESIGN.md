@@ -57,7 +57,9 @@ bosses). Milestone 1 shipped three of these, fully wired into the deterministic 
   armor/Fracture system instead — same lesson (bring an armor answer + position your Fracture
   forward), no pipeline surgery.
 - ✅ **`splitter`** — death-triggered cleave into smaller copies, one `generations` shorter each time
-  (`splitBoss`, capped by `PERF.maxEnemies`). Counter: spread damage, don't overkill.
+  (`splitBoss`, capped by `PERF.maxEnemies`). Counter: spread damage, don't overkill. Every piece
+  is a boss kill to the sim (`RunStats.bossKills`, the death spectacle), but `bossKilled.final`
+  marks only the last piece: the FALLEN card and nemesis revenge wait for it.
 
 Still PLANNED (land with their Milestone 2–3 bosses, to avoid dead code): `shield-linked` (invuln
 while an ally lives), `enrage-timer` as a standalone overlay (the `enrager` module already ramps),

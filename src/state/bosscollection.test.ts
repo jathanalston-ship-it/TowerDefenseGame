@@ -9,9 +9,9 @@ describe('framework-boss collection tracking', () => {
     expect(before.entries.find((e) => e.id === 'juggernaut')!.tier).toBe(0);
 
     // A procedural boss id encodes its chassis: proc_<chassis>_<tl>.
-    gameEvents.emit('bossKilled', { defId: 'proc_juggernaut_8', name: 'Dread', x: 0, y: 0 });
+    gameEvents.emit('bossKilled', { defId: 'proc_juggernaut_8', name: 'Dread', x: 0, y: 0, final: true });
     // An authored boss id resolves its chassis via bossDef.
-    gameEvents.emit('bossKilled', { defId: 'progenitor', name: 'The Progenitor', x: 0, y: 0 });
+    gameEvents.emit('bossKilled', { defId: 'progenitor', name: 'The Progenitor', x: 0, y: 0, final: true });
 
     const after = meta.collection().categories.find((c) => c.id === 'bosses')!;
     expect(after.entries.find((e) => e.id === 'juggernaut')!.tier).toBe(1);

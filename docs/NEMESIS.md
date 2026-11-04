@@ -34,7 +34,8 @@ beneath it:
 
 ### Revenge
 
-Killing your nemesis (`bossKilled` for its `defId`):
+Killing your nemesis (`bossKilled` for its `defId` with `final: true` — a splitting nemesis is
+repaid when its LAST piece dies, not its first body):
 - pays `vengeanceCores(slain)` Genome Cores (blood-price `60 × slain` + a `40 × tier` bonus),
 - grants one unowned **Abyssal phenotype** (docs/COSMETICS.md),
 - grants a permanent **Vengeance organ** for that boss's chassis (recorded in `save.vengeance`),

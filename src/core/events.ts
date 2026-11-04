@@ -17,7 +17,7 @@ export interface GameEventMap {
   towerSold: { id: number; kind: TowerKind; slot: number; refund: number };
   waveStarted: { wave: number; endless: boolean };
   waveCompleted: { wave: number; endless: boolean };
-  bossKilled: { defId: string; name: string; x: number; y: number; epithet?: string }; // epithet feeds the defeat beat (docs/BOSS-DESIGN.md §identity)
+  bossKilled: { defId: string; name: string; x: number; y: number; epithet?: string; final: boolean }; // epithet feeds the defeat beat (docs/BOSS-DESIGN.md §identity); final = the LAST piece of that boss died (a splitter fires once per piece)
   bossSpawned: { defId: string; name: string; nemesis: boolean; nemesisTier: number }; // a framework boss entered — nemesis flags the personal hunt (docs/NEMESIS.md) for the roar cue
   bossPhase: { defId: string; name: string; phase: number }; // a boss MUTATED into its next phase (docs/BOSS-DESIGN.md §phases)
   cardChosen: { id: string; rarity: string };

@@ -62,7 +62,7 @@ export function SpectateView({ record, onExit }: { record: ReplayRecord; onExit:
       const a = announcerRef.current!;
       if (!skippingRef.current && a.push(card, performance.now())) setStageCard(a.current);
     };
-    const offBoss = gameEvents.on('bossKilled', (e) => announce({ kind: 'bossFall', name: e.name, epithet: e.epithet ?? '' }));
+    const offBoss = gameEvents.on('bossKilled', (e) => { if (e.final) announce({ kind: 'bossFall', name: e.name, epithet: e.epithet ?? '' }); });
     const offMega = gameEvents.on('megaKilled', (e) => announce(megaFallCard(e)));
     return () => { offBoss(); offMega(); };
   }, []);

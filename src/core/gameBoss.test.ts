@@ -4,6 +4,7 @@
 
 import { describe, it, expect } from 'vitest';
 import { Game } from './game';
+import { gameEvents } from './events';
 import { SIM_DT } from './config';
 import type { BossDef } from './boss';
 import type { MetaModifiers } from './types';
@@ -47,6 +48,27 @@ describe('boss module spine — the Milestone-1 primitives execute in the sim', 
     for (const c of children) {
       expect(c.boss!.splitsLeft).toBe(0); // one generation spent — the copies are terminal
       expect(c.maxHp).toBeLessThan(parentMax); // each is a fraction of the parent
+    }
+  });
+
+  it('a splitter falls ONCE: bossKilled marks only its last piece final', () => {
+    const g = waveGame(9);
+    const finals: boolean[] = [];
+    const off = gameEvents.on('bossKilled', (e) => finals.push(e.final));
+    try {
+      g.spawnBoss(def({ id: 'test_split', modules: [{ kind: 'splitter', cooldown: 999, amount: 2, generations: 1 }], phases: [{ threshold: 1, modules: [] }] }));
+      boss(g)!.hp = 0;
+      advance(g, 1); // the parent dies → two pieces
+      expect(finals).toEqual([false]);
+      const pieces = g.enemies.filter((e) => e.boss && e.boss.defId === 'test_split');
+      pieces[0].hp = 0;
+      advance(g, 1);
+      expect(finals).toEqual([false, false]); // a sibling still lives
+      pieces[1].hp = 0;
+      advance(g, 1);
+      expect(finals).toEqual([false, false, true]); // the last piece — THE fall
+    } finally {
+      off();
     }
   });
 

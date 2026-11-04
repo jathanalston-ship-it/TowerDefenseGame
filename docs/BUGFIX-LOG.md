@@ -60,6 +60,7 @@ bug-hunt pass (scope, method, verdict) so "we looked" is auditable.
 | 48 | The replay theater stopped showing a boss or Mega kill (no "FELL" / "FALLS" text). | The feel pass moved the sim's canvas floats into GameView's centre-stage announcer, which the theater doesn't mount. | The card markup moved to `components/CentreStage.tsx`; SpectateView runs its own announcer from `bossKilled` / `megaKilled` (silent while skipping). Verified live on a recorded Boss Rush replay. |
 | 49 | Pressing Escape in the Gene Archive while equipping cancelled equip mode AND left the screen. | The grid's Escape handler didn't mark the key handled, so the Hub's new Escape-to-back fired on the same press. | The handler calls `preventDefault()` when it actually cancels equip mode. |
 | 50 | `npm run mobilecheck` left its `vite preview` server running after it finished. | `process.exit()` inside the `try` skipped the `finally` that stops the server. | The server is stopped before each exit. |
+| 51 | The Mitotic Horror showed a FALLEN card for every split piece, and a Mitotic nemesis paid its revenge when the first body died while its pieces still lived. | Each split copy is a full boss, so every piece fired `bossKilled` the same way. | `bossKilled` carries `final` (the last piece of that boss, read-only scan, built only for listeners — goldens untouched); the FALLEN card (run + theater) and nemesis revenge wait for it. The shock ring and the sim's boss-kill count are unchanged. |
 
 ---
 
