@@ -477,3 +477,5 @@
 - `6930566` **[Website]** Website: Feel and Flow devlog, features copy, release v2026.11.04.2 curated, new Home still
 - `47e45f7` **[UI]** Touch: range sliders meet the 44px floor (Screen shake slider was 16px tall)
 - `2beef2e` **[Enemies]** Website media: new combat + Mega stills and trailer; combat still waits for the swarm to clear the first corridor
+- `038bb1f` **[Gameplay]** Validation report: PASS over the polish, content and economy batch (2847/2847, mobile gate clean, probe in budget) _(internal)_
+- `238e920` **[Developer Tools]** Mobilecheck/cogload: spawn vite directly so stopping the preview server leaves no orphan _(internal)_

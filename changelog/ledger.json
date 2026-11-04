@@ -1,6 +1,6 @@
 {
-  "lastSha": "2beef2e78537746530cc47d0e40eb249aae96ab9",
-  "commitsSinceDraft": 3,
+  "lastSha": "238e920d557a312208bf157227ad1f50e7cb2405",
+  "commitsSinceDraft": 5,
   "content": {
     "tower": [
       "needle",
@@ -6807,6 +6807,22 @@
       "cat": "Enemies",
       "text": "Website media: new combat + Mega stills and trailer; combat still waits for the swarm to clear the first corridor",
       "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "038bb1f1a5f2d042a514d695b24a19a7f244ad89",
+      "date": "2026-11-04",
+      "cat": "Gameplay",
+      "text": "Validation report: PASS over the polish, content and economy batch (2847/2847, mobile gate clean, probe in budget)",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "238e920d557a312208bf157227ad1f50e7cb2405",
+      "date": "2026-11-04",
+      "cat": "Developer Tools",
+      "text": "Mobilecheck/cogload: spawn vite directly so stopping the preview server leaves no orphan",
+      "internal": true,
       "needsReview": false
     }
   ]
