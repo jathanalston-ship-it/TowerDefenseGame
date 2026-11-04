@@ -433,8 +433,11 @@ async function enterRunFromHome(page: import('playwright-core').Page): Promise<b
   await page.waitForTimeout(380);
   await page.evaluate(() => {
     const btns = [...document.querySelectorAll('button')].filter((b) => (b as HTMLElement).offsetParent !== null);
-    for (const label of ['Continue Campaign', 'Fight anyway', 'Deploy', 'Begin']) {
-      const b = btns.find((x) => (x.textContent ?? '').includes(label));
+    // Home's primary is "Continue Campaign" — or, for an under-powered profile, "Farm Infinite" with
+    // "Fight Stage N anyway ▸" as the secondary (docs/COMMAND-CENTER.md, Batch G): prefer the
+    // campaign frontier so the in-run audit stays on the same board either way.
+    for (const label of [/Continue Campaign/, /Fight\b.*\banyway/, /Farm Infinite/, /Deploy/, /Begin/]) {
+      const b = btns.find((x) => label.test(x.textContent ?? ''));
       if (b) { (b as HTMLElement).click(); return; }
     }
   });
