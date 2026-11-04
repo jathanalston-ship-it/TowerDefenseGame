@@ -294,7 +294,7 @@ export function VaultReveal({
       const id = setTimeout(() => dispatch({ kind: 'page', to: page }), 650);
       return () => clearTimeout(id);
     }
-    const pace = st.fast ? 150 : 340;
+    const pace = 340; // ms between cascade flips
     const id = setTimeout(() => dispatch({ kind: 'flip', index: nxt }), pace);
     return () => clearTimeout(id);
   }, [phase, st, grid.pageSize]);

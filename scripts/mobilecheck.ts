@@ -214,10 +214,12 @@ async function main(): Promise<void> {
 
     if (violations.length === 0) {
       console.log(`mobilecheck: CLEAN — ${NAVS.length} nav screens (registry-derived) + in-run × ${VIEWPORTS.map((v) => v.name).join('/')}, landscape drawer walked, rotate gate holds the portrait hub, phone run contract (portrait + landscape) and run-chrome overlap contract hold, no overflow/clipped text/sub-${TAP_MIN}px targets.`);
+      server.kill('SIGTERM'); // process.exit() skips `finally` — stop the preview server first
       process.exit(0);
     }
     console.error(`mobilecheck: ${violations.length} violation(s)`);
     for (const v of violations.slice(0, 120)) console.error(`  ✗ [${v.vp}px] ${v.screen}: ${v.kind} — ${v.detail}`);
+    server.kill('SIGTERM');
     process.exit(1);
   } finally {
     server.kill('SIGTERM');

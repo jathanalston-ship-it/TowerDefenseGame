@@ -293,7 +293,6 @@ export interface RevealSessionState {
   interrupt: number | null; // specimen whose celebration currently HOLDS the flow
   page: number;
   revealAll: boolean; // the auto-flip cascade is armed (UI drives the timer)
-  fast: boolean; // shortened flip pacing
   skipAnims: boolean; // instant flips — suppresses interrupts entirely
 }
 
@@ -302,12 +301,11 @@ export type RevealAction =
   | { kind: 'ack' } // dismiss the held celebration
   | { kind: 'revealAll' } // toggle the cascade — off = back to Flip Individually
   | { kind: 'flipAll' } // the Skip All fast-path: everything up at once, no holds
-  | { kind: 'fast' }
   | { kind: 'skipAnims' }
   | { kind: 'page'; to: number };
 
 export function initialRevealState(count: number): RevealSessionState {
-  return { flipped: Array.from({ length: count }, () => false), order: [], interrupt: null, page: 0, revealAll: false, fast: false, skipAnims: false };
+  return { flipped: Array.from({ length: count }, () => false), order: [], interrupt: null, page: 0, revealAll: false, skipAnims: false };
 }
 
 export function revealReduce(specimens: SpecimenView[], s: RevealSessionState, a: RevealAction): RevealSessionState {
@@ -332,8 +330,6 @@ export function revealReduce(specimens: SpecimenView[], s: RevealSessionState, a
       for (let i = 0; i < s.flipped.length; i++) if (!s.flipped[i]) order.push(i);
       return { ...s, flipped: s.flipped.map(() => true), order, interrupt: null };
     }
-    case 'fast':
-      return { ...s, fast: !s.fast };
     case 'skipAnims':
       return { ...s, skipAnims: !s.skipAnims };
     case 'page': {
