@@ -17,7 +17,7 @@ export function WardrobeReveal(): JSX.Element | null {
   const [queue, setQueue] = useState<WardrobeItemDef[]>([]);
   const [idx, setIdx] = useState(0);
 
-  // The arrival ceremony HOLDS until the Specimen Vault (a Phenotype Lab tab) has revealed —
+  // The arrival ceremony HOLDS until the Specimen Cabinet (a Phenotype Lab tab) has revealed —
   // specimens bank silently before that and land as one batch at the reveal
   // (docs/PROGRESSION-GATING.md §timeline; the queue is persisted, nothing is lost).
   const pending = featureRevealed(save, 'specimens') ? save.wardrobe.pendingReveal.length : 0;
@@ -47,6 +47,9 @@ export function WardrobeReveal(): JSX.Element | null {
       setQueue([]);
     }
   };
+  // The LAST card's button keeps its promise: it closes the ceremony AND opens the Specimen
+  // Cabinet, where the claim actually happens (the card itself never binds anything).
+  const toCabinet = (): void => { setQueue([]); audio.cue('ui'); navBus.go('specimens'); };
 
   // A BACKLOG is a bank statement, not a moment (docs/COSMETICS.md §wardrobe): six-plus
   // queued unlocks (fast progress, restored save) collapse into ONE summary card — every
@@ -57,7 +60,7 @@ export function WardrobeReveal(): JSX.Element | null {
         <div className="wdr-card wdr-batch-card">
           <div className="wdr-burst" aria-hidden><i /><i /><i /><i /><i /><i /></div>
           <div className="wdr-eyebrow">SPECIMENS ACQUIRED</div>
-          <div className="wdr-name">{queue.length} specimens landed in the Vault</div>
+          <div className="wdr-name">{queue.length} specimens landed in the Specimen Cabinet</div>
           <div className="wdr-batch" role="list">
             {queue.map((q) => (
               <span key={q.id} role="listitem" className="wdr-batch-row" style={{ ['--rc' as string]: WARDROBE_RARITY_COLOR[q.rarity] } as CSSProperties}>
@@ -67,8 +70,8 @@ export function WardrobeReveal(): JSX.Element | null {
               </span>
             ))}
           </div>
-          <button className="primary wdr-next" onClick={() => { setQueue([]); audio.cue('reveal'); navBus.go('specimens'); /* the Phenotype Lab's Specimen Vault tab */ }}>
-            To the Specimen Vault — claim to bind
+          <button className="primary wdr-next" onClick={() => { setQueue([]); audio.cue('reveal'); navBus.go('specimens'); /* the Phenotype Lab's Specimen Cabinet tab */ }}>
+            To the Specimen Cabinet — claim to bind
           </button>
         </div>
       </div>
@@ -85,8 +88,8 @@ export function WardrobeReveal(): JSX.Element | null {
         <div className="wdr-name">{d.name}</div>
         <p className="wdr-desc">{d.desc}</p>
         <div className="wdr-src">{sourceLabel(d.source)}</div>
-        <button className="primary wdr-next" onClick={(e) => { e.stopPropagation(); next(); }}>
-          {idx + 1 < queue.length ? `Next (${idx + 1}/${queue.length})` : 'Claim it in the Vault'}
+        <button className="primary wdr-next" onClick={(e) => { e.stopPropagation(); if (idx + 1 < queue.length) next(); else toCabinet(); }}>
+          {idx + 1 < queue.length ? `Next (${idx + 1}/${queue.length})` : 'Claim it in the Specimen Cabinet ▸'}
         </button>
         {queue.length - idx > 2 && (
           // A backlog (fast progress, restored save) can queue DOZENS of ceremonies — never

@@ -35,28 +35,7 @@ const EN = {
   'hub.landing.complete': 'complete',
   'hub.landing.quiet': 'All quiet here — nothing is waiting on you.',
   'hub.landing.stillReady': 'Earned rewards below are still waiting — the glowing doors hold them.',
-  'nav.home': 'Home',
-  'nav.campaign': 'Campaign',
-  'nav.infinite': 'Infinite',
-  'nav.bossrush': 'Boss Rush',
-  'nav.daily': 'Daily Run',
-  'nav.arena': 'Arena',
-  'nav.infestation': 'The Front',
-  'nav.quests': 'Quest Board',
-  'nav.season': 'Season Pass',
-  'nav.towers': 'Towers',
-  'nav.heroes': 'Heroes',
-  'nav.evolution': 'Evolution',
-  'nav.genes': 'Genes',
-  'nav.vault': 'Vault',
-  'nav.market': 'Market',
-  'nav.auction': 'Auction House',
-  'nav.equipment': 'Equipment',
-  'nav.collection': 'Collection',
-  'nav.store': 'Store',
-  'nav.profile': 'Profile',
-  'nav.help': 'Help',
-  'nav.settings': 'Settings',
+  'nav.home': 'Home', // the rail's Home DOOR (chrome) — screen names live in the feature registry (see SCREEN_NAMES)
   // ── Portrait tab shell (docs/RESPONSIVE-DESIGN.md §mobile-shell) ──
   'mnav.home': 'Home',
   'mnav.battle': 'Battle',
@@ -147,15 +126,6 @@ const EN = {
   'daily.theater.bad': 'That code did not decode — check you copied the whole thing.',
   'results.shareReplay': '⧉ Share replay',
   // ── Phenotype Lab (docs/COSMETICS.md) ──
-  'nav.phenotypes': 'Wardrobe',
-  'nav.specimens': 'Specimen Vault',
-  'nav.mulligans': 'Mulligans',
-  'nav.hive': 'The Hive',
-  'nav.harvest': 'Hive Production',
-  'nav.metabolism': 'Milestones',
-  'nav.expeditions': 'Expeditions',
-  'nav.adaptation': 'Adaptation',
-  'nav.gearcodex': 'Equip Codex',
   'pheno.title': 'Phenotype Lab',
   'pheno.sub': 'Express your strains — visual phenotypes for every tower and hero. Pure expression: no stats change.',
   'pheno.cultivate': '⌬ Cultivate a phenotype',
@@ -195,27 +165,6 @@ const ES: Record<MsgKey, string> = {
   'hub.landing.quiet': 'Todo tranquilo: nada espera por ti.',
   'hub.landing.stillReady': 'Las recompensas ganadas siguen esperando — las puertas iluminadas las guardan.',
   'nav.home': 'Inicio',
-  'nav.campaign': 'Campaña',
-  'nav.infinite': 'Infinito',
-  'nav.bossrush': 'Asalto de Jefes',
-  'nav.daily': 'Reto Diario',
-  'nav.arena': 'Arena',
-  'nav.infestation': 'El Frente',
-  'nav.quests': 'Misiones',
-  'nav.season': 'Pase de Temporada',
-  'nav.towers': 'Torres',
-  'nav.heroes': 'Héroes',
-  'nav.evolution': 'Evolución',
-  'nav.genes': 'Genes',
-  'nav.vault': 'Bóveda',
-  'nav.market': 'Mercado',
-  'nav.auction': 'Casa de Subastas',
-  'nav.equipment': 'Equipo',
-  'nav.collection': 'Colección',
-  'nav.store': 'Tienda',
-  'nav.profile': 'Perfil',
-  'nav.help': 'Ayuda',
-  'nav.settings': 'Ajustes',
   'mnav.home': 'Inicio',
   'mnav.battle': 'Batalla',
   'mnav.rewards': 'Premios',
@@ -300,15 +249,6 @@ const ES: Record<MsgKey, string> = {
   'daily.theater.watchCode': '▶ Ver',
   'daily.theater.bad': 'Ese código no se pudo decodificar — comprueba que copiaste todo.',
   'results.shareReplay': '⧉ Compartir repetición',
-  'nav.phenotypes': 'Vestuario',
-  'nav.specimens': 'Bóveda de Especímenes',
-  'nav.mulligans': 'Mulligans',
-  'nav.hive': 'La Colmena',
-  'nav.harvest': 'Producción de Colmena',
-  'nav.metabolism': 'Hitos',
-  'nav.expeditions': 'Expediciones',
-  'nav.adaptation': 'Adaptación',
-  'nav.gearcodex': 'Códex',
   'pheno.title': 'Laboratorio de Fenotipos',
   'pheno.sub': 'Expresa tus cepas — fenotipos visuales para cada torre y héroe. Pura expresión: sin cambios de stats.',
   'pheno.cultivate': '⌬ Cultivar un fenotipo',
@@ -343,27 +283,6 @@ const PT: Record<MsgKey, string> = {
   'hub.landing.quiet': 'Tudo calmo: nada espera por você.',
   'hub.landing.stillReady': 'Recompensas ganhas ainda aguardam — as portas iluminadas as guardam.',
   'nav.home': 'Início',
-  'nav.campaign': 'Campanha',
-  'nav.infinite': 'Infinito',
-  'nav.bossrush': 'Investida de Chefes',
-  'nav.daily': 'Desafio Diário',
-  'nav.arena': 'Arena',
-  'nav.infestation': 'A Frente',
-  'nav.quests': 'Missões',
-  'nav.season': 'Passe de Temporada',
-  'nav.towers': 'Torres',
-  'nav.heroes': 'Heróis',
-  'nav.evolution': 'Evolução',
-  'nav.genes': 'Genes',
-  'nav.vault': 'Cofre',
-  'nav.market': 'Mercado',
-  'nav.auction': 'Casa de Leilões',
-  'nav.equipment': 'Equipamento',
-  'nav.collection': 'Coleção',
-  'nav.store': 'Loja',
-  'nav.profile': 'Perfil',
-  'nav.help': 'Ajuda',
-  'nav.settings': 'Opções',
   'mnav.home': 'Início',
   'mnav.battle': 'Batalha',
   'mnav.rewards': 'Prêmios',
@@ -448,15 +367,6 @@ const PT: Record<MsgKey, string> = {
   'daily.theater.watchCode': '▶ Assistir',
   'daily.theater.bad': 'Esse código não pôde ser decodificado — confira se copiou tudo.',
   'results.shareReplay': '⧉ Compartilhar replay',
-  'nav.phenotypes': 'Guarda-Roupa',
-  'nav.specimens': 'Cofre de Espécimes',
-  'nav.mulligans': 'Mulligans',
-  'nav.hive': 'A Colmeia',
-  'nav.harvest': 'Produção da Colmeia',
-  'nav.metabolism': 'Marcos',
-  'nav.expeditions': 'Expedições',
-  'nav.adaptation': 'Adaptação',
-  'nav.gearcodex': 'Códex',
   'pheno.title': 'Laboratório de Fenótipos',
   'pheno.sub': 'Expresse suas cepas — fenótipos visuais para cada torre e herói. Pura expressão: sem mudanças de stats.',
   'pheno.cultivate': '⌬ Cultivar um fenótipo',
@@ -472,6 +382,35 @@ const PT: Record<MsgKey, string> = {
 };
 
 const CATALOGS: Record<Locale, Record<MsgKey, string>> = { en: EN, es: ES, pt: PT };
+
+// ── Screen names (docs/UI-STANDARDS.md §naming — ONE name per screen) ──
+// A hub screen's ENGLISH name lives in exactly one place: the feature registry
+// (state/unlocks.ts FEATURES[].name). The rail, breadcrumb, sibling chips, hub cards, advice and
+// page titles all read it there (ui/navModel.ts derives its labels from it). Other locales
+// translate it HERE, keyed by the screen id; a missing row falls back to the registry English, and
+// navModel.test.ts asserts every locale covers every nav screen.
+export const SCREEN_NAMES: Record<Exclude<Locale, 'en'>, Readonly<Record<string, string>>> = {
+  es: {
+    home: 'Centro de Mando', campaign: 'Campaña', infinite: 'Infinito', bossrush: 'Asalto de Jefes',
+    daily: 'Reto Diario', arena: 'Campo de Pruebas', infestation: 'El Frente', quests: 'Tablón de Misiones',
+    season: 'Pase de Temporada', vault: 'Bóveda Genética', towers: 'Laboratorio de Torres', heroes: 'Salón de Héroes',
+    evolution: 'Cuartel de Evolución', adaptation: 'Cámara de Adaptación', genes: 'Archivo Genético',
+    mulligans: 'Laboratorio Mulligan', hive: 'La Colmena', harvest: 'Producción de Colmena', expeditions: 'Mando de Expediciones',
+    metabolism: 'Hitos', market: 'Mercado de Empalmes', auction: 'Casa de Subastas', equipment: 'Armería',
+    gearcodex: 'Códex de Equipo', phenotypes: 'Laboratorio de Fenotipos', specimens: 'Gabinete de Especímenes',
+    store: 'Tienda Premium', profile: 'Perfil del Jugador', collection: 'Bio-Dex', help: 'Ayuda', settings: 'Ajustes',
+  },
+  pt: {
+    home: 'Centro de Comando', campaign: 'Campanha', infinite: 'Infinito', bossrush: 'Investida de Chefes',
+    daily: 'Desafio Diário', arena: 'Campo de Provas', infestation: 'A Frente', quests: 'Quadro de Missões',
+    season: 'Passe de Temporada', vault: 'Cofre Genético', towers: 'Laboratório de Torres', heroes: 'Salão dos Heróis',
+    evolution: 'Central de Evolução', adaptation: 'Câmara de Adaptação', genes: 'Arquivo Genético',
+    mulligans: 'Laboratório Mulligan', hive: 'A Colmeia', harvest: 'Produção da Colmeia', expeditions: 'Comando de Expedições',
+    metabolism: 'Marcos', market: 'Mercado de Enxertos', auction: 'Casa de Leilões', equipment: 'Arsenal',
+    gearcodex: 'Códex de Equipamento', phenotypes: 'Laboratório de Fenótipos', specimens: 'Gabinete de Espécimes',
+    store: 'Loja Premium', profile: 'Perfil do Jogador', collection: 'Bio-Dex', help: 'Ajuda', settings: 'Opções',
+  },
+};
 
 // ── Locale store (tiny external store; React re-renders via useLocale) ──
 const KEY = 'assimilate.locale';
@@ -521,4 +460,10 @@ export function t(key: MsgKey, vars?: Record<string, string | number>): string {
   let out: string = CATALOGS[current][key] ?? EN[key];
   if (vars) for (const [k, v] of Object.entries(vars)) out = out.split(`{${k}}`).join(String(v));
   return out;
+}
+
+/** A screen's name in the CURRENT locale — `english` is the feature-registry name (the single
+ *  source); other locales read SCREEN_NAMES by id and fall back to it. */
+export function screenName(id: string, english: string): string {
+  return current === 'en' ? english : SCREEN_NAMES[current][id] ?? english;
 }

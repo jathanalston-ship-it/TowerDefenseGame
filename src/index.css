@@ -13155,8 +13155,12 @@ div.ah-spark { display: flex; align-items: center; justify-content: center; heig
 .scrh-sib.is-here { color: var(--text); border-color: var(--gold); cursor: default; background: color-mix(in srgb, var(--gold) 9%, transparent); }
 .scrh-b { width: 6px; height: 6px; border-radius: 50%; background: var(--gold); flex-shrink: 0; }
 @media (max-width: 900px) {
-  .scrh-sib em { display: none; } /* glyph-only chips on narrow shells — the title carries the name */
+  .scrh-sib em { display: none; } /* distant chips go glyph-only on narrow shells… */
   .scrh-sib { padding: 4px 8px; min-width: 40px; justify-content: center; } /* a glyph-only chip stays a real tap target */
+  /* …but the CURRENT chip and its two neighbours keep their names, so "where am I / what's next
+     door" never depends on decoding a glyph (touch has no hover title). */
+  .scrh-sib.is-here em, .scrh-sib.is-near em { display: inline; white-space: nowrap; }
+  .scrh-sib.is-here, .scrh-sib.is-near { padding: 4px 10px; }
 }
 
 /* Page transition (docs/UI-MOTION.md): the hub screen re-keys per navigation — one quiet

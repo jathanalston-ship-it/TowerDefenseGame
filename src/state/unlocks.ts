@@ -37,7 +37,7 @@ export type UnlockCondition =
   | { kind: 'mats' } // any crafting material held
   | { kind: 'molted' } // has prestiged at least once
   | { kind: 'antigen' } // any account-faucet Antigen earned (achievements/depth/traces — mastery-sourced income reveals via the stage backbone)
-  | { kind: 'cosmeticInventory' } // an unclaimed cosmetic specimen sits in the Vault (v53 — reveal-on-need)
+  | { kind: 'cosmeticInventory' } // an unclaimed cosmetic specimen sits in the Specimen Cabinet (v53 — reveal-on-need)
   | { kind: 'rushHistory' } // pre-gate Boss Rush accounts (grandfather)
   | { kind: 'dailyHistory' } // pre-gate Daily accounts (grandfather)
   | { kind: 'any'; of: UnlockCondition[] }; // first satisfied wins (progress = max)
@@ -98,8 +98,11 @@ export interface FeatureDef {
   kind: 'screen' | 'currency';
   /** The Hub NavKey (screens) or `cur:<id>` (currencies). */
   id: string;
+  /** THE player-facing name (docs/UI-STANDARDS.md §naming): every surface — rail, breadcrumb,
+   *  sibling chips, hub cards, advice, page titles — reads it from here (ui/navModel derives its
+   *  labels; other locales translate by id in i18n SCREEN_NAMES). One screen, one name. */
   name: string;
-  glyph: string; // teaser row + locked-screen sigil
+  glyph: string; // teaser row + locked-screen sigil + nav mono (docs/ICON-LANGUAGE.md §1 screens)
   /** One-line anticipation hook shown while locked ("why you'll want this"). */
   blurb: string;
   condition: UnlockCondition;
@@ -168,13 +171,13 @@ export const FEATURES: FeatureDef[] = [
   { kind: 'screen', id: 'vault', name: 'Genetic Vault', glyph: '◈', order: 5,
     blurb: 'Crack your banked Bio-Containers.', condition: { kind: 'any', of: [{ kind: 'containers' }, { kind: 'stage', stage: 2 }] },
     because: 'The session-1 payoff: the first run banks a container — the Vault reveals exactly when there is something to open (the lootbox hook). Stage 2 backstops a no-cache start.', teach: 'containers' },
-  { kind: 'screen', id: 'towers', name: 'Tower Lab', glyph: 'T', order: 6,
+  { kind: 'screen', id: 'towers', name: 'Tower Lab', glyph: '♜', order: 6,
     blurb: 'Evolve your strains with Stars and Samples.', condition: { kind: 'stage', stage: 1 },
     because: 'Stage 1’s first-clear pays Strain Samples + a container — the Lab opens the moment it has something to do.', teach: 'towers' },
   { kind: 'screen', id: 'evolution', name: 'Evolution HQ', glyph: '✷', order: 7,
     blurb: 'Permanent account upgrades with Genome Cores.', condition: { kind: 'any', of: [{ kind: 'cores' }, { kind: 'stage', stage: 2 }] },
     because: 'Reveals with the first Genome Cores (usually stage 1) — the other half of the same lesson: currency → permanent power.', teach: 'genome-core' },
-  { kind: 'screen', id: 'heroes', name: 'Hero Hall', glyph: 'H', order: 8,
+  { kind: 'screen', id: 'heroes', name: 'Hero Hall', glyph: '♛', order: 8,
     blurb: 'Develop the champions who fight beside you.', condition: { kind: 'stage', stage: 2 },
     because: 'The hero already fights from run 1; the HALL matters once shards start dropping — one beat after towers so the two spend-screens don’t land together.', teach: 'heroes' },
 
@@ -238,7 +241,7 @@ export const FEATURES: FeatureDef[] = [
   { kind: 'screen', id: 'phenotypes', name: 'Phenotype Lab', glyph: '❖', order: 26,
     blurb: 'Cosmetic phenotypes for every strain and champion.', condition: { kind: 'stage', stage: 26 },
     because: 'Pure luxury — cosmetics wait (stage 26, ~5–6h) until the mechanical wardrobe is full and Gene Essence has a purpose beyond upgrades.', teach: 'phenotype-lab' },
-  { kind: 'screen', id: 'specimens', name: 'Specimen Vault', glyph: '⧉', order: 27,
+  { kind: 'screen', id: 'specimens', name: 'Specimen Cabinet', glyph: '⧉', order: 27,
     blurb: 'Unclaimed cosmetics — tradable stock until you bind them.', condition: { kind: 'stage', stage: 27 },
     because: 'A Phenotype Lab tab one stage after the Lab itself (~6h). Specimens received earlier BANK SILENTLY — nothing strands: unclaimed stock waits in the inventory and its arrival card holds until this reveal (docs/COSMETICS.md §claiming; re-paced 2026-11 from reveal-on-need).', teach: 'specimens' },
   { kind: 'screen', id: 'arena', name: 'The Proving Grounds', glyph: '⚔', order: 28,

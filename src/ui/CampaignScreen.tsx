@@ -217,11 +217,13 @@ export function CampaignScreen({
           )}
 
           {(() => {
-            const threat = Math.min(5, 1 + Math.floor(((cfg.scaling.enemyHealthMult - 1) + (cfg.scaling.enemyDamageMult - 1)) * 1.6));
+            // DANGER = the stage's own scaling rating (◆1–5). Deliberately NOT "Threat": that word
+            // names ONE thing — the opt-in Threat ladder picked below (docs/THREAT.md §naming).
+            const danger = Math.min(5, 1 + Math.floor(((cfg.scaling.enemyHealthMult - 1) + (cfg.scaling.enemyDamageMult - 1)) * 1.6));
             return (
-              <div className="camp-threat" title={`Enemy HP +${Math.round((cfg.scaling.enemyHealthMult - 1) * 100)}% · damage +${Math.round((cfg.scaling.enemyDamageMult - 1) * 100)}%`}>
-                <span className="cd-k">Threat</span>
-                <span className="camp-skulls">{'◆'.repeat(threat)}{'◇'.repeat(5 - threat)}</span>
+              <div className="camp-threat" title={`Stage danger — enemy HP +${Math.round((cfg.scaling.enemyHealthMult - 1) * 100)}% · damage +${Math.round((cfg.scaling.enemyDamageMult - 1) * 100)}%`}>
+                <span className="cd-k">Danger</span>
+                <span className="camp-skulls" aria-label={`Danger ${danger} of 5`}>{'◆'.repeat(danger)}{'◇'.repeat(5 - danger)}</span>
                 {cfg.rewardMult > 1 && <span className="camp-rmult">rewards ×{cfg.rewardMult.toFixed(1)}</span>}
               </div>
             );
