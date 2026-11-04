@@ -5,7 +5,7 @@
 // (`game.ts` 'campaign' mode); stage mode stays byte-identical (golden-safe).
 
 import { clamp } from './math';
-import { CAMPAIGN_ONBOARDING, CAMPAIGN_REWARDS, ENEMY_DEFS, ENEMY_KINDS } from './config';
+import { CAMPAIGN_ONBOARDING, CAMPAIGN_OPENING, CAMPAIGN_REWARDS, ENEMY_DEFS, ENEMY_KINDS } from './config';
 import type { EnemyDef, SpawnGroup, WaveDef } from './config';
 import type { EnemyKind } from './types';
 import { Rng } from './rng';
@@ -227,6 +227,20 @@ function composeWave(rng: Rng, budget: number, pool: EnemyKind[], weights: numbe
   return groups;
 }
 
+/** Trim a composed wave's AIRBORNE groups to at most `cap` units in total (in spawn order), dropping
+ *  emptied groups. Pure post-pass — no rng — so the stage's stream is unchanged by the trim. */
+function trimFlying(wave: WaveDef, cap: number): WaveDef {
+  let left = cap;
+  const out: WaveDef = [];
+  for (const g of wave) {
+    if (!ENEMY_DEFS[g.kind].behavior.flying) { out.push(g); continue; }
+    const count = Math.min(g.count, left);
+    left -= count;
+    if (count > 0) out.push(count === g.count ? g : { ...g, count });
+  }
+  return out.length > 0 ? out : wave;
+}
+
 /** Early-stage budget grace: stage 1 spends `graceFloor` of the base budget, ramping to the
  *  full curve by `graceStages` (linear). ×1 from there — the long curve is untouched. */
 function budgetGrace(stage: number): number {
@@ -254,7 +268,10 @@ export function stageStartAid(stage: number): number {
  *  so daily waves feel authored, not parallel. `waveCount` is an OVERRIDE — campaign passes
  *  stageWaveCount(st); daily passes DAILY.waveCount (20). Pure + deterministic in `rng`. */
 export interface StagePlan { waves: WaveDef[]; enemyPool: EnemyKind[]; eliteFrequency: number }
-export function composeStagePlan(rng: Rng, st: number, biome: Biome, base: DifficultyDef, waveCount: number): StagePlan {
+/** Opening-wave safety rules (CAMPAIGN_OPENING): per-wave airborne unit caps. Campaign passes them;
+ *  the Daily (and any caller that omits them) composes exactly as before. */
+export interface OpeningRules { flyingUnitCap: readonly number[] }
+export function composeStagePlan(rng: Rng, st: number, biome: Biome, base: DifficultyDef, waveCount: number, opening?: OpeningRules): StagePlan {
   // Roster: stage-gated, biome-biased (exclude the boss-visual kind).
   const pool = (ENEMY_KINDS as EnemyKind[]).filter((k) => k !== BOSS_VISUAL_KIND && unlockStage(ENEMY_DEFS[k]) <= st);
   if (pool.length === 0) pool.push('runner');
@@ -284,16 +301,21 @@ export function composeStagePlan(rng: Rng, st: number, biome: Biome, base: Diffi
     // ramp with wave progress; wave 1 additionally excludes fast/siege kinds (still building).
     const unitCap = C.unitCapBase + Math.round(t * C.unitCapRamp);
     const dmgCap = C.dmgCapBase + Math.round(t * C.dmgCapRamp);
+    // Opening airborne cap (CAMPAIGN_OPENING — campaign only): 0 keeps fliers out of the wave's
+    // pool; a positive cap trims flying groups after composition (below). Undefined ⇒ no rule.
+    const flyCap = opening?.flyingUnitCap[w - 1];
     const idx = pool.map((_, i) => i).filter((i) => {
       const d = ENEMY_DEFS[pool[i]];
       if (threatCost(d) > unitCap || d.damage > dmgCap) return false;
+      if (flyCap === 0 && d.behavior.flying) return false;
       return w > 1 || (d.speed <= 100 && !d.siege);
     });
     const wavePool = idx.length > 0 ? idx.map((i) => pool[i]) : pool;
     const waveWeights = idx.length > 0 ? idx.map((i) => weights[i]) : weights;
     // Elites ramp in with the same progress axis: a ×3-HP body in wave 1–2 meets a 2–3 tower
     // build (an auto-leak at ANY power ratio); by mid-stage the defense has the DPS to answer.
-    waves.push(composeWave(rng, budget, wavePool, waveWeights, eliteFrequency * Math.min(1, t / 0.35), pace));
+    const wave = composeWave(rng, budget, wavePool, waveWeights, eliteFrequency * Math.min(1, t / 0.35), pace);
+    waves.push(flyCap !== undefined && flyCap > 0 ? trimFlying(wave, flyCap) : wave);
   }
   return { waves, enemyPool: pool, eliteFrequency };
 }
@@ -309,7 +331,7 @@ export function generateStage(stage: number, difficultyId = 'standard'): StageCo
   const sc = stageScaling(st);
 
   const waveCount = stageWaveCount(st);
-  const { waves, enemyPool: pool, eliteFrequency } = composeStagePlan(rng, st, biome, base, waveCount);
+  const { waves, enemyPool: pool, eliteFrequency } = composeStagePlan(rng, st, biome, base, waveCount, CAMPAIGN_OPENING);
   const miniBossChance = clamp(C.mbBase + C.mbPerStage * st, 0, C.mbCap) * base.bossFrequencyMult;
 
   // Mini-boss (a middle wave) + the finale boss — both via the framework boss assembler, so the

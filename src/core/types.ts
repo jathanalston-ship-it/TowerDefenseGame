@@ -750,6 +750,9 @@ export interface HudSnapshot {
   emergency: boolean; // Emergency Defense Mode — an enemy is in the Final Defense Zone
   draft: CardOption[] | null;
   draftRerollCost: number; // §reroll: biomass price of the open draft's ONE re-deal; -1 = unavailable
+  earlyCall: number; // docs/EARLY-CALL.md: Biomass a mid-wave call of the next wave pays right now; -1 = unavailable
+  liveThreat: number; // docs/DIFFICULTY_DIRECTOR.md §6a: the live adaptive HP multiplier — prep: what the NEXT wave would launch with now; wave: the current one's (1 = none)
+  squeezePressure: number; // ENDLESS_SQUEEZE pressure band: Infinite enemy-HP pressure (1 = none)
   selectedTower: TowerKind | null;
   selectedPlaced: SelectedPlacedTower | null; // a placed tower being inspected (branch/Mutation UI)
   armedAbility: boolean;

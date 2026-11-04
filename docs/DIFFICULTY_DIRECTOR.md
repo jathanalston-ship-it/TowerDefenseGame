@@ -93,20 +93,53 @@ loot-quality tier (difficulty tilt + prestige Fortune + codex bonus on one scale
 - **New consumer** (simulator, forecast UI, balance validator) → construct `DirectorInputs`
   and query; the module is pure and state-free.
 
-## 6. Adaptive seams — present, neutral, simulator-gated
+## 6. Adaptive seams — simulator-gated
 
 `DIRECTOR_ADAPTIVE` (config.ts) weights two player-relative factors into the chains:
 
 | Seam | Formula | Composed into | Weight today |
 |---|---|---|---|
-| `threatPerPowerRatio` | `×(1 + w·(powerRatio − 1))` | wave/endless HP, endless damage | **0** |
+| `threatPerPowerRatio` | `×(1 + w·(powerRatio − 1))` | wave/endless HP, endless damage (static input) · Campaign LIVE board power (§6a) | **0.1** (live path only — see §6a) |
 | `rewardPerPerformance` | `×(1 + w·recentPerformance)` | wave/endless bounty | **0** |
 
-`powerRatio` = actual/expected account power for the content; `recentPerformance` = a signed
-recent-outcome score. The progression-loop engine supplies `AdaptiveInputs`; the **weights may
-only be tuned from progression-simulator evidence** (docs/BALANCE roadmap), never intuition —
-that rule is pinned by a test asserting the weights are 0 until a simulator report ships.
-The endless **speed** curve deliberately takes no adaptive term (its readability cap must bind).
+`powerRatio` = actual/expected power for the content; `recentPerformance` = a signed
+recent-outcome score. The **weights may only be tuned from progression-simulator / harness
+evidence** (docs/BALANCE roadmap), never intuition — pinned by `difficultyDirector.test.ts`.
+Nothing supplies the STATIC boot-time `AdaptiveInputs.powerRatio`, so with the threat weight now
+non-zero every static curve is still bit-exact ×1 (pinned). The endless **speed** curve
+deliberately takes no adaptive term (its readability cap must bind).
+
+## 6a. LIVE board power — the Campaign finale answers the snowball (Batch G)
+
+**Why.** The grind audit (G1, ~560 headless Campaign runs on progression-sim accounts) found runs
+DECIDED in waves 1–3: 90 % of losses happened by wave 3, 93 % of Hive damage landed there, 78 % of
+wins were flawless, boss/Mega waves cost 2.7 integrity on average. The in-run snowball (cards,
+Hero Evolution, branches, strains — the run's temporary Power reaches ×60–90 by a 12-wave finale)
+out-scales the scripted wave curve (`WAVE_HP_GROWTH`, linear) many times over.
+
+**What.** A Campaign run whose app passes `RunOptions.livePowerBase` (= account Power ÷ the stage's
+recommended Power, `GameView`) re-feeds the SAME seam at every wave launch:
+
+```
+liveRatio = livePowerBase × effectsPower(game.powerEffects())   // = live run Power ÷ recommended
+liveThreatMult(r) = r ≤ 1 ? 1 : min(liveCap, 1 + threatPerPowerRatio·(r − 1))
+```
+
+- **Where it lands:** the scheduled HP of waves ≥ `liveFromWave` (4) — the opening is untouched —
+  and the HP of **every boss body** (mini-boss, finale, gauntlet bosses; `spawnBoss(def, hpScale)`).
+  The Mega keeps its own tier curve.
+- **Upward only:** an at- or under-powered board (r ≤ 1) is never propped up.
+- **Visible:** the wave briefing shows `▲ ADAPTED ×N` (`HudSnapshot.liveThreat` — in prep, the
+  multiplier the NEXT wave would launch with right now, so the preview equals the outcome while
+  the board is unchanged); Help row `hive-adapts`.
+- **Golden / replay safety:** omitted ⇒ exactly ×1 (`stage`, Daily, Arena, every probe that doesn't
+  pass it). The input is ctor data (recorded by replays) and the ratio is sim state ⇒ deterministic.
+
+Paired with the Campaign OPENING rules (docs/CAMPAIGN.md §opening — no fliers in wave 1, ≤ 4 in
+wave 2, the Mega no earlier than wave 3, the gift answers the opening), the tension moves from a
+wave-1 seed coin-flip to waves 4+ and the bosses.
+
+**Measured** — see the table in docs/CAMPAIGN.md §opening (the G1 harness, before/after).
 
 ## 6b. Campaign onboarding boss strength (§onboarding)
 

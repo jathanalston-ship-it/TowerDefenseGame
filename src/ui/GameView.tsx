@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties }
 import { Game } from '../core/game';
 import type { RunMode } from '../core/game';
 import type { StageConfig } from '../core/campaign';
+import { recommendedPowerScore } from '../core/campaign';
 import { drawGame } from '../render/renderer';
 import type { Pointer, MulliganRender } from '../render/renderer';
 import { pollAmbientCue } from '../render/organism';
@@ -176,6 +177,12 @@ export function GameView({
   const game = (gameRef.current ??= newRecordedGame(recorderRef, !!daily && !tutorial, seed, mods, progress, heroKind, heroProgress, {
     runEffects, mode, stage, difficulty, doctrine, heroRoster, heroEquip, setEffects, heroAbilityKits,
     threat, automationAllowed: automation.allowed, // Threat ladder (docs/THREAT.md) + the automation gate
+    // Batch G grind levers: EARLY CALL on every run but the tutorial (docs/EARLY-CALL.md); Campaign's
+    // LIVE adaptive threat seeded with account Power ÷ the stage's recommended Power (§6a); and the
+    // Infinite SQUEEZE (ENDLESS_SQUEEZE). The Arena boots its own games and never passes these.
+    earlyCall: !tutorial,
+    ...(mode === 'campaign' && stage && !tutorial ? { livePowerBase: meta.power().score / Math.max(1, recommendedPowerScore(stage.stage, stage.difficulty)) } : {}),
+    ...(mode === 'endless' && !tutorial ? { squeeze: true } : {}),
     // Daily Run (docs/DAILY-RUN.md): the day's 3-tower trial pool REPLACES the account roster for
     // this run (favorite = the pool's first kind so nothing leaks a 4th kind); its two modifiers
     // ride the dedicated option. Off-daily, the account's own favorite/roster apply as always.
@@ -1040,7 +1047,10 @@ export function GameView({
         setSpeed(game.timeScale >= 5 ? 1 : game.timeScale >= 2 ? 5 : 2); // cycle 1→2→5→1
       } else if (k === ' ' || k === 'Spacebar') {
         e.preventDefault();
-        game.startWave();
+        // Prep: launch. Mid-wave: EARLY CALL (docs/EARLY-CALL.md) — a no-op when unavailable, and
+        // never in its first EARLY_CALL.minElapsed seconds, so a double-tapped launch can't stack.
+        if (game.phase === 'wave') game.callWaveEarly();
+        else game.startWave();
       } else if (k === 'Escape') {
         if (evoOpenRef.current) { setEvoOpen(false); return; } // console first, then board intents
         game.cancelInteractions(); // close inspect / cancel move / disarm placement
@@ -1180,6 +1190,21 @@ export function GameView({
             <span>⏱ {speedNote}</span>
             <button onClick={() => setSpeedNote(null)}>OK</button>
           </div>
+        )}
+        {/* EARLY CALL (docs/EARLY-CALL.md): the Start Wave control's in-fight form — call the next
+            wave over the live field for Biomass that shrinks as the wait runs out (Space too). */}
+        {hud.phase === 'wave' && hud.earlyCall >= 0 && (
+          <button
+            className="early-call-btn"
+            onClick={() => {
+              audio.resume();
+              game.callWaveEarly(); // the sim cues the launch + the Biomass splice itself
+              refresh();
+            }}
+            title={`Call wave ${hud.wave + 1} now — the waves overlap; +${hud.earlyCall} Biomass for the skipped wait (Space)`}
+          >
+            ⏩ <span className="early-call-label">Call early</span> <b>+{hud.earlyCall}</b>
+          </button>
         )}
         {/* HIVE INTELLIGENCE (docs/HIVE-MIND.md): one press evaluates EVERY biomass purchase
             and executes the best ones — glowing whenever something worthwhile is affordable.

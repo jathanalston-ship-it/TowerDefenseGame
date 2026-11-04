@@ -14043,3 +14043,28 @@ html[data-layout='landscape'] .build-controls.is-visible ~ .mega-banner { top: 6
       letterbox bar + the grade's dark fade sit under the upper/lower bands, so copy always reads. ── */
 .intro-stage.is-copy-upper { align-items: start; padding-top: calc(max(4.5vh, 26px) + 6vh); }
 .intro-stage.is-copy-lower { align-items: end; padding-bottom: calc(max(4.5vh, 26px) + 5vh); }
+/* ── EARLY CALL (docs/EARLY-CALL.md — Batch G, track GR1): the Start Wave control's in-fight form,
+      living in the run-controls strip (left of the cluster, so its arrival never shifts the others).
+      Biomass-green (the reward), compact; the label drops on narrow boards, the +N never does. ── */
+.run-ctl .early-call-btn {
+  position: static; flex: none; order: 0;
+  height: var(--ctl-h); min-height: 0;
+  display: inline-flex; align-items: center; gap: 5px; padding: 0 12px;
+  border-radius: 999px; border: 1px solid color-mix(in srgb, #b6e84a 55%, var(--line-strong));
+  background: rgba(8, 12, 20, 0.82); backdrop-filter: blur(4px);
+  color: #dff5b0; font-size: 11px; font-weight: 800; letter-spacing: 0.05em; white-space: nowrap;
+  box-shadow: 0 0 12px color-mix(in srgb, #b6e84a 22%, transparent);
+  transition: border-color var(--dur-2) ease, box-shadow var(--dur-2) ease;
+}
+.run-ctl .early-call-btn b { color: #b6e84a; font-variant-numeric: tabular-nums; }
+.run-ctl .early-call-btn:hover { border-color: #b6e84a; box-shadow: 0 0 16px color-mix(in srgb, #b6e84a 36%, transparent); }
+@media (max-width: 720px) {
+  .run-ctl .early-call-btn .early-call-label { display: none; }
+  .run-ctl .early-call-btn { padding: 0 9px; }
+}
+/* The Hive adapts / the Infinite squeeze — the wave briefing's live enemy-HP multiplier (GR1). */
+.wb-adapt {
+  font-size: 10px; font-weight: 900; letter-spacing: 0.12em; padding: 1px 8px; border-radius: 999px;
+  color: #ffd9c2; border: 1px solid color-mix(in srgb, var(--danger) 55%, var(--line-strong));
+  background: color-mix(in srgb, var(--danger) 22%, transparent); font-variant-numeric: tabular-nums;
+}

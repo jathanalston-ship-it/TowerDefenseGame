@@ -58,6 +58,10 @@ function bootGame(seed: number, b: ArenaBootBundle): Game {
     ...b.opts,
     mode: 'endless', // the arena ruleset: the shared escalating assault
     noMega: true, // docs/ARENA.md §ruleset — no Mega Boss encounters in PvP
+    // Batch G grind levers are single-player only: a (possibly forged) bundle can't arm them in PvP.
+    earlyCall: false,
+    squeeze: false,
+    livePowerBase: undefined,
   });
   game.timeScale = 1; // PvP runs at real speed on both fields — no fast-forward in the arena
   return game;

@@ -68,18 +68,36 @@ describe('RunDirector — exact parity with the legacy inline formulas', () => {
     expect(dd.enemySpeedStatic()).toBe(1.22 * diff.enemySpeedMult);
   });
 
-  it('ADAPTIVE weights ship at 0 and supplying adaptive inputs changes NOTHING (bit-exact)', () => {
-    expect(DIRECTOR_ADAPTIVE.threatPerPowerRatio).toBe(0); // tune ONLY via the progression simulator
+  it('ADAPTIVE weights: the threat seam is ACTIVATED on harness evidence; reward stays 0', () => {
+    // §6a (docs/DIFFICULTY_DIRECTOR.md): tuned ONLY from simulator/harness evidence — the Batch G
+    // grind audit fitted the live board-power weight. The reward seam has no evidence yet.
+    expect(DIRECTOR_ADAPTIVE.threatPerPowerRatio).toBe(0.1);
     expect(DIRECTOR_ADAPTIVE.rewardPerPerformance).toBe(0);
     const base = createDirector({ difficulty: resolveDifficulty('nightmare'), warp: DOCTRINES.corrupted.warp });
     const fed = createDirector({
       difficulty: resolveDifficulty('nightmare'),
       warp: DOCTRINES.corrupted.warp,
-      adaptive: { powerRatio: 3.7, recentPerformance: -0.8 },
+      adaptive: { recentPerformance: -0.8 },
     });
+    // No powerRatio supplied (nothing supplies the static input) ⇒ every curve is bit-exact identity.
     for (const depth of DEPTHS) {
       expect(Object.is(base.endlessHpMult(depth), fed.endlessHpMult(depth))).toBe(true);
+      expect(Object.is(base.waveHpMult(depth - 1), fed.waveHpMult(depth - 1))).toBe(true);
       expect(Object.is(base.waveBountyMult(depth - 1), fed.waveBountyMult(depth - 1))).toBe(true);
+    }
+  });
+
+  it('liveThreatMult: upward only, the seam formula, capped at liveCap', () => {
+    const dd = createDirector({ difficulty: resolveDifficulty('standard') });
+    for (const r of [0, 0.3, 0.99, 1]) expect(dd.liveThreatMult(r)).toBe(1); // a weak board is never propped up
+    expect(dd.liveThreatMult(NaN)).toBe(1);
+    expect(dd.liveThreatMult(4)).toBeCloseTo(1 + DIRECTOR_ADAPTIVE.threatPerPowerRatio * 3, 12);
+    expect(dd.liveThreatMult(1e6)).toBe(DIRECTOR_ADAPTIVE.liveCap);
+    let prev = 1;
+    for (let r = 1; r < 60; r += 0.5) { // monotone non-decreasing in the ratio
+      const m = dd.liveThreatMult(r);
+      expect(m).toBeGreaterThanOrEqual(prev);
+      prev = m;
     }
   });
 });

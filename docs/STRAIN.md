@@ -75,6 +75,20 @@ saved on the account) is always deployable; every other tower arrives on a livin
 - **The run-start GIFT:** the very first organism is instantly ready and deploys FREE (no
   biomass, no advance on the universal curve) — it also recycles for 0, so it can never feed
   the economy. The belt opens with a decision, not a wait.
+- **The gift ANSWERS the opening (§opening — Batch G):** on a Campaign stage ≥
+  `CONVEYOR.openingAnswerFromStage` (4) the gift is rolled — same weights, same single draw on the
+  dedicated rng — from the owned kinds (favorite excluded) of the BEST answer class for the stage's
+  OPENING threats, instead of the whole roster. Both sides are derived from data
+  (`core/conveyor.ts` `openingThreats` / `OPENING_ANSWER_TIERS` / `OPENING_THREAT_RULES` — never a
+  per-tower list). Threats: `pack` (a group of ≥ `packGroup` 4 in the first `openingWaves` 3
+  waves) and `air` (fliers there — summoners never answer it). Classes, best first: **denial**
+  (a pulling aura, or a Fear pulse reaching `areaRadius` 200 — today Effigy, Polyp, Rift), then
+  **area** (any splash, or an aura/debuff/explosion/pool reaching 200 — Mortar, Obelisk, Effigy,
+  Sower, Lung, Bell, Ossuary). No owned answer ⇒ the plain roll. Fitted on the G1 harness's
+  forced-gift sweep (every owned kind × 7 stages × 2 seeds): at 100 h denial gifts lost 3/42 runs
+  in waves 1–3 vs 5/14 for the natural roll; at 8 h area gifts lost 10/48 vs 7/12. Why it matters:
+  on that 100 h account the belt seed alone decided deep stages (seed 2 won 17/17, seed 1 0/17).
+  Stages 1–3 keep the plain gift (their chip-damage curve is calibrated on it — `campaignCurve.test`).
 - **Anti-farm rule:** new growth STARTS only during waves. An organism already in flight
   finishes its remaining seconds in the build phase, but nothing new is born there — with
   auto-wave off, idling between waves yields zero belt income (the flat recycler payout plus

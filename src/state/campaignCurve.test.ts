@@ -14,7 +14,7 @@ import { beforeAll, describe, expect, it } from 'vitest';
 import { meta, metaModifiers } from './meta';
 import { Game } from '../core/game';
 import type { RunOptions } from '../core/game';
-import { CAMPAIGN_LAYOUT_PINS, generateStage } from '../core/campaign';
+import { CAMPAIGN_LAYOUT_PINS, generateStage, recommendedPowerScore } from '../core/campaign';
 import { playPersona } from '../core/sim.testutil';
 import type { CampaignPersona, PersonaOutcome } from '../core/sim.testutil';
 
@@ -46,6 +46,9 @@ function freshCampaignGame(stageNum: number, seed: number): Game {
     startingGenes: meta.startingGenes(),
     unlockedCardIds: meta.unlockedCardIds(),
     draftPool: meta.discoveredGeneIds(),
+    // GameView's grind levers (docs/EARLY-CALL.md, docs/DIFFICULTY_DIRECTOR.md §6a) — booted as the app boots them.
+    earlyCall: true,
+    livePowerBase: meta.power().score / recommendedPowerScore(stageNum, 'standard'),
   };
   return new Game(seed, metaModifiers(save), meta.towerProgress(), meta.selectedHero(), meta.heroProgress(), opts);
 }
