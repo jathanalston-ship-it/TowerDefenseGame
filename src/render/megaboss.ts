@@ -13,6 +13,7 @@
 import { WIDTH, HEIGHT, nucleusPoint } from '../core/map';
 import { hexRgb, rgba } from './theme';
 import { themedMegaColor } from './wardrobeFx';
+import { viewFeel } from './feel';
 import type { RenderState } from '../core/game';
 import type { MegaWeakPoint } from '../core/megaboss';
 
@@ -1189,7 +1190,7 @@ export function drawMegaVignette(ctx: Ctx, v: MegaView, now: number): void {
     ctx.strokeRect(1.5, 1.5, WIDTH - 3, HEIGHT - 3);
   }
   // Death flash: one white gasp at the moment of collapse, then the light drains.
-  if (collapse > 0 && collapse < 0.18) {
+  if (collapse > 0 && collapse < 0.18 && viewFeel.flashes) { // full-screen flash — Settings → Flashes / reduced motion
     ctx.fillStyle = `rgba(255, 250, 240, ${(0.18 - collapse) * 2.2})`;
     ctx.fillRect(0, 0, WIDTH, HEIGHT);
   }

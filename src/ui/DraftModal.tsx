@@ -9,6 +9,7 @@
 // long-press on touch. Hierarchy: name → artwork → effect → keywords → tags → rarity.
 
 import { useEffect, useRef, useState } from 'react';
+import type { PointerEvent as ReactPointerEvent } from 'react';
 import { audio } from '../audio/sound';
 import { autoGenePref } from '../state/prefs';
 import { affectsOf } from './cardAffects';
@@ -33,6 +34,10 @@ const DRAFT_ARM_MS = 260;
 // Detail expansion gestures: hover dwell (desktop) and long-press (touch).
 const DETAIL_HOVER_MS = 550;
 const DETAIL_HOLD_MS = 450;
+
+// The PICK MOMENT (docs/GAME-FEEL.md §draft): a committed card flares in its rarity colour while
+// the others dissolve, THEN the draft resolves — a decision should land, not blink away.
+const PICK_COMMIT_MS = 350;
 
 /** One generated effect line: pre + colored bold keyword + post. The first line is the
  *  primary effect (bigger); drawback lines read as warnings. Tier drives bloom strength. */
@@ -168,7 +173,15 @@ export function DraftModal({
   const [detailAll, setDetailAll] = useState(false);
   const hoverTimer = useRef(0);
   const holdTimer = useRef(0);
+  const commitTimer = useRef(0);
   const suppressClick = useRef(false);
+  // Pointer INTENT: the modal mounts under a cursor that never moved, and the browser still fires
+  // pointerenter there — that must not tick the hover cue or drop the opaque detail sheet over the
+  // card being revealed. Hover affordances arm only after a REAL pointer move.
+  const ptrHome = useRef<{ x: number; y: number } | null>(null);
+  const ptrMoved = useRef(false);
+  const hoverArmed = useRef<string | null>(null); // the card whose hover (cue + dwell) has fired
+  const [committed, setCommitted] = useState<string | null>(null);
 
   // Exactly one selection ever fires (manual OR auto). getSnapshot() hands us a fresh
   // options array / onPick closure every ~80ms, so handlers read the latest values via
@@ -184,8 +197,35 @@ export function DraftModal({
   const pick = (id: string): void => {
     if (!armed.current || picked.current) return; // ignore pre-arm clicks; one pick only
     picked.current = true;
-    audio.cue('select');
-    onPickRef.current(id);
+    window.clearTimeout(hoverTimer.current);
+    setHoverDetail(null);
+    setHeldDetail(null);
+    setDetailAll(false);
+    setCommitted(id);
+    // The commit voice: a thunk + a riser that grows with rarity ('@tier' depth, sound.ts).
+    const rarity = options.find((o) => o.id === id)?.rarity ?? 'common';
+    audio.cue(`draftPick@${1 + (RARITY_RANK[rarity] ?? 0)}`);
+    commitTimer.current = window.setTimeout(() => onPickRef.current(id), PICK_COMMIT_MS);
+  };
+
+  /** True once the pointer has genuinely moved inside the modal (not a mount under a still cursor). */
+  const realMove = (e: ReactPointerEvent): boolean => {
+    if (ptrMoved.current) return true;
+    if (e.movementX !== 0 || e.movementY !== 0) return (ptrMoved.current = true);
+    const home = ptrHome.current;
+    if (!home) { ptrHome.current = { x: e.clientX, y: e.clientY }; return false; }
+    if (Math.abs(e.clientX - home.x) + Math.abs(e.clientY - home.y) > 3) ptrMoved.current = true;
+    return ptrMoved.current;
+  };
+  /** Hover a card: the faint hover tick + (mouse) the exact-values dwell. Once per entry. */
+  const armHover = (id: string, mouse: boolean): void => {
+    if (hoverArmed.current === id || picked.current) return;
+    hoverArmed.current = id;
+    audio.cue('hover');
+    if (mouse) {
+      window.clearTimeout(hoverTimer.current);
+      hoverTimer.current = window.setTimeout(() => setHoverDetail(id), DETAIL_HOVER_MS);
+    }
   };
 
   // Wave-cleared fanfare on open (the sim also deals a 'draft' sound) + the input-arm beat.
@@ -196,6 +236,7 @@ export function DraftModal({
       window.clearTimeout(id);
       window.clearTimeout(hoverTimer.current);
       window.clearTimeout(holdTimer.current);
+      window.clearTimeout(commitTimer.current);
     };
   }, []);
 
@@ -239,7 +280,7 @@ export function DraftModal({
   }, [options]);
 
   return (
-    <div className="overlay">
+    <div className={`overlay${committed ? ' is-committing' : ''}`}>
       <div className="draft-head">
         {clearedWave ? <div className="wave-cleared">◆ WAVE {clearedWave} CLEARED ◆</div> : null}
         <h2>DRAFT A GENE CARD</h2>
@@ -261,20 +302,21 @@ export function DraftModal({
       <div className="cards">
         {options.map((o, i) => {
           const aff = affectsOf(o.subject);
-          const detailOpen = detailAll || hoverDetail === o.id || heldDetail === o.id;
+          const detailOpen = !committed && (detailAll || hoverDetail === o.id || heldDetail === o.id);
+          const fate = committed === null ? '' : committed === o.id ? ' is-chosen' : ' is-dismissed';
           return (
           <button
             key={o.id}
-            className={`card r-${o.rarity}${i === best ? ' is-rec' : ''}${auto && i === best ? ' auto-target' : ''}`}
-            style={{ animationDelay: `${i * 70}ms` }}
+            className={`card r-${o.rarity}${i === best ? ' is-rec' : ''}${auto && i === best ? ' auto-target' : ''}${fate}`}
+            style={committed ? undefined : { animationDelay: `${i * 70}ms` }}
             onPointerEnter={(e) => {
-              audio.cue('ui');
-              if (e.pointerType === 'mouse') {
-                window.clearTimeout(hoverTimer.current);
-                hoverTimer.current = window.setTimeout(() => setHoverDetail(o.id), DETAIL_HOVER_MS);
-              }
+              if (e.pointerType !== 'touch' && realMove(e)) armHover(o.id, e.pointerType === 'mouse');
+            }}
+            onPointerMove={(e) => {
+              if (e.pointerType !== 'touch' && realMove(e)) armHover(o.id, e.pointerType === 'mouse');
             }}
             onPointerLeave={(e) => {
+              if (hoverArmed.current === o.id) hoverArmed.current = null;
               if (e.pointerType === 'mouse') {
                 window.clearTimeout(hoverTimer.current);
                 setHoverDetail((cur) => (cur === o.id ? null : cur));
@@ -333,7 +375,7 @@ export function DraftModal({
       {rerollCost >= 0 && onReroll && (
         <button
           className="draft-reroll"
-          disabled={biomass < rerollCost}
+          disabled={biomass < rerollCost || committed !== null}
           title={biomass < rerollCost ? `Needs ${rerollCost} Biomass` : 'Pay Biomass for a fresh deal of 3 — once per draft'}
           onClick={() => { onReroll(); audio.cue('ui'); }}
         >

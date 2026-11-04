@@ -11,6 +11,8 @@
 // game keys off one signal. No sim reads any of this (render-only, docs/GAME_CONSTITUTION.md).
 
 import type { AssimilationPresentation } from '../core/assimilation';
+import { ASSIMILATION_TIERS } from '../core/assimilation';
+import { viewFeel } from './feel';
 
 const rgba = (c: [number, number, number], a: number): string => `rgba(${c[0]},${c[1]},${c[2]},${a.toFixed(3)})`;
 
@@ -25,15 +27,20 @@ const MAX_SPORES = 46;
 const MAX_VEINS = 6;
 
 /** Draw the full-screen assimilation veil. `time` is sim-seconds (drives the drift + heartbeat;
- *  a paused sim holds the frame). `w`/`h` are the logical canvas size. */
+ *  a paused sim holds the frame). `w`/`h` are the logical canvas size. The ASCENSION flourish is a
+ *  centre-stage card: in a run the view's announcer grants it (`flourish` 1 → 0 while it owns the
+ *  stage, naming `tier`), so it never prints over a WAVE banner or a boss card. Omitted, the
+ *  flourish rides the raw pulse (previews / tests). */
 export function drawAssimilationFx(
   ctx: CanvasRenderingContext2D,
   p: AssimilationPresentation,
   time: number,
   w: number,
   h: number,
+  flourish: number = p.ascensionPulse,
+  tier: number = p.ascendedTier,
 ): void {
-  if (p.index <= 0.001 && p.ascensionPulse <= 0.001) return; // Contained baseline: nothing on screen
+  if (p.index <= 0.001 && flourish <= 0.001) return; // Contained baseline: nothing on screen
   // Slow heartbeat: two-beat cardiac envelope (lub-dub) scaled to the tier's rate, gently
   // modulating the veil so the screen "breathes" without ever pulsing distractingly.
   const beat = 0.85 + 0.15 * Math.sin(time * p.cameraHz * Math.PI * 2);
@@ -118,29 +125,33 @@ export function drawAssimilationFx(
   // 6) ASCENSION flourish — the payoff for the hidden heartbeat. The instant the run crosses into a
   // higher tier the pulse is 1 and decays; the whole screen blooms in the new tier's color, a ring
   // expands from center, and the tier's NAME rises and fades. Brief, earned, unmistakable.
-  if (p.ascensionPulse > 0.001) {
-    const a = p.ascensionPulse; // 1 → 0
+  if (flourish > 0.001) {
+    const a = flourish; // 1 → 0
     const rise = 1 - a; // 0 → 1 progress through the flourish
     const cx = w / 2;
     const cy = h * 0.5;
 
     ctx.globalCompositeOperation = 'screen';
-    // full-screen bloom, strongest at the crossing then fading
-    ctx.fillStyle = rgba(p.color, 0.16 * a * a);
-    ctx.fillRect(0, 0, w, h);
-    // expanding shock ring in the tier color
-    const rad = h * (0.1 + 0.52 * rise);
-    ctx.lineWidth = Math.max(1, 7 * a);
-    ctx.strokeStyle = rgba(p.color, 0.55 * a);
-    ctx.beginPath();
-    ctx.arc(cx, cy, rad, 0, Math.PI * 2);
-    ctx.stroke();
-    // a tighter white core ring for punch
-    ctx.lineWidth = Math.max(1, 2.5 * a);
-    ctx.strokeStyle = rgba([255, 255, 255], 0.3 * a);
-    ctx.beginPath();
-    ctx.arc(cx, cy, rad * 0.7, 0, Math.PI * 2);
-    ctx.stroke();
+    // full-screen bloom, strongest at the crossing then fading (Settings → Flashes)
+    if (viewFeel.flashes) {
+      ctx.fillStyle = rgba(p.color, 0.16 * a * a);
+      ctx.fillRect(0, 0, w, h);
+    }
+    // expanding shock ring in the tier color (reduced motion: the caption alone carries it)
+    if (viewFeel.motion > 0) {
+      const rad = h * (0.1 + 0.52 * rise);
+      ctx.lineWidth = Math.max(1, 7 * a);
+      ctx.strokeStyle = rgba(p.color, 0.55 * a);
+      ctx.beginPath();
+      ctx.arc(cx, cy, rad, 0, Math.PI * 2);
+      ctx.stroke();
+      // a tighter white core ring for punch
+      ctx.lineWidth = Math.max(1, 2.5 * a);
+      ctx.strokeStyle = rgba([255, 255, 255], 0.3 * a);
+      ctx.beginPath();
+      ctx.arc(cx, cy, rad * 0.7, 0, Math.PI * 2);
+      ctx.stroke();
+    }
     ctx.globalCompositeOperation = 'source-over';
 
     // Tier name — rises slightly and fades. Glow keeps it legible over any battlefield. letterSpacing
@@ -153,13 +164,14 @@ export function drawAssimilationFx(
     ls.letterSpacing = '2px';
     ctx.font = "700 12px 'Exo 2', system-ui, sans-serif";
     ctx.fillStyle = rgba([230, 236, 240], 0.7 * textA);
-    ctx.fillText('EVOLUTION TIER ' + p.ascendedTier, cx, ty - 26);
+    ctx.fillText('EVOLUTION TIER ' + tier, cx, ty - 26);
     ls.letterSpacing = '4px';
     ctx.font = "800 34px 'Chakra Petch', 'Exo 2', system-ui, sans-serif";
     ctx.shadowColor = rgba(p.color, 0.9 * textA);
     ctx.shadowBlur = 26 * a;
     ctx.fillStyle = rgba([245, 248, 250], textA);
-    ctx.fillText('▲ ' + p.ascendedName.toUpperCase(), cx, ty);
+    const name = tier === p.ascendedTier ? p.ascendedName : ASSIMILATION_TIERS[tier]?.name ?? p.ascendedName;
+    ctx.fillText('▲ ' + name.toUpperCase(), cx, ty);
     ctx.shadowBlur = 0;
     ls.letterSpacing = '0px';
   }

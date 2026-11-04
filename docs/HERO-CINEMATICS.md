@@ -69,13 +69,35 @@ Degenerate casts (from == to) fall back to a down-lane heading — every motion 
 - `impactDelay ∈ [0, 0.6]` — long enough to read, never long enough to feel unresponsive.
 - **Zone strikes** (damage / disrupt / pool) must have `impactDelay > 0`; **pure support**
   must have `0`. Pinned for every ability in `heroCinematics.test.ts`.
-- Calm covenant (renderer.ts): **no screen shake, no full-field flashes**; actor bodies
-  alpha ≤ ~0.9, rings ≤ ~0.4. Draw order: over entities/heroes, under floats + HUD.
+- Calm covenant (renderer.ts): **casting never shakes the screen and nothing flashes the full
+  field**; actor bodies alpha ≤ ~0.9, rings ≤ ~0.4. Draw order: over entities/heroes, under
+  floats + HUD. (`FEEL.ability` carries no shake — skills, phase-ins and casts stay calm.)
+- **The one exception — an ULT's landing (§impact).** The payload striking earns ONE light
+  camera kick (`FEEL.abilityImpact`: trauma 0.22) and a 60 ms view-only hit-stop, both scaled
+  by Settings → Motion (Screen shake %, and zeroed by reduced motion). The bloom stays inside
+  the zone — never a full-field flash.
 - `prefers-reduced-motion`: the travel theater is skipped entirely — the sim's landing
   burst still marks the impact.
 - **Golden safety:** a cast-less run (the golden autoplay) never touches any of this —
   `pendingImpactSystem` is length-gated, `castEvents` only written on cast. The golden
   seeds are byte-identical (verified).
+
+## §impact — the ultimate's impact frame
+
+When an ULT's queued payload lands (`pendingImpactSystem`), the sim measures the damage the
+landing dealt (`statDamageDealt` before/after — observation only) and emits the presentation
+event `abilityImpact { hero, x, y, radius, color, damage }`, gated on a listener (a headless or
+golden run never builds it). GameView answers with:
+
+- a **~60 ms view-only hit-stop** (`game.hitstop`, never stacked) + one light kick
+  (`FEEL.abilityImpact`) + a short sub thump (`abilityImpact` cue);
+- a **bloom inside the ability zone** — hot core → rim, peaking on the frozen frame, then the
+  rim snaps once (`render/impactFx.ts`; the bloom obeys Settings → Flashes);
+- **ONE grouped damage total** above the zone centre (the hero stands on the centre) — the sum
+  of the landing, on the damage-number scale, popping in and rising (hidden by Settings → Damage
+  numbers). The ability's name float now rides above the zone instead of on the hero.
+
+Skills keep their calm ring (no impact frame); support casts (delay 0) never land one.
 
 ## 4. Extending
 

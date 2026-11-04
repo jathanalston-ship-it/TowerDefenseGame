@@ -119,6 +119,62 @@ export function setMusicPref(on: boolean): void {
   try { localStorage.setItem('musicOn', String(on)); } catch { /* storage unavailable */ }
 }
 
+// ── Motion & feedback prefs (docs/GAME-FEEL.md §4) — Screen shake %, Damage numbers, Flashes,
+// plus the explicit override for players whose OS asks for reduced motion but who want it anyway.
+// Device-local presentation, never progression. Listeners let a live run follow a change made in
+// the pause menu without a remount.
+const MOTION_KEY = 'assimilate.motion';
+
+export interface MotionPrefs {
+  shake: number; // 0..1 — Screen shake multiplier
+  numbers: boolean; // battlefield damage numbers
+  flashes: boolean; // full-screen flashes
+  allowMotion: boolean; // override an OS reduced-motion request (default: honor it)
+}
+export const MOTION_DEFAULTS: Readonly<MotionPrefs> = { shake: 1, numbers: true, flashes: true, allowMotion: false };
+
+export function motionPrefs(): MotionPrefs {
+  try {
+    const raw = JSON.parse(localStorage.getItem(MOTION_KEY) ?? '{}') as Partial<MotionPrefs>;
+    return {
+      shake: typeof raw.shake === 'number' && Number.isFinite(raw.shake) ? Math.min(1, Math.max(0, raw.shake)) : MOTION_DEFAULTS.shake,
+      numbers: typeof raw.numbers === 'boolean' ? raw.numbers : MOTION_DEFAULTS.numbers,
+      flashes: typeof raw.flashes === 'boolean' ? raw.flashes : MOTION_DEFAULTS.flashes,
+      allowMotion: raw.allowMotion === true,
+    };
+  } catch {
+    return { ...MOTION_DEFAULTS };
+  }
+}
+
+const motionListeners = new Set<(p: MotionPrefs) => void>();
+
+export function setMotionPrefs(patch: Partial<MotionPrefs>): MotionPrefs {
+  const next = { ...motionPrefs(), ...patch };
+  try { localStorage.setItem(MOTION_KEY, JSON.stringify(next)); } catch { /* storage unavailable — still applies live */ }
+  for (const fn of motionListeners) fn(next);
+  return next;
+}
+
+/** Follow motion-pref changes (returns the unsubscribe). */
+export function onMotionPrefs(fn: (p: MotionPrefs) => void): () => void {
+  motionListeners.add(fn);
+  return () => { motionListeners.delete(fn); };
+}
+
+/** The OS-level `prefers-reduced-motion: reduce` request (false where matchMedia is absent). */
+export function systemReducedMotion(): boolean {
+  try { return typeof window !== 'undefined' && !!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches; } catch { return false; }
+}
+
+/** The in-run feel the prefs resolve to. `motion` is THE one motionScale: 0 when the OS asks for
+ *  reduced motion and the player hasn't overridden it — it zeroes shake, camera pulses, hit-stop
+ *  and flashes in one place. Pure (tests pass `osReduced`). */
+export function resolveMotion(p: MotionPrefs, osReduced: boolean): { motion: 0 | 1; shake: number; numbers: boolean; flashes: boolean } {
+  const motion = osReduced && !p.allowMotion ? 0 : 1;
+  return { motion, shake: p.shake * motion, numbers: p.numbers, flashes: p.flashes && motion > 0 };
+}
+
 // ── Arena matchmaking pref (docs/ARENA.md §toggle) — human matchmaking is ON by default
 // wherever a relay is configured; opting OUT is honored (the queue goes straight to the AI)
 // but the sparring construct runs a HARDENED build (ARENA.aiOptOutPowerPremium) so ducking
@@ -323,4 +379,5 @@ export const DEVICE_PREF_KEYS: readonly string[] = [
   FLAWLESS_KEY, // readiness calm-down after a flawless campaign clear
   SECTIONS_KEY, // SectionNav open/folded sections per long screen (ui/components/SectionNav.tsx)
   VAULT_SKIP_KEY, // Vault reveal "Skip animations"
+  MOTION_KEY, // Settings → Motion (screen shake %, damage numbers, flashes, reduced-motion override)
 ];

@@ -24,6 +24,7 @@ export interface GameEventMap {
   equipmentEquipped: { slot: string; defId: string; rarity: string };
   heroSpawned: { kind: string };
   heroAbilityUsed: { kind: string }; // a hero's active ability was cast (drives the Combat Tutorial)
+  abilityImpact: { hero: string; x: number; y: number; radius: number; color: string; damage: number }; // a hero ULT's payload LANDED — the view stages its impact frame (presentation only)
   statusApplied: { id: string; category: string; x: number; y: number }; // a framework status landed on an enemy (view layer plays the category cue — docs/COMBAT-VISUAL-STANDARDS.md §audio)
   lootContainerEarned: { rarity: string; banked: number; next: string }; // a bio-container completed on the LIVE loot meter (banked = vault count including it; next = the box now filling) — drives the fill toast + meter ceremony
   projectileHit: { x: number; y: number; damage: number; targetId: number; byTower: TowerKind | null };

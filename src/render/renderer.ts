@@ -32,6 +32,7 @@ import { drawEnemyBody } from './enemyForms';
 import type { BodyForm } from './enemyForms';
 import { ingestDeaths, updateGore, drawGoreFloor, drawGorePieces, goreThrob } from './gore';
 import { drawAbilityCinematics } from './abilityCinematics';
+import { DAMAGE_NUMBERS, viewFeel } from './feel';
 import { attackAnticipation, drawTowerForm, drawTowerSignature, FORM_ANTICIPATION, TOWER_FORM } from './towerForms';
 import { drawOrganismEmissions, organismAlert, organismPose, updateOrganisms } from './organism';
 import {
@@ -457,7 +458,15 @@ export function drawGame(
   drawEmergency(ctx, rs, t); // Emergency Defense Mode alert (over the field, under labels)
   drawPointer(ctx, rs, pointer);
 
+  // Floats read over ANY ground (acid pools, gore, blooms): every one gets a dark outline. A
+  // digit-led float is a DAMAGE NUMBER (aggregated hits / crits) — the Motion setting can hide them.
+  ctx.save();
+  ctx.lineJoin = 'round';
+  ctx.strokeStyle = FLOAT_OUTLINE;
   for (const f of rs.floats) {
+    const c0 = f.text.charCodeAt(0);
+    const numeric = c0 >= 48 && c0 <= 57;
+    if (numeric && !viewFeel.numbers) continue;
     ctx.globalAlpha = Math.min(1, f.life * 2);
     if (f.kind === 'crit') {
       // CRIT (docs/GAME-FEEL.md): pop-in scale (overshoot → settle), heavier type, a burst
@@ -475,22 +484,65 @@ export function drawGame(
         ctx.globalAlpha = Math.min(1, f.life * 2);
       }
       ctx.fillStyle = f.color;
-      ctx.font = `900 ${Math.round(17 * scale)}px 'Chakra Petch', 'Exo 2', system-ui, sans-serif`;
+      ctx.font = CRIT_FONTS[Math.min(CRIT_FONTS.length - 1, Math.round(17 * scale))];
       ctx.textAlign = 'center';
+      ctx.strokeStyle = FLOAT_OUTLINE;
+      ctx.lineWidth = DAMAGE_NUMBERS.outline;
+      ctx.strokeText(f.text, f.x, f.y);
+      ctx.fillText(f.text, f.x, f.y);
+    } else if (numeric) {
+      // DAMAGE NUMBER (docs/GAME-FEEL.md §damage numbers): size scales with magnitude on a bounded
+      // log curve, with a short pop-in overshoot at birth. Fonts are pre-built (no per-frame strings).
+      const age = Math.max(0, DAMAGE_NUMBERS.life - f.life);
+      const pop = age < DAMAGE_NUMBERS.popSec && viewFeel.motion > 0 ? 1 + DAMAGE_NUMBERS.popScale * (1 - age / DAMAGE_NUMBERS.popSec) : 1;
+      const px = Math.min(DMG_FONTS.length - 1, Math.round(damageNumberPx(leadingInt(f.text)) * pop));
+      ctx.font = DMG_FONTS[px];
+      ctx.textAlign = 'center';
+      ctx.lineWidth = DAMAGE_NUMBERS.outline;
+      ctx.strokeText(f.text, f.x, f.y);
+      ctx.fillStyle = f.color;
       ctx.fillText(f.text, f.x, f.y);
     } else {
       ctx.fillStyle = f.color;
       ctx.font = "bold 14px 'Exo 2', system-ui, sans-serif";
       ctx.textAlign = 'center';
+      ctx.lineWidth = 3;
+      ctx.strokeText(f.text, f.x, f.y);
       ctx.fillText(f.text, f.x, f.y);
     }
     ctx.globalAlpha = 1;
   }
+  ctx.restore();
   ctx.textAlign = 'left';
 
   drawPressureVignette(ctx, pressure, danger, t);
   if (rs.megaBoss) drawMegaVignette(ctx, rs.megaBoss, t); // the organism's screen-space presence
   drawBiomeFx(ctx, rs, t); // hazard-pulse vignette + transition flash, over everything
+}
+
+// ── Floating-text type (pre-built — the float pass never builds a font string per frame) ──
+const FLOAT_OUTLINE = 'rgba(6,8,12,0.82)';
+const DMG_FONTS: string[] = [];
+const CRIT_FONTS: string[] = [];
+for (let px = 0; px <= 44; px++) {
+  DMG_FONTS.push(`800 ${px}px 'Chakra Petch', 'Exo 2', system-ui, sans-serif`);
+  CRIT_FONTS.push(`900 ${px}px 'Chakra Petch', 'Exo 2', system-ui, sans-serif`);
+}
+
+/** The leading integer of a float's text ('128' → 128, '42!' → 42) — no allocation. */
+function leadingInt(text: string): number {
+  let v = 0;
+  for (let i = 0; i < text.length; i++) {
+    const c = text.charCodeAt(i);
+    if (c < 48 || c > 57) break;
+    v = v * 10 + (c - 48);
+  }
+  return v;
+}
+
+/** A damage number's type size (px) for its magnitude: bounded log scale (render/feel.ts). */
+export function damageNumberPx(dmg: number): number {
+  return Math.min(DAMAGE_NUMBERS.maxPx, DAMAGE_NUMBERS.minPx + DAMAGE_NUMBERS.perDecade * Math.log10(Math.max(1, dmg)));
 }
 
 // ── Environment ──────────────────────────────────────────────────────────────
@@ -533,7 +585,7 @@ function drawBiomeFx(ctx: CanvasRenderingContext2D, rs: RenderState, t: number):
     ctx.fillStyle = grad;
     ctx.fillRect(0, 0, WIDTH, HEIGHT);
   }
-  if (rs.biomeFlash > 0) {
+  if (rs.biomeFlash > 0 && viewFeel.flashes) { // full-screen flash — off under Settings → Flashes / reduced motion
     ctx.fillStyle = rgba(rgb, 0.28 * rs.biomeFlash);
     ctx.fillRect(0, 0, WIDTH, HEIGHT);
   }

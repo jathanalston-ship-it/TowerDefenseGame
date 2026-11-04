@@ -123,12 +123,13 @@ home-key family (test-enforced), played by the lead voice over the score without
 `legendary · achievement · unlock · prestige · bossDown · chapter · mastery · power`.
 Legendary + prestige also duck the score (they own their moment).
 
-**Wiring** (`sound.ts`): the `STING` map bridges existing SFX cue tags → stingers
-(`jackpot→legendary`, `achieve→achievement`, `mastery→mastery`, `rankup→unlock`,
-`power→power`, `megaDeath→bossDown`) with a 6 s per-stinger throttle — every existing and
-future `audio.cue(...)` call site pays off musically with no per-site wiring. Direct calls:
-`bossKilled` game event → `bossDown`; PrestigePanel molt → `prestige`; Results first-clear →
-`chapter`.
+**Wiring** (`sound.ts`): the ONE feel table (`render/feel.ts` `FEEL`, docs/GAME-FEEL.md
+§feel table) carries each cue's `stinger` + `duck` beside its shake/hit-stop — `jackpot→legendary`,
+`achieve→achievement`, `mastery→mastery`, `rankup→unlock`, `power→power`, `strandFound→discovery`,
+`megaDeath→bossDown`, `bossFall→bossDown` (the sim's stage-boss death cue) — with a 6 s
+per-stinger throttle, so every existing and future `audio.cue(...)` call site pays off musically
+with no per-site wiring. Direct calls: PrestigePanel molt → `prestige`; Results first-clear →
+`chapter`. `src/audio/cues.test.ts` fails the build on any cue/stinger id that resolves nowhere.
 
 ## 6. Debug tools — the Music Console
 
@@ -147,8 +148,8 @@ until unpinned — console force-plays still work).
   `BOSS_THEME_OVERRIDES['Boss Name'] = 'boss_track_id'`. For a new *theme family*: add a
   `category: 'boss'` track row (+ optionally an override pinning the boss to it).
 - **New motif**: one `MOTIFS` row + reference it from tracks (`motif`/`counterMotif`).
-- **New stinger**: one `STINGERS` row (+ a `STING` map entry in `sound.ts` if it should ride an
-  existing cue).
+- **New stinger**: one `STINGERS` row (+ a `stinger` field on the cue's `FEEL` row in
+  `render/feel.ts` if it should ride an existing cue).
 - **New menu scene**: tag the nav key in a menu track's `scenes` (Hub already publishes every
   nav change).
 - **New adaptive input**: call `setIntensity` / `setDuress` / `setScene` / `setProgression` —

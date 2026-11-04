@@ -19,7 +19,7 @@ import { BRANCH_COLOR } from '../render/towerEvolution';
 import { HEIGHT, WIDTH } from '../core/map';
 import { HERO_ORDER, TOWER_ORDER } from '../core/config';
 import type { ResolvedHeroKit } from '../core/config';
-import { AUTOSTART_KEY } from '../state/prefs';
+import { AUTOSTART_KEY, motionPrefs, onMotionPrefs, resolveMotion, systemReducedMotion } from '../state/prefs';
 import { masteryLevel, meta, equippedCosmeticThemes } from '../state/meta';
 import { automationFor } from '../save/derive';
 import { frontDeploy } from '../state/frontDeploy';
@@ -28,6 +28,7 @@ import { announceMasteryLevelUp } from '../state/masteryEvents';
 import type { LiveMasteryView } from '../state/masteryEvents';
 import { MasteryToaster } from './components/MasteryToaster';
 import { AudioToggles } from './components/AudioToggles';
+import { MotionSettings } from './components/MotionSettings';
 import { MASTERY, TOWER_DEFS, FX } from '../core/config';
 import { resolveDoctrine } from '../core/doctrines';
 import { vowById } from '../core/vows';
@@ -43,6 +44,10 @@ import { dangerCurve } from '../core/dangerCamera';
 import { computeAssimilationTarget, stepAssimilation, assimilationPresentation, assimilationPresentationInto } from '../core/assimilation';
 import type { AssimilationPresentation } from '../core/assimilation';
 import { drawAssimilationFx } from '../render/assimilationFx';
+import { Announcer, FEEL, viewFeel } from '../render/feel';
+import type { FeelRow, Shown } from '../render/feel';
+import { clearImpacts, drawImpacts, pushImpactBloom, pushImpactRing } from '../render/impactFx';
+import { megaBossDef } from '../core/megaboss';
 import { tutorial as tutorialStore } from '../state/tutorial';
 import { gameEvents } from '../core/events';
 import { MODULE_LABEL } from '../core/boss';
@@ -68,19 +73,11 @@ import type { CardEffect } from '../core/cards';
 import type { MegaEncounter } from '../core/megaboss';
 import type { RunResult } from '../state/meta';
 
-// Per-cue camera "trauma" (screen-shake) contribution; shake = trauma² · SHAKE_MAX.
-const TRAUMA: Record<string, number> = {
-  hit: 0.0036, kill: 0.015, shred: 0.1, breach: 0.45, ability: 0.3, wave: 0.08, place: 0.03, splice: 0.34, dissolve: 0.14,
-  hiveHit: 0.055, // per landed bite: a sustained siege reads as a low rumble, a burst as a jolt
-  // Mega Boss camera events (docs/MEGA-BOSS.md §visuals): arrival quake, phase crunch, weak-point
-  // rupture payoff, and the long collapse — the biggest impulses in the game, by design.
-  mega: 0.5, megaPhase: 0.3, wpOpen: 0.05, wpBreak: 0.24, megaDeath: 0.6, megaAbility: 0.06,
-  megaStagger: 0.3, megaCataclysm: 0.55, megaGorge: 0.12, // §functional overhaul: topple, finale, the meal
-  mine: 0.02, // spore-mine bursts: a light patter even when a field chains
-};
+// Per-event camera trauma (shake), hit-stop, ducking and stingers live in ONE table:
+// render/feel.ts FEEL (docs/GAME-FEEL.md §feel table). Rendered shake = trauma² · SHAKE_MAX ·
+// viewFeel.shake (the player's Screen-shake % × motionScale — 0 under reduced motion).
 // Hive damage-state thresholds (docs/HIVE-SIEGE.md §states) — a GROAN marks each failure.
 const HIVE_STATES = [0.75, 0.5, 0.25, 0.1];
-const BOSS_TRAUMA = 0.32; // arrival impact (the sting + banner land together)
 const SHAKE_MAX = 16; // px
 const SHAKE_DECAY = 2.0; // trauma/sec
 // Saturating trauma add (docs/CAMERA.md): each impulse contributes LESS as trauma nears FX.shakeCap
@@ -92,9 +89,21 @@ function addTrauma(current: number, impulse: number): number {
 }
 
 // How long the battlefield outro lingers before the summary takes over (a beat, then auto-advance;
-// a tap skips it). Shorter under reduced-motion — still a pause, never a hard cut.
-const reducedMotion = typeof window !== 'undefined' && !!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
-const OUTRO_HOLD_MS = reducedMotion ? 1200 : 3400;
+// a tap skips it). Shorter under reduced motion (motionScale 0) — still a pause, never a hard cut.
+const OUTRO_HOLD_MS = { full: 3400, reduced: 1200 } as const;
+
+/** CENTRE STAGE cards (docs/GAME-FEEL.md §centre-stage) — everything that wants the middle of the
+ *  board goes through ONE announcer (render/feel.ts ANNOUNCE: priorities + durations). */
+type StageCard =
+  | { kind: 'wave'; label: string }
+  | { kind: 'bossIntro'; name: string; epithet: string; kit: string[]; phases: number }
+  | { kind: 'megaIntro'; name: string; title: string; glow: string }
+  | { kind: 'tier'; tier: number }
+  | { kind: 'weakPoint'; name: string; note: string }
+  | { kind: 'bossFall'; name: string; epithet: string }
+  | { kind: 'megaFall'; name: string; title: string; glow: string; sub: string };
+
+const mmss = (sec: number): string => `${Math.floor(sec / 60)}:${String(Math.floor(sec % 60)).padStart(2, '0')}`;
 
 // A pointer that travels more than this (screen px) between press and release is a DRAG,
 // not a tap — we swallow the click so a stray drag never places a tower, casts an ability,
@@ -335,52 +344,78 @@ export function GameView({
       setPaused(false);
     }
   }, [evoOpen]);
+  // MOTION & FEEDBACK (docs/GAME-FEEL.md §4): the device prefs resolve to ONE motionScale (0 when
+  // the OS asks for reduced motion, unless the player allowed motion) + shake % / numbers / flashes.
+  // Pushed into the render layer's viewFeel; follows a pause-menu change or an OS toggle live.
+  const [feelPrefs, setFeelPrefs] = useState(motionPrefs);
+  const [osReduced, setOsReduced] = useState(systemReducedMotion);
+  useEffect(() => {
+    const off = onMotionPrefs(setFeelPrefs);
+    const mq = typeof window !== 'undefined' ? window.matchMedia?.('(prefers-reduced-motion: reduce)') : undefined;
+    const onMq = (): void => setOsReduced(systemReducedMotion());
+    mq?.addEventListener?.('change', onMq);
+    return () => { off(); mq?.removeEventListener?.('change', onMq); };
+  }, []);
+  const feelNow = useMemo(() => resolveMotion(feelPrefs, osReduced), [feelPrefs, osReduced]);
+  // The render modules read viewFeel on the next frame (mutated in place — no realloc). Declared
+  // before the run loop's effect, so the very first frame already honors the prefs.
+  useEffect(() => { Object.assign(viewFeel, feelNow); }, [feelNow]);
+  // A new run is a launch: the confident "engage" swell (the Deploy click unlocked the audio).
+  useEffect(() => { audio.cue('launch'); }, []);
+  useEffect(() => () => clearImpacts(), []);
+
+  // CENTRE STAGE (docs/GAME-FEEL.md §centre-stage): WAVE N, boss/mega intros, the assimilation tier
+  // banner, weak-point callouts and the fall cards share ONE announcer — a higher-priority card
+  // preempts, a lower one waits its turn (or is dropped once stale); they never overprint.
+  const announcerRef = useRef<Announcer<StageCard> | null>(null);
+  announcerRef.current ??= new Announcer<StageCard>();
+  const [stageCard, setStageCard] = useState<Shown<StageCard> | null>(null);
+  const announce = useCallback((card: StageCard): void => {
+    const a = announcerRef.current!;
+    if (a.push(card, performance.now())) setStageCard(a.current);
+  }, []);
   // WAVE START spectacle (docs/GAME-FEEL.md): a sweeping banner + a small camera push-in on
   // every wave launch (button, hotkey, auto, tutorial director — all fire waveStarted).
-  const [waveBanner, setWaveBanner] = useState<{ n: number; endless: boolean; at: number } | null>(null);
+  const [breachAt, setBreachAt] = useState(0);
   const wavePushRef = useRef(0); // 0..1, decays in the loop → eased zoom pulse
   useEffect(() => {
     const off = gameEvents.on('waveStarted', ({ wave, endless }) => {
-      setWaveBanner({ n: wave, endless, at: Date.now() });
+      setBreachAt(Date.now());
       wavePushRef.current = 1;
+      const rush = game.mode === 'bossRush';
+      announce({ kind: 'wave', label: endless ? `DEPTH ${wave}` : rush ? `WAVE ${wave} — ${wave} ${wave === 1 ? 'BOSS' : 'BOSSES'}` : `WAVE ${wave}` });
     });
     return off;
-  }, []);
+  }, [announce, game]);
   useEffect(() => {
-    if (!waveBanner) return undefined;
-    const id = setTimeout(() => setWaveBanner(null), 1700);
+    if (!breachAt) return undefined;
+    const id = setTimeout(() => setBreachAt(0), 1700);
     return () => clearTimeout(id);
-  }, [waveBanner]);
+  }, [breachAt]);
   // BOSS ARRIVAL spectacle: the banner snapshot flipping null→present IS the arrival. Identity
   // fields (docs/BOSS-DESIGN.md §identity) ride the same snapshot, so the intro card reads the
   // FIGHT — epithet + kit verbs — not just a name.
-  const [bossIntro, setBossIntro] = useState<{ name: string; epithet: string; kit: string[]; phases: number; at: number } | null>(null);
   const bossWasLive = useRef(false);
   useEffect(() => {
     const live = !!hud.bossBanner;
     if (live && !bossWasLive.current && hud.bossBanner) {
       const kit = hud.bossBanner.kit.map((k) => MODULE_LABEL[k as BossModuleKind] ?? k);
-      setBossIntro({ name: hud.bossBanner.name, epithet: hud.bossBanner.epithet, kit, phases: hud.bossBanner.phases, at: Date.now() });
+      announce({ kind: 'bossIntro', name: hud.bossBanner.name, epithet: hud.bossBanner.epithet, kit, phases: hud.bossBanner.phases });
       audio.cue('boss');
-      traumaRef.current = addTrauma(traumaRef.current, BOSS_TRAUMA);
+      applyFeel(FEEL.bossArrive);
       wavePushRef.current = 1;
     }
     bossWasLive.current = live;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hud.bossBanner]);
-  useEffect(() => {
-    if (!bossIntro) return undefined;
-    const id = setTimeout(() => setBossIntro(null), 3000);
-    return () => clearTimeout(id);
-  }, [bossIntro]);
   // BOSS DEFEAT beat (docs/BOSS-DESIGN.md §identity): the title that announced the threat falls
-  // with the body — the epithet's return is the payoff for surviving what it promised.
-  const [bossFall, setBossFall] = useState<{ name: string; epithet: string; at: number } | null>(null);
-  useEffect(() => gameEvents.on('bossKilled', (e) => setBossFall({ name: e.name, epithet: e.epithet ?? '', at: Date.now() })), []);
-  useEffect(() => {
-    if (!bossFall) return undefined;
-    const id = setTimeout(() => setBossFall(null), 2200);
-    return () => clearTimeout(id);
-  }, [bossFall]);
+  // with the body — the epithet's return is the payoff for surviving what it promised. The kill
+  // LANDS (docs/GAME-FEEL.md §boss kills): the sim's `bossFall` cue carries the shake + hit-stop +
+  // duck + stinger (FEEL.bossFall); here, a gold shock ring at the body and the centre-stage card.
+  useEffect(() => gameEvents.on('bossKilled', (e) => {
+    pushImpactRing(e.x, e.y, 150, '#ffd24d', performance.now());
+    announce({ kind: 'bossFall', name: e.name, epithet: e.epithet ?? '' });
+  }), [announce]);
   // Boss PHASE SHIFT roar (docs/BOSS-DESIGN.md §phases): the sim's splice-crunch marks the cut;
   // this dedicated mutation roar gives the evolution a throat. Rides the bossPhase event.
   useEffect(() => gameEvents.on('bossPhase', () => audio.cue('boss_phase')), []);
@@ -398,18 +433,26 @@ export function GameView({
     statusCueAt.current = now;
     audio.cue(e.category === 'control' ? 'status_control' : 'status_dot');
   }), []);
+  // HERO ULT IMPACT FRAME (docs/HERO-CINEMATICS.md §impact): the payload LANDS — a ~60 ms view-only
+  // hit-stop + one light kick (FEEL.abilityImpact), a sub thump, a bloom inside the zone and ONE
+  // grouped damage total. Casting never shakes; only the landing does.
+  useEffect(() => gameEvents.on('abilityImpact', (e) => {
+    applyFeel(FEEL.abilityImpact);
+    audio.cue('abilityImpact');
+    pushImpactBloom(e.x, e.y, e.radius, e.color, e.damage, performance.now());
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }), []);
   // MEGA BOSS arrival spectacle (docs/MEGA-BOSS.md): the raid banner flipping null→present IS the
   // arrival — a grander card than the boss intro (the audio roar + quake ride the sfx queue).
-  const [megaIntro, setMegaIntro] = useState<{ name: string; title: string; glow: string; at: number } | null>(null);
   const megaWasLive = useRef(false);
   useEffect(() => {
     const live = hud.megaBanner !== null;
     if (live && !megaWasLive.current && hud.megaBanner) {
-      setMegaIntro({ name: hud.megaBanner.name, title: hud.megaBanner.title, glow: hud.megaBanner.glow, at: Date.now() });
+      announce({ kind: 'megaIntro', name: hud.megaBanner.name, title: hud.megaBanner.title, glow: hud.megaBanner.glow });
       wavePushRef.current = 1;
     }
     megaWasLive.current = live;
-  }, [hud.megaBanner]);
+  }, [hud.megaBanner, announce]);
   // Mega CAST impact: the banner's telegraph resolving (present → gone while alive and NOT
   // stunned) is the strike landing — the riser (sim's megaAbility cue) finally pays off.
   // A stunned edge is an eye INTERRUPT, the player's win: it must not thump like a hit.
@@ -419,29 +462,35 @@ export function GameView({
     const tele = !!b?.telegraph;
     if (megaTeleWas.current && b && !tele && !b.stunned) {
       audio.cue('mega_cast');
-      traumaRef.current = addTrauma(traumaRef.current, 0.12);
+      applyFeel(FEEL.mega_cast);
     }
     megaTeleWas.current = tele;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hud.megaBanner]);
-  useEffect(() => {
-    if (!megaIntro) return undefined;
-    const id = setTimeout(() => setMegaIntro(null), 3800);
-    return () => clearTimeout(id);
-  }, [megaIntro]);
   // Weak-point consequence callouts (docs/MEGA-BOSS.md §hud): the player must always know WHY
   // that organ mattered — "Shield Generator Destroyed — shields purged".
-  const [wpCallout, setWpCallout] = useState<{ name: string; note: string; at: number } | null>(null);
   useEffect(() => gameEvents.on('megaWeakPointDown', (e) => {
-    setWpCallout({ name: e.kind.replace(/_/g, ' ').toUpperCase(), note: e.note, at: Date.now() });
-  }), []);
-  useEffect(() => {
-    if (!wpCallout) return undefined;
-    const id = setTimeout(() => setWpCallout(null), 3200);
-    return () => clearTimeout(id);
-  }, [wpCallout]);
+    announce({ kind: 'weakPoint', name: e.kind.replace(/_/g, ' ').toUpperCase(), note: e.note });
+  }), [announce]);
+  // MEGA FALL card (docs/GAME-FEEL.md §boss kills): the organism's collapse is the top of the
+  // centre-stage ladder — it clears every lesser card; the quake + duck + stinger ride megaDeath.
+  useEffect(() => gameEvents.on('megaKilled', (e) => {
+    const def = megaBossDef(e.defId);
+    const sub = [e.weakPoints > 0 ? `${e.weakPoints} ${e.weakPoints === 1 ? 'organ' : 'organs'} ruptured` : '', mmss(e.killSec), e.perfect ? 'FLAWLESS' : '']
+      .filter(Boolean).join(' · ');
+    announce({ kind: 'megaFall', name: def?.name ?? 'The organism', title: def?.title ?? '', glow: def?.palette.glow ?? '#ffd24d', sub });
+  }), [announce]);
   const pointerRef = useRef<Pointer | null>(null);
   const downRef = useRef<{ x: number; y: number } | null>(null); // press origin for click-vs-drag
   const traumaRef = useRef(0);
+  const peakTierRef = useRef(game.assimilation.peakTier); // the deepest assimilation tier already announced
+  /** Apply one FEEL row (render/feel.ts): camera trauma + a view-only hit-stop that never stacks
+   *  and never fires at motionScale 0. Ducks/stingers are sound.ts's half of the same row. */
+  const applyFeel = (row: FeelRow | undefined): void => {
+    if (!row) return;
+    if (row.shake) traumaRef.current = addTrauma(traumaRef.current, row.shake);
+    if (row.hitstop && viewFeel.motion > 0) game.hitstop = Math.max(game.hitstop, row.hitstop);
+  };
   const intensityRef = useRef(-1); // last music intensity sent (throttle — see the run loop)
   const duressRef = useRef(0); // last near-death music treatment sent (throttle — see the run loop)
   const assimTargetRef = useRef(0); // last Assimilation Index target (recomputed at ~8Hz; smoothed every frame)
@@ -608,6 +657,8 @@ export function GameView({
         // Hitstop: a brief view-loop freeze on a juicy event (a branch-tier purchase). The sim is
         // paused, but cues/shake/render still run below — so the screen shakes + the banner pops
         // against a frozen battlefield. advance() never reads this, so stepping stays deterministic.
+        // Reduced motion (motionScale 0) kills hit-stop at the source — sim-set ones included.
+        if (viewFeel.motion === 0) game.hitstop = 0;
         if (game.hitstop > 0) game.hitstop = Math.max(0, game.hitstop - dt);
         else game.advance(dt);
 
@@ -628,7 +679,7 @@ export function GameView({
               key = th && th.sfx !== 'default' ? `${m[1]}~${th.sfx}` : m[1];
             }
             tally[key] = (tally[key] ?? 0) + 1;
-            traumaRef.current = addTrauma(traumaRef.current, TRAUMA[base] ?? 0);
+            applyFeel(FEEL[base.indexOf('@') < 0 ? base : base.slice(0, base.indexOf('@'))]);
           }
           audio.cueBatch(tally);
         }
@@ -660,8 +711,18 @@ export function GameView({
         assimPresRef.current ??= assimilationPresentation(game.assimilation);
         const assimPres = assimilationPresentationInto(game.assimilation, assimPresRef.current);
 
-        // Render with shake (pre-fill covers the shake margin so no gap shows).
-        const mag = traumaRef.current * traumaRef.current * SHAKE_MAX;
+        // CENTRE STAGE clock: retire the expired card, promote the next (allocation-free when idle).
+        // The assimilation tier crossing is a centre-stage card too — announced, never overprinted.
+        const stage = announcerRef.current!;
+        if (game.assimilation.peakTier > peakTierRef.current) {
+          peakTierRef.current = game.assimilation.peakTier;
+          announce({ kind: 'tier', tier: game.assimilation.peakTier });
+        }
+        if (stage.tick(now)) setStageCard(stage.current);
+
+        // Render with shake (pre-fill covers the shake margin so no gap shows). The player's
+        // Screen-shake % × motionScale scales it at the camera (viewFeel.shake; 0 = still).
+        const mag = traumaRef.current * traumaRef.current * SHAKE_MAX * viewFeel.shake;
         const dx = mag ? (Math.random() * 2 - 1) * mag : 0;
         const dy = mag ? (Math.random() * 2 - 1) * mag : 0;
         ctx.setTransform(dpr, 0, 0, dpr, 0, 0); // re-assert the Hi-DPI base transform each frame
@@ -676,7 +737,7 @@ export function GameView({
         // physical weight without ever disorienting (composes under the danger zoom).
         if (wavePushRef.current > 0.002) {
           wavePushRef.current *= Math.exp(-2.4 * dt);
-          const wz = 1 + 0.012 * dangerCurve(wavePushRef.current);
+          const wz = 1 + 0.012 * dangerCurve(wavePushRef.current) * viewFeel.motion; // motionScale 0 ⇒ no push
           ctx.translate(WIDTH / 2, HEIGHT * 0.5);
           ctx.scale(wz, wz);
           ctx.translate(-WIDTH / 2, -HEIGHT * 0.5);
@@ -684,7 +745,7 @@ export function GameView({
         // Assimilation HEARTBEAT (docs/ASSIMILATION.md §Camera): a barely-perceptible view breath
         // that deepens with the index — the battlefield feels ALIVE as the run assimilates. Capped
         // at a fraction of a percent so it reads as a pulse, never a zoom; composes under the above.
-        if (assimPres.cameraAmp > 0.0001) {
+        if (assimPres.cameraAmp > 0.0001 && viewFeel.motion > 0) {
           const hb = 1 + assimPres.cameraAmp * Math.sin(game.time * assimPres.cameraHz * Math.PI * 2);
           ctx.translate(WIDTH / 2, HEIGHT * 0.5);
           ctx.scale(hb, hb);
@@ -717,6 +778,7 @@ export function GameView({
         // The Living Battlefield terrain reads the SAME canonical Assimilation Index as the mood FX
         // above (game.assimilation.index) ⇒ ground evolution, music floor and HUD glow stay coherent.
         drawGame(ctx, rs, pointerRef.current, cosmeticTiers, starTiers, adaptTiers, heroStarTiers, heroEvoRef.current, skins.towers, skins.heroes, mulliganRender, heroGearRender, power, game.assimilation.index, heroSymbioteRender);
+        drawImpacts(ctx, now); // boss-fall rings + ult impact frames ride the same camera kick
         // Living Organism ambience (docs/LIVING-BATTLEFIELD.md §organisms/audio): the render-side
         // murmur director — at most one quiet per-family cue every few seconds (anticipation
         // murmurs while enemies close in, rarer calm breaths between waves), silent under din.
@@ -756,7 +818,12 @@ export function GameView({
         // — organic vignette, tier-tinted rim glow, drifting spores, faint biome tint, all breathing
         // on the master state. Drawn over the finished frame in un-shaken screen space; a true no-op
         // at the Contained baseline (index ≈ 0), so early game is untouched.
-        drawAssimilationFx(ctx, assimPres, game.time, WIDTH, HEIGHT);
+        // The ascension flourish plays only while the announcer grants the tier card the stage.
+        const sc = stage.current;
+        const tierCard = sc !== null && sc.item.kind === 'tier' ? sc : null;
+        drawAssimilationFx(ctx, assimPres, game.time, WIDTH, HEIGHT,
+          tierCard ? Math.max(0, 1 - (now - tierCard.at) / tierCard.ms) : 0,
+          tierCard && tierCard.item.kind === 'tier' ? tierCard.item.tier : assimPres.ascendedTier);
 
         // Dynamic music intensity (audio/music.ts): battlefield pressure — enemies massing +
         // a wounded core — breathes the track's layers in and out. Danger mode swells the mix
@@ -834,7 +901,7 @@ export function GameView({
               // The organisms themselves celebrate: a ring blooms from every deployed unit
               // of the kind, and the field registers a heartbeat of impact.
               for (const t of game.towers) if (t.kind === k) celebRef.current.push({ x: t.x, y: t.y, color: TOWER_DEFS[k].color, start: now });
-              traumaRef.current = addTrauma(traumaRef.current, 0.06);
+              applyFeel(FEEL.masteryUp);
             }
           }
           masteryPrevRef.current = nextPrev;
@@ -884,7 +951,7 @@ export function GameView({
           setOutro({ won: game.phase === 'won', endless: game.mode === 'endless' || game.mode === 'bossRush' });
         }
         // After the linger (or a tap), hand off to the End-of-Run Summary.
-        if (outroRef.current && !endedRef.current && (skipRef.current || now - outroRef.current.startedAt >= OUTRO_HOLD_MS)) {
+        if (outroRef.current && !endedRef.current && (skipRef.current || now - outroRef.current.startedAt >= (viewFeel.motion > 0 ? OUTRO_HOLD_MS.full : OUTRO_HOLD_MS.reduced))) {
           endedRef.current = true;
           onEndRef.current({ wave: game.waveIndex, kills: game.kills, won: game.phase === 'won', mastery: game.getMasteryAccrual(), heroMastery: game.getHeroMasteryAccrual(), stats: game.getRunStats(), endless: game.mode === 'endless', durationSec: game.time, doctrine, dailyReplay: packReplay(recorderRef.current, game) });
         }
@@ -1016,7 +1083,7 @@ export function GameView({
   };
 
   return (
-    <div className="game" data-hphase={hphase}>
+    <div className="game" data-hphase={hphase} data-motion={feelNow.motion > 0 ? 'full' : 'reduced'} data-flashes={feelNow.flashes ? 'on' : 'off'}>
       <Hud hud={hud} power={power} onOpenConsole={() => setEvoOpen(true)} tutorial={!!tutorial && !!tutSession} doctrine={doctrine && doctrine !== 'none' ? resolveDoctrine(doctrine) : null} vows={vowChips} />
       <PowerToaster />
       <MasteryToaster />
@@ -1093,45 +1160,8 @@ export function GameView({
           }}
         />
         <BuildControls game={game} hud={hud} refresh={refresh} tutorialLock={!!tutorial && !!tutSession} autoGeneLock={automation.allowed ? null : automation.reason} />
-        {waveBanner && <div className="wave-breach" key={`br${waveBanner.at}`} aria-hidden />}
-        {waveBanner && !bossIntro && (
-          <div className="wave-banner" key={waveBanner.at} aria-hidden>
-            <span className="wave-banner-t">{waveBanner.endless ? `DEPTH ${waveBanner.n}` : hud.bossRush ? `WAVE ${waveBanner.n} — ${waveBanner.n} ${waveBanner.n === 1 ? 'BOSS' : 'BOSSES'}` : `WAVE ${waveBanner.n}`}</span>
-          </div>
-        )}
-        {bossIntro && !megaIntro && (
-          <div className="boss-intro" key={bossIntro.at} role="alert">
-            <span className="boss-intro-eyebrow">◆ APEX THREAT DETECTED ◆</span>
-            <span className="boss-intro-name">{bossIntro.name}</span>
-            {bossIntro.epithet && <span className="boss-intro-epithet">— {bossIntro.epithet} —</span>}
-            {bossIntro.kit.length > 0 && (
-              <span className="boss-intro-kit" aria-label="Boss abilities">
-                {bossIntro.kit.map((k) => <i key={k}>{k}</i>)}
-              </span>
-            )}
-            <span className="boss-intro-sub">{bossIntro.phases > 1 ? `${bossIntro.phases}-phase organism — read the telegraphs` : 'Hold the line'}</span>
-          </div>
-        )}
-        {bossFall && !bossIntro && !megaIntro && (
-          <div className="boss-fall" key={bossFall.at} role="status">
-            <span className="boss-fall-name">{bossFall.name}</span>
-            <span className="boss-fall-sub">{bossFall.epithet ? `${bossFall.epithet} — FALLEN` : 'FALLEN'}</span>
-          </div>
-        )}
-        {megaIntro && (
-          <div className="mega-intro" key={megaIntro.at} role="alert" style={{ ['--mega']: megaIntro.glow } as CSSProperties}>
-            <span className="mega-intro-eyebrow">▼ BATTLEFIELD-SCALE ORGANISM ▼</span>
-            <span className="mega-intro-name">{megaIntro.name}</span>
-            <span className="mega-intro-title">{megaIntro.title}</span>
-            <span className="mega-intro-sub">Burst its weak points — the battle continues beneath it</span>
-          </div>
-        )}
-        {wpCallout && (
-          <div className="wp-callout" key={wpCallout.at} role="status">
-            <span className="wp-callout-name">{wpCallout.name} DESTROYED</span>
-            <span className="wp-callout-note">{wpCallout.note}</span>
-          </div>
-        )}
+        {breachAt > 0 && <div className="wave-breach" key={`br${breachAt}`} aria-hidden />}
+        {stageCard && <CentreStage shown={stageCard} />}
         {/* RUN CONTROLS STRIP (docs/HUD.md §run-controls): speed · Hive Intelligence · Pause (+ the
             Hive ticker / speed note) share ONE flex row reserved at the top of the board, so they
             can never collide with each other, the wave briefing, or the boss bars below it. */}
@@ -1228,6 +1258,7 @@ export function GameView({
                   <div className="pause-settings" onClick={(e) => e.stopPropagation()}>
                     <div className="pause-set-k">Settings</div>
                     <AudioToggles compact />
+                    <MotionSettings compact />
                   </div>
                   <button className="pause-abandon" onClick={(e) => { e.stopPropagation(); setConfirmAbandon(true); }}>Abandon Run</button>
                   <div className="pause-hint">P or tap outside to resume</div>
@@ -1434,4 +1465,68 @@ export function GameView({
       <Toolbar game={game} hud={hud} refresh={refresh} />
     </div>
   );
+}
+
+/** The centre-stage card on show (docs/GAME-FEEL.md §centre-stage). Each card keeps its own look;
+ *  `--stage-ms` hands it the announcer's duration so the CSS timeline and the slot always agree.
+ *  The tier card is drawn on the canvas (render/assimilationFx.ts) — nothing to mount here. */
+function CentreStage({ shown }: { shown: Shown<StageCard> }): JSX.Element | null {
+  const c = shown.item;
+  const ms = { ['--stage-ms']: `${shown.ms}ms` } as CSSProperties;
+  switch (c.kind) {
+    case 'wave':
+      return (
+        <div className="wave-banner" key={shown.seq} style={ms} aria-hidden>
+          <span className="wave-banner-t">{c.label}</span>
+        </div>
+      );
+    case 'bossIntro':
+      return (
+        <div className="boss-intro" key={shown.seq} role="alert" style={ms}>
+          <span className="boss-intro-eyebrow">◆ APEX THREAT DETECTED ◆</span>
+          <span className="boss-intro-name">{c.name}</span>
+          {c.epithet && <span className="boss-intro-epithet">— {c.epithet} —</span>}
+          {c.kit.length > 0 && (
+            <span className="boss-intro-kit" aria-label="Boss abilities">
+              {c.kit.map((k) => <i key={k}>{k}</i>)}
+            </span>
+          )}
+          <span className="boss-intro-sub">{c.phases > 1 ? `${c.phases}-phase organism — read the telegraphs` : 'Hold the line'}</span>
+        </div>
+      );
+    case 'bossFall':
+      return (
+        <div className="boss-fall" key={shown.seq} role="status" style={ms}>
+          <span className="boss-fall-name">{c.name}</span>
+          <span className="boss-fall-sub">{c.epithet ? `${c.epithet} — FALLEN` : 'FALLEN'}</span>
+        </div>
+      );
+    case 'megaIntro':
+      return (
+        <div className="mega-intro" key={shown.seq} role="alert" style={{ ...ms, ['--mega']: c.glow } as CSSProperties}>
+          <span className="mega-intro-eyebrow">▼ BATTLEFIELD-SCALE ORGANISM ▼</span>
+          <span className="mega-intro-name">{c.name}</span>
+          <span className="mega-intro-title">{c.title}</span>
+          <span className="mega-intro-sub">Burst its weak points — the battle continues beneath it</span>
+        </div>
+      );
+    case 'megaFall':
+      return (
+        <div className="mega-intro mega-fall" key={shown.seq} role="status" style={{ ...ms, ['--mega']: c.glow } as CSSProperties}>
+          <span className="mega-intro-eyebrow">◆ ORGANISM DESTROYED ◆</span>
+          <span className="mega-intro-name">{c.name} FALLS</span>
+          {c.title && <span className="mega-intro-title">{c.title}</span>}
+          <span className="mega-intro-sub">{c.sub}</span>
+        </div>
+      );
+    case 'weakPoint':
+      return (
+        <div className="wp-callout" key={shown.seq} role="status" style={ms}>
+          <span className="wp-callout-name">{c.name} DESTROYED</span>
+          <span className="wp-callout-note">{c.note}</span>
+        </div>
+      );
+    case 'tier':
+      return null;
+  }
 }

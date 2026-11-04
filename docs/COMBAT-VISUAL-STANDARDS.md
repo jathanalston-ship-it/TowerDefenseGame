@@ -62,7 +62,12 @@ Layered, no single element overpowering (GAME-FEEL P0):
   the motion tracker's `hitFlash` rising-edge detection (the sim spawns no hit particles).
 - **Flinch** — recoil squash + up-lane knock (`enemyForms` `flinch`, from the same 0.09 s flash).
 - **White pop** on the body; **aggregated damage floats** (sim-side, pre-existing); **crit**
-  floats pop with a burst ring; audio rides the per-class fire cues.
+  floats pop with a burst ring + a soft rate-limited `crit` ching; audio rides the per-class fire cues.
+- **Damage numbers read over anything** (2026-11): every float carries a dark outline (legible
+  over acid pools and gore); a digit-led float is a DAMAGE NUMBER whose size scales with its
+  magnitude on a bounded log curve (`DAMAGE_NUMBERS` in `render/feel.ts`: 17 px for a tick →
+  28 px cap) with a ~90 ms pop-in. Fonts are pre-built (no per-frame string building). Settings →
+  Motion → *Damage numbers* hides them (crit + ult totals included); callout text stays.
 
 ## §towers — anticipation → release, personality by form
 

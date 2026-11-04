@@ -9915,7 +9915,7 @@ kbd {
   letter-spacing: 0.28em;
   color: #fff;
   text-shadow: 0 0 24px color-mix(in srgb, var(--vital) 80%, transparent), 0 2px 0 rgba(0, 0, 0, 0.6);
-  animation: wave-banner 1.7s var(--ease-out) both;
+  animation: wave-banner var(--stage-ms, 1.7s) var(--ease-out) both; /* --stage-ms: the announcer's slot (render/feel.ts ANNOUNCE) */
 }
 @keyframes wave-banner {
   0% { opacity: 0; transform: translateX(-46px) scale(0.92); letter-spacing: 0.42em; }
@@ -9937,7 +9937,7 @@ kbd {
   pointer-events: none;
   z-index: 7;
   background: radial-gradient(ellipse at center, transparent 40%, color-mix(in srgb, var(--danger) 22%, transparent) 100%);
-  animation: boss-iris 3s var(--ease-out) both;
+  animation: boss-iris var(--stage-ms, 3s) var(--ease-out) both;
 }
 @keyframes boss-iris {
   0% { opacity: 0; }
@@ -9952,7 +9952,7 @@ kbd {
   line-height: 1.2;
   margin-bottom: 14px;
   color: var(--danger);
-  animation: boss-line 3s var(--ease-out) both;
+  animation: boss-line var(--stage-ms, 3s) var(--ease-out) both;
 }
 .boss-intro-name {
   font-size: 40px;
@@ -9961,7 +9961,7 @@ kbd {
   line-height: 1.2;
   color: #fff;
   text-shadow: 0 0 30px color-mix(in srgb, var(--danger) 85%, transparent), 0 3px 0 rgba(0, 0, 0, 0.7);
-  animation: boss-name 3s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: boss-name var(--stage-ms, 3s) cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 @keyframes boss-name {
   0% { opacity: 0; transform: scale(1.6); filter: blur(4px); }
@@ -9978,7 +9978,7 @@ kbd {
   margin-top: 12px;
   font-variant: small-caps;
   color: var(--text-dim);
-  animation: boss-line 3s var(--ease-out) both;
+  animation: boss-line var(--stage-ms, 3s) var(--ease-out) both;
 }
 @keyframes boss-line {
   0%, 8% { opacity: 0; transform: translateY(6px); }
@@ -9996,7 +9996,7 @@ kbd {
   line-height: 1.3;
   color: var(--gold);
   text-shadow: 0 0 14px rgba(255, 210, 77, 0.4);
-  animation: boss-line 3s var(--ease-out) both;
+  animation: boss-line var(--stage-ms, 3s) var(--ease-out) both;
 }
 .boss-intro-kit {
   display: flex;
@@ -10005,7 +10005,7 @@ kbd {
   gap: 6px;
   max-width: min(480px, 86vw);
   margin-top: 10px;
-  animation: boss-line 3s var(--ease-out) both;
+  animation: boss-line var(--stage-ms, 3s) var(--ease-out) both;
 }
 .boss-intro-kit i {
   font-style: normal;
@@ -10039,7 +10039,7 @@ kbd {
   line-height: 1.2;
   color: #fff;
   text-shadow: 0 0 22px color-mix(in srgb, var(--vital) 75%, transparent), 0 2px 0 rgba(0, 0, 0, 0.6);
-  animation: boss-fall 2.2s var(--ease-out) both;
+  animation: boss-fall var(--stage-ms, 2.2s) var(--ease-out) both;
 }
 .boss-fall-sub {
   font-size: 12px;
@@ -10048,7 +10048,7 @@ kbd {
   line-height: 1.3;
   font-variant: small-caps;
   color: var(--vital);
-  animation: boss-fall 2.2s var(--ease-out) both;
+  animation: boss-fall var(--stage-ms, 2.2s) var(--ease-out) both;
 }
 @keyframes boss-fall {
   0% { opacity: 0; transform: translateY(-8px) scale(1.06); }
@@ -10107,7 +10107,10 @@ kbd {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .wave-banner-t, .boss-intro, .boss-intro-name, .boss-intro-eyebrow, .boss-intro-sub, .boss-intro-epithet, .boss-intro-kit, .boss-fall-name, .boss-fall-sub { animation-duration: 0.01s !important; }
+  /* `animation: none`, NOT a 0.01s duration: these timelines end at opacity 0 with fill `both`, so
+     collapsing them made every centre-stage card INVISIBLE under reduced motion. Static instead —
+     the announcer still removes each card when its slot ends. */
+  .wave-banner-t, .boss-intro, .boss-intro-name, .boss-intro-eyebrow, .boss-intro-sub, .boss-intro-epithet, .boss-intro-kit, .boss-fall-name, .boss-fall-sub, .mega-intro, .wp-callout { animation: none !important; }
   .hud-power::before, .cards .card.r-epic::after, .cards .card.r-legendary::after, .start-btn .start-btn-ring, .ho-port-core { animation: none !important; }
 }
 
@@ -11012,7 +11015,7 @@ kbd {
   padding: 18px 34px; border-radius: var(--r-md); text-align: center; z-index: 60;
   background: rgba(6, 4, 10, 0.85); border: 1px solid var(--mega, #ff5d73);
   box-shadow: 0 0 60px color-mix(in srgb, var(--mega, #ff5d73) 40%, transparent);
-  animation: mega-intro-in 0.7s cubic-bezier(0.2, 1.4, 0.4, 1) both, gene-splash-out 0.6s ease-in 3.1s forwards;
+  animation: mega-intro-in 0.7s cubic-bezier(0.2, 1.4, 0.4, 1) both, gene-splash-out 0.6s ease-in calc(var(--stage-ms, 3.7s) - 0.6s) forwards;
   pointer-events: none;
 }
 .mega-intro-eyebrow { font-size: 10px; letter-spacing: 0.28em; color: var(--mega, #ff5d73); }
@@ -11027,7 +11030,7 @@ kbd {
   padding: 10px 22px; border-radius: var(--r-sm); text-align: center; z-index: 55;
   background: rgba(6, 12, 8, 0.88); border: 1px solid #6effa8;
   box-shadow: 0 0 30px rgba(110, 255, 168, 0.35);
-  animation: achv-in 0.35s cubic-bezier(0.2, 1.6, 0.4, 1) both, gene-splash-out 0.5s ease-in 2.6s forwards;
+  animation: achv-in 0.35s cubic-bezier(0.2, 1.6, 0.4, 1) both, gene-splash-out 0.5s ease-in calc(var(--stage-ms, 3.1s) - 0.5s) forwards;
   pointer-events: none;
 }
 .wp-callout-name { font-size: 13px; font-weight: 900; letter-spacing: 0.12em; color: #ffd24d; }
@@ -13866,3 +13869,67 @@ html[data-layout='landscape'] .build-controls {
 html[data-layout='landscape'] .boss-banner,
 html[data-layout='landscape'] .mega-banner { top: 6px; width: calc(100% - 12px); }
 html[data-layout='landscape'] .build-controls.is-visible ~ .mega-banner { top: 6px; bottom: auto; }
+
+/* ═══════════ FEEL PASS 2026-11 (docs/GAME-FEEL.md) — pick moment, centre stage, motion settings ═══════════ */
+
+/* Gene PICK moment (DraftModal PICK_COMMIT_MS): the chosen card flares in its rarity colour and
+   pulls forward; the others dissolve. Then the draft resolves. */
+.cards .card.r-common { --pick: var(--r-common); }
+.cards .card.r-uncommon { --pick: var(--r-uncommon); }
+.cards .card.r-rare { --pick: var(--r-rare); }
+.cards .card.r-epic { --pick: var(--r-epic); }
+.cards .card.r-legendary, .cards .card.r-exotic { --pick: var(--r-legendary); }
+.cards .card.is-chosen {
+  z-index: 3;
+  pointer-events: none;
+  border-color: var(--pick, var(--kinetic));
+  animation: card-chosen 350ms cubic-bezier(0.2, 1.3, 0.4, 1) forwards;
+}
+.cards .card.is-dismissed {
+  pointer-events: none;
+  animation: card-dissolve 300ms ease-in forwards;
+}
+@keyframes card-chosen {
+  0% { opacity: 1; transform: none; box-shadow: 0 0 0 0 transparent; }
+  45% { opacity: 1; transform: translateY(-10px) scale(1.07); box-shadow: 0 0 0 2px var(--pick, var(--kinetic)), 0 0 46px 6px color-mix(in srgb, var(--pick, var(--kinetic)) 70%, transparent); }
+  100% { opacity: 1; transform: translateY(-8px) scale(1.05); box-shadow: 0 0 0 2px var(--pick, var(--kinetic)), 0 0 34px 2px color-mix(in srgb, var(--pick, var(--kinetic)) 55%, transparent); }
+}
+@keyframes card-dissolve {
+  from { opacity: 1; transform: none; filter: blur(0); }
+  to { opacity: 0; transform: translateY(10px) scale(0.94); filter: blur(4px) saturate(0.4); }
+}
+.overlay.is-committing .draft-reroll { opacity: 0.4; }
+@media (prefers-reduced-motion: reduce) {
+  .cards .card.is-chosen { animation: none; opacity: 1; transform: none; box-shadow: 0 0 0 2px var(--pick, var(--kinetic)); }
+  .cards .card.is-dismissed { animation: none; opacity: 0.25; transform: none; }
+}
+
+/* MEGA FALL card — the mega intro's frame, crowned gold: the raid's last word on centre stage. */
+.mega-intro.mega-fall { border-color: var(--gold); box-shadow: 0 0 60px color-mix(in srgb, var(--gold) 45%, transparent); }
+.mega-fall .mega-intro-eyebrow { color: var(--gold); }
+.mega-fall .mega-intro-name { text-shadow: 0 0 24px var(--gold), 0 2px 0 rgba(0, 0, 0, 0.7); }
+.mega-fall .mega-intro-sub { font-size: 11px; color: var(--text-dim); letter-spacing: 0.08em; }
+
+/* MOTION SETTINGS gates for the in-run shell (GameView sets data-motion / data-flashes from the
+   resolved prefs — the same motionScale the canvas camera honours, incl. the player's override). */
+.game[data-flashes="off"] .wave-breach::after,
+.game[data-flashes="off"] .mutation-flash { display: none; }
+.game[data-motion="reduced"] .wave-breach::before { display: none; }
+.game[data-motion="reduced"] .wave-banner-t,
+.game[data-motion="reduced"] .boss-intro,
+.game[data-motion="reduced"] .boss-intro > span,
+.game[data-motion="reduced"] .boss-fall > span,
+.game[data-motion="reduced"] .mega-intro,
+.game[data-motion="reduced"] .wp-callout { animation: none !important; }
+.game[data-motion="reduced"] .mutation-banner { animation: mut-banner-reduced 2.4s ease both; }
+@keyframes mut-banner-reduced { 0%, 85% { opacity: 1; } 100% { opacity: 0; } }
+
+/* Settings → Motion (components/MotionSettings.tsx) */
+.set-toggle > .motion-shake { display: inline-flex; flex-direction: row; align-items: center; gap: 10px; }
+.motion-shake input[type="range"] { width: 132px; accent-color: var(--success); }
+.motion-shake input[type="range"]:disabled { opacity: 0.4; }
+.motion-shake b { min-width: 38px; text-align: right; font-size: 13px; font-variant-numeric: tabular-nums; color: var(--text); }
+.motion-settings .set-switch:disabled { opacity: 0.45; cursor: not-allowed; }
+.motion-settings.is-compact .set-switch { padding: 4px 14px; min-height: 0; }
+.pause-settings .motion-settings .set-toggle { margin-top: 6px; }
+.motion-settings.is-compact .motion-shake input[type="range"] { width: 100px; }
