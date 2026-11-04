@@ -60,6 +60,11 @@ export function mergeSaves(a: SaveData, b: SaveData): SaveData {
     heroKills: maxByKey(p.heroKills as Record<string, number>, s.heroKills as Record<string, number>) as SaveData['heroKills'],
     // Threat ladder (v55, docs/THREAT.md): the best cleared level per mode is a monotonic record.
     threat: maxByKey(p.threat ?? {}, s.threat ?? {}) as SaveData['threat'],
+    // v56 (docs/EQUIPMENT.md §codex · GENOME-RANK.md §peak): the Gear Codex ledger is a pure
+    // record (union — a discovery on either device stays discovered; the inventory itself stays
+    // the primary's) and the peak Power is a monotone watermark (max).
+    equipment: { ...p.equipment, discovered: unionIds(p.equipment.discovered ?? [], s.equipment?.discovered ?? []) },
+    genomeRank: { ...p.genomeRank, peakPower: Math.max(p.genomeRank?.peakPower ?? 0, s.genomeRank?.peakPower ?? 0) },
     stats,
   };
 }

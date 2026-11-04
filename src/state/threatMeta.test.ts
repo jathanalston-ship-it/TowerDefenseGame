@@ -42,7 +42,7 @@ const coreLane = (o: ReturnType<typeof meta.finishRun>): number =>
 
 describe('v55 save — the Threat record', () => {
   it('schema is v55 and a fresh save starts every mode at 0', () => {
-    expect(CURRENT_VERSION).toBe(55);
+    expect(CURRENT_VERSION).toBeGreaterThanOrEqual(55); // v55 introduced the record (v56 = Batch G, additive)
     expect(defaultSave().threat).toEqual({ campaign: 0, endless: 0, bossRush: 0 });
   });
 

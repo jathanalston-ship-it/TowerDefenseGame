@@ -110,8 +110,10 @@ export interface SaveData {
   // ── Daily Bio-Cache (v38, docs/DAILY-LOGIN.md) — the login-streak ledger. last: the UTC day
   //    key already claimed (once-per-day gate; a forged FUTURE key self-heals by waiting);
   //    streak: consecutive-day claims; best: streak watermark; lifetime: total claims ever
-  //    (NEVER reset — collections/titles/Genome Rank ride it). ──
-  login: { last: string; streak: number; best: number; lifetime: number };
+  //    (NEVER reset — collections/titles/Genome Rank ride it).
+  //    v56 (docs/DAILY-LOGIN.md §income): incomeCores — the income-scaled Genome-Core line the
+  //    LAST claim paid (frozen at claim so a post-claim reload shows what was granted). ──
+  login: { last: string; streak: number; best: number; lifetime: number; incomeCores?: number };
   // ── Idle Harvest (v40, docs/IDLE-HARVEST.md) — the away-time accrual clock + evolution tree.
   //    lastCollect: epoch ms of the last collect (the accrual origin; MONOTONE — never rewound;
   //    a future stamp freezes accrual, bounded by IDLE.tamperFreezeMaxHours on load). nodes:
@@ -187,7 +189,11 @@ export interface SaveData {
   // ── Hero equipment (schema v3; PER-HERO loadouts as of v12) ──
   // Each hero keeps its OWN weapon/armor/relic (HEROES.md hero slots). A uid is a single physical
   // item ⇒ it lives in at most one hero's loadout. Absent hero key ⇒ that hero has no gear equipped.
-  equipment: { inventory: OwnedItem[]; loadouts: Partial<Record<HeroKind, Loadout>> };
+  // v56 `discovered` (docs/EQUIPMENT.md §codex): every equipment def id EVER owned — the permanent
+  // Gear Codex credit (Collection %, Genome Rank, the NEW badge). Additive and NEVER shrinks:
+  // salvaging the last copy keeps the discovery. Folded from the inventory at every persist
+  // (meta) and on load (backfill), so readers may treat it as ⊇ the inventory's defs.
+  equipment: { inventory: OwnedItem[]; loadouts: Partial<Record<HeroKind, Loadout>>; discovered?: string[] };
   mats: { mutagen: number; scrap: number; catalyst: number }; // crafting / reroll currencies
   matPity: number; // containers opened since the last RARE material (catalyst) — the pity counter (v16)
   // ── Undo-Salvage buffer (v17): the single most-recently salvaged item + the materials it refunded,
@@ -241,8 +247,11 @@ export interface SaveData {
   accountXp: { xp: number; week: { key: string; xp: number }; month: { key: string; xp: number } };
   // ── Genome Rank (docs/GENOME-RANK.md): the rating + rank are always DERIVED from the whole
   //    save (meta.genomeRank); the ONLY stored piece is the ceremony/reward watermark — the
-  //    highest rank index already celebrated and paid. Additive; golden-safe. ──
-  genomeRank: { celebrated: number };
+  //    highest rank index already celebrated and paid. Additive; golden-safe.
+  //    v56 `peakPower`: the highest Power Score ever observed — the rating's Power axis reads it
+  //    (a Molt's Power trough never demotes the named rank). Monotone; migration seeds it from
+  //    the live score on first read (meta raises it to max(peak, live) at every poll). ──
+  genomeRank: { celebrated: number; peakPower?: number };
   // ── Gene Cards — permanent progression (schema v18, docs/GENE-EVOLUTION.md). Sparse per-card state
   //    (level / rarity-tier / ascension / skin), keyed by the card's permanent id. Absent id ⇒ base
   //    (level 0); ownership stays in stats.uniqueCards so this map only holds upgraded cards. Additive:
@@ -284,6 +293,13 @@ export interface SaveData {
   //    (0 = none above the baseline; THREAT_MAX caps it). Feeds the picker's ceiling, the
   //    automation gate and cosmetic milestones — never Power. ──
   threat: Record<ThreatMode, number>;
+  // ── INCOME LEDGER (schema v56, docs/ONE-MORE-RUN.md §eta) — what ONE settled run earns, per
+  //    meter (state/income.ts INCOME_METERS: cores, stage, peak-Power growth, specimens, per-unit
+  //    Strain Samples / Apex Genome wealth, lifetime ledgers …), as a per-run moving average.
+  //    `last` = each meter's value at the previous settle (deltas are taken settle→settle, so
+  //    containers opened between runs count); `rate` = the moving average; `runs` = settles
+  //    observed. Read-only estimate — goal ETAs and the Bio-Cache income line; never Power. ──
+  income: IncomeSave;
   // ── Gene Card DISCOVERY (v46, docs/CARDS.md §discovery) — the Archive's membership set:
   //    card ids the account has discovered (starters + Bio-Container finds). Drafting and
   //    permanent upgrades key on membership. Migration seeds STARTER_GENES ∪ every card the
@@ -583,7 +599,55 @@ export interface TutorialSave {
 // CLEARED Threat level per mode. Pre-v55 (version < 55) ⇒ all 0 (the baseline is DERIVED from
 // existing records, so veterans start one rung up, never re-earning Threat 0). Integers clamped
 // to [0, THREAT_MAX]. Purely additive, golden-safe. (v54 is reserved by a parallel track.)
-export const CURRENT_VERSION = 55;
+// v55→v56: THE GRIND (docs/ONE-MORE-RUN.md §eta · GENOME-RANK.md §peak · EQUIPMENT.md §codex ·
+// DAILY-LOGIN.md §income) — four additive fields: `equipment.discovered` (permanent Gear Codex
+// credit; BACKFILLED from the current inventory, never shrinks), `genomeRank.peakPower` (the
+// rating's Power axis; absent ⇒ 0, raised to the live score on first read), `income` (the per-run
+// income ledger; absent ⇒ empty, it fills from the next settle) and `login.incomeCores` (the
+// claimed day's income line). Merge: discovered = union, peakPower = max. Golden-safe.
+export const CURRENT_VERSION = 56;
+
+// ── v56 Income ledger (docs/ONE-MORE-RUN.md §eta) — the SHAPE lives here; meters + math in
+// state/income.ts. Keys are meter ids ('cores', 'stage', 'apex:shepherd', …). ──
+export interface IncomeSave {
+  runs: number; // settles observed since the ledger started
+  last: Record<string, number>; // meter values at the previous settle
+  rate: Record<string, number>; // per-run moving average of each meter's gain
+}
+export function defaultIncome(): IncomeSave {
+  return { runs: 0, last: {}, rate: {} };
+}
+/** Bounded so a tampered blob cannot bloat the save (the live meter set is ~40 keys). */
+const INCOME_KEY_CAP = 600;
+function sanitizeIncome(raw: unknown): IncomeSave {
+  const out = defaultIncome();
+  if (typeof raw !== 'object' || raw === null) return out;
+  const o = raw as { runs?: unknown; last?: unknown; rate?: unknown };
+  out.runs = Math.max(0, Math.min(1e9, Math.floor(Number(o.runs) || 0)));
+  const map = (v: unknown): Record<string, number> => {
+    const m: Record<string, number> = {};
+    if (typeof v !== 'object' || v === null) return m;
+    let n = 0;
+    for (const [k, x] of Object.entries(v as Record<string, unknown>)) {
+      const f = Number(x);
+      if (typeof k !== 'string' || k.length > 64 || !Number.isFinite(f) || f < 0) continue;
+      m[k] = f;
+      if (++n >= INCOME_KEY_CAP) break;
+    }
+    return m;
+  };
+  out.last = map(o.last);
+  out.rate = map(o.rate);
+  return out;
+}
+/** v56 Gear Codex ledger: known string ids, deduped, ∪ every def currently in the inventory
+ *  (the backfill — a pre-v56 save discovers exactly what it holds; never less). */
+function sanitizeDiscovered(raw: unknown, inventory: OwnedItem[]): string[] {
+  const out = new Set<string>();
+  if (Array.isArray(raw)) for (const id of raw) if (typeof id === 'string' && id.length > 0 && id.length <= 64) out.add(id);
+  for (const it of inventory) if (typeof it?.defId === 'string') out.add(it.defId);
+  return [...out];
+}
 
 // ── v51 Metabolism ledger (docs/METABOLISM.md) — the save SHAPE lives here (saveStore owns
 // module shapes); the track registry + curve math live in state/metabolism.ts. ──
@@ -918,7 +982,7 @@ export function defaultSave(): SaveData {
     contracts: { completed: [], perfectWeeks: 0, lastPerfect: '' },
     directives: { week: '', progress: {}, claimed: [] },
     hive: { built: {} },
-    login: { last: '', streak: 0, best: 0, lifetime: 0 },
+    login: { last: '', streak: 0, best: 0, lifetime: 0, incomeCores: 0 },
     idle: { lastCollect: 0, nodes: {}, lifetimeHours: 0, harvests: 0, lifetimeValue: 0, bestHours: 0, blooms: 0 },
     nemesis: null,
     equippedTrophies: [],
@@ -951,7 +1015,7 @@ export function defaultSave(): SaveData {
     heroFavEquip: emptyFavByHero(),
     stats: defaultLifetimeStats(),
     achievements: [],
-    equipment: { inventory: [], loadouts: {} },
+    equipment: { inventory: [], loadouts: {}, discovered: [] },
     mats: { mutagen: 0, scrap: 0, catalyst: 0 },
     matPity: 0,
     lastSalvage: null,
@@ -969,7 +1033,7 @@ export function defaultSave(): SaveData {
     help: { seen: [], primed: false, hudTour: false },
     director: { revealed: {}, visits: {} },
     accountXp: { xp: 0, week: { key: '', xp: 0 }, month: { key: '', xp: 0 } },
-    genomeRank: { celebrated: 1 },
+    genomeRank: { celebrated: 1, peakPower: 0 },
     genes: {},
     geneSlots: 1,
     geneLoadout: [null, null, null, null, null],
@@ -980,6 +1044,7 @@ export function defaultSave(): SaveData {
     liveEvents: { tokens: {}, claimed: {}, shopBought: {}, progress: {}, lifetimeBought: {} },
     metabolism: defaultMetabolism(),
     threat: { campaign: 0, endless: 0, bossRush: 0 },
+    income: defaultIncome(),
     genesDiscovered: [...STARTER_GENES], // the teaching set — every account starts with it
 
     createdAt: 0, // stamped by the first settle — defaultSave() must stay deterministic
@@ -1075,7 +1140,9 @@ function sanitizeAccountXp(raw: unknown): SaveData['accountXp'] {
 function sanitizeGenomeRank(raw: unknown): SaveData['genomeRank'] {
   const o = (typeof raw === 'object' && raw !== null ? raw : {}) as Record<string, unknown>;
   const n = Math.floor(Number(o.celebrated));
-  return { celebrated: Number.isFinite(n) && n >= 1 ? n : 1 };
+  // v56 peakPower: finite ≥ 0 (absent ⇒ 0 — meta raises it to the live score on first read).
+  const peak = Number(o.peakPower);
+  return { celebrated: Number.isFinite(n) && n >= 1 ? n : 1, peakPower: Number.isFinite(peak) && peak > 0 ? Math.min(peak, 1e15) : 0 };
 }
 /** Coerce the Progression Director ledgers to string → finite ≥0 int maps (junk entries dropped). */
 function sanitizeDirector(raw: unknown): SaveData['director'] {
@@ -1372,7 +1439,9 @@ function withDefaults(data: SaveData): SaveData {
       const int = (v: unknown): number => (Number.isFinite(Number(v)) ? Math.max(0, Math.min(1e9, Math.floor(Number(v)))) : 0);
       const streak = int(raw?.streak);
       const lifetime = Math.max(int(raw?.lifetime), streak); // lifetime can never trail the live streak
-      return { last, streak, best: Math.max(int(raw?.best), streak), lifetime };
+      // v56: the claimed day's income-scaled Cores line (display-only memory of the grant).
+      const incomeCores = int((raw as { incomeCores?: unknown } | undefined)?.incomeCores);
+      return { last, streak, best: Math.max(int(raw?.best), streak), lifetime, incomeCores };
     })(),
     // v39→v40: Idle Harvest (docs/IDLE-HARVEST.md). lastCollect: absent/junk/0 seeds to NOW (the
     // clock starts at migration — no retroactive grant); a FUTURE stamp is HELD (frozen accrual
@@ -1497,6 +1566,8 @@ function withDefaults(data: SaveData): SaveData {
       // slot-1 hero (its selectedHero) so equipped gear carries over. Sanitized so a uid lives on
       // only ONE hero (a single physical item).
       loadouts: sanitizeLoadouts(data.equipment, (heroRegistry.resolve(data.selectedHero) as HeroKind | undefined) ?? d.selectedHero),
+      // v55→v56: the permanent Gear Codex ledger — backfilled from the held inventory.
+      discovered: sanitizeDiscovered((data.equipment as { discovered?: unknown } | undefined)?.discovered, Array.isArray(data.equipment?.inventory) ? data.equipment.inventory : []),
     },
     mats: { ...d.mats, ...data.mats },
     // v15→v16: the crafting-material pity counter. Absent on older saves ⇒ 0 (fresh pity).
@@ -1585,6 +1656,8 @@ function withDefaults(data: SaveData): SaveData {
     metabolism: sanitizeMetabolism((data as { metabolism?: unknown }).metabolism),
     // v53→v55: Threat ladder records — missing (pre-v55) or junk ⇒ 0 per mode.
     threat: sanitizeThreat((data as { threat?: unknown }).threat),
+    // v55→v56: the per-run income ledger — absent ⇒ empty (fills from the next settle).
+    income: sanitizeIncome((data as { income?: unknown }).income),
     // v21→v22: Player Profile — identity fields + the milestone timeline (pre-v22 ⇒ defaults;
     // createdAt stays 0 until the first settle stamps it).
     createdAt: Math.max(0, Math.floor(Number((data as { createdAt?: unknown }).createdAt) || 0)),
