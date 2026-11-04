@@ -9,7 +9,8 @@
 import { useEffect, useRef } from 'react';
 import { meta } from '../state/meta';
 import { achievementById } from '../state/achievements';
-import { rewardToast } from '../state/rewardToast';
+import { coalesceHeld, rewardToast } from '../state/rewardToast';
+import type { RewardEvent } from '../state/rewardToast';
 import { ACCOUNT_CURRENCY } from '../core/currencies';
 
 export function AchievementToaster(): null {
@@ -20,12 +21,16 @@ export function AchievementToaster(): null {
   if (seen.current === null) seen.current = new Set(save.achievements);
 
   useEffect(() => {
+    // One save change can unlock several at once (a hub claim, a catch-up evaluation): announce
+    // them as ONE batch so a burst collapses into the summary placard live, exactly as a held
+    // burst does on flush (coalesceHeld, ACHIEVEMENT_COLLAPSE_AT).
+    const batch: RewardEvent[] = [];
     for (const id of save.achievements) {
       if (seen.current!.has(id)) continue;
       seen.current!.add(id);
       const def = achievementById(id);
       if (!def) continue;
-      rewardToast.push({
+      batch.push({
         type: 'achievement',
         qty: def.reward ?? 0, // the Core reward — a collapsed burst sums it ("5 achievements · +180 Cores")
         name: def.name,
@@ -34,6 +39,7 @@ export function AchievementToaster(): null {
         collection: def.reward ? `+${def.reward} ${ACCOUNT_CURRENCY.name}` : def.desc,
       });
     }
+    for (const e of coalesceHeld(batch)) rewardToast.push(e);
   }, [save.achievements]);
 
   return null;
