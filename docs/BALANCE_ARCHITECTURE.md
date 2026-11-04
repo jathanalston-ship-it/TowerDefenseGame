@@ -47,6 +47,7 @@
 | Power | every permanent field scored or explicitly waived (bypass prevention) | power validation tests |
 | Content shape | registry validation on every def; gene 100/250/500-card stress; per-def invariants | `validate.ts`, `geneStress` |
 | Pacing | simulator detectors (dead progression, wall stall, spike, sink exhaustion) at CI scale; Molt cadence ≤2 by 5h / ≤10 by 30h | `progressionSim.test.ts` |
+| Molt trough | Molt Imprint: first Molt untouched; a fully-bought engine dips ≤ ×5 at the cap; Molt Power preview ≡ outcome (§9.6) | `prestige.test.ts`, `prestigeView.test.ts` |
 | Report instrument | molt-aware dead-zone (shared `isDeadProgression`), cohort-relative spikes, seeded loot (reproducible matrix) | `balanceReport.test.ts` |
 | UI/identity | type/tracking/radius/motion scales enforced | `uiStandards.test.ts` |
 | Docs/graph | anchors, dead paths, dependency-graph freshness | `systemRegistry.test.ts` |
@@ -289,12 +290,81 @@ the surplus conversion (no surplus within 400h for 9 of 11 personas; Lucky/Campa
 
 ### 9.5 Watch items (open, by design)
 
-- **The Molt trough deepens with depth** (×3–5 early → ×15–18 at 350h+; readiness ≈ 0.1 after a
-  late Molt, ~20h of each ~25h cycle spent rebuilding). Pacing is fine (§8), but it is the source of
-  the late 71% push-failure share and a Power number that visibly crashes each Molt — a design look
-  (e.g. partial upgrade retention via an Ascendant node) belongs to prestige layers 2+.
+- ~~**The Molt trough deepens with depth**~~ — **decided in §9.6** (the Molt Imprint).
 - **Essence past ~700h.** With the surplus conversion the 1,000h probe's Essence pile reaches ~2.4M
   once all 131 cards are maxed + transcended. The bot models only gene levels + Transcendence;
   nucleus organs, hero symbiotes, Mulligans and Hive organs also spend Essence, and Gene Ascension
   tiers are the reserved repeatable sink.
 - **Catalyst** idles in the sim (32k at 1,000h): the bot doesn't craft, and Prime opens at stage 300.
+
+### 9.6 Decision — the MOLT IMPRINT bounds the trough (2026-11)
+
+**The finding, re-measured per Molt.** §9.1's ×15–18 was read off checkpoints. Instrumenting every
+Molt (Power just before it; Power after that spend pass, Ascendant buys included; frontier readiness;
+hours until readiness ≥ 1 again) over 4 personas × 5 seeds × 400h (seeded, the §9 seeds
+`2000 + i·7919`) shows a deeper hole: efficient **×7 → ×5 → ×5 → ×19 → ×35** by Molt-hour band
+(0–10 / 10–50 / 50–150 / 150–350 / 350–400h), post-Molt readiness **0.05** late, ~20h per late
+Molt before the frontier is playable again. Cause: the Genome engine is re-bought every cycle from
+that cycle's Cores; a deep cycle owns 100–230 levels (×35+ Power) and the Molt hands back +1–2% damage
+in cells for wiping them. The campaign persona, which pushes under-ready, ate it as a 71% late
+failure share (readiness 0.01 after a late Molt).
+
+**Mechanism (smallest seam, no save field).** A Molt keeps **round(level × imprint)** of every
+Genome upgrade, `imprint = min(imprintMax 0.7, imprintPerMolt 0.0125 × Molts already done)`
+(`PRESTIGE.molt`; `moltImprint` / `imprintedUpgrades` in core/prestige.ts; one `moltedSave` builder
+in meta.ts serves the mint and `moltPowerPreview`). 0 on the first Molt — it resets exactly as
+before. Derived from `prestige.molts`, so the save is unchanged (v55). The kept levels are the cheap
+bottom of each geometric ladder: late Molts keep ~2/3 of the levels but only **13–40% of the Cores**
+invested (efficient 350h+: 65% / 33%), so the re-climb still costs and the Molt is still a reset.
+Help (`mechanics.ts` prestige row) and the Molt Chamber (KEEPS manifest + "Power before → after" in
+the confirm) say so; docs/GENOME-CORE.md §molt-imprint is the canonical rule.
+
+**Calibration (screened, then the full matrix).** A floored level share (`⌊L × r⌋`, cap 0.6) cut
+the efficient late trough to ×4–5 (one-seed screen, stage @400h +2%) but zeroes every short ladder — a player who
+spreads levels thinly keeps nothing — and leaves a fully-bought engine at ×16.6. **Rounding** fixes
+the first (and brings the full engine to ×9.7 at 0.6); the **0.7 cap** fixes the second (a
+fully-bought engine — every capped upgrade maxed + Runaway 40 — dips ×4.3 vs ×516 under a full
+reset; pinned in `prestigeView.test.ts`). The cap is reached at Molt 56 (past 400h), so
+it governs the long tail, not the 400h matrix. `+0.0125/Molt` keeps the first ~10 Molts nearly
+untouched (the early rush) and tracks the trough's growth with depth.
+
+**Before → after** (cohort medians, 5 seeds each; bands are Molt hours 0–10 / 10–50 / 50–150 /
+150–350 / 350–400; `front` = hours from a Molt until frontier readiness ≥ 1 again, `cycle` = hours
+to the next Molt, shown for 150–350 · 350–400h):
+
+| Persona | Trough (pre ÷ post Power) | Post-Molt readiness | front / cycle h (late) | Molts @5/30/100/400h | Stage @100/400h | Late fail share |
+|---|---|---|---|---|---|---|
+| efficient before | ×7.1 / 5.1 / 4.8 / **18.6 / 35.0** | 0.26 / 0.36 / 0.32 / **0.09 / 0.05** | 11.9/14.4 · **20.2/21.9** | 1 / 6 / 24 / 49 | 84 / 154 | — |
+| efficient after | ×7.1 / 4.3 / 3.0 / **3.3 / 3.3** | 0.26 / 0.44 / 0.52 / **0.47 / 0.52** | 9.7/10.4 · **10.8/11.2** | 1 / 6 / 24 / 51 | 89 / 160 (+3.9%) | — |
+| average before | ×6.7 / 4.6 / 4.3 / **15.5 / 33.0** | 0.20 / 0.39 / 0.35 / **0.11 / 0.05** | 12.6/13.9 · **20.2/21.1** | 1 / 6 / 21 / 47 | 80 / 148 | — |
+| average after | ×6.7 / 4.2 / 2.9 / **3.4 / 3.1** | 0.20 / 0.42 / 0.54 / **0.50 / 0.48** | 9.9/11.0 · **12.9/13.4** | 1 / 6 / 21 / 50 | 79 / 159 (+7.4%) | — |
+| campaign before | ×6.6 / 4.2 / 9.1 / **34.3 / 39.5** | 0.27 / 0.29 / 0.13 / **0.02 / 0.01** | 10.9/10.9 · **15.6/15.6** | 1 / 11 / 38 / 64 | 123 / 201 | 71% |
+| campaign after | ×6.6 / 3.1 / 3.1 / **2.6 / 2.7** | 0.27 / 0.39 / 0.38 / **0.21 / 0.11** | 9.4/9.4 · **13.6/13.6** | 1 / 12 / 40 / 71 | 127 / 221 (+10%) | 63% |
+| unlucky before | ×7.1 / 5.3 / 4.8 / **14.2 / 33.0** | 0.27 / 0.33 / 0.31 / **0.10 / 0.05** | 11.7/13.6 · **21.2/21.9** | 1 / 6 / 22 / 47 | 86 / 149 | — |
+| unlucky after | ×7.1 / 4.6 / 3.1 / **3.3 / 3.1** | 0.27 / 0.39 / 0.50 / **0.45 / 0.46** | 9.7/10.6 · **12.3/12.7** | 1 / 6 / 22 / 50 | 88 / 159 (+6.7%) | — |
+
+Cells minted barely move (efficient lifetime cells @400h 913 → 924): shorter cycles mint fewer cells
+each, so the prestige multiplier keeps its meaning; band-peak Power 150→400h rises 34M → 53M because
+the engine no longer restarts from zero. The CI pacing envelope's pinned account is unchanged
+(1 Molt by 5h, 6 by 30h, before and after); goldens byte-identical (a fresh save never Molts).
+
+**Reading the targets honestly.**
+- *Trough ≤ ~×5 at every depth:* met from 10h on (medians ×2.6–4.6; p90 ≤ ×3.8 past 50h). The 0–10h band (Molts 1–2) stays ×7 —
+  by design: the first Molt is untouched and the second keeps 1.25% (rounded: nothing on a 10-level
+  ladder); those cycles are 4–6h with ~3h of rebuild. The deepening — the actual defect — is gone.
+- *Late post-Molt readiness ≥ ~0.3:* met for the loop-faithful personas (0.47–0.52). The campaign
+  persona reads 0.11–0.21 because it Molts already under-ready (it pushes at readiness ~0.3, the
+  dip is ×2.7); its failure share falls 71% → 63%.
+- *Rebuild ≤ ~half a cycle:* **as a share, no mechanism that keeps the Molt a reset can get there
+  — and the data says it is the wrong ruler.** The bot Molts the moment the +3-stage gate opens, so
+  every cycle is "farm back to the frontier → a short 3-stage burst → Molt": front/cycle reads
+  ~0.95 before AND after, and the pre-Molt peak (which overshoots the gate) is often never regained
+  before the next Molt in either world. The Imprint halves the absolute cost instead: a late Molt
+  now costs **~11–13h** of frontier-less farming vs **~20–21h** — about half the old cycle — and the
+  loop-faithful personas' late cycles run 11–13h instead of 21–22h.
+- *Pacing:* efficient stage @400h +3.9% (Molts 49 → 51), average +7.4%, unlucky +6.7%. **Flag:**
+  campaign +10% (201 → 221, Molts 64 → 71) — the persona the trough hurt most; its gain is the failure share
+  falling, not a faster loop for everyone. No knob moves for it; re-check at the next matrix.
+
+**Not regenerated here:** docs/BALANCE_REPORT.md / docs/PROGRESSION_REPORT.md still show the pre-Imprint
+sawtooth (their next regeneration will read shallower post-Molt checkpoints and higher band peaks).
