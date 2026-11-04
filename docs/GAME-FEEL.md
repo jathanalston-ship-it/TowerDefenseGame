@@ -29,7 +29,7 @@ floating texts). No code — why / visual / audio per item.
   (eased decay, composed under the danger zoom).
 - **Boss arrival**: bossBanner flipping live triggers the APEX THREAT intro (eyebrow → name
   slam → subtitle over a red iris), the `boss` sting (falling tritone + sub thump), and an
-  arrival shake (BOSS_TRAUMA).
+  arrival shake (`FEEL.bossArrive`, render/feel.ts).
 - **Draft feel**: staggered card arrival, hover lift+tilt, animated conic rarity borders for
   epic/legendary, floating motes over legendaries.
 - All spectacle respects `prefers-reduced-motion` (heavy animations collapse).
