@@ -2,7 +2,8 @@
 // core-upgrade economy (banked Genome Cores + the capped meta upgrades) to mint Ascendant Cells,
 // which grant a PERMANENT, compounding global damage multiplier — a brand-new multiplicative
 // bucket on top of stars/mastery/equipment. Trophies (stars, mastery, titles, lore, gear,
-// tower/hero shards, loot queue) never reset; only the engine does.
+// tower/hero shards, loot queue) never reset; only the engine does — less the MOLT IMPRINT, a
+// share of every upgrade's levels that grows with the Molts already done (moltImprint below).
 //
 // The math follows the generic template (§5.1): square-root GAIN (diminishing within a
 // cycle → "when do I molt?" becomes a real decision) + a square-root global MULTIPLIER
@@ -22,6 +23,11 @@ export const PRESTIGE = {
     cellScale: 100, // S — cycle-shards per scale unit
     multPerCell: 0.1, // c — globalMult = 1 + c × √(lifetimeCells)
     minCells: 12, // a Molt is offered once it would mint at least this many cells (⇒ ≥ 6,400 cycle Cores)
+    // MOLT IMPRINT (docs/BALANCE_ARCHITECTURE.md §9.6): the share of every Genome upgrade's levels a
+    // Molt KEEPS. Grows with the Molts already completed (0 on the first Molt), capped — so the
+    // post-Molt Power trough stays bounded as the engine deepens instead of crashing ×30+ late.
+    imprintPerMolt: 0.0125, // +1.25% of each upgrade's levels kept per completed Molt
+    imprintMax: 0.7, // never more than 70% — the dear top of every ladder (most of its Cores) always sheds
   },
   // Campaign gate (PROGRESSION.md) — Prestige is anchored to campaign depth, not idle shards:
   // the FIRST Molt requires clearing Campaign Stage `firstStage`, and every later Molt requires
@@ -62,6 +68,26 @@ export function canMolt(cycleShards: number): boolean {
 export function shardsForCells(cells: number): number {
   // invert cells = cellGain·√(x/cellScale) → x = cellScale × (cells / cellGain)²
   return Math.ceil(PRESTIGE.molt.cellScale * Math.pow(cells / PRESTIGE.molt.cellGain, 2));
+}
+
+/** The MOLT IMPRINT: the share of each Genome upgrade's levels the NEXT Molt keeps, given lifetime
+ *  `molts` already done. Linear in Molts, capped at `imprintMax`; 0 for the first Molt. */
+export function moltImprint(molts: number): number {
+  return Math.min(PRESTIGE.molt.imprintMax, PRESTIGE.molt.imprintPerMolt * Math.max(0, molts));
+}
+
+/** The Genome upgrade levels a Molt leaves standing: round(level × imprint) per upgrade (zeros
+ *  dropped). The kept levels are the cheap BOTTOM of each geometric ladder — most of the Power, a
+ *  small slice of the Cores — so the re-climb still costs. ROUNDED, not floored: a floor zeroes
+ *  every short ladder (a level-2 upgrade at 30% keeps nothing), punishing players who spread
+ *  their purchases across many upgrades. */
+export function imprintedUpgrades(upgrades: Record<string, number>, imprint: number): Record<string, number> {
+  const out: Record<string, number> = {};
+  for (const [id, level] of Object.entries(upgrades)) {
+    const kept = Math.round((level ?? 0) * imprint + 1e-9); // epsilon: a float x.4999… half must still round up
+    if (kept > 0) out[id] = kept;
+  }
+  return out;
 }
 
 /** Persisted prestige state (lives on SaveData). */
