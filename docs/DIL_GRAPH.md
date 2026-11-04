@@ -1,6 +1,6 @@
 # DIL_GRAPH.md — the Design Intelligence Layer (GENERATED — `npm run dil -- regen`)
 
-> **The project's brain** (docs/DIL.md). 950 nodes · 1824 edges, built from the live
+> **The project's brain** (docs/DIL.md). 950 nodes · 1825 edges, built from the live
 > registries + curated knowledge (src/dev/dil/). **Query it instead of searching the repo:**
 > `npm run dil -- node <id>` · `affects <id>` · `requires <id>` · `missing <kind> <edge>` ·
 > `checklist tower <kind>` · `find <text>`. Edge kinds are bidirectional (19 kinds).
@@ -104,6 +104,7 @@ graph LR
   system_doctrines["Doctrines"] -->|rewards| currency_gene_essence["Gene Essence"]
   system_prestige["Prestige (Molt / Ascendant)"] -->|modifies| system_difficulty["Difficulty"]
   system_prestige["Prestige (Molt / Ascendant)"] -->|consumes| currency_genome_cores["Genome Cores (◆)"]
+  system_prestige["Prestige (Molt / Ascendant)"] -->|modifies| system_evolution_hq["Evolution HQ (Genome Cores)"]
   system_hive_construction["Hive Construction"] -->|consumes| currency_genome_cores["Genome Cores (◆)"]
   system_hive_construction["Hive Construction"] -->|consumes| currency_gene_essence["Gene Essence"]
   system_hive_construction["Hive Construction"] -->|consumes| currency_tower_shards["Tower Shards (✦)"]
@@ -582,6 +583,7 @@ graph LR
 ```mermaid
 graph LR
   system_prestige["Prestige (Molt / Ascendant)"] -->|modifies| system_difficulty["Difficulty"]
+  system_prestige["Prestige (Molt / Ascendant)"] -->|modifies| system_evolution_hq["Evolution HQ (Genome Cores)"]
   system_liveops["LiveOps calendar"] -->|modifies| system_hub_shell["Hub Shell & Home"]
   system_reward_architecture["Reward Loop Architecture"] -->|modifies| system_hub_shell["Hub Shell & Home"]
   system_gene_cards["Gene Cards (draft + permanent evolution)"] -->|modifies| system_engine["Sim Engine"]
@@ -1617,6 +1619,7 @@ _at: src/state/evolutionHQ.ts, src/ui/EvolutionHQ.tsx, src/ui/EvolutionUnlock.ts
   - documentedBy ← `doc:GENOME-CORE.md`
   - documentedBy ← `doc:EVOLUTION-CAP.md`
   - testedBy ← `test:src/state/evolutionHQ.test.ts`
+  - modifiedBy ← `system:prestige` — MOLT IMPRINT (core/prestige.ts moltImprint/imprintedUpgrades): a Molt keeps round(level × min(0.7, 0.0125 × molts)) of every Genome upgrade — the post-Molt trough stays bounded (BALANCE_ARCHITECTURE §9.6); a new upgrade ladder inherits it, and its levels shed at 30%+ per Molt
 
 ### `system:hive-construction` — Hive Construction
 
@@ -1664,7 +1667,7 @@ _at: src/core/loginStreak.ts, src/ui/BioCache.tsx_
 
 ### `system:prestige` — Prestige (Molt / Ascendant)
 
-Reset loop: mint Ascendant Cells → compounding multiplier + permanent tree. MOLT VOWS (docs/VOWS.md): arm 0–3 data-row handicaps that warp the enemy world all cycle (DoctrineWarp reuse, composed multiplicatively onto the doctrine at the ONE director fold site) and multiply the next mint; geometric Core sink at arm time, never refunded; settled + cleared at molt; dailies/tutorial excluded.
+Reset loop: mint Ascendant Cells → compounding multiplier + permanent tree. MOLT IMPRINT (docs/GENOME-CORE.md §molt-imprint): a Molt keeps round(level × min(0.7, 0.0125 × molts done)) of every Genome upgrade — 0 on the first Molt — so the post-Molt trough stays bounded (≤ ×5 even on a full engine); derived from prestige.molts, no save field. MOLT VOWS (docs/VOWS.md): arm 0–3 data-row handicaps that warp the enemy world all cycle (DoctrineWarp reuse, composed multiplicatively onto the doctrine at the ONE director fold site) and multiply the next mint; geometric Core sink at arm time, never refunded; settled + cleared at molt; dailies/tutorial excluded.
 
 _at: src/core/prestige.ts, src/core/ascendant.ts, src/core/vows.ts, src/ui/PrestigePanel.tsx_
 
@@ -1674,6 +1677,7 @@ _at: src/core/prestige.ts, src/core/ascendant.ts, src/core/vows.ts, src/ui/Prest
   - consumes → `system:meta-store` — owns save field 'prestige'
   - modifies → `system:difficulty` — MOLT VOWS (core/vows.ts): armed wagers compose their DoctrineWarp onto the doctrine at the ONE director fold site (composeWarps — mult axes multiply, additive add; none armed = referential passthrough)
   - consumes → `currency:genome-cores` — vow arming is a geometric post-tree Core sink (750/3k/12k), consumed at oath time and never refunded
+  - modifies → `system:evolution-hq` — MOLT IMPRINT (core/prestige.ts moltImprint/imprintedUpgrades): a Molt keeps round(level × min(0.7, 0.0125 × molts)) of every Genome upgrade — the post-Molt trough stays bounded (BALANCE_ARCHITECTURE §9.6); a new upgrade ladder inherits it, and its levels shed at 30%+ per Molt
   - references → `system:cutscenes` — the Molt Chamber + ceremony reuse the cutscene molt tableau via drawCutsceneFrame — retheme it, never fork it
   - extends → `system:meta-store` — Ascendant nodes multiply the permanent buckets
   - requiredBy ← `system:evolution-hq`

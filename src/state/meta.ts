@@ -51,7 +51,7 @@ import { addProgress } from '../core/lootQueue';
 import type { LootQueueState } from '../core/lootQueue';
 import { resolveStarKit } from '../core/stars';
 import { masteryPerksUpTo, masteryRewardsBetween } from '../core/mastery';
-import { PRESTIGE, canMolt, cellsForCycle, prestigeMult, prestigeStageReq, shardsForCells } from '../core/prestige';
+import { PRESTIGE, canMolt, cellsForCycle, imprintedUpgrades, moltImprint, prestigeMult, prestigeStageReq, shardsForCells } from '../core/prestige';
 import { ASCENDANT_NODES, ascendantBonuses, ascendantCost, nextAscendantCost } from '../core/ascendant';
 import { accumulateStats } from './stats';
 import { DEVICE_PREF_KEYS } from './prefs';
@@ -1150,6 +1150,25 @@ function moltGain(save: SaveData): number {
   return Math.floor(cellsForCycle(save.prestige.cycleShards) * ascendantBonuses(save.prestige.nodes).cellGainMult * vowYieldProduct(save.prestige.vows));
 }
 
+// The save a Molt minting `gain` cells leaves behind (before the account-XP/timeline bookkeeping):
+// banked Cores → 0, Genome upgrades → the MOLT IMPRINT's kept levels, cells credited, cycle reset.
+// ONE builder for the mint (molt) and its Power preview (moltPowerPreview) — preview == outcome.
+function moltedSave(save: SaveData, gain: number): SaveData {
+  return {
+    ...save,
+    shards: 0, // reset the engine: banked Shards …
+    upgrades: imprintedUpgrades(save.upgrades, moltImprint(save.prestige.molts)), // … and all but the Imprint's share of every upgrade's levels
+    prestige: {
+      cells: save.prestige.cells + gain,
+      lifetimeCells: save.prestige.lifetimeCells + gain,
+      cycleShards: 0,
+      molts: save.prestige.molts + 1,
+      nodes: save.prestige.nodes, // the Ascendant Tree is permanent — kept across Molts
+      vows: [], // vows SETTLE here — the wager paid into `gain`; arm costs are never refunded
+    },
+  };
+}
+
 export function upgradeLevel(save: SaveData, id: string): number {
   return save.upgrades[id] ?? 0;
 }
@@ -2193,7 +2212,9 @@ export const meta = {
     nextCellProgress: number; // 0..1 between the current raw cell and the next
     mintProgress: number; // 0..1 toward the FIRST offerable mint (minCells) — the pre-ready bar
     spentCells: number; // lifetime cells invested into the Ascendant Tree
-    upgradeLevels: number; // Genome-upgrade levels a Molt resets (the manifest's number)
+    upgradeLevels: number; // Genome-upgrade levels a Molt SHEDS (the manifest's number)
+    upgradeLevelsKept: number; // Genome-upgrade levels the Molt Imprint keeps
+    imprint: number; // the share of every upgrade's levels the next Molt keeps (0 on the first)
   } {
     const save = store.get();
     const s = save.prestige;
@@ -2205,6 +2226,9 @@ export const meta = {
     const rawCells = cellsForCycle(s.cycleShards);
     const curFloor = shardsForCells(rawCells);
     const nextCellNeed = shardsForCells(rawCells + 1);
+    const imprint = moltImprint(s.molts);
+    const upgradeLevels = sumValues(save.upgrades);
+    const upgradeLevelsKept = sumValues(imprintedUpgrades(save.upgrades, imprint));
     const spentCells = ASCENDANT_NODES.reduce((sum, def) => {
       let acc = 0;
       for (let l = 0; l < (s.nodes[def.id] ?? 0); l++) acc += ascendantCost(def, l);
@@ -2228,7 +2252,20 @@ export const meta = {
       nextCellProgress: Math.max(0, Math.min(1, (s.cycleShards - curFloor) / Math.max(1, nextCellNeed - curFloor))),
       mintProgress: Math.max(0, Math.min(1, s.cycleShards / Math.max(1, shardsForCells(PRESTIGE.molt.minCells)))),
       spentCells,
-      upgradeLevels: Object.values(save.upgrades).reduce((a, v) => a + (v ?? 0), 0),
+      upgradeLevels: upgradeLevels - upgradeLevelsKept,
+      upgradeLevelsKept,
+      imprint,
+    };
+  },
+
+  /** Power now vs right after a Molt committed now (the Imprint's kept levels + the new cells) —
+   *  the Molt Chamber's "Power after" line. Built by the SAME moltedSave the mint uses, so the
+   *  preview IS the outcome (pinned in prestigeView.test). */
+  moltPowerPreview(): { before: number; after: number } {
+    const save = store.get();
+    return {
+      before: composePower(accountPowerParts(save)).score,
+      after: composePower(accountPowerParts(moltedSave(save, moltGain(save)))).score,
     };
   },
 
@@ -2270,9 +2307,10 @@ export const meta = {
   },
 
   /**
-   * MOLT: sacrifice the core-upgrade engine (banked Shards + meta-upgrade levels) to mint
-   * Ascendant Cells, which permanently raise the global damage multiplier. Trophies (stars,
-   * mastery, titles/lore, gear, tower/hero shards, loot queue) are KEPT. Returns false if a
+   * MOLT: sacrifice the core-upgrade engine (banked Shards + meta-upgrade levels, less the MOLT
+   * IMPRINT's kept share) to mint Ascendant Cells, which permanently raise the global damage
+   * multiplier. Trophies (stars, mastery, titles/lore, gear, tower/hero shards, loot queue) are
+   * KEPT. Returns false if a
    * Molt isn't worth offering yet (< minCells). Backs up first — it's destructive.
    */
   molt(): boolean {
@@ -2283,17 +2321,7 @@ export const meta = {
     if (highestCampaignStage(save) < prestigeStageReq(save.prestige.molts)) return false; // campaign gate (PROGRESSION.md)
     saveStore.backup(); // ascensions are big + irreversible — keep a recoverable snapshot
     persist(foldAccountXp({
-      ...save,
-      shards: 0, // reset the engine: banked Shards …
-      upgrades: {}, // … and the capped meta-upgrade levels
-      prestige: {
-        cells: save.prestige.cells + gain,
-        lifetimeCells: save.prestige.lifetimeCells + gain,
-        cycleShards: 0,
-        molts: save.prestige.molts + 1,
-        nodes: save.prestige.nodes, // the Ascendant Tree is permanent — kept across Molts
-        vows: [], // vows SETTLE here — the wager paid into `gain`; arm costs are never refunded
-      },
+      ...moltedSave(save, gain),
       timeline: pushTimeline(save.timeline, '◬', `MOLT ${save.prestige.molts + 1} — ${gain} Ascendant Cells${save.prestige.vows.length > 0 ? ` (×${vowYieldProduct(save.prestige.vows).toFixed(2)} vow wager honoured)` : ''}`), // profile milestone
     }, ACCOUNT_XP.molt).save); // a MOLT is a chapter of account history (docs/ACCOUNT-LEVEL.md)
     return true;

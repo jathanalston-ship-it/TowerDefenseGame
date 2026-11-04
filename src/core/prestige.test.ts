@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { PRESTIGE, canMolt, cellsForCycle, prestigeMult, prestigeStageReq, shardsForCells, defaultPrestige } from './prestige';
+import { PRESTIGE, canMolt, cellsForCycle, imprintedUpgrades, moltImprint, prestigeMult, prestigeStageReq, shardsForCells, defaultPrestige } from './prestige';
 
 describe('MOLT currency (square-root gain)', () => {
   it('mints ⌊cellGain·√(cycleShards/cellScale)⌋ — diminishing within a cycle', () => {
@@ -52,5 +52,37 @@ describe('MOLT campaign gate (Prestige is earned by campaign depth)', () => {
     expect(prestigeStageReq(60) - prestigeStageReq(59)).toBe(PRESTIGE.campaign.stagePerMolt);
     // Deep sanity: molt 46 must stay reachable within the measured deep frontier (~stage 160).
     expect(prestigeStageReq(46)).toBeLessThan(160);
+  });
+});
+
+describe('MOLT IMPRINT (the bounded trough — BALANCE_ARCHITECTURE.md §9.6)', () => {
+  it('the FIRST Molt keeps nothing — it behaves exactly as the pre-Imprint Molt', () => {
+    expect(moltImprint(0)).toBe(0);
+    expect(imprintedUpgrades({ lethality: 10, apex: 4, runaway_lethality: 25 }, moltImprint(0))).toEqual({});
+  });
+
+  it('grows linearly with completed Molts, then holds at the cap — the dear top levels always shed', () => {
+    expect(moltImprint(1)).toBeCloseTo(PRESTIGE.molt.imprintPerMolt, 12);
+    expect(moltImprint(10)).toBeCloseTo(10 * PRESTIGE.molt.imprintPerMolt, 12);
+    const capAt = Math.ceil(PRESTIGE.molt.imprintMax / PRESTIGE.molt.imprintPerMolt);
+    for (let m = 1; m <= capAt + 20; m++) expect(moltImprint(m)).toBeGreaterThanOrEqual(moltImprint(m - 1));
+    expect(moltImprint(capAt)).toBe(PRESTIGE.molt.imprintMax);
+    expect(moltImprint(capAt + 500)).toBe(PRESTIGE.molt.imprintMax); // late Molts keep the bounded fraction
+    expect(PRESTIGE.molt.imprintMax).toBeLessThan(1); // a Molt is always a real reset
+    expect(moltImprint(-3)).toBe(0); // defensive: a corrupt negative count keeps nothing
+  });
+
+  it('keeps round(level × imprint) of every upgrade (zeros dropped, halves up, exact on clean multiples)', () => {
+    expect(imprintedUpgrades({ a: 10, b: 3, c: 1, d: 0 }, 0.5)).toEqual({ a: 5, b: 2, c: 1 });
+    expect(imprintedUpgrades({ a: 10, b: 7 }, 0.35)).toEqual({ a: 4, b: 2 }); // 3.5 → 4 (the float half rounds up), 2.45 → 2
+    expect(imprintedUpgrades({ runaway: 41 }, 0.6)).toEqual({ runaway: 25 }); // uncapped tiers keep the same share
+    expect(imprintedUpgrades({}, 0.6)).toEqual({});
+  });
+
+  it('rounds, never floors: a player who spreads levels thinly still keeps a share', () => {
+    // 20 upgrades at level 2 under a 30% Imprint: a floor would keep 0 of 40 levels; rounding keeps 20.
+    const spread = Object.fromEntries(Array.from({ length: 20 }, (_, i) => [`u${i}`, 2]));
+    expect(Object.values(imprintedUpgrades(spread, 0.3)).reduce((x, y) => x + y, 0)).toBe(20);
+    expect(imprintedUpgrades({ a: 2 }, 0.2)).toEqual({}); // below a half-level, nothing survives
   });
 });

@@ -5,7 +5,8 @@ reference: the architecture, every upgrade, and its intended purpose. Balance va
 by design — the point is **meaningful diversity of levers**, not number inflation.
 
 - **Genome Core Upgrades** — bought with the account currency (Genome Cores). Capped, reset on a
-  Molt (prestige). Data in `config.META_UPGRADES` (`UpgradeDef`).
+  Molt (prestige) — all but the **Molt Imprint**'s share (§molt-imprint). Data in
+  `config.META_UPGRADES` (`UpgradeDef`).
 - **Ascendant Tree** — bought with Ascendant Cells (minted by molting). Capped, **kept across every
   Molt**. Data in `ascendant.ts` (`AscendantNodeDef`).
 
@@ -122,6 +123,26 @@ New `AscendantBonuses` stats: `damageMult`, `masteryXpMult`, `lootQualityMult`, 
 `integrityMult`, `coreGainMult` — each ×1 with no nodes (golden-safe).
 
 ---
+
+## §molt-imprint (2026-11) — what a Molt keeps
+
+A Molt resets the Genome engine, but no longer to zero: each upgrade keeps
+**round(level × imprint)** levels, where `imprint = min(imprintMax, imprintPerMolt × moltsDone)` —
+`imprintPerMolt 0.0125 · imprintMax 0.7` (`PRESTIGE.molt`, `core/prestige.ts` →
+`moltImprint` / `imprintedUpgrades`). The FIRST Molt (0 done) keeps nothing — exactly the old reset;
+the share then grows +1.25% per Molt and caps at 70% (Molt 56). Derived from `prestige.molts`, so
+no save field — the `upgrades` map simply holds the kept levels.
+
+- **Why levels, why rounded.** The kept levels are the cheap bottom of each geometric ladder: most
+  of an upgrade's Power, a minority of its Cores (a 10-level ×1.55 ladder at 70% keeps ~1/3 of the
+  Cores invested). So the Power dip is bounded while the re-climb still costs — a Molt stays a real
+  reset. Rounded (not floored) so a player who spreads levels thinly is not zeroed out.
+- **Bound.** With the cap, even a fully-bought engine (every capped upgrade maxed + Runaway 40)
+  dips ≤ ×5 (×4.3 measured; the same engine under a full reset: ×516) — pinned in `src/state/prestigeView.test.ts`.
+- **Surfaces.** `prestigeView().imprint / upgradeLevelsKept` (and `upgradeLevels` = levels SHED)
+  feed the Molt Chamber manifest; `meta.moltPowerPreview()` is the confirm dialog's
+  "Power before → after" line, built by the same `moltedSave` the mint uses (preview == outcome).
+- **Evidence.** docs/BALANCE_ARCHITECTURE.md §9.6 (before/after persona matrix).
 
 ## Future hooks / not yet wired
 Named in the design but deferred (need their own seams): Boss Reward Multipliers, Tower Branch

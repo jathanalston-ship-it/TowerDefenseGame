@@ -113,7 +113,9 @@ library's `molt` tableau, rethemed via `drawCutsceneFrame` — reuse, never fork
 decision — the **×now → ×after** multiplier move, the mint headline, a progress bar to the
 NEXT cell (`prestigeView.nextCellNeed/nextCellProgress`, `mintProgress` pre-ready), the
 campaign gate, and an explicit **SHEDS / KEEPS manifest** with live counts
-(`upgradeLevels`, banked Cores). The browser `confirm()` is gone: an in-app Popup confirms,
+(`upgradeLevels` shed, banked Cores; the Molt Imprint's `upgradeLevelsKept` under KEEPS from the
+second Molt on). The browser `confirm()` is gone: an in-app Popup confirms (with the
+`moltPowerPreview()` "Power before → after" line — the same builder as the mint),
 then the Molt plays a fullscreen **ceremony** (shed → cell count-up on `cin_heart` ticks →
 seal with the multiplier move, auto-dismissing). The Ascendant Tree renders as three
 stat-derived **wings** — Dominion (combat) / Economy Engine / Income Axes — each node a card
