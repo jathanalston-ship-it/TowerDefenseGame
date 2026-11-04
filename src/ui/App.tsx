@@ -1,4 +1,4 @@
-import { Suspense, lazy, useCallback, useEffect, useRef, useState } from 'react';
+import { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Hub } from './Hub';
 import { resumePendingClaims } from '../net/checkout';
 import { initEvents, trackEvent } from '../net/events';
@@ -452,14 +452,20 @@ export function App(): JSX.Element {
   }, [startEndless, startBossRush, startCampaign, startDaily, startRun]);
   // Campaign WIN → "Stage N+1 ▸" (docs/REWARD-PRESENTATION.md §next): the push phase advances
   // straight from Results through the SAME launch the Campaign map's Deploy uses — its persisted
-  // difficulty + prediction baseline, the event's default boon, begin()'s readiness briefing (and
+  // difficulty + prediction baseline, the boon picked on Results, begin()'s readiness briefing (and
   // the doctrine already armed). Offered only while N+1 is open on that track; else replay stays.
   const nextStageN = last && last.result.won && last.result.campaignStage ? last.result.campaignStage + 1 : 0;
   const nextStageOpen = nextStageN > 0 && nextStageN <= (meta.get().campaign.cleared[last?.result.difficulty ?? 'standard'] ?? 0) + 1;
-  const startNextStage = useCallback(() => {
+  // Stage N+1's Mutation boons are chosen ON Results (the same pick the Campaign panel offers).
+  const nextEvent = useMemo(
+    () => (nextStageOpen ? generateStage(nextStageN, difficultyPref('campaign')).event : undefined),
+    [nextStageOpen, nextStageN],
+  );
+  const nextBoons = nextEvent?.kind === 'mutation' ? nextEvent.boons : undefined;
+  const startNextStage = useCallback((boonId?: string) => {
     audio.cue('ui');
     meta.notePredictionBaseline('campaign', difficultyPref('campaign'));
-    startCampaign(campaignStageRef.current + 1);
+    startCampaign(campaignStageRef.current + 1, boonId);
   }, [startCampaign]);
   // Clear the last-run recap once the Home screen has shown it (so it doesn't re-appear).
   const clearLast = useCallback(() => setLast(null), []);
@@ -609,7 +615,7 @@ export function App(): JSX.Element {
         /></Suspense>
       )}
       {screen === 'results' && last && (
-        <Suspense fallback={<ScreenFallback />}><Results result={last.result} outcome={last.outcome} powerBefore={last.powerBefore} paused={!!heroSlotUnlock || !!evoUnlock} onContinue={afterResults} onReplay={roulette ? afterResults : replayRun} onNext={!roulette && nextStageOpen ? startNextStage : undefined} /></Suspense>
+        <Suspense fallback={<ScreenFallback />}><Results result={last.result} outcome={last.outcome} powerBefore={last.powerBefore} paused={!!heroSlotUnlock || !!evoUnlock} onContinue={afterResults} onReplay={roulette ? afterResults : replayRun} onNext={!roulette && nextStageOpen ? startNextStage : undefined} nextBoons={nextBoons} nextAccent={nextEvent?.accent} /></Suspense>
       )}
       {screen === 'tutorial' && <Suspense fallback={<ScreenFallback />}><TutorialRunner onExit={toMenu} /></Suspense>}
       {/* Replay Theater — a full-screen overlay; never mounts over a LIVE run (the daily

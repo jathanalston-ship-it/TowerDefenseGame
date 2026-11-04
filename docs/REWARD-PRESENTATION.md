@@ -77,8 +77,10 @@ from the pre-settle snapshot (App takes `meta.power().score` just before `finish
 On a Campaign WIN with Stage N+1 open on that difficulty, the action row reads
 **`↻ Replay` · `Stage N+1 ▸` (primary) · `Continue`**. `Stage N+1 ▸` runs `App.startNextStage`
 — the Campaign map Deploy path (campaign difficulty pref, `notePredictionBaseline`, the
-event's default boon, `begin()`'s deploy briefing incl. the readiness warning; the armed
-doctrine carries). Losses read `↻ Try again` beside the primary Continue; every other mode
+boon, `begin()`'s deploy briefing incl. the readiness warning; the armed doctrine carries).
+When Stage N+1 has a Mutation event with a boon choice, Results shows it right above the row
+(**Stage N+1 boon**, the first option pre-selected — the same pick the Campaign panel offers;
+`RewardReveal next.choices`), and the pick rides `Stage N+1 ▸`. Losses read `↻ Try again` beside the primary Continue; every other mode
 keeps `↻ Infect Again`. Continue is the primary while the sequence plays and steps down to a
 plain button the moment `Stage N+1 ▸` appears; it always stays LAST (the hub door — the first-session probe
 clicks the last continue). The forward/replay buttons appear once the sequence settles.

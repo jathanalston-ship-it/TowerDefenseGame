@@ -9,7 +9,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useCountUp } from './components/useCountUp';
-import type { ReactNode } from 'react';
+import type { CSSProperties, ReactNode } from 'react';
 import { ACCOUNT_CURRENCY } from '../core/currencies';
 import { audio } from '../audio/sound';
 
@@ -150,11 +150,14 @@ export function RewardReveal({
   cliffhanger?: ReactNode; // the "1 run from …" tease, shown once the rewards have all landed
   onReplay?: () => void; // one-tap "Infect Again" — re-run the same mode without a menu round-trip
   replayLabel?: string; // the replay button's words ("↻ Try again" on a loss, "↻ Replay" beside a next step)
-  next?: { label: string; onClick: () => void }; // the PRIMARY forward step (Campaign win → "Stage N+1 ▸")
+  /** The PRIMARY forward step (Campaign win → "Stage N+1 ▸"). `choices` (a stage event's boons)
+   *  render a pick beside it — the first is pre-selected — and the pick rides `onClick`. */
+  next?: { label: string; onClick: (choiceId?: string) => void; choices?: { id: string; name: string; desc: string }[]; choiceLabel?: string; accent?: string };
   paused?: boolean; // a milestone cinematic is over the capsule — the sequence (and its audio) waits for it
 }): JSX.Element {
   const reduced = useRef(prefersReduced()).current;
   const [instant, setInstant] = useState(reduced);
+  const [choice, setChoice] = useState<string | undefined>(next?.choices?.[0]?.id);
   const [revealed, setRevealed] = useState(reduced ? categories.length : 0); // # categories revealed so far
   const [settled, setSettled] = useState(reduced); // last category's beat finished
   const [achvShown, setAchvShown] = useState(reduced ? achievements.length : 0); // # achievements spotlit
@@ -281,8 +284,19 @@ export function RewardReveal({
         )}
         {/* The forward step outranks Continue: once it appears, Continue steps down to a plain
             button (still last in the row — the hub door) and the next step wears the primary. */}
+        {sequenceDone && next?.choices && next.choices.length > 1 && (
+          <div className="rr-choice" role="radiogroup" aria-label={next.choiceLabel ?? 'Choose'} style={next.accent ? ({ ['--ev']: next.accent } as CSSProperties) : undefined}>
+            <span className="rr-choice-k">{next.choiceLabel ?? 'Choose'}</span>
+            {next.choices.map((c) => (
+              <button key={c.id} type="button" role="radio" aria-checked={choice === c.id} className={`rr-choice-opt${choice === c.id ? ' on' : ''}`} onClick={() => setChoice(c.id)}>
+                <b>{c.name}</b>
+                <span>{c.desc}</span>
+              </button>
+            ))}
+          </div>
+        )}
         {sequenceDone && next && (
-          <button type="button" className="primary rr-next" onClick={next.onClick}>{next.label}</button>
+          <button type="button" className="primary rr-next" onClick={() => next.onClick(choice)}>{next.label}</button>
         )}
         <button
           type="button"

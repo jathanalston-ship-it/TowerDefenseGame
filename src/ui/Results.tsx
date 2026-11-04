@@ -66,6 +66,8 @@ export function Results({
   onContinue,
   onReplay,
   onNext,
+  nextBoons,
+  nextAccent,
   powerBefore,
   paused,
 }: {
@@ -73,7 +75,10 @@ export function Results({
   outcome: RunOutcome;
   onContinue: () => void;
   onReplay?: () => void; // one-tap "Infect Again" — re-run the same mode
-  onNext?: () => void; // Campaign win with Stage N+1 open → the primary "Stage N+1 ▸" (App decides availability)
+  onNext?: (boonId?: string) => void; // Campaign win with Stage N+1 open → the primary "Stage N+1 ▸" (App decides availability)
+  /** Stage N+1's Mutation-event boon choice (docs/CAMPAIGN-EVENTS.md) — picked right here; absent ⇒ none. */
+  nextBoons?: { id: string; name: string; desc: string }[];
+  nextAccent?: string;
   powerBefore?: number; // Power Score just before the settle — the Power row counts up FROM it
   paused?: boolean; // a milestone cinematic (Hero Slot / Evolution Unlock) is over Results — the reveal waits
 }): JSX.Element {
@@ -515,7 +520,7 @@ export function Results({
         onContinue={onContinue}
         onReplay={onReplay}
         replayLabel={!result.won ? '↻ Try again' : onNext ? '↻ Replay' : undefined}
-        next={onNext && result.campaignStage ? { label: `Stage ${result.campaignStage + 1} ▸`, onClick: onNext } : undefined}
+        next={onNext && result.campaignStage ? { label: `Stage ${result.campaignStage + 1} ▸`, onClick: onNext, choices: nextBoons, choiceLabel: `Stage ${result.campaignStage + 1} boon`, accent: nextAccent } : undefined}
         paused={paused}
         cliffhanger={
           <>

@@ -9394,6 +9394,17 @@ html[data-layout='landscape'] .mc-campaign > .mc-ledger { order: 3; }
 .rr-replay { border-color: var(--viral); color: #fff; }
 /* The forward step (Campaign win → "Stage N+1 ▸") is the row's primary; Continue steps down. */
 .rr-next { min-width: 160px; }
+/* Stage N+1's Mutation boon, picked beside the forward step (docs/REWARD-PRESENTATION.md §next). */
+.rr-choice { order: -1; flex-basis: 100%; display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; align-items: stretch; }
+.rr-choice-k { flex-basis: 100%; text-align: center; font-size: 12px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+.rr-choice-opt { flex: 1 1 140px; display: flex; flex-direction: column; gap: 2px; max-width: 240px; min-height: 44px; text-align: left; padding: 7px 10px; border-radius: var(--r-sm); border: 1px solid var(--line); background: var(--panel); color: var(--muted); line-height: 1.3; cursor: pointer; }
+.rr-choice-opt b { font-size: 13px; font-weight: 800; color: var(--text); }
+.rr-choice-opt span { font-size: 12px; }
+.rr-choice-opt.on { border-color: var(--ev, var(--success)); background: color-mix(in srgb, var(--ev, var(--success)) 14%, transparent); box-shadow: inset 0 0 0 1px var(--ev, var(--success)); }
+.rr-choice-opt.on b { color: var(--ev, var(--success)); }
+/* In the pinned action bar (a scrolling capsule) the picker sits above the bar's fade — give it its own
+   backdrop so the report underneath never shows through. */
+.rr-capsule > .rr-actions .rr-choice { padding: 6px 4px 2px; border-radius: var(--r-sm); background: color-mix(in srgb, var(--bg) 94%, transparent); }
 .rr-btn.rr-continue { min-width: 0; }
 @media (max-width: 480px) {
   .rr-skip { top: 0; padding: 3px 10px; } /* clear of the verdict headline on a phone-width capsule */
