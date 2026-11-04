@@ -126,6 +126,7 @@ function AchievementSpotlight({ a, index, total }: { a: AchievementItem; index: 
 
 export function RewardReveal({
   title,
+  banner,
   categories,
   achievements,
   onContinue,
@@ -133,6 +134,7 @@ export function RewardReveal({
   onReplay,
 }: {
   title: ReactNode;
+  banner?: ReactNode; // always-visible panel under the title (the defeat debrief) — outside the paced sequence
   categories: RewardCategory[];
   achievements: AchievementItem[];
   onContinue: () => void;
@@ -196,6 +198,7 @@ export function RewardReveal({
   return (
     <div className={`rr-capsule${sequenceDone ? ' is-done' : ''}`} onClick={nudge}>
       <div className="rr-cinematic">{title}</div>
+      {banner}
 
       {!sequenceDone && (
         <button type="button" className="rr-skip" onClick={(e) => { e.stopPropagation(); revealAll(); }}>

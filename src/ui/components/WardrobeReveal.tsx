@@ -16,8 +16,11 @@ export function WardrobeReveal(): JSX.Element | null {
   const [idx, setIdx] = useState(0);
 
   const pending = save.wardrobe.pendingReveal.length;
+  // Never stack on a What's New card: the ceremony waits its turn, and a batched unlock summary
+  // folds these specimens into itself (docs/GUIDED-UNLOCKS.md §batching) — banking them there.
+  const announcing = meta.whatsNew().length > 0;
   useEffect(() => {
-    if (pending > 0 && queue.length === 0) {
+    if (pending > 0 && queue.length === 0 && !announcing) {
       const defs = meta.takeWardrobeReveals();
       if (defs.length > 0) {
         setQueue(defs);
@@ -25,7 +28,7 @@ export function WardrobeReveal(): JSX.Element | null {
         audio.cue('chest');
       }
     }
-  }, [pending, queue.length]);
+  }, [pending, queue.length, announcing]);
 
   if (queue.length === 0) return null;
   const d = queue[idx];

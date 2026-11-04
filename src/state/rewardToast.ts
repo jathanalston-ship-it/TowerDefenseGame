@@ -15,6 +15,7 @@
 // toaster is mounted (run end, early boot) HOLD in a bounded buffer and flush on mount —
 // a reward announcement is never silently dropped.
 
+import { ACCOUNT_CURRENCY } from '../core/currencies';
 import type { CurrencyId } from '../core/currencies';
 
 // ── The reward-type registry (docs/NOTIFICATIONS.md §reward-registry) ────────────────────
@@ -70,6 +71,8 @@ export const REWARD_TYPES: readonly RewardTypeDef[] = [
   { id: 'masteryXp', unit: 'Mastery XP', art: { kind: 'glyph', glyph: '⟡', color: 'var(--caustic)' }, merge: 'sum' },
   { id: 'evolutionNode', unit: 'Evolution Rewards', art: { kind: 'glyph', glyph: '⧉', color: 'var(--viral)' }, merge: 'sum', tier: 1 },
   { id: 'achievement', unit: 'Achievement', art: { kind: 'glyph', glyph: '🏆', color: 'var(--gold)' }, merge: 'never', tier: 2 },
+  // The collapsed burst (coalesceHeld): N achievements flushed together → ONE expandable placard.
+  { id: 'achievements', unit: 'Achievements', art: { kind: 'glyph', glyph: '🏆', color: 'var(--gold)' }, merge: 'never', tier: 2, nav: { key: 'profile', label: 'View on your Profile' } },
   { id: 'collection', unit: 'Collection Reward', art: { kind: 'glyph', glyph: '❈', color: 'var(--gold)' }, merge: 'never', tier: 2 },
   { id: 'idleLoot', unit: 'Hive Yield', art: { kind: 'glyph', glyph: '⌛', color: 'var(--caustic)' }, merge: 'sum' },
   { id: 'organ', unit: 'Hive Organ Grown', art: { kind: 'glyph', glyph: '⬡', color: 'var(--viral)' }, merge: 'never', tier: 1, nav: { key: 'hive', label: 'View the Hive' } },
@@ -92,6 +95,7 @@ export interface RewardEvent {
   power?: number; // Power gained by this grant (optional line)
   collection?: string; // optional collection/progress line ("Archive 43/106 · 41%")
   nav?: { key: string; label: string } | null; // override the registry jump (null = none)
+  items?: string[]; // a SUMMARY placard's itemized lines (expandable) — set by coalesceHeld
 }
 
 export interface ToastCard {
@@ -106,6 +110,7 @@ export interface ToastCard {
   power?: number;
   collection?: string;
   nav: { key: string; label: string } | null;
+  items?: string[]; // summary placard lines (the card expands to list them)
   bornAt: number;
   bumpedAt: number; // last merge — lifetime re-arms from here (the card pulses)
 }
@@ -131,8 +136,36 @@ export function cardKey(e: Pick<RewardEvent, 'type' | 'name'>): string {
   return `${e.type}:${e.name ?? ''}`;
 }
 
-export function lifeOf(card: Pick<ToastCard, 'tier'>): number {
-  return card.tier >= 3 ? TOAST_LIFE_BIG_MS : TOAST_LIFE_MS;
+export function lifeOf(card: Pick<ToastCard, 'tier' | 'items'>): number {
+  return card.tier >= 3 || card.items ? TOAST_LIFE_BIG_MS : TOAST_LIFE_MS; // a summary has more to read
+}
+
+/** More than this many achievements flushing together collapse into ONE summary placard
+ *  ("5 achievements · +180 Genome Cores", expandable) — docs/NOTIFICATIONS.md §reward-toasts. */
+export const ACHIEVEMENT_COLLAPSE_AT = 3;
+
+/** Coalesce a flushed burst (the held buffer replaying on toaster mount, e.g. after a run):
+ *  more than ACHIEVEMENT_COLLAPSE_AT achievement placards become one summary event, placed where
+ *  the first one stood. An achievement event's `qty` is its Genome Core reward. Pure. */
+export function coalesceHeld(events: readonly RewardEvent[]): RewardEvent[] {
+  const achv = events.filter((e) => e.type === 'achievement');
+  if (achv.length <= ACHIEVEMENT_COLLAPSE_AT) return events.slice();
+  const cores = achv.reduce((a, e) => a + (e.qty ?? 0), 0);
+  const summary: RewardEvent = {
+    type: 'achievements',
+    qty: achv.length,
+    name: `${achv.length} achievements`,
+    source: 'Achievements Unlocked',
+    collection: cores > 0 ? `+${cores.toLocaleString()} ${ACCOUNT_CURRENCY.name}` : undefined,
+    items: achv.map((e) => e.name ?? 'Achievement'),
+  };
+  const out: RewardEvent[] = [];
+  let placed = false;
+  for (const e of events) {
+    if (e.type !== 'achievement') out.push(e);
+    else if (!placed) { out.push(summary); placed = true; }
+  }
+  return out;
 }
 
 let uidSeq = 0;
@@ -167,6 +200,7 @@ export function applyEvent(cards: readonly ToastCard[], e: RewardEvent, now: num
   const card: ToastCard = {
     uid: ++uidSeq, type: e.type, qty, count: 1, name: e.name, rarity: e.rarity, tier,
     source: e.source, power: e.power, collection: e.collection, nav, bornAt: now, bumpedAt: now,
+    ...(e.items ? { items: e.items } : {}),
   };
   return [card, ...cards];
 }
@@ -202,11 +236,12 @@ export const rewardToast = {
   pushMany(source: string, events: readonly Omit<RewardEvent, 'source'>[]): void {
     for (const e of events) this.push({ ...e, source });
   },
-  /** Subscribe (returns the unsubscribe). Flushes anything held while unmounted. */
+  /** Subscribe (returns the unsubscribe). Flushes anything held while unmounted — a burst
+   *  of achievements collapses into one summary placard on the way out (coalesceHeld). */
   onReward(fn: EventFn): () => void {
     subs.add(fn);
     if (held.length > 0) {
-      const flush = held.splice(0, held.length);
+      const flush = coalesceHeld(held.splice(0, held.length));
       for (const e of flush) fn(e);
     }
     return () => { subs.delete(fn); };

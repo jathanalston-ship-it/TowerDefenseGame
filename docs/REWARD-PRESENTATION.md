@@ -52,7 +52,8 @@ category is expanded.
   capsule owns achievement display end-to-end (spotlight + full list in
   Discoveries `extra`).
 - Layout never page-scrolls: only one category is expanded at a time; the capsule
-  caps at `max-height:94vh` with internal scroll as a last-resort safety only.
+  caps at `max-height:94vh` with internal scroll as a last-resort safety only (see
+  §debrief's layout contract).
 
 ## Player controls
 
@@ -65,10 +66,37 @@ the "replay milestone" affordance), `prefers-reduced-motion` → instant.
 - Discoveries surfaces achievements + new masteries today; **collection entries
   and unlocked-content** slot in as more `RewardStat`s/`extra` with no engine
   change.
-- "Highest Threat" is derived from `killsByEnemy` (toughest enemy felled). Flawless is now
+- "Highest Threat" comes from `state/runDebrief.highestThreat(stats)`: a slain mega, else the
+  last framework boss BY NAME (`RunStats.bossesSlain`), else the toughest roster kill. Framework
+  bosses borrow the `'tyrant'` kind as a render proxy, so `killsByEnemy.tyrant` counts every boss
+  — the function discounts the proxied kills (`bossKills − megaKills`) so a stage boss is never
+  named "Brood Tyrant" (the 2026-11 naming bug; the `apex_slayer` copy now reads "Slay your first
+  boss"). Known remaining overlap: the Bio-Dex "Brood Tyrant" bestiary entry still tallies every
+  boss kill through the same proxy count. Flawless is
   tracked (`RunStats.integrityLost`, 0 = no Nucleus damage): the Bio-Containers category shows a
   Flawless first-clear bonus-cache verdict (earned/missed) driven by `RunOutcome.flawlessCache`. A
   standalone "Flawless" combat stat could still slot in as a `RewardStat` with no engine change.
+
+## §debrief (2026-11) — a defeat explains itself
+
+`RewardReveal({ banner })` renders an always-visible panel under the title (outside the paced
+sequence). On a loss `Results` fills it from `state/runDebrief.defeatDebrief(result, { power,
+rec, canOpen })`: **how close** ("Fell on wave 2 of 6", plus "Viral Matriarch had 23% HP left"
+on a boss wave), **what got through** (top 3 Nucleus-damage sources with their share) and **one
+concrete suggestion** — a genuine Power gap (< `READINESS.warnBelow`) points at the first OPEN
+spend wing (Tower Lab → Evolution HQ → Hero Hall, with a "Go ▸" door; replay advice when none
+is open), a boss break-through gets the boss-wave plan, otherwise the top leaker's counter is
+picked by its ROLE TRAITS (flying / siege / burst / armor / summoner / fast — a data table, no
+per-enemy ladder). The sim feeds it read-only ledgers (`RunStats.hiveDamageBy`, `bossesSlain`,
+`bossHpAtDefeat`, `totalWaves`; booked at every integrity-damage site, never read by the sim,
+goldens byte-identical). Tests: `src/state/runDebrief.test.ts`, `src/core/hiveSiege.test.ts`.
+
+**Layout contract:** capsule children never flex-shrink (the old achievement strip collapsed
+to its 4px min-height and painted over the Farm Phase card); ≥1000px wide the collapsed
+categories pair into two columns (an open one spans both) so report + debrief + post-run cards
+fit 1366×768 unscrolled; the post-run cards (`.rr-cliff-slot`) share an auto-fit grid (side by
+side ≥230px each, else stacked — no one-word-per-line titles); the action row is sticky at the
+capsule's bottom edge. Verified at 1024×768 / 1180×820 / 1366×768 / 1440×900 / 1920×1080.
 
 ## §ceremony (2026-07-17) — the physical reward moment (as built)
 

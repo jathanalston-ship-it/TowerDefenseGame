@@ -6,20 +6,22 @@
 
 import { meta } from '../state/meta';
 import { nextGoals } from '../state/nextGoal';
-import { loopAdvice, loopState } from '../state/progressionLoop';
+import { deployReadiness, loopAdvice, loopState } from '../state/progressionLoop';
 
 const pct = (p: number): number => Math.round(p * 100);
 
 /** The MACRO-loop directive (docs/PROGRESSION-LOOP.md) — one line of Campaign↔Infinite routing:
  *  farm Infinite at the wall, push Campaign when the power target is met. Shared by Results,
- *  Campaign, and Infinite so the loop reads identically everywhere. */
+ *  Campaign, and Infinite so the loop reads identically everywhere. A frontier inside the readiness
+ *  tolerance (or right after a flawless clear) reads as PUSH — the same calm rule as the deploy CTA. */
 export function LoopDirective({ difficultyId }: { difficultyId?: string }): JSX.Element {
   const ls = loopState(meta.get(), difficultyId);
-  const farm = ls.phase === 'farm-infinite';
+  const band = deployReadiness(ls.power, ls.requiredPower, ls.frontierStage, difficultyId ?? 'standard');
+  const farm = band === 'under';
   return (
     <div className={`loop-directive ${farm ? 'is-farm' : 'is-push'}`}>
-      <span className="loop-k">{farm ? '∞ FARM PHASE' : '◈ PUSH PHASE'}</span>
-      <span className="loop-line">{loopAdvice(ls)}</span>
+      <span className="loop-k">{farm ? (ls.infiniteOpen ? '∞ FARM PHASE' : '⟳ BUILD PHASE') : '◈ PUSH PHASE'}</span>
+      <span className="loop-line">{loopAdvice(ls, band)}</span>
       <span className="loop-meter" aria-hidden>
         <i style={{ width: `${Math.min(100, Math.round(ls.readiness * 100))}%` }} />
       </span>

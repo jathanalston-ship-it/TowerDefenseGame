@@ -18,6 +18,8 @@ import { labEra, labIntensity, labScore } from './homeBaseTiers';
 import { generateStage, recommendedPowerScore } from '../core/campaign';
 import type { StageConfig } from '../core/campaign';
 import { difficultyPref } from '../state/prefs';
+import { deployReadiness } from '../state/progressionLoop';
+import type { DeployReadiness } from '../state/progressionLoop';
 import { nextGoals } from '../state/nextGoal';
 import type { NextGoal } from '../state/nextGoal';
 
@@ -78,6 +80,8 @@ export interface HomeFrontier {
   cfg: StageConfig;
   rec: number; // recommended Power for the frontier
   ready: boolean;
+  /** What the deploy CTA should SAY (docs/PROGRESSION-LOOP.md §readiness): only 'under' warns. */
+  band: DeployReadiness;
   isMilestone: boolean; // clearing it raises the Evolution Cap
   firstClearCore: number; // ◆ paid on first clear
 }
@@ -95,6 +99,7 @@ export function homeFrontier(save: SaveData, power: number): HomeFrontier {
     cfg: generateStage(stage, diff),
     rec,
     ready: power >= rec,
+    band: deployReadiness(power, rec, stage, diff),
     isMilestone,
     firstClearCore: Math.round(
       CAMPAIGN_REWARDS.firstClearCore +

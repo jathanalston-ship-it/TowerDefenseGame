@@ -447,7 +447,7 @@ async function session(ctx: BrowserContext, dist: string): Promise<Page> {
 }
 
 async function startCampaign(page: Page): Promise<void> {
-  const labels = [/Continue Campaign/i, /Deploy Under-Powered/i, /^Deploy\b/i, /Start Campaign|Begin Campaign|Launch|Begin/i];
+  const labels = [/Continue Campaign/i, /Fight anyway/i, /^Deploy\b/i, /Start Campaign|Begin Campaign|Launch|Begin/i];
   for (const l of labels) {
     if (await clickBox(page, 'button', { text: l })) {
       await sleep(800);

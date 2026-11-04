@@ -1,7 +1,8 @@
 import { describe, it, expect } from 'vitest';
 import { defaultSave, serializeExport } from '../save/saveStore';
-import { unlockedMechanics, pendingAnnouncements, isMechanicUnlocked, MECHANIC_BY_ID } from './mechanics';
+import { unlockedMechanics, pendingAnnouncements, isMechanicUnlocked, MECHANIC_BY_ID, WHATS_NEW_SUMMARY_AT, unlockSummaryRows } from './mechanics';
 import { meta } from './meta';
+import { isOpenNav } from './unlocks';
 
 describe('mechanics registry (Help + What\'s New spine)', () => {
   it('core mechanics are always unlocked; gated ones start hidden', () => {
@@ -49,5 +50,31 @@ describe('mechanics registry (Help + What\'s New spine)', () => {
     const seenCount = meta.get().help.seen.length;
     meta.primeHelp(); // idempotent
     expect(meta.get().help.seen.length).toBe(seenCount);
+  });
+});
+
+// What's New batching (docs/GUIDED-UNLOCKS.md §batching): a first run unlocks a dozen systems at
+// once — they land as ONE summary (glyph · name · one line · Open) instead of a dozen walls.
+describe('unlock summary rows (the batched What\'s New card)', () => {
+  it('a first campaign clear queues enough announcements to batch them', () => {
+    const s = { ...defaultSave(), totalRuns: 1, lifetimeShards: 120, campaign: { cleared: { standard: 1 }, bestTime: {} } };
+    expect(pendingAnnouncements(s).length).toBeGreaterThanOrEqual(WHATS_NEW_SUMMARY_AT);
+    expect(WHATS_NEW_SUMMARY_AT).toBe(3); // "more than two" — one or two keep the full card
+  });
+
+  it('every row has a glyph, a name and a one-line hook; Open only leads somewhere open', () => {
+    const s = { ...defaultSave(), totalRuns: 1, lifetimeShards: 120, campaign: { cleared: { standard: 1 }, bestTime: {} } };
+    const queue = [...pendingAnnouncements(s), MECHANIC_BY_ID.get('boss-rush')!].filter(Boolean);
+    const rows = unlockSummaryRows(queue, s);
+    expect(rows.length).toBe(queue.length);
+    for (const r of rows) {
+      expect(r.glyph.length).toBeGreaterThan(0);
+      expect(r.title.length).toBeGreaterThan(0);
+      expect(r.line.length).toBeGreaterThan(0);
+      if (r.nav) expect(isOpenNav(s, r.nav)).toBe(true);
+    }
+    // Boss Rush is sealed at Stage 1: its row (if listed) never offers a door into the lock.
+    const rush = rows.find((r) => r.id === 'boss-rush');
+    if (rush) expect(rush.nav).toBeNull();
   });
 });

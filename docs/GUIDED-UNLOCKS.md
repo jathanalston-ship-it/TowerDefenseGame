@@ -33,6 +33,21 @@ the lesson.
 - `App.tsx` owns the armed guide (menu-scoped; dropped on screen change; the What's New queue waits
   while a guide runs).
 
+## §batching — many unlocks land as ONE summary
+
+A first campaign clear can unlock a dozen systems in one breath (the 2026-11 fresh-account
+playtest: 11 sequential WHAT/WHY/WHERE/NEXT walls, plus specimen ceremonies and toasts on top).
+When `WHATS_NEW_SUMMARY_AT` (3) or more announcements are queued, `WhatsNew` renders ONE summary
+card instead: each system as glyph · name · one-line hook · **Open ▸** (only when its wing is open —
+`unlockSummaryRows` in `state/mechanics.ts` asks `isOpenNav`; a guided wing still arms its Field
+Guide on Open), one **Got it** dismiss. One or two queued keep the full card. Dismiss or Open
+archives the whole batch into Help, so every full briefing stays reachable in the wiki — never
+lost. Cosmetic specimens that landed in the same breath fold into the summary ("Also acquired"
++ Claim ▸) and their reveal queue is banked there; otherwise `WardrobeReveal` waits until no
+What's New card is up (sequential, never stacked). Reward placards hold while any What's New
+card is up and flush afterwards, an achievement burst collapsed (docs/NOTIFICATIONS.md
+§reward-toasts).
+
 ## Coalescing + reuse
 
 Spend-screen guides point the practice step at the **Power Advisor's** BEST VALUE strip

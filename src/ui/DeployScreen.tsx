@@ -11,7 +11,7 @@ export interface DeployInfo {
   title: string; // "STAGE 31 — VERDANT HIVE" / "INFINITE MODE" / "QUICK SKIRMISH"
   sub: string; // one context line ("The Descent · Standard" / "AI Director · infinite depth")
   accent: string; // biome/mode hue for the glow + bar
-  warn?: string; // under-ready warning ("⚠ Below recommended Power …") — readiness surfacing
+  warn?: string; // under-ready note ("Fighting anyway — recommended Power not met …") — readiness surfacing
 }
 
 export function DeployScreen({ info }: { info: DeployInfo }): JSX.Element {

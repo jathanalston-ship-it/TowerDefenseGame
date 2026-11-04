@@ -51,7 +51,8 @@ const EvolutionUnlock = lazyNamed(() => import('./EvolutionUnlock'), 'EvolutionU
 import type { EvolutionUnlockData } from './EvolutionUnlock';
 const HeroSlotUnlock = lazyNamed(() => import('./HeroSlotUnlock'), 'HeroSlotUnlock');
 import type { HeroSlotUnlockData } from './HeroSlotUnlock';
-import { difficultyPref, musicPref, sfxPref } from '../state/prefs';
+import { difficultyPref, musicPref, setLastFlawlessClearPref, sfxPref } from '../state/prefs';
+import { deployReadiness } from '../state/progressionLoop';
 const BioRoulette = lazyNamed(() => import('./BioRoulette'), 'BioRoulette');
 import { highestCampaignStage, isBossRushUnlocked, isDailyUnlocked, isInfiniteUnlocked } from '../save/derive';
 import { dailyKey, generateDaily, pickDailyHero } from '../core/daily';
@@ -266,11 +267,14 @@ export function App(): JSX.Element {
     // being thrown straight onto the battlefield. The playing screen mounts after DEPLOY_MS.
     const diffName = DIFFICULTIES[difficultyRef.current]?.name ?? 'Standard';
     // Readiness surfacing (BALANCE_REPORT push-futility): an under-powered frontier attempt is
-    // allowed — informed risk — but the briefing says so out loud before the wall does.
+    // allowed — informed risk — but the briefing says so before the wall does. Outcome-first and
+    // calm, and silent inside the readiness tolerance (docs/PROGRESSION-LOOP.md §readiness).
     const campaignWarn = (): string | undefined => {
       const rec = recommendedPowerScore(campaignStageRef.current, difficultyRef.current);
       const power = meta.power().score;
-      return power < rec ? `⚠ Below recommended Power — ${formatPower(power)} of ${formatPower(rec)}. Expect a wall; failed attempts still recover field data.` : undefined;
+      return deployReadiness(power, rec, campaignStageRef.current, difficultyRef.current) === 'under'
+        ? `Fighting anyway — recommended Power not met (${formatPower(power)} of ${formatPower(rec)}). Failed attempts still recover field data.`
+        : undefined;
     };
     setDeployInfo(
       mode === 'campaign' && stage
@@ -366,6 +370,11 @@ export function App(): JSX.Element {
     // First-clear detection for stage_clear telemetry — read BEFORE finishRun raises it.
     const prevCleared = modeRef.current === 'campaign' ? (meta.get().campaign.cleared[difficultyRef.current] ?? 0) : 0;
     const outcome = meta.finishRun(result);
+    // Readiness calm-down memory: a flawless campaign clear quiets the NEXT stage's deploy warning;
+    // any other campaign settle ends the calm (docs/PROGRESSION-LOOP.md §readiness).
+    if (modeRef.current === 'campaign') {
+      setLastFlawlessClearPref(result.won && result.stats.integrityLost === 0 ? { diff: difficultyRef.current, stage: campaignStageRef.current } : null);
+    }
     emitRunTelemetry(result, modeRef.current, campaignStageRef.current);
     if (modeRef.current === 'campaign' && result.won && campaignStageRef.current > prevCleared) {
       telemetry.emit('stage_clear', { d: `c${campaignStageRef.current}` });
@@ -615,8 +624,9 @@ export function App(): JSX.Element {
           it never overlaps the summary. On the hub (e.g. a star-buy unlock) it toasts as usual. */}
       <AchievementToaster />
       {/* Claim receipts (docs/NOTIFICATIONS.md §claim-popups) — hub claims only, so the
-          popup can never cover a live run. */}
-      {screen === 'menu' && <RewardToaster />}
+          popup can never cover a live run. Held while an unlock announcement is up: the
+          post-run placards (achievements…) land AFTER the What's New card/summary, collapsed. */}
+      {screen === 'menu' && <RewardToaster held={meta.whatsNew().length > 0} />}
       {screen === 'menu' && <PowerToaster />}
       {/* Account level-ups earned off-run (star buys, molts …) celebrate here; run-settle level-ups
           render inline on Results instead, so the toaster only drains on the menu. */}

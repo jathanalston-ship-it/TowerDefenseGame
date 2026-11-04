@@ -6,8 +6,8 @@
 
 import { describe, expect, it } from 'vitest';
 import {
-  REWARD_TYPES, TOAST_LIFE_BIG_MS, TOAST_LIFE_MS, TOAST_MERGE_WINDOW_MS,
-  applyEvent, cardKey, eventsForPassRewards, lifeOf, pruneCards, rewardToast, rewardTypeOf, tierOf,
+  ACHIEVEMENT_COLLAPSE_AT, REWARD_TYPES, TOAST_LIFE_BIG_MS, TOAST_LIFE_MS, TOAST_MERGE_WINDOW_MS,
+  applyEvent, cardKey, coalesceHeld, eventsForPassRewards, lifeOf, pruneCards, rewardToast, rewardTypeOf, tierOf,
 } from './rewardToast';
 import type { RewardEvent, ToastCard } from './rewardToast';
 
@@ -167,6 +167,43 @@ describe('pruneCards + lifeOf — lifetimes (≥5s, legendary lingers, merges re
   it('returns the same array when nothing expired (no render churn)', () => {
     const cards = applyEvent([], ev({ type: 'genomeCores', qty: 1 }), T0);
     expect(pruneCards(cards, T0 + 10)).toBe(cards);
+  });
+});
+
+describe('coalesceHeld — a post-run achievement burst becomes ONE expandable placard', () => {
+  const achv = (name: string, cores: number): RewardEvent => ev({ type: 'achievement', name, qty: cores, source: 'Achievement Unlocked' });
+
+  it(`more than ${ACHIEVEMENT_COLLAPSE_AT} achievements collapse into one summary, in place, Cores summed`, () => {
+    const burst = [
+      ev({ type: 'genomeCores', qty: 120 }),
+      achv('Apex Slayer', 75), achv('Hoarder', 40), achv('Extraction', 50), achv('Holding the Line', 15),
+      ev({ type: 'container', qty: 1 }),
+    ];
+    const out = coalesceHeld(burst);
+    expect(out.map((e) => e.type)).toEqual(['genomeCores', 'achievements', 'container']);
+    const s = out[1];
+    expect(s.qty).toBe(4);
+    expect(s.name).toBe('4 achievements');
+    expect(s.collection).toBe('+180 Genome Cores');
+    expect(s.items).toEqual(['Apex Slayer', 'Hoarder', 'Extraction', 'Holding the Line']); // nothing lost — expandable
+    expect(rewardTypeOf('achievements')).toBeDefined(); // the summary is a registry row, not a special case
+  });
+
+  it(`${ACHIEVEMENT_COLLAPSE_AT} or fewer keep their individual placards`, () => {
+    const few = [achv('A', 10), achv('B', 10), achv('C', 10)];
+    expect(coalesceHeld(few)).toEqual(few);
+  });
+
+  it('a summary card carries its items, lives the longer lifetime, and the bus flush coalesces', () => {
+    const card = applyEvent([], coalesceHeld([achv('A', 1), achv('B', 2), achv('C', 3), achv('D', 4)])[0], T0)[0];
+    expect(card.items).toHaveLength(4);
+    expect(lifeOf(card)).toBe(TOAST_LIFE_BIG_MS);
+    for (const n of ['A', 'B', 'C', 'D', 'E']) rewardToast.push(achv(n, 10)); // a run settles — no toaster mounted
+    const got: RewardEvent[] = [];
+    const off = rewardToast.onReward((e) => got.push(e));
+    expect(got.map((e) => e.type)).toEqual(['achievements']);
+    expect(got[0].collection).toBe('+50 Genome Cores');
+    off();
   });
 });
 

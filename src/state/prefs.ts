@@ -187,6 +187,30 @@ export function recordVaultOpen(label: string, rarity: string, items: number): V
   return next;
 }
 
+// ── Readiness calm-down (docs/PROGRESSION-LOOP.md §readiness) — the campaign stage this device
+// just cleared FLAWLESSLY (zero Nucleus damage), so the very next deploy reads calm even a hair
+// under the recommendation. Every campaign settle overwrites it (null = the last run wasn't one),
+// so the calm lasts exactly one attempt. Device-local presentation memory — never progression.
+const FLAWLESS_KEY = 'assimilate.lastFlawlessClear';
+
+export function lastFlawlessClearPref(): { diff: string; stage: number } | null {
+  try {
+    const v = JSON.parse(localStorage.getItem(FLAWLESS_KEY) ?? 'null') as { diff?: unknown; stage?: unknown } | null;
+    return v && typeof v.diff === 'string' && typeof v.stage === 'number' ? { diff: v.diff, stage: v.stage } : null;
+  } catch {
+    return null;
+  }
+}
+
+export function setLastFlawlessClearPref(v: { diff: string; stage: number } | null): void {
+  try {
+    if (v) localStorage.setItem(FLAWLESS_KEY, JSON.stringify(v));
+    else localStorage.removeItem(FLAWLESS_KEY);
+  } catch {
+    /* storage unavailable */
+  }
+}
+
 // ── Device-pref key registry ─────────────────────────────────────────────────
 // The Auto-Start toggle key (read/written by GameView + BuildControls — shared const, not copies).
 export const AUTOSTART_KEY = 'assimilate.autostart';
@@ -205,4 +229,5 @@ export const DEVICE_PREF_KEYS: readonly string[] = [
   'assimilate.notif.seen', // notification watermarks (state/notifications.ts)
   LAB_KEY, // Tower Lab bench prefs (favorites/recents/selection/sort)
   VAULT_KEY, // Genetic Vault opening ledger (history/statistics)
+  FLAWLESS_KEY, // readiness calm-down after a flawless campaign clear
 ];

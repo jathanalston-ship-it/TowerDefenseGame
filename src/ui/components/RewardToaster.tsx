@@ -36,8 +36,9 @@ function QtyLine({ qty, unitOnly }: { qty: number; unitOnly: boolean }): JSX.Ele
   return <span className="rwt2-qty">+{shown.toLocaleString()}</span>;
 }
 
-function Card({ card, onDismiss }: { card: ToastCard; onDismiss: (uid: number) => void }): JSX.Element {
+function Card({ card, onDismiss, onKeep }: { card: ToastCard; onDismiss: (uid: number) => void; onKeep: (uid: number) => void }): JSX.Element {
   const def = rewardTypeOf(card.type);
+  const [open, setOpen] = useState(false); // a summary placard expands to its itemized lines
   const color = card.rarity ? `var(--r-${card.rarity})` : def?.art.kind === 'glyph' ? def.art.color : 'var(--gold)';
   // Swipe dismissal (mobile + mouse drags): track dx; past the threshold the card flies out.
   const [dx, setDx] = useState(0);
@@ -51,8 +52,8 @@ function Card({ card, onDismiss }: { card: ToastCard; onDismiss: (uid: number) =
     else if (Math.abs(dx) < 6) onDismiss(card.uid); // a plain click/tap dismisses too
     else setDx(0);
   };
-  // The unique-item card (equipment/cosmetic/achievement) leads with its NAME, not a +qty.
-  const unitOnly = def?.merge === 'never' && (card.qty <= 1 || card.type === 'achievement');
+  // The unique-item card (equipment/cosmetic/achievement) and a summary placard lead with a NAME, not a +qty.
+  const unitOnly = def?.merge === 'never' && (card.qty <= 1 || card.type === 'achievement' || !!card.items);
   return (
     <article
       className={`rwt2 t${card.tier}`}
@@ -87,6 +88,20 @@ function Card({ card, onDismiss }: { card: ToastCard; onDismiss: (uid: number) =
           {card.power ? <i className="rwt2-power">▲ +{Math.round(card.power)} Power</i> : null}
         </span>
         {card.collection && <span className="rwt2-coll">{card.collection}</span>}
+        {card.items && (
+          <>
+            <button
+              type="button"
+              className="rwt2-expand"
+              aria-expanded={open}
+              onPointerDown={(e) => e.stopPropagation()}
+              onClick={(e) => { e.stopPropagation(); setOpen((o) => !o); onKeep(card.uid); }}
+            >
+              {open ? '▾ Hide' : `▸ Show all ${card.items.length}`}
+            </button>
+            {open && <ul className="rwt2-items">{card.items.map((it, i) => <li key={i}>{it}</li>)}</ul>}
+          </>
+        )}
         {card.nav && (
           <button
             type="button"
@@ -102,13 +117,15 @@ function Card({ card, onDismiss }: { card: ToastCard; onDismiss: (uid: number) =
   );
 }
 
-export function RewardToaster(): JSX.Element | null {
+export function RewardToaster({ held = false }: { held?: boolean } = {}): JSX.Element | null {
   const [cards, setCards] = useState<ToastCard[]>([]);
   const lastCueAt = useRef(0);
 
   // Subscribe to the bus; each event folds through the pure queue rules. Arrival audio is
   // tier-keyed and rate-limited (a burst clicks once, not eight times); merges tick softly.
-  useEffect(() => rewardToast.onReward((e) => {
+  // `held` (an unlock announcement is up) keeps the bus unsubscribed, so arrivals wait in its
+  // hold buffer and flush — coalesced — the moment the announcement clears.
+  useEffect(() => held ? undefined : rewardToast.onReward((e) => {
     setCards((cs) => {
       const next = applyEvent(pruneCards(cs, Date.now()), e, Date.now());
       const merged = next.length === cs.length; // same count ⇒ the event merged into a card
@@ -120,7 +137,7 @@ export function RewardToaster(): JSX.Element | null {
       }
       return next;
     });
-  }), []);
+  }), [held]);
 
   // Lifetime prune tick (lifetimes re-arm on merge bumps, so a fixed timer per card is wrong).
   useEffect(() => {
@@ -133,12 +150,14 @@ export function RewardToaster(): JSX.Element | null {
   const visible = cards.slice(0, TOAST_MAX_VISIBLE);
   const queued = cards.length - visible.length;
   const dismiss = (uid: number): void => setCards((cs) => cs.filter((c) => c.uid !== uid));
+  // Reading an expanded summary re-arms its lifetime (it never expires mid-read).
+  const keep = (uid: number): void => setCards((cs) => cs.map((c) => (c.uid === uid ? { ...c, bumpedAt: Date.now() } : c)));
   const hasApex = visible.some((c) => c.tier >= 3);
   return (
     <div className="rwt2-wrap" aria-live="polite">
       {/* The legendary takeover: a one-shot screen accent behind the stack (reduced-motion: none) */}
       {hasApex && <span key={visible.find((c) => c.tier >= 3)?.uid} className="rwt2-accent" aria-hidden />}
-      {visible.map((c) => <Card key={c.uid} card={c} onDismiss={dismiss} />)}
+      {visible.map((c) => <Card key={c.uid} card={c} onDismiss={dismiss} onKeep={keep} />)}
       {(queued > 0 || cards.length > 2) && (
         <div className="rwt2-foot">
           {queued > 0 && <span className="rwt2-more">+{queued} more</span>}

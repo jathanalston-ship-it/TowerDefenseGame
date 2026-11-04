@@ -249,7 +249,8 @@ function Vitals({ save, view, go }: WidgetCtx): ReactNode {
 
 /** Mission control — CONTINUE CAMPAIGN dominates; the primary decision of every visit. */
 function MissionControl({ save, view, go, start, onStartCampaign, doctrineRef }: WidgetCtx): ReactNode {
-  const { diff, stage, cleared, cfg, rec, ready, isMilestone, firstClearCore } = view.frontier;
+  const { diff, stage, cleared, cfg, rec, ready, band, isMilestone, firstClearCore } = view.frontier;
+  const underPowered = band === 'under'; // the only band that warns (docs/PROGRESSION-LOOP.md §readiness)
   // Foundation #1 (docs/MISSION-CONTROL.md): the objective ledger under the deploy card — the
   // one model that answers "what else should I do, and where is this going". Absorbs the old
   // standalone next-goal banner (one main-zone panel instead of two).
@@ -293,10 +294,10 @@ function MissionControl({ save, view, go, start, onStartCampaign, doctrineRef }:
           <span className="mc-fact-k">◈ Next Boss</span>
           <span className="mc-fact-v">{cfg.boss.name}</span>
         </div>
-        <div className={`mc-fact ${ready ? 'ok' : 'low'}`}>
+        <div className={`mc-fact ${underPowered ? 'low' : 'ok'}`}>
           <span className="mc-fact-k">Recommended Power</span>
           <span className="mc-fact-v">
-            {formatPower(rec)} <small>you {formatPower(power)} {ready ? '✓' : '⚠'}</small>
+            {formatPower(rec)} <small>you {formatPower(power)} {ready ? '✓' : underPowered ? '⚠' : ''}</small>
           </span>
         </div>
         <div className="mc-fact">
@@ -313,11 +314,11 @@ function MissionControl({ save, view, go, start, onStartCampaign, doctrineRef }:
       <RewardPreview heading="Possible Rewards" chips={campaignRewards} className="mc-rewards" />
       <div className="mc-cta">
         <button
-          className={`primary mc-deploy${ready ? '' : ' is-underready'}`}
+          className={`primary mc-deploy${underPowered ? ' is-underready' : ''}`}
           onClick={() => start(() => onStartCampaign(stage))}
-          title={ready ? undefined : `Below recommended Power (${formatPower(rec)}) — expect a wall. Failed frontier attempts still recover partial field data.`}
+          title={underPowered ? `Recommended Power ${formatPower(rec)} — you have ${formatPower(power)}. Failed frontier attempts still recover partial field data.` : undefined}
         >
-          <PlayIcon /> {ready ? 'Continue Campaign' : `Deploy Under-Powered ⚠ ${formatPower(power)} / ${formatPower(rec)}`}
+          <PlayIcon /> {underPowered ? 'Fight anyway — recommended Power not met' : 'Continue Campaign'}
         </button>
         <div className="mc-setup">
           <div className="play-field">

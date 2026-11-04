@@ -439,7 +439,7 @@ export const SYSTEMS: SystemDef[] = [
   },
   {
     id: 'run-ui', name: 'In-Run HUD & Results', purpose: 'The battlefield interface: HUD, toolbar, inspector, build panel, results + reward reveal.',
-    files: ['src/ui/GameView.tsx', 'src/ui/Hud.tsx', 'src/ui/Toolbar.tsx', 'src/ui/BuildControls.tsx', 'src/ui/BuildPanel.tsx', 'src/ui/Inspector.tsx', 'src/ui/Results.tsx', 'src/ui/RewardReveal.tsx', 'src/ui/RewardPreview.tsx'],
+    files: ['src/ui/GameView.tsx', 'src/ui/Hud.tsx', 'src/ui/Toolbar.tsx', 'src/ui/BuildControls.tsx', 'src/ui/BuildPanel.tsx', 'src/ui/Inspector.tsx', 'src/ui/Results.tsx', 'src/state/runDebrief.ts', 'src/ui/RewardReveal.tsx', 'src/ui/RewardPreview.tsx'],
     dependsOn: ['engine', 'meta-store', 'power', 'assimilation'], powerScore: 'renders live run Power', save: [],
     tutorial: ['combat'], help: [], hud: ['ALL'], ui: ['Results'], collection: null, achievements: [],
     localization: 'inline-en', docs: ['docs/HUD.md', 'docs/READABILITY.md', 'docs/REWARD-PRESENTATION.md'],
