@@ -169,6 +169,10 @@ export function GameView({
 }): JSX.Element {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const gameRef = useRef<Game | null>(null);
+  // One DraftModal MOUNT per deal: the modal locks after its one pick (anti double-pick), so a deal
+  // that follows a pick without the phase leaving 'draft' — an EARLY CALL's owed drafts, dealt back
+  // to back (docs/EARLY-CALL.md) — must get a fresh mount or every later pick is ignored.
+  const draftPicks = useRef(0);
   // Daily runs record their input log for leaderboard replay verification (core/replay.ts).
   const recorderRef = useRef<Recorder | null>(null);
   // THE AUTOMATION GATE (docs/HIVE-MIND.md §solved-content): Hive Intelligence + Auto Gene only on
@@ -1431,6 +1435,7 @@ export function GameView({
         )}
         {hud.phase === 'draft' && hud.draft && (
           <DraftModal
+            key={draftPicks.current}
             options={hud.draft}
             clearedWave={hud.wave}
             kind={hud.draftKind}
@@ -1442,6 +1447,7 @@ export function GameView({
               if (game.rerollDraft()) refresh();
             }}
             onPick={(id) => {
+              draftPicks.current++;
               game.chooseCard(id);
               refresh();
             }}
