@@ -112,8 +112,8 @@ share the word were renamed (2026-11 polish):
 | The in-run swarm-load meter (`enemiesAlive / 40` %) | **Pressure** | `Hud` right zone (`hud-threat` cell), Inspector status digest |
 
 A new surface that rates difficulty picks one of these three words by what it measures — never
-"Threat" for anything but the ladder. (Results' "Highest Threat" enemy line and Boss Rush's "Boss
-threat level" forecast row are owned by other screens and flagged for the same pass.)
+"Threat" for anything but the ladder. Boss Rush's forecast row reads "Boss strength" (the assembly
+tier added per wave); Results' "Highest Threat" enemy line is flagged for the same pass.
 
 ## Known limitations / future hooks
 

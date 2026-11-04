@@ -158,7 +158,7 @@ export function BossRushScreen({
         <div className="panel inf-forecast">
           <div className="inf-fc-k">Gauntlet forecast</div>
           <div className="inf-fc-row"><span>Bosses per wave</span><b>= wave number</b></div>
-          <div className="inf-fc-row"><span>Boss threat level</span><b>+{RUSH.bossTlPerWave} / wave</b></div>
+          <div className="inf-fc-row"><span>Boss strength</span><b>+{RUSH.bossTlPerWave} / wave</b></div>
           <div className="inf-fc-row"><span>Deploy stagger</span><b>{RUSH.bossStagger}s apart</b></div>
           <div className="inf-fc-row"><span>Loot rate</span><b>×{lootMult.toFixed(2)} + per-boss bonus</b></div>
         </div>
