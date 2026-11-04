@@ -23,7 +23,7 @@ import { HERO_ORDER, TOWER_ORDER } from '../core/config';
 import type { ResolvedHeroKit } from '../core/config';
 import { AUTOSTART_KEY, motionPrefs, onMotionPrefs, resolveMotion, systemReducedMotion } from '../state/prefs';
 import { masteryLevel, meta, equippedCosmeticThemes } from '../state/meta';
-import { automationFor } from '../save/derive';
+import { automationFor, highestCampaignStage } from '../save/derive';
 import { frontDeploy } from '../state/frontDeploy';
 import { announcePower } from '../state/powerEvents';
 import { announceMasteryLevelUp } from '../state/masteryEvents';
@@ -39,7 +39,7 @@ import { MASTERY_RANK_EVERY, masteryRankTitle } from '../core/mastery';
 import { masteryProgress, masteryXpMults, masteryXpRaw } from '../state/meta';
 import { music } from '../audio/music';
 import { PowerToaster } from './components/PowerToaster';
-import { cardRegistry } from '../core/cards';
+import { cardRegistry, draftFeaturesFor } from '../core/cards';
 import { masteryRank } from '../core/mastery';
 import { adaptVisualTier } from '../core/adaptation';
 import { dangerCurve } from '../core/dangerCamera';
@@ -202,6 +202,9 @@ export function GameView({
     // Coil) — injected into the draft pool. A fresh account passes none ⇒ ungated catalog only.
     unlockedCardIds: meta.unlockedCardIds(),
     draftPool: meta.discoveredGeneIds(), // discovery overhaul: only DISCOVERED strands draft (docs/CARDS.md §discovery)
+    // DRAFT FIT · OPENING DRAFT · SPLICE (docs/CARDS.md §fit/§opening/§splice): decided ONCE from the mode
+    // + account depth and carried in the ctor args — a recorded Daily replays them exactly.
+    ...draftFeaturesFor({ mode: mode ?? 'stage', stage: stage?.stage, tutorial: !!tutorial, campaignCleared: highestCampaignStage(meta.get()) }),
   }));
   // MOLT VOW chips (docs/VOWS.md): the armed wager's compact HUD marker — captured once at
   // game creation (the same exclusions as the run opts: never on dailies or the tutorial).
@@ -1161,7 +1164,7 @@ export function GameView({
         />
         <BuildControls game={game} hud={hud} refresh={refresh} tutorialLock={!!tutorial && !!tutSession} autoGeneLock={automation.allowed ? null : automation.reason} />
         {breachAt > 0 && <div className="wave-breach" key={`br${breachAt}`} aria-hidden />}
-        {stageCard && <CentreStage shown={stageCard} />}
+        {stageCard && hud.phase !== 'draft' && <CentreStage shown={stageCard} />}
         {/* RUN CONTROLS STRIP (docs/HUD.md §run-controls): speed · Hive Intelligence · Pause (+ the
             Hive ticker / speed note) share ONE flex row reserved at the top of the board, so they
             can never collide with each other, the wave briefing, or the boss bars below it. */}
@@ -1203,6 +1206,20 @@ export function GameView({
             <i className="hive-mind-core" aria-hidden />
             ◈ HIVE INTELLIGENCE
             {!automation.allowed && <small className="hive-mind-why">{automation.reason}</small>}
+          </button>
+        )}
+        {/* SPLICE (docs/CARDS.md §splice): banked Biomass → an extra gene draft (pick 1 of 3). Shown only
+            once the bank reaches the price (the price IS the threshold) — optional, never a nag. */}
+        {!tutorial && hud.phase === 'prep' && hud.spliceCost !== undefined && hud.spliceCost > 0 && hud.biomass >= hud.spliceCost && (
+          <button
+            className="splice-btn"
+            onClick={() => {
+              audio.resume();
+              if (game.splice()) refresh();
+            }}
+            title={`Splice — spend ${hud.spliceCost.toLocaleString()} banked Biomass on an extra Gene Card draft (pick 1 of 3). Each splice this run costs more.`}
+          >
+            ◇ SPLICE <b>{hud.spliceCost.toLocaleString()}</b>
           </button>
         )}
         {hiveTicker && (
@@ -1267,7 +1284,7 @@ export function GameView({
             </div>
           </div>
         )}
-        {hud.megaBanner && (
+        {hud.megaBanner && hud.phase !== 'draft' && (
           <div className={`mega-banner${hud.megaBanner.exposed ? ' is-exposed' : ''}${hud.megaBanner.stunned ? ' is-stunned' : ''}${hud.megaBanner.staggered ? ' is-staggered' : ''}${hud.megaBanner.dormant ? ' is-dormant' : ''}`} style={{ ['--mega']: hud.megaBanner.glow } as CSSProperties}>
             <div className="mega-banner-row">
               <span className="mega-name">{hud.megaBanner.name}</span>
@@ -1390,6 +1407,7 @@ export function GameView({
           <DraftModal
             options={hud.draft}
             clearedWave={hud.wave}
+            kind={hud.draftKind}
             forceManual={!!tutorial || !automation.allowed}
             rerollCost={hud.draftRerollCost}
             biomass={hud.biomass}

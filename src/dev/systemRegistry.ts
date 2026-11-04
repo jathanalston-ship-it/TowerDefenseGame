@@ -74,7 +74,7 @@ export const SYSTEMS: SystemDef[] = [
   },
   {
     id: 'campaign', name: 'Campaign', purpose: 'Procedural authored-feeling stages; depth is the master progression gate. Authored EVENTS (Elite Rush / Boss Gauntlet / Genome Cache / Mutation choice) punctuate the ladder via a data registry.',
-    files: ['src/core/campaign.ts', 'src/core/campaignEvents.ts', 'src/core/hash.ts', 'src/ui/CampaignScreen.tsx'],
+    files: ['src/core/campaign.ts', 'src/core/campaignEvents.ts', 'src/core/hash.ts', 'src/ui/CampaignScreen.tsx', 'src/state/missionBrief.ts'],
     dependsOn: ['engine', 'biomes', 'bosses', 'difficulty', 'power'], powerScore: 'recommended-power display; first-clear rewards move account Power indirectly', save: ['campaign'],
     tutorial: [], help: ['campaign'], hud: [], ui: ['CampaignScreen', 'CommandCenter'], collection: 'biome discovery', achievements: [],
     localization: 'inline-en', docs: ['docs/CAMPAIGN.md', 'docs/CAMPAIGN-EVENTS.md', 'docs/MODE-IDENTITY.md', 'docs/STAGES.md'],
@@ -213,7 +213,7 @@ export const SYSTEMS: SystemDef[] = [
     id: 'gene-cards', name: 'Gene Cards (draft + permanent evolution)', purpose: 'Between-wave drafts + the permanent Archive: Essence-funded levels, gates, loadouts, Transcendence (maxed-card second lines), Ascension backend.',
     files: ['src/core/cards.ts', 'src/core/effectLanguage.ts', 'src/core/geneCards.ts', 'src/core/geneDiscovery.ts', 'src/core/geneUpgrades.ts', 'src/core/geneTranscend.ts', 'src/core/geneEssence.ts', 'src/core/geneLoadout.ts', 'src/state/geneArchive.ts', 'src/ui/GeneArchive.tsx', 'src/ui/DraftModal.tsx', 'src/ui/cardAffects.tsx', 'src/ui/components/GeneCardArt.tsx'],
     dependsOn: ['content-infra', 'power', 'campaign', 'shards-economy'], powerScore: 'permanent levels + Transcendence lines fold linearly (GENE_POWER_SCALE); drafts feed the temporary bucket; validator enforces visibility', save: ['genes', 'geneEssence', 'geneSlots', 'geneLoadout', 'genesDiscovered'],
-    tutorial: ['combat'], help: ['gene-cards', 'gene-essence', 'gene-archive', 'gene-loadout'], hud: ['DraftModal', 'BuildPanel', 'gene splash'],
+    tutorial: ['combat'], help: ['gene-cards', 'gene-essence', 'gene-archive', 'gene-loadout', 'splice'], hud: ['DraftModal', 'BuildPanel', 'gene splash', 'Splice pill'],
     ui: ['GeneArchive'], collection: 'cards category (Gene Level labels)', achievements: ['collector'], localization: 'inline-en',
     docs: ['docs/GENE-EVOLUTION.md', 'docs/CARDS.md', 'docs/GENE-AUDIT-REPORT.md'],
   },

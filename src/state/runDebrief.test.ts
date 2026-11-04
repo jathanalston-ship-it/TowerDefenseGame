@@ -5,7 +5,7 @@
 
 import { describe, expect, it } from 'vitest';
 import { Game } from '../core/game';
-import { ENEMY_DEFS, SIM_DT } from '../core/config';
+import { DEBRIEF, ENEMY_DEFS, SIM_DT } from '../core/config';
 import type { BossDef } from '../core/boss';
 import type { MetaModifiers, RunStats } from '../core/types';
 import { defaultSave } from '../save/saveStore';
@@ -95,5 +95,48 @@ describe('defeat debrief — how close, what got through, one next step', () => 
     const d = defeatDebrief({ won: false, wave: 4, stats }, { power: 1000, rec: 1000, canOpen: () => true })!;
     expect(d.tip).toContain(flyer.name);
     expect(d.tip).toMatch(/fly/);
+  });
+});
+
+describe('defeat debrief — board size + anti-air timing (Batch G)', () => {
+  // G1: ~90 % of Campaign losses fell in waves 1–3 on 1–4 towers while winners filled every slot,
+  // and fliers broke openings that had no anti-air yet — the debrief never said either.
+  const base = (): RunStats => ({ ...bossKillStats('Unused'), bossesSlain: [], bossKills: 0, totalWaves: 13 });
+
+  it('a thin board at defeat names the typical winning board and leads the tip', () => {
+    const stats: RunStats = { ...base(), hiveDamageBy: { runner: 50 }, boardAtEnd: 3, slotsAtEnd: 15 };
+    const d = defeatDebrief({ won: false, wave: 2, stats }, { power: 1000, rec: 1000, canOpen: () => true })!;
+    expect(d.board).toEqual({ towers: 3, slots: 15, typical: Math.round(15 * DEBRIEF.winBoardFill) });
+    expect(d.tip).toMatch(/board was thin/);
+    // A genuine Power gap still outranks it (an account problem, not a build one).
+    const gap = defeatDebrief({ won: false, wave: 2, stats }, { power: 400, rec: 1000, canOpen: () => true })!;
+    expect(gap.tip).toMatch(/Power under the recommendation/);
+  });
+
+  it('a full board keeps the old tip; old fixtures without the read carry no board line', () => {
+    const full = defeatDebrief({ won: false, wave: 9, stats: { ...base(), hiveDamageBy: { runner: 50 }, boardAtEnd: 15, slotsAtEnd: 15 } }, { power: 1000, rec: 1000, canOpen: () => true })!;
+    expect(full.tip).not.toMatch(/thin/);
+    const legacy = defeatDebrief({ won: false, wave: 9, stats: { ...base(), hiveDamageBy: { runner: 50 } } }, { power: 1000, rec: 1000, canOpen: () => true })!;
+    expect(legacy.board).toBeUndefined();
+    expect(legacy.antiAir).toBeUndefined();
+  });
+
+  it('fliers on the field ⇒ the wave they came on and how long until the first was downed (null = never)', () => {
+    const late = defeatDebrief({ won: false, wave: 3, stats: { ...base(), firstFlierSec: 31, firstFlierWave: 2, firstAirKillSec: 88 } }, { power: 1000, rec: 1000, canOpen: () => true })!;
+    expect(late.antiAir).toEqual({ wave: 2, downedAfter: 57 });
+    const never = defeatDebrief({ won: false, wave: 3, stats: { ...base(), firstFlierSec: 31, firstFlierWave: 1 } }, { power: 1000, rec: 1000, canOpen: () => true })!;
+    expect(never.antiAir).toEqual({ wave: 1, downedAfter: null });
+  });
+
+  it('the sim books the reads on a LOSS only — a win serializes exactly as before', () => {
+    const g = new Game(5, NO_META);
+    g.startWave();
+    (g as unknown as { integrity: number }).integrity = 0.0001;
+    for (let i = 0; i < 60 * 120 && g.phase !== 'lost'; i++) g.advance(SIM_DT);
+    expect(g.phase).toBe('lost');
+    const s = g.getRunStats();
+    expect(s.boardAtEnd).toBe(0);
+    expect(s.slotsAtEnd).toBe(g.unlockedSlots);
+    expect('boardAtEnd' in bossKillStats('Unused')).toBe(false);
   });
 });

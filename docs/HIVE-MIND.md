@@ -42,6 +42,9 @@ members only — no Game import at runtime, no cycles, unit-testable with a stub
   3. `autocast` — the one-time hero auto-cast unlock.
   4. `deploy` — every READY conveyor organism onto the best open slot (§placement).
   5. `merge` — every READY organism strain-merged into its best same-kind target.
+  6. `favorite` — the account's FAVORITE organism onto the best open slot, on the universal deploy
+     curve — OPENING ONLY, while the board is thin (§opening — before Batch G the mind could only place
+     what the conveyor offered; past the opening the conveyor keeps the board varied).
 - **`hivePlan(g)`** — enumerate all providers → apply context (§scoring) → drop actions the
   reserve can't afford → sort by `value` (deterministic tie-break by id).
 - **`Game.hivePulse()`** — execute-best / re-plan loop (costs move as it buys — the deploy
@@ -59,8 +62,11 @@ members only — no Game import at runtime, no cycles, unit-testable with a stub
   stats (damage/interval, splash, class weight in `HIVE.deployGain`), and `autocast` carries
   a small fixed QoL gain. All tunables live in `config.ts HIVE` — one reviewable table.
 - **Context multipliers** (the "intelligent build decisions" layer, each one documented):
-  - **Sparse board** (< `HIVE.sparseBoardCount` towers): deploy/merge actions ×
+  - **Sparse board** (< `HIVE.sparseBoardCount` towers): deploy/favorite/merge actions ×
     `sparseDeployMult` — guns on the ground beat luxury tiers early.
+  - **Thin board** (< `HIVE_MIND.thinBoardTowers` towers, capped at the open slots): the
+    `thinHoldProviders` (Hero Evolution + auto-cast) are held at `thinHoldMult` (0) — "board too thin —
+    towers first" (§opening).
   - **Boss prep**: when the next wave carries a boss/elite (the same preview the prep bar
     shows), strength actions ×`bossPrepMult`.
   - **Economy reserve**: the pulse never spends below `reserveFrac` × current Biomass
@@ -97,6 +103,26 @@ speed stay available everywhere** (pure convenience); the purchased hero **auto-
 upgrade, not governed here. Headless instruments that model solved content (sim-hive, the hivemind
 tests) pass `automationAllowed: true` explicitly.
 
+## §opening — the first Biomass goes into towers (Batch G, 2026-11)
+
+G1's live S29 replay pressed the glowing button at run start: the pulse spent ~90 % of the opening
+Biomass on Hero Evolution because it had no way to place the favorite tower — 1 tower at wave 1, run
+lost at wave 3, while Power rose 83k → 106k. Three changes, all data (`config.ts HIVE_MIND`):
+
+1. **The `favorite` provider** places the favorite organism (always deployable) while the board is
+   thin — gain from its authored combat stats like any deployment, ×`sparseDeployMult` on a sparse
+   board. Opening only: an always-on favorite filled endless boards with one kind and measured WORSE
+   on `sim:hive` (hive cohort 19.3 → 17.3 depth); gated to the opening it measures 20.5.
+2. **Thin-board hold** — while the board has fewer than `thinBoardTowers` = 6 towers (capped at the
+   open slots), Hero Evolution and the auto-cast unlock are worth 0 to the planner. With too little
+   Biomass for a tower the pulse SAVES instead of leaking it into hero stats.
+3. **The glow follows** — `hiveReady` is the same plan, so at run start the button now glows only
+   for a real opening move (the free gift, an affordable tower), never for a hero level.
+
+Placement adds one context read: when the next wave's preview carries FLIERS (they ignore the lanes
+and dive the Nucleus), combat organisms rank open slots by nearness to the Nucleus instead of
+forwardness (`flierCoreBias`).
+
 ## §placement — where the mind puts a tower
 
 Deterministic slot scoring in `hiveBestSlot` (data-driven, no per-kind code):
@@ -105,6 +131,7 @@ Deterministic slot scoring in `hiveBestSlot` (data-driven, no per-kind code):
 - **Combat organisms**: the most FORWARD open slot (lowest y — meets the wave first), tie-broken
   toward the horizontal center (route coverage), with a small penalty for stacking next to the
   same kind (spread beats a monoculture — and Myriad punishes single-kind lines by design).
+  When the next wave previews FLIERS, the slot NEAREST the Nucleus instead (§opening).
 
 ## §golden-safety & determinism
 
@@ -127,17 +154,20 @@ biomass efficiency (spent/earned), actions taken, reserve violations (must be 0)
 HI ≥ baseline mean depth (the mind must never make a run worse), and no reserve violation.
 Latest results live at the bottom of this file; re-run after balance changes.
 
-## Results (re-run 2026-11-03 with `automationAllowed: true` — identical to 2026-07-19; 6 endless seeds, 900 s cap, identical 4-tower openings)
+## Results (re-run 2026-11-04 after §opening — 6 endless seeds, 900 s cap, identical 4-tower openings)
 
 | cohort | mean depth | mean live Power | biomass spent | actions/run | reserve violations |
 |---|---|---|---|---|---|
-| manual (no purchases) | 12.3 | 1.87 | 0 % | 0 | 0 |
-| **hive (pulse every prep)** | **19.3** | **37.9** | 88 % | 79 | **0** |
-| mixed (every 2nd prep) | 20.8 | 35.6 | 81 % | 77.5 | 0 |
+| manual (no purchases) | 12.5 | 1.98 | 0 % | 0 | 0 |
+| **hive (pulse every prep)** | **20.5** | **50.2** | 91 % | 78.5 | **0** |
+| mixed (every 2nd prep) | 18.8 | 26.0 | 82 % | 66.8 | 0 |
 
-The mind lifts survival ~57 % over a purchase-less baseline and never raids the reserve.
-**No dominant exploit**: banking two waves between pulses (mixed) slightly out-survives
-pulsing every prep — cadence remains a real player choice, not strictly-better spam.
+(2026-11-03, before §opening: manual 12.3 · hive 19.3 · mixed 20.8.) The mind lifts survival ~64 %
+over a purchase-less baseline and never raids the reserve. The 4-tower opening is now THIN, so a pulse
+fills two more slots before any hero buy; pulsing every prep now edges out banking two waves (the
+mixed cohort's first pulse lands a wave later on a thin board). Campaign (G1/GR2 harness, live
+progression-sim accounts, pressing only the glowing button, 6 seeds): towers at wave 2 went 2 → 5
+(8 h, S29) and 2 → 6–7 (100 h, S80); wins 5/6 → 6/6 and 2/6 → 4/6, losses by wave 3 1 → 0 and 4 → 2.
 Lesson baked into the code: the pulse pins its reserve ONCE from the starting wallet
 (per-iteration recomputation on a shrinking wallet asymptotically spends to zero — the
 first sim draft caught 87 violations/cohort before the pin).

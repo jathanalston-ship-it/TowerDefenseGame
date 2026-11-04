@@ -1203,6 +1203,46 @@ export const DRAFT_REROLL = {
   base: 30, // biomass at wave 0…
   perWave: 5, // …plus this per cleared wave
 };
+
+/** DRAFT FIT (docs/CARDS.md §fit — Batch G "the grind"): every offer is weighted by how much its
+ *  SUBJECT matters to THIS run, so a draft deals cards for the army you actually fight with. Read only
+ *  when RunOptions.draftFit is on (the app sets it; the golden path never does ⇒ byte-identical).
+ *  Fit is 0..1: tower/hero cards scale with that subject's live damage share, economy cards fade as
+ *  banked Biomass piles up, global/hive cards are neutral (1). */
+export const DRAFT_FIT = {
+  floor: 0.15, // fit of a tower/hero card whose subject deals ~0 % of the run's damage (never 0 — a pivot stays possible)
+  shareForFull: 0.4, // a subject dealing ≥ this damage share fits fully (1.0); linear below
+  heroPrior: 0.15, // hero damage share assumed before any damage lands (G1 audit: the hero deals 5–25 %)
+  favoritePrior: 2, // an EMPTY board counts the favorite as this many towers (it is always deployable)
+  economyBankRef: 4, // economy fit = 1 / (1 + banked / (this × the next deploy cost))…
+  economyFloor: 0.05, // …never below this
+  recentDeals: 2, // a card offered in the last N deals…
+  recentMult: 0.35, // …is dealt with this weight multiplier (no same-card carousel)
+  ruleMinFit: 0.3, // THE RULE SLOT re-deals only from rule cards at least this relevant (fielded subjects)
+  pickBase: 0.03, // ◆PICK score = fit × (relative Power gain + this) — a 0-Power rule/instant card still ranks by fit
+  offBuild: 0.35, // the draft card flags "off-build" below this fit
+} as const;
+
+/** Which draft features a run gets (docs/CARDS.md §fit / §opening / §splice) — decided ONCE by the app
+ *  from the mode + account depth (cards.ts draftFeaturesFor) and threaded as RunOptions. Never in the
+ *  tutorial (the lesson is the base flow). */
+export const DRAFT_FEATURES = {
+  /** OPENING DRAFT: a draft before wave 1 — only where the choice decides the run: Campaign stages
+   *  from `fromStage` (the rarity pools open at Campaign 8, so the deal holds real build choices). */
+  opening: { modes: ['campaign'] as readonly string[], fromStage: 8 },
+  /** SPLICE (Constitution rule 7 gate): unlocks once the account has cleared this Campaign stage —
+   *  except on SHARED boards (the Daily), where every player gets the same rules regardless of depth. */
+  splice: { fromCleared: 5, sharedBoardModes: ['daily'] as readonly string[] },
+} as const;
+
+/** SPLICE (docs/CARDS.md §splice): banked Biomass past the threshold buys an EXTRA gene-card draft
+ *  (pick 1 of 3) in the build phase. The price IS the threshold: `costDeploys` × the next deploy cost
+ *  (so it tracks the run's economy), × `growth` per splice already bought this run — optional, legible,
+ *  and self-limiting. A recorded input (core/replay.ts) — Daily replays reproduce it. */
+export const SPLICE = {
+  costDeploys: 8,
+  growth: 1.8, // GR2 harness (8 h acct, Infinite, 6 seeds): 1.6 → +7.2 waves (5.2 splices/run) · 1.8 → +4.5 (3.7) · 2.0 → +2.8
+};
 // The opening prep (before any wave) gets a longer window once the player places their first
 // tower, so auto-start doesn't rush the initial build-out.
 export const AUTO_START_FIRST_DELAY = 8; // seconds granted on the first tower of the opening prep
@@ -2119,6 +2159,13 @@ export const HIVE_MIND = {
   monoculturePenalty: 40, // slot-score penalty for stacking a kind beside itself (px units)
   adjacencyPx: 90, // lattice-neighbor radius (matches the reactor's overcharge geometry)
   minValue: 1e-6, // actions below this value are noise — never bought
+  // ── The OPENING (docs/HIVE-MIND.md §opening — Batch G): G1's live S29 replay pressed the glowing
+  //    button at run start and watched ~90 % of the opening Biomass go into Hero Evolution — 1 tower at
+  //    wave 1, run lost at wave 3. A THIN board now holds hero purchases so Biomass saves for towers. ──
+  thinBoardTowers: 6, // fewer towers than this (capped at the open slots) ⇒ the board is THIN…
+  thinHoldProviders: ['heroEvo', 'autocast'] as readonly string[], // …and these purchases wait…
+  thinHoldMult: 0, // …at this value multiplier (0 ⇒ below minValue ⇒ never bought, never glows)
+  flierCoreBias: 1, // next wave previews FLIERS ⇒ combat organisms rank slots by nearness to the Nucleus (0 = off)
 } as const;
 
 // Revenant blink (behavior 'phase'): seconds the teleport streak/after-image lingers. The sim sets
@@ -2267,6 +2314,15 @@ export const MODE_UNLOCKS = {
 // clear of the previous stage. Below it, the warning stays honest — outcome-first, never alarm.
 export const READINESS = {
   warnBelow: 0.9, // Power ≥ 90% of recommended ⇒ "ready enough" — no under-powered warning
+};
+
+/** Defeat debrief reads (docs/REWARD-PRESENTATION.md §debrief — Batch G). Measured on the G1/GR2
+ *  harness (≈100 winning Campaign runs at 0.75/8/100 h): winning boards end with every open slot
+ *  filled (median 1.00, p25 0.93) — so "typical winning board" = this share of your open slots. */
+export const DEBRIEF = {
+  winBoardFill: 0.9,
+  thinBoardFrac: 0.6, // a board below this share of the typical winning board leads the tip ("build wider")
+  lateAntiAirSec: 20, // first flier downed this long after fliers arrived (or never) ⇒ the anti-air tip
 };
 
 // Deep-Strain content gate (docs/SIPHON.md §gate): clearing Campaign Stage 15 is the SINGLE

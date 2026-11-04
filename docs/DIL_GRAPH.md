@@ -1,6 +1,6 @@
 # DIL_GRAPH.md — the Design Intelligence Layer (GENERATED — `npm run dil -- regen`)
 
-> **The project's brain** (docs/DIL.md). 957 nodes · 1840 edges, built from the live
+> **The project's brain** (docs/DIL.md). 960 nodes · 1846 edges, built from the live
 > registries + curated knowledge (src/dev/dil/). **Query it instead of searching the repo:**
 > `npm run dil -- node <id>` · `affects <id>` · `requires <id>` · `missing <kind> <edge>` ·
 > `checklist tower <kind>` · `find <text>`. Edge kinds are bidirectional (19 kinds).
@@ -34,7 +34,7 @@
 
 ### Teaching Index
 
-`tutorial:combat` · `help:mission-control` · `help:hive-intel` · `help:evolution-roadmap` · `help:power-advisor` · `help:field-guides` · `help:hive-core` · `help:biomorph-conveyor` · `help:strain-evolution` · `help:boss-sieges` · `help:boss-rush` · `help:bio-roulette` · `help:gene-essence` · `help:field-research` · `help:splice-market` · `help:auction-house` · `help:daily-login` · `help:hive-construction` · `help:gene-archive` · `help:gene-loadout` · `help:biomass` · `help:wave-rhythm` · `help:game-speed` · `help:emergency-defense` · `help:power-score` · `help:account-level` · `help:genome-rank` · `help:towers` · `help:tower-stars` · `help:tower-mastery` · `help:blockers` · `help:mastery-evolution` · `help:tower-branches` · `help:adaptation` · `help:mulligans` · `help:nucleus` · `help:gene-cards` · `help:heroes` · `help:hero-evolution` · `help:hero-slots` · `help:equipment` · `help:equipment-reforge` · `help:gear-codex` · `help:genome-core` · `help:prestige` · `help:ascension` · `help:containers` · `help:loot-meter` · `help:collection-codex` · `help:phenotype-lab` · `help:idle-harvest` · `help:metabolism` · `help:specimens` · `help:arena` · `help:expeditions` · `help:quests` · `help:season-pass` · `help:premium-store` · `help:campaign` · `help:infinite` · …30 more
+`tutorial:combat` · `help:mission-control` · `help:hive-intel` · `help:evolution-roadmap` · `help:power-advisor` · `help:field-guides` · `help:hive-core` · `help:biomorph-conveyor` · `help:strain-evolution` · `help:boss-sieges` · `help:boss-rush` · `help:bio-roulette` · `help:gene-essence` · `help:field-research` · `help:splice-market` · `help:auction-house` · `help:daily-login` · `help:hive-construction` · `help:gene-archive` · `help:gene-loadout` · `help:biomass` · `help:wave-rhythm` · `help:game-speed` · `help:emergency-defense` · `help:power-score` · `help:account-level` · `help:genome-rank` · `help:towers` · `help:tower-stars` · `help:tower-mastery` · `help:blockers` · `help:mastery-evolution` · `help:tower-branches` · `help:adaptation` · `help:mulligans` · `help:nucleus` · `help:gene-cards` · `help:splice` · `help:heroes` · `help:hero-evolution` · `help:hero-slots` · `help:equipment` · `help:equipment-reforge` · `help:gear-codex` · `help:genome-core` · `help:prestige` · `help:ascension` · `help:containers` · `help:loot-meter` · `help:collection-codex` · `help:phenotype-lab` · `help:idle-harvest` · `help:metabolism` · `help:specimens` · `help:arena` · `help:expeditions` · `help:quests` · `help:season-pass` · `help:premium-store` · `help:campaign` · …31 more
 
 ### Testing Index
 
@@ -147,6 +147,7 @@ graph LR
   system_bosses["Bosses"] -->|modifies| system_rendering["Rendering & VFX"]
   system_genome_rank["Genome Rank (ultimate mastery ladder)"] -->|consumes| system_account_level["Account Level (evergreen meta-progression)"]
   system_hive_mind["Hive Intelligence (in-run)"] -->|consumes| system_engine["Sim Engine"]
+  system_hive_mind["Hive Intelligence (in-run)"] -->|modifies| system_heroes["Heroes"]
   system_threat["Threat Ladder"] -->|modifies| system_difficulty["Difficulty"]
   system_heroes["Heroes"] -->|consumes| system_mega_bosses["Mega Bosses"]
   system_heroes["Heroes"] -->|consumes| system_stats["Lifetime Stats"]
@@ -601,6 +602,7 @@ graph LR
   system_bosses["Bosses"] -->|triggers| system_audio["Audio"]
   system_bosses["Bosses"] -->|modifies| system_rendering["Rendering & VFX"]
   system_mega_bosses["Mega Bosses"] -->|triggers| system_audio["Audio"]
+  system_hive_mind["Hive Intelligence (in-run)"] -->|modifies| system_heroes["Heroes"]
   system_threat["Threat Ladder"] -->|modifies| system_difficulty["Difficulty"]
   system_security["Game Action Security Layer"] -->|modifies| system_meta_store["Meta Store & Save"]
   system_cosmetics["The Wardrobe (Cosmetics)"] -->|modifies| system_audio["Audio"]
@@ -673,6 +675,7 @@ Six seeded runs pinned byte-for-byte (core/golden.test.ts) — the tripwire for 
   - conflictsWith ← `system:gene-cards` — Transcendence rides effectiveGeneEffects 4th arg + RunOptions.geneTranscends — untranscended saves MUST fold byte-identical (transcendPowerMult ×1, stale ids drop in the sanitizer); options may never use boot-only fields (dead on mid-run draft)
   - conflictsWith ← `system:nucleus` — resolveNucleus is identity until a chamber fills (empty ⇒ effects [], power 1); RunOptions.nucleusEffects folds at boot BESIDE runEffects — boot-only fields (integrityMult) are LEGAL here (always boots), unlike gene upgrades
   - conflictsWith ← `system:genome-rank` — promotion rewards are meta-only (cores/ichor/containers/titles) — NO gameplay passives may ride ranks, or goldens and pay-to-win both break
+  - conflictsWith ← `system:gene-cards` — DRAFT FIT / OPENING DRAFT / SPLICE (docs/CARDS.md §fit·§opening·§splice): every deal goes through Game.dealDraft → draftCards(…, fit) — fit/opening/splice are RunOptions the APP sets (cards.ts draftFeaturesFor); omitted ⇒ the legacy uniform deal, so goldens stay byte-identical. A fit deal draws the SAME number of rng values (pickWeighted = one next() per card). rerollDraft + splice are RECORDED inputs (replay.ts REPLAY_METHODS) — an unrecorded draft spend diverges a Daily replay
   - conflictsWith ← `system:mulligans` — adaptation bonuses fold ONLY through existing MulliganStats channels inside resolveMulligan — a new sim branch for a class bonus breaks the inactive⇒identity gate
   - conflictsWith ← `system:security` — the guard layer is window-gated INERT in Node — the deterministic suite + economy personas hammer meta methods by design; a jsdom test environment would silently activate it (keep tests in Node or setSecurityEnabled(false))
   - conflictsWith ← `system:battle-pass` — permanents/stacks fold at the META seams (effects + accountEconomyBonuses) only — a fresh save must fold NOTHING or the pinned seeds break
@@ -680,8 +683,7 @@ Six seeded runs pinned byte-for-byte (core/golden.test.ts) — the tripwire for 
   - conflictsWith ← `system:idle-harvest` — idle is PURE economy: zero Power, zero run effects, the idle codex carries no powerWeight, soft(0)=1 — any fold at level 0 breaks POWER_BASE; the accrual anchor is MONOTONE (never rewound) or clock rollback re-farms the same span, and fixed-price drop rows need minValue floors or 5-minute dust collects mint full containers (idleHarvest.test.ts pins all three)
   - conflictsWith ← `system:hero-symbiotes` — every symbiote surface must stay inactive⇒identity: resolveHeroSymbiote power EXACTLY 1 / kit null while no slot is fully seated; a new kit verb needs BOTH an optional field (absent on fresh saves) AND a presence-gated seam read — an unconditional read or a default ≠ identity breaks the pinned seeds
   - conflictsWith ← `system:hub-shell` — HOME WIDGET FIBER INVARIANT (2026-07, CommandCenter.tsx CCWidget): the home zone renders each widget through the CCWidget COMPONENT (<CCWidget/>), never by calling the widget function inline — an inline render(ctx) flattens every widget's hooks into CommandCenter's own list, so a `when` gate flipping a widget in/out between renders (e.g. command-feed keying off pendingContainers/shards) trips React's "rendered more hooks than during the previous render" and the ErrorBoundary blanks the hub. Unit tests can't see it (React UI); the MOBILE GATE (npm run mobilecheck, run by validate) catches it on the developed-profile sweep. Any new home widget with hooks + a volatile `when` MUST route through CCWidget
-  - conflictsWith ← `system:hero-cinematics` — cast-less runs (the golden autoplay) must never touch the cinematic path: pendingImpactSystem is length-gated, castEvents only written on cast — and any test asserting cast RESULTS must step past the def’s impactDelay before asserting (riptide/vitriol tests show the ride-through pattern)
-  - _…7 more (query: `npm run dil -- node concept:golden-test`)_
+  - _…8 more (query: `npm run dil -- node concept:golden-test`)_
 
 ### `concept:progression-gates` — Progression Gates
 
@@ -861,6 +863,7 @@ _at: src/core/hivemind.ts_
   - provides → `concept:power-score` — reads the temporary bucket for exact purchase deltas (never writes)
   - consumes → `system:engine` — PINNED-RESERVE PULSE CONTRACT (docs/HIVE-MIND.md §scoring): Game.hivePulse computes the reserve ONCE from the wallet at pulse start and threads it through every hivePlan re-plan — per-iteration recomputation on the shrinking wallet asymptotically spends to zero (sim:hive caught 87 violations before the pin). New Biomass sinks join via registerHiveProvider (core/hivemind.ts) — one provider, no planner/UI/sim changes; execute ONLY through the public API a manual click uses so the Power audit + ceremonies fire
   - gates → `system:campaign` — AUTOMATION GATE (docs/HIVE-MIND.md §solved-content): Hive Intelligence + Auto Gene act only on SOLVED content — automationGate (core/hivemind.ts AUTOMATION_POLICY) evaluated by save/derive.ts automationFor at GameView mount, threaded as RunOptions.automationAllowed (FAIL-CLOSED: omitted ⇒ false). Headless instruments modelling solved content must pass automationAllowed: true or the pulse is a no-op
+  - modifies → `system:heroes` — THIN-BOARD HOLD (docs/HIVE-MIND.md §opening): with fewer than HIVE_MIND.thinBoardTowers towers the planner values heroEvo/autocast at 0 and the favorite provider (Game.deployTower) places towers — the start-of-run glow follows the same plan. G1: the old pulse sank ~90 % of the opening Biomass into Hero Evolution
   - documentedBy ← `doc:HIVE-MIND.md`
   - testedBy ← `test:src/core/hivemind.test.ts`
 
@@ -894,7 +897,7 @@ _at: src/core/game.ts, src/core/combat.ts, src/core/status.ts, src/core/targetin
   - requiredBy ← `system:nemesis`
   - requiredBy ← `system:onboarding`
   - requiredBy ← `system:run-ui`
-  - _…239 more (query: `npm run dil -- node system:engine`)_
+  - _…240 more (query: `npm run dil -- node system:engine`)_
 
 ### `system:content-infra` — Content Infrastructure
 
@@ -944,7 +947,7 @@ _at: src/core/power.ts, src/state/itemPower.ts, src/state/powerEvents.ts, src/st
 
 Procedural authored-feeling stages; depth is the master progression gate. Authored EVENTS (Elite Rush / Boss Gauntlet / Genome Cache / Mutation choice) punctuate the ladder via a data registry.
 
-_at: src/core/campaign.ts, src/core/campaignEvents.ts, src/core/hash.ts, src/ui/CampaignScreen.tsx_
+_at: src/core/campaign.ts, src/core/campaignEvents.ts, src/core/hash.ts, src/ui/CampaignScreen.tsx, src/state/missionBrief.ts_
 
   - dependsOn → `system:engine`
   - dependsOn → `system:biomes`
@@ -972,7 +975,7 @@ _at: src/core/campaign.ts, src/core/campaignEvents.ts, src/core/hash.ts, src/ui/
   - documentedBy ← `doc:CAMPAIGN.md`
   - documentedBy ← `doc:CAMPAIGN-EVENTS.md`
   - documentedBy ← `doc:MODE-IDENTITY.md`
-  - _…10 more (query: `npm run dil -- node system:campaign`)_
+  - _…11 more (query: `npm run dil -- node system:campaign`)_
 
 ### `system:infinite` — Infinite Mode
 
@@ -1341,7 +1344,7 @@ _at: src/core/heroIdentity.ts, src/core/heroLore.ts, src/core/heroEvolution.ts, 
   - contains ← `hero:vitriol`
   - contains ← `hero:revenant`
   - contains ← `hero:knell`
-  - _…21 more (query: `npm run dil -- node system:heroes`)_
+  - _…22 more (query: `npm run dil -- node system:heroes`)_
 
 ### `system:hero-cinematics` — Hero Ability Cinematics
 
@@ -1448,6 +1451,7 @@ _at: src/core/cards.ts, src/core/effectLanguage.ts, src/core/geneCards.ts, src/c
   - modifies → `system:engine` — RULE EVENTS: HookEvent eliteKilled/nucleusHit/towerDeployed/strainRaised each fire from ONE seam (kill block / hiveStrike+detonate / placeCore / raiseStrain) via fireRelicHooks(on, e, ax, ay) — a mid-run hero card also folds into per-hero bundles (foldIntoHeroBundles) or geared heroes never see it
   - conflictsWith → `concept:golden-test` — Transcendence rides effectiveGeneEffects 4th arg + RunOptions.geneTranscends — untranscended saves MUST fold byte-identical (transcendPowerMult ×1, stale ids drop in the sanitizer); options may never use boot-only fields (dead on mid-run draft)
   - modifies → `system:hub-shell` — EFFECT LANGUAGE (core/effectLanguage.ts — docs/CARDS.md §language): CardOption.lines/effects carry standardized DIGIT-FREE text generated from the SAME leveled effects a pick applies (game.ts snapshot/chooseCard feed effectiveGeneEffects into cardToOption); FIELD_VOCAB is a TOTAL Record over RunModifiers keys (typecheck fails on a new field until vocab is authored), IMPACT_SCALE 8 bands + EFFECT_CATEGORIES 12-color palette are THE game-wide effect vocabulary — new content describes effects via describeEffects/describeCard, never hand-written stat text (CardDef.simple is the only override; CardDef.description stays the precise technical line for detail expansion)
+  - conflictsWith → `concept:golden-test` — DRAFT FIT / OPENING DRAFT / SPLICE (docs/CARDS.md §fit·§opening·§splice): every deal goes through Game.dealDraft → draftCards(…, fit) — fit/opening/splice are RunOptions the APP sets (cards.ts draftFeaturesFor); omitted ⇒ the legacy uniform deal, so goldens stay byte-identical. A fit deal draws the SAME number of rng values (pickWeighted = one next() per card). rerollDraft + splice are RECORDED inputs (replay.ts REPLAY_METHODS) — an unrecorded draft spend diverges a Daily replay
   - conflictsWith → `system:heroes` — heroHp card ops (Battle Stims, Thick Hide…) add FLAT max HP mid-run; any hero max-HP recompute must go through heroMaxHpFor, which folds the per-kind heroFlatMaxHp — a bare base×gear×Vitality recompute dropped it (the 359/248 HP Hive auto-buy bug)
   - extends → `system:loot` — GENE DISCOVERY (core/geneDiscovery.ts): save.genesDiscovered IS ownership — starters free (16 ungated commons), everything else recovered from Bio-Containers (openContainer additive lane: rollGeneDiscovery → discover extends the archive / echo pays Gene Essence, never a dead pull); rarity pools open on campaign milestones 0/8/15/30/60 with per-card unlock gates ON TOP; undiscovered weight ×(1+7·(1−completion)) fades as the archive fills — rebalance ONLY via GENE_DISCOVERY + scripts/sim-gene-discovery.ts
   - conflictsWith → `concept:determinism` — the DRAFT POOL is the discovered set passed at LAUNCH (GameView → RunOptions.draftPool); the no-options sim path keeps the legacy ungated catalog so goldens stay byte-identical — never filter draftCards by discovery INSIDE the sim, and never roll discovery from sim code (meta-only, Math.random)
@@ -1460,12 +1464,12 @@ _at: src/core/cards.ts, src/core/effectLanguage.ts, src/core/geneCards.ts, src/c
   - taughtBy ← `help:gene-essence`
   - taughtBy ← `help:gene-archive`
   - taughtBy ← `help:gene-loadout`
+  - taughtBy ← `help:splice`
   - referencedBy ← `achievement:collector`
   - documentedBy ← `doc:GENE-EVOLUTION.md`
   - documentedBy ← `doc:CARDS.md`
   - documentedBy ← `doc:GENE-AUDIT-REPORT.md`
-  - documentedBy ← `guide:gene-cards`
-  - _…10 more (query: `npm run dil -- node system:gene-cards`)_
+  - _…11 more (query: `npm run dil -- node system:gene-cards`)_
 
 ### `system:nucleus` — Nucleus Mulligans
 
@@ -2054,7 +2058,7 @@ _at: src/ui/InitCutscene.tsx, src/render/introScenes.ts, src/core/tutorial.ts, s
   - contains ← `help:strain-evolution`
   - contains ← `help:boss-sieges`
   - contains ← `help:boss-rush`
-  - _…69 more (query: `npm run dil -- node system:onboarding`)_
+  - _…70 more (query: `npm run dil -- node system:onboarding`)_
 
 ### `system:account-level` — Account Level (evergreen meta-progression)
 
@@ -3421,7 +3425,7 @@ _at: src/core/tutorial.ts_
   - teaches → `system:onboarding`
   - teaches → `system:run-ui`
 
-## Help Topics (66)
+## Help Topics (67)
 
 - `help:mission-control` — Your standing orders — the answer to "what should I do now?" _(partOf `system:onboarding`, teaches `system:power`)_
 - `help:hive-intel` — The live intel feed — banked value, ready moves, recent milestones. _(partOf `system:onboarding`, teaches `system:notifications`)_
@@ -3459,6 +3463,7 @@ _at: src/core/tutorial.ts_
 - `help:mulligans` — Biomechanical organisms you assemble onto towers — stats AND flesh. _(partOf `system:onboarding`, teaches `system:mulligans`)_
 - `help:nucleus` — The Hive Nucleus grows its OWN organism — chambers of support organs that mutate it visibly. _(partOf `system:onboarding`, teaches `system:nucleus`)_
 - `help:gene-cards` — Discovered strands, drafted as run boosts — collected forever. _(partOf `system:onboarding`, teaches `system:gene-cards`)_
+- `help:splice` — Turn a Biomass overflow into an extra gene draft — and read which card fits. _(partOf `system:onboarding`, teaches `system:gene-cards`)_
 - `help:heroes` — A living unit that moves and fights on its own. _(partOf `system:onboarding`, teaches `system:heroes`)_
 - `help:hero-evolution` — Spend Biomass on your hero mid-run — ten axes, ten levels. _(partOf `system:onboarding`)_
 - `help:hero-slots` — Field 2, then 3 heroes at once. _(partOf `system:onboarding`, teaches `system:heroes`)_
@@ -4031,7 +4036,7 @@ _at: site/guides.ts → /guides/live-events/_
 - `doc:VOWS.md` — project documentation _(documents `system:prestige`)_
 - `doc:WEBSITE.md` — project documentation _(documents `system:field-research`, documents `system:website`)_
 
-## Tests (328)
+## Tests (330)
 
 - `test:src/audio/cues.test.ts` — automated validation _(tests `system:audio`)_
 - `test:src/audio/music.test.ts` — automated validation _(tests `system:audio`)_
@@ -4087,6 +4092,7 @@ _at: site/guides.ts → /guides/live-events/_
 - `test:src/core/directives.test.ts` — automated validation _(tests `system:directives`)_
 - `test:src/core/director.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/core/doctrines.test.ts` — automated validation _(tests `system:doctrines`)_
+- `test:src/core/draftFit.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/core/draftcadence.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/core/earlyBrood.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/core/economyDirector.test.ts` — automated validation _(tests `system:currencies`)_
@@ -4306,6 +4312,7 @@ _at: site/guides.ts → /guides/live-events/_
 - `test:src/state/megacollection.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/state/meta.test.ts` — automated validation _(tests `system:meta-store`)_
 - `test:src/state/metabolism.test.ts` — automated validation _(tests `system:metabolism`)_
+- `test:src/state/missionBrief.test.ts` — automated validation _(tests `system:campaign`)_
 - `test:src/state/missionControl.test.ts` — automated validation _(tests `system:power`)_
 - `test:src/state/modeGates.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/state/mulligan.test.ts` — automated validation _(tests `system:engine`)_

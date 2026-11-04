@@ -384,7 +384,7 @@ graph TD
 
 *Procedural authored-feeling stages; depth is the master progression gate. Authored EVENTS (Elite Rush / Boss Gauntlet / Genome Cache / Mutation choice) punctuate the ladder via a data registry.*
 
-- **Files:** `src/core/campaign.ts` · `src/core/campaignEvents.ts` · `src/core/hash.ts` · `src/ui/CampaignScreen.tsx`
+- **Files:** `src/core/campaign.ts` · `src/core/campaignEvents.ts` · `src/core/hash.ts` · `src/ui/CampaignScreen.tsx` · `src/state/missionBrief.ts`
 - **Depends on:** `engine` · `biomes` · `bosses` · `difficulty` · `power`
 - **Consumers — what breaks if you change this:** `daily` · `towers` · `heroes` · `loot` · `gene-cards` · `prestige` · `progression-gating` · `threat`
 - **Power Score:** recommended-power display; first-clear rewards move account Power indirectly
@@ -674,8 +674,8 @@ graph TD
 - **Consumers — what breaks if you change this:** `engine` · `doctrines`
 - **Power Score:** permanent levels + Transcendence lines fold linearly (GENE_POWER_SCALE); drafts feed the temporary bucket; validator enforces visibility
 - **Save fields:** `genes` · `geneEssence` · `geneSlots` · `geneLoadout` · `genesDiscovered`
-- **Tutorial:** `combat` · **Help mechanics:** `gene-cards` · `gene-essence` · `gene-archive` · `gene-loadout`
-- **HUD surfaces:** `DraftModal` · `BuildPanel` · `gene splash` · **UI screens:** `GeneArchive`
+- **Tutorial:** `combat` · **Help mechanics:** `gene-cards` · `gene-essence` · `gene-archive` · `gene-loadout` · `splice`
+- **HUD surfaces:** `DraftModal` · `BuildPanel` · `gene splash` · `Splice pill` · **UI screens:** `GeneArchive`
 - **Collection:** cards category (Gene Level labels) · **Achievements:** `collector`
 - **Localization:** inline English strings (no i18n layer yet — this field enumerates the surface for the day it lands)
 - **Docs to update on change:** `docs/GENE-EVOLUTION.md` · `docs/CARDS.md` · `docs/GENE-AUDIT-REPORT.md` · `docs/ARCHITECTURE.md` · `docs/CODEMAP.md` · `docs/DESIGN.md` · `docs/DOCTRINES.md` · `docs/MODE-IDENTITY.md`

@@ -576,6 +576,13 @@ export interface RunStats {
   bossesSlain?: string[];
   /** LOSS only: bosses still standing when the Nucleus fell, with their remaining HP fraction. */
   bossHpAtDefeat?: { name: string; hpFrac: number }[];
+  /** LOSS only: towers on the board / open emplacements when the Nucleus fell (debrief §board). */
+  boardAtEnd?: number;
+  slotsAtEnd?: number;
+  /** LOSS only, sim seconds: when the first flier took the field / was first downed (debrief §anti-air). */
+  firstFlierSec?: number;
+  firstFlierWave?: number; // the wave the first flier came on
+  firstAirKillSec?: number;
   // ── Mega Boss encounters (docs/MEGA-BOSS.md) — additive for old fixtures. ──
   megaKills?: MegaKillStat[]; // one entry per Mega Boss defeated this run (rewards + collection)
   weakPointsDestroyed?: number; // weak points burst this run (collection + achievements)
@@ -750,6 +757,12 @@ export interface HudSnapshot {
   emergency: boolean; // Emergency Defense Mode — an enemy is in the Final Defense Zone
   draft: CardOption[] | null;
   draftRerollCost: number; // §reroll: biomass price of the open draft's ONE re-deal; -1 = unavailable
+  /** Why the open draft was dealt (docs/CARDS.md): a cleared wave, the run's OPENING draft (§opening) or a
+   *  bought SPLICE (§splice). Optional — absent reads as 'wave'. */
+  draftKind?: 'wave' | 'opening' | 'splice';
+  /** §splice: the Biomass price of an extra draft RIGHT NOW (build phase, feature on); -1 = unavailable.
+   *  The button shows only once the bank reaches it — the price IS the threshold. Optional (fixtures). */
+  spliceCost?: number;
   selectedTower: TowerKind | null;
   selectedPlaced: SelectedPlacedTower | null; // a placed tower being inspected (branch/Mutation UI)
   armedAbility: boolean;
@@ -798,6 +811,9 @@ export interface CardOption {
   // from the SAME effects the pick will apply, plus those effects for live comparison/exact math.
   lines: EffectLine[];
   effects: CardEffect[];
+  /** DRAFT FIT (docs/CARDS.md §fit): 0..1 — how well this OPEN offer fits the run (subject damage share /
+   *  banked Biomass). Set on draft offers only when RunOptions.draftFit is on; drives ◆PICK + "off-build". */
+  fit?: number;
 }
 
 /** A telegraph of an upcoming wave's composition (anticipation / informed prep). */

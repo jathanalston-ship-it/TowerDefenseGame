@@ -59,6 +59,8 @@ import {
   WAVES,
   AUTO_START_DELAY,
   DRAFT_REROLL,
+  DRAFT_FIT,
+  SPLICE,
   AUTO_START_FIRST_DELAY,
   MINION_DEFS,
   MINION_CAP,
@@ -80,10 +82,11 @@ import {
   cardToOption,
   defaultRunModifiers,
   draftCards,
+  draftFitOf,
   endlessDraftInterval,
   isRuleChangingCard,
 } from './cards';
-import type { CardContext, CardDef, CardEffect, HookEvent, HookSpec, RunModifiers } from './cards';
+import type { CardContext, CardDef, CardEffect, DraftFit, HookEvent, HookSpec, RunModifiers } from './cards';
 import { branchPowerEffects, effectsPower } from './power';
 import { HERO_CRIT_BASE, HERO_EVO, HERO_EVO_BY_ID, NEUTRAL_HERO_EVO, deriveHeroEvoMods, heroEvoCost, heroEvoEffects, heroEvoTotalOwned } from './heroEvolution';
 import type { HeroEvoLevels, HeroEvoMods } from './heroEvolution';
@@ -167,6 +170,16 @@ export interface RunOptions {
   startingGenes?: string[]; // Starting Gene Loadout: card ids that AUTO-ACTIVATE at run boot (each at its permanent level). Empty/omitted ⇒ nothing applied (golden path)
   unlockedCardIds?: readonly string[]; // PROGRESSION-gated gene-card ids (CardDef.unlock) the account has earned — injected into the draft pool. Omitted ⇒ only ungated cards (golden path)
   draftPool?: readonly string[]; // DISCOVERED gene-card ids (docs/CARDS.md §discovery) — when present, drafts draw ONLY these (∩ the other gates). Omitted ⇒ legacy pool (golden path unchanged)
+  /** DRAFT FIT (docs/CARDS.md §fit): deal by relevance (live damage shares, banked Biomass, recency),
+   *  keep the rule slot to fielded subjects, and stamp each open offer's fit (◆PICK). The app decides
+   *  via cards.ts draftFeaturesFor. Omitted ⇒ the uniform deal (golden path byte-identical). */
+  draftFit?: boolean;
+  /** OPENING DRAFT (docs/CARDS.md §opening): the run opens with a draft before wave 1 (Campaign —
+   *  the app decides). Omitted ⇒ none (golden path). */
+  openingDraft?: boolean;
+  /** SPLICE (docs/CARDS.md §splice): banked Biomass buys an extra draft in the build phase (a recorded
+   *  input — core/replay.ts). Omitted ⇒ off (golden path). */
+  splice?: boolean;
   /** THE AUTOMATION GATE (docs/HIVE-MIND.md §solved-content): may this run use Hive Intelligence +
    *  Auto Gene? The META layer decides from the save (core/hivemind.ts automationGate — solved
    *  content only) and passes the verdict; the sim never reads the save. Omitted ⇒ false (fail
@@ -773,6 +786,18 @@ export class Game {
   // (its unlocked set holds one) — then every deal whose eligible pool holds a rule card offers one.
   // A fresh account (and the golden sim) earns none ⇒ off ⇒ zero extra draws, byte-identical drafts.
   private readonly ruleSlot: boolean;
+  // DRAFT FIT / SPLICE (docs/CARDS.md §fit · §splice) — off unless the app opts in (golden-safe).
+  private readonly draftFitOn: boolean;
+  private readonly spliceOn: boolean;
+  private dealSeq = 0; // deals dealt this run (fit's recency window counts in deals)
+  private readonly offeredAt = new Map<string, number>(); // card id → the deal it was last offered in
+  private draftKind: 'wave' | 'opening' | 'splice' = 'wave'; // why the open draft exists (modal eyebrow)
+  /** Splices bought this run — each one raises the next price (SPLICE.growth). */
+  splicesBought = 0;
+  // Defeat-debrief ledgers (docs/REWARD-PRESENTATION.md §debrief) — observation only (sim clock s, -1 = never).
+  private firstFlierAt = -1; // the first flier took the field…
+  private firstFlierWave = 0; // …on this wave
+  private firstAirKillAt = -1; // the first flier was downed — the run's first real anti-air
   /** Whether Hive Intelligence may act this run (RunOptions.automationAllowed — fail closed). */
   readonly automationAllowed: boolean;
   /** The run's THREAT LADDER level (docs/THREAT.md) — 0 = baseline. Display only (the director owns the warp). */
@@ -823,6 +848,8 @@ export class Game {
     this.threat = Math.max(0, Math.floor(opts.threat ?? 0));
     this.ruleSlot = [...this.unlockedCardIds].some((id) => { const c = cardRegistry.get(id); return c !== undefined && isRuleChangingCard(c); });
     this.draftPool = opts.draftPool ? new Set(opts.draftPool) : undefined;
+    this.draftFitOn = opts.draftFit === true;
+    this.spliceOn = opts.splice === true;
     // Daily Run (docs/DAILY-RUN.md): resolve the day's modifiers ONCE into the neutral-defaulted
     // struct every hook reads (mults 1 / adds 0 without them ⇒ every read below is golden-safe).
     // The dedicated rng paces Infestation's elite rolls — consumed ONLY when that modifier is live.
@@ -966,6 +993,17 @@ export class Game {
         this.foldIntoHeroBundles(effects);
         this.chosenCards.push(cardToOption(card, effects));
         this.chosenCardEffects.push(...effects);
+      }
+    }
+    // OPENING DRAFT (docs/CARDS.md §opening): Campaign runs the app opts in open with a draft BEFORE
+    // wave 1 — dealt last (every boot-time draw already happened), for the favorite (the one tower
+    // the player is sure to field). Omitted ⇒ the run opens in prep exactly as before (golden-safe).
+    if (opts.openingDraft === true && this.mode === 'campaign') {
+      const deal = this.dealDraft(new Set([this.favoriteTower]));
+      if (deal.length > 0) {
+        this.draft = deal;
+        this.draftKind = 'opening';
+        this.phase = 'draft';
       }
     }
   }
@@ -2406,7 +2444,7 @@ export class Game {
     if (this.biomass < cost) return false;
     this.biomass -= cost;
     this.draftRerolled = true;
-    this.draft = draftCards(this.rng, 3, this.waveIndex, this.fieldedKinds(), this.unlockedCardIds, this.draftPool, this.ruleSlot);
+    this.draft = this.dealDraft();
     this.pushSfx('draft'); // the re-deal plays the same beat as the deal
     return true;
   }
@@ -5589,6 +5627,7 @@ export class Game {
       // whole check is gated on minions existing ⇒ enemyMoveSystem is byte-identical on golden.
       if (this.minions.length > 0 && !def.behavior.flying && !def.behavior.burrowing && this.minionBlock(e, def, dt)) continue;
       const b = def.behavior;
+      if (b.flying === true && this.firstFlierAt < 0) { this.firstFlierAt = this.time; this.firstFlierWave = this.waveIndex; } // debrief ledger (observation only)
       // A burrowed boss is beneath the field: no movement, no contact, no attacks.
       if (e.boss !== null && e.boss.burrow > 0) { e.windup = -1; continue; }
       // Boss charger: a telegraphed dash multiplies movement this tick (null boss ⇒ ×1 ⇒ golden-safe).
@@ -6809,6 +6848,7 @@ export class Game {
         this.biomass += gain;
         this.statBiomassEarned += gain;
         this.armorBreakUntil.delete(e.id);
+        if (this.firstAirKillAt < 0 && ENEMY_DEFS[e.kind].behavior.flying === true) this.firstAirKillAt = this.time; // debrief ledger
         if (e.boss) {
           this.spawnParticles(e.x, e.y, PARTICLE.death, ENEMY_DEFS[e.kind].color);
           this.spawnMotes(e.x, e.y); // biomass income "flies" up off the kill
@@ -7122,7 +7162,8 @@ export class Game {
         // Gene Card cadence (CARDS.md §1): campaign drafts every wave (generous); endless slows
         // the drip with depth so cards stay exciting and deep runs lean on permanent progression.
         if (!this.tutorialMode && this.shouldDraftThisWave()) {
-          this.draft = draftCards(this.rng, 3, this.waveIndex, this.fieldedKinds(), this.unlockedCardIds, this.draftPool, this.ruleSlot); // depth-scaled rarity (CARDS.md §2); tower cards only for FIELDED kinds
+          this.draft = this.dealDraft(); // depth-scaled rarity (CARDS.md §2); tower cards only for FIELDED kinds
+          this.draftKind = 'wave';
           this.draftRerolled = false; // a fresh deal re-arms the one paid reroll (§reroll)
         }
       }
@@ -7569,6 +7610,82 @@ export class Game {
     return s;
   }
 
+  /** Deal one 3-card draft — THE deal seam (wave clear, reroll, opening, splice, tutorial, debug).
+   *  DRAFT FIT off ⇒ exactly the legacy draftCards call (golden path). On ⇒ the live fit read +
+   *  the recency window, and the dealt ids are stamped so the next deals avoid a carousel. */
+  private dealDraft(allowed: ReadonlySet<TowerKind> = this.fieldedKinds()): CardDef[] {
+    const fit = this.draftFitOn ? this.draftFitContext(true) : undefined;
+    const deal = draftCards(this.rng, 3, this.waveIndex, allowed, this.unlockedCardIds, this.draftPool, this.ruleSlot, fit);
+    if (fit) {
+      this.dealSeq++;
+      for (const c of deal) this.offeredAt.set(c.id, this.dealSeq);
+    }
+    return deal;
+  }
+
+  /** The DRAFT FIT read (docs/CARDS.md §fit): who deals this run's damage (towers per kind + heroes),
+   *  and how deep the Biomass bank is. Before any damage lands it reads the BOARD instead (towers by
+   *  count, an empty board counting the favorite) with the hero at DRAFT_FIT.heroPrior. Pure read. */
+  private draftFitContext(withRecent: boolean): DraftFit {
+    const towerShare: Partial<Record<TowerKind, number>> = {};
+    let towerDmg = 0;
+    for (const k of TOWER_ORDER) towerDmg += this.masteryAccrual[k].damage;
+    let heroDmg = 0;
+    for (const h of this.heroes) heroDmg += this.heroMasteryAccrual[h.kind].damage;
+    const total = towerDmg + heroDmg;
+    let heroShare: number;
+    if (total > 0) {
+      for (const k of TOWER_ORDER) if (this.masteryAccrual[k].damage > 0) towerShare[k] = this.masteryAccrual[k].damage / total;
+      heroShare = heroDmg / total;
+    } else {
+      heroShare = this.heroes.length > 0 ? DRAFT_FIT.heroPrior : 0;
+      const counts = new Map<TowerKind, number>();
+      for (const t of this.towers) counts.set(t.kind, (counts.get(t.kind) ?? 0) + 1);
+      if (counts.size === 0) counts.set(this.favoriteTower, DRAFT_FIT.favoritePrior);
+      let n = 0;
+      for (const c of counts.values()) n += c;
+      for (const [k, c] of counts) towerShare[k] = (c / n) * (1 - heroShare);
+    }
+    let recent: Set<string> | undefined;
+    if (withRecent) {
+      recent = new Set<string>();
+      for (const [id, at] of this.offeredAt) if (this.dealSeq - at < DRAFT_FIT.recentDeals) recent.add(id);
+    }
+    return { towerShare, heroShare, bankRatio: this.biomass / deployCost(this.deployments), recent };
+  }
+
+  // ── SPLICE (docs/CARDS.md §splice) — turn a Biomass overflow into an extra draft ─────────────────
+
+  /** The price of an extra draft right now: SPLICE.costDeploys × the next deploy cost × growth^bought. */
+  spliceCost(): number {
+    return Math.round(SPLICE.costDeploys * deployCost(this.deployments) * Math.pow(SPLICE.growth, this.splicesBought));
+  }
+
+  /** Whether a splice could be bought right now — the feature is on, it is the build phase (never
+   *  mid-fight, never over an open draft), and the bank reached the price. Never in the tutorial or
+   *  under a Daily that rations drafts (Dormancy — the day's rule wins). */
+  canSplice(): boolean {
+    return this.spliceOn && this.phase === 'prep' && !this.tutorialMode && this.dailyFx.draftEveryWaves <= 0
+      && this.biomass >= this.spliceCost();
+  }
+
+  /** Buy a SPLICE: pay the price, deal a fresh 1-of-3 from the live board, open it as a draft. The
+   *  pick returns to this same build phase (chooseCard). A recorded input (core/replay.ts). */
+  splice(): boolean {
+    if (!this.canSplice()) return false;
+    const cost = this.spliceCost();
+    this.biomass -= cost; // pay first — the deal's fit reads the bank the player is left with
+    const deal = this.dealDraft();
+    if (deal.length === 0) { this.biomass += cost; return false; } // nothing draftable — never charge for air
+    this.splicesBought++;
+    this.draft = deal;
+    this.draftKind = 'splice';
+    this.draftRerolled = false; // a splice deal carries its own one paid reroll (§reroll)
+    this.phase = 'draft';
+    this.pushSfx('draft');
+    return true;
+  }
+
   /** Tutorial beats (tutorialMode only — the director calls these to script the lessons). The
    *  gene-card lesson releases the held draft here exactly when it teaches drafting: during the
    *  SETTLE beat right after a clear (endWave then flips to the draft in natural wave → draft →
@@ -7578,7 +7695,8 @@ export class Game {
     if (!this.tutorialMode) return;
     const settling = this.phase === 'wave' && this.settleTimer > 0;
     if (this.phase !== 'prep' && !settling) return;
-    this.draft = draftCards(this.rng, 3, this.waveIndex, this.fieldedKinds(), this.unlockedCardIds, this.draftPool, this.ruleSlot);
+    this.draft = this.dealDraft();
+    this.draftKind = 'wave';
     this.draftRerolled = false;
     if (!settling) this.phase = 'draft'; // settling: endWave() reveals it when the field winds down
   }
@@ -7599,7 +7717,8 @@ export class Game {
   /** Open the 1-of-3 draft now (abandons any in-progress wave). */
   debugOpenDraft(): void {
     if (this.phase === 'won' || this.phase === 'lost') return;
-    this.draft = draftCards(this.rng, 3, this.waveIndex, this.fieldedKinds(), this.unlockedCardIds, this.draftPool, this.ruleSlot);
+    this.draft = this.dealDraft();
+    this.draftKind = 'wave';
     this.draftRerolled = false;
     this.phase = 'draft';
   }
@@ -8150,7 +8269,9 @@ export class Game {
       emergency: this.dangerCam.phase === 'danger',
       // Draft DTOs describe the LEVELED effects — the exact effects a pick will apply
       // (docs/CARDS.md §language) — so the generated text and comparison math never lie.
-      draft: this.draft ? this.draft.map((c) => cardToOption(c, effectiveGeneEffects(c, this.geneLevels[c.id] ?? 0, 0, this.geneTranscends[c.id]))) : null,
+      draft: this.draft ? this.draftOffers(this.draft) : null,
+      draftKind: this.draftKind,
+      spliceCost: this.spliceOn && this.phase === 'prep' && !this.tutorialMode && this.dailyFx.draftEveryWaves <= 0 ? this.spliceCost() : -1,
       // §reroll: the open draft's one paid re-deal — price, or -1 once used / in the tutorial.
       draftRerollCost: this.phase === 'draft' && this.draft !== null && !this.draftRerolled && !this.tutorialMode ? this.rerollCost() : -1,
       selectedTower: this.selectedTower,
@@ -8186,6 +8307,17 @@ export class Game {
       autocast: { unlocked: this.autocastUnlocked, on: this.autocastOn, cost: HERO_AUTOCAST.cost, affordable: this.biomass >= HERO_AUTOCAST.cost },
       heroEvo: { levels: { ...this.heroEvoLevels }, totalOwned: heroEvoTotalOwned(this.heroEvoLevels) },
     };
+  }
+
+  /** The open draft's DTOs — the LEVELED effects a pick will apply — each stamped with its DRAFT FIT
+   *  (docs/CARDS.md §fit) when the feature is on (the ◆PICK + "off-build" read it). */
+  private draftOffers(draft: readonly CardDef[]): CardOption[] {
+    const fit = this.draftFitOn ? this.draftFitContext(false) : undefined;
+    return draft.map((c) => {
+      const o = cardToOption(c, effectiveGeneEffects(c, this.geneLevels[c.id] ?? 0, 0, this.geneTranscends[c.id]));
+      if (fit) o.fit = draftFitOf(c, fit);
+      return o;
+    });
   }
 
   /** Upcoming named beats so the player ALWAYS has something to look forward to (the pacing
@@ -8393,6 +8525,15 @@ export class Game {
       hiveDamageBy: { ...this.statHiveDamageBy },
       bossesSlain: [...this.statBossesSlain],
       ...(this.phase === 'lost' ? { bossHpAtDefeat: this.bossHpAtDefeat() } : {}),
+      // Board + anti-air read (debrief §board/§anti-air) — LOSS only, so every win serializes as before.
+      ...(this.phase === 'lost'
+        ? {
+            boardAtEnd: this.towers.length,
+            slotsAtEnd: this.unlockedSlots,
+            ...(this.firstFlierAt >= 0 ? { firstFlierSec: this.firstFlierAt, firstFlierWave: this.firstFlierWave } : {}),
+            ...(this.firstAirKillAt >= 0 ? { firstAirKillSec: this.firstAirKillAt } : {}),
+          }
+        : {}),
       // Mega Boss block — present only when a mega was ENCOUNTERED this run, so every existing
       // fixture (and every ordinary run) serializes exactly as before.
       ...(this.statMegaSeen

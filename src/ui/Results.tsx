@@ -8,7 +8,7 @@ import { useEffect } from 'react';
 import { meta } from '../state/meta';
 import { music } from '../audio/music';
 import type { RunOutcome, RunResult } from '../state/meta';
-import { MASTERY, HERO_DEFS, HERO_ORDER, TOWER_DEFS, TOWER_ORDER } from '../core/config';
+import { DEBRIEF, MASTERY, HERO_DEFS, HERO_ORDER, TOWER_DEFS, TOWER_ORDER } from '../core/config';
 import { DOCTRINES } from '../core/doctrines';
 import { recommendedPowerScore } from '../core/campaign';
 import { rarityRank, rarityRegistry } from '../core/loot';
@@ -44,6 +44,22 @@ function DebriefPanel({ d, onGo }: { d: DefeatDebrief; onGo: (nav: string) => vo
         <b>{where}</b>
         {boss && <span> · {boss.name} had <b className="rr-debrief-hp">{boss.hpPct}%</b> HP left</span>}
       </div>
+      {(d.board || d.antiAir) && (
+        <div className="rr-debrief-reads">
+          {d.board && (
+            <span className={`rr-debrief-read${d.board.towers < d.board.typical * DEBRIEF.thinBoardFrac ? ' is-bad' : ''}`}>
+              <span className="rr-debrief-k">Board</span>
+              <b>{d.board.towers}</b> {d.board.towers === 1 ? 'tower' : 'towers'} · winners field ~<b>{d.board.typical}</b>/{d.board.slots}
+            </span>
+          )}
+          {d.antiAir && (
+            <span className={`rr-debrief-read${d.antiAir.downedAfter === null || d.antiAir.downedAfter > DEBRIEF.lateAntiAirSec ? ' is-bad' : ''}`}>
+              <span className="rr-debrief-k">Anti-air</span>
+              fliers from wave <b>{d.antiAir.wave}</b> · {d.antiAir.downedAfter === null ? <b>none downed</b> : <>first downed <b>{d.antiAir.downedAfter}s</b> later</>}
+            </span>
+          )}
+        </div>
+      )}
       {d.threats.length > 0 && (
         <div className="rr-debrief-leak">
           <span className="rr-debrief-k">Got through</span>

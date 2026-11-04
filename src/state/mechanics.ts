@@ -11,6 +11,7 @@ import { highestCampaignStage } from '../save/derive'; // cycle-free (never impo
 // ONE source of truth for "when does this system exist".
 import { FEATURE_BY_ID, featureRevealed, isOpenNav } from './unlocks';
 import { PRESTIGE } from '../core/prestige'; // pure data — the Molt Imprint numbers the Help row quotes
+import { DRAFT_FEATURES } from '../core/config'; // pure data — the Splice / opening-draft gates the Help row quotes
 
 export type MechanicCategory = 'Basics' | 'Towers' | 'Heroes' | 'Progression' | 'Modes' | 'World';
 
@@ -316,6 +317,15 @@ export const MECHANICS: MechanicDef[] = [
     where: 'The draft after clearing a wave; your collection lives in the Gene Archive; new strands come out of Bio-Containers in the Vault.',
     next: 'Crack containers to grow the Archive, chase synergies in-run, then level your strands with Gene Essence.',
     mistakes: 'Don’t auto-pick raw damage every time — economy and utility genes compound over a long run, and a wider Archive means richer drafts.' },
+  // Batch G (docs/CARDS.md §fit · §opening · §splice): drafts that fit the run + the Biomass outlet.
+  { id: 'splice', title: 'Splice & the ◆ PICK', category: 'Towers', nav: 'genes', links: ['gene-cards', 'biomass'],
+    summary: 'Turn a Biomass overflow into an extra gene draft — and read which card fits.',
+    what: 'Drafts deal cards that fit THIS run: your top damage dealers’ cards come up more, economy cards fade once your bank overflows, and the ◆ PICK marks the best fit — not just the rarest card. When your banked Biomass reaches the Splice price, a ◇ SPLICE pill appears in the build phase: pay it for an extra pick-1-of-3 gene draft.',
+    why: 'Late runs bank Biomass faster than anything can spend it — a Splice turns that idle pile into build power, and a fitting draft makes every pick count.',
+    where: `The run-controls strip during the build phase (the pill shows only once you can pay). Campaign runs from Stage ${DRAFT_FEATURES.opening.fromStage} also open with an OPENING DRAFT before wave 1.`,
+    next: 'Each Splice costs more than the last — splice when the bank has nothing better to buy.',
+    mistakes: 'A card marked “Off-build” touches little of your damage — take it only to pivot your build.',
+    unlock: (s) => highestCampaignStage(s) >= DRAFT_FEATURES.splice.fromCleared },
   // ── Heroes ──
   { id: 'heroes', title: 'Heroes', category: 'Heroes', core: true, nav: 'heroes', links: ['hero-slots', 'equipment'],
     summary: 'A living unit that moves and fights on its own.', media: 'GIF: the hero fighting',

@@ -96,7 +96,7 @@ permanent (shaped by **Mutation Fragments**, `ECONOMY.md`); the *draw* is per-ru
 - **Gene Lab nodes** — bonus draft with a guaranteed rarity floor.
 - **Auto Gene Selection** (opt-in Settings toggle, persisted via `state/prefs.ts`).
   When on, each draft shows a visible 10s countdown and auto-drafts the recommended
-  **◆ PICK** (highest-rarity) card on expiry. Any manual pick (click / `1`–`N` / `Enter`)
+  **◆ PICK** (the best FIT — §fit) card on expiry. Any manual pick (click / `1`–`N` / `Enter`)
   cancels the countdown immediately. UI-only — the deterministic sim is untouched.
 - **Reset.** The deck, rerolls, banishes, and any run-stack effects **wipe at run
   end**. Only the *outcomes* (currencies, mastery, codex) persist.
@@ -104,7 +104,63 @@ permanent (shaped by **Mutation Fragments**, `ECONOMY.md`); the *draw* is per-ru
   open 3 for a fresh roll from the same live-board pool at `DRAFT_REROLL.base + perWave·wave`
   Biomass (config.ts). Never in the tutorial, never twice; the modal button hides once used
   (`HudSnapshot.draftRerollCost = -1`). Golden-safe: the extra rng draw exists only when a
-  player invokes it — autoplay never rerolls.
+  player invokes it — autoplay never rerolls. The re-deal is a RECORDED input (`core/replay.ts
+  REPLAY_METHODS` — before Batch G it was not, so an honest Daily with a reroll diverged on replay).
+
+### §fit — Draft Fit: deal the cards that matter to THIS run (Batch G, 2026-11)
+
+G1's audit (~560 headless runs on progression-sim accounts) found drafts did not matter: six draft
+policies — including always taking the WEAKEST card — scored the same. Half the offers were hero
+(32–35 %) or economy (18–19 %) cards while the hero dealt 5–25 % of the damage and runs ended
+26k–49k Biomass unspent; the rule slot kept offering Contagion Bloom (a Parasite card) to runs whose
+Parasite dealt 0.2 %; the highest-rarity ◆PICK matched the strongest option 46 % of the time.
+
+- **Fit (0..1, `draftFitOf`)** — read from the live run (`Game.draftFitContext`): a TOWER card fits by
+  its tower's share of the run's damage, a HERO card by the heroes' share (both floored at
+  `DRAFT_FIT.floor` so a pivot stays possible; full fit from `shareForFull`), an ECONOMY card fades as
+  banked Biomass piles up (`1 / (1 + bank / (economyBankRef × next deploy cost))`), GLOBAL/HIVE cards
+  are neutral. Before any damage lands it reads the BOARD (towers by count; an empty board counts the
+  favorite) with the hero at `heroPrior`. Subjects come from `cardSubject`, so a new card fits with no
+  table edit.
+- **Dealing** — the rarity roll is untouched; within the rolled tier `draftCards(…, fit)` draws by
+  fit × recency (a card offered in the last `recentDeals` deals weighs `recentMult`). One rng draw per
+  card either way. **THE RULE SLOT** re-deals only rules with fit ≥ `ruleMinFit` (fielded subjects).
+- **◆PICK (`draftPickIndex`)** = fit × (relative Power gain + `pickBase`) — effectsPower is a product
+  of independent per-effect factors, so an option's relative gain is `effectsPower(its effects) − 1`
+  whatever the run holds. Auto Gene drafts it. A card below `DRAFT_FIT.offBuild` carries
+  "◇ Off-build for this run".
+- **Gating** — `RunOptions.draftFit`, set by the app (`draftFeaturesFor`, every non-tutorial run); the
+  golden path never sets it ⇒ byte-identical. The Daily gets it for everyone (state-deterministic and
+  carried in the recorded ctor args).
+- **Measured (G1/GR2 harness, progression-sim accounts).** Tower/hero offers whose subject deals < 5 %
+  of the damage: 40 % → 19 %; hero offers 27 % → 23 %, economy 17 % → 15 %. ◆PICK = the strongest
+  option by Power: 50 % (rarity) → 92 %. Infinite depth (8 h account, 6 seeds) by draft policy —
+  uniform deal: Power-max 47.3 · old rarity ◆PICK 46.3 · random 45.0 · weakest 42.7; fit deal:
+  ◆PICK 49.3 · Power-max 49.2 · random 46.5 · weakest 45.2; ◆PICK + Splice 54.8 (4 splices/run).
+  Campaign S32/S34 (8 h, 24 runs/policy): mean end integrity 0.74–0.86 → 0.86–0.90, wins at the
+  ceiling (21–22/24). At 100 h S82 every policy wins 3/12 — the run dies in waves 1–3, before drafts
+  can matter (an opening problem, not a draft one).
+
+### §opening — the Opening Draft
+
+Campaign runs from Stage **8** (`DRAFT_FEATURES.opening.fromStage` — the rarity pools open at Campaign
+8, so the deal holds real build choices) open on a draft BEFORE wave 1 — the one draft that shapes the
+run from its first second. Dealt at the end of the Game constructor (`RunOptions.openingDraft`) for the
+favorite (the one tower the player is sure to field), modal eyebrow "◆ OPENING DRAFT ◆". Never in the
+tutorial or on shared boards (Daily); other modes keep their cadence.
+
+### §splice — Splice: the Biomass overflow becomes a choice
+
+In any build phase where the bank reaches the price, a **◇ SPLICE** pill joins the run-controls strip:
+pay it for an EXTRA 1-of-3 gene draft (with its own one paid reroll), then return to the same build
+phase. Price = `SPLICE.costDeploys` (8) × the next deploy cost × `SPLICE.growth` (1.8) per splice
+already bought this run — it tracks the run's economy and limits itself. The price IS the threshold:
+the pill shows only once you can pay (optional, never a nag). Never mid-fight, never over an open draft,
+never in the tutorial, and off under a Daily that rations drafts (Dormancy). Unlocks after clearing
+Campaign Stage **5** (`DRAFT_FEATURES.splice.fromCleared`); the Daily grants it to everyone (fair shared
+board). A recorded input (`REPLAY_METHODS`), so Daily replays reproduce it. Cards ride the temporary
+Power bucket like any draft (previews == outcomes). Hive Intelligence does not splice for you (a pulse
+cannot make the pick — the seam is a provider whose exec opens the draft).
 
 ---
 

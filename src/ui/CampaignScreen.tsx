@@ -12,6 +12,7 @@ import { audio } from '../audio/sound';
 import { BIOME_REGION, campaignMapView, generateStage, recommendedPowerScore, stageUnlocks, upcomingGates } from '../core/campaign';
 import { layoutById } from '../core/mapLayouts';
 import { ENEMY_DEFS } from '../core/config';
+import { waveOneThreats } from '../state/missionBrief';
 import { nextGoals } from '../state/nextGoal';
 import { ProgressBar } from './components/ProgressBar';
 import { formatPower } from '../core/power';
@@ -258,6 +259,21 @@ export function CampaignScreen({
             ))}
             {cfg.eliteFrequency > 0 && <span className="camp-enemy is-elite">Elites {Math.round(cfg.eliteFrequency * 100)}%</span>}
           </div>
+          {/* WAVE 1 THREATS (state/missionBrief.ts — G1: openings decide Campaign runs): what the first
+              wave actually sends — bosses, then fliers (✈ = straight at the Nucleus), then the biggest packs. */}
+          {(() => {
+            const w1 = waveOneThreats(cfg);
+            return w1.length > 0 ? (
+              <div className="camp-wave1" aria-label="Wave 1 threats">
+                <span className="cd-k">Wave 1</span>
+                {w1.map((t) => (
+                  <span key={t.key} className={`camp-enemy${t.boss ? ' is-boss' : ''}${t.flier ? ' is-flier' : ''}`} style={{ ['--ec' as string]: t.color }} title={t.flier ? 'Flies over the lanes straight at the Nucleus — have towers covering the Hive itself' : undefined}>
+                    {t.boss ? '◈ ' : t.count > 1 ? `${t.count}× ` : ''}{t.name}{t.flier ? ' ✈' : ''}
+                  </span>
+                ))}
+              </div>
+            ) : null;
+          })()}
 
           <div className="camp-detail-grid">
             <div className="cd-row"><span className="cd-k">◈ Boss</span><span className="cd-v">{cfg.boss.name}</span></div>
