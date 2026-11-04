@@ -353,7 +353,7 @@ export function Results({
       accent: 'var(--viral)',
       summary: `${hunt.name} — ${wound ? wound.name.toUpperCase() : 'UNTOUCHED'} · ${tornPct}% torn · Hunt Rank ${hunt.rank}${hunt.ranksGained > 0 ? ` (+${num(hunt.cores)} ${ACCOUNT_CURRENCY.name})` : ''}`,
       stats: [
-        { id: 'hunt-wound', label: `${hunt.name} wounded`, value: tornPct, format: (n) => `${n}% torn · ${hunt.organs} organ${hunt.organs === 1 ? '' : 's'} ruptured`, accent: 'var(--danger)', bar: hunt.hpTorn },
+        { id: 'hunt-wound', label: `${hunt.name} — ${wound ? wound.name : 'Untouched'}`, value: tornPct, format: (n) => `${n}% torn · ${hunt.organs} organ${hunt.organs === 1 ? '' : 's'} ruptured`, accent: 'var(--danger)', bar: hunt.hpTorn },
         {
           id: 'hunt-rank', label: 'Hunt Rank', value: hunt.rank, from: hunt.rank - hunt.ranksGained,
           format: (n) => `RANK ${n} · ${num(hunt.lifetimeOrgans)}/${num(hunt.nextRankAt)} organs`,

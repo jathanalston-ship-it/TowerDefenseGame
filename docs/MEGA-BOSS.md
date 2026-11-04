@@ -206,6 +206,19 @@ siege + raid targeting made the finale killable). The premium is now **×1.15** 
 finale's longer hold + Hive lash, not a wall. `MEGA.expectedKillBase/PerTier` rose ×√(1.8/1.15)
 in the same change so the SAME account + kill time pays the SAME Ichor efficiency.
 
+**The wall, before → after** (progression sim, hours spent with stage S−1 as the frontier before
+S falls; median of 3 seeds × 400h; the decade's other stages average 1–4 h either way):
+
+| Persona | S70 | S80 | S90 | S110 | S140 | S150 | S160 |
+|---|---|---|---|---|---|---|---|
+| average | 6.8 → 0.1 h | 18.4 → 6.1 h | 26.2 → 5.8 h | 12.0 → 9.1 h | 20.9 → 14.7 h | 11.8 → 0.1 h | — |
+| efficient | 5.8 → 4.7 h | 7.9 → 3.0 h | 12.4 → 4.9 h | 11.2 → 8.0 h | 21.6 → 15.7 h | 13.0 → 2.4 h | 35.3 → 0.1 h |
+
+Where a dwell remains it is the Molt cadence or a biome ratchet landing on that decade, not the
+raid. Stage @100h / @400h: 80 → 81 / 159 → 160 (average), 89 → 86 / 160 → 169 (efficient) — the
+time moves into the other stages instead of a day-long wall (measured together with the gear
+chase, docs/EQUIPMENT.md §gear-chase).
+
 **2. Attempts pay — derived from what the game already records (no save field).**
 
 - **Wound tiers** (`MEGA_HUNT.wounds`): every encounter is graded **Marked / Wounded / Crippled /

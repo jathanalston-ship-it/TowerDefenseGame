@@ -451,25 +451,27 @@ forever (4–6 Rampant/Apex drops per hour in EVERY hour band), and the T6 affix
 - **No pity.** A gear pity counter would need a save field (none may be added in this batch); the
   container meter's own pity still backstops container rarity.
 
-**Measured** (progression sim, `average` + `efficient` personas × 3 seeds × 400h, seeded loot;
-median; before = the Power-linear ilvl; the gear change ALONE):
+**Measured** (progression sim, `average` / `efficient` personas × 3 seeds × 400h, seeded loot,
+median; before = the Power-linear ilvl; after = this change shipped together with the Mega premium
+re-measure, docs/MEGA-BOSS.md §hunt):
 
-| Hour band | Rampant+Apex / h (before → after) | Upgrade-over-equipped / h | T6 drops / h | Drop ilvl after |
+| Hour band | Rampant+Apex / h | Upgrade-over-equipped / h | T6 drops / h | Drop ilvl after |
 |---|---|---|---|---|
-| 0–1h | 4.0 → 0 | 7 → 5 | 0 | i5–11 |
-| 1–3h | 5.5 → 0.5 | 1.5 → 1.5 | 0 | i12–17 |
-| 3–10h | 4.0 → 0.9 | 0.43 → 1.0 | 0 | i18–19 |
-| 10–30h | 4.1 → 0.9 | 0.15 → 0.2 | 0 | i19–22 |
-| 30–50h | 4.0 → 1.1 | 0.05 → 0.2 | 0 | i22–25 |
-| 50–100h | 4.0 → 1.3 | 0.04 → 0 | 0 | i25–30 |
-| 100–150h | 4.8 → 1.5 | 0.02 → 0.04 | 0 → 0 | i30–33 |
-| 150–250h | 4.9 → 2.2 | 0.01 → 0.03 | 0 → 3.2 | i33–36 |
-| 250–400h | 5.4 → 2.3 | 0.02 → 0.01 | 0 → 3.5 | i36–39 |
+| 0–1h | 4.0 → 0 · 3.0 → 0 | 7 → 5 · 8 → 5 | 0 | i5–11 |
+| 1–3h | 5.5 → 1.5 · 5.0 → 0.5 | 1.5 → 2.5 · 2.5 → 2.5 | 0 | i12–18 |
+| 3–10h | 4.0 → 1.0 · 3.1 → 0.9 | 0.43 → 0.57 · 0.29 → 0.43 | 0 | i17–20 |
+| 10–30h | 4.1 → 0.9 · 3.7 → 1.2 | 0.15 → 0.10 · 0.15 → 0.25 | 0 | i19–25 |
+| 30–50h | 4.0 → 1.5 · 4.8 → 1.3 | 0.05 → 0.10 · 0.05 → 0.15 | 0 | i23–28 |
+| 50–100h | 4.0 → 1.6 · 4.7 → 1.4 | 0.04 → 0.06 · 0.02 → 0.10 | 0 | i27–32 |
+| 100–150h | 4.8 → 1.4 · 5.1 → 1.8 | 0.02 → 0.06 · 0.02 → 0.02 | 0 → 0.8 · 0 → 1.9 | i31–34 |
+| 150–250h | 4.9 → 2.5 · 5.1 → 2.4 | 0.01 → 0.03 · 0.03 → 0.02 | 0 → 3.5 · 0 → 3.4 | i33–37 |
+| 250–400h | 5.4 → 2.4 · 5.4 → 2.4 | 0.02 → 0.03 · 0.01 → 0 | 0 → 3.5 · 0 → 3.7 | i37–40 |
 
-(average persona; the efficient persona reads the same shape.) Pacing impact of the gear change
-alone: stage @100h 80 → 78 / @400h 159 → 155 (average), 89 → 82 / 160 → 159 (efficient) — gear
-Power now ramps over the whole game instead of front-loading into hour 1–3; the mid-game dip
-(stage @30h 48 → 39) is what the Mega premium re-measure (docs/MEGA-BOSS.md §hunt) gives back.
+(each cell: average · efficient.) Rampant/Apex now mean something — under one an hour in the
+first 10 hours, rising to ~2.4 an hour deep — and T6 rolls appear from ~100h. Pacing held:
+stage @100h 80 → 81 / 89 → 86, @400h 159 → 160 / 160 → 169 (Molts 50 → 51 / 51 → 54). The gear
+change ALONE slowed the mid-game (stage @30h 48 → 39, average) because legendary/exotic Power no
+longer front-loads into hours 1–3; the Mega premium re-measure gives most of it back (@30h 43).
 
 **Known limitation (measured, not fixed here):** item Power is dominated by the DEF's base effects —
 affix tiers move a Rampant's median `itemPowerScore` only ~6% from i10 to i40 (p50 344 → 364), so
