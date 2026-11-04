@@ -540,3 +540,10 @@
 - `af0a092` **[Developer Tools]** Batch G website + docs pass — "The Grind" devlog, curated release, guides, manifest, GAME-STATE _(internal)_
 - `fcebe80` **[Bug Fixes]** No far-off ladder rungs or 3-digit run counts on an early account's goal board
 - `c42b5d6` **[Framework]** Media: re-shoot stills + trailer for Batch G (goal board without far-off ladder rungs) _(internal)_
+- `60c827c` **[Framework]** Notes: drop an internal fix line from v2026.11.04.4 (it fixes this release's own new goal board) _(internal)_
+- `6dcafed` **[Balance]** Tune(grind): live-threat caps 16/16 -> 3/4 after a matched-pair decomposition of run length
+- `ea3bbdd` **[Bug Fixes]** A fresh draft window for every deal — owed drafts after an Early Call no longer freeze the run
+- `f4e9907` **[Developer Tools]** First-session probe PASS with Batch G (0 errors, first tower 8.4 s, boot JS 548.5 KB) _(internal)_
+- `a6debfb` **[Bug Fixes]** Enter a run through the farm-first Home CTA ("Fight Stage N anyway" / "Farm Infinite")
+- `d7a816e` **[Developer Tools]** Regenerate PIL_REPORT for the new devlog page _(internal)_
+- `35afc85` **[Developer Tools]** Validation,status: Batch G PASS — 3019/3019, mobile gate clean, probe PASS; status board 2026-11-04f _(internal)_

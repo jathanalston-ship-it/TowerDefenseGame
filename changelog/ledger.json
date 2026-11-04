@@ -1,6 +1,6 @@
 {
-  "lastSha": "c42b5d6b5a7368cb12e2f7348d615072bc407078",
-  "commitsSinceDraft": 3,
+  "lastSha": "35afc85bcb275ded281a329d5bb4f139241bd051",
+  "commitsSinceDraft": 0,
   "content": {
     "tower": [
       "needle",
@@ -7851,6 +7851,62 @@
       "date": "2026-11-04",
       "cat": "Framework",
       "text": "Media: re-shoot stills + trailer for Batch G (goal board without far-off ladder rungs)",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "60c827c6513880f78bc02b2b50cf6f26388358cc",
+      "date": "2026-11-04",
+      "cat": "Framework",
+      "text": "Notes: drop an internal fix line from v2026.11.04.4 (it fixes this release's own new goal board)",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "6dcafed44bc5491895b6c0022096d6b93194017a",
+      "date": "2026-11-04",
+      "cat": "Balance",
+      "text": "Tune(grind): live-threat caps 16/16 -> 3/4 after a matched-pair decomposition of run length",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "ea3bbdd65471607491afbe9136e08ec7fcef2951",
+      "date": "2026-11-04",
+      "cat": "Bug Fixes",
+      "text": "A fresh draft window for every deal — owed drafts after an Early Call no longer freeze the run",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "f4e99076a1ad5c00d3ee00c76a1027346d1d4c4b",
+      "date": "2026-11-04",
+      "cat": "Developer Tools",
+      "text": "First-session probe PASS with Batch G (0 errors, first tower 8.4 s, boot JS 548.5 KB)",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "a6debfb76bb41e0c1d01711c85ed589936ef8446",
+      "date": "2026-11-04",
+      "cat": "Bug Fixes",
+      "text": "Enter a run through the farm-first Home CTA (\"Fight Stage N anyway\" / \"Farm Infinite\")",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "d7a816ebbdb9ade60c29552ec979c2ab16880abc",
+      "date": "2026-11-04",
+      "cat": "Developer Tools",
+      "text": "Regenerate PIL_REPORT for the new devlog page",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "35afc85bcb275ded281a329d5bb4f139241bd051",
+      "date": "2026-11-04",
+      "cat": "Developer Tools",
+      "text": "Validation,status: Batch G PASS — 3019/3019, mobile gate clean, probe PASS; status board 2026-11-04f",
       "internal": true,
       "needsReview": false
     }
