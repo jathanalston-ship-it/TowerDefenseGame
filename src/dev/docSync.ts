@@ -18,6 +18,7 @@ import { GENE_LOADOUT_SLOTS } from '../core/geneLoadout';
 import { ASSIMILATION_TIERS } from '../core/assimilation';
 import { COMBAT_TUTORIAL } from '../core/tutorial';
 import { FEEL, ANNOUNCE } from '../render/feel';
+import { GUTTERS } from '../render/gutters';
 import { PRESTIGE } from '../core/prestige';
 
 export const REPO_ROOT = join(__dirname, '..', '..');
@@ -66,6 +67,7 @@ export function docAnchors(): DocAnchor[] {
     { doc: 'docs/GAME-FEEL.md', contains: `ult impact **${FEEL.abilityImpact.shake} / ${FEEL.abilityImpact.hitstop} s**`, why: 'ult impact feel drifted (render/feel.ts FEEL.abilityImpact)' },
     { doc: 'docs/HERO-CINEMATICS.md', contains: `trauma ${FEEL.abilityImpact.shake})`, why: 'ult impact kick drifted (render/feel.ts FEEL.abilityImpact)' },
     { doc: 'docs/GAME-FEEL.md', contains: `mega fall ${ANNOUNCE.megaFall.priority} › mega intro ${ANNOUNCE.megaIntro.priority} › boss fall ${ANNOUNCE.bossFall.priority} › boss intro ${ANNOUNCE.bossIntro.priority} › weak point ${ANNOUNCE.weakPoint.priority} › wave ${ANNOUNCE.wave.priority}`, why: 'centre-stage priority ladder drifted (render/feel.ts ANNOUNCE)' },
+    { doc: 'docs/SIGNATURE-MOMENTS.md', contains: `brightness **${GUTTERS.brightness}** · bake at **${GUTTERS.resScale}×** · poll **${GUTTERS.pollMs} ms** · crossfade **${GUTTERS.fadeMs} ms**`, why: 'living-gutters tunables drifted (render/gutters.ts GUTTERS)' },
   ];
 }
 
