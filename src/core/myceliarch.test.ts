@@ -4,7 +4,8 @@
 //   • Sporefall: the cast seeds deep Infection in everything caught and mends the Hive;
 //   • the identity: the Revenant's viralVuln passive on a second hero (the generic hook);
 //   • the ★5/★8 forks resolve to their authored upgrades;
-//   • Shard-claimed (the fourth, deepest Collection unlock, 220) — locked on a fresh save.
+//   • milestone-gated (8,000 lifetime kills) — locked fresh, and never in the hero-Shard pool, so a
+//     fresh account's hero-Shard drops are unchanged.
 
 import { describe, it, expect } from 'vitest';
 import { Game } from './game';
@@ -72,11 +73,14 @@ describe('Myceliarch — the gatekeeper (Viral guard)', () => {
     expect(bloom.ult.radius).toBeGreaterThan(rot.ult.radius);
   });
 
-  it('Shard-claimed: the fourth Collection unlock — locked fresh, funded by the shard pool', () => {
+  it('milestone-gated: locked fresh, earned at 8,000 lifetime kills, never in the hero-Shard pool', () => {
     const fresh = defaultSave();
     expect(isHeroUnlocked(fresh, 'myceliarch')).toBe(false);
-    expect(HERO_DEFS.myceliarch.unlockShards).toBe(220);
-    expect(HERO_DEFS.myceliarch.unlock).toBeUndefined();
-    expect(heroShardUnlockPool(fresh)).toContain('myceliarch');
+    expect(HERO_DEFS.myceliarch.unlock).toEqual({ kind: 'lifetimeKills', count: 8000, label: 'Slay 8,000 enemies (lifetime)' });
+    expect(HERO_DEFS.myceliarch.unlockShards ?? 0).toBe(0);
+    expect(heroShardUnlockPool(fresh)).not.toContain('myceliarch'); // fresh hero-Shard drops unchanged
+    const vet = defaultSave();
+    vet.stats.lifetimeKills = 8000;
+    expect(isHeroUnlocked(vet, 'myceliarch')).toBe(true);
   });
 });

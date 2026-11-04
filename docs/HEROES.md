@@ -412,7 +412,7 @@ the Wyrmwing Glaive's Ember Return branch — the draconic tower pairing it was 
 
 ---
 
-## 8. MYCELIARCH — Viral (gatekeeper / last-line immune response) · **Shard-claimed** (§myceliarch)
+## 8. MYCELIARCH — Viral (gatekeeper / last-line immune response) · **progression-gated** (§myceliarch)
 
 **Design gap it fills.** The roster had ONE obtainable Viral hero (the Revenant — the Chimera is
 arena-exclusive) and ONE `guard` brain (the Shepherd — a support that never kills). Nobody owned
@@ -446,8 +446,12 @@ board that already Infects (Parasite/Lung/Tick). Weak vs anything that never bre
 well-built board starves it — and vs fast leakers that dart through one pulse; it has no reach
 up-lane and no single-target burst for a boss that stays out of the zone.
 
-**Unlock.** `unlockShards: 220` — the fourth and deepest Hero-Shard claim (Shepherd 60 · Overseer
-100 · Fovea 160). Never owned by a fresh account ⇒ golden-safe (autoplay fields the Ravager).
+**Unlock.** `{ kind: 'lifetimeKills', count: 8000 }` — the mycelium grows from the hive's dead (the
+Carrion, which RAISES the dead, waits at 20,000). A milestone, deliberately not a Shard claim: a
+Shard hero joins `heroShardUnlockPool` and would dilute a fresh account's Shepherd/Overseer drops by
+a quarter — as a milestone the fresh-save economy is byte-for-byte unchanged, and once earned its
+hero Shards fund Stars + forks like every hero. Never owned by a fresh account ⇒ golden-safe
+(autoplay fields the Ravager).
 
 **Visuals.** The `bell` silhouette (a gilled fungal cap) in fungal ochre; star anatomy grows a
 spore halo → rot-sacs → rooting hyphae → a gilled cap-crown → the mycelial bloom
@@ -472,7 +476,7 @@ pre-rotted into *Spore Rot*. Pair with a Gristle Warren: the walls HOLD the leak
 | **Riptide** | Kinetic | water-form zone controller | Medium (AoE chip + pools) | tidal pulses + undertow area denial + Waterlogged vulnerability (gated) |
 | **Carrion** | Vital | charnel necromancer | Low (fly-cloud chip) | GRAVEBIND — the fallen rise as corpse-scaled Risen Thralls that fight for the hive (gated) |
 | **Fovea** | Neural | rear-line executioner lance | **Colossal (single strikes)** | deletes elites/fat targets from extreme range + staggering glares (Shard-claimed) |
-| **Myceliarch** | Viral | gatekeeper / last-line guard | Medium (AoE pulse at the Core) | rots every leak at the gate — sticky stagger, deep Infection, Spore Rot vulnerability (Shard-claimed) |
+| **Myceliarch** | Viral | gatekeeper / last-line guard | Medium (AoE pulse at the Core) | rots every leak at the gate — sticky stagger, deep Infection, Spore Rot vulnerability (gated: 8,000 lifetime kills) |
 
 Distinct roles, distinct classes, distinct failure modes. The "ideal" core
 (Ravager + Shepherd + Overseer) is a classic damage/sustain/control trinity — and

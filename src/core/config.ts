@@ -1904,9 +1904,11 @@ export const HERO_DEFS: Record<HeroKind, HeroDef> = {
     // Myceliarch KILLS at it: a real damaging pulse with a sticky stagger, a self-cast Sporefall
     // that seeds deep Infection in everything at the gate, and the Revenant's viralVuln passive so
     // the rot it plants softens the crowd for the whole board. Zero new sim verbs (guard brain +
-    // explosion/heal/shield/status primitives). Shard-claimed: the fourth (deepest) Collection unlock.
+    // explosion/heal/shield/status primitives). Progression-gated on the corpse ledger: the mycelium
+    // grows from the hive's dead — 8,000 lifetime kills (a MILESTONE, not a Shard claim, so it never
+    // joins heroShardUnlockPool and a fresh account's hero-Shard drops are unchanged).
     kind: 'myceliarch', name: 'Myceliarch', combatClass: 'Viral', behavior: 'guard', color: '#e0b070',
-    unlockShards: 220, // locked: the deepest Shard claim (Shepherd 60 · Overseer 100 · Fovea 160 · Myceliarch 220)
+    unlock: { kind: 'lifetimeKills', count: 8000, label: 'Slay 8,000 enemies (lifetime)' },
     // No auto-attack (the guard brain never swings) — the PULSE is the weapon: ~12 dmg every 1.1 s
     // to everything within 104 px, plus a 0.35 s spore-stagger. Tankier and slower than the Shepherd.
     maxHp: 360, speed: 82, attackRange: 0, attackInterval: 0, attackDamage: 0, attackFracture: 0,
