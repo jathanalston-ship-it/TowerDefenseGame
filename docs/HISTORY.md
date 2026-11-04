@@ -512,3 +512,8 @@
 - `efb705c` **[Bug Fixes]** No ceremony or toast can cover a live Arena match
 - `51d4fb7` **[Bosses]** Hotfix notes — boss-fall crash and Arena pop-ups, player-facing _(internal)_
 - `7ae5119` **[Bug Fixes]** Intro: lift the Hive Core on short (phone-landscape) stages so its copy keeps the lower band
+- `27600d4` **[Developer Tools]** Release: Batch 3 — signature moments in the docs, notes (v2026.11.04.3 'Moments That Land') and devlog _(internal)_
+- `fedd7b1` **[Developer Tools]** Media: stills re-shot with the living gutters (MERIDIA's limbs reach past the board) _(internal)_
+- `4da3ba9` **[Developer Tools]** Media: trailer re-shot with the Batch 3 moments _(internal)_
+- `af4eea1` **[Developer Tools]** Changelog: the news-page sample is a contiguous run of the entry's text _(internal)_
+- `e1d1c7c` **[Developer Tools]** Validation: PASS before the Batch 3 release — 2930/2930, mobile gate clean, first-session probe in budget _(internal)_

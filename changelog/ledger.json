@@ -1,6 +1,6 @@
 {
-  "lastSha": "d7a320af44bae38d9bb2c22cae53ea8b02989ac8",
-  "commitsSinceDraft": 0,
+  "lastSha": "e1d1c7cb8eeefd9c6759dea64a20cb00b8c5943a",
+  "commitsSinceDraft": 5,
   "content": {
     "tower": [
       "needle",
@@ -7156,6 +7156,46 @@
       "cat": "Bug Fixes",
       "text": "Intro: lift the Hive Core on short (phone-landscape) stages so its copy keeps the lower band",
       "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "27600d4a25e4d355fb6727e5bfadbab19a7995ee",
+      "date": "2026-11-04",
+      "cat": "Developer Tools",
+      "text": "Release: Batch 3 — signature moments in the docs, notes (v2026.11.04.3 'Moments That Land') and devlog",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "fedd7b15acaaf2cadbcd7ff3fbd9d15b3ddde685",
+      "date": "2026-11-04",
+      "cat": "Developer Tools",
+      "text": "Media: stills re-shot with the living gutters (MERIDIA's limbs reach past the board)",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "4da3ba988d12a201336ed0913c84a3f0cecc15bd",
+      "date": "2026-11-04",
+      "cat": "Developer Tools",
+      "text": "Media: trailer re-shot with the Batch 3 moments",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "af4eea15b3bbed7d17f42e4549708d15b5f7008c",
+      "date": "2026-11-04",
+      "cat": "Developer Tools",
+      "text": "Changelog: the news-page sample is a contiguous run of the entry's text",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "e1d1c7cb8eeefd9c6759dea64a20cb00b8c5943a",
+      "date": "2026-11-04",
+      "cat": "Developer Tools",
+      "text": "Validation: PASS before the Batch 3 release — 2930/2930, mobile gate clean, first-session probe in budget",
+      "internal": true,
       "needsReview": false
     }
   ]
