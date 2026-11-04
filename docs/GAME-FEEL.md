@@ -80,6 +80,12 @@ thunk + a riser that grows with rarity) replaces the generic click. Hover plays 
 modal that opens under a still cursor no longer drops the opaque sheet over the card being
 revealed. Keyboard picks, Auto-Gene and the tutorial (`forceManual`) ride the same commit.
 
+### §run end — the board assimilates (docs/SIGNATURE-MOMENTS.md §2)
+VICTORY: the terraform washes out from the Hive Core in the biome accent, then the board eases
+into a blurred, dimmed backdrop that Results sits on. DEFEAT: the board drains of colour and
+cracks spread from the breach point. Timings/colours are one table (`render/runOutro.ts OUTRO`);
+reduced motion shows the end state at once with the same text.
+
 ---
 
 ## 1. Philosophy
