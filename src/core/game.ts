@@ -830,7 +830,9 @@ export class Game {
       waveCount: this.mode === 'endless' ? 50 : this.totalWaves,
       reserveFinale: this.mode === 'campaign',
       biomeSignature: this.activeBiome.mods.signature,
-      invasionPool: ENEMY_KINDS,
+      // Campaign invasions honour the stage's unlock gate (its enemyPool): an all-kinds pool flooded a
+      // stage-1 board with 8 colossi — an unanswerable wall (docs/CAMPAIGN.md §grace).
+      invasionPool: this.stage ? this.stage.enemyPool : ENEMY_KINDS,
     });
     this.mods = defaultRunModifiers();
     // Fold permanent (meta) multipliers into the run as starting buckets.
@@ -2780,7 +2782,7 @@ export class Game {
       y: 8,
       hp,
       maxHp: hp,
-      baseArmor: (def.armor ?? 14) + (nem ? nem.armorBonus : 0),
+      baseArmor: (def.armor ?? BOSS.baseArmor) + (nem ? nem.armorBonus : 0),
       speed: CHASSIS[def.chassis].speed,
       bounty: Math.round(def.bounty * (nem ? nem.bountyMult : 1)),
       damage: def.damage * (nem ? nem.damageMult : 1),
@@ -3212,7 +3214,7 @@ export class Game {
         id: this.nextId++, kind: 'tyrant',
         x: Math.max(12, Math.min(WIDTH - 12, parent.x + Math.cos(ang) * 26)),
         y: Math.max(8, parent.y + 8),
-        hp: childHp, maxHp: childHp, baseArmor: def.armor ?? 14,
+        hp: childHp, maxHp: childHp, baseArmor: def.armor ?? BOSS.baseArmor,
         speed: CHASSIS[def.chassis].speed * 1.08, bounty: Math.round(def.bounty * 0.35),
         damage: Math.max(1, Math.round(def.damage * 0.6)),
         fracture: 0, corrosion: 0, infection: 0, disrupt: 0, mark: 0, resonance: 0, shredFlash: 0, hitFlash: 0, dmgAccum: 0, dmgTimer: 0,

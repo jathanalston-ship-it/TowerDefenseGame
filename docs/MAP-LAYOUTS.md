@@ -141,8 +141,12 @@ Layouts change WHERE the swarm enters the defensive region, which matters becaus
 emplacements are the centre five columns (docs/SLOTS.md): central chokepoints (`gullet`,
 `ribcage`) concentrate the swarm into the centre lattice; flank funnels (`delta`,
 `flank_sluices`, `twin_gates`) deliver it to the edges. Long routes (`coil`) buy time under fire.
-The Stage 1–3 curve is measured WITH the onboarding pins (docs/CAMPAIGN.md §grace,
-`src/state/campaignCurve.test.ts`).
+
+Difficulty index (tuning-time probe: the playtest persona — favorite + gift, 5 towers — on stage-2 waves, 30 seeds,
+mean integrity): classic 83 % · spore forest 84 · open maw 85 · twin lanes 86 · ribcage 87 ·
+gullet 89 · coil 92. Central funnels and long routes ease the fight; that is why the onboarding
+pins are classic → open maw → twin lanes, not the gullet. The Stage 1–3 curve is measured WITH
+those pins (docs/CAMPAIGN.md §curve, `src/state/campaignCurve.test.ts`).
 
 ### Solid walls
 

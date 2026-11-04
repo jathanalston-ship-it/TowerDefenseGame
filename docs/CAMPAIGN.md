@@ -147,15 +147,74 @@ below exists to keep "start of ANY campaign run" answerable; all fade within a f
 
 | Mechanism | Shape | Gone by |
 |---|---|---|
-| `budgetGrace` | stage-1 waves spend 30 % of the base budget, linear → 100 % | stage 8 |
-| `paceGrace` | spawn spacing/delays ×1.7 at stage 1, easing to ×1 | stage 5 |
-| `stageStartAid` | +170 starting Biomass at stage 1, fading linearly | stage 6 |
+| `budgetGrace` | stage-1 waves spend 80 % of the base budget, linear → 100 % | stage 8 |
+| `paceGrace` | spawn spacing/delays ×1.15 at stage 1, easing to ×1 | stage 5 |
+| `stageStartAid` | +50 starting Biomass at stage 1, fading linearly | stage 6 |
 | `openBudget` anchor | wave 1 ≈ 11 threat (≈ a dozen chaff) at EVERY stage (creep 0) | never |
 | mini-boss gate | no mini-bosses before `MB_MIN_STAGE` (4) — a wave-3 summoner vs an opening build is unanswerable | stage 4 |
+| onboarding finale | reduced boss (×0.5 → ×1 body + kit, `campaignBossStrength`) whose kit channels the core-shot instead of fielding sustain (§curve) | stage 5 |
+| invasion gate | Run-Identity Rare Invasions draw from the STAGE's roster (`enemyPool`), never the whole bestiary | never |
 | unit/dmg caps + elite ramp | every stage's early waves are small-unit, low-leak, elite-free (see §5) | per-wave t |
 
 Calibrated empirically (autopilot probe at ×0.75/×1.0/×1.25/×1.7 of `recommendedPower`
-across stages 1–24) to the contract in docs/DIFFICULTY.md §contract.
+across stages 1–24) to the contract in docs/DIFFICULTY.md §contract; the first three rows were
+re-tuned in 2026-11 against the fresh-account probe (§curve) — the old 30 % / ×1.7 / +170 made
+Stages 1–3 flawless for a 5-tower board, so the first real test was a binary finale.
+
+---
+
+## 5c. The Stage 1–3 curve (§curve)
+
+**Evidence (2026-11 fresh-account playtest):** Stages 1–2 cleared flawlessly with a 5-tower
+board (0 Hive damage, 600–900 Biomass banked), then a loss at the Stage-3 finale — *trivial,
+trivial, wall*. The headless probe reproduced it: a fresh post-tutorial account built through
+the real meta layer (exactly as `App.begin` + `GameView` boot a run), 30 seeds per stage, four
+personas (`core/sim.testutil.ts` `playPersona` + the probe's two extra):
+
+- **modest** — the playtest persona: the free gift + the favorite (needle) to a 5-tower board, banks the rest;
+- **lazy5** — a 5-tower board that also deploys belt organisms; **steady** — one paid deploy per prep;
+- **builder** — spends every prep on belt organisms + the favorite.
+
+Three causes:
+1. **Grace too generous** — 30 % budget × 1.7 pacing + 170 aid: waves never threatened even a
+   5-tower board, so nothing taught the player to build.
+2. **Binary finale** — a full-strength procedural boss (armor 14; heal / shield / harden kits)
+   vs a needle-heavy board either died or out-healed the board and crushed the Hive: integrity
+   median 100 %, p10 0 %.
+3. **Rare Invasion from the whole bestiary** — Run Identity could drop 8 colossi into a stage-1
+   wave (≈ 3 % of runs at stages 1–4: a guaranteed wipe).
+
+**Fixes:** grace → 80 % / ×1.15 / +50 (§grace); the onboarding finale (`campaignBossStrength`
+×0.5 → ×1 by stage 5 on body AND kit — docs/DIFFICULTY_DIRECTOR.md §onboarding — and
+`onboardingKit`: sustain swapped for the telegraphed core-shot, which every onboarding finale
+channels, so integrity loss GRADES with kill speed); campaign Rare Invasions draw from the
+stage's own roster; the onboarding layouts are pinned (classic → open maw → twin lanes).
+
+**Measured** (30 seeds; win % / mean integrity; stages 1 · 2 · 3; BEFORE = HEAD, AFTER = with layouts on):
+
+| Persona | BEFORE | AFTER |
+|---|---|---|
+| modest (playtest) | 97/89 · 77/75 · 80/79 (median 100, p10 0 — binary) | 97/90 · 100/89 · 90/82 (median 94 · 93 · 89, p10 92 · 78 · 71) |
+| lazy5 | 97/97 · 97/97 · 93/93 | 100/97 · 100/96 · 100/94 |
+| steady | 97/97 · 97/96 · 97/96 | 100/99 · 100/98 · 100/97 |
+| builder | 97/97 · 97/97 · 97/97 (every loss = the colossus invasion) | 100/100 · 100/98 · 100/99 |
+
+Stages 4–5 (unchanged design: the stage-5 milestone boss is the first real dip) read modest
+80/64 · 80/61, lazy5 100/90 · 100/77, builder 100/97 · 100/88 — the curve keeps rising after
+the onboarding instead of inverting. Probe: `curve.ts` pattern over `playPersona` (the persona
+harness in `core/sim.testutil.ts`); re-run it before touching any §grace / onboarding tunable.
+
+Pinned by `src/state/campaignCurve.test.ts` (12 seeds): the modest persona wins ≥ 10/12 of
+every stage with mean integrity inside 60–93 % and a median below 100 % (no longer flawless),
+medians that never ease stage to stage, stage 3 the hardest of the three, and no stage-to-stage
+drop of 15 points or more (no wall); the builder clears all three with integrity ≥ the modest
+persona's. (The BEFORE curve fails it: the modest median was a flawless 100 % at every stage.)
+
+**Limitations.** Full spenders stay near-flawless on Stages 1–3: grace levers cannot push a
+builder below ~96 % (zero-grace probe) without inverting the 4–8 band, where the base curve is
+equally easy for them — the 60–90 % band targets the playtest persona. Stage 4–5 remain the
+first real dips (the stage-5 milestone boss), as before. The grace change re-rolls the procedural
+finales of stages 1–7 (waves and boss share the stage rng stream).
 
 ---
 
