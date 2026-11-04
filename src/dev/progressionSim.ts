@@ -17,6 +17,7 @@ import { loopState } from '../state/progressionLoop';
 import { ENEMY_KINDS, HERO_ORDER, META_UPGRADES, TOWER_ORDER } from '../core/config';
 import type { EnemyKind, HeroKind, MasteryCount, TowerKind } from '../core/types';
 import { cardRegistry } from '../core/cards';
+import { transcendOptionsFor } from '../core/geneTranscend';
 import { itemPowerScore } from '../state/itemPower';
 import { EQUIP_SLOTS, itemDef } from '../core/equipment';
 import { sumValues } from '../core/math';
@@ -164,6 +165,14 @@ function spendEverything(focus: Persona['focus'] = 'balanced'): void {
   guard(() => meta.buyGeneSlot(), 6);
   const owned = meta.get().stats.uniqueCards;
   for (const id of owned) guard(() => meta.upgradeGene(id), focus === 'completionist' ? 24 : 12);
+  // Transcendence — Gene Essence's late sink on a MAXED card (docs/GENE-EVOLUTION.md
+  // §Transcendence): take the first option once (transcendGene guards max level + funds). Left
+  // unspent, Essence read as a wallet compounding with nothing to buy (2026-11 audit).
+  for (const id of owned) {
+    const def = cardRegistry.get(id);
+    const first = def ? transcendOptionsFor(def)[0] : undefined;
+    if (first && !meta.get().genes[id]?.transcend) meta.transcendGene(id, first.id);
+  }
   // Adaptation: spend free Antigen down each tower's tree (first pickable node per pass —
   // the ladder + campaign gates guard order). Real players spend this; leaving it unspent
   // made the deep band's acquisition cadence read emptier than the game actually is.
@@ -211,6 +220,10 @@ export interface SimCheckpoint {
   unspentShards: number; // sink-exhaustion signal (Genome Cores with nothing to buy)
   unlocks: number; // cumulative ACQUISITIONS (stars/upgrades/heroes/molts/genes/stages/feats) — the dopamine ledger
   failedPushes: number; // cumulative under-ready campaign attempts that FAILED (persona frustration)
+  pushes: number; // cumulative under-ready campaign attempts (won or lost) — failedPushes' denominator
+  peakPower: number; // highest post-run Power since the previous checkpoint — the band's PEAK. Power is a
+  //   sawtooth across Molts (each one resets the upgrade engine), so `power` samples it at an arbitrary
+  //   phase; band-over-band peak growth is the molt-phase-invariant growth signal (power-spike detector).
   accountLevel: number; // the evergreen lane (docs/ACCOUNT-LEVEL.md) — must rise every band
   genomeRating: number; // the mastery ladder (docs/GENOME-RANK.md) — breadth-weighted, must rise
 }
@@ -257,6 +270,8 @@ export function simulateAccount(seed: number, bands: number[], persona?: Persona
   let runs = 0;
   let farmRuns = 0;
   let failedPushes = 0;
+  let pushes = 0;
+  let peakPower = 0;
   const checkpoints: SimCheckpoint[] = [];
   let bandIx = 0;
 
@@ -283,6 +298,7 @@ export function simulateAccount(seed: number, bands: number[], persona?: Persona
       const stage = ls.frontierStage;
       const waves = WORLD.campaignWaves(stage);
       const won = rng() < Math.max(0.1, Math.min(0.95, ls.readiness));
+      pushes++;
       if (!won) failedPushes++;
       const played = won ? waves : Math.max(2, Math.round(waves * 0.6));
       const kills = Math.round(played * WORLD.killsPerWave * (0.9 + rng() * 0.2) * luck);
@@ -303,13 +319,15 @@ export function simulateAccount(seed: number, bands: number[], persona?: Persona
     if (!persona || rng() >= persona.spendSkip) spendEverything(persona?.focus);
     runs++;
     secs += result.wave * WORLD.secPerWave + menuSec;
+    const power = Math.round(meta.power().score);
+    peakPower = Math.max(peakPower, power);
 
     while (bandIx < bands.length && secs >= bands[bandIx] * 3600) {
       const s2 = meta.get();
       const ls2 = loopState(s2);
       checkpoints.push({
         hours: bands[bandIx],
-        power: Math.round(meta.power().score),
+        power,
         stage: ls2.frontierStage - 1,
         bestWave: s2.bestWave,
         molts: s2.prestige.molts,
@@ -319,10 +337,13 @@ export function simulateAccount(seed: number, bands: number[], persona?: Persona
         unspentShards: s2.shards,
         unlocks: progressSignature(),
         failedPushes,
+        pushes,
+        peakPower,
         accountLevel: levelFromXp(s2.accountXp.xp),
         genomeRating: genomeRating(meta.genomeSnapshot()),
       });
       bandIx++;
+      peakPower = power; // the next band's peak starts from where this one ends
     }
   }
 

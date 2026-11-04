@@ -133,11 +133,14 @@ export function detectBottlenecks(runs: PersonaRun[]): Bottleneck[] {
       // Power spike = a DISCONTINUITY, not the curve: bands are wide (250h late), so the whole
       // cohort legitimately grows many-fold inside one. Only a seed leaping far beyond its own
       // cohort's median growth for the same band flags (single-seed cohorts can never flag —
-      // a discontinuity needs a baseline).
-      const growths = pairs.map(([a, b]) => b.power / Math.max(1, a.power)).sort((x, y) => x - y);
+      // a discontinuity needs a baseline). Growth is measured PEAK-TO-PEAK (2026-11): Power is a
+      // sawtooth across Molts, and checkpoint-to-checkpoint ratios sampled it at arbitrary phases
+      // (trough → peak read ×48 where the band's peaks grew ×13 against a ×9–15 cohort).
+      const growth = (a: SimCheckpoint, b: SimCheckpoint): number => b.peakPower / Math.max(1, a.peakPower);
+      const growths = pairs.map(([a, b]) => growth(a, b)).sort((x, y) => x - y);
       const medianGrowth = growths[Math.floor(growths.length / 2)];
-      hit('power-spike', (a, b) => b.power / Math.max(1, a.power) > Math.max(2, medianGrowth * 3),
-        (h) => `power ×${(h[0][1].power / Math.max(1, h[0][0].power)).toFixed(1)} vs cohort median ×${medianGrowth.toFixed(1)} for the band`);
+      hit('power-spike', (a, b) => growth(a, b) > Math.max(2, medianGrowth * 3),
+        (h) => `band-peak power ×${growth(h[0][0], h[0][1]).toFixed(1)} vs cohort median ×${medianGrowth.toFixed(1)} for the band`);
       hit('grind-saturation', (a, b) => b.runs > a.runs && (b.farmRuns - a.farmRuns) / Math.max(1, b.runs - a.runs) > 0.9,
         (h) => `${h[0][1].farmRuns - h[0][0].farmRuns}/${h[0][1].runs - h[0][0].runs} runs were farm runs`);
       hit('push-futility', (a, b) => b.failedPushes - a.failedPushes >= 3,

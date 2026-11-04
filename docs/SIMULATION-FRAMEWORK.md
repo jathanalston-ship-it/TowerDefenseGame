@@ -38,11 +38,14 @@ itself* is modeled (the `WORLD` constants: wave length, kills, menu overhead).
 | Equipment-focused | Extra Infinite (35%) chasing containers |
 
 **Measured per band** (`SimCheckpoint`): Power, campaign stage, best wave, molts,
-runs/farm-runs, frontier readiness, unspent Genome Cores, **cumulative acquisitions**
+runs/farm-runs, frontier readiness, unspent Genome Cores, **band-peak Power** (`peakPower` —
+the highest post-run Power since the previous checkpoint), **cumulative acquisitions**
 (`progressSignature` — every star/upgrade/hero/molt/gene level/**Adaptation pick**/stage/
-feat counts one "dopamine moment"), and **failed frontier pushes**. The virtual player
+feat counts one "dopamine moment"), and **failed frontier pushes** (with `pushes`, every
+under-ready attempt, as the denominator). The virtual player
 spends every wallet the game has, including Antigen (Adaptation picks in tier order) and
-Tower Shards on **expansion-tower synthesis** (`unlockTower` — added 2026-11: the policy predated
+Gene Essence on **Transcendence** (first option on every maxed card), and Tower Shards on
+**expansion-tower synthesis** (`unlockTower` — both added 2026-11: the policy predated
 the expansion roster, so 16 of 21 towers stayed locked forever, their shards read as sink
 exhaustion and their ★0 slots dragged the towers Power geomean) — an unspent system would make
 the deep band read emptier than the game actually is.
@@ -56,7 +59,9 @@ stall) · `wall-stall` (frontier +
 readiness flat) · `dopamine-gap` (< 0.5 acquisitions/hour) · `sink-exhaustion` (Cores
 compound unspent) · `currency-shortage` (broke AND walled) · `power-spike`
 (**cohort-relative discontinuity**: a seed's band growth > 3× its cohort's median for the
-same band — curve-following growth never flags, and single-seed cohorts cannot flag) ·
+same band — curve-following growth never flags, and single-seed cohorts cannot flag; growth is
+**band-peak to band-peak** (`peakPower`, 2026-11) because checkpoint Power samples the Molt
+sawtooth at arbitrary phases — trough→peak pairs read ×48 where the peaks grew ×13) ·
 `grind-saturation` (> 90% farm share) · `push-futility` (≥ 3 failed pushes).
 
 Ranking `score = frequency × bandWeight × kindWeight` — the first 50 hours weigh 1.5×
