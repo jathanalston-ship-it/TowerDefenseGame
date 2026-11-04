@@ -39,7 +39,8 @@ ladders. 4. Every permanent progression source must move the Power Score (valida
 [Prestige (Molt / Ascendant)](#prestige-molt--ascendant) · [Currencies](#currencies) ·
 [Splice Market (Ichor)](#splice-market-ichor) ·
 [Achievements](#achievements) · [Tutorials & Onboarding](#tutorials--onboarding) · [HUD](#hud) ·
-[Audio](#audio) · [Visual Effects](#visual-effects) · [Save Data](#save-data)
+[Audio](#audio) · [Visual Effects](#visual-effects) · [Arena Layouts](#arena-layouts) ·
+[Threat Ladder](#threat-ladder) · [First-Session Probe](#first-session-probe) · [Save Data](#save-data)
 
 ---
 
@@ -623,6 +624,55 @@ ladders. 4. Every permanent progression source must move the Power Score (valida
 - **Developer tips:** settle ONLY through `meta.settleArenaMatch` (exactly-once, shared
   validators); grant exclusives ONLY through the level-100 claim (`grantArenaExclusive`); the
   `arenaExclusive` def flag must be honored by any new unlock/shard surface.
+
+## Arena Layouts
+
+- **Purpose:** varied battlefields as data — each layout is one registry row (obstacles,
+  optional spawn spans); `classic` is the original `OBSTACLES` arena.
+- **Dependencies:** `map.ts` `NavField` (flow field + goal distances per layout), campaign/daily/
+  infinite stage selection, the renderer (`RenderState.layoutId`).
+- **Files:** `core/mapLayouts.ts` (13 layouts + validator in `validateAllContent`), `core/map.ts`
+  (`NavField`, module helpers still read the default field). Docs: `MAP-LAYOUTS.md`.
+- **Related:** Campaign (Stages 1–3 pinned classic → open maw → twin lanes; later stages roll,
+  biome-weighted, no repeat; flank/pincer from Stage 11), Daily (seeded roll), Infinite/Arena
+  (rotate at each biome change, starting classic). Skirmish, tutorial, Boss Rush and golden
+  autoplay stay classic.
+- **Future expansion:** a new battlefield is one data row; the validator proves reachability,
+  no pockets and clear spawn/defense rows.
+- **Known limitations:** the board stays 18×24 / 27 slots; layouts change paths, not slot
+  geometry. Solid walls steer enemies back out rather than upstream (upstream deadlocked).
+- **Developer tips:** the Game owns its field — never call module flow helpers from new sim
+  code; go through the Game's `NavField`. Old replays without a layout replay on classic.
+
+## Threat Ladder
+
+- **Purpose:** an opt-in difficulty ladder (Heat/Ascension style) for content the player has
+  already beaten — 10 rungs, each one named lever, with cosmetic rewards only.
+- **Dependencies:** difficulty director (`createDirector({threat})`), economy director
+  (`threat.reward` factor), campaign/infinite/boss-rush records, profile cosmetics.
+- **Files:** `core/threat.ts` (rungs, warp, reward), `state/meta.ts` (records, clamp on
+  `finishRun`), `ui/components/ThreatPicker.tsx`; save field `threat` (v55). Docs: `THREAT.md`.
+- **Related:** Hive Intelligence / Auto Gene are off above a mode's best cleared Threat
+  (`hivemind.ts automationGate`); titles at 3/5/7/10, frames at 5/10, achievements `threat_3/5/10`.
+- **Future expansion:** new rungs or levers are data rows; per-mode reward tables.
+- **Known limitations:** Daily is excluded (shared board). The HUD already uses "THREAT" for a
+  danger meter — naming overlap noted.
+- **Developer tips:** Threat 0 is an identity pass-through — goldens depend on it.
+
+## First-Session Probe
+
+- **Purpose:** a repeatable, budgeted first-session playthrough so onboarding regressions are
+  measured, not guessed.
+- **Files:** `scripts/first-session-probe.ts` (`npm run probe:first-session`, `--offline`,
+  `--shots`), `docs/FIRST-SESSION-PROBE.md` (how to run), `docs/FIRST_SESSION_REPORT.md`
+  (generated).
+- **Budgets:** 0 page errors, ≤3 modals after run 1, first tower ≤15 s (cutscene skipped), boot
+  JS ≤560 KB gzip, session completes.
+- **Related:** code-splitting (`ui/lazyNamed.ts` — every new hub screen must be lazy or the boot
+  budget trips), the tutorial's DOM anchors (`.tut-callout`, `[data-tut]`, `.conveyor`,
+  `.results-screen`).
+- **Known limitations:** timing budgets are noisy on a loaded machine; rerun before trusting a
+  1–2 s miss.
 
 ## Save Data
 
