@@ -490,3 +490,6 @@
 - `16f4d83` **[Balance]** Balance §9.6: the Molt trough decided — Molt Imprint, with the matrix _(internal)_
 - `903529a` **[Developer Tools]** Release: follow-up fixes and the Molt Imprint in the docs, notes and devlog _(internal)_
 - `3b99f0e` **[Developer Tools]** Validation: PASS before release — 2866/2866, mobile gate clean, first-session probe in budget _(internal)_
+- `136330f` **[Framework]** Notes: sync Chronicle artifacts to HEAD _(internal)_
+- `f5f137b` **[Bug Fixes]** A boss falling on a slow frame no longer crashes the run (negative ring radius)
+- `9471429` **[Bug Fixes]** No ceremony or toast can cover a live Arena match

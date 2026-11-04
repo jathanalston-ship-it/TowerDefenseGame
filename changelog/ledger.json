@@ -1,6 +1,6 @@
 {
-  "lastSha": "3b99f0ece9233d301cbfc8e161212a57b7295169",
-  "commitsSinceDraft": 2,
+  "lastSha": "94714294286bea4371254b2ee3de8407c8c39aba",
+  "commitsSinceDraft": 5,
   "content": {
     "tower": [
       "needle",
@@ -3293,6 +3293,14 @@
         {
           "cat": "Gameplay",
           "text": "“Stage N+1 ▸” on Results lets you pick the next stage’s boon instead of taking the default"
+        },
+        {
+          "cat": "Bug Fixes",
+          "text": "Fixed a crash that could end a run when a boss died on a slow frame (most often on phones)"
+        },
+        {
+          "cat": "Bug Fixes",
+          "text": "Rank promotions, level-ups and other pop-ups now wait until your Arena match is over instead of covering the field"
         }
       ]
     }
@@ -6928,6 +6936,30 @@
       "cat": "Developer Tools",
       "text": "Validation: PASS before release — 2866/2866, mobile gate clean, first-session probe in budget",
       "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "136330fe7056fbdd76b1ef90ed17757c8473f1ac",
+      "date": "2026-11-04",
+      "cat": "Framework",
+      "text": "Notes: sync Chronicle artifacts to HEAD",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "f5f137bc2cbd6380ea5ea901b729490c21e37339",
+      "date": "2026-11-04",
+      "cat": "Bug Fixes",
+      "text": "A boss falling on a slow frame no longer crashes the run (negative ring radius)",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "94714294286bea4371254b2ee3de8407c8c39aba",
+      "date": "2026-11-04",
+      "cat": "Bug Fixes",
+      "text": "No ceremony or toast can cover a live Arena match",
+      "internal": false,
       "needsReview": false
     }
   ]
