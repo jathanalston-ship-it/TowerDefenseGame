@@ -75,10 +75,6 @@
       {
         "cat": "Bug Fixes",
         "text": "The Mega bar no longer covers the gene draft’s header, and the Boss Rush tray no longer clips its last pod on wide screens"
-      },
-      {
-        "cat": "Bug Fixes",
-        "text": "No far-off ladder rungs or 3-digit run counts on an early account's goal board"
       }
     ]
   },

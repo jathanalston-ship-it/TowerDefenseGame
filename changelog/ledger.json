@@ -1,6 +1,6 @@
 {
-  "lastSha": "fcebe803e25f0296cc29a00e5f9afc2907aed901",
-  "commitsSinceDraft": 2,
+  "lastSha": "c42b5d6b5a7368cb12e2f7348d615072bc407078",
+  "commitsSinceDraft": 3,
   "content": {
     "tower": [
       "needle",
@@ -3817,10 +3817,6 @@
         {
           "cat": "Bug Fixes",
           "text": "The Mega bar no longer covers the gene draft’s header, and the Boss Rush tray no longer clips its last pod on wide screens"
-        },
-        {
-          "cat": "Bug Fixes",
-          "text": "No far-off ladder rungs or 3-digit run counts on an early account's goal board"
         }
       ]
     }
@@ -7848,6 +7844,14 @@
       "cat": "Bug Fixes",
       "text": "No far-off ladder rungs or 3-digit run counts on an early account's goal board",
       "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "c42b5d6b5a7368cb12e2f7348d615072bc407078",
+      "date": "2026-11-04",
+      "cat": "Framework",
+      "text": "Media: re-shoot stills + trailer for Batch G (goal board without far-off ladder rungs)",
+      "internal": true,
       "needsReview": false
     }
   ]

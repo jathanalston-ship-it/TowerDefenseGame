@@ -539,3 +539,4 @@
 - `fba557b` **[Developer Tools]** Before/after harness tables for the opening, live threat, Early Call and the Infinite squeeze _(internal)_
 - `af0a092` **[Developer Tools]** Batch G website + docs pass — "The Grind" devlog, curated release, guides, manifest, GAME-STATE _(internal)_
 - `fcebe80` **[Bug Fixes]** No far-off ladder rungs or 3-digit run counts on an early account's goal board
+- `c42b5d6` **[Framework]** Media: re-shoot stills + trailer for Batch G (goal board without far-off ladder rungs) _(internal)_
