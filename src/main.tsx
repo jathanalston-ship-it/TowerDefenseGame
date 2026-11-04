@@ -28,4 +28,16 @@ createRoot(rootEl).render(
   </StrictMode>,
 );
 
+// Warm the run-path chunks once the hub has painted (code-splitting, docs/DEPLOYMENT.md §code-splitting):
+// the first run starts without a spinner, and nothing here competes with boot.
+const idle: (cb: () => void) => void =
+  'requestIdleCallback' in window ? (cb) => window.requestIdleCallback(cb, { timeout: 4000 }) : (cb) => window.setTimeout(cb, 2000);
+if (import.meta.env.PROD) {
+  idle(() => {
+    void import('./ui/GameView');
+    void import('./ui/Results');
+    void import('./ui/TutorialRunner');
+  });
+}
+
 registerServiceWorker(); // PROD-only offline shell + update toast (docs/DEPLOYMENT.md §sw)

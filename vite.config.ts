@@ -26,9 +26,9 @@ export default defineConfig({
       input: { play: 'play/index.html' },
       output: {
         // React never changes between our deploys — a stable vendor chunk stays
-        // browser-cached across releases while the app chunk turns over. The game
-        // itself ships as ONE app chunk on purpose: the sim/content/UI are all
-        // needed at boot, and slicing them only adds request waterfalls.
+        // browser-cached across releases while the app chunk turns over. Hub screens and
+        // other non-boot UI are lazy (React.lazy via src/ui/lazyNamed.ts → one chunk each,
+        // precached by the service worker); the sim/state core stays in the entry chunk.
         manualChunks: { vendor: ['react', 'react-dom'] },
       },
     },

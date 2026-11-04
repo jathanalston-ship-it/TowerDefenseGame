@@ -4,7 +4,7 @@
 // level; dense screens lay out in columns and the content area is the only scroll region.
 
 import { t, useLocale, setLocale, getLocale, LOCALES } from '../i18n';
-import { useEffect, useMemo, useRef, useState, type CSSProperties, type MutableRefObject } from 'react';
+import { Suspense, useEffect, useMemo, useRef, useState, type CSSProperties, type MutableRefObject } from 'react';
 import { meta } from '../state/meta';
 import type { RunOutcome, RunResult } from '../state/meta';
 import type { ReplayRecord } from '../core/replay';
@@ -21,46 +21,47 @@ import { telemetry } from '../net/telemetry';
 import { loopFlow } from '../state/loopFlow';
 import { chainNavs } from '../state/readyChain';
 import { CommandCenter } from './CommandCenter';
-import { InfiniteScreen } from './InfiniteScreen';
-import { BossRushScreen } from './BossRushScreen';
-import { ArenaScreen } from './ArenaScreen';
+const InfiniteScreen = lazyNamed(() => import('./InfiniteScreen'), 'InfiniteScreen');
+const BossRushScreen = lazyNamed(() => import('./BossRushScreen'), 'BossRushScreen');
+const ArenaScreen = lazyNamed(() => import('./ArenaScreen'), 'ArenaScreen');
 import type { ArenaMatchSetup } from '../core/arenaMatch';
 import type { ArenaTransport } from '../net/arenaTransport';
-import { DailyScreen } from './DailyScreen';
-import { PremiumStore } from './PremiumStore';
+const DailyScreen = lazyNamed(() => import('./DailyScreen'), 'DailyScreen');
+import { PremiumStore } from './PremiumStore'; // FlashOfferPopup imports its helpers statically
 import { featureRevealed, featureView, nextReveals, type FeatureView } from '../state/unlocks';
 import { AccountXpBar } from './components/AccountXpBar';
 import { navBus } from '../state/navBus';
-import { CampaignScreen } from './CampaignScreen';
-import { TowerLab } from './TowerLab';
-import { MulliganLab } from './MulliganLab';
-import { EquipmentCollection } from './EquipmentCollection';
-import { HeroLab } from './HeroLab';
-import { ExpeditionScreen } from './ExpeditionScreen';
-import { AdaptationChamber } from './AdaptationChamber';
-import { EquipmentPanel } from './EquipmentPanel';
-import { GeneticVault } from './GeneticVault';
-import { SpliceMarket } from './SpliceMarket';
-import { AuctionHouse } from './AuctionHouse';
-import { EvolutionHQ } from './EvolutionHQ';
-import { HelpWiki } from './HelpWiki';
-import { CollectionScreen } from './CollectionPanel';
-import { PlayerProfile } from './PlayerProfile';
-import { SaveManager } from './SaveManager';
-import { CloudBackup } from './components/CloudBackup';
-import { AccountPanel } from './components/AccountPanel';
+const CampaignScreen = lazyNamed(() => import('./CampaignScreen'), 'CampaignScreen');
+const TowerLab = lazyNamed(() => import('./TowerLab'), 'TowerLab');
+const MulliganLab = lazyNamed(() => import('./MulliganLab'), 'MulliganLab');
+const EquipmentCollection = lazyNamed(() => import('./EquipmentCollection'), 'EquipmentCollection');
+const HeroLab = lazyNamed(() => import('./HeroLab'), 'HeroLab');
+const ExpeditionScreen = lazyNamed(() => import('./ExpeditionScreen'), 'ExpeditionScreen');
+const AdaptationChamber = lazyNamed(() => import('./AdaptationChamber'), 'AdaptationChamber');
+const EquipmentPanel = lazyNamed(() => import('./EquipmentPanel'), 'EquipmentPanel');
+const GeneticVault = lazyNamed(() => import('./GeneticVault'), 'GeneticVault');
+const SpliceMarket = lazyNamed(() => import('./SpliceMarket'), 'SpliceMarket');
+const AuctionHouse = lazyNamed(() => import('./AuctionHouse'), 'AuctionHouse');
+const EvolutionHQ = lazyNamed(() => import('./EvolutionHQ'), 'EvolutionHQ');
+const HelpWiki = lazyNamed(() => import('./HelpWiki'), 'HelpWiki');
+const CollectionScreen = lazyNamed(() => import('./CollectionPanel'), 'CollectionScreen');
+const PlayerProfile = lazyNamed(() => import('./PlayerProfile'), 'PlayerProfile');
+const SaveManager = lazyNamed(() => import('./SaveManager'), 'SaveManager');
+const CloudBackup = lazyNamed(() => import('./components/CloudBackup'), 'CloudBackup');
+import { AccountPanel } from './components/AccountPanel'; // App/Commissioning import it statically
 import { navProgress } from './hubProgress';
-import { DevTools } from './DevTools';
-import { MusicDebug } from './MusicDebug';
-import { GeneArchive } from './GeneArchive';
-import { HiveScreen } from './HiveScreen';
-import { HarvestArrival, HarvestScreen } from './HarvestScreen';
-import { MetabolismScreen } from './MetabolismScreen';
-import { FrontScreen } from './FrontScreen';
-import { Wardrobe } from './Wardrobe';
-import { SpecimenVault } from './SpecimenVault';
-import { BattlePassScreen } from './BattlePassScreen';
-import { QuestBoard } from './QuestBoard';
+const DevTools = lazyNamed(() => import('./DevTools'), 'DevTools');
+const MusicDebug = lazyNamed(() => import('./MusicDebug'), 'MusicDebug');
+const GeneArchive = lazyNamed(() => import('./GeneArchive'), 'GeneArchive');
+const HiveScreen = lazyNamed(() => import('./HiveScreen'), 'HiveScreen');
+const HarvestArrival = lazyNamed(() => import('./HarvestScreen'), 'HarvestArrival');
+const HarvestScreen = lazyNamed(() => import('./HarvestScreen'), 'HarvestScreen');
+const MetabolismScreen = lazyNamed(() => import('./MetabolismScreen'), 'MetabolismScreen');
+import { FrontScreen } from './FrontScreen'; // also imported statically by CommandCenter — lazy would not split it
+const Wardrobe = lazyNamed(() => import('./Wardrobe'), 'Wardrobe');
+const SpecimenVault = lazyNamed(() => import('./SpecimenVault'), 'SpecimenVault');
+const BattlePassScreen = lazyNamed(() => import('./BattlePassScreen'), 'BattlePassScreen');
+const QuestBoard = lazyNamed(() => import('./QuestBoard'), 'QuestBoard');
 import { WardrobeReveal } from './components/WardrobeReveal';
 import { FlashOfferPopup } from './components/FlashOfferPopup';
 import { flashExpiresAt } from '../state/flashOffers';
@@ -76,6 +77,8 @@ import { activeLiveEvents } from '../core/liveEvents';
 import { MobileTabBar, MobileTabIndex, MobilePageHead } from './MobileShell';
 import { useLayoutProfile } from './layoutProfile';
 import { HubLanding } from './HubLanding';
+import { lazyNamed } from './lazyNamed';
+import { ScreenFallback } from './components/ScreenFallback';
 
 // The nav IA (groups + portrait tabs) lives in navModel.ts — the single source of truth this
 // shell, the portrait shell, and the validation layer (navModel.test / mobilecheck) all share.
@@ -409,7 +412,7 @@ export function Hub({
       )}
       {/* Idle Harvest return ceremony (docs/IDLE-HARVEST.md §presentation) — once the screen
           itself has revealed, a ripe hopper greets the returning player (never a bare popup). */}
-      {featureRevealed(save, 'harvest') && <HarvestArrival onVisitHarvest={() => go('harvest')} />}
+      {featureRevealed(save, 'harvest') && <Suspense fallback={null}><HarvestArrival onVisitHarvest={() => go('harvest')} /></Suspense>}
       {!mobileShell && navOpen && <div className="hub-nav-veil" onClick={() => setNavOpen(false)} aria-hidden />}
       {!mobileShell && (
       <nav className={`hub-nav${navOpen ? ' is-open' : ''}`} aria-label="Headquarters">
@@ -571,7 +574,7 @@ export function Hub({
           {/* Any screen whose feature hasn't revealed shows its unlock briefing instead —
               one gate for every wing (the old per-mode ModeLocked, generalized). */}
           {!featureRevealed(save, nav) && <FeatureLocked view={featureView(save, nav)} go={go} />}
-          {featureRevealed(save, nav) && <>
+          {featureRevealed(save, nav) && <Suspense fallback={<ScreenFallback />}>
           {nav === 'home' && (
             <CommandCenter onStart={onStart} onStartEndless={onStartEndless} onStartCampaign={onStartCampaign} go={go} last={last} onSeenLast={onSeenLast} doctrineRef={doctrineRef} />
           )}
@@ -605,7 +608,7 @@ export function Hub({
           {nav === 'profile' && <PlayerProfile onNavigate={(k) => go(k as NavKey)} />}
           {nav === 'settings' && <SettingsScreen onReplayTutorial={onReplayTutorial} onReplayTour={onReplayTour} onReplayIntro={onReplayIntro} />}
           {nav === 'help' && <HelpWiki onNavigate={(k) => go(k as NavKey)} onReplayTour={onReplayTour} />}
-          </>}
+          </Suspense>}
           </>
           )}
         </section>

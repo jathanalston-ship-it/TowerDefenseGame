@@ -31,8 +31,12 @@ export function registerServiceWorker(): void {
         /* registration failure = the app simply stays online-only */
       });
     // The moment the new worker takes control, one clean reload finishes the swap.
+    // FIRST install also fires controllerchange (clients.claim) — that is not an update: reloading
+    // there would restart the intro/tutorial the new player is in the middle of (the precache makes
+    // activation arrive late). Only swap when a previous worker was in control.
+    const hadController = !!navigator.serviceWorker.controller;
     navigator.serviceWorker.addEventListener('controllerchange', () => {
-      if (reloading) return;
+      if (reloading || !hadController) return;
       reloading = true;
       window.location.reload();
     });

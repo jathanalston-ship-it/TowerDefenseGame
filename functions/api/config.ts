@@ -8,6 +8,7 @@ import type { Env } from '../lib/env';
 import { clientIp, err, json } from '../lib/http';
 import { rateLimit } from '../lib/rateLimit';
 import { sanitizeRemoteConfig } from '../../src/core/remoteConfig';
+import { paidRandomContainersAllowed } from '../lib/lootbox';
 
 export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
   const ip = clientIp(request);
@@ -17,6 +18,8 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
   try { parsed = row ? JSON.parse(row.doc) : null; } catch { parsed = null; }
   const doc = sanitizeRemoteConfig(parsed);
   doc.rev = row?.rev ?? 0;
-  // Short edge cache: config changes land within a minute without hammering D1.
-  return json(doc, 200, { 'cache-control': 'public, max-age=60' });
+  // Caller-specific region flag (docs/PREMIUM-STORE.md §paid-loot-boxes): false => the store hides SKUs
+  // with random-content containers. The server still enforces it at checkout.
+  // PRIVATE cache only: a shared edge copy would hand one country's answer to another.
+  return json({ ...doc, paidRandomContainers: paidRandomContainersAllowed(request, env) }, 200, { 'cache-control': 'private, max-age=60' });
 };

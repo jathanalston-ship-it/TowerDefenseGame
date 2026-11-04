@@ -123,7 +123,7 @@ export const SYSTEMS: SystemDef[] = [
   },
   {
     id: 'premium', name: 'Premium Store', purpose: 'Ethical monetization as pure data: Ichor bundles, permanent packs, one rotating daily pack, windowed event offers, the Season Pass pair (first-ever purchase is the half-price SKU — seasonOfferFor), and one-time milestone FLASH sales (state/flashOffers.ts: achievement-high triggers, first-sight 48h windows, one popup per 72h, eligibility floor, honesty-tested list prices) on a registry; purchases accelerate but never replace gameplay (Power moves zero until invested; money never mints prestige or crosses campaign gates).',
-    files: ['src/core/premium.ts', 'src/state/flashOffers.ts', 'src/ui/PremiumStore.tsx', 'src/ui/components/FlashOfferPopup.tsx'],
+    files: ['src/core/premium.ts', 'src/net/storeRegion.ts', 'src/state/flashOffers.ts', 'src/ui/PremiumStore.tsx', 'src/ui/components/FlashOfferPopup.tsx'],
     dependsOn: ['content-infra', 'splice-market', 'daily', 'power'], powerScore: 'offerPowerPotential — the honest "up to +N when invested" estimate', save: ['premium'], tutorial: [], help: [],
     hud: [], ui: ['PremiumStore'], collection: null, achievements: [],
     localization: 'inline-en', docs: ['docs/PREMIUM-STORE.md', 'docs/PREMIUM-ECONOMY-REPORT.md'],
@@ -552,7 +552,7 @@ export const SYSTEMS: SystemDef[] = [
   },
   {
     id: 'ui-kit', name: 'Shared UI Component Kit', purpose: 'Reusable presentation components every screen composes (icons, bars, count-ups) — the component library.',
-    files: ['src/ui/components/Icon.tsx', 'src/ui/iconLanguage.tsx', 'src/ui/components/Detail.tsx', 'src/ui/components/ProgressBar.tsx', 'src/ui/components/useCountUp.ts', 'src/ui/components/usePressRepeat.ts', 'src/ui/components/AudioToggles.tsx', 'src/ui/components/MobileSection.tsx', 'src/ui/layoutProfile.ts', 'src/ui/components/ResponsiveDebug.tsx', 'src/ui/components/RotateGate.tsx'],
+    files: ['src/ui/components/Icon.tsx', 'src/ui/iconLanguage.tsx', 'src/ui/components/Detail.tsx', 'src/ui/components/ProgressBar.tsx', 'src/ui/components/useCountUp.ts', 'src/ui/components/usePressRepeat.ts', 'src/ui/components/AudioToggles.tsx', 'src/ui/components/MobileSection.tsx', 'src/ui/layoutProfile.ts', 'src/ui/components/ResponsiveDebug.tsx', 'src/ui/components/RotateGate.tsx', 'src/ui/components/ScreenFallback.tsx', 'src/ui/lazyNamed.ts'],
     dependsOn: [], powerScore: null, save: [], tutorial: [], help: [], hud: ['(embedded everywhere)'], ui: ['(embedded everywhere)'],
     collection: null, achievements: [], localization: 'inline-en', docs: ['docs/UI-STANDARDS.md', 'docs/STYLE-GUIDE.md', 'docs/UI-MOTION.md', 'docs/VISUAL_IDENTITY.md', 'docs/UI_STYLE_GUIDE.md', 'docs/DESIGN_LANGUAGE.md', 'docs/RESPONSIVE-DESIGN.md', 'docs/ICON-LANGUAGE.md', 'docs/INFO-HIERARCHY.md'],
   },

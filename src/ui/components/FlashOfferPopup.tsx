@@ -8,7 +8,8 @@ import { useEffect } from 'react';
 import { audio } from '../../audio/sound';
 import { trackEvent } from '../../net/events';
 import { flashSalePct, flashTriggerLabel } from '../../state/flashOffers';
-import type { PremiumOfferDef } from '../../core/premium';
+import { offerHasRandomContent, type PremiumOfferDef } from '../../core/premium';
+import { usePaidRandomVisible } from '../../net/storeRegion';
 import { rarityColor } from './ItemArt';
 import { Popup } from './Popup';
 import { fmtCountdown, fmtUsd, grantLine } from '../PremiumStore';
@@ -19,10 +20,13 @@ export function FlashOfferPopup({ offer, expiresAt, onStore, onClose }: {
   onStore: () => void;
   onClose: () => void;
 }): JSX.Element {
+  const regionOk = usePaidRandomVisible() || !offerHasRandomContent(offer); // paid-loot-box region switch
   useEffect(() => {
+    if (!regionOk) return;
     audio.cue('draft');
     trackEvent('flash_popup', `flash_popup:${offer.id}`);
-  }, [offer.id]);
+  }, [offer.id, regionOk]);
+  if (!regionOk) return <></>;
   return (
     <Popup>
       <div className="ps-overlay" onClick={onClose} role="dialog" aria-label="Limited offer">
