@@ -65,6 +65,14 @@ describe('problem detectors (synthetic traces)', () => {
     expect(f.powerSpike).toEqual(['10h→50h']);
     expect(f.sinkExhaustion).toEqual(['10h→50h']);
   });
+
+  it('a spike is peak-to-peak: a post-Molt trough checkpoint followed by a peak is not one', () => {
+    const f = detectProblems([
+      cp({ hours: 10, power: 1000, peakPower: 5000, molts: 2 }), // sampled just after a Molt
+      cp({ hours: 50, power: 9000, peakPower: 9000, molts: 10 }), // ×9 by checkpoint, ×1.8 peak-to-peak
+    ]);
+    expect(f.powerSpike).toEqual([]);
+  });
 });
 
 describe('live mini-simulation (real meta layer)', () => {

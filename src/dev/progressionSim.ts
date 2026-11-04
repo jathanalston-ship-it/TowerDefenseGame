@@ -372,7 +372,7 @@ export function detectProblems(cps: SimCheckpoint[]): SimFlags {
     const farmed = b.farmRuns > a.farmRuns;
     if (isDeadProgression(a, b)) flags.deadProgression.push(band);
     if (farmed && b.stage === a.stage && b.readiness <= a.readiness + 0.005) flags.wallStall.push(band);
-    if (b.power > a.power * 8) flags.powerSpike.push(band);
+    if (b.peakPower > a.peakPower * 8) flags.powerSpike.push(band); // peak-to-peak: checkpoint Power samples the Molt sawtooth
     if (a.unspentShards > 5000 && b.unspentShards > a.unspentShards * 2) flags.sinkExhaustion.push(band);
   }
   return flags;
