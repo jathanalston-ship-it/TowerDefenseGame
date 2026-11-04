@@ -25,8 +25,9 @@ import { spawn } from 'node:child_process';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { navGroups } from '../src/ui/navModel';
+import { chromePath } from './chromePath';
 
-const CHROME = process.env.MOBILECHECK_CHROMIUM ?? '/opt/pw-browsers/chromium_headless_shell-1194/chrome-linux/headless_shell';
+const CHROME = chromePath(); // MOBILECHECK_CHROMIUM, else the newest preinstalled browser (scripts/chromePath.ts)
 const PORT = 4188;
 const ROOT = new URL('..', import.meta.url).pathname;
 const ATTN_BUDGET = 2;

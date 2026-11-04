@@ -34,10 +34,11 @@
 import { spawn, execSync } from 'node:child_process';
 import { chromium } from 'playwright-core';
 import { navGroups } from '../src/ui/navModel';
+import { chromePath } from './chromePath';
 
 const args = process.argv.slice(2).filter((a) => a !== '--');
 const PORT = Number(args[args.indexOf('--port') + 1] || 0) || 4310;
-const CHROME = process.env.MOBILECHECK_CHROMIUM ?? '/opt/pw-browsers/chromium_headless_shell-1194/chrome-linux/headless_shell';
+const CHROME = chromePath(); // MOBILECHECK_CHROMIUM, else the newest preinstalled browser (scripts/chromePath.ts)
 
 // The nav universe — derived, never hand-listed (see auto-coverage contract above).
 const NAVS = navGroups().flatMap((g) => g.items.map((i) => i.key));

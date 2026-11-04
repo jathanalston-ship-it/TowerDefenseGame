@@ -25,6 +25,7 @@ import { join } from 'node:path';
 import { gzipSync } from 'node:zlib';
 import { HEIGHT, WIDTH, towerSlots } from '../src/core/map';
 import { SLOTS as SLOTS_CFG } from '../src/core/config';
+import { chromePath } from './chromePath';
 
 // ─────────────────────────── BUDGETS (the one place to tune) ───────────────────────────
 const BUDGETS = {
@@ -38,21 +39,6 @@ const args = process.argv.slice(2).filter((a) => a !== '--');
 const flag = (n: string): boolean => args.includes(`--${n}`);
 const opt = (n: string): string | undefined => { const i = args.indexOf(`--${n}`); return i >= 0 ? args[i + 1] : undefined; };
 const PORT = Number(opt('port') ?? 4331);
-/** Same override env as mobilecheck/cogload; otherwise the newest preinstalled headless shell, else Playwright's own default. */
-function chromePath(): string | undefined {
-  if (process.env.MOBILECHECK_CHROMIUM) return process.env.MOBILECHECK_CHROMIUM;
-  const base = '/opt/pw-browsers';
-  if (!existsSync(base)) return undefined;
-  const shells = readdirSync(base).filter((d) => d.startsWith('chromium_headless_shell-')).sort().reverse();
-  for (const d of shells) {
-    for (const rel of ['chrome-linux/headless_shell', 'chrome-headless-shell-linux64/chrome-headless-shell']) { const p = join(base, d, rel); if (existsSync(p)) return p; }
-  }
-  const full = readdirSync(base).filter((d) => /^chromium-\d+/.test(d)).sort().reverse();
-  for (const d of full) {
-    for (const rel of ['chrome-linux64/chrome', 'chrome-linux/chrome']) { const p = join(base, d, rel); if (existsSync(p)) return p; }
-  }
-  return undefined;
-}
 const ROOT = new URL('..', import.meta.url).pathname;
 const SHOTS = opt('shots');
 const BASE = `http://localhost:${PORT}`;
