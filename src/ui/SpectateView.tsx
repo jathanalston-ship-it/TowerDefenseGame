@@ -14,6 +14,8 @@ import { WIDTH, HEIGHT } from '../core/map';
 import type { ReplayRecord } from '../core/replay';
 import { drawGame } from '../render/renderer';
 import { Announcer, type Shown } from '../render/feel';
+import { LastKillMoment } from '../render/lastKill';
+import { motionPrefs, resolveMotion, systemReducedMotion } from '../state/prefs';
 import { CentreStage, megaFallCard, type StageCard } from './components/CentreStage';
 import { audio } from '../audio/sound';
 import { music } from '../audio/music';
@@ -58,6 +60,9 @@ export function SpectateView({ record, onExit }: { record: ReplayRecord; onExit:
   const announcerRef = useRef<Announcer<StageCard> | null>(null);
   announcerRef.current ??= new Announcer<StageCard>();
   const [stageCard, setStageCard] = useState<Shown<StageCard> | null>(null);
+  const lastKillRef = useRef<LastKillMoment | null>(null);
+  lastKillRef.current ??= new LastKillMoment();
+  const motion = useState(() => resolveMotion(motionPrefs(), systemReducedMotion()).motion)[0]; // the theater honours Settings → Motion too
   useEffect(() => {
     const announce = (card: StageCard): void => {
       const a = announcerRef.current!;
@@ -65,7 +70,9 @@ export function SpectateView({ record, onExit }: { record: ReplayRecord; onExit:
     };
     const offBoss = game.events.on('bossKilled', (e) => { if (e.final) announce({ kind: 'bossFall', name: e.name, epithet: e.epithet ?? '' }); });
     const offMega = game.events.on('megaKilled', (e) => announce(megaFallCard(e)));
-    return () => { offBoss(); offMega(); };
+    // The LAST-KILL beat (render/lastKill.ts) plays here too — silent while skipping ahead.
+    const offLast = game.events.on('waveLastKill', (e) => { if (!skippingRef.current) lastKillRef.current!.start(e, game.mode, speedRef.current); });
+    return () => { offBoss(); offMega(); offLast(); };
   }, []);
 
   useEffect(() => {
@@ -123,11 +130,13 @@ export function SpectateView({ record, onExit }: { record: ReplayRecord; onExit:
         const dt = Math.min(0.25, (now - last) / 1000);
         last = now;
         let over = false;
+        const lastKill = lastKillRef.current!;
+        if (!pausedRef.current && lastKill.tick(dt * 1000)) audio.cue('clear');
         if (!pausedRef.current) {
           if (skippingRef.current) {
             for (let i = 0; i < SKIP_STEPS_PER_FRAME && !over; i++) over = !stepOnce();
           } else {
-            accRef.current = Math.min(accRef.current + dt * speedRef.current, SIM_DT * MAX_STEPS_PER_FRAME);
+            accRef.current = Math.min(accRef.current + dt * speedRef.current * lastKill.rate(speedRef.current, motion), SIM_DT * MAX_STEPS_PER_FRAME);
             while (accRef.current >= SIM_DT && !over) {
               accRef.current -= SIM_DT;
               over = !stepOnce();
@@ -142,7 +151,10 @@ export function SpectateView({ record, onExit }: { record: ReplayRecord; onExit:
           }
         }
         ctx.clearRect(0, 0, WIDTH, HEIGHT);
+        ctx.save();
+        lastKill.applyCamera(ctx, motion);
         drawGame(ctx, game.getRenderState(), null);
+        ctx.restore();
         const stage = announcerRef.current!;
         if (stage.tick(now)) setStageCard(stage.current);
         if (now - lastHud > 250 || over) {

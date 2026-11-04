@@ -324,6 +324,7 @@ export interface RenderState {
   armedAbility: boolean;
   unlockedSlots: number;
   time: number; // sim seconds — drives presentation pulses/animation
+  fxTime: number; // presentation clock: seconds STEPPED, settle beat included (where `time` freezes) — the wind-down's gore rides it
   hiveAttackers: number; // enemies locked onto the Core (siege-crust rendering intensity)
   hiveHitPulse: number; // 0..1 impact accumulator — the renderer's shudder/flash signal
   integrity: number;
@@ -475,6 +476,11 @@ export class Game {
   /** Combat→Build settle countdown (s). > 0 after the last enemy dies: the wave is cleared but
    * the phase hasn't flipped yet — the battlefield winds down (see step's settle branch). */
   private settleTimer = 0;
+  // LAST-KILL beat bookkeeping (docs/SIGNATURE-MOMENTS.md §1) — presentation only: where/how the
+  // most recent enemy LEFT the field (rank 0 breach/devoured · 1 kill · 2 boss kill · 3 the Mega),
+  // the waves a boss / the Mega fell in, and the wave whose `waveLastKill` already fired. Written on
+  // eviction, read only to build that event ⇒ nothing in the sim reads it (goldens byte-identical).
+  private readonly lastOut = { x: 0, y: 0, rank: 0, step: -1, wave: 0, bossWave: 0, megaWave: 0, sentWave: 0 };
   waveIndex = 0; // waves started/cleared so far (= Depth in endless)
   readonly totalWaves: number; // authored TOTAL_WAVES, or a campaign stage's generated wave count
   readonly mode: RunMode;
@@ -3970,6 +3976,7 @@ export class Game {
       killSec, perfect, weakPoints: rt.wpDestroyed, interrupts: rt.interrupts,
     });
     this.runBossKills++; // a mega counts toward boss-kill ledgers (Boss Rush bands included)
+    this.noteLastOut(WIDTH / 2, MEGA.anchorY + 40, 3); // the last-kill beat's raid case (presentation)
     // The fall is ANNOUNCED by the view's centre-stage card (megaKilled event). Its voice dies with
     // it: channeling callouts (centre floats) and organ labels fade within a beat instead of
     // lingering under the card. Presentation-only (floats never feed the sim).
@@ -6695,7 +6702,8 @@ export class Game {
     const es = this.enemies;
     for (let i = es.length - 1; i >= 0; i--) {
       const e = es[i];
-      if (e.alive && e.hp <= 0) {
+      const killed = e.alive && e.hp <= 0;
+      if (killed) {
         e.alive = false;
         this.kills++;
         if (e.elite) this.onEliteSlain(); // Ravager Killchain/Bloodthirst (golden-safe: no elites in Stage)
@@ -6846,10 +6854,42 @@ export class Game {
         }
       }
       if (!e.alive) {
+        this.noteLastOut(e.x, e.y, killed ? (e.boss ? 2 : 1) : 0);
         es[i] = es[es.length - 1];
         es.pop();
       }
     }
+  }
+
+  /** Record an enemy (or the Mega) leaving the field for the last-kill beat. Within one tick the
+   *  biggest exit wins (a kill over a breach, the Mega over its escort); across ticks the newest. */
+  private noteLastOut(x: number, y: number, rank: number): void {
+    const lo = this.lastOut;
+    if (rank === 2) lo.bossWave = this.waveIndex;
+    else if (rank === 3) lo.megaWave = this.waveIndex;
+    if (lo.step === this.stepCount && rank < lo.rank) return;
+    lo.x = x; lo.y = y; lo.rank = rank; lo.step = this.stepCount; lo.wave = this.waveIndex;
+  }
+
+  /** LAST-KILL beat (docs/SIGNATURE-MOMENTS.md §1): `waveLastKill` fires ONCE per wave, the tick the
+   *  field empties. A collapsing Mega counts as gone — its fall IS the last kill — so a raid wave's
+   *  beat lands on the fall, not 3.5 s later when the body clears. Presentation only (listener-gated). */
+  private lastKillBeat(): void {
+    const lo = this.lastOut;
+    if (lo.sentWave === this.waveIndex) return;
+    if (!this.spawnedAll || this.spawnQueue.length > 0 || this.rushPending.length > 0 || this.enemies.length > 0) return;
+    if (this.megaHoldsWave && this.mega!.deathT <= 0) return; // the organism still stands
+    lo.sentWave = this.waveIndex;
+    const seen = lo.wave === this.waveIndex; // nothing left the field this wave (a debug skip) ⇒ no kill
+    this.events.emit('waveLastKill', {
+      wave: this.waveIndex,
+      x: seen ? lo.x : WIDTH / 2,
+      y: seen ? lo.y : HEIGHT / 2,
+      kill: seen && lo.rank > 0,
+      boss: lo.bossWave === this.waveIndex,
+      mega: lo.megaWave === this.waveIndex,
+      final: this.megaDailyEnc !== null || (this.mode !== 'endless' && this.mode !== 'bossRush' && this.waveIndex >= this.totalWaves),
+    });
   }
 
   private floatSystem(dt: number): void {
@@ -7060,7 +7100,8 @@ export class Game {
     // slip past a live mega in the gap before its reinforcement pulse — the reported jank).
     // The lone-siege loop supplies pressure while it stands. CAMPAIGN is the one mode where a
     // mega persists across waves; only its FINAL wave holds for the kill (the stage finale).
-    if (this.mega !== null && (this.megaDailyEnc !== null || this.mode !== 'campaign' || this.waveIndex >= this.totalWaves)) return;
+    if (this.events.hasListeners('waveLastKill')) this.lastKillBeat(); // presentation: may fire before the hold releases
+    if (this.megaHoldsWave) return;
     if (this.spawnedAll && this.spawnQueue.length === 0 && this.rushPending.length === 0 && this.enemies.length === 0) {
       this.minions.length = 0; // temporary summons don't outlive the wave they were called into
       if (this.events.hasListeners('waveCompleted')) this.events.emit('waveCompleted', { wave: this.waveIndex, endless: this.mode === 'endless' });
@@ -7088,6 +7129,11 @@ export class Game {
       this.settleTimer = SETTLE.duration; // begin the wind-down; endWave() reveals the result
       this.pendingImpacts.length = 0; // the field is clear — no cinematic payload left to land
     }
+  }
+
+  /** A living (or collapsing) Mega holds its encounter open — see checkWaveEnd. */
+  private get megaHoldsWave(): boolean {
+    return this.mega !== null && (this.megaDailyEnc !== null || this.mode !== 'campaign' || this.waveIndex >= this.totalWaves);
   }
 
   /** Whether the just-cleared wave grants a Gene Card draft. Stage + campaign: always (generous).
@@ -7910,6 +7956,7 @@ export class Game {
       armedAbility: this.armedAbility,
       unlockedSlots: this.unlockedSlots,
       time: this.time,
+      fxTime: this.stepCount * SIM_DT,
       integrity: this.integrity,
       hiveAttackers: this.hiveAttackers,
       hiveHitPulse: this.hiveHitPulse,

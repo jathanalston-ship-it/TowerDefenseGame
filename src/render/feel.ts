@@ -67,6 +67,7 @@ export const FEEL: Readonly<Record<string, FeelRow>> = {
   rankup: { stinger: 'unlock' },
   power: { stinger: 'power' },
   strandFound: { stinger: 'discovery' },
+  clear: { duck: [0.22, 0.6] }, // the wave-clear fanfare, landing ON the last kill (LAST_KILL below)
 };
 
 /** The feel row for a cue tag (suffixes `@tier` / `:kind` / `~variant` already stripped). */
@@ -99,6 +100,32 @@ export const DAMAGE_NUMBERS = {
   life: 0.55, // the sim's aggregated-number lifetime (game.ts damage aggregation)
   outline: 3.5, // dark stroke width — legible over acid pools / bright gore
 } as const;
+
+// ── LAST KILL — the wave's final enemy LANDS (docs/SIGNATURE-MOMENTS.md §1, render/lastKill.ts) ──
+// The owner's taste values. Times are wall-clock ms from the kill at 1× (see speedCompress).
+export interface LastKillSpec {
+  depth: number; // view-time scale at the bottom of the dip, vs 1× real time (0.5 = half speed)
+  easeInMs: number; // 100 % → depth
+  holdMs: number; // the dip holds (and the camera arrives) until here
+  outMs: number; // depth → 100 % (and the camera home) by here
+  zoom: number; // camera nudge toward the kill (0.04 = 4 %; docs/CAMERA.md caps it there)
+  fanfareMs: number; // the `clear` fanfare lands here (it used to play when the draft opened)
+}
+
+export const LAST_KILL: Readonly<{ normal: LastKillSpec; boss: LastKillSpec; rushBossBeat: boolean; leakFanfareMs: number; speedCompress: number }> = {
+  normal: { depth: 0.5, easeInMs: 80, holdMs: 400, outMs: 650, zoom: 0.04, fanfareMs: 120 },
+  // A boss or the Mega fell this wave: deeper, ~1.5× longer; the fanfare waits out the fall's hit-stop.
+  boss: { depth: 0.35, easeInMs: 120, holdMs: 600, outMs: 975, zoom: 0.04, fanfareMs: 180 },
+  // Boss Rush: every wave IS a boss wave, so only a Mega column earns the long beat there.
+  rushBossBeat: false,
+  // The wave ENDED on a breach (no kill): no slow-mo or camera — nothing to celebrate at the body —
+  // and the fanfare waits out the breach alarm (≈ the 0.7 s settle, where it used to play).
+  leakFanfareMs: 700,
+  // At game speed s the beat's durations scale by s^-k (2× → 0.81, 5× → 0.62): it still lands at
+  // speed (the dip's floor is absolute — the last kill always reads at the same visible pace) but
+  // never drags a fast run.
+  speedCompress: 0.3,
+};
 
 // ── CENTRE STAGE — one announcer owns the middle of the board ──────────────────────────────
 // WAVE N, boss/mega intros, the assimilation tier banner, weak-point callouts and the fall
