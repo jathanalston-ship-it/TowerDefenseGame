@@ -1,4 +1,6 @@
+/// <reference types="vitest" />
 import { defineConfig } from 'vite';
+import { configDefaults } from 'vitest/config';
 import react from '@vitejs/plugin-react';
 import { readFileSync } from 'node:fs';
 
@@ -33,4 +35,7 @@ export default defineConfig({
       },
     },
   },
+  // Agent git worktrees live under .claude/worktrees (full repo copies) — never collect their
+  // tests, or `npm test` in the main checkout runs every copy of the suite.
+  test: { exclude: [...configDefaults.exclude, '.claude/**'] },
 });
