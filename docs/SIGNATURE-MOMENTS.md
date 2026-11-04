@@ -86,6 +86,38 @@ at a given scale without a live Game.
 **Taste choices:** how much camera motion (subtle / cinematic) · whether premieres show the mega
 in full or only in silhouette until its fall · text style for the premiere title card.
 
+**Status: BUILT (2026-11, Batch 3 track S4)** — canonical doc: docs/CUTSCENES.md §direction +
+§premieres. What shipped:
+- `render/filmDirection.ts` — the three layers for every scene of the opening film AND every
+  cutscene: drift over the scene's own hold, punches on `impact` beats, a beat-driven mid layer
+  (`fx.beat` kick / `fx.surge` steps read by all 17 painters), a parallaxed particulate foreground.
+- Mega premieres open on the new `'mega'` painter: the ACTUAL organism via
+  `render/megaboss.ts drawMegaPose` (the raid's own body + organ painters on a cached pose rig;
+  the raid's render one-shots parked around the call) — silhouette out of its backlight →
+  weak points ignite one by one (maw gathering, organs flaring per beat) → the fall on an
+  impact beat. All seven premieres; `cutscenes.test.ts` enforces it for future megas.
+- `copyAt` per scene (`center | upper | lower`, measured quiet bands); the intro core scene's copy
+  now sits below the Hive Core. Scene rows gained `copyAt`, `camera`, `punch`, `mega` with defaults.
+- Reduced motion resolves through `resolveMotion` (OS request unless Settings → Motion overrides
+  it): one still per scene (a Mega still = the whole organism just after its last organ lit), no
+  drift / punches / flashes, same copy and timing; Skip / tap unchanged; no new input holds.
+
+**Taste values (the lead's calls) and where they live:** drift **2–3 %** — the DRIFT rows in
+`render/introScenes.ts` / `render/cutsceneScenes.ts` (a scene's `camera` overrides); punch
+**4.5 % default, 6 % ceiling, 25 ms rise / 120 ms total** — `FILM.punch` (filmDirection.ts), per
+scene `punch`; Mega **in full** — the reveal resolves within ~1.2–2 s, then the full organism
+(`MEGA_SCENE` in cutsceneScenes.ts: spans, framing, the fall's light gasp; `MEGA_POSE` in
+megaboss.ts: silhouette tone, organ descent); title card typography unchanged (existing
+`.intro-*` classes).
+
+**Measured** (frame-stepped capture, projector canvas only, % pixels with max |ΔRGB| > 24 between
+scene t = 1.0 s and 4.5 s — the audit's metric): opening film signal 2.4 → 5.7 · descent 1.9 →
+20.2 · veins 3.6 → 4.5 · core 3.1 → 8.9 · title 0.1 → 0.2 (the waiting title card stays calm);
+Mega premiere first scenes 0.6–7.5 → 6.4–42.8 (MERIDIA 1.5 → 11.6). Frame-to-frame change stays
+≤ 10 % at 24 fps (no strobing) except on the authored moments — an impact punch or the fall's one
+light gasp, single frames ≤ ~28 % at 12 fps. Reduced motion: 0 % (static). Full tables + contact
+sheets: the S4 track report.
+
 ---
 
 ## 4. Living gutters
