@@ -3,8 +3,19 @@
 > Maintained at the END of every session (paired with `docs/AI_HANDOFF.md` — the constitution's
 > workflow step 4). This is the "where are we?" answer; `docs/GAME-STATE.md` remains the deeper
 > per-system built-vs-planned index, `docs/PROJECT_MANIFEST.md` the system map.
-> **Last updated:** 2026-11-04c (**POLISH, CONTENT & ECONOMY-HEALTH BATCH** — merged + verified on
-> `claude/beautiful-feynman-qdyilo`, NOT yet deployed (needs the owner's go-ahead). Six tracks: F1 battle feel (FEEL
+> **Last updated:** 2026-11-04d (**DEPLOYED** — the batch below + its follow-ups are LIVE: the deploy
+> branch `claude/zen-hawking-rh1gxl` was fast-forwarded to `136330f` with the owner's go-ahead; deploy run
+> #226 green (CI polls production until it serves that SHA). Follow-ups shipped with it: Infection has
+> an owner (`Enemy.infectedBy`, Miasma Lung's spread picks work); area grants take `at: 'victim'` (34
+> star/branch effects now land on the struck enemy; Siphon grants get their target); Results offers
+> Stage N+1's boon; the MOLT IMPRINT (a Molt keeps round(level × min(0.7, 0.0125 × Molts done)) of every
+> Genome upgrade — late Molt drop ×33–40 → ~×3, BALANCE_ARCHITECTURE §9.6). VALIDATION: validate PASS
+> over f73e8fb..HEAD — 2866/2866, mobile gate clean; first-session probe: 0 errors, 1 modal, first
+> tower 8.6 s, boot JS 534.7 KB; pil audit CLEAN. Release notes v2026.11.04.2 "Feel and Flow" (33
+> curated entries) + the devlog post.)
+>
+> **2026-11-04c** (**POLISH, CONTENT & ECONOMY-HEALTH BATCH** — merged + verified on
+> `claude/beautiful-feynman-qdyilo`; deployed in 2026-11-04d above. Six tracks: F1 battle feel (FEEL
 > table + centre-stage Announcer, boss kills land, Motion settings), F2 post-run (Stage N+1 from
 > Results, one ClaimAll, phones keep the run layout through Results), N1 hub shell (Back/Escape walk
 > the game, per-screen error boundary + chunk retry, advice links, decision badges, Home CTA above the
