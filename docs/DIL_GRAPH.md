@@ -1,6 +1,6 @@
 # DIL_GRAPH.md — the Design Intelligence Layer (GENERATED — `npm run dil -- regen`)
 
-> **The project's brain** (docs/DIL.md). 923 nodes · 1760 edges, built from the live
+> **The project's brain** (docs/DIL.md). 928 nodes · 1768 edges, built from the live
 > registries + curated knowledge (src/dev/dil/). **Query it instead of searching the repo:**
 > `npm run dil -- node <id>` · `affects <id>` · `requires <id>` · `missing <kind> <edge>` ·
 > `checklist tower <kind>` · `find <text>`. Edge kinds are bidirectional (19 kinds).
@@ -189,6 +189,7 @@ graph LR
   system_campaign["Campaign"] -->|consumes| system_map_layouts["Arena Layouts"]
   system_daily["Daily Run"] -->|consumes| system_map_layouts["Arena Layouts"]
   system_infinite["Infinite Mode"] -->|consumes| system_map_layouts["Arena Layouts"]
+  system_progression_gating["Progression Gating & Director"] -->|modifies| system_hub_shell["Hub Shell & Home"]
 ```
 
 ### Power Score Map
@@ -607,6 +608,7 @@ graph LR
   system_infestation["Infestation Map — THE FRONT"] -->|modifies| system_hub_shell["Hub Shell & Home"]
   system_infestation["Infestation Map — THE FRONT"] -->|modifies| system_expeditions["Hero Expeditions"]
   system_map_layouts["Arena Layouts"] -->|modifies| system_engine["Sim Engine"]
+  system_progression_gating["Progression Gating & Director"] -->|modifies| system_hub_shell["Hub Shell & Home"]
 ```
 
 ## Concepts (8)
@@ -872,7 +874,7 @@ _at: src/core/game.ts, src/core/combat.ts, src/core/status.ts, src/core/targetin
   - requiredBy ← `system:nemesis`
   - requiredBy ← `system:onboarding`
   - requiredBy ← `system:run-ui`
-  - _…222 more (query: `npm run dil -- node system:engine`)_
+  - _…225 more (query: `npm run dil -- node system:engine`)_
 
 ### `system:content-infra` — Content Infrastructure
 
@@ -2000,7 +2002,7 @@ _at: src/state/profile.ts, src/ui/PlayerProfile.tsx, src/ui/components/Commander
 
 Combat Tutorial over a live sim, THE COMMISSIONING (post-tutorial account-creation ceremony: rewards, designation, sigil + founding-title oath, account safeguard), HUD Tour, mechanics-registry Help wiki, What's New, loading tips.
 
-_at: src/ui/InitCutscene.tsx, src/render/introScenes.ts, src/core/tutorial.ts, src/state/tutorial.ts, src/state/mechanics.ts, src/ui/TutorialRunner.tsx, src/ui/tutorial/*, src/ui/HelpWiki.tsx, src/ui/WhatsNew.tsx, src/ui/HudTour.tsx, src/state/guidedUnlocks.ts, src/ui/GuidedUnlock.tsx, src/ui/tips.ts_
+_at: src/ui/InitCutscene.tsx, src/render/introScenes.ts, src/core/tutorial.ts, src/state/tutorial.ts, src/state/mechanics.ts, src/ui/TutorialRunner.tsx, src/ui/tutorial/*, src/ui/HelpWiki.tsx, src/ui/helpSearch.ts, src/ui/WhatsNew.tsx, src/ui/HudTour.tsx, src/state/guidedUnlocks.ts, src/ui/GuidedUnlock.tsx, src/ui/tips.ts_
 
   - dependsOn → `system:engine`
   - dependsOn → `system:meta-store`
@@ -2026,7 +2028,7 @@ _at: src/ui/InitCutscene.tsx, src/render/introScenes.ts, src/core/tutorial.ts, s
   - contains ← `help:strain-evolution`
   - contains ← `help:boss-sieges`
   - contains ← `help:boss-rush`
-  - _…67 more (query: `npm run dil -- node system:onboarding`)_
+  - _…68 more (query: `npm run dil -- node system:onboarding`)_
 
 ### `system:account-level` — Account Level (evergreen meta-progression)
 
@@ -2091,6 +2093,7 @@ _at: src/state/unlocks.ts, src/state/progressionDirector.ts, src/state/navBus.ts
   - gates → `system:notifications` — NEVER ADVISE A SEALED WING (2026-11): unlocks.isOpenNav(save, nav) is the one 'may guidance point here?' check — recommendations, nextGoals, Mission Control's Advisor row, hub-landing attention rows, prediction lever lines, the What's New summary's Open buttons and the defeat debrief's tip all drop/neutralize sealed destinations (a notification source may COUNT before its wing reveals: the free Boss Rush entry at Stage 1).
   - gates → `system:notifications` — RE-PACE 2026-11 (PROGRESSION-GATING.md §timeline): wings spread across stages 3–30 (≈ first ~8h bot / ~20h fresh); notificationSources installs setChannelGate — a SEALED channel counts 0 in badges/reasons/live, so a hidden wing never badges and its backlog surfaces at the reveal. Past the core block every row is a pure stage gate (no resource luck-reveal); latched director.revealed grandfathers older saves, and isBossRushUnlocked honours a latched bossrush reveal
   - gates → `system:currencies` — PLAYER-FACING CURRENCIES (state/rewardVisibility.ts, ECONOMY.md §player-facing): REVEALED_WITH maps every currency/reward kind to the feature that spends it — the toaster, VaultReveal (visibleChests), Results rows and account-level reward lines skip unrevealed kinds (they bank silently; the save is untouched). Gene Essence/Mutagen/Scrap/Catalyst/Chitin/Tissue present as ONE Materials group (MaterialsChip, "materials" toast type)
+  - modifies → `system:hub-shell` — ONE NAME PER SCREEN: state/unlocks FEATURES[].name + glyph are THE screen name + icon — ui/navModel row()/navLabel() DERIVE rail/breadcrumb/sibling-chip labels + monos from them (other locales translate by id in i18n SCREEN_NAMES; the rail Home door nav.home is chrome, not a name). navModel.test pins label===name, mono===glyph, unique names, no bare-letter glyphs, exactly one "Vault" (the specimen screen is the Specimen Cabinet). Renaming a screen = edit its FEATURES row + SCREEN_NAMES rows; never type a label into navModel.
   - requiredBy ← `system:reward-architecture`
   - documentedBy ← `doc:PROGRESSION-GATING.md`
   - documentedBy ← `doc:UNLOCK-TREE.md`
@@ -2135,7 +2138,7 @@ _at: src/ui/Hub.tsx, src/ui/navModel.ts, src/ui/MobileShell.tsx, src/ui/componen
   - documentedBy ← `doc:ONE-MORE-RUN.md`
   - documentedBy ← `doc:HUD.md`
   - documentedBy ← `doc:PROGRESSION-LOOP.md`
-  - _…25 more (query: `npm run dil -- node system:hub-shell`)_
+  - _…27 more (query: `npm run dil -- node system:hub-shell`)_
 
 ### `system:run-ui` — In-Run HUD & Results
 
@@ -2157,6 +2160,7 @@ _at: src/ui/GameView.tsx, src/ui/Hud.tsx, src/ui/Toolbar.tsx, src/ui/BuildContro
   - modifiedBy ← `system:notifications` — AUTO-CLAIM (state/autoClaim.ts, NOTIFICATIONS.md §auto-claim): Results mounts AutoClaimSummary once per result (WeakMap settle-once) → quest missions / pass levels / metabolism tiers / evolution-track nodes on REVEALED systems claim inside rewardToast.capture() and read back as ONE "Also earned" row; finales + EVOLVE stay manual; tier-3 rewards still toast; prefs.autoClaimPref (Settings) switches it off
   - conflictsWith ← `system:onboarding` — DESKTOP TEACHING CONTRACT (docs/TUTORIAL-AUDIT.md §G, 2026-11): every lesson shown while a wave runs or asking for a slot tap declares callout.avoid = canvas.board (the bubble re-seats beside the lane, measured + clamped); the draft lesson anchors BELOW .overlay .cards; the ability lesson targets [data-tut="ability"] .ability-btn and runs DURING wave 2; desktop Pause/Skip take a measured seat clear of [data-tut="ability"]. A HUD/board re-layout must keep canvas.board, .ability-btn and data-tut="ability" (tutorialAnchors.test resolves them) — positions are never hard-coded
   - conflictsWith ← `system:onboarding` — PHONE DOCK CONTRACT (docs/TUTORIAL.md §phone): ≤700px the lesson callout DOCKS to the edge opposite its anchor and must never cover the step’s action (the step-3 slot bug); controls live top-right, the banner yields to the draft, and a missing spotlight target renders NO scrim
+  - conflictsWith ← `system:threat` — "THREAT" MEANS ONE THING (docs/THREAT.md §naming): the opt-in ☣ ladder. The Campaign stage rating (◆1–5, rewards ×N — CampaignScreen camp-threat row) is DANGER; the in-run swarm-load meter (Hud hud-threat cell, Inspector digest) is PRESSURE. A new difficulty readout picks one of the three words by what it measures. Still to rename (other owners): Results "Highest Threat" enemy line, Boss Rush "Boss threat level" forecast row.
   - requiredBy ← `system:website` — MEDIA: public/media/shots/*.webp + trailer.webm DEPICT the run HUD and Command Center — a visible HUD/board change makes them stale. `npm run media` re-shoots them at 1440×900 from the real build (stills + frame-stepped trailer via Playwright fake clock; staging rules in the script header). Copy counts come from siteCounts() (site/build.ts), never hard-coded; bump the PIL review stamp R after each website pass
 
 ### `system:notifications` — Notifications
@@ -2394,6 +2398,7 @@ _at: src/core/threat.ts, src/ui/components/ThreatPicker.tsx_
   - dependsOn → `system:profile`
   - consumes → `system:meta-store` — owns save field 'threat'
   - modifies → `system:difficulty` — THREAT LADDER (docs/THREAT.md): createDirector({ threat }) composes threatWarp(level) LAST via composeWarps (Threat 0 ⇒ referential passthrough ⇒ golden-safe); threatEconomy(level).rewardMult feeds the economy director’s named threat.reward factor; a Threat above the mode’s best cleared level also closes the automation gate
+  - conflictsWith → `system:run-ui` — "THREAT" MEANS ONE THING (docs/THREAT.md §naming): the opt-in ☣ ladder. The Campaign stage rating (◆1–5, rewards ×N — CampaignScreen camp-threat row) is DANGER; the in-run swarm-load meter (Hud hud-threat cell, Inspector digest) is PRESSURE. A new difficulty readout picks one of the three words by what it measures. Still to rename (other owners): Results "Highest Threat" enemy line, Boss Rush "Boss threat level" forecast row.
   - taughtBy ← `help:threat`
   - referencedBy ← `achievement:threat_3`
   - referencedBy ← `achievement:threat_5`
@@ -2545,11 +2550,12 @@ _at: src/debug/*, src/ui/DebugPanel.tsx, src/ui/DevTools.tsx_
 
 Reusable presentation components every screen composes (icons, bars, count-ups) — the component library.
 
-_at: src/ui/components/Icon.tsx, src/ui/iconLanguage.tsx, src/ui/components/Detail.tsx, src/ui/components/ProgressBar.tsx, src/ui/components/useCountUp.ts, src/ui/components/usePressRepeat.ts, src/ui/components/AudioToggles.tsx, src/ui/components/MobileSection.tsx, src/ui/layoutProfile.ts, src/ui/components/ResponsiveDebug.tsx, src/ui/components/RotateGate.tsx, src/ui/components/ScreenFallback.tsx, src/ui/lazyNamed.ts_
+_at: src/ui/components/Icon.tsx, src/ui/iconLanguage.tsx, src/ui/components/Detail.tsx, src/ui/components/ProgressBar.tsx, src/ui/components/useCountUp.ts, src/ui/components/usePressRepeat.ts, src/ui/components/AudioToggles.tsx, src/ui/components/MobileSection.tsx, src/ui/components/ChipPopover.tsx, src/ui/components/SectionNav.tsx, src/ui/components/LoadoutStrip.tsx, src/ui/layoutProfile.ts, src/ui/components/ResponsiveDebug.tsx, src/ui/components/RotateGate.tsx, src/ui/components/ScreenFallback.tsx, src/ui/lazyNamed.ts_
 
   - conflictsWith → `concept:golden-test` — ATTENTION BUDGET (docs/INFO-HIERARCHY.md §2, npm run cogload): at most 2 attention-band animators (≤3.6s infinite pulse/breathe/glow) visible per screen — the ONE that breathes is the recommendation; ready-states live in the ambient band (>3.6s), badges announce finitely (nav-badge-pulse ×6) then rest; cogload exits 1 on violation, so a new always-on fast pulse anywhere is a BUILD-BREAKING decision, not a style choice; demote numbers via components/Detail.tsx (Layer 3 behind intent), never delete them
   - extends → `concept:scalability` — ICON LANGUAGE (ui/iconLanguage.tsx, docs/ICON-LANGUAGE.md): ONE library federates every identity axis — ACTIONS (verb glyph+token+label; the act-<verb> CSS classes MIRROR the table, change together), EFFECT_CATEGORIES, CURRENCIES, REWARD_TYPES art, statusRegistry + STATUS_GLYPHS, nav/FEATURES glyphs; dev/iconLanguage.test.ts is the INHERITANCE CONTRACT — a new currency/reward/status/screen without a face fails CI; glyphs unique per axis, cross-axis reuse only for the same concept family; color never the sole channel (a11y)
   - gates → `system:hub-shell` — LANDSCAPE MANDATE: phones play horizontal ONLY — touch+portrait renders RotateGate (full-screen hold, z 100000, live-event tinted, clears on rotate via useLayoutProfile); touch+landscape IS the phone game (narrow-shell drawer + stacked run; the .game bands fire on (max-width:900px),(max-height:520px) so 926-wide phones stack); mouse windows never gated. mobilecheck v3 walks 844×390/926×428 through the drawer + tutorial at 844×390 + asserts gate coverage on portrait and gate ABSENCE on playable orientations; the v2 portrait tab shell is legacy (mouse-narrow only, un-walked). The store app shell locks orientation natively — the gate is the browser half of the platform split
+  - extends → `system:hub-shell` — LONG-SCREEN + TOUCH KIT: components/SectionNav (sticky anchor chips + folds; bodies mount only while open; per-device collapse in prefs.sectionPrefs key assimilate.sections, also used by the Gene Archive folders as genes.folders; data-driven defaultOpen; forceOpen while searching) is the ONLY long-screen pattern (Hero Hall, Evolution HQ, Gene Archive) — no per-screen jump rails. components/ChipPopover makes top-bar essentials answer on TAP (fixed-positioned: the narrow top bar scrolls sideways and clipped absolute popovers); topbarTouch.test fails a title-only essential. components/LoadoutStrip (read-only loadoutSummary: fielded heroes, gear, starting genes, doctrine; segments appear on reveal, links gated by isOpenNav) sits beside every run launch.
   - documentedBy ← `doc:UI-STANDARDS.md`
   - documentedBy ← `doc:STYLE-GUIDE.md`
   - documentedBy ← `doc:UI-MOTION.md`
@@ -2614,7 +2620,7 @@ _at: src/dev/*, src/dev/dil/*_
   - testedBy ← `test:src/dev/foundationsUX.test.ts`
   - testedBy ← `test:src/dev/iconLanguage.test.ts`
   - testedBy ← `test:src/dev/mobileContent.test.ts`
-  - _…4 more (query: `npm run dil -- node system:dev-registry`)_
+  - _…5 more (query: `npm run dil -- node system:dev-registry`)_
 
 ## Towers (22)
 
@@ -3365,7 +3371,7 @@ _at: src/core/tutorial.ts_
 - `help:phenotype-lab` — Cosmetic phenotypes for every strain and champion. _(partOf `system:onboarding`)_
 - `help:idle-harvest` — The Hive is the engine; the harvest is its output. It produces while you are away — collect on return, grow the body to produce more. _(partOf `system:onboarding`, teaches `system:idle-harvest`)_
 - `help:metabolism` — The organism digests everything you do. Every lifetime quantity — kills, discoveries, claims, rituals — climbs an endless milestone ladder, and every reached tier pays. _(partOf `system:onboarding`, teaches `system:metabolism`)_
-- `help:specimens` — Cosmetics arrive UNCLAIMED: tradable specimens in the Vault. Claiming binds one to your account forever — unlocking it to equip, adding it to Collections, and activating its small permanent bonus. _(partOf `system:onboarding`)_
+- `help:specimens` — Cosmetics arrive UNCLAIMED: tradable specimens in the Specimen Cabinet. Claiming binds one to your account forever — unlocking it to equip, adding it to Collections, and activating its small permanent bonus. _(partOf `system:onboarding`)_
 - `help:arena` — Ranked live PvP: mirrored battlefields, one shared assault, the survivor takes the rating. _(partOf `system:onboarding`, teaches `system:arena`)_
 - `help:expeditions` — Benched heroes run real-time away-missions and return carrying Cores, Essence and materials. _(partOf `system:onboarding`, teaches `system:expeditions`)_
 - `help:quests` — Weekly directives and the story questline. _(partOf `system:onboarding`)_
@@ -3919,7 +3925,7 @@ _at: site/guides.ts → /guides/live-events/_
 - `doc:VOWS.md` — project documentation _(documents `system:prestige`)_
 - `doc:WEBSITE.md` — project documentation _(documents `system:field-research`, documents `system:website`)_
 
-## Tests (308)
+## Tests (313)
 
 - `test:src/audio/music.test.ts` — automated validation _(tests `system:audio`)_
 - `test:src/changelog/classify.test.ts` — automated validation _(tests `system:chronicle`)_
@@ -4101,6 +4107,7 @@ _at: site/guides.ts → /guides/live-events/_
 - `test:src/dev/pil/pil.test.ts` — automated validation _(tests `system:pil`)_
 - `test:src/dev/progressionSim.test.ts` — automated validation _(tests `system:dev-registry`)_
 - `test:src/dev/systemRegistry.test.ts` — automated validation _(tests `system:dev-registry`)_
+- `test:src/dev/tokenContrast.test.ts` — automated validation _(tests `system:dev-registry`)_
 - `test:src/dev/tutorialAnchors.test.ts` — automated validation _(tests `system:dev-registry`)_
 - `test:src/dev/uiStandards.test.ts` — automated validation _(tests `system:dev-registry`)_
 - `test:src/i18n/i18n.test.ts` — automated validation _(tests `system:engine`)_
@@ -4222,7 +4229,11 @@ _at: site/guides.ts → /guides/live-events/_
 - `test:src/state/verifiedPurchase.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/state/vowsMeta.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/state/wardrobeMeta.test.ts` — automated validation _(tests `system:engine`)_
+- `test:src/ui/components/loadoutStrip.test.ts` — automated validation _(tests `system:engine`)_
+- `test:src/ui/components/sectionNav.test.ts` — automated validation _(tests `system:engine`)_
+- `test:src/ui/components/topbarTouch.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/ui/evolutionTrackModel.test.ts` — automated validation _(tests `system:mastery`)_
+- `test:src/ui/helpSearch.test.ts` — automated validation _(tests `system:onboarding`)_
 - `test:src/ui/homeBaseTiers.test.ts` — automated validation _(tests `system:hub-shell`)_
 - `test:src/ui/homeModel.test.ts` — automated validation _(tests `system:hub-shell`)_
 - `test:src/ui/hubProgress.test.ts` — automated validation _(tests `system:hub-shell`)_
