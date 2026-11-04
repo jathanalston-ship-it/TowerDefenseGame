@@ -126,7 +126,8 @@ async function measure(page: import('playwright-core').Page, screen: string, vp:
 }
 
 async function main(): Promise<void> {
-  const preview = spawn('npx', ['vite', 'preview', '--port', String(PORT), '--strictPort'], { cwd: ROOT, stdio: 'ignore' });
+  // vite itself, not `npx vite`: npx leaves its vite child orphaned when killed (same as first-session-probe).
+  const preview = spawn(process.execPath, [join(ROOT, 'node_modules/vite/bin/vite.js'), 'preview', '--port', String(PORT), '--strictPort'], { cwd: ROOT, stdio: 'ignore' });
   await new Promise((r) => setTimeout(r, 2500));
   const browser = await chromium.launch({ executablePath: CHROME, args: ['--no-sandbox', '--disable-gpu'] });
   const rows: Row[] = [];

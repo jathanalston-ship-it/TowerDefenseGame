@@ -90,7 +90,8 @@ async function main(): Promise<void> {
   if (!args.includes('--no-build')) {
     execSync('npm run build', { stdio: 'inherit' });
   }
-  const server = spawn('npx', ['vite', 'preview', '--port', String(PORT), '--strictPort'], { stdio: 'ignore', detached: false });
+  // vite itself, not `npx vite`: npx leaves its vite child orphaned when killed (same as first-session-probe).
+  const server = spawn(process.execPath, ['node_modules/vite/bin/vite.js', 'preview', '--port', String(PORT), '--strictPort'], { stdio: 'ignore' });
   try {
     await waitFor(`http://localhost:${PORT}/play/`, 20_000);
     const browser = await chromium.launch({ executablePath: CHROME, args: ['--no-sandbox', '--disable-gpu'] });
