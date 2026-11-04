@@ -31,7 +31,7 @@ function bossKillStats(name: string): RunStats {
 }
 
 describe('boss naming — the root of "Apex Slayer: Slay a Brood Tyrant" on an Apex Bombard stage', () => {
-  it('Highest Threat names the framework boss that fell, not the tyrant render proxy', () => {
+  it('Toughest Kill names the framework boss that fell, not the tyrant render proxy', () => {
     const stats = bossKillStats('Apex Bombard');
     expect(stats.killsByEnemy.tyrant).toBe(1); // the proxy count the old code read as "Brood Tyrant"
     expect(highestThreat(stats)?.name).toBe('Apex Bombard');

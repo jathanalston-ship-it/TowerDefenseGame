@@ -1,6 +1,6 @@
 # DIL_GRAPH.md — the Design Intelligence Layer (GENERATED — `npm run dil -- regen`)
 
-> **The project's brain** (docs/DIL.md). 928 nodes · 1768 edges, built from the live
+> **The project's brain** (docs/DIL.md). 928 nodes · 1773 edges, built from the live
 > registries + curated knowledge (src/dev/dil/). **Query it instead of searching the repo:**
 > `npm run dil -- node <id>` · `affects <id>` · `requires <id>` · `missing <kind> <edge>` ·
 > `checklist tower <kind>` · `find <text>`. Edge kinds are bidirectional (19 kinds).
@@ -238,6 +238,7 @@ graph LR
   system_contracts["Champion Contracts"] -->|provides| system_genome_rank["Genome Rank (ultimate mastery ladder)"]
   system_notifications["Notifications"] -->|provides| system_hub_shell["Hub Shell & Home"]
   system_cosmetics["The Wardrobe (Cosmetics)"] -->|provides| system_online_foundation["Online Foundation"]
+  system_ui_kit["Shared UI Component Kit"] -->|provides| system_notifications["Notifications"]
 ```
 
 ### Determinism Map
@@ -564,6 +565,11 @@ graph LR
   system_campaign["Campaign"] -->|consumes| system_map_layouts["Arena Layouts"]
   system_daily["Daily Run"] -->|consumes| system_map_layouts["Arena Layouts"]
   system_infinite["Infinite Mode"] -->|consumes| system_map_layouts["Arena Layouts"]
+  system_run_ui["In-Run HUD & Results"] -->|dependsOn| system_campaign["Campaign"]
+  system_run_ui["In-Run HUD & Results"] -->|dependsOn| system_ui_kit["Shared UI Component Kit"]
+  system_onboarding["Tutorials, Help & Onboarding"] -->|dependsOn| system_cutscenes["Story Cutscenes & Memory Archive"]
+  system_ui_kit["Shared UI Component Kit"] -->|provides| system_notifications["Notifications"]
+  system_account_level["Account Level (evergreen meta-progression)"] -->|dependsOn| system_notifications["Notifications"]
   system_website["Marketing Website"] -->|dependsOn| system_run_ui["In-Run HUD & Results"]
 ```
 
@@ -951,7 +957,7 @@ _at: src/core/campaign.ts, src/core/campaignEvents.ts, src/core/hash.ts, src/ui/
   - documentedBy ← `doc:CAMPAIGN.md`
   - documentedBy ← `doc:CAMPAIGN-EVENTS.md`
   - documentedBy ← `doc:MODE-IDENTITY.md`
-  - _…9 more (query: `npm run dil -- node system:campaign`)_
+  - _…10 more (query: `npm run dil -- node system:campaign`)_
 
 ### `system:infinite` — Infinite Mode
 
@@ -2016,6 +2022,7 @@ _at: src/ui/InitCutscene.tsx, src/render/introScenes.ts, src/core/tutorial.ts, s
   - consumes → `system:meta-store` — ONE GRADUATION (docs/TUTORIAL.md §graduation, 2026-11): meta.grantOnboardingRewards() pays every unclaimed onboarding ledger (tutorial.rewarded: combat + hudtour) as ONE Commissioning reveal; the HUD tour pays nothing (completeHudTour only settles a LEGACY graduate still owed hudtour, Finish or Skip alike); pendingOnboardingReward() feeds the tutorial Skip confirm. Adding an onboarding grant = one ONBOARDING_LEDGERS entry, never a second reward card
   - conflictsWith → `system:run-ui` — PHONE DOCK CONTRACT (docs/TUTORIAL.md §phone): ≤700px the lesson callout DOCKS to the edge opposite its anchor and must never cover the step’s action (the step-3 slot bug); controls live top-right, the banner yields to the draft, and a missing spotlight target renders NO scrim
   - extends → `system:progression-gating` — GUIDED UNLOCKS (2026-07, GUIDED-UNLOCKS.md — Foundation #3): state/guidedUnlocks.ts GUIDES keyed by MECHANIC id (== FEATURES.teach) → ui/GuidedUnlock.tsx renders ≤4 one-sentence steps with the Combat Tutorial's own Spotlight/Callout/useTargetRect over `[data-guide]` marks the screens declare (BestBuyStrip's data-guide="bbs" covers all four spend screens — the guide teaches the ADVISOR); the interact step advances on the player's first REAL capture-phase click (the click still lands; chrome drops so ceremonies stay free); completion pays via meta.grantTutorialMilestone('guided', mech) — the tutorial ledger, replays never re-grant. Armed ONLY by What's New's "Show me ▸" (App owns the state; leaves menu ⇒ dropped; WhatsNew queue waits while a guide runs). COVERAGE IS ENFORCED over the FULL curve: EVERY FEATURES screen with teach (except campaign/store) must have a guide — a new wing FAILS guidedUnlocks.test until its guide row exists (mode/spend screens use gentle practice: a guide never forces a run start or a purchase). Missing anchor ⇒ centered callout, no dim (never traps)
+  - dependsOn → `system:cutscenes` — INTRO → TUTORIAL HANDOFF: InitCutscene.useIntroPlaying() holds the TutorialOverlay cold-open banner clock while the film is mounted (first boot mounts the tutorial BENEATH it), and App fades a 520ms gold .intro-afterglow when onDone(dived) — the descent ends on full-screen gold, the tutorial is dark (TUTORIAL.md §cinematic)
   - requiredBy ← `system:progression-gating`
   - contains ← `tutorial:combat`
   - contains ← `help:mission-control`
@@ -2043,6 +2050,7 @@ _at: src/core/accountLevel.ts, src/ui/components/AccountXpBar.tsx_
   - provides → `system:loot` — every 5th level + milestones bank Bio-Containers as kind:'cache' — REUSE the cache branch, never add a PendingContainer kind for level rewards
   - references → `system:mastery` — account titles share save.equippedTitle with mastery rewards — display surfaces MUST resolve via titleName() (profile.ts), not masteryRewardById alone
   - conflictsWith → `system:shards-economy` — level-reward cores must stay a supplement — sim guard trips if they exceed 15% of lifetime cores (reward ∝ n^0.7 vs requirement ∝ n^1.25)
+  - dependsOn → `system:notifications` — AccountLevelToast takes the RewardToaster’s `held` gate (meta.whatsNew().length > 0): post-run level-ups wait behind the "N new systems unlocked" summary and flush when it closes
   - requiredBy ← `system:idle-harvest`
   - requiredBy ← `system:contracts`
   - requiredBy ← `system:genome-rank`
@@ -2152,6 +2160,8 @@ _at: src/ui/GameView.tsx, src/ui/Hud.tsx, src/ui/Toolbar.tsx, src/ui/BuildContro
   - dependsOn → `system:assimilation`
   - provides → `concept:power-score` — renders live run Power
   - provides → `concept:responsive` — RUN LAYOUT v2 (index.css §RUN LAYOUT v2, RESPONSIVE-DESIGN.md §run): per-profile grids around a max 3:4 board — desktop slim fixed HUD row + fixed deck; landscape HUD column | full-height board | tower column (run keys + briefing fixed into the columns via --bw/--col); portrait HUD strip / keys strip / full-width board / drawer+hero row / rail. Fixed chrome heights so nothing mid-run resizes the board; side panels are drawers on phones (bottom sheets in portrait); the rotate gate stands down while GameView is mounted (layoutProfile.setInRun); mobilecheck phoneRunContract + runChromeContract pin it (no scroll, no chrome overlap)
+  - dependsOn → `system:campaign` — RESULTS NEXT STAGE: a Campaign WIN offers "Stage N+1 ▸" as the Results primary (App.startNextStage = the Campaign map Deploy path — campaign difficulty pref + notePredictionBaseline + the event’s default boon + begin() readiness briefing), only while N+1 is open on that track; replay stays secondary ("↻ Replay"), a loss reads "↻ Try again"; Continue stays LAST in the row (first-session probe clicks the last continue)
+  - dependsOn → `system:ui-kit` — RUN-FLOW HOLD: layoutProfile.setInRun takes a named holder — GameView holds "battlefield", App holds "run-flow" across deploying/playing/results, so a portrait phone run never shows the rotate gate over its deploy breath or Results; the gate returns with the hub (RESPONSIVE-DESIGN.md §run)
   - taughtBy ← `tutorial:combat`
   - documentedBy ← `doc:HUD.md`
   - documentedBy ← `doc:READABILITY.md`
@@ -2160,7 +2170,7 @@ _at: src/ui/GameView.tsx, src/ui/Hud.tsx, src/ui/Toolbar.tsx, src/ui/BuildContro
   - modifiedBy ← `system:notifications` — AUTO-CLAIM (state/autoClaim.ts, NOTIFICATIONS.md §auto-claim): Results mounts AutoClaimSummary once per result (WeakMap settle-once) → quest missions / pass levels / metabolism tiers / evolution-track nodes on REVEALED systems claim inside rewardToast.capture() and read back as ONE "Also earned" row; finales + EVOLVE stay manual; tier-3 rewards still toast; prefs.autoClaimPref (Settings) switches it off
   - conflictsWith ← `system:onboarding` — DESKTOP TEACHING CONTRACT (docs/TUTORIAL-AUDIT.md §G, 2026-11): every lesson shown while a wave runs or asking for a slot tap declares callout.avoid = canvas.board (the bubble re-seats beside the lane, measured + clamped); the draft lesson anchors BELOW .overlay .cards; the ability lesson targets [data-tut="ability"] .ability-btn and runs DURING wave 2; desktop Pause/Skip take a measured seat clear of [data-tut="ability"]. A HUD/board re-layout must keep canvas.board, .ability-btn and data-tut="ability" (tutorialAnchors.test resolves them) — positions are never hard-coded
   - conflictsWith ← `system:onboarding` — PHONE DOCK CONTRACT (docs/TUTORIAL.md §phone): ≤700px the lesson callout DOCKS to the edge opposite its anchor and must never cover the step’s action (the step-3 slot bug); controls live top-right, the banner yields to the draft, and a missing spotlight target renders NO scrim
-  - conflictsWith ← `system:threat` — "THREAT" MEANS ONE THING (docs/THREAT.md §naming): the opt-in ☣ ladder. The Campaign stage rating (◆1–5, rewards ×N — CampaignScreen camp-threat row) is DANGER; the in-run swarm-load meter (Hud hud-threat cell, Inspector digest) is PRESSURE. A new difficulty readout picks one of the three words by what it measures. The Boss Rush forecast row reads "Boss strength" (the assembly tier per wave). Still to rename: Results "Highest Threat" enemy line.
+  - conflictsWith ← `system:threat` — "THREAT" MEANS ONE THING (docs/THREAT.md §naming): the opt-in ☣ ladder. The Campaign stage rating (◆1–5, rewards ×N — CampaignScreen camp-threat row) is DANGER; the in-run swarm-load meter (Hud hud-threat cell, Inspector digest) is PRESSURE. A new difficulty readout picks one of the three words by what it measures. The Boss Rush forecast row reads "Boss strength" (the assembly tier per wave). Results names the toughest thing slain "Toughest Kill".
   - requiredBy ← `system:website` — MEDIA: public/media/shots/*.webp + trailer.webm DEPICT the run HUD and Command Center — a visible HUD/board change makes them stale. `npm run media` re-shoots them at 1440×900 from the real build (stills + frame-stepped trailer via Playwright fake clock; staging rules in the script header). Copy counts come from siteCounts() (site/build.ts), never hard-coded; bump the PIL review stamp R after each website pass
 
 ### `system:notifications` — Notifications
@@ -2186,7 +2196,7 @@ _at: src/state/notifications.ts, src/state/notificationSources.ts, src/state/rew
   - testedBy ← `test:src/state/recommendations.test.ts`
   - testedBy ← `test:src/state/rewardToast.test.ts`
   - gatedBy ← `system:progression-gating` — NEVER ADVISE A SEALED WING (2026-11): unlocks.isOpenNav(save, nav) is the one 'may guidance point here?' check — recommendations, nextGoals, Mission Control's Advisor row, hub-landing attention rows, prediction lever lines, the What's New summary's Open buttons and the defeat debrief's tip all drop/neutralize sealed destinations (a notification source may COUNT before its wing reveals: the free Boss Rush entry at Stage 1).
-  - _…2 more (query: `npm run dil -- node system:notifications`)_
+  - _…4 more (query: `npm run dil -- node system:notifications`)_
 
 ### `system:prediction` — Progress Prediction
 
@@ -2302,6 +2312,7 @@ _at: src/core/cutscenes.ts, src/render/cutsceneScenes.ts, src/ui/CutscenePlayer.
   - gatedBy ← `system:mega-bosses` — ENFORCED CONTENT CONTRACT: every MEGA_BOSS_DEFS id must ship a defeat cutscene — cutscenes.test.ts fails the build without one
   - referencedBy ← `system:prestige` — the Molt Chamber + ceremony reuse the cutscene molt tableau via drawCutsceneFrame — retheme it, never fork it
   - gatedBy ← `system:quests` — every quest's finaleCutscene must exist with unlock {kind:'quest',questId} — resolved off save.quests.once ('cutscene:<questId>'), premiered from the hub via cutsceneBus; quests.test fails without the link
+  - requiredBy ← `system:onboarding` — INTRO → TUTORIAL HANDOFF: InitCutscene.useIntroPlaying() holds the TutorialOverlay cold-open banner clock while the film is mounted (first boot mounts the tutorial BENEATH it), and App fades a 520ms gold .intro-afterglow when onDone(dived) — the descent ends on full-screen gold, the tutorial is dark (TUTORIAL.md §cinematic)
 
 ### `system:security` — Game Action Security Layer
 
@@ -2398,7 +2409,7 @@ _at: src/core/threat.ts, src/ui/components/ThreatPicker.tsx_
   - dependsOn → `system:profile`
   - consumes → `system:meta-store` — owns save field 'threat'
   - modifies → `system:difficulty` — THREAT LADDER (docs/THREAT.md): createDirector({ threat }) composes threatWarp(level) LAST via composeWarps (Threat 0 ⇒ referential passthrough ⇒ golden-safe); threatEconomy(level).rewardMult feeds the economy director’s named threat.reward factor; a Threat above the mode’s best cleared level also closes the automation gate
-  - conflictsWith → `system:run-ui` — "THREAT" MEANS ONE THING (docs/THREAT.md §naming): the opt-in ☣ ladder. The Campaign stage rating (◆1–5, rewards ×N — CampaignScreen camp-threat row) is DANGER; the in-run swarm-load meter (Hud hud-threat cell, Inspector digest) is PRESSURE. A new difficulty readout picks one of the three words by what it measures. The Boss Rush forecast row reads "Boss strength" (the assembly tier per wave). Still to rename: Results "Highest Threat" enemy line.
+  - conflictsWith → `system:run-ui` — "THREAT" MEANS ONE THING (docs/THREAT.md §naming): the opt-in ☣ ladder. The Campaign stage rating (◆1–5, rewards ×N — CampaignScreen camp-threat row) is DANGER; the in-run swarm-load meter (Hud hud-threat cell, Inspector digest) is PRESSURE. A new difficulty readout picks one of the three words by what it measures. The Boss Rush forecast row reads "Boss strength" (the assembly tier per wave). Results names the toughest thing slain "Toughest Kill".
   - taughtBy ← `help:threat`
   - referencedBy ← `achievement:threat_3`
   - referencedBy ← `achievement:threat_5`
@@ -2550,12 +2561,13 @@ _at: src/debug/*, src/ui/DebugPanel.tsx, src/ui/DevTools.tsx_
 
 Reusable presentation components every screen composes (icons, bars, count-ups) — the component library.
 
-_at: src/ui/components/Icon.tsx, src/ui/iconLanguage.tsx, src/ui/components/Detail.tsx, src/ui/components/ProgressBar.tsx, src/ui/components/useCountUp.ts, src/ui/components/usePressRepeat.ts, src/ui/components/AudioToggles.tsx, src/ui/components/MobileSection.tsx, src/ui/components/ChipPopover.tsx, src/ui/components/SectionNav.tsx, src/ui/components/LoadoutStrip.tsx, src/ui/layoutProfile.ts, src/ui/components/ResponsiveDebug.tsx, src/ui/components/RotateGate.tsx, src/ui/components/ScreenFallback.tsx, src/ui/lazyNamed.ts_
+_at: src/ui/components/Icon.tsx, src/ui/iconLanguage.tsx, src/ui/components/Detail.tsx, src/ui/components/ProgressBar.tsx, src/ui/components/useCountUp.ts, src/ui/components/usePressRepeat.ts, src/ui/components/AudioToggles.tsx, src/ui/components/MobileSection.tsx, src/ui/components/ChipPopover.tsx, src/ui/components/SectionNav.tsx, src/ui/components/LoadoutStrip.tsx, src/ui/layoutProfile.ts, src/ui/components/ResponsiveDebug.tsx, src/ui/components/RotateGate.tsx, src/ui/components/ScreenFallback.tsx, src/ui/lazyNamed.ts, src/ui/components/ClaimAll.tsx_
 
   - conflictsWith → `concept:golden-test` — ATTENTION BUDGET (docs/INFO-HIERARCHY.md §2, npm run cogload): at most 2 attention-band animators (≤3.6s infinite pulse/breathe/glow) visible per screen — the ONE that breathes is the recommendation; ready-states live in the ambient band (>3.6s), badges announce finitely (nav-badge-pulse ×6) then rest; cogload exits 1 on violation, so a new always-on fast pulse anywhere is a BUILD-BREAKING decision, not a style choice; demote numbers via components/Detail.tsx (Layer 3 behind intent), never delete them
   - extends → `concept:scalability` — ICON LANGUAGE (ui/iconLanguage.tsx, docs/ICON-LANGUAGE.md): ONE library federates every identity axis — ACTIONS (verb glyph+token+label; the act-<verb> CSS classes MIRROR the table, change together), EFFECT_CATEGORIES, CURRENCIES, REWARD_TYPES art, statusRegistry + STATUS_GLYPHS, nav/FEATURES glyphs; dev/iconLanguage.test.ts is the INHERITANCE CONTRACT — a new currency/reward/status/screen without a face fails CI; glyphs unique per axis, cross-axis reuse only for the same concept family; color never the sole channel (a11y)
   - gates → `system:hub-shell` — LANDSCAPE MANDATE: phones play horizontal ONLY — touch+portrait renders RotateGate (full-screen hold, z 100000, live-event tinted, clears on rotate via useLayoutProfile); touch+landscape IS the phone game (narrow-shell drawer + stacked run; the .game bands fire on (max-width:900px),(max-height:520px) so 926-wide phones stack); mouse windows never gated. mobilecheck v3 walks 844×390/926×428 through the drawer + tutorial at 844×390 + asserts gate coverage on portrait and gate ABSENCE on playable orientations; the v2 portrait tab shell is legacy (mouse-narrow only, un-walked). The store app shell locks orientation natively — the gate is the browser half of the platform split
   - extends → `system:hub-shell` — LONG-SCREEN + TOUCH KIT: components/SectionNav (sticky anchor chips + folds; bodies mount only while open; per-device collapse in prefs.sectionPrefs key assimilate.sections, also used by the Gene Archive folders as genes.folders; data-driven defaultOpen; forceOpen while searching) is the ONLY long-screen pattern (Hero Hall, Evolution HQ, Gene Archive) — no per-screen jump rails. components/ChipPopover makes top-bar essentials answer on TAP (fixed-positioned: the narrow top bar scrolls sideways and clipped absolute popovers); topbarTouch.test fails a title-only essential. components/LoadoutStrip (read-only loadoutSummary: fielded heroes, gear, starting genes, doctrine; segments appear on reveal, links gated by isOpenNav) sits beside every run launch.
+  - provides → `system:notifications` — CLAIM ALL (ui/components/ClaimAll.tsx, NOTIFICATIONS.md §claim-all): the ONE batch-claim control — "✹ Claim all (N)" on Quest Board missions, Season Pass levels (data-guide bp-claim) and Milestones tiers; presentation + one callback, each screen keeps its own claim API; quest finales + Evolution EVOLVE never batch
   - documentedBy ← `doc:UI-STANDARDS.md`
   - documentedBy ← `doc:STYLE-GUIDE.md`
   - documentedBy ← `doc:UI-MOTION.md`
@@ -2565,6 +2577,7 @@ _at: src/ui/components/Icon.tsx, src/ui/iconLanguage.tsx, src/ui/components/Deta
   - documentedBy ← `doc:RESPONSIVE-DESIGN.md`
   - documentedBy ← `doc:ICON-LANGUAGE.md`
   - documentedBy ← `doc:INFO-HIERARCHY.md`
+  - requiredBy ← `system:run-ui` — RUN-FLOW HOLD: layoutProfile.setInRun takes a named holder — GameView holds "battlefield", App holds "run-flow" across deploying/playing/results, so a portrait phone run never shows the rotate gate over its deploy breath or Results; the gate returns with the hub (RESPONSIVE-DESIGN.md §run)
 
 ### `system:analytics` — Player Telemetry & Analytics
 

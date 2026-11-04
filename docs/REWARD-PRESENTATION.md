@@ -94,7 +94,7 @@ the "replay milestone" affordance), `prefers-reduced-motion` → instant.
 - Discoveries surfaces achievements + new masteries today; **collection entries
   and unlocked-content** slot in as more `RewardStat`s/`extra` with no engine
   change.
-- "Highest Threat" comes from `state/runDebrief.highestThreat(stats)`: a slain mega, else the
+- "Toughest Kill" (the Combat Report line) comes from `state/runDebrief.highestThreat(stats)`: a slain mega, else the
   last framework boss BY NAME (`RunStats.bossesSlain`), else the toughest roster kill. Framework
   bosses borrow the `'tyrant'` kind as a render proxy, so `killsByEnemy.tyrant` counts every boss
   — the function discounts the proxied kills (`bossKills − megaKills`) so a stage boss is never

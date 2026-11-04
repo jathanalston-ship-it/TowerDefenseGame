@@ -89,7 +89,7 @@ export function Results({
     TOWER_ORDER.reduce((s, k) => s + Math.max(0, outcome.mastery[k].toLevel - outcome.mastery[k].fromLevel), 0) +
     HERO_ORDER.reduce((s, k) => s + Math.max(0, outcome.heroMastery[k].toLevel - outcome.heroMastery[k].fromLevel), 0);
 
-  // Highest Threat = the toughest thing the player actually put down this run — a slain boss by
+  // Toughest Kill = the toughest thing the player actually put down this run — a slain boss by
   // its REAL name (framework bosses borrow the 'tyrant' kind; state/runDebrief resolves it).
   const threat = highestThreat(result.stats);
   // Defeat debrief (docs/REWARD-PRESENTATION.md §debrief): how close, what got through, one step.
@@ -190,7 +190,7 @@ export function Results({
     stats: combatStats,
     extra: threat ? (
       <div className="rr-line">
-        <span>Highest Threat</span>
+        <span>Toughest Kill</span>
         <b style={{ color: threat.color }}>{threat.name}</b>
       </div>
     ) : undefined,

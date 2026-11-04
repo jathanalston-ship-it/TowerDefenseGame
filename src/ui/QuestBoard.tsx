@@ -292,7 +292,7 @@ function QuestDirectives(): JSX.Element {
             )}
             {state === 'done' && (
               <div className="qb-c-epilogue">
-                ▣ {cutsceneDef(c.finaleCutscene)?.title ?? c.finaleCutscene} — in the Memory Archive · ❖ {wardrobeItem(c.finaleCosmetic)?.name ?? c.finaleCosmetic} — in the Wardrobe
+                ▣ {cutsceneDef(c.finaleCutscene)?.title ?? c.finaleCutscene} — in the Memory Archive · ❖ {wardrobeItem(c.finaleCosmetic)?.name ?? c.finaleCosmetic} — in the Phenotype Lab
                 {i < view.main.length - 1 ? ' · next chapter open' : ' · the descent continues…'}
               </div>
             )}
