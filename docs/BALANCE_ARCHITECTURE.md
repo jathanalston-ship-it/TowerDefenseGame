@@ -168,3 +168,31 @@ the next review round: deep-band cadence still ~0.40–0.48/h against the 0.5 th
 dead-zone entries at 25–50% frequency carry the gear-swap metric-variance caveat: the
 in-game item score (`itemPowerScore`) and the Power meter's equipment fold can rank a
 swap oppositely — worth a dedicated audit if frequency rises.
+
+---
+
+## 8. Molt cadence review (2026-11 — decided on evidence: NO knob change)
+
+**Question:** docs/PROGRESSION_REPORT.md (generated 2026-07-11) read **8 Molts at 10h** —
+prestige as a per-session action. Target: ~1–2 Molts in the first 10h, then about one per
+several hours (levers: `PRESTIGE.molt.minCells`, `prestigeStageReq` growth).
+
+**Re-measured on the current economy** (§4 protocol, `simulateAccount`, seeds `1000 + i·7919`):
+
+| Policy (4 seeds × 40h) | Molts ≤10h | Molt hours (seed 0) | Cadence after the first |
+|---|---|---|---|
+| Loop-faithful bot | **2 / 2 / 2 / 2** | 2.25 · 8 · 12.25 · 17.75 · 24.75 · 28.75 · 33 | ≈ one per 4–5 h |
+| Fresh Account persona | **2 / 1 / 1 / 1** | 3.5 · 10 · 21.75 · 27.75 · 36.5 | ≈ one per 6–10 h |
+
+`npm run sim:progression -- --seeds 4 --hours 100` (loop-faithful): Molts p50 **2 @10h · 10 @50h
+· 19 @100h** (≈ one per 5 h across the 10→100h span); stage p50 31 / 56 / 69.
+
+**Decision:** the target already holds — the 8-at-10h figure was stale (it predates the
+2026-07 economy rounds that moved stage@10h from ~72 to ~31). `minCells` stays 12 and the
+linear `firstStage 10 / +3 per Molt` gate stays; changing either would only shift the
+first-Molt plateau (stage ~24, ≈2.3h bot) without serving the milestone goal. **Guardrail
+instead:** the CI pacing envelope (`progressionSim.test.ts`, pinned account) now pins the
+contract — **≤2 Molts by 5h and ≤10 by 30h** (was ≤6 / ≤36, loose enough to let a per-session
+rhythm back in unnoticed). The reveal timeline uses the same plateau: the deep-specialization
+wings (Adaptation S24, Mulligans S25+) open around the first Molt (docs/PROGRESSION-GATING.md
+§timeline).
