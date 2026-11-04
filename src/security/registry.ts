@@ -83,7 +83,11 @@ export const SECURITY_ACTIONS: Record<string, ActionPolicy> = {
   },
   'pass.claim': {
     id: 'pass.claim', category: 'claim', level: 'moderate', limit: M({ count: 60 }), dedupeMs: 800,
-    analytics: 'sec_pass_claim', doc: 'Battle Pass level claim — claim-all iterates this, so the bucket fits a deep backlog in one burst.', at: META,
+    analytics: 'sec_pass_claim', doc: 'Battle Pass single-level claim (claim-all is its own action, pass.claimAll).', at: META,
+  },
+  'pass.claimAll': {
+    id: 'pass.claimAll', category: 'claim', level: 'moderate', limit: M({ count: 6 }), dedupeMs: 800,
+    analytics: 'sec_pass_claim_all', doc: 'Battle Pass claim-all — ONE guarded action for the whole backlog (up to 200 level claims), so a deep season clears in one press.', at: META,
   },
   'pass.ad': {
     id: 'pass.ad', category: 'claim', level: 'strict', limit: S({ count: 2 }), cooldownMs: 20_000,
@@ -284,6 +288,7 @@ export const GUARDED_META_METHODS: Record<string, string> = {
   buyIchorOffer: 'market.ichorOffer',
   claimResearch: 'research.claim',
   claimPassLevel: 'pass.claim',
+  claimAllPass: 'pass.claimAll',
   adAdvancePass: 'pass.ad',
   claimWardrobeMilestone: 'wardrobe.claim',
   claimDirective: 'directive.claim',

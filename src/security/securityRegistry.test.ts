@@ -24,7 +24,6 @@ const UNGUARDED_ALLOWLIST: Record<string, string> = {
   buyPassLevel: 'spends through spendIchor, which carries the ichor.spend guard',
   buyPassPremium: 'spends through spendIchor, which carries the ichor.spend guard',
   buyGeneSlot: 'small core ladder purchase; the persist flood valve covers spam',
-  claimAllPass: 'iterates claimPassLevel — each level passes the pass.claim guard',
   spendAdaptation: 'reallocates already-owned points (no currency); flood valve covers spam',
   spendRushEntry: 'stamina itself is the limiter (a regenerating attempt gate)',
   claimExpedition: 'GUARDED — listed for the name-scan (see GUARDED_META_METHODS)',

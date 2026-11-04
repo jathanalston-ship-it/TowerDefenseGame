@@ -5,6 +5,7 @@
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { meta } from './meta';
+import { resetSecurity, setSecurityClock, setSecurityEnabled } from '../security/actionGuard';
 import { BP, levelOf, seasonForWindow, seasonTracks, xpToReach } from '../core/battlePass';
 
 const T0 = BP.epochMs + 5; // window 0, Crimson Bloom
@@ -66,6 +67,32 @@ describe('claims', () => {
     const offer = { id: 'bp_premium_test', kind: 'season' as const, name: 'x', tagline: 'x', priceUsd: 9.99, accent: '', art: '', grants: [{ grant: 'battlePassPremium' as const }] };
     const { next } = meta.interpretGrants(meta.get(), offer);
     expect(next.battlePass.premium).toBe(true);
+  });
+
+  it('claimAllPass clears a FULL 100-level backlog on both tracks in one press', () => {
+    // 200 level claims — more than the per-level pass.claim bucket allows in one window. Claim-all
+    // is its own guarded action (pass.claimAll), so a deep season never needs a second press.
+    meta.grantIchor('test', BP.premiumIchor);
+    meta.buyPassPremium(T0);
+    meta.grantPassXp('test', xpToReach(BP.levels), T0);
+    // Browser conditions: guards live, the whole press in one instant (as in meta.test's
+    // openContainers case).
+    setSecurityClock(() => 1_000_000);
+    setSecurityEnabled(true);
+    resetSecurity();
+    try {
+      meta.claimAllPass(T0);
+    } finally {
+      setSecurityEnabled(false);
+      resetSecurity();
+      setSecurityClock(Date.now);
+    }
+    const bp = meta.get().battlePass;
+    expect(bp.claimedFree).toHaveLength(BP.levels);
+    expect(bp.claimedPremium).toHaveLength(BP.levels);
+    const view = meta.battlePass(T0);
+    expect(view.claimableFree).toHaveLength(0);
+    expect(view.claimablePremium).toHaveLength(0);
   });
 
   it('claimAllPass drains every earned level on both tracks', () => {

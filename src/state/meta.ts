@@ -2111,6 +2111,27 @@ export interface AuctionSellable {
   blocks: ('bound' | 'equipped' | 'neverTrade' | 'slotted')[];
 }
 
+/** One earned pass level's claim, WITHOUT a guard — callers guard: meta.claimPassLevel per level
+ *  (pass.claim), meta.claimAllPass once per batch (pass.claimAll). Module-level on purpose: the
+ *  security registry test requires every mutator ON `meta` to carry its own guard. */
+function claimPassLevelCore(track: 'free' | 'premium', level: number, now: number): PremiumReceiptLine[] | null {
+  meta.pollBattlePass(now);
+  const save = store.get();
+  const bp = save.battlePass;
+  if (level < 1 || level > BP.levels || level > levelOf(bp.xp).level) return null;
+  const claimed = track === 'free' ? bp.claimedFree : bp.claimedPremium;
+  if (claimed.includes(level)) return null;
+  if (track === 'premium' && !bp.premium && !BP.freePremiumLevels.includes(level)) return null;
+  const season = seasonForWindow(bp.window);
+  const rewards = seasonTracks(season.id)[track][level - 1];
+  const { next, lines, stamina, events } = applyPassRewards(save, season, rewards, track, level);
+  persist({ ...next, metabolism: bumpCounter(next.metabolism, 'passClaimed') }); // Season Communion (docs/METABOLISM.md)
+  if (stamina > 0) meta.grantRushStamina(stamina, now);
+  meta.evaluateAchievements();
+  rewardToast.pushMany(`Battle Pass — Level ${level}`, events);
+  return lines;
+}
+
 export const meta = {
   use: store.use,
   get: store.get,
@@ -4444,30 +4465,20 @@ export const meta = {
    *  Premium levels need Premium — except the free-preview levels (1 / 50 / 99). */
   claimPassLevel(track: 'free' | 'premium', level: number, now = Date.now()): PremiumReceiptLine[] | null {
     if (!guardOk('pass.claim', `${track}:${level}`)) return null;
-    this.pollBattlePass(now);
-    const save = store.get();
-    const bp = save.battlePass;
-    if (level < 1 || level > BP.levels || level > levelOf(bp.xp).level) return null;
-    const claimed = track === 'free' ? bp.claimedFree : bp.claimedPremium;
-    if (claimed.includes(level)) return null;
-    if (track === 'premium' && !bp.premium && !BP.freePremiumLevels.includes(level)) return null;
-    const season = seasonForWindow(bp.window);
-    const rewards = seasonTracks(season.id)[track][level - 1];
-    const { next, lines, stamina, events } = applyPassRewards(save, season, rewards, track, level);
-    persist({ ...next, metabolism: bumpCounter(next.metabolism, 'passClaimed') }); // Season Communion (docs/METABOLISM.md)
-    if (stamina > 0) this.grantRushStamina(stamina, now);
-    this.evaluateAchievements();
-    rewardToast.pushMany(`Battle Pass — Level ${level}`, events);
-    return lines;
+    return claimPassLevelCore(track, level, now);
   },
 
   /** Claim EVERYTHING currently claimable (both tracks, ascending) → combined lines. */
   claimAllPass(now = Date.now()): PremiumReceiptLine[] {
+    // ONE guarded action for the whole backlog (pass.claimAll): a full season is up to 200 level
+    // claims, which the per-level pass.claim bucket would cut off part-way ("Claim all" needed a
+    // second press on a deep backlog).
+    if (!guardOk('pass.claimAll')) return [];
     this.pollBattlePass(now);
     const lines: PremiumReceiptLine[] = [];
     const view = this.battlePass(now);
-    for (const l of view.claimableFree) lines.push(...(this.claimPassLevel('free', l, now) ?? []));
-    for (const l of view.claimablePremium) lines.push(...(this.claimPassLevel('premium', l, now) ?? []));
+    for (const l of view.claimableFree) lines.push(...(claimPassLevelCore('free', l, now) ?? []));
+    for (const l of view.claimablePremium) lines.push(...(claimPassLevelCore('premium', l, now) ?? []));
     return lines;
   },
 

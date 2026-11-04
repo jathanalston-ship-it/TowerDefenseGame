@@ -56,6 +56,7 @@ bug-hunt pass (scope, method, verdict) so "we looked" is auditable.
 | 44 | The locked Boss Rush tile previewed "Ichor / records" before Ichor existed for the player. | Static preview chips. | The chip shows only once `rewardVisible('ichor')`. |
 | 45 | The Home Command strip showed "Infinite · Wave 6" and "Collection 4%" at Stage 1, before either screen existed for the player. | The vitals cells were static. | Cells filter through `unlocks.isOpenNav` like every other guidance surface. |
 | 46 | The Bio-Dex "Brood Tyrant" entry ranked up on every boss kill. | Framework bosses spawn with the `'tyrant'` kind as a render proxy, and the lifetime fold added the run's raw per-kind kills. | `accumulateStats` books `tyrant − bossKills` (never negative); Apex Slayer reads the run's own `bossKills`. Tests: stats.test, achievements.framework.test, runDebrief.test. |
+| 47 | Season Pass "Claim all" on a 100-level backlog stopped part-way (100 → 42 left) and needed a second press. | `claimAllPass` looped the guarded `claimPassLevel`, so every level spent one `pass.claim` rate-limit slot and the per-minute cap tripped mid-loop. | `claimAllPass` is ONE guarded action (`pass.claimAll`, its own policy) over an unguarded per-level core; `battlePassMeta.test.ts` clears a full 2×100 backlog with guards live. |
 
 ---
 
