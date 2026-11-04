@@ -66,6 +66,21 @@ describe('hero evolution — applies to ALL heroes + inheritance', () => {
     });
   });
 
+  it('Vitality keeps flat card max-HP (heroHp) — regression: 359/248 HP after a Hive auto-buy', () => {
+    const g = richGame(); // single Ravager, base 230
+    g.debugApplyCard('battle_stims'); // +60 max & current
+    g.debugApplyCard('thick_hide'); // +80 max & current
+    const h = g.heroes[0];
+    expect(h.maxHp).toBe(370);
+    h.hp = 359; // wounded, as in the playtest
+    expect(g.buyHeroEvolution('health')).toBe(true);
+    expect(h.maxHp).toBeCloseTo(230 * 1.08 + 140, 6); // flat card HP survives the recompute
+    expect(h.hp).toBeCloseTo(359 + 230 * 0.08, 6); // healed by the Vitality delta only
+    expect(h.hp).toBeLessThanOrEqual(h.maxHp);
+    const snap = g.getRenderState().heroes[0]; // what the HUD hero bar reads
+    expect(snap.hp).toBeLessThanOrEqual(snap.maxHp);
+  });
+
   it('a hero fielded AFTER purchases inherits the full max-HP evolution', () => {
     const g = richGame(); // single Ravager
     for (let i = 0; i < 4; i++) g.buyHeroEvolution('health'); // +32% maxHp

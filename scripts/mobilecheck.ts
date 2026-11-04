@@ -6,11 +6,13 @@
 //     reached door → hub landing → [data-nav] card (direct doors like HOME/Store
 //     short-circuit), and the landing pages themselves are audited along the way.
 //   • LANDSCAPE PHONES — the SAME door→landing→card walk through the narrow-shell drawer
-//     (the ☰ burger opens the off-canvas rail), plus the live-run contract: a ≥44px
-//     on-screen ▶ Start Wave, a visible board, a reachable tower tray.
-//   • PORTRAIT touch viewports (phones AND portrait tablets) — the ROTATE GATE contract:
-//     the full-screen hold must cover the viewport and nothing else is walked (portrait is
-//     not a play mode; the gate IS the screen).
+//     (the ☰ burger opens the off-canvas rail), plus the PHONE RUN CONTRACT on a live board.
+//   • PORTRAIT touch viewports (phones AND portrait tablets) — the ROTATE GATE contract on the
+//     hub (the full-screen hold must cover the viewport), then a LIVE RUN, which has its own
+//     portrait layout: the gate must stand down and the PHONE RUN CONTRACT must hold
+//     (docs/RESPONSIVE-DESIGN.md §run — no page scroll, a dominant board, ≥44px Start Wave,
+//     tray + drawer toggles on-screen).
+//   • Every live board also passes the RUN-CHROME contract: no two in-run HUD pieces overlap.
 // Every audited surface also passes the layout audit: no horizontal overflow, no clipped
 // text, no sub-24px targets, no off-screen interactives, no unreachable popups.
 //
@@ -25,9 +27,9 @@
 //   --full       sweep the complete published viewport matrix (small-landscape floor,
 //                large phones, big tablets, ultrawide)
 //
-// Portrait walking retired 2026-07-18 (the v2 tab-shell contract): the game is landscape-
-// only on touch devices — RotateGate.tsx holds portrait; the future store APP SHELL locks
-// orientation natively, so this same gate covers both halves of the platform split.
+// Portrait HUB walking retired 2026-07-18 (the v2 tab-shell contract): hub screens are
+// landscape-only on touch devices — RotateGate.tsx holds them; the future store APP SHELL
+// locks orientation natively. The RUN is exempt (2026-11): it is walked in portrait above.
 
 import { spawn, execSync } from 'node:child_process';
 import { chromium } from 'playwright-core';
@@ -63,10 +65,12 @@ const FULL_VIEWPORTS = [
   { name: 'tablet-land-1180x820', width: 1180, height: 820 },
 ];
 const VIEWPORTS = args.includes('--full') ? FULL_VIEWPORTS : GATE_VIEWPORTS;
-// The TUTORIAL WALK — now proven at the landscape-phone floor; every checkpoint's cue
-// target, callout, and controls must sit on-screen at 844×390.
+// The TUTORIAL WALK — proven at the landscape-phone floor AND in portrait (the tutorial is a
+// live run, so it plays portrait since 2026-11); every checkpoint's cue target, callout, and
+// controls must sit on-screen.
 const TUTORIAL_VIEWPORTS = [
   { name: 'landscape-844x390', width: 844, height: 390 },
+  { name: 'portrait-390x844', width: 390, height: 844 },
 ];
 const TAP_MIN = 24; // px — WCAG 2.5.8 minimum target size
 
@@ -100,10 +104,19 @@ async function main(): Promise<void> {
       await page.waitForTimeout(800);
       await page.addStyleTag({ content: '.debug-panel { display: none !important; }' });
 
-      // PORTRAIT touch viewports: the ROTATE GATE is the whole contract — the hold must own
-      // the screen (phones play horizontal only); nothing else is walked here.
+      // PORTRAIT touch viewports: the hub is held by the ROTATE GATE (hub screens are horizontal
+      // only), but a LIVE RUN has its own portrait layout — the gate must stand down in-run and
+      // the portrait battlefield must pass the phone run contract.
       if (profileOf(vp) === 'portrait') {
+        // A fresh profile boots straight into the combat TUTORIAL (a live run → no gate): skip
+        // it and seed first, so the gate is asserted on a real hub screen.
+        await dismiss(page);
+        await seedDevelopedProfile(page);
         violations.push(...(await rotateGateContract(page, vp.name)));
+        if (await enterRunFromHome(page)) {
+          violations.push(...(await audit(page, 'in-run', vp.name, touch)));
+          violations.push(...(await phoneRunContract(page, vp.name, 'portrait')));
+        } else violations.push({ screen: 'in-run', vp: vp.name, kind: 'unreachable', detail: 'could not enter a run from Home' });
         if (pageErrs.length) violations.push({ screen: '(any)', vp: vp.name, kind: 'pageerror', detail: pageErrs[0] });
         await ctx.close();
         continue;
@@ -116,55 +129,17 @@ async function main(): Promise<void> {
       // Minute-0 layout gate: the FRESH hub (4 revealed navs + teasers) must itself be clean.
       violations.push(...(await audit(page, 'hub-fresh', vp.name, touch)));
       // PROGRESSION GATING (docs/PROGRESSION-GATING.md): a fresh profile hides most wings — seed
-      // a developed account (mutating the app's own save blob, checksum recomputed) so the sweep
-      // still audits EVERY screen at every viewport. help.primed=false lets App boot silently
-      // archive the announcement backlog (no What's-New flood mid-audit).
-      await page.evaluate(() => {
-        const raw = localStorage.getItem('assimilate.save');
-        if (!raw) return;
-        const blob = JSON.parse(raw) as { data: Record<string, unknown>; checksum: string };
-        const d = blob.data as { campaign?: { cleared?: Record<string, number> }; prestige?: { molts?: number }; mats?: Record<string, number>; help?: Record<string, unknown> };
-        blob.data.campaign = { ...(d.campaign ?? {}), cleared: { standard: 30 }, bestTime: {} };
-        blob.data.bestWave = 37;
-        blob.data.totalRuns = 21;
-        blob.data.ichor = 3;
-        if (d.mats) d.mats.scrap = Math.max(1, d.mats.scrap ?? 0);
-        if (d.prestige) d.prestige.molts = Math.max(1, d.prestige.molts ?? 0);
-        blob.data.help = { seen: [], primed: false, hudTour: true };
-        const s = JSON.stringify(blob.data);
-        let h = 5381;
-        for (let i = 0; i < s.length; i++) h = ((h << 5) + h + s.charCodeAt(i)) | 0;
-        blob.checksum = (h >>> 0).toString(36);
-        localStorage.setItem('assimilate.save', JSON.stringify(blob));
-      });
-      await page.reload({ waitUntil: 'networkidle' });
-      await page.waitForTimeout(700);
-      await page.addStyleTag({ content: '.debug-panel { display: none !important; }' });
-      await dismiss(page);
+      // a developed account so the sweep still audits EVERY screen at every viewport.
+      await seedDevelopedProfile(page);
 
       if (profileOf(vp) === 'landscape') violations.push(...(await landscapeRailWalk(page, vp.name)));
       else violations.push(...(await desktopRailWalk(page, vp.name, touch)));
 
       // Live board: deploy the frontier and audit the combat screen itself.
-      await openDrawer(page); // narrow shells park HOME in the ☰ drawer
-      await page.evaluate(() => {
-        (document.querySelector('[data-nav="home"]') as HTMLElement | null)?.click();
-      });
-      await page.waitForTimeout(380);
-      await page.evaluate(() => {
-        const btns = [...document.querySelectorAll('button')].filter((b) => (b as HTMLElement).offsetParent !== null);
-        for (const label of ['Continue Campaign', 'Deploy Under-Powered', 'Deploy', 'Begin']) {
-          const b = btns.find((x) => (x.textContent ?? '').includes(label));
-          if (b) { (b as HTMLElement).click(); return; }
-        }
-      });
-      await page.waitForTimeout(1800);
-      await dismiss(page);
-      await page.waitForTimeout(900); // run intro + HUD settle
-      const inRun = await page.evaluate(() => !!document.querySelector('canvas.board'));
-      if (inRun) {
+      if (await enterRunFromHome(page)) {
         violations.push(...(await audit(page, 'in-run', vp.name, touch)));
-        if (profileOf(vp) === 'landscape') violations.push(...(await landscapeRunContract(page, vp.name)));
+        if (profileOf(vp) === 'landscape') violations.push(...(await phoneRunContract(page, vp.name, 'landscape')));
+        else violations.push(...(await runChromeContract(page, vp.name)));
       } else violations.push({ screen: 'in-run', vp: vp.name, kind: 'unreachable', detail: 'could not enter a run from Home' });
       if (pageErrs.length) violations.push({ screen: '(any)', vp: vp.name, kind: 'pageerror', detail: pageErrs[0] });
       await ctx.close();
@@ -233,7 +208,7 @@ async function main(): Promise<void> {
     await browser.close();
 
     if (violations.length === 0) {
-      console.log(`mobilecheck: CLEAN — ${NAVS.length} nav screens (registry-derived) + in-run × ${VIEWPORTS.map((v) => v.name).join('/')}, landscape drawer walked, rotate gate holds portrait, no overflow/clipped text/sub-${TAP_MIN}px targets.`);
+      console.log(`mobilecheck: CLEAN — ${NAVS.length} nav screens (registry-derived) + in-run × ${VIEWPORTS.map((v) => v.name).join('/')}, landscape drawer walked, rotate gate holds the portrait hub, phone run contract (portrait + landscape) and run-chrome overlap contract hold, no overflow/clipped text/sub-${TAP_MIN}px targets.`);
       process.exit(0);
     }
     console.error(`mobilecheck: ${violations.length} violation(s)`);
@@ -363,31 +338,126 @@ async function landscapeRailWalk(page: import('playwright-core').Page, vpName: s
   return out;
 }
 
-/** The landscape combat contract: the board dominates the short viewport, the primary
- *  action is thumb-sized and on-screen, the tray is reachable. (The dock may be inline —
- *  fixed positioning was the PORTRAIT dock's law, retired with it.) */
-function landscapeRunContract(page: import('playwright-core').Page, vpName: string): Promise<Violation[]> {
+/** Seed a developed account (mutating the app's own save blob, checksum recomputed) and reload.
+ *  help.primed=false lets App boot silently archive the announcement backlog (no What's-New
+ *  flood mid-audit). */
+async function seedDevelopedProfile(page: import('playwright-core').Page): Promise<void> {
+  await page.evaluate(() => {
+    const raw = localStorage.getItem('assimilate.save');
+    if (!raw) return;
+    const blob = JSON.parse(raw) as { data: Record<string, unknown>; checksum: string };
+    const d = blob.data as { campaign?: { cleared?: Record<string, number> }; prestige?: { molts?: number }; mats?: Record<string, number>; help?: Record<string, unknown> };
+    blob.data.campaign = { ...(d.campaign ?? {}), cleared: { standard: 30 }, bestTime: {} };
+    blob.data.bestWave = 37;
+    blob.data.totalRuns = 21;
+    blob.data.ichor = 3;
+    if (d.mats) d.mats.scrap = Math.max(1, d.mats.scrap ?? 0);
+    if (d.prestige) d.prestige.molts = Math.max(1, d.prestige.molts ?? 0);
+    blob.data.help = { seen: [], primed: false, hudTour: true };
+    const s = JSON.stringify(blob.data);
+    let h = 5381;
+    for (let i = 0; i < s.length; i++) h = ((h << 5) + h + s.charCodeAt(i)) | 0;
+    blob.checksum = (h >>> 0).toString(36);
+    localStorage.setItem('assimilate.save', JSON.stringify(blob));
+  });
+  await page.reload({ waitUntil: 'networkidle' });
+  await page.waitForTimeout(700);
+  await page.addStyleTag({ content: '.debug-panel { display: none !important; }' });
+  await dismiss(page);
+}
+
+/** Home → Continue Campaign → the live board. Narrow shells park HOME in the ☰ drawer; a
+ *  portrait hub sits under the rotate gate, so every hop is a programmatic click. */
+async function enterRunFromHome(page: import('playwright-core').Page): Promise<boolean> {
+  await openDrawer(page);
+  await page.evaluate(() => {
+    (document.querySelector('[data-nav="home"]') as HTMLElement | null)?.click();
+  });
+  await page.waitForTimeout(380);
+  await page.evaluate(() => {
+    const btns = [...document.querySelectorAll('button')].filter((b) => (b as HTMLElement).offsetParent !== null);
+    for (const label of ['Continue Campaign', 'Deploy Under-Powered', 'Deploy', 'Begin']) {
+      const b = btns.find((x) => (x.textContent ?? '').includes(label));
+      if (b) { (b as HTMLElement).click(); return; }
+    }
+  });
+  await page.waitForTimeout(1800);
+  await dismiss(page);
+  await page.waitForTimeout(900); // run intro + HUD settle
+  return page.evaluate(() => !!document.querySelector('canvas.board'));
+}
+
+/** RUN CHROME (every profile, docs/RESPONSIVE-DESIGN.md §run): the in-run HUD pieces never
+ *  overlap one another — HUD bar, run-controls strip (speed · Hive · Pause · ticker), wave
+ *  briefing, boss bars, tower deck, hero pod, drawer toggles, side panels. */
+function runChromeContract(page: import('playwright-core').Page, vpName: string): Promise<Violation[]> {
   return page.evaluate((vpName) => {
     const out: { screen: string; vp: string; kind: string; detail: string }[] = [];
+    const vis = (el: Element): boolean => {
+      const cs = getComputedStyle(el);
+      if (cs.visibility === 'hidden' || cs.display === 'none' || Number(cs.opacity) < 0.05) return false;
+      const r = el.getBoundingClientRect();
+      return r.width > 1 && r.height > 1;
+    };
+    const sels = ['.hud', '.run-ctl > .speed-ctl', '.run-ctl > .hive-mind-btn', '.run-ctl > .pause-btn', '.run-ctl > .hive-ticker', '.run-ctl > .speed-note',
+      '.build-controls.is-visible .build-bar', '.boss-banner', '.mega-banner', '.toolbar', '.tower-rail', '.hero-pod', '.panel-rail', '.side-panel'];
+    const els: { s: string; el: Element; r: DOMRect }[] = [];
+    for (const s of sels) for (const el of document.querySelectorAll(s)) if (vis(el)) els.push({ s, el, r: el.getBoundingClientRect() });
+    for (let i = 0; i < els.length; i++) {
+      for (let j = i + 1; j < els.length; j++) {
+        const a = els[i];
+        const b = els[j];
+        if (a.el.contains(b.el) || b.el.contains(a.el)) continue;
+        const ox = Math.min(a.r.right, b.r.right) - Math.max(a.r.left, b.r.left);
+        const oy = Math.min(a.r.bottom, b.r.bottom) - Math.max(a.r.top, b.r.top);
+        if (ox > 2 && oy > 2) out.push({ screen: 'in-run', vp: vpName, kind: 'chrome-overlap', detail: `${a.s} × ${b.s} (${Math.round(ox)}×${Math.round(oy)}px)` });
+      }
+    }
+    return out;
+  }, vpName);
+}
+
+/** The PHONE combat contract (portrait + landscape, docs/RESPONSIVE-DESIGN.md §run): no rotate
+ *  gate in a live run, no page scroll, the board dominates (landscape: ≥90% of the height;
+ *  portrait: ≥40% of the screen area), ▶ Start Wave thumb-sized and on-screen, the tower tray
+ *  and both drawer toggles on-screen — plus the chrome-overlap contract. */
+async function phoneRunContract(page: import('playwright-core').Page, vpName: string, profile: 'portrait' | 'landscape'): Promise<Violation[]> {
+  const out = await page.evaluate(({ vpName, profile }) => {
+    const out: { screen: string; vp: string; kind: string; detail: string }[] = [];
     const push = (kind: string, detail: string): void => { out.push({ screen: 'in-run', vp: vpName, kind, detail }); };
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+    const onScreen = (r: DOMRect): boolean => r.top >= -1 && r.left >= -1 && r.bottom <= vh + 1 && r.right <= vw + 1;
+    if (document.querySelector('.rotate-gate')) push('gate-in-run', 'rotate gate rendered over a live run');
+    const de = document.documentElement;
+    if (de.scrollHeight > vh + 1 || de.scrollWidth > vw + 1) push('run-scrolls', `page ${de.scrollWidth}×${de.scrollHeight} > viewport ${vw}×${vh}`);
     const sb = document.querySelector<HTMLElement>('.start-btn');
     if (!sb) push('startwave-missing', 'no ▶ Start Wave button during prep');
     else {
       const r = sb.getBoundingClientRect();
       if (r.height < 44) push('startwave-size', `▶ Start Wave ${Math.round(r.height)}px tall (< 44)`);
-      if (!(r.top >= 0 && r.bottom <= window.innerHeight && r.left >= 0 && r.right <= window.innerWidth)) {
-        push('startwave-offscreen', `▶ Start Wave spans ${Math.round(r.top)}..${Math.round(r.bottom)} of ${window.innerHeight}`);
-      }
+      if (!onScreen(r)) push('startwave-offscreen', `▶ Start Wave spans ${Math.round(r.top)}..${Math.round(r.bottom)} of ${vh}`);
     }
     const board = document.querySelector<HTMLElement>('canvas.board');
     if (!board) push('board-missing', 'no battlefield canvas');
     else {
       const r = board.getBoundingClientRect();
-      if (r.height < window.innerHeight * 0.4) push('board-crushed', `board ${Math.round(r.height)}px (< 40% of ${window.innerHeight})`);
+      if (!onScreen(r)) push('board-offscreen', `board at ${Math.round(r.left)},${Math.round(r.top)} ${Math.round(r.width)}×${Math.round(r.height)}`);
+      if (profile === 'landscape' && r.height < vh * 0.9) push('board-crushed', `board ${Math.round(r.height)}px (< 90% of ${vh})`);
+      if (profile === 'portrait' && r.width * r.height < vw * vh * 0.4) push('board-crushed', `board ${Math.round(r.width)}×${Math.round(r.height)} (< 40% of the screen)`);
     }
-    if (!document.querySelector('.toolbar')) push('tray-missing', 'no tower build tray');
+    const rail = document.querySelector<HTMLElement>('.tower-rail');
+    if (!document.querySelector('.toolbar') || !rail) push('tray-missing', 'no tower build tray');
+    else if (!onScreen(rail.getBoundingClientRect())) push('tray-offscreen', 'tower rail not fully on-screen');
+    const toggles = [...document.querySelectorAll<HTMLElement>('.panel-rail')];
+    if (toggles.length < 2) push('drawer-toggles', `${toggles.length}/2 side-panel drawer toggles`);
+    for (const t of toggles) {
+      const r = t.getBoundingClientRect();
+      if (!onScreen(r) || r.height < 44) push('drawer-toggle', `${(t.textContent ?? '').trim()} ${Math.round(r.width)}×${Math.round(r.height)} at ${Math.round(r.top)}`);
+    }
     return out;
-  }, vpName);
+  }, { vpName, profile });
+  return [...out, ...(await runChromeContract(page, vpName))];
 }
 
 async function waitFor(url: string, ms: number): Promise<void> {

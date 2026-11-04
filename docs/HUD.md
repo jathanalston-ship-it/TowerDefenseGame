@@ -18,7 +18,8 @@ The redesign below has been implemented and extended. The live combat HUD is now
 - **Three aligned zones** (`.hz-l/.hz-c/.hz-r`): LEFT survival (Hive integrity + slim loot
   progress) · CENTER the WAVE MODULE (eyebrow phase label, the big wave number + pips, status
   line, biome/boss/modifier chips, emergency/biome/run-event banners) · RIGHT power → biomass →
-  threat → hero. Zones dissolve (`display: contents`) ≤900px so the mobile stacking is unchanged.
+  threat → hero. On the phone profiles the zones dissolve (`display: contents`) into the
+  profile's HUD grid (§layout).
 - **Power cell** = the progression number: magnitude-tier accents (K/M/B/T hues), ambient conic
   border sweep, and a GAIN CELEBRATION (+Δ fly-up, scale pulse, 6-dot burst, throttled `power`
   chime) on every live increase.
@@ -64,6 +65,28 @@ every class name, `data-tut` anchor, and the portrait grid contract are unchange
   `hero.abilityCd / def.ability.cooldown`) that yields to a ready-glow.
 - **Start Wave = the command key**: layered energy core + rolling charge-sheen + halo ring +
   landing press — desktop briefing bar and the portrait dock share it.
+
+### §layout — RUN LAYOUT v2: the board is the game (2026-11)
+
+The run screen now sizes every piece of chrome AROUND a maximal 3:4 battlefield, per layout
+profile (`src/index.css` §RUN LAYOUT v2; profiles in docs/RESPONSIVE-DESIGN.md §run):
+
+- **Desktop**: ONE fixed-height HUD row (62px — the wave module is a 2-column grid: big number
+  left, phase · status line · chips stacked beside it; the Hive Core siege readout and the
+  Biomass income ride their cell's label/value rows; the emergency alarm takes the status line)
+  and a FIXED-height tower deck (88px; 116px with card blurbs above 1000px of height). Fixed
+  heights mean nothing that arrives mid-run (pods, siege, emergency) can resize the board.
+  Measured board: 1440×900 440×587 → 543×724 · 1366×768 374×499 → 444×592 · 1920×1080
+  575×767 → 657×876 · 1024×768 368×490 → 444×592.
+- **§run-controls strip**: speed (1×/2×/5×) · ◈ HIVE INTELLIGENCE · Pause live in ONE flex row
+  (`.run-ctl`) reserved at the top of the board; the Hive ticker and the speed note ride its
+  free left end as a two-line log. The wave briefing and the boss/mega bars start BELOW the
+  strip (`--strip`), so they can never collide again (the pill used to sit on Start Wave and
+  the boss bar; the ticker covered the briefing). A burrowed Mega waits mid-board during prep.
+- **Phones** (portrait + landscape): the side panels are overlay DRAWERS (tap-to-close veil;
+  the Inspector also opens itself for a tapped tower and for a tutorial cue that points at
+  it), the run keys go compact (◈ HIVE · speed · ❚❚, ≥40px), and the draft, pause card and
+  Hero Console go full-screen. See docs/RESPONSIVE-DESIGN.md §run for the two phone grids.
 
 The sections below are the original analysis/spec that led here — kept as design rationale.
 
@@ -216,7 +239,8 @@ grows.
 
 ## §speed — the Gameplay Speed system (2026-07)
 
-1×/2×/5× chips beside Pause (F cycles; 44px targets under coarse pointers). Speed scales the
+1×/2×/5× chips beside Pause in the run-controls strip (§layout; F cycles; 44px-tall, 40px-wide
+targets under coarse pointers). Speed scales the
 SIMULATION, not animations: `game.timeScale` runs MORE fixed `SIM_DT` steps per real frame,
 so enemies/towers/heroes/projectiles/status/waves/timers all advance together and the sim is
 **byte-identical at any speed** (same step sequence, faster wall clock) — no desync class of

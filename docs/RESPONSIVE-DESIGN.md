@@ -15,7 +15,7 @@ The UI is not "one layout resized" — it is THREE interfaces sharing one identi
 |---|---|---|
 | `desktop` | everything else (incl. landscape tablets / Deck / ultrawide) | information-rich, pointer-first |
 | `landscape` | wider than tall AND height ≤ 520px | **the phone game** (§landscape): drawer nav + stacked run — phones play horizontal ONLY |
-| `portrait` | taller than wide AND width ≤ 900px | touch ⇒ the **ROTATE GATE** (`RotateGate.tsx` — the full-screen hold); mouse-narrow windows keep the compact shell |
+| `portrait` | taller than wide AND width ≤ 900px | touch hub ⇒ the **ROTATE GATE** (`RotateGate.tsx` — the full-screen hold); a LIVE RUN plays portrait (§run); mouse-narrow windows keep the compact shell |
 
 Components branch via `useLayoutProfile()`; new CSS keys on `html[data-layout="…"]` /
 `html[data-coarse="1"]`. The legacy width bands below (860/900/640/Deck) remain the underlying
@@ -27,7 +27,35 @@ unreachable controls, no tutorial cues pointing at off-screen targets, no horizo
 no clipped text, no off-screen popups — at ANY supported size. `npm run mobilecheck` (in
 `npm run validate`) fails the build on each of these.
 
-## 0b. The LANDSCAPE MANDATE (2026-07-18) — phones play horizontal only
+## 0a. §run — the in-run layouts (2026-11): the board is the game
+
+The battlefield is 720×960 logical (portrait 3:4), so the run screen is laid out per profile
+around the BIGGEST board the viewport allows (`src/index.css` §RUN LAYOUT v2 — keyed on
+`html[data-layout]`, placed last so it wins over the legacy width bands):
+
+| profile | grid | board measured (before → after) |
+|---|---|---|
+| desktop | slim fixed HUD row · stage [Run Build │ board │ Hero Ops] · fixed tower deck | 1440×900 440×587 → 543×724 · 1366×768 374×499 → 444×592 · 1920×1080 575×767 → 657×876 · 1024×768 368×490 → 444×592 |
+| landscape (phones) | HUD column + wave-briefing dock │ board at full viewport height │ run keys + tower column + hero pod | 844×390 164×218 (scrolled off-screen) → 285×379 · 926×428 → 313×417 |
+| portrait (phones, portrait tablets) | HUD strip · run-keys strip · full-width board · [» Run Build │ hero pod │ Status «] · tower rail | 390×844 rotate gate → 380×507 · 360×740 → 332×442 |
+
+- **No page scroll, ever, during a run** — every profile is a fixed `100dvh` grid; panels are
+  in-place (desktop) or overlay DRAWERS (phones: closed by default, tap-to-close veil, reset
+  when the profile flips; the Inspector opens itself for a tapped tower and for a tutorial cue
+  that points at it). The draft, pause card and Hero Console go full-screen on phones.
+- **Nothing overlaps**: the run keys (speed · Hive · Pause) share one strip row; the briefing,
+  boss and mega bars start below it (docs/HUD.md §layout). Fixed chrome heights mean nothing
+  that appears mid-run (pods, siege, emergency) resizes the board.
+- **The rotate gate stands down for a live run** (`layoutProfile.setInRun`, set by GameView):
+  hub screens stay landscape-only on touch (§0b), the run plays in either orientation.
+- **Canvas input** maps through `getBoundingClientRect` (any CSS size); `npm run mobilecheck`
+  proves the phone layouts (§4d) and a headless probe placed towers by tap on slots at every
+  size above.
+
+## 0b. The LANDSCAPE MANDATE (2026-07-18) — phone HUB screens are horizontal only
+
+> Amended 2026-11 (§run): the RUN screen is exempt — it has real portrait and landscape phone
+> layouts. Everything below still holds for the hub/menus.
 
 The vertical phone game was retired by decision: the upgrade consoles are widescreen
 organisms and portrait could not carry them. The contract now:
@@ -92,12 +120,9 @@ chrome so the battlefield dominates). Prefer these four; don't invent new ones c
   (`.hub > .hub-nav` fixed + translate; veil closes it; the ☰ burger lives in the topbar;
   picking a destination closes it). Specificity note: shell overrides must match
   `.hub > .hub-nav` — a bare class loses to the base rule.
-- **Run** (GameView): desktop = hud / [build | board | inspector] / tower rail. ≤900px the
-  stage stacks (board first, panels become full-width strips — capped + scrollable, NEVER
-  `display:none`: hiding functionality is a defect). ≤640px `.stage { display: contents }`
-  promotes the pieces into one column so the order is hud → board → tower rail (snap chips)
-  → build strip → inspector: building never needs a scroll. The Deck band drops the rail
-  card blurbs to one row (board grew 268×357 → 452×603 on Deck).
+- **Run** (GameView): see §run — per-profile grids replaced the old ≤900/≤640 stacking (which
+  scrolled the page and crushed the board on phones). The compact deck (no card blurbs) now
+  applies to every desktop below 1000px of height.
 
 ## 3b. The portrait shell (§mobile-shell) — the phone game
 
@@ -145,7 +170,10 @@ truth (the desktop rail derives from the same rows); `src/ui/MobileShell.tsx` re
   at 44px min-height with `touch-action: manipulation`. Non-button interactive elements MUST
   carry `role="button"` to inherit the floor.
 
-## 4b. The run shell scrolls on portrait (the tutorial-blocker fix)
+## 4b. The run shell scrolls on portrait (the tutorial-blocker fix) — SUPERSEDED by §run
+
+> 2026-11: the run never scrolls on any profile now (§run grids fit the viewport); kept as
+> history.
 
 The desktop run shell is a fixed 100vh "never scroll" RTS frame. On the ≤640px portrait band the
 stage promotes every panel into ONE column that is taller than a phone screen — so the shell there
@@ -171,6 +199,11 @@ tutorial walk. Desktop sweeps the COMPRESSED rail: hub door (`[data-hub]`) → l
 shell: tab bar present with ≥44px labelled tabs, every index row named + blurbed + ≥44px,
 every row drills in (back header, titled) and returns, and the live run passes the combat-dock
 contract (fixed dock, ≥44px on-screen ▶ Start Wave, board ≥25% of the viewport, tray present).
+**2026-11 (v4):** portrait touch viewports assert the rotate gate on the HUB, then enter a live
+run and pass the PHONE RUN CONTRACT (`phoneRunContract`, also used for landscape): no gate in
+the run, no page scroll, board ≥90% of the height (landscape) / ≥40% of the screen (portrait),
+≥44px on-screen ▶ Start Wave, tray and both drawer toggles on-screen — plus the RUN-CHROME
+contract (`runChromeContract`, every profile incl. desktop): no two in-run HUD pieces overlap.
 Detectors on every audited surface: horizontal overflow, clipped text, sub-24px targets,
 off-screen interactives, **off-screen/oversize popups** (`[role="dialog"]` must fit or scroll),
 and tutorial reachability. Landscape phones are OUT of the default gate (vertical-only play;

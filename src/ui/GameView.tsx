@@ -53,6 +53,7 @@ import { setActiveGame } from '../debug/debug';
 import { attachRecorder, MAX_REPLAY_BYTES } from '../core/replay';
 import type { Recorder, ReplayCtorArgs } from '../core/replay';
 import { Hud } from './Hud';
+import { setInRun, useLayoutProfile } from './layoutProfile';
 import { HeroSelectPanel } from './HeroSelectPanel';
 import { Toolbar } from './Toolbar';
 import { BuildControls } from './BuildControls';
@@ -285,8 +286,20 @@ export function GameView({
   const tutFocusRef = useRef<{ x: number; y: number; zoom: number } | null>(null);
   tutFocusRef.current = tutCue?.canvasFocus ?? null;
   const tutCamRef = useRef({ x: WIDTH / 2, y: HEIGHT / 2, z: 1 }); // eased — never snaps
-  const [leftOpen, setLeftOpen] = useState(true); // Run Build panel (collapsible)
-  const [rightOpen, setRightOpen] = useState(true); // Status/Inspector panel (collapsible)
+  // PHONE DRAWERS (docs/RESPONSIVE-DESIGN.md §run): on the portrait/landscape phone profiles the
+  // board takes the screen, so the side panels become overlay drawers — closed by default and
+  // reset whenever the profile flips (a rotated tablet never lands with a drawer over the board).
+  const drawers = useLayoutProfile().profile !== 'desktop';
+  const [leftOpen, setLeftOpen] = useState(!drawers); // Run Build panel (collapsible)
+  const [rightOpen, setRightOpen] = useState(!drawers); // Status/Inspector panel (collapsible)
+  const drawersRef = useRef(drawers);
+  const veilDownRef = useRef(false);
+  useEffect(() => {
+    if (drawersRef.current === drawers) return;
+    drawersRef.current = drawers;
+    setLeftOpen(!drawers);
+    setRightOpen(!drawers);
+  }, [drawers]);
   const [evoOpen, setEvoOpen] = useState(false); // Hero Combat Console (auto-pauses the sim while open)
   const evoOpenRef = useRef(false);
   evoOpenRef.current = evoOpen;
@@ -896,6 +909,12 @@ export function GameView({
     return () => setActiveGame(null);
   }, [game]);
 
+  // The run screen is up — the phone rotate gate stands down (layoutProfile §in-run).
+  useEffect(() => {
+    setInRun(true);
+    return () => setInRun(false);
+  }, []);
+
   // Hand the live game to the tutorial director (once) so it can script beats + read state.
   const onReadyRef = useRef(onReady);
   onReadyRef.current = onReady;
@@ -975,16 +994,44 @@ export function GameView({
   // COMBAT = heated accents, DANGER = the committed emergency state. Pure presentation.
   const hphase = hud.emergency ? 'danger' : hud.phase === 'wave' ? 'combat' : 'prep';
 
+  // Drawer mode: the Inspector also opens on its own for a tapped tower (the Mutate decision
+  // surface — not while it's picked up for a move, the board needs the tap) and for a tutorial
+  // cue that points at it; closing the drawer then drops that selection.
+  const sp = hud.selectedPlaced;
+  const tutInspector = !!tutCue && [tutCue.spotlight, tutCue.arrow?.target, tutCue.callout?.target].some((t) => !!t && t.includes('.inspector'));
+  const insShown = rightOpen || (drawers && ((!!sp && !sp.moving) || tutInspector));
+  const closeRight = (): void => {
+    setRightOpen(false);
+    if (drawers && sp) {
+      game.selectPlacedTower(null);
+      refresh();
+    }
+  };
+
   return (
     <div className="game" data-hphase={hphase}>
       <Hud hud={hud} power={power} onOpenConsole={() => setEvoOpen(true)} tutorial={!!tutorial && !!tutSession} doctrine={doctrine && doctrine !== 'none' ? resolveDoctrine(doctrine) : null} vows={vowChips} />
       <PowerToaster />
       <MasteryToaster />
       <div className="stage">
-        {leftOpen ? (
-          <BuildPanel hud={hud} onCollapse={() => setLeftOpen(false)} onOpenEvolution={() => setEvoOpen(true)} />
-        ) : (
-          <button className="panel-rail" onClick={() => setLeftOpen(true)} aria-label="Show Run Build">
+        {drawers && (leftOpen || insShown) && (
+          <div
+            className="run-drawer-veil"
+            // Close only on a tap that STARTED on the veil — the synthesized click of the very
+            // board tap that opened the Inspector lands here too and must not shut it again.
+            onPointerDown={() => { veilDownRef.current = true; }}
+            onClick={() => {
+              if (!veilDownRef.current) return;
+              veilDownRef.current = false;
+              setLeftOpen(false);
+              closeRight();
+            }}
+            aria-hidden
+          />
+        )}
+        {leftOpen && <BuildPanel hud={hud} onCollapse={() => setLeftOpen(false)} onOpenEvolution={() => setEvoOpen(true)} />}
+        {(!leftOpen || drawers) && (
+          <button className="panel-rail" onClick={() => setLeftOpen((v) => !v)} aria-label="Show Run Build" aria-expanded={leftOpen}>
             <span className="rail-arrow">»</span>
             <span className="rail-label">RUN BUILD</span>
           </button>
@@ -1078,6 +1125,10 @@ export function GameView({
             <span className="wp-callout-note">{wpCallout.note}</span>
           </div>
         )}
+        {/* RUN CONTROLS STRIP (docs/HUD.md §run-controls): speed · Hive Intelligence · Pause (+ the
+            Hive ticker / speed note) share ONE flex row reserved at the top of the board, so they
+            can never collide with each other, the wave briefing, or the boss bars below it. */}
+        <div className="run-ctl">
         {!tutorial && (hud.phase === 'prep' || hud.phase === 'wave') && (
           <div className="speed-ctl" role="group" aria-label="Game speed (F)">
             {[1, 2, 5].map((x) => (
@@ -1130,6 +1181,7 @@ export function GameView({
             {paused ? '▶ Resume' : '❚❚ Pause'}
           </button>
         )}
+        </div>
         {paused && !evoOpen && (
           <div
             className="pause-overlay"
@@ -1327,12 +1379,12 @@ export function GameView({
           </div>
         )}
         </div>
-        {rightOpen ? (
+        {insShown && (
           <Inspector
             hud={hud}
             liveMastery={liveMastery}
             mulliganStates={mulliganOverride ?? meta.get().mulligans}
-            onCollapse={() => setRightOpen(false)}
+            onCollapse={closeRight}
             onBranchBuy={(towerId, branchId) => {
               audio.resume(); // ensure the splice cue is audible (the click is the unlock gesture)
               const powerBefore = meta.powerWith(game.powerEffects()).score;
@@ -1360,8 +1412,9 @@ export function GameView({
               refresh();
             }}
           />
-        ) : (
-          <button className="panel-rail right" onClick={() => setRightOpen(true)} aria-label="Show Status">
+        )}
+        {(!insShown || drawers) && (
+          <button className="panel-rail right" onClick={() => (insShown ? closeRight() : setRightOpen(true))} aria-label="Show Status" aria-expanded={insShown}>
             <span className="rail-label">STATUS</span>
             <span className="rail-arrow">«</span>
           </button>

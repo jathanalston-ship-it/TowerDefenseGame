@@ -489,9 +489,10 @@ export function App(): JSX.Element {
 
   return (
     <div className="app">
-      {/* Phones play horizontal ONLY (RESPONSIVE-DESIGN.md §landscape) — the gate covers
-          every screen state (hub, deploy, run, overlays) and clears the frame the device
-          rotates. Mouse-pointer windows are never gated. */}
+      {/* Phone HUB screens are horizontal ONLY (RESPONSIVE-DESIGN.md §landscape) — the gate
+          covers every non-run screen state (hub, deploy, results, overlays) and clears the frame
+          the device rotates; a live run has its own portrait layout and is never gated.
+          Mouse-pointer windows are never gated. */}
       <RotateGate />
       {screen === 'menu' && purchaseNote && (
         <div className="purchase-note" role="status">
