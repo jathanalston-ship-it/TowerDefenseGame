@@ -5,10 +5,159 @@ import type { Release } from './types';
 /** Player-facing releases, newest first. */
 export const RELEASES: Release[] = [
   {
+    "id": "v2026.11.04",
+    "date": "2026-11-04",
+    "title": "Threat and Pacing",
+    "sealed": false,
+    "entries": [
+      {
+        "cat": "Gameplay",
+        "text": "New system: Threat Ladder",
+        "major": true
+      },
+      {
+        "cat": "Gameplay",
+        "text": "New system: Arena Layouts",
+        "major": true
+      },
+      {
+        "cat": "Gameplay",
+        "text": "New achievement: The Apex Horde Falls",
+        "major": true
+      },
+      {
+        "cat": "Gameplay",
+        "text": "New achievement: Into the Red",
+        "major": true
+      },
+      {
+        "cat": "Gameplay",
+        "text": "New achievement: Raised the Stakes",
+        "major": true
+      },
+      {
+        "cat": "Gameplay",
+        "text": "Campaign Stages 1–3 now rise in difficulty instead of trivial, trivial, wall"
+      },
+      {
+        "cat": "Gameplay",
+        "text": "New screens unlock gradually over your first ~10 hours instead of all at once"
+      },
+      {
+        "cat": "Gameplay",
+        "text": "Fewer currencies early (secondary wallets group as Materials), chore rewards auto-claim into Results, and badges only where there's a decision"
+      },
+      {
+        "cat": "UI",
+        "text": "Five side screens became tabs inside their host screens (31 → 26 menu destinations)"
+      },
+      {
+        "cat": "Gameplay",
+        "text": "Flanking and pincer layouts wait until Campaign Stage 11"
+      },
+      {
+        "cat": "UX",
+        "text": "Field Guide Skip works again; Champion Contracts and Boss Rush previews only appear once they're open"
+      },
+      {
+        "cat": "UI",
+        "text": "Phones: the Hive key shows a lock when it's off, and the Help chip is easier to tap"
+      }
+    ]
+  },
+  {
+    "id": "v2026.11.03",
+    "date": "2026-11-03",
+    "title": "The First Hour",
+    "sealed": true,
+    "entries": [
+      {
+        "cat": "UX",
+        "text": "One graduation reward at the end of onboarding — the HUD tour no longer pays a second, identical card"
+      },
+      {
+        "cat": "UX",
+        "text": "The combat tutorial follows a real run: callouts stay off the lane, the draft cards and your ability, and the HUD shows a truthful 2-wave count"
+      },
+      {
+        "cat": "UI",
+        "text": "After a run: one unlock summary instead of a stack of popups; achievement toasts wait their turn and collapse"
+      },
+      {
+        "cat": "Gameplay",
+        "text": "Advice never points at a locked screen, and no \"Under-Powered\" warning right after a flawless clear"
+      },
+      {
+        "cat": "Bosses",
+        "text": "Defeat debrief on Results — how close you were, what got through, one tip — and the real name of the boss you slew"
+      },
+      {
+        "cat": "UI",
+        "text": "A bigger board on every screen, plus dedicated portrait and landscape phone layouts for runs"
+      },
+      {
+        "cat": "Gameplay",
+        "text": "13 arena layouts — Campaign, Daily and Infinite now vary the battlefield"
+      },
+      {
+        "cat": "Gene Cards",
+        "text": "Rule Genes: 25 build-defining gene cards, and every draft guarantees one rule-changing card once you've earned one"
+      },
+      {
+        "cat": "Gameplay",
+        "text": "Hive Intelligence and Auto Gene now run only on content you've already cleared"
+      },
+      {
+        "cat": "Heroes",
+        "text": "Fixed hero max HP dropping after a Vitality upgrade; the readout never shows HP above max"
+      },
+      {
+        "cat": "UI",
+        "text": "Commissioning offers one clear guest choice"
+      },
+      {
+        "cat": "Performance",
+        "text": "Faster first load: screens load on demand, and the game works offline after your first visit"
+      },
+      {
+        "cat": "Backend",
+        "text": "Paid random containers can be switched off per region (Belgium and the Netherlands by default)"
+      },
+      {
+        "cat": "Website",
+        "text": "The ASSIMILATION wordmark fits on phones"
+      }
+    ]
+  },
+  {
+    "id": "v2026.07.21",
+    "date": "2026-07-21",
+    "title": "Update",
+    "sealed": true,
+    "entries": [
+      {
+        "cat": "UI",
+        "text": "Guided Unlocks: full-curve coverage — every taught wing walks you through itself"
+      }
+    ]
+  },
+  {
+    "id": "v2026.07.20",
+    "date": "2026-07-20",
+    "title": "Update",
+    "sealed": true,
+    "entries": [
+      {
+        "cat": "Gameplay",
+        "text": "Hive Intelligence: universal in-run best-upgrade executive + calendar test fixes"
+      }
+    ]
+  },
+  {
     "id": "v2026.07.19",
     "date": "2026-07-19",
     "title": "Update",
-    "sealed": false,
+    "sealed": true,
     "entries": [
       {
         "cat": "Gameplay",

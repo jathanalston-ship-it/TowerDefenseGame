@@ -355,3 +355,57 @@
 - `7825b3d` **[Gameplay]** Mega fight-timeline probe + organ drought valve: rebuild verdict grounded in numbers
 - `45cd4f8` **[Gameplay]** Mega dormancy: the organism burrows between waves, the raid bar greys out
 - `3902e9f` **[Visuals]** Mega dormancy identity layer: seven sleeping silhouettes over the burrow mound
+## 2026-07-20
+
+- `2cc95e2` **[Gameplay]** Hive Intelligence: universal in-run best-upgrade executive + calendar test fixes
+## 2026-07-21
+
+- `d92a0a2` **[UI]** Guided Unlocks: full-curve coverage — every taught wing walks you through itself
+## 2026-07-22
+
+- `e90009f` **[Gameplay]** De-flake infestation feed tests against the daily hotspot rotation _(internal)_
+- ⚑ `ba27458` **[Framework]** Release audit record: full validate PASS at the publishing checkpoint _(internal)_
+- `6390559` **[Balance]** Balance matrix refresh: post-integration loop health for the release audit _(internal)_
+## 2026-11-03
+
+- `5880385` **[Heroes]** Fix hero max HP dropping flat card HP on a Vitality buy
+- `3b91451` **[UX]** Onboarding: one graduation payout — merge the tour grant into the tutorial reveal
+- `8f770c3` **[UX]** Combat tutorial: natural lesson order, lane-safe callouts, truthful HUD
+- `cccf561` **[UI]** Commissioning: one clear guest choice on the SAFEGUARD step
+- `9781eb1` **[Gene Cards]** Rule Genes: 25 build-defining gene cards + the rule-slot draft guarantee
+- `3dc26b8` **[Bosses]** Sim: read-only defeat-debrief ledgers (hive damage by source, bosses slain by name) _(internal)_
+- `6af7132` **[Gameplay]** Guidance never points at a sealed wing; calm, honest deploy readiness
+- `09a9552` **[Website]** Site: fit the ASSIMILATION wordmark on phones; calendar-proof drift test
+- `1c14a37` **[Heroes]** Hero HP readout: never show current HP above max
+- `455712e` **[UX]** Tutorial overlay: stable bubbles, controls that never sit on the ability
+- `b77a150` **[UX]** Tutorial skip confirm: fixed width so its seat converges in one pass
+- `b9ba4af` **[UX]** Docs: onboarding flow, one graduation, desktop teaching contract _(internal)_
+- `d3368c5` **[UI]** Run layout v2: the board is the game on every device
+- `22f0fae` **[UX]** Tutorial controls: a seat must be on-screen and off the board
+- `4e7cca7` **[UX]** Tutorial: slot-tap lessons keep their bubble off the lane too
+- `63467b0` **[Bosses]** Results: defeat debrief and real boss names (Highest Threat, Apex Slayer)
+- `727270c` **[UI]** Calm post-run sequence: one unlock summary, held + collapsed toasts, fitted layouts
+- `c686f11` **[Performance]** Code-split hub screens + run views; precache lazy chunks in the service worker
+- `e30d621` **[Backend]** Store: region switch for paid random containers (BE/NL default)
+- `c10953b` **[Developer Tools]** Mobilecheck: walk the in-run phone layouts; document run layout v2 _(internal)_
+- `22b8ad1` **[Gameplay]** Automation gate on solved content + the Threat ladder (save v55)
+- `2140fa4` **[Gameplay]** Arena layouts as data: a registry of 13 battlefields, owned per Game
+- `6617888` **[Gene Cards]** Docs: threat.reward factor, director threat input, re-measured gene library band _(internal)_
+- `7a573d6` **[Developer Tools]** Probe: repeatable first-session playthrough with budgets + generated report _(internal)_
+## 2026-11-04
+
+- `7570763` **[Gameplay]** Hold the flank funnels and the pincer layout until campaign stage 11
+- ⚑ `0bede63` **[Framework]** Unlock summary glyph: keep the font size on the type scale (14px) _(internal)_
+- ⚑ `3bb1064` **[Framework]** Regenerate DIL and dependency graphs after merging tracks A1, A2, B, C2, E _(internal)_
+- `43a20f3` **[Gameplay]** Re-pace feature reveals across the first ~10 hours (stages 3-30)
+- `dd49806` **[UI]** Fold five side screens into host tabs (31 -> 26 nav destinations)
+- `0664615` **[Gameplay]** Molt cadence: re-measure, keep the knobs, pin the milestone contract in CI _(internal)_
+- `04a77c3` **[Gameplay]** Chores -> decisions: player-facing currencies, auto-claim, decision-only badges
+- `0ea0b7f` **[Gameplay]** Bound the campaign layout ladder for typed-in stage previews _(internal)_
+- `c7c021d` **[Gameplay]** Campaign Stages 1-3: a rising curve instead of trivial, trivial, wall
+- `4d4d308` **[Gene Cards]** GAME-STATE: save schema 55, 131 gene cards (73 gated, 31 rule-changing) _(internal)_
+- ⚑ `b91ecc9` **[Framework]** Regenerate DIL and dependency graphs after merging tracks C1 and D _(internal)_
+- `06b619b` **[Bosses]** Integration fixes: clickable Field Guide buttons, honest contracts/Boss Rush previews
+- `549ea71` **[Developer Tools]** Docs: bug-fix rows 17-44 and manifest sections for arena layouts, Threat, first-session probe _(internal)_
+- `18bce3e` **[Towers]** First-session probe: measure from navigation, place towers via the live board _(internal)_
+- `0226c97` **[Developer Tools]** Mobilecheck clean: phone Hive lock, tappable Help chip, walker reaches the draft lesson
