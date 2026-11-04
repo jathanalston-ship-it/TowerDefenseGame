@@ -3,7 +3,26 @@
 > Maintained at the END of every session (paired with `docs/AI_HANDOFF.md` — the constitution's
 > workflow step 4). This is the "where are we?" answer; `docs/GAME-STATE.md` remains the deeper
 > per-system built-vs-planned index, `docs/PROJECT_MANIFEST.md` the system map.
-> **Last updated:** 2026-07-20a (**HIVE INTELLIGENCE — UNIVERSAL IN-RUN
+> **Last updated:** 2026-11-04 (**FIRST-HOUR, RUN, META & PLATFORM PASS** — the 2026-11
+> player-experience review executed as seven tracks, merged + verified on
+> `claude/beautiful-feynman-qdyilo`). FIRST HOUR: one graduation reward
+> (`meta.grantOnboardingRewards`), a lane-safe 2-wave tutorial, one guest choice, ONE unlock
+> summary after run 1 (probe: 10 modals → 1), held/collapsed toasts, `unlocks.isOpenNav` as the
+> single guidance gate, calm readiness (`READINESS.warnBelow` 0.9), defeat debrief + real boss
+> names. RUN: run layout v2 (board-first on every device, portrait + landscape phones), 13
+> data-driven arena layouts (`core/mapLayouts.ts`, Game-owned `NavField`), rising Stage 1–3
+> curve (`CAMPAIGN_ONBOARDING`), 25 Rule Genes + guaranteed rule slot, automation only on solved
+> content (`automationGate`), Threat ladder (10 rungs, cosmetic rewards, save v55). META: reveals
+> S4→S30 (≤2/beat, grandfathered), `rewardVisibility.ts` + Materials chip, 26 nav rows (host
+> tabs), auto-claim into Results, decision-only badges, Molt cadence pinned. PLATFORM: lazy hub
+> screens (boot JS 820 → ~517 KB gzip, offline precache), paid random-container region switch
+> (BE/NL), `npm run probe:first-session` (all budgets pass). Integration fixes: Field Guide
+> buttons clickable, contracts/Boss Rush previews honest, phone Hive lock, probes find the
+> preinstalled Chromium. VALIDATION: typecheck clean, 2730/2730 tests, mobilecheck CLEAN,
+> validate PASS. Handoff: docs/AI_HANDOFF.md; map: GAME-STATE "First-hour, run, meta & platform
+> pass".)
+>
+> **2026-07-20a** (**HIVE INTELLIGENCE — UNIVERSAL IN-RUN
 > BEST-UPGRADE EXECUTIVE** (user-queued task #401). One HUD button, every Biomass sink,
 > power-first ranking, full manual control retained. ENGINE: `src/core/hivemind.ts` — pure
 > planner over a structural `HiveGame` interface (public Game members only; zero runtime
@@ -1108,6 +1127,11 @@ reactive integrity cell: UNDER ATTACK flag, ghost bar, ⚔ count, −DPS/s, surv
 - Hero abilities largely one-verb; roster of 3 caps team-comp depth (content, not systems).
 - Giant files: `src/core/game.ts`, `src/state/meta.ts`, `src/index.css` (ranked debt —
   `docs/ENGINEERING-AUDIT.md` §4).
+- Store compliance: Ichor bought with money and then spent on containers is not region-gated —
+  needs a human legal decision before launch (`docs/PREMIUM-STORE.md` §paid-loot-boxes).
+- Full-spender accounts still clear Campaign Stages 1–3 at 98–100 % integrity (the 60–90 % band
+  holds for the playtest persona — `src/state/campaignCurve.test.ts`).
+- Dead width-based in-run CSS remains in `src/index.css` under run layout v2.
 
 ## Upcoming milestones
 
