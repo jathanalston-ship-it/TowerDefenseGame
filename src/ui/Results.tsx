@@ -11,6 +11,7 @@ import type { RunOutcome, RunResult } from '../state/meta';
 import { DEBRIEF, MASTERY, HERO_DEFS, HERO_ORDER, TOWER_DEFS, TOWER_ORDER } from '../core/config';
 import { DOCTRINES } from '../core/doctrines';
 import { recommendedPowerScore } from '../core/campaign';
+import { MEGA_HUNT } from '../core/megaboss';
 import { rarityRank, rarityRegistry } from '../core/loot';
 import { defeatDebrief, highestThreat } from '../state/runDebrief';
 import type { DefeatDebrief } from '../state/runDebrief';
@@ -353,6 +354,46 @@ export function Results({
         : []),
     ],
   });
+
+  // 3b — THE MEGA HUNT (docs/MEGA-BOSS.md §hunt): any run that fought a Mega reads its wound, the
+  // lifetime hunt rank (organs ruptured — failed raids count) and the organ dossier. Ranks crossed
+  // this run already paid their Cores (inside shardsEarned); the row celebrates them.
+  const hunt = outcome.megaHunt;
+  if (hunt) {
+    const wound = MEGA_HUNT.wounds.find((w) => w.id === hunt.wound);
+    const tornPct = Math.round(hunt.hpTorn * 100);
+    categories.push({
+      id: 'mega-hunt',
+      title: 'Mega Hunt',
+      icon: wound?.icon ?? '◎',
+      accent: 'var(--viral)',
+      summary: `${hunt.name} — ${wound ? wound.name.toUpperCase() : 'UNTOUCHED'} · ${tornPct}% torn · Hunt Rank ${hunt.rank}${hunt.ranksGained > 0 ? ` (+${num(hunt.cores)} ${ACCOUNT_CURRENCY.name})` : ''}`,
+      stats: [
+        { id: 'hunt-wound', label: `${hunt.name} — ${wound ? wound.name : 'Untouched'}`, value: tornPct, format: (n) => `${n}% torn · ${hunt.organs} organ${hunt.organs === 1 ? '' : 's'} ruptured`, accent: 'var(--danger)', bar: hunt.hpTorn },
+        {
+          id: 'hunt-rank', label: 'Hunt Rank', value: hunt.rank, from: hunt.rank - hunt.ranksGained,
+          format: (n) => `RANK ${n} · ${num(hunt.lifetimeOrgans)}/${num(hunt.nextRankAt)} organs`,
+          accent: 'var(--viral)', celebrate: hunt.ranksGained > 0, bar: Math.min(1, hunt.lifetimeOrgans / Math.max(1, hunt.nextRankAt)),
+        },
+        ...(hunt.ranksGained > 0
+          ? [{ id: 'hunt-bounty', label: 'Hunt Bounty', value: hunt.cores, icon: <CurrencyIcon id="genomeCores" />, accent: 'var(--gold)', celebrate: true, cue: 'wpBreak' }]
+          : []),
+      ],
+      extra: (
+        <div className="mh-dossier">
+          <div className="mh-next">Next rank at {num(hunt.nextRankAt)} organs pays +{num(hunt.nextRankCores)} {ACCOUNT_CURRENCY.name} — every rupture counts, win or lose.</div>
+          <div className="mh-organs" aria-label={`${hunt.name} organ dossier`}>
+            {hunt.dossier.map((o) => (
+              <span key={o.kind} className={`mh-organ${o.known ? ' is-known' : ''}`} title={o.note}>
+                <b>{o.known ? o.name : 'Unknown organ'}</b>
+                <i>{o.note}</i>
+              </span>
+            ))}
+          </div>
+        </div>
+      ),
+    });
+  }
 
   // 4 — BIO-CONTAINERS
   categories.push({

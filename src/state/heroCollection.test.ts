@@ -6,7 +6,7 @@ import { defaultSave, serializeExport } from '../save/saveStore';
 import { parseImport } from '../save/saveStore';
 import { isHeroUnlocked, heroCollection, fieldedLoadout, meta } from './meta';
 import { HERO_DEFS } from '../core/config';
-import { powerItemLevel, rollItemForPower, RARITY_ORDER } from '../core/equipment';
+import { itemLevelForDepth, rollItemForDepth, RARITY_ORDER } from '../core/equipment';
 
 function mulberry32(seed: number): () => number {
   let a = seed >>> 0;
@@ -80,21 +80,27 @@ describe('Hero Collection unlock', () => {
   });
 });
 
-describe('power-scaled equipment acquisition', () => {
-  it('powerItemLevel is monotonic, floors at 1 for a fresh account, and caps (no spikes)', () => {
-    expect(powerItemLevel(1000)).toBe(1); // POWER_BASE ⇒ Common floor
-    expect(powerItemLevel(1000)).toBeLessThan(powerItemLevel(2500));
-    expect(powerItemLevel(2500)).toBeLessThan(powerItemLevel(5000));
-    expect(powerItemLevel(999999)).toBe(30); // hard cap
+describe('depth-scaled equipment acquisition (docs/EQUIPMENT.md §gear-chase)', () => {
+  it('itemLevelForDepth is monotonic, floors at 1 for a fresh account, and is UNCAPPED (no wall at 30)', () => {
+    expect(itemLevelForDepth(0)).toBe(1); // fresh account ⇒ i1
+    expect(itemLevelForDepth(10)).toBeLessThan(itemLevelForDepth(30));
+    expect(itemLevelForDepth(30)).toBeLessThan(itemLevelForDepth(100));
+    expect(itemLevelForDepth(100)).toBeGreaterThanOrEqual(33); // T6 affixes reachable deep (maxTierForIlvl)
+    expect(itemLevelForDepth(300)).toBeGreaterThan(40); // keeps climbing past the old cap of 30
+    for (let s = 1; s <= 400; s++) expect(itemLevelForDepth(s)).toBeGreaterThanOrEqual(itemLevelForDepth(s - 1));
+    // Infinite depth folds in at half weight — only when it reads deeper than the campaign.
+    expect(itemLevelForDepth(10, 100)).toBe(itemLevelForDepth(50));
+    expect(itemLevelForDepth(50, 20)).toBe(itemLevelForDepth(50));
   });
 
-  it('gear rarity scales UP with account Power Score (early Common → late better)', () => {
-    const avgRarity = (power: number): number => {
+  it('gear rarity scales UP with account depth (early Inert → deep Rampant/Apex-capable)', () => {
+    const avgRarity = (stage: number): number => {
       let sum = 0;
-      for (let seed = 1; seed <= 200; seed++) sum += RARITY_ORDER.indexOf(rollItemForPower(mulberry32(seed), power).rarity);
-      return sum / 200;
+      for (let seed = 1; seed <= 400; seed++) sum += RARITY_ORDER.indexOf(rollItemForDepth(mulberry32(seed), stage).rarity);
+      return sum / 400;
     };
-    expect(avgRarity(5000)).toBeGreaterThan(avgRarity(1000)); // stronger accounts pull rarer gear
+    expect(avgRarity(60)).toBeGreaterThan(avgRarity(5)); // deeper accounts pull rarer gear
+    expect(avgRarity(200)).toBeGreaterThan(avgRarity(60));
   });
 
   it('a container awards AT MOST ONE equipment item (never a flood)', () => {

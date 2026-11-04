@@ -39,7 +39,7 @@
 | **Gene Essence** | container drops (rarity-scaled, `GENE_ESSENCE` tables) + duplicate conversion + doctrine `essencePerWave × waves` | `openContainer` / `doctrineEconomy` |
 | **Tower/Hero Shards** | per-container rolls: `RARITIES[r].reward` (rolls × shard ranges × hero-shard chance; hero rolls biased toward locked heroes) | `rollLoot` |
 | **Crafting materials** | run-cache tables (mutagen/scrap; catalyst pity-protected) | `rollChest` |
-| **Equipment** | per container: `EQUIP_DROP_CHANCE`, item level from `powerItemLevel(powerScore)` — drops track account power | `rollItemForPower` |
+| **Equipment** | per container: `EQUIP_DROP_CHANCE`, item level from `itemLevelForDepth(stage, bestWave)` (log, uncapped — `ITEM_LEVEL_CURVE`), rarity from that level's band (`GEAR_RARITY_BANDS`) — docs/EQUIPMENT.md §gear-chase | `rollItemForDepth` |
 | **Biomass** (in-run) | bounty curves owned by the Difficulty Director (`waveBountyMult`/`endlessBountyMult`) × the player's build (`biomassMult`) | sim |
 | **Ascendant Cells** | on Molt: `⌊cellGain·√(cycleShards/cellScale)⌋`, gated by campaign stage | `cellsForCycle` |
 

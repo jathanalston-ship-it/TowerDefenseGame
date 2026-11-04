@@ -59,7 +59,7 @@ import { announcePower, onPowerGain } from './powerEvents';
 import { withPowerLogged } from './powerLog';
 import { ACHIEVEMENTS, achievementById, checkAchievements, rewardFor } from './achievements';
 import type { AchievementDef, RunSummary } from './achievements';
-import { ALL_ITEMS, CAPPED_GRANT_ITEMS, EQUIP_SLOTS, emptyLoadout, itemDef, loadoutEffects, rollItem, rollItemDrop, rollItemForPower, teamSetEffects } from '../core/equipment';
+import { ALL_ITEMS, CAPPED_GRANT_ITEMS, EQUIP_SLOTS, emptyLoadout, itemDef, loadoutEffects, rollItem, rollItemDrop, rollItemForDepth, teamSetEffects } from '../core/equipment';
 import type { EquipSlot, Loadout, OwnedItem } from '../core/equipment';
 import { ICHOR, ichorForAchievement, ichorForBossRecord, ichorForDepthRecord, marketWindow, nextRushIchorAt, rollIchorDrop, rollRushVaultRarity, rollStock, vaultsForBossRecord } from '../core/market';
 import type { MarketSlot } from '../core/market';
@@ -183,7 +183,7 @@ import type { CosmeticDef, CosmeticTheme } from '../core/cosmetics';
 import { BIOMES } from '../core/biomes';
 import { BIOME_REGION, recommendedPowerScore, stageWaveCount } from '../core/campaign';
 import { CHASSIS, bossDef } from '../core/boss';
-import { MEGA, megaBossDef, megaBossIchor, megaExpectedKillSec, megaKillEfficiency } from '../core/megaboss';
+import { MEGA, MEGA_HUNT, WEAK_POINT_DEFS, huntRank, huntRankAt, huntRankCores, huntWound, megaBossDef, megaBossIchor, megaExpectedKillSec, megaKillEfficiency } from '../core/megaboss';
 import type { MegaKillStat } from '../core/types';
 import { admitWrite, guardOk, noteClock, reportConflict, resetSecurity } from '../security/actionGuard';
 import { initTabArbiter, stampWriter, tabIsStale } from '../security/tabArbiter';
@@ -1789,6 +1789,42 @@ export interface CrackedContainer {
   color: string;
 }
 
+/** The Mega Hunt read on Results (docs/MEGA-BOSS.md §hunt). */
+export interface MegaHuntOutcome {
+  defId: string;
+  name: string;
+  hpTorn: number; // 0..1 share of the organism's max HP torn away (1 = slain)
+  organs: number; // organs ruptured in that encounter
+  wound: string | null; // MEGA_HUNT.wounds id reached (null = untouched)
+  rank: number; // lifetime hunt rank after this run
+  ranksGained: number; // ranks this run's ruptures crossed (each paid once)
+  cores: number; // Genome Cores those ranks paid (already in reward.shardsEarned)
+  lifetimeOrgans: number;
+  nextRankAt: number; // lifetime organs the next rank needs
+  nextRankCores: number; // what the next rank will pay at today's frontier (preview == outcome)
+  dossier: { kind: string; name: string; note: string; known: boolean }[]; // the def's organ kinds
+}
+
+/** The Mega Hunt outcome for a run's mega encounter — pure over the post-run save. */
+export function megaHuntOutcome(save: SaveData, read: NonNullable<RunStats['megaHunt']>, ranksGained: number, cores: number): MegaHuntOutcome {
+  const def = megaBossDef(read.defId);
+  const organsLife = save.megaProgress.weakPoints;
+  const rank = huntRank(organsLife);
+  const known = new Set(save.megaProgress.wpKinds);
+  const kinds = [...new Set((def?.weakPoints ?? []).map((w) => w.kind))];
+  const dossier = kinds.map((k) => {
+    const wd = WEAK_POINT_DEFS[k];
+    const seen = known.has(k) || rank >= MEGA_HUNT.dossierRank;
+    return { kind: k, name: wd.name, note: seen ? wd.hudNote : '??? — rupture it to learn what it does', known: seen };
+  });
+  return {
+    defId: read.defId, name: def?.name ?? read.defId, hpTorn: read.hpTorn, organs: read.organs,
+    wound: huntWound(read.hpTorn, read.organs)?.id ?? null,
+    rank, ranksGained, cores, lifetimeOrgans: organsLife, nextRankAt: huntRankAt(rank + 1),
+    nextRankCores: huntRankCores(highestCampaignStage(save) + 1), dossier,
+  };
+}
+
 /** Everything a finished run grants — the Results screen renders all of it. The run-end
  * cache and loot-queue boxes are NOT opened here: they bank into the Genetic Vault (loot.banked)
  * for the player to crack open manually. */
@@ -1815,6 +1851,10 @@ export interface RunOutcome {
   // Boss Rush lifetime-record bands (docs/BOSS-RUSH.md §ichor): this run's band payouts + the
   // updated record and the next Ichor milestone — the Results progress line. Absent off-rush.
   rushProgress?: { bossKills: number; bestBoss: number; nextIchorAt: number; ichor: number; vaults: number; newRecordBosses: number };
+  // THE MEGA HUNT (docs/MEGA-BOSS.md §hunt): the run's last mega encounter — its wound (share of max
+  // HP torn, organs, wound tier), the lifetime hunt rank this run's ruptures reached + the Cores its
+  // crossed ranks paid, and the organ dossier (ruptured-ever kinds named). Absent when no mega fought.
+  megaHunt?: MegaHuntOutcome;
   // Daily Run (docs/DAILY-RUN.md): this run's daily outcome — the once-per-day clear reward (0 on a
   // replay/loss) and the updated streak. Absent off-daily.
   dailyProgress?: { cores: number; streak: number; cleared: boolean };
@@ -2572,6 +2612,13 @@ export const meta = {
       for (let i = 0; i < vaults; i++) rushVaultBank.push({ kind: 'loot', rarity: rollRushVaultRarity(Math.random) });
     }
     const rushLootBonus = isRush ? Math.round(RUSH.lootPerBoss * bossKills * econDiff.containerRateMult * asc.lootGainMult) : 0;
+    // THE MEGA HUNT (docs/MEGA-BOSS.md §hunt): the lifetime organ ledger was advanced LIVE by this
+    // run's ruptures (megaWeakPointDown), so the ranks it crossed span (after − this run's organs) →
+    // after. Each crossed rank pays its Core bounty ONCE — crossing semantics over a monotonic
+    // counter, no claim ledger (no save field). A FAILED raid's ruptures count.
+    const huntOrgansAfter = save.megaProgress.weakPoints;
+    const huntRanksGained = huntRank(huntOrgansAfter) - huntRank(Math.max(0, huntOrgansAfter - (result.stats.weakPointsDestroyed ?? 0)));
+    const huntCores = huntRanksGained > 0 ? huntRanksGained * huntRankCores(highestCampaignStage(save) + 1) : 0;
 
     // Daily Run (docs/DAILY-RUN.md §rewards): ledger + the ONCE-per-day clear reward. The clear pays
     // Genome Cores exactly once per UTC day (rewardedKey gate) with a capped consecutive-day streak
@@ -2697,7 +2744,7 @@ export const meta = {
     }).total() * researchBoost.coresMult
       // LiveOps spotlight weeks: the live mode's lane gets its window multiplier.
       * (result.bossRush ? lo.rushShardMult : result.endless ? lo.endlessShardMult : result.campaignStage !== undefined ? lo.campaignShardMult : 1)
-    ) + firstClearBonus + attemptBonus + rushCoreBonus + dailyCoreBonus + contractCores;
+    ) + firstClearBonus + attemptBonus + rushCoreBonus + dailyCoreBonus + contractCores + huntCores;
     // Boss Rush keeps its OWN depth record (rush waves are dense, short numbers — folding them
     // into the Infinite record would warp that mode's qualify gate + prediction floor).
     // Mode-scoped records: Boss Rush + Daily keep their OWN depth ledgers — neither pollutes the
@@ -2738,7 +2785,7 @@ export const meta = {
     const infiniteQualifyWave = result.endless
       ? Math.floor(save.bestWave * INFINITE_REWARD_QUALIFY_FRAC)
       : isRush
-        ? Math.floor(save.rushBestWave * INFINITE_REWARD_QUALIFY_FRAC) // Boss Rush inherits the same anti-farm rule, keyed to ITS record
+        ? Math.floor(Math.min(save.rushBestWave, RUSH.qualifyRecordCap) * INFINITE_REWARD_QUALIFY_FRAC) // Boss Rush inherits the same anti-farm rule, keyed to ITS record (capped — docs/BOSS-RUSH.md §wall)
         : 0;
     const cacheEligible = result.endless || isRush ? result.wave >= infiniteQualifyWave : isCampaign ? result.won : true;
     // Infinite also forfeits its loot when short; campaign/quick keep loot earned by progress (only the
@@ -3080,6 +3127,7 @@ export const meta = {
             newRecordBosses: Math.max(0, bossKills - save.rushBestBoss), // Bio-Roulette's record spore lane
           } }
         : {}),
+      ...(result.stats.megaHunt ? { megaHunt: megaHuntOutcome(store.get(), result.stats.megaHunt, huntRanksGained, huntCores) } : {}),
       ...(isDaily ? { dailyProgress: { cores: dailyCoreBonus, streak: nextDaily.streak, cleared: result.won } } : {}),
       ...(contractHits.length > 0 ? { contracts: contractHits.map((c) => ({ id: c.id, name: c.name, cores: c.reward.cores, cosmetic: c.reward.cosmetic })) } : {}),
       ...(questMissions.length > 0 ? { questMissions } : {}),
@@ -3276,13 +3324,13 @@ export const meta = {
       persist({ ...save, pendingContainers: rest });
       return null;
     }
-    // Unified equipment drop (docs/EQUIPMENT.md): ~50% chance per container, AT MOST ONE item, rarity
-    // scaled to the account Power Score (early Common → late Legendary/Exotic; no run-depth spikes).
-    // Folded into the reveal (chest.items/equipment) + inventory here so BOTH container kinds award
-    // gear identically — equipment no longer drops per-roll from the chest pools.
+    // Unified equipment drop (docs/EQUIPMENT.md §gear-chase): ~50% chance per container, AT MOST ONE
+    // item, stamped with the account's DEPTH item level (uncapped log curve) and rolled from that
+    // level's rarity band. Folded into the reveal (chest.items/equipment) + inventory here so BOTH
+    // container kinds award gear identically — equipment no longer drops per-roll from the chest pools.
     const power = composePower(accountPowerParts(save)).score;
     if (Math.random() < EQUIP_DROP_CHANCE) {
-      const item = rollItemForPower(Math.random, power);
+      const item = rollItemForDepth(Math.random, highestCampaignStage(save), save.bestWave);
       // FIRST DISCOVERY (docs/LOOTBOX.md §opening-flow): the def isn't in the inventory yet —
       // the collection's own "discovered" definition. Each open persists before the next, so
       // the second copy in a multi-open batch is correctly NOT new.

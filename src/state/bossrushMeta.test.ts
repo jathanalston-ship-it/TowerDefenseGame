@@ -69,6 +69,16 @@ describe('Boss Rush meta rewards (docs/BOSS-RUSH.md)', () => {
     expect(hasCache(ok.loot.banked)).toBe(true);
   });
 
+  it('a pre-wall veteran record never locks the containers: the gate keys to min(record, qualifyRecordCap)', () => {
+    freshMeta();
+    meta.finishRun(makeResult({ wave: 36, kills: 900, bossRush: true }, 600)); // an old uncapped-stall record
+    const capped = Math.floor(RUSH.qualifyRecordCap * 0.5);
+    const short = meta.finishRun(makeResult({ wave: capped - 1, kills: 30, bossRush: true }, 10));
+    expect(short.rewardBlocked).toEqual({ reason: 'rush-short', qualifyWave: capped });
+    const ok = meta.finishRun(makeResult({ wave: capped, kills: 40, bossRush: true }, 20)); // walled at the new curve — still banks
+    expect(ok.rewardBlocked).toBeUndefined();
+  });
+
   it('non-rush runs leave every rush ledger untouched', () => {
     freshMeta();
     meta.finishRun(makeResult({ wave: 30, kills: 300, endless: true }, 4)); // endless boss kills ≠ rush kills

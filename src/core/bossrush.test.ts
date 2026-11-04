@@ -4,7 +4,7 @@
 
 import { describe, it, expect } from 'vitest';
 import { Game } from './game';
-import { RUSH, SIM_DT } from './config';
+import { RUSH, SIM_DT, rushStrength } from './config';
 import { towerSlots } from './map';
 import type { MetaModifiers, TowerKind } from './types';
 
@@ -126,5 +126,55 @@ describe('Boss Rush mode (docs/BOSS-RUSH.md)', () => {
     expect(until(g, () => g.phase === 'prep' || g.phase === 'draft', 300)).toBe(true);
     expect(g.getRunStats().bossKills).toBe(0);
     expect(g.getSnapshot().bossRush).toBe(false);
+  });
+});
+
+// THE WALL (docs/BOSS-RUSH.md §wall, 2026-11): a geometric column past geoFromWave, sized to the
+// account's Power, and a column that doesn't wait for a board that can't keep pace.
+describe('Boss Rush — the wall', () => {
+  it('the column strength eases in, climbs linearly, then grows geometrically (uncapped)', () => {
+    expect(rushStrength(1)).toBeCloseTo(RUSH.strengthBase, 9);
+    expect(rushStrength(4)).toBeCloseTo(1, 9); // ×1 at wave 4 (the probe-tuned anchor)
+    for (let n = 2; n <= 30; n++) expect(rushStrength(n)).toBeGreaterThan(rushStrength(n - 1));
+    const g = RUSH.geoFromWave;
+    expect(rushStrength(g + 1) / rushStrength(g)).toBeCloseTo(RUSH.geoGrowth, 9);
+    expect(rushStrength(g + 6) / rushStrength(g + 5)).toBeCloseTo(RUSH.geoGrowth, 9);
+  });
+
+  it('boss HP is sized to the account: ×1 through the opening duels, ×(P/ref)^exp from powerRampTo', () => {
+    const bossHpAt = (rushPower: number | undefined, depth: number): number => {
+      const g = new Game(5, TANKY_META, undefined, undefined, undefined, { mode: 'bossRush', ...(rushPower !== undefined ? { rushPower } : {}) });
+      (g as unknown as { waveIndex: number }).waveIndex = depth - 1;
+      g.startWave();
+      g.advance(SIM_DT); // the column's first boss deploys immediately
+      return g.enemies.find((e) => e.boss !== null)!.maxHp;
+    };
+    const strong = RUSH.powerRef * 16;
+    expect(bossHpAt(strong, 1)).toBeCloseTo(bossHpAt(undefined, 1), 6); // the warm-up is never sized
+    expect(bossHpAt(RUSH.powerRef, RUSH.powerRampTo)).toBeCloseTo(bossHpAt(undefined, RUSH.powerRampTo), 6); // omitted ⇒ the reference
+    expect(bossHpAt(strong, RUSH.powerRampTo) / bossHpAt(undefined, RUSH.powerRampTo)).toBeCloseTo(Math.pow(16, RUSH.powerExp), 4);
+    // Every other mode ignores rushPower.
+    const stage = new Game(5, TANKY_META, undefined, undefined, undefined, { mode: 'stage', rushPower: strong });
+    expect((stage as unknown as { rushHpScale: number }).rushHpScale).toBe(1);
+  });
+
+  it("the column doesn't wait: past its grace window the next column marches in on top — no prep, nothing dropped", () => {
+    const g = rushGame(9);
+    g.startWave(); // wave 1: one boss, no board to kill it
+    expect((g as unknown as { rushColumnDue: number }).rushColumnDue).toBeCloseTo(g.time + RUSH.columnGraceSec, 6); // 1 boss ⇒ no stagger span
+    g.advance(SIM_DT);
+    expect(g.enemies.some((e) => e.alive && e.boss !== null)).toBe(true);
+    expect(until(g, () => g.waveIndex === 2 || g.phase !== 'wave', RUSH.columnGraceSec + 2)).toBe(true);
+    expect(g.waveIndex).toBe(2); // the board never cleared wave 1 — the next column came anyway
+    expect(g.phase).toBe('wave'); // straight on top — no prep, no draft between
+    expect(g.getSnapshot().anticipation.some((a) => a.includes('marches in'))).toBe(true);
+    // Wave 2's two bosses arrive on the stagger beside whatever still stands.
+    let deployed = 0;
+    const seen = new Set<number>(g.enemies.filter((e) => e.boss !== null).map((e) => e.id));
+    until(g, () => {
+      for (const e of g.enemies) if (e.boss !== null && !seen.has(e.id)) { seen.add(e.id); deployed++; }
+      return deployed >= 2;
+    }, RUSH.bossStagger * 2 + 1);
+    expect(deployed).toBeGreaterThanOrEqual(2);
   });
 });

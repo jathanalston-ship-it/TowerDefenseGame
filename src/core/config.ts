@@ -2878,8 +2878,30 @@ chestRegistry.registerAll(Object.values(CHESTS));
 export const RUN_CHEST = 'standard';
 
 /** Probability that cracking a container ALSO yields equipment (docs/EQUIPMENT.md). At most ONE item
- *  per container; its rarity scales with the account Power Score (not run depth). Centralized tunable. */
+ *  per container; its item level + rarity band follow the account's DEPTH (ITEM_LEVEL_CURVE). Centralized tunable. */
 export const EQUIP_DROP_CHANCE = 0.5;
+
+/** THE GEAR CHASE (docs/EQUIPMENT.md §gear-chase, 2026-11): a container drop's ITEM LEVEL derives from the
+ *  account's DEPTH — the deepest cleared Campaign stage, or Infinite's best wave × `infiniteWeight` when
+ *  that reads deeper — on a LOG curve with NO cap: ilvl = 1 + perLn × ln(1 + depth / depthScale).
+ *  Stage 10 ≈ i10 · 30 ≈ i20 · 60 ≈ i27 · 100 ≈ i33 (T6 affixes, maxTierForIlvl) · 150 ≈ i38 · 300 ≈ i47:
+ *  every band of play raises the ceiling and the curve never flattens into a wall. Replaced the
+ *  Power-linear ilvl that capped at 30 by ≈ hour 3 and froze the chase (BALANCE_ARCHITECTURE §10). */
+export const ITEM_LEVEL_CURVE = { perLn: 13.5, depthScale: 10, infiniteWeight: 0.5 };
+
+/** Rarity odds per ITEM-LEVEL BAND (docs/EQUIPMENT.md §gear-chase). A row covers item levels from
+ *  `fromIlvl` up to the next row (8-level bands = the affix-tier ceilings). `common…legendary` are
+ *  RELATIVE weights; `exotic` is the ABSOLUTE chance the drop is an Apex (hand-designed fixed item).
+ *  Deeper bands lift the rare tail without ever making Rampant/Apex routine (≈ 1 per hour mid-game,
+ *  ≈ 2 per hour deep — was 4–6 per hour in EVERY band). One row per band; append to extend. */
+export const GEAR_RARITY_BANDS: readonly { fromIlvl: number; common: number; rare: number; epic: number; legendary: number; exotic: number }[] = [
+  { fromIlvl: 1, common: 70, rare: 26, epic: 4, legendary: 0, exotic: 0 },
+  { fromIlvl: 9, common: 56, rare: 32, epic: 10, legendary: 2, exotic: 0.005 },
+  { fromIlvl: 17, common: 45, rare: 34, epic: 16.5, legendary: 4.5, exotic: 0.01 },
+  { fromIlvl: 25, common: 37, rare: 35, epic: 21, legendary: 7, exotic: 0.015 },
+  { fromIlvl: 33, common: 31, rare: 34, epic: 25, legendary: 10, exotic: 0.025 },
+  { fromIlvl: 41, common: 27, rare: 33, epic: 28, legendary: 12, exotic: 0.03 },
+];
 
 /** Crafting-material drop from a container (docs/EQUIPMENT.md §Materials) — the SECONDARY source,
  *  deliberately below EQUIP_DROP_CHANCE so equipment stays the primary crafting feeder. At most one
@@ -2935,15 +2957,43 @@ export const RUSH = {
   bossStagger: 2.6, // seconds between boss deployments inside a wave (a readable siege COLUMN, not a wall)
   escortKeepEvery: 2, // keep every Nth scheduled escort spawn — the chaff is a screen, the bosses ARE the wave
   draftEvery: 2, // Gene Card draft cadence: every 2nd cleared wave (denser than deep Infinite, leaner than Campaign)
-  corePerBoss: 2, // run-end Genome Cores per boss defeated — the mode's primary payout lane …
-  lootPerBoss: 18, // … + loot points per boss defeated (secondary lane; both scale ~N² with depth)
-  // Strength curve (probe-tuned): boss HP + contact damage × min(cap, base + perWave·(N−1)).
-  // One curve does both jobs — waves 1–3 field REDUCED bosses (a stage-finale boss vs an opening
-  // board is a coin-flip wipe) and deep columns OVERLOAD past ×1 so a wall always forms (TL alone
-  // saturates: modules/phases cap and its bounty used to self-fund the defense).
+  corePerBoss: 3, // run-end Genome Cores per boss defeated — the mode's primary payout lane …
+  lootPerBoss: 27, // … + loot points per boss defeated (secondary lane; both scale ~N² with depth). ×1.5 with
+  // THE WALL (§wall, 2026-11): runs now end at waves 8–12 in minutes instead of stalling for 30 — per-minute
+  // pay holds the old band without the stalemate farm (docs/BOSS-RUSH.md §wall table).
+  // Strength curve (probe-tuned; THE WALL 2026-11, docs/BOSS-RUSH.md §wall): boss HP + contact
+  // damage × (base + perWave·(min(N, geoFromWave) − 1)) × geoGrowth^max(0, N − geoFromWave).
+  // Waves 1–3 field REDUCED bosses (a stage-finale boss vs an opening board is a coin-flip wipe);
+  // the linear climb reaches ×2.2 at wave 10, then the column grows GEOMETRICALLY — the old ×2.6
+  // cap let built accounts cruise to wave 30+ at full integrity until the 30-minute cap.
   strengthBase: 0.4, // wave 1 bosses at 40% …
-  strengthPerWave: 0.2, // … +20%/wave → ×1.0 at wave 4, then keeps climbing …
-  strengthCap: 2.6, // … to ×2.6 (~wave 12+)
+  strengthPerWave: 0.2, // … +20%/wave → ×1.0 at wave 4 → ×2.2 at wave 10 …
+  geoFromWave: 10, // … then GEOMETRIC past this wave …
+  geoGrowth: 1.25, // … ×1.25 per wave, uncapped (HP; contact damage still stops at damageCap)
+  // Sized to the ACCOUNT (§wall): boss HP × S^t, S = clamp((Power Score / powerRef)^powerExp,
+  // powerScaleMin, ∞), t ramping 0 → 1 across waves powerRampFrom → powerRampTo (geometric blend):
+  // the opening duels stay the warm-up every account breezes, the column catches up to the account by
+  // wave 10, then the geometric climb walls it. powerRef ≈ the median account at the Stage-12 unlock
+  // (progression sim: ~15k at ~1h) so a fresh gauntlet reads the probe-tuned curve; powerExp < 1 keeps
+  // Power meaningful — a 37× account goes a few waves deeper, not 30. RunOptions.rushPower carries
+  // the Power the run starts at.
+  powerRef: 15000,
+  powerExp: 0.75,
+  powerScaleMin: 0.5,
+  powerRampFrom: 4,
+  powerRampTo: 10,
+  // THE COLUMN DOESN'T WAIT (§wall): this long after a wave's LAST boss deploys, the next column
+  // marches in on top of whatever still stands (no prep, no draft) — a board that can't keep pace
+  // is buried instead of stalling a 30-minute stalemate.
+  columnGraceSec: 28,
+  // The Boss Rush PREDICTION (core/predict.ts predictBossRush), fit to the §wall measurement (real runs,
+  // 5 progression-sim accounts × 5 seeds): the sized column walls every account near wave 10, Power
+  // buying only a sliver more — reach ≈ predictWall + predictPerDoubling × log2(Power / powerRef).
+  predictWall: 10,
+  predictPerDoubling: 0.15,
+  // The rush-short qualify gate keys to min(record, qualifyRecordCap): a pre-wall veteran record
+  // (wave 30+ under the old uncapped-stall curve) must not lock the gauntlet's containers forever.
+  qualifyRecordCap: 14,
   // Stamina (docs/BOSS-RUSH.md §stamina): the gauntlet's session pacing. Lazy-computed —
   // nothing ticks; the value derives from (stored value, updatedAt) on read.
   staminaMax: 100, // regen ceiling …
@@ -2954,6 +3004,14 @@ export const RUSH = {
   openingBiomass: 170, // extra starting biomass — the hive fortifies BEFORE the first column (a boss duel needs a real board, probe-verified)
   bossBounty: 95, // FLAT biomass per rush boss — TL-scaled bounty made every difficulty lever self-funding (the column paid for the board that kills it); flat pay ⇒ income grows with N, costs grow with N×TL ⇒ a real wall forms (probe)
 };
+
+/** Boss Rush column strength at a depth (docs/BOSS-RUSH.md §wall) — the linear ease-in to
+ *  RUSH.geoFromWave, then ×geoGrowth per wave. The ONE formula the sim (game.startBossRushWave)
+ *  and the docs read. Pure. */
+export function rushStrength(depth: number): number {
+  const n = Math.max(1, depth);
+  return (RUSH.strengthBase + RUSH.strengthPerWave * (Math.min(n, RUSH.geoFromWave) - 1)) * Math.pow(RUSH.geoGrowth, Math.max(0, n - RUSH.geoFromWave));
+}
 
 // ── Daily Run (docs/DAILY-RUN.md) — the fourth pillar: one deterministic seed per UTC day
 // generates the SAME 20-wave run worldwide. A rolled biome, a seeded boss roster/order, TWO

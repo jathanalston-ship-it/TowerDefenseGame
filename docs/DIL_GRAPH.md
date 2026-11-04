@@ -1,6 +1,6 @@
 # DIL_GRAPH.md — the Design Intelligence Layer (GENERATED — `npm run dil -- regen`)
 
-> **The project's brain** (docs/DIL.md). 960 nodes · 1846 edges, built from the live
+> **The project's brain** (docs/DIL.md). 961 nodes · 1851 edges, built from the live
 > registries + curated knowledge (src/dev/dil/). **Query it instead of searching the repo:**
 > `npm run dil -- node <id>` · `affects <id>` · `requires <id>` · `missing <kind> <edge>` ·
 > `checklist tower <kind>` · `find <text>`. Edge kinds are bidirectional (19 kinds).
@@ -22,7 +22,7 @@
 
 ### Economy / Reward Index
 
-`currency:biomass` · `currency:genome-cores` · `currency:tower-shards` · `currency:hero-shards` · `currency:gene-essence` · `currency:materials` · `currency:stamina` · `currency:ichor` · `system:campaign` · `system:infinite` · `system:boss-rush` · `system:daily` · `system:loot` · `system:daily-login` · `system:achievements` · `system:directives` · `system:expeditions` · `system:doctrines` · `enemy:runner` · `enemy:mite` · `enemy:husk` · `enemy:flea` · `enemy:mold` · `enemy:skulker` · `enemy:larva` · `enemy:rusher` · `enemy:darter` · `enemy:lasher` · `enemy:brute` · `enemy:tank` · `enemy:golem` · `enemy:colossus` · `enemy:bulwark` · `enemy:warden` · `enemy:knitter` · `enemy:revenant` · `enemy:burrower` · `enemy:molerat` · `enemy:flyer` · `enemy:wisp` · `enemy:gargoyle` · `enemy:cystwraith` · `enemy:broodmother` · `enemy:hivecaller` · `enemy:mender` · `enemy:cantor` · `enemy:bomber` · `enemy:popper` · `enemy:sapper` · `enemy:cataclyst` · `enemy:siegeworm` · `enemy:spitter` · `enemy:stratovore` · `enemy:broodweaver` · `enemy:zealot` · `enemy:carrier` · `enemy:entrencher` · `enemy:oracle` · `enemy:glutling` · `enemy:apex` · …134 more
+`currency:biomass` · `currency:genome-cores` · `currency:tower-shards` · `currency:hero-shards` · `currency:gene-essence` · `currency:materials` · `currency:stamina` · `currency:ichor` · `system:campaign` · `system:infinite` · `system:boss-rush` · `system:daily` · `system:loot` · `system:daily-login` · `system:achievements` · `system:directives` · `system:expeditions` · `system:mega-bosses` · `system:doctrines` · `enemy:runner` · `enemy:mite` · `enemy:husk` · `enemy:flea` · `enemy:mold` · `enemy:skulker` · `enemy:larva` · `enemy:rusher` · `enemy:darter` · `enemy:lasher` · `enemy:brute` · `enemy:tank` · `enemy:golem` · `enemy:colossus` · `enemy:bulwark` · `enemy:warden` · `enemy:knitter` · `enemy:revenant` · `enemy:burrower` · `enemy:molerat` · `enemy:flyer` · `enemy:wisp` · `enemy:gargoyle` · `enemy:cystwraith` · `enemy:broodmother` · `enemy:hivecaller` · `enemy:mender` · `enemy:cantor` · `enemy:bomber` · `enemy:popper` · `enemy:sapper` · `enemy:cataclyst` · `enemy:siegeworm` · `enemy:spitter` · `enemy:stratovore` · `enemy:broodweaver` · `enemy:zealot` · `enemy:carrier` · `enemy:entrencher` · `enemy:oracle` · `enemy:glutling` · …135 more
 
 ### Power Score Index
 
@@ -34,7 +34,7 @@
 
 ### Teaching Index
 
-`tutorial:combat` · `help:mission-control` · `help:hive-intel` · `help:evolution-roadmap` · `help:power-advisor` · `help:field-guides` · `help:hive-core` · `help:biomorph-conveyor` · `help:strain-evolution` · `help:boss-sieges` · `help:boss-rush` · `help:bio-roulette` · `help:gene-essence` · `help:field-research` · `help:splice-market` · `help:auction-house` · `help:daily-login` · `help:hive-construction` · `help:gene-archive` · `help:gene-loadout` · `help:biomass` · `help:wave-rhythm` · `help:game-speed` · `help:emergency-defense` · `help:power-score` · `help:account-level` · `help:genome-rank` · `help:towers` · `help:tower-stars` · `help:tower-mastery` · `help:blockers` · `help:mastery-evolution` · `help:tower-branches` · `help:adaptation` · `help:mulligans` · `help:nucleus` · `help:gene-cards` · `help:splice` · `help:heroes` · `help:hero-evolution` · `help:hero-slots` · `help:equipment` · `help:equipment-reforge` · `help:gear-codex` · `help:genome-core` · `help:prestige` · `help:ascension` · `help:containers` · `help:loot-meter` · `help:collection-codex` · `help:phenotype-lab` · `help:idle-harvest` · `help:metabolism` · `help:specimens` · `help:arena` · `help:expeditions` · `help:quests` · `help:season-pass` · `help:premium-store` · `help:campaign` · …31 more
+`tutorial:combat` · `help:mission-control` · `help:hive-intel` · `help:evolution-roadmap` · `help:power-advisor` · `help:field-guides` · `help:hive-core` · `help:biomorph-conveyor` · `help:strain-evolution` · `help:boss-sieges` · `help:boss-rush` · `help:bio-roulette` · `help:gene-essence` · `help:field-research` · `help:splice-market` · `help:auction-house` · `help:daily-login` · `help:hive-construction` · `help:gene-archive` · `help:gene-loadout` · `help:biomass` · `help:wave-rhythm` · `help:game-speed` · `help:emergency-defense` · `help:power-score` · `help:account-level` · `help:genome-rank` · `help:towers` · `help:tower-stars` · `help:tower-mastery` · `help:blockers` · `help:mastery-evolution` · `help:tower-branches` · `help:adaptation` · `help:mulligans` · `help:nucleus` · `help:gene-cards` · `help:splice` · `help:heroes` · `help:hero-evolution` · `help:hero-slots` · `help:equipment` · `help:equipment-reforge` · `help:gear-codex` · `help:genome-core` · `help:prestige` · `help:ascension` · `help:containers` · `help:loot-meter` · `help:mega-hunt` · `help:collection-codex` · `help:phenotype-lab` · `help:idle-harvest` · `help:metabolism` · `help:specimens` · `help:arena` · `help:expeditions` · `help:quests` · `help:season-pass` · `help:premium-store` · …32 more
 
 ### Testing Index
 
@@ -136,6 +136,7 @@ graph LR
   system_nucleus["Nucleus Mulligans"] -->|modifies| system_rendering["Rendering & VFX"]
   system_mulligans["Mulligan System"] -->|consumes| currency_gene_essence["Gene Essence"]
   system_equipment["Equipment & Armory"] -->|consumes| currency_materials["Materials (mutagen/scrap/catalyst)"]
+  system_mega_bosses["Mega Bosses"] -->|rewards| currency_genome_cores["Genome Cores (◆)"]
   system_meta_store["Meta Store & Save"] -->|consumes| currency_genome_cores["Genome Cores (◆)"]
   system_splice_market["Splice Market & Ichor"] -->|modifies| currency_materials["Materials (mutagen/scrap/catalyst)"]
   system_hub_shell["Hub Shell & Home"] -->|consumes| system_campaign["Campaign"]
@@ -537,6 +538,9 @@ graph LR
   system_daily_login["Daily Bio-Cache (login streak)"] -->|provides| system_genome_rank["Genome Rank (ultimate mastery ladder)"]
   system_daily_login["Daily Bio-Cache (login streak)"] -->|provides| system_collection["Collections / Codex"]
   system_boss_rush["Boss Rush"] -->|provides| system_hub_shell["Hub Shell & Home"]
+  system_equipment["Equipment & Armory"] -->|dependsOn| system_campaign["Campaign"]
+  system_campaign["Campaign"] -->|dependsOn| system_mega_bosses["Mega Bosses"]
+  system_boss_rush["Boss Rush"] -->|dependsOn| system_power["Power Score"]
   system_hub_shell["Hub Shell & Home"] -->|consumes| system_campaign["Campaign"]
   system_living_battlefield["Living Battlefield"] -->|consumes| system_assimilation["Assimilation Index"]
   system_account_level["Account Level (evergreen meta-progression)"] -->|provides| system_loot["Loot & Bio-Containers"]
@@ -778,7 +782,7 @@ The permanent meta currency — genome upgrades, rewards, achievement payouts.
   - rewardedBy ← `achievement:specialist` — +25 on unlock
   - rewardedBy ← `achievement:mulligan_grafted` — +25 on unlock
   - rewardedBy ← `achievement:mulligan_splicer` — +40 on unlock
-  - _…124 more (query: `npm run dil -- node currency:genome-cores`)_
+  - _…125 more (query: `npm run dil -- node currency:genome-cores`)_
 
 ### `currency:tower-shards` — Tower Shards (✦)
 
@@ -941,7 +945,7 @@ _at: src/core/power.ts, src/state/itemPower.ts, src/state/powerEvents.ts, src/st
   - requiredBy ← `system:nucleus`
   - requiredBy ← `system:hero-symbiotes`
   - requiredBy ← `system:profile`
-  - _…25 more (query: `npm run dil -- node system:power`)_
+  - _…26 more (query: `npm run dil -- node system:power`)_
 
 ### `system:campaign` — Campaign
 
@@ -958,6 +962,7 @@ _at: src/core/campaign.ts, src/core/campaignEvents.ts, src/core/hash.ts, src/ui/
   - consumes → `system:meta-store` — owns save field 'campaign'
   - rewards → `currency:genome-cores` — first-clear + stage rewards
   - rewards → `currency:tower-shards` — stage rewards feed unlock gates
+  - dependsOn → `system:mega-bosses` — mega stages read C.megaStagePremium (×1.15 since 2026-11) on the readiness bar; MEGA.expectedKillBase/PerTier are re-anchored to it (√ of the premium ratio) so Ichor efficiency stays put — change one, re-anchor the other
   - provides → `concept:progression-gates` — depth is the master unlock axis
   - references → `system:engine` — EARLY BROOD (2026-07, ENEMIES.md §early-brood — husk/flea/mold/skulker): four WEAK trait-less walkers the DERIVED campaign gate admits from stage 1 (unlockStage = max(hpTier, mechGate); tier 1 needs effectiveHp < baseHp+hpPerTier = 92 AND zero role traits — flying alone gates stage 3). Wave-1 eligibility additionally needs threatCost ≤ unitCapBase 3, damage ≤ dmgCapBase 8, speed ≤ 100. A new weak enemy is defs + three render rows ONLY — cues/bestiary/ledgers auto-classify. Golden-safe because the pinned autoplay runs the SCRIPTED WAVES table (authored kinds), never generation; campaign/daily compositions re-roll freely (earlyBrood.test pins the contract + spawn frequency)
   - consumes → `system:map-layouts` — layoutForStage: CAMPAIGN_LAYOUT_PINS for the onboarding (1–3), then a memoized-forward biome-flavored no-repeat roll on Rng(stageSeed(s, layout)); adding a layout re-rolls un-pinned stages (generated, never saved)
@@ -975,7 +980,7 @@ _at: src/core/campaign.ts, src/core/campaignEvents.ts, src/core/hash.ts, src/ui/
   - documentedBy ← `doc:CAMPAIGN.md`
   - documentedBy ← `doc:CAMPAIGN-EVENTS.md`
   - documentedBy ← `doc:MODE-IDENTITY.md`
-  - _…11 more (query: `npm run dil -- node system:campaign`)_
+  - _…12 more (query: `npm run dil -- node system:campaign`)_
 
 ### `system:infinite` — Infinite Mode
 
@@ -1041,6 +1046,7 @@ _at: src/ui/BossRushScreen.tsx, src/state/bioRoulette.ts, src/ui/BioRoulette.tsx
   - rewards → `currency:genome-cores` — pays PER BOSS DEFEATED
   - consumes → `currency:stamina` — attempt gating
   - provides → `system:hub-shell` — BANKED BIO-SPORES (save.bioSpores, v48 — BOSS-RUSH.md §roulette): the wheel is a game-wide spore ENGINE, no longer rush-exclusive. Sources: rush runs (banked in App handleEnd BEFORE the ceremony opens with the whole bank), FIRST kill of each boss chassis any mode (the idempotent bossesSlain registrar in meta), quest finaleRewards rows, and Battle Pass milestone lanes (free %25 / premium %20, pushed AFTER the filler fallback so nothing is displaced). PassReward kind 'bioSpores' pays through applyRewardList (bank cap 999 = the sanitizer clamp); a wheel session CONSUMES its spend in grantRouletteRewards. The Vault's Roulette bay (GeneticVault.tsx) fires rouletteBus.open() → App opens min(bank, ROULETTE.sporeCap) menu-only and returns to the vault; vault.spores notification source lights the badge/Ready-Chain. New spore sources: pay the kind via any reward table OR meta.addBioSpores(n, source) — never mount BioRoulette directly.
+  - dependsOn → `system:power` — THE WALL (BOSS-RUSH.md §wall): boss HP sized to RunOptions.rushPower (meta.power().score at launch, GameView) — S^t ramped waves 4→10; plus geometric rushStrength past wave 10 and the column overlap (columnGraceSec). predictBossRush is FIT to the measured wall (predictWall/predictPerDoubling), not derived
   - requiredBy ← `system:field-research`
   - requiredBy ← `system:threat`
   - taughtBy ← `help:boss-rush`
@@ -1374,6 +1380,7 @@ _at: src/core/equipment.ts, src/render/equipmentArt.ts, src/ui/EquipmentPanel.ts
   - provides → `concept:power-score` — equipped items score via itemPower into the gear bucket
   - consumes → `system:meta-store` — owns save field 'equipment'
   - consumes → `currency:materials` — crafting + reforge ops
+  - dependsOn → `system:campaign` — THE GEAR CHASE (EQUIPMENT.md §gear-chase): a Vault drop's item level = itemLevelForDepth(highest cleared stage, Infinite best) — log, uncapped (ITEM_LEVEL_CURVE); rarity rolls from that level's GEAR_RARITY_BANDS row. gearRarityOdds is the ONE source the roll + the Armory chase line read
   - modifies → `system:rendering` — heroes render worn gear; gear color skins hero projectiles
   - requiredBy ← `system:crafting`
   - taughtBy ← `help:equipment`
@@ -2058,7 +2065,7 @@ _at: src/ui/InitCutscene.tsx, src/render/introScenes.ts, src/core/tutorial.ts, s
   - contains ← `help:strain-evolution`
   - contains ← `help:boss-sieges`
   - contains ← `help:boss-rush`
-  - _…70 more (query: `npm run dil -- node system:onboarding`)_
+  - _…71 more (query: `npm run dil -- node system:onboarding`)_
 
 ### `system:account-level` — Account Level (evergreen meta-progression)
 
@@ -2306,6 +2313,7 @@ _at: src/core/megaboss.ts, src/render/megaboss.ts_
   - dependsOn → `system:bosses`
   - provides → `concept:power-score` — megaBosses collection category weight
   - consumes → `system:meta-store` — owns save field 'megaProgress'
+  - rewards → `currency:genome-cores` — THE MEGA HUNT (MEGA-BOSS.md §hunt): hunt ranks key off the LIVE lifetime organ ledger (megaProgress.weakPoints); finishRun pays each rank a run's ruptures crossed ONCE (crossing semantics, no claim ledger) = huntRankCores(frontier). A failed raid counts; an abandoned run's crossings are not paid
   - triggers → `system:audio` — the telegraph-resolve edge (banner snapshot-diff, stun-guarded so eye interrupts stay silent) fires mega_cast — the SAME edge drives the render-side CAST shock ring in megaboss.ts
   - balances → `system:towers` — the ADAPT verb (Myriad) armors against the top-damage tower kind from a per-kind ledger at the raid-fire seams — single-kind stacking is punished by design; heroes bypass it
   - conflictsWith → `system:towers` — RAID GEOMETRY CONTRACT: organ descent (MEGA.minWeakPointY..maxWeakPointY, validator-enforced) + bodyBandY are calibrated to the REAL slot grid (map.ts pads y 740–900) and the shortest combat reach (maul 170) — moving pads, shrinking ranges, or authoring organs outside the band silently makes the raid untargetable (the Voraxis targeting bug)
@@ -2326,7 +2334,7 @@ _at: src/core/megaboss.ts, src/render/megaboss.ts_
   - referencedBy ← `achievement:mega_perfect`
   - referencedBy ← `achievement:mega_speed`
   - referencedBy ← `achievement:mega_all`
-  - _…13 more (query: `npm run dil -- node system:mega-bosses`)_
+  - _…14 more (query: `npm run dil -- node system:mega-bosses`)_
 
 ### `system:cutscenes` — Story Cutscenes & Memory Archive
 
@@ -3425,7 +3433,7 @@ _at: src/core/tutorial.ts_
   - teaches → `system:onboarding`
   - teaches → `system:run-ui`
 
-## Help Topics (67)
+## Help Topics (68)
 
 - `help:mission-control` — Your standing orders — the answer to "what should I do now?" _(partOf `system:onboarding`, teaches `system:power`)_
 - `help:hive-intel` — The live intel feed — banked value, ready moves, recent milestones. _(partOf `system:onboarding`, teaches `system:notifications`)_
@@ -3475,6 +3483,7 @@ _at: src/core/tutorial.ts_
 - `help:ascension` — Permanent nodes that survive every Molt. _(partOf `system:onboarding`, teaches `system:prestige`)_
 - `help:containers` — Loot boxes you crack open in the Vault. _(partOf `system:onboarding`, teaches `system:loot`)_
 - `help:loot-meter` — The organism stirs — every wave and kill now banks toward Bio-Containers. _(partOf `system:onboarding`)_
+- `help:mega-hunt` — Every organ you rupture on a Mega Boss advances your Hunt Rank — even in a raid you lose. _(partOf `system:onboarding`)_
 - `help:collection-codex` — Rank badges, bonuses and Power for everything you catalogue. _(partOf `system:onboarding`)_
 - `help:phenotype-lab` — Cosmetic phenotypes for every strain and champion. _(partOf `system:onboarding`)_
 - `help:idle-harvest` — The Hive is the engine; the harvest is its output. It produces while you are away — collect on return, grow the body to produce more. _(partOf `system:onboarding`, teaches `system:idle-harvest`)_

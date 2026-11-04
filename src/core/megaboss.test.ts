@@ -132,6 +132,11 @@ describe('sim raid loop', () => {
     const v = g.getRenderState().megaBoss!;
     expect(v.weakPoints.some((w) => w.state === 'destroyed')).toBe(true);
     expect(v.hp).toBeLessThan(v.maxHp); // destruction tears INTO the organism (never zero-value)
+    // The Mega Hunt read (§hunt): the standing organism reports its wound + this encounter's ruptures.
+    const hunt = g.getRunStats().megaHunt!;
+    expect(hunt.defId).toBe('voraxis');
+    expect(hunt.hpTorn).toBeCloseTo(1 - v.hp / v.maxHp, 6);
+    expect(hunt.organs).toBeGreaterThan(0);
   });
 
   it('EVERY damage source joins the raid: siphon drains organs, beams chip the body, heroes seek', () => {

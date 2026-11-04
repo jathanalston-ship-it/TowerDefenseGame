@@ -368,3 +368,22 @@ the engine no longer restarts from zero. The CI pacing envelope's pinned account
 
 **Not regenerated here:** docs/BALANCE_REPORT.md / docs/PROGRESSION_REPORT.md still show the pre-Imprint
 sawtooth (their next regeneration will read shallower post-Molt checkpoints and higher band peaks).
+
+---
+
+## 10. Round 5 — the grind (2026-11, audit tracks G1/G2 → GM2)
+
+Measured with the audit harnesses (progression sim `average`/`efficient` × 3 seeds × 400h, seeded
+loot; G1's real-run harness on frozen 1h–100h accounts); no save field, goldens untouched.
+
+| Finding | Change | Before → after |
+|---|---|---|
+| Gear chase ends ~hour 3 (ilvl = Power-linear, capped 30; 4–6 Rampant/Apex per hour forever; T6 unreachable) | `ITEM_LEVEL_CURVE` (depth, log, uncapped) + `GEAR_RARITY_BANDS` (docs/EQUIPMENT.md §gear-chase) | Rampant+Apex/h 4–5.5 → 0–2.5 rising with depth; T6 drops 0 → ~3.5/h from 150h; upgrades/h ×1.5–5 in 3–150h, still ~0 deep (def-base dominance — next lever noted there) |
+| Every Mega stage a ~day-long wall (readiness ×1.89 step) | `C.megaStagePremium` 1.8 → 1.15 after measuring mega vs mega-suppressed win rates (9/18 vs 9/18) + the Mega Hunt (docs/MEGA-BOSS.md §hunt) | dwell before S80/S90: 18.4/26.2 h → 6.1/5.8 h (average) |
+| Boss Rush has no wall for real accounts | geometric `rushStrength` past wave 10, Power-sized boss HP, the column doesn't wait (docs/BOSS-RUSH.md §wall) | 8h–100h: wave 28–36 at the 30-min cap → falls at waves 7–16 (medians 9–10) in ~4–7 min |
+| Pacing contract | — | stage @100h 80 → 81 / 89 → 86; @400h 159 → 160 / 160 → 169; Molts @400h 50 → 51 / 51 → 54; CI envelope (≤2 Molts by 5h, ≤10 by 30h) holds |
+
+Watch: the efficient persona's +9 stages @400h (the premium change alone reads +9 too — a lower bar
+compounds); band-peak Power reads ~30% lower at 3–250h because gear no longer front-loads, which is
+the intended curve (stage pacing, not the Power number, is the contract).
+

@@ -14079,3 +14079,22 @@ html[data-layout='landscape'] .build-controls.is-visible ~ .mega-banner { top: 6
 html[data-layout='desktop'] .tower-rail { flex-wrap: nowrap; min-width: 0; }
 html[data-layout='desktop'] .conveyor { flex: 0 1 auto; min-width: 0; }
 html[data-layout='desktop'] .cv-slot { flex: 0 1 auto; width: 240px; min-width: 180px; }
+
+/* ── GM2 · the grind (docs/MEGA-BOSS.md §hunt, docs/EQUIPMENT.md §gear-chase, docs/BOSS-RUSH.md §wall) ── */
+.pf-banner.frame-hunter { --pfc: var(--viral); }
+.pf-banner.frame-leviathan { --pfc: var(--viral); border-width: 2px; }
+.pf-frame-dot.frame-hunter { background: var(--viral); }
+.pf-frame-dot.frame-leviathan { background: linear-gradient(135deg, var(--viral), var(--danger)); }
+.mh-dossier { display: flex; flex-direction: column; gap: 8px; }
+.mh-next { font-size: var(--fs-xs); color: var(--muted); }
+.mh-organs { display: flex; flex-wrap: wrap; gap: 6px; }
+.mh-organ {
+  display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1 1 150px;
+  padding: 6px 8px; border-radius: var(--r-sm);
+  border: 1px dashed var(--line-strong); color: var(--muted);
+}
+.mh-organ.is-known { border-style: solid; border-color: var(--viral); color: var(--text); }
+.mh-organ b { font-size: var(--fs-xs); }
+.mh-organ i { font-style: normal; font-size: var(--fs-2xs); opacity: 0.85; overflow-wrap: anywhere; }
+.armory-chase { font-size: var(--fs-xs); color: var(--muted); }
+.armory-chase b { color: var(--text); }

@@ -14,6 +14,7 @@
 
 import type { EnemyKind } from './types';
 import { Registry } from './registry';
+import { CAMPAIGN_REWARDS } from './config';
 
 // ── Ability modules — the battlefield-manipulation verbs ─────────────────────
 // Reusable across every Mega Boss (future megas are assembled from this pool + weak points; adding
@@ -585,8 +586,11 @@ export const MEGA = {
   dailyReinforceBase: 3, // adds per pulse (+1 per evolution stack)
   // Reward model (docs/MEGA-BOSS.md §rewards).
   rewardEncounterMult: { campaign: 1, infinite: 1.15, bossRush: 0.7, daily: 1.6 } as Record<string, number>,
-  expectedKillBase: 150, // seconds a matched-power player is EXPECTED to need at tier 1
-  expectedKillPerTier: 22, // + per tier
+  // The expectation reads √(rec/power) of the mega stage's bar; when the campaign raid premium fell
+  // ×1.8 → ×1.15 (docs/DIFFICULTY.md §curve, 2026-11) these rose by √(1.8/1.15) ≈ ×1.25 so the SAME
+  // account + kill time pays the SAME Ichor efficiency (reward-neutral re-anchor).
+  expectedKillBase: 188, // seconds a matched-power player is EXPECTED to need at tier 1 (was 150 on the ×1.8 bar)
+  expectedKillPerTier: 27.5, // + per tier (was 22)
   efficiencyExp: 0.6, // efficiency = (expected/actual)^exp, clamped below
   efficiencyMin: 0.5,
   efficiencyMax: 2.0,
@@ -652,6 +656,55 @@ export function megaKillEfficiency(expectedSec: number, actualSec: number): numb
   if (!(actualSec > 0)) return MEGA.efficiencyMax;
   const raw = Math.pow(expectedSec / actualSec, MEGA.efficiencyExp);
   return Math.max(MEGA.efficiencyMin, Math.min(MEGA.efficiencyMax, raw));
+}
+
+// ── The Mega Hunt (docs/MEGA-BOSS.md §hunt) — a failed raid still advances something ─────────
+/** Two layers, both derived from state the game already records (no save field):
+ *  · WOUND tiers grade ONE encounter — how close was the kill? `hpTorn` = the share of the
+ *    organism's max HP removed (1 on the kill), or organs ruptured, whichever reads higher.
+ *  · The HUNT LADDER is the reward: ranks keyed to the LIFETIME organ ledger
+ *    (`save.megaProgress.weakPoints`, recorded LIVE — a failed attempt's ruptures count). Rank k needs
+ *    `organsBase × k(k+1)/2` organs; crossing a rank pays its bounty ONCE (crossing semantics over a
+ *    monotonic counter, the Boss Rush record-band construction — no claim ledger to persist). */
+export const MEGA_HUNT = {
+  wounds: [
+    { id: 'marked', name: 'Marked', icon: '◎', hpTorn: 0.1, organs: 1 },
+    { id: 'wounded', name: 'Wounded', icon: '✚', hpTorn: 0.4, organs: 3 },
+    { id: 'crippled', name: 'Crippled', icon: '✖', hpTorn: 0.75, organs: 6 },
+    { id: 'felled', name: 'Felled', icon: '☠', hpTorn: 1, organs: Infinity },
+  ],
+  organsBase: 4, // rank k at 4·k(k+1)/2 lifetime organs: 4, 12, 24, 40, 60, 84 …
+  rankCoreFrac: 0.5, // each rank pays this × the FRONTIER stage's first-clear Genome Core value
+  dossierRank: 3, // from this rank the Results dossier names every organ of the hunted mega (unseen ones included)
+} as const;
+
+export type HuntWound = (typeof MEGA_HUNT.wounds)[number];
+
+/** The wound tier one encounter reached (null = it never got hurt). */
+export function huntWound(hpTorn: number, organs: number): HuntWound | null {
+  let out: HuntWound | null = null;
+  for (const w of MEGA_HUNT.wounds) if (hpTorn >= w.hpTorn || organs >= w.organs) out = w;
+  return out;
+}
+
+/** Lifetime organs a hunt rank needs (rank 0 = 0). */
+export function huntRankAt(rank: number): number {
+  return (MEGA_HUNT.organsBase * rank * (rank + 1)) / 2;
+}
+
+/** The hunt rank a lifetime organ count has reached. */
+export function huntRank(organs: number): number {
+  if (!(organs > 0)) return 0;
+  let k = Math.floor((Math.sqrt(1 + (8 * organs) / MEGA_HUNT.organsBase) - 1) / 2); // closed form, O(1)
+  while (huntRankAt(k + 1) <= organs) k++; // float guards
+  while (k > 0 && huntRankAt(k) > organs) k--;
+  return k;
+}
+
+/** Genome Cores ONE hunt rank pays — `rankCoreFrac` × the frontier stage's first-clear base value, so
+ *  the bounty keeps pace with depth. The ONE formula the payout and every preview read. */
+export function huntRankCores(frontierStage: number): number {
+  return Math.round(MEGA_HUNT.rankCoreFrac * (CAMPAIGN_REWARDS.firstClearCore + CAMPAIGN_REWARDS.firstClearCorePerStage * Math.max(1, frontierStage)));
 }
 
 /** The guaranteed Ichor payout: base × tier growth × encounter multiplier × efficiency. */

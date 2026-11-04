@@ -231,7 +231,9 @@ export function Hud({ hud, power, onOpenConsole, tutorial = false, doctrine = nu
                 ? 'Build & upgrade — tap ▶ Start Wave when ready'
                 : 'Build & upgrade — press SPACE to start the wave'
             : hud.phase === 'wave'
-              ? `${hud.enemiesAlive} hostiles in the field`
+              ? hud.rushColumnIn !== null // Boss Rush §wall (docs/BOSS-RUSH.md): the countdown reads on every layout
+                ? `${hud.enemiesAlive} hostiles · next column in ${hud.rushColumnIn}s`
+                : `${hud.enemiesAlive} hostiles in the field`
               : hud.phase === 'draft'
                 ? 'Choose a Gene Card'
                 : ' '}
