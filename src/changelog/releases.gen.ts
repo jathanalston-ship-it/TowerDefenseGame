@@ -125,6 +125,14 @@ export const RELEASES: Release[] = [
       {
         "cat": "UX",
         "text": "Field Guides open folded sections while they run"
+      },
+      {
+        "cat": "UI",
+        "text": "The Screen shake slider (and every slider) is a comfortable touch target on phones and tablets"
+      },
+      {
+        "cat": "Website",
+        "text": "The website catches up: new devlog “Feel and Flow”, refreshed features, screenshots and trailer"
       }
     ]
   },

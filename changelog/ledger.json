@@ -1,6 +1,6 @@
 {
-  "lastSha": "afef05ffafa1d78fb2015cf53295fec04746578a",
-  "commitsSinceDraft": 0,
+  "lastSha": "47e45f726576e28aaea6aedf857883a0a1c17972",
+  "commitsSinceDraft": 2,
   "content": {
     "tower": [
       "needle",
@@ -3268,6 +3268,14 @@
         {
           "cat": "UX",
           "text": "Field Guides open folded sections while they run"
+        },
+        {
+          "cat": "UI",
+          "text": "The Screen shake slider (and every slider) is a comfortable touch target on phones and tablets"
+        },
+        {
+          "cat": "Website",
+          "text": "The website catches up: new devlog “Feel and Flow”, refreshed features, screenshots and trailer"
         }
       ]
     }
@@ -6775,6 +6783,22 @@
       "cat": "Developer Tools",
       "text": "Docs: batch summary, 22 fix-log rows and manifest entries for the polish, content and economy tracks",
       "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "6930566284beac25cfa0374c0e753522ae43881b",
+      "date": "2026-11-04",
+      "cat": "Website",
+      "text": "Website: Feel and Flow devlog, features copy, release v2026.11.04.2 curated, new Home still",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "47e45f726576e28aaea6aedf857883a0a1c17972",
+      "date": "2026-11-04",
+      "cat": "UI",
+      "text": "Touch: range sliders meet the 44px floor (Screen shake slider was 16px tall)",
+      "internal": false,
       "needsReview": false
     }
   ]

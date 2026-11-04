@@ -206,7 +206,8 @@ async function stills(browser: Browser): Promise<void> {
   await startStage(page, 17); // The Coil
   await garrison(page); await prepFor(page, 6); await garrison(page);
   await heavyWave(page, 50);
-  await sleep(1300); await keepAlive(page); await page.keyboard.press('q'); await sleep(300);
+  // Let the swarm come down the maze before the cast (a fresh swell crowds the first corridor).
+  await sleep(3200); await keepAlive(page); await page.keyboard.press('q'); await sleep(300);
   await toWebp(browser, await page.screenshot({ animations: 'disabled' }), join(shots, 'combat.webp'));
   await page.context().close();
   console.log('media: combat.webp');

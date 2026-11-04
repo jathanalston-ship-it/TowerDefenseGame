@@ -1,6 +1,6 @@
 # PIL_REPORT.md — Public Intelligence Layer report (GENERATED — `npm run pil -- regen`)
 
-> The public-facing sync ledger (docs/PIL.md): 50 pages · 6 assets tracked against the DIL.
+> The public-facing sync ledger (docs/PIL.md): 51 pages · 6 assets tracked against the DIL.
 
 ## Structural audit — ✅ clean
 
@@ -52,6 +52,7 @@
 - `/blog/determinism/` — Dev Blog — determinism → concept:determinism
 - `/blog/equipment-identity/` — Dev Blog — equipment-identity → system:equipment
 - `/blog/every-cast-a-set-piece/` — Dev Blog — every-cast-a-set-piece → (static)
+- `/blog/feel-and-flow/` — Dev Blog — feel-and-flow → (static)
 - `/blog/living-battlefield/` — Dev Blog — living-battlefield → system:living-battlefield
 - `/blog/mega-boss-raids/` — Dev Blog — mega-boss-raids → system:mega-bosses
 - `/blog/opening-cinematic/` — Dev Blog — opening-cinematic → system:onboarding

@@ -474,3 +474,5 @@
 - `086653e` **[Balance]** Balance round 4: record decisions (BALANCE_ARCHITECTURE section 9), regenerate BALANCE_REPORT
 - `4fadb8a` **[Gameplay]** Replays no longer credit the viewer's save; older replays still play
 - `afef05f` **[Developer Tools]** Docs: batch summary, 22 fix-log rows and manifest entries for the polish, content and economy tracks _(internal)_
+- `6930566` **[Website]** Website: Feel and Flow devlog, features copy, release v2026.11.04.2 curated, new Home still
+- `47e45f7` **[UI]** Touch: range sliders meet the 44px floor (Screen shake slider was 16px tall)

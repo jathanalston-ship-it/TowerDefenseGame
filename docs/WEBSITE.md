@@ -47,7 +47,8 @@ the script header: a seeded save, cleared-stage replays, the run-start slots fil
 `Game.deployTower`, and the live wave swollen with more of its own enemy kinds through the `?debug`
 handle; toasts are hidden. Everything on screen is the shipped renderer and HUD. Review the output before
 committing: combat timing is real-time, so re-run (or keep the previous shot) when a frame catches a
-quiet moment.
+quiet moment. The combat still waits 3.2 s after the swell so the swarm clears The Coil's first corridor;
+new enemy kinds in a stage's pool change the waves, so expect to re-review stills after content batches.
 
 ## §patch-notes — ONE pipeline feeds the site AND the game
 
