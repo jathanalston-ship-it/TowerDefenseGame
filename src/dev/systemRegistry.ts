@@ -285,7 +285,7 @@ export const SYSTEMS: SystemDef[] = [
     localization: 'inline-en', docs: ['docs/DAILY-LOGIN.md', 'docs/DAILY-RUN.md', 'docs/ECONOMY.md'],
   },
   {
-    id: 'prestige', name: 'Prestige (Molt / Ascendant)', purpose: 'Reset loop: mint Ascendant Cells → compounding multiplier + permanent tree. MOLT VOWS (docs/VOWS.md): arm 0–3 data-row handicaps that warp the enemy world all cycle (DoctrineWarp reuse, composed multiplicatively onto the doctrine at the ONE director fold site) and multiply the next mint; geometric Core sink at arm time, never refunded; settled + cleared at molt; dailies/tutorial excluded.',
+    id: 'prestige', name: 'Prestige (Molt / Ascendant)', purpose: 'Reset loop: mint Ascendant Cells → compounding multiplier + permanent tree. MOLT IMPRINT (docs/GENOME-CORE.md §molt-imprint): a Molt keeps round(level × min(0.7, 0.0125 × molts done)) of every Genome upgrade — 0 on the first Molt — so the post-Molt trough stays bounded (≤ ×5 even on a full engine); derived from prestige.molts, no save field. MOLT VOWS (docs/VOWS.md): arm 0–3 data-row handicaps that warp the enemy world all cycle (DoctrineWarp reuse, composed multiplicatively onto the doctrine at the ONE director fold site) and multiply the next mint; geometric Core sink at arm time, never refunded; settled + cleared at molt; dailies/tutorial excluded.',
     files: ['src/core/prestige.ts', 'src/core/ascendant.ts', 'src/core/vows.ts', 'src/ui/PrestigePanel.tsx'],
     dependsOn: ['campaign', 'evolution-hq'], powerScore: 'the P bucket (log fold of Cells + tree)', save: ['prestige'],
     tutorial: [], help: ['prestige', 'ascension'], hud: ['⛧ vow chip (wm-chips)'], ui: ['PrestigePanel', 'EvolutionHQ (Ascension section)'], collection: null, achievements: [],
