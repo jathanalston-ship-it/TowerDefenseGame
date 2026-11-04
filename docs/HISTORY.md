@@ -517,3 +517,23 @@
 - `4da3ba9` **[Developer Tools]** Media: trailer re-shot with the Batch 3 moments _(internal)_
 - `af4eea1` **[Developer Tools]** Changelog: the news-page sample is a contiguous run of the entry's text _(internal)_
 - `e1d1c7c` **[Developer Tools]** Validation: PASS before the Batch 3 release — 2930/2930, mobile gate clean, first-session probe in budget _(internal)_
+- `e447108` **[Framework]** Notes: sync Chronicle artifacts to HEAD _(internal)_
+- `a6f428b` **[Developer Tools]** Status: Batch 3 'Moments That Land' and the hotfix are live (runs #227, #228) _(internal)_
+- `7f20029` **[Gameplay]** Defuse the Campaign opening, live adaptive threat, Early Call, Infinite squeeze
+- `b99d112` **[Gameplay]** Equipment: the gear chase keeps climbing — depth item level + rarity bands
+- `0132a65` **[Gameplay]** Mega walls become hunts — raid premium re-measured, attempts pay
+- `58cbd9d` **[Gene Cards]** Cards: drafts that fit the run — draft fit, the opening draft, Splice
+- `38f6efd` **[Heroes]** Hive Intelligence opens with towers, not hero stats
+- `2c1832d` **[Gene Cards]** Defeat debrief reads the board + anti-air; wave 1 on the mission card
+- `f79a123` **[Gameplay]** Save: schema v56 — Gear Codex ledger, peak Power, income ledger, login income line
+- `6feffbc` **[Developer Tools]** Cards,hive: final GR2 harness numbers for draft fit, Splice and the Hive opening _(internal)_
+- `d880800` **[Bosses]** Bossrush: the gauntlet gets a wall — geometric, Power-sized, and the column doesn't wait
+- `28809a7` **[Developer Tools]** GM2 grind round — combined before/after (gear chase, Mega walls, Boss Rush) _(internal)_
+- `c34428a` **[Gameplay]** Grind: honest goal ETAs, farm-first Home CTA, permanent codex, peak rank, ladders, cache income, claim-all, rebuild
+- `c26d10b` **[Developer Tools]** Batch G grind — honest ETAs, farm CTA, codex permanence, rank peak, ladders, cache income, claim-all, rebuild _(internal)_
+- `8745d63` **[Bug Fixes]** Results: ladder rungs crossed together read as one line per family
+- `252ddd2` **[Developer Tools]** Bugfix-log: Batch G rows 88–99 (GR2, GM2, GM1 and the ladder collapse) _(internal)_
+- `bc354f9` **[Balance]** Tune(grind): fit the live threat + gift answer + Infinite squeeze on the G1 harness
+- `0b7238a` **[Bosses]** Bossrush: the record restarts with the wall — v56 record epoch + a fresh board
+- `5c0d80f` **[Framework]** Notes: seal v2026.11.04.3 'Moments That Land' — it shipped in run #228 _(internal)_
+- `fba557b` **[Developer Tools]** Before/after harness tables for the opening, live threat, Early Call and the Infinite squeeze _(internal)_

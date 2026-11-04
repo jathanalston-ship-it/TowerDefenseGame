@@ -3,7 +3,7 @@
 // breadcrumb JSON-LD and the in-article ad seam. Guides that benefit from live game data
 // (towers/heroes) splice in the encyclopedia tables, so they expand with the roster for free.
 
-import { MODE_UNLOCKS } from '../src/core/config';
+import { CAMPAIGN_OPENING, DRAFT_FEATURES, ENDLESS_SQUEEZE, MODE_UNLOCKS, RUSH } from '../src/core/config';
 import { MAP_LAYOUTS } from '../src/core/mapLayouts';
 import { THREAT_MAX } from '../src/core/threat';
 
@@ -78,6 +78,8 @@ export const GUIDES: Guide[] = [
     sections: [
       { h: 'The draft', body: [
         'After every cleared wave you choose one of three Gene Cards. The boost lasts only the current run — but the card itself is permanently added to your Gene Archive, where it can be leveled with Gene Essence to strengthen every future appearance. Draft what the RUN needs; level what your BUILD wants.',
+        'Drafts deal for the run you are actually playing: cards for the towers and heroes doing your damage come up more often, cards you were just offered come up less, and <b>◆ PICK</b> marks the best fit for this board, not simply the rarest card. A card that barely touches your build says so (◇ Off-build).',
+        'Campaign runs from Stage ' + DRAFT_FEATURES.opening.fromStage + ' open with an <b>Opening Draft</b> built around your favorite tower. And when Biomass piles up between waves, <b>Splice</b> spends it on an extra draft — the price rises with every splice in the run (unlocks after Campaign Stage ' + DRAFT_FEATURES.splice.fromCleared + '; everyone gets it on the Daily).',
       ] },
       { h: 'Reading a card', body: [
         'Cards speak a small effect language: multipliers, flat adds, flags, grants and hooks. Rarity scales with depth — pushing deeper waves offers rarer drafts. Some cards are gated behind progression unlocks, so the pool itself grows as you clear campaign stages.',
@@ -114,6 +116,9 @@ export const GUIDES: Guide[] = [
       ] },
       { h: 'Weak-point surgery', body: [
         'Weak points descend into reach and each destroyed organ removes a threat or triggers a consequence — the raid is a sequence of surgical decisions under pressure. Killing efficiency (speed, integrity kept, organs burned, casts interrupted) grades the reward payout.',
+      ] },
+      { h: 'The hunt pays even when the raid fails', body: [
+        'Every raid leaves a wound — Marked, Wounded, Crippled or Felled — and every organ you burst counts toward your <b>Mega Hunt</b> rank, win or lose. Each new rank pays Genome Cores once, and Results shows an organ dossier of what you have learned about the beast. Mega stages also ask far less extra Power than they used to, so a raid is a wall you climb in a session, not a day.',
       ] },
       { h: 'The lone siege', body: [
         'When the wave plan is spent and the Mega Boss is the last thing standing, it TURNS ON THE HIVE: its mass drapes down into every tower’s reach (and takes deeper body damage for it), reinforcements escalate, and it winds up direct HIVE LASHES — telegraphed strikes on your integrity that come FASTER with every landed blow. Stalling is a losing race. Burst an eye mid-windup or topple it with a weak-point push to defuse a lash and buy a full beat.',
@@ -166,6 +171,11 @@ export const GUIDES: Guide[] = [
       { h: 'Replays, Threat and Hive Intelligence', body: [
         'A stage you have cleared becomes a replay: it still pays progression, Hive Intelligence can run the routine Biomass purchases for you, and the <b>Threat</b> picker lets you climb ' + THREAT_MAX + ' rungs of named difficulty for titles, profile frames and a little more reward. Your frontier stage is always yours to play by hand.',
       ] },
+      { h: 'The opening, and the Hive that adapts', body: [
+        'A run is no longer decided in its first thirty seconds. Fliers stay out of wave 1 and arrive only in small numbers in wave ' + (CAMPAIGN_OPENING.flyingUnitCap.length) + ', a stage’s Mega surfaces with wave ' + CAMPAIGN_OPENING.megaArrivalWave + ' rather than on top of your opening build, and on deeper stages your free first organism is one that answers the stage’s opening threats.',
+        'The pressure comes later instead: from wave 4, and on every boss, the hive answers your snowball — waves and bosses grow with how far your board has outgrown the stage (the wave briefing shows <b>▲ ADAPTED ×N</b>). It only ever pushes up; a board that is behind is never propped up.',
+        'Confident in your board? Press <b>⏩ Call early</b> (or Space) mid-wave to launch the next wave now for bonus Biomass. Waves overlap, and every gene draft you skipped is still dealt when the field clears.',
+      ] },
       { h: 'When you hit a wall', body: [
         'A wall is information: it names the axis you have underfed. Check the recommended Power, bank a few genome tiers, star up your core towers, then re-attempt. Mutation-choice events are the campaign’s biggest swings — read both options before picking.',
       ] },
@@ -187,6 +197,7 @@ export const GUIDES: Guide[] = [
       ] },
       { h: 'Reading the Director', body: [
         'The Director spends a threat budget, and its receipts are visible: a wave heavy on shields is buying time for a summoner core; a sudden flier lane means your ground kill-rate scared it. Adapt one axis per wave — a full rebuild mid-descent wastes the Biomass that compounding was supposed to grow. Personal-best pushes end at the wave where your integrity, not your damage, runs out: bank a guard hero or a repair economy for the last stretch and the same build goes five waves deeper.',
+        'Deep runs end by attrition, not in one wipe. Past depth ' + ENDLESS_SQUEEZE.fromDepth + ' every flawless wave tightens the enemies’ health a little (up to ×' + ENDLESS_SQUEEZE.cap + '), a wave that bleeds you eases it again, and no single wave can take more than about a third of your Core before further hits soften — so you see the end coming over several waves and can react.',
       ] },
     ],
   },
@@ -196,6 +207,8 @@ export const GUIDES: Guide[] = [
     sections: [
       { h: 'The format', body: [
         'Wave N spawns N assembled bosses in a staggered column with a thinned escort. Rewards pay PER BOSS DEFEATED, so a deep failed run still pays well. Stamina gates attempts, making each run a deliberate raid rather than a grind loop.',
+        'The gauntlet has a wall. Bosses are sized to your Power, climb steadily to wave ' + RUSH.geoFromWave + ' and then grow ×' + RUSH.geoGrowth + ' per wave with no cap — and the column does not wait: ' + RUSH.columnGraceSec + ' seconds after a wave’s last boss arrives, the next column marches in on top of whatever is still standing. A run is minutes of dense decisions, not half an hour of watching.',
+        'Records restarted with the wall: a best single run set before it is kept as your <b>Pre-wall Record</b>, and the Boss Rush leaderboard started fresh, so new records pay Ichor again.',
       ] },
       { h: 'What works', body: [
         'Sustained single-target damage with armor handling; disruption to keep the column from arriving as one fist; a guard hero when your line is strong, a dive hero when it needs a closer. Splash is a luxury here — bodies are few and fat.',
@@ -321,6 +334,7 @@ export const GUIDES: Guide[] = [
       ] },
       { h: 'Genome Rank — the breadth meter', body: [
         'Your Genome Rating folds a weighted contribution from EVERY major system — campaign depth, Infinite records, Power Score, collections, mastery, doctrines, contracts, cosmetics, prestige and more — into one prestigious rank: Dormant, through the named ladder, to Living Catastrophe and beyond (the ladder is infinite). No single lane can dominate it by design: the rank measures how much of the game you have actually made yours.',
+        'Its Power axis reads your <b>peak</b> Power, so a Molt never demotes your rank — the Profile shows how far back toward that peak this cycle has climbed.',
       ] },
       { h: 'Raising them on purpose', body: [
         'Account Level responds to volume — just play, and prefer activities that stack sources (a daily that also honours a contract pays both). Genome Rank responds to breadth: its Progress Advisor names your biggest realistic rating opportunities right now, which is usually a system you have ignored rather than a deeper grind in one you haven’t. Promotions pay prestige-leaning rewards (cores, Ichor, containers, titles) — never gameplay power, so the ladder stays honest.',
@@ -351,6 +365,7 @@ export const GUIDES: Guide[] = [
       ] },
       { h: 'Getting and improving items', body: [
         'Items drop from Bio-Containers and craft from materials (mutagen, scrap, catalyst) in the Armory, whose Gear Codex tab tracks every definition you have ever owned as a collection. Crafting is pity-protected — bad-luck streaks bend the odds back toward you. Reforging rerolls an item’s affixes when the base is right but the behavior is wrong; it is usually cheaper than chasing a fresh drop of the same slot.',
+        'Item level follows how deep you have pushed — your best Campaign stage and Infinite depth — and keeps climbing with no cap, so deeper play unlocks higher affix tiers. Rarity odds rise with item level, and the Armory always shows the item level and odds your containers are dropping at right now.',
       ] },
       { h: 'Salvage without regret', body: [
         'Salvage converts surplus into crafting materials — and it is deliberately hard to hurt yourself: equipped items, set pieces you still need, and recent acquisitions are guarded, and salvage itself carries an UNDO. The rule of thumb: keep one strong item per slot per hero plus anything completing a set; melt the rest without ceremony. Materials in the bank are worth more than a museum of almost-good relics.',

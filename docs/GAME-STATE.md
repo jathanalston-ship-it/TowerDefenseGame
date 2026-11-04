@@ -1704,3 +1704,44 @@ Mega premiere is mandatory-tested to use `drawMegaPose`.
 **Known limitations.** At a calm start (Assimilation stage 0) the gutters read nearly black — the payoff
 grows with the infestation (`GUTTERS.brightness` is one value). The dimmer story painters move only
 modestly. A three-line caption can still graze the dim edge of the core/crown on 844×390 phones.
+
+## Compressed system summary — The Grind, Batch G (2026-11, save v56) ✅ BUILT
+
+**Architecture.** Four tracks built from two grind audits (G1 the run, G2 the meta loop); every
+in-run lever is an opt-in `RunOptions` flag the app sets, so goldens, the Daily and the Arena stay
+byte-identical. New player inputs (`splice`, `rerollDraft`, `callWaveEarly`) are in `REPLAY_METHODS`.
+- **Run opening + tension (GR1):** `CAMPAIGN_OPENING` (no wave-1 fliers, ≤ 4 in wave 2, Mega with
+  wave 3), an opening gift that answers the stage's threats (Stage 4+), the LIVE adaptive threat
+  (`DIRECTOR_ADAPTIVE.threatPerPowerRatio` 0.5 on waves ≥ 4 and every boss, upward only, capped),
+  Early Call (Biomass for the skipped wait; owed drafts dealt at the clear) and the Infinite squeeze
+  (`ENDLESS_SQUEEZE`: pressure band + per-wave damage ceiling).
+- **Decisions in a run (GR2):** draft fit (deals weighted by live damage share, recency, bank),
+  ◆PICK = fit × Power, the Campaign opening draft (Stage 8+), Splice (Biomass → extra draft), Hive
+  Intelligence opens with towers (`HIVE_MIND.thinBoardTowers`), defeat debrief Board/Anti-air reads,
+  mission-card wave 1. All deals go through `Game.dealDraft`.
+- **Goals + recognition (GM1, owns v56):** `state/income.ts` per-run income ledger → honest goal ETAs
+  (`nextGoals`), farm-first Home CTA, permanent Gear Codex (`equipment.discovered`), Genome Rank from
+  peak Power, 11 achievement ladders (`LADDER_FAMILIES`), income-scaled Bio-Cache, Specimen claim-all,
+  one-tap post-Molt Genome rebuild.
+- **Chases + walls (GM2):** `ITEM_LEVEL_CURVE` (uncapped, depth-driven) + `GEAR_RARITY_BANDS`;
+  `C.megaStagePremium` ×1.15 + the Mega Hunt (wound tiers, lifetime-organ ranks paid once); Boss Rush
+  wall (geometric past wave 10, Power-sized, the 28 s column) + the v56 record epoch (`rushLegacyBestBoss`,
+  `RUSH_BOARD_EPOCH`).
+
+**Public APIs.** `Game.dealDraft / splice / spliceCost / callWaveEarly / earlyCallBonus`;
+`cards.ts draftFeaturesFor / draftFitOf`; `nextGoals(save)` (with `etaRuns`), `income.ts runsToStage /
+isOneMoreRun`; `collapseLadderRungs`; `gearRarityOdds(ilvl)`; `meta.claimAllCosmetics(rarities)`.
+
+**Extension points.** A ladder = one `LADDER_FAMILIES` row; an income meter = one `INCOME_METERS` row;
+a gear band = one `GEAR_RARITY_BANDS` row; a draft-fit weight / Splice price / early-call rate / squeeze
+band = config rows; a new Boss Rush board epoch = bump `RUSH_BOARD_EPOCH` (both copies).
+
+**Assumptions.** The golden path sets none of the new RunOptions; save v56 merge rules are max/union;
+the live threat never makes a weak board easier.
+
+**Known limitations.** The live ratio ignores board size, so frontier win rates rose (8 h 51 → 72 %)
+and flawless wins stayed high; winning runs got longer (median wave-seconds ×1.6 at 8 h, ×3.6 at
+100 h — under follow-up). Campaign draft picks still barely move outcomes (wins at the ceiling).
+Affix tiers move item Power little (base effects dominate). Migrated veterans' ETAs start optimistic
+for ~10 runs; their first settle crosses ~17 ladder rungs at once (folded on Results). Hive
+Intelligence doesn't use Splice. Infinite "start at 60 % depth" was not built.

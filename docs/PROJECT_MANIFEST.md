@@ -67,6 +67,7 @@ ladders. 4. Every permanent progression source must move the Power Score (valida
   Mutation choice is pre-stage (mission card), not an in-run modal; events don't yet feed codex/achievements.
 - **Developer tips:** the *one* way to read campaign progress is
   `highestCampaignStage(save)` from `save/derive.ts` — never re-derive from `campaign.cleared`.
+- **Batch G (2026-11) — the opening + the finale:** `CAMPAIGN_OPENING` keeps fliers out of wave 1 (≤ 4 in wave 2) and surfaces a stage's Mega with wave 3; from Stage 4 the free first organism answers the opening (`core/conveyor.ts`); waves ≥ 4 and every boss scale with the run's LIVE Power ratio (`DIRECTOR_ADAPTIVE`, §6a). Mission card shows wave 1 (`state/missionBrief.ts`). Docs: `CAMPAIGN.md` §opening, `DIFFICULTY_DIRECTOR.md` §6a.
 
 ## Infinite
 
@@ -82,6 +83,7 @@ ladders. 4. Every permanent progression source must move the Power Score (valida
 - **Known limitations:** depth is bounded in practice by the entity budget cap (intentional).
 - **Developer tips:** endless tuning lives in config scaling constants — verify with the
   depth/biomass empirical tests (`draftcadence.test.ts`, endless scaling tests), not by feel.
+- **Batch G squeeze (`ENDLESS_SQUEEZE`, RunOptions.squeeze):** flawless waves past depth 10 tighten enemy HP (≤ ×1.4), heavy leaks ease it; a per-wave damage ceiling makes runs end by attrition, not one wipe. Docs: `ENDLESS-SCALING.md`.
 
 ## Mega Bosses
 
@@ -107,6 +109,7 @@ ladders. 4. Every permanent progression source must move the Power Score (valida
   reachable organs and a real reward; rotation slots, codex, achievements ceilings, daily pool,
   renderer and raid bar all pick it up automatically. Never bypass `MegaFieldFx` for a new
   manipulation — that seam is what keeps every other run byte-identical.
+- **Mega Hunt (Batch G):** each raid earns a wound tier (`RunStats.megaHunt`); Hunt Ranks key off lifetime organs burst (`megaProgress.weakPoints`) and pay half a frontier first-clear in Cores once per rank; `C.megaStagePremium` re-measured to ×1.15. Docs: `MEGA-BOSS.md` §hunt.
 
 ## Difficulty & the Universal Difficulty Director
 
@@ -127,6 +130,7 @@ ladders. 4. Every permanent progression source must move the Power Score (valida
   tuning them requires progression-simulator evidence (pinned by test).
 - **Developer tips:** never write `resolveDifficulty(...).x * warp.y` inline — add or use a
   director query. Parity tests reproduce the legacy formulas verbatim; goldens gate the sim.
+- **LIVE board power (Batch G, §6a):** `RunOptions.livePowerBase` re-feeds `threatPerPowerRatio` (0.5) at every Campaign wave launch — upward only, capped; HUD `▲ ADAPTED ×N`. Known limit: the ratio ignores board size (§7).
 
 ## Progression Loop Engine
 
@@ -146,6 +150,7 @@ ladders. 4. Every permanent progression source must move the Power Score (valida
 - **Developer tips:** loop-shape changes must keep `progressionLoop.test.ts` green — its 8
   invariants ARE the loop contract (resistance, wall, never-impossible, interlock, prestige
   ring, unskippable modes, engine classification).
+- **Honest goals (Batch G, save v56):** `state/income.ts` keeps a per-run income ledger; `nextGoals` gives every goal an ETA in runs and sorts by it; "one more run" only when ETA ≤ `INCOME.honestRuns`; Home's CTA becomes "Farm Infinite" when under-powered. Docs: `ONE-MORE-RUN.md` §eta, `COMMAND-CENTER.md`.
 
 ## Economy Framework & Progression Simulator
 
@@ -327,6 +332,7 @@ ladders. 4. Every permanent progression source must move the Power Score (valida
 - **Developer tips:** a new card = one `CARD_POOL` row + one `GENE_UPGRADES` entry; the
   validator refuses anything without 3–5 Power-visible, non-boot-only levels. Never bypass
   `effectiveGeneEffects` when applying cards.
+- **Draft fit / opening draft / Splice (Batch G):** `RunOptions.draftFit|openingDraft|splice` (chosen by `cards.ts draftFeaturesFor`; golden path never sets them): deals weighted by live damage share, recency and bank; ◆PICK = fit × Power; Campaign from Stage 8 opens with a draft; Splice buys an extra draft with banked Biomass (a recorded input). All deals go through `Game.dealDraft`. Docs: `CARDS.md` §fit §opening §splice.
 
 ## Equipment
 
@@ -341,6 +347,7 @@ ladders. 4. Every permanent progression source must move the Power Score (valida
 - **Known limitations:** exotic rarity is loot-only in places (can't transmute past legendary).
 - **Developer tips:** destruction safeguards + Undo Salvage exist (`EQUIPMENT.md §safeguards`) —
   route ALL item deletion through them, never delete inventory rows directly.
+- **Gear chase (Batch G):** item level follows depth on an uncapped log curve (`ITEM_LEVEL_CURVE`, T6 from ~Stage 100); rarity per item-level band (`GEAR_RARITY_BANDS`, `gearRarityOdds` is the one source for roll + Armory line); permanent Gear Codex (`equipment.discovered`, v56). Known limit: base effects dominate item Power. Docs: `EQUIPMENT.md` §gear-chase §codex.
 
 ## Crafting / Reforging
 
@@ -466,6 +473,7 @@ ladders. 4. Every permanent progression source must move the Power Score (valida
 - **Known limitations:** flat list (no chains/categories yet).
 - **Developer tips:** achievements check on run finish (`checkAchievements`) — a new stat needs
   to be in the run summary or lifetime stats first.
+- **Ladders (Batch G):** `LADDER_FAMILIES` rows generate geometric rungs over lifetime ledgers (Cores-only rewards, kept out of authored totals; one gallery card per family); Results folds rungs crossed together into one line (`collapseLadderRungs`). Docs: `PROGRESSION-SYSTEMS.md` §ladders.
 
 ## Tutorials & Onboarding
 
@@ -505,6 +513,7 @@ ladders. 4. Every permanent progression source must move the Power Score (valida
 - **Known limitations:** `index.css` is one 5.3k-line stylesheet (see `ENGINEERING-AUDIT.md`).
 - **Developer tips:** UI reads snapshots — never reach into live sim entities from React;
   intents go through `Game` methods. A new modal joins Back/Escape with `useDismiss(close)`.
+- **Early Call (Batch G):** `⏩ Call early +N` in the run-controls strip / Space mid-wave (`Game.callWaveEarly`, a recorded input; owed drafts dealt at the clear); Splice pill in the build phase. Docs: `EARLY-CALL.md`.
 
 ## Audio
 
@@ -708,6 +717,7 @@ ladders. 4. Every permanent progression source must move the Power Score (valida
   `DEVICE_PREF_KEYS`.
 
 ---
+- **v56 (Batch G):** `equipment.discovered`, `genomeRank.peakPower`, `income`, `login.incomeCores`, and the Boss Rush record epoch (`migrate()` archives a pre-v56 `rushBestBoss` to `rushLegacyBestBoss`; the board re-keys under `RUSH_BOARD_EPOCH`). Tests: `save/v56.test.ts`.
 
 ## Cross-cutting frameworks (referenced by systems above)
 

@@ -5,10 +5,91 @@ import type { Release } from './types';
 /** Player-facing releases, newest first. */
 export const RELEASES: Release[] = [
   {
+    "id": "v2026.11.04.4",
+    "date": "2026-11-04",
+    "title": "The Grind",
+    "sealed": false,
+    "entries": [
+      {
+        "cat": "Gameplay",
+        "text": "No more wave-1 coin flips: Campaign openings keep fliers out of wave 1, a stage’s Mega surfaces with wave 3, and your free first organism now answers the stage’s opening threats",
+        "major": true
+      },
+      {
+        "cat": "Gameplay",
+        "text": "The Hive adapts: from wave 4 and on every boss, Campaign waves rise to meet a snowballing board (the briefing shows ▲ ADAPTED ×N) — losses now come late in a run, where your choices matter",
+        "major": true
+      },
+      {
+        "cat": "Gameplay",
+        "text": "Call early: press ⏩ (or Space) mid-wave to launch the next wave now for bonus Biomass — every gene draft you skip is still dealt when the field clears",
+        "major": true
+      },
+      {
+        "cat": "Gene Cards",
+        "text": "Gene drafts now deal cards for the towers and heroes that actually carry your run, and ◆ PICK marks the best fit — not the rarest card",
+        "major": true
+      },
+      {
+        "cat": "Gene Cards",
+        "text": "Splice: when Biomass piles up between waves, spend it on an extra gene draft. Campaign runs from Stage 8 open with an Opening Draft",
+        "major": true
+      },
+      {
+        "cat": "UX",
+        "text": "Goals tell the truth: every next milestone shows how many runs away it really is, and Home’s main button says Farm Infinite when a stage outweighs you",
+        "major": true
+      },
+      {
+        "cat": "Gameplay",
+        "text": "Gear keeps getting better: item level now rises with how deep you have pushed, with no cap — Rampant and Apex drops mean more, and T6 affixes appear deep in the Campaign",
+        "major": true
+      },
+      {
+        "cat": "Mega Bosses",
+        "text": "Mega stages no longer wall you for a day, and every organ you burst — even in a lost raid — advances your Mega Hunt rank for Genome Cores",
+        "major": true
+      },
+      {
+        "cat": "Bosses",
+        "text": "Boss Rush has a real wall: bosses are sized to your Power and the next column won’t wait. Records restarted with it — your old best is kept as a Pre-wall Record and the leaderboard started fresh",
+        "major": true
+      },
+      {
+        "cat": "Gameplay",
+        "text": "Achievement ladders keep milestones coming at any depth, the daily Bio-Cache grows with your income, commons get Claim all in the Specimen Cabinet, and one tap rebuilds your Genome after a Molt"
+      },
+      {
+        "cat": "Gameplay",
+        "text": "Nothing you earn un-earns itself: Gear Codex entries are permanent and a Molt never demotes your Genome Rank"
+      },
+      {
+        "cat": "Gameplay",
+        "text": "Infinite now ends through attrition instead of one wipe — you see the end coming over several waves"
+      },
+      {
+        "cat": "Heroes",
+        "text": "Hive Intelligence builds your opening towers before it spends on hero stats"
+      },
+      {
+        "cat": "Gameplay",
+        "text": "Defeats show your board size against what winning boards field, and when your first flier went down; the mission card shows wave 1"
+      },
+      {
+        "cat": "Bug Fixes",
+        "text": "A Daily run that used the draft reroll no longer fails replay verification"
+      },
+      {
+        "cat": "Bug Fixes",
+        "text": "The Mega bar no longer covers the gene draft’s header, and the Boss Rush tray no longer clips its last pod on wide screens"
+      }
+    ]
+  },
+  {
     "id": "v2026.11.04.3",
     "date": "2026-11-04",
     "title": "Moments That Land",
-    "sealed": false,
+    "sealed": true,
     "entries": [
       {
         "cat": "Visuals",

@@ -17,6 +17,36 @@ export interface BlogPost {
 
 export const POSTS: BlogPost[] = [
   {
+    slug: 'the-grind',
+    date: '2026-11-04',
+    title: 'The Grind: runs that aren\'t decided in thirty seconds, goals that tell the truth, and chases that keep climbing',
+    category: 'Release',
+    tags: ['progression', 'balance', 'campaign', 'gene-cards', 'boss-rush', 'mega-bosses', 'design'],
+    summary: 'We sent two auditors through hundreds of simulated runs and 400 hours of simulated accounts. This update fixes what they found: a Campaign opening that no longer decides the run, drafts dealt for your build, goals with honest ETAs, gear that keeps improving, Mega raids that pay when you lose, and a Boss Rush with a real wall.',
+    body: `
+<p>A grind is only fun if every run is a real decision and every hour moves you somewhere you can see. To check whether ASSIMILATION delivers that, we ran two audits. One played about 560 Campaign runs headlessly on accounts at three depths. The other simulated players for 400 hours and watched what happened to their goals, gear and rank. Both found real problems. Here is what changed.</p>
+<h2>The opening is no longer a coin flip</h2>
+<p>Nine in ten lost runs were lost by wave 3, and the run's seed mostly decided which. Fliers could arrive in wave 1 before you had anything that shoots up, and a Mega could surface on top of a two-tower board. Now fliers stay out of wave 1 and come only in small numbers in wave 2, a Mega arrives with wave 3, and on deeper stages your free first organism is one that answers the stage's opening threats. Wave-1 losses in the audit went from fifteen to zero.</p>
+<p>The pressure moved to where it belongs. From wave 4, and on every boss, the hive answers your snowball: waves and bosses grow with how far your board has outgrown the stage, and the briefing tells you by how much (<b>▲ ADAPTED ×N</b>). Losses now happen in the back half of a run, where your choices have had time to matter.</p>
+<h2>Call the next wave early</h2>
+<p>When your board is holding, press <b>⏩ Call early</b> (or Space) mid-wave to send the next wave in now. You earn Biomass for the time you skipped, waves overlap, and any gene draft you skipped is still dealt when the field clears.</p>
+<h2>Drafts dealt for your build</h2>
+<p>Gene drafts used to deal from the whole pool, so a third of the offers were for towers doing almost nothing in your run. Now cards for the towers and heroes carrying your damage come up more, recent offers come up less, and <b>◆ PICK</b> marks the best fit for this board, not just the rarest card. It now agrees with the strongest option nine times in ten. Campaign runs from Stage 8 open with an <b>Opening Draft</b>, and when Biomass piles up between waves, <b>Splice</b> spends it on an extra draft. Hive Intelligence also builds your opening towers before it spends on hero stats.</p>
+<h2>Goals that tell the truth</h2>
+<p>Results used to promise "one more run" for goals that were two days away. Every goal now carries an estimate in runs, measured from your own recent income, and "one more run" means one more run (the estimate now lands within two runs 84% of the time, up from 41%). When a stage outweighs you, Home's main button says <b>Farm Infinite</b> and shows how much each run closes the gap. Achievement ladders keep milestones coming at any depth, the daily Bio-Cache grows with your income, and commons get a Claim all in the Specimen Cabinet. Nothing you earn quietly un-earns itself anymore: Gear Codex entries are permanent, and a Molt never demotes your Genome Rank. After a Molt, one tap rebuilds your Genome by best value.</p>
+<h2>Chases that keep climbing</h2>
+<p>Gear stopped getting better after about three hours, because item level was capped at 30. Item level now follows how deep you've pushed and keeps climbing, rarity odds rise with it, and the top affix tier appears deep in the Campaign. Mega stages used to stall players for most of a day; they now ask far less extra Power, and every organ you burst counts toward a <b>Mega Hunt</b> rank that pays Genome Cores, even when the raid fails.</p>
+<h2>Boss Rush has a wall</h2>
+<p>Built accounts could stand in Boss Rush for half an hour without ever being threatened. Now bosses are sized to your Power and grow faster past wave 10, and 28 seconds after a wave's last boss arrives, the next column marches in whether you're ready or not. Runs are a few minutes of dense decisions. Because old records were set when waves waited forever, records restarted with the wall: your old best is kept as a <b>Pre-wall Record</b>, the leaderboard started fresh, and new records pay Ichor again.</p>
+<h2>Fixed along the way</h2>
+<ul>
+<li>A Daily run that used the draft reroll could fail replay verification.</li>
+<li>The Mega bar covered the gene draft's header, and the Boss Rush tray clipped its last pod on 1440-wide screens.</li>
+<li>Defeats now show your board size against what winning boards field, and when your first flier went down. The mission card shows wave 1.</li>
+</ul>
+`,
+  },
+  {
     slug: 'moments-that-land',
     date: '2026-11-04',
     title: 'Moments That Land: the last kill, a victory that takes the board, and films that finally move',
