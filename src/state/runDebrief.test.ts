@@ -46,7 +46,11 @@ describe('boss naming — the root of "Apex Slayer: Slay a Brood Tyrant" on an A
     const stats = bossKillStats('Apex Bombard');
     const save = defaultSave();
     const after = { ...save, stats: accumulateStats(save.stats, stats) };
-    expect(checkAchievements({ save: after }).some((a) => a.id === 'apex_slayer')).toBe(true);
+    // The bestiary no longer books the boss as a Brood Tyrant (state/stats.ts strips the proxy)…
+    expect(after.stats.killsByEnemy.tyrant).toBe(0);
+    // …and the achievement reads the run's own boss kills.
+    const run = { wave: stats.wave, kills: stats.kills, won: stats.won, bossKills: stats.bossKills };
+    expect(checkAchievements({ save: after, run }).some((a) => a.id === 'apex_slayer')).toBe(true);
     const def = achievementById('apex_slayer')!;
     // The trigger counts every boss, so the copy may not promise one specific enemy.
     for (const d of Object.values(ENEMY_DEFS)) expect(def.desc).not.toContain(d.name);

@@ -20,6 +20,14 @@ function run(over: Partial<RunStats> = {}): RunStats {
 }
 
 describe('lifetime statistics', () => {
+  it('books only REAL Brood Tyrants in the bestiary — boss kills ride the tyrant render proxy', () => {
+    const base = defaultLifetimeStats();
+    // A run that slew two framework bosses (booked as 'tyrant') and one real Brood Tyrant.
+    const s = accumulateStats(base, run({ killsByEnemy: { ...base.killsByEnemy, tyrant: 3 }, bossKills: 2 }));
+    expect(s.killsByEnemy.tyrant).toBe(1);
+    // Never negative, even if a run's proxy count and boss count disagree.
+    expect(accumulateStats(base, run({ killsByEnemy: { ...base.killsByEnemy, tyrant: 0 }, bossKills: 2 })).killsByEnemy.tyrant).toBe(0);
+  });
   it('folds one run into lifetime totals (with dedup + per-kind breakdown)', () => {
     const s = accumulateStats(defaultLifetimeStats(), run());
     expect(s.lifetimeKills).toBe(10);

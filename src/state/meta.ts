@@ -2954,7 +2954,7 @@ export const meta = {
     runContainersBanked = [];
     // Run-end milestones (extract, kills, mastery, …). The Results screen shows these inline AFTER
     // the reward sequence; the floating toaster is suppressed off-menu so nothing covers the stats.
-    const unlockedAchievements = this.evaluateAchievements(result)
+    const unlockedAchievements = this.evaluateAchievements({ ...result, bossKills: result.stats.bossKills })
       .map(achievementById)
       .filter((d): d is AchievementDef => !!d);
     // Battle Pass XP (docs/BATTLEPASS.md §xp): every meaningful activity feeds the season.

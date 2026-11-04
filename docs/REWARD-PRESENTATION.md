@@ -71,8 +71,9 @@ the "replay milestone" affordance), `prefers-reduced-motion` → instant.
   bosses borrow the `'tyrant'` kind as a render proxy, so `killsByEnemy.tyrant` counts every boss
   — the function discounts the proxied kills (`bossKills − megaKills`) so a stage boss is never
   named "Brood Tyrant" (the 2026-11 naming bug; the `apex_slayer` copy now reads "Slay your first
-  boss"). Known remaining overlap: the Bio-Dex "Brood Tyrant" bestiary entry still tallies every
-  boss kill through the same proxy count. Flawless is
+  boss"). The lifetime ledger strips the proxy: `state/stats.accumulateStats` books
+  `killsByEnemy.tyrant − bossKills`, so the Bio-Dex "Brood Tyrant" entry counts only real Brood
+  Tyrants, and Apex Slayer reads the run's own `bossKills` (RunSummary). Flawless is
   tracked (`RunStats.integrityLost`, 0 = no Nucleus damage): the Bio-Containers category shows a
   Flawless first-clear bonus-cache verdict (earned/missed) driven by `RunOutcome.flawlessCache`. A
   standalone "Flawless" combat stat could still slot in as a `RewardStat` with no engine change.

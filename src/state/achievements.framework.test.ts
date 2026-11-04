@@ -25,6 +25,12 @@ describe('achievement framework (hidden / progress / reward / stats integration)
     expect(ids).toContain('apex_slayer');
   });
 
+  it('Apex Slayer fires on the run that slays a boss, not only off the bestiary tally', () => {
+    const run = { wave: 6, kills: 40, won: true, bossKills: 1 };
+    expect(checkAchievements({ save: defaultSave(), run }).map((a) => a.id)).toContain('apex_slayer');
+    expect(checkAchievements({ save: defaultSave(), run: { ...run, bossKills: 0 } }).map((a) => a.id)).not.toContain('apex_slayer');
+  });
+
   it('exposes lifetime progress for trackable achievements', () => {
     const def = achievementById('exterminator');
     expect(def?.progress?.({ save: saveWithStats({ lifetimeKills: 250 }) })).toEqual({ cur: 250, max: 1000 });

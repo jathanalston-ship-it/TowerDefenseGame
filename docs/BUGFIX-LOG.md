@@ -55,6 +55,7 @@ bug-hunt pass (scope, method, verdict) so "we looked" is auditable.
 | 43 | The Champion Contracts What's New card fired at run 1, four stages before its board appeared. | Mechanic unlock was `totalRuns >= 1`; the Home widget reveals with Daily. | Mechanic unlocks with `featureRevealed('daily')`. |
 | 44 | The locked Boss Rush tile previewed "Ichor / records" before Ichor existed for the player. | Static preview chips. | The chip shows only once `rewardVisible('ichor')`. |
 | 45 | The Home Command strip showed "Infinite · Wave 6" and "Collection 4%" at Stage 1, before either screen existed for the player. | The vitals cells were static. | Cells filter through `unlocks.isOpenNav` like every other guidance surface. |
+| 46 | The Bio-Dex "Brood Tyrant" entry ranked up on every boss kill. | Framework bosses spawn with the `'tyrant'` kind as a render proxy, and the lifetime fold added the run's raw per-kind kills. | `accumulateStats` books `tyrant − bossKills` (never negative); Apex Slayer reads the run's own `bossKills`. Tests: stats.test, achievements.framework.test, runDebrief.test. |
 
 ---
 

@@ -15,8 +15,15 @@ export function accumulateStats(
   towerCombat?: MasteryCounts,
   extra?: { durationSec?: number; doctrine?: string; bossRush?: boolean },
 ): LifetimeStats {
+  // Framework bosses borrow the 'tyrant' kind as their render proxy (both boss spawn paths in
+  // core/game.ts), so a run's tyrant count includes every boss kill (RunStats.bossKills). The
+  // lifetime ledger is the Bio-Dex bestiary — book only REAL Brood Tyrants under 'tyrant'.
+  const proxiedBosses = run.bossKills ?? 0;
   const killsByEnemy = { ...prev.killsByEnemy };
-  for (const k of ENEMY_KINDS) killsByEnemy[k] = (killsByEnemy[k] ?? 0) + (run.killsByEnemy[k] ?? 0);
+  for (const k of ENEMY_KINDS) {
+    const n = (run.killsByEnemy[k] ?? 0) - (k === 'tyrant' ? proxiedBosses : 0);
+    killsByEnemy[k] = (killsByEnemy[k] ?? 0) + Math.max(0, n);
+  }
 
   const towerUsage = { ...prev.towerUsage };
   for (const k of TOWER_ORDER) towerUsage[k] = (towerUsage[k] ?? 0) + (run.towerBuilds[k] ?? 0);

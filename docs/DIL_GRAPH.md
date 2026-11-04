@@ -2232,7 +2232,7 @@ _at: src/core/boss.ts_
   - dependsOn → `system:engine`
   - dependsOn → `system:content-infra`
   - consumes → `system:meta-store` — owns save field 'bossesSlain'
-  - conflictsWith → `system:achievements` — framework bosses spawn as kind 'tyrant' (the Brood Tyrant render proxy) so killsByEnemy.tyrant counts EVERY boss: name bosses from RunStats.bossesSlain / runDebrief.highestThreat, and never write achievement/codex copy that promises 'a Brood Tyrant' off that count.
+  - conflictsWith → `system:achievements` — framework bosses spawn as kind 'tyrant' (the Brood Tyrant render proxy) so killsByEnemy.tyrant counts EVERY boss: name bosses from RunStats.bossesSlain / runDebrief.highestThreat, and never write achievement/codex copy that promises 'a Brood Tyrant' off that count. The LIFETIME ledger (state/stats.accumulateStats) strips the proxy (tyrant − RunStats.bossKills), so the Bio-Dex counts real Brood Tyrants and Apex Slayer reads RunSummary.bossKills.
   - triggers → `system:audio` — bossPhase event → boss_phase mutation roar (GameView seam; the sim itself only pushes the splice crunch)
   - modifies → `system:rendering` — chassis SIGNATURES (CHASSIS_IDENTITY/SIGNATURE_OWNER, ownership validator-enforced) ride HudSnapshot: mortarStrikes + nullWells tick like corruptionPools and draw beside them; epithet + MODULE_LABEL kit chips feed the intro card/banner/defeat beat. Reaction true damage intentionally pierces the unstoppable march (same vocabulary as carapace-vs-Shred)
   - requiredBy ← `system:engine`
