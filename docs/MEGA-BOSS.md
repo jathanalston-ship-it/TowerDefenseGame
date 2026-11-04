@@ -321,7 +321,8 @@ reward, and the **cataclysm finale** (present + castable in the final phase). Ro
 slots, collection entry, achievements ceiling, daily-roll pool, renderer (palette/motif-
 driven), raid bar, and audio all pick it up automatically. Add a bespoke theme sting in
 `sound.ts` if `themeCue` is new — and **THE RULE**: ship its defeat cutscene in
-`core/cutscenes.ts` or `cutscenes.test.ts` fails the build.
+`core/cutscenes.ts` or `cutscenes.test.ts` fails the build (its first scene paints the mega
+itself — painter `'mega'` + a `mega` arc; the pose entry point below makes that free).
 
 ## Visuals v2 (2026-07) — `render/megaboss.ts`
 
@@ -349,6 +350,16 @@ thin gold edge-light while the HUD meter (under the raid HP bar) flips to `STAGG
 ON`. **CATACLYSM presentation:** the gather doubles and burns hot, a white core swells in the
 throat with the windup, the warning band turns red at double depth, and a resolved cast slams a
 ×1.7 shock ring (the edge-detect remembers the winding kind via `lastTeleKind`).
+
+**The POSE entry point (2026-11, docs/CUTSCENES.md §premieres):** `drawMegaPose(ctx, defId, pose,
+now)` paints ONE mega without a live Game — the premiere films use it, so a premiere shows the
+actual organism, not a stand-in. It drives the same `drawMegaBody` + `drawMegaOrgans` from a
+cached per-def rig (a `MegaView` in the final phase's visual tier, weak points with negative
+`spec` ids so they never collide with a live raid's one-shot maps, a 16-step silhouette→palette
+ramp) posed by five scalars `{reveal, ignite, gather, fall, flare}`; the module one-shots
+(stagger ease, cast-flash edge) are parked and restored around the call, so a pose never edits
+— or inherits — the raid's state. Tunables in `MEGA_POSE`. Board space; the caller owns the
+transform. A new mega's premiere poses for free.
 
 ## Performance
 

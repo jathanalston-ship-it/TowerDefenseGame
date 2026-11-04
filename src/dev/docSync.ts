@@ -19,6 +19,7 @@ import { ASSIMILATION_TIERS } from '../core/assimilation';
 import { COMBAT_TUTORIAL } from '../core/tutorial';
 import { FEEL, ANNOUNCE, LAST_KILL } from '../render/feel';
 import { GUTTERS } from '../render/gutters';
+import { FILM } from '../render/filmDirection';
 import { PRESTIGE } from '../core/prestige';
 import { OUTRO } from '../render/runOutro';
 
@@ -73,6 +74,7 @@ export function docAnchors(): DocAnchor[] {
     { doc: 'docs/SIGNATURE-MOMENTS.md', contains: `Victory hold **${OUTRO.holdMs.won} ms** (defeat ${OUTRO.holdMs.lost} ms · reduced motion ${OUTRO.holdMs.reduced} ms)`, why: 'run-end outro hold drifted (render/runOutro.ts OUTRO.holdMs)' },
     { doc: 'docs/SIGNATURE-MOMENTS.md', contains: `The wash **${OUTRO.wash.ms} ms**; the defeat cracks ${OUTRO.defeat.ms} ms`, why: 'victory wash / defeat crack timing drifted (render/runOutro.ts OUTRO)' },
     { doc: 'docs/SIGNATURE-MOMENTS.md', contains: `--rb-blur ${cssToken('rb-blur')} · --rb-dim ${cssToken('rb-dim')}`, why: 'Results backdrop blur/dim drifted (src/index.css §S2)' },
+    { doc: 'docs/CUTSCENES.md', contains: `default \`FILM.punch.zoom\` = ${Math.round(FILM.punch.zoom * 1000) / 10} %, hard ceiling ${Math.round(FILM.punch.max * 1000) / 10} %`, why: 'film punch dials drifted (render/filmDirection.ts FILM.punch)' },
   ];
 }
 

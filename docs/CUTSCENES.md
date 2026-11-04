@@ -21,26 +21,74 @@ this is a content contract, not a convention. The DIL records the same edge
 (`system:mega-bosses` → `system:cutscenes`).
 
 A new mega's film is usually **pure data**: 2–3 scenes over the existing painter library,
-themed by the mega's palette, with copy + `cin_*` beats. Budget ~30 minutes of authoring.
+themed by the mega's palette, with copy + `cin_*` beats. Its FIRST scene paints the mega
+itself (painter `'mega'` + a `mega` arc — §premieres; test-enforced). Budget ~30 minutes.
 
 ## §data — a cutscene is data
 
 `CutsceneDef`: id (`mega:*` / `story:*`), title, subtitle, palette `{body, glow, accent}`
 (themes every painter), `unlock` (data — see §unlocks), `unlockHint` (the Archive's locked
 card), `boost` (§boosts), and `scenes[]` — each `{painter, durMs, lines[{at, text, em}],
-beats[{at, cue}]}`. Beats speak only the cinematic cue set (`cin_ping/alarm/rumble/shriek/
+beats[{at, cue, impact?}]}` plus the optional direction rows `copyAt`, `camera`, `punch`,
+`mega` (§direction). Beats speak only the cinematic cue set (`cin_ping/alarm/rumble/shriek/
 creep/snap/heart/bloom/title/cut/dive`); the quality gates (≥2 scenes, ≥4 lines, timings
-inside the hold, painters registered) are test-enforced.
+inside the hold, beats in clock order, painters registered, ≥1 impact beat per film) are
+test-enforced.
 
 ## §painters — the reusable tableau library
 
 `render/cutsceneScenes.ts` exports `CUTSCENE_PAINTERS`: **behemoth, maw, choir, herd, tide,
-tithe, lab, countdown, molt, deep, veinsplit, root** — full-screen procedural set-pieces
-`(ctx, w, h, t, theme)`, deterministic in `t`, drawn under per-painter camera drift with the
-intro's cross-dissolve (`drawCutsceneFrame`). `CUTSCENE_REDUCED_T` holds each painter's
-hand-picked still (reduced motion + the Archive's card art via `drawCutsceneStill`).
-Prefer re-theming an existing painter for new content; add a painter only for a genuinely
-new visual idea (then give it a DRIFT row + a reduced still — the test checks coverage).
+tithe, lab, countdown, molt, deep, veinsplit, root, mega** — full-screen procedural set-pieces
+`(ctx, w, h, t, theme, fx)`, deterministic in `t`, drawn under the film direction layers
+(§direction) with the intro's cross-dissolve (`drawCutsceneFrame`). Each painter's mid layer
+reads `fx.beat` (a decaying kick from the latest beat) / `fx.surge` (one eased step per beat)
+so its subject moves ON the score. `CUTSCENE_REDUCED_T` holds each painter's hand-picked still
+(reduced motion + the Archive's card art via `drawCutsceneStill`; `cutsceneStillT(scene)`
+picks a Mega scene's still from its arc). Prefer re-theming an existing painter for new
+content; add a painter only for a genuinely new visual idea (then give it a DRIFT row + a
+reduced still — the test checks coverage). `behemoth` and `tide` (the old stand-ins for a
+falling mega) no longer open a shipped film but stay in the library.
+
+## §direction — films that move (docs/SIGNATURE-MOMENTS.md §3)
+
+`render/filmDirection.ts` gives every scene of every film — the opening film
+(`render/introScenes.ts`) and every cutscene — three motion layers, deterministic in the
+scene clock and allocation-free per frame:
+
+1. **Camera** — a slow drift across the scene's hold (the scene's `camera {zoom, dx, dy}`, else
+   its painter's DRIFT row; subtle by the owner's call: **2–3 %**) plus a **punch** on every beat
+   marked `impact: true` (`punch` per scene,
+   default `FILM.punch.zoom` = 4.5 %, hard ceiling 6 %; 25 ms rise, ~120 ms total).
+2. **Mid layer** — the painter's subject animates on the score's beats (`fx.beat`, `fx.surge`):
+   the radar throws a contact ring per ping, the crust lurches and the swarm surges per rumble,
+   the veins lunge and the steel shudders per snap, the core throws a shockwave per heart, the
+   countdown rings step inward per count, the strata drop a step per beat…
+3. **Foreground** — out-of-focus particulate in the scene's light, drawn over the tableau under
+   a parallaxed copy of the camera (`FILM.foreground`).
+
+**Copy placement:** a scene's `copyAt` (`'center' | 'upper' | 'lower'`, default centre) puts its
+copy on the tableau's measured quiet band (`.intro-stage.is-copy-*` in index.css) — the intro's
+core scene sits its copy BELOW the Hive Core, Mega scenes under the organism.
+
+**Reduced motion** (the OS request unless Settings → Motion overrides it — `resolveMotion`,
+resolved once per showing): one still per scene, no drift, no punches, no flashes; the same copy
+on the same timing; Skip / tap-to-advance unchanged. Tunables: `FILM` (filmDirection.ts) and
+`MEGA_SCENE` (cutsceneScenes.ts) — the owner's dials.
+
+## §premieres — the mega, in full
+
+A mega film's first scene uses painter **`'mega'`**: the film's OWN organism, painted by the
+raid's painter through `render/megaboss.ts` **`drawMegaPose(ctx, defId, pose, now)`** — the
+same `drawMegaBody` + `drawMegaOrgans` on a cached pose rig (its final, most-mutated form),
+with the raid's render one-shots parked around the call so a pose never disturbs a raid. The
+scene's `mega: {reveal, ignite, fall?}` arc (scene seconds) poses it: a **silhouette** resolving
+out of its own backlight by `reveal` → the **weak points ignite** one by one from `ignite`
+(the maw gathering, organs flaring on every beat) → **the fall** from `fall` (organs rupture with
+a light bloom off the mass, the body collapses, drains and sinks, embers rise). The fall lands on
+an `impact` beat. Reduced motion shows the organism in full: just after its last organ lit,
+before any fall (`cutsceneStillT`). Framing (`MEGA_SCENE.fit`): the mass along the top, organs
+hanging into frame, copy `lower`; phone portrait crops the sides, strips (the Archive card) fill
+their width.
 
 ## §unlocks — derived, never stored
 
@@ -90,5 +138,6 @@ the golden test never move. All nine boosts together are worth roughly one commo
 `CutscenePlayer` reuses the intro's film chrome (letterbox, grade, timed copy, beat-synced
 cues, the `cinema` score with an intensity walk) over `drawCutsceneFrame`. Tap advances,
 Skip jumps to the **coda** — "MEMORY ARCHIVED · title · boost" — so the collectible moment
-lands even on a skip. Reduced motion: one still per scene, CSS fades only. The caller owns
-what the music does after (`music.play('menu')`).
+lands even on a skip. Reduced motion: one still per scene, CSS fades only (§direction). The
+frame spec is one object per showing, mutated per frame (no per-frame allocation). The caller
+owns what the music does after (`music.play('menu')`).

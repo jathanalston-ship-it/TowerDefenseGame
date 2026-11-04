@@ -8,6 +8,9 @@
 // canvas size so a frame only pays for motion. Render-only — no sim, no save.
 
 import { rgba } from './theme';
+import { applyFilmCamera, driftK, drawFilmForeground, filmFx, resolveFilmFx } from './filmDirection';
+import type { FilmFx, FilmScene } from './filmDirection';
+import type { CutsceneCamera } from '../core/cutscenes';
 
 export type IntroVisual = 'signal' | 'descent' | 'veins' | 'core' | 'title';
 
@@ -119,10 +122,19 @@ function grain(ctx: Ctx, w: number, h: number, t: number, alpha: number): void {
 }
 
 // ── Scene 1 · SIGNAL — the deep-crust listening post reacquires the feed ──
-function drawSignal(ctx: Ctx, w: number, h: number, t: number): void {
+function drawSignal(ctx: Ctx, w: number, h: number, t: number, fx: FilmFx): void {
   const cx = w / 2;
   const cy = h * 0.58;
   const R = Math.min(w, h) * 0.34;
+  // MID LAYER on the score: every ping throws a contact ring out of the dish.
+  if (fx.age < 1.4) {
+    const k = fx.age / 1.4;
+    ctx.strokeStyle = rgba(CYAN, 0.55 * (1 - k));
+    ctx.lineWidth = 2.5 * (1 - k) + 0.5;
+    ctx.beginPath();
+    ctx.arc(cx, cy, R * (0.08 + k * 1.05), 0, TAU);
+    ctx.stroke();
+  }
   // Range rings + cardinal ticks — the dish's field of view.
   ctx.lineWidth = 1;
   for (let r = 1; r <= 3; r++) {
@@ -141,6 +153,15 @@ function drawSignal(ctx: Ctx, w: number, h: number, t: number): void {
   }
   // The sweep — a conic wedge dragging a phosphor tail.
   const sweep = t * 1.1;
+  // the phosphor fill behind the beam — a wide fading wake the whole dish lights under
+  for (let i = 0; i < 6; i++) {
+    ctx.fillStyle = rgba(CYAN, 0.2 * (1 - i / 6) * (1 + fx.beat * 0.5));
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.arc(cx, cy, R, sweep - (i + 1) * 0.16, sweep - i * 0.16);
+    ctx.closePath();
+    ctx.fill();
+  }
   for (let i = 0; i < 20; i++) {
     const a = sweep - i * 0.035;
     ctx.strokeStyle = rgba(CYAN, 0.5 * (1 - i / 20));
@@ -151,12 +172,12 @@ function drawSignal(ctx: Ctx, w: number, h: number, t: number): void {
     ctx.stroke();
   }
   // Contact blips — lit when the sweep passes, decaying after. They MULTIPLY over time.
-  const blips = 4 + Math.floor(Math.min(14, t * 2.2));
+  const blips = 4 + Math.floor(Math.min(14, t * 1.4 + fx.surge * 1.6)); // each ping resolves more contacts
   for (let i = 0; i < blips; i++) {
     const ba = h01(i * 7.7) * TAU;
     const br = R * (0.25 + h01(i * 3.9) * 0.7);
     const since = (sweep - ba) % TAU;
-    const glow = Math.max(0, 1 - (since < 0 ? since + TAU : since) * 0.5);
+    const glow = Math.min(1, Math.max(0, 1 - (since < 0 ? since + TAU : since) * 0.5) + fx.beat * 0.45);
     if (glow <= 0.02) continue;
     const bx = cx + Math.cos(ba) * br;
     const by = cy + Math.sin(ba) * br;
@@ -171,7 +192,7 @@ function drawSignal(ctx: Ctx, w: number, h: number, t: number): void {
   }
   // The waveform strip — flatline for a beat, then the signal ERUPTS.
   const wy = h * 0.16;
-  const erupt = ease((t - 1.1) / 1.4);
+  const erupt = ease((t - 1.1) / 1.4) * (1 + fx.beat * 0.6);
   ctx.strokeStyle = rgba(CYAN, 0.75);
   ctx.lineWidth = 1.5;
   ctx.beginPath();
@@ -205,12 +226,13 @@ function drawSignal(ctx: Ctx, w: number, h: number, t: number): void {
 }
 
 // ── Scene 2 · DESCENT — the swarm boils up from below ──
-function drawDescent(ctx: Ctx, w: number, h: number, t: number): void {
+function drawDescent(ctx: Ctx, w: number, h: number, t: number, fx: FilmFx): void {
   const c = buildCache(w, h);
-  const rise = ease(t / 4.5) * h * 0.05; // slow dolly upward
-  // Abyssal glow under everything — the appetite's light.
-  const g = ctx.createRadialGradient(w / 2, h * 1.15, h * 0.1, w / 2, h * 1.05, h * 0.95);
-  g.addColorStop(0, rgba(RED, 0.65));
+  const rise = ease(t / 4.5) * h * 0.05 + fx.surge * h * 0.012; // slow dolly upward — the crust lurches on every rumble
+  // Abyssal glow under everything — the appetite's light, RISING through the scene.
+  const swell = ease(t / 7);
+  const g = ctx.createRadialGradient(w / 2, h * (1.15 - swell * 0.2), h * 0.1, w / 2, h * (1.05 - swell * 0.2), h * (0.95 + swell * 0.2));
+  g.addColorStop(0, rgba(RED, 0.65 + fx.beat * 0.3));
   g.addColorStop(0.5, rgba(RED, 0.22));
   g.addColorStop(1, 'rgba(0,0,0,0)');
   ctx.fillStyle = g;
@@ -237,7 +259,7 @@ function drawDescent(ctx: Ctx, w: number, h: number, t: number): void {
     ctx.fill();
   }
   // Floor cracks — widening, ember-lit, OVER the rock (the light escaping).
-  const widen = 1 + ease(t / 5) * 1.6;
+  const widen = 1 + ease(t / 5) * 1.6 + fx.beat * 0.9; // the cracks flare open on the beat
   for (const k of c.cracks) {
     const cg = ctx.createLinearGradient(0, k.top, 0, h);
     cg.addColorStop(0, 'rgba(0,0,0,0)');
@@ -255,7 +277,7 @@ function drawDescent(ctx: Ctx, w: number, h: number, t: number): void {
   // banking with their jitter. Three parallax lanes.
   for (const sw of c.swarm) {
     const lane = 0.5 + sw.lane * 0.25; // depth: far lanes slower + dimmer
-    const climb = (t * sw.speed * lane * 0.2 + h01(sw.x) * 1.2) % 1.25;
+    const climb = (t * sw.speed * lane * 0.2 + fx.surge * 0.07 * lane + h01(sw.x) * 1.2) % 1.25; // the swarm SURGES on the score
     const y = h * 1.1 - climb * h * 1.15;
     if (y < -10) continue;
     const x = sw.x + Math.sin(t * (1.1 + sw.wob) + sw.wob * 5) * 14 * lane;
@@ -290,19 +312,20 @@ function drawDescent(ctx: Ctx, w: number, h: number, t: number): void {
 }
 
 // ── Scene 3 · VEINS — steel consumed by the living lattice ──
-function drawVeins(ctx: Ctx, w: number, h: number, t: number): void {
+function drawVeins(ctx: Ctx, w: number, h: number, t: number, fx: FilmFx): void {
   const c = buildCache(w, h);
-  const spread = ease(t / 4.2); // 0..1 takeover
+  const spread = Math.min(1, ease(t / 5.2) * 0.75 + fx.surge * 0.06); // 0..1 takeover — it LUNGES on every beat
   // The doomed superstructure — cool steel, flickering worklights.
   ctx.lineCap = 'round';
   for (let i = 0; i < c.girders.length; i++) {
     const gd = c.girders[i];
     const dying = Math.max(0, spread * 1.4 - h01(i * 7.7) * 0.5);
+    const jolt = fx.beat * dying * Math.sin(i * 2.3) * 7; // steel shudders as the snap lands
     ctx.strokeStyle = rgba(STEEL, Math.max(0.12, 0.4 - dying * 0.3));
     ctx.lineWidth = gd.w;
     ctx.beginPath();
-    ctx.moveTo(gd.x1, gd.y1);
-    ctx.lineTo(gd.x2, gd.y2);
+    ctx.moveTo(gd.x1 + jolt, gd.y1);
+    ctx.lineTo(gd.x2 + jolt, gd.y2);
     ctx.stroke();
     // rivets
     ctx.fillStyle = rgba(STEEL, Math.max(0.1, 0.5 - dying * 0.4));
@@ -313,12 +336,12 @@ function drawVeins(ctx: Ctx, w: number, h: number, t: number): void {
   // A worklight that browns out as the veins reach it.
   const flick = h01(Math.floor(t * 11)) > spread * 0.9 ? 1 : 0.35;
   const lg = ctx.createRadialGradient(w * 0.5, h * 0.12, 4, w * 0.5, h * 0.12, h * 0.5);
-  lg.addColorStop(0, rgba(CYAN, 0.16 * flick * (1 - spread * 0.6)));
+  lg.addColorStop(0, rgba(CYAN, 0.22 * flick * (1 - spread * 0.85))); // the takeover puts the light OUT
   lg.addColorStop(1, 'rgba(0,0,0,0)');
   ctx.fillStyle = lg;
   ctx.fillRect(0, 0, w, h);
   // The takeover — vein segments reveal in growth order, pulsing as they thicken.
-  const pulse = 1 + Math.sin(t * 2.6) * 0.12;
+  const pulse = 1 + Math.sin(t * 2.6) * 0.12 + fx.beat * 0.35;
   for (const v of c.veins) {
     const reveal = ease((spread - v.at) / 0.12);
     if (reveal <= 0) continue;
@@ -345,8 +368,9 @@ function drawVeins(ctx: Ctx, w: number, h: number, t: number): void {
     }
   }
   // Infection light pooling where the veins run thickest.
-  const ig = ctx.createRadialGradient(w * 0.25, h * 0.85, 10, w * 0.3, h * 0.85, w * 0.55);
-  ig.addColorStop(0, rgba(VIRAL, 0.14 * spread));
+  // It floods outward as the takeover spreads — the scene's light changes hands.
+  const ig = ctx.createRadialGradient(w * 0.25, h * 0.85, 10, w * 0.3, h * 0.85, w * (0.4 + spread * 0.4));
+  ig.addColorStop(0, rgba(VIRAL, (0.26 + fx.beat * 0.12) * spread));
   ig.addColorStop(1, 'rgba(0,0,0,0)');
   ctx.fillStyle = ig;
   ctx.fillRect(0, 0, w, h);
@@ -355,18 +379,19 @@ function drawVeins(ctx: Ctx, w: number, h: number, t: number): void {
 }
 
 // ── Scene 4 · CORE — the Hive Core breathes, refusing to be eaten ──
-function drawCore(ctx: Ctx, w: number, h: number, t: number): void {
+function drawCore(ctx: Ctx, w: number, h: number, t: number, fx: FilmFx): void {
   const cx = w / 2;
-  const cy = h * 0.52;
-  const R = Math.min(w, h) * 0.16;
+  const cy = h * (h < 520 ? 0.28 : 0.52); // a short (phone-landscape) stage lifts the core so its copy keeps the lower band
+  const grow = ease(t / 8); // "the last thing still growing back" — the core swells through the scene
+  const R = Math.min(w, h) * 0.16 * (1 + grow * 0.14);
   // Double-thump heartbeat (the game's own cadence).
   const cyc = t % 1.9;
   const beat = Math.max(Math.exp(-cyc * 9) * 0.5, Math.exp(-Math.max(0, cyc - 0.28) * 9) * 0.34);
-  const r = R * (1 + beat * 0.25);
-  // Chamber glow.
-  const bg = ctx.createRadialGradient(cx, cy, r * 0.4, cx, cy, Math.max(w, h) * 0.6);
-  bg.addColorStop(0, rgba(GOLD, 0.2 + beat * 0.18));
-  bg.addColorStop(0.35, rgba(EMBER, 0.07));
+  const r = R * (1 + beat * 0.25 + fx.beat * 0.07);
+  // Chamber glow — warming as the core regrows.
+  const bg = ctx.createRadialGradient(cx, cy, r * 0.4, cx, cy, Math.max(w, h) * (0.5 + grow * 0.15));
+  bg.addColorStop(0, rgba(GOLD, 0.16 + grow * 0.14 + beat * 0.18 + fx.beat * 0.12));
+  bg.addColorStop(0.35, rgba(EMBER, 0.05 + grow * 0.06));
   bg.addColorStop(1, 'rgba(0,0,0,0)');
   ctx.fillStyle = bg;
   ctx.fillRect(0, 0, w, h);
@@ -391,6 +416,15 @@ function drawCore(ctx: Ctx, w: number, h: number, t: number): void {
     ctx.lineWidth = 1.6;
     ctx.beginPath();
     ctx.arc(cx, cy, r * (1.15 + age * 2.6), 0, TAU);
+    ctx.stroke();
+  }
+  // MID LAYER on the score: each heart/bloom beat throws one wide shockwave of light outward.
+  if (fx.age < 1.6) {
+    const k = fx.age / 1.6;
+    ctx.strokeStyle = rgba(GOLD, 0.42 * (1 - k) * (1 - k));
+    ctx.lineWidth = 2 + (1 - k) * 5;
+    ctx.beginPath();
+    ctx.arc(cx, cy, r * (1 + k * 4.4), 0, TAU);
     ctx.stroke();
   }
   // Membranes — three wobbling organic shells.
@@ -443,26 +477,26 @@ function drawCore(ctx: Ctx, w: number, h: number, t: number): void {
 }
 
 // ── Scene 5 · TITLE — atmosphere behind the wordmark ──
-function drawTitle(ctx: Ctx, w: number, h: number, t: number): void {
+function drawTitle(ctx: Ctx, w: number, h: number, t: number, fx: FilmFx): void {
   const c = buildCache(w, h);
   // A vast, dim nucleus looming behind the title.
   const cx = w / 2;
   const cy = h * 0.4;
   const R = Math.min(w, h) * 0.42;
-  const breathe = 1 + Math.sin(t * 0.7) * 0.02;
+  const breathe = 1 + Math.sin(t * 0.7) * 0.05 + fx.beat * 0.08; // the wordmark's swell lands in the nucleus
   const ng = ctx.createRadialGradient(cx, cy, R * 0.1, cx, cy, R * breathe);
-  ng.addColorStop(0, rgba(VIOLET, 0.12));
+  ng.addColorStop(0, rgba(VIOLET, 0.14));
   ng.addColorStop(0.55, rgba(RED, 0.06));
   ng.addColorStop(1, 'rgba(0,0,0,0)');
   ctx.fillStyle = ng;
   ctx.fillRect(0, 0, w, h);
   // Aurora bands sweeping slowly — the title gradient cast as light.
   for (let b = 0; b < 3; b++) {
-    const bx = w * ((t * 0.014 + b * 0.33) % 1.3 - 0.15);
+    const bx = w * ((t * 0.024 + b * 0.33) % 1.3 - 0.15);
     const hue = b === 0 ? RED : b === 1 ? VIOLET : CYAN;
     const ag = ctx.createLinearGradient(bx - w * 0.16, 0, bx + w * 0.16, 0);
     ag.addColorStop(0, 'rgba(0,0,0,0)');
-    ag.addColorStop(0.5, rgba(hue, 0.05));
+    ag.addColorStop(0.5, rgba(hue, 0.08 + fx.beat * 0.05));
     ag.addColorStop(1, 'rgba(0,0,0,0)');
     ctx.fillStyle = ag;
     ctx.fillRect(bx - w * 0.16, 0, w * 0.32, h);
@@ -470,7 +504,7 @@ function drawTitle(ctx: Ctx, w: number, h: number, t: number): void {
   // Spore field — two parallax layers, drifting up-right, twinkling.
   for (const s of c.spores) {
     const x = (s.x + t * 6 * s.z) % w;
-    const y = (s.y - t * 3.4 * s.z + h) % h;
+    const y = ((s.y - t * 3.4 * s.z - fx.surge * 24 * s.z) % h + h) % h; // the title swell lifts the spore field
     const tw = 0.5 + 0.5 * Math.sin(t * (0.8 + s.z) + s.drift);
     ctx.fillStyle = rgba(s.z > 0.7 ? CYAN : VIOLET, (0.1 + 0.3 * tw) * s.z);
     ctx.beginPath();
@@ -481,57 +515,59 @@ function drawTitle(ctx: Ctx, w: number, h: number, t: number): void {
   grain(ctx, w, h, t, 0.03);
 }
 
-const PAINTERS: Record<IntroVisual, (ctx: Ctx, w: number, h: number, t: number) => void> = {
+const PAINTERS: Record<IntroVisual, (ctx: Ctx, w: number, h: number, t: number, fx: FilmFx) => void> = {
   signal: drawSignal, descent: drawDescent, veins: drawVeins, core: drawCore, title: drawTitle,
 };
 
-/** Slow per-scene CAMERA DRIFT (a Ken Burns push/pan) — each world breathes differently: the radar
- *  pushes in, the descent falls, the takeover drifts sideways, the core leans close, the title recedes. */
-const DRIFT: Record<IntroVisual, { zoom: number; dx: number; dy: number }> = {
-  signal: { zoom: 0.045, dx: 0, dy: 0.006 },
-  descent: { zoom: 0.03, dx: 0, dy: -0.02 },
-  veins: { zoom: 0.04, dx: 0.014, dy: 0 },
-  core: { zoom: 0.06, dx: 0, dy: 0.004 },
-  title: { zoom: -0.035, dx: 0, dy: 0 },
+/** Slow per-scene CAMERA DRIFT (a Ken Burns push/pan, docs/CUTSCENES.md §direction) — subtle by the
+ *  owner's call (2–3 % across the scene's hold): the radar pushes in, the descent falls, the takeover
+ *  drifts sideways, the core leans close, the title recedes. A scene row's `camera` overrides. */
+const DRIFT: Record<IntroVisual, CutsceneCamera> = {
+  signal: { zoom: 0.028, dx: 0, dy: 0.006 },
+  descent: { zoom: 0.022, dx: 0, dy: -0.014 },
+  veins: { zoom: 0.025, dx: 0.012, dy: 0 },
+  core: { zoom: 0.03, dx: 0, dy: 0.004 },
+  title: { zoom: -0.025, dx: 0, dy: 0 },
 };
-function applyDrift(ctx: Ctx, w: number, h: number, visual: IntroVisual, t: number): void {
-  const d = DRIFT[visual];
-  const k = Math.min(1, t / 9); // a slow 9s move, easing off (never accelerates)
-  const z = 1 + d.zoom * ease(k);
-  ctx.translate(w / 2 + d.dx * w * k, h / 2 + d.dy * h * k);
-  ctx.scale(z, z);
-  ctx.translate(-w / 2, -h / 2);
+/** The particulate foreground's tint per world (each scene's own light). */
+const FOREGROUND: Record<IntroVisual, string> = { signal: CYAN, descent: EMBER, veins: VIRAL, core: GOLD, title: VIOLET };
+
+/** One scene under its camera: drift + punch, the painter (its mid layer rides the beats), then the
+ *  parallaxed particulate foreground. */
+function paintScene(ctx: Ctx, w: number, h: number, visual: IntroVisual, t: number, scene: FilmScene | null, motion: number, flashes: boolean): void {
+  const fx = resolveFilmFx(filmFx, scene, t, motion, flashes);
+  const cam = scene?.camera ?? DRIFT[visual];
+  const k = driftK(scene, t, motion);
+  ctx.save();
+  applyFilmCamera(ctx, w, h, cam, k, fx.punch);
+  PAINTERS[visual](ctx, w, h, t, fx);
+  ctx.restore();
+  drawFilmForeground(ctx, w, h, t, FOREGROUND[visual], cam, k, fx.punch);
 }
 
-/** Paint one cinematic frame: the current scene (under its camera drift), with the PREVIOUS scene
- *  cross-fading out over its first `fade` (0..1). Fills the full canvas each call (opaque base). */
+/** Paint one cinematic frame: the current scene (under its camera), with the PREVIOUS scene
+ *  cross-fading out over its first `fade` (0..1). Fills the full canvas each call (opaque base).
+ *  `scene` / `prevScene` carry the film direction (beats, camera, punch — defaults when null);
+ *  `motion` 0 is reduced motion: no drift, no punch, no flashes. */
 export function drawIntroFrame(
   ctx: Ctx, w: number, h: number,
   visual: IntroVisual, t: number,
   prev: IntroVisual | null, prevT: number, fade: number,
+  scene: FilmScene | null = null, prevScene: FilmScene | null = null, motion = 1, flashes = true,
 ): void {
   ctx.clearRect(0, 0, w, h);
   ctx.fillStyle = '#030509';
   ctx.fillRect(0, 0, w, h);
   if (prev && fade < 1) {
     ctx.globalAlpha = 1;
-    ctx.save();
-    applyDrift(ctx, w, h, prev, prevT);
-    PAINTERS[prev](ctx, w, h, prevT);
-    ctx.restore();
+    paintScene(ctx, w, h, prev, prevT, prevScene, motion, flashes);
     ctx.fillStyle = `rgba(3,5,9,${ease(fade)})`; // dip the outgoing scene toward black
     ctx.fillRect(0, 0, w, h);
     ctx.globalAlpha = ease(fade);
-    ctx.save();
-    applyDrift(ctx, w, h, visual, t);
-    PAINTERS[visual](ctx, w, h, t);
-    ctx.restore();
+    paintScene(ctx, w, h, visual, t, scene, motion, flashes);
     ctx.globalAlpha = 1;
   } else {
-    ctx.save();
-    applyDrift(ctx, w, h, visual, t);
-    PAINTERS[visual](ctx, w, h, t);
-    ctx.restore();
+    paintScene(ctx, w, h, visual, t, scene, motion, flashes);
   }
 }
 
@@ -591,5 +627,5 @@ export function drawDiveTransition(ctx: Ctx, w: number, h: number, t: number): v
 
 /** The still each scene shows under prefers-reduced-motion — a hand-picked beauty frame. */
 export const REDUCED_FRAME_T: Record<IntroVisual, number> = {
-  signal: 2.6, descent: 3.2, veins: 3.6, core: 0.95, title: 2.2,
+  signal: 2.6, descent: 3.2, veins: 5.6, core: 0.95, title: 2.2, // veins: the beat-lunged takeover is whole by ~5.5s
 };

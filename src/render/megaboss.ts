@@ -15,6 +15,7 @@ import { hexRgb, rgba } from './theme';
 import { themedMegaColor } from './wardrobeFx';
 import { viewFeel } from './feel';
 import type { RenderState } from '../core/game';
+import { MEGA, megaBossDef } from '../core/megaboss';
 import type { MegaWeakPoint } from '../core/megaboss';
 
 type Ctx = CanvasRenderingContext2D;
@@ -1200,4 +1201,116 @@ export function drawMegaVignette(ctx: Ctx, v: MegaView, now: number): void {
     ctx.fillStyle = rgba(glo, pulse(now, bur >= 0.5 ? 4.6 : 2.8, 0, 0.02 * (1 - bur * 0.6)));
     ctx.fillRect(0, 0, WIDTH, HEIGHT);
   }
+}
+
+// ── POSE — one mega WITHOUT a live Game (docs/CUTSCENES.md §mega premieres) ──────────────────
+// The premiere films paint the ACTUAL organism through this exact painter (drawMegaBody +
+// drawMegaOrgans), posed from a few scalars instead of a sim snapshot. Board-space: the caller
+// owns the transform. One cached rig per def (view + weak points + palette steps), mutated per
+// frame — no per-frame allocation, and the live raid's own render state is never touched.
+
+/** A film's hold on one mega. Every field 0..1. */
+export interface MegaPose {
+  reveal: number; // 0 = silhouette (the palette drowned in shadow) → 1 = full colour
+  ignite: number; // the weak points open, in spec order, across 0 → 1
+  gather: number; // the maw's windup — the eye dilates, power streams into the throat
+  fall: number; // the death collapse — organs ruptured, the mass slumps and fades
+  flare: number; // a beat's hit-flash on every open organ
+}
+
+/** The pose's look — data, not literals in the drawing path. */
+export const MEGA_POSE = {
+  silhouette: '#06080c', // the tone the palette resolves FROM during the reveal
+  glowFloor: 0.3, // the eye/vein glow already shows this much in silhouette (a shape that WATCHES)
+  steps: 16, // cached palette steps across the reveal (no per-frame colour math)
+  descend: 0.34, // organs hang this fraction of their raid descent (the film frames body + organs)
+  flareHit: 0.16, // hit-flash seconds a full beat flare maps to (drawOrgan glows min(0.7, hit × 4))
+} as const;
+
+interface PoseRig { view: MegaView; palettes: MegaView['palette'][]; tele: { kind: string; frac: number } }
+const poseRigs = new Map<string, PoseRig>();
+
+function lerpHex(a: string, b: string, k: number): string {
+  const pa = parseInt(a.slice(1), 16);
+  const pb = parseInt(b.slice(1), 16);
+  let out = '#';
+  for (const sh of [16, 8, 0]) {
+    const ca = (pa >> sh) & 255;
+    out += Math.round(ca + (((pb >> sh) & 255) - ca) * k).toString(16).padStart(2, '0');
+  }
+  return out;
+}
+
+function poseRig(defId: string): PoseRig | null {
+  const hit = poseRigs.get(defId);
+  if (hit) return hit;
+  const def = megaBossDef(defId);
+  if (!def) return null;
+  const { silhouette: sil, glowFloor, steps } = MEGA_POSE;
+  const palettes: MegaView['palette'][] = [];
+  for (let i = 0; i < steps; i++) {
+    const k = i / (steps - 1);
+    palettes.push({ body: lerpHex(sil, def.palette.body, k), glow: lerpHex(sil, def.palette.glow, glowFloor + (1 - glowFloor) * k), accent: lerpHex(sil, def.palette.accent, k) });
+  }
+  const rootY = MEGA.anchorY + 84; // drawMegaOrgans' stalk root
+  const last = def.phases.length - 1;
+  const view: MegaView = {
+    defId: def.id, name: def.name, title: def.title, palette: palettes[steps - 1], motif: def.motif, bodyFrac: def.bodyFrac,
+    anchorY: MEGA.anchorY, hp: 1, maxHp: 1, phase: last, phases: def.phases.length,
+    visualTier: def.phases[last].visualTier ?? last, // the premiere shows its final, most mutated form
+    telegraph: null, stunned: 0, stagger: 0, staggered: false, exposed: false, deathT: 0, burrow: 0,
+    weakPoints: def.weakPoints.map((s, i): MegaWeakPoint => ({
+      spec: -1 - i, // negative: never collides with a live raid organ's render one-shots
+      kind: s.kind, x: s.x * WIDTH, y: rootY + (s.y - rootY) * MEGA_POSE.descend,
+      hp: 0, maxHp: 1, // hp 0: the raid's HP arc draws nothing (a film has no health bars)
+      armor: 0, state: 'closed', window: 0, regrow: 0, emergeT: 0, hitFlash: 0,
+    })),
+    effects: [], siege: null,
+  };
+  const rig = { view, palettes, tele: { kind: 'pose', frac: 0 } };
+  poseRigs.set(defId, rig);
+  return rig;
+}
+
+const c01 = (x: number): number => (x < 0 ? 0 : x > 1 ? 1 : x);
+
+/** Paint one mega, posed, in BOARD space at `now` (seconds). False when the def is unknown. */
+export function drawMegaPose(ctx: Ctx, defId: string, pose: MegaPose, now: number): boolean {
+  const rig = poseRig(defId);
+  if (!rig) return false;
+  const v = rig.view;
+  const fall = c01(pose.fall);
+  v.palette = rig.palettes[Math.round(c01(pose.reveal) * (MEGA_POSE.steps - 1))];
+  v.deathT = fall > 0 ? Math.max(0.02, 3.5 * (1 - fall)) : 0; // collapseOf reads deathT 3.5 → 0
+  const n = v.weakPoints.length;
+  for (let i = 0; i < n; i++) {
+    const wp = v.weakPoints[i];
+    const o = c01(c01(pose.ignite) * (n + 1) - i);
+    wp.state = fall > 0 ? 'destroyed' : o > 0 ? 'open' : 'closed';
+    wp.emergeT = o;
+    wp.hitFlash = c01(pose.flare) * MEGA_POSE.flareHit;
+    // a replayed film runs its clock from 0 again — forget a rupture stamped in its future
+    const rt = wpRuptureT.get(wp.spec);
+    if (rt !== undefined && rt > now) wpRuptureT.delete(wp.spec);
+  }
+  rig.tele.frac = c01(pose.gather);
+  v.telegraph = rig.tele.frac > 0 && fall === 0 ? rig.tele : null;
+  // The raid's render one-shots (stagger slump, cast flash) are module state: park them, so a
+  // pose neither edits the live raid's nor inherits a slump or a flash from it.
+  const sStagger = staggerEase;
+  const sTele = lastTele;
+  const sKind = lastTeleKind;
+  const sCast = castFlashT;
+  const sBig = castFlashBig;
+  staggerEase = 0;
+  lastTele = false;
+  castFlashT = -10;
+  drawMegaBody(ctx, v, now);
+  drawMegaOrgans(ctx, v, now);
+  staggerEase = sStagger;
+  lastTele = sTele;
+  lastTeleKind = sKind;
+  castFlashT = sCast;
+  castFlashBig = sBig;
+  return true;
 }

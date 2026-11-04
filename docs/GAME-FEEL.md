@@ -282,11 +282,15 @@ The first boot opens on a fully SCORED procedural film (`ui/InitCutscene.tsx` �
   with per-line reveal times, and sound-design BEATS — scene-relative times firing `cin_*` cues in
   sync with the visuals (radar pings ride the sweep, the heartbeat rides the core's 1.9s
   double-thump, the title swell lands with the wordmark). The score's intensity seam walks 0→1
-  scene-by-scene. Letterboxed; each set-piece runs under a slow camera drift (Ken Burns push/pan);
-  tap = next scene, Skip = out; the title card waits for the player.
+  scene-by-scene. Letterboxed; each set-piece runs under the shared film direction layers
+  (docs/CUTSCENES.md §direction — a subtle 2–3 % drift, camera punches on `impact` beats, a mid
+  layer that moves on the beats, particulate foreground) with its copy on its quiet band
+  (`copyAt` — the core scene's copy sits below the Hive Core); tap = next scene, Skip = out; the
+  title card waits for the player.
 - **THE DESCENT.** Leaving the title never hard-cuts: `drawDiveTransition` dives from the looming
   nucleus down a living tunnel and blooms white-gold into the next screen — the tutorial on first
   boot (whose letterboxed cold-open banner picks the film's voice straight up), the menu on a
   replay. App hands the music baton on landing (`combat`/`menu`).
-- **Accessibility.** prefers-reduced-motion swaps the animation for a hand-picked still per scene
-  (gentle CSS fades), skips the dive, and shows typewriter text whole.
+- **Accessibility.** Reduced motion (the OS request unless Settings → Motion overrides it — the same
+  `resolveMotion` the run uses) swaps the animation for a hand-picked still per scene (gentle CSS
+  fades; no drift, punches or flashes), skips the dive, and shows typewriter text whole.

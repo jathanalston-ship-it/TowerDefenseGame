@@ -1,6 +1,6 @@
 # DIL_GRAPH.md — the Design Intelligence Layer (GENERATED — `npm run dil -- regen`)
 
-> **The project's brain** (docs/DIL.md). 956 nodes · 1837 edges, built from the live
+> **The project's brain** (docs/DIL.md). 957 nodes · 1840 edges, built from the live
 > registries + curated knowledge (src/dev/dil/). **Query it instead of searching the repo:**
 > `npm run dil -- node <id>` · `affects <id>` · `requires <id>` · `missing <kind> <edge>` ·
 > `checklist tower <kind>` · `find <text>`. Edge kinds are bidirectional (19 kinds).
@@ -2322,21 +2322,23 @@ _at: src/core/megaboss.ts, src/render/megaboss.ts_
   - referencedBy ← `achievement:mega_perfect`
   - referencedBy ← `achievement:mega_speed`
   - referencedBy ← `achievement:mega_all`
-  - _…12 more (query: `npm run dil -- node system:mega-bosses`)_
+  - _…13 more (query: `npm run dil -- node system:mega-bosses`)_
 
 ### `system:cutscenes` — Story Cutscenes & Memory Archive
 
 Unlockable animated story films: one premiere per mega boss first-defeat (ENFORCED — every mega def must ship a cutscene, cutscenes.test.ts) + four milestone story beats; collected + replayed forever in the Memory Archive, each granting a small permanent passive.
 
-_at: src/core/cutscenes.ts, src/render/cutsceneScenes.ts, src/ui/CutscenePlayer.tsx_
+_at: src/core/cutscenes.ts, src/render/cutsceneScenes.ts, src/render/filmDirection.ts, src/ui/CutscenePlayer.tsx_
 
   - dependsOn → `system:mega-bosses`
   - dependsOn → `system:meta-store`
   - dependsOn → `system:audio`
   - provides → `concept:progression-gates` — memories unlock from milestones (stages, molt, depth) and first mega defeats; each grants a small capped passive
+  - references → `system:mega-bosses` — MEGA PREMIERES paint the ACTUAL mega through render/megaboss.ts drawMegaPose (the raid's own drawMegaBody + drawMegaOrgans on a cached pose rig; the raid's render one-shots are parked around it) — a raid painter change (silhouette, organs, motif) shows up in every premiere; every mega film opens on painter 'mega' with a reveal/ignite/fall arc (cutscenes.test.ts). Film direction (render/filmDirection.ts: drift, impact punches, beat mid layer, foreground) is shared by the opening film too (docs/CUTSCENES.md §direction)
   - requiredBy ← `system:quests`
   - documentedBy ← `doc:CUTSCENES.md`
   - testedBy ← `test:src/core/cutscenes.test.ts`
+  - testedBy ← `test:src/render/filmDirection.test.ts`
   - gatedBy ← `system:mega-bosses` — ENFORCED CONTENT CONTRACT: every MEGA_BOSS_DEFS id must ship a defeat cutscene — cutscenes.test.ts fails the build without one
   - referencedBy ← `system:prestige` — the Molt Chamber + ceremony reuse the cutscene molt tableau via drawCutsceneFrame — retheme it, never fork it
   - gatedBy ← `system:quests` — every quest's finaleCutscene must exist with unlock {kind:'quest',questId} — resolved off save.quests.once ('cutscene:<questId>'), premiered from the hub via cutsceneBus; quests.test fails without the link
@@ -2517,7 +2519,7 @@ _at: src/render/*, src/core/dangerCamera.ts_
   - testedBy ← `test:src/render/assimilationFx.test.ts`
   - testedBy ← `test:src/render/equipmentArt.test.ts`
   - testedBy ← `test:src/render/feel.test.ts`
-  - _…24 more (query: `npm run dil -- node system:rendering`)_
+  - _…25 more (query: `npm run dil -- node system:rendering`)_
 
 ### `system:living-battlefield` — Living Battlefield
 
@@ -4029,7 +4031,7 @@ _at: site/guides.ts → /guides/live-events/_
 - `doc:VOWS.md` — project documentation _(documents `system:prestige`)_
 - `doc:WEBSITE.md` — project documentation _(documents `system:field-research`, documents `system:website`)_
 
-## Tests (327)
+## Tests (328)
 
 - `test:src/audio/cues.test.ts` — automated validation _(tests `system:audio`)_
 - `test:src/audio/music.test.ts` — automated validation _(tests `system:audio`)_
@@ -4229,6 +4231,7 @@ _at: site/guides.ts → /guides/live-events/_
 - `test:src/render/assimilationFx.test.ts` — automated validation _(tests `system:rendering`, tests `system:assimilation`)_
 - `test:src/render/equipmentArt.test.ts` — automated validation _(tests `system:rendering`, tests `system:equipment`)_
 - `test:src/render/feel.test.ts` — automated validation _(tests `system:rendering`)_
+- `test:src/render/filmDirection.test.ts` — automated validation _(tests `system:rendering`, tests `system:cutscenes`)_
 - `test:src/render/gutters.test.ts` — automated validation _(tests `system:rendering`, tests `system:living-battlefield`)_
 - `test:src/render/heroEvolution.test.ts` — automated validation _(tests `system:rendering`)_
 - `test:src/render/heroSymbiotes.test.ts` — automated validation _(tests `system:rendering`, tests `system:hero-symbiotes`)_

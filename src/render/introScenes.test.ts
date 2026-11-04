@@ -11,7 +11,7 @@ const VISUALS: IntroVisual[] = ['signal', 'descent', 'veins', 'core', 'title'];
 
 function stubCtx(): CanvasRenderingContext2D {
   const proxy: unknown = new Proxy(function () { /* noop */ }, {
-    get: (_t, prop) => (prop === 'canvas' ? { width: 1280, height: 800 } : proxy),
+    get: (_t, prop) => (prop === 'canvas' ? { width: 1280, height: 800 } : prop === 'globalAlpha' ? 1 : proxy),
     set: () => true,
     apply: () => proxy,
   });
@@ -71,5 +71,15 @@ describe('the authored film (InitCutscene SCENES) — data contract', () => {
       }
     }
     expect(SCENES[SCENES.length - 1].durMs).toBe(0); // the title card never yanks itself away
+  });
+
+  it('film direction (docs/CUTSCENES.md §direction): the core copy sits OFF the core; impacts punch', () => {
+    const core = SCENES.find((s) => s.visual === 'core')!;
+    expect(core.copyAt ?? 'center', 'the Hive Core is the brightest light in the film — its copy must not sit on it').not.toBe('center');
+    for (const s of SCENES) {
+      if (s.copyAt !== undefined) expect(['center', 'upper', 'lower']).toContain(s.copyAt);
+      if (s.punch !== undefined) expect(s.punch).toBeLessThanOrEqual(0.06);
+    }
+    expect(SCENES.reduce((n, s) => n + s.beats.filter((b) => b.impact).length, 0)).toBeGreaterThanOrEqual(SCENES.length);
   });
 });
