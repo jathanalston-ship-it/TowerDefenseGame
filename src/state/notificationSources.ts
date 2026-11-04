@@ -5,15 +5,22 @@
 // own module). Channels match Hub nav keys (src/ui/Hub.tsx).
 //
 // Imported for its side effects (the registrations run on load); Hub.tsx pulls it in.
+//
+// DECISIONS, NOT CHORES (docs/NOTIFICATIONS.md §decisions, 2026-11): a badge exists only where
+// the player has a DECISION to make — an affordable upgrade, an unopened container, a pending
+// choice, a gear swap that raises Power. Pure novelty (achievements unlocked, codex entries
+// discovered, memories recovered, the store's daily rotation) no longer badges, no-choice claims
+// settle themselves at run end (state/autoClaim.ts), and a sealed screen never badges at all.
 
-import { registerNotification } from './notifications';
+import { registerNotification, setChannelGate } from './notifications';
+import { featureRevealed, FEATURE_BY_ID } from './unlocks';
+import { equipUpgrades } from './equipAdvisor';
+import type { SaveData } from '../save/saveStore';
 import { geneArchiveRows } from './geneArchive';
 import { HIVE_ORGANS, hiveCost } from '../core/hiveOrgans';
 import { labEra, labScore } from '../ui/homeBaseTiers';
 import { sumValues } from '../core/math';
-import { unlockedCutsceneIds } from '../save/derive';
-import { adaptationView, collectionContextOf, isHeroUnlocked, isTowerUnlocked, nextStarCost } from './meta';
-import { collectionView } from '../core/collection';
+import { adaptationView, isHeroUnlocked, isTowerUnlocked, nextStarCost } from './meta';
 import { HERO_ORDER, IDLE, TOWER_DEFS, TOWER_ORDER } from '../core/config';
 import { marketWindow } from '../core/market';
 import { dailyKey } from '../core/daily';
@@ -24,6 +31,10 @@ import { BP, levelOf } from '../core/battlePass';
 import { evolutionRosterSignal } from '../ui/evolutionTrackModel';
 import { activeLiveEvents, eventTrack } from '../core/liveEvents';
 import { metabolismClaimable } from './metabolism';
+
+// Sealed screens count 0 (their backlog surfaces at the reveal). Channels outside the unlock
+// registry (none today) stay open.
+setChannelGate((save, channel) => !FEATURE_BY_ID.has(channel) || featureRevealed(save, channel));
 
 // Genetic Vault — unopened bio-containers banked from runs, waiting to be cracked.
 registerNotification({
@@ -51,7 +62,7 @@ registerNotification({
 registerNotification({
   id: 'vault.spores',
   channel: 'vault',
-  count: (s) => (s.bioSpores > 0 ? 1 : 0),
+  count: (s) => (s.bioSpores > 0 && featureRevealed(s, 'bossrush') ? 1 : 0), // the bay arrives with Boss Rush
   reason: (s) => `${s.bioSpores} Bio-Spore${s.bioSpores === 1 ? '' : 's'} banked for the Roulette`,
 });
 
@@ -132,14 +143,8 @@ registerNotification({
   reason: () => 'Fresh market stock landed',
 });
 
-// Premium Store — today's rotating pack hasn't been SEEN yet (opening the store stamps
-// seenKey via meta.openStore; the badge re-lights at the next UTC rotation).
-registerNotification({
-  id: 'store.rotation',
-  channel: 'store',
-  count: (s) => (s.premium.seenKey === dailyKey() ? 0 : 1),
-  reason: () => "Today's pack rotation unseen",
-});
+// (Premium Store: no badge. "Today's rotation unseen" was a daily view-count nag, not a
+// decision — removed 2026-11, docs/NOTIFICATIONS.md §decisions.)
 
 // Tower Lab — towers whose next star you can afford right now (drops as you buy them),
 // plus DORMANT towers whose synthesis is claimable (docs/TOWERS.md §expansion unlock gate).
@@ -158,12 +163,20 @@ registerNotification({
   reason: (_s, n) => `${n} tower Star${n === 1 ? '' : 's'} affordable`,
 });
 
-// Equipment — newly acquired gear (the inventory grows as caches drop loot). Its own nav now.
+// Equipment — FREE gear upgrades waiting: unequipped pieces that raise a fielded hero's Power
+// (state/equipAdvisor — the exact same picks the Armory strip offers). Was "every piece in the
+// inventory", a novelty count that never went dark on a full rack. Memoized per save revision
+// (the advisor exact-diffs Power; badges/reasons/live all poll the same snapshot).
+const gearPicks = new WeakMap<SaveData, number>();
 registerNotification({
   id: 'heroes.equipment',
   channel: 'equipment',
-  count: (s) => s.equipment.inventory.length,
-  reason: (_s, n) => `${n} new gear piece${n === 1 ? '' : 's'}`,
+  count: (s) => {
+    let n = gearPicks.get(s);
+    if (n === undefined) { n = s.equipment.inventory.length > 0 ? equipUpgrades(s, 6).length : 0; gearPicks.set(s, n); }
+    return n;
+  },
+  reason: (_s, n) => `${n} gear upgrade${n === 1 ? '' : 's'} ready to equip`,
 });
 
 // Adaptation — unlocked units holding unspent Antigen (docs/ADAPTATION.md; a tier-1 rung is
@@ -189,29 +202,9 @@ registerNotification({
   reason: (_s, n) => `${n} expedition${n === 1 ? '' : 's'} returned with spoils`,
 });
 
-// Profile — achievements unlocked (their Shard rewards are auto-granted) since last viewed.
-registerNotification({
-  id: 'profile.achievements',
-  channel: 'profile',
-  count: (s) => (s.achievements ?? []).length,
-  reason: (_s, n) => `${n} achievement${n === 1 ? '' : 's'} unlocked`,
-});
-
-// Collection — codex entries newly discovered since last viewed.
-registerNotification({
-  id: 'collection.discovered',
-  channel: 'collection',
-  count: (s) => collectionView(collectionContextOf(s)).discovered,
-  reason: (_s, n) => `${n} codex entr${n === 1 ? 'y' : 'ies'} discovered`,
-});
-
-// Memory Archive — story cutscenes recovered since last viewed (docs/CUTSCENES.md §archive).
-registerNotification({
-  id: 'collection.memories',
-  channel: 'collection',
-  count: (s) => unlockedCutsceneIds(s).length,
-  reason: (_s, n) => `${n} memor${n === 1 ? 'y' : 'ies'} recovered`,
-});
+// (Profile achievements, Bio-Dex discoveries and recovered memories: no badge. Their rewards
+// are auto-granted and the toasts already announced them — "N new since you looked" is a view
+// count, not a decision. Removed 2026-11, docs/NOTIFICATIONS.md §decisions.)
 
 // Gene Archive — cards you can permanently upgrade RIGHT NOW (owned + gate met + affordable).
 registerNotification({

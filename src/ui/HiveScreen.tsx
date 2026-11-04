@@ -16,6 +16,9 @@ import { HIVE_SYNERGIES, ORGAN_COUPLINGS, synergyLive } from '../core/hiveProduc
 import { HiveOrganism } from './components/HiveOrganism';
 import { CurrencyIcon } from './components/CurrencyIcon';
 import { Popup } from './components/Popup';
+import { HostedScreen } from './components/HostTabs';
+import { HarvestScreen } from './HarvestScreen';
+import { ExpeditionScreen } from './ExpeditionScreen';
 
 /** Recipe chip presentation per currency lane (icon component ids + names for tooltips). */
 const LANE: Record<RecipeKey, { cur: Parameters<typeof CurrencyIcon>[0]['id'] | null; name: string; glyph?: string }> = {
@@ -35,7 +38,13 @@ const ERAS: { era: 0 | 1 | 2 | 3; name: string; gate: string; at: number }[] = [
   { era: 3, name: 'ASCENDANT', gate: 'the lab reaches its ASCENDANT era', at: 90 },
 ];
 
+/** The Hive host: Growth + the folded Production and Expedition tabs (navModel FOLDED_NAVS) —
+ *  go('harvest') / go('expeditions') land here on the matching tab. */
 export function HiveScreen(): JSX.Element {
+  return <HostedScreen host="hive" views={{ hive: HiveGrowth, harvest: HarvestScreen, expeditions: ExpeditionScreen }} />;
+}
+
+function HiveGrowth(): JSX.Element {
   meta.use();
   const v = meta.hiveView();
   const score = labScore(meta.get());

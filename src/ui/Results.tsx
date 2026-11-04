@@ -28,6 +28,9 @@ import { audio } from '../audio/sound';
 import { ShareReplayButton } from './components/ShareReplay';
 import { ThreatResult } from './components/ThreatPicker';
 import { ACCOUNT_CURRENCY } from '../core/currencies';
+import { AutoClaimSummary } from './components/AutoClaimSummary';
+import { featureRevealed } from '../state/unlocks';
+import { autoClaimPref } from '../state/prefs';
 
 /** The defeat debrief (docs/REWARD-PRESENTATION.md §debrief) — always visible under the title on
  *  a loss: how close the run came, what got through, and ONE concrete next step. */
@@ -301,7 +304,7 @@ export function Results({
           }]
         : []),
       // Season Pass XP (docs/BATTLEPASS.md §xp) — every run feeds the season; a crossed level celebrates.
-      ...(outcome.passXp > 0
+      ...(outcome.passXp > 0 && featureRevealed(meta.get(), 'season') // XP banks silently until the pass reveals
         ? [{
             id: 'season-xp', label: 'Season XP', value: outcome.passXp,
             format: (n: number) => outcome.passLevelUp ? `+${num(n)} — LEVEL ${outcome.passLevelUp.to}!` : `+${num(n)}`,
@@ -420,7 +423,7 @@ export function Results({
 
   // 4c — QUEST MISSIONS this run completed (docs/QUESTS.md §credit): rewards claim on the
   // Quest Board — this names the movement and routes the player there.
-  if (outcome.questMissions && outcome.questMissions.length > 0) {
+  if (outcome.questMissions && outcome.questMissions.length > 0 && featureRevealed(meta.get(), 'quests')) {
     categories.push({
       id: 'quests',
       title: 'Quest Missions',
@@ -435,7 +438,7 @@ export function Results({
           {outcome.questMissions.map((m) => (
             <div className="rr-contract" key={m.id}>
               <b>✪ {m.name}</b>
-              <span>{m.quest} — claim the reward on the Quest Board</span>
+              <span>{m.quest} — {autoClaimPref() ? 'reward auto-claimed (Also earned, above)' : 'claim the reward on the Quest Board'}</span>
             </div>
           ))}
         </div>
@@ -496,6 +499,7 @@ export function Results({
         {result.endless ? `DEPTH ${result.wave} REACHED` : result.won ? 'EXTRACTION COMPLETE' : 'NUCLEUS LOST'}
       </div>
       {doc && <div className="rr-doctrine" title={doc.blurb}>{doc.icon} {doc.name}</div>}
+      <AutoClaimSummary settle={result} />
     </div>
   );
 

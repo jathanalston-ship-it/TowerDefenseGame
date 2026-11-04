@@ -55,6 +55,10 @@ export const REWARD_TYPES: readonly RewardTypeDef[] = [
   { id: 'mutagen', unit: 'Mutagen', art: { kind: 'glyph', glyph: '⊕', color: 'var(--viral)' }, merge: 'sum' },
   { id: 'scrap', unit: 'Scrap', art: { kind: 'glyph', glyph: '◳', color: 'var(--muted)' }, merge: 'sum' },
   { id: 'catalyst', unit: 'Catalyst', art: { kind: 'glyph', glyph: '✷', color: '#ff9d3c' }, merge: 'sum', tier: 2 },
+  // The grouped presentation of every secondary wallet (state/rewardVisibility.ts): Gene
+  // Essence/Mutagen/Scrap/Catalyst/Chitin/Tissue events toast as "Materials" cards (the member
+  // name rides the name line; each member keeps its own jump).
+  { id: 'materials', unit: 'Materials', art: { kind: 'glyph', glyph: '⊕', color: 'var(--caustic)' }, merge: 'sum' },
   { id: 'stamina', unit: 'Rush Stamina', art: { kind: 'glyph', glyph: '☠', color: 'var(--r-epic)' }, merge: 'sum' },
   { id: 'eventTokens', unit: 'Event Tokens', art: { kind: 'glyph', glyph: '\u2726', color: 'var(--gold)' }, merge: 'sum', tier: 1, nav: { key: 'home', label: 'View the Live Event' } },
   { id: 'bioSpores', unit: 'Bio-Spores', art: { kind: 'glyph', glyph: '✺', color: 'var(--viral)' }, merge: 'sum', tier: 1, nav: { key: 'vault', label: 'Spin the Bio-Roulette' } },
@@ -217,6 +221,8 @@ type EventFn = (e: RewardEvent) => void;
 const subs = new Set<EventFn>();
 /** Observe-only listeners (telemetry): see every push, never consume the hold buffer. */
 const taps = new Set<EventFn>();
+/** Active capture scopes (rewardToast.capture) — pushes land here instead of the toaster. */
+const captures: RewardEvent[][] = [];
 /** Events pushed with no toaster mounted (run end, boot) hold here and flush on mount. */
 const held: RewardEvent[] = [];
 const HELD_MAX = 40;
@@ -225,6 +231,7 @@ export const rewardToast = {
   /** Announce one reward. Safe with no toaster mounted (bounded hold buffer). */
   push(e: RewardEvent): void {
     for (const fn of taps) fn(e);
+    if (captures.length > 0) { captures[captures.length - 1].push(e); return; }
     if (subs.size === 0) {
       held.push(e);
       if (held.length > HELD_MAX) held.splice(0, held.length - HELD_MAX);
@@ -245,6 +252,15 @@ export const rewardToast = {
       for (const e of flush) fn(e);
     }
     return () => { subs.delete(fn); };
+  },
+  /** Run `fn` with announcements CAPTURED instead of toasted, returning what it pushed — the
+   *  auto-claim path (state/autoClaim.ts) folds a batch of claims into ONE summary row rather
+   *  than a toast per claim. Taps (analytics) still observe every event. Nestable. */
+  capture(fn: () => void): RewardEvent[] {
+    const bucket: RewardEvent[] = [];
+    captures.push(bucket);
+    try { fn(); } finally { captures.pop(); }
+    return bucket;
   },
   /** Observe rewards without rendering them (analytics). Held events are NOT replayed —
    *  the hold buffer belongs to the toaster; a tap only sees pushes from now on. */

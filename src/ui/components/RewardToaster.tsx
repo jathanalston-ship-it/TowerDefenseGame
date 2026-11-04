@@ -13,6 +13,8 @@ import {
 } from '../../state/rewardToast';
 import type { RewardArt, ToastCard } from '../../state/rewardToast';
 import { navBus } from '../../state/navBus';
+import { meta } from '../../state/meta';
+import { presentRewardEvent } from '../../state/rewardVisibility';
 import { audio } from '../../audio/sound';
 import { CurrencyIcon } from './CurrencyIcon';
 import { useCountUp } from './useCountUp';
@@ -125,7 +127,11 @@ export function RewardToaster({ held = false }: { held?: boolean } = {}): JSX.El
   // tier-keyed and rate-limited (a burst clicks once, not eight times); merges tick softly.
   // `held` (an unlock announcement is up) keeps the bus unsubscribed, so arrivals wait in its
   // hold buffer and flush — coalesced — the moment the announcement clears.
-  useEffect(() => held ? undefined : rewardToast.onReward((e) => {
+  useEffect(() => held ? undefined : rewardToast.onReward((raw) => {
+    // Player-facing gate (state/rewardVisibility.ts): a kind whose system hasn't revealed banks
+    // silently; secondary crafting wallets toast as one grouped Materials card.
+    const e = presentRewardEvent(meta.get(), raw);
+    if (!e) return;
     setCards((cs) => {
       const next = applyEvent(pruneCards(cs, Date.now()), e, Date.now());
       const merged = next.length === cs.length; // same count ⇒ the event merged into a card

@@ -253,7 +253,7 @@ homeRegistry.register({ id: 'growth', zone: 'side', order: 15, when: (s) => feat
 homeRegistry.register({ id: 'roadmap', zone: 'side', order: 20 });
 homeRegistry.register({ id: 'army', zone: 'army', order: 10, when: (s) => featureRevealed(s, 'towers') }); // the roster strip appears with the Tower Lab
 homeRegistry.register({ id: 'modes', zone: 'ops', order: 10 });
-homeRegistry.register({ id: 'infestation', zone: 'ops', order: 20, when: (s) => featureRevealed(s, 'infinite') }); // Infestation conquest map (docs/INFESTATION.md) — a meta-layer over the modes it spans
+homeRegistry.register({ id: 'infestation', zone: 'ops', order: 20, when: (s) => featureRevealed(s, 'infestation') }); // Infestation conquest map (docs/INFESTATION.md) — arrives WITH The Front (stage 20), never before its wing
 // Hive Intelligence (docs/HIVE-INTEL.md) mounts whenever it has ANYTHING to say — banked
 // containers and ready Power moves count, not just timeline history (the old gate hid a fresh
 // account's first ACT rows). The widget itself renders null when the feed is empty.

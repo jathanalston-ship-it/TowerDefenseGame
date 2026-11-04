@@ -29,13 +29,16 @@ export function isInfiniteUnlocked(save: SaveData): boolean {
   return highestCampaignStage(save) >= MODE_UNLOCKS.infinite;
 }
 
-/** Boss Rush unlock (docs/MODE-IDENTITY.md §gates): clear Campaign Stage 10. Pre-gate rush
- *  accounts are grandfathered in via their records/ledgers. */
+/** Boss Rush unlock (docs/MODE-IDENTITY.md §gates): clear Campaign Stage MODE_UNLOCKS.bossRush.
+ *  Pre-gate rush accounts are grandfathered in via their records/ledgers — and so is an account
+ *  whose Boss Rush wing already REVEALED (latched) under an earlier, lower gate: a re-paced
+ *  timeline never seals a mode the player was already shown. */
 export function isBossRushUnlocked(save: SaveData): boolean {
   return (
     highestCampaignStage(save) >= MODE_UNLOCKS.bossRush ||
     save.rushBestWave > 0 ||
-    (save.stats?.rushRuns ?? 0) > 0
+    (save.stats?.rushRuns ?? 0) > 0 ||
+    save.director?.revealed?.bossrush !== undefined
   );
 }
 

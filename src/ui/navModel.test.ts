@@ -5,7 +5,8 @@
 // either and this suite — not a player — catches it.
 
 import { describe, expect, it } from 'vitest';
-import { mobileTabs, navGroups, tabOf, type NavKey } from './navModel';
+import { FOLDED_NAVS, foldCounts, foldedInto, groupOf, hostOf, mobileTabs, navGroups, tabOf, type NavKey } from './navModel';
+import { readFileSync } from 'node:fs';
 import { featureView } from '../state/unlocks';
 import { defaultSave } from '../save/saveStore';
 
@@ -49,6 +50,44 @@ describe('navModel — portrait tab shell contract', () => {
       expect(view.def.name.length, `feature '${k}' needs a name`).toBeGreaterThan(0);
       expect(view.def.glyph.length, `feature '${k}' needs a glyph`).toBeGreaterThan(0);
       expect(view.def.blurb.length, `feature '${k}' needs a first-timer blurb (the mobile index row)`).toBeGreaterThanOrEqual(8);
+    }
+  });
+});
+
+describe('navModel — folded screens (side screens live as host tabs)', () => {
+  const folded = Object.keys(FOLDED_NAVS) as NavKey[];
+
+  it('the nav lists 26 destinations; the five folded screens are tabs, not rows', () => {
+    expect(allNavKeys().length).toBe(26);
+    expect(folded.sort()).toEqual(['expeditions', 'gearcodex', 'harvest', 'metabolism', 'specimens']);
+    for (const k of folded) expect(allNavKeys(), `${k} must not be a nav row`).not.toContain(k);
+  });
+
+  it('every folded key deep-links to a REAL nav host in the same hub + portrait tab', () => {
+    const rows = new Set<string>(allNavKeys());
+    for (const k of folded) {
+      const host = hostOf(k);
+      expect(rows.has(host), `${k} → host '${host}' must be a nav row`).toBe(true);
+      expect(FOLDED_NAVS[host], `host '${host}' must not itself be folded`).toBeUndefined();
+      expect(groupOf(k).id).toBe(groupOf(host).id);
+      expect(tabOf(k)).toBe(tabOf(host));
+      expect(foldedInto(host)).toContain(k);
+    }
+    expect(hostOf('towers')).toBe('towers'); // unfolded keys are their own host
+  });
+
+  it('folded badges light their host (a ripe Production tab badges The Hive)', () => {
+    expect(foldCounts({ harvest: 1, expeditions: 2, hive: 1, towers: 3 })).toEqual({ hive: 4, towers: 3 });
+  });
+
+  it('each host component renders its own tab strip (not the Hub render switch)', () => {
+    const hub = readFileSync('src/ui/Hub.tsx', 'utf-8');
+    for (const k of folded) expect(hub, `Hub must not render folded '${k}' directly`).not.toContain(`nav === '${k}'`);
+    const hostFile: Record<string, string> = { hive: 'src/ui/HiveScreen.tsx', quests: 'src/ui/QuestBoard.tsx', phenotypes: 'src/ui/Wardrobe.tsx', equipment: 'src/ui/EquipmentPanel.tsx' };
+    for (const host of new Set(folded.map(hostOf))) {
+      const src = readFileSync(hostFile[host], 'utf-8');
+      expect(src, `${host} host must mount <HostedScreen host="${host}">`).toContain(`<HostedScreen host="${host}"`);
+      for (const k of foldedInto(host)) expect(src, `${host} must carry a '${k}' view`).toContain(`${k}:`);
     }
   });
 });

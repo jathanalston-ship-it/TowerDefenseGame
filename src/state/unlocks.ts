@@ -137,6 +137,12 @@ export function guaranteedByStage(c: UnlockCondition): number {
 
 // The learning curve, one row per surface. Ordering rule: at most TWO related reveals per beat,
 // each building on the previous ("I understand this — now here's something new").
+// RE-PACED 2026-11 (docs/PROGRESSION-GATING.md §timeline): the deep wings used to all open by
+// stage 9 (≈ the first hour); they now spread across stages 3–30 ≈ the first ~10 hours of play
+// (stage → hours from the progression simulator). Past the core block every row is a pure
+// STAGE gate — resource "luck" branches revealed systems before their backstop, so drops that
+// arrive early bank silently and surface at the reveal (state/rewardVisibility.ts).
+export const REVEAL_CEILING_STAGE = 30; // every surface is guaranteed open by this stage (tests enforce)
 export const FEATURES: FeatureDef[] = [
   // ── Foundational (minute 0): the hook loop is play → clear → collect. ──
   { kind: 'screen', id: 'home', name: 'Command Center', glyph: '⌂', order: 0,
@@ -155,15 +161,13 @@ export const FEATURES: FeatureDef[] = [
     blurb: 'Audio, account, saves.', condition: { kind: 'always' },
     because: 'Accessibility, audio and account controls can never be gated.' },
 
-  // ── Session 1: the first run pays out — meet your stats and your first loot. ──
+  // ── Session 1 → Stage 2: the first runs pay out — meet your stats, your loot, and learn to SPEND (the core early block). ──
   { kind: 'screen', id: 'profile', name: 'Player Profile', glyph: '◑', order: 4,
     blurb: 'Your commander identity and lifetime record.', condition: { kind: 'runs', runs: 1 },
     because: 'Empty before the first run; reveals the moment there are stats to show.' },
   { kind: 'screen', id: 'vault', name: 'Genetic Vault', glyph: '◈', order: 5,
     blurb: 'Crack your banked Bio-Containers.', condition: { kind: 'any', of: [{ kind: 'containers' }, { kind: 'stage', stage: 2 }] },
     because: 'The session-1 payoff: the first run banks a container — the Vault reveals exactly when there is something to open (the lootbox hook). Stage 2 backstops a no-cache start.', teach: 'containers' },
-
-  // ── Stage 1–2: the first clears pay permanent currency — learn to SPEND it. ──
   { kind: 'screen', id: 'towers', name: 'Tower Lab', glyph: 'T', order: 6,
     blurb: 'Evolve your strains with Stars and Samples.', condition: { kind: 'stage', stage: 1 },
     because: 'Stage 1’s first-clear pays Strain Samples + a container — the Lab opens the moment it has something to do.', teach: 'towers' },
@@ -174,92 +178,86 @@ export const FEATURES: FeatureDef[] = [
     blurb: 'Develop the champions who fight beside you.', condition: { kind: 'stage', stage: 2 },
     because: 'The hero already fights from run 1; the HALL matters once shards start dropping — one beat after towers so the two spend-screens don’t land together.', teach: 'heroes' },
 
-  // ── Stage 3: the second pillar + the first shop. ──
+  // ── Stages 3–8 (~first 40 min): one new wing per stage — the second pillar, the archive, the daily rhythm, gear, directives, the first shop. ──
   { kind: 'screen', id: 'infinite', name: 'Infinite', glyph: '∞', order: 9,
     blurb: 'Endless descent — the farm and the proving ground.', condition: { kind: 'stage', stage: MODE_UNLOCKS.infinite },
     because: 'The established mode gate (docs/MODE-IDENTITY.md): three stages teach the loop before the loop’s farm-half opens.', teach: 'infinite' },
-  { kind: 'screen', id: 'infestation', name: 'The Front', glyph: '⛬', order: 20,
-    blurb: 'The territory war — hold sectors, collect tribute, answer incursions.', condition: { kind: 'stage', stage: 8 },
-    because: 'Territory only means something once runs are flowing and modes exist to feed it — stage 8 is the timeline\'s one OPEN reveal beat (the ≤3-per-stage pacing law), landing the war a breath before Boss Rush completes the farm ring (docs/INFESTATION.md §front).', teach: 'infestation' },
-  { kind: 'screen', id: 'market', name: 'Splice Market', glyph: '◆', order: 10,
-    blurb: 'A refreshing bazaar for Cores and Ichor.', condition: { kind: 'stage', stage: 3 },
-    because: 'Opens once Core income is steady (stage 3) so its stock means something — and Ichor gets a visible sink before Ichor itself flows.', teach: 'splice-market' },
-  { kind: 'screen', id: 'genes', name: 'Gene Archive', glyph: '⌬', order: 11,
-    blurb: 'Your discovered strands, collected forever — and leveled.', condition: { kind: 'any', of: [{ kind: 'cards', count: 6 }, { kind: 'stage', stage: 3 }] },
-    because: 'The starter archive exists from minute 0, but the screen teaches best once drafting is familiar (6 distinct drafts, or stage 3 as backstop).', teach: 'gene-archive' },
-
-  // ── Stage 4–5: gear arrives; the daily rhythm begins. ──
-  { kind: 'screen', id: 'equipment', name: 'Armory', glyph: '⛨', order: 12,
-    blurb: 'Weapons, armor and relics for your heroes.', condition: { kind: 'any', of: [{ kind: 'gear' }, { kind: 'stage', stage: 4 }] },
-    because: 'Reveals with the first Bio-Gear drop (container luck), stage 4 as backstop — never an empty Armory, never gear without a home.', teach: 'equipment' },
-  { kind: 'screen', id: 'quests', name: 'Quest Board', glyph: '✪', order: 13,
-    blurb: 'Weekly directives and the story questline.', condition: { kind: 'stage', stage: 4 },
-    because: 'Directives give the mid-early game its to-do list: by stage 4 enough systems exist for missions to point at, and Chapter I is already half-earnable from natural play.', teach: 'quests' },
-  { kind: 'screen', id: 'hive', name: 'The Hive', glyph: '⬡', order: 13.5,
-    blurb: 'Build the laboratory organism — organs that transform your base.', condition: { kind: 'stage', stage: 4 },
-    because: 'A composite sink needs wallets to sink — by stage 4 Cores/Essence/materials all flow and the era-0 organs read as a real goal (stage 3 already reveals three screens).', teach: 'hive-construction' },
-  { kind: 'screen', id: 'harvest', name: 'Hive Production', glyph: '⬣', order: 13.6,
-    blurb: 'The Hive keeps harvesting while you are away.', condition: { kind: 'stage', stage: 6 },
-    because: 'Idle exists to soften RETURN friction — it reveals one beat AFTER the stage-5 retention rhythm screens (which already fill that beat), so the first away-session banks something worth a ceremony without joining an overload stage.', teach: 'idle-harvest' },
-  { kind: 'screen', id: 'expeditions', name: 'Expedition Command', glyph: '⇢', order: 13.7,
-    blurb: 'Benched heroes forage the ruins while you fight.', condition: { kind: 'stage', stage: 6 },
-    because: 'The away-game beat, taught as a pair: Idle Harvest banks time, Expeditions bank BENCHED HEROES — both reveal at stage 6, when a second champion exists to send and return friction is worth softening.', teach: 'expeditions' },
-  { kind: 'screen', id: 'metabolism', name: 'Milestones', glyph: '✹', order: 19.8,
-    blurb: 'The organism digests everything — lifetime feats pay forever.', condition: { kind: 'stage', stage: 8 },
-    because: 'Metabolism is a gratitude ledger over EVERYTHING the account has done, so it reveals only after the claim rhythm exists (quests s4, harvest s6) — by stage 8 its derive-first back-fill hands the player a genuine bundle at the reveal, and stage 8 stays inside the ≤3-per-stage pacing law (docs/METABOLISM.md).', teach: 'metabolism' },
-  { kind: 'screen', id: 'daily', name: 'Daily Run', glyph: '☀', order: 14,
+  { kind: 'screen', id: 'genes', name: 'Gene Archive', glyph: '⌬', order: 10,
+    blurb: 'Your discovered strands, collected forever — and leveled.', condition: { kind: 'stage', stage: 4 },
+    because: 'The starter archive exists from minute 0, but the screen teaches best once drafting is familiar — stage 4, one beat after Infinite. (Re-paced 2026-11: the old six-drafts trigger fired on run 2, inside the first-session flood; Gene Essence banks silently until this reveal.)', teach: 'gene-archive' },
+  { kind: 'screen', id: 'daily', name: 'Daily Run', glyph: '☀', order: 11,
     blurb: 'One seed per day, worldwide.', condition: { kind: 'any', of: [{ kind: 'stage', stage: MODE_UNLOCKS.daily }, { kind: 'dailyHistory' }] },
     because: 'The established gate (docs/DAILY-RUN.md): the retention rhythm starts once the core loop is fluent. History grandfathers.', teach: 'daily-run' },
-  { kind: 'screen', id: 'collection', name: 'Bio-Dex', glyph: '▤', order: 15,
-    blurb: 'Rank badges and bonuses for everything you catalogue.', condition: { kind: 'stage', stage: 5 },
-    because: 'By stage 5 several enemy families, cards and drops exist to catalogue — rank bonuses stop being abstract.', teach: 'collection-codex' },
+  { kind: 'screen', id: 'equipment', name: 'Armory', glyph: '⛨', order: 12,
+    blurb: 'Weapons, armor and relics for your heroes.', condition: { kind: 'stage', stage: 6 },
+    because: 'Stage 6 (~30 min in): by then several containers have dropped gear, so the Armory opens onto a real choice. Gear found earlier BANKS SILENTLY (no luck-reveal — re-paced 2026-11) and is waiting in the racks at the reveal.', teach: 'equipment' },
+  { kind: 'screen', id: 'quests', name: 'Quest Board', glyph: '✪', order: 13,
+    blurb: 'Weekly directives and the story questline.', condition: { kind: 'stage', stage: 7 },
+    because: 'Directives give the mid-early game its to-do list: by stage 7 enough systems exist for missions to point at, and progress banked since run 1 lands as one batch (rewards auto-claim at run end — docs/NOTIFICATIONS.md §auto-claim).', teach: 'quests' },
+  { kind: 'screen', id: 'market', name: 'Splice Market', glyph: '◆', order: 14,
+    blurb: 'A refreshing bazaar for Cores and Ichor.', condition: { kind: 'stage', stage: 8 },
+    because: 'Opens once Core income is steady (stage 8, ~35 min) so its stock means something — and Ichor reveals WITH its sink: Ichor bled earlier banks silently and the chip appears here with the whole balance.', teach: 'splice-market' },
 
-  { kind: 'screen', id: 'season', name: 'Season Pass', glyph: '❁', order: 16,
-    blurb: 'A rotating reward season fed by everything you play.', condition: { kind: 'stage', stage: 5 },
-    because: 'XP accrues silently from run 1 (rollover mail keeps it lossless) — the track REVEALS once the loop is fluent and several faucets exist to feed it.', teach: 'season-pass' },
-
-  // ── Stage 6–8: the collection meta-layer + monetization LAST. ──
-  { kind: 'screen', id: 'gearcodex', name: 'Gear Codex', glyph: '❑', order: 17,
-    blurb: 'The full equipment gallery, sets and all.', condition: { kind: 'stage', stage: 6 },
-    because: 'A collection layer OVER gear — lands after the Armory habit forms; undiscovered silhouettes become goals.', teach: 'gear-codex' },
-  { kind: 'screen', id: 'mulligans', name: 'Mulligan Lab', glyph: '⊛', order: 18,
-    blurb: 'Graft living organisms onto your towers.', condition: { kind: 'any', of: [{ kind: 'mulligans' }, { kind: 'stage', stage: 7 }] },
-    because: 'Reveals with the first discovered modifier (container luck), stage 7 as backstop — the deepest tower system waits for tower fluency.', teach: 'mulligans' },
-  { kind: 'screen', id: 'adaptation', name: 'Adaptation Chamber', glyph: '☣', order: 18.5,
-    blurb: 'Rewrite how your strains and champions behave — Antigen specialization.',
-    condition: { kind: 'any', of: [{ kind: 'antigen' }, { kind: 'stage', stage: 7 }] },
-    because: 'Reveals with the first account-faucet Antigen (achievements/depth/traces — usually stages 2–4, the moment there is something to spend); the stage-7 backbone joins the deep-specialization beat (Mulligans/Phenotypes) because every earlier beat already sits at the reveal ceiling.', teach: 'adaptation' },
-  { kind: 'screen', id: 'phenotypes', name: 'Phenotype Lab', glyph: '❖', order: 19,
-    blurb: 'Cosmetic phenotypes for every strain and champion.', condition: { kind: 'stage', stage: 7 },
-    because: 'Pure luxury — cosmetics wait until the mechanical wardrobe is full and Gene Essence has a purpose beyond upgrades.', teach: 'phenotype-lab' },
-  { kind: 'screen', id: 'specimens', name: 'Specimen Vault', glyph: '⧉', order: 19.1,
-    blurb: 'Unclaimed cosmetics — tradable stock until you bind them.', condition: { kind: 'any', of: [{ kind: 'cosmeticInventory' }, { kind: 'stage', stage: 8 }] },
-    because: 'Reveal-on-NEED (the mulligans/antigen pattern): the moment the first specimen lands, its arrival card points here and the claim decision must be reachable — a vault the player cannot open would strand every two-state cosmetic (docs/COSMETICS.md §claiming). The stage-8 backstop takes the last slot inside the ≤3-per-stage law.', teach: 'specimens' },
-  // Moved to the foundational block below (operator decision 2026-07): the store door is
-  // open from minute 0 — see the always-on rows. Kept as a comment so the stage-8 slot's
-  // original design intent ("the game proves itself before it asks") stays on record.
-
-  // ── Stage 10: the third pillar. ──
-  { kind: 'screen', id: 'bossrush', name: 'Boss Rush', glyph: '☠', order: 21,
+  // ── Stages 10–18 (~45 min → 1h45): the season, the third pillar, the collection layers, the Hive and its tabs. ──
+  { kind: 'screen', id: 'season', name: 'Season Pass', glyph: '❁', order: 15,
+    blurb: 'A rotating reward season fed by everything you play.', condition: { kind: 'stage', stage: 10 },
+    because: 'XP accrues silently from run 1 (rollover mail keeps it lossless) — the track REVEALS at stage 10 (~45 min) once the loop is fluent and several faucets exist to feed it; the banked levels auto-claim as one batch at the next run end.', teach: 'season-pass' },
+  { kind: 'screen', id: 'bossrush', name: 'Boss Rush', glyph: '☠', order: 16,
     blurb: 'The gauntlet: wave N is N bosses.', condition: { kind: 'any', of: [{ kind: 'stage', stage: MODE_UNLOCKS.bossRush }, { kind: 'rushHistory' }] },
-    because: 'The established gate: the skill-check pillar arrives once builds are real. History grandfathers.', teach: 'boss-rush' },
-  { kind: 'screen', id: 'arena', name: 'The Proving Grounds', glyph: '⚔', order: 21.5,
-    blurb: 'Live PvP: two hives, one assault, one survivor.', condition: { kind: 'stage', stage: 9 },
-    because: 'PvP demands a REAL build to be fair or fun — it reveals beside Boss Rush (the solo skill check, the stage-9 guarantee line) so the first ranked match is fought with towers, genes and a hero worth ranking (docs/ARENA.md).', teach: 'arena' },
-  { kind: 'screen', id: 'auction', name: 'Auction House', glyph: '⚖', order: 21.7,
-    blurb: 'Trade gene cards, gear, cosmetics and mulligan organs with other players.', condition: { kind: 'stage', stage: 9 },
-    because: 'Trading is an EARNED capability (docs/TRADING-PREP.md fraud friction). The floor reveals at the stage-9 guarantee line beside the Arena — one stage of window-shopping teaches prices before TRADE.minCampaignStage (10, server-enforced) lets the first listing through.', teach: 'auction-house' },
+    because: 'The established gate (MODE_UNLOCKS.bossRush, stage 12 ≈ 1h): the skill-check pillar arrives once builds are real. History grandfathers (rush records, or a reveal latched under the old stage-9 gate).', teach: 'boss-rush' },
+  { kind: 'screen', id: 'collection', name: 'Bio-Dex', glyph: '▤', order: 17,
+    blurb: 'Rank badges and bonuses for everything you catalogue.', condition: { kind: 'stage', stage: 13 },
+    because: 'By stage 13 (~1h) two Mega Bosses, a dozen enemy families and the first gear sets exist to catalogue — rank bonuses stop being abstract.', teach: 'collection-codex' },
+  { kind: 'screen', id: 'hive', name: 'The Hive', glyph: '⬡', order: 18,
+    blurb: 'Build the laboratory organism — organs that transform your base.', condition: { kind: 'stage', stage: 14 },
+    because: 'A composite sink needs wallets to sink — by stage 14 (~1h15) Cores/Essence/materials have pooled long enough that the first organs are affordable on arrival; the Hive then grows its Production and Expedition tabs over the next stages.', teach: 'hive-construction' },
+  { kind: 'screen', id: 'gearcodex', name: 'Gear Codex', glyph: '❑', order: 19,
+    blurb: 'The full equipment gallery, sets and all.', condition: { kind: 'stage', stage: 15 },
+    because: 'A collection layer OVER gear — an Armory tab that lands at stage 15 (~1h15), long after the Armory habit forms; undiscovered silhouettes become goals.', teach: 'gear-codex' },
+  { kind: 'screen', id: 'harvest', name: 'Hive Production', glyph: '⬣', order: 20,
+    blurb: 'The Hive keeps harvesting while you are away.', condition: { kind: 'stage', stage: 16 },
+    because: 'Idle exists to soften RETURN friction — it opens as a tab inside The Hive two stages after the Hive itself (~1h30), when sessions start to end mid-progress and the first away-session banks something worth a ceremony.', teach: 'idle-harvest' },
+  { kind: 'screen', id: 'expeditions', name: 'Expedition Command', glyph: '⇢', order: 21,
+    blurb: 'Benched heroes forage the ruins while you fight.', condition: { kind: 'stage', stage: 18 },
+    because: 'The away-game beat, second half: Hive Production banks TIME, Expeditions bank BENCHED HEROES — a Hive tab at stage 18 (~1h45), when a bench of champions exists to send.', teach: 'expeditions' },
 
-  // ── Currencies (top bar) — appear when they exist or their sink reveals. ──
-  { kind: 'currency', id: 'cur:ichor', name: 'Ichor', glyph: '🩸', order: 22,
-    blurb: 'The organism’s black blood.', condition: { kind: 'any', of: [{ kind: 'ichor' }, { kind: 'stage', stage: 3 }] },
-    because: 'Shows with its first drop, or when the Splice Market (its sink) reveals — a currency chip never precedes its purpose.' },
-  { kind: 'currency', id: 'cur:mats', name: 'Materials', glyph: '⊕', order: 23,
-    blurb: 'Mutagen · Scrap · Catalyst.', condition: { kind: 'any', of: [{ kind: 'mats' }, { kind: 'stage', stage: 6 }] },
-    because: 'Crafting materials appear the moment the first container drops some — alongside the gear they reforge. Stage 6 backstops a dry streak.' },
-  { kind: 'currency', id: 'cur:cells', name: 'Ascendant Cells', glyph: '✦', order: 24,
-    blurb: 'The prestige currency.', condition: { kind: 'any', of: [{ kind: 'molted' }, { kind: 'stage', stage: 9 }] },
-    because: 'Teased one stage before Prestige unlocks (10) so the Molt pitch lands with a visible wallet; earned Cells reveal it regardless.' },
+  // ── Stages 20–30 (~2h → 10h): the war, the ledger, deep specialization, cosmetics, then PvP and trade last. ──
+  { kind: 'screen', id: 'infestation', name: 'The Front', glyph: '⛬', order: 22,
+    blurb: 'The territory war — hold sectors, collect tribute, answer incursions.', condition: { kind: 'stage', stage: 20 },
+    because: 'Territory only means something once runs are flowing and every farm mode exists to feed it — stage 20 (~2h), after Boss Rush completes the farm ring (docs/INFESTATION.md §front).', teach: 'infestation' },
+  { kind: 'screen', id: 'metabolism', name: 'Milestones', glyph: '✹', order: 23,
+    blurb: 'The organism digests everything — lifetime feats pay forever.', condition: { kind: 'stage', stage: 22 },
+    because: 'Metabolism is a gratitude ledger over EVERYTHING the account has done, so it reveals (as a Quest Board tab) only after the claim rhythm exists (quests s7, harvest s16) — at stage 22 (~2h) its derive-first back-fill hands the player a genuine bundle at the reveal (docs/METABOLISM.md).', teach: 'metabolism' },
+  { kind: 'screen', id: 'adaptation', name: 'Adaptation Chamber', glyph: '☣', order: 24,
+    blurb: 'Rewrite how your strains and champions behave — Antigen specialization.',
+    condition: { kind: 'stage', stage: 24 },
+    because: 'Specialization after fluency: stage 24 (~3h, where the first Molt usually lands) opens the deep-specialization beat. Antigen earned earlier (achievements/depth/traces) BANKS SILENTLY and arrives as a ready budget at the reveal (re-paced 2026-11).', teach: 'adaptation' },
+  { kind: 'screen', id: 'mulligans', name: 'Mulligan Lab', glyph: '⊛', order: 25,
+    blurb: 'Graft living organisms onto your towers.', condition: { kind: 'stage', stage: 25 },
+    because: 'The deepest tower system waits for tower fluency: stage 25 (~3–5h, the first Molt plateau). Modifiers sequenced earlier BANK SILENTLY (no luck-reveal — re-paced 2026-11) and are waiting in the Lab at the reveal.', teach: 'mulligans' },
+  { kind: 'screen', id: 'phenotypes', name: 'Phenotype Lab', glyph: '❖', order: 26,
+    blurb: 'Cosmetic phenotypes for every strain and champion.', condition: { kind: 'stage', stage: 26 },
+    because: 'Pure luxury — cosmetics wait (stage 26, ~5–6h) until the mechanical wardrobe is full and Gene Essence has a purpose beyond upgrades.', teach: 'phenotype-lab' },
+  { kind: 'screen', id: 'specimens', name: 'Specimen Vault', glyph: '⧉', order: 27,
+    blurb: 'Unclaimed cosmetics — tradable stock until you bind them.', condition: { kind: 'stage', stage: 27 },
+    because: 'A Phenotype Lab tab one stage after the Lab itself (~6h). Specimens received earlier BANK SILENTLY — nothing strands: unclaimed stock waits in the inventory and its arrival card holds until this reveal (docs/COSMETICS.md §claiming; re-paced 2026-11 from reveal-on-need).', teach: 'specimens' },
+  { kind: 'screen', id: 'arena', name: 'The Proving Grounds', glyph: '⚔', order: 28,
+    blurb: 'Live PvP: two hives, one assault, one survivor.', condition: { kind: 'stage', stage: 28 },
+    because: 'PvP demands a REAL build to be fair or fun — it reveals at stage 28 (~8h), after the first Molt and the deep-specialization beat, so the first ranked match is fought with towers, genes and a hero worth ranking (docs/ARENA.md).', teach: 'arena' },
+  { kind: 'screen', id: 'auction', name: 'Auction House', glyph: '⚖', order: 29,
+    blurb: 'Trade gene cards, gear, cosmetics and mulligan organs with other players.', condition: { kind: 'stage', stage: 30 },
+    because: 'Trading is an EARNED capability (docs/TRADING-PREP.md fraud friction) and the last wing to open: stage 30 (~10h), when the account owns gear, cosmetics and organs worth trading. TRADE.minCampaignStage (10, server-enforced) is long satisfied by then.', teach: 'auction-house' },
+
+  // ── Currencies (top bar) — appear WITH the system that spends them; earlier drops bank silently. ──
+  { kind: 'currency', id: 'cur:ichor', name: 'Ichor', glyph: '🩸', order: 30,
+    blurb: 'The organism’s black blood.', condition: { kind: 'stage', stage: 8 },
+    because: 'Shows WITH the Splice Market (its sink) — a currency chip never precedes its purpose. Ichor bled earlier (achievements, Mega Boss bounties) banks silently and appears as one balance at the reveal (re-paced 2026-11).' },
+  { kind: 'currency', id: 'cur:mats', name: 'Materials', glyph: '⊕', order: 31,
+    blurb: 'Every secondary wallet in one chip — Gene Essence, then Mutagen · Scrap · Catalyst, Chitin, Tissue.', condition: { kind: 'stage', stage: 4 },
+    because: 'The ONE Materials chip (docs/ECONOMY.md §player-facing) opens with the Gene Archive — the first system that spends a secondary wallet (Gene Essence). Later wallets (Armory crafting mats at stage 6, Chitin, Mulligan Tissue) join the same chip as their systems reveal instead of adding counters.' },
+  { kind: 'currency', id: 'cur:cells', name: 'Ascendant Cells', glyph: '✦', order: 32,
+    blurb: 'The prestige currency.', condition: { kind: 'any', of: [{ kind: 'molted' }, { kind: 'stage', stage: 24 }] },
+    because: 'Appears with the first Molt (the Cells it mints) — a chip never precedes its purpose; the Molt pitch itself lives in Evolution HQ. Stage 24 (the typical first-Molt plateau) backstops an account that has not molted yet (re-paced 2026-11 from a stage-9 tease).' },
 ];
 
 export const FEATURE_BY_ID: ReadonlyMap<string, FeatureDef> = new Map(FEATURES.map((f) => [f.id, f]));

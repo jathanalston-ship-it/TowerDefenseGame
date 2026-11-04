@@ -11,6 +11,10 @@ import { BP, xpToReach } from '../core/battlePass';
 describe('season.claimable badge', () => {
   it('counts both tracks, respects premium ownership, drops as claims land', () => {
     const s = defaultSave();
+    s.battlePass.xp = xpToReach(3);
+    expect(notifications.badges(s).season ?? 0).toBe(0); // the pass is still SEALED (stage 10) — no badge for a hidden wing
+    s.battlePass.xp = 0;
+    s.director.revealed.season = 1; // the Season Pass wing has revealed
     expect(notifications.badges(s).season ?? 0).toBe(0); // level 0 — silent
 
     expect(BP.freePremiumLevels).toContain(1); // the arithmetic below leans on the L1 taste

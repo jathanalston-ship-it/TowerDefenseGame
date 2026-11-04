@@ -9,7 +9,7 @@ import { meta, metaModifiers } from './meta';
 import type { RunResult } from './meta';
 import type { RunStats } from '../core/types';
 import { defaultLifetimeStats } from '../save/saveStore';
-import { HERO_ORDER, TOWER_ORDER } from '../core/config';
+import { HERO_ORDER, MODE_UNLOCKS, TOWER_ORDER } from '../core/config';
 import { EMERGENCY_PICKS, RESEARCH, RESEARCH_REWARDS, researchRegistry, researchScale } from '../core/research';
 import { PREMIUM } from '../core/premium';
 
@@ -103,7 +103,7 @@ describe('claims — caps, rollover, ledgers', () => {
   it('the stamina infusion is gated behind Boss Rush and capped once/day', () => {
     expect(meta.claimResearch('stamina_infusion', undefined, DAY)).toBeNull(); // fresh account: gated
     const s = meta.get();
-    meta.importText(JSON.stringify({ schemaVersion: 24, data: { ...s, campaign: { ...s.campaign, cleared: { standard: 10 } } } }));
+    meta.importText(JSON.stringify({ schemaVersion: 24, data: { ...s, campaign: { ...s.campaign, cleared: { standard: MODE_UNLOCKS.bossRush } } } }));
     expect(meta.claimResearch('stamina_infusion', undefined, DAY)).not.toBeNull();
     expect(meta.claimResearch('stamina_infusion', undefined, DAY)).toBeNull(); // once a day
   });

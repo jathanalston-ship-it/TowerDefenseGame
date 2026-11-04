@@ -18,6 +18,8 @@ import { ContractsCard } from './components/ContractsCard';
 import { NextUp } from './HubLanding';
 import { navBus } from '../state/navBus';
 import { audio } from '../audio/sound';
+import { HostedScreen } from './components/HostTabs';
+import { MetabolismScreen } from './MetabolismScreen';
 
 function fmtLeft(ms: number): string {
   const d = Math.floor(ms / 86_400_000);
@@ -118,7 +120,12 @@ function FinaleStrip({ q, firstTime, claimable, claimed, onClaim }: {
   );
 }
 
+/** The Quest Board host: Directives + the folded Milestones tab (navModel FOLDED_NAVS). */
 export function QuestBoard(): JSX.Element {
+  return <HostedScreen host="quests" views={{ quests: QuestDirectives, metabolism: MetabolismScreen }} />;
+}
+
+function QuestDirectives(): JSX.Element {
   meta.use(); // re-render on credits / claims
   const [now, setNow] = useState(() => Date.now());
   const [burst, setBurst] = useState<{ x: number; y: number; lines: { icon: string; label: string }[]; big: boolean; key: number } | null>(null);

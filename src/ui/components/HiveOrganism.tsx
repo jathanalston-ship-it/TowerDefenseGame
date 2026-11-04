@@ -9,8 +9,6 @@
 import type { CSSProperties } from 'react';
 import { HIVE_ORGANS } from '../../core/hiveOrgans';
 import { HIVE_SYNERGIES, synergyLive } from '../../core/hiveProduction';
-import { audio } from '../../audio/sound';
-import { navBus } from '../../state/navBus';
 
 export function HiveOrganism({
   built,
@@ -21,7 +19,7 @@ export function HiveOrganism({
   built: Record<string, number>;
   fillFrac: number; // 0..1 banked hours / cap (the sac's fill)
   producing: boolean; // motes + heartbeat run while the Hive accrues
-  view: 'growth' | 'production'; // which screen hosts it (tabs light accordingly)
+  view: 'growth' | 'production'; // which view hosts it (the Hive's HostTabs strip switches views)
 }): JSX.Element {
   const W = 560; const HGT = 200; const cx = W / 2; const cy = HGT / 2;
   const R = 74; // organ ring radius
@@ -34,14 +32,8 @@ export function HiveOrganism({
   const idx = new Map(HIVE_ORGANS.map((o, i) => [o.id, i] as const));
   const grown = HIVE_ORGANS.filter((o) => (built[o.id] ?? 0) > 0);
 
-  const go = (k: 'hive' | 'harvest'): void => { audio.cue('ui'); navBus.go(k); };
-
   return (
-    <div className="hvo" data-producing={producing ? 1 : 0}>
-      <div className="hvo-tabs" role="tablist" aria-label="Hive views">
-        <button role="tab" aria-selected={view === 'growth'} className={`hvo-tab${view === 'growth' ? ' on' : ''}`} onClick={() => view !== 'growth' && go('hive')}>⬡ Growth</button>
-        <button role="tab" aria-selected={view === 'production'} className={`hvo-tab${view === 'production' ? ' on' : ''}`} onClick={() => view !== 'production' && go('harvest')}>⬣ Production</button>
-      </div>
+    <div className="hvo" data-producing={producing ? 1 : 0} data-view={view}>
       <svg className="hvo-svg" viewBox={`0 0 ${W} ${HGT}`} aria-label={`The Hive — ${grown.length} of ${n} organs grown, ${Math.round(fill * 100)}% storage banked`}>
         {/* Veins: every BUILT organ feeds the sac; motes travel while producing. */}
         {grown.map((o) => {

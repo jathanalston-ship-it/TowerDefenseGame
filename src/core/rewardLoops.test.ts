@@ -9,7 +9,7 @@ import {
   LOOPS, REWARD_SOURCES, fullLoopChain, loopGraph, loopOfNav, rewardLoopProblems, sourcesInLoop,
 } from './rewardLoops';
 import { CAMPAIGN_REWARDS, campaignSurveyBonus } from './config';
-import { navGroups } from '../ui/navModel';
+import { hostOf, navGroups, type NavKey } from '../ui/navModel';
 
 describe('the architecture laws', () => {
   it('registry is structurally clean (the machine-enforced laws all hold)', () => {
@@ -36,9 +36,9 @@ describe('the architecture laws', () => {
     }
   });
 
-  it('every nav key in the registry is a real hub screen', () => {
+  it('every nav key in the registry is a real hub screen (a folded tab resolves to its host)', () => {
     const known = new Set<string>(navGroups().flatMap((grp) => grp.items.map((i) => i.key)));
-    for (const s of REWARD_SOURCES) expect(known.has(s.nav), `${s.id} → nav '${s.nav}'`).toBe(true);
+    for (const s of REWARD_SOURCES) expect(known.has(hostOf(s.nav as NavKey)), `${s.id} → nav '${s.nav}'`).toBe(true);
   });
 
   it('loopOfNav classifies claim/upgrade screens and leaves chrome unclassified', () => {

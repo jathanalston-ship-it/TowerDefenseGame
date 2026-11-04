@@ -6,6 +6,7 @@
 
 import { useRef, useState } from 'react';
 import { meta } from '../state/meta';
+import { rewardVisible } from '../state/rewardVisibility';
 import type { CrackedContainer } from '../state/meta';
 import { RARITIES, costOf, rarityRegistry } from '../core/loot';
 import { VaultReveal } from './VaultReveal';
@@ -139,8 +140,9 @@ export function GeneticVault(): JSX.Element {
 
       {/* Bio-Roulette bay (docs/BOSS-RUSH.md §roulette) — the wheel's hub door: spores banked
           from Boss Rush, first-kill chassis, quest finales and Season Pass milestones spin
-          HERE, the same way containers crack here. Empty ⇒ disabled with the earn paths named. */}
-      {(() => {
+          HERE, the same way containers crack here. Empty ⇒ disabled with the earn paths named.
+          Arrives with Boss Rush (state/rewardVisibility — spores banked earlier wait for it). */}
+      {rewardVisible(save, 'bioSpores') && (() => {
         const bank = save.bioSpores;
         const session = Math.min(bank, ROULETTE.sporeCap);
         return (

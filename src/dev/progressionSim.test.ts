@@ -101,9 +101,13 @@ describe('live mini-simulation (real meta layer)', () => {
     // coarse CI-scale bounds so a future content/economy change that re-opens the molt
     // spiral, freezes the prestige gate, or softens the requirement curve trips loudly.
     const early = trace.checkpoints[0]; // ~5h
-    expect(early.molts).toBeLessThanOrEqual(6); // the pre-tune spiral produced 15+ here
+    // MOLT CADENCE CONTRACT (docs/PRESTIGE.md §cadence, 2026-11): a Molt is a MILESTONE — roughly
+    // 1–2 in the first ~10h, then about one per several hours. Measured on this pinned account:
+    // 1 by 5h, 6 by 30h (≈ one per 5h after the first). The old bounds (≤6 by 5h, ≤36 by 30h)
+    // would have let a per-session molt rhythm back in unnoticed.
+    expect(early.molts).toBeLessThanOrEqual(2); // the pre-tune spiral produced 15+ here
     expect(last.molts).toBeGreaterThanOrEqual(2); // …but the milestone gate must not freeze early
-    expect(last.molts).toBeLessThanOrEqual(36); // re-bounded 2026-07: the early-campaign grace retune legitimately quickens the loop (the SPIRAL detector is the early-molt bound above)
+    expect(last.molts).toBeLessThanOrEqual(10); // 30h ⇒ ≥ ~3h per Molt on average
     expect(last.stage).toBeLessThanOrEqual(130); // the requirement curve still bites at CI scale
     } finally {
       rnd.mockRestore();

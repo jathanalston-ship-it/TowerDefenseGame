@@ -2106,9 +2106,9 @@ export const MODE_REWARDS = {
 export const MODE_UNLOCKS = {
   infinite: 3, // Infinite opens after clearing Campaign Stage 3
   daily: 5, // Daily Run opens after clearing Campaign Stage 5 (docs/DAILY-RUN.md §gates)
-  bossRush: 9, // Boss Rush opens after clearing Campaign Stage 9 — BEFORE the stage-10 mega, so
-  // every farm outlet (Infinite / Daily / Boss Rush) is open while the first wall stands
-  // (2026-07 stage-gate review, docs/DIFFICULTY.md §curve).
+  bossRush: 12, // Boss Rush opens after clearing Campaign Stage 12 (~1h) — re-paced 2026-11 from 9
+  // so the hub reveals one pillar per beat (docs/PROGRESSION-GATING.md §timeline); the stage-10
+  // wall still has two farm outlets (Infinite / Daily). Was 9 per the 2026-07 stage-gate review.
 };
 
 // Deploy-readiness presentation (docs/PROGRESSION-LOOP.md §readiness). The recommendation is a

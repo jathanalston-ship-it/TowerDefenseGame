@@ -54,9 +54,6 @@ export const navGroups = (): NavGroup[] => [
     { key: 'quests', label: t('nav.quests'), mono: '✪' },
     { key: 'season', label: t('nav.season'), mono: '❁' },
     { key: 'vault', label: t('nav.vault'), mono: '◈' },
-    { key: 'expeditions', label: t('nav.expeditions'), mono: '⇢' }, // Hero Expeditions (docs/EXPEDITIONS.md)
-    { key: 'harvest', label: t('nav.harvest'), mono: '⬣' }, // Idle Harvest (docs/IDLE-HARVEST.md)
-    { key: 'metabolism', label: t('nav.metabolism'), mono: '✹' }, // Metabolism milestones (docs/METABOLISM.md)
   ] },
   { id: 'progression', title: t('nav.group.progression'), accent: 'var(--kinetic)', hub: { glyph: '✷', blurb: t('hub.blurb.progression') }, items: [
     { key: 'towers', label: t('nav.towers'), mono: 'T' },
@@ -71,9 +68,7 @@ export const navGroups = (): NavGroup[] => [
     { key: 'market', label: t('nav.market'), mono: '◆' },
     { key: 'auction', label: t('nav.auction'), mono: '⚖' }, // player-driven Auction House (docs/AUCTION-HOUSE.md)
     { key: 'equipment', label: t('nav.equipment'), mono: '⛨' },
-    { key: 'gearcodex', label: t('nav.gearcodex'), mono: '❑' },
     { key: 'phenotypes', label: t('nav.phenotypes'), mono: '❖' },
-    { key: 'specimens', label: t('nav.specimens'), mono: '⧉' }, // unclaimed cosmetic stock (docs/COSMETICS.md §claiming)
   ] },
   // The Premium Store sits in its OWN group — monetization stays visibly separate from
   // gameplay progression (docs/PREMIUM-STORE.md §philosophy). Headerless: the divider +
@@ -89,10 +84,52 @@ export const navGroups = (): NavGroup[] => [
   ] },
 ];
 
-/** The group (hub) that owns a screen — landing pages and back-routing key on this. */
+// ── Folded screens (docs/NOTIFICATIONS.md §hubs — "decisions, not destinations") ────────────
+// Side screens that live as a TAB inside a host screen instead of as their own nav row. Every
+// NavKey still deep-links: Hub.go('harvest') opens The Hive on its Production tab (the host
+// component renders the tab strip — ui/components/HostTabs.tsx). Each folded key keeps its own
+// unlock-registry row, so its tab reveals on its own beat. Adding a fold = one row here.
+export const FOLDED_NAVS: Readonly<Partial<Record<NavKey, NavKey>>> = {
+  harvest: 'hive', // Hive Production → The Hive
+  expeditions: 'hive', // Expedition Command → The Hive
+  metabolism: 'quests', // Milestones → the Quest Board
+  specimens: 'phenotypes', // Specimen Vault → the Phenotype Lab (claim stock beside the wardrobe it binds into)
+  gearcodex: 'equipment', // Gear Codex → the Armory
+};
+
+/** The screen that renders a NavKey — its host when folded, itself otherwise. */
+export function hostOf(k: NavKey): NavKey {
+  return FOLDED_NAVS[k] ?? k;
+}
+
+/** The folded tabs a host carries, in declaration order (the host's own tab comes first). */
+export function foldedInto(host: NavKey): NavKey[] {
+  return (Object.keys(FOLDED_NAVS) as NavKey[]).filter((k) => FOLDED_NAVS[k] === host);
+}
+
+/** Roll per-NavKey counts (badges) up onto host screens — a folded tab's badge lights its host. */
+export function foldCounts(rec: Readonly<Record<string, number>>): Record<string, number> {
+  const out: Record<string, number> = {};
+  for (const [k, n] of Object.entries(rec)) {
+    const h = hostOf(k as NavKey);
+    out[h] = (out[h] ?? 0) + n;
+  }
+  return out;
+}
+
+/** Roll per-NavKey reason lines up onto host screens (same rule as foldCounts). */
+export function foldLines(rec: Readonly<Record<string, string[]>>): Record<string, string[]> {
+  const out: Record<string, string[]> = {};
+  for (const [k, lines] of Object.entries(rec)) (out[hostOf(k as NavKey)] ??= []).push(...lines);
+  return out;
+}
+
+/** The group (hub) that owns a screen — landing pages and back-routing key on this. A folded
+ *  screen belongs to its host's group. */
 export function groupOf(k: NavKey): NavGroup {
   const groups = navGroups();
-  return groups.find((g) => g.items.some((i) => i.key === k)) ?? groups[0];
+  const h = hostOf(k);
+  return groups.find((g) => g.items.some((i) => i.key === h)) ?? groups[0];
 }
 
 // ── Portrait tab shell ─────────────────────────────────────────────────────────
@@ -133,6 +170,7 @@ export function mobileTabs(): MobileTab[] {
 
 /** Which portrait tab owns a screen (drives the active tab + the back header's destination). */
 export function tabOf(k: NavKey): MobileTabKey {
-  for (const tab of mobileTabs()) if (tab.navs.includes(k)) return tab.key;
+  const h = hostOf(k);
+  for (const tab of mobileTabs()) if (tab.navs.includes(h)) return tab.key;
   return 'home';
 }

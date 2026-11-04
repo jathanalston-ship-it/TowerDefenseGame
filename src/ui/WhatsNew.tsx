@@ -21,7 +21,7 @@ import { WHATS_NEW_SUMMARY_AT, unlockSummaryRows } from '../state/mechanics';
 import type { MechanicDef } from '../state/mechanics';
 import { WARDROBE_RARITY_COLOR, wardrobeItem, wardrobeKind } from '../core/wardrobe';
 import type { WardrobeItemDef } from '../core/wardrobe';
-import { isOpenNav } from '../state/unlocks';
+import { featureRevealed, isOpenNav } from '../state/unlocks';
 
 export function WhatsNew(): JSX.Element | null {
   const save = meta.use(); // re-render as the archive changes
@@ -33,7 +33,10 @@ export function WhatsNew(): JSX.Element | null {
   useEffect(() => { if (m) audio.cue('unlock'); }, [batch ? 'batch' : m?.id]); // eslint-disable-line react-hooks/exhaustive-deps
   if (!m) return null;
   if (batch) {
-    const specimens = save.wardrobe.pendingReveal.map(wardrobeItem).filter((d): d is WardrobeItemDef => d !== undefined);
+    // Specimens bank silently until their screen reveals (WardrobeReveal's gate) — never list them early.
+    const specimens = featureRevealed(save, 'specimens')
+      ? save.wardrobe.pendingReveal.map(wardrobeItem).filter((d): d is WardrobeItemDef => d !== undefined)
+      : [];
     return <UnlockSummary queue={queue} specimens={specimens} />;
   }
   const guide = guideFor(m.id);

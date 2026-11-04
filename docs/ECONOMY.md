@@ -376,3 +376,27 @@ old card purchasing power with graft spending gone), tissue funds ≥1.5 graft
 upgrades/week mid-catalog (dupes lift it ~3× at full catalog), and both new wallets show
 live income for every engaged persona. Unit pins: `src/core/currencies.test.ts` (laws),
 `src/state/localizedEconomy.test.ts` (seeds, top-slice, swaps, reveal pipeline).
+
+## 9. Player-facing currencies (§player-facing, 2026-11 — presentation only)
+
+The economy above is unchanged — no currency is merged, withheld or converted in the save.
+`src/state/rewardVisibility.ts` decides what the player **sees**:
+
+- **(a) Never before its sink.** Every currency / reward kind maps to the unlock-registry
+  feature that spends it (`REVEALED_WITH`): Gene Essence → Gene Archive (S4), Armory crafting
+  mats → Armory (S6), Ichor → Splice Market (S8), Season XP → Season Pass (S10), Bio-Spores →
+  Boss Rush (S12), Chitin → Hive Production (S16), Antigen → Adaptation (S24), Mulligan
+  Tissue/modifiers → Mulligan Lab (S25), Cells → the first Molt. Earlier drops BANK SILENTLY —
+  the reward toaster, the Vault ceremony, Results rows and account-level reward lines skip them —
+  and surface once, as the balance the new wing opens onto.
+- **(b) One Materials group.** Gene Essence · Mutagen · Scrap · Catalyst · Chitin · Mulligan
+  Tissue are presented as ONE "Materials" wallet: one top-bar chip with a tap-open breakdown
+  (`ui/components/MaterialsChip.tsx`, revealed with the Gene Archive), "Materials" reward toasts
+  (the member name rides the name line), and summed "+N Materials" in the Results "Also earned"
+  row. Members join the chip as their systems reveal.
+
+**Budget (measured — `playerFacingCurrencies`, `rewardVisibility.test.ts`):** stages 1–7 show
+Biomass · Genome Cores · Strain Samples / Apex Genome; Ichor joins at the Market (stage 8) —
+four currencies plus the one Materials chip through the first hour; Bio-Spores (S12), Cells
+(first Molt) and Antigen (S24) arrive with their systems after that.
+

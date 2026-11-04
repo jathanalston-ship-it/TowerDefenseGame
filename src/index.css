@@ -6141,6 +6141,12 @@ kbd {
    claim point; flights arc from claim → wallet. All decorative, all reduced-motion-gated. ── */
 .hub-cur.is-gaining { color: var(--gold); }
 .hub-cur.is-bumped { animation: cur-bump 0.45s ease; }
+/* The ONE Materials chip (ui/components/MaterialsChip.tsx) — total + tap-to-open breakdown. */
+.mats-chip { position: relative; }
+.mats-chip-btn { display: inline-flex; align-items: center; gap: 6px; min-height: 32px; padding: 0 4px; background: none; border: 0; color: inherit; font: inherit; cursor: pointer; }
+.mats-chip-pop { position: absolute; top: calc(100% + 6px); right: 0; z-index: 30; display: flex; flex-direction: column; gap: 6px; min-width: 180px; padding: 10px 12px; }
+.mats-chip-row { display: flex; align-items: center; gap: 8px; white-space: nowrap; }
+.mats-chip-row b { margin-left: auto; color: var(--text); }
 @keyframes cur-bump {
   0% { transform: scale(1); filter: none; }
   35% { transform: scale(1.16); filter: drop-shadow(0 0 8px var(--gold)); }
@@ -7809,6 +7815,18 @@ kbd {
 .threat-rec.is-on b { color: var(--danger); }
 .threat-rec-n { font-size: 11px; color: var(--muted); }
 .rr-doctrine { margin-top: 6px; font-size: 12px; font-weight: 700; letter-spacing: 0.12em; color: var(--viral); opacity: 0.9; }
+/* AUTO-CLAIM row (ui/components/AutoClaimSummary.tsx) — the ONE "Also earned" line that replaces
+   a badge per claim screen; sits under the verdict so it lands even when Continue is pressed early. */
+.rr-autoclaim {
+  display: flex; flex-wrap: wrap; align-items: baseline; justify-content: center; gap: 4px 10px;
+  margin: 10px auto 0; padding: 7px 12px; max-width: 100%;
+  border: 1px solid color-mix(in srgb, var(--gold) 35%, var(--line)); border-radius: var(--r-md);
+  background: color-mix(in srgb, var(--gold) 7%, var(--panel-2));
+  font-size: 12px; letter-spacing: normal; text-transform: none; text-shadow: none;
+}
+.rr-autoclaim-k { font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: var(--gold); }
+.rr-autoclaim-v { color: var(--text); font-weight: 600; }
+.rr-autoclaim-n { flex-basis: 100%; text-align: center; color: var(--dim); font-size: var(--fs-2xs); }
 
 /* ── MOLT VOWS — the wager rail in the Molt Chamber (docs/VOWS.md) ── */
 .molt-vows { margin-top: 12px; padding: 10px 12px; border-radius: var(--r-md); border: 1px solid color-mix(in srgb, #e6a2ff 28%, var(--line)); background: color-mix(in srgb, #e6a2ff 5%, var(--panel-2)); display: flex; flex-direction: column; gap: 7px; }
@@ -9380,6 +9398,16 @@ kbd {
 .wing-tab-body { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 .wing-tab-body b { font: 800 12px/1 'Chakra Petch', system-ui, sans-serif; letter-spacing: 0.1em; text-transform: uppercase; }
 .wing-tab-body i { font-style: normal; font-size: var(--fs-2xs); color: var(--dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+/* Host tabs (folded screens — ui/components/HostTabs.tsx): the next reveal sits locked; a
+   tab's pending decisions ride a small count pill. */
+.wing-tab { position: relative; }
+.wing-tab.is-locked { opacity: 0.55; cursor: default; }
+.wing-tab.is-locked:hover { transform: none; border-color: var(--line); }
+.wing-tab-badge {
+  position: absolute; top: 4px; right: 6px; min-width: 16px; height: 16px; padding: 0 4px;
+  border-radius: 999px; background: var(--vital); color: var(--bg);
+  font: 800 10px/16px 'Chakra Petch', system-ui, sans-serif; text-align: center;
+}
 @media (max-width: 640px) {
   .wing-tabs { grid-template-columns: repeat(2, minmax(0, 1fr)); position: static; }
 }
@@ -12467,10 +12495,6 @@ html[data-debug-layout] body::after {
 
 /* ── The living Hive organism (ui/components/HiveOrganism.tsx — docs/HIVE-PRODUCTION.md) ── */
 .hvo { border: 1px solid var(--line); border-radius: var(--r-lg); background: radial-gradient(ellipse at 50% 60%, color-mix(in srgb, var(--viral) 7%, transparent), transparent 70%), var(--panel); overflow: hidden; }
-.hvo-tabs { display: flex; gap: 2px; padding: 8px 10px 0; }
-.hvo-tab { padding: 5px 14px; font-size: 11px; font-weight: 800; letter-spacing: 0.12em; border: 1px solid var(--line); border-bottom: 0; border-radius: var(--r-md) var(--r-md) 0 0; background: transparent; color: var(--muted); cursor: pointer; transition: color var(--dur-2); }
-.hvo-tab.on { color: var(--viral); background: color-mix(in srgb, var(--viral) 8%, transparent); }
-.hvo-tab:not(.on):hover { color: var(--ink); }
 .hvo-svg { display: block; width: 100%; height: auto; max-height: 210px; }
 .hvo-vein { fill: none; stroke: color-mix(in srgb, var(--viral) 35%, transparent); stroke-width: 1.4; stroke-dasharray: 3 4; }
 .hvo-mote { fill: var(--caustic); filter: drop-shadow(0 0 3px var(--caustic)); }

@@ -117,14 +117,16 @@ describe('home widget registry — the shell renders THIS', () => {
     expect(homeRegistry.zone(fresh, 'world').map((d) => d.id)).toEqual(['world-status']);
     // HIERARCHY CONTRACT: the deploy decision leads the main zone; intel follows it — and
     // progression gating (docs/PROGRESSION-GATING.md) keeps a fresh board calm: contracts
-    // ride the Daily reveal (S5), the Infestation map rides the Infinite reveal (S3).
+    // ride the Daily reveal (S5), the Infestation map rides The Front's own reveal (S20).
     // (UX consolidation: the next-goal banner is ABSORBED into Mission Control's ledger —
     // one main-zone panel answers "what should I do"; docs/MISSION-CONTROL.md.)
     expect(homeRegistry.zone(fresh, 'main').map((d) => d.id)).toEqual(['mission-control', 'live-events']);
     expect(homeRegistry.zone(fresh, 'ops').map((d) => d.id)).toEqual(['modes']);
     const midgame = { ...fresh, campaign: { ...fresh.campaign, cleared: { standard: 5 } } };
     expect(homeRegistry.zone(midgame, 'main').map((d) => d.id)).toEqual(['mission-control', 'live-events', 'directives', 'contracts']);
-    expect(homeRegistry.zone(midgame, 'ops').map((d) => d.id)).toEqual(['modes', 'infestation']);
+    expect(homeRegistry.zone(midgame, 'ops').map((d) => d.id)).toEqual(['modes']); // The Front is still sealed
+    const frontline = { ...fresh, campaign: { ...fresh.campaign, cleared: { standard: 20 } } };
+    expect(homeRegistry.zone(frontline, 'ops').map((d) => d.id)).toEqual(['modes', 'infestation']);
     // feed hides while Hive Intelligence has nothing to say (no history, nothing banked,
     // no wallet); appears the moment any of those exists
     expect(homeRegistry.zone(fresh, 'feed').map((d) => d.id)).toEqual(['dashboard']);
