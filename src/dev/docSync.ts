@@ -22,6 +22,8 @@ import { GUTTERS } from '../render/gutters';
 import { FILM } from '../render/filmDirection';
 import { PRESTIGE } from '../core/prestige';
 import { OUTRO } from '../render/runOutro';
+import { LOGIN } from '../core/loginStreak';
+import { INCOME } from '../state/income';
 
 export const REPO_ROOT = join(__dirname, '..', '..');
 
@@ -58,6 +60,8 @@ export function docAnchors(): DocAnchor[] {
     { doc: 'docs/PROJECT_MANIFEST.md', contains: 'gates at stages 15/30/50/75', why: 'manifest gene-gate summary drifted (GENE_LEVEL_GATES)' },
     { doc: 'docs/ASSIMILATION.md', contains: `${ASSIMILATION_TIERS.length} evolution tiers`, why: 'tier count drifted (ASSIMILATION_TIERS)' },
     { doc: 'docs/GENOME-CORE.md', contains: `imprintPerMolt ${PRESTIGE.molt.imprintPerMolt} · imprintMax ${PRESTIGE.molt.imprintMax}`, why: 'Molt Imprint retention drifted (core/prestige.ts PRESTIGE.molt)' },
+    { doc: 'docs/DAILY-LOGIN.md', contains: `LOGIN.incomeMinutes (${LOGIN.incomeMinutes}), LOGIN.incomeRunCap (${LOGIN.incomeRunCap})`, why: 'Bio-Cache income line drifted (core/loginStreak.ts LOGIN.incomeMinutes / incomeRunCap)' },
+    { doc: 'docs/ONE-MORE-RUN.md', contains: `\`etaRuns ≤ INCOME.honestRuns\` (${INCOME.honestRuns})`, why: '"one more run" honesty threshold drifted (state/income.ts INCOME.honestRuns)' },
     // Identity trilogy (docs/UI_STYLE_GUIDE.md) — pinned to the LIVE :root tokens.
     { doc: 'docs/UI_STYLE_GUIDE.md', contains: `--kinetic ${cssToken('kinetic')}`, why: 'class-hue palette drifted (src/index.css --kinetic)' },
     { doc: 'docs/UI_STYLE_GUIDE.md', contains: `--viral ${cssToken('viral')}`, why: 'class-hue palette drifted (src/index.css --viral)' },

@@ -13,7 +13,11 @@ import { meta } from '../state/meta';
 import type { LoginReceipt } from '../state/meta';
 import { audio } from '../audio/sound';
 import { music } from '../audio/music';
+import { LOGIN } from '../core/loginStreak';
 import { Popup } from './components/Popup';
+import { CurrencyIcon } from './components/CurrencyIcon';
+
+const LOGIN_MINUTES = LOGIN.incomeMinutes;
 
 const reducedMotion = (): boolean =>
   typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches === true;
@@ -55,8 +59,9 @@ export function BioCacheCard(): JSX.Element {
             <div className="bc-ready-line">
               DAY {v.lifetime + 1} · STREAK {v.nextStreak} · <b>×{v.mult.toFixed(2)}</b>
             </div>
-            <div className="bc-ready-sub" title="Ichor-equivalent value — the streak curve sizes every cache">
-              sealed — est. value ≈ {v.target.toFixed(0)}◆
+            <div className="bc-ready-sub" title="Whole cache in Genome-Core terms — the streak curve sizes the lanes, your live income sizes the Core line">
+              sealed — worth ≈ {v.valueCores.toLocaleString('en-US')} <CurrencyIcon id="genomeCores" size={12} title="Genome Cores (equivalent)" />
+              {v.incomeCores > 0 && <span className="bc-income"> · incl. {v.incomeCores.toLocaleString('en-US')} Cores ({LOGIN_MINUTES} min of your income)</span>}
               {v.todayMilestone && <span className="bc-mile"> · {v.todayMilestone.toUpperCase()} CONTAINER guaranteed</span>}
             </div>
             {v.nextStreak === 1 && v.lifetime > 0 && (
@@ -79,7 +84,7 @@ export function BioCacheCard(): JSX.Element {
             ))}
           </div>
           <div className="bc-tomorrow" title="Hold the streak — tomorrow's cache compounds it">
-            TOMORROW ×{v.tomorrow.mult.toFixed(2)} · ≈{v.tomorrow.target.toFixed(0)}◆
+            TOMORROW ×{v.tomorrow.mult.toFixed(2)} · ≈{v.tomorrow.valueCores.toLocaleString('en-US')} <CurrencyIcon id="genomeCores" size={11} title="Genome Cores (equivalent)" />
             {v.tomorrow.milestone && <b> · {v.tomorrow.milestone.toUpperCase()} CONTAINER</b>}
             <span className="bc-reset"> — new cache in {resetText(v.msToReset)}</span>
           </div>

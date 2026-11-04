@@ -44,7 +44,8 @@ describe('DIL — ingestion completeness (new content joins automatically)', () 
     for (const k of Object.keys(BOSS_DEFS)) expect(g.node(`boss:${k}`), `boss:${k}`).toBeTruthy();
     for (const k of Object.keys(MEGA_BOSS_DEFS)) expect(g.node(`mega:${k}`), `mega:${k}`).toBeTruthy();
     for (const b of BIOMES) expect(g.node(`biome:${b.id}`), `biome:${b.id}`).toBeTruthy();
-    for (const a of ACHIEVEMENTS) expect(g.node(`achievement:${a.id}`), `achievement:${a.id}`).toBeTruthy();
+    // generated ladder rungs (docs/PROGRESSION-SYSTEMS.md §ladders) join as ONE node per family — its first rung
+    for (const a of ACHIEVEMENTS) if (!a.ladder || a.ladder.tier === 1) expect(g.node(`achievement:${a.id}`), `achievement:${a.id}`).toBeTruthy();
   });
 
   it('the graph answers the canonical questions non-trivially', () => {

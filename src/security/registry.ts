@@ -248,6 +248,14 @@ export const SECURITY_ACTIONS: Record<string, ActionPolicy> = {
     id: 'cosmetic.claim', category: 'claim', level: 'moderate', limit: M({ count: 40 }), dedupeMs: 250,
     analytics: 'sec_cosmetic_claim', doc: 'Cosmetic account-bind (docs/COSMETICS.md §claiming) — consumes one unclaimed Vault instance, irreversibly; a collector binding a backlog in a burst is legitimate.', at: META,
   },
+  'progress.rebuild': {
+    id: 'progress.rebuild', category: 'progression', level: 'moderate', limit: M({ count: 4 }), dedupeMs: 800,
+    analytics: 'sec_progress_rebuild', doc: 'Evolution HQ one-tap Genome rebuild (docs/EVOLUTION-HQ.md §rebuild) — ONE guarded action applies a confirmed Best-Value plan (up to REBUILD.maxSteps levels); refused if the save drifted.', at: META,
+  },
+  'cosmetic.claimAll': {
+    id: 'cosmetic.claimAll', category: 'claim', level: 'moderate', limit: M({ count: 6 }), dedupeMs: 800,
+    analytics: 'sec_cosmetic_claim_all', doc: 'Specimen Cabinet claim-all (docs/COSMETICS.md §claim-all) — ONE guarded action binds the whole no-choice backlog (commons by default); rare+ stays a per-item decision.', at: META,
+  },
 
   // ── Network (server budgets — client-side courtesy limits on top of server truth) ──
   'sync.push': {
@@ -296,6 +304,8 @@ export const GUARDED_META_METHODS: Record<string, string> = {
   buyEventShopRow: 'event.buy',
   claimMetabolism: 'metabolism.claim',
   claimCosmetic: 'cosmetic.claim',
+  claimAllCosmetics: 'cosmetic.claimAll',
+  applyGenomeRebuild: 'progress.rebuild',
   claimExpedition: 'expedition.claim',
   claimQuestMission: 'quest.claim',
   claimQuestFinale: 'quest.claim',

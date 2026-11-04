@@ -6,6 +6,7 @@
 
 import { meta } from '../state/meta';
 import { nextGoals } from '../state/nextGoal';
+import { isOneMoreRun } from '../state/income';
 import { deployReadiness, loopAdviceLink, loopState } from '../state/progressionLoop';
 import { AdviceGo } from './components/AdviceLink';
 
@@ -34,19 +35,25 @@ export function LoopDirective({ difficultyId }: { difficultyId?: string }): JSX.
   );
 }
 
-/** The single nearest goal, as a compact cliffhanger — "1 run from …". Used on the Results screen. */
+/** The single NEAREST goal (by honest run ETA — docs/ONE-MORE-RUN.md §eta), as a compact
+ *  cliffhanger on the Results screen. "One more run" is a promise: it is only said when the live
+ *  income really lands the goal within INCOME.honestRuns runs; otherwise the ETA is stated. */
 export function NextGoalCliffhanger(): JSX.Element | null {
   const goal = nextGoals(meta.get())[0];
   if (!goal) return null;
+  const ready = goal.etaRuns <= 0;
+  const close = isOneMoreRun(goal.etaRuns);
+  const eyebrow = ready ? '◈ Ready now' : close ? `◈ You're almost there — ${pct(goal.progress)}%` : `◈ Next milestone — ${goal.eta}`;
+  const tail = ready ? 'claim it.' : close ? 'one more run.' : `${goal.eta} at your current pace.`;
   return (
-    <div className="ng-cliff" style={{ ['--gc' as string]: goal.color }}>
-      <span className="ng-cliff-eyebrow">◈ You're almost there — {pct(goal.progress)}%</span>
+    <div className={`ng-cliff${close || ready ? '' : ' is-far'}`} style={{ ['--gc' as string]: goal.color }}>
+      <span className="ng-cliff-eyebrow">{eyebrow}</span>
       <div className="ng-goal-h">
         <span className="ng-goal-label">{goal.label}</span>
         <span className="ng-goal-rem">{goal.remaining}</span>
       </div>
       <div className="ng-bar big"><i style={{ width: `${pct(goal.progress)}%` }} /></div>
-      <span className="ng-goal-reward">{goal.reward} — one more run.</span>
+      <span className="ng-goal-reward">{goal.reward} — {tail}</span>
     </div>
   );
 }

@@ -18,6 +18,11 @@
 //     collections, titles and Genome Rank credit are permanent by construction.
 //   • The roll is a PURE function of (dayKey, lifetimeLogins, streak): preview, claim and a
 //     reload all agree, and tomorrow's cache is previewable by rolling tomorrow's inputs.
+//   • §income (v56): on top of the IV lanes rides ONE guaranteed Genome-Core line sized as
+//     LOGIN.incomeMinutes of the player's LIVE Core income (state/income.ts coresPerMinute) ×
+//     the streak multiplier — the cache scales with the account instead of shrinking to noise
+//     next to a deep run (≈6 IV ≈ 60 Cores vs 700+ Cores per stage-80 run before). Pure in
+//     (coresPerMinute, streak); the claim freezes the paid amount (login.incomeCores).
 //
 // PURE core: no save, no DOM, no Date.now() — the meta layer owns the day gate (once per UTC
 // day, forged-future keys self-heal by waiting), the grant, and the ceremony receipt.
@@ -42,7 +47,21 @@ export const LOGIN = {
   jackpotOdds: 220,
   /** Owned jackpot/permanent repeats pay this instead (applyRewardList's replacement bundle). */
   repeatReplacement: { ichor: 6, cores: 120 },
+  /** §income: the guaranteed Core line = this many MINUTES of the live run Core income ×
+   *  streakMult (0 until a run has been observed) … */
+  incomeMinutes: 20,
+  /** … but never more than this many RUNS of Core pay before the streak multiplier (short early
+   *  runs would otherwise turn 15 minutes into several runs' worth). */
+  incomeRunCap: 1,
 } as const;
+
+/** §income: the day's income-scaled Genome-Core line (rounded to 5; 0 with no income yet):
+ *  min(minutes × Cores/min, runCap × Cores/run) × streakMult. */
+export function loginIncomeCores(coresPerMinute: number, streak: number, coresPerRun = Infinity): number {
+  if (!(coresPerMinute > 0)) return 0;
+  const base = Math.min(coresPerMinute * LOGIN.incomeMinutes, LOGIN.incomeRunCap * Math.max(0, coresPerRun));
+  return Math.round((base * streakMult(streak)) / 5) * 5;
+}
 
 /** Streak milestones whose cache carries a GUARANTEED Bio-Container on top of the budget —
  *  the "tomorrow preview" anticipation beats. Every full year of unbroken streak re-pays the

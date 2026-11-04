@@ -14043,3 +14043,40 @@ html[data-layout='landscape'] .build-controls.is-visible ~ .mega-banner { top: 6
       letterbox bar + the grade's dark fade sit under the upper/lower bands, so copy always reads. ── */
 .intro-stage.is-copy-upper { align-items: start; padding-top: calc(max(4.5vh, 26px) + 6vh); }
 .intro-stage.is-copy-lower { align-items: end; padding-bottom: calc(max(4.5vh, 26px) + 5vh); }
+/* ── BATCH G · GM1 (the grind, between-run loop): honest goals, farm-first Home CTA, ladders,
+      Bio-Cache income line, Specimen claim-all, Genome rebuild, Genome Rank peak ── */
+/* Home main CTA follows the farm/push loop (docs/COMMAND-CENTER.md §cta): the farm IS the primary. */
+.mc-farm { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; }
+.mc-deploy.is-farm small { font-size: 0.7em; font-weight: 600; opacity: 0.8; margin-left: 6px; }
+.mc-farm-gain { font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.mc-farm-gain b { color: var(--text); }
+.mc-fight-anyway { font-size: 12px; padding: 5px 12px; background: transparent; border: 1px solid var(--line-strong); color: var(--muted); }
+.mc-fight-anyway:hover { color: var(--text); border-color: color-mix(in srgb, var(--warn, #f0be5a) 60%, var(--line-strong)); }
+/* Results cliffhanger far from the goal: calm, honest — no "almost there" urgency. */
+.ng-cliff.is-far .ng-cliff-eyebrow { color: var(--muted); }
+/* Achievement ladders (docs/PROGRESSION-SYSTEMS.md §ladders). */
+.achv-ladder-h { margin-top: 14px; }
+/* Daily Bio-Cache income line (docs/DAILY-LOGIN.md §income). */
+.bc-income { color: var(--gold); }
+/* Specimen Cabinet claim-all (docs/COSMETICS.md §claim-all). */
+.sv-claimall { display: inline-flex; align-items: center; gap: 6px; margin-left: auto; }
+.sv-claimall small { font-size: 11px; color: var(--muted); }
+.sv-batch-lines { max-height: 40vh; overflow-y: auto; }
+/* Evolution HQ one-tap rebuild (docs/EVOLUTION-HQ.md §rebuild). */
+.evo-rebuild { margin-left: auto; font-size: 12px; padding: 5px 12px; border: 1px solid color-mix(in srgb, var(--viral) 50%, var(--line)); background: color-mix(in srgb, var(--viral) 12%, var(--panel-2)); color: var(--text); }
+.evo-rebuild:hover { background: color-mix(in srgb, var(--viral) 22%, var(--panel-2)); }
+.evo-rebuild-note { flex-basis: 100%; font-size: 12px; color: var(--viral); }
+.evo-rebuild-veil { position: fixed; inset: 0; z-index: 4000; display: grid; place-items: center; background: rgba(4, 6, 10, 0.72); animation: fade-in var(--dur-2) var(--ease-out); }
+.evo-rebuild-card { display: flex; flex-direction: column; gap: 10px; width: min(460px, 92vw); max-height: 86vh; padding: 20px; background: var(--panel); border: 1px solid color-mix(in srgb, var(--viral) 40%, var(--line)); border-radius: var(--r-md); }
+.evo-rebuild-k { font: 800 12px/1 'Chakra Petch', system-ui, sans-serif; letter-spacing: 0.12em; color: var(--viral); }
+.evo-rebuild-sum { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 10px; font-size: 13px; font-variant-numeric: tabular-nums; }
+.evo-rebuild-power { margin-left: auto; color: var(--muted); }
+.evo-rebuild-power b { color: var(--gold); }
+.evo-rebuild-rows { list-style: none; margin: 0; padding: 0; overflow-y: auto; border-top: 1px solid var(--line); }
+.evo-rebuild-rows li { display: grid; grid-template-columns: 1fr auto 64px; gap: 10px; padding: 5px 2px; font-size: 12px; border-bottom: 1px solid var(--line); font-variant-numeric: tabular-nums; }
+.evo-rebuild-rows li span:last-child { text-align: right; color: var(--gold); }
+.evo-rebuild-actions { display: flex; justify-content: flex-end; gap: 8px; }
+.evo-rebuild-empty { margin: 0; font-size: 13px; color: var(--muted); }
+/* Genome Rank: permanent peak vs this cycle (docs/GENOME-RANK.md §peak). */
+.grk-peak { display: block; margin-top: 4px; font-size: 11px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.grk-peak b { color: var(--gold); }

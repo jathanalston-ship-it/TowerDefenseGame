@@ -94,6 +94,7 @@ export function buildDil(): DilGraph {
     g.addEdge(`help:${m.id}`, 'partOf', 'system:onboarding');
   }
   for (const a of ACHIEVEMENTS) {
+    if (a.ladder && a.ladder.tier > 1) continue; // generated ladders: one node per family (its first rung) keeps the graph readable
     g.addNode({ id: `achievement:${a.id}`, kind: 'achievement', name: a.name, summary: a.desc, at: 'src/state/achievements.ts' });
     g.addEdge(`achievement:${a.id}`, 'partOf', 'system:achievements');
     if ((a.reward ?? 0) > 0) g.addEdge(`achievement:${a.id}`, 'rewards', 'currency:genome-cores', `+${a.reward} on unlock`);

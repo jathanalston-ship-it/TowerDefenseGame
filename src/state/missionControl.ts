@@ -100,7 +100,7 @@ export function missionControl(save: SaveData): MissionControlModel {
   for (const g of nextGoals(save, 3)) {
     secondary.push({
       id: g.id, tier: 'secondary', title: g.label, why: g.reward,
-      progress: g.progress, remaining: g.remaining, reward: g.reward, nav: g.nav,
+      progress: g.progress, remaining: `${g.remaining} · ${g.eta}`, reward: g.reward, nav: g.nav, // §eta: the honest run ETA rides along
     });
   }
   // Banked value waiting on a click: the vault, and the Advisor's best instant move.

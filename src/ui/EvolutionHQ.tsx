@@ -9,8 +9,10 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { meta, metaModifiers, highestCampaignStage } from '../state/meta';
 import { telemetry } from '../net/telemetry';
-import { genomeSections, FUTURE_LOCKED } from '../state/evolutionHQ';
-import type { GenomeSection, GenomeCardView } from '../state/evolutionHQ';
+import { genomeSections, genomeRebuildPlan, FUTURE_LOCKED } from '../state/evolutionHQ';
+import type { GenomeSection, GenomeCardView, GenomeRebuildPlan } from '../state/evolutionHQ';
+import { Popup } from './components/Popup';
+import { audio } from '../audio/sound';
 import { organizeList, toggleIn } from '../state/listOrg';
 import type { ListOrgSpec, ListOrgState } from '../state/listOrg';
 import { listOrgPrefs, setListOrgPrefs } from '../state/prefs';
@@ -144,6 +146,70 @@ function SectionGrid({ section, curPower, onBuyRunaway, justBought }: {
   );
 }
 
+/** ONE-TAP GENOME REBUILD (docs/EVOLUTION-HQ.md §rebuild) — after a Molt, spend the treasury
+ *  along the Best Value ranking in one confirmed plan instead of 20–50 manual re-buys. The
+ *  confirm lists every level and the exact Power after (the apply's own builder — preview ==
+ *  outcome); a drifted save refuses and re-plans. Post-Molt only: the first cycle teaches buying. */
+function GenomeRebuild(): JSX.Element | null {
+  const save = meta.use();
+  // Cheap gate (no Power scoring): any unlocked, unmaxed upgrade the treasury covers right now.
+  const canAfford = useMemo(() => genomeSections(save).some((sec) => sec.cards.some((c) => !c.completed && !c.locked && c.cost !== null && c.cost <= save.shards)), [save]);
+  const [plan, setPlan] = useState<GenomeRebuildPlan | null>(null);
+  const [note, setNote] = useState<string | null>(null);
+  if (save.prestige.molts < 1 || (!canAfford && !plan && !note)) return null;
+  const open = (): void => { audio.cue('ui'); setNote(null); setPlan(genomeRebuildPlan(meta.get())); };
+  const confirm = (): void => {
+    if (!plan) return;
+    const before = meta.get().shards;
+    if (meta.applyGenomeRebuild(plan.steps)) {
+      telemetry.flowSpend('cores:upgrade', before - meta.get().shards); // same spend fold as a manual buy
+      audio.cue('power');
+      setNote(`Rebuilt ${plan.steps.length} level${plan.steps.length === 1 ? '' : 's'} · Power ${formatPower(plan.powerBefore)} → ${formatPower(plan.powerAfter)}`);
+      setPlan(null);
+    } else {
+      setPlan(genomeRebuildPlan(meta.get())); // the save moved under the dialog — show the fresh plan
+    }
+  };
+  return (
+    <>
+      {canAfford && (
+        <button type="button" className="evo-rebuild" onClick={open} title="Spend your Genome Cores along the Best Value ranking — you confirm the plan first">
+          ⟳ Rebuild by Best Value
+        </button>
+      )}
+      {note && <span className="evo-rebuild-note" role="status">{note}</span>}
+      {plan && (
+        <Popup>
+          <div className="evo-rebuild-veil" role="dialog" aria-label="Genome rebuild plan" onClick={() => setPlan(null)}>
+            <div className="evo-rebuild-card" onClick={(e) => e.stopPropagation()}>
+              <div className="evo-rebuild-k">⟳ GENOME REBUILD — BEST VALUE</div>
+              {plan.steps.length === 0 ? (
+                <p className="evo-rebuild-empty">Nothing affordable adds Power right now — bank more Genome Cores.</p>
+              ) : (
+                <>
+                  <div className="evo-rebuild-sum">
+                    <b>{plan.steps.length}</b> level{plan.steps.length === 1 ? '' : 's'} · <CurrencyIcon id="genomeCores" size={13} title="" /> {plan.cores.toLocaleString()} of {save.shards.toLocaleString()}
+                    <span className="evo-rebuild-power">Power {formatPower(plan.powerBefore)} → <b>{formatPower(plan.powerAfter)}</b></span>
+                  </div>
+                  <ul className="evo-rebuild-rows">
+                    {plan.rows.map((r) => (
+                      <li key={r.id}><span>{r.name}</span><span>L{r.from} → L{r.to}</span><span>{r.cores.toLocaleString()}</span></li>
+                    ))}
+                  </ul>
+                </>
+              )}
+              <div className="evo-rebuild-actions">
+                <button type="button" onClick={() => setPlan(null)}>Cancel</button>
+                {plan.steps.length > 0 && <button type="button" className="primary" onClick={confirm}>Confirm rebuild</button>}
+              </div>
+            </div>
+          </div>
+        </Popup>
+      )}
+    </>
+  );
+}
+
 export function EvolutionHQ(): JSX.Element {
   const save = meta.use();
   const [justBought, setJustBought] = useState<string | null>(null);
@@ -208,6 +274,7 @@ export function EvolutionHQ(): JSX.Element {
         <span className="evo-treasury-k">Genome Cores</span>
         <span className="evo-treasury-life">{save.lifetimeShards.toLocaleString()} lifetime</span>
         {runawayLevels > 0 && <span className="evo-treasury-run" title="Runaway mutation levels across all categories">∞ {runawayLevels} Runaway</span>}
+        <GenomeRebuild />
       </section>
 
       {/* Board organization — find one upgrade among 1000 (docs/UI-STANDARDS.md §lists). */}

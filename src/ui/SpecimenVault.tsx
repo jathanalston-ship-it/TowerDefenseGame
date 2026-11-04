@@ -20,6 +20,7 @@ import type { CosmeticAvailability, CosmeticEra, CosmeticInstance, WardrobeGroup
 import type { CollectorView, PremiumReceiptLine } from '../state/meta';
 import { Detail } from './components/Detail';
 import { Popup } from './components/Popup';
+import { ClaimAll } from './components/ClaimAll';
 
 interface VaultRow {
   def: WardrobeItemDef;
@@ -198,6 +199,26 @@ function ClaimCeremony({ def, lines, onDone }: { def: WardrobeItemDef; lines: Pr
   );
 }
 
+/** The claim-all receipt (docs/COSMETICS.md §claim-all) — one finite overlay for the whole batch,
+ *  the same card language as the single ceremony (no per-item theater for a no-choice backlog). */
+function BatchCeremony({ names, lines, onDone }: { names: string[]; lines: PremiumReceiptLine[]; onDone: () => void }): JSX.Element {
+  const bonuses = lines.filter((l) => !l.rarity); // the bonus lines (bind lines carry a rarity)
+  return (
+    <div className="sv-cere" role="dialog" aria-label="Assimilation" onClick={onDone}>
+      <div className="sv-cere-card" style={{ ['--svr' as string]: WARDROBE_RARITY_COLOR.common }} onClick={(e) => e.stopPropagation()}>
+        <span className="sv-cere-k">◈ ASSIMILATED ◈</span>
+        <b className="sv-cere-name">{names.length} specimen{names.length === 1 ? '' : 's'} bound</b>
+        <span className="sv-cere-rarity">COMMON · claimed together</span>
+        <div className="sv-cere-lines sv-batch-lines">
+          {names.map((n) => <span key={n} className="sv-cere-line"><em aria-hidden>❖</em> {n}</span>)}
+          {bonuses.map((l, i) => <span key={`b${i}`} className="sv-cere-line"><em aria-hidden>{l.icon}</em> {l.label}</span>)}
+        </div>
+        <button className="primary sv-cere-go" onClick={onDone}>Woven in</button>
+      </div>
+    </div>
+  );
+}
+
 export function SpecimenVault(): JSX.Element {
   const save = meta.use();
   const [state, setState] = useState<StateFilter>('unclaimed');
@@ -205,6 +226,7 @@ export function SpecimenVault(): JSX.Element {
   const [sort, setSort] = useState<SortKey>('recent');
   const [q, setQ] = useState('');
   const [cere, setCere] = useState<{ def: WardrobeItemDef; lines: PremiumReceiptLine[] } | null>(null);
+  const [batch, setBatch] = useState<{ ids: string[]; names: string[]; lines: PremiumReceiptLine[] } | null>(null);
   const [inspect, setInspect] = useState<string | null>(null);
 
   const rows = useMemo<VaultRow[]>(() => {
@@ -242,6 +264,17 @@ export function SpecimenVault(): JSX.Element {
   }, [rows, state, group, sort, q]);
 
   const unclaimedItems = rows.filter((r) => r.instances.length > 0).length;
+  // Claim-all covers the no-choice backlog only: COMMON specimens not yet bound. Rare and above
+  // keep the per-item decision (bind vs keep liquid for the Auction House).
+  const commonsReady = rows.filter((r) => !r.claimed && r.instances.length > 0 && r.def.rarity === 'common').length;
+  const claimAllCommons = (): void => {
+    const res = meta.claimAllCosmetics(['common']);
+    if (res && res.names.length > 0) {
+      audio.cue('chest');
+      for (const id of res.ids) telemetry.emit('cos_claim', { d: id }); // the census counts every bind, batched or not
+      setBatch(res);
+    }
+  };
   const dupes = rows.reduce((a, r) => a + Math.max(0, r.instances.length - (r.claimed ? 0 : 1)), 0);
 
   const claim = (uid: string): void => {
@@ -270,6 +303,12 @@ export function SpecimenVault(): JSX.Element {
         <span className="sv-stat"><b>{unclaimedItems}</b> awaiting</span>
         <span className="sv-stat"><b>{save.wardrobe.owned.length}</b> bound</span>
         <span className="sv-stat"><b>{dupes}</b> spare{dupes === 1 ? '' : 's'}</span>
+        {commonsReady > 0 && (
+          <span className="sv-claimall" title="Bind every unclaimed COMMON specimen at once — rare and above stay your call">
+            <ClaimAll count={commonsReady} onClaim={claimAllCommons} className="sv-claimall-btn" />
+            <small>commons</small>
+          </span>
+        )}
         <Detail summary="How claiming works">
           <p>
             UNCLAIMED specimens are auction-eligible stock: no bonus, no equipping, no codex.
@@ -332,6 +371,7 @@ export function SpecimenVault(): JSX.Element {
         return <Popup><CollectorPanel view={view} claimUid={claimUid} onClaim={claim} onClose={() => setInspect(null)} /></Popup>;
       })()}
       {cere && <Popup><ClaimCeremony def={cere.def} lines={cere.lines} onDone={() => setCere(null)} /></Popup>}
+      {batch && <Popup><BatchCeremony names={batch.names} lines={batch.lines} onDone={() => setBatch(null)} /></Popup>}
     </div>
   );
 }

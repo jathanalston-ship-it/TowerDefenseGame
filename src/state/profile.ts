@@ -26,7 +26,7 @@ import { THREAT_MODES, threatTitleName } from '../core/threat';
 import type { SigilDef } from '../core/identity';
 import { divisionForRating } from '../core/arena';
 import { ARENA_EXCLUSIVES, ARENA_PASS, arenaPassLevelOf } from '../core/arenaPass';
-import { ACHIEVEMENTS, achievementById } from './achievements';
+import { ACHIEVEMENTS, AUTHORED_ACHIEVEMENTS, achievementById, authoredEarned } from './achievements';
 import type { AchievementDef } from './achievements';
 import { favoriteTowerName } from './stats';
 import { accountPowerParts, collectionContextOf, totalPrimeLevels } from './meta';
@@ -360,8 +360,8 @@ export function achievementShowcase(save: SaveData): ShowcaseModel {
   const rarest = unlocked.reduce<AchievementDef | null>((a, b) => ((b.reward ?? 0) > (a?.reward ?? -1) ? b : a), null);
   const goal = ACHIEVEMENTS.find((a) => !a.hidden && !save.achievements.includes(a.id)) ?? null;
   return {
-    count: unlocked.length,
-    total: ACHIEVEMENTS.length,
+    count: authoredEarned(save.achievements), // authored set only — ladder rungs are an endless trickle (docs/PROGRESSION-SYSTEMS.md §ladders)
+    total: AUTHORED_ACHIEVEMENTS.length,
     recent: unlocked[unlocked.length - 1] ?? null,
     rarest,
     goal,

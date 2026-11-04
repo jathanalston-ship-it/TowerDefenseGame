@@ -152,7 +152,7 @@ export function CampaignScreen({
           </button>
         ))}
         {nextGoals(save, 3).map((g) => (
-          <span key={g.id} className="camp-goal" style={{ ['--gc' as string]: g.color }} title={`${g.remaining} → ${g.reward}`}>
+          <span key={g.id} className="camp-goal" style={{ ['--gc' as string]: g.color }} title={`${g.remaining} · ${g.eta} → ${g.reward}`}>
             <span className="camp-goal-l">{g.label}</span>
             <ProgressBar value={Math.round(g.progress * 100)} max={100} color={g.color} height={4} label={g.label} />
           </span>
