@@ -82,15 +82,16 @@ between two blocked cells, so two blocks touching only at a corner form a sealed
 | `coil` | The Coil | maze | necrotic, umbral | 1 | staggered baffles wind the swarm side to side (≈ +60 % path length) |
 | `crossroads` | The Crossroads | split | neural, carapace | 6 | four plateaus carve three lanes and a cross-cut |
 | `ribcage` | The Ribcage | chokepoint | ossuary, necrotic | 1 | ribs from both walls channel a long central corridor |
-| `flank_sluices` | Flank Sluices | funnel | molten, ashen | 6 | a central plateau dams the field; the swarm pours down both flanks |
-| `delta` | The Delta | funnel | frostbound, tempest | 6 | a chevron ridge sheds the swarm toward the outer flanks |
+| `flank_sluices` | Flank Sluices | funnel | molten, ashen | 11 | a central plateau dams the field; the swarm pours down both flanks |
+| `delta` | The Delta | funnel | frostbound, tempest | 11 | a chevron ridge sheds the swarm toward the outer flanks |
 | `breach` | The Breach | scattered | ashen, molten | 6 | spawns burst from one central breach (spawn span), then fan across spurs |
-| `twin_gates` | Twin Gates | split | umbral, tempest | 6 | spawns only at both flank gates (spawn spans) — a pincer |
+| `twin_gates` | Twin Gates | split | umbral, tempest | 11 | spawns only at both flank gates (spawn spans) — a pincer |
 | `spore_forest` | Spore Forest | scattered | verdant, necrotic | 1 | a forest of pillars breaks the swarm into weaving streams |
 | `broken_wall` | The Broken Wall | chokepoint | carapace, molten | 11 | one gap on the far flank — the swarm cuts back across the field |
 
-`minStage` holds the funnels/pincers (which deliver the swarm to the outer, not-yet-unlocked
-emplacements) out of the first biome region. A test proves every layout's entry fingerprint
+`minStage` holds the multi-lane / open-cross layouts out of the first biome region (6) and the
+flank funnels + pincer (which deliver the swarm to the outer, not-yet-unlocked emplacements, so a
+centre-lattice board covers them worst) until stage 11. A test proves every layout's entry fingerprint
 (where each top column's flow line crosses into the defensive region) is distinct.
 
 ---

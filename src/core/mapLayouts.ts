@@ -41,7 +41,9 @@ export interface MapLayoutDef {
   spawnSpans?: readonly (readonly [number, number])[];
   /** Biome ids this layout is native to — weighted up when a stage/day of that biome rolls. */
   biomes?: readonly string[];
-  /** Earliest campaign stage this layout may roll on (complex routing arrives later). Default 1. */
+  /** Earliest campaign stage this layout may roll on. Default 1. Flank funnels / pincers wait for
+   *  stage 11: they deliver the swarm to the OUTER emplacements a young account has not unlocked,
+   *  so a centre-lattice board covers them worst. */
   minStage?: number;
 }
 
@@ -108,12 +110,12 @@ export const MAP_LAYOUTS: MapLayoutDef[] = [
     ],
   },
   {
-    id: 'flank_sluices', name: 'Flank Sluices', shape: 'funnel', biomes: ['molten', 'ashen'], minStage: 6,
+    id: 'flank_sluices', name: 'Flank Sluices', shape: 'funnel', biomes: ['molten', 'ashen'], minStage: 11,
     blurb: 'A central plateau dams the field — the swarm pours down both flank channels.',
     obstacles: [{ col: 3, row: 6, w: 12, h: 4 }, { col: 7, row: 13, w: 4, h: 2 }],
   },
   {
-    id: 'delta', name: 'The Delta', shape: 'funnel', biomes: ['frostbound', 'tempest'], minStage: 6,
+    id: 'delta', name: 'The Delta', shape: 'funnel', biomes: ['frostbound', 'tempest'], minStage: 11,
     blurb: 'A chevron ridge splits the swarm and sheds it toward the outer flanks.',
     obstacles: [
       { col: 8, row: 5, w: 2, h: 2 },
@@ -133,7 +135,7 @@ export const MAP_LAYOUTS: MapLayoutDef[] = [
     ],
   },
   {
-    id: 'twin_gates', name: 'Twin Gates', shape: 'split', biomes: ['umbral', 'tempest'], minStage: 6,
+    id: 'twin_gates', name: 'Twin Gates', shape: 'split', biomes: ['umbral', 'tempest'], minStage: 11,
     blurb: 'Two flank gates spill the swarm down both walls — a pincer on the line.',
     spawnSpans: [[0, 0.22], [0.78, 1]],
     obstacles: [
