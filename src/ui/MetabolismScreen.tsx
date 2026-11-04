@@ -14,6 +14,7 @@ import type { MetaCat, TrackView } from '../state/metabolism';
 import { rewardShort } from '../core/battlePass';
 import { audio } from '../audio/sound';
 import { Detail } from './components/Detail';
+import { ClaimAll } from './components/ClaimAll';
 
 const fmt = (n: number): string => n.toLocaleString('en-US');
 
@@ -92,9 +93,9 @@ export function MetabolismScreen(): JSX.Element {
             <b>{hero.def.name}</b> crossed {fmt(hero.prevAt)} {hero.def.unit}
             <span className="mtb-hero-s">{META_CATS[hero.def.cat].glyph} {META_CATS[hero.def.cat].label} milestone reached</span>
           </div>
-          {claimable.length > 1 && (
-            <button className="mtb-all" onClick={claimAll}>Digest all ({readyTiers})</button>
-          )}
+          {/* The shared batch claim (ui/components/ClaimAll) — offered once 2+ tracks wait;
+              a single track's own CTA already digests all of its tiers. */}
+          {claimable.length > 1 && <ClaimAll count={readyTiers} onClaim={claimAll} />}
           <button className="primary act-claim mtb-hero-cta" onClick={() => claim(hero.def.id)}>
             ✓ Digest{hero.claimable > 1 ? ` ×${hero.claimable}` : ''}
           </button>

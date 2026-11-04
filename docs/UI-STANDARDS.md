@@ -128,6 +128,7 @@ with every radius in **30–70%** (near-elliptical, sculpted; enforced by uiStan
 | `useCountUp` | number reveal animation | copy-pasting rAF counters |
 | `PowerPreview` / `PowerToaster` | upgrade previews (current→new +impact) · gain toasts | bespoke power text or ad-hoc toasts |
 | `rarityColorOf` (core/equipment) | rarity → color, everywhere | inline rarity hexes |
+| `ClaimAll` | every batch claim — "✹ Claim all (N)" (Quest Board, Season Pass, Milestones) | per-screen "Digest all" / bespoke claim-all buttons |
 
 Adding a component: put it in `src/ui/components/`, register it in the `ui-kit` system
 (`src/dev/systemRegistry.ts`), document the row above.

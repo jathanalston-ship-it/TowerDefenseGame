@@ -43,6 +43,27 @@ export function setAutoClaimPref(on: boolean): void {
   }
 }
 
+// Vault reveal "Skip animations" (docs/LOOTBOX.md §opening) — remembered per DEVICE, toggled
+// inline in the reveal: on ⇒ flips land instantly and Reveal all goes straight to the harvest.
+// Default OFF (the ceremony is the point the first time).
+const VAULT_SKIP_KEY = 'assimilate.vault.skipAnims';
+
+export function vaultSkipAnimsPref(): boolean {
+  try {
+    return localStorage.getItem(VAULT_SKIP_KEY) === '1';
+  } catch {
+    return false;
+  }
+}
+
+export function setVaultSkipAnimsPref(on: boolean): void {
+  try {
+    localStorage.setItem(VAULT_SKIP_KEY, on ? '1' : '0');
+  } catch {
+    /* storage unavailable */
+  }
+}
+
 // Per-mode difficulty — Campaign, Infinite and Boss Rush each remember their OWN choice,
 // independently (selection lives inside each mode, not the Main Menu). Default 'standard'
 // (identity/golden-safe).
@@ -269,4 +290,5 @@ export const DEVICE_PREF_KEYS: readonly string[] = [
   LAB_KEY, // Tower Lab bench prefs (favorites/recents/selection/sort)
   VAULT_KEY, // Genetic Vault opening ledger (history/statistics)
   FLAWLESS_KEY, // readiness calm-down after a flawless campaign clear
+  VAULT_SKIP_KEY, // Vault reveal "Skip animations"
 ];

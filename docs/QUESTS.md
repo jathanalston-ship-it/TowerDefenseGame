@@ -77,6 +77,17 @@ run-driven completions appear as a Results category (`outcome.questMissions` —
 board), and a `quests` nav badge counts claimable missions + finales across both lanes
 (notificationSources — claims drop it, viewing the board acknowledges it).
 
+### §claim-all (2026-11)
+
+The board header carries the shared **`✹ Claim all (N)`** control (`ui/components/ClaimAll.tsx`,
+the one batch-claim pattern — docs/NOTIFICATIONS.md §claim-all) whenever ≥1 mission is ready:
+one tap claims every earned MISSION across the weekly window and the active chapter (each
+through `meta.claimQuestMission`, one burst at the tap point, one `chest`+`power` cue) — what
+was eight taps is one. **Finales are never batched**: their story cutscene + exclusive cosmetic
+stay a deliberate `Claim finale` tap (the same rule as auto-claim, docs/NOTIFICATIONS.md
+§auto-claim). The header chip still counts finales, so `◈ 2 to claim` after a Claim all names
+exactly the ceremonies left.
+
 ## Extension points
 
 - **New weekly quest**: append to `WEEKLY_QUESTS` (+ its quest-source wardrobe item + story
