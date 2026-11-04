@@ -137,6 +137,16 @@ per-enemy ladder). The sim feeds it read-only ledgers (`RunStats.hiveDamageBy`, 
 `bossHpAtDefeat`, `totalWaves`; booked at every integrity-damage site, never read by the sim,
 goldens byte-identical). Tests: `src/state/runDebrief.test.ts`, `src/core/hiveSiege.test.ts`.
 
+**Board + anti-air reads (Batch G).** G1: ~90 % of Campaign losses fell in waves 1–3 on 1–4 towers
+while winning boards filled every slot (median 1.00 of the open slots, p25 0.93), and fliers broke
+openings that had no anti-air yet. A loss now books `RunStats.boardAtEnd` / `slotsAtEnd` and the sim
+seconds the first flier took the field (and on which wave) / was first downed (`firstFlierSec`,
+`firstFlierWave` / `firstAirKillSec` — LOSS only, so every win serializes as before). The panel adds a **Board** read ("3 towers · winners field
+~14/15" — `DEBRIEF.winBoardFill` of the open slots) and an **Anti-air** read ("fliers from
+wave 1 · first downed 57s later", or "none downed"); a read in red means it is the problem (board under
+`thinBoardFrac` of a winning one, or anti-air later than `lateAntiAirSec`). A thin board leads the tip
+("Your board was thin — … fill the open slots before wave 3") right after a genuine Power gap.
+
 **Layout contract:** the screen is TOP-anchored (`.menu` is a column flex — `justify-content:
 flex-start`), so expanding/collapsing a category grows the capsule downward and the verdict
 title never moves (it bounced 15–25px per beat when centred); the capsule takes exactly

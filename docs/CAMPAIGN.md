@@ -268,6 +268,13 @@ landscape keep the natural flow (the deploy ends the panel). The run estimate
 expands to the full panel. Naming: the stage's own rating is **Danger** — "Threat" is only the
 opt-in ladder (docs/THREAT.md §naming).
 
+**§mission-card — Wave 1 (Batch G).** Under the enemy forecast, a **Wave 1** row names what the
+first wave actually sends (`state/missionBrief.ts waveOneThreats` over the SAME generated plan the
+Game spawns): the Mega Boss that arrives with wave 1 on Mega stages (and any boss mapped to wave 1)
+first, then FLIERS (✈ — they skip the lanes and dive the Nucleus), then the biggest packs, ≤ 4 chips
+with real integer counts. G1: openings decide Campaign runs (~90 % of losses in waves 1–3), and the
+S30 frontier opened with a Mega + fliers the card never mentioned.
+
 ## 9. Known limitations / future hooks
 
 - Environmental hazards are telegraphed + expressed as scalar tweaks today; a battlefield

@@ -5,7 +5,7 @@
 // "may I point there?" predicate) — no meta import, no DOM; the sim ledgers it reads are
 // observation-only (core/game.ts getRunStats).
 
-import { ENEMY_DEFS, READINESS } from '../core/config';
+import { DEBRIEF, ENEMY_DEFS, READINESS } from '../core/config';
 import type { EnemyDef } from '../core/config';
 import { megaBossDef } from '../core/megaboss';
 import type { EnemyKind, RunStats } from '../core/types';
@@ -26,6 +26,11 @@ export interface DefeatDebrief {
   threats: ThreatLine[]; // what got through, most damage first (≤ 3)
   tip: string; // ONE concrete suggestion
   tipNav?: string; // where to act on it (only ever an OPEN destination)
+  /** §board: towers standing at the end vs a typical WINNING board on the same open slots. */
+  board?: { towers: number; typical: number; slots: number };
+  /** §anti-air: the wave fliers first came on, and how many seconds until the first one was downed
+   *  (null = never) — only when fliers came. */
+  antiAir?: { wave: number; downedAfter: number | null };
 }
 
 const BOSS_COLOR = ENEMY_DEFS.tyrant.color;
@@ -100,12 +105,19 @@ export function defeatDebrief(
   let tipNav: string | undefined;
   const top = threats[0];
   const powerGap = opts.rec > 0 && opts.power < opts.rec * READINESS.warnBelow;
+  // §board — G1: 90 % of losses fell in waves 1–3 on 1–4 towers while winners filled every slot.
+  const board = s.boardAtEnd !== undefined && s.slotsAtEnd !== undefined && s.slotsAtEnd > 0
+    ? { towers: s.boardAtEnd, slots: s.slotsAtEnd, typical: Math.max(1, Math.round(s.slotsAtEnd * DEBRIEF.winBoardFill)) }
+    : undefined;
+  const thin = board !== undefined && board.towers < board.typical * DEBRIEF.thinBoardFrac;
   const spend = POWER_NAVS.find((p) => opts.canOpen(p.nav));
   if (powerGap && spend) {
     tip = `You fought ${Math.round(opts.rec - opts.power).toLocaleString()} Power under the recommendation — grow it in ${spend.label}, then try again.`;
     tipNav = spend.nav;
   } else if (powerGap) {
     tip = `You fought ${Math.round(opts.rec - opts.power).toLocaleString()} Power under the recommendation — replay a cleared stage to bank samples and Mastery, then try again.`;
+  } else if (thin && board) {
+    tip = `Your board was thin — ${board.towers} ${board.towers === 1 ? 'tower' : 'towers'} where winning runs field ~${board.typical}. Deploy every build phase: fill the open slots before wave 3.`;
   } else if (bosses.length > 0 || top?.boss) {
     tip = 'The boss broke through — hold your hero ability and a biomass reserve for the final wave, and lean on single-target damage.';
   } else if (top) {
@@ -113,5 +125,11 @@ export function defeatDebrief(
     const rule = def ? TRAIT_TIPS.find((t) => t.when(def)) : undefined;
     tip = rule ? rule.tip(`${top.name}s`) : `Most of the damage came from ${top.name}s — cover their approach earlier so they never reach the Hive.`;
   }
-  return { wave: run.wave, totalWaves: s.totalWaves ?? 0, bosses, threats, tip, ...(tipNav ? { tipNav } : {}) };
+  const antiAir = s.firstFlierSec !== undefined
+    ? { wave: s.firstFlierWave ?? 1, downedAfter: s.firstAirKillSec !== undefined ? Math.max(0, Math.round(s.firstAirKillSec - s.firstFlierSec)) : null }
+    : undefined;
+  return {
+    wave: run.wave, totalWaves: s.totalWaves ?? 0, bosses, threats, tip, ...(tipNav ? { tipNav } : {}),
+    ...(board ? { board } : {}), ...(antiAir ? { antiAir } : {}),
+  };
 }
