@@ -11,6 +11,7 @@ import type { ReplayRecord } from '../core/replay';
 import { audio } from '../audio/sound';
 import { music } from '../audio/music';
 import { AudioToggles } from './components/AudioToggles';
+import { MotionSettings } from './components/MotionSettings';
 import { ACCOUNT_CURRENCY } from '../core/currencies';
 import { WalletChip } from './components/WalletChip';
 import { MaterialsChip } from './components/MaterialsChip';
@@ -161,6 +162,7 @@ function SettingsScreen({ onReplayTutorial, onReplayTour, onReplayIntro }: { onR
             </select>
           </label>
           <AudioToggles />
+          <MotionSettings />
           <label className="set-toggle">
             <span>Auto Gene Selection<small>Auto-draft the ◆ PICK card after a 10s countdown.</small></span>
             <button className={`set-switch ${autoGene ? 'on' : ''}`} onClick={toggleAutoGene} aria-pressed={autoGene}>
