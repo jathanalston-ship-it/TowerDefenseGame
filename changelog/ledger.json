@@ -1,6 +1,6 @@
 {
-  "lastSha": "11babe62dc7e2fe438dee875793f67de8299e14d",
-  "commitsSinceDraft": 0,
+  "lastSha": "3b99f0ece9233d301cbfc8e161212a57b7295169",
+  "commitsSinceDraft": 2,
   "content": {
     "tower": [
       "needle",
@@ -6911,6 +6911,22 @@
       "date": "2026-11-04",
       "cat": "Balance",
       "text": "Balance §9.6: the Molt trough decided — Molt Imprint, with the matrix",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "903529a96bd5290be5a95a2cd47d79a96f432d6b",
+      "date": "2026-11-04",
+      "cat": "Developer Tools",
+      "text": "Release: follow-up fixes and the Molt Imprint in the docs, notes and devlog",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "3b99f0ece9233d301cbfc8e161212a57b7295169",
+      "date": "2026-11-04",
+      "cat": "Developer Tools",
+      "text": "Validation: PASS before release — 2866/2866, mobile gate clean, first-session probe in budget",
       "internal": true,
       "needsReview": false
     }

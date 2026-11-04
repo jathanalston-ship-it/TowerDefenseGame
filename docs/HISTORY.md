@@ -488,3 +488,5 @@
 - `bb1f2be` **[Gameplay]** Docs: the Molt Imprint in the Genome Core, prestige and Molt Chamber docs _(internal)_
 - `bd7803f` **[Developer Tools]** Registry: the prestige entry names the Molt Imprint _(internal)_
 - `16f4d83` **[Balance]** Balance §9.6: the Molt trough decided — Molt Imprint, with the matrix _(internal)_
+- `903529a` **[Developer Tools]** Release: follow-up fixes and the Molt Imprint in the docs, notes and devlog _(internal)_
+- `3b99f0e` **[Developer Tools]** Validation: PASS before release — 2866/2866, mobile gate clean, first-session probe in budget _(internal)_
