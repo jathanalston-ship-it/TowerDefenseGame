@@ -169,6 +169,8 @@ ladders. 4. Every permanent progression source must move the Power Score (valida
   constants in `WORLD`); only the economy it feeds is production truth.
 - **Developer tips:** never balance from intuition — regenerate the report and read the
   hour-band medians + detector table first. Income changes go through a named factor.
+  Detectors are Molt-aware (Power drops ×3–18 after each Molt) and compare band peaks; sim
+  loot is seeded (`withSeededLoot`), so reruns agree. Decisions log: BALANCE_ARCHITECTURE §9.
 
 ## Player Profile
 
@@ -491,12 +493,15 @@ ladders. 4. Every permanent progression source must move the Power Score (valida
   `ui/WorldStatus.tsx` living centerpiece — `COMMAND-CENTER.md`): registry-driven widget
   zones (command strip, world status, mission control, forecast/roadmap rail, live army,
   command feed, dashboard); a future system's home widget = one register() + one renderer.
-  Docs: `HUD.md`, `READABILITY.md`, `UI-MOTION.md`, `NOTIFICATIONS.md`, `COMMAND-CENTER.md`.
+  Shell kit (2026-11): `ui/browserBack.ts` (Back/Escape + `useDismiss`), `components/
+  ScreenBoundary.tsx`, `AdviceLink.tsx`, `SectionNav.tsx`, `LoadoutStrip.tsx`, `ChipPopover.tsx`,
+  `ClaimAll.tsx`, `MotionSettings.tsx`, `CentreStage.tsx`.
+  Docs: `HUD.md`, `READABILITY.md`, `UI-MOTION.md`, `NOTIFICATIONS.md`, `COMMAND-CENTER.md`, `HUB-FLOW.md`.
 - **Related:** everything player-facing; the motion language in `index.css`.
 - **Future expansion:** new Hub screen = NavKey + section entry + notification channel.
 - **Known limitations:** `index.css` is one 5.3k-line stylesheet (see `ENGINEERING-AUDIT.md`).
 - **Developer tips:** UI reads snapshots — never reach into live sim entities from React;
-  intents go through `Game` methods.
+  intents go through `Game` methods. A new modal joins Back/Escape with `useDismiss(close)`.
 
 ## Audio
 
@@ -533,7 +538,8 @@ ladders. 4. Every permanent progression source must move the Power Score (valida
   `render/` draws, never mutates; status fx TRAITS are data on `StatusEffectDef` (core).
 - **Files:** `render/renderer.ts` (battlefield), `render/statusFx.ts` (status merge + painters),
   `render/towerForms.ts` (`FORM_ANTICIPATION`), `render/towerEvolution.ts` (evolving tower
-  bodies), particle spawn in `core/game.ts` (`ParticleKind`s), CSS motion tokens in
+  bodies), `render/feel.ts` (FEEL table + centre-stage `Announcer`), `render/impactFx.ts`
+  (boss-fall rings, ult impact frames), particle spawn in `core/game.ts` (`ParticleKind`s), CSS motion tokens in
   `index.css`. Docs: **`COMBAT-VISUAL-STANDARDS.md`** (the feel contract + future-content
   checklist), `TOWER-VISUAL-EVOLUTION.md`, `RENDER-PIPELINE.md`, `UI-MOTION.md`,
   `PLACEHOLDER-ART.md`.

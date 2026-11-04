@@ -1623,3 +1623,48 @@ platform). Per-system docs hold the detail; this is the map.
 - mobilecheck is CLEAN across hub, in-run and tutorial walks; its tutorial walker force-advances
   lessons, so it drives the board to the draft lesson via the debug handle (`reachDraftLesson`).
 
+
+## Compressed system summary — Polish, navigation, content & economy-health batch (2026-11) ✅ BUILT
+
+**Architecture.** Six tracks over the first-hour pass: battle feel (F1), first-time/post-run feel
+(F2), the hub shell (N1), screens/naming/readability (N2), content (C3) and economy health (E2).
+Everything except C3's content and E2's two economy rules is render/UI only; goldens are
+byte-identical and the save stays v55.
+
+- **Feel (F1):** `render/feel.ts` holds the per-event FEEL table (shake, view-only hit-stop, music
+  duck, stinger) and the centre-stage `Announcer` (one priority queue for WAVE / boss and Mega
+  intros and falls / weak points / tier). Card markup: `ui/components/CentreStage.tsx`, shared by
+  GameView and the replay theater. `render/impactFx.ts` draws boss-fall rings and ultimate impact
+  frames. Motion settings (`ui/components/MotionSettings.tsx`, device pref `assimilate.motion`)
+  feed one `motionScale`. `cues.test.ts` fails on any cue without a voice. Draft picks commit for 350 ms.
+- **Post-run (F2):** a Campaign win offers Stage N+1; Results keeps the capsule top-anchored and
+  counts up per category; phones hold the run layout from deploy through Results and the Boss Rush
+  roulette (`layoutProfile.setInRun(on, holder)`); one `ClaimAll` control on Pass / Quests /
+  Achievements (Pass claim-all is one guarded action, `pass.claimAll`).
+- **Hub shell (N1):** `ui/browserBack.ts` — Back/Escape walk the game (top layer → hub back →
+  leave; mid-run Back pauses; `beforeunload` only during a run). Modals join via `useDismiss` or
+  `Popup onClose`. `ScreenBoundary` + `lazyNamed` retry/preload (no loading flash). Door badge =
+  member screens needing a decision; one-open-screen hubs open that screen directly. Advice returns
+  `{text, nav?}` and renders `<AdviceGo>`. Home's CTA is above the fold (mobilecheck asserts it).
+- **Screens (N2):** one name per screen from `FEATURES`; Danger / Pressure / Threat vocabulary
+  (THREAT.md §naming); `SectionNav` (jump chips + folds, pref `assimilate.sections`),
+  `LoadoutStrip` beside every launch, `ChipPopover` for touch; text ≥ 12 px at 4.5:1.
+- **Content (C3):** Gristle Warren, Tick Battery, Keening Quill; the Myceliarch (8,000 lifetime
+  kills); six puzzle enemies entering at stages 4–9. Zero new sim verbs.
+- **Economy health (E2):** most July matrix signals were simulator artefacts (17 → 3). Real fixes:
+  `GENE_LEVEL_POWER_FLOOR` (every gene level moves Power) and container opens converting a tower's
+  unspendable shard surplus to Essence (`towerShardNeed`). Loot is seeded in sims;
+  detectors are Molt-aware and compare band peaks.
+- **Integrity fixes:** `Game.events` defaults to the app bus; non-player sims (theater, Arena
+  mirror, `replayRun`) `isolateEvents()` so they never credit the viewer's save. Older records
+  read missing tower/hero kinds as neutral. `bossKilled.final` marks a splitter's last piece.
+
+**Extension points.** New centre-screen moment = one `ANNOUNCE` row + one `StageCard` case. New
+feel = one FEEL row. New modal = `useDismiss(close)`. New long screen = `SectionNav` sections.
+New claim surface = `ClaimAll`. New non-player sim = `isolateEvents()`.
+
+**Known limitations.** Infection's death-spread reads only the Parasite's multiplier (Miasma
+Lung's spread picks do nothing) and Lancet/Basilisk "around the victim" grants fire at the tower
+(both queued as tasks). `BRANCH_HITSTOP` is set by the sim, outside the FEEL table. Stage N+1 takes
+the stage event's default boon. Post-Molt Power drops deepen with play time (BALANCE_ARCHITECTURE
+§9.5 watch items). Signature moments (docs/SIGNATURE-MOMENTS.md) are designed, not built.

@@ -63,6 +63,28 @@ bug-hunt pass (scope, method, verdict) so "we looked" is auditable.
 | 51 | The Mitotic Horror showed a FALLEN card for every split piece, and a Mitotic nemesis paid its revenge when the first body died while its pieces still lived. | Each split copy is a full boss, so every piece fired `bossKilled` the same way. | `bossKilled` carries `final` (the last piece of that boss, read-only scan, built only for listeners — goldens untouched); the FALLEN card (run + theater) and nemesis revenge wait for it. The shock ring and the sim's boss-kill count are unchanged. |
 | 52 | Watching a replay credited the viewer's save with that run's kills: Bestiary chassis + Bio-Spore, nemesis revenge, the Mega ledger (slain / perfect / fastest / kill count, a queued premiere) and weak-point telemetry. The Arena's opponent mirror did the same. | Every Game emitted on the one app-wide `gameEvents` bus, where meta.ts records boss and Mega kills for the player. | `Game.events` defaults to the app-wide bus (the player's run is unchanged); the replay theater, the Arena opponent mirror and `replayRun` call `isolateEvents()`. Tests: replay.test (verifier silent on the app bus; isolated vs default game). |
 | 53 | A replay link or Daily entry recorded before a new tower shipped crashed the replay theater into the app error screen (and an Arena peer on an older build could not boot). | The Game constructor read `towerProgress[kind]` for every CURRENT kind; an older record has no entry for newer ones. | Missing tower/hero kinds read neutral (the same object is kept when nothing is missing — golden-safe). Test: replay.test (an older-build record replays identically). |
+| 54 | The assimilation tier banner overprinted the WAVE and boss cards. | Each centre-screen card drew on its own timer. | One priority announcer (`render/feel.ts` `Announcer` + `ANNOUNCE`) owns centre stage. |
+| 55 | Under reduced motion, centre-stage cards never appeared. | A 0.01 s animation with fill `both` ended at opacity 0. | Reduced motion renders the cards static (`animation: none`). |
+| 56 | Arena victory/defeat and the Maw's shot made no sound. | No `sound.ts` case for those cues. | Cases added; `cues.test.ts` fails on any cue without a voice. |
+| 57 | A stage boss's death played the Hive-breach alarm. | The death reused the breach cue. | A dedicated `bossFall` cue with its own FEEL row. |
+| 58 | The draft's exact-values sheet popped over a card the moment it was dealt. | `pointerenter` fires under a cursor that never moved. | The sheet arms only after a real pointer move. |
+| 59 | The Results title bounced as reward categories expanded. | It was centred on the column axis. | Anchored to the top. |
+| 60 | The rotate prompt covered portrait Results. | Only the battlefield held the in-run layout. | Named holds keep the run layout from deploy through Results (and the Boss Rush roulette). |
+| 61 | On phones, Results scrolled sideways. | The background haze extended 6% past the edge. | Clipped. |
+| 62 | The level-up toast covered the unlock summary. | It wasn't held like reward toasts. | The same hold. |
+| 63 | The tutorial banner timed out while the intro film played. | Its timer ran under the film. | It waits for the film to land. |
+| 64 | The Specimen arrival card's "Claim it in the Vault" only closed the card. | It called `next()`. | It opens the Specimen Cabinet tab. |
+| 65 | The Materials popover was cut off on narrow screens. | The top bar scrolls sideways and clipped it. | Popovers position against the window (`ChipPopover`). |
+| 66 | Hero Hall pointed to an Armory "below ↓" that isn't there. | Stale copy. | It links to the Armory. |
+| 67 | Browser/Android Back left the game mid-run. | Navigation history lived only in memory. | A same-URL guard history entry: Back closes the top layer, steps the hub back, or pauses a live run (`ui/browserBack.ts`). |
+| 68 | One failed screen chunk crashed the whole app. | The only error boundary was app-level, and Chromium caches a failed import for the page's life. | A per-screen `ScreenBoundary` (Retry + Back) and a cache-busted retry in `lazyNamed`. |
+| 69 | Hub badges sat at "9+". | They summed item counts. | A door badge counts member screens that need a decision (`doorBadge`). |
+| 70 | The Home deploy button sat below the fold. | World Status rendered above it. | Reordered; `mobilecheck` asserts the CTA is on screen. |
+| 71 | The balance report flagged dead zones on healthy accounts. | Its detector ignored Molts (Power drops ×3–18 after each). | It shares `isDeadProgression` with the progression report. |
+| 72 | The balance report showed Power spikes up to ×48. | It compared two arbitrary points in the post-Molt cycle. | It compares band peaks (`peakPower`). |
+| 73 | The simulated player never unlocked expansion towers or used Transcendence. | Missing steps in the bot's spending. | The bot calls `unlockTower` and transcends cards. |
+| 74 | Engorged Reactor L1 (and 51 other gene levels) left displayed Power unchanged. | The gain rounded away on a young account. | `GENE_LEVEL_POWER_FLOOR` guarantees each level moves Power. |
+| 75 | Balance-matrix reruns disagreed. | Loot used unseeded `Math.random`. | `withSeededLoot` seeds it. |
 
 ---
 
