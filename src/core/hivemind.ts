@@ -18,7 +18,7 @@ import { deployCost, strainCost, type ConveyorItem } from './conveyor';
 import { HERO_EVO, HERO_EVO_CATEGORIES, heroEvoCost, heroEvoEffects, heroEvoTotalOwned, type HeroEvoLevels } from './heroEvolution';
 import { branchPowerEffects, effectsPower } from './power';
 import { strainPowerEffects } from './strains';
-import { towerSlots } from './map';
+import { nucleusPoint, towerSlots } from './map';
 import type { Tower, TowerKind, WavePreviewEntry } from './types';
 import type { CardEffect } from './cards';
 
@@ -30,6 +30,8 @@ export interface HiveGame {
   towers: Tower[];
   conveyor: readonly ConveyorItem[];
   deployments: number;
+  favoriteTower: TowerKind;
+  unlockedKinds: ReadonlySet<TowerKind>;
   unlockedSlots: number;
   autocastUnlocked: boolean;
   heroes: { length: number };
@@ -40,6 +42,7 @@ export interface HiveGame {
   buyBranchTier(towerId: number, branchId: string): 'ok' | 'locked' | 'maxed' | 'poor' | 'badTower';
   buyHeroEvolution(catId: string): boolean;
   buyAutocast(): boolean;
+  deployTower(kind: TowerKind, px: number, py: number): boolean;
   deployFromConveyor(itemId: number, px: number, py: number): boolean;
   strainFromConveyor(itemId: number): 'ok' | 'noTarget' | 'poor' | 'badItem';
 }
@@ -101,10 +104,24 @@ function adjacent(ax: number, ay: number, bx: number, by: number): boolean {
   return Math.hypot(ax - bx, ay - by) <= HIVE_MIND.adjacencyPx;
 }
 
+/** A THIN board (docs/HIVE-MIND.md §opening): fewer towers than HIVE_MIND.thinBoardTowers (capped at the
+ *  open slots) — the opening, where towers come before anything else. */
+function thinBoard(g: HiveGame): boolean {
+  return g.towers.length < Math.min(HIVE_MIND.thinBoardTowers, g.unlockedSlots);
+}
+
+/** Does the next wave's preview carry FLIERS? (they ignore the lanes and dive the Nucleus) */
+function fliersIncoming(g: HiveGame): boolean {
+  const preview = g.getNextWavePreview();
+  return preview !== null && preview.some((e) => ENEMY_DEFS[e.kind]?.behavior.flying === true);
+}
+
 /** Best open slot for a kind (docs/HIVE-MIND.md §placement) — deterministic, data-driven. */
 export function hiveBestSlot(g: HiveGame, kind: TowerKind): { x: number; y: number } | null {
   const taken = new Set(g.towers.map((t) => t.slot));
   const support = TOWER_DEFS[kind].damage <= 0;
+  // Fliers next wave ⇒ combat organisms guard the Nucleus itself (G1: anti-air came too late).
+  const coreBias = !support && fliersIncoming(g) ? HIVE_MIND.flierCoreBias : 0;
   const centerX = towerSlots.reduce((a, s) => a + s.x, 0) / Math.max(1, towerSlots.length);
   let best: { x: number; y: number } | null = null;
   let bestScore = -Infinity;
@@ -117,7 +134,8 @@ export function hiveBestSlot(g: HiveGame, kind: TowerKind): { x: number; y: numb
     } else {
       // Combat organisms: forward first (meet the wave), centered, spread same kinds.
       const sameKindAdjacent = g.towers.some((t) => t.kind === kind && adjacent(t.x, t.y, s.x, s.y));
-      score = -s.y - Math.abs(s.x - centerX) * 0.03 - (sameKindAdjacent ? HIVE_MIND.monoculturePenalty : 0) - s.index * 0.001;
+      const reach = (1 - coreBias) * -s.y - coreBias * Math.hypot(s.x - nucleusPoint.x, s.y - nucleusPoint.y);
+      score = reach - Math.abs(s.x - centerX) * 0.03 - (sameKindAdjacent ? HIVE_MIND.monoculturePenalty : 0) - s.index * 0.001;
     }
     if (score > bestScore) { bestScore = score; best = { x: s.x, y: s.y }; }
   }
@@ -223,6 +241,29 @@ registerHiveProvider({
   },
 });
 
+// The FAVORITE organism (docs/HIVE-MIND.md §opening): always deployable on the universal curve — the
+// opening the mind used to skip (it could only place what the conveyor offered). OPENING ONLY: past a
+// thin board the conveyor supplies the rest (variety — a favorite monoculture measured worse, sim:hive).
+registerHiveProvider({
+  id: 'favorite',
+  enumerate(g) {
+    const kind = g.favoriteTower;
+    if (!g.unlockedKinds.has(kind) || !thinBoard(g)) return [];
+    const slot = hiveBestSlot(g, kind);
+    if (!slot) return [];
+    return [{
+      id: 'favorite',
+      provider: 'favorite',
+      label: `Placed ${TOWER_DEFS[kind].name} (favorite)`,
+      detail: 'favorite organism — always deployable',
+      cost: deployCost(g.deployments),
+      gain: deployGain(kind, 1),
+      value: 0,
+      exec: (gg) => gg.deployTower(kind, slot.x, slot.y),
+    }];
+  },
+});
+
 registerHiveProvider({
   id: 'merge',
   enumerate(g) {
@@ -257,10 +298,14 @@ registerHiveProvider({
 
 /** Context multipliers (docs/HIVE-MIND.md §scoring) — every adjustment names its reason.
  *  The battlefield reads (sparse board, heavy incoming wave) are computed ONCE per plan. */
-function applyContext(a: HiveAction, ctx: { sparse: boolean; heavy: boolean }): HiveAction {
+function applyContext(a: HiveAction, ctx: { sparse: boolean; heavy: boolean; thin: boolean }): HiveAction {
   let mult = 1;
   const reasons: string[] = [];
-  if ((a.provider === 'deploy' || a.provider === 'merge') && ctx.sparse) {
+  if (ctx.thin && HIVE_MIND.thinHoldProviders.includes(a.provider)) {
+    mult *= HIVE_MIND.thinHoldMult;
+    reasons.push('board too thin — towers first');
+  }
+  if ((a.provider === 'deploy' || a.provider === 'favorite' || a.provider === 'merge') && ctx.sparse) {
     mult *= HIVE_MIND.sparseDeployMult;
     reasons.push('sparse board — guns first');
   }
@@ -282,6 +327,7 @@ export function hivePlan(g: HiveGame, opts?: { reserveFloor?: number }): HiveAct
   const preview = g.getNextWavePreview();
   const ctx = {
     sparse: g.towers.length < HIVE_MIND.sparseBoardCount,
+    thin: thinBoard(g),
     heavy: preview !== null && preview.some((e) => (ENEMY_DEFS[e.kind]?.hp ?? 0) >= HIVE_MIND.heavyHpThreshold),
   };
   const out: HiveAction[] = [];

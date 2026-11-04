@@ -6,10 +6,11 @@
 import { describe, it, expect } from 'vitest';
 import { Game } from './game';
 import { AUTOMATION_POLICY, AUTOMATION_THREAT_REASON, automationGate, hiveBestSlot } from './hivemind';
+import type { HiveGame } from './hivemind';
 import { SIM_DT } from './config';
 import { HIVE_MIND } from './config';
 import { effectsPower } from './power';
-import { towerSlots } from './map';
+import { nucleusPoint, towerSlots } from './map';
 import type { MetaModifiers } from './types';
 
 const NO_META: MetaModifiers = { towerDamageMult: 1, biomassMult: 1, heroDamageMult: 1, integrityBonus: 0, bonusSlots: 0 };
@@ -26,6 +27,8 @@ function boot(seed: number): Game {
 describe('hive intelligence — plan', () => {
   it('enumerates branch + hero-evolution actions and never plans past the reserve', () => {
     const g = boot(7);
+    // A developed board (≥ HIVE_MIND.thinBoardTowers) — a THIN one holds hero buys (§opening, below).
+    for (const s of forward.slice(2)) if (g.towers.length < HIVE_MIND.thinBoardTowers) g.placeTower('needle', s.x, s.y);
     const plan = g.hiveEvaluate();
     expect(plan.some((a) => a.provider === 'branch')).toBe(true);
     expect(plan.some((a) => a.provider === 'heroEvo')).toBe(true);
@@ -146,5 +149,55 @@ describe('the automation gate — solved content only (docs/HIVE-MIND.md §solve
     expect(g.getSnapshot().hiveReady).toBe(false);
     // The same board with the option set acts (the planner itself is unchanged).
     expect(boot(7).hiveEvaluate().length).toBeGreaterThan(0);
+  });
+});
+
+describe('hive intelligence — the opening (docs/HIVE-MIND.md §opening)', () => {
+  // G1: pressing the glowing button at run start sank ~90 % of the opening Biomass into Hero Evolution
+  // (1 tower at wave 1, run lost at wave 3). A thin board now saves for towers — and the mind can
+  // place the FAVORITE, which it never could (it only placed what the conveyor offered).
+  it('a thin board holds Hero Evolution (never planned, never glows) and plans the favorite instead', () => {
+    const g = new Game(41, NO_META, undefined, 'ravager', undefined, { mode: 'endless', automationAllowed: true, favorite: 'needle' });
+    g.debugAddBiomass(2000);
+    const plan = g.hiveEvaluate();
+    expect(plan.some((a) => a.provider === 'heroEvo' || a.provider === 'autocast')).toBe(false);
+    expect(plan.some((a) => a.provider === 'favorite')).toBe(true);
+    const rep = g.hivePulse();
+    expect(g.towers.filter((t) => t.kind === 'needle').length).toBeGreaterThan(0);
+    // Towers FIRST: no hero purchase lands until the board stops being thin.
+    const firstHero = rep.actions.findIndex((a) => /^Purchased|Auto-Cast/.test(a.label));
+    const placedBefore = rep.actions.slice(0, firstHero < 0 ? undefined : firstHero).filter((a) => /^Placed/.test(a.label)).length;
+    expect(placedBefore).toBeGreaterThanOrEqual(HIVE_MIND.thinBoardTowers);
+  });
+
+  it('past the opening the favorite leaves the plan — the conveyor keeps the board varied', () => {
+    const g = new Game(47, NO_META, undefined, 'ravager', undefined, { mode: 'endless', automationAllowed: true, favorite: 'needle' });
+    g.debugAddBiomass(5000);
+    for (const s of forward) if (g.towers.length < HIVE_MIND.thinBoardTowers) g.placeTower('mortar', s.x, s.y);
+    const plan = g.hiveEvaluate();
+    expect(plan.some((a) => a.provider === 'favorite')).toBe(false);
+    expect(plan.some((a) => a.provider === 'heroEvo')).toBe(true); // and hero buys are back on the table
+  });
+
+  it('with too little Biomass for a tower, a thin board SAVES (no glow, nothing bought)', () => {
+    const g = new Game(43, NO_META, undefined, 'ravager', undefined, { mode: 'endless', automationAllowed: true });
+    (g as unknown as { biomass: number }).biomass = 60; // under one deploy (100), over a hero level
+    const nonFree = g.hiveEvaluate().filter((a) => a.cost > 0);
+    expect(nonFree).toHaveLength(0);
+    const before = g.biomass;
+    g.hivePulse();
+    expect(g.biomass).toBe(before);
+  });
+
+  it('fliers on the next wave pull combat organisms toward the Nucleus; otherwise forward first', () => {
+    const stub = (preview: { kind: string; count: number }[] | null): HiveGame => ({
+      towers: [], unlockedSlots: towerSlots.length, getNextWavePreview: () => preview,
+    }) as unknown as HiveGame;
+    const near = (p: { x: number; y: number }): number => Math.hypot(p.x - nucleusPoint.x, p.y - nucleusPoint.y);
+    const closest = Math.min(...towerSlots.map(near));
+    const fliers = hiveBestSlot(stub([{ kind: 'wisp', count: 6 }]), 'needle')!;
+    expect(near(fliers)).toBeCloseTo(closest, 5);
+    const ground = hiveBestSlot(stub([{ kind: 'runner', count: 6 }]), 'needle')!;
+    expect(ground.y).toBe(Math.min(...towerSlots.map((s) => s.y)));
   });
 });

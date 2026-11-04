@@ -2159,6 +2159,13 @@ export const HIVE_MIND = {
   monoculturePenalty: 40, // slot-score penalty for stacking a kind beside itself (px units)
   adjacencyPx: 90, // lattice-neighbor radius (matches the reactor's overcharge geometry)
   minValue: 1e-6, // actions below this value are noise — never bought
+  // ── The OPENING (docs/HIVE-MIND.md §opening — Batch G): G1's live S29 replay pressed the glowing
+  //    button at run start and watched ~90 % of the opening Biomass go into Hero Evolution — 1 tower at
+  //    wave 1, run lost at wave 3. A THIN board now holds hero purchases so Biomass saves for towers. ──
+  thinBoardTowers: 6, // fewer towers than this (capped at the open slots) ⇒ the board is THIN…
+  thinHoldProviders: ['heroEvo', 'autocast'] as readonly string[], // …and these purchases wait…
+  thinHoldMult: 0, // …at this value multiplier (0 ⇒ below minValue ⇒ never bought, never glows)
+  flierCoreBias: 1, // next wave previews FLIERS ⇒ combat organisms rank slots by nearness to the Nucleus (0 = off)
 } as const;
 
 // Revenant blink (behavior 'phase'): seconds the teleport streak/after-image lingers. The sim sets
@@ -2307,6 +2314,15 @@ export const MODE_UNLOCKS = {
 // clear of the previous stage. Below it, the warning stays honest — outcome-first, never alarm.
 export const READINESS = {
   warnBelow: 0.9, // Power ≥ 90% of recommended ⇒ "ready enough" — no under-powered warning
+};
+
+/** Defeat debrief reads (docs/REWARD-PRESENTATION.md §debrief — Batch G). Measured on the G1/GR2
+ *  harness (≈100 winning Campaign runs at 0.75/8/100 h): winning boards end with every open slot
+ *  filled (median 1.00, p25 0.93) — so "typical winning board" = this share of your open slots. */
+export const DEBRIEF = {
+  winBoardFill: 0.9,
+  thinBoardFrac: 0.6, // a board below this share of the typical winning board leads the tip ("build wider")
+  lateAntiAirSec: 20, // first flier downed this long after fliers arrived (or never) ⇒ the anti-air tip
 };
 
 // Deep-Strain content gate (docs/SIPHON.md §gate): clearing Campaign Stage 15 is the SINGLE
