@@ -17,6 +17,44 @@ export interface BlogPost {
 
 export const POSTS: BlogPost[] = [
   {
+    slug: 'feel-and-flow',
+    date: '2026-11-04',
+    title: 'Feel and Flow: boss kills that land, a Back button that works, and three new answers',
+    category: 'Release',
+    tags: ['game-feel', 'navigation', 'towers', 'heroes', 'enemies', 'economy'],
+    summary: 'The second update of the day is about how ASSIMILATION feels in the hand: boss kills with weight, centre-screen moments that take turns, a Back button that walks the game, one Claim all, three new towers, a new hero, six puzzle enemies and an honest look at the economy.',
+    body: `
+<p>The First Hour update was about taking things away. This one is about the moments that remain: what a boss kill feels like, what happens when you press Back, how many taps it takes to get where the game is pointing you. We recorded the battlefield frame by frame, walked every menu with a script that counts clicks, and fixed what we found.</p>
+<h2>Boss kills land</h2>
+<p>A boss death used to borrow the Hive's breach alarm and pop like any other enemy. Now it lands: a short freeze-frame, a gold shockwave at the body, its own sound and a fall card that brings its title back. A Mega's collapse is the biggest card of all, and it clears everything beneath it.</p>
+<p>All of these centre-screen moments (WAVE N, boss and Mega arrivals, weak-point callouts, the assimilation tier) now share one stage and take turns by priority, so they never print on top of each other. Damage numbers are bolder and readable over anything. Picking a gene card has a real moment: the chosen card flares in its rarity colour and the others dissolve.</p>
+<p>New <b>Motion settings</b> let you set screen shake, damage numbers and flashes, and they follow your device's reduced-motion setting. With motion off you get the same information, held still.</p>
+<h2>A game you can walk back through</h2>
+<ul>
+<li><b>Back</b> (browser or Android) steps back through menus, closes the top pop-up first, and pauses a live run instead of quitting it. <b>Escape</b> does the same on desktop.</li>
+<li>Advice that names a screen, like "Farm Infinite", now carries a <b>Go ▸</b> that takes you there in one tap.</li>
+<li>Hub badges count the screens that need a decision instead of piling up to "9+", and the Continue Campaign button is always on screen.</li>
+<li>Screens open without a loading flash, and if one ever fails to load you can retry it instead of losing the game.</li>
+<li>Every screen has one name everywhere (the Specimen Vault is now the Specimen Cabinet), long screens get jump chips and folding sections, and a loadout strip sits beside every launch button.</li>
+</ul>
+<h2>After the run</h2>
+<p>Win a Campaign stage and Results offers the next one directly. Claiming is one <b>Claim all</b> on the Quest Board, Season Pass and Milestones, and the Season Pass now clears even a hundred-level backlog in one press. On a phone held upright, Results and the Boss Rush roulette now show up instead of a "turn your device" prompt.</p>
+<h2>Three new answers, six new questions</h2>
+<p>The roster grows by three towers, each built as the answer to a problem: the <b>Gristle Warren</b> raises thralls that body-block the lane, the <b>Tick Battery</b> seeds Infection into three hosts from long range, and the <b>Keening Quill</b> cracks armour for your whole board. The <b>Myceliarch</b>, a fungal gatekeeper who rots every leak at the Core, joins the heroes at 8,000 lifetime kills.</p>
+<p>The questions arrive from Stage 4: the plated <b>Chitin Scuttler</b>, the airborne <b>Blight Moth</b>, the burrowing <b>Marrow Borer</b>, the shielded <b>Shellback Bombard</b>, the <b>Veil Moth</b> that shields its flock, and the <b>Wisp Mother</b> that births fliers. Each one asks for a specific answer, and the first three stages are unchanged.</p>
+<h2>An honest look at the economy</h2>
+<p>Our balance simulator plays eleven kinds of player for 400 hours each. In July it raised seventeen warnings. Most of them turned out to be the simulator misreading its own data, mainly the Power drop after every Molt. With those fixed, three remain, and two real problems are now solved. Every Gene Card level visibly raises your Power, even small economy upgrades. And deep into the game, Strain Samples a tower can never spend turn into Gene Essence instead of piling up.</p>
+<h2>Fixes worth naming</h2>
+<ul>
+<li>Watching a replay no longer adds its kills to your own Bestiary, Mega records or nemesis revenge.</li>
+<li>Replay links recorded before an update play again, and the replay theater shows boss falls.</li>
+<li>A Mitotic Horror falls once; its split pieces no longer each announce a kill.</li>
+<li>The Bio-Dex counts only real Brood Tyrants.</li>
+</ul>
+<p>Next up are four signature moments: the last kill of a wave, victory carrying into Results, cutscenes that move, and a battlefield that continues past its edges. Each one ships only after we've reviewed it frame by frame.</p>
+`,
+  },
+  {
     slug: 'the-first-hour',
     date: '2026-11-04',
     title: 'The First Hour: fewer popups, more battlefields, and a game that tells you the truth',

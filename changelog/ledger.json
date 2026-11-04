@@ -1,6 +1,6 @@
 {
-  "lastSha": "315c2052f6bfea7898ffcca78aa1ad3a1651fce8",
-  "commitsSinceDraft": 1,
+  "lastSha": "afef05ffafa1d78fb2015cf53295fec04746578a",
+  "commitsSinceDraft": 0,
   "content": {
     "tower": [
       "needle",
@@ -3078,73 +3078,8 @@
       "id": "v2026.11.04",
       "date": "2026-11-04",
       "title": "Threat and Pacing",
-      "sealed": false,
+      "sealed": true,
       "entries": [
-        {
-          "cat": "Gameplay",
-          "text": "New achievement: Every Question Answered",
-          "major": true
-        },
-        {
-          "cat": "Gameplay",
-          "text": "New achievement: The Gate Holds",
-          "major": true
-        },
-        {
-          "cat": "Gameplay",
-          "text": "New achievement: The Answer Key",
-          "major": true
-        },
-        {
-          "cat": "Enemies",
-          "text": "New enemy: Veil Moth",
-          "major": true
-        },
-        {
-          "cat": "Enemies",
-          "text": "New enemy: Wisp Mother",
-          "major": true
-        },
-        {
-          "cat": "Enemies",
-          "text": "New enemy: Shellback Bombard",
-          "major": true
-        },
-        {
-          "cat": "Enemies",
-          "text": "New enemy: Marrow Borer",
-          "major": true
-        },
-        {
-          "cat": "Enemies",
-          "text": "New enemy: Blight Moth",
-          "major": true
-        },
-        {
-          "cat": "Enemies",
-          "text": "New enemy: Chitin Scuttler",
-          "major": true
-        },
-        {
-          "cat": "Heroes",
-          "text": "New hero: Myceliarch",
-          "major": true
-        },
-        {
-          "cat": "Towers",
-          "text": "New tower: Keening Quill",
-          "major": true
-        },
-        {
-          "cat": "Towers",
-          "text": "New tower: Tick Battery",
-          "major": true
-        },
-        {
-          "cat": "Towers",
-          "text": "New tower: Gristle Warren",
-          "major": true
-        },
         {
           "cat": "Gameplay",
           "text": "New system: Threat Ladder",
@@ -3209,150 +3144,130 @@
         {
           "cat": "Website",
           "text": "Website refresh to the current game + a standing freshness rule"
-        },
+        }
+      ]
+    },
+    {
+      "id": "v2026.11.04.2",
+      "date": "2026-11-04",
+      "title": "Feel and Flow",
+      "sealed": false,
+      "entries": [
         {
-          "cat": "UI",
-          "text": "One name per screen: nav labels derive from the feature registry"
-        },
-        {
-          "cat": "Developer Tools",
-          "text": "Readability floor: --dim reads 4.5:1, Season Pass labels 12px, contrast gauges"
-        },
-        {
-          "cat": "UI",
-          "text": "Top-bar chips answer on tap: wallet + level popovers"
-        },
-        {
-          "cat": "UI",
-          "text": "Chip popovers escape the scrolling top bar; Materials chip shares them"
-        },
-        {
-          "cat": "Bosses",
-          "text": "Bio-Dex: count only real Brood Tyrants; Apex Slayer reads the run's boss kills"
-        },
-        {
-          "cat": "UI",
-          "text": "Advice is a link: guidance that names a screen carries a Go ▸"
-        },
-        {
-          "cat": "UI",
-          "text": "Browser/Android Back + Escape walk the game, never out of it"
-        },
-        {
-          "cat": "UI",
-          "text": "Hub shell: local error boundary, chunk retry, no loading flash, honest doors, CTA above the fold"
-        },
-        {
-          "cat": "Gameplay",
-          "text": "Results: Stage N+1 from a Campaign win, a steady capsule, a reveal with a voice"
-        },
-        {
-          "cat": "UX",
-          "text": "Intro → tutorial hand-off: the cold-open banner waits for the film, a gold afterglow lands it"
-        },
-        {
-          "cat": "UI",
-          "text": "Hold the account level-up toast behind the unlock summary"
-        },
-        {
-          "cat": "UI",
-          "text": "Portrait phones: keep the run layout through the deploy breath and Results"
-        },
-        {
-          "cat": "UI",
-          "text": "One claim pattern: shared ClaimAll on Quest Board / Season Pass / Milestones; a lean Vault reveal"
-        },
-        {
-          "cat": "UI",
-          "text": "Pre-run LoadoutStrip + Campaign stage panel with a pinned launch footer"
-        },
-        {
-          "cat": "UI",
-          "text": "SectionNav: one sticky-chip + fold pattern for the long screens"
-        },
-        {
-          "cat": "Gameplay",
-          "text": "Cosmetic reward links name the Phenotype Lab, not the Wardrobe"
-        },
-        {
-          "cat": "UI",
-          "text": "Back guard: keep URL cleanups across a consume; theater is a modal, not a phase"
-        },
-        {
-          "cat": "Gene Cards",
-          "text": "Hub prefetch: a landing warms its cards right after paint"
-        },
-        {
-          "cat": "Bosses",
-          "text": "Boss Rush: \"Boss strength\" forecast row (Threat names only the ladder)"
-        },
-        {
-          "cat": "Heroes",
-          "text": "Content: answer-roster towers, puzzle fauna, Myceliarch hero (WIP data rows)"
-        },
-        {
-          "cat": "Gameplay",
-          "text": "Field Guides open folded sections while they run"
-        },
-        {
-          "cat": "Visuals",
-          "text": "Feel table, centre-stage announcer and Motion device prefs"
-        },
-        {
-          "cat": "Audio",
-          "text": "Every cue resolves: feel-table ducks/stingers, new voices, cue coverage test"
-        },
-        {
-          "cat": "Visuals",
-          "text": "Damage numbers that read, impact frames, flash gates"
-        },
-        {
-          "cat": "Bosses",
-          "text": "In-run battle feel: centre stage, boss kills land, pick moment, Motion settings"
-        },
-        {
-          "cat": "Gameplay",
-          "text": "Live achievement bursts collapse into one toast, like held ones"
-        },
-        {
-          "cat": "Gameplay",
-          "text": "Naming leftovers: Results \"Toughest Kill\"; Quest Board names the Phenotype Lab"
-        },
-        {
-          "cat": "Bosses",
-          "text": "Portrait: the Bio-Roulette after Boss Rush plays without the rotate gate"
+          "cat": "Towers",
+          "text": "New tower: Gristle Warren — a barracks whose thralls body-block the lane",
+          "major": true
         },
         {
           "cat": "Towers",
-          "text": "Content: tune answer roster + puzzle fauna, add mulligan pieces, tests, docs, achievements"
+          "text": "New tower: Tick Battery — a long-range plague seeder that infects three hosts at once",
+          "major": true
         },
         {
-          "cat": "Website",
-          "text": "Hub prefetch: one idle slot per navigation, a landing within 100 ms"
+          "cat": "Towers",
+          "text": "New tower: Keening Quill — cracks armour for your whole board",
+          "major": true
+        },
+        {
+          "cat": "Heroes",
+          "text": "New hero: the Myceliarch — a fungal gatekeeper who rots every leak at the Core, earned at 8,000 kills",
+          "major": true
+        },
+        {
+          "cat": "Enemies",
+          "text": "Six puzzle enemies from Stage 4 — Chitin Scuttler, Blight Moth, Marrow Borer, Shellback Bombard, Veil Moth and Wisp Mother — each demanding the right answer",
+          "major": true
         },
         {
           "cat": "Gameplay",
-          "text": "Season Pass: Claim all clears the whole backlog in one press"
-        },
-        {
-          "cat": "Gameplay",
-          "text": "Help: Walls & Blockers mechanic row; document the answer roster's collection hooks"
-        },
-        {
-          "cat": "Gameplay",
-          "text": "Myceliarch: lifetime-kills milestone gate; Tick adaptations on live axes"
-        },
-        {
-          "cat": "Developer Tools",
-          "text": "Mobilecheck stops its preview server; drop the vault reveal's dead fast toggle"
+          "text": "New achievements: The Answer Key, Every Question Answered and The Gate Holds"
         },
         {
           "cat": "Bosses",
-          "text": "Replay theater shows boss and Mega fall cards again"
+          "text": "Boss kills land: a freeze-frame, a shockwave and a fall card — and centre-screen announcements no longer pile on top of each other",
+          "major": true
+        },
+        {
+          "cat": "Visuals",
+          "text": "Damage numbers are bolder and readable over anything, and picking a gene card now has a real moment"
+        },
+        {
+          "cat": "Visuals",
+          "text": "New Motion settings (screen shake %, damage numbers, flashes) that respect your device’s reduced-motion setting"
+        },
+        {
+          "cat": "Audio",
+          "text": "Every sound plays: Arena victory and defeat and the Maw’s shot had been silent, and a boss death has its own sound instead of the breach alarm"
+        },
+        {
+          "cat": "Gameplay",
+          "text": "Won a Campaign stage? Results now offers the next stage directly",
+          "major": true
+        },
+        {
+          "cat": "Gameplay",
+          "text": "One “Claim all” on the Quest Board, Season Pass and Milestones — and the Season Pass clears a full backlog in one press"
+        },
+        {
+          "cat": "UI",
+          "text": "Phones held upright now show Results and the Boss Rush roulette instead of “turn your device”"
+        },
+        {
+          "cat": "UI",
+          "text": "Back steps back through menus and pauses a live run instead of quitting it; Escape closes pop-ups",
+          "major": true
+        },
+        {
+          "cat": "UI",
+          "text": "Advice like “Farm Infinite” is one tap away (Go ▸)"
+        },
+        {
+          "cat": "UI",
+          "text": "Hub badges count decisions instead of piling up to “9+”, and Continue Campaign is always on screen"
+        },
+        {
+          "cat": "UI",
+          "text": "Screens open without a loading flash, and a screen that fails to load can be retried instead of breaking the game"
+        },
+        {
+          "cat": "UI",
+          "text": "Every screen has one name everywhere — the Specimen Vault is now the Specimen Cabinet"
+        },
+        {
+          "cat": "UI",
+          "text": "Long screens (Hero Hall, Evolution HQ, Gene Archive) get jump chips and folding sections, and a loadout strip sits beside every launch"
+        },
+        {
+          "cat": "UI",
+          "text": "Tap any currency in the top bar to learn what it is; small text is easier to read"
+        },
+        {
+          "cat": "Gameplay",
+          "text": "Every Gene Card level now visibly raises your Power, even small economy upgrades like Engorged Reactor"
+        },
+        {
+          "cat": "Gameplay",
+          "text": "Strain Samples no longer pile up deep in the game: once a strain has banked every Sample its remaining stars could cost, extra Samples from Bio-Containers become Gene Essence"
         },
         {
           "cat": "Bosses",
-          "text": "A splitting boss falls once: bossKilled marks its last piece"
+          "text": "A Mitotic Horror falls once — its split pieces no longer each announce a kill"
+        },
+        {
+          "cat": "Gameplay",
+          "text": "Watching a replay no longer adds its kills to your own Bestiary, Mega records or nemesis revenge"
+        },
+        {
+          "cat": "Gameplay",
+          "text": "Replay links recorded before an update play again instead of showing an error, and the replay theater shows boss falls"
+        },
+        {
+          "cat": "Bosses",
+          "text": "The Bio-Dex counts only real Brood Tyrants"
+        },
+        {
+          "cat": "UX",
+          "text": "Field Guides open folded sections while they run"
         }
       ]
     }
@@ -6780,6 +6695,86 @@
       "cat": "Bosses",
       "text": "A splitting boss falls once: bossKilled marks its last piece",
       "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "b55d123fe2ffacb4539eb92f48769b9ca61849e2",
+      "date": "2026-11-04",
+      "cat": "Gene Cards",
+      "text": "Gene Power: a per-level floor so every gene level moves the displayed Power",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "1bc5b35a898a26adcefd18611cf0f21b06c215bf",
+      "date": "2026-11-04",
+      "cat": "Towers",
+      "text": "Balance instrument: molt-aware report dead-zone, seeded loot, tower synthesis",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "ce9293cdc1d35f3297c08fa51179f6223e04d10a",
+      "date": "2026-11-04",
+      "cat": "Balance",
+      "text": "Balance instrument: band-peak spike detector, push denominator, Transcendence spend",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "89c5e9757e53fc8a0f5cd0c9c372608cf9c6a09e",
+      "date": "2026-11-04",
+      "cat": "Towers",
+      "text": "Economy: container opens convert a tower's unspendable shard surplus to Essence",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "fd0f5baf7137f4a7f0d6403f4e751c688a973e79",
+      "date": "2026-11-04",
+      "cat": "Balance",
+      "text": "Balance report: median seed by band-peak Power, push failure share, methodology",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "f15a2914651b1f76e81fcc3097d199a373673fef",
+      "date": "2026-11-04",
+      "cat": "Gameplay",
+      "text": "Progression report: peak-to-peak spikes, band-peak column, regenerated (4 x 100h)",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "3fbe64796013bc8ae4b4aa99ee55b51c9c8560ea",
+      "date": "2026-11-04",
+      "cat": "Website",
+      "text": "Regenerate site and Chronicle for N1 + C3 + fixes",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "086653e9543693a9fd7cf6796c0c54596c928c3d",
+      "date": "2026-11-04",
+      "cat": "Balance",
+      "text": "Balance round 4: record decisions (BALANCE_ARCHITECTURE section 9), regenerate BALANCE_REPORT",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "4fadb8a41b8dd21446c3a7387a443949f08539b4",
+      "date": "2026-11-04",
+      "cat": "Gameplay",
+      "text": "Replays no longer credit the viewer's save; older replays still play",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "afef05ffafa1d78fb2015cf53295fec04746578a",
+      "date": "2026-11-04",
+      "cat": "Developer Tools",
+      "text": "Docs: batch summary, 22 fix-log rows and manifest entries for the polish, content and economy tracks",
+      "internal": true,
       "needsReview": false
     }
   ]

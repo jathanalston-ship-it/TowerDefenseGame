@@ -464,3 +464,13 @@
 - `f509b89` **[Developer Tools]** Mobilecheck stops its preview server; drop the vault reveal's dead fast toggle
 - `890af79` **[Bosses]** Replay theater shows boss and Mega fall cards again
 - `315c205` **[Bosses]** A splitting boss falls once: bossKilled marks its last piece
+- `b55d123` **[Gene Cards]** Gene Power: a per-level floor so every gene level moves the displayed Power
+- `1bc5b35` **[Towers]** Balance instrument: molt-aware report dead-zone, seeded loot, tower synthesis _(internal)_
+- `ce9293c` **[Balance]** Balance instrument: band-peak spike detector, push denominator, Transcendence spend _(internal)_
+- `89c5e97` **[Towers]** Economy: container opens convert a tower's unspendable shard surplus to Essence
+- `fd0f5ba` **[Balance]** Balance report: median seed by band-peak Power, push failure share, methodology _(internal)_
+- `f15a291` **[Gameplay]** Progression report: peak-to-peak spikes, band-peak column, regenerated (4 x 100h) _(internal)_
+- `3fbe647` **[Website]** Regenerate site and Chronicle for N1 + C3 + fixes
+- `086653e` **[Balance]** Balance round 4: record decisions (BALANCE_ARCHITECTURE section 9), regenerate BALANCE_REPORT
+- `4fadb8a` **[Gameplay]** Replays no longer credit the viewer's save; older replays still play
+- `afef05f` **[Developer Tools]** Docs: batch summary, 22 fix-log rows and manifest entries for the polish, content and economy tracks _(internal)_
