@@ -167,3 +167,41 @@ the existing reward model — no mid-run awarding. Pity is wired and tested but 
 catch genuine streaks. No event content ships (framework only, by brief). The full rarity-
 scaled reveal *ceremony* (LOOTBOX.md §2–7) is not built — `LootReveal` colors by rarity but
 does not yet scale duration/FX per tier.
+
+## §ladders — achievements that continue at depth (2026-11, Batch G)
+
+The authored achievement set front-loads recognition (G2 trace, average persona: 6 unlocks/h in
+hours 0–3 → 0.1/h by 30 h → **0** in hours 100–150; account level-ups 6.7/h → 0.3/h). Ladders
+are GENERATED tiered families over lifetime ledgers — DATA rows (`LADDER_FAMILIES` in
+`state/achievements.ts`), one per ledger, each `{ meter, start, ratio, tiers, reward }`:
+
+| Family | Ledger (income meter) | Tier I | ×/tier |
+|---|---|---|---|
+| Culling Engine | lifetime kills (`kills`) | 150,000 | 1.15 |
+| Carnage Index | lifetime damage (`damage`) | 5,000,000 | 1.2 |
+| Genome Hoard | lifetime Genome Cores (`cores`) | 100,000 | 1.15 |
+| Vault Breaker | containers opened (`containers`) | 1,000 | 1.15 |
+| Hours in the Hive | play time (`playSec`) | 50 h | 1.15 |
+| Eternal Molt | Molts (`molts`) | 50 | 1.2 |
+| Leviathan Ledger | Mega Bosses felled (`megaKills`) | 20 | 1.3 |
+| Abyssal Record | Infinite best depth (`bestWave`) | 160 | 1.1 |
+| Gauntlet Depth | Boss Rush best wave (`rushWave`) | 15 | 1.2 |
+| Skull Tithe | Boss Rush bosses (`rushBosses`) | 500 | 1.3 |
+| Anatomist | Weak Points destroyed (`weakPoints`) | 250 | 1.3 |
+
+- **Geometric thresholds** (two significant figures, strictly increasing): a ledger growing at a
+  steady pace crosses a rung at a steady trickle (cadence ≈ 1 / (t · ln ratio)) instead of
+  drying up; each family starts where the authored ladder for that ledger ends. 40 rungs for the
+  steady lifetime ledgers (×1.15–1.2), 30 for the record/rarer ones keep the generated set
+  FINITE (rung id `ladder_<family>_<n>`, name `Title <roman>`).
+- **Rewards**: recognition + a small Core reward (`reward · √n`) through the shared achievement
+  payout (Cores, the Ichor bleed, Account XP, Season XP) — **never Power**.
+- **One source of numbers**: rungs read the INCOME ledger's own meters (`readMeter`,
+  state/income.ts), so the goal board's ladder goal (`ladderGoals` → nextGoals, one nearest rung
+  by ETA) quotes the same live income.
+- **Kept out of the authored totals**: `AUTHORED_ACHIEVEMENTS` drives the gallery count, the
+  Profile showcase and the Genome Rank `achievementRatio` (generated rungs would dilute it and
+  shrink every rating). The gallery renders ONE card per family (rungs earned + the next rung's
+  bar), and the DIL graph carries only each family's first rung.
+- **A new ladder** = one `LADDER_FAMILIES` row on an existing meter (or one `INCOME_METERS` row
+  + the family).

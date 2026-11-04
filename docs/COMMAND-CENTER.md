@@ -30,6 +30,20 @@ stage header (fact tiles + reward chips drop below). `scripts/mobilecheck.ts` as
 on every landscape/desktop viewport (portrait hubs sit under the rotate gate). Measured:
 y 720→516 at 1440×900 and 1366×768, 771→214 at 844×390.
 
+**§cta — the main button follows the farm/push loop (2026-11, Batch G).** The G2 audit found
+Home's main button at depth reading "Fight anyway — recommended Power not met" while the "Farm
+Infinite ~Depth 93" directive appeared only on Results/Campaign/Infinite/Profile. Now, when the
+frontier band is genuinely `'under'` (docs/PROGRESSION-LOOP.md §readiness) AND Infinite is open,
+Mission Control's PRIMARY (`.mc-deploy.is-farm`, still the above-the-fold contract's element)
+is **"Farm Infinite ~Depth N"** (`loopState.farmDepth`) with one line under it — the frontier's
+readiness %, the readiness ONE run gains at the live income (`readiness × (e^g − 1)`, g = the
+income ledger's per-run ln-Power growth — state/income.ts) and the stage ETA (`runsToStage`);
+the gain + ETA only speak once the ledger has OBSERVED `INCOME.priorRuns` runs (a migrated
+veteran's lifetime-average prior over-states depth growth) — and the frontier fight steps down
+to a secondary "Fight Stage N anyway ▸" (same title tooltip,
+same partial-field-data note). `'close'`/`'ready'` keep "Continue Campaign"; before Infinite
+opens the old under-ready button stays (farm advice never names a sealed mode).
+
 | Zone | Launch widgets |
 |---|---|
 | `strip` | `vitals` — the command strip: Power / Campaign / Infinite / Collection / Champions / Vaults / Achievements, **every chip a door** (the nearest goal is deliberately absent — the NEXT banner owns it) |

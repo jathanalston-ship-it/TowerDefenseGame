@@ -103,7 +103,7 @@ calendar keys and keeps `best`/`lifetime ≥ streak`). `claimLogin`:
 Home-board widget (`bio-cache`, main zone, appears after the first run so the minute-0
 funnel stays clean; `home` nav badge re-lights each UTC midnight):
 
-- **Sealed**: pulsing organic pod + `DAY N · STREAK S · ×M` + estimated value (◆) + milestone
+- **Sealed**: pulsing organic pod + `DAY N · STREAK S · ×M` + estimated value (in Genome Cores, §income) + milestone
   tease + lapsed-streak warning. Opening plays the **rupture ceremony** — the pod grows over
   the veil (squelch), pulses until tapped (heartbeat), ruptures (crack + power), rewards
   erupt line-by-line, the unlock stinger seals the summary (jackpot adds the bell).
@@ -111,11 +111,31 @@ funnel stays clean; `home` nav badge re-lights each UTC midnight):
 - **Opened**: the streak presentation — current streak, best, lifetime, multiplier, today's
   paid lines, tomorrow's ×mult/value/milestone tease, and the reset countdown.
 
+## §income — the cache scales with the account (v56, 2026-11)
+
+The G2 audit measured the cache at ~6 IV (~60 Cores) next to 723 Cores from ONE stage-81 run —
+noise at depth, growing only with ln(lifetime logins). On top of the IV lanes every cache now
+carries ONE guaranteed Genome-Core line sized in **minutes of the player's live income**:
+
+    incomeCores = round5( min(coresPerMinute × LOGIN.incomeMinutes (20), LOGIN.incomeRunCap (1) × coresPerRun) × streakMult(streak) )
+
+`coresPerMinute` = the income ledger's RUN Cores per run (the run's own pay — achievement /
+rank / login grants never count) ÷ its run length (state/income.ts, the same ledger the goal
+ETAs read); 0 before any run is observed, so the minute-0 cache is unchanged. The run cap keeps
+short early runs from turning 20 minutes into several runs' worth. Pure in (coresPerMinute, streak, coresPerRun) — `loginIncomeCores` (core/loginStreak.ts). The
+claim pays it as plain reward Cores (never the Molt mint metric) and FREEZES the paid amount in
+`login.incomeCores` (v56), so a post-claim reload shows what was granted while the pre-claim
+preview tracks live income. The card states the whole cache in Genome-Core terms
+(`valueCores` = IV ÷ LANE_VALUE.cores + the income line) with the Genome-Core icon — the old
+"≈ 6◆" used the Genome-Core glyph for a different unit (IV).
+
 ## Balance posture & known tensions
 
-- Day-one cache ≈ 6 IV (~60 cores-equivalent) — a pleasant trickle beside run income, not a
-  primary faucet; a decade-long unbroken veteran approaches ~61 IV/day, mostly in spread
-  currencies. The Ichor lane itself is rare (weight 3) and clamped 2–6◆/day, far below the
+- Day-one cache ≈ 6 IV (~60 cores-equivalent) + the §income line (20 min of live run-Core
+  income × streak, ≤ one run's Cores). G2 cadence trace (average persona): the cache was 60
+  Cores-eq at every depth (2.8 % of a stage-80 run); now ≈ 1 run early (capped) and roughly a
+  third to half of a run at depth (runs lengthen faster than per-minute income grows); a
+  decade-long unbroken veteran approaches ~61 IV/day in the spread lanes. The Ichor lane itself is rare (weight 3) and clamped 2–6◆/day, far below the
   never-farmable premium posture's meaningful thresholds.
 - Season XP from logins is capped (≤300/day ≈ half a level) so the pass pace stays owned by
   play, not attendance.

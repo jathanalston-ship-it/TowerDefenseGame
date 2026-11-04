@@ -52,6 +52,25 @@ Promotion: `GenomePromotionCinematic` (App, menu only) — full-screen ceremony 
 evo-unlock frame, dedicated `promotion` audio cue, one rank at a time. Leaderboard mode
 `genomeRating` (score = rating, wave = rank index) on the Profile standings tabs.
 
+## §peak — a Molt never demotes (v56, 2026-11)
+
+The `power` source (weight 130) used to read LIVE Power, and a Molt sheds the Genome engine — so
+the named rank dropped on every Molt (the G2 trace: Hiveborn reached at 126.4 h, lost at
+127.3 h, regained, lost again; 5 demotions in 150 h). Now the snapshot's `powerScore` is
+`max(genomeRank.peakPower, live)`:
+
+- **`genomeRank.peakPower`** (v56) — the highest Power Score ever observed. Raised by
+  `withPeakPower` at every settle, at the top of every `pollGenomePromotions` (settle + menu
+  drain — so the migration seeds it from the live score on first read) and from the PRE-Molt
+  save inside `meta.molt()`. Monotone; account merge takes the max; sanitizer: finite ≥ 0.
+- **The rating stays a pure function of the snapshot**; only the snapshot builder changed.
+  Power itself (Power Score, previews, deploy readiness) is untouched — previews == outcomes.
+- **Presentation**: the Profile panel shows the permanent part ("Power axis locked at your
+  peak") vs this cycle's live climb ("…% of the way back — the rank holds" / "AT your peak —
+  every gain now raises the rank").
+- The Achievements axis counts the AUTHORED set only (generated ladder rungs —
+  PROGRESSION-SYSTEMS.md §ladders — would dilute `achievementRatio` and shrink every rating).
+
 ## Future systems auto-integrate
 
 One `GENOME_SOURCES` row (weight/category/measure/hint) + one `GenomeSnapshot` field in
