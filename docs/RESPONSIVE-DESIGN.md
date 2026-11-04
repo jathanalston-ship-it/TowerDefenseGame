@@ -39,6 +39,10 @@ around the BIGGEST board the viewport allows (`src/index.css` §RUN LAYOUT v2 �
 | landscape (phones) | HUD column + wave-briefing dock │ board at full viewport height │ run keys + tower column + hero pod | 844×390 164×218 (scrolled off-screen) → 285×379 · 926×428 → 313×417 |
 | portrait (phones, portrait tablets) | HUD strip · run-keys strip · full-width board · [» Run Build │ hero pod │ Status «] · tower rail | 390×844 rotate gate → 380×507 · 360×740 → 332×442 |
 
+- **Desktop gutters are periphery, not black** (2026-11): the frame around the board carries the
+  Living Gutters bake (docs/SIGNATURE-MOMENTS.md §4) — absolutely positioned behind the board and every
+  overlay, aligned to the board's layout box at every width (ResizeObserver), desktop profile only; the
+  phone layouts (no gutters) never mount it.
 - **No page scroll, ever, during a run** — every profile is a fixed `100dvh` grid; panels are
   in-place (desktop) or overlay DRAWERS (phones: closed by default, tap-to-close veil, reset
   when the profile flips; the Inspector opens itself for a tapped tower and for a tutorial cue

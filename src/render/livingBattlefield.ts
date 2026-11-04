@@ -411,9 +411,7 @@ function buildBake(a: Assimilation, tint: Col | null, sp: TerraformSpec): Bake {
   const [glowC, gg] = makeCanvas();
   const tier = a.tierColor as Col;
   // Palette: dark flesh, consuming the biome accent and pulled toward the tier accent (art-direction unity).
-  let base = FLESH_BASE, hi = FLESH_HI;
-  if (tint) { base = mix(base, tint, 0.26); hi = mix(hi, tint, 0.3); }
-  base = mix(base, tier, 0.12); hi = mix(hi, tier, 0.2);
+  const { base, hi } = terraformPalette(tint, tier);
   const towers = a.regions.filter((r) => r.kind === 'tower');
 
   paintMembrane(gb, a, sp, base, hi);
@@ -464,14 +462,11 @@ function lipY(x: number, crest: number, amp: number): number {
  *  the tile lattice (stage ≥ 4), and a shimmer line along the lip on the glow layer — the living tide. */
 function paintCrust(gb: Ctx, gg: Ctx, stage: number, hi: Col, tier: Col): void {
   if (stage < 2) return;
-  const reach = (stage - 1) / (STAGE_COUNT - 2);
-  const crust = HEIGHT * (0.1 + reach * 0.32);
-  const crest = HEIGHT - crust;
+  const { reach, crust, crest, amp } = crustGeometry(stage);
   const grad = gb.createLinearGradient(0, HEIGHT, 0, crest);
   grad.addColorStop(0, css(mix(hi, tier, 0.3), 0.5)); grad.addColorStop(1, css(hi, 0));
   gb.fillStyle = grad; gb.fillRect(0, crest, WIDTH, crust);
   // feathered lip: three offset fills at decreasing alpha melt the tide-line into the ground
-  const amp = 8 + reach * 12;
   for (let pass = 0; pass < 3; pass++) {
     const off = pass * (6 + reach * 6), al = [0.22, 0.13, 0.07][pass];
     gb.fillStyle = css(mix(hi, tier, 0.25), al);
@@ -991,3 +986,23 @@ export function drawLivingBattlefieldAmbient(ctx: Ctx, a: Assimilation, now: num
   ctx.restore();
 }
 
+
+// ══ Shared terrain vocabulary (the LIVING GUTTERS reuse it — render/gutters.ts, docs/SIGNATURE-MOMENTS.md §4) ═
+/** The terraform palette: dark flesh consuming the biome accent, pulled toward the tier accent
+ *  (art-direction unity). One source for the board bake and the periphery bake. */
+export function terraformPalette(tint: Col | null, tier: Col): { base: Col; hi: Col } {
+  let base = FLESH_BASE, hi = FLESH_HI;
+  if (tint) { base = mix(base, tint, 0.26); hi = mix(hi, tint, 0.3); }
+  base = mix(base, tier, 0.12); hi = mix(hi, tier, 0.2);
+  return { base, hi };
+}
+/** The rising hive crust for a stage (stage ≥ 2): reach 0..1, crust depth, crest line, lip amplitude. */
+export function crustGeometry(stage: number): { reach: number; crust: number; crest: number; amp: number } {
+  const reach = (stage - 1) / (STAGE_COUNT - 2);
+  const crust = HEIGHT * (0.1 + reach * 0.32);
+  return { reach, crust, crest: HEIGHT - crust, amp: 8 + reach * 12 };
+}
+// The painters + field the periphery continues past the board edge (coordinate-explicit, so they
+// paint anywhere — the gutters call them at x < 0 / x > WIDTH).
+export type { Col };
+export { hex, css, mix, shade, hash01, infectionField, lipY, paintVein, paintFlora, paintEyeSocket, resolveAccent, BIOME_FLORA };

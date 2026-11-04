@@ -1,6 +1,6 @@
 # DIL_GRAPH.md — the Design Intelligence Layer (GENERATED — `npm run dil -- regen`)
 
-> **The project's brain** (docs/DIL.md). 950 nodes · 1825 edges, built from the live
+> **The project's brain** (docs/DIL.md). 951 nodes · 1828 edges, built from the live
 > registries + curated knowledge (src/dev/dil/). **Query it instead of searching the repo:**
 > `npm run dil -- node <id>` · `affects <id>` · `requires <id>` · `missing <kind> <edge>` ·
 > `checklist tower <kind>` · `find <text>`. Edge kinds are bidirectional (19 kinds).
@@ -723,6 +723,7 @@ Three intentional interfaces from one codebase (layoutProfile → data-layout); 
   - providedBy ← `system:hub-shell` — PORTRAIT SHELL (docs/RESPONSIVE-DESIGN.md §3b): ui/navModel.ts is the ONLY nav IA source — desktop rail, five-tab bottom bar, index pages (MobileShell.tsx), mobilecheck, and navModel.test all derive from it; a new screen = one group row + one unlock-registry def and it is auto-indexed/explained/swept on phones
   - conflictsWith ← `system:hub-shell` — portrait strips inside grids need minmax(0,1fr) columns (intrinsic strip width widens the page past the phone viewport — the Tower Lab empty-showcase bug); flex children of height-capped roster lists need flex:none or rows compress and overlap their portraits
   - providedBy ← `system:run-ui` — RUN LAYOUT v2 (index.css §RUN LAYOUT v2, RESPONSIVE-DESIGN.md §run): per-profile grids around a max 3:4 board — desktop slim fixed HUD row + fixed deck; landscape HUD column | full-height board | tower column (run keys + briefing fixed into the columns via --bw/--col); portrait HUD strip / keys strip / full-width board / drawer+hero row / rail. Fixed chrome heights so nothing mid-run resizes the board; side panels are drawers on phones (bottom sheets in portrait); the rotate gate stands down while GameView is mounted (layoutProfile.setInRun); mobilecheck phoneRunContract + runChromeContract pin it (no scroll, no chrome overlap)
+  - requiredBy ← `system:living-battlefield` — LIVING GUTTERS (render/gutters.ts + ui/components/LivingGutters.tsx): a ¼-res periphery bake BEHIND the board in its frame (.canvas-wrap / .spectate-stage), desktop profile only — it re-uses the terraform painters livingBattlefield.ts exports (terraformPalette/crustGeometry/paintVein/paintFlora/infectionField…), reads getAssimilationDebug() (the board’s last terraform) at a 4 Hz poll and re-bakes only on a key change (biome/mega + stage/creep/towers). It measures the board’s LAYOUT box inside its positioned parent — a run-layout change that stops centring the board in .canvas-wrap, or a new positioned child placed BEFORE the board, moves/covers the seam; enemies are never painted there
 
 ### `concept:scalability` — Content-Scale Targets
 
@@ -2510,13 +2511,13 @@ _at: src/render/*, src/core/dangerCamera.ts_
   - testedBy ← `test:src/render/assimilationFx.test.ts`
   - testedBy ← `test:src/render/equipmentArt.test.ts`
   - testedBy ← `test:src/render/feel.test.ts`
-  - _…20 more (query: `npm run dil -- node system:rendering`)_
+  - _…21 more (query: `npm run dil -- node system:rendering`)_
 
 ### `system:living-battlefield` — Living Battlefield
 
 A hidden per-run "biomass" (towers/strain/branches/stars/mastery/mulligans + heroes/gear + kills/boss/mega + wave + Power Score + biome) drives an evolution STAGE 0–5 that terraforms the arena beneath the entities: data-driven Environmental Influence Profiles per tower/mulligan/hero/gene (hash-default ⇒ new content needs no code), regional blooms from towers/nucleus/combat/mega, nucleus organ, biome adaptation, boss/mega scars, ambient life. Render-only + inert at Stage 0 ⇒ golden-safe. + LIVING ORGANISMS (render/organism.ts): the ENTITY life layer — per-tower approach-ANTICIPATION (alert eased from staggered proximity scans, threat-bearing lean, aperture/swell pose), post-shot recovery settle, environmental TREMOR (heavy deaths/hero ults/mega telegraphs/hive impacts), per-kind ambient emissions (spores/drips/sparks/drones/crawlers/wisps) + a throttled ambience director (org_* murmur cues); profiles auto-derive from body form + combat class ⇒ future towers inherit free. Enemy side: gaze-at-threat glints, shield-shatter stagger (statusFx already owns fear trembling). All render-side module state ⇒ sim untouched, goldens byte-identical.
 
-_at: src/render/livingBattlefield.ts, src/render/organism.ts_
+_at: src/render/livingBattlefield.ts, src/render/organism.ts, src/render/gutters.ts, src/ui/components/LivingGutters.tsx_
 
   - dependsOn → `system:rendering`
   - dependsOn → `system:engine`
@@ -2526,7 +2527,9 @@ _at: src/render/livingBattlefield.ts, src/render/organism.ts_
   - consumes → `system:assimilation` — terrain stage comes from tierAt(game.assimilation.index) — ONE source of truth with music/HUD mood
   - plans → `system:biomes` — per-biome bespoke terrain flora beyond the BIOME_FLORA tint map
   - extends → `system:rendering` — LIVING ORGANISMS (render/organism.ts, LIVING-BATTLEFIELD.md §organisms): render-side entity-life layer — per-tower approach-anticipation (alert/bearing from staggered scans of rs.enemies vs effective range), recovery settle on fire edges, environmental tremor (deathEvents overkill, ult castEvents, mega telegraph/phase, hiveHitPulse), per-kind emissions + org_* ambience director polled by GameView. Profiles derive from TOWER_FORM + combatClass with per-kind overrides (organismProblems validator). ZERO sim writes: goldens byte-identical; updateOrganisms ≤13µs/frame measured.
+  - dependsOn → `concept:responsive` — LIVING GUTTERS (render/gutters.ts + ui/components/LivingGutters.tsx): a ¼-res periphery bake BEHIND the board in its frame (.canvas-wrap / .spectate-stage), desktop profile only — it re-uses the terraform painters livingBattlefield.ts exports (terraformPalette/crustGeometry/paintVein/paintFlora/infectionField…), reads getAssimilationDebug() (the board’s last terraform) at a 4 Hz poll and re-bakes only on a key change (biome/mega + stage/creep/towers). It measures the board’s LAYOUT box inside its positioned parent — a run-layout change that stops centring the board in .canvas-wrap, or a new positioned child placed BEFORE the board, moves/covers the seam; enemies are never painted there
   - documentedBy ← `doc:LIVING-BATTLEFIELD.md`
+  - testedBy ← `test:src/render/gutters.test.ts`
   - testedBy ← `test:src/render/livingBattlefield.test.ts`
   - testedBy ← `test:src/render/organism.test.ts`
 
@@ -4019,7 +4022,7 @@ _at: site/guides.ts → /guides/live-events/_
 - `doc:VOWS.md` — project documentation _(documents `system:prestige`)_
 - `doc:WEBSITE.md` — project documentation _(documents `system:field-research`, documents `system:website`)_
 
-## Tests (321)
+## Tests (322)
 
 - `test:src/audio/cues.test.ts` — automated validation _(tests `system:audio`)_
 - `test:src/audio/music.test.ts` — automated validation _(tests `system:audio`)_
@@ -4218,6 +4221,7 @@ _at: site/guides.ts → /guides/live-events/_
 - `test:src/render/assimilationFx.test.ts` — automated validation _(tests `system:rendering`, tests `system:assimilation`)_
 - `test:src/render/equipmentArt.test.ts` — automated validation _(tests `system:rendering`, tests `system:equipment`)_
 - `test:src/render/feel.test.ts` — automated validation _(tests `system:rendering`)_
+- `test:src/render/gutters.test.ts` — automated validation _(tests `system:rendering`, tests `system:living-battlefield`)_
 - `test:src/render/heroEvolution.test.ts` — automated validation _(tests `system:rendering`)_
 - `test:src/render/heroSymbiotes.test.ts` — automated validation _(tests `system:rendering`, tests `system:hero-symbiotes`)_
 - `test:src/render/infestationMap.test.ts` — automated validation _(tests `system:rendering`, tests `system:infestation`)_

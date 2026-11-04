@@ -75,7 +75,7 @@ export interface Pointer {
   y: number;
 }
 
-const SPAWN_BAND = CELL * 1.4; // top "breeding membrane" the swarm pours from
+export const SPAWN_BAND = CELL * 1.4; // top "breeding membrane" the swarm pours from
 const TOWER_R = 12; // base silhouette radius for placed towers
 const MUTATE_FLASH = 0.5; // seconds the tier-purchase shockwave + flash plays at the tower
 const WHITE = hexRgb('#ffffff');

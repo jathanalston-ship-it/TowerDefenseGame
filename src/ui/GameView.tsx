@@ -47,6 +47,7 @@ import { drawAssimilationFx } from '../render/assimilationFx';
 import { Announcer, FEEL, viewFeel } from '../render/feel';
 import type { FeelRow, Shown } from '../render/feel';
 import { CentreStage, megaFallCard, type StageCard } from './components/CentreStage';
+import { LivingGutters } from './components/LivingGutters';
 import { clearImpacts, drawImpacts, pushImpactBloom, pushImpactRing } from '../render/impactFx';
 import { tutorial as tutorialStore } from '../state/tutorial';
 import { gameEvents } from '../core/events';
@@ -1097,6 +1098,8 @@ export function GameView({
         )}
         {evoOpen && <HeroEvolutionPanel game={game} hud={hud} refresh={refresh} onClose={() => setEvoOpen(false)} />}
         <div className={`canvas-wrap ${outro ? 'is-ending' : ''}`}>
+        {/* LIVING GUTTERS (docs/SIGNATURE-MOMENTS.md §4): the biome continues past the board edge — a static periphery bake behind the board; desktop only. */}
+        <LivingGutters game={game} boardRef={canvasRef} />
         <canvas
           ref={canvasRef}
           className="board"

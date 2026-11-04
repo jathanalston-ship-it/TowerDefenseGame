@@ -15,6 +15,7 @@ import type { ReplayRecord } from '../core/replay';
 import { drawGame } from '../render/renderer';
 import { Announcer, type Shown } from '../render/feel';
 import { CentreStage, megaFallCard, type StageCard } from './components/CentreStage';
+import { LivingGutters } from './components/LivingGutters';
 import { audio } from '../audio/sound';
 import { music } from '../audio/music';
 import { t, useLocale } from '../i18n';
@@ -188,6 +189,8 @@ export function SpectateView({ record, onExit }: { record: ReplayRecord; onExit:
         <button className="spectate-exit" onClick={onExit}>{t('spectate.exit')}</button>
       </div>
       <div className="spectate-stage">
+        {/* LIVING GUTTERS (docs/SIGNATURE-MOMENTS.md §4): the periphery continues in the theater too. */}
+        <LivingGutters game={game} boardRef={canvasRef} />
         <canvas className="board" width={WIDTH} height={HEIGHT} ref={canvasRef} role="img" aria-label={t('spectate.title')} />
         {stageCard && <CentreStage shown={stageCard} />}
       </div>

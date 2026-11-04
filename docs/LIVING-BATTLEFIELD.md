@@ -130,6 +130,23 @@ evolution stage instantly on a live run. Backed by `setStageOverride` / `setLivi
 - Stage thresholds and per-source weights live as constants at the top of `livingBattlefield.ts` for
   easy balancing.
 
+## Living gutters — the terrain past the board edge (`src/render/gutters.ts`)
+
+On desktop the 3:4 board sits in a wide frame; the periphery around it is painted with the SAME
+terrain vocabulary, darkened to ≤ 35 % and baked at ¼ resolution so it reads as the world beyond the
+camera, never as playable space (docs/SIGNATURE-MOMENTS.md §4 has the full spec, tunables and numbers).
+
+- **Shared painters, not a fork.** `livingBattlefield.ts` exports `terraformPalette` (the bake palette,
+  also used by `buildBake`), `crustGeometry` (also used by `paintCrust`), `infectionField`, `lipY`,
+  `paintVein`, `paintFlora`, `paintEyeSocket`, `resolveAccent`, `BIOME_FLORA` and the colour helpers.
+  They take explicit coordinates, so the gutters call them at x < 0 / x > WIDTH.
+- **One source of truth.** The bake reads `getAssimilationDebug()` — the exact assimilation the board
+  just drew (stage, tier colour, tower hotspots) — so board and periphery deepen together; tower
+  blooms near an edge bleed across the seam, and a creep keyed to the Assimilation Index spreads the
+  infestation outward from the board edges.
+- **Static.** Re-baked only on a key change (4 Hz poll: biome, Mega, stage, creep step, tower layout)
+  or a frame resize; crossfaded like the board's terraform. No entity is ever painted there.
+
 ## Organisms — the entity life layer (`src/render/organism.ts`)
 
 The terrain above evolves; this layer makes the ENTITIES on it live. "The battlefield

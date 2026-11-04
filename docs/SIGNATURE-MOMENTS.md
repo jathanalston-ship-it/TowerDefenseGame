@@ -90,7 +90,60 @@ in full or only in silhouette until its fall · text style for the premiere titl
 
 ## 4. Living gutters
 
-**Today:** at 1440×900 the board is 543 px wide with ~470 px of flat black on either side.
+**Status: BUILT (2026-11, Batch 3 track S3).** Painter `src/render/gutters.ts`, mount
+`src/ui/components/LivingGutters.tsx` (one element in GameView and in SpectateView — the replay
+theater gets it too), CSS §LIVING GUTTERS at the end of `src/index.css`.
+
+**What shipped**
+- Two low-resolution canvases (`.gutters`) fill the board's frame (`.canvas-wrap` / `.spectate-stage`)
+  BEHIND the board and every overlay (the board is lifted into the positioned layer; DOM order keeps it
+  on top). Only one holds a bake at rest; the other exists for the crossfade and is freed after it.
+- The bake paints in board units extended past the edges: the floor's void→hive fall + tile lattice,
+  the spawn void + membrane haze along the top, the hive's warmth pooling up from the bottom (feathered —
+  no defense line: that is gameplay), the biome wash; then, once the Living Battlefield wakes (stage ≥ 1),
+  the SAME terrain vocabulary (`livingBattlefield.ts` exports its painters — `terraformPalette`,
+  `crustGeometry`, `infectionField`, `paintVein`, `paintFlora`, `paintEyeSocket`): flesh membrane +
+  capillaries, the crust tide across the whole frame, outbound arteries leaving the board under the
+  frame edge (hued by the nearest tower), biome flora, closed eye sockets (stage ≥ 4).
+- **Creep:** the periphery's infection field = the board's own field continued across the seam (edge
+  towers, the rising frontier) ∪ a creep spreading outward from the board edges whose reach follows the
+  Assimilation Index (bucketed into `creepSteps` with ¾-step hysteresis — a hovering index never flaps
+  the bake). At index 1 the frame is consumed.
+- **Mega stage:** the raid organism's ridge continues across the frame top and 2–4 static limbs per side
+  (palette + visual tier, wardrobe re-veining honoured) reach down into the periphery. They crossfade in
+  when the Mega surfaces and withdraw when it burrows or dies — the live body on the board keeps all the
+  motion.
+- **Enemies, towers, projectiles and HUD markers are never painted there** (the bake has no entity
+  input at all).
+- **Static bake, zero per-frame work:** a 4 Hz poll compares a key (biome · mega id/tier · and, once
+  woken, stage · creep step · tower layout) and re-bakes only on a change; a frame/board resize
+  (ResizeObserver on both — panel collapse, window resize) repaints in place. Bakes swap with a CSS
+  opacity crossfade (compositor-only) matching the board terraform's 0.85 s.
+- **Phones / any frame without gutters:** the component renders nothing on the landscape/portrait run
+  layouts and when no side of the frame has ≥ `minGutterPx` of gutter — no canvas, no poll.
+
+**Taste values (one table — `GUTTERS` in `src/render/gutters.ts`):**
+brightness **0.35** · bake at **0.25×** · poll **250 ms** · crossfade **850 ms** ·
+`creepSteps` 12, `creepReach` 1.1 × the widest gutter, contact shadow `seamWidth` 26 / `seamAlpha` 0.6, outer dissolve `edgeFade` 0.16, arteries
+1 + 1/stage (≤ 6) per side, Mega limbs 2 + ½/tier (≤ 4) per side.
+
+**Camera decision:** the gutters stay STILL. Every camera effect (shake, wave push-in, the last-kill
+nudge, the assimilation heartbeat) moves the picture INSIDE the board canvas; the canvas element never
+moves, so the periphery is the steady world beyond the lens and costs nothing per frame. The dark sliver
+a shake reveals inside the board's edge sits against the contact shadow (darkest at the seam), so the
+seam never tears (verified frame-by-frame on a Mega arrival + boss arrival). The outro's CSS zoom simply
+grows the board over the periphery.
+
+**Reduced motion:** nothing in the gutters animates; under reduced motion (Settings → Motion 0 or the OS
+setting) even the bake swap is instant.
+
+**Measured (headless Chromium, software canvas; the machine was shared and loaded):** bake 0.2 ms
+(dormant ground) – 2–7.6 ms (stage 5 + Mega limbs) across 1366×768…2560×1080 — against 20–100 ms for the
+board's own terraform re-bake that fires at the same stage step; the poll's pure part ≈ 2.5 µs (4×/s);
+nothing runs per frame. Memory: one 254×181 store at 1440×900 (≈ 180 KB), 534×219 at 2560×1080
+(≈ 460 KB); twice that only during a crossfade.
+
+**Today (before):** at 1440×900 the board is 543 px wide with ~470 px of flat black on either side.
 
 **Target:** the biome continues past the board edge — the same ground, flora and assimilation
 veins, darkened and slightly blurred so it reads as periphery, never as playable space. As the
