@@ -1149,7 +1149,7 @@ graph TD
 
 *The battlefield interface: HUD, toolbar, inspector, build panel, results + reward reveal.*
 
-- **Files:** `src/ui/GameView.tsx` · `src/ui/Hud.tsx` · `src/ui/Toolbar.tsx` · `src/ui/BuildControls.tsx` · `src/ui/BuildPanel.tsx` · `src/ui/Inspector.tsx` · `src/ui/Results.tsx` · `src/state/runDebrief.ts` · `src/ui/RewardReveal.tsx` · `src/ui/RewardPreview.tsx`
+- **Files:** `src/ui/GameView.tsx` · `src/ui/components/CentreStage.tsx` · `src/ui/Hud.tsx` · `src/ui/Toolbar.tsx` · `src/ui/BuildControls.tsx` · `src/ui/BuildPanel.tsx` · `src/ui/Inspector.tsx` · `src/ui/Results.tsx` · `src/state/runDebrief.ts` · `src/ui/RewardReveal.tsx` · `src/ui/RewardPreview.tsx`
 - **Depends on:** `engine` · `meta-store` · `power` · `assimilation`
 - **Consumers — what breaks if you change this:** —
 - **Power Score:** renders live run Power

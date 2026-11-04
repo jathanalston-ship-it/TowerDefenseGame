@@ -13,6 +13,9 @@ import { SIM_DT } from '../core/config';
 import { WIDTH, HEIGHT } from '../core/map';
 import type { ReplayRecord } from '../core/replay';
 import { drawGame } from '../render/renderer';
+import { Announcer, type Shown } from '../render/feel';
+import { gameEvents } from '../core/events';
+import { CentreStage, megaFallCard, type StageCard } from './components/CentreStage';
 import { audio } from '../audio/sound';
 import { music } from '../audio/music';
 import { t, useLocale } from '../i18n';
@@ -49,6 +52,20 @@ export function SpectateView({ record, onExit }: { record: ReplayRecord; onExit:
   speedRef.current = speed;
   pausedRef.current = paused;
   skippingRef.current = skipping;
+  // Boss and Mega FALL cards (docs/GAME-FEEL.md §centre-stage): the live run's announcer, fed by
+  // the same sim events, so a replayed kill still lands its card. Silent while skipping ahead.
+  const announcerRef = useRef<Announcer<StageCard> | null>(null);
+  announcerRef.current ??= new Announcer<StageCard>();
+  const [stageCard, setStageCard] = useState<Shown<StageCard> | null>(null);
+  useEffect(() => {
+    const announce = (card: StageCard): void => {
+      const a = announcerRef.current!;
+      if (!skippingRef.current && a.push(card, performance.now())) setStageCard(a.current);
+    };
+    const offBoss = gameEvents.on('bossKilled', (e) => announce({ kind: 'bossFall', name: e.name, epithet: e.epithet ?? '' }));
+    const offMega = gameEvents.on('megaKilled', (e) => announce(megaFallCard(e)));
+    return () => { offBoss(); offMega(); };
+  }, []);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -125,6 +142,8 @@ export function SpectateView({ record, onExit }: { record: ReplayRecord; onExit:
         }
         ctx.clearRect(0, 0, WIDTH, HEIGHT);
         drawGame(ctx, game.getRenderState(), null);
+        const stage = announcerRef.current!;
+        if (stage.tick(now)) setStageCard(stage.current);
         if (now - lastHud > 250 || over) {
           lastHud = now;
           setHud({
@@ -169,6 +188,7 @@ export function SpectateView({ record, onExit }: { record: ReplayRecord; onExit:
       </div>
       <div className="spectate-stage">
         <canvas className="board" width={WIDTH} height={HEIGHT} ref={canvasRef} role="img" aria-label={t('spectate.title')} />
+        {stageCard && <CentreStage shown={stageCard} />}
       </div>
       <div className="spectate-controls">
         <button className="spectate-btn" onClick={() => setPaused((p) => !p)} disabled={!!done}>

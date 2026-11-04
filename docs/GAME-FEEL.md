@@ -59,6 +59,9 @@ A higher-priority card preempts (the preempted card re-queues only if it had bar
 lower one waits its turn; a waiter older than its budget is dropped — old news never plays late.
 Ladder: mega fall 100 › mega intro 90 › boss fall 80 › boss intro 70 › weak point 50 › wave 40 ›
 tier 20. Each card keeps its look; the slot length reaches the CSS timeline as `--stage-ms`.
+The card markup lives in `ui/components/CentreStage.tsx`, shared by the live run (GameView) and
+the replay theater (SpectateView), which runs its own announcer for the boss/mega FALL cards from
+the same `bossKilled` / `megaKilled` events (silent while skipping ahead).
 
 ### §boss kills — the kill LANDS
 A stage boss death pushes the `bossFall` cue (it used to borrow the Hive-*breach* alarm):

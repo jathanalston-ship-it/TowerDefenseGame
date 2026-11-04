@@ -11682,6 +11682,7 @@ html[data-layout='landscape'] .mc-campaign > .mc-ledger { order: 3; }
 .spectate-claim { font-size: 11px; color: var(--muted); margin-left: auto; }
 .spectate-exit { padding: 6px 12px; min-height: 24px; font-size: 12px; color: var(--muted); background: transparent; border: 1px solid var(--line); border-radius: var(--r-md); }
 .spectate-stage {
+  position: relative; /* anchors the centre-stage fall cards */
   flex: 1;
   min-height: 0;
   display: flex;

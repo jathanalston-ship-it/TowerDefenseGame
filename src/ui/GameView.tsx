@@ -46,8 +46,8 @@ import type { AssimilationPresentation } from '../core/assimilation';
 import { drawAssimilationFx } from '../render/assimilationFx';
 import { Announcer, FEEL, viewFeel } from '../render/feel';
 import type { FeelRow, Shown } from '../render/feel';
+import { CentreStage, megaFallCard, type StageCard } from './components/CentreStage';
 import { clearImpacts, drawImpacts, pushImpactBloom, pushImpactRing } from '../render/impactFx';
-import { megaBossDef } from '../core/megaboss';
 import { tutorial as tutorialStore } from '../state/tutorial';
 import { gameEvents } from '../core/events';
 import { MODULE_LABEL } from '../core/boss';
@@ -92,19 +92,6 @@ function addTrauma(current: number, impulse: number): number {
 // How long the battlefield outro lingers before the summary takes over (a beat, then auto-advance;
 // a tap skips it). Shorter under reduced motion (motionScale 0) — still a pause, never a hard cut.
 const OUTRO_HOLD_MS = { full: 3400, reduced: 1200 } as const;
-
-/** CENTRE STAGE cards (docs/GAME-FEEL.md §centre-stage) — everything that wants the middle of the
- *  board goes through ONE announcer (render/feel.ts ANNOUNCE: priorities + durations). */
-type StageCard =
-  | { kind: 'wave'; label: string }
-  | { kind: 'bossIntro'; name: string; epithet: string; kit: string[]; phases: number }
-  | { kind: 'megaIntro'; name: string; title: string; glow: string }
-  | { kind: 'tier'; tier: number }
-  | { kind: 'weakPoint'; name: string; note: string }
-  | { kind: 'bossFall'; name: string; epithet: string }
-  | { kind: 'megaFall'; name: string; title: string; glow: string; sub: string };
-
-const mmss = (sec: number): string => `${Math.floor(sec / 60)}:${String(Math.floor(sec % 60)).padStart(2, '0')}`;
 
 // A pointer that travels more than this (screen px) between press and release is a DRAG,
 // not a tap — we swallow the click so a stray drag never places a tower, casts an ability,
@@ -477,12 +464,7 @@ export function GameView({
   }), [announce]);
   // MEGA FALL card (docs/GAME-FEEL.md §boss kills): the organism's collapse is the top of the
   // centre-stage ladder — it clears every lesser card; the quake + duck + stinger ride megaDeath.
-  useEffect(() => gameEvents.on('megaKilled', (e) => {
-    const def = megaBossDef(e.defId);
-    const sub = [e.weakPoints > 0 ? `${e.weakPoints} ${e.weakPoints === 1 ? 'organ' : 'organs'} ruptured` : '', mmss(e.killSec), e.perfect ? 'FLAWLESS' : '']
-      .filter(Boolean).join(' · ');
-    announce({ kind: 'megaFall', name: def?.name ?? 'The organism', title: def?.title ?? '', glow: def?.palette.glow ?? '#ffd24d', sub });
-  }), [announce]);
+  useEffect(() => gameEvents.on('megaKilled', (e) => announce(megaFallCard(e))), [announce]);
   const pointerRef = useRef<Pointer | null>(null);
   const downRef = useRef<{ x: number; y: number } | null>(null); // press origin for click-vs-drag
   const traumaRef = useRef(0);
@@ -1468,68 +1450,4 @@ export function GameView({
       <Toolbar game={game} hud={hud} refresh={refresh} />
     </div>
   );
-}
-
-/** The centre-stage card on show (docs/GAME-FEEL.md §centre-stage). Each card keeps its own look;
- *  `--stage-ms` hands it the announcer's duration so the CSS timeline and the slot always agree.
- *  The tier card is drawn on the canvas (render/assimilationFx.ts) — nothing to mount here. */
-function CentreStage({ shown }: { shown: Shown<StageCard> }): JSX.Element | null {
-  const c = shown.item;
-  const ms = { ['--stage-ms']: `${shown.ms}ms` } as CSSProperties;
-  switch (c.kind) {
-    case 'wave':
-      return (
-        <div className="wave-banner" key={shown.seq} style={ms} aria-hidden>
-          <span className="wave-banner-t">{c.label}</span>
-        </div>
-      );
-    case 'bossIntro':
-      return (
-        <div className="boss-intro" key={shown.seq} role="alert" style={ms}>
-          <span className="boss-intro-eyebrow">◆ APEX THREAT DETECTED ◆</span>
-          <span className="boss-intro-name">{c.name}</span>
-          {c.epithet && <span className="boss-intro-epithet">— {c.epithet} —</span>}
-          {c.kit.length > 0 && (
-            <span className="boss-intro-kit" aria-label="Boss abilities">
-              {c.kit.map((k) => <i key={k}>{k}</i>)}
-            </span>
-          )}
-          <span className="boss-intro-sub">{c.phases > 1 ? `${c.phases}-phase organism — read the telegraphs` : 'Hold the line'}</span>
-        </div>
-      );
-    case 'bossFall':
-      return (
-        <div className="boss-fall" key={shown.seq} role="status" style={ms}>
-          <span className="boss-fall-name">{c.name}</span>
-          <span className="boss-fall-sub">{c.epithet ? `${c.epithet} — FALLEN` : 'FALLEN'}</span>
-        </div>
-      );
-    case 'megaIntro':
-      return (
-        <div className="mega-intro" key={shown.seq} role="alert" style={{ ...ms, ['--mega']: c.glow } as CSSProperties}>
-          <span className="mega-intro-eyebrow">▼ BATTLEFIELD-SCALE ORGANISM ▼</span>
-          <span className="mega-intro-name">{c.name}</span>
-          <span className="mega-intro-title">{c.title}</span>
-          <span className="mega-intro-sub">Burst its weak points — the battle continues beneath it</span>
-        </div>
-      );
-    case 'megaFall':
-      return (
-        <div className="mega-intro mega-fall" key={shown.seq} role="status" style={{ ...ms, ['--mega']: c.glow } as CSSProperties}>
-          <span className="mega-intro-eyebrow">◆ ORGANISM DESTROYED ◆</span>
-          <span className="mega-intro-name">{c.name} FALLS</span>
-          {c.title && <span className="mega-intro-title">{c.title}</span>}
-          <span className="mega-intro-sub">{c.sub}</span>
-        </div>
-      );
-    case 'weakPoint':
-      return (
-        <div className="wp-callout" key={shown.seq} role="status" style={ms}>
-          <span className="wp-callout-name">{c.name} DESTROYED</span>
-          <span className="wp-callout-note">{c.note}</span>
-        </div>
-      );
-    case 'tier':
-      return null;
-  }
 }

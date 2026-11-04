@@ -2159,7 +2159,7 @@ _at: src/ui/Hub.tsx, src/ui/navModel.ts, src/ui/MobileShell.tsx, src/ui/componen
 
 The battlefield interface: HUD, toolbar, inspector, build panel, results + reward reveal.
 
-_at: src/ui/GameView.tsx, src/ui/Hud.tsx, src/ui/Toolbar.tsx, src/ui/BuildControls.tsx, src/ui/BuildPanel.tsx, src/ui/Inspector.tsx, src/ui/Results.tsx, src/state/runDebrief.ts, src/ui/RewardReveal.tsx, src/ui/RewardPreview.tsx_
+_at: src/ui/GameView.tsx, src/ui/components/CentreStage.tsx, src/ui/Hud.tsx, src/ui/Toolbar.tsx, src/ui/BuildControls.tsx, src/ui/BuildPanel.tsx, src/ui/Inspector.tsx, src/ui/Results.tsx, src/state/runDebrief.ts, src/ui/RewardReveal.tsx, src/ui/RewardPreview.tsx_
 
   - dependsOn → `system:engine`
   - dependsOn → `system:meta-store`
