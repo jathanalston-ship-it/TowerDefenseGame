@@ -2823,6 +2823,7 @@ canvas.board {
   select,
   input[type='search'],
   input[type='text'],
+  input[type='range'], /* the track stays thin; the thumb's hit area grows */
   [role='button'] {
     min-height: 44px;
   }

@@ -85,6 +85,7 @@ bug-hunt pass (scope, method, verdict) so "we looked" is auditable.
 | 73 | The simulated player never unlocked expansion towers or used Transcendence. | Missing steps in the bot's spending. | The bot calls `unlockTower` and transcends cards. |
 | 74 | Engorged Reactor L1 (and 51 other gene levels) left displayed Power unchanged. | The gain rounded away on a young account. | `GENE_LEVEL_POWER_FLOOR` guarantees each level moves Power. |
 | 75 | Balance-matrix reruns disagreed. | Loot used unseeded `Math.random`. | `withSeededLoot` seeds it. |
+| 76 | The new Screen shake slider in Settings was a 16 px-tall touch target on phones and tablets (mobilecheck `tiny-target`). | The shared coarse-pointer floor covered buttons, selects, text inputs, checkboxes and radios, but not range sliders. | `input[type='range']` joins the 44 px coarse-pointer floor (the track stays thin). |
 
 ---
 
