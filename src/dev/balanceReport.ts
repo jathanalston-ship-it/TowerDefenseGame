@@ -144,7 +144,11 @@ export function detectBottlenecks(runs: PersonaRun[]): Bottleneck[] {
       hit('grind-saturation', (a, b) => b.runs > a.runs && (b.farmRuns - a.farmRuns) / Math.max(1, b.runs - a.runs) > 0.9,
         (h) => `${h[0][1].farmRuns - h[0][0].farmRuns}/${h[0][1].runs - h[0][0].runs} runs were farm runs`);
       hit('push-futility', (a, b) => b.failedPushes - a.failedPushes >= 3,
-        (h) => `${h[0][1].failedPushes - h[0][0].failedPushes} failed frontier attempts in the band`);
+        (h) => {
+          const failed = h[0][1].failedPushes - h[0][0].failedPushes;
+          const tried = h[0][1].pushes - h[0][0].pushes;
+          return `${failed} failed frontier attempts in the band (of ${tried} under-ready attempts, ${Math.round((100 * failed) / Math.max(1, tried))}% failed)`;
+        });
     }
   }
   return out.sort((x, y) => y.score - x.score);
@@ -245,14 +249,16 @@ export function renderReport(runs: PersonaRun[], bottlenecks: Bottleneck[], opts
   for (const r of runs) L.push(`| **${r.persona.name}** | ${r.persona.blurb} |`);
   L.push('');
 
-  L.push('## Persona pacing (median seed, final band)', '');
-  L.push('| Persona | Hours | Power | Stage | Best wave | Molts | Acquisitions | Failed pushes |');
-  L.push('|---|---|---|---|---|---|---|---|');
+  // The median seed is picked by BAND-PEAK Power: checkpoint Power samples the Molt sawtooth at an
+  // arbitrary phase (a checkpoint right after a late Molt reads ~×1/15 of the band's peak).
+  L.push('## Persona pacing (median seed by band-peak Power, final band)', '');
+  L.push('| Persona | Hours | Band-peak power | Power at checkpoint | Stage | Best wave | Molts | Acquisitions | Failed pushes |');
+  L.push('|---|---|---|---|---|---|---|---|---|');
   for (const r of runs) {
     const finals = r.traces.map((t) => t.checkpoints[t.checkpoints.length - 1]).filter(Boolean);
     if (finals.length === 0) continue;
-    const med = finals.sort((a, b) => a.power - b.power)[Math.floor(finals.length / 2)];
-    L.push(`| ${r.persona.name} | ${med.hours} | ${med.power} | ${med.stage} | ${med.bestWave} | ${med.molts} | ${med.unlocks} | ${med.failedPushes} |`);
+    const med = finals.sort((a, b) => a.peakPower - b.peakPower)[Math.floor(finals.length / 2)];
+    L.push(`| ${r.persona.name} | ${med.hours} | ${med.peakPower} | ${med.power} | ${med.stage} | ${med.bestWave} | ${med.molts} | ${med.unlocks} | ${med.failedPushes} |`);
   }
   L.push('');
 
@@ -276,6 +282,8 @@ export function renderReport(runs: PersonaRun[], bottlenecks: Bottleneck[], opts
   L.push('## Methodology & caveats', '');
   L.push('- Virtual accounts drive the REAL meta layer (finishRun/openContainer/spend APIs); only the run itself is modeled (`WORLD`).');
   L.push('- Personas are policy modulations (luck, spend discipline, loop deviation) — never balance changes.');
+  L.push('- Loot RNG is seeded per (seed, persona): the same code renders the same report, so a regenerated diff is a balance diff, not luck.');
+  L.push('- Power is a sawtooth across Molts (each one resets the upgrade engine); growth and spikes are read band-peak to band-peak, and a band with a Molt is never a dead zone.');
   L.push('- A frictionless bot underestimates real-player friction; treat absolute hours as lower bounds.');
   L.push('- Detector thresholds live in `src/dev/balanceReport.ts`; they are part of the instrument and version with it.');
   return L.join('\n') + '\n';
