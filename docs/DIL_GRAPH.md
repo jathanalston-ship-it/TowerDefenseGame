@@ -1,6 +1,6 @@
 # DIL_GRAPH.md — the Design Intelligence Layer (GENERATED — `npm run dil -- regen`)
 
-> **The project's brain** (docs/DIL.md). 951 nodes · 1828 edges, built from the live
+> **The project's brain** (docs/DIL.md). 954 nodes · 1832 edges, built from the live
 > registries + curated knowledge (src/dev/dil/). **Query it instead of searching the repo:**
 > `npm run dil -- node <id>` · `affects <id>` · `requires <id>` · `missing <kind> <edge>` ·
 > `checklist tower <kind>` · `find <text>`. Edge kinds are bidirectional (19 kinds).
@@ -892,7 +892,7 @@ _at: src/core/game.ts, src/core/combat.ts, src/core/status.ts, src/core/targetin
   - requiredBy ← `system:nemesis`
   - requiredBy ← `system:onboarding`
   - requiredBy ← `system:run-ui`
-  - _…236 more (query: `npm run dil -- node system:engine`)_
+  - _…238 more (query: `npm run dil -- node system:engine`)_
 
 ### `system:content-infra` — Content Infrastructure
 
@@ -2499,6 +2499,7 @@ _at: src/render/*, src/core/dangerCamera.ts_
   - consumes → `system:engine` — enemy silhouette accents: theme.ENEMY_ACCENT round-robins slot 0..2 per ENEMY_BODY form family in DECLARATION ORDER — keep family groups contiguous so new kinds auto-take the next free slot
   - consumes → `system:engine` — COOLDOWN DRIFT CONTRACT (BUGFIX-LOG #16): the projectile fire path ticks t.cooldown -= dt EVERY tick and resets only if (acted) — a tower that cannot act (raid lull, empty lane, out-of-range prey) drifts its cooldown arbitrarily far below zero, BY DESIGN (sim-harmless; the fire gate is > 0; goldens + arena lockstep replays pin the ticking). ANY render/UI consumer of tw.cooldown MUST clamp: fresh already does, and the anticipation wind-up goes through attackAnticipation (render/towerForms.ts — [0..1] by construction, pinned in renderer.test.ts) because its ctx.scale transform sits OUTSIDE drawTower's 2.2× body ceiling (the Parasite-Nest screen flood was exactly this: 60s of drift → ×2,785 nest scale). Never feed raw cooldown into a visual factor
   - provides → `system:audio` — ONE FEEL TABLE (render/feel.ts FEEL): per-cue shake + view-only hit-stop (GameView) AND duck + stinger (sound.ts) live in the same row — a new cue gets its feel from one line; src/audio/cues.test.ts fails on any cue/pushSfx/stinger literal that resolves to neither a sound.ts case nor a FEEL row. Centre-stage text (WAVE N, boss/mega intros + falls, weak-point callouts, the canvas tier banner) must go through the GameView Announcer (ANNOUNCE priorities) — never mount/draw a new centre card directly
+  - consumes → `system:engine` — LAST-KILL BEAT (docs/SIGNATURE-MOMENTS.md §1, render/lastKill.ts): the sim emits `waveLastKill` ONCE per wave the tick the field empties (a collapsing Mega counts as gone; kill:false = ended on a breach) on its INSTANCE bus, listener-gated; GameView/SpectateView slow the VIEW feed (advance(dt × rate) — fixed SIM_DT steps, never a change in src/core/), nudge the camera ≤ 4 % and play the ONE `clear` fanfare (DraftModal no longer does). Gore rides rs.fxTime (stepCount × SIM_DT) — rs.time FREEZES in the settle, so anything keyed on it holds mid-air there
   - requiredBy ← `system:hero-cinematics`
   - requiredBy ← `system:living-battlefield`
   - documentedBy ← `doc:RENDER-PIPELINE.md`
@@ -2511,7 +2512,7 @@ _at: src/render/*, src/core/dangerCamera.ts_
   - testedBy ← `test:src/render/assimilationFx.test.ts`
   - testedBy ← `test:src/render/equipmentArt.test.ts`
   - testedBy ← `test:src/render/feel.test.ts`
-  - _…21 more (query: `npm run dil -- node system:rendering`)_
+  - _…23 more (query: `npm run dil -- node system:rendering`)_
 
 ### `system:living-battlefield` — Living Battlefield
 
@@ -4022,7 +4023,7 @@ _at: site/guides.ts → /guides/live-events/_
 - `doc:VOWS.md` — project documentation _(documents `system:prestige`)_
 - `doc:WEBSITE.md` — project documentation _(documents `system:field-research`, documents `system:website`)_
 
-## Tests (322)
+## Tests (325)
 
 - `test:src/audio/cues.test.ts` — automated validation _(tests `system:audio`)_
 - `test:src/audio/music.test.ts` — automated validation _(tests `system:audio`)_
@@ -4125,6 +4126,7 @@ _at: site/guides.ts → /guides/live-events/_
 - `test:src/core/itemIdentity.test.ts` — automated validation _(tests `system:online-foundation`)_
 - `test:src/core/keystones.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/core/knell.test.ts` — automated validation _(tests `system:engine`)_
+- `test:src/core/lastKill.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/core/liveEvents.test.ts` — automated validation _(tests `system:liveops`)_
 - `test:src/core/liveops.test.ts` — automated validation _(tests `system:liveops`)_
 - `test:src/core/loginStreak.test.ts` — automated validation _(tests `system:daily-login`)_
@@ -4224,8 +4226,10 @@ _at: site/guides.ts → /guides/live-events/_
 - `test:src/render/gutters.test.ts` — automated validation _(tests `system:rendering`, tests `system:living-battlefield`)_
 - `test:src/render/heroEvolution.test.ts` — automated validation _(tests `system:rendering`)_
 - `test:src/render/heroSymbiotes.test.ts` — automated validation _(tests `system:rendering`, tests `system:hero-symbiotes`)_
+- `test:src/render/impactFx.test.ts` — automated validation _(tests `system:rendering`)_
 - `test:src/render/infestationMap.test.ts` — automated validation _(tests `system:rendering`, tests `system:infestation`)_
 - `test:src/render/introScenes.test.ts` — automated validation _(tests `system:rendering`, tests `system:onboarding`)_
+- `test:src/render/lastKill.test.ts` — automated validation _(tests `system:rendering`)_
 - `test:src/render/livingBattlefield.test.ts` — automated validation _(tests `system:rendering`, tests `system:living-battlefield`)_
 - `test:src/render/mulliganOrganism.test.ts` — automated validation _(tests `system:rendering`, tests `system:mulligans`)_
 - `test:src/render/organism.test.ts` — automated validation _(tests `system:rendering`, tests `system:living-battlefield`)_

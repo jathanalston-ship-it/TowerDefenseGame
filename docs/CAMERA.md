@@ -140,6 +140,10 @@ is deliberate. This split is the framework's core contract.
   absolutely-positioned overlay because the bar's height sizes the battlefield (100 vh
   column) — an in-flow banner literally shrank the board on every commit. Danger channels
   must be non-geometric and layout-stable.
+- **Event-keyed eased pulses are fine** — the wave/boss push-in (1.2 %) and the LAST-KILL nudge
+  (≤ 4 %, scaled about the final kill; render/lastKill.ts, docs/SIGNATURE-MOMENTS.md §1) are
+  one-shot, eased in and home within ~1 s, keyed to an EVENT, never to the zone boundary or to
+  enemy proximity, and both are zeroed by reduced motion. Keep any new zoom inside those rules.
 - **New camera/tension effect** (screen tint, DOF, ambience layer…): read
   `rs.dangerIntensity` (renderer) or `game.dangerCam.intensity` (UI), shape with
   `dangerCurve`, keep amplitudes subtle (this is tension, not a mechanic). Never read enemy

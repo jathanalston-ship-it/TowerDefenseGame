@@ -228,9 +228,9 @@ export function DraftModal({
     }
   };
 
-  // Wave-cleared fanfare on open (the sim also deals a 'draft' sound) + the input-arm beat.
+  // The input-arm beat. The wave-cleared `clear` fanfare no longer plays here: it lands ON the last
+  // kill (render/lastKill.ts, docs/SIGNATURE-MOMENTS.md §1) — one fanfare per wave.
   useEffect(() => {
-    audio.cue('clear');
     const id = window.setTimeout(() => { armed.current = true; }, DRAFT_ARM_MS);
     return () => {
       window.clearTimeout(id);

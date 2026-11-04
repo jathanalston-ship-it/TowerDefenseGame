@@ -67,7 +67,10 @@ export function clearImpacts(): void {
 export function drawImpacts(ctx: CanvasRenderingContext2D, now: number): void {
   for (const p of pool) {
     if (!p.live) continue;
-    const age = now - p.at;
+    // Clamped: a push stamped with performance.now() mid-frame is LATER than this frame's rAF
+    // timestamp — on a slow frame (> ~25 ms of work before the draw) the raw age went negative,
+    // the ring's eased radius went negative, and arc() threw, killing the run loop.
+    const age = Math.max(0, now - p.at);
     if (p.kind === 'ring') {
       if (age >= RING_MS) { p.live = false; continue; }
       const k = age / RING_MS; // 0 → 1

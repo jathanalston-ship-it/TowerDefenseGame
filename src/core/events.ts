@@ -17,6 +17,11 @@ export interface GameEventMap {
   towerSold: { id: number; kind: TowerKind; slot: number; refund: number };
   waveStarted: { wave: number; endless: boolean };
   waveCompleted: { wave: number; endless: boolean };
+  // The field just EMPTIED — the wave's last enemy left it (docs/SIGNATURE-MOMENTS.md §1). Fires once
+  // per wave, the tick it happens (a collapsing Mega counts as gone, so a raid's beat lands on the
+  // fall). kill = it died (false: the wave ended on a breach); boss / mega = one fell this wave;
+  // final = this clear wins the run. Presentation only: the view stages its last-kill beat on it.
+  waveLastKill: { wave: number; x: number; y: number; kill: boolean; boss: boolean; mega: boolean; final: boolean };
   bossKilled: { defId: string; name: string; x: number; y: number; epithet?: string; final: boolean }; // epithet feeds the defeat beat (docs/BOSS-DESIGN.md §identity); final = the LAST piece of that boss died (a splitter fires once per piece)
   bossSpawned: { defId: string; name: string; nemesis: boolean; nemesisTier: number }; // a framework boss entered — nemesis flags the personal hunt (docs/NEMESIS.md) for the roar cue
   bossPhase: { defId: string; name: string; phase: number }; // a boss MUTATED into its next phase (docs/BOSS-DESIGN.md §phases)

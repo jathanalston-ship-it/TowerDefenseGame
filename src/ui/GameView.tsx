@@ -49,6 +49,7 @@ import type { FeelRow, Shown } from '../render/feel';
 import { CentreStage, megaFallCard, type StageCard } from './components/CentreStage';
 import { LivingGutters } from './components/LivingGutters';
 import { clearImpacts, drawImpacts, pushImpactBloom, pushImpactRing } from '../render/impactFx';
+import { LastKillMoment } from '../render/lastKill';
 import { tutorial as tutorialStore } from '../state/tutorial';
 import { gameEvents } from '../core/events';
 import { MODULE_LABEL } from '../core/boss';
@@ -466,6 +467,11 @@ export function GameView({
   // MEGA FALL card (docs/GAME-FEEL.md §boss kills): the organism's collapse is the top of the
   // centre-stage ladder — it clears every lesser card; the quake + duck + stinger ride megaDeath.
   useEffect(() => gameEvents.on('megaKilled', (e) => announce(megaFallCard(e))), [announce]);
+  // LAST KILL (docs/SIGNATURE-MOMENTS.md §1, render/lastKill.ts): the wave's final enemy LANDS — a
+  // view-time dip, a camera nudge toward the body and the `clear` fanfare (moved here off the draft).
+  const lastKillRef = useRef<LastKillMoment | null>(null);
+  lastKillRef.current ??= new LastKillMoment();
+  useEffect(() => game.events.on('waveLastKill', (e) => lastKillRef.current!.start(e, game.mode, game.timeScale)), [game]);
   const pointerRef = useRef<Pointer | null>(null);
   const downRef = useRef<{ x: number; y: number } | null>(null); // press origin for click-vs-drag
   const traumaRef = useRef(0);
@@ -645,8 +651,10 @@ export function GameView({
         // against a frozen battlefield. advance() never reads this, so stepping stays deterministic.
         // Reduced motion (motionScale 0) kills hit-stop at the source — sim-set ones included.
         if (viewFeel.motion === 0) game.hitstop = 0;
+        const lastKill = lastKillRef.current!; // the last-kill beat feeds the sim more slowly for a moment
+        if (lastKill.tick(dt * 1000)) audio.cue('clear');
         if (game.hitstop > 0) game.hitstop = Math.max(0, game.hitstop - dt);
-        else game.advance(dt);
+        else game.advance(dt * lastKill.rate(game.timeScale, viewFeel.motion));
 
         // Drain presentation cues → audio + screen-shake trauma.
         const cues = game.drainSfx();
@@ -728,6 +736,7 @@ export function GameView({
           ctx.scale(wz, wz);
           ctx.translate(-WIDTH / 2, -HEIGHT * 0.5);
         }
+        lastKill.applyCamera(ctx, viewFeel.motion); // LAST KILL nudge: ≤ 4 % toward the kill, eased in and home
         // Assimilation HEARTBEAT (docs/ASSIMILATION.md §Camera): a barely-perceptible view breath
         // that deepens with the index — the battlefield feels ALIVE as the run assimilates. Capped
         // at a fraction of a percent so it reads as a pulse, never a zoom; composes under the above.

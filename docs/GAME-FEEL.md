@@ -72,6 +72,17 @@ announcer (the old 14 px "FELL" float is gone). A raid organism's death announce
 FALLS" as the top-priority card (title + organs ruptured · kill time · FLAWLESS); its centre
 callouts and organ labels fade within 0.3 s instead of lingering under it.
 
+### §last kill — the wave's final enemy lands
+(docs/SIGNATURE-MOMENTS.md §1 — the full beat sheet + edge cases.) The sim's presentation event
+`waveLastKill` (once per wave, the tick the field empties) starts `render/lastKill.ts`: VIEW time
+eases to 50 % (35 % and ~1.5× longer when a boss / the Mega fell) — GameView simply feeds the sim
+fewer fixed steps for ~0.65 s — the camera leans ≤ 4 % toward the body, and the `clear` fanfare
+(with a `FEEL.clear` duck) lands ~120 ms after the kill instead of on the draft (DraftModal no
+longer plays it: one fanfare per wave). Taste values: `LAST_KILL` in render/feel.ts. Reduced
+motion keeps the fanfare only; a wave that ends on a breach gets no slow-mo; Arena never plays it.
+The kill's gore now rides the presentation clock `rs.fxTime`, so it bursts through the settle
+(it used to freeze there with `rs.time`).
+
 ### §draft — the pick moment
 Picking a gene card COMMITS for 350 ms (`PICK_COMMIT_MS`) before the draft resolves: the chosen
 card flares and lifts in its rarity colour, the others dissolve, and a `draftPick@tier` cue (a

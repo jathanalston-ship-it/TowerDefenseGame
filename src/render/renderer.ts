@@ -385,7 +385,7 @@ export function drawGame(
   // ASSIMILATION gore (render/gore.ts): ingest this frame's deaths + advance the pieces, then lay the
   // settled viscera/juice DECALS on the floor (under towers + bodies). Flying pieces draw over, below.
   ingestDeaths(rs);
-  updateGore(t);
+  updateGore(rs.fxTime); // the presentation clock: a wave's LAST kill bursts through the settle (rs.time freezes there)
   drawGoreFloor(ctx);
   drawOverchargeLinks(ctx, rs);
   const combat = rs.phase === 'wave' && rs.enemies.length > 0; // anticipation only makes sense with prey
