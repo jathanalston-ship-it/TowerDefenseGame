@@ -150,6 +150,14 @@ export const RELEASES: Release[] = [
       {
         "cat": "Gameplay",
         "text": "“Stage N+1 ▸” on Results lets you pick the next stage’s boon instead of taking the default"
+      },
+      {
+        "cat": "Bug Fixes",
+        "text": "Fixed a crash that could end a run when a boss died on a slow frame (most often on phones)"
+      },
+      {
+        "cat": "Bug Fixes",
+        "text": "Rank promotions, level-ups and other pop-ups now wait until your Arena match is over instead of covering the field"
       }
     ]
   },
