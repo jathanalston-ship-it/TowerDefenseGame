@@ -9,25 +9,12 @@ type AnyWindow = Window & { webkitAudioContext?: typeof AudioContext };
 let ctx: AudioContext | null = null;
 import { music } from './music';
 import type { StingerId } from './music';
-import { gameEvents } from '../core/events';
+import { feelOf } from '../render/feel';
 
-/** Stings heavy enough to DUCK the score under (depth removed, recovery seconds) —
- *  the mix glue that makes the big moments read as one soundtrack, not two layers. */
-const DUCK: Record<string, [number, number]> = {
-  mega: [0.45, 1.4], megaDeath: [0.5, 1.8], megaPhase: [0.3, 0.9],
-  wpBreak: [0.28, 0.7], splice: [0.3, 0.8], breach: [0.25, 0.6],
-  boss_phase: [0.28, 0.8], mega_cast: [0.22, 0.6],
-  megaStagger: [0.32, 1.0], megaCataclysm: [0.5, 1.6], megaGorge: [0.24, 0.7],
-  nemesis_roar: [0.34, 1.2],
-};
-
-/** Reward cues that ALSO land a musical stinger (audio/music.ts STINGERS) — mapped here so every
- *  existing and future call site pays off musically with zero per-site wiring. Throttled per
- *  stinger id (streamy cues like the Power toaster can't turn a motif into a siren). */
-const STING: Record<string, StingerId> = {
-  jackpot: 'legendary', achieve: 'achievement', mastery: 'mastery',
-  rankup: 'unlock', power: 'power', megaDeath: 'bossDown', strandFound: 'discovery',
-};
+// Per-cue DUCK depth + musical STINGER live in the ONE feel table (render/feel.ts FEEL) — the same
+// rows GameView reads for shake/hit-stop — so every existing and future call site pays off with
+// zero per-site wiring. Stingers are throttled per id (streamy cues like the Power toaster can't
+// turn a motif into a siren). Boss deaths ride the sim's `bossFall` cue → its 'bossDown' row.
 const STING_COOLDOWN_MS = 6000;
 const stingLastAt: Partial<Record<StingerId, number>> = {};
 
@@ -38,14 +25,9 @@ const POWER_CHAIN_WINDOW_MS = 4000;
 let powerChainAt = -1e12;
 let powerChain = 0;
 
-// Boss defeated mid-run → its musical payoff. Registered at module scope like the meta listeners
-// (app-only: the sim/golden tests never import the audio layer). Mega deaths ride megaDeath above.
-gameEvents.on('bossKilled', () => {
-  const now = Date.now();
-  if ((stingLastAt.bossDown ?? -1e12) + STING_COOLDOWN_MS > now) return;
-  stingLastAt.bossDown = now;
-  music.stinger('bossDown');
-});
+// Crits are frequent: a soft "ching" at most once per CRIT_GAP_MS, however many land per frame.
+const CRIT_GAP_MS = 90;
+let critAt = -1e12;
 
 let master: GainNode | null = null;
 let sfxBus: GainNode | null = null;
@@ -295,6 +277,28 @@ function sMine(): void { // spore-mine burst: wet pop + acid fizz (docs/SOWER.md
   noise(0.22, 0.16, 1600, 300); tone(180, 0.18, 'sine', 0.2, 70); noise(0.3, 0.06, 5200, 2000);
 }
 function sDraft(): void { tone(523, 0.12, 'triangle', 0.14); tone(784, 0.3, 'triangle', 0.14); }
+// GENE PICK (docs/GAME-FEEL.md §draft): the commitment — a wet THUNK, then a riser whose reach and
+// shimmer grow with rarity (d = tier depth from the 'draftPick@N' suffix; common 0 … legendary 1).
+function sDraftPick(d = 0): void {
+  noise(0.08, 0.12, 900, 220); tone(150, 0.16, 'sine', 0.2, 70); // the thunk
+  tone(392, 0.16 + 0.22 * d, 'triangle', 0.08 + 0.04 * d, 784 * (1 + 0.5 * d)); // the riser
+  if (d >= 0.5) { tone(1175, 0.3 + 0.2 * d, 'sine', 0.05 * d, 1568); noise(0.24, 0.03 * d, 6200); } // epic+ shimmer
+}
+// A STAGE BOSS FALLS (docs/GAME-FEEL.md §boss kills): crunch + sub boom + a brief rising gleam —
+// unmistakably a kill, never the Hive-breach alarm it used to borrow.
+function sBossFall(): void {
+  noise(0.32, 0.18, 2600, 260); tone(64, 0.7, 'sine', 0.32, 30); tone(128, 0.4, 'sawtooth', 0.12, 52);
+  tone(523, 0.32, 'triangle', 0.07, 1046);
+}
+// Hero ULT landing (docs/HERO-CINEMATICS.md §impact): a short sub thump + dust under the impact frame.
+function sAbilityImpact(): void { tone(70, 0.26, 'sine', 0.24, 38); noise(0.18, 0.1, 1400, 220); }
+// Critical hit: a soft, bright "ching" (rate-limited in the dispatcher — crits arrive in bursts).
+function sCrit(): void { tone(1568, 0.07, 'sine', 0.05, 2093); tone(2637, 0.05, 'sine', 0.022); }
+// Maw REFLUX VOLLEY (docs/STRAIN.md): a wet spit fan — `i` detunes a stacked volley.
+function sShot(i: number): void { noise(0.07, 0.07, 1700 - i * 150, 520); tone(260 - i * 20, 0.06, 'triangle', 0.045, 150); }
+// Arena match result stings — short, dry, distinct from the run cadences the music owns.
+function sVictory(): void { tone(392, 0.12, 'triangle', 0.12); tone(523, 0.12, 'triangle', 0.12); tone(784, 0.4, 'sine', 0.14, 830); }
+function sDefeat(): void { tone(330, 0.2, 'triangle', 0.11, 311); tone(262, 0.24, 'triangle', 0.1, 247); tone(98, 0.6, 'sine', 0.16, 70); }
 // ── Mulligan graft cues (docs/MULLIGANS.md §audio) — the organism is ALIVE: a soft wet
 //    heartbeat under fielded organisms in-run, tissue squelch on socketing a modifier,
 //    bone crack + vital swell on an upgrade. All QUIET by design — organic presence. ──
@@ -531,9 +535,9 @@ export const audio = {
       }
       const at = core.indexOf('@');
       const tag = at < 0 ? core : core.slice(0, at);
-      const duck = DUCK[tag];
-      if (duck) music.duck(duck[0], duck[1]);
-      const sting = STING[tag];
+      const feel = feelOf(tag);
+      if (feel?.duck) music.duck(feel.duck[0], feel.duck[1]);
+      const sting = feel?.stinger;
       if (sting) {
         const now = Date.now();
         if ((stingLastAt[sting] ?? -1e12) + STING_COOLDOWN_MS <= now) {
@@ -599,6 +603,17 @@ export const audio = {
         case 'megaDeath': sMegaDeath(); break;
         case 'megaBurrow': sMegaBurrow(); break;
         case 'draft': sDraft(); break;
+        case 'draftPick': sDraftPick(d); break;
+        case 'bossFall': sBossFall(); break;
+        case 'abilityImpact': sAbilityImpact(); break;
+        case 'crit': {
+          const cNow = Date.now();
+          if (cNow - critAt >= CRIT_GAP_MS) { critAt = cNow; sCrit(); }
+          break;
+        }
+        case 'shot': for (let i = 0; i < Math.min(2, n); i++) sShot(i); break;
+        case 'victory': sVictory(); break;
+        case 'defeat': sDefeat(); break;
         case 'graftPulse': sGraftPulse(); break;
         case 'graftSquelch': sGraftSquelch(); break;
         case 'graftCrack': sGraftCrack(); break;

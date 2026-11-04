@@ -404,6 +404,8 @@ interface PendingImpact {
   hero: HeroKind;
   particle?: ParticleKind; // the landing burst (deferred from cast time)
   fxColor?: string;
+  ult?: boolean; // the hero's ULTIMATE (the view stages an impact frame on its landing)
+  radius?: number; // resolved zone radius (presentation: the impact bloom's extent)
 }
 
 /** Component types that LAND with the cinematic impact; everything else in a kit
@@ -3950,7 +3952,12 @@ export class Game {
       killSec, perfect, weakPoints: rt.wpDestroyed, interrupts: rt.interrupts,
     });
     this.runBossKills++; // a mega counts toward boss-kill ledgers (Boss Rush bands included)
-    this.floats.push({ x: WIDTH / 2, y: MEGA.anchorY + 100, text: `${def.name} FALLS`, color: '#ffd24d', life: 3 });
+    // The fall is ANNOUNCED by the view's centre-stage card (megaKilled event). Its voice dies with
+    // it: channeling callouts (centre floats) and organ labels fade within a beat instead of
+    // lingering under the card. Presentation-only (floats never feed the sim).
+    for (const f of this.floats) {
+      if (f.x === WIDTH / 2 || def.weakPoints.some((wp) => Math.abs(f.x - wp.x * WIDTH) < 0.5)) f.life = Math.min(f.life, 0.3);
+    }
     this.spawnParticles(WIDTH / 2, MEGA.anchorY + 40, PARTICLE.bossfall, def.palette.glow);
     this.spawnParticles(WIDTH * 0.3, MEGA.anchorY + 70, PARTICLE.bossfall, def.palette.body);
     this.spawnParticles(WIDTH * 0.7, MEGA.anchorY + 70, PARTICLE.bossfall, def.palette.accent);
@@ -6136,7 +6143,7 @@ export class Game {
       const crit = this.rollHeroCrit(h); // Precision/Savagery — gated so no-crit runs spend no rng
       const dmg = def.attackDamage * this.heroDamageMult(h) * this.heroEliteDamage(h, target) * crit.mult;
       const applied = this.applyDamage(target, dmg);
-      if (crit.crit) this.floats.push({ x: target.x, y: target.y - 16, text: `${Math.round(applied)}!`, color: '#ffcf5a', life: 0.7, kind: 'crit' }); // crit damage number
+      if (crit.crit) { this.pushSfx('crit'); this.floats.push({ x: target.x, y: target.y - 16, text: `${Math.round(applied)}!`, color: '#ffcf5a', life: 0.7, kind: 'crit' }); } // crit damage number + a soft, rate-limited ching
       this.heroMasteryAccrual[h.kind].damage += applied;
       this.heroLifesteal(h, applied); // weapon: sustain through attacking (no-op at 0)
       if (target.hp <= 0) target.lastHitHero = h.kind; // killing blow — kill credit + symbiote kill verbs
@@ -6328,7 +6335,7 @@ export class Game {
     const crit = this.rollHeroCrit(h);
     const dmg = def.attackDamage * this.heroDamageMult(h) * crit.mult;
     const applied = this.applyDamage(target, dmg);
-    if (crit.crit) this.floats.push({ x: target.x, y: target.y - 16, text: `${Math.round(applied)}!`, color: '#ffcf5a', life: 0.7, kind: 'crit' });
+    if (crit.crit) { this.pushSfx('crit'); this.floats.push({ x: target.x, y: target.y - 16, text: `${Math.round(applied)}!`, color: '#ffcf5a', life: 0.7, kind: 'crit' }); }
     this.heroMasteryAccrual[h.kind].damage += applied;
     this.heroLifesteal(h, applied);
     if (target.hp <= 0) target.lastHitHero = h.kind; // killing blow — kill credit + symbiote kill verbs
@@ -6396,7 +6403,7 @@ export class Game {
     const crit = this.rollHeroCrit(h);
     const dmg = def.attackDamage * this.heroDamageMult(h) * this.heroEliteDamage(h, target) * crit.mult;
     const applied = this.applyDamage(target, dmg);
-    if (crit.crit) this.floats.push({ x: target.x, y: target.y - 16, text: `${Math.round(applied)}!`, color: '#ffcf5a', life: 0.7, kind: 'crit' });
+    if (crit.crit) { this.pushSfx('crit'); this.floats.push({ x: target.x, y: target.y - 16, text: `${Math.round(applied)}!`, color: '#ffcf5a', life: 0.7, kind: 'crit' }); }
     this.heroMasteryAccrual[h.kind].damage += applied;
     this.heroLifesteal(h, applied);
     if (target.hp <= 0) target.lastHitHero = h.kind; // killing blow — kill credit + symbiote kill verbs
@@ -6535,7 +6542,7 @@ export class Game {
       // fire NOW; the zone payload lands when the performance strikes, `delay` seconds out.
       const instant = comps.filter((c) => !IMPACT_COMP_TYPES.has(c.type));
       if (instant.length > 0) runAbilities(this.actx, instant, this.castScratch);
-      this.queueImpact(h, ab, comps, px, py, delay);
+      this.queueImpact(h, ab, comps, px, py, delay, true);
     } else {
       runAbilities(this.actx, comps, this.castScratch);
     }
@@ -6546,7 +6553,9 @@ export class Game {
     h.abilityCd = this.heroAbilityCooldownFor(h);
     this.pushSfx('ability');
     if (gameEvents.hasListeners('heroAbilityUsed')) gameEvents.emit('heroAbilityUsed', { kind: h.kind }); // drives the Combat Tutorial (golden-safe: gated on a listener)
-    this.floats.push({ x: px, y: py - 20, text: crit.crit ? `${ab.name}! ✷CRIT` : `${ab.name}!`, color: crit.crit ? '#ffcf5a' : def.color, life: 0.8, kind: crit.crit ? 'crit' : undefined });
+    // The name rides ABOVE the zone (the caster repositions onto its centre) — never on its body,
+    // and clear of the grouped damage total the view lands mid-zone at impact.
+    this.floats.push({ x: px, y: py - Math.max(64, ab.radius + 18), text: crit.crit ? `${ab.name}! ✷CRIT` : `${ab.name}!`, color: crit.crit ? '#ffcf5a' : def.color, life: 0.8, kind: crit.crit ? 'crit' : undefined });
     // Symbiote ECHO (docs/HERO-SYMBIOTES.md): an echo organ schedules a weaker answer to the cast.
     if (this.symbioteOf(h)?.abilityEchoFrac) {
       h.echoT = SYMBIOTE.echoDelay;
@@ -6615,10 +6624,12 @@ export class Game {
   /** Queue the LANDING half of a cinematic cast: the zone payload (IMPACT_COMP_TYPES) resolves
    *  `delay` seconds out, when the performance strikes. Damage/crit multipliers and the ability
    *  radius were locked at CAST — the impact spends no rng. */
-  private queueImpact(h: Hero, ab: HeroAbilityDef, comps: readonly AbilityComponent[], px: number, py: number, delay: number): void {
+  private queueImpact(h: Hero, ab: HeroAbilityDef, comps: readonly AbilityComponent[], px: number, py: number, delay: number, ult = false): void {
     const impact = comps.filter((c) => IMPACT_COMP_TYPES.has(c.type));
     if (impact.length === 0) return;
     this.pendingImpacts.push({
+      ult,
+      radius: Math.max(ab.radius, ab.poolRadius ?? 0) * this.castRangeMult,
       at: this.time + delay,
       x: px,
       y: py,
@@ -6648,9 +6659,15 @@ export class Game {
       this.castScratch.target = null;
       this.castScratch.pierce = 0;
       this.castRangeMult = p.rangeMult;
+      const dealtBefore = this.statDamageDealt;
       runAbilities(this.actx, p.comps, this.castScratch);
       this.castRangeMult = 1;
       if (p.particle) this.spawnParticles(p.x, p.y, PARTICLE[p.particle], p.fxColor); // the landing burst
+      // The view's IMPACT FRAME (docs/HERO-CINEMATICS.md §impact): hit-stop + zone bloom + one
+      // grouped damage total. Observation only — gated on a listener, so the sim is untouched.
+      if (p.ult && gameEvents.hasListeners('abilityImpact')) {
+        gameEvents.emit('abilityImpact', { hero: p.hero, x: p.x, y: p.y, radius: p.radius ?? 0, color: p.fxColor ?? HERO_DEFS[p.hero].color, damage: this.statDamageDealt - dealtBefore });
+      }
     }
   }
 
@@ -6985,8 +7002,9 @@ export class Game {
     this.spawnParticles(e.x, e.y, PARTICLE.bossfall);
     this.spawnParticles(e.x, e.y, PARTICLE.bossfall, ENEMY_DEFS[e.kind].color);
     for (let i = 0; i < 5; i++) this.spawnMotes(e.x, e.y); // the boss's biomass floods home
-    this.floats.push({ x: e.x, y: e.y - 26, text: `${e.boss?.name ?? 'BOSS'} FELL`, color: '#ffd24d', life: 1.8 });
-    this.pushSfx('breach'); // strongest existing shake cue
+    // The fall is ANNOUNCED by the view's centre-stage card (bossKilled event); this cue carries its
+    // weight — shake, hit-stop, duck + the bossDown stinger (render/feel.ts FEEL.bossFall).
+    this.pushSfx('bossFall');
   }
 
   /** Wave-clear flourish at the line; a no-damage wave reads as FLAWLESS (skill reward). */
