@@ -1,6 +1,6 @@
 # DIL_GRAPH.md — the Design Intelligence Layer (GENERATED — `npm run dil -- regen`)
 
-> **The project's brain** (docs/DIL.md). 915 nodes · 1737 edges, built from the live
+> **The project's brain** (docs/DIL.md). 922 nodes · 1759 edges, built from the live
 > registries + curated knowledge (src/dev/dil/). **Query it instead of searching the repo:**
 > `npm run dil -- node <id>` · `affects <id>` · `requires <id>` · `missing <kind> <edge>` ·
 > `checklist tower <kind>` · `find <text>`. Edge kinds are bidirectional (19 kinds).
@@ -18,7 +18,7 @@
 
 ### Progression Index
 
-`system:hive-mind` · `system:campaign` · `system:accounts` · `system:premium` · `system:towers` · `system:loot` · `system:gene-cards` · `system:quests` · `system:progression-gating` · `system:hub-shell` · `system:notifications` · `system:meta-store` · `system:mega-bosses` · `system:cutscenes` · `system:security` · `system:doctrines` · `system:ui-kit` · `concept:progression-gates` · `currency:tower-shards` · `tower:maw` · `tower:chrysalis` · `tower:effigy` · `tower:coil` · `tower:siphon` · `tower:sower` · `tower:spire` · `tower:polyp` · `tower:spitfang` · `tower:rift` · `tower:glaive` · `tower:roost` · `tower:lung` · `tower:bell` · `tower:lancet` · `hero:vitriol` · `hero:revenant` · `hero:knell` · `hero:wyrm` · `hero:riptide` · `hero:carrion` · `hero:chimera`
+`system:hive-mind` · `system:campaign` · `system:accounts` · `system:premium` · `system:towers` · `system:loot` · `system:gene-cards` · `system:currencies` · `system:quests` · `system:progression-gating` · `system:hub-shell` · `system:notifications` · `system:meta-store` · `system:mega-bosses` · `system:cutscenes` · `system:security` · `system:doctrines` · `system:ui-kit` · `concept:progression-gates` · `currency:tower-shards` · `tower:maw` · `tower:chrysalis` · `tower:effigy` · `tower:coil` · `tower:siphon` · `tower:sower` · `tower:spire` · `tower:polyp` · `tower:spitfang` · `tower:rift` · `tower:glaive` · `tower:roost` · `tower:lung` · `tower:bell` · `tower:lancet` · `hero:vitriol` · `hero:revenant` · `hero:knell` · `hero:wyrm` · `hero:riptide` · `hero:carrion` · `hero:chimera`
 
 ### Economy / Reward Index
 
@@ -34,11 +34,11 @@
 
 ### Teaching Index
 
-`tutorial:combat` · `help:mission-control` · `help:hive-intel` · `help:evolution-roadmap` · `help:power-advisor` · `help:field-guides` · `help:hive-core` · `help:biomorph-conveyor` · `help:strain-evolution` · `help:boss-sieges` · `help:boss-rush` · `help:bio-roulette` · `help:gene-essence` · `help:field-research` · `help:splice-market` · `help:auction-house` · `help:daily-login` · `help:hive-construction` · `help:gene-archive` · `help:gene-loadout` · `help:biomass` · `help:wave-rhythm` · `help:game-speed` · `help:emergency-defense` · `help:power-score` · `help:account-level` · `help:genome-rank` · `help:towers` · `help:tower-stars` · `help:tower-mastery` · `help:mastery-evolution` · `help:tower-branches` · `help:adaptation` · `help:mulligans` · `help:nucleus` · `help:gene-cards` · `help:heroes` · `help:hero-evolution` · `help:hero-slots` · `help:equipment` · `help:equipment-reforge` · `help:gear-codex` · `help:genome-core` · `help:prestige` · `help:ascension` · `help:containers` · `help:loot-meter` · `help:collection-codex` · `help:phenotype-lab` · `help:idle-harvest` · `help:metabolism` · `help:specimens` · `help:arena` · `help:expeditions` · `help:quests` · `help:season-pass` · `help:premium-store` · `help:campaign` · `help:infinite` · `help:threat` · …28 more
+`tutorial:combat` · `help:mission-control` · `help:hive-intel` · `help:evolution-roadmap` · `help:power-advisor` · `help:field-guides` · `help:hive-core` · `help:biomorph-conveyor` · `help:strain-evolution` · `help:boss-sieges` · `help:boss-rush` · `help:bio-roulette` · `help:gene-essence` · `help:field-research` · `help:splice-market` · `help:auction-house` · `help:daily-login` · `help:hive-construction` · `help:gene-archive` · `help:gene-loadout` · `help:biomass` · `help:wave-rhythm` · `help:game-speed` · `help:emergency-defense` · `help:power-score` · `help:account-level` · `help:genome-rank` · `help:towers` · `help:tower-stars` · `help:tower-mastery` · `help:mastery-evolution` · `help:tower-branches` · `help:adaptation` · `help:mulligans` · `help:nucleus` · `help:gene-cards` · `help:heroes` · `help:hero-evolution` · `help:hero-slots` · `help:equipment` · `help:equipment-reforge` · `help:gear-codex` · `help:genome-core` · `help:prestige` · `help:ascension` · `help:containers` · `help:loot-meter` · `help:collection-codex` · `help:phenotype-lab` · `help:idle-harvest` · `help:metabolism` · `help:specimens` · `help:arena` · `help:expeditions` · `help:quests` · `help:season-pass` · `help:premium-store` · `help:campaign` · `help:infinite` · `help:threat` · …29 more
 
 ### Testing Index
 
-`system:hive-mind` · `system:engine` · `system:content-infra` · `system:power` · `system:campaign` · `system:pil` · `system:accounts` · `system:boss-rush` · `system:daily` · `system:mulligans` · `system:premium` · `system:net-backend` · `system:online-foundation` · `system:arena` · `system:towers` · `system:mastery` · `system:heroes` · `system:hero-cinematics` · `system:equipment` · `system:crafting` · `system:loot` · `system:gene-cards` · `system:nucleus` · `system:hero-symbiotes` · `system:idle-harvest` · `system:metabolism` · `system:collection` · `system:evolution-hq` · `system:hive-construction` · `system:daily-login` · `system:prestige` · `system:currencies` · `system:splice-market` · `system:achievements` · `system:stats` · `system:liveops` · `system:directives` · `system:contracts` · `system:infestation` · `system:chronicle` · `system:cosmetics` · `system:battle-pass` · `system:quests` · `system:profile` · `system:onboarding` · `system:account-level` · `system:genome-rank` · `system:progression-gating` · `system:hub-shell` · `system:run-ui` · `system:notifications` · `system:prediction` · `system:meta-store` · `system:bosses` · `system:mega-bosses` · `system:cutscenes` · `system:security` · `system:biomes` · `system:doctrines` · `system:threat` · …9 more
+`system:hive-mind` · `system:engine` · `system:content-infra` · `system:power` · `system:campaign` · `system:pil` · `system:accounts` · `system:boss-rush` · `system:daily` · `system:mulligans` · `system:premium` · `system:net-backend` · `system:online-foundation` · `system:arena` · `system:towers` · `system:mastery` · `system:heroes` · `system:hero-cinematics` · `system:equipment` · `system:crafting` · `system:loot` · `system:gene-cards` · `system:nucleus` · `system:hero-symbiotes` · `system:idle-harvest` · `system:metabolism` · `system:collection` · `system:evolution-hq` · `system:hive-construction` · `system:daily-login` · `system:prestige` · `system:currencies` · `system:splice-market` · `system:achievements` · `system:stats` · `system:liveops` · `system:directives` · `system:contracts` · `system:infestation` · `system:chronicle` · `system:cosmetics` · `system:battle-pass` · `system:quests` · `system:profile` · `system:onboarding` · `system:account-level` · `system:genome-rank` · `system:progression-gating` · `system:hub-shell` · `system:run-ui` · `system:notifications` · `system:prediction` · `system:meta-store` · `system:bosses` · `system:mega-bosses` · `system:cutscenes` · `system:security` · `system:biomes` · `system:map-layouts` · `system:doctrines` · …10 more
 
 ### Developer Tooling Index
 
@@ -141,6 +141,8 @@ graph LR
   system_living_battlefield["Living Battlefield"] -->|consumes| system_assimilation["Assimilation Index"]
   system_mulligans["Mulligan System"] -->|modifies| system_rendering["Rendering & VFX"]
   system_equipment["Equipment & Armory"] -->|modifies| system_rendering["Rendering & VFX"]
+  system_hub_shell["Hub Shell & Home"] -->|modifies| system_notifications["Notifications"]
+  system_notifications["Notifications"] -->|modifies| system_run_ui["In-Run HUD & Results"]
   system_bosses["Bosses"] -->|modifies| system_rendering["Rendering & VFX"]
   system_genome_rank["Genome Rank (ultimate mastery ladder)"] -->|consumes| system_account_level["Account Level (evergreen meta-progression)"]
   system_hive_mind["Hive Intelligence (in-run)"] -->|consumes| system_engine["Sim Engine"]
@@ -183,6 +185,10 @@ graph LR
   system_currencies["Currencies & Economy Framework"] -->|modifies| system_mulligans["Mulligan System"]
   system_infestation["Infestation Map — THE FRONT"] -->|modifies| system_hub_shell["Hub Shell & Home"]
   system_infestation["Infestation Map — THE FRONT"] -->|modifies| system_expeditions["Hero Expeditions"]
+  system_map_layouts["Arena Layouts"] -->|modifies| system_engine["Sim Engine"]
+  system_campaign["Campaign"] -->|consumes| system_map_layouts["Arena Layouts"]
+  system_daily["Daily Run"] -->|consumes| system_map_layouts["Arena Layouts"]
+  system_infinite["Infinite Mode"] -->|consumes| system_map_layouts["Arena Layouts"]
 ```
 
 ### Power Score Map
@@ -484,6 +490,9 @@ graph LR
   system_security["Game Action Security Layer"] -->|dependsOn| system_meta_store["Meta Store & Save"]
   system_security["Game Action Security Layer"] -->|dependsOn| system_net_backend["Backend lanes (net/)"]
   system_biomes["Biomes"] -->|dependsOn| system_content_infra["Content Infrastructure"]
+  system_map_layouts["Arena Layouts"] -->|dependsOn| system_engine["Sim Engine"]
+  system_map_layouts["Arena Layouts"] -->|dependsOn| system_content_infra["Content Infrastructure"]
+  system_map_layouts["Arena Layouts"] -->|dependsOn| system_biomes["Biomes"]
   system_doctrines["Doctrines"] -->|dependsOn| system_content_infra["Content Infrastructure"]
   system_doctrines["Doctrines"] -->|dependsOn| system_gene_cards["Gene Cards (draft + permanent evolution)"]
   system_doctrines["Doctrines"] -->|dependsOn| system_difficulty["Difficulty"]
@@ -551,6 +560,9 @@ graph LR
   system_rendering["Rendering & VFX"] -->|consumes| system_engine["Sim Engine"]
   system_analytics["Player Telemetry & Analytics"] -->|consumes| system_hub_shell["Hub Shell & Home"]
   system_cosmetics["The Wardrobe (Cosmetics)"] -->|provides| system_online_foundation["Online Foundation"]
+  system_campaign["Campaign"] -->|consumes| system_map_layouts["Arena Layouts"]
+  system_daily["Daily Run"] -->|consumes| system_map_layouts["Arena Layouts"]
+  system_infinite["Infinite Mode"] -->|consumes| system_map_layouts["Arena Layouts"]
 ```
 
 ### Presentation Couplings Map
@@ -568,6 +580,8 @@ graph LR
   system_mulligans["Mulligan System"] -->|modifies| system_rendering["Rendering & VFX"]
   system_equipment["Equipment & Armory"] -->|modifies| system_rendering["Rendering & VFX"]
   system_onboarding["Tutorials, Help & Onboarding"] -->|triggers| system_audio["Audio"]
+  system_hub_shell["Hub Shell & Home"] -->|modifies| system_notifications["Notifications"]
+  system_notifications["Notifications"] -->|modifies| system_run_ui["In-Run HUD & Results"]
   system_bosses["Bosses"] -->|triggers| system_audio["Audio"]
   system_bosses["Bosses"] -->|modifies| system_rendering["Rendering & VFX"]
   system_mega_bosses["Mega Bosses"] -->|triggers| system_audio["Audio"]
@@ -591,6 +605,7 @@ graph LR
   system_currencies["Currencies & Economy Framework"] -->|modifies| system_mulligans["Mulligan System"]
   system_infestation["Infestation Map — THE FRONT"] -->|modifies| system_hub_shell["Hub Shell & Home"]
   system_infestation["Infestation Map — THE FRONT"] -->|modifies| system_expeditions["Hero Expeditions"]
+  system_map_layouts["Arena Layouts"] -->|modifies| system_engine["Sim Engine"]
 ```
 
 ## Concepts (8)
@@ -649,7 +664,7 @@ Six seeded runs pinned byte-for-byte (core/golden.test.ts) — the tripwire for 
   - conflictsWith ← `system:hero-symbiotes` — every symbiote surface must stay inactive⇒identity: resolveHeroSymbiote power EXACTLY 1 / kit null while no slot is fully seated; a new kit verb needs BOTH an optional field (absent on fresh saves) AND a presence-gated seam read — an unconditional read or a default ≠ identity breaks the pinned seeds
   - conflictsWith ← `system:hub-shell` — HOME WIDGET FIBER INVARIANT (2026-07, CommandCenter.tsx CCWidget): the home zone renders each widget through the CCWidget COMPONENT (<CCWidget/>), never by calling the widget function inline — an inline render(ctx) flattens every widget's hooks into CommandCenter's own list, so a `when` gate flipping a widget in/out between renders (e.g. command-feed keying off pendingContainers/shards) trips React's "rendered more hooks than during the previous render" and the ErrorBoundary blanks the hub. Unit tests can't see it (React UI); the MOBILE GATE (npm run mobilecheck, run by validate) catches it on the developed-profile sweep. Any new home widget with hooks + a volatile `when` MUST route through CCWidget
   - conflictsWith ← `system:hero-cinematics` — cast-less runs (the golden autoplay) must never touch the cinematic path: pendingImpactSystem is length-gated, castEvents only written on cast — and any test asserting cast RESULTS must step past the def’s impactDelay before asserting (riptide/vitriol tests show the ride-through pattern)
-  - _…5 more (query: `npm run dil -- node concept:golden-test`)_
+  - _…6 more (query: `npm run dil -- node concept:golden-test`)_
 
 ### `concept:progression-gates` — Progression Gates
 
@@ -808,7 +823,7 @@ The premium reserve — never farmable; bled from achievements, collection ranks
 
   - rewardedBy ← `system:daily-login` — a rare small lane (weight 3, clamped 2–6/day) — deliberately below the never-farmable premium posture thresholds
 
-## Systems (77)
+## Systems (78)
 
 ### `system:hive-mind` — Hive Intelligence (in-run)
 
@@ -856,7 +871,7 @@ _at: src/core/game.ts, src/core/combat.ts, src/core/status.ts, src/core/targetin
   - requiredBy ← `system:nemesis`
   - requiredBy ← `system:onboarding`
   - requiredBy ← `system:run-ui`
-  - _…218 more (query: `npm run dil -- node system:engine`)_
+  - _…222 more (query: `npm run dil -- node system:engine`)_
 
 ### `system:content-infra` — Content Infrastructure
 
@@ -876,7 +891,7 @@ _at: src/core/registry.ts, src/core/validate.ts, src/core/config.ts, src/core/ty
   - requiredBy ← `system:equipment`
   - requiredBy ← `system:loot`
   - requiredBy ← `system:gene-cards`
-  - _…20 more (query: `npm run dil -- node system:content-infra`)_
+  - _…21 more (query: `npm run dil -- node system:content-infra`)_
 
 ### `system:power` — Power Score
 
@@ -919,6 +934,8 @@ _at: src/core/campaign.ts, src/core/campaignEvents.ts, src/core/hash.ts, src/ui/
   - rewards → `currency:tower-shards` — stage rewards feed unlock gates
   - provides → `concept:progression-gates` — depth is the master unlock axis
   - references → `system:engine` — EARLY BROOD (2026-07, ENEMIES.md §early-brood — husk/flea/mold/skulker): four WEAK trait-less walkers the DERIVED campaign gate admits from stage 1 (unlockStage = max(hpTier, mechGate); tier 1 needs effectiveHp < baseHp+hpPerTier = 92 AND zero role traits — flying alone gates stage 3). Wave-1 eligibility additionally needs threatCost ≤ unitCapBase 3, damage ≤ dmgCapBase 8, speed ≤ 100. A new weak enemy is defs + three render rows ONLY — cues/bestiary/ledgers auto-classify. Golden-safe because the pinned autoplay runs the SCRIPTED WAVES table (authored kinds), never generation; campaign/daily compositions re-roll freely (earlyBrood.test pins the contract + spawn frequency)
+  - consumes → `system:map-layouts` — layoutForStage: CAMPAIGN_LAYOUT_PINS for the onboarding (1–3), then a memoized-forward biome-flavored no-repeat roll on Rng(stageSeed(s, layout)); adding a layout re-rolls un-pinned stages (generated, never saved)
+  - conflictsWith → `system:infinite` — Run Identity invasions: campaign passes the STAGE enemyPool as invasionPool (an all-kinds pool dropped 8 colossi on stage 1); endless keeps ENEMY_KINDS
   - requiredBy ← `system:daily`
   - requiredBy ← `system:towers`
   - requiredBy ← `system:heroes`
@@ -944,12 +961,14 @@ _at: src/ui/InfiniteScreen.tsx_
   - dependsOn → `system:difficulty`
   - consumes → `system:meta-store` — owns save field 'bestWave'
   - rewards → `currency:genome-cores` — depth records + chest tiers
+  - consumes → `system:map-layouts` — layoutIdForDepth: biome period 0 = classic, then registry order per BIOME_PERIOD; switched at wave start (field clear). Arena runs endless rules ⇒ rotates too (both sides share the seed ⇒ fair)
   - requiredBy ← `system:threat`
   - taughtBy ← `help:infinite`
   - documentedBy ← `doc:ENDLESS-SCALING.md`
   - documentedBy ← `doc:MODE-IDENTITY.md`
   - documentedBy ← `guide:infinite`
   - balancedBy ← `system:difficulty` — endless threat curves
+  - conflictsWith ← `system:campaign` — Run Identity invasions: campaign passes the STAGE enemyPool as invasionPool (an all-kinds pool dropped 8 colossi on stage 1); endless keeps ENEMY_KINDS
 
 ### `system:pil` — Public Intelligence Layer
 
@@ -1024,6 +1043,7 @@ _at: src/core/daily.ts, src/core/dailyModifiers.ts, src/ui/DailyScreen.tsx_
   - consumes → `system:meta-store` — owns save field 'daily'
   - rewards → `currency:genome-cores` — completion reward independent of rank
   - conflictsWith → `system:mulligans` — the Daily SUBSTITUTES seeded organisms via mulliganOverride — account organisms must not leak into a daily run
+  - consumes → `system:map-layouts` — the day rolls its layout on its own S_LAYOUT stream (pickLayoutId) — replays carry it inside the serialized stage, so pre-layout records replay on classic
   - requiredBy ← `system:premium`
   - requiredBy ← `system:field-research`
   - requiredBy ← `system:net-backend`
@@ -1654,7 +1674,7 @@ _at: src/core/prestige.ts, src/core/ascendant.ts, src/core/vows.ts, src/ui/Prest
 
 Currency identities (icon/color/tooltip/format) + the adaptive economy framework: one factor-traced income composition per currency, adaptive seams (ACTIVE 2026-07 — catch-up/ahead-taper on the frontier power gap, clamped, onboarding-floored), health guards. LOCALIZED ECONOMY (v48, docs/ECONOMY.md §localized): every CurrencyDef declares its ONE spend domain + ≥2 earn sources, machine-enforced by currencyProblems() (unique names/colors, one specialized wallet per system, prestige exempt as the single-faucet mint). Chitin (hiveMaterials) grows Hive-Production organs — guaranteed hopper top-slice (IDLE.hiveMatsShare, value SHIFTED not added) + scavenge-expedition lanes value-swapped from cores; Mulligan Tissue (mulliganTissue) upgrades/ascends tower grafts — dupe dissolves (old essence numbers 1:1) + even premium-bleed split + hopper trickle (weight carved from essence). Ichor reforge + Hive-Construction composite recipes + Nucleus/Symbiote essence sinks deliberately NOT converted. Pace parity pinned by scripts/sim-localized-economy.ts.
 
-_at: src/core/currencies.ts, src/core/economyDirector.ts, src/ui/components/CurrencyIcon.tsx_
+_at: src/core/currencies.ts, src/core/economyDirector.ts, src/ui/components/CurrencyIcon.tsx, src/state/rewardVisibility.ts, src/ui/components/MaterialsChip.tsx_
 
   - dependsOn → `system:content-infra`
   - consumes → `system:meta-store` — owns save field 'hiveMaterials'
@@ -1670,6 +1690,8 @@ _at: src/core/currencies.ts, src/core/economyDirector.ts, src/ui/components/Curr
   - documentedBy ← `doc:ECONOMY_FORMULAS.md`
   - testedBy ← `test:src/core/currencies.test.ts`
   - testedBy ← `test:src/core/economyDirector.test.ts`
+  - testedBy ← `test:src/state/rewardVisibility.test.ts`
+  - gatedBy ← `system:progression-gating` — PLAYER-FACING CURRENCIES (state/rewardVisibility.ts, ECONOMY.md §player-facing): REVEALED_WITH maps every currency/reward kind to the feature that spends it — the toaster, VaultReveal (visibleChests), Results rows and account-level reward lines skip unrevealed kinds (they bank silently; the save is untouched). Gene Essence/Mutagen/Scrap/Catalyst/Chitin/Tissue present as ONE Materials group (MaterialsChip, "materials" toast type)
   - extendedBy ← `system:infestation` — WAR SPOILS pay LOCALIZED wallets through applyRewardList (new PassReward kind hiveMats → Chitin; Reach/Basin pay towerShardsAll/heroShardsAll, Fields cores, Saturated adds a rare container): tierClaims[sectorId] is a HIGH-WATERMARK ledger (a fallen-and-reclimbed sector never re-pays), tribute stamps tributeWeeks[regionId]=weekKey once per ISO week scaled by regionHeldTiers/16; budgets are LAW (npm run sim:front): full-map spoils ≤15k core-eq, full-hold tribute ≤15% weekly active income — retune tierReward/tributeFor ONLY with the sim green
 
 ### `system:splice-market` — Splice Market & Ichor
@@ -2003,7 +2025,7 @@ _at: src/ui/InitCutscene.tsx, src/render/introScenes.ts, src/core/tutorial.ts, s
   - contains ← `help:strain-evolution`
   - contains ← `help:boss-sieges`
   - contains ← `help:boss-rush`
-  - _…66 more (query: `npm run dil -- node system:onboarding`)_
+  - _…67 more (query: `npm run dil -- node system:onboarding`)_
 
 ### `system:account-level` — Account Level (evergreen meta-progression)
 
@@ -2066,6 +2088,8 @@ _at: src/state/unlocks.ts, src/state/progressionDirector.ts, src/state/navBus.ts
   - gates → `system:hub-shell` — nav entries, wallet chips and home widgets reveal via the FEATURES registry (teasers = next two reveals)
   - extends → `system:onboarding` — screen-linked mechanics rows delegate unlock predicates to featureRevealed — What's New fires exactly when a wing reveals
   - gates → `system:notifications` — NEVER ADVISE A SEALED WING (2026-11): unlocks.isOpenNav(save, nav) is the one 'may guidance point here?' check — recommendations, nextGoals, Mission Control's Advisor row, hub-landing attention rows, prediction lever lines, the What's New summary's Open buttons and the defeat debrief's tip all drop/neutralize sealed destinations (a notification source may COUNT before its wing reveals: the free Boss Rush entry at Stage 1).
+  - gates → `system:notifications` — RE-PACE 2026-11 (PROGRESSION-GATING.md §timeline): wings spread across stages 3–30 (≈ first ~8h bot / ~20h fresh); notificationSources installs setChannelGate — a SEALED channel counts 0 in badges/reasons/live, so a hidden wing never badges and its backlog surfaces at the reveal. Past the core block every row is a pure stage gate (no resource luck-reveal); latched director.revealed grandfathers older saves, and isBossRushUnlocked honours a latched bossrush reveal
+  - gates → `system:currencies` — PLAYER-FACING CURRENCIES (state/rewardVisibility.ts, ECONOMY.md §player-facing): REVEALED_WITH maps every currency/reward kind to the feature that spends it — the toaster, VaultReveal (visibleChests), Results rows and account-level reward lines skip unrevealed kinds (they bank silently; the save is untouched). Gene Essence/Mutagen/Scrap/Catalyst/Chitin/Tissue present as ONE Materials group (MaterialsChip, "materials" toast type)
   - requiredBy ← `system:reward-architecture`
   - documentedBy ← `doc:PROGRESSION-GATING.md`
   - documentedBy ← `doc:UNLOCK-TREE.md`
@@ -2079,7 +2103,7 @@ _at: src/state/unlocks.ts, src/state/progressionDirector.ts, src/state/navBus.ts
 
 The nav shell + the Command Center home: registry-driven widgets, living World Status, mission control, feed/roadmap/army, dashboards.
 
-_at: src/ui/Hub.tsx, src/ui/navModel.ts, src/ui/MobileShell.tsx, src/ui/components/ScreenHeader.tsx, src/ui/CommandCenter.tsx, src/ui/DeployScreen.tsx, src/ui/homeModel.ts, src/ui/WorldStatus.tsx, src/ui/ProgressDashboard.tsx, src/ui/NextGoalBanner.tsx, src/state/nextGoal.ts, src/state/progressionLoop.ts, src/ui/hubProgress.ts, src/ui/homeBaseTiers.ts, src/ui/LabAtmosphere.tsx, src/ui/App.tsx, src/ui/ErrorBoundary.tsx, src/main.tsx, src/net/swRegister.ts, src/ui/components/UpdateToast.tsx, src/ui/components/Popup.tsx, src/state/listOrg.ts, src/ui/components/ListControls.tsx_
+_at: src/ui/Hub.tsx, src/ui/navModel.ts, src/ui/MobileShell.tsx, src/ui/components/ScreenHeader.tsx, src/ui/CommandCenter.tsx, src/ui/DeployScreen.tsx, src/ui/homeModel.ts, src/ui/WorldStatus.tsx, src/ui/ProgressDashboard.tsx, src/ui/NextGoalBanner.tsx, src/state/nextGoal.ts, src/state/progressionLoop.ts, src/ui/hubProgress.ts, src/ui/homeBaseTiers.ts, src/ui/LabAtmosphere.tsx, src/ui/App.tsx, src/ui/ErrorBoundary.tsx, src/main.tsx, src/net/swRegister.ts, src/ui/components/UpdateToast.tsx, src/ui/components/Popup.tsx, src/state/listOrg.ts, src/ui/components/ListControls.tsx, src/ui/components/HostTabs.tsx_
 
   - dependsOn → `system:meta-store`
   - dependsOn → `system:notifications`
@@ -2087,6 +2111,7 @@ _at: src/ui/Hub.tsx, src/ui/navModel.ts, src/ui/MobileShell.tsx, src/ui/componen
   - dependsOn → `system:power`
   - consumes → `system:campaign` — buildHomeView generates the campaign frontier ONCE per save change — home widgets read ctx.view, never re-derive models
   - references → `system:collection` — home surfaces show CollectionView.pct (discovery); mixing in rank-weighted .completion once put two contradictory percentages on one board
+  - modifies → `system:notifications` — FOLDED SCREENS (navModel FOLDED_NAVS): harvest+expeditions → hive, metabolism → quests, specimens → phenotypes, gearcodex → equipment. Hub.go resolves hostOf() + requestHostTab (ui/components/HostTabs.tsx; each host mounts <HostedScreen>), badges/reasons roll up via foldCounts/foldLines and chainNavs map through hostOf — a folded NavKey is still a valid notification channel / reward-loop nav / deep link
   - provides → `concept:responsive` — PORTRAIT SHELL (docs/RESPONSIVE-DESIGN.md §3b): ui/navModel.ts is the ONLY nav IA source — desktop rail, five-tab bottom bar, index pages (MobileShell.tsx), mobilecheck, and navModel.test all derive from it; a new screen = one group row + one unlock-registry def and it is auto-indexed/explained/swept on phones
   - conflictsWith → `concept:responsive` — portrait strips inside grids need minmax(0,1fr) columns (intrinsic strip width widens the page past the phone viewport — the Tower Lab empty-showcase bug); flex children of height-capped roster lists need flex:none or rows compress and overlap their portraits
   - conflictsWith → `concept:golden-test` — HOME WIDGET FIBER INVARIANT (2026-07, CommandCenter.tsx CCWidget): the home zone renders each widget through the CCWidget COMPONENT (<CCWidget/>), never by calling the widget function inline — an inline render(ctx) flattens every widget's hooks into CommandCenter's own list, so a `when` gate flipping a widget in/out between renders (e.g. command-feed keying off pendingContainers/shards) trips React's "rendered more hooks than during the previous render" and the ErrorBoundary blanks the hub. Unit tests can't see it (React UI); the MOBILE GATE (npm run mobilecheck, run by validate) catches it on the developed-profile sweep. Any new home widget with hooks + a volatile `when` MUST route through CCWidget
@@ -2128,6 +2153,7 @@ _at: src/ui/GameView.tsx, src/ui/Hud.tsx, src/ui/Toolbar.tsx, src/ui/BuildContro
   - documentedBy ← `doc:READABILITY.md`
   - documentedBy ← `doc:REWARD-PRESENTATION.md`
   - testedBy ← `test:src/state/runDebrief.test.ts`
+  - modifiedBy ← `system:notifications` — AUTO-CLAIM (state/autoClaim.ts, NOTIFICATIONS.md §auto-claim): Results mounts AutoClaimSummary once per result (WeakMap settle-once) → quest missions / pass levels / metabolism tiers / evolution-track nodes on REVEALED systems claim inside rewardToast.capture() and read back as ONE "Also earned" row; finales + EVOLVE stay manual; tier-3 rewards still toast; prefs.autoClaimPref (Settings) switches it off
   - conflictsWith ← `system:onboarding` — DESKTOP TEACHING CONTRACT (docs/TUTORIAL-AUDIT.md §G, 2026-11): every lesson shown while a wave runs or asking for a slot tap declares callout.avoid = canvas.board (the bubble re-seats beside the lane, measured + clamped); the draft lesson anchors BELOW .overlay .cards; the ability lesson targets [data-tut="ability"] .ability-btn and runs DURING wave 2; desktop Pause/Skip take a measured seat clear of [data-tut="ability"]. A HUD/board re-layout must keep canvas.board, .ability-btn and data-tut="ability" (tutorialAnchors.test resolves them) — positions are never hard-coded
   - conflictsWith ← `system:onboarding` — PHONE DOCK CONTRACT (docs/TUTORIAL.md §phone): ≤700px the lesson callout DOCKS to the edge opposite its anchor and must never cover the step’s action (the step-3 slot bug); controls live top-right, the banner yields to the draft, and a missing spotlight target renders NO scrim
 
@@ -2135,23 +2161,26 @@ _at: src/ui/GameView.tsx, src/ui/Hud.tsx, src/ui/Toolbar.tsx, src/ui/BuildContro
 
 Generic menu badges (registered count(save) sources per nav channel) + the global claim popup every hub claim receipts through.
 
-_at: src/state/notifications.ts, src/state/notificationSources.ts, src/state/rewardToast.ts, src/state/recommendations.ts, src/state/readyChain.ts, src/state/hiveIntel.ts, src/ui/components/RewardToaster.tsx, src/ui/components/CeremonyLayer.tsx, src/ui/components/WalletChip.tsx, src/ui/HubLanding.tsx_
+_at: src/state/notifications.ts, src/state/notificationSources.ts, src/state/rewardToast.ts, src/state/recommendations.ts, src/state/readyChain.ts, src/state/hiveIntel.ts, src/ui/components/RewardToaster.tsx, src/ui/components/CeremonyLayer.tsx, src/ui/components/WalletChip.tsx, src/ui/HubLanding.tsx, src/state/autoClaim.ts, src/ui/components/AutoClaimSummary.tsx_
 
   - dependsOn → `system:meta-store`
   - modifies → `system:hub-shell` — CEREMONY LAYER (ui/components/CeremonyLayer.tsx + WalletChip.tsx — REWARD-PRESENTATION.md §ceremony): the physical reward moment rides rewardToast.tap() — burst at the claim point, icon flight into the data-cur wallet chip, chip bump on arrival, WalletChip rolls prev→next; every bus-announced grant (all 18 meta push points) inherits it with ZERO per-surface wiring, and a silent grant is a bug in the SOURCE (push the bus), never a reason to wire the layer directly. reduced-motion disables the whole layer; placards remain the announcer.
   - modifies → `system:hub-shell` — READY CHAIN (state/readyChain.ts — docs/HUB-FLOW.md): the hub's live harvest queue derives from notifications.live() (NO seen-watermark — badges/reasons stay the attention lane, the chain is the truth lane; a visited-but-unclaimed reward must never go dark) classified by the SAME exported CHANNEL_CLASS claim/open vocabulary as recommendations. Surfaces: Command Center centerpiece leads the recommend widget, hub doors + landing cards + portrait tabs/rows pulse via chainNavs() (readiness BREATHES via .is-ready, novelty stays the numeric badge), NextUp hands node→node with the remaining count before falling back to rotated recommendations. A future claim surface joins by registering a notification source — no chain wiring.
+  - modifies → `system:run-ui` — AUTO-CLAIM (state/autoClaim.ts, NOTIFICATIONS.md §auto-claim): Results mounts AutoClaimSummary once per result (WeakMap settle-once) → quest missions / pass levels / metabolism tiers / evolution-track nodes on REVEALED systems claim inside rewardToast.capture() and read back as ONE "Also earned" row; finales + EVOLVE stay manual; tier-3 rewards still toast; prefs.autoClaimPref (Settings) switches it off
   - provides → `system:hub-shell` — THE CLAIM POPUP (2026-07, NOTIFICATIONS.md §claim-popups): every hub claim — quest missions/finales, pass levels/claim-all/premium unlock, weekly directives, wardrobe milestones — pushes its PremiumReceiptLine[] to state/rewardToast; ONE RewardToaster (App, menu only) presents it bold + itemized. The "view it" jump derives from receipt ICONS (single-sourced in meta.applyRewardList/rewardLabel — change an icon there and update rewardToast DESTINATIONS) and routes via navBus. Ceremonial reveals (BioCache, VaultReveal, WardrobeReveal, PremiumStore, SpoilsCard, GenomePromotion) deliberately stay bespoke — the popup is the RECEIPT layer, not the ceremony layer
   - requiredBy ← `system:metabolism`
   - requiredBy ← `system:hub-shell`
   - taughtBy ← `help:hive-intel`
   - documentedBy ← `doc:NOTIFICATIONS.md`
   - documentedBy ← `doc:HIVE-INTEL.md`
+  - testedBy ← `test:src/state/autoClaim.test.ts`
   - testedBy ← `test:src/state/hiveIntel.test.ts`
   - testedBy ← `test:src/state/notifications.test.ts`
   - testedBy ← `test:src/state/readyChain.test.ts`
   - testedBy ← `test:src/state/recommendations.test.ts`
   - testedBy ← `test:src/state/rewardToast.test.ts`
   - gatedBy ← `system:progression-gating` — NEVER ADVISE A SEALED WING (2026-11): unlocks.isOpenNav(save, nav) is the one 'may guidance point here?' check — recommendations, nextGoals, Mission Control's Advisor row, hub-landing attention rows, prediction lever lines, the What's New summary's Open buttons and the defeat debrief's tip all drop/neutralize sealed destinations (a notification source may COUNT before its wing reveals: the free Boss Rush entry at Stage 1).
+  - _…2 more (query: `npm run dil -- node system:notifications`)_
 
 ### `system:prediction` — Progress Prediction
 
@@ -2216,7 +2245,7 @@ _at: src/core/boss.ts_
   - contains ← `boss:the_mender`
   - contains ← `boss:chitin_colossus`
   - contains ← `boss:mitotic_horror`
-  - _…12 more (query: `npm run dil -- node system:bosses`)_
+  - _…13 more (query: `npm run dil -- node system:bosses`)_
 
 ### `system:mega-bosses` — Mega Bosses
 
@@ -2295,6 +2324,7 @@ _at: src/core/biomes.ts_
   - requiredBy ← `system:engine`
   - requiredBy ← `system:campaign`
   - requiredBy ← `system:daily`
+  - requiredBy ← `system:map-layouts`
   - contains ← `biome:verdant`
   - contains ← `biome:necrotic`
   - contains ← `biome:frostbound`
@@ -2303,8 +2333,26 @@ _at: src/core/biomes.ts_
   - contains ← `biome:neural`
   - contains ← `biome:molten`
   - contains ← `biome:tempest`
-  - contains ← `biome:ossuary`
-  - _…5 more (query: `npm run dil -- node system:biomes`)_
+  - _…6 more (query: `npm run dil -- node system:biomes`)_
+
+### `system:map-layouts` — Arena Layouts
+
+Battlefield obstacle geometry as DATA (docs/MAP-LAYOUTS.md): one registry row per layout (obstacle rects + optional spawn spans + biome affinity + minStage), a validator proving every layout routable / clear of the defensive region + slots / pocket-free, and the deterministic selection policy (Campaign onboarding pins + biome-flavored rolls, the Daily’s seeded roll, Infinite’s biome-period rotation). Each Game owns its layout’s NavField (map.ts) — the classic arena stays the default for Skirmish, the tutorial and golden autoplay.
+
+_at: src/core/mapLayouts.ts_
+
+  - dependsOn → `system:engine`
+  - dependsOn → `system:content-infra`
+  - dependsOn → `system:biomes`
+  - extends → `system:engine` — SOLID WALLS: authored layouts build NavField({solidWalls}) — a blocked cell flows ×4 toward its shallowest open neighbour (ties → LOWER path cost; ties upstream deadlocked bodies at wall corners), and the mover’s normalized blend lets the escape dominate. classic keeps the legacy straight-down fallback (golden)
+  - modifies → `system:engine` — ARENA LAYOUTS: the Game OWNS its layout + NavField (ctor: RunOptions.layout pin → stage.layout → Infinite depth rotation → classic); every flowDirAt/goalDistanceAt/spawn query resolves on this.nav — map.ts module helpers stay on the DEFAULT field for legacy callers
+  - conflictsWith → `concept:golden-test` — the classic layout IS config OBSTACLES and navFieldFor(classic) returns map.ts’s module field; layoutSpawn without spans is topSpawn exactly (one rng draw either way) — Skirmish/tutorial/golden must never get a stage.layout or a pin
+  - taughtBy ← `help:arena-layouts`
+  - documentedBy ← `doc:MAP-LAYOUTS.md`
+  - testedBy ← `test:src/core/mapLayouts.test.ts`
+  - consumedBy ← `system:campaign` — layoutForStage: CAMPAIGN_LAYOUT_PINS for the onboarding (1–3), then a memoized-forward biome-flavored no-repeat roll on Rng(stageSeed(s, layout)); adding a layout re-rolls un-pinned stages (generated, never saved)
+  - consumedBy ← `system:daily` — the day rolls its layout on its own S_LAYOUT stream (pickLayoutId) — replays carry it inside the serialized stage, so pre-layout records replay on classic
+  - consumedBy ← `system:infinite` — layoutIdForDepth: biome period 0 = classic, then registry order per BIOME_PERIOD; switched at wave start (field clear). Arena runs endless rules ⇒ rotates too (both sides share the seed ⇒ fair)
 
 ### `system:doctrines` — Doctrines
 
@@ -2360,6 +2408,7 @@ _at: src/core/difficulty.ts, src/core/difficultyDirector.ts_
   - dependsOn → `system:content-infra`
   - balances → `system:campaign` — the Universal Difficulty Director owns every scaling policy
   - balances → `system:infinite` — endless threat curves
+  - balances → `system:bosses` — CAMPAIGN ONBOARDING (DIFFICULTY_DIRECTOR.md §onboarding, CAMPAIGN.md §curve): campaignBossStrength scales the first stages’ finale body AND kit amounts via scaleBossStrength, and campaign.onboardingKit swaps sustain (heal/bulwark/carapace/phase-shield) for the telegraphed core-shot in every phase — a weaker body alone still out-healed a needle board (the binary stage-3 wall); the core-shot GRADES integrity loss by kill speed
   - requiredBy ← `system:engine`
   - requiredBy ← `system:campaign`
   - requiredBy ← `system:infinite`
@@ -3261,7 +3310,7 @@ _at: src/core/tutorial.ts_
   - teaches → `system:onboarding`
   - teaches → `system:run-ui`
 
-## Help Topics (64)
+## Help Topics (65)
 
 - `help:mission-control` — Your standing orders — the answer to "what should I do now?" _(partOf `system:onboarding`, teaches `system:power`)_
 - `help:hive-intel` — The live intel feed — banked value, ready moves, recent milestones. _(partOf `system:onboarding`, teaches `system:notifications`)_
@@ -3326,6 +3375,7 @@ _at: src/core/tutorial.ts_
 - `help:daily-run` — One seed per day — the same gauntlet worldwide. _(partOf `system:onboarding`)_
 - `help:contracts` — Three weekly constraint runs — same board for everyone. _(partOf `system:onboarding`, teaches `system:contracts`)_
 - `help:biomes` — Shifting environments with their own modifiers. _(partOf `system:onboarding`, teaches `system:biomes`)_
+- `help:arena-layouts` — The battlefield’s terrain reshapes how the swarm reaches you. _(partOf `system:onboarding`, teaches `system:map-layouts`)_
 - `help:bosses` — Multi-phase threats with big rewards. _(partOf `system:onboarding`, teaches `system:bosses`)_
 
 ## Site Guides (23)
@@ -3670,7 +3720,7 @@ _at: site/guides.ts → /guides/live-events/_
 - `achievement:arena_crown` — Claim Arena Pass level 100 — a permanently arena-exclusive strain is yours forever. _(partOf `system:achievements`, rewards `currency:genome-cores`, references `system:arena`)_
 - `achievement:arena_perennial` — Close three Arena seasons with a record on the books. _(partOf `system:achievements`, rewards `currency:genome-cores`, references `system:arena`)_
 
-## Documentation (191)
+## Documentation (192)
 
 - `doc:ACCOUNT-LEVEL.md` — project documentation _(documents `system:account-level`)_
 - `doc:ACCOUNTS.md` — project documentation _(documents `system:accounts`)_
@@ -3774,6 +3824,7 @@ _at: site/guides.ts → /guides/live-events/_
 - `doc:LIVING-HIVE.md` — project documentation
 - `doc:LOOT-PROGRESSION.md` — project documentation _(documents `system:loot`)_
 - `doc:LOOTBOX.md` — project documentation _(documents `system:loot`)_
+- `doc:MAP-LAYOUTS.md` — project documentation _(documents `system:map-layouts`)_
 - `doc:MARKET.md` — project documentation _(documents `system:splice-market`)_
 - `doc:MASTERY.md` — project documentation _(documents `system:mastery`)_
 - `doc:MEGA-BOSS.md` — project documentation _(documents `system:mega-bosses`)_
@@ -3864,7 +3915,7 @@ _at: site/guides.ts → /guides/live-events/_
 - `doc:VOWS.md` — project documentation _(documents `system:prestige`)_
 - `doc:WEBSITE.md` — project documentation _(documents `system:field-research`, documents `system:website`)_
 
-## Tests (304)
+## Tests (308)
 
 - `test:src/audio/music.test.ts` — automated validation _(tests `system:audio`)_
 - `test:src/changelog/classify.test.ts` — automated validation _(tests `system:chronicle`)_
@@ -3970,6 +4021,7 @@ _at: site/guides.ts → /guides/live-events/_
 - `test:src/core/loginStreak.test.ts` — automated validation _(tests `system:daily-login`)_
 - `test:src/core/loot.test.ts` — automated validation _(tests `system:loot`)_
 - `test:src/core/lootQueue.test.ts` — automated validation _(tests `system:loot`)_
+- `test:src/core/mapLayouts.test.ts` — automated validation _(tests `system:map-layouts`)_
 - `test:src/core/market.test.ts` — automated validation _(tests `system:splice-market`)_
 - `test:src/core/marketAuthority.test.ts` — automated validation _(tests `system:online-foundation`)_
 - `test:src/core/marketCatalog.test.ts` — automated validation _(tests `system:online-foundation`)_
@@ -4080,12 +4132,14 @@ _at: site/guides.ts → /guides/live-events/_
 - `test:src/state/arenaMeta.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/state/armory.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/state/auctionCustody.test.ts` — automated validation _(tests `system:engine`)_
+- `test:src/state/autoClaim.test.ts` — automated validation _(tests `system:notifications`)_
 - `test:src/state/battlePassEconomy.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/state/battlePassMeta.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/state/bestPurchase.test.ts` — automated validation _(tests `system:power`)_
 - `test:src/state/bioRoulette.test.ts` — automated validation _(tests `system:boss-rush`)_
 - `test:src/state/bosscollection.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/state/bossrushMeta.test.ts` — automated validation _(tests `system:engine`)_
+- `test:src/state/campaignCurve.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/state/commanderName.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/state/contracts.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/state/cutscenePremiere.test.ts` — automated validation _(tests `system:engine`)_
@@ -4153,6 +4207,7 @@ _at: site/guides.ts → /guides/live-events/_
 - `test:src/state/research.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/state/rewardEligibility.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/state/rewardToast.test.ts` — automated validation _(tests `system:notifications`)_
+- `test:src/state/rewardVisibility.test.ts` — automated validation _(tests `system:currencies`)_
 - `test:src/state/runDebrief.test.ts` — automated validation _(tests `system:run-ui`)_
 - `test:src/state/rushStamina.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/state/stats.test.ts` — automated validation _(tests `system:stats`)_

@@ -206,6 +206,9 @@ graph TD
   security --> meta_store
   security --> net_backend
   biomes --> content_infra
+  map_layouts --> engine
+  map_layouts --> content_infra
+  map_layouts --> biomes
   doctrines --> content_infra
   doctrines --> gene_cards
   doctrines --> difficulty
@@ -237,8 +240,8 @@ graph TD
 | System | Depends on | Consumers (break first) | Power Score | Save fields | Docs |
 |---|---|---|---|---|---|
 | **Hive Intelligence (in-run)** (`hive-mind`) | `engine` · `content-infra` · `towers` · `heroes` · `power` | — | ⚡ reads the temporary bucket for exact purchase deltas (never writes) | — | `docs/HIVE-MIND.md` |
-| **Sim Engine** (`engine`) | `content-infra` · `towers` · `heroes` · `gene-cards` · `bosses` · `biomes` · `difficulty` · `assimilation` | `hive-mind` · `campaign` · `infinite` · `boss-rush` · `daily` · `online-foundation` · `arena` · `heroes` · `hero-cinematics` · `nemesis` · `onboarding` · `run-ui` · `bosses` · `mega-bosses` · `rendering` · `living-battlefield` · `audio` | ⚡ emits the TEMPORARY in-run bucket (game.powerEffects) | — | `docs/ARCHITECTURE.md` · `docs/CODEMAP.md` · `docs/DESIGN.md` |
-| **Content Infrastructure** (`content-infra`) | — | `hive-mind` · `engine` · `power` · `mulligans` · `premium` · `online-foundation` · `towers` · `mastery` · `heroes` · `equipment` · `loot` · `gene-cards` · `nucleus` · `hero-symbiotes` · `collection` · `evolution-hq` · `currencies` · `meta-store` · `bosses` · `mega-bosses` · `biomes` · `doctrines` · `threat` · `difficulty` · `website` | — | — | `docs/CODEMAP.md` · `docs/CORE-FRAMEWORKS.md` · `docs/AUTHORING.md` |
+| **Sim Engine** (`engine`) | `content-infra` · `towers` · `heroes` · `gene-cards` · `bosses` · `biomes` · `difficulty` · `assimilation` | `hive-mind` · `campaign` · `infinite` · `boss-rush` · `daily` · `online-foundation` · `arena` · `heroes` · `hero-cinematics` · `nemesis` · `onboarding` · `run-ui` · `bosses` · `mega-bosses` · `map-layouts` · `rendering` · `living-battlefield` · `audio` | ⚡ emits the TEMPORARY in-run bucket (game.powerEffects) | — | `docs/ARCHITECTURE.md` · `docs/CODEMAP.md` · `docs/DESIGN.md` |
+| **Content Infrastructure** (`content-infra`) | — | `hive-mind` · `engine` · `power` · `mulligans` · `premium` · `online-foundation` · `towers` · `mastery` · `heroes` · `equipment` · `loot` · `gene-cards` · `nucleus` · `hero-symbiotes` · `collection` · `evolution-hq` · `currencies` · `meta-store` · `bosses` · `mega-bosses` · `biomes` · `map-layouts` · `doctrines` · `threat` · `difficulty` · `website` | — | — | `docs/CODEMAP.md` · `docs/CORE-FRAMEWORKS.md` · `docs/AUTHORING.md` |
 | **Power Score** (`power`) | `content-infra` | `hive-mind` · `campaign` · `mulligans` · `premium` · `net-backend` · `arena` · `equipment` · `loot` · `gene-cards` · `nucleus` · `hero-symbiotes` · `profile` · `genome-rank` · `hub-shell` · `run-ui` · `prediction` | ⚡ IS the model (buckets, effectsPower, FIELD_WEIGHT) | `powerLog` | `docs/POWER-SCORE.md` · `docs/POWER-AUDIT.md` · `docs/POWER-ADVISOR.md` · `docs/MISSION-CONTROL.md` · `docs/EVOLUTION-ROADMAP.md` |
 | **Campaign** (`campaign`) | `engine` · `biomes` · `bosses` · `difficulty` · `power` | `daily` · `towers` · `heroes` · `loot` · `gene-cards` · `prestige` · `progression-gating` · `threat` | ⚡ recommended-power display; first-clear rewards move account Power indirectly | `campaign` | `docs/CAMPAIGN.md` · `docs/CAMPAIGN-EVENTS.md` · `docs/MODE-IDENTITY.md` · `docs/STAGES.md` |
 | **Infinite Mode** (`infinite`) | `engine` · `loot` · `difficulty` | `threat` | — | `bestWave` | `docs/ENDLESS-SCALING.md` · `docs/MODE-IDENTITY.md` |
@@ -299,7 +302,8 @@ graph TD
 | **Mega Bosses** (`mega-bosses`) | `engine` · `content-infra` · `bosses` | `cutscenes` | ⚡ megaBosses collection category weight | `megaProgress` | `docs/MEGA-BOSS.md` |
 | **Story Cutscenes & Memory Archive** (`cutscenes`) | `mega-bosses` · `meta-store` · `audio` | `quests` | — | — | `docs/CUTSCENES.md` |
 | **Game Action Security Layer** (`security`) | `meta-store` · `net-backend` | `metabolism` | — | — | `docs/SECURITY.md` |
-| **Biomes** (`biomes`) | `content-infra` | `engine` · `campaign` · `daily` | — | — | `docs/BIOMES.md` |
+| **Biomes** (`biomes`) | `content-infra` | `engine` · `campaign` · `daily` · `map-layouts` | — | — | `docs/BIOMES.md` |
+| **Arena Layouts** (`map-layouts`) | `engine` · `content-infra` · `biomes` | — | — | — | `docs/MAP-LAYOUTS.md` |
 | **Doctrines** (`doctrines`) | `content-infra` · `gene-cards` · `difficulty` | — | — | — | `docs/DOCTRINES.md` · `docs/MODE-IDENTITY.md` |
 | **Threat Ladder** (`threat`) | `content-infra` · `difficulty` · `campaign` · `infinite` · `boss-rush` · `reward-architecture` · `profile` | — | — | `threat` | `docs/THREAT.md` |
 | **Difficulty** (`difficulty`) | `content-infra` | `engine` · `campaign` · `infinite` · `boss-rush` · `doctrines` · `threat` | — | — | `docs/DIFFICULTY.md` · `docs/DIFFICULTY_DIRECTOR.md` |
@@ -337,14 +341,14 @@ graph TD
 
 - **Files:** `src/core/game.ts` · `src/core/combat.ts` · `src/core/status.ts` · `src/core/targeting.ts` · `src/core/reactions.ts` · `src/core/spawndirector.ts` · `src/core/runEvents.ts` · `src/core/events.ts` · `src/core/map.ts` · `src/core/ability.ts` · `src/core/mutators.ts` · `src/core/modifiers.ts` · `src/core/simharness.ts` · `src/core/director.ts` · `src/core/sim.testutil.ts`
 - **Depends on:** `content-infra` · `towers` · `heroes` · `gene-cards` · `bosses` · `biomes` · `difficulty` · `assimilation`
-- **Consumers — what breaks if you change this:** `hive-mind` · `campaign` · `infinite` · `boss-rush` · `daily` · `online-foundation` · `arena` · `heroes` · `hero-cinematics` · `nemesis` · `onboarding` · `run-ui` · `bosses` · `mega-bosses` · `rendering` · `living-battlefield` · `audio`
+- **Consumers — what breaks if you change this:** `hive-mind` · `campaign` · `infinite` · `boss-rush` · `daily` · `online-foundation` · `arena` · `heroes` · `hero-cinematics` · `nemesis` · `onboarding` · `run-ui` · `bosses` · `mega-bosses` · `map-layouts` · `rendering` · `living-battlefield` · `audio`
 - **Power Score:** emits the TEMPORARY in-run bucket (game.powerEffects)
 - **Save fields:** —
 - **Tutorial:** `combat` · **Help mechanics:** `hive-core` · `biomass`
 - **HUD surfaces:** `Hud` · `Toolbar` · `BuildControls` · `Inspector` · `BuildPanel` · **UI screens:** `GameView`
 - **Collection:** kills/usage feed collection tiers · **Achievements:** —
 - **Localization:** inline English strings (no i18n layer yet — this field enumerates the surface for the day it lands)
-- **Docs to update on change:** `docs/ARCHITECTURE.md` · `docs/CODEMAP.md` · `docs/DESIGN.md` · `docs/HIVE-MIND.md` · `docs/CAMPAIGN.md` · `docs/CAMPAIGN-EVENTS.md` · `docs/MODE-IDENTITY.md` · `docs/STAGES.md` · `docs/ENDLESS-SCALING.md` · `docs/BOSS-RUSH.md` · `docs/DAILY-RUN.md` · `docs/ONLINE-FOUNDATION.md` · `docs/TRADING-PREP.md` · `docs/ARENA.md` · `docs/ARENA_MATCH_REPORT.md` · `docs/HEROES.md` · `docs/HERO-FRAMEWORK.md` · `docs/HERO-EVOLUTION.md` · `docs/HERO-SELECTION.md` · `docs/SLOTS.md` · `docs/HERO-CINEMATICS.md` · `docs/NEMESIS.md` · `docs/TUTORIAL.md` · `docs/HELP.md` · `docs/TUTORIAL-AUDIT.md` · `docs/GUIDED-UNLOCKS.md` · `docs/HUD.md` · `docs/READABILITY.md` · `docs/REWARD-PRESENTATION.md` · `docs/BOSS-DESIGN.md` · `docs/MEGA-BOSS.md` · `docs/RENDER-PIPELINE.md` · `docs/TOWER-VISUAL-EVOLUTION.md` · `docs/GAME-FEEL.md` · `docs/CAMERA.md` · `docs/COMBAT-VISUAL-STANDARDS.md` · `docs/LIVING-BATTLEFIELD.md` · `docs/MUSIC.md`
+- **Docs to update on change:** `docs/ARCHITECTURE.md` · `docs/CODEMAP.md` · `docs/DESIGN.md` · `docs/HIVE-MIND.md` · `docs/CAMPAIGN.md` · `docs/CAMPAIGN-EVENTS.md` · `docs/MODE-IDENTITY.md` · `docs/STAGES.md` · `docs/ENDLESS-SCALING.md` · `docs/BOSS-RUSH.md` · `docs/DAILY-RUN.md` · `docs/ONLINE-FOUNDATION.md` · `docs/TRADING-PREP.md` · `docs/ARENA.md` · `docs/ARENA_MATCH_REPORT.md` · `docs/HEROES.md` · `docs/HERO-FRAMEWORK.md` · `docs/HERO-EVOLUTION.md` · `docs/HERO-SELECTION.md` · `docs/SLOTS.md` · `docs/HERO-CINEMATICS.md` · `docs/NEMESIS.md` · `docs/TUTORIAL.md` · `docs/HELP.md` · `docs/TUTORIAL-AUDIT.md` · `docs/GUIDED-UNLOCKS.md` · `docs/HUD.md` · `docs/READABILITY.md` · `docs/REWARD-PRESENTATION.md` · `docs/BOSS-DESIGN.md` · `docs/MEGA-BOSS.md` · `docs/MAP-LAYOUTS.md` · `docs/RENDER-PIPELINE.md` · `docs/TOWER-VISUAL-EVOLUTION.md` · `docs/GAME-FEEL.md` · `docs/CAMERA.md` · `docs/COMBAT-VISUAL-STANDARDS.md` · `docs/LIVING-BATTLEFIELD.md` · `docs/MUSIC.md`
 
 ### Content Infrastructure (`content-infra`)
 
@@ -352,14 +356,14 @@ graph TD
 
 - **Files:** `src/core/registry.ts` · `src/core/validate.ts` · `src/core/config.ts` · `src/core/types.ts` · `src/core/math.ts` · `src/core/rng.ts` · `src/core/spatial.ts` · `src/core/features.ts` · `src/vite-env.d.ts`
 - **Depends on:** —
-- **Consumers — what breaks if you change this:** `hive-mind` · `engine` · `power` · `mulligans` · `premium` · `online-foundation` · `towers` · `mastery` · `heroes` · `equipment` · `loot` · `gene-cards` · `nucleus` · `hero-symbiotes` · `collection` · `evolution-hq` · `currencies` · `meta-store` · `bosses` · `mega-bosses` · `biomes` · `doctrines` · `threat` · `difficulty` · `website`
+- **Consumers — what breaks if you change this:** `hive-mind` · `engine` · `power` · `mulligans` · `premium` · `online-foundation` · `towers` · `mastery` · `heroes` · `equipment` · `loot` · `gene-cards` · `nucleus` · `hero-symbiotes` · `collection` · `evolution-hq` · `currencies` · `meta-store` · `bosses` · `mega-bosses` · `biomes` · `map-layouts` · `doctrines` · `threat` · `difficulty` · `website`
 - **Power Score:** — (intentionally none)
 - **Save fields:** —
 - **Tutorial:** — · **Help mechanics:** —
 - **HUD surfaces:** — · **UI screens:** —
 - **Collection:** — · **Achievements:** —
 - **Localization:** no player-facing strings
-- **Docs to update on change:** `docs/CODEMAP.md` · `docs/CORE-FRAMEWORKS.md` · `docs/AUTHORING.md` · `docs/HIVE-MIND.md` · `docs/ARCHITECTURE.md` · `docs/DESIGN.md` · `docs/POWER-SCORE.md` · `docs/POWER-AUDIT.md` · `docs/POWER-ADVISOR.md` · `docs/MISSION-CONTROL.md` · `docs/EVOLUTION-ROADMAP.md` · `docs/MULLIGANS.md` · `docs/PREMIUM-STORE.md` · `docs/PREMIUM-ECONOMY-REPORT.md` · `docs/ONLINE-FOUNDATION.md` · `docs/TRADING-PREP.md` · `docs/TOWER-STARS.md` · `docs/TOWER-BRANCHES.md` · `docs/TOWER-LAB.md` · `docs/TOWER-CODEX.md` · `docs/TOWERS.md` · `docs/STRAIN.md` · `docs/MASTERY.md` · `docs/ADAPTATION.md` · `docs/HEROES.md` · `docs/HERO-FRAMEWORK.md` · `docs/HERO-EVOLUTION.md` · `docs/HERO-SELECTION.md` · `docs/SLOTS.md` · `docs/EQUIPMENT.md` · `docs/EQUIPMENT-PHILOSOPHY.md` · `docs/LOOTBOX.md` · `docs/LOOT-PROGRESSION.md` · `docs/REWARD-PRESENTATION.md` · `docs/GENE-EVOLUTION.md` · `docs/CARDS.md` · `docs/GENE-AUDIT-REPORT.md` · `docs/NUCLEUS.md` · `docs/HERO-SYMBIOTES.md` · `docs/COLLECTION.md` · `docs/EVOLUTION-HQ.md` · `docs/GENOME-CORE.md` · `docs/EVOLUTION-CAP.md` · `docs/ECONOMY.md` · `docs/LEXICON.md` · `docs/ECONOMY_FORMULAS.md` · `docs/DEV-RESET.md` · `docs/SCALABILITY.md` · `docs/PROJECT_MANIFEST.md` · `docs/BOSS-DESIGN.md` · `docs/MEGA-BOSS.md` · `docs/BIOMES.md` · `docs/DOCTRINES.md` · `docs/MODE-IDENTITY.md` · `docs/THREAT.md` · `docs/DIFFICULTY.md` · `docs/DIFFICULTY_DIRECTOR.md` · `docs/WEBSITE.md` · `docs/DEPLOYMENT.md`
+- **Docs to update on change:** `docs/CODEMAP.md` · `docs/CORE-FRAMEWORKS.md` · `docs/AUTHORING.md` · `docs/HIVE-MIND.md` · `docs/ARCHITECTURE.md` · `docs/DESIGN.md` · `docs/POWER-SCORE.md` · `docs/POWER-AUDIT.md` · `docs/POWER-ADVISOR.md` · `docs/MISSION-CONTROL.md` · `docs/EVOLUTION-ROADMAP.md` · `docs/MULLIGANS.md` · `docs/PREMIUM-STORE.md` · `docs/PREMIUM-ECONOMY-REPORT.md` · `docs/ONLINE-FOUNDATION.md` · `docs/TRADING-PREP.md` · `docs/TOWER-STARS.md` · `docs/TOWER-BRANCHES.md` · `docs/TOWER-LAB.md` · `docs/TOWER-CODEX.md` · `docs/TOWERS.md` · `docs/STRAIN.md` · `docs/MASTERY.md` · `docs/ADAPTATION.md` · `docs/HEROES.md` · `docs/HERO-FRAMEWORK.md` · `docs/HERO-EVOLUTION.md` · `docs/HERO-SELECTION.md` · `docs/SLOTS.md` · `docs/EQUIPMENT.md` · `docs/EQUIPMENT-PHILOSOPHY.md` · `docs/LOOTBOX.md` · `docs/LOOT-PROGRESSION.md` · `docs/REWARD-PRESENTATION.md` · `docs/GENE-EVOLUTION.md` · `docs/CARDS.md` · `docs/GENE-AUDIT-REPORT.md` · `docs/NUCLEUS.md` · `docs/HERO-SYMBIOTES.md` · `docs/COLLECTION.md` · `docs/EVOLUTION-HQ.md` · `docs/GENOME-CORE.md` · `docs/EVOLUTION-CAP.md` · `docs/ECONOMY.md` · `docs/LEXICON.md` · `docs/ECONOMY_FORMULAS.md` · `docs/DEV-RESET.md` · `docs/SCALABILITY.md` · `docs/PROJECT_MANIFEST.md` · `docs/BOSS-DESIGN.md` · `docs/MEGA-BOSS.md` · `docs/BIOMES.md` · `docs/MAP-LAYOUTS.md` · `docs/DOCTRINES.md` · `docs/MODE-IDENTITY.md` · `docs/THREAT.md` · `docs/DIFFICULTY.md` · `docs/DIFFICULTY_DIRECTOR.md` · `docs/WEBSITE.md` · `docs/DEPLOYMENT.md`
 
 ### Power Score (`power`)
 
@@ -830,7 +834,7 @@ graph TD
 
 *Currency identities (icon/color/tooltip/format) + the adaptive economy framework: one factor-traced income composition per currency, adaptive seams (ACTIVE 2026-07 — catch-up/ahead-taper on the frontier power gap, clamped, onboarding-floored), health guards. LOCALIZED ECONOMY (v48, docs/ECONOMY.md §localized): every CurrencyDef declares its ONE spend domain + ≥2 earn sources, machine-enforced by currencyProblems() (unique names/colors, one specialized wallet per system, prestige exempt as the single-faucet mint). Chitin (hiveMaterials) grows Hive-Production organs — guaranteed hopper top-slice (IDLE.hiveMatsShare, value SHIFTED not added) + scavenge-expedition lanes value-swapped from cores; Mulligan Tissue (mulliganTissue) upgrades/ascends tower grafts — dupe dissolves (old essence numbers 1:1) + even premium-bleed split + hopper trickle (weight carved from essence). Ichor reforge + Hive-Construction composite recipes + Nucleus/Symbiote essence sinks deliberately NOT converted. Pace parity pinned by scripts/sim-localized-economy.ts.*
 
-- **Files:** `src/core/currencies.ts` · `src/core/economyDirector.ts` · `src/ui/components/CurrencyIcon.tsx`
+- **Files:** `src/core/currencies.ts` · `src/core/economyDirector.ts` · `src/ui/components/CurrencyIcon.tsx` · `src/state/rewardVisibility.ts` · `src/ui/components/MaterialsChip.tsx`
 - **Depends on:** `content-infra`
 - **Consumers — what breaks if you change this:** `splice-market`
 - **Power Score:** — (intentionally none)
@@ -1130,7 +1134,7 @@ graph TD
 
 *The nav shell + the Command Center home: registry-driven widgets, living World Status, mission control, feed/roadmap/army, dashboards.*
 
-- **Files:** `src/ui/Hub.tsx` · `src/ui/navModel.ts` · `src/ui/MobileShell.tsx` · `src/ui/components/ScreenHeader.tsx` · `src/ui/CommandCenter.tsx` · `src/ui/DeployScreen.tsx` · `src/ui/homeModel.ts` · `src/ui/WorldStatus.tsx` · `src/ui/ProgressDashboard.tsx` · `src/ui/NextGoalBanner.tsx` · `src/state/nextGoal.ts` · `src/state/progressionLoop.ts` · `src/ui/hubProgress.ts` · `src/ui/homeBaseTiers.ts` · `src/ui/LabAtmosphere.tsx` · `src/ui/App.tsx` · `src/ui/ErrorBoundary.tsx` · `src/main.tsx` · `src/net/swRegister.ts` · `src/ui/components/UpdateToast.tsx` · `src/ui/components/Popup.tsx` · `src/state/listOrg.ts` · `src/ui/components/ListControls.tsx`
+- **Files:** `src/ui/Hub.tsx` · `src/ui/navModel.ts` · `src/ui/MobileShell.tsx` · `src/ui/components/ScreenHeader.tsx` · `src/ui/CommandCenter.tsx` · `src/ui/DeployScreen.tsx` · `src/ui/homeModel.ts` · `src/ui/WorldStatus.tsx` · `src/ui/ProgressDashboard.tsx` · `src/ui/NextGoalBanner.tsx` · `src/state/nextGoal.ts` · `src/state/progressionLoop.ts` · `src/ui/hubProgress.ts` · `src/ui/homeBaseTiers.ts` · `src/ui/LabAtmosphere.tsx` · `src/ui/App.tsx` · `src/ui/ErrorBoundary.tsx` · `src/main.tsx` · `src/net/swRegister.ts` · `src/ui/components/UpdateToast.tsx` · `src/ui/components/Popup.tsx` · `src/state/listOrg.ts` · `src/ui/components/ListControls.tsx` · `src/ui/components/HostTabs.tsx`
 - **Depends on:** `meta-store` · `notifications` · `prediction` · `power`
 - **Consumers — what breaks if you change this:** `hive-construction` · `infestation` · `cosmetics` · `battle-pass` · `quests` · `profile` · `reward-architecture`
 - **Power Score:** — (intentionally none)
@@ -1160,7 +1164,7 @@ graph TD
 
 *Generic menu badges (registered count(save) sources per nav channel) + the global claim popup every hub claim receipts through.*
 
-- **Files:** `src/state/notifications.ts` · `src/state/notificationSources.ts` · `src/state/rewardToast.ts` · `src/state/recommendations.ts` · `src/state/readyChain.ts` · `src/state/hiveIntel.ts` · `src/ui/components/RewardToaster.tsx` · `src/ui/components/CeremonyLayer.tsx` · `src/ui/components/WalletChip.tsx` · `src/ui/HubLanding.tsx`
+- **Files:** `src/state/notifications.ts` · `src/state/notificationSources.ts` · `src/state/rewardToast.ts` · `src/state/recommendations.ts` · `src/state/readyChain.ts` · `src/state/hiveIntel.ts` · `src/ui/components/RewardToaster.tsx` · `src/ui/components/CeremonyLayer.tsx` · `src/ui/components/WalletChip.tsx` · `src/ui/HubLanding.tsx` · `src/state/autoClaim.ts` · `src/ui/components/AutoClaimSummary.tsx`
 - **Depends on:** `meta-store`
 - **Consumers — what breaks if you change this:** `metabolism` · `hub-shell`
 - **Power Score:** — (intentionally none)
@@ -1267,14 +1271,29 @@ graph TD
 
 - **Files:** `src/core/biomes.ts`
 - **Depends on:** `content-infra`
-- **Consumers — what breaks if you change this:** `engine` · `campaign` · `daily`
+- **Consumers — what breaks if you change this:** `engine` · `campaign` · `daily` · `map-layouts`
 - **Power Score:** — (intentionally none)
 - **Save fields:** —
 - **Tutorial:** — · **Help mechanics:** `biomes`
 - **HUD surfaces:** `biome banner` · **UI screens:** `CampaignScreen`
 - **Collection:** biomes category · **Achievements:** —
 - **Localization:** inline English strings (no i18n layer yet — this field enumerates the surface for the day it lands)
-- **Docs to update on change:** `docs/BIOMES.md` · `docs/ARCHITECTURE.md` · `docs/CODEMAP.md` · `docs/DESIGN.md` · `docs/CAMPAIGN.md` · `docs/CAMPAIGN-EVENTS.md` · `docs/MODE-IDENTITY.md` · `docs/STAGES.md` · `docs/DAILY-RUN.md`
+- **Docs to update on change:** `docs/BIOMES.md` · `docs/ARCHITECTURE.md` · `docs/CODEMAP.md` · `docs/DESIGN.md` · `docs/CAMPAIGN.md` · `docs/CAMPAIGN-EVENTS.md` · `docs/MODE-IDENTITY.md` · `docs/STAGES.md` · `docs/DAILY-RUN.md` · `docs/MAP-LAYOUTS.md`
+
+### Arena Layouts (`map-layouts`)
+
+*Battlefield obstacle geometry as DATA (docs/MAP-LAYOUTS.md): one registry row per layout (obstacle rects + optional spawn spans + biome affinity + minStage), a validator proving every layout routable / clear of the defensive region + slots / pocket-free, and the deterministic selection policy (Campaign onboarding pins + biome-flavored rolls, the Daily’s seeded roll, Infinite’s biome-period rotation). Each Game owns its layout’s NavField (map.ts) — the classic arena stays the default for Skirmish, the tutorial and golden autoplay.*
+
+- **Files:** `src/core/mapLayouts.ts`
+- **Depends on:** `engine` · `content-infra` · `biomes`
+- **Consumers — what breaks if you change this:** —
+- **Power Score:** — (intentionally none)
+- **Save fields:** —
+- **Tutorial:** — · **Help mechanics:** `arena-layouts`
+- **HUD surfaces:** — · **UI screens:** `CampaignScreen (stage preview layout line)` · `DeployScreen (deploy sub-line)`
+- **Collection:** — · **Achievements:** —
+- **Localization:** inline English strings (no i18n layer yet — this field enumerates the surface for the day it lands)
+- **Docs to update on change:** `docs/MAP-LAYOUTS.md`
 
 ### Doctrines (`doctrines`)
 
