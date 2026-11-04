@@ -90,7 +90,7 @@ choreographs its own openings; phases change the choreography. Destroyed organs 
   tower and beam yields raid duty back to normal enemy targeting. Without this a sparse early
   board tunneled an open organ (long guns reach organs from anywhere) while wave enemies chewed
   the undefended Hive — the stage-10 difficulty-contract wipe (docs/DIFFICULTY.md §curve).
-  Campaign mega stages also display a raid-premium power bar (`C.megaStagePremium`) so the
+  Campaign mega stages also display a raid-premium power bar (`C.megaStagePremium`, ×1.15 — §hunt) so the
   encounter's true cost is never understated.
 
 ## Encounters (registry-CYCLING — no hardcoded count)
@@ -183,6 +183,52 @@ waves**; only the stage's FINAL wave holds for the kill. Pinned by megaboss.test
 **Raid audio:** raid strikes bypass projectiles, so they never fired the impact cue —
 `megaHitSfx()` now plays one throttled `hit` (≥0.15 s apart across the whole raid: beam
 per-frame ticks and full volleys read as steady combat, never a cue machine-gun).
+
+## §hunt (2026-11) — the Mega Hunt: a failed raid still advances something
+
+The 2026-11 grind audit found every 10th Campaign stage a ~day-long wall (the average persona sat
+at stage 79 for 22.9 h, at 89 for 28.8 h). Two changes, both measured:
+
+**1. The raid premium was simply too steep.** `C.megaStagePremium` (core/campaign.ts) read ×1.8,
+from a pre-raid-targeting probe. Real runs on progression-simulated accounts (G1's harness —
+competent-player autopilot; 6 seeds per cell; `noMega` = the same stage with its mega suppressed):
+
+| Account (Power) | Stage S−1 | **Mega stage S** | S with mega suppressed | S+1 | Readiness vs old bar → new |
+|---|---|---|---|---|---|
+| 8h (83k), S30 | 5/6 | **2/6** | 3/6 | 5/6 | 0.95 → 1.49 |
+| 60h (408k), S70 | 5/6 | **5/6** | 4/6 | 6/6 | 0.62 → 0.97 |
+| 100h (555k), S90 | 2/6 | **2/6** | 2/6 | 2/6 | 0.32 → 0.50 |
+
+The mega stage wins exactly as often as the same stage with no mega (**9/18 vs 9/18**) and as its
+neighbours at equal Power — losses come from the stage's opening waves, not the organism (the lone
+siege + raid targeting made the finale killable). The premium is now **×1.15** (the bar steps
+×1.21 onto a raid instead of ×1.89; the step back down is ×0.91): an authored spike for the
+finale's longer hold + Hive lash, not a wall. `MEGA.expectedKillBase/PerTier` rose ×√(1.8/1.15)
+in the same change so the SAME account + kill time pays the SAME Ichor efficiency.
+
+**2. Attempts pay — derived from what the game already records (no save field).**
+
+- **Wound tiers** (`MEGA_HUNT.wounds`): every encounter is graded **Marked / Wounded / Crippled /
+  Felled** from the share of the organism's max HP torn away (`RunStats.megaHunt.hpTorn`, 1 on the
+  kill) or organs burst, whichever reads higher. Presentation: Results says how close it was.
+- **Hunt ranks** (`huntRank` / `huntRankAt`): rank k at `organsBase × k(k+1)/2` LIFETIME organs
+  (4, 12, 24, 40, 60 …) — the ledger is `save.megaProgress.weakPoints`, recorded LIVE by
+  `megaWeakPointDown`, so a raid you LOSE still counts. finishRun pays every rank the run's
+  ruptures crossed — `(after − run organs) → after` — **once**, by crossing semantics over a
+  monotonic counter (the Boss Rush record-band construction): no claim ledger to persist. Each rank
+  pays `huntRankCores(frontier)` = `rankCoreFrac` (0.5) × the frontier stage's first-clear base
+  value, so the bounty keeps pace with depth; Results previews the next rank with the same function.
+- **Cosmetic steps:** profile frames **Hunter's Brand** (rank 4) and **Leviathan Stalker** (rank 8)
+  — `PROFILE_FRAMES` rows derived from the same ledger.
+- **Weak-point intel:** the Results dossier lists the hunted mega's organ kinds — named with what
+  bursting them does once you have ruptured that kind anywhere (`megaProgress.wpKinds`), every
+  organ named from rank `dossierRank` (3).
+- **What it can't do (no save field):** a strict "first time you tear 50% of THIS mega" claim per
+  stage needs a persisted per-stage watermark; the hunt instead pays on lifetime organs (which a
+  failed attempt advances) and grades the wound per attempt. An abandoned run's ruptures still
+  count toward the ledger but the ranks they crossed are not paid (Help says: settle the run).
+- Help: mechanics row `mega-hunt`. Tests: `megacollection.test.ts` (crossing paid once, wound/rank
+  math), `megaboss.test.ts` (the sim read).
 
 ## §damage-gate honesty (2026-07-19) — the bar never freezes silently
 

@@ -42,12 +42,14 @@ const C = {
   compFromStage: 8, // last stage of the unchanged 5% onboarding ramp
   compToStage: 25, // last compensation-band stage (the optimized-account wall lives here)
   compGrowth: 0.2, // per-stage EHP growth inside the band (fit via the progression simulator)
-  // Mega-hosting stages (every MEGA.campaignEvery-th) carry a RAID on top of their waves — the
-  // contract probe measures a clean kill at ~×1.5–2.0 of the wave-only index. The premium keeps
-  // the DISPLAYED bar honest (label only — enemy stats never read it; safe error direction,
-  // same principle as the biome ratchet). It also lands the fresh account's first wall at the
-  // stage-10 mega with a truthful readiness read (docs/DIFFICULTY.md §curve).
-  megaStagePremium: 1.8,
+  // Mega-hosting stages (every MEGA.campaignEvery-th) carry a RAID on top of their waves. The
+  // premium keeps the DISPLAYED bar honest (label only — enemy stats never read it; safe error
+  // direction, same principle as the biome ratchet). 2026-11 re-measure (docs/DIFFICULTY.md §curve;
+  // real runs on progression-simulated 8h/60h/100h accounts): a mega stage wins exactly as often as
+  // the SAME stage with its mega suppressed (9/18 vs 9/18) and as its neighbours at equal Power —
+  // the old ×1.8 (a pre-raid-targeting probe) walled every 10th stage for ~a day of play with no
+  // real threat behind it. ×1.15 keeps an authored spike for the finale's longer hold + Hive lash.
+  megaStagePremium: 1.15,
   speedGrowth: 0.012, speedCap: 1.6, // capped so fast enemies stay fair
   spawnGrowth: 0.01, spawnCap: 1.5,
   rewardGrowth: 0.05,

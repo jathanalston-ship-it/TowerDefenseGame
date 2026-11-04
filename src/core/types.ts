@@ -582,6 +582,9 @@ export interface RunStats {
   weakPointKinds?: string[]; // DISTINCT weak point kinds destroyed this run
   megaInterrupts?: number; // telegraphs cancelled via eye weak points this run
   megaAbilitiesSurvived?: number; // mega abilities that completed against you this run
+  /** The Mega Hunt read (docs/MEGA-BOSS.md §hunt): the run's LAST mega encounter — its def, the
+   *  share of its max HP torn away (1 = slain) and organs ruptured in that encounter. */
+  megaHunt?: { defId: string; tier: number; hpTorn: number; organs: number };
 }
 
 /** One defeated Mega Boss (docs/MEGA-BOSS.md §rewards): everything the reward formula +

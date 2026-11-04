@@ -8351,6 +8351,15 @@ export class Game {
 
   /** Bosses still standing when the Nucleus fell, with the HP fraction they had left (split
    *  children pool under their parent's name; the anchored mega joins as its own row). */
+  /** The Mega Hunt read (docs/MEGA-BOSS.md §hunt): the organism still standing (its wound so far),
+   *  else the last one felled this run (hpTorn 1). Observation only — never feeds the sim. */
+  private megaHuntRead(): { defId: string; tier: number; hpTorn: number; organs: number } | undefined {
+    const rt = this.mega;
+    if (rt !== null && rt.deathT <= 0) return { defId: rt.defId, tier: rt.tier, hpTorn: Math.max(0, Math.min(1, 1 - rt.hp / Math.max(1, rt.maxHp))), organs: rt.wpDestroyed };
+    const k = this.runMegaKills[this.runMegaKills.length - 1];
+    return k ? { defId: k.defId, tier: k.tier, hpTorn: 1, organs: k.weakPoints } : undefined;
+  }
+
   private bossHpAtDefeat(): { name: string; hpFrac: number }[] {
     const pools = new Map<string, { hp: number; max: number }>();
     for (const e of this.enemies) {
@@ -8402,6 +8411,7 @@ export class Game {
             weakPointKinds: [...this.statWpKinds],
             megaInterrupts: this.statMegaInterrupts,
             megaAbilitiesSurvived: this.statMegaSurvived,
+            megaHunt: this.megaHuntRead(),
           }
         : {}),
     };

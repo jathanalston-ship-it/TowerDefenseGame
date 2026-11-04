@@ -33,6 +33,7 @@ import { accountPowerParts, collectionContextOf, totalPrimeLevels } from './meta
 import { highestCampaignStage } from '../save/derive';
 import { difficultyPref, vaultLedger } from './prefs';
 import { nextRushIchorAt } from '../core/market';
+import { huntRank, huntRankAt } from '../core/megaboss';
 import { mulliganRegistry } from '../core/mulligan';
 
 // ── The stat provider registry ────────────────────────────────────────────────
@@ -246,6 +247,9 @@ export interface ProfileFrame {
 }
 
 /** Unlockable banner frames — data; appending one here is the whole feature. */
+/** The Mega Hunt ranks that unlock a cosmetic frame — the hunt's visible steps (data, not code paths). */
+const HUNT_FRAME_RANKS = [4, 8] as const;
+
 export const PROFILE_FRAMES: ProfileFrame[] = [
   { id: 'membrane', name: 'Membrane', blurb: 'The specimen line’s first containment.', unlocked: () => true },
   { id: 'chitin', name: 'Chitin Plate', blurb: 'Clear Campaign Stage 25.', unlocked: (s) => highestCampaignStage(s) >= 25 },
@@ -256,6 +260,9 @@ export const PROFILE_FRAMES: ProfileFrame[] = [
   // THREAT LADDER milestones (docs/THREAT.md) — cosmetic badges, never Power.
   { id: 'threat5', name: 'Threat Crown', blurb: 'Clear Threat 5 in any mode.', unlocked: (s) => bestThreat(s) >= 5 },
   { id: 'threat10', name: 'Apex Threat Halo', blurb: 'Clear Threat 10 in any mode.', unlocked: (s) => bestThreat(s) >= 10 },
+  // MEGA HUNT ranks (docs/MEGA-BOSS.md §hunt) — derived from the lifetime organ ledger; failed raids count.
+  { id: 'hunter', name: 'Hunter\u2019s Brand', blurb: `Reach Mega Hunt Rank ${HUNT_FRAME_RANKS[0]} (rupture ${huntRankAt(HUNT_FRAME_RANKS[0])} Mega organs).`, unlocked: (s) => huntRank(s.megaProgress.weakPoints) >= HUNT_FRAME_RANKS[0] },
+  { id: 'leviathan', name: 'Leviathan Stalker', blurb: `Reach Mega Hunt Rank ${HUNT_FRAME_RANKS[1]} (rupture ${huntRankAt(HUNT_FRAME_RANKS[1])} Mega organs).`, unlocked: (s) => huntRank(s.megaProgress.weakPoints) >= HUNT_FRAME_RANKS[1] },
 ];
 
 /** The account's best cleared Threat level across every ladder mode (0 = none). */

@@ -84,12 +84,14 @@ hours). The late tail already converged — only the early anchor was wrong. The
 | Stages 26+ | +5%/stage | resumes from the elevated baseline (net ×~9.8 ≈ a one-time +45-stage shift) |
 
 `recommendedPower` still derives from the same `hpMult`, so the label and real enemy EHP move
-together by construction. Displayed ladder: ~1.5k @8 · ~2.2k @10 (×1.8 raid premium ⇒ ~3.9k
+together by construction. Displayed ladder: ~1.5k @8 · ~2.2k @10 (×1.15 raid premium ⇒ ~2.5k
 shown) · ~6.2k @15 · ~15k @20 · ~38k @25 (the optimized-account wall) · ~137k @50 · ~968k @90.
 
-**Mega-stage raid premium** (`C.megaStagePremium`, ×1.8): every 10th stage hosts a Mega Boss —
-real threat the wave budget never priced in (probe-measured: a clean kill needs ~×1.5–2.0 of
-the wave-only index). The premium keeps the DISPLAYED bar honest; enemy stats never read it
+**Mega-stage raid premium** (`C.megaStagePremium`, ×1.15 — was ×1.8): every 10th stage hosts a
+Mega Boss. The old ×1.8 came from a pre-raid-targeting probe; the 2026-11 re-measure on real
+accounts (docs/MEGA-BOSS.md §hunt) found a mega stage wins as often as the same stage with its mega
+suppressed (9/18 vs 9/18), so the bar keeps only a small spike for the finale's longer hold — the
+~day-long wall before every 10th stage is gone. The premium keeps the DISPLAYED bar honest; enemy stats never read it
 (label + readiness only — the same never-understate principle as the biome ratchet). The
 ladder is therefore a rising curve with authored SPIKES on mega stages: strictly rising across
 wave stages, a spike up onto each raid, strictly rising over any decade

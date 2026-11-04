@@ -24,7 +24,7 @@ import { sumValues } from '../core/math';
 import { levelFromXp } from '../core/accountLevel';
 import { genomeRating } from '../core/genomeRank';
 import { highestCampaignStage } from '../save/derive';
-import { campaignMegaFor, megaExpectedKillSec } from '../core/megaboss';
+import { campaignMegaFor, megaBossDef, megaExpectedKillSec } from '../core/megaboss';
 import { gameEvents } from '../core/events';
 import type { Persona } from './personas';
 
@@ -133,7 +133,7 @@ function makeResult(opts: {
       towerBuilds,
       cardIds,
       heroId: opts.hero,
-      ...(megaKills ? { megaKills } : {}),
+      ...(megaKills ? { megaKills, weakPointsDestroyed: megaKills[0].weakPoints } : {}),
     },
   };
 }
@@ -313,7 +313,12 @@ export function simulateAccount(seed: number, bands: number[], persona?: Persona
     meta.syncRunLoot(result.wave, result.kills); // live loot banking, like a real run
     // A real run's megaKilled event fires DURING play (it writes the megaProgress.slain ledger
     // that awakens the Bio-Container meter) — mirror it before finishRun, same order as live.
-    for (const k of result.stats.megaKills ?? []) gameEvents.emit('megaKilled', k);
+    for (const k of result.stats.megaKills ?? []) {
+      // …and its organ ruptures (the Mega Hunt ledger, docs/MEGA-BOSS.md §hunt) fire live too.
+      const organs = megaBossDef(k.defId)?.weakPoints ?? [];
+      for (let i = 0; i < k.weakPoints && organs.length > 0; i++) gameEvents.emit('megaWeakPointDown', { defId: k.defId, kind: organs[i % organs.length].kind, note: '', interrupted: false });
+      gameEvents.emit('megaKilled', k);
+    }
     meta.finishRun(result);
     while (meta.openContainer()) { /* crack the whole stockpile */ }
     if (!persona || rng() >= persona.spendSkip) spendEverything(persona?.focus);
