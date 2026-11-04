@@ -191,7 +191,7 @@ saga + the two follow-up batches. The map (each row names its living evidence):
 | Authoritative model / client never trusted | ✅* | commands-are-intents + digest tripwires + shared validators + server-derived rating/rewards (§0, §authority) — *see conflict note below |
 | Matchmaking (20s, widening brackets, honest console, invisible AI fallback) | ✅ | `matchSearchState` + the human-lane race (ArenaScreen) |
 | Vertically mirrored, scrollable battlefield | ✅ | ArenaView membrane seam + ease-home camera |
-| Live opponent sim ("everything visible") | ✅* | the mirror IS a genuine sim; megas excluded by RECORDED decision (§1) — *conflict note |
+| Live opponent sim ("everything visible") | ✅* | the mirror IS a genuine sim; megas excluded by RECORDED decision (§1) — *conflict note. It speaks on a private event bus (`game.isolateEvents()`, rollback rebuild included), so the opponent's kills never reach this player's save or toasts |
 | HUD overhaul (health/portraits/latency/rank/timer/scroll/reset) | ✅ | ArenaView §10 set + the live RTT/quality chip |
 | AI as a real player (procedural accounts, real sim, no cheating) | ✅ | core/arenaAi.ts (§9) |
 | Sync: prediction/rollback/reconnect/bandwidth | ✅ | frontier mirror, log-replay rollback/reconnect, digests, bytes-per-action wire (§2–3) |

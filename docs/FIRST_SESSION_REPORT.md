@@ -8,62 +8,62 @@
 |---|---|---|---|
 | Page/console errors | ≤ 0 | 0 | ok |
 | Modals after first run | ≤ 3 | 1 | ok |
-| Time to first tower (cutscene skipped) | ≤ 15s | 8s | ok |
-| Boot JS gzip | ≤ 560 KB | 517.4 KB | ok |
+| Time to first tower (cutscene skipped) | ≤ 15s | 8.2s | ok |
+| Boot JS gzip | ≤ 560 KB | 534 KB | ok |
 | Session completed | all steps | yes | ok |
 
 ## Timeline (seconds since the probe opened /play/)
 
 | Moment | t |
 |---|---|
-| Cutscene skipped | 2s |
-| **First tower placed** | 8s |
-| **First wave in combat** | 8.4s |
-| **First reward** | 18.9s |
-| Tutorial done (commissioning) | 35.9s |
-| First hub | 40.3s |
-| Campaign Stage 1 started | 46s |
-| Stage 1 ended (ended) | 97.8s |
+| Cutscene skipped | 2.1s |
+| **First tower placed** | 8.2s |
+| **First wave in combat** | 8.6s |
+| **First reward** | 21s |
+| Tutorial done (commissioning) | 38.1s |
+| First hub | 42.4s |
+| Campaign Stage 1 started | 48s |
+| Stage 1 ended (Victory) | 113.1s |
 
 ## Noise after the first run
 
 - Modal dialogs between first results and a quiet hub: **1** — `10 new systems unlocked | Your hive is growing`
-- Toasts after the first run: **3** (whole session: 13) — `✕🏆Achievements Unlocked7 achievements+235 Genome Cores▸ Show all 7Vie`, `✕⬢Campaign Stage 1+0Run Cache ×2Open in the Vault →`, `✕Campaign Stage 1+0Genome Cores`
-- Nav badges on the hub after run 1: **2** — ✪6Rewards Hub›=6, ✷7Evolution Hub›=7
+- Toasts after the first run: **3** (whole session: 13) — `✕🏆Achievements Unlocked6 achievements+210 Genome Cores▸ Show all 6Vie`, `✕⬢Campaign Stage 1+0Run CacheOpen in the Vault →`, `✕Campaign Stage 1+0Genome Cores`
+- Nav badges on the hub after run 1: **2** — ✪Rewards Hub=•, ✷Evolution Hub›=•
 
 ## Errors
 
 - none
-- (11 `/api/*` console errors ignored — expected without Pages Functions)
+- (12 `/api/*` console errors ignored — expected without Pages Functions)
 
 ## What the browser had to download
 
 | Moment | JS files | JS gzip (cumulative) |
 |---|---|---|
-| Boot chunk set (static entry closure — budgeted) | 2 | 517.4 KB |
-| First screen up (incl. tutorial engine loading behind the intro) | 23 | 684.6 KB |
-| First hub | 29 | 697.5 KB |
-| First campaign run started | 29 | 697.5 KB |
+| Boot chunk set (static entry closure — budgeted) | 2 | 534 KB |
+| First screen up (incl. tutorial engine loading behind the intro) | 24 | 705.4 KB |
+| First hub | 34 | 733.2 KB |
+| First campaign run started | 34 | 733.2 KB |
 
-Emitted: **74 JS** chunks = 2786.3 KB raw / 863.4 KB gzip; CSS 1 file(s) = 620.2 KB raw / 108.4 KB gzip.
+Emitted: **78 JS** chunks = 2866.4 KB raw / 888.0 KB gzip; CSS 1 file(s) = 628.9 KB raw / 110.4 KB gzip.
 
 | Largest chunks | raw KB | gzip KB |
 |---|---|---|
-| `play-DdFSdyWU.js` | 1603.5 | 473.2 |
-| `play-gIicDq-O.css` | 620.2 | 108.4 |
-| `game-CoMlA9-V.js` | 169.5 | 49.5 |
+| `play-uoibNyUw.js` | 1663.1 | 489.8 |
+| `play-BsmhM_gj.css` | 628.9 | 110.4 |
+| `game-Ctoq0jK1.js` | 170.5 | 49.8 |
 | `vendor-ppAWL3zK.js` | 137.5 | 44.2 |
-| `renderer-Bs8gR0l7.js` | 126.3 | 40.1 |
-| `GameView-8WOhi0s-.js` | 95.8 | 30.1 |
-| `MulliganLab-D-LGSHtD.js` | 31.2 | 10.0 |
-| `EvolutionHQ-Ad-3Z2XS.js` | 28.8 | 8.7 |
+| `renderer-C-Ozc2i6.js` | 127.6 | 40.5 |
+| `GameView-BsKaUbbe.js` | 98.3 | 31.4 |
+| `MulliganLab-Bd8eIhJQ.js` | 31.2 | 10.0 |
+| `GeneticVault-C0Jn8nAM.js` | 28.2 | 9.0 |
 
 ## Steps
 
 - 0s — boot (goto /play/)
 - 0.7s — skip-cutscene
-- 2s — combat-tutorial
-- 35.9s — commissioning
-- 40.3s — hub-tour
-- 43.5s — campaign-stage-1 (start from Home)
-- 103s — results-to-hub
+- 2.1s — combat-tutorial
+- 38.1s — commissioning
+- 42.4s — hub-tour
+- 45.5s — campaign-stage-1 (start from Home)
+- 114.6s — results-to-hub

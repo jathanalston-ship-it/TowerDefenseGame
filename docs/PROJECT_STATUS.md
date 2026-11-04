@@ -3,7 +3,21 @@
 > Maintained at the END of every session (paired with `docs/AI_HANDOFF.md` — the constitution's
 > workflow step 4). This is the "where are we?" answer; `docs/GAME-STATE.md` remains the deeper
 > per-system built-vs-planned index, `docs/PROJECT_MANIFEST.md` the system map.
-> **Last updated:** 2026-11-04b (**DEPLOYED + WEBSITE REFRESH** — the batch below is LIVE (deploy
+> **Last updated:** 2026-11-04c (**POLISH, CONTENT & ECONOMY-HEALTH BATCH** — merged + verified on
+> `claude/beautiful-feynman-qdyilo`, NOT yet deployed (needs the owner's go-ahead). Six tracks: F1 battle feel (FEEL
+> table + centre-stage Announcer, boss kills land, Motion settings), F2 post-run (Stage N+1 from
+> Results, one ClaimAll, phones keep the run layout through Results), N1 hub shell (Back/Escape walk
+> the game, per-screen error boundary + chunk retry, advice links, decision badges, Home CTA above the
+> fold), N2 screens (one name per screen, SectionNav / LoadoutStrip / ChipPopover, 4.5:1 text), C3
+> content (Gristle Warren, Tick Battery, Keening Quill, the Myceliarch, six puzzle enemies), E2
+> economy health (17 → 3 matrix signals; gene Power floor; shard surplus → Essence). Lead fixes:
+> Season Pass claim-all in one press, Bio-Dex tyrant count, replays never credit the viewer's save
+> (`Game.isolateEvents`), older replays play (neutral missing kinds), a splitter falls once
+> (`bossKilled.final`), theater fall cards, Gene Archive Escape, mobilecheck server leak. Website:
+> features copy, devlog "Feel and Flow", release v2026.11.04.2 curated (v2026.11.04 sealed as
+> shipped), media re-shot. VALIDATION: validate PASS over f73e8fb..HEAD — typecheck clean, 2847/2847 tests, mobile gate clean, doc anchors/refs clean; first-session probe: 0 errors, 1 modal after run 1, first tower 8.2 s, boot JS 534 KB / 560; pil audit CLEAN; media re-shot (2 stills re-taken after review).)
+>
+> **2026-11-04b** (**DEPLOYED + WEBSITE REFRESH** — the batch below is LIVE (deploy
 > branch fast-forwarded with the owner's OK; workflow SHA-verified). BE/NL store rule:
 > `offerReachesChance` — no real money reaches a random outcome there. Website: copy, guides, Terms,
 > devlog "The First Hour", live counts (battlefields / rule genes / Threat rungs), new stills + 36 s

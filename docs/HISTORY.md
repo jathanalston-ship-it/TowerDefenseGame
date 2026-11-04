@@ -476,3 +476,4 @@
 - `afef05f` **[Developer Tools]** Docs: batch summary, 22 fix-log rows and manifest entries for the polish, content and economy tracks _(internal)_
 - `6930566` **[Website]** Website: Feel and Flow devlog, features copy, release v2026.11.04.2 curated, new Home still
 - `47e45f7` **[UI]** Touch: range sliders meet the 44px floor (Screen shake slider was 16px tall)
+- `2beef2e` **[Enemies]** Website media: new combat + Mega stills and trailer; combat still waits for the swarm to clear the first corridor

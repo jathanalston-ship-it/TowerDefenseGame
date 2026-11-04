@@ -1,6 +1,6 @@
 {
-  "lastSha": "47e45f726576e28aaea6aedf857883a0a1c17972",
-  "commitsSinceDraft": 2,
+  "lastSha": "2beef2e78537746530cc47d0e40eb249aae96ab9",
+  "commitsSinceDraft": 3,
   "content": {
     "tower": [
       "needle",
@@ -6798,6 +6798,14 @@
       "date": "2026-11-04",
       "cat": "UI",
       "text": "Touch: range sliders meet the 44px floor (Screen shake slider was 16px tall)",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "2beef2e78537746530cc47d0e40eb249aae96ab9",
+      "date": "2026-11-04",
+      "cat": "Enemies",
+      "text": "Website media: new combat + Mega stills and trailer; combat still waits for the swarm to clear the first corridor",
       "internal": false,
       "needsReview": false
     }
