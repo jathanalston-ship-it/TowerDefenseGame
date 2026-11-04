@@ -20,6 +20,7 @@ import { navBus } from '../state/navBus';
 import { masteryRewardById } from '../core/mastery';
 import { RewardReveal } from './RewardReveal';
 import type { AchievementItem, RewardCategory, RewardStat } from './RewardReveal';
+import { collapseLadderRungs } from '../state/achievements';
 import { LoopDirective, NextGoalCliffhanger } from './NextGoalBanner';
 import { BiomassIcon } from './components/Icon';
 import { CurrencyIcon } from './components/CurrencyIcon';
@@ -516,6 +517,8 @@ export function Results({
   }
 
   // 5 — DISCOVERIES (only when there's something new — scales to collections / unlocks later)
+  // Ladder rungs crossed together read as one line per family (state/achievements.ts collapseLadderRungs).
+  const achievementLines = collapseLadderRungs(outcome.achievements);
   if (outcome.achievements.length > 0 || newMasteries > 0) {
     categories.push({
       id: 'discoveries',
@@ -534,7 +537,7 @@ export function Results({
       // spotlight is just the celebratory sequential reveal of the same achievements.
       extra: (
         <div className="mastery-unlocks">
-          {outcome.achievements.map((a) => (
+          {achievementLines.map((a) => (
             <div className="mu-row" key={`a-${a.id}`}>
               <span className="mu-kind mu-achv">Achv</span>
               <span className="mu-name">{a.name}{a.reward ? ` · +${a.reward} ${ACCOUNT_CURRENCY.name}` : ''}</span>
@@ -557,7 +560,7 @@ export function Results({
     });
   }
 
-  const achievements: AchievementItem[] = outcome.achievements.map((a) => ({ id: a.id, name: a.name, desc: a.desc, reward: a.reward }));
+  const achievements: AchievementItem[] = achievementLines;
 
   // The run's doctrine commitment reads back on the report (docs/DOCTRINES.md §presence).
   const doc = result.doctrine && result.doctrine !== 'none' ? DOCTRINES[result.doctrine] : null;

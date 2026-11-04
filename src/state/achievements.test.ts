@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { defaultSave } from '../save/saveStore';
 import { HERO_ORDER, TOWER_ORDER } from '../core/config';
 import { CARD_POOL } from '../core/cards';
-import { ACHIEVEMENTS, checkAchievements } from './achievements';
+import { ACHIEVEMENTS, checkAchievements, collapseLadderRungs } from './achievements';
 
 describe('achievements', () => {
   it('a brand-new save has nothing unlocked', () => {
@@ -120,5 +120,19 @@ describe('achievements', () => {
     // The whole registry ⇒ the hidden Complete Genome.
     ids = new Set(checkAchievements({ save: withArchive(CARD_POOL.map((c) => c.id)) }).map((a) => a.id));
     expect(ids.has('full_genome')).toBe(true);
+  });
+});
+
+describe('collapseLadderRungs (Results read, docs/PROGRESSION-SYSTEMS.md §ladders)', () => {
+  it('several rungs of one family read as ONE line: top rung, rung count, summed reward; authored rows untouched', () => {
+    const authored = ACHIEVEMENTS.filter((a) => !a.ladder).slice(0, 2);
+    const family = ACHIEVEMENTS.filter((a) => a.ladder?.family === 'culling').slice(0, 3);
+    const other = ACHIEVEMENTS.find((a) => a.ladder?.family === 'hoard')!;
+    expect(family).toHaveLength(3);
+    const lines = collapseLadderRungs([authored[0], family[0], family[2], other, family[1], authored[1]]);
+    expect(lines.map((l) => l.id)).toEqual([authored[0].id, family[2].id, other.id, authored[1].id]);
+    expect(lines[1].name).toBe(`${family[2].name} · 3 rungs`);
+    expect(lines[1].reward).toBe(family.reduce((s, a) => s + (a.reward ?? 0), 0));
+    expect(lines[2].name).toBe(other.name); // a lone rung keeps its own name
   });
 });

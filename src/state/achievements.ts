@@ -133,6 +133,29 @@ function ladderRows(): AchievementDef[] {
   return rows;
 }
 
+/** One line of a run's unlocked achievements as Results shows them. */
+export interface AchievementLine { id: string; name: string; desc: string; reward?: number }
+
+/** Results read (docs/PROGRESSION-SYSTEMS.md §ladders): a run that crosses several rungs of ONE
+ *  ladder — a veteran's first settle after ladders shipped crosses ~17 — reads as one line per
+ *  family (its top rung, "· N rungs", the summed reward) so the spotlight never parades rung by
+ *  rung. Authored achievements pass through untouched, in order. Pure. */
+export function collapseLadderRungs(defs: readonly AchievementDef[]): AchievementLine[] {
+  const out: AchievementLine[] = [];
+  const families = new Map<string, { line: AchievementLine; top: number; n: number }>();
+  for (const a of defs) {
+    const line: AchievementLine = { id: a.id, name: a.name, desc: a.desc, reward: a.reward };
+    if (!a.ladder) { out.push(line); continue; }
+    const g = families.get(a.ladder.family);
+    if (!g) { families.set(a.ladder.family, { line, top: a.ladder.tier, n: 1 }); out.push(line); continue; }
+    g.n++;
+    g.line.reward = (g.line.reward ?? 0) + (a.reward ?? 0);
+    if (a.ladder.tier > g.top) { g.top = a.ladder.tier; g.line.id = a.id; g.line.name = a.name; g.line.desc = a.desc; }
+  }
+  for (const g of families.values()) if (g.n > 1) g.line.name = `${g.line.name} · ${g.n} rungs`;
+  return out;
+}
+
 /** The NEXT unearned rung of every ladder family (the goal board picks the nearest by ETA). */
 export interface LadderGoal {
   family: string;
