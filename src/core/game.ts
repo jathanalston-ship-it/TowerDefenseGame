@@ -880,7 +880,8 @@ export class Game {
     this.automationAllowed = opts.automationAllowed === true;
     // Batch G grind levers — each off unless the app opts this run in (golden/Arena/probes unchanged).
     this.earlyCallAllowed = opts.earlyCall === true;
-    this.livePowerBase = opts.mode === 'campaign' && opts.livePowerBase !== undefined && Number.isFinite(opts.livePowerBase) ? Math.max(0, opts.livePowerBase) : null;
+    // §6a: from DIRECTOR_ADAPTIVE.liveFromStage on — the onboarding Stages 1–3 keep their calibrated curve (campaignCurve).
+    this.livePowerBase = opts.mode === 'campaign' && (opts.stage?.stage ?? 0) >= DIRECTOR_ADAPTIVE.liveFromStage && opts.livePowerBase !== undefined && Number.isFinite(opts.livePowerBase) ? Math.max(0, opts.livePowerBase) : null;
     this.squeezeOn = opts.squeeze === true && opts.mode === 'endless';
     this.threat = Math.max(0, Math.floor(opts.threat ?? 0));
     this.ruleSlot = [...this.unlockedCardIds].some((id) => { const c = cardRegistry.get(id); return c !== undefined && isRuleChangingCard(c); });
@@ -2307,8 +2308,9 @@ export class Game {
     // LIVE adaptive threat (docs/DIFFICULTY_DIRECTOR.md §6a): exactly 1 unless a Campaign run opted
     // in — then waves ≥ liveFromWave (chaff) and every boss body scale with the live Power ratio.
     const ratio = this.livePowerRatio();
-    this.liveThreat = this.waveIndex >= DIRECTOR_ADAPTIVE.liveFromWave ? this.dd.liveThreatMult(ratio) : 1;
-    const wave = this.dd.liveThreatParts(this.liveThreat); // HP × spawn pace — exactly {1, 1} at ×1
+    const m = this.waveIndex >= DIRECTOR_ADAPTIVE.liveFromWave ? this.dd.liveThreatMult(ratio) : 1;
+    const wave = this.dd.liveThreatParts(m, this.stageSpeedMult); // HP × pace × speed — exactly {1, 1, 1} at ×1
+    this.liveThreat = wave.hp * wave.pace * wave.speed; // the APPLIED multiplier (== m unless speed hit its readability ceiling)
     const bossHp = this.dd.liveBossMult(ratio); // every boss body, any wave (exactly 1 at ratio ≤ 1)
     // The Spawn Director schedules the scripted wave; difficulty's spawn-rate knob (×1 at
     // Standard) tightens spacing. Byte-identical to the former inline loop at the defaults.
@@ -2319,6 +2321,7 @@ export class Game {
       this.bountyMultFor(idx0),
       this.diff.spawnRateMult * wave.pace,
     );
+    if (wave.speed !== 1) for (const q of this.spawnQueue) q.speedMult = wave.speed; // §6a live speed part (absent ⇒ ×1)
     // Campaign: framework bosses aren't enemy-kinds, so the Game spawns them — the selected boss
     // caps the finale wave, the mini-boss (if any) anchors a middle wave. Both escorted by chaff.
     if (this.stage) {
@@ -2359,13 +2362,15 @@ export class Game {
   /** §6a live board-power ratio → the director's live threat multiplier. Exactly 1 unless this
    *  Campaign run opted in (RunOptions.livePowerBase). Cold path: once per wave launch. */
   private liveThreatNow(): number {
-    return this.dd.liveThreatMult(this.livePowerRatio());
+    const p = this.dd.liveThreatParts(this.dd.liveThreatMult(this.livePowerRatio()), this.stageSpeedMult);
+    return p.hp * p.pace * p.speed; // the applied multiplier (what the HUD chip shows)
   }
 
-  /** The run's LIVE Power ratio (live run Power ÷ the stage's recommended Power) — 1 (neutral) unless
-   *  this Campaign run opted in via RunOptions.livePowerBase. */
+  /** The run's LIVE board-power ratio (§6a/§7: account Power ÷ the stage's recommended Power × the
+   *  run's temporary Power × the board fielded vs an opening build) — 1 (neutral) unless this
+   *  Campaign run opted in via RunOptions.livePowerBase. */
   private livePowerRatio(): number {
-    return this.livePowerBase === null ? 1 : this.livePowerBase * effectsPower(this.powerEffects());
+    return this.livePowerBase === null ? 1 : this.dd.liveRatio(this.livePowerBase, effectsPower(this.powerEffects()), this.towers.length);
   }
 
   /** HUD read of the live adaptive multiplier: in prep, what the NEXT wave would launch with right
@@ -2990,7 +2995,7 @@ export class Game {
   private spawnSystem(): void {
     while (this.spawnQueue.length > 0 && this.spawnQueue[0].at <= this.time) {
       const q = this.spawnQueue.shift()!;
-      this.spawnOne(q.kind, q.hpMult, q.bountyMult, q.elite === true);
+      this.spawnOne(q.kind, q.hpMult, q.bountyMult, q.elite === true, q.speedMult ?? 1);
     }
     if (this.spawnQueue.length === 0) this.spawnedAll = true;
   }
@@ -3012,7 +3017,7 @@ export class Game {
     return Math.pow(this.rushHpScale, t);
   }
 
-  private spawnOne(kind: EnemyKind, hpMult: number, bountyMult: number, elite = false): void {
+  private spawnOne(kind: EnemyKind, hpMult: number, bountyMult: number, elite = false, speedMult = 1): void {
     if (this.enemies.length >= PERF.maxEnemies) return; // entity budget
     const def = ENEMY_DEFS[kind];
     const spawn = layoutSpawn(this.layout, this.rng.next());
@@ -3042,7 +3047,7 @@ export class Game {
       hp,
       maxHp: hp,
       baseArmor: def.armor + bm.enemyArmorBonus + this.dailyFx.enemyArmorAdd, // +0 without Ironhide → golden-safe
-      speed: def.speed * eSpeed * this.stageSpeedMult * bm.enemySpeedMult * (this.warp.speedMult ?? 1) * this.dailyFx.enemySpeedMult, // ×endless ×stage ×biome ×doctrine ×daily (all ×1 otherwise → golden-safe)
+      speed: def.speed * eSpeed * this.stageSpeedMult * bm.enemySpeedMult * (this.warp.speedMult ?? 1) * this.dailyFx.enemySpeedMult * speedMult, // ×endless ×stage ×biome ×doctrine ×daily ×§6a live speed (all ×1 otherwise → golden-safe)
       bounty: def.bounty * bountyMult * eBounty * bm.bountyMult,
       damage: def.damage * eDmg * this.diff.enemyDamageMult * eDmgWave * bm.enemyDamageMult,
       fracture: 0,

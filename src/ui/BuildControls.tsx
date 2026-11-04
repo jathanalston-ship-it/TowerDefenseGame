@@ -118,7 +118,7 @@ export function BuildControls({
                 <span className="tt-bubble">
                   {hud.endless
                     ? 'Your board has held flawless waves — the Hive squeezes harder (enemy HP). A wave that bleeds the Core eases it back.'
-                    : 'Your run’s live Power has outgrown this stage — from wave 4 (and on every boss) the Hive answers with tougher enemies.'}
+                    : 'Your run’s live board (Power + towers fielded) has outgrown this stage — from wave 4 (and on every boss) the Hive answers with tougher, faster enemies.'}
                 </span>
               </span>
             )}

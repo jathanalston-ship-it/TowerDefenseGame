@@ -22,6 +22,7 @@ export interface QueuedSpawn {
   hpMult: number;
   bountyMult: number;
   elite?: boolean; // director-promoted elite (buffed stats) — endless only
+  speedMult?: number; // §6a live speed part (docs/DIFFICULTY_DIRECTOR.md) — absent ⇒ ×1 (every non-adaptive run)
 }
 
 /** A telegraphed mid-wave event the director can inject (swarm flood is the first). The

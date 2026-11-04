@@ -3221,7 +3221,7 @@ export function endlessLootTaper(wave: number): number {
 export const DIRECTOR_ADAPTIVE = {
   // ACTIVATED 2026-11 on harness evidence (docs/DIFFICULTY_DIRECTOR.md §6a — the Batch G grind
   // audit): fed with the run's LIVE board power on Campaign waves ≥ liveFromWave + boss bodies.
-  threatPerPowerRatio: 0.5, // ×(1 + w·(powerRatio−1)) on enemy HP/damage curves
+  threatPerPowerRatio: 0.3, // ×(1 + w·(powerRatio−1)) on enemy HP/damage curves
   rewardPerPerformance: 0, // ×(1 + w·recentPerformance) on bounty/reward curves
   // LIVE board power: a Campaign run whose app passes RunOptions.livePowerBase (account Power ÷
   // the stage's recommended Power) re-feeds the seam at every wave launch with that × the run's
@@ -3232,11 +3232,18 @@ export const DIRECTOR_ADAPTIVE = {
   // ×2.7 longer on matched (stage, seed) pairs — the live HP, not the gift, was the slog. Caps 3/4
   // land ×1.6 (docs/DIFFICULTY_DIRECTOR.md §6a "Measured").
   liveFromWave: 4, // waves before this are the opening (untouched — the opening build answers them)
-  liveCap: 3, // the live multiplier on chaff waves never exceeds this
-  // …and lands as PACE as much as HP (ENDLESS-SCALING "pace, not sponge"): HP × m^(1−s), spawn rate
-  // × m^s. Pace-heavy (s 0.75) proved EASIER (area boards love clumps); HP-only is a slog — 0.5.
-  livePaceShare: 0.5,
+  liveFromStage: 4, // Stages 1–3 keep their onboarding curve (docs/CAMPAIGN.md §curve — campaignCurve.test), like the answer gift
+  liveCap: 8, // the live multiplier on chaff waves never exceeds this
+  // …and lands three ways: HP × m^(1−p−s), spawn PACE × m^p, enemy SPEED × m^s. Pace-heavy (p 0.75)
+  // proved EASIER (area boards love clumps); HP-only is a slog; speed adds threat while SHORTENING waves.
+  livePaceShare: 0.2,
+  liveSpeedShare: 0.5, // s — the speed part of the live multiplier …
+  liveSpeedCeiling: 1.85, // … bounded so stage × live enemy speed never exceeds this (= ENDLESS.speedCap, the readability cap)
   liveBossCap: 4, // a BOSS body takes the whole live multiplier (no pace split — it can't be paced or pulled) up to this
+  // BOARD term (§7): the live ratio also counts towers fielded vs an opening build — the Power Score's
+  // temporary bucket never sees board growth (2 → 18 towers). (fielded / opening)^exp, floored at 1.
+  liveBoardOpening: 3, // the opening build: 2 deploys + the run-start gift (docs/CAMPAIGN.md §grace)
+  liveBoardExp: 1, // 0 = board term off; 1 = board power ∝ towers fielded
 };
 
 // ── Adaptive Economy Framework: income-seam weights (docs/ECONOMY_FORMULAS.md) ──
