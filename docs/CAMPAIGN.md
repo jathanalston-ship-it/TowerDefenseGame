@@ -240,35 +240,32 @@ Stages 1–3 (`campaignCurve.test`) stay green: no fliers before Stage 3 anyway,
 at Stage 4, and the live multiplier is booted exactly as GameView boots it in that test.
 
 **Measured (G1 harness, fixed account saves, frozen clock; the full GR1 set = replay + frontier+1/2/3/5/8 ×
-4 seeds + a 17–25-stage curve × 3 seeds per account + a 12-seed deep stage; before = HEAD, after = all
-four levers with the shipped §6a caps 3/4 — first-release caps 16/16 in brackets):**
+4 seeds + a 17–25-stage curve × 3 seeds per account + a 12-seed deep stage). Columns: pre-Batch-G →
+the first live release (caps 3/4) → v2 (board term + speed split, docs/DIFFICULTY_DIRECTOR.md §6a):**
 
-| metric | 8 h (S29) before → after [16/16] | 100 h (S80) before → after [16/16] |
+| metric | 8 h (S29): pre → v1 → v2 | 100 h (S80): pre → v1 → v2 |
 |---|---|---|
-| win % (all campaign runs) | 68 → 92 [81] | 52 → 86 [66] |
-| frontier win % (stages past cleared) | 51 → 87 [72] | 41 → 82 [51] |
-| losses after wave 3 | 3 % → 67 % [86 %] | 13 % → 64 % [82 %] |
-| wave-1 losses | 15 → 0 [0] | 15 → 0 [0] |
-| flawless wins | 72 % → 80 % [78 %] | 55 % → 76 % [79 %] |
-| Hive damage taken in waves 1–3 | 95 % → 33 % [21 %] | 88 % → 50 % [37 %] |
-| seed spread past cleared (curve wins s1/s2/s3) | 7 / 4 / 3 of 13 → 13 / 13 / 11 | 0 / 12 / 3 of 12 → 9 / 11 / 8 |
-| median winning wave-seconds (all wins — mix shifts) | 286 → 361 [460] | 307 → 728 [1109] |
-| winning wave-seconds on MATCHED (stage, seed) pairs | ×1.08 [×1.48] | ×1.6–1.7 [×2.7] |
+| win % (all campaign runs) | 68 → 92 → 82 | 52 → 86 → 71 |
+| frontier win % (stages past cleared) | 51 → 87 → 73 | 41 → 82 → 59 |
+| frontier+1..3 / +5,8 win % (4 seeds each — noisy) | 58/75 → 75/88 → 75/50 | 50/50 → 83/75 → 67/75 |
+| losses after wave 3 | 3 % → 67 % → 90 % | 13 % → 64 % → 83 % |
+| wave-1 losses | 15 → 0 → 0 | 15 → 0 → 0 |
+| flawless wins | 72 % → 80 % → 73 % | 55 % → 76 % → 67 % |
+| Hive damage taken in waves 1–3 | 95 % → 33 % → 16 % | 88 % → 50 % → 32 % |
+| curve wins past cleared per seed (s1/s2/s3) | 7/4/3 → 13/13/11 → 13/11/9 of 13 | 0/12/3 → 9/11/8 → 10/8/1 of 12 |
+| winning wave-seconds on MATCHED (stage, seed) pairs | ×1.08 → ×1.01 | ×1.73 → ×1.76 (median pair ×1.73 → ×1.66) |
+| median winning wave-seconds (all wins — the mix shifts) | 286 → 361 → 337 | 307 → 728 → 712 |
 
-Pooled over all three accounts: losses after wave 3 **9 % → 65 %**, Hive damage in waves 1–3 **92 % →
-40 %**, flawless wins 78 % → 84 %. The 0.75 h account still clears S6–S22 3/3 (unchanged). The
-matched-pair decomposition (docs/DIFFICULTY_DIRECTOR.md §6a) shows the opening rules and the gift cost
-almost no run length (×1.0 / ×1.18 at 100 h); the live threat's HP was the slog, hence the lower caps.
+Pooled over all three accounts (v2): losses after wave 3 **9 % → 86 %**, Hive damage in waves 1–3
+**92 % → 22 %**, flawless wins 78 % → 78 % (v1: 84 %). The 0.75 h account still clears its whole curve.
 
-**Honest read.** The opening is no longer a coin flip (wave-1 losses 0, every seed wins past the cleared
-stage) and the losses that remain happen in waves 4+ and on bosses. But the opening lottery WAS most of
-the difficulty: with a reliable opening, frontier win rates rise sharply (+36 points at 8 h, +41 at 100 h
-with the shipped caps) and winning runs stay mostly flawless — the in-run snowball (×60–90 temporary
-Power, 2 → 18 towers) out-scales anything the live seam can add without long HP slogs (caps 16/16 kept
-frontier wins at +21 / +10 but made a winning 100 h run ×2.7 longer). Shipped caps favour run length;
-the two-number trade is `DIRECTOR_ADAPTIVE.liveCap` / `liveBossCap`. Follow-ups for the balance owner: a
-board-size term in the live ratio (docs/DIFFICULTY_DIRECTOR.md §7), and a re-anchor of the stage curve
-now that the opening no longer gates progression (BALANCE_ARCHITECTURE §8–9 pacing).
+**Honest read.** The opening is no longer a coin flip (wave-1 losses 0) and the losses that remain come
+in waves 4+ and on bosses. v2 brings frontier wins most of the way back toward pre-Batch-G (8 h 87 → 73 %,
+100 h 82 → 59 %) and cuts flawless wins without lengthening runs (matched pairs ×1.01 at 8 h; 100 h on
+par with v1). Still short of the targets: flawless ≤ ~55 % (73 / 67 %), and the 8 h +1..3 frontier sits
+at the top of 55–70 % on the screen set (67 %) but at 75 % on the noisier full set. Seed spread is wide
+again at 100 h past the cleared stage (10/8/1) — losses now track the board a seed's belt builds after
+the opening, not a wave-1 lottery. Next: docs/DIFFICULTY_DIRECTOR.md §7.
 
 ---
 

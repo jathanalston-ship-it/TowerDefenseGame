@@ -121,28 +121,37 @@ out-scales the scripted wave curve (`WAVE_HP_GROWTH`, linear) many times over.
 recommended Power, `GameView`) re-feeds the SAME seam at every wave launch:
 
 ```
-liveRatio      = livePowerBase × effectsPower(game.powerEffects())   // = live run Power ÷ recommended
+board          = max(1, towersFielded / liveBoardOpening) ^ liveBoardExp           // §7 board term
+liveRatio      = livePowerBase × effectsPower(game.powerEffects()) × board        // live board ÷ recommended
 liveThreatMult = r ≤ 1 ? 1 : min(liveCap,     1 + threatPerPowerRatio·(r − 1))   // chaff waves ≥ liveFromWave
 liveBossMult   = r ≤ 1 ? 1 : min(liveBossCap, 1 + threatPerPowerRatio·(r − 1))   // every boss body, any wave
-liveThreatParts(m) = { hp: m^(1−s), pace: m^s }    s = livePaceShare            // "pace, not sponge"
+liveThreatParts(m, staticSpeed) = { hp: m^(1−p−s), pace: m^p, speed: min(m^s, liveSpeedCeiling ÷ staticSpeed) }
 ```
 
-Shipped: `threatPerPowerRatio` 0.5 · `liveFromWave` 4 · `liveCap` 3 · `livePaceShare` 0.5 ·
-`liveBossCap` 4 (config.ts `DIRECTOR_ADAPTIVE`; the first release used caps 16/16 — see the
-matched-pair decomposition below for why they came down).
+Shipped (v2, the "frontier challenge" follow-up): `threatPerPowerRatio` 0.3 · `liveFromWave` 4 ·
+`liveFromStage` 4 · `liveCap` 8 · `livePaceShare` 0.2 · `liveSpeedShare` 0.5 · `liveSpeedCeiling`
+1.85 · `liveBossCap` 4 · `liveBoardOpening` 3 · `liveBoardExp` 1 (config.ts `DIRECTOR_ADAPTIVE`).
+History: first release w 0.5 · ½ pace · caps 16/16 (no board, no speed); then caps 3/4 (run length).
 
-- **Where it lands:** a wave ≥ 4 schedules its chaff at HP × m^½ and spawn rate × m^½ (the work the
-  board must do per second rises ×m, half of it as pressure instead of a slower slog); every boss
-  body (mini-boss, finale, gauntlet bosses — `spawnBoss(def, hpScale)`) takes the whole boss
-  multiplier — a boss can't be paced, and pull auras don't move it. The opening (waves 1–3) and the
-  Mega (its own tier curve) are untouched.
+- **Where it lands:** a wave ≥ 4 schedules its chaff at HP × m^0.3, spawn rate × m^0.2 and enemy
+  SPEED × m^0.5 — speed adds threat while SHORTENING waves, so it is bounded by readability: the
+  stage's own speed × the live part never exceeds `liveSpeedCeiling` (1.85 = `ENDLESS.speedCap`).
+  When speed hits that ceiling the applied multiplier is below m. Every boss body (mini-boss,
+  finale, gauntlet bosses — `spawnBoss(def, hpScale)`) takes the whole boss multiplier — a boss
+  can't be paced or sped past its chassis, and pull auras don't move it. The opening (waves 1–3),
+  Stages 1–3 (`liveFromStage` — the onboarding curve, `campaignCurve.test`) and the Mega (its own
+  tier curve) are untouched.
+- **The board term (§7 follow-up):** the Power Score's temporary bucket (cards, Hero Evolution,
+  branches, strains) never sees board SIZE — a run grows 2 → 18 towers. `board` counts towers fielded
+  vs the opening build (2 deploys + the gift = 3): board power ∝ per-tower power × towers is the
+  physical model, and it is what made one weight fit both accounts.
 - **Upward only:** an at- or under-powered board (r ≤ 1) is never propped up.
-- **Visible:** the wave briefing shows `▲ ADAPTED ×N` (`HudSnapshot.liveThreat` — in prep, the
-  multiplier the NEXT wave would launch with right now, so the preview equals the outcome while the
-  board is unchanged); Help row `hive-adapts`.
+- **Visible:** the wave briefing shows `▲ ADAPTED ×N` = the APPLIED product hp × pace × speed
+  (`HudSnapshot.liveThreat` — in prep, what the NEXT wave would launch with right now, so the preview
+  equals the outcome while the board is unchanged); Help row `hive-adapts`.
 - **Golden / replay safety:** omitted ⇒ exactly ×1 (`stage`, Daily, Arena, every probe that doesn't
-  pass it; `liveThreatParts(1)` is exactly {1, 1}). The input is ctor data (recorded by replays) and
-  the ratio is sim state ⇒ deterministic.
+  pass it; `liveThreatParts(1)` is exactly {1, 1, 1}; a queued spawn only carries `speedMult` when
+  it is ≠ 1). The input is ctor data (recorded by replays) and the ratio is sim state ⇒ deterministic.
 
 Paired with the Campaign OPENING rules (docs/CAMPAIGN.md §opening — no fliers in wave 1, ≤ 4 in
 wave 2, the Mega no earlier than wave 3, the gift answers the opening), the tension moves from a
@@ -190,6 +199,28 @@ area-first order saved only 4 points while costing 100 h wins). Caps 3/4 keep th
 the Hive damage mostly past wave 3, at the price of a softer finale: frontier win rates rise more
 than with 16/16. The full before/after is in docs/CAMPAIGN.md §opening.
 
+**v2 — restore the frontier without padding runs (board term + speed).** Screen set = frontier+1/2/3/5/8
+× 4 seeds + the curve past the cleared stage × 3 seeds + the matched pairs; same job order for every
+row; "pairT" = matched-pair winning wave-time vs pre-Batch-G:
+
+| variant (all with the opening rules + gift) | 8 h F+1..3 / F+5,8 / curve | 8 h flawless · pairT | 100 h F+1..3 / F+5,8 / curve | 100 h flawless · pairT |
+|---|---|---|---|---|
+| pre-Batch-G | 58 / 75 / 36 % | 74 % · ×1.00 | 50 / 62 / 42 % | 69 % · ×1.00 |
+| shipped v1 (w 0.5, ½ pace, caps 3/4) | 92 / 75 / 87 % | 86 % · ×1.14 | 83 / 88 / 67 % | 85 % · ×1.92 |
+| v1 + board term only | 92 / 75 / 90 % | 83 % · ×1.16 | 92 / 75 / 78 % | 76 % · ×1.94 |
+| board, w 0.1, cap 8, ¼ pace + ½ speed | 92 / 75 / 92 % | 77 % · ×0.99 | 67 / 75 / 69 % | 77 % · ×1.71 |
+| … + caps × readiness² (ready accounts get fuller caps) | 92 / 62 / 92 % | 69 % · ×1.15 | (= row above — 100 h is never "ready") | |
+| … readiness² caps + 0.15 pace (HP share 0.35) | 58 / 62 / 82 % | 61 % · ×1.28 | 75 / 62 / 64 % | 65 % · ×2.01 |
+| board, w 0.3, cap 8, ¼ pace + ½ speed | 83 / 62 / 87 % | 67 % · ×0.97 | 75 / 50 / 56 % | 82 % · ×1.79 |
+| **board, w 0.3, cap 8, 0.2 pace + ½ speed (shipped v2)** | **67 / 50 / 85 %** | **64 % · ×1.02** | **75 / 75 / 61 %** | **76 % · ×1.86** |
+
+Lessons: with caps 3/4 the cap binds by wave ~5 anyway, so the board term alone changes nothing — it
+matters once the multiplier has room (w 0.3, cap 8). Speed is the lever that adds threat without
+length (×0.97–1.02 run time at 8 h); readability bounds it (only ×1.16 of room at 100 h, where stage
+speed is already 1.6), so 100 h keeps leaning on HP. Opening the caps for "ready" accounts helped 8 h
+flawless but cost run time — not shipped. Draft-pick spread at 8 h (strongest vs weakest pick, 51
+runs each): pre-G −2 pts, v1 −6, v2 +4 — wins left the ceiling but picks still barely decide runs.
+
 ## 6b. Campaign onboarding boss strength (§onboarding)
 
 The first campaign stages' finale bosses field a **reduced** body: `campaignBossStrength(stage)`
@@ -205,8 +236,10 @@ boss — is byte-identical. This is the campaign analogue of the Boss Rush stren
 ## 7. Future factors (reserved compositions)
 
 Campaign stage, infinite depth, difficulty, doctrine, mode, and stage-speed are live inputs
-today (plus the §6a live board-power ratio).
-**Next for §6a:** a BOARD-SIZE term in the live ratio (towers fielded vs the opening build) —
-the Power Score's temporary bucket misses it, which is why one weight can't fit every account. Reserved, in priority order: biome threat bands (biome mods already apply per-spawn —
+today (plus the §6a live board-power ratio, whose BOARD-SIZE term shipped in v2).
+**Next for §6a:** the live ratio taxes drafted cards (they raise the temporary bucket), which keeps
+draft-pick spread small — a cards-excluded ratio (board + branches + strains + Hero Evolution) is the
+next measured experiment; and threat that bites without HP at 100 h (speed has little readable room
+there) — elite/role composition rather than bodies. Reserved, in priority order: biome threat bands (biome mods already apply per-spawn —
 promoting them to director inputs is additive), boss-presence weighting, prestige tier,
 seasonal/weekly modifiers, per-mutator warps. Each lands as **one input + one factor** here.
