@@ -157,6 +157,12 @@ describe('selection policy — deterministic, biome-flavored, never a back-to-ba
     expect(seen.size).toBe(MAP_LAYOUTS.length);
   });
 
+  it('Campaign: a typed-in preview of an absurd stage stays O(1) and valid', () => {
+    const t0 = Date.now();
+    for (const st of [10_001, 123_456, 1e9]) expect(layoutRegistry.has(layoutForStage(st))).toBe(true);
+    expect(Date.now() - t0).toBeLessThan(200);
+  });
+
   it('Campaign: the stage carries its layout, identical across difficulties and calls', () => {
     for (const st of [1, 2, 3, 7, 19, 44]) {
       expect(generateStage(st).layout).toBe(layoutForStage(st));

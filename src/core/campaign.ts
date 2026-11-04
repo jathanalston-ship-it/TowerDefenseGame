@@ -405,11 +405,17 @@ export function biomeForStage(stage: number): Biome {
  *  then each early stage introduces ONE new routing idea. Every other stage rolls biome-flavored. */
 export const CAMPAIGN_LAYOUT_PINS: Record<number, string> = { 1: 'classic', 2: 'open_maw', 3: 'twin_lanes' };
 const stageLayoutMemo: string[] = []; // [stage-1] → layout id, filled forward (no-repeat reads the previous pick)
+const LAYOUT_MEMO_CAP = 10_000; // the Campaign screen previews ANY typed stage — never build a billion-entry ladder
 
 /** The arena layout a campaign stage plays — deterministic in the stage alone (every difficulty
  *  shares the battlefield), biome-native layouts weighted up, never the previous stage's layout. */
 export function layoutForStage(stage: number): string {
   const st = Math.max(1, Math.floor(stage));
+  if (st > LAYOUT_MEMO_CAP) {
+    // Beyond any reachable depth: an O(1) roll that still dodges its neighbour's own roll.
+    const roll = (s: number, exclude?: string): string => pickLayoutId(new Rng(stageSeed(s, 'layout')), s, biomeForStage(s).id, exclude);
+    return roll(st, roll(st - 1));
+  }
   for (let s = stageLayoutMemo.length + 1; s <= st; s++) {
     const prev = stageLayoutMemo[s - 2];
     stageLayoutMemo.push(CAMPAIGN_LAYOUT_PINS[s] ?? pickLayoutId(new Rng(stageSeed(s, 'layout')), s, biomeForStage(s).id, prev));
