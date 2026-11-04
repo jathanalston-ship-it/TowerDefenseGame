@@ -26,6 +26,7 @@
 | **Bosses** | **13 authored** | 50 | Progenitor + Milestone-1 line (stages 5–30) + Act-2 siege line (35/40/45) + Act-3 graduation line (50/55/60) |
 | **Mega Bosses** | **7 authored** | 20 | battlefield-scale raid organisms (`megaBossRegistry`); every 10 campaign stages / 20 Infinite waves / 5 Rush waves + the rare Daily Mega variant |
 | Cards (genes) | 131 | 500 | effect DSL (mul/add/flag/set/grant/hook); 73 progression-`unlock`-gated (below); 31 rule-changing (`isRuleChangingCard`, 25 Rule Genes — docs/CARDS.md §rules) |
+| Arena layouts | 13 | — | `core/mapLayouts.ts` data rows on the fixed 18×24 board (docs/MAP-LAYOUTS.md); `classic` = the original arena |
 | Equipment | ~180 | 500 | weapons/armor/relics + behavioral affixes + **16 build-enabling sets** (EQUIPMENT.md §12) |
 | Meta upgrades (Genome) | 87 | 1,000 | `META_UPGRADES` (Deep Genome tier: 20 open + 10 progression-`unlock`-gated) |
 | Ascendant (prestige) nodes | 19 | 20 | `ASCENDANT_NODES` (9 expansion nodes: 3 deep stackers + 6 new income levers) |
@@ -1550,3 +1551,68 @@ repairable via the documented ledger scan.
 **Validation.** `npm run sim:events` (3-year walk: rings even, co-active accents/ceremonies distinct daily, yearly mint flat ≤5%, persona completion/repeat-value bands) + `npm run sim:eventshops` (greedy persona walks: no single-window clear even at 100%, new ≥1 / F2P ≥2 buys, repeat windows absorb ≥70% veteran income, hook coverage ≥20%) + `liveEvents.test.ts` (laws) + `eventOps.test.ts` (override contract) + `liveEventsMeta.test.ts` (crediting/sanitizer/claims/shop/limits/bpXp/fold/notifications).
 
 **Limitations.** Renderer-side packages (ceremony machines, bgEffect ambience, enemy variant tints, hazards/pickups) and the gameplay-modifier opt-in toggle are declared contracts awaiting their renderer/GameView batches; collections/achievements/lore rows land with that UI. Hub re-dress mid-session requires a render after the UTC flip (any save write); a fully idle tab re-dresses on next interaction.
+
+---
+
+## Compressed system summary — First-hour, run, meta & platform pass (2026-11) ✅ BUILT
+
+One batch acting on the 2026-11 player-experience review (first hour, the run, the meta, the
+platform). Per-system docs hold the detail; this is the map.
+
+**First hour (docs/TUTORIAL.md, docs/REWARD-PRESENTATION.md, docs/PROGRESSION-LOOP.md)**
+- ONE graduation: `meta.grantOnboardingRewards()` pays the `combat` + `hudtour` ledgers as one
+  Commissioning reveal; the Field Orientation tour (4 stops) pays nothing. Tutorial Skip confirms
+  what is forfeited (replayable from Settings).
+- Tutorial order follows a real run over 2 waves (`game.tutorialWaves` read-model); the ability is
+  taught during wave 2. Callouts declare `callout.avoid` (canvas.board) and never sit on the lane,
+  a draft card or the ability. Commissioning offers one guest choice.
+- Post-run: ≥3 queued announcements become ONE unlock summary card (`WHATS_NEW_SUMMARY_AT`);
+  reward toasts are held behind it and >3 achievements collapse into one toast.
+- `unlocks.isOpenNav` is the single guidance gate — no advice, goal or badge points at a sealed
+  screen. `READINESS.warnBelow = 0.9` plus no warning after a flawless clear of the previous stage.
+- Defeat debrief on Results (how close, what got through, one tip) from read-only RunStats
+  ledgers; real boss names ("Apex Slayer").
+
+**The run (docs/HUD.md, docs/RESPONSIVE-DESIGN.md §run, docs/MAP-LAYOUTS.md, docs/THREAT.md, docs/CARDS.md §rules, docs/HIVE-MIND.md §solved-content)**
+- Run layout v2: one `.run-ctl` strip (speed · Hive · Pause · ticker); the board takes the
+  largest size the viewport allows (1440×900: 440×587 → 543×724); dedicated portrait and
+  landscape phone layouts with drawers; the rotate gate stands down in a run.
+- Arena Layouts: 13 data-driven battlefields, Game-owned `NavField`; Campaign 1–3 pinned, later
+  stages roll; Daily rolls; Infinite/Arena rotate per biome; tutorial/Skirmish/Boss Rush/goldens
+  stay classic.
+- Stage 1–3 curve: grace 80%/×1.15/+50, onboarding bosses ×0.5→×1 by Stage 5 with a core-shot
+  instead of sustain, invasions from the stage's own pool. Pinned by `campaignCurve.test.ts`.
+- 25 Rule Genes (31 rule-changing cards, derived by `isRuleChangingCard`) gated Stage 2–25; one
+  draft slot is guaranteed a rule card once the account has earned one.
+- Hive Intelligence / Auto Gene only on solved content (`automationGate`, fail-closed
+  `RunOptions.automationAllowed`); the button says why when off.
+- Threat ladder: 10 rungs per mode (Campaign replays, Infinite, Boss Rush), cosmetic rewards, save
+  field `threat` (v55).
+
+**The meta (docs/PROGRESSION-GATING.md, docs/UNLOCK-TREE.md, docs/NOTIFICATIONS.md)**
+- Reveals re-paced S4→S30 (`REVEAL_CEILING_STAGE` 30, ≤2 per beat; Boss Rush at S12); existing
+  saves keep what they have seen (`director.revealed` latch).
+- `state/rewardVisibility.ts` hides currencies until their system reveals; secondary wallets
+  present as one Materials chip. Early top bar ≈ Cores (+ Ichor from S8) + Materials.
+- 31 → 26 nav destinations: five screens are host tabs (`navModel.FOLDED_NAVS`, `HostTabs.tsx`).
+- `state/autoClaim.ts` claims chores at run end into one Results row (Settings toggle); badges
+  only where there is a decision.
+- Molt cadence re-measured (2 by 10 h) and pinned in CI; no knob change.
+
+**Platform (docs/DEPLOYMENT.md, docs/PREMIUM-STORE.md §paid-loot-boxes, docs/FIRST-SESSION-PROBE.md)**
+- Hub screens and run views are `React.lazy` via `ui/lazyNamed.ts`; boot JS 820 → ~503 KB gzip;
+  the service worker precaches every emitted chunk (offline proven).
+- Paid random containers can be refused per region (`PAID_LOOTBOX_BLOCKED_COUNTRIES`, default
+  BE,NL; 451 at checkout; `/api/config` flag hides SKUs).
+- `npm run probe:first-session` replays a fresh first session against budgets and writes
+  `docs/FIRST_SESSION_REPORT.md`.
+
+**Known limitations**
+- Ichor bought with money and spent on containers is not region-gated; needs a legal decision.
+- Full spenders still clear Stages 1–3 at 98–100% integrity (the 60–90% band holds for the
+  playtest persona).
+- The Bio-Dex "Brood Tyrant" entry still counts every boss kill.
+- Older width-based in-run CSS rules in `index.css` are overridden by run layout v2 and dead.
+- mobilecheck still reports hub-screen violations (landscape spill, small Help/settings targets)
+  that predate this pass; in-run and tutorial checks are clean.
+

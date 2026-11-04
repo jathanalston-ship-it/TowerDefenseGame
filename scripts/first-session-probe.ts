@@ -23,6 +23,8 @@ import { existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, statSync
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { gzipSync } from 'node:zlib';
+import { HEIGHT, WIDTH, towerSlots } from '../src/core/map';
+import { SLOTS as SLOTS_CFG } from '../src/core/config';
 
 // ─────────────────────────── BUDGETS (the one place to tune) ───────────────────────────
 const BUDGETS = {
@@ -58,7 +60,9 @@ const BASE = `http://localhost:${PORT}`;
 // ─────────────────────────────────── helpers ───────────────────────────────────
 class StepError extends Error { constructor(public step: string, msg: string) { super(`[${step}] ${msg}`); } }
 const sleep = (ms: number): Promise<void> => new Promise((r) => setTimeout(r, ms));
-const T0 = Date.now();
+// The clock re-zeroes at the /play/ navigation (boot step): every budget is measured from there,
+// never from script start (a fresh build would otherwise inflate every timing by its build time).
+let T0 = Date.now();
 const now = (): number => (Date.now() - T0) / 1000;
 const log = (m: string): void => console.log(`${now().toFixed(1).padStart(6)}s  ${m}`);
 
@@ -165,22 +169,35 @@ async function waitFor(page: Page, what: string, fn: () => Promise<boolean>, tim
 }
 
 /** The slot grid used by the player AI — lanes the board exposes in the 1440x900 layout (from the prior playtest). */
-const SLOTS: Pt[] = [];
-for (const y of [672, 623, 722]) for (const x of [720, 670, 768, 622, 818, 572, 866]) SLOTS.push({ x, y });
-const usedSlots = new Set<string>();
+// Build slots come from the game's own lattice (map.towerSlots, logical 720×960 board px) mapped
+// through the LIVE board rect — never hard-coded page pixels, which break on any layout change.
+const OPEN_SLOTS = towerSlots.slice(0, SLOTS_CFG.initialUnlocked);
+const usedSlots = new Set<number>();
 let slotCursor = 0;
-/** Click up to a few untried lane slots with a tower armed; a slot counts as used only when biomass actually fell. */
+async function slotPoint(page: Page, slot: { x: number; y: number }): Promise<Pt | null> {
+  const r = await page.evaluate(() => {
+    const c = document.querySelector('canvas.board') as HTMLCanvasElement | null;
+    if (!c) return null;
+    const b = c.getBoundingClientRect();
+    return { left: b.left, top: b.top, width: b.width, height: b.height };
+  });
+  if (!r || r.width < 1) return null;
+  return { x: r.left + (slot.x / WIDTH) * r.width, y: r.top + (slot.y / HEIGHT) * r.height };
+}
+/** Click up to a few untried open slots with a tower armed; a slot counts as used only when biomass actually fell. */
 async function placeTower(page: Page): Promise<boolean> {
   for (let tries = 0; tries < 5; tries++) {
-    const free = SLOTS.filter((p) => !usedSlots.has(`${p.x},${p.y}`));
+    const free = OPEN_SLOTS.filter((sl) => !usedSlots.has(sl.index));
     if (free.length === 0) return false;
-    const p = free[slotCursor % free.length];
+    const sl = free[slotCursor % free.length];
     slotCursor++;
+    const p = await slotPoint(page, sl);
+    if (!p) return false;
     const before = await biomass(page);
     await page.mouse.click(p.x, p.y);
     await sleep(350);
     const after = await biomass(page);
-    if (before !== null && after !== null && after < before) { usedSlots.add(`${p.x},${p.y}`); return true; } // biomass fell: a tower stands
+    if (before !== null && after !== null && after < before) { usedSlots.add(sl.index); return true; } // biomass fell: a tower stands
   }
   return false;
 }
@@ -333,6 +350,7 @@ async function session(ctx: BrowserContext, dist: string): Promise<Page> {
   };
 
   // 1 ── boot + cutscene
+  T0 = Date.now(); // timings below are measured from navigation (see the clock note above)
   step('boot', 'goto /play/');
   const navStart = now();
   await page.goto(`${BASE}/play/`, { waitUntil: 'load' });
