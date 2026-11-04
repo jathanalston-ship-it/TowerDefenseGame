@@ -4,7 +4,7 @@
 // anti-wordiness contract (playtest finding: wordy = skipped).
 
 import { describe, it, expect } from 'vitest';
-import { GUIDES, guideFor } from './guidedUnlocks';
+import { GUIDES, guideBus, guideFor } from './guidedUnlocks';
 import { FEATURES } from './unlocks';
 import { MECHANIC_BY_ID } from './mechanics';
 
@@ -61,5 +61,20 @@ describe('Guided Unlocks — every wing walks you through itself', () => {
       expect(m, `missing Foundation help row '${id}'`).toBeTruthy();
       expect(m!.core, `'${id}' must be core (a What's New card for the guidance layer is noise)`).toBe(true);
     }
+  });
+});
+
+describe('guide-active signal — folded sections never hide a guide anchor', () => {
+  it('notifies listeners on change only, and unsubscribes cleanly', () => {
+    const seen: boolean[] = [];
+    const off = guideBus.onActive((a) => seen.push(a));
+    guideBus.setActive(true);
+    guideBus.setActive(true); // no duplicate notification
+    expect(guideBus.isActive()).toBe(true);
+    guideBus.setActive(false);
+    off();
+    guideBus.setActive(true);
+    guideBus.setActive(false);
+    expect(seen).toEqual([true, false]);
   });
 });

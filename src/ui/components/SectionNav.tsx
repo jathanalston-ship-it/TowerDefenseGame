@@ -9,6 +9,7 @@
 
 import { useEffect, useState, type ReactNode } from 'react';
 import { sectionPrefs, setSectionPrefs } from '../../state/prefs';
+import { guideBus } from '../../state/guidedUnlocks';
 
 export interface NavSection {
   id: string; // stable within the screen — the pref key and the anchor
@@ -36,7 +37,10 @@ export function SectionNav({ screen, sections, forceOpen = false, label }: {
 }): JSX.Element {
   const [prefs, setPrefs] = useState<Record<string, boolean>>(() => sectionPrefs(screen));
   const [scrollTo, setScrollTo] = useState<string | null>(null);
-  const isOpen = (s: NavSection): boolean => forceOpen || (prefs[s.id] ?? s.defaultOpen ?? true);
+  // A running Field Guide may point into any section — open them all (prefs untouched).
+  const [guided, setGuided] = useState(() => guideBus.isActive());
+  useEffect(() => guideBus.onActive(setGuided), []);
+  const isOpen = (s: NavSection): boolean => forceOpen || guided || (prefs[s.id] ?? s.defaultOpen ?? true);
   const set = (patch: Record<string, boolean>): void => setPrefs(setSectionPrefs(screen, patch));
 
   // Scroll AFTER the section has rendered open (a chip on a folded section opens it first).

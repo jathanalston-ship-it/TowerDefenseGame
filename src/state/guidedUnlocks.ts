@@ -281,6 +281,10 @@ export function guideFor(mechId: string): GuideDef | null {
 // menu, where the App is always listening). Replays re-teach; the ledger keeps them unpaid.
 type StartFn = (mechId: string) => void;
 const guideSubs = new Set<StartFn>();
+// While a guide is on screen, screens that fold content (SectionNav) must keep every anchor in
+// the DOM — a guide pointing into a section the player folded would otherwise lose its target.
+let guideActive = false;
+const activeSubs = new Set<(active: boolean) => void>();
 
 export const guideBus = {
   /** Ask the shell to run the guide for a mechanic (no-op if none exists or nothing listens). */
@@ -291,5 +295,18 @@ export const guideBus = {
   onStart(fn: StartFn): () => void {
     guideSubs.add(fn);
     return () => { guideSubs.delete(fn); };
+  },
+  /** Set by the guide overlay while it is mounted (ui/GuidedUnlock.tsx). */
+  setActive(active: boolean): void {
+    if (guideActive === active) return;
+    guideActive = active;
+    for (const fn of activeSubs) fn(active);
+  },
+  isActive(): boolean {
+    return guideActive;
+  },
+  onActive(fn: (active: boolean) => void): () => void {
+    activeSubs.add(fn);
+    return () => { activeSubs.delete(fn); };
   },
 };

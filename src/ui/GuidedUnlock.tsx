@@ -7,6 +7,7 @@
 // traps, never blacks out). Rewards ride the tutorial milestone ledger — replays never re-grant.
 
 import { useEffect, useState } from 'react';
+import { guideBus } from '../state/guidedUnlocks';
 import type { GuideDef } from '../state/guidedUnlocks';
 import { FEATURE_BY_ID } from '../state/unlocks';
 import { meta } from '../state/meta';
@@ -28,6 +29,9 @@ export function GuidedUnlock({ guide, onClose }: { guide: GuideDef; onClose: () 
     setDone({ cores: granted?.cores ?? 0 });
   };
   const advance = (): void => { if (i >= guide.steps.length - 1) finish(); else setI(i + 1); };
+
+  // Folded sections open while the guide runs (SectionNav listens), so every anchor exists.
+  useEffect(() => { guideBus.setActive(true); return () => guideBus.setActive(false); }, []);
 
   // The practice objective: the player's first real click inside the anchor advances the guide.
   // Capture phase observes WITHOUT consuming — the click still fires the control it landed on,
