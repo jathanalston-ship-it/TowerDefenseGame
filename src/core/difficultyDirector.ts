@@ -28,7 +28,7 @@ import { resolveDifficulty } from './difficulty';
 import type { DoctrineWarp } from './doctrines';
 import { resolveDoctrine, DOCTRINES, doctrineRankBonus } from './doctrines';
 import type { DoctrineDef } from './doctrines';
-import { DIRECTOR_ADAPTIVE, ENDLESS, MODE_REWARDS, WAVE_BOUNTY_GROWTH, WAVE_HP_GROWTH } from './config';
+import { BOSS, CAMPAIGN_ONBOARDING, DIRECTOR_ADAPTIVE, ENDLESS, MODE_REWARDS, WAVE_BOUNTY_GROWTH, WAVE_HP_GROWTH } from './config';
 import { threatRewardMult, threatWarp } from './threat';
 import { composeWarps } from './vows';
 
@@ -169,6 +169,30 @@ export function composeStageDifficulty(
     rewardMult: base.rewardMult * sc.rewardMult,
     // eliteChanceMult / bossFrequencyMult carry from the variant — campaign drives its own
     // elite frequency (per-group flags) and bosses (finale/mini), not the AI Director.
+  };
+}
+
+/** Campaign ONBOARDING boss strength (docs/DIFFICULTY_DIRECTOR.md §onboarding): the finale boss
+ *  of the first stages fields a reduced body, ramping linearly from CAMPAIGN_ONBOARDING's floor at
+ *  stage 1 to ×1 at `bossFullStage` (exactly 1 from there — the deep campaign is untouched). */
+export function campaignBossStrength(stage: number): number {
+  const { bossStrengthFloor: floor, bossFullStage: full } = CAMPAIGN_ONBOARDING;
+  if (stage >= full) return 1;
+  return floor + ((1 - floor) * (Math.max(1, stage) - 1)) / (full - 1);
+}
+
+/** A boss def at `strength`: the BODY (HP, contact damage, armor) and the KIT's magnitudes (every
+ *  module `amount` — heal, shield, adds, core-shot) all scale, so a reduced boss is a smaller fight,
+ *  not a weaker body that out-heals an opening board. Returns the SAME object at ×1, so an unscaled
+ *  stage keeps its exact def (authored bosses are never mutated — scaled copies only). */
+export function scaleBossStrength<T extends { hpMult: number; damage: number; armor?: number; modules: readonly { amount?: number }[] }>(def: T, strength: number): T {
+  if (strength === 1) return def;
+  return {
+    ...def,
+    hpMult: def.hpMult * strength,
+    damage: Math.round(def.damage * strength),
+    armor: Math.round((def.armor ?? BOSS.baseArmor) * strength),
+    modules: def.modules.map((m) => (m.amount ? { ...m, amount: Math.max(1, Math.round(m.amount * strength)) } : m)),
   };
 }
 

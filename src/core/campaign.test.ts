@@ -3,6 +3,9 @@
 
 import { describe, it, expect } from 'vitest';
 import { generateStage, biomeForStage, BIOMES, BIOME_REGION } from './campaign';
+import { campaignBossStrength, scaleBossStrength } from './difficultyDirector';
+import { BOSS, CAMPAIGN_ONBOARDING } from './config';
+import { BOSS_DEFS, campaignBossFor } from './boss';
 
 describe('campaign generator', () => {
   it('is deterministic in (stage, difficulty) — same inputs ⇒ identical stage', () => {
@@ -105,5 +108,53 @@ describe('campaign generator', () => {
     // A region is contiguous: same biome across its band, a new one at the boundary.
     expect(biomeForStage(1).id).toBe(biomeForStage(BIOME_REGION).id);
     expect(biomeForStage(1).id).not.toBe(biomeForStage(BIOME_REGION + 1).id);
+  });
+});
+
+// The onboarding finale (docs/CAMPAIGN.md §curve, docs/DIFFICULTY_DIRECTOR.md §onboarding): the
+// first stages field a REDUCED boss whose kit channels the core-shot instead of out-healing an
+// opening board — the fix for the fresh account's binary Stage-3 wall.
+describe('campaign onboarding finale', () => {
+  const full = CAMPAIGN_ONBOARDING.bossFullStage;
+
+  it('strength ramps linearly from the floor to exactly ×1 at the full stage', () => {
+    expect(campaignBossStrength(1)).toBeCloseTo(CAMPAIGN_ONBOARDING.bossStrengthFloor, 12);
+    for (let st = 2; st < full; st++) expect(campaignBossStrength(st)).toBeGreaterThan(campaignBossStrength(st - 1));
+    for (const st of [full, full + 1, 40, 400]) expect(campaignBossStrength(st)).toBe(1);
+  });
+
+  it('scaleBossStrength scales body + kit on a COPY, and is the identity at ×1', () => {
+    const def = BOSS_DEFS.first_antibody;
+    expect(scaleBossStrength(def, 1)).toBe(def);
+    const half = scaleBossStrength(def, 0.5);
+    expect(half).not.toBe(def);
+    expect(half.hpMult).toBeCloseTo(def.hpMult * 0.5, 12);
+    expect(half.damage).toBe(Math.round(def.damage * 0.5));
+    expect(half.armor).toBe(Math.round((def.armor ?? BOSS.baseArmor) * 0.5));
+    half.modules.forEach((m, i) => expect(m.amount).toBe(def.modules[i].amount === undefined ? undefined : Math.max(1, Math.round(def.modules[i].amount! * 0.5))));
+    expect(BOSS_DEFS.first_antibody.hpMult).toBe(1.6); // the authored def never mutates
+  });
+
+  it('every onboarding finale is reduced, sustain-free, and channels the core-shot in every phase', () => {
+    for (let st = 1; st < full; st++) {
+      for (const d of ['standard', 'hardened', 'brutal']) {
+        const boss = generateStage(st, d).boss;
+        const kinds = boss.modules.map((m) => m.kind as string);
+        for (const k of CAMPAIGN_ONBOARDING.sustainKinds) expect(kinds, `stage ${st}/${d}: ${kinds}`).not.toContain(k);
+        const shot = boss.modules.findIndex((m) => m.kind === 'channeler');
+        expect(shot, `stage ${st}/${d} has no core-shot`).toBeGreaterThanOrEqual(0);
+        for (const p of boss.phases) expect(p.modules).toContain(shot);
+        expect(boss.modules[shot].amount).toBe(Math.max(1, Math.round(CAMPAIGN_ONBOARDING.coreShot.amount * campaignBossStrength(st))));
+        expect(boss.armor).toBe(Math.round(BOSS.baseArmor * campaignBossStrength(st)));
+      }
+    }
+  });
+
+  it('from the full stage on, finales are untouched (the authored milestone keeps its exact def)', () => {
+    expect(generateStage(5).boss).toBe(campaignBossFor(5));
+    for (const st of [6, 9, 23]) {
+      const boss = generateStage(st).boss;
+      expect(boss.armor).toBeUndefined(); // never stamped — the sim's BOSS.baseArmor default applies
+    }
   });
 });

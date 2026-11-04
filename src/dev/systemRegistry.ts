@@ -500,6 +500,13 @@ export const SYSTEMS: SystemDef[] = [
     collection: 'biomes category', achievements: [], localization: 'inline-en', docs: ['docs/BIOMES.md'],
   },
   {
+    id: 'map-layouts', name: 'Arena Layouts', purpose: 'Battlefield obstacle geometry as DATA (docs/MAP-LAYOUTS.md): one registry row per layout (obstacle rects + optional spawn spans + biome affinity + minStage), a validator proving every layout routable / clear of the defensive region + slots / pocket-free, and the deterministic selection policy (Campaign onboarding pins + biome-flavored rolls, the Daily\u2019s seeded roll, Infinite\u2019s biome-period rotation). Each Game owns its layout\u2019s NavField (map.ts) — the classic arena stays the default for Skirmish, the tutorial and golden autoplay.',
+    files: ['src/core/mapLayouts.ts'],
+    dependsOn: ['engine', 'content-infra', 'biomes'], powerScore: null, save: [], tutorial: [], help: ['arena-layouts'],
+    hud: [], ui: ['CampaignScreen (stage preview layout line)', 'DeployScreen (deploy sub-line)'], collection: null, achievements: [],
+    localization: 'inline-en', docs: ['docs/MAP-LAYOUTS.md'],
+  },
+  {
     id: 'doctrines', name: 'Doctrines', purpose: 'Exclusive run-start commitments in three families (build / world-warping protocol / PACT) with campaign unlock gates, mastery ranks over the doctrineWins/BestWave ledgers (+4%/rank run-end premium), and the shared family-grouped picker — adding a doctrine is one data row.',
     files: ['src/core/doctrines.ts', 'src/ui/components/DoctrinePicker.tsx'],
     dependsOn: ['content-infra', 'gene-cards', 'difficulty'], powerScore: null, save: [], tutorial: [], help: [],

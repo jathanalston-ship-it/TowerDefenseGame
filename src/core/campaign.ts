@@ -5,20 +5,21 @@
 // (`game.ts` 'campaign' mode); stage mode stays byte-identical (golden-safe).
 
 import { clamp } from './math';
-import { CAMPAIGN_REWARDS, ENEMY_DEFS, ENEMY_KINDS } from './config';
+import { CAMPAIGN_ONBOARDING, CAMPAIGN_REWARDS, ENEMY_DEFS, ENEMY_KINDS } from './config';
 import type { EnemyDef, SpawnGroup, WaveDef } from './config';
 import type { EnemyKind } from './types';
 import { Rng } from './rng';
-import { assembleBoss, campaignBossFor } from './boss';
+import { assembleBoss, campaignBossFor, epithetFor } from './boss';
 import type { BossDef } from './boss';
 import { resolveDifficulty } from './difficulty';
 import type { DifficultyDef } from './difficulty';
-import { composeStageDifficulty } from './difficultyDirector';
+import { campaignBossStrength, composeStageDifficulty, scaleBossStrength } from './difficultyDirector';
 import { BIOMES, categoryOf } from './biomes';
 import type { Biome, BiomeCategory } from './biomes';
 import { campaignMegaFor } from './megaboss';
 import { POWER_BASE } from './power';
 import { campaignEventForStage, campaignEventStamp } from './campaignEvents';
+import { pickLayoutId } from './mapLayouts';
 import type { CampaignEventDef, CampaignEventStamp } from './campaignEvents';
 
 // Biomes are the shared ecosystem layer (docs/BIOMES.md), used by BOTH Campaign and Infinite
@@ -60,10 +61,12 @@ const C = {
   // minutes — the difficulty CONTRACT (docs/DIFFICULTY.md §contract) says a player AT the
   // recommended Power clears with chip damage. Wave budgets, spawn pacing, and the opening
   // economy all ramp to the full curve over the first stages instead of starting there.
-  graceFloor: 0.3, graceStages: 8, // stage-1 waves spend 30% of the (rebased) budget; full by stage 8
+  // Re-tuned 2026-11 (docs/CAMPAIGN.md §curve — the fresh-account probe): 0.3 / ×1.7 / +170 made Stages
+  // 1–3 flawless for a 5-tower board (600–900 Biomass banked), so the first real test was the finale.
+  graceFloor: 0.8, graceStages: 8, // stage-1 waves spend 80% of the (rebased) budget; full by stage 8
   openBudget: 11, openCreep: 0, openCap: 24, rampExp: 1.15, // wave-1 anchor: in-run economy RESETS each stage, so wave 1 is answerable by the SAME 220-Biomass opening build at EVERY stage (creep 0 — probes showed any wave-1 growth = systematic chip at all power levels); the stage's difficulty lives in the ramp + hp scaling
-  gracePaceStages: 5, gracePaceMax: 0.7, // stage-1 spawns are 70% slower; normal by stage 5
-  startAidBase: 170, startAidFade: 5, // +170 opening Biomass at stage 1 (a full 3-tower opening), fading by stage 6
+  gracePaceStages: 5, gracePaceMax: 0.15, // stage-1 spawns are 15% slower; normal by stage 5
+  startAidBase: 50, startAidFade: 5, // +50 opening Biomass at stage 1 (the free gift + 2 deploys still open), fading by stage 6
   baseHp: 20, hpPerTier: 72, // enemy unlock-stage gating (tougher enemies arrive later)
   signatureBoost: 3, // a biome's signature kinds are heavily up-weighted in their home biome
 } as const;
@@ -150,6 +153,9 @@ export interface StageConfig {
   scaling: DifficultyDef; // combined variant×stage → Game's `this.diff`
   enemySpeedMult: number;
   rewardMult: number; // end-of-run shard/loot multiplier (currency + loot quality)
+  /** The arena layout id (docs/MAP-LAYOUTS.md) — the battlefield's obstacle geometry. Optional:
+   *  a hand-built StageConfig without one plays the classic arena. */
+  layout?: string;
   /** OPTIONAL authored campaign event (docs/CAMPAIGN-EVENTS.md) — an Elite Rush / Boss Gauntlet /
    *  Genome Cache / Mutation choice this stage carries. Undefined on most stages (and always on the
    *  golden/stage path). Its mechanical levers are already folded into the fields above; this stamp
@@ -317,12 +323,17 @@ export function generateStage(stage: number, difficultyId = 'standard'): StageCo
   // Milestone-1 boss OVERRIDE it at its pinned stage (docs/BOSS-DESIGN §4). Non-milestone stages
   // keep the generated boss — so the campaign stays procedural everywhere else.
   const generatedBoss = assembleBoss(rngFn, st, biome.mods.bossChassisBias);
-  const boss = campaignBossFor(st) ?? generatedBoss;
+  // Onboarding stages field a reduced finale (the director's campaignBossStrength — ×1 from its
+  // full stage, so every deeper/authored boss keeps its exact def).
+  const strength = campaignBossStrength(st);
+  const finale = campaignBossFor(st) ?? generatedBoss;
+  const boss = strength < 1 ? scaleBossStrength(onboardingKit(finale), strength) : finale;
 
   const cfg: StageConfig = {
     stage: st,
     difficulty: difficultyId,
     biome,
+    layout: layoutForStage(st),
     modifierName: biome.modifierName,
     hazardName: biome.mods.hazard.name,
     hazardDesc: biome.mods.hazard.desc,
@@ -344,6 +355,28 @@ export function generateStage(stage: number, difficultyId = 'standard'): StageCo
   const event = campaignEventForStage(st, difficultyId);
   if (event) applyCampaignEvent(cfg, event, new Rng((stageSeed(st, difficultyId) ^ 0x7ea51001) >>> 0));
   return cfg;
+}
+
+/** Onboarding finale kit (docs/CAMPAIGN.md §curve): every onboarding finale CHANNELS the telegraphed
+ *  core-shot (the first boss lesson — burst it before the cast lands), and never fields unanswerable
+ *  SUSTAIN (CAMPAIGN_ONBOARDING.sustainKinds): the first sustain slot becomes the core-shot, any
+ *  other becomes a plain enrager; a kit with neither gains the core-shot in every phase. Integrity
+ *  loss then grades with the board's kill speed instead of flipping a coin. The epithet is
+ *  re-derived from the new kit. A copy — the input def is never mutated. */
+function onboardingKit(def: BossDef): BossDef {
+  const { sustainKinds, coreShot, spareSlot } = CAMPAIGN_ONBOARDING;
+  let shot = def.modules.some((m) => m.kind === 'channeler');
+  const modules = def.modules.map((m) => {
+    if (!sustainKinds.includes(m.kind)) return m;
+    if (!shot) { shot = true; return { ...coreShot }; }
+    return { ...spareSlot };
+  });
+  let phases = def.phases;
+  if (!shot) {
+    modules.push({ ...coreShot });
+    phases = phases.map((p) => ({ ...p, modules: [...p.modules, modules.length - 1] }));
+  }
+  return { ...def, modules, phases, epithet: epithetFor(def.chassis, modules) };
 }
 
 /** Fold an authored event's mechanical levers onto a finished StageConfig — writing ONLY separate
@@ -393,6 +426,29 @@ export const BIOME_REGION = 5;
 /** The biome a stage belongs to. Regions cycle through BIOMES; appending a biome extends the world. */
 export function biomeForStage(stage: number): Biome {
   return BIOMES[Math.floor((Math.max(1, Math.floor(stage)) - 1) / BIOME_REGION) % BIOMES.length];
+}
+
+// ── Arena layouts (docs/MAP-LAYOUTS.md §selection) ──────────────────────────────────────────────
+/** Authored onboarding pins (the CAMPAIGN_BOSSES pattern): the tutorial's arena opens the Descent,
+ *  then each early stage introduces ONE new routing idea. Every other stage rolls biome-flavored. */
+export const CAMPAIGN_LAYOUT_PINS: Record<number, string> = { 1: 'classic', 2: 'open_maw', 3: 'twin_lanes' };
+const stageLayoutMemo: string[] = []; // [stage-1] → layout id, filled forward (no-repeat reads the previous pick)
+const LAYOUT_MEMO_CAP = 10_000; // the Campaign screen previews ANY typed stage — never build a billion-entry ladder
+
+/** The arena layout a campaign stage plays — deterministic in the stage alone (every difficulty
+ *  shares the battlefield), biome-native layouts weighted up, never the previous stage's layout. */
+export function layoutForStage(stage: number): string {
+  const st = Math.max(1, Math.floor(stage));
+  if (st > LAYOUT_MEMO_CAP) {
+    // Beyond any reachable depth: an O(1) roll that still dodges its neighbour's own roll.
+    const roll = (s: number, exclude?: string): string => pickLayoutId(new Rng(stageSeed(s, 'layout')), s, biomeForStage(s).id, exclude);
+    return roll(st, roll(st - 1));
+  }
+  for (let s = stageLayoutMemo.length + 1; s <= st; s++) {
+    const prev = stageLayoutMemo[s - 2];
+    stageLayoutMemo.push(CAMPAIGN_LAYOUT_PINS[s] ?? pickLayoutId(new Rng(stageSeed(s, 'layout')), s, biomeForStage(s).id, prev));
+  }
+  return stageLayoutMemo[st - 1];
 }
 
 /** Recommended account Power Score for a stage — SAME scale as meta.powerScore() (1.0 = fresh),

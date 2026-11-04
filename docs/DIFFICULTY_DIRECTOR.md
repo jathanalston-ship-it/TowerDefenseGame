@@ -43,7 +43,7 @@ or a new scaling factor — is a **data/factor edit here**, never a formula hunt
 | `game.ts` endless waves | `endlessHpMult/BountyMult/SpeedMult/DamageMult(depth)` | depth scheduling + per-spawn |
 | `game.ts` doctrine step | `queueWarp()` hp/bounty/elite/count | after each wave is scheduled (runEventRng) |
 | AI Director (`director.ts`) | the same `DifficultyDef` (eliteChanceMult, bossFrequencyMult) | wave composition budget |
-| `campaign.ts` generator | `composeStageDifficulty(variant, stageScaling)` | stage generation |
+| `campaign.ts` generator | `composeStageDifficulty(variant, stageScaling)`, `campaignBossStrength(stage)` + `scaleBossStrength(def, s)` (§onboarding) | stage generation |
 | `meta.ts` settle | `economyFor(id)`, `modeCoreMult/modeLootMult/modeMasteryMult`, `doctrineEconomy(id)`, `lootQualityTier(...)` | finishRun / loot bias / mastery XP |
 | `InfiniteScreen` (any picker) | `hazardRating(difficulty, doctrine)`, `modeLootMult × doctrineEconomy` | display |
 
@@ -107,6 +107,18 @@ recent-outcome score. The progression-loop engine supplies `AdaptiveInputs`; the
 only be tuned from progression-simulator evidence** (docs/BALANCE roadmap), never intuition —
 that rule is pinned by a test asserting the weights are 0 until a simulator report ships.
 The endless **speed** curve deliberately takes no adaptive term (its readability cap must bind).
+
+## 6b. Campaign onboarding boss strength (§onboarding)
+
+The first campaign stages' finale bosses field a **reduced** body: `campaignBossStrength(stage)`
+ramps linearly from `CAMPAIGN_ONBOARDING.bossStrengthFloor` at stage 1 to exactly ×1 at
+`bossFullStage` (config.ts), and `scaleBossStrength(def, s)` applies it to the boss's HP, contact
+damage, armor (default `BOSS.baseArmor`) AND every kit `amount` (heal, shield, adds, core-shot).
+Scaling the kit matters: a weaker body that keeps a full-strength healer still out-heals an
+opening board — the fresh-account Stage-3 wall (docs/CAMPAIGN.md §curve). The helper returns the
+same def object at ×1, so every stage from `bossFullStage` on — and every authored milestone
+boss — is byte-identical. This is the campaign analogue of the Boss Rush strength ramp
+(`RUSH.strength*`) and Infinite's `endlessBossStrength`.
 
 ## 7. Future factors (reserved compositions)
 

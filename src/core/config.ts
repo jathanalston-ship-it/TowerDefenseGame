@@ -2178,6 +2178,23 @@ export function campaignSurveyBonus(stageNo: number): number {
   return CAMPAIGN_REWARDS.milestoneCore / CAMPAIGN_REWARDS.milestoneEvery;
 }
 
+// Campaign ONBOARDING (docs/DIFFICULTY_DIRECTOR.md §onboarding, docs/CAMPAIGN.md §curve): the
+// first stages' finale bosses field a REDUCED boss — body (HP, contact damage, armor) and kit
+// amounts × a strength that ramps linearly from `bossStrengthFloor` (stage 1) to ×1 at
+// `bossFullStage`. A full-strength finale vs an opening board was a binary wall (fresh-account
+// probe: flawless waves, then a boss coin-flip — the Boss Rush lesson, RUSH.strength*). Composed
+// by difficultyDirector.campaignBossStrength; applied by campaign.ts generateStage.
+export const CAMPAIGN_ONBOARDING = {
+  bossStrengthFloor: 0.5, // stage-1 finale boss at 50% body + kit …
+  bossFullStage: 5, // … ×1 from here (the first authored milestone boss is untouched)
+  // …and its kit trades unanswerable SUSTAIN (an opening board cannot out-damage a heal/shield/
+  // harden loop — the binary wall) for the telegraphed CORE-SHOT, which every onboarding finale
+  // channels: integrity loss then grades with how long the board takes to kill it.
+  sustainKinds: ['healer', 'bulwark', 'carapace', 'shieldphase'] as readonly string[],
+  coreShot: { kind: 'channeler', cooldown: 15, duration: 3.5, amount: 16 } as const, // the procedural pool's channeler
+  spareSlot: { kind: 'enrager', cooldown: 9, amount: 1 } as const, // a 2nd sustain slot (the kit already channels) — the pool's enrager
+};
+
 // ── Battlefield / arena ─────────────────────────────────────────────────────
 // Open vertical arena (map.ts owns CELL/COLS/ROWS/WIDTH/HEIGHT). Enemies spawn
 // along the TOP edge and dynamically flow toward the BOTTOM edge (the line) via a
@@ -2696,6 +2713,7 @@ export const HERO_LABELS: Record<string, string> = Object.fromEntries(
 // ── Boss framework (boss.ts) ────────────────────────────────────────────────
 export const BOSS = {
   baseHp: 1600, // × BossDef.hpMult → boss HP
+  baseArmor: 14, // armor of a boss whose def sets none (every procedural boss)
   addCap: 28, // fairness cap on a spawner boss's concurrent adds (uses the global maxEnemies too)
   chargeSpeedMult: 2.6, // charger module: movement multiplier during a telegraphed dash
   gripExposeMult: 1.25, // corecrush counterplay: damage TAKEN while gripping the Nucleus (burst it off)

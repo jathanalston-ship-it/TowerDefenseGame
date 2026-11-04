@@ -44,123 +44,233 @@ function rowOf(py: number): number {
   return Math.min(ROWS - 1, Math.max(0, Math.floor(py / CELL)));
 }
 
-// ── Obstacles ────────────────────────────────────────────────────────────────
-const obstacleSet = new Set<number>();
-for (const b of OBSTACLES) {
-  for (let r = b.row; r < b.row + b.h; r++) {
-    for (let c = b.col; c < b.col + b.w; c++) {
-      if (inBounds(c, r)) obstacleSet.add(key(c, r));
-    }
-  }
-}
-export function isObstacle(col: number, row: number): boolean {
-  return obstacleSet.has(key(col, row));
-}
-/** Obstacle cells (centers) for rendering. */
-export const obstacleCells: { col: number; row: number; x: number; y: number }[] = [];
-for (const b of OBSTACLES) {
-  for (let r = b.row; r < b.row + b.h; r++) {
-    for (let c = b.col; c < b.col + b.w; c++) {
-      if (!inBounds(c, r)) continue;
-      const ctr = center(c, r);
-      obstacleCells.push({ col: c, row: r, x: ctr.x, y: ctr.y });
-    }
-  }
-}
-
-// ── Flow field (multi-source Dijkstra from the bottom edge) ───────────────────
-// distField[k] = path cost to the nearest bottom-edge cell; flowField[k] = unit
-// direction toward the goal. Rebuildable with extra blocked cells to support
-// future destructible obstacles / blocking structures; towers do NOT block
-// (keeps a path to the line always solvable).
+// ── Navigation field (obstacles + flow field) ────────────────────────────────
+// A NavField is one battlefield LAYOUT's navigation state: its impassable cells, their render
+// centers, and the flow field enemies follow (multi-source Dijkstra from the bottom edge).
+// distField[k] = path cost to the nearest bottom-edge cell; flowField[k] = unit direction
+// toward the goal. Each Game owns the field of its active layout (docs/MAP-LAYOUTS.md) so
+// concurrent Games never share mutable map state; the module-level helpers below resolve
+// against the DEFAULT field (config OBSTACLES) for legacy callers. Rebuildable with extra
+// blocked cells to support future destructible obstacles / blocking structures; towers do
+// NOT block (keeps a path to the line always solvable).
 const N = COLS * ROWS;
-let distField = new Float64Array(N);
-let flowField: Vec2[] = [];
 
 const NEI: [number, number, number][] = [
   [1, 0, 1], [-1, 0, 1], [0, 1, 1], [0, -1, 1],
   [1, 1, Math.SQRT2], [1, -1, Math.SQRT2], [-1, 1, Math.SQRT2], [-1, -1, Math.SQRT2],
 ];
 
-export function rebuildFlowField(extraBlocked?: ReadonlySet<number>): void {
-  const blocked = (c: number, r: number): boolean =>
-    obstacleSet.has(key(c, r)) || (extraBlocked ? extraBlocked.has(key(c, r)) : false);
+/** An impassable grid rect (cells), the unit every layout is authored in. */
+export interface ObstacleRect { col: number; row: number; w: number; h: number }
+/** One obstacle cell with its pixel center (render input). */
+export interface ObstacleCell { col: number; row: number; x: number; y: number }
 
-  distField = new Float64Array(N).fill(Infinity);
-  const visited = new Uint8Array(N);
-  // Sources: passable cells on the bottom row (the goal line), distance 0.
-  for (let c = 0; c < COLS; c++) {
-    if (!blocked(c, ROWS - 1)) distField[key(c, ROWS - 1)] = 0;
+/** Magnitude of the escape vector inside a SOLID wall. The mover normalizes its steering blend,
+ *  so a longer flow vector dominates crowd separation / gait pulls — the body surfaces instead of
+ *  being shoved through (open cells keep unit vectors, so routing is unchanged). */
+const SOLID_WALL_PUSH = 4;
+
+export interface NavFieldOptions {
+  /** SOLID walls: a body shoved INTO a blocked cell (crowding, separation, gait pulls) is steered
+   *  back OUT toward the nearest open cell instead of the legacy "head straight down" fallback
+   *  that let it push through. Every authored layout sets this; the DEFAULT (classic) field keeps
+   *  the legacy fallback so the golden path stays byte-identical (docs/MAP-LAYOUTS.md §limits). */
+  solidWalls?: boolean;
+}
+
+export class NavField {
+  /** Obstacle cells (centers) for rendering. */
+  readonly cells: ObstacleCell[] = [];
+  private readonly obstacleSet = new Set<number>();
+  private readonly solidWalls: boolean;
+  private distField = new Float64Array(N);
+  private flowField: Vec2[] = [];
+
+  constructor(rects: readonly ObstacleRect[], opts: NavFieldOptions = {}) {
+    this.solidWalls = opts.solidWalls === true;
+    for (const b of rects) {
+      for (let r = b.row; r < b.row + b.h; r++) {
+        for (let c = b.col; c < b.col + b.w; c++) {
+          if (inBounds(c, r)) this.obstacleSet.add(key(c, r));
+        }
+      }
+    }
+    for (const b of rects) {
+      for (let r = b.row; r < b.row + b.h; r++) {
+        for (let c = b.col; c < b.col + b.w; c++) {
+          if (!inBounds(c, r)) continue;
+          const ctr = center(c, r);
+          this.cells.push({ col: c, row: r, x: ctr.x, y: ctr.y });
+        }
+      }
+    }
+    this.rebuild();
   }
-  // O(V^2) Dijkstra — tiny grid (432 cells), computed once / on change.
-  for (let iter = 0; iter < N; iter++) {
-    let u = -1;
-    let best = Infinity;
+
+  isObstacle(col: number, row: number): boolean {
+    return this.obstacleSet.has(key(col, row));
+  }
+
+  rebuild(extraBlocked?: ReadonlySet<number>): void {
+    const obstacleSet = this.obstacleSet;
+    const blocked = (c: number, r: number): boolean =>
+      obstacleSet.has(key(c, r)) || (extraBlocked ? extraBlocked.has(key(c, r)) : false);
+
+    const distField = new Float64Array(N).fill(Infinity);
+    const visited = new Uint8Array(N);
+    // Sources: passable cells on the bottom row (the goal line), distance 0.
+    for (let c = 0; c < COLS; c++) {
+      if (!blocked(c, ROWS - 1)) distField[key(c, ROWS - 1)] = 0;
+    }
+    // O(V^2) Dijkstra — tiny grid (432 cells), computed once / on change.
+    for (let iter = 0; iter < N; iter++) {
+      let u = -1;
+      let best = Infinity;
+      for (let i = 0; i < N; i++) {
+        if (!visited[i] && distField[i] < best) {
+          best = distField[i];
+          u = i;
+        }
+      }
+      if (u < 0) break;
+      visited[u] = 1;
+      const uc = u % COLS;
+      const ur = (u / COLS) | 0;
+      for (const [dc, dr, w] of NEI) {
+        const nc = uc + dc;
+        const nr = ur + dr;
+        if (!inBounds(nc, nr) || blocked(nc, nr)) continue;
+        // No diagonal corner-cutting between two obstacles.
+        if (dc !== 0 && dr !== 0 && blocked(uc + dc, ur) && blocked(uc, ur + dr)) continue;
+        const nk = key(nc, nr);
+        const nd = best + w;
+        if (nd < distField[nk]) distField[nk] = nd;
+      }
+    }
+    // Per-cell flow vectors (toward the lowest-distance reachable neighbour).
+    const flowField: Vec2[] = new Array(N);
     for (let i = 0; i < N; i++) {
-      if (!visited[i] && distField[i] < best) {
-        best = distField[i];
-        u = i;
+      const c = i % COLS;
+      const r = (i / COLS) | 0;
+      if (blocked(c, r) || !isFinite(distField[i])) {
+        flowField[i] = { x: 0, y: 1 }; // fallback: head straight down
+        continue;
       }
-    }
-    if (u < 0) break;
-    visited[u] = 1;
-    const uc = u % COLS;
-    const ur = (u / COLS) | 0;
-    for (const [dc, dr, w] of NEI) {
-      const nc = uc + dc;
-      const nr = ur + dr;
-      if (!inBounds(nc, nr) || blocked(nc, nr)) continue;
-      // No diagonal corner-cutting between two obstacles.
-      if (dc !== 0 && dr !== 0 && blocked(uc + dc, ur) && blocked(uc, ur + dr)) continue;
-      const nk = key(nc, nr);
-      const nd = best + w;
-      if (nd < distField[nk]) distField[nk] = nd;
-    }
-  }
-  // Per-cell flow vectors (toward the lowest-distance reachable neighbour).
-  flowField = new Array(N);
-  for (let i = 0; i < N; i++) {
-    const c = i % COLS;
-    const r = (i / COLS) | 0;
-    if (blocked(c, r) || !isFinite(distField[i])) {
-      flowField[i] = { x: 0, y: 1 }; // fallback: head straight down
-      continue;
-    }
-    let bc = c;
-    let br = r;
-    let bd = distField[i];
-    for (const [dc, dr] of NEI) {
-      const nc = c + dc;
-      const nr = r + dr;
-      if (!inBounds(nc, nr) || blocked(nc, nr)) continue;
-      if (dc !== 0 && dr !== 0 && blocked(c + dc, r) && blocked(c, r + dr)) continue;
-      const d = distField[key(nc, nr)];
-      if (d < bd) {
-        bd = d;
-        bc = nc;
-        br = nr;
+      let bc = c;
+      let br = r;
+      let bd = distField[i];
+      for (const [dc, dr] of NEI) {
+        const nc = c + dc;
+        const nr = r + dr;
+        if (!inBounds(nc, nr) || blocked(nc, nr)) continue;
+        if (dc !== 0 && dr !== 0 && blocked(c + dc, r) && blocked(c, r + dr)) continue;
+        const d = distField[key(nc, nr)];
+        if (d < bd) {
+          bd = d;
+          bc = nc;
+          br = nr;
+        }
       }
+      if (bc === c && br === r) {
+        flowField[i] = { x: 0, y: 1 };
+        continue;
+      }
+      const vx = bc - c;
+      const vy = br - r;
+      const len = Math.hypot(vx, vy) || 1;
+      flowField[i] = { x: vx / len, y: vy / len };
     }
-    if (bc === c && br === r) {
-      flowField[i] = { x: 0, y: 1 };
-      continue;
-    }
-    const vx = bc - c;
-    const vy = br - r;
-    const len = Math.hypot(vx, vy) || 1;
-    flowField[i] = { x: vx / len, y: vy / len };
+    if (this.solidWalls) this.ejectFromWalls(flowField, distField, blocked);
+    this.distField = distField;
+    this.flowField = flowField;
   }
-}
-rebuildFlowField();
 
-/** Unit direction an enemy at (px,py) should travel to reach the line. */
-export function flowDirAt(px: number, py: number): Vec2 {
-  return flowField[key(colOf(px), rowOf(py))] ?? { x: 0, y: 1 };
+  /** SOLID-wall flow inside blocked cells: BFS depth from the open field into the walls, then each
+   *  blocked cell points at its shallowest neighbour (ties → the lower path cost, so the escape
+   *  never fights the route — pushing bodies UPSTREAM deadlocked them at wall corners). A body
+   *  shoved into a wall surfaces on the near face and rejoins the flow. */
+  private ejectFromWalls(flowField: Vec2[], distField: Float64Array, blocked: (c: number, r: number) => boolean): void {
+    const depth = new Int32Array(N).fill(-1);
+    const queue: number[] = [];
+    for (let i = 0; i < N; i++) {
+      if (!blocked(i % COLS, (i / COLS) | 0)) {
+        depth[i] = 0;
+        queue.push(i);
+      }
+    }
+    for (let qi = 0; qi < queue.length; qi++) {
+      const u = queue[qi];
+      const uc = u % COLS;
+      const ur = (u / COLS) | 0;
+      for (const [dc, dr] of NEI) {
+        const nc = uc + dc;
+        const nr = ur + dr;
+        if (!inBounds(nc, nr)) continue;
+        const nk = key(nc, nr);
+        if (depth[nk] >= 0) continue;
+        depth[nk] = depth[u] + 1;
+        queue.push(nk);
+      }
+    }
+    for (let i = 0; i < N; i++) {
+      const c = i % COLS;
+      const r = (i / COLS) | 0;
+      if (!blocked(c, r)) continue;
+      let bk = -1;
+      for (const [dc, dr] of NEI) {
+        const nc = c + dc;
+        const nr = r + dr;
+        if (!inBounds(nc, nr)) continue;
+        const nk = key(nc, nr);
+        if (depth[nk] < 0) continue;
+        if (bk < 0 || depth[nk] < depth[bk] || (depth[nk] === depth[bk] && distField[nk] < distField[bk])) bk = nk;
+      }
+      if (bk < 0 || depth[bk] >= depth[i]) continue; // no way out (sealed by the arena edge) — keep the fallback
+      const vx = (bk % COLS) - c;
+      const vy = ((bk / COLS) | 0) - r;
+      const len = Math.hypot(vx, vy) || 1;
+      flowField[i] = { x: (vx / len) * SOLID_WALL_PUSH, y: (vy / len) * SOLID_WALL_PUSH };
+    }
+  }
+
+  /** Unit direction an enemy at (px,py) should travel to reach the line (inside a SOLID wall:
+   *  the ×SOLID_WALL_PUSH escape vector toward the nearest open cell). */
+  flowDirAt(px: number, py: number): Vec2 {
+    return this.flowField[key(colOf(px), rowOf(py))] ?? { x: 0, y: 1 };
+  }
+  /** Path cost from (px,py) to the line — lower = closer to breaking through. */
+  goalDistanceAt(px: number, py: number): number {
+    const d = this.distField[key(colOf(px), rowOf(py))];
+    return isFinite(d) ? d : Number.MAX_SAFE_INTEGER;
+  }
+  /** Path cost of a grid cell to the line (Infinity when it cannot reach it). Validator input. */
+  cellDistance(col: number, row: number): number {
+    return this.distField[key(col, row)];
+  }
 }
-/** Path cost from (px,py) to the line — lower = closer to breaking through. */
+
+// The DEFAULT field (config OBSTACLES — the classic arena). Module-level helpers resolve
+// against it, so legacy callers and the golden path are unchanged.
+const DEFAULT_FIELD = new NavField(OBSTACLES);
+export function defaultNavField(): NavField {
+  return DEFAULT_FIELD;
+}
+export function isObstacle(col: number, row: number): boolean {
+  return DEFAULT_FIELD.isObstacle(col, row);
+}
+/** Obstacle cells (centers) of the default layout, for rendering. */
+export const obstacleCells: ObstacleCell[] = DEFAULT_FIELD.cells;
+export function rebuildFlowField(extraBlocked?: ReadonlySet<number>): void {
+  DEFAULT_FIELD.rebuild(extraBlocked);
+}
+
+/** Unit direction an enemy at (px,py) should travel to reach the line (default layout). */
+export function flowDirAt(px: number, py: number): Vec2 {
+  return DEFAULT_FIELD.flowDirAt(px, py);
+}
+/** Path cost from (px,py) to the line — lower = closer to breaking through (default layout). */
 export function goalDistanceAt(px: number, py: number): number {
-  const d = distField[key(colOf(px), rowOf(py))];
-  return isFinite(d) ? d : Number.MAX_SAFE_INTEGER;
+  return DEFAULT_FIELD.goalDistanceAt(px, py);
 }
 
 // ── Spawn / goal ──────────────────────────────────────────────────────────────

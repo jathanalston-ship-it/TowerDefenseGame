@@ -157,6 +157,12 @@ stages. Enemy `armor` shipped as a `BossDef.armor` field; the "armor-facing" les
   a gene keystone) that *answers* the lesson it taught — so beating the swarm boss unlocks
   a splash mutation, beating the adaptive boss unlocks a damage-type-swap graft, etc.
 - **Elite variants are the infinite content multiplier** and the source of the best gear.
+- **Onboarding finales teach ONE verb** (docs/CAMPAIGN.md §curve): the procedural finales of
+  the first campaign stages field a reduced body and kit (`campaignBossStrength`, docs/
+  DIFFICULTY_DIRECTOR.md §onboarding) and always CHANNEL the telegraphed core-shot, with
+  sustain (heal / shield / harden / phase-shield) swapped out — "burst it before the cast
+  lands" is the first boss lesson, and integrity loss grades with kill speed instead of an
+  opening board flipping a coin against a heal loop.
 
 ---
 

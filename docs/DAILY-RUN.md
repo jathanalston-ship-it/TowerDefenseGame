@@ -20,6 +20,7 @@ day key, so the plan re-derives anywhere (UI, sim boot, tests) and never desyncs
 | `biomeId` | one **fixed** biome for the whole run, from the `BIOMES` registry |
 | `stage` | a 20-wave `StageConfig` built by the **campaign machinery** (`composeStagePlan`, effective stage 12–20, ×0.9–1.25 HP variance) so waves feel authored |
 | `stage.bossWaves` | §bosses: two seeded mid-bosses (waves 7 & 14); the finale rides `stage.boss` (wave 20) |
+| `stage.layout` | the day's **arena layout** (docs/MAP-LAYOUTS.md) — one biome-flavored roll (`pickLayoutId`) on its own `S_LAYOUT` stream; the whole world fights on the same battlefield |
 | `towerPool` | 3 independent rolls over the FULL tower registry (dupes allowed) — the trial Conveyor |
 | `modifierIds` | TWO distinct ids from the modifier **registry** (§modifiers) |
 | `musicTrack` / `difficultyEstimate` / `recommendedPower` | seeded flavour + the readiness heuristics (universal Power index) |
