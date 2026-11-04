@@ -511,7 +511,7 @@ export function App(): JSX.Element {
 
   // Browser/Android BACK walks the game, never out of it (docs/HUB-FLOW.md §back): the hub's
   // own history, a Pause during a live run (+ a beforeunload warning), a hold on everything else.
-  useBrowserBack(screen === 'playing' || screen === 'tutorial' ? 'run' : screen === 'menu' && !arenaSetup && !spectate ? 'menu' : 'other');
+  useBrowserBack(screen === 'playing' || screen === 'tutorial' ? 'run' : screen === 'menu' && !arenaSetup ? 'menu' : 'other');
 
   return (
     <div className="app">

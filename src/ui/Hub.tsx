@@ -112,10 +112,12 @@ function onIdle(fn: () => void): () => void {
   return () => clearTimeout(id);
 }
 
-/** Escape typed into a field belongs to the field, never to navigation. */
+/** Escape typed into a text field belongs to the field, never to navigation. */
 function isTypingTarget(t: EventTarget | null): boolean {
   const el = t as HTMLElement | null;
-  return !!el && (el.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName ?? ''));
+  if (!el) return false;
+  if (el.isContentEditable || el.tagName === 'TEXTAREA' || el.tagName === 'SELECT') return true;
+  return el.tagName === 'INPUT' && /^(text|search|email|password|number|url|tel)$/.test((el as HTMLInputElement).type);
 }
 
 // The nav IA (groups + portrait tabs) lives in navModel.ts — the single source of truth this

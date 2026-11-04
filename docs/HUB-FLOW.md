@@ -97,17 +97,18 @@ causes real back-and-forth.)
 | Where | Back | Escape |
 |---|---|---|
 | A layer is open (any `<Popup>` or a modal calling `useDismiss`) | closes the TOPMOST layer | same |
-| Another modal on screen (a ceremony, What's New, the HUD tour) | held — the hub never moves underneath | ignored by the hub |
+| Another modal on screen (a ceremony, What's New, the HUD tour, the replay theater) | held — the hub never moves underneath | ignored by the hub (the modal owns it) |
 | Hub screen / landing | the Hub's `goBack` (same walk as the ScreenHeader ‹ and edge swipe-back) | same (never from inside a text field) |
 | Hub root (Home, empty history) | the browser's own Back (previous page / close the PWA) | nothing |
 | Live run (the tutorial included) | opens the **Pause sheet** — never exits (`runBus.pause` → GameView) | the run's own hotkeys |
-| Deploy / Results / roulette / arena match / replay theater | held | — |
+| Deploy / Results / roulette / arena match | held | — |
 
 **Mechanism:** ONE guard history entry with the SAME URL sits above the app's entry while Back
 has an in-game meaning (`wantsGuard`); Back consumes it → `popstate` → act (`backStep`) →
 re-arm. Same URL ⇒ `?replay`/`?daily`/`?checkout`/`?session_id` deep links, the PWA
 `start_url` (/play) and the marketing site at the domain root are untouched; a stale guard at
-the root is consumed so Back never dead-ends. A `beforeunload` "leave site?" prompt is armed
+the root is consumed so Back never dead-ends (a URL cleanup made on the guard — ?replay stripped
+on theater exit — is carried onto the entry it lands on). A `beforeunload` "leave site?" prompt is armed
 only while a run is live. **Popups:** `<Popup onClose>` wires Escape + a backdrop tap; without
 `onClose`, Escape is the keyboard twin of a backdrop tap (it clicks the overlay), so every
 existing popup whose backdrop dismisses closes for free. × buttons answer a 44px hit area.

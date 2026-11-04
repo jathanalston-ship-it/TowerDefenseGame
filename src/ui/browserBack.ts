@@ -102,6 +102,7 @@ let hub: HubBack | null = null;
 let phase: BackPhase = 'menu';
 let armed = false; // a guard WE pushed is the current entry
 let ignorePops = 0; // popstates caused by our own consume (history.back) — not the player's
+let consumedHref: string | null = null; // the guard's URL at consume time (a cleanup may have replaced it)
 
 const GUARD = { assimBack: 1 } as const;
 
@@ -120,6 +121,7 @@ export function syncBackGuard(): void {
   } else if (!want && armed) {
     armed = false;
     ignorePops++;
+    consumedHref = window.location.href;
     window.history.back();
   }
 }
@@ -139,7 +141,14 @@ export function backPhase(): BackPhase {
 }
 
 function onPopState(): void {
-  if (ignorePops > 0) { ignorePops--; return; }
+  if (ignorePops > 0) {
+    ignorePops--;
+    // A URL cleanup that ran on the guard (?replay stripped on theater exit) must survive the
+    // consume — carry it onto the entry we landed on instead of resurrecting the old query.
+    if (consumedHref && window.location.href !== consumedHref) window.history.replaceState(window.history.state, '', consumedHref);
+    consumedHref = null;
+    return;
+  }
   armed = false; // Back consumed the guard
   const step = backStep({ ...state(), modal: modalOnScreen() });
   if (step === 'pause') runBus.pause();
