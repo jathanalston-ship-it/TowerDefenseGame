@@ -87,14 +87,20 @@ export function deployReadiness(power: number, rec: number, stage: number, diff:
   return f && f.diff === diff && f.stage === stage - 1 ? 'close' : 'under';
 }
 
-/** One-line, screen-ready advice for the loop position — the wall/breakthrough copy shared by
- *  Results, Campaign, and Infinite so the loop reads identically everywhere. `band` lets a caller
+/** Screen-ready advice for the loop position — the wall/breakthrough copy shared by Results,
+ *  Campaign, and Infinite so the loop reads identically everywhere — plus the screen it names
+ *  (`nav`), so the surface can render a "Go ▸" (ui/components/AdviceLink.tsx). `band` lets a caller
  *  pass the calmed deploy band; a 'close' frontier reads as a push, never a wall. Farm advice
  *  only names Infinite once it is unlocked (never advise a sealed destination). */
-export function loopAdvice(ls: LoopState, band: DeployReadiness = readinessBand(ls.power, ls.requiredPower)): string {
-  if (ls.phase === 'advance-campaign') return `Power target met — Stage ${ls.frontierStage} is breakable now.`;
-  if (band !== 'under') return `Stage ${ls.frontierStage} is within reach — ${ls.powerShort.toLocaleString()} Power under the recommendation. Push it.`;
+export function loopAdviceLink(ls: LoopState, band: DeployReadiness = readinessBand(ls.power, ls.requiredPower)): { text: string; nav?: string } {
+  if (ls.phase === 'advance-campaign') return { text: `Power target met — Stage ${ls.frontierStage} is breakable now.`, nav: 'campaign' };
+  if (band !== 'under') return { text: `Stage ${ls.frontierStage} is within reach — ${ls.powerShort.toLocaleString()} Power under the recommendation. Push it.`, nav: 'campaign' };
   return ls.infiniteOpen
-    ? `Stage ${ls.frontierStage} wall: ${ls.powerShort.toLocaleString()} Power short. Farm Infinite (~Depth ${ls.farmDepth}) — loot, Mastery and genes bank permanently.`
-    : `Stage ${ls.frontierStage} wall: ${ls.powerShort.toLocaleString()} Power short. Replay cleared stages — loot, Mastery and genes bank permanently. Infinite opens at Stage ${MODE_UNLOCKS.infinite}.`;
+    ? { text: `Stage ${ls.frontierStage} wall: ${ls.powerShort.toLocaleString()} Power short. Farm Infinite (~Depth ${ls.farmDepth}) — loot, Mastery and genes bank permanently.`, nav: 'infinite' }
+    : { text: `Stage ${ls.frontierStage} wall: ${ls.powerShort.toLocaleString()} Power short. Replay cleared stages — loot, Mastery and genes bank permanently. Infinite opens at Stage ${MODE_UNLOCKS.infinite}.`, nav: 'campaign' };
+}
+
+/** The advice line alone (the string API Results/tests read). */
+export function loopAdvice(ls: LoopState, band?: DeployReadiness): string {
+  return loopAdviceLink(ls, band).text;
 }

@@ -16,16 +16,26 @@ Files: `src/ui/homeModel.ts` (pure read-models + `homeRegistry`) · `src/ui/Comm
 
 ## 1. Architecture — zones × registry × renderers
 
-The shell (`CommandCenter.tsx`) renders fixed **zones** top-to-bottom; each zone renders
-whatever `homeRegistry.zone(save, zone)` yields, in `order`, honoring per-widget `when`
-guards (a fresh account's board stays calm — no empty panels).
+The shell (`CommandCenter.tsx`) renders fixed **zones** top-to-bottom — `strip` → the
+`main`|`side` row → `world` → `army` → `ops` → `feed` → `foot`; each zone renders whatever
+`homeRegistry.zone(save, zone)` yields, in `order`, honoring per-widget `when` guards (a fresh
+account's board stays calm — no empty panels).
+
+**§zones — the primary CTA is above the fold (2026-11).** The deploy row LEADS the 190px World
+Status visual (it used to sit above it, pushing Continue Campaign to y≈720/900 — cut off at
+1366×768, two screens down at 844×390). On landscape phones (`data-layout="landscape"`) the row
+also leads the live-event banner and Mission Control lists its deploy button straight under the
+stage header (fact tiles + reward chips drop below). `scripts/mobilecheck.ts` asserts it
+(`homeCtaContract`): the developed Home's `.mc-deploy` is fully inside the viewport at scroll 0
+on every landscape/desktop viewport (portrait hubs sit under the rotate gate). Measured:
+y 720→516 at 1440×900 and 1366×768, 771→214 at 844×390.
 
 | Zone | Launch widgets |
 |---|---|
 | `strip` | `vitals` — the command strip: Power / Campaign / Infinite / Collection / Champions / Vaults / Achievements, **every chip a door** (the nearest goal is deliberately absent — the NEXT banner owns it) |
-| `world` | `world-status` — the living centerpiece (§2) |
 | `main` | `mission-control` FIRST (the deploy decision leads the board), then `next-goal` (the single nearest goal), `live-events`, `contracts` |
-| `side` | `forecast` (PredictionPanel; hidden until the first run), `roadmap` (§3 — goals **behind** the banner's) |
+| `side` | `recommend` (the Ready Chain, then Recommended Now — which never repeats a chain stop: one fact, one owner), `forecast` (PredictionPanel; hidden until the first run — its lever lines carry a "Go ▸"), `roadmap` (§3 — goals **behind** the banner's) |
+| `world` | `world-status` — the living centerpiece (§2), rendered BELOW the deploy row (§zones) |
 | `army` | `army` — the live roster (§4) |
 | `ops` | `modes` — Infinite / Boss Rush / Daily / Quick Skirmish (mirrors the nav's Play group), then `infestation` (the conquest map rides with operations, never above the deploy button; **collapses to a one-line teaser while `view.dormant`** — docs/INFESTATION.md §map) |
 | `feed` | `command-feed` (§5; hidden until history exists), `dashboard` (claim cards: Vault / Tower Evolution / Equipment / Collection) |

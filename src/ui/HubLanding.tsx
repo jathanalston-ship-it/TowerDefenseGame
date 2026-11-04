@@ -1,15 +1,16 @@
 // HUB LANDING PAGES (docs/NOTIFICATIONS.md §hubs) — one component renders EVERY hub's
-// landing: identity header (glyph + promise + completion), a "needs attention" strip built
-// from smart-notification REASONS ("3 Bio-Containers to open", never a bare dot), the
-// recommendation panel (state/recommendations.ts — the loop's next step, never empty), the
-// screen grid (self-describing cards from the unlock registry, teasers included), and the
-// recently-unlocked shelf. Fully registry-driven: a new screen added to navModel lands here
-// with its badge, reason, ring, and teaser for free — there is no per-hub layout to author.
+// landing: identity header (glyph + promise + completion), the screen grid FIRST
+// (self-describing cards from the unlock registry, teasers included — each card OWNS its
+// screen's smart-notification REASON, "3 Bio-Containers to open", and its live Ready-Chain
+// line), then the recommendation panel (state/recommendations.ts — only what no card already
+// says, so one fact has one owner; never empty), and the recently-unlocked shelf. Fully
+// registry-driven: a new screen added to navModel lands here with its badge, reason, ring,
+// and teaser for free — there is no per-hub layout to author.
 
 import type { CSSProperties } from 'react';
 import type { SaveData } from '../save/saveStore';
 import { t } from '../i18n';
-import { featureRevealed, featureView, isOpenNav, type FeatureView } from '../state/unlocks';
+import { featureRevealed, featureView, type FeatureView } from '../state/unlocks';
 import { recommendationsFor, type Recommendation } from '../state/recommendations';
 import { ACTIONS } from './iconLanguage';
 import { readyChain } from '../state/readyChain';
@@ -74,6 +75,20 @@ export function NextUp({ save, exclude, go }: { save: SaveData; exclude: NavKey;
   );
 }
 
+/** The hub's only OPEN screen, if it has exactly one — its door opens it directly (a one-card
+ *  landing is a pointless hop; the Store's headerless rule, generalized). HOME never counts:
+ *  it has its own door. */
+export function soleOpenScreen(save: SaveData, group: NavGroup): NavKey | null {
+  const open = group.items.filter((i) => i.key !== 'home' && featureRevealed(save, i.key));
+  return open.length === 1 ? open[0].key : null;
+}
+
+/** A hub door's badge = how many member screens hold a DECISION (docs/NOTIFICATIONS.md
+ *  §decisions) — never the sum of their item counts, which read "9+" forever. */
+export function doorBadge(keys: readonly string[], badges: Partial<Record<string, number>>, teasers: ReadonlyMap<string, unknown>): number {
+  return keys.filter((k) => !teasers.has(k) && (badges[k] ?? 0) > 0).length;
+}
+
 /** Screens revealed within the last few runs — the "recently unlocked" shelf. */
 export function recentlyUnlocked(save: SaveData, keys: readonly NavKey[], window = 5): NavKey[] {
   const floor = Math.max(0, save.totalRuns - window);
@@ -108,15 +123,17 @@ export function HubLanding({
   // Hub completion = mean of the member rings that exist (some screens have no natural metric).
   const ringVals = keys.map((k) => progress[k]).filter((v): v is number => v !== undefined);
   const completion = ringVals.length > 0 ? ringVals.reduce((a, b) => a + b, 0) / ringVals.length : null;
-  // Attention rows are doors — a sealed wing's reason (a free Boss Rush entry at Stage 1) never
-  // becomes a row that opens onto a lock (docs/NOTIFICATIONS.md §recommendations).
-  const attention = keys.filter((k) => isOpenNav(save, k)).flatMap((k) => (reasons[k] ?? []).map((line) => ({ k, line })));
-  const recs = recommendationsFor(save, { navs: keys, limit: 3 });
   const fresh = recentlyUnlocked(save, keys);
   // LIVE readiness per member screen (docs/HUB-FLOW.md §surfaces): a seen-but-unclaimed
   // stop keeps pulsing here and keeps its live line on the card, even after its unseen
   // badge/reason cleared — the landing never hides earned value.
   const chainOf = new Map(readyChain(save).map((n) => [n.nav as string, n.label] as const));
+  // ONE FACT, ONE OWNER: a member card already shows its reason line and its live chain line,
+  // so the strip below only recommends what no card says (the play backstop, an almost-unlocked
+  // pull) — the old "needs attention" rows + reason-derived recs repeated the cards verbatim.
+  const carded = (r: Recommendation): boolean => keys.includes(r.nav) && (r.id.startsWith('notif:') || chainOf.has(r.nav));
+  const recs = recommendationsFor(save, { navs: keys, limit: 3, skip: carded });
+  const waiting = keys.some((k) => (reasons[k]?.length ?? 0) > 0 || chainOf.has(k));
 
   return (
     <div className="hubl" style={{ ['--hub-accent' as string]: group.accent } as CSSProperties}>
@@ -132,35 +149,6 @@ export function HubLanding({
           </div>
         )}
       </header>
-
-      {attention.length > 0 && (
-        <section className="hubl-sec" aria-label={t('hub.landing.attention')}>
-          <div className="hubl-sec-h">◉ {t('hub.landing.attention')}</div>
-          <div className="hubl-att">
-            {attention.map(({ k, line }) => (
-              <button key={`${k}:${line}`} type="button" className="hubl-att-row" onClick={() => go(k)}>
-                <span className="hubl-att-g" aria-hidden>{featureView(save, k).def.glyph}</span>
-                <span className="hubl-att-l">{line}</span>
-                <span className="hubl-att-in" aria-hidden>{featureView(save, k).def.name} →</span>
-              </button>
-            ))}
-          </div>
-        </section>
-      )}
-
-      <section className="hubl-sec" aria-label={t('hub.landing.recommended')}>
-        <div className="hubl-sec-h">✦ {t('hub.landing.recommended')}</div>
-        {/* "All quiet" must agree with the LIVE lane the member cards read — a hub with
-            seen-but-unclaimed stops still glowing below never claims to be quiet
-            (docs/HUB-FLOW.md §surfaces: the landing never hides earned value). */}
-        {attention.length === 0 && recs.every((r) => r.kind === 'play') && keys.every((k) => !chainOf.has(k)) && (
-          <p className="hubl-quiet">{t('hub.landing.quiet')}</p>
-        )}
-        {attention.length === 0 && recs.every((r) => r.kind === 'play') && keys.some((k) => chainOf.has(k)) && (
-          <p className="hubl-quiet">{t('hub.landing.stillReady')}</p>
-        )}
-        <RecommendStrip recs={recs} go={go} />
-      </section>
 
       <section className="hubl-sec" aria-label={group.title}>
         <div className="hubl-grid">
@@ -200,6 +188,15 @@ export function HubLanding({
             );
           })}
         </div>
+      </section>
+
+      <section className="hubl-sec" aria-label={t('hub.landing.recommended')}>
+        <div className="hubl-sec-h">✦ {t('hub.landing.recommended')}</div>
+        {/* "All quiet" must agree with the cards above — a hub with a reason or a
+            seen-but-unclaimed stop still glowing never claims to be quiet
+            (docs/HUB-FLOW.md §surfaces: the landing never hides earned value). */}
+        {!waiting && recs.every((r) => r.kind === 'play') && <p className="hubl-quiet">{t('hub.landing.quiet')}</p>}
+        <RecommendStrip recs={recs} go={go} />
       </section>
 
       {fresh.length > 0 && (

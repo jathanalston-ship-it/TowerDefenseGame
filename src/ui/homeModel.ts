@@ -206,7 +206,9 @@ export function armyView(save: SaveData): { towers: ArmyUnit[]; heroes: ArmyUnit
 
 // ── Widget registry — the shell renders THIS, never a hardcoded list ─────────────────────
 
-/** The shell's layout bands, top to bottom. `main`+`side` share a row (mission | rail). */
+/** The shell's layout bands. Rendered top to bottom as strip → main+side (one row: mission |
+ *  rail) → world → army → ops → feed → foot: the deploy row leads the World Status visual so
+ *  the primary CTA is above the fold on every viewport (docs/COMMAND-CENTER.md §zones). */
 export type HomeZone = 'strip' | 'world' | 'main' | 'side' | 'army' | 'ops' | 'feed' | 'foot';
 
 export interface HomeWidgetDef {

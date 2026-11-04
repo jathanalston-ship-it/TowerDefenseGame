@@ -16,7 +16,7 @@
 // progression simulator's domain (docs/PROGRESSION-LOOP.md §time).
 
 import { describe, it, expect, vi } from 'vitest';
-import { deployReadiness, loopAdvice, loopState, readinessBand } from './progressionLoop';
+import { deployReadiness, loopAdvice, loopAdviceLink, loopState, readinessBand } from './progressionLoop';
 import { setLastFlawlessClearPref } from './prefs';
 import { accountPowerParts } from './meta';
 import { composePower } from '../core/power';
@@ -184,5 +184,16 @@ describe('deploy readiness — calm inside tolerance, honest below it', () => {
     const near = { ...wall, power: 980, powerShort: 20 };
     expect(loopAdvice(near)).toContain('within reach'); // inside tolerance: a push, not a wall
     expect(loopAdvice({ ...wall, infiniteOpen: true })).toContain('Farm Infinite');
+  });
+
+  it('advice is a link: every line names the screen it points at (and never a sealed one)', () => {
+    const fresh = defaultSave();
+    const ls = loopState({ ...fresh, campaign: { ...fresh.campaign, cleared: { standard: 1 } } });
+    const wall = { ...ls, phase: 'farm-infinite' as const, power: 100, requiredPower: 1000, powerShort: 900 };
+    expect(loopAdviceLink({ ...wall, infiniteOpen: true })).toMatchObject({ nav: 'infinite' }); // "Farm Infinite" → Go ▸
+    expect(loopAdviceLink(wall).nav).toBe('campaign'); // Infinite sealed → replay cleared stages
+    expect(loopAdviceLink({ ...wall, power: 980, powerShort: 20 }).nav).toBe('campaign'); // a push
+    expect(loopAdviceLink({ ...wall, phase: 'advance-campaign' }).nav).toBe('campaign');
+    expect(loopAdvice(wall)).toBe(loopAdviceLink(wall).text); // the string API is the same line
   });
 });

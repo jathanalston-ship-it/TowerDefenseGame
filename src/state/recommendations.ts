@@ -79,7 +79,10 @@ export function registerRecSource(src: RecSource): void {
 }
 
 /** Ranked recommendations. `navs` filters to one hub's screens (landing pages);
- *  `limit` caps the list (default 3). `rotateFrom` is the LOOP ROTATION seam
+ *  `limit` caps the list (default 3). `skip` drops candidates another surface on the same page
+ *  already owns (ONE FACT, ONE OWNER — the Command Center's Ready Chain, a landing's cards); it
+ *  applies before the cap and the play fallback, so the list stays full and never empty.
+ *  `rotateFrom` is the LOOP ROTATION seam
  *  (docs/REWARD-ARCHITECTURE.md §chaining): actions in a DIFFERENT loop than the one just
  *  touched get a nudge and same-loop actions a damp, so sessions naturally flow
  *  claim → open → upgrade → collect → play instead of circling one wing. The nudge is
@@ -87,7 +90,7 @@ export function registerRecSource(src: RecSource): void {
  *  The list is never empty: a PLAY action backstops. */
 export function recommendationsFor(
   save: SaveData,
-  opts: { navs?: readonly NavKey[]; limit?: number; rotateFrom?: LoopId | null } = {},
+  opts: { navs?: readonly NavKey[]; limit?: number; rotateFrom?: LoopId | null; skip?: (r: Recommendation) => boolean } = {},
 ): Recommendation[] {
   const out: RecDraft[] = [];
 
@@ -144,7 +147,7 @@ export function recommendationsFor(
     const loop = loopOfNav(r.nav);
     const rot = opts.rotateFrom && loop ? (loop === opts.rotateFrom ? -6 : 8) : 0;
     return { ...r, loop, score: r.score + rot };
-  });
+  }).filter((r) => !opts.skip?.(r));
   const scoped = opts.navs ? tagged.filter((r) => opts.navs!.includes(r.nav)) : tagged;
   const pool = scoped.length > 0 ? scoped : tagged.filter((r) => r.kind === 'play'); // a quiet hub still guides somewhere
   return pool.sort((a, b) => b.score - a.score).slice(0, opts.limit ?? 3);

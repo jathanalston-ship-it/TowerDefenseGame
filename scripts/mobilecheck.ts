@@ -13,6 +13,8 @@
 //     (docs/RESPONSIVE-DESIGN.md §run — no page scroll, a dominant board, ≥44px Start Wave,
 //     tray + drawer toggles on-screen).
 //   • Every live board also passes the RUN-CHROME contract: no two in-run HUD pieces overlap.
+//   • HOME CTA ABOVE THE FOLD — on every landscape/desktop viewport the developed Home's primary
+//     deploy button is fully visible without scrolling (docs/COMMAND-CENTER.md §zones).
 // Every audited surface also passes the layout audit: no horizontal overflow, no clipped
 // text, no sub-24px targets, no off-screen interactives, no unreachable popups.
 //
@@ -132,6 +134,7 @@ async function main(): Promise<void> {
       // PROGRESSION GATING (docs/PROGRESSION-GATING.md): a fresh profile hides most wings — seed
       // a developed account so the sweep still audits EVERY screen at every viewport.
       await seedDevelopedProfile(page);
+      violations.push(...(await homeCtaContract(page, vp.name)));
 
       if (profileOf(vp) === 'landscape') violations.push(...(await landscapeRailWalk(page, vp.name)));
       else violations.push(...(await desktopRailWalk(page, vp.name, touch)));
@@ -265,6 +268,23 @@ async function desktopRailWalk(page: import('playwright-core').Page, vpName: str
   // The developed seed reveals nearly everything; heavy misses mean the doors or landings regressed.
   if (missing > 6) out.push({ screen: 'hub', vp: vpName, kind: 'rail-coverage', detail: `${missing}/${NAVS.length} registry navs unreachable via door→landing on a developed profile` });
   return out;
+}
+
+/** HOME CTA ABOVE THE FOLD (docs/COMMAND-CENTER.md §zones): the deploy row leads the board, so
+ *  Home's primary CTA (Mission Control's deploy button) must sit fully inside the viewport at
+ *  scroll 0 — the play button never loses primacy, on a 390px-tall phone included. */
+async function homeCtaContract(page: import('playwright-core').Page, vpName: string): Promise<Violation[]> {
+  await page.evaluate(() => (document.querySelector('[data-nav="home"]') as HTMLElement | null)?.click());
+  await page.waitForTimeout(500);
+  return page.evaluate((vpName) => {
+    for (const el of document.querySelectorAll('.hub-screen')) el.scrollTop = 0;
+    window.scrollTo(0, 0);
+    const cta = document.querySelector('.mc-deploy');
+    if (!cta) return [{ screen: 'home', vp: vpName, kind: 'home-cta', detail: 'no primary deploy CTA (.mc-deploy) on Home' }];
+    const r = cta.getBoundingClientRect();
+    if (r.top >= 0 && r.bottom <= window.innerHeight) return [];
+    return [{ screen: 'home', vp: vpName, kind: 'home-cta', detail: `primary CTA spans y ${Math.round(r.top)}..${Math.round(r.bottom)} — below the ${window.innerHeight}px fold` }];
+  }, vpName);
 }
 
 /** The ROTATE GATE contract (RotateGate.tsx): a portrait touch viewport shows the hold —

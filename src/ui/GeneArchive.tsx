@@ -483,7 +483,8 @@ export function GeneArchive(): JSX.Element {
   // Keyboard (and spatial-nav controller) navigation: arrows move focus across the tile grid,
   // Enter/Space activates (native button behavior), Escape backs out of equip mode.
   const onGridKeyDown = (e: React.KeyboardEvent): void => {
-    if (e.key === 'Escape') { setEquipSlot(null); return; }
+    // Handled here → preventDefault, so the Hub's Escape→back doesn't also leave the screen.
+    if (e.key === 'Escape') { if (equipSlot !== null) { e.preventDefault(); setEquipSlot(null); } return; }
     if (!['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(e.key)) return;
     // Tiles resolve from the grid that received the event — works in the flat view AND
     // inside any folder's grid.

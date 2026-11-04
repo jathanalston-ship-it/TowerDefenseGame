@@ -1104,18 +1104,19 @@ function dayKey(now: number): string {
 }
 
 /** Up to two soft guidance lines for the prediction panel — surfaces the weakest lever without ever
- *  dictating a move (docs/PREDICTION.md). Priority order; capped at two so it never overwhelms. */
-function predictionRecommendations(save: SaveData, mode: 'campaign' | 'infinite' | 'bossRush', estimate: number): string[] {
-  const out: string[] = [];
+ *  dictating a move (docs/PREDICTION.md). Priority order; capped at two so it never overwhelms.
+ *  Each line carries the screen it names (`nav`) so the panel renders a "Go ▸" link. */
+function predictionRecommendations(save: SaveData, mode: 'campaign' | 'infinite' | 'bossRush', estimate: number): { text: string; nav?: string }[] {
+  const out: { text: string; nav?: string }[] = [];
   const cleared = highestCampaignStage(save);
   const maxTowerStars = Math.max(0, ...TOWER_ORDER.map((k) => save.towerStars[k] ?? 0));
   const gear = equipmentPower(save);
   const molts = save.prestige?.molts ?? 0;
-  if (mode === 'campaign' && cleared < estimate - 2) out.push('Campaign progression recommended — you can push several stages deeper.');
+  if (mode === 'campaign' && cleared < estimate - 2) out.push({ text: 'Campaign progression recommended — you can push several stages deeper.', nav: 'campaign' });
   // Lever advice only names a wing the player can actually open (never advise a sealed screen).
-  if (maxTowerStars === 0 && featureRevealed(save, 'towers')) out.push('Tower Stars will significantly improve success — buy one in the Tower Lab.');
-  if (gear <= 1.01 && featureRevealed(save, 'equipment')) out.push('Equipment quality is below expected — gear up a hero in the Armory.');
-  if (molts === 0 && cleared >= 10) out.push('Consider Prestiging for a permanent, compounding power multiplier.');
+  if (maxTowerStars === 0 && featureRevealed(save, 'towers')) out.push({ text: 'Tower Stars will significantly improve success — buy one in the Tower Lab.', nav: 'towers' });
+  if (gear <= 1.01 && featureRevealed(save, 'equipment')) out.push({ text: 'Equipment quality is below expected — gear up a hero in the Armory.', nav: 'equipment' });
+  if (molts === 0 && cleared >= 10) out.push({ text: 'Consider Prestiging for a permanent, compounding power multiplier.', nav: 'evolution' });
   return out.slice(0, 2);
 }
 
@@ -5636,7 +5637,7 @@ export const meta = {
   /** Progress prediction (docs/PREDICTION.md) — an intelligent, self-calibrating ESTIMATE (never a
    *  guarantee) of how far the account can expect to reach in a mode, + 1–2 guidance recommendations.
    *  `difficultyId` is the mode's currently selected difficulty (harder ⇒ lower reach). */
-  predict(mode: 'campaign' | 'infinite' | 'bossRush', difficultyId?: string): { p: Prediction; recommendations: string[] } {
+  predict(mode: 'campaign' | 'infinite' | 'bossRush', difficultyId?: string): { p: Prediction; recommendations: string[]; advice: { text: string; nav?: string }[] } {
     const save = store.get();
     const powerMult = composePower(accountPowerParts(save)).mult;
     const diffMult = resolveDifficulty(difficultyId).enemyHealthMult;
@@ -5645,7 +5646,8 @@ export const meta = {
       : mode === 'bossRush'
         ? predictBossRush(powerMult, save.rushBestWave, diffMult, save.prediction.bossRush)
         : predictInfinite(powerMult, save.bestWave, diffMult, save.prediction.infinite);
-    return { p, recommendations: predictionRecommendations(save, mode, p.estimate) };
+    const advice = predictionRecommendations(save, mode, p.estimate);
+    return { p, recommendations: advice.map((a) => a.text), advice };
   },
 
   /** Record the estimate shown at run START so the next finishRun can calibrate against the actual

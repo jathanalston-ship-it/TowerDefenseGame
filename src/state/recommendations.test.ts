@@ -93,4 +93,16 @@ describe('recommendationsFor — ranking and guarantees', () => {
     const open: SaveData = { ...freshSave(), campaign: { cleared: { standard: MODE_UNLOCKS.bossRush }, bestTime: {} } };
     expect(recommendationsFor(open, { limit: 50 }).some((r) => r.nav === 'bossrush')).toBe(true);
   });
+
+  it('skip drops what another surface owns BEFORE the cap — one fact, one owner, never empty', () => {
+    const s: SaveData = { ...freshSave(), pendingContainers: [{ kind: 'loot', rarity: 'rare' }] as never };
+    // The Command Center's Ready Chain owns the vault stop — the strip must not repeat it…
+    const recs = recommendationsFor(s, { limit: 3, skip: (r) => r.nav === 'vault' });
+    expect(recs.some((r) => r.nav === 'vault')).toBe(false);
+    expect(recs.length).toBeGreaterThan(0); // …and the list still guides (the play backstop)
+    // A landing whose cards own every reason still recommends the way out.
+    const hub = recommendationsFor(s, { navs: ['quests', 'season', 'vault'], limit: 3, skip: (r) => r.id.startsWith('notif:') });
+    expect(hub.length).toBeGreaterThan(0);
+    expect(hub.every((r) => r.kind === 'play')).toBe(true);
+  });
 });

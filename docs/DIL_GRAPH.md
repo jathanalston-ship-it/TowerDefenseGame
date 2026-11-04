@@ -1,13 +1,13 @@
 # DIL_GRAPH.md — the Design Intelligence Layer (GENERATED — `npm run dil -- regen`)
 
-> **The project's brain** (docs/DIL.md). 930 nodes · 1776 edges, built from the live
+> **The project's brain** (docs/DIL.md). 933 nodes · 1782 edges, built from the live
 > registries + curated knowledge (src/dev/dil/). **Query it instead of searching the repo:**
 > `npm run dil -- node <id>` · `affects <id>` · `requires <id>` · `missing <kind> <edge>` ·
 > `checklist tower <kind>` · `find <text>`. Edge kinds are bidirectional (19 kinds).
 
 ## Gap report (the graph's own radar)
 
-- **Systems with no test:** `system:infinite`, `system:field-research`, `system:shards-economy`, `system:i18n`, `system:expeditions`, `system:nemesis`, `system:devtools`, `system:ui-kit`
+- **Systems with no test:** `system:infinite`, `system:field-research`, `system:shards-economy`, `system:i18n`, `system:expeditions`, `system:nemesis`, `system:devtools`
 - **Docs referenced by no system (review for retirement):** `ADVANCED-SYSTEMS.md`, `ARCHITECTURE-AUDIT.md`, `AUCTION-HOUSE.md`, `BACKLOG.md`, `BALANCE_ARCHITECTURE.md`, `BRANCH-EVOLUTION.md`, `BUGFIX-LOG.md`, `COGLOAD_REPORT.md`, `CONTENT-ROADMAP.md`, `DEV-FRAMEWORKS.md`, `DIL_GRAPH.md`, `EA-DESIGN-AUDIT.md`, `ENEMIES.md`, `ENEMY-ROSTER.md`, `FIRST-SESSION-PROBE.md`, `FIRST_SESSION_REPORT.md`, `GAME-STATE.md`, `HISTORY.md`, `HIVE-PRODUCTION.md`, `HIVE-SIEGE.md` · …28 more
 
 ## Indexes
@@ -38,7 +38,7 @@
 
 ### Testing Index
 
-`system:hive-mind` · `system:engine` · `system:content-infra` · `system:power` · `system:campaign` · `system:pil` · `system:accounts` · `system:boss-rush` · `system:daily` · `system:mulligans` · `system:premium` · `system:net-backend` · `system:online-foundation` · `system:arena` · `system:towers` · `system:mastery` · `system:heroes` · `system:hero-cinematics` · `system:equipment` · `system:crafting` · `system:loot` · `system:gene-cards` · `system:nucleus` · `system:hero-symbiotes` · `system:idle-harvest` · `system:metabolism` · `system:collection` · `system:evolution-hq` · `system:hive-construction` · `system:daily-login` · `system:prestige` · `system:currencies` · `system:splice-market` · `system:achievements` · `system:stats` · `system:liveops` · `system:directives` · `system:contracts` · `system:infestation` · `system:chronicle` · `system:cosmetics` · `system:battle-pass` · `system:quests` · `system:profile` · `system:onboarding` · `system:account-level` · `system:genome-rank` · `system:progression-gating` · `system:hub-shell` · `system:run-ui` · `system:notifications` · `system:prediction` · `system:meta-store` · `system:bosses` · `system:mega-bosses` · `system:cutscenes` · `system:security` · `system:biomes` · `system:map-layouts` · `system:doctrines` · …10 more
+`system:hive-mind` · `system:engine` · `system:content-infra` · `system:power` · `system:campaign` · `system:pil` · `system:accounts` · `system:boss-rush` · `system:daily` · `system:mulligans` · `system:premium` · `system:net-backend` · `system:online-foundation` · `system:arena` · `system:towers` · `system:mastery` · `system:heroes` · `system:hero-cinematics` · `system:equipment` · `system:crafting` · `system:loot` · `system:gene-cards` · `system:nucleus` · `system:hero-symbiotes` · `system:idle-harvest` · `system:metabolism` · `system:collection` · `system:evolution-hq` · `system:hive-construction` · `system:daily-login` · `system:prestige` · `system:currencies` · `system:splice-market` · `system:achievements` · `system:stats` · `system:liveops` · `system:directives` · `system:contracts` · `system:infestation` · `system:chronicle` · `system:cosmetics` · `system:battle-pass` · `system:quests` · `system:profile` · `system:onboarding` · `system:account-level` · `system:genome-rank` · `system:progression-gating` · `system:hub-shell` · `system:run-ui` · `system:notifications` · `system:prediction` · `system:meta-store` · `system:bosses` · `system:mega-bosses` · `system:cutscenes` · `system:security` · `system:biomes` · `system:map-layouts` · `system:doctrines` · …11 more
 
 ### Developer Tooling Index
 
@@ -238,6 +238,7 @@ graph LR
   system_contracts["Champion Contracts"] -->|provides| system_genome_rank["Genome Rank (ultimate mastery ladder)"]
   system_notifications["Notifications"] -->|provides| system_hub_shell["Hub Shell & Home"]
   system_cosmetics["The Wardrobe (Cosmetics)"] -->|provides| system_online_foundation["Online Foundation"]
+  system_hub_shell["Hub Shell & Home"] -->|provides| system_prediction["Progress Prediction"]
   system_ui_kit["Shared UI Component Kit"] -->|provides| system_notifications["Notifications"]
   system_rendering["Rendering & VFX"] -->|provides| system_audio["Audio"]
 ```
@@ -566,6 +567,7 @@ graph LR
   system_campaign["Campaign"] -->|consumes| system_map_layouts["Arena Layouts"]
   system_daily["Daily Run"] -->|consumes| system_map_layouts["Arena Layouts"]
   system_infinite["Infinite Mode"] -->|consumes| system_map_layouts["Arena Layouts"]
+  system_hub_shell["Hub Shell & Home"] -->|provides| system_prediction["Progress Prediction"]
   system_run_ui["In-Run HUD & Results"] -->|dependsOn| system_campaign["Campaign"]
   system_run_ui["In-Run HUD & Results"] -->|dependsOn| system_ui_kit["Shared UI Component Kit"]
   system_onboarding["Tutorials, Help & Onboarding"] -->|dependsOn| system_cutscenes["Story Cutscenes & Memory Archive"]
@@ -882,7 +884,7 @@ _at: src/core/game.ts, src/core/combat.ts, src/core/status.ts, src/core/targetin
   - requiredBy ← `system:nemesis`
   - requiredBy ← `system:onboarding`
   - requiredBy ← `system:run-ui`
-  - _…225 more (query: `npm run dil -- node system:engine`)_
+  - _…226 more (query: `npm run dil -- node system:engine`)_
 
 ### `system:content-infra` — Content Infrastructure
 
@@ -2117,7 +2119,7 @@ _at: src/state/unlocks.ts, src/state/progressionDirector.ts, src/state/navBus.ts
 
 The nav shell + the Command Center home: registry-driven widgets, living World Status, mission control, feed/roadmap/army, dashboards.
 
-_at: src/ui/Hub.tsx, src/ui/navModel.ts, src/ui/MobileShell.tsx, src/ui/components/ScreenHeader.tsx, src/ui/CommandCenter.tsx, src/ui/DeployScreen.tsx, src/ui/homeModel.ts, src/ui/WorldStatus.tsx, src/ui/ProgressDashboard.tsx, src/ui/NextGoalBanner.tsx, src/state/nextGoal.ts, src/state/progressionLoop.ts, src/ui/hubProgress.ts, src/ui/homeBaseTiers.ts, src/ui/LabAtmosphere.tsx, src/ui/App.tsx, src/ui/ErrorBoundary.tsx, src/main.tsx, src/net/swRegister.ts, src/ui/components/UpdateToast.tsx, src/ui/components/Popup.tsx, src/state/listOrg.ts, src/ui/components/ListControls.tsx, src/ui/components/HostTabs.tsx_
+_at: src/ui/Hub.tsx, src/ui/navModel.ts, src/ui/MobileShell.tsx, src/ui/components/ScreenHeader.tsx, src/ui/CommandCenter.tsx, src/ui/DeployScreen.tsx, src/ui/homeModel.ts, src/ui/WorldStatus.tsx, src/ui/ProgressDashboard.tsx, src/ui/NextGoalBanner.tsx, src/state/nextGoal.ts, src/state/progressionLoop.ts, src/ui/hubProgress.ts, src/ui/homeBaseTiers.ts, src/ui/LabAtmosphere.tsx, src/ui/App.tsx, src/ui/ErrorBoundary.tsx, src/main.tsx, src/net/swRegister.ts, src/ui/components/UpdateToast.tsx, src/ui/components/Popup.tsx, src/state/listOrg.ts, src/ui/components/ListControls.tsx, src/ui/components/HostTabs.tsx, src/ui/browserBack.ts, src/ui/components/ScreenBoundary.tsx, src/ui/components/AdviceLink.tsx_
 
   - dependsOn → `system:meta-store`
   - dependsOn → `system:notifications`
@@ -2136,6 +2138,9 @@ _at: src/ui/Hub.tsx, src/ui/navModel.ts, src/ui/MobileShell.tsx, src/ui/componen
   - conflictsWith → `system:cosmetics` — UI contamination (homeBaseTiers labEra → .hub[data-contam] + .hub-contam) must stay ADDITIVE — cosmetic uithemes own --line/--panel tokens; never re-tint theme tokens for the infection look
   - modifies → `system:progression-gating` — COMPRESSED RAIL (NOTIFICATIONS.md §hubs, 2026-07): the desktop rail renders ONLY front doors — HOME + one .hub-door per hub (data-hub → HubLanding) + direct doors for headerless single-screen groups (the Store, data-nav) — NO per-screen rows/rings/teasers at rail level (they live on the landings; HubLanding cards carry data-nav); teasers still gate door visibility so an all-teaser hub renders its door; three consumers move together whenever rail anchors change: mobilecheck desktopRailWalk (door → landing audited once per hub → card), HudTour wing stops (anchor [data-hub] + nav field for the reveal gate; tutorialAnchors.test covers data-hub), and the NavGroup.compact flag is GONE (headerless now means "direct door, no landing hop")
   - conflictsWith → `concept:golden-test` — CODE SPLITTING (docs/DEPLOYMENT.md §code-splitting): every hub screen + non-boot overlay in Hub.tsx/App.tsx is React.lazy via ui/lazyNamed.ts (one chunk each, Suspense + ScreenFallback); a NEW screen imported with a plain `import` silently re-fattens the boot chunk — use lazyNamed. A lazy chunk is only offline-safe because scripts/stamp-sw.mjs injects every dist/assets *.js/*.css into public/sw.js PRECACHE; npm run probe:first-session has a boot-JS gzip budget that catches regressions
+  - conflictsWith → `system:run-ui` — BROWSER BACK (ui/browserBack.ts): one same-URL guard history entry; Back mid-run → runBus.pause (GameView subscribes — Back NEVER exits a run) + beforeunload while live; in the hub → dismiss stack top (Popup/useDismiss) else Hub.goBack via registerHubBack({atRoot, back}). Hub keeps posRef in sync inside go/goLanding/goBack so atRoot() is right between popstate and commit — a new nav entry point must update posRef + call syncBackGuard().
+  - modifies → `system:notifications` — ONE FACT, ONE OWNER (2026-11): hub door badge = doorBadge() = member SCREENS with a decision (never summed counts); landings render cards FIRST and recommendationsFor({skip}) drops reason-derived recs + chain stops the cards already show (no "needs attention" strip); Home Recommended-Now skips Ready-Chain navs. A hub with one open screen (soleOpenScreen) is a direct door carrying data-nav — mobilecheck/cogload walks click it as a direct door.
+  - provides → `system:prediction` — ADVICE IS A LINK: guidance returns {text, nav?} (loopAdviceLink, meta.predict().advice) and renders <AdviceGo nav> — only inside the Hub (HubScreen context), never to the open screen, never sealed (isOpenNav). Keep loopAdvice()/predict().recommendations string APIs for other callers.
   - requiredBy ← `system:hive-construction`
   - requiredBy ← `system:infestation`
   - requiredBy ← `system:cosmetics`
@@ -2148,7 +2153,7 @@ _at: src/ui/Hub.tsx, src/ui/navModel.ts, src/ui/MobileShell.tsx, src/ui/componen
   - documentedBy ← `doc:ONE-MORE-RUN.md`
   - documentedBy ← `doc:HUD.md`
   - documentedBy ← `doc:PROGRESSION-LOOP.md`
-  - _…27 more (query: `npm run dil -- node system:hub-shell`)_
+  - _…28 more (query: `npm run dil -- node system:hub-shell`)_
 
 ### `system:run-ui` — In-Run HUD & Results
 
@@ -2173,6 +2178,7 @@ _at: src/ui/GameView.tsx, src/ui/Hud.tsx, src/ui/Toolbar.tsx, src/ui/BuildContro
   - conflictsWith ← `system:onboarding` — DESKTOP TEACHING CONTRACT (docs/TUTORIAL-AUDIT.md §G, 2026-11): every lesson shown while a wave runs or asking for a slot tap declares callout.avoid = canvas.board (the bubble re-seats beside the lane, measured + clamped); the draft lesson anchors BELOW .overlay .cards; the ability lesson targets [data-tut="ability"] .ability-btn and runs DURING wave 2; desktop Pause/Skip take a measured seat clear of [data-tut="ability"]. A HUD/board re-layout must keep canvas.board, .ability-btn and data-tut="ability" (tutorialAnchors.test resolves them) — positions are never hard-coded
   - conflictsWith ← `system:onboarding` — PHONE DOCK CONTRACT (docs/TUTORIAL.md §phone): ≤700px the lesson callout DOCKS to the edge opposite its anchor and must never cover the step’s action (the step-3 slot bug); controls live top-right, the banner yields to the draft, and a missing spotlight target renders NO scrim
   - conflictsWith ← `system:threat` — "THREAT" MEANS ONE THING (docs/THREAT.md §naming): the opt-in ☣ ladder. The Campaign stage rating (◆1–5, rewards ×N — CampaignScreen camp-threat row) is DANGER; the in-run swarm-load meter (Hud hud-threat cell, Inspector digest) is PRESSURE. A new difficulty readout picks one of the three words by what it measures. The Boss Rush forecast row reads "Boss strength" (the assembly tier per wave). Results names the toughest thing slain "Toughest Kill".
+  - conflictsWith ← `system:hub-shell` — BROWSER BACK (ui/browserBack.ts): one same-URL guard history entry; Back mid-run → runBus.pause (GameView subscribes — Back NEVER exits a run) + beforeunload while live; in the hub → dismiss stack top (Popup/useDismiss) else Hub.goBack via registerHubBack({atRoot, back}). Hub keeps posRef in sync inside go/goLanding/goBack so atRoot() is right between popstate and commit — a new nav entry point must update posRef + call syncBackGuard().
   - requiredBy ← `system:website` — MEDIA: public/media/shots/*.webp + trailer.webm DEPICT the run HUD and Command Center — a visible HUD/board change makes them stale. `npm run media` re-shoots them at 1440×900 from the real build (stills + frame-stepped trailer via Playwright fake clock; staging rules in the script header). Copy counts come from siteCounts() (site/build.ts), never hard-coded; bump the PIL review stamp R after each website pass
 
 ### `system:notifications` — Notifications
@@ -2198,7 +2204,7 @@ _at: src/state/notifications.ts, src/state/notificationSources.ts, src/state/rew
   - testedBy ← `test:src/state/recommendations.test.ts`
   - testedBy ← `test:src/state/rewardToast.test.ts`
   - gatedBy ← `system:progression-gating` — NEVER ADVISE A SEALED WING (2026-11): unlocks.isOpenNav(save, nav) is the one 'may guidance point here?' check — recommendations, nextGoals, Mission Control's Advisor row, hub-landing attention rows, prediction lever lines, the What's New summary's Open buttons and the defeat debrief's tip all drop/neutralize sealed destinations (a notification source may COUNT before its wing reveals: the free Boss Rush entry at Stage 1).
-  - _…4 more (query: `npm run dil -- node system:notifications`)_
+  - _…5 more (query: `npm run dil -- node system:notifications`)_
 
 ### `system:prediction` — Progress Prediction
 
@@ -2214,6 +2220,7 @@ _at: src/core/predict.ts, src/ui/PredictionPanel.tsx_
   - taughtBy ← `help:power-score`
   - documentedBy ← `doc:PREDICTION.md`
   - testedBy ← `test:src/core/predict.test.ts`
+  - providedBy ← `system:hub-shell` — ADVICE IS A LINK: guidance returns {text, nav?} (loopAdviceLink, meta.predict().advice) and renders <AdviceGo nav> — only inside the Hub (HubScreen context), never to the open screen, never sealed (isOpenNav). Keep loopAdvice()/predict().recommendations string APIs for other callers.
 
 ### `system:meta-store` — Meta Store & Save
 
@@ -2580,6 +2587,7 @@ _at: src/ui/components/Icon.tsx, src/ui/iconLanguage.tsx, src/ui/components/Deta
   - documentedBy ← `doc:RESPONSIVE-DESIGN.md`
   - documentedBy ← `doc:ICON-LANGUAGE.md`
   - documentedBy ← `doc:INFO-HIERARCHY.md`
+  - testedBy ← `test:src/ui/lazyNamed.test.ts`
   - requiredBy ← `system:run-ui` — RUN-FLOW HOLD: layoutProfile.setInRun takes a named holder — GameView holds "battlefield", App holds "run-flow" across deploying/playing/results, so a portrait phone run never shows the rotate gate over its deploy breath or Results; the gate returns with the hub (RESPONSIVE-DESIGN.md §run)
 
 ### `system:analytics` — Player Telemetry & Analytics
@@ -3941,7 +3949,7 @@ _at: site/guides.ts → /guides/live-events/_
 - `doc:VOWS.md` — project documentation _(documents `system:prestige`)_
 - `doc:WEBSITE.md` — project documentation _(documents `system:field-research`, documents `system:website`)_
 
-## Tests (315)
+## Tests (318)
 
 - `test:src/audio/cues.test.ts` — automated validation _(tests `system:audio`)_
 - `test:src/audio/music.test.ts` — automated validation _(tests `system:audio`)_
@@ -4247,6 +4255,8 @@ _at: site/guides.ts → /guides/live-events/_
 - `test:src/state/verifiedPurchase.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/state/vowsMeta.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/state/wardrobeMeta.test.ts` — automated validation _(tests `system:engine`)_
+- `test:src/ui/HubLanding.test.ts` — automated validation _(tests `system:engine`)_
+- `test:src/ui/browserBack.test.ts` — automated validation _(tests `system:hub-shell`)_
 - `test:src/ui/components/loadoutStrip.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/ui/components/sectionNav.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/ui/components/topbarTouch.test.ts` — automated validation _(tests `system:engine`)_
@@ -4255,6 +4265,7 @@ _at: site/guides.ts → /guides/live-events/_
 - `test:src/ui/homeBaseTiers.test.ts` — automated validation _(tests `system:hub-shell`)_
 - `test:src/ui/homeModel.test.ts` — automated validation _(tests `system:hub-shell`)_
 - `test:src/ui/hubProgress.test.ts` — automated validation _(tests `system:hub-shell`)_
+- `test:src/ui/lazyNamed.test.ts` — automated validation _(tests `system:ui-kit`)_
 - `test:src/ui/navModel.test.ts` — automated validation _(tests `system:hub-shell`)_
 - `test:src/ui/towerCodexModel.test.ts` — automated validation _(tests `system:towers`)_
 - `test:site/gen.test.ts` — automated validation _(tests `system:website`)_

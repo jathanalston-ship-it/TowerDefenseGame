@@ -2,8 +2,8 @@
 // COMMAND-CENTER.md). The shell renders ZONES; each zone renders whatever homeModel's
 // homeRegistry yields (a future system adds a widget with one register() call + one
 // renderer entry in WIDGETS — the shell never changes). Board, top to bottom: the
-// clickable command strip → the living World Status centerpiece → mission control with
-// the forecast/roadmap rail → the live army → operations → the command feed + system
+// clickable command strip → mission control with the forecast/roadmap rail → the living
+// World Status centerpiece → the live army → operations → the command feed + system
 // dashboard → the tip. Pure presentation over existing read-models; run starts route
 // through the same callbacks the Hub always passed.
 
@@ -143,11 +143,13 @@ export function CommandCenter({
         </section>
       )}
       <div className="cc-zone cc-zone-strip">{zone('strip')}</div>
-      <div className="cc-zone cc-zone-world">{zone('world')}</div>
+      {/* The deploy row LEADS the World Status visual: the primary CTA sits above the fold on
+          every viewport (mobilecheck asserts it — docs/COMMAND-CENTER.md §zones). */}
       <div className="cc-zone-row">
         <div className="cc-zone cc-zone-main">{zone('main')}</div>
         <div className="cc-zone cc-zone-side">{zone('side')}</div>
       </div>
+      <div className="cc-zone cc-zone-world">{zone('world')}</div>
       <div className="cc-zone cc-zone-army">{zone('army')}</div>
       <div className="cc-zone cc-zone-ops">{zone('ops')}</div>
       <div className="cc-zone cc-zone-feed">{zone('feed')}</div>
@@ -169,10 +171,12 @@ const WIDGETS: Record<string, (ctx: WidgetCtx) => ReactNode> = {
   'world-status': (c) => <WorldStatus ws={c.view.world} />,
   // The READY CHAIN centerpiece (docs/HUB-FLOW.md §surfaces) leads: every live claim/open
   // stop, watermark-independent — the board's answer to "what did I forget I earned?".
-  // The rotated Recommended-Now strip follows for spends/unlocks/play. A quiet account
+  // The rotated Recommended-Now strip follows for spends/unlocks/play — it never repeats a
+  // chain stop (one fact, one owner: the chain owns every claim/open line). A quiet account
   // renders no chain block at all (silence is meaningful).
   'recommend': (c) => {
     const chain = readyChain(c.save);
+    const onChain = new Set<string>(chain.map((n) => n.nav));
     return (
     <section className="cc-recommend" aria-label={t('hub.landing.recommended')}>
       {chain.length > 0 && (
@@ -191,7 +195,7 @@ const WIDGETS: Record<string, (ctx: WidgetCtx) => ReactNode> = {
         </>
       )}
       <span className="cc-panel-h">✦ {t('hub.landing.recommended').toUpperCase()}</span>
-      <RecommendStrip recs={recommendationsFor(c.save, { limit: 3, rotateFrom: loopFlow.last() })} go={(k) => c.go(k)} />
+      <RecommendStrip recs={recommendationsFor(c.save, { limit: 3, rotateFrom: loopFlow.last(), skip: (r) => onChain.has(r.nav) })} go={(k) => c.go(k)} />
     </section>
     );
   },

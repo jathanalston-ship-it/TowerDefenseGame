@@ -72,6 +72,7 @@ import type { HeroKind, HeroProgress, HudSnapshot, MetaModifiers, TowerKind, Tow
 import type { CardEffect } from '../core/cards';
 import type { MegaEncounter } from '../core/megaboss';
 import type { RunResult } from '../state/meta';
+import { runBus } from '../state/navBus';
 
 // Per-event camera trauma (shake), hit-stop, ducking and stingers live in ONE table:
 // render/feel.ts FEEL (docs/GAME-FEEL.md §feel table). Rendered shake = trauma² · SHAKE_MAX ·
@@ -292,6 +293,8 @@ export function GameView({
     setPaused((p) => { pausedRef.current = !p; return !p; });
     setConfirmAbandon(false); // reset the abandon guard whenever pause toggles
   }, []);
+  // Browser/Android BACK mid-run opens the Pause sheet instead of leaving (ui/browserBack.ts).
+  useEffect(() => runBus.onPause(() => { if (!pausedRef.current) togglePause(); }), [togglePause]);
   // TUTORIAL GATES (docs/TUTORIAL.md): the overlay's Pause must freeze the SIM too (not just
   // the lesson), and the active checkpoint may request a gentle canvas focus. Subscribing is a
   // no-op cost outside the tutorial (the store is null on normal runs).
