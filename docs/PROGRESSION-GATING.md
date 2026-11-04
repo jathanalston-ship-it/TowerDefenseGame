@@ -17,13 +17,16 @@ timeline test in `src/dev/progressionSim.test.ts`.
 - **Foundational at minute 0**: Home, Campaign, Help, Settings. The first minutes ARE the
   campaign — towers, the hero, gene drafts and the wave rhythm all happen IN-RUN from run 1
   (taught by the Combat Tutorial), so the hub starts nearly empty and calm.
-- **Reveal with purpose**: every screen opens the moment it first has something real to do —
-  the Vault when the first Bio-Container banks, the Tower Lab when the first Strain Samples
-  land, the Armory when the first gear drops. *Economy coherence*: a currency chip never
-  precedes its sink; a screen never opens onto emptiness.
-- **At most ~two related reveals per beat**, each building on the last ("I understand this —
+- **Reveal with purpose**: every screen opens when it has something real to do — the Vault
+  when the first Bio-Container banks, the Tower Lab with the first Strain Samples. Past that
+  core block every wing is a pure STAGE gate (§timeline): drops that arrive before their wing
+  (gear, modifiers, Antigen, specimens, Ichor, Essence) **bank silently** and are waiting at the
+  reveal (docs/ECONOMY.md §player-facing). *Economy coherence*: a currency chip never precedes
+  its sink; a screen never opens onto emptiness.
+- **At most two related reveals per beat**, each building on the last ("I understand this —
   now here's something new"). The worst-case walk (zero drop luck) still reveals ≥1 new screen
-  every stage from 1–8, and never more than 3 in one stage — both machine-enforced.
+  every stage from 1–7, never more than 3 in one stage, and never more than 2 past stage 3 —
+  all machine-enforced.
 - **Anticipation, not absence**: the nav lists revealed screens **plus the next two upcoming
   reveals as locked teasers** with live progress; deeper wings stay hidden entirely. Clicking a
   teaser opens its **unlock briefing** (`FeatureLocked` — the generalized ModeLocked): the gate,
@@ -43,7 +46,7 @@ cards | mulligans | ichor | mats | molted | rushHistory | dailyHistory | any`), 
 live progress ("Clear Campaign Stage 4 · 2 to go"), the persona simulator replays the whole
 timeline, and tests prove pacing. Resource conditions fire on the economy's first delivery;
 `any(resource, stage N)` backstops guarantee **no player can be luck-locked** — every screen is
-guaranteed by Stage 10 (enforced).
+guaranteed by `REVEAL_CEILING_STAGE` (30, enforced).
 
 Consumers:
 1. **Hub** (`src/ui/Hub.tsx`) — nav filtering + teasers + `FeatureLocked` briefings + wallet
@@ -85,7 +88,7 @@ grandfather clauses). The stamp doubles as pacing analytics.
   screen FAILS CI until it declares its place on the learning curve. That is the
   future-proofing contract: *one FeatureDef row (+ one mechanics row) is the entire
   integration*.
-- **Never blocked**: every feature guaranteed by Stage 10; stage-12 save reveals everything.
+- **Never blocked**: every feature guaranteed by `REVEAL_CEILING_STAGE` (30); a stage-30 save reveals everything.
 - **Pacing**: fresh = exactly 4 screens + 2 teasers + Cores-only wallet, `calm` band; no reveal
   desert (stages 1–8) and no overload beat (>3/stage) on the worst-case walk; teaser order
   never contradicts the guaranteed timeline.
@@ -97,9 +100,31 @@ grandfather clauses). The stamp doubles as pacing analytics.
 - **Presentation**: mobilecheck audits the minute-0 hub (`hub-fresh`) AND a seeded developed
   profile so every screen still passes the responsive gate at every viewport class.
 
+## §timeline · The re-paced reveal timeline (2026-11)
+
+The pre-2026-11 timeline opened all 34 surfaces by Campaign Stage 9 — roughly the first hour.
+They now spread across the first **~8 h (frictionless bot) / ~20 h (Fresh Account persona)**
+(stage → hours from `simulateAccount`, 4 seeds × 40h; calibration table in
+`scripts/gen-unlocks.ts`, rendered into UNLOCK-TREE.md's "≈ Play time" column):
+
+| Stages | ≈ Play time (bot · fresh) | Reveals |
+|---|---|---|
+| 0–3 | first ~10–20 min | Home · Campaign · Help · Store · Settings · Profile · Tower Lab · Vault · Evolution HQ · Hero Hall · Infinite (the core) |
+| 4–8 | 15–55 min | Gene Archive + Materials chip (4) · Daily (5) · Armory (6) · Quest Board (7) · Splice Market + Ichor (8) |
+| 10–18 | 45 min–2 h | Season Pass (10) · Boss Rush (12) · Bio-Dex (13) · The Hive (14) · Gear Codex tab (15) · Hive Production tab (16) · Expeditions tab (18) |
+| 20–30 | 2 h–8 h · 3 h–22 h | The Front (20) · Milestones tab (22) · Adaptation + Cells backstop (24) · Mulligan Lab (25) · Phenotype Lab (26) · Specimen Vault tab (27) · Proving Grounds (28) · Auction House (30) |
+
+`REVEAL_CEILING_STAGE = 30` (unlocks.ts) bounds the guarantee; `MODE_UNLOCKS.bossRush` moved
+9 → 12 with it. **Existing saves keep everything they were shown**: reveals LATCH
+(`director.revealed`, §3), so a save that opened a wing under the old gates keeps it, and
+`isBossRushUnlocked` honours a latched Boss Rush reveal too. Tests: `unlocks.test.ts`
+(≤2-per-beat past the core, no luck-reveal past the core, the first-hour seal, the re-pace
+grandfather, a stage-30 veteran has everything).
+
 ## 6 · Existing gates, re-evaluated (what changed and what deliberately didn't)
 
-- **Kept** (already proven): Infinite S3 · Daily S5 · Boss Rush S10 (`MODE_UNLOCKS`), Deep
+- **Re-paced 2026-11** (§timeline): Boss Rush S9 → S12, every deep wing moved to stages 10–30.
+- **Kept** (already proven): Infinite S3 · Daily S5 (`MODE_UNLOCKS`), Deep
   Strain S15, hero slots S25/S90, gene-level gates, adaptation gates, tower-trio unlock,
   prestige S10. The registry *wraps* these — numbers still live in `core/config.ts`.
 - **New screen gates** (previously all visible at minute 0): profile, vault, towers, evolution,

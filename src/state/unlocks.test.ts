@@ -14,9 +14,10 @@ import { describe, expect, it } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { defaultSave, type SaveData } from '../save/saveStore';
 import {
-  FEATURES, FEATURE_BY_ID, cognitiveLoad, evalCondition, featureRevealed, featureView,
-  guaranteedByStage, nextReveals, unlatchedReveals, unlockTimeline,
+  FEATURES, FEATURE_BY_ID, REVEAL_CEILING_STAGE, cognitiveLoad, evalCondition, featureRevealed, featureView,
+  earliestStage, guaranteedByStage, nextReveals, unlatchedReveals, unlockTimeline,
 } from './unlocks';
+import type { UnlockCondition } from './unlocks';
 import { MECHANIC_BY_ID, isMechanicUnlocked } from './mechanics';
 import { nextGoals } from './nextGoal';
 import { MODE_UNLOCKS } from '../core/config';
@@ -45,9 +46,23 @@ describe('unlock registry — structural contracts', () => {
     for (const f of FEATURES.filter((x) => x.kind === 'currency')) expect(f.id).toMatch(/^cur:/);
   });
 
-  it('no surface can be luck-locked: every feature is GUARANTEED by the Boss Rush gate', () => {
+  it('no surface can be luck-locked: every feature is GUARANTEED by the reveal ceiling', () => {
     for (const f of FEATURES) {
-      expect(guaranteedByStage(f.condition), `${f.id} has no stage/runs backbone`).toBeLessThanOrEqual(MODE_UNLOCKS.bossRush);
+      expect(guaranteedByStage(f.condition), `${f.id} has no stage/runs backbone`).toBeLessThanOrEqual(REVEAL_CEILING_STAGE);
+    }
+  });
+
+  it('no luck-reveal past the core block: a deep wing never opens before its stage backbone', () => {
+    // Re-paced 2026-11: early drops (gear, modifiers, Antigen, specimens, Ichor) bank silently and
+    // surface AT the reveal — a resource branch would open a system before its new backstop.
+    // History clauses (rushHistory/dailyHistory) are GRANDFATHERS for pre-gate saves, not luck.
+    const GRANDFATHER = new Set<string>(['rushHistory', 'dailyHistory']);
+    const noHistory = (c: UnlockCondition): UnlockCondition =>
+      c.kind === 'any' ? { kind: 'any', of: c.of.filter((x) => !GRANDFATHER.has(x.kind)) } : c;
+    for (const f of FEATURES) {
+      if (guaranteedByStage(f.condition) <= 2) continue; // the core early block (vault/evolution) may fire on its first delivery
+      if (f.id === 'cur:cells') continue; // Cells appear with the Molt that mints them (the Molt itself is campaign-gated)
+      expect(earliestStage(noHistory(f.condition)), `${f.id} can reveal before its stage gate`).toBe(guaranteedByStage(f.condition));
     }
   });
 
@@ -83,14 +98,32 @@ describe('the learning curve — pacing contracts', () => {
   });
 
   it('no overload beat: no single worst-case stage reveals more than three screens', () => {
-    for (let stage = 1; stage <= 12; stage++) {
+    for (let stage = 1; stage <= REVEAL_CEILING_STAGE + 2; stage++) {
       const step = SCREENS.filter((f) => !featureRevealed(at(stage - 1), f.id) && featureRevealed(at(stage), f.id));
       expect(step.length, `stage ${stage} dumps ${step.map((f) => f.id).join(',')}`).toBeLessThanOrEqual(3);
     }
   });
 
-  it('a stage-12 veteran has everything: screens, currencies, zero teasers', () => {
-    const vet = at(12, 40);
+  it('past the core block, every beat reveals at most TWO screens (the re-paced ≤2-per-beat rule)', () => {
+    for (let stage = 3; stage <= REVEAL_CEILING_STAGE + 2; stage++) {
+      const step = SCREENS.filter((f) => !featureRevealed(at(stage - 1), f.id) && featureRevealed(at(stage), f.id));
+      expect(step.length, `stage ${stage} reveals ${step.map((f) => f.id).join(',')}`).toBeLessThanOrEqual(2);
+    }
+  });
+
+  it('the reveals span the first ~10 hours: deep wings stay sealed through the first hour', () => {
+    // Stage → hours (progression simulator, docs/PROGRESSION-GATING.md §timeline): stage ~12 ≈ 1h,
+    // ~22 ≈ 2h, ~30 ≈ 10h. The pre-2026-11 timeline opened everything by stage 9.
+    const hourOne = SCREENS.filter((f) => featureRevealed(at(12), f.id)).length;
+    expect(hourOne, 'screens open after ~1h').toBeLessThanOrEqual(18);
+    for (const id of ['hive', 'harvest', 'expeditions', 'infestation', 'metabolism', 'adaptation', 'mulligans', 'phenotypes', 'specimens', 'arena', 'auction']) {
+      expect(featureRevealed(at(12), id), `${id} open in the first hour`).toBe(false);
+    }
+    expect(Math.max(...SCREENS.map((f) => guaranteedByStage(f.condition)))).toBeGreaterThanOrEqual(28);
+  });
+
+  it('a stage-30 veteran has everything: screens, currencies, zero teasers', () => {
+    const vet = at(REVEAL_CEILING_STAGE, 90);
     for (const f of FEATURES) expect(featureRevealed(vet, f.id), f.id).toBe(true);
     expect(nextReveals(vet, 2)).toEqual([]);
     expect(cognitiveLoad(vet, 0).band).toBe('full');
@@ -109,16 +142,26 @@ describe('the learning curve — pacing contracts', () => {
 describe('latching + grandfathering', () => {
   it('a latched reveal never re-seals when its resource condition regresses', () => {
     const s = at(0, 5);
-    expect(featureRevealed(s, 'equipment')).toBe(false); // no gear, no stage 4
+    expect(featureRevealed(s, 'equipment')).toBe(false); // no gear, no stage 6
     const latched: SaveData = { ...s, director: { revealed: { equipment: 3 }, visits: {} } };
     expect(featureRevealed(latched, 'equipment')).toBe(true); // the ledger wins
+  });
+
+  it('re-pace grandfather: wings an existing save already revealed stay open under the later gates', () => {
+    // A stage-9 account from the old timeline latched everything (all wings opened by stage 9);
+    // the 2026-11 re-pace moves most of them to stages 10–30 — the latch keeps every one.
+    const oldVet = at(9, 20);
+    const everything = Object.fromEntries(FEATURES.map((f) => [f.id, 5]));
+    const latched: SaveData = { ...oldVet, director: { revealed: everything, visits: {} } };
+    for (const f of FEATURES) expect(featureRevealed(latched, f.id), f.id).toBe(true);
+    expect(featureRevealed(oldVet, 'auction')).toBe(false); // …while a fresh stage-9 save waits
   });
 
   it('unlatchedReveals reports exactly the newly-satisfied, never-latched features', () => {
     const s = at(3, 3);
     const fresh = unlatchedReveals(s);
     expect(fresh).toContain('infinite');
-    expect(fresh).toContain('market');
+    expect(fresh).not.toContain('market'); // stage 8 since the 2026-11 re-pace
     expect(fresh).not.toContain('bossrush');
     const partly: SaveData = { ...s, director: { revealed: { infinite: 1 }, visits: {} } };
     expect(unlatchedReveals(partly)).not.toContain('infinite');
@@ -160,13 +203,17 @@ describe('teach coverage — every unlock explains itself', () => {
 });
 
 describe('economy coherence + director integration', () => {
-  it('a currency chip never precedes its purpose: Ichor reveals with the Market, Cells before Prestige', () => {
-    for (let stage = 0; stage <= 12; stage++) {
+  it('a currency chip never precedes its purpose: Ichor with the Market, Materials with the Archive, Cells with the Molt', () => {
+    for (let stage = 0; stage <= REVEAL_CEILING_STAGE; stage++) {
       const s = at(stage);
-      if (featureRevealed(s, 'cur:ichor')) expect(featureRevealed(s, 'market')).toBe(true);
+      expect(featureRevealed(s, 'cur:ichor'), `ichor @${stage}`).toBe(featureRevealed(s, 'market'));
+      expect(featureRevealed(s, 'cur:mats'), `mats @${stage}`).toBe(featureRevealed(s, 'genes')); // Gene Essence is its first member
     }
-    expect(featureRevealed(at(9), 'cur:cells')).toBe(true); // teased one stage before the Molt gate (10)
-    expect(featureRevealed(at(8), 'cur:cells')).toBe(false);
+    // Banked Ichor never reveals the chip early (it waits for its sink).
+    expect(featureRevealed({ ...at(4), ichor: 25, lifetimeIchor: 25 }, 'cur:ichor')).toBe(false);
+    const molted: SaveData = { ...at(12), prestige: { ...at(12).prestige, molts: 1, cells: 14, lifetimeCells: 14 } };
+    expect(featureRevealed(molted, 'cur:cells')).toBe(true); // the first Molt mints → the chip appears
+    expect(featureRevealed(at(12), 'cur:cells')).toBe(false); // no empty prestige wallet in the first hour
   });
 
   it("the Next-Goal engine surfaces the next reveal as a chaseable 'reveal' goal", () => {

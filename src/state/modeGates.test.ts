@@ -66,4 +66,12 @@ describe('campaign mode gates (docs/MODE-IDENTITY.md §gates)', () => {
     // identify "has played Infinite"), so the stage gate is authoritative.
     expect(isInfiniteUnlocked(meta.get())).toBe(false);
   });
+
+  it('a Boss Rush wing latched under an earlier, lower gate stays playable (re-pace grandfather)', () => {
+    freshMeta();
+    clearStage(MODE_UNLOCKS.bossRush - 3); // below the re-paced gate, no rush history
+    expect(isBossRushUnlocked(meta.get())).toBe(false);
+    const latched = { ...meta.get(), director: { revealed: { bossrush: 9 }, visits: {} } };
+    expect(isBossRushUnlocked(latched)).toBe(true); // the screen was shown → the mode stays open
+  });
 });
