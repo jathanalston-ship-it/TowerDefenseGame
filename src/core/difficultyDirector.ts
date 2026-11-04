@@ -103,9 +103,23 @@ export class RunDirector {
    *  ratio at a wave launch — ×(1 + w·(ratio−1)), clamped to [1, DIRECTOR_ADAPTIVE.liveCap]. Upward
    *  only: an under-powered board is never propped up. The sim decides WHERE it applies (Campaign
    *  waves ≥ liveFromWave + boss bodies); ratio ≤ 1 returns exactly 1. */
-  liveThreatMult(powerRatio: number): number {
+  liveThreatMult(powerRatio: number, cap: number = DIRECTOR_ADAPTIVE.liveCap): number {
     if (!(powerRatio > 1)) return 1;
-    return Math.min(DIRECTOR_ADAPTIVE.liveCap, 1 + DIRECTOR_ADAPTIVE.threatPerPowerRatio * (powerRatio - 1));
+    return Math.min(cap, 1 + DIRECTOR_ADAPTIVE.threatPerPowerRatio * (powerRatio - 1));
+  }
+
+  /** The live multiplier on a BOSS body (§6a): the same seam, its own cap (liveBossCap). A boss can't
+   *  be paced or pulled, so the finale's answer to the snowball is the boss's whole HP. */
+  liveBossMult(powerRatio: number): number {
+    return this.liveThreatMult(powerRatio, DIRECTOR_ADAPTIVE.liveBossCap);
+  }
+
+  /** Split a live multiplier into enemy HP × spawn PACE (§6a "pace, not sponge"): HP × m^(1−s),
+   *  spawn rate × m^s with s = DIRECTOR_ADAPTIVE.livePaceShare, so the work the board must do per
+   *  second still rises ×m — but as pressure, not as a slower slog. m = 1 ⇒ exactly {1, 1}. */
+  liveThreatParts(m: number): { hp: number; pace: number } {
+    const s = DIRECTOR_ADAPTIVE.livePaceShare;
+    return { hp: Math.pow(m, 1 - s), pace: Math.pow(m, s) };
   }
 
   /** Bounty/biomass multiplier for a 0-based wave index. */

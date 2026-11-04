@@ -2258,26 +2258,28 @@ export class Game {
     const idx0 = this.waveIndex - 1;
     // LIVE adaptive threat (docs/DIFFICULTY_DIRECTOR.md §6a): exactly 1 unless a Campaign run opted
     // in — then waves ≥ liveFromWave (chaff) and every boss body scale with the live Power ratio.
-    const live = this.liveThreatNow();
-    this.liveThreat = this.waveIndex >= DIRECTOR_ADAPTIVE.liveFromWave ? live : 1;
+    const ratio = this.livePowerRatio();
+    this.liveThreat = this.waveIndex >= DIRECTOR_ADAPTIVE.liveFromWave ? this.dd.liveThreatMult(ratio) : 1;
+    const wave = this.dd.liveThreatParts(this.liveThreat); // HP × spawn pace — exactly {1, 1} at ×1
+    const bossHp = this.dd.liveBossMult(ratio); // every boss body, any wave (exactly 1 at ratio ≤ 1)
     // The Spawn Director schedules the scripted wave; difficulty's spawn-rate knob (×1 at
     // Standard) tightens spacing. Byte-identical to the former inline loop at the defaults.
     this.spawnQueue = this.spawner.scheduleScripted(
       def,
       this.time,
-      this.hpMultFor(idx0) * this.liveThreat,
+      this.hpMultFor(idx0) * wave.hp,
       this.bountyMultFor(idx0),
-      this.diff.spawnRateMult,
+      this.diff.spawnRateMult * wave.pace,
     );
     // Campaign: framework bosses aren't enemy-kinds, so the Game spawns them — the selected boss
     // caps the finale wave, the mini-boss (if any) anchors a middle wave. Both escorted by chaff.
     if (this.stage) {
-      if (this.waveIndex === this.totalWaves) this.spawnBoss(this.stage.boss, live);
-      else if (this.stage.miniBoss && this.waveIndex === this.stage.miniBossWave) this.spawnBoss(this.stage.miniBoss, live);
+      if (this.waveIndex === this.totalWaves) this.spawnBoss(this.stage.boss, bossHp);
+      else if (this.stage.miniBoss && this.waveIndex === this.stage.miniBossWave) this.spawnBoss(this.stage.miniBoss, bossHp);
       // Per-wave boss overrides (docs/DAILY-RUN.md §bosses): the Daily's seeded mid-boss roster.
       // Campaign leaves bossWaves undefined ⇒ this lookup never fires (golden-safe).
       const extraBoss = this.stage.bossWaves?.[this.waveIndex];
-      if (extraBoss) this.spawnBoss(extraBoss, live);
+      if (extraBoss) this.spawnBoss(extraBoss, bossHp);
       // Mega Boss stages (docs/MEGA-BOSS.md): every MEGA.campaignEvery-th campaign stage hosts one.
       // It ARRIVES with wave CAMPAIGN_OPENING.megaArrivalWave (clamped to the stage — never with the
       // opening build, docs/CAMPAIGN.md §opening) and persists across the rest of the stage; the stage
@@ -2309,8 +2311,13 @@ export class Game {
   /** §6a live board-power ratio → the director's live threat multiplier. Exactly 1 unless this
    *  Campaign run opted in (RunOptions.livePowerBase). Cold path: once per wave launch. */
   private liveThreatNow(): number {
-    if (this.livePowerBase === null) return 1;
-    return this.dd.liveThreatMult(this.livePowerBase * effectsPower(this.powerEffects()));
+    return this.dd.liveThreatMult(this.livePowerRatio());
+  }
+
+  /** The run's LIVE Power ratio (live run Power ÷ the stage's recommended Power) — 1 (neutral) unless
+   *  this Campaign run opted in via RunOptions.livePowerBase. */
+  private livePowerRatio(): number {
+    return this.livePowerBase === null ? 1 : this.livePowerBase * effectsPower(this.powerEffects());
   }
 
   /** HUD read of the live adaptive multiplier: in prep, what the NEXT wave would launch with right
@@ -2380,14 +2387,14 @@ export class Game {
   }
 
   /** INFINITE SQUEEZE pressure band (ENDLESS_SQUEEZE): a flawless wave past fromDepth tightens the
-   *  HP pressure; a wave that drained ≥ easeAt of max integrity eases it (floor 1). At each clear. */
+   *  HP pressure; a wave that drained ≥ easeAt of max integrity eases it (down to S.floor). At each clear. */
   private updateSqueeze(): void {
     const S = ENDLESS_SQUEEZE;
     const loss = (this.waveStartIntegrity - this.integrity) / Math.max(1, this.maxIntegrity);
     if (loss <= 0) {
       if (this.waveIndex >= S.fromDepth) this.squeezePressure = Math.min(S.cap, this.squeezePressure * (1 + S.rise));
     } else if (loss >= S.easeAt) {
-      this.squeezePressure = Math.max(1, this.squeezePressure * (1 - S.ease));
+      this.squeezePressure = Math.max(S.floor, this.squeezePressure * (1 - S.ease));
     }
   }
 

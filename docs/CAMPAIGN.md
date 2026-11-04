@@ -218,6 +218,31 @@ finales of stages 1–7 (waves and boss share the stage rng stream).
 
 ---
 
+## 5d. The opening — no more wave-1 coin flips (§opening — Batch G)
+
+**Evidence (the G1 grind audit — ~560 headless Campaign runs on progression-sim accounts at
+0.75 h / 8 h / 100 h, harness in the Batch G scratch `audit-grind/g1`):** runs were DECIDED in
+waves 1–3 — 90 % of losses by wave 3 (median wave-1 death 15.9 s), 93 % of Hive damage there, 78 %
+of wins flawless, boss/Mega waves ~2.7 integrity on average. The opening was a seed coin-flip:
+the belt's first organisms depend only on the run seed, wave 1 admitted airborne packs, and a
+Mega-hosting stage's organism surfaced WITH wave 1 (Stage 30: 0/3, dead in ~18 s).
+
+Four levers, all Campaign-only (the Daily and the golden `stage` path never see them):
+
+| Lever | Where | Rule |
+|---|---|---|
+| Airborne opening cap | `CAMPAIGN_OPENING.flyingUnitCap` → `composeStagePlan(…, opening)` | wave 1: fliers excluded from the pool (the budget goes to ground units); wave 2: flying groups trimmed to ≤ 4 units (a pure post-pass, no rng) |
+| Mega arrival | `CAMPAIGN_OPENING.megaArrivalWave` (3) → `game.ts` wave launch | the organism surfaces with wave 3 (clamped to the stage), never with the opening build |
+| The gift answers | `core/conveyor.ts` §opening (docs/STRAIN.md) | stage ≥ 4: the free run-start organism is an owned kind that answers the opening's threats (area DAMAGE for packs; never a summoner vs fliers), data-derived |
+| The finale answers the snowball | `DIRECTOR_ADAPTIVE` live path (docs/DIFFICULTY_DIRECTOR.md §6a) | waves ≥ 4 + every boss body scale with the run's live Power ratio (upward only, capped) |
+
+Stages 1–3 (`campaignCurve.test`) stay green: no fliers before Stage 3 anyway, the gift rule starts
+at Stage 4, and the live multiplier is booted exactly as GameView boots it in that test.
+
+{{MEASURED}}
+
+---
+
 ## 6. Elites, mini-boss, boss
 
 ```

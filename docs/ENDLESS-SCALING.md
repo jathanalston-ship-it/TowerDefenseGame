@@ -171,6 +171,32 @@ in formula.*
 
 ---
 
+## 5b. The squeeze — attrition, not a cliff (§squeeze — Batch G)
+
+**Evidence (G1 grind audit):** Infinite ran FLAWLESS for ~48 waves, then one wave wiped the Core
+(303 integrity in the last wave); decision density ~3/min, 76–85 % of wave time idle. A geometric HP
+wall meets a board that either holds a whole wave or loses it — besiegers that reach the Core keep
+biting until killed, so the first failing wave is total.
+
+`ENDLESS_SQUEEZE` (config.ts), Infinite only via `RunOptions.squeeze` (GameView passes it for
+`mode === 'endless'`; the Arena — also `endless` — forces it off; headless probes that omit it
+are unchanged):
+
+- **Pressure band** (`Game.updateSqueeze`, at each clear): a flawless wave past `fromDepth` (10)
+  raises enemy-HP pressure ×(1 + `rise`) up to `cap`; a wave that drained ≥ `easeAt` of max
+  integrity eases it ×(1 − `ease`) down to `floor` (0.85 — a little mercy). The pressure multiplies
+  the scheduled endless HP and the procedural boss strength. A comfortable board meets the wall
+  sooner; a bleeding one limps on for a few waves instead of being kicked while down — the band
+  holds the board in chip damage, so the run ends through attrition. Shown on the wave briefing as `▲ SQUEEZED ×N` (`HudSnapshot.squeezePressure`).
+- **Breach ceiling** (`Game.braceHiveDamage`, every enemy hit / detonation / siege shell): once one
+  wave has drained `waveLossCap` of max integrity, the rest of each hit lands at ×`overflowMult` —
+  the Core braces, so the end takes several waves. Mega lashes/cataclysms are untouched (their
+  telegraphs are the counterplay).
+
+{{SQUEEZE_MEASURED}}
+
+---
+
 ## 6. Anti-grind reward taper (§taper)
 
 **ENDLESS ONLY.** With a strong enough board a player can camp arbitrarily deep and grind the Loot Box

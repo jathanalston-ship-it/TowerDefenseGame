@@ -3048,18 +3048,19 @@ export const ENDLESS = {
  *  for ~48 waves, then ONE wave wiped the Core. Two levers turn the cliff into attrition, Infinite
  *  only (RunOptions.squeeze — the Arena and headless probes that omit it are unchanged):
  *  • the PRESSURE BAND — a flawless wave past `fromDepth` raises enemy HP pressure ×(1+rise) (to
- *    `cap`); a wave that drains ≥ `easeAt` of max integrity eases it ×(1−ease) (never below 1), so
- *    a comfortable board meets the wall sooner and a bleeding one isn't kicked while down;
+ *    `cap`); a wave that drains ≥ `easeAt` of max integrity eases it ×(1−ease) (down to `floor`), so
+ *    a comfortable board meets the wall sooner and a bleeding one limps on instead of being kicked;
  *  • the BREACH CEILING — once one wave has drained `waveLossCap` of max integrity, further enemy
  *    hits that wave land at ×`overflowMult` (the Core braces), so the end takes several waves. */
 export const ENDLESS_SQUEEZE = {
   fromDepth: 10, // the band starts measuring here (the opening depths stay a pure build-up)
-  rise: 0.05, // ×(1+rise) enemy HP pressure per flawless wave …
-  cap: 2, // … up to this
-  easeAt: 0.12, // a wave that drains ≥ this share of max integrity …
-  ease: 0.15, // … eases the pressure ×(1−ease) (floor 1)
+  rise: 0.04, // ×(1+rise) enemy HP pressure per flawless wave …
+  cap: 1.4, // … up to this (the first fit's ×2 cost ~20 depths of record on a 100 h board; ×1.6 still ~15)
+  easeAt: 0.1, // a wave that drains ≥ this share of max integrity …
+  ease: 0.2, // … eases the pressure ×(1−ease) …
+  floor: 0.85, // … down to this: a bleeding board limps on a few waves (records hold; the end is a squeeze)
   waveLossCap: 0.34, // per-wave breach ceiling (share of max integrity) …
-  overflowMult: 0.2, // … past it, enemy hits land at this fraction
+  overflowMult: 0.1, // … past it, enemy hits land at this fraction (0.2 still let one collapse wipe 303 in a wave)
 };
 
 // ── Infinite depth-camping taper (docs/MODE-IDENTITY.md §anti-grind, docs/ENDLESS-SCALING.md §taper) ──
@@ -3099,21 +3100,28 @@ export function endlessLootTaper(wave: number): number {
 }
 
 // ── Universal Difficulty Director: ADAPTIVE factor weights (docs/DIFFICULTY_DIRECTOR.md) ──
-// Player-relative scaling seams composed into the director's threat/reward chains. They SHIP
-// AT 0 (an exact ×1 in every formula — IEEE-754 identity, golden-safe): balance changes must
-// come from the progression simulator, not intuition. Tuning them is a data edit here, ever.
+// Player-relative scaling seams composed into the director's threat/reward chains. Balance
+// changes must come from the progression simulator / harness, not intuition; tuning them is a
+// data edit here, ever. The STATIC boot-time path stays an exact ×1 (IEEE-754 identity, golden-
+// safe) because nothing supplies AdaptiveInputs.powerRatio.
 export const DIRECTOR_ADAPTIVE = {
   // ACTIVATED 2026-11 on harness evidence (docs/DIFFICULTY_DIRECTOR.md §6a — the Batch G grind
   // audit): fed with the run's LIVE board power on Campaign waves ≥ liveFromWave + boss bodies.
-  // The static (boot-time) path stays ×1 because nothing supplies AdaptiveInputs.powerRatio.
-  threatPerPowerRatio: 0.1, // ×(1 + w·(powerRatio−1)) on enemy HP/damage curves
+  threatPerPowerRatio: 0.5, // ×(1 + w·(powerRatio−1)) on enemy HP/damage curves
   rewardPerPerformance: 0, // ×(1 + w·recentPerformance) on bounty/reward curves
   // LIVE board power: a Campaign run whose app passes RunOptions.livePowerBase (account Power ÷
   // the stage's recommended Power) re-feeds the seam at every wave launch with that × the run's
-  // temporary Power (cards, Hero Evolution, branches, strains) — the in-run snowball that made
-  // waves 4+ a formality now meets a real finale. Upward only (a weak board is never propped up).
+  // temporary Power (cards, Hero Evolution, branches, strains — ×60–90 by a 12-wave finale) — the
+  // snowball that made waves 4+ a formality meets a real finale. Upward only (never props a weak
+  // board up). Harness sweep (w 0.1→1, caps 3→64): small caps only stretched waves (87 % flawless,
+  // 3× longer); w 1 fit the 8 h account but crushed the 100 h one (25 % frontier wins) — 0.5/16 is
+  // the compromise (docs/DIFFICULTY_DIRECTOR.md §6a "Measured").
   liveFromWave: 4, // waves before this are the opening (untouched — the opening build answers them)
-  liveCap: 3, // the live multiplier never exceeds this
+  liveCap: 16, // the live multiplier on chaff waves never exceeds this
+  // …and lands as PACE as much as HP (ENDLESS-SCALING "pace, not sponge"): HP × m^(1−s), spawn rate
+  // × m^s. Pace-heavy (s 0.75) proved EASIER (area boards love clumps); HP-only is a slog — 0.5.
+  livePaceShare: 0.5,
+  liveBossCap: 16, // a BOSS body takes the whole live multiplier (no pace split — it can't be paced or pulled) up to this
 };
 
 // ── Adaptive Economy Framework: income-seam weights (docs/ECONOMY_FORMULAS.md) ──

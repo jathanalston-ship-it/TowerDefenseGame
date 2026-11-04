@@ -225,6 +225,7 @@ Snappy input is its own kind of juice — every control reacts on contact and no
 - **Draft input-arm:** `DraftModal` ignores picks for `DRAFT_ARM_MS` (260ms) after it opens, covering the card entry animation so a click/keypress in flight as a wave clears can't blow through the draft. The Auto-Gene countdown (10s) is unaffected.
 - **Tooltip hover-intent:** `.tt-bubble` waits 140ms before showing (instant to hide), so sweeping the tower rail doesn't strobe tooltips.
 - **No layout shift on phase change:** Build-Phase controls are an overlay, not a toolbar row (see CARDS/HUD) — entering/leaving prep never moves the battlefield.
+- **Early-call arm (docs/EARLY-CALL.md):** Space starts a wave in prep and CALLS THE NEXT ONE mid-wave — but never in the first `EARLY_CALL.minElapsed` (3 s) of a wave, so a double-tapped launch can't stack two waves. The call lands with the normal launch spectacle plus its own reward beat: an `EARLY CALL +N` float and the `splice` cue (the Biomass the skipped wait paid).
 
 ---
 

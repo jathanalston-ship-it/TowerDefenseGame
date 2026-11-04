@@ -6,7 +6,7 @@ import { describe, expect, it } from 'vitest';
 import { Game } from './game';
 import type { RunOptions } from './game';
 import { CAMPAIGN_OPENING, DIRECTOR_ADAPTIVE, EARLY_CALL, ENDLESS_SQUEEZE, ENEMY_DEFS, SIM_DT, TOWER_ABILITIES, TOWER_DEFS, TOWER_ORDER } from './config';
-import { OPENING_ANSWER_TIERS, openingAnswerKinds } from './conveyor';
+import { OPENING_ANSWER_TIERS, OPENING_THREAT_RULES, damagesArea, dragsAndDamages, openingAnswerKinds } from './conveyor';
 import { generateStage } from './campaign';
 import type { StageConfig } from './campaign';
 import { campaignMegaFor, MEGA } from './megaboss';
@@ -55,20 +55,21 @@ describe('Campaign opening safety (CAMPAIGN_OPENING)', () => {
 
 describe('Opening ANSWER gift (docs/STRAIN.md §opening)', () => {
   const owned = new Set(TOWER_ORDER);
-  it('answer classes are derived from tower data (no per-tower list)', () => {
+  it('answers are derived from tower data (no per-tower list): damage over an area, never pure control', () => {
+    const answers = (def: (typeof TOWER_DEFS)[keyof typeof TOWER_DEFS], kit: (typeof TOWER_ABILITIES)[keyof typeof TOWER_ABILITIES]): boolean =>
+      OPENING_ANSWER_TIERS.some((t) => t.answers(def, kit));
     for (const k of TOWER_ORDER) {
       const def = TOWER_DEFS[k];
       const kit = TOWER_ABILITIES[k];
-      const pulls = kit.some((c) => c.type === 'aura' && (c.pull ?? 0) > 0);
-      if (pulls) expect(OPENING_ANSWER_TIERS[0].answers(def, kit), k).toBe(true);
-      if (def.splash > 0) expect(OPENING_ANSWER_TIERS[1].answers(def, kit), k).toBe(true);
-      if (def.firing === 'homing' && def.splash === 0 && !kit.some((c) => 'radius' in c)) {
-        for (const t of OPENING_ANSWER_TIERS) expect(t.answers(def, kit), `${k} is single-target`).toBe(false);
-      }
+      if (def.splash > 0) expect(damagesArea(def, kit), k).toBe(true);
+      if (kit.some((c) => c.type === 'aura' && (c.pull ?? 0) > 0 && (c.damage ?? 0) > 0)) expect(dragsAndDamages(kit), k).toBe(true);
+      if (def.damage <= 0) expect(answers(def, kit), `${k} deals no damage`).toBe(false); // stalling isn't answering
+      if (def.firing === 'homing' && def.splash === 0 && !kit.some((c) => 'radius' in c)) expect(answers(def, kit), `${k} is single-target`).toBe(false);
+      if (def.firing === 'summon') expect(OPENING_THREAT_RULES.air(def), `${k} can't block fliers`).toBe(false);
     }
   });
 
-  it('a deep stage gift is always a best-class answer; Stages 1–3 keep the plain roll', () => {
+  it('a deep stage gift is always an answer; Stages 1–3 keep the plain roll', () => {
     const st = 40;
     const cfg = generateStage(st);
     const answers = openingAnswerKinds(cfg.waves, owned, 'needle')!;
@@ -234,7 +235,17 @@ describe('LIVE adaptive threat (§6a)', () => {
     for (let w = 1; w <= on.launched.length; w++) {
       expect(on.launched[w - 1]).toBe(w >= DIRECTOR_ADAPTIVE.liveFromWave ? DIRECTOR_ADAPTIVE.liveCap : 1);
     }
-    expect(on.bossHp).toBeCloseTo(off.bossHp * DIRECTOR_ADAPTIVE.liveCap, 6);
+    // a boss body takes the WHOLE live multiplier up to its own cap (it can't be paced or pulled)
+    expect(on.bossHp / off.bossHp).toBeCloseTo(DIRECTOR_ADAPTIVE.liveBossCap, 9);
+  });
+
+  it('the live multiplier splits into HP × spawn pace; ×1 is exactly {1, 1}', () => {
+    const g = new Game(3, NO_META, undefined, undefined, undefined, { mode: 'campaign', stage: generateStage(12), livePowerBase: 1e6 });
+    const dd = anyG(g).dd as { liveThreatParts: (m: number) => { hp: number; pace: number } };
+    expect(dd.liveThreatParts(1)).toEqual({ hp: 1, pace: 1 });
+    const p = dd.liveThreatParts(DIRECTOR_ADAPTIVE.liveCap);
+    expect(p.hp * p.pace).toBeCloseTo(DIRECTOR_ADAPTIVE.liveCap, 12); // the work rate still rises ×m
+    expect(p.pace).toBeGreaterThan(1);
   });
 
   it('an under-powered board is never propped up', () => {
@@ -259,7 +270,7 @@ describe('INFINITE SQUEEZE (ENDLESS_SQUEEZE)', () => {
     expect(brace(on, 50)).toBe(Math.round(50 * ENDLESS_SQUEEZE.overflowMult));
   });
 
-  it('the pressure band rises on flawless waves past fromDepth, eases on a bleeding one (floor 1)', () => {
+  it('the pressure band rises on flawless waves past fromDepth, eases on a bleeding one (to its floor)', () => {
     const on = boot(true);
     const g = anyG(on);
     const update = (): void => (g.updateSqueeze as () => void).call(on);
@@ -274,7 +285,7 @@ describe('INFINITE SQUEEZE (ENDLESS_SQUEEZE)', () => {
     update();
     expect(on.squeezePressure).toBeCloseTo(ENDLESS_SQUEEZE.cap * (1 - ENDLESS_SQUEEZE.ease), 12);
     for (let i = 0; i < 60; i++) update();
-    expect(on.squeezePressure).toBe(1);
+    expect(on.squeezePressure).toBe(ENDLESS_SQUEEZE.floor);
   });
 
   it('pressure multiplies the scheduled endless HP (and is ignored outside Infinite)', () => {

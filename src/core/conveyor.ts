@@ -124,32 +124,33 @@ export function growDuration(wave: number): number {
 
 // ── OPENING ANSWER (docs/STRAIN.md §opening) ────────────────────────────────────────────────
 // Threat → answer, both DERIVED FROM DATA: a stage's opening threats come from its first waves'
-// enemy defs; a tower's answer class comes from its def + derived ability kit (pull auras, area
-// Fear, splash, area radii, firing). Never a per-tower list — a new tower or enemy is classified by
-// its stats. Fitted on the G1 harness (forced-gift sweep, 8 h + 100 h accounts): progress DENIAL
-// (pull / area Fear) cut wave-1–3 losses from ~36 % to ~7 % at 100 h; AREA cover (splash / wide
-// auras) was the best owned class at 8 h (~58 % → ~21 %); single-target kits barely moved.
+// enemy defs; a tower's answer class comes from its def + derived ability kit (splash, damaging
+// area components, their radii and pull, firing). Never a per-tower list — a new tower or enemy is
+// classified by its stats. Fitted on the G1 harness (forced-gift sweep, every owned kind × 7 stages
+// × 2 seeds): a damaging DRAG aura lost 0/28 runs in waves 1–3 on the 100 h account (natural roll
+// 5/14); AREA damage was the best owned class on the 8 h account (5/24 vs 7/12). Pure CONTROL
+// (Effigy's Fear — no damage) was safe early too but turned whole runs into unlosable slogs, so it
+// never counts: a pack is answered by killing it, not only stalling it.
 
 /** The opening threats a stage can field. */
 export type OpeningThreat = 'pack' | 'air';
 
-/** Does this kit DENY PROGRESS across an area — a dragging (pull) aura, or a wide Fear pulse? The
- *  opening build lacks time, not damage: a pack held up-lane is a pack the favorite can kill. */
-export function deniesProgress(kit: readonly AbilityComponent[]): boolean {
-  return kit.some((c) => (c.type === 'aura' && (c.pull ?? 0) > 0)
-    || (c.type === 'debuff' && c.status.kind === 'Fear' && c.radius >= CONVEYOR.areaRadius));
+/** A DAMAGING aura that also DRAGS the pack up-lane (pull) — its coverage is the whole approach. */
+export function dragsAndDamages(kit: readonly AbilityComponent[]): boolean {
+  return kit.some((c) => c.type === 'aura' && (c.pull ?? 0) > 0 && (c.damage ?? 0) > 0);
 }
 
-/** Does this tower's kit cover an AREA (any splash, or an area component reaching areaRadius)? */
-export function coversArea(def: TowerDef, kit: readonly AbilityComponent[]): boolean {
+/** Does this kit DAMAGE an area — any splash, or a damaging aura/explosion/pool reaching areaRadius? */
+export function damagesArea(def: TowerDef, kit: readonly AbilityComponent[]): boolean {
   if (def.splash > 0) return true;
-  return kit.some((c) => (c.type === 'aura' || c.type === 'debuff' || c.type === 'explosion' || c.type === 'pool') && c.radius >= CONVEYOR.areaRadius);
+  return kit.some((c) => ((c.type === 'aura' || c.type === 'explosion') && (c.damage ?? 0) > 0 && c.radius >= CONVEYOR.areaRadius)
+    || (c.type === 'pool' && c.dps > 0 && c.radius >= CONVEYOR.areaRadius));
 }
 
 /** Answer classes, BEST FIRST: the gift rolls from the first class with an owned kind. */
 export const OPENING_ANSWER_TIERS: readonly { id: string; answers: (def: TowerDef, kit: readonly AbilityComponent[]) => boolean }[] = [
-  { id: 'denial', answers: (_def, kit) => deniesProgress(kit) },
-  { id: 'area', answers: (def, kit) => coversArea(def, kit) },
+  { id: 'drag', answers: (_def, kit) => dragsAndDamages(kit) },
+  { id: 'area', answers: (def, kit) => damagesArea(def, kit) },
 ];
 
 /** Threat → the extra condition an answer must meet. Airborne packs ignore obstacles and can't be
