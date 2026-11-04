@@ -552,6 +552,9 @@ earn, never explosive to hold.
   Prestige panel and the Mission-Control ascension banner. Golden-safe: pure gating over the save,
   no sim effect.
 - **Resets.** Hive Tree (Neural Fragments) + in-run economy upgrades. **Keeps everything else.**
+  *As built:* banked Genome Cores + the Genome upgrade levels, less the **Molt Imprint** — each
+  upgrade keeps a share of its levels that grows +1.25% per Molt done (0 on the first), capped at
+  70% (docs/GENOME-CORE.md §molt-imprint), so the post-Molt Power dip stays bounded with depth.
 - **Currency — Ascendant Cells:** `⌊1.5 × √(NeuralFragmentsThisCycle / 100)⌋`.
   (10k essence → 15 cells; 50k → 33.)
 - **Multiplier.** `1 + 0.10 × √(LifetimeCells)` (100 lifetime cells → ×2.0) + the
