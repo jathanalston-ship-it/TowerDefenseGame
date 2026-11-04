@@ -23,6 +23,7 @@ import { adProvider } from '../ads/provider';
 import { telemetry } from '../net/telemetry';
 import { NextUp } from './HubLanding';
 import { navBus } from '../state/navBus';
+import { ClaimAll } from './components/ClaimAll';
 
 function fmtLeft(ms: number): string {
   const d = Math.floor(ms / 86_400_000);
@@ -268,9 +269,7 @@ export function BattlePassScreen({ onStore }: { onStore?: () => void } = {}): JS
       {claimables === 0 && <NextUp save={save} exclude="season" go={(k) => navBus.go(k)} />}
 
       <div className="bp-controls">
-        <button className="primary bp-claimall act-claim" data-guide="bp-claim" disabled={claimables === 0} onClick={claimAll}>
-          Claim all{claimables > 0 ? ` (${claimables})` : ''}
-        </button>
+        <ClaimAll count={claimables} onClaim={claimAll} guide="bp-claim" className="bp-claimall" />
         {view.levelPrice !== null && (
           <button className="bp-buylv shop-buy" onClick={() => { if (meta.buyPassLevel(Date.now())) audio.cue('power'); }}>
             +1 level · <CurrencyIcon id="ichor" size={12} title="" /> {view.levelPrice}

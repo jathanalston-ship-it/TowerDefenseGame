@@ -149,6 +149,24 @@ with one line; it settles once per run result, so a remount never claims twice).
   off; every claim is then a manual tap with its badge, exactly as before.
 - Every claim goes through the normal guarded meta APIs (security registry budgets unchanged).
 
+## §claim-all — one batch-claim pattern (2026-11)
+
+Every screen that holds a stack of no-choice claims offers the SAME control:
+`ui/components/ClaimAll.tsx` — **`✹ Claim all (N)`** (`primary act-claim claim-all`, one size and
+shape everywhere; disabled at 0). It is presentation + ONE callback: each screen keeps its own
+claim API, ledger and celebration.
+
+| Screen | N counts | Callback | Shown |
+|---|---|---|---|
+| Quest Board | ready missions (weekly + active chapter) | `claimQuestMission` per mission | ≥1 ready (QUESTS.md §claim-all) |
+| Season Pass | claimable levels (both tracks) | `claimAllPass` | always (`data-guide="bp-claim"` — the guided-unlock anchor) |
+| Milestones | ready tiers | `claimMetabolism` per ready track | ≥2 tracks ready (one track's own CTA already digests all its tiers) |
+
+Never batched (the same rule as §auto-claim): quest **finales** and Evolution **EVOLVE** stay a
+deliberate tap. Not a claim: the Vault's specimen reveal keeps ONE `Reveal all ▸` action plus a
+remembered **Skip animations** switch (device pref `prefs.vaultSkipAnimsPref`, docs/LOOTBOX.md
+§opening) — the old Reveal All / Fast / Skip Anims / Skip All quartet is gone.
+
 ## §reasons — smart notifications say WHY
 
 `NotificationSource.reason?: (save, unseen) => string` gives every badge a human phrase —
@@ -200,7 +218,10 @@ MUCH / WHERE, readable in under a second.
   ("5 achievements · +170 Genome Cores", `items` expandable via "Show all", 7s life, re-armed
   while read). An achievement event's `qty` is its Core reward. App mounts the toaster
   `held` while any What's New card is up, so post-run placards land AFTER the unlock
-  summary instead of under it.
+  summary instead of under it. The **account level-up toast** (`AccountLevelToast`, ui/
+  components/AccountXpBar.tsx) takes the SAME `held` gate: a level-up queued while the summary
+  is up stays banked in meta (a showing one pauses) and flushes — with its `levelup` sting —
+  the moment the summary closes (it used to land on top of the card).
 - **Queue rules:** identical rewards (`type:name`) landing within **4s merge** —
   `+100 +250 +75` becomes one `+425` card that pulses, re-arms its lifetime, and jumps
   back to the front; differing sources blend to "Multiple sources". `merge:'count'`

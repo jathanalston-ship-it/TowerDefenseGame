@@ -24,7 +24,6 @@ import { BiomassIcon } from './components/Icon';
 import { CurrencyIcon } from './components/CurrencyIcon';
 import { FieldResearchCard } from './components/FieldResearch';
 import { rewardLine } from './components/AccountXpBar';
-import { audio } from '../audio/sound';
 import { ShareReplayButton } from './components/ShareReplay';
 import { ThreatResult } from './components/ThreatPicker';
 import { ACCOUNT_CURRENCY } from '../core/currencies';
@@ -66,11 +65,17 @@ export function Results({
   outcome,
   onContinue,
   onReplay,
+  onNext,
+  powerBefore,
+  paused,
 }: {
   result: RunResult;
   outcome: RunOutcome;
   onContinue: () => void;
   onReplay?: () => void; // one-tap "Infect Again" — re-run the same mode
+  onNext?: () => void; // Campaign win with Stage N+1 open → the primary "Stage N+1 ▸" (App decides availability)
+  powerBefore?: number; // Power Score just before the settle — the Power row counts up FROM it
+  paused?: boolean; // a milestone cinematic (Hero Slot / Evolution Unlock) is over Results — the reveal waits
 }): JSX.Element {
   const masteryGains = TOWER_ORDER.filter((k) => outcome.mastery[k].xpGained > 0);
   // The run's highest mastery contributor (by XP) wears the crown in the ledger.
@@ -138,11 +143,8 @@ export function Results({
   useEffect(() => {
     if (firstClear) music.stinger('chapter');
   }, [firstClear]);
-  // Account level-ups crossed this run land the dedicated cue as the capsule opens.
-  const acctLevelled = outcome.accountXp.levelUps.length > 0;
-  useEffect(() => {
-    if (acctLevelled) audio.cue('levelup');
-  }, [acctLevelled]);
+  // Account level-ups crossed this run: the `levelup` cue rides the Account Level row (RewardStat
+  // `cue`), so it sounds when that row LANDS in the paced reveal — not as the capsule opens.
   const flawlessNotice: { tone: 'earned' | 'miss'; text: string } | null =
     !fc ? null
     : fc.earned ? { tone: 'earned', text: 'Flawless clear — bonus Flawless Cache secured! No damage taken.' }
@@ -204,7 +206,7 @@ export function Results({
     stats: [
       { id: 'xp', label: 'Mastery XP Earned', value: masteryXp, format: (n) => `${n.toLocaleString()} XP`, accent: 'var(--gold)', bar: masteryXp > 0 ? 1 : 0 },
       { id: 'levels', label: 'Mastery Levels', value: levelUps, celebrate: levelUps > 0 },
-      { id: 'power', label: 'Power Score', value: meta.power().score, accent: 'var(--vital)', celebrate: levelUps > 0 },
+      { id: 'power', label: 'Power Score', value: meta.power().score, from: powerBefore, accent: 'var(--vital)', celebrate: levelUps > 0 },
     ],
     extra: (masteryGains.length > 0 || heroMasteryGains.length > 0) ? (
       <div className="mastery-gains">
@@ -269,8 +271,8 @@ export function Results({
     stats: [
       { id: 'axp', label: 'Account XP Earned', value: axp.gained, format: (n) => `${n.toLocaleString()} XP`, accent: 'var(--viral)', bar: Math.min(1, acct.into / Math.max(1, acct.need)) },
       axp.levelUps.length > 0
-        ? { id: 'alevel', label: 'Account Level', value: axp.to, format: (n) => `LV ${axp.from} → ${n}`, accent: acctMilestone ? 'var(--gold)' : 'var(--viral)', celebrate: true }
-        : { id: 'alevel', label: 'Account Level', value: acct.level, format: (n) => `LV ${n} · ${num(acct.into)}/${num(acct.need)} XP`, },
+        ? { id: 'alevel', label: 'Account Level', value: axp.to, from: axp.from, format: (n) => `LV ${axp.from} → ${n}`, accent: acctMilestone ? 'var(--gold)' : 'var(--viral)', celebrate: true, cue: 'levelup' }
+        : { id: 'alevel', label: 'Account Level', value: acct.level, from: acct.level, format: (n) => `LV ${n} · ${num(acct.into)}/${num(acct.need)} XP`, },
     ],
     extra: axp.levelUps.length > 0 ? (
       <div className="axp-runups">
@@ -337,7 +339,7 @@ export function Results({
       : earned > 0 ? `${earned} recovered · ${owned} in vault` : 'None this run',
     stats: [
       { id: 'recovered', label: 'Containers Recovered', value: earned },
-      { id: 'vault', label: 'Now in Vault', value: owned, accent: 'var(--gold)', celebrate: earned > 0 },
+      { id: 'vault', label: 'Now in Vault', value: owned, from: Math.max(0, owned - earned), accent: 'var(--gold)', celebrate: earned > 0 },
     ],
     extra: (
       <>
@@ -512,6 +514,9 @@ export function Results({
         achievements={achievements}
         onContinue={onContinue}
         onReplay={onReplay}
+        replayLabel={!result.won ? '↻ Try again' : onNext ? '↻ Replay' : undefined}
+        next={onNext && result.campaignStage ? { label: `Stage ${result.campaignStage + 1} ▸`, onClick: onNext } : undefined}
+        paused={paused}
         cliffhanger={
           <>
             <ThreatResult outcome={outcome.threat} />

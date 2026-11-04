@@ -10,8 +10,8 @@
 //              falling goo, spore burst, shockwave, a backdrop quake. Brief, automatic.
 //   CLUTCH   — every reward materializes AT ONCE as a face-down specimen in one grid (the
 //              clutch). The player flips each by hand — a 3D membrane flip whose speed,
-//              light and particles scale with the pull's rarity — or arms the Reveal All
-//              cascade. Legendary+ pulls and NEW strand recoveries INTERRUPT the flow with
+//              light and particles scale with the pull's rarity — or arms the Reveal all
+//              cascade (a remembered "Skip animations" device pref makes it instant). Legendary+ pulls and NEW strand recoveries INTERRUPT the flow with
 //              a fullscreen celebration (zoom, heartbeat, archive progress). Stockpiles
 //              page in clutches of 12 — only the active page mounts (100× stays cheap).
 //   HARVEST  — the summary: the PRIZE SPECIMEN banner (best pull), a rarity tally, the
@@ -42,6 +42,7 @@ import { archiveCompletion } from '../core/geneDiscovery';
 import { meta } from '../state/meta';
 import { visibleChests } from '../state/rewardVisibility';
 import { audio } from '../audio/sound';
+import { setVaultSkipAnimsPref, vaultSkipAnimsPref } from '../state/prefs';
 import { CurrencyIcon } from './components/CurrencyIcon';
 import { PowerDelta } from './components/PowerDelta';
 import type { OwnedItem } from '../core/equipment';
@@ -174,11 +175,16 @@ export function VaultReveal({
   const model = useMemo(() => buildReveal(chests, compareEquip), [chests, compareEquip]);
   const specimens = useMemo(() => buildSpecimens(model), [model]);
   const grid = useMemo(() => revealGrid(model.count), [model.count]);
+  // The session opens with the player's remembered "Skip animations" choice (device pref).
   const [st, dispatch] = useReducer(
     (s: RevealSessionState, a: RevealAction) => revealReduce(specimens, s, a),
     model.count,
-    initialRevealState,
+    (count: number): RevealSessionState => ({ ...initialRevealState(count), skipAnims: vaultSkipAnimsPref() }),
   );
+  const toggleSkipAnims = (): void => {
+    setVaultSkipAnimsPref(!st.skipAnims);
+    dispatch({ kind: 'skipAnims' });
+  };
 
   // Ceremony magnitude: the bigger of the best pull rarity and the box's registry rank.
   const itemTier = TIER.indexOf(model.topRarity);
@@ -458,17 +464,20 @@ export function VaultReveal({
                 </button>
               ) : (
                 <>
+                  {/* ONE reveal action (+ the remembered skip toggle): Reveal all cascades the
+                      clutch — or, with Skip animations on, lands every specimen at once. */}
                   <button type="button" className={`vreveal-btn primary${st.revealAll ? ' on' : ''}`} onClick={() => dispatch({ kind: 'revealAll' })}>
-                    {st.revealAll ? '⏸ Flip Individually' : 'Reveal All ▸'}
+                    {st.revealAll ? '⏸ Flip individually' : 'Reveal all ▸'}
                   </button>
-                  <button type="button" className={`vreveal-btn${st.fast ? ' on' : ''}`} onClick={() => dispatch({ kind: 'fast' })} title="Faster cascade pacing">
-                    Fast {st.fast ? '✓' : '▸▸'}
-                  </button>
-                  <button type="button" className={`vreveal-btn${st.skipAnims ? ' on' : ''}`} onClick={() => dispatch({ kind: 'skipAnims' })} title="Instant flips — celebrations wait for the summary">
-                    Skip Anims {st.skipAnims ? '✓' : ''}
-                  </button>
-                  <button type="button" className="vreveal-btn vreveal-revealall" onClick={() => dispatch({ kind: 'flipAll' })}>
-                    Skip All ⏩
+                  <button
+                    type="button"
+                    role="switch"
+                    aria-checked={st.skipAnims}
+                    className={`vreveal-skiptoggle${st.skipAnims ? ' on' : ''}`}
+                    onClick={toggleSkipAnims}
+                    title="Instant flips — celebrations wait for the summary. Remembered on this device."
+                  >
+                    <i aria-hidden />Skip animations
                   </button>
                 </>
               )}

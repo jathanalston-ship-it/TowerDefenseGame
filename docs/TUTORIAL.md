@@ -156,7 +156,14 @@ fail states** — and on a loss it calls `restartCheckpoint()` (never restarts t
 
 The tutorial opens under a letterboxed COLD-OPEN banner ("DEEP CRUST RELAY 7 · UPLINK ESTABLISHED /
 TRIAL ONE — HOLD THE LINE") that continues the opening cinematic's voice — shown once per session
-start (tap to dismiss), over the already-breathing god-mode board. Lessons then run as
+start (tap to dismiss), over the already-breathing god-mode board. **The handoff (2026-11):** on
+first boot the tutorial mounts BENEATH the film, so the banner's 3.4s clock HOLDS while the film is
+on screen (`InitCutscene.useIntroPlaying()` — it used to expire under the film, so players landed
+straight on lesson 1); and the descent's last frame (full-screen gold bloom) no longer hard-cuts
+to the dark board — App fades a 520ms `.intro-afterglow` (the bloom under the film grade's dark
+bands, `onDone(dived)`) off the banner, so RELAY 7's letterbox emerges from the light. A Skip at
+the pre-roll gate (dark) and reduced motion (no dive) get no afterglow. Lesson anchors, probe
+selectors and the checkpoint flow are unchanged. Lessons then run as
 TRANSMISSIONS: every authored callout carries an `eyebrow` uplink header (`UPLINK 01 · THE CORE` …
 `FINAL UPLINK · GRADUATION`), body copy types in via the `Typewriter` primitive (~28ms/char, capped
 ~1.1s, tap-to-complete, reduced-motion shows it whole), the objective tracker fills an uplink

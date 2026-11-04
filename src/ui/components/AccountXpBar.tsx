@@ -72,14 +72,17 @@ export function AccountXpBar({ compact = false }: { compact?: boolean }): JSX.El
 }
 
 /** Menu toaster: celebrates level-ups earned outside a run settle. Queued, one at a time. */
-export function AccountLevelToast(): JSX.Element | null {
+export function AccountLevelToast({ held = false }: { held?: boolean } = {}): JSX.Element | null {
   meta.use(); // re-render on any persist (grants land through meta actions)
   const [queue, setQueue] = useState<AccountLevelUp[]>([]);
+  // `held` (an unlock announcement is up — the same gate as the RewardToaster): level-ups stay
+  // banked and a showing one pauses, then the queue flushes the moment the summary closes.
   useEffect(() => {
+    if (held) return;
     const fresh = meta.drainAccountLevelUps();
     if (fresh.length > 0) setQueue((q) => [...q, ...fresh]);
   });
-  const lu = queue.length > 0 ? queue[0] : null;
+  const lu = !held && queue.length > 0 ? queue[0] : null;
   useEffect(() => {
     if (!lu) return;
     audio.cue('levelup');

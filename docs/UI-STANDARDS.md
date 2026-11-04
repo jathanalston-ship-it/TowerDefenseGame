@@ -133,6 +133,7 @@ with every radius in **30–70%** (near-elliptical, sculpted; enforced by uiStan
 | `ChipPopover` | a chip that explains itself on TAP (wallet, level, materials) | title-only essentials |
 | `SectionNav` | any screen taller than ~3 viewports (§long-screens) | per-screen jump rails / fold logic |
 | `LoadoutStrip` | beside every run launch (§loadout) | re-listing loadout bits by hand |
+| `ClaimAll` | every batch claim — "✹ Claim all (N)" (Quest Board, Season Pass, Milestones) | per-screen "Digest all" / bespoke claim-all buttons |
 
 Adding a component: put it in `src/ui/components/`, register it in the `ui-kit` system
 (`src/dev/systemRegistry.ts`), document the row above.

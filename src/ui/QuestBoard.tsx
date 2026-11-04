@@ -20,6 +20,7 @@ import { navBus } from '../state/navBus';
 import { audio } from '../audio/sound';
 import { HostedScreen } from './components/HostTabs';
 import { MetabolismScreen } from './MetabolismScreen';
+import { ClaimAll } from './components/ClaimAll';
 
 function fmtLeft(ms: number): string {
   const d = Math.floor(ms / 86_400_000);
@@ -172,19 +173,33 @@ function QuestDirectives(): JSX.Element {
   // Claimable RIGHT NOW across both lanes — the board's own headline notification (the nav
   // badge outside uses the same census via notificationSources 'quests.claimable').
   const activeChapter = view.main.find((c) => c.state === 'active');
+  // Ready MISSIONS (weekly + the active chapter) — what Claim all takes. Finales are never batched:
+  // their story cutscene + exclusive cosmetic stay a deliberate tap (docs/QUESTS.md §claim-all).
+  const readyMissions = [
+    ...wk.quest.missions.filter((m) => (wk.progress[m.id] ?? 0) >= m.target && !wk.claimed.has(m.id)),
+    ...(activeChapter
+      ? activeChapter.quest.missions.filter((m) => (activeChapter.progress[m.id] ?? 0) >= m.target && !activeChapter.claimed.has(m.id))
+      : []),
+  ];
   const claimableNow =
-    wk.quest.missions.filter((m) => (wk.progress[m.id] ?? 0) >= m.target && !wk.claimed.has(m.id)).length
+    readyMissions.length
     + (wk.finaleClaimable && !wk.completionClaimed ? 1 : 0)
-    + (activeChapter
-      ? activeChapter.quest.missions.filter((m) => (activeChapter.progress[m.id] ?? 0) >= m.target && !activeChapter.claimed.has(m.id)).length
-        + (activeChapter.finaleClaimable ? 1 : 0)
-      : 0);
+    + (activeChapter?.finaleClaimable ? 1 : 0);
+  const claimAllMissions = (e: React.MouseEvent): void => {
+    const now = Date.now();
+    const lines = readyMissions.flatMap((mi) => meta.claimQuestMission(mi.id, now) ?? []);
+    if (lines.length === 0) return;
+    celebrate(e, lines, false);
+    audio.cue('chest');
+    audio.cue('power');
+  };
 
   return (
     <div className="menu qb" style={{ ['--qa' as string]: wk.quest.accent } as CSSProperties}>
       <header className="screen-h">
         <h2>Quest Board {claimableNow > 0 && <span className="qb-claimable-chip">◈ {claimableNow} to claim</span>}</h2>
         <p className="screen-sub">Directives from the deep — weekly orders and the story of the descent.</p>
+        {readyMissions.length > 0 && <ClaimAll count={readyMissions.length} onClaim={claimAllMissions} className="qb-claimall" />}
       </header>
       {burst && <ClaimBurst burst={burst} />}
       {/* Loop handoff (docs/REWARD-ARCHITECTURE.md §chaining): a fully-claimed board hands

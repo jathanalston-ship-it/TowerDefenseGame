@@ -48,6 +48,12 @@ around the BIGGEST board the viewport allows (`src/index.css` §RUN LAYOUT v2 �
   that appears mid-run (pods, siege, emergency) resizes the board.
 - **The rotate gate stands down for a live run** (`layoutProfile.setInRun`, set by GameView):
   hub screens stay landscape-only on touch (§0b), the run plays in either orientation.
+  **The whole run FLOW** (2026-11): holds are named — GameView holds `'battlefield'`, App holds
+  `'run-flow'` while the screen is `deploying` / `playing` / `results` — so a portrait run's deploy
+  breath and its Results (+ the milestone cinematics over it) are never covered by "TURN YOUR
+  DEVICE"; the gate returns the moment Continue lands on the hub. Results at 390×844: no page
+  scroll either way (the capsule takes `100dvh − padding`, the haze is clipped), the action row
+  wraps/stretches ≤480px and stays pinned at the capsule's bottom edge.
 - **Canvas input** maps through `getBoundingClientRect` (any CSS size); `npm run mobilecheck`
   proves the phone layouts (§4d) and a headless probe placed towers by tap on slots at every
   size above.

@@ -16,6 +16,7 @@ import { meta } from '../../state/meta';
 import { currentCheckpoint } from '../../core/tutorial';
 import { useTargetRect } from './useTargetRect';
 import { Callout, CameraFocus, ContinuePrompt, ObjectiveTracker, Spotlight, TutorialArrow, Typewriter, overlaps } from './primitives';
+import { useIntroPlaying } from '../InitCutscene';
 
 const OPEN_MS = 3400; // the cold-open banner's hold (tap dismisses sooner)
 
@@ -52,15 +53,19 @@ export function TutorialOverlay(): JSX.Element | null {
   const advanceKind = cp?.advance.kind;
   const advanceMs = cp && cp.advance.kind === 'timed' ? cp.advance.ms : 0;
 
-  // The cinematic COLD OPEN — shown once per session start, before lesson 1's callout.
+  // The cinematic COLD OPEN — shown once per session start, before lesson 1's callout. On first
+  // boot the tutorial mounts BENEATH the opening film: the banner's clock holds until the film
+  // lands, so the player actually sees RELAY 7 take the handoff (docs/TUTORIAL.md §cinematic).
   const [openDone, setOpenDone] = useState(false);
+  const introOn = useIntroPlaying();
   useEffect(() => {
     if (!session) { setOpenDone(false); return undefined; } // re-arm for the next session
     if (openDone || session.progress.checkpoint > 0) { setOpenDone(true); return undefined; }
+    if (introOn) return undefined; // held under the film — armed the moment it lands
     const t = setTimeout(() => setOpenDone(true), OPEN_MS);
     return () => clearTimeout(t);
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- armed once per session start
-  }, [session === null]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- armed once per session start (and on landing)
+  }, [session === null, introOn]);
 
   // A soft uplink blip each time a checkpoint COMPLETES (the cursor moves forward — never on retry).
   const lastCpRef = useRef(0);

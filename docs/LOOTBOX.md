@@ -143,7 +143,8 @@ is a pure read-model returning two shapes from the rolled `ChestResult`s:
 to `document.body`** (escapes the Hub's `isolation: isolate` stacking context — covers
 everything, nothing clips; same fix pattern as BUGFIX-LOG #6). The ceremony is a diegetic
 **four-act HATCHING** (see §hatching below), not a card pack: INCUBATE → RUPTURE → EMERGE
-(one specimen sac per pull) → HARVEST. Skip All jumps straight to the harvest.
+(one specimen sac per pull) → HARVEST. Reveal all with the remembered Skip animations switch
+on jumps straight to the harvest (§clutch controls).
 
 The harvest summary is **categorized, merged, animated** (prize banner + rarity tally + row
 stagger + Power count-up) and **never auto-closes** — the player dismisses via Hatch Another
@@ -268,9 +269,14 @@ once** as a face-down specimen in one grid (the *clutch*), and the player flips 
   legendary+ pull raises the apex moment (god rays, double heartbeat, room warp, `jackpot`
   → the `legendary` stinger). Manual flips HOLD until tapped; the armed cascade
   auto-continues after a beat.
-- **Controls**: Reveal All ⇄ Flip Individually (a true toggle), Fast (cascade pacing), Skip
-  Anims (instant flips; celebrations defer to the summary — combined with Reveal All it
-  fast-paths to Harvest via `flipAll`), Skip All.
+- **Controls** (2026-11 — one action, one remembered switch): **Reveal all ▸** ⇄ ⏸ Flip
+  individually (a true toggle, the cascade) plus an inline **Skip animations** switch
+  (`role="switch"`) — instant flips, celebrations defer to the summary, and with it on Reveal
+  all fast-paths straight to the Harvest via `flipAll`. The switch is a DEVICE pref
+  (`prefs.vaultSkipAnimsPref`, key `assimilate.vault.skipAnims`, in `DEVICE_PREF_KEYS`): every
+  later session opens with the player's choice. The old Fast / Skip Anims / Skip All buttons are
+  gone (the reducer keeps `fast` for API stability; the UI no longer dispatches it). The egg
+  hatch (heartbeat squeezes + rupture) always plays.
 - **Scale**: stockpiles page in clutches of 12 (`revealGrid`) — only the active page mounts,
   so 50×/100× opens (the Vault's new Open 50 / Open 100) never scroll and never render
   hundreds of nodes. A 600-pull session builds + flips in <400ms (perf-pinned).
