@@ -8,7 +8,7 @@ import { useEffect } from 'react';
 import { audio } from '../../audio/sound';
 import { trackEvent } from '../../net/events';
 import { flashSalePct, flashTriggerLabel } from '../../state/flashOffers';
-import { offerHasRandomContent, type PremiumOfferDef } from '../../core/premium';
+import { offerReachesChance, type PremiumOfferDef } from '../../core/premium';
 import { usePaidRandomVisible } from '../../net/storeRegion';
 import { rarityColor } from './ItemArt';
 import { Popup } from './Popup';
@@ -20,7 +20,7 @@ export function FlashOfferPopup({ offer, expiresAt, onStore, onClose }: {
   onStore: () => void;
   onClose: () => void;
 }): JSX.Element {
-  const regionOk = usePaidRandomVisible() || !offerHasRandomContent(offer); // paid-loot-box region switch
+  const regionOk = usePaidRandomVisible() || !offerReachesChance(offer); // paid-loot-box region switch (incl. currency paths)
   useEffect(() => {
     if (!regionOk) return;
     audio.cue('draft');

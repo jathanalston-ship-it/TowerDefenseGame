@@ -14,7 +14,8 @@ import { meta } from '../state/meta';
 import type { BattlePassView } from '../state/meta';
 import { BP, rewardLabel, rewardShort } from '../core/battlePass';
 import type { PassReward, SeasonDef } from '../core/battlePass';
-import { seasonOfferFor } from '../core/premium';
+import { offerReachesChance, seasonOfferFor } from '../core/premium';
+import { usePaidRandomVisible } from '../net/storeRegion';
 import { wardrobeItem, WARDROBE_RARITY_COLOR } from '../core/wardrobe';
 import { CurrencyIcon } from './components/CurrencyIcon';
 import { audio } from '../audio/sound';
@@ -175,6 +176,7 @@ function Cell({ level, track, view, selected, bursting, onSelect, onClaim }: {
 
 export function BattlePassScreen({ onStore }: { onStore?: () => void } = {}): JSX.Element {
   const save = meta.use(); // re-render on claims / xp
+  const paidChanceOk = usePaidRandomVisible(); // restricted regions: no real-money door (docs/PREMIUM-STORE.md §paid-loot-boxes)
   const [now, setNow] = useState(() => Date.now());
   const [sel, setSel] = useState<number | null>(null);
   const [unclaimedOnly, setUnclaimedOnly] = useState(false);
@@ -316,6 +318,7 @@ export function BattlePassScreen({ onStore }: { onStore?: () => void } = {}): JS
           {onStore && (() => {
             // The real-money door — the SAME flag through the store (docs/BATTLEPASS.md §pricing).
             const sku = seasonOfferFor(save.premium.purchases);
+            if (!paidChanceOk && offerReachesChance(sku)) return null; // the Ichor door above stays
             return (
               <button className="bp-unlock-usd" onClick={() => { audio.cue('ui'); onStore(); }}>
                 or ${sku.priceUsd.toFixed(2)} in the Store{sku.listUsd !== undefined ? ' · first season −50%' : ''}

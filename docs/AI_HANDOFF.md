@@ -131,8 +131,9 @@ The flawless-clear calm is a device pref (`prefs.ts`), not save data.
 
 ## Recommended next tasks
 
-1. Legal decision on Ichor bought with money then spent on containers (`docs/PREMIUM-STORE.md`
-   §paid-loot-boxes, `RELEASE-GUIDE.md` step 18) — not region-gated today.
+1. Have counsel confirm the BE/NL rule before live payments (`docs/PREMIUM-STORE.md`
+   §paid-loot-boxes): no SKU whose money can reach a random outcome is sold there — today, no
+   real-money sales in BE/NL at all. Decided and implemented 2026-11-04 (`offerReachesChance`).
 2. A human playtest of the new first hour using `npm run probe:first-session --shots` as the
    script; watch Stage 3 (twin lanes) and the S4–S8 reveal beats.
 3. Full spenders still clear Stages 1–3 at 98–100 % (`src/state/campaignCurve.test.ts`); decide

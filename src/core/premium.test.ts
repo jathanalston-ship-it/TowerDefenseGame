@@ -5,11 +5,16 @@
 
 import { describe, it, expect } from 'vitest';
 import {
-  ICHOR_BUNDLES, PERMANENT_PACKS, PREMIUM_OFFERS, ROTATING_PACKS,
-  activeEventOffers, offerAvailable, offerValueIchor, offerValueMultiple, premiumRegistry,
-  registerPremiumOffer, todaysRotatingOffer,
+  CURRENCY_PATHS, GRANT_STAKE, ICHOR_BUNDLES, PERMANENT_PACKS, PREMIUM_OFFERS, RANDOM_SINKS, ROTATING_PACKS,
+  activeEventOffers, currencyReachesChance, offerAvailable, offerHasRandomContent, offerReachesChance,
+  offerValueIchor, offerValueMultiple, premiumRegistry, registerPremiumOffer, todaysRotatingOffer,
 } from './premium';
-import type { PremiumOfferDef } from './premium';
+import type { PremiumGrant, PremiumOfferDef, StakeCurrency } from './premium';
+import { rollStock } from './market';
+import { EXCHANGE_CURRENCIES, type ExchangeCurrency } from './ichorExchange';
+import { BP, SEASONS, seasonTracks } from './battlePass';
+import { reforgeCost } from './reforge';
+import { reforgeCost as mulliganReforgeCost } from './mulliganReforge';
 
 describe('catalog shape', () => {
   it('ships 6 ichor bundles, 2 permanent packs, 3 rotating packs — all registered + unique', () => {
@@ -109,5 +114,73 @@ describe('expandability — event offers are one data row', () => {
     expect(activeEventOffers('2026-12-28').some((o) => o.id === holiday.id)).toBe(false);
     expect(offerAvailable(holiday, '2026-12-21', {})).toBe(true);
     expect(offerAvailable(holiday, '2026-11-01', {})).toBe(false);
+  });
+});
+
+// ── Chance exposure — the restricted-region rule (docs/PREMIUM-STORE.md §paid-loot-boxes) ──
+// Real money must never reach a random outcome in a restricted region, directly or through a
+// currency it buys. The two tables in premium.ts carry that reasoning; these tests pin them to the
+// LIVE code so a new random sink or currency path cannot slip past the rule.
+describe('chance exposure — derived, and pinned to the live economy', () => {
+  const goodStake = (good: string): StakeCurrency | 'random' => {
+    switch (good) {
+      case 'towerShards': return 'towerShards';
+      case 'heroShards': return 'heroShards';
+      case 'scrap': return 'mats';
+      case 'geneEssence': return 'geneEssence';
+      case 'stamina': return 'rushStamina';
+      case 'container': case 'equipment': return 'random';
+      default: throw new Error(`unclassified market good '${good}' — add it to goodStake + the premium.ts tables`);
+    }
+  };
+  const payStake = (pay: string): StakeCurrency => (pay === 'cores' ? 'cores' : 'ichor');
+  const hasPath = (from: StakeCurrency, to: StakeCurrency): boolean => CURRENCY_PATHS.some((p) => p.from === from && p.to === to);
+  const hasSink = (pays: StakeCurrency): boolean => RANDOM_SINKS.some((r) => r.pays === pays);
+
+  it('every grant kind is classified (exhaustive) and the reach verdicts match the economy', () => {
+    const kinds: PremiumGrant['grant'][] = ['ichor', 'cores', 'geneEssence', 'mats', 'towerShardsAll', 'heroShardsAll', 'container', 'runCache', 'equipment', 'rushStamina', 'battlePassPremium'];
+    expect(Object.keys(GRANT_STAKE).sort()).toEqual([...kinds].sort());
+    for (const c of ['ichor', 'cores', 'geneEssence', 'mats', 'seasonPass'] as StakeCurrency[]) expect(currencyReachesChance(c), c).toBe(true);
+    for (const c of ['towerShards', 'heroShards', 'rushStamina'] as StakeCurrency[]) expect(currencyReachesChance(c), c).toBe(false);
+  });
+
+  it('a pack of only deterministic progress stays sellable; Ichor and anything random do not', () => {
+    const shardsOnly: PremiumOfferDef = { ...ICHOR_BUNDLES[0], id: 'fixture_shards', kind: 'permanent', grants: [{ grant: 'towerShardsAll', qtyEach: 10 }, { grant: 'heroShardsAll', qtyEach: 5 }] };
+    expect(offerReachesChance(shardsOnly)).toBe(false);
+    for (const o of ICHOR_BUNDLES) expect(offerReachesChance(o), o.id).toBe(true);
+    for (const o of PREMIUM_OFFERS) if (offerHasRandomContent(o)) expect(offerReachesChance(o), o.id).toBe(true);
+  });
+
+  it('Splice Market: every random slot is paid in a currency with a sink row; every goods slot has a path row', () => {
+    const roster = { towers: ['spitter', 'mortar'] as never[], heroes: ['ravager'] };
+    for (let w = 0; w < 400; w++) {
+      for (const slot of rollStock(12345, w, roster)) {
+        const pay = payStake(slot.pay);
+        const got = goodStake(slot.item.good);
+        if (got === 'random') expect(RANDOM_SINKS.some((r) => r.pays === pay && r.id.startsWith('market.')), `${slot.item.good} for ${pay}`).toBe(true);
+        else expect(hasPath(pay, got), `${pay} → ${got}`).toBe(true);
+      }
+    }
+  });
+
+  it('Ichor Exchange: every currency it yields has a path from Ichor', () => {
+    const map: Record<ExchangeCurrency, StakeCurrency> = { genomeCores: 'cores', geneEssence: 'geneEssence', scrap: 'mats' };
+    for (const c of EXCHANGE_CURRENCIES) expect(hasPath('ichor', map[c]), c).toBe(true);
+  });
+
+  it('Season Pass: random track rewards have a sink row, currency rewards a path row', () => {
+    for (const season of SEASONS) {
+      const premium = seasonTracks(season.id).premium.flat();
+      if (premium.some((r) => r.kind === 'container' || r.kind === 'runCache')) expect(hasSink('seasonPass')).toBe(true);
+      if (premium.some((r) => r.kind === 'ichor')) expect(hasPath('seasonPass', 'ichor')).toBe(true);
+    }
+    expect(BP.premiumIchor).toBeGreaterThan(0); // the Ichor door exists, so Ichor → seasonPass must too
+    expect(hasPath('ichor', 'seasonPass')).toBe(true);
+  });
+
+  it('the meta random sinks named in the table are real (pay what the table says)', () => {
+    expect(RANDOM_SINKS.map((r) => r.id).sort()).toEqual(['cosmetic.cultivate', 'equipment.reforge', 'market.container', 'market.equipment', 'mulligan.reforge', 'pass.track']);
+    expect(Object.keys(reforgeCost('reroll', { uid: 'x', defId: 'x', rarity: 'common', ilvl: 1, affixes: [] } as never)).sort()).toEqual(['catalyst', 'mutagen', 'scrap']);
+    expect(mulliganReforgeCost(0)).toBeGreaterThan(0); // the wheel has an Ichor price
   });
 });

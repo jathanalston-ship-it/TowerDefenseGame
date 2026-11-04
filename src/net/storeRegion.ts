@@ -1,13 +1,13 @@
-// Paid random-container region flag (docs/PREMIUM-STORE.md §paid-loot-boxes).
+// Paid random-content region flag (docs/PREMIUM-STORE.md §paid-loot-boxes).
 // GET /api/config reports `paidRandomContainers` for THIS caller (Cloudflare country, server-side);
-// the Premium Store hides SKUs that contain random containers when it is not allowed. The server
+// the Premium Store hides every SKU that reaches a random outcome (core/premium.ts
+// offerReachesChance — a container in the pack, or a currency spendable on one). The server
 // re-checks at checkout, so this is presentation + honesty, never the only gate.
 //
 // FAIL-SOFT POLICY (decided, not accidental):
 //   - real-money checkout ('stripe'): unknown (loading / call failed) => HIDE the random SKUs.
 //     A restricted region must never see a purchasable loot box because a request failed; the
-//     cost of being wrong the other way is a briefly smaller store (Ichor, season pass and the
-//     deterministic packs stay visible).
+//     cost of being wrong the other way is a briefly smaller store until the answer lands.
 //   - sandbox checkout (no money moves, also the static no-Functions build): unknown => SHOW —
 //     only an explicit "blocked" answer hides, so the offline/static game keeps its whole store.
 
@@ -42,9 +42,14 @@ export function loadStoreRegion(): void {
 
 function subscribe(cb: () => void): () => void { listeners.add(cb); return () => listeners.delete(cb); }
 
-/** React hook: true when the store may show/sell random-content SKUs to this player. */
-export function usePaidRandomVisible(): boolean {
+/** React hook: the raw region answer (for copy: "not sold here" vs "still confirming"). */
+export function useStoreRegionStatus(): RegionStatus {
   loadStoreRegion();
-  const s = useSyncExternalStore(subscribe, () => status, () => status);
-  return randomSkusVisible(s, CHECKOUT_PROVIDER);
+  return useSyncExternalStore(subscribe, () => status, () => status);
+}
+
+/** React hook: true when the store may show/sell SKUs that reach a random outcome
+ *  (core/premium.ts offerReachesChance) to this player. */
+export function usePaidRandomVisible(): boolean {
+  return randomSkusVisible(useStoreRegionStatus(), CHECKOUT_PROVIDER);
 }

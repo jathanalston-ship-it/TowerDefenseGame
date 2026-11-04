@@ -93,29 +93,69 @@ always clears (receipts carry `sandbox: true`, the UI says so out loud). Wiring 
 (Stripe / Steam / App Store) replaces exactly one step inside `meta.purchaseOffer` — offers,
 grants, safeguards, and UI are untouched. Until then the store is a fully-testable sandbox.
 
-## Paid random containers — the region switch (`§paid-loot-boxes`)
+## Paid random content — the region rule (`§paid-loot-boxes`)
 
-Some jurisdictions (e.g. **Belgium, the Netherlands**) restrict real-money purchases whose contents are
-drawn at random. The store therefore carries a switch:
+**Decision (2026-11): apply the strictest reading — Belgium's — in both Belgium and the
+Netherlands. In a restricted region, real money never reaches a random outcome: not a container in
+the pack, and not a currency that can be spent on one.** This is an engineering decision from the
+regulators' published positions, not legal advice; confirm with counsel before taking live payments.
 
-- **Derived property.** `offerHasRandomContent(offer)` (core/premium.ts) is computed from the grants via
-  the exhaustive `GRANT_RANDOM_CONTENT` table (`container`, `runCache`, `equipment` = random; adding a grant
-  kind fails typecheck until it is classified). It is never a hand-maintained SKU list.
-- **Server (authoritative).** `POST /api/store/checkout` answers `451 region-restricted` for those SKUs when
-  Cloudflare's `request.cf.country` is in `PAID_LOOTBOX_BLOCKED_COUNTRIES` (comma list; **unset = `BE,NL`**,
-  `""` = nowhere). An unknown country (no `cf`, `XX`, Tor `T1`) is refused when `ENVIRONMENT=production`
-  and allowed in preview/dev. Logic: `functions/lib/lootbox.ts`; tests: `functions/lootbox.test.ts`.
-- **Config.** `GET /api/config` adds `paidRandomContainers: boolean` for the caller (cache is `private` —
-  a shared edge copy would leak one country's answer to another).
-- **Client.** The Premium Store and the flash-sale popup hide those SKUs when not allowed
-  (`src/net/storeRegion.ts`). Fail-soft policy: with real-money checkout (`VITE_CHECKOUT_PROVIDER=stripe`) an
-  unknown answer HIDES them (safe for restricted regions; Ichor, the Season Pass and deterministic packs stay);
-  in the sandbox/static build only an explicit "blocked" hides, so the offline game keeps its whole store.
-- **OPEN LEGAL QUESTION — needs a human decision before launch.** Ichor bought with money and then spent on
-  containers in the Splice Market is *arguably still a paid loot box* (money → virtual currency → random
-  container). This switch only covers SKUs that grant containers/gear **directly**. Options for counsel:
-  also gate Ichor bundles in restricted regions, disclose odds in-store, or remove the Ichor→container path
-  for those regions. Do not launch paid Ichor in BE/NL without that sign-off.
+**Why this line.**
+
+- **Belgium.** The Gaming Commission (Kansspelcommissie, April 2018) found paid loot boxes are games
+  of chance under the Gaming Act of 7 May 1999 — and counted loot boxes bought with *in-game
+  currency that can itself be bought with real money*. Penalties reach €800,000 and five years'
+  imprisonment, doubled where minors are involved. Industry practice followed the strict reading:
+  EA stopped selling FIFA Points in Belgium (2019), Valve disabled case opening, Nintendo withdrew
+  two mobile titles, and Diablo Immortal launched in neither Belgium nor the Netherlands (2022).
+- **Netherlands.** The Kansspelautoriteit's test turns on tradable prizes with market value; its
+  €10m order against EA was overturned by the Raad van State (March 2022), but Parliament has asked
+  for a ban and the government backs EU-level rules. Applying Belgium's rule here costs little and
+  survives either outcome.
+- Gating only containers bought *directly* (the earlier switch) left the classic path open:
+  money → Ichor → Splice Market container. That is exactly what the Belgian reading covers.
+
+**How it is enforced — derived, never a hand SKU list** (`core/premium.ts`):
+
+- `RANDOM_SINKS` lists every meta-game sink where a currency buys a random outcome: Splice Market
+  containers and gear (Ichor), the Mulligan reforge wheel (Ichor), Cultivate (Gene Essence), Armory
+  reroll/reforge/randomize/upgrade (crafting materials), and the Season Pass premium track's
+  containers.
+- `CURRENCY_PATHS` lists every way one currency buys another (the Ichor Exchange, the Splice
+  Market's tiers, the pass's Ichor door and its Ichor rewards).
+- `GRANT_STAKE` maps each grant kind to a random draw or the currency it pays (exhaustive — a new
+  grant kind fails typecheck until classified). `currencyReachesChance` walks the paths;
+  `offerReachesChance(offer)` is true when any grant is random or reaches a random sink.
+- `premium.test.ts` pins the tables to the live code (every Splice Market slot, every exchange
+  currency, every season's premium track), so a new random sink or path cannot slip past.
+- **Today's verdicts:** Ichor, Genome Cores, Gene Essence, crafting materials and the Season Pass
+  reach chance; tower/hero shards and Boss Rush stamina do not (stamina buys entries to a skill
+  mode — its drops are earned in play). With the current catalog **nothing is sold for real money
+  in a restricted region**; a pack of only deterministic progress (e.g. shards) would be sold
+  automatically.
+
+**Where it bites:**
+
+- **Server (authoritative).** `POST /api/store/checkout` answers `451 region-restricted` for every
+  SKU where `offerReachesChance` is true when Cloudflare's `request.cf.country` is in
+  `PAID_LOOTBOX_BLOCKED_COUNTRIES` (comma list; **unset = `BE,NL`**, `""` = nowhere). An unknown
+  country (no `cf`, `XX`, Tor `T1`) is refused when `ENVIRONMENT=production`, allowed in
+  preview/dev. Logic: `functions/lib/lootbox.ts`; tests: `functions/lootbox.test.ts`.
+- **Config.** `GET /api/config` reports `paidRandomContainers: boolean` for the caller (cache
+  `private` — a shared edge copy would leak one country's answer to another).
+- **Client.** The Premium Store, the flash-sale popup and the Season Pass screen's "$ in the Store"
+  door hide those SKUs (`src/net/storeRegion.ts`); the store explains why in one line. With
+  real-money checkout an unknown answer hides them (fail closed); the sandbox/static build hides
+  only on an explicit "blocked".
+- **What stays.** All play: containers, the Splice Market, the wheel, Cultivate and the Season Pass
+  premium track still work with currencies *earned in play* (no money enters, so no stake). The pass
+  keeps its in-game Ichor unlock.
+- **Disclosure everywhere.** Container drop rates are shown in the Vault (`GeneticVault.tsx`).
+
+**Residual risks for counsel:** a player who bought Ichor while outside a restricted region and
+later plays inside one (or uses a VPN) can still spend that Ichor on containers — the game sells
+nothing in-region, but does not segregate money-bought balances. Revisit if the Netherlands or the
+EU adopts an explicit ban, or if a new region is added (one env var).
 
 ## Expandability
 

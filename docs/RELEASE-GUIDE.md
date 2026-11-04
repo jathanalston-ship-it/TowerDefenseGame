@@ -137,13 +137,13 @@ The numbered phases below are the same journey with full detail and links.
     The backend REFUSES test keys in production by design.
 17. **One real purchase**: buy the $1.99 vial with a real card, verify delivery, then
     refund it from the Stripe dashboard (both sides of the money path proven live).
-18. **Paid random containers — regional compliance (HUMAN DECISION REQUIRED).** Checkout refuses SKUs that
-    grant random containers/gear from the countries in the Pages env var
-    `PAID_LOOTBOX_BLOCKED_COUNTRIES` (default `BE,NL`; see docs/PREMIUM-STORE.md §paid-loot-boxes), and
-    the store hides them. **Open legal question:** Ichor bought with money and then spent on containers
-    in-game is still arguably a paid loot box, and Ichor bundles are NOT gated by this switch. Get a legal
-    decision (gate Ichor in restricted regions / odds disclosure / remove the path) BEFORE launching live
-    payments in the EU.
+18. **Paid random content — regional compliance (decided; confirm with counsel).** In the countries
+    listed in the Pages env var `PAID_LOOTBOX_BLOCKED_COUNTRIES` (default `BE,NL`), checkout refuses
+    every SKU whose money could reach a random outcome — containers in the pack *or* a currency
+    spendable on them (Ichor, Cores, Essence, materials, the Season Pass) — and the store hides them.
+    With today's catalog that means **no real-money sales in BE/NL**; everything stays earnable in
+    play. Rationale and residual risks: docs/PREMIUM-STORE.md §paid-loot-boxes. Note for step 17: run
+    the real-card test purchase from outside a restricted country (it is refused with 451 inside one).
 
 ## Phase 5 — analytics, ads, SEO
 

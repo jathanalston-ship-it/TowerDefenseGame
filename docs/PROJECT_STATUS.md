@@ -15,7 +15,7 @@
 > content (`automationGate`), Threat ladder (10 rungs, cosmetic rewards, save v55). META: reveals
 > S4→S30 (≤2/beat, grandfathered), `rewardVisibility.ts` + Materials chip, 26 nav rows (host
 > tabs), auto-claim into Results, decision-only badges, Molt cadence pinned. PLATFORM: lazy hub
-> screens (boot JS 820 → ~517 KB gzip, offline precache), paid random-container region switch
+> screens (boot JS 820 → ~517 KB gzip, offline precache), BE/NL rule: no real money reaches a random outcome
 > (BE/NL), `npm run probe:first-session` (all budgets pass). Integration fixes: Field Guide
 > buttons clickable, contracts/Boss Rush previews honest, phone Hive lock, probes find the
 > preinstalled Chromium. VALIDATION: typecheck clean, 2730/2730 tests, mobilecheck CLEAN,
@@ -1127,8 +1127,11 @@ reactive integrity cell: UNDER ATTACK flag, ghost bar, ⚔ count, −DPS/s, surv
 - Hero abilities largely one-verb; roster of 3 caps team-comp depth (content, not systems).
 - Giant files: `src/core/game.ts`, `src/state/meta.ts`, `src/index.css` (ranked debt —
   `docs/ENGINEERING-AUDIT.md` §4).
-- Store compliance: Ichor bought with money and then spent on containers is not region-gated —
-  needs a human legal decision before launch (`docs/PREMIUM-STORE.md` §paid-loot-boxes).
+- Store compliance (decided 2026-11-04): in BE/NL real money never reaches a random outcome —
+  every SKU granting a container or a currency spendable on one is refused/hidden
+  (`offerReachesChance`), so nothing is sold for money there today. Counsel should confirm before
+  live payments; residual risk: Ichor bought abroad isn't segregated (`docs/PREMIUM-STORE.md`
+  §paid-loot-boxes).
 - Full-spender accounts still clear Campaign Stages 1–3 at 98–100 % integrity (the 60–90 % band
   holds for the playtest persona — `src/state/campaignCurve.test.ts`).
 - Dead width-based in-run CSS remains in `src/index.css` under run layout v2.

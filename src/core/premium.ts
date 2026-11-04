@@ -379,3 +379,70 @@ export const GRANT_RANDOM_CONTENT: Record<PremiumGrant['grant'], boolean> = {
 export function offerHasRandomContent(offer: PremiumOfferDef): boolean {
   return offer.grants.some((g) => GRANT_RANDOM_CONTENT[g.grant]);
 }
+
+// ── Chance exposure — the restricted-region rule (docs/PREMIUM-STORE.md §paid-loot-boxes) ──
+// THE RULE: in a restricted region real money must never reach a random outcome — not in the box
+// (a container in a pack) and not one step removed (Ichor bought with money, then spent on a
+// container, a reroll or a wheel). That is the Belgian Gaming Commission's reading (2018): a loot
+// box bought with in-game currency that can itself be bought with money is a paid loot box.
+// Whether an offer reaches chance is DERIVED from two tables below, never a hand SKU list.
+
+/** The currencies a premium grant can put in a wallet (a pass is its own key: the track pays). */
+export type StakeCurrency = 'ichor' | 'cores' | 'geneEssence' | 'mats' | 'towerShards' | 'heroShards' | 'rushStamina' | 'seasonPass';
+
+/** Every meta-game sink where a currency buys a RANDOM outcome. Adding a random sink = one row
+ *  here — the region rule then covers it (premium.test pins the rows to the live code). */
+export const RANDOM_SINKS: readonly { id: string; pays: StakeCurrency; what: string }[] = [
+  { id: 'market.container', pays: 'ichor', what: 'Splice Market Bio-Container (contents rolled at the crack)' },
+  { id: 'market.equipment', pays: 'ichor', what: 'Splice Market gear (the concrete piece rolls at purchase)' },
+  { id: 'mulligan.reforge', pays: 'ichor', what: 'Mulligan reforge wheel (meta.reforgeMulligan)' },
+  { id: 'cosmetic.cultivate', pays: 'geneEssence', what: 'Cultivate a random unowned phenotype (meta.cultivateCosmetic)' },
+  { id: 'equipment.reforge', pays: 'mats', what: 'Armory reroll / reforge / randomize / upgrade (meta.reforgeOp)' },
+  { id: 'pass.track', pays: 'seasonPass', what: 'Season Pass premium track Bio-Containers' },
+];
+
+/** Every way one stake currency buys another — the indirect paths money could take. */
+export const CURRENCY_PATHS: readonly { from: StakeCurrency; to: StakeCurrency; via: string }[] = [
+  { from: 'ichor', to: 'cores', via: 'Ichor Exchange' },
+  { from: 'ichor', to: 'geneEssence', via: 'Ichor Exchange · Splice Market' },
+  { from: 'ichor', to: 'mats', via: 'Ichor Exchange (Scrap)' },
+  { from: 'ichor', to: 'towerShards', via: 'Splice Market' },
+  { from: 'ichor', to: 'heroShards', via: 'Splice Market' },
+  { from: 'ichor', to: 'rushStamina', via: 'Splice Market stamina pack' },
+  { from: 'ichor', to: 'seasonPass', via: 'Season Pass Ichor unlock + level skips' },
+  { from: 'cores', to: 'mats', via: 'Splice Market core tier (Scrap)' },
+  { from: 'cores', to: 'geneEssence', via: 'Splice Market core tier' },
+  { from: 'cores', to: 'towerShards', via: 'Splice Market core tier' },
+  { from: 'cores', to: 'heroShards', via: 'Splice Market core tier' },
+  { from: 'seasonPass', to: 'ichor', via: 'premium track Ichor rewards' },
+];
+
+/** What each premium grant puts in the player's hands: a random draw outright, or a currency. */
+export const GRANT_STAKE: Record<PremiumGrant['grant'], StakeCurrency | 'random'> = {
+  container: 'random', runCache: 'random', equipment: 'random',
+  ichor: 'ichor', cores: 'cores', geneEssence: 'geneEssence', mats: 'mats',
+  towerShardsAll: 'towerShards', heroShardsAll: 'heroShards',
+  rushStamina: 'rushStamina', // buys Boss Rush entries — a skill mode whose drops are earned in play
+  battlePassPremium: 'seasonPass',
+};
+
+/** Can this currency reach a random outcome, directly or through any chain of conversions? */
+export function currencyReachesChance(c: StakeCurrency): boolean {
+  const seen = new Set<StakeCurrency>([c]);
+  const queue: StakeCurrency[] = [c];
+  while (queue.length > 0) {
+    const cur = queue.shift() as StakeCurrency;
+    if (RANDOM_SINKS.some((r) => r.pays === cur)) return true;
+    for (const p of CURRENCY_PATHS) if (p.from === cur && !seen.has(p.to)) { seen.add(p.to); queue.push(p.to); }
+  }
+  return false;
+}
+
+/** True when real money spent on this offer could end in a random outcome — the SKUs a
+ *  restricted region never sells (server checkout refuses them; the store hides them). */
+export function offerReachesChance(offer: PremiumOfferDef): boolean {
+  return offer.grants.some((g) => {
+    const stake = GRANT_STAKE[g.grant];
+    return stake === 'random' || currencyReachesChance(stake);
+  });
+}

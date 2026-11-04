@@ -1,5 +1,7 @@
-// Paid random-container region switch (docs/PREMIUM-STORE.md §paid-loot-boxes): the derived
-// per-offer property, the checkout refusal by Cloudflare country, and the /api/config flag.
+// Paid random-content region switch (docs/PREMIUM-STORE.md §paid-loot-boxes): the derived
+// per-offer properties, the checkout refusal by Cloudflare country, and the /api/config flag.
+// The checkout gate uses offerReachesChance — a container in the pack OR a currency that can be
+// spent on one (Ichor) — so in a restricted region real money never reaches a random outcome.
 
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { onRequestPost as checkout } from './api/store/checkout';
@@ -7,11 +9,11 @@ import { onRequestGet as configGet } from './api/config';
 import { blockedCountries, paidRandomContainersAllowed } from './lib/lootbox';
 import { ctx, makeEnv, postJson } from './lib/testkit';
 import type { Env } from './lib/env';
-import { GRANT_RANDOM_CONTENT, ICHOR_BUNDLES, PREMIUM_OFFERS, offerHasRandomContent, type PremiumGrant } from '../src/core/premium';
+import { GRANT_RANDOM_CONTENT, ICHOR_BUNDLES, PREMIUM_OFFERS, offerHasRandomContent, offerReachesChance, type PremiumGrant } from '../src/core/premium';
 
 const PLAYER = '11111111-2222-4333-8444-555555555555';
 const RANDOM_SKU = PREMIUM_OFFERS.find((o) => offerHasRandomContent(o))!;
-const SAFE_SKU = ICHOR_BUNDLES[1];
+const ICHOR_SKU = ICHOR_BUNDLES[1];
 
 function withCountry(req: Request, country: string | undefined): Request {
   if (country !== undefined) Object.defineProperty(req, 'cf', { value: { country } });
@@ -54,10 +56,23 @@ describe('POST /api/store/checkout — region gate', () => {
     }
     expect(f).not.toHaveBeenCalled();
   });
-  it('lets the same SKU through elsewhere, and never blocks Ichor-only SKUs', async () => {
+  it('lets the same SKU through elsewhere', async () => {
     stubStripeOk();
     expect((await tryCheckout(RANDOM_SKU.id, 'US', env())).status).toBe(200);
-    expect((await tryCheckout(SAFE_SKU.id, 'BE', env())).status).toBe(200);
+    expect((await tryCheckout(ICHOR_SKU.id, 'US', env())).status).toBe(200);
+  });
+  it('refuses Ichor bundles in BE/NL too — Ichor buys containers, so money would reach chance', async () => {
+    const f = vi.fn();
+    vi.stubGlobal('fetch', f);
+    expect(offerReachesChance(ICHOR_SKU)).toBe(true);
+    for (const c of ['BE', 'NL']) expect((await tryCheckout(ICHOR_SKU.id, c, env())).status).toBe(451);
+    expect(f).not.toHaveBeenCalled();
+  });
+  it('the gate follows offerReachesChance for every SKU in the catalog', async () => {
+    stubStripeOk();
+    for (const o of PREMIUM_OFFERS) {
+      expect((await tryCheckout(o.id, 'BE', env())).status, o.id).toBe(offerReachesChance(o) ? 451 : 200);
+    }
   });
   it('honours the env list (override, and "" = nowhere blocked)', async () => {
     stubStripeOk();

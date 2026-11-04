@@ -11,10 +11,10 @@ import type { PremiumReceipt } from '../state/meta';
 import { useGuestMode } from '../state/guestMode';
 import { audio } from '../audio/sound';
 import { CHECKOUT_PROVIDER, beginCheckout, takePendingReveal } from '../net/checkout';
-import { usePaidRandomVisible } from '../net/storeRegion';
+import { usePaidRandomVisible, useStoreRegionStatus } from '../net/storeRegion';
 import { trackEvent } from '../net/events';
 import {
-  ICHOR_BUNDLES, PERMANENT_PACKS, activeEventOffers, offerAvailable, offerHasRandomContent, offerValueIchor,
+  ICHOR_BUNDLES, PERMANENT_PACKS, activeEventOffers, offerAvailable, offerReachesChance, offerValueIchor,
   offerValueMultiple, seasonOfferFor, todaysRotatingOffer,
 } from '../core/premium';
 import type { PremiumGrant, PremiumOfferDef } from '../core/premium';
@@ -176,9 +176,11 @@ function RevealCeremony({ receipt, onClose }: { receipt: PremiumReceipt; onClose
 export function PremiumStore(): JSX.Element {
   const save = meta.use();
   const guest = useGuestMode();
-  // Region switch (docs/PREMIUM-STORE.md §paid-loot-boxes): SKUs with random containers are hidden where not allowed.
+  // Region switch (docs/PREMIUM-STORE.md §paid-loot-boxes): where restricted, real money never
+  // reaches a random outcome — every SKU that could (offerReachesChance) is hidden.
   const randomOk = usePaidRandomVisible();
-  const sellable = (o: PremiumOfferDef): boolean => randomOk || !offerHasRandomContent(o);
+  const regionStatus = useStoreRegionStatus();
+  const sellable = (o: PremiumOfferDef): boolean => randomOk || !offerReachesChance(o);
   const [confirm, setConfirm] = useState<PremiumOfferDef | null>(null);
   const [receipt, setReceipt] = useState<PremiumReceipt | null>(null);
   // Live clock: ticks the rotation countdown + flips the rotating slot at UTC midnight.
@@ -238,6 +240,15 @@ export function PremiumStore(): JSX.Element {
         </p>
       </header>
 
+      {!randomOk && (
+        <div className="ps-guestmode" role="note">
+          {regionStatus === 'blocked'
+            ? <>◌ Where you are, we don’t sell anything that includes randomized rewards — or a currency that can be
+              spent on them. Every container, Season Pass reward and piece of gear stays earnable in play, Ichor
+              included.</>
+            : <>◌ Confirming which offers are available in your region…</>}
+        </div>
+      )}
       {guest && (
         <div className="ps-guestmode" role="note">
           ◌ Guest Mode — purchases are disabled. Create an account in Settings to unlock the store
@@ -266,10 +277,12 @@ export function PremiumStore(): JSX.Element {
         {/* Pure availability only in render (offerPurchasable polls the pass window — a write):
             seasonOfferFor already picked the limit-eligible SKU, so "owned this window" is the
             one remaining gate here; the purchase pipeline re-checks strictly at buy time. */}
-        <OfferCard offer={seasonSku} hero
-          unavailable={guest || premiumOwned}
-          note={premiumOwned ? 'Premium active ✓' : seasonSku.audience}
-          onBuy={buy} />
+        {sellable(seasonSku)
+          ? <OfferCard offer={seasonSku} hero
+              unavailable={guest || premiumOwned}
+              note={premiumOwned ? 'Premium active ✓' : seasonSku.audience}
+              onBuy={buy} />
+          : <div className="ps-sandbox">Unlock the premium track with Ichor earned in play on the Season Pass screen.</div>}
       </div>
 
       {/* Today's limited pack + live events */}
@@ -286,6 +299,7 @@ export function PremiumStore(): JSX.Element {
       </div>
 
       {/* Permanent packs */}
+      {PERMANENT_PACKS.some(sellable) && <>
       <div className="ps-section-h">Permanent Packs <span className="ps-rot">once per account</span></div>
       <div className="ps-row">
         {PERMANENT_PACKS.filter(sellable).map((o) => {
@@ -293,12 +307,15 @@ export function PremiumStore(): JSX.Element {
           return <OfferCard key={o.id} offer={o} hero unavailable={guest || owned} note={owned ? 'Owned ✓' : o.audience} onBuy={buy} />;
         })}
       </div>
+      </>}
 
       {/* Ichor bundles */}
+      {ICHOR_BUNDLES.some(sellable) && <>
       <div className="ps-section-h">Ichor <span className="ps-rot">the black-market currency — spend it in the Splice Market</span></div>
       <div className="ps-grid">
-        {ICHOR_BUNDLES.map((o) => <OfferCard key={o.id} offer={o} unavailable={guest} onBuy={buy} />)}
+        {ICHOR_BUNDLES.filter(sellable).map((o) => <OfferCard key={o.id} offer={o} unavailable={guest} onBuy={buy} />)}
       </div>
+      </>}
 
       <p className="ps-foot">
         Purchased Genome Cores never count toward Prestige. Legendary and Exotic equipment are never sold directly —

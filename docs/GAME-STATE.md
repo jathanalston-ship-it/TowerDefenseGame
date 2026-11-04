@@ -1602,13 +1602,16 @@ platform). Per-system docs hold the detail; this is the map.
 **Platform (docs/DEPLOYMENT.md, docs/PREMIUM-STORE.md §paid-loot-boxes, docs/FIRST-SESSION-PROBE.md)**
 - Hub screens and run views are `React.lazy` via `ui/lazyNamed.ts`; boot JS 820 → ~503 KB gzip;
   the service worker precaches every emitted chunk (offline proven).
-- Paid random containers can be refused per region (`PAID_LOOTBOX_BLOCKED_COUNTRIES`, default
-  BE,NL; 451 at checkout; `/api/config` flag hides SKUs).
+- Restricted regions (`PAID_LOOTBOX_BLOCKED_COUNTRIES`, default BE,NL): real money never reaches a
+  random outcome — `offerReachesChance` (core/premium.ts) refuses at checkout (451) and hides every
+  SKU that grants a container OR a currency spendable on one (Ichor, Cores, Essence, materials, the
+  Season Pass). Today: no real-money sales in BE/NL; all play, containers included, is unchanged.
 - `npm run probe:first-session` replays a fresh first session against budgets and writes
   `docs/FIRST_SESSION_REPORT.md`.
 
 **Known limitations**
-- Ichor bought with money and spent on containers is not region-gated; needs a legal decision.
+- Region rule residual risk: Ichor bought outside BE/NL (or via VPN) is not segregated from earned
+  Ichor; counsel should confirm before live payments (docs/PREMIUM-STORE.md §paid-loot-boxes).
 - Full spenders still clear Stages 1–3 at 98–100% integrity (the 60–90% band holds for the
   playtest persona).
 - The Bio-Dex "Brood Tyrant" entry still counts every boss kill.

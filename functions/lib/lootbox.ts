@@ -1,5 +1,6 @@
-// Paid random-container region switch (docs/PREMIUM-STORE.md §paid-loot-boxes).
-// Some jurisdictions restrict real-money purchases of random-content containers. The country
+// Paid random-content region switch (docs/PREMIUM-STORE.md §paid-loot-boxes).
+// In a restricted region real money must never reach a random outcome — directly (a container in
+// the pack) or through a currency it buys (core/premium.ts offerReachesChance). The country
 // comes from Cloudflare (`request.cf.country`, ISO 3166-1 alpha-2) and is checked SERVER-SIDE at
 // checkout (authoritative) and reported by GET /api/config (so the store can hide the SKUs).
 //
@@ -24,7 +25,7 @@ export function requestCountry(request: Request): string | null {
   return /^[A-Z]{2}$/.test(up) && up !== 'XX' && up !== 'T1' ? up : null;
 }
 
-/** May THIS caller buy SKUs that contain random-content containers? */
+/** May THIS caller buy SKUs that reach a random outcome (offerReachesChance)? */
 export function paidRandomContainersAllowed(request: Request, env: Env): boolean {
   const country = requestCountry(request);
   if (country === null) return env.ENVIRONMENT !== 'production';
