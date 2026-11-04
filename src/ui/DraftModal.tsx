@@ -140,11 +140,14 @@ export function DraftModal({
   onReroll,
   chosen,
   kind = 'wave',
+  owedAfter = 0,
 }: {
   options: CardOption[];
   clearedWave?: number;
   /** Why this draft opened (docs/CARDS.md): a cleared wave, the run's OPENING draft, or a SPLICE. */
   kind?: 'wave' | 'opening' | 'splice';
+  /** EARLY CALL: drafts still owed after this one (called-over waves' cards, dealt back to back). */
+  owedAfter?: number;
   onPick: (id: string) => void;
   /** Tutorial: the draft lesson must be a confirmed player choice — never the auto countdown. */
   forceManual?: boolean;
@@ -288,7 +291,7 @@ export function DraftModal({
           ? <div className="wave-cleared">◆ OPENING DRAFT ◆</div>
           : kind === 'splice'
             ? <div className="wave-cleared draft-splice-eyebrow">◆ SPLICE · EXTRA DRAFT ◆</div>
-            : clearedWave ? <div className="wave-cleared">◆ WAVE {clearedWave} CLEARED ◆</div> : null}
+            : clearedWave ? <div className="wave-cleared">◆ WAVE {clearedWave} CLEARED ◆{owedAfter > 0 && <span className="draft-owed"> +{owedAfter} more owed — waves you called early</span>}</div> : null}
         <h2>{kind === 'opening' ? 'CHOOSE YOUR OPENING GENE' : 'DRAFT A GENE CARD'}</h2>
         <p className="draft-sub">
           {kind === 'opening' ? 'Pick the gene this run builds around — ' : 'Powers this run only — '}press <kbd>1</kbd>–<kbd>{options.length}</kbd> or <kbd>Enter</kbd> for the pick.

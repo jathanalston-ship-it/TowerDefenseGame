@@ -1439,6 +1439,7 @@ export function GameView({
             options={hud.draft}
             clearedWave={hud.wave}
             kind={hud.draftKind}
+            owedAfter={hud.draftsOwed ?? 0}
             forceManual={!!tutorial || !automation.allowed}
             rerollCost={hud.draftRerollCost}
             biomass={hud.biomass}

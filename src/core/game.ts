@@ -8458,6 +8458,7 @@ export class Game {
       // (docs/CARDS.md §language) — so the generated text and comparison math never lie.
       draft: this.draft ? this.draftOffers(this.draft) : null,
       draftKind: this.draftKind,
+      draftsOwed: this.draftsOwed,
       spliceCost: this.spliceOn && this.phase === 'prep' && !this.tutorialMode && this.dailyFx.draftEveryWaves <= 0 ? this.spliceCost() : -1,
       // §reroll: the open draft's one paid re-deal — price, or -1 once used / in the tutorial.
       draftRerollCost: this.phase === 'draft' && this.draft !== null && !this.draftRerolled && !this.tutorialMode ? this.rerollCost() : -1,
