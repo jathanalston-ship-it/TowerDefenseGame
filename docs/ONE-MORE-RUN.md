@@ -130,7 +130,11 @@ minted), and the list shrank from 8 goals to 3 by stage 80. Now:
   vow product)`, ETA at the RUN-Core rate — the mint counts run pay only) and the stage gate — it
   never disappears while a Molt is ahead, and a ready Molt surfaces as "ready now".
 - **One achievement-ladder goal** (the nearest rung, docs/PROGRESSION-SYSTEMS.md §ladders) keeps
-  the board populated at every depth.
+  the board populated at depth — only when that rung is ≤ `INCOME.ladderGoalRuns` (40) runs away, so
+  an early account never sees a rung hundreds of runs out (or on a mode it hasn't opened). Found by
+  the Batch G integration media pass: a Stage-2 Home listed "Abyssal Record I · ~235 runs".
+- **Printed ETAs stop at `INCOME.etaCap` (60):** past it a goal reads "a long road" — the estimate
+  is too soft to print as a number that far out, and a 3-digit count discourages more than it informs.
 
 **The income ledger** (`save.income`, v56): at every settle `meta.finishRun` reads every meter
 (`INCOME_METERS` — lifetime Cores, cleared stage, ln peak Power, play-seconds, kills, damage,

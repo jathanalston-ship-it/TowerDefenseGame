@@ -109,6 +109,7 @@ bug-hunt pass (scope, method, verdict) so "we looked" is auditable.
 | 97 | The Results cliffhanger promised "one more run" for goals ~48 h away. | Goals were sorted by raw progress %, not by time. | A per-run income ledger (state/income.ts) gives every goal an ETA in runs; goals sort by ETA and "one more run" needs ETA ≤ `INCOME.honestRuns`. Found by the G2 audit, fixed by GM1. |
 | 98 | The Daily Bio-Cache showed "≈6◆". | The value was in Infinite-value units but drawn with the Genome Core glyph. | The cache has a guaranteed Cores line scaled to live income and shows its value in Cores. Found by the G2 audit, fixed by GM1. |
 | 99 | A veteran's first run after achievement ladders shipped played ~17 achievement spotlights one by one. | Every ladder rung crossed in one settle was its own Results line. | `collapseLadderRungs` folds each family into its top rung with "· N rungs" and the summed reward (4 lines instead of 17 on the stage-80 seed save). Found in the Batch G integration live run. |
+| 100 | A Stage-2 account's Home goal list showed "Abyssal Record I — 151 more Infinite Depth · ~235 runs" (Infinite still sealed) and "Twin Avatar · ~161 runs". | The achievement-ladder goal was always added (its nearest rung, however far), and ETAs printed up to 999 runs. | A ladder goal joins only within `INCOME.ladderGoalRuns` (40) runs; ETAs past `INCOME.etaCap` (60) read "a long road". Found by the Batch G website media pass. |
 
 ---
 

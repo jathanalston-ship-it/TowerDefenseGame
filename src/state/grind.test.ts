@@ -119,6 +119,8 @@ describe('income ledger (docs/ONE-MORE-RUN.md §eta)', () => {
     expect(etaLabel(1)).toBe('next run');
     expect(etaLabel(14)).toBe('~14 runs');
     expect(etaLabel(Infinity)).toBe('a long road');
+    expect(etaLabel(INCOME.etaCap)).toBe(`~${INCOME.etaCap} runs`);
+    expect(etaLabel(INCOME.etaCap + 1)).toBe('a long road'); // no 3-digit run counts on the board
     expect(isOneMoreRun(2)).toBe(true);
     expect(isOneMoreRun(3)).toBe(false);
   });
@@ -168,6 +170,17 @@ describe('honest goals (docs/ONE-MORE-RUN.md §eta)', () => {
       income: { runs: 20, last: {}, rate: { cores: 700, kills: 900 } },
     };
     expect(nextGoals(s, 99).filter((g) => g.kind === 'achievement').length).toBe(1);
+  });
+
+  it('a ladder rung far out never joins the board — an early account sees no ladder goal (INCOME.ladderGoalRuns)', () => {
+    const s: SaveData = {
+      ...defaultSave(),
+      campaign: { cleared: { standard: 2 }, bestTime: {} },
+      totalRuns: 300, // the Profile wing is open, so only the distance gate can hold the ladder back
+      stats: { ...defaultLifetimeStats(), lifetimeKills: 2_000 },
+      income: { runs: 20, last: {}, rate: { kills: 300, bestWave: 0 } },
+    };
+    expect(nextGoals(s, 99).some((g) => g.id.startsWith('ladder:'))).toBe(false);
   });
 });
 

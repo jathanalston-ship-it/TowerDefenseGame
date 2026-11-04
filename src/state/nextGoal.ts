@@ -26,7 +26,7 @@ import {
 import { composePower } from '../core/power';
 import { isOpenNav, nextReveals } from './unlocks';
 import type { UnlockCondition } from './unlocks';
-import { etaLabel, runsToGain, runsToStage } from './income';
+import { INCOME, etaLabel, runsToGain, runsToStage } from './income';
 import { ladderGoals } from './achievements';
 
 /** One imminent reward the player is close to earning. `progress` is 0..1 toward it. */
@@ -225,7 +225,7 @@ export function nextGoals(save: SaveData, limit = 6): NextGoal[] {
     };
     if (!bestLadder || g.etaRuns < bestLadder.etaRuns || (g.etaRuns === bestLadder.etaRuns && g.progress > bestLadder.progress)) bestLadder = g;
   }
-  if (bestLadder) goals.push(bestLadder);
+  if (bestLadder && bestLadder.etaRuns <= INCOME.ladderGoalRuns) goals.push(bestLadder);
 
   // §eta: NEAREST first — by honest run ETA at the live income; ties by progress, then kind
   // priority (a near unlock beats a near collection). Raw progress alone overpromised: a 90%-full

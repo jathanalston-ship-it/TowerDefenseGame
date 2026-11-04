@@ -28,8 +28,13 @@ export const INCOME = {
   priorRuns: 3,
   /** "One more run" copy is only allowed at or under this ETA (the honesty contract). */
   honestRuns: 2,
-  /** ETAs past this read as "a long road" — no fake precision on a 4-digit run count. */
-  etaCap: 999,
+  /** ETAs past this read as "a long road" — past a few sessions the estimate is too soft to print as a
+   *  number, and a 3-digit run count on a fresh account discourages more than it informs. */
+  etaCap: 60,
+  /** An achievement-LADDER goal joins the goal board only when its rung is at most this many runs
+   *  away: ladders exist to keep the board alive AT DEPTH, never to fill a new player's list with a
+   *  rung hundreds of runs out (or on a mode they haven't opened — its meter has no income yet). */
+  ladderGoalRuns: 40,
 } as const;
 
 export interface IncomeMeter {
