@@ -133,6 +133,8 @@ describe('nav badge (Task 12 audit) — the Archive lights up when an upgrade is
     seed(); // fresh save: starters owned but broke ⇒ no badge
     expect(notifications.badges(meta.get()).genes).toBeUndefined();
     seed({ stats: { ...defaultSave().stats, uniqueCards: [card.id] }, geneEssence: 999 });
+    expect(notifications.badges(meta.get()).genes).toBeUndefined(); // the Archive is still SEALED (stage 4) — no badge for a hidden wing
+    seed({ stats: { ...defaultSave().stats, uniqueCards: [card.id] }, geneEssence: 999, director: { revealed: { genes: 0 }, visits: {} } });
     expect(notifications.badges(meta.get()).genes).toBe(STARTER_GENES.length); // every discovered card is now buyable
     notifications.markSeen('genes', meta.get());
     expect(notifications.badges(meta.get()).genes).toBeUndefined(); // acknowledged

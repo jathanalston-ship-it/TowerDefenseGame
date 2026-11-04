@@ -13,6 +13,8 @@ import { music } from '../audio/music';
 import { AudioToggles } from './components/AudioToggles';
 import { ACCOUNT_CURRENCY } from '../core/currencies';
 import { WalletChip } from './components/WalletChip';
+import { MaterialsChip } from './components/MaterialsChip';
+import { AutoClaimToggle } from './components/AutoClaimSummary';
 import { CeremonyLayer } from './components/CeremonyLayer';
 import { autoGenePref, setAutoGenePref } from '../state/prefs';
 import { notifications } from '../state/notifications';
@@ -163,6 +165,7 @@ function SettingsScreen({ onReplayTutorial, onReplayTour, onReplayIntro }: { onR
               {autoGene ? 'On' : 'Off'}
             </button>
           </label>
+          <AutoClaimToggle />
           <label className="set-toggle">
             <span>Gameplay Analytics<small>Anonymous usage data (balance &amp; stability). No names, no personal info — ever.</small></span>
             <button className={`set-switch ${telem ? 'on' : ''}`} onClick={toggleTelem} aria-pressed={telem}>
@@ -520,13 +523,8 @@ export function Hub({
           <WalletChip cur="genomeCores" value={save.shards} label={ACCOUNT_CURRENCY.name} />
           {featureRevealed(save, 'cur:ichor') && <WalletChip cur="ichor" value={save.ichor} label="Ichor" />}
           {featureRevealed(save, 'cur:cells') && <WalletChip cur="ascendantCells" value={cells} label="Cells" />}
-          {/* A triple-zero mats chip is pure top-bar noise — the wallet reappears with the
-              first drop (docs/INFO-HIERARCHY.md §3: numbers only when a decision needs them). */}
-          {featureRevealed(save, 'cur:mats') && save.mats.mutagen + save.mats.scrap + save.mats.catalyst > 0 && (
-            <span className="hub-cur" data-cur="mats" title="Materials — Mutagen · Scrap · Catalyst (Armory crafting)">
-              ⊕ {save.mats.mutagen} · ◳ {save.mats.scrap} · ✷ {save.mats.catalyst} <span className="hub-cur-l">Materials</span>
-            </span>
-          )}
+          {/* ONE Materials chip for every secondary crafting wallet (docs/ECONOMY.md §player-facing). */}
+          {featureRevealed(save, 'cur:mats') && <MaterialsChip save={save} />}
         </header>
 
         <section

@@ -309,10 +309,13 @@ describe('the nav badge', () => {
     expect(notifications.badges(meta.get()).quests).toBeUndefined(); // fresh: nothing claimable
     meta.creditQuests({ type: 'containers', n: 3 }, T0); // earns crack (weekly) + larder (main)
     notifications.sync(meta.get());
-    expect(notifications.badges(meta.get()).quests).toBe(2);
+    expect(notifications.badges(meta.get()).quests).toBeUndefined(); // board still SEALED (stage 7): no badge for a hidden wing
+    // The board reveals (a latched reveal — docs/PROGRESSION-GATING.md §latch):
+    const open = (s: SaveData): SaveData => ({ ...s, director: { ...s.director, revealed: { ...s.director.revealed, quests: 0 } } });
+    expect(notifications.badges(open(meta.get())).quests).toBe(2);
     meta.claimQuestMission('wk_red_harvest:crack', T0); // claiming drops the count itself
-    expect(notifications.badges(meta.get()).quests).toBe(1);
-    notifications.markSeen('quests', meta.get()); // viewing the board acknowledges the rest
-    expect(notifications.badges(meta.get()).quests).toBeUndefined();
+    expect(notifications.badges(open(meta.get())).quests).toBe(1);
+    notifications.markSeen('quests', open(meta.get())); // viewing the board acknowledges the rest
+    expect(notifications.badges(open(meta.get())).quests).toBeUndefined();
   });
 });

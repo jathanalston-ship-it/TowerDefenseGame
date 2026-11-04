@@ -6,6 +6,7 @@
 
 import { useEffect, useState } from 'react';
 import { meta } from '../../state/meta';
+import { rewardVisible } from '../../state/rewardVisibility';
 import type { AccountLevelUp } from '../../state/meta';
 import { ACCOUNT_TITLE_BY_ID } from '../../core/accountLevel';
 import type { AccountLevelReward } from '../../core/accountLevel';
@@ -15,13 +16,15 @@ import { audio } from '../../audio/sound';
  *  Shard grants BANK even on max-Star units (Prime fuel — docs/PRIME-STRAINS.md §economy). */
 export function rewardLine(r: AccountLevelReward): string {
   const parts: string[] = [];
+  // Kinds whose system hasn't revealed bank silently (state/rewardVisibility.ts — never named early).
+  const vis = (k: string): boolean => rewardVisible(meta.get(), k);
   if (r.cores > 0) parts.push(`+${r.cores} Cores`);
-  if (r.essence > 0) parts.push(`+${r.essence} Essence`);
+  if (r.essence > 0 && vis('geneEssence')) parts.push(`+${r.essence} Essence`);
   if (r.towerShards > 0) parts.push(`+${r.towerShards} Strain Samples`);
   if (r.heroShards > 0) parts.push(`+${r.heroShards} Apex Genome`);
   const mats = r.mats.mutagen + r.mats.scrap + r.mats.catalyst;
-  if (mats > 0) parts.push(`+${mats} Materials`);
-  if (r.ichor > 0) parts.push(`+${r.ichor} Ichor`);
+  if (mats > 0 && vis('mutagen')) parts.push(`+${mats} Materials`);
+  if (r.ichor > 0 && vis('ichor')) parts.push(`+${r.ichor} Ichor`);
   if (r.containers.length > 0) parts.push(`${r.containers.length} Bio-Container${r.containers.length > 1 ? 's' : ''}`);
   if (r.titleId) parts.push(`Title: ${ACCOUNT_TITLE_BY_ID.get(r.titleId)?.name ?? r.titleId}`);
   return parts.join(' · ');

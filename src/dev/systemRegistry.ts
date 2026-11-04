@@ -293,7 +293,7 @@ export const SYSTEMS: SystemDef[] = [
   },
   {
     id: 'currencies', name: 'Currencies & Economy Framework', purpose: 'Currency identities (icon/color/tooltip/format) + the adaptive economy framework: one factor-traced income composition per currency, adaptive seams (ACTIVE 2026-07 — catch-up/ahead-taper on the frontier power gap, clamped, onboarding-floored), health guards. LOCALIZED ECONOMY (v48, docs/ECONOMY.md §localized): every CurrencyDef declares its ONE spend domain + ≥2 earn sources, machine-enforced by currencyProblems() (unique names/colors, one specialized wallet per system, prestige exempt as the single-faucet mint). Chitin (hiveMaterials) grows Hive-Production organs — guaranteed hopper top-slice (IDLE.hiveMatsShare, value SHIFTED not added) + scavenge-expedition lanes value-swapped from cores; Mulligan Tissue (mulliganTissue) upgrades/ascends tower grafts — dupe dissolves (old essence numbers 1:1) + even premium-bleed split + hopper trickle (weight carved from essence). Ichor reforge + Hive-Construction composite recipes + Nucleus/Symbiote essence sinks deliberately NOT converted. Pace parity pinned by scripts/sim-localized-economy.ts.',
-    files: ['src/core/currencies.ts', 'src/core/economyDirector.ts', 'src/ui/components/CurrencyIcon.tsx'],
+    files: ['src/core/currencies.ts', 'src/core/economyDirector.ts', 'src/ui/components/CurrencyIcon.tsx', 'src/state/rewardVisibility.ts', 'src/ui/components/MaterialsChip.tsx'],
     dependsOn: ['content-infra'], powerScore: null, save: ['hiveMaterials', 'mulliganTissue'], tutorial: [], help: ['gene-essence'], hud: ['top resource bar'], ui: ['CurrencyIcon (everywhere)'],
     collection: null, achievements: [], localization: 'inline-en', docs: ['docs/ECONOMY.md', 'docs/LEXICON.md', 'docs/ECONOMY_FORMULAS.md'],
   },
@@ -446,7 +446,7 @@ export const SYSTEMS: SystemDef[] = [
   },
   {
     id: 'notifications', name: 'Notifications', purpose: 'Generic menu badges (registered count(save) sources per nav channel) + the global claim popup every hub claim receipts through.',
-    files: ['src/state/notifications.ts', 'src/state/notificationSources.ts', 'src/state/rewardToast.ts', 'src/state/recommendations.ts', 'src/state/readyChain.ts', 'src/state/hiveIntel.ts', 'src/ui/components/RewardToaster.tsx', 'src/ui/components/CeremonyLayer.tsx', 'src/ui/components/WalletChip.tsx', 'src/ui/HubLanding.tsx'],
+    files: ['src/state/notifications.ts', 'src/state/notificationSources.ts', 'src/state/rewardToast.ts', 'src/state/recommendations.ts', 'src/state/readyChain.ts', 'src/state/hiveIntel.ts', 'src/ui/components/RewardToaster.tsx', 'src/ui/components/CeremonyLayer.tsx', 'src/ui/components/WalletChip.tsx', 'src/ui/HubLanding.tsx', 'src/state/autoClaim.ts', 'src/ui/components/AutoClaimSummary.tsx'],
     dependsOn: ['meta-store'], powerScore: null, save: [], tutorial: [], help: ['hive-intel'], hud: ['nav badges'], ui: ['Hub (badges)', 'RewardToaster (claim popups)'],
     collection: 'collection channel badge', achievements: [], localization: 'inline-en', docs: ['docs/NOTIFICATIONS.md', 'docs/HIVE-INTEL.md'],
   },

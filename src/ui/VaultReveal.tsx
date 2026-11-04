@@ -40,6 +40,7 @@ import { formatPower } from '../core/power';
 import { cardRegistry } from '../core/cards';
 import { archiveCompletion } from '../core/geneDiscovery';
 import { meta } from '../state/meta';
+import { visibleChests } from '../state/rewardVisibility';
 import { audio } from '../audio/sound';
 import { CurrencyIcon } from './components/CurrencyIcon';
 import { PowerDelta } from './components/PowerDelta';
@@ -167,7 +168,9 @@ export function VaultReveal({
   remaining?: number; // containers still stockpiled → the "Open More (N)" CTA
   compareEquip?: (item: OwnedItem) => PowerCompare; // equipment ▲/▼/= vs the selected hero's gear
 }): JSX.Element {
-  const chests = useMemo(() => (Array.isArray(chest) ? chest : [chest]), [chest]);
+  // Player-facing gate (state/rewardVisibility.ts): pulls whose system hasn't revealed yet
+  // banked silently — the ceremony shows only what the player can already use.
+  const chests = useMemo(() => visibleChests(meta.get(), Array.isArray(chest) ? chest : [chest]), [chest]);
   const model = useMemo(() => buildReveal(chests, compareEquip), [chests, compareEquip]);
   const specimens = useMemo(() => buildSpecimens(model), [model]);
   const grid = useMemo(() => revealGrid(model.count), [model.count]);

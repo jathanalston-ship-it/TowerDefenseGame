@@ -6100,6 +6100,12 @@ kbd {
    claim point; flights arc from claim → wallet. All decorative, all reduced-motion-gated. ── */
 .hub-cur.is-gaining { color: var(--gold); }
 .hub-cur.is-bumped { animation: cur-bump 0.45s ease; }
+/* The ONE Materials chip (ui/components/MaterialsChip.tsx) — total + tap-to-open breakdown. */
+.mats-chip { position: relative; }
+.mats-chip-btn { display: inline-flex; align-items: center; gap: 6px; min-height: 32px; padding: 0 4px; background: none; border: 0; color: inherit; font: inherit; cursor: pointer; }
+.mats-chip-pop { position: absolute; top: calc(100% + 6px); right: 0; z-index: 30; display: flex; flex-direction: column; gap: 6px; min-width: 180px; padding: 10px 12px; }
+.mats-chip-row { display: flex; align-items: center; gap: 8px; white-space: nowrap; }
+.mats-chip-row b { margin-left: auto; color: var(--text); }
 @keyframes cur-bump {
   0% { transform: scale(1); filter: none; }
   35% { transform: scale(1.16); filter: drop-shadow(0 0 8px var(--gold)); }
@@ -7776,6 +7782,18 @@ kbd {
 .wm-doc { color: var(--viral); border-color: color-mix(in srgb, var(--viral) 32%, transparent); }
 .wm-vow { color: #e6a2ff; border-color: color-mix(in srgb, #e6a2ff 34%, transparent); letter-spacing: 0.08em; }
 .rr-doctrine { margin-top: 6px; font-size: 12px; font-weight: 700; letter-spacing: 0.12em; color: var(--viral); opacity: 0.9; }
+/* AUTO-CLAIM row (ui/components/AutoClaimSummary.tsx) — the ONE "Also earned" line that replaces
+   a badge per claim screen; sits under the verdict so it lands even when Continue is pressed early. */
+.rr-autoclaim {
+  display: flex; flex-wrap: wrap; align-items: baseline; justify-content: center; gap: 4px 10px;
+  margin: 10px auto 0; padding: 7px 12px; max-width: 100%;
+  border: 1px solid color-mix(in srgb, var(--gold) 35%, var(--line)); border-radius: var(--r-md);
+  background: color-mix(in srgb, var(--gold) 7%, var(--panel-2));
+  font-size: 12px; letter-spacing: normal; text-transform: none; text-shadow: none;
+}
+.rr-autoclaim-k { font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: var(--gold); }
+.rr-autoclaim-v { color: var(--text); font-weight: 600; }
+.rr-autoclaim-n { flex-basis: 100%; text-align: center; color: var(--dim); font-size: var(--fs-2xs); }
 
 /* ── MOLT VOWS — the wager rail in the Molt Chamber (docs/VOWS.md) ── */
 .molt-vows { margin-top: 12px; padding: 10px 12px; border-radius: var(--r-md); border: 1px solid color-mix(in srgb, #e6a2ff 28%, var(--line)); background: color-mix(in srgb, #e6a2ff 5%, var(--panel-2)); display: flex; flex-direction: column; gap: 7px; }

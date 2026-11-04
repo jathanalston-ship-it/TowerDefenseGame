@@ -92,6 +92,63 @@ from the same rows (Home / Battle / Rewards / Evolve / More — loop order).
   spotlight `[data-hub]` doors (`nav` field keeps the reveal gate), and the mobilecheck
   desktop sweep walks door → landing → `[data-nav]` card.
 
+### Folded screens (2026-11 — "decisions, not destinations")
+
+Five side screens are no longer nav rows; they are **tabs inside a host screen**
+(`FOLDED_NAVS` in `src/ui/navModel.ts` — the single fold table): **Hive Production** and
+**Expedition Command** → The Hive · **Milestones** (metabolism) → the Quest Board · **Specimen
+Vault** → the Phenotype Lab (the wardrobe the stock binds into) · **Gear Codex** → the Armory.
+The nav lists 26 destinations instead of 31.
+
+- **Every NavKey still deep-links.** `Hub.go('harvest')` resolves `hostOf('harvest') = 'hive'`,
+  calls `requestHostTab('harvest')` and opens The Hive on its Production tab — What's New CTAs,
+  reward-toast jumps, the Ready Chain, guided unlocks and Command Center CTAs keep working
+  unchanged. A request while the host is already on screen switches the tab live.
+- **Tab hosting lives in the host component**, not in Hub's render switch: each host renders
+  `<HostedScreen host="hive" views={{ hive, harvest, expeditions }} />`
+  (`src/ui/components/HostTabs.tsx`, shared `.wing-tabs` styling). A folded tab keeps its own
+  unlock-registry row, so it reveals on its own beat; the next unrevealed tab shows locked.
+- **Badges/pulses roll up to the host** (`foldCounts` / `foldLines`, and the Ready Chain set is
+  mapped through `hostOf`): a ripe Production tab badges The Hive; the tab itself carries the
+  count. Visiting a tab acknowledges its channel and feeds the exposure ledger.
+- Folded keys never spend a nav TEASER slot (they tease inside their host).
+- Contracts: `navModel.test.ts` (26 rows, every fold resolves to a real host in the same hub and
+  portrait tab, Hub renders no folded key, each host mounts `HostedScreen`).
+
+## §decisions — a badge means a decision (2026-11)
+
+A badge exists only where the player has a **decision** to make: an affordable upgrade
+(tower Stars, gene upgrades, Hive organs), an unopened container (Vault, Daily Bio-Cache), a
+pending choice (unspent Antigen, unclaimed specimens, expedition returns, Front actions, an
+Evolution Track ready to EVOLVE), a **free gear upgrade** (`heroes.equipment` now counts the
+equip advisor's Power-raising swaps, not every piece in the rack). Removed as non-decisions:
+`profile.achievements` (auto-granted, already toasted), `collection.discovered` /
+`collection.memories` (view counts), `store.rotation` (a daily "unseen" nag).
+
+**Sealed screens never badge.** `notificationSources` installs a channel gate
+(`setChannelGate`): a channel whose screen hasn't revealed (docs/PROGRESSION-GATING.md) counts
+0 in `badges()`, `reasons()` and `live()`, so a hidden system never nags (the old portrait tab
+bar summed hidden screens' badges) and its backlog surfaces at the reveal.
+
+## §auto-claim — chores settle themselves at run end (2026-11)
+
+`state/autoClaim.ts` (`autoClaimSettled`) claims every **no-choice** reward on a REVEALED
+system when a run settles: Quest Board missions (weekly + the active chapter), Season Pass
+levels (exactly `claimAllPass`), Metabolism milestones, live-event track milestones (the event
+SHOP stays a decision), Mastery Evolution Track nodes. The
+batch runs inside `rewardToast.capture()` — no toast per claim — and reads back as **ONE
+"Also earned" row** under the Results verdict (`ui/components/AutoClaimSummary.tsx`, mounted
+with one line; it settles once per run result, so a remount never claims twice).
+
+- **Big moments keep a ceremony:** quest FINALES (story cutscene + exclusive cosmetic) and
+  Evolution "EVOLVE" stay manual (their badges remain — they are the decision), and any
+  tier-3 (legendary-takeover) reward still placards.
+- **Backlogs land at the reveal:** quest progress, pass XP and milestones accrue from run 1;
+  the first settle after their screen reveals claims the whole bank in one row.
+- **Settings → Auto-Claim Rewards** (`prefs.autoClaimPref`, default ON, device-local) turns it
+  off; every claim is then a manual tap with its badge, exactly as before.
+- Every claim goes through the normal guarded meta APIs (security registry budgets unchanged).
+
 ## §reasons — smart notifications say WHY
 
 `NotificationSource.reason?: (save, unseen) => string` gives every badge a human phrase —

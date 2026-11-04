@@ -38,6 +38,18 @@ export interface NotificationSource {
 
 const sources: NotificationSource[] = [];
 
+// ── Channel gate (docs/NOTIFICATIONS.md §decisions) ──────────────────────────
+// A channel whose screen is still SEALED by progression counts 0 — a hidden system never raises
+// a badge, and its backlog surfaces in one go at the reveal. Installed by notificationSources
+// (it knows the unlock registry); the engine itself stays registry-agnostic (default: open).
+let channelGate: (save: SaveData, channel: string) => boolean = () => true;
+export function setChannelGate(fn: (save: SaveData, channel: string) => boolean): void {
+  channelGate = fn;
+}
+function countOf(s: NotificationSource, save: SaveData): number {
+  return channelGate(save, s.channel) ? Math.max(0, s.count(save)) : 0;
+}
+
 /** Register a notification source. Idempotent by id (safe to call on every import/mount). */
 export function registerNotification(src: NotificationSource): void {
   if (sources.some((s) => s.id === src.id)) return;
@@ -91,7 +103,7 @@ export const notifications = {
     const seen = seenStore.get();
     const out: Record<string, number> = {};
     for (const s of sources) {
-      const count = Math.max(0, s.count(save));
+      const count = countOf(s, save);
       const ack = Math.min(ackOf(s, seen), count); // never "seen" more than currently exist
       const unseen = count - ack;
       if (unseen > 0) out[s.channel] = (out[s.channel] ?? 0) + unseen;
@@ -107,7 +119,7 @@ export const notifications = {
     const seen = seenStore.get();
     const out: Record<string, string[]> = {};
     for (const s of sources) {
-      const count = Math.max(0, s.count(save));
+      const count = countOf(s, save);
       const unseen = count - Math.min(ackOf(s, seen), count);
       if (unseen <= 0) continue;
       (out[s.channel] ??= []).push(s.reason ? s.reason(save, unseen) : `${unseen} new`);
@@ -122,7 +134,7 @@ export const notifications = {
   live(save: SaveData): Record<string, { count: number; lines: string[] }> {
     const out: Record<string, { count: number; lines: string[] }> = {};
     for (const s of sources) {
-      const count = Math.max(0, s.count(save));
+      const count = countOf(s, save);
       if (count <= 0) continue;
       const e = (out[s.channel] ??= { count: 0, lines: [] });
       e.count += count;
@@ -137,7 +149,7 @@ export const notifications = {
     let changed = false;
     for (const s of sources) {
       if (s.channel !== channel) continue;
-      const count = Math.max(0, s.count(save));
+      const count = countOf(s, save);
       if (next[s.id] !== count) { next[s.id] = count; changed = true; }
       if (s.volatile === 'daily' && next[`${s.id}@d`] !== dayStamp()) { next[`${s.id}@d`] = dayStamp(); changed = true; }
     }
@@ -151,7 +163,7 @@ export const notifications = {
     const next = { ...seenStore.get() };
     let changed = false;
     for (const s of sources) {
-      const count = Math.max(0, s.count(save));
+      const count = countOf(s, save);
       if (next[s.id] !== undefined && next[s.id] > count) { next[s.id] = count; changed = true; }
     }
     if (changed) persistSeen(next);

@@ -22,6 +22,27 @@ export function setAutoGenePref(on: boolean): void {
   }
 }
 
+// Auto-Claim (docs/NOTIFICATIONS.md §auto-claim) — quest, Season Pass, Milestone and Evolution
+// Track rewards claim themselves when a run settles and read back as ONE Results row. DEFAULT ON
+// (chores → decisions); players who enjoy claiming by hand turn it off in Settings.
+const AUTO_CLAIM_KEY = 'assimilate.autoclaim';
+
+export function autoClaimPref(): boolean {
+  try {
+    return localStorage.getItem(AUTO_CLAIM_KEY) !== '0';
+  } catch {
+    return true;
+  }
+}
+
+export function setAutoClaimPref(on: boolean): void {
+  try {
+    localStorage.setItem(AUTO_CLAIM_KEY, on ? '1' : '0');
+  } catch {
+    /* storage unavailable */
+  }
+}
+
 // Per-mode difficulty — Campaign, Infinite and Boss Rush each remember their OWN choice,
 // independently (selection lives inside each mode, not the Main Menu). Default 'standard'
 // (identity/golden-safe).

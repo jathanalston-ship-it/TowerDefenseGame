@@ -6,6 +6,8 @@
 import { useEffect, useState } from 'react';
 import type { CSSProperties } from 'react';
 import { meta } from '../../state/meta';
+import { featureRevealed } from '../../state/unlocks';
+import { navBus } from '../../state/navBus';
 import { sourceLabel, WARDROBE_RARITY_COLOR, wardrobeKind } from '../../core/wardrobe';
 import type { WardrobeItemDef } from '../../core/wardrobe';
 import { audio } from '../../audio/sound';
@@ -15,7 +17,10 @@ export function WardrobeReveal(): JSX.Element | null {
   const [queue, setQueue] = useState<WardrobeItemDef[]>([]);
   const [idx, setIdx] = useState(0);
 
-  const pending = save.wardrobe.pendingReveal.length;
+  // The arrival ceremony HOLDS until the Specimen Vault (a Phenotype Lab tab) has revealed —
+  // specimens bank silently before that and land as one batch at the reveal
+  // (docs/PROGRESSION-GATING.md §timeline; the queue is persisted, nothing is lost).
+  const pending = featureRevealed(save, 'specimens') ? save.wardrobe.pendingReveal.length : 0;
   useEffect(() => {
     if (pending > 0 && queue.length === 0) {
       const defs = meta.takeWardrobeReveals();
@@ -59,7 +64,7 @@ export function WardrobeReveal(): JSX.Element | null {
               </span>
             ))}
           </div>
-          <button className="primary wdr-next" onClick={() => { setQueue([]); audio.cue('reveal'); }}>
+          <button className="primary wdr-next" onClick={() => { setQueue([]); audio.cue('reveal'); navBus.go('specimens'); /* the Phenotype Lab's Specimen Vault tab */ }}>
             To the Specimen Vault — claim to bind
           </button>
         </div>
