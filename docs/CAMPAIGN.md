@@ -254,6 +254,20 @@ boss           = assembleBoss(rng, stage)        // finale; boss difficulty scal
   stage-to-stage spike beyond a small bound).
 - Stage 1 / standard ≈ the baseline curve; the authored Stage mode is untouched (golden).
 
+## 8b. The stage panel (§panel — UI, `ui/CampaignScreen.tsx`)
+
+The focused stage's side panel splits into a BODY (sector/biome, modifiers, event + Mutation
+choice, **Danger** ◆1–5 + `rewards ×N`, enemy forecast, boss/waves/scaling, unlocks,
+Recommended Power, rewards, the frontier field note) and a FOOT: the pre-run **LoadoutStrip**
+(heroes · gear · starting genes · doctrine, each a deep link), the **Threat** picker (cleared
+stages only) and **Deploy/Replay**. On desktop (≥ 821px wide, ≥ 600px tall) the foot is
+`position: sticky; bottom: 0` — at 1366×768 and 1440×900 the picker and the launch button are on
+screen on arrival and stay pinned while the stage facts scroll under them. Phones and short
+landscape keep the natural flow (the deploy ends the panel). The run estimate
+(PredictionPanel) folds into a one-line `◇ Estimated stage ≈ N · likely a–b` summary that
+expands to the full panel. Naming: the stage's own rating is **Danger** — "Threat" is only the
+opt-in ladder (docs/THREAT.md §naming).
+
 ## 9. Known limitations / future hooks
 
 - Environmental hazards are telegraphed + expressed as scalar tweaks today; a battlefield
