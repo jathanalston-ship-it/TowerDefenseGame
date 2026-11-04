@@ -166,8 +166,8 @@ Latest results live at the bottom of this file; re-run after balance changes.
 over a purchase-less baseline and never raids the reserve. The 4-tower opening is now THIN, so a pulse
 fills two more slots before any hero buy; pulsing every prep now edges out banking two waves (the
 mixed cohort's first pulse lands a wave later on a thin board). Campaign (G1/GR2 harness, live
-progression-sim accounts, pressing only the glowing button): towers at wave 2 went 2 → 5 (8 h,
-S29) and 2 → 6–7 (100 h, S80); wins 5/6 → 5/6 and 2/6 → 4/6, losses by wave 3 1 → 0 and 4 → 2.
+progression-sim accounts, pressing only the glowing button, 6 seeds): towers at wave 2 went 2 → 5
+(8 h, S29) and 2 → 6–7 (100 h, S80); wins 5/6 → 6/6 and 2/6 → 4/6, losses by wave 3 1 → 0 and 4 → 2.
 Lesson baked into the code: the pulse pins its reserve ONCE from the starting wallet
 (per-iteration recomputation on a shrinking wallet asymptotically spends to zero — the
 first sim draft caught 87 violations/cohort before the pin).

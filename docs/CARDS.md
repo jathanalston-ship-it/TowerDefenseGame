@@ -132,6 +132,14 @@ Parasite dealt 0.2 %; the highest-rarity ◆PICK matched the strongest option 46
 - **Gating** — `RunOptions.draftFit`, set by the app (`draftFeaturesFor`, every non-tutorial run); the
   golden path never sets it ⇒ byte-identical. The Daily gets it for everyone (state-deterministic and
   carried in the recorded ctor args).
+- **Measured (G1/GR2 harness, progression-sim accounts).** Tower/hero offers whose subject deals < 5 %
+  of the damage: 40 % → 19 %; hero offers 27 % → 23 %, economy 17 % → 15 %. ◆PICK = the strongest
+  option by Power: 50 % (rarity) → 92 %. Infinite depth (8 h account, 6 seeds) by draft policy —
+  uniform deal: Power-max 47.3 · old rarity ◆PICK 46.3 · random 45.0 · weakest 42.7; fit deal:
+  ◆PICK 49.3 · Power-max 49.2 · random 46.5 · weakest 45.2; ◆PICK + Splice 54.8 (4 splices/run).
+  Campaign S32/S34 (8 h, 24 runs/policy): mean end integrity 0.74–0.86 → 0.86–0.90, wins at the
+  ceiling (21–22/24). At 100 h S82 every policy wins 3/12 — the run dies in waves 1–3, before drafts
+  can matter (an opening problem, not a draft one).
 
 ### §opening — the Opening Draft
 
