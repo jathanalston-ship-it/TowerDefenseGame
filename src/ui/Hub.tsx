@@ -94,11 +94,15 @@ const LAZY_SCREENS: Partial<Record<NavKey, { preload(): Promise<void> }>> = {
   settings: { preload: () => Promise.all([SaveManager.preload(), CloudBackup.preload(), MusicDebug.preload(), DevTools.preload()]).then(() => undefined) },
 };
 
-/** Warm the open screens among `keys` (folded keys warm their host). PROD-only — the dev server
- *  compiles on demand, like main.tsx's run-path warmup. */
-function prefetchScreens(save: SaveData, keys: readonly NavKey[]): void {
-  if (!import.meta.env.PROD) return;
-  for (const k of new Set(keys.map(hostOf))) if (featureRevealed(save, k)) void LAZY_SCREENS[k]?.preload();
+/** Once the browser idles (within `deadlineMs`), warm the open screens among `keys` (folded keys
+ *  warm their host) — fetched in parallel; screen modules only define components, so evaluating
+ *  them is cheap (a one-at-a-time queue measured slower with no smoother frames). PROD-only — the
+ *  dev server compiles on demand, like main.tsx's run-path warmup. Returns the cancel. */
+function prefetchScreens(save: SaveData, keys: readonly NavKey[], deadlineMs: number): () => void {
+  if (!import.meta.env.PROD) return () => undefined;
+  return onIdle(() => {
+    for (const k of new Set(keys.map(hostOf))) if (featureRevealed(save, k)) void LAZY_SCREENS[k]?.preload();
+  }, deadlineMs);
 }
 
 /** Run `fn` when the browser idles — within `deadlineMs` even on a board that never idles (the
@@ -474,14 +478,14 @@ export function Hub({
   // NO LOADING FLASH (docs/DEPLOYMENT.md §code-splitting): once the browser idles, warm the
   // current hub's open member screens + the Ready Chain's next stop through the same lazyNamed
   // thunks — the first visit renders the module directly (a hovered door warms its hub too).
-  // Idle-only, so nothing competes with boot (the boot closure is unchanged); a LANDING warms its
-  // cards right after paint — it exists to pick one of them.
-  useEffect(() => onIdle(() => {
+  // Idle-gated, so nothing competes with boot (the boot closure is unchanged); a LANDING starts
+  // within 100 ms — it exists to pick one of its cards.
+  useEffect(() => {
     const s = meta.get();
     const group = navGroups().find((g) => g.id === landing) ?? groupOf(nav);
     const next = readyChain(s)[0]?.nav;
-    prefetchScreens(s, [...group.items.map((i) => i.key), ...(next ? [next] : [])]);
-  }, landing !== null ? 50 : 800), [nav, landing]);
+    return prefetchScreens(s, [...(next ? [next] : []), ...group.items.map((i) => i.key)], landing !== null ? 100 : 800);
+  }, [nav, landing]);
 
   // Progressive UI contamination (VISUAL_IDENTITY.md §contamination): the instrument's own
   // chrome is slowly assimilated as the account deepens — SAME ladder as the evolving lab
@@ -579,7 +583,7 @@ export function Hub({
                 className={`hub-door${active ? ' on' : ''}${ready ? ' is-ready' : ''}`}
                 style={{ ['--nav-accent' as string]: group.accent } as CSSProperties}
                 onClick={() => (sole ? go(sole) : goLanding(group.id))}
-                onPointerEnter={() => { audio.cue('hover'); prefetchScreens(save, items.map((it) => it.key)); }}
+                onPointerEnter={() => { audio.cue('hover'); prefetchScreens(save, items.map((it) => it.key), 100); }}
                 aria-current={active ? 'page' : undefined}
                 title={groupWhy || group.hub.blurb}
                 aria-label={groupWhy ? `${group.title} — ${groupWhy}` : group.title}
