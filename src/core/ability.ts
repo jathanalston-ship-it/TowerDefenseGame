@@ -35,6 +35,9 @@ export interface AuraAbility {
   /** DISPLACEMENT: drag every caught non-boss enemy this many px UP-LANE (toward spawn) and break
    *  its siege lock — the Undertow Polyp's anti-progress identity (docs/POLYP.md). Absent ⇒ no-op. */
   pull?: number;
+  /** Centre on the cast's PRIMARY victim (a grant "around the victim / at the impact") instead of
+   *  the cast origin (the tower). No victim this cast ⇒ the component does nothing. */
+  at?: 'victim';
 }
 /** An instant AoE burst centered at the cast point (hero leaps, bloom, override). */
 export interface ExplosionAbility {
@@ -44,6 +47,9 @@ export interface ExplosionAbility {
   status?: StatusApplication;
   react?: boolean; // default true (burst hits trigger reactions)
   particle?: ParticleKind;
+  /** Centre on the cast's PRIMARY victim (a grant "around the victim / at the impact") instead of
+   *  the cast origin (the tower). No victim this cast ⇒ the component does nothing. */
+  at?: 'victim';
 }
 /** Bounce a diminishing hit between nearby enemies. */
 export interface ChainAbility {
@@ -98,6 +104,9 @@ export interface DebuffAbility {
   type: 'debuff';
   status: StatusApplication;
   radius: number;
+  /** Centre on the cast's PRIMARY victim (a grant "around the victim / at the impact") instead of
+   *  the cast origin (the tower). No victim this cast ⇒ the component does nothing. */
+  at?: 'victim';
 }
 /** Summon `count` friendly units of type `unit` (a MINION_DEFS key) at the cast point.
  *  Live via Game.summon → time-limited Minions that seek and strike nearby enemies. */
@@ -226,9 +235,17 @@ function execProjectile(ctx: AbilityContext, comp: ProjectileAbility, cast: Abil
   return true;
 }
 
+/** Where an area component lands: the cast origin, or its primary victim for `at: 'victim'`
+ *  (null ⇒ no victim this cast — the victim-centred effect has nowhere to land). */
+function areaOrigin(comp: { at?: 'victim' }, cast: AbilityCast): { x: number; y: number } | null {
+  return comp.at === 'victim' ? cast.target ?? null : cast;
+}
+
 function execAura(ctx: AbilityContext, comp: AuraAbility, cast: AbilityCast): boolean {
+  const o = areaOrigin(comp, cast);
+  if (!o) return false;
   let hit = false;
-  ctx.forEnemiesInRadius(cast.x, cast.y, comp.radius * ctx.rangeMult, (e) => { // identity-range (obelisk pulse radius)
+  ctx.forEnemiesInRadius(o.x, o.y, comp.radius * ctx.rangeMult, (e) => { // identity-range (obelisk pulse radius)
     if (comp.status) ctx.applyStatus(e, comp.status);
     if (comp.damage) {
       ctx.dealDamage(e, comp.damage * cast.damageMult, true);
@@ -242,18 +259,20 @@ function execAura(ctx: AbilityContext, comp: AuraAbility, cast: AbilityCast): bo
     }
     hit = true;
   });
-  if (hit && comp.particle) ctx.particles(cast.x, cast.y, comp.particle);
+  if (hit && comp.particle) ctx.particles(o.x, o.y, comp.particle);
   return true; // a pulse cycles on its rhythm whether or not it caught anything
 }
 
 function execExplosion(ctx: AbilityContext, comp: ExplosionAbility, cast: AbilityCast): boolean {
+  const o = areaOrigin(comp, cast);
+  if (!o) return false;
   const react = comp.react ?? true;
-  ctx.forEnemiesInRadius(cast.x, cast.y, comp.radius * ctx.rangeMult, (e) => { // identity/ability-range (hero ability radius)
+  ctx.forEnemiesInRadius(o.x, o.y, comp.radius * ctx.rangeMult, (e) => { // identity/ability-range (hero ability radius)
     if (comp.damage) ctx.dealDamage(e, comp.damage * cast.damageMult, true);
     if (comp.status) ctx.applyStatus(e, comp.status);
     if (react) ctx.reactOnHit(e);
   });
-  if (comp.particle) ctx.particles(cast.x, cast.y, comp.particle);
+  if (comp.particle) ctx.particles(o.x, o.y, comp.particle);
   return true;
 }
 
@@ -305,7 +324,9 @@ function execShield(ctx: AbilityContext, comp: ShieldAbility, _cast: AbilityCast
 }
 
 function execDebuff(ctx: AbilityContext, comp: DebuffAbility, cast: AbilityCast): boolean {
-  ctx.forEnemiesInRadius(cast.x, cast.y, comp.radius, (e) => ctx.applyStatus(e, comp.status));
+  const o = areaOrigin(comp, cast);
+  if (!o) return false;
+  ctx.forEnemiesInRadius(o.x, o.y, comp.radius, (e) => ctx.applyStatus(e, comp.status));
   return true;
 }
 

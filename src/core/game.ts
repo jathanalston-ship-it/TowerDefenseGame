@@ -4960,7 +4960,7 @@ export class Game {
       this.castScratch.x = t.x;
       this.castScratch.y = t.y;
       this.castScratch.damageMult = dmgMult;
-      this.castScratch.target = null;
+      this.castScratch.target = primary; // the fed-upon — victim-centred grants land on it (as the Coil's do)
       this.castScratch.pierce = 0;
       if (prog.extraAbilities) runAbilities(this.actx, prog.extraAbilities, this.castScratch);
       if (bk && bk.extraAbilities.length) runAbilities(this.actx, bk.extraAbilities, this.castScratch);

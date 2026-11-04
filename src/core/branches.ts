@@ -251,21 +251,21 @@ const BRANCHES: Branch[] = [
     theme: 'The perfect specimen jar — longer, harder encasements that end in splinters.',
     tiers: [
       { tier: 1, name: 'Quickset Resin', desc: 'Encasements set harder and hold longer.', damageMult: 1.1, particle: 'acid', sfx: 'br_amber', impact: 'acid', grants: [{ t: 'ability', components: [{ type: 'status', status: { kind: 'Freeze', amount: 1.8 } }] }] },
-      { tier: 2, name: 'Splinter Facets', desc: 'Each casing bursts into razor shards around the victim.', damageMult: 1.1, grants: [{ t: 'ability', components: [{ type: 'explosion', radius: 95, damage: 16, react: true, particle: 'shred' }] }] },
+      { tier: 2, name: 'Splinter Facets', desc: 'Each casing bursts into razor shards around the victim.', damageMult: 1.1, grants: [{ t: 'ability', components: [{ type: 'explosion', at: 'victim', radius: 95, damage: 16, react: true, particle: 'shred' }] }] },
       { tier: 3, name: 'Deep Set', desc: 'The amber thickens — victims hold far longer.', damageMult: 1.15, impact: 'dissolve', grants: [{ t: 'ability', components: [{ type: 'status', status: { kind: 'Freeze', amount: 2.3 } }] }] },
       { tier: 4, name: 'Warden of Giants', desc: 'It hunts bosses first, striking preserved prey with brutal force.', damageMult: 1.15, grants: [{ t: 'targeting', profile: 'bossPriority' }, { t: 'ability', components: [{ type: 'crit', chance: 0.35, mult: 2.5, damage: 20 }] }] },
-      { tier: 5, name: 'Perfect Preservation', desc: 'Museum-grade: the longest hold in the game, ending in a shard nova.', damageMult: 1.3, particle: 'acid', impact: 'dissolve', grants: [{ t: 'ability', components: [{ type: 'status', status: { kind: 'Freeze', amount: 2.8 } }, { type: 'explosion', radius: 135, damage: 34, react: true, particle: 'shred' }] }, { t: 'cosmetic', id: 'reliquary' }] },
+      { tier: 5, name: 'Perfect Preservation', desc: 'Museum-grade: the longest hold in the game, ending in a shard nova.', damageMult: 1.3, particle: 'acid', impact: 'dissolve', grants: [{ t: 'ability', components: [{ type: 'status', status: { kind: 'Freeze', amount: 2.8 } }, { type: 'explosion', at: 'victim', radius: 135, damage: 34, react: true, particle: 'shred' }] }, { t: 'cosmetic', id: 'reliquary' }] },
     ],
   },
   {
     id: 'chrysalis_amber', tower: 'chrysalis', name: 'Preserving Amber',
     theme: 'The grove keeper — weeping sap that slows, melts, and mires the approach.',
     tiers: [
-      { tier: 1, name: 'Weeping Resin', desc: 'Each cast drenches the area around the victim in Corrosion.', particle: 'acid', sfx: 'br_sap', impact: 'acid', grants: [{ t: 'ability', components: [{ type: 'debuff', radius: 140, status: { kind: 'Corrosion', amount: 1 } }] }] },
-      { tier: 2, name: 'Amber Veil', desc: 'The warden watches farther; the sap spreads wider.', rangeMult: 1.12, grants: [{ t: 'ability', components: [{ type: 'debuff', radius: 170, status: { kind: 'Corrosion', amount: 1 } }] }] },
+      { tier: 1, name: 'Weeping Resin', desc: 'Each cast drenches the area around the victim in Corrosion.', particle: 'acid', sfx: 'br_sap', impact: 'acid', grants: [{ t: 'ability', components: [{ type: 'debuff', at: 'victim', radius: 140, status: { kind: 'Corrosion', amount: 1 } }] }] },
+      { tier: 2, name: 'Amber Veil', desc: 'The warden watches farther; the sap spreads wider.', rangeMult: 1.12, grants: [{ t: 'ability', components: [{ type: 'debuff', at: 'victim', radius: 170, status: { kind: 'Corrosion', amount: 1 } }] }] },
       { tier: 3, name: 'Thickened Sap', desc: 'A dripping moat gathers at its roots, melting what wades in.', damageMult: 1.2, grants: [{ t: 'ability', components: [{ type: 'aura', radius: 130, damage: 7, status: { kind: 'Corrosion', amount: 1 }, react: true, particle: 'acid' }] }] },
-      { tier: 4, name: 'Golden Tomb', desc: 'Longer entombments; the sap pools farther still.', damageMult: 1.1, grants: [{ t: 'ability', components: [{ type: 'status', status: { kind: 'Freeze', amount: 2.0 } }, { type: 'debuff', radius: 190, status: { kind: 'Corrosion', amount: 2 } }] }] },
-      { tier: 5, name: 'The Amber Grove', desc: 'The whole approach mires: disrupting sap and a bursting golden bloom.', damageMult: 1.25, rangeMult: 1.15, particle: 'acid', impact: 'dissolve', grants: [{ t: 'ability', components: [{ type: 'debuff', radius: 230, status: { kind: 'Disruption', amount: 1 } }, { type: 'explosion', radius: 150, damage: 26, react: true, particle: 'acid' }] }, { t: 'cosmetic', id: 'grove' }] },
+      { tier: 4, name: 'Golden Tomb', desc: 'Longer entombments; the sap pools farther still.', damageMult: 1.1, grants: [{ t: 'ability', components: [{ type: 'status', status: { kind: 'Freeze', amount: 2.0 } }, { type: 'debuff', at: 'victim', radius: 190, status: { kind: 'Corrosion', amount: 2 } }] }] },
+      { tier: 5, name: 'The Amber Grove', desc: 'The whole approach mires: disrupting sap and a bursting golden bloom.', damageMult: 1.25, rangeMult: 1.15, particle: 'acid', impact: 'dissolve', grants: [{ t: 'ability', components: [{ type: 'debuff', at: 'victim', radius: 230, status: { kind: 'Disruption', amount: 1 } }, { type: 'explosion', at: 'victim', radius: 150, damage: 26, react: true, particle: 'acid' }] }, { t: 'cosmetic', id: 'grove' }] },
     ],
   },
 
@@ -302,10 +302,10 @@ const BRANCHES: Branch[] = [
     theme: 'A ravenous tide — it finishes the wounded and gorges FATTER the more the lane dies around it.',
     tiers: [
       { tier: 1, name: 'Ravenous Draw', desc: 'The beam runs hotter and hunts the WEAKEST — finishing what the swarm started.', damageMult: 1.2, particle: 'bloom', sfx: 'br_siphon', impact: 'bloom', grants: [{ t: 'targeting', profile: 'lowestHealth' }] },
-      { tier: 2, name: 'Rending Draw', desc: 'The drain strips armor plating (Fracture) from everything near the victim.', damageMult: 1.1, grants: [{ t: 'ability', components: [{ type: 'debuff', radius: 140, status: { kind: 'Fracture', amount: 2 } }] }] },
+      { tier: 2, name: 'Rending Draw', desc: 'The drain strips armor plating (Fracture) from everything near the victim.', damageMult: 1.1, grants: [{ t: 'ability', components: [{ type: 'debuff', at: 'victim', radius: 140, status: { kind: 'Fracture', amount: 2 } }] }] },
       { tier: 3, name: 'Boiling Blood', desc: 'A faster Gorge, and the backwash melts the flesh around the beam.', fireRateMult: 1.2, impact: 'acid', grants: [{ t: 'ability', components: [{ type: 'aura', radius: 130, damage: 8, status: { kind: 'Corrosion', amount: 1 }, react: true, particle: 'acid' }] }] },
       { tier: 4, name: 'Marrow Boil', desc: 'A searing drain field engulfs the kill zone.', damageMult: 1.25, grants: [{ t: 'ability', components: [{ type: 'aura', radius: 150, damage: 14, react: true, particle: 'bloom' }] }] },
-      { tier: 5, name: 'The Devouring Star', desc: 'An unbearable ray: a devouring nova erupts from the fed-upon and acid drowns the field.', damageMult: 1.3, fireRateMult: 1.15, particle: 'bloom', impact: 'bloom', grants: [{ t: 'ability', components: [{ type: 'explosion', radius: 160, damage: 38, react: true, particle: 'bloom' }, { type: 'aura', radius: 180, damage: 10, status: { kind: 'Corrosion', amount: 2 }, react: true, particle: 'acid' }] }, { t: 'cosmetic', id: 'devourstar' }] },
+      { tier: 5, name: 'The Devouring Star', desc: 'An unbearable ray: a devouring nova erupts from the fed-upon and acid drowns the field.', damageMult: 1.3, fireRateMult: 1.15, particle: 'bloom', impact: 'bloom', grants: [{ t: 'ability', components: [{ type: 'explosion', at: 'victim', radius: 160, damage: 38, react: true, particle: 'bloom' }, { type: 'aura', radius: 180, damage: 10, status: { kind: 'Corrosion', amount: 2 }, react: true, particle: 'acid' }] }, { t: 'cosmetic', id: 'devourstar' }] },
     ],
   },
   {
@@ -336,7 +336,7 @@ const BRANCHES: Branch[] = [
     theme: 'One beam becomes many — a splitting lattice that melts the whole crowd.',
     tiers: [
       { tier: 1, name: 'Split Prism', desc: 'The beam forks to a second target and reaches farther.', damageMult: 1.05, rangeMult: 1.1, particle: 'acid', sfx: 'br_acid', impact: 'acid', grants: [{ t: 'projectile', extraProjectiles: 1 }] },
-      { tier: 2, name: 'Dispersion Field', desc: 'Caustic light sprays Corrosion around the beam’s targets.', grants: [{ t: 'ability', components: [{ type: 'debuff', radius: 130, status: { kind: 'Corrosion', amount: 1 } }] }] },
+      { tier: 2, name: 'Dispersion Field', desc: 'Caustic light sprays Corrosion around the beam’s targets.', grants: [{ t: 'ability', components: [{ type: 'debuff', at: 'victim', radius: 130, status: { kind: 'Corrosion', amount: 1 } }] }] },
       { tier: 3, name: 'Triple Refraction', desc: 'A third channel melts another foe at once.', damageMult: 1.1, grants: [{ t: 'projectile', extraProjectiles: 1 }] },
       { tier: 4, name: 'Caustic Lattice', desc: 'A fourth channel; every beam drenches its target in Corrosion.', grants: [{ t: 'projectile', extraProjectiles: 1 }, { t: 'ability', components: [{ type: 'status', status: { kind: 'Corrosion', amount: 2 } }] }] },
       { tier: 5, name: 'Prismatic Cascade', desc: 'A blooming lattice: two more channels and a drowning caustic field.', damageMult: 1.15, particle: 'dissolve', impact: 'dissolve', grants: [{ t: 'projectile', extraProjectiles: 2 }, { t: 'ability', components: [{ type: 'aura', radius: 150, status: { kind: 'Corrosion', amount: 2 }, react: true, particle: 'acid' }] }, { t: 'cosmetic', id: 'prism' }] },
@@ -380,7 +380,7 @@ const BRANCHES: Branch[] = [
       { tier: 2, name: 'Overload Relay', desc: 'First strikes DISRUPT the victim.', grants: [{ t: 'ability', components: [{ type: 'status', status: { kind: 'Disruption', amount: 1.5 } }] }] },
       { tier: 3, name: 'Storm Front', desc: 'Harder arcs; a static ring chips the near field.', damageMult: 1.15, grants: [{ t: 'ability', components: [{ type: 'aura', radius: 120, damage: 7, react: true, particle: 'spark' }] }] },
       { tier: 4, name: 'Thundering Verdict', desc: '+1 hop and heavier voltage.', damageMult: 1.15, grants: [{ t: 'projectile', extraProjectiles: 1 }] },
-      { tier: 5, name: 'The Stormcall', desc: 'A detonating overload erupts from every first strike.', damageMult: 1.25, particle: 'railburst', impact: 'spark', grants: [{ t: 'ability', components: [{ type: 'explosion', radius: 140, damage: 34, react: true, particle: 'spark' }] }, { t: 'cosmetic', id: 'stormcall' }] },
+      { tier: 5, name: 'The Stormcall', desc: 'A detonating overload erupts from every first strike.', damageMult: 1.25, particle: 'railburst', impact: 'spark', grants: [{ t: 'ability', components: [{ type: 'explosion', at: 'victim', radius: 140, damage: 34, react: true, particle: 'spark' }] }, { t: 'cosmetic', id: 'stormcall' }] },
     ],
   },
   {
@@ -438,7 +438,7 @@ const BRANCHES: Branch[] = [
     theme: 'One barrel, one enormous armour-piercing round — the answer to anything that walks tall.',
     tiers: [
       { tier: 1, name: 'Depleted Slug', desc: 'A heavy AP round that pierces 1; targets the TOUGHEST enemy.', damageMult: 1.2, particle: 'spark', sfx: 'br_slug', impact: 'ember', grants: [{ t: 'targeting', profile: 'highestHealth' }, { t: 'projectile', mutators: ['pierce1'] }] },
-      { tier: 2, name: 'Sabot Core', desc: 'Punches through 2 hosts and Fractures the struck (armour shred).', damageMult: 1.1, grants: [{ t: 'projectile', mutators: ['pierce2'] }, { t: 'ability', components: [{ type: 'debuff', radius: 90, status: { kind: 'Fracture', amount: 1 } }] }] },
+      { tier: 2, name: 'Sabot Core', desc: 'Punches through 2 hosts and Fractures the struck (armour shred).', damageMult: 1.1, grants: [{ t: 'projectile', mutators: ['pierce2'] }, { t: 'ability', components: [{ type: 'debuff', at: 'victim', radius: 90, status: { kind: 'Fracture', amount: 1 } }] }] },
       { tier: 3, name: 'Overpressure', desc: 'An overcharged round that detonates on impact — brutal crits.', damageMult: 1.2, particle: 'ember', impact: 'railburst', grants: [{ t: 'ability', components: [{ type: 'crit', chance: 0.25, mult: 2, damage: 8 }] }] },
       { tier: 4, name: 'Anti-Materiel', desc: 'Pierce 3 and a longer overwatch reach.', damageMult: 1.15, rangeMult: 1.1, grants: [{ t: 'projectile', mutators: ['pierce3'] }] },
       { tier: 5, name: 'The Executioner', desc: 'A single devastating round — a massive execute crit on the toughest prey.', damageMult: 1.3, fireRateMult: 1.1, particle: 'shrapnel', impact: 'railburst', grants: [{ t: 'ability', components: [{ type: 'crit', chance: 0.4, mult: 3, damage: 14 }] }, { t: 'cosmetic', id: 'slug' }] },
@@ -601,10 +601,10 @@ const BRANCHES: Branch[] = [
     theme: 'The head is a vial — the cull is only the delivery, and the wound does the rest.',
     tiers: [
       { tier: 1, name: 'Bile-Dipped', desc: 'The wound MELTS wider — deeper Corrosion in the impaled.', damageMult: 1.1, particle: 'acid', sfx: 'br_acid', impact: 'acid', grants: [{ t: 'ability', components: [{ type: 'status', status: { kind: 'Corrosion', amount: 1.5 } }] }] },
-      { tier: 2, name: 'Bursting Gall', desc: 'The head BURSTS — acid sprays the bodies beside the victim.', damageMult: 1.05, grants: [{ t: 'ability', components: [{ type: 'debuff', radius: 110, status: { kind: 'Corrosion', amount: 1.5 } }] }] },
-      { tier: 3, name: 'Melting Quarrel', desc: 'The impact DETONATES — a dissolving blast at the wound.', damageMult: 1.08, particle: 'dissolve', impact: 'dissolve', grants: [{ t: 'ability', components: [{ type: 'explosion', radius: 100, damage: 20, react: true, particle: 'acid' }] }] },
+      { tier: 2, name: 'Bursting Gall', desc: 'The head BURSTS — acid sprays the bodies beside the victim.', damageMult: 1.05, grants: [{ t: 'ability', components: [{ type: 'debuff', at: 'victim', radius: 110, status: { kind: 'Corrosion', amount: 1.5 } }] }] },
+      { tier: 3, name: 'Melting Quarrel', desc: 'The impact DETONATES — a dissolving blast at the wound.', damageMult: 1.08, particle: 'dissolve', impact: 'dissolve', grants: [{ t: 'ability', components: [{ type: 'explosion', at: 'victim', radius: 100, damage: 20, react: true, particle: 'acid' }] }] },
       { tier: 4, name: 'Deep Rot', desc: 'ROT rides the head — Infection festers in the wound (Putrefy fuel).', damageMult: 1.1, grants: [{ t: 'ability', components: [{ type: 'status', status: { kind: 'Infection', amount: 2 } }] }] },
-      { tier: 5, name: 'The Dissolving Point', desc: 'The victim becomes the weapon: a wide melting blast and acid on everything near it.', damageMult: 1.2, particle: 'dissolve', impact: 'dissolve', grants: [{ t: 'ability', components: [{ type: 'explosion', radius: 130, damage: 30, react: true, particle: 'dissolve' }, { type: 'debuff', radius: 120, status: { kind: 'Corrosion', amount: 2 } }] }, { t: 'cosmetic', id: 'dissolvepoint' }] },
+      { tier: 5, name: 'The Dissolving Point', desc: 'The victim becomes the weapon: a wide melting blast and acid on everything near it.', damageMult: 1.2, particle: 'dissolve', impact: 'dissolve', grants: [{ t: 'ability', components: [{ type: 'explosion', at: 'victim', radius: 130, damage: 30, react: true, particle: 'dissolve' }, { type: 'debuff', at: 'victim', radius: 120, status: { kind: 'Corrosion', amount: 2 } }] }, { t: 'cosmetic', id: 'dissolvepoint' }] },
     ],
   },
 
@@ -615,11 +615,11 @@ const BRANCHES: Branch[] = [
     id: 'basilisk_horizon', tower: 'basilisk', name: 'Event Horizon',
     theme: 'The stare widens until the charge itself is a memory — nothing it watches arrives.',
     tiers: [
-      { tier: 1, name: 'Second Iris', desc: 'The static spreads — Disruption around every stone.', damageMult: 1.1, particle: 'disrupt', sfx: 'br_amber', impact: 'disrupt', grants: [{ t: 'ability', components: [{ type: 'debuff', radius: 80, status: { kind: 'Disruption', amount: 0.6 } }] }] },
+      { tier: 1, name: 'Second Iris', desc: 'The static spreads — Disruption around every stone.', damageMult: 1.1, particle: 'disrupt', sfx: 'br_amber', impact: 'disrupt', grants: [{ t: 'ability', components: [{ type: 'debuff', at: 'victim', radius: 80, status: { kind: 'Disruption', amount: 0.6 } }] }] },
       { tier: 2, name: 'Deep Stone', desc: 'The petrification HOLDS longer.', damageMult: 1.08, grants: [{ t: 'ability', components: [{ type: 'status', status: { kind: 'Freeze', amount: 0.4 } }] }] },
       { tier: 3, name: 'Wide Court', desc: 'The eye sees farther — and its static reaches with it.', rangeMult: 1.1, fireRateMult: 1.06, grants: [{ t: 'ability', components: [{ type: 'status', status: { kind: 'Disruption', amount: 0.4 } }] }] },
-      { tier: 4, name: 'Paralytic Field', desc: 'The static becomes a FIELD — deep Disruption around the verdict.', damageMult: 1.1, particle: 'railburst', impact: 'railburst', grants: [{ t: 'ability', components: [{ type: 'debuff', radius: 110, status: { kind: 'Disruption', amount: 0.9 } }] }] },
-      { tier: 5, name: 'The Event Horizon', desc: 'Past this line nothing moves — long stone, wide static, a colder verdict.', damageMult: 1.2, particle: 'railburst', impact: 'railburst', grants: [{ t: 'ability', components: [{ type: 'status', status: { kind: 'Freeze', amount: 0.5 } }, { type: 'debuff', radius: 120, status: { kind: 'Disruption', amount: 0.8 } }] }, { t: 'cosmetic', id: 'horizon' }] },
+      { tier: 4, name: 'Paralytic Field', desc: 'The static becomes a FIELD — deep Disruption around the verdict.', damageMult: 1.1, particle: 'railburst', impact: 'railburst', grants: [{ t: 'ability', components: [{ type: 'debuff', at: 'victim', radius: 110, status: { kind: 'Disruption', amount: 0.9 } }] }] },
+      { tier: 5, name: 'The Event Horizon', desc: 'Past this line nothing moves — long stone, wide static, a colder verdict.', damageMult: 1.2, particle: 'railburst', impact: 'railburst', grants: [{ t: 'ability', components: [{ type: 'status', status: { kind: 'Freeze', amount: 0.5 } }, { type: 'debuff', at: 'victim', radius: 120, status: { kind: 'Disruption', amount: 0.8 } }] }, { t: 'cosmetic', id: 'horizon' }] },
     ],
   },
   {
@@ -627,10 +627,10 @@ const BRANCHES: Branch[] = [
     theme: 'What the stare stops, the garden SHATTERS — the petrified are ordnance now.',
     tiers: [
       { tier: 1, name: 'Cracking Gaze', desc: 'The stone CRACKS — Fracture rides the bolt (Shear fuel).', damageMult: 1.12, particle: 'shred', sfx: 'br_siege', impact: 'shred', grants: [{ t: 'ability', components: [{ type: 'status', status: { kind: 'Fracture', amount: 1 } }] }] },
-      { tier: 2, name: 'Splinter Verdict', desc: 'The impact bursts — damage around the stone.', damageMult: 1.1, grants: [{ t: 'ability', components: [{ type: 'explosion', radius: 70, damage: 16 }] }] },
+      { tier: 2, name: 'Splinter Verdict', desc: 'The impact bursts — damage around the stone.', damageMult: 1.1, grants: [{ t: 'ability', components: [{ type: 'explosion', at: 'victim', radius: 70, damage: 16 }] }] },
       { tier: 3, name: 'Heavier Sentences', desc: 'The bolt lands crueler, quicker — and cracks as it lands.', damageMult: 1.1, fireRateMult: 1.06, grants: [{ t: 'ability', components: [{ type: 'status', status: { kind: 'Fracture', amount: 1 } }] }] },
       { tier: 4, name: 'Shattering Stare', desc: 'Deeper cracks — and a vicious critical verdict.', damageMult: 1.1, particle: 'railburst', impact: 'railburst', grants: [{ t: 'ability', components: [{ type: 'crit', chance: 0.25, mult: 2.2, damage: 30 }, { type: 'status', status: { kind: 'Fracture', amount: 1 } }] }] },
-      { tier: 5, name: 'The Stone Garden', desc: 'Every statue is a bomb the next bolt sets off.', damageMult: 1.22, particle: 'railburst', impact: 'railburst', grants: [{ t: 'ability', components: [{ type: 'explosion', radius: 95, damage: 30 }, { type: 'status', status: { kind: 'Fracture', amount: 2 } }] }, { t: 'cosmetic', id: 'garden' }] },
+      { tier: 5, name: 'The Stone Garden', desc: 'Every statue is a bomb the next bolt sets off.', damageMult: 1.22, particle: 'railburst', impact: 'railburst', grants: [{ t: 'ability', components: [{ type: 'explosion', at: 'victim', radius: 95, damage: 30 }, { type: 'status', status: { kind: 'Fracture', amount: 2 } }] }, { t: 'cosmetic', id: 'garden' }] },
     ],
   },
 

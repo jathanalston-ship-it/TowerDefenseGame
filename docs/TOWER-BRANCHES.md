@@ -279,6 +279,12 @@ Every tier was built from the **existing** vocabulary, so no new sim executors l
   bossPriority / mostCorrupted / closestToBase`), `projectile` (`extraProjectiles`,
   `splashMult`, `pierce1/2/3`), `ability` (existing components — explosion / aura / chain /
   status / crit / heal / buff / debuff / summon), `reactor` (biomass), `cosmetic`.
+- **Where an area grant lands** (§grants): `debuff` / `explosion` / `aura` centre on the cast
+  origin — the tower — unless the component says `at: 'victim'`, which centres it on the cast's
+  PRIMARY victim (the target a projectile / chain / Coil or Siphon beam just engaged; no victim
+  that cast ⇒ the component does nothing). Any grant whose text promises an effect around, near
+  or beside the victim must carry it (`branches.test.ts` enforces this); Sower grants already
+  fire at the detonating mine.
 - **Two small engine extensions** (both branch-gated ⇒ golden-safe):
   - `towerSystem` runs a branched **support** tower's `extraAbilities` on a pulse cadence
     (`supportBranchPulse`) so the Flesh Reactor can attack/heal/summon; its branch biomass

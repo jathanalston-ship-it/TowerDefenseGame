@@ -86,6 +86,7 @@ bug-hunt pass (scope, method, verdict) so "we looked" is auditable.
 | 74 | Engorged Reactor L1 (and 51 other gene levels) left displayed Power unchanged. | The gain rounded away on a young account. | `GENE_LEVEL_POWER_FLOOR` guarantees each level moves Power. |
 | 75 | Balance-matrix reruns disagreed. | Loot used unseeded `Math.random`. | `withSeededLoot` seeds it. |
 | 76 | The new Screen shake slider in Settings was a 16 px-tall touch target on phones and tablets (mobilecheck `tiny-target`). | The shared coarse-pointer floor covered buttons, selects, text inputs, checkboxes and radios, but not range sliders. | `input[type='range']` joins the 44 px coarse-pointer floor (the track stays thin). |
+| 77 | Star and branch upgrades that promise an effect "around the victim" (Acid Lancet, Basilisk, Chrysalis, Siphon, Coil, Spire, Spitfang — 34 components) fired around the TOWER instead, so most did nothing. | Area components (`debuff` / `explosion` / `aura`) always centred on the cast origin; only `status`/`crit`/`chain` used the struck target, and the Siphon's grants got no target at all. | Area components take `at: 'victim'` (centre on the cast's primary victim; none ⇒ no effect), set on every grant whose text says so, and the Siphon passes its drained target. `branches.test.ts` fails any victim-worded grant without the anchor; `ability.test.ts` pins the executor. |
 
 ---
 

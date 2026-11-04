@@ -339,12 +339,12 @@ const CHRYSALIS: StarPath = {
   tower: 'chrysalis',
   steps: [
     { star: 1, name: 'Harder Set', kind: 'attack', desc: 'Encasements hold noticeably longer.', grants: [{ t: 'ability', components: [{ type: 'status', status: { kind: 'Freeze', amount: 1.7 } }] }] },
-    { star: 2, name: 'Weeping Sap', kind: 'interaction', desc: 'Each cast drips Corrosion around the victim.', grants: [{ t: 'ability', components: [{ type: 'debuff', radius: 130, status: { kind: 'Corrosion', amount: 1 } }] }] },
+    { star: 2, name: 'Weeping Sap', kind: 'interaction', desc: 'Each cast drips Corrosion around the victim.', grants: [{ t: 'ability', components: [{ type: 'debuff', at: 'victim', radius: 130, status: { kind: 'Corrosion', amount: 1 } }] }] },
     {
       star: 3, name: 'Curation', kind: 'fork', desc: 'Choose what the Warden preserves (re-pick any run).',
       fork: [
-        { id: 'splinter', name: 'Splinter', desc: 'Casings burst into razor shards.', grants: [{ t: 'ability', components: [{ type: 'explosion', radius: 95, damage: 14, react: true, particle: 'shred' }] }] },
-        { id: 'longwatch', name: 'Long Watch', desc: 'Farther reach; the sap spreads wider.', grants: [{ t: 'ability', components: [{ type: 'debuff', radius: 170, status: { kind: 'Corrosion', amount: 1 } }] }] },
+        { id: 'splinter', name: 'Splinter', desc: 'Casings burst into razor shards.', grants: [{ t: 'ability', components: [{ type: 'explosion', at: 'victim', radius: 95, damage: 14, react: true, particle: 'shred' }] }] },
+        { id: 'longwatch', name: 'Long Watch', desc: 'Farther reach; the sap spreads wider.', grants: [{ t: 'ability', components: [{ type: 'debuff', at: 'victim', radius: 170, status: { kind: 'Corrosion', amount: 1 } }] }] },
       ],
     },
     { star: 4, name: 'Amber Bite', kind: 'attack', desc: 'Bolts hit far harder on the way in.', grants: [{ t: 'ability', components: [{ type: 'crit', chance: 0.3, mult: 2.2, damage: 10 }] }] },
@@ -356,7 +356,7 @@ const CHRYSALIS: StarPath = {
       ],
     },
     { star: 7, name: 'Golden Moat', kind: 'interaction', desc: 'A melting sap moat gathers at its roots.', grants: [{ t: 'ability', components: [{ type: 'aura', radius: 130, damage: 6, status: { kind: 'Corrosion', amount: 1 }, react: true, particle: 'acid' }] }] },
-    { star: 9, name: 'The Perfect Collection', kind: 'capstone', desc: 'Every specimen preserved: the hardest set, ending in a shard nova.', grants: [{ t: 'ability', components: [{ type: 'status', status: { kind: 'Freeze', amount: 2.6 } }, { type: 'explosion', radius: 140, damage: 30, react: true, particle: 'shred' }] }, { t: 'cosmetic', id: 'collection' }] },
+    { star: 9, name: 'The Perfect Collection', kind: 'capstone', desc: 'Every specimen preserved: the hardest set, ending in a shard nova.', grants: [{ t: 'ability', components: [{ type: 'status', status: { kind: 'Freeze', amount: 2.6 } }, { type: 'explosion', at: 'victim', radius: 140, damage: 30, react: true, particle: 'shred' }] }, { t: 'cosmetic', id: 'collection' }] },
   ],
 };
 
@@ -400,8 +400,8 @@ const SIPHON_PATH: StarPath = {
       kind: 'fork',
       desc: 'Choose what the drain does to the flesh around it (re-pick any run).',
       fork: [
-        { id: 'corroder', name: 'Corroder', desc: 'The beam’s backwash melts everything near the victim.', grants: [{ t: 'ability', components: [{ type: 'aura', radius: 120, damage: 5, status: { kind: 'Corrosion', amount: 1 }, react: true, particle: 'acid' }] }] },
-        { id: 'render', name: 'Render', desc: 'The drain strips armor plating (Fracture) from the fed-upon.', grants: [{ t: 'ability', components: [{ type: 'debuff', radius: 150, status: { kind: 'Fracture', amount: 1 } }] }] },
+        { id: 'corroder', name: 'Corroder', desc: 'The beam’s backwash melts everything near the victim.', grants: [{ t: 'ability', components: [{ type: 'aura', at: 'victim', radius: 120, damage: 5, status: { kind: 'Corrosion', amount: 1 }, react: true, particle: 'acid' }] }] },
+        { id: 'render', name: 'Render', desc: 'The drain strips armor plating (Fracture) from the fed-upon.', grants: [{ t: 'ability', components: [{ type: 'debuff', at: 'victim', radius: 150, status: { kind: 'Fracture', amount: 1 } }] }] },
       ],
     },
     { star: 4, name: 'Sympathetic Drain', kind: 'interaction', desc: 'A draining field chips every host near the beam.', grants: [{ t: 'ability', components: [{ type: 'aura', radius: 130, damage: 7, react: true, particle: 'bloom' }] }] },
@@ -439,7 +439,7 @@ const COIL: StarPath = {
         { id: 'diffusion', name: 'Diffusion', desc: 'Spread the melt: the beam forks to a THIRD target.', grants: [{ t: 'projectile', extraProjectiles: 1 }] },
       ],
     },
-    { star: 4, name: 'Corrosive Bloom', kind: 'attack', desc: 'Resonance blooms — Corrosion sprays to enemies around the beam’s target.', grants: [{ t: 'ability', components: [{ type: 'debuff', radius: 120, status: { kind: 'Corrosion', amount: 1 } }] }] },
+    { star: 4, name: 'Corrosive Bloom', kind: 'attack', desc: 'Resonance blooms — Corrosion sprays to enemies around the beam’s target.', grants: [{ t: 'ability', components: [{ type: 'debuff', at: 'victim', radius: 120, status: { kind: 'Corrosion', amount: 1 } }] }] },
     {
       star: 5,
       name: 'Apex Frame',
@@ -494,7 +494,7 @@ const SPIRE_PATH: StarPath = {
   tower: 'spire',
   steps: [
     { star: 1, name: 'Fifth Synapse', kind: 'projectile', desc: '+1 arc hop.', grants: [{ t: 'projectile', extraProjectiles: 1 }] },
-    { star: 2, name: 'Insulated Core', kind: 'interaction', desc: 'Each cast also disrupts around the first victim.', grants: [{ t: 'ability', components: [{ type: 'debuff', radius: 110, status: { kind: 'Disruption', amount: 1.2 } }] }] },
+    { star: 2, name: 'Insulated Core', kind: 'interaction', desc: 'Each cast also disrupts around the first victim.', grants: [{ t: 'ability', components: [{ type: 'debuff', at: 'victim', radius: 110, status: { kind: 'Disruption', amount: 1.2 } }] }] },
     {
       star: 3,
       name: 'Storm Doctrine',
@@ -737,7 +737,7 @@ const BELL_PATH: StarPath = {
 const LANCET_PATH: StarPath = {
   tower: 'lancet',
   steps: [
-    { star: 1, name: 'Weeping Wound', kind: 'interaction', desc: 'The wound WEEPS — acid sprays the bodies beside the impaled.', grants: [{ t: 'ability', components: [{ type: 'debuff', radius: 90, status: { kind: 'Corrosion', amount: 1.5 } }] }] },
+    { star: 1, name: 'Weeping Wound', kind: 'interaction', desc: 'The wound WEEPS — acid sprays the bodies beside the impaled.', grants: [{ t: 'ability', components: [{ type: 'debuff', at: 'victim', radius: 90, status: { kind: 'Corrosion', amount: 1.5 } }] }] },
     { star: 2, name: 'Twin Ballista', kind: 'projectile', desc: 'A SECOND harpoon per draw, hunting its own monster.', grants: [{ t: 'projectile', extraProjectiles: 1 }] },
     {
       star: 3, name: 'Cull Doctrine', kind: 'fork', desc: 'Choose the prey (re-pick any run).',
@@ -746,7 +746,7 @@ const LANCET_PATH: StarPath = {
         { id: 'boneseeker', name: 'Boneseeker', desc: 'The head finds the JOINT — vicious critical draws.', grants: [{ t: 'ability', components: [{ type: 'crit', chance: 0.3, mult: 2, damage: 35 }] }] },
       ],
     },
-    { star: 4, name: 'Dissolving Quarrel', kind: 'interaction', desc: 'The head BURSTS on impact — acid around the victim.', grants: [{ t: 'ability', components: [{ type: 'debuff', radius: 100, status: { kind: 'Corrosion', amount: 1.5 } }] }] },
+    { star: 4, name: 'Dissolving Quarrel', kind: 'interaction', desc: 'The head BURSTS on impact — acid around the victim.', grants: [{ t: 'ability', components: [{ type: 'debuff', at: 'victim', radius: 100, status: { kind: 'Corrosion', amount: 1.5 } }] }] },
     {
       star: 5, name: 'Apex Cull', kind: 'fork', desc: 'Signature transformation.',
       fork: [
@@ -755,7 +755,7 @@ const LANCET_PATH: StarPath = {
       ],
     },
     { star: 7, name: "Executioner's Eye", kind: 'attack', desc: 'It reads the body before the draw — vicious criticals.', grants: [{ t: 'ability', components: [{ type: 'crit', chance: 0.3, mult: 2.2, damage: 40 }] }] },
-    { star: 9, name: 'The Culling Stroke', kind: 'capstone', desc: "The forge's answer to size: a THIRD harpoon, and every impact detonates.", grants: [{ t: 'projectile', extraProjectiles: 1 }, { t: 'ability', components: [{ type: 'explosion', radius: 110, damage: 40, react: true, particle: 'acid' }] }, { t: 'cosmetic', id: 'cullingstroke' }] },
+    { star: 9, name: 'The Culling Stroke', kind: 'capstone', desc: "The forge's answer to size: a THIRD harpoon, and every impact detonates.", grants: [{ t: 'projectile', extraProjectiles: 1 }, { t: 'ability', components: [{ type: 'explosion', at: 'victim', radius: 110, damage: 40, react: true, particle: 'acid' }] }, { t: 'cosmetic', id: 'cullingstroke' }] },
   ],
 };
 
@@ -778,10 +778,10 @@ const BASILISK_PATH: StarPath = {
       star: 5, name: 'Apex Stare', kind: 'fork', desc: 'Signature transformation.',
       fork: [
         { id: 'gorgon', name: 'Gorgon Court', desc: 'A SECOND stare per judgment, hunting its own body.', grants: [{ t: 'projectile', extraProjectiles: 1 }] },
-        { id: 'abyssal', name: 'Abyssal Gaze', desc: 'The stone CRACKS — heavy damage and Fracture on the petrified.', grants: [{ t: 'ability', components: [{ type: 'explosion', radius: 70, damage: 30 }, { type: 'status', status: { kind: 'Fracture', amount: 1 } }] }] },
+        { id: 'abyssal', name: 'Abyssal Gaze', desc: 'The stone CRACKS — heavy damage and Fracture on the petrified.', grants: [{ t: 'ability', components: [{ type: 'explosion', at: 'victim', radius: 70, damage: 30 }, { type: 'status', status: { kind: 'Fracture', amount: 1 } }] }] },
       ],
     },
-    { star: 7, name: 'Council of Eyes', kind: 'interaction', desc: 'Secondary pupils open — static and stone spread wider.', grants: [{ t: 'ability', components: [{ type: 'debuff', radius: 80, status: { kind: 'Disruption', amount: 0.6 } }] }] },
+    { star: 7, name: 'Council of Eyes', kind: 'interaction', desc: 'Secondary pupils open — static and stone spread wider.', grants: [{ t: 'ability', components: [{ type: 'debuff', at: 'victim', radius: 80, status: { kind: 'Disruption', amount: 0.6 } }] }] },
     { star: 9, name: 'The Lidless Verdict', kind: 'capstone', desc: 'Nothing it sees finishes its charge.', grants: [{ t: 'ability', components: [{ type: 'crit', chance: 0.35, mult: 2.4, damage: 40 }, { type: 'status', status: { kind: 'Freeze', amount: 0.4 } }] }, { t: 'cosmetic', id: 'lidless' }] },
   ],
 };

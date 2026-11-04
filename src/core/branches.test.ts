@@ -222,3 +222,27 @@ describe('click routing → tower inspection', () => {
     expect(game.getSnapshot().selectedPlaced?.id).toBe(game.towers[0].id);
   });
 });
+
+// A grant whose text promises an effect around/near/beside the VICTIM must anchor its area
+// components there (`at: 'victim'`) — otherwise it silently fires around the tower.
+describe('victim-centred grant text matches the anchor', () => {
+  it('every star/branch grant that names the victim anchors its area components on it', async () => {
+    const { starPathRegistry, isFork } = await import('./stars');
+    const AREA = new Set(['debuff', 'explosion', 'aura']);
+    type G = { t: string; components?: { type: string; at?: string }[] };
+    const rows: { where: string; desc: string; grants: G[] }[] = [];
+    for (const b of branchRegistry.all()) for (const t of b.tiers) rows.push({ where: `${b.id} T${t.tier}`, desc: t.desc, grants: (t.grants ?? []) as G[] });
+    for (const p of starPathRegistry.all()) {
+      for (const s of p.steps) {
+        if (isFork(s)) for (const f of s.fork) rows.push({ where: `${p.tower} ★${s.star}/${f.id}`, desc: f.desc, grants: (f.grants ?? []) as G[] });
+        else rows.push({ where: `${p.tower} ★${s.star}`, desc: s.desc, grants: (s.grants ?? []) as G[] });
+      }
+    }
+    const offenders: string[] = [];
+    for (const r of rows) {
+      if (!/\b(around|near|beside)\b[^.]*\bvictim\b/i.test(r.desc)) continue;
+      for (const g of r.grants) for (const c of g.components ?? []) if (AREA.has(c.type) && c.at !== 'victim') offenders.push(`${r.where}: ${c.type}`);
+    }
+    expect(offenders).toEqual([]);
+  });
+});

@@ -142,3 +142,37 @@ describe('ability executors', () => {
     expect(r.log.pools).toEqual([{ x: 30, y: 40, radius: 100, dps: 40, seconds: 5 }]);
   });
 });
+
+// A grant "around the victim" must land on the cast's PRIMARY victim, not the tower that cast it
+// (docs/TOWER-BRANCHES.md §grants — `at: 'victim'`); without one it does nothing.
+describe("area components with at: 'victim'", () => {
+  function centres(): { ctx: AbilityContext; at: { x: number; y: number }[] } {
+    const { ctx } = recorder([fakeEnemy(1, 400, 300)]);
+    const at: { x: number; y: number }[] = [];
+    return { ctx: { ...ctx, forEnemiesInRadius: (x, y) => { at.push({ x, y }); } }, at };
+  }
+  const victim = fakeEnemy(7, 400, 300);
+  const kinds: AbilityComponent[] = [
+    { type: 'debuff', radius: 80, status: { kind: 'Corrosion', amount: 1 }, at: 'victim' },
+    { type: 'explosion', radius: 80, damage: 10, at: 'victim' },
+    { type: 'aura', radius: 80, damage: 5, at: 'victim' },
+  ];
+
+  it.each(kinds.map((k) => [k.type, k] as const))('%s centres on the victim, not the tower', (_t, comp) => {
+    const { ctx, at } = centres();
+    expect(runAbility(ctx, comp, cast({ x: 10, y: 900, target: victim }))).toBe(true);
+    expect(at).toEqual([{ x: 400, y: 300 }]);
+  });
+
+  it.each(kinds.map((k) => [k.type, k] as const))('%s with no victim does nothing (and reports so)', (_t, comp) => {
+    const { ctx, at } = centres();
+    expect(runAbility(ctx, comp, cast({ x: 10, y: 900, target: null }))).toBe(false);
+    expect(at).toEqual([]);
+  });
+
+  it('without at, an area component still centres on the cast origin', () => {
+    const { ctx, at } = centres();
+    runAbility(ctx, { type: 'debuff', radius: 80, status: { kind: 'Corrosion', amount: 1 } }, cast({ x: 10, y: 900, target: victim }));
+    expect(at).toEqual([{ x: 10, y: 900 }]);
+  });
+});
