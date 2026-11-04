@@ -13156,7 +13156,7 @@ div.ah-spark { display: flex; align-items: center; justify-content: center; heig
 .scrh-b { width: 6px; height: 6px; border-radius: 50%; background: var(--gold); flex-shrink: 0; }
 @media (max-width: 900px) {
   .scrh-sib em { display: none; } /* glyph-only chips on narrow shells — the title carries the name */
-  .scrh-sib { padding: 4px 8px; }
+  .scrh-sib { padding: 4px 8px; min-width: 40px; justify-content: center; } /* a glyph-only chip stays a real tap target */
 }
 
 /* Page transition (docs/UI-MOTION.md): the hub screen re-keys per navigation — one quiet
@@ -13521,6 +13521,10 @@ html[data-layout='desktop'] .hud-wave-mod:has(> .phase-emergency) > .phase-hint 
 /* Compact run controls: labelled-but-short keys, ≥40px targets. */
 :is(html[data-layout='portrait'], html[data-layout='landscape']) .run-ctl .hive-mind-btn { font-size: 0; padding: 0 10px; gap: 5px; }
 :is(html[data-layout='portrait'], html[data-layout='landscape']) .run-ctl .hive-mind-btn::after { content: '◈ HIVE'; font-size: 11px; letter-spacing: 0.06em; }
+/* Automation gate on phones: the strip has no room for the reason sentence — the short key wears a
+   lock instead (the full reason stays in the desktop pill and the button's title). */
+:is(html[data-layout='portrait'], html[data-layout='landscape']) .run-ctl .hive-mind-btn .hive-mind-why { display: none; }
+:is(html[data-layout='portrait'], html[data-layout='landscape']) .run-ctl .hive-mind-btn:disabled::after { content: '◈ HIVE 🔒'; }
 :is(html[data-layout='portrait'], html[data-layout='landscape']) .run-ctl .speed-ctl { padding: 0 2px; }
 :is(html[data-layout='portrait'], html[data-layout='landscape']) .run-ctl .speed-btn { min-width: 40px; padding: 0 6px; }
 :is(html[data-layout='portrait'], html[data-layout='landscape']) .run-ctl .pause-btn { font-size: 0; min-width: 44px; justify-content: center; padding: 0 10px; }

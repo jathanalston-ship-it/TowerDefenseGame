@@ -170,6 +170,7 @@ async function main(): Promise<void> {
       await page.evaluate(() => (document.querySelector('.tut-cine-open') as HTMLElement | null)?.click());
       for (let step = 0; step < 40; step++) {
         await page.waitForTimeout(1300); // typewriter + auto-scroll settle
+        await reachDraftLesson(page);
         const check = await page.evaluate(() => {
           const g = globalThis as unknown as { __tut?: { get(): { def: { checkpoints: { id: string; cue?: { arrow?: { target: string }; callout?: { target?: string }; spotlight?: string } }[]; }; progress: { checkpoint: number } } | null; advance(): void } };
           const tut = g.__tut;
@@ -365,6 +366,38 @@ async function seedDevelopedProfile(page: import('playwright-core').Page): Promi
   await page.addStyleTag({ content: '.debug-panel { display: none !important; }' });
   await dismiss(page);
 }
+
+/** The walker force-advances lessons without playing, so it can reach the draft lesson while
+ *  wave 1 still runs — real play only arrives there once the wave clears, when the director deals
+ *  the held draft (docs/TUTORIAL.md §onboarding-flow). Drive the board to that state first: clear
+ *  the wave (debug handle), wait for the build phase, then deal the draft exactly as the
+ *  director's step hook does. A no-op on every other lesson. */
+async function reachDraftLesson(page: import('playwright-core').Page): Promise<void> {
+  type G = {
+    __tut?: { get(): { def: { checkpoints: { cue?: { arrow?: { target: string }; callout?: { target?: string }; spotlight?: string } }[] }; progress: { checkpoint: number } } | null };
+    __game?: { phase: string; draft: unknown; debugSkipWave(): void; openTutorialDraft(): void } | null;
+  };
+  const needs = await page.evaluate(() => {
+    const g = globalThis as unknown as G;
+    const s = g.__tut?.get();
+    const cp = s ? s.def.checkpoints[s.progress.checkpoint] : undefined;
+    const sel = cp?.cue?.arrow?.target ?? cp?.cue?.callout?.target ?? cp?.cue?.spotlight;
+    if (!sel || !sel.includes('.overlay .cards') || document.querySelector(sel) || !g.__game) return false;
+    if (g.__game.phase === 'wave') g.__game.debugSkipWave();
+    return true;
+  });
+  if (!needs) return;
+  await page.waitForFunction(() => {
+    const g = (globalThis as unknown as G).__game;
+    return !!g && (g.phase !== 'wave' || !!g.draft);
+  }, undefined, { timeout: 10_000 }).catch(() => undefined);
+  await page.evaluate(() => {
+    const g = (globalThis as unknown as G).__game;
+    if (g && !g.draft) g.openTutorialDraft();
+  });
+  await page.waitForTimeout(900); // the draft overlay mounts
+}
+
 
 /** Home → Continue Campaign → the live board. Narrow shells park HOME in the ☰ drawer; a
  *  portrait hub sits under the rotate gate, so every hop is a programmatic click. */

@@ -1613,6 +1613,6 @@ platform). Per-system docs hold the detail; this is the map.
   playtest persona).
 - The Bio-Dex "Brood Tyrant" entry still counts every boss kill.
 - Older width-based in-run CSS rules in `index.css` are overridden by run layout v2 and dead.
-- mobilecheck still reports hub-screen violations (landscape spill, small Help/settings targets)
-  that predate this pass; in-run and tutorial checks are clean.
+- mobilecheck is CLEAN across hub, in-run and tutorial walks; its tutorial walker force-advances
+  lessons, so it drives the board to the draft lesson via the debug handle (`reachDraftLesson`).
 
