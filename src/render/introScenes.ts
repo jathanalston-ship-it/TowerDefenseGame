@@ -381,7 +381,7 @@ function drawVeins(ctx: Ctx, w: number, h: number, t: number, fx: FilmFx): void 
 // ── Scene 4 · CORE — the Hive Core breathes, refusing to be eaten ──
 function drawCore(ctx: Ctx, w: number, h: number, t: number, fx: FilmFx): void {
   const cx = w / 2;
-  const cy = h * 0.52;
+  const cy = h * (h < 520 ? 0.28 : 0.52); // a short (phone-landscape) stage lifts the core so its copy keeps the lower band
   const grow = ease(t / 8); // "the last thing still growing back" — the core swells through the scene
   const R = Math.min(w, h) * 0.16 * (1 + grow * 0.14);
   // Double-thump heartbeat (the game's own cadence).
