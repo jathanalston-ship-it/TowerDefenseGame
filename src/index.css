@@ -6145,9 +6145,6 @@ kbd {
 .hub-cur.is-gaining { color: var(--gold); }
 .hub-cur.is-bumped { animation: cur-bump 0.45s ease; }
 /* The ONE Materials chip (ui/components/MaterialsChip.tsx) — total + tap-to-open breakdown. */
-.mats-chip { position: relative; }
-.mats-chip-btn { display: inline-flex; align-items: center; gap: 6px; min-height: 32px; padding: 0 4px; background: none; border: 0; color: inherit; font: inherit; cursor: pointer; }
-.mats-chip-pop { position: absolute; top: calc(100% + 6px); right: 0; z-index: 30; display: flex; flex-direction: column; gap: 6px; min-width: 180px; padding: 10px 12px; }
 .mats-chip-row { display: flex; align-items: center; gap: 8px; white-space: nowrap; }
 .mats-chip-row b { margin-left: auto; color: var(--text); }
 /* Tap-to-explain top-bar chips (ui/components/ChipPopover.tsx — docs/UI-STANDARDS.md §touch-info):
@@ -6155,10 +6152,9 @@ kbd {
    "what is this, where does it come from, where does it go" on touch as well as mouse. */
 .chip-pop-host { position: relative; }
 .chip-pop-btn { display: inline-flex; align-items: center; gap: 6px; min-height: 32px; padding: 0 4px; background: none; border: 0; color: inherit; font: inherit; cursor: pointer; }
-.chip-pop { position: absolute; top: calc(100% + 6px); z-index: 30; display: flex; flex-direction: column; gap: 6px;
-  width: max-content; max-width: min(300px, calc(100vw - 32px)); padding: 10px 12px; white-space: normal; text-align: left; }
-.chip-pop.is-left { left: 0; }
-.chip-pop.is-right { right: 0; }
+.chip-pop { position: fixed; z-index: 800; display: flex; flex-direction: column; gap: 6px; /* top/left set inline from the chip's rect */
+  width: max-content; max-width: min(300px, calc(100vw - 16px)); padding: 10px 12px; white-space: normal; text-align: left;
+  letter-spacing: normal; box-shadow: var(--shadow-lg); }
 .chip-pop-h { display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 800; color: var(--text); }
 .chip-pop-h b { margin-left: auto; color: var(--gold); font-variant-numeric: tabular-nums; }
 .chip-pop-p { font-size: 12px; line-height: 1.45; color: var(--muted); }
