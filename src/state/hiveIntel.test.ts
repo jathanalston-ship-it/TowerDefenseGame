@@ -52,4 +52,12 @@ describe('Hive Intelligence Feed — derived, honest, self-retiring', () => {
     expect(note!.priority).toBe('note');
     expect(note!.ago).toBe('5m ago');
   });
+
+  it('milestones stamped in the same millisecond still get distinct feed ids', () => {
+    const at = NOW - 60_000;
+    const s = { ...defaultSave(), timeline: [{ at, icon: '★', label: 'Stage 30 cleared' }, { at, icon: '☠', label: 'Revenge' }] as never };
+    const ids = hiveIntel(s, NOW, 10).filter((e) => e.id.startsWith('intel:tl:')).map((e) => e.id);
+    expect(ids).toHaveLength(2);
+    expect(new Set(ids).size).toBe(2);
+  });
 });

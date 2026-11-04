@@ -71,9 +71,11 @@ export function hiveIntel(save: SaveData, now: number, limit = 6): IntelEntry[] 
   }
 
   // ── NOTE — the account's recent milestones (the absorbed command-feed tail) ─────────────
-  for (const e of [...(save.timeline ?? [])].sort((a, b) => b.at - a.at).slice(0, 3)) {
+  // Ids carry the position too: one action can stamp several milestones in the same millisecond,
+  // and a timestamp-only id would collide (React drops/duplicates rows on equal keys).
+  for (const [i, e] of [...(save.timeline ?? [])].sort((a, b) => b.at - a.at).slice(0, 3).entries()) {
     out.push({
-      id: `intel:tl:${e.at}`, icon: e.icon, priority: 'note',
+      id: `intel:tl:${e.at}:${i}`, icon: e.icon, priority: 'note',
       what: e.label, why: 'A milestone on the account record.',
       action: 'Review', nav: 'profile', ago: agoLabel(e.at, now),
     });

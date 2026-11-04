@@ -274,8 +274,9 @@ export function GeneticVault(): JSX.Element {
           <div className="vault-history">
             <div className="vault-h">Vault history · {led.opened} opened</div>
             <div className="vault-hist-rows">
-              {led.recent.slice(0, 5).map((r) => (
-                <span className="vault-hist" key={r.at} style={{ color: rarityColor(r.rarity) }}>
+              {led.recent.slice(0, 5).map((r, i) => (
+                // a multi-open stamps several rows in the same millisecond — the index keeps keys unique
+                <span className="vault-hist" key={`${r.at}:${i}`} style={{ color: rarityColor(r.rarity) }}>
                   {r.label} · {r.items} rewards
                 </span>
               ))}
