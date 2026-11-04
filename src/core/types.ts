@@ -763,6 +763,9 @@ export interface HudSnapshot {
   /** Why the open draft was dealt (docs/CARDS.md): a cleared wave, the run's OPENING draft (§opening) or a
    *  bought SPLICE (§splice). Optional — absent reads as 'wave'. */
   draftKind?: 'wave' | 'opening' | 'splice';
+  /** EARLY CALL (docs/EARLY-CALL.md): drafts still owed AFTER the open one — called-over waves' cards,
+   *  dealt back to back at the clear. Optional (fixtures); 0/absent = this is the last. */
+  draftsOwed?: number;
   /** §splice: the Biomass price of an extra draft RIGHT NOW (build phase, feature on); -1 = unavailable.
    *  The button shows only once the bank reaches it — the price IS the threshold. Optional (fixtures). */
   spliceCost?: number;

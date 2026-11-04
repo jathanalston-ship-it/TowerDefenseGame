@@ -416,7 +416,7 @@ async function session(ctx: BrowserContext, dist: string): Promise<Page> {
   });
   M.firstRunEndAt = +now().toFixed(1);
   await page.waitForSelector('.results-screen', { timeout: 8000 }).catch(() => undefined);
-  M.stage1Result = ((await page.evaluate(() => document.querySelector('.results-screen')?.textContent?.match(/VICTORY|DEFEAT|STAGE CLEAR|EXTRACTED/i)?.[0] ?? null)) || 'ended');
+  M.stage1Result = ((await page.evaluate(() => document.querySelector('.results-screen')?.textContent?.match(/VICTORY|DEFEAT|STAGE CLEAR|EXTRACTED|EXTRACTION COMPLETE|NUCLEUS LOST/i)?.[0] ?? null)) || 'ended');
   await sleep(1500);
   await shot(page, 'results');
 

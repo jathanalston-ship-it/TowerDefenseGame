@@ -14059,6 +14059,7 @@ html[data-layout='landscape'] .build-controls.is-visible ~ .mega-banner { top: 6
 .splice-btn b { color: var(--text); font-variant-numeric: tabular-nums; }
 .splice-btn:hover { color: var(--text); box-shadow: 0 0 16px color-mix(in srgb, var(--caustic) 38%, transparent); }
 .wave-cleared.draft-splice-eyebrow { color: var(--caustic); text-shadow: 0 0 16px color-mix(in srgb, var(--caustic) 45%, transparent); }
+.wave-cleared .draft-owed { display: block; margin-top: 2px; font-size: var(--fs-xs); letter-spacing: 0.04em; color: var(--muted); text-shadow: none; } /* EARLY CALL: owed drafts dealt back to back say so (docs/EARLY-CALL.md) */
 /* DRAFT FIT: a card whose subject barely matters to this run says so (muted — information, not alarm). */
 .card-offbuild { font-size: 11px; font-weight: 700; color: var(--muted); }
 /* Mission card: what wave 1 actually sends (bosses, then fliers, then the biggest packs). */
