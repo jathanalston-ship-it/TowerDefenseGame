@@ -4,7 +4,7 @@
 // for balance decisions (CLAUDE.md: balance by simulation, not intuition).
 
 import { writeFileSync } from 'node:fs';
-import { WORLD, simulateAccount } from '../src/dev/progressionSim';
+import { WORLD, simulateAccount, withSeededLoot } from '../src/dev/progressionSim';
 import type { SimTrace } from '../src/dev/progressionSim';
 
 const arg = (name: string, fallback: number): number => {
@@ -20,7 +20,8 @@ const BANDS = [10, 50, 100, 250, 500, 1000, 3000].filter((b) => b <= HOURS);
 const t0 = Date.now();
 const traces: SimTrace[] = [];
 for (let i = 0; i < SEEDS; i++) {
-  traces.push(simulateAccount(1000 + i * 7919, BANDS));
+  const seed = 1000 + i * 7919;
+  traces.push(withSeededLoot(seed, () => simulateAccount(seed, BANDS))); // seeded loot ⇒ reproducible report
   process.stderr.write(`seed ${i + 1}/${SEEDS} done (${Math.round((Date.now() - t0) / 1000)}s)\n`);
 }
 

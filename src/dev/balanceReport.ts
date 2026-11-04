@@ -11,7 +11,7 @@
 // Dev-only (src/dev/* is never imported by app code). Consumers: balanceReport.test.ts
 // (small-matrix CI pins) and scripts/sim-balance-report.ts (the full report generator).
 
-import { simulateAccount } from './progressionSim';
+import { isDeadProgression, simulateAccount, withSeededLoot } from './progressionSim';
 import type { SimCheckpoint, SimTrace } from './progressionSim';
 import { PERSONAS } from './personas';
 import type { Persona } from './personas';
@@ -24,13 +24,22 @@ export interface PersonaRun {
 }
 
 /** Run every persona × seed through the simulator. Personas cap their own horizon
- *  (`maxHours`) — a fresh account is only measured where fresh accounts live. */
+ *  (`maxHours`) — a fresh account is only measured where fresh accounts live. Each account's
+ *  loot RNG is seeded from (seed, persona id), so the matrix is reproducible run to run and a
+ *  before/after diff isolates the balance change from luck. */
 export function runMatrix(bands: number[], seeds: number[], personas: Persona[] = Object.values(PERSONAS)): PersonaRun[] {
   return personas.map((persona) => ({
     persona,
-    traces: seeds.map((seed) =>
-      simulateAccount(seed, bands.filter((b) => b <= persona.maxHours), persona)),
+    traces: seeds.map((seed) => withSeededLoot((seed ^ fnv1a(persona.id)) >>> 0, () =>
+      simulateAccount(seed, bands.filter((b) => b <= persona.maxHours), persona))),
   }));
+}
+
+/** Stable 32-bit string hash (FNV-1a) — keys the per-persona loot seed. */
+function fnv1a(s: string): number {
+  let h = 2166136261;
+  for (let i = 0; i < s.length; i++) h = Math.imul(h ^ s.charCodeAt(i), 16777619);
+  return h >>> 0;
 }
 
 // ── Bottleneck detection ──────────────────────────────────────────────────────────────
@@ -109,7 +118,9 @@ export function detectBottlenecks(runs: PersonaRun[]): Bottleneck[] {
         });
       };
 
-      hit('dead-zone', (a, b) => b.farmRuns > a.farmRuns && b.power < a.power * 1.01,
+      // Molt-aware (shared with detectProblems): Power is a sawtooth across Molts, so a
+      // checkpoint taken just after one reads LOWER than one taken before — not a stall.
+      hit('dead-zone', isDeadProgression,
         (h) => `power ${h[0][0].power}→${h[0][1].power} across ${h[0][1].farmRuns - h[0][0].farmRuns} farm runs (seed ${traces[pairs.indexOf(h[0])]?.seed ?? '?'})`);
       hit('wall-stall', (a, b) => b.farmRuns > a.farmRuns && b.stage === a.stage && b.readiness <= a.readiness + 0.005,
         (h) => `stage ${h[0][1].stage} for the whole band; readiness ${h[0][0].readiness}→${h[0][1].readiness}`);
@@ -145,7 +156,7 @@ const DIAGNOSIS: Record<BottleneckKind, Diagnosis> = {
     rootCause: 'Per-run permanent gains saturate: mastery is logarithmic, star/upgrade sinks are already bought out at this depth, so farm runs stop moving Power.',
     systems: 'Mastery curve · star/upgrade sinks · loot→power conversion',
     fixes: ['Add a repeatable late-band Power sink (prestige layers 2+ are the reserved seam).',
-      'Raise deep-band loot yield via the ECONOMY_ADAPTIVE seams (weight-0 today; simulate first).',
+      'Raise deep-band loot yield via the ECONOMY_ADAPTIVE seams (active since 2026-07 — catchUpPerPowerGap; retune on simulator evidence only).',
       'Extend star caps / gene levels for the affected band (content, not systems).'],
     difficulty: 'Medium',
   },
@@ -176,8 +187,8 @@ const DIAGNOSIS: Record<BottleneckKind, Diagnosis> = {
   'currency-shortage': {
     rootCause: 'Income at the stuck frontier undershoots the next purchase tier — the player is broke AND walled simultaneously.',
     systems: 'Economy framework (income floors) · campaign rewards · loot yield',
-    fixes: ['Raise the band income floor via ECONOMY_ADAPTIVE (weight-0 seam; simulate first).',
-      'Add a first-clear retry consolation (partial reward on failed frontier attempts).',
+    fixes: ['Raise the band income floor via ECONOMY_ADAPTIVE (catchUpPerPowerGap — active since 2026-07; retune on simulator evidence only).',
+      'Raise the failed-attempt consolation (CAMPAIGN_REWARDS.attemptFrac — shipped in Amendment №1; simulate first).',
       'Rebalance the affected purchase tier costs downward (protocol §4).'],
     difficulty: 'Low',
   },

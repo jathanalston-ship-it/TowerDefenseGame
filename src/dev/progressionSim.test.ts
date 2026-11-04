@@ -8,7 +8,7 @@
 // made on the generated report (docs/PROGRESSION-LOOP.md §time).
 
 import { describe, it, expect, afterAll, vi } from 'vitest';
-import { detectProblems, simulateAccount } from './progressionSim';
+import { detectProblems, simulateAccount, withSeededLoot } from './progressionSim';
 import type { SimCheckpoint } from './progressionSim';
 import { meta } from '../state/meta';
 import { Rng } from '../core/rng';
@@ -37,6 +37,16 @@ describe('problem detectors (synthetic traces)', () => {
       cp({ hours: 50, power: 4200, farmRuns: 40, molts: 4 }), // molted mid-band: upgrades reset, cells minted
     ]);
     expect(f.deadProgression).toEqual([]);
+  });
+
+  it('withSeededLoot pins Math.random for the call and restores it after (reproducible matrices)', () => {
+    const real = Math.random;
+    const draw = (): number[] => withSeededLoot(42, () => [Math.random(), Math.random(), Math.random()]);
+    expect(draw()).toEqual(draw()); // same seed ⇒ same loot luck
+    expect(withSeededLoot(43, () => Math.random())).not.toBe(draw()[0]);
+    expect(Math.random).toBe(real); // restored, even for the next caller
+    expect(() => withSeededLoot(1, () => { throw new Error('boom'); })).toThrow('boom');
+    expect(Math.random).toBe(real); // …and restored on a throw
   });
 
   it('flags a wall stall: same frontier, readiness flat, farming the whole band', () => {

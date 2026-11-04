@@ -71,6 +71,20 @@ describe('bottleneck detectors (synthetic traces — deterministic)', () => {
     expect(kinds).toContain('push-futility');
   });
 
+  it('dead-zone is molt-aware (shared with detectProblems): a post-Molt trough is not a stall', () => {
+    // The 2026-07 report flagged "Unlucky 10→50h: power 107,042→97,672" and "Campaign 150→400h:
+    // 7.15M→1.26M" — both bands held 7–25 Molts. Power is a sawtooth (each Molt resets the
+    // upgrade engine for permanent cells), so two checkpoints sample it at arbitrary phases.
+    const a = mkCp({ hours: 10, power: 107042, molts: 2, stage: 32, farmRuns: 16, runs: 48, unlocks: 270 });
+    const molted = mkCp({ hours: 50, power: 97672, molts: 9, stage: 55, farmRuns: 79, runs: 134, unlocks: 500 });
+    expect(detectBottlenecks([mkRun('unlucky', [[a, molted]])]).filter((x) => x.kind === 'dead-zone')).toEqual([]);
+    // The same flat band WITHOUT a Molt is still the real thing — farming that moved nothing.
+    const flat = { ...molted, molts: 2 };
+    const found = detectBottlenecks([mkRun('unlucky', [[a, flat]])]).filter((x) => x.kind === 'dead-zone');
+    expect(found).toHaveLength(1);
+    expect(found[0].evidence).toContain('farm runs');
+  });
+
   it('stays silent on a healthy band', () => {
     const a = mkCp({ hours: 10, power: 100, stage: 6, unlocks: 30, readiness: 0.4 });
     const b = mkCp({ hours: 50, power: 400, stage: 14, unlocks: 90, readiness: 0.6, runs: 40, farmRuns: 20, unspentShards: 300 });
