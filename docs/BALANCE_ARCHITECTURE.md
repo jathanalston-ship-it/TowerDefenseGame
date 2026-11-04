@@ -39,14 +39,15 @@
 |---|---|---|
 | Sim behavior | golden byte-identity, 6 seeds | `golden.test.ts` |
 | Scaling policy | director ≡ legacy formulas, bit-exact, difficulty×doctrine×depth | `difficultyDirector.test.ts` |
-| Adaptive seams | `DIRECTOR_ADAPTIVE`/`ECONOMY_ADAPTIVE` pinned at 0 until simulator evidence | both director tests |
+| Adaptive seams | `DIRECTOR_ADAPTIVE` pinned at 0; `ECONOMY_ADAPTIVE` activated on simulator evidence (§7) | both director tests |
 | Loop shape | 8 invariants: resistance, walls, never-impossible, interlock, prestige ring, unskippable modes | `progressionLoop.test.ts` |
 | Economy income | factor chains ≡ legacy settles, bit-exact | `economyDirector.test.ts` |
 | Economy health | positive uncapped sources; geometric sinks | `economyDirector.test.ts` |
 | Loot | meter invariant (5000-fill stress + conservation), pity, catch-up bias neutrality | `lootQueue/progressionLoot` tests |
 | Power | every permanent field scored or explicitly waived (bypass prevention) | power validation tests |
 | Content shape | registry validation on every def; gene 100/250/500-card stress; per-def invariants | `validate.ts`, `geneStress` |
-| Pacing | simulator detectors (dead progression, wall stall, spike, sink exhaustion) at CI scale | `progressionSim.test.ts` |
+| Pacing | simulator detectors (dead progression, wall stall, spike, sink exhaustion) at CI scale; Molt cadence ≤2 by 5h / ≤10 by 30h | `progressionSim.test.ts` |
+| Report instrument | molt-aware dead-zone (shared `isDeadProgression`), cohort-relative spikes, seeded loot (reproducible matrix) | `balanceReport.test.ts` |
 | UI/identity | type/tracking/radius/motion scales enforced | `uiStandards.test.ts` |
 | Docs/graph | anchors, dead paths, dependency-graph freshness | `systemRegistry.test.ts` |
 
@@ -196,3 +197,104 @@ contract — **≤2 Molts by 5h and ≤10 by 30h** (was ≤6 / ≤36, loose enou
 rhythm back in unnoticed). The reveal timeline uses the same plateau: the deep-specialization
 wings (Adaptation S24, Mulligans S25+) open around the first Molt (docs/PROGRESSION-GATING.md
 §timeline).
+
+---
+
+## 9. Round 4 — BALANCE_REPORT №2 review (2026-11, persona matrix 11 × 5 × 400h)
+
+The 2026-07 matrix (commit 6390559) left its findings report-only. This round ran §4 on today's
+code (the 2026-11 batch: S4→S30 reveals, Boss Rush S12, the Stage 1–3 curve, 25 Rule Genes, Threat
+rewards). **Every run here seeds the loot RNG** (`withSeededLoot`), so before/after columns are
+common-random-number comparisons, not two luck draws.
+
+### 9.1 The instrument was wrong first (five corrections, each tested)
+
+| Defect | Evidence | Correction |
+|---|---|---|
+| Report `dead-zone` was a molt-BLIND copy of the detector (progressionSim's was fixed in §7, the report's never was) | Power is a sawtooth: each Molt resets the upgrade engine — ×3–5 at 10–50h, **×15–18 by 350h** (efficient seed 33676: 12.4M → 0.68M one run after a Molt). Unlucky 10→50h spanned 7 Molts, Campaign 150→400h 18 | one shared `isDeadProgression` (a band with a Molt is progress) |
+| `power-spike` read checkpoint→checkpoint ratios — the same sawtooth, sampled at random phase | Campaign 50→150h read ×48.5 where its band PEAK grew ×13.3 (cohort ×9–15); Completionist 150→400h ×24.5 vs peak ×8.8 | `SimCheckpoint.peakPower` (highest post-run Power since the last checkpoint); spikes are peak-to-peak in both detectors; the report's pacing table picks the median seed by band peak |
+| Loot RNG unseeded (`Math.random`) | two runs of the same code disagreed | `withSeededLoot` per (seed, persona) in `runMatrix` + `sim:progression` |
+| The virtual player never synthesized a tower | 16 of 21 towers stayed locked for 400h with ~2,400 shards each at 120h; their ★0 slots dragged the towers Power geomean | `spendEverything` calls `unlockTower` |
+| …nor spent Essence on Transcendence | the Essence wallet read as compounding with nothing to buy | first option on every maxed card |
+
+Corrections 4–5 make the bot a truer player: the efficient cohort at 400h goes stage 136 → 151,
+Molts 43 → 48, band-peak Power 12.6M → 33.6M, acquisitions 948 → 1,483. The CI envelope still holds
+(≤2 Molts by 5h, ≤10 by 30h, pinned account). The loop-faithful 4 × 100h report now reads Molts
+**2 @10h · 12 @50h · 24 @100h** (§8 measured 2 / 10 / 19 with the incomplete policy): still 1–2 in
+the first 10h, then one per ~4h — the §8 contract holds, so no knob moves.
+
+### 9.2 Verdict per original finding
+
+| 6390559 finding | Verdict | Evidence (today's code, seeded) | Decision |
+|---|---|---|---|
+| Dead zone — Unlucky 10→50h (107,042 → 97,672) | **Artifact** (sawtooth) | the band holds 7 Molts; band peak ×2.4–3.2 on all 5 seeds; Unlucky tracks the cohort (final 400h: stage 149 vs efficient 151, Molts 47 vs 48) | no bad-luck change — the active `ECONOMY_ADAPTIVE` catch-up (§7) + loot pity already hold it on the curve |
+| Dead zones — Campaign 10→50h / 150→400h, Lucky 50→150h | **Artifact** | every flagged band contains Molts (Campaign 150→400h: 18; 7.15M → 1.26M is a post-Molt checkpoint) | detector fixed |
+| Power spike — Completionist 50→150h (×9.3 vs ×2.4) + 8 other spikes | **Artifact** | Completionist band-peak growth ×4.5–5.5 across seeds vs ×4.3–7.0 for the balanced personas; no Molt-chain discontinuity, nothing flattens afterwards | no payout smoothing |
+| Futile frontier pushes — Campaign, all bands (#1 MAJOR) | **Real as feel, not as pacing** | 45–53% of under-ready attempts fail ≤150h, 71% at 150→400h (post-Molt readiness ≈ 0.1) — yet the persona LEADS the cohort (stage 143 vs 103 at 150h, 203 vs 151 at 400h) | see 9.3(e) — `attemptFrac` stays 0.25; evidence now shows the failure share |
+| Unlock-cadence gap — Campaign 150→400h | **Instrument** | the bot never bought towers or Transcendence, so the meter had nothing to count | resolved by corrections 4–5 (no gap in the final matrix) |
+| Engorged Reactor gene levels don't move Power | **Real** (display, not model) | the fields ARE weighted (overcharge 0.1/unit, reactor biomass 0.25), but ×1.005 × `GENE_POWER_SCALE` rounds away on a young account — 52 of 504 levels tripped `[power-audit]` | per-level floor, 9.3(b) |
+
+### 9.3 Changes and non-changes (propose → simulate → record)
+
+- **(a) Unlucky stall — no change.** Not real (9.2). Luck 0.8 lands at stage 149 vs the efficient
+  cohort's 151 at 400h (Molts 47 vs 48; band-peak Power −13%) — the catch-up seam is doing its job.
+- **(b) Gene Power floor — CHANGED.** `GENE_LEVEL_POWER_FLOOR = 0.0125` (geneCards.ts): every
+  Power-visible level scores ≥ ×1.0125 on its card, so `POWER_BASE × GENE_POWER_SCALE × floor > 1`
+  point on any account (other parts ≥ 1). 52 levels lift; maxed library ×3.078 → **×3.092** (the
+  geneArchive.test ceiling 3.2 holds; `GENE_POWER_SCALE` untouched, so no existing level's Power
+  falls). No constitution exemption needed — Rule 1 holds at the displayed integer, pinned by
+  geneUpgrades.test for every level of every card.
+- **(c) Completionist spike — no change.** Artifact (9.2).
+- **(d) Sink exhaustion — CHANGED (smallest seam).** Measured: Cores never pile (Molt consumes
+  them); within 400h Genome Samples sit at or under the remaining ★ need (★ tiers past the Evolution
+  Cap wait on stages 120–300 — the EA audit's "bought out in tens of hours" predates both the cap and
+  Prime). Past ~400h they don't: a 1,000h Lucky probe banked **384k Samples beyond every remaining ★**
+  at stage 190 (Prime opens only at ★10 = stage 300). Container opens now treat a tower's grant past
+  `max(bank, towerShardNeed)` (unlock + remaining ★ ladder; 0 at ★max) as duplicates → Gene Essence —
+  the existing maxed-duplicate seam generalized, direct lanes still bank (PRIME-STRAINS §economy
+  unchanged). Same probe after: surplus ≤ 500, stage 190 → 193, 100h band peaks equal or higher.
+- **(e) Frontier futility — no change.** `attemptFrac` 0.25 → 0.5 (Campaign, 5 seeds × 150h, same
+  seeds): stage +2 at 10–50h, washing out to ±1 by 150h (143 vs 142); failure share flat
+  (45% → 50% at 10–50h, 53% → 52% at 50–150h). It does not improve pacing for a persona that already out-paces the
+  loop-faithful cohort; the residual is the persona's risk appetite on an informed, paid gamble.
+
+### 9.4 Matrix headline, before → after
+
+Columns: the 6390559 report (unseeded, July code, its median seed); today's code under the July
+instrument (seeded; the four personas not re-run there read "—"); the final code + corrected instrument
+(seeded). Final band 400h (Fresh 10h); `st` stage · `m` Molts · `acq` acquisitions · `peak` the
+cohort-median band-peak Power over 150→400h. `docs/BALANCE_REPORT.md` was rendered from the same
+seeded traces (dense checkpoints proven checkpoint-for-checkpoint identical to `runMatrix`).
+
+| Persona (final band) | 6390559 report (median seed) | Today, July instrument (cohort median) | Final (cohort median) |
+|---|---|---|---|
+| fresh | st 29 · m 1 · acq 257 | st 29 · m 1 · acq 246 · peak 59k | st 29 · m 1 · acq 310 · peak 79k |
+| average | st 131 · m 41 · acq 852 | st 131 · m 41 · acq 925 · peak 12.4M | st 148 · m 47 · acq 1454 · peak 29.1M |
+| efficient | st 136 · m 43 · acq 879 | st 136 · m 43 · acq 948 · peak 12.6M | st 151 · m 48 · acq 1483 · peak 33.6M |
+| unlucky | st 133 · m 42 · acq 862 | st 130 · m 41 · acq 969 · peak 12.3M | st 149 · m 47 · acq 1480 · peak 29.2M |
+| lucky | st 139 · m 44 · acq 1025 | — | st 157 · m 50 · acq 1499 · peak 36.3M |
+| completionist | st 133 · m 42 · acq 905 | st 136 · m 43 · acq 956 · peak 12.5M | st 151 · m 48 · acq 1418 · peak 34.8M |
+| infinite | st 127 · m 40 · acq 862 | — | st 139 · m 44 · acq 1348 · peak 24.1M |
+| campaign | st 187 · m 60 · acq 1108 · fail 275 | st 187 · m 60 · acq 1098 · peak 25.1M · fail 265 | st 203 · m 65 · acq 1772 · peak 68.1M · fail 221 |
+| heroes | st 136 · m 43 · acq 935 | st 136 · m 43 · acq 993 · peak 13.1M | st 154 · m 49 · acq 1436 · peak 34.7M |
+| towers | st 133 · m 42 · acq 906 | — | st 151 · m 48 · acq 1456 · peak 34.7M |
+| equipment | st 130 · m 41 · acq 861 | — | st 148 · m 47 · acq 1456 · peak 29.4M |
+
+**Signals: 17 → 9 (July instrument, 7 personas re-run) → 3.** Dead zones 4 → 3 → **0**; power spikes
+9 → 3 → **0**; unlock-cadence gaps 1 → 0 → **0**; push-futility 3 → 3 → 3 (Campaign — the recorded
+risk-appetite residual, now with its failure share in the evidence). The pacing jump between columns 2
+and 3 is the bot becoming a truer player (towers synthesized, Essence spent), not a balance buff: the
+only shipped balance changes are the gene Power floor (display-level, +0.5% on a maxed library) and
+the surplus conversion (no surplus within 400h for 9 of 11 personas; Lucky/Campaign medians 36 / 72 shards).
+
+### 9.5 Watch items (open, by design)
+
+- **The Molt trough deepens with depth** (×3–5 early → ×15–18 at 350h+; readiness ≈ 0.1 after a
+  late Molt, ~20h of each ~25h cycle spent rebuilding). Pacing is fine (§8), but it is the source of
+  the late 71% push-failure share and a Power number that visibly crashes each Molt — a design look
+  (e.g. partial upgrade retention via an Ascendant node) belongs to prestige layers 2+.
+- **Essence past ~700h.** With the surplus conversion the 1,000h probe's Essence pile reaches ~2.4M
+  once all 131 cards are maxed + transcended. The bot models only gene levels + Transcendence;
+  nucleus organs, hero symbiotes, Mulligans and Hive organs also spend Essence, and Gene Ascension
+  tiers are the reserved repeatable sink.
+- **Catalyst** idles in the sim (32k at 1,000h): the bot doesn't craft, and Prime opens at stage 300.

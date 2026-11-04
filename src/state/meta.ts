@@ -1226,7 +1226,7 @@ export function heroStarCost(stars: number): number {
 /** Tower Shards a tower can still SPEND on its ladder: its unlock price while locked + every
  *  remaining ★ up to the top. A bank already at this level can never use another shard (★ tiers
  *  past the Campaign Evolution Cap wait on stages 120–300 — hundreds of hours deep), so container
- *  opens treat shards beyond it as duplicates (docs/SHARD-ECONOMY.md §surplus). 0 at ★max — the
+ *  opens treat shards beyond it as duplicates (docs/SHARD-ECONOMY.md §7 surplus). 0 at ★max — the
  *  original "maxed → convert" rule is the special case. */
 export function towerShardNeed(save: SaveData, kind: TowerKind): number {
   let need = isTowerUnlocked(save, kind) ? 0 : (TOWER_DEFS[kind]?.unlockShards ?? 0);
