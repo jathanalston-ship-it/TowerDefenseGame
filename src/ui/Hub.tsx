@@ -101,14 +101,14 @@ function prefetchScreens(save: SaveData, keys: readonly NavKey[]): void {
   for (const k of new Set(keys.map(hostOf))) if (featureRevealed(save, k)) void LAZY_SCREENS[k]?.preload();
 }
 
-/** Run `fn` when the browser idles — within 800 ms even on a board that never idles (the living
- *  lab animates constantly). Returns the cancel. */
-function onIdle(fn: () => void): () => void {
+/** Run `fn` when the browser idles — within `deadlineMs` even on a board that never idles (the
+ *  living lab animates constantly). Returns the cancel. */
+function onIdle(fn: () => void, deadlineMs: number): () => void {
   if (typeof window.requestIdleCallback === 'function') {
-    const id = window.requestIdleCallback(fn, { timeout: 800 });
+    const id = window.requestIdleCallback(fn, { timeout: deadlineMs });
     return () => window.cancelIdleCallback(id);
   }
-  const id = setTimeout(fn, 500);
+  const id = setTimeout(fn, Math.min(500, deadlineMs));
   return () => clearTimeout(id);
 }
 
@@ -474,13 +474,14 @@ export function Hub({
   // NO LOADING FLASH (docs/DEPLOYMENT.md §code-splitting): once the browser idles, warm the
   // current hub's open member screens + the Ready Chain's next stop through the same lazyNamed
   // thunks — the first visit renders the module directly (a hovered door warms its hub too).
-  // Idle-only: nothing competes with boot, and the boot closure is unchanged.
+  // Idle-only, so nothing competes with boot (the boot closure is unchanged); a LANDING warms its
+  // cards right after paint — it exists to pick one of them.
   useEffect(() => onIdle(() => {
     const s = meta.get();
     const group = navGroups().find((g) => g.id === landing) ?? groupOf(nav);
     const next = readyChain(s)[0]?.nav;
     prefetchScreens(s, [...group.items.map((i) => i.key), ...(next ? [next] : [])]);
-  }), [nav, landing]);
+  }, landing !== null ? 50 : 800), [nav, landing]);
 
   // Progressive UI contamination (VISUAL_IDENTITY.md §contamination): the instrument's own
   // chrome is slowly assimilated as the account deepens — SAME ladder as the evolving lab
