@@ -1739,9 +1739,12 @@ band = config rows; a new Boss Rush board epoch = bump `RUSH_BOARD_EPOCH` (both 
 **Assumptions.** The golden path sets none of the new RunOptions; save v56 merge rules are max/union;
 the live threat never makes a weak board easier.
 
-**Known limitations.** The live ratio ignores board size, so frontier win rates rose (8 h 51 → 72 %)
-and flawless wins stayed high; winning runs got longer (median wave-seconds ×1.6 at 8 h, ×3.6 at
-100 h — under follow-up). Campaign draft picks still barely move outcomes (wins at the ceiling).
+**Known limitations.** The live ratio ignores board size. A matched-pair decomposition showed ~¾ of
+the first release's run-length growth was the live threat's HP, so its caps ship at 3 / 4 (chaff /
+boss): winning runs are ×1.1 (8 h) / ×1.6–1.7 (100 h) the old length, but frontier win rates rose a
+lot (8 h 51 → 87 %, 100 h 41 → 82 %) and flawless wins stayed ~80 % — the board-size term and a
+stage-curve re-anchor (DIFFICULTY_DIRECTOR §7) are the real fix; `liveCap`/`liveBossCap` 16/16 trade
+run length back for difficulty. Campaign draft picks still barely move outcomes (wins at the ceiling).
 Affix tiers move item Power little (base effects dominate). Migrated veterans' ETAs start optimistic
 for ~10 runs; their first settle crosses ~17 ladder rungs at once (folded on Results). Hive
 Intelligence doesn't use Splice. Infinite "start at 60 % depth" was not built.
