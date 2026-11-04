@@ -10,7 +10,7 @@
 import { readFileSync, readdirSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { CURRENT_VERSION } from '../save/saveStore';
-import { GENE_LEVEL_GATES, GENE_POWER_SCALE } from '../core/geneCards';
+import { GENE_LEVEL_GATES, GENE_LEVEL_POWER_FLOOR, GENE_POWER_SCALE } from '../core/geneCards';
 import { ESSENCE_PER_SHARD, ESSENCE_COST } from '../core/geneEssence';
 import { CARD_POOL } from '../core/cards';
 import { TOWER_ORDER, HERO_ORDER, READINESS } from '../core/config';
@@ -46,6 +46,7 @@ export function docAnchors(): DocAnchor[] {
     { doc: 'docs/TUTORIAL.md', contains: `The encounter is **${COMBAT_TUTORIAL.waves} waves**`, why: 'combat tutorial wave count drifted (COMBAT_TUTORIAL.waves — the HUD reports it)' },
     { doc: 'docs/TUTORIAL.md', contains: `| 3 | Cold-open banner → **Combat Tutorial** | ${COMBAT_TUTORIAL.checkpoints.length} lessons, ${COMBAT_TUTORIAL.waves} waves |`, why: 'combat tutorial lesson count drifted (COMBAT_TUTORIAL.checkpoints)' },
     { doc: 'docs/GENE-EVOLUTION.md', contains: `GENE_POWER_SCALE = ${GENE_POWER_SCALE}`, why: 'gene power calibration drifted (GENE_POWER_SCALE)' },
+    { doc: 'docs/GENE-EVOLUTION.md', contains: `\`GENE_LEVEL_POWER_FLOOR\` = ${GENE_LEVEL_POWER_FLOOR}`, why: 'per-level gene Power floor drifted (GENE_LEVEL_POWER_FLOOR)' },
     { doc: 'docs/GENE-EVOLUTION.md', contains: `| Essence / shard | ${ESSENCE_PER_SHARD.common} | ${ESSENCE_PER_SHARD.uncommon} | ${ESSENCE_PER_SHARD.rare} | ${ESSENCE_PER_SHARD.epic} | ${ESSENCE_PER_SHARD.legendary} | ${ESSENCE_PER_SHARD.mythic} |`, why: 'duplicate-conversion rates drifted (ESSENCE_PER_SHARD)' },
     { doc: 'docs/GENE-EVOLUTION.md', contains: `${ESSENCE_COST.baseByCardRarity.common}`, why: 'essence cost base drifted (ESSENCE_COST.common)' },
     { doc: 'docs/GENE-EVOLUTION.md', contains: `${GENE_LOADOUT_SLOTS.length}`, why: 'loadout slot count drifted (GENE_LOADOUT_SLOTS)' },
