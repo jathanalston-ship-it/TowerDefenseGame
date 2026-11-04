@@ -4,12 +4,14 @@
 // each is just another RewardCategory in the array Results.tsx builds. After the sequence, newly
 // unlocked achievements play SEQUENTIALLY in a strip below the stats (never covering them). The
 // player can Skip/reveal-all, click to fast-forward a beat, and manually expand any category to
-// inspect it. Pure presentation: the rewards are already decided + applied upstream.
+// inspect it. Pure presentation: the rewards are already decided + applied upstream. Each landing
+// category plucks the climbing `reveal` cue; a stat's own `cue` (the level-up) follows its row.
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useCountUp } from './components/useCountUp';
 import type { ReactNode } from 'react';
 import { ACCOUNT_CURRENCY } from '../core/currencies';
+import { audio } from '../audio/sound';
 
 const prefersReduced = (): boolean =>
   typeof window !== 'undefined' && !!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
@@ -18,6 +20,7 @@ const CATEGORY_MS = 1000; // gap between category reveals → ~5 categories land
 const COUNT_MS = 700; // per-number count-up duration
 const SETTLE_MS = COUNT_MS + 220; // beat the last category holds open before the sequence settles
 const ACHV_MS = 1800; // each post-sequence achievement spotlight holds this long before the next
+const STAT_CUE_MS = 260; // a stat's own cue trails its category's reveal pluck by this beat
 
 /** One animated stat row inside a category. `bar` (0..1) draws a fill that grows with the count. */
 export interface RewardStat {
@@ -30,6 +33,8 @@ export interface RewardStat {
   note?: string; // small badge, e.g. "NEW BEST"
   bar?: number; // 0..1 target fill (a progress bar that fills as the number counts up)
   celebrate?: boolean; // larger pop — a new unlock / level-up / record
+  cue?: string; // audio.cue tag played as this row lands (e.g. 'levelup')
+  from?: number; // the honest starting value the count-up climbs FROM (previous level / Power); default 0
 }
 
 /** A reward category — the unit of the paced reveal. Add a progression system = add one of these. */
@@ -51,7 +56,8 @@ export interface AchievementItem {
 }
 
 function StatRow({ s, instant }: { s: RewardStat; instant: boolean }): JSX.Element {
-  const n = useCountUp(s.value, { ms: COUNT_MS, instant });
+  const base = s.from == null ? 0 : Math.min(s.from, s.value); // counts the GAIN on top of where it was
+  const n = base + useCountUp(s.value - base, { ms: COUNT_MS, instant });
   const text = s.format ? s.format(n) : n.toLocaleString();
   const fill = s.bar == null ? null : s.value > 0 ? (n / s.value) * s.bar : s.bar;
   return (
@@ -132,6 +138,9 @@ export function RewardReveal({
   onContinue,
   cliffhanger,
   onReplay,
+  replayLabel = '↻ Infect Again',
+  next,
+  paused = false,
 }: {
   title: ReactNode;
   banner?: ReactNode; // always-visible panel under the title (the defeat debrief) — outside the paced sequence
@@ -140,6 +149,9 @@ export function RewardReveal({
   onContinue: () => void;
   cliffhanger?: ReactNode; // the "1 run from …" tease, shown once the rewards have all landed
   onReplay?: () => void; // one-tap "Infect Again" — re-run the same mode without a menu round-trip
+  replayLabel?: string; // the replay button's words ("↻ Try again" on a loss, "↻ Replay" beside a next step)
+  next?: { label: string; onClick: () => void }; // the PRIMARY forward step (Campaign win → "Stage N+1 ▸")
+  paused?: boolean; // a milestone cinematic is over the capsule — the sequence (and its audio) waits for it
 }): JSX.Element {
   const reduced = useRef(prefersReduced()).current;
   const [instant, setInstant] = useState(reduced);
@@ -155,24 +167,45 @@ export function RewardReveal({
 
   // Pace the category reveals.
   useEffect(() => {
-    if (instant || allRevealed) return;
+    if (instant || allRevealed || paused) return;
     const t = setTimeout(() => setRevealed((r) => r + 1), revealed === 0 ? 320 : CATEGORY_MS);
     return () => clearTimeout(t);
-  }, [revealed, allRevealed, instant]);
+  }, [revealed, allRevealed, instant, paused]);
 
   // Hold the final category open for its count-up, then settle into the collapsed summary state.
   useEffect(() => {
-    if (instant || !allRevealed || settled) return;
+    if (instant || !allRevealed || settled || paused) return;
     const t = setTimeout(() => setSettled(true), SETTLE_MS);
     return () => clearTimeout(t);
-  }, [allRevealed, settled, instant]);
+  }, [allRevealed, settled, instant, paused]);
+
+  // Reveal audio: the capsule unseals with the lid thunk (which also re-roots the climbing pluck),
+  // then every category that LANDS plucks `reveal` once; a stat's own `cue` trails its row by a
+  // beat. A skip (or reduced motion) lands the rest as ONE beat — one pluck, each cue once.
+  const voiced = useRef(-1); // # categories already voiced (-1 = not yet unsealed)
+  const cueTimers = useRef<number[]>([]);
+  useEffect(() => {
+    const timers = cueTimers.current;
+    return () => { for (const t of timers) window.clearTimeout(t); };
+  }, []);
+  useEffect(() => {
+    if (paused) return;
+    if (voiced.current < 0) { voiced.current = 0; audio.cue('chest'); }
+    const shown = Math.min(revealed, categories.length);
+    if (shown <= voiced.current) return;
+    const landed = categories.slice(voiced.current, shown);
+    voiced.current = shown;
+    audio.cue('reveal');
+    const tags = [...new Set(landed.flatMap((c) => c.stats.map((st) => st.cue).filter((t): t is string => !!t)))];
+    if (tags.length > 0) cueTimers.current.push(window.setTimeout(() => { for (const t of tags) audio.cue(t); }, STAT_CUE_MS));
+  }, [revealed, categories, paused]);
 
   // After the stats settle, spotlight achievements one at a time.
   useEffect(() => {
-    if (instant || !settled || achvDone) return;
+    if (instant || !settled || achvDone || paused) return;
     const t = setTimeout(() => setAchvShown((a) => a + 1), achvShown === 0 ? 420 : ACHV_MS);
     return () => clearTimeout(t);
-  }, [settled, achvShown, achvDone, instant]);
+  }, [settled, achvShown, achvDone, instant, paused]);
 
   const revealAll = useCallback(() => {
     setInstant(true);
@@ -244,11 +277,16 @@ export function RewardReveal({
 
       <div className="rr-actions" onClick={(e) => e.stopPropagation()}>
         {sequenceDone && onReplay && (
-          <button type="button" className="rr-btn rr-replay" onClick={onReplay}>↻ Infect Again</button>
+          <button type="button" className="rr-btn rr-replay" onClick={onReplay}>{replayLabel}</button>
+        )}
+        {/* The forward step outranks Continue: once it appears, Continue steps down to a plain
+            button (still last in the row — the hub door) and the next step wears the primary. */}
+        {sequenceDone && next && (
+          <button type="button" className="primary rr-next" onClick={next.onClick}>{next.label}</button>
         )}
         <button
           type="button"
-          className={`primary rr-continue${sequenceDone ? ' is-ready' : ''}`}
+          className={`${next && sequenceDone ? 'rr-btn' : 'primary'} rr-continue${sequenceDone ? ' is-ready' : ''}`}
           onClick={(e) => { e.stopPropagation(); onContinue(); }}
         >
           Continue

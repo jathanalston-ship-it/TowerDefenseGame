@@ -3571,15 +3571,19 @@ kbd {
    post-stats panels (Containers → Mastery → Achievements → Continue) cascade in sequence so the
    payoff lands beat by beat instead of all at once. ── */
 /* ── End-of-Run reward capsule (RewardReveal) — a paced, categorized progression reveal ──────── */
+/* Anchored to the TOP (not centred — `.menu` is a COLUMN flex, so the main axis is vertical): a
+   category expanding/collapsing grows the capsule DOWNWARD, so the verdict title never bounces
+   as each beat lands (docs/REWARD-PRESENTATION.md §debrief layout contract). */
 .results-screen {
   width: 100%;
   max-width: none;
   min-height: 100vh;
   margin: 0;
-  padding: 16px;
+  padding: clamp(16px, 5vh, 56px) 16px 16px;
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
+  overflow: clip; /* the after-battle air (::before, inset −6%) must never widen/lengthen a phone's page */
   animation: results-in 0.5s ease-out both;
 }
 @keyframes results-in { from { opacity: 0; } to { opacity: 1; } }
@@ -3595,6 +3599,12 @@ kbd {
   text-align: left;
   padding: 6px 4px;
   scrollbar-width: thin;
+}
+/* Top-anchored: the capsule takes exactly what the screen's padding leaves, so the pinned action
+   row rests on the viewport's bottom edge and the PAGE itself never scrolls (phones included). */
+.results-screen > .rr-capsule {
+  max-height: calc(100vh - clamp(16px, 5vh, 56px) - 16px);
+  max-height: calc(100dvh - clamp(16px, 5vh, 56px) - 16px);
 }
 
 .rr-cinematic { text-align: center; margin-bottom: 2px; }
@@ -9251,10 +9261,18 @@ kbd {
    title breaks one word per line. Any future post-run card slots in as one more cell. */
 .rr-cliff-slot { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 8px; width: 100%; margin-top: 6px; }
 .rr-cliff-slot > * { width: auto; max-width: none; min-width: 0; margin: 0; }
-.rr-actions { display: flex; gap: 10px; align-items: center; justify-content: center; margin-top: 10px; }
+.rr-actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: center; margin-top: 10px; }
 .rr-btn { padding: 11px 20px; border-radius: var(--r-sm); font: 700 14px/1 system-ui, sans-serif; background: var(--panel-2); border: 1px solid var(--line-strong); color: var(--text); cursor: pointer; transition: transform var(--dur-2), background var(--dur-2); }
 .rr-btn:hover { transform: translateY(-1px); background: var(--panel-3); }
 .rr-replay { border-color: var(--viral); color: #fff; }
+/* The forward step (Campaign win → "Stage N+1 ▸") is the row's primary; Continue steps down. */
+.rr-next { min-width: 160px; }
+.rr-btn.rr-continue { min-width: 0; }
+@media (max-width: 480px) {
+  .rr-skip { top: 0; padding: 3px 10px; } /* clear of the verdict headline on a phone-width capsule */
+  .rr-actions { gap: 8px; }
+  .rr-next, .rr-continue { min-width: 0; flex: 1 1 auto; }
+}
 
 /* ═══ PLAYER PROFILE — the account dashboard (docs/PROFILE.md; ui/PlayerProfile) ═══ */
 .pf { display: flex; flex-direction: column; gap: 14px; width: min(var(--screen-max), 100%); }

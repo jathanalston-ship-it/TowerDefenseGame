@@ -152,7 +152,8 @@ export function App(): JSX.Element {
   // Replay Theater (docs/REPLAY-SHARE.md): a decoded ReplayRecord being watched — set by a
   // shared ?replay= link on boot or by the Daily screen's watch/paste actions.
   const [spectate, setSpectate] = useState<ReplayRecord | null>(null);
-  const [last, setLast] = useState<{ result: RunResult; outcome: RunOutcome } | null>(null);
+  // powerBefore: the Power Score snapshot taken just before finishRun — Results counts up FROM it.
+  const [last, setLast] = useState<{ result: RunResult; outcome: RunOutcome; powerBefore?: number } | null>(null);
   // A Campaign milestone that raised the Star Cap this run → the Evolution Unlock sequence (over Results).
   const [evoUnlock, setEvoUnlock] = useState<EvolutionUnlockData | null>(null);
   // A Campaign milestone that opened a new Hero Slot this run → the cinematic Hero Slot Unlock (HEROES.md).
@@ -379,6 +380,7 @@ export function App(): JSX.Element {
     }
     // First-clear detection for stage_clear telemetry — read BEFORE finishRun raises it.
     const prevCleared = modeRef.current === 'campaign' ? (meta.get().campaign.cleared[difficultyRef.current] ?? 0) : 0;
+    const powerBefore = meta.power().score; // Results counts Power up from here, not from 0
     const outcome = meta.finishRun(result);
     // Readiness calm-down memory: a flawless campaign clear quiets the NEXT stage's deploy warning;
     // any other campaign settle ends the calm (docs/PROGRESSION-LOOP.md §readiness).
@@ -400,7 +402,7 @@ export function App(): JSX.Element {
     } else {
       setRoulette(null);
     }
-    setLast({ result, outcome });
+    setLast({ result, outcome, powerBefore });
     // Crossed Campaign milestones play their cinematics over Results. Hero Slot is the bigger
     // milestone → it shows first; the Evolution Unlock follows once it's dismissed.
     setHeroSlotUnlock(outcome.heroSlotUnlock ?? null);
@@ -431,7 +433,7 @@ export function App(): JSX.Element {
   useEffect(() => cutsceneBus.onPremiere((ids) => setCutsceneQueue((q) => [...q, ...ids.filter((id) => !q.includes(id))])), []);
   // One-tap "Infect Again" from Results — re-run the SAME mode without a menu round-trip. The run
   // re-snapshots the now-updated save (begin() reads meta fresh), so the replay uses the progression
-  // just earned. Campaign replays the same host stage; the map is where you advance to the next.
+  // just earned. Campaign replays the same host stage; a WIN advances via startNextStage below.
   const replayRun = useCallback(() => {
     if (modeRef.current === 'endless') startEndless();
     else if (modeRef.current === 'bossRush') startBossRush();
@@ -439,6 +441,17 @@ export function App(): JSX.Element {
     else if (modeRef.current === 'daily') startDaily(); // same UTC day ⇒ the same plan (reward stays once/day)
     else startRun();
   }, [startEndless, startBossRush, startCampaign, startDaily, startRun]);
+  // Campaign WIN → "Stage N+1 ▸" (docs/REWARD-PRESENTATION.md §next): the push phase advances
+  // straight from Results through the SAME launch the Campaign map's Deploy uses — its persisted
+  // difficulty + prediction baseline, the event's default boon, begin()'s readiness briefing (and
+  // the doctrine already armed). Offered only while N+1 is open on that track; else replay stays.
+  const nextStageN = last && last.result.won && last.result.campaignStage ? last.result.campaignStage + 1 : 0;
+  const nextStageOpen = nextStageN > 0 && nextStageN <= (meta.get().campaign.cleared[last?.result.difficulty ?? 'standard'] ?? 0) + 1;
+  const startNextStage = useCallback(() => {
+    audio.cue('ui');
+    meta.notePredictionBaseline('campaign', difficultyPref('campaign'));
+    startCampaign(campaignStageRef.current + 1);
+  }, [startCampaign]);
   // Clear the last-run recap once the Home screen has shown it (so it doesn't re-appear).
   const clearLast = useCallback(() => setLast(null), []);
   // First-launch HUD Tour: latch it ON when eligible (after the tutorial, on the menu). Latched
@@ -575,7 +588,7 @@ export function App(): JSX.Element {
         /></Suspense>
       )}
       {screen === 'results' && last && (
-        <Suspense fallback={<ScreenFallback />}><Results result={last.result} outcome={last.outcome} onContinue={afterResults} onReplay={roulette ? afterResults : replayRun} /></Suspense>
+        <Suspense fallback={<ScreenFallback />}><Results result={last.result} outcome={last.outcome} powerBefore={last.powerBefore} paused={!!heroSlotUnlock || !!evoUnlock} onContinue={afterResults} onReplay={roulette ? afterResults : replayRun} onNext={!roulette && nextStageOpen ? startNextStage : undefined} /></Suspense>
       )}
       {screen === 'tutorial' && <Suspense fallback={<ScreenFallback />}><TutorialRunner onExit={toMenu} /></Suspense>}
       {/* Replay Theater — a full-screen overlay; never mounts over a LIVE run (the daily

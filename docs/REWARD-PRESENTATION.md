@@ -25,15 +25,18 @@ one-line summary) → after the stats **settle**, unlocked achievements
 
 ```ts
 // RewardReveal.tsx
-interface RewardStat { id; label; value; format?; icon?; accent?; note?; bar?; celebrate? }
+interface RewardStat { id; label; value; format?; icon?; accent?; note?; bar?; celebrate?; cue?; from? }
 interface RewardCategory { id; title; icon?; accent?; summary; stats: RewardStat[]; extra?: ReactNode }
 interface AchievementItem { id; name; desc; reward? }
-function RewardReveal({ title, categories, achievements, onContinue })
+function RewardReveal({ title, banner?, categories, achievements, onContinue, cliffhanger?,
+                        onReplay?, replayLabel?, next?: { label, onClick } })
 ```
 
 `bar` (0..1) draws a progress bar that fills as the number counts. `celebrate`
 adds a pop/glow for records & unlocks. `extra` is detail shown only while a
-category is expanded.
+category is expanded. `from` is the honest starting point of the count-up (the
+previous level / Power / vault count — default 0, so gains still count from 0);
+`cue` is an `audio.cue` tag that sounds as the row lands (§audio).
 
 ## Extension points
 
@@ -54,6 +57,31 @@ category is expanded.
 - Layout never page-scrolls: only one category is expanded at a time; the capsule
   caps at `max-height:94vh` with internal scroll as a last-resort safety only (see
   §debrief's layout contract).
+
+## §audio (2026-11) — the reveal has a voice
+
+The capsule unseals with the `chest` lid thunk (which also re-roots the climbing pluck), then
+EVERY category that lands plucks the climbing `reveal` cue once; a stat's own `cue` trails its
+category by `STAT_CUE_MS` (260ms) — the Account Level row carries `cue: 'levelup'`, so the
+level-up sounds when its row appears (it used to fire as the panel opened, ~1.3s early). A skip
+or reduced motion lands the remainder as ONE beat (one pluck, each distinct stat cue once).
+`RewardReveal({ paused })` holds the whole sequence — pacing AND audio — while a milestone
+cinematic (Hero Slot / Evolution Unlock, App.tsx) is over Results, so the capsule plays from its
+first beat once the cinematic is dismissed instead of plucking unseen beneath it.
+Honest counts: Account Level counts from the level you had (`LV 1 → 1…5`, not `0…5`), Power
+from the pre-settle snapshot (App takes `meta.power().score` just before `finishRun` →
+`Results({ powerBefore })`), Now in Vault from `owned − earned`.
+
+## §next (2026-11) — a win pushes forward
+
+On a Campaign WIN with Stage N+1 open on that difficulty, the action row reads
+**`↻ Replay` · `Stage N+1 ▸` (primary) · `Continue`**. `Stage N+1 ▸` runs `App.startNextStage`
+— the Campaign map Deploy path (campaign difficulty pref, `notePredictionBaseline`, the
+event's default boon, `begin()`'s deploy briefing incl. the readiness warning; the armed
+doctrine carries). Losses read `↻ Try again` beside the primary Continue; every other mode
+keeps `↻ Infect Again`. Continue is the primary while the sequence plays and steps down to a
+plain button the moment `Stage N+1 ▸` appears; it always stays LAST (the hub door — the first-session probe
+clicks the last continue). The forward/replay buttons appear once the sequence settles.
 
 ## Player controls
 
@@ -91,10 +119,16 @@ per-enemy ladder). The sim feeds it read-only ledgers (`RunStats.hiveDamageBy`, 
 `bossHpAtDefeat`, `totalWaves`; booked at every integrity-damage site, never read by the sim,
 goldens byte-identical). Tests: `src/state/runDebrief.test.ts`, `src/core/hiveSiege.test.ts`.
 
-**Layout contract:** capsule children never flex-shrink (the old achievement strip collapsed
+**Layout contract:** the screen is TOP-anchored (`.menu` is a column flex — `justify-content:
+flex-start`), so expanding/collapsing a category grows the capsule downward and the verdict
+title never moves (it bounced 15–25px per beat when centred); the capsule takes exactly
+`100dvh − padding`, so its sticky action row rests on the viewport's bottom edge and the page
+never scrolls; `.results-screen` clips its −6% after-battle haze (a phone's layout viewport
+used to widen to ~410px). Capsule children never flex-shrink (the old achievement strip collapsed
 to its 4px min-height and painted over the Farm Phase card); ≥1000px wide the collapsed
 categories pair into two columns (an open one spans both) so report + debrief + post-run cards
-fit 1366×768 unscrolled; the post-run cards (`.rr-cliff-slot`) share an auto-fit grid (side by
+fit 1366×768 unscrolled (390×844 portrait: the run-flow hold keeps the rotate gate off Results —
+docs/RESPONSIVE-DESIGN.md §run — and the action row wraps/stretches ≤480px); the post-run cards (`.rr-cliff-slot`) share an auto-fit grid (side by
 side ≥230px each, else stacked — no one-word-per-line titles); the action row is sticky at the
 capsule's bottom edge. Verified at 1024×768 / 1180×820 / 1366×768 / 1440×900 / 1920×1080.
 
