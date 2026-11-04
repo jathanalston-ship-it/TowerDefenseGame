@@ -11233,6 +11233,21 @@ kbd {
 .intro-stage.is-diving .intro-bar-bot { animation: intro-bar-bot 0.9s var(--ease-out) reverse both; }
 .intro-stage.is-diving .intro-copy { animation: fade-in 0.5s ease reverse both; }
 .intro-foot.is-diving { opacity: 0; transition: opacity var(--dur-3) ease; }
+/* The landing AFTERGLOW (App.tsx): the descent's last frame — gold bloom under the film grade's
+   dark bands — held for one beat and faded off whatever the film lands on (the tutorial's
+   letterboxed cold open on first boot), instead of a hard gold→dark cut. Pointer-transparent. */
+.intro-afterglow {
+  position: fixed;
+  inset: 0;
+  z-index: 4000;
+  pointer-events: none;
+  background:
+    linear-gradient(180deg, #000 0, #000 max(3.5vh, 22px), transparent calc(max(3.5vh, 22px) + 10vh)),
+    linear-gradient(0deg, #030509 0, #030509 max(6vh, 44px), transparent calc(max(6vh, 44px) + 10vh)),
+    radial-gradient(75% 70% at 50% 46%, #fef4d1 0%, #f2dc9c 34%, #e3c364 72%, #d9b45a 100%);
+  animation: intro-afterglow 520ms cubic-bezier(0.45, 0, 0.55, 1) both;
+}
+@keyframes intro-afterglow { from { opacity: 1; } to { opacity: 0; } }
 /* The pre-roll gate — the one tap the browser needs, staged as the transmission arriving. */
 .intro-gate { position: relative; display: grid; place-items: center; gap: 6px; text-align: center; }
 .intro-gate-glyph {

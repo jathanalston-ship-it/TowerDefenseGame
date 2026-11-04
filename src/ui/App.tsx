@@ -149,6 +149,14 @@ export function App(): JSX.Element {
   // The cold-open cinematic: first boot on this device (before even the tutorial),
   // replayable from Settings → Help. Overlays whatever screen is behind it.
   const [introActive, setIntroActive] = useState(() => !introSeen());
+  // The descent's landing AFTERGLOW (docs/TUTORIAL.md §cinematic): the film ends on a full-screen
+  // gold bloom — a ~500ms gold veil fades off the screen it lands on instead of a hard cut.
+  const [afterglow, setAfterglow] = useState(false);
+  useEffect(() => {
+    if (!afterglow) return undefined;
+    const t = window.setTimeout(() => setAfterglow(false), 560);
+    return () => window.clearTimeout(t);
+  }, [afterglow]);
   // Replay Theater (docs/REPLAY-SHARE.md): a decoded ReplayRecord being watched — set by a
   // shared ?replay= link on boot or by the Daily screen's watch/paste actions.
   const [spectate, setSpectate] = useState<ReplayRecord | null>(null);
@@ -598,14 +606,16 @@ export function App(): JSX.Element {
       )}
       {introActive && (
         <InitCutscene
-          onDone={() => {
+          onDone={(dived) => {
             setIntroActive(false);
+            if (dived) setAfterglow(true);
             // The film ran the 'cinema' score; hand the baton to the screen it lands on (the
             // tutorial's combat bed on first boot, the menu theme on a Settings replay).
             music.play(screen === 'tutorial' ? 'combat' : 'menu');
           }}
         />
       )}
+      {afterglow && <div className="intro-afterglow" aria-hidden />}
       {/* Story premieres — first mega defeats, played in order after the reward summary
           (docs/CUTSCENES.md §autoplay). Fullscreen over whatever the run exits into. */}
       {!introActive && cutsceneQueue.length > 0 && cutsceneDef(cutsceneQueue[0]) && (

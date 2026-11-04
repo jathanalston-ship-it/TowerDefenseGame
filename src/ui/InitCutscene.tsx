@@ -17,7 +17,7 @@
 // prefers-reduced-motion swaps the animation for a hand-picked still per scene (gentle CSS
 // fades only) and skips the dive.
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { audio } from '../audio/sound';
 import { music } from '../audio/music';
 import { REDUCED_FRAME_T, drawDiveTransition, drawIntroFrame } from '../render/introScenes';
@@ -31,6 +31,24 @@ export function introSeen(): boolean {
   } catch {
     return false;
   }
+}
+
+// The film's ON-SCREEN flag (docs/TUTORIAL.md §cinematic): first boot mounts the tutorial
+// BENEATH the film, so its cold-open banner holds its clock until the film has landed.
+let playing = false;
+const playingListeners = new Set<() => void>();
+function setPlaying(on: boolean): void {
+  if (playing === on) return;
+  playing = on;
+  for (const fn of playingListeners) fn();
+}
+const subscribePlaying = (fn: () => void): (() => void) => {
+  playingListeners.add(fn);
+  return () => { playingListeners.delete(fn); };
+};
+/** React hook — true while the opening film is mounted (gate, film or descent). */
+export function useIntroPlaying(): boolean {
+  return useSyncExternalStore(subscribePlaying, () => playing);
 }
 
 /** A copy line staged onto the film at a scene-relative time (seconds). */
@@ -110,8 +128,11 @@ const reducedMotion = typeof window !== 'undefined' && !!window.matchMedia?.('(p
 
 type Phase = 'gate' | 'film' | 'dive';
 
-export function InitCutscene({ onDone }: { onDone: () => void }): JSX.Element {
+/** `onDone(dived)` — true when the film left through the DESCENT (its last frame is the gold
+ *  bloom, so the caller can fade an afterglow out instead of cutting to the next screen). */
+export function InitCutscene({ onDone }: { onDone: (dived?: boolean) => void }): JSX.Element {
   const [phase, setPhase] = useState<Phase>('gate');
+  useEffect(() => { setPlaying(true); return () => setPlaying(false); }, []);
   const [idx, setIdx] = useState(0);
   const doneRef = useRef(false);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -225,7 +246,7 @@ export function InitCutscene({ onDone }: { onDone: () => void }): JSX.Element {
         drawDiveTransition(ctx, w, h, dt);
         if (dt >= 1 && !doneRef.current) {
           doneRef.current = true;
-          onDone();
+          onDone(true);
           return;
         }
       }
