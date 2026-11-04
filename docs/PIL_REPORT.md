@@ -1,45 +1,16 @@
 # PIL_REPORT.md — Public Intelligence Layer report (GENERATED — `npm run pil -- regen`)
 
-> The public-facing sync ledger (docs/PIL.md): 49 pages · 6 assets tracked against the DIL.
+> The public-facing sync ledger (docs/PIL.md): 50 pages · 6 assets tracked against the DIL.
 
 ## Structural audit — ✅ clean
 
-## Staleness (advisory) — 29 page/ref pair(s) to re-review
-- `index.html` references **system:infinite** whose source changed 2026-07-16
-- `features/index.html` references **system:infinite** whose source changed 2026-07-16
-- `encyclopedia/enemies/index.html` references **system:bosses** whose source changed 2026-07-16
-- `guides/beginner/index.html` references **guide:beginner** whose source changed 2026-07-18
-- `guides/towers/index.html` references **guide:towers** whose source changed 2026-07-18
-- `guides/heroes/index.html` references **guide:heroes** whose source changed 2026-07-18
-- `guides/gene-cards/index.html` references **guide:gene-cards** whose source changed 2026-07-18
-- `guides/bosses/index.html` references **guide:bosses** whose source changed 2026-07-18
-- `guides/bosses/index.html` references **system:bosses** whose source changed 2026-07-16
-- `guides/mega-bosses/index.html` references **guide:mega-bosses** whose source changed 2026-07-18
-- `guides/power-score/index.html` references **guide:power-score** whose source changed 2026-07-18
-- `guides/progression/index.html` references **guide:progression** whose source changed 2026-07-18
-- `guides/campaign/index.html` references **guide:campaign** whose source changed 2026-07-18
-- `guides/infinite/index.html` references **guide:infinite** whose source changed 2026-07-18
-- `guides/infinite/index.html` references **system:infinite** whose source changed 2026-07-16
-- `guides/boss-rush/index.html` references **guide:boss-rush** whose source changed 2026-07-18
-- `guides/daily/index.html` references **guide:daily** whose source changed 2026-07-18
-- `guides/mulligans/index.html` references **guide:mulligans** whose source changed 2026-07-18
-- `guides/collections/index.html` references **guide:collections** whose source changed 2026-07-18
-- `guides/mastery/index.html` references **guide:mastery** whose source changed 2026-07-18
-- `guides/doctrines/index.html` references **guide:doctrines** whose source changed 2026-07-18
-- `guides/contracts/index.html` references **guide:contracts** whose source changed 2026-07-18
-- `guides/quests/index.html` references **guide:quests** whose source changed 2026-07-18
-- `guides/account-progression/index.html` references **guide:account-progression** whose source changed 2026-07-18
-- `guides/nemesis/index.html` references **guide:nemesis** whose source changed 2026-07-18
-- `guides/equipment/index.html` references **guide:equipment** whose source changed 2026-07-18
-- `guides/prestige/index.html` references **guide:prestige** whose source changed 2026-07-18
-- `guides/live-events/index.html` references **guide:live-events** whose source changed 2026-07-18
-- `blog/living-battlefield/index.html` references **system:living-battlefield** whose source changed 2026-07-16
+## Staleness (advisory) — 0 page/ref pair(s) to re-review
 
 ## Page inventory
-- `/` — Home → system:towers, system:heroes, system:campaign, system:infinite, system:boss-rush, concept:power-score
+- `/` — Home → system:towers, system:heroes, system:campaign, system:infinite, system:boss-rush, concept:power-score, system:map-layouts, system:gene-cards, system:threat, system:arena
 - `/about/` — About → concept:determinism
-- `/features/` — Features → system:towers, system:heroes, system:gene-cards, system:equipment, system:campaign, system:infinite, system:boss-rush, system:daily
-- `/faq/` — FAQ → concept:power-score, system:accounts, system:daily
+- `/features/` — Features → system:towers, system:heroes, system:gene-cards, system:equipment, system:campaign, system:infinite, system:boss-rush, system:daily, system:map-layouts, system:threat, system:hive-mind, system:arena, system:onboarding, system:run-ui, system:premium
+- `/faq/` — FAQ → concept:power-score, system:accounts, system:daily, system:map-layouts, system:threat, system:hive-mind, system:premium, system:run-ui
 - `/roadmap/` — Roadmap → (static)
 - `/news/` — News → (static)
 - `/leaderboards/` — Leaderboards → system:daily, system:boss-rush
@@ -84,12 +55,13 @@
 - `/blog/living-battlefield/` — Dev Blog — living-battlefield → system:living-battlefield
 - `/blog/mega-boss-raids/` — Dev Blog — mega-boss-raids → system:mega-bosses
 - `/blog/opening-cinematic/` — Dev Blog — opening-cinematic → system:onboarding
+- `/blog/the-first-hour/` — Dev Blog — the-first-hour → system:onboarding, system:progression-gating, system:map-layouts, system:gene-cards, system:hive-mind, system:threat, system:run-ui, system:premium
 - `/blog/the-weekly-game/` — Dev Blog — the-weekly-game → system:contracts, system:quests, system:account-level, system:genome-rank
 
 ## Media inventory
-- `og.png` — og · current · captured 2026-07-10
-- `favicon.svg` — icon · current · captured 2026-07-10
-- `icon-512.png` — icon · current · captured 2026-07-10
-- `media/shots/combat.webp` — screenshot · current · captured 2026-07-10 · depicts system:run-ui
-- `media/shots/command.webp` — screenshot · current · captured 2026-07-10 · depicts system:run-ui
-- `media/shots/megaraid.webp` — screenshot · current · captured 2026-07-10 · depicts system:run-ui
+- `og.png` — og · current · captured 2026-11-04
+- `favicon.svg` — icon · current · captured 2026-11-04
+- `icon-512.png` — icon · current · captured 2026-11-04
+- `media/shots/combat.webp` — screenshot · current · captured 2026-11-04 · depicts system:run-ui
+- `media/shots/command.webp` — screenshot · current · captured 2026-11-04 · depicts system:run-ui
+- `media/shots/megaraid.webp` — screenshot · current · captured 2026-11-04 · depicts system:run-ui

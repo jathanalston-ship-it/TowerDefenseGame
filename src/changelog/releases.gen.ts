@@ -62,6 +62,14 @@ export const RELEASES: Release[] = [
       {
         "cat": "UI",
         "text": "Phones: the Hive key shows a lock when it's off, and the Help chip is easier to tap"
+      },
+      {
+        "cat": "UI",
+        "text": "The Home command strip no longer shows stats for screens you haven't opened yet"
+      },
+      {
+        "cat": "Backend",
+        "text": "Belgium and the Netherlands: nothing that can end in a randomized reward is sold for money (loot-box law) — everything stays earnable in play"
       }
     ]
   },

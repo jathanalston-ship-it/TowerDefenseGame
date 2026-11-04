@@ -129,6 +129,14 @@ The flawless-clear calm is a device pref (`prefs.ts`), not save data.
 - The loop directive can still say "Push it" right after a loss when Power is within tolerance.
 - The entry chunk is still >500 KB raw (sim/state core); further splitting needs a core boundary.
 
+## Production & website (2026-11-04)
+
+- **Live:** this batch deployed to production (deploy branch `claude/zen-hawking-rh1gxl`, fast-forward,
+  SHA-verified by the workflow). Push there only with the owner's go-ahead.
+- **Website:** refreshed to the current game (copy, guides, devlog, media). The owner asked for the site
+  to be kept current on every batch — the procedure is CLAUDE.md "Website freshness" (`npm run pil --
+  staleness` → copy → devlog → `npm run media` → bump PIL `R` → `npm run site`).
+
 ## Recommended next tasks
 
 1. Have counsel confirm the BE/NL rule before live payments (`docs/PREMIUM-STORE.md`

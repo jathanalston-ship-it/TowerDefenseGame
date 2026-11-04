@@ -9,17 +9,19 @@ export const TAGLINE = 'You are not defending against the swarm. You ARE the swa
 export const DESCRIPTION_LONG =
   'ASSIMILATION is a bio-horror tower defense where the towers are organisms, the battlefield is a body, ' +
   'and every run feeds a permanent, ever-mutating hive. Grow living turrets, splice Gene Cards mid-run, ' +
-  'field evolving heroes, and push three pillars — Campaign, Infinite, and Boss Rush — while the arena ' +
+  'field evolving heroes, and push three pillars — Campaign, Infinite, and Boss Rush — across thirteen battlefields while the arena ' +
   'itself assimilates around your growth. Deterministic runs, deep progression, fully playable offline.';
 
 /** The feature bullets every storefront shares (order = priority). */
 export const FEATURE_BULLETS: string[] = [
-  '15+ living towers with Strains, Branches and permanent Star evolution',
+  '20+ living towers with Strains, Branches and permanent Star evolution',
   'Heroes that fight beside you — gear them, fork their abilities, watch them mutate',
-  'Three pillars: hand-crafted Campaign, endless Infinite, and Boss Rush gauntlets',
-  '500+ Gene Cards, equipment sets, mulligans and prestige — a decade of progression',
+  'Five modes: Campaign, endless Infinite, Boss Rush gauntlets, the worldwide Daily, and live-PvP Arena',
+  '13 battlefields with their own geometry — chokepoints, split lanes, mazes and flank funnels',
+  '130+ Gene Cards including Rule Genes that change how a run plays, plus equipment sets, mulligans and prestige',
+  'The Threat ladder: ten named rungs above every mode you have beaten — titles and frames, never Power',
   'The Living Battlefield: the arena visibly assimilates as your run deepens',
-  'One account, every device — cloud saves, cross-progression, full offline play',
+  'One account, every device — cloud saves, cross-progression, phone layouts, full offline play',
   'Deterministic runs with shareable, self-verifying replays and daily leaderboards',
 ];
 

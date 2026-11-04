@@ -1608,6 +1608,10 @@ platform). Per-system docs hold the detail; this is the map.
   Season Pass). Today: no real-money sales in BE/NL; all play, containers included, is unchanged.
 - `npm run probe:first-session` replays a fresh first session against budgets and writes
   `docs/FIRST_SESSION_REPORT.md`.
+- Website refreshed to match (docs/WEBSITE.md §freshness/§media): home, features, roadmap, FAQ,
+  guides, Terms and a devlog post ("The First Hour"); live counts via `siteCounts()` (battlefields,
+  rule genes, Threat rungs added); new 1440×900 stills + a 36 s frame-stepped trailer from
+  `npm run media`. Standing rule in CLAUDE.md "Website freshness".
 
 **Known limitations**
 - Region rule residual risk: Ichor bought outside BE/NL (or via VPN) is not segregated from earned

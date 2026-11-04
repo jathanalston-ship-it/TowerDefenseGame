@@ -11,12 +11,14 @@ import { GUIDES } from './guides';
 import { POSTS } from './blog';
 import {
   biomeCount, biomeEncyclopedia, bossCount, bossGallery, doctrineCodex, doctrineCount,
-  enemyCompendium, enemyCount, featuredHero, featuredTower, featuredWeek, heroCount, heroTable, towerCount, towerTable,
+  enemyCompendium, enemyCount, featuredHero, featuredTower, featuredWeek, heroCount, heroTable, layoutCount, ruleCardCount,
+  threatRungCount, towerCount, towerTable,
 } from './encyclopedia';
 import {
   aboutPage, contactPage, cookiesPage, creditsPage, faqPage, featuresPage, homePage,
   leaderboardsPage, privacyPage, roadmapPage, termsPage,
 } from './pages';
+import type { SiteCounts } from './pages';
 
 export interface PatchEntry { date: string; title: string; categories: string[]; items: { cat: string; text: string }[] }
 
@@ -39,6 +41,14 @@ function breadcrumb(items: { name: string; path: string }[]): object {
   };
 }
 
+/** The live content counts every page quotes — read from the game's own registries. */
+export function siteCounts(): SiteCounts {
+  return {
+    towers: towerCount(), heroes: heroCount(), enemies: enemyCount(), biomes: biomeCount(), bosses: bossCount(),
+    doctrines: doctrineCount(), layouts: layoutCount(), ruleCards: ruleCardCount(), threatRungs: threatRungCount(),
+  };
+}
+
 /** Build the whole site. Returns servedPath → file contents ('/about/' ⇒ public/about/index.html). */
 export function buildSite(root = process.cwd()): Map<string, string> {
   const out = new Map<string, string>();
@@ -51,7 +61,7 @@ export function buildSite(root = process.cwd()): Map<string, string> {
     homePage({
       latestPost: posts[0],
       latestPatch: patches[0] ? { date: fmtDate(patches[0].date), title: patches[0].title, categories: patches[0].categories } : null,
-      counts: { towers: towerCount(), heroes: heroCount(), enemies: enemyCount(), biomes: biomeCount(), bosses: bossCount(), doctrines: doctrineCount() },
+      counts: siteCounts(),
       featuredTower: featuredTower(),
       featuredHero: featuredHero(),
       featuredWeek: featuredWeek(),
@@ -61,8 +71,8 @@ export function buildSite(root = process.cwd()): Map<string, string> {
   // ── Core static pages ──
   const statics: { path: string; title: string; desc: string; section?: string; hero: [string, string, string]; body: string; jsonLd?: object[] }[] = [
     { path: '/about/', title: `About ${SITE_NAME} — What It Is and Why It's Different`, desc: 'What ASSIMILATION is, what makes it different, and the state of the game — a free, deterministic bio-horror tower defense.', section: 'Game', hero: ['THE GAME', 'About ASSIMILATION', 'A tower defense where you are the thing growing.'], body: aboutPage() },
-    { path: '/features/', title: `${SITE_NAME} Features — Every System in Depth`, desc: 'Combat, four tower evolution layers, heroes with equipment, the permanent game, four modes and a fully procedural presentation.', section: 'Game', hero: ['THE SYSTEMS', 'Features', 'Everything the hive grows — combat, evolution, progression, presentation.'], body: featuresPage() },
-    { path: '/roadmap/', title: `${SITE_NAME} Roadmap — What's Growing Next`, desc: 'Current development priorities: deeper rosters, community features, Steam release and mobile builds.', section: 'Game', hero: ['THE FUTURE', 'Roadmap', 'What is live, what is next, and what is on the horizon.'], body: roadmapPage() },
+    { path: '/features/', title: `${SITE_NAME} Features — Every System in Depth`, desc: `Combat across ${layoutCount()} battlefields, four tower evolution layers, Rule Genes, heroes with equipment, the Threat ladder, five modes including live PvP, and a fully procedural presentation.`, section: 'Game', hero: ['THE SYSTEMS', 'Features', 'Everything the hive grows — combat, evolution, progression, presentation.'], body: featuresPage(siteCounts()) },
+    { path: '/roadmap/', title: `${SITE_NAME} Roadmap — What's Growing Next`, desc: 'What just shipped (the First Hour update) and what is next: deeper rosters, more battlefields, community features, Steam release and mobile builds.', section: 'Game', hero: ['THE FUTURE', 'Roadmap', 'What is live, what is next, and what is on the horizon.'], body: roadmapPage() },
     { path: '/contact/', title: `Contact ${SITE_NAME}`, desc: 'Bug reports, feedback, press and business contact for ASSIMILATION.', section: 'Game', hero: ['STUDIO', 'Contact', 'We read everything — replay codes make bug reports gold.'], body: contactPage() },
     { path: '/credits/', title: `${SITE_NAME} Credits`, desc: 'The team and technology behind ASSIMILATION.', hero: ['STUDIO', 'Credits', 'Who and what the hive is made of.'], body: creditsPage() },
     { path: '/leaderboards/', title: `${SITE_NAME} Leaderboards — Daily Runs & Records`, desc: 'How the daily leaderboard works, replay verification, and where the standings live.', section: 'News', hero: ['COMPETITION', 'Leaderboards', 'One daily seed, worldwide — verified by deterministic replay.'], body: leaderboardsPage() },
@@ -78,7 +88,7 @@ export function buildSite(root = process.cwd()): Map<string, string> {
   }
 
   // ── FAQ (with FAQPage schema) ──
-  const faq = faqPage();
+  const faq = faqPage(siteCounts());
   out.set('/faq/', page(
     {
       path: '/faq/', title: `${SITE_NAME} FAQ — Saves, Offline Play, Dailies & More`, description: 'Answers to the most common questions: is it free, where saves live, offline play, determinism, dailies, Steam and mobile.', section: 'Game',

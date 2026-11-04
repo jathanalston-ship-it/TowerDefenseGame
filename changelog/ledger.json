@@ -1,6 +1,6 @@
 {
-  "lastSha": "0226c977c2c2dd5c4892d1e3843b97f82e506187",
-  "commitsSinceDraft": 0,
+  "lastSha": "2e6bd98899f1734f5e3f933d36cef383e35f0ee1",
+  "commitsSinceDraft": 6,
   "content": {
     "tower": [
       "needle",
@@ -3119,6 +3119,14 @@
         {
           "cat": "UI",
           "text": "Phones: the Hive key shows a lock when it's off, and the Help chip is easier to tap"
+        },
+        {
+          "cat": "UI",
+          "text": "The Home command strip no longer shows stats for screens you haven't opened yet"
+        },
+        {
+          "cat": "Backend",
+          "text": "Belgium and the Netherlands: nothing that can end in a randomized reward is sold for money (loot-box law) — everything stays earnable in play"
         }
       ]
     }
@@ -6107,6 +6115,54 @@
       "text": "Mobilecheck clean: phone Hive lock, tappable Help chip, walker reaches the draft lesson",
       "internal": false,
       "needsReview": false
+    },
+    {
+      "sha": "31f80e290941b74729ee08e67c1bcfd141b7befd",
+      "date": "2026-11-04",
+      "cat": "Website",
+      "text": "Chronicle: patch notes for the first-hour and Threat batch; regenerate site",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "5e6af840ef9c553a2d1ce0fdd3f7ba826c2e392d",
+      "date": "2026-11-04",
+      "cat": "Developer Tools",
+      "text": "Dev probes find the preinstalled Chromium; validation report: PASS",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "38fe2b4f63c892f4f92d068de10f404f2b3c9db4",
+      "date": "2026-11-04",
+      "cat": "Framework",
+      "text": "Handoff: AI_HANDOFF and PROJECT_STATUS for the first-hour, run, meta & platform pass",
+      "internal": true,
+      "needsReview": true
+    },
+    {
+      "sha": "58adc872bbfa64aed90611d930a72ad192a49f1b",
+      "date": "2026-11-04",
+      "cat": "UI",
+      "text": "Command strip: hide stats for screens that haven't opened yet",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "a22f99325182938f36c86d697ec895940ec74c8d",
+      "date": "2026-11-04",
+      "cat": "Backend",
+      "text": "BE/NL: real money never reaches a random outcome (Belgian reading, both countries)",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "2e6bd98899f1734f5e3f933d36cef383e35f0ee1",
+      "date": "2026-11-04",
+      "cat": "Framework",
+      "text": "Validation report: PASS over the BE/NL region rule (2738/2738)",
+      "internal": true,
+      "needsReview": true
     }
   ]
 }

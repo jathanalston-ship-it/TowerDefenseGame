@@ -409,3 +409,9 @@
 - `549ea71` **[Developer Tools]** Docs: bug-fix rows 17-44 and manifest sections for arena layouts, Threat, first-session probe _(internal)_
 - `18bce3e` **[Towers]** First-session probe: measure from navigation, place towers via the live board _(internal)_
 - `0226c97` **[Developer Tools]** Mobilecheck clean: phone Hive lock, tappable Help chip, walker reaches the draft lesson
+- `31f80e2` **[Website]** Chronicle: patch notes for the first-hour and Threat batch; regenerate site _(internal)_
+- `5e6af84` **[Developer Tools]** Dev probes find the preinstalled Chromium; validation report: PASS _(internal)_
+- ⚑ `38fe2b4` **[Framework]** Handoff: AI_HANDOFF and PROJECT_STATUS for the first-hour, run, meta & platform pass _(internal)_
+- `58adc87` **[UI]** Command strip: hide stats for screens that haven't opened yet
+- `a22f993` **[Backend]** BE/NL: real money never reaches a random outcome (Belgian reading, both countries)
+- ⚑ `2e6bd98` **[Framework]** Validation report: PASS over the BE/NL region rule (2738/2738) _(internal)_

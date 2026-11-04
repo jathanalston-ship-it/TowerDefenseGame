@@ -24,8 +24,30 @@ and re-run `npm run site`.**
   retired `/welcome/*` URLs to Home. `public/site.js` forwards legacy game deep links
   (`?replay/?daily/?checkout/?session_id=` on `/`) and standalone-PWA visits to
   `/play/`.
-- Media (staged Hi-DPI screenshots, the frame-stepped trailer) lives in
-  `public/media/` — re-shoot after big visual updates (recipe: docs/AI_HANDOFF.md).
+- Media (screenshots, the frame-stepped trailer) lives in `public/media/` — re-shoot after visible
+  UI changes with `npm run media` (§media).
+
+## §freshness — the site is part of every player-facing batch
+
+Patch notes regenerate on every deploy (deploy.yml runs `npm run site` at HEAD); the editorial pages,
+guides, devlog and media do not. The standing rule lives in CLAUDE.md ("Website freshness"): run
+`npm run pil -- staleness`, update `site/pages.ts` / `site/guides.ts`, publish a devlog post, re-shoot
+media after visible UI changes, bump the PIL review stamp `R`, `npm run site`. Counts quoted on the
+site come from the game's registries (`siteCounts()` in site/build.ts — towers, heroes, enemies,
+biomes, bosses, doctrines, battlefields, rule genes, Threat rungs), so they can't go stale.
+
+## §media — screenshots and trailer
+
+`npm run media` builds, serves `dist/` and re-shoots everything at 1440×900 (the desktop board-first
+layout): `public/media/shots/command.webp` (a Stage-2 account, whose Power matches its depth),
+`combat.webp` (Stage 17, The Coil) and `megaraid.webp` (Stage 20, a Mega raid on The Gullet), plus
+`public/media/trailer.webm` — 36 s at 24 fps, VP9, FRAME-STEPPED with Playwright's fake clock so it is
+smooth on any machine (needs ffmpeg; `-- --stills` skips it). Staging is honest and written down in
+the script header: a seeded save, cleared-stage replays, the run-start slots filled via
+`Game.deployTower`, and the live wave swollen with more of its own enemy kinds through the `?debug`
+handle; toasts are hidden. Everything on screen is the shipped renderer and HUD. Review the output before
+committing: combat timing is real-time, so re-run (or keep the previous shot) when a frame catches a
+quiet moment.
 
 ## §patch-notes — ONE pipeline feeds the site AND the game
 

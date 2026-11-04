@@ -3,6 +3,10 @@
 // breadcrumb JSON-LD and the in-article ad seam. Guides that benefit from live game data
 // (towers/heroes) splice in the encyclopedia tables, so they expand with the roster for free.
 
+import { MODE_UNLOCKS } from '../src/core/config';
+import { MAP_LAYOUTS } from '../src/core/mapLayouts';
+import { THREAT_MAX } from '../src/core/threat';
+
 export interface GuideSection { h: string; body: string[] /* paragraphs (may contain safe inline HTML) */; dataTable?: 'towers' | 'heroes' }
 export interface Guide {
   slug: string;
@@ -25,7 +29,11 @@ export const GUIDES: Guide[] = [
         'Place towers where their range circles overlap the approach lanes, not at the map edge. A tower that fires for eight seconds per wave is worth two that fire for three.',
       ] },
       { h: 'Waves, drafting and your hero', body: [
-        'Every few waves the run offers a Gene Card draft: a temporary boost for THIS run whose card also joins your permanent Gene Archive for leveling. Never skip a draft. Your hero fights on their own, but their Active Ability is yours — save it for the moment a wave slips past the towers, not the moment it spawns.',
+        'After every cleared wave the run offers a Gene Card draft: a temporary boost for THIS run whose card also joins your permanent Gene Archive for leveling. Never skip a draft. Your hero fights on their own, but their Active Ability is yours — save it for the moment a wave slips past the towers, not the moment it spawns.',
+      ] },
+      { h: 'Your first hour', body: [
+        'The tutorial teaches the real loop over two waves — wave, draft, build, wave — and ends with one graduation reward. From there the hive opens up as you clear Campaign stages: <b>Infinite</b> after Stage ' + MODE_UNLOCKS.infinite + ', the <b>Daily Run</b> after Stage ' + MODE_UNLOCKS.daily + ', <b>Boss Rush</b> after Stage ' + MODE_UNLOCKS.bossRush + ', and the labs, market and side wings a step or two at a time in between. New systems arrive together in one summary card after a run, and the Command Center always names the next one.',
+        'If a stage beats you, read the Results screen before you retry: it tells you how close you came, what got through and one thing to change. Replaying a stage you have already cleared is never wasted — it pays progression, and it is where <b>Hive Intelligence</b> can take the routine purchases off your hands.',
       ] },
       { h: 'The five run-enders', body: [
         '<b>1. Hoarding Biomass.</b> Towers you didn’t build deal no damage. <b>2. Ignoring fliers.</b> Check the wave preview; airborne strains ignore ground obstacles. <b>3. One damage type.</b> Armored waves shrug off chip damage — layer classes. <b>4. Wasting the hero ability.</b> It is your emergency brake. <b>5. Quitting after a loss.</b> Every run pays permanent progression — a lost run is still fuel.',
@@ -69,10 +77,13 @@ export const GUIDES: Guide[] = [
     summary: 'How the in-run draft works, what rarities mean, and why the permanent Gene Archive is your long game.',
     sections: [
       { h: 'The draft', body: [
-        'Every few waves you choose one of three Gene Cards. The boost lasts only the current run — but the card itself is permanently added to your Gene Archive, where it can be leveled with Gene Essence to strengthen every future appearance. Draft what the RUN needs; level what your BUILD wants.',
+        'After every cleared wave you choose one of three Gene Cards. The boost lasts only the current run — but the card itself is permanently added to your Gene Archive, where it can be leveled with Gene Essence to strengthen every future appearance. Draft what the RUN needs; level what your BUILD wants.',
       ] },
       { h: 'Reading a card', body: [
         'Cards speak a small effect language: multipliers, flat adds, flags, grants and hooks. Rarity scales with depth — pushing deeper waves offers rarer drafts. Some cards are gated behind progression unlocks, so the pool itself grows as you clear campaign stages.',
+      ] },
+      { h: 'Rule Genes', body: [
+        'Some cards change the rules instead of the numbers: reaction builds that reward pairing fracture with corrosion, infection that spreads on kill, conveyor and strain economies, placement tricks, hero stances, and risk-for-reward trades. They unlock as you clear Campaign stages, a ⚙ RULE badge marks them in the draft, and once you have earned one every draft guarantees a rule-changing option. Build AROUND them: a Rule Gene picked in wave 2 should decide what you deploy for the rest of the run.',
       ] },
       { h: 'Archive strategy', body: [
         'Essence is scarce early: level broad multipliers first (damage, biomass income), then the cards that define your favorite archetype. A leveled common you see every run outperforms a legendary you see once a session.',
@@ -149,6 +160,12 @@ export const GUIDES: Guide[] = [
       { h: 'The ladder', body: [
         'Campaign stages are procedurally authored: each has a biome, a wave plan, events (elite rushes, boss gauntlets, genome caches, mutation choices) and milestone bosses. Depth is the master progression gate — new towers, cards and systems unlock as you clear stages.',
       ] },
+      { h: 'Battlefields', body: [
+        'Every stage is fought on one of ' + MAP_LAYOUTS.length + ' battlefields — twin lanes, an open maw, a maze-like coil, broken walls, flank funnels and more. Stages 1–3 use fixed maps chosen to teach; deeper stages roll a battlefield that suits their biome and never repeat back to back. The stage preview names the map before you deploy: split lanes want towers that cover both mouths, mazes reward long range, funnels reward splash.',
+      ] },
+      { h: 'Replays, Threat and Hive Intelligence', body: [
+        'A stage you have cleared becomes a replay: it still pays progression, Hive Intelligence can run the routine Biomass purchases for you, and the <b>Threat</b> picker lets you climb ' + THREAT_MAX + ' rungs of named difficulty for titles, profile frames and a little more reward. Your frontier stage is always yours to play by hand.',
+      ] },
       { h: 'When you hit a wall', body: [
         'A wall is information: it names the axis you have underfed. Check the recommended Power, bank a few genome tiers, star up your core towers, then re-attempt. Mutation-choice events are the campaign’s biggest swings — read both options before picking.',
       ] },
@@ -162,7 +179,8 @@ export const GUIDES: Guide[] = [
     summary: 'Endless escalation against the AI Director — pacing, biome rotations and personal bests.',
     sections: [
       { h: 'How it escalates', body: [
-        'Infinite composes waves from a depth-scaled threat budget — the deeper you go, the smarter and heavier the composition. Biomes rotate as you descend, each warping the rules. Your best wave is a permanent record and unlocks reward tiers.',
+        'Infinite composes waves from a depth-scaled threat budget — the deeper you go, the smarter and heavier the composition. Biomes rotate as you descend, each warping the rules, and the battlefield changes with every biome: the run starts on the classic map and moves through the others. Your best wave is a permanent record and unlocks reward tiers.',
+        'Hive Intelligence works here — Infinite is content you have proven — and once you have reached deep enough, the Threat ladder adds harder rungs with their own records.',
       ] },
       { h: 'Building for depth', body: [
         'Infinite rewards compounding economies: income organs early, damage conversion late. The run that reaches wave 40 usually looks greedy at wave 10. Draft economy genes in the first third, control in the second, and pure damage only when the composition demands it.',
@@ -332,7 +350,7 @@ export const GUIDES: Guide[] = [
         'Each hero carries a Weapon / Armor / Relic loadout, worn visibly on the battlefield. Affixes are BEHAVIORAL, not just numeric — items change how a hero fights: what they prioritize, how abilities echo, what happens on kill or on wound. Set bonuses reward committing to a family, with deep four-piece bonuses unlocked by pooling duplicate sets across your whole team.',
       ] },
       { h: 'Getting and improving items', body: [
-        'Items drop from Bio-Containers and craft from materials (mutagen, scrap, catalyst) in the Armory; the Gear Codex tracks every definition you have ever owned as a collection. Crafting is pity-protected — bad-luck streaks bend the odds back toward you. Reforging rerolls an item’s affixes when the base is right but the behavior is wrong; it is usually cheaper than chasing a fresh drop of the same slot.',
+        'Items drop from Bio-Containers and craft from materials (mutagen, scrap, catalyst) in the Armory, whose Gear Codex tab tracks every definition you have ever owned as a collection. Crafting is pity-protected — bad-luck streaks bend the odds back toward you. Reforging rerolls an item’s affixes when the base is right but the behavior is wrong; it is usually cheaper than chasing a fresh drop of the same slot.',
       ] },
       { h: 'Salvage without regret', body: [
         'Salvage converts surplus into crafting materials — and it is deliberately hard to hurt yourself: equipped items, set pieces you still need, and recent acquisitions are guarded, and salvage itself carries an UNDO. The rule of thumb: keep one strong item per slot per hero plus anything completing a set; melt the rest without ceremony. Materials in the bank are worth more than a museum of almost-good relics.',

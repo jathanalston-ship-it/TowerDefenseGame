@@ -17,6 +17,33 @@ export interface BlogPost {
 
 export const POSTS: BlogPost[] = [
   {
+    slug: 'the-first-hour',
+    date: '2026-11-04',
+    title: 'The First Hour: fewer popups, more battlefields, and a game that tells you the truth',
+    category: 'Release',
+    tags: ['onboarding', 'battlefields', 'gene-cards', 'threat', 'mobile', 'design'],
+    summary: 'We played ASSIMILATION as a brand-new player and did not like everything we saw: eleven popups after the first run, every system unlocked inside an hour, one map, and a difficulty curve that went easy, easy, wall. This update fixes all of it — and adds thirteen battlefields, Rule Genes, the Threat ladder and real phone layouts on the way.',
+    body: `
+<p>Every so often we wipe a profile and play ASSIMILATION the way a new player meets it: from the opening cinematic to the first loss. The last time we did, the game was deep and handsome and, in its first hour, exhausting. The first clear of Stage 1 ended in eleven "new system unlocked" cards, nine toasts underneath them, and an "Under-Powered" warning on the very next stage — right after a flawless win. Every one of thirty-four systems had revealed itself within about an hour. And all of it played out on one map.</p>
+<p>This update is the answer. It is the largest change to the early game since launch, and most of it is about taking things away.</p>
+<h2>One reward, one summary, no lies</h2>
+<p>The tutorial now teaches the actual loop over two waves — wave, draft, build, wave — with callouts that measure the board and never sit on the lane, a draft card or your hero's ability. It ends with <b>one</b> graduation reward instead of two identical ones. After a run, three or more announcements fold into a single summary card; achievement toasts wait until it closes and collapse into one. Advice never points at a screen you can't open yet, and the readiness warning has a tolerance — 1,027 Power against a recommended 1,050 is a push, not an alarm. Lose a run and Results now tells you how close you were, what got through, and one thing to try.</p>
+<p>We measure this now. A scripted first session runs against fixed budgets on every build: it counts the popups after the first run (10 before this update, 1 after), the time to your first tower (about 8 seconds once the cinematic is skipped), and the JavaScript a new player downloads before the game starts (down from 820 KB to about 518 KB, because hub screens now load on demand).</p>
+<h2>The hive opens up over hours, not minutes</h2>
+<p>New systems now reveal across your first ten-ish hours — Infinite after Stage 3, the Daily after Stage 5, Boss Rush after Stage 12, and the rest a wing or two at a time. Five side screens became tabs inside their hosts, the top bar shows a handful of currencies instead of ten, routine rewards claim themselves into the results of the run that earned them, and menu badges only appear where there is a decision to make. If you already had a screen, you keep it.</p>
+<h2>Thirteen battlefields</h2>
+<p>The arena used to be one map. It is now a registry of battlefields — twin lanes, an open maw, a maze-like coil, broken walls, flank funnels, a central breach — each one a row of data that a validator proves fair before it ships (every cell reaches the line, nothing blocks a build slot). The first three campaign stages use fixed maps chosen to teach; deeper stages roll a battlefield that suits their biome; the Daily rolls one for the world; Infinite shifts map with every biome. Walls are solid now, too: nothing gets shoved through rock.</p>
+<p>While we were in there, we fixed the curve. Stages 1 and 2 were trivially easy and Stage 3 was a wall; a gentler grace window, scaled-down first bosses, and invasions limited to each stage's own enemies now make the first three stages rise steadily.</p>
+<h2>Rule Genes, Hive Intelligence and the Threat ladder</h2>
+<p>Most gene cards bend numbers. Twenty-five new <b>Rule Genes</b> bend rules — shred builds, spreading infections, conveyor economies, placement tricks, hero stances, and deliberate risk-for-reward bargains — and once you have earned one, every draft guarantees a rule-changing option. <b>Hive Intelligence</b>, the one-button Biomass planner, now works only on content you have already beaten: it is the reward for mastery, not a replacement for it. And every mode you have cleared opens the <b>Threat ladder</b> — ten named rungs of difficulty that pay titles, profile frames and a little more reward, and never Power.</p>
+<h2>A board-first screen, on every screen</h2>
+<p>The run layout was rebuilt around the largest board the window allows — a third bigger at 1440×900 — with speed, Hive Intelligence and Pause sharing one strip so nothing overlaps the Start Wave button again. Phones get real portrait and landscape layouts with drawers and thumb-sized targets, and a phone held upright no longer asks you to rotate during a run. And yes, the hero health bar that briefly read 359/248 is fixed.</p>
+<h2>A note on the store</h2>
+<p>In Belgium and the Netherlands, loot-box law treats a randomized reward bought with money — or with a currency bought with money — as gambling. Rather than argue the edge cases, we took the strict reading: in those countries we don't sell anything that can end in a random reward. The whole game, containers included, stays earnable in play. Everywhere else, container drop rates are shown in the Vault.</p>
+<h2>What's next</h2>
+<p>More battlefields and Threat rungs are now data rows, so expect them often. New tower strains and heroes are next on the roadmap, and the first-session probe means every future update gets measured against a new player's first hour before it ships. Patch notes for this update are on the <a href="/news/">News page</a>.</p>`,
+  },
+  {
     slug: 'every-cast-a-set-piece',
     date: '2026-07-14',
     title: 'Every cast is a set piece: hero ability cinematics',

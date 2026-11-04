@@ -183,7 +183,7 @@ a.tag:hover { color: var(--vital); border-color: var(--vital); text-decoration: 
 
 .shots-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }
 .shots-grid figure { margin: 0; background: var(--panel); border: 1px solid var(--line); border-radius: var(--r); overflow: hidden; }
-.shots-grid img { display: block; width: 100%; aspect-ratio: 3 / 4; object-fit: cover; }
+.shots-grid img { display: block; width: 100%; aspect-ratio: 16 / 10; object-fit: cover; }
 .shots-grid figcaption { padding: 12px 16px; font-size: 13px; color: var(--muted); }
 .trailer-video { width: 100%; border-radius: var(--r); border: 1px solid var(--line-2); background: #000; }
 

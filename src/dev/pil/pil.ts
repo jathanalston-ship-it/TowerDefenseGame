@@ -40,13 +40,15 @@ export interface PublicPage {
   lastReviewed: string;
 }
 
-const R = '2026-07-10'; // review stamp for the founding audit
+// Review stamp: the date every public page was last read against the shipped game. Bump it after each
+// website pass (CLAUDE.md "Website freshness"); `npm run pil -- staleness` lists what moved since.
+const R = '2026-11-04';
 
 const SINGLETON_PAGES: PublicPage[] = [
-  { id: 'page:home', path: 'index.html', title: 'Home', references: ['system:towers', 'system:heroes', 'system:campaign', 'system:infinite', 'system:boss-rush', 'concept:power-score'], lastReviewed: R },
+  { id: 'page:home', path: 'index.html', title: 'Home', references: ['system:towers', 'system:heroes', 'system:campaign', 'system:infinite', 'system:boss-rush', 'concept:power-score', 'system:map-layouts', 'system:gene-cards', 'system:threat', 'system:arena'], lastReviewed: R },
   { id: 'page:about', path: 'about/index.html', title: 'About', references: ['concept:determinism'], lastReviewed: R },
-  { id: 'page:features', path: 'features/index.html', title: 'Features', references: ['system:towers', 'system:heroes', 'system:gene-cards', 'system:equipment', 'system:campaign', 'system:infinite', 'system:boss-rush', 'system:daily'], lastReviewed: R },
-  { id: 'page:faq', path: 'faq/index.html', title: 'FAQ', references: ['concept:power-score', 'system:accounts', 'system:daily'], lastReviewed: R },
+  { id: 'page:features', path: 'features/index.html', title: 'Features', references: ['system:towers', 'system:heroes', 'system:gene-cards', 'system:equipment', 'system:campaign', 'system:infinite', 'system:boss-rush', 'system:daily', 'system:map-layouts', 'system:threat', 'system:hive-mind', 'system:arena', 'system:onboarding', 'system:run-ui', 'system:premium'], lastReviewed: R },
+  { id: 'page:faq', path: 'faq/index.html', title: 'FAQ', references: ['concept:power-score', 'system:accounts', 'system:daily', 'system:map-layouts', 'system:threat', 'system:hive-mind', 'system:premium', 'system:run-ui'], lastReviewed: R },
   { id: 'page:roadmap', path: 'roadmap/index.html', title: 'Roadmap', references: [], lastReviewed: R },
   { id: 'page:news', path: 'news/index.html', title: 'News', references: [], lastReviewed: R },
   { id: 'page:leaderboards', path: 'leaderboards/index.html', title: 'Leaderboards', references: ['system:daily', 'system:boss-rush'], lastReviewed: R },
@@ -96,6 +98,7 @@ const BLOG_REFS: Record<string, string[]> = {
   'living-battlefield': ['system:living-battlefield'],
   'mega-boss-raids': ['system:mega-bosses'],
   'opening-cinematic': ['system:onboarding'],
+  'the-first-hour': ['system:onboarding', 'system:progression-gating', 'system:map-layouts', 'system:gene-cards', 'system:hive-mind', 'system:threat', 'system:run-ui', 'system:premium'],
 };
 
 /** Every public page — declared singletons + auto-derived guides/blog entries. */

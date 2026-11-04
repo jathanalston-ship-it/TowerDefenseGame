@@ -249,6 +249,30 @@ economy, and towers. Keep design decisions written down so changes stay coherent
 
 ---
 
+## 🌐 Website freshness — the site ships with the game
+
+The public site (assimilationtowerdefense.com — `site/*.ts` → `npm run site` → `public/`) must never
+lag the game. **The owner has asked for it to be kept current on every batch.** Patch notes regenerate
+on every deploy automatically; everything else is editorial and is part of "done" for any change
+players can see:
+
+1. `npm run pil -- staleness` — the pages whose referenced systems moved since the last review.
+2. Update the copy in `site/pages.ts` / `site/guides.ts` for anything new, changed or now untrue.
+   Content counts come from the game via `siteCounts()` (site/build.ts) — never hard-code them; quote
+   unlock stages etc. from config (`MODE_UNLOCKS`), not from memory.
+3. Publish a devlog post in `site/blog.ts` for each notable batch (polish the Chronicle draft in
+   `docs/devlog/`), and give the release a real title + player-facing entries in `changelog/ledger.json`.
+4. After visible UI changes, re-shoot the media: `npm run media` (stills + frame-stepped trailer;
+   `-- --stills` without ffmpeg). Recipe and staging rules: docs/WEBSITE.md §media.
+5. Bump the review stamp `R` in `src/dev/pil/pil.ts`, run `npm run site`, check the pages render, and
+   keep `npm run pil -- audit` clean.
+
+Production deploys from pushes to `claude/zen-hawking-rh1gxl` (GitHub Actions → Cloudflare Pages,
+SHA-verified). Pushing there is a production release — do it only with the owner's go-ahead for that
+batch, after `npm run validate` passes.
+
+---
+
 ## 📈 Build for scale — generalize, don't hardcode
 
 Design every system for the **target content scale**, not today's handful of

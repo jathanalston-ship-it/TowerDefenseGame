@@ -9,6 +9,9 @@ import { BOSS_DEFS } from '../src/core/boss';
 import { MEGA_BOSS_DEFS } from '../src/core/megaboss';
 import { DOCTRINES } from '../src/core/doctrines';
 import type { DoctrineFamily } from '../src/core/doctrines';
+import { MAP_LAYOUTS } from '../src/core/mapLayouts';
+import { THREAT_MAX } from '../src/core/threat';
+import { CARD_POOL, isRuleChangingCard } from '../src/core/cards';
 import { esc } from './shell';
 
 const num = (n: number): string => (Number.isInteger(n) ? String(n) : n.toFixed(1));
@@ -37,6 +40,9 @@ export function enemyCount(): number { return Object.keys(ENEMY_DEFS).length; }
 export function biomeCount(): number { return BIOMES.length; }
 export function bossCount(): number { return Object.keys(BOSS_DEFS).length + Object.keys(MEGA_BOSS_DEFS).length; }
 export function doctrineCount(): number { return Object.keys(DOCTRINES).length - 1; } // 'none' is no commitment
+export function layoutCount(): number { return MAP_LAYOUTS.length; }
+export function ruleCardCount(): number { return CARD_POOL.filter(isRuleChangingCard).length; }
+export function threatRungCount(): number { return THREAT_MAX; }
 
 /** The Doctrine Codex — every run commitment grouped by family, straight from the registry. */
 export function doctrineCodex(): string {

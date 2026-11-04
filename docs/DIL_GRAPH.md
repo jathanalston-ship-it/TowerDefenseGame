@@ -1,6 +1,6 @@
 # DIL_GRAPH.md — the Design Intelligence Layer (GENERATED — `npm run dil -- regen`)
 
-> **The project's brain** (docs/DIL.md). 922 nodes · 1759 edges, built from the live
+> **The project's brain** (docs/DIL.md). 922 nodes · 1760 edges, built from the live
 > registries + curated knowledge (src/dev/dil/). **Query it instead of searching the repo:**
 > `npm run dil -- node <id>` · `affects <id>` · `requires <id>` · `missing <kind> <edge>` ·
 > `checklist tower <kind>` · `find <text>`. Edge kinds are bidirectional (19 kinds).
@@ -563,6 +563,7 @@ graph LR
   system_campaign["Campaign"] -->|consumes| system_map_layouts["Arena Layouts"]
   system_daily["Daily Run"] -->|consumes| system_map_layouts["Arena Layouts"]
   system_infinite["Infinite Mode"] -->|consumes| system_map_layouts["Arena Layouts"]
+  system_website["Marketing Website"] -->|dependsOn| system_run_ui["In-Run HUD & Results"]
 ```
 
 ### Presentation Couplings Map
@@ -2156,6 +2157,7 @@ _at: src/ui/GameView.tsx, src/ui/Hud.tsx, src/ui/Toolbar.tsx, src/ui/BuildContro
   - modifiedBy ← `system:notifications` — AUTO-CLAIM (state/autoClaim.ts, NOTIFICATIONS.md §auto-claim): Results mounts AutoClaimSummary once per result (WeakMap settle-once) → quest missions / pass levels / metabolism tiers / evolution-track nodes on REVEALED systems claim inside rewardToast.capture() and read back as ONE "Also earned" row; finales + EVOLVE stay manual; tier-3 rewards still toast; prefs.autoClaimPref (Settings) switches it off
   - conflictsWith ← `system:onboarding` — DESKTOP TEACHING CONTRACT (docs/TUTORIAL-AUDIT.md §G, 2026-11): every lesson shown while a wave runs or asking for a slot tap declares callout.avoid = canvas.board (the bubble re-seats beside the lane, measured + clamped); the draft lesson anchors BELOW .overlay .cards; the ability lesson targets [data-tut="ability"] .ability-btn and runs DURING wave 2; desktop Pause/Skip take a measured seat clear of [data-tut="ability"]. A HUD/board re-layout must keep canvas.board, .ability-btn and data-tut="ability" (tutorialAnchors.test resolves them) — positions are never hard-coded
   - conflictsWith ← `system:onboarding` — PHONE DOCK CONTRACT (docs/TUTORIAL.md §phone): ≤700px the lesson callout DOCKS to the edge opposite its anchor and must never cover the step’s action (the step-3 slot bug); controls live top-right, the banner yields to the draft, and a missing spotlight target renders NO scrim
+  - requiredBy ← `system:website` — MEDIA: public/media/shots/*.webp + trailer.webm DEPICT the run HUD and Command Center — a visible HUD/board change makes them stale. `npm run media` re-shoots them at 1440×900 from the real build (stills + frame-stepped trailer via Playwright fake clock; staging rules in the script header). Copy counts come from siteCounts() (site/build.ts), never hard-coded; bump the PIL review stamp R after each website pass
 
 ### `system:notifications` — Notifications
 
@@ -2431,6 +2433,7 @@ _at: src/net/replayShare.ts_
   - dependsOn → `system:content-infra`
   - conflictsWith → `system:meta-store` — the game moved to /play/ — root share/checkout deep links rely on the home forwarder; never remove it while old links exist
   - plans → `system:liveops` — community spotlight + seasonal event pages once events ship
+  - dependsOn → `system:run-ui` — MEDIA: public/media/shots/*.webp + trailer.webm DEPICT the run HUD and Command Center — a visible HUD/board change makes them stale. `npm run media` re-shoots them at 1440×900 from the real build (stills + frame-stepped trailer via Playwright fake clock; staging rules in the script header). Copy counts come from siteCounts() (site/build.ts), never hard-coded; bump the PIL review stamp R after each website pass
   - documentedBy ← `doc:WEBSITE.md`
   - documentedBy ← `doc:DEPLOYMENT.md`
   - contains ← `guide:beginner`
