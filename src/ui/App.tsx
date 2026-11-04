@@ -72,7 +72,7 @@ import type { ArenaMatchSetup } from '../core/arenaMatch';
 import type { ArenaTransport } from '../net/arenaTransport';
 import type { DeployInfo } from './DeployScreen';
 import { DIFFICULTIES } from '../core/difficulty';
-import { initLayoutProfile } from './layoutProfile';
+import { initLayoutProfile, setInRun } from './layoutProfile';
 import { RotateGate } from './components/RotateGate';
 import { lazyNamed } from './lazyNamed';
 import { ScreenFallback } from './components/ScreenFallback';
@@ -512,6 +512,12 @@ export function App(): JSX.Element {
     }
     if (screen === 'results') { trackEvent('run_end'); telemetry.screen('results'); }
     if (screen === 'menu') telemetry.mode('menu'); // back on the hub — events stamp menu again
+  }, [screen]);
+  // Portrait run allowance (docs/RESPONSIVE-DESIGN.md §run): the whole run FLOW — the deploy
+  // breath, the battlefield and Results (+ its milestone cinematics) — plays in either
+  // orientation; the rotate gate returns with the hub.
+  useEffect(() => {
+    setInRun(screen === 'deploying' || screen === 'playing' || screen === 'results', 'run-flow');
   }, [screen]);
 
   useEffect(() => {
