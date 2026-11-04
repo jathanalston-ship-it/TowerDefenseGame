@@ -181,3 +181,42 @@ describe('determinism', () => {
     expect(run()).toBe(run());
   });
 });
+
+// The death-spread reach belongs to the tower whose plague it is: a Miasma Lung's coat leaps by the
+// LUNG's spread upgrades (Adaptation/mastery), the Nest's by the Nest's — not always the Nest's.
+describe('Infection death-spread follows the infecting tower', () => {
+  function spreadReaches(owner: TowerKind): boolean {
+    const tp = Object.fromEntries(ALL_TOWERS.map((k) => [k, { damageMult: 1, fireRateMult: 1 }])) as unknown as ConstructorParameters<typeof Game>[2] & Record<string, { infectionSpreadMult?: number }>;
+    tp.lung = { ...tp.lung, infectionSpreadMult: 3 }; // a Lung with heavy spread picks; the Nest has none
+    const g = new Game(11, NO_META, tp, 'ravager', undefined, { unlocked: ALL_TOWERS });
+    g.god = true;
+    g.startWave();
+    for (let i = 0; i < 2000 && g.enemies.filter((e) => e.alive).length < 2; i++) g.advance(SIM_DT);
+    const [a, b] = g.enemies.filter((e) => e.alive) as Enemy[];
+    a.x = 300; a.y = 300;
+    b.x = 450; b.y = 300; // 150 px: beyond the base 72 px reach, inside the Lung's ×3
+    b.infection = 0;
+    a.infection = 3;
+    a.infectedBy = owner;
+    a.hp = 0;
+    g.advance(SIM_DT);
+    return b.infection > 0;
+  }
+
+  it("a Lung's plague leaps by the Lung's spread upgrades", () => {
+    expect(spreadReaches('lung')).toBe(true);
+  });
+
+  it("a Nest's plague keeps the Nest's (base) reach", () => {
+    expect(spreadReaches('parasite')).toBe(false);
+  });
+  it('a real Lung breath claims the plague it lays', () => {
+    const { g, at } = boot('lung');
+    g.startWave();
+    g.debugSpawn('tank', 3);
+    for (let i = 0; i < Math.ceil(2 / SIM_DT); i++) { pinAll(g, at.x + 80, at.y - 60); g.advance(SIM_DT); }
+    const coated = g.enemies.filter((e) => e.alive && e.infection > 0);
+    expect(coated.length).toBeGreaterThan(0);
+    for (const e of coated) expect(e.infectedBy).toBe('lung');
+  });
+});

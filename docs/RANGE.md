@@ -257,7 +257,7 @@ and only ever scaled by *identity-specific* axes. That is the rule we keep:
 | **Needle Spitter** | **+earlier engagement** (open fire sooner) | `TowerMods.rangeMult` → scales targeting range |
 | **Bone Mortar** | **+faster indirect targeting** (shells on target sooner) | `TowerMods.fireRateMult` (already full-map; reach is fixed, *speed* is the axis) |
 | **Flesh Reactor** | **+support radius** | `TowerMods.rangeMult` → widens the overcharge radius (its `range` IS the support reach) |
-| **Parasite Nest** | **+Infection spread radius** | `TowerMods.infectionSpreadMult` → scales the death-spread |
+| **Parasite Nest** | **+Infection spread radius** | `TowerMods.infectionSpreadMult` → scales the death-spread of plague the Nest claimed (each infected enemy remembers its claiming tower, `Enemy.infectedBy`; a Miasma Lung's spread picks widen the Lung's plague the same way) |
 | **Neural Obelisk** | **+pulse radius** | `TowerMods.rangeMult` → scales the field/aura radius |
 
 All five are realized as **mastery milestone perks** (per-tower, identity-named,

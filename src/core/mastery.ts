@@ -33,7 +33,7 @@ export interface MasteryPerk {
   // Identity-range axes (docs/RANGE.md §8) — tower-specific reach, never a generic "+range%".
   rangeMult?: number; // engagement range (needle) / pulse radius (obelisk)
   fireRateMult?: number; // faster indirect targeting (mortar) — quicker re-aim/cadence
-  infectionSpreadMult?: number; // Infection spread radius (parasite)
+  infectionSpreadMult?: number; // Infection death-spread radius for plague THIS tower claimed (Game.spreadInfection)
 }
 
 export interface MasteryTrack {

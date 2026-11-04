@@ -1,6 +1,6 @@
 # DIL_GRAPH.md — the Design Intelligence Layer (GENERATED — `npm run dil -- regen`)
 
-> **The project's brain** (docs/DIL.md). 950 nodes · 1823 edges, built from the live
+> **The project's brain** (docs/DIL.md). 950 nodes · 1824 edges, built from the live
 > registries + curated knowledge (src/dev/dil/). **Query it instead of searching the repo:**
 > `npm run dil -- node <id>` · `affects <id>` · `requires <id>` · `missing <kind> <edge>` ·
 > `checklist tower <kind>` · `find <text>`. Edge kinds are bidirectional (19 kinds).
@@ -1256,7 +1256,7 @@ _at: src/core/stars.ts, src/core/branches.ts, src/core/branchTree.ts, src/core/s
   - consumes → `system:engine` — HERO-AI MINIONS (roost drakes): MinionDef.heroAI dispatches minionSystem to game.drakeBrain (deepest-threat + elites-first targeting, rally leash around homeX/homeY, retreat-to-perch < ROOST.retreatFrac with perchRegen × (1 + towerProgress.roost.roostRegenBonus), re-engage at reengageFrac) — wisp/harvester/broodling never reach it (flag-gated ⇒ byte-identical). Unit TIER climbs ROOST.unitByTier via the 'brood' star/branch grant vocabulary (roostBroodBonus/roostTierBonus/roostRegenBonus on ResolvedStarKit) — upgrades improve the UNITS, functionally AND visually (drakeling→drake→wyrmspawn defs)
   - references → `system:engine` — REACTION TRIO (2026-07, TOWERS.md §reactionTrio — Miasma Lung/Chitin Bell/Acid Lancet): the first roster growth with ZERO new sim verbs — all three compose TowerDef.abilities (aura+Infection fog · aura+Resonance react-slam · homing 130-dmg cull + Corrosion + minRange 120 deadzone). CAVEAT: a firing:'field' def WITHOUT explicit abilities inherits the DERIVED Disruption pulse kit (deriveTowerAbilities) — a field tower with its own identity MUST author abilities. Lung=second Viral, Bell=second Resonant (the two 1-tower class gaps closed); all double-gated (18/240 · 24/380 · 34/560) ⇒ goldens byte-identical. Adding a tower forces 6 new Mulligan catalog pieces (CATALOG_PER_TOWER contract, 2 per category)
   - extends → `system:engine` — IDLE POSTURES (TOWER-IDLE.md): every tower holds ONE of three states — COMBAT (targets engageable) / PREPARATION (secondary behavior running) / TRANSITION (the continuous `prep` scalar 0..1 on Tower IS the animation — renderer eases from it, nothing snaps). ONE engagement test per tick (towerHasTarget: living enemy inside effective reach, outside deadzone — field towers no longer pulse empty air, DELIBERATE); unengaged towers run their IDLE_BEHAVIORS row (core/towerIdle.ts, validator-bounded, exactly one per kind): windup (banked opener via the cast globals — dmg/range/splash/pierce/projectiles/castStatusAmountBonus), reserve (gestated burst volleys), ranging (parasite Spore Drift — weak 2×-reach suppression through the NORMAL cast pipeline: mastery/cues/reactions inherited), preheat (coil heat floors at 0.35), tending (sower cap+rate, roost hatch+perch-regen — the roost tower prep>0.5 IS the drake-brain calm signal), trickle (reactor mends integrity, siphon draws biomass), choir (ossuary +5% dmg to towers in 250, decaying choirDmg on the RECEIVER). Payoff magnitude scales INVERSELY with range band (short-reach idles most ⇒ biggest openers; the long-range meta corrective — no range nerfs). RunOptions.disableIdle reproduces the pre-idle sim BYTE-EXACTLY (pinned: golden.test GOLDEN_LEGACY block) — goldens re-pinned deliberately (wave/kills/won identical every seed; integrity only improved). RunModifiers.towerIdleChargeMult is the future card/gear hook. Mechanism suites (strains/strainVerbs/sower/finaldefense/expansion) run legacy fixtures; towerIdle.test.ts owns the layer
-  - references → `system:engine` — tower extraAbilities run with cast.x/y = the TOWER position: a debuff/explosion/pool grant on a homing kit lands around the TOWER, not the struck target — chain is the only verb that starts at cast.target (the Keening Chorus uses it for "around the mark")
+  - references → `system:engine` — tower extraAbilities run with cast.x/y = the TOWER position; a debuff/explosion/aura component with at: 'victim' centres on cast.target (the primary victim a projectile / chain / Coil or Siphon beam set) instead — every grant whose text says around/near/beside the victim carries it (branches.test.ts guard). No victim that cast ⇒ the component does nothing.
   - requiredBy ← `system:hive-mind`
   - requiredBy ← `system:engine`
   - requiredBy ← `system:daily`
@@ -2693,6 +2693,7 @@ _at: src/core/config.ts TOWER_DEFS_
   - partOf → `system:towers`
   - consumes → `currency:biomass` — placement cost 130
   - conflictsWith ← `tower:quill` — Resonance + Infection = RUPTURE consumes the plague stacks for a burst — a Keening Quill on a Viral board cashes Infection out early (pinned-pack probe: parasite+quill < parasite+spitfang vs tanks); its home is beside Fracture stackers (Shear)
+  - referencedBy ← `tower:lung` — INFECTION HAS AN OWNER: Enemy.infectedBy = the last TOWER to infect it (ability casts pass abilitySourceKind, projectiles p.sourceKind; heroes/reactions add stacks without claiming) and spreadInfection scales its reach by THAT kind’s infectionSpreadMult — a Lung/Tick/Nest spread row works for its own plague; unclaimed ⇒ the Nest’s.
 
 ### `tower:obelisk` — Neural Obelisk
 
@@ -2832,6 +2833,7 @@ _at: src/core/config.ts TOWER_DEFS_
 
   - partOf → `system:towers`
   - consumes → `currency:biomass` — placement cost 145
+  - references → `tower:parasite` — INFECTION HAS AN OWNER: Enemy.infectedBy = the last TOWER to infect it (ability casts pass abilitySourceKind, projectiles p.sourceKind; heroes/reactions add stacks without claiming) and spreadInfection scales its reach by THAT kind’s infectionSpreadMult — a Lung/Tick/Nest spread row works for its own plague; unclaimed ⇒ the Nest’s.
   - gatedBy ← `currency:tower-shards` — 240 shards to unlock
 
 ### `tower:bell` — Chitin Bell

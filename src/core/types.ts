@@ -117,6 +117,9 @@ export interface Enemy {
   fracture: number; // stacks
   corrosion: number; // remaining seconds of corrosion
   infection: number; // Viral infection stacks — ramping armor-ignoring DoT; spreads on death
+  /** The tower kind whose plague this is (the latest tower to infect it) — its infection-spread
+   *  upgrades set the death-spread reach. Unset ⇒ the Parasite Nest's, as before. */
+  infectedBy?: TowerKind;
   disrupt: number; // remaining seconds of Neural Disruption (slow + vulnerability)
   mark: number; // Vital Mark stacks (Marrow Siphon) — reaction fuel, harvested for Biomass; never in the golden run
   resonance: number; // Resonant stacks (Resonance Coil) — reaction fuel, shattered in reactions; never in the golden run
@@ -488,9 +491,9 @@ export interface TowerMods {
   splashMult?: number; // multiplies projectile splash radius
   // Identity-range upgrades (docs/RANGE.md §8) — NEVER a generic "+range%". Each is a
   // tower-specific reach axis: engagement range (needle marksman) / pulse radius (obelisk
-  // control field), and infection-spread reach (parasite). Absent ⇒ base, golden-safe.
+  // control field), and infection-spread reach (whichever tower claimed the plague — parasite, lung…). Absent ⇒ base, golden-safe.
   rangeMult?: number; // scales the tower's targeting range + field/aura radius (engagement / pulse)
-  infectionSpreadMult?: number; // parasite-only: scales the Infection death-spread radius
+  infectionSpreadMult?: number; // scales the Infection death-spread radius of plague THIS tower claimed (Enemy.infectedBy)
   projectileMutators?: string[]; // mutator ids applied to each spawned projectile (pierce …)
   extraAbilities?: AbilityComponent[]; // granted attacks/auras/chains run each cast
   reactorBiomassMult?: number; // reactor-only: scales its biomass generation (support evolution)

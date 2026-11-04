@@ -1207,7 +1207,7 @@ export class Game {
         if (this.abilityCaster) this.heroLifesteal(this.abilityCaster, applied); // lifesteal on ability/kit hits
         return applied;
       },
-      applyStatus: (e, status) => this.applyStatus(e, status),
+      applyStatus: (e, status) => this.applyStatus(e, status, this.abilitySourceKind), // a tower cast claims its Infection
       reactOnHit: (e) => this.maybeReact(e),
       healNucleus: (n) => {
         this.integrity = Math.min(this.maxIntegrity, this.integrity + n);
@@ -1333,7 +1333,7 @@ export class Game {
    * (The Part 3 status framework will replace these direct fields with managed stacks.)
    * `castStatusAmountBonus` (docs/TOWER-IDLE.md — a charged opener's enrichment) is added to
    * the authored amount here; 0 on every non-opener cast ⇒ identity. */
-  private applyStatus(e: Enemy, status: StatusApplication): void {
+  private applyStatus(e: Enemy, status: StatusApplication, source: TowerKind | null = null): void {
     const amount = this.castStatusAmountBonus > 0 ? status.amount + this.castStatusAmountBonus : status.amount;
     switch (status.kind) {
       case 'Fracture':
@@ -1343,7 +1343,7 @@ export class Game {
         e.corrosion = amount;
         break;
       case 'Infection':
-        this.infect(e, amount);
+        this.infect(e, amount, source);
         break;
       case 'Disruption':
         e.disrupt = amount;
@@ -5222,7 +5222,7 @@ export class Game {
             }
           }
           if (p.behavior === 'parasite') {
-            this.infect(target, STATUS.infectionOnHit); // Viral payload (no Fracture)
+            this.infect(target, STATUS.infectionOnHit, p.sourceKind); // Viral payload (no Fracture)
           } else {
             this.addFracture(target, 1);
             this.maybeReact(target);
@@ -6792,7 +6792,7 @@ export class Game {
               if (d2l < bd) { bd = d2l; far = o; }
             });
             if (far !== null) {
-              this.infect(far, lp.stacks);
+              this.infect(far, lp.stacks, 'parasite'); // the Nest's own strain verb
               this.spawnParticles((far as Enemy).x, (far as Enemy).y, PARTICLE.mutate, TOWER_DEFS.parasite.color, 0.5);
             }
           }
@@ -7155,9 +7155,11 @@ export class Game {
     return m;
   }
 
-  /** Viral: add Infection stacks (capped). */
-  private infect(e: Enemy, n: number): void {
+  /** Viral: add Infection stacks (capped). A tower `source` claims the plague (its spread
+   *  upgrades set the death-spread reach); heroes and reactions add stacks without claiming. */
+  private infect(e: Enemy, n: number, source: TowerKind | null = null): void {
     e.infection = Math.min(STATUS.infectionMaxStacks, e.infection + n);
+    if (source !== null) e.infectedBy = source;
   }
 
   /** Apply a universal status-effect (status.ts) to an enemy — the path NEW effects
@@ -7243,9 +7245,11 @@ export class Game {
    * (the epidemic walking through the pack). Deterministic nearest-first; cosmetic
    * spore burst uses the FX rng only. */
   private spreadInfection(src: Enemy): void {
-    // Identity-range upgrade (docs/RANGE.md §8): the Parasite's mastery widens the plague's
-    // reach. 1× for a fresh save (golden-safe).
-    const r = STATUS.infectionSpreadRadius * (this.towerProgress.parasite.infectionSpreadMult ?? 1);
+    // Identity-range upgrade (docs/RANGE.md §8): the INFECTING tower's spread upgrades (mastery,
+    // Adaptation) widen the plague's reach — a Miasma Lung's coat leaps by the Lung's, the Nest's
+    // by the Nest's; unclaimed (hero/reaction) plague uses the Nest's. 1× on a fresh save.
+    const owner = src.infectedBy ?? 'parasite';
+    const r = STATUS.infectionSpreadRadius * (this.towerProgress[owner]?.infectionSpreadMult ?? 1);
     const r2 = r * r;
     const near = this.neighborScratch;
     this.grid.queryInto(src.x, src.y, r, near);
@@ -7255,7 +7259,7 @@ export class Game {
       const o = near[i];
       if (o === src || !o.alive || o.infection >= STATUS.infectionMaxStacks) continue;
       if (dist2(src.x, src.y, o.x, o.y) > r2) continue;
-      this.infect(o, STATUS.infectionSpreadStacks);
+      this.infect(o, STATUS.infectionSpreadStacks, src.infectedBy ?? null); // the plague keeps its owner as it walks
       jumps++;
     }
     this.spawnParticles(src.x, src.y, PARTICLE.infect);

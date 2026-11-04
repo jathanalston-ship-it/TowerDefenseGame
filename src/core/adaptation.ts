@@ -298,7 +298,8 @@ const TOWER_THEMES: Record<TowerKind, Record<'predation' | 'mutation' | 'overclo
   },
   // Tick Battery — the long-reach VIRAL seeder (firing 'infest'). damageMult = the bite; rangeMult
   // = its reach (the identity axis — outbreaks start farther up-lane); fireRateMult = volley cadence.
-  // NO infectionSpreadMult rows (the sim reads that axis from the Parasite Nest's progress only) and
+  // NO infectionSpreadMult rows (by choice: the Tick's identity axis is reach — the sim honours a
+  // spread row for whichever tower claimed the plague, so one could be added later) and
   // NO extraProjectiles/pierce rows (the parasite behavior ignores both channels — extra ticks are
   // star/branch components).
   tick: {
