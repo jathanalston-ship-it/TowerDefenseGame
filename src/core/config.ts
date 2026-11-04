@@ -510,6 +510,75 @@ export const TOWER_DEFS: Record<TowerKind, TowerDef> = {
     // Ossuary cycles prime→detonate on its own cadence; pairing it with stackers goes nova.
     abilities: [{ type: 'aura', radius: 250, damage: 34, status: { kind: 'Resonance', amount: 1 }, react: true, particle: 'disrupt' }],
   },
+  // ── ANSWER roster (docs/TOWERS.md §answers) — three organs, each the designed ANSWER to a role the
+  //    board could not express: a BARRACKS that holds ground, a long-reach VIRAL seeder, and a
+  //    RESONANT armor-breaker. All compose existing verbs (summon / aura / projectile / status) —
+  //    zero new sim code — and all are double-gated (unlockStage + unlockShards) ⇒ golden-safe. ──
+  warren: {
+    kind: 'warren',
+    name: 'Gristle Warren',
+    combatClass: 'Vital',
+    firing: 'field', // its "shot" is a MUSTER — a thrall shoulders out of the warren (explicit kit below)
+    unlockShards: 110, // an early, friendly goal — the second-cheapest gated tower after the Spitfang
+    unlockStage: 6, // its shards drop once Campaign Stage 6 is cleared (fills the 3→15 gate drought)
+    cost: 115,
+    range: 230, // the MUSTER reach — thralls only muster while a threat is inside it
+    fireInterval: 4.5, // one thrall per muster; ~13 s thrall life ⇒ ~3 standing walls at steady state
+    damage: 5, // the warren's own gnash (the aura below) — the THRALLS carry the real work
+    projectileSpeed: 0,
+    splash: 0,
+    color: '#f2a07b',
+    blurb: 'Musters GRISTLE THRALLS that shoulder into the lane and HOLD it — walking walls of sinew. Fliers and burrowers pass them by.',
+    // The barracks identity: a body-blocking unit (MINION_DEFS.gristle — minionBlock stalls every
+    // ground enemy it touches) + a short gnash at the warren's foot so the organ earns mastery.
+    abilities: [
+      { type: 'summon', unit: 'gristle', count: 1 },
+      { type: 'aura', radius: 110, damage: 5, particle: 'gore' },
+    ],
+  },
+  tick: {
+    kind: 'tick',
+    name: 'Tick Battery',
+    combatClass: 'Viral',
+    firing: 'infest', // engorged ticks — the parasite payload (Infection on impact), three hosts per volley
+    unlockShards: 180,
+    unlockStage: 10, // its shards drop once Campaign Stage 10 is cleared
+    cost: 125,
+    range: 520, // SEEDER — the first LONG-reach Viral organ (Nest 280 · Lung 250): it starts outbreaks far up-lane
+    fireInterval: 1.8,
+    damage: 4, // token impact — the Infection it plants (ramping, armor-ignoring, spreading) is the product
+    projectileSpeed: 380,
+    splash: 0,
+    color: '#cf6bf0',
+    blurb: 'Flings engorged ticks at THREE different hosts far up the lane — every bite seeds Infection. The Nest drills one; the Battery starts the outbreak everywhere.',
+    // The patient-zero identity: one volley = three DISTINCT hosts (count 3), each seeded with the
+    // parasite payload; the native ramp + death-spread does the rest. Extra ticks ride ability grants
+    // (the parasite behavior ignores the extraProjectiles channel by design).
+    abilities: [{ type: 'projectile', behavior: 'parasite', damage: 4, speed: 380, range: 520, count: 3 }],
+  },
+  quill: {
+    kind: 'quill',
+    name: 'Keening Quill',
+    combatClass: 'Resonant',
+    firing: 'homing', // a tuned bone quill — rings its mark, then the impact cracks it
+    unlockShards: 460,
+    unlockStage: 28, // its shards drop once Campaign Stage 28 is cleared (fills the 26→30 gate gap)
+    cost: 160,
+    range: 560, // SPOTTER — long reach; it cracks the front of the wave before the rest of the board arrives
+    fireInterval: 2.0,
+    damage: 16,
+    projectileSpeed: 760,
+    splash: 0,
+    color: '#9fe7e0',
+    blurb: 'Fires a keening quill that RINGS its mark — the impact cracks the shell and the note SHEARS it: a true-damage burst and a window where its armor is gone for every tower.',
+    // The armor-breaker identity: Resonance lands on the mark at the cast; the homing impact's native
+    // Fracture + react then SHEARS it (REACTIONS.resoBurst + per Fracture stack, armor broken for
+    // STATUS.shredArmorBreak s). Fracture stackers beside it make every shear bigger.
+    abilities: [
+      { type: 'projectile', behavior: 'homing', damage: 16, speed: 760, range: 560 },
+      { type: 'status', status: { kind: 'Resonance', amount: 1 } },
+    ],
+  },
 };
 
 /** Resonance Beam tunables (Resonance Coil, firing 'beam'). The beam deals CONTINUOUS damage each
@@ -597,6 +666,9 @@ export const BRANCH_COSTS: Record<TowerKind, readonly [number, number, number, n
   lancet: [920, 3900, 15500, 56000, 205000], // the executioner — premium, just under the rift's ladder
   basilisk: [900, 3800, 15000, 55000, 200000], // the arena petrifier — crown content, obelisk-band ladder
   ossuary: [950, 4000, 16000, 58000, 210000], // the arena choir — crown content, the deep resonant ladder
+  warren: [650, 2900, 12000, 45000, 165000], // the early barracks — a cheap ladder beside the spitfang's (mirrors its early gate)
+  tick: [750, 3200, 13000, 48000, 180000], // the viral seeder — sits with the parasite nest
+  quill: [900, 3800, 15000, 55000, 200000], // the resonant armor-breaker — premium control band (bell/spire)
 };
 
 /** Returning-blade tunables (Wyrmwing Glaive, firing 'arc' — docs/TOWERS.md §glaive).
@@ -700,9 +772,9 @@ export function towerFireCue(kind: TowerKind): string {
   switch (kind) {
     case 'needle': case 'spire': case 'spitfang': return 'tfire_tick'; // a sharp kinetic/synaptic snap (autocannon included — gap caught by the DIL checklist)
     case 'mortar': case 'glaive': case 'lancet': return 'tfire_thud'; // a heavy lobbed thud / a heavy blade or harpoon release
-    case 'parasite': case 'maw': case 'polyp': case 'sower': case 'roost': case 'lung': return 'tfire_wet'; // a wet organic blip (the roost's is its HATCH — played by roostSystem; the lung's is its exhale)
+    case 'parasite': case 'maw': case 'polyp': case 'sower': case 'roost': case 'lung': case 'warren': case 'tick': return 'tfire_wet'; // a wet organic blip (the roost's is its HATCH — played by roostSystem; the lung's is its exhale; the warren's its muster; the tick's its fling)
     case 'obelisk': case 'effigy': case 'basilisk': return 'tfire_zap'; // a psionic zap / the petrifying stare's discharge
-    case 'chrysalis': case 'bell': return 'tfire_ting'; // a crystalline ting / the bell's toll
+    case 'chrysalis': case 'bell': case 'quill': return 'tfire_ting'; // a crystalline ting / the bell's toll / the quill's keen
     default: return ''; // coil/siphon beams + reactor support + roost brood have their own identity
   }
 }
@@ -978,6 +1050,44 @@ export const ENEMY_DEFS: Record<EnemyKind, EnemyDef> = {
     kind: 'tyrant', name: 'Brood Tyrant', hp: 900, armor: 14, speed: 32, bounty: 180, damage: 63, radius: 26, color: '#ff4d6d',
     behavior: { seek: 1, avoidTowers: 0.05, avoidHero: 0, separation: 0.18, jitter: 0 },
     attack: { interval: 2.8, windup: 1.0 }, // BOSS-TIER: monumental blows
+  },
+  // ── PUZZLE FAUNA (docs/ENEMIES.md §puzzle) — six trait fusions, each authored around the ONE answer
+  //    it demands (EA-DESIGN-AUDIT #66). Pure data: every trait rides an existing gated hook, the
+  //    campaign entry stage auto-derives from the traits (they arrive staggered across stages 3–9),
+  //    and the scripted WAVES table never spawns them ⇒ the pinned golden run is byte-identical. ──
+  scuttler: {
+    kind: 'scuttler', name: 'Chitin Scuttler', hp: 100, armor: 14, speed: 74, bounty: 26, damage: 5, radius: 10, color: '#c2a35a',
+    behavior: { seek: 1.1, avoidTowers: 0.1, avoidHero: 0.3, separation: 0.4, jitter: 0.12, gait: { pulse: { period: 0.7, duty: 0.4, burst: 1.6, rest: 0.6 } } }, // a plated beetle in SKITTER-bursts: chip bounces off → armor-break (Shred/Shear) or armor-ignoring Infection
+    attack: { interval: 1.0, windup: 0.35 }, // PLATED FAST: pincer snips
+  },
+  blightmoth: {
+    kind: 'blightmoth', name: 'Blight Moth', hp: 70, armor: 0, speed: 78, bounty: 24, damage: 6, radius: 11, color: '#b8d040',
+    explodeRadius: 80, explodeDamage: 30,
+    behavior: { seek: 1.1, avoidTowers: 0.1, avoidHero: 0.2, separation: 0.3, jitter: 0.14, flying: true, gait: { weave: { amp: 0.4, freq: 2.4 } } }, // an airborne BOMB fluttering over walls + blockers → intercept it at RANGE
+    attack: { interval: 1.4, windup: 0.5 }, // SUICIDE: windup = the FUSE; one burst, then gone
+  },
+  borer: {
+    kind: 'borer', name: 'Marrow Borer', hp: 120, armor: 6, speed: 54, bounty: 34, damage: 8, radius: 12, color: '#d88a9a', regenPerSec: 20,
+    behavior: { seek: 1, avoidTowers: 0.6, avoidHero: 0.4, separation: 0.3, jitter: 0.1, burrowing: true, gait: { pulse: { period: 1.8, duty: 0.45, burst: 1.7, rest: 0.43 }, flank: { pull: 0.45, untilY: 540 } } }, // tunnels the coverage GAPS while it re-knits → Infection keeps eating it out of sight
+    attack: { interval: 1.2, windup: 0.45 }, // BURROW REGEN: gnawing
+  },
+  shellback: {
+    kind: 'shellback', name: 'Shellback Bombard', hp: 200, armor: 8, speed: 28, bounty: 82, damage: 9, radius: 17, color: '#c8a878', shieldHp: 180,
+    siege: { range: 240, damage: 7, interval: 1.7 },
+    behavior: { seek: 1, avoidTowers: 0.05, avoidHero: 0, separation: 0.2, jitter: 0.02 }, // a plated bombard that parks out of short reach → PULL breaks its siege lock; burst cracks the shell
+    attack: { interval: 2.0, windup: 0.7 }, // ARTILLERY SHIELDED: melee fallback only (it standoffs)
+  },
+  wispmother: {
+    kind: 'wispmother', name: 'Wisp Mother', hp: 220, armor: 4, speed: 34, bounty: 88, damage: 11, radius: 17, color: '#98a0f0',
+    summon: { kind: 'wisp', count: 1, interval: 4.5 },
+    behavior: { seek: 1, avoidTowers: 0.1, avoidHero: 0.15, separation: 0.25, jitter: 0.06, gait: { weave: { amp: 0.2, freq: 1.4 } } }, // a ground womb birthing FLYERS behind your line → focus her at range
+    attack: { interval: 2.0, windup: 0.7 }, // SUMMONER: slow slams (the brood is the threat)
+  },
+  veilmoth: {
+    kind: 'veilmoth', name: 'Veil Moth', hp: 90, armor: 2, speed: 58, bounty: 60, damage: 4, radius: 12, color: '#d8c8f8',
+    auraRadius: 100, auraShield: 40,
+    behavior: { seek: 1, avoidTowers: 0.2, avoidHero: 0.45, separation: 0.35, jitter: 0.08, flying: true, gait: { weave: { amp: 0.35, freq: 1.7 } } }, // shields the pack FROM THE AIR → kill the support first, at range
+    attack: { interval: 1.6, windup: 0.5 }, // FLYING SUPPORT: half-hearted prods (its aura is the threat)
   },
 };
 
@@ -1787,6 +1897,37 @@ export const HERO_DEFS: Record<HeroKind, HeroDef> = {
       ] },
     ],
   },
+  myceliarch: {
+    // The hive's IMMUNE caste (Viral) — the GATEKEEPER (docs/HEROES.md §myceliarch). A fungal warden
+    // rooted at the Core on the 'guard' brain (the Shepherd's movement): it does not hunt — whatever
+    // breaches the defense zone walks into its spore-rot. Where the Shepherd TENDS the line, the
+    // Myceliarch KILLS at it: a real damaging pulse with a sticky stagger, a self-cast Sporefall
+    // that seeds deep Infection in everything at the gate, and the Revenant's viralVuln passive so
+    // the rot it plants softens the crowd for the whole board. Zero new sim verbs (guard brain +
+    // explosion/heal/shield/status primitives). Shard-claimed: the fourth (deepest) Collection unlock.
+    kind: 'myceliarch', name: 'Myceliarch', combatClass: 'Viral', behavior: 'guard', color: '#e0b070',
+    unlockShards: 220, // locked: the deepest Shard claim (Shepherd 60 · Overseer 100 · Fovea 160 · Myceliarch 220)
+    // No auto-attack (the guard brain never swings) — the PULSE is the weapon: ~12 dmg every 1.1 s
+    // to everything within 104 px, plus a 0.35 s spore-stagger. Tankier and slower than the Shepherd.
+    maxHp: 360, speed: 82, attackRange: 0, attackInterval: 0, attackDamage: 0, attackFracture: 0,
+    aggroRange: 1400, contactRange: 26, respawnTime: 9,
+    pulseInterval: 1.1, pulseRadius: 104, pulseDamage: 12, pulseDisrupt: 0.35, nucleusRegen: 0.6,
+    ability: { name: 'Sporefall', blurb: 'The warden bursts at the gate — heavy damage and deep Infection in everything caught, and the Hive drinks the rot to mend.', cooldown: 12, radius: 140, damage: 46, fracture: 0, disrupt: 0, infect: 3, heal: 20, particle: 'heroBloom', fxColor: '#e0b070', cinematic: { actor: 'bloomheart', motion: 'expand', impactDelay: 0.35 } },
+    skills: [
+      { name: 'Mycelial Mantle', blurb: 'Hyphae knit over the warden — a self-shield, and a rot-burst that infects everything pressing it.', cooldown: 9, radius: 90, damage: 18, fracture: 0, disrupt: 0, infect: 2, heal: 0, shield: 70, shieldSeconds: 5, castOn: 'self', minEnemies: 1, particle: 'heroSpray', fxColor: '#c8e06a', cinematic: { actor: 'bloomheart', motion: 'self', impactDelay: 0 } },
+      { name: 'Fruiting Body', blurb: 'A fungal eruption bursts up under the deepest intruder — heavy damage and a deep Infection seed.', cooldown: 10, radius: 80, damage: 40, fracture: 0, disrupt: 0, infect: 4, heal: 0, castOn: 'target', minEnemies: 1, particle: 'heroBurst', fxColor: '#f0c060', cinematic: { actor: 'bloomheart', motion: 'rise', impactDelay: 0.3 } },
+    ],
+    forks: [
+      { star: 5, options: [
+        { id: 'bloomwarden', name: 'Bloomwarden', blurb: 'The burst becomes a canopy — wider spore-fall, and the Hive drinks deeper.', upgrades: [{ target: 'ult', mulRadius: 1.35, addHeal: 15, fxColor: '#f2d48a' }, { target: 0, mulRadius: 1.2 }] },
+        { id: 'rotwarden', name: 'Rotwarden', blurb: 'The burst turns virulent — harder hits and a deeper plague in every body it touches.', upgrades: [{ target: 'ult', mulDamage: 1.25, addInfect: 2, fxColor: '#b8e04a' }, { target: 1, addInfect: 1 }] },
+      ] },
+      { star: 8, options: [
+        { id: 'hyphalfortress', name: 'Hyphal Fortress', blurb: 'Mycelial Mantle hardens into a living bulwark — a far thicker shield, on a shorter cycle.', upgrades: [{ target: 0, name: 'Hyphal Fortress', addShield: 60, mulRadius: 1.3, mulCooldown: 0.8, particle: 'heroBloom', fxColor: '#d8f08a' }] },
+        { id: 'deathcap', name: 'Deathcap', blurb: 'Fruiting Body erupts as a deathcap — a colossal toxic bloom under the deepest intruder.', upgrades: [{ target: 1, name: 'Deathcap', mulDamage: 1.6, addInfect: 2, mulCooldown: 0.85, particle: 'heroSpray', fxColor: '#ff9a5a' }] },
+      ] },
+    ],
+  },
 };
 
 export function heroProblems(d: HeroDef): string[] {
@@ -2040,6 +2181,13 @@ export const MINION_DEFS: Record<string, MinionDef> = {
   drakeling: { id: 'drakeling', name: 'Drakeling', hp: 70, damage: 11, attackInterval: 0.65, range: 340, speed: 150, life: 999, radius: 8, color: '#ffc46b', heroAI: true, perchRegen: 14, art: 'drake', tier: 1 },
   drake: { id: 'drake', name: 'Ember Drake', hp: 150, damage: 24, attackInterval: 0.7, range: 360, speed: 145, life: 999, radius: 11, color: '#ff9e4a', heroAI: true, perchRegen: 26, art: 'drake', tier: 2 },
   wyrmspawn: { id: 'wyrmspawn', name: 'Wyrmspawn', hp: 320, damage: 50, attackInterval: 0.8, range: 380, speed: 140, life: 999, radius: 15, color: '#ff7a3d', heroAI: true, perchRegen: 45, art: 'drake', tier: 3 },
+  // ── The Gristle Warren's musters (docs/TOWERS.md §answers) — BLOCKERS, not hunters: slow, thick
+  //    bodies whose job is to stand in the lane (minionBlock stalls every ground enemy touching them)
+  //    while the board works. Fliers and burrowers ignore them by the standing body-block rule. The
+  //    ladder is unit CHOICE (stars/branches summon a different id), never a per-unit code path. ──
+  gristle: { id: 'gristle', name: 'Gristle Thrall', hp: 150, damage: 6, attackInterval: 0.9, range: 230, speed: 72, life: 13, radius: 10, color: '#f2a07b' },
+  gristlehulk: { id: 'gristlehulk', name: 'Sinew Hulk', hp: 360, damage: 11, attackInterval: 1.1, range: 230, speed: 58, life: 15, radius: 13, color: '#e0775a' },
+  gristling: { id: 'gristling', name: 'Gristleling', hp: 60, damage: 5, attackInterval: 0.6, range: 250, speed: 110, life: 9, radius: 7, color: '#ffbfa3' },
 };
 export const MINION_CAP = 16; // global cap on live minions (perf + visual bound)
 
@@ -2825,6 +2973,8 @@ export const DIRECTOR = {
     bomber: 2.5, popper: 2.8,
     siegeworm: 6, spitter: 3.5,
     apex: 10, dreadnought: 16, tyrant: 20,
+    // puzzle fauna (docs/ENEMIES.md §puzzle) — priced like their trait-family neighbours
+    scuttler: 3, blightmoth: 3, borer: 4, shellback: 6.5, wispmother: 7.5, veilmoth: 5.5,
   } as Record<string, number>,
   // ── Deep-composition policy (docs/ENDLESS-SCALING.md §deep-tilt) — ENDLESS ONLY. Gated by the
   //    Director's `deepTilt` flag (set only for mode 'endless'; Boss Rush + shallow endless are
@@ -2832,7 +2982,7 @@ export const DIRECTOR = {
   //    decays with depth, so deep waves tilt toward FAST + mid bodies IN NUMBERS (pressure through
   //    pace) instead of a wall of 2–3 geometric-HP sponges. The wave still fields SOME heavies
   //    (up to the cap) — the boss is the intended durable centerpiece (ENDLESS.bossStrength*). ──
-  heavyKinds: ['brute', 'tank', 'golem', 'colossus', 'warden', 'revenant', 'dreadnought', 'tyrant', 'gargoyle', 'siegeworm', 'zealot', 'carrier', 'entrencher'] as EnemyKind[],
+  heavyKinds: ['brute', 'tank', 'golem', 'colossus', 'warden', 'revenant', 'dreadnought', 'tyrant', 'gargoyle', 'siegeworm', 'zealot', 'carrier', 'entrencher', 'shellback'] as EnemyKind[],
   heavyCapMinDepth: 20, // below this the cap is INACTIVE ⇒ shallow endless == baseline (and the director test's depth 1/9 budget check is unaffected)
   heavyBudgetFracBase: 0.5, // at heavyCapMinDepth heavies may take ≤50% of the threat budget …
   heavyBudgetFracMin: 0.2, // … decaying to a ≥20% floor deep — still SOME heavies (elites inflate HP share above this), never a sponge wall

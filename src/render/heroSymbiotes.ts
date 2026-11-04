@@ -93,6 +93,12 @@ export const HERO_SYMBIOTE_VISUALS: Record<HeroKind, { stages: EvoPart[][] }> = 
     [{ at: 2, kind: 'pods', count: 3 }],
     [{ at: 3, kind: 'tendrils', count: 4 }],
   ] },
+  // Myceliarch — the warden is COLONIZED: chitin scutes → contagion rings → spore pods.
+  myceliarch: { stages: [
+    [{ at: 1, kind: 'armor', count: 3, per: 1 }],
+    [{ at: 2, kind: 'ripples' }],
+    [{ at: 3, kind: 'pods', count: 4 }],
+  ] },
 };
 
 /** The minimal hero shape the composer needs (mirrors heroEvolution.ts). */

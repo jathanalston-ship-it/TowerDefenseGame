@@ -811,7 +811,93 @@ const OSSUARY_PATH: StarPath = {
   ],
 };
 
-starPathRegistry.registerAll([NEEDLE, MORTAR, PARASITE, OBELISK, REACTOR, MAW, CHRYSALIS, EFFIGY, COIL, SIPHON_PATH, SOWER_PATH, SPIRE_PATH, POLYP_PATH, SPITFANG_PATH, RIFT_PATH, GLAIVE_PATH, ROOST_PATH, LUNG_PATH, BELL_PATH, LANCET_PATH, BASILISK_PATH, OSSUARY_PATH]);
+// ── THE ANSWER ROSTER (docs/TOWERS.md §answers) — permanent ★ ladders for the barracks, the seeder
+//    and the armor-breaker. Same grant vocabulary as every path above (no new verbs). ──
+// Gristle Warren (Vital, field barracks): its path thickens the WALL — a gnashing floor, cracked
+// prisoners, a heavier body on the ★3 pick, and a living rampart at the capstone. Extra units are
+// sparse by design (the global MINION_CAP is the wall's ceiling); most nodes improve the GATE.
+const WARREN_PATH: StarPath = {
+  tower: 'warren',
+  steps: [
+    { star: 1, name: 'Gnashing Floor', kind: 'attack', desc: 'The warren BITES what its walls hold — a second gnash at its foot.', grants: [{ t: 'ability', components: [{ type: 'aura', radius: 120, damage: 6, react: true }] }] },
+    { star: 2, name: 'Cracking Grip', kind: 'interaction', desc: 'The held are CRACKED — Fracture around the warren (Shred / Shear fuel).', grants: [{ t: 'ability', components: [{ type: 'debuff', radius: 130, status: { kind: 'Fracture', amount: 1 } }] }] },
+    {
+      star: 3, name: 'Muster Doctrine', kind: 'fork', desc: 'Choose the wall (re-pick any run).',
+      fork: [
+        { id: 'hulkline', name: 'Hulkline', desc: 'Each muster adds a SINEW HULK — a thick, slow wall.', grants: [{ t: 'ability', components: [{ type: 'summon', unit: 'gristlehulk', count: 1 }] }] },
+        { id: 'litterline', name: 'Litterline', desc: 'Each muster adds two GRISTLELINGS — quick plugs for the gaps.', grants: [{ t: 'ability', components: [{ type: 'summon', unit: 'gristling', count: 2 }] }] },
+      ],
+    },
+    { star: 4, name: 'Gnashing Gate', kind: 'attack', desc: 'The gnash deepens — a heavier, reacting bite at the wall.', grants: [{ t: 'ability', components: [{ type: 'aura', radius: 130, damage: 9, react: true }] }] },
+    {
+      star: 5, name: 'Apex Warren', kind: 'fork', desc: 'Signature transformation.',
+      fork: [
+        { id: 'bonewall', name: 'Bonewall', desc: 'The gate CRUSHES — deep cracks and a heavy reacting gnash on everything held.', grants: [{ t: 'ability', components: [{ type: 'debuff', radius: 150, status: { kind: 'Fracture', amount: 1 } }, { type: 'aura', radius: 150, damage: 12, react: true }] }] },
+        { id: 'tithe', name: 'Marrow Tithe', desc: 'The held are MARKED for the harvest — Mark around the warren (bursts + Biomass).', grants: [{ t: 'ability', components: [{ type: 'debuff', radius: 140, status: { kind: 'Mark', amount: 1 } }, { type: 'aura', radius: 140, damage: 6, react: true }] }] },
+      ],
+    },
+    { star: 7, name: 'Ravenous Warren', kind: 'attack', desc: 'The warren is always hungry — a cruel gnash on everything its walls hold.', grants: [{ t: 'ability', components: [{ type: 'aura', radius: 140, damage: 12, react: true }] }] },
+    { star: 9, name: 'The Living Rampart', kind: 'capstone', desc: 'A Sinew Hulk joins every muster and the gate itself devours — the lane is a wall.', grants: [{ t: 'ability', components: [{ type: 'summon', unit: 'gristlehulk', count: 1 }, { type: 'aura', radius: 160, damage: 16, react: true, particle: 'gore' }] }, { t: 'cosmetic', id: 'rampart' }] },
+  ],
+};
+
+// Tick Battery (Viral, infest seeder): its path deepens the OUTBREAK — fatter bites, more hosts per
+// volley (extra parasite COMPONENTS — the parasite behavior ignores extraProjectiles), and a ★3 pick
+// that pairs the bite with a partner status (Mind Rot or Putrefy self-engines).
+const TICK_PATH: StarPath = {
+  tower: 'tick',
+  steps: [
+    { star: 1, name: 'Fat Ticks', kind: 'interaction', desc: 'The first host takes a DEEPER Infection.', grants: [{ t: 'ability', components: [{ type: 'status', status: { kind: 'Infection', amount: 1 } }] }] },
+    { star: 2, name: 'Fourth Host', kind: 'projectile', desc: 'A FOURTH tick per volley, hunting its own host.', grants: [{ t: 'ability', components: [{ type: 'projectile', behavior: 'parasite', damage: 4, speed: 380, range: 520, count: 1 }] }] },
+    {
+      star: 3, name: 'Bite Doctrine', kind: 'fork', desc: 'Choose the bite (re-pick any run).',
+      fork: [
+        { id: 'numbing', name: 'Numbing Bite', desc: 'The bite NUMBS — Disruption in the first host (Mind Rot: the plague leaps).', grants: [{ t: 'ability', components: [{ type: 'status', status: { kind: 'Disruption', amount: 0.8 } }] }] },
+        { id: 'acid', name: 'Acid Bite', desc: 'The bite BURNS — Corrosion in the first host (Putrefy: acid rot).', grants: [{ t: 'ability', components: [{ type: 'status', status: { kind: 'Corrosion', amount: 1.5 } }] }] },
+      ],
+    },
+    { star: 4, name: 'Brood Clutch', kind: 'projectile', desc: 'A FIFTH tick per volley.', grants: [{ t: 'ability', components: [{ type: 'projectile', behavior: 'parasite', damage: 4, speed: 380, range: 520, count: 1 }] }] },
+    {
+      star: 5, name: 'Apex Battery', kind: 'fork', desc: 'Signature transformation.',
+      fork: [
+        { id: 'plaguevolley', name: 'Plague Volley', desc: 'The first host is DROWNED in plague — a deep Infection seed.', grants: [{ t: 'ability', components: [{ type: 'status', status: { kind: 'Infection', amount: 2 } }] }] },
+        { id: 'leechvolley', name: 'Leech Volley', desc: 'Two MORE ticks per volley — the outbreak starts everywhere.', grants: [{ t: 'ability', components: [{ type: 'projectile', behavior: 'parasite', damage: 4, speed: 380, range: 520, count: 2 }] }] },
+      ],
+    },
+    { star: 7, name: 'Engorgement', kind: 'attack', desc: 'A bloated tick bursts on its host — a heavier bite and another seed.', grants: [{ t: 'ability', components: [{ type: 'projectile', behavior: 'parasite', damage: 8, speed: 360, range: 520, count: 1 }] }] },
+    { star: 9, name: 'The Outbreak Battery', kind: 'capstone', desc: 'Two more ticks and a plague that drowns the first host — every volley IS an outbreak.', grants: [{ t: 'ability', components: [{ type: 'projectile', behavior: 'parasite', damage: 6, speed: 380, range: 520, count: 2 }, { type: 'status', status: { kind: 'Infection', amount: 2 } }] }, { t: 'cosmetic', id: 'outbreak' }] },
+  ],
+};
+
+// Keening Quill (Resonant, homing armor-breaker): its path tunes the SHEAR — crits, deeper cracks
+// (bigger shear bursts scale per Fracture stack), a ★3 pick of which plate to crack (the heaviest
+// or the fastest — the Chitin Scuttler's answer), a second quill, and a leaping chord.
+const QUILL_PATH: StarPath = {
+  tower: 'quill',
+  steps: [
+    { star: 1, name: 'Tuned Fletch', kind: 'attack', desc: 'A truer pitch — vicious critical keens.', grants: [{ t: 'ability', components: [{ type: 'crit', chance: 0.2, mult: 2, damage: 10 }] }] },
+    { star: 2, name: 'Hairline Fracture', kind: 'interaction', desc: 'The mark is CRACKED as the note lands — every shear bursts bigger.', grants: [{ t: 'ability', components: [{ type: 'status', status: { kind: 'Fracture', amount: 1 } }] }] },
+    {
+      star: 3, name: 'Keen Doctrine', kind: 'fork', desc: 'Choose the plate to crack (re-pick any run).',
+      fork: [
+        { id: 'heavy', name: 'Siege Spotter', desc: 'Crack the HEAVIEST shell on the lane — the quill marks the biggest body.', grants: [{ t: 'targeting', profile: 'highestHealth' }] },
+        { id: 'swift', name: 'Swift Spotter', desc: 'Crack the RUNNERS — the quill leads the fastest plate (the Scuttler\'s answer).', grants: [{ t: 'targeting', profile: 'fastest' }] },
+      ],
+    },
+    { star: 4, name: 'Twin Keen', kind: 'projectile', desc: 'A SECOND quill per draw, cracking its own mark.', grants: [{ t: 'projectile', extraProjectiles: 1 }] },
+    {
+      star: 5, name: 'Apex Keen', kind: 'fork', desc: 'Signature transformation.',
+      fork: [
+        { id: 'shatterpitch', name: 'Shattering Pitch', desc: 'Deep cracks and killing crits — the shear detonates.', grants: [{ t: 'ability', components: [{ type: 'status', status: { kind: 'Fracture', amount: 2 } }, { type: 'crit', chance: 0.3, mult: 2.2, damage: 20 }] }] },
+        { id: 'sympathetic', name: 'Sympathetic Chord', desc: 'The keen LEAPS — a chord through the bodies beside the mark.', grants: [{ t: 'ability', components: [{ type: 'chain', jumps: 4, range: 140, damage: 14, falloff: 0.8, particle: 'spark' }] }] },
+      ],
+    },
+    { star: 7, name: 'Ringing Wound', kind: 'interaction', desc: 'The note RINGS on in the wound — a deeper Resonance coat.', grants: [{ t: 'ability', components: [{ type: 'status', status: { kind: 'Resonance', amount: 1 } }, { type: 'crit', chance: 0.25, mult: 2, damage: 16 }] }] },
+    { star: 9, name: 'The Breaking Note', kind: 'capstone', desc: 'A THIRD quill and a crack that runs to the core — no plate survives the note.', grants: [{ t: 'projectile', extraProjectiles: 1 }, { t: 'ability', components: [{ type: 'status', status: { kind: 'Fracture', amount: 2 } }] }, { t: 'cosmetic', id: 'breakingnote' }] },
+  ],
+};
+
+starPathRegistry.registerAll([NEEDLE, MORTAR, PARASITE, OBELISK, REACTOR, MAW, CHRYSALIS, EFFIGY, COIL, SIPHON_PATH, SOWER_PATH, SPIRE_PATH, POLYP_PATH, SPITFANG_PATH, RIFT_PATH, GLAIVE_PATH, ROOST_PATH, LUNG_PATH, BELL_PATH, LANCET_PATH, BASILISK_PATH, OSSUARY_PATH, WARREN_PATH, TICK_PATH, QUILL_PATH]);
 
 /** The fork steps of a tower's path (for the loadout UI). */
 export function forksOf(tower: TowerKind): StarFork[] {

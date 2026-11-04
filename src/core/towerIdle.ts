@@ -163,6 +163,22 @@ export const IDLE_BEHAVIORS: Record<TowerKind, IdleBehaviorDef> = {
     choir: { radius: 250, dmgBonus: 0.05 },
     blurb: 'While its own reach is empty the choir tunes the guns — nearby towers sing +5% damage.',
   },
+  // ── The answer roster (docs/TOWERS.md §answers) — each reuses an existing verb.
+  warren: {
+    kind: 'warren', name: 'Knitting Gristle', verb: 'trickle',
+    trickle: { integrityPerSec: 0.3 },
+    blurb: 'With no threat at the muster the warren works its gristle into the Hive — a slow mend between waves.',
+  },
+  tick: {
+    kind: 'tick', name: 'Engorged Clutch', verb: 'reserve', chargeTime: 5,
+    reserve: { volleys: 2, burstInterval: 0.3 },
+    blurb: 'Ticks gorge in the sacs while the lane is empty — re-engagement flings two volleys back to back.',
+  },
+  quill: {
+    kind: 'quill', name: 'Held Note', verb: 'windup', chargeTime: 6,
+    open: { dmgMult: 1.4, pierce: 1 },
+    blurb: 'The quill hums on a held note — the first keen after waiting strikes harder and passes through its mark.',
+  },
 };
 
 /** Validator laws (docs/TOWER-IDLE.md §8) — bounded magnitudes so a typo can never ship a

@@ -41,6 +41,9 @@ export const TOWER_FORM: Record<TowerKind, TowerForm> = {
   lancet: 'barrel',   // a long harpoon rail, drawn and loosed
   basilisk: 'lens',   // the petrifying oculus — a lidless arena eye on a calcified stalk
   ossuary: 'monolith', // the bone-organ choir — fused ribcages standing like a reliquary
+  warren: 'nest',     // a gristle burrow-mound — sinew sacs around a dark muster-mouth
+  tick: 'pod',        // a cluster of engorged tick-sacs that flings its brood up-lane
+  quill: 'antenna',   // a tall tuned bone quill — a tuning fork aimed up the lane
 };
 
 // ── ATTACK ANTICIPATION personality (docs/COMBAT-VISUAL-STANDARDS.md §towers) ────────────────────
@@ -474,6 +477,60 @@ export function drawTowerSignature(ctx: Ctx, kind: TowerKind, x: number, y: numb
       ctx.beginPath(); ctx.arc(0, 0, r * 0.42, 0.35, Math.PI - 0.35); ctx.stroke();
       ctx.beginPath(); ctx.arc(0, 0, r * 0.42, Math.PI + 0.35, TAU - 0.35); ctx.stroke();
       ctx.restore();
+      break;
+    }
+    case 'warren': { // the muster-mouth: a dark burrow at the mound's foot with a gristle arm hauling a thrall out on the muster
+      const mouthY = y + r * 0.34;
+      ctx.fillStyle = 'rgba(28,10,12,0.82)';
+      ctx.beginPath(); ctx.ellipse(x, mouthY, r * 0.34, r * 0.2, 0, 0, TAU); ctx.fill();
+      ctx.strokeStyle = C(color, 0.25, 0.85); ctx.lineWidth = Math.max(1.2, r * 0.08);
+      ctx.beginPath(); ctx.ellipse(x, mouthY, r * 0.38, r * 0.23, 0, 0, TAU); ctx.stroke();
+      const haul = fire * r * 0.32 + Math.sin(now * 2.1 + id) * r * 0.03; // the arm drags OUT on the muster
+      ctx.lineCap = 'round';
+      for (const s of [-1, 1]) {
+        ctx.strokeStyle = C(color, 0.1, 0.8);
+        ctx.lineWidth = Math.max(1.4, r * 0.1);
+        ctx.beginPath();
+        ctx.moveTo(x + s * r * 0.2, mouthY - r * 0.05);
+        ctx.quadraticCurveTo(x + s * r * 0.42, mouthY + r * 0.12 + haul, x + s * r * 0.3, mouthY + r * 0.34 + haul);
+        ctx.stroke();
+      }
+      ctx.lineCap = 'butt';
+      ctx.fillStyle = C(color, 0.35, 0.55 + 0.45 * fire); // the thrall's head breaching the burrow
+      ctx.beginPath(); ctx.arc(x, mouthY + haul * 0.6, r * 0.12 * br, 0, TAU); ctx.fill();
+      break;
+    }
+    case 'tick': { // clinging ticks: engorged bodies gripping the sac's flanks, legs twitching — they FLING on the volley
+      for (let i = 0; i < 3; i++) {
+        const a = -Math.PI / 2 + (i - 1) * 0.95;
+        const swell = 1 + 0.12 * Math.sin(now * 2.4 + i * 1.9 + id) - fire * 0.25 * (i === 1 ? 1 : 0);
+        const tx = x + Math.cos(a) * r * 0.72, ty = y + Math.sin(a) * r * 0.72;
+        ctx.strokeStyle = C(color, -0.2, 0.75); ctx.lineWidth = 1;
+        for (const s of [-1, 1]) { // little gripping legs
+          ctx.beginPath(); ctx.moveTo(tx, ty); ctx.lineTo(tx + s * r * 0.16, ty + r * 0.1 + Math.sin(now * 9 + i) * r * 0.03); ctx.stroke();
+        }
+        ctx.fillStyle = C(color, 0.25, 0.92);
+        ctx.beginPath(); ctx.ellipse(tx, ty, r * 0.13 * swell, r * 0.17 * swell, a + Math.PI / 2, 0, TAU); ctx.fill();
+        ctx.fillStyle = 'rgba(40,8,48,0.7)'; // the dark gorged abdomen stripe
+        ctx.beginPath(); ctx.ellipse(tx, ty, r * 0.05 * swell, r * 0.12 * swell, a + Math.PI / 2, 0, TAU); ctx.fill();
+      }
+      break;
+    }
+    case 'quill': { // the tuning fork: twin bone tines that SHIVER on the keen + a standing resonance ring between them
+      const shiver = Math.sin(now * 38) * r * 0.035 * (0.25 + fire);
+      ctx.strokeStyle = C(color, 0.3, 0.9);
+      ctx.lineWidth = Math.max(1.4, r * 0.11);
+      ctx.lineCap = 'round';
+      for (const s of [-1, 1]) {
+        ctx.beginPath();
+        ctx.moveTo(x + s * r * 0.12, y - r * 0.55);
+        ctx.lineTo(x + s * (r * 0.26 + shiver), y - r * 1.45);
+        ctx.stroke();
+      }
+      ctx.lineCap = 'butt';
+      const ringA = 0.25 + 0.5 * fire + 0.15 * Math.sin(now * 3 + id);
+      ctx.strokeStyle = C(color, 0.45, ringA); ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.ellipse(x, y - r * 1.1, r * (0.3 + fire * 0.25), r * 0.1, 0, 0, TAU); ctx.stroke();
       break;
     }
   }

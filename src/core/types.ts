@@ -10,7 +10,7 @@ import type { EffectLine } from './effectLanguage'; // type-only back-edge, same
 
 export type CombatClass = 'Kinetic' | 'Caustic' | 'Viral' | 'Neural' | 'Vital' | 'Resonant';
 export type StatusType = 'Fracture' | 'Corrosion' | 'Infection' | 'Disruption' | 'Freeze' | 'Fear' | 'Mark' | 'Resonance';
-export type TowerKind = 'needle' | 'mortar' | 'reactor' | 'parasite' | 'obelisk' | 'maw' | 'chrysalis' | 'effigy' | 'coil' | 'siphon' | 'sower' | 'spire' | 'polyp' | 'spitfang' | 'rift' | 'glaive' | 'roost' | 'lung' | 'bell' | 'lancet' | 'basilisk' | 'ossuary';
+export type TowerKind = 'needle' | 'mortar' | 'reactor' | 'parasite' | 'obelisk' | 'maw' | 'chrysalis' | 'effigy' | 'coil' | 'siphon' | 'sower' | 'spire' | 'polyp' | 'spitfang' | 'rift' | 'glaive' | 'roost' | 'lung' | 'bell' | 'lancet' | 'basilisk' | 'ossuary' | 'warren' | 'tick' | 'quill';
 export type EnemyKind =
   // swarm
   | 'runner' | 'mite' | 'larva'
@@ -54,9 +54,17 @@ export type EnemyKind =
   | 'entrencher' // artillery + regenerating: a durable standoff bombarder (reach it / burst it fast)
   | 'oracle' // support (heal + shield auras): a double-aura backline keystone (kill it FIRST)
   | 'glutling' // swarm + suicide: a fragile kamikaze cloud (AoE it early, spacing)
+  // ── PUZZLE fauna (docs/ENEMIES.md §puzzle) — six more trait FUSIONS, each authored around the ONE
+  //    answer it demands (pure data again — every trait rides an existing gated hook) ──
+  | 'scuttler' // fast + heavily plated: chip bounces off (demands armor-break or armor-ignoring DoT)
+  | 'blightmoth' // flying + suicide: an airborne bomb (intercept at range; blockers can't catch it)
+  | 'borer' // burrowing + regenerating: tunnels the gaps and re-knits (Infection keeps eating it)
+  | 'shellback' // artillery + shielded: a plated bombard (PULL breaks its siege lock; burst its shield)
+  | 'wispmother' // summoner of FLYERS: births wisps behind the line (focus the womb at range)
+  | 'veilmoth' // flying + support (shield aura): shields the pack from the air (kill it first, at range)
   // elite / apex
   | 'apex' | 'dreadnought' | 'tyrant';
-export type HeroKind = 'ravager' | 'shepherd' | 'overseer' | 'vitriol' | 'revenant' | 'knell' | 'wyrm' | 'riptide' | 'carrion' | 'fovea' | 'chimera';
+export type HeroKind = 'ravager' | 'shepherd' | 'overseer' | 'vitriol' | 'revenant' | 'knell' | 'wyrm' | 'riptide' | 'carrion' | 'fovea' | 'chimera' | 'myceliarch';
 
 /** How a tower delivers its attack — drives the firing/projectile dispatch, so a
  * new tower that reuses a behavior is data-only (no sim code). 'support' = no fire,

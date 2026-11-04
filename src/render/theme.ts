@@ -182,6 +182,9 @@ export const TOWER_SHAPE: Record<TowerKind, ShapeKind> = {
   lancet: 'diamond', // a drawn harpoon rail (sulphur; a narrow blade aimed up the lane)
   basilisk: 'diamond', // the lidless arena eye (violet; a narrow petrifying iris)
   ossuary: 'hex', // the fused-ribcage choir (bone; a heavy chambered organ)
+  warren: 'square', // a squat flesh burrow-mound (raw salmon; its thralls shoulder out into the lane)
+  tick: 'circle', // a cluster of engorged tick-sacs (plum; the flung ticks arc up-lane)
+  quill: 'triangle', // a tall tuned bone quill (verdigris; aimed up the lane like a fork)
 };
 
 export const ENEMY_SHAPE: Record<EnemyKind, ShapeKind> = {
@@ -217,6 +220,9 @@ export const ENEMY_SHAPE: Record<EnemyKind, ShapeKind> = {
   zealot: 'hex', carrier: 'diamond', entrencher: 'square', oracle: 'diamond', glutling: 'triangle',
   // elite / apex
   apex: 'hex', dreadnought: 'square', tyrant: 'hex',
+  // puzzle fauna — shape reads the trait the COUNTER keys on (plate=hex, bomb=triangle, burrow=diamond,
+  // siege=square, womb=hex, air=diamond)
+  scuttler: 'hex', blightmoth: 'triangle', borer: 'diamond', shellback: 'square', wispmother: 'hex', veilmoth: 'diamond',
 };
 
 /** Threat tier drives the unit's render treatment (rim weight, crown, glow). Data
@@ -238,6 +244,8 @@ export const ENEMY_TIER: Record<EnemyKind, EnemyTier> = {
   zealot: 'elite', carrier: 'elite', entrencher: 'elite', oracle: 'elite', glutling: 'normal',
   // boss — capstones get the crown + glow + containment ring
   colossus: 'boss', dreadnought: 'boss', tyrant: 'boss',
+  // puzzle fauna — the single-trait-plus specials stay normal; the multi-role keystones get the rim
+  scuttler: 'normal', blightmoth: 'normal', borer: 'elite', shellback: 'elite', wispmother: 'elite', veilmoth: 'elite',
 };
 
 // ── Creature BODY FORMS (render/enemyForms.ts) — the procedural silhouette each kind renders as at
@@ -272,6 +280,10 @@ export const ENEMY_BODY: Record<EnemyKind, BodyForm> = {
   zealot: 'crab',
   // elite / apex — fanged bruiser mass
   apex: 'maw', dreadnought: 'maw', tyrant: 'maw',
+  // puzzle fauna (appended — ENEMY_ACCENT round-robins by declaration order, so earlier kinds keep
+  // their accents): a plated beetle, two moths (bomb + veil), a clawed tunneller, a dug-in bombard,
+  // and an embryo-laden womb
+  scuttler: 'beetle', blightmoth: 'moth', borer: 'mole', shellback: 'mortar', wispmother: 'broodsac', veilmoth: 'moth',
 };
 
 /** Stable per-kind structural variant (feature counts) — so variants within a form differ in build,
