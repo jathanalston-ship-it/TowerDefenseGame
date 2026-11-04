@@ -16,6 +16,7 @@ import { audio } from '../audio/sound';
 import { music } from '../audio/music';
 import { ACCOUNT_CURRENCY } from '../core/currencies';
 import { PRESTIGE } from '../core/prestige';
+import { formatPower } from '../core/power';
 import type { DoctrineWarp } from '../core/doctrines';
 import { ASCENDANT_NODES } from '../core/ascendant';
 import type { AscendantStat } from '../core/ascendant';
@@ -209,6 +210,11 @@ export function PrestigePanel(): JSX.Element {
     }
   };
 
+  // Power now → right after the Molt (the Imprint's kept levels + the new cells) — computed only
+  // while the confirm is open; the same builder as the mint, so the preview IS the outcome.
+  const powerPreview = confirming ? meta.moltPowerPreview() : null;
+  const imprintTip = `Molt Imprint: every Molt you complete lets the next one keep +${+(PRESTIGE.molt.imprintPerMolt * 100).toFixed(2)}% of each Genome upgrade's levels (rounded), up to ${Math.round(PRESTIGE.molt.imprintMax * 100)}%. The cheap bottom of each ladder survives; the dear top sheds.`;
+
   const keeps: string[] = ['Tower & Hero Stars', 'Mastery levels, titles & lore', 'Equipment + materials', 'Tower / Hero Shards', 'Gene Archive levels', 'Loot queue & Vault', 'Collections & achievements', 'THE ASCENDANT TREE'];
 
   return (
@@ -333,6 +339,9 @@ export function PrestigePanel(): JSX.Element {
           <div className="molt-mf molt-mf-keep">
             <div className="molt-mf-h">◆ THE MOLT KEEPS</div>
             <ul>
+              {p.upgradeLevelsKept > 0 && (
+                <li title={imprintTip}><b>{p.upgradeLevelsKept}</b> Genome upgrade levels — the Molt Imprint ({Math.round(p.imprint * 100)}%)</li>
+              )}
               {keeps.map((k) => <li key={k}>{k}</li>)}
             </ul>
           </div>
@@ -418,7 +427,8 @@ export function PrestigePanel(): JSX.Element {
                 </div>
               )}
               <div className="molt-confirm-cost">
-                Sheds <b>{banked.toLocaleString()} {ACCOUNT_CURRENCY.name}</b> and <b>{p.upgradeLevels} Genome upgrade levels</b>. Everything else is kept — including the Ascendant Tree.
+                Sheds <b>{banked.toLocaleString()} {ACCOUNT_CURRENCY.name}</b> and <b>{p.upgradeLevels} Genome upgrade levels</b>{p.upgradeLevelsKept > 0 && <> (the Molt Imprint keeps <b>{p.upgradeLevelsKept}</b>)</>}. Everything else is kept — including the Ascendant Tree.
+                {powerPreview && <> Power <b>{formatPower(powerPreview.before)}</b> → <b>{formatPower(powerPreview.after)}</b> — the re-climb starts there.</>}
               </div>
               <div className="molt-confirm-row">
                 <button className="molt-cancel" onClick={() => setConfirming(false)}>Not yet</button>

@@ -10,6 +10,7 @@ import { highestCampaignStage } from '../save/derive'; // cycle-free (never impo
 // (docs/PROGRESSION-GATING.md) so the What's New card fires the moment its nav entry reveals —
 // ONE source of truth for "when does this system exist".
 import { FEATURE_BY_ID, featureRevealed, isOpenNav } from './unlocks';
+import { PRESTIGE } from '../core/prestige'; // pure data — the Molt Imprint numbers the Help row quotes
 
 export type MechanicCategory = 'Basics' | 'Towers' | 'Heroes' | 'Progression' | 'Modes' | 'World';
 
@@ -370,8 +371,8 @@ export const MECHANICS: MechanicDef[] = [
   { id: 'prestige', title: 'Prestige (Molt)', category: 'Progression', nav: 'evolution', links: ['genome-core', 'ascension'],
     unlock: (s) => highestCampaignStage(s) >= 10,
     summary: 'Reset the Genome engine for permanent power.', media: 'GIF: a Molt',
-    what: 'Molting sacrifices your banked Cores + capped upgrades to mint Ascendant Cells — a permanent, compounding global multiplier.',
-    why: 'It is the "re-climb faster, push further" loop that breaks through a plateau.',
+    what: `Molting sacrifices your banked Cores + your Genome upgrade levels to mint Ascendant Cells — a permanent, compounding global multiplier. From your second Molt on, the Molt Imprint keeps a share of every upgrade's levels: +${+(PRESTIGE.molt.imprintPerMolt * 100).toFixed(2)}% per Molt completed, up to ${Math.round(PRESTIGE.molt.imprintMax * 100)}% (rounded per upgrade).`,
+    why: 'It is the "re-climb faster, push further" loop that breaks through a plateau. The Imprint keeps the cheap bottom of each upgrade ladder, so your Power dips instead of crashing — the dear top levels still have to be re-earned.',
     where: 'The Evolution HQ’s Ascension section — unlocks at Campaign Stage 10.',
     next: 'Spend Ascendant Cells on the Ascendant Tree; each Molt requires a bit more Campaign depth.',
     mistakes: 'Molting too early wastes the climb, too late wastes time — Molt when your Core income has clearly plateaued, not at the first opportunity.' },
