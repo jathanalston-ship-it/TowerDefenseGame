@@ -19,7 +19,7 @@ import { CELL, DEFENSE_TOP_Y, HEIGHT, WIDTH } from '../core/map';
 import type { RenderState } from '../core/game';
 import { THEME } from './theme';
 import { SPAWN_BAND } from './renderer';
-import { themedMegaColor } from './wardrobeFx';
+import { themedMegaColor, wardrobeKit } from './wardrobeFx';
 import {
   BIOME_FLORA, STAGE_COUNT, crustGeometry, css, hash01, hex, infectionField, lipY, mix, paintEyeSocket, paintFlora,
   paintVein, resolveAccent, shade, terraformPalette,
@@ -197,6 +197,10 @@ function paintGround(ctx: Ctx, input: GutterInput, d: Domain): void {
     bw.addColorStop(0, css(tint, 0.1)); bw.addColorStop(0.5, css(tint, 0.04)); bw.addColorStop(1, css(tint, 0.09));
     ctx.fillStyle = bw; ctx.fillRect(d.x0, d.y0, w, h);
   }
+  // An equipped Wardrobe battlefield theme (renderer drawWardrobeWash) — its edge tone, which is what
+  // the board shows where it meets the periphery.
+  const bf = wardrobeKit().battlefieldTheme;
+  if (bf?.bg && bf.accent) { ctx.fillStyle = css(hex(bf.bg), 0.22); ctx.fillRect(d.x0, d.y0, w, h); }
 }
 
 /** The periphery's infection field: the board's own field continuing across the seam (tower blooms
