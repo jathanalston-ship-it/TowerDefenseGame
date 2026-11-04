@@ -39,6 +39,7 @@ import { audio } from '../audio/sound';
 import { applyWardrobeDressing } from './wardrobeDressing';
 import { music } from '../audio/music';
 import type { RunOutcome, RunResult } from '../state/meta';
+import type { RunBackdropImage } from '../render/runOutro';
 import type { HeroKind, HeroProgress, MetaModifiers, TowerKind, TowerProgress } from '../core/types';
 import type { CardEffect } from '../core/cards';
 import type { RunMode } from '../core/game';
@@ -162,7 +163,12 @@ export function App(): JSX.Element {
   // shared ?replay= link on boot or by the Daily screen's watch/paste actions.
   const [spectate, setSpectate] = useState<ReplayRecord | null>(null);
   // powerBefore: the Power Score snapshot taken just before finishRun — Results counts up FROM it.
-  const [last, setLast] = useState<{ result: RunResult; outcome: RunOutcome; powerBefore?: number } | null>(null);
+  // backdrop: the run's last frame behind Results (docs/SIGNATURE-MOMENTS.md §2) — dropped when Results goes.
+  const [last, setLast] = useState<{ result: RunResult; outcome: RunOutcome; powerBefore?: number; backdrop?: RunBackdropImage } | null>(null);
+  useEffect(() => {
+    if (screen === 'playing') void Results.preload(); // the outro hands straight to Results — no loading flash over the backdrop
+    if (screen !== 'results') setLast((l) => (l?.backdrop ? { ...l, backdrop: undefined } : l));
+  }, [screen]);
   // A Campaign milestone that raised the Star Cap this run → the Evolution Unlock sequence (over Results).
   const [evoUnlock, setEvoUnlock] = useState<EvolutionUnlockData | null>(null);
   // A Campaign milestone that opened a new Hero Slot this run → the cinematic Hero Slot Unlock (HEROES.md).
@@ -367,7 +373,7 @@ export function App(): JSX.Element {
     progRef.current = meta.towerProgress(grafts.byKind);
   }, [begin]);
 
-  const handleEnd = useCallback((result: RunResult) => {
+  const handleEnd = useCallback((result: RunResult, backdrop?: RunBackdropImage) => {
     if (threatRef.current > 0) result.threat = threatRef.current; // Threat ladder settle (docs/THREAT.md)
     // Campaign: tag the result so finishRun unlocks the next stage + scales the rewards.
     if (modeRef.current === 'campaign') {
@@ -411,7 +417,7 @@ export function App(): JSX.Element {
     } else {
       setRoulette(null);
     }
-    setLast({ result, outcome, powerBefore });
+    setLast({ result, outcome, powerBefore, backdrop });
     // Crossed Campaign milestones play their cinematics over Results. Hero Slot is the bigger
     // milestone → it shows first; the Evolution Unlock follows once it's dismissed.
     setHeroSlotUnlock(outcome.heroSlotUnlock ?? null);
@@ -615,7 +621,7 @@ export function App(): JSX.Element {
         /></Suspense>
       )}
       {screen === 'results' && last && (
-        <Suspense fallback={<ScreenFallback />}><Results result={last.result} outcome={last.outcome} powerBefore={last.powerBefore} paused={!!heroSlotUnlock || !!evoUnlock} onContinue={afterResults} onReplay={roulette ? afterResults : replayRun} onNext={!roulette && nextStageOpen ? startNextStage : undefined} nextBoons={nextBoons} nextAccent={nextEvent?.accent} /></Suspense>
+        <Suspense fallback={<ScreenFallback />}><Results result={last.result} outcome={last.outcome} powerBefore={last.powerBefore} backdrop={last.backdrop} paused={!!heroSlotUnlock || !!evoUnlock} onContinue={afterResults} onReplay={roulette ? afterResults : replayRun} onNext={!roulette && nextStageOpen ? startNextStage : undefined} nextBoons={nextBoons} nextAccent={nextEvent?.accent} /></Suspense>
       )}
       {screen === 'tutorial' && <Suspense fallback={<ScreenFallback />}><TutorialRunner onExit={toMenu} /></Suspense>}
       {/* Replay Theater — a full-screen overlay; never mounts over a LIVE run (the daily

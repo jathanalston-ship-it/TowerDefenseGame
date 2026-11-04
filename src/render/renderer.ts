@@ -60,6 +60,7 @@ import { drawHeroSymbiotes } from './heroSymbiotes';
 import type { HeroSymbioteRender } from './heroSymbiotes';
 import { drawLivingBattlefield, drawLivingBattlefieldAmbient } from './livingBattlefield';
 import type { Assimilation } from './livingBattlefield';
+import { drawVictoryWash } from './runOutro';
 import { drawMegaBody, drawMegaOrgans, drawMegaShots, drawMegaVignette } from './megaboss';
 import { bossColorOf, drawBossBody, drawBossCrown } from './bossChassis';
 import { deathFlavorOf, drawStatusFxOver, drawStatusFxUnder, mergeStatusFx, statusBodyTransform } from './statusFx';
@@ -241,6 +242,7 @@ export function drawGame(
   // BENEATH every entity — inert (clean arena) early, unmistakably alive late. Render-only ⇒ golden-safe.
   const lbDetail = rs.enemies.length < PERF.lodEnemyCount;
   const lbAssim: Assimilation = drawLivingBattlefield(ctx, rs, { power, mulligans, heroGear, cosmeticTiers, starTiers }, t, lbDetail, assimilationIndex >= 0 ? assimilationIndex : undefined);
+  drawVictoryWash(ctx); // run-end VICTORY: the terraform washes out from the Hive Core (docs/SIGNATURE-MOMENTS.md §2) — no-op otherwise
   drawAmbientMotes(ctx, t); // drifting spores — the air is alive
   drawSpawnZone(ctx, t);
   drawDefenseZone(ctx, t, pressure);

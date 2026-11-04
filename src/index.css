@@ -13965,3 +13965,55 @@ html[data-layout='landscape'] .build-controls.is-visible ~ .mega-banner { top: 6
 .motion-settings.is-compact .set-switch { padding: 4px 14px; min-height: 0; }
 .pause-settings .motion-settings .set-toggle { margin-top: 6px; }
 .motion-settings.is-compact .motion-shake input[type="range"] { width: 100px; }
+
+/* ── S2 · VICTORY CARRIES INTO RESULTS (docs/SIGNATURE-MOMENTS.md §2; render/runOutro.ts) ─────────
+   The run-end veil centres on the BOARD (runOutro sets --outro-* from the canvas rect at begin) so
+   the victory wash and the defeat cracks stay in view; the last beat (data-outro="settle") eases the
+   live board into Results' look; Results lays that same frame back behind its capsule
+   (ui/components/RunBackdrop.tsx). Taste values: --rb-blur / --rb-dim (the backdrop) and the
+   cover fill's --rb-fill-*. */
+:root { --rb-blur: 8px; --rb-dim: 0.4; --rb-fill-blur: 28px; --rb-fill-dim: 0.26; }
+/* The veil becomes a spotlight on the board's rect: the chrome recedes, the board stays lit. */
+.game[data-outro] .run-outro { background: none; }
+.game[data-outro] .run-outro::before {
+  content: '';
+  position: fixed;
+  left: var(--outro-x, 0);
+  top: var(--outro-y, 0);
+  width: var(--outro-w, 100vw);
+  height: var(--outro-h, 100vh);
+  z-index: -1;
+  border-radius: 10px;
+  background: rgba(4, 6, 11, 0.2);
+  box-shadow: 0 0 48px 200vmax rgba(4, 6, 11, 0.88), inset 0 0 56px rgba(4, 6, 11, 0.55);
+  pointer-events: none;
+}
+.game[data-outro='settle'] canvas.board { filter: blur(var(--rb-blur)) brightness(var(--rb-dim)); transition: filter var(--outro-settle, 350ms) ease-in; }
+.game[data-outro='settle'] .run-outro > * {
+  color: transparent;
+  text-shadow: 0 0 42px transparent;
+  transition: color var(--outro-settle, 350ms) ease-in, text-shadow var(--outro-settle, 350ms) ease-in;
+}
+.results-backdrop { position: fixed; inset: 0; z-index: -2; overflow: hidden; pointer-events: none; }
+.results-backdrop > div { position: absolute; background-repeat: no-repeat; }
+.rb-fill { inset: -10%; background-size: cover; background-position: center; filter: blur(var(--rb-fill-blur)) brightness(var(--rb-fill-dim)); }
+.rb-board { background-size: 100% 100%; filter: blur(var(--rb-blur)) brightness(var(--rb-dim)); }
+/* The sticky action row's readability band would read as a hard dark slab over the board — same
+   band, edges feathered (a pseudo-element, so the buttons themselves are never masked). */
+.results-screen.has-backdrop .rr-capsule > .rr-actions { background: none; }
+.results-screen.has-backdrop .rr-capsule > .rr-actions::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(180deg, transparent, color-mix(in srgb, var(--bg) 88%, transparent) 45%);
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 18%, #000 82%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 18%, #000 82%, transparent);
+  pointer-events: none;
+}
+/* The board is already on screen when Results lands — only the capsule fades in (no blink to black). */
+.results-screen.has-backdrop { animation: none; }
+.results-screen.has-backdrop > .rr-capsule { animation: results-in 0.5s ease-out both; }
+@media (prefers-reduced-motion: reduce) {
+  .results-screen.has-backdrop > .rr-capsule { animation: none; }
+}

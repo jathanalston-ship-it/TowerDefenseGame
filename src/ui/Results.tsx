@@ -28,6 +28,8 @@ import { ShareReplayButton } from './components/ShareReplay';
 import { ThreatResult } from './components/ThreatPicker';
 import { ACCOUNT_CURRENCY } from '../core/currencies';
 import { AutoClaimSummary } from './components/AutoClaimSummary';
+import { RunBackdrop } from './components/RunBackdrop';
+import type { RunBackdropImage } from '../render/runOutro';
 import { featureRevealed } from '../state/unlocks';
 import { autoClaimPref } from '../state/prefs';
 
@@ -70,6 +72,7 @@ export function Results({
   nextAccent,
   powerBefore,
   paused,
+  backdrop,
 }: {
   result: RunResult;
   outcome: RunOutcome;
@@ -81,6 +84,8 @@ export function Results({
   nextAccent?: string;
   powerBefore?: number; // Power Score just before the settle — the Power row counts up FROM it
   paused?: boolean; // a milestone cinematic (Hero Slot / Evolution Unlock) is over Results — the reveal waits
+  /** The run's last frame (docs/SIGNATURE-MOMENTS.md §2) — absent (replay theater, Arena, tutorial) ⇒ today's dark room. */
+  backdrop?: RunBackdropImage;
 }): JSX.Element {
   const masteryGains = TOWER_ORDER.filter((k) => outcome.mastery[k].xpGained > 0);
   // The run's highest mastery contributor (by XP) wears the crown in the ledger.
@@ -511,7 +516,8 @@ export function Results({
   );
 
   return (
-    <div className="menu results-screen">
+    <div className={`menu results-screen${backdrop ? ' has-backdrop' : ''}`}>
+      {backdrop && <RunBackdrop image={backdrop} />}
       <RewardReveal
         title={title}
         banner={debrief ? <DebriefPanel d={debrief} onGo={(nav) => { onContinue(); window.setTimeout(() => navBus.go(nav), 60); }} /> : undefined}
