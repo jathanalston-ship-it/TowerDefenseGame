@@ -17,6 +17,7 @@ import { ROULETTE } from '../state/bioRoulette';
 import { compareItemPower } from '../state/itemPower';
 import { recordVaultOpen, vaultLedger } from '../state/prefs';
 import { telemetry } from '../net/telemetry';
+import { useDismiss } from './browserBack';
 
 /** Merge N cracked containers into ONE ceremony (Open Five/Ten): items concatenate in crack
  * order; the best pull drives the ceremony scale; the label counts the batch. */
@@ -73,6 +74,7 @@ function Container({ id, pct, big }: { id: string | undefined; pct: number; big?
 export function GeneticVault(): JSX.Element {
   const save = meta.use();
   const [opening, setOpening] = useState<CrackedContainer | null>(null);
+  useDismiss(() => setOpening(null), opening !== null); // Escape / Back close the reveal (rewards already banked)
   // Bumped on every crack so the reveal remounts & replays when the player taps "Open More"
   // (without it, opening the next box in place would keep the finished summary's stage).
   const [crackSeq, setCrackSeq] = useState(0);

@@ -76,6 +76,7 @@ import { initLayoutProfile } from './layoutProfile';
 import { RotateGate } from './components/RotateGate';
 import { lazyNamed } from './lazyNamed';
 import { ScreenFallback } from './components/ScreenFallback';
+import { useBrowserBack } from './browserBack';
 
 initLayoutProfile(); // stamp data-layout/data-coarse on <html> before first paint (docs/RESPONSIVE-DESIGN.md)
 
@@ -507,6 +508,10 @@ export function App(): JSX.Element {
     window.addEventListener('pointerdown', start, { once: true }); // …then the first click unlocks it
     return () => window.removeEventListener('pointerdown', start);
   }, [screen]);
+
+  // Browser/Android BACK walks the game, never out of it (docs/HUB-FLOW.md §back): the hub's
+  // own history, a Pause during a live run (+ a beforeunload warning), a hold on everything else.
+  useBrowserBack(screen === 'playing' || screen === 'tutorial' ? 'run' : screen === 'menu' && !arenaSetup && !spectate ? 'menu' : 'other');
 
   return (
     <div className="app">

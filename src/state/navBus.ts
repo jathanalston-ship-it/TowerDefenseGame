@@ -54,3 +54,18 @@ export const rouletteBus = {
     return () => { rouletteSubs.delete(fn); };
   },
 };
+
+// Same shape, different cargo: the browser/Android BACK button during a live run asks the
+// battlefield to PAUSE instead of leaving the page (ui/browserBack.ts — Back never exits a run).
+// GameView subscribes while mounted; with no battlefield up the request is a no-op.
+const pauseSubs = new Set<OpenFn>();
+
+export const runBus = {
+  pause(): void {
+    for (const fn of pauseSubs) fn();
+  },
+  onPause(fn: OpenFn): () => void {
+    pauseSubs.add(fn);
+    return () => { pauseSubs.delete(fn); };
+  },
+};

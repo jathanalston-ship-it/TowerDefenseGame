@@ -98,8 +98,8 @@ export function ItemDetails({
   const doSalvage = (): void => { if (meta.salvageItem(uid)) onClose(); };
 
   return (
-    <Popup>
-    <div className="cmp-overlay" onClick={onClose}>
+    <Popup onClose={onClose}>
+    <div className="cmp-overlay">
       <div className="id-box" onClick={(e) => e.stopPropagation()} style={{ ['--rc' as string]: c }}>
         <button className="id-close" onClick={onClose} title="Close">✕</button>
 
