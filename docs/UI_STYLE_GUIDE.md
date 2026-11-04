@@ -46,7 +46,7 @@ Panel padding default: 12–16px; card padding: 10–14px; chip padding: 2–4px
 | group | tokens |
 |---|---|
 | Neutrals | `--void #070a0f` · `--bg` · `--bg-arena` · `--panel #11161f` · `--panel-2 #161d28` · `--panel-3 #1c2533` · `--panel-deep #0a0e15` (gradient floors) |
-| Lines / text | `--line #232c3a` · `--line-strong #3a4a63` · `--text #d7e0ec` · `--muted #8a97a8` · `--dim #5b6677` |
+| Lines / text | `--line #232c3a` · `--line-strong #3a4a63` · `--text #d7e0ec` · `--muted #8a97a8` · `--dim #808d9f` (≥ 4.5:1 on every panel — UI-STANDARDS §readability) |
 | Class hues | `--kinetic #5ad1ff` · `--caustic #b6e84a` · `--viral #e24dff` · `--neural #6e7bff` · `--vital #ff7a59` |
 | State | `--gold #ffd24d` · `--success #3fe08a` · `--warn #ffb24d` · `--danger #ff5d73` |
 | Rarity | `--r-common #9aa7b8` · `--r-uncommon #5fe08a` · `--r-rare #5ad1ff` · `--r-epic #c98bff` · `--r-legendary #ffd24d` · `--r-mythic #ff6b8b` · `--cache #36e0c4` |
