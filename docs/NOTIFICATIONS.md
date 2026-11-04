@@ -200,7 +200,10 @@ MUCH / WHERE, readable in under a second.
   ("5 achievements · +170 Genome Cores", `items` expandable via "Show all", 7s life, re-armed
   while read). An achievement event's `qty` is its Core reward. App mounts the toaster
   `held` while any What's New card is up, so post-run placards land AFTER the unlock
-  summary instead of under it.
+  summary instead of under it. The **account level-up toast** (`AccountLevelToast`, ui/
+  components/AccountXpBar.tsx) takes the SAME `held` gate: a level-up queued while the summary
+  is up stays banked in meta (a showing one pauses) and flushes — with its `levelup` sting —
+  the moment the summary closes (it used to land on top of the card).
 - **Queue rules:** identical rewards (`type:name`) landing within **4s merge** —
   `+100 +250 +75` becomes one `+425` card that pulses, re-arms its lifetime, and jumps
   back to the front; differing sources blend to "Multiple sources". `merge:'count'`

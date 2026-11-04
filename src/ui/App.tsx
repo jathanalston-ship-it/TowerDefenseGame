@@ -663,8 +663,9 @@ export function App(): JSX.Element {
       {screen === 'menu' && <RewardToaster held={meta.whatsNew().length > 0} />}
       {screen === 'menu' && <PowerToaster />}
       {/* Account level-ups earned off-run (star buys, molts …) celebrate here; run-settle level-ups
-          render inline on Results instead, so the toaster only drains on the menu. */}
-      {screen === 'menu' && <AccountLevelToast />}
+          render inline on Results instead, so the toaster only drains on the menu — and waits
+          behind an unlock announcement exactly like the reward placards (same `held` gate). */}
+      {screen === 'menu' && <AccountLevelToast held={meta.whatsNew().length > 0} />}
       {/* Genome Rank promotions (docs/GENOME-RANK.md) — the full-screen ceremony, menu only. */}
       {screen === 'menu' && <GenomePromotionCinematic />}
       {/* Loot-fill toast — bio-container earned on the live meter; queued, never interrupts play. */}
