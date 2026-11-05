@@ -58,7 +58,8 @@ beats are timed to the picture. The kill-streak ping keeps ±0.6 % (its ladder c
 **Balance against the score** (measured in the audit's montage): the score's designed level is
 `MUSIC_LEVEL` in music.ts; steady combat SFX sit level with the bed, the swarm wipe and the reward
 chain land ~2–3 dB over it. Prominent rewards/alerts (`rel > −4`) without a FEEL duck row also dip the
-score by their category's `duck` (reward 16 % / 0.7 s, alert 20 % / 0.9 s). FEEL rows still win.
+score by their category's `duck` (reward 16 % / 0.7 s, alert 20 % / 0.9 s). FEEL rows still win; a
+REPEATING cue opts out with `duck: false` (the critical-integrity heartbeat, the draft/equip confirm).
 
 ## 3. Mastering (`SFX_MASTER`)
 

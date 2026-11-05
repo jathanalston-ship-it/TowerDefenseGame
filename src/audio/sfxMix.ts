@@ -83,6 +83,8 @@ export interface CueMixRow {
   trimDb: number;
   /** Override the category's pitch spread (e.g. the kill-streak ladder must stay in tune). */
   pitch?: number;
+  /** false = never take the category's music duck (a REPEATING cue would pump the score). */
+  duck?: false;
 }
 
 const c = (cat: SfxCategory, trimDb = 0, rel = 0, pitch?: number): CueMixRow => (pitch === undefined ? { cat, rel, trimDb } : { cat, rel, trimDb, pitch });
@@ -149,7 +151,7 @@ export const CUE_MIX: Readonly<Record<string, CueMixRow>> = {
   // ── alerts: threat arrivals + the Hive in danger — must cut through everything ──
   breach: c('alert', -1.5, -2),
   hiveGroan: c('alert', 0.5, -2),
-  heartbeat: c('alert', 2, -3),
+  heartbeat: { ...c('alert', 2, -3), duck: false }, // pounds every ~1 s at critical integrity
   wave: c('alert', 3.5, -2),
   boss: c('alert', 0, 1),
   nemesis_roar: c('alert', -1, 1),
@@ -168,7 +170,7 @@ export const CUE_MIX: Readonly<Record<string, CueMixRow>> = {
   bossFall: c('reward', -0.5, 2),
   megaDeath: c('reward', -1, 3),
   chest: c('reward', 3, -2),
-  reveal: c('reward', 11, -2),
+  reveal: c('reward', 8.5, -4),
   jackpot: c('reward', 6.5, 2),
   shard_tower: c('reward', 10, -1),
   shard_hero: c('reward', 4, 1),
@@ -177,18 +179,18 @@ export const CUE_MIX: Readonly<Record<string, CueMixRow>> = {
   levelup: c('reward', 6, 1),
   promotion: c('reward', 6, 3),
   adapt: c('reward', 6),
-  power: c('reward', 5, -4),
+  power: c('reward', 1.5, -7),
   mastery: c('reward', 10, -3),
   evoClaim: c('reward', 10, -2),
   evoMilestone: c('reward', 7.5),
   evoPrestige: c('reward', 11.5, 2),
   rankup: c('reward', 6.5, 1),
-  flip: c('reward', 17.5, -4),
+  flip: c('reward', 15, -6),
   strandFound: c('reward', 9),
-  toast0: c('reward', 16.5, -8),
-  toast1: c('reward', 12.5, -5),
-  toast2: c('reward', 11, -2),
-  draft: c('reward', 2.5, -3),
+  toast0: c('reward', 12, -12),
+  toast1: c('reward', 8.5, -8),
+  toast2: c('reward', 8.5, -4),
+  draft: { ...c('reward', 2.5, -3), duck: false }, // also the hub's gene equip/slot confirm
   draftPick: c('reward', 5, -1),
   victory: c('reward', 6, 1),
   graftCrack: c('reward', 9, -2),
@@ -196,7 +198,7 @@ export const CUE_MIX: Readonly<Record<string, CueMixRow>> = {
   // ── UI: clean, dry, quiet — heard constantly in the hub ──
   select: c('ui', 10),
   ui: c('ui', 10),
-  hover: c('ui', 16, -9),
+  hover: c('ui', 9.5, -15),
   launch: c('ui', -3, 4),
   tut_step: c('ui', 4, 1),
   graftSquelch: c('ui', 1.5, 1),

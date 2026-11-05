@@ -706,8 +706,9 @@ export const audio = {
       vPitch = VAR.pitch;
       vGain = VAR.gain * dbToGain(mix.trimDb);
       vDelay = VAR.delay;
-      // A FEEL row's duck wins; otherwise a prominent reward/alert dips the score by its category's duck.
-      const duck = feel?.duck ?? ((mix.rel ?? 0) > -4 ? cat.duck : undefined);
+      // A FEEL row's duck wins; otherwise a prominent (rel > −4), non-repeating reward/alert dips the
+      // score by its category's duck.
+      const duck = feel?.duck ?? (mix.duck !== false && (mix.rel ?? 0) > -4 ? cat.duck : undefined);
       if (duck) music.duck(duck[0], duck[1]);
       const sting = feel?.stinger;
       if (sting) {
