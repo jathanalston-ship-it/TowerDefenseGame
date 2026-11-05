@@ -3225,7 +3225,7 @@ export function endlessLootTaper(wave: number): number {
 export const DIRECTOR_ADAPTIVE = {
   // ACTIVATED 2026-11 on harness evidence (docs/DIFFICULTY_DIRECTOR.md §6a — the Batch G grind
   // audit): fed with the run's LIVE board power on Campaign waves ≥ liveFromWave + boss bodies.
-  threatPerPowerRatio: 0.3, // ×(1 + w·(powerRatio−1)) on enemy HP/damage curves
+  threatPerPowerRatio: 0.6, // ×(1 + w·(powerRatio−1)) on enemy HP/damage curves
   rewardPerPerformance: 0, // ×(1 + w·recentPerformance) on bounty/reward curves
   // LIVE board power: a Campaign run whose app passes RunOptions.livePowerBase (account Power ÷
   // the stage's recommended Power) re-feeds the seam at every wave launch with that × the run's
@@ -3250,14 +3250,14 @@ export const DIRECTOR_ADAPTIVE = {
   liveBoardExp: 1, // 0 = board term off; 1 = board power ∝ towers fielded
   // v3: DRAFTED cards in the live ratio ^ this (0 ⇒ excluded — a stronger pick must not also raise the
   // threat; Hero Evolution, branches and strains — Biomass investment — still count).
-  liveCardExp: 1,
+  liveCardExp: 0,
   // v3 COMPOSITION: up to this share of a live wave's groups is promoted to ELITE (fewer-but-stronger,
   // the campaign's own elite rule) — the threat lands as concentrated bodies that leak chip damage.
   liveEliteShare: 0,
   // v3 PROBE: up to this share of a live wave's plain groups becomes the board's PROBE role (campaign.ts
   // LIVE_PROBE_ROLES — airborne packs vs a board with no area damage, else artillery, else burrowers) at
   // the same threat budget: what the wave IS changes, not how fat it is — chip damage without length.
-  liveProbeShare: 0,
+  liveProbeShare: 0.3,
 };
 
 // ── Adaptive Economy Framework: income-seam weights (docs/ECONOMY_FORMULAS.md) ──
