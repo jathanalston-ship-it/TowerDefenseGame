@@ -53,7 +53,9 @@ export function BuildControls({
   // The preview only changes per wave — memo it so the ~10 Hz HUD refresh never re-aggregates.
   const preview = useMemo(
     () => (visible ? game.getNextWavePreview() : null),
-    [game, visible, hud.wave, hud.liveThreat], // liveThreat: the §6a v3 elite share moves with the board in prep
+    // liveThreat + tower count: the §6a v3 live composition (probe role, elite share) moves with the
+    // board in prep — the count catches a kind change while the multiplier sits at its cap.
+    [game, visible, hud.wave, hud.liveThreat, game.towers.length],
   );
   const hostiles = useMemo(() => (preview ? preview.reduce((n, e) => n + e.count, 0) : 0), [preview]);
   // Auto Gene Selection lives in the same console as Auto Wave, so the two semi-idle
