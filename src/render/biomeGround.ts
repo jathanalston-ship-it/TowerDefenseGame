@@ -42,7 +42,7 @@ export interface BiomeGround {
 export const BIOME_GROUND: Readonly<Record<string, BiomeGround>> = {
   verdant: {
     base: '#1f4a14', tint: 0.2, motif: 'moss', density: 1, ink: '#061204', glow: '#a8e050',
-    rock: '#141f15', rockEdge: '#7aa85a', air: { kind: 'drift', color: '#c8f08a', count: 24, speed: 4, size: 1.3 },
+    rock: '#141f15', rockEdge: '#7aa85a', air: { kind: 'drift', color: '#c8f08a', count: 28, speed: 4, size: 1.4 },
   },
   necrotic: {
     base: '#3a1a40', tint: 0.2, motif: 'puddles', density: 1, ink: '#0a030c', glow: '#b86ad8',
@@ -50,7 +50,7 @@ export const BIOME_GROUND: Readonly<Record<string, BiomeGround>> = {
   },
   frostbound: {
     base: '#1c4460', tint: 0.22, motif: 'cracks', density: 1, ink: '#04101a', glow: '#cdeeff',
-    rock: '#15222e', rockEdge: '#b4e0f6', air: { kind: 'fall', color: '#eaf8ff', count: 34, speed: 16, wind: 5, size: 1.3 },
+    rock: '#15222e', rockEdge: '#b4e0f6', air: { kind: 'fall', color: '#eaf8ff', count: 38, speed: 16, wind: 5, size: 1.4 },
   },
   ashen: {
     base: '#3a2418', tint: 0.2, motif: 'ash', density: 1, ink: '#0a0605', glow: '#ff8a48',
@@ -66,7 +66,7 @@ export const BIOME_GROUND: Readonly<Record<string, BiomeGround>> = {
   },
   molten: {
     base: '#46160c', tint: 0.22, motif: 'fissures', density: 1, ink: '#070201', glow: '#ff6a2a',
-    rock: '#1c110f', rockEdge: '#c8603e', rockGlow: '#ff5a1e', air: { kind: 'rise', color: '#ff8040', count: 28, speed: 18, size: 1.3 },
+    rock: '#1c110f', rockEdge: '#c8603e', rockGlow: '#ff5a1e', air: { kind: 'rise', color: '#ff8040', count: 32, speed: 18, size: 1.4 },
   },
   tempest: {
     base: '#271c4e', tint: 0.2, motif: 'scars', density: 1, ink: '#080616', glow: '#c8a8ff',
@@ -522,8 +522,11 @@ export function drawBiomeAir(ctx: Ctx, spec: BiomeGround, t: number, lod: boolea
   let style = airStyle.get(a.color);
   if (style === undefined) { style = css(a.color, 1); airStyle.set(a.color, style); }
   const n = lod ? a.count >> 1 : a.count;
+  const streak = a.kind === 'fall' && (a.wind ?? 0) > 12; // wind-driven storm streaks, not dots
   ctx.save();
   ctx.fillStyle = style;
+  ctx.strokeStyle = style;
+  ctx.lineCap = 'round';
   for (let i = 0; i < n; i++) {
     const h = hsh(i * 11 + 4), h2 = hsh(i * 17 + 2), h3 = hsh(i * 23 + 6);
     let x: number, y: number, alpha: number;
@@ -531,30 +534,34 @@ export function drawBiomeAir(ctx: Ctx, spec: BiomeGround, t: number, lod: boolea
       const sp = a.speed * (0.6 + h * 0.8);
       y = (h3 * H + t * sp) % H;
       x = ((h2 * W + Math.sin(t * 0.7 + i) * 10 + (y / H) * (a.wind ?? 0) * 3) % W + W) % W;
-      alpha = 0.1 + 0.1 * h;
+      alpha = 0.16 + 0.12 * h;
     } else if (a.kind === 'rise') {
-      const life = (t * a.speed * (0.6 + h * 0.8) / H + h3) % 1; // 0 at the floor → 1 burnt out
-      y = H * (1 - life * 0.75) - h3 * 40;
+      const life = (t * a.speed * (0.6 + h * 0.8) / H + h3) % 1; // 0 = kindled low → 1 burnt out high
+      y = H * (1.05 - life * 0.95 - h * 0.25);
       x = ((h2 * W + Math.sin(t * 1.3 + i * 2.1) * 14) % W + W) % W;
-      alpha = (1 - life) * (0.16 + 0.14 * (0.5 + 0.5 * Math.sin(t * 9 + i * 3.7)));
+      alpha = Math.min(1, (1 - life) * 1.4) * (0.2 + 0.18 * (0.5 + 0.5 * Math.sin(t * 9 + i * 3.7)));
     } else if (a.kind === 'flicker') {
       const ph = t * a.speed + h;
       const cyc = Math.floor(ph);
       const f = ph - cyc;
       x = hsh(i * 31 + cyc * 7.3) * W;
       y = hsh(i * 37 + cyc * 3.1) * H;
-      alpha = Math.max(0, Math.sin(f * Math.PI)) ** 3 * 0.32;
+      alpha = Math.max(0, Math.sin(f * Math.PI)) ** 3 * 0.42;
     } else {
       const d = (h2 * W + Math.sin(t * (0.15 + h * 0.2) + i) * 30 + t * a.speed * (i % 2 ? 1 : -1)) % W;
       x = d < 0 ? d + W : d;
       y = (h3 * H + t * a.speed * 1.4 * (0.5 + h)) % H;
-      alpha = 0.06 + 0.07 * (0.5 + 0.5 * Math.sin(t * (0.4 + h) * 2));
+      alpha = 0.09 + 0.09 * (0.5 + 0.5 * Math.sin(t * (0.4 + h) * 2));
     }
     if (alpha <= 0.004) continue;
     ctx.globalAlpha = alpha;
     const sz = a.size * (0.7 + h * 0.7);
-    if (a.kind === 'fall' && (a.wind ?? 0) > 12) { // wind-driven streaks (storm rain), not dots
-      ctx.fillRect(x, y, sz * 0.8, sz * 7);
+    if (streak) { // slanted along the gale
+      ctx.lineWidth = sz;
+      ctx.beginPath();
+      ctx.moveTo(x, y);
+      ctx.lineTo(x + (a.wind ?? 0) * 0.14, y + sz * 9);
+      ctx.stroke();
     } else {
       ctx.beginPath();
       ctx.arc(x, y, sz, 0, TAU);
