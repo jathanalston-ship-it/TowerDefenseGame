@@ -77,10 +77,6 @@ export const RELEASES: Release[] = [
       {
         "cat": "Bug Fixes",
         "text": "Opening a Bio-Container answers your tap instantly, and the Genome Rank promotion fits small phone screens"
-      },
-      {
-        "cat": "Bug Fixes",
-        "text": "Media: close any open draft before filming — the Hive now splices an overflowing bank"
       }
     ]
   },

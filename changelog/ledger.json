@@ -1,6 +1,6 @@
 {
-  "lastSha": "200e918ff8d7e6d0aa6c4f78f1e4a58a7ddb7dfb",
-  "commitsSinceDraft": 2,
+  "lastSha": "af3af1682779c0a89984e0a9270c1a72d4a94adc",
+  "commitsSinceDraft": 4,
   "content": {
     "tower": [
       "needle",
@@ -3933,10 +3933,6 @@
         {
           "cat": "Bug Fixes",
           "text": "Opening a Bio-Container answers your tap instantly, and the Genome Rank promotion fits small phone screens"
-        },
-        {
-          "cat": "Bug Fixes",
-          "text": "Media: close any open draft before filming — the Hive now splices an overflowing bank"
         }
       ]
     }
@@ -8564,6 +8560,22 @@
       "cat": "Bug Fixes",
       "text": "Media: close any open draft before filming — the Hive now splices an overflowing bank",
       "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "0344d9df09603e50d174b7c9df693a3d041eb7bb",
+      "date": "2026-11-05",
+      "cat": "Framework",
+      "text": "Media: re-shoot stills + trailer for the new look (VFX pass)",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "af3af1682779c0a89984e0a9270c1a72d4a94adc",
+      "date": "2026-11-05",
+      "cat": "Developer Tools",
+      "text": "Validation,status: VFX batch PASS — 3083/3083, mobile gate clean; status board 2026-11-05c",
+      "internal": true,
       "needsReview": false
     }
   ]

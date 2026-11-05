@@ -616,3 +616,5 @@
 - `2eb4b90` **[Developer Tools]** VFX pass integration — bug log rows 105–112, manifest bullets, GAME-STATE summary _(internal)_
 - `431fc21` **[Developer Tools]** Site: "A Battlefield You Can Read" — release v2026.11.05.3, devlog, features, guides _(internal)_
 - `200e918` **[Bug Fixes]** Media: close any open draft before filming — the Hive now splices an overflowing bank
+- `0344d9d` **[Framework]** Media: re-shoot stills + trailer for the new look (VFX pass) _(internal)_
+- `af3af16` **[Developer Tools]** Validation,status: VFX batch PASS — 3083/3083, mobile gate clean; status board 2026-11-05c _(internal)_
