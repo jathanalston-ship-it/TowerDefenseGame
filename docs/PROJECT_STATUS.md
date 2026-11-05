@@ -3,7 +3,17 @@
 > Maintained at the END of every session (paired with `docs/AI_HANDOFF.md` — the constitution's
 > workflow step 4). This is the "where are we?" answer; `docs/GAME-STATE.md` remains the deeper
 > per-system built-vs-planned index, `docs/PROJECT_MANIFEST.md` the system map.
-> **Last updated:** 2026-11-05e (**DEPLOYED — A CALMER FIRST HOUR + THE SOUND PASS** (`0f7d1d2`, run #234;
+> **Last updated:** 2026-11-05f (**MADE FOR YOUR PHONE'S BROWSER — merged + validated, awaiting the owner's
+> release go-ahead.** RESPONSIVE-DESIGN.md §browser: every full-screen height uses `--app-h` (100dvh, measured
+> fallback; uiStandards forbids bare 100vh) so the address bar never hides the game's foot; Android/iPad
+> browsers go full screen on the first tap (Settings toggle, top-bar ⛶); iPhone Safari gets a one-time Add to
+> Home Screen card; manifest installs landscape (was portrait); short portrait (390×664) keeps the run board
+> ≥40% (27.8 → 40.5%); the phone-landscape top bar fits 667–926px. mobilecheck walks browser-visible sizes.
+> Known: a full-screen 320×568 portrait run (4-inch phone) still crushes the board (31%, --full only).
+> VALIDATION: validate PASS over 0f7d1d2..HEAD (3110/3110, mobile gate clean). Website: release
+> v2026.11.05.6, devlog `playing-in-your-phones-browser`, features + FAQ copy.)
+>
+> **2026-11-05e** (**DEPLOYED — A CALMER FIRST HOUR + THE SOUND PASS** (`0f7d1d2`, run #234;
 > owner approved "release as is").** First hour (lead): What's New paced to 2 cards per finished run (was 11 after
 > run 1), the SEAL RULE (no mechanic before its screen), in-run FIELD NOTES for Early Call / speed / the
 > defense zone / hero evolution, and every screen — incl. the Tower Lab / Hero Hall / Infinite — briefs and
