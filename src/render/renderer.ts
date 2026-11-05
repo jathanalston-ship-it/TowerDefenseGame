@@ -70,6 +70,9 @@ import { GRUDGE_LADDER } from '../core/nemesis';
 import type { CosmeticTheme } from '../core/cosmetics';
 import { themedBossColor, themedEnemyDef, wardrobeKit } from './wardrobeFx';
 import { drawNucleusMutations } from './nucleusDress';
+import { deployPop, drawDeployGround, drawEvolveBeat, evolveLevel } from './towerMoments';
+import { drawBiomeAir, groundFor, groundSeed, paintGroundMotif, paintGroundTint, paintObstacles } from './biomeGround';
+import type { BiomeGround } from './biomeGround';
 
 export interface Pointer {
   x: number;
@@ -78,8 +81,6 @@ export interface Pointer {
 
 export const SPAWN_BAND = CELL * 1.4; // top "breeding membrane" the swarm pours from
 const TOWER_R = 12; // base silhouette radius for placed towers
-const MUTATE_FLASH = 0.5; // seconds the tier-purchase shockwave + flash plays at the tower
-const WHITE = hexRgb('#ffffff');
 
 // Biome accent (docs/BIOMES.md) resolved to an "r, g, b" token for rgba(). The biome carries a
 // CSS var ('var(--caustic)'); the canvas can't read CSS vars, so we resolve via getComputedStyle
@@ -101,6 +102,19 @@ function biomeRgb(accent: string): string {
   return rgb;
 }
 
+/** The biome's GROUND row (docs/LIVING-BATTLEFIELD.md §biome ground) — authored, or derived from the
+ *  accent for a biome with no row; null for NEUTRAL (the original arena). Cached per biome+accent. */
+const groundCache = new Map<string, BiomeGround | null>();
+function biomeGround(b: RenderState['biome']): BiomeGround | null {
+  const k = b.id + b.accent;
+  const hit = groundCache.get(k);
+  if (hit !== undefined) return hit;
+  const [r, g, bl] = biomeRgb(b.accent).split(',').map((v) => Number(v) & 255);
+  const spec = groundFor(b.id, '#' + ((1 << 24) | (r << 16) | (g << 8) | bl).toString(16).slice(1));
+  groundCache.set(k, spec);
+  return spec;
+}
+
 /** Cheap deterministic 0..1 hash — all ambient detail keys off this (render NEVER touches rng). */
 function hash01(n: number): number {
   const s = Math.sin(n * 127.1 + 311.7) * 43758.5453;
@@ -112,9 +126,13 @@ function hash01(n: number): number {
 //    run — render them ONCE into an offscreen layer at the ctx's device-pixel scale and
 //    blit a single image per frame instead of ~400 fills + a 50-segment path stroke.
 let floorCache: HTMLCanvasElement | null = null;
-let floorCacheScale = 0;
+let floorCacheKey = '';
+// BIOME GROUND crossfade: on a biome change (Infinite rotation) the previous floor stays under the
+// new one while the sim's render-only `biomeFlash` eases 1 → 0, so the ground dissolves, never pops.
+let floorPrev: HTMLCanvasElement | null = null;
 
-function buildFloor(scale: number): HTMLCanvasElement {
+function buildFloor(scale: number, biome: RenderState['biome']): HTMLCanvasElement {
+  const ground = biomeGround(biome);
   const c = document.createElement('canvas');
   c.width = Math.max(1, Math.round(WIDTH * scale));
   c.height = Math.max(1, Math.round(HEIGHT * scale));
@@ -128,6 +146,8 @@ function buildFloor(scale: number): HTMLCanvasElement {
   sky.addColorStop(1, s3);
   g2.fillStyle = sky;
   g2.fillRect(0, 0, WIDTH, HEIGHT);
+  const board = { x0: 0, y0: 0, x1: WIDTH, y1: HEIGHT };
+  if (ground) paintGroundTint(g2, board, ground); // the biome's ground tone (docs/LIVING-BATTLEFIELD.md §biome ground)
   g2.fillStyle = THEME.arena.tile;
   for (let r = 0; r < ROWS; r++) {
     for (let col = r % 2; col < COLS; col += 2) g2.fillRect(col * CELL, r * CELL, CELL, CELL);
@@ -145,6 +165,9 @@ function buildFloor(scale: number): HTMLCanvasElement {
     g2.arc(bx, by, br, 0, Math.PI * 2);
     g2.fill();
   }
+  // The biome's ground RELIEF (frost cracks, lava seams, moss, mire, ash, chitin, synapses, scars,
+  // bone, voids) — under the lattice so the play grid still reads on top. Edge-biased + dim.
+  if (ground) paintGroundMotif(g2, board, ground, groundSeed(biome.id), WIDTH / 2, WIDTH / 2);
   g2.strokeStyle = THEME.arena.grid;
   g2.lineWidth = 1;
   g2.beginPath();
@@ -175,27 +198,46 @@ function buildFloor(scale: number): HTMLCanvasElement {
   vg.addColorStop(1, 'rgba(0,0,0,0.34)'); // the LIVE pressure vignette still stacks on top
   g2.fillStyle = vg;
   g2.fillRect(0, 0, WIDTH, HEIGHT);
+  drawBiomeWash(g2, biome); // the biome accent wash is static too — baked here, not rebuilt per frame
   return c;
 }
 
-function drawFloor(ctx: CanvasRenderingContext2D): void {
+function drawFloor(ctx: CanvasRenderingContext2D, rs: RenderState): void {
   const raw = typeof ctx.getTransform === 'function' ? (ctx.getTransform() as { a?: unknown } | null)?.a : undefined;
   const scale = typeof raw === 'number' && Number.isFinite(raw) && raw > 0 ? raw : 0;
   if (typeof document === 'undefined' || scale === 0) {
     // Headless/stubbed context (tests) — paint directly, no offscreen layer.
     drawBackground(ctx);
     drawTiles(ctx);
+    drawBiomeWash(ctx, rs.biome);
     return;
   }
-  if (!floorCache || floorCacheScale !== scale) {
-    floorCache = buildFloor(scale);
-    floorCacheScale = scale;
+  const key = scale + '|' + rs.biome.id + '|' + rs.biome.accent;
+  if (!floorCache || floorCacheKey !== key) {
+    // Keep the outgoing floor only for a real biome change mid-run (a rescale just swaps).
+    floorPrev = floorCache && floorCacheKey.split('|')[0] === String(scale) && rs.biomeFlash > 0.05 ? floorCache : null;
+    floorCache = buildFloor(scale, rs.biome);
+    floorCacheKey = key;
   }
+  if (floorPrev && rs.biomeFlash > 0.01) {
+    ctx.drawImage(floorPrev, 0, 0, WIDTH, HEIGHT);
+    ctx.globalAlpha = 1 - rs.biomeFlash;
+    ctx.drawImage(floorCache, 0, 0, WIDTH, HEIGHT);
+    ctx.globalAlpha = 1;
+    return;
+  }
+  floorPrev = null;
   ctx.drawImage(floorCache, 0, 0, WIDTH, HEIGHT);
 }
 
-/** Slow ambient spore motes drifting the arena — the air itself is alive. All hash-keyed. */
-function drawAmbientMotes(ctx: CanvasRenderingContext2D, t: number): void {
+/** Slow ambient spore motes drifting the arena — the air itself is alive. All hash-keyed. A biome
+ *  with a GROUND row breathes its own air instead (snow falls, embers rise, sparks blink — biomeGround). */
+function drawAmbientMotes(ctx: CanvasRenderingContext2D, t: number, biome: RenderState['biome'], detail: boolean): void {
+  const ground = biomeGround(biome);
+  if (ground) {
+    drawBiomeAir(ctx, ground, viewFeel.motion > 0 ? t : 0, !detail, WIDTH, HEIGHT); // reduced motion: the air holds still
+    return;
+  }
   for (let i = 0; i < 22; i++) {
     const h = hash01(i * 11 + 4);
     const drift = ((hash01(i * 17 + 2) * WIDTH) + Math.sin(t * (0.15 + h * 0.2) + i) * 30 + t * (i % 2 ? 2.5 : -2)) % WIDTH;
@@ -235,18 +277,17 @@ export function drawGame(
   const danger = dangerCurve(rs.dangerIntensity); // blend curve: zero-derivative entry/exit
   const pressure = Math.min(1, danger * 0.8 + (1 - intRatio) * 0.5);
 
-  drawFloor(ctx); // cached static layer: sky, tiles, mottling, dormant veins, vignette
-  drawBiomeWash(ctx, rs); // biome accent wash, under the entities (skipped for NEUTRAL/Stage)
+  drawFloor(ctx, rs); // cached static layer: sky, biome ground (tint + relief), tiles, mottling, dormant veins, vignette, biome wash
   drawWardrobeWash(ctx); // equipped battlefield theme tint (no-op without one — classic arena)
   // LIVING BATTLEFIELD (docs/LIVING-BATTLEFIELD.md): the run's hidden biomass terraforms the ground
   // BENEATH every entity — inert (clean arena) early, unmistakably alive late. Render-only ⇒ golden-safe.
   const lbDetail = rs.enemies.length < PERF.lodEnemyCount;
   const lbAssim: Assimilation = drawLivingBattlefield(ctx, rs, { power, mulligans, heroGear, cosmeticTiers, starTiers }, t, lbDetail, assimilationIndex >= 0 ? assimilationIndex : undefined);
   drawVictoryWash(ctx); // run-end VICTORY: the terraform washes out from the Hive Core (docs/SIGNATURE-MOMENTS.md §2) — no-op otherwise
-  drawAmbientMotes(ctx, t); // drifting spores — the air is alive
+  drawAmbientMotes(ctx, t, rs.biome, lbDetail); // drifting spores / the biome's air — the air is alive
   drawSpawnZone(ctx, t);
   drawDefenseZone(ctx, t, pressure);
-  drawObstacles(ctx, rs.layoutId);
+  drawObstacles(ctx, rs.layoutId, rs.biome);
 
   const occupied = new Set(rs.towers.map((tw) => tw.slot));
   drawHiveTendrils(ctx, rs, t);
@@ -564,9 +605,9 @@ function drawBackground(ctx: CanvasRenderingContext2D): void {
 
 /** Soft accent wash UNDER the entities — the arena reads as a distinct ecosystem. Skipped for the
  *  NEUTRAL biome (Stage mode) so the original arena look is untouched. */
-function drawBiomeWash(ctx: CanvasRenderingContext2D, rs: RenderState): void {
-  if (rs.biome.id === 'neutral') return;
-  const rgb = biomeRgb(rs.biome.accent);
+function drawBiomeWash(ctx: CanvasRenderingContext2D, biome: RenderState['biome']): void {
+  if (biome.id === 'neutral') return;
+  const rgb = biomeRgb(biome.accent);
   const g = ctx.createLinearGradient(0, 0, 0, HEIGHT);
   g.addColorStop(0, rgba(rgb, 0.1));
   g.addColorStop(0.5, rgba(rgb, 0.04));
@@ -730,40 +771,44 @@ function drawDefenseZone(ctx: CanvasRenderingContext2D, t: number, pressure: num
   ctx.fillText('— HOLD THE LINE —', 8, DEFENSE_TOP_Y - 6);
 }
 
-function drawObstacles(ctx: CanvasRenderingContext2D, layoutId: string): void {
-  // Chitin outcrops, not flat plates: base fill + a lit top-left bevel, a shadowed
-  // bottom-right edge, and a couple of hash-keyed growth nodules per cell. The ACTIVE layout's
-  // cells (docs/MAP-LAYOUTS.md) — drawn per frame, so an Infinite re-layout shows immediately.
-  for (const o of navFieldFor(layoutId).cells) {
-    const x0 = o.x - CELL / 2;
-    const y0 = o.y - CELL / 2;
-    ctx.fillStyle = THEME.obstacle.fill;
-    ctx.fillRect(x0, y0, CELL, CELL);
-    ctx.strokeStyle = 'rgba(200,220,255,0.1)';
-    ctx.lineWidth = 1.5;
-    ctx.beginPath();
-    ctx.moveTo(x0 + 1, y0 + CELL - 1);
-    ctx.lineTo(x0 + 1, y0 + 1);
-    ctx.lineTo(x0 + CELL - 1, y0 + 1);
-    ctx.stroke();
-    ctx.strokeStyle = 'rgba(0,0,0,0.35)';
-    ctx.beginPath();
-    ctx.moveTo(x0 + CELL - 1, y0 + 1);
-    ctx.lineTo(x0 + CELL - 1, y0 + CELL - 1);
-    ctx.lineTo(x0 + 1, y0 + CELL - 1);
-    ctx.stroke();
-    ctx.strokeStyle = THEME.obstacle.edge;
-    ctx.lineWidth = 1;
-    ctx.strokeRect(x0 + 0.5, y0 + 0.5, CELL - 1, CELL - 1);
-    for (let i = 0; i < 2; i++) {
-      const h1 = hash01(o.x * 7 + o.y * 13 + i * 29);
-      const h2 = hash01(o.x * 11 + o.y * 3 + i * 41);
-      ctx.fillStyle = `rgba(150,170,205,${0.05 + h1 * 0.05})`;
-      ctx.beginPath();
-      ctx.ellipse(x0 + 8 + h1 * (CELL - 16), y0 + 8 + h2 * (CELL - 16), 3 + h2 * 4, 2 + h1 * 3, h1 * 3, 0, Math.PI * 2);
-      ctx.fill();
-    }
+// OBSTACLES (docs/LIVING-BATTLEFIELD.md §biome ground): the active layout's blocked cells
+// (docs/MAP-LAYOUTS.md) as merged biome OUTCROPS — one solid mass per cluster, lit rim, contact shadow,
+// the biome's rock. Static ⇒ baked once per (layout field, biome, scale) into a layer cropped to the
+// cells' bounds; an Infinite re-layout or biome turn re-bakes on that frame. Headless ⇒ painted direct.
+let obstacleCache: HTMLCanvasElement | null = null;
+let obstacleKey = '';
+let obstacleField: unknown = null;
+let obstacleBox = { x: 0, y: 0, w: 0, h: 0 };
+function drawObstacles(ctx: CanvasRenderingContext2D, layoutId: string, biome: RenderState['biome']): void {
+  const field = navFieldFor(layoutId);
+  const cells = field.cells;
+  if (cells.length === 0) return;
+  const raw = typeof ctx.getTransform === 'function' ? (ctx.getTransform() as { a?: unknown } | null)?.a : undefined;
+  const scale = typeof raw === 'number' && Number.isFinite(raw) && raw > 0 ? raw : 0;
+  if (typeof document === 'undefined' || scale === 0) {
+    paintObstacles(ctx, cells, biomeGround(biome));
+    return;
   }
+  const key = scale + '|' + biome.id + '|' + biome.accent;
+  if (!obstacleCache || obstacleKey !== key || obstacleField !== field) {
+    let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+    for (const o of cells) {
+      x0 = Math.min(x0, o.x - CELL / 2); y0 = Math.min(y0, o.y - CELL / 2);
+      x1 = Math.max(x1, o.x + CELL / 2); y1 = Math.max(y1, o.y + CELL / 2);
+    }
+    const pad = 8; // room for the contact shadow + foot seam
+    obstacleBox = { x: x0 - pad, y: y0 - pad, w: x1 - x0 + pad * 2, h: y1 - y0 + pad * 2 };
+    const c = document.createElement('canvas');
+    c.width = Math.max(1, Math.ceil(obstacleBox.w * scale));
+    c.height = Math.max(1, Math.ceil(obstacleBox.h * scale));
+    const g = c.getContext('2d')!;
+    g.setTransform(scale, 0, 0, scale, -obstacleBox.x * scale, -obstacleBox.y * scale);
+    paintObstacles(g, cells, biomeGround(biome));
+    obstacleCache = c;
+    obstacleKey = key;
+    obstacleField = field;
+  }
+  ctx.drawImage(obstacleCache, obstacleBox.x, obstacleBox.y, obstacleBox.w, obstacleBox.h);
 }
 
 /** Wardrobe battlefield theme (docs/COSMETICS.md §wardrobe): a soft two-stop tint over the
@@ -802,14 +847,81 @@ function drawHiveTendrils(ctx: CanvasRenderingContext2D, rs: RenderState, t: num
   }
 }
 
+// ── The Hive Core's INTEGRITY CROWN (docs/HIVE-SIEGE.md §states): the HUD's segmented integrity bar
+//    wrapped over the core as a ground-plane arc — same segment size (25 integrity), same bands (green
+//    > 50 % · amber > 25 % · red), same recent-damage GHOST draining behind the live fill — so the
+//    core reads its own health at a glance on any device. Flat & wide so it clears the build pad above.
+const CORE_CROWN = {
+  rx: 56, ry: 26, width: 4, // the ground-plane ellipse (board units) — top at y−26 clears the pad at y−40
+  perSegment: 25, minSeg: 4, maxSeg: 16, // HUD ProgressBar: segments = maxIntegrity / 25
+  ghostDrain: 1.6, // ghost catch-up rate (/s)
+  critPulse: 3, // ≤25 %: the lit arc breathes (steady under reduced motion)
+} as const;
+const CROWN_BAND = ['rgb(63, 224, 138)', 'rgb(255, 178, 77)', 'rgb(255, 93, 115)'] as const; // --success · --warn · --danger
+// The HEARTH fails with the core: its light reddens from the warm hive glow toward arterial red
+// (pre-built tokens, 0 = healthy … 20 = collapse — no per-frame colour strings).
+const HEARTH_RGB: string[] = [];
+for (let i = 0; i <= 20; i++) {
+  const k = i / 20;
+  HEARTH_RGB.push(`${Math.round(255)}, ${Math.round(154 + (62 - 154) * k)}, ${Math.round(122 + (76 - 122) * k)}`);
+}
+let crownGhost = 1;
+let crownT = 0;
+
+function drawIntegrityCrown(ctx: CanvasRenderingContext2D, rs: RenderState, intRatio: number, t: number): void {
+  const C = CORE_CROWN;
+  const cx = nucleusPoint.x;
+  const cy = nucleusPoint.y;
+  // the ghost: snaps up on a heal / new run, drains down toward the live fill after a bite
+  const dt = t - crownT;
+  crownT = t;
+  if (dt < 0 || dt > 1 || intRatio >= crownGhost) crownGhost = intRatio;
+  else crownGhost = Math.max(intRatio, crownGhost - Math.max(0.004, crownGhost - intRatio) * C.ghostDrain * dt);
+  const segs = Math.max(C.minSeg, Math.min(C.maxSeg, Math.round(rs.maxIntegrity / C.perSegment)));
+  const fill = Math.max(0, Math.min(1, intRatio));
+  ctx.save();
+  ctx.lineCap = 'butt';
+  // dark under-track (+ a danger tint while the core is being bitten) — contrast over the bright hearth
+  ctx.strokeStyle = rs.hiveAttackers > 0 ? 'rgba(70, 8, 18, 0.78)' : 'rgba(10, 4, 8, 0.72)';
+  ctx.lineWidth = C.width + 2.5;
+  ctx.beginPath(); ctx.ellipse(cx, cy, C.rx, C.ry, 0, Math.PI, Math.PI * 2); ctx.stroke();
+  ctx.lineWidth = C.width;
+  if (crownGhost > fill + 0.002) {
+    ctx.strokeStyle = 'rgba(255, 236, 220, 0.55)';
+    ctx.beginPath(); ctx.ellipse(cx, cy, C.rx, C.ry, 0, Math.PI + Math.PI * fill, Math.PI + Math.PI * crownGhost); ctx.stroke();
+  }
+  if (fill > 0) {
+    const band = fill > 0.5 ? 0 : fill > 0.25 ? 1 : 2;
+    ctx.globalAlpha = band === 2 && viewFeel.motion > 0 ? pulse(t, C.critPulse, 0.6, 1) : 1;
+    ctx.strokeStyle = CROWN_BAND[band];
+    ctx.beginPath(); ctx.ellipse(cx, cy, C.rx, C.ry, 0, Math.PI, Math.PI + Math.PI * fill); ctx.stroke();
+    ctx.globalAlpha = 1;
+  }
+  // segment dividers (the HUD bar's notches)
+  ctx.strokeStyle = 'rgba(10, 4, 8, 0.85)';
+  ctx.lineWidth = 1.4;
+  ctx.beginPath();
+  const w = C.width * 0.5 + 0.5;
+  for (let i = 1; i < segs; i++) {
+    const a = Math.PI + (Math.PI * i) / segs;
+    const ca = Math.cos(a), sa = Math.sin(a);
+    ctx.moveTo(cx + ca * (C.rx - w), cy + sa * (C.ry - w));
+    ctx.lineTo(cx + ca * (C.rx + w), cy + sa * (C.ry + w));
+  }
+  ctx.stroke();
+  ctx.restore();
+}
+
 function drawBase(ctx: CanvasRenderingContext2D, rs: RenderState, t: number): void {
   const intRatio = rs.maxIntegrity > 0 ? rs.integrity / rs.maxIntegrity : 1;
   const hurt = 1 - intRatio;
   // Impact SHUDDER (docs/HIVE-SIEGE.md §feedback): every landed bite kicks hiveHitPulse; the
   // whole organism jolts and settles. Core-local translate only — never the view (CAMERA.md §8).
+  // Reduced motion: no shudder (the impact ring + crown ghost still read the hit).
   const p = rs.hiveHitPulse;
-  const x = nucleusPoint.x + (p > 0.01 ? Math.sin(t * 91) * 3.2 * p : 0);
-  const y = nucleusPoint.y + (p > 0.01 ? Math.cos(t * 83) * 2.6 * p : 0);
+  const shake = p > 0.01 && viewFeel.motion > 0;
+  const x = nucleusPoint.x + (shake ? Math.sin(t * 91) * 3.2 * p : 0);
+  const y = nucleusPoint.y + (shake ? Math.cos(t * 83) * 2.6 * p : 0);
   // heartbeat — faster + more frantic as the hive is wounded; below 25% it POUNDS
   const beat = pulse(t, 3 + hurt * 4 + (intRatio < 0.25 ? 3 : 0), 0.85 - hurt * 0.05, 1.15 + hurt * 0.1);
   const R = 36 * beat;
@@ -822,7 +934,9 @@ function drawBase(ctx: CanvasRenderingContext2D, rs: RenderState, t: number): vo
   // ground — your one life is the arena's light source. A wide, slow-breathing halo that
   // outshines every neutral element (the darkness pass dimmed everything else to make
   // this hierarchy true). Static soft gradient, breath-rate modulation only — no flash.
-  glowDisc(ctx, x, y, 145 + 12 * beat, rgba(hexRgb(nuc?.glow ?? '#ff9a7a'), 0.15 + 0.04 * (beat - 0.85)));
+  // As integrity falls the hearth FAILS — its reach shrinks and its light reddens (a skin keeps its hue).
+  const hearth = nuc?.glow ? hexRgb(nuc.glow) : HEARTH_RGB[Math.round(Math.max(0, Math.min(1, hurt)) * 20)];
+  glowDisc(ctx, x, y, (145 - 40 * hurt) + 12 * beat, rgba(hearth, 0.15 + 0.04 * (beat - 0.85)));
 
   // Warm caustic light pooling beneath the organism — grounds it in the arena.
   const lp = ctx.createRadialGradient(x, y + 14, 2, x, y + 14, 52);
@@ -949,6 +1063,8 @@ function drawBase(ctx: CanvasRenderingContext2D, rs: RenderState, t: number): vo
   }
 
   drawShape(ctx, 'circle', x, y, 5 * beat, THEME.hive.core);
+
+  drawIntegrityCrown(ctx, rs, intRatio, t);
 
   // Impact flash ring — expands and fades with the hit pulse.
   if (p > 0.03) {
@@ -1256,7 +1372,8 @@ function drawTower(ctx: CanvasRenderingContext2D, tw: RenderState['towers'][numb
   // window after a purchase. Identity (×1) when unbranched ⇒ golden look.
   // Body swells with BOTH the in-run branch tier AND the permanent STAR count (docs/
   // TOWER-VISUAL-EVOLUTION.md). Both are ×1 at zero ⇒ a fresh/unbranched tower is unchanged.
-  const rawR = TOWER_R * grow * breathe * (1 + fresh * 0.1)
+  // DEPLOY pop (towerMoments.ts): a damped overshoot as the organism lands — ×1 once settled.
+  const rawR = TOWER_R * grow * breathe * (1 + fresh * 0.1) * deployPop(now - tw.bornAt)
     * evolutionGrowthAnimated(tw.branchId, tw.tier, now - tw.mutatedAt)
     * starEvolutionGrowth(tw.kind, stars);
   // HARD CEILING (BUGFIX-LOG: a live Parasite Nest drew at ~75× and swallowed the arena): the
@@ -1287,6 +1404,8 @@ function drawTower(ctx: CanvasRenderingContext2D, tw: RenderState['towers'][numb
   ctx.beginPath();
   ctx.ellipse(tw.x, tw.y + r * 0.7, r * 0.85, r * 0.4, 0, 0, Math.PI * 2);
   ctx.fill();
+  // DEPLOY landing on the ground plane (towerMoments.ts): pad flare, shock + dust rings, kicked flecks.
+  drawDeployGround(ctx, tw.x, tw.y, r, now - tw.bornAt, kcolor, tw.id);
 
   // MULLIGAN organism, BACK slice (docs/MULLIGANS.md §visuals): the graft's up-lane organs +
   // containment aura paint BEHIND the turret body so the creature visibly wraps its host — the
@@ -1521,15 +1640,10 @@ function drawTower(ctx: CanvasRenderingContext2D, tw: RenderState['towers'][numb
   // NOTHING, so a fresh account renders identically (golden-safe look).
   if (mulligan) drawMulliganOrganism(ctx, tw.x, tw.y, r, mulligan.resolved, mulligan.visualSeed, mulligan.animSeed, now, fresh, 'front');
 
-  // Mutation FLASH: a one-shot shockwave + white pop the instant a tier is purchased (driven by
-  // tw.mutatedAt). A settled or unbranched tower (mutatedAt ≪ now) draws nothing.
-  const sinceMut = now - tw.mutatedAt;
-  if (sinceMut >= 0 && sinceMut < MUTATE_FLASH) {
-    const fade = 1 - sinceMut / MUTATE_FLASH;
-    const c = hexRgb(kcolor);
-    ring(ctx, tw.x, tw.y, r * (1.1 + easeOutCubic(1 - fade) * 2.4), rgba(c, fade * 0.7), 1 + fade * 2.5);
-    glowDisc(ctx, tw.x, tw.y, r * (1.3 + fade * 1.4), rgba(WHITE, fade * 0.5));
-  }
+  // EVOLVE molt (towerMoments.ts): the instant a tier / strain / merge lands (tw.mutatedAt) — rings,
+  // shed chitin and a white pop that ESCALATE with the organism's depth; an apex step raises a light
+  // column. A settled or unbranched tower (mutatedAt ≪ now) draws nothing.
+  drawEvolveBeat(ctx, tw.x, tw.y, r, now - tw.mutatedAt, evolveLevel(tw.tier, tw.strain), tw.tier >= 5 || tw.strain >= 5, kcolor, tw.id);
 
   // Selection highlight (inspected tower → its Mutation panel is open).
   if (selected) {
