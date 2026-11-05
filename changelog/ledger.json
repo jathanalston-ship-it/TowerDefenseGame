@@ -1,6 +1,6 @@
 {
-  "lastSha": "2d0c694da39fa09ad6b9e687980973964ff7c986",
-  "commitsSinceDraft": 0,
+  "lastSha": "0a84e27d55018d14e875508c4cbf07f5814201b1",
+  "commitsSinceDraft": 4,
   "content": {
     "tower": [
       "needle",
@@ -3967,6 +3967,26 @@
         {
           "cat": "Performance",
           "text": "The opening film loads only when it plays, so the game's first download is smaller"
+        }
+      ]
+    },
+    {
+      "id": "v2026.11.05.5",
+      "date": "2026-11-05",
+      "title": "Update",
+      "sealed": false,
+      "entries": [
+        {
+          "cat": "Bug Fixes",
+          "text": "Intro: Settings → Motion \"reduced\" now stills the opening film's title too"
+        },
+        {
+          "cat": "Bug Fixes",
+          "text": "Intro: the title's motion follows the film's resolved motion, not the OS query alone"
+        },
+        {
+          "cat": "UX",
+          "text": "Onboarding: the first hour, one beat at a time"
         }
       ]
     }
@@ -8658,6 +8678,38 @@
       "cat": "Developer Tools",
       "text": "Validation,chronicle: opening film PASS over 2b14f67..HEAD — 3084/3084, mobile gate clean; release notes curated",
       "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "5fc2563f2f6304d0ca5553307e29cd4b0cf28858",
+      "date": "2026-11-05",
+      "cat": "Developer Tools",
+      "text": "Status,chronicle: DEPLOYED \"The Opening Film\" (2d0c694, run #233); seal v2026.11.05.4",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "14263c40d48a6b37c3b074b91b297c513cbfc5d1",
+      "date": "2026-11-05",
+      "cat": "Bug Fixes",
+      "text": "Intro: Settings → Motion \"reduced\" now stills the opening film's title too",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "246ce9bfa3474330983fb422e43a3bbfa0354c41",
+      "date": "2026-11-05",
+      "cat": "Bug Fixes",
+      "text": "Intro: the title's motion follows the film's resolved motion, not the OS query alone",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "0a84e27d55018d14e875508c4cbf07f5814201b1",
+      "date": "2026-11-05",
+      "cat": "UX",
+      "text": "Onboarding: the first hour, one beat at a time",
+      "internal": false,
       "needsReview": false
     }
   ]

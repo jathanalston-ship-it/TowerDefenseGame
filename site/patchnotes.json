@@ -1,6 +1,28 @@
 [
   {
     "date": "2026-11-05",
+    "title": "Update",
+    "categories": [
+      "Bug Fixes",
+      "UX"
+    ],
+    "items": [
+      {
+        "cat": "Bug Fixes",
+        "text": "Intro: Settings → Motion \"reduced\" now stills the opening film's title too"
+      },
+      {
+        "cat": "Bug Fixes",
+        "text": "Intro: the title's motion follows the film's resolved motion, not the OS query alone"
+      },
+      {
+        "cat": "UX",
+        "text": "Onboarding: the first hour, one beat at a time"
+      }
+    ]
+  },
+  {
+    "date": "2026-11-05",
     "title": "The Opening Film",
     "categories": [
       "Visuals",

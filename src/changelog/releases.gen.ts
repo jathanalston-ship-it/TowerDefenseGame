@@ -5,6 +5,26 @@ import type { Release } from './types';
 /** Player-facing releases, newest first. */
 export const RELEASES: Release[] = [
   {
+    "id": "v2026.11.05.5",
+    "date": "2026-11-05",
+    "title": "Update",
+    "sealed": false,
+    "entries": [
+      {
+        "cat": "Bug Fixes",
+        "text": "Intro: Settings → Motion \"reduced\" now stills the opening film's title too"
+      },
+      {
+        "cat": "Bug Fixes",
+        "text": "Intro: the title's motion follows the film's resolved motion, not the OS query alone"
+      },
+      {
+        "cat": "UX",
+        "text": "Onboarding: the first hour, one beat at a time"
+      }
+    ]
+  },
+  {
     "id": "v2026.11.05.4",
     "date": "2026-11-05",
     "title": "The Opening Film",

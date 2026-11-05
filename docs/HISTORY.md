@@ -624,3 +624,7 @@
 - `dac9dce` **[Developer Tools]** Status,chronicle: DEPLOYED "A Battlefield You Can Read" (2b14f67, run #232); seal v2026.11.05.3 _(internal)_
 - `8829ba6` **[UI]** Intro: rebuild the opening film around a turn — the Hive answers
 - `2d0c694` **[Developer Tools]** Validation,chronicle: opening film PASS over 2b14f67..HEAD — 3084/3084, mobile gate clean; release notes curated _(internal)_
+- `5fc2563` **[Developer Tools]** Status,chronicle: DEPLOYED "The Opening Film" (2d0c694, run #233); seal v2026.11.05.4 _(internal)_
+- `14263c4` **[Bug Fixes]** Intro: Settings → Motion "reduced" now stills the opening film's title too
+- `246ce9b` **[Bug Fixes]** Intro: the title's motion follows the film's resolved motion, not the OS query alone
+- `0a84e27` **[UX]** Onboarding: the first hour, one beat at a time
