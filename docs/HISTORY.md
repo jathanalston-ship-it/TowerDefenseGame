@@ -614,3 +614,5 @@
 - `a12d365` **[Bug Fixes]** The boss banner holds a fired verb for 1.2 s instead of one tick
 - `be1d942` **[Visuals]** Vfx-v3: tidy hearth colour token literal _(internal)_
 - `2eb4b90` **[Developer Tools]** VFX pass integration — bug log rows 105–112, manifest bullets, GAME-STATE summary _(internal)_
+- `431fc21` **[Developer Tools]** Site: "A Battlefield You Can Read" — release v2026.11.05.3, devlog, features, guides _(internal)_
+- `200e918` **[Bug Fixes]** Media: close any open draft before filming — the Hive now splices an overflowing bank

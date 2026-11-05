@@ -1,6 +1,6 @@
 {
-  "lastSha": "2eb4b905021205157dda22afb8e1980028dcd191",
-  "commitsSinceDraft": 0,
+  "lastSha": "200e918ff8d7e6d0aa6c4f78f1e4a58a7ddb7dfb",
+  "commitsSinceDraft": 2,
   "content": {
     "tower": [
       "needle",
@@ -3933,6 +3933,10 @@
         {
           "cat": "Bug Fixes",
           "text": "Opening a Bio-Container answers your tap instantly, and the Genome Rank promotion fits small phone screens"
+        },
+        {
+          "cat": "Bug Fixes",
+          "text": "Media: close any open draft before filming — the Hive now splices an overflowing bank"
         }
       ]
     }
@@ -8544,6 +8548,22 @@
       "cat": "Developer Tools",
       "text": "VFX pass integration — bug log rows 105–112, manifest bullets, GAME-STATE summary",
       "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "431fc21ee32d539ce659e060cae384ecd5635a31",
+      "date": "2026-11-05",
+      "cat": "Developer Tools",
+      "text": "Site: \"A Battlefield You Can Read\" — release v2026.11.05.3, devlog, features, guides",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "200e918ff8d7e6d0aa6c4f78f1e4a58a7ddb7dfb",
+      "date": "2026-11-05",
+      "cat": "Bug Fixes",
+      "text": "Media: close any open draft before filming — the Hive now splices an overflowing bank",
+      "internal": false,
       "needsReview": false
     }
   ]
