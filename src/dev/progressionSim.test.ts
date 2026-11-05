@@ -135,7 +135,9 @@ describe('live mini-simulation (real meta layer)', () => {
   it('account level: the lane always moves, decelerates with depth, and its rewards stay a supplement', () => {
     // ACCOUNT-LEVEL economy guards (docs/ACCOUNT-LEVEL.md §validation) on its OWN pinned
     // account (the loop test re-pins independently when content shifts trajectories).
-    // Measured 2026-07: bands [29, 48, 60], level-reward cores 2.3% of lifetime.
+    // Measured 2026-11 (Depth XP, §depth): bands [26, 38, 53] (pre-depth [26, 38, 50] — the depth
+    // multiplier starts at stage 30, so only the 15–30h band moves), level-reward cores 5.6% of
+    // lifetime (pre-depth 5.9% — deep payouts are re-weighted, so faster levels don't inflate it).
     const lootRng = new Rng(0x51ce);
     const rnd = vi.spyOn(Math, 'random').mockImplementation(() => lootRng.next());
     try {
@@ -146,8 +148,9 @@ describe('live mini-simulation (real meta layer)', () => {
       expect(a).toBeGreaterThanOrEqual(10);
       expect(b).toBeGreaterThan(a);
       expect(c).toBeGreaterThan(b);
-      // Progressively slower, never runaway: per-hour leveling falls band over band
-      // (5h → +29, then 10h → +19, then 15h → +12 measured), and 30h stays far under L200.
+      // Progressively slower out of onboarding, never runaway: per-hour leveling falls band over
+      // band (5h → +26, then 10h → +12, then 15h → +15 measured), and 30h stays far under L200.
+      // Past ~hour 30 Depth XP holds the beat near one level per ~50–75 min (docs/ACCOUNT-LEVEL.md).
       expect((b - a) / 10).toBeLessThan(a / 5);
       expect((c - b) / 15).toBeLessThan((b - a) / 10);
       expect(c).toBeLessThanOrEqual(200);
