@@ -9,7 +9,7 @@ import { CAMPAIGN_ONBOARDING, CAMPAIGN_OPENING, CAMPAIGN_REWARDS, COVERAGE, ENEM
 import type { EnemyDef, SpawnGroup, WaveDef } from './config';
 import type { EnemyKind, TowerKind } from './types';
 import { Rng } from './rng';
-import { boardCoverage } from './coverage';
+import { coverageGap } from './coverage';
 import type { CoverageAxis } from './coverage';
 import { assembleBoss, campaignBossFor, epithetFor } from './boss';
 import type { BossDef } from './boss';
@@ -249,8 +249,9 @@ export function promoteEliteShare(wave: WaveDef, share: number): WaveDef {
 
 /** LIVE PROBE roles (§6a v3 → v4 coverage gap) — threat by COMPOSITION: what the Hive sends to test a
  *  runaway board. Both sides are DATA: a role is a predicate over the enemy def plus the coverage AXIS
- *  (coverage.ts) that answers it. The board's GAP on that axis (1 − its Strain-weighted coverage) grades
- *  the role; the largest gap with kinds in the stage's pool wins, ties in table order. Never a per-enemy
+ *  (coverage.ts) that answers it. The board's GAP on that axis (how far its Strain-weighted coverage sits
+ *  below the roster's mean) grades the role; the largest gap with kinds in the stage's pool wins, ties
+ *  in table order. Never a per-enemy
  *  list: a new enemy joins by its traits, a new tower by its numbers. */
 export const LIVE_PROBE_ROLES: readonly { id: string; label: string; is: (e: EnemyDef) => boolean; axis: CoverageAxis }[] = [
   { id: 'air-pack', label: 'Air pack', is: (e) => e.behavior.flying === true, axis: 'area' }, // fliers skip the maze — packs need area
@@ -258,7 +259,7 @@ export const LIVE_PROBE_ROLES: readonly { id: string; label: string; is: (e: Ene
   { id: 'burrower', label: 'Burrowers', is: (e) => e.behavior.burrowing === true, axis: 'reach' }, // the straight line under the maze
   { id: 'armored', label: 'Armored', is: (e) => e.armor >= COVERAGE.armoredFrom, axis: 'pierce' },
   { id: 'sprinter', label: 'Sprinters', is: (e) => e.speed >= COVERAGE.fastFrom, axis: 'control' },
-  { id: 'sustain', label: 'Sustain', is: (e) => (e.shieldHp ?? 0) > 0 || (e.regenPerSec ?? 0) > 0 || (e.auraRegenPerSec ?? 0) > 0 || (e.auraShield ?? 0) > 0, axis: 'burst' },
+  { id: 'sustain', label: 'Sustain', is: (e) => (e.shieldHp ?? 0) > 0 || (e.regenPerSec ?? 0) > 0, axis: 'burst' }, // a shield / regen on the BODY outlasts chip hits
 ];
 
 /** A board's live probe: the enemy kind, its role, the axis that answers it and the board's gap there. */
@@ -271,7 +272,7 @@ export interface LiveProbe { kind: EnemyKind; role: string; label: string; axis:
 export function liveProbe(pool: readonly EnemyKind[], towers: readonly { kind: TowerKind; strain: number }[]): LiveProbe | null {
   let best: LiveProbe | null = null;
   for (const role of LIVE_PROBE_ROLES) {
-    const gap = 1 - boardCoverage(towers, role.axis);
+    const gap = coverageGap(towers, role.axis);
     if (best !== null && !(gap > best.gap)) continue;
     let kind: EnemyKind | null = null;
     for (const k of pool) {

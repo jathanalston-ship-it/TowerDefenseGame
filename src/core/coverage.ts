@@ -5,8 +5,10 @@
 // own hits shred), BURST (per-hit damage — what breaks shields and out-paces healers) and CONTROL (a
 // control status, a pull, or summoned bodies that block the lane). A board folds into a coverage
 // PROFILE: the Strain-weighted mean of its towers' vectors, 0..1 per axis. The live probe
-// (campaign.ts LIVE_PROBE_ROLES) reads the GAP (1 − coverage) on the axis that answers each enemy
-// role. Pure; one table computed once from TOWER_ORDER; a board read allocates nothing.
+// (campaign.ts LIVE_PROBE_ROLES) reads the GAP on the axis that answers each enemy role — how far the
+// board sits below the ROSTER's mean coverage there (the axes grade on different scales; the roster
+// baseline makes them comparable). Pure; tables computed once from TOWER_ORDER; a board read
+// allocates nothing.
 //
 // Known limit: base kits only — branch / Strain kits (resolved in the sim) are not folded in.
 
@@ -88,6 +90,15 @@ export const TOWER_COVERAGE: Readonly<Record<TowerKind, CoverageVec>> = Object.f
   TOWER_ORDER.map((k) => [k, towerCoverage(TOWER_DEFS[k], TOWER_ABILITIES[k])]),
 ) as Record<TowerKind, CoverageVec>;
 
+/** The roster's MEAN coverage per axis — what a board drawn from the whole roster would field. The
+ *  axes grade on different scales (area is all-or-nothing, burst is a ramp), so a board's GAP is read
+ *  against this baseline, which makes the axes comparable without hand-tuned weights. */
+export const ROSTER_COVERAGE: CoverageVec = (() => {
+  const out: Record<CoverageAxis, number> = { reach: 0, area: 0, pierce: 0, burst: 0, control: 0 };
+  for (const k of TOWER_ORDER) for (const a of Object.keys(out) as CoverageAxis[]) out[a] += TOWER_COVERAGE[k][a] / TOWER_ORDER.length;
+  return out;
+})();
+
 /** The board's coverage on one axis: the Strain-weighted mean of its towers' vectors (a merged tower
  *  is the board's investment), 0 for an empty board. Allocation-free. */
 export function boardCoverage(towers: readonly { kind: TowerKind; strain: number }[], axis: CoverageAxis): number {
@@ -99,4 +110,11 @@ export function boardCoverage(towers: readonly { kind: TowerKind; strain: number
     w += wt;
   }
   return w > 0 ? sum / w : 0;
+}
+
+/** The board's coverage GAP on one axis, 0..1: how far it sits BELOW the roster's mean coverage there
+ *  (1 = covers none of it, 0 = at or above the roster's mean). Allocation-free. */
+export function coverageGap(towers: readonly { kind: TowerKind; strain: number }[], axis: CoverageAxis): number {
+  const base = ROSTER_COVERAGE[axis];
+  return base > 0 ? clamp01(1 - boardCoverage(towers, axis) / base) : 0;
 }

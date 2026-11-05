@@ -8,7 +8,7 @@ import type { RunOptions } from './game';
 import { CAMPAIGN_OPENING, DIRECTOR_ADAPTIVE, EARLY_CALL, ENDLESS_SQUEEZE, ENEMY_DEFS, SIM_DT, TOWER_ABILITIES, TOWER_DEFS, TOWER_ORDER } from './config';
 import { OPENING_ANSWER_TIERS, OPENING_THREAT_RULES, damagesArea, dragsAndDamages, openingAnswerKinds } from './conveyor';
 import { LIVE_PROBE_ROLES, generateStage, liveProbe, promoteEliteShare, swapInProbe } from './campaign';
-import { COVERAGE_AXIS_NAME, TOWER_COVERAGE, boardCoverage, towerCoverage } from './coverage';
+import { COVERAGE_AXIS_NAME, ROSTER_COVERAGE, TOWER_COVERAGE, boardCoverage, coverageGap, towerCoverage } from './coverage';
 import type { StageConfig } from './campaign';
 import type { WaveDef } from './config';
 import { campaignMegaFor, MEGA } from './megaboss';
@@ -318,8 +318,8 @@ describe('LIVE threat v3 — cards out of the ratio, threat by composition (§6a
     const pool = ['runner', 'wisp', 'spitter', 'scuttler', 'rusher', 'mender', 'molerat'] as const;
     for (const b of [board('needle', 'mortar'), board('lancet', 'obelisk', 'spire'), board('maw', 'polyp', 'roost'), board('quill', 'coil')]) {
       const p = liveProbe([...pool], b)!;
-      for (const r of LIVE_PROBE_ROLES) expect(p.gap).toBeGreaterThanOrEqual(1 - boardCoverage(b, r.axis) - 1e-12);
-      expect(p.gap).toBeCloseTo(1 - boardCoverage(b, p.axis), 12);
+      for (const r of LIVE_PROBE_ROLES) expect(p.gap).toBeGreaterThanOrEqual(coverageGap(b, r.axis));
+      expect(p.gap).toBe(coverageGap(b, p.axis));
     }
     expect(liveProbe(['runner', 'mite'], board('needle'))).toBeNull(); // no probe role in the pool ⇒ no swap
   });
@@ -344,6 +344,13 @@ describe('LIVE threat v3 — cards out of the ratio, threat by composition (§6a
     expect(boardCoverage([], 'area')).toBe(0);
     expect(boardCoverage([{ kind: 'mortar', strain: 3 }, { kind: 'needle', strain: 1 }], 'area')).toBeCloseTo(0.75, 12);
     expect(Object.keys(COVERAGE_AXIS_NAME).sort()).toEqual(Object.keys(TOWER_COVERAGE.needle).sort());
+    // the GAP reads the board against the roster's mean coverage: 1 with none of it, 0 at or above it
+    expect(coverageGap([{ kind: 'needle', strain: 1 }], 'area')).toBe(1);
+    expect(coverageGap([{ kind: 'mortar', strain: 1 }], 'area')).toBe(0);
+    for (const a of Object.keys(ROSTER_COVERAGE) as (keyof typeof ROSTER_COVERAGE)[]) {
+      const mean = TOWER_ORDER.reduce((n, k) => n + TOWER_COVERAGE[k][a], 0) / TOWER_ORDER.length;
+      expect(ROSTER_COVERAGE[a]).toBeCloseTo(mean, 12);
+    }
   });
 
   it('the probe share scales with the gap only at liveProbeGapScale > 0 (0 ⇒ exactly the v3 share)', () => {
