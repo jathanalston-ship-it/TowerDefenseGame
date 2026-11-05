@@ -5,8 +5,8 @@ import type { Release } from './types';
 /** Player-facing releases, newest first. */
 export const RELEASES: Release[] = [
   {
-    "id": "v2026.11.04.5",
-    "date": "2026-11-04",
+    "id": "v2026.11.05",
+    "date": "2026-11-05",
     "title": "Frontiers Bite Again",
     "sealed": false,
     "entries": [

@@ -12,7 +12,7 @@
 > draft picks barely move Campaign outcomes (next: cards-excluded ratio, threat by composition). Lead:
 > owed-draft eyebrow ("+N more owed"), probe outcome label. VALIDATION: validate PASS over 2524c2d..HEAD
 > (3022/3022, mobile gate clean); GR1's first-session probe PASS; live check clean. Website: release
-> v2026.11.04.5 "Frontiers Bite Again", devlog `frontiers-bite-again`, campaign guide; PIL R 2026-11-05.)
+> v2026.11.05 "Frontiers Bite Again", devlog `frontiers-bite-again`, campaign guide; PIL R 2026-11-05.)
 >
 > **2026-11-04f** (**DEPLOYED — BATCH G "THE GRIND"** (`2524c2d`, run #229 green; owner approved
 > the release with live-threat caps 3/4).** Four tracks from the G1/G2 grind audits: GR1 the run (Campaign

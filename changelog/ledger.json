@@ -1,6 +1,6 @@
 {
-  "lastSha": "59e08840515e9c7f97ad6d017165d2be735837c2",
-  "commitsSinceDraft": 2,
+  "lastSha": "8ee1c5bea6f0db0367b59e93215100cd6765aefc",
+  "commitsSinceDraft": 3,
   "content": {
     "tower": [
       "needle",
@@ -3821,8 +3821,8 @@
       ]
     },
     {
-      "id": "v2026.11.04.5",
-      "date": "2026-11-04",
+      "id": "v2026.11.05",
+      "date": "2026-11-05",
       "title": "Frontiers Bite Again",
       "sealed": false,
       "entries": [
@@ -7985,6 +7985,14 @@
       "date": "2026-11-05",
       "cat": "Developer Tools",
       "text": "Validation,status: frontier challenge v2 PASS — 3022/3022, mobile gate clean",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "8ee1c5bea6f0db0367b59e93215100cd6765aefc",
+      "date": "2026-11-05",
+      "cat": "Framework",
+      "text": "Notes: sync Chronicle artifacts to HEAD",
       "internal": true,
       "needsReview": false
     }
