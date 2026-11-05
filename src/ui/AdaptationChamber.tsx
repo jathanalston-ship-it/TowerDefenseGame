@@ -15,6 +15,7 @@ import type { HeroKind, TowerKind } from '../core/types';
 import { AdaptationTree } from './components/AdaptationTree';
 import { CurrencyIcon } from './components/CurrencyIcon';
 import { audio } from '../audio/sound';
+import './AdaptationChamber.css';
 
 interface UnitRef { subject: 'tower' | 'hero'; unit: string }
 

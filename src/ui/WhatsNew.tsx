@@ -25,6 +25,7 @@ import { MECHANIC_TEXT } from '../state/mechanicsText';
 import { WARDROBE_RARITY_COLOR, wardrobeItem, wardrobeKind } from '../core/wardrobe';
 import type { WardrobeItemDef } from '../core/wardrobe';
 import { featureRevealed, isOpenNav } from '../state/unlocks';
+import './WhatsNew.css';
 
 export function WhatsNew(): JSX.Element | null {
   const save = meta.use(); // re-render as the archive changes

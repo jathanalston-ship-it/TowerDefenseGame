@@ -1,3 +1,4 @@
+import './ProgressBar.css';
 // Reusable progress/health bar. Token-driven; used for integrity, hero HP,
 // upgrade levels, etc. Pure presentation — no game logic.
 

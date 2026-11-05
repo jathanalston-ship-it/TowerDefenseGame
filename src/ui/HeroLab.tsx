@@ -29,6 +29,7 @@ import { EvolutionTrackPanel } from './EvolutionTrack';
 import { navBus } from '../state/navBus';
 import { rarityColorOf } from '../core/equipment'; // the ONE rarity map (docs/UI-STANDARDS.md §rarity)
 import type { HeroCollectionEntry } from '../state/meta';
+import './HeroLab.css';
 
 
 /** Re-pickable ability forks (★5/★8, HEROES.md) — each option REWORKS one of the hero's already-

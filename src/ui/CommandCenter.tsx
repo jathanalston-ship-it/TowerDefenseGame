@@ -34,7 +34,7 @@ import { LiveEventsStrip } from './components/LiveEventsStrip';
 import { BioCacheCard } from './BioCache';
 import { DirectivesCard } from './components/DirectivesCard';
 import { ContractsCard } from './components/ContractsCard';
-import { FrontStrip } from './FrontScreen';
+import { FrontStrip } from './components/FrontStrip';
 import { GrowthPanel } from './components/GrowthPanel';
 import { armyView, buildHomeView, homeRegistry } from './homeModel';
 import { recommendationsFor } from '../state/recommendations';

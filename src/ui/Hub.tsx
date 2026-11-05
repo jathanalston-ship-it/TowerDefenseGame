@@ -32,7 +32,7 @@ const ArenaScreen = lazyNamed(() => import('./ArenaScreen'), 'ArenaScreen');
 import type { ArenaMatchSetup } from '../core/arenaMatch';
 import type { ArenaTransport } from '../net/arenaTransport';
 const DailyScreen = lazyNamed(() => import('./DailyScreen'), 'DailyScreen');
-import { PremiumStore } from './PremiumStore'; // FlashOfferPopup imports its helpers statically
+const PremiumStore = lazyNamed(() => import('./PremiumStore'), 'PremiumStore');
 import { featureRevealed, featureView, nextReveals, type FeatureView } from '../state/unlocks';
 import { AccountXpBar } from './components/AccountXpBar';
 import { navBus } from '../state/navBus';
@@ -58,7 +58,7 @@ const MusicDebug = lazyNamed(() => import('./MusicDebug'), 'MusicDebug');
 const GeneArchive = lazyNamed(() => import('./GeneArchive'), 'GeneArchive');
 const HiveScreen = lazyNamed(() => import('./HiveScreen'), 'HiveScreen');
 const HarvestArrival = lazyNamed(() => import('./HarvestScreen'), 'HarvestArrival');
-import { FrontScreen } from './FrontScreen'; // also imported statically by CommandCenter — lazy would not split it
+const FrontScreen = lazyNamed(() => import('./FrontScreen'), 'FrontScreen');
 const Wardrobe = lazyNamed(() => import('./Wardrobe'), 'Wardrobe');
 const BattlePassScreen = lazyNamed(() => import('./BattlePassScreen'), 'BattlePassScreen');
 const QuestBoard = lazyNamed(() => import('./QuestBoard'), 'QuestBoard');

@@ -16,6 +16,7 @@ import { audio } from '../../audio/sound';
 import { trackEvent } from '../../net/events';
 import { telemetry } from '../../net/telemetry';
 import { Popup } from './Popup';
+import './FieldResearch.css';
 
 const CATEGORY_LABEL: Record<ResearchCategory, string> = {
   sample: 'Specimen Samples',

@@ -10,6 +10,7 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import { sectionPrefs, setSectionPrefs } from '../../state/prefs';
 import { guideBus } from '../../state/guidedUnlocks';
+import './SectionNav.css';
 
 export interface NavSection {
   id: string; // stable within the screen — the pref key and the anchor

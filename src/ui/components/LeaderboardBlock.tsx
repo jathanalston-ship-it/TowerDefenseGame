@@ -7,6 +7,7 @@ import { useEffect, useState } from 'react';
 import { fetchTop, maybeSubmitBest } from '../../net/leaderboard';
 import type { LbMode, LbView } from '../../net/leaderboard';
 import { romanNumeral } from '../../core/genomeRank';
+import './LeaderboardBlock.css';
 
 /** Per-mode display strings — the account boards carry XP as `score` and LEVEL as `wave`. */
 const LB_STRINGS: Record<LbMode, { context: (v: LbView) => string; score: (e: { score: number; wave: number }) => string }> = {

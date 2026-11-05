@@ -1,0 +1,34 @@
+/* HeroPortrait — the styles only this module's elements need, shipped in its lazy chunk instead of the
+   boot stylesheet (docs/DEPLOYMENT.md §boot-css). src/index.css keeps every class a boot screen (or
+   more than one lazy chunk) renders; lazy stylesheets load AFTER it, so override here, not there. */
+
+/* ── Procedural animated hero portrait ── */
+.hero-portrait { position: relative; flex: none; border-radius: 50%; display: grid; place-items: center; }
+
+.hp-aura { position: absolute; inset: 0; border-radius: 50%; background: conic-gradient(from 0deg, transparent 0%, var(--hc) 30%, transparent 55%, var(--hc) 80%, transparent 100%); -webkit-mask: radial-gradient(closest-side, transparent 60%, #000 62%); mask: radial-gradient(closest-side, transparent 60%, #000 62%); opacity: 0.65; animation: hp-spin 7s linear infinite; }
+
+.hp-pulse { position: absolute; inset: 16%; border-radius: 50%; background: radial-gradient(circle at 50% 45%, var(--hc), transparent 68%); opacity: 0.45; animation: hp-breathe 5s ease-in-out infinite; }
+
+.hp-orbit { position: absolute; inset: 0; animation: hp-spin 11s linear infinite; }
+
+.hp-orbit span { position: absolute; top: 50%; left: 50%; width: 0.14em; height: 0.14em; border-radius: 50%; background: var(--hc); box-shadow: 0 0 0.4em var(--hc); transform: translate(-50%, -50%) rotate(var(--a)) translateX(1.32em); }
+
+.hp-orbit span:nth-child(1) { --a: 0deg; }
+
+.hp-orbit span:nth-child(2) { --a: 120deg; }
+
+.hp-orbit span:nth-child(3) { --a: 240deg; }
+
+.hp-core { position: absolute; inset: 23%; border-radius: 50%; background: radial-gradient(circle at 50% 32%, #0d141f, #05080e); border: 2px solid var(--hc); box-shadow: 0 0 1.4em -0.4em var(--hc), inset 0 0 1em -0.4em var(--hc); display: grid; place-items: center; }
+
+.hp-glyph { font-size: 1em; line-height: 1; color: var(--hc); text-shadow: 0 0 0.35em var(--hc); }
+
+.hp-rank { position: absolute; bottom: 4%; left: 50%; transform: translateX(-50%); display: flex; gap: 0.08em; }
+
+.beh-dive .hp-aura { animation-duration: 4.5s; }
+
+.beh-control .hp-orbit { animation-duration: 7s; }
+
+.beh-guard .hp-core { border-width: 3px; }
+
+@keyframes hp-breathe { 0%, 100% { transform: scale(0.9); opacity: 0.4; } 50% { transform: scale(1.05); opacity: 0.7; } }

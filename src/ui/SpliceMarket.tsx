@@ -15,6 +15,7 @@ import { audio } from '../audio/sound';
 import { CURRENCIES } from '../core/currencies';
 import { CurrencyIcon } from './components/CurrencyIcon';
 import { RarityFx, rfxClass } from './components/RarityFx';
+import './SpliceMarket.css';
 
 function countdown(ms: number): string {
   const s = Math.max(0, Math.ceil(ms / 1000));

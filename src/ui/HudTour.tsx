@@ -15,6 +15,7 @@ import { featureRevealed } from '../state/unlocks';
 import { TutorialRewardReveal } from './tutorial/TutorialRewardReveal';
 import { Spotlight } from './tutorial/primitives';
 import { useTargetRect } from './tutorial/useTargetRect';
+import './HudTour.css';
 
 interface TourStop {
   area: string;

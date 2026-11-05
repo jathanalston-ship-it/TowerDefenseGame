@@ -12,6 +12,7 @@ import type { CSSProperties } from 'react';
 import type { HeroDef } from '../../core/config';
 import { drawHeroSymbiotes } from '../../render/heroSymbiotes';
 import type { HeroSymbioteRender } from '../../render/heroSymbiotes';
+import './HeroPortrait.css';
 
 // A class sigil per combat class (extend as classes are added; falls back to a neutral mark).
 const CLASS_GLYPH: Record<string, string> = {

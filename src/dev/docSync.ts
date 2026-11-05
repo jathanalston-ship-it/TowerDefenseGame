@@ -31,6 +31,21 @@ import { INCOME } from '../state/income';
 
 export const REPO_ROOT = join(__dirname, '..', '..');
 
+/** Every stylesheet the game ships: src/index.css (the boot sheet, :root tokens first) + each lazy
+ *  module's own sheet (docs/DEPLOYMENT.md §boot-css). Style audits read THIS, never index.css alone. */
+export function appCss(): string {
+  const sheets: string[] = [];
+  const walk = (dir: string): void => {
+    for (const e of readdirSync(dir, { withFileTypes: true })) {
+      const p = join(dir, e.name);
+      if (e.isDirectory()) walk(p);
+      else if (e.name.endsWith('.css') && p !== join(REPO_ROOT, 'src', 'index.css')) sheets.push(p);
+    }
+  };
+  walk(join(REPO_ROOT, 'src'));
+  return [join(REPO_ROOT, 'src', 'index.css'), ...sheets.sort()].map((p) => readFileSync(p, 'utf8')).join('\n');
+}
+
 export interface DocAnchor {
   doc: string; // repo-relative doc path
   contains: string; // the string the doc MUST contain (derived from live code)

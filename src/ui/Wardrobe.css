@@ -1,0 +1,325 @@
+/* Wardrobe — the styles only this module's elements need, shipped in its lazy chunk instead of the
+   boot stylesheet (docs/DEPLOYMENT.md §boot-css). src/index.css keeps every class a boot screen (or
+   more than one lazy chunk) renders; lazy stylesheets load AFTER it, so override here, not there. */
+
+/* ── THE WARDROBE (docs/COSMETICS.md §wardrobe) — cosmetics hub, ceremony, themes, season pass ── */
+.wd-panel { max-width: var(--screen-max); }
+
+.wd-title-new { margin-left: 10px; font-size: 11px; letter-spacing: 0.12em; color: var(--caustic); border: 1px solid color-mix(in srgb, var(--caustic) 45%, transparent); border-radius: 999px; padding: 2px 8px; }
+
+.wd-tabs { display: flex; flex-wrap: wrap; gap: 6px; margin: 10px 0 6px; }
+
+.wd-tab.on { color: var(--text); border-color: var(--line-strong); background: var(--panel-3); }
+
+.wd-toolbar { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin: 6px 0 10px; }
+
+.wd-chip.on { color: var(--text); border-color: var(--line-strong); }
+
+.wd-dice { color: var(--caustic); }
+
+.wd-group-h { font-size: 12px; letter-spacing: 0.2em; color: var(--dim); margin: 10px 0 4px; }
+
+.wd-kind { margin: 12px 0 4px; }
+
+.wd-kind-h { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px; border-bottom: 1px solid var(--line); padding-bottom: 4px; margin-bottom: 8px; }
+
+.wd-kind-icon { color: var(--kinetic); }
+
+.wd-kind-name { font-size: 13px; letter-spacing: 0.08em; color: var(--text); }
+
+.wd-kind-blurb { font-size: 11px; color: var(--dim); }
+
+.wd-kind-count { margin-left: auto; font-size: 11px; color: var(--muted); font-variant-numeric: tabular-nums; }
+
+.wd-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 8px; }
+
+.wd-card { position: relative; display: flex; flex-direction: column; gap: 6px; background: var(--panel-2); border: 1px solid var(--line); border-left: 3px solid var(--rc, var(--line)); border-radius: var(--r-md); padding: 8px; animation: ui-rise var(--dur-3) var(--ease-out) both; }
+
+.wd-card.is-on { border-color: var(--line-strong); box-shadow: 0 0 14px color-mix(in srgb, var(--rc, #ffffff) 18%, transparent); }
+
+.wd-card.is-locked { opacity: 0.66; }
+
+.wd-new { position: absolute; top: 6px; right: 6px; font-size: 10px; letter-spacing: 0.12em; color: var(--caustic); border: 1px solid color-mix(in srgb, var(--caustic) 45%, transparent); border-radius: 999px; padding: 1px 6px; background: var(--panel-deep); z-index: 1; }
+
+.wd-prev { height: 54px; border-radius: var(--r-sm); border: 1px solid var(--line); overflow: hidden; position: relative; }
+
+.wd-prev-text { display: grid; place-items: center; font-size: 14px; letter-spacing: 0.08em; }
+
+.wd-prev-frame { display: grid; place-items: center; border-width: 2px; }
+
+.wd-prev-audio { display: grid; place-items: center; background: var(--panel-deep); }
+
+.wd-eq { display: inline-flex; gap: 3px; align-items: end; height: 22px; }
+
+.wd-eq i { width: 4px; background: var(--wa); border-radius: 999px; animation: wd-eq 1.1s var(--ease-out) infinite; }
+
+.wd-eq i:nth-child(1) { height: 8px; }
+
+.wd-eq i:nth-child(2) { height: 16px; animation-delay: 0.15s; }
+
+.wd-eq i:nth-child(3) { height: 11px; animation-delay: 0.3s; }
+
+.wd-eq i:nth-child(4) { height: 19px; animation-delay: 0.45s; }
+
+.wd-prev-swatch::after { content: ''; position: absolute; inset: 0; }
+
+.wd-card-name { font-size: 13px; color: var(--text); }
+
+.wd-card-desc { font-size: 11px; line-height: 1.35; color: var(--muted); }
+
+.wd-card-src { font-size: 10px; letter-spacing: 0.06em; color: var(--dim); border-top: 1px dashed var(--line); padding-top: 4px; }
+
+.wd-card-actions { display: flex; gap: 6px; align-items: center; margin-top: auto; }
+
+.wd-mini.is-fav { color: var(--gold, #ffd24d); }
+
+.wd-equip.is-on { color: var(--caustic); border-color: color-mix(in srgb, var(--caustic) 45%, transparent); }
+
+.wd-buy { margin-left: auto; }
+
+.wd-boutique .wd-grid { margin-top: 8px; }
+
+.wd-mile { display: flex; align-items: center; gap: 10px; border: 1px solid var(--line); border-radius: var(--r-md); padding: 8px 10px; margin: 6px 0; background: var(--panel-2); }
+
+.wd-mile.is-claimable { border-color: color-mix(in srgb, var(--caustic) 40%, var(--line)); }
+
+.wd-mile.is-claimed { opacity: 0.6; }
+
+.wd-mile-name { font-size: 13px; color: var(--text); }
+
+.wd-mile-desc { font-size: 11px; color: var(--muted); }
+
+.wd-mile-rank { color: var(--dim); }
+
+.wd-mile-claim:disabled { opacity: 0.55; }
+
+@media (prefers-reduced-motion: reduce) {
+  .wd-prev-swatch::after, .wd-eq i { animation: none; }
+}
+
+/* ── Phenotype Lab (PhenotypeLab.tsx, docs/COSMETICS.md) ── */
+.pl-top { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; margin: 10px 0; }
+
+.pl-cultivate { padding: 8px 14px; font-size: 13px; }
+
+.pl-count { font-size: 12px; color: var(--muted); }
+
+.pl-bonus { font-size: 11px; color: var(--gold); }
+
+.pl-grown {
+  margin: 6px 0 10px;
+  padding: 8px 12px;
+  font-size: 13px;
+  border-radius: var(--r-md);
+  border: 1px solid color-mix(in srgb, var(--pc, var(--gold)) 50%, var(--line));
+  background: color-mix(in srgb, var(--pc, var(--gold)) 10%, transparent);
+  animation: ui-rise var(--dur-3) var(--ease-out) both;
+}
+
+.pl-sec { margin: 14px 0 8px; font-size: 11px; letter-spacing: 0.2em; font-weight: 800; color: var(--muted); }
+
+.pl-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 8px 0;
+  border-top: 1px solid var(--line);
+}
+
+.pl-preview { width: 48px; height: 48px; border-radius: var(--r-sm); border: 1px solid var(--line); flex: none; }
+
+.pl-hero-swatch { width: 22px; height: 22px; margin: 12px 13px; border-radius: 50%; flex: none; box-shadow: 0 0 10px color-mix(in srgb, currentColor 40%, transparent); }
+
+.pl-name { font-size: 13px; font-weight: 800; margin-bottom: 6px; }
+
+.pl-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+
+.pl-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  min-height: 24px;
+  font-size: 12px;
+  color: var(--text);
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+}
+
+.pl-chip.on { border-color: var(--pc, var(--gold)); color: var(--pc, var(--text)); }
+
+.pl-chip.is-locked { opacity: 0.45; }
+
+.pl-chip .pl-swatch { width: 10px; height: 10px; border-radius: 50%; background: var(--pc, var(--muted)); }
+
+.pl-chip .pl-lock { font-size: 10px; }
+
+/* ── SPECIMEN VAULT (v53, docs/COSMETICS.md §claiming) — the cosmetic ownership surface.
+   Zero ambient animators (INFO-HIERARCHY budget); the claim ceremony's finite entrance is
+   the only motion. --svr = the row's rarity color. ── */
+.sv-screen { display: flex; flex-direction: column; gap: 14px; }
+
+.sv-mast { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+
+.sv-stat { font-size: 12px; color: var(--muted); }
+
+.sv-controls { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+
+.sv-search { flex: 1 1 180px; min-width: 140px; padding: 7px 10px; font-size: 13px; color: var(--text);
+  background: rgba(255, 255, 255, 0.04); border: 1px solid var(--line); border-radius: var(--r-sm); }
+
+.sv-chips { display: inline-flex; gap: 4px; }
+
+.sv-chip { padding: 6px 10px; font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
+  color: var(--muted); background: transparent; border: 1px solid var(--line); border-radius: 999px; cursor: pointer; }
+
+.sv-chip.is-on { color: var(--text); border-color: var(--kinetic); background: color-mix(in srgb, var(--kinetic) 14%, transparent); }
+
+.sv-sel { padding: 6px 8px; font-size: 12px; color: var(--text); background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--line); border-radius: var(--r-sm); }
+
+.sv-card { display: flex; flex-direction: column; gap: 6px; padding: 10px 12px; background: var(--panel);
+  border: 1px solid color-mix(in srgb, var(--svr) 35%, var(--line)); border-radius: var(--r-md); cursor: pointer; }
+
+.sv-card.is-claimed { border-color: var(--line); }
+
+.sv-top { display: flex; align-items: center; gap: 8px; }
+
+.sv-glyph { width: 30px; height: 30px; display: grid; place-items: center; font-size: 16px; color: var(--svr);
+  background: color-mix(in srgb, var(--svr) 12%, transparent); border-radius: var(--r-sm); flex-shrink: 0; }
+
+.sv-title { display: flex; flex-direction: column; min-width: 0; }
+
+.sv-name { font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.sv-kind { font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--dim);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.sv-fav { margin-left: auto; font-size: 14px; color: var(--dim); background: none; border: none; cursor: pointer; padding: 4px; }
+
+.sv-fav.is-on { color: var(--gold); }
+
+.sv-desc { margin: 0; font-size: 11px; line-height: 1.45; color: var(--muted);
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+
+.sv-foot { display: flex; align-items: center; gap: 8px; margin-top: auto; }
+
+.sv-state em { font-style: normal; font-size: 10px; font-weight: 800; letter-spacing: 0.08em; }
+
+.sv-trade { color: var(--caustic); }
+
+.sv-bound { color: var(--muted); }
+
+.sv-state .sv-trade + .sv-trade, .sv-bound + .sv-trade { margin-left: 6px; }
+
+.sv-bonus { margin-left: auto; font-size: 10px; font-weight: 700; color: var(--vital); white-space: nowrap; }
+
+.sv-claim { padding: 5px 12px; font-size: 12px; flex-shrink: 0; }
+
+.sv-empty, .sv-more { font-size: 12px; color: var(--muted); }
+
+/* The assimilation ceremony — finite entrance, click-through dismiss. */
+.sv-cere { position: fixed; inset: 0; z-index: 4000; display: grid; place-items: center;
+  background: rgba(4, 6, 10, 0.72); animation: fade-in var(--dur-2) var(--ease-out); }
+
+.sv-cere-card { display: flex; flex-direction: column; align-items: center; gap: 8px; width: min(360px, 88vw);
+  padding: 26px 22px; text-align: center; background: var(--panel);
+  border: 1px solid color-mix(in srgb, var(--svr) 55%, var(--line)); border-radius: var(--r-lg);
+  box-shadow: 0 0 60px -18px var(--svr); animation: svCereIn var(--dur-4) var(--ease-spring); }
+
+.sv-cere-k { font-size: 10px; font-weight: 800; letter-spacing: 0.24em; color: var(--svr); }
+
+.sv-cere-glyph { font-size: 40px; color: var(--svr); }
+
+.sv-cere-name { font-size: 20px; }
+
+.sv-cere-rarity { font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+
+.sv-cere-lines { display: flex; flex-direction: column; gap: 4px; margin-top: 6px; }
+
+.sv-cere-line { font-size: 12px; color: var(--text); }
+
+.sv-cere-line em { font-style: normal; margin-right: 6px; color: var(--svr); }
+
+.sv-cere-go { margin-top: 10px; padding: 8px 22px; }
+
+@keyframes svCereIn {
+  0% { transform: scale(0.86); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+/* Collector Panel (docs/COSMETICS.md §provenance) — the museum page. Rarity lighting is
+   STATIC (radial plate + glow); svCereIn reused as the one finite entrance. */
+.sv-cp { position: fixed; inset: 0; z-index: 3900; display: grid; place-items: center; padding: 16px;
+  background: rgba(4, 6, 10, 0.72); animation: fade-in var(--dur-2) var(--ease-out); }
+
+.sv-cp-card { position: relative; display: flex; flex-direction: column; gap: 12px; width: min(520px, 94vw);
+  max-height: 86vh; overflow-y: auto; padding: 20px 22px; background: var(--panel);
+  border: 1px solid color-mix(in srgb, var(--svr) 55%, var(--line)); border-radius: var(--r-lg);
+  box-shadow: 0 0 60px -18px var(--svr); animation: svCereIn var(--dur-4) var(--ease-spring); }
+
+.sv-cp-x { position: absolute; top: 10px; right: 10px; width: 30px; height: 30px; display: grid; place-items: center;
+  font-size: 13px; color: var(--muted); background: transparent; border: 1px solid var(--line);
+  border-radius: var(--r-sm); cursor: pointer; }
+
+.sv-cp-x:hover { color: var(--text); border-color: var(--gold); }
+
+.sv-cp-head { display: flex; flex-direction: column; align-items: center; gap: 4px; text-align: center; }
+
+.sv-cp-glyph { width: 84px; height: 84px; display: grid; place-items: center; font-size: 40px; color: var(--svr);
+  background: radial-gradient(circle at 50% 30%, color-mix(in srgb, var(--svr) 26%, transparent), transparent 70%);
+  border: 1px solid color-mix(in srgb, var(--svr) 45%, var(--line)); border-radius: var(--r-md); }
+
+.sv-cp-name { font-size: 20px; margin-top: 4px; }
+
+.sv-cp-sub { font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+
+.sv-cp-badges { display: flex; flex-wrap: wrap; justify-content: center; gap: 5px; margin-top: 4px; }
+
+.sv-cp-badge { display: inline-flex; align-items: center; gap: 5px; padding: 3px 9px; font-style: normal;
+  font-size: 10px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted);
+  border: 1px solid color-mix(in srgb, var(--svr) 40%, var(--line)); border-radius: 999px; }
+
+.sv-cp-badge i { font-style: normal; color: var(--svr); }
+
+.sv-cp-lore { margin: 0; padding: 10px 12px; border-left: 2px solid var(--svr);
+  background: color-mix(in srgb, var(--svr) 6%, transparent); border-radius: var(--r-xs); }
+
+.sv-cp-lore-k { display: block; font-size: 10px; font-weight: 800; letter-spacing: 0.24em; color: var(--svr);
+  margin-bottom: 4px; }
+
+.sv-cp-lore p { margin: 0; font-size: 12px; line-height: 1.55; color: var(--muted); font-style: italic; }
+
+.sv-cp-rows { display: flex; flex-direction: column; margin: 0; }
+
+.sv-cp-row { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding: 5px 0;
+  border-bottom: 1px dashed color-mix(in srgb, var(--line) 60%, transparent); }
+
+.sv-cp-row dt { font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--dim); flex-shrink: 0; }
+
+.sv-cp-row dd { margin: 0; font-size: 12px; color: var(--text); text-align: right; }
+
+.sv-cp-bonus { margin: 0; font-size: 12px; font-weight: 700; color: var(--vital); text-align: center; }
+
+.sv-cp-copy { margin: 0; font-size: 11px; line-height: 1.5; color: var(--muted); text-align: center; }
+
+.sv-cp-claim { align-self: center; padding: 8px 22px; font-size: 13px; }
+
+.sv-cp-fam { display: flex; align-items: center; gap: 10px; padding-top: 10px; border-top: 1px solid var(--line);
+  font-size: 11px; color: var(--muted); }
+
+.sv-cp-fam-bar { flex: 1; height: 5px; background: rgba(255, 255, 255, 0.06); border-radius: 999px; overflow: hidden; }
+
+.sv-cp-fam-bar i { display: block; height: 100%; background: var(--svr); border-radius: 999px; }
+
+.sv-cp-fam-n { font-variant-numeric: tabular-nums; color: var(--text); }
+
+/* Specimen Cabinet claim-all (docs/COSMETICS.md §claim-all). */
+.sv-claimall { display: inline-flex; align-items: center; gap: 6px; margin-left: auto; }
+
+.sv-claimall small { font-size: 11px; color: var(--muted); }
+
+.sv-batch-lines { max-height: 40vh; overflow-y: auto; }
+
+.sv-card.rfx { position: relative; } /* specimens: a positioned host for the shared layers */

@@ -14,6 +14,7 @@ import { hiveIntel } from '../state/hiveIntel';
 import type { Release, ReleaseEntry } from '../changelog/types';
 import { RELEASES } from '../changelog/releases.gen'; // the whole history — this component is its own lazy chunk (App)
 import { NOTE_CATEGORIES } from '../changelog/types';
+import './UpdateBriefing.css';
 
 /** Collapse the unseen releases into one skimmable briefing: highlights first, then
  *  entries grouped in the standard category order, capped so the card never scrolls far. */

@@ -4,11 +4,9 @@
 // the standards doc; this pins the 5.3k-line stylesheet where drift historically accumulated.
 
 import { describe, it, expect } from 'vitest';
-import { readFileSync } from 'node:fs';
-import { join } from 'node:path';
-import { REPO_ROOT } from './docSync';
+import { appCss } from './docSync';
 
-const css = (): string => readFileSync(join(REPO_ROOT, 'src/index.css'), 'utf8');
+const css = appCss; // index.css + every lazy module's stylesheet
 
 const RADIUS_TOKEN = /^var\(--r-(xs|sm|md|lg)(, ?\d+px)?\)$/;
 function radiusValueAllowed(v: string): boolean {

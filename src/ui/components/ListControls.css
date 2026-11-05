@@ -1,0 +1,22 @@
+/* ListControls — the styles only this module's elements need, shipped in its lazy chunk instead of the
+   boot stylesheet (docs/DEPLOYMENT.md §boot-css). src/index.css keeps every class a boot screen (or
+   more than one lazy chunk) renders; lazy stylesheets load AFTER it, so override here, not there. */
+
+/* ── Shared list-control row (ui/components/ListControls — state/listOrg.ts): the ONE
+   visual language for search/chips/sort/view on every long-list screen. Mirrors the Gene
+   Archive controls (the reference) so adopting the framework changes nothing visually. ── */
+.lc-row { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin: 4px 0 12px; }
+
+.lc-search { flex: 0 1 220px; padding: 6px 12px; border-radius: var(--r-sm); background: var(--panel-2); border: 1px solid var(--line); color: var(--text); font-size: 12px; }
+
+.lc-search:focus { border-color: var(--caustic); outline: none; }
+
+.lc-chips, .lc-views { display: flex; flex-wrap: wrap; gap: 5px; }
+
+.lc-chip { padding: 4px 10px; border-radius: 999px; background: rgba(255, 255, 255, 0.04); border: 1px solid var(--line); font-size: 11px; color: var(--muted); }
+
+.lc-chip.on { border-color: var(--caustic); color: var(--caustic); background: color-mix(in srgb, var(--caustic) 10%, transparent); }
+
+.lc-sort { margin-left: auto; display: inline-flex; align-items: center; gap: 6px; font-size: 11px; color: var(--muted); }
+
+.lc-shown { font-size: 11px; color: var(--muted); font-weight: 700; }

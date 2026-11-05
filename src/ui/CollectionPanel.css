@@ -1,0 +1,108 @@
+/* CollectionPanel — the styles only this module's elements need, shipped in its lazy chunk instead of the
+   boot stylesheet (docs/DEPLOYMENT.md §boot-css). src/index.css keeps every class a boot screen (or
+   more than one lazy chunk) renders; lazy stylesheets load AFTER it, so override here, not there. */
+
+/* ── Bio-Dex Codex shell (docs/COLLECTION.md §screen) — masthead, wings, tile drill-in ── */
+.cx { display: flex; flex-direction: column; gap: 10px; width: min(var(--screen-max), 100%); }
+
+.cx-mast { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+
+.cx-mast-sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
+
+.cx-mast-stats { display: flex; align-items: center; gap: 10px; }
+
+.cx-mast-power { font-size: 12px; color: var(--viral); font-weight: 600; white-space: nowrap; }
+
+.cx-tabs { margin-top: 2px; }
+
+.cx-wing-sub { font-size: 12px; color: var(--muted); }
+
+.cx-tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(190px, 100%), 1fr)); gap: 8px; }
+
+.cx-tile {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  min-height: 64px;
+  padding: 10px 12px;
+  border-radius: var(--r-md);
+  text-align: left;
+  color: var(--text);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--cxc, var(--line)) 7%, var(--panel-2)), var(--panel-2));
+  border: 1px solid color-mix(in srgb, var(--cxc, var(--line)) 30%, var(--line));
+  cursor: pointer;
+  transition: transform var(--dur-2) var(--ease-out), border-color var(--dur-2) var(--ease-out), box-shadow var(--dur-2) var(--ease-out);
+}
+
+.cx-tile:hover { transform: translateY(-2px); border-color: color-mix(in srgb, var(--cxc, var(--line)) 60%, var(--line)); box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35), 0 0 12px color-mix(in srgb, var(--cxc, transparent) 14%, transparent); }
+
+.cx-tile-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+
+.cx-tile-name { font-size: 13px; font-weight: 700; letter-spacing: 0.04em; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.cx-tile-bar { display: block; height: 5px; border-radius: 999px; background: rgba(255, 255, 255, 0.07); overflow: hidden; }
+
+.cx-tile-bar i { display: block; height: 100%; border-radius: 999px; background: linear-gradient(90deg, color-mix(in srgb, var(--cxc) 70%, transparent), var(--cxc)); }
+
+.cx-tile-foot { display: flex; align-items: center; justify-content: space-between; font-size: 11px; color: var(--muted); font-variant-numeric: tabular-nums; }
+
+.cx-tile-go { font-style: normal; color: var(--cxc, var(--muted)); }
+
+.cx-detail {
+  padding: 12px 14px;
+  border-radius: var(--r-md);
+  background: var(--panel-2);
+  border: 1px solid color-mix(in srgb, var(--cxc, var(--line)) 33%, var(--line));
+  animation: codexFade 0.25s ease;
+}
+
+.cx-back {
+  display: inline-flex;
+  align-items: center;
+  margin-bottom: 8px;
+  padding: 5px 12px;
+  min-height: 28px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+  background: var(--panel-3);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  cursor: pointer;
+  transition: color var(--dur-2) var(--ease-out), border-color var(--dur-2) var(--ease-out);
+}
+
+.cx-back:hover { color: var(--text); border-color: var(--line-strong); }
+
+.cx-detail-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+
+.cx-detail-title { display: flex; align-items: center; gap: 8px; }
+
+.cx-detail-title h3 { margin: 0; font-size: 14px; letter-spacing: 0.06em; }
+
+.cx-detail-count { font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
+
+.mem-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(250px, 100%), 1fr)); gap: 10px; margin-bottom: 14px; }
+
+.mem-card { position: relative; display: flex; flex-direction: column; border-radius: var(--r-md); overflow: hidden; border: 1px solid color-mix(in srgb, var(--mc, var(--line)) 35%, var(--line)); background: var(--panel); }
+
+.mem-card.is-locked { border-color: var(--line); }
+
+.mem-art { width: 100%; height: 86px; object-fit: cover; display: block; background: #030509; }
+
+.mem-kind { font-size: 10px; font-weight: 800; letter-spacing: 0.16em; color: color-mix(in srgb, var(--mc, var(--muted)) 70%, var(--muted)); }
+
+.mem-card.is-locked .mem-kind { color: var(--muted); }
+
+.mem-title { font-size: 13px; font-weight: 800; letter-spacing: 0.06em; color: var(--text); }
+
+.mem-sub { font-size: 11px; color: var(--muted); }
+
+.mem-boost { margin-top: 4px; font-size: 11px; font-weight: 600; color: color-mix(in srgb, var(--gold) 80%, var(--text)); }
+
+.mem-card.is-locked .mem-boost { color: var(--muted); }
+
+.mem-play { position: absolute; top: 8px; right: 8px; font-size: 11px; font-weight: 800; letter-spacing: 0.06em; padding: 5px 11px; border-radius: 999px; color: #0a0d12; background: var(--mc, var(--gold)); border: none; }
+
+.mem-lock { position: absolute; top: 10px; right: 12px; font-size: 14px; opacity: 0.7; }

@@ -1,0 +1,26 @@
+/* EvolutionUnlock — the styles only this module's elements need, shipped in its lazy chunk instead of the
+   boot stylesheet (docs/DEPLOYMENT.md §boot-css). src/index.css keeps every class a boot screen (or
+   more than one lazy chunk) renders; lazy stylesheets load AFTER it, so override here, not there. */
+
+.evo-cap { font-size: 18px; color: var(--muted); }
+
+.evo-cap b { color: var(--gold); font-size: 20px; font-weight: 900; text-shadow: 0 0 16px color-mix(in srgb, var(--gold) 55%, transparent); }
+
+.evo-roster { display: flex; flex-wrap: wrap; justify-content: center; gap: 14px; margin: 18px 0 8px; }
+
+.evo-tower { display: flex; flex-direction: column; align-items: center; gap: 3px; width: 116px; animation: evo-tower-in 0.6s cubic-bezier(0.2, 1.5, 0.4, 1) both; }
+
+.evo-portrait { position: relative; }
+
+.evo-burst {
+  position: absolute; inset: -8px; border-radius: 50%; pointer-events: none;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.5), transparent 62%); animation: tl-burst 1s ease-out both;
+}
+
+.evo-tower-name { font-size: 13px; font-weight: 800; }
+
+.evo-tower-mut { font-size: 11px; color: var(--muted); max-width: 116px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+@media (prefers-reduced-motion: reduce) {
+  .evo-tower, .evo-burst { animation: none !important; }
+}

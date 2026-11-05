@@ -17,6 +17,7 @@ import { isDoctrineUnlocked } from '../../save/derive';
 import type { HeroKind } from '../../core/types';
 import { HeroPortrait } from './HeroPortrait';
 import { navLabel, type NavKey } from '../navModel';
+import './LoadoutStrip.css';
 
 export interface LoadoutSummary {
   heroes: HeroKind[];

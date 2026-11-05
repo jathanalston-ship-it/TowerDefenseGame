@@ -1,0 +1,35 @@
+/* SaveManager — the styles only this module's elements need, shipped in its lazy chunk instead of the
+   boot stylesheet (docs/DEPLOYMENT.md §boot-css). src/index.css keeps every class a boot screen (or
+   more than one lazy chunk) renders; lazy stylesheets load AFTER it, so override here, not there. */
+
+.shop-item:first-child {
+  border-top: none;
+}
+
+.shop-item.is-maxed {
+  opacity: 0.7;
+}
+
+.shop-item .info {
+  flex: 1;
+  min-width: 0;
+}
+
+.shop-item .name {
+  font-weight: 600;
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.shop-item .name .lvl {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.shop-item .desc {
+  color: var(--muted);
+  font-size: 13px;
+  margin: 2px 0 6px;
+}

@@ -31,6 +31,7 @@ import type { IntroVisual } from '../render/introScenes';
 import type { CutsceneBeat, CutsceneCamera, CutsceneCopyAt } from '../core/cutscenes';
 import { motionPrefs, resolveMotion, systemReducedMotion } from '../state/prefs';
 import { markIntroSeen, setIntroPlaying } from './introState';
+import './InitCutscene.css';
 
 /** A copy line staged onto the film at a scene-relative time (seconds). */
 interface SceneLine { at: number; text: string; em?: boolean }

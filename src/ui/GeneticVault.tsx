@@ -19,6 +19,7 @@ import { recordVaultOpen, vaultLedger } from '../state/prefs';
 import { telemetry } from '../net/telemetry';
 import { useDismiss } from './browserBack';
 import { RarityFx, rfxClass } from './components/RarityFx';
+import './GeneticVault.css';
 
 /** Merge N cracked containers into ONE ceremony (Open Five/Ten): items concatenate in crack
  * order; the best pull drives the ceremony scale; the label counts the batch. */

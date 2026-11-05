@@ -1,0 +1,335 @@
+/* EquipmentPanel — the styles only this module's elements need, shipped in its lazy chunk instead of the
+   boot stylesheet (docs/DEPLOYMENT.md §boot-css). src/index.css keeps every class a boot screen (or
+   more than one lazy chunk) renders; lazy stylesheets load AFTER it, so override here, not there. */
+
+/* ── Hero equipment ───────────────────────────────────────────────────────── */
+.equip-mats {
+  float: right;
+  font-size: 12px;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.al-card { display: flex; flex-direction: column; gap: 6px; text-align: left; padding: 8px 10px; border-radius: var(--r-md); border: 1px solid var(--line); background: var(--panel-2); cursor: pointer; transition: border-color var(--dur-1) var(--ease-out), box-shadow var(--dur-1) var(--ease-out); }
+
+.al-card:hover { border-color: color-mix(in srgb, var(--hc, var(--muted)) 55%, var(--line)); }
+
+.al-card.on { border-color: var(--hc, var(--gold)); box-shadow: 0 0 12px color-mix(in srgb, var(--hc, var(--gold)) 25%, transparent); }
+
+.al-head { display: flex; align-items: center; gap: var(--s2); }
+
+.al-slotno { font-size: 10px; letter-spacing: var(--track-wide); text-transform: uppercase; color: var(--muted); }
+
+.al-name { font-weight: 800; font-size: 13px; color: var(--hc, var(--text)); flex: 1; }
+
+.al-gearing { font-size: 10px; font-weight: 800; letter-spacing: var(--track-wide); padding: 2px 6px; border-radius: var(--r-xs); border: 1px solid var(--hc, var(--gold)); color: var(--hc, var(--gold)); }
+
+.al-card .hero-loadout { margin-bottom: 0; }
+
+/* ═══ ARMORY — collectible equipment inventory (EQUIPMENT.md) ════════════════════ */
+.armory-score { margin-left: 10px; font-size: 12px; font-weight: 800; color: var(--gold); }
+
+.armory-sets { display: flex; flex-wrap: wrap; gap: 8px; margin: 4px 0 10px; }
+
+.set-chip { display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px; border-radius: 999px; background: var(--panel-2); border: 1px solid var(--line); font-size: 12px; color: var(--muted); }
+
+.set-chip span { opacity: 0.35; font-weight: 700; }
+
+.set-chip span.on { opacity: 1; color: var(--success); }
+
+.armory-hero .ah-score { font-size: 11px; color: var(--muted); }
+
+.armory-hero.on .ah-score { color: var(--accent); }
+
+.armory-controls { display: flex; flex-wrap: wrap; gap: 10px 14px; align-items: center; margin-bottom: 12px; }
+
+.ac-group { display: flex; gap: 4px; flex-wrap: wrap; align-items: center; }
+
+.ac-right { margin-left: auto; }
+
+.armory-controls button { padding: 5px 11px; font-size: 12px; border-radius: 999px; background: var(--panel-2); border: 1px solid var(--line); color: var(--muted); cursor: pointer; }
+
+.ac-sort { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted); }
+
+.ac-sort select { background: var(--panel-2); border: 1px solid var(--line); color: var(--text); border-radius: var(--r-sm); padding: 4px 8px; font: inherit; font-size: 12px; }
+
+/* ── Item card ── */
+.item-card {
+  position: relative; display: grid; grid-template-columns: auto 1fr; gap: 9px 11px; padding: 12px;
+  border-radius: var(--r-md); min-width: 0;
+  background: linear-gradient(157deg, color-mix(in srgb, var(--rc) 13%, var(--panel-2)), var(--panel-2) 68%);
+  border: 1px solid color-mix(in srgb, var(--rc) 42%, var(--line));
+  transition: transform var(--dur-2) var(--ease-out), box-shadow var(--dur-2) var(--ease-out), border-color var(--dur-2) var(--ease-out);
+}
+
+.item-card:hover { transform: translateY(-2px); box-shadow: 0 10px 26px -12px color-mix(in srgb, var(--rc) 70%, transparent); border-color: color-mix(in srgb, var(--rc) 70%, var(--line)); }
+
+.item-card.is-equipped { border-color: var(--rc); box-shadow: 0 0 0 1px var(--rc), var(--halo) var(--rc); }
+
+.ic-frame { position: relative; align-self: start; }
+
+/* At-a-glance card language (EQUIPMENT.md §visuals): rarity rail + set monogram + affix pips.
+   Rail = the instant rarity read; monogram = the set read; pips = rolled affixes (gold = locked),
+   diamond = a signature ability lives on this item (lit when awakened). */
+.item-card::before { content: ''; position: absolute; left: 0; top: 10px; bottom: 10px; width: 3px; border-radius: 2px; background: linear-gradient(180deg, var(--rc), color-mix(in srgb, var(--rc) 18%, transparent)); opacity: 0.95; pointer-events: none; }
+
+.ic-setchip { position: absolute; right: -5px; bottom: -5px; min-width: 19px; height: 17px; padding: 0 3px; display: grid; place-items: center; font-size: 10px; font-weight: 900; letter-spacing: 0.04em; color: var(--sc, var(--muted)); background: rgba(8, 7, 14, 0.92); border: 1px solid color-mix(in srgb, var(--sc, var(--line)) 70%, transparent); border-radius: var(--r-xs); line-height: 1; }
+
+.ic-pips { position: absolute; left: 3px; right: 3px; bottom: 3px; display: flex; gap: 3px; justify-content: center; align-items: center; pointer-events: none; }
+
+.ic-pips i.lk { background: var(--gold); }
+
+.ic-pips b { width: 6px; height: 6px; background: color-mix(in srgb, var(--gold) 45%, transparent); border: 1px solid var(--gold); transform: rotate(45deg); margin-left: 2px; }
+
+.ic-pips b.on { background: var(--gold); box-shadow: 0 0 6px var(--gold); }
+
+.ic-lock, .ic-star, .ic-season { position: absolute; font-size: 11px; line-height: 1; }
+
+.ic-lock { top: -4px; left: -4px; }
+
+.ic-star { top: -4px; right: -4px; color: var(--gold); text-shadow: 0 0 6px var(--gold); }
+
+.ic-season { bottom: -6px; left: 50%; transform: translateX(-50%); white-space: nowrap; padding: 1px 6px; border-radius: 999px; background: var(--viral); color: var(--panel-deep); font-size: 10px; font-weight: 800; letter-spacing: 0.06em; }
+
+.ic-name { font-weight: 800; font-size: 14px; line-height: 1.2; }
+
+.ic-meta { font-size: 11px; color: var(--muted); margin-top: 1px; }
+
+.ic-rarity { font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; }
+
+.ic-desc { margin: 6px 0 0; font-size: 12px; line-height: 1.45; color: var(--text); opacity: 0.9; }
+
+.ic-sig { margin-top: 5px; font-size: 11px; font-weight: 700; color: var(--gold); }
+
+.ic-traits { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 7px; }
+
+.ic-trait { font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 999px; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--line); color: var(--muted); }
+
+.ic-trait.is-locked { border-color: var(--gold); color: var(--gold); }
+
+.ic-set { display: inline-block; margin-top: 7px; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 999px; border: 1px solid var(--line); color: var(--muted); }
+
+.ic-owner { margin-top: 6px; font-size: 11px; font-weight: 700; color: var(--success); }
+
+.ic-actions { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+
+.ic-equip { padding: 6px 14px; border-radius: var(--r-sm); font-size: 12px; font-weight: 700; cursor: pointer; border: 1px solid var(--rc); background: color-mix(in srgb, var(--rc) 22%, transparent); color: var(--text); }
+
+.ic-equip.on { background: rgba(63, 224, 138, 0.16); border-color: var(--success); color: var(--success); }
+
+.ic-mini { width: 28px; height: 28px; display: grid; place-items: center; border-radius: var(--r-sm); font-size: 12px; cursor: pointer; background: var(--panel-2); border: 1px solid var(--line); color: var(--muted); }
+
+/* Details carries a text label — size to content (the fixed 28px square is for glyph-only minis). */
+.ic-details { width: auto; padding: 0 10px; white-space: nowrap; }
+
+.ic-mini:hover:not(:disabled) { background: var(--panel-3); color: var(--text); }
+
+.ic-mini.is-on { color: var(--gold); border-color: var(--gold); }
+
+.ic-mini.danger:hover:not(:disabled) { color: var(--danger); border-color: var(--danger); }
+
+.ic-mini:disabled { opacity: 0.35; cursor: not-allowed; }
+
+.cmp-col .ic-desc { text-align: center; }
+
+.cmp-col .ic-traits { justify-content: center; }
+
+/* ── Item card: item-level + power score ── */
+.ic-ilvl { color: var(--muted); font-variant-numeric: tabular-nums; }
+
+.ic-power { color: var(--gold); font-variant-numeric: tabular-nums; }
+
+/* ── Equipment Details screen (the ONE place gear is managed) ── */
+.id-box { position: relative; width: min(680px, 100%); max-height: 92vh; overflow-y: auto; border-radius: var(--r-lg); padding: 20px; background: linear-gradient(160deg, #141d28, var(--panel-deep)); border: 1px solid var(--rc, var(--line-strong)); box-shadow: 0 24px 70px rgba(0, 0, 0, 0.65), var(--ring-in) color-mix(in srgb, var(--rc) 22%, transparent); display: flex; flex-direction: column; gap: 16px; }
+
+.id-head { display: flex; gap: 16px; align-items: flex-start; }
+
+.id-art { flex: none; border-radius: var(--r-md); padding: 6px; background: radial-gradient(circle at 50% 40%, color-mix(in srgb, var(--rc) 22%, transparent), transparent 70%); border: 1px solid color-mix(in srgb, var(--rc) 40%, transparent); }
+
+.id-head-info { min-width: 0; flex: 1; }
+
+.id-name { font-family: 'Chakra Petch', system-ui, sans-serif; font-weight: 800; font-size: 20px; letter-spacing: 0.02em; }
+
+.id-sub { font-size: 12px; color: var(--muted); margin: 2px 0 6px; }
+
+.id-power { font-size: 14px; font-weight: 800; color: var(--rc); }
+
+.id-power span { font-size: 11px; color: var(--muted); font-weight: 600; }
+
+.id-desc { font-size: 12px; color: var(--text-dim, var(--muted)); line-height: 1.4; margin: 8px 0; }
+
+.id-manage { display: flex; gap: 8px; align-items: center; }
+
+.id-equip { padding: 7px 16px; border-radius: var(--r-sm); font-weight: 700; background: color-mix(in srgb, var(--rc) 22%, transparent); border: 1px solid var(--rc); color: var(--text); }
+
+.id-equip.on { background: rgba(255,255,255,0.06); border-color: var(--line); color: var(--muted); }
+
+.id-mini { min-width: 30px; height: 30px; padding: 0 8px; border-radius: var(--r-sm); background: rgba(255,255,255,0.05); border: 1px solid var(--line); font-size: 12px; }
+
+.id-mini.is-on { background: color-mix(in srgb, var(--gold) 20%, transparent); border-color: var(--gold); color: var(--gold); }
+
+.id-compare { border: 1px solid var(--line); border-radius: var(--r-md); padding: 12px; background: rgba(0,0,0,0.2); }
+
+.id-compare-verdict { display: flex; justify-content: center; margin-bottom: 8px; }
+
+.id-compare-cols { display: grid; grid-template-columns: 1fr auto 1fr; gap: 10px; align-items: center; }
+
+.id-cmp-col { display: flex; flex-direction: column; align-items: center; gap: 3px; text-align: center; }
+
+.id-cmp-tag { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; }
+
+.id-cmp-pow { font-size: 13px; font-weight: 800; }
+
+.id-cmp-arrow { font-size: 11px; color: var(--muted); font-weight: 700; }
+
+.id-cmp-empty { font-size: 11px; color: var(--muted); }
+
+.id-section { display: flex; flex-direction: column; gap: 8px; }
+
+.id-sec-title { font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); display: flex; justify-content: space-between; align-items: baseline; }
+
+.id-sec-hint, .id-mats { font-size: 10px; font-weight: 600; text-transform: none; letter-spacing: 0; color: var(--muted); }
+
+.id-affixes { display: flex; flex-direction: column; gap: 6px; }
+
+.id-affix { display: grid; grid-template-columns: 58px 1fr auto; align-items: center; gap: 8px; padding: 7px 10px; border-radius: var(--r-sm); background: var(--panel-2); border: 1px solid var(--line); }
+
+.id-affix.is-locked { opacity: 0.7; }
+
+.id-affix-tag { font-size: 10px; font-weight: 800; text-transform: uppercase; }
+
+.id-affix-main { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+
+.id-affix-name { font-size: 13px; font-weight: 700; }
+
+.id-affix-tier { font-size: 10px; color: var(--gold); }
+
+.id-affix-explain { font-size: 11px; color: var(--muted); }
+
+.id-affix-actions { display: flex; gap: 4px; }
+
+.id-ops { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px; }
+
+.id-op { display: flex; flex-direction: column; gap: 3px; text-align: left; padding: 8px 10px; border-radius: var(--r-sm); background: var(--panel-2); border: 1px solid var(--line); }
+
+.id-op:hover:not(:disabled) { border-color: var(--rc); background: color-mix(in srgb, var(--rc) 10%, var(--panel-2)); }
+
+.id-op:disabled { opacity: 0.4; }
+
+.id-op.danger:hover:not(:disabled), .id-op.danger.is-armed { border-color: var(--danger); background: color-mix(in srgb, var(--danger) 16%, var(--panel-2)); }
+
+.id-op-h { display: flex; justify-content: space-between; gap: 8px; font-size: 13px; }
+
+.id-op-cost { color: var(--gold); font-weight: 700; }
+
+.id-op-blurb { font-size: 11px; color: var(--muted); line-height: 1.3; }
+
+.id-facts { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+
+.id-fact { display: flex; flex-direction: column; gap: 2px; padding: 8px 10px; border-radius: var(--r-sm); background: rgba(0,0,0,0.2); border: 1px solid var(--line); }
+
+.id-fact-k { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; }
+
+.id-fact-v { font-size: 12px; color: var(--text); }
+
+@media (max-width: 560px) { .id-facts { grid-template-columns: 1fr; } .id-head { flex-direction: column; align-items: center; text-align: center; } }
+
+/* NEW badge (card, until inspected) + Undo-Salvage bar */
+.ic-new { position: absolute; top: 4px; left: 4px; padding: 1px 5px; border-radius: var(--r-xs); background: var(--vital); color: #04120a; font-size: 10px; font-weight: 900; letter-spacing: 0.06em; z-index: 2; box-shadow: 0 0 8px color-mix(in srgb, var(--vital) 60%, transparent); }
+
+.armory-undo { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 8px 0; padding: 8px 12px; border-radius: var(--r-md); background: color-mix(in srgb, var(--danger) 10%, var(--panel-2)); border: 1px solid color-mix(in srgb, var(--danger) 40%, var(--line)); font-size: 12px; }
+
+.armory-undo-btn { padding: 5px 12px; border-radius: var(--r-sm); background: var(--danger); color: #fff; font-weight: 700; font-size: 12px; flex: none; }
+
+.armory-undo-btn:hover { filter: brightness(1.12); }
+
+/* Quick-Salvage mode (Armory) — multi-select unlocked gear, dismantle the batch in one action.
+   Reuses the item-card's base transition; protected cards are inert (docs/EQUIPMENT.md §safeguards). */
+.item-card.is-selectable { cursor: pointer; }
+
+.item-card.is-selectable:hover { border-color: color-mix(in srgb, var(--danger) 60%, var(--line)); }
+
+.item-card.is-selected { border-color: var(--danger); box-shadow: 0 0 0 1px var(--danger), 0 10px 26px -12px color-mix(in srgb, var(--danger) 70%, transparent); }
+
+.item-card.is-inert { opacity: 0.5; filter: saturate(0.6); cursor: not-allowed; }
+
+.item-card.is-inert:hover { transform: none; box-shadow: none; border-color: color-mix(in srgb, var(--rc) 42%, var(--line)); }
+
+.ic-sel { position: absolute; top: -6px; left: 50%; transform: translateX(-50%); min-width: 18px; height: 18px; display: grid; place-items: center; border-radius: 50%; font-size: 11px; font-weight: 800; color: var(--panel-deep); background: var(--line-strong); border: 1px solid var(--line); }
+
+.ic-sel.on { background: var(--danger); border-color: var(--danger); color: #fff; }
+
+.ic-salv { font-size: 12px; font-weight: 700; color: var(--danger); }
+
+.ic-salv.is-inert { color: var(--muted); opacity: 1; }
+
+.ic-salv-state { letter-spacing: 0.02em; }
+
+.armory-salvagebar { position: sticky; bottom: 8px; z-index: 5; display: flex; align-items: center; gap: 10px; margin-top: 12px; padding: 10px 14px; border-radius: var(--r-md); background: color-mix(in srgb, var(--danger) 14%, var(--panel)); border: 1px solid color-mix(in srgb, var(--danger) 45%, var(--line)); box-shadow: 0 12px 30px -16px var(--danger); }
+
+.asb-count { font-size: 13px; font-weight: 700; color: var(--text); }
+
+/* Quick-grab chips — one tap selects all dismantlable gear at/below the rarity (EQUIPMENT.md) */
+.asb-grab { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+
+.asb-chip { padding: 4px 10px; border-radius: 999px; font-size: 11px; font-weight: 800; letter-spacing: 0.02em; color: var(--rc, var(--text)); background: color-mix(in srgb, var(--rc, var(--line)) 14%, var(--panel-2)); border: 1px solid color-mix(in srgb, var(--rc, var(--line)) 45%, var(--line)); cursor: pointer; }
+
+.asb-chip:hover { background: color-mix(in srgb, var(--rc, var(--line)) 26%, var(--panel-2)); }
+
+.asb-chip.is-clear { --rc: initial; color: var(--muted); }
+
+@media (max-width: 640px) { .armory-salvagebar { flex-wrap: wrap; } .asb-count { order: 1; flex: 1 1 auto; } }
+
+.asb-cancel { margin-left: auto; padding: 6px 14px; border-radius: 999px; font-size: 12px; font-weight: 700; background: var(--panel-2); border: 1px solid var(--line); color: var(--muted); cursor: pointer; }
+
+.asb-cancel:hover { background: var(--panel-3); }
+
+.asb-go { padding: 7px 16px; border-radius: 999px; font-size: 13px; font-weight: 800; background: var(--danger); color: #fff; border: 1px solid var(--danger); cursor: pointer; }
+
+.asb-go:hover:not(:disabled) { filter: brightness(1.12); }
+
+.asb-go:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* Tiered salvage confirm — rarity scales the ceremony; a higher-Power dismantle hard-warns */
+.id-salvage-scrim { position: absolute; inset: 0; z-index: 5; display: grid; place-items: center; background: rgba(4, 8, 12, 0.7); border-radius: var(--r-lg); padding: 20px; }
+
+.id-salvage { width: min(380px, 90%); border-radius: var(--r-md); padding: 18px; text-align: center; background: linear-gradient(160deg, #1a1016, #120b10); border: 1px solid var(--rc, var(--line-strong)); box-shadow: 0 16px 48px rgba(0, 0, 0, 0.6); }
+
+.id-salvage.is-warning { border-color: var(--danger); box-shadow: 0 0 0 1px var(--danger), 0 16px 48px rgba(0, 0, 0, 0.7); }
+
+.id-salvage.is-legendary { padding: 24px; }
+
+.id-salvage-warn { font-family: 'Chakra Petch', system-ui, sans-serif; font-size: 20px; font-weight: 900; letter-spacing: 0.08em; color: var(--danger); margin-bottom: 10px; }
+
+.id-salvage.is-legendary .id-salvage-h, .id-salvage-h { font-size: 16px; font-weight: 800; margin-bottom: 8px; }
+
+.id-salvage.is-legendary .id-salvage-h { font-size: 18px; }
+
+.id-salvage-copy { font-size: 13px; color: var(--text); line-height: 1.45; margin: 6px 0; }
+
+.id-salvage-btns { display: flex; gap: 10px; justify-content: center; margin-top: 14px; }
+
+.id-salvage-btns button { padding: 8px 18px; border-radius: var(--r-sm); font-weight: 700; background: rgba(255,255,255,0.06); border: 1px solid var(--line); }
+
+@media (max-width: 640px) {
+  .ac-right { margin-left: 0; }
+}
+
+.ic-compare { margin: 2px 0 1px; }
+
+.act-equip::before { content: '⛨ '; color: var(--vital); }
+
+.eq-advisor { align-items: center; }
+
+.eq-replaces { font-style: normal; color: var(--muted); }
+
+.eq-equip-now { flex: none; font-size: 11px; font-weight: 900; letter-spacing: 0.08em; padding: 4px 14px; border-radius: 999px; color: #0b1207; background: var(--gold); border: 1px solid color-mix(in srgb, var(--gold) 70%, #fff 10%); transition: transform var(--dur-2) var(--ease-out), box-shadow var(--dur-2) var(--ease-out); }
+
+.eq-equip-now:hover { transform: translateY(-1px); box-shadow: 0 0 12px color-mix(in srgb, var(--gold) 45%, transparent); }
+
+/* Equip ALL — the advisor's one-tap sweep: outlined so the single best pick stays the headline. */
+.eq-equip-all { margin-left: 6px; color: var(--gold); background: transparent; border-color: color-mix(in srgb, var(--gold) 55%, transparent); }
+
+.eq-equip-all:hover { background: color-mix(in srgb, var(--gold) 14%, transparent); }
+
+.armory-chase { font-size: var(--fs-xs); color: var(--muted); }

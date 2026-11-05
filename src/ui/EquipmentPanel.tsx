@@ -24,6 +24,7 @@ import { ItemDetails } from './ItemDetails';
 import { HostedScreen } from './components/HostTabs';
 import { EquipmentCollection } from './EquipmentCollection';
 import { RarityFx, rfxClass } from './components/RarityFx';
+import './EquipmentPanel.css';
 
 type SortKey = 'power' | 'rarity' | 'name' | 'set' | 'newest';
 const SORTS: { key: SortKey; label: string }[] = [

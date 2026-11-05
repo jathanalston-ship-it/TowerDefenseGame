@@ -24,6 +24,7 @@ import { isInfiniteUnlocked } from '../save/derive';
 import { CurrencyIcon } from './components/CurrencyIcon';
 import { ThreatPicker } from './components/ThreatPicker';
 import { LoadoutStrip } from './components/LoadoutStrip';
+import './CampaignScreen.css';
 
 const WINDOW = 8; // nodes shown at once (a window over the infinite ladder)
 const ROW = 64, TOP = 44, MIDX = 150, AMP = 98; // serpentine descent layout (SVG units)

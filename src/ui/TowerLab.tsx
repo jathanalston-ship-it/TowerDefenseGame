@@ -27,6 +27,7 @@ import type { LabSort, StepView, TowerLabModel } from './towerLabModel';
 import { EvolutionTrackPanel } from './EvolutionTrack';
 import { navBus } from '../state/navBus';
 import { evolutionRosterSignal } from './evolutionTrackModel';
+import './TowerLab.css';
 
 interface CeremonyState {
   kind: TowerKind;

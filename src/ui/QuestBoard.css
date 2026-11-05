@@ -1,0 +1,223 @@
+/* QuestBoard — the styles only this module's elements need, shipped in its lazy chunk instead of the
+   boot stylesheet (docs/DEPLOYMENT.md §boot-css). src/index.css keeps every class a boot screen (or
+   more than one lazy chunk) renders; lazy stylesheets load AFTER it, so override here, not there. */
+
+/* ── Quest Board (docs/QUESTS.md §ui) — weekly banner, questline chapters, contracts ── */
+.qb { --qa: var(--vital); }
+
+.qb .title { margin-bottom: 2px; }
+
+.qb-weekly { margin-top: 14px; padding: 0; overflow: hidden; border-color: color-mix(in srgb, var(--qa) 35%, var(--line)); }
+
+.qb-w-head { display: flex; gap: 14px; align-items: center; padding: 14px 16px; background: linear-gradient(135deg, color-mix(in srgb, var(--qa) 16%, transparent), transparent 62%); border-bottom: 1px solid var(--line); }
+
+.qb-w-glyph { font-size: 34px; line-height: 1; color: var(--qa); text-shadow: 0 0 18px color-mix(in srgb, var(--qa) 55%, transparent); flex: none; }
+
+.qb-w-title { flex: 1 1 auto; min-width: 0; }
+
+.qb-eyebrow { font-size: 10px; letter-spacing: 0.16em; color: var(--muted); }
+
+.qb-w-name { font-size: 20px; margin: 2px 0; color: var(--text); letter-spacing: 0.04em; }
+
+.qb-c-name { font-size: 16px; margin: 2px 0; color: var(--text); letter-spacing: 0.04em; }
+
+.qb-w-tag { font-size: 12px; color: var(--dim); margin: 0; }
+
+.qb-w-meter { flex: none; text-align: right; color: var(--muted); font-size: 11px; display: flex; flex-direction: column; align-items: flex-end; }
+
+.qb-w-reruns { color: var(--dim); }
+
+.qb-missions { display: flex; flex-direction: column; }
+
+.qb-mission:last-child { border-bottom: 0; }
+
+.qb-mission.is-earned { background: color-mix(in srgb, var(--qa) 7%, transparent); }
+
+.qb-mission.is-claimed { opacity: 0.55; }
+
+.qb-m-main { flex: 1 1 auto; min-width: 0; }
+
+.qb-m-name { font-size: 13px; color: var(--text); margin-right: 8px; }
+
+.qb-m-blurb { font-size: 11px; color: var(--dim); }
+
+.qb-m-bar { height: 4px; border-radius: 999px; background: var(--panel-3); margin-top: 5px; overflow: hidden; }
+
+.qb-m-bar i { display: block; height: 100%; background: linear-gradient(90deg, color-mix(in srgb, var(--qa) 70%, transparent), var(--qa)); border-radius: 999px; transition: width var(--dur-3) var(--ease-out); }
+
+.qb-m-side { flex: none; display: flex; align-items: center; gap: 10px; }
+
+.qb-m-count { font-size: 12px; color: var(--text); font-variant-numeric: tabular-nums; }
+
+.qb-m-count em { font-style: normal; color: var(--muted); }
+
+.qb-m-pay { display: inline-flex; gap: 3px; font-size: 12px; }
+
+.qb-m-claim:hover { transform: translateY(-1px); box-shadow: 0 0 14px color-mix(in srgb, var(--qa) 35%, transparent); }
+
+.qb-m-done { color: var(--qa); font-size: 13px; }
+
+.qb-finale { display: flex; gap: 14px; align-items: center; padding: 12px 16px; border-top: 1px solid var(--line); background: linear-gradient(90deg, color-mix(in srgb, var(--qa) 10%, transparent), transparent 70%); }
+
+.qb-finale.is-ready { background: linear-gradient(90deg, color-mix(in srgb, var(--qa) 22%, transparent), transparent 80%); }
+
+.qb-finale-k { font-size: 10px; letter-spacing: 0.16em; color: var(--qa); flex: none; writing-mode: vertical-rl; transform: rotate(180deg); }
+
+.qb-finale-rewards { flex: 1 1 auto; display: flex; flex-wrap: wrap; gap: 4px 14px; min-width: 0; }
+
+.qb-finale-line { font-size: 12px; color: var(--text); }
+
+.qb-finale-line.is-story { color: var(--qa); }
+
+.qb-finale-done { flex: none; color: var(--qa); font-size: 12px; letter-spacing: 0.08em; }
+
+.qb-main { margin-top: 22px; display: flex; flex-direction: column; gap: 12px; }
+
+.qb-main-h { margin: 0 2px; }
+
+.qb-main-title { font-size: 14px; letter-spacing: 0.2em; color: var(--muted); margin: 0; }
+
+.qb-main-sub { font-size: 11px; color: var(--dim); margin: 2px 0 0; }
+
+.qb-chapter { padding: 0; overflow: hidden; }
+
+.qb-chapter.is-active { border-color: color-mix(in srgb, var(--qa) 35%, var(--line)); }
+
+.qb-chapter.is-locked { opacity: 0.6; }
+
+.qb-chapter.is-locked .qb-w-glyph { color: var(--muted); text-shadow: none; }
+
+.qb-chapter .qb-w-head { border-bottom: 0; }
+
+.qb-chapter.is-active .qb-w-head { border-bottom: 1px solid var(--line); }
+
+.qb-c-done { color: var(--qa); font-size: 12px; letter-spacing: 0.12em; }
+
+.qb-c-epilogue { padding: 10px 16px; font-size: 11px; color: var(--dim); border-top: 1px solid var(--line); }
+
+.qb-contracts { margin-top: 22px; }
+
+.qb-contracts .cc-contracts { margin-top: 12px; }
+
+@media (max-width: 640px) {
+  .qb-w-head { flex-wrap: wrap; gap: 8px 12px; }
+  .qb-w-meter { flex-direction: row; align-items: baseline; gap: 4px; }
+  .qb-mission { flex-wrap: wrap; }
+  .qb-m-side { margin-left: auto; }
+  .qb-finale { flex-wrap: wrap; }
+  .qb-finale-k { writing-mode: horizontal-tb; transform: none; }
+}
+
+@media (prefers-reduced-motion: reduce) { .qb-m-bar i, .qb-m-claim { transition: none; } }
+
+/* ── Quest claim celebration + claim-ready chrome (docs/QUESTS.md §ui) ─────────────────────
+   Ready state is LOUD: the claim key pulses, the row wears a lit edge, the title carries a
+   live "N to claim" chip. The claim itself erupts reward chips from the click point over a
+   shock ring — fixed-position, pointer-transparent, self-clearing (layout can never shift). */
+.qb-claimable-chip { display: inline-block; margin-left: 10px; padding: 3px 12px; border-radius: 999px; font-size: 12px; font-weight: 800; letter-spacing: 0.08em; vertical-align: middle;
+  color: #0a0e16; background: linear-gradient(160deg, var(--gold), color-mix(in srgb, var(--gold) 55%, #fff)); animation: ps-sale-pulse 2.2s ease-in-out infinite; }
+
+.qb-m-readydot { display: inline-block; width: 7px; height: 7px; margin-left: 7px; border-radius: 50%; vertical-align: middle;
+  background: var(--gold); box-shadow: 0 0 8px var(--gold); animation: qb-ready-blink 1.6s ease-in-out infinite; }
+
+@keyframes qb-ready-blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }
+
+.qb-mission.is-earned { border-color: color-mix(in srgb, var(--gold) 45%, var(--line-strong)); box-shadow: 0 0 14px -6px color-mix(in srgb, var(--gold) 60%, transparent); }
+
+.qb-m-claim { animation: qb-claim-pulse 2s ease-in-out infinite; }
+
+@keyframes qb-claim-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--qa) 45%, transparent); }
+  50% { box-shadow: 0 0 12px 2px color-mix(in srgb, var(--qa) 45%, transparent); }
+}
+
+.qb-burst { position: fixed; z-index: 80; pointer-events: none; }
+
+.qb-burst-ring { position: absolute; left: -6px; top: -6px; width: 12px; height: 12px; border-radius: 50%;
+  border: 2px solid var(--qa, var(--gold)); animation: qb-burst-ring 0.7s var(--ease-out) both; }
+
+.qb-burst-ring.is-big { border-color: var(--gold); border-width: 3px; animation-duration: 1s; }
+
+.qb-burst-chip { position: absolute; left: 0; top: 0; transform: translate(-50%, 0); white-space: nowrap;
+  padding: 3px 10px; border-radius: 999px; font-size: 12px; font-weight: 800; color: var(--text);
+  background: color-mix(in srgb, var(--qa, var(--gold)) 24%, var(--panel-2)); border: 1px solid color-mix(in srgb, var(--qa, var(--gold)) 55%, var(--line-strong));
+  box-shadow: 0 4px 14px -6px rgba(0, 0, 0, 0.8), 0 0 10px -3px color-mix(in srgb, var(--qa, var(--gold)) 55%, transparent);
+  animation: qb-burst-rise 1.45s var(--ease-out) both; }
+
+@keyframes qb-burst-rise {
+  0% { opacity: 0; transform: translate(-50%, 6px) scale(0.7); }
+  12% { opacity: 1; transform: translate(calc(-50% + var(--dx, 0px) * 0.4), -18px) scale(1.06); }
+  70% { opacity: 1; transform: translate(calc(-50% + var(--dx, 0px)), -52px) scale(1); }
+  100% { opacity: 0; transform: translate(calc(-50% + var(--dx, 0px)), -74px) scale(0.96); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .qb-claimable-chip, .qb-m-readydot, .qb-m-claim, .qb-burst-ring, .qb-burst-chip { animation: none; }
+}
+
+/* ── METABOLISM — the Milestones screen (docs/METABOLISM.md §screen) ─────────────────────
+   Progress-first rows; the hero Digest CTA is this screen's ONE attention-band animator
+   (docs/INFO-HIERARCHY.md §2) — rows signal readiness with color only. */
+.mtb-screen { display: flex; flex-direction: column; gap: 14px; }
+
+.mtb-ledger { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; margin-top: 6px; font-size: 12px; color: var(--muted); }
+
+.mtb-dtl { font-size: 12px; }
+
+.mtb-heroRow { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; padding: 12px 14px; border-radius: var(--r-md);
+  border: 1px solid color-mix(in srgb, var(--gold) 45%, transparent);
+  background: linear-gradient(120deg, color-mix(in srgb, var(--gold) 12%, transparent), transparent 60%); }
+
+.mtb-hero-g { font-size: 26px; flex-shrink: 0; }
+
+.mtb-hero-t { flex: 1; min-width: 180px; display: flex; flex-direction: column; gap: 2px; font-size: 13px; }
+
+.mtb-hero-s { font-size: 11px; color: var(--muted); }
+
+.mtb-hero-cta { animation: mtb-hero-breathe 2.8s ease-in-out infinite; }
+
+@keyframes mtb-hero-breathe {
+  0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--gold) 45%, transparent); }
+  50% { box-shadow: 0 0 14px 3px color-mix(in srgb, var(--gold) 30%, transparent); }
+}
+
+.mtb-cat-h { display: flex; align-items: baseline; gap: 8px; margin: 4px 0 8px; font-size: 13px; letter-spacing: 0.08em; text-transform: uppercase; }
+
+.mtb-cat-n { font-style: normal; font-size: 11px; color: var(--gold); text-transform: none; letter-spacing: 0; }
+
+.mtb-rows { display: flex; flex-direction: column; gap: 8px; }
+
+.mtb-row { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border: 1px solid var(--line); border-radius: var(--r-sm); }
+
+.mtb-row.is-ready { border-color: color-mix(in srgb, var(--gold) 55%, transparent); background: color-mix(in srgb, var(--gold) 5%, transparent); }
+
+.mtb-glyph { width: 26px; text-align: center; font-size: 16px; flex-shrink: 0; }
+
+.mtb-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+
+.mtb-line1 { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; min-width: 0; }
+
+.mtb-name { font-size: 13px; }
+
+.mtb-tier { font-size: 10px; color: var(--caustic); border: 1px solid color-mix(in srgb, var(--caustic) 45%, transparent); padding: 0 5px; border-radius: 999px; white-space: nowrap; }
+
+.mtb-pay { display: flex; gap: 5px; flex-wrap: wrap; margin-left: auto; }
+
+.mtb-pay em { font-style: normal; font-size: 10px; color: var(--muted); border: 1px solid var(--line); padding: 1px 6px; border-radius: 999px; white-space: nowrap; }
+
+.mtb-row.is-ready .mtb-pay em { color: var(--gold); border-color: color-mix(in srgb, var(--gold) 40%, transparent); }
+
+.mtb-bar { height: 6px; border-radius: 999px; background: color-mix(in srgb, var(--line) 60%, transparent); overflow: hidden; }
+
+.mtb-fill { display: block; height: 100%; border-radius: 999px; background: linear-gradient(90deg, var(--viral), var(--gold)); }
+
+.mtb-line2 { font-size: 11px; color: var(--muted); }
+
+.mtb-claim { white-space: nowrap; flex-shrink: 0; }
+
+@media (prefers-reduced-motion: reduce) { .mtb-hero-cta { animation: none; } }
+
+@media (max-width: 760px) {
+  .mtb-pay { margin-left: 0; width: 100%; }
+  .mtb-heroRow .mtb-hero-cta { flex: 1; }
+}

@@ -1,0 +1,211 @@
+/* CentreStage — the styles only this module's elements need, shipped in its lazy chunk instead of the
+   boot stylesheet (docs/DEPLOYMENT.md §boot-css). src/index.css keeps every class a boot screen (or
+   more than one lazy chunk) renders; lazy stylesheets load AFTER it, so override here, not there. */
+
+/* ═══════════ GAME-FEEL PASS (docs/GAME-FEEL.md) — spectacle + micro-reward layer ═══════════ */
+
+/* Wave launch banner: sweeps across the board, holds a beat, exits. Pure presentation. */
+.wave-banner {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+  z-index: 6;
+}
+
+.wave-banner-t {
+  font-size: 40px;
+  font-weight: 900;
+  letter-spacing: 0.28em;
+  color: #fff;
+  text-shadow: 0 0 24px color-mix(in srgb, var(--vital) 80%, transparent), 0 2px 0 rgba(0, 0, 0, 0.6);
+  animation: wave-banner var(--stage-ms, 1.7s) var(--ease-out) both; /* --stage-ms: the announcer's slot (render/feel.ts ANNOUNCE) */
+}
+
+/* Boss arrival: eyebrow → name slam → subtitle, over a brief red iris. */
+.boss-intro {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  pointer-events: none;
+  z-index: 7;
+  background: radial-gradient(ellipse at center, transparent 40%, color-mix(in srgb, var(--danger) 22%, transparent) 100%);
+  animation: boss-iris var(--stage-ms, 3s) var(--ease-out) both;
+}
+
+@keyframes boss-iris {
+  0% { opacity: 0; }
+  10% { opacity: 1; }
+  80% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+.boss-intro-eyebrow {
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 0.34em;
+  line-height: 1.2;
+  margin-bottom: 14px;
+  color: var(--danger);
+  animation: boss-line var(--stage-ms, 3s) var(--ease-out) both;
+}
+
+.boss-intro-name {
+  font-size: 40px;
+  font-weight: 900;
+  letter-spacing: 0.14em;
+  line-height: 1.2;
+  color: #fff;
+  text-shadow: 0 0 30px color-mix(in srgb, var(--danger) 85%, transparent), 0 3px 0 rgba(0, 0, 0, 0.7);
+  animation: boss-name var(--stage-ms, 3s) cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.boss-intro-sub {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  line-height: 1.3;
+  margin-top: 12px;
+  font-variant: small-caps;
+  color: var(--text-dim);
+  animation: boss-line var(--stage-ms, 3s) var(--ease-out) both;
+}
+
+@keyframes boss-line {
+  0%, 8% { opacity: 0; transform: translateY(6px); }
+  20% { opacity: 1; transform: none; }
+  82% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+/* Identity card lines (docs/BOSS-DESIGN.md §identity): the epithet is the byline under the
+   name-slam; the kit chips read the FIGHT (each = one telegraphed verb) before it starts. */
+.boss-intro-epithet {
+  font-size: 14px;
+  font-weight: 700;
+  font-style: italic;
+  letter-spacing: 0.14em;
+  line-height: 1.3;
+  color: var(--gold);
+  text-shadow: 0 0 14px rgba(255, 210, 77, 0.4);
+  animation: boss-line var(--stage-ms, 3s) var(--ease-out) both;
+}
+
+.boss-intro-kit {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+  max-width: min(480px, 86vw);
+  margin-top: 10px;
+  animation: boss-line var(--stage-ms, 3s) var(--ease-out) both;
+}
+
+.boss-intro-kit i {
+  font-style: normal;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 3px 9px;
+  border-radius: 999px;
+  color: var(--text-dim);
+  background: rgba(10, 8, 14, 0.66);
+  border: 1px solid color-mix(in srgb, var(--danger) 45%, transparent);
+}
+
+/* Boss defeat beat (docs/BOSS-DESIGN.md §identity): the title that announced the threat falls
+   with the body. Brief, celebratory, and out of the way before the wave resumes. */
+.boss-fall {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  pointer-events: none;
+  z-index: 6;
+}
+
+.boss-fall-name {
+  font-size: 26px;
+  font-weight: 900;
+  letter-spacing: 0.16em;
+  line-height: 1.2;
+  color: #fff;
+  text-shadow: 0 0 22px color-mix(in srgb, var(--vital) 75%, transparent), 0 2px 0 rgba(0, 0, 0, 0.6);
+  animation: boss-fall var(--stage-ms, 2.2s) var(--ease-out) both;
+}
+
+.boss-fall-sub {
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.28em;
+  line-height: 1.3;
+  font-variant: small-caps;
+  color: var(--vital);
+  animation: boss-fall var(--stage-ms, 2.2s) var(--ease-out) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* `animation: none`, NOT a 0.01s duration: these timelines end at opacity 0 with fill `both`, so
+     collapsing them made every centre-stage card INVISIBLE under reduced motion. Static instead —
+     the announcer still removes each card when its slot ends. */
+  .wave-banner-t, .boss-intro, .boss-intro-name, .boss-intro-eyebrow, .boss-intro-sub, .boss-intro-epithet, .boss-intro-kit, .boss-fall-name, .boss-fall-sub, .mega-intro, .wp-callout { animation: none !important; }
+}
+
+.mega-intro {
+  position: absolute; top: 24%; left: 50%; transform: translateX(-50%);
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+  padding: 18px 34px; border-radius: var(--r-md); text-align: center; z-index: 60;
+  background: rgba(6, 4, 10, 0.85); border: 1px solid var(--mega, #ff5d73);
+  box-shadow: 0 0 60px color-mix(in srgb, var(--mega, #ff5d73) 40%, transparent);
+  animation: mega-intro-in 0.7s cubic-bezier(0.2, 1.4, 0.4, 1) both, gene-splash-out 0.6s ease-in calc(var(--stage-ms, 3.7s) - 0.6s) forwards;
+  pointer-events: none;
+}
+
+.mega-intro-eyebrow { font-size: 10px; letter-spacing: 0.28em; color: var(--mega, #ff5d73); }
+
+.mega-intro-name { font-size: 26px; font-weight: 900; letter-spacing: 0.16em; color: #fff; text-shadow: 0 0 24px var(--mega, #ff5d73); }
+
+.mega-intro-title { font-size: 13px; letter-spacing: 0.12em; color: var(--mega, #ff5d73); }
+
+.mega-intro-sub { font-size: 10px; color: var(--muted); letter-spacing: 0.06em; }
+
+@keyframes mega-intro-in { from { opacity: 0; transform: translateX(-50%) scale(1.4); filter: blur(6px); } to { opacity: 1; transform: translateX(-50%) scale(1); filter: blur(0); } }
+
+.wp-callout {
+  position: absolute; top: 30%; left: 50%; transform: translateX(-50%);
+  display: flex; flex-direction: column; align-items: center; gap: 3px;
+  padding: 10px 22px; border-radius: var(--r-sm); text-align: center; z-index: 55;
+  background: rgba(6, 12, 8, 0.88); border: 1px solid #6effa8;
+  box-shadow: 0 0 30px rgba(110, 255, 168, 0.35);
+  animation: achv-in 0.35s cubic-bezier(0.2, 1.6, 0.4, 1) both, gene-splash-out 0.5s ease-in calc(var(--stage-ms, 3.1s) - 0.5s) forwards;
+  pointer-events: none;
+}
+
+.wp-callout-name { font-size: 13px; font-weight: 900; letter-spacing: 0.12em; color: #ffd24d; }
+
+.wp-callout-note { font-size: 11px; color: #6effa8; letter-spacing: 0.04em; }
+
+/* MEGA FALL card — the mega intro's frame, crowned gold: the raid's last word on centre stage. */
+.mega-intro.mega-fall { border-color: var(--gold); box-shadow: 0 0 60px color-mix(in srgb, var(--gold) 45%, transparent); }
+
+.mega-fall .mega-intro-eyebrow { color: var(--gold); }
+
+.mega-fall .mega-intro-name { text-shadow: 0 0 24px var(--gold), 0 2px 0 rgba(0, 0, 0, 0.7); }
+
+.mega-fall .mega-intro-sub { font-size: 11px; color: var(--text-dim); letter-spacing: 0.08em; }
+
+.game[data-motion="reduced"] .wave-banner-t,
+.game[data-motion="reduced"] .boss-intro,
+.game[data-motion="reduced"] .boss-intro > span,
+.game[data-motion="reduced"] .boss-fall > span,
+.game[data-motion="reduced"] .mega-intro,
+.game[data-motion="reduced"] .wp-callout { animation: none !important; }

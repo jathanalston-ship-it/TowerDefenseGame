@@ -18,6 +18,7 @@ import { dailyModifierById } from '../core/dailyModifiers';
 import { megaBossDef } from '../core/megaboss';
 import { biomeById } from '../core/biomes';
 import { DAILY, HERO_DEFS, HERO_ORDER, TOWER_DEFS } from '../core/config';
+import './DailyScreen.css';
 
 function fmtCountdown(ms: number): string {
   const s = Math.max(0, Math.floor(ms / 1000));

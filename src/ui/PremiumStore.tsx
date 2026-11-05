@@ -17,20 +17,16 @@ import {
   ICHOR_BUNDLES, PERMANENT_PACKS, activeEventOffers, offerAvailable, offerReachesChance, offerValueIchor,
   offerValueMultiple, seasonOfferFor, todaysRotatingOffer,
 } from '../core/premium';
-import type { PremiumGrant, PremiumOfferDef } from '../core/premium';
+import type { PremiumOfferDef } from '../core/premium';
 import { flashOverview, flashSalePct, flashTriggerLabel } from '../state/flashOffers';
 import { dailyKey, msUntilDailyReset } from '../core/daily';
 import { rarityColor } from './components/ItemArt';
 import { CurrencyIcon } from './components/CurrencyIcon';
 import { Popup } from './components/Popup';
+import { fmtCountdown, fmtUsd, grantLine } from './premiumFormat';
+import './PremiumStore.css';
 
-export const fmtUsd = (v: number): string => `$${v.toFixed(2)}`;
-export function fmtCountdown(ms: number): string {
-  const s = Math.max(0, Math.floor(ms / 1000));
-  return `${Math.floor(s / 3600)}h ${String(Math.floor((s % 3600) / 60)).padStart(2, '0')}m`;
-}
 
-/** Human line per grant — the card preview (the receipt carries its own resolved lines). */
 /** Player-facing copy for checkout failures (machine codes stay in the console). */
 function storeErrorCopy(code: string): string {
   switch (code) {
@@ -44,21 +40,6 @@ function storeErrorCopy(code: string): string {
   }
 }
 
-export function grantLine(g: PremiumGrant): { icon: string; label: string; rarity?: string } {
-  switch (g.grant) {
-    case 'ichor': return { icon: '◆', label: `${g.qty} Ichor` };
-    case 'cores': return { icon: '⬡', label: `${g.qty} Genome Cores` };
-    case 'geneEssence': return { icon: '⌬', label: `${g.qty} Gene Essence` };
-    case 'mats': return { icon: '⚒', label: `Materials ⊕${g.mutagen ?? 0} ◳${g.scrap ?? 0} ✷${g.catalyst ?? 0}` };
-    case 'towerShardsAll': return { icon: '✦', label: `${g.qtyEach} Strain Samples × every tower` };
-    case 'heroShardsAll': return { icon: '✦', label: `${g.qtyEach} Apex Genome × every hero` };
-    case 'container': return { icon: '◈', label: `${g.count}× ${g.rarity} Bio-Container`, rarity: g.rarity };
-    case 'runCache': return { icon: '⬢', label: `${g.count}× Run Cache` };
-    case 'equipment': return { icon: '⛨', label: `${g.count}× ${g.rarity} Equipment`, rarity: g.rarity };
-    case 'rushStamina': return { icon: '☠', label: `${g.qty} Rush Stamina` };
-    case 'battlePassPremium': return { icon: '❁', label: 'Premium track — current season' };
-  }
-}
 
 // ── One offer card (all sections reuse it; `hero` renders the large permanent-pack layout) ──
 function OfferCard({ offer, unavailable, note, hero, onBuy }: {

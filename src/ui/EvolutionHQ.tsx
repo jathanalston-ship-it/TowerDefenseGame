@@ -26,6 +26,7 @@ import { usePressRepeat } from './components/usePressRepeat';
 import { SectionNav } from './components/SectionNav';
 import { PrestigePanel } from './PrestigePanel';
 import { BestBuyStrip } from './components/BestBuyStrip';
+import './EvolutionHQ.css';
 
 /** The living-lab backdrop — drifting cells + a rotating DNA helix. Pure decoration. */
 function EvoBackdrop(): JSX.Element {

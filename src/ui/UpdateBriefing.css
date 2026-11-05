@@ -1,0 +1,46 @@
+/* UpdateBriefing — the styles only this module's elements need, shipped in its lazy chunk instead of the
+   boot stylesheet (docs/DEPLOYMENT.md §boot-css). src/index.css keeps every class a boot screen (or
+   more than one lazy chunk) renders; lazy stylesheets load AFTER it, so override here, not there. */
+
+/* The briefing card must NEVER push its Continue button below the fold — a multi-release
+   backlog can carry dozens of highlight rows, so the card caps to the viewport and the
+   highlight/group lists scroll INSIDE it while the actions stay pinned in view. */
+.ub-card { width: min(520px, 100%); max-height: calc(var(--app-h) - 48px); overflow: hidden; }
+
+.ub-sub { font-size: 12px; color: var(--muted); }
+
+.ub-highlights { width: 100%; display: flex; flex-direction: column; gap: 5px; margin-top: 4px; max-height: 34vh; overflow-y: auto; }
+
+.ub-hi { padding: 7px 12px; border-radius: var(--r-md); text-align: left; font-size: 13px; font-weight: 700; color: var(--gold); background: color-mix(in srgb, var(--gold) 9%, transparent); border: 1px solid color-mix(in srgb, var(--gold) 40%, var(--line)); }
+
+.ub-groups { width: 100%; display: flex; flex-direction: column; gap: 8px; margin-top: 6px; max-height: 44vh; overflow: auto; text-align: left; }
+
+.ub-group { display: grid; grid-template-columns: 92px 1fr; gap: 10px; align-items: baseline; animation: ui-rise var(--dur-3) var(--ease-out) both; animation-delay: calc(var(--i, 0) * 40ms); }
+
+.ub-cat { font-size: 10px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: var(--success); }
+
+.ub-lines { margin: 0; padding-left: 16px; display: flex; flex-direction: column; gap: 3px; }
+
+.ub-lines li { font-size: 12px; color: var(--text); line-height: 1.45; }
+
+.ub-actions { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 10px; margin-top: 12px; }
+
+.ub-go { min-width: 150px; }
+
+.ub-link:hover { border-color: var(--success); }
+
+@media (prefers-reduced-motion: reduce) { .ub-group { animation: none; } }
+
+.ub-now { display: flex; flex-direction: column; gap: 6px; margin-top: 12px; padding: 10px; border: 1px solid color-mix(in srgb, var(--gold) 30%, var(--line-strong)); border-radius: var(--r-sm); background: rgba(255, 255, 255, 0.03); max-width: 100%; box-sizing: border-box; }
+
+.ub-now-k { font-size: 10px; font-weight: 900; letter-spacing: 0.16em; color: var(--gold); }
+
+.ub-now-row { display: flex; align-items: center; gap: 8px; width: 100%; background: none; border: none; padding: 4px 2px; cursor: pointer; text-align: left; min-width: 0; box-sizing: border-box; }
+
+.ub-now-row:hover .ub-now-t { color: var(--text); }
+
+.ub-now-t { flex: 1 1 auto; min-width: 0; font-size: 12px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+.ub-now-gain { flex: none; font-size: 11px; font-weight: 900; color: var(--gold); }
+
+.ub-now-go { flex: none; font-size: 10px; font-weight: 800; color: var(--text); background: rgba(255,255,255,0.06); border: 1px solid var(--line-strong); border-radius: var(--r-sm); padding: 3px 8px; white-space: nowrap; }

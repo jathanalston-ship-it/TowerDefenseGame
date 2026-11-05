@@ -19,6 +19,7 @@ import { Popup } from './components/Popup';
 import { HostedScreen } from './components/HostTabs';
 import { HarvestScreen } from './HarvestScreen';
 import { ExpeditionScreen } from './ExpeditionScreen';
+import './HiveScreen.css';
 
 /** Recipe chip presentation per currency lane (icon component ids + names for tooltips). */
 const LANE: Record<RecipeKey, { cur: Parameters<typeof CurrencyIcon>[0]['id'] | null; name: string; glyph?: string }> = {

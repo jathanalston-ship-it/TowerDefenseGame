@@ -11,6 +11,7 @@ import { meta } from '../state/meta';
 import { audio } from '../audio/sound';
 import type { EvolutionSubject } from '../core/masteryEvolution';
 import { evolutionPanelModel } from './evolutionTrackModel';
+import './EvolutionTrack.css';
 
 // Geometry: 11px per track level; strand period 20 levels → crossovers land exactly on the
 // majors (every 10th level). Paths are static — only node states and the clip width change.

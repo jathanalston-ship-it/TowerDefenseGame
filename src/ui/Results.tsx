@@ -35,6 +35,7 @@ import type { RunBackdropImage } from '../render/runOutro';
 import { featureRevealed } from '../state/unlocks';
 import { autoClaimPref } from '../state/prefs';
 import { RarityFx, rfxClass } from './components/RarityFx';
+import './Results.css';
 
 /** The defeat debrief (docs/REWARD-PRESENTATION.md §debrief) — always visible under the title on
  *  a loss: how close the run came, what got through, and ONE concrete next step. */

@@ -1,0 +1,245 @@
+/* CampaignScreen — the styles only this module's elements need, shipped in its lazy chunk instead of the
+   boot stylesheet (docs/DEPLOYMENT.md §boot-css). src/index.css keeps every class a boot screen (or
+   more than one lazy chunk) renders; lazy stylesheets load AFTER it, so override here, not there. */
+
+/* ── Campaign roadmap rail + mission-card enrichment (docs/MODE-IDENTITY.md §campaign) ── */
+.camp-rail { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s2); padding: 8px 10px; border-radius: var(--r-md); border: 1px solid var(--line); background: rgba(255, 255, 255, 0.02); }
+
+.camp-gate { display: inline-flex; flex-direction: column; align-items: flex-start; gap: 1px; padding: 4px 12px; border-radius: var(--r-sm); font-size: 11px; font-weight: 800; border: 1px solid var(--line-strong); background: var(--panel-2); }
+
+.camp-gate.is-gene-tier { border-color: color-mix(in srgb, var(--caustic) 45%, var(--line)); }
+
+.camp-gate.is-hero-slot { border-color: color-mix(in srgb, var(--viral) 45%, var(--line)); }
+
+.camp-gate.is-evolution { border-color: color-mix(in srgb, var(--kinetic) 45%, var(--line)); }
+
+.camp-gate.is-milestone { border-color: color-mix(in srgb, var(--gold) 50%, var(--line)); color: var(--gold); }
+
+.camp-gate:hover:not(:disabled) { box-shadow: var(--halo) color-mix(in srgb, var(--gold) 30%, transparent); }
+
+.camp-goal { display: flex; flex-direction: column; gap: 3px; min-width: 150px; flex: 1 1 150px; max-width: 240px; }
+
+.camp-goal-l { font-size: 11px; font-weight: 700; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+.camp-jump { padding: 5px 12px; border-radius: 999px; font-size: 11px; font-weight: 800; border: 1px solid color-mix(in srgb, var(--gold) 45%, var(--line)); color: var(--gold); background: color-mix(in srgb, var(--gold) 8%, transparent); }
+
+.camp-search { width: 84px; padding: 5px 10px; border-radius: 999px; border: 1px solid var(--line); background: rgba(0, 0, 0, 0.3); color: var(--text); font-size: 11px; font-variant-numeric: tabular-nums; }
+
+.camp-threat { display: flex; align-items: center; gap: 8px; }
+
+.camp-skulls { color: var(--danger); letter-spacing: 0.16em; font-size: 12px; }
+
+.camp-rmult { margin-left: auto; font-size: 10px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: var(--gold); }
+
+.camp-enemies { display: flex; flex-wrap: wrap; gap: 4px; }
+
+.camp-enemy { padding: 2px 8px; border-radius: 999px; font-size: 10px; font-weight: 700; color: var(--text); border: 1px solid color-mix(in srgb, var(--ec, var(--line)) 50%, var(--line)); background: color-mix(in srgb, var(--ec, transparent) 10%, transparent); }
+
+.camp-enemy.is-elite { color: var(--warn); border-color: color-mix(in srgb, var(--warn) 50%, var(--line)); }
+
+.camp-unlocks { display: flex; flex-direction: column; gap: 4px; padding: 8px 10px; border-radius: var(--r-sm); border: 1px dashed color-mix(in srgb, var(--gold) 40%, var(--line)); background: color-mix(in srgb, var(--gold) 5%, transparent); }
+
+.camp-unlock { font-size: 12px; font-weight: 800; color: var(--gold); }
+
+.camp-node-dot { transition: filter var(--dur-2) var(--ease-out); }
+
+.camp-node:hover .camp-node-dot { filter: drop-shadow(0 0 6px var(--biome)) brightness(1.25); }
+
+.camp-deploy.primary { animation: cc-cta-breathe 5.5s ease-in-out infinite; }
+
+.camp-map-panel { width: min(var(--screen-max), 100%); }
+
+.camp-map-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+
+.camp-map-meta { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+
+.camp-record { font-size: 13px; color: var(--muted); white-space: nowrap; }
+
+/* The descent shaft — a dark borehole the winding path plunges down. */
+.camp-map-wrap {
+  border-radius: var(--r-md); border: 1px solid var(--line);
+  background: radial-gradient(120% 80% at 50% 0%, #131a26 0%, #0b0f16 55%, #070a12 100%), #080b11;
+  padding: 8px; overflow: hidden;
+}
+
+.camp-scroll {
+  width: 100%; padding: 7px; font-size: 12px; font-weight: 700; letter-spacing: 0.04em; color: var(--muted);
+  background: rgba(255, 255, 255, 0.03); border: 1px solid var(--line); border-radius: var(--r-sm);
+}
+
+.camp-scroll:hover:not(:disabled) { color: var(--text); border-color: var(--line-strong); }
+
+.camp-scroll:disabled { opacity: 0.35; cursor: not-allowed; }
+
+.camp-map-svg { width: 100%; max-width: 360px; height: auto; display: block; margin: 6px auto; }
+
+.camp-band-label { font-size: 10px; font-weight: 800; letter-spacing: 0.14em; opacity: 0.85; }
+
+.camp-vein { fill: none; stroke: rgba(138, 151, 168, 0.45); stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+
+.camp-node { cursor: pointer; }
+
+.camp-node-dot { stroke-width: 2; transition: r var(--t-fast, var(--dur-2) ease); }
+
+.camp-node.is-cleared .camp-node-dot { fill: var(--biome); stroke: color-mix(in srgb, var(--biome) 55%, #000); }
+
+.camp-node.is-current .camp-node-dot { fill: var(--biome); stroke: #fff; filter: drop-shadow(0 0 7px var(--biome)); }
+
+.camp-node.is-locked .camp-node-dot { fill: #131a24; stroke: color-mix(in srgb, var(--biome) 45%, transparent); opacity: 0.85; }
+
+.camp-node-n { font-size: 13px; font-weight: 800; font-variant-numeric: tabular-nums; pointer-events: none; }
+
+.camp-node.is-cleared .camp-node-n, .camp-node.is-current .camp-node-n { fill: #07090e; }
+
+.camp-node.is-locked .camp-node-n { fill: var(--muted); font-weight: 700; }
+
+.camp-node-ms { font-size: 13px; fill: var(--biome); pointer-events: none; }
+
+.camp-node-evt { pointer-events: none; }
+
+.camp-node-evt circle { stroke: #07090e; stroke-width: 1.5; }
+
+.camp-node-evt-i { font-size: 10px; fill: #07090e; font-weight: 800; }
+
+.camp-node-focus { fill: none; stroke: var(--gold); stroke-width: 2; stroke-dasharray: 3 3; }
+
+.camp-node-pulse { fill: none; stroke: var(--biome); stroke-width: 2; transform-box: fill-box; transform-origin: center; animation: camp-pulse 1.8s ease-out infinite; }
+
+@keyframes camp-pulse { 0% { transform: scale(0.7); opacity: 0.9; } 100% { transform: scale(1.5); opacity: 0; } }
+
+@media (prefers-reduced-motion: reduce) { .camp-node-pulse { animation: none; opacity: 0.5; } }
+
+/* Focused-stage detail panel — BODY (stage facts, scrolls inside on desktop) + FOOT (loadout,
+   Threat picker, Deploy/Replay — pinned). docs/CAMPAIGN.md §panel. */
+.camp-detail {
+  --biome: var(--text); position: sticky; top: 8px;
+  display: flex; flex-direction: column;
+  background: linear-gradient(180deg, var(--panel-2), var(--panel));
+  border: 1px solid var(--line); border-left: 3px solid var(--biome);
+  border-radius: var(--r-md);
+}
+
+.camp-detail-foot { display: flex; flex-direction: column; gap: 8px; padding: 10px 14px 14px; border-top: 1px solid var(--line);
+  border-radius: 0 0 var(--r-md) var(--r-md); background: var(--panel); }
+
+.camp-detail-foot .camp-deploy { margin-top: 0; }
+
+/* Desktop (two columns, a real viewport height): the FOOTER pins to the bottom of the screen
+   whenever any of the panel is in view — at 1366×768 and 1440×900 the Threat picker and
+   Deploy/Replay are visible on arrival, and the stage facts slide under them as you scroll.
+   Phones/short landscape keep the natural flow (the deploy ends the panel, one scroll away) —
+   a pinned footer would eat half a 390px screen or hide under the portrait tab bar. */
+@media (min-width: 821px) and (min-height: 600px) {
+  .camp-detail-foot { position: sticky; bottom: 0; z-index: 2; box-shadow: 0 -12px 20px -10px rgba(0, 0, 0, 0.7); }
+}
+
+/* The run ESTIMATE, folded to one line (expands to the full PredictionPanel). */
+.camp-estimate { margin-top: 12px; border: 1px solid var(--line); border-radius: var(--r-md); background: var(--panel-2); }
+
+.camp-estimate > summary { display: flex; align-items: baseline; flex-wrap: wrap; gap: 10px; padding: 9px 14px; cursor: pointer; list-style: none; font-size: 13px; }
+
+.camp-estimate > summary::-webkit-details-marker { display: none; }
+
+.camp-estimate-k { font-size: 12px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: var(--viral); }
+
+.camp-estimate > summary b { font-size: 16px; color: var(--text); font-variant-numeric: tabular-nums; }
+
+.camp-estimate-r { font-size: 12px; color: var(--muted); }
+
+.camp-estimate-more { margin-left: auto; font-size: 12px; font-weight: 700; color: var(--muted); }
+
+.camp-estimate[open] > summary { border-bottom: 1px solid var(--line); }
+
+.camp-estimate > .predict-panel { margin: 10px; }
+
+.camp-detail-stage { font-size: 12px; font-weight: 800; letter-spacing: 0.1em; color: var(--muted); display: flex; align-items: center; gap: 8px; }
+
+.camp-here { font-size: 10px; font-weight: 800; letter-spacing: 0.04em; padding: 2px 7px; border-radius: 999px; background: var(--biome); color: #07090e; text-transform: uppercase; }
+
+.camp-here.cleared { background: rgba(63, 224, 138, 0.18); color: var(--success); }
+
+.camp-detail-biome { font-size: 18px; font-weight: 900; letter-spacing: 0.02em; }
+
+.camp-detail-mods { display: flex; flex-wrap: wrap; gap: 6px; }
+
+.camp-mod { font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em; padding: 2px 8px; border-radius: 999px; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--line); color: var(--muted); }
+
+.camp-mod.hazard { color: var(--danger); border-color: rgba(255, 93, 115, 0.4); }
+
+/* Authored campaign-event telegraph + Mutation choice (docs/CAMPAIGN-EVENTS.md) */
+.camp-event { margin-top: 10px; padding: 10px 11px; border-radius: var(--r-md); border: 1px solid var(--ev); background: color-mix(in srgb, var(--ev) 10%, transparent); }
+
+.camp-event-h { display: flex; align-items: center; gap: 8px; }
+
+.camp-event-i { font-size: 16px; color: var(--ev); }
+
+.camp-event-n { font-size: 13px; font-weight: 800; color: var(--ev); letter-spacing: 0.02em; }
+
+.camp-event-r { margin-left: auto; font-size: 10px; font-weight: 700; color: var(--gold); text-transform: uppercase; letter-spacing: 0.06em; }
+
+.camp-event-d { margin: 5px 0 0; font-size: 12px; line-height: 1.45; color: var(--muted); }
+
+.camp-event-boons { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; margin-top: 9px; }
+
+.camp-boon { display: flex; flex-direction: column; gap: 2px; text-align: left; padding: 7px 9px; border-radius: var(--r-sm); border: 1px solid var(--line); background: var(--panel); color: var(--muted); line-height: 1.3; }
+
+.camp-boon span { font-size: 11px; }
+
+.camp-boon.on { border-color: var(--ev); background: color-mix(in srgb, var(--ev) 14%, transparent); box-shadow: inset 0 0 0 1px var(--ev); }
+
+.camp-boon.on b { color: var(--ev); }
+
+.camp-detail-grid { display: flex; flex-direction: column; gap: 5px; margin-top: 2px; }
+
+.cd-row { display: flex; align-items: center; justify-content: space-between; font-size: 13px; }
+
+.cd-k { color: var(--muted); }
+
+.cd-v { font-weight: 700; }
+
+.camp-power { display: flex; align-items: baseline; gap: 8px; font-size: 13px; padding: 8px 10px; border-radius: var(--r-sm); border: 1px solid var(--line); }
+
+.camp-power-you { margin-left: auto; font-size: 11px; }
+
+.camp-power.ok { border-color: rgba(63, 224, 138, 0.4); }
+
+.camp-power.ok b { color: var(--success); }
+
+.camp-power.low { border-color: rgba(255, 93, 115, 0.4); }
+
+.camp-power.low b { color: var(--danger); }
+
+.camp-rewards { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 13px; }
+
+.cd-reward { font-weight: 700; color: var(--gold); display: inline-flex; align-items: center; gap: 5px; }
+
+.cd-reward.dim { color: var(--muted); font-weight: 600; font-size: 12px; }
+
+.camp-deploy { margin-top: 4px; padding: 9px; font-weight: 700; }
+
+.camp-deploy:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* Flawless bonus callout — the Stage Cache is EARNED (no-damage first clear), not given. */
+.camp-rewards.is-flawless { padding: 6px 10px; border: 1px dashed color-mix(in srgb, var(--gold) 45%, var(--line)); border-radius: var(--r-sm); background: color-mix(in srgb, var(--gold) 5%, transparent); }
+
+.camp-rewards.is-flawless .cd-k { color: var(--gold); }
+
+/* Frontier field note: failed pushes recover partial discovery data (the macro loop's remedy). */
+.camp-fieldnote { font-size: 11px; color: var(--dim); line-height: 1.5; }
+
+/* Depth fog — the window's lower edge fades into the uncharted dark below. */
+.camp-map-svg { -webkit-mask-image: linear-gradient(180deg, #000 78%, rgba(0, 0, 0, 0.3) 100%); mask-image: linear-gradient(180deg, #000 78%, rgba(0, 0, 0, 0.3) 100%); }
+
+/* Map nodes are keyboard-reachable (tabIndex on each <g>): ring the dot, not the group box. */
+.camp-node:focus-visible { outline: none; }
+
+.camp-node:focus-visible .camp-node-dot { stroke: var(--gold); stroke-width: 3; }
+
+/* Mission card: what wave 1 actually sends (bosses, then fliers, then the biggest packs). */
+.camp-wave1 { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; margin-top: 6px; }
+
+.camp-wave1 > .cd-k { margin-right: 4px; }
+
+.camp-enemy.is-flier { color: #cfe9ff; border-color: color-mix(in srgb, #8fd0ff 60%, var(--line)); }
+
+.camp-enemy.is-boss { color: var(--danger); border-color: color-mix(in srgb, var(--danger) 60%, var(--line)); }

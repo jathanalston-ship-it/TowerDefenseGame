@@ -6,6 +6,7 @@ import type { CSSProperties } from 'react';
 import { megaBossDef } from '../../core/megaboss';
 import type { GameEventMap } from '../../core/events';
 import type { Shown } from '../../render/feel';
+import './CentreStage.css';
 
 /** CENTRE STAGE cards (docs/GAME-FEEL.md §centre-stage) — everything that wants the middle of the
  *  board goes through ONE announcer (render/feel.ts ANNOUNCE: priorities + durations). */

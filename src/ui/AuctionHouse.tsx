@@ -18,6 +18,7 @@ import { marketFamily } from '../core/marketCatalog';
 import { rarityColorOf } from '../core/equipment';
 import { account } from '../account/accountStore';
 import { connectivity } from '../net/connectivity';
+import './AuctionHouse.css';
 
 // Rarity tint: the ONE canonical map (docs/UI-STANDARDS.md §rarity) — plus the Mulligan apex tier.
 const RARITY_TINT: Record<string, string> = {

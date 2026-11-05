@@ -14,6 +14,7 @@ import type { CutsceneDef } from '../core/cutscenes';
 import { cutsceneMegaId, cutsceneStillT, drawCutsceneFrame } from '../render/cutsceneScenes';
 import type { CutsceneFrameSpec } from '../render/cutsceneScenes';
 import { motionPrefs, resolveMotion, systemReducedMotion } from '../state/prefs';
+import './CutscenePlayer.css';
 
 const FADE_MS = 850; // scene-to-scene cross-dissolve (the intro's cut length)
 const CODA_MS = 6200; // how long the coda holds before auto-continue

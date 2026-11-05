@@ -29,6 +29,7 @@ import { MobileSection } from './components/MobileSection';
 import { ProgressBar } from './components/ProgressBar';
 import { PowerPreview } from './components/PowerScore';
 import { audio } from '../audio/sound';
+import './MulliganLab.css';
 
 const SITE = ['A', 'B', 'C'];
 /** §sorting — the library's sort modes (docs/MULLIGANS.md §UI). */

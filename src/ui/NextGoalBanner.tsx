@@ -9,6 +9,7 @@ import { nextGoals } from '../state/nextGoal';
 import { isOneMoreRun } from '../state/income';
 import { deployReadiness, loopAdviceLink, loopState } from '../state/progressionLoop';
 import { AdviceGo } from './components/AdviceLink';
+import './NextGoalBanner.css';
 
 const pct = (p: number): number => Math.round(p * 100);
 

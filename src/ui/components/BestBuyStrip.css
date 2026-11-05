@@ -1,0 +1,11 @@
+/* BestBuyStrip — the styles only this module's elements need, shipped in its lazy chunk instead of the
+   boot stylesheet (docs/DEPLOYMENT.md §boot-css). src/index.css keeps every class a boot screen (or
+   more than one lazy chunk) renders; lazy stylesheets load AFTER it, so override here, not there. */
+
+.bbs-save { font-style: normal; color: var(--warn); font-weight: 700; }
+
+.bbs-buy { flex: none; font-size: 11px; font-weight: 900; letter-spacing: 0.08em; padding: 4px 14px; border-radius: 999px; color: #0b1207; background: var(--gold); border: 1px solid color-mix(in srgb, var(--gold) 70%, #fff 10%); transition: transform var(--dur-2) var(--ease-out), box-shadow var(--dur-2) var(--ease-out); }
+
+.bbs-buy:hover { transform: translateY(-1px); box-shadow: 0 0 12px color-mix(in srgb, var(--gold) 45%, transparent); }
+
+.bbs-buy { padding: 3px 12px; }

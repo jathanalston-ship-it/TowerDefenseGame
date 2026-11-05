@@ -14,6 +14,7 @@ import type { BonusLine, CollectionCategory, CollectionEntry, CollectionRank, Co
 import type { CutsceneDef } from '../core/cutscenes';
 import { drawCutsceneStill } from '../render/cutsceneScenes';
 import { CutscenePlayer } from './CutscenePlayer';
+import './CollectionPanel.css';
 
 const REWARD_ICON: Record<RewardKind, string> = { title: '✦', badge: '◈', portrait: '☻', theme: '◧', cosmetic: '✷', bonus: '▲' };
 const MILES = rankMilestones(); // [{ rank, at }] — the reward-track pip positions (single source)

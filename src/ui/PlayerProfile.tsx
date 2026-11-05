@@ -33,6 +33,7 @@ import { GenomeRankPanel } from './components/GenomeRankPanel';
 import { Fold } from './components/MobileSection';
 import { ThreatRecord } from './components/ThreatPicker';
 import type { LbMode } from '../net/leaderboard';
+import './PlayerProfile.css';
 
 const CAREER_SECTIONS: ProfileSectionId[] = ['combat', 'economy', 'campaign', 'infinite', 'bossrush', 'pvp', 'collection'];
 

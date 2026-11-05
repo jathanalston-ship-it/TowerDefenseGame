@@ -21,6 +21,7 @@ import { LivingGutters } from './components/LivingGutters';
 import { audio } from '../audio/sound';
 import { music } from '../audio/music';
 import { t, useLocale } from '../i18n';
+import './SpectateView.css';
 
 const SPEEDS = [1, 2, 4, 8, 16] as const;
 /** Sim steps allowed per animation frame: keeps ×16 honest without freezing the tab;

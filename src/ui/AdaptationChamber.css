@@ -1,0 +1,196 @@
+/* AdaptationChamber — the styles only this module's elements need, shipped in its lazy chunk instead of the
+   boot stylesheet (docs/DEPLOYMENT.md §boot-css). src/index.css keeps every class a boot screen (or
+   more than one lazy chunk) renders; lazy stylesheets load AFTER it, so override here, not there. */
+
+.adapt-bar { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+
+.adapt-budget { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; color: var(--text); }
+
+.adapt-budget-cap { color: var(--muted); }
+
+.adapt-sources { display: inline-flex; gap: 4px; margin-right: auto; }
+
+.adapt-sources span { font-size: 10px; color: var(--muted); padding: 2px 6px; border-radius: 999px; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.22); cursor: help; }
+
+.adapt-form { font-size: 10px; font-weight: 900; letter-spacing: 0.08em; padding: 2px 8px; border-radius: 999px; border: 1px solid rgba(255,255,255,0.14); color: var(--muted); cursor: help; }
+
+.adapt-form.is-f1, .adapt-form.is-f2 { color: var(--gold); border-color: rgba(255, 210, 77, 0.4); }
+
+.adapt-form.is-f3 { color: var(--viral); border-color: color-mix(in srgb, var(--viral) 55%, transparent); box-shadow: 0 0 10px color-mix(in srgb, var(--viral) 30%, transparent); }
+
+.adapt-respec { display: inline-flex; align-items: center; gap: 4px; font-size: 10px; padding: 3px 8px; border-radius: var(--r-sm); background: rgba(255,255,255,0.05); color: var(--muted); }
+
+.adapt-respec:hover:not(:disabled) { color: var(--text); }
+
+.adapt-respec:disabled { opacity: 0.5; }
+
+.adapt-lab { display: flex; flex-direction: column; gap: 8px; }
+
+/* The tree: tier rows × branch columns; forks split a cell; gate rails span the row. */
+.adapt-canvas { display: flex; flex-direction: column; gap: 4px; border: 1px solid rgba(255,255,255,0.08); border-radius: var(--r-md); background: radial-gradient(140% 100% at 50% 0%, color-mix(in srgb, var(--accent) 7%, transparent), rgba(0,0,0,0.24)); padding: 8px; }
+
+.adapt-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(0, 1fr)); gap: 6px; }
+
+.adapt-col-head { display: flex; align-items: center; gap: 5px; padding: 3px 6px 5px; border-bottom: 2px solid var(--branch); min-width: 0; }
+
+.adapt-col-icon { font-size: 13px; color: var(--branch); }
+
+.adapt-col-name { font-size: 11px; font-weight: 800; letter-spacing: 0.06em; color: var(--branch); text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+.adapt-tierblock { display: flex; flex-direction: column; gap: 4px; }
+
+.adapt-gate span { font-size: 10px; font-weight: 900; letter-spacing: 0.1em; color: var(--vital); background: var(--panel-2); padding: 1px 8px; margin-top: -8px; border-radius: 999px; border: 1px solid rgba(255, 150, 120, 0.35); }
+
+.adapt-gate.is-met { border-top-color: rgba(122, 231, 160, 0.3); }
+
+.adapt-gate.is-met span { color: var(--success); border-color: rgba(122, 231, 160, 0.3); }
+
+.adapt-cell { position: relative; display: flex; gap: 4px; min-width: 0; }
+
+/* Fork siblings stack VERTICALLY (every branch forks at the same tiers, so rows stay aligned). */
+.adapt-cell.is-fork { flex-direction: column; gap: 9px; }
+
+.adapt-cell.has-spine::before { content: ''; position: absolute; left: 50%; top: -5px; width: 1px; height: 4px; background: color-mix(in srgb, var(--branch) 45%, transparent); }
+
+.adapt-node:hover { transform: translateY(-1px); border-color: color-mix(in srgb, var(--branch) 60%, transparent); }
+
+.adapt-node-name { font-size: 11px; font-weight: 700; color: var(--text); min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+.adapt-node-key { margin-left: auto; flex: none; font-size: 10px; font-weight: 900; color: var(--gold); }
+
+.adapt-cell.is-fork .adapt-node.is-alt::before { content: 'or'; position: absolute; left: 50%; top: -5px; transform: translate(-50%, -50%); font-size: 10px; color: var(--muted); background: var(--panel-2); border-radius: 999px; padding: 0 4px; z-index: 1; }
+
+.adapt-node.is-buy { border-color: var(--branch); }
+
+.adapt-node.is-buy .adapt-node-mark { color: var(--branch); }
+
+.adapt-node.is-buy:hover { background: color-mix(in srgb, var(--branch) 14%, transparent); }
+
+.adapt-node.is-own { border-color: var(--branch); background: color-mix(in srgb, var(--branch) 20%, transparent); }
+
+.adapt-node.is-own .adapt-node-mark { color: var(--branch); }
+
+.adapt-node.is-broke { border-style: dashed; opacity: 0.85; }
+
+.adapt-node.is-broke .adapt-node-mark { color: var(--viral); }
+
+.adapt-node.is-gate { opacity: 0.6; }
+
+.adapt-node.is-gate .adapt-node-mark { font-size: 10px; }
+
+.adapt-node.is-seal { opacity: 0.45; }
+
+.adapt-node.is-seal .adapt-node-name { text-decoration: line-through; }
+
+.adapt-node.is-lock { opacity: 0.5; }
+
+.adapt-node.is-key { border-width: 1px; box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--gold) 25%, transparent); }
+
+.adapt-node.is-sel { outline: 2px solid color-mix(in srgb, var(--branch) 75%, white 10%); outline-offset: 1px; }
+
+@media (max-width: 640px) { .adapt-inspect { grid-template-columns: 1fr; } }
+
+.adapt-inspect-main, .adapt-inspect-side { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+
+.adapt-inspect.is-idle { display: flex; flex-direction: column; border-color: rgba(255,255,255,0.1); background: rgba(0,0,0,0.2); }
+
+.adapt-inspect.is-idle p { font-size: 11px; color: var(--muted); line-height: 1.45; margin: 0; }
+
+.adapt-inspect-hint { opacity: 0.75; }
+
+.adapt-inspect-kicker { font-size: 10px; font-weight: 900; letter-spacing: 0.1em; text-transform: uppercase; }
+
+.adapt-inspect-visual { font-size: 11px; color: var(--gold); line-height: 1.4; }
+
+.adapt-inspect-fork { font-size: 11px; color: var(--vital); line-height: 1.4; }
+
+.adapt-inspect-fork.is-sealed { color: var(--muted); }
+
+.adapt-inspect-reqs li { font-size: 11px; color: var(--vital); }
+
+.adapt-inspect-reqs li span { color: var(--muted); }
+
+.adapt-inspect-power { font-size: 11px; font-weight: 700; color: var(--gold); }
+
+.adapt-inspect-buy { display: inline-flex; align-items: center; justify-content: center; gap: 5px; font-size: 12px; font-weight: 900; letter-spacing: 0.04em; padding: 7px 10px; border-radius: var(--r-sm); border: 1px solid color-mix(in srgb, var(--branch, #fff) 60%, transparent); background: color-mix(in srgb, var(--branch, #888) 22%, transparent); color: var(--text); transition: background var(--dur-2) var(--ease-out), transform var(--dur-1) var(--ease-out); }
+
+.adapt-inspect-buy:hover:not(:disabled) { background: color-mix(in srgb, var(--branch, #888) 34%, transparent); transform: translateY(-1px); }
+
+.adapt-inspect-buy:disabled { opacity: 0.55; cursor: default; }
+
+/* ── Adaptation Chamber (AdaptationChamber.tsx, docs/ADAPTATION.md §screen) ── */
+.adc { display: flex; flex-direction: column; gap: 14px; width: min(1120px, 100%); }
+
+.adc-mast { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+
+.adc-mast-chips { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+
+.adc-wallet {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 12px; font-weight: 800; letter-spacing: 0.06em; white-space: nowrap;
+  padding: 5px 12px; border-radius: 999px;
+  color: var(--muted); border: 1px solid var(--line-strong); background: var(--panel-2);
+}
+
+.adc-wallet.is-live { color: var(--viral); border-color: color-mix(in srgb, var(--viral) 45%, var(--line)); background: color-mix(in srgb, var(--viral) 8%, transparent); }
+
+.adc-ready { font-size: 11px; font-weight: 800; letter-spacing: 0.08em; padding: 5px 12px; border-radius: 999px; color: var(--gold); border: 1px solid color-mix(in srgb, var(--gold) 50%, var(--line)); background: color-mix(in srgb, var(--gold) 10%, transparent); white-space: nowrap; }
+
+.adc-h { font: 700 13px/1 'Chakra Petch', system-ui, sans-serif; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); margin-bottom: 10px; }
+
+.adc-advisor, .adc-roster { padding: 14px 16px; border-radius: var(--r-md); background: var(--panel); border: 1px solid var(--line); }
+
+.adc-picks { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(310px, 100%), 1fr)); gap: 8px; }
+
+.adc-pick {
+  display: flex; flex-direction: column; gap: 5px;
+  padding: 9px 12px;
+  border-radius: var(--r-md);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--pc, var(--line)) 6%, var(--panel-2)), var(--panel-2));
+  border: 1px solid color-mix(in srgb, var(--pc, var(--line)) 30%, var(--line));
+}
+
+.adc-pick-unit { font-size: 11px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; }
+
+.adc-pick-node { font-size: 13px; font-weight: 700; }
+
+.adc-pick-node small { margin-left: 6px; font-size: 10px; color: var(--dim); font-weight: 800; }
+
+.adc-pick-gain { font-size: 12px; font-weight: 800; color: var(--success); font-variant-numeric: tabular-nums; }
+
+.adc-pick-gain.is-beh { color: var(--kinetic); font-weight: 600; }
+
+.adc-pick-btns { display: flex; gap: 6px; margin-top: 2px; }
+
+.adc-pick-adopt { display: inline-flex; align-items: center; gap: 5px; min-height: 28px; padding: 4px 12px; font-size: 12px; }
+
+.adc-pick-view { min-height: 28px; padding: 4px 12px; font-size: 12px; color: var(--muted); background: var(--panel-3); border: 1px solid var(--line); border-radius: 999px; cursor: pointer; transition: color var(--dur-2) var(--ease-out), border-color var(--dur-2) var(--ease-out); }
+
+.adc-pick-view:hover { color: var(--text); border-color: var(--line-strong); }
+
+.adc-group + .adc-group { margin-top: 10px; }
+
+.adc-group-h { font-size: 11px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: var(--dim); margin-bottom: 7px; }
+
+.adc-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+
+.adc-chip {
+  display: inline-flex; align-items: center; gap: 7px;
+  min-height: 32px; padding: 5px 12px;
+  font-size: 12px; font-weight: 700; color: var(--muted);
+  background: var(--panel-2); border: 1px solid var(--line); border-radius: 999px;
+  cursor: pointer;
+  transition: color var(--dur-2) var(--ease-out), border-color var(--dur-2) var(--ease-out), background var(--dur-2) var(--ease-out);
+}
+
+.adc-chip:hover { color: var(--text); border-color: var(--line-strong); }
+
+.adc-chip.on { color: var(--text); border-color: color-mix(in srgb, var(--uc, var(--gold)) 60%, var(--line)); background: color-mix(in srgb, var(--uc, var(--gold)) 9%, var(--panel-3)); }
+
+.adc-chip-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--uc, var(--line-strong)); box-shadow: 0 0 6px color-mix(in srgb, var(--uc, transparent) 55%, transparent); }
+
+.adc-chip-free { display: inline-flex; align-items: center; justify-content: center; min-width: 16px; height: 16px; padding: 0 5px; border-radius: 999px; background: var(--viral); color: #140a1c; font-size: 10px; font-weight: 900; }
+
+.adc-note { margin: 8px 0 0; font-size: 11px; color: var(--dim); }
+
+.adc-tree-h { font: 800 14px/1 'Chakra Petch', system-ui, sans-serif; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 8px; }

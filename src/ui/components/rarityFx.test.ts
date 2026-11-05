@@ -4,14 +4,12 @@
 
 import { describe, expect, it } from 'vitest';
 import { createElement } from 'react';
-import { readFileSync } from 'node:fs';
-import { join } from 'node:path';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { RarityFx, rfxClass } from './RarityFx';
 import { RARITY_COLOR, RARITY_ORDER } from '../../core/equipment';
 import { RARITIES } from '../../core/loot';
 import { WARDROBE_RARITY_COLOR } from '../../core/wardrobe';
-import { REPO_ROOT } from '../../dev/docSync';
+import { appCss } from '../../dev/docSync';
 
 const html = (rarity: string, extra: Record<string, boolean> = {}): string => renderToStaticMarkup(createElement(RarityFx, { rarity, ...extra }));
 const count = (s: string, cls: string): number => s.split(`class="${cls}"`).length - 1;
@@ -55,7 +53,7 @@ describe('RarityFx — layers scale with the tier', () => {
 });
 
 describe('one rarity palette', () => {
-  const css = readFileSync(join(REPO_ROOT, 'src/index.css'), 'utf8');
+  const css = appCss();
   it('every rendered tier has a row in the RARITY FX table', () => {
     const tiers = new Set<string>([...RARITY_ORDER, ...RARITIES.map((r) => r.id), ...Object.keys(WARDROBE_RARITY_COLOR), 'uncommon']);
     for (const t of tiers) expect(css.includes(`.rfx-${t} `) || css.includes(`.rfx-${t}{`), `missing .rfx-${t} row`).toBe(true);

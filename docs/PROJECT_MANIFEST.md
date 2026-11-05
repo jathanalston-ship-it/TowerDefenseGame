@@ -524,7 +524,9 @@ ladders. 4. Every permanent progression source must move the Power Score (valida
   Docs: `HUD.md`, `READABILITY.md`, `UI-MOTION.md`, `NOTIFICATIONS.md`, `COMMAND-CENTER.md`, `HUB-FLOW.md`.
 - **Related:** everything player-facing; the motion language in `index.css`.
 - **Future expansion:** new Hub screen = NavKey + section entry + notification channel.
-- **Known limitations:** `index.css` is one 5.3k-line stylesheet (see `ENGINEERING-AUDIT.md`).
+- **Known limitations:** `index.css` is still the largest stylesheet (~6.9k lines: tokens, shell, HUD-adjacent
+  and shared rules); since 2026-11-05 each lazy module carries its own sheet (`src/ui/<Screen>.css`,
+  docs/DEPLOYMENT.md §boot-css) and the boot CSS is budgeted by the first-session probe.
 - **Developer tips:** UI reads snapshots — never reach into live sim entities from React;
   intents go through `Game` methods. A new modal joins Back/Escape with `useDismiss(close)`.
 - **VFX pass (2026-11-05):** the combat damage language (`render/combatFx.ts` — one shot/burst form per

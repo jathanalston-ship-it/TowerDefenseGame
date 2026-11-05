@@ -14,6 +14,7 @@
 // fails/aborts grants nothing.
 
 import { GoogleAdPlacementProvider } from './googleAdapter';
+import './provider.css';
 
 export type StudyResult = 'completed' | 'aborted' | 'unavailable';
 

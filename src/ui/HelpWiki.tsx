@@ -11,6 +11,7 @@ import type { MechanicCategory, MechanicDef } from '../state/mechanics';
 import { guideBus, guideFor } from '../state/guidedUnlocks';
 import { navBus } from '../state/navBus';
 import { searchMechanics } from './helpSearch';
+import './HelpWiki.css';
 
 const CATEGORY_ORDER: MechanicCategory[] = ['Basics', 'Towers', 'Heroes', 'Progression', 'Modes', 'World'];
 

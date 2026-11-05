@@ -489,7 +489,7 @@ graph TD
 
 *Ethical monetization as pure data: Ichor bundles, permanent packs, one rotating daily pack, windowed event offers, the Season Pass pair (first-ever purchase is the half-price SKU — seasonOfferFor), and one-time milestone FLASH sales (state/flashOffers.ts: achievement-high triggers, first-sight 48h windows, one popup per 72h, eligibility floor, honesty-tested list prices) on a registry; purchases accelerate but never replace gameplay (Power moves zero until invested; money never mints prestige or crosses campaign gates).*
 
-- **Files:** `src/core/premium.ts` · `src/net/storeRegion.ts` · `src/state/flashOffers.ts` · `src/ui/PremiumStore.tsx` · `src/ui/components/FlashOfferPopup.tsx`
+- **Files:** `src/core/premium.ts` · `src/net/storeRegion.ts` · `src/state/flashOffers.ts` · `src/ui/PremiumStore.tsx` · `src/ui/premiumFormat.ts` · `src/ui/components/FlashOfferPopup.tsx`
 - **Depends on:** `content-infra` · `splice-market` · `daily` · `power`
 - **Consumers — what breaks if you change this:** `field-research` · `net-backend` · `battle-pass`
 - **Power Score:** offerPowerPotential — the honest "up to +N when invested" estimate
@@ -954,7 +954,7 @@ graph TD
 
 *The persistent conquest meta (docs/INFESTATION.md): four regions x four sectors; every finished run feeds a target with SPILLOVER, sectors climb named TIERS (Dormant->Foothold->Colony->Stronghold->Saturated), saturation halves decay, a fully-saturated region ENTRENCHES (bonus x1.25 + a 4th expedition slot). THE FRONT overhaul (v49, docs/INFESTATION.md §front) made the map a war, not a widget: held tiers mint ONE-TIME claims (region-flavored localized wallets via applyRewardList kind hiveMats et al), held regions pay a WEEKLY tribute (ISO-week watermark), a daily HOTSPOT lands feeds x1.5, one held sector a day suffers an INCURSION (win a run that feeds it to defend; an undefended day bites -12 on lazy resolution, bounded to ONE bite per return), and DEPLOY (state/frontDeploy.ts, session-scoped) arms one run with the region warp composed at game.ts's single warp fold (absent => byte-identical; dailies/Arena excluded). The screen moved to the PLAY hub (nav infestation, stage-8 reveal); the Command Center board collapsed to the one-line FrontStrip.*
 
-- **Files:** `src/core/infestation.ts` · `src/render/infestationMap.ts` · `src/ui/components/InfestationBoard.tsx` · `src/ui/FrontScreen.tsx` · `src/state/frontDeploy.ts`
+- **Files:** `src/core/infestation.ts` · `src/render/infestationMap.ts` · `src/ui/components/InfestationBoard.tsx` · `src/ui/FrontScreen.tsx` · `src/ui/components/FrontStrip.tsx` · `src/state/frontDeploy.ts`
 - **Depends on:** `meta-store` · `hub-shell`
 - **Consumers — what breaks if you change this:** —
 - **Power Score:** — (intentionally none)

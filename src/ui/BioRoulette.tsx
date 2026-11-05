@@ -17,6 +17,7 @@ import {
   summarizeRewards, tripleReward,
 } from '../state/bioRoulette';
 import { HERO_ORDER, TOWER_ORDER } from '../core/config';
+import './BioRoulette.css';
 
 const LAUNCH_GAP = 0.55; // seconds between spore launches
 const SPIN_T = 2.1; // seconds of powered spin (cubic decel = momentum reads honestly)

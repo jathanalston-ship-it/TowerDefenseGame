@@ -1,0 +1,40 @@
+/* HudTour — the styles only this module's elements need, shipped in its lazy chunk instead of the
+   boot stylesheet (docs/DEPLOYMENT.md §boot-css). src/index.css keeps every class a boot screen (or
+   more than one lazy chunk) renders; lazy stylesheets load AFTER it, so override here, not there. */
+
+.hudtour-card {
+  max-width: min(96vw, calc(100vw - var(--safe-l) - var(--safe-r) - 12px));
+  max-height: calc(var(--app-h) - var(--safe-t) - var(--safe-b) - 20px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.hudtour-card.is-anchored { position: fixed; z-index: 1; text-align: left; align-items: stretch; animation: evo-card-in 0.32s cubic-bezier(0.16, 1, 0.3, 1) both; }
+
+.hudtour-rows { display: flex; flex-direction: column; gap: 7px; margin: 4px 0 2px; }
+
+.hudtour-row { display: grid; grid-template-columns: 52px 1fr; gap: 10px; align-items: baseline; }
+
+.hudtour-k { font-size: 11px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: var(--vital); }
+
+.hudtour-v { font-size: 13px; line-height: 1.5; color: var(--text); }
+
+.hudtour-back { padding: 8px 16px; border-radius: var(--r-sm); border: 1px solid var(--line); background: var(--panel-2); color: var(--text); font-size: 13px; cursor: pointer; }
+
+.hudtour-card { width: min(440px, 94vw); text-align: center; display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 22px; border-radius: var(--r-lg); background: var(--panel); border: 1px solid color-mix(in srgb, var(--vital) 40%, var(--line)); box-shadow: 0 24px 60px rgba(0,0,0,0.55); animation: evo-card-in 0.4s cubic-bezier(0.16, 1, 0.3, 1) both; }
+
+.hudtour-step { font-size: 11px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: var(--vital); }
+
+.hudtour-area { margin: 2px 0; font-size: 20px; font-weight: 900; }
+
+.hudtour-dots { display: flex; gap: 5px; margin: 8px 0 4px; }
+
+.hudtour-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--panel-3); }
+
+.hudtour-dot.past { background: color-mix(in srgb, var(--vital) 50%, transparent); }
+
+.hudtour-dot.on { background: var(--vital); box-shadow: 0 0 8px var(--vital); }
+
+.hudtour-btns { display: flex; gap: 10px; margin-top: 8px; }
+
+.hudtour-skip { padding: 8px 16px; border-radius: var(--r-sm); border: 1px solid var(--line); background: var(--panel-2); color: var(--muted); font-size: 13px; cursor: pointer; }

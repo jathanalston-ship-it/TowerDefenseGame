@@ -11,6 +11,10 @@
 
 - **Tokens over literals.** Colors, radii, durations, easings come from `:root` in
   `src/index.css`. A raw value in a new rule is a defect unless annotated (see §Animation).
+- **Where a rule lives.** A class only ONE lazy screen renders goes in that screen's own sheet
+  (`src/ui/<Screen>.css`, imported by the screen); `index.css` keeps tokens, the shell and anything a
+  boot screen or several screens render. Lazy sheets load after `index.css`, so at equal specificity
+  a screen rule wins — docs/DEPLOYMENT.md §boot-css. The audits below read every sheet.
 - **Compose, don't recreate.** Check §11's component kit before writing new markup for a
   concept that already exists (icons, bars, power readouts, currency chips, art frames…).
 - **One accent system.** Rarity colors come ONLY from the canonical map

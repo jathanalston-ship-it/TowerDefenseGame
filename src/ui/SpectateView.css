@@ -1,0 +1,107 @@
+/* SpectateView — the styles only this module's elements need, shipped in its lazy chunk instead of the
+   boot stylesheet (docs/DEPLOYMENT.md §boot-css). src/index.css keeps every class a boot screen (or
+   more than one lazy chunk) renders; lazy stylesheets load AFTER it, so override here, not there. */
+
+.spectate-bar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+}
+
+.spectate-k { font-size: 12px; letter-spacing: 0.16em; font-weight: 800; color: var(--gold); white-space: nowrap; }
+
+.spectate-stats { font-size: 12px; color: var(--text); }
+
+.spectate-claim { font-size: 11px; color: var(--muted); margin-left: auto; }
+
+.spectate-exit { padding: 6px 12px; min-height: 24px; font-size: 12px; color: var(--muted); background: transparent; border: 1px solid var(--line); border-radius: var(--r-md); }
+
+.spectate-stage {
+  position: relative; /* anchors the centre-stage fall cards */
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  overflow: hidden;
+  line-height: 0;
+  background: #05070b;
+}
+
+.spectate-stage > *:not(canvas) { line-height: 1.45; } /* overlays are text — same guard as .canvas-wrap */
+
+.spectate-stage canvas.board { max-height: 100%; }
+
+.spectate-controls {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.spectate-btn {
+  padding: 6px 12px;
+  min-height: 24px;
+  font-size: 12px;
+  color: var(--text);
+  background: linear-gradient(180deg, var(--panel-2), var(--panel));
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+}
+
+.spectate-btn.on { border-color: var(--gold); color: var(--gold); }
+
+.spectate-btn:disabled { opacity: 0.45; }
+
+.spectate-progress {
+  flex: 1 1 120px;
+  height: 6px;
+  min-width: 80px;
+  border-radius: var(--r-sm);
+  border: 1px solid var(--line);
+  background: var(--panel-deep);
+  overflow: hidden;
+}
+
+.spectate-progress i {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, color-mix(in srgb, var(--gold) 55%, transparent), var(--gold));
+  transition: width var(--dur-2) linear;
+}
+
+.spectate-done {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: color-mix(in srgb, #05070b 72%, transparent);
+  animation: ui-rise var(--dur-3) var(--ease-out) both;
+}
+
+.spectate-done-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-width: min(440px, calc(100vw - 32px));
+  padding: 18px 20px;
+  text-align: center;
+  border-radius: var(--r-lg);
+  border: 1px solid var(--line);
+  background: linear-gradient(180deg, var(--panel-2), var(--panel));
+  box-shadow: var(--shadow-lg);
+}
+
+.spectate-verdict { font-size: 13px; font-weight: 800; letter-spacing: 0.08em; }
+
+.spectate-verdict.ok { color: var(--caustic); }
+
+.spectate-verdict.bad { color: var(--vital); }
+
+.spectate-outcome { font-size: 13px; color: var(--text); }
+
+.spectate-exit-big { align-self: center; padding: 8px 18px; }

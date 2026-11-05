@@ -614,6 +614,12 @@ sink ≈ hour-400 at endgame income — re-tune as the library grows.
   VITE_RELEASE_HARDENED — SECURITY.md
 - ✅ Initialization cutscene (first boot, replayable from Settings) + wave-launch breach transition — **overhauled to full procedural canvas cinematics** (`render/introScenes.ts`): five deterministic set-pieces (deep-crust radar reacquisition, the swarm boiling up ember-lit strata, veins consuming a steel lattice, the breathing molten Hive Core, the title spore-field/aurora), film-style cross-dissolves, letterbox grade + grain, per-scene copy accents; reduced-motion shows a hand-picked still per scene; DPR-capped for mobile
 - ✅ Service worker: offline shell, versioned caches, player-controlled update toast — DEPLOYMENT.md §sw
+- ✅ **Boot budget (2026-11-05)**: the first download before any screen is 497 KB JS + 52 KB CSS gzip
+  (was 552 + 115). Patch-note history and the mechanics' long-form Help/What's New copy
+  (`state/mechanicsText.ts`) load with their screens; Store/Front helpers live in their own files so
+  both screens are lazy; every lazy module ships its own stylesheet (`src/ui/<Screen>.css`, 59 sheets) —
+  `index.css` keeps tokens, shell and anything a boot screen renders. The first-session probe budgets
+  both (JS ≤ 515, CSS ≤ 58) — DEPLOYMENT.md §boot-budget · §boot-css
 - ✅ LiveOps calendar — **overhauled again (2026-07)**: 11 deterministic UTC events across 4 weighted
   categories (peak / spotlight / hunt / surge — sorted top-down, the heaviest live category names the
   console's headline band) folding ×1-baseline lane multipliers (cores / Gene Essence / materials /

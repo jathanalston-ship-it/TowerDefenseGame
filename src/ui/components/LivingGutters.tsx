@@ -10,6 +10,7 @@ import { GUTTERS, gutterGeometry, gutterInputFrom, gutterKey, paintGutters, same
 import type { GutterGeom, GutterInput } from '../../render/gutters';
 import { useLayoutProfile } from '../layoutProfile';
 import { isDebugEnabled } from '../../debug/debug';
+import './LivingGutters.css';
 
 /** Measurement counters for headless perf probes (exposed as `__gutters` under ?debug only). */
 export const gutterStats = { bakes: 0, bakeMs: 0, lastBakeMs: 0, polls: 0, pollMs: 0 };

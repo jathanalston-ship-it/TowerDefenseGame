@@ -21,6 +21,7 @@ import { audio } from '../audio/sound';
 import { HostedScreen } from './components/HostTabs';
 import { MetabolismScreen } from './MetabolismScreen';
 import { ClaimAll } from './components/ClaimAll';
+import './QuestBoard.css';
 
 function fmtLeft(ms: number): string {
   const d = Math.floor(ms / 86_400_000);

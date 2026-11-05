@@ -32,7 +32,8 @@ const BUDGETS = {
   pageErrors: 0, //                     uncaught exceptions + console.error (ignoring /api/* 404s)
   modalsAfterFirstRun: 3, //            distinct dialogs shown between the first results and the hub going quiet
   timeToFirstTowerSec: 15, //           /play/ navigation → first tower placed, cutscene skipped
-  bootJsGzipKb: 560, //                 gzip of the static entry closure (what the HTML must load before ANY screen)
+  bootJsGzipKb: 515, //                 gzip of the static entry closure (what the HTML must load before ANY screen)
+  bootCssGzipKb: 58, //                 gzip of the stylesheet the HTML links — render-blocking; each lazy screen ships its own (docs/DEPLOYMENT.md §boot-css)
 } as const;
 
 const args = process.argv.slice(2).filter((a) => a !== '--');
@@ -57,13 +58,13 @@ interface Metrics {
   cutsceneSkippedAt: number | null; tutorialDoneAt: number | null; hubAt: number | null; firstRunStartAt: number | null; firstRunEndAt: number | null;
   modalsAfterRun: string[]; toastsAfterRun: string[]; toastsTotal: number; badgesHub: string[]; badgeTotal: number;
   errors: string[]; ignored404: number; steps: { name: string; at: number; note?: string }[];
-  bootJs: { files: number; gzipKb: number }; firstScreenJs: { files: number; gzipKb: number }; homeJs: { files: number; gzipKb: number }; runJs: { files: number; gzipKb: number };
+  bootJs: { files: number; gzipKb: number }; bootCss: { files: number; gzipKb: number }; firstScreenJs: { files: number; gzipKb: number }; homeJs: { files: number; gzipKb: number }; runJs: { files: number; gzipKb: number };
   offline: string | null; failedStep: string | null; failMessage: string | null; stage1Result: string | null;
 }
 const M: Metrics = {
   timeToFirstTower: null, timeToFirstWave: null, timeToFirstReward: null, cutsceneSkippedAt: null, tutorialDoneAt: null, hubAt: null,
   firstRunStartAt: null, firstRunEndAt: null, modalsAfterRun: [], toastsAfterRun: [], toastsTotal: 0, badgesHub: [], badgeTotal: 0,
-  errors: [], ignored404: 0, steps: [], bootJs: { files: 0, gzipKb: 0 }, firstScreenJs: { files: 0, gzipKb: 0 }, homeJs: { files: 0, gzipKb: 0 }, runJs: { files: 0, gzipKb: 0 },
+  errors: [], ignored404: 0, steps: [], bootJs: { files: 0, gzipKb: 0 }, bootCss: { files: 0, gzipKb: 0 }, firstScreenJs: { files: 0, gzipKb: 0 }, homeJs: { files: 0, gzipKb: 0 }, runJs: { files: 0, gzipKb: 0 },
   offline: null, failedStep: null, failMessage: null, stage1Result: null,
 };
 let currentStep = 'boot';
@@ -131,6 +132,14 @@ function bootClosure(dist: string): { files: number; gzipKb: number } {
     for (const m of buf.toString('utf8').matchAll(/(?:from|import)\s*"\.\/([^"]+\.js)"/g)) todo.push(`/assets/${m[1]}`);
   }
   return { files: seen.size, gzipKb: +(gz / 1024).toFixed(1) };
+}
+
+/** The boot stylesheet(s): what play/index.html links. Render-blocking — nothing paints before it lands. */
+function bootCss(dist: string): { files: number; gzipKb: number } {
+  const html = readFileSync(join(dist, 'play', 'index.html'), 'utf8');
+  const sheets = [...new Set([...html.matchAll(/href="(\/assets\/[^"]+\.css)"/g)].map((m) => m[1]))];
+  const gz = sheets.reduce((n, u) => n + (existsSync(join(dist, u)) ? gzipSync(readFileSync(join(dist, u))).length : 0), 0);
+  return { files: sheets.length, gzipKb: +(gz / 1024).toFixed(1) };
 }
 
 // ─────────────────────────────── on-screen primitives ───────────────────────────────
@@ -342,8 +351,9 @@ async function session(ctx: BrowserContext, dist: string): Promise<Page> {
   await page.goto(`${BASE}/play/`, { waitUntil: 'load' });
   await waitFor(page, 'the intro cutscene (.intro) or the tutorial to appear', async () => !!(await page.$('.intro, .tut-overlay, .tut-callout')), 25_000);
   M.bootJs = bootClosure(dist);
+  M.bootCss = bootCss(dist);
   M.firstScreenJs = await jsAt();
-  log(`boot JS (static entry closure): ${M.bootJs.files} files, ${M.bootJs.gzipKb} KB gzip; first screen up in ${(now() - navStart).toFixed(1)}s with ${M.firstScreenJs.files} files / ${M.firstScreenJs.gzipKb} KB gzip fetched`);
+  log(`boot JS (static entry closure): ${M.bootJs.files} files, ${M.bootJs.gzipKb} KB gzip; boot CSS ${M.bootCss.gzipKb} KB gzip; first screen up in ${(now() - navStart).toFixed(1)}s with ${M.firstScreenJs.files} files / ${M.firstScreenJs.gzipKb} KB gzip fetched`);
   await shot(page, 'boot');
   step('skip-cutscene');
   if (await page.$('.intro')) {
@@ -495,6 +505,7 @@ function verdicts(): { name: string; budget: string; actual: string; ok: boolean
     { name: 'Modals after first run', budget: `≤ ${BUDGETS.modalsAfterFirstRun}`, actual: String(M.modalsAfterRun.length), ok: M.modalsAfterRun.length <= BUDGETS.modalsAfterFirstRun },
     { name: 'Time to first tower (cutscene skipped)', budget: `≤ ${BUDGETS.timeToFirstTowerSec}s`, actual: M.timeToFirstTower === null ? 'never' : `${M.timeToFirstTower}s`, ok: M.timeToFirstTower !== null && M.timeToFirstTower <= BUDGETS.timeToFirstTowerSec },
     { name: 'Boot JS gzip', budget: `≤ ${BUDGETS.bootJsGzipKb} KB`, actual: `${M.bootJs.gzipKb} KB`, ok: M.bootJs.gzipKb > 0 && M.bootJs.gzipKb <= BUDGETS.bootJsGzipKb },
+    { name: 'Boot CSS gzip', budget: `≤ ${BUDGETS.bootCssGzipKb} KB`, actual: `${M.bootCss.gzipKb} KB`, ok: M.bootCss.gzipKb > 0 && M.bootCss.gzipKb <= BUDGETS.bootCssGzipKb },
     { name: 'Session completed', budget: 'all steps', actual: M.failedStep ? `blocked at ${M.failedStep}` : 'yes', ok: !M.failedStep },
   ];
 }
@@ -543,6 +554,7 @@ function report(em: Emitted[], dist: string): string {
   lines.push('| Moment | JS files | JS gzip (cumulative) |');
   lines.push('|---|---|---|');
   lines.push(`| Boot chunk set (static entry closure — budgeted) | ${M.bootJs.files} | ${M.bootJs.gzipKb} KB |`);
+  lines.push(`| Boot stylesheet (render-blocking — budgeted) | ${M.bootCss.files} CSS | ${M.bootCss.gzipKb} KB |`);
   lines.push(`| First screen up (incl. tutorial engine loading behind the intro) | ${M.firstScreenJs.files} | ${M.firstScreenJs.gzipKb} KB |`);
   lines.push(`| First hub | ${M.homeJs.files} | ${M.homeJs.gzipKb} KB |`);
   lines.push(`| First campaign run started | ${M.runJs.files} | ${M.runJs.gzipKb} KB |`);

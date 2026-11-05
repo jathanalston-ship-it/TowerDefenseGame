@@ -1,0 +1,102 @@
+/* SpliceMarket — the styles only this module's elements need, shipped in its lazy chunk instead of the
+   boot stylesheet (docs/DEPLOYMENT.md §boot-css). src/index.css keeps every class a boot screen (or
+   more than one lazy chunk) renders; lazy stylesheets load AFTER it, so override here, not there. */
+
+.market-eyebrow { font-size: 11px; letter-spacing: 0.24em; text-transform: uppercase; color: #e0314b; }
+
+.market-bal { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 10px 14px; border-radius: var(--r-md); border: 1px solid var(--line-strong); background: var(--panel); }
+
+.market-bal-chip { display: inline-flex; align-items: baseline; gap: 6px; font: 900 16px/1 'Chakra Petch', system-ui, sans-serif; color: var(--gold); }
+
+.market-bal-chip.is-ichor { color: #e0314b; }
+
+.market-mtx { margin-left: auto; padding: 6px 12px; border-radius: 999px; border: 1px dashed var(--line); background: transparent; color: var(--muted); font: 700 11px/1 system-ui, sans-serif; cursor: not-allowed; opacity: 0.7; }
+
+.market-refresh { display: flex; align-items: baseline; gap: 8px; padding: 8px 14px; border-radius: var(--r-md); border: 1px solid var(--line); background: color-mix(in srgb, var(--panel) 92%, transparent); }
+
+.market-refresh-k { font: 700 11px/1 'Chakra Petch', system-ui, sans-serif; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+
+.market-refresh-t { font: 900 18px/1 'Chakra Petch', system-ui, sans-serif; color: var(--text); font-variant-numeric: tabular-nums; }
+
+.market-refresh-w { margin-left: auto; font-size: 10px; color: var(--muted); }
+
+.market-card { position: relative; display: flex; flex-direction: column; align-items: center; gap: 7px; padding: 14px 12px 12px; border-radius: var(--r-md); background: var(--panel-2); border: 1px solid var(--line); transition: transform var(--dur-2) var(--ease-out), border-color var(--dur-2) var(--ease-out), box-shadow var(--dur-2) var(--ease-out); }
+
+.market-card:hover { transform: translateY(-2px); border-color: color-mix(in srgb, var(--mk, var(--gold)) 55%, var(--line)); box-shadow: 0 8px 24px -12px var(--mk, var(--gold)); }
+
+.market-card.is-premium { border-color: color-mix(in srgb, #e0314b 35%, var(--line)); background: linear-gradient(160deg, color-mix(in srgb, #e0314b 7%, var(--panel-2)), var(--panel-2) 70%); }
+
+.market-card.is-container { border-color: color-mix(in srgb, var(--mk, var(--r-common)) 55%, var(--line)); background: linear-gradient(160deg, color-mix(in srgb, var(--mk, var(--r-common)) 12%, var(--panel-2)), var(--panel-2) 75%); box-shadow: 0 0 22px -10px var(--mk, var(--r-common)); }
+
+/* EXOTIC Bio-Container — the market's APEX tier inherits the Genetic Vault's exotic identity
+   (--viral frame + radiant top-glow + a slow shimmer sweep), so it never reads as a flat card. */
+.market-card.is-container[data-rarity="exotic"] {
+  border-color: color-mix(in srgb, var(--mk) 68%, var(--line-strong));
+  background:
+    radial-gradient(120% 84% at 50% -8%, color-mix(in srgb, var(--mk) 26%, transparent), transparent 68%),
+    linear-gradient(160deg, color-mix(in srgb, var(--mk) 16%, var(--panel-2)), var(--panel-2) 78%);
+  box-shadow: 0 0 34px -8px var(--mk), 0 10px 30px -18px var(--mk), inset 0 0 24px -16px var(--mk);
+}
+
+.market-card.is-container[data-rarity="exotic"]::before {
+  content: ''; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
+  background: linear-gradient(115deg, transparent 34%, color-mix(in srgb, var(--mk) 32%, transparent) 50%, transparent 66%);
+  background-size: 260% 100%; mix-blend-mode: screen; opacity: 0.75;
+  animation: marketExoticSheen 3.6s var(--ease-out) infinite;
+}
+
+.market-card.is-container[data-rarity="exotic"] .market-card-art {
+  border-color: color-mix(in srgb, var(--mk) 70%, var(--line));
+  box-shadow: 0 0 20px -6px var(--mk), inset 0 0 12px -7px var(--mk);
+}
+
+@keyframes marketExoticSheen { 0% { background-position: 150% 0; } 60%, 100% { background-position: -70% 0; } }
+
+@media (prefers-reduced-motion: reduce) { .market-card.is-container[data-rarity="exotic"]::before { animation: none; } }
+
+.market-card.is-sold { opacity: 0.55; }
+
+.market-card-glyph { font-size: 20px; color: var(--mk, var(--gold)); }
+
+.market-card-name { font-size: 12px; font-weight: 800; color: var(--text); text-align: center; }
+
+.market-card-qty { font: 700 11px/1 system-ui, sans-serif; color: var(--mk, var(--gold)); }
+
+.market-buy { margin-top: auto; }
+
+.market-sold { margin-top: auto; padding: 6px 14px; border-radius: 999px; border: 1px solid var(--line); font: 800 11px/1 'Chakra Petch', system-ui, sans-serif; letter-spacing: 0.16em; color: var(--muted); transform: rotate(-4deg); }
+
+.market-src { padding: 12px 14px; border-radius: var(--r-md); border: 1px solid var(--line); background: color-mix(in srgb, var(--panel) 88%, transparent); }
+
+.market-src-h { font: 800 12px/1 'Chakra Petch', system-ui, sans-serif; letter-spacing: 0.12em; text-transform: uppercase; color: #e0314b; margin-bottom: 6px; }
+
+.market-src-note { font-size: 11px; color: var(--muted); }
+
+/* ── Ichor Exchange (SpliceMarket §exchange) — the black blood barters down ── */
+.ix { margin-top: var(--s3); padding: 14px; border: 1px solid color-mix(in srgb, #e0314b 30%, var(--line)); border-radius: var(--r-md); background: color-mix(in srgb, #e0314b 4%, var(--panel-2)); }
+
+.ix-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+
+.ix-title { margin: 0; font-size: 18px; font-weight: 800; letter-spacing: 0.06em; color: #ff6b81; }
+
+.ix-refresh { font-size: 12px; color: var(--muted); }
+
+.ix-sub { margin: 6px 0 12px; font-size: 12px; line-height: 1.5; color: var(--muted); }
+
+.ix-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+
+.ix-card { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 12px 10px; border: 1px solid color-mix(in srgb, var(--xc, var(--line)) 40%, var(--line)); border-radius: var(--r-md); background: var(--panel); animation: ui-rise var(--dur-3) var(--ease-out) both; }
+
+.ix-card.is-bulk { border-width: 2px; background: color-mix(in srgb, var(--xc, transparent) 5%, var(--panel)); }
+
+.ix-card.is-traded { opacity: 0.55; }
+
+.ix-card-art { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 999px; border: 1px solid color-mix(in srgb, var(--xc, var(--line)) 45%, var(--line)); background: color-mix(in srgb, var(--xc, transparent) 10%, transparent); }
+
+.ix-glyph { font-size: 20px; color: var(--xc, var(--text)); }
+
+.ix-card-qty { font-size: 16px; font-weight: 800; color: var(--xc, var(--text)); font-variant-numeric: tabular-nums; }
+
+.ix-card-name { font-size: 11px; color: var(--muted); }
+
+@media (prefers-reduced-motion: reduce) { .ix-card { animation: none; } }

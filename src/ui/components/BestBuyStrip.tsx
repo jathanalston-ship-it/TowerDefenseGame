@@ -12,6 +12,7 @@ import { meta } from '../../state/meta';
 import { bestPurchase, executePurchase } from '../../state/bestPurchase';
 import type { PurchaseSurface } from '../../state/bestPurchase';
 import { audio } from '../../audio/sound';
+import './BestBuyStrip.css';
 
 export function BestBuyStrip({ surface }: { surface: PurchaseSurface }): JSX.Element | null {
   const save = meta.use();

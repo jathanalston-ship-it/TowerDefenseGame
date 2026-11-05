@@ -6,6 +6,7 @@
 // affordability, the recommended action stay at Layer 1).
 
 import type { ReactNode } from 'react';
+import './Detail.css';
 
 export function Detail({ summary = 'details', children, className, open }: {
   /** The chip text (kept short — "details", "exact values", "tier breakdown"). */

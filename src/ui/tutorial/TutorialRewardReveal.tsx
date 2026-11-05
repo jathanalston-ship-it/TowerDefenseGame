@@ -7,6 +7,7 @@
 import { formatPower } from '../../core/power';
 import { CurrencyIcon } from '../components/CurrencyIcon';
 import type { TutorialRewardSummary } from '../../state/meta';
+import './TutorialRewardReveal.css';
 
 const cap = (s: string): string => s.charAt(0).toUpperCase() + s.slice(1);
 

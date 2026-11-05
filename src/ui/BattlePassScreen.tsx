@@ -24,6 +24,7 @@ import { telemetry } from '../net/telemetry';
 import { NextUp } from './HubLanding';
 import { navBus } from '../state/navBus';
 import { ClaimAll } from './components/ClaimAll';
+import './BattlePassScreen.css';
 
 function fmtLeft(ms: number): string {
   const d = Math.floor(ms / 86_400_000);

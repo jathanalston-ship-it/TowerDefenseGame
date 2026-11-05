@@ -1,0 +1,26 @@
+/* PowerDelta — the styles only this module's elements need, shipped in its lazy chunk instead of the
+   boot stylesheet (docs/DEPLOYMENT.md §boot-css). src/index.css keeps every class a boot screen (or
+   more than one lazy chunk) renders; lazy stylesheets load AFTER it, so override here, not there. */
+
+/* ── Power comparison chip (▲/▼/= vs equipped) — src/ui/components/PowerDelta ────── */
+.pdelta {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font: 800 12px/1 system-ui, sans-serif;
+  letter-spacing: 0.02em;
+  padding: 2px 7px;
+  border-radius: 999px;
+  border: 1px solid currentColor;
+  white-space: nowrap;
+}
+
+.pdelta-sym { font-size: 10px; }
+
+.pdelta.is-better { color: #57e08a; background: rgba(87, 224, 138, 0.12); }
+
+.pdelta.is-worse { color: var(--danger); background: rgba(255, 122, 122, 0.1); }
+
+.pdelta.is-same { color: var(--muted); background: rgba(255, 255, 255, 0.05); }
+
+.cmp-verdict .pdelta { font-size: 14px; padding: 4px 12px; }

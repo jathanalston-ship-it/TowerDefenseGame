@@ -1,0 +1,253 @@
+/* HarvestScreen — the styles only this module's elements need, shipped in its lazy chunk instead of the
+   boot stylesheet (docs/DEPLOYMENT.md §boot-css). src/index.css keeps every class a boot screen (or
+   more than one lazy chunk) renders; lazy stylesheets load AFTER it, so override here, not there. */
+
+.act-collect::before { content: '⤓ '; color: var(--gold); }
+
+/* ── IDLE HARVEST (docs/IDLE-HARVEST.md §presentation) ─────────────────────────────────────── */
+.hv-screen { display: flex; flex-direction: column; gap: 18px; }
+
+/* Production intelligence panel + growth-card production lines */
+.hv-stats { display: flex; flex-direction: column; gap: 8px; }
+
+.hv-stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 6px; }
+
+.hv-stat { font-size: 12px; color: var(--muted); padding: 7px 10px; border: 1px solid var(--line); border-radius: var(--r-md); background: var(--panel); }
+
+.hv-mults { display: flex; flex-wrap: wrap; gap: 5px; }
+
+.hv-mult { font-size: 11px; font-weight: 700; padding: 3px 9px; border-radius: 999px; border: 1px solid var(--line); color: var(--muted); }
+
+.hv-mult.is-hive { border-color: color-mix(in srgb, var(--viral) 45%, var(--line)); color: var(--viral); }
+
+.hv-mult.is-syn { border-color: color-mix(in srgb, var(--gold) 45%, var(--line)); color: var(--gold); }
+
+.hv-top-organ { font-size: 12px; color: var(--muted); }
+
+.hv-advice-link { background: none; border: 0; padding: 0; color: var(--gold); font-weight: 700; cursor: pointer; text-decoration: underline; font-size: 12px; }
+
+/* The living hopper — veins fill toward the cap behind the numbers. */
+.hv-hopper { position: relative; overflow: hidden; border: 1px solid var(--line); border-radius: var(--r-md);
+  background: rgba(12, 16, 12, 0.7); padding: 16px 18px; }
+
+.hv-veins { position: absolute; inset: 0; pointer-events: none; opacity: 0.5; }
+
+.hv-vein { position: absolute; bottom: 0; width: 3px; border-radius: 999px;
+  background: linear-gradient(to top, var(--vital), transparent); height: var(--fill);
+  animation: hv-vein 3.2s ease-in-out infinite; }
+
+.hv-vein:nth-child(1) { left: 8%; }
+
+.hv-vein:nth-child(2) { left: 32%; }
+
+.hv-vein:nth-child(3) { left: 61%; }
+
+.hv-vein:nth-child(4) { left: 87%; }
+
+.hv-hopper-row { display: flex; align-items: baseline; gap: 8px; }
+
+.hv-big { font-size: 26px; font-weight: 900; letter-spacing: 0.04em; color: var(--vital); }
+
+.hv-cap { font-size: 12px; color: var(--muted); }
+
+.hv-bar { height: 10px; border-radius: 999px; background: #0a0e15; border: 1px solid var(--line); overflow: hidden; }
+
+.hv-bar i { display: block; height: 100%; background: linear-gradient(90deg, #3a7d44, var(--vital)); transition: width var(--dur-3) var(--ease-out); }
+
+.hv-meta-row { display: flex; flex-wrap: wrap; gap: 12px; font-size: 11px; color: var(--dim); }
+
+.hv-collect { align-self: flex-start; min-width: 180px; }
+
+.hv-collect.is-ready { box-shadow: 0 0 18px rgba(63, 224, 138, 0.4); }
+
+/* Section headers + the evolution tree grid */
+.hv-sec-h { display: flex; flex-wrap: wrap; align-items: baseline; gap: 10px; margin-bottom: 8px; }
+
+.hv-sec-t { font-size: 13px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-dim); }
+
+.hv-sec-s { font-size: 11px; color: var(--dim); }
+
+.hv-nodes { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 10px; }
+
+.hv-node { display: flex; flex-direction: column; gap: 6px; padding: 10px 12px;
+  border: 1px solid var(--line); border-radius: var(--r-sm); background: rgba(10, 14, 18, 0.65); }
+
+.hv-node.is-gated { border-style: dashed; }
+
+.hv-node-h { display: flex; align-items: center; gap: 8px; }
+
+.hv-node-g { font-size: 14px; }
+
+.hv-node-name { font-size: 12px; font-weight: 800; letter-spacing: 0.06em; flex: 1; }
+
+.hv-node-lv { font-size: 11px; font-weight: 700; color: var(--gold); }
+
+.hv-node-blurb { font-size: 11px; color: var(--muted); margin: 0; }
+
+.hv-node-gate { font-size: 11px; color: var(--r-epic); }
+
+/* GROW ceremony (IDLE-HARVEST.md §presentation) — a one-shot bloom the instant a node level
+   takes: caustic ring burst off the card, glyph swell, the new level flaring white→gold. The
+   card remounts per buy (key=level) so re-buys re-trigger crisply. */
+.hv-node { position: relative; }
+
+.hv-node.is-grown::after { content: ''; position: absolute; inset: -2px; border-radius: inherit; border: 2px solid var(--caustic); opacity: 0; pointer-events: none; animation: hvGrowRing 0.7s ease-out; }
+
+.hv-node.is-grown .hv-node-g { display: inline-block; animation: hvGlyphPop 0.55s var(--ease-out); }
+
+.hv-node.is-grown .hv-node-lv { animation: hvLvFlare 0.9s ease-out; }
+
+@keyframes hvGrowRing { 0% { opacity: 0.9; transform: scale(0.94); } 100% { opacity: 0; transform: scale(1.1); } }
+
+@keyframes hvGlyphPop { 0% { transform: scale(1); } 35% { transform: scale(1.5); } 100% { transform: scale(1); } }
+
+@keyframes hvLvFlare { 0% { color: #fff; text-shadow: 0 0 12px var(--caustic); } 100% { color: var(--gold); text-shadow: none; } }
+
+/* Affordable Grow buttons breathe — "something is ready to grow" reads from across the screen */
+.hv-node-buy.is-afford { animation: hvAffordBreathe 2.6s ease-in-out infinite; }
+
+@keyframes hvAffordBreathe { 0%, 100% { box-shadow: 0 0 0 0 rgba(182, 232, 74, 0); } 50% { box-shadow: 0 0 10px 1px rgba(182, 232, 74, 0.28); } }
+
+/* A BRIMMED hopper demands the harvest — the collect button pulses until pressed */
+.hv-collect.is-brimmed { animation: hvBrimPulse 1.6s ease-in-out infinite; }
+
+@keyframes hvBrimPulse { 0%, 100% { box-shadow: 0 0 14px rgba(63, 224, 138, 0.35); } 50% { box-shadow: 0 0 26px rgba(63, 224, 138, 0.7); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .hv-node.is-grown::after, .hv-node.is-grown .hv-node-g, .hv-node.is-grown .hv-node-lv,
+  .hv-node-buy.is-afford, .hv-collect.is-brimmed { animation: none; }
+}
+
+.hv-node-buy { font-size: 12px; }
+
+.hv-node-buy.is-afford { box-shadow: 0 0 10px rgba(63, 224, 138, 0.3); }
+
+/* Drop table chips */
+.hv-drops { display: flex; flex-wrap: wrap; gap: 6px; }
+
+.hv-drop { font-size: 11px; padding: 3px 9px; border-radius: 999px; border: 1px solid var(--line); color: var(--text-dim); }
+
+.hv-drop.is-rare { border-color: color-mix(in srgb, var(--gold) 55%, transparent); color: var(--gold); }
+
+.hv-drop.is-locked { opacity: 0.55; }
+
+.hv-ledger { display: flex; flex-wrap: wrap; gap: 14px; font-size: 11px; color: var(--muted); }
+
+.hv-arrive-glyph { font-size: 18px; color: var(--vital); }
+
+.hv-arrive-t { font-size: 12px; color: var(--text-dim); }
+
+.hv-arrive-later { background: none; border: none; font-size: 11px; color: var(--muted); text-decoration: underline; }
+
+/* The collect ceremony — pods burst, rewards fly out */
+.hv-cer-backdrop { position: fixed; inset: 0; z-index: 80; display: grid; place-items: center;
+  background: rgba(4, 8, 6, 0.72); animation: hv-arrive-in 0.3s var(--ease-out) both; }
+
+.hv-cer { width: min(420px, 94vw); max-height: 88vh; overflow-y: auto; padding: 18px 18px 16px;
+  display: flex; flex-direction: column; gap: 12px; align-items: center; text-align: center;
+  border: 1px solid color-mix(in srgb, var(--vital) 45%, transparent); border-radius: var(--r-lg);
+  background: radial-gradient(ellipse at top, rgba(24, 40, 26, 0.96), rgba(8, 12, 9, 0.98));
+  box-shadow: 0 0 60px color-mix(in srgb, var(--vital) 18%, transparent), 0 24px 60px rgba(0, 0, 0, 0.5); }
+
+.hv-cer.is-bloom { border-color: color-mix(in srgb, var(--gold) 60%, transparent);
+  box-shadow: 0 0 70px color-mix(in srgb, var(--gold) 22%, transparent), 0 24px 60px rgba(0, 0, 0, 0.5); }
+
+.hv-cer-eyebrow { font-size: 12px; font-weight: 900; letter-spacing: 0.28em; color: var(--vital); }
+
+.hv-cer.is-bloom .hv-cer-eyebrow { color: var(--gold); }
+
+.hv-cer-bloomline { font-size: 11px; color: var(--gold); margin-top: -6px; }
+
+.hv-cer-pods { display: flex; gap: 12px; padding: 2px 0; }
+
+.hv-pod { position: relative; width: 24px; height: 29px; border-radius: 42% 58% 55% 45% / 60% 60% 40% 40%;
+  background: radial-gradient(circle at 35% 30%, rgba(160, 255, 190, 0.9), rgba(40, 90, 55, 0.92));
+  animation: hv-pod-burst 0.9s var(--ease-out) both; }
+
+.hv-pod:nth-child(2n) { transform: rotate(-6deg); }
+
+.hv-pod:nth-child(3n) { transform: rotate(5deg); }
+
+.hv-pod-glow { position: absolute; inset: -6px; border-radius: 50%; pointer-events: none;
+  background: radial-gradient(circle, color-mix(in srgb, var(--vital) 35%, transparent), transparent 70%);
+  animation: hv-pod-glow 0.9s var(--ease-out) both; animation-delay: inherit; }
+
+.hv-cer.is-bloom .hv-pod-glow { background: radial-gradient(circle, color-mix(in srgb, var(--gold) 40%, transparent), transparent 70%); }
+
+@keyframes hv-pod-burst {
+  0% { transform: scale(0.3) translateY(6px); opacity: 0; }
+  55% { transform: scale(1.22); opacity: 1; }
+  75% { transform: scale(0.92); }
+  100% { transform: scale(1); }
+}
+
+/* Labelled stat blocks — the numbers lead, the words sit under them. */
+.hv-cer-stats { display: flex; align-items: stretch; justify-content: center; gap: 14px; width: 100%;
+  padding: 8px 10px; border: 1px solid var(--line); border-radius: var(--r-md); background: rgba(10, 16, 12, 0.65); }
+
+.hv-stat { display: flex; flex-direction: column; gap: 1px; min-width: 72px; }
+
+.hv-stat span { font-size: 10px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted);
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
+
+.hv-stat-sep { width: 1px; background: var(--line); }
+
+.hv-brim { font-style: normal; font-size: 10px; font-weight: 900; letter-spacing: 0.1em; color: var(--gold);
+  border: 1px solid color-mix(in srgb, var(--gold) 55%, transparent); border-radius: 999px; padding: 1px 6px; }
+
+.hv-cer-kicker { font-size: 10px; font-weight: 900; letter-spacing: 0.24em; color: var(--muted); margin-bottom: -4px; }
+
+.hv-cer-lines { display: flex; flex-direction: column; gap: 6px; width: 100%; }
+
+.hv-line { display: flex; align-items: center; gap: 10px; padding: 7px 12px; text-align: left;
+  border: 1px solid var(--line); border-left: 3px solid color-mix(in srgb, var(--vital) 45%, var(--line));
+  border-radius: var(--r-sm); background: rgba(12, 18, 14, 0.72);
+  animation: hv-line-in 0.45s var(--ease-out) both; }
+
+@keyframes hv-line-in { from { opacity: 0; transform: translateY(8px) scale(0.97); } }
+
+.hv-line.is-rare { border-color: color-mix(in srgb, var(--gold) 55%, transparent); border-left-color: var(--gold);
+  background: linear-gradient(90deg, color-mix(in srgb, var(--gold) 10%, transparent), rgba(12, 18, 14, 0.72) 55%); }
+
+.hv-line-i { font-size: 16px; display: inline-flex; width: 22px; justify-content: center; }
+
+.hv-line-t { font-size: 12px; color: var(--text-dim); flex: 1; display: inline-flex; align-items: baseline; gap: 7px; min-width: 0; flex-wrap: wrap; }
+
+.hv-line-qty { font-size: 16px; font-weight: 800; color: var(--text); }
+
+.hv-line-name { font-size: 12px; }
+
+.hv-line-mats { gap: 12px; }
+
+.hv-mat { display: inline-flex; align-items: baseline; gap: 4px; white-space: nowrap; }
+
+.hv-line-rare { font-size: 10px; font-weight: 900; letter-spacing: 0.14em; color: var(--gold); }
+
+.hv-cer-xp { width: 100%; font-size: 11px; color: var(--muted); padding-top: 8px; border-top: 1px dashed var(--line);
+  animation: hv-line-in 0.45s var(--ease-out) both; }
+
+/* The grow-next chip — a real call to action, not a mystery string. */
+.hv-cer-grow { display: flex; align-items: center; gap: 10px; max-width: 100%; padding: 8px 14px;
+  border: 1px solid color-mix(in srgb, var(--vital) 50%, var(--line-strong)); border-radius: 999px;
+  background: color-mix(in srgb, var(--vital) 10%, var(--panel)); cursor: pointer; }
+
+.hv-cer-grow:hover { background: color-mix(in srgb, var(--vital) 18%, var(--panel)); }
+
+.hv-grow-k { font-size: 10px; font-weight: 900; letter-spacing: 0.16em; text-transform: uppercase; color: var(--vital); }
+
+.hv-grow-n { font-size: 12px; font-weight: 700; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+.hv-grow-c { font-size: 12px; font-weight: 800; color: var(--gold); white-space: nowrap; display: inline-flex; align-items: center; gap: 3px; }
+
+.hv-cer-gate { font-size: 11px; color: var(--r-epic); }
+
+.hv-cer-close { font-size: 13px; padding: 9px 22px; }
+
+@media (max-width: 380px) {
+  .hv-cer-stats { gap: 8px; }
+  .hv-stat { min-width: 60px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hv-pod, .hv-pod-glow, .hv-line, .hv-cer-xp, .hv-cer-backdrop { animation-duration: 0.01s !important; }
+}

@@ -1,0 +1,29 @@
+/* LoadoutStrip — the styles only this module's elements need, shipped in its lazy chunk instead of the
+   boot stylesheet (docs/DEPLOYMENT.md §boot-css). src/index.css keeps every class a boot screen (or
+   more than one lazy chunk) renders; lazy stylesheets load AFTER it, so override here, not there. */
+
+/* ── PRE-RUN LOADOUT STRIP (ui/components/LoadoutStrip.tsx — docs/UI-STANDARDS.md §loadout) ──
+   One compact row beside every launch: what the run fields, each segment a deep link. */
+.lds { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; }
+
+.lds-k { font-size: 12px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: var(--dim); margin-right: 2px; }
+
+.lds-seg:hover { border-color: color-mix(in srgb, var(--gold) 55%, var(--line)); }
+
+.lds-seg.is-static { cursor: default; }
+
+.lds-heroes { display: inline-flex; }
+
+.lds-hero { display: inline-flex; width: 22px; height: 22px; border-radius: 50%; overflow: hidden; }
+
+.lds-hero + .lds-hero { margin-left: -6px; }
+
+.lds-i { color: var(--muted); }
+
+.lds-v { white-space: nowrap; font-variant-numeric: tabular-nums; }
+
+.lds-v.is-gap { color: var(--warn); } /* an empty slot is a free upgrade — say so */
+
+.lds-go { font-style: normal; font-size: 11px; color: var(--muted); }
+
+.play-hero > .lds { margin: 10px 0 2px; }

@@ -1,0 +1,10 @@
+/* ProgressBar — the styles only this module's elements need, shipped in its lazy chunk instead of the
+   boot stylesheet (docs/DEPLOYMENT.md §boot-css). src/index.css keeps every class a boot screen (or
+   more than one lazy chunk) renders; lazy stylesheets load AFTER it, so override here, not there. */
+
+.bar-fill {
+  height: 100%;
+  border-radius: 999px;
+  transition: width var(--dur-3) var(--ease-out);
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.12) inset;
+}

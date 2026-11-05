@@ -9,6 +9,7 @@
 import type { CSSProperties } from 'react';
 import { HIVE_ORGANS } from '../../core/hiveOrgans';
 import { HIVE_SYNERGIES, synergyLive } from '../../core/hiveProduction';
+import './HiveOrganism.css';
 
 export function HiveOrganism({
   built,

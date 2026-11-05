@@ -19,6 +19,7 @@ import { ACHIEVEMENTS } from '../state/achievements';
 import { PredictionPanel } from './PredictionPanel';
 import { ThreatPicker } from './components/ThreatPicker';
 import { LoadoutStrip } from './components/LoadoutStrip';
+import './BossRushScreen.css';
 
 // The signature visual: the escalation ladder itself — wave N is N skulls. Reads as artwork
 // AND as the rules explanation in one glance (self-contained, no assets).

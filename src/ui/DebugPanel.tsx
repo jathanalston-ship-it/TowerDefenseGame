@@ -11,6 +11,7 @@ import {
   getAssimilationDebug, getStageOverride, setStageOverride,
   isLivingBattlefieldEnabled, setLivingBattlefieldEnabled, STAGE_NAMES,
 } from '../render/livingBattlefield';
+import './DebugPanel.css';
 
 export function DebugPanel(): JSX.Element {
   const game = useSyncExternalStore(subscribeActiveGame, getActiveGame, getActiveGame);

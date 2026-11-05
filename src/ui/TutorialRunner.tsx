@@ -18,6 +18,7 @@ import { GameView } from './GameView';
 import { TutorialOverlay } from './tutorial/TutorialOverlay';
 import { useTutorialDirector } from './tutorial/tutorialDirector';
 import { Commissioning } from './tutorial/Commissioning';
+import './TutorialRunner.css';
 
 const TUTORIAL_SEED = 0x7c0de; // fixed → the tutorial encounter is identical every time
 

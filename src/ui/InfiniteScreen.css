@@ -1,0 +1,44 @@
+/* InfiniteScreen — the styles only this module's elements need, shipped in its lazy chunk instead of the
+   boot stylesheet (docs/DEPLOYMENT.md §boot-css). src/index.css keeps every class a boot screen (or
+   more than one lazy chunk) renders; lazy stylesheets load AFTER it, so override here, not there. */
+
+@media (prefers-reduced-motion: reduce) {
+  .infinite-start { animation: none; }
+}
+
+.inf-fc-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+
+.inf-fc-live { font-size: 10px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--dim); }
+
+.infinite-start { animation: cc-cta-breathe 5.5s ease-in-out infinite; }
+
+/* Descent-forecast LADDER — the director's real curves priced at depth checkpoints; the value
+   column is the anti-grind taper (docs/ENDLESS-SCALING.md §taper). ◈ row = the account record. */
+.inf-lad-grid { display: grid; grid-template-columns: 44px repeat(4, minmax(0, 1fr)); gap: 3px 8px; font-variant-numeric: tabular-nums; }
+
+.inf-lad-h { font-size: 10px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); text-align: right; }
+
+.inf-lad-h.is-w { text-align: left; }
+
+.inf-lad-w { font-size: 11px; font-weight: 800; color: var(--muted); }
+
+.inf-lad-w.is-best { color: var(--viral); }
+
+.inf-lad-v { font-size: 11px; color: var(--text); text-align: right; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.inf-lad-v.is-cap { color: var(--gold); }
+
+.inf-lad-v.is-taper { color: var(--dim); }
+
+.inf-lad-notes { display: flex; flex-direction: column; gap: 3px; margin-top: 4px; padding-top: 7px; border-top: 1px dashed var(--line); }
+
+.inf-lad-notes span { font-size: 10px; color: var(--dim); line-height: 1.45; }
+
+/* Difficulty as a BRIEFING (blurb + moved axes), not a bare dropdown. */
+.inf-diff-brief { display: flex; flex-direction: column; gap: 4px; margin-top: 8px; max-width: 560px; text-transform: none; letter-spacing: normal; }
+
+.inf-diff-blurb { font-size: 12px; color: var(--muted); line-height: 1.45; }
+
+.inf-diff-fx { display: flex; flex-wrap: wrap; gap: 3px 12px; }
+
+.inf-diff-fx i.is-gold { color: var(--gold); }

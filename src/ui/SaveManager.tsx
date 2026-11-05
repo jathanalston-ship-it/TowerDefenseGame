@@ -3,6 +3,7 @@ import { meta } from '../state/meta';
 import type { BackupMeta } from '../save/saveStore';
 import { DownloadIcon, PlusIcon, UploadIcon } from './components/Icon';
 import { ACCOUNT_CURRENCY } from '../core/currencies';
+import './SaveManager.css';
 
 export function SaveManager(): JSX.Element {
   const save = meta.use(); // reactive: reflects imports/restores

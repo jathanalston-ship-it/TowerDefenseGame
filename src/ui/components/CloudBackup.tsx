@@ -7,6 +7,7 @@ import { account } from '../../account/accountStore';
 import { meta } from '../../state/meta';
 import { useGuestMode } from '../../state/guestMode';
 import { adoptSyncCode, syncCode } from '../../net/identity';
+import './CloudBackup.css';
 
 export function CloudBackup(): JSX.Element {
   const guest = useGuestMode();

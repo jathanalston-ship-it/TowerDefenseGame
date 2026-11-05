@@ -1,0 +1,62 @@
+/* BossRushScreen — the styles only this module's elements need, shipped in its lazy chunk instead of the
+   boot stylesheet (docs/DEPLOYMENT.md §boot-css). src/index.css keeps every class a boot screen (or
+   more than one lazy chunk) renders; lazy stylesheets load AFTER it, so override here, not there. */
+
+.inf-fc-row { display: flex; justify-content: space-between; gap: 10px; font-size: 12px; color: var(--muted); }
+
+/* ── BOSS RUSH terminal (docs/BOSS-RUSH.md) — the gauntlet's prep screen ──────────────── */
+.rush-title { background: linear-gradient(90deg, var(--danger), #ff8598, var(--gold)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+
+/* The escalation ladder — wave N rendered as N skulls: the rules AS the artwork. */
+.rush-ladder { display: flex; flex-direction: column; gap: 4px; margin-top: var(--s3); padding: 12px 14px; border: 1px solid color-mix(in srgb, var(--danger) 25%, var(--line)); border-radius: var(--r-md); background: linear-gradient(160deg, color-mix(in srgb, var(--danger) 6%, var(--panel-2)), var(--panel-2) 70%); }
+
+.rush-rung { display: flex; align-items: baseline; gap: 12px; }
+
+.rush-rung-w { width: 34px; font-size: 11px; font-weight: 800; letter-spacing: 0.12em; color: var(--muted); font-variant-numeric: tabular-nums; }
+
+.rush-rung-skulls { display: flex; gap: 7px; }
+
+.rush-skull { font-style: normal; font-size: 16px; color: var(--danger); text-shadow: 0 0 10px color-mix(in srgb, var(--danger) 55%, transparent); animation: rush-skull-pulse 5.5s ease-in-out infinite; }
+
+.rush-rung-more .rush-skull { color: var(--muted); text-shadow: none; animation: none; }
+
+@keyframes rush-skull-pulse { 0%, 100% { opacity: 0.65; transform: scale(1); } 50% { opacity: 1; transform: scale(1.12); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .rush-skull { animation: none; }
+}
+
+/* The contract, in three rules. */
+.rush-rules { display: flex; flex-direction: column; gap: 8px; margin-top: var(--s3); }
+
+.rush-rule { display: flex; flex-direction: column; gap: 2px; padding: 9px 12px; border: 1px solid var(--line); border-radius: var(--r-sm); background: var(--panel-2); }
+
+.rush-rule span { font-size: 12px; color: var(--muted); line-height: 1.5; }
+
+/* Gauntlet milestones — the mode's achievement ladder with live progress. */
+.rush-miles { display: flex; flex-direction: column; gap: 8px; border-color: color-mix(in srgb, var(--gold) 22%, var(--line)); }
+
+.rush-mile { display: flex; flex-direction: column; gap: 4px; }
+
+.rush-mile-head { display: flex; justify-content: space-between; gap: 10px; font-size: 12px; color: var(--muted); }
+
+.rush-mile.done .rush-mile-head span { color: var(--vital); }
+
+.rush-mile.done .rush-mile-bar i { background: var(--vital); }
+
+/* Boss Rush stamina + Ichor-bleed panels (docs/BOSS-RUSH.md §stamina, §ichor). */
+.rush-stamina { display: flex; flex-direction: column; gap: 5px; margin-top: var(--s3); padding: 10px 12px; border: 1px solid color-mix(in srgb, var(--gold) 28%, var(--line)); border-radius: var(--r-sm); background: var(--panel-2); }
+
+.rush-stamina.is-empty { border-color: color-mix(in srgb, var(--danger) 45%, var(--line)); }
+
+.rush-sta-head { display: flex; justify-content: space-between; gap: 10px; font-size: 12px; color: var(--muted); }
+
+.rush-sta-bar { height: 6px; border-radius: 999px; background: color-mix(in srgb, var(--line) 60%, transparent); overflow: hidden; }
+
+.rush-sta-bar i { display: block; height: 100%; border-radius: 999px; background: linear-gradient(90deg, var(--gold), #ffe08a); transition: width var(--dur-3) var(--ease-out); }
+
+.rush-stamina.is-empty .rush-sta-bar i { background: var(--danger); }
+
+.rush-sta-foot { display: flex; justify-content: space-between; gap: 10px; font-size: 11px; color: var(--dim); font-variant-numeric: tabular-nums; }
+
+.rush-sta-free { color: var(--vital); font-weight: 800; letter-spacing: 0.08em; }

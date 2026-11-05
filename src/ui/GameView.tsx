@@ -79,6 +79,7 @@ import type { CardEffect } from '../core/cards';
 import type { MegaEncounter } from '../core/megaboss';
 import type { RunResult } from '../state/meta';
 import { runBus } from '../state/navBus';
+import './GameView.css';
 
 // Per-event camera trauma (shake), hit-stop, ducking and stingers live in ONE table:
 // render/feel.ts FEEL (docs/GAME-FEEL.md §feel table). Rendered shake = trauma² · SHAKE_MAX ·

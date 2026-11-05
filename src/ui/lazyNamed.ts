@@ -8,6 +8,10 @@
 //    Browsers cache a failed module fetch for the page's lifetime (re-importing the same URL
 //    rejects instantly, no network), so the retry re-imports the chunk under a cache-busting
 //    query when the error names its URL (Chromium/Firefox do).
+//  • A screen's own STYLESHEET (docs/DEPLOYMENT.md §boot-css) fails the import too ("Unable to
+//    preload CSS for …"), and Vite never re-requests a sheet it already tried — so every later
+//    attempt first re-requests the failed sheet (a fresh <link>), else the screen would render
+//    unstyled.
 //  • A failure surfaces ONCE (React.lazy caches the rejection → the screen boundary shows it);
 //    the boundary's Retry calls retryFailedScreens(), which hands every failed screen a FRESH
 //    loader for its next mount.
@@ -28,13 +32,46 @@ function reimport<T>(url: string): Promise<T> {
   return import(/* @vite-ignore */ url) as Promise<T>;
 }
 
+/** The stylesheet a failed chunk load names (Vite: "Unable to preload CSS for <href>"), if any. */
+export function failedCssHref(err: unknown): string | null {
+  const m = /Unable to preload CSS for (\S+?\.css)(?=$|[\s'"?#])/.exec(err instanceof Error ? err.message : String(err));
+  return m ? m[1] : null;
+}
+
+/** Re-request a stylesheet whose load failed: drop the dead <link>, append a fresh one, await it. */
+function restyle(href: string): Promise<void> {
+  return new Promise((resolve, reject) => {
+    for (const old of document.querySelectorAll(`link[rel="stylesheet"][href="${href}"]`)) old.remove();
+    const link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.crossOrigin = '';
+    link.href = href;
+    link.addEventListener('load', () => resolve());
+    link.addEventListener('error', () => reject(new Error(`Unable to preload CSS for ${href}`)));
+    document.head.appendChild(link);
+  });
+}
+
+/** Stylesheets that failed to load — re-requested before the next attempt of ANY screen. */
+const failedCss = new Set<string>();
+
 /** Run `load`; on failure wait `delayMs` and try exactly once more — through a cache-busted
- *  re-import of the failed chunk when its URL is known, else `load` again (unit-tested). */
-export function retryOnce<T>(load: () => Promise<T>, delayMs = LAZY_RETRY_MS, again: (url: string) => Promise<T> = reimport): Promise<T> {
-  return load().catch((err: unknown) => new Promise<T>((resolve, reject) => {
+ *  re-import of the failed chunk when its URL is known, else `load` again; a failed stylesheet is
+ *  re-requested first (unit-tested). */
+export function retryOnce<T>(
+  load: () => Promise<T>,
+  delayMs = LAZY_RETRY_MS,
+  again: (url: string) => Promise<T> = reimport,
+  css: (href: string) => Promise<void> = restyle,
+): Promise<T> {
+  const attempt = (): Promise<T> =>
+    Promise.all([...failedCss].map((href) => css(href).then(() => { failedCss.delete(href); }))).then(load);
+  return attempt().catch((err: unknown) => new Promise<T>((resolve, reject) => {
+    const href = failedCssHref(err);
+    if (href) failedCss.add(href);
     setTimeout(() => {
-      const url = failedChunkUrl(err);
-      (url ? again(`${url}?retry=${Date.now()}`) : load()).then(resolve, reject);
+      const url = href ? null : failedChunkUrl(err);
+      (url ? again(`${url}?retry=${Date.now()}`) : attempt()).then(resolve, reject);
     }, delayMs);
   }));
 }

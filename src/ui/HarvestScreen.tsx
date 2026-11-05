@@ -17,6 +17,7 @@ import { navBus } from '../state/navBus';
 import { CurrencyIcon } from './components/CurrencyIcon';
 import { HiveOrganism } from './components/HiveOrganism';
 import { telemetry } from '../net/telemetry';
+import './HarvestScreen.css';
 
 function pct(n: number): number { return Math.max(0, Math.min(100, Math.round(n * 100))); }
 

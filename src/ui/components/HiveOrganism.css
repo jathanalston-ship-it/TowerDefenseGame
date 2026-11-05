@@ -1,0 +1,45 @@
+/* HiveOrganism — the styles only this module's elements need, shipped in its lazy chunk instead of the
+   boot stylesheet (docs/DEPLOYMENT.md §boot-css). src/index.css keeps every class a boot screen (or
+   more than one lazy chunk) renders; lazy stylesheets load AFTER it, so override here, not there. */
+
+/* ── The living Hive organism (ui/components/HiveOrganism.tsx — docs/HIVE-PRODUCTION.md) ── */
+.hvo { border: 1px solid var(--line); border-radius: var(--r-lg); background: radial-gradient(ellipse at 50% 60%, color-mix(in srgb, var(--viral) 7%, transparent), transparent 70%), var(--panel); overflow: hidden; }
+
+.hvo-svg { display: block; width: 100%; height: auto; max-height: 210px; }
+
+.hvo-vein { fill: none; stroke: color-mix(in srgb, var(--viral) 35%, transparent); stroke-width: 1.4; stroke-dasharray: 3 4; }
+
+.hvo-mote { fill: var(--caustic); filter: drop-shadow(0 0 3px var(--caustic)); }
+
+.hvo-syn { fill: none; stroke: color-mix(in srgb, var(--gold) 55%, transparent); stroke-width: 1.2; stroke-dasharray: 2 5; animation: hvoSyn 3s linear infinite; }
+
+@keyframes hvoSyn { to { stroke-dashoffset: -14; } }
+
+.hvo-core-halo { fill: none; stroke: color-mix(in srgb, var(--viral) 30%, transparent); stroke-width: 1; }
+
+.hvo[data-producing='1'] .hvo-core-halo { animation: hvoBeat 2.4s ease-in-out infinite; transform-origin: center; transform-box: fill-box; }
+
+@keyframes hvoBeat { 0%, 100% { opacity: 0.5; transform: scale(1); } 50% { opacity: 1; transform: scale(1.12); } }
+
+.hvo-core-shell { fill: color-mix(in srgb, var(--viral) 10%, var(--bg)); stroke: var(--viral); stroke-width: 1.4; }
+
+.hvo-core-fill { fill: color-mix(in srgb, var(--caustic) 55%, var(--viral)); opacity: 0.75; transition: y var(--dur-3), height var(--dur-3); }
+
+.hvo-core-pct { font-size: 11px; font-weight: 800; fill: var(--ink); }
+
+.hvo-organ-glyph { font-size: 10px; fill: var(--muted); opacity: 0.55; }
+
+.hvo-organ.is-grown .hvo-organ-body { fill: color-mix(in srgb, var(--viral) 16%, var(--bg)); stroke: var(--viral); }
+
+.hvo-organ.is-grown .hvo-organ-glyph { fill: var(--ink); opacity: 1; }
+
+.hvo[data-producing='1'] .hvo-organ.is-grown { animation: hvoOrgan 3.2s ease-in-out infinite; animation-delay: var(--d, 0s); transform-origin: center; transform-box: fill-box; }
+
+@keyframes hvoOrgan { 0%, 100% { opacity: 0.85; } 50% { opacity: 1; } }
+
+.hvo-pip { fill: var(--caustic); }
+
+@media (prefers-reduced-motion: reduce) {
+  .hvo-mote { display: none; }
+  .hvo-syn, .hvo[data-producing='1'] .hvo-core-halo, .hvo[data-producing='1'] .hvo-organ.is-grown { animation: none; }
+}

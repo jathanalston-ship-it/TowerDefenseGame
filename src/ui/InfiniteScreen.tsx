@@ -20,6 +20,7 @@ import { PredictionPanel } from './PredictionPanel';
 import { LoopDirective } from './NextGoalBanner';
 import { ThreatPicker } from './components/ThreatPicker';
 import { LoadoutStrip } from './components/LoadoutStrip';
+import './InfiniteScreen.css';
 
 /** Compact ×-multiplier for the forecast ladder (deep HP walls reach ×10⁷ under fast protocols). */
 function fmtMult(v: number): string {

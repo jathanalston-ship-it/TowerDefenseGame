@@ -1,0 +1,20 @@
+/* Detail — the styles only this module's elements need, shipped in its lazy chunk instead of the
+   boot stylesheet (docs/DEPLOYMENT.md §boot-css). src/index.css keeps every class a boot screen (or
+   more than one lazy chunk) renders; lazy stylesheets load AFTER it, so override here, not there. */
+
+/* §layers — the Detail expander (components/Detail.tsx, docs/INFO-HIERARCHY.md): Layer-2/3
+   numbers fold behind a quiet chip until the player intentionally asks. */
+.dtl { margin: 6px 0 2px; }
+
+.dtl-s {
+  display: inline-block; cursor: pointer; list-style: none; font-size: 10px; font-weight: 800;
+  letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted);
+  padding: 3px 10px; border: 1px solid var(--line); border-radius: 999px;
+  transition: color var(--dur-2) var(--ease-out), border-color var(--dur-2) var(--ease-out);
+}
+
+.dtl-s::-webkit-details-marker { display: none; }
+
+.dtl-s:hover { color: var(--text, #e8eef7); border-color: var(--line-strong); }
+
+.dtl[open] .dtl-s { color: var(--caustic); border-color: color-mix(in srgb, var(--caustic) 40%, var(--line)); }

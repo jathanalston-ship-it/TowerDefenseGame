@@ -4,6 +4,7 @@
 // Purely presentational — the screen owns its ListOrgState and pref persistence.
 
 import type { ReactNode } from 'react';
+import './ListControls.css';
 
 export interface ListControlsProps {
   search?: { value: string; onChange: (v: string) => void; placeholder: string; label: string };

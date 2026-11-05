@@ -18,6 +18,7 @@ import { audio } from '../audio/sound';
 import { HostedScreen } from './components/HostTabs';
 import { SpecimenVault } from './SpecimenVault';
 import { RarityFx, rfxClass } from './components/RarityFx';
+import './Wardrobe.css';
 
 type Tab = 'skins' | WardrobeGroup | 'boutique' | 'milestones';
 type OwnFilter = 'all' | 'owned' | 'locked' | 'new' | 'fav';

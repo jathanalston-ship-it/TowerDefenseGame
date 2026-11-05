@@ -7,6 +7,7 @@ import { useEffect } from 'react';
 import { audio } from '../audio/sound';
 import { formatPower } from '../core/power';
 import { MAX_HERO_SLOTS } from '../core/config';
+import './HeroSlotUnlock.css';
 
 export interface HeroSlotUnlockData {
   slot: number; // the newly-opened slot (2 or 3)

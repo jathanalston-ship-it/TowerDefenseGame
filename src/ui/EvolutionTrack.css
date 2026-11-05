@@ -1,0 +1,61 @@
+/* EvolutionTrack — the styles only this module's elements need, shipped in its lazy chunk instead of the
+   boot stylesheet (docs/DEPLOYMENT.md §boot-css). src/index.css keeps every class a boot screen (or
+   more than one lazy chunk) renders; lazy stylesheets load AFTER it, so override here, not there. */
+
+/* ── Mastery Evolution Track — the HELIX panel (docs/MASTERY.md §evolution track).
+   Deliberately NOT the battle-pass card row: a scrollable double-helix genome in the unit's
+   color — vertebra minors on the strands, crossover ganglia majors on the 10s, progress as
+   the assimilated (recolored) span, a pulsing read-head at the live locus. ── */
+.met-panel { display: flex; flex-direction: column; gap: var(--s2); padding: var(--s3); border-radius: var(--r-md); border: 1px solid color-mix(in srgb, var(--tw, var(--viral)) 25%, var(--line)); background: linear-gradient(180deg, color-mix(in srgb, var(--tw, var(--viral)) 5%, rgba(255, 255, 255, 0.02)), rgba(255, 255, 255, 0.01)); }
+
+.met-head { display: flex; align-items: center; justify-content: space-between; gap: var(--s2); }
+
+.met-eyebrow { font-size: 10px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+
+.met-prestige { flex: none; font-size: 11px; font-weight: 900; padding: 2px 8px; border-radius: 999px; color: var(--text); border: 1px solid color-mix(in srgb, var(--tw) 45%, var(--line)); background: color-mix(in srgb, var(--tw) 12%, transparent); }
+
+.met-vitals { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--s2) var(--s4); font-size: 12px; color: var(--muted); }
+
+.met-due { font-weight: 800; color: var(--gold); }
+
+.met-rail { overflow-x: auto; border-radius: var(--r-sm); background: rgba(0, 0, 0, 0.25); }
+
+.met-strand { fill: none; stroke: var(--line); stroke-width: 2; }
+
+.met-strand.on { stroke: var(--tw); stroke-width: 2.5; filter: drop-shadow(0 0 3px color-mix(in srgb, var(--tw) 60%, transparent)); }
+
+.met-rung { stroke: color-mix(in srgb, var(--line) 60%, transparent); stroke-width: 1; }
+
+.met-rung.on { stroke: color-mix(in srgb, var(--tw) 45%, transparent); }
+
+.met-headline { stroke: color-mix(in srgb, var(--tw) 55%, transparent); stroke-width: 1; stroke-dasharray: 3 3; }
+
+.met-node .met-core { fill: #10151f; stroke: var(--line); stroke-width: 1.5; }
+
+.met-node.is-claimed .met-core { fill: color-mix(in srgb, var(--tw) 40%, #10151f); stroke: color-mix(in srgb, var(--tw) 55%, var(--line)); }
+
+.met-node.is-ready { cursor: pointer; }
+
+.met-node.is-ready .met-core { fill: var(--tw); stroke: #fff; }
+
+.met-gang { fill: none; stroke: color-mix(in srgb, var(--tw) 55%, var(--line)); stroke-width: 1.5; opacity: 0.8; }
+
+.met-node.is-upcoming .met-gang { stroke: var(--line); }
+
+.met-lvl { fill: var(--dim); font-size: 10px; font-weight: 700; font-variant-numeric: tabular-nums; }
+
+.met-console { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s2) var(--s3); }
+
+.met-next { flex: 1 1 220px; min-width: 0; font-size: 12px; color: var(--muted); }
+
+.met-actions { display: flex; gap: var(--s2); }
+
+.met-claim { padding: 5px 14px; border-radius: var(--r-sm); border: 1px solid var(--line); background: var(--panel-2); color: var(--muted); font-weight: 800; font-size: 12px; cursor: pointer; }
+
+.met-claim:disabled { opacity: 0.55; cursor: default; }
+
+.met-evolve { padding: 5px 14px; border-radius: var(--r-sm); border: 1px solid var(--tw); background: color-mix(in srgb, var(--tw) 25%, transparent); color: var(--text); font-weight: 900; font-size: 12px; letter-spacing: 0.06em; cursor: pointer; box-shadow: 0 0 16px color-mix(in srgb, var(--tw) 40%, transparent); transition: transform var(--dur-1) var(--ease-out); }
+
+.met-evolve:hover { transform: translateY(-1px); }
+
+.met-foot { font-size: 11px; color: var(--dim); }

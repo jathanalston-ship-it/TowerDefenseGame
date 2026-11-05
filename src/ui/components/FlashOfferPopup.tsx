@@ -12,7 +12,7 @@ import { offerReachesChance, type PremiumOfferDef } from '../../core/premium';
 import { usePaidRandomVisible } from '../../net/storeRegion';
 import { rarityColor } from './ItemArt';
 import { Popup } from './Popup';
-import { fmtCountdown, fmtUsd, grantLine } from '../PremiumStore';
+import { fmtCountdown, fmtUsd, grantLine } from '../premiumFormat';
 
 export function FlashOfferPopup({ offer, expiresAt, onStore, onClose }: {
   offer: PremiumOfferDef;

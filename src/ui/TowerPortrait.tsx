@@ -12,6 +12,7 @@ import { hexRgb, rgba } from '../render/theme';
 import { drawBranchPortrait, evolutionGrowth } from '../render/towerEvolution';
 import { drawStarEvolution, starEvolutionGrowth } from '../render/starEvolution';
 import type { TowerKind } from '../core/types';
+import './TowerPortrait.css';
 
 function drawPortrait(
   ctx: CanvasRenderingContext2D, w: number, h: number, color: string, stars: number, t: number,

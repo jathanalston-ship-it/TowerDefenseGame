@@ -1,0 +1,54 @@
+/* HelpWiki — the styles only this module's elements need, shipped in its lazy chunk instead of the
+   boot stylesheet (docs/DEPLOYMENT.md §boot-css). src/index.css keeps every class a boot screen (or
+   more than one lazy chunk) renders; lazy stylesheets load AFTER it, so override here, not there. */
+
+/* Help · Field Manual — the living wiki. */
+.help-wiki .help-count { font-size: 11px; font-weight: 700; color: var(--muted); margin-left: 8px; }
+
+.help-index { display: flex; flex-direction: column; gap: 10px; max-height: 62vh; overflow: auto; }
+
+.help-cat-h { font-size: 10px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); margin-bottom: 3px; }
+
+.help-entry:hover { background: var(--panel-2); }
+
+.help-entry.on { background: var(--panel-3); border-color: var(--accent, var(--viral)); color: #fff; }
+
+.help-detail { padding: 4px 2px; }
+
+.help-detail-sum { font-size: 13px; color: var(--muted); font-style: italic; margin-bottom: 10px; }
+
+.help-media { padding: 26px; border-radius: var(--r-md); background: repeating-linear-gradient(45deg, var(--panel-2), var(--panel-2) 10px, var(--panel-3) 10px, var(--panel-3) 20px); border: 1px dashed var(--line-strong); color: var(--muted); font-size: 12px; text-align: center; margin-bottom: 12px; }
+
+.help-rows { display: flex; flex-direction: column; gap: 8px; }
+
+.help-row { display: grid; grid-template-columns: 58px 1fr; gap: 10px; align-items: baseline; }
+
+.help-row.is-mistake .help-k { color: var(--gold); }
+
+.help-row.is-mistake .help-v { color: color-mix(in srgb, var(--gold) 30%, var(--text)); }
+
+.help-tour-replay { margin-left: auto; padding: 5px 12px; border-radius: var(--r-sm); border: 1px solid var(--line); background: var(--panel-2); color: var(--text); font-size: 12px; cursor: pointer; transition: border-color var(--dur-2) ease; }
+
+.help-tour-replay:hover { border-color: var(--vital); }
+
+.help-k { font-size: 10px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: var(--viral); }
+
+.help-v { font-size: 13px; color: var(--text); line-height: 1.45; }
+
+.help-goto { margin-top: 12px; padding: 7px 14px; border-radius: var(--r-sm); border: 1px solid var(--accent, var(--viral)); background: color-mix(in srgb, var(--viral) 14%, var(--panel-2)); color: var(--text); font-weight: 700; font-size: 13px; cursor: pointer; }
+
+.help-links { margin-top: 14px; display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+
+.help-links-k { font-size: 10px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+
+.help-link { padding: 4px 10px; border-radius: 999px; background: var(--panel-2); border: 1px solid var(--line); color: var(--viral); font-size: 12px; cursor: pointer; }
+
+.help-link:hover { border-color: var(--viral); }
+
+@media (max-width: 640px) {
+  .help-index { max-height: none; }
+}
+
+/* Field-guide replay in Help (docs/GUIDED-UNLOCKS.md) + the Update Briefing's returning-player
+   "WAITING FOR YOU" strip (docs/HIVE-INTEL.md — the Feed's ACT rows bridged into the briefing). */
+.help-goto.is-guide { margin-left: 8px; border-color: color-mix(in srgb, var(--gold) 35%, var(--line-strong)); }

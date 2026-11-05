@@ -26,6 +26,7 @@ import { Detail } from './components/Detail';
 import { BestBuyStrip } from './components/BestBuyStrip';
 import { SectionNav } from './components/SectionNav';
 import { RarityFx, rfxClass } from './components/RarityFx';
+import './GeneArchive.css';
 
 /** Compact preview phrase for one Transcendence-option effect (§Transcendence). The pools only
  *  author field-bearing mul/add ops, so this covers them fully: mul reads as ±%, a sub-1 add reads

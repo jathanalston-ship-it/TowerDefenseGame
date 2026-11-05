@@ -8,6 +8,7 @@
 
 import { useState, type ReactNode } from 'react';
 import { useLayoutProfile } from '../layoutProfile';
+import './MobileSection.css';
 
 /** The always-collapsible section (all layout profiles). */
 export function Fold({

@@ -1,0 +1,133 @@
+/* FrontScreen — the styles only this module's elements need, shipped in its lazy chunk instead of the
+   boot stylesheet (docs/DEPLOYMENT.md §boot-css). src/index.css keeps every class a boot screen (or
+   more than one lazy chunk) renders; lazy stylesheets load AFTER it, so override here, not there. */
+
+/* ── Infestation board (InfestationBoard.tsx, docs/INFESTATION.md) ── */
+/* ── Infestation territory map (docs/INFESTATION.md §map) — living canvas + overlay ── */
+.inf-board { padding: 10px 12px; }
+
+.inf-total { font-size: 11px; color: var(--muted); }
+
+.inf-sat { color: var(--gold); font-style: normal; }
+
+/* Dormant teaser — the whole board as one calm line until infestation exists (or on demand). */
+.inf-teaser { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+
+.inf-teaser-tag { font-size: 10px; font-weight: 800; letter-spacing: 0.12em; padding: 2px 8px; border-radius: 999px; border: 1px solid var(--line-strong); color: var(--muted); }
+
+.inf-teaser-line { flex: 1; min-width: 220px; font-size: 12px; color: var(--muted); }
+
+.inf-teaser-open, .inf-teaser-hide { flex: none; }
+
+.inf-canvas-wrap {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1.18 / 1;
+  margin-top: 8px;
+  border-radius: var(--r-md);
+  overflow: hidden;
+  background: #05070b;
+}
+
+.inf-canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+
+.inf-cells { position: absolute; inset: 0; }
+
+.inf-cell {
+  position: absolute;
+  border-radius: 50%;
+  background: transparent;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  min-height: 0; /* the map cells are graphical hit targets, not text buttons */
+}
+
+.inf-cell:hover { background: rgba(255, 255, 255, 0.05); }
+
+.inf-cell:focus-visible { outline: 2px solid var(--gold); outline-offset: 1px; }
+
+.inf-tag {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  pointer-events: none;
+  white-space: nowrap;
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.9);
+}
+
+.inf-tag-name { display: block; font-size: 11px; font-weight: 800; color: var(--rc, var(--text)); letter-spacing: 0.04em; }
+
+.inf-tag-bonus { display: block; font-size: 10px; color: var(--muted); }
+
+.inf-tag.is-entrenched .inf-tag-bonus { color: var(--rc, var(--gold)); }
+
+.inf-detail {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 7px;
+  padding: 5px 8px;
+  border-radius: var(--r-sm);
+  background: var(--panel-deep);
+  border-left: 2px solid var(--rc, var(--line));
+}
+
+.inf-detail-name { font-size: 12px; font-weight: 700; color: var(--rc, var(--text)); }
+
+.inf-detail-tier { font-size: 11px; color: var(--text); }
+
+.inf-detail-fore { font-size: 11px; color: var(--muted); margin-left: auto; }
+
+.inf-controls { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
+
+.inf-controls-k { font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+
+.inf-chip {
+  font-size: 11px;
+  padding: 5px 9px;
+  min-height: 24px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--rc, var(--line)) 45%, var(--line));
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.inf-chip.on { border-color: var(--rc, var(--gold)); color: var(--rc, var(--text)); background: color-mix(in srgb, var(--rc, var(--gold)) 14%, transparent); }
+
+.inf-chip-spread.on { --rc: var(--kinetic); }
+
+/* ── THE FRONT (FrontScreen.tsx, docs/INFESTATION.md §front) ── */
+.front-screen { display: flex; flex-direction: column; gap: 14px; }
+
+.front-today { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+
+.front-chip { font-size: 11px; letter-spacing: 0.08em; padding: 6px 10px; border: 1px solid var(--line); border-radius: var(--r-sm); background: rgba(255, 255, 255, 0.03); }
+
+.front-chip em { font-style: normal; opacity: 0.75; }
+
+.front-chip.is-hot { border-color: rgba(255, 184, 77, 0.5); color: #ffb84d; }
+
+.front-chip.is-inc { border-color: rgba(224, 49, 75, 0.55); color: #ff8fa0; }
+
+.front-chip.is-inc.is-held { border-color: rgba(127, 224, 122, 0.5); color: #7fe07a; }
+
+.front-defend { font-size: 12px; padding: 6px 12px; border-radius: var(--r-sm); border: 1px solid rgba(224, 49, 75, 0.55); background: rgba(224, 49, 75, 0.12); color: #ff8fa0; cursor: pointer; }
+
+.front-sec-h { font-size: 11px; letter-spacing: 0.16em; opacity: 0.75; margin: 4px 0 8px; }
+
+.front-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 10px; }
+
+.front-card { display: flex; flex-direction: column; gap: 6px; padding: 10px 12px; border: 1px solid var(--line); border-radius: var(--r-md); background: rgba(255, 255, 255, 0.03); }
+
+.front-card.is-idle { opacity: 0.6; }
+
+.front-card b { font-size: 13px; }
+
+.front-card-t { font-size: 11px; letter-spacing: 0.08em; color: var(--gold, #ffd24d); }
+
+.front-card-r { font-size: 12px; opacity: 0.85; }
+
+.front-card button { align-self: flex-start; font-size: 12px; padding: 6px 12px; border-radius: var(--r-sm); cursor: pointer; }

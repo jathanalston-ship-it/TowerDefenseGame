@@ -5,6 +5,7 @@
 
 import { formatPower } from '../../core/power';
 import type { PowerCompare } from '../../state/itemPower';
+import './PowerDelta.css';
 
 const SYM: Record<PowerCompare['verdict'], string> = { better: '▲', worse: '▼', same: '=' };
 const WORD: Record<PowerCompare['verdict'], string> = { better: 'Stronger', worse: 'Weaker', same: 'Equal' };

@@ -1,0 +1,91 @@
+/* PremiumStore — the styles only this module's elements need, shipped in its lazy chunk instead of the
+   boot stylesheet (docs/DEPLOYMENT.md §boot-css). src/index.css keeps every class a boot screen (or
+   more than one lazy chunk) renders; lazy stylesheets load AFTER it, so override here, not there. */
+
+/* ── PREMIUM STORE (docs/PREMIUM-STORE.md) — offer cards, confirmation, reveal ceremony ── */
+.pstore .subtitle b { color: var(--gold); }
+
+.ps-section-h { margin: 18px 0 10px; font-family: 'Chakra Petch', system-ui, sans-serif; font-size: 14px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-dim); }
+
+.ps-rot { margin-left: 10px; font-size: 11px; font-weight: 700; letter-spacing: 0.04em; text-transform: none; color: var(--muted); }
+
+.ps-row { display: flex; gap: 14px; flex-wrap: wrap; align-items: stretch; }
+
+.ps-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 12px; }
+
+.ps-card { position: relative; display: flex; flex-direction: column; border-radius: var(--r-md, 12px); overflow: hidden;
+  background: linear-gradient(168deg, color-mix(in srgb, var(--ps, var(--gold)) 9%, var(--panel-2)), var(--panel-2) 62%);
+  border: 1px solid color-mix(in srgb, var(--ps, var(--gold)) 35%, var(--line));
+  transition: transform var(--dur-2) ease, box-shadow var(--dur-2) ease, border-color var(--dur-2) ease; }
+
+.ps-card:hover { transform: translateY(-3px); border-color: var(--ps, var(--gold)); box-shadow: 0 14px 34px rgba(0, 0, 0, 0.45), 0 0 22px -8px var(--ps, var(--gold)); }
+
+.ps-card.is-hero { flex: 1 1 340px; min-width: 300px; }
+
+.ps-card.is-off { opacity: 0.62; }
+
+.ps-card.is-off:hover { transform: none; box-shadow: none; }
+
+.ps-art { position: relative; display: grid; place-items: center; height: 86px; overflow: hidden;
+  background: radial-gradient(circle at 50% 20%, color-mix(in srgb, var(--ps, var(--gold)) 30%, #0a0e16), #070a11 80%); }
+
+.ps-card.is-hero .ps-art { height: 110px; }
+
+.ps-glyph { font-size: 40px; line-height: 1; color: var(--ps, var(--gold)); text-shadow: 0 0 22px var(--ps, var(--gold)); animation: ps-breathe 5s ease-in-out infinite; }
+
+.ps-card.is-hero .ps-glyph { font-size: 58px; }
+
+@keyframes ps-breathe { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.07); } }
+
+.ps-sheen { position: absolute; inset: -40%; background: conic-gradient(from 0deg, transparent 0%, color-mix(in srgb, var(--ps, var(--gold)) 45%, transparent) 16%, transparent 32%); opacity: 0.5; animation: hp-spin 7s linear infinite; }
+
+.ps-name { font-family: 'Chakra Petch', system-ui, sans-serif; font-size: 16px; font-weight: 800; letter-spacing: 0.04em; color: var(--text); }
+
+.ps-tag { margin-top: 2px; font-size: 11px; color: var(--muted); }
+
+.ps-aud { margin-top: 4px; display: inline-block; font-size: 10px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ps, var(--gold)); border: 1px solid color-mix(in srgb, var(--ps, var(--gold)) 50%, var(--line)); border-radius: 999px; padding: 1px 8px; }
+
+.ps-grants { margin-top: 9px; display: flex; flex-direction: column; gap: 3px; }
+
+.ps-grant { font-size: 12px; color: var(--text-dim); }
+
+.ps-meta { margin-top: 9px; display: flex; flex-wrap: wrap; gap: 7px; align-items: center; }
+
+.ps-bonus { font-size: 10px; font-weight: 800; letter-spacing: 0.06em; padding: 2px 8px; border-radius: 999px; border: 1px solid var(--line); color: var(--muted); }
+
+.ps-bonus.on { color: var(--good, #57d98a); border-color: color-mix(in srgb, var(--good, #57d98a) 55%, var(--line)); }
+
+.ps-worth { font-size: 11px; color: var(--muted); font-variant-numeric: tabular-nums; }
+
+.ps-power { font-size: 11px; font-weight: 700; color: var(--gold); }
+
+.ps-power.dim { color: var(--muted); font-weight: 400; }
+
+.ps-buy { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 10px 13px 12px; border-top: 1px solid color-mix(in srgb, var(--ps, var(--gold)) 20%, var(--line)); }
+
+.ps-note { font-size: 11px; color: var(--muted); }
+
+.ps-btn { padding: 8px 18px; border-radius: var(--r-sm); font-weight: 800; font-size: 14px; letter-spacing: 0.04em; cursor: pointer; color: #0a0e16;
+  background: linear-gradient(160deg, var(--ps, var(--gold)), color-mix(in srgb, var(--ps, var(--gold)) 60%, #fff)); border: 0;
+  transition: transform var(--dur-1) ease, filter var(--dur-1) ease; }
+
+.ps-btn:hover:not(:disabled) { transform: scale(1.05); filter: brightness(1.1); }
+
+.ps-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+
+.ps-foot { margin-top: 20px; font-size: 11px; color: var(--muted); line-height: 1.6; max-width: 760px; }
+
+.ps-sale-chip { font-size: 10px; font-weight: 900; letter-spacing: 0.06em; color: #0a0e16; padding: 2px 7px; border-radius: 999px;
+  background: linear-gradient(160deg, var(--gold), color-mix(in srgb, var(--gold) 55%, #fff)); animation: ps-sale-pulse 2.2s ease-in-out infinite; }
+
+@media (prefers-reduced-motion: reduce) { .ps-sale-chip { animation: none; } }
+
+/* Guest Mode banner — the store stays browsable, buying is off until the session converts. */
+.ps-guestmode { margin: 12px 0 4px; max-width: 760px; padding: 10px 14px; border-radius: var(--r-sm); font-size: 12px; font-weight: 700; line-height: 1.5;
+  color: var(--gold); background: color-mix(in srgb, var(--gold) 9%, transparent); border: 1px dashed color-mix(in srgb, var(--gold) 45%, var(--line-strong)); }
+
+.ps-sandbox { margin-top: 6px; font-size: 10px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--gold); }
+
+.ps-error { margin-top: 8px; font-size: 12px; font-weight: 700; color: var(--danger, #ff4d6d); }
+
+.ps-reveal-foot { margin-top: 12px; }

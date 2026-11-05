@@ -1,0 +1,20 @@
+/* provider — the styles only this module's elements need, shipped in its lazy chunk instead of the
+   boot stylesheet (docs/DEPLOYMENT.md §boot-css). src/index.css keeps every class a boot screen (or
+   more than one lazy chunk) renders; lazy stylesheets load AFTER it, so override here, not there. */
+
+/* ── The simulated field-study overlay (src/ads/provider.ts — dev/preview builds) ── */
+.study-overlay { position: fixed; inset: 0; z-index: 90; display: grid; place-items: center; background: rgba(4, 8, 14, 0.82); }
+
+.study-box { width: min(360px, 88vw); padding: 20px; background: var(--panel-2); border: 1px solid var(--line-strong); border-radius: var(--r-sm); text-align: center; }
+
+.study-h { font-size: 13px; font-weight: 800; letter-spacing: 0.1em; color: var(--gold); }
+
+.study-sub { margin-top: 4px; font-size: 12px; color: var(--muted); }
+
+.study-bar { margin: 14px 0 10px; height: 6px; border-radius: 999px; background: var(--panel-3); overflow: hidden; }
+
+.study-bar i { display: block; height: 100%; width: 0; background: var(--gold); animation: studyfill 3s linear forwards; }
+
+@keyframes studyfill { to { width: 100%; } }
+
+.study-abort { background: none; border: 1px solid var(--line-strong); border-radius: 999px; color: var(--muted); font-size: 11px; padding: 5px 14px; cursor: pointer; }

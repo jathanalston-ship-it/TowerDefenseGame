@@ -1,0 +1,20 @@
+/* LeaderboardBlock — the styles only this module's elements need, shipped in its lazy chunk instead of the
+   boot stylesheet (docs/DEPLOYMENT.md §boot-css). src/index.css keeps every class a boot screen (or
+   more than one lazy chunk) renders; lazy stylesheets load AFTER it, so override here, not there. */
+
+.lb-tag { font-style: normal; font-size: 11px; font-weight: 600; color: var(--dim); margin-left: 5px; letter-spacing: 0.04em; }
+
+/* ── Global standings block (Daily / Boss Rush; docs/DEPLOYMENT.md §leaderboards) ── */
+.lbblock .lb-note { font-size: 12px; color: var(--muted); }
+
+.lb-table { width: 100%; border-collapse: collapse; margin-top: 6px; }
+
+.lb-table td { padding: 3px 6px; font-size: 12px; border-bottom: 1px solid var(--line); }
+
+.lb-rank { color: var(--muted); width: 42px; }
+
+.lb-name { color: var(--text); overflow: hidden; text-overflow: ellipsis; max-width: 160px; white-space: nowrap; }
+
+.lb-score { text-align: right; color: var(--gold); font-weight: 700; }
+
+.lb-you { margin-top: 8px; font-size: 12px; font-weight: 700; color: var(--text); }

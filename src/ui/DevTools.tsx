@@ -9,6 +9,7 @@ import { meta } from '../state/meta';
 import { DEV_RESETS } from '../state/devReset';
 import type { DevResetDef } from '../state/devReset';
 import { isDebugEnabled } from '../debug/debug';
+import './DevTools.css';
 
 const CONFIRM_WORD = 'RESET';
 const isDevBuild = (): boolean => { try { return !!import.meta.env?.DEV; } catch { return false; } };

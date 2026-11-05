@@ -8,6 +8,7 @@ import { stepAt } from '../core/stars';
 import { TowerPortrait } from './TowerPortrait';
 import { stepView } from './towerLabModel';
 import { meta } from '../state/meta';
+import './EvolutionUnlock.css';
 
 export interface EvolutionUnlockData {
   oldCap: number; // star cap before this run
