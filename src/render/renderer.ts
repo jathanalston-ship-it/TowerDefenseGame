@@ -202,9 +202,21 @@ function buildFloor(scale: number, biome: RenderState['biome']): HTMLCanvasEleme
   return c;
 }
 
-function drawFloor(ctx: CanvasRenderingContext2D, rs: RenderState): void {
+/** The device scale a static layer bakes at. The live transform also carries the camera's eased
+ *  zooms (wave push-in, last-kill nudge, the assimilation HEARTBEAT breath — the last one changes
+ *  EVERY frame once a run assimilates), so keying a bake on the raw scale re-baked the whole floor
+ *  each frame (BUGFIX: ~17 ms/frame in the headless probe). Keep the previous bake scale while the
+ *  live one stays within ±20 % of it — the blit resamples imperceptibly — and re-bake only on a real
+ *  DPR / zoom change. 0 ⇒ no usable transform (headless/stub): paint direct. */
+function bakeScale(ctx: CanvasRenderingContext2D, prev: number): number {
   const raw = typeof ctx.getTransform === 'function' ? (ctx.getTransform() as { a?: unknown } | null)?.a : undefined;
   const scale = typeof raw === 'number' && Number.isFinite(raw) && raw > 0 ? raw : 0;
+  if (scale === 0) return 0;
+  return prev > 0 && Math.abs(scale - prev) <= prev * 0.2 ? prev : Math.round(scale * 4) / 4 || 0.25;
+}
+
+function drawFloor(ctx: CanvasRenderingContext2D, rs: RenderState): void {
+  const scale = bakeScale(ctx, floorCache ? Number(floorCacheKey.split('|')[0]) : 0);
   if (typeof document === 'undefined' || scale === 0) {
     // Headless/stubbed context (tests) — paint directly, no offscreen layer.
     drawBackground(ctx);
@@ -779,12 +791,12 @@ let obstacleCache: HTMLCanvasElement | null = null;
 let obstacleKey = '';
 let obstacleField: unknown = null;
 let obstacleBox = { x: 0, y: 0, w: 0, h: 0 };
+let obstacleScale = 0;
 function drawObstacles(ctx: CanvasRenderingContext2D, layoutId: string, biome: RenderState['biome']): void {
   const field = navFieldFor(layoutId);
   const cells = field.cells;
   if (cells.length === 0) return;
-  const raw = typeof ctx.getTransform === 'function' ? (ctx.getTransform() as { a?: unknown } | null)?.a : undefined;
-  const scale = typeof raw === 'number' && Number.isFinite(raw) && raw > 0 ? raw : 0;
+  const scale = bakeScale(ctx, obstacleCache ? obstacleScale : 0);
   if (typeof document === 'undefined' || scale === 0) {
     paintObstacles(ctx, cells, biomeGround(biome));
     return;
@@ -805,6 +817,7 @@ function drawObstacles(ctx: CanvasRenderingContext2D, layoutId: string, biome: R
     g.setTransform(scale, 0, 0, scale, -obstacleBox.x * scale, -obstacleBox.y * scale);
     paintObstacles(g, cells, biomeGround(biome));
     obstacleCache = c;
+    obstacleScale = scale;
     obstacleKey = key;
     obstacleField = field;
   }
