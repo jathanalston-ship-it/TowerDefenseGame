@@ -420,6 +420,30 @@ ramp) posed by five scalars `{reveal, ignite, gather, fall, flare}`; the module 
 — or inherits — the raid's state. Tunables in `MEGA_POSE`. Board space; the caller owns the
 transform. A new mega's premiere poses for free.
 
+**Visuals v4 — §telegraphs on the FIELD (2026-11):** the audit found the organism's whole windup read
+(the dilating eye, the maw gather, the top warning band) sits **under the HUD raid bar** on desktop and
+phone alike, and the CATACLYSM never showed its target: the resolve flashed a shock ring at the maw
+while the damage landed on the Hive with nothing but a float. Now the field speaks the shared telegraph
+language (`render/telegraphs.ts`, docs/BOSS-DESIGN.md §telegraphs), tunables in `MEGA_TELL`:
+
+- **Windup clock** (every telegraph): a sweep ellipse around the maw — just below the bar — that
+  completes on the frame the cast resolves, with a lock ellipse closing onto it (reduced motion: the
+  sweep alone). A premiere POSE (`tele.kind === 'pose'`) has no clock.
+- **CATACLYSM**: a fall line descends from the maw to the Hive Core, its bright head reaching the Core
+  as the windup completes, and the Core wears the closing lock (`MEGA_TELL.coreLockR`); the resolve
+  lands as a strike bolt + impact AT the Core (an interrupt never reaches the strike — the stun-guarded
+  edge already drops it).
+- **HIVE LASH**: the same lock rides the Core across the whole windup (was: a ring past 70 %) and the
+  landing earns the shared impact.
+- **Weak-point hit reaction**: a landed hit PUNCHES the organ (scale) and jolts it up its stalk
+  (`hitPunch`/`hitJolt`, keyed on `wp.hitFlash`), the HP arc keeps a gold **damage ghost** that drains
+  after the real arc (`wpGhost`, per spec), and an organ under `urgentFrac` runs its vulnerability ring
+  hot and quick — "finish it" (colour + tempo, never a flash). Reduced motion keeps the flash, drops
+  the punch.
+
+Cost: ≈ +0.05 ms/frame over the v3 body + organs at ~150 enemies (headless 1440×900, ≥300 frames —
+within run-to-run noise).
+
 ## Performance
 
 One anchored runtime + O(weakPoints) per tick; `megaFx` folds are multiplications at existing
