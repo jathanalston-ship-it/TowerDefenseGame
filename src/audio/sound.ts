@@ -2,6 +2,12 @@
 // it ships with no files and is re-themeable. Created lazily on the first user
 // gesture (browser autoplay policy). Pure presentation: the sim emits string
 // cues; this turns them into sound. Voice-capped so a swarm can't machine-gun.
+//
+// The MIX is data (audio/sfxMix.ts, docs/AUDIO.md): every cue belongs to a CATEGORY that owns its
+// loudness target, reverb send, per-dispatch variation and voice budget; a measured per-cue trim
+// (`npm run audio:audit`) levels it. Signal path, built once per context:
+//   voice → category bus ─┬─→ SFX bus → glue compressor → limiter → soft clip → master (volume) → out
+//                         └─→ send → one shared procedural reverb → SFX bus
 
 
 type AnyWindow = Window & { webkitAudioContext?: typeof AudioContext };
@@ -10,6 +16,8 @@ let ctx: AudioContext | null = null;
 import { music } from './music';
 import type { StingerId } from './music';
 import { feelOf } from '../render/feel';
+import { SFX_CATEGORIES, SFX_MASTER, dbToGain, drawVariation, mixOf } from './sfxMix';
+import type { CompressorParams, SfxCategory, SfxVariation } from './sfxMix';
 
 // Per-cue DUCK depth + musical STINGER live in the ONE feel table (render/feel.ts FEEL) — the same
 // rows GameView reads for shake/hit-stop — so every existing and future call site pays off with
@@ -32,11 +40,16 @@ let critAt = -1e12;
 let master: GainNode | null = null;
 let sfxBus: GainNode | null = null;
 let noiseBuf: AudioBuffer | null = null;
+const catBus = {} as Record<SfxCategory, GainNode>;
 
 let enabled = true;
-let volume = 0.75;
+let volume = 1; // the player's SFX volume (0..1); the designed output level is SFX_MASTER.output
 let voices = 0;
-const MAX_VOICES = 28;
+const MAX_VOICES = 40;
+// Per-category voice budgets (SFX_CATEGORIES[cat].voices): a swarm fills ITS budget, never a reward's.
+const catVoices: Record<SfxCategory, number> = { combatFrequent: 0, combatImpact: 0, reward: 0, ui: 0, cinematic: 0, alert: 0, ambient: 0 };
+let peakVoices = 0;
+let dropped = 0;
 
 // kill-cadence state (pitch ramps on streaks)
 let killStreak = 0;
@@ -49,20 +62,79 @@ function ensure(): boolean {
     const AC = window.AudioContext || (window as AnyWindow).webkitAudioContext;
     if (!AC) return false;
     ctx = new AC();
-    master = ctx.createGain();
-    master.gain.value = volume;
-    master.connect(ctx.destination);
-    sfxBus = ctx.createGain();
-    sfxBus.gain.value = 0.9;
-    sfxBus.connect(master);
-    // one shared noise buffer (0.5s white noise)
-    noiseBuf = ctx.createBuffer(1, ctx.sampleRate * 0.5, ctx.sampleRate);
-    const d = noiseBuf.getChannelData(0);
-    for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+    buildGraph(ctx);
   } catch {
     return false;
   }
   return true;
+}
+
+/** The SFX signal path (see the header) — built ONCE per context, never per cue. */
+function buildGraph(c: AudioContext): void {
+  const M = SFX_MASTER;
+  master = c.createGain();
+  master.gain.value = M.output * volume;
+  master.connect(c.destination);
+  const comp = (p: CompressorParams): DynamicsCompressorNode => {
+    const n = c.createDynamicsCompressor();
+    n.threshold.value = p.threshold; n.knee.value = p.knee; n.ratio.value = p.ratio;
+    n.attack.value = p.attack; n.release.value = p.release;
+    return n;
+  };
+  const glue = comp(M.glue); // bus glue: stacked voices sit together
+  const limiter = comp(M.limiter); // a swarm wipe can't clip
+  const clip = c.createWaveShaper(); // the last-resort ceiling for whatever the limiter's attack lets through
+  clip.curve = softClipCurve(M.clipKnee);
+  sfxBus = c.createGain();
+  sfxBus.gain.value = M.busGain;
+  sfxBus.connect(glue); glue.connect(limiter); limiter.connect(clip); clip.connect(master);
+  // SPACE: one shared convolver (a generated IR), fed by per-category sends.
+  const verb = c.createConvolver();
+  verb.buffer = reverbIR(c);
+  const ret = c.createGain();
+  ret.gain.value = M.reverb.return;
+  verb.connect(ret); ret.connect(sfxBus);
+  for (const cat of Object.keys(SFX_CATEGORIES) as SfxCategory[]) {
+    const bus = c.createGain();
+    bus.connect(sfxBus);
+    const send = c.createGain();
+    send.gain.value = SFX_CATEGORIES[cat].send;
+    bus.connect(send); send.connect(verb);
+    catBus[cat] = bus;
+  }
+  // one shared LOOPED noise buffer; every noise voice reads it from a random offset
+  noiseBuf = c.createBuffer(1, Math.floor(c.sampleRate * NOISE_SECONDS), c.sampleRate);
+  const d = noiseBuf.getChannelData(0);
+  for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+}
+const NOISE_SECONDS = 2;
+
+/** Linear below `knee`, a tanh shoulder to just under full scale above it (input past ±1 clamps). */
+function softClipCurve(knee: number): Float32Array<ArrayBuffer> {
+  const n = 2048, out = new Float32Array(new ArrayBuffer(n * 4)), head = 1 - knee;
+  for (let i = 0; i < n; i++) {
+    const x = (i / (n - 1)) * 2 - 1, a = Math.abs(x);
+    out[i] = Math.sign(x) * (a <= knee ? a : knee + head * Math.tanh((a - knee) / head));
+  }
+  return out;
+}
+
+/** A small dark room: decorrelated stereo noise under an exponential decay that darkens as it fades. */
+function reverbIR(c: BaseAudioContext): AudioBuffer {
+  const R = SFX_MASTER.reverb, sr = c.sampleRate;
+  const len = Math.floor(sr * R.seconds), pre = Math.floor(sr * R.preDelay);
+  const ir = c.createBuffer(2, len, sr);
+  for (let ch = 0; ch < 2; ch++) {
+    const d = ir.getChannelData(ch);
+    let lp = 0;
+    for (let i = pre; i < len; i++) {
+      const u = (i - pre) / sr;
+      const k = R.brightness * (1 - u / R.seconds) + 0.04; // a one-pole low-pass closing over the tail
+      lp += k * (Math.random() * 2 - 1 - lp);
+      d[i] = lp * Math.pow(10, (-3 * u) / R.rt60); // −60 dB at rt60
+    }
+  }
+  return ir;
 }
 
 const t = (): number => ctx!.currentTime;
@@ -72,46 +144,108 @@ const t = (): number => ctx!.currentTime;
 // without touching each cue function. 1 = classic. Per-unit Phenotype variants win over it.
 let wdPitch = 1;
 
-function tone(freq: number, dur: number, type: OscillatorType, peak: number, slideTo?: number): void {
-  if (voices >= MAX_VOICES) return;
-  const o = ctx!.createOscillator();
-  o.type = type;
-  o.frequency.setValueAtTime(freq * wdPitch, t());
-  if (slideTo) o.frequency.exponentialRampToValueAtTime(Math.max(1, slideTo * wdPitch), t() + dur);
-  const g = ctx!.createGain();
-  g.gain.setValueAtTime(0.0001, t());
-  g.gain.exponentialRampToValueAtTime(peak, t() + Math.min(0.02, dur * 0.3));
-  g.gain.exponentialRampToValueAtTime(0.0001, t() + dur);
-  o.connect(g);
-  g.connect(sfxBus!);
+// The MIX around one dispatch (sfxMix.ts) — set by cueBatch from the cue's row and read by every
+// voice: the category (bus + voice budget), the level (measured trim × variation), the variation
+// pitch and the start jitter. Reset after each dispatch, like wdPitch. `rng` is injectable
+// (sfxDev — tests and the audit); null = no variation.
+let rng: (() => number) | null = Math.random;
+let curCat: SfxCategory = 'ui';
+let vGain = 1;
+let vPitch = 1;
+let vDelay = 0;
+const VAR: SfxVariation = { pitch: 1, gain: 1, delay: 0 };
+
+/** Voice admission: the global cap AND the dispatching category's budget. */
+function admit(): boolean {
+  if (voices >= MAX_VOICES || catVoices[curCat] >= SFX_CATEGORIES[curCat].voices) { dropped++; return false; }
+  return true;
+}
+function track(node: AudioScheduledSourceNode): void {
+  const cat = curCat;
   voices++;
-  o.onended = () => { voices = Math.max(0, voices - 1); };
-  o.start();
-  o.stop(t() + dur + 0.02);
+  catVoices[cat]++;
+  if (voices > peakVoices) peakVoices = voices;
+  node.onended = () => { voices = Math.max(0, voices - 1); catVoices[cat] = Math.max(0, catVoices[cat] - 1); };
+}
+/** Attack → peak → exponential decay to silence at t0 + dur (the voice stops 20 ms later). */
+function envelope(g: GainNode, t0: number, peak: number, attack: number, dur: number): void {
+  g.gain.setValueAtTime(0.0001, t0);
+  g.gain.exponentialRampToValueAtTime(Math.max(0.00012, peak * vGain), t0 + attack);
+  g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
 }
 
-function noise(dur: number, peak: number, filterFreq: number, slideTo?: number): void {
-  if (voices >= MAX_VOICES || !noiseBuf) return;
+/** One oscillator voice. `at` delays it inside the cue (layers, arpeggios). */
+function tone(freq: number, dur: number, type: OscillatorType, peak: number, slideTo?: number, at = 0): void {
+  if (!admit()) return;
+  const t0 = t() + vDelay + at, pf = wdPitch * vPitch;
+  const o = ctx!.createOscillator();
+  o.type = type;
+  o.frequency.setValueAtTime(freq * pf, t0);
+  if (slideTo) o.frequency.exponentialRampToValueAtTime(Math.max(1, slideTo * pf), t0 + dur);
+  const g = ctx!.createGain();
+  envelope(g, t0, peak, Math.min(0.02, dur * 0.3), dur);
+  o.connect(g);
+  g.connect(catBus[curCat]);
+  track(o);
+  o.start(t0);
+  o.stop(t0 + dur + 0.02);
+}
+
+/** One filtered-noise voice. The buffer LOOPS from a random offset, so a layer longer than the
+ *  buffer never stops dead (the old 0.5 s buffer cut every longer layer mid-envelope) and no two
+ *  hits share the same noise. `type` picks the filter (lowpass body; highpass/bandpass transients). */
+function noise(dur: number, peak: number, filterFreq: number, slideTo?: number, at = 0, type: BiquadFilterType = 'lowpass'): void {
+  if (!noiseBuf || !admit()) return;
+  const t0 = t() + vDelay + at, pf = wdPitch * vPitch;
   const src = ctx!.createBufferSource();
   src.buffer = noiseBuf;
+  src.loop = true;
   const f = ctx!.createBiquadFilter();
-  f.type = 'lowpass';
-  f.frequency.setValueAtTime(filterFreq * wdPitch, t());
-  if (slideTo) f.frequency.exponentialRampToValueAtTime(Math.max(60, slideTo * wdPitch), t() + dur);
+  f.type = type;
+  f.frequency.setValueAtTime(filterFreq * pf, t0);
+  if (slideTo) f.frequency.exponentialRampToValueAtTime(Math.max(60, slideTo * pf), t0 + dur);
   const g = ctx!.createGain();
-  g.gain.setValueAtTime(peak, t());
-  g.gain.exponentialRampToValueAtTime(0.0001, t() + dur);
+  g.gain.setValueAtTime(Math.max(0.00012, peak * vGain), t0);
+  g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
   src.connect(f);
   f.connect(g);
-  g.connect(sfxBus!);
-  voices++;
-  src.onended = () => { voices = Math.max(0, voices - 1); };
-  src.start();
-  src.stop(t() + dur + 0.02);
+  g.connect(catBus[curCat]);
+  track(src);
+  src.start(t0, (rng ?? Math.random)() * NOISE_SECONDS);
+  src.stop(t0 + dur + 0.02);
+}
+
+/** IMPACT weight: a sine kick — a fast pitch drop (2.2× → 1× in ≤ 35 ms) into a sinking sub — with
+ *  a 3 ms attack (click-free). The "thump" under deaths, lids and landings. */
+function thump(freq: number, dur: number, peak: number, at = 0): void {
+  if (!admit()) return;
+  const t0 = t() + vDelay + at, pf = wdPitch * vPitch;
+  const o = ctx!.createOscillator();
+  o.type = 'sine';
+  o.frequency.setValueAtTime(freq * 2.2 * pf, t0);
+  o.frequency.exponentialRampToValueAtTime(freq * pf, t0 + Math.min(0.035, dur * 0.4));
+  o.frequency.exponentialRampToValueAtTime(Math.max(1, freq * 0.62 * pf), t0 + dur);
+  const g = ctx!.createGain();
+  envelope(g, t0, peak, 0.003, dur);
+  o.connect(g);
+  g.connect(catBus[curCat]);
+  track(o);
+  o.start(t0);
+  o.stop(t0 + dur + 0.02);
+}
+
+/** Detuned UNISON: two voices ±cents apart — a chorused, wider note at about the pair's level. */
+function unison(freq: number, dur: number, type: OscillatorType, peak: number, cents: number, slideTo?: number, at = 0): void {
+  const up = Math.pow(2, cents / 1200), dn = 1 / up;
+  tone(freq * up, dur, type, peak * 0.62, slideTo && slideTo * up, at);
+  tone(freq * dn, dur, type, peak * 0.62, slideTo && slideTo * dn, at);
 }
 
 // ── individual sounds ──
-function sHit(i: number): void { noise(0.06, 0.12, 2600 - i * 300); tone(640 - i * 60, 0.05, 'triangle', 0.06); }
+// The 2026-11 sound pass rebuilt the most-heard cues as layers (docs/AUDIO.md §cues): a transient
+// (the onset you feel), a body (the cue's identity — unchanged pitches and timbres) and weight or a
+// tail (a thump under impacts, unison/sparkle on rewards, the shared room on everything).
+function sHit(i: number): void { noise(0.06, 0.12, 2600 - i * 300, 1100); tone(640 - i * 60, 0.05, 'triangle', 0.06, 560); thump(150 - i * 12, 0.07, 0.07); }
 // Status applications (docs/COMBAT-VISUAL-STANDARDS.md §audio): a wet corruption squelch for
 // DoTs/debuffs landing, a crystalline arrest chime for control — quiet, throttled by the view.
 function sStatusDot(i: number): void { noise(0.09, 0.07, 900 - i * 120, 320); tone(210 - i * 18, 0.09, 'sawtooth', 0.028, 125); }
@@ -121,29 +255,31 @@ function sKill(): void {
   if (nowS - lastKillAt > 1.0) killStreak = 0;
   lastKillAt = nowS;
   const semis = Math.min(killStreak, 14);
-  tone(330 * Math.pow(2, semis / 12), 0.14, 'sine', 0.16, 520 * Math.pow(2, semis / 12));
+  const r = Math.pow(2, semis / 12);
+  tone(330 * r, 0.14, 'sine', 0.16, 520 * r);
+  tone(660 * r, 0.07, 'triangle', 0.035, 1040 * r); // a bright overtone on the attack — a ping, not a beep
   killStreak++;
 }
 function sShred(): void { tone(900, 0.18, 'sawtooth', 0.14, 180); noise(0.1, 0.07, 3000); }
 function sBreach(): void { tone(90, 0.35, 'sine', 0.3, 55); noise(0.3, 0.18, 700); }
 // Per-archetype enemy DEATH timbres (config.enemyDeathCue) — the body-specific IMPACT layered under
 // the kill-streak ping. `i` detunes + softens stacked deaths so a swarm-wipe doesn't blow out.
-function sEdSquelch(i: number): void { noise(0.11, 0.08 - i * 0.012, 850 - i * 90, 300); tone(190 - i * 12, 0.09, 'sine', 0.045, 110); } // soft wet — chaff/support/summoner
-function sEdCrack(i: number): void { noise(0.05, 0.12 - i * 0.014, 3200 - i * 250, 900); tone(440 - i * 30, 0.05, 'square', 0.05, 200); } // chitin crack — plated/shielded
-function sEdScreech(i: number): void { tone(1150 - i * 90, 0.13, 'sawtooth', 0.06, 300); noise(0.09, 0.045, 3800 - i * 300, 1600); } // airy screech — flying
-function sEdPop(i: number): void { noise(0.08, 0.12 - i * 0.015, 1500 - i * 120, 380); tone(280 - i * 20, 0.06, 'triangle', 0.06, 90); } // wet burst — suicide
-function sEdSplat(i: number): void { noise(0.15, 0.11 - i * 0.012, 680 - i * 60, 200); tone(130 - i * 8, 0.13, 'sine', 0.06, 65); } // deep splat — heavy bruisers
+function sEdSquelch(i: number): void { noise(0.11, 0.08 - i * 0.012, 850 - i * 90, 300); tone(190 - i * 12, 0.09, 'sine', 0.045, 110); noise(0.06, 0.05 - i * 0.008, 1300 - i * 100, 400, 0.028); } // soft wet — chaff/support/summoner (a second bubble behind it)
+function sEdCrack(i: number): void { noise(0.012, 0.07 - i * 0.01, 4200, undefined, 0, 'highpass'); noise(0.05, 0.12 - i * 0.014, 3200 - i * 250, 900); tone(440 - i * 30, 0.05, 'square', 0.05, 200); } // chitin crack — plated/shielded (a hard transient first)
+function sEdScreech(i: number): void { unison(1150 - i * 90, 0.13, 'sawtooth', 0.06, 18, 300); noise(0.09, 0.045, 3800 - i * 300, 1600); } // airy screech — flying (two throats)
+function sEdPop(i: number): void { noise(0.08, 0.12 - i * 0.015, 1500 - i * 120, 380); tone(280 - i * 20, 0.06, 'triangle', 0.06, 90); thump(110 - i * 8, 0.09, 0.06 - i * 0.008); } // wet burst — suicide (with a body)
+function sEdSplat(i: number): void { noise(0.15, 0.11 - i * 0.012, 680 - i * 60, 200); thump(130 - i * 8, 0.15, 0.07); noise(0.05, 0.04 - i * 0.006, 3000, 900, 0.03); } // deep splat — heavy bruisers (weight, then spatter)
 // A soft, addictive ABSORB shimmer as gibs coalesce into the meters (render/gore.ts). Very quiet, a
 // gentle rising sine — it reads as "the kill is being assimilated." `i` staggers stacked deaths.
 function sAssimilate(i: number): void { tone(540 + i * 70, 0.1, 'sine', 0.032, 960 + i * 90); }
 // BASE tower firing timbres (config.towerFireCue) — an unbranched tower was silent; these give each
 // firing character its own snap. Quiet + throttled (firing is frequent); `i` detunes stacked shots.
 // `vf` = Phenotype firing-variant pitch factor (docs/COSMETICS.md §sfx; 1 = default timbre).
-function sTfTick(i: number, vf = 1): void { tone((820 - i * 40) * vf, 0.04, 'square', 0.045, 560 * vf); noise(0.02, 0.035, (4200 - i * 200) * vf); } // kinetic/synaptic snap
-function sTfThud(i: number, vf = 1): void { tone((120 - i * 6) * vf, 0.13, 'sine', 0.11, 58 * vf); noise(0.06, 0.07, 480 * vf, 200 * vf); } // heavy lob thud
-function sTfWet(i: number, vf = 1): void { noise(0.05, 0.06, (1400 - i * 120) * vf, 500 * vf); tone((300 - i * 15) * vf, 0.05, 'triangle', 0.045, 170 * vf); } // wet organic blip
-function sTfZap(i: number, vf = 1): void { tone((640 + i * 45) * vf, 0.07, 'sawtooth', 0.05, 1500 * vf); noise(0.03, 0.03, 5200 * vf); } // psionic zap
-function sTfTing(i: number, vf = 1): void { tone((1400 - i * 60) * vf, 0.09, 'sine', 0.045, 1900 * vf); tone((2050 - i * 80) * vf, 0.06, 'sine', 0.025); } // crystalline ting
+function sTfTick(i: number, vf = 1): void { tone((820 - i * 40) * vf, 0.04, 'square', 0.045, 560 * vf); noise(0.014, 0.04, (3600 - i * 200) * vf, undefined, 0, 'highpass'); thump(190 * vf, 0.045, 0.03); } // kinetic/synaptic snap
+function sTfThud(i: number, vf = 1): void { thump((120 - i * 6) * vf, 0.15, 0.11); noise(0.06, 0.07, 480 * vf, 200 * vf); noise(0.012, 0.025, 1800 * vf, undefined, 0, 'bandpass'); } // heavy lob thud (the launch pop on top)
+function sTfWet(i: number, vf = 1): void { noise(0.05, 0.06, (1400 - i * 120) * vf, 500 * vf); tone((300 - i * 15) * vf, 0.05, 'triangle', 0.045, 170 * vf); tone((520 - i * 25) * vf, 0.035, 'sine', 0.025, 300 * vf, 0.014); } // wet organic blip (a double bubble)
+function sTfZap(i: number, vf = 1): void { unison((640 + i * 45) * vf, 0.07, 'sawtooth', 0.05, 12, 1500 * vf); noise(0.03, 0.03, 5200 * vf); } // psionic zap (detuned — wider, fatter)
+function sTfTing(i: number, vf = 1): void { noise(0.006, 0.03, 7000 * vf, undefined, 0, 'highpass'); tone((1400 - i * 60) * vf, 0.09, 'sine', 0.045, 1900 * vf); tone((2050 - i * 80) * vf, 0.06, 'sine', 0.025); } // crystalline ting (a glass tap first)
 // IDLE READY (docs/TOWER-IDLE.md §6): a tower's preparation bank fills — a very quiet, wet
 // two-note swallow (once per idle cycle by construction; `i` staggers simultaneous banks).
 function sPrepReady(i: number): void { tone(340 + i * 30, 0.11, 'sine', 0.026, 520); tone(520 + i * 40, 0.08, 'sine', 0.018, 760); }
@@ -186,11 +322,11 @@ function sHeartbeat(): void { // lub-DUB at critical integrity (second thump via
   tone(64, 0.34, 'sine', 0.17, 40);
 }
 function sAbility(): void { noise(0.3, 0.16, 400, 3500); tone(120, 0.4, 'sine', 0.22, 320); }
-function sPlace(): void { tone(200, 0.16, 'sine', 0.18, 130); tone(330, 0.1, 'triangle', 0.08); }
-function sSelect(): void { tone(520, 0.05, 'square', 0.05); }
+function sPlace(): void { thump(200, 0.17, 0.18); tone(330, 0.1, 'triangle', 0.08, 300); noise(0.05, 0.05, 1200, 300); } // the tower SEATS: a thunk into the ground
+function sSelect(): void { noise(0.008, 0.03, 4500, undefined, 0, 'highpass'); tone(520, 0.045, 'triangle', 0.05, 490); tone(520, 0.03, 'square', 0.014); } // a tactile click on the same 520 Hz blip, its square edge tamed
 function sHover(): void { tone(900, 0.02, 'sine', 0.012, 1200); } // a faint, premium tick as the pointer crosses a control
 function sLaunch(): void { tone(196, 0.16, 'sine', 0.15, 392); tone(294, 0.3, 'triangle', 0.09, 440); noise(0.1, 0.045, 1300, 4200); } // a confident "engage" swell on Start Run
-function sWave(): void { tone(330, 0.12, 'sawtooth', 0.16); tone(494, 0.22, 'sawtooth', 0.16); }
+function sWave(): void { thump(82, 0.22, 0.12); unison(330, 0.13, 'sawtooth', 0.16, 9); unison(494, 0.26, 'sawtooth', 0.16, 9, undefined, 0.09); } // the horn call: a fifth, "da-DAA", over a drum
 function sBoss(): void { // apex-threat sting: falling tritone over a sub thump + hiss swell
   tone(220, 0.5, 'sawtooth', 0.22, 156); tone(156, 0.7, 'sawtooth', 0.16, 110);
   tone(55, 0.6, 'sine', 0.3, 41); noise(0.5, 0.1, 500, 150);
@@ -276,19 +412,19 @@ function sMegaBurrow(): void { // §dormancy: earth swallows / releases the mass
 function sMine(): void { // spore-mine burst: wet pop + acid fizz (docs/SOWER.md)
   noise(0.22, 0.16, 1600, 300); tone(180, 0.18, 'sine', 0.2, 70); noise(0.3, 0.06, 5200, 2000);
 }
-function sDraft(): void { tone(523, 0.12, 'triangle', 0.14); tone(784, 0.3, 'triangle', 0.14); }
+function sDraft(): void { noise(0.03, 0.04, 3000, undefined, 0, 'highpass'); tone(523, 0.12, 'triangle', 0.14); unison(784, 0.3, 'triangle', 0.14, 6, undefined, 0.07); } // the deal: a card flick, then two notes
 // GENE PICK (docs/GAME-FEEL.md §draft): the commitment — a wet THUNK, then a riser whose reach and
 // shimmer grow with rarity (d = tier depth from the 'draftPick@N' suffix; common 0 … legendary 1).
 function sDraftPick(d = 0): void {
-  noise(0.08, 0.12, 900, 220); tone(150, 0.16, 'sine', 0.2, 70); // the thunk
-  tone(392, 0.16 + 0.22 * d, 'triangle', 0.08 + 0.04 * d, 784 * (1 + 0.5 * d)); // the riser
-  if (d >= 0.5) { tone(1175, 0.3 + 0.2 * d, 'sine', 0.05 * d, 1568); noise(0.24, 0.03 * d, 6200); } // epic+ shimmer
+  noise(0.08, 0.12, 900, 220); thump(150, 0.18, 0.2); // the thunk
+  unison(392, 0.16 + 0.22 * d, 'triangle', 0.08 + 0.04 * d, 7, 784 * (1 + 0.5 * d), 0.035); // the riser, just behind it
+  if (d >= 0.5) { tone(1175, 0.3 + 0.2 * d, 'sine', 0.05 * d, 1568, 0.05); noise(0.24, 0.03 * d, 6200, undefined, 0.05); } // epic+ shimmer
 }
 // A STAGE BOSS FALLS (docs/GAME-FEEL.md §boss kills): crunch + sub boom + a brief rising gleam —
 // unmistakably a kill, never the Hive-breach alarm it used to borrow.
 function sBossFall(): void {
-  noise(0.32, 0.18, 2600, 260); tone(64, 0.7, 'sine', 0.32, 30); tone(128, 0.4, 'sawtooth', 0.12, 52);
-  tone(523, 0.32, 'triangle', 0.07, 1046);
+  noise(0.32, 0.18, 2600, 260); thump(64, 0.75, 0.32); tone(128, 0.4, 'sawtooth', 0.12, 52);
+  tone(523, 0.32, 'triangle', 0.07, 1046, 0.1); // the gleam rises out of the crunch
 }
 // Hero ULT landing (docs/HERO-CINEMATICS.md §impact): a short sub thump + dust under the impact frame.
 function sAbilityImpact(): void { tone(70, 0.26, 'sine', 0.24, 38); noise(0.18, 0.1, 1400, 220); }
@@ -359,24 +495,26 @@ function sTutStep(): void { // checkpoint complete — a soft affirmative uplink
   tone(660, 0.09, 'sine', 0.06, 880); tone(990, 0.12, 'sine', 0.04, 1320);
 }
 function sTutDone(): void { // graduation — a short rising ceremony (three-step lift + shimmer)
-  tone(392, 0.14, 'triangle', 0.09); tone(523, 0.16, 'triangle', 0.09); tone(659, 0.3, 'triangle', 0.1, 784); tone(1046, 0.4, 'sine', 0.03, 1568);
+  tone(392, 0.14, 'triangle', 0.09); tone(523, 0.16, 'triangle', 0.09, undefined, 0.09);
+  tone(659, 0.3, 'triangle', 0.1, 784, 0.18); tone(1046, 0.4, 'sine', 0.03, 1568, 0.18);
 }
 // ── progression / reward dopamine cues ──
-function sClear(): void { // wave-cleared fanfare (rising major triad)
-  tone(392, 0.14, 'triangle', 0.15); tone(523, 0.16, 'triangle', 0.15); tone(659, 0.34, 'triangle', 0.16);
+function sClear(): void { // wave-cleared fanfare (rising major triad, arpeggiated; the top note held wide)
+  tone(392, 0.14, 'triangle', 0.15); tone(523, 0.16, 'triangle', 0.15, undefined, 0.075);
+  unison(659, 0.4, 'triangle', 0.16, 7, undefined, 0.15); tone(1319, 0.3, 'sine', 0.035, undefined, 0.15);
 }
-function sChest(): void { noise(0.18, 0.16, 900, 300); tone(140, 0.22, 'sine', 0.2, 90); } // lid thunk
+function sChest(): void { noise(0.025, 0.05, 2400, undefined, 0, 'bandpass'); noise(0.18, 0.16, 900, 300); thump(140, 0.24, 0.2); } // latch click + lid thunk
 let revealStep = 0;
-function sReveal(): void { // bright pluck that climbs with each item revealed
-  const semis = Math.min(revealStep, 10);
-  tone(660 * Math.pow(2, semis / 12), 0.12, 'triangle', 0.12, 990 * Math.pow(2, semis / 12));
+function sReveal(): void { // bright pluck that climbs with each item revealed (a chorused pluck + its octave sparkle)
+  const r = Math.pow(2, Math.min(revealStep, 10) / 12);
+  unison(660 * r, 0.13, 'triangle', 0.12, 8, 990 * r); tone(1980 * r, 0.06, 'sine', 0.025);
   revealStep++;
 }
 function sJackpot(): void { // rare hero-shard sparkle
   tone(880, 0.1, 'sine', 0.14); tone(1175, 0.1, 'sine', 0.14); tone(1568, 0.34, 'sine', 0.16);
   noise(0.2, 0.05, 6000);
 }
-function sAchieve(): void { tone(587, 0.14, 'square', 0.1); tone(880, 0.36, 'square', 0.12); } // unlock "ta-da"
+function sAchieve(): void { tone(587, 0.12, 'square', 0.1); unison(880, 0.36, 'square', 0.12, 6, undefined, 0.1); } // unlock "ta-da"
 // Power gain — a short ASCENDING bio-chime (fifth up + octave shimmer): unmistakably "you got
 // stronger", quiet enough to layer under reveals (POWER-SCORE.md §feel).
 function sPower(chain = 0): void {
@@ -476,16 +614,16 @@ function sRankUp(): void {
 // feat), distinct from sRankUp's ladder — the ear learns "the game just grew".
 function sUnlock(): void {
   tone(330, 0.16, 'triangle', 0.1, 494); // low swell rising a fifth
-  tone(659, 0.14, 'square', 0.08);
-  tone(988, 0.2, 'sine', 0.12); tone(1319, 0.46, 'sine', 0.14); // the arrival chord blooms
-  noise(0.32, 0.045, 7000); // airy shimmer tail
+  tone(659, 0.14, 'square', 0.08, undefined, 0.08);
+  unison(988, 0.24, 'sine', 0.12, 6, undefined, 0.16); unison(1319, 0.5, 'sine', 0.14, 6, undefined, 0.16); // the arrival chord blooms
+  noise(0.32, 0.045, 7000, undefined, 0.16); // airy shimmer tail
 }
 // ACCOUNT LEVEL UP (docs/ACCOUNT-LEVEL.md §ceremony) — a warm two-step pulse into a held bloom:
 // "the ACCOUNT grew". Softer attack than sUnlock (levels are frequent), unmistakably celebratory.
 function sLevelUp(): void {
-  tone(440, 0.1, 'triangle', 0.11); tone(554, 0.1, 'triangle', 0.11); // the two-step
-  tone(880, 0.34, 'sine', 0.13, 932); // held bloom with a gentle upward bend
-  noise(0.22, 0.035, 6500);
+  tone(440, 0.1, 'triangle', 0.11); tone(554, 0.1, 'triangle', 0.11, undefined, 0.085); // the two-step
+  unison(880, 0.38, 'sine', 0.13, 6, 932, 0.17); // held bloom with a gentle upward bend
+  noise(0.22, 0.035, 6500, undefined, 0.17);
 }
 // COMPLETE CLASS ADAPTATION (docs/MULLIGANS.md §adaptations) — the organism SYNCHRONIZES:
 // a wet biological snap into a bright rising fifth that locks. Distinct from graftSquelch
@@ -511,11 +649,12 @@ export const audio = {
   },
   setEnabled(b: boolean): void {
     enabled = b;
-    if (master) master.gain.value = b ? volume : 0;
+    if (master) master.gain.value = b ? SFX_MASTER.output * volume : 0;
   },
+  /** The player's SFX volume, 0..1 (1 = the designed mix level). */
   setVolume(v: number): void {
     volume = Math.max(0, Math.min(1, v));
-    if (master) master.gain.value = volume;
+    if (master) master.gain.value = enabled ? SFX_MASTER.output * volume : 0;
   },
   cue(tag: string): void {
     this.cueBatch({ [tag]: 1 });
@@ -542,7 +681,18 @@ export const audio = {
       const at = core.indexOf('@');
       const tag = at < 0 ? core : core.slice(0, at);
       const feel = feelOf(tag);
-      if (feel?.duck) music.duck(feel.duck[0], feel.duck[1]);
+      // The cue's MIX row (sfxMix.ts): category bus + budget, measured trim, per-dispatch variation.
+      const mix = mixOf(tag);
+      const cat = SFX_CATEGORIES[mix.cat];
+      curCat = mix.cat;
+      if (rng) drawVariation(VAR, cat.vary, rng, mix.pitch);
+      else { VAR.pitch = 1; VAR.gain = 1; VAR.delay = 0; }
+      vPitch = VAR.pitch;
+      vGain = VAR.gain * dbToGain(mix.trimDb);
+      vDelay = VAR.delay;
+      // A FEEL row's duck wins; otherwise a prominent reward/alert dips the score by its category's duck.
+      const duck = feel?.duck ?? ((mix.rel ?? 0) > -4 ? cat.duck : undefined);
+      if (duck) music.duck(duck[0], duck[1]);
       const sting = feel?.stinger;
       if (sting) {
         const now = Date.now();
@@ -695,6 +845,7 @@ export const audio = {
         case 'br_annihilate': for (let i = 0; i < Math.min(2, n); i++) sBrStorm(d); break; // Rift Annihilation Core — a roaring crush
       }
       wdPitch = 1; // family re-voicing scopes to one dispatch — never leaks across cues
+      vGain = 1; vPitch = 1; vDelay = 0; // …and so does the mix
     }
   },
   /** Install the equipped Wardrobe audio packs (docs/COSMETICS.md §wardrobe). Each value is a
@@ -702,4 +853,11 @@ export const audio = {
   setWardrobeCues(families: { tower?: string; enemy?: string; notif?: string; hero?: string; wave?: string }): void {
     wdFamilies = families;
   },
+};
+
+/** DEV / AUDIT ONLY — never called by the game. Tests and `npm run audio:audit` pin the variation
+ *  RNG (null = no variation: the audit's nominal single-cue renders) and read the voice counters. */
+export const sfxDev = {
+  setRng(fn: (() => number) | null): void { rng = fn; },
+  stats(): { voices: number; peakVoices: number; dropped: number } { return { voices, peakVoices, dropped }; },
 };
