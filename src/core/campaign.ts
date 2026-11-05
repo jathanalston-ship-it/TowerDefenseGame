@@ -5,12 +5,12 @@
 // (`game.ts` 'campaign' mode); stage mode stays byte-identical (golden-safe).
 
 import { clamp } from './math';
-import { CAMPAIGN_ONBOARDING, CAMPAIGN_OPENING, CAMPAIGN_REWARDS, ENEMY_DEFS, ENEMY_KINDS } from './config';
+import { CAMPAIGN_ONBOARDING, CAMPAIGN_OPENING, CAMPAIGN_REWARDS, COVERAGE, ENEMY_DEFS, ENEMY_KINDS } from './config';
 import type { EnemyDef, SpawnGroup, WaveDef } from './config';
 import type { EnemyKind, TowerKind } from './types';
 import { Rng } from './rng';
-import { damagesArea } from './conveyor';
-import { TOWER_ABILITIES, TOWER_DEFS } from './config';
+import { coverageGap } from './coverage';
+import type { CoverageAxis } from './coverage';
 import { assembleBoss, campaignBossFor, epithetFor } from './boss';
 import type { BossDef } from './boss';
 import { resolveDifficulty } from './difficulty';
@@ -247,39 +247,60 @@ export function promoteEliteShare(wave: WaveDef, share: number): WaveDef {
   return wave.map((g, i) => (pick.has(i) ? { ...g, elite: true, count: Math.max(1, Math.ceil(g.count / 2)) } : g));
 }
 
-/** LIVE PROBE roles (§6a v3) — threat by COMPOSITION: what the Hive sends to test a runaway board.
- *  Both sides are DATA: a role is a predicate over the enemy def; `answeredBy` (over the fielded towers'
- *  defs + kits) marks a coverage the board already has — null ⇒ a role no board fully answers (it
- *  bombards from standoff range / surfaces past the line). The first UNANSWERED role (table order)
- *  with kinds in the stage's pool wins. Never a per-enemy list: a new enemy joins by its traits. */
-export const LIVE_PROBE_ROLES: readonly { id: string; is: (e: EnemyDef) => boolean; answeredBy: ((kinds: readonly TowerKind[]) => boolean) | null }[] = [
-  // airborne PACKS vs a board with no area damage (the opening's answer class, conveyor.ts §opening)
-  { id: 'air-pack', is: (e) => e.behavior.flying === true, answeredBy: (ks) => ks.some((k) => damagesArea(TOWER_DEFS[k], TOWER_ABILITIES[k])) },
-  { id: 'artillery', is: (e) => e.siege !== undefined, answeredBy: null },
-  { id: 'burrower', is: (e) => e.behavior.burrowing === true, answeredBy: null },
+/** LIVE PROBE roles (§6a v3 → v4 coverage gap) — threat by COMPOSITION: what the Hive sends to test a
+ *  runaway board. Both sides are DATA: a role is a predicate over the enemy def plus the coverage AXIS
+ *  (coverage.ts) that answers it in the sim. The board's GAP on that axis (how far its Strain-weighted
+ *  coverage sits below the roster's mean) grades the role; the largest gap with kinds in the stage's
+ *  pool wins. Ties go in table order, which is the measured HARM order (GR1 harness: chip damage per
+ *  probed wave — artillery and sprinters bleed a board, soak bodies barely do). Never a per-enemy list:
+ *  a new enemy joins by its traits, a new tower by its numbers. */
+export const LIVE_PROBE_ROLES: readonly { id: string; label: string; is: (e: EnemyDef) => boolean; axis: CoverageAxis }[] = [
+  // bombards from its standoff ring: reach is not the answer (a needle board reaches it and still bleeds) — killing power is
+  { id: 'artillery', label: 'Artillery', is: (e) => e.siege !== undefined, axis: 'burst' },
+  { id: 'sprinter', label: 'Sprinters', is: (e) => e.speed >= COVERAGE.fastFrom, axis: 'control' }, // a fast stream leaks past single targets
+  { id: 'air-pack', label: 'Air pack', is: (e) => e.behavior.flying === true, axis: 'area' }, // fliers skip the maze — packs need area
+  { id: 'burrower', label: 'Burrowers', is: (e) => e.behavior.burrowing === true, axis: 'control' }, // the straight line under the maze, past every block
+  { id: 'armored', label: 'Armored', is: (e) => e.armor >= COVERAGE.armoredFrom, axis: 'pierce' },
+  { id: 'sustain', label: 'Sustain', is: (e) => (e.shieldHp ?? 0) > 0 || (e.regenPerSec ?? 0) > 0, axis: 'burst' }, // a shield / regen on the BODY outlasts chip hits
 ];
 
-/** The probe kind for a board: the first unanswered LIVE_PROBE_ROLES role present in `pool`, and of
- *  that role the LIGHTEST body (lowest effective HP — the probe threatens by its role, not its bulk,
- *  so it adds chip damage without lengthening the wave). null ⇒ the pool fields no probe role. */
-export function liveProbeKind(pool: readonly EnemyKind[], fielded: Iterable<TowerKind>): EnemyKind | null {
-  const kinds = [...fielded];
+/** A board's live probe: the enemy kind, its role, the axis that answers it and the board's gap there. */
+export interface LiveProbe { kind: EnemyKind; role: string; label: string; axis: CoverageAxis; gap: number }
+
+/** The LIGHTEST body of a role in `pool` (lowest effective HP — the probe threatens by its role, not
+ *  its bulk, so it adds chip damage without lengthening the wave); exploders never probe. */
+function lightestOfRole(pool: readonly EnemyKind[], is: (e: EnemyDef) => boolean): EnemyKind | null {
+  let kind: EnemyKind | null = null;
+  for (const k of pool) {
+    const d = ENEMY_DEFS[k];
+    if (!is(d) || d.explodeDamage) continue;
+    if (kind === null || effectiveHp(d) < effectiveHp(ENEMY_DEFS[kind])) kind = k;
+  }
+  return kind;
+}
+
+/** The probe for a board: of the LIVE_PROBE_ROLES roles whose kinds are in `pool`, the first (table =
+ *  harm order) whose coverage gap is within `tie` of the largest — `tie` 0 ⇒ simply the largest gap,
+ *  ties in table order; a band treats gaps the coarse model cannot tell apart as ties — and of that
+ *  role the lightest body. null ⇒ the pool fields no probe role. */
+export function liveProbe(pool: readonly EnemyKind[], towers: readonly { kind: TowerKind; strain: number }[], tie = 0): LiveProbe | null {
+  let max = -1;
+  for (const role of LIVE_PROBE_ROLES) if (lightestOfRole(pool, role.is) !== null) max = Math.max(max, coverageGap(towers, role.axis));
+  if (max < 0) return null;
   for (const role of LIVE_PROBE_ROLES) {
-    if (role.answeredBy !== null && role.answeredBy(kinds)) continue;
-    let best: EnemyKind | null = null;
-    for (const k of pool) {
-      const d = ENEMY_DEFS[k];
-      if (!role.is(d) || d.explodeDamage) continue;
-      if (best === null || effectiveHp(d) < effectiveHp(ENEMY_DEFS[best])) best = k;
-    }
-    if (best !== null) return best;
+    const gap = coverageGap(towers, role.axis);
+    if (gap < max - tie) continue;
+    const kind = lightestOfRole(pool, role.is);
+    if (kind !== null) return { kind, role: role.id, label: role.label, axis: role.axis, gap };
   }
   return null;
 }
 
-/** Swap round(share × eligible) of a wave's PLAIN groups (not elite, not an exploder, not already the
- *  probe) for the probe kind at the SAME threat budget (count × cost ratio, ≥ 1), keeping each group's
- *  delay; largest groups first, ties in spawn order. A COPY — share ≤ 0 or no probe ⇒ `wave`. */
+/** Hand share × a wave's PLAIN threat budget (groups not elite, not an exploder, not already the probe)
+ *  to the probe kind at the SAME budget (units × cost ratio, ≥ 1 body). The largest groups give up what
+ *  they can, largest first (ties in spawn order); the probe rides beside what is left of each, at its
+ *  delay — so every live wave carries a probe in proportion (v3 swapped whole groups: a 1- or 2-group
+ *  wave never probed). A COPY — share ≤ 0, no probe, or under half a body ⇒ `wave`. */
 export function swapInProbe(wave: WaveDef, probe: EnemyKind | null, share: number): WaveDef {
   if (probe === null || !(share > 0)) return wave;
   const eligible: number[] = [];
@@ -287,15 +308,29 @@ export function swapInProbe(wave: WaveDef, probe: EnemyKind | null, share: numbe
     const g = wave[i];
     if (!g.elite && g.kind !== probe && !ENEMY_DEFS[g.kind].explodeDamage) eligible.push(i);
   }
-  const n = Math.round(share * eligible.length);
-  if (n <= 0) return wave;
-  eligible.sort((a, b) => wave[b].count - wave[a].count || a - b);
-  const pick = new Set(eligible.slice(0, n));
+  const cost = (i: number): number => threatCost(ENEMY_DEFS[wave[i].kind]);
+  let left = 0;
+  for (const i of eligible) left += wave[i].count * cost(i);
+  left *= share;
+  eligible.sort((a, b) => wave[b].count * cost(b) - wave[a].count * cost(a) || a - b);
+  const taken = new Map<number, number>(); // group index → units handed to the probe
+  for (const i of eligible) {
+    const take = Math.min(wave[i].count, Math.round(left / cost(i)));
+    if (take <= 0) break;
+    taken.set(i, take);
+    left -= take * cost(i);
+  }
+  if (taken.size === 0) return wave;
   const pd = ENEMY_DEFS[probe];
   const pc = threatCost(pd);
-  return wave.map((g, i) => (pick.has(i)
-    ? { kind: probe, count: Math.max(1, Math.round((g.count * threatCost(ENEMY_DEFS[g.kind])) / pc)), spacing: spacingFor(categoryOf(pd)), delay: g.delay }
-    : g));
+  const out: WaveDef = [];
+  for (let i = 0; i < wave.length; i++) {
+    const g = wave[i];
+    const take = taken.get(i) ?? 0;
+    if (take < g.count) out.push(take > 0 ? { ...g, count: g.count - take } : g);
+    if (take > 0) out.push({ kind: probe, count: Math.max(1, Math.round((take * cost(i)) / pc)), spacing: spacingFor(categoryOf(pd)), delay: g.delay });
+  }
+  return out;
 }
 
 /** Trim a composed wave's AIRBORNE groups to at most `cap` units in total (in spawn order), dropping

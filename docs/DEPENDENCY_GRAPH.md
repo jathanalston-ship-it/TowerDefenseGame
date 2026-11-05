@@ -1329,7 +1329,7 @@ graph TD
 
 *Difficulty variants + the Universal Difficulty Director — ONE composition layer for every scaling policy (threat curves, doctrine warps, stage folds, mode economy).*
 
-- **Files:** `src/core/difficulty.ts` · `src/core/difficultyDirector.ts`
+- **Files:** `src/core/difficulty.ts` · `src/core/difficultyDirector.ts` · `src/core/coverage.ts`
 - **Depends on:** `content-infra`
 - **Consumers — what breaks if you change this:** `engine` · `campaign` · `infinite` · `boss-rush` · `doctrines` · `threat`
 - **Power Score:** — (intentionally none)

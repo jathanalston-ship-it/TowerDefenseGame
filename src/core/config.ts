@@ -3255,10 +3255,28 @@ export const DIRECTOR_ADAPTIVE = {
   // v3 COMPOSITION: up to this share of a live wave's groups is promoted to ELITE (fewer-but-stronger,
   // the campaign's own elite rule) — the threat lands as concentrated bodies that leak chip damage.
   liveEliteShare: 0,
-  // v3 PROBE: up to this share of a live wave's plain groups becomes the board's PROBE role (campaign.ts
-  // LIVE_PROBE_ROLES — airborne packs vs a board with no area damage, else artillery, else burrowers) at
-  // the same threat budget: what the wave IS changes, not how fat it is — chip damage without length.
-  liveProbeShare: 0.3,
+  // PROBE (v3 → v4): a share of a live wave's plain THREAT BUDGET becomes the board's PROBE role
+  // (campaign.ts liveProbe — the role whose answering coverage axis the fielded board covers least,
+  // coverage.ts) at the same budget: what the wave IS changes, not how fat it is — chip damage without
+  // length. share × (1 − 1/m) × (1 − f + f·wave/total): v4 weights it toward the FINALE (f 1), where
+  // the chip outlasts the run's heals — the early live waves carry a small probe, the finale the full one.
+  liveProbeShare: 0.45,
+  liveProbeFinaleWeight: 1,
+  // Probe roles whose coverage gap is within this of the largest count as TIED — the coarse coverage model
+  // cannot tell them apart — and the role table's measured HARM order breaks the tie (artillery first).
+  liveProbeGapTie: 0.35,
+};
+
+// ── Board COVERAGE model (docs/DIFFICULTY_DIRECTOR.md §6a v4 — coverage.ts) ─────────────────────
+// How a tower's numbers grade onto the coverage axes the live probe reads, and the enemy traits that
+// make a probe ROLE (campaign.ts LIVE_PROBE_ROLES). Data, not per-tower lists.
+export const COVERAGE = {
+  reachFrom: 200, // tower range (px) that reaches nothing past its own pocket — reach 0 …
+  reachFull: 600, // … rising linearly to full reach here (the lane is ~920 px tall)
+  armorRef: 14, // the plating PIERCE is graded against (≈ the armored probe bodies) — hit − (armor − own shred)
+  burstFull: 60, // per-hit damage that counts as full BURST (breaks a shield / out-paces a mender)
+  armoredFrom: 12, // an enemy with at least this armor is the ARMORED role
+  fastFrom: 110, // an enemy at least this fast (px/s) is the SPRINTER role
 };
 
 // ── Adaptive Economy Framework: income-seam weights (docs/ECONOMY_FORMULAS.md) ──

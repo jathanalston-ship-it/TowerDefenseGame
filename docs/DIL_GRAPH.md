@@ -992,7 +992,7 @@ _at: src/core/campaign.ts, src/core/campaignEvents.ts, src/core/hash.ts, src/ui/
   - consumes → `system:map-layouts` — layoutForStage: CAMPAIGN_LAYOUT_PINS for the onboarding (1–3), then a memoized-forward biome-flavored no-repeat roll on Rng(stageSeed(s, layout)); adding a layout re-rolls un-pinned stages (generated, never saved)
   - conflictsWith → `system:infinite` — Run Identity invasions: campaign passes the STAGE enemyPool as invasionPool (an all-kinds pool dropped 8 colossi on stage 1); endless keeps ENEMY_KINDS
   - conflictsWith → `concept:golden-test` — a new enemy whose DERIVED unlockStage is ≤ 3 re-rolls the pinned Stage 1–3 onboarding pools and moves campaignCurve.test — the puzzle fauna were tuned (EHP) to enter at ≥ 4; biome signatures also append to the Infinite director rosters while that biome is active
-  - consumes → `system:towers` — LIVE PROBE (§6a v3, campaign.ts LIVE_PROBE_ROLES): a live Campaign wave swaps a share of its plain groups (same threat budget) for the role the FIELDED board answers least — airborne packs vs no area damage (conveyor.ts damagesArea), else artillery, else burrowers — the lightest body of that role in the stage pool; the live ratio excludes drafted cards (liveCardExp 0) so picks are pure gain; Game.liveWave feeds both the launch and the prep preview
+  - consumes → `system:towers` — LIVE PROBE (§6a v3→v4, campaign.ts LIVE_PROBE_ROLES + coverage.ts): every tower kind gets a DERIVED coverage vector (reach / area / pierce / burst / control from TowerDef + kit + status-framework traits — a new tower is graded by its numbers); the FIELDED board folds Strain-weighted and each probe role (air-pack, artillery, burrower, armored, sprinter, sustain — enemy-trait predicates) reads its answering axis as a GAP below the ROSTER mean coverage; a live Campaign wave swaps a share of its plain threat budget (same budget) for the lightest body of the largest-gap role; the live ratio excludes drafted cards (liveCardExp 0) so picks are pure gain; Game.liveWave feeds both the launch and the prep preview (the briefing chip names the role + the coverage it tests)
   - consumes → `system:towers` — OPENING ANSWER GIFT (core/conveyor.ts §opening): the stage ≥ 4 run-start gift rolls from owned kinds whose TOWER DATA answers the opening threats (drag-damage aura, then area damage) — a new tower is classified by its stats; Stages 1–3 keep the plain roll (campaignCurve)
   - requiredBy ← `system:daily`
   - requiredBy ← `system:towers`
@@ -2507,7 +2507,7 @@ _at: src/core/threat.ts, src/ui/components/ThreatPicker.tsx_
 
 Difficulty variants + the Universal Difficulty Director — ONE composition layer for every scaling policy (threat curves, doctrine warps, stage folds, mode economy).
 
-_at: src/core/difficulty.ts, src/core/difficultyDirector.ts_
+_at: src/core/difficulty.ts, src/core/difficultyDirector.ts, src/core/coverage.ts_
 
   - dependsOn → `system:content-infra`
   - balances → `system:campaign` — the Universal Difficulty Director owns every scaling policy

@@ -7,7 +7,8 @@ import { Game } from './game';
 import type { RunOptions } from './game';
 import { CAMPAIGN_OPENING, DIRECTOR_ADAPTIVE, EARLY_CALL, ENDLESS_SQUEEZE, ENEMY_DEFS, SIM_DT, TOWER_ABILITIES, TOWER_DEFS, TOWER_ORDER } from './config';
 import { OPENING_ANSWER_TIERS, OPENING_THREAT_RULES, damagesArea, dragsAndDamages, openingAnswerKinds } from './conveyor';
-import { LIVE_PROBE_ROLES, generateStage, liveProbeKind, promoteEliteShare, swapInProbe } from './campaign';
+import { LIVE_PROBE_ROLES, generateStage, liveProbe, promoteEliteShare, swapInProbe } from './campaign';
+import { COVERAGE_AXIS_NAME, ROSTER_COVERAGE, TOWER_COVERAGE, boardCoverage, coverageGap, towerCoverage } from './coverage';
 import type { StageConfig } from './campaign';
 import type { WaveDef } from './config';
 import { campaignMegaFor, MEGA } from './megaboss';
@@ -305,31 +306,100 @@ describe('LIVE threat v3 — cards out of the ratio, threat by composition (§6a
     expect(promoteEliteShare(wave, 0.5)).toEqual(out); // deterministic
   });
 
-  it('liveProbeKind reads the board from DATA: airborne packs vs no area damage, else a role no board fully answers', () => {
-    const pool = ['runner', 'wisp', 'spitter', 'burrower'] as const;
-    const isRole = (k: keyof typeof ENEMY_DEFS, id: string): boolean => LIVE_PROBE_ROLES.find((r) => r.id === id)!.is(ENEMY_DEFS[k]);
-    const singleTarget = liveProbeKind([...pool], ['needle']); // needle covers no area
-    expect(isRole(singleTarget!, 'air-pack')).toBe(true);
-    const areaBoard = liveProbeKind([...pool], ['needle', 'mortar']); // mortar splashes ⇒ the air gap is answered
-    expect(isRole(areaBoard!, 'air-pack')).toBe(false);
-    expect(isRole(areaBoard!, 'artillery')).toBe(true);
-    expect(liveProbeKind(['runner', 'mite'], ['needle'])).toBeNull(); // no probe role in the pool ⇒ no swap
+  it('liveProbe grades roles by the board coverage GAP (data on both sides), ties in table order', () => {
+    const board = (...ks: (typeof TOWER_ORDER)[number][]) => ks.map((kind) => ({ kind, strain: 1 }));
+    // a needle board reaches the whole lane but covers no area ⇒ the airborne pack, not the artillery
+    expect(liveProbe(['runner', 'wisp', 'spitter'], board('needle'))?.role).toBe('air-pack');
+    // a mortar board splashes and outranges but cannot cut plating ⇒ the armored body
+    const armored = liveProbe(['runner', 'wisp', 'spitter', 'scuttler'], board('mortar'));
+    expect(armored?.role).toBe('armored');
+    expect(ENEMY_DEFS[armored!.kind].armor).toBeGreaterThanOrEqual(12);
+    // the pick is ALWAYS the largest gap among the roles the pool fields
+    const pool = ['runner', 'wisp', 'spitter', 'scuttler', 'rusher', 'mender', 'molerat'] as const;
+    for (const b of [board('needle', 'mortar'), board('lancet', 'obelisk', 'spire'), board('maw', 'polyp', 'roost'), board('quill', 'coil')]) {
+      const p = liveProbe([...pool], b)!;
+      for (const r of LIVE_PROBE_ROLES) expect(p.gap).toBeGreaterThanOrEqual(coverageGap(b, r.axis));
+      expect(p.gap).toBe(coverageGap(b, p.axis));
+    }
+    expect(liveProbe(['runner', 'mite'], board('needle'))).toBeNull(); // no probe role in the pool ⇒ no swap
+    // a TIE band: gaps within it of the largest count as tied, and the table (harm) order breaks it
+    const needle = board('needle');
+    const air = coverageGap(needle, 'area');
+    const art = coverageGap(needle, 'burst');
+    expect(air).toBeGreaterThan(art);
+    expect(liveProbe(['runner', 'wisp', 'spitter'], needle, air - art + 1e-9)?.role).toBe('artillery');
   });
 
-  it('swapInProbe keeps the threat budget, the delays and the plan intact (a copy, deterministic)', () => {
+  it('coverage is DERIVED from tower data (no per-tower list): area, reach, pierce, burst, control', () => {
+    for (const k of TOWER_ORDER) {
+      const c = TOWER_COVERAGE[k];
+      for (const v of Object.values(c)) expect(v >= 0 && v <= 1).toBe(true);
+      if (damagesArea(TOWER_DEFS[k], TOWER_ABILITIES[k])) expect(c.area).toBe(1);
+    }
+    // a hypothetical new tower is graded by its numbers alone
+    const lob = towerCoverage({ ...TOWER_DEFS.needle, range: 600, damage: 90, splash: 50 }, [{ type: 'projectile', behavior: 'splash', damage: 90, speed: 400, range: 600, splash: 50 }]);
+    expect(lob).toMatchObject({ reach: 1, area: 1, burst: 1, control: 0 });
+    expect(lob.pierce).toBeGreaterThan(0.8);
+    const poke = towerCoverage({ ...TOWER_DEFS.needle, range: 150, damage: 4, splash: 0 }, [{ type: 'aura', radius: 150, damage: 4, status: { kind: 'Freeze', amount: 1 } }]);
+    expect(poke).toMatchObject({ reach: 0, pierce: 0, control: 1 });
+    // a hit that shreds plating pierces more than the same hit that does not
+    const raw = towerCoverage({ ...TOWER_DEFS.needle, damage: 16 }, [{ type: 'projectile', behavior: 'splash', damage: 16, speed: 600, range: 700 }]);
+    const shredding = towerCoverage({ ...TOWER_DEFS.needle, damage: 16 }, [{ type: 'projectile', behavior: 'homing', damage: 16, speed: 600, range: 700 }]);
+    expect(shredding.pierce).toBeGreaterThan(raw.pierce);
+    // the board fold: Strain-weighted mean; an empty board covers nothing
+    expect(boardCoverage([], 'area')).toBe(0);
+    expect(boardCoverage([{ kind: 'mortar', strain: 3 }, { kind: 'needle', strain: 1 }], 'area')).toBeCloseTo(0.75, 12);
+    expect(Object.keys(COVERAGE_AXIS_NAME).sort()).toEqual(Object.keys(TOWER_COVERAGE.needle).sort());
+    // the GAP reads the board against the roster's mean coverage: 1 with none of it, 0 at or above it
+    expect(coverageGap([{ kind: 'needle', strain: 1 }], 'area')).toBe(1);
+    expect(coverageGap([{ kind: 'mortar', strain: 1 }], 'area')).toBe(0);
+    for (const a of Object.keys(ROSTER_COVERAGE) as (keyof typeof ROSTER_COVERAGE)[]) {
+      const mean = TOWER_ORDER.reduce((n, k) => n + TOWER_COVERAGE[k][a], 0) / TOWER_ORDER.length;
+      expect(ROSTER_COVERAGE[a]).toBeCloseTo(mean, 12);
+    }
+  });
+
+  it('the probe share is 0 at ×1 and weights toward the finale at liveProbeFinaleWeight (0 ⇒ the flat v3 shape)', () => {
+    const dd = anyG(new Game(3, NO_META, undefined, undefined, undefined, { mode: 'campaign', stage: generateStage(12), livePowerBase: 1 })).dd as {
+      liveProbeShare: (m: number, progress?: number) => number;
+    };
+    expect(dd.liveProbeShare(1, 1)).toBe(0);
+    expect(dd.liveProbeShare(0.5, 1)).toBe(0);
+    expect(dd.liveProbeShare(8, 1)).toBeCloseTo(DIRECTOR_ADAPTIVE.liveProbeShare * (1 - 1 / 8), 12); // the finale carries the full share
+    const f0 = DIRECTOR_ADAPTIVE.liveProbeFinaleWeight;
+    try {
+      DIRECTOR_ADAPTIVE.liveProbeFinaleWeight = 0;
+      expect(dd.liveProbeShare(3, 0.25)).toBe(dd.liveProbeShare(3, 1));
+      DIRECTOR_ADAPTIVE.liveProbeFinaleWeight = 1;
+      expect(dd.liveProbeShare(3, 0.25)).toBeCloseTo(dd.liveProbeShare(3, 1) * 0.25, 12);
+    } finally {
+      DIRECTOR_ADAPTIVE.liveProbeFinaleWeight = f0;
+    }
+  });
+
+  it('swapInProbe hands share × the plain threat budget to the probe — largest group first, delays kept, a copy', () => {
     const wave: WaveDef = [
       { kind: 'runner', count: 8, spacing: 0.5, delay: 0.4 },
       { kind: 'mite', count: 12, spacing: 0.5, delay: 2 },
     ];
     expect(swapInProbe(wave, null, 1)).toBe(wave);
     expect(swapInProbe(wave, 'spitter', 0)).toBe(wave);
-    const out = swapInProbe(wave, 'spitter', 0.5); // 1 of 2 plain groups — the larger (mites) goes
-    expect(out[0]).toBe(wave[0]);
-    expect(out[1].kind).toBe('spitter');
-    expect(out[1].delay).toBe(2);
-    expect(out[1].count).toBeGreaterThanOrEqual(1);
-    expect(wave[1].kind).toBe('mite');
-    expect(swapInProbe(wave, 'spitter', 0.5)).toEqual(out);
+    expect(swapInProbe(wave, 'spitter', 0.01)).toBe(wave); // under half a body ⇒ unchanged
+    const out = swapInProbe(wave, 'spitter', 0.5);
+    expect(out).not.toBe(wave);
+    expect(out.filter((g) => g.kind === 'spitter').every((g) => g.count >= 1 && [0.4, 2].includes(g.delay))).toBe(true);
+    const units = (w: WaveDef, k: string): number => w.reduce((n, g) => n + (g.kind === k ? g.count : 0), 0);
+    expect(units(out, 'runner') + units(out, 'mite')).toBeLessThan(20); // chaff handed over …
+    expect(units(out, 'spitter')).toBeGreaterThanOrEqual(1); // … to the probe
+    expect(wave.map((g) => g.count)).toEqual([8, 12]); // the stage plan is never mutated
+    expect(swapInProbe(wave, 'spitter', 0.5)).toEqual(out); // deterministic
+    // a 1-group wave probes too (v3 swapped whole groups: round(0.26 × 1) = 0 ⇒ never)
+    const one: WaveDef = [{ kind: 'lasher', count: 7, spacing: 0.45, delay: 0.4 }];
+    const probed = swapInProbe(one, 'scuttler', 0.26);
+    expect(probed.map((g) => g.kind)).toEqual(['lasher', 'scuttler']); // the probe rides beside what is left
+    expect(probed[0].count).toBe(5); // round(0.26 × 7) = 2 lashers handed over
+    expect(probed[1].delay).toBe(0.4);
+    expect(swapInProbe(one, 'scuttler', 1).map((g) => g.kind)).toEqual(['scuttler']); // the whole budget ⇒ the whole group
   });
 
   it('the elite share is 0 at ×1 and grows toward liveEliteShare as the board runs away', () => {
@@ -360,6 +430,7 @@ describe('LIVE threat v3 — cards out of the ratio, threat by composition (§6a
     g.god = true;
     for (let i = 0; i < 6; i++) { g.selectTower('needle'); g.click(towerSlots[i].x, towerSlots[i].y); }
     let guard = 0;
+    let probed = 0;
     while (g.waveIndex < DIRECTOR_ADAPTIVE.liveFromWave + 1 && g.phase !== 'won' && g.phase !== 'lost' && guard++ < 600) {
       if (g.phase === 'draft') { g.chooseCard(g.getSnapshot().draft![0].id); continue; }
       if (g.phase === 'prep') {
@@ -372,9 +443,14 @@ describe('LIVE threat v3 — cards out of the ratio, threat by composition (§6a
           expect(counted.get(e.kind)?.count, `wave ${g.waveIndex} ${e.kind}`).toBe(e.count);
           expect(counted.get(e.kind)?.elite ?? 0, `wave ${g.waveIndex} ${e.kind} elites`).toBe(e.elite ?? 0);
         }
+        const probes = preview.filter((e) => e.probe);
+        expect(probes.length).toBeLessThanOrEqual(1); // at most one probe, named with the coverage it tests
+        if (probes[0]) expect(Object.values(COVERAGE_AXIS_NAME)).toContain(probes[0].probe!.lacks);
+        if (g.waveIndex + 1 >= DIRECTOR_ADAPTIVE.liveFromWave) probed += probes.length;
       }
       step(g, 1);
     }
+    expect(probed).toBeGreaterThan(0); // a runaway needle board meets its probe, named in the briefing
   });
 });
 
