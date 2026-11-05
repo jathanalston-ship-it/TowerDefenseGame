@@ -347,7 +347,7 @@ export function drawBossTells(ctx: Ctx, rs: RenderState, now: number, bossR: (e:
           const m = def.modules[mi];
           const tell = BOSS_TELLS[m.kind];
           const cd = b.moduleCd[mi];
-          if (tell === null) { st.prevCd[mi] = cd; continue; }
+          if (!tell) { st.prevCd[mi] = cd; continue; } // no tell (or an unknown kind from an old/foreign def)
           // FIRE edge: the cooldown jumped back up — the module just acted this tick.
           if (st.armed[mi] && st.prevCd[mi] <= tell.lead && cd > st.prevCd[mi] + 0.3) release(tell, e, rs, r, m.radius ?? tell.radius ?? r * 2, now);
           st.prevCd[mi] = cd;

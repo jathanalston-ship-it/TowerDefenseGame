@@ -2445,8 +2445,21 @@ const heroTrail: { x: number; y: number }[] = [];
 // HERO ABILITY feedback tracker (docs/COMBAT-VISUAL-STANDARDS.md §heroes) — render-local, per
 // hero kind: a cooldown JUMP = the ability just fired (activation burst); a fall to 0 = it came
 // off cooldown (ready flare + a standing ready-glint). Never read by the sim (golden-safe).
-const heroAbilityFx = new Map<string, { lastCd: number; castT: number; readyT: number }>();
+const heroAbilityFx = new Map<string, { lastCd: number; castT: number; readyT: number; lastAtk: number; atkT: number }>();
 const CAST_FX_T = 0.5; // seconds the activation burst plays
+// HERO IDLE LIFE (docs/HERO-CINEMATICS.md §presence) — the body breathes, bobs while it moves and PUNCHES on
+// every strike (the attackCd jump edge), so a hero reads as a living champion, not a token. Reduced
+// motion holds it still. Render-only, time/id-keyed.
+const HERO_LIFE = {
+  breath: 0.03, // ± scale of the idle breath
+  breathHz: 2.2, // breath tempo (rad/s)
+  stepHz: 10, // stride tempo while moving (rad/s)
+  bob: 2, // px the body lifts per stride
+  punch: 0.14, // strike punch (× scale at the hit, easing out)
+  punchSec: 0.14, // strike punch duration
+} as const;
+const SIDES = [-1, 1] as const; // wing/membrane sides (module const — no per-frame array)
+const MID = [0] as const;
 const READY_FX_T = 0.6; // seconds the ready flare plays
 // Absorb-shield barrier tint (matches the status framework's Shield buff color).
 const SHIELD_RGB = hexRgb('#9ad0ff');
@@ -2465,7 +2478,7 @@ function drawHeroWings(ctx: CanvasRenderingContext2D, x: number, y: number, r: n
   const span = r * (2.3 + 0.35 * flap); // wingtip reach swells through the downstroke
   const lift = r * (0.55 + 0.75 * flap); // wingtip height above the shoulder line
   ctx.save();
-  for (const side of [-1, 1]) {
+  for (const side of SIDES) {
     const sx = x + side * r * 0.55; // shoulder root
     const sy = y - r * 0.15;
     const tipX = x + side * span;
@@ -2517,11 +2530,13 @@ function drawHero(ctx: CanvasRenderingContext2D, rs: RenderState, h: RenderState
   // Ability edge tracking: a cooldown JUMP = just cast; a fall to 0 = just came ready. Stale
   // marks from a previous run sit in the future after the clock resets and self-clear.
   let abFx = heroAbilityFx.get(h.kind);
-  if (!abFx) { abFx = { lastCd: h.abilityCd, castT: -10, readyT: -10 }; heroAbilityFx.set(h.kind, abFx); }
-  if (abFx.castT > t || abFx.readyT > t) { abFx.castT = -10; abFx.readyT = -10; }
+  if (!abFx) { abFx = { lastCd: h.abilityCd, castT: -10, readyT: -10, lastAtk: h.attackCd, atkT: -10 }; heroAbilityFx.set(h.kind, abFx); }
+  if (abFx.castT > t || abFx.readyT > t || abFx.atkT > t) { abFx.castT = -10; abFx.readyT = -10; abFx.atkT = -10; }
   if (h.abilityCd > abFx.lastCd + 0.5) abFx.castT = t;
   else if (abFx.lastCd > 0 && h.abilityCd <= 0) abFx.readyT = t;
   abFx.lastCd = h.abilityCd;
+  if (h.attackCd > abFx.lastAtk + 0.05) abFx.atkT = t; // a strike just landed (the cooldown was paid)
+  abFx.lastAtk = h.attackCd;
 
   // Shepherd's vital aura / Overseer's disruption field — show the role's reach.
   if (!down && def.pulseRadius > 0) {
@@ -2615,6 +2630,18 @@ function drawHero(ctx: CanvasRenderingContext2D, rs: RenderState, h: RenderState
   // layered core: dark rim → class-colored body → bright nucleus (reads as a hero). Permanent
   // STARS swell the body (docs/HERO-EVOLUTION.md §visuals); ★0 ⇒ grow=1 ⇒ the classic silhouette.
   const grow = heroEvolutionGrowth(h.kind, stars);
+  // IDLE LIFE (HERO_LIFE): breath · stride bob · strike punch — one transform over the whole body.
+  let lifeS = 1;
+  let lifeBob = 0;
+  if (!down && viewFeel.motion > 0) {
+    const ph = h.kind.charCodeAt(0) * 0.37 + h.kind.length;
+    lifeS = 1 + HERO_LIFE.breath * Math.sin(t * HERO_LIFE.breathHz + ph);
+    if (h.moveState === 'moving' || h.moveState === 'retreating') lifeBob = -Math.abs(Math.sin(t * HERO_LIFE.stepHz + ph)) * HERO_LIFE.bob;
+    const pa = (t - abFx.atkT) / HERO_LIFE.punchSec;
+    if (pa >= 0 && pa < 1) lifeS *= 1 + HERO_LIFE.punch * (1 - pa) * (1 - pa);
+  }
+  const lifeXf = lifeS !== 1 || lifeBob !== 0;
+  if (lifeXf) { ctx.save(); ctx.translate(h.x, h.y + lifeBob); ctx.scale(lifeS, lifeS); ctx.translate(-h.x, -h.y); }
   // EQUIPMENT gear (docs/EQUIPMENT.md §visuals): the equipped loadout drawn ON the hero — energy
   // halo + back/cloak behind, shoulder plates + weapon + orbiting relics + set prestige organs
   // framing the body — so a geared veteran reads as a different biomechanical warrior. Drawn behind
@@ -2631,6 +2658,7 @@ function drawHero(ctx: CanvasRenderingContext2D, rs: RenderState, h: RenderState
   // Symbiote grafts (docs/HERO-SYMBIOTES.md §visuals): the grafted organism's stage anatomy +
   // living motif shimmer + resonance crown. Stage 0 / no state ⇒ nothing draws (classic look).
   drawHeroSymbiotes(ctx, h, symbiote, 16 * grow, t, skin?.primary ?? def.color, down);
+  if (lifeXf) ctx.restore();
   ctx.globalAlpha = 1;
 
   if (down) {
@@ -2670,7 +2698,7 @@ function drawMinions(ctx: CanvasRenderingContext2D, rs: RenderState, t: number):
       const flap = Math.sin(t * 9 + m.id * 1.3);
       const span = r * (1.7 + 0.4 * flap) * (0.9 + tier * 0.15);
       const lift = r * (0.5 + 0.6 * flap);
-      for (const side of [-1, 1]) {
+      for (const side of SIDES) {
         ctx.beginPath();
         ctx.moveTo(m.x + side * r * 0.4, m.y - r * 0.1);
         ctx.quadraticCurveTo(m.x + side * span * 0.7, m.y - lift * 1.2, m.x + side * span, m.y - lift);
@@ -2689,7 +2717,7 @@ function drawMinions(ctx: CanvasRenderingContext2D, rs: RenderState, t: number):
       if (tier >= 2) {
         ctx.strokeStyle = rgba(tint, 0.85);
         ctx.lineWidth = 1.4;
-        for (const side of tier >= 3 ? [-1, 1] : [0]) {
+        for (const side of tier >= 3 ? SIDES : MID) {
           ctx.beginPath();
           ctx.moveTo(m.x + side * r * 0.3, m.y - r * 0.7);
           ctx.quadraticCurveTo(m.x + side * r * 0.7, m.y - r * 1.5, m.x + side * r * 0.4, m.y - r * 1.7);
