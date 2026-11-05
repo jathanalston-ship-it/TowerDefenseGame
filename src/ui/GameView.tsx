@@ -47,7 +47,7 @@ import { dangerCurve } from '../core/dangerCamera';
 import { computeAssimilationTarget, stepAssimilation, assimilationPresentation, assimilationPresentationInto } from '../core/assimilation';
 import type { AssimilationPresentation } from '../core/assimilation';
 import { drawAssimilationFx } from '../render/assimilationFx';
-import { Announcer, FEEL, viewFeel } from '../render/feel';
+import { Announcer, BOSS_VERB_HOLD_MS, FEEL, viewFeel } from '../render/feel';
 import type { FeelRow, Shown } from '../render/feel';
 import { CentreStage, megaFallCard, type StageCard } from './components/CentreStage';
 import { LivingGutters } from './components/LivingGutters';
@@ -173,6 +173,9 @@ export function GameView({
   // that follows a pick without the phase leaving 'draft' — an EARLY CALL's owed drafts, dealt back
   // to back (docs/EARLY-CALL.md) — must get a fresh mount or every later pick is ignored.
   const draftPicks = useRef(0);
+  // BOSS VERB HOLD (render/feel.ts BOSS_VERB_HOLD_MS): the sim's banner verb lives one tick — keep the last
+  // one on screen long enough to read (presentation only; a new verb replaces it at once).
+  const bossVerbRef = useRef<{ text: string; at: number } | null>(null);
   // Daily runs record their input log for leaderboard replay verification (core/replay.ts).
   const recorderRef = useRef<Recorder | null>(null);
   // THE AUTOMATION GATE (docs/HIVE-MIND.md §solved-content): Hive Intelligence + Auto Gene only on
@@ -1098,6 +1101,11 @@ export function GameView({
     }
   };
 
+  // BOSS VERB HOLD: the latest verb the sim named, held BOSS_VERB_HOLD_MS (render rate ≈ the snapshot rate).
+  const bossTele = hud.bossBanner?.telegraph;
+  if (bossTele) bossVerbRef.current = { text: bossTele, at: performance.now() };
+  const bossVerb = bossTele || (hud.bossBanner && bossVerbRef.current && performance.now() - bossVerbRef.current.at < BOSS_VERB_HOLD_MS ? bossVerbRef.current.text : null);
+
   return (
     <div className="game" data-hphase={hphase} data-motion={feelNow.motion > 0 ? 'full' : 'reduced'} data-flashes={feelNow.flashes ? 'on' : 'off'}>
       <Hud hud={hud} power={power} onOpenConsole={() => setEvoOpen(true)} tutorial={!!tutorial && !!tutSession} doctrine={doctrine && doctrine !== 'none' ? resolveDoctrine(doctrine) : null} vows={vowChips} />
@@ -1381,7 +1389,7 @@ export function GameView({
             <div className="boss-hp">
               <div className="boss-hp-fill" style={{ width: `${hud.bossBanner.hpPct * 100}%` }} />
             </div>
-            {hud.bossBanner.telegraph && <div className="boss-telegraph">{hud.bossBanner.telegraph}</div>}
+            {bossVerb && <div className="boss-telegraph">{bossVerb}</div>}
           </div>
         )}
         {hud.mutation && (

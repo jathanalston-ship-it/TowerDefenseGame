@@ -347,3 +347,9 @@ tells + a channel at ~150 enemies (headless 1440×900, ≥300 frames). Tests: `r
 (tells only inside the lead window, the release on the fire tick and only when armed, finite geometry
 for every kind, the dash lock at the real reach, core-shot strike, one burst per phase, pool/well picks
 match the sim's, a stepped fight pulses).
+
+### Banner verb hold (integration follow-up to V2)
+The sim names a boss verb on the boss banner ("MEND", "SUPPRESS"…) on the tick it fires and clears it the
+next — it flashed for one tick. GameView holds the latest verb for `BOSS_VERB_HOLD_MS` (1200 ms,
+render/feel.ts); a new verb replaces it at once. Presentation only.
+

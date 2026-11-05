@@ -107,6 +107,10 @@ export const DAMAGE_NUMBERS = {
   crowdAlpha: 0.3,
 } as const;
 
+// BOSS VERB HOLD (docs/BOSS-DESIGN.md §telegraphs): the sim names a boss verb ("MEND", "SUPPRESS"…) on the
+// tick it fires and clears it the next — the banner holds the last one this long so it can be READ.
+export const BOSS_VERB_HOLD_MS = 1200;
+
 // REACTION-LABEL budget (docs/COMBAT-VISUAL-STANDARDS.md §hit-confirmation): the word callouts
 // ("DETONATE", "SHRED", "DISSOLVE"…) say a reaction FIRED — the tenth copy of the same word says nothing
 // new. Past `crowdAt` live labels, each word draws its first `repeat` copies in full and the rest recede
