@@ -7,7 +7,7 @@ import { Game } from './game';
 import type { RunOptions } from './game';
 import { CAMPAIGN_OPENING, DIRECTOR_ADAPTIVE, EARLY_CALL, ENDLESS_SQUEEZE, ENEMY_DEFS, SIM_DT, TOWER_ABILITIES, TOWER_DEFS, TOWER_ORDER } from './config';
 import { OPENING_ANSWER_TIERS, OPENING_THREAT_RULES, damagesArea, dragsAndDamages, openingAnswerKinds } from './conveyor';
-import { generateStage, promoteEliteShare } from './campaign';
+import { LIVE_PROBE_ROLES, generateStage, liveProbeKind, promoteEliteShare, swapInProbe } from './campaign';
 import type { StageConfig } from './campaign';
 import type { WaveDef } from './config';
 import { campaignMegaFor, MEGA } from './megaboss';
@@ -303,6 +303,33 @@ describe('LIVE threat v3 — cards out of the ratio, threat by composition (§6a
     expect(out.map((g) => [g.count, g.elite === true])).toEqual([[4, false], [9, false], [4, true], [4, true]]);
     expect(wave[2].elite).toBeUndefined(); // the stage plan is never mutated
     expect(promoteEliteShare(wave, 0.5)).toEqual(out); // deterministic
+  });
+
+  it('liveProbeKind reads the board from DATA: airborne packs vs no area damage, else a role no board fully answers', () => {
+    const pool = ['runner', 'wisp', 'spitter', 'burrower'] as const;
+    const isRole = (k: keyof typeof ENEMY_DEFS, id: string): boolean => LIVE_PROBE_ROLES.find((r) => r.id === id)!.is(ENEMY_DEFS[k]);
+    const singleTarget = liveProbeKind([...pool], ['needle']); // needle covers no area
+    expect(isRole(singleTarget!, 'air-pack')).toBe(true);
+    const areaBoard = liveProbeKind([...pool], ['needle', 'mortar']); // mortar splashes ⇒ the air gap is answered
+    expect(isRole(areaBoard!, 'air-pack')).toBe(false);
+    expect(isRole(areaBoard!, 'artillery')).toBe(true);
+    expect(liveProbeKind(['runner', 'mite'], ['needle'])).toBeNull(); // no probe role in the pool ⇒ no swap
+  });
+
+  it('swapInProbe keeps the threat budget, the delays and the plan intact (a copy, deterministic)', () => {
+    const wave: WaveDef = [
+      { kind: 'runner', count: 8, spacing: 0.5, delay: 0.4 },
+      { kind: 'mite', count: 12, spacing: 0.5, delay: 2 },
+    ];
+    expect(swapInProbe(wave, null, 1)).toBe(wave);
+    expect(swapInProbe(wave, 'spitter', 0)).toBe(wave);
+    const out = swapInProbe(wave, 'spitter', 0.5); // 1 of 2 plain groups — the larger (mites) goes
+    expect(out[0]).toBe(wave[0]);
+    expect(out[1].kind).toBe('spitter');
+    expect(out[1].delay).toBe(2);
+    expect(out[1].count).toBeGreaterThanOrEqual(1);
+    expect(wave[1].kind).toBe('mite');
+    expect(swapInProbe(wave, 'spitter', 0.5)).toEqual(out);
   });
 
   it('the elite share is 0 at ×1 and grows toward liveEliteShare as the board runs away', () => {
