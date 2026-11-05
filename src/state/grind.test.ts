@@ -19,7 +19,7 @@ import type { RunStats, TowerKind } from '../core/types';
 import { collectionView } from '../core/collection';
 import { Rng } from '../core/rng';
 import { ALL_ITEMS, rollItem } from '../core/equipment';
-import { INCOME, coresPerMinute, etaLabel, heroWealth, incomePerRun, isOneMoreRun, runsToGain, runsToStage, tickIncome, towerWealth } from './income';
+import { INCOME, coresPerMinute, estimatesFirm, etaLabel, heroWealth, incomePerRun, isOneMoreRun, runsToGain, runsToStage, tickIncome, towerWealth } from './income';
 import { nextGoals } from './nextGoal';
 import { ACHIEVEMENTS, AUTHORED_ACHIEVEMENTS, LADDER_FAMILIES, checkAchievements, ladderGoals, ladderThresholds } from './achievements';
 import { genomeRating } from '../core/genomeRank';
@@ -126,6 +126,17 @@ describe('income ledger (docs/ONE-MORE-RUN.md §eta)', () => {
     expect(etaLabel(Infinity)).toBe('a long road');
     expect(etaLabel(INCOME.etaCap)).toBe(`~${INCOME.etaCap} runs`);
     expect(etaLabel(INCOME.etaCap + 1)).toBe('a long road'); // no 3-digit run counts on the board
+    // a NOT-firm estimate (a migrated veteran's young ledger) reads as a lower bound, never "next run"
+    expect(etaLabel(14, false)).toBe('14+ runs');
+    expect(etaLabel(1, false)).toBe('a run or more');
+    expect(isOneMoreRun(1, false)).toBe(false);
+    expect(isOneMoreRun(1)).toBe(true);
+    // firmness: a fresh account is firm at once; a 300-run veteran only after INCOME.trustRuns observed runs
+    const fresh = { ...defaultSave(), totalRuns: 3, income: { runs: 2, last: {}, rate: {} } };
+    expect(estimatesFirm(fresh)).toBe(true);
+    const vet = { ...defaultSave(), totalRuns: 300, income: { runs: 2, last: {}, rate: {} } };
+    expect(estimatesFirm(vet)).toBe(false);
+    expect(estimatesFirm({ ...vet, income: { runs: INCOME.trustRuns, last: {}, rate: {} } })).toBe(true);
     expect(isOneMoreRun(2)).toBe(true);
     expect(isOneMoreRun(3)).toBe(false);
   });

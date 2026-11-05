@@ -42,7 +42,7 @@ export function NextGoalCliffhanger(): JSX.Element | null {
   const goal = nextGoals(meta.get())[0];
   if (!goal) return null;
   const ready = goal.etaRuns <= 0;
-  const close = isOneMoreRun(goal.etaRuns);
+  const close = isOneMoreRun(goal.etaRuns, goal.firm);
   const eyebrow = ready ? '◈ Ready now' : close ? `◈ You're almost there — ${pct(goal.progress)}%` : `◈ Next milestone — ${goal.eta}`;
   const tail = ready ? 'claim it.' : close ? 'one more run.' : `${goal.eta} at your current pace.`;
   return (

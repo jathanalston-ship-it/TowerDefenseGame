@@ -26,7 +26,7 @@ import {
 import { composePower } from '../core/power';
 import { isOpenNav, nextReveals } from './unlocks';
 import type { UnlockCondition } from './unlocks';
-import { INCOME, etaLabel, runsToGain, runsToStage } from './income';
+import { INCOME, estimatesFirm, etaLabel, runsToGain, runsToStage } from './income';
 import { ladderGoals } from './achievements';
 
 /** One imminent reward the player is close to earning. `progress` is 0..1 toward it. */
@@ -41,11 +41,13 @@ export interface NextGoal {
   color: string;
   /** §eta: runs until it lands at the LIVE income (0 = ready now, ∞ = nothing flowing yet). */
   etaRuns: number;
-  /** The same ETA in player words ("next run", "~14 runs", "a long road"). */
+  /** The same ETA in player words ("next run", "~14 runs", "25+ runs" while not firm, "a long road"). */
   eta: string;
+  /** Whether the ETA is FIRM (income.ts estimatesFirm) — false ⇒ a lower bound, never "one more run". */
+  firm: boolean;
 }
 
-type GoalDraft = Omit<NextGoal, 'eta'>;
+type GoalDraft = Omit<NextGoal, 'eta' | 'firm'>;
 
 /** Runs until a reveal condition holds — the stage/runs backbone is simulatable; resource-luck
  *  branches have no ETA of their own (an `any` takes its fastest branch). */
@@ -63,6 +65,7 @@ function conditionEta(save: SaveData, c: UnlockCondition, live: number): number 
 export function nextGoals(save: SaveData, limit = 6): NextGoal[] {
   const goals: GoalDraft[] = [];
   const live = composePower(accountPowerParts(save)).score; // stage ETAs gate on LIVE Power (a post-Molt trough is real)
+  const firm = estimatesFirm(save); // a migrated veteran's young ledger ⇒ ETAs are lower bounds
 
   // ── Hero Release (locked heroes accumulating Apex Genome) ──
   for (const e of heroCollection(save)) {
@@ -236,5 +239,5 @@ export function nextGoals(save: SaveData, limit = 6): NextGoal[] {
     .filter((g) => isOpenNav(save, g.nav))
     .sort((a, b) => a.etaRuns - b.etaRuns || b.progress - a.progress || KIND_RANK[a.kind] - KIND_RANK[b.kind])
     .slice(0, limit)
-    .map((g) => ({ ...g, eta: etaLabel(g.etaRuns) }));
+    .map((g) => ({ ...g, eta: etaLabel(g.etaRuns, firm), firm }));
 }

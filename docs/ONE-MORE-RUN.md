@@ -133,6 +133,11 @@ minted), and the list shrank from 8 goals to 3 by stage 80. Now:
   the board populated at depth — only when that rung is ≤ `INCOME.ladderGoalRuns` (40) runs away, so
   an early account never sees a rung hundreds of runs out (or on a mode it hasn't opened). Found by
   the Batch G integration media pass: a Stage-2 Home listed "Abyssal Record I · ~235 runs".
+- **Firm vs lower-bound ETAs** (`estimatesFirm`): until the ledger has observed `INCOME.trustRuns` (8)
+  of the account's own runs, a migrated veteran's rates are lifetime averages — fast at depth (early
+  stages cleared one per run; GM1 measured stage ETAs ~2× short) — so ETAs read as lower bounds
+  ("25+ runs", "a run or more"), "one more run" is never promised, and Home's farm line stays quiet. A
+  fresh account (no long pre-ledger history) is firm at once.
 - **A stage within reach** (Power ≥ `READINESS.warnBelow` × recommended — usually won) costs
   `INCOME.closeAttempts` (1.5) attempts per stage; the observed wall pace answers only below the band.
 - **Printed ETAs stop at `INCOME.etaCap` (60):** past it a goal reads "a long road" — the estimate

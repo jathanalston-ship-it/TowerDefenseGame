@@ -43,7 +43,7 @@ import { featureView, isOpenNav } from '../state/unlocks';
 import { rewardVisible } from '../state/rewardVisibility';
 import { loopFlow } from '../state/loopFlow';
 import { loopState } from '../state/progressionLoop';
-import { INCOME, etaLabel, incomePerRun, runsToStage } from '../state/income';
+import { estimatesFirm, etaLabel, incomePerRun, runsToStage } from '../state/income';
 import { RecommendStrip } from './HubLanding';
 import { t } from '../i18n';
 import { hiveIntel } from '../state/hiveIntel';
@@ -271,9 +271,9 @@ function MissionControl({ save, view, go, start, onStartCampaign, onStartEndless
     if (!underPowered || !isInfiniteUnlocked(save)) return null;
     const ls = loopState(save, diff);
     const g = incomePerRun(save, 'lnPower'); // per-run Power growth (log) — the same rate the goal ETAs use
-    // The per-run gain + ETA speak only once the ledger has OBSERVED a few runs — a migrated
-    // veteran's lifetime-average prior over-states depth growth (early stages were fast).
-    const observed = (save.income?.runs ?? 0) >= INCOME.priorRuns;
+    // The per-run gain + ETA speak only once the estimates are FIRM (income.ts estimatesFirm) — a
+    // migrated veteran's lifetime-average prior over-states depth growth (early stages were fast).
+    const observed = estimatesFirm(save);
     return {
       depth: ls.farmDepth,
       readinessPct: Math.round(ls.readiness * 100),

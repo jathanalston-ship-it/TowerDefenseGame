@@ -35,6 +35,10 @@ export const INCOME = {
    *  measured winning ~67–78 % of runs, docs/PROGRESSION-LOOP.md §readiness): ≈ 1 / p(win). Below the
    *  band the player's own observed stage pace answers (a real wall). */
   closeAttempts: 1.5,
+  /** Estimates are FIRM once the ledger has observed this many of the account's own runs. Until then a
+   *  migrated veteran's rates are its LIFETIME averages — biased fast at depth (early stages clear one
+   *  per run; GM1 measured stage ETAs ~2× short for ~10 runs) — so ETAs read as lower bounds. */
+  trustRuns: 8,
   /** An achievement-LADDER goal joins the goal board only when its rung is at most this many runs
    *  away: ladders exist to keep the board alive AT DEPTH, never to fill a new player's list with a
    *  rung hundreds of runs out (or on a mode they haven't opened — its meter has no income yet). */
@@ -192,15 +196,26 @@ export function coresPerRun(save: SaveData): number {
   return incomePerRun(save, 'runCores');
 }
 
-/** Player-facing ETA words — honest at every scale. */
-export function etaLabel(runs: number): string {
+/** Whether this save's ETAs are FIRM: the ledger has observed INCOME.trustRuns runs of its own, or the
+ *  account has no long pre-ledger history (a fresh account's lifetime average IS its live pace). A
+ *  migrated veteran's young ledger reads ETAs as lower bounds and never promises "one more run". */
+export function estimatesFirm(save: SaveData): boolean {
+  const seen = save.income?.runs ?? 0;
+  return seen >= INCOME.trustRuns || save.totalRuns - seen <= INCOME.trustRuns;
+}
+
+/** Player-facing ETA words — honest at every scale. `firm` false ⇒ a LOWER BOUND ("25+ runs"): the
+ *  estimate is still the lifetime prior, which runs fast at depth (estimatesFirm). */
+export function etaLabel(runs: number, firm = true): string {
   if (runs <= 0) return 'ready now';
-  if (runs === 1) return 'next run';
   if (!Number.isFinite(runs) || runs > INCOME.etaCap) return 'a long road';
+  if (!firm) return runs === 1 ? 'a run or more' : `${runs}+ runs`;
+  if (runs === 1) return 'next run';
   return `~${runs} runs`;
 }
 
-/** Whether "one more run" is a TRUE statement for this ETA (the cliffhanger contract). */
-export function isOneMoreRun(runs: number): boolean {
-  return runs > 0 && runs <= INCOME.honestRuns;
+/** Whether "one more run" is a TRUE statement for this ETA (the cliffhanger contract) — never on a
+ *  lower-bound estimate (`firm` false: the ledger hasn't observed enough of the account's own runs). */
+export function isOneMoreRun(runs: number, firm = true): boolean {
+  return firm && runs > 0 && runs <= INCOME.honestRuns;
 }
