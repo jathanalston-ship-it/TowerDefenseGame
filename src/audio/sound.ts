@@ -100,6 +100,7 @@ function buildGraph(c: AudioContext): void {
   }
   // SPACE: one shared convolver (a generated IR), fed by per-category sends.
   const verb = c.createConvolver();
+  verb.normalize = false; // reverbIR is unit-energy already (the browser's normalisation sits ~58 dB down)
   verb.buffer = reverbIR(c);
   const ret = c.createGain();
   ret.gain.value = M.reverb.return;
@@ -107,10 +108,11 @@ function buildGraph(c: AudioContext): void {
   for (const cat of Object.keys(SFX_CATEGORIES) as SfxCategory[]) {
     const bus = c.createGain();
     bus.connect(sfxBus);
+    catBus[cat] = bus;
+    if (SFX_CATEGORIES[cat].send <= 0) continue; // a dry category never wakes the convolver (CPU)
     const send = c.createGain();
     send.gain.value = SFX_CATEGORIES[cat].send;
     bus.connect(send); send.connect(verb);
-    catBus[cat] = bus;
   }
   // one shared LOOPED noise buffer; every noise voice reads it from a random offset
   noiseBuf = c.createBuffer(1, Math.floor(c.sampleRate * NOISE_SECONDS), c.sampleRate);
@@ -129,20 +131,24 @@ function softClipCurve(knee: number): Float32Array<ArrayBuffer> {
   return out;
 }
 
-/** A small dark room: decorrelated stereo noise under an exponential decay that darkens as it fades. */
+/** A small dark room: decorrelated stereo noise under an exponential decay that darkens as it fades,
+ *  scaled to UNIT ENERGY per channel — so a send of s puts the room at roughly s² of the dry energy. */
 function reverbIR(c: BaseAudioContext): AudioBuffer {
   const R = SFX_MASTER.reverb, sr = c.sampleRate;
   const len = Math.floor(sr * R.seconds), pre = Math.floor(sr * R.preDelay);
   const ir = c.createBuffer(2, len, sr);
   for (let ch = 0; ch < 2; ch++) {
     const d = ir.getChannelData(ch);
-    let lp = 0;
+    let lp = 0, energy = 0;
     for (let i = pre; i < len; i++) {
       const u = (i - pre) / sr;
       const k = R.brightness * (1 - u / R.seconds) + 0.04; // a one-pole low-pass closing over the tail
       lp += k * (Math.random() * 2 - 1 - lp);
       d[i] = lp * Math.pow(10, (-3 * u) / R.rt60); // −60 dB at rt60
+      energy += d[i] * d[i];
     }
+    const norm = energy > 0 ? 1 / Math.sqrt(energy) : 0;
+    for (let i = pre; i < len; i++) d[i] *= norm;
   }
   return ir;
 }

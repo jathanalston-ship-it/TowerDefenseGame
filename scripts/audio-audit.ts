@@ -384,7 +384,7 @@ const musicSpec = (category: string, trackId: string, v: number): Spec => ({
 interface CueRow extends Metrics { tag: string; cat: SfxCategory; goal: number; trimDb: number; nodes: number }
 interface Results {
   label: string; date: string; cues: CueRow[];
-  scenes: Record<string, Metrics & { nodes: number; nodesPerSec?: number; dropped?: number; peakVoices?: number }>;
+  scenes: Record<string, Metrics & { nodes: number; nodesPerSec?: number; dropped?: number; peakVoices?: number; renderMs?: number }>;
   /** Montage sections: the SFX alone vs the score alone (ungated LUFS over the section). */
   balance?: { section: string; sfx: number; music: number }[];
 }
@@ -438,9 +438,11 @@ async function main(): Promise<void> {
         ['music_combat', musicSpec('combat', 'combat_strain', 0.5)], ['music_menu', musicSpec('menu', 'menu_hive', 0.5)],
       ];
       for (const [name, spec] of SCENES) {
+        const t0 = Date.now();
         const x = await render(page, spec);
+        const renderMs = spec.music ? undefined : Date.now() - t0; // music renders pause for the scheduler — not a CPU figure
         const nodes = Object.values(x.counts).reduce((a, b) => a + b, 0);
-        scenes[name] = { ...measure(x), nodes, ...(name.startsWith('stress') ? { nodesPerSec: nodes / 1.0 } : {}), ...(x.dev ? { dropped: x.dev.dropped, peakVoices: x.dev.peakVoices } : {}) };
+        scenes[name] = { ...measure(x), nodes, renderMs, ...(name.startsWith('stress') ? { nodesPerSec: nodes / 1.0 } : {}), ...(x.dev ? { dropped: x.dev.dropped, peakVoices: x.dev.peakVoices } : {}) };
         writeWav(join(OUT, 'wav', `${name}.wav`), x.l, x.r);
         console.log(`scene ${name}: peak ${scenes[name].peakDb.toFixed(1)} dBFS, ${nodes} nodes`);
       }
@@ -523,14 +525,14 @@ function report(r: Results, before: Results | null): string {
   row('cues with a TRUNCATED voice (click)', String(h.truncatedCues), b ? String(b.truncatedCues) : undefined);
   row('cues with a hard stop (≥ 30 dB in 1 ms)', String(h.hardStopCues), b ? String(b.hardStopCues) : undefined);
   row('loudness error vs design goal — RMS / max (dB)', `${f1(h.errRms)} / ${f1(h.errMax)}`, b ? `${f1(b.errRms)} / ${f1(b.errMax)}` : undefined);
-  row('worst in-category loudness spread (dB)', f1(h.spread), b ? f1(b.spread) : undefined);
+  row('worst in-category spread around the design goals (dB)', f1(h.spread), b ? f1(b.spread) : undefined);
   row('stress mix peak (dBFS) / clipped samples', `${f1(h.stressPeak)} / ${h.stressClipped}`, b ? `${f1(b.stressPeak)} / ${b.stressClipped}` : undefined);
   row('stress ×2 peak (dBFS)', f1(h.stressX2Peak), b ? f1(b.stressX2Peak) : undefined);
   row('combat montage peak, music + SFX (dBFS)', f1(h.montagePeak), b ? f1(b.montagePeak) : undefined);
   row('nodes created in the 1 s swarm wipe', String(Math.round(h.nodesPerSec)), b ? String(Math.round(b.nodesPerSec)) : undefined);
   L.push('');
   L.push('## Loudness by category', '', 'Momentary-max LUFS (400 ms, K-weighted) of ONE cue. *goal* = category target + the cue\'s design offset (`rel`, src/audio/sfxMix.ts).', '');
-  L.push(`| category | target | cues | median | min | max | spread | median error${b ? ' | before: median / spread / median error' : ''} |`);
+  L.push(`| category | target | cues | median | min | max | error spread | median error${b ? ' | before: median / error spread / median error' : ''} |`);
   L.push(`|---|---|---|---|---|---|---|---|${b ? '---|' : ''}`);
   for (const k of cats) {
     const cs = r.cues.filter((c) => c.cat === k && !/[@~:]/.test(c.tag));
@@ -544,13 +546,13 @@ function report(r: Results, before: Results | null): string {
     }
     L.push(`| ${k} | ${SFX_CATEGORIES[k].targetLufs} | ${cs.length} | ${f1(median(v))} | ${f1(Math.min(...v))} | ${f1(Math.max(...v))} | ${f1(Math.max(...e) - Math.min(...e))} | ${f1(median(e))}${was} |`);
   }
-  L.push('', '## Scenes', '', '| scene | peak dBFS | clipped | LUFS-M max | LUFS-S max | LUFS-I | nodes | dropped voices | peak voices |', '|---|---|---|---|---|---|---|---|---|');
+  L.push('', '## Scenes', '', '| scene | peak dBFS | clipped | LUFS-M max | LUFS-S max | LUFS-I | nodes | dropped voices | peak voices | offline render ms |', '|---|---|---|---|---|---|---|---|---|---|');
   for (const [name, s] of Object.entries(r.scenes)) {
-    L.push(`| ${name} | ${f1(s.peakDb)} | ${s.clipped} | ${f1(s.lufsM)} | ${f1(s.lufsS)} | ${f1(s.lufsI)} | ${s.nodes} | ${s.dropped ?? '—'} | ${s.peakVoices ?? '—'} |`);
+    L.push(`| ${name} | ${f1(s.peakDb)} | ${s.clipped} | ${f1(s.lufsM)} | ${f1(s.lufsS)} | ${f1(s.lufsI)} | ${s.nodes} | ${s.dropped ?? '—'} | ${s.peakVoices ?? '—'} | ${s.renderMs ?? '—'} |`);
   }
   if (before) {
-    L.push('', 'Before:', '', '| scene | peak dBFS | clipped | LUFS-M max | LUFS-S max | LUFS-I | nodes |', '|---|---|---|---|---|---|---|');
-    for (const [name, s] of Object.entries(before.scenes)) L.push(`| ${name} | ${f1(s.peakDb)} | ${s.clipped} | ${f1(s.lufsM)} | ${f1(s.lufsS)} | ${f1(s.lufsI)} | ${s.nodes} |`);
+    L.push('', 'Before:', '', '| scene | peak dBFS | clipped | LUFS-M max | LUFS-S max | LUFS-I | nodes | offline render ms |', '|---|---|---|---|---|---|---|---|');
+    for (const [name, s] of Object.entries(before.scenes)) L.push(`| ${name} | ${f1(s.peakDb)} | ${s.clipped} | ${f1(s.lufsM)} | ${f1(s.lufsS)} | ${f1(s.lufsI)} | ${s.nodes} | ${s.renderMs ?? '—'} |`);
   }
   if (r.balance) {
     L.push('', '## Mix balance — SFX vs the score', '', 'The combat montage rendered twice — SFX alone, score alone (no ducks) — ungated LUFS per section.', '');
