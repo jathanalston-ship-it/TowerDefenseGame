@@ -835,6 +835,7 @@ export function drawMegaOrgans(ctx: Ctx, v: MegaView, now: number): void {
     if (prev !== undefined && prev !== 'destroyed' && wp.state === 'destroyed') wpRuptureT.set(wp.spec, now);
     wpPrevState.set(wp.spec, wp.state);
     if (wp.state === 'destroyed') {
+      wpGhost.delete(wp.spec); // a regrown organ starts a fresh HP read
       // The RUPTURE — one violent burst as it dies: a shock ring + ichor chunks arcing down.
       const rt = wpRuptureT.get(wp.spec);
       if (rt !== undefined && now - rt < 0.6) {
@@ -1013,7 +1014,7 @@ export function drawMegaOrgans(ctx: Ctx, v: MegaView, now: number): void {
   // The resolve then lands as a strike bolt + impact AT the Core (the maw's shock ring never did).
   const tele = v.telegraph;
   const mawY = v.anchorY + 96;
-  if (tele !== null && tele.kind === 'cataclysm' && bur < 0.5) {
+  if (tele !== null && tele.kind === 'cataclysm' && bur < 0.5 && collapse === 0) {
     drawAimLine(ctx, WIDTH / 2, mawY, nucleusPoint.x, nucleusPoint.y - 8, tele.frac, MEGA_TELL.cataColor, 3);
     drawLandingLock(ctx, nucleusPoint.x, nucleusPoint.y, MEGA_TELL.coreLockR, tele.frac, MEGA_TELL.cataColor, now);
   }
