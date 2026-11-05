@@ -28,7 +28,7 @@ import { useCountUp } from './components/useCountUp';
 import { createPortal } from 'react-dom';
 import type { ChestResult } from '../state/lootbox';
 import {
-  buildReveal, buildSpecimens, initialRevealState, nextFaceDown, rarityLabel,
+  buildReveal, buildSpecimens, initialRevealState, nextFaceDown, rarityColor, rarityLabel,
   revealDone, revealGrid, revealHighlights, revealReduce,
 } from '../state/vaultReveal';
 import type { PullView, RevealAction, RevealSessionState, SpecimenView, SummarySection } from '../state/vaultReveal';
@@ -45,6 +45,7 @@ import { audio } from '../audio/sound';
 import { setVaultSkipAnimsPref, vaultSkipAnimsPref } from '../state/prefs';
 import { CurrencyIcon } from './components/CurrencyIcon';
 import { PowerDelta } from './components/PowerDelta';
+import { RarityFx, rfxClass } from './components/RarityFx';
 import type { OwnedItem } from '../core/equipment';
 import type { PowerCompare } from '../state/itemPower';
 
@@ -57,7 +58,8 @@ function PullFace({ pull }: { pull: PullView }): JSX.Element {
   return (
     <div className={`vreveal-face${isMulligan ? ' is-mulligan' : ''}`}>
       {pull.isNew && <div className="vreveal-new" aria-label="First discovery">✦ NEW DISCOVERY</div>}
-      <div className="vreveal-face-rword" style={{ color: pull.color }}>{rarityLabel(pull.rarity)}</div>
+      {/* the rarity WORD speaks the rarity's colour (the one map); the emblem + amount keep the reward's own */}
+      <div className="vreveal-face-rword" style={{ color: rarityColor(pull.rarity) }}>{rarityLabel(pull.rarity)}</div>
       <div className="vreveal-emblem" style={{ ['--rw' as string]: pull.color }}>
         {isMulligan && <span className="vreveal-tendrils" aria-hidden><i /><i /><i /></span>}
         {pull.currency ? <CurrencyIcon id={pull.currency} color={pull.color} size={46} pickup /> : <span className="vreveal-glyph">{pull.glyph ?? '◆'}</span>}
@@ -126,9 +128,10 @@ function InterruptOverlay({ sp, onAck, replay }: {
   }, [isDiscovery]);
   const def = isDiscovery && sp.pull.cardId ? cardRegistry.get(sp.pull.cardId) : undefined;
   return (
-    <div className={`vintr ${isDiscovery ? 'is-discovery' : 'is-legendary'}`} style={{ ['--rw' as string]: sp.pull.color }} onClick={onAck} role="dialog" aria-modal="true" aria-label={isDiscovery ? 'New discovery' : 'Legendary specimen'}>
+    <div className={`vintr ${isDiscovery ? 'is-discovery' : 'is-legendary'}`} style={{ ['--rw' as string]: isDiscovery ? sp.pull.color : rarityColor(sp.pull.rarity) }} onClick={onAck} role="dialog" aria-modal="true" aria-label={isDiscovery ? 'New discovery' : 'Legendary specimen'}>
       <span className="vintr-rays" aria-hidden />
-      <div className="vintr-card" onClick={(e) => e.stopPropagation()}>
+      <div className={`vintr-card${isDiscovery ? '' : ` ${rfxClass(sp.pull.rarity)}`}`} onClick={(e) => e.stopPropagation()}>
+        {!isDiscovery && <RarityFx rarity={sp.pull.rarity} flash />}
         <div className="vintr-k">{isDiscovery ? '🧬 NEW STRAND RECOVERED' : sp.tier >= 3 ? '☣ APEX SPECIMEN CONTAINED' : '◈ PRIZE SPECIMEN'}</div>
         <div className="vintr-zoom">
           <PullFace pull={sp.pull} />
@@ -328,7 +331,7 @@ export function VaultReveal({
   const tally = useMemo(() => {
     const counts = new Map<LootRarity, { n: number; color: string }>();
     for (const p of model.pulls) {
-      const cur = counts.get(p.rarity) ?? { n: 0, color: p.color };
+      const cur = counts.get(p.rarity) ?? { n: 0, color: rarityColor(p.rarity) };
       cur.n += 1;
       counts.set(p.rarity, cur);
     }
@@ -426,7 +429,8 @@ export function VaultReveal({
                         <span className="vspec-back" aria-hidden>
                           <i className="vspec-vein a" /><i className="vspec-vein b" /><i className="vspec-eye" />
                         </span>
-                        <span className="vspec-front">
+                        <span className={`vspec-front${up ? ` ${rfxClass(sp.pull.rarity)}` : ''}`} style={up ? { ['--rr' as string]: rarityColor(sp.pull.rarity) } : undefined}>
+                          {up && <RarityFx rarity={sp.pull.rarity} crown={false} flash={!st.skipAnims} />}
                           <PullFace pull={sp.pull} />
                           {up && sp.tier >= 2 && !st.skipAnims && (
                             <span className="vspec-sparks" aria-hidden><i /><i /><i /><i /><i /><i /></span>
@@ -486,8 +490,8 @@ export function VaultReveal({
         ) : (
           <>
             {prize && (
-              <div className={`hatch-prize tier-${prize.rarity}`} style={{ ['--rw' as string]: prize.color }}>
-                {TIER.indexOf(prize.rarity) >= 3 && <span className="hatch-prize-motes" aria-hidden><i /><i /><i /><i /><i /><i /></span>}
+              <div className={`hatch-prize tier-${prize.rarity} ${rfxClass(prize.rarity)}`} style={{ ['--rw' as string]: prize.color }}>
+                <RarityFx rarity={prize.rarity} crown={false} flash />
                 <span className="hatch-prize-k">Prize specimen</span>
                 <span className="hatch-prize-crown" aria-hidden>
                   <i className="hatch-prize-halo" />
@@ -496,7 +500,7 @@ export function VaultReveal({
                   </span>
                 </span>
                 <span className="hatch-prize-name">{prize.name}</span>
-                <span className="hatch-prize-r" style={{ color: prize.color }}>{rarityLabel(prize.rarity)}</span>
+                <span className="hatch-prize-r rfx-chip">{rarityLabel(prize.rarity)}</span>
               </div>
             )}
             {tally.length > 1 && (

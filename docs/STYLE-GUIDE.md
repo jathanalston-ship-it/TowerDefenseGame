@@ -97,7 +97,7 @@ e.g. Kinetic: `#0e2a36 → #2f8fb8 → #5ad1ff → #c7f3ff`. Tokenize as
 | Rare | `#5ad1ff` | cyan |
 | Epic | `#c98bff` _(impl: --rare)_ | violet |
 | Legendary | `#ffd24d` | gold |
-| Exotic | prismatic `#ff7ad9→#7be0ff` animated | shifting gradient (the only animated rarity) |
+| Exotic | prismatic `#ff7ad9→#7be0ff` animated (`--r-exotic` → `--r-exotic-2`) | shifting gradient (the only animated rarity) |
 | **Currencies** | | (per `ECONOMY.md`) |
 | Biomass | `#b6e84a` | in-run lime |
 | Genome Samples | `#5ad1ff` | tower cyan |

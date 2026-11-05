@@ -14,6 +14,7 @@ import { PowerToaster } from './components/PowerToaster';
 import { RewardToaster } from './components/RewardToaster';
 import { AccountLevelToast } from './components/AccountXpBar';
 import { GenomePromotionCinematic } from './components/GenomeRankPanel';
+import { bindRootMotionAttrs } from './components/MotionSettings';
 import { LootToaster } from './LootToaster';
 import { WhatsNew } from './WhatsNew';
 import { GuidedUnlock } from './GuidedUnlock';
@@ -154,6 +155,7 @@ export function App(): JSX.Element {
   // The descent's landing AFTERGLOW (docs/TUTORIAL.md §cinematic): the film ends on a full-screen
   // gold bloom — a ~500ms gold veil fades off the screen it lands on instead of a hard cut.
   const [afterglow, setAfterglow] = useState(false);
+  useEffect(bindRootMotionAttrs, []); // <html data-motion/-flashes>: hub ceremonies honour Settings → Motion
   useEffect(() => {
     if (!afterglow) return undefined;
     const t = window.setTimeout(() => setAfterglow(false), 560);

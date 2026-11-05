@@ -1,6 +1,6 @@
 # DIL_GRAPH.md — the Design Intelligence Layer (GENERATED — `npm run dil -- regen`)
 
-> **The project's brain** (docs/DIL.md). 979 nodes · 1899 edges, built from the live
+> **The project's brain** (docs/DIL.md). 980 nodes · 1901 edges, built from the live
 > registries + curated knowledge (src/dev/dil/). **Query it instead of searching the repo:**
 > `npm run dil -- node <id>` · `affects <id>` · `requires <id>` · `missing <kind> <edge>` ·
 > `checklist tower <kind>` · `find <text>`. Edge kinds are bidirectional (19 kinds).
@@ -603,6 +603,7 @@ graph LR
   system_boss_rush["Boss Rush"] -->|dependsOn| system_net_backend["Backend lanes (net/)"]
   system_campaign["Campaign"] -->|consumes| system_towers["Towers, Stars, Branches, Strain & Codex"]
   system_engine["Sim Engine"] -->|dependsOn| system_security["Game Action Security Layer"]
+  system_equipment["Equipment & Armory"] -->|dependsOn| system_ui_kit["Shared UI Component Kit"]
 ```
 
 ### Presentation Couplings Map
@@ -925,7 +926,7 @@ _at: src/core/game.ts, src/core/combat.ts, src/core/status.ts, src/core/targetin
   - requiredBy ← `system:nemesis`
   - requiredBy ← `system:onboarding`
   - requiredBy ← `system:run-ui`
-  - _…245 more (query: `npm run dil -- node system:engine`)_
+  - _…246 more (query: `npm run dil -- node system:engine`)_
 
 ### `system:content-infra` — Content Infrastructure
 
@@ -1412,6 +1413,7 @@ _at: src/core/equipment.ts, src/render/equipmentArt.ts, src/ui/EquipmentPanel.ts
   - consumes → `currency:materials` — crafting + reforge ops
   - dependsOn → `system:campaign` — THE GEAR CHASE (EQUIPMENT.md §gear-chase): a Vault drop's item level = itemLevelForDepth(highest cleared stage, Infinite best) — log, uncapped (ITEM_LEVEL_CURVE); rarity rolls from that level's GEAR_RARITY_BANDS row. gearRarityOdds is the ONE source the roll + the Armory chase line read
   - modifies → `system:rendering` — heroes render worn gear; gear color skins hero projectiles
+  - dependsOn → `system:ui-kit` — ONE RARITY LANGUAGE (docs/UI-STANDARDS.md §rarity): every item surface (gear, gene cards, containers, specimens, draft) is an rfx host — rfxClass + <RarityFx> (ui/components/RarityFx RARITY_FX picks layers) + index.css "RARITY FX" (strengths); colours ONLY via rarityColorOf / --r-* (exotic = --r-exotic). A new rarity = a row in BOTH tables; render/equipmentArt RARITY_HEX mirrors the hexes for canvas
   - requiredBy ← `system:crafting`
   - taughtBy ← `help:equipment`
   - documentedBy ← `doc:EQUIPMENT.md`
@@ -2655,7 +2657,7 @@ _at: src/debug/*, src/ui/DebugPanel.tsx, src/ui/DevTools.tsx_
 
 Reusable presentation components every screen composes (icons, bars, count-ups) — the component library.
 
-_at: src/ui/components/Icon.tsx, src/ui/iconLanguage.tsx, src/ui/components/Detail.tsx, src/ui/components/ProgressBar.tsx, src/ui/components/useCountUp.ts, src/ui/components/usePressRepeat.ts, src/ui/components/AudioToggles.tsx, src/ui/components/MobileSection.tsx, src/ui/components/ChipPopover.tsx, src/ui/components/SectionNav.tsx, src/ui/components/LoadoutStrip.tsx, src/ui/layoutProfile.ts, src/ui/components/ResponsiveDebug.tsx, src/ui/components/RotateGate.tsx, src/ui/components/ScreenFallback.tsx, src/ui/lazyNamed.ts, src/ui/components/ClaimAll.tsx, src/ui/components/MotionSettings.tsx_
+_at: src/ui/components/Icon.tsx, src/ui/iconLanguage.tsx, src/ui/components/Detail.tsx, src/ui/components/ProgressBar.tsx, src/ui/components/useCountUp.ts, src/ui/components/usePressRepeat.ts, src/ui/components/AudioToggles.tsx, src/ui/components/MobileSection.tsx, src/ui/components/ChipPopover.tsx, src/ui/components/SectionNav.tsx, src/ui/components/LoadoutStrip.tsx, src/ui/layoutProfile.ts, src/ui/components/ResponsiveDebug.tsx, src/ui/components/RotateGate.tsx, src/ui/components/ScreenFallback.tsx, src/ui/lazyNamed.ts, src/ui/components/ClaimAll.tsx, src/ui/components/MotionSettings.tsx, src/ui/components/RarityFx.tsx_
 
   - conflictsWith → `concept:golden-test` — ATTENTION BUDGET (docs/INFO-HIERARCHY.md §2, npm run cogload): at most 2 attention-band animators (≤3.6s infinite pulse/breathe/glow) visible per screen — the ONE that breathes is the recommendation; ready-states live in the ambient band (>3.6s), badges announce finitely (nav-badge-pulse ×6) then rest; cogload exits 1 on violation, so a new always-on fast pulse anywhere is a BUILD-BREAKING decision, not a style choice; demote numbers via components/Detail.tsx (Layer 3 behind intent), never delete them
   - extends → `concept:scalability` — ICON LANGUAGE (ui/iconLanguage.tsx, docs/ICON-LANGUAGE.md): ONE library federates every identity axis — ACTIONS (verb glyph+token+label; the act-<verb> CSS classes MIRROR the table, change together), EFFECT_CATEGORIES, CURRENCIES, REWARD_TYPES art, statusRegistry + STATUS_GLYPHS, nav/FEATURES glyphs; dev/iconLanguage.test.ts is the INHERITANCE CONTRACT — a new currency/reward/status/screen without a face fails CI; glyphs unique per axis, cross-axis reuse only for the same concept family; color never the sole channel (a11y)
@@ -2673,6 +2675,7 @@ _at: src/ui/components/Icon.tsx, src/ui/iconLanguage.tsx, src/ui/components/Deta
   - documentedBy ← `doc:INFO-HIERARCHY.md`
   - testedBy ← `test:src/ui/lazyNamed.test.ts`
   - requiredBy ← `system:run-ui` — RUN-FLOW HOLD: layoutProfile.setInRun takes a named holder — GameView holds "battlefield", App holds "run-flow" across deploying/playing/results, so a portrait phone run never shows the rotate gate over its deploy breath or Results; the gate returns with the hub (RESPONSIVE-DESIGN.md §run)
+  - requiredBy ← `system:equipment` — ONE RARITY LANGUAGE (docs/UI-STANDARDS.md §rarity): every item surface (gear, gene cards, containers, specimens, draft) is an rfx host — rfxClass + <RarityFx> (ui/components/RarityFx RARITY_FX picks layers) + index.css "RARITY FX" (strengths); colours ONLY via rarityColorOf / --r-* (exotic = --r-exotic). A new rarity = a row in BOTH tables; render/equipmentArt RARITY_HEX mirrors the hexes for canvas
 
 ### `system:analytics` — Player Telemetry & Analytics
 
@@ -4106,7 +4109,7 @@ _at: site/guides.ts → /guides/live-events/_
 - `doc:VOWS.md` — project documentation _(documents `system:prestige`)_
 - `doc:WEBSITE.md` — project documentation _(documents `system:field-research`, documents `system:website`)_
 
-## Tests (334)
+## Tests (335)
 
 - `test:src/audio/cues.test.ts` — automated validation _(tests `system:audio`)_
 - `test:src/audio/music.test.ts` — automated validation _(tests `system:audio`)_
@@ -4431,6 +4434,7 @@ _at: site/guides.ts → /guides/live-events/_
 - `test:src/ui/browserBack.test.ts` — automated validation _(tests `system:hub-shell`)_
 - `test:src/ui/components/RunBackdrop.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/ui/components/loadoutStrip.test.ts` — automated validation _(tests `system:engine`)_
+- `test:src/ui/components/rarityFx.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/ui/components/sectionNav.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/ui/components/topbarTouch.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/ui/evolutionTrackModel.test.ts` — automated validation _(tests `system:mastery`)_

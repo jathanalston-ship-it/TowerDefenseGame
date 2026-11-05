@@ -11,6 +11,7 @@ import { navBus } from '../../state/navBus';
 import { sourceLabel, WARDROBE_RARITY_COLOR, wardrobeKind } from '../../core/wardrobe';
 import type { WardrobeItemDef } from '../../core/wardrobe';
 import { audio } from '../../audio/sound';
+import { RarityFx, rfxClass } from './RarityFx';
 
 export function WardrobeReveal(): JSX.Element | null {
   const save = meta.use();
@@ -80,7 +81,8 @@ export function WardrobeReveal(): JSX.Element | null {
 
   return (
     <div className="wdr-veil" role="dialog" aria-label={`Cosmetic unlocked — ${d.name}`} onClick={next}>
-      <div className={`wdr-card is-${d.rarity}`} style={{ ['--rc' as string]: rc, ['--pc' as string]: d.payload.accent ?? rc } as CSSProperties}>
+      <div key={d.id} className={`wdr-card is-${d.rarity} ${rfxClass(d.rarity)}`} style={{ ['--rc' as string]: rc, ['--pc' as string]: d.payload.accent ?? rc } as CSSProperties}>
+        <RarityFx rarity={d.rarity} flash />
         <div className="wdr-burst" aria-hidden><i /><i /><i /><i /><i /><i /></div>
         <div className="wdr-eyebrow">SPECIMEN ACQUIRED · {kind.name}</div>
         <div className="wdr-icon" aria-hidden>{d.payload.glyph ?? kind.icon}</div>

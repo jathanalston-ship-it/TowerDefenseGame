@@ -17,6 +17,7 @@ import { CurrencyIcon } from './components/CurrencyIcon';
 import { audio } from '../audio/sound';
 import { HostedScreen } from './components/HostTabs';
 import { SpecimenVault } from './SpecimenVault';
+import { RarityFx, rfxClass } from './components/RarityFx';
 
 type Tab = 'skins' | WardrobeGroup | 'boutique' | 'milestones';
 type OwnFilter = 'all' | 'owned' | 'locked' | 'new' | 'fav';
@@ -73,7 +74,8 @@ function ItemCard({ d, owned, equipped, fav, isNew }: {
   const rc = WARDROBE_RARITY_COLOR[d.rarity];
   const audible = PREVIEW_CUE[d.kind] !== undefined && d.payload.cue !== undefined;
   return (
-    <div className={`wd-card${owned ? '' : ' is-locked'}${equipped ? ' is-on' : ''}`} style={{ ['--rc' as string]: rc }}>
+    <div className={`wd-card${owned ? ` ${rfxClass(d.rarity, true)}` : ' is-locked'}${equipped ? ' is-on' : ''}`} style={{ ['--rc' as string]: rc }}>
+      {owned && <RarityFx rarity={d.rarity} lite />}
       {isNew && <span className="wd-new" aria-label="Newly unlocked">NEW</span>}
       <ItemPreview d={d} />
       <div className="wd-card-body">

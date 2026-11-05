@@ -21,6 +21,7 @@ import type { CollectorView, PremiumReceiptLine } from '../state/meta';
 import { Detail } from './components/Detail';
 import { Popup } from './components/Popup';
 import { ClaimAll } from './components/ClaimAll';
+import { RarityFx, rfxClass } from './components/RarityFx';
 
 interface VaultRow {
   def: WardrobeItemDef;
@@ -48,11 +49,12 @@ function RowCard({ row, onClaim, onInspect }: { row: VaultRow; onClaim: (uid: st
   const fav = meta.get().wardrobe.favorites.includes(def.id);
   return (
     <article
-      className={`sv-card${claimed ? ' is-claimed' : ''}`}
+      className={`sv-card ${rfxClass(def.rarity, true)}${claimed ? ' is-claimed' : ''}`}
       style={{ ['--svr' as string]: WARDROBE_RARITY_COLOR[def.rarity] }}
       title={`${def.name} — collector record`}
       onClick={() => { audio.cue('ui'); onInspect(def.id); }}
     >
+      <RarityFx rarity={def.rarity} lite />
       <header className="sv-top">
         <span className="sv-glyph" aria-hidden>{def.payload.glyph ?? kind.icon}</span>
         <span className="sv-title">

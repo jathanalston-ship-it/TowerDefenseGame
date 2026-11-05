@@ -7,6 +7,19 @@ import { useEffect, useState } from 'react';
 import { motionPrefs, onMotionPrefs, resolveMotion, setMotionPrefs, systemReducedMotion } from '../../state/prefs';
 import type { MotionPrefs } from '../../state/prefs';
 
+/** Mirror the resolved motion prefs onto <html data-motion data-flashes> so HUB ceremonies (vault, reveals,
+ *  rarity flashes — docs/GAME-FEEL.md §reward-vfx) honour Settings → Motion the way the run's `.game` does.
+ *  Returns the unsubscribe; App binds it once. */
+export function bindRootMotionAttrs(): () => void {
+  const apply = (p: MotionPrefs): void => {
+    const r = resolveMotion(p, systemReducedMotion());
+    document.documentElement.dataset.motion = r.motion > 0 ? 'full' : 'reduced';
+    document.documentElement.dataset.flashes = r.flashes ? 'on' : 'off';
+  };
+  apply(motionPrefs());
+  return onMotionPrefs(apply);
+}
+
 export function MotionSettings({ compact = false }: { compact?: boolean }): JSX.Element {
   const [p, setP] = useState<MotionPrefs>(motionPrefs);
   useEffect(() => onMotionPrefs(setP), []);

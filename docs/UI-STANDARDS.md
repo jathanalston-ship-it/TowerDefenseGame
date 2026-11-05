@@ -15,7 +15,8 @@
   concept that already exists (icons, bars, power readouts, currency chips, art frames…).
 - **One accent system.** Rarity colors come ONLY from the canonical map
   (`rarityColorOf`, `src/core/equipment.ts`) or `rarityRegistry` (loot tiers) — never inline
-  hexes. Faction/element accents: `--kinetic` `--caustic` `--viral` `--vital` `--gold`.
+  hexes, never a screen-local map. Faction/element accents: `--kinetic` `--caustic` `--viral`
+  `--vital` `--gold`. Rarity PRESENTATION (glow, sweep, edge, motes, crown) is §rarity.
 - **Dark, layered surfaces:** page → `var(--panel)` → `var(--panel-2)`; separation by
   `1px solid var(--line)` (strong: `--line-strong`), not by heavy shadows.
 - **Every interactive element**: a `title` tooltip or `aria-label`, a hover state, a focus
@@ -130,6 +131,7 @@ with every radius in **30–70%** (near-elliptical, sculpted; enforced by uiStan
 | `useCountUp` | number reveal animation | copy-pasting rAF counters |
 | `PowerPreview` / `PowerToaster` | upgrade previews (current→new +impact) · gain toasts | bespoke power text or ad-hoc toasts |
 | `rarityColorOf` (core/equipment) | rarity → color, everywhere | inline rarity hexes |
+| `RarityFx` + `rfxClass` | any surface that shows an item's rarity (§rarity) | per-screen glows/sheens/borders |
 | `ChipPopover` | a chip that explains itself on TAP (wallet, level, materials) | title-only essentials |
 | `SectionNav` | any screen taller than ~3 viewports (§long-screens) | per-screen jump rails / fold logic |
 | `LoadoutStrip` | beside every run launch (§loadout) | re-listing loadout bits by hand |
@@ -229,3 +231,28 @@ each segment a deep link to where it is changed (Hero Hall, Armory, Gene Archive
 only once that system has revealed and linked only when `isOpenNav`. It READS existing state
 (`loadoutSummary(save, doctrineId)`); empty slots read amber (a free upgrade). Mounted on the
 Campaign stage panel footer, the Infinite terminal and the Boss Rush terminal (doctrine-less).
+
+## §rarity (2026-11) — one rarity language everywhere
+
+A Legendary reads the same in a draft, the Armory, the Vault, the Archive and the market. Two halves:
+
+- **Colour:** the `--r-*` tokens in `:root` — common · uncommon · rare · epic · legendary · **exotic
+  (`--r-exotic` pink + `--r-exotic-2` cyan shimmer — docs/STYLE-GUIDE.md §5's prismatic apex)** · mythic —
+  reached ONLY through `rarityColorOf` / `rarityRegistry` (the wardrobe map, Hero Lab and Auction tints
+  now delegate). Exotic used to be three colours (gear `--viral`, gear art teal, draft pink); the canvas
+  art mirror (`render/equipmentArt.ts` RARITY_HEX) carries the same hexes.
+- **Presentation:** a surface that shows a rarity is a HOST — `className={rfxClass(rarity, lite?)}`
+  (`rfx rfx-<tier>`, must be positioned) — with `<RarityFx rarity … />` as its first child. The CSS
+  table (index.css "RARITY FX") holds every strength; `RARITY_FX` in `ui/components/RarityFx.tsx` decides
+  which layers a tier mounts (rare+ edge · epic+ motes · legendary+ crown). Profiles:
+
+| profile | used by | what moves |
+|---|---|---|
+| full (default) | draft cards, Vault clutch faces, prize banner, apex interrupt, shelf containers, wardrobe unlock, Genome Rank promotion | breathing glow, looping sweep, edge, motes, crown; `flash` = a one-shot land |
+| `lite` | Armory cards, Gear Codex frames, Gene Archive tiles, Specimen Cabinet, Wardrobe, market containers, Results container rows | nothing at rest except the legendary+ edge (slow, a compositor transform); static halo + inner wash; the sweep plays once on hover/focus; no motes/crown |
+
+Rules: layers are decorative (`aria-hidden`), transform/opacity only; a `rfx-chip` speaks the tier's
+name in its colour; an isolated host that carries a `.tt` tooltip lifts itself on hover. Reduced motion
+(OS · `:root`/`.game[data-motion]`) keeps every colour and drops the motion (static glow, solid edge, crown
+at rest); Flashes off (`data-flashes`) drops `rfx-flash`. A new rarity = a row in each table; a new item
+surface = a host class + `<RarityFx>` — never bespoke glow CSS.

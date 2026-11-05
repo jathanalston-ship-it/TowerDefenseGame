@@ -9,6 +9,8 @@ import type { GenomePromotion } from '../../state/meta';
 import { audio } from '../../audio/sound';
 import { telemetry } from '../../net/telemetry';
 import { formatPower } from '../../core/power';
+import type { CSSProperties } from 'react';
+import { RarityFx, rfxClass } from './RarityFx';
 
 const CATEGORY_COLOR: Record<string, string> = {
   journey: 'var(--caustic)',
@@ -100,13 +102,20 @@ export function GenomePromotionCinematic(): JSX.Element | null {
   return (
     <div className="evo-unlock grk-cine" role="dialog" aria-label="Genome Rank promotion" onClick={dismiss}>
       <div className="evo-rays" aria-hidden />
-      <div className="evo-card grk-cine-card" onClick={(e) => e.stopPropagation()}>
+      {/* A promotion is a LEGENDARY-tier moment on the shared rarity language (docs/GAME-FEEL.md §reward-vfx):
+          gold edge light, sweep, motes and crown on the card; rings + a slow halo off the emblem. Keyed per
+          rank so a queued second promotion lands fresh. */}
+      <div key={p.index} className={`evo-card grk-cine-card ${rfxClass('legendary')}`} onClick={(e) => e.stopPropagation()}>
+        <RarityFx rarity="legendary" flash />
         <div className="evo-eyebrow">⟁ Genome Rank Promotion ⟁</div>
-        <div className="grk-cine-emblem" aria-hidden><span>{p.numeral}</span></div>
+        <div className="grk-cine-emblem" aria-hidden>
+          <i className="grk-cine-halo" /><i className="grk-cine-ring" /><i className="grk-cine-ring b" />
+          <span>{p.numeral}</span>
+        </div>
         <h2 className="evo-title">{p.name}</h2>
         <p className="evo-blurb">The organism has outgrown its previous designation. Every system you master feeds the Genome.</p>
         <div className="grk-cine-rewards">
-          {rewards.map((line) => <div className="grk-cine-r" key={line}>✦ {line}</div>)}
+          {rewards.map((line, k) => <div className="grk-cine-r" key={line} style={{ '--k': k } as CSSProperties}>✦ {line}</div>)}
         </div>
         <button className="primary evo-continue" onClick={dismiss}>Continue</button>
       </div>

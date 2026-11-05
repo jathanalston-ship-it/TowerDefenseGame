@@ -25,6 +25,7 @@ import { Popup } from './components/Popup';
 import { Detail } from './components/Detail';
 import { BestBuyStrip } from './components/BestBuyStrip';
 import { SectionNav } from './components/SectionNav';
+import { RarityFx, rfxClass } from './components/RarityFx';
 
 /** Compact preview phrase for one Transcendence-option effect (§Transcendence). The pools only
  *  author field-bearing mul/add ops, so this covers them fully: mul reads as ±%, a sub-1 add reads
@@ -57,11 +58,13 @@ function GeneTile({ row, onOpen }: { row: GeneArchiveRow; onOpen: () => void }):
   const rc = geneRarityColor(def.rarity);
   return (
     <button
-      className={`ga-tile${row.owned ? '' : ' is-unowned'}${row.upgradeable ? ' is-upgradeable' : ''}${row.transcend ? ' is-transcended' : ''}`}
+      className={`ga-tile${row.owned ? ` ${rfxClass(def.rarity, true)}` : ' is-unowned'}${row.upgradeable ? ' is-upgradeable' : ''}${row.transcend ? ' is-transcended' : ''}`}
       style={{ ['--rc' as string]: rc, ['--acc' as string]: aff.color }}
       onClick={onOpen}
       title={`${def.name} — inspect`}
     >
+      {/* the shared rarity language (grid profile) — undiscovered silhouettes stay quiet */}
+      {row.owned && <RarityFx rarity={def.rarity} lite />}
       {row.upgradeable && <span className="ga-up" title="Upgrade available">▲</span>}
       {row.transcend && <span className="ga-tr" title={`Transcended — ${row.transcend.label}`}>❂</span>}
       <span className="ga-marks">

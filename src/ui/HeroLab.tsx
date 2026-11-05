@@ -27,12 +27,9 @@ import { SymbioteChamber } from './SymbioteChamber';
 import { BestBuyStrip } from './components/BestBuyStrip';
 import { EvolutionTrackPanel } from './EvolutionTrack';
 import { navBus } from '../state/navBus';
+import { rarityColorOf } from '../core/equipment'; // the ONE rarity map (docs/UI-STANDARDS.md §rarity)
 import type { HeroCollectionEntry } from '../state/meta';
 
-const RARITY_VAR: Record<string, string> = {
-  common: 'var(--r-common)', rare: 'var(--r-rare)', epic: 'var(--r-epic)',
-  legendary: 'var(--r-legendary)', exotic: 'var(--viral)',
-};
 
 /** Re-pickable ability forks (★5/★8, HEROES.md) — each option REWORKS one of the hero's already-
  *  unlocked abilities (not a bolt-on). Re-selectable any time; applied on the next run. The hero
@@ -454,7 +451,7 @@ export function HeroLab(): JSX.Element {
                 <div className="hl-slot" key={l.slot}>
                   <span className="hl-k">{l.label}</span>
                   {l.name ? (
-                    <span className="hl-item" style={{ color: l.rarity ? RARITY_VAR[l.rarity] : undefined }}>{l.name}</span>
+                    <span className="hl-item" style={{ color: l.rarity ? rarityColorOf(l.rarity) : undefined }}>{l.name}</span>
                   ) : (
                     <span className="hl-empty">— empty —</span>
                   )}

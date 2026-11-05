@@ -300,17 +300,19 @@ The first boot opens on a fully SCORED procedural film (`ui/InitCutscene.tsx` �
 
 **One system, one layer per effect** (the polish pass folded two legacy layers into it: a rare+
 background sheen whose keyframe name collided with the new sweep, and an epic/legendary conic edge +
-legendary crown that fought the glow for `::before`/`::after`). Every strength and colour is a row in
-`src/index.css` "DRAFT CARD RARITY VFX"; which extra layers a card mounts is `RARITY_VFX` in
-`ui/DraftModal.tsx` (a new rarity = a row in each).
+legendary crown that fought the glow for `::before`/`::after`). **Generalized (2026-11 VFX pass):**
+the draft cards now ride the SHARED rarity language every item surface speaks — host class
+`rfx rfx-<tier>` + `<RarityFx>` (`ui/components/RarityFx.tsx`, its `RARITY_FX` table decides which
+extra layers a tier mounts) and the `src/index.css` "RARITY FX" table (every strength and colour); a
+new rarity = a row in each. See docs/UI-STANDARDS.md §rarity for the surfaces and the grid profile.
 
 | layer | element | who | how |
 |---|---|---|---|
-| glow | `::before` | all (common: none) | rarity-coloured halo, breathing (opacity); swells on hover / keyboard focus |
-| sweep | `.card-sheen` | all | translate-only light band, staggered by `--i`, then rests |
-| border light | `.card-edge` | rare+ | masked ring whose oversized conic child rotates (transform); exotic is iridescent |
-| motes | `.card-motes > i` | epic 3 · legendary 6 · exotic 7 | sparks rising (deterministic layout, no RNG); exotic alternates pink/cyan |
-| crown | `.card-crown` | legendary ◆◆◆ · exotic ✦✦✦ | floats above the card |
+| glow | `.rfx-glow` (+`::before`) | all (common: none) | rarity-coloured halo: tier strength = the layer's static opacity, the breath animates its child between literal values (compositor-only); swells on hover / keyboard focus |
+| sweep | `.rfx-sheen` | all | translate-only light band (`--sheen-w` wide), staggered by `--i`, then rests |
+| border light | `.rfx-edge` | rare+ | masked ring whose oversized conic child rotates (transform); exotic is iridescent |
+| motes | `.rfx-motes > i` | epic 3 · legendary 6 · exotic 7 | full-height columns carrying a spark: `translateY(-100%)` rises the host's height at any size, a static `rotate` drifts it (deterministic layout, no RNG); exotic alternates pink/cyan |
+| crown | `.rfx-crown` | legendary ◆◆◆ · exotic ✦✦✦ | floats above the card |
 | reveal | `::after` | uncommon+ (`--reveal-a`) | a flash in the rarity colour as the card lands (one shot, staggered) |
 | pick | `.is-chosen::after` | all, epic+ hardest | a shockwave ring out of the chosen card (the FEEL pick moment keeps its flare) |
 | chip | `.card-rarity` | all | speaks its rarity colour (legendary/exotic had none); epic+ chips glow |
@@ -322,4 +324,31 @@ three cards at most. **Reduced motion** (OS, or Settings → Motion via `.game[d
 colour stays — steady glow, a still border in the rarity colour, the crown at rest, tinted chip — and
 the sweep, motes, flash and burst go (verified: 16 captured frames identical at 844×390). Checked live at
 1440×900 and 844×390 with frame-stepped strips of real deep-wave drafts (epic/legendary/exotic), the
-deal-in reveal and the pick burst.
+deal-in reveal and the pick burst. The draft keeps only its own beats on top of the shared layers: the
+staggered deal-in flash (`.cards .card::after`), the pick shockwave (`.is-chosen::after`) and the
+dismissed cards going dark; the exotic pick flare is `--r-exotic` (it was gold).
+
+## §reward-vfx — every earned thing wears its tier (2026-11 VFX pass)
+
+The meta screens share the draft's rarity language (§draft-sheen, docs/UI-STANDARDS.md §rarity), so a
+Legendary reads the same in a draft, the Armory, the Vault and the Archive. The reward MOMENTS:
+
+- **Vault clutch** (docs/LOOTBOX.md §rarity-fx): a flipped face's frame, rarity word, glow and layers speak
+  its RARITY; the emblem/amount keep the reward's own colour. Rare+ faces land with a one-shot flash timed
+  to the flip; the prize banner and the apex interrupt card wear the full layers.
+- **Genome Rank promotion** (`ui/components/GenomeRankPanel` → `GenomePromotionCinematic`): a
+  LEGENDARY-tier moment — the card wears the gold layers (edge light, a narrow sweep, motes, ◆◆◆ crown,
+  a softened land flash), the emblem throws two rings and turns a slow masked halo, gold rays replace
+  the green, and the rewards land one by one (`--k` stagger). Keyed per rank so a queued second
+  promotion re-lands. Fits 844×390 without a scroll (a short-viewport compaction).
+- **Results** (docs/REWARD-PRESENTATION.md §rarity-fx): banked container rows land lit in their tier.
+- **Settings → Motion reaches the hub:** `bindRootMotionAttrs` (ui/components/MotionSettings) mirrors
+  the resolved prefs onto `<html data-motion data-flashes>`; Flashes off drops every rarity reveal flash
+  and the Vault's room-wide hatch flash; reduced motion keeps every colour and drops the motion.
+- **Cost:** CSS only — no canvas render-path work. Every looping keyframe uses LITERAL values (the tier's
+  strength rides a static property: the glow's opacity, the mote column's height + `rotate`), because a
+  `var()` inside keyframes forces a main-thread style recalc every frame. Measured A/B in one build (layers
+  live vs `display:none`), headless 1440×900, a 3-card epic/legendary/exotic draft over ~160 enemies:
+  style recalc +3.7 ms/frame with the original var() keyframes → +1.5 ms/frame compositor-only (headless
+  software compositing on a 4-core box at load ~13 — real GPU compositing moves these off the main thread).
+  Grids (`rfx-lite`) animate only legendary+ edges: Gene Archive full list (131 hosts) within noise.

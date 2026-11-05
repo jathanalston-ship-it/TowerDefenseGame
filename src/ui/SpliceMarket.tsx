@@ -14,6 +14,7 @@ import type { ExchangeCurrency } from '../core/ichorExchange';
 import { audio } from '../audio/sound';
 import { CURRENCIES } from '../core/currencies';
 import { CurrencyIcon } from './components/CurrencyIcon';
+import { RarityFx, rfxClass } from './components/RarityFx';
 
 function countdown(ms: number): string {
   const s = Math.max(0, Math.ceil(ms / 1000));
@@ -26,7 +27,8 @@ function SlotCard({ slot, justBought, onBuy }: { slot: MarketSlotView; justBough
   // the EXOTIC Bio-Container gets the vault's --viral glow/shimmer instead of a flat card.
   const rarity = slot.item.good === 'container' ? slot.item.rarity : undefined;
   return (
-    <div className={cls} data-rarity={rarity} style={{ ['--mk' as string]: slot.color }}>
+    <div className={rarity ? `${cls} ${rfxClass(rarity, true)}` : cls} data-rarity={rarity} style={{ ['--mk' as string]: slot.color }}>
+      {rarity && <RarityFx rarity={rarity} lite />}
       <div className="market-card-art" aria-hidden>
         {slot.currencyId ? <CurrencyIcon id={slot.currencyId} color={slot.color} size={30} title="" /> : <span className="market-card-glyph">{slot.glyph}</span>}
       </div>
