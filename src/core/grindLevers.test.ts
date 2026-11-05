@@ -359,51 +359,47 @@ describe('LIVE threat v3 — cards out of the ratio, threat by composition (§6a
     }
   });
 
-  it('the probe share scales with the gap only at liveProbeGapScale > 0 (0 ⇒ exactly the v3 share)', () => {
+  it('the probe share is 0 at ×1 and weights toward the finale at liveProbeFinaleWeight (0 ⇒ the flat v3 shape)', () => {
     const dd = anyG(new Game(3, NO_META, undefined, undefined, undefined, { mode: 'campaign', stage: generateStage(12), livePowerBase: 1 })).dd as {
-      liveProbeShare: (m: number, gap?: number) => number;
+      liveProbeShare: (m: number, progress?: number) => number;
     };
-    const g0 = DIRECTOR_ADAPTIVE.liveProbeGapScale;
+    expect(dd.liveProbeShare(1, 1)).toBe(0);
+    expect(dd.liveProbeShare(0.5, 1)).toBe(0);
+    expect(dd.liveProbeShare(8, 1)).toBeCloseTo(DIRECTOR_ADAPTIVE.liveProbeShare * (1 - 1 / 8), 12); // the finale carries the full share
+    const f0 = DIRECTOR_ADAPTIVE.liveProbeFinaleWeight;
     try {
-      DIRECTOR_ADAPTIVE.liveProbeGapScale = 0;
-      expect(dd.liveProbeShare(3, 0.2)).toBe(dd.liveProbeShare(3));
-      DIRECTOR_ADAPTIVE.liveProbeGapScale = 1;
+      DIRECTOR_ADAPTIVE.liveProbeFinaleWeight = 0;
+      expect(dd.liveProbeShare(3, 0.25)).toBe(dd.liveProbeShare(3, 1));
+      DIRECTOR_ADAPTIVE.liveProbeFinaleWeight = 1;
       expect(dd.liveProbeShare(3, 0.25)).toBeCloseTo(dd.liveProbeShare(3, 1) * 0.25, 12);
-      expect(dd.liveProbeShare(1, 1)).toBe(0);
     } finally {
-      DIRECTOR_ADAPTIVE.liveProbeGapScale = g0;
+      DIRECTOR_ADAPTIVE.liveProbeFinaleWeight = f0;
     }
   });
 
-  it('swapInProbe keeps the threat budget, the delays and the plan intact (a copy, deterministic)', () => {
+  it('swapInProbe hands share × the plain threat budget to the probe — largest group first, delays kept, a copy', () => {
     const wave: WaveDef = [
       { kind: 'runner', count: 8, spacing: 0.5, delay: 0.4 },
       { kind: 'mite', count: 12, spacing: 0.5, delay: 2 },
     ];
     expect(swapInProbe(wave, null, 1)).toBe(wave);
     expect(swapInProbe(wave, 'spitter', 0)).toBe(wave);
-    const out = swapInProbe(wave, 'spitter', 0.5); // 1 of 2 plain groups — the larger (mites) goes
-    expect(out[0]).toBe(wave[0]);
-    expect(out[1].kind).toBe('spitter');
-    expect(out[1].delay).toBe(2);
-    expect(out[1].count).toBeGreaterThanOrEqual(1);
-    expect(wave[1].kind).toBe('mite');
-    expect(swapInProbe(wave, 'spitter', 0.5)).toEqual(out);
-  });
-
-  it('swapInProbe byBudget hands share × the plain threat budget to the probe — a 1-group wave probes too', () => {
-    const wave: WaveDef = [{ kind: 'lasher', count: 7, spacing: 0.45, delay: 0.4 }];
-    expect(swapInProbe(wave, 'scuttler', 0.26)).toBe(wave); // whole groups: round(0.26 × 1) = 0 ⇒ no probe
-    const out = swapInProbe(wave, 'scuttler', 0.26, true);
+    expect(swapInProbe(wave, 'spitter', 0.01)).toBe(wave); // under half a body ⇒ unchanged
+    const out = swapInProbe(wave, 'spitter', 0.5);
     expect(out).not.toBe(wave);
-    expect(out.map((g) => g.kind)).toEqual(['lasher', 'scuttler']); // the probe rides beside what is left
-    expect(out[0].count).toBe(5); // round(0.26 × 7) = 2 lashers handed over
-    expect(out[1].delay).toBe(0.4);
-    expect(out[1].count).toBeGreaterThanOrEqual(1);
-    expect(wave[0].count).toBe(7); // a copy
-    expect(swapInProbe(wave, 'scuttler', 0.26, true)).toEqual(out); // deterministic
-    expect(swapInProbe(wave, 'scuttler', 1, true).map((g) => g.kind)).toEqual(['scuttler']); // the whole budget ⇒ the whole group
-    expect(swapInProbe(wave, 'scuttler', 0.01, true)).toBe(wave); // under half a body ⇒ unchanged
+    expect(out.filter((g) => g.kind === 'spitter').every((g) => g.count >= 1 && [0.4, 2].includes(g.delay))).toBe(true);
+    const units = (w: WaveDef, k: string): number => w.reduce((n, g) => n + (g.kind === k ? g.count : 0), 0);
+    expect(units(out, 'runner') + units(out, 'mite')).toBeLessThan(20); // chaff handed over …
+    expect(units(out, 'spitter')).toBeGreaterThanOrEqual(1); // … to the probe
+    expect(wave.map((g) => g.count)).toEqual([8, 12]); // the stage plan is never mutated
+    expect(swapInProbe(wave, 'spitter', 0.5)).toEqual(out); // deterministic
+    // a 1-group wave probes too (v3 swapped whole groups: round(0.26 × 1) = 0 ⇒ never)
+    const one: WaveDef = [{ kind: 'lasher', count: 7, spacing: 0.45, delay: 0.4 }];
+    const probed = swapInProbe(one, 'scuttler', 0.26);
+    expect(probed.map((g) => g.kind)).toEqual(['lasher', 'scuttler']); // the probe rides beside what is left
+    expect(probed[0].count).toBe(5); // round(0.26 × 7) = 2 lashers handed over
+    expect(probed[1].delay).toBe(0.4);
+    expect(swapInProbe(one, 'scuttler', 1).map((g) => g.kind)).toEqual(['scuttler']); // the whole budget ⇒ the whole group
   });
 
   it('the elite share is 0 at ×1 and grows toward liveEliteShare as the board runs away', () => {
@@ -454,7 +450,7 @@ describe('LIVE threat v3 — cards out of the ratio, threat by composition (§6a
       }
       step(g, 1);
     }
-    if (DIRECTOR_ADAPTIVE.liveProbeByBudget > 0) expect(probed).toBeGreaterThan(0); // a runaway needle board meets its probe, named in the briefing
+    expect(probed).toBeGreaterThan(0); // a runaway needle board meets its probe, named in the briefing
   });
 });
 

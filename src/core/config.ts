@@ -3254,17 +3254,16 @@ export const DIRECTOR_ADAPTIVE = {
   // v3 COMPOSITION: up to this share of a live wave's groups is promoted to ELITE (fewer-but-stronger,
   // the campaign's own elite rule) — the threat lands as concentrated bodies that leak chip damage.
   liveEliteShare: 0,
-  // v3 PROBE: up to this share of a live wave's plain groups becomes the board's PROBE role (campaign.ts
-  // LIVE_PROBE_ROLES — airborne packs vs a board with no area damage, else artillery, else burrowers) at
-  // the same threat budget: what the wave IS changes, not how fat it is — chip damage without length.
-  liveProbeShare: 0.3,
-  // v4 COVERAGE GAP (coverage.ts): the probe is the role whose answering axis the board covers least;
-  // the share scales by ×(1 − g + g·gap) — 0 ⇒ the full share whatever the gap, 1 ⇒ ∝ the gap (a
-  // well-covered board meets a smaller probe).
-  liveProbeGapScale: 0,
-  liveProbeByBudget: 0, // 1 ⇒ the probe takes share × the wave's plain THREAT BUDGET (units), not whole groups
-  liveProbeGapTie: 0, // probe roles whose gap is within this of the largest count as tied (table = harm order breaks it)
-  liveProbeFinaleWeight: 0, // the share × (1 − f + f·wave/total) — 1 ⇒ the probe grows toward the finale (damage there outlasts the heals)
+  // PROBE (v3 → v4): a share of a live wave's plain THREAT BUDGET becomes the board's PROBE role
+  // (campaign.ts liveProbe — the role whose answering coverage axis the fielded board covers least,
+  // coverage.ts) at the same budget: what the wave IS changes, not how fat it is — chip damage without
+  // length. share × (1 − 1/m) × (1 − f + f·wave/total): v4 weights it toward the FINALE (f 1), where
+  // the chip outlasts the run's heals — the early live waves carry a small probe, the finale the full one.
+  liveProbeShare: 0.45,
+  liveProbeFinaleWeight: 1,
+  // Probe roles whose coverage gap is within this of the largest count as TIED — the coarse coverage model
+  // cannot tell them apart — and the role table's measured HARM order breaks the tie (artillery first).
+  liveProbeGapTie: 0.35,
 };
 
 // ── Board COVERAGE model (docs/DIFFICULTY_DIRECTOR.md §6a v4 — coverage.ts) ─────────────────────

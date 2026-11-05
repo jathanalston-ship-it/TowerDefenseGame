@@ -296,29 +296,17 @@ export function liveProbe(pool: readonly EnemyKind[], towers: readonly { kind: T
   return null;
 }
 
-/** Swap a share of a wave's PLAIN groups (not elite, not an exploder, not already the probe) for the
- *  probe kind at the SAME threat budget (count × cost ratio, ≥ 1), keeping each group's delay; largest
- *  groups first, ties in spawn order. A COPY — share ≤ 0 or no probe ⇒ `wave`.
- *  byGroups (v3): round(share × eligible) whole groups — a 1-group wave never probes below share 0.5.
- *  byBudget (v4): share × the plain THREAT BUDGET, in units — the largest group gives up what it can and
- *  the probe rides beside what is left of it, so every live wave carries a probe in proportion. */
-export function swapInProbe(wave: WaveDef, probe: EnemyKind | null, share: number, byBudget = false): WaveDef {
+/** Hand share × a wave's PLAIN threat budget (groups not elite, not an exploder, not already the probe)
+ *  to the probe kind at the SAME budget (units × cost ratio, ≥ 1 body). The largest groups give up what
+ *  they can, largest first (ties in spawn order); the probe rides beside what is left of each, at its
+ *  delay — so every live wave carries a probe in proportion (v3 swapped whole groups: a 1- or 2-group
+ *  wave never probed). A COPY — share ≤ 0, no probe, or under half a body ⇒ `wave`. */
+export function swapInProbe(wave: WaveDef, probe: EnemyKind | null, share: number): WaveDef {
   if (probe === null || !(share > 0)) return wave;
   const eligible: number[] = [];
   for (let i = 0; i < wave.length; i++) {
     const g = wave[i];
     if (!g.elite && g.kind !== probe && !ENEMY_DEFS[g.kind].explodeDamage) eligible.push(i);
-  }
-  const pd = ENEMY_DEFS[probe];
-  const pc = threatCost(pd);
-  const probeGroup = (units: number, cost: number, delay: number): SpawnGroup =>
-    ({ kind: probe, count: Math.max(1, Math.round((units * cost) / pc)), spacing: spacingFor(categoryOf(pd)), delay });
-  if (!byBudget) {
-    const n = Math.round(share * eligible.length);
-    if (n <= 0) return wave;
-    eligible.sort((a, b) => wave[b].count - wave[a].count || a - b);
-    const pick = new Set(eligible.slice(0, n));
-    return wave.map((g, i) => (pick.has(i) ? probeGroup(g.count, threatCost(ENEMY_DEFS[g.kind]), g.delay) : g));
   }
   const cost = (i: number): number => threatCost(ENEMY_DEFS[wave[i].kind]);
   let left = 0;
@@ -333,12 +321,14 @@ export function swapInProbe(wave: WaveDef, probe: EnemyKind | null, share: numbe
     left -= take * cost(i);
   }
   if (taken.size === 0) return wave;
+  const pd = ENEMY_DEFS[probe];
+  const pc = threatCost(pd);
   const out: WaveDef = [];
   for (let i = 0; i < wave.length; i++) {
     const g = wave[i];
     const take = taken.get(i) ?? 0;
     if (take < g.count) out.push(take > 0 ? { ...g, count: g.count - take } : g);
-    if (take > 0) out.push(probeGroup(take, cost(i), g.delay));
+    if (take > 0) out.push({ kind: probe, count: Math.max(1, Math.round((take * cost(i)) / pc)), spacing: spacingFor(categoryOf(pd)), delay: g.delay });
   }
   return out;
 }
