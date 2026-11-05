@@ -2411,7 +2411,8 @@ function drawEnemy(
     // Mark from the Marrow Siphon, Resonance from the Resonance Coil). Neither appears on the golden path.
     if (e.mark > 0) ring(ctx, e.x, drawY, r + 1, rgba(THEME.enemy.mark, Math.min(0.9, 0.35 + e.mark * 0.09)), 2);
     if (e.resonance > 0) ring(ctx, e.x, drawY, r + 1.5, rgba(THEME.enemy.resonance, Math.min(0.9, 0.35 + e.resonance * 0.09)), 2);
-    if (e.shredFlash > 0) {
+    if (e.shredFlash > 0 && e.boss) drawBossHitRim(ctx, e.x, drawY, r * 1.1, e.shredFlash * 0.25); // V2: a reacting boss keeps its body readable
+    else if (e.shredFlash > 0) {
       ctx.fillStyle = rgba(THEME.enemy.shred, Math.min(0.8, e.shredFlash * 2));
       ctx.beginPath();
       ctx.arc(e.x, drawY, r + 3, 0, Math.PI * 2);

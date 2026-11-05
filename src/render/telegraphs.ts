@@ -44,7 +44,8 @@ export const TELL = {
   impactSec: 0.38, // contact frame + rim snap duration
   flashSec: 0.09, // the hot core inside the contact frame (Settings → Flashes)
   phaseSec: 0.85, // a boss phase-shift burst
-  phaseReach: 3.4, // × body radius the mutation shock travels
+  phaseReach: 3.8, // × body radius the mutation shock travels
+  washRef: 150, // px — zones wider than this thin their wash (a 260px drag zone must not fog the field)
   fieldReach: 360, // px a field-wide cry (warcry) visibly spreads
   channelLockR: 36, // px — the reticle ON the Hive Core while a core-shot channels
   strikeSec: 0.42, // a landed core-shot / cataclysm strike line
@@ -86,7 +87,7 @@ export function drawLandingLock(ctx: Ctx, x: number, y: number, r: number, k: nu
   const urgent = kk >= TELL.urgentAt;
   // WHERE — the wash and the dashed rim of the exact zone.
   ctx.fillStyle = col;
-  ctx.globalAlpha = (TELL.washMin + TELL.washMax * kk) * calm;
+  ctx.globalAlpha = (TELL.washMin + TELL.washMax * kk) * calm * Math.min(1, TELL.washRef / Math.max(1, r));
   arc(ctx, x, y, r);
   ctx.fill();
   ctx.strokeStyle = col;
@@ -433,19 +434,29 @@ export function drawAimLine(ctx: Ctx, x0: number, y0: number, x1: number, y1: nu
   ctx.lineTo(x1, y1);
   ctx.stroke(); // dark under-stroke: reads over acid, gore and beams alike
   ctx.strokeStyle = col;
-  ctx.globalAlpha = 0.3 + 0.4 * clamp01(k);
+  ctx.globalAlpha = 0.28 + 0.12 * clamp01(k);
   ctx.lineWidth = w;
   ctx.setLineDash(DASH_LINE);
   ctx.stroke();
   ctx.setLineDash(NO_DASH);
   if (k > 0) { // the progress fill — reaches the target the moment it lands
     const kk = clamp01(k);
-    ctx.globalAlpha = 0.85;
-    ctx.lineWidth = w + 1;
+    const hx = x0 + (x1 - x0) * kk;
+    const hy = y0 + (y1 - y0) * kk;
+    ctx.globalAlpha = 0.9;
+    ctx.lineWidth = w + 1.5;
     ctx.beginPath();
     ctx.moveTo(x0, y0);
-    ctx.lineTo(x0 + (x1 - x0) * kk, y0 + (y1 - y0) * kk);
+    ctx.lineTo(hx, hy);
     ctx.stroke();
+    ctx.fillStyle = col; // the charge head — the thing travelling toward you
+    ctx.globalAlpha = 0.5;
+    arc(ctx, hx, hy, w * 2.6);
+    ctx.fill();
+    ctx.fillStyle = WHITE;
+    ctx.globalAlpha = 0.85;
+    arc(ctx, hx, hy, w * 1.1);
+    ctx.fill();
   }
   ctx.globalAlpha = 1;
 }
@@ -580,14 +591,14 @@ function drawPulses(ctx: Ctx, now: number): void {
     // PHASE SHIFT: mutation shock + shed shell fragments + a brief body flare
     const reach = p.r * (motion ? 1.1 + (TELL.phaseReach - 1.1) * easeOut(f) : 2.2);
     ctx.strokeStyle = col;
-    ctx.globalAlpha = (1 - f) * 0.8;
-    ctx.lineWidth = 1.5 + (1 - f) * 5;
+    ctx.globalAlpha = (1 - f) * 0.9;
+    ctx.lineWidth = 2 + (1 - f) * 7;
     arc(ctx, p.x, p.y, reach);
     ctx.stroke();
     ctx.strokeStyle = WHITE;
-    ctx.globalAlpha = (1 - f) * 0.45;
-    ctx.lineWidth = 1.2;
-    arc(ctx, p.x, p.y, reach * 0.82);
+    ctx.globalAlpha = (1 - f) * 0.6;
+    ctx.lineWidth = 1.6;
+    arc(ctx, p.x, p.y, reach * 0.84);
     ctx.stroke();
     if (motion) {
       ctx.fillStyle = col;
@@ -598,7 +609,7 @@ function drawPulses(ctx: Ctx, now: number): void {
         const d = p.r * (1 + (1.6 + (i % 4) * 0.35) * easeOut(f));
         const sx = p.x + Math.cos(a) * d;
         const sy = p.y + Math.sin(a) * d + f * f * 18; // shed shell falls away
-        const s = 4.5 * (1 - f * 0.5);
+        const s = 6.5 * (1 - f * 0.5);
         ctx.moveTo(sx + Math.cos(a) * s * 1.6, sy + Math.sin(a) * s * 1.6);
         ctx.lineTo(sx + Math.cos(a + 2.3) * s, sy + Math.sin(a + 2.3) * s);
         ctx.lineTo(sx + Math.cos(a - 2.3) * s, sy + Math.sin(a - 2.3) * s);
