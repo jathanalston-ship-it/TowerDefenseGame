@@ -881,7 +881,7 @@ const CROWN_BAND = ['rgb(63, 224, 138)', 'rgb(255, 178, 77)', 'rgb(255, 93, 115)
 const HEARTH_RGB: string[] = [];
 for (let i = 0; i <= 20; i++) {
   const k = i / 20;
-  HEARTH_RGB.push(`${Math.round(255)}, ${Math.round(154 + (62 - 154) * k)}, ${Math.round(122 + (76 - 122) * k)}`);
+  HEARTH_RGB.push(`255, ${Math.round(154 + (62 - 154) * k)}, ${Math.round(122 + (76 - 122) * k)}`);
 }
 let crownGhost = 1;
 let crownT = 0;
