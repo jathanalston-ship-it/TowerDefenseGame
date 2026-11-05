@@ -9,6 +9,7 @@ import { CAMPAIGN_OPENING, DIRECTOR_ADAPTIVE, EARLY_CALL, ENDLESS_SQUEEZE, ENEMY
 import { OPENING_ANSWER_TIERS, OPENING_THREAT_RULES, damagesArea, dragsAndDamages, openingAnswerKinds } from './conveyor';
 import { generateStage, promoteEliteShare } from './campaign';
 import type { StageConfig } from './campaign';
+import type { WaveDef } from './config';
 import { campaignMegaFor, MEGA } from './megaboss';
 import { towerSlots } from './map';
 import { attachRecorder, replayRun } from './replay';
@@ -290,7 +291,7 @@ describe('LIVE adaptive threat (§6a)', () => {
 describe('LIVE threat v3 — cards out of the ratio, threat by composition (§6a v3)', () => {
   it('promoteEliteShare: largest groups first, fewer-but-stronger, exploders never, a copy; share 0 ⇒ the same array', () => {
     const exploder = (Object.keys(ENEMY_DEFS) as (keyof typeof ENEMY_DEFS)[]).find((k) => ENEMY_DEFS[k].explodeDamage)!;
-    const wave = [
+    const wave: WaveDef = [
       { kind: 'runner' as const, count: 4, spacing: 0.5, delay: 0.3 },
       { kind: exploder, count: 9, spacing: 0.5, delay: 1 },
       { kind: 'brute' as const, count: 7, spacing: 0.9, delay: 2 },

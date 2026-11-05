@@ -141,6 +141,12 @@ export class RunDirector {
     return m > 1 ? DIRECTOR_ADAPTIVE.liveEliteShare * (1 - 1 / m) : 0;
   }
 
+  /** v3 LIVE PROBE share (§6a): the share of a wave's plain groups swapped for the board's probe role —
+   *  liveProbeShare × (1 − 1/m), the same shape as the elite share. */
+  liveProbeShare(m: number): number {
+    return m > 1 ? DIRECTOR_ADAPTIVE.liveProbeShare * (1 - 1 / m) : 0;
+  }
+
   /** Bounty/biomass multiplier for a 0-based wave index. */
   waveBountyMult(idx0: number): number {
     return (1 + WAVE_BOUNTY_GROWTH * idx0) * this.difficulty.rewardMult * this.adaptiveReward;

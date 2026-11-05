@@ -3254,6 +3254,10 @@ export const DIRECTOR_ADAPTIVE = {
   // v3 COMPOSITION: up to this share of a live wave's groups is promoted to ELITE (fewer-but-stronger,
   // the campaign's own elite rule) — the threat lands as concentrated bodies that leak chip damage.
   liveEliteShare: 0,
+  // v3 PROBE: up to this share of a live wave's plain groups becomes the board's PROBE role (campaign.ts
+  // LIVE_PROBE_ROLES — airborne packs vs a board with no area damage, else artillery, else burrowers) at
+  // the same threat budget: what the wave IS changes, not how fat it is — chip damage without length.
+  liveProbeShare: 0,
 };
 
 // ── Adaptive Economy Framework: income-seam weights (docs/ECONOMY_FORMULAS.md) ──

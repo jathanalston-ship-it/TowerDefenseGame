@@ -111,7 +111,7 @@ import { generateRunPlan, planForWave } from './runEvents';
 import type { RunPlan } from './runEvents';
 import { resolveDifficulty } from './difficulty';
 import type { StageConfig } from './campaign';
-import { promoteEliteShare } from './campaign';
+import { liveProbeKind, promoteEliteShare, swapInProbe } from './campaign';
 import { NEUTRAL_BIOME, biomeForDepth, hazardActive } from './biomes';
 import { heroIdentity } from './heroIdentity';
 import type { HeroIdentity } from './heroIdentity';
@@ -2312,7 +2312,7 @@ export class Game {
     // and (v3) a share of the wave's groups arrives ELITE (the same transform the prep preview shows).
     const ratio = this.livePowerRatio();
     const m = this.waveIndex >= DIRECTOR_ADAPTIVE.liveFromWave ? this.dd.liveThreatMult(ratio) : 1;
-    const def = promoteEliteShare(this.waves[idx0], this.dd.liveEliteShare(m)); // same array at m ≤ 1
+    const def = this.liveWave(idx0, m); // the plain plan at m ≤ 1 (same array)
     const wave = this.dd.liveThreatParts(m, this.stageSpeedMult); // HP × pace × speed — exactly {1, 1, 1} at ×1
     this.liveThreat = wave.hp * wave.pace * wave.speed; // the APPLIED multiplier (== m unless speed hit its readability ceiling)
     const bossHp = this.dd.liveBossMult(ratio); // every boss body, any wave (exactly 1 at ratio ≤ 1)
@@ -8673,7 +8673,19 @@ export class Game {
     // v3 live composition: the NEXT wave as it would launch right now (preview == outcome while the
     // board is unchanged — the same rule as the ADAPTED chip). ×1 (the plain plan) for every other run.
     const m = this.livePowerBase !== null && this.waveIndex + 1 >= DIRECTOR_ADAPTIVE.liveFromWave ? this.dd.liveThreatMult(this.livePowerRatio()) : 1;
-    return wavePreview(promoteEliteShare(this.waves[this.waveIndex], this.dd.liveEliteShare(m)));
+    return wavePreview(this.liveWave(this.waveIndex, m));
+  }
+
+  /** §6a v3 LIVE COMPOSITION: wave `idx0` as it launches at live multiplier m — the board's PROBE role
+   *  swapped in (campaign.ts LIVE_PROBE_ROLES, read off the fielded towers), then the ELITE share
+   *  promoted. Pure in (plan, board, m) — the prep preview and the launch call it identically. The
+   *  plain plan (same array) at m ≤ 1, i.e. on every run that did not opt in. */
+  private liveWave(idx0: number, m: number): WaveDef {
+    const base = this.waves[idx0];
+    if (!(m > 1) || this.stage === null) return base;
+    const probeShare = this.dd.liveProbeShare(m);
+    const probe = probeShare > 0 ? liveProbeKind(this.stage.enemyPool, this.fieldedKinds()) : null;
+    return promoteEliteShare(swapInProbe(base, probe, probeShare), this.dd.liveEliteShare(m));
   }
 
   /** Per-tower-kind usage accrued this run — banked into permanent mastery at run end. */
