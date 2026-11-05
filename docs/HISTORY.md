@@ -569,3 +569,48 @@
 - `4a34d63` **[Developer Tools]** V3 column in CAMPAIGN opening table, readiness 0.7 re-checked under v3 _(internal)_
 - `1a83196` **[Bug Fixes]** Wave briefing re-reads the live composition when the board's tower count changes
 - `2e9aafe` **[Developer Tools]** "The Hive Probes" — release v2026.11.05.2, devlog, campaign guide, GAME-STATE _(internal)_
+- `eb83070` **[Developer Tools]** Validation,status: frontier challenge v3 PASS — 3028/3028, mobile gate clean; Chronicle synced _(internal)_
+- `3a8c881` **[Developer Tools]** Status: frontier challenge v3 is live (run #231); seal v2026.11.05.2 _(internal)_
+- `59f1d92` **[Gameplay]** Wip(grind): v4 board COVERAGE model + probe roles graded by coverage gap (measurement knobs neutral)
+- `d8a8817` **[Gameplay]** Wip(grind): coverage gaps read against the roster's mean coverage; sustain = shield/regen bodies
+- `7f7a716` **[Gameplay]** Wip(grind): probe roles read the axis that answers them in the sim; harm-ordered table + gap tie band
+- `5a31ea5` **[Bug Fixes]** Within-reach stages cost an attempt or two in ETAs; a pre-wave-1 exit reads "Ended before wave 1"
+- `1557dd1` **[Gene Cards]** Rarer draft cards shimmer and glow — a passive sweep + breathing rarity glow
+- `6b98a0a` **[Gameplay]** Hive Intelligence splices when Biomass overflows — the pick stays yours
+- `25ebc0c` **[Bug Fixes]** Goals: a veteran's first post-update ETAs read as lower bounds — no false "one more run"
+- `ec61717` **[Gene Cards]** Draft card rarity VFX pass — one layered system; edge light, motes, crown, reveal, pick burst
+- `adf52cf` **[Gameplay]** Account-level: Depth XP — run play XP scales with account depth; deep-level payouts re-weighted
+- `b51c886` **[Gameplay]** Wip(grind): tie-band probe test + finale-weight knob for the probe share (neutral)
+- `d6965cf` **[Developer Tools]** Account-level: pin Depth XP multiplier, depth source, settle fold, re-weighted ladder _(internal)_
+- `1da5e31` **[Developer Tools]** Progression-sim: refresh account-level guard measurements for Depth XP _(internal)_
+- `f853f8d` **[Developer Tools]** Depth XP design, measured cadence, leaderboard note; Help + DIL lines; Results chip wraps whole _(internal)_
+- `3f4c040` **[Developer Tools]** Balance: log the Depth XP decision in the grind round _(internal)_
+- `f206204` **[Developer Tools]** Account-level: state the measured value band on ACCOUNT_REWARD_DEPTH _(internal)_
+- `e375927` **[Gene Cards]** Wip(vfx-v4): shared RARITY FX system (draft → gear, archive, vault, cosmetics, market); one exotic colour; vault rarity colours; promotion moment
+- `0e39be4` **[Gameplay]** Grind: v4 live probe — coverage-graded roles, budget swap, finale-weighted share
+- `badd4d8` **[Visuals]** Wip(vfx): combat damage language — class-keyed shots, hit bursts, blasts, kill pops, muzzle
+- `be440c1` **[Bosses]** Wip(vfx-v2): shared telegraph language — boss wind-ups, core-shot, dash lane, mega cataclysm, cast lock
+- `b78729b` **[Towers]** Wip(vfx-v3): biome ground, tower deploy/evolve beats, hive core integrity crown
+- `a60843f` **[Developer Tools]** Grind: v4 coverage model in DIFFICULTY_DIRECTOR §6a/§7; Help + DIL; the probe leads the briefing _(internal)_
+- `80111d4` **[Developer Tools]** V4 column in CAMPAIGN §opening; readiness 0.7 re-checked under v4 _(internal)_
+- `b66e878` **[Visuals]** Wip(vfx-v4): docs (§rarity, §reward-vfx, §rarity-fx), RarityFx tests, calm grid profile, promotion fits 844x390
+- `88ebcb4` **[Developer Tools]** Grind: the probe chip rules sit beside .wb-role (off the contended file tail) _(internal)_
+- `fbfdbbd` **[Balance]** Wip(vfx-v3): range-edge bed, beat tuning, moment tests
+- `dd73e57` **[UI]** Wip(vfx-v4): compositor-only glow/motes, codex host fit, Open answers next frame, Flashes keep the pick ring
+- `9f379cd` **[Visuals]** Wip(vfx): control statuses read as a grip; busy-field rims hold still; damage-number crowd budget; tests
+- `a5f51de` **[Bosses]** Wip(vfx-v2): boss reaction rim, tether head, wash scaling, telegraph tests
+- `58a15cc` **[Developer Tools]** Vfx-v4: measured cost of the shared rarity layers _(internal)_
+- `6eabb66` **[Developer Tools]** The damage language — COMBAT-VISUAL-STANDARDS §damage-language, GAME-FEEL §combat-vfx, crowd-budget anchor, DIL line _(internal)_
+- `097cc12` **[Bug Fixes]** Combat FX reads the effective-range table by reference; glow sprites fall back on an unparsable tint
+- `63e2cd7` **[Heroes]** Wip(vfx-v2): hero idle life, registry claim, knowledge line, unknown-kind guard
+- `9748c24` **[Bug Fixes]** Render: floor/obstacle bakes no longer re-bake every frame under the camera breath
+- `9689784` **[Developer Tools]** Biome ground tests; registry claim + DIL knowledge for biome ground, bakes, tower moments, core crown _(internal)_
+- `63b0e51` **[Visuals]** Vfx: reaction-label crowd budget — repeated callouts recede on a busy field
+- `396384d` **[Balance]** Tune(vfx-v3): biome air reads — brighter motes, embers span the board, storm streaks slant with the gale
+- `669b263` **[Developer Tools]** Biome ground, tower moments, integrity crown, range bed; docSync anchor _(internal)_
+- `5fd0da8` **[Performance]** Vfx-v3: steady-frame cache checks compare fields instead of building key strings
+- `46497e3` **[Developer Tools]** Telegraph language — BOSS-DESIGN §telegraphs, MEGA-BOSS visuals v4, HERO-CINEMATICS §telegraph/§presence, GAME-FEEL §telegraphs _(internal)_
+- `96d1d83` **[Bug Fixes]** Vfx-v2: mega organ damage ghost resets on rupture; no cataclysm read through the collapse
+- `a12d365` **[Bug Fixes]** The boss banner holds a fired verb for 1.2 s instead of one tick
+- `be1d942` **[Visuals]** Vfx-v3: tidy hearth colour token literal _(internal)_
+- `2eb4b90` **[Developer Tools]** VFX pass integration — bug log rows 105–112, manifest bullets, GAME-STATE summary _(internal)_

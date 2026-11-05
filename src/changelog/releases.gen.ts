@@ -5,10 +5,86 @@ import type { Release } from './types';
 /** Player-facing releases, newest first. */
 export const RELEASES: Release[] = [
   {
+    "id": "v2026.11.05.3",
+    "date": "2026-11-05",
+    "title": "A Battlefield You Can Read",
+    "sealed": false,
+    "entries": [
+      {
+        "cat": "Visuals",
+        "text": "Every tower fires in its damage type — Kinetic darts, Caustic globs, Viral spores, Neural bolts, Vital orbs and Resonant pulses — in its own colour; hits, splash blasts and kills land in the striker’s colours, and mortar blasts show their real radius",
+        "major": true
+      },
+      {
+        "cat": "Bosses",
+        "text": "Boss attacks telegraph on the battlefield: a ring shows where a heal, gun-silence or drag lands and a closing lock shows when; a core-shot visibly crawls toward your Hive Core, and bosses no longer white out under heavy fire",
+        "major": true
+      },
+      {
+        "cat": "Mega Bosses",
+        "text": "Mega cataclysms mark your Hive Core and strike down to it; weak points flinch and show the damage each volley takes",
+        "major": true
+      },
+      {
+        "cat": "Visuals",
+        "text": "Every biome now looks like a place — frost-cracked slate, lava-seamed basalt, moss, mire, bone fields — with its own drifting air; obstacles are rock, not grids",
+        "major": true
+      },
+      {
+        "cat": "Visuals",
+        "text": "Placing a tower lands with a thump, upgrades and strains molt the organism, maxed ones raise a column of light — and the Hive Core wears its health as an arc",
+        "major": true
+      },
+      {
+        "cat": "UI",
+        "text": "Rarity looks the same everywhere: gear, gene cards, containers and cosmetics glow, shimmer and edge-light in their tier like draft cards; the Vault shows the rarity you actually pulled, and Genome Rank promotions get a golden ceremony",
+        "major": true
+      },
+      {
+        "cat": "Heroes",
+        "text": "Hero abilities land with a clear lock-on and impact frame, and heroes breathe and recoil when they strike"
+      },
+      {
+        "cat": "Balance",
+        "text": "The Hive reads your board: every tower is graded on reach, area damage, armour pierce, burst and control, and adapted waves probe what yours is thinnest against — the briefing names it (⌖ ARTILLERY · lacks burst)",
+        "major": true
+      },
+      {
+        "cat": "Gameplay",
+        "text": "Account Level keeps pace deep into the game: past Campaign Stage 30 your depth multiplies every run’s Account XP (DEPTH ×N on Results) — deep levels pay smaller, more frequent rewards",
+        "major": true
+      },
+      {
+        "cat": "Gameplay",
+        "text": "Hive Intelligence spends overflowing Biomass on Splice — the extra draft it opens is still yours to pick"
+      },
+      {
+        "cat": "UX",
+        "text": "Busy fights read better: small damage numbers and repeated reaction callouts fade when the field is crowded, and slowed or disrupted enemies show a grip instead of another glowing ring"
+      },
+      {
+        "cat": "UX",
+        "text": "Goal estimates are honest for returning players (shown as “25+ runs” until the game has seen a few of your runs), and a stage within reach reads as an attempt or two"
+      },
+      {
+        "cat": "Performance",
+        "text": "The battlefield floor no longer redraws itself every frame — the single biggest render cost is gone"
+      },
+      {
+        "cat": "Bug Fixes",
+        "text": "A boss’s fired ability now stays on its banner long enough to read, and enemy spawn effects draw in their own colours"
+      },
+      {
+        "cat": "Bug Fixes",
+        "text": "Opening a Bio-Container answers your tap instantly, and the Genome Rank promotion fits small phone screens"
+      }
+    ]
+  },
+  {
     "id": "v2026.11.05.2",
     "date": "2026-11-05",
     "title": "The Hive Probes",
-    "sealed": false,
+    "sealed": true,
     "entries": [
       {
         "cat": "Gene Cards",

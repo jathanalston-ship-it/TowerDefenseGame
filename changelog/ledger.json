@@ -1,6 +1,6 @@
 {
-  "lastSha": "2e9aafedffaa4be3ec981c1fce6846174ef5a673",
-  "commitsSinceDraft": 1,
+  "lastSha": "2eb4b905021205157dda22afb8e1980028dcd191",
+  "commitsSinceDraft": 0,
   "content": {
     "tower": [
       "needle",
@@ -3857,6 +3857,82 @@
           "cat": "Balance",
           "text": "The Hive probes your defense: from wave 4 on a frontier stage, a strong board meets the enemy role it covers least — fliers, artillery or burrowers — and the wave briefing names them before you launch",
           "major": true
+        }
+      ]
+    },
+    {
+      "id": "v2026.11.05.3",
+      "date": "2026-11-05",
+      "title": "A Battlefield You Can Read",
+      "sealed": false,
+      "entries": [
+        {
+          "cat": "Visuals",
+          "text": "Every tower fires in its damage type — Kinetic darts, Caustic globs, Viral spores, Neural bolts, Vital orbs and Resonant pulses — in its own colour; hits, splash blasts and kills land in the striker’s colours, and mortar blasts show their real radius",
+          "major": true
+        },
+        {
+          "cat": "Bosses",
+          "text": "Boss attacks telegraph on the battlefield: a ring shows where a heal, gun-silence or drag lands and a closing lock shows when; a core-shot visibly crawls toward your Hive Core, and bosses no longer white out under heavy fire",
+          "major": true
+        },
+        {
+          "cat": "Mega Bosses",
+          "text": "Mega cataclysms mark your Hive Core and strike down to it; weak points flinch and show the damage each volley takes",
+          "major": true
+        },
+        {
+          "cat": "Visuals",
+          "text": "Every biome now looks like a place — frost-cracked slate, lava-seamed basalt, moss, mire, bone fields — with its own drifting air; obstacles are rock, not grids",
+          "major": true
+        },
+        {
+          "cat": "Visuals",
+          "text": "Placing a tower lands with a thump, upgrades and strains molt the organism, maxed ones raise a column of light — and the Hive Core wears its health as an arc",
+          "major": true
+        },
+        {
+          "cat": "UI",
+          "text": "Rarity looks the same everywhere: gear, gene cards, containers and cosmetics glow, shimmer and edge-light in their tier like draft cards; the Vault shows the rarity you actually pulled, and Genome Rank promotions get a golden ceremony",
+          "major": true
+        },
+        {
+          "cat": "Heroes",
+          "text": "Hero abilities land with a clear lock-on and impact frame, and heroes breathe and recoil when they strike"
+        },
+        {
+          "cat": "Balance",
+          "text": "The Hive reads your board: every tower is graded on reach, area damage, armour pierce, burst and control, and adapted waves probe what yours is thinnest against — the briefing names it (⌖ ARTILLERY · lacks burst)",
+          "major": true
+        },
+        {
+          "cat": "Gameplay",
+          "text": "Account Level keeps pace deep into the game: past Campaign Stage 30 your depth multiplies every run’s Account XP (DEPTH ×N on Results) — deep levels pay smaller, more frequent rewards",
+          "major": true
+        },
+        {
+          "cat": "Gameplay",
+          "text": "Hive Intelligence spends overflowing Biomass on Splice — the extra draft it opens is still yours to pick"
+        },
+        {
+          "cat": "UX",
+          "text": "Busy fights read better: small damage numbers and repeated reaction callouts fade when the field is crowded, and slowed or disrupted enemies show a grip instead of another glowing ring"
+        },
+        {
+          "cat": "UX",
+          "text": "Goal estimates are honest for returning players (shown as “25+ runs” until the game has seen a few of your runs), and a stage within reach reads as an attempt or two"
+        },
+        {
+          "cat": "Performance",
+          "text": "The battlefield floor no longer redraws itself every frame — the single biggest render cost is gone"
+        },
+        {
+          "cat": "Bug Fixes",
+          "text": "A boss’s fired ability now stays on its banner long enough to read, and enemy spawn effects draw in their own colours"
+        },
+        {
+          "cat": "Bug Fixes",
+          "text": "Opening a Bio-Container answers your tap instantly, and the Genome Rank promotion fits small phone screens"
         }
       ]
     }
@@ -8107,6 +8183,366 @@
       "date": "2026-11-05",
       "cat": "Developer Tools",
       "text": "\"The Hive Probes\" — release v2026.11.05.2, devlog, campaign guide, GAME-STATE",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "eb8307080db9e2e0612cb7af9866cf480ec81f50",
+      "date": "2026-11-05",
+      "cat": "Developer Tools",
+      "text": "Validation,status: frontier challenge v3 PASS — 3028/3028, mobile gate clean; Chronicle synced",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "3a8c881cc918f022fcb80be096084ccaa80e4fd8",
+      "date": "2026-11-05",
+      "cat": "Developer Tools",
+      "text": "Status: frontier challenge v3 is live (run #231); seal v2026.11.05.2",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "59f1d92024d50cc3eb899e0bceb084e2f439f250",
+      "date": "2026-11-05",
+      "cat": "Gameplay",
+      "text": "Wip(grind): v4 board COVERAGE model + probe roles graded by coverage gap (measurement knobs neutral)",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "d8a8817ff8bfa40e3c0ea83664c628ad85910edf",
+      "date": "2026-11-05",
+      "cat": "Gameplay",
+      "text": "Wip(grind): coverage gaps read against the roster's mean coverage; sustain = shield/regen bodies",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "7f7a71630d898efba6e13cb09515e8e1b8b40d56",
+      "date": "2026-11-05",
+      "cat": "Gameplay",
+      "text": "Wip(grind): probe roles read the axis that answers them in the sim; harm-ordered table + gap tie band",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "5a31ea5fcf23a06f5c97a13830589094ac3b26cc",
+      "date": "2026-11-05",
+      "cat": "Bug Fixes",
+      "text": "Within-reach stages cost an attempt or two in ETAs; a pre-wave-1 exit reads \"Ended before wave 1\"",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "1557dd1c529d469a535d096f339e79570bbb0e66",
+      "date": "2026-11-05",
+      "cat": "Gene Cards",
+      "text": "Rarer draft cards shimmer and glow — a passive sweep + breathing rarity glow",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "6b98a0a304537254b376b206d85c3c686fbf4bfc",
+      "date": "2026-11-05",
+      "cat": "Gameplay",
+      "text": "Hive Intelligence splices when Biomass overflows — the pick stays yours",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "25ebc0ce0a35fe71a5a85e1c41f54921452ac439",
+      "date": "2026-11-05",
+      "cat": "Bug Fixes",
+      "text": "Goals: a veteran's first post-update ETAs read as lower bounds — no false \"one more run\"",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "ec6171771d385d6fdf48bcc8d7f8759e14f32505",
+      "date": "2026-11-05",
+      "cat": "Gene Cards",
+      "text": "Draft card rarity VFX pass — one layered system; edge light, motes, crown, reveal, pick burst",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "adf52cf39464ecccbd5ede3a426a7e1389863643",
+      "date": "2026-11-05",
+      "cat": "Gameplay",
+      "text": "Account-level: Depth XP — run play XP scales with account depth; deep-level payouts re-weighted",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "b51c8864dc3fc645466935c39be62afef5541b17",
+      "date": "2026-11-05",
+      "cat": "Gameplay",
+      "text": "Wip(grind): tie-band probe test + finale-weight knob for the probe share (neutral)",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "d6965cf096e015eed631ab5b15838730c0d17b7b",
+      "date": "2026-11-05",
+      "cat": "Developer Tools",
+      "text": "Account-level: pin Depth XP multiplier, depth source, settle fold, re-weighted ladder",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "1da5e31792951e337094814a97a859cf819b2824",
+      "date": "2026-11-05",
+      "cat": "Developer Tools",
+      "text": "Progression-sim: refresh account-level guard measurements for Depth XP",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "f853f8d1d25ee48dc7fdbc94bd09f15cd788b812",
+      "date": "2026-11-05",
+      "cat": "Developer Tools",
+      "text": "Depth XP design, measured cadence, leaderboard note; Help + DIL lines; Results chip wraps whole",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "3f4c040b69064e37b4cf35bc088e7e87ea688ffe",
+      "date": "2026-11-05",
+      "cat": "Developer Tools",
+      "text": "Balance: log the Depth XP decision in the grind round",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "f206204a3dd6d65a3f948c4d93e458a5b47154fa",
+      "date": "2026-11-05",
+      "cat": "Developer Tools",
+      "text": "Account-level: state the measured value band on ACCOUNT_REWARD_DEPTH",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "e3759271bb5f949ba0389cde47174596a711d45f",
+      "date": "2026-11-05",
+      "cat": "Gene Cards",
+      "text": "Wip(vfx-v4): shared RARITY FX system (draft → gear, archive, vault, cosmetics, market); one exotic colour; vault rarity colours; promotion moment",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "0e39be4311b893460d9c365e9bc1e85e7a3e6e62",
+      "date": "2026-11-05",
+      "cat": "Gameplay",
+      "text": "Grind: v4 live probe — coverage-graded roles, budget swap, finale-weighted share",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "badd4d865cc08c6855cf92c1c2088206abd606d4",
+      "date": "2026-11-05",
+      "cat": "Visuals",
+      "text": "Wip(vfx): combat damage language — class-keyed shots, hit bursts, blasts, kill pops, muzzle",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "be440c101291e14e91c69e970346c30594ad4cff",
+      "date": "2026-11-05",
+      "cat": "Bosses",
+      "text": "Wip(vfx-v2): shared telegraph language — boss wind-ups, core-shot, dash lane, mega cataclysm, cast lock",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "b78729b2d94eb8fee0874f7c943cf3ccb64c30d2",
+      "date": "2026-11-05",
+      "cat": "Towers",
+      "text": "Wip(vfx-v3): biome ground, tower deploy/evolve beats, hive core integrity crown",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "a60843fc78663c62d0c7208db18c6326bf755ff0",
+      "date": "2026-11-05",
+      "cat": "Developer Tools",
+      "text": "Grind: v4 coverage model in DIFFICULTY_DIRECTOR §6a/§7; Help + DIL; the probe leads the briefing",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "80111d45d296f0f3531d733378d13de1d97cda49",
+      "date": "2026-11-05",
+      "cat": "Developer Tools",
+      "text": "V4 column in CAMPAIGN §opening; readiness 0.7 re-checked under v4",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "b66e8789e760ec1841db99d52b5282405dbff0f4",
+      "date": "2026-11-05",
+      "cat": "Visuals",
+      "text": "Wip(vfx-v4): docs (§rarity, §reward-vfx, §rarity-fx), RarityFx tests, calm grid profile, promotion fits 844x390",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "88ebcb44febb93c53f48fa9bfc93f6539bdd0a9c",
+      "date": "2026-11-05",
+      "cat": "Developer Tools",
+      "text": "Grind: the probe chip rules sit beside .wb-role (off the contended file tail)",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "fbfdbbd54e4eb5e1413b195e7d37a66e6badc3f1",
+      "date": "2026-11-05",
+      "cat": "Balance",
+      "text": "Wip(vfx-v3): range-edge bed, beat tuning, moment tests",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "dd73e577dade5abd09786f96463f88a3a67f02a5",
+      "date": "2026-11-05",
+      "cat": "UI",
+      "text": "Wip(vfx-v4): compositor-only glow/motes, codex host fit, Open answers next frame, Flashes keep the pick ring",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "9f379cd3e9f37a1544d5e11cfd17f80c27d5541c",
+      "date": "2026-11-05",
+      "cat": "Visuals",
+      "text": "Wip(vfx): control statuses read as a grip; busy-field rims hold still; damage-number crowd budget; tests",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "a5f51de9b5696e2488d9684718861de57f26b0fe",
+      "date": "2026-11-05",
+      "cat": "Bosses",
+      "text": "Wip(vfx-v2): boss reaction rim, tether head, wash scaling, telegraph tests",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "58a15cc0faefe3e6bfd0fb702ab02e5c44929472",
+      "date": "2026-11-05",
+      "cat": "Developer Tools",
+      "text": "Vfx-v4: measured cost of the shared rarity layers",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "6eabb6668035415e2850e7a491c400d1c43bcb67",
+      "date": "2026-11-05",
+      "cat": "Developer Tools",
+      "text": "The damage language — COMBAT-VISUAL-STANDARDS §damage-language, GAME-FEEL §combat-vfx, crowd-budget anchor, DIL line",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "097cc12cf87e590b5c25929e285e567488192edf",
+      "date": "2026-11-05",
+      "cat": "Bug Fixes",
+      "text": "Combat FX reads the effective-range table by reference; glow sprites fall back on an unparsable tint",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "63e2cd7e96004a4e703ca7f8468df69d87e25949",
+      "date": "2026-11-05",
+      "cat": "Heroes",
+      "text": "Wip(vfx-v2): hero idle life, registry claim, knowledge line, unknown-kind guard",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "9748c2409d29dd6b8c3e21221a03c6b37936863c",
+      "date": "2026-11-05",
+      "cat": "Bug Fixes",
+      "text": "Render: floor/obstacle bakes no longer re-bake every frame under the camera breath",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "9689784b5ef61c9dfc9678de9eb59b75ba23d1d0",
+      "date": "2026-11-05",
+      "cat": "Developer Tools",
+      "text": "Biome ground tests; registry claim + DIL knowledge for biome ground, bakes, tower moments, core crown",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "63b0e51f4fcac52f9e6dee3d77050ce191e4dacc",
+      "date": "2026-11-05",
+      "cat": "Visuals",
+      "text": "Vfx: reaction-label crowd budget — repeated callouts recede on a busy field",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "396384d5e960badb369936bcdcaf0cb934d577cb",
+      "date": "2026-11-05",
+      "cat": "Balance",
+      "text": "Tune(vfx-v3): biome air reads — brighter motes, embers span the board, storm streaks slant with the gale",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "669b2635fd5dc180e1bc1459d14f9b5bc43613d6",
+      "date": "2026-11-05",
+      "cat": "Developer Tools",
+      "text": "Biome ground, tower moments, integrity crown, range bed; docSync anchor",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "5fd0da8373dba8e74aa57cffab77440c4b59916a",
+      "date": "2026-11-05",
+      "cat": "Performance",
+      "text": "Vfx-v3: steady-frame cache checks compare fields instead of building key strings",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "46497e369994bcab04fbc5eae64be10f465bb323",
+      "date": "2026-11-05",
+      "cat": "Developer Tools",
+      "text": "Telegraph language — BOSS-DESIGN §telegraphs, MEGA-BOSS visuals v4, HERO-CINEMATICS §telegraph/§presence, GAME-FEEL §telegraphs",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "96d1d83fd649fa9546dc650c70e56cc42a2548a4",
+      "date": "2026-11-05",
+      "cat": "Bug Fixes",
+      "text": "Vfx-v2: mega organ damage ghost resets on rupture; no cataclysm read through the collapse",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "a12d365ca314b33be89985fd2dc6270029fb572f",
+      "date": "2026-11-05",
+      "cat": "Bug Fixes",
+      "text": "The boss banner holds a fired verb for 1.2 s instead of one tick",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "be1d9424b0e15544f4669e94566d3a6a6b4e4882",
+      "date": "2026-11-05",
+      "cat": "Visuals",
+      "text": "Vfx-v3: tidy hearth colour token literal",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "2eb4b905021205157dda22afb8e1980028dcd191",
+      "date": "2026-11-05",
+      "cat": "Developer Tools",
+      "text": "VFX pass integration — bug log rows 105–112, manifest bullets, GAME-STATE summary",
       "internal": true,
       "needsReview": false
     }

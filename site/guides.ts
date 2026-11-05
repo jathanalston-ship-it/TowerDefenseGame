@@ -5,6 +5,7 @@
 
 import { CAMPAIGN_OPENING, DIRECTOR_ADAPTIVE, DRAFT_FEATURES, ENDLESS_SQUEEZE, MODE_UNLOCKS, READINESS, RUSH } from '../src/core/config';
 import { MAP_LAYOUTS } from '../src/core/mapLayouts';
+import { ACCOUNT_XP_DEPTH } from '../src/core/accountLevel';
 import { THREAT_MAX } from '../src/core/threat';
 
 export interface GuideSection { h: string; body: string[] /* paragraphs (may contain safe inline HTML) */; dataTable?: 'towers' | 'heroes' }
@@ -173,7 +174,7 @@ export const GUIDES: Guide[] = [
       ] },
       { h: 'The opening, and the Hive that adapts', body: [
         'A run is no longer decided in its first thirty seconds. Fliers stay out of wave 1 and arrive only in small numbers in wave ' + (CAMPAIGN_OPENING.flyingUnitCap.length) + ', a stage’s Mega surfaces with wave ' + CAMPAIGN_OPENING.megaArrivalWave + ' rather than on top of your opening build, and on deeper stages your free first organism is one that answers the stage’s opening threats.',
-        'The pressure comes later instead: from wave ' + DIRECTOR_ADAPTIVE.liveFromWave + ' (and from Stage ' + DIRECTOR_ADAPTIVE.liveFromStage + ' on), and on every boss, the hive answers your snowball. It reads your whole board — your Power, what you have invested in it this run and how many towers you have fielded — and answers with waves that are tougher, denser and faster, so a strong board meets a real fight without the wave dragging on (the briefing shows <b>▲ ADAPTED ×N</b>). Part of that answer is a <b>probe</b>: the enemy role your board covers least — fliers if you have no area damage, artillery, or burrowers — and the briefing names it before you launch. Your drafted gene cards never make it adapt harder, so a good pick carries the run. It only ever pushes up; a board that is behind is never propped up.',
+        'The pressure comes later instead: from wave ' + DIRECTOR_ADAPTIVE.liveFromWave + ' (and from Stage ' + DIRECTOR_ADAPTIVE.liveFromStage + ' on), and on every boss, the hive answers your snowball. It reads your whole board — your Power, what you have invested in it this run and how many towers you have fielded — and answers with waves that are tougher, denser and faster, so a strong board meets a real fight without the wave dragging on (the briefing shows <b>▲ ADAPTED ×N</b>). Part of that answer is a <b>probe</b>: the hive grades every tower you field on reach, area damage, armour pierce, burst and control, and sends the enemy role your board is thinnest against — artillery that outlasts weak burst, sprinters past thin control, flier packs past missing area damage, armour against low pierce — and the briefing names it before you launch (⌖ ARTILLERY · lacks burst). Your drafted gene cards never make it adapt harder, so a good pick carries the run. It only ever pushes up; a board that is behind is never propped up.',
         'Confident in your board? Press <b>⏩ Call early</b> (or Space) mid-wave to launch the next wave now for bonus Biomass. Waves overlap, and every gene draft you skipped is still dealt when the field clears.',
       ] },
       { h: 'When you hit a wall', body: [
@@ -332,6 +333,7 @@ export const GUIDES: Guide[] = [
     sections: [
       { h: 'Account Level — the dedication meter', body: [
         'Nearly everything pays Account XP: kills, waves, wins, campaign clears, dailies, contracts, achievements, acquisitions. The level curve is smooth and uncapped — there is no ceiling and no reset — and every level pays a procedurally weighted reward, with richer milestone levels carrying titles. Weekly and monthly XP ledgers feed their own leaderboards, so the meter is both a lifetime record and a live race.',
+        'Deep players level up about once an hour: past Campaign Stage ' + ACCOUNT_XP_DEPTH.from + ', every run’s play XP is multiplied by how deep your account has pushed (Results shows it as <b>DEPTH ×N</b>), and deep levels pay smaller, more frequent rewards, so the total stays fair.',
       ] },
       { h: 'Genome Rank — the breadth meter', body: [
         'Your Genome Rating folds a weighted contribution from EVERY major system — campaign depth, Infinite records, Power Score, collections, mastery, doctrines, contracts, cosmetics, prestige and more — into one prestigious rank: Dormant, through the named ladder, to Living Catastrophe and beyond (the ladder is infinite). No single lane can dominate it by design: the rank measures how much of the game you have actually made yours.',

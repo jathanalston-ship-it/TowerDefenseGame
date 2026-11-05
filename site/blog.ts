@@ -17,6 +17,38 @@ export interface BlogPost {
 
 export const POSTS: BlogPost[] = [
   {
+    slug: 'a-battlefield-you-can-read',
+    date: '2026-11-05',
+    title: 'A battlefield you can read: a full visual pass, a Hive that probes your board, and levels that keep coming',
+    category: 'Release',
+    tags: ['visuals', 'game-feel', 'bosses', 'campaign', 'progression', 'design'],
+    summary: 'The biggest visual update ASSIMILATION has had: every tower fires in its damage type, bosses and Megas telegraph their attacks, every biome has its own ground, towers land and evolve with weight, and rarity looks the same everywhere. Plus a Hive that probes your weakest coverage, account levels that keep pace deep into the game, and a big performance fix.',
+    body: `
+<p>We went through the whole game frame by frame (combat, bosses, the battlefield itself and every menu) and asked one question of each effect: does this help you read the fight? Four passes later, here is what changed.</p>
+<h2>See who is hitting what</h2>
+<p>Every tower used to fire the same pale-cyan bolt. Now each damage type has its own shot and its own impact: <b>Kinetic</b> darts, <b>Caustic</b> globs, <b>Viral</b> spores, <b>Neural</b> bolts, <b>Vital</b> orbs and <b>Resonant</b> pulses, each in its tower's own colour. A hit lights the enemy in the striker's colour instead of a white blob. Mortar blasts show their true radius, field towers pulse out to their reach, and kills pop harder the more you overkill. When the field is crowded, small damage numbers and repeated reaction callouts fade, so the big hits still read.</p>
+<h2>Bosses tell you what they're about to do</h2>
+<p>Boss abilities used to fire with no warning. Now every one of them winds up on the battlefield: a ring shows where a heal, a gun-silence or a drag will land, and a closing lock shows when. A boss's core-shot visibly crawls toward your Hive Core, a charge shows the lane it will run, and phase changes burst. Bosses no longer turn into a white disc under heavy fire. Mega cataclysms mark your Core and strike down to it, and weak points flinch and show the damage each volley takes. Hero abilities land with a lock-on and an impact frame, and heroes breathe and recoil when they strike.</p>
+<h2>A battlefield of its own</h2>
+<p>Every biome now has its own ground and air: frost-cracked slate with drifting snow, lava-seamed basalt with rising embers, moss, mire, chitin plates and more. Obstacles look like rock outcrops instead of grids. Placing a tower lands with a thump, every upgrade and strain molts it more visibly than the last, and a maxed tower raises a column of light. The Hive Core now wears its health as an arc around itself.</p>
+<h2>Rarity looks the same everywhere</h2>
+<p>Gear, gene cards, containers and cosmetics now share the draft cards' rarity look: a glow, a sweep, a light around the edge, and sparks and a crown for the rarest tiers. The Vault now shows the rarity you actually pulled in its rarity colour (it used the reward type's colour before), exotic is one colour across the game, and a Genome Rank promotion gets a golden ceremony.</p>
+<h2>The Hive probes your board</h2>
+<p>The Hive now grades every tower you field on reach, area damage, armour pierce, burst and control, and when it adapts it sends the enemy role your board is thinnest against. That might be artillery against a board without burst, sprinters past thin control, or flier packs if you have no area damage. The briefing names it before you launch. In our tests, flawless frontier wins dropped from about 70% to about 63%, without making runs any longer.</p>
+<h2>Levels that keep coming</h2>
+<p>Past Campaign Stage 30, every run's Account XP is now multiplied by how deep your account has pushed (Results shows it as <b>DEPTH ×N</b>), so deep players level up about once an hour again instead of every few hours. Deep levels pay smaller, more frequent rewards, so the total stays the same.</p>
+<h2>Faster, and fixed along the way</h2>
+<ul>
+<li>The battlefield floor was being redrawn from scratch every frame. That was the biggest single cost in the renderer, and it's gone.</li>
+<li>Hive Intelligence now spends overflowing Biomass on Splice. The draft it opens is still yours to pick.</li>
+<li>If you've played for a long time, your first goal estimates after the update show as minimums ("25+ runs") until the game has seen a few of your runs.</li>
+<li>A stage you're within reach of now reads as one or two attempts, not "~7 runs".</li>
+<li>Back-to-back drafts after an Early Call say how many more are owed.</li>
+<li>A boss's ability name now stays on its health bar long enough to read.</li>
+</ul>
+`,
+  },
+  {
     slug: 'the-hive-probes',
     date: '2026-11-05',
     title: 'The Hive probes your board, and your picks carry the run',
