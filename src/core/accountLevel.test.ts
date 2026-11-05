@@ -252,6 +252,19 @@ describe('meta integration — XP settles, levels cross, rewards land', () => {
     meta.reset();
   });
 
+  it('weekly/monthly boards count activity before the depth multiplier (§depth, owner 2026-11-05)', () => {
+    meta.reset();
+    meta.debugSetCampaignStage(80);
+    const before = meta.accountLevel();
+    meta.finishRun(makeResult({ wave: 12, kills: 260, won: false }, { wave: 12, kills: 260 }));
+    const v = meta.accountLevel();
+    const play = 260 * ACCOUNT_XP.kill + 12 * ACCOUNT_XP.wave;
+    // Lifetime XP carries the multiplier; the period boards get the same run un-multiplied.
+    expect((v.xp - before.xp) - (v.weekXp - before.weekXp)).toBe(Math.round(play * depthXpMult(80)) - play);
+    expect(v.weekXp - before.weekXp).toBe(v.monthXp - before.monthXp);
+    meta.reset();
+  });
+
   it('weekly/monthly ledgers accumulate under the current period keys', () => {
     meta.reset();
     meta.finishRun(makeResult({ wave: 5, kills: 60 }, { wave: 5, kills: 60 }));

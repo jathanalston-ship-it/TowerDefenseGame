@@ -618,3 +618,4 @@
 - `200e918` **[Bug Fixes]** Media: close any open draft before filming — the Hive now splices an overflowing bank
 - `0344d9d` **[Framework]** Media: re-shoot stills + trailer for the new look (VFX pass) _(internal)_
 - `af3af16` **[Developer Tools]** Validation,status: VFX batch PASS — 3083/3083, mobile gate clean; status board 2026-11-05c _(internal)_
+- `a21bc73` **[Towers]** Sync Chronicle artifacts to HEAD; first-session probe PASS (0 errors, first tower 7.2 s) _(internal)_

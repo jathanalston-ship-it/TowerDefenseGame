@@ -1058,7 +1058,7 @@ carry `accountLevel` (PROGRESSION_REPORT column) for pacing evidence.
 **Known limitations.** Boards are client claims (bounds + keep-best friction, like
 daily/bossRush); `levelFromXp` is an O(level) walk (fine at real scales); milestone toasts
 beyond the named tiers reuse the generic celebration (no per-tier bespoke art yet). Depth XP is
-calibrated on the sim world model; weekly/monthly XP boards now weight activity × depth.
+calibrated on the sim world model; weekly/monthly XP boards stay pure activity (period ledgers fold pre-multiplier XP — owner 2026-11-05).
 
 ## Compressed system summary — Genome Rank (docs/GENOME-RANK.md)
 

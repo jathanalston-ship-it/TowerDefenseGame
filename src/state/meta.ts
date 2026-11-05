@@ -825,17 +825,21 @@ let pendingGenomePromotions: GenomePromotion[] = [];
 /** Fold gained Account XP onto a save DRAFT: lifetime + rolling week/month ledgers, then every
  *  crossed level's procedurally generated reward (cores/essence/shards/mats/ichor/containers/
  *  titles — through the same fields every other grant uses). Pure over the draft; the caller
- *  persists the returned save. Crossed level-ups also queue for the menu toaster. */
-function foldAccountXp(draft: SaveData, gained: number, now = Date.now()): { save: SaveData; delta: AccountXpDelta } {
+ *  persists the returned save. Crossed level-ups also queue for the menu toaster.
+ *  `periodGained` (default = `gained`) is what the WEEKLY / MONTHLY ledgers count — the run settle
+ *  passes its XP BEFORE the depth multiplier (owner decision 2026-11-05: the period boards measure
+ *  activity, not depth — docs/ACCOUNT-LEVEL.md §depth); lifetime XP + the level take the full value. */
+function foldAccountXp(draft: SaveData, gained: number, now = Date.now(), periodGained = gained): { save: SaveData; delta: AccountXpDelta } {
   const g = Math.max(0, Math.round(gained));
+  const pg = Math.max(0, Math.round(periodGained));
   const from = levelFromXp(draft.accountXp.xp);
   if (g === 0) return { save: draft, delta: { gained: 0, from, to: from, levelUps: [] } };
   const wk = weekKey(now);
   const mk = monthKey(now);
   const accountXp = {
     xp: draft.accountXp.xp + g,
-    week: { key: wk, xp: (draft.accountXp.week.key === wk ? draft.accountXp.week.xp : 0) + g },
-    month: { key: mk, xp: (draft.accountXp.month.key === mk ? draft.accountXp.month.xp : 0) + g },
+    week: { key: wk, xp: (draft.accountXp.week.key === wk ? draft.accountXp.week.xp : 0) + pg },
+    month: { key: mk, xp: (draft.accountXp.month.key === mk ? draft.accountXp.month.xp : 0) + pg },
   };
   const to = levelFromXp(accountXp.xp);
   let save: SaveData = { ...draft, accountXp };
@@ -3145,17 +3149,18 @@ export const meta = {
     // scales with the account's depth at run start (§depth); contract bonuses stay flat — their
     // ContractsCard previews quote the table value (previews == outcomes).
     const depthMult = depthXpMult(accountDepth(highestCampaignStage(save), save.bestWave));
-    const runXp =
-      (result.kills * ACCOUNT_XP.kill +
+    const playXp =
+      result.kills * ACCOUNT_XP.kill +
         bossKills * ACCOUNT_XP.bossKill +
         (result.stats.megaKills?.length ?? 0) * ACCOUNT_XP.megaKill +
         result.wave * ACCOUNT_XP.wave +
         (isRush ? result.wave * ACCOUNT_XP.bossRushWavePremium : 0) +
         (result.won ? ACCOUNT_XP.win : 0) +
         (isCampaign && result.won ? stageNo * ACCOUNT_XP.campaignClearPerStage + (firstClear ? ACCOUNT_XP.campaignFirstClear : 0) : 0) +
-        (isDaily && result.won ? ACCOUNT_XP.dailyComplete : 0)) * depthMult +
-      contractHits.length * ACCOUNT_XP.contract +
-      (perfectWeek ? ACCOUNT_XP.perfectWeek : 0);
+        (isDaily && result.won ? ACCOUNT_XP.dailyComplete : 0);
+    const flatXp = contractHits.length * ACCOUNT_XP.contract + (perfectWeek ? ACCOUNT_XP.perfectWeek : 0);
+    const runXp = playXp * depthMult + flatXp;
+    const periodXp = playXp + flatXp; // the weekly/monthly boards count activity, before the depth multiplier
     const acctXpBefore = save.accountXp.xp;
     const settled: SaveData = {
       ...save,
@@ -3203,7 +3208,7 @@ export const meta = {
       prestige: { ...save.prestige, cycleShards: save.prestige.cycleShards + shardsEarned },
       campaign: nextCampaign,
     };
-    persist(foldAccountXp(withIncome(withPeakPower(settled, settled), save), runXp).save); // v56: peak Power + the per-run income ledger
+    persist(foldAccountXp(withIncome(withPeakPower(settled, settled), save), runXp, Date.now(), periodXp).save); // v56: peak Power + the per-run income ledger
     runLootBanked = 0; // this run is settled — re-arm the live-bank cycle for the next run
     runContainersBanked = [];
     // Run-end milestones (extract, kills, mastery, …). The Results screen shows these inline AFTER

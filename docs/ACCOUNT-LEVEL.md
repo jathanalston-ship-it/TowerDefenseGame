@@ -16,6 +16,7 @@ It **never caps**.
 | No cap; smooth spike-free power-law curve; overflow-safe ≥ L100 000 | `accountLevel.test.ts` §curve |
 | Reward value grows **slower** than XP requirement (n^0.7 vs n^1.25) | §rewards + sim guard (≤ 15 % of lifetime cores) |
 | Depth XP: ×1 through depth 30, smooth/monotonic/uncapped after; contract XP stays flat | §depth (`accountLevel.test.ts`) |
+| Weekly/monthly XP boards count pure activity (pre-depth-multiplier XP); lifetime XP carries it | §depth (`accountLevel.test.ts`) |
 | Levels 1–42 pay the pre-depth ladder exactly; deep beats are smaller but bounded and creep back up | §rewards (pinned sums + deep-window guard) |
 | Every level pays something (guaranteed core floor) | §rewards (levels 1–400 swept) |
 | Rewards deterministic per level (shared previewable ladder, no save RNG) | §rewards |
@@ -85,12 +86,12 @@ names the multiplier (`RunOutcome.accountXp.depthMult` → "DEPTH ×N.N").
 
 Value = core-equivalents at the ladder's own budget rates + ichor at the Exchange anchor +
 containers at their expected roll. Over 30–150 h: −1 % / 0 %. Levels at 150 h: 96 → 167; at
-400 h: 145 → ~375. **Leaderboards:** per active hour XP is now depth-weighted — for one account
-it is uniform across modes (one multiplier), but a stage-160 veteran earns ~15× the XP/hour of a
-stage-30 account, so `weeklyXp`/`monthlyXp` tilt from pure activity toward activity × depth and
-the all-time `accountLevel` board's XP grows faster for deep accounts from now on (existing
-totals untouched; `MODE_BOUNDS` — 5·10⁸ per period — keeps ~30× headroom over a 300-hour month
-at stage 170, ~55k XP/hour).
+400 h: 145 → ~375. **Leaderboards:** the `weeklyXp`/`monthlyXp` boards stay **pure activity** —
+the period ledgers fold each run's XP *before* the depth multiplier (`finishRun` passes `periodXp`
+to `foldAccountXp`; owner decision 2026-11-05), so a fresh account and a stage-160 veteran race
+on time played. Lifetime XP — the level and the all-time `accountLevel` board — carries the
+multiplier and grows faster for deep accounts from now on (existing totals untouched;
+`MODE_BOUNDS` — 5·10⁸ per period — keeps ample headroom).
 
 ## Procedural rewards
 
@@ -105,8 +106,8 @@ apply line in `foldAccountXp`.**
 
 ## The settle pipeline
 
-`foldAccountXp(draft, gained, now)` (meta-internal): adds XP to lifetime + weekly/monthly
-ledgers (`weekKey`/`monthKey` UTC buckets, rolled on key change), grants every crossed level's
+`foldAccountXp(draft, gained, now, periodGained = gained)` (meta-internal): adds `gained` to
+lifetime XP and `periodGained` (pre-depth-multiplier) to the weekly/monthly ledgers (`weekKey`/`monthKey` UTC buckets, rolled on key change), grants every crossed level's
 reward into the same draft (shards/essence/ichor/mats/pendingContainers/titles + a milestone
 timeline beat), queues `AccountLevelUp`s. Two celebration paths, no double-fire:
 

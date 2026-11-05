@@ -1,6 +1,6 @@
 {
-  "lastSha": "af3af1682779c0a89984e0a9270c1a72d4a94adc",
-  "commitsSinceDraft": 4,
+  "lastSha": "a21bc732937173a46c95bcb1c1cd28d445916f40",
+  "commitsSinceDraft": 5,
   "content": {
     "tower": [
       "needle",
@@ -3907,7 +3907,7 @@
         },
         {
           "cat": "Gameplay",
-          "text": "Account Level keeps pace deep into the game: past Campaign Stage 30 your depth multiplies every run’s Account XP (DEPTH ×N on Results) — deep levels pay smaller, more frequent rewards",
+          "text": "Account Level keeps pace deep into the game: past Campaign Stage 30 your depth multiplies every run’s Account XP (DEPTH ×N on Results) — deep levels pay smaller, more frequent rewards; the weekly and monthly XP boards still count pure play time",
           "major": true
         },
         {
@@ -8575,6 +8575,14 @@
       "date": "2026-11-05",
       "cat": "Developer Tools",
       "text": "Validation,status: VFX batch PASS — 3083/3083, mobile gate clean; status board 2026-11-05c",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "a21bc732937173a46c95bcb1c1cd28d445916f40",
+      "date": "2026-11-05",
+      "cat": "Towers",
+      "text": "Sync Chronicle artifacts to HEAD; first-session probe PASS (0 errors, first tower 7.2 s)",
       "internal": true,
       "needsReview": false
     }

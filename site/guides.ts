@@ -333,7 +333,7 @@ export const GUIDES: Guide[] = [
     sections: [
       { h: 'Account Level — the dedication meter', body: [
         'Nearly everything pays Account XP: kills, waves, wins, campaign clears, dailies, contracts, achievements, acquisitions. The level curve is smooth and uncapped — there is no ceiling and no reset — and every level pays a procedurally weighted reward, with richer milestone levels carrying titles. Weekly and monthly XP ledgers feed their own leaderboards, so the meter is both a lifetime record and a live race.',
-        'Deep players level up about once an hour: past Campaign Stage ' + ACCOUNT_XP_DEPTH.from + ', every run’s play XP is multiplied by how deep your account has pushed (Results shows it as <b>DEPTH ×N</b>), and deep levels pay smaller, more frequent rewards, so the total stays fair.',
+        'Deep players level up about once an hour: past Campaign Stage ' + ACCOUNT_XP_DEPTH.from + ', every run’s play XP is multiplied by how deep your account has pushed (Results shows it as <b>DEPTH ×N</b>), and deep levels pay smaller, more frequent rewards, so the total stays fair. The weekly and monthly XP boards count XP <i>before</i> that multiplier, so they stay a race of time played.',
       ] },
       { h: 'Genome Rank — the breadth meter', body: [
         'Your Genome Rating folds a weighted contribution from EVERY major system — campaign depth, Infinite records, Power Score, collections, mastery, doctrines, contracts, cosmetics, prestige and more — into one prestigious rank: Dormant, through the named ladder, to Living Catastrophe and beyond (the ladder is infinite). No single lane can dominate it by design: the rank measures how much of the game you have actually made yours.',
