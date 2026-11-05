@@ -3846,7 +3846,7 @@
       "id": "v2026.11.05.2",
       "date": "2026-11-05",
       "title": "The Hive Probes",
-      "sealed": false,
+      "sealed": true,
       "entries": [
         {
           "cat": "Gene Cards",
