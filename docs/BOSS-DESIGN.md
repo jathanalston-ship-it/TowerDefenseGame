@@ -296,3 +296,54 @@ totality — `MODULE_LABEL` is a total Record so a new kind without a label is a
 bossmodules.test.ts §signatures (warcry haste grant + fade, mortarfall reticle-on-gun +
 suppression, broodburst self-spend + adds + exposure, nullwell swallow freeze + 2-well cap,
 unstoppable DR through applyDamage + slow-immune march).
+
+## §telegraphs (2026-11) — every boss attack says WHERE and WHEN
+
+**The audit** (frame-stepped captures of a stage-80 board, docs/GAME-FEEL.md §telegraphs) found the
+boss fight unreadable exactly where it matters: (1) a boss under focus fire **whited out** — the
+full-body hit pop (`e.hitFlash`, 0.09 s) and the reaction flash (`shredFlash`, 0.4 s, alpha 0.8)
+re-trigger every few frames at depth, so the chassis, its phase anatomy and every runtime state read
+as a white disc; (2) the module verbs (MEND, SUPPRESS, DRAG, DAMPEN, WARCRY, CORRUPTION, NULL WELL…)
+fire **with no wind-up at all**, and their banner label lived ONE tick (`bossSystem` clears
+`telegraph` the next step); (3) the core-shot channel was a faint dotted tether with no countdown
+and no landing frame; (4) the charge vector was a fixed `r→4r` stub, not where the dash really ends;
+(5) phase shifts were a "MUTATING!" float lost in the float soup.
+
+**The fix — one visual language, `render/telegraphs.ts`** (render-only; the sim is untouched):
+
+- **WHERE** — a dashed zone rim + a faint wash over the exact area (the module's own `radius`, else
+  the sim's `?? default`, carried in the tell row). Wide zones thin their wash (`TELL.washRef`) so a
+  260 px drag zone never fogs the field.
+- **WHEN** — a solid LOCK ring closing onto the rim; it touches the rim on the tick the sim acts.
+  Hostile locks wear four inward reticle notches (the mortarfall reticle's vocabulary).
+- **LAND** — a rim snap + a Flashes-gated hot core (`drawLandingImpact`), then gone.
+- **Timing is the sim's own:** `BossRuntime.moduleCd[mi]` is the seconds until module `mi` fires
+  (it only ticks for the current phase's modules), so the tell is `k = 1 − cd / lead` across the
+  module's `lead` window. The fire edge (cooldown jumps back up) spawns the release pulse — only
+  for a tell that was ARMED, so a not-in-position core-crush retry never fakes a cast.
+- **The def map:** `RenderState.bossDefs` is a live reference to the sim's `procBosses` (every
+  spawned def, authored included) — presentation-only, nothing in the sim reads it back.
+
+| Shape | Kinds | Read |
+|---|---|---|
+| `zone` | healer · suppressor · dampener · gravitas | the radius around the boss, lock closing |
+| `pool` / `well` | corruptor · nullwell | the lock on the nearest tower / midway to it (the sim's own pick), aim line from the boss |
+| `lane` | charger | a band to the dash's REAL end (`dashReach = speed × BOSS.chargeSpeedMult × seconds`), chevrons, lock at the end — before and during the dash |
+| `core` | channeler | an aim line + a lock settling on the Hive Core before the channel; while it channels the tether FILLS toward the Core (a bright head travelling at the shot's pace), the lock closes on the Core, the caster gathers; it lands as a strike bolt + impact AT the Core |
+| `self` / `field` | shieldphase · carapace · corecrush · burrower · bulwark · broodburst · unstoppable · warcry | a ring contracting into the body + an edge glow; warcry's release spreads one wide shock across the field |
+| none | spawner · enrager · splitter · rally · mortarfall | the adds / the blood rim / phase entry / the reticle already are the read |
+
+`BOSS_TELLS` is a **total** `Record<BossModuleKind, …>`: a new module kind is a type error until it
+decides its tell, and `armed()` must mirror the sim's own fire condition (core-crush only at the
+Hive, burrower only off it, null wells under the 2-well cap, channeler only when not channelling).
+50 bosses compose these kinds — zero per-boss code.
+
+**Also:** bosses take hits as a **rim glint** (`drawBossHitRim`) — hit pop and reaction flash alike —
+so a focused boss stays its own shape and colour; a **phase shift bursts** (mutation shock to
+`TELL.phaseReach` × body, shed shell shards, a Flashes-gated body flare) on the phase-index edge.
+**Reduced motion** keeps every tell: a still rim + a progress sweep replaces the closing ring,
+release beats hold still and fade, no shards. **Cost:** 0.04–0.09 ms/frame for a boss with three live
+tells + a channel at ~150 enemies (headless 1440×900, ≥300 frames). Tests: `render/telegraphs.test.ts`
+(tells only inside the lead window, the release on the fire tick and only when armed, finite geometry
+for every kind, the dash lock at the real reach, core-shot strike, one burst per phase, pool/well picks
+match the sim's, a stepped fight pulses).

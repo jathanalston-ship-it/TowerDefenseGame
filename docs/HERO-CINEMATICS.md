@@ -37,10 +37,11 @@
 - Each performance runs on **sim time** (`rs.time`): pause freezes it, game speed keeps it
   in sync with its own impact. A ~0.9s wall-clock sim-stall (settle/pause) releases live
   performances so nothing hangs mid-air.
-- Timeline per cast: **anticipation** (dashed zone telegraph grows while the payload is
-  inbound) → **travel** (the actor rides its motion; lands exactly at `impactDelay`) →
-  **impact** (one calm expanding rim + brief afterglow) → **linger** (exit/dissolve;
-  fly-throughs keep flying). `impactDelay: 0` plays a fixed 0.55s **flourish** instead.
+- Timeline per cast: **anticipation** (the zone + a friendly lock closing onto it the instant the
+  payload lands; a landing shadow gathers under anything arriving from the air — §telegraph) →
+  **travel** (the actor rides its motion; lands exactly at `impactDelay`) → **contact frame** (a rim
+  snap + a Flashes-gated hot core inside the zone, then a brief afterglow) → **linger**
+  (exit/dissolve; fly-throughs keep flying). `impactDelay: 0` plays a fixed 0.55s **flourish** instead.
 
 ## 2. The vocabulary — actors × motions
 
@@ -71,13 +72,18 @@ Degenerate casts (from == to) fall back to a down-lane heading — every motion 
   must have `0`. Pinned for every ability in `heroCinematics.test.ts`.
 - Calm covenant (renderer.ts): **casting never shakes the screen and nothing flashes the full
   field**; actor bodies alpha ≤ ~0.9, rings ≤ ~0.4. Draw order: over entities/heroes, under
-  floats + HUD. (`FEEL.ability` carries no shake — skills, phase-ins and casts stay calm.)
+  floats + HUD. (`FEEL.ability` carries no shake — skills, phase-ins and casts stay calm.) The
+  telegraph is the one deliberate relaxation — it is information: an ult's lock/contact frame runs at
+  `CAST_TELL.ultCalm` (0.62 of the hostile strength), an auto-cast skill's at `skillCalm` (0.45), so a
+  friendly read never shouts over a boss tell.
 - **The one exception — an ULT's landing (§impact).** The payload striking earns ONE light
   camera kick (`FEEL.abilityImpact`: trauma 0.22) and a 60 ms view-only hit-stop, both scaled
   by Settings → Motion (Screen shake %, and zeroed by reduced motion). The bloom stays inside
   the zone — never a full-field flash.
-- `prefers-reduced-motion`: the travel theater is skipped entirely — the sim's landing
-  burst still marks the impact.
+- Reduced motion (`viewFeel.motion` — Settings → Motion or the OS, the same resolved switch the
+  camera uses; it used to read the raw media query only): the travel theater is skipped, but the
+  TELEGRAPH stays — the zone + a progress sweep say where and when, a still contact ring says it
+  landed.
 - **Golden safety:** a cast-less run (the golden autoplay) never touches any of this —
   `pendingImpactSystem` is length-gated, `castEvents` only written on cast. The golden
   seeds are byte-identical (verified).
@@ -98,6 +104,28 @@ golden run never builds it). GameView answers with:
   numbers). The ability's name float now rides above the zone instead of on the hero.
 
 Skills keep their calm ring (no impact frame); support casts (delay 0) never land one.
+
+## §telegraph — where, when, land (2026-11)
+
+The cast read speaks the shared telegraph language (`render/telegraphs.ts`, the same one boss
+wind-ups and the Mega's cataclysm use — docs/BOSS-DESIGN.md §telegraphs): **where** is the zone rim,
+**when** is a lock closing onto it that touches the rim the instant the payload lands, **land** is one
+contact frame. Friendly locks carry no reticle notches (those mean "aimed at YOU"). Airborne motions
+(`lunge · swoop · dive · lob` — `AIRBORNE`) also grow a **landing shadow** under the zone as the blow
+falls. The ult's contact frame is the heavy one (`ultRim`, big core); skills land lighter
+(`skillRim`). The audit that motivated it: the old anticipation ring peaked at alpha 0.26 and the
+impact rim at 0.38 — on a stage-80 field (acid pools, beams, reaction floats) neither read at all, so
+casts had no visible hit frame. Tunables: `CAST_TELL` (abilityCinematics.ts). The expiry pass compacts
+the performance list in place (it allocated a filtered copy every frame).
+
+## §presence — hero idle life (2026-11)
+
+A hero body used to be a still polygon under a pulsing locator ring. Now it **breathes** (±
+`HERO_LIFE.breath` scale), **bobs** on its stride while moving/retreating, and **punches** on every
+strike (the `attackCd` jump edge — render-local, beside the ability-edge tracker) — one transform over
+body, gear, wings, evolution dress and symbiote grafts, per-hero phase so a roster never breathes in
+lockstep. Reduced motion holds it still. Tunables: `HERO_LIFE` (renderer.ts). Keyed by move state,
+never by hero id — a new hero inherits it.
 
 ## 4. Extending
 

@@ -7,8 +7,14 @@
 // Everything here is presentation-only and driven by SIM time (rs.time): pause freezes the
 // performance, game speed keeps it in sync with its own impact. The layer obeys the renderer's
 // calm covenant — no screen shake, no full-field flashes, alpha-capped bodies and rings — and
-// under prefers-reduced-motion the travel theater is skipped entirely (the sim's landing burst
-// already marks the impact).
+// under reduced motion (Settings → Motion / the OS, via viewFeel.motion) the travel theater is
+// skipped but the TELEGRAPH stays: the zone + a progress sweep say where and when it lands, and a
+// still contact ring marks the landing (information is never motion-gated).
+//
+// WHERE + WHEN + LAND speak the shared telegraph language (render/telegraphs.ts): the zone rim and
+// a closing lock (friendly — no hostile reticle notches), a LANDING SHADOW that gathers under
+// anything arriving from the air, and one clean CONTACT FRAME the instant the payload lands (an
+// ult's frame is heavier; the hot core obeys Settings → Flashes).
 //
 // Vocabulary (config.ts HeroCinematicDef): an ACTOR (the puppet — one per hero identity, painted
 // here) rides a MOTION (the trajectory — shared pose math below). A new hero picks an existing
@@ -17,8 +23,22 @@
 import type { CastEvent, RenderState } from '../core/game';
 import type { CinematicActor, CinematicMotion } from '../core/config';
 import { easeOutCubic, glowDisc, ring, shapePath } from './vfx';
+import { viewFeel } from './feel';
+import { drawLandingImpact, drawLandingLock } from './telegraphs';
 
-const reducedMotion = typeof window !== 'undefined' && !!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+/** The cast read's tunables (docs/HERO-CINEMATICS.md §telegraph) — data, not drawing-path literals. */
+export const CAST_TELL = {
+  shadowAlpha: 0.32, // the landing shadow's darkest (at the landing)
+  shadowFrom: 0.25, // the shadow's starting size (× zone radius) — it gathers as the blow falls
+  shadowTo: 0.6, // … and its size at the landing
+  ultRim: 1.0, // the contact frame's reach (× zone radius) for an ULT …
+  skillRim: 0.85, // … and for a kit skill (a lighter frame — the ult stays the power moment)
+  ultCalm: 0.62, // friendly reads stay under the hostile ones (calm covenant): an ult's lock/frame …
+  skillCalm: 0.45, // … and an auto-cast skill's (skills fire often — they whisper)
+} as const;
+
+/** Motions that ARRIVE from somewhere (their actor is in flight) — a shadow gathers where they land. */
+const AIRBORNE: Partial<Record<CinematicMotion, true>> = { lunge: true, swoop: true, dive: true, lob: true };
 
 function hash01(n: number): number { const s = Math.sin(n * 127.1 + 311.7) * 43758.5453; return s - Math.floor(s); }
 function clamp01(x: number): number { return x < 0 ? 0 : x > 1 ? 1 : x; }
@@ -507,14 +527,19 @@ export function ingestCasts(rs: RenderState): void {
   }
   lastSimTime = rs.time;
   lastWallMs = now;
-  if (perfs.length > 0) perfs = perfs.filter((p) => rs.time < p.end);
+  if (perfs.length > 0) { // expire in place (no per-frame array)
+    let w = 0;
+    for (let i = 0; i < perfs.length; i++) if (rs.time < perfs[i].end) perfs[w++] = perfs[i];
+    perfs.length = w;
+  }
 }
 
 /** Draw every live performance. Call once per frame, over the entities and under the HUD text.
- *  Reduced motion: the travel theater is skipped — the sim's landing burst already marks impact. */
+ *  Reduced motion: the travel theater is skipped, the telegraph + a still contact ring stay. */
 export function drawAbilityCinematics(ctx: CanvasRenderingContext2D, rs: RenderState): void {
   ingestCasts(rs);
-  if (perfs.length === 0 || reducedMotion) return;
+  if (perfs.length === 0) return;
+  const motion = viewFeel.motion > 0;
   for (const perf of perfs) {
     const ev = perf.ev;
     const t = rs.time - ev.at;
@@ -522,23 +547,33 @@ export function drawAbilityCinematics(ctx: CanvasRenderingContext2D, rs: RenderS
     const T = perf.T;
     const u = clamp01(t / T);
     const isFlourish = ev.delay <= 0;
-    // Anticipation: the zone telegraph while the payload is inbound (never for flourishes).
+    // Anticipation — WHERE + WHEN while the payload is inbound (never for flourishes): the zone and
+    // a friendly lock closing onto it the instant it lands, a shadow gathering under an airborne blow.
     if (!isFlourish && t < T) {
-      const grow = 0.55 + 0.45 * easeOutCubic(u);
-      ring(ctx, ev.x, ev.y, ev.radius * grow, rgbaOf(ev.color, 0.1 + 0.16 * u), 1.5, [5, 7]);
-      ring(ctx, ev.x, ev.y, ev.radius * grow * 0.45, rgbaOf(ev.color, 0.08 + 0.1 * u), 1);
-    }
-    // The actor's travel/flourish. Flourishes fade on a bell curve; travelers own their fades.
-    const pose = computePose(ev.motion, ev, t, T);
-    if (isFlourish) pose.alpha *= Math.sin(Math.PI * clamp01(t / FLOURISH_T));
-    ACTOR_PAINTERS[ev.actor](ctx, { ev, t, T, u, pose, tSim: rs.time });
-    // Impact: one calm expanding rim + a brief afterglow the moment the payload lands.
-    if (!isFlourish && t >= T) {
-      const k = clamp01((t - T) / 0.3);
-      if (k < 1) {
-        ring(ctx, ev.x, ev.y, ev.radius * (0.35 + 0.65 * easeOutCubic(k)), rgbaOf(ev.color, 0.38 * (1 - k)), 2.5);
-        glowDisc(ctx, ev.x, ev.y, ev.radius * 0.5 * (1 - k * 0.4), rgbaOf(ev.color, 0.14 * (1 - k)));
+      if (motion && AIRBORNE[ev.motion]) {
+        ctx.fillStyle = 'rgb(4,4,8)';
+        ctx.globalAlpha = CAST_TELL.shadowAlpha * u;
+        ctx.beginPath();
+        const sr = ev.radius * (CAST_TELL.shadowFrom + (CAST_TELL.shadowTo - CAST_TELL.shadowFrom) * u);
+        ctx.ellipse(ev.x, ev.y, sr, sr * 0.62, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.globalAlpha = 1;
       }
+      drawLandingLock(ctx, ev.x, ev.y, ev.radius, u, ev.color, rs.time, false, ev.slot === 'ult' ? CAST_TELL.ultCalm : CAST_TELL.skillCalm);
+    }
+    if (motion) {
+      // The actor's travel/flourish. Flourishes fade on a bell curve; travelers own their fades.
+      const pose = computePose(ev.motion, ev, t, T);
+      if (isFlourish) pose.alpha *= Math.sin(Math.PI * clamp01(t / FLOURISH_T));
+      ACTOR_PAINTERS[ev.actor](ctx, { ev, t, T, u, pose, tSim: rs.time });
+    }
+    // CONTACT FRAME — the payload lands: a rim snap (+ Flashes-gated hot core) inside the zone, then
+    // a short afterglow. An ult's frame is heavier; skills stay the lighter beat.
+    if (!isFlourish && t >= T) {
+      const ult = ev.slot === 'ult';
+      drawLandingImpact(ctx, ev.x, ev.y, ev.radius * (ult ? CAST_TELL.ultRim : CAST_TELL.skillRim), t - T, ev.color, ult, ult ? 1 : CAST_TELL.skillCalm * 1.6);
+      const k = clamp01((t - T) / 0.3);
+      if (k < 1 && motion) glowDisc(ctx, ev.x, ev.y, ev.radius * 0.5 * (1 - k * 0.4), rgbaOf(ev.color, 0.14 * (1 - k)));
     }
   }
 }

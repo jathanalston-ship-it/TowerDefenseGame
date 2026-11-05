@@ -1209,7 +1209,7 @@ graph TD
 
 *Module/phase framework + procedural assembly; campaign milestone bosses.*
 
-- **Files:** `src/core/boss.ts`
+- **Files:** `src/core/boss.ts` · `src/render/telegraphs.ts`
 - **Depends on:** `engine` · `content-infra`
 - **Consumers — what breaks if you change this:** `engine` · `campaign` · `boss-rush` · `daily` · `nemesis` · `mega-bosses`
 - **Power Score:** — (intentionally none)

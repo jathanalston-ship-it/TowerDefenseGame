@@ -367,3 +367,38 @@ Legendary reads the same in a draft, the Armory, the Vault and the Archive. The 
   style recalc +3.7 ms/frame with the original var() keyframes → +1.5 ms/frame compositor-only (headless
   software compositing on a 4-core box at load ~13 — real GPU compositing moves these off the main thread).
   Grids (`rfx-lite`) animate only legendary+ edges: Gene Archive full list (131 hosts) within noise.
+
+deal-in reveal and the pick burst.
+
+## §telegraphs — the big actors say where and when (2026-11 VFX pass)
+
+The full-game VFX pass audited heroes, bosses and Megas with frame-stepped captures of a stage-80
+board (15 towers, ~150 enemies). Ranked by impact × visibility, what read worst — and what shipped:
+
+1. **A focused boss whited out** (hit pop + 0.4 s reaction flash re-triggering) → bosses take hits as a
+   rim glint; the chassis, its tells and its phase anatomy stay readable (`drawBossHitRim`).
+2. **Boss verbs fired with no wind-up** (one-tick banner label) → wind-up tells from the sim's real
+   `moduleCd`, one row per module kind (`BOSS_TELLS`), release beat on the fire tick
+   (docs/BOSS-DESIGN.md §telegraphs).
+3. **The core-shot had no countdown or landing** → a tether that FILLS toward the Core, a lock closing
+   on the Core, a strike bolt + impact when it lands.
+4. **The Mega's windup lived under the raid bar; the cataclysm never showed its target** → a windup
+   clock round the maw, a fall line + Core lock for the cataclysm, a strike at the Core
+   (docs/MEGA-BOSS.md Visuals v4).
+5. **Phase shifts passed unnoticed** → a mutation shock + shed shell on the phase edge.
+6. **The dash didn't show where it ends** → a lane to the real reach (`speed × chargeSpeedMult × s`).
+7. **Organs barely reacted to hits** → punch + jolt, a draining damage ghost, a "finish it" ring.
+8. **Hero casts had no visible hit frame on a busy field; reduced motion dropped the telegraph** → a
+   closing lock + landing shadow + contact frame; reduced motion keeps the information
+   (docs/HERO-CINEMATICS.md §telegraph).
+9. **Hero bodies were still tokens** → breath, stride bob, strike punch (§presence there).
+
+**One language** (`render/telegraphs.ts`): WHERE = dashed zone rim + wash, WHEN = a lock ring closing
+onto the rim (hostile locks wear inward reticle notches — the mortarfall vocabulary; friendly ones run
+calmer), LAND = rim snap + Flashes-gated hot core. **Reduced motion** swaps the closing ring for a
+progress sweep and holds release beats still — telegraphs are information, never motion-gated.
+**Cost**: ≈ 0.1–0.2 ms/frame added for a boss with live tells + a Mega mid-cataclysm + hero casts at
+~150 enemies (headless 1440×900, ≥300 frames per run, inside run-to-run noise on totals); no per-frame
+allocation (pooled pulses, per-boss state once, cached colour strings, in-place list compaction).
+**Deliberately left:** the reaction/status float stacking that buries a boss under text (V1's float
+pass), and the HUD boss banner's one-tick verb label (a UI-side hold would fix it).

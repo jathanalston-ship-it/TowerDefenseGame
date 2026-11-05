@@ -63,6 +63,7 @@ import type { Assimilation } from './livingBattlefield';
 import { drawVictoryWash } from './runOutro';
 import { drawMegaBody, drawMegaOrgans, drawMegaShots, drawMegaVignette } from './megaboss';
 import { bossColorOf, drawBossBody, drawBossCrown } from './bossChassis';
+import { drawBossHitRim, drawBossTells } from './telegraphs';
 import { deathFlavorOf, drawStatusFxOver, drawStatusFxUnder, mergeStatusFx, statusBodyTransform } from './statusFx';
 import { COMBAT_FX, drawCombatBursts, drawDamageShot, drawHitFlash, drawMuzzleFlash, pushHitBurst, shotClass, shotColor, updateCombatFx } from './combatFx';
 import type { DeathFlavor, StatusFxQuality } from './statusFx';
@@ -445,6 +446,7 @@ export function drawGame(
   if (detail) drawDeathEchoes(ctx, t); // fading crumples UNDER the living bodies
   for (const e of rs.enemies) drawEnemy(ctx, e, detail, t, fxQ);
   drawImpactSparks(ctx, rs, t, detail); // damage-type hit bursts, splash blasts + kill pops OVER the bodies (render/combatFx.ts)
+  drawBossTells(ctx, rs, t, bossDrawR); // V2: boss wind-ups / core-shot / dash lane / phase shifts (render/telegraphs.ts) — over the bodies
   drawGorePieces(ctx); // gibs + juice + coalescing streams, OVER the bodies
 
   // MEGA weak-point organs + raid-fire tracers — over enemies (they are the priority targets).
@@ -2115,6 +2117,10 @@ function drawDeathEchoes(ctx: CanvasRenderingContext2D, t: number): void {
 function visualHeft(r: number): number {
   return r * Math.min(1.75, Math.max(1.15, 1.75 - (r - 6) * (0.5 / 18)));
 }
+/** A boss's drawn body radius — the one size the telegraph pass (render/telegraphs.ts) anchors to. */
+function bossDrawR(e: RenderState['enemies'][number]): number {
+  return visualHeft(themedEnemyDef(e.kind).radius);
+}
 
 function drawEnemy(
   ctx: CanvasRenderingContext2D,
@@ -2398,29 +2404,8 @@ function drawEnemy(
         const k = Math.min(1, b.enrage * 0.2);
         ring(ctx, e.x, drawY, r + 2, rgba(hexRgb('#ff4d4d'), 0.3 + 0.5 * k), 2 + k * 2);
       }
-      if (b.charge > 0) {
-        // Charge telegraph — the dash vector flashes downfield before it fires.
-        ctx.strokeStyle = rgba(hexRgb('#ffd24d'), pulse(t, 9, 0.4, 0.9));
-        ctx.lineWidth = 2.5;
-        ctx.setLineDash([6, 5]);
-        ctx.beginPath();
-        ctx.moveTo(e.x, drawY + r);
-        ctx.lineTo(e.x, drawY + r * 4);
-        ctx.stroke();
-        ctx.setLineDash([]);
-        chevronDown(ctx, e.x, drawY + r * 4 + 4, 7, rgba(hexRgb('#ffd24d'), 0.9));
-      }
-      if (b.channel > 0) {
-        // Nucleus channel — a feeding tether; sever it by breaking the channel.
-        ctx.strokeStyle = rgba(hexRgb('#ff8a3d'), pulse(t, 5, 0.35, 0.7));
-        ctx.lineWidth = 2;
-        ctx.setLineDash([3, 6]);
-        ctx.beginPath();
-        ctx.moveTo(e.x, drawY);
-        ctx.lineTo(nucleusPoint.x, nucleusPoint.y);
-        ctx.stroke();
-        ctx.setLineDash([]);
-      }
+      // Charge dash lane + core-shot channel: drawn by the telegraph pass (render/telegraphs.ts —
+      // the real dash reach, the tether fill reaching the Core as the shot lands, the strike frame).
       if (b.grip > 0) {
         // Core-crush — a thick crushing tether INTO the Nucleus; the boss is EXPOSED while
         // it squeezes (burst it off before the Integrity drains away).
@@ -2437,9 +2422,13 @@ function drawEnemy(
   }
 
   if (detail) {
-    // hit flash (FX.hitFlash ≈ 0.09s → normalize ×9): the body lights up ADDITIVELY in its striker's
-    // hot tint + a class-colored rim (render/combatFx.ts) — the creature stays readable under the hit.
-    if (e.hitFlash > 0) drawHitFlash(ctx, shape, e.x, drawY, r, Math.min(1, e.hitFlash * 9), e.lastHitKind);
+    // hit flash (FX.hitFlash ≈ 0.09s → normalize ×9): a BOSS gets a rim glint (V2 — a focused boss no longer
+    // whites out); every other body lights up ADDITIVELY in its striker's hot tint + a class-colored rim
+    // (V1, render/combatFx.ts) — the creature stays readable under the hit.
+    if (e.hitFlash > 0) {
+      if (e.boss) drawBossHitRim(ctx, e.x, drawY, r, e.hitFlash);
+      else drawHitFlash(ctx, shape, e.x, drawY, r, Math.min(1, e.hitFlash * 9), e.lastHitKind);
+    }
     // Status overlays + particles — the merged framework pass (replaces the old per-status
     // rings: corrosion/infection/disrupt/fracture now blend through their registry fx traits).
     if (sfx) drawStatusFxOver(ctx, sfx, e.x, drawY, r, t, e.id, eFxQ);
@@ -2447,7 +2436,8 @@ function drawEnemy(
     // Mark from the Marrow Siphon, Resonance from the Resonance Coil). Neither appears on the golden path.
     if (e.mark > 0) ring(ctx, e.x, drawY, r + 1, rgba(THEME.enemy.mark, Math.min(0.9, 0.35 + e.mark * 0.09)), 2);
     if (e.resonance > 0) ring(ctx, e.x, drawY, r + 1.5, rgba(THEME.enemy.resonance, Math.min(0.9, 0.35 + e.resonance * 0.09)), 2);
-    if (e.shredFlash > 0) {
+    if (e.shredFlash > 0 && e.boss) drawBossHitRim(ctx, e.x, drawY, r * 1.1, e.shredFlash * 0.25); // V2: a reacting boss keeps its body readable
+    else if (e.shredFlash > 0) {
       ctx.fillStyle = rgba(THEME.enemy.shred, Math.min(0.8, e.shredFlash * 2));
       ctx.beginPath();
       ctx.arc(e.x, drawY, r + 3, 0, Math.PI * 2);
@@ -2480,8 +2470,21 @@ const heroTrail: { x: number; y: number }[] = [];
 // HERO ABILITY feedback tracker (docs/COMBAT-VISUAL-STANDARDS.md §heroes) — render-local, per
 // hero kind: a cooldown JUMP = the ability just fired (activation burst); a fall to 0 = it came
 // off cooldown (ready flare + a standing ready-glint). Never read by the sim (golden-safe).
-const heroAbilityFx = new Map<string, { lastCd: number; castT: number; readyT: number }>();
+const heroAbilityFx = new Map<string, { lastCd: number; castT: number; readyT: number; lastAtk: number; atkT: number }>();
 const CAST_FX_T = 0.5; // seconds the activation burst plays
+// HERO IDLE LIFE (docs/HERO-CINEMATICS.md §presence) — the body breathes, bobs while it moves and PUNCHES on
+// every strike (the attackCd jump edge), so a hero reads as a living champion, not a token. Reduced
+// motion holds it still. Render-only, time/id-keyed.
+const HERO_LIFE = {
+  breath: 0.03, // ± scale of the idle breath
+  breathHz: 2.2, // breath tempo (rad/s)
+  stepHz: 10, // stride tempo while moving (rad/s)
+  bob: 2, // px the body lifts per stride
+  punch: 0.14, // strike punch (× scale at the hit, easing out)
+  punchSec: 0.14, // strike punch duration
+} as const;
+const SIDES = [-1, 1] as const; // wing/membrane sides (module const — no per-frame array)
+const MID = [0] as const;
 const READY_FX_T = 0.6; // seconds the ready flare plays
 // Absorb-shield barrier tint (matches the status framework's Shield buff color).
 const SHIELD_RGB = hexRgb('#9ad0ff');
@@ -2500,7 +2503,7 @@ function drawHeroWings(ctx: CanvasRenderingContext2D, x: number, y: number, r: n
   const span = r * (2.3 + 0.35 * flap); // wingtip reach swells through the downstroke
   const lift = r * (0.55 + 0.75 * flap); // wingtip height above the shoulder line
   ctx.save();
-  for (const side of [-1, 1]) {
+  for (const side of SIDES) {
     const sx = x + side * r * 0.55; // shoulder root
     const sy = y - r * 0.15;
     const tipX = x + side * span;
@@ -2552,11 +2555,13 @@ function drawHero(ctx: CanvasRenderingContext2D, rs: RenderState, h: RenderState
   // Ability edge tracking: a cooldown JUMP = just cast; a fall to 0 = just came ready. Stale
   // marks from a previous run sit in the future after the clock resets and self-clear.
   let abFx = heroAbilityFx.get(h.kind);
-  if (!abFx) { abFx = { lastCd: h.abilityCd, castT: -10, readyT: -10 }; heroAbilityFx.set(h.kind, abFx); }
-  if (abFx.castT > t || abFx.readyT > t) { abFx.castT = -10; abFx.readyT = -10; }
+  if (!abFx) { abFx = { lastCd: h.abilityCd, castT: -10, readyT: -10, lastAtk: h.attackCd, atkT: -10 }; heroAbilityFx.set(h.kind, abFx); }
+  if (abFx.castT > t || abFx.readyT > t || abFx.atkT > t) { abFx.castT = -10; abFx.readyT = -10; abFx.atkT = -10; }
   if (h.abilityCd > abFx.lastCd + 0.5) abFx.castT = t;
   else if (abFx.lastCd > 0 && h.abilityCd <= 0) abFx.readyT = t;
   abFx.lastCd = h.abilityCd;
+  if (h.attackCd > abFx.lastAtk + 0.05) abFx.atkT = t; // a strike just landed (the cooldown was paid)
+  abFx.lastAtk = h.attackCd;
 
   // Shepherd's vital aura / Overseer's disruption field — show the role's reach.
   if (!down && def.pulseRadius > 0) {
@@ -2650,6 +2655,18 @@ function drawHero(ctx: CanvasRenderingContext2D, rs: RenderState, h: RenderState
   // layered core: dark rim → class-colored body → bright nucleus (reads as a hero). Permanent
   // STARS swell the body (docs/HERO-EVOLUTION.md §visuals); ★0 ⇒ grow=1 ⇒ the classic silhouette.
   const grow = heroEvolutionGrowth(h.kind, stars);
+  // IDLE LIFE (HERO_LIFE): breath · stride bob · strike punch — one transform over the whole body.
+  let lifeS = 1;
+  let lifeBob = 0;
+  if (!down && viewFeel.motion > 0) {
+    const ph = h.kind.charCodeAt(0) * 0.37 + h.kind.length;
+    lifeS = 1 + HERO_LIFE.breath * Math.sin(t * HERO_LIFE.breathHz + ph);
+    if (h.moveState === 'moving' || h.moveState === 'retreating') lifeBob = -Math.abs(Math.sin(t * HERO_LIFE.stepHz + ph)) * HERO_LIFE.bob;
+    const pa = (t - abFx.atkT) / HERO_LIFE.punchSec;
+    if (pa >= 0 && pa < 1) lifeS *= 1 + HERO_LIFE.punch * (1 - pa) * (1 - pa);
+  }
+  const lifeXf = lifeS !== 1 || lifeBob !== 0;
+  if (lifeXf) { ctx.save(); ctx.translate(h.x, h.y + lifeBob); ctx.scale(lifeS, lifeS); ctx.translate(-h.x, -h.y); }
   // EQUIPMENT gear (docs/EQUIPMENT.md §visuals): the equipped loadout drawn ON the hero — energy
   // halo + back/cloak behind, shoulder plates + weapon + orbiting relics + set prestige organs
   // framing the body — so a geared veteran reads as a different biomechanical warrior. Drawn behind
@@ -2666,6 +2683,7 @@ function drawHero(ctx: CanvasRenderingContext2D, rs: RenderState, h: RenderState
   // Symbiote grafts (docs/HERO-SYMBIOTES.md §visuals): the grafted organism's stage anatomy +
   // living motif shimmer + resonance crown. Stage 0 / no state ⇒ nothing draws (classic look).
   drawHeroSymbiotes(ctx, h, symbiote, 16 * grow, t, skin?.primary ?? def.color, down);
+  if (lifeXf) ctx.restore();
   ctx.globalAlpha = 1;
 
   if (down) {
@@ -2705,7 +2723,7 @@ function drawMinions(ctx: CanvasRenderingContext2D, rs: RenderState, t: number):
       const flap = Math.sin(t * 9 + m.id * 1.3);
       const span = r * (1.7 + 0.4 * flap) * (0.9 + tier * 0.15);
       const lift = r * (0.5 + 0.6 * flap);
-      for (const side of [-1, 1]) {
+      for (const side of SIDES) {
         ctx.beginPath();
         ctx.moveTo(m.x + side * r * 0.4, m.y - r * 0.1);
         ctx.quadraticCurveTo(m.x + side * span * 0.7, m.y - lift * 1.2, m.x + side * span, m.y - lift);
@@ -2724,7 +2742,7 @@ function drawMinions(ctx: CanvasRenderingContext2D, rs: RenderState, t: number):
       if (tier >= 2) {
         ctx.strokeStyle = rgba(tint, 0.85);
         ctx.lineWidth = 1.4;
-        for (const side of tier >= 3 ? [-1, 1] : [0]) {
+        for (const side of tier >= 3 ? SIDES : MID) {
           ctx.beginPath();
           ctx.moveTo(m.x + side * r * 0.3, m.y - r * 0.7);
           ctx.quadraticCurveTo(m.x + side * r * 0.7, m.y - r * 1.5, m.x + side * r * 0.4, m.y - r * 1.7);

@@ -1,6 +1,6 @@
 # DIL_GRAPH.md — the Design Intelligence Layer (GENERATED — `npm run dil -- regen`)
 
-> **The project's brain** (docs/DIL.md). 981 nodes · 1903 edges, built from the live
+> **The project's brain** (docs/DIL.md). 982 nodes · 1906 edges, built from the live
 > registries + curated knowledge (src/dev/dil/). **Query it instead of searching the repo:**
 > `npm run dil -- node <id>` · `affects <id>` · `requires <id>` · `missing <kind> <edge>` ·
 > `checklist tower <kind>` · `find <text>`. Edge kinds are bidirectional (19 kinds).
@@ -1396,7 +1396,7 @@ _at: src/render/abilityCinematics.ts_
   - dependsOn → `system:rendering`
   - consumes → `system:heroes` — HERO ABILITY CINEMATICS (2026-07, HERO-CINEMATICS.md): every HeroAbilityDef carries cinematic {actor, motion, impactDelay} — game.ts publishes one-shot CastEvents (RenderState.castEvents, the DeathEvent seq pattern) and pendingImpacts delays the ZONE payload (explosion/debuff/pool) to land WITH the performance; support (heal/shield/buff/summon) stays instant at cast. Crit/radius locked at cast ⇒ no rng at impact; enemies re-queried at landing (the blow hits whatever stands there); the settle wind-down clears the queue
   - conflictsWith → `concept:golden-test` — cast-less runs (the golden autoplay) must never touch the cinematic path: pendingImpactSystem is length-gated, castEvents only written on cast — and any test asserting cast RESULTS must step past the def’s impactDelay before asserting (riptide/vitriol tests show the ride-through pattern)
-  - modifies → `system:rendering` — render/abilityCinematics.ts ACTOR_PAINTERS (10 puppets, one per hero identity) × computePose motions (10 shared trajectories) run on SIM time between drawHeroes and the floats — calm covenant (no shake/flash, alpha-capped), prefers-reduced-motion skips the travel theater (the sim’s landing burst still marks impact), and a ~0.9s wall-clock sim-stall releases performances (settle/pause safety)
+  - modifies → `system:rendering` — render/abilityCinematics.ts ACTOR_PAINTERS (10 puppets, one per hero identity) × computePose motions (10 shared trajectories) run on SIM time between drawHeroes and the floats — calm covenant (no shake/flash, alpha-capped), reduced motion (viewFeel.motion) skips the travel theater but KEEPS the telegraph (zone + progress sweep + still contact ring — render/telegraphs.ts), and a ~0.9s wall-clock sim-stall releases performances (settle/pause safety)
   - documentedBy ← `doc:HERO-CINEMATICS.md`
   - testedBy ← `test:src/render/abilityCinematics.test.ts`
 
@@ -2326,7 +2326,7 @@ _at: src/state/meta.ts, src/state/store.ts, src/state/prefs.ts, src/state/devRes
 
 Module/phase framework + procedural assembly; campaign milestone bosses.
 
-_at: src/core/boss.ts_
+_at: src/core/boss.ts, src/render/telegraphs.ts_
 
   - dependsOn → `system:engine`
   - dependsOn → `system:content-infra`
@@ -2334,6 +2334,7 @@ _at: src/core/boss.ts_
   - conflictsWith → `system:achievements` — framework bosses spawn as kind 'tyrant' (the Brood Tyrant render proxy) so killsByEnemy.tyrant counts EVERY boss: name bosses from RunStats.bossesSlain / runDebrief.highestThreat, and never write achievement/codex copy that promises 'a Brood Tyrant' off that count. The LIFETIME ledger (state/stats.accumulateStats) strips the proxy (tyrant − RunStats.bossKills), so the Bio-Dex counts real Brood Tyrants and Apex Slayer reads RunSummary.bossKills.
   - conflictsWith → `system:nemesis` — SPLITTERS ARE ONE BOSS IN PIECES: every Mitotic piece is a boss to the sim (runBossKills, death spectacle, bossKilled), so anything that means "the boss is dead" must read bossKilled.final (the last piece, core/game.ts deathSystem) — nemesis revenge and the FALLEN card (GameView + SpectateView) do.
   - triggers → `system:audio` — bossPhase event → boss_phase mutation roar (GameView seam; the sim itself only pushes the splice crunch)
+  - modifies → `system:rendering` — BOSS TELEGRAPHS (render/telegraphs.ts, BOSS-DESIGN.md §telegraphs): wind-up tells read the sim's REAL BossRuntime.moduleCd via RenderState.bossDefs (the sim's procBosses map, presentation-only) — a module kind's tell is one BOSS_TELLS row (total Record: a new BossModuleKind fails the build until it decides); a tell's armed() must mirror the sim's own fire condition in bossSystem or it lies (corecrush only at the Hive, burrower only off it, nullwell under the 2-well cap). The same drawLandingLock/drawLandingImpact language serves the Mega cataclysm/lash and hero casts
   - modifies → `system:rendering` — chassis SIGNATURES (CHASSIS_IDENTITY/SIGNATURE_OWNER, ownership validator-enforced) ride HudSnapshot: mortarStrikes + nullWells tick like corruptionPools and draw beside them; epithet + MODULE_LABEL kit chips feed the intro card/banner/defeat beat. Reaction true damage intentionally pierces the unstoppable march (same vocabulary as carapace-vs-Shred)
   - requiredBy ← `system:engine`
   - requiredBy ← `system:campaign`
@@ -2347,7 +2348,7 @@ _at: src/core/boss.ts_
   - contains ← `boss:the_mender`
   - contains ← `boss:chitin_colossus`
   - contains ← `boss:mitotic_horror`
-  - _…13 more (query: `npm run dil -- node system:bosses`)_
+  - _…14 more (query: `npm run dil -- node system:bosses`)_
 
 ### `system:mega-bosses` — Mega Bosses
 
@@ -2583,7 +2584,7 @@ _at: src/render/*, src/core/dangerCamera.ts_
   - testedBy ← `test:src/render/assimilationFx.test.ts`
   - testedBy ← `test:src/render/combatFx.test.ts`
   - testedBy ← `test:src/render/equipmentArt.test.ts`
-  - _…26 more (query: `npm run dil -- node system:rendering`)_
+  - _…28 more (query: `npm run dil -- node system:rendering`)_
 
 ### `system:living-battlefield` — Living Battlefield
 
@@ -4112,7 +4113,7 @@ _at: site/guides.ts → /guides/live-events/_
 - `doc:VOWS.md` — project documentation _(documents `system:prestige`)_
 - `doc:WEBSITE.md` — project documentation _(documents `system:field-research`, documents `system:website`)_
 
-## Tests (336)
+## Tests (337)
 
 - `test:src/audio/cues.test.ts` — automated validation _(tests `system:audio`)_
 - `test:src/audio/music.test.ts` — automated validation _(tests `system:audio`)_
@@ -4332,6 +4333,7 @@ _at: site/guides.ts → /guides/live-events/_
 - `test:src/render/starEvolution.test.ts` — automated validation _(tests `system:rendering`)_
 - `test:src/render/statusFx.test.ts` — automated validation _(tests `system:rendering`)_
 - `test:src/render/statusVfx.test.ts` — automated validation _(tests `system:rendering`)_
+- `test:src/render/telegraphs.test.ts` — automated validation _(tests `system:rendering`, tests `system:bosses`)_
 - `test:src/render/towerEvolution.test.ts` — automated validation _(tests `system:rendering`)_
 - `test:src/save/envelope.test.ts` — automated validation _(tests `system:meta-store`, tests `system:accounts`)_
 - `test:src/save/saveStore.test.ts` — automated validation _(tests `system:meta-store`)_

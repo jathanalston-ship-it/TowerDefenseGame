@@ -466,7 +466,7 @@ export const SYSTEMS: SystemDef[] = [
   },
   {
     id: 'bosses', name: 'Bosses', purpose: 'Module/phase framework + procedural assembly; campaign milestone bosses.',
-    files: ['src/core/boss.ts'],
+    files: ['src/core/boss.ts', 'src/render/telegraphs.ts'],
     dependsOn: ['engine', 'content-infra'], powerScore: null, save: ['bossesSlain'], tutorial: [], help: ['bosses'],
     hud: ['boss bar'], ui: [], collection: 'bosses category (chassis)', achievements: [], localization: 'inline-en',
     docs: ['docs/BOSS-DESIGN.md'],
