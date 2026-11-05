@@ -242,24 +242,25 @@ at Stage 4, and the live multiplier is booted exactly as GameView boots it in th
 **Measured (G1 harness, fixed account saves, frozen clock; the full GR1 set = replay + frontier+1/2/3/5/8 ×
 4 seeds + a 17–25-stage curve × 3 seeds per account + a 12-seed deep stage). Columns: pre-Batch-G →
 the first live release (caps 3/4) → v2 (board term + speed split) → v3 (cards out of the live ratio + the
-live probe composition, docs/DIFFICULTY_DIRECTOR.md §6a):**
+live probe composition) → v4 (the coverage-graded probe, finale-weighted — docs/DIFFICULTY_DIRECTOR.md §6a):**
 
-| metric | 8 h (S29): pre → v1 → v2 → v3 | 100 h (S80): pre → v1 → v2 → v3 |
+| metric | 8 h (S29): pre → v1 → v2 → v3 → v4 | 100 h (S80): pre → v1 → v2 → v3 → v4 |
 |---|---|---|
-| win % (all campaign runs) | 68 → 92 → 82 → 80 | 52 → 86 → 71 → 64 |
-| frontier win % (stages past cleared) | 51 → 87 → 73 → 70 | 41 → 82 → 59 → 59 |
-| frontier+1..3 / +5,8 win % (4 seeds each — noisy) | 58/75 → 75/88 → 75/50 → 58/62 | 50/50 → 83/75 → 67/75 → 67/62 |
-| losses after wave 3 | 3 % → 67 % → 90 % → 91 % | 13 % → 64 % → 83 % → 87 % |
-| wave-1 losses | 15 → 0 → 0 → 0 | 15 → 0 → 0 → 0 |
-| flawless wins | 72 % → 80 % → 73 % → 69 % | 55 % → 76 % → 67 % → 73 % |
-| Hive damage taken in waves 1–3 | 95 % → 33 % → 16 % → 14 % | 88 % → 50 % → 32 % → 27 % |
-| curve wins past cleared per seed (s1/s2/s3) | 7/4/3 → 13/13/11 → 13/11/9 → 12/11/8 of 13 | 0/12/3 → 9/11/8 → 10/8/1 → 6/9/3 of 12 |
-| winning wave-seconds on MATCHED (stage, seed) pairs | ×1.08 → ×1.01 → ×0.99 | ×1.73 → ×1.76 → ×1.78 (median pair ×1.73 → ×1.66 → ×1.81) |
-| median winning wave-seconds (all wins — the mix shifts) | 286 → 361 → 337 → 348 | 307 → 728 → 712 → 762 |
-| draft-pick spread, 8 h frontier (strongest − weakest policy: win · flawless · end integrity, pts) | −2 · −6 · −4 → −6 · +2 · −5 → +4 · −4 · +3 → **+16 · +6 · +10** | — |
+| win % (all campaign runs) | 68 → 92 → 82 → 80 → 82 | 52 → 86 → 71 → 64 → 67 |
+| frontier win % (stages past cleared) | 51 → 87 → 73 → 70 → 73 | 41 → 82 → 59 → 59 → 60 |
+| frontier+1..3 / +5,8 win % (4 seeds each — noisy) | 58/75 → 75/88 → 75/50 → 58/62 → 67/50 | 50/50 → 83/75 → 67/75 → 67/62 → 67/62 |
+| losses after wave 3 | 3 % → 67 % → 90 % → 91 % → 90 % | 13 % → 64 % → 83 % → 87 % → 86 % |
+| wave-1 losses | 15 → 0 → 0 → 0 → 0 | 15 → 0 → 0 → 0 → 0 |
+| flawless wins | 72 % → 80 % → 73 % → 69 % → 63 % | 55 % → 76 % → 67 % → 73 % → 62 % |
+| Hive damage taken in waves 1–3 | 95 % → 33 % → 16 % → 14 % → 15 % | 88 % → 50 % → 32 % → 27 % → 28 % |
+| curve wins past cleared per seed (s1/s2/s3) | 7/4/3 → 13/13/11 → 13/11/9 → 12/11/8 → 13/11/10 of 13 | 0/12/3 → 9/11/8 → 10/8/1 → 6/9/3 → 9/9/4 of 12 |
+| winning wave-seconds on MATCHED (stage, seed) pairs | ×1.08 → ×1.01 → ×0.99 → ×0.98 | ×1.73 → ×1.76 → ×1.78 → ×1.73 (median pair ×1.73 → ×1.66 → ×1.81 → ×1.74) |
+| median winning wave-seconds (all wins — the mix shifts) | 286 → 361 → 337 → 348 → 337 | 307 → 728 → 712 → 762 → 694 |
+| draft-pick spread, 8 h frontier (strongest − weakest policy: win · flawless · end integrity, pts) | −2 · −6 · −4 → −6 · +2 · −5 → +4 · −4 · +3 → +16 · +6 · +10 → **+16 · 0 · +11** | — |
 
-Pooled over all three accounts (v2 / v3): losses after wave 3 **9 % → 86 % / 89 %**, Hive damage in waves 1–3
-**92 % → 22 % / 20 %**, flawless wins 78 % → 78 % / 79 % (v1: 84 %). The 0.75 h account still clears its whole curve.
+Pooled over all three accounts (v2 / v3 / v4): losses after wave 3 **9 % → 86 % / 89 % / 88 %**, Hive damage in
+waves 1–3 **92 % → 22 % / 20 % / 20 %**, flawless wins 78 % → 78 % / 79 % / 73 % (v1: 84 %). The 0.75 h account
+still clears its whole curve (99 % wins).
 
 **Honest read.** The opening is no longer a coin flip (wave-1 losses 0) and the losses that remain come
 in waves 4+ and on bosses. v2 brings frontier wins most of the way back toward pre-Batch-G (8 h 87 → 73 %,
@@ -276,7 +277,18 @@ integrity), where every earlier version measured ~0 or negative. 8 h +1..3 lands
 eases at 8 h (73 → 69 %), runs stay the same length (matched pairs ×0.99 / ×1.78 — parity with v2).
 Not reached: flawless ≤ ~55 % (8 h 69 %, 100 h 73 %) — at 100 h the two sets disagree (screen set 76 →
 61 %, full set 67 → 73 %), so treat 100 h flawless as unchanged within noise. Readiness 0.7 re-checked
-under v3 (docs/PROGRESSION-LOOP.md §readiness): still holds. Next: docs/DIFFICULTY_DIRECTOR.md §7.
+under v3 (docs/PROGRESSION-LOOP.md §readiness): still holds.
+
+**v4 read.** The probe now reads the board: each tower is graded on reach, area, pierce, burst and
+control from its own numbers, and the live wave sends the role the board is thinnest against — in
+practice ARTILLERY (it bleeds boards that lack killing power; reach does not answer it), with air packs
+or sprinters where a board is clearly thinner there — weighted toward the finale, where the chip
+survives the run's heals. Flawless wins fall on the full set (8 h 69 → 63 %, 100 h 73 → 62 %; pooled
+with the screen set 65 → 59 % / 69 → 68 % — the 100 h screen sample is small and read v3 lucky), the
+100 h +1..3 frontier lands in band (67 %), runs get no longer (matched pairs ×0.98 / ×1.73) and the pick
+spread holds (+16 pts). Not reached: flawless ≤ ~55 % (pooled 59 / 68 %); the 8 h frontier is a touch
+easier than v3 (70 → 73 %). Readiness 0.7 re-checked under v4: still holds. Next:
+docs/DIFFICULTY_DIRECTOR.md §7.
 
 ---
 
