@@ -5,6 +5,40 @@ import type { Release } from './types';
 /** Player-facing releases, newest first. */
 export const RELEASES: Release[] = [
   {
+    "id": "v2026.11.05.4",
+    "date": "2026-11-05",
+    "title": "The Opening Film",
+    "sealed": false,
+    "entries": [
+      {
+        "cat": "Visuals",
+        "text": "The opening film is rebuilt around a turn: a new scene where real towers burst out of the ground, the swarm breaks on the line and every kill streams home to your Hive Core",
+        "major": true
+      },
+      {
+        "cat": "Visuals",
+        "text": "The swarm in the opening film is the game's own creatures, climbing out of the crust with a giant rising past the camera; the veins now take the whole steel frame",
+        "major": true
+      },
+      {
+        "cat": "UI",
+        "text": "The title assembles letter by letter over the organism you have become, and DEFEND · EVOLVE · CONSUME lands one word at a time"
+      },
+      {
+        "cat": "Audio",
+        "text": "Two new film sounds: towers bursting from the ground, and the swarm breaking on the line"
+      },
+      {
+        "cat": "Bug Fixes",
+        "text": "The title no longer clips to \"ASSIMILAT…\" on narrow phones"
+      },
+      {
+        "cat": "Performance",
+        "text": "The opening film loads only when it plays, so the game's first download is smaller"
+      }
+    ]
+  },
+  {
     "id": "v2026.11.05.3",
     "date": "2026-11-05",
     "title": "A Battlefield You Can Read",
