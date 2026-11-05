@@ -1,6 +1,6 @@
 {
-  "lastSha": "0a84e27d55018d14e875508c4cbf07f5814201b1",
-  "commitsSinceDraft": 4,
+  "lastSha": "2bd90c7101e012b7d4f9c5aa43322708e3d88a4c",
+  "commitsSinceDraft": 0,
   "content": {
     "tower": [
       "needle",
@@ -3973,20 +3973,43 @@
     {
       "id": "v2026.11.05.5",
       "date": "2026-11-05",
-      "title": "Update",
+      "title": "A Calmer First Hour",
       "sealed": false,
       "entries": [
         {
-          "cat": "Bug Fixes",
-          "text": "Intro: Settings → Motion \"reduced\" now stills the opening film's title too"
-        },
-        {
-          "cat": "Bug Fixes",
-          "text": "Intro: the title's motion follows the film's resolved motion, not the OS query alone"
+          "cat": "UX",
+          "text": "Your first hour, one beat at a time: each run now teaches at most two new systems in full (the first run used to list eleven at once); the rest wait their turn and are already in Help",
+          "major": true
         },
         {
           "cat": "UX",
-          "text": "Onboarding: the first hour, one beat at a time"
+          "text": "Fight controls explain themselves the moment they matter: Early Call, game speed, the red defense line and hero evolution each get a one-line field note mid-fight, pointing at the control",
+          "major": true
+        },
+        {
+          "cat": "UX",
+          "text": "Every new screen arrives with its guided tour, including the Tower Lab, Hero Hall and Infinite, which used to open with no introduction"
+        },
+        {
+          "cat": "Audio",
+          "text": "Full sound pass: combat, reward and UI sounds rebuilt with more weight, effects now cut through the music, frequent sounds no longer repeat identically, and big moments get a little room",
+          "major": true
+        },
+        {
+          "cat": "Audio",
+          "text": "New Effects and Music volume sliders in Settings and the pause menu"
+        },
+        {
+          "cat": "Bug Fixes",
+          "text": "Long sounds (the opening film's rumble, title and dive, boss stings) no longer cut off after half a second"
+        },
+        {
+          "cat": "Bug Fixes",
+          "text": "Help no longer lists systems whose screens haven't opened yet"
+        },
+        {
+          "cat": "Bug Fixes",
+          "text": "The opening film's title now follows your Motion setting"
         }
       ]
     }
@@ -8709,6 +8732,54 @@
       "date": "2026-11-05",
       "cat": "UX",
       "text": "Onboarding: the first hour, one beat at a time",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "c5380280c1ac1f96fa10d96204a522a6a0468ec4",
+      "date": "2026-11-05",
+      "cat": "Audio",
+      "text": "Wip(audio): audit tool, mix table, mastered SFX bus, looped noise, layered top cues",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "4d2d2c7eaa03f8419e68249aacee8d073b24d89e",
+      "date": "2026-11-05",
+      "cat": "Developer Tools",
+      "text": "First-hour copy — two systems per run, field notes, a guided tour per new screen",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "c104aed7b1e770950ebe1fa7ecf5f74af10df3ed",
+      "date": "2026-11-05",
+      "cat": "Music",
+      "text": "Measured SFX mix — categories + derived trims, glue/limiter keep-alive, music level, volume sliders",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "f411fad67205344e92e7203a8176465770fe5ac9",
+      "date": "2026-11-05",
+      "cat": "Audio",
+      "text": "Unit-energy room + dry frequent combat, converged trims; audit reports balance + render cost",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "24ddeed095f3297d289f7798778683b3eb413d7a",
+      "date": "2026-11-05",
+      "cat": "Developer Tools",
+      "text": "AUDIO.md (the measured SFX mix + audit), MUSIC_LEVEL, registry/DIL/anchors",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "dbf629a225c68d4f6e213aab216e5c4069c5402b",
+      "date": "2026-11-05",
+      "cat": "Bug Fixes",
+      "text": "Quiet-by-design tiers stay quiet; repeating cues never duck the score; final audit report",
       "internal": false,
       "needsReview": false
     }

@@ -628,3 +628,9 @@
 - `14263c4` **[Bug Fixes]** Intro: Settings → Motion "reduced" now stills the opening film's title too
 - `246ce9b` **[Bug Fixes]** Intro: the title's motion follows the film's resolved motion, not the OS query alone
 - `0a84e27` **[UX]** Onboarding: the first hour, one beat at a time
+- `c538028` **[Audio]** Wip(audio): audit tool, mix table, mastered SFX bus, looped noise, layered top cues
+- `4d2d2c7` **[Developer Tools]** First-hour copy — two systems per run, field notes, a guided tour per new screen _(internal)_
+- `c104aed` **[Music]** Measured SFX mix — categories + derived trims, glue/limiter keep-alive, music level, volume sliders
+- `f411fad` **[Audio]** Unit-energy room + dry frequent combat, converged trims; audit reports balance + render cost
+- `24ddeed` **[Developer Tools]** AUDIO.md (the measured SFX mix + audit), MUSIC_LEVEL, registry/DIL/anchors _(internal)_
+- `dbf629a` **[Bug Fixes]** Quiet-by-design tiers stay quiet; repeating cues never duck the score; final audit report

@@ -7,20 +7,43 @@ export const RELEASES: Release[] = [
   {
     "id": "v2026.11.05.5",
     "date": "2026-11-05",
-    "title": "Update",
+    "title": "A Calmer First Hour",
     "sealed": false,
     "entries": [
       {
-        "cat": "Bug Fixes",
-        "text": "Intro: Settings → Motion \"reduced\" now stills the opening film's title too"
-      },
-      {
-        "cat": "Bug Fixes",
-        "text": "Intro: the title's motion follows the film's resolved motion, not the OS query alone"
+        "cat": "UX",
+        "text": "Your first hour, one beat at a time: each run now teaches at most two new systems in full (the first run used to list eleven at once); the rest wait their turn and are already in Help",
+        "major": true
       },
       {
         "cat": "UX",
-        "text": "Onboarding: the first hour, one beat at a time"
+        "text": "Fight controls explain themselves the moment they matter: Early Call, game speed, the red defense line and hero evolution each get a one-line field note mid-fight, pointing at the control",
+        "major": true
+      },
+      {
+        "cat": "UX",
+        "text": "Every new screen arrives with its guided tour, including the Tower Lab, Hero Hall and Infinite, which used to open with no introduction"
+      },
+      {
+        "cat": "Audio",
+        "text": "Full sound pass: combat, reward and UI sounds rebuilt with more weight, effects now cut through the music, frequent sounds no longer repeat identically, and big moments get a little room",
+        "major": true
+      },
+      {
+        "cat": "Audio",
+        "text": "New Effects and Music volume sliders in Settings and the pause menu"
+      },
+      {
+        "cat": "Bug Fixes",
+        "text": "Long sounds (the opening film's rumble, title and dive, boss stings) no longer cut off after half a second"
+      },
+      {
+        "cat": "Bug Fixes",
+        "text": "Help no longer lists systems whose screens haven't opened yet"
+      },
+      {
+        "cat": "Bug Fixes",
+        "text": "The opening film's title now follows your Motion setting"
       }
     ]
   },
