@@ -194,3 +194,11 @@ readable still. ~~Known gap: the roulette only mounts after a real Boss Rush~~ �
 game-wide spore integration (BOSS-RUSH.md §roulette): the Vault's Roulette bay spins the
 banked lane, so the wheel is headlessly reachable (seed `bioSpores` → vault → spin → collect;
 probe verifies bank consumption, the lifetime ledger, and the return-to-vault routing).
+
+## §rarity-fx (2026-11 VFX pass) — containers land lit
+
+The Bio-Containers bucket's banked rows (`.ve-row`) are `rfx-lite` hosts in their loot tier
+(docs/UI-STANDARDS.md §rarity): each lands with a staggered one-shot flash (`--i`) and keeps the grid
+glow — a Mythic row is unmistakably not a Common one at a glance. Caches stay their own dashed
+`--cache` identity (never a rarity). Pacing (`CATEGORY_MS`/`SETTLE_MS`) is unchanged. The Genome Rank
+promotion that can follow a run is a legendary-tier moment (docs/GAME-FEEL.md §reward-vfx).

@@ -292,3 +292,21 @@ skipAnims / page) enforces every flow rule. **A future reward type only needs it
 follow with zero reveal-specific code. The rules are unit-pinned in
 `state/vaultReveal.test.ts` (adapter coverage across every RewardItem variant, hold/ack,
 double-flip refusal, skip suppression, cascade order, 1/5/10/50/100 geometry, perf).
+
+## §rarity-fx (2026-11 VFX pass) — the Vault speaks the shared rarity language
+
+**Fixed: rarity read as the reward's family colour.** The clutch face's rarity word, the harvest's rarity
+tally chips and the prize banner's rarity chip took `PullView.color` — the reward FAMILY's hue (a tower's
+colour, a material's) — so "8× INERT" read blue and a Legendary material read pink. Now every rarity
+signal comes from `rarityColor(pull.rarity)` (the one map); the emblem and the amount keep the family
+colour (what it IS), the frame speaks the tier (how RARE it is). The legendary interrupt's rays/zoom
+(`.vintr.is-legendary`) wear the rarity too (discoveries keep the card-rarity colour they already had).
+
+**Shared layers** (docs/UI-STANDARDS.md §rarity): a flipped face is a full `rfx` host (frame, glow, sweep,
+rare+ edge, epic+ motes — no crown in a 12-tile clutch) with a one-shot flash timed to its flip
+(`--flash-d` per tier; off under Skip animations); the PRIZE SPECIMEN banner and the apex interrupt card
+wear the full layers (the banner's own motes retired); the shelf's banked containers and the
+incubating box glow in their tier. Face-down backs stay deliberately uniform (the layers mount only on
+`is-up`). Settings → Motion → Flashes now also silences the room-wide `hatch-worldflash`
+(`:root[data-flashes="off"]`). Staging note for captures: the roll is META `Math.random`, so a driver
+can script it around the one synchronous open to show upper tiers on demand.

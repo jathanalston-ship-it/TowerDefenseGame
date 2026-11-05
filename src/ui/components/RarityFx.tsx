@@ -22,10 +22,9 @@ export const RARITY_FX: Record<string, RarityLayers> = {
   mythic: { edge: true, motes: 7, crown: '✦ ✦ ✦' },
 };
 
-/** Grid (`lite`) surfaces stay calm at 100+ tiles: the circling edge only from legendary up, a few
- *  motes only at the apex, never a crown — the sweep runs on hover/focus instead of on a loop. */
+/** Grid (`lite`) surfaces stay calm (and cheap) at 100+ tiles: the circling edge only from legendary up
+ *  (a compositor transform), no motes, no crown — the sweep runs on hover/focus instead of on a loop. */
 const LITE_EDGE = new Set(['legendary', 'exotic', 'mythic']);
-const LITE_MOTES: Record<string, number> = { exotic: 3, mythic: 3 };
 
 /** The host's class list: `rfx rfx-<tier>` (+ `rfx-lite` on grids). The host must be positioned. */
 export function rfxClass(rarity: string, lite = false): string {
@@ -56,7 +55,7 @@ export function RarityFx({ rarity, lite = false, flash = false, crown = true }: 
 }): JSX.Element {
   const fx = RARITY_FX[rarity] ?? {};
   const edge = lite ? LITE_EDGE.has(rarity) : !!fx.edge;
-  const motes = lite ? LITE_MOTES[rarity] ?? 0 : fx.motes ?? 0;
+  const motes = lite ? 0 : fx.motes ?? 0;
   const diadem = !lite && crown ? fx.crown : undefined;
   return (
     <>
