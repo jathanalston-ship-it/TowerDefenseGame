@@ -15,10 +15,12 @@ It **never caps**.
 |---|---|
 | No cap; smooth spike-free power-law curve; overflow-safe ≥ L100 000 | `accountLevel.test.ts` §curve |
 | Reward value grows **slower** than XP requirement (n^0.7 vs n^1.25) | §rewards + sim guard (≤ 15 % of lifetime cores) |
+| Depth XP: ×1 through depth 30, smooth/monotonic/uncapped after; contract XP stays flat | §depth (`accountLevel.test.ts`) |
+| Levels 1–42 pay the pre-depth ladder exactly; deep beats are smaller but bounded and creep back up | §rewards (pinned sums + deep-window guard) |
 | Every level pays something (guaranteed core floor) | §rewards (levels 1–400 swept) |
 | Rewards deterministic per level (shared previewable ladder, no save RNG) | §rewards |
 | Milestones infinite (named tiers, then every 500 past 1000), always one ahead | §milestones |
-| The lane moves every persona band and decelerates per hour | `progressionSim.test.ts` |
+| The lane moves every persona band, decelerates out of onboarding, never runs away | `progressionSim.test.ts` |
 | Save-compat: `accountXp` sanitized, level always **derived** from XP | `saveStore.ts` `sanitizeAccountXp` |
 
 ## The curve
@@ -32,18 +34,71 @@ fill from lifetime XP; **XP is the stored truth, level is never persisted**.
 kill 1 · bossKill 40 · megaKill 250 · wave 12 · win 150 · campaignClearPerStage 6 ·
 campaignFirstClear 120 · dailyComplete 300 · bossRushWavePremium 10 (on top of `wave`) ·
 acquisition 15 (star/upgrade/gene buys) · molt 500 · achievement 100 · tutorialComplete 200.
+The run fold's **play** XP (everything above except `contract`/`perfectWeek`) is multiplied by
+Depth XP — see §depth.
 
 Where it folds (all in `state/meta.ts`): `finishRun` computes the run's XP and settles it via
 `foldAccountXp`; `evaluateAchievements`, `buyUpgrade`/`buyStar`/`buyHeroStar`/`upgradeGene`
 (acquisition), `molt`, and `grantTutorialRewards` wrap their persists the same way. **A new
 XP source = one `ACCOUNT_XP` row + one `foldAccountXp(...)` wrap around its persist.**
 
+## Depth XP — the late-game cadence (§depth)
+
+**Problem (grind audit G2, 2026-11):** kills and waves per minute plateau at depth (the Infinite
+headcount caps ~depth 18; campaign stages cap at 14 waves) while `xpForLevel` keeps rising, so
+play paid a flat ~3.3k XP/hour forever and the lane slowed to **0.3 level-ups/hour by hour 100**
+(0.2/h past 150 h).
+
+**Lever — XP income, not the curve.** Re-shaping the curve would retroactively jump veterans'
+levels (a reward burst for every level crossed on first load + leaderboard jumps). Instead the
+run's play XP scales with the account's **depth** — `accountDepth(stage, bestWave)` in
+`core/equipment.ts`, the SAME depth the gear chase reads (deepest cleared Campaign stage, or the
+Infinite record × `ITEM_LEVEL_CURVE.infiniteWeight`), read at run start:
+
+`depthXpMult(d) = 1` for d ≤ 30, else `1 + ((d − 30) / 25)^1.6` (`ACCOUNT_XP_DEPTH`) —
+stage 55 ×2 · 80 ×4.0 · 105 ×6.8 · 130 ×10.2 · 165 ×15.9.
+
+Why account depth (not the run's own depth): one multiplier for every mode keeps XP/minute
+mode-neutral (no mode becomes the XP grind) and camp-neutral (Infinite depth-camping is already
+tapered for loot/mastery — `ENDLESS_TAPER`; a per-wave depth ramp would undo that). Contract and
+Perfect-Week XP stay flat because `ContractsCard` quotes them (previews == outcomes). Results
+names the multiplier (`RunOutcome.accountXp.depthMult` → "DEPTH ×N.N").
+
+**Payouts re-weighted, so the faster beat is not a faucet** (`ACCOUNT_REWARD_DEPTH`):
+- levels ≤ 42 pay exactly what they always did (pinned); past 42 the value budget divides by
+  `1 + 3·ln(n / 42)` — ~45–50 at L80–L250 (vs 147–305 before), then creeping back up
+  (∝ n^0.7 / ln n: 74 at L1000) so deep levels never shrink to nothing;
+- the periodic Bio-Container interval widens by 5 every 50 levels (`isContainerLevel`: every 5th
+  to L50, 10th to L100, 15th to L150 … always round levels); milestones keep their package.
+
+**Measured** (cadence harness on the progression-sim personas, average / efficient, 400 h):
+
+| Band | min per level-up before → after | level-reward value/hour Δ |
+|---|---|---|
+| 0–3 h | 8 → 8 / 8 → 8 | 0 % / 0 % |
+| 3–10 h | 40 → 40 / 37 → 35 | 0 % / +4 % |
+| 10–30 h | 65 → 51 / 69 → 52 | 0 % / 0 % |
+| 30–60 h | 112 → 55 / 106 → 56 | −9 % / −14 % |
+| 60–100 h | 159 → 63 / 159 → 61 | +16 % / +18 % (L100 milestone lands here now) |
+| 100–150 h | 198 → 71 / 200 → 66 | −10 % / −3 % |
+| 150–400 h | 305 → 73 / 306 → 71 | −1 % / +2 % |
+
+Value = core-equivalents at the ladder's own budget rates + ichor at the Exchange anchor +
+containers at their expected roll. Over 30–150 h: −1 % / 0 %. Levels at 150 h: 96 → 167; at
+400 h: 145 → ~375. **Leaderboards:** per active hour XP is now depth-weighted — for one account
+it is uniform across modes (one multiplier), but a stage-160 veteran earns ~15× the XP/hour of a
+stage-30 account, so `weeklyXp`/`monthlyXp` tilt from pure activity toward activity × depth and
+the all-time `accountLevel` board's XP grows faster for deep accounts from now on (existing
+totals untouched; `MODE_BOUNDS` — 5·10⁸ per period — keeps ~30× headroom over a 300-hour month
+at stage 170, ~55k XP/hour).
+
 ## Procedural rewards
 
 `accountLevelReward(level)` — deterministic (seeded `account-level:${level}`), weighted pool
 (`ACCOUNT_REWARD_POOL`: cores 30, towerShards 20, essence 16 ≥L3, heroShards 12 ≥L4, mats 10
-≥L5, ichor 3 ≥L12), magnitudes scale on `valueBudget(n) = 18 + 6·n^0.7`. Every 5th level
-banks a Bio-Container (`kind: 'cache'`, tier via the shared `chestForWave` ladder). Milestones
+≥L5, ichor 3 ≥L12), magnitudes scale on `valueBudget(n) = 18 + 6·n^0.7` (re-weighted past L42 —
+§depth). Periodic levels (`isContainerLevel`, every 5th, widening at depth)
+bank a Bio-Container (`kind: 'cache'`, tier via the shared `chestForWave` ladder). Milestones
 roll twice, multiply cores, add ichor + a rich/prime container, and carry `ACCOUNT_TITLES`
 identity (Taking Root L10 → Millennial Hive L1000). **A future currency = one pool row + one
 apply line in `foldAccountXp`.**
@@ -77,11 +132,14 @@ into past periods; no tickets needed since period XP only grows). Client claims 
 `net/leaderboard.ts §currentClaim`; boards render via `LeaderboardBlock` on the Profile.
 Bounds per mode in `functions/api/leaderboard/submit.ts §MODE_BOUNDS`.
 
-## Balance calibration (2026-07, pinned persona sim)
+## Balance calibration (2026-11, pinned persona sim)
 
-30h trace: levels [29 @5h, 48 @15h, 60 @30h] — rate falls 5.8 → 1.9 → 0.8 levels/hour;
-level-reward cores = **2.3 %** of lifetime cores (guard trips at 15 %). Recalibrate via
-`npm run sim:report` after touching `ACCOUNT_XP`, the curve, or `valueBudget`.
+30h guard trace (`progressionSim.test.ts`, 0xbeef): levels [26 @5h, 38 @15h, 53 @30h]
+(pre-depth [26, 38, 50]); level-reward cores = **5.6 %** of lifetime cores (pre-depth 5.9 %;
+guard trips at 15 %). Deep cadence: §depth table. Recalibrate after touching `ACCOUNT_XP`,
+`ACCOUNT_XP_DEPTH`, `ACCOUNT_REWARD_DEPTH`, the curve, or `valueBudget` — the multiplier and the
+payout re-weighting are a PAIR (faster levels × smaller beats); retune them together against the
+cadence harness (level-ups/hour + level-reward value/hour by band) and `npm run sim:report`.
 
 ## Known limitations / future hooks
 
@@ -89,4 +147,9 @@ level-reward cores = **2.3 %** of lifetime cores (guard trips at 15 %). Recalibr
   docs/SECURITY-AUDIT.md); bounds + keep-best are the friction.
 - `levelFromXp` is an O(level) walk — fine for real saves (μs at L100k); switch to closed
   form only if a profiler ever says so.
+- Depth XP is calibrated on the sim's world model (12 kills + 1 wave per 30 s, flat at depth).
+  Real boards that kill faster level proportionally faster at every depth; the multiplier keys
+  on depth, not kill rate, so the SHAPE (a steady beat at depth) carries over.
+- The cadence still drifts slowly longer past ~400 h (~75 min/level at stage 165); the formula
+  is uncapped, so a later retune is one `ACCOUNT_XP_DEPTH` row.
 - Battle-pass-style seasonal tracks can ride the weekly/monthly ledgers as-is.

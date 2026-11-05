@@ -1028,12 +1028,18 @@ math, deterministic per-level rewards, UTC period keys) + one meta-side fold
 `save.accountXp = {xp, week{key,xp}, month{key,xp}}` — **level is always derived** from XP
 (`levelFromXp`), never stored. Curve `80 + 40·n^1.25` (uncapped, spike-free, overflow-safe to
 L100k+); reward budget `18 + 6·n^0.7` — value deliberately grows slower than requirement.
+**Depth XP (2026-11):** the run fold's play XP × `depthXpMult(accountDepth)` (×1 through depth
+30, then `1 + ((d−30)/25)^1.6`; `accountDepth` is the gear chase's depth, core/equipment.ts),
+paired with deep-payout re-weighting (`ACCOUNT_REWARD_DEPTH`: budget ÷ `1 + 3·ln(n/42)` past
+L42, container interval widening by 5 each 50 levels) — a level-up every ~50–75 min from hour
+10 to 400 (was 0.3/h at 100 h) with level-reward value/hour within −14 %…+18 % per band.
 
 **Public APIs.** Core: `ACCOUNT_XP`, `xpForLevel/levelFromXp/levelProgress/totalXpForLevel`,
 `isMilestoneLevel/nextMilestone` (named tiers 10/25/50/100/250/500/1000, then every 500),
-`ACCOUNT_TITLES/ACCOUNT_TITLE_BY_ID`, `accountLevelReward(level)`, `weekKey/monthKey` | meta:
+`ACCOUNT_TITLES/ACCOUNT_TITLE_BY_ID`, `accountLevelReward(level)`, `depthXpMult(depth)`,
+`isContainerLevel(level)`, `weekKey/monthKey` | meta:
 `accountLevel()` → {xp, level, into, need, nextMilestone, weekXp, monthXp},
-`drainAccountLevelUps()`, `RunOutcome.accountXp: AccountXpDelta` | UI: `AccountXpBar`
+`drainAccountLevelUps()`, `RunOutcome.accountXp: AccountXpDelta` (+ `depthMult` on run settles) | UI: `AccountXpBar`
 (compact/full), `AccountLevelToast`, `rewardLine(reward)`, `titleName(id)` (profile.ts).
 
 **Extension points.** New XP source = one `ACCOUNT_XP` row + wrap its persist in
@@ -1051,7 +1057,8 @@ carry `accountLevel` (PROGRESSION_REPORT column) for pacing evidence.
 
 **Known limitations.** Boards are client claims (bounds + keep-best friction, like
 daily/bossRush); `levelFromXp` is an O(level) walk (fine at real scales); milestone toasts
-beyond the named tiers reuse the generic celebration (no per-tier bespoke art yet).
+beyond the named tiers reuse the generic celebration (no per-tier bespoke art yet). Depth XP is
+calibrated on the sim world model; weekly/monthly XP boards now weight activity × depth.
 
 ## Compressed system summary — Genome Rank (docs/GENOME-RANK.md)
 
