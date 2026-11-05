@@ -1,6 +1,6 @@
 {
-  "lastSha": "014ec77a390718972a34d99af256c541daddab00",
-  "commitsSinceDraft": 0,
+  "lastSha": "59e08840515e9c7f97ad6d017165d2be735837c2",
+  "commitsSinceDraft": 2,
   "content": {
     "tower": [
       "needle",
@@ -7970,6 +7970,22 @@
       "cat": "Balance",
       "text": "Tune(grind): board-aware live threat with a speed share; readiness band re-anchored to outcomes",
       "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "f2c884a4a72f143e76d98251a1b5efd5491640a5",
+      "date": "2026-11-05",
+      "cat": "Developer Tools",
+      "text": "\"Frontiers Bite Again\" — release v2026.11.04.5, devlog post, campaign guide, GAME-STATE",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "59e08840515e9c7f97ad6d017165d2be735837c2",
+      "date": "2026-11-05",
+      "cat": "Developer Tools",
+      "text": "Validation,status: frontier challenge v2 PASS — 3022/3022, mobile gate clean",
+      "internal": true,
       "needsReview": false
     }
   ]

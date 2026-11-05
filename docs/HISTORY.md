@@ -552,3 +552,7 @@
 - `9199530` **[Gameplay]** Owed drafts say so — "+N more owed — waves you called early"
 - `0ff8ba9` **[Gameplay]** Wip(grind): live board term + HP/pace/speed split for the Campaign live threat
 - `66f0516` **[Balance]** Tune(grind): board-aware live threat with a speed share; readiness band re-anchored to outcomes
+## 2026-11-05
+
+- `f2c884a` **[Developer Tools]** "Frontiers Bite Again" — release v2026.11.04.5, devlog post, campaign guide, GAME-STATE _(internal)_
+- `59e0884` **[Developer Tools]** Validation,status: frontier challenge v2 PASS — 3022/3022, mobile gate clean _(internal)_
