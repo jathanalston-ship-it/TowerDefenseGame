@@ -466,6 +466,20 @@ export function drawGame(
   ctx.save();
   ctx.lineJoin = 'round';
   ctx.strokeStyle = FLOAT_OUTLINE;
+  // CROWD BUDGET (DAMAGE_NUMBERS.crowd*): count the live damage numbers + the biggest; on a crowded
+  // field the small ones recede so the big hits read (one cheap pre-pass, no allocation).
+  let nNums = 0;
+  let maxNum = 0;
+  if (viewFeel.numbers) {
+    for (const f of rs.floats) {
+      const c0 = f.text.charCodeAt(0);
+      if (f.kind === 'crit' || c0 < 48 || c0 > 57) continue;
+      nNums++;
+      const v = leadingInt(f.text);
+      if (v > maxNum) maxNum = v;
+    }
+  }
+  const crowdCut = nNums > DAMAGE_NUMBERS.crowdAt ? maxNum * DAMAGE_NUMBERS.crowdFrac : 0;
   for (const f of rs.floats) {
     const c0 = f.text.charCodeAt(0);
     const numeric = c0 >= 48 && c0 <= 57;
@@ -498,7 +512,9 @@ export function drawGame(
       // log curve, with a short pop-in overshoot at birth. Fonts are pre-built (no per-frame strings).
       const age = Math.max(0, DAMAGE_NUMBERS.life - f.life);
       const pop = age < DAMAGE_NUMBERS.popSec && viewFeel.motion > 0 ? 1 + DAMAGE_NUMBERS.popScale * (1 - age / DAMAGE_NUMBERS.popSec) : 1;
-      const px = Math.min(DMG_FONTS.length - 1, Math.round(damageNumberPx(leadingInt(f.text)) * pop));
+      const val = leadingInt(f.text);
+      if (val < crowdCut) ctx.globalAlpha *= DAMAGE_NUMBERS.crowdAlpha; // chip damage recedes on a crowded field
+      const px = Math.min(DMG_FONTS.length - 1, Math.round(damageNumberPx(val) * pop));
       ctx.font = DMG_FONTS[px];
       ctx.textAlign = 'center';
       ctx.lineWidth = DAMAGE_NUMBERS.outline;

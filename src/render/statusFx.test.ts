@@ -25,6 +25,13 @@ describe('mergeStatusFx — the procedural trait merge', () => {
     expect(mergeStatusFx(bareEnemy({ statuses: [] }), 2)).toBeNull();
   });
 
+  it('a CONTROL rim reads as a grip, a dot rim as a glow — disruption vs corrosion share the rim kind, not the read', () => {
+    const disrupted = mergeStatusFx(bareEnemy({ disrupt: 1.2 }), 2)!;
+    const corroded = mergeStatusFx(bareEnemy({ corrosion: 2 }), 2)!;
+    expect(disrupted.overlays.find((o) => o.kind === 'rim')?.control).toBe(true);
+    expect(corroded.overlays.find((o) => o.kind === 'rim')?.control).toBe(false);
+  });
+
   it('a single status carries its identity: poison → veins overlay + spore emitter', () => {
     const m = mergeStatusFx(bareEnemy({ statuses: [{ id: 'poison', stacks: 1, remaining: 4 }] }), 2)!;
     expect(m).toBeTruthy();

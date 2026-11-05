@@ -99,6 +99,12 @@ export const DAMAGE_NUMBERS = {
   popScale: 0.4, // overshoot at birth (1.4× → 1×)
   life: 0.55, // the sim's aggregated-number lifetime (game.ts damage aggregation)
   outline: 3.5, // dark stroke width — legible over acid pools / bright gore
+  // CROWD BUDGET (docs/COMBAT-VISUAL-STANDARDS.md §hit-confirmation): past `crowdAt` live numbers,
+  // the ones under `crowdFrac` × the biggest on screen recede to `crowdAlpha` — at 150 bodies the
+  // chip damage stops papering the field and the heavy hits stay legible. Crits never recede.
+  crowdAt: 24,
+  crowdFrac: 0.4,
+  crowdAlpha: 0.3,
 } as const;
 
 // ── LAST KILL — the wave's final enemy LANDS (docs/SIGNATURE-MOMENTS.md §1, render/lastKill.ts) ──
