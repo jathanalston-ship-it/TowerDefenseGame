@@ -3,7 +3,7 @@
 // breadcrumb JSON-LD and the in-article ad seam. Guides that benefit from live game data
 // (towers/heroes) splice in the encyclopedia tables, so they expand with the roster for free.
 
-import { CAMPAIGN_OPENING, DRAFT_FEATURES, ENDLESS_SQUEEZE, MODE_UNLOCKS, RUSH } from '../src/core/config';
+import { CAMPAIGN_OPENING, DIRECTOR_ADAPTIVE, DRAFT_FEATURES, ENDLESS_SQUEEZE, MODE_UNLOCKS, READINESS, RUSH } from '../src/core/config';
 import { MAP_LAYOUTS } from '../src/core/mapLayouts';
 import { THREAT_MAX } from '../src/core/threat';
 
@@ -173,10 +173,11 @@ export const GUIDES: Guide[] = [
       ] },
       { h: 'The opening, and the Hive that adapts', body: [
         'A run is no longer decided in its first thirty seconds. Fliers stay out of wave 1 and arrive only in small numbers in wave ' + (CAMPAIGN_OPENING.flyingUnitCap.length) + ', a stage’s Mega surfaces with wave ' + CAMPAIGN_OPENING.megaArrivalWave + ' rather than on top of your opening build, and on deeper stages your free first organism is one that answers the stage’s opening threats.',
-        'The pressure comes later instead: from wave 4, and on every boss, the hive answers your snowball — waves and bosses grow with how far your board has outgrown the stage (the wave briefing shows <b>▲ ADAPTED ×N</b>). It only ever pushes up; a board that is behind is never propped up.',
+        'The pressure comes later instead: from wave ' + DIRECTOR_ADAPTIVE.liveFromWave + ' (and from Stage ' + DIRECTOR_ADAPTIVE.liveFromStage + ' on), and on every boss, the hive answers your snowball. It reads your whole board — your Power, this run’s genes and how many towers you have fielded — and answers with waves that are tougher, denser and faster, so a strong board meets a real fight without the wave dragging on (the briefing shows <b>▲ ADAPTED ×N</b>). It only ever pushes up; a board that is behind is never propped up.',
         'Confident in your board? Press <b>⏩ Call early</b> (or Space) mid-wave to launch the next wave now for bonus Biomass. Waves overlap, and every gene draft you skipped is still dealt when the field clears.',
       ] },
       { h: 'When you hit a wall', body: [
+        'The stage card warns you as <b>under-powered</b> only below ' + Math.round(READINESS.warnBelow * 100) + '% of its recommended Power — that is where runs are usually lost, and Home then suggests farming Infinite. Above it, the stage is within reach: push it.',
         'A wall is information: it names the axis you have underfed. Check the recommended Power, bank a few genome tiers, star up your core towers, then re-attempt. Mutation-choice events are the campaign’s biggest swings — read both options before picking.',
       ] },
       { h: 'Milestones worth planning for', body: [

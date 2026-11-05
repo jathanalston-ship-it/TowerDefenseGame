@@ -1,6 +1,6 @@
 # PIL_REPORT.md — Public Intelligence Layer report (GENERATED — `npm run pil -- regen`)
 
-> The public-facing sync ledger (docs/PIL.md): 53 pages · 6 assets tracked against the DIL.
+> The public-facing sync ledger (docs/PIL.md): 54 pages · 6 assets tracked against the DIL.
 
 ## Structural audit — ✅ clean
 
@@ -53,6 +53,7 @@
 - `/blog/equipment-identity/` — Dev Blog — equipment-identity → system:equipment
 - `/blog/every-cast-a-set-piece/` — Dev Blog — every-cast-a-set-piece → (static)
 - `/blog/feel-and-flow/` — Dev Blog — feel-and-flow → (static)
+- `/blog/frontiers-bite-again/` — Dev Blog — frontiers-bite-again → (static)
 - `/blog/living-battlefield/` — Dev Blog — living-battlefield → system:living-battlefield
 - `/blog/mega-boss-raids/` — Dev Blog — mega-boss-raids → system:mega-bosses
 - `/blog/moments-that-land/` — Dev Blog — moments-that-land → (static)
@@ -62,9 +63,9 @@
 - `/blog/the-weekly-game/` — Dev Blog — the-weekly-game → system:contracts, system:quests, system:account-level, system:genome-rank
 
 ## Media inventory
-- `og.png` — og · current · captured 2026-11-04
-- `favicon.svg` — icon · current · captured 2026-11-04
-- `icon-512.png` — icon · current · captured 2026-11-04
-- `media/shots/combat.webp` — screenshot · current · captured 2026-11-04 · depicts system:run-ui
-- `media/shots/command.webp` — screenshot · current · captured 2026-11-04 · depicts system:run-ui
-- `media/shots/megaraid.webp` — screenshot · current · captured 2026-11-04 · depicts system:run-ui
+- `og.png` — og · current · captured 2026-11-05
+- `favicon.svg` — icon · current · captured 2026-11-05
+- `icon-512.png` — icon · current · captured 2026-11-05
+- `media/shots/combat.webp` — screenshot · current · captured 2026-11-05 · depicts system:run-ui
+- `media/shots/command.webp` — screenshot · current · captured 2026-11-05 · depicts system:run-ui
+- `media/shots/megaraid.webp` — screenshot · current · captured 2026-11-05 · depicts system:run-ui

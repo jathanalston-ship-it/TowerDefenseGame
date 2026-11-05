@@ -17,6 +17,24 @@ export interface BlogPost {
 
 export const POSTS: BlogPost[] = [
   {
+    slug: 'frontiers-bite-again',
+    date: '2026-11-05',
+    title: 'Frontiers bite again: the Hive reads your whole board',
+    category: 'Balance',
+    tags: ['balance', 'campaign', 'difficulty', 'design'],
+    summary: 'The Grind took the luck out of Campaign openings, and with it most of the challenge: new stages were won almost nine times in ten. This update gives the frontier its teeth back without making runs longer, and makes the under-powered warning mean what it says.',
+    body: `
+<p>Yesterday's update stopped Campaign runs from being decided in the first thirty seconds. It worked: wave-1 losses went to zero. But the opening lottery had been doing most of the work of making stages hard, and without it new stages were won 82–87% of the time, mostly without a scratch. The hive's answer to a strong board was too small, because it only saw your Power. Power can't see a board that has grown from two towers to eighteen.</p>
+<h2>The hive reads your board</h2>
+<p>From wave 4 (and from Stage 4 on), the hive now counts how many towers you have fielded, along with your Power and this run's genes, and scales its waves to the board in front of it. It also answers differently. Before, it mostly made enemies tougher, which made waves longer. Now most of the answer is <b>speed</b>: faster enemies spend less time in your kill zones, which raises the threat while making the wave shorter. Some of it is denser waves, and only a little is extra health. Speed is capped at the same readability limit Infinite uses, so the field never turns into a blur.</p>
+<p>In our test runs, new stages are now won about 73% of the time at eight hours and 59% at a hundred, down from 87% and 82%. Runs are no longer than they were yesterday, losses still come late in a run, and the first three Campaign stages are unchanged.</p>
+<h2>"Under-powered" means it</h2>
+<p>The stage card used to warn you below 90% of a stage's recommended Power, but players in that range won about two runs in three. The warning, and Home's suggestion to farm Infinite, now appears below 70%. That is where runs are usually lost. Above it, the stage is within reach: push it.</p>
+<h2>What's next</h2>
+<p>Too many wins are still flawless, and your draft picks still don't decide enough Campaign runs. Next we want the hive to answer with the composition of its waves (which roles and elites it sends) rather than just their numbers, and to stop counting your drafted cards as a reason to push back.</p>
+`,
+  },
+  {
     slug: 'the-grind',
     date: '2026-11-04',
     title: 'The Grind: runs that aren\'t decided in thirty seconds, goals that tell the truth, and chases that keep climbing',

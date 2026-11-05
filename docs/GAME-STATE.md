@@ -1739,12 +1739,15 @@ band = config rows; a new Boss Rush board epoch = bump `RUSH_BOARD_EPOCH` (both 
 **Assumptions.** The golden path sets none of the new RunOptions; save v56 merge rules are max/union;
 the live threat never makes a weak board easier.
 
-**Known limitations.** The live ratio ignores board size. A matched-pair decomposition showed ~¾ of
-the first release's run-length growth was the live threat's HP, so its caps ship at 3 / 4 (chaff /
-boss): winning runs are ×1.1 (8 h) / ×1.6–1.7 (100 h) the old length, but frontier win rates rose a
-lot (8 h 51 → 87 %, 100 h 41 → 82 %) and flawless wins stayed ~80 % — the board-size term and a
-stage-curve re-anchor (DIFFICULTY_DIRECTOR §7) are the real fix; `liveCap`/`liveBossCap` 16/16 trade
-run length back for difficulty. Campaign draft picks still barely move outcomes (wins at the ceiling).
+**Known limitations.** Frontier challenge v2 (2026-11-05, DIFFICULTY_DIRECTOR §6a/§7): the live ratio
+counts towers fielded ÷ the opening build and the live multiplier lands as HP^0.3 × pace^0.2 ×
+SPEED^0.5 (speed capped at the 1.85 readability ceiling) — frontier win 8 h 87 → 73 %, 100 h 82 → 59 %
+with run time no longer than the 3/4 release (×1.01 / ×1.76 of pre-G), and `READINESS.warnBelow`
+0.9 → 0.7 so "under-powered" (the farm-first CTA) means a likely loss. Still open: flawless wins
+73 % / 67 % (target ≤ 55 %), the 8 h frontier+1..3 rate ~75 %, and draft picks barely move Campaign
+outcomes (the live ratio counts drafted cards, so a stronger pick also raises the threat) — next: a
+cards-excluded ratio and threat by composition (roles/elites) rather than bodies. At 100 h the speed
+part has little room under the ceiling, so it still leans on HP.
 Affix tiers move item Power little (base effects dominate). Migrated veterans' ETAs start optimistic
 for ~10 runs; their first settle crosses ~17 ladder rungs at once (folded on Results). Hive
 Intelligence doesn't use Splice. Infinite "start at 60 % depth" was not built.

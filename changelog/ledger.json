@@ -1,5 +1,5 @@
 {
-  "lastSha": "35afc85bcb275ded281a329d5bb4f139241bd051",
+  "lastSha": "014ec77a390718972a34d99af256c541daddab00",
   "commitsSinceDraft": 0,
   "content": {
     "tower": [
@@ -3817,6 +3817,28 @@
         {
           "cat": "Bug Fixes",
           "text": "The Mega bar no longer covers the gene draft’s header, and the Boss Rush tray no longer clips its last pod on wide screens"
+        }
+      ]
+    },
+    {
+      "id": "v2026.11.04.5",
+      "date": "2026-11-04",
+      "title": "Frontiers Bite Again",
+      "sealed": false,
+      "entries": [
+        {
+          "cat": "Balance",
+          "text": "The Hive now reads your whole board — towers fielded included — and from wave 4 answers with faster, denser and tougher waves, so frontier stages bite again without dragging on",
+          "major": true
+        },
+        {
+          "cat": "UX",
+          "text": "Readiness tells the truth: the under-powered warning (and the Farm Infinite suggestion) now appears only below 70% of a stage’s recommended Power — where runs are usually lost",
+          "major": true
+        },
+        {
+          "cat": "UX",
+          "text": "After you call waves early, the back-to-back gene drafts say how many more are owed instead of repeating “wave cleared”"
         }
       ]
     }
@@ -7908,6 +7930,46 @@
       "cat": "Developer Tools",
       "text": "Validation,status: Batch G PASS — 3019/3019, mobile gate clean, probe PASS; status board 2026-11-04f",
       "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "2524c2df7d380d21d52438f38e086e790607edac",
+      "date": "2026-11-04",
+      "cat": "Framework",
+      "text": "Notes: sync Chronicle artifacts to HEAD (v2026.11.04.4 stays at its 16 curated entries)",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "b541786924ad1393a7c89fb834bf23277e150afc",
+      "date": "2026-11-04",
+      "cat": "Developer Tools",
+      "text": "Status: Batch G 'The Grind' is live (run #229); seal v2026.11.04.4",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "919953017cc6e738a89f723f919bb832d5fe231b",
+      "date": "2026-11-04",
+      "cat": "Gameplay",
+      "text": "Owed drafts say so — \"+N more owed — waves you called early\"",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "0ff8ba91ba24a9a118bf1e6ae4562d6168a9ed4c",
+      "date": "2026-11-04",
+      "cat": "Gameplay",
+      "text": "Wip(grind): live board term + HP/pace/speed split for the Campaign live threat",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "66f051681d90fce13194276e3539db8593bab563",
+      "date": "2026-11-04",
+      "cat": "Balance",
+      "text": "Tune(grind): board-aware live threat with a speed share; readiness band re-anchored to outcomes",
+      "internal": false,
       "needsReview": false
     }
   ]

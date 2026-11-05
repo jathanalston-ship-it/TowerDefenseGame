@@ -547,3 +547,8 @@
 - `a6debfb` **[Bug Fixes]** Enter a run through the farm-first Home CTA ("Fight Stage N anyway" / "Farm Infinite")
 - `d7a816e` **[Developer Tools]** Regenerate PIL_REPORT for the new devlog page _(internal)_
 - `35afc85` **[Developer Tools]** Validation,status: Batch G PASS — 3019/3019, mobile gate clean, probe PASS; status board 2026-11-04f _(internal)_
+- `2524c2d` **[Framework]** Notes: sync Chronicle artifacts to HEAD (v2026.11.04.4 stays at its 16 curated entries) _(internal)_
+- `b541786` **[Developer Tools]** Status: Batch G 'The Grind' is live (run #229); seal v2026.11.04.4 _(internal)_
+- `9199530` **[Gameplay]** Owed drafts say so — "+N more owed — waves you called early"
+- `0ff8ba9` **[Gameplay]** Wip(grind): live board term + HP/pace/speed split for the Campaign live threat
+- `66f0516` **[Balance]** Tune(grind): board-aware live threat with a speed share; readiness band re-anchored to outcomes

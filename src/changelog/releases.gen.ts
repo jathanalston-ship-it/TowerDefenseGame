@@ -5,10 +5,32 @@ import type { Release } from './types';
 /** Player-facing releases, newest first. */
 export const RELEASES: Release[] = [
   {
+    "id": "v2026.11.04.5",
+    "date": "2026-11-04",
+    "title": "Frontiers Bite Again",
+    "sealed": false,
+    "entries": [
+      {
+        "cat": "Balance",
+        "text": "The Hive now reads your whole board — towers fielded included — and from wave 4 answers with faster, denser and tougher waves, so frontier stages bite again without dragging on",
+        "major": true
+      },
+      {
+        "cat": "UX",
+        "text": "Readiness tells the truth: the under-powered warning (and the Farm Infinite suggestion) now appears only below 70% of a stage’s recommended Power — where runs are usually lost",
+        "major": true
+      },
+      {
+        "cat": "UX",
+        "text": "After you call waves early, the back-to-back gene drafts say how many more are owed instead of repeating “wave cleared”"
+      }
+    ]
+  },
+  {
     "id": "v2026.11.04.4",
     "date": "2026-11-04",
     "title": "The Grind",
-    "sealed": false,
+    "sealed": true,
     "entries": [
       {
         "cat": "Gameplay",
