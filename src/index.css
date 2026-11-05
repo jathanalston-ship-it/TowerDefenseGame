@@ -14165,3 +14165,67 @@ html[data-layout='desktop'] .cv-slot { flex: 0 1 auto; width: 240px; min-width: 
 }
 /* §6a v3 live composition: the ELITE count on a wave-briefing chip (★N of the kind arrive elite). */
 .wb-chip .wb-elite { font-size: 10px; font-weight: 900; letter-spacing: 0.04em; color: var(--warn); font-variant-numeric: tabular-nums; }
+
+/* ── DRAFT CARD SHEEN (docs/GAME-FEEL.md §draft-sheen) — rarer cards look rarer at a glance ──────────────
+   A passive light sweep (.card-sheen, transform-only) and a breathing rarity-coloured glow (::before,
+   opacity-only) — both compositor-friendly, three cards at most. THE TABLE: one row per rarity —
+   --sheen-a (band brightness), --sheen-t (sweep period), --glow-a (peak glow opacity), --glow-r (glow
+   radius), --glow-t (breath period). Common barely glints; legendary/exotic glow and sweep faster. */
+.cards .card { isolation: isolate; --glow-c: var(--pick, var(--r-common)); --sheen-c: 255, 255, 255; }
+.cards .card.r-common    { --sheen-a: 0.05; --sheen-t: 7.5s; --glow-a: 0;    --glow-r: 0px;  --glow-t: 4s; }
+.cards .card.r-uncommon  { --sheen-a: 0.09; --sheen-t: 6.5s; --glow-a: 0.28; --glow-r: 10px; --glow-t: 3.6s; }
+.cards .card.r-rare      { --sheen-a: 0.13; --sheen-t: 5.5s; --glow-a: 0.42; --glow-r: 16px; --glow-t: 3.2s; }
+.cards .card.r-epic      { --sheen-a: 0.18; --sheen-t: 4.5s; --glow-a: 0.56; --glow-r: 22px; --glow-t: 2.8s; }
+.cards .card.r-legendary { --sheen-a: 0.24; --sheen-t: 3.6s; --glow-a: 0.72; --glow-r: 28px; --glow-t: 2.4s; }
+.cards .card.r-exotic    { --sheen-a: 0.28; --sheen-t: 3.2s; --glow-a: 0.8;  --glow-r: 32px; --glow-t: 2.2s; --glow-c: #ff7ad9; --sheen-c: 123, 224, 255; }
+.cards .card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  z-index: -1;
+  pointer-events: none;
+  box-shadow: 0 0 var(--glow-r) calc(var(--glow-r) * 0.2) var(--glow-c);
+  opacity: var(--glow-a);
+  animation: card-glow var(--glow-t) ease-in-out infinite;
+}
+@keyframes card-glow {
+  0%, 100% { opacity: calc(var(--glow-a) * 0.5); }
+  50% { opacity: var(--glow-a); }
+}
+.card-sheen {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  overflow: hidden;
+  pointer-events: none;
+}
+.card-sheen::before {
+  content: '';
+  position: absolute;
+  top: -10%;
+  bottom: -10%;
+  left: 0;
+  width: 45%;
+  background: linear-gradient(100deg, transparent 0%, rgba(var(--sheen-c), var(--sheen-a)) 45%, rgba(var(--sheen-c), calc(var(--sheen-a) * 1.6)) 50%, rgba(var(--sheen-c), var(--sheen-a)) 55%, transparent 100%);
+  mix-blend-mode: screen;
+  transform: translateX(-130%);
+  animation: card-sheen var(--sheen-t) ease-in-out infinite;
+  animation-delay: calc(0.4s + var(--i, 0) * 0.55s);
+}
+/* sweep across in the first third of the period, then rest — a glint, not a strobe */
+@keyframes card-sheen {
+  0% { transform: translateX(-130%); }
+  32%, 100% { transform: translateX(260%); }
+}
+/* the pick moment owns the chosen card's light; dismissed cards stop shining */
+.cards .card.is-chosen .card-sheen, .cards .card.is-dismissed .card-sheen { display: none; }
+.cards .card.is-dismissed::before { animation: none; opacity: 0; }
+/* REDUCED MOTION (OS setting or Settings → Motion): keep the rarity information, drop the motion —
+   a steady glow at its mid strength, no sweep. */
+.game[data-motion="reduced"] .card-sheen { display: none; }
+.game[data-motion="reduced"] .cards .card::before { animation: none; opacity: calc(var(--glow-a) * 0.75); }
+@media (prefers-reduced-motion: reduce) {
+  .card-sheen { display: none; }
+  .cards .card::before { animation: none; opacity: calc(var(--glow-a) * 0.75); }
+}

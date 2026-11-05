@@ -295,3 +295,15 @@ The first boot opens on a fully SCORED procedural film (`ui/InitCutscene.tsx` �
 - **Accessibility.** Reduced motion (the OS request unless Settings → Motion overrides it — the same
   `resolveMotion` the run uses) swaps the animation for a hand-picked still per scene (gentle CSS
   fades; no drift, punches or flashes), skips the dive, and shows typewriter text whole.
+
+## §draft-sheen — rarer draft cards look rarer at a glance (2026-11)
+
+Every gene-draft card carries a passive **light sweep** (`.card-sheen`, a translate-only band, staggered
+per card by `--i`) and a breathing **rarity glow** (`.cards .card::before`, opacity-only) — both
+compositor-friendly, at most three cards on screen. Strength is one data table in `src/index.css`
+("DRAFT CARD SHEEN"): per rarity `--sheen-a` (band brightness), `--sheen-t` (sweep period), `--glow-a`
+(peak glow), `--glow-r` (radius), `--glow-t` (breath period). Common barely glints with no glow;
+uncommon → rare → epic → legendary step up; exotic glows pink with a cyan sweep. The pick moment owns
+the chosen card's light (sheen hidden on chosen/dismissed). **Reduced motion** (OS setting or Settings →
+Motion via `.game[data-motion="reduced"]`): no sweep, a steady glow at 75 % — the rarity read stays,
+the motion goes (verified: 16 captured frames identical).

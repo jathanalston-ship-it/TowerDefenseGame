@@ -9,7 +9,7 @@
 // long-press on touch. Hierarchy: name → artwork → effect → keywords → tags → rarity.
 
 import { useEffect, useRef, useState } from 'react';
-import type { PointerEvent as ReactPointerEvent } from 'react';
+import type { CSSProperties, PointerEvent as ReactPointerEvent } from 'react';
 import { audio } from '../audio/sound';
 import { autoGenePref } from '../state/prefs';
 import { affectsOf } from './cardAffects';
@@ -317,7 +317,7 @@ export function DraftModal({
           <button
             key={o.id}
             className={`card r-${o.rarity}${i === best ? ' is-rec' : ''}${auto && i === best ? ' auto-target' : ''}${fate}`}
-            style={committed ? undefined : { animationDelay: `${i * 70}ms` }}
+            style={committed ? undefined : ({ animationDelay: `${i * 70}ms`, '--i': i } as CSSProperties)}
             onPointerEnter={(e) => {
               if (e.pointerType !== 'touch' && realMove(e)) armHover(o.id, e.pointerType === 'mouse');
             }}
@@ -349,6 +349,9 @@ export function DraftModal({
               pick(o.id);
             }}
           >
+            {/* Rarity SHEEN (docs/GAME-FEEL.md §draft-sheen): a passive light sweep + breathing glow whose
+                strength is the rarity's row in index.css (the sheen and glow variables). Decorative only. */}
+            <span className="card-sheen" aria-hidden />
             <span className="card-hotkey">{i + 1}</span>
             <span className="card-top">
               <span className="card-rarity">{o.rarity}</span>
