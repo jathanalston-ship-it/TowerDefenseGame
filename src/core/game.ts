@@ -8679,8 +8679,12 @@ export class Game {
     const out = wavePreview(live.wave);
     if (live.probe !== null) { // v4: the briefing names the probe role and the coverage it tests
       const p = live.probe;
-      const e = out.find((x) => x.kind === p.kind);
-      if (e) e.probe = { label: p.label, lacks: COVERAGE_AXIS_NAME[p.axis] };
+      const i = out.findIndex((x) => x.kind === p.kind);
+      if (i >= 0) { // the probe LEADS the list — on a phone the intel row scrolls, and it is the news
+        const [e] = out.splice(i, 1);
+        e.probe = { label: p.label, lacks: COVERAGE_AXIS_NAME[p.axis] };
+        out.unshift(e);
+      }
     }
     return out;
   }

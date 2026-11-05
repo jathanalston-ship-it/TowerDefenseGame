@@ -127,15 +127,17 @@ liveRatio      = livePowerBase × invested × cards^liveCardExp × board        
 liveThreatMult = r ≤ 1 ? 1 : min(liveCap,     1 + threatPerPowerRatio·(r − 1))   // chaff waves ≥ liveFromWave
 liveBossMult   = r ≤ 1 ? 1 : min(liveBossCap, 1 + threatPerPowerRatio·(r − 1))   // every boss body, any wave
 liveThreatParts(m, staticSpeed) = { hp: m^(1−p−s), pace: m^p, speed: min(m^s, liveSpeedCeiling ÷ staticSpeed) }
-liveWave(plan, board, m) = promoteEliteShare(swapInProbe(plan, liveProbeKind(pool, board), liveProbeShare·(1−1/m)),
-                                             liveEliteShare·(1−1/m))                // v3 COMPOSITION
+probeShare(m, w) = liveProbeShare·(1−1/m)·(1 − f + f·w/totalWaves)                  // f = liveProbeFinaleWeight
+liveWave(plan, board, m, w) = promoteEliteShare(swapInProbe(plan, liveProbe(pool, board, liveProbeGapTie), probeShare(m, w)),
+                                                liveEliteShare·(1−1/m))             // v4 COMPOSITION
 ```
 
-Shipped (v3, "picks matter"): `threatPerPowerRatio` 0.6 · `liveCardExp` 0 · `liveProbeShare` 0.3 ·
-`liveEliteShare` 0 · `liveFromWave` 4 · `liveFromStage` 4 · `liveCap` 8 · `livePaceShare` 0.2 ·
+Shipped (v4, "the coverage probe"): `threatPerPowerRatio` 0.6 · `liveCardExp` 0 · `liveProbeShare` 0.45 ·
+`liveProbeFinaleWeight` 1 · `liveProbeGapTie` 0.35 · `liveEliteShare` 0 · `liveFromWave` 4 · `liveFromStage` 4 · `liveCap` 8 · `livePaceShare` 0.2 ·
 `liveSpeedShare` 0.5 · `liveSpeedCeiling` 1.85 · `liveBossCap` 4 · `liveBoardOpening` 3 ·
 `liveBoardExp` 1 (config.ts `DIRECTOR_ADAPTIVE`). History: v1 w 0.5 · ½ pace · caps 16/16 (no board,
-no speed) → caps 3/4 (run length) → v2 board term + speed share, w 0.3 → v3 below.
+no speed) → caps 3/4 (run length) → v2 board term + speed share, w 0.3 → v3 cards out + the probe →
+v4 the coverage probe (below). The coverage tunables are config.ts `COVERAGE`.
 
 - **Where it lands:** a wave ≥ 4 schedules its chaff at HP × m^0.3, spawn rate × m^0.2 and enemy
   SPEED × m^0.5 — speed adds threat while SHORTENING waves, so it is bounded by readability: the
@@ -153,15 +155,31 @@ no speed) → caps 3/4 (run length) → v2 board term + speed share, w 0.3 → v
   pick used to raise the threat with it — the pick spread at 8 h was +4 points. Hero Evolution,
   branches and strains stay in: they are Biomass INVESTMENT that tracks the board's real growth (and
   the economy that drives it), not the draft's choice quality.
-- **Threat by COMPOSITION (v3):** part of the live answer changes what the wave IS. `liveWave` (Game)
-  swaps `liveProbeShare × (1 − 1/m)` of the wave's plain groups — at the SAME threat budget, keeping
-  each group's delay — for the board's PROBE kind: `campaign.ts LIVE_PROBE_ROLES` are data predicates
-  (airborne packs vs a board with no area damage — the conveyor's `damagesArea` answer class — else
-  artillery, else burrowers: roles no board fully answers); of the first unanswered role in the stage
-  pool, the LIGHTEST body (the probe threatens by its role, not its bulk). A live ELITE share
+- **Threat by COMPOSITION (v3 → v4):** part of the live answer changes what the wave IS. `liveWave`
+  (Game) hands `probeShare(m, w)` of the wave's plain THREAT BUDGET — the same budget, largest groups
+  first, the probe riding beside what is left of each at its delay — to the board's PROBE kind. v4
+  weights the share toward the FINALE (`liveProbeFinaleWeight` 1: wave 4 of 12 carries a third of it,
+  the finale all of it — chip damage early is healed away; at the finale it decides "flawless").
+- **The COVERAGE model (v4, `coverage.ts`):** every tower kind gets a coverage vector DERIVED from its
+  TowerDef + derived kit + the status framework's traits — REACH (range 200 → 600 px), AREA
+  (`damagesArea` or a chain), PIERCE (the share of its hit that survives `COVERAGE.armorRef` plating
+  after the armor its own hits shred at full stacks; armor-ignoring DoTs pierce fully), BURST (hit ÷
+  `burstFull`) and CONTROL (a control status, a pull, or summoned bodies that block the lane). No
+  per-tower list: a new tower is graded by its numbers (`TOWER_COVERAGE`, computed once). The FIELDED
+  board folds Strain-weighted (`boardCoverage`), and a GAP reads it against the ROSTER's mean coverage
+  (`coverageGap` — the axes grade on different scales; the roster baseline makes them comparable).
+  Anti-air is not an axis: every tower hits fliers, so a flier pack is answered by AREA.
+- **Probe roles (`campaign.ts LIVE_PROBE_ROLES`)** are enemy-trait predicates, each read against the
+  axis that ANSWERS it in the sim (measured, not assumed): artillery (siege) ↔ burst, sprinters (speed
+  ≥ `fastFrom`) ↔ control, air packs (flying) ↔ area, burrowers ↔ control, armored (armor ≥
+  `armoredFrom`) ↔ pierce, sustain (a shield or regen on the body) ↔ burst. `liveProbe` takes the
+  largest gap among the roles the stage pool fields; gaps within `liveProbeGapTie` of it count as
+  tied and the table's measured HARM order breaks the tie (artillery first). Of the chosen role, the
+  LIGHTEST body (the probe threatens by its role, not its bulk). A live ELITE share
   (`promoteEliteShare`, the campaign's fewer-but-stronger rule) is also wired but shipped at 0 (it
   added run time for little chip damage). Deterministic, a copy of the plan, and the prep preview
-  calls the same `liveWave` — the briefing lists every swapped-in kind (with its role tag) and every
+  calls the same `liveWave` — the briefing lists every swapped-in kind, marks the probe
+  `⌖ ARTILLERY · lacks burst` (role + the coverage it tests; `WavePreviewEntry.probe`) and every
   elite (★N) before the wave launches.
 - **Upward only:** an at- or under-powered board (r ≤ 1) is never propped up.
 - **Visible:** the wave briefing shows `▲ ADAPTED ×N` = the APPLIED product hp × pace × speed
@@ -261,6 +279,47 @@ moves both: a probe share of 0.3 turns ~0.2 of a late wave into the role the boa
 cuts flawless wins at no run-length cost (8 h ×0.99), while the pick spread opens to +16 win points.
 Elites cost time for little chip; a probe share past ~0.4 crushes 100 h (curve 42 %).
 
+**v4 — the coverage model (what the board lacks, graded from data).** Screen set as above (same run
+order); pick spread as in v3. Rows build on each other:
+
+| variant (v3 ratio, w 0.6) | 8 h F+1..3 / curve · flawless · pairT | 100 h F+1..3 / curve · flawless · pairT | pick spread (win · flawless · integrity) |
+|---|---|---|---|
+| shipped v3 (probe 0.3, whole groups: air pack → artillery → burrower) | 58 / 82 % · 59 % · ×0.99 | 83 / 58 % · 61 % · ×1.91 | +16 · +6 · +10 |
+| coverage gaps vs the roster mean, v3's axes (artillery/burrower ↔ reach), whole groups | 83 / 79 % · 71 % · ×1.03 | 83 / 64 % · 69 % · ×1.77 | +6 · +14 · +6 |
+| … share of the threat BUDGET (every live wave probes) | 67 / 87 % · 67 % · ×1.03 | 75 / 61 % · 73 % · ×1.96 | +4 · +6 · +6 |
+| … share 0.45 × the gap (a covered board meets a smaller probe) | 67 / 85 % · 64 % · ×1.03 | 83 / 64 % · 70 % · ×1.91 | +16 · +12 · +14 |
+| axes that ANSWER in the sim (artillery/sustain ↔ burst, sprinters/burrowers ↔ control), budget 0.3 | 50 / 87 % · 59 % · ×1.01 | 67 / 53 % · 74 % · ×1.92 | +10 · +4 · +10 |
+| … share 0.45 × the gap | 58 / 77 % · 60 % · ×1.06 | 83 / 58 % · 78 % · ×1.88 | +2 · −6 · +3 |
+| … tie band 0.2 (harm order breaks near-ties) | 50 / 85 % · 60 % · ×1.02 | 50 / 50 % · 79 % · ×1.85 | +14 · +6 · +13 |
+| … tie band 0.35 | 42 / 85 % · 61 % · ×1.01 | 58 / 42 % · 84 % · ×1.79 | +14 · +6 · +14 |
+| … tie 0.2, sprinters first in the harm order | 67 / 85 % · 57 % · ×0.99 | 75 / 56 % · 74 % · ×1.88 | +8 · +10 · +9 |
+| **… tie 0.35, share 0.45 weighted toward the finale (shipped v4)** | **75 / 87 % · 51 % · ×1.01** | **67 / 53 % · 81 % · ×1.89** | **+16 · 0 · +11** |
+| … share 0.6, finale-weighted | 75 / 79 % · 57 % · ×1.02 | 67 / 47 % · 75 % · ×1.85 | +6 · +8 · +9 |
+
+The 100 h screen sample is small (the same v3 config read 61 % flawless on it and 73 % on the full
+set), so the finalists were also run on the full set; POOLED (screen + full set, ~135 wins per
+account; flawless = share of ALL campaign wins; pairT = full-set matched pairs vs pre-Batch-G):
+
+| finalist | 8 h frontier · F+1..3 · flawless · pairT | 100 h frontier · F+1..3 · flawless · pairT |
+|---|---|---|
+| shipped v3 | 72 % · 58 % · 65 % · ×0.99 | 61 % · 75 % · 69 % · ×1.78 |
+| tie 0.2, flat share 0.3 | 76 % · 50 % · 66 % · ×1.03 | 54 % · 58 % · 66 % · ×1.77 |
+| tie 0.35, flat share 0.3 | 75 % · 46 % · 66 % · ×1.02 | 52 % · 62 % · 66 % · ×1.74 |
+| **shipped v4** | **76 % · 71 % · 59 % · ×0.98** | **58 % · 67 % · 68 % · ×1.73** |
+
+Lessons: (1) raw gaps (1 − coverage) live on different scales — burst "won" on 77 % of 8 h boards
+— so gaps are read against the roster's mean. (2) What bleeds a board at the same threat budget is
+STANDOFF FIRE and SPEED: chip per probed wave was artillery ~6 (8 h) / 13–20 (100 h), sprinters 4–54
+(large only where the board has no slows at all), air packs, armored and sustain bodies ≈ 0 (fewer,
+tougher bodies are still the same EHP). Reach answered nothing — needle-heavy boards reach every
+standoff ring and still bleed to artillery — so artillery reads BURST and no role reads reach (the
+axis stays in the vector for roles to come). (3) Scaling the share by the gap softens exactly the
+covered boards the targets need tighter (100 h flawless 78–80 %) and cost the pick spread — not
+shipped. (4) The run's heals (Shepherd, regen cards) wipe early chip: weighting the probe toward the
+finale is what moved flawless (8 h 65 → 59 % pooled) at no run time. The shipped probe is artillery on
+~97 % (8 h) / ~89 % (100 h) of probed waves (the harm order breaks most near-ties) — the model picks air packs or sprinters
+only where a board is clearly thinner there.
+
 ## 6b. Campaign onboarding boss strength (§onboarding)
 
 The first campaign stages' finale bosses field a **reduced** body: `campaignBossStrength(stage)`
@@ -277,10 +336,11 @@ boss — is byte-identical. This is the campaign analogue of the Boss Rush stren
 
 Campaign stage, infinite depth, difficulty, doctrine, mode, and stage-speed are live inputs
 today (plus the §6a live board-power ratio, whose BOARD-SIZE term shipped in v2).
-**Next for §6a:** (v3 shipped the cards-excluded ratio and the live probe.) The probe's board read is
-deliberately coarse — one reliable coverage axis (area damage) plus roles no board fully answers; a
-richer coverage model (reach vs artillery standoff, armor shred vs plated kinds) needs per-tower kit
-data the sim applies in code today (e.g. the needle's Fracture is not in its derived kit). The 100 h
-account still wins the +1..3 frontier ~4 in 5 on the small label sample. Reserved, in priority order: biome threat bands (biome mods already apply per-spawn —
+**Next for §6a:** (v4 shipped the coverage model.) Not reached: flawless ≤ ~55 % of wins (59 % at 8 h,
+68 % at 100 h pooled) — 100 h boards are covered on every axis the roster grades, and a covered
+board's probe is healed away. Open seams: (a) a HARM read from data instead of the table's order (the
+probe body's standoff damage and speed vs the board's DPS), (b) branch / Strain kits folded into the
+coverage vector (base kits only today — a Strain-IV needle still grades as a needle), (c) the coverage
+profile surfaced to the player outside the briefing (a board-coverage readout in the build panel). Reserved, in priority order: biome threat bands (biome mods already apply per-spawn —
 promoting them to director inputs is additive), boss-presence weighting, prestige tier,
 seasonal/weekly modifiers, per-mutator warps. Each lands as **one input + one factor** here.

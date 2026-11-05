@@ -524,7 +524,7 @@ export const SYSTEMS: SystemDef[] = [
   },
   {
     id: 'difficulty', name: 'Difficulty', purpose: 'Difficulty variants + the Universal Difficulty Director — ONE composition layer for every scaling policy (threat curves, doctrine warps, stage folds, mode economy).',
-    files: ['src/core/difficulty.ts', 'src/core/difficultyDirector.ts'],
+    files: ['src/core/difficulty.ts', 'src/core/difficultyDirector.ts', 'src/core/coverage.ts'],
     dependsOn: ['content-infra'], powerScore: null, save: [], tutorial: [], help: [], hud: [], ui: ['CampaignScreen', 'InfiniteScreen', 'CommandCenter'],
     collection: null, achievements: [], localization: 'inline-en', docs: ['docs/DIFFICULTY.md', 'docs/DIFFICULTY_DIRECTOR.md'],
   },
