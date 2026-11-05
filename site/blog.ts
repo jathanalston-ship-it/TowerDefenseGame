@@ -17,6 +17,35 @@ export interface BlogPost {
 
 export const POSTS: BlogPost[] = [
   {
+    slug: 'the-first-hour-and-a-sound-pass',
+    date: '2026-11-05',
+    title: 'A calmer first hour, and every sound rebuilt',
+    category: 'Systems',
+    tags: ['onboarding', 'audio', 'design', 'game-feel'],
+    summary: 'Your first run used to end with a list of eleven new systems. Now each run teaches two, fight controls explain themselves the moment they matter, and every new screen comes with a guided tour. Plus a full sound pass: effects that cut through the music, impacts with weight, and separate volume sliders.',
+    body: `
+<p>We replayed a brand-new account's first hours, run by run, and counted everything the game told the player. The answer was a spike: right after the very first run, eleven new systems were announced at once, in one long list. Here is what changed.</p>
+<h2>Two new things per run</h2>
+<p>After each run you now learn <b>at most two</b> new systems, each on its own card with what it is, why it matters and where to find it. Anything else waits for the next run. Nothing is hidden in the meantime: everything you've unlocked is already in Help. The first card after your first run is the <b>Tower Lab</b>, the screen your first rewards point to.</p>
+<h2>Every new screen gets a tour</h2>
+<p>When a new screen opens, its card now carries a short guided tour (<b>Show me</b>). The Tower Lab, the Hero Hall and Infinite used to open with no introduction at all. They now get one, like every screen after them.</p>
+<h2>Fight controls explain themselves</h2>
+<p>Early Call, game speed, the red defense line and mid-run hero evolution used to be explained in a card after the run, about a fight that was already over. Now each one gets a one-line <b>field note</b> during the fight, pointing at the control, the first time it matters. The fight never pauses, and a tap dismisses it.</p>
+<h2>Nothing points at a locked door</h2>
+<p>Help no longer lists systems whose screens haven't opened yet. One was visible from the very first minute, twenty-five stages before you could use it.</p>
+<h2>A full sound pass</h2>
+<p>Every sound in the game is still synthesized, with no audio files, but now every effect's loudness is measured. A tool renders each one and checks it against its category.</p>
+<ul>
+<li><b>Effects cut through the music.</b> Kills, rewards and the wave horn sat well under the soundtrack. Now combat sits level with the music and rewards rise above it.</li>
+<li><b>Impacts have weight.</b> Tower fire, hits, deaths, placing a tower, the wave horn, wave clears, drafts, chests, reveals and level-ups are rebuilt in layers, with the same notes and the same character.</li>
+<li><b>No more machine-gun repeats.</b> Frequent sounds vary very slightly every time they play.</li>
+<li><b>A room around the big moments.</b> Rewards and story moments have a little space; frequent combat stays dry and crisp.</li>
+<li><b>Fixed:</b> some long sounds, including the opening film's rumble, title and dive and the boss stings, used to cut off after half a second.</li>
+<li><b>New:</b> separate <b>Effects</b> and <b>Music</b> volume sliders in Settings and the pause menu.</li>
+</ul>
+`,
+  },
+  {
     slug: 'the-opening-film',
     date: '2026-11-05',
     title: 'The opening film, rebuilt: the real swarm, the real towers, and a turn',

@@ -34,6 +34,10 @@ special case for new content.
 - **Mastering chain**: track buses → master gain → duress low-pass (transparent at 18 kHz) →
   `DynamicsCompressorNode` glue (−18 dB threshold, 3:1) → destination. Stacked layers +
   stingers can't clip; loudness stays consistent.
+- **Level + volume**: the master's designed level is `MUSIC_LEVEL` **0.7** — set in the 2026-11
+  sound pass against the MEASURED SFX mix (steady combat sits level with the bed; rewards and alerts
+  land over it — docs/AUDIO.md §2, docs/AUDIO_REPORT.md §balance). `music.setVolume(v)` takes the
+  player's Settings → Music volume (0..1) and scales that level; ducks and duress ride on top.
 - **Bar-aligned equal-power crossfades**: a category switch lands on the outgoing track's next
   bar boundary (capped at 0.35 s for urgent arrivals — boss/mega/victory/defeat — 2.2 s
   otherwise) and crossfades on cos/sin curves, so the pulse never stumbles and there is no

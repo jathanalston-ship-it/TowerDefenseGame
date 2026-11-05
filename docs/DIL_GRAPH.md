@@ -1,6 +1,6 @@
 # DIL_GRAPH.md — the Design Intelligence Layer (GENERATED — `npm run dil -- regen`)
 
-> **The project's brain** (docs/DIL.md). 986 nodes · 1917 edges, built from the live
+> **The project's brain** (docs/DIL.md). 989 nodes · 1920 edges, built from the live
 > registries + curated knowledge (src/dev/dil/). **Query it instead of searching the repo:**
 > `npm run dil -- node <id>` · `affects <id>` · `requires <id>` · `missing <kind> <edge>` ·
 > `checklist tower <kind>` · `find <text>`. Edge kinds are bidirectional (19 kinds).
@@ -8,7 +8,7 @@
 ## Gap report (the graph's own radar)
 
 - **Systems with no test:** `system:infinite`, `system:field-research`, `system:shards-economy`, `system:i18n`, `system:expeditions`, `system:nemesis`, `system:devtools`
-- **Docs referenced by no system (review for retirement):** `ADVANCED-SYSTEMS.md`, `ARCHITECTURE-AUDIT.md`, `AUCTION-HOUSE.md`, `BACKLOG.md`, `BALANCE_ARCHITECTURE.md`, `BRANCH-EVOLUTION.md`, `BUGFIX-LOG.md`, `COGLOAD_REPORT.md`, `CONTENT-ROADMAP.md`, `DEV-FRAMEWORKS.md`, `DIL_GRAPH.md`, `EA-DESIGN-AUDIT.md`, `ENEMIES.md`, `ENEMY-ROSTER.md`, `FIRST-SESSION-PROBE.md`, `FIRST_SESSION_REPORT.md`, `GAME-STATE.md`, `HISTORY.md`, `HIVE-PRODUCTION.md`, `HIVE-SIEGE.md` · …28 more
+- **Docs referenced by no system (review for retirement):** `ADVANCED-SYSTEMS.md`, `ARCHITECTURE-AUDIT.md`, `AUCTION-HOUSE.md`, `AUDIO_REPORT.md`, `BACKLOG.md`, `BALANCE_ARCHITECTURE.md`, `BRANCH-EVOLUTION.md`, `BUGFIX-LOG.md`, `COGLOAD_REPORT.md`, `CONTENT-ROADMAP.md`, `DEV-FRAMEWORKS.md`, `DIL_GRAPH.md`, `EA-DESIGN-AUDIT.md`, `ENEMIES.md`, `ENEMY-ROSTER.md`, `FIRST-SESSION-PROBE.md`, `FIRST_SESSION_REPORT.md`, `GAME-STATE.md`, `HISTORY.md`, `HIVE-PRODUCTION.md` · …29 more
 
 ## Indexes
 
@@ -30,7 +30,7 @@
 
 ### Audio Index
 
-`music:menu` · `music:combat` · `music:boss` · `music:mega` · `music:victory` · `music:defeat` · `music:events` · `music:cinema` · `system:engine` · `system:cosmetics` · `system:onboarding` · `system:bosses` · `system:mega-bosses` · `system:cutscenes` · `system:rendering` · `system:living-battlefield` · `system:assimilation`
+`music:menu` · `music:combat` · `music:boss` · `music:mega` · `music:victory` · `music:defeat` · `music:events` · `music:cinema` · `system:engine` · `system:cosmetics` · `system:onboarding` · `system:bosses` · `system:mega-bosses` · `system:cutscenes` · `system:rendering` · `system:living-battlefield` · `system:assimilation` · `system:ui-kit`
 
 ### Teaching Index
 
@@ -161,6 +161,7 @@ graph LR
   system_collection["Collections / Codex"] -->|consumes| system_doctrines["Doctrines"]
   system_achievements["Achievements"] -->|consumes| system_doctrines["Doctrines"]
   system_cosmetics["The Wardrobe (Cosmetics)"] -->|modifies| system_audio["Audio"]
+  system_ui_kit["Shared UI Component Kit"] -->|modifies| system_audio["Audio"]
   system_cosmetics["The Wardrobe (Cosmetics)"] -->|modifies| system_rendering["Rendering & VFX"]
   system_battle_pass["Battle Pass (Season)"] -->|consumes| system_cosmetics["The Wardrobe (Cosmetics)"]
   system_battle_pass["Battle Pass (Season)"] -->|consumes| system_premium["Premium Store"]
@@ -637,6 +638,7 @@ graph LR
   system_threat["Threat Ladder"] -->|modifies| system_difficulty["Difficulty"]
   system_security["Game Action Security Layer"] -->|modifies| system_meta_store["Meta Store & Save"]
   system_cosmetics["The Wardrobe (Cosmetics)"] -->|modifies| system_audio["Audio"]
+  system_ui_kit["Shared UI Component Kit"] -->|modifies| system_audio["Audio"]
   system_cosmetics["The Wardrobe (Cosmetics)"] -->|modifies| system_rendering["Rendering & VFX"]
   system_currencies["Currencies & Economy Framework"] -->|modifies| system_meta_store["Meta Store & Save"]
   system_hero_symbiotes["Hero Symbiotes"] -->|modifies| system_engine["Sim Engine"]
@@ -2623,7 +2625,7 @@ _at: src/render/livingBattlefield.ts, src/render/organism.ts, src/render/gutters
 
 ### `system:audio` — Audio
 
-Synthesized SFX bus + the ADAPTIVE SOUNDTRACK: a motif-library score (track library, 8 intensity-gated layers, scene/rotation/progression selection, stable per-boss themes, reward stingers, duress treatment) rendered by a pure deterministic composer + a WebAudio manager with bar-aligned equal-power crossfades and a mastering chain.
+Synthesized SFX bus (a MEASURED mix: per-category loudness targets + audit-derived per-cue trims, glue/limiter/soft-clip mastering, one shared procedural room, per-dispatch variation, category voice budgets — src/audio/sfxMix.ts; `npm run audio:audit`) + the ADAPTIVE SOUNDTRACK: a motif-library score (track library, 8 intensity-gated layers, scene/rotation/progression selection, stable per-boss themes, reward stingers, duress treatment) rendered by a pure deterministic composer + a WebAudio manager with bar-aligned equal-power crossfades and a mastering chain.
 
 _at: src/audio/*, src/ui/MusicDebug.tsx_
 
@@ -2641,7 +2643,7 @@ _at: src/audio/*, src/ui/MusicDebug.tsx_
   - contains ← `music:cinema`
   - documentedBy ← `doc:MUSIC.md`
   - documentedBy ← `doc:GAME-FEEL.md`
-  - _…8 more (query: `npm run dil -- node system:audio`)_
+  - _…11 more (query: `npm run dil -- node system:audio`)_
 
 ### `system:assimilation` — Assimilation Index
 
@@ -2677,6 +2679,7 @@ Reusable presentation components every screen composes (icons, bars, count-ups) 
 
 _at: src/ui/components/Icon.tsx, src/ui/iconLanguage.tsx, src/ui/components/Detail.tsx, src/ui/components/ProgressBar.tsx, src/ui/components/useCountUp.ts, src/ui/components/usePressRepeat.ts, src/ui/components/AudioToggles.tsx, src/ui/components/MobileSection.tsx, src/ui/components/ChipPopover.tsx, src/ui/components/SectionNav.tsx, src/ui/components/LoadoutStrip.tsx, src/ui/layoutProfile.ts, src/ui/components/ResponsiveDebug.tsx, src/ui/components/RotateGate.tsx, src/ui/components/ScreenFallback.tsx, src/ui/lazyNamed.ts, src/ui/components/ClaimAll.tsx, src/ui/components/MotionSettings.tsx, src/ui/components/RarityFx.tsx_
 
+  - modifies → `system:audio` — AudioToggles (Settings + pause menu) writes the Effects/Music VOLUME device prefs (sfxVolumePref/musicVolumePref; App applies them on boot) → audio.setVolume / music.setVolume scale each engine's DESIGNED level (SFX_MASTER.output, MUSIC_LEVEL). A new sound.ts cue needs a CUE_MIX row (audio/sfxMix.ts — sound.test.ts fails otherwise) and its trim comes from `npm run audio:audit --suggest`, never a hand-tuned literal
   - conflictsWith → `concept:golden-test` — ATTENTION BUDGET (docs/INFO-HIERARCHY.md §2, npm run cogload): at most 2 attention-band animators (≤3.6s infinite pulse/breathe/glow) visible per screen — the ONE that breathes is the recommendation; ready-states live in the ambient band (>3.6s), badges announce finitely (nav-badge-pulse ×6) then rest; cogload exits 1 on violation, so a new always-on fast pulse anywhere is a BUILD-BREAKING decision, not a style choice; demote numbers via components/Detail.tsx (Layer 3 behind intent), never delete them
   - extends → `concept:scalability` — ICON LANGUAGE (ui/iconLanguage.tsx, docs/ICON-LANGUAGE.md): ONE library federates every identity axis — ACTIONS (verb glyph+token+label; the act-<verb> CSS classes MIRROR the table, change together), EFFECT_CATEGORIES, CURRENCIES, REWARD_TYPES art, statusRegistry + STATUS_GLYPHS, nav/FEATURES glyphs; dev/iconLanguage.test.ts is the INHERITANCE CONTRACT — a new currency/reward/status/screen without a face fails CI; glyphs unique per axis, cross-axis reuse only for the same concept family; color never the sole channel (a11y)
   - gates → `system:hub-shell` — LANDSCAPE MANDATE: phones play horizontal ONLY — touch+portrait renders RotateGate (full-screen hold, z 100000, live-event tinted, clears on rotate via useLayoutProfile); touch+landscape IS the phone game (narrow-shell drawer + stacked run; the .game bands fire on (max-width:900px),(max-height:520px) so 926-wide phones stack); mouse windows never gated. mobilecheck v3 walks 844×390/926×428 through the drawer + tutorial at 844×390 + asserts gate coverage on portrait and gate ABSENCE on playable orientations; the v2 portrait tab shell is legacy (mouse-narrow only, un-walked). The store app shell locks orientation natively — the gate is the browser half of the platform split
@@ -3930,7 +3933,7 @@ _at: site/guides.ts → /guides/live-events/_
 - `achievement:ladder_skulls_1` — Reach 500 Boss Rush bosses (lifetime). _(partOf `system:achievements`, rewards `currency:genome-cores`)_
 - `achievement:ladder_anatomy_1` — Reach 250 Weak Points destroyed. _(partOf `system:achievements`, rewards `currency:genome-cores`)_
 
-## Documentation (194)
+## Documentation (196)
 
 - `doc:ACCOUNT-LEVEL.md` — project documentation _(documents `system:account-level`)_
 - `doc:ACCOUNTS.md` — project documentation _(documents `system:accounts`)_
@@ -3944,6 +3947,8 @@ _at: site/guides.ts → /guides/live-events/_
 - `doc:ARENA_MATCH_REPORT.md` — project documentation _(documents `system:arena`)_
 - `doc:ASSIMILATION.md` — project documentation _(documents `system:assimilation`)_
 - `doc:AUCTION-HOUSE.md` — project documentation
+- `doc:AUDIO.md` — project documentation _(documents `system:audio`)_
+- `doc:AUDIO_REPORT.md` — project documentation
 - `doc:AUTHORING.md` — project documentation _(documents `system:content-infra`)_
 - `doc:BACKLOG.md` — project documentation
 - `doc:BALANCE_ARCHITECTURE.md` — project documentation
@@ -4127,10 +4132,11 @@ _at: site/guides.ts → /guides/live-events/_
 - `doc:VOWS.md` — project documentation _(documents `system:prestige`)_
 - `doc:WEBSITE.md` — project documentation _(documents `system:field-research`, documents `system:website`)_
 
-## Tests (341)
+## Tests (342)
 
 - `test:src/audio/cues.test.ts` — automated validation _(tests `system:audio`)_
 - `test:src/audio/music.test.ts` — automated validation _(tests `system:audio`)_
+- `test:src/audio/sound.test.ts` — automated validation _(tests `system:audio`)_
 - `test:src/changelog/classify.test.ts` — automated validation _(tests `system:chronicle`)_
 - `test:src/changelog/siteSync.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/core/ability.test.ts` — automated validation _(tests `system:engine`)_

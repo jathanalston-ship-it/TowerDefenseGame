@@ -55,7 +55,7 @@ const EvolutionUnlock = lazyNamed(() => import('./EvolutionUnlock'), 'EvolutionU
 import type { EvolutionUnlockData } from './EvolutionUnlock';
 const HeroSlotUnlock = lazyNamed(() => import('./HeroSlotUnlock'), 'HeroSlotUnlock');
 import type { HeroSlotUnlockData } from './HeroSlotUnlock';
-import { difficultyPref, musicPref, setLastFlawlessClearPref, sfxPref } from '../state/prefs';
+import { difficultyPref, musicPref, musicVolumePref, setLastFlawlessClearPref, sfxPref, sfxVolumePref } from '../state/prefs';
 import { deployReadiness } from '../state/progressionLoop';
 const BioRoulette = lazyNamed(() => import('./BioRoulette'), 'BioRoulette');
 import { campaignStageCleared, highestCampaignStage, isBossRushUnlocked, isDailyUnlocked, isInfiniteUnlocked } from '../save/derive';
@@ -206,6 +206,8 @@ export function App(): JSX.Element {
   useEffect(() => {
     audio.setEnabled(sfxPref());
     music.setEnabled(musicPref());
+    audio.setVolume(sfxVolumePref());
+    music.setVolume(musicVolumePref());
     // Wardrobe dressing on boot (docs/COSMETICS.md §wardrobe): covers reload-into-run paths
     // that never mount the Hub (which re-applies on every equip change).
     applyWardrobeDressing(meta.get());

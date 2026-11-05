@@ -194,6 +194,12 @@ Content — not systems — is the binding constraint (see EA-DESIGN-AUDIT). The
   / no picks resolves to the exact base kit; `neutralHeroProgress` + `NO_META` pass no kits ⇒ byte-
   identical (heroForks.test.ts pins identity + patch math + the HUD-level end-to-end)
 
+- ✅ **THE SOUND PASS** (2026-11 — docs/AUDIO.md): the SFX mix is measured DATA (`audio/sfxMix.ts`: 7 categories
+  with loudness targets, a 130-row audit-derived trim table, bounded per-dispatch variation, per-category voice
+  budgets); the SFX bus runs glue → limiter → soft clip with a keep-alive; one shared procedural room (frequent
+  combat stays dry); the most-heard cues rebuilt in layers; 19 truncated cues fixed; music level 0.8 → 0.7;
+  Effects + Music volume sliders (Settings, pause). `npm run audio:audit` renders every cue offline and writes
+  docs/AUDIO_REPORT.md (loudness error vs design 10.3 → 0.2 dB RMS).
 - ✅ **THE FIRST HOUR, one beat at a time** (2026-11 — PROGRESSION-GATING.md §announcements, GUIDED-UNLOCKS.md
   §field-notes): What's New is PACED (`ANNOUNCE.perBeat` = 2 cards per finished run, a revealed screen's own
   lesson first — was 11 after run 1); the SEAL RULE keeps every mechanic (Help + What's New) behind its screen's

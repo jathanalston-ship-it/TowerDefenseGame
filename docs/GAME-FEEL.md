@@ -261,6 +261,12 @@ Snappy input is its own kind of juice — every control reacts on contact and no
 
 ## 5. Audio system foundation (since none exists)
 
+> **SHIPPED (2026-11 sound pass) — the SFX mix now lives in docs/AUDIO.md:** categories with measured
+> loudness targets + audit-derived per-cue trims (`src/audio/sfxMix.ts`), glue/limiter/soft-clip
+> mastering, one shared procedural room, per-dispatch pitch/level/timing variation, per-category voice
+> budgets, Settings volume sliders, and `npm run audio:audit` (docs/AUDIO_REPORT.md). The plan below is
+> the original intent, kept for history.
+
 - **Approach:** a small **Web Audio** module — synthesized SFX (oscillators + noise + envelopes) for an **asset-free, instantly re-themeable** layer; categories: *bio* (wet, organic — hive/death/growth), *kinetic* (sharp — hits/crits), *glitch* (enemies/Aberrations), *UI* (clean — cards/menus), *event* (risers/stingers — stars/prestige/loot).
 - **Mix discipline:** a master bus + SFX/music/UI sub-buses; **duck** SFX under stingers (crit/legendary); **voice cap** per category with stealing; pitch-randomize repeats to avoid machine-gun fatigue.
 - **Music:** an adaptive bio-industrial bed that **intensifies with pressure** (reuse the renderer's `pressure` value) and **gains a layer per prestige tier** — the soundtrack escalates with progression.

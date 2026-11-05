@@ -546,8 +546,12 @@ ladders. 4. Every permanent progression source must move the Power Score (valida
 - **Dependencies:** WebAudio; volume/on-off persisted (`audioOn` key); `core/events.ts`
   (`bossKilled` → the bossDown stinger).
 - **Files:** `audio/sound.ts` (SFX bus + all synths + the cue→stinger `STING` bridge),
-  `audio/music.ts` (pure composition core + the music manager), `ui/MusicDebug.tsx` (Settings
-  dev console). Docs: `MUSIC.md`, `GAME-FEEL.md`.
+  `audio/sfxMix.ts` (THE MIX as data: categories, loudness targets, the audit-derived trim table,
+  variation, voice budgets, the master chain), `audio/music.ts` (pure composition core + the music
+  manager), `ui/MusicDebug.tsx` (Settings dev console), `scripts/audio-audit.ts` (`npm run
+  audio:audit` — renders every cue offline → `docs/AUDIO_REPORT.md`). Docs: `AUDIO.md`, `MUSIC.md`,
+  `GAME-FEEL.md`. A new cue = a `case` + a `CUE_MIX` row (`sound.test.ts` enforces), its trim from
+  `npm run audio:audit -- --only <tag> --suggest`.
 - **Related:** HUD (UI cues), Loot reveals, Star ceremonies, branch evolution, Assimilation
   Index (intensity floor), Hub (menu scenes), GameView (category/boss/duress).
 - **Future expansion:** new SFX cue = a synth function + a tag; new track/motif/stinger = one

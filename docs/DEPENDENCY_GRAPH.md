@@ -310,7 +310,7 @@ graph TD
 | **Marketing Website** (`website`) | `content-infra` | — | — | — | `docs/WEBSITE.md` · `docs/DEPLOYMENT.md` |
 | **Rendering & VFX** (`rendering`) | `engine` | `hero-cinematics` · `living-battlefield` | — | — | `docs/RENDER-PIPELINE.md` · `docs/TOWER-VISUAL-EVOLUTION.md` · `docs/GAME-FEEL.md` · `docs/CAMERA.md` · `docs/COMBAT-VISUAL-STANDARDS.md` |
 | **Living Battlefield** (`living-battlefield`) | `rendering` · `engine` · `audio` · `assimilation` | — | — | — | `docs/LIVING-BATTLEFIELD.md` |
-| **Audio** (`audio`) | `engine` | `cutscenes` · `living-battlefield` | — | — | `docs/MUSIC.md` · `docs/GAME-FEEL.md` |
+| **Audio** (`audio`) | `engine` | `cutscenes` · `living-battlefield` | — | — | `docs/MUSIC.md` · `docs/GAME-FEEL.md` · `docs/AUDIO.md` |
 | **Assimilation Index** (`assimilation`) | — | `engine` · `run-ui` · `living-battlefield` · `devtools` | ⚡ CONSUMES the live run Power Score as its dominant contributor (never feeds Power) | — | `docs/ASSIMILATION.md` |
 | **Dev Tools & Debug** (`devtools`) | `meta-store` · `assimilation` | — | — | — | `docs/DEV-RESET.md` |
 | **Shared UI Component Kit** (`ui-kit`) | — | — | — | — | `docs/UI-STANDARDS.md` · `docs/STYLE-GUIDE.md` · `docs/UI-MOTION.md` · `docs/VISUAL_IDENTITY.md` · `docs/UI_STYLE_GUIDE.md` · `docs/DESIGN_LANGUAGE.md` · `docs/RESPONSIVE-DESIGN.md` · `docs/ICON-LANGUAGE.md` · `docs/INFO-HIERARCHY.md` |
@@ -348,7 +348,7 @@ graph TD
 - **HUD surfaces:** `Hud` · `Toolbar` · `BuildControls` · `Inspector` · `BuildPanel` · **UI screens:** `GameView`
 - **Collection:** kills/usage feed collection tiers · **Achievements:** —
 - **Localization:** inline English strings (no i18n layer yet — this field enumerates the surface for the day it lands)
-- **Docs to update on change:** `docs/ARCHITECTURE.md` · `docs/CODEMAP.md` · `docs/DESIGN.md` · `docs/EARLY-CALL.md` · `docs/HIVE-MIND.md` · `docs/CAMPAIGN.md` · `docs/CAMPAIGN-EVENTS.md` · `docs/MODE-IDENTITY.md` · `docs/STAGES.md` · `docs/ENDLESS-SCALING.md` · `docs/BOSS-RUSH.md` · `docs/DAILY-RUN.md` · `docs/ONLINE-FOUNDATION.md` · `docs/TRADING-PREP.md` · `docs/ARENA.md` · `docs/ARENA_MATCH_REPORT.md` · `docs/HEROES.md` · `docs/HERO-FRAMEWORK.md` · `docs/HERO-EVOLUTION.md` · `docs/HERO-SELECTION.md` · `docs/SLOTS.md` · `docs/HERO-CINEMATICS.md` · `docs/NEMESIS.md` · `docs/TUTORIAL.md` · `docs/HELP.md` · `docs/TUTORIAL-AUDIT.md` · `docs/GUIDED-UNLOCKS.md` · `docs/HUD.md` · `docs/READABILITY.md` · `docs/REWARD-PRESENTATION.md` · `docs/BOSS-DESIGN.md` · `docs/MEGA-BOSS.md` · `docs/MAP-LAYOUTS.md` · `docs/RENDER-PIPELINE.md` · `docs/TOWER-VISUAL-EVOLUTION.md` · `docs/GAME-FEEL.md` · `docs/CAMERA.md` · `docs/COMBAT-VISUAL-STANDARDS.md` · `docs/LIVING-BATTLEFIELD.md` · `docs/MUSIC.md`
+- **Docs to update on change:** `docs/ARCHITECTURE.md` · `docs/CODEMAP.md` · `docs/DESIGN.md` · `docs/EARLY-CALL.md` · `docs/HIVE-MIND.md` · `docs/CAMPAIGN.md` · `docs/CAMPAIGN-EVENTS.md` · `docs/MODE-IDENTITY.md` · `docs/STAGES.md` · `docs/ENDLESS-SCALING.md` · `docs/BOSS-RUSH.md` · `docs/DAILY-RUN.md` · `docs/ONLINE-FOUNDATION.md` · `docs/TRADING-PREP.md` · `docs/ARENA.md` · `docs/ARENA_MATCH_REPORT.md` · `docs/HEROES.md` · `docs/HERO-FRAMEWORK.md` · `docs/HERO-EVOLUTION.md` · `docs/HERO-SELECTION.md` · `docs/SLOTS.md` · `docs/HERO-CINEMATICS.md` · `docs/NEMESIS.md` · `docs/TUTORIAL.md` · `docs/HELP.md` · `docs/TUTORIAL-AUDIT.md` · `docs/GUIDED-UNLOCKS.md` · `docs/HUD.md` · `docs/READABILITY.md` · `docs/REWARD-PRESENTATION.md` · `docs/BOSS-DESIGN.md` · `docs/MEGA-BOSS.md` · `docs/MAP-LAYOUTS.md` · `docs/RENDER-PIPELINE.md` · `docs/TOWER-VISUAL-EVOLUTION.md` · `docs/GAME-FEEL.md` · `docs/CAMERA.md` · `docs/COMBAT-VISUAL-STANDARDS.md` · `docs/LIVING-BATTLEFIELD.md` · `docs/MUSIC.md` · `docs/AUDIO.md`
 
 ### Content Infrastructure (`content-infra`)
 
@@ -1387,7 +1387,7 @@ graph TD
 
 ### Audio (`audio`)
 
-*Synthesized SFX bus + the ADAPTIVE SOUNDTRACK: a motif-library score (track library, 8 intensity-gated layers, scene/rotation/progression selection, stable per-boss themes, reward stingers, duress treatment) rendered by a pure deterministic composer + a WebAudio manager with bar-aligned equal-power crossfades and a mastering chain.*
+*Synthesized SFX bus (a MEASURED mix: per-category loudness targets + audit-derived per-cue trims, glue/limiter/soft-clip mastering, one shared procedural room, per-dispatch variation, category voice budgets — src/audio/sfxMix.ts; `npm run audio:audit`) + the ADAPTIVE SOUNDTRACK: a motif-library score (track library, 8 intensity-gated layers, scene/rotation/progression selection, stable per-boss themes, reward stingers, duress treatment) rendered by a pure deterministic composer + a WebAudio manager with bar-aligned equal-power crossfades and a mastering chain.*
 
 - **Files:** `src/audio/*` · `src/ui/MusicDebug.tsx`
 - **Depends on:** `engine`
@@ -1398,7 +1398,7 @@ graph TD
 - **HUD surfaces:** `(audible)` · **UI screens:** `MusicDebug (Settings dev console)`
 - **Collection:** — · **Achievements:** —
 - **Localization:** no player-facing strings
-- **Docs to update on change:** `docs/MUSIC.md` · `docs/GAME-FEEL.md` · `docs/CUTSCENES.md` · `docs/LIVING-BATTLEFIELD.md`
+- **Docs to update on change:** `docs/MUSIC.md` · `docs/GAME-FEEL.md` · `docs/AUDIO.md` · `docs/CUTSCENES.md` · `docs/LIVING-BATTLEFIELD.md`
 
 ### Assimilation Index (`assimilation`)
 

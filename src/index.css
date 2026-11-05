@@ -7151,6 +7151,7 @@ html[data-layout='landscape'] .mc-campaign > .mc-ledger { order: 3; }
 .pause-set-k { font-size: 10px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
 .pause-settings .set-toggle { margin-top: 6px; }
 .audio-toggles.is-compact .set-switch { padding: 4px 14px; min-height: 0; }
+.audio-toggles.is-compact .motion-shake input[type="range"] { width: 100px; }
 .pause-card .primary { min-width: 170px; }
 .pause-hint { font-size: 11px; color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; }
 .pause-abandon { width: 100%; padding: 9px 18px; border-radius: var(--r-sm); cursor: pointer; font-weight: 700; background: transparent; border: 1px solid rgba(255, 93, 115, 0.5); color: var(--danger); }
