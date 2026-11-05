@@ -118,6 +118,24 @@ export function musicPref(): boolean {
 export function setMusicPref(on: boolean): void {
   try { localStorage.setItem('musicOn', String(on)); } catch { /* storage unavailable */ }
 }
+// Volumes (Settings → Sound effects / Music, docs/AUDIO.md §settings): 0..1 of each engine's DESIGNED
+// level — 1 (the default) plays the mix exactly as measured and balanced; App applies them on boot.
+const SFX_VOLUME_KEY = 'assimilate.sfxVolume';
+const MUSIC_VOLUME_KEY = 'assimilate.musicVolume';
+function volumePref(key: string): number {
+  try {
+    const raw = localStorage.getItem(key);
+    const v = raw === null ? 1 : Number(raw);
+    return Number.isFinite(v) ? Math.max(0, Math.min(1, v)) : 1;
+  } catch { return 1; }
+}
+function setVolumePref(key: string, v: number): void {
+  try { localStorage.setItem(key, String(Math.max(0, Math.min(1, v)))); } catch { /* storage unavailable */ }
+}
+export const sfxVolumePref = (): number => volumePref(SFX_VOLUME_KEY);
+export const setSfxVolumePref = (v: number): void => setVolumePref(SFX_VOLUME_KEY, v);
+export const musicVolumePref = (): number => volumePref(MUSIC_VOLUME_KEY);
+export const setMusicVolumePref = (v: number): void => setVolumePref(MUSIC_VOLUME_KEY, v);
 
 // ── Motion & feedback prefs (docs/GAME-FEEL.md §4) — Screen shake %, Damage numbers, Flashes,
 // plus the explicit override for players whose OS asks for reduced motion but who want it anyway.
@@ -368,6 +386,8 @@ export const AUTOSTART_KEY = 'assimilate.autostart';
 export const DEVICE_PREF_KEYS: readonly string[] = [
   'audioOn', // SFX toggle (App boot + Settings + pause menu)
   'musicOn', // Music toggle (independent of SFX)
+  SFX_VOLUME_KEY, // Settings → Effects volume
+  MUSIC_VOLUME_KEY, // Settings → Music volume
   AUTO_GENE_KEY,
   DIFF_KEY.campaign,
   DIFF_KEY.infinite,

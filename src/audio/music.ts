@@ -526,6 +526,9 @@ const midiHz = (m: number): number => 440 * Math.pow(2, (m - 69) / 12);
 const LOOKAHEAD_S = 0.15;
 const TICK_MS = 40;
 const XFADE_S = 1.8;
+/** The score's designed level at Music volume 100 % — set against the MEASURED SFX mix (the 2026-11
+ *  sound pass: the score sits level with steady combat, under rewards and alerts; docs/AUDIO.md). */
+export const MUSIC_LEVEL = 0.7;
 /** Fixed per-layer stereo image (a wide, professional stage; bass/kick stay centred). */
 const LAYER_PAN: Record<LayerId, number> = { bass: 0, drums: 0, arp: -0.25, lead: 0.18, pad: -0.1, texture: -0.45, choir: 0.3, hits: 0 };
 /** Equal-power fade curves (cos/sin quarter waves) — no mid-fade loudness dip. */
@@ -565,7 +568,7 @@ class MusicManager {
   private progressionTier = 0;
   private scene: string | null = null;
   private pinned = false;
-  private volume = 0.8;
+  private volume = MUSIC_LEVEL; // effective master gain = MUSIC_LEVEL × the player's Music volume
   private enabled = true;
   current: MusicCategory | null = null;
   /** The active track id (dev tools + tests via the debug panel). */
@@ -776,8 +779,9 @@ class MusicManager {
     this.active.layers[layer]?.gain.linearRampToValueAtTime(Math.max(0, gain), this.ctx.currentTime + 0.3);
   }
 
+  /** The player's Music volume, 0..1 (1 = the designed level, MUSIC_LEVEL). */
   setVolume(v: number): void {
-    this.volume = Math.min(1, Math.max(0, v));
+    this.volume = MUSIC_LEVEL * Math.min(1, Math.max(0, v));
     if (this.master && this.ctx) this.master.gain.linearRampToValueAtTime(this.volume * (1 + 0.22 * this.duress), this.ctx.currentTime + 0.1);
   }
 

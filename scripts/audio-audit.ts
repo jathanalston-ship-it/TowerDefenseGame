@@ -41,6 +41,9 @@ const args = process.argv.slice(2).filter((a) => a !== '--');
 const flag = (n: string): boolean => args.includes(`--${n}`);
 const opt = (n: string): string | undefined => { const i = args.indexOf(`--${n}`); return i >= 0 ? args[i + 1] : undefined; };
 const ROOT = new URL('..', import.meta.url).pathname;
+/** The checkout whose src/audio is rendered (default: this one) — point it at a `git worktree` of an
+ *  older revision to measure a baseline with the same tool. */
+const SRC = opt('src') ?? ROOT;
 const OUT = opt('out') ?? join(tmpdir(), 'assimilation-audio-audit');
 const LABEL = opt('label') ?? 'current';
 const ONLY = opt('only')?.split(',').filter(Boolean);
@@ -48,7 +51,7 @@ const SR = 48000;
 const CUE_SECONDS = 5; // long enough for the longest cue (~2.4 s) plus a reverb tail
 
 // ───────────────────────────── the cue list (what the dispatcher knows) ─────────────────────────────
-const soundSrc = readFileSync(join(ROOT, 'src/audio/sound.ts'), 'utf8');
+const soundSrc = readFileSync(join(SRC, 'src/audio/sound.ts'), 'utf8');
 const CASES = [...new Set([...soundSrc.matchAll(/case '([\w-]+)':/g)].map((m) => m[1]))];
 /** Depth-suffixed variants worth hearing on their own (draft rarity, specimen tier, branch capstone). */
 const VARIANTS = ['draftPick@5', 'flip@5', 'br_rail@5', 'br_siege@5'];
@@ -100,6 +103,7 @@ const PAGE_RUNTIME = String.raw`
     (0, eval)(window.__bundle); // a FRESH copy of sound.ts + music.ts → globalThis.__audit
     const A = globalThis.__audit;
     if (A.dev && spec.nominal) A.dev.setRng(null); // nominal = no per-dispatch variation (single-cue metrics)
+    A.audio.resume(); // the context is born at t = 0, as the game's first gesture creates it — the pre-roll lets it settle
     if (!spec.music) A.music.setEnabled(false);
     const fire = (e) => {
       if (e.kind === 'cue') A.audio.cue(e.tag);
@@ -153,9 +157,21 @@ function f32(b64: string): Float32Array {
   return out;
 }
 
+/** Every render creates the context at t = 0 and runs PRE seconds of silence before the first event,
+ *  then drops it: Chromium's DynamicsCompressor starts from a fully-attenuated detector and needs
+ *  ~0.2 s to settle (sound.ts keeps it processing through silence), so the pre-roll measures the
+ *  steady state — what every cue but the very first one after the autoplay unlock meets.
+ *  0.32 s = a whole number of render quanta. */
+const PRE = 0.32;
 async function render(page: Page, spec: Spec): Promise<Rendered> {
-  const r = await page.evaluate((s) => (window as unknown as { __render: (s: unknown) => Promise<{ l: string; r: string; counts: Record<string, number>; plays: Play[]; dev: Rendered['dev'] }> }).__render(s), spec);
-  return { l: f32(r.l), r: f32(r.r), counts: r.counts, plays: r.plays, dev: r.dev };
+  const shifted: Spec = { ...spec, seconds: spec.seconds + PRE, events: spec.events.map((e) => ({ ...e, t: e.t + PRE })) };
+  const r = await page.evaluate((s) => (window as unknown as { __render: (s: unknown) => Promise<{ l: string; r: string; counts: Record<string, number>; plays: Play[]; dev: Rendered['dev'] }> }).__render(s), shifted);
+  const head = Math.round(PRE * SR);
+  const l = f32(r.l), rr = f32(r.r);
+  return {
+    l: l.subarray(Math.min(head, l.length)), r: rr.subarray(Math.min(head, rr.length)), counts: r.counts,
+    plays: r.plays.map((p) => ({ ...p, start: p.start - PRE, stop: p.stop - PRE })), dev: r.dev,
+  };
 }
 
 // BS.1770 K-weighting at 48 kHz (pre-filter shelf + RLB high-pass), direct form I.
@@ -369,6 +385,16 @@ interface CueRow extends Metrics { tag: string; cat: SfxCategory; goal: number; 
 interface Results {
   label: string; date: string; cues: CueRow[];
   scenes: Record<string, Metrics & { nodes: number; nodesPerSec?: number; dropped?: number; peakVoices?: number }>;
+  /** Montage sections: the SFX alone vs the score alone (ungated LUFS over the section). */
+  balance?: { section: string; sfx: number; music: number }[];
+}
+
+/** The montage's sections (seconds) — the mix questions the owner asked: does the score sit UNDER
+ *  combat, and do rewards cut THROUGH it? */
+const MONTAGE_SECTIONS: [string, number, number][] = [['steady combat', 2, 8.6], ['boss + swarm wipe', 8.7, 12.5], ['reward chain', 13.4, 21.5]];
+function sectionLoudness(x: Rendered, a: number, b: number): number {
+  const p = kEnergy(x.l, x.r), i0 = Math.min(p.length - 1, Math.round(a * SR)), i1 = Math.min(p.length - 1, Math.round(b * SR));
+  return -0.691 + pow2dB((p[i1] - p[i0]) / Math.max(1, Math.round((b - a) * SR)));
 }
 
 async function main(): Promise<void> {
@@ -377,7 +403,7 @@ async function main(): Promise<void> {
     stdin: {
       contents: "import { audio } from './src/audio/sound'; import * as snd from './src/audio/sound'; import { music } from './src/audio/music';"
         + ' (globalThis as any).__audit = { audio, music, dev: (snd as any).sfxDev ?? null };',
-      resolveDir: ROOT, loader: 'ts', sourcefile: 'audit-entry.ts',
+      resolveDir: SRC, loader: 'ts', sourcefile: 'audit-entry.ts',
     },
     bundle: true, write: false, format: 'iife', platform: 'browser', target: 'es2020', logLevel: 'error',
   });
@@ -419,7 +445,16 @@ async function main(): Promise<void> {
         console.log(`scene ${name}: peak ${scenes[name].peakDb.toFixed(1)} dBFS, ${nodes} nodes`);
       }
     }
-    const res: Results = { label: LABEL, date: new Date().toISOString().slice(0, 10), cues, scenes };
+    let balance: Results['balance'];
+    if (!ONLY) {
+      const m = montageSpec();
+      const isMusic = (e: Ev): boolean => e.kind === 'music' || e.kind === 'intensity';
+      const sfxOnly = await render(page, { ...m, music: false, events: m.events.filter((e) => !isMusic(e)) });
+      const musicOnly = await render(page, { ...m, events: m.events.filter(isMusic) });
+      balance = MONTAGE_SECTIONS.map(([section, a, b]) => ({ section, sfx: sectionLoudness(sfxOnly, a, b), music: sectionLoudness(musicOnly, a, b) }));
+      for (const r of balance) console.log(`balance ${r.section}: SFX ${r.sfx.toFixed(1)} vs score ${r.music.toFixed(1)} LUFS`);
+    }
+    const res: Results = { label: LABEL, date: new Date().toISOString().slice(0, 10), cues, scenes, balance };
     writeFileSync(join(OUT, 'results.json'), JSON.stringify(res, null, 1));
 
     if (flag('mp3')) {
@@ -516,6 +551,14 @@ function report(r: Results, before: Results | null): string {
   if (before) {
     L.push('', 'Before:', '', '| scene | peak dBFS | clipped | LUFS-M max | LUFS-S max | LUFS-I | nodes |', '|---|---|---|---|---|---|---|');
     for (const [name, s] of Object.entries(before.scenes)) L.push(`| ${name} | ${f1(s.peakDb)} | ${s.clipped} | ${f1(s.lufsM)} | ${f1(s.lufsS)} | ${f1(s.lufsI)} | ${s.nodes} |`);
+  }
+  if (r.balance) {
+    L.push('', '## Mix balance — SFX vs the score', '', 'The combat montage rendered twice — SFX alone, score alone (no ducks) — ungated LUFS per section.', '');
+    L.push(`| section | SFX | score | SFX over score${before?.balance ? ' | before: SFX / score / over' : ''} |`, `|---|---|---|---|${before?.balance ? '---|' : ''}`);
+    r.balance.forEach((x, i) => {
+      const o = before?.balance?.[i];
+      L.push(`| ${x.section} | ${f1(x.sfx)} | ${f1(x.music)} | ${(x.sfx - x.music >= 0 ? '+' : '') + f1(x.sfx - x.music)} dB${o ? ` | ${f1(o.sfx)} / ${f1(o.music)} / ${(o.sfx - o.music >= 0 ? '+' : '') + f1(o.sfx - o.music)} dB` : ''} |`);
+    });
   }
   L.push('', '*stress* = 40 kills + 30 shots + 20 hits inside 1 s with a boss death on top (×2 doubles the swarm); *montage* = ~21 s of a',
     'first-hour wave over the combat score (music + SFX summed in one context, as the speakers sum the two engines); *film* = the',

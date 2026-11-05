@@ -88,6 +88,16 @@ function buildGraph(c: AudioContext): void {
   sfxBus = c.createGain();
   sfxBus.gain.value = M.busGain;
   sfxBus.connect(glue); glue.connect(limiter); limiter.connect(clip); clip.connect(master);
+  // Keep the dynamics ALIVE: Chromium stops processing a node whose inputs are all silent, which
+  // freezes a compressor's detector wherever the last sound left it (a fresh one starts fully
+  // attenuated) — the first cue after a quiet spell then comes out squashed (the audit measured up
+  // to −20 dB on short cues). A −120 dBFS constant keeps them processing, and releasing, through silence.
+  if (c.createConstantSource) {
+    const keepAlive = c.createConstantSource();
+    keepAlive.offset.value = 1e-6;
+    keepAlive.connect(sfxBus);
+    keepAlive.start();
+  }
   // SPACE: one shared convolver (a generated IR), fed by per-category sends.
   const verb = c.createConvolver();
   verb.buffer = reverbIR(c);
