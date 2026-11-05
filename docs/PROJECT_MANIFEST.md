@@ -756,6 +756,7 @@ ladders. 4. Every permanent progression source must move the Power Score (valida
 | Notifications | `state/notifications.ts` | menu badges = registered `count(save)` sources; `state/rewardToast.ts` + `RewardToaster` = the ONE claim-receipt popup every hub claim presents through |
 | Mechanics registry | `state/mechanics.ts` | Help wiki + What's New + tour from one def list |
 | Validation | `core/validate.ts` | dev-boot content invariants across all registries |
+| Layout profiles + the browser shell | `ui/layoutProfile.ts`, `ui/mobileBrowser.ts`, `ui/components/BrowserShell.tsx` | desktop / landscape / portrait interfaces stamped on `<html>`; `--app-h` (the visible height a phone browser's toolbar leaves); first-tap full screen (Android/iPad) + ⛶; the iPhone Add to Home Screen card (RESPONSIVE-DESIGN.md §browser) |
 
 ## Maintenance rules for THIS document
 

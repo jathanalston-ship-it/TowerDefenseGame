@@ -55,6 +55,14 @@ const GATE_VIEWPORTS = [
   { name: 'tablet-land-1024x768', width: 1024, height: 768 },
   { name: 'portrait-390x844', width: 390, height: 844 },
   { name: 'tablet-768x1024', width: 768, height: 1024 },
+  // MOBILE BROWSERS (docs/RESPONSIVE-DESIGN.md §browser): the VISIBLE area with the browser's toolbar
+  // showing — what a phone browser actually leaves the game (the full-screen sizes above are the store
+  // app / installed web app). iPhone Safari landscape (tab bar on top), Android Chrome landscape (56px
+  // address bar), iPhone Safari portrait (bar at the bottom). Headless sets 100vh = this height, so the
+  // bare-100vh bug itself is guarded statically (uiStandards.test 'viewport height').
+  { name: 'browser-ios-844x340', width: 844, height: 340 },
+  { name: 'browser-android-915x356', width: 915, height: 356 },
+  { name: 'browser-ios-portrait-390x664', width: 390, height: 664 },
 ];
 const FULL_VIEWPORTS = [
   ...GATE_VIEWPORTS,
@@ -66,6 +74,8 @@ const FULL_VIEWPORTS = [
   { name: 'portrait-320x568', width: 320, height: 568 },
   { name: 'portrait-430x932', width: 430, height: 932 },
   { name: 'tablet-land-1180x820', width: 1180, height: 820 },
+  { name: 'browser-ios-promax-926x378', width: 926, height: 378 },
+  { name: 'browser-ios-se-667x325', width: 667, height: 325 },
 ];
 const VIEWPORTS = args.includes('--full') ? FULL_VIEWPORTS : GATE_VIEWPORTS;
 // The TUTORIAL WALK — proven at the landscape-phone floor AND in portrait (the tutorial is a

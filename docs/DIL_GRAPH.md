@@ -1,6 +1,6 @@
 # DIL_GRAPH.md — the Design Intelligence Layer (GENERATED — `npm run dil -- regen`)
 
-> **The project's brain** (docs/DIL.md). 989 nodes · 1920 edges, built from the live
+> **The project's brain** (docs/DIL.md). 989 nodes · 1921 edges, built from the live
 > registries + curated knowledge (src/dev/dil/). **Query it instead of searching the repo:**
 > `npm run dil -- node <id>` · `affects <id>` · `requires <id>` · `missing <kind> <edge>` ·
 > `checklist tower <kind>` · `find <text>`. Edge kinds are bidirectional (19 kinds).
@@ -557,6 +557,7 @@ graph LR
   system_boss_rush["Boss Rush"] -->|dependsOn| system_power["Power Score"]
   system_hub_shell["Hub Shell & Home"] -->|consumes| system_campaign["Campaign"]
   system_living_battlefield["Living Battlefield"] -->|consumes| system_assimilation["Assimilation Index"]
+  system_hub_shell["Hub Shell & Home"] -->|dependsOn| system_rendering["Rendering & VFX"]
   system_onboarding["Tutorials, Help & Onboarding"] -->|dependsOn| system_progression_gating["Progression Gating & Director"]
   system_onboarding["Tutorials, Help & Onboarding"] -->|dependsOn| system_rendering["Rendering & VFX"]
   system_account_level["Account Level (evergreen meta-progression)"] -->|provides| system_loot["Loot & Bio-Containers"]
@@ -2209,6 +2210,7 @@ _at: src/ui/Hub.tsx, src/ui/navModel.ts, src/ui/MobileShell.tsx, src/ui/componen
   - consumes → `system:meta-store` — owns save field 'income'
   - consumes → `system:campaign` — buildHomeView generates the campaign frontier ONCE per save change — home widgets read ctx.view, never re-derive models
   - references → `system:collection` — home surfaces show CollectionView.pct (discovery); mixing in rank-weighted .completion once put two contradictory percentages on one board
+  - dependsOn → `system:rendering` — THE MOBILE BROWSER (RESPONSIVE-DESIGN.md §browser): every full-screen height is var(--app-h) (100dvh; layoutProfile.ts stamps measured innerHeight where dvh is missing) — a bare 100vh runs under a phone browser's address bar and fails uiStandards.test; ui/mobileBrowser.ts asks for full screen on the first tap (Android/iPad, device pref assimilate.immersive) and BrowserShell.tsx renders the top-bar ⛶ + the one-time iPhone Add to Home Screen card; mobilecheck walks the browser-visible sizes (844×340, 915×356, 390×664)
   - modifies → `system:notifications` — FOLDED SCREENS (navModel FOLDED_NAVS): harvest+expeditions → hive, metabolism → quests, specimens → phenotypes, gearcodex → equipment. Hub.go resolves hostOf() + requestHostTab (ui/components/HostTabs.tsx; each host mounts <HostedScreen>), badges/reasons roll up via foldCounts/foldLines and chainNavs map through hostOf — a folded NavKey is still a valid notification channel / reward-loop nav / deep link
   - provides → `concept:responsive` — PORTRAIT SHELL (docs/RESPONSIVE-DESIGN.md §3b): ui/navModel.ts is the ONLY nav IA source — desktop rail, five-tab bottom bar, index pages (MobileShell.tsx), mobilecheck, and navModel.test all derive from it; a new screen = one group row + one unlock-registry def and it is auto-indexed/explained/swept on phones
   - conflictsWith → `concept:responsive` — portrait strips inside grids need minmax(0,1fr) columns (intrinsic strip width widens the page past the phone viewport — the Tower Lab empty-showcase bug); flex children of height-capped roster lists need flex:none or rows compress and overlap their portraits
@@ -2598,7 +2600,7 @@ _at: src/render/*, src/core/dangerCamera.ts_
   - testedBy ← `test:src/render/assimilationFx.test.ts`
   - testedBy ← `test:src/render/biomeGround.test.ts`
   - testedBy ← `test:src/render/combatFx.test.ts`
-  - _…31 more (query: `npm run dil -- node system:rendering`)_
+  - _…32 more (query: `npm run dil -- node system:rendering`)_
 
 ### `system:living-battlefield` — Living Battlefield
 
@@ -2677,7 +2679,7 @@ _at: src/debug/*, src/ui/DebugPanel.tsx, src/ui/DevTools.tsx_
 
 Reusable presentation components every screen composes (icons, bars, count-ups) — the component library.
 
-_at: src/ui/components/Icon.tsx, src/ui/iconLanguage.tsx, src/ui/components/Detail.tsx, src/ui/components/ProgressBar.tsx, src/ui/components/useCountUp.ts, src/ui/components/usePressRepeat.ts, src/ui/components/AudioToggles.tsx, src/ui/components/MobileSection.tsx, src/ui/components/ChipPopover.tsx, src/ui/components/SectionNav.tsx, src/ui/components/LoadoutStrip.tsx, src/ui/layoutProfile.ts, src/ui/components/ResponsiveDebug.tsx, src/ui/components/RotateGate.tsx, src/ui/components/ScreenFallback.tsx, src/ui/lazyNamed.ts, src/ui/components/ClaimAll.tsx, src/ui/components/MotionSettings.tsx, src/ui/components/RarityFx.tsx_
+_at: src/ui/components/Icon.tsx, src/ui/iconLanguage.tsx, src/ui/components/Detail.tsx, src/ui/components/ProgressBar.tsx, src/ui/components/useCountUp.ts, src/ui/components/usePressRepeat.ts, src/ui/components/AudioToggles.tsx, src/ui/components/MobileSection.tsx, src/ui/components/ChipPopover.tsx, src/ui/components/SectionNav.tsx, src/ui/components/LoadoutStrip.tsx, src/ui/layoutProfile.ts, src/ui/mobileBrowser.ts, src/ui/components/BrowserShell.tsx, src/ui/components/ResponsiveDebug.tsx, src/ui/components/RotateGate.tsx, src/ui/components/ScreenFallback.tsx, src/ui/lazyNamed.ts, src/ui/components/ClaimAll.tsx, src/ui/components/MotionSettings.tsx, src/ui/components/RarityFx.tsx_
 
   - modifies → `system:audio` — AudioToggles (Settings + pause menu) writes the Effects/Music VOLUME device prefs (sfxVolumePref/musicVolumePref; App applies them on boot) → audio.setVolume / music.setVolume scale each engine's DESIGNED level (SFX_MASTER.output, MUSIC_LEVEL). A new sound.ts cue needs a CUE_MIX row (audio/sfxMix.ts — sound.test.ts fails otherwise) and its trim comes from `npm run audio:audit --suggest`, never a hand-tuned literal
   - conflictsWith → `concept:golden-test` — ATTENTION BUDGET (docs/INFO-HIERARCHY.md §2, npm run cogload): at most 2 attention-band animators (≤3.6s infinite pulse/breathe/glow) visible per screen — the ONE that breathes is the recommendation; ready-states live in the ambient band (>3.6s), badges announce finitely (nav-badge-pulse ×6) then rest; cogload exits 1 on violation, so a new always-on fast pulse anywhere is a BUILD-BREAKING decision, not a style choice; demote numbers via components/Detail.tsx (Layer 3 behind intent), never delete them

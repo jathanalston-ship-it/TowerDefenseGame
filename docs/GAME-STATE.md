@@ -194,6 +194,11 @@ Content — not systems — is the binding constraint (see EA-DESIGN-AUDIT). The
   / no picks resolves to the exact base kit; `neutralHeroProgress` + `NO_META` pass no kits ⇒ byte-
   identical (heroForks.test.ts pins identity + patch math + the HUD-level end-to-end)
 
+- ✅ **THE MOBILE BROWSER** (2026-11 — RESPONSIVE-DESIGN.md §browser): every full-screen height uses `--app-h`
+  (100dvh, measured fallback) so the address bar never hides the game's foot; Android/iPad browsers go full screen
+  on the first tap (Settings toggle, top-bar ⛶); iPhone Safari gets a one-time Add to Home Screen card; the
+  manifest installs landscape/standalone; short portrait and the phone top bar compact; mobilecheck walks the
+  browser-visible sizes (844×340, 915×356, 390×664; 926×378 and 667×325 in --full).
 - ✅ **THE SOUND PASS** (2026-11 — docs/AUDIO.md): the SFX mix is measured DATA (`audio/sfxMix.ts`: 7 categories
   with loudness targets, a 130-row audit-derived trim table, bounded per-dispatch variation, per-category voice
   budgets); the SFX bus runs glue → limiter → soft clip with a keep-alive; one shared procedural room (frequent

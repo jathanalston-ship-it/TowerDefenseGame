@@ -69,6 +69,14 @@ describe('UI standards — the stylesheet stays on the design scale', () => {
     expect(bad, `raw transition durations (use var(--dur-1..4), docs/UI-STANDARDS.md §Animation): ${bad.slice(0, 5).join(' | ')}`).toEqual([]);
   });
 
+  it('viewport height: full-screen shells use var(--app-h), never a bare 100vh/100dvh (docs/RESPONSIVE-DESIGN.md §browser)', () => {
+    // A phone BROWSER's 100vh is the toolbar-hidden height: a 100vh shell runs under the address bar.
+    // Only the --app-h token itself may name the raw units (comments excluded).
+    const code = css().replace(/\/\*[\s\S]*?\*\//g, '');
+    const bad = code.split('\n').filter((l) => /100d?vh/.test(l) && !/--app-h:\s*100d?vh/.test(l) && !/@supports \(height: 100dvh\)/.test(l));
+    expect(bad.map((l) => l.trim()), 'use var(--app-h) for viewport heights').toEqual([]);
+  });
+
   it('the design tokens the standards reference actually exist in :root', () => {
     const root = css().slice(0, css().indexOf('}', css().indexOf(':root')));
     for (const t of ['--r-xs', '--r-sm', '--r-md', '--r-lg', '--dur-1', '--dur-2', '--dur-3', '--dur-4', '--ease-out', '--r-common', '--r-mythic', '--r-exotic', '--r-exotic-2', '--viral']) {

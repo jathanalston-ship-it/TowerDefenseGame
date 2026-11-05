@@ -17,6 +17,24 @@ export interface BlogPost {
 
 export const POSTS: BlogPost[] = [
   {
+    slug: 'playing-in-your-phones-browser',
+    date: '2026-11-05',
+    title: 'Playing in your phone’s browser, without the address bar in the way',
+    category: 'Tech',
+    tags: ['mobile', 'ui', 'design'],
+    summary: 'In a phone’s web browser the address bar takes part of the screen, and parts of the game ran underneath it. The game now fits what is actually visible, goes full screen on Android and iPad with one tap, and shows iPhone players how to add it to the Home Screen.',
+    body: `
+<p>ASSIMILATION was laid out for the whole screen, which is what a store app or an installed web app gets. A phone’s web browser keeps its toolbar on screen, and the game was measuring the screen as if that bar weren’t there. Here is what changed.</p>
+<h2>Sized to what you can see</h2>
+<p>Every full-screen part of the game now sizes itself to the area the browser actually leaves visible, and it adjusts if the toolbar shows or hides. The bottom of the menus, the Results screen and the dialogs no longer slip under the address bar. Holding your phone upright during a run, the board now keeps its share of the screen: the loot meter folds into a thin strip and the controls tighten so the battlefield stays big.</p>
+<h2>Full screen on Android and iPad</h2>
+<p>On Android and iPad your first tap takes the game full screen, so the address bar disappears. If you leave full screen, the game respects that; tap <b>⛶</b> in the top bar to go back. You can turn this off in <b>Settings → Full screen in mobile browsers</b>.</p>
+<h2>On iPhone: add it to your Home Screen</h2>
+<p>Safari on iPhone doesn’t let web pages go full screen, so the game shows a one-time card: tap <b>Share</b>, then <b>Add to Home Screen</b>. The game then opens from its own icon with no address bar, in landscape, like an app. The Home Screen version used to be locked to portrait, where the menus ask you to turn your phone; that’s fixed.</p>
+<p>We test the game at the sizes phone browsers really leave visible, on iPhone and Android, upright and sideways, so it stays that way.</p>
+`,
+  },
+  {
     slug: 'the-first-hour-and-a-sound-pass',
     date: '2026-11-05',
     title: 'A calmer first hour, and every sound rebuilt',

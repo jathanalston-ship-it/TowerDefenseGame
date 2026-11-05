@@ -1434,7 +1434,7 @@ graph TD
 
 *Reusable presentation components every screen composes (icons, bars, count-ups) — the component library.*
 
-- **Files:** `src/ui/components/Icon.tsx` · `src/ui/iconLanguage.tsx` · `src/ui/components/Detail.tsx` · `src/ui/components/ProgressBar.tsx` · `src/ui/components/useCountUp.ts` · `src/ui/components/usePressRepeat.ts` · `src/ui/components/AudioToggles.tsx` · `src/ui/components/MobileSection.tsx` · `src/ui/components/ChipPopover.tsx` · `src/ui/components/SectionNav.tsx` · `src/ui/components/LoadoutStrip.tsx` · `src/ui/layoutProfile.ts` · `src/ui/components/ResponsiveDebug.tsx` · `src/ui/components/RotateGate.tsx` · `src/ui/components/ScreenFallback.tsx` · `src/ui/lazyNamed.ts` · `src/ui/components/ClaimAll.tsx` · `src/ui/components/MotionSettings.tsx` · `src/ui/components/RarityFx.tsx`
+- **Files:** `src/ui/components/Icon.tsx` · `src/ui/iconLanguage.tsx` · `src/ui/components/Detail.tsx` · `src/ui/components/ProgressBar.tsx` · `src/ui/components/useCountUp.ts` · `src/ui/components/usePressRepeat.ts` · `src/ui/components/AudioToggles.tsx` · `src/ui/components/MobileSection.tsx` · `src/ui/components/ChipPopover.tsx` · `src/ui/components/SectionNav.tsx` · `src/ui/components/LoadoutStrip.tsx` · `src/ui/layoutProfile.ts` · `src/ui/mobileBrowser.ts` · `src/ui/components/BrowserShell.tsx` · `src/ui/components/ResponsiveDebug.tsx` · `src/ui/components/RotateGate.tsx` · `src/ui/components/ScreenFallback.tsx` · `src/ui/lazyNamed.ts` · `src/ui/components/ClaimAll.tsx` · `src/ui/components/MotionSettings.tsx` · `src/ui/components/RarityFx.tsx`
 - **Depends on:** —
 - **Consumers — what breaks if you change this:** —
 - **Power Score:** — (intentionally none)

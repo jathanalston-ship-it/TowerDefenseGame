@@ -16,8 +16,14 @@
     />
     <title>ASSIMILATION — Bio-Horror Tower Defense</title>
 
-    <!-- PWA (docs/WEBSITE.md §branding): installable identity + home-screen icons. -->
+    <!-- PWA (docs/WEBSITE.md §branding): installable identity + home-screen icons. Installed from a
+         phone browser it runs WITHOUT the browser's toolbar (docs/RESPONSIVE-DESIGN.md §browser):
+         standalone display, landscape (the phone hub is horizontal), iOS full-bleed status bar. -->
     <link rel="manifest" href="/manifest.json" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="ASSIMILATION" />
 
     <!-- Typography (self-hosted, font-src 'self'): preload the two files the first paint
          uses — the Exo 2 variable body + the Chakra Petch display weight. -->

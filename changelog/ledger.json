@@ -1,6 +1,6 @@
 {
-  "lastSha": "0f7d1d2bbbda1c6161ffcaddc505559ccb26e268",
-  "commitsSinceDraft": 2,
+  "lastSha": "aa3f25009ebeab5260512f04d0c43349031aded7",
+  "commitsSinceDraft": 3,
   "content": {
     "tower": [
       "needle",
@@ -8796,6 +8796,14 @@
       "date": "2026-11-05",
       "cat": "Developer Tools",
       "text": "First hour + sound pass PASS over 2d0c694..HEAD — 3109/3109, mobile gate clean",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "aa3f25009ebeab5260512f04d0c43349031aded7",
+      "date": "2026-11-05",
+      "cat": "Developer Tools",
+      "text": "Status,chronicle: DEPLOYED \"A Calmer First Hour\" (0f7d1d2, run #234); seal v2026.11.05.5",
       "internal": true,
       "needsReview": false
     }

@@ -80,7 +80,7 @@ organisms and portrait could not carry them. The contract now:
   must stack like phones; the height clause is the landscape-phone catch.
 - **Mouse windows are never gated** — desktop is unchanged at any window shape; a narrow
   desktop window keeps the compact drawer shell it always had.
-- **The platform split**: this gate is the mobile-BROWSER half. The store APP SHELL
+- **The platform split**: this gate is the mobile-BROWSER half (the browser's toolbar: §browser). The store APP SHELL
   (iOS/Android, future Capacitor wrap) locks orientation natively, so the gate simply never
   fires there — shipping needs no change on this side.
 - **`npm run mobilecheck` v3 enforces all of it**: the door→landing→card walk runs at
@@ -91,6 +91,37 @@ organisms and portrait could not carry them. The contract now:
 - The v2 portrait tab shell (`MobileShell.tsx`, §mobile-shell below) remains in the code for
   mouse-narrow windows only — it is no longer a supported PHONE surface and is no longer
   CI-walked; treat §mobile-shell as legacy reference.
+
+## 0c. §browser — the MOBILE BROWSER (2026-11): the address bar takes height
+
+The store app (future Capacitor wrap) and an installed web app run without browser UI; a phone's WEB
+BROWSER does not — its toolbar (the address bar, on top in landscape) takes part of the screen, and the
+two must both work:
+
+- **`--app-h` — the app height.** A browser's `100vh` is the height with the toolbar HIDDEN, so a 100vh
+  shell runs under the address bar (the hub's foot, Results, dialogs). Every full-screen height now uses
+  `var(--app-h)` = `100dvh` (the live visible height), falling back to `100vh` and — on engines without
+  dynamic viewport units — to the measured `innerHeight` (`layoutProfile.ts` stamps it on every resize;
+  a toolbar showing or hiding fires one). `uiStandards.test` fails CI on any bare `100vh`/`100dvh`.
+- **Full screen where the browser allows it** (`ui/mobileBrowser.ts`): Android Chrome and iPad Safari —
+  the session's FIRST TAP asks for full screen (Settings → "Full screen in mobile browsers", default on,
+  device pref `assimilate.immersive`); leaving it is respected until the next load, and the top bar's
+  **⛶** (`ui/components/BrowserShell.tsx`) goes back. Orientation is NOT locked (runs play portrait too).
+- **iPhone Safari has no page full-screen API**, so the way to lose the toolbar is **Add to Home Screen**:
+  a one-time hub card (after the first run; "Got it" persists `assimilate.installHint`) shows the Share
+  glyph and the two taps. The installed app runs standalone (`manifest.json` `display: standalone`,
+  `orientation: landscape` — it said `portrait`, a leftover from the retired vertical-phone era that
+  would have held an installed hub behind the rotate gate; `apple-mobile-web-app-*` meta in play/index.html).
+- **Short portrait** (an iPhone browser in portrait leaves ≈390×664): the loot meter folds to a thin strip
+  along the HUD's foot and the control strip / rails / tray tighten (`@media (max-height: 760px)`), so the
+  board keeps ≥40% of the screen. The phone-landscape top bar tightens (gap, padding, ☰ without its word;
+  the level chip hides ≤700px wide) so the wallet + ⛶ fit from 667 to 926px.
+- **Verified:** `mobilecheck` walks the VISIBLE sizes with the toolbar showing — `browser-ios-844x340`,
+  `browser-android-915x356`, `browser-ios-portrait-390x664` in the gate, `browser-ios-promax-926x378` and
+  `browser-ios-se-667x325` in `--full` (headless has no toolbar, so 100vh equals these heights there —
+  the bare-vh bug itself is guarded statically). A live check with Android / iPhone user agents confirms
+  the first tap enters full screen, ⛶ sits on-screen, the iPhone card fits and stays dismissed, and
+  neither renders on desktop.
 
 ## 1. The platform matrix (what we design for and test at)
 

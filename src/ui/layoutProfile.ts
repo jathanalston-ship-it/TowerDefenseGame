@@ -36,8 +36,15 @@ let state: LayoutState = typeof window === 'undefined'
 const listeners = new Set<() => void>();
 let raf = 0;
 
+// THE APP HEIGHT fallback (docs/RESPONSIVE-DESIGN.md §browser): CSS sizes full-screen shells with
+// --app-h (100dvh — the height a phone browser's toolbar actually leaves). An engine without dynamic
+// viewport units gets the measured innerHeight instead, refreshed on every resize (a toolbar showing or
+// hiding fires one).
+const DVH = typeof CSS !== 'undefined' && typeof CSS.supports === 'function' && CSS.supports('height', '100dvh');
+
 function stamp(): void {
   const el = document.documentElement;
+  if (!DVH) el.style.setProperty('--app-h', `${state.vh}px`);
   if (el.dataset.layout !== state.profile) el.dataset.layout = state.profile;
   const coarse = state.coarse ? '1' : '0';
   if (el.dataset.coarse !== coarse) el.dataset.coarse = coarse;

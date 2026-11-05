@@ -6,6 +6,7 @@
 import { t, useLocale, setLocale, getLocale, LOCALES } from '../i18n';
 import { Suspense, useEffect, useMemo, useRef, useState, type CSSProperties, type MutableRefObject } from 'react';
 import { meta } from '../state/meta';
+import { FullscreenButton, ImmersiveSetting, InstallHint } from './components/BrowserShell';
 import type { RunOutcome, RunResult } from '../state/meta';
 import type { SaveData } from '../save/saveStore';
 import type { ReplayRecord } from '../core/replay';
@@ -209,6 +210,7 @@ function SettingsScreen({ onReplayTutorial, onReplayTour, onReplayIntro }: { onR
           </label>
           <AudioToggles />
           <MotionSettings />
+          <ImmersiveSetting />
           <label className="set-toggle">
             <span>Auto Gene Selection<small>Auto-draft the ◆ PICK card after a 10s countdown.</small></span>
             <button className={`set-switch ${autoGene ? 'on' : ''}`} onClick={toggleAutoGene} aria-pressed={autoGene}>
@@ -624,6 +626,8 @@ export function Hub({
           {featureRevealed(save, 'cur:cells') && <WalletChip cur="ascendantCells" value={cells} label="Cells" />}
           {/* ONE Materials chip for every secondary crafting wallet (docs/ECONOMY.md §player-facing). */}
           {featureRevealed(save, 'cur:mats') && <MaterialsChip save={save} />}
+          {/* Mobile browsers (Android / iPad): back to full screen after leaving it (§browser). */}
+          <FullscreenButton />
         </header>
 
         <section
@@ -707,6 +711,9 @@ export function Hub({
           </>
           )}
         </section>
+        {/* iPhone Safari: the one-time "Add to Home Screen" card — only once the tutorial is behind
+            the player and the hub is calm (§browser). */}
+        <InstallHint ready={save.totalRuns >= 1} />
       </div>
 
       {mobileShell && (

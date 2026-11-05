@@ -53,6 +53,11 @@
   --safe-r: env(safe-area-inset-right, 0px);
   --safe-b: env(safe-area-inset-bottom, 0px);
   --safe-l: env(safe-area-inset-left, 0px);
+  /* THE APP HEIGHT (docs/RESPONSIVE-DESIGN.md §browser): what the screen actually shows. A phone
+     BROWSER's 100vh is the height with its toolbar HIDDEN, so a 100vh shell runs under the address
+     bar; 100dvh tracks the live toolbar. Older engines without dvh get the measured innerHeight from
+     layoutProfile.ts. Full-screen shells use var(--app-h), never a bare 100vh (uiStandards test). */
+  --app-h: 100vh;
   --line: #232c3a;
   --line-strong: #3a4a63;
   --text: #d7e0ec;
@@ -319,7 +324,7 @@ button:disabled {
 .id-box,
 .hudtour-card {
   max-width: min(96vw, calc(100vw - var(--safe-l) - var(--safe-r) - 12px));
-  max-height: calc(100dvh - var(--safe-t) - var(--safe-b) - 20px);
+  max-height: calc(var(--app-h) - var(--safe-t) - var(--safe-b) - 20px);
   overflow-y: auto;
   overscroll-behavior: contain;
 }
@@ -541,10 +546,10 @@ button:disabled {
 
 /* ── Game shell ───────────────────────────────────────────────────────────── */
 .game {
-  /* Full-viewport RTS shell: top bar + stage + bottom bar fill 100vh, never scroll. */
+  /* Full-viewport RTS shell: top bar + stage + bottom bar fill the app height, never scroll. */
   width: 100%;
-  height: 100vh;
-  max-height: 100vh;
+  height: var(--app-h);
+  max-height: var(--app-h);
   margin: 0;
   padding: 8px;
   display: flex;
@@ -2793,12 +2798,11 @@ canvas.board {
   /* THE portrait scroll fix: the promoted run column (hud -> board -> rail -> build panel ->
      inspector) is TALLER than one screen — the desktop "never scroll" shell clipped everything
      below the board with NO way to reach it (tutorial-blocking). The shell itself scrolls on
-     phones; 100dvh tracks mobile browser chrome so the fold is honest. The board keeps
+     phones; the app height (--app-h) tracks mobile browser chrome so the fold is honest. The board keeps
      touch-action:none (game gestures), so scrolling rides the hud/panels/toolbar surfaces —
      and the tutorial auto-scrolls its target into view (ui/tutorial/TutorialOverlay). */
   .game {
-    height: 100vh;
-    height: 100dvh;
+    height: var(--app-h);
     max-height: none;
     overflow-y: auto;
     overflow-x: hidden;
@@ -2948,7 +2952,7 @@ canvas.board {
 
 /* ── Crash / error-recovery screens ─────────────────────────────────────────── */
 .crash {
-  min-height: 100vh;
+  min-height: var(--app-h);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -3586,7 +3590,7 @@ kbd {
 .results-screen {
   width: 100%;
   max-width: none;
-  min-height: 100vh;
+  min-height: var(--app-h);
   margin: 0;
   padding: clamp(16px, 5vh, 56px) 16px 16px;
   display: flex;
@@ -3612,8 +3616,7 @@ kbd {
 /* Top-anchored: the capsule takes exactly what the screen's padding leaves, so the pinned action
    row rests on the viewport's bottom edge and the PAGE itself never scrolls (phones included). */
 .results-screen > .rr-capsule {
-  max-height: calc(100vh - clamp(16px, 5vh, 56px) - 16px);
-  max-height: calc(100dvh - clamp(16px, 5vh, 56px) - 16px);
+  max-height: calc(var(--app-h) - clamp(16px, 5vh, 56px) - 16px);
 }
 
 .rr-cinematic { text-align: center; margin-bottom: 2px; }
@@ -4453,7 +4456,7 @@ kbd {
 /* The briefing card must NEVER push its Continue button below the fold — a multi-release
    backlog can carry dozens of highlight rows, so the card caps to the viewport and the
    highlight/group lists scroll INSIDE it while the actions stay pinned in view. */
-.ub-card { width: min(520px, 100%); max-height: calc(100vh - 48px); overflow: hidden; }
+.ub-card { width: min(520px, 100%); max-height: calc(var(--app-h) - 48px); overflow: hidden; }
 .ub-sub { font-size: 12px; color: var(--muted); }
 .ub-highlights { width: 100%; display: flex; flex-direction: column; gap: 5px; margin-top: 4px; max-height: 34vh; overflow-y: auto; }
 .ub-hi { padding: 7px 12px; border-radius: var(--r-md); text-align: left; font-size: 13px; font-weight: 700; color: var(--gold); background: color-mix(in srgb, var(--gold) 9%, transparent); border: 1px solid color-mix(in srgb, var(--gold) 40%, var(--line)); }
@@ -5223,7 +5226,7 @@ kbd {
   left: 50%;
   transform: translateX(-50%);
   width: min(640px, 94%);
-  max-height: calc(100vh - 130px);
+  max-height: calc(var(--app-h) - 130px);
   overflow-y: auto;
   z-index: 30;
   padding: 14px 15px 16px;
@@ -5290,7 +5293,7 @@ kbd {
 
 /* ── HERO COMBAT CONSOLE (docs/HERO-EVOLUTION.md §console) — three-region command surface.
    Reuses the evo-menu shell; wider, with the roster tabs + vitals | showcase | upgrades. ── */
-.evo-menu.hcc { width: min(980px, 96%); max-height: calc(100dvh - 110px - var(--safe-t) - var(--safe-b)); overflow-y: auto; }
+.evo-menu.hcc { width: min(980px, 96%); max-height: calc(var(--app-h) - 110px - var(--safe-t) - var(--safe-b)); overflow-y: auto; }
 .hcc-held { margin-left: 10px; padding: 2px 9px; border-radius: 999px; font-size: 10px; font-weight: 800; letter-spacing: 0.08em; color: var(--warn); border: 1px solid color-mix(in srgb, var(--warn) 45%, var(--line)); background: color-mix(in srgb, var(--warn) 9%, transparent); }
 .hcc-key { margin-left: 8px; padding: 1px 8px; border-radius: var(--r-xs); border: 1px solid var(--line-strong); font-size: 11px; font-weight: 800; color: var(--muted); }
 .hcc-tabs { display: flex; align-items: center; gap: var(--s2); margin: 2px 0 var(--s2); flex-wrap: wrap; }
@@ -5300,7 +5303,7 @@ kbd {
 .hcc-tabs-note { margin-left: auto; font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--dim); }
 .hcc-body { display: grid; grid-template-columns: 230px minmax(0, 1fr) 340px; gap: var(--s3); align-items: start; }
 @media (max-width: 900px) { .hcc-body { grid-template-columns: 1fr 1fr; } .hcc-upgrades { grid-column: 1 / -1; } }
-@media (max-width: 640px) { .hcc-body { grid-template-columns: 1fr; } .evo-menu.hcc { top: 12px; max-height: calc(100dvh - 24px - var(--safe-t) - var(--safe-b)); } }
+@media (max-width: 640px) { .hcc-body { grid-template-columns: 1fr; } .evo-menu.hcc { top: 12px; max-height: calc(var(--app-h) - 24px - var(--safe-t) - var(--safe-b)); } }
 
 .hcc-vitals { display: flex; flex-direction: column; gap: var(--s2); padding: var(--s3); border-radius: var(--r-md); border: 1px solid color-mix(in srgb, var(--hc, var(--line)) 30%, var(--line)); background: rgba(255, 255, 255, 0.02); }
 .hcc-vname { font-size: 18px; font-weight: 900; }
@@ -5451,7 +5454,7 @@ kbd {
      "every screen is a different width" bug). The shell always spans the viewport;
      the .hub-screen > * measure rule owns the content column. */
   width: 100%;
-  height: 100vh;
+  height: var(--app-h); /* a phone browser's toolbar never hides the shell's foot (§browser) */
   display: grid;
   grid-template-columns: 216px 1fr;
   overflow: hidden;
@@ -13554,8 +13557,7 @@ html[data-coarse='1'] .cv-btn { min-height: 40px; }
 
 /* ── DESKTOP: slim HUD row + compact deck → the stage (and board) take the height ── */
 html[data-layout='desktop'] .game {
-  height: 100vh;
-  height: 100dvh;
+  height: var(--app-h);
   max-height: none;
   width: 100%;
   margin: 0;
@@ -13652,8 +13654,7 @@ html[data-layout='desktop'] .hud-wave-mod:has(> .phase-emergency) > .phase-hint 
 :is(html[data-layout='portrait'], html[data-layout='landscape']) .game {
   display: grid;
   width: 100%;
-  height: 100vh;
-  height: 100dvh;
+  height: var(--app-h);
   max-height: none;
   margin: 0;
   padding: calc(4px + var(--safe-t)) calc(4px + var(--safe-r)) calc(4px + var(--safe-b)) calc(4px + var(--safe-l));
@@ -13722,7 +13723,7 @@ html[data-layout='desktop'] .hud-wave-mod:has(> .phase-emergency) > .phase-hint 
   position: fixed;
   top: calc(6px + var(--safe-t));
   width: min(980px, calc(100vw - 12px - var(--safe-l) - var(--safe-r)));
-  max-height: calc(100dvh - 12px - var(--safe-t) - var(--safe-b));
+  max-height: calc(var(--app-h) - 12px - var(--safe-t) - var(--safe-b));
   z-index: 655;
 }
 /* Compact run controls: labelled-but-short keys, ≥40px targets. */
@@ -13875,7 +13876,7 @@ html[data-layout='portrait'] .run-ctl .speed-note {
 
 /* ── LANDSCAPE: HUD column │ board at full height │ tower column ── */
 html[data-layout='landscape'] .game {
-  --bh: calc(100dvh - var(--safe-t) - var(--safe-b) - 8px);
+  --bh: calc(var(--app-h) - var(--safe-t) - var(--safe-b) - 8px);
   --bw: min(calc(var(--bh) * 3 / 4), calc(100vw - var(--safe-l) - var(--safe-r) - 16px - 360px));
   --col: calc((100vw - var(--safe-l) - var(--safe-r) - 16px - var(--bw)) / 2);
   grid-template-columns: minmax(0, 1fr) var(--bw) minmax(0, 1fr);
@@ -14026,7 +14027,7 @@ html[data-layout='landscape'] .build-controls.is-visible ~ .mega-banner { top: 6
   left: var(--outro-x, 0);
   top: var(--outro-y, 0);
   width: var(--outro-w, 100vw);
-  height: var(--outro-h, 100vh);
+  height: var(--outro-h, var(--app-h));
   z-index: -1;
   border-radius: var(--r-md);
   background: rgba(4, 6, 11, 0.2);
@@ -14575,3 +14576,68 @@ html[data-layout='desktop'] .cv-slot { flex: 0 1 auto; width: 240px; min-width: 
 .field-note { position: fixed; inset: 0; z-index: 49; pointer-events: none; }
 .field-note .tut-callout { pointer-events: auto; cursor: pointer; border-color: color-mix(in srgb, var(--gold) 45%, var(--line-strong)); }
 .field-note-dismiss { margin-top: 8px; font-size: 11px; color: var(--muted); }
+
+/* ── SHORT PORTRAIT (docs/RESPONSIVE-DESIGN.md §browser) — a phone BROWSER with its toolbar showing
+      (iPhone Safari portrait leaves ≈390×664 of an 844 screen): the loot meter folds to a thin strip
+      along the HUD's foot and the control strip tightens, so the board keeps ≥40% of the screen
+      (mobilecheck 'board-crushed'). The full-screen app shape is untouched. ── */
+@media (max-height: 760px) {
+  html[data-layout='portrait'] .game { --strip: 46px; grid-template-rows: auto minmax(0, 1fr) 44px 72px; }
+  html[data-layout='portrait'] .hud .hud-loot { min-height: 0; padding: 0 2px; gap: 0; }
+  html[data-layout='portrait'] .hud .hud-loot > .hud-k,
+  html[data-layout='portrait'] .hud .hud-loot .loot-chest,
+  html[data-layout='portrait'] .hud .hud-loot .loot-sub { display: none; } /* progress stays; the socket returns on taller screens */
+  html[data-layout='portrait'] .hud .hud-loot .loot-bar-wrap { flex: 1; }
+  html[data-layout='portrait'] .hud .hud-loot .loot-bar { height: 6px; }
+}
+
+/* The live app height where the engine supports dynamic viewport units (see --app-h). */
+@supports (height: 100dvh) {
+  :root { --app-h: 100dvh; }
+}
+
+/* ── MOBILE-BROWSER CHROME (docs/RESPONSIVE-DESIGN.md §browser, ui/components/BrowserShell.tsx) —
+      the top bar's ⛶ (back to full screen, Android / iPad browsers) and the iPhone one-time
+      "Add to Home Screen" card. Neither renders outside a mobile browser. ── */
+/* Phone landscape: the wallet chips + ⛶ share a short, narrow bar (667–926px wide; the nav rail takes
+   216px of it above 860) — tighter spacing, and the ☰ drops its word (icon + aria-label stay). */
+html[data-layout='landscape'] .hub-topbar { gap: 8px; padding: 0 10px; }
+html[data-layout='landscape'] .hub-burger-l { display: none; }
+@media (max-width: 700px) { html[data-layout='landscape'] .hub-topbar .axp-chip { display: none; } } /* iPhone SE class: the level lives on Home + Profile */
+.fs-btn {
+  flex: none;
+  margin-left: auto;
+  width: 36px;
+  height: 36px;
+  display: inline-grid;
+  place-items: center;
+  padding: 0;
+  font-size: 18px;
+  line-height: 1;
+  border-radius: var(--r-sm);
+}
+.install-hint {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: calc(10px + var(--safe-b));
+  z-index: 650; /* over the hub, under the nav drawer (700) and modals */
+  width: min(560px, calc(100vw - 24px - var(--safe-l) - var(--safe-r)));
+  margin: 0 auto; /* centred by margins — the rise animation owns transform */
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: var(--r-md);
+  background: var(--panel);
+  border: 1px solid var(--line-strong);
+  box-shadow: 0 14px 40px -12px #000;
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--text);
+  animation: ui-rise var(--dur-3) var(--ease-out) both;
+}
+.ih-glyph { flex: none; font-size: 20px; }
+.ih-text { flex: 1; min-width: 0; }
+.ih-share { vertical-align: -3px; color: #4aa3ff; }
+.ih-close { flex: none; min-height: 36px; padding: 6px 14px; font-weight: 800; border-radius: var(--r-sm); }

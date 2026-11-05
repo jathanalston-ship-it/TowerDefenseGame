@@ -383,6 +383,26 @@ export const AUTOSTART_KEY = 'assimilate.autostart';
 /** EVERY device-local preference/flag key, in one place — the list `meta.devReset('everything')`
  *  wipes for a true factory reset. When a module adds a new localStorage pref, it MUST add its key
  *  here (the owners keep their own consts; this registry only guarantees the wipe is complete). */
+// ── Mobile-browser shell (docs/RESPONSIVE-DESIGN.md §browser) ──
+const IMMERSIVE_KEY = 'assimilate.immersive';
+const INSTALL_HINT_KEY = 'assimilate.installHint';
+
+/** Full screen in a mobile browser (Android / iPad): the first tap of a session hides the browser's
+ *  address bar. DEFAULT ON — a phone browser is the only place the toolbar steals the game's height. */
+export function immersivePref(): boolean {
+  try { return localStorage.getItem(IMMERSIVE_KEY) !== '0'; } catch { return true; }
+}
+export function setImmersivePref(on: boolean): void {
+  try { localStorage.setItem(IMMERSIVE_KEY, on ? '1' : '0'); } catch { /* storage unavailable */ }
+}
+/** The iPhone "Add to Home Screen" hint — shown until dismissed (iPhone Safari has no full-screen API). */
+export function installHintDismissed(): boolean {
+  try { return localStorage.getItem(INSTALL_HINT_KEY) === 'dismissed'; } catch { return true; }
+}
+export function dismissInstallHint(): void {
+  try { localStorage.setItem(INSTALL_HINT_KEY, 'dismissed'); } catch { /* storage unavailable */ }
+}
+
 export const DEVICE_PREF_KEYS: readonly string[] = [
   'audioOn', // SFX toggle (App boot + Settings + pause menu)
   'musicOn', // Music toggle (independent of SFX)
@@ -400,4 +420,6 @@ export const DEVICE_PREF_KEYS: readonly string[] = [
   SECTIONS_KEY, // SectionNav open/folded sections per long screen (ui/components/SectionNav.tsx)
   VAULT_SKIP_KEY, // Vault reveal "Skip animations"
   MOTION_KEY, // Settings → Motion (screen shake %, damage numbers, flashes, reduced-motion override)
+  IMMERSIVE_KEY, // Settings → Full screen in mobile browsers (ui/mobileBrowser.ts)
+  INSTALL_HINT_KEY, // the iPhone "Add to Home Screen" hint was dismissed (ui/components/BrowserShell.tsx)
 ];

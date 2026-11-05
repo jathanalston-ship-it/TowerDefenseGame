@@ -6,7 +6,7 @@
   "start_url": "/play",
   "scope": "/",
   "display": "standalone",
-  "orientation": "portrait",
+  "orientation": "landscape",
   "background_color": "#0a121b",
   "theme_color": "#0a121b",
   "categories": ["games", "strategy"],

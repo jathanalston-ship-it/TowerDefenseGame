@@ -55,7 +55,8 @@ const EvolutionUnlock = lazyNamed(() => import('./EvolutionUnlock'), 'EvolutionU
 import type { EvolutionUnlockData } from './EvolutionUnlock';
 const HeroSlotUnlock = lazyNamed(() => import('./HeroSlotUnlock'), 'HeroSlotUnlock');
 import type { HeroSlotUnlockData } from './HeroSlotUnlock';
-import { difficultyPref, musicPref, musicVolumePref, setLastFlawlessClearPref, sfxPref, sfxVolumePref } from '../state/prefs';
+import { difficultyPref, immersivePref, musicPref, musicVolumePref, setLastFlawlessClearPref, sfxPref, sfxVolumePref } from '../state/prefs';
+import { armFullscreenOnFirstTap } from './mobileBrowser';
 import { deployReadiness } from '../state/progressionLoop';
 const BioRoulette = lazyNamed(() => import('./BioRoulette'), 'BioRoulette');
 import { campaignStageCleared, highestCampaignStage, isBossRushUnlocked, isDailyUnlocked, isInfiniteUnlocked } from '../save/derive';
@@ -157,6 +158,9 @@ export function App(): JSX.Element {
   // gold bloom — a ~500ms gold veil fades off the screen it lands on instead of a hard cut.
   const [afterglow, setAfterglow] = useState(false);
   useEffect(bindRootMotionAttrs, []); // <html data-motion/-flashes>: hub ceremonies honour Settings → Motion
+  // Mobile BROWSER (docs/RESPONSIVE-DESIGN.md §browser): the session's first tap asks for full screen
+  // (Android / iPad; Settings can turn it off) so the address bar stops taking the game's height.
+  useEffect(() => armFullscreenOnFirstTap(immersivePref), []);
   useEffect(() => {
     if (!afterglow) return undefined;
     const t = window.setTimeout(() => setAfterglow(false), 560);
