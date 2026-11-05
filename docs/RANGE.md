@@ -223,6 +223,10 @@ a 700–960px ring is a near-fullscreen smear that says nothing. So:
 This makes range *legible at the decision point* (where to build, what a tower covers) and
 invisible noise the rest of the time.
 
+**Legible on any ground (2026-11):** every range edge (field disc, range ring, engagement frontier)
+strokes over a soft dark bed (`RANGE_BED`, 3.5 px) so the dashed tone line reads on bright biome
+floors, deep-stage flesh and acid ponds alike.
+
 ## 7. Battlefield roles & placement
 
 Because each class owns a distinct band (and the visualization makes that band visible as

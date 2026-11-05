@@ -23,6 +23,7 @@ import { GUTTERS } from '../render/gutters';
 import { FILM } from '../render/filmDirection';
 import { PRESTIGE } from '../core/prestige';
 import { OUTRO } from '../render/runOutro';
+import { TOWER_MOMENTS } from '../render/towerMoments';
 import { LOGIN } from '../core/loginStreak';
 import { INCOME } from '../state/income';
 
@@ -85,6 +86,7 @@ export function docAnchors(): DocAnchor[] {
     { doc: 'docs/HERO-CINEMATICS.md', contains: `trauma ${FEEL.abilityImpact.shake})`, why: 'ult impact kick drifted (render/feel.ts FEEL.abilityImpact)' },
     { doc: 'docs/SIGNATURE-MOMENTS.md', contains: `\`LAST_KILL\` normal ${Math.round(LAST_KILL.normal.depth * 100)} % · ${LAST_KILL.normal.outMs} ms · boss ${Math.round(LAST_KILL.boss.depth * 100)} % · ${LAST_KILL.boss.outMs} ms · nudge ≤ ${Math.round(LAST_KILL.normal.zoom * 100)} %`, why: 'last-kill taste values drifted (render/feel.ts LAST_KILL)' },
     { doc: 'docs/GAME-FEEL.md', contains: `mega fall ${ANNOUNCE.megaFall.priority} › mega intro ${ANNOUNCE.megaIntro.priority} › boss fall ${ANNOUNCE.bossFall.priority} › boss intro ${ANNOUNCE.bossIntro.priority} › weak point ${ANNOUNCE.weakPoint.priority} › wave ${ANNOUNCE.wave.priority}`, why: 'centre-stage priority ladder drifted (render/feel.ts ANNOUNCE)' },
+    { doc: 'docs/TOWER-VISUAL-EVOLUTION.md', contains: `rings 1 → ${TOWER_MOMENTS.evolve.maxRings}`, why: 'evolve molt ring cap drifted (render/towerMoments.ts TOWER_MOMENTS.evolve.maxRings)' },
     { doc: 'docs/SIGNATURE-MOMENTS.md', contains: `brightness **${GUTTERS.brightness}** · bake at **${GUTTERS.resScale}×** · poll **${GUTTERS.pollMs} ms** · crossfade **${GUTTERS.fadeMs} ms**`, why: 'living-gutters tunables drifted (render/gutters.ts GUTTERS)' },
     { doc: 'docs/SIGNATURE-MOMENTS.md', contains: `Victory hold **${OUTRO.holdMs.won} ms** (defeat ${OUTRO.holdMs.lost} ms · reduced motion ${OUTRO.holdMs.reduced} ms)`, why: 'run-end outro hold drifted (render/runOutro.ts OUTRO.holdMs)' },
     { doc: 'docs/SIGNATURE-MOMENTS.md', contains: `The wash **${OUTRO.wash.ms} ms**; the defeat cracks ${OUTRO.defeat.ms} ms`, why: 'victory wash / defeat crack timing drifted (render/runOutro.ts OUTRO)' },

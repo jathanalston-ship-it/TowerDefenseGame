@@ -139,6 +139,39 @@ evolution stage instantly on a live run. Backed by `setStageOverride` / `setLivi
 - Stage thresholds and per-source weights live as constants at the top of `livingBattlefield.ts` for
   easy balancing.
 
+## Biome ground — the floor each biome stands on (`src/render/biomeGround.ts`)
+
+The terraform above starts at Stage 0 as *the clean original arena* — so before the 2026-11 VFX pass
+every biome's opening minutes looked the same (one dark floor + a ≤ 10 % accent wash; Frostbound and
+the Stage-mode floor even shared an accent). The biome ground makes a single screenshot say WHERE the
+fight is, from wave 1, while the floor stays the dim stage combat plays on.
+
+- **One data row per biome** — `BIOME_GROUND[id]`: ground **tone** (`base` × `tint`), a relief
+  **motif** (`cracks` frost fractures · `fissures` lava seams · `moss` cushions · `puddles` mire ·
+  `ash` drifts + embers · `plates` chitin lattice · `circuits` synaptic traces · `scars` storm
+  streaks + lightning burns · `ribs` half-buried bone · `voids` lightless pits), obstacle `rock` /
+  `rockEdge` (+ optional emissive `rockGlow` foot seam), and the biome's **air** (`drift` · `fall`
+  · `rise` · `flicker`, colour, count, speed, wind). The ten shipped biomes each own a distinct motif
+  (test-enforced). **Scale:** `groundFor(id, accent)` derives a complete, stable row from the accent
+  + an id hash for any biome without one — biome #11 grows a floor with zero code. NEUTRAL (Stage
+  mode) has no row ⇒ the original floor, untouched.
+- **Baked, never per frame.** Tone + relief paint once into the renderer's floor cache (keyed by
+  biome; the old per-frame biome-wash gradient is baked there too). An Infinite biome change
+  crossfades the old floor into the new one under the sim's render-only `biomeFlash`. The same
+  painters continue the ground into the **living gutters** (different seed, dimmed by their darkness
+  pass), so the periphery matches the board.
+- **Obstacles are outcrops, not a table.** The layout's blocked cells paint as ONE merged mass per
+  cluster — contact shadow, a jagged outward crust on exposed sides, lit top/left rim, shadowed
+  bottom/right, grain nodules, the biome's rock — baked into a layer cropped to the cells' bounds
+  (re-baked on a layout or biome change). Replaces ~10 draw calls per cell per frame with one blit.
+- **Dim by law.** Relief ink is dark; emissive accents are hair-thin and ≤ ~0.35 alpha; motifs are
+  edge-biased (`keep` falls off toward the central lanes); air is ≤ 40 motes at ≤ 0.4 alpha, halved
+  past the enemy LOD line, frozen under reduced motion.
+- **Bake scale (perf invariant).** Static bakes key on `bakeScale()`, not the raw transform: the
+  view's camera breath / push-in / last-kill nudge change the transform scale EVERY frame, and the
+  floor used to re-bake per frame because of it (~17 ms/frame in the headless probe). A bake keeps
+  its scale while the live one stays within ±20 % and re-bakes only on a real DPR/zoom change.
+
 ## Living gutters — the terrain past the board edge (`src/render/gutters.ts`)
 
 On desktop the 3:4 board sits in a wide frame; the periphery around it is painted with the SAME
