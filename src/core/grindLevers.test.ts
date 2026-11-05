@@ -7,7 +7,7 @@ import { Game } from './game';
 import type { RunOptions } from './game';
 import { CAMPAIGN_OPENING, DIRECTOR_ADAPTIVE, EARLY_CALL, ENDLESS_SQUEEZE, ENEMY_DEFS, SIM_DT, TOWER_ABILITIES, TOWER_DEFS, TOWER_ORDER } from './config';
 import { OPENING_ANSWER_TIERS, OPENING_THREAT_RULES, damagesArea, dragsAndDamages, openingAnswerKinds } from './conveyor';
-import { generateStage } from './campaign';
+import { generateStage, promoteEliteShare } from './campaign';
 import type { StageConfig } from './campaign';
 import { campaignMegaFor, MEGA } from './megaboss';
 import { towerSlots } from './map';
@@ -284,6 +284,69 @@ describe('LIVE adaptive threat (§6a)', () => {
 
   it('an under-powered board is never propped up', () => {
     expect(playTo({ livePowerBase: 0.2 }).launched.every((m) => m === 1)).toBe(true);
+  });
+});
+
+describe('LIVE threat v3 — cards out of the ratio, threat by composition (§6a v3)', () => {
+  it('promoteEliteShare: largest groups first, fewer-but-stronger, exploders never, a copy; share 0 ⇒ the same array', () => {
+    const exploder = (Object.keys(ENEMY_DEFS) as (keyof typeof ENEMY_DEFS)[]).find((k) => ENEMY_DEFS[k].explodeDamage)!;
+    const wave = [
+      { kind: 'runner' as const, count: 4, spacing: 0.5, delay: 0.3 },
+      { kind: exploder, count: 9, spacing: 0.5, delay: 1 },
+      { kind: 'brute' as const, count: 7, spacing: 0.9, delay: 2 },
+      { kind: 'runner' as const, count: 7, spacing: 0.5, delay: 3 },
+    ];
+    expect(promoteEliteShare(wave, 0)).toBe(wave);
+    const out = promoteEliteShare(wave, 0.5); // 3 eligible ⇒ round(1.5) = 2 promoted: the two 7s (spawn order breaks the tie)
+    expect(out).not.toBe(wave);
+    expect(out.map((g) => [g.count, g.elite === true])).toEqual([[4, false], [9, false], [4, true], [4, true]]);
+    expect(wave[2].elite).toBeUndefined(); // the stage plan is never mutated
+    expect(promoteEliteShare(wave, 0.5)).toEqual(out); // deterministic
+  });
+
+  it('the elite share is 0 at ×1 and grows toward liveEliteShare as the board runs away', () => {
+    const g = new Game(3, NO_META, undefined, undefined, undefined, { mode: 'campaign', stage: generateStage(12), livePowerBase: 1 });
+    const dd = anyG(g).dd as { liveEliteShare: (m: number) => number };
+    expect(dd.liveEliteShare(1)).toBe(0);
+    expect(dd.liveEliteShare(0.5)).toBe(0);
+    let prev = 0;
+    for (const m of [1.5, 2, 4, 8, 64]) {
+      const e = dd.liveEliteShare(m);
+      expect(e).toBeGreaterThanOrEqual(prev);
+      expect(e).toBeLessThanOrEqual(DIRECTOR_ADAPTIVE.liveEliteShare);
+      prev = e;
+    }
+  });
+
+  it('the live ratio counts drafted cards only ^liveCardExp — a stronger pick does not raise the threat when excluded', () => {
+    const dd = anyG(new Game(3, NO_META, undefined, undefined, undefined, { mode: 'campaign', stage: generateStage(12), livePowerBase: 1 })).dd as {
+      liveRatio: (base: number, temp: number, towers: number, cards?: number) => number;
+    };
+    const weak = dd.liveRatio(1, 2, 9, 1.5);
+    const strong = dd.liveRatio(1, 2, 9, 6);
+    expect(strong / weak).toBeCloseTo(Math.pow(6 / 1.5, DIRECTOR_ADAPTIVE.liveCardExp), 12);
+  });
+
+  it('preview == outcome: the prep preview lists exactly the groups (and elites) the wave launches with', () => {
+    const g = new Game(5, NO_META, undefined, undefined, undefined, { mode: 'campaign', stage: generateStage(14), livePowerBase: 1e6 });
+    g.god = true;
+    for (let i = 0; i < 6; i++) { g.selectTower('needle'); g.click(towerSlots[i].x, towerSlots[i].y); }
+    let guard = 0;
+    while (g.waveIndex < DIRECTOR_ADAPTIVE.liveFromWave + 1 && g.phase !== 'won' && g.phase !== 'lost' && guard++ < 600) {
+      if (g.phase === 'draft') { g.chooseCard(g.getSnapshot().draft![0].id); continue; }
+      if (g.phase === 'prep') {
+        const preview = g.getNextWavePreview()!;
+        g.startWave();
+        const q = anyG(g).spawnQueue as { kind: string; elite?: boolean }[];
+        const counted = new Map<string, { count: number; elite: number }>();
+        for (const s of q) { const c = counted.get(s.kind) ?? { count: 0, elite: 0 }; c.count++; if (s.elite) c.elite++; counted.set(s.kind, c); }
+        for (const e of preview) {
+          expect(counted.get(e.kind)?.count, `wave ${g.waveIndex} ${e.kind}`).toBe(e.count);
+          expect(counted.get(e.kind)?.elite ?? 0, `wave ${g.waveIndex} ${e.kind} elites`).toBe(e.elite ?? 0);
+        }
+      }
+      step(g, 1);
+    }
   });
 });
 
