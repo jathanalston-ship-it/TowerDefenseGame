@@ -7,8 +7,10 @@
 import { clamp } from './math';
 import { CAMPAIGN_ONBOARDING, CAMPAIGN_OPENING, CAMPAIGN_REWARDS, ENEMY_DEFS, ENEMY_KINDS } from './config';
 import type { EnemyDef, SpawnGroup, WaveDef } from './config';
-import type { EnemyKind } from './types';
+import type { EnemyKind, TowerKind } from './types';
 import { Rng } from './rng';
+import { damagesArea } from './conveyor';
+import { TOWER_ABILITIES, TOWER_DEFS } from './config';
 import { assembleBoss, campaignBossFor, epithetFor } from './boss';
 import type { BossDef } from './boss';
 import { resolveDifficulty } from './difficulty';
@@ -227,6 +229,73 @@ function composeWave(rng: Rng, budget: number, pool: EnemyKind[], weights: numbe
   }
   if (groups.length === 0) groups.push({ kind: pool[0], count: 6, spacing: 0.6 * pace, delay: 0.5 });
   return groups;
+}
+
+/** LIVE COMPOSITION (docs/DIFFICULTY_DIRECTOR.md §6a v3): promote round(share × eligible) of a wave's
+ *  groups to ELITE with the campaign's own fewer-but-stronger rule (count halved, rounded up). Eligible
+ *  = not already elite and not an exploder (a squad of elite bombers is an instant wipe — composeWave's
+ *  rule). Deterministic — the largest groups first, ties in spawn order — and a COPY: the stage's plan
+ *  is never mutated, so the prep preview and the launch read the same transform. share ≤ 0 ⇒ `wave`. */
+export function promoteEliteShare(wave: WaveDef, share: number): WaveDef {
+  if (!(share > 0)) return wave;
+  const eligible: number[] = [];
+  for (let i = 0; i < wave.length; i++) if (!wave[i].elite && !ENEMY_DEFS[wave[i].kind].explodeDamage) eligible.push(i);
+  const n = Math.round(share * eligible.length);
+  if (n <= 0) return wave;
+  eligible.sort((a, b) => wave[b].count - wave[a].count || a - b);
+  const pick = new Set(eligible.slice(0, n));
+  return wave.map((g, i) => (pick.has(i) ? { ...g, elite: true, count: Math.max(1, Math.ceil(g.count / 2)) } : g));
+}
+
+/** LIVE PROBE roles (§6a v3) — threat by COMPOSITION: what the Hive sends to test a runaway board.
+ *  Both sides are DATA: a role is a predicate over the enemy def; `answeredBy` (over the fielded towers'
+ *  defs + kits) marks a coverage the board already has — null ⇒ a role no board fully answers (it
+ *  bombards from standoff range / surfaces past the line). The first UNANSWERED role (table order)
+ *  with kinds in the stage's pool wins. Never a per-enemy list: a new enemy joins by its traits. */
+export const LIVE_PROBE_ROLES: readonly { id: string; is: (e: EnemyDef) => boolean; answeredBy: ((kinds: readonly TowerKind[]) => boolean) | null }[] = [
+  // airborne PACKS vs a board with no area damage (the opening's answer class, conveyor.ts §opening)
+  { id: 'air-pack', is: (e) => e.behavior.flying === true, answeredBy: (ks) => ks.some((k) => damagesArea(TOWER_DEFS[k], TOWER_ABILITIES[k])) },
+  { id: 'artillery', is: (e) => e.siege !== undefined, answeredBy: null },
+  { id: 'burrower', is: (e) => e.behavior.burrowing === true, answeredBy: null },
+];
+
+/** The probe kind for a board: the first unanswered LIVE_PROBE_ROLES role present in `pool`, and of
+ *  that role the LIGHTEST body (lowest effective HP — the probe threatens by its role, not its bulk,
+ *  so it adds chip damage without lengthening the wave). null ⇒ the pool fields no probe role. */
+export function liveProbeKind(pool: readonly EnemyKind[], fielded: Iterable<TowerKind>): EnemyKind | null {
+  const kinds = [...fielded];
+  for (const role of LIVE_PROBE_ROLES) {
+    if (role.answeredBy !== null && role.answeredBy(kinds)) continue;
+    let best: EnemyKind | null = null;
+    for (const k of pool) {
+      const d = ENEMY_DEFS[k];
+      if (!role.is(d) || d.explodeDamage) continue;
+      if (best === null || effectiveHp(d) < effectiveHp(ENEMY_DEFS[best])) best = k;
+    }
+    if (best !== null) return best;
+  }
+  return null;
+}
+
+/** Swap round(share × eligible) of a wave's PLAIN groups (not elite, not an exploder, not already the
+ *  probe) for the probe kind at the SAME threat budget (count × cost ratio, ≥ 1), keeping each group's
+ *  delay; largest groups first, ties in spawn order. A COPY — share ≤ 0 or no probe ⇒ `wave`. */
+export function swapInProbe(wave: WaveDef, probe: EnemyKind | null, share: number): WaveDef {
+  if (probe === null || !(share > 0)) return wave;
+  const eligible: number[] = [];
+  for (let i = 0; i < wave.length; i++) {
+    const g = wave[i];
+    if (!g.elite && g.kind !== probe && !ENEMY_DEFS[g.kind].explodeDamage) eligible.push(i);
+  }
+  const n = Math.round(share * eligible.length);
+  if (n <= 0) return wave;
+  eligible.sort((a, b) => wave[b].count - wave[a].count || a - b);
+  const pick = new Set(eligible.slice(0, n));
+  const pd = ENEMY_DEFS[probe];
+  const pc = threatCost(pd);
+  return wave.map((g, i) => (pick.has(i)
+    ? { kind: probe, count: Math.max(1, Math.round((g.count * threatCost(ENEMY_DEFS[g.kind])) / pc)), spacing: spacingFor(categoryOf(pd)), delay: g.delay }
+    : g));
 }
 
 /** Trim a composed wave's AIRBORNE groups to at most `cap` units in total (in spawn order), dropping

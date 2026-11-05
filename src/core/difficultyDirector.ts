@@ -128,9 +128,23 @@ export class RunDirector {
   /** The LIVE board-power ratio (§6a/§7): the account's Power vs the stage (livePowerBase) × the run's
    *  temporary Power × the BOARD — towers fielded vs the opening build, which the Power Score's
    *  temporary bucket never sees (a board grows 2 → 18 towers). Upward-only board term (≥ 1). */
-  liveRatio(livePowerBase: number, tempPower: number, towersFielded: number): number {
+  liveRatio(livePowerBase: number, tempPower: number, towersFielded: number, cardPower = 1): number {
     const board = Math.max(1, towersFielded / DIRECTOR_ADAPTIVE.liveBoardOpening);
-    return livePowerBase * tempPower * Math.pow(board, DIRECTOR_ADAPTIVE.liveBoardExp);
+    // v3: the run's DRAFTED cards count only ^liveCardExp (0 ⇒ excluded) — a stronger pick must not
+    // also raise the threat, or the draft stops deciding runs (§6a v3).
+    return livePowerBase * tempPower * Math.pow(cardPower, DIRECTOR_ADAPTIVE.liveCardExp) * Math.pow(board, DIRECTOR_ADAPTIVE.liveBoardExp);
+  }
+
+  /** v3 LIVE COMPOSITION (§6a): the share of a wave's eligible groups promoted to ELITE at live
+   *  multiplier m — liveEliteShare × (1 − 1/m): 0 at m ≤ 1, approaching the share as the board runs away. */
+  liveEliteShare(m: number): number {
+    return m > 1 ? DIRECTOR_ADAPTIVE.liveEliteShare * (1 - 1 / m) : 0;
+  }
+
+  /** v3 LIVE PROBE share (§6a): the share of a wave's plain groups swapped for the board's probe role —
+   *  liveProbeShare × (1 − 1/m), the same shape as the elite share. */
+  liveProbeShare(m: number): number {
+    return m > 1 ? DIRECTOR_ADAPTIVE.liveProbeShare * (1 - 1 / m) : 0;
   }
 
   /** Bounty/biomass multiplier for a 0-based wave index. */

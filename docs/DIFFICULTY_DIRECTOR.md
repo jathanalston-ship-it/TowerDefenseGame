@@ -122,16 +122,20 @@ recommended Power, `GameView`) re-feeds the SAME seam at every wave launch:
 
 ```
 board          = max(1, towersFielded / liveBoardOpening) ^ liveBoardExp           // §7 board term
-liveRatio      = livePowerBase × effectsPower(game.powerEffects()) × board        // live board ÷ recommended
+invested       = effectsPower(Hero Evolution + branches + strains)               // the Biomass investment
+liveRatio      = livePowerBase × invested × cards^liveCardExp × board            // live board ÷ recommended (cards: 0 ⇒ out)
 liveThreatMult = r ≤ 1 ? 1 : min(liveCap,     1 + threatPerPowerRatio·(r − 1))   // chaff waves ≥ liveFromWave
 liveBossMult   = r ≤ 1 ? 1 : min(liveBossCap, 1 + threatPerPowerRatio·(r − 1))   // every boss body, any wave
 liveThreatParts(m, staticSpeed) = { hp: m^(1−p−s), pace: m^p, speed: min(m^s, liveSpeedCeiling ÷ staticSpeed) }
+liveWave(plan, board, m) = promoteEliteShare(swapInProbe(plan, liveProbeKind(pool, board), liveProbeShare·(1−1/m)),
+                                             liveEliteShare·(1−1/m))                // v3 COMPOSITION
 ```
 
-Shipped (v2, the "frontier challenge" follow-up): `threatPerPowerRatio` 0.3 · `liveFromWave` 4 ·
-`liveFromStage` 4 · `liveCap` 8 · `livePaceShare` 0.2 · `liveSpeedShare` 0.5 · `liveSpeedCeiling`
-1.85 · `liveBossCap` 4 · `liveBoardOpening` 3 · `liveBoardExp` 1 (config.ts `DIRECTOR_ADAPTIVE`).
-History: first release w 0.5 · ½ pace · caps 16/16 (no board, no speed); then caps 3/4 (run length).
+Shipped (v3, "picks matter"): `threatPerPowerRatio` 0.6 · `liveCardExp` 0 · `liveProbeShare` 0.3 ·
+`liveEliteShare` 0 · `liveFromWave` 4 · `liveFromStage` 4 · `liveCap` 8 · `livePaceShare` 0.2 ·
+`liveSpeedShare` 0.5 · `liveSpeedCeiling` 1.85 · `liveBossCap` 4 · `liveBoardOpening` 3 ·
+`liveBoardExp` 1 (config.ts `DIRECTOR_ADAPTIVE`). History: v1 w 0.5 · ½ pace · caps 16/16 (no board,
+no speed) → caps 3/4 (run length) → v2 board term + speed share, w 0.3 → v3 below.
 
 - **Where it lands:** a wave ≥ 4 schedules its chaff at HP × m^0.3, spawn rate × m^0.2 and enemy
   SPEED × m^0.5 — speed adds threat while SHORTENING waves, so it is bounded by readability: the
@@ -145,6 +149,20 @@ History: first release w 0.5 · ½ pace · caps 16/16 (no board, no speed); then
   branches, strains) never sees board SIZE — a run grows 2 → 18 towers. `board` counts towers fielded
   vs the opening build (2 deploys + the gift = 3): board power ∝ per-tower power × towers is the
   physical model, and it is what made one weight fit both accounts.
+- **Cards out (v3):** the drafted gene cards are excluded from the ratio (`liveCardExp` 0). A stronger
+  pick used to raise the threat with it — the pick spread at 8 h was +4 points. Hero Evolution,
+  branches and strains stay in: they are Biomass INVESTMENT that tracks the board's real growth (and
+  the economy that drives it), not the draft's choice quality.
+- **Threat by COMPOSITION (v3):** part of the live answer changes what the wave IS. `liveWave` (Game)
+  swaps `liveProbeShare × (1 − 1/m)` of the wave's plain groups — at the SAME threat budget, keeping
+  each group's delay — for the board's PROBE kind: `campaign.ts LIVE_PROBE_ROLES` are data predicates
+  (airborne packs vs a board with no area damage — the conveyor's `damagesArea` answer class — else
+  artillery, else burrowers: roles no board fully answers); of the first unanswered role in the stage
+  pool, the LIGHTEST body (the probe threatens by its role, not its bulk). A live ELITE share
+  (`promoteEliteShare`, the campaign's fewer-but-stronger rule) is also wired but shipped at 0 (it
+  added run time for little chip damage). Deterministic, a copy of the plan, and the prep preview
+  calls the same `liveWave` — the briefing lists every swapped-in kind (with its role tag) and every
+  elite (★N) before the wave launches.
 - **Upward only:** an at- or under-powered board (r ≤ 1) is never propped up.
 - **Visible:** the wave briefing shows `▲ ADAPTED ×N` = the APPLIED product hp × pace × speed
   (`HudSnapshot.liveThreat` — in prep, what the NEXT wave would launch with right now, so the preview
@@ -221,6 +239,28 @@ speed is already 1.6), so 100 h keeps leaning on HP. Opening the caps for "ready
 flawless but cost run time — not shipped. Draft-pick spread at 8 h (strongest vs weakest pick, 51
 runs each): pre-G −2 pts, v1 −6, v2 +4 — wins left the ceiling but picks still barely decide runs.
 
+**v3 — make picks matter and wins less flawless (cards out + composition).** Same screen set and run
+order; "pick spread" = 8 h frontier (+1..3 and the curve past cleared, 51 runs per policy), the
+harness's strongest-Power pick vs its weakest, as win % / flawless % / mean end integrity:
+
+| variant (all with the v2 board term + speed split) | 8 h F+1..3 / curve · flawless · pairT | 100 h F+1..3 / curve · flawless · pairT | pick spread (win · flawless · integrity) |
+|---|---|---|---|
+| live v2 (cards IN, w 0.3) | 67 / 85 % · 64 % · ×1.02 | 75 / 61 % · 76 % · ×1.86 | +4 · −4 · +3 |
+| cards out, w 0.3 | 83 / 85 % · 75 % · ×1.04 | 67 / 58 % · 74 % · ×1.87 | +6 · +14 · +9 |
+| cards out, w 0.6 | 67 / 87 % · 72 % · ×1.03 | 75 / 67 % · 72 % · ×1.80 | +4 · +14 · +6 |
+| … + elite share 0.4 | 58 / 82 % · 70 % · ×1.11 | 83 / 61 % · 65 % · ×2.03 | +6 · +2 · +9 |
+| **… + probe share 0.3 (shipped v3)** | **58 / 82 % · 59 % · ×0.99** | **83 / 58 % · 61 % · ×1.91 (median ×1.68)** | **+16 · +6 · +10** |
+| … + probe share 0.6 | 42 / 64 % · 59 % · ×1.06 | 58 / 42 % · 88 % · ×1.86 | +18 · +10 · +13 |
+| … + probe 0.4 + elite 0.25 | 58 / 69 % · 67 % · ×0.99 | 83 / 50 % · 62 % · ×1.97 | +8 · +16 · +9 |
+| w 0.5, probe 0.4 | 50 / 74 % · 68 % · ×1.00 | 83 / 58 % · 66 % · ×1.79 | +16 · +16 · +9 |
+| w 0.6, probe 0.35, cap 6 | 58 / 72 % · 61 % · ×0.99 | 75 / 42 % · 81 % · ×1.76 | +10 · +4 · +11 |
+
+Lessons: excluding the cards alone opens an INTEGRITY gap between strong and weak picks (+14 flawless)
+but not a win gap — the threat must also stop being "more of the same". Composition is the lever that
+moves both: a probe share of 0.3 turns ~0.2 of a late wave into the role the board covers least and
+cuts flawless wins at no run-length cost (8 h ×0.99), while the pick spread opens to +16 win points.
+Elites cost time for little chip; a probe share past ~0.4 crushes 100 h (curve 42 %).
+
 ## 6b. Campaign onboarding boss strength (§onboarding)
 
 The first campaign stages' finale bosses field a **reduced** body: `campaignBossStrength(stage)`
@@ -237,9 +277,10 @@ boss — is byte-identical. This is the campaign analogue of the Boss Rush stren
 
 Campaign stage, infinite depth, difficulty, doctrine, mode, and stage-speed are live inputs
 today (plus the §6a live board-power ratio, whose BOARD-SIZE term shipped in v2).
-**Next for §6a:** the live ratio taxes drafted cards (they raise the temporary bucket), which keeps
-draft-pick spread small — a cards-excluded ratio (board + branches + strains + Hero Evolution) is the
-next measured experiment; and threat that bites without HP at 100 h (speed has little readable room
-there) — elite/role composition rather than bodies. Reserved, in priority order: biome threat bands (biome mods already apply per-spawn —
+**Next for §6a:** (v3 shipped the cards-excluded ratio and the live probe.) The probe's board read is
+deliberately coarse — one reliable coverage axis (area damage) plus roles no board fully answers; a
+richer coverage model (reach vs artillery standoff, armor shred vs plated kinds) needs per-tower kit
+data the sim applies in code today (e.g. the needle's Fracture is not in its derived kit). The 100 h
+account still wins the +1..3 frontier ~4 in 5 on the small label sample. Reserved, in priority order: biome threat bands (biome mods already apply per-spawn —
 promoting them to director inputs is additive), boss-presence weighting, prestige tier,
 seasonal/weekly modifiers, per-mutator warps. Each lands as **one input + one factor** here.

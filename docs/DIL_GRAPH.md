@@ -1,6 +1,6 @@
 # DIL_GRAPH.md — the Design Intelligence Layer (GENERATED — `npm run dil -- regen`)
 
-> **The project's brain** (docs/DIL.md). 979 nodes · 1896 edges, built from the live
+> **The project's brain** (docs/DIL.md). 979 nodes · 1897 edges, built from the live
 > registries + curated knowledge (src/dev/dil/). **Query it instead of searching the repo:**
 > `npm run dil -- node <id>` · `affects <id>` · `requires <id>` · `missing <kind> <edge>` ·
 > `checklist tower <kind>` · `find <text>`. Edge kinds are bidirectional (19 kinds).
@@ -200,9 +200,9 @@ graph LR
   system_genome_rank["Genome Rank (ultimate mastery ladder)"] -->|consumes| system_prestige["Prestige (Molt / Ascendant)"]
   system_achievements["Achievements"] -->|consumes| system_hub_shell["Hub Shell & Home"]
   system_evolution_hq["Evolution HQ (Genome Cores)"] -->|consumes| system_power["Power Score"]
+  system_campaign["Campaign"] -->|consumes| system_towers["Towers, Stars, Branches, Strain & Codex"]
   system_towers["Towers, Stars, Branches, Strain & Codex"] -->|modifies| system_difficulty["Difficulty"]
   system_difficulty["Difficulty"] -->|modifies| system_campaign["Campaign"]
-  system_campaign["Campaign"] -->|consumes| system_towers["Towers, Stars, Branches, Strain & Codex"]
   system_difficulty["Difficulty"] -->|modifies| system_infinite["Infinite Mode"]
 ```
 
@@ -600,8 +600,8 @@ graph LR
   system_achievements["Achievements"] -->|consumes| system_hub_shell["Hub Shell & Home"]
   system_evolution_hq["Evolution HQ (Genome Cores)"] -->|consumes| system_power["Power Score"]
   system_boss_rush["Boss Rush"] -->|dependsOn| system_net_backend["Backend lanes (net/)"]
-  system_engine["Sim Engine"] -->|dependsOn| system_security["Game Action Security Layer"]
   system_campaign["Campaign"] -->|consumes| system_towers["Towers, Stars, Branches, Strain & Codex"]
+  system_engine["Sim Engine"] -->|dependsOn| system_security["Game Action Security Layer"]
 ```
 
 ### Presentation Couplings Map
@@ -991,6 +991,7 @@ _at: src/core/campaign.ts, src/core/campaignEvents.ts, src/core/hash.ts, src/ui/
   - consumes → `system:map-layouts` — layoutForStage: CAMPAIGN_LAYOUT_PINS for the onboarding (1–3), then a memoized-forward biome-flavored no-repeat roll on Rng(stageSeed(s, layout)); adding a layout re-rolls un-pinned stages (generated, never saved)
   - conflictsWith → `system:infinite` — Run Identity invasions: campaign passes the STAGE enemyPool as invasionPool (an all-kinds pool dropped 8 colossi on stage 1); endless keeps ENEMY_KINDS
   - conflictsWith → `concept:golden-test` — a new enemy whose DERIVED unlockStage is ≤ 3 re-rolls the pinned Stage 1–3 onboarding pools and moves campaignCurve.test — the puzzle fauna were tuned (EHP) to enter at ≥ 4; biome signatures also append to the Infinite director rosters while that biome is active
+  - consumes → `system:towers` — LIVE PROBE (§6a v3, campaign.ts LIVE_PROBE_ROLES): a live Campaign wave swaps a share of its plain groups (same threat budget) for the role the FIELDED board answers least — airborne packs vs no area damage (conveyor.ts damagesArea), else artillery, else burrowers — the lightest body of that role in the stage pool; the live ratio excludes drafted cards (liveCardExp 0) so picks are pure gain; Game.liveWave feeds both the launch and the prep preview
   - consumes → `system:towers` — OPENING ANSWER GIFT (core/conveyor.ts §opening): the stage ≥ 4 run-start gift rolls from owned kinds whose TOWER DATA answers the opening threats (drag-damage aura, then area damage) — a new tower is classified by its stats; Stages 1–3 keep the plain roll (campaignCurve)
   - requiredBy ← `system:daily`
   - requiredBy ← `system:towers`
@@ -1311,7 +1312,7 @@ _at: src/core/stars.ts, src/core/branches.ts, src/core/branchTree.ts, src/core/s
   - contains ← `tower:obelisk`
   - contains ← `tower:maw`
   - contains ← `tower:chrysalis`
-  - _…43 more (query: `npm run dil -- node system:towers`)_
+  - _…44 more (query: `npm run dil -- node system:towers`)_
 
 ### `system:mastery` — Mastery / Adaptation
 

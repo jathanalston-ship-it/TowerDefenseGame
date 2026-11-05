@@ -14163,3 +14163,5 @@ html[data-layout='desktop'] .cv-slot { flex: 0 1 auto; width: 240px; min-width: 
   color: #ffd9c2; border: 1px solid color-mix(in srgb, var(--danger) 55%, var(--line-strong));
   background: color-mix(in srgb, var(--danger) 22%, transparent); font-variant-numeric: tabular-nums;
 }
+/* §6a v3 live composition: the ELITE count on a wave-briefing chip (★N of the kind arrive elite). */
+.wb-chip .wb-elite { font-size: 10px; font-weight: 900; letter-spacing: 0.04em; color: var(--warn); font-variant-numeric: tabular-nums; }

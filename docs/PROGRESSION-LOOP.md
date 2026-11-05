@@ -68,7 +68,10 @@ config: 0.7) · `'under'`. **Calibrated to outcomes** (Batch G follow-up, the GR
 Campaign runs on the 8 h / 100 h accounts at Power ÷ recommended 0.24–8, with the board-aware live
 threat of docs/DIFFICULTY_DIRECTOR.md §6a): below 0.7 the account won 17 % (8 h) / 41 % (100 h) —
 'under' means *you'll probably lose*; 0.7–1.0 won 78 % / 62 % — 'close' means *push it*; ≥ 1.0 won
-~80–95 %. The old 0.9 cut warned (and turned Home's CTA into "Farm Infinite") on stages won ~2 in 3.
+~80–95 %. Re-checked under the v3 live threat (cards out, probe composition): under 22 % / 38 %,
+close 67 % / 68 %, ready 78 % / 67 % (the live threat now keeps a strong board's frontier honest, so
+'ready' is a fair fight, not a formality) — 0.7 still separates *probably lose* from *push it*; no
+re-fit. The old 0.9 cut warned (and turned Home's CTA into "Farm Infinite") on stages won ~2 in 3.
 Known limit: a very young account (0.75 h) still wins ~2 in 3 even below 0.3 — the onboarding
 stages' recommendation is conservative; recommendedPowerScore itself was deliberately not rescaled
 (it feeds ETAs, previews and the progression simulator). `deployReadiness(power, rec, stage, diff)` additionally calms an

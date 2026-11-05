@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { Game } from '../core/game';
-import { ENEMY_DEFS } from '../core/config';
+import { DIRECTOR, ENEMY_DEFS } from '../core/config';
 import type { EnemyDef } from '../core/config';
 import { ENEMY_TIER } from '../render/theme';
 import { audio } from '../audio/sound';
@@ -53,7 +53,9 @@ export function BuildControls({
   // The preview only changes per wave — memo it so the ~10 Hz HUD refresh never re-aggregates.
   const preview = useMemo(
     () => (visible ? game.getNextWavePreview() : null),
-    [game, visible, hud.wave],
+    // liveThreat + tower count: the §6a v3 live composition (probe role, elite share) moves with the
+    // board in prep — the count catches a kind change while the multiplier sits at its cap.
+    [game, visible, hud.wave, hud.liveThreat, game.towers.length],
   );
   const hostiles = useMemo(() => (preview ? preview.reduce((n, e) => n + e.count, 0) : 0), [preview]);
   // Auto Gene Selection lives in the same console as Auto Wave, so the two semi-idle
@@ -73,7 +75,7 @@ export function BuildControls({
       biomass += (ENEMY_DEFS[e.kind]?.bounty ?? 0) * e.count;
       const tier = ENEMY_TIER[e.kind];
       if (tier === 'boss') heavy = 'boss';
-      else if (tier === 'elite' && heavy !== 'boss') heavy = 'elite';
+      else if ((tier === 'elite' || (e.elite ?? 0) > 0) && heavy !== 'boss') heavy = 'elite';
     }
     return { biomass, heavy };
   }, [preview]);
@@ -118,7 +120,7 @@ export function BuildControls({
                 <span className="tt-bubble">
                   {hud.endless
                     ? 'Your board has held flawless waves — the Hive squeezes harder (enemy HP). A wave that bleeds the Core eases it back.'
-                    : 'Your run’s live board (Power + towers fielded) has outgrown this stage — from wave 4 (and on every boss) the Hive answers with tougher, faster enemies.'}
+                    : 'Your run’s live board (towers fielded + Biomass invested — never your drafted cards) has outgrown this stage — from wave 4 (and on every boss) the Hive answers with tougher, faster enemies and swaps in the role your board covers least (listed below).'}
                 </span>
               </span>
             )}
@@ -134,9 +136,11 @@ export function BuildControls({
                     <span className="wb-dot" aria-hidden />
                     <span className="wb-name">{def.name}</span>
                     <span className="wb-n">×{e.count}</span>
+                    {(e.elite ?? 0) > 0 && <span className="wb-elite">★{e.elite}</span>}
                     {role && <span className="wb-role">{role}</span>}
                     <span className="tt-bubble">
                       {def.name} — {def.hp} HP{def.armor > 0 ? ` · ${def.armor} armor` : ''}{role ? ` · ${role.toLowerCase()}` : ''}
+                      {(e.elite ?? 0) > 0 ? ` · ${e.elite} ELITE (×${DIRECTOR.eliteHpMult} HP, ×${DIRECTOR.eliteDmgMult} damage)` : ''}
                     </span>
                   </span>
                 );

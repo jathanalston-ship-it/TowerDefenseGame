@@ -830,4 +830,6 @@ export interface CardOption {
 export interface WavePreviewEntry {
   kind: EnemyKind;
   count: number;
+  /** How many of `count` arrive ELITE (campaign elite groups + the §6a v3 live promotion). Absent ⇒ 0. */
+  elite?: number;
 }

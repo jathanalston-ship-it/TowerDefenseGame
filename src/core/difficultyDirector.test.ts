@@ -71,7 +71,7 @@ describe('RunDirector — exact parity with the legacy inline formulas', () => {
   it('ADAPTIVE weights: the threat seam is ACTIVATED on harness evidence; reward stays 0', () => {
     // §6a (docs/DIFFICULTY_DIRECTOR.md): tuned ONLY from simulator/harness evidence — the Batch G
     // grind audit fitted the live board-power weight. The reward seam has no evidence yet.
-    expect(DIRECTOR_ADAPTIVE.threatPerPowerRatio).toBe(0.3);
+    expect(DIRECTOR_ADAPTIVE.threatPerPowerRatio).toBe(0.6);
     expect(DIRECTOR_ADAPTIVE.rewardPerPerformance).toBe(0);
     const base = createDirector({ difficulty: resolveDifficulty('nightmare'), warp: DOCTRINES.corrupted.warp });
     const fed = createDirector({
