@@ -345,5 +345,10 @@ Legendary reads the same in a draft, the Armory, the Vault and the Archive. The 
 - **Settings → Motion reaches the hub:** `bindRootMotionAttrs` (ui/components/MotionSettings) mirrors
   the resolved prefs onto `<html data-motion data-flashes>`; Flashes off drops every rarity reveal flash
   and the Vault's room-wide hatch flash; reduced motion keeps every colour and drops the motion.
-- **Cost:** CSS only (transform/opacity animations; grids use the static `rfx-lite` profile) — no canvas
-  render-path work; measured A/B in the same build (layers live vs hidden) — see the 2026-11 V4 report.
+- **Cost:** CSS only — no canvas render-path work. Every looping keyframe uses LITERAL values (the tier's
+  strength rides a static property: the glow's opacity, the mote column's height + `rotate`), because a
+  `var()` inside keyframes forces a main-thread style recalc every frame. Measured A/B in one build (layers
+  live vs `display:none`), headless 1440×900, a 3-card epic/legendary/exotic draft over ~160 enemies:
+  style recalc +3.7 ms/frame with the original var() keyframes → +1.5 ms/frame compositor-only (headless
+  software compositing on a 4-core box at load ~13 — real GPU compositing moves these off the main thread).
+  Grids (`rfx-lite`) animate only legendary+ edges: Gene Archive full list (131 hosts) within noise.
