@@ -1,6 +1,6 @@
 {
-  "lastSha": "8829ba6098b8dc83f8ed7535bf095507c509c666",
-  "commitsSinceDraft": 9,
+  "lastSha": "2d0c694da39fa09ad6b9e687980973964ff7c986",
+  "commitsSinceDraft": 0,
   "content": {
     "tower": [
       "needle",
@@ -3940,7 +3940,7 @@
       "id": "v2026.11.05.4",
       "date": "2026-11-05",
       "title": "The Opening Film",
-      "sealed": false,
+      "sealed": true,
       "entries": [
         {
           "cat": "Visuals",
@@ -8650,6 +8650,14 @@
       "cat": "UI",
       "text": "Intro: rebuild the opening film around a turn — the Hive answers",
       "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "2d0c694da39fa09ad6b9e687980973964ff7c986",
+      "date": "2026-11-05",
+      "cat": "Developer Tools",
+      "text": "Validation,chronicle: opening film PASS over 2b14f67..HEAD — 3084/3084, mobile gate clean; release notes curated",
+      "internal": true,
       "needsReview": false
     }
   ]

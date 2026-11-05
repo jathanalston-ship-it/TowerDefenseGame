@@ -3,14 +3,15 @@
 > Maintained at the END of every session (paired with `docs/AI_HANDOFF.md` — the constitution's
 > workflow step 4). This is the "where are we?" answer; `docs/GAME-STATE.md` remains the deeper
 > per-system built-vs-planned index, `docs/PROJECT_MANIFEST.md` the system map.
-> **Last updated:** 2026-11-05d (**THE OPENING FILM, REBUILT — merged + validated, awaiting the owner's
-> release go-ahead.** The first-boot cinematic gains a TURN: a new "the Hive answers" scene where the game's
+> **Last updated:** 2026-11-05d (**DEPLOYED — THE OPENING FILM, REBUILT** (`2d0c694`, run #233; owner
+> approved the release).** The first-boot cinematic gains a TURN: a new "the Hive answers" scene where the game's
 > real towers erupt along the line and the game's real swarm breaks on it and streams home as biomass; the
 > swarm scene casts the real creatures (enemyForms) with the apex rising past the lens; the veins take a truss
 > whole; the title resolves glyph by glyph over the looming organism with the triad scored word by word and a
 > film-styled call to action. Phone-portrait title clip fixed (BUGFIX 113). The film is now its own lazy chunk
-> (`ui/IntroMount`) — boot JS 552.6 → 546.1 KB. Frame cost on a par (0.8–1.5 ms avg/scene). Website: devlog
-> `the-opening-film`, features copy.)
+> (`ui/IntroMount`) — boot JS 552.6 → 546.1 KB. Frame cost on a par (0.8–1.5 ms avg/scene). VALIDATION: validate PASS
+> over 2b14f67..HEAD (3084/3084, mobile gate clean; one earlier drawer-timing flake re-ran clean). Website:
+> release v2026.11.05.4 "The Opening Film", devlog `the-opening-film`, features copy.)
 >
 > **2026-11-05c** (**DEPLOYED — "A BATTLEFIELD YOU CAN READ"** (`2b14f67`, run #232 green; owner approved
 > the release).** Full-game VFX pass in four tracks: V1 combat damage language (`render/combatFx.ts`), V2 one

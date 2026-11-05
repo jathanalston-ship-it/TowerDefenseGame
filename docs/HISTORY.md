@@ -623,3 +623,4 @@
 - `2b14f67` **[Developer Tools]** Validation: release gate PASS over eb83070..HEAD — 3084/3084, mobile gate clean _(internal)_
 - `dac9dce` **[Developer Tools]** Status,chronicle: DEPLOYED "A Battlefield You Can Read" (2b14f67, run #232); seal v2026.11.05.3 _(internal)_
 - `8829ba6` **[UI]** Intro: rebuild the opening film around a turn — the Hive answers
+- `2d0c694` **[Developer Tools]** Validation,chronicle: opening film PASS over 2b14f67..HEAD — 3084/3084, mobile gate clean; release notes curated _(internal)_

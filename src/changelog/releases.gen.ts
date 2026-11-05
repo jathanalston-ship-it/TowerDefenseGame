@@ -8,7 +8,7 @@ export const RELEASES: Release[] = [
     "id": "v2026.11.05.4",
     "date": "2026-11-05",
     "title": "The Opening Film",
-    "sealed": false,
+    "sealed": true,
     "entries": [
       {
         "cat": "Visuals",
