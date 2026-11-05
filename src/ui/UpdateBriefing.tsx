@@ -12,6 +12,7 @@ import { audio } from '../audio/sound';
 import { navBus } from '../state/navBus';
 import { hiveIntel } from '../state/hiveIntel';
 import type { Release, ReleaseEntry } from '../changelog/types';
+import { RELEASES } from '../changelog/releases.gen'; // the whole history — this component is its own lazy chunk (App)
 import { NOTE_CATEGORIES } from '../changelog/types';
 
 /** Collapse the unseen releases into one skimmable briefing: highlights first, then
@@ -32,12 +33,12 @@ function digest(unseen: Release[]): { highlights: ReleaseEntry[]; groups: [strin
 
 export function UpdateBriefing(): JSX.Element | null {
   meta.use();
-  const { latest, unseen, optOut } = meta.patchNotesView();
+  const { latest, unseen, optOut } = meta.patchNotesView(RELEASES);
   const fresh = meta.get().totalRuns === 0 && meta.get().patchNotes.seen === '';
 
   // A brand-new account baselines silently — the briefing is for RETURNING players.
   useEffect(() => {
-    if (fresh && latest) meta.markPatchNotesSeen();
+    if (fresh && latest) meta.markPatchNotesSeen(RELEASES);
   }, [fresh, latest]);
 
   if (!latest || optOut || fresh || unseen.length === 0) return null;
@@ -45,8 +46,8 @@ export function UpdateBriefing(): JSX.Element | null {
 
   const { highlights, groups } = digest(unseen);
   const head = unseen[0];
-  const done = (): void => { meta.markPatchNotesSeen(); audio.cue('ui'); };
-  const never = (): void => { meta.setPatchNotesOptOut(true); audio.cue('ui'); };
+  const done = (): void => { meta.markPatchNotesSeen(RELEASES); audio.cue('ui'); };
+  const never = (): void => { meta.setPatchNotesOptOut(true, RELEASES); audio.cue('ui'); };
   // Returning-player bridge (docs/HIVE-INTEL.md): the briefing says what CHANGED; these two rows
   // say what to DO — the Feed's own ACT intel (banked value, best Power move), one tap away.
   const acts = hiveIntel(meta.get(), Date.now()).filter((e) => e.priority === 'act').slice(0, 2);

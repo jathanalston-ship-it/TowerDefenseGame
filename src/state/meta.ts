@@ -178,7 +178,6 @@ import { EXPEDITION_DEFS, expeditionById, expeditionMult, expeditionOutcome, exp
 import type { ExpeditionDef, ExpeditionOutcome, ExpeditionReward, RareFind } from '../core/expeditions';
 import { ALL_SECTORS, CLAIMABLE_TIERS, HOTSPOT_FEED_MULT, INCURSION_BITE, REGIONS, SATURATED_AT, SECTOR_TIERS, TRIBUTE_MIN_TIERS, effectiveLevel, feedInfestation, hotspotSectorId, incursionSectorId, infestationEffects, isEntrenched, isValidInfestTarget, regionFraction, regionHeldTiers, regionOfSector, resolveFeedTarget, resolveIncursionBite, runInfestGain, tierHoldDays, tierOf, tierReward, tributeFor, zeroInDays } from '../core/infestation';
 import type { SectorTier } from '../core/infestation';
-import { RELEASES } from '../changelog/releases.gen';
 import type { Release } from '../changelog/types';
 import type { TrophyDef } from '../core/trophies';
 import type { CosmeticDef, CosmeticTheme } from '../core/cosmetics';
@@ -7944,9 +7943,11 @@ export const meta = {
     return reward;
   },
 
-  // ── Patch notes (docs/CHANGELOG-PIPELINE.md) — the Update Briefing read-model. ──
+  // ── Patch notes (docs/CHANGELOG-PIPELINE.md) — the Update Briefing read-model. The release HISTORY
+  //    is passed in by its one reader (ui/UpdateBriefing, a lazy chunk), so the boot bundle never
+  //    carries every release ever shipped (docs/DEPLOYMENT.md §boot-budget). ──
   /** Releases the player hasn't seen (newest first), the latest, and the opt-out. */
-  patchNotesView(): { latest: Release | null; unseen: Release[]; optOut: boolean } {
+  patchNotesView(RELEASES: readonly Release[]): { latest: Release | null; unseen: Release[]; optOut: boolean } {
     const s = store.get();
     const latest = RELEASES[0] ?? null;
     const seenIdx = s.patchNotes.seen === '' ? RELEASES.length : RELEASES.findIndex((r) => r.id === s.patchNotes.seen);
@@ -7954,14 +7955,14 @@ export const meta = {
     return { latest, unseen, optOut: s.patchNotes.optOut };
   },
   /** Mark everything up to the latest release as seen (Continue / open-full-notes). */
-  markPatchNotesSeen(): void {
+  markPatchNotesSeen(RELEASES: readonly Release[]): void {
     const s = store.get();
     const latest = RELEASES[0];
     if (!latest || s.patchNotes.seen === latest.id) return;
     persist({ ...s, patchNotes: { ...s.patchNotes, seen: latest.id } });
   },
   /** Permanent "never show again" (also marks the current release seen). Reversible in Settings. */
-  setPatchNotesOptOut(optOut: boolean): void {
+  setPatchNotesOptOut(optOut: boolean, RELEASES: readonly Release[]): void {
     const s = store.get();
     persist({ ...s, patchNotes: { seen: RELEASES[0]?.id ?? s.patchNotes.seen, optOut } });
   },

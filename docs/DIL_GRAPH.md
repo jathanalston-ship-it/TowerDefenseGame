@@ -1,6 +1,6 @@
 # DIL_GRAPH.md — the Design Intelligence Layer (GENERATED — `npm run dil -- regen`)
 
-> **The project's brain** (docs/DIL.md). 989 nodes · 1921 edges, built from the live
+> **The project's brain** (docs/DIL.md). 990 nodes · 1922 edges, built from the live
 > registries + curated knowledge (src/dev/dil/). **Query it instead of searching the repo:**
 > `npm run dil -- node <id>` · `affects <id>` · `requires <id>` · `missing <kind> <edge>` ·
 > `checklist tower <kind>` · `find <text>`. Edge kinds are bidirectional (19 kinds).
@@ -2088,7 +2088,7 @@ _at: src/state/profile.ts, src/ui/PlayerProfile.tsx, src/ui/components/Commander
 
 Combat Tutorial over a live sim, THE COMMISSIONING (post-tutorial account-creation ceremony: rewards, designation, sigil + founding-title oath, account safeguard), HUD Tour, mechanics-registry Help wiki, What's New, loading tips.
 
-_at: src/ui/InitCutscene.tsx, src/ui/IntroMount.tsx, src/ui/introState.ts, src/state/fieldNotes.ts, src/ui/FieldNote.tsx, src/render/introScenes.ts, src/core/tutorial.ts, src/state/tutorial.ts, src/state/mechanics.ts, src/ui/TutorialRunner.tsx, src/ui/tutorial/*, src/ui/HelpWiki.tsx, src/ui/helpSearch.ts, src/ui/WhatsNew.tsx, src/ui/HudTour.tsx, src/state/guidedUnlocks.ts, src/ui/GuidedUnlock.tsx, src/ui/tips.ts_
+_at: src/ui/InitCutscene.tsx, src/ui/IntroMount.tsx, src/ui/introState.ts, src/state/fieldNotes.ts, src/ui/FieldNote.tsx, src/render/introScenes.ts, src/core/tutorial.ts, src/state/tutorial.ts, src/state/mechanics.ts, src/state/mechanicsText.ts, src/ui/TutorialRunner.tsx, src/ui/tutorial/*, src/ui/HelpWiki.tsx, src/ui/helpSearch.ts, src/ui/WhatsNew.tsx, src/ui/HudTour.tsx, src/state/guidedUnlocks.ts, src/ui/GuidedUnlock.tsx, src/ui/tips.ts_
 
   - dependsOn → `system:engine`
   - dependsOn → `system:meta-store`
@@ -2117,7 +2117,7 @@ _at: src/ui/InitCutscene.tsx, src/ui/IntroMount.tsx, src/ui/introState.ts, src/s
   - contains ← `help:strain-evolution`
   - contains ← `help:boss-sieges`
   - contains ← `help:boss-rush`
-  - _…73 more (query: `npm run dil -- node system:onboarding`)_
+  - _…74 more (query: `npm run dil -- node system:onboarding`)_
 
 ### `system:account-level` — Account Level (evergreen meta-progression)
 
@@ -4134,7 +4134,7 @@ _at: site/guides.ts → /guides/live-events/_
 - `doc:VOWS.md` — project documentation _(documents `system:prestige`)_
 - `doc:WEBSITE.md` — project documentation _(documents `system:field-research`, documents `system:website`)_
 
-## Tests (342)
+## Tests (343)
 
 - `test:src/audio/cues.test.ts` — automated validation _(tests `system:audio`)_
 - `test:src/audio/music.test.ts` — automated validation _(tests `system:audio`)_
@@ -4418,6 +4418,7 @@ _at: site/guides.ts → /guides/live-events/_
 - `test:src/state/marketEconomy.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/state/masteryEvolutionMeta.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/state/mechanics.test.ts` — automated validation _(tests `system:onboarding`)_
+- `test:src/state/mechanicsText.test.ts` — automated validation _(tests `system:onboarding`)_
 - `test:src/state/megacollection.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/state/meta.test.ts` — automated validation _(tests `system:meta-store`)_
 - `test:src/state/metabolism.test.ts` — automated validation _(tests `system:metabolism`)_

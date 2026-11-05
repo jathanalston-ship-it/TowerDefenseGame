@@ -5,6 +5,7 @@
 // (whose body merely mentions threat). Ties keep the registry's own order. Pure: no React.
 
 import type { MechanicDef } from '../state/mechanics';
+import { MECHANIC_TEXT } from '../state/mechanicsText';
 
 /** Lower = better. 0 title starts with the query · 1 a title word starts with it · 2 the title
  *  contains it · 3 the summary contains it · 4 only the body/category does · null = no match. */
@@ -14,7 +15,7 @@ export function helpMatchTier(m: MechanicDef, q: string): number | null {
   if (title.split(/[^a-z0-9]+/).some((w) => w.startsWith(q))) return 1;
   if (title.includes(q)) return 2;
   if (m.summary.toLowerCase().includes(q)) return 3;
-  if (`${m.what} ${m.category}`.toLowerCase().includes(q)) return 4;
+  if (`${MECHANIC_TEXT[m.id]?.what ?? ''} ${m.category}`.toLowerCase().includes(q)) return 4;
   return null;
 }
 

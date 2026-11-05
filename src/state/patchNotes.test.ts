@@ -12,24 +12,24 @@ import { defaultSave, parseImport } from '../save/saveStore';
 describe('patch notes tracking', () => {
   it('a never-seen save has every release unseen; marking seen empties the queue', () => {
     meta.reset();
-    const v = meta.patchNotesView();
+    const v = meta.patchNotesView(RELEASES);
     expect(v.optOut).toBe(false);
     if (RELEASES.length > 0) {
       expect(v.latest?.id).toBe(RELEASES[0].id);
       expect(v.unseen.length).toBeGreaterThan(0);
-      meta.markPatchNotesSeen();
-      expect(meta.patchNotesView().unseen).toHaveLength(0);
+      meta.markPatchNotesSeen(RELEASES);
+      expect(meta.patchNotesView(RELEASES).unseen).toHaveLength(0);
       expect(meta.get().patchNotes.seen).toBe(RELEASES[0].id);
     }
   });
 
   it('opt-out survives and also marks the current release seen', () => {
     meta.reset();
-    meta.setPatchNotesOptOut(true);
-    expect(meta.patchNotesView().optOut).toBe(true);
-    expect(meta.patchNotesView().unseen).toHaveLength(0);
-    meta.setPatchNotesOptOut(false); // reversible in Settings
-    expect(meta.patchNotesView().optOut).toBe(false);
+    meta.setPatchNotesOptOut(true, RELEASES);
+    expect(meta.patchNotesView(RELEASES).optOut).toBe(true);
+    expect(meta.patchNotesView(RELEASES).unseen).toHaveLength(0);
+    meta.setPatchNotesOptOut(false, RELEASES); // reversible in Settings
+    expect(meta.patchNotesView(RELEASES).optOut).toBe(false);
   });
 
   it('sanitizer shapes junk patchNotes and deep-fills pre-v28 saves', () => {

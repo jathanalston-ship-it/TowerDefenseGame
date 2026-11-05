@@ -19,6 +19,7 @@ import {
 } from './unlocks';
 import type { UnlockCondition } from './unlocks';
 import { MECHANIC_BY_ID, isMechanicUnlocked } from './mechanics';
+import { MECHANIC_TEXT } from './mechanicsText';
 import { nextGoals } from './nextGoal';
 import { MODE_UNLOCKS } from '../core/config';
 
@@ -185,7 +186,7 @@ describe('teach coverage — every unlock explains itself', () => {
       expect(row, `${f.id} → missing mechanic '${f.teach}'`).toBeTruthy();
       expect(row!.nav, `${f.id} teach row points at the wrong nav`).toBe(f.id);
       for (const k of ['what', 'why', 'where', 'next'] as const) {
-        expect((row![k] ?? '').length, `${f.teach}.${k} empty`).toBeGreaterThan(10);
+        expect((MECHANIC_TEXT[row!.id]?.[k] ?? '').length, `${f.teach}.${k} empty`).toBeGreaterThan(10);
       }
     }
   });

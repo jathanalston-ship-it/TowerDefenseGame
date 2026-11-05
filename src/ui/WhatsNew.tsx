@@ -21,6 +21,7 @@ import { navBus } from '../state/navBus';
 import { guideBus, guideFor } from '../state/guidedUnlocks';
 import { WHATS_NEW_SUMMARY_AT, unlockSummaryRows } from '../state/mechanics';
 import type { MechanicDef } from '../state/mechanics';
+import { MECHANIC_TEXT } from '../state/mechanicsText';
 import { WARDROBE_RARITY_COLOR, wardrobeItem, wardrobeKind } from '../core/wardrobe';
 import type { WardrobeItemDef } from '../core/wardrobe';
 import { featureRevealed, isOpenNav } from '../state/unlocks';
@@ -42,6 +43,7 @@ export function WhatsNew(): JSX.Element | null {
     return <UnlockSummary queue={queue} specimens={specimens} />;
   }
   const guide = guideFor(m.id);
+  const text = MECHANIC_TEXT[m.id];
   const close = (): void => meta.archiveMechanics([m.id]); // persist → re-render drops this card, shows the next
   const open = (): void => {
     const nav = m.nav;
@@ -60,13 +62,15 @@ export function WhatsNew(): JSX.Element | null {
         <div className="wn-badge">✦ NEW SYSTEM UNLOCKED ✦</div>
         <h2 className="wn-title">{m.title}</h2>
         <div className="wn-summary">{m.summary}</div>
-        {m.media && <div className="wn-media" aria-hidden>▶ {m.media}</div>}
-        <div className="wn-rows">
-          <div className="wn-row"><span className="wn-k">What</span><span className="wn-v">{m.what}</span></div>
-          <div className="wn-row"><span className="wn-k">Why</span><span className="wn-v">{m.why}</span></div>
-          <div className="wn-row"><span className="wn-k">Where</span><span className="wn-v">{m.where}</span></div>
-          <div className="wn-row"><span className="wn-k">Next</span><span className="wn-v">{m.next}</span></div>
-        </div>
+        {text?.media && <div className="wn-media" aria-hidden>▶ {text.media}</div>}
+        {text && (
+          <div className="wn-rows">
+            <div className="wn-row"><span className="wn-k">What</span><span className="wn-v">{text.what}</span></div>
+            <div className="wn-row"><span className="wn-k">Why</span><span className="wn-v">{text.why}</span></div>
+            <div className="wn-row"><span className="wn-k">Where</span><span className="wn-v">{text.where}</span></div>
+            <div className="wn-row"><span className="wn-k">Next</span><span className="wn-v">{text.next}</span></div>
+          </div>
+        )}
         <div className="wn-actions">
           {m.nav && <button className="primary wn-go" onClick={open}>{guide ? 'Show me ▸' : 'Open it now ▸'}</button>}
           <button className={m.nav ? 'wn-later' : 'primary wn-go'} onClick={close}>

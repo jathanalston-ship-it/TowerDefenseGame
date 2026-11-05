@@ -16,12 +16,10 @@ import { AccountLevelToast } from './components/AccountXpBar';
 import { GenomePromotionCinematic } from './components/GenomeRankPanel';
 import { bindRootMotionAttrs } from './components/MotionSettings';
 import { LootToaster } from './LootToaster';
-import { WhatsNew } from './WhatsNew';
 import { GuidedUnlock } from './GuidedUnlock';
 import { guideBus, guideFor } from '../state/guidedUnlocks';
 import type { GuideDef } from '../state/guidedUnlocks';
 import { featureRevealed } from '../state/unlocks';
-import { UpdateBriefing } from './UpdateBriefing';
 import { CommanderName } from './components/CommanderName';
 import { IntroMount } from './IntroMount';
 import { introSeen } from './introState';
@@ -30,6 +28,11 @@ import { cutsceneDef } from '../core/cutscenes';
 import { UpdateToast } from './components/UpdateToast';
 import { SecurityPulse } from './SecurityPulse';
 const SpectateView = lazyNamed(() => import('./SpectateView'), 'SpectateView');
+// The patch-notes briefing carries the whole release history — its own chunk, fetched when the hub is idle.
+const UpdateBriefing = lazyNamed(() => import('./UpdateBriefing'), 'UpdateBriefing');
+// The What's New card carries the mechanics' long-form text (state/mechanicsText.ts) — fetched only
+// when a card is actually queued (docs/DEPLOYMENT.md §boot-budget).
+const WhatsNew = lazyNamed(() => import('./WhatsNew'), 'WhatsNew');
 import { decodeReplayCode } from '../net/replayShare';
 import type { ReplayRecord } from '../core/replay';
 import { startSyncEngine } from '../net/syncEngine';
@@ -713,8 +716,8 @@ export function App(): JSX.Element {
       {/* Guided Unlock (docs/GUIDED-UNLOCKS.md): "Show me ▸" on a What's New card walks the new
           wing itself — the card queue waits (WhatsNew unmounts) until the walkthrough closes. */}
       {menuIdle && !tourActive && guided && <GuidedUnlock guide={guided} onClose={() => setGuided(null)} />}
-      {menuIdle && !tourActive && !guided && <WhatsNew />}
-      {menuIdle && !tourActive && !guided && <UpdateBriefing />}
+      {menuIdle && !tourActive && !guided && meta.whatsNew().length > 0 && <Suspense fallback={null}><WhatsNew /></Suspense>}
+      {menuIdle && !tourActive && !guided && <Suspense fallback={null}><UpdateBriefing /></Suspense>}
       {/* Commander designation: the FIRST prompt an unnamed save sees on reaching the hub
           (i.e. immediately after the tutorial completes or is skipped). */}
       {menuIdle && !tourActive && <CommanderName />}

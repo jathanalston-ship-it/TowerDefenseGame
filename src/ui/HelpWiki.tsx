@@ -6,6 +6,7 @@
 import { useState } from 'react';
 import { meta } from '../state/meta';
 import { MECHANIC_BY_ID } from '../state/mechanics';
+import { MECHANIC_TEXT } from '../state/mechanicsText';
 import type { MechanicCategory, MechanicDef } from '../state/mechanics';
 import { guideBus, guideFor } from '../state/guidedUnlocks';
 import { navBus } from '../state/navBus';
@@ -28,6 +29,7 @@ export function HelpWiki({ onNavigate, onReplayTour }: { onNavigate?: (nav: stri
   const sel = (q
     ? (selId && filtered.find((m) => m.id === selId)) || filtered[0]
     : (selId && all.find((m) => m.id === selId)) || filtered[0]) || null;
+  const selText = sel ? MECHANIC_TEXT[sel.id] : undefined;
 
   return (
     <div className="panel help-wiki">
@@ -67,14 +69,16 @@ export function HelpWiki({ onNavigate, onReplayTour }: { onNavigate?: (nav: stri
           <article className="help-detail" key={sel.id}>
             <h3 className="help-detail-title">{sel.title}</h3>
             <div className="help-detail-sum">{sel.summary}</div>
-            {sel.media && <div className="help-media" aria-hidden>▶ {sel.media}</div>}
-            <div className="help-rows">
-              <div className="help-row"><span className="help-k">What</span><span className="help-v">{sel.what}</span></div>
-              <div className="help-row"><span className="help-k">Why</span><span className="help-v">{sel.why}</span></div>
-              <div className="help-row"><span className="help-k">Where</span><span className="help-v">{sel.where}</span></div>
-              <div className="help-row"><span className="help-k">Next</span><span className="help-v">{sel.next}</span></div>
-              {sel.mistakes && <div className="help-row is-mistake"><span className="help-k">Watch out</span><span className="help-v">{sel.mistakes}</span></div>}
-            </div>
+            {selText?.media && <div className="help-media" aria-hidden>▶ {selText.media}</div>}
+            {selText && (
+              <div className="help-rows">
+                <div className="help-row"><span className="help-k">What</span><span className="help-v">{selText.what}</span></div>
+                <div className="help-row"><span className="help-k">Why</span><span className="help-v">{selText.why}</span></div>
+                <div className="help-row"><span className="help-k">Where</span><span className="help-v">{selText.where}</span></div>
+                <div className="help-row"><span className="help-k">Next</span><span className="help-v">{selText.next}</span></div>
+                {selText.mistakes && <div className="help-row is-mistake"><span className="help-k">Watch out</span><span className="help-v">{selText.mistakes}</span></div>}
+              </div>
+            )}
             {sel.nav && onNavigate && (
               <button className="help-goto" onClick={() => onNavigate(sel.nav!)}>Open {sel.title} ▸</button>
             )}
