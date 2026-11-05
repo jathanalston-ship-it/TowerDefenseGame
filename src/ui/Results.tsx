@@ -289,14 +289,16 @@ export function Results({
   const axp = outcome.accountXp;
   const acct = meta.accountLevel();
   const acctMilestone = axp.levelUps.some((l) => l.milestone);
+  // Depth XP (docs/ACCOUNT-LEVEL.md §depth): name the multiplier the play fold paid at.
+  const acctDepth = axp.depthMult ? ` · DEPTH ×${axp.depthMult.toFixed(1)}` : '';
   categories.push({
     id: 'account',
     title: 'Account Level',
     icon: '⬆',
     accent: 'var(--viral)',
     summary: axp.levelUps.length > 0
-      ? `+${num(axp.gained)} XP · LEVEL ${axp.to}${acctMilestone ? ' · ✦ MILESTONE' : ''}`
-      : `+${num(axp.gained)} XP · LV ${acct.level}`,
+      ? `+${num(axp.gained)} XP${acctDepth} · LEVEL ${axp.to}${acctMilestone ? ' · ✦ MILESTONE' : ''}`
+      : `+${num(axp.gained)} XP${acctDepth} · LV ${acct.level}`,
     stats: [
       { id: 'axp', label: 'Account XP Earned', value: axp.gained, format: (n) => `${n.toLocaleString()} XP`, accent: 'var(--viral)', bar: Math.min(1, acct.into / Math.max(1, acct.need)) },
       axp.levelUps.length > 0

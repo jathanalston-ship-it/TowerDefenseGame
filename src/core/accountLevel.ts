@@ -40,6 +40,23 @@ export const ACCOUNT_XP = {
   tutorialComplete: 200, // one-time onboarding completion (combat tutorial / hud tour grants)
 } as const;
 
+// ── Depth XP (docs/ACCOUNT-LEVEL.md §depth) ─────────────────────────────────
+// A run's PLAY XP (kills, bosses, waves, wins, clears, dailies) scales with the account's DEPTH —
+// the same depth the gear chase reads (deepest cleared Campaign stage, or the Infinite record ×
+// ITEM_LEVEL_CURVE.infiniteWeight). Kills/waves per minute plateau at depth while the curve keeps
+// rising, so without this the lane slowed to ~0.3 levels/hour by hour 100 (grind audit G2). The
+// curve itself never changes (no retroactive level jumps). ×1 through `from` (onboarding untouched),
+// then 1 + ((depth − from) / span)^exp: smooth, monotonic, uncapped — calibrated on the persona sim
+// to a level-up every ~50–75 min from hour 10 to hour 400.
+export const ACCOUNT_XP_DEPTH = { from: 30, span: 25, exp: 1.6 } as const;
+
+/** The play-XP multiplier at an account depth (≥ 1; exactly 1 at/below `from`). */
+export function depthXpMult(depth: number): number {
+  const { from, span, exp } = ACCOUNT_XP_DEPTH;
+  const over = Math.max(0, depth - from);
+  return over > 0 ? 1 + Math.pow(over / span, exp) : 1;
+}
+
 // ── The curve (uncapped) ────────────────────────────────────────────────────
 // Per-level requirement: BASE + GROWTH · n^EXP — smooth, spike-free, forever-rising.
 // Leveling therefore SLOWS with depth while staying attainable (no walls: the ratio
@@ -129,9 +146,27 @@ export interface AccountLevelReward {
   milestone: boolean;
 }
 
-/** Reward VALUE budget for level n — deliberately sublinear (n^0.7) vs the n^1.25 curve. */
+/** Deep-level payout re-weighting (docs/ACCOUNT-LEVEL.md §depth). Depth XP makes deep levels arrive
+ *  ~2–4× as often, so each pays a smaller share — more frequent, smaller beats, with level-reward
+ *  value per hour held within ~±10 % of the pre-depth economy (sim-measured). Levels ≤ `fromLevel`
+ *  pay exactly what they always did; past it the budget divides by 1 + k·ln(n / fromLevel), which
+ *  dips to ~45 by L100 and then creeps back up (budget ∝ n^0.7 / ln n — deep levels never shrink to
+ *  nothing). Containers: one every `every` levels, the interval widening by `every` each `widenEvery`
+ *  levels (every 5th to L50, every 10th to L100, every 15th to L150 … always on round levels). */
+export const ACCOUNT_REWARD_DEPTH = { fromLevel: 42, k: 3, every: 5, widenEvery: 50 } as const;
+
+/** Reward VALUE budget for level n — deliberately sublinear (n^0.7) vs the n^1.25 curve, re-weighted
+ *  past ACCOUNT_REWARD_DEPTH.fromLevel. */
 function valueBudget(n: number): number {
-  return 18 + 6 * Math.pow(n, 0.7);
+  const { fromLevel, k } = ACCOUNT_REWARD_DEPTH;
+  const base = 18 + 6 * Math.pow(n, 0.7);
+  return n > fromLevel ? base / (1 + k * Math.log(n / fromLevel)) : base;
+}
+
+/** Does reaching `level` bank the periodic Bio-Container? (Milestones add their own on top.) */
+export function isContainerLevel(level: number): boolean {
+  const { every, widenEvery } = ACCOUNT_REWARD_DEPTH;
+  return level > 0 && level % (every * Math.ceil(level / widenEvery)) === 0;
 }
 
 interface PoolRow { kind: 'cores' | 'essence' | 'towerShards' | 'heroShards' | 'mats' | 'ichor'; weight: number; minLevel: number }
@@ -178,8 +213,9 @@ export function accountLevelReward(level: number): AccountLevelReward {
   // A guaranteed core floor so no level ever feels empty.
   if (out.cores === 0) out.cores = Math.max(5, Math.round(budget * 0.35));
 
-  // Every 5th level banks a Bio-Container; tier scales with depth via the shared cache ladder.
-  if (level % 5 === 0) out.containers.push(chestForWave(Math.min(14, 3 + Math.floor(level / 10))));
+  // Periodic Bio-Container (every 5th level, widening at depth — isContainerLevel); tier scales
+  // with level via the shared cache ladder.
+  if (isContainerLevel(level)) out.containers.push(chestForWave(Math.min(14, 3 + Math.floor(level / 10))));
 
   // Milestones: a big package + identity.
   if (out.milestone) {

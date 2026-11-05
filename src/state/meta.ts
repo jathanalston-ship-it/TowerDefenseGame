@@ -61,7 +61,7 @@ import { announcePower, onPowerGain } from './powerEvents';
 import { withPowerLogged } from './powerLog';
 import { AUTHORED_ACHIEVEMENTS, achievementById, authoredEarned, checkAchievements, rewardFor } from './achievements';
 import type { AchievementDef, RunSummary } from './achievements';
-import { ALL_ITEMS, CAPPED_GRANT_ITEMS, EQUIP_SLOTS, emptyLoadout, itemDef, loadoutEffects, rollItem, rollItemDrop, rollItemForDepth, teamSetEffects } from '../core/equipment';
+import { ALL_ITEMS, CAPPED_GRANT_ITEMS, EQUIP_SLOTS, accountDepth, emptyLoadout, itemDef, loadoutEffects, rollItem, rollItemDrop, rollItemForDepth, teamSetEffects } from '../core/equipment';
 import type { EquipSlot, Loadout, OwnedItem } from '../core/equipment';
 import { ICHOR, ichorForAchievement, ichorForBossRecord, ichorForDepthRecord, marketWindow, nextRushIchorAt, rollIchorDrop, rollRushVaultRarity, rollStock, vaultsForBossRecord } from '../core/market';
 import type { MarketSlot } from '../core/market';
@@ -118,7 +118,7 @@ import type { Prediction } from '../core/predict';
 import { unlockedMechanics, pendingAnnouncements } from './mechanics';
 import type { MechanicDef } from './mechanics';
 import { featureRevealed, unlatchedReveals } from './unlocks';
-import { ACCOUNT_XP, accountLevelReward, levelFromXp, levelProgress, monthKey, nextMilestone, weekKey } from '../core/accountLevel';
+import { ACCOUNT_XP, accountLevelReward, depthXpMult, levelFromXp, levelProgress, monthKey, nextMilestone, weekKey } from '../core/accountLevel';
 import type { AccountLevelReward } from '../core/accountLevel';
 import { genomeAdvice, genomeBreakdown, genomeRankReward, genomeRating, rankFromRating, rankName, romanNumeral } from '../core/genomeRank';
 import type { GenomeAdvice, GenomeContribution, GenomeRankReward, GenomeRankView, GenomeSnapshot } from '../core/genomeRank';
@@ -2021,7 +2021,11 @@ export interface AccountLevelUp {
   milestone: boolean;
   reward: AccountLevelReward;
 }
-export interface AccountXpDelta { gained: number; from: number; to: number; levelUps: AccountLevelUp[] }
+export interface AccountXpDelta {
+  gained: number; from: number; to: number; levelUps: AccountLevelUp[];
+  /** Run settles only: the Depth XP multiplier the play fold paid at (absent when ×1). */
+  depthMult?: number;
+}
 
 /** One granted line on a premium receipt — the reveal ceremony renders these. */
 export interface PremiumReceiptLine {
@@ -3137,16 +3141,19 @@ export const meta = {
       nextInfestation = { ...save.infestation, sectors: fedResult.sectors, defenses, lastIncursionDay };
     }
     // Account XP (docs/ACCOUNT-LEVEL.md): the run's play fold — kills, waves, bosses, mode beats.
-    // Acquisition/achievement XP land in their own folds; this is the "playing pays" lane.
+    // Acquisition/achievement XP land in their own folds; this is the "playing pays" lane. PLAY XP
+    // scales with the account's depth at run start (§depth); contract bonuses stay flat — their
+    // ContractsCard previews quote the table value (previews == outcomes).
+    const depthMult = depthXpMult(accountDepth(highestCampaignStage(save), save.bestWave));
     const runXp =
-      result.kills * ACCOUNT_XP.kill +
-      bossKills * ACCOUNT_XP.bossKill +
-      (result.stats.megaKills?.length ?? 0) * ACCOUNT_XP.megaKill +
-      result.wave * ACCOUNT_XP.wave +
-      (isRush ? result.wave * ACCOUNT_XP.bossRushWavePremium : 0) +
-      (result.won ? ACCOUNT_XP.win : 0) +
-      (isCampaign && result.won ? stageNo * ACCOUNT_XP.campaignClearPerStage + (firstClear ? ACCOUNT_XP.campaignFirstClear : 0) : 0) +
-      (isDaily && result.won ? ACCOUNT_XP.dailyComplete : 0) +
+      (result.kills * ACCOUNT_XP.kill +
+        bossKills * ACCOUNT_XP.bossKill +
+        (result.stats.megaKills?.length ?? 0) * ACCOUNT_XP.megaKill +
+        result.wave * ACCOUNT_XP.wave +
+        (isRush ? result.wave * ACCOUNT_XP.bossRushWavePremium : 0) +
+        (result.won ? ACCOUNT_XP.win : 0) +
+        (isCampaign && result.won ? stageNo * ACCOUNT_XP.campaignClearPerStage + (firstClear ? ACCOUNT_XP.campaignFirstClear : 0) : 0) +
+        (isDaily && result.won ? ACCOUNT_XP.dailyComplete : 0)) * depthMult +
       contractHits.length * ACCOUNT_XP.contract +
       (perfectWeek ? ACCOUNT_XP.perfectWeek : 0);
     const acctXpBefore = save.accountXp.xp;
@@ -3240,6 +3247,7 @@ export const meta = {
       from: levelFromXp(acctXpBefore),
       to: levelFromXp(acctAfter),
       levelUps: pendingAccountLevelUps.splice(0),
+      ...(depthMult > 1 ? { depthMult } : {}),
     };
     const momentumMult = adaptive ? adaptiveIncomeMult(adaptive) : 1;
     const outcome: RunOutcome = {
