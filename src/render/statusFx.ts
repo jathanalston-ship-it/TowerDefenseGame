@@ -18,6 +18,7 @@ import type { StatusOverlayKind, StatusParticleKind } from '../core/status';
 import type { RenderState } from '../core/game';
 import { rgba } from './theme';
 import { glowDisc, pulse, ring } from './vfx';
+import { viewFeel } from './feel';
 
 type Ctx = CanvasRenderingContext2D;
 type EnemyView = RenderState['enemies'][number];
@@ -33,7 +34,7 @@ export interface MergedStatusFx {
   pulseSpeed: number; // blended animation tempo (slow effects genuinely animate slower)
   distortion: number; // body warp amplitude
   jitter: number; // body trembling amplitude (fear/stun/shock)
-  overlays: { kind: StatusOverlayKind; rgb: string; k: number }[];
+  overlays: { kind: StatusOverlayKind; rgb: string; k: number; control: boolean }[];
   emitters: { kind: StatusParticleKind; rgb: string; k: number }[];
 }
 
@@ -56,13 +57,13 @@ function hueNums(hex: string): [number, number, number] {
   return out;
 }
 
-interface Contribution { hue: string; glow: number; pulseSpeed: number; overlay: StatusOverlayKind; particles: readonly StatusParticleKind[]; distortion: number; jitter: number; k: number }
+interface Contribution { hue: string; glow: number; pulseSpeed: number; overlay: StatusOverlayKind; particles: readonly StatusParticleKind[]; distortion: number; jitter: number; k: number; control: boolean }
 
 function contribute(parts: Contribution[], id: string, k: number): void {
   const d = statusRegistry.get(id);
   if (!d || k <= 0.02) return;
   const fx = d.fx;
-  parts.push({ hue: fx.hue, glow: fx.glow, pulseSpeed: fx.pulseSpeed, overlay: fx.overlay, particles: fx.particles, distortion: fx.distortion ?? 0, jitter: fx.jitter ?? 0, k: Math.min(1, k) });
+  parts.push({ hue: fx.hue, glow: fx.glow, pulseSpeed: fx.pulseSpeed, overlay: fx.overlay, particles: fx.particles, distortion: fx.distortion ?? 0, jitter: fx.jitter ?? 0, k: Math.min(1, k), control: d.category === 'control' });
 }
 
 /** Merge every live status on `e` into one presentation descriptor (null = nothing active —
@@ -122,9 +123,9 @@ export function mergeStatusFx(e: EnemyView, quality: StatusFxQuality): MergedSta
   for (const p of parts) {
     const cur = overlays.find((o) => o.kind === p.overlay);
     const pRgb = hueNums(p.hue).join(', ');
-    if (!cur) overlays.push({ kind: p.overlay, rgb: pRgb, k: p.k });
+    if (!cur) overlays.push({ kind: p.overlay, rgb: pRgb, k: p.k, control: p.control });
     else {
-      if (p.k > cur.k) cur.rgb = pRgb;
+      if (p.k > cur.k) { cur.rgb = pRgb; cur.control = p.control; }
       cur.k = 1 - (1 - cur.k) * (1 - p.k);
     }
   }
@@ -199,7 +200,7 @@ export function drawStatusFxUnder(ctx: Ctx, m: MergedStatusFx, x: number, y: num
 
 /** Over-body layer: the merged overlays + budgeted particle emitters. */
 export function drawStatusFxOver(ctx: Ctx, m: MergedStatusFx, x: number, y: number, r: number, t: number, id: number, quality: StatusFxQuality): void {
-  for (const o of m.overlays) drawOverlay(ctx, o.kind, o.rgb, o.k, x, y, r, t, id, m.pulseSpeed);
+  for (const o of m.overlays) drawOverlay(ctx, o.kind, o.rgb, o.k, x, y, r, t, id, m.pulseSpeed, o.control, quality);
   const perEmitter = quality >= 2 ? 3 : 2;
   for (let i = 0; i < m.emitters.length; i++) {
     const em = m.emitters[i];
@@ -210,11 +211,31 @@ export function drawStatusFxOver(ctx: Ctx, m: MergedStatusFx, x: number, y: numb
 
 // ── Overlay painters (each ≤ ~12 canvas ops, deterministic) ──────────────────────────────
 
-function drawOverlay(ctx: Ctx, kind: StatusOverlayKind, rgb: string, k: number, x: number, y: number, r: number, t: number, id: number, tempo: number): void {
+function drawOverlay(ctx: Ctx, kind: StatusOverlayKind, rgb: string, k: number, x: number, y: number, r: number, t: number, id: number, tempo: number, control = false, quality: StatusFxQuality = 2): void {
   switch (kind) {
     case 'rim': {
-      // The breathing edge-ring — the classic status read, tempo carrying the effect's speed.
-      ring(ctx, x, y, (r + 2.5) * pulse(t * tempo + id, 1, 0.97, 1.05), rgba(rgb, 0.3 + 0.5 * k), 1.4 + k * 1.2);
+      // The breathing edge-ring — the classic status read, tempo carrying the effect's speed. On a
+      // BUSY field (quality 1: 120+ bodies, most of them afflicted) it holds still and thins out —
+      // the information stays, the sea of breathing rings stops shimmering.
+      const busy = quality < 2;
+      const rr = (r + 2.5) * (busy ? 1 : pulse(t * tempo + id, 1, 0.97, 1.05));
+      const a = busy ? 0.24 + 0.36 * k : 0.3 + 0.5 * k;
+      const lw = busy ? 1 + 0.6 * k : 1.4 + k * 1.2;
+      if (control) {
+        // CONTROL reads as a GRIP, not a glow (docs/COMBAT-VISUAL-STANDARDS.md §status): three
+        // bracket arcs clamp the body, slowly turning — a slowed/disrupted body is told apart from
+        // a dot-burning one at a glance, whatever the hues. Still under reduced motion.
+        const spin = (viewFeel.motion > 0 ? t * 0.8 : 0) + id * 0.7;
+        ctx.strokeStyle = rgba(rgb, Math.min(1, a + 0.12));
+        ctx.lineWidth = lw + 0.5;
+        ctx.beginPath();
+        for (let i = 0; i < 3; i++) {
+          const a0 = spin + (i * Math.PI * 2) / 3;
+          ctx.moveTo(x + Math.cos(a0) * rr, y + Math.sin(a0) * rr);
+          ctx.arc(x, y, rr, a0, a0 + 1.3);
+        }
+        ctx.stroke();
+      } else ring(ctx, x, y, rr, rgba(rgb, a), lw);
       break;
     }
     case 'veins': {

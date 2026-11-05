@@ -55,6 +55,18 @@ function shade(hex: string, f: number): string {
   shadeCache.set(key, out);
   return out;
 }
+/** The same shade as an "r,g,b" TOKEN for `rgba(${…},a)` templates. (The spawn-intro VFX used to
+ *  wrap shade()'s `rgb()` string in rgba() — invalid CSS the canvas silently ignores, so every
+ *  birth burst painted in whatever stroke/fill colour the previous draw left behind.) */
+const tokCache = new Map<string, string>();
+function shadeTok(hex: string, f: number): string {
+  const key = hex + f;
+  const hit = tokCache.get(key);
+  if (hit) return hit;
+  const out = shade(hex, f).slice(4, -1); // "rgb(r,g,b)" → "r,g,b"
+  tokCache.set(key, out);
+  return out;
+}
 
 /** Two glowing eyes (dark socket + bright pupil), centred on (cx,cy), `spread` apart, `sz` pupils. */
 function eyes(ctx: Ctx, cx: number, cy: number, spread: number, sz: number, glow = '#fff'): void {
@@ -758,20 +770,20 @@ const SPAWN_MODE: Record<BodyForm, SpawnMode> = {
 function back(p: number): number { const k = p - 1; return 1 + 2.70158 * k * k * k + 1.70158 * k * k; }
 
 function drawSpawnIntro(ctx: Ctx, form: BodyForm, x: number, y: number, r: number, c: string, t: number, p: number, o: BodyOpts): void {
-  const rgb = shade(c, 0); // "r,g,b" for the translucent birth VFX
+  const rgb = shadeTok(c, 0); // "r,g,b" for the translucent birth VFX
   const fade = 1 - p; // the birth VFX fades as the body settles
   ctx.save();
   ctx.translate(x, y);
   switch (SPAWN_MODE[form]) {
     case 'hatch': { // grub — a spore shell cracks open and the larva squirms out
       const gap = p * r * 0.7;
-      ctx.strokeStyle = `rgba(${shade(c, -0.35)},${fade})`; ctx.lineWidth = Math.max(1.5, r * 0.16);
+      ctx.strokeStyle = `rgba(${shadeTok(c, -0.35)},${fade})`; ctx.lineWidth = Math.max(1.5, r * 0.16);
       for (const s of [-1, 1]) { ctx.beginPath(); ctx.arc(s * gap, 0, r * 0.95, s > 0 ? -Math.PI * 0.5 : Math.PI * 0.5, s > 0 ? Math.PI * 0.5 : Math.PI * 1.5); ctx.stroke(); }
       ctx.scale(back(p), back(p));
       break;
     }
     case 'erupt': { // mole/maw — bursts UP out of the ground through a mound of debris
-      ctx.fillStyle = `rgba(${shade(c, -0.5)},${fade * 0.8})`;
+      ctx.fillStyle = `rgba(${shadeTok(c, -0.5)},${fade * 0.8})`;
       for (let i = 0; i < 7; i++) { const a = Math.PI + (i / 6) * Math.PI; const d = r * (0.6 + p * 1.1); ctx.beginPath(); ctx.arc(Math.cos(a) * d, r * 0.7 + Math.sin(a) * d * 0.4, r * 0.16 * fade + 1, 0, Math.PI * 2); ctx.fill(); }
       ctx.translate(0, (1 - p) * r * 0.9); // rise from below the surface
       ctx.scale(1, p); // stretch up out of the ground
@@ -780,18 +792,18 @@ function drawSpawnIntro(ctx: Ctx, form: BodyForm, x: number, y: number, r: numbe
     case 'bloom': { // polyp/broodsac/frond — inflates from a point inside an expanding soft ring
       ctx.strokeStyle = `rgba(${rgb},${fade * 0.6})`; ctx.lineWidth = Math.max(1.5, r * 0.14);
       ctx.beginPath(); ctx.arc(0, 0, r * (0.4 + p * 1.3), 0, Math.PI * 2); ctx.stroke();
-      ctx.fillStyle = `rgba(${shade(c, 0.5)},${fade * 0.5})`; ctx.beginPath(); ctx.arc(0, 0, r * 0.5 * fade, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = `rgba(${shadeTok(c, 0.5)},${fade * 0.5})`; ctx.beginPath(); ctx.arc(0, 0, r * 0.5 * fade, 0, Math.PI * 2); ctx.fill();
       ctx.scale(back(p), back(p));
       break;
     }
     case 'assemble': { // beetle/crab/mortar — carapace PLATES snap inward and lock together
-      ctx.strokeStyle = `rgba(${shade(c, 0.2)},${fade})`; ctx.lineWidth = Math.max(1.5, r * 0.12);
+      ctx.strokeStyle = `rgba(${shadeTok(c, 0.2)},${fade})`; ctx.lineWidth = Math.max(1.5, r * 0.12);
       for (let i = 0; i < 6; i++) { const a = (i / 6) * Math.PI * 2; const d = r * (1 + fade * 1.4); ctx.beginPath(); ctx.moveTo(Math.cos(a) * d, Math.sin(a) * d); ctx.lineTo(Math.cos(a) * (d - r * 0.4), Math.sin(a) * (d - r * 0.4)); ctx.stroke(); }
       ctx.scale(p, p);
       break;
     }
     case 'phase': { // dart/moth — drops in from above through a phase-ripple + motion streaks
-      ctx.strokeStyle = `rgba(${shade(c, 0.4)},${fade * 0.7})`; ctx.lineWidth = Math.max(1, r * 0.1);
+      ctx.strokeStyle = `rgba(${shadeTok(c, 0.4)},${fade * 0.7})`; ctx.lineWidth = Math.max(1, r * 0.1);
       for (const sx of [-0.4, 0, 0.4]) { ctx.beginPath(); ctx.moveTo(sx * r, -(1 - p) * r * 2 - r); ctx.lineTo(sx * r, -(1 - p) * r * 2 - r * 2.2); ctx.stroke(); }
       ctx.strokeStyle = `rgba(${rgb},${fade * 0.6})`; ctx.beginPath(); ctx.ellipse(0, 0, r * (1 + p * 0.6), r * 0.3 * fade + 1, 0, 0, Math.PI * 2); ctx.stroke();
       ctx.translate(0, -(1 - p) * r * 1.5); ctx.scale(0.7 + 0.3 * p, 0.7 + 0.3 * p);

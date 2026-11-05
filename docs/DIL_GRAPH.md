@@ -1,6 +1,6 @@
 # DIL_GRAPH.md — the Design Intelligence Layer (GENERATED — `npm run dil -- regen`)
 
-> **The project's brain** (docs/DIL.md). 980 nodes · 1901 edges, built from the live
+> **The project's brain** (docs/DIL.md). 981 nodes · 1903 edges, built from the live
 > registries + curated knowledge (src/dev/dil/). **Query it instead of searching the repo:**
 > `npm run dil -- node <id>` · `affects <id>` · `requires <id>` · `missing <kind> <edge>` ·
 > `checklist tower <kind>` · `find <text>`. Edge kinds are bidirectional (19 kinds).
@@ -172,6 +172,7 @@ graph LR
   system_hero_symbiotes["Hero Symbiotes"] -->|modifies| system_engine["Sim Engine"]
   system_hero_symbiotes["Hero Symbiotes"] -->|consumes| system_engine["Sim Engine"]
   system_engine["Sim Engine"] -->|modifies| system_rendering["Rendering & VFX"]
+  system_rendering["Rendering & VFX"] -->|consumes| system_towers["Towers, Stars, Branches, Strain & Codex"]
   system_rendering["Rendering & VFX"] -->|consumes| system_audio["Audio"]
   system_hero_cinematics["Hero Ability Cinematics"] -->|consumes| system_heroes["Heroes"]
   system_hero_cinematics["Hero Ability Cinematics"] -->|modifies| system_rendering["Rendering & VFX"]
@@ -576,6 +577,7 @@ graph LR
   system_idle_harvest["Idle Harvest"] -->|consumes| system_genome_rank["Genome Rank (ultimate mastery ladder)"]
   system_towers["Towers, Stars, Branches, Strain & Codex"] -->|consumes| system_engine["Sim Engine"]
   system_hero_symbiotes["Hero Symbiotes"] -->|consumes| system_engine["Sim Engine"]
+  system_rendering["Rendering & VFX"] -->|consumes| system_towers["Towers, Stars, Branches, Strain & Codex"]
   system_rendering["Rendering & VFX"] -->|consumes| system_audio["Audio"]
   system_hero_cinematics["Hero Ability Cinematics"] -->|consumes| system_heroes["Heroes"]
   system_nemesis["Nemesis & Trophies"] -->|consumes| system_mega_bosses["Mega Bosses"]
@@ -1314,7 +1316,7 @@ _at: src/core/stars.ts, src/core/branches.ts, src/core/branchTree.ts, src/core/s
   - contains ← `tower:obelisk`
   - contains ← `tower:maw`
   - contains ← `tower:chrysalis`
-  - _…44 more (query: `npm run dil -- node system:towers`)_
+  - _…45 more (query: `npm run dil -- node system:towers`)_
 
 ### `system:mastery` — Mastery / Adaptation
 
@@ -2563,6 +2565,7 @@ _at: src/render/*, src/core/dangerCamera.ts_
 
   - dependsOn → `system:engine`
   - consumes → `concept:determinism` — render-only contract: reads snapshots, NEVER writes sim state
+  - consumes → `system:towers` — DAMAGE LANGUAGE (render/combatFx.ts, COMBAT-VISUAL-STANDARDS.md §damage-language, 2026-11): every attack read derives from TowerDef.combatClass / HeroDef.combatClass (the FORM: shot, muzzle burst, field pulse, hit burst, splash blast, kill pop) + the striker color (the TINT) via ONE six-row DAMAGE_STYLE table — never per-kind branches; distinct forms per class are test-pinned. Splash blasts are detected render-side (a splash shell leaving rs.projectiles un-faded detonated at tx,ty with radius p.splash); field pulses read rs.effectiveRanges; the muzzle fire-edge reads cooldown JUMPS only (drift-safe)
   - consumes → `system:audio` — statusApplied event (applyEffect, hasListeners-gated ⇒ golden-safe) → GameView plays throttled category cues (status_dot / status_control); the four legacy fast-field statuses do NOT emit — only framework applications
   - consumes → `system:engine` — enemy silhouette accents: theme.ENEMY_ACCENT round-robins slot 0..2 per ENEMY_BODY form family in DECLARATION ORDER — keep family groups contiguous so new kinds auto-take the next free slot
   - consumes → `system:engine` — COOLDOWN DRIFT CONTRACT (BUGFIX-LOG #16): the projectile fire path ticks t.cooldown -= dt EVERY tick and resets only if (acted) — a tower that cannot act (raid lull, empty lane, out-of-range prey) drifts its cooldown arbitrarily far below zero, BY DESIGN (sim-harmless; the fire gate is > 0; goldens + arena lockstep replays pin the ticking). ANY render/UI consumer of tw.cooldown MUST clamp: fresh already does, and the anticipation wind-up goes through attackAnticipation (render/towerForms.ts — [0..1] by construction, pinned in renderer.test.ts) because its ctx.scale transform sits OUTSIDE drawTower's 2.2× body ceiling (the Parasite-Nest screen flood was exactly this: 60s of drift → ×2,785 nest scale). Never feed raw cooldown into a visual factor
@@ -2578,9 +2581,9 @@ _at: src/render/*, src/core/dangerCamera.ts_
   - testedBy ← `test:src/core/dangerCamera.test.ts`
   - testedBy ← `test:src/render/abilityCinematics.test.ts`
   - testedBy ← `test:src/render/assimilationFx.test.ts`
+  - testedBy ← `test:src/render/combatFx.test.ts`
   - testedBy ← `test:src/render/equipmentArt.test.ts`
-  - testedBy ← `test:src/render/feel.test.ts`
-  - _…25 more (query: `npm run dil -- node system:rendering`)_
+  - _…26 more (query: `npm run dil -- node system:rendering`)_
 
 ### `system:living-battlefield` — Living Battlefield
 
@@ -4109,7 +4112,7 @@ _at: site/guides.ts → /guides/live-events/_
 - `doc:VOWS.md` — project documentation _(documents `system:prestige`)_
 - `doc:WEBSITE.md` — project documentation _(documents `system:field-research`, documents `system:website`)_
 
-## Tests (335)
+## Tests (336)
 
 - `test:src/audio/cues.test.ts` — automated validation _(tests `system:audio`)_
 - `test:src/audio/music.test.ts` — automated validation _(tests `system:audio`)_
@@ -4310,6 +4313,7 @@ _at: site/guides.ts → /guides/live-events/_
 - `test:src/net/syncEngine.test.ts` — automated validation _(tests `system:accounts`, tests `system:net-backend`)_
 - `test:src/render/abilityCinematics.test.ts` — automated validation _(tests `system:rendering`, tests `system:hero-cinematics`)_
 - `test:src/render/assimilationFx.test.ts` — automated validation _(tests `system:rendering`, tests `system:assimilation`)_
+- `test:src/render/combatFx.test.ts` — automated validation _(tests `system:rendering`)_
 - `test:src/render/equipmentArt.test.ts` — automated validation _(tests `system:rendering`, tests `system:equipment`)_
 - `test:src/render/feel.test.ts` — automated validation _(tests `system:rendering`)_
 - `test:src/render/filmDirection.test.ts` — automated validation _(tests `system:rendering`, tests `system:cutscenes`)_
