@@ -229,6 +229,22 @@ function composeWave(rng: Rng, budget: number, pool: EnemyKind[], weights: numbe
   return groups;
 }
 
+/** LIVE COMPOSITION (docs/DIFFICULTY_DIRECTOR.md §6a v3): promote round(share × eligible) of a wave's
+ *  groups to ELITE with the campaign's own fewer-but-stronger rule (count halved, rounded up). Eligible
+ *  = not already elite and not an exploder (a squad of elite bombers is an instant wipe — composeWave's
+ *  rule). Deterministic — the largest groups first, ties in spawn order — and a COPY: the stage's plan
+ *  is never mutated, so the prep preview and the launch read the same transform. share ≤ 0 ⇒ `wave`. */
+export function promoteEliteShare(wave: WaveDef, share: number): WaveDef {
+  if (!(share > 0)) return wave;
+  const eligible: number[] = [];
+  for (let i = 0; i < wave.length; i++) if (!wave[i].elite && !ENEMY_DEFS[wave[i].kind].explodeDamage) eligible.push(i);
+  const n = Math.round(share * eligible.length);
+  if (n <= 0) return wave;
+  eligible.sort((a, b) => wave[b].count - wave[a].count || a - b);
+  const pick = new Set(eligible.slice(0, n));
+  return wave.map((g, i) => (pick.has(i) ? { ...g, elite: true, count: Math.max(1, Math.ceil(g.count / 2)) } : g));
+}
+
 /** Trim a composed wave's AIRBORNE groups to at most `cap` units in total (in spawn order), dropping
  *  emptied groups. Pure post-pass — no rng — so the stage's stream is unchanged by the trim. */
 function trimFlying(wave: WaveDef, cap: number): WaveDef {

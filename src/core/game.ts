@@ -111,6 +111,7 @@ import { generateRunPlan, planForWave } from './runEvents';
 import type { RunPlan } from './runEvents';
 import { resolveDifficulty } from './difficulty';
 import type { StageConfig } from './campaign';
+import { promoteEliteShare } from './campaign';
 import { NEUTRAL_BIOME, biomeForDepth, hazardActive } from './biomes';
 import { heroIdentity } from './heroIdentity';
 import type { HeroIdentity } from './heroIdentity';
@@ -289,9 +290,11 @@ function wavePreview(def: WaveDef): WavePreviewEntry[] {
   for (const g of def) {
     const n = spawnCount(g.count); // the REAL integer that spawns — never a fractional preview
     const e = idx.get(g.kind);
-    if (e) e.count += n;
-    else {
-      const entry = { kind: g.kind, count: n };
+    if (e) {
+      e.count += n;
+      if (g.elite) e.elite = (e.elite ?? 0) + n;
+    } else {
+      const entry: WavePreviewEntry = g.elite ? { kind: g.kind, count: n, elite: n } : { kind: g.kind, count: n };
       idx.set(g.kind, entry);
       order.push(entry);
     }
@@ -2303,12 +2306,13 @@ export class Game {
     }
     if (this.waveIndex >= this.totalWaves) return;
     this.waveIndex++;
-    const def = this.waves[this.waveIndex - 1];
     const idx0 = this.waveIndex - 1;
     // LIVE adaptive threat (docs/DIFFICULTY_DIRECTOR.md §6a): exactly 1 unless a Campaign run opted
-    // in — then waves ≥ liveFromWave (chaff) and every boss body scale with the live Power ratio.
+    // in — then waves ≥ liveFromWave (chaff) and every boss body scale with the live Power ratio,
+    // and (v3) a share of the wave's groups arrives ELITE (the same transform the prep preview shows).
     const ratio = this.livePowerRatio();
     const m = this.waveIndex >= DIRECTOR_ADAPTIVE.liveFromWave ? this.dd.liveThreatMult(ratio) : 1;
+    const def = promoteEliteShare(this.waves[idx0], this.dd.liveEliteShare(m)); // same array at m ≤ 1
     const wave = this.dd.liveThreatParts(m, this.stageSpeedMult); // HP × pace × speed — exactly {1, 1, 1} at ×1
     this.liveThreat = wave.hp * wave.pace * wave.speed; // the APPLIED multiplier (== m unless speed hit its readability ceiling)
     const bossHp = this.dd.liveBossMult(ratio); // every boss body, any wave (exactly 1 at ratio ≤ 1)
@@ -2370,7 +2374,7 @@ export class Game {
    *  run's temporary Power × the board fielded vs an opening build) — 1 (neutral) unless this
    *  Campaign run opted in via RunOptions.livePowerBase. */
   private livePowerRatio(): number {
-    return this.livePowerBase === null ? 1 : this.dd.liveRatio(this.livePowerBase, effectsPower(this.powerEffects()), this.towers.length);
+    return this.livePowerBase === null ? 1 : this.dd.liveRatio(this.livePowerBase, this.investedPower(), this.towers.length, effectsPower(this.chosenCardEffects));
   }
 
   /** HUD read of the live adaptive multiplier: in prep, what the NEXT wave would launch with right
@@ -2789,6 +2793,14 @@ export class Game {
     const branchTiers = this.towers.reduce((n, t) => n + t.tier, 0);
     const strainLevels = this.towers.reduce((n, t) => n + (t.strain - 1), 0); // docs/STRAIN.md §power
     return [...this.chosenCardEffects, ...heroEvoEffects(this.heroEvoLevels), ...branchPowerEffects(branchTiers), ...strainPowerEffects(strainLevels)];
+  }
+
+  /** The run's temporary Power WITHOUT the drafted cards (Hero Evolution + branches + strains — the
+   *  Biomass investment) — the §6a v3 live ratio's in-run term. Cold path (wave launch / prep HUD). */
+  private investedPower(): number {
+    const branchTiers = this.towers.reduce((n, t) => n + t.tier, 0);
+    const strainLevels = this.towers.reduce((n, t) => n + (t.strain - 1), 0);
+    return effectsPower(heroEvoEffects(this.heroEvoLevels)) * effectsPower(branchPowerEffects(branchTiers)) * effectsPower(strainPowerEffects(strainLevels));
   }
 
   // ── Power-integration runtime validator (docs/POWER-AUDIT.md) ────────────────────────────────
@@ -8658,7 +8670,10 @@ export class Game {
   /** Composition of the wave that Start Wave will launch next (null if none left). */
   getNextWavePreview(): WavePreviewEntry[] | null {
     if (this.mode === 'endless' || this.mode === 'bossRush' || this.waveIndex >= this.totalWaves) return null;
-    return wavePreview(this.waves[this.waveIndex]);
+    // v3 live composition: the NEXT wave as it would launch right now (preview == outcome while the
+    // board is unchanged — the same rule as the ADAPTED chip). ×1 (the plain plan) for every other run.
+    const m = this.livePowerBase !== null && this.waveIndex + 1 >= DIRECTOR_ADAPTIVE.liveFromWave ? this.dd.liveThreatMult(this.livePowerRatio()) : 1;
+    return wavePreview(promoteEliteShare(this.waves[this.waveIndex], this.dd.liveEliteShare(m)));
   }
 
   /** Per-tower-kind usage accrued this run — banked into permanent mastery at run end. */

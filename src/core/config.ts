@@ -3248,6 +3248,12 @@ export const DIRECTOR_ADAPTIVE = {
   // temporary bucket never sees board growth (2 → 18 towers). (fielded / opening)^exp, floored at 1.
   liveBoardOpening: 3, // the opening build: 2 deploys + the run-start gift (docs/CAMPAIGN.md §grace)
   liveBoardExp: 1, // 0 = board term off; 1 = board power ∝ towers fielded
+  // v3: DRAFTED cards in the live ratio ^ this (0 ⇒ excluded — a stronger pick must not also raise the
+  // threat; Hero Evolution, branches and strains — Biomass investment — still count).
+  liveCardExp: 1,
+  // v3 COMPOSITION: up to this share of a live wave's groups is promoted to ELITE (fewer-but-stronger,
+  // the campaign's own elite rule) — the threat lands as concentrated bodies that leak chip damage.
+  liveEliteShare: 0,
 };
 
 // ── Adaptive Economy Framework: income-seam weights (docs/ECONOMY_FORMULAS.md) ──

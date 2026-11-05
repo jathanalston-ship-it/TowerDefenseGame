@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { Game } from '../core/game';
-import { ENEMY_DEFS } from '../core/config';
+import { DIRECTOR, ENEMY_DEFS } from '../core/config';
 import type { EnemyDef } from '../core/config';
 import { ENEMY_TIER } from '../render/theme';
 import { audio } from '../audio/sound';
@@ -53,7 +53,7 @@ export function BuildControls({
   // The preview only changes per wave — memo it so the ~10 Hz HUD refresh never re-aggregates.
   const preview = useMemo(
     () => (visible ? game.getNextWavePreview() : null),
-    [game, visible, hud.wave],
+    [game, visible, hud.wave, hud.liveThreat], // liveThreat: the §6a v3 elite share moves with the board in prep
   );
   const hostiles = useMemo(() => (preview ? preview.reduce((n, e) => n + e.count, 0) : 0), [preview]);
   // Auto Gene Selection lives in the same console as Auto Wave, so the two semi-idle
@@ -73,7 +73,7 @@ export function BuildControls({
       biomass += (ENEMY_DEFS[e.kind]?.bounty ?? 0) * e.count;
       const tier = ENEMY_TIER[e.kind];
       if (tier === 'boss') heavy = 'boss';
-      else if (tier === 'elite' && heavy !== 'boss') heavy = 'elite';
+      else if ((tier === 'elite' || (e.elite ?? 0) > 0) && heavy !== 'boss') heavy = 'elite';
     }
     return { biomass, heavy };
   }, [preview]);
@@ -134,9 +134,11 @@ export function BuildControls({
                     <span className="wb-dot" aria-hidden />
                     <span className="wb-name">{def.name}</span>
                     <span className="wb-n">×{e.count}</span>
+                    {(e.elite ?? 0) > 0 && <span className="wb-elite">★{e.elite}</span>}
                     {role && <span className="wb-role">{role}</span>}
                     <span className="tt-bubble">
                       {def.name} — {def.hp} HP{def.armor > 0 ? ` · ${def.armor} armor` : ''}{role ? ` · ${role.toLowerCase()}` : ''}
+                      {(e.elite ?? 0) > 0 ? ` · ${e.elite} ELITE (×${DIRECTOR.eliteHpMult} HP, ×${DIRECTOR.eliteDmgMult} damage)` : ''}
                     </span>
                   </span>
                 );
