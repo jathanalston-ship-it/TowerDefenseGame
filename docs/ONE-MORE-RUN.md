@@ -133,6 +133,8 @@ minted), and the list shrank from 8 goals to 3 by stage 80. Now:
   the board populated at depth — only when that rung is ≤ `INCOME.ladderGoalRuns` (40) runs away, so
   an early account never sees a rung hundreds of runs out (or on a mode it hasn't opened). Found by
   the Batch G integration media pass: a Stage-2 Home listed "Abyssal Record I · ~235 runs".
+- **A stage within reach** (Power ≥ `READINESS.warnBelow` × recommended — usually won) costs
+  `INCOME.closeAttempts` (1.5) attempts per stage; the observed wall pace answers only below the band.
 - **Printed ETAs stop at `INCOME.etaCap` (60):** past it a goal reads "a long road" — the estimate
   is too soft to print as a number that far out, and a 3-digit count discourages more than it informs.
 

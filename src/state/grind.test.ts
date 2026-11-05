@@ -13,7 +13,8 @@ import { defaultIncome, defaultLifetimeStats, defaultSave, serializeExport } fro
 import type { SaveData } from '../save/saveStore';
 import { collectionContextOf, gearDiscovered, meta, towerStarCost, heroStarCost } from './meta';
 import type { RunResult } from './meta';
-import { HERO_ORDER, STAR, TOWER_ORDER } from '../core/config';
+import { HERO_ORDER, READINESS, STAR, TOWER_ORDER } from '../core/config';
+import { recommendedPowerScore } from '../core/campaign';
 import type { RunStats, TowerKind } from '../core/types';
 import { collectionView } from '../core/collection';
 import { Rng } from '../core/rng';
@@ -115,6 +116,10 @@ describe('income ledger (docs/ONE-MORE-RUN.md §eta)', () => {
     expect(runsToStage({ ...s, campaign: { cleared: { standard: 10 }, bestTime: {} } }, 14, 1)).toBe(8);
     // … while live Power that already meets the stage makes each remaining stage one run
     expect(runsToStage({ ...s, campaign: { cleared: { standard: 10 }, bestTime: {} } }, 14, 1e15)).toBe(4);
+    // … and Power inside the readiness band (≥ READINESS.warnBelow × recommended — usually won) costs an
+    // attempt or two per stage, never the slow wall pace (that would read 2 stages ≈ 4 runs here)
+    const close = recommendedPowerScore(12) * (READINESS.warnBelow + 0.05);
+    expect(runsToStage({ ...s, campaign: { cleared: { standard: 10 }, bestTime: {} } }, 12, close)).toBe(Math.ceil(2 * INCOME.closeAttempts));
     expect(etaLabel(0)).toBe('ready now');
     expect(etaLabel(1)).toBe('next run');
     expect(etaLabel(14)).toBe('~14 runs');

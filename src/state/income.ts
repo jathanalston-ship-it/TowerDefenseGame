@@ -15,7 +15,7 @@
 
 import type { IncomeSave, SaveData } from '../save/saveStore';
 import { highestCampaignStage } from '../save/derive';
-import { HERO_DEFS, HERO_ORDER, STAR, TOWER_DEFS, TOWER_ORDER } from '../core/config';
+import { HERO_DEFS, HERO_ORDER, READINESS, STAR, TOWER_DEFS, TOWER_ORDER } from '../core/config';
 import { primeCost } from '../core/prime';
 import { recommendedPowerScore } from '../core/campaign';
 
@@ -31,6 +31,10 @@ export const INCOME = {
   /** ETAs past this read as "a long road" — past a few sessions the estimate is too soft to print as a
    *  number, and a 3-digit run count on a fresh account discourages more than it informs. */
   etaCap: 60,
+  /** Attempts a WITHIN-REACH stage costs (Power ≥ READINESS.warnBelow × recommended — the band GR1
+   *  measured winning ~67–78 % of runs, docs/PROGRESSION-LOOP.md §readiness): ≈ 1 / p(win). Below the
+   *  band the player's own observed stage pace answers (a real wall). */
+  closeAttempts: 1.5,
   /** An achievement-LADDER goal joins the goal board only when its rung is at most this many runs
    *  away: ladders exist to keep the board alive AT DEPTH, never to fill a new player's list with a
    *  rung hundreds of runs out (or on a mode they haven't opened — its meter has no income yet). */
@@ -168,6 +172,9 @@ export function runsToStage(save: SaveData, target: number, livePower?: number):
   const power = livePower ?? save.genomeRank?.peakPower ?? 0;
   const need = recommendedPowerScore(target);
   if (power > 0 && power >= need) return clears;
+  // Within reach (the readiness band where runs are usually WON): an attempt or two per stage — never
+  // the slow farm pace (a Stage-2 account at 91 % of Stage 3 read "~7 runs" for one clear).
+  if (power > 0 && power >= need * READINESS.warnBelow) return Math.ceil(clears * INCOME.closeAttempts);
   const pace = incomePerRun(save, 'stage');
   if (pace > 1e-6) return Math.max(clears, Math.ceil(clears / pace));
   const g = incomePerRun(save, 'lnPower');

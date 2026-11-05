@@ -38,7 +38,8 @@ import { autoClaimPref } from '../state/prefs';
 /** The defeat debrief (docs/REWARD-PRESENTATION.md §debrief) — always visible under the title on
  *  a loss: how close the run came, what got through, and ONE concrete next step. */
 function DebriefPanel({ d, onGo }: { d: DefeatDebrief; onGo: (nav: string) => void }): JSX.Element {
-  const where = d.totalWaves > 0 ? `Fell on wave ${d.wave} of ${d.totalWaves}` : `Fell at depth ${d.wave}`;
+  // wave 0 = the run ended before wave 1 launched (abandoned in the opening draft / first build phase)
+  const where = d.wave < 1 ? 'Ended before wave 1' : d.totalWaves > 0 ? `Fell on wave ${d.wave} of ${d.totalWaves}` : `Fell at depth ${d.wave}`;
   const boss = d.bosses[0];
   return (
     <div className="rr-debrief" role="note" aria-label="What went wrong" onClick={(e) => e.stopPropagation()}>
