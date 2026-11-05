@@ -64,6 +64,7 @@ import { drawVictoryWash } from './runOutro';
 import { drawMegaBody, drawMegaOrgans, drawMegaShots, drawMegaVignette } from './megaboss';
 import { bossColorOf, drawBossBody, drawBossCrown } from './bossChassis';
 import { deathFlavorOf, drawStatusFxOver, drawStatusFxUnder, mergeStatusFx, statusBodyTransform } from './statusFx';
+import { COMBAT_FX, drawCombatBursts, drawDamageShot, drawHitFlash, drawMuzzleFlash, pushHitBurst, shotClass, shotColor, updateCombatFx } from './combatFx';
 import type { DeathFlavor, StatusFxQuality } from './statusFx';
 import { dangerCurve } from '../core/dangerCamera';
 import { GRUDGE_LADDER } from '../core/nemesis';
@@ -443,7 +444,7 @@ export function drawGame(
   updateEnemyMotion(rs.enemies, t, detail, rs.towers, rs.megaBoss ? { x: 360, y: rs.megaBoss.anchorY } : null); // per-id velocity + spawn age + hit edges + gaze + death reaping (presentation only)
   if (detail) drawDeathEchoes(ctx, t); // fading crumples UNDER the living bodies
   for (const e of rs.enemies) drawEnemy(ctx, e, detail, t, fxQ);
-  drawImpactSparks(ctx, t); // hit-confirmation starbursts OVER the bodies they struck
+  drawImpactSparks(ctx, rs, t, detail); // damage-type hit bursts, splash blasts + kill pops OVER the bodies (render/combatFx.ts)
   drawGorePieces(ctx); // gibs + juice + coalescing streams, OVER the bodies
 
   // MEGA weak-point organs + raid-fire tracers — over enemies (they are the priority targets).
@@ -1293,11 +1294,10 @@ function drawTower(ctx: CanvasRenderingContext2D, tw: RenderState['towers'][numb
   // front slice drapes over the body below. Inactive organisms draw nothing (golden-safe look).
   if (mulligan) drawMulliganOrganism(ctx, tw.x, tw.y, r, mulligan.resolved, mulligan.visualSeed, mulligan.animSeed, now, fresh, 'back');
 
-  // muzzle flash above firing towers (enemies are upfield) on the recoil frames — a branched
-  // tower's flash grows with tier (attack-animation escalation, TOWER-BRANCHES.md §9).
-  if (fresh > 0.01) {
-    glowDisc(ctx, tw.x, tw.y - r * 0.8, r * (0.7 + fresh + tw.tier * 0.08), skin?.glow ?? kcolor);
-  }
+  // V1 COMBAT VFX hook (render/combatFx.ts §muzzle): the tower's attack read — shooters flash their
+  // DAMAGE-TYPE burst at the muzzle (aimed at the threat, grows with branch tier), field towers send a
+  // class wavefront out to their true reach; supports/summoners/beams keep the soft recoil glow.
+  drawMuzzleFlash(ctx, tw, r, now, fresh, skin?.glow ?? kcolor);
 
   // Marrow Siphon (docs/SIPHON.md): the live drain ray, drawn UNDER the body so the organ sits over
   // the socket while the beam reaches out over the swarm. beamX/Y are set only while a lock is live
@@ -1717,6 +1717,16 @@ function drawProjectile(ctx: CanvasRenderingContext2D, p: RenderState['projectil
   // a log-capped size ramp off the shot's damage (12 dmg ⇒ ×1, ~10× ⇒ ×1.25, hard cap ×1.4),
   // so account power subtly thickens the fire without ever bloating the battlefield.
   const pw = Math.min(1.4, 1 + Math.max(0, Math.log10(Math.max(1, p.damage / 12))) * 0.25);
+  // DAMAGE LANGUAGE (render/combatFx.ts): a shot's SILHOUETTE is its striker's damage type (Kinetic
+  // dart · Caustic glob · Viral spore · Neural bolt · Vital orb · Resonant pulse) and its COLOR the
+  // striker's own — so six homing towers + every hero no longer fire the same pale bolt. An equipped
+  // wardrobe trail keeps its cosmetic streak (drawn below) and the class head rides on top of it.
+  const cls = shotClass(p.sourceKind, p.heroSource);
+  if (cls && !wdTrail) {
+    drawDamageShot(ctx, cls, p.x, p.y, ux, uy, pw, heroWeapon ?? (skin ? skin.glow : shotColor(p.sourceKind, p.heroSource)), now, p.id);
+    if (fading) ctx.globalAlpha = 1;
+    return;
+  }
   const head = (splash ? 3.7 : parasite ? 2.9 : 2.4) * pw;
   const tlen = (splash ? 15 : parasite ? 9 : 13) * (0.7 + 0.3 * pw);
 
@@ -1748,6 +1758,11 @@ function drawProjectile(ctx: CanvasRenderingContext2D, p: RenderState['projectil
   }
   ctx.lineCap = 'butt';
 
+  if (cls) { // wardrobe streak above + the damage-type head
+    drawDamageShot(ctx, cls, p.x, p.y, ux, uy, pw, heroWeapon ?? (skin ? skin.glow : shotColor(p.sourceKind, p.heroSource)), now, p.id, false);
+    if (fading) ctx.globalAlpha = 1;
+    return;
+  }
   // A layered glowing head: a soft halo, the core, and a white-hot leading edge. The parasite spore
   // WOBBLES (organic), the splash glob PULSES — both keyed off position so no per-projectile state.
   glowDisc(ctx, p.x, p.y, head * 2.5, rgba(trail, 0.42));
@@ -1917,12 +1932,8 @@ interface EnemyMotion { x: number; y: number; vx: number; vy: number; spawnT: nu
 const enemyMotion = new Map<number, EnemyMotion>();
 interface DeathEcho { form: BodyForm; x: number; y: number; r: number; color: string; seed: number; accent: number; phase: number; t0: number; flavor: DeathFlavor | null; flavorHue: string | null }
 const deathEchoes: DeathEcho[] = [];
-// HIT CONFIRMATION sparks (docs/GAME-FEEL.md P0): a landed hit bursts class-tinted sparks at
-// contact. Render-local pool (the sim spawns no hit particles) — capped, stateless to draw.
-interface ImpactSpark { x: number; y: number; hue: string; t0: number; seed: number }
-const impactSparks: ImpactSpark[] = [];
-const SPARK_T = 0.24; // seconds a hit spark lives
-const SPARK_GAP = 0.12; // per-enemy throttle — a machine-gunned body doesn't strobe
+// HIT CONFIRMATION (docs/GAME-FEEL.md P0, docs/COMBAT-VISUAL-STANDARDS.md §damage-language): a landed
+// hit bursts the STRIKER's damage-type form at contact — render/combatFx.ts owns the fixed pool.
 let motionFrame = 0;
 const EMERGE_T = 0.55; // seconds for the archetype BIRTH intro (enemyForms drawSpawnIntro) to play out
 const ECHO_T = 0.3; // seconds a death crumple lingers
@@ -1943,8 +1954,8 @@ function updateEnemyMotion(enemies: RenderState['enemies'], t: number, detail: b
     m.x = e.x; m.y = e.y; m.seen = motionFrame;
     // A RISING hitFlash edge = a hit just landed — burst sparks tinted by the striking tower's
     // class (throttled per body, LOD-gated, pool-capped: heavy fire stays readable).
-    if (detail && e.hitFlash > m.hitF + 0.005 && t - m.sparkT > SPARK_GAP && impactSparks.length < 90) {
-      impactSparks.push({ x: e.x, y: e.y, hue: e.lastHitKind ? TOWER_DEFS[e.lastHitKind].color : '#cfe8ff', t0: t, seed: e.id * 31 + motionFrame });
+    if (detail && e.hitFlash > m.hitF + 0.005 && t - m.sparkT > COMBAT_FX.hitGap) {
+      pushHitBurst(e.x, e.y, visualHeft(themedEnemyDef(e.kind).radius), e.lastHitKind, t, e.id * 31 + motionFrame);
       m.sparkT = t;
     }
     m.hitF = e.hitFlash;
@@ -1990,25 +2001,11 @@ function updateEnemyMotion(enemies: RenderState['enemies'], t: number, detail: b
   }
 }
 
-/** Draw + reap the live hit sparks — a brief radial starburst at each contact point. */
-function drawImpactSparks(ctx: CanvasRenderingContext2D, t: number): void {
-  for (let i = impactSparks.length - 1; i >= 0; i--) {
-    const s = impactSparks[i];
-    const k = (t - s.t0) / SPARK_T;
-    if (k >= 1 || k < 0) { impactSparks.splice(i, 1); continue; }
-    const c = hexRgb(s.hue);
-    ctx.strokeStyle = rgba(c, (1 - k) * 0.85);
-    ctx.lineWidth = 1.4;
-    ctx.beginPath();
-    for (let j = 0; j < 4; j++) {
-      const a = hash01(s.seed + j * 17) * Math.PI * 2;
-      const d0 = 3 + k * 13;
-      const d1 = d0 + 4.5 * (1 - k);
-      ctx.moveTo(s.x + Math.cos(a) * d0, s.y + Math.sin(a) * d0);
-      ctx.lineTo(s.x + Math.cos(a) * d1, s.y + Math.sin(a) * d1);
-    }
-    ctx.stroke();
-  }
+/** The damage language's per-frame pass (render/combatFx.ts): hit bursts in the striker's class form,
+ *  splash blasts at their true radius, kill pops — one fixed pool, drawn over the bodies. */
+function drawImpactSparks(ctx: CanvasRenderingContext2D, rs: RenderState, t: number, detail: boolean): void {
+  updateCombatFx(rs, t, detail); // splash detonations (true-radius blasts) + kill pops, then the shared pool
+  drawCombatBursts(ctx, t);
 }
 
 /** Draw the death crumples — the body splays + squashes flat + fades over ECHO_T. A body that
@@ -2414,8 +2411,9 @@ function drawEnemy(
   }
 
   if (detail) {
-    // white pop on taking a hit (FX.hitFlash ≈ 0.09s → normalize ×9 for alpha)
-    if (e.hitFlash > 0) drawShape(ctx, shape, e.x, drawY, r, rgba(THEME.enemy.hitFlash, Math.min(0.8, e.hitFlash * 9)));
+    // hit flash (FX.hitFlash ≈ 0.09s → normalize ×9): the body lights up ADDITIVELY in its striker's
+    // hot tint + a class-colored rim (render/combatFx.ts) — the creature stays readable under the hit.
+    if (e.hitFlash > 0) drawHitFlash(ctx, shape, e.x, drawY, r, Math.min(1, e.hitFlash * 9), e.lastHitKind);
     // Status overlays + particles — the merged framework pass (replaces the old per-status
     // rings: corrosion/infection/disrupt/fracture now blend through their registry fx traits).
     if (sfx) drawStatusFxOver(ctx, sfx, e.x, drawY, r, t, e.id, eFxQ);
