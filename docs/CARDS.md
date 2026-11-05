@@ -159,8 +159,9 @@ the pill shows only once you can pay (optional, never a nag). Never mid-fight, n
 never in the tutorial, and off under a Daily that rations drafts (Dormancy). Unlocks after clearing
 Campaign Stage **5** (`DRAFT_FEATURES.splice.fromCleared`); the Daily grants it to everyone (fair shared
 board). A recorded input (`REPLAY_METHODS`), so Daily replays reproduce it. Cards ride the temporary
-Power bucket like any draft (previews == outcomes). Hive Intelligence does not splice for you (a pulse
-cannot make the pick — the seam is a provider whose exec opens the draft).
+Power bucket like any draft (previews == outcomes). Hive Intelligence splices as the overflow sink (its
+`splice` provider, docs/HIVE-MIND.md — valued at the run's own average drafted card, real purchases
+first); the pulse ENDS on the opened draft, so the pick stays the player's (or Auto Gene's).
 
 ---
 

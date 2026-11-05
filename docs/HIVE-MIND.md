@@ -45,6 +45,11 @@ members only — no Game import at runtime, no cycles, unit-testable with a stub
   6. `favorite` — the account's FAVORITE organism onto the best open slot, on the universal deploy
      curve — OPENING ONLY, while the board is thin (§opening — before Batch G the mind could only place
      what the conveyor offered; past the opening the conveyor keeps the board varied).
+  7. `splice` — a SPLICE (docs/CARDS.md §splice) when the bank reaches its price: valued at the run's
+     own average drafted card (`Game.spliceGainEstimate` × `HIVE_MIND.spliceGainMult`), so at its price
+     it ranks as the overflow sink — real purchases first. It OPENS a draft, so `hivePulse` ends the
+     pulse there: the Hive buys the choice, the player (or Auto Gene) makes it. No card drafted yet ⇒ no
+     estimate ⇒ no splice.
 - **`hivePlan(g)`** — enumerate all providers → apply context (§scoring) → drop actions the
   reserve can't afford → sort by `value` (deterministic tie-break by id).
 - **`Game.hivePulse()`** — execute-best / re-plan loop (costs move as it buys — the deploy

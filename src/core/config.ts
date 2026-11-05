@@ -2179,6 +2179,7 @@ export const HIVE_MIND = {
   thinHoldProviders: ['heroEvo', 'autocast'] as readonly string[], // …and these purchases wait…
   thinHoldMult: 0, // …at this value multiplier (0 ⇒ below minValue ⇒ never bought, never glows)
   flierCoreBias: 1, // next wave previews FLIERS ⇒ combat organisms rank slots by nearness to the Nucleus (0 = off)
+  spliceGainMult: 1, // SPLICE: a draft is worth this × the run's average drafted card (docs/CARDS.md §splice)
 } as const;
 
 // Revenant blink (behavior 'phase'): seconds the teleport streak/after-image lingers. The sim sets

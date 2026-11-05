@@ -45,6 +45,12 @@ export interface HiveGame {
   deployTower(kind: TowerKind, px: number, py: number): boolean;
   deployFromConveyor(itemId: number, px: number, py: number): boolean;
   strainFromConveyor(itemId: number): 'ok' | 'noTarget' | 'poor' | 'badItem';
+  /** SPLICE (docs/CARDS.md §splice) — optional: a game/fake without these never splices. */
+  canSplice?(): boolean;
+  spliceCost?(): number;
+  splice?(): boolean;
+  /** The Power one more draft is worth — the run's own average drafted card (0 before any card). */
+  spliceGainEstimate?(): number;
 }
 
 export interface HiveAction {
@@ -291,6 +297,29 @@ registerHiveProvider({
       });
     }
     return out;
+  },
+});
+
+// SPLICE (docs/CARDS.md §splice): banked Biomass → an extra 1-of-3 gene draft. Valued at the run's own
+// average drafted card (HIVE_MIND.spliceGainMult), so at its price it ranks as the OVERFLOW SINK it is —
+// towers, branches and merges come first. Executing it OPENS a draft: Game.hivePulse ends the pulse there,
+// so the pick stays the player's (or Auto Gene's) — the Hive buys the choice, never makes it.
+registerHiveProvider({
+  id: 'splice',
+  enumerate(g) {
+    if (!g.canSplice || !g.spliceCost || !g.splice || !g.spliceGainEstimate || !g.canSplice()) return [];
+    const gain = g.spliceGainEstimate() * HIVE_MIND.spliceGainMult;
+    if (!(gain > 0)) return [];
+    return [{
+      id: 'splice',
+      provider: 'splice',
+      label: 'Spliced an extra gene draft',
+      detail: 'Biomass overflow → one more 1-of-3 pick (yours to make)',
+      cost: g.spliceCost(),
+      gain,
+      value: 0,
+      exec: (gg) => gg.splice?.() === true,
+    }];
   },
 });
 

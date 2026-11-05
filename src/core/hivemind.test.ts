@@ -201,3 +201,42 @@ describe('hive intelligence — the opening (docs/HIVE-MIND.md §opening)', () =
     expect(ground.y).toBe(Math.min(...towerSlots.map((s) => s.y)));
   });
 });
+
+describe('hive intelligence — SPLICE (docs/CARDS.md §splice)', () => {
+  // An endless run with Splice on, a real board, and one drafted card (so a draft has a value to judge).
+  function spliceBoard(biomass: number): Game {
+    const g = new Game(23, NO_META, undefined, 'ravager', undefined, { mode: 'endless', automationAllowed: true, splice: true, draftFit: true });
+    for (let i = 0; i < HIVE_MIND.thinBoardTowers + 1; i++) g.placeTower(i % 2 ? 'mortar' : 'needle', forward[i].x, forward[i].y);
+    g.debugOpenDraft();
+    g.chooseCard(g.getSnapshot().draft![0].id);
+    g.debugAddBiomass(biomass);
+    return g;
+  }
+
+  it('values a draft at the run’s own average card, and buys it only as the overflow sink', () => {
+    const g = spliceBoard(0);
+    expect(g.spliceGainEstimate()).toBeGreaterThan(0);
+    expect(g.hiveEvaluate().some((a) => a.provider === 'splice')).toBe(false); // below the price: never offered
+    g.debugAddBiomass(Math.ceil(g.spliceCost() / (1 - HIVE_MIND.reserveFrac)) + 1);
+    const plan = g.hiveEvaluate();
+    const splice = plan.find((a) => a.provider === 'splice');
+    expect(splice).toBeDefined();
+    expect(splice!.cost).toBe(g.spliceCost());
+  });
+
+  it('a pulse that splices ENDS on the open draft — the pick stays the player’s', () => {
+    const g = spliceBoard(5e6); // an overflowing bank: every cheaper buy happens, then the splice
+    const rep = g.hivePulse({ maxActions: 400 });
+    expect(rep.actions.some((a) => /Spliced/.test(a.label))).toBe(true);
+    expect(rep.actions[rep.actions.length - 1].label).toMatch(/Spliced/); // nothing after the draft opened
+    expect(g.phase).toBe('draft');
+    expect(g.getSnapshot().draftKind).toBe('splice');
+  });
+
+  it('no drafted card yet ⇒ no estimate ⇒ no splice (nothing to judge a draft by)', () => {
+    const g = new Game(23, NO_META, undefined, 'ravager', undefined, { mode: 'endless', automationAllowed: true, splice: true });
+    g.debugAddBiomass(5e6);
+    expect(g.spliceGainEstimate()).toBe(0);
+    expect(g.hiveEvaluate().some((a) => a.provider === 'splice')).toBe(false);
+  });
+});

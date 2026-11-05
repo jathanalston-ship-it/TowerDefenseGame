@@ -2778,6 +2778,7 @@ export class Game {
       actions.push({ label: best.label, detail: best.detail, cost: best.cost });
       // The battlefield announces the actor (each purchase's own ceremony already fired).
       this.floats.push({ x: WIDTH / 2, y: 330 + actions.length * 22, text: `◈ ${best.label}`, color: '#8fd0ff', life: 1.6 });
+      if (this.phase === 'draft') break; // a SPLICE opened a draft — the pulse ends; the pick is the player's
     }
     if (actions.length > 0) this.pushSfx('splice');
     this.hiveReadyAt = -1; // the wallet moved — recompute the button glow immediately
@@ -7871,6 +7872,16 @@ export class Game {
   canSplice(): boolean {
     return this.spliceOn && this.phase === 'prep' && !this.tutorialMode && this.dailyFx.draftEveryWaves <= 0
       && this.biomass >= this.spliceCost();
+  }
+
+  /** HIVE (docs/CARDS.md §splice): the Power one more draft is worth — the run's own AVERAGE drafted
+   *  card (the temp-Power effects with vs without the drafted cards, ÷ cards taken), in the Hive's
+   *  powerDelta units. 0 before any card is drafted (nothing to judge a draft by). Cold path. */
+  spliceGainEstimate(): number {
+    const n = this.chosenCards.length;
+    if (n === 0) return 0;
+    const fx = this.powerEffects(); // drafted cards come first (powerEffects' order)
+    return Math.max(0, (effectsPower(fx) - effectsPower(fx.slice(this.chosenCardEffects.length))) / n);
   }
 
   /** Buy a SPLICE: pay the price, deal a fresh 1-of-3 from the live board, open it as a draft. The
