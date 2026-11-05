@@ -71,7 +71,7 @@ describe('UI standards — the stylesheet stays on the design scale', () => {
 
   it('the design tokens the standards reference actually exist in :root', () => {
     const root = css().slice(0, css().indexOf('}', css().indexOf(':root')));
-    for (const t of ['--r-xs', '--r-sm', '--r-md', '--r-lg', '--dur-1', '--dur-2', '--dur-3', '--dur-4', '--ease-out', '--r-common', '--r-mythic', '--viral']) {
+    for (const t of ['--r-xs', '--r-sm', '--r-md', '--r-lg', '--dur-1', '--dur-2', '--dur-3', '--dur-4', '--ease-out', '--r-common', '--r-mythic', '--r-exotic', '--r-exotic-2', '--viral']) {
       expect(root.includes(`${t}:`), `missing token ${t}`).toBe(true);
     }
   });

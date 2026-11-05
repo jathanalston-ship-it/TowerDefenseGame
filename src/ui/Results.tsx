@@ -34,6 +34,7 @@ import { RunBackdrop } from './components/RunBackdrop';
 import type { RunBackdropImage } from '../render/runOutro';
 import { featureRevealed } from '../state/unlocks';
 import { autoClaimPref } from '../state/prefs';
+import { RarityFx, rfxClass } from './components/RarityFx';
 
 /** The defeat debrief (docs/REWARD-PRESENTATION.md §debrief) — always visible under the title on
  *  a loss: how close the run came, what got through, and ONE concrete next step. */
@@ -423,7 +424,8 @@ export function Results({
           <>
             <div className="vault-earned">
               {containerRows.map((r, i) => (
-                <div className={`ve-row${r.cache ? ' is-cache' : ''}`} key={r.key} style={{ borderLeftColor: r.color, ['--i' as string]: i }}>
+                <div className={`ve-row${r.cache ? ' is-cache' : ` ${rfxClass(r.key, true)}`}`} key={r.key} style={{ borderLeftColor: r.color, ['--i' as string]: i }}>
+                  {!r.cache && <RarityFx rarity={r.key} lite flash />}
                   <span className="ve-icon" style={{ color: r.color }}>{r.glyph}</span>
                   <span className="ve-name" style={{ color: r.color }}>{r.name}</span>
                   <span className="ve-count">×{r.n}</span>

@@ -13,6 +13,7 @@ import type { EquipDef, Rarity } from '../core/equipment';
 import { ItemArt } from './components/ItemArt';
 import { MobileSection } from './components/MobileSection';
 import { useLayoutProfile } from './layoutProfile';
+import { RarityFx, rfxClass } from './components/RarityFx';
 
 /** A compact plain-language phrase for a set-bonus effect (no shared helper exists — inline).
  *  Set bonuses only ever use the field-bearing ops (mul/add/flag); others get a generic label. */
@@ -49,7 +50,8 @@ export function EquipmentCollection(): JSX.Element {
     return (
       <div key={def.id} title={isOwned ? (rar ? def.desc : `${def.desc} — discovered (none held right now)`) : 'Undiscovered — find it in a Bio-Container'}
         style={{ width: 116, opacity: isOwned ? 1 : 0.4, filter: isOwned ? 'none' : 'grayscale(0.7)', textAlign: 'center' }}>
-        <div style={{ position: 'relative' }}>
+        <div className={rar ? rfxClass(rar, true) : undefined} style={{ position: 'relative', borderRadius: 8 }}>
+          {rar && <RarityFx rarity={rar} lite />}
           <ItemArt def={def} rarity={showRar} size={100} />
           {!isOwned && <span style={{ position: 'absolute', inset: 0, display: 'grid', placeItems: 'center', fontSize: 24 }}>🔒</span>}
         </div>

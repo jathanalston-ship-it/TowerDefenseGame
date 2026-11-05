@@ -23,6 +23,7 @@ import { compareItemPower } from '../state/itemPower';
 import { ItemDetails } from './ItemDetails';
 import { HostedScreen } from './components/HostTabs';
 import { EquipmentCollection } from './EquipmentCollection';
+import { RarityFx, rfxClass } from './components/RarityFx';
 
 type SortKey = 'power' | 'rarity' | 'name' | 'set' | 'newest';
 const SORTS: { key: SortKey; label: string }[] = [
@@ -141,11 +142,12 @@ function ArmoryBody(): JSX.Element {
     const salvClass = salvageMode ? (canSalv ? (chosen ? ' is-selectable is-selected' : ' is-selectable') : ' is-inert') : '';
     return (
       <div
-        className={`item-card${equipped ? ' is-equipped' : ''}${item.favorite ? ' is-fav' : ''}${salvClass}`}
+        className={`item-card ${rfxClass(item.rarity, true)}${equipped ? ' is-equipped' : ''}${item.favorite ? ' is-fav' : ''}${salvClass}`}
         key={item.uid}
         style={{ ['--rc' as string]: c }}
         onClick={salvageMode && canSalv ? () => toggleSelect(item.uid) : undefined}
       >
+        <RarityFx rarity={item.rarity} lite />
         <div className="ic-frame">
           <ItemArt def={def} rarity={item.rarity} size={66} />
           {!item.seen && <span className="ic-new" title="Not yet inspected">NEW</span>}

@@ -12,10 +12,11 @@ import { RARITY_ORDER } from '../core/equipment';
 const TAU = Math.PI * 2;
 
 // Canvas needs LITERAL colors (the DOM's rarity `var(--r-*)` can't be parsed into a gradient stop).
-// These mirror the theme's rarity hues; exotic gets a striking teal so the apex reads instantly.
+// These mirror the theme's rarity hues (index.css --r-*); exotic is --r-exotic's pink, the same apex the
+// card, chip and reveal wear (docs/UI-STANDARDS.md §rarity — it was a lone teal here).
 const RARITY_HEX: Record<string, string> = {
   common: '#9aa7b8', uncommon: '#5fe08a', rare: '#5ad1ff', epic: '#c98bff',
-  legendary: '#ffd24d', exotic: '#4dffd2', mythic: '#ff6b8b',
+  legendary: '#ffd24d', exotic: '#ff7ad9', mythic: '#ff6b8b',
 };
 export function rarityHex(rarity: string): string {
   return RARITY_HEX[rarity] ?? '#9aa7b8';

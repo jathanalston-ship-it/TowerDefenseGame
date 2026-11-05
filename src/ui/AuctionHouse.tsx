@@ -15,12 +15,14 @@ import { ListControls } from './components/ListControls';
 import { Popup } from './components/Popup';
 import { TRADE, minNextBid, tradeBlockLabel } from '../core/trading';
 import { marketFamily } from '../core/marketCatalog';
+import { rarityColorOf } from '../core/equipment';
 import { account } from '../account/accountStore';
 import { connectivity } from '../net/connectivity';
 
+// Rarity tint: the ONE canonical map (docs/UI-STANDARDS.md §rarity) — plus the Mulligan apex tier.
 const RARITY_TINT: Record<string, string> = {
-  common: 'var(--muted)', uncommon: 'var(--vital)', rare: 'var(--r-rare)',
-  epic: 'var(--r-epic)', legendary: 'var(--r-legendary)', exotic: 'var(--viral)',
+  common: rarityColorOf('common'), uncommon: rarityColorOf('uncommon'), rare: rarityColorOf('rare'),
+  epic: rarityColorOf('epic'), legendary: rarityColorOf('legendary'), exotic: rarityColorOf('exotic'),
   ascendant: 'var(--r-mythic)',
 };
 const CAT_GLYPH: Record<string, string> = {

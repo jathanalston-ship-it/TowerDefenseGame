@@ -140,8 +140,9 @@ export type WardrobeSource =
   | { kind: 'quest'; quest: string }; // quest finale exclusive (granted once by the finale claim — core/quests.ts)
 
 export type WardrobeRarity = 'common' | 'rare' | 'epic' | 'legendary';
+// The ONE rarity palette (index.css --r-* tokens; docs/UI-STANDARDS.md §rarity) — CSS values only.
 export const WARDROBE_RARITY_COLOR: Record<WardrobeRarity, string> = {
-  common: '#9fb0bd', rare: '#5ad1ff', epic: '#c98bff', legendary: '#ffd24d',
+  common: 'var(--r-common)', rare: 'var(--r-rare)', epic: 'var(--r-epic)', legendary: 'var(--r-legendary)',
 };
 export const WARDROBE_RARITY_ORDER: WardrobeRarity[] = ['common', 'rare', 'epic', 'legendary'];
 

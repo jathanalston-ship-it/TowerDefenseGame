@@ -33,7 +33,7 @@ export const RARITY_ORDER: Rarity[] = ['common', 'rare', 'epic', 'legendary', 'e
  *  Armory, reveals, tooltips, art frames (docs/UI-STANDARDS.md §Color). Open: unknown → common. */
 export const RARITY_COLOR: Record<string, string> = {
   common: 'var(--r-common)', uncommon: 'var(--r-uncommon)', rare: 'var(--r-rare)',
-  epic: 'var(--r-epic)', legendary: 'var(--r-legendary)', exotic: 'var(--viral)', mythic: 'var(--r-mythic)',
+  epic: 'var(--r-epic)', legendary: 'var(--r-legendary)', exotic: 'var(--r-exotic)', mythic: 'var(--r-mythic)',
 };
 export function rarityColorOf(r: string): string {
   return RARITY_COLOR[r] ?? 'var(--r-common)';

@@ -18,6 +18,7 @@ import { compareItemPower } from '../state/itemPower';
 import { recordVaultOpen, vaultLedger } from '../state/prefs';
 import { telemetry } from '../net/telemetry';
 import { useDismiss } from './browserBack';
+import { RarityFx, rfxClass } from './components/RarityFx';
 
 /** Merge N cracked containers into ONE ceremony (Open Five/Ten): items concatenate in crack
  * order; the best pull drives the ceremony scale; the label counts the batch. */
@@ -48,8 +49,9 @@ function Container({ id, pct, big }: { id: string | undefined; pct: number; big?
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
       <div
+        className={rfxClass(id ?? 'common')}
         style={{
-          width: size, height: size, borderRadius: 14,
+          position: 'relative', width: size, height: size, borderRadius: 14,
           background: `radial-gradient(circle at 50% 35%, ${color}, rgba(8,12,20,0.9))`,
           border: `2px solid ${color}`, boxShadow: `0 0 ${big ? 26 : 12}px ${color}`,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -57,6 +59,7 @@ function Container({ id, pct, big }: { id: string | undefined; pct: number; big?
         }}
         aria-hidden
       >
+        <RarityFx rarity={id ?? 'common'} crown={false} />
         ◈
       </div>
       <span style={{ fontSize: big ? 14 : 11.5, letterSpacing: '0.08em', color, fontWeight: 700 }}>
@@ -186,11 +189,12 @@ export function GeneticVault(): JSX.Element {
                   {cacheCount > 1 && <span className="vault-obj-n">×{cacheCount}</span>}
                 </div>
               )}
-              {grouped.map((g) => {
+              {grouped.map((g, gi) => {
                 const def = rarityRegistry.get(g.id);
                 const rw = def?.reward;
                 return (
-                  <div className="vault-obj tt" key={g.id} tabIndex={0} style={{ ['--vc' as string]: rarityColor(g.id) }}>
+                  <div className={`vault-obj tt ${rfxClass(g.id)}`} key={g.id} tabIndex={0} style={{ ['--vc' as string]: rarityColor(g.id), ['--i' as string]: gi }}>
+                    <RarityFx rarity={g.id} crown={false} />
                     <span className="vault-obj-core" aria-hidden>◈</span>
                     <span className="vault-obj-name">{rarityName(g.id)}</span>
                     {g.n > 1 && <span className="vault-obj-n">×{g.n}</span>}
