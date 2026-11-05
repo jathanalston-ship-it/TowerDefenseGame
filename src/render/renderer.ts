@@ -104,15 +104,16 @@ function biomeRgb(accent: string): string {
 
 /** The biome's GROUND row (docs/LIVING-BATTLEFIELD.md §biome ground) — authored, or derived from the
  *  accent for a biome with no row; null for NEUTRAL (the original arena). Cached per biome+accent. */
-const groundCache = new Map<string, BiomeGround | null>();
+let groundId = '';
+let groundAccent = '';
+let groundSpec: BiomeGround | null = null;
 function biomeGround(b: RenderState['biome']): BiomeGround | null {
-  const k = b.id + b.accent;
-  const hit = groundCache.get(k);
-  if (hit !== undefined) return hit;
+  if (b.id === groundId && b.accent === groundAccent) return groundSpec; // the steady frame: no allocation
   const [r, g, bl] = biomeRgb(b.accent).split(',').map((v) => Number(v) & 255);
-  const spec = groundFor(b.id, '#' + ((1 << 24) | (r << 16) | (g << 8) | bl).toString(16).slice(1));
-  groundCache.set(k, spec);
-  return spec;
+  groundSpec = groundFor(b.id, '#' + ((1 << 24) | (r << 16) | (g << 8) | bl).toString(16).slice(1));
+  groundId = b.id;
+  groundAccent = b.accent;
+  return groundSpec;
 }
 
 /** Cheap deterministic 0..1 hash — all ambient detail keys off this (render NEVER touches rng). */
@@ -126,7 +127,9 @@ function hash01(n: number): number {
 //    run — render them ONCE into an offscreen layer at the ctx's device-pixel scale and
 //    blit a single image per frame instead of ~400 fills + a 50-segment path stroke.
 let floorCache: HTMLCanvasElement | null = null;
-let floorCacheKey = '';
+let floorScale = 0;
+let floorBiomeId = '';
+let floorAccent = '';
 // BIOME GROUND crossfade: on a biome change (Infinite rotation) the previous floor stays under the
 // new one while the sim's render-only `biomeFlash` eases 1 → 0, so the ground dissolves, never pops.
 let floorPrev: HTMLCanvasElement | null = null;
@@ -216,7 +219,7 @@ function bakeScale(ctx: CanvasRenderingContext2D, prev: number): number {
 }
 
 function drawFloor(ctx: CanvasRenderingContext2D, rs: RenderState): void {
-  const scale = bakeScale(ctx, floorCache ? Number(floorCacheKey.split('|')[0]) : 0);
+  const scale = bakeScale(ctx, floorCache ? floorScale : 0);
   if (typeof document === 'undefined' || scale === 0) {
     // Headless/stubbed context (tests) — paint directly, no offscreen layer.
     drawBackground(ctx);
@@ -224,12 +227,13 @@ function drawFloor(ctx: CanvasRenderingContext2D, rs: RenderState): void {
     drawBiomeWash(ctx, rs.biome);
     return;
   }
-  const key = scale + '|' + rs.biome.id + '|' + rs.biome.accent;
-  if (!floorCache || floorCacheKey !== key) {
+  if (!floorCache || floorScale !== scale || floorBiomeId !== rs.biome.id || floorAccent !== rs.biome.accent) {
     // Keep the outgoing floor only for a real biome change mid-run (a rescale just swaps).
-    floorPrev = floorCache && floorCacheKey.split('|')[0] === String(scale) && rs.biomeFlash > 0.05 ? floorCache : null;
+    floorPrev = floorCache && floorScale === scale && rs.biomeFlash > 0.05 ? floorCache : null;
     floorCache = buildFloor(scale, rs.biome);
-    floorCacheKey = key;
+    floorScale = scale;
+    floorBiomeId = rs.biome.id;
+    floorAccent = rs.biome.accent;
   }
   if (floorPrev && rs.biomeFlash > 0.01) {
     ctx.drawImage(floorPrev, 0, 0, WIDTH, HEIGHT);
@@ -788,7 +792,8 @@ function drawDefenseZone(ctx: CanvasRenderingContext2D, t: number, pressure: num
 // the biome's rock. Static ⇒ baked once per (layout field, biome, scale) into a layer cropped to the
 // cells' bounds; an Infinite re-layout or biome turn re-bakes on that frame. Headless ⇒ painted direct.
 let obstacleCache: HTMLCanvasElement | null = null;
-let obstacleKey = '';
+let obstacleBiomeId = '';
+let obstacleAccent = '';
 let obstacleField: unknown = null;
 let obstacleBox = { x: 0, y: 0, w: 0, h: 0 };
 let obstacleScale = 0;
@@ -801,8 +806,7 @@ function drawObstacles(ctx: CanvasRenderingContext2D, layoutId: string, biome: R
     paintObstacles(ctx, cells, biomeGround(biome));
     return;
   }
-  const key = scale + '|' + biome.id + '|' + biome.accent;
-  if (!obstacleCache || obstacleKey !== key || obstacleField !== field) {
+  if (!obstacleCache || obstacleScale !== scale || obstacleField !== field || obstacleBiomeId !== biome.id || obstacleAccent !== biome.accent) {
     let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
     for (const o of cells) {
       x0 = Math.min(x0, o.x - CELL / 2); y0 = Math.min(y0, o.y - CELL / 2);
@@ -818,7 +822,8 @@ function drawObstacles(ctx: CanvasRenderingContext2D, layoutId: string, biome: R
     paintObstacles(g, cells, biomeGround(biome));
     obstacleCache = c;
     obstacleScale = scale;
-    obstacleKey = key;
+    obstacleBiomeId = biome.id;
+    obstacleAccent = biome.accent;
     obstacleField = field;
   }
   ctx.drawImage(obstacleCache, obstacleBox.x, obstacleBox.y, obstacleBox.w, obstacleBox.h);
