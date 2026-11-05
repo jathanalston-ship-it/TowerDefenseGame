@@ -3258,6 +3258,23 @@ export const DIRECTOR_ADAPTIVE = {
   // LIVE_PROBE_ROLES — airborne packs vs a board with no area damage, else artillery, else burrowers) at
   // the same threat budget: what the wave IS changes, not how fat it is — chip damage without length.
   liveProbeShare: 0.3,
+  // v4 COVERAGE GAP (coverage.ts): the probe is the role whose answering axis the board covers least;
+  // the share scales by ×(1 − g + g·gap) — 0 ⇒ the full share whatever the gap, 1 ⇒ ∝ the gap (a
+  // well-covered board meets a smaller probe).
+  liveProbeGapScale: 0,
+  liveProbeByBudget: 0, // 1 ⇒ the probe takes share × the wave's plain THREAT BUDGET (units), not whole groups
+};
+
+// ── Board COVERAGE model (docs/DIFFICULTY_DIRECTOR.md §6a v4 — coverage.ts) ─────────────────────
+// How a tower's numbers grade onto the coverage axes the live probe reads, and the enemy traits that
+// make a probe ROLE (campaign.ts LIVE_PROBE_ROLES). Data, not per-tower lists.
+export const COVERAGE = {
+  reachFrom: 200, // tower range (px) that reaches nothing past its own pocket — reach 0 …
+  reachFull: 600, // … rising linearly to full reach here (the lane is ~920 px tall)
+  armorRef: 14, // the plating PIERCE is graded against (≈ the armored probe bodies) — hit − (armor − own shred)
+  burstFull: 60, // per-hit damage that counts as full BURST (breaks a shield / out-paces a mender)
+  armoredFrom: 12, // an enemy with at least this armor is the ARMORED role
+  fastFrom: 110, // an enemy at least this fast (px/s) is the SPRINTER role
 };
 
 // ── Adaptive Economy Framework: income-seam weights (docs/ECONOMY_FORMULAS.md) ──

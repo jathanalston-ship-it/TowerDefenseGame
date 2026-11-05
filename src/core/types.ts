@@ -832,4 +832,6 @@ export interface WavePreviewEntry {
   count: number;
   /** How many of `count` arrive ELITE (campaign elite groups + the §6a v3 live promotion). Absent ⇒ 0. */
   elite?: number;
+  /** §6a v4: this kind is the Hive's live PROBE — its role and the board coverage it tests. Absent ⇒ not a probe. */
+  probe?: { label: string; lacks: string };
 }
