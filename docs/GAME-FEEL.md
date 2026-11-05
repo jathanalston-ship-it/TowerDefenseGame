@@ -341,7 +341,7 @@ reads). The film is a story with a TURN, told with the game's own pieces:
   boot (whose letterboxed cold-open banner picks the film's voice straight up), the menu on a
   replay. App hands the music baton on landing (`combat`/`menu`).
 - **Accessibility.** Reduced motion (the OS request unless Settings → Motion overrides it — the same
-  `resolveMotion` the run uses; `.intro.is-still`) swaps the animation for a hand-picked still per scene
+  `resolveMotion` the run uses; the title's CSS follows the same resolution via `.intro.is-still`) swaps the animation for a hand-picked still per scene
   (gentle CSS fades; no drift, punches, glints or halos), skips the dive. A short stage (≤480px tall —
   phone landscape) steps the copy down a size so the tableau keeps its picture.
 - **Cost** (headless 1440×900, rAF callback): 0.8–1.5 ms/frame average per scene, p95 ≤ 3.4 ms — on a

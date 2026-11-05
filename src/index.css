@@ -11441,16 +11441,13 @@ html[data-layout='landscape'] .mc-campaign > .mc-ledger { order: 3; }
   .intro-stage .intro-fx { animation: none; opacity: 0.8; }
   .intro-bar, .intro-gate-glyph, .intro-receive { animation: none; }
 }
-/* Reduced motion as RESOLVED for the film (OS request, or Settings → Motion — InitCutscene's
-   .is-still): the wordmark, triad and call to action fade in place; no scale, sweep or halo. */
+/* Reduced motion as RESOLVED for the film (the OS request unless Settings → Motion allows motion —
+   InitCutscene's .is-still, the same resolution the canvas uses): the wordmark, triad and call to
+   action fade in place; no scale, glint or halo. */
 .intro.is-still .intro-title > span,
 .intro.is-still .intro-triad > span { animation-name: fade-in; animation-duration: 0.3s; }
 .intro.is-still .intro-title > span::after,
 .intro.is-still .intro-begin::before { display: none; }
-@media (prefers-reduced-motion: reduce) {
-  .intro-title > span, .intro-triad > span { animation-name: fade-in; animation-duration: 0.3s; }
-  .intro-title > span::after, .intro-begin::before { display: none; }
-}
 /* A short stage (phone landscape: ~330px of picture under the foot) — the copy steps down a size so
    the tableau keeps its picture. */
 @media (max-height: 480px) {
