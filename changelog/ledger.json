@@ -1,6 +1,6 @@
 {
-  "lastSha": "e72afd298397ac85467e2b62b55b268a01ad0aeb",
-  "commitsSinceDraft": 0,
+  "lastSha": "2e9aafedffaa4be3ec981c1fce6846174ef5a673",
+  "commitsSinceDraft": 1,
   "content": {
     "tower": [
       "needle",
@@ -8100,6 +8100,14 @@
       "cat": "Bug Fixes",
       "text": "Wave briefing re-reads the live composition when the board's tower count changes",
       "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "2e9aafedffaa4be3ec981c1fce6846174ef5a673",
+      "date": "2026-11-05",
+      "cat": "Developer Tools",
+      "text": "\"The Hive Probes\" — release v2026.11.05.2, devlog, campaign guide, GAME-STATE",
+      "internal": true,
       "needsReview": false
     }
   ]

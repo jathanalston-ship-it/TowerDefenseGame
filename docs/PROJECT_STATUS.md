@@ -3,7 +3,16 @@
 > Maintained at the END of every session (paired with `docs/AI_HANDOFF.md` — the constitution's
 > workflow step 4). This is the "where are we?" answer; `docs/GAME-STATE.md` remains the deeper
 > per-system built-vs-planned index, `docs/PROJECT_MANIFEST.md` the system map.
-> **Last updated:** 2026-11-05a (**DEPLOYED — FRONTIER CHALLENGE v2** (`4a7426a`, run #230 green; owner approved
+> **Last updated:** 2026-11-05b (**FRONTIER CHALLENGE v3 — merged + validated, awaiting the owner's release
+> go-ahead.** GR1 (DIFFICULTY_DIRECTOR §6a v3): drafted cards leave the live ratio (base × invested Power ×
+> board), w 0.6; live waves swap 0.3 × (1 − 1/m) of chaff for a PROBE kind — the first `LIVE_PROBE_ROLES`
+> role the board covers least (data predicates), previewed in the briefing; elite share measured, ships 0.
+> Measured: 8 h draft-pick spread ≈ 0 → +16 win pts; 8 h F+1..3 58 %; frontier 70 | 59 %; run time ×0.99 |
+> ×1.78 of pre-G; flawless still 69 | 73 % (open). Readiness 0.7 re-checked. VALIDATION: validate PASS over
+> 4a7426a..HEAD (3028/3028, mobile gate clean); GR1's probe PASS; live check clean. Website: release
+> v2026.11.05.2 "The Hive Probes", devlog `the-hive-probes`, campaign guide.)
+>
+> **2026-11-05a** (**DEPLOYED — FRONTIER CHALLENGE v2** (`4a7426a`, run #230 green; owner approved
 > the release).** GR1 follow-up to Batch G (DIFFICULTY_DIRECTOR §6a/§7): the
 > live ratio counts towers fielded ÷ the opening build; the live multiplier splits HP^0.3 × pace^0.2 ×
 > speed^0.5 (speed ≤ the 1.85 readability ceiling); w 0.3, caps 8/4, from wave 4 and Stage 4;

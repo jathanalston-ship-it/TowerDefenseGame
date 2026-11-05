@@ -568,3 +568,4 @@
 - `7d20179` **[Developer Tools]** DIFFICULTY_DIRECTOR 6a v3 — cards-out ratio, live probe composition, fit table _(internal)_
 - `4a34d63` **[Developer Tools]** V3 column in CAMPAIGN opening table, readiness 0.7 re-checked under v3 _(internal)_
 - `1a83196` **[Bug Fixes]** Wave briefing re-reads the live composition when the board's tower count changes
+- `2e9aafe` **[Developer Tools]** "The Hive Probes" — release v2026.11.05.2, devlog, campaign guide, GAME-STATE _(internal)_
