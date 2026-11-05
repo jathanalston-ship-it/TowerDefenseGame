@@ -122,6 +122,7 @@ async function garrison(page: Page): Promise<void> {
   for (let i = 0; i < 6; i++) {
     await page.evaluate(() => { globalThis.__game?.debugAddBiomass(20000); (document.querySelector('.hive-mind-btn') as HTMLElement | null)?.click(); });
     await sleep(400);
+    await closeDrafts(page);
   }
 }
 
@@ -147,8 +148,22 @@ async function prepFor(page: Page, wave: number): Promise<void> {
   throw new Error(`never reached the build phase before wave ${wave}`);
 }
 
+/** Close any open gene draft (Hive Intelligence SPLICES an overflowing bank — the pulse then ends on the
+ *  open draft; docs/CARDS.md §splice) so the shot shows the battlefield, not a modal. */
+async function closeDrafts(page: Page): Promise<void> {
+  for (let i = 0; i < 12; i++) {
+    const open = await page.evaluate(() => !!document.querySelector('.overlay .cards') || globalThis.__game?.phase === 'draft');
+    if (!open) return;
+    await page.keyboard.press('1');
+    await sleep(300);
+    await page.keyboard.press('Enter');
+    await sleep(500);
+  }
+}
+
 /** Start the wave at 1× and swell it with more of its own kinds. */
 async function heavyWave(page: Page, perKind: number): Promise<void> {
+  await closeDrafts(page);
   await page.addStyleTag({ content: '.rwt2-wrap, .speed-note, .axp-toast, .mtoasts, .hive-ticker { display: none !important; }' });
   await page.evaluate(() => {
     const s = [...document.querySelectorAll('.speed-btn')].find((x) => (x.textContent || '').trim().startsWith('1'));
