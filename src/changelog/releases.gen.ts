@@ -5,10 +5,28 @@ import type { Release } from './types';
 /** Player-facing releases, newest first. */
 export const RELEASES: Release[] = [
   {
+    "id": "v2026.11.05.2",
+    "date": "2026-11-05",
+    "title": "The Hive Probes",
+    "sealed": false,
+    "entries": [
+      {
+        "cat": "Gene Cards",
+        "text": "Your drafted gene cards no longer make the Hive adapt harder — a good pick now carries the run",
+        "major": true
+      },
+      {
+        "cat": "Balance",
+        "text": "The Hive probes your defense: from wave 4 on a frontier stage, a strong board meets the enemy role it covers least — fliers, artillery or burrowers — and the wave briefing names them before you launch",
+        "major": true
+      }
+    ]
+  },
+  {
     "id": "v2026.11.05",
     "date": "2026-11-05",
     "title": "Frontiers Bite Again",
-    "sealed": false,
+    "sealed": true,
     "entries": [
       {
         "cat": "Balance",

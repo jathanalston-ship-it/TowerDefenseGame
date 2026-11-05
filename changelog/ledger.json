@@ -1,6 +1,6 @@
 {
-  "lastSha": "8ee1c5bea6f0db0367b59e93215100cd6765aefc",
-  "commitsSinceDraft": 3,
+  "lastSha": "e72afd298397ac85467e2b62b55b268a01ad0aeb",
+  "commitsSinceDraft": 0,
   "content": {
     "tower": [
       "needle",
@@ -3839,6 +3839,24 @@
         {
           "cat": "UX",
           "text": "After you call waves early, the back-to-back gene drafts say how many more are owed instead of repeating “wave cleared”"
+        }
+      ]
+    },
+    {
+      "id": "v2026.11.05.2",
+      "date": "2026-11-05",
+      "title": "The Hive Probes",
+      "sealed": false,
+      "entries": [
+        {
+          "cat": "Gene Cards",
+          "text": "Your drafted gene cards no longer make the Hive adapt harder — a good pick now carries the run",
+          "major": true
+        },
+        {
+          "cat": "Balance",
+          "text": "The Hive probes your defense: from wave 4 on a frontier stage, a strong board meets the enemy role it covers least — fliers, artillery or burrowers — and the wave briefing names them before you launch",
+          "major": true
         }
       ]
     }
@@ -7994,6 +8012,94 @@
       "cat": "Framework",
       "text": "Notes: sync Chronicle artifacts to HEAD",
       "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "4a7426acc3139701c75466d09ca5a25f5f6b0de1",
+      "date": "2026-11-05",
+      "cat": "Framework",
+      "text": "Notes: key the open release by today's date (v2026.11.05) — the auto-seal drift gate",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "1bf16a6e5ecf869fac01e07e9938665c92ac9472",
+      "date": "2026-11-05",
+      "cat": "Developer Tools",
+      "text": "Status: frontier challenge v2 is live (run #230); seal v2026.11.05",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "c17bfe3f19c617fd2263cf7670eb0fbe5cdb33d6",
+      "date": "2026-11-05",
+      "cat": "Gene Cards",
+      "text": "Wip(grind): cards-excluded live ratio knob + live elite-share composition (neutral defaults)",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "bc5671615f61cf9a28ac0030f3acbb4cdf3249af",
+      "date": "2026-11-05",
+      "cat": "Developer Tools",
+      "text": "V3 live composition — elite promotion, card exponent, preview == launch",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "8e9b78bf505a46a8290587422d03f4cd37fbefdf",
+      "date": "2026-11-05",
+      "cat": "Gameplay",
+      "text": "Wip(grind): live PROBE composition — the board's untested role swapped into live waves",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "666ff07bc22c9bd1fd04ca4fcde95420943a279a",
+      "date": "2026-11-05",
+      "cat": "Developer Tools",
+      "text": "Grind: live probe role selection + budget-preserving swap",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "f598cea58d087d373b4c3cf83911cd41d493f247",
+      "date": "2026-11-05",
+      "cat": "Gene Cards",
+      "text": "Wip(grind): Help + briefing copy for the live probe and the card-free ratio",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "6f4cf7d2b57d043f1b5d253fa365d7e6630705f8",
+      "date": "2026-11-05",
+      "cat": "Gene Cards",
+      "text": "Wip(grind): v3 values — cards out of the live ratio, w 0.6, live probe share 0.3",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "7d20179c114b0b9898459fa4e7110f1c0d711bdb",
+      "date": "2026-11-05",
+      "cat": "Developer Tools",
+      "text": "DIFFICULTY_DIRECTOR 6a v3 — cards-out ratio, live probe composition, fit table",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "4a34d63a8438bac2b745492897151080c3d1a7de",
+      "date": "2026-11-05",
+      "cat": "Developer Tools",
+      "text": "V3 column in CAMPAIGN opening table, readiness 0.7 re-checked under v3",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "1a8319624f38d1b60b581201e3d4ef11d6ad9565",
+      "date": "2026-11-05",
+      "cat": "Bug Fixes",
+      "text": "Wave briefing re-reads the live composition when the board's tower count changes",
+      "internal": false,
       "needsReview": false
     }
   ]

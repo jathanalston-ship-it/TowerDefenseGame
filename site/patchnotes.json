@@ -1,6 +1,24 @@
 [
   {
     "date": "2026-11-05",
+    "title": "The Hive Probes",
+    "categories": [
+      "Gene Cards",
+      "Balance"
+    ],
+    "items": [
+      {
+        "cat": "Gene Cards",
+        "text": "★ Your drafted gene cards no longer make the Hive adapt harder — a good pick now carries the run"
+      },
+      {
+        "cat": "Balance",
+        "text": "★ The Hive probes your defense: from wave 4 on a frontier stage, a strong board meets the enemy role it covers least — fliers, artillery or burrowers — and the wave briefing names them before you launch"
+      }
+    ]
+  },
+  {
+    "date": "2026-11-05",
     "title": "Frontiers Bite Again",
     "categories": [
       "Balance",

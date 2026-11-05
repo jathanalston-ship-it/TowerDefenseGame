@@ -1739,15 +1739,16 @@ band = config rows; a new Boss Rush board epoch = bump `RUSH_BOARD_EPOCH` (both 
 **Assumptions.** The golden path sets none of the new RunOptions; save v56 merge rules are max/union;
 the live threat never makes a weak board easier.
 
-**Known limitations.** Frontier challenge v2 (2026-11-05, DIFFICULTY_DIRECTOR §6a/§7): the live ratio
-counts towers fielded ÷ the opening build and the live multiplier lands as HP^0.3 × pace^0.2 ×
-SPEED^0.5 (speed capped at the 1.85 readability ceiling) — frontier win 8 h 87 → 73 %, 100 h 82 → 59 %
-with run time no longer than the 3/4 release (×1.01 / ×1.76 of pre-G), and `READINESS.warnBelow`
-0.9 → 0.7 so "under-powered" (the farm-first CTA) means a likely loss. Still open: flawless wins
-73 % / 67 % (target ≤ 55 %), the 8 h frontier+1..3 rate ~75 %, and draft picks barely move Campaign
-outcomes (the live ratio counts drafted cards, so a stronger pick also raises the threat) — next: a
-cards-excluded ratio and threat by composition (roles/elites) rather than bodies. At 100 h the speed
-part has little room under the ceiling, so it still leans on HP.
+**Known limitations.** Frontier challenge v2 → v3 (2026-11-05, DIFFICULTY_DIRECTOR §6a/§7): the live
+ratio is base × INVESTED Power (hero evo × branches × strains — drafted cards excluded, so a good pick
+carries the run) × towers fielded ÷ the opening build; the multiplier lands as HP^0.3 × pace^0.2 ×
+speed^0.5 (speed ≤ the 1.85 readability ceiling), and live waves swap a share 0.3 × (1 − 1/m) of chaff
+for a PROBE kind — the first `LIVE_PROBE_ROLES` role the board covers least (air-pack unless it has area
+damage, artillery, burrower), previewed in the briefing. `READINESS.warnBelow` 0.7. Measured (8 h | 100 h):
+frontier 70 | 59 %, 8 h F+1..3 58 %, draft-pick spread +16 win pts (was ≈ 0), run time ×0.99 | ×1.78 of
+pre-G. Still open: flawless 69 | 73 % of wins (target ≤ 55 %); 100 h F+1..3 67–83 % depending on the set.
+A richer coverage model (reach, armor shred — needs per-tower kit data the sim doesn't expose yet) is
+the next lever; a probe share > ~0.4 crushes the 100 h curve.
 Affix tiers move item Power little (base effects dominate). Migrated veterans' ETAs start optimistic
 for ~10 runs; their first settle crosses ~17 ladder rungs at once (folded on Results). Hive
 Intelligence doesn't use Splice. Infinite "start at 60 % depth" was not built.

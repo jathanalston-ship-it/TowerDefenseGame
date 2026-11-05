@@ -557,3 +557,14 @@
 - `f2c884a` **[Developer Tools]** "Frontiers Bite Again" — release v2026.11.04.5, devlog post, campaign guide, GAME-STATE _(internal)_
 - `59e0884` **[Developer Tools]** Validation,status: frontier challenge v2 PASS — 3022/3022, mobile gate clean _(internal)_
 - `8ee1c5b` **[Framework]** Notes: sync Chronicle artifacts to HEAD _(internal)_
+- `4a7426a` **[Framework]** Notes: key the open release by today's date (v2026.11.05) — the auto-seal drift gate _(internal)_
+- `1bf16a6` **[Developer Tools]** Status: frontier challenge v2 is live (run #230); seal v2026.11.05 _(internal)_
+- `c17bfe3` **[Gene Cards]** Wip(grind): cards-excluded live ratio knob + live elite-share composition (neutral defaults)
+- `bc56716` **[Developer Tools]** V3 live composition — elite promotion, card exponent, preview == launch _(internal)_
+- `8e9b78b` **[Gameplay]** Wip(grind): live PROBE composition — the board's untested role swapped into live waves
+- `666ff07` **[Developer Tools]** Grind: live probe role selection + budget-preserving swap _(internal)_
+- `f598cea` **[Gene Cards]** Wip(grind): Help + briefing copy for the live probe and the card-free ratio
+- `6f4cf7d` **[Gene Cards]** Wip(grind): v3 values — cards out of the live ratio, w 0.6, live probe share 0.3
+- `7d20179` **[Developer Tools]** DIFFICULTY_DIRECTOR 6a v3 — cards-out ratio, live probe composition, fit table _(internal)_
+- `4a34d63` **[Developer Tools]** V3 column in CAMPAIGN opening table, readiness 0.7 re-checked under v3 _(internal)_
+- `1a83196` **[Bug Fixes]** Wave briefing re-reads the live composition when the board's tower count changes

@@ -17,6 +17,22 @@ export interface BlogPost {
 
 export const POSTS: BlogPost[] = [
   {
+    slug: 'the-hive-probes',
+    date: '2026-11-05',
+    title: 'The Hive probes your board, and your picks carry the run',
+    category: 'Balance',
+    tags: ['balance', 'campaign', 'gene-cards', 'difficulty', 'design'],
+    summary: 'Two changes to how the Hive answers a strong board: it no longer counts your drafted gene cards, so a good pick finally decides runs, and part of its answer is now a probe, the enemy role your board covers least.',
+    body: `
+<p>Earlier today the Hive learned to read your whole board. Two things were still wrong. Too many frontier wins were flawless, and your draft picks barely mattered: in our tests, always taking the strongest card won no more often than always taking the weakest.</p>
+<h2>Your picks carry the run</h2>
+<p>The Hive was counting your drafted gene cards when it decided how hard to push back. So a great pick made the next waves harder, and a weak pick made them easier, and the two came out level. The Hive no longer counts drafted cards. It still reads your account Power, what you have invested in your board this run (branches, strains, hero evolutions) and how many towers you have fielded. In our tests, a player who always takes the strongest card now wins <b>16 points</b> more often than one who always takes the weakest, up from about zero.</p>
+<h2>The Hive probes your weakest coverage</h2>
+<p>Instead of only sending more or tougher enemies, part of the Hive's answer is now a <b>probe</b>: it swaps some of a wave's ordinary enemies for the role your board covers least, at the same overall threat. If you have no area damage, that's a pack of fliers. Otherwise it may be artillery that shells you from range or burrowers that surface past your line. It always sends the lightest enemy of that role, so the probe tests your coverage without dragging the wave out, and the wave briefing names it before you launch.</p>
+<p>New eight-hour frontier stages are now won about 58% of the time, runs are no longer than before, and losses still come late in a run. Flawless wins barely moved, and a smarter coverage model (range and armour) is next.</p>
+`,
+  },
+  {
     slug: 'frontiers-bite-again',
     date: '2026-11-05',
     title: 'Frontiers bite again: the Hive reads your whole board',
