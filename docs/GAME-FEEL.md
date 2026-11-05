@@ -109,6 +109,21 @@ statuses grip (bracket arcs) where damage-over-time glows (rims), and a busy fie
 Damage numbers carry a **crowd budget**: past 24 on screen, chip damage recedes so the big hits read.
 Reduced motion: static sizes, fades only. Flashes off: no additive cores, forms + rims stay.
 
+### §board growth — the battlefield, towers & Hive Core pass (2026-11 VFX batch V3)
+- **Biomes look like places** (docs/LIVING-BATTLEFIELD.md §biome ground): each biome bakes its own
+  ground tone + relief motif + obstacle rock and breathes its own air (snow falls in Frostbound,
+  embers rise off the Molten Verge, sparks blink across the Neural Expanse). Data rows; baked;
+  the floor stays dim. Obstacles became merged outcrops instead of a grid of panels.
+- **Placing a tower lands** — overshoot pop, ground shock + dust rings, kicked flecks, pad flare.
+- **Evolving a tower molts** — rings, shed chitin, a white pop, escalating with the organism's
+  depth; an apex step raises a column of light (docs/TOWER-VISUAL-EVOLUTION.md §5b).
+- **The Hive Core reads its health** — the HUD integrity bar wrapped over the core (same segments,
+  bands and damage ghost) and a hearth that dims and reddens as it fails (docs/HIVE-SIEGE.md §8).
+- **Range edges read on any ground** — a dark bed under every range line (docs/RANGE.md §6).
+- **Perf:** the floor cache no longer re-bakes every frame under the camera breath (`bakeScale`).
+Reduced motion: air frozen, no pop/rings/shards/column, no core shudder or crown pulse — the
+information (pad glow, static halo, crown fill) stays. Flashes gates the touch-down bloom + pop.
+
 ---
 
 ## 1. Philosophy

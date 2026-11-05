@@ -1,6 +1,6 @@
 # DIL_GRAPH.md — the Design Intelligence Layer (GENERATED — `npm run dil -- regen`)
 
-> **The project's brain** (docs/DIL.md). 982 nodes · 1906 edges, built from the live
+> **The project's brain** (docs/DIL.md). 984 nodes · 1913 edges, built from the live
 > registries + curated knowledge (src/dev/dil/). **Query it instead of searching the repo:**
 > `npm run dil -- node <id>` · `affects <id>` · `requires <id>` · `missing <kind> <edge>` ·
 > `checklist tower <kind>` · `find <text>`. Edge kinds are bidirectional (19 kinds).
@@ -204,6 +204,7 @@ graph LR
   system_campaign["Campaign"] -->|consumes| system_towers["Towers, Stars, Branches, Strain & Codex"]
   system_towers["Towers, Stars, Branches, Strain & Codex"] -->|modifies| system_difficulty["Difficulty"]
   system_difficulty["Difficulty"] -->|modifies| system_campaign["Campaign"]
+  system_living_battlefield["Living Battlefield"] -->|consumes| system_biomes["Biomes"]
   system_difficulty["Difficulty"] -->|modifies| system_infinite["Infinite Mode"]
 ```
 
@@ -606,6 +607,7 @@ graph LR
   system_campaign["Campaign"] -->|consumes| system_towers["Towers, Stars, Branches, Strain & Codex"]
   system_engine["Sim Engine"] -->|dependsOn| system_security["Game Action Security Layer"]
   system_equipment["Equipment & Armory"] -->|dependsOn| system_ui_kit["Shared UI Component Kit"]
+  system_living_battlefield["Living Battlefield"] -->|consumes| system_biomes["Biomes"]
 ```
 
 ### Presentation Couplings Map
@@ -758,6 +760,7 @@ Three intentional interfaces from one codebase (layoutProfile → data-layout); 
   - conflictsWith ← `system:hub-shell` — portrait strips inside grids need minmax(0,1fr) columns (intrinsic strip width widens the page past the phone viewport — the Tower Lab empty-showcase bug); flex children of height-capped roster lists need flex:none or rows compress and overlap their portraits
   - providedBy ← `system:run-ui` — RUN LAYOUT v2 (index.css §RUN LAYOUT v2, RESPONSIVE-DESIGN.md §run): per-profile grids around a max 3:4 board — desktop slim fixed HUD row + fixed deck; landscape HUD column | full-height board | tower column (run keys + briefing fixed into the columns via --bw/--col); portrait HUD strip / keys strip / full-width board / drawer+hero row / rail. Fixed chrome heights so nothing mid-run resizes the board; side panels are drawers on phones (bottom sheets in portrait); the rotate gate stands down while GameView is mounted (layoutProfile.setInRun); mobilecheck phoneRunContract + runChromeContract pin it (no scroll, no chrome overlap)
   - requiredBy ← `system:living-battlefield` — LIVING GUTTERS (render/gutters.ts + ui/components/LivingGutters.tsx): a ¼-res periphery bake BEHIND the board in its frame (.canvas-wrap / .spectate-stage), desktop profile only — it re-uses the terraform painters livingBattlefield.ts exports (terraformPalette/crustGeometry/paintVein/paintFlora/infectionField…), reads getAssimilationDebug() (the board’s last terraform) at a 4 Hz poll and re-bakes only on a key change (biome/mega + stage/creep/towers). It measures the board’s LAYOUT box inside its positioned parent — a run-layout change that stops centring the board in .canvas-wrap, or a new positioned child placed BEFORE the board, moves/covers the seam; enemies are never painted there
+  - requiredBy ← `system:rendering` — STATIC BAKES (floor, obstacles) key on bakeScale(): the live transform carries the camera breath / push-in / last-kill zoom EVERY frame, so a bake keyed on the raw scale re-baked per frame (~17 ms headless). Any new scale-keyed cache must go through bakeScale (±20 % hysteresis)
 
 ### `concept:scalability` — Content-Scale Targets
 
@@ -1316,7 +1319,7 @@ _at: src/core/stars.ts, src/core/branches.ts, src/core/branchTree.ts, src/core/s
   - contains ← `tower:obelisk`
   - contains ← `tower:maw`
   - contains ← `tower:chrysalis`
-  - _…45 more (query: `npm run dil -- node system:towers`)_
+  - _…46 more (query: `npm run dil -- node system:towers`)_
 
 ### `system:mastery` — Mastery / Adaptation
 
@@ -2256,6 +2259,7 @@ _at: src/ui/GameView.tsx, src/ui/components/CentreStage.tsx, src/ui/Hud.tsx, src
   - conflictsWith ← `system:threat` — "THREAT" MEANS ONE THING (docs/THREAT.md §naming): the opt-in ☣ ladder. The Campaign stage rating (◆1–5, rewards ×N — CampaignScreen camp-threat row) is DANGER; the in-run swarm-load meter (Hud hud-threat cell, Inspector digest) is PRESSURE. A new difficulty readout picks one of the three words by what it measures. The Boss Rush forecast row reads "Boss strength" (the assembly tier per wave). Results names the toughest thing slain "Toughest Kill".
   - conflictsWith ← `system:hub-shell` — BROWSER BACK (ui/browserBack.ts): one same-URL guard history entry; Back mid-run → runBus.pause (GameView subscribes — Back NEVER exits a run) + beforeunload while live; in the hub → dismiss stack top (Popup/useDismiss) else Hub.goBack via registerHubBack({atRoot, back}). Hub keeps posRef in sync inside go/goLanding/goBack so atRoot() is right between popstate and commit — a new nav entry point must update posRef + call syncBackGuard().
   - requiredBy ← `system:website` — MEDIA: public/media/shots/*.webp + trailer.webm DEPICT the run HUD and Command Center — a visible HUD/board change makes them stale. `npm run media` re-shoots them at 1440×900 from the real build (stills + frame-stepped trailer via Playwright fake clock; staging rules in the script header). Copy counts come from siteCounts() (site/build.ts), never hard-coded; bump the PIL review stamp R after each website pass
+  - _…1 more (query: `npm run dil -- node system:run-ui`)_
 
 ### `system:notifications` — Notifications
 
@@ -2441,7 +2445,7 @@ _at: src/core/biomes.ts_
   - contains ← `biome:neural`
   - contains ← `biome:molten`
   - contains ← `biome:tempest`
-  - _…6 more (query: `npm run dil -- node system:biomes`)_
+  - _…7 more (query: `npm run dil -- node system:biomes`)_
 
 ### `system:map-layouts` — Arena Layouts
 
@@ -2572,6 +2576,9 @@ _at: src/render/*, src/core/dangerCamera.ts_
   - consumes → `system:engine` — COOLDOWN DRIFT CONTRACT (BUGFIX-LOG #16): the projectile fire path ticks t.cooldown -= dt EVERY tick and resets only if (acted) — a tower that cannot act (raid lull, empty lane, out-of-range prey) drifts its cooldown arbitrarily far below zero, BY DESIGN (sim-harmless; the fire gate is > 0; goldens + arena lockstep replays pin the ticking). ANY render/UI consumer of tw.cooldown MUST clamp: fresh already does, and the anticipation wind-up goes through attackAnticipation (render/towerForms.ts — [0..1] by construction, pinned in renderer.test.ts) because its ctx.scale transform sits OUTSIDE drawTower's 2.2× body ceiling (the Parasite-Nest screen flood was exactly this: 60s of drift → ×2,785 nest scale). Never feed raw cooldown into a visual factor
   - provides → `system:audio` — ONE FEEL TABLE (render/feel.ts FEEL): per-cue shake + view-only hit-stop (GameView) AND duck + stinger (sound.ts) live in the same row — a new cue gets its feel from one line; src/audio/cues.test.ts fails on any cue/pushSfx/stinger literal that resolves to neither a sound.ts case nor a FEEL row. Centre-stage text (WAVE N, boss/mega intros + falls, weak-point callouts, the canvas tier banner) must go through the GameView Announcer (ANNOUNCE priorities) — never mount/draw a new centre card directly
   - consumes → `system:engine` — LAST-KILL BEAT (docs/SIGNATURE-MOMENTS.md §1, render/lastKill.ts): the sim emits `waveLastKill` ONCE per wave the tick the field empties (a collapsing Mega counts as gone; kill:false = ended on a breach) on its INSTANCE bus, listener-gated; GameView/SpectateView slow the VIEW feed (advance(dt × rate) — fixed SIM_DT steps, never a change in src/core/), nudge the camera ≤ 4 % and play the ONE `clear` fanfare (DraftModal no longer does). Gore rides rs.fxTime (stepCount × SIM_DT) — rs.time FREEZES in the settle, so anything keyed on it holds mid-air there
+  - dependsOn → `concept:responsive` — STATIC BAKES (floor, obstacles) key on bakeScale(): the live transform carries the camera breath / push-in / last-kill zoom EVERY frame, so a bake keyed on the raw scale re-baked per frame (~17 ms headless). Any new scale-keyed cache must go through bakeScale (±20 % hysteresis)
+  - consumes → `system:towers` — TOWER MOMENTS (render/towerMoments.ts): the deploy beat keys off Tower.bornAt and the evolve molt off Tower.mutatedAt with depth = tier + (strain − 1) — any new in-run upgrade path that should get the molt must stamp mutatedAt (raiseStrain/strainFromConveyor/deployFromConveyor already do)
+  - references → `system:run-ui` — HIVE CORE INTEGRITY CROWN (renderer drawIntegrityCrown): the HUD integrity bar wrapped over the core — SAME segment size (maxIntegrity / 25) and bands (>50 % green · >25 % amber · red) as ui/Hud integrityColor + ProgressBar segments; change one, change both
   - requiredBy ← `system:hero-cinematics`
   - requiredBy ← `system:living-battlefield`
   - documentedBy ← `doc:RENDER-PIPELINE.md`
@@ -2582,15 +2589,15 @@ _at: src/render/*, src/core/dangerCamera.ts_
   - testedBy ← `test:src/core/dangerCamera.test.ts`
   - testedBy ← `test:src/render/abilityCinematics.test.ts`
   - testedBy ← `test:src/render/assimilationFx.test.ts`
+  - testedBy ← `test:src/render/biomeGround.test.ts`
   - testedBy ← `test:src/render/combatFx.test.ts`
-  - testedBy ← `test:src/render/equipmentArt.test.ts`
-  - _…28 more (query: `npm run dil -- node system:rendering`)_
+  - _…30 more (query: `npm run dil -- node system:rendering`)_
 
 ### `system:living-battlefield` — Living Battlefield
 
 A hidden per-run "biomass" (towers/strain/branches/stars/mastery/mulligans + heroes/gear + kills/boss/mega + wave + Power Score + biome) drives an evolution STAGE 0–5 that terraforms the arena beneath the entities: data-driven Environmental Influence Profiles per tower/mulligan/hero/gene (hash-default ⇒ new content needs no code), regional blooms from towers/nucleus/combat/mega, nucleus organ, biome adaptation, boss/mega scars, ambient life. Render-only + inert at Stage 0 ⇒ golden-safe. + LIVING ORGANISMS (render/organism.ts): the ENTITY life layer — per-tower approach-ANTICIPATION (alert eased from staggered proximity scans, threat-bearing lean, aperture/swell pose), post-shot recovery settle, environmental TREMOR (heavy deaths/hero ults/mega telegraphs/hive impacts), per-kind ambient emissions (spores/drips/sparks/drones/crawlers/wisps) + a throttled ambience director (org_* murmur cues); profiles auto-derive from body form + combat class ⇒ future towers inherit free. Enemy side: gaze-at-threat glints, shield-shatter stagger (statusFx already owns fear trembling). All render-side module state ⇒ sim untouched, goldens byte-identical.
 
-_at: src/render/livingBattlefield.ts, src/render/organism.ts, src/render/gutters.ts, src/ui/components/LivingGutters.tsx_
+_at: src/render/livingBattlefield.ts, src/render/organism.ts, src/render/gutters.ts, src/render/biomeGround.ts, src/ui/components/LivingGutters.tsx_
 
   - dependsOn → `system:rendering`
   - dependsOn → `system:engine`
@@ -2601,7 +2608,9 @@ _at: src/render/livingBattlefield.ts, src/render/organism.ts, src/render/gutters
   - plans → `system:biomes` — per-biome bespoke terrain flora beyond the BIOME_FLORA tint map
   - extends → `system:rendering` — LIVING ORGANISMS (render/organism.ts, LIVING-BATTLEFIELD.md §organisms): render-side entity-life layer — per-tower approach-anticipation (alert/bearing from staggered scans of rs.enemies vs effective range), recovery settle on fire edges, environmental tremor (deathEvents overkill, ult castEvents, mega telegraph/phase, hiveHitPulse), per-kind emissions + org_* ambience director polled by GameView. Profiles derive from TOWER_FORM + combatClass with per-kind overrides (organismProblems validator). ZERO sim writes: goldens byte-identical; updateOrganisms ≤13µs/frame measured.
   - dependsOn → `concept:responsive` — LIVING GUTTERS (render/gutters.ts + ui/components/LivingGutters.tsx): a ¼-res periphery bake BEHIND the board in its frame (.canvas-wrap / .spectate-stage), desktop profile only — it re-uses the terraform painters livingBattlefield.ts exports (terraformPalette/crustGeometry/paintVein/paintFlora/infectionField…), reads getAssimilationDebug() (the board’s last terraform) at a 4 Hz poll and re-bakes only on a key change (biome/mega + stage/creep/towers). It measures the board’s LAYOUT box inside its positioned parent — a run-layout change that stops centring the board in .canvas-wrap, or a new positioned child placed BEFORE the board, moves/covers the seam; enemies are never painted there
+  - consumes → `system:biomes` — BIOME GROUND (render/biomeGround.ts): one BIOME_GROUND row per biome id (tone + relief motif + obstacle rock + air) baked into the renderer floor cache, the obstacle layer AND the gutters periphery — a NEW biome with no row derives one from its accent + id hash (groundFor), NEUTRAL has none (Stage floor untouched). Renaming a biome id silently drops its authored row to the derived fallback
   - documentedBy ← `doc:LIVING-BATTLEFIELD.md`
+  - testedBy ← `test:src/render/biomeGround.test.ts`
   - testedBy ← `test:src/render/gutters.test.ts`
   - testedBy ← `test:src/render/livingBattlefield.test.ts`
   - testedBy ← `test:src/render/organism.test.ts`
@@ -4113,7 +4122,7 @@ _at: site/guides.ts → /guides/live-events/_
 - `doc:VOWS.md` — project documentation _(documents `system:prestige`)_
 - `doc:WEBSITE.md` — project documentation _(documents `system:field-research`, documents `system:website`)_
 
-## Tests (337)
+## Tests (339)
 
 - `test:src/audio/cues.test.ts` — automated validation _(tests `system:audio`)_
 - `test:src/audio/music.test.ts` — automated validation _(tests `system:audio`)_
@@ -4314,6 +4323,7 @@ _at: site/guides.ts → /guides/live-events/_
 - `test:src/net/syncEngine.test.ts` — automated validation _(tests `system:accounts`, tests `system:net-backend`)_
 - `test:src/render/abilityCinematics.test.ts` — automated validation _(tests `system:rendering`, tests `system:hero-cinematics`)_
 - `test:src/render/assimilationFx.test.ts` — automated validation _(tests `system:rendering`, tests `system:assimilation`)_
+- `test:src/render/biomeGround.test.ts` — automated validation _(tests `system:rendering`, tests `system:living-battlefield`)_
 - `test:src/render/combatFx.test.ts` — automated validation _(tests `system:rendering`)_
 - `test:src/render/equipmentArt.test.ts` — automated validation _(tests `system:rendering`, tests `system:equipment`)_
 - `test:src/render/feel.test.ts` — automated validation _(tests `system:rendering`)_
@@ -4335,6 +4345,7 @@ _at: site/guides.ts → /guides/live-events/_
 - `test:src/render/statusVfx.test.ts` — automated validation _(tests `system:rendering`)_
 - `test:src/render/telegraphs.test.ts` — automated validation _(tests `system:rendering`, tests `system:bosses`)_
 - `test:src/render/towerEvolution.test.ts` — automated validation _(tests `system:rendering`)_
+- `test:src/render/towerMoments.test.ts` — automated validation _(tests `system:rendering`)_
 - `test:src/save/envelope.test.ts` — automated validation _(tests `system:meta-store`, tests `system:accounts`)_
 - `test:src/save/saveStore.test.ts` — automated validation _(tests `system:meta-store`)_
 - `test:src/save/v56.test.ts` — automated validation _(tests `system:meta-store`)_

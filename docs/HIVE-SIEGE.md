@@ -99,6 +99,14 @@ ends the run. Minion body-blocks chew at the enemy's true sustained DPS
   health down; open wounds + ichor seep below 50%; below 25% emergency red under-flicker +
   pounding heartbeat scale; below 10% the whole body flickers (losing coherence). The
   heartbeat pulse rate rides `1 − integrity` continuously.
+- **Integrity crown (§states, `drawIntegrityCrown`, 2026-11):** the HUD integrity bar wrapped
+  over the Core as a flat ground-plane arc (rx 56 · ry 26 — it clears the build pad above) — the
+  SAME segment size (`maxIntegrity / 25`), the SAME bands (> 50 % green · > 25 % amber · red) and
+  the SAME recent-damage ghost draining behind the live fill, so the Core reads its own health at a
+  glance on any device. The track tints red while enemies are biting (`hiveAttackers`); ≤ 25 % the
+  lit arc breathes (steady under reduced motion). The **hearth fails** with it: the Core's light
+  shrinks (145 → 105 reach) and reddens toward arterial red as integrity falls. Reduced motion also
+  drops the impact shudder (the ring + ghost still read the hit). Tunables: `CORE_CROWN`.
 - **Audio (§audio):** `hiveHit` (bite thud) · `hiveGroan` (one-shot when a damage state
   falls: 75/50/25/10%) · `heartbeat` (looped by GameView while ≤25%, faster ≤10%) · existing
   danger-camera music swell covers the score (the crust pins the threat fold at core weight).

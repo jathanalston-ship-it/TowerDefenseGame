@@ -90,6 +90,24 @@ organ kind (rare) is one new entry in `EvoPartKind` + one drawer in `PART_DRAWER
 available to *both* the star and branch systems. This is the "generalize, don't hardcode"
 spine from CLAUDE.md applied to art.
 
+## 5b. The moments — placing and evolving LAND (`src/render/towerMoments.ts`, 2026-11)
+
+The organs above are the *state*; the beats are the *transition*, so growing the board feels like
+something happened (docs/GAME-FEEL.md §board growth):
+
+- **Deploy** (keyed off `bornAt`): a damped size overshoot (≈ +11 %, settles to exactly ×1), a light
+  shock ring + a dark dust ring running out along the ground plane, kicked flecks, a touch-down
+  bloom (Flashes setting) and the build pad flaring in the tower's hue — ~0.8 s.
+- **Evolve / molt** (keyed off `mutatedAt` — branch tiers, strain raises, strain merges and
+  strain-deploys all stamp it): depth = `tier + (strain − 1)`; duration 0.61 → 1.09 s, rings 1 → 4
+  (+1 per 2 levels), 5 + depth shed chitin shards, a white pop (Flashes), and at an **apex** step
+  (tier V / Strain V / depth ≥ 5) a column of the organism's light rising off it.
+- Derived only from `(age, tier, strain, id, colour)` — no per-tower state; one table
+  (`TOWER_MOMENTS`), nothing per-kind ⇒ tower #100 gets the same beats. Reduced motion keeps the
+  pad glow / a static fading halo and drops the pop, rings, shards and column.
+- Star / mastery evolution happens OUTSIDE a run (the Lab), so it has no battlefield moment; the
+  Lab portrait owns that reveal.
+
 ## 6. Performance & invariants
 
 - All embellishment is procedural Canvas2D (no assets), gated the same way the branch organs

@@ -25,6 +25,7 @@ import {
   paintVein, resolveAccent, shade, terraformPalette,
 } from './livingBattlefield';
 import type { Assimilation, Col, Motif, Region, VeinSeg } from './livingBattlefield';
+import { groundFor, groundSeed, paintGroundMotif, paintGroundTint } from './biomeGround';
 
 type Ctx = CanvasRenderingContext2D;
 const TAU = Math.PI * 2;
@@ -176,6 +177,16 @@ function paintGround(ctx: Ctx, input: GutterInput, d: Domain): void {
   for (let x = Math.ceil(d.x0 / CELL) * CELL; x <= d.x1; x += CELL) { ctx.moveTo(x, d.y0); ctx.lineTo(x, d.y1); }
   for (let y = Math.ceil(d.y0 / CELL) * CELL; y <= d.y1; y += CELL) { ctx.moveTo(d.x0, y); ctx.lineTo(d.x1, y); }
   ctx.stroke();
+
+  // The biome's GROUND (biomeGround.ts) continues past the seam — same tone + relief as the board's
+  // floor bake (a different seed, so it never mirrors), dimmed by paintDarkness like everything here.
+  const acc = resolveAccent(input.biomeAccent);
+  const ground = groundFor(input.biomeId, acc ? '#' + acc.map((v) => v.toString(16).padStart(2, '0')).join('') : '#5ad1ff');
+  if (ground) {
+    const R = { x0: d.x0, y0: d.y0, x1: d.x1, y1: d.y1 };
+    paintGroundTint(ctx, R, ground);
+    paintGroundMotif(ctx, R, ground, groundSeed(input.biomeId) + 1, WIDTH / 2, WIDTH / 2);
+  }
 
   // THE DARK BEYOND + the breeding membrane's bruised haze (renderer drawSpawnZone, at rest).
   const dk = ctx.createLinearGradient(0, 0, 0, SPAWN_BAND * 1.6);

@@ -64,7 +64,7 @@ export const THEME = {
   },
   obstacle: {
     fill: '#13161f',
-    edge: 'rgba(120,140,170,0.18)',
+    rim: '#8ca0c0', // the outcrop's lit rim (biomeGround.paintObstacles; a biome row overrides both)
   },
   // The Hive Core — wounded heartbeat at the bottom-center.
   hive: {
