@@ -37,7 +37,7 @@ function moteStyle(k: number, n: number): CSSProperties {
     '--x': `${8 + ((k * 37) % 84)}%`,
     '--d': `${((k * 0.83) % 3.6).toFixed(2)}s`,
     '--t': `${(3.2 + ((k * 7) % 5) * 0.25).toFixed(2)}s`,
-    '--dx': `${((k % 2 === 0 ? 1 : -1) * (6 + ((k * 5) % 9)))}px`,
+    '--tilt': `${((k % 2 === 0 ? 1 : -1) * (1 + ((k * 5) % 9) * 0.22)).toFixed(2)}deg`, // the drift (a static rotate)
     zIndex: n - k,
   } as CSSProperties;
 }

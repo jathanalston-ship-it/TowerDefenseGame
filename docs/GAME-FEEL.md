@@ -308,10 +308,10 @@ new rarity = a row in each. See docs/UI-STANDARDS.md §rarity for the surfaces a
 
 | layer | element | who | how |
 |---|---|---|---|
-| glow | `.rfx-glow` | all (common: none) | rarity-coloured halo, breathing (opacity); swells on hover / keyboard focus |
+| glow | `.rfx-glow` (+`::before`) | all (common: none) | rarity-coloured halo: tier strength = the layer's static opacity, the breath animates its child between literal values (compositor-only); swells on hover / keyboard focus |
 | sweep | `.rfx-sheen` | all | translate-only light band (`--sheen-w` wide), staggered by `--i`, then rests |
 | border light | `.rfx-edge` | rare+ | masked ring whose oversized conic child rotates (transform); exotic is iridescent |
-| motes | `.rfx-motes > i` | epic 3 · legendary 6 · exotic 7 | sparks rising (deterministic layout, no RNG); exotic alternates pink/cyan |
+| motes | `.rfx-motes > i` | epic 3 · legendary 6 · exotic 7 | full-height columns carrying a spark: `translateY(-100%)` rises the host's height at any size, a static `rotate` drifts it (deterministic layout, no RNG); exotic alternates pink/cyan |
 | crown | `.rfx-crown` | legendary ◆◆◆ · exotic ✦✦✦ | floats above the card |
 | reveal | `::after` | uncommon+ (`--reveal-a`) | a flash in the rarity colour as the card lands (one shot, staggered) |
 | pick | `.is-chosen::after` | all, epic+ hardest | a shockwave ring out of the chosen card (the FEEL pick moment keeps its flare) |

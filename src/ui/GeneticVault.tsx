@@ -96,10 +96,19 @@ export function GeneticVault(): JSX.Element {
   // clicks of one physical burst land before React re-renders, so state alone can't gate
   // them — a ref-based window turns any burst into exactly one crack.
   const lastCrackRef = useRef(0);
+  // The tap answers on the NEXT frame (docs/LOOTBOX.md §rarity-fx): the open itself is synchronous and
+  // heavy (it persists the save and re-renders the hub — ~0.5 s on a deep account), so the pressed state
+  // and the shelf's compositor-driven crack pulse paint FIRST, then the open runs (the pulse keeps moving
+  // through the main-thread work — it never looks frozen).
+  const [cracking, setCracking] = useState(false);
   const crack = (count = 1): void => {
     const now = performance.now();
     if (now - lastCrackRef.current < 600) return;
     lastCrackRef.current = now;
+    setCracking(true);
+    requestAnimationFrame(() => window.setTimeout(() => { setCracking(false); crackNow(count); }, 0));
+  };
+  const crackNow = (count: number): void => {
     // ONE guarded batch call — looping meta.openContainer() here would trip the guard's
     // per-open cooldown on calls 2..N and silently turn "Open Ten" into "open one".
     const opened = meta.openContainers(count); // applies each reward + removes it from the stockpile
@@ -131,7 +140,7 @@ export function GeneticVault(): JSX.Element {
     .map((d) => ({ id: d.id, name: d.name, color: d.color, ceiling: d.pity as number, since: lq.pity[d.id] ?? 0 }));
 
   return (
-    <div className="vault">
+    <div className={`vault${cracking ? ' is-cracking' : ''}`}>
       <div className="panel-title">Genetic Vault</div>
       <div className="panel-sub">
         Containers you earn in a run bank here unopened. Crack one open to roll its rewards — they

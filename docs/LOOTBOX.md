@@ -308,5 +308,12 @@ rare+ edge, epic+ motes — no crown in a 12-tile clutch) with a one-shot flash 
 wear the full layers (the banner's own motes retired); the shelf's banked containers and the
 incubating box glow in their tier. Face-down backs stay deliberately uniform (the layers mount only on
 `is-up`). Settings → Motion → Flashes now also silences the room-wide `hatch-worldflash`
-(`:root[data-flashes="off"]`). Staging note for captures: the roll is META `Math.random`, so a driver
-can script it around the one synchronous open to show upper tiers on demand.
+(`:root[data-flashes="off"]`).
+
+**The Open tap answers next frame.** `meta.openContainers` is synchronous and heavy (it persists the save
+and the hub re-renders — measured ~0.6 s from tap to overlay on a stage-80 account, and the button never
+even showed its press). `GeneticVault.crack` now sets `is-cracking` (buttons held pressed, the shelf's
+containers pulse on a compositor transform that keeps moving through the main-thread work) and runs the
+open after the next paint (rAF → timeout 0). The 600 ms burst guard is unchanged. Staging note for
+captures: the roll is META `Math.random`, so a driver can script it across that deferred open to show upper
+tiers on demand.

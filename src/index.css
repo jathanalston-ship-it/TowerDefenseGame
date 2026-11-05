@@ -14100,7 +14100,7 @@ html[data-layout='desktop'] .cv-slot { flex: 0 1 auto; width: 240px; min-width: 
      .rfx-glow    breathing rarity GLOW (outer halo)          (all; --glow-a/-r/-t; swells on hover/focus)
      .rfx-sheen   passive light SWEEP, staggered by --i       (all; --sheen-a/-t, --sheen-c)
      .rfx-edge    a light that circles the BORDER            (rare+; --edge-a/-t, --edge-bg)
-     .rfx-motes   sparks drifting up out of the surface       (epic+; --mote-s, --mote-rise)
+     .rfx-motes   sparks drifting up out of the surface       (epic+; --mote-s; rise = the host's height)
      .rfx-crown   the floating crown above it                 (legendary+, full surfaces only)
      .rfx-flash   one-shot REVEAL flash as it lands           (ceremonies; --reveal-a; honours Flashes)
    `rfx-lite` — the GRID profile (Armory, Archive, Codex, cabinets: 100+ tiles): a static glow + inner rarity
@@ -14133,21 +14133,30 @@ html[data-layout='desktop'] .cv-slot { flex: 0 1 auto; width: 240px; min-width: 
   --sheen-c: 255, 210, 77; /* = --r-legendary: a gold shimmer over the blood-pink */
   --edge-bg: conic-gradient(var(--r-mythic), var(--r-legendary), var(--r-mythic) 50%, #fff 60%, var(--r-mythic)); }
 
-/* GLOW — a halo in the rarity colour that breathes; it swells while hovered or keyboard-focused. */
+/* GLOW — a halo in the rarity colour that breathes; it swells while hovered or keyboard-focused. The tier's
+   strength is the layer's STATIC opacity; the breath animates its child between LITERAL values, so the
+   animation stays on the compositor (a var() inside keyframes forces a main-thread style recalc per frame —
+   measured ~3.7 ms/frame on a three-card draft before this split). */
 .rfx-glow {
   position: absolute;
   inset: 0;
   border-radius: inherit;
   z-index: -1;
   pointer-events: none;
-  box-shadow: 0 0 var(--glow-r) calc(var(--glow-r) * 0.2) var(--rar);
   opacity: var(--glow-a);
-  animation: rfx-glow var(--glow-t) ease-in-out infinite;
   transition: filter var(--dur-3) var(--ease-out);
 }
-@keyframes rfx-glow {
-  0%, 100% { opacity: calc(var(--glow-a) * 0.5); }
-  50% { opacity: var(--glow-a); }
+.rfx-glow::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: 0 0 var(--glow-r) calc(var(--glow-r) * 0.2) var(--rar);
+  animation: rfx-breathe var(--glow-t) ease-in-out infinite;
+}
+@keyframes rfx-breathe {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
 }
 .rfx:hover > .rfx-glow, .rfx:focus-visible > .rfx-glow { filter: brightness(1.45) saturate(1.2); }
 
@@ -14215,26 +14224,38 @@ html[data-layout='desktop'] .cv-slot { flex: 0 1 auto; width: 240px; min-width: 
   overflow: hidden;
   pointer-events: none;
 }
+/* Each mote is a full-height COLUMN carrying its spark at the bottom: translateY(-100%) lifts the spark the
+   host's whole height at any size, and a static `rotate` tilts the path — literal keyframes, compositor-only. */
 .rfx-motes i {
   position: absolute;
+  top: 0;
   bottom: -4px;
   left: var(--x);
   width: var(--mote-s, 3px);
-  height: var(--mote-s, 3px);
-  border-radius: 50%;
-  background: var(--rar);
-  box-shadow: 0 0 6px 1px var(--rar);
+  rotate: var(--tilt, 0deg);
+  transform-origin: 50% 100%;
   opacity: 0;
   animation: rfx-mote var(--t, 3.6s) linear infinite;
   animation-delay: var(--d, 0s);
 }
-.rfx-exotic .rfx-motes i:nth-child(even) { background: var(--r-exotic-2); box-shadow: 0 0 6px 1px var(--r-exotic-2); }
-.rfx-mythic .rfx-motes i:nth-child(even) { background: var(--r-legendary); box-shadow: 0 0 6px 1px var(--r-legendary); }
+.rfx-motes i::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: var(--rar);
+  box-shadow: 0 0 6px 1px var(--rar);
+}
+.rfx-exotic .rfx-motes i:nth-child(even)::before { background: var(--r-exotic-2); box-shadow: 0 0 6px 1px var(--r-exotic-2); }
+.rfx-mythic .rfx-motes i:nth-child(even)::before { background: var(--r-legendary); box-shadow: 0 0 6px 1px var(--r-legendary); }
 @keyframes rfx-mote {
-  0% { transform: translate(0, 0); opacity: 0; }
+  0% { transform: translateY(0); opacity: 0; }
   12% { opacity: 0.95; }
   70% { opacity: 0.6; }
-  100% { transform: translate(var(--dx, 0px), var(--mote-rise, -300px)); opacity: 0; }
+  100% { transform: translateY(-100%); opacity: 0; }
 }
 
 /* CROWN — the legendary/exotic diadem floating over the surface. */
@@ -14283,9 +14304,9 @@ html[data-layout='desktop'] .cv-slot { flex: 0 1 auto; width: 240px; min-width: 
 
 /* GRID profile — calm at scale: a static halo + inner wash (no breathing), the sweep once per hover/focus,
    a slower edge (legendary+ only — RarityFx), no motes. */
-.rfx-lite > .rfx-glow {
+.rfx-lite > .rfx-glow { opacity: calc(var(--glow-a) * 0.85); }
+.rfx-lite > .rfx-glow::before {
   animation: none;
-  opacity: calc(var(--glow-a) * 0.85);
   box-shadow: 0 0 calc(var(--glow-r) * 0.6) 0 var(--rar), inset 0 0 calc(var(--glow-r) * 1.1) calc(var(--glow-r) * -0.3) color-mix(in srgb, var(--rar) 55%, transparent);
 }
 .rfx-lite > .rfx-sheen::before { animation: none; }
@@ -14302,13 +14323,13 @@ html[data-layout='desktop'] .cv-slot { flex: 0 1 auto; width: 240px; min-width: 
    FLASHES off drops the reveal flash only. */
 :root[data-motion="reduced"] .rfx-sheen, :root[data-motion="reduced"] .rfx-motes, :root[data-motion="reduced"] .rfx-flash,
 .game[data-motion="reduced"] .rfx-sheen, .game[data-motion="reduced"] .rfx-motes, .game[data-motion="reduced"] .rfx-flash { display: none; }
-:root[data-motion="reduced"] .rfx-glow, .game[data-motion="reduced"] .rfx-glow { animation: none; opacity: calc(var(--glow-a) * 0.75); }
+:root[data-motion="reduced"] .rfx-glow::before, .game[data-motion="reduced"] .rfx-glow::before { animation: none; opacity: 0.75; }
 :root[data-motion="reduced"] .rfx-edge::before, .game[data-motion="reduced"] .rfx-edge::before { animation: none; background: var(--rar); }
 :root[data-motion="reduced"] .rfx-crown, .game[data-motion="reduced"] .rfx-crown { animation: none; opacity: 1; }
 :root[data-flashes="off"] .rfx-flash, .game[data-flashes="off"] .rfx-flash { display: none; }
 @media (prefers-reduced-motion: reduce) {
   .rfx-sheen, .rfx-motes, .rfx-flash { display: none; }
-  .rfx-glow { animation: none; opacity: calc(var(--glow-a) * 0.75); }
+  .rfx-glow::before { animation: none; opacity: 0.75; }
   .rfx-edge::before { animation: none; background: var(--rar); }
   .rfx-crown { animation: none; opacity: 1; }
 }
@@ -14347,8 +14368,8 @@ html[data-layout='desktop'] .cv-slot { flex: 0 1 auto; width: 240px; min-width: 
 /* the pick moment owns the chosen card's light; dismissed cards go dark */
 .cards .card.is-chosen .rfx-sheen, .cards .card.is-dismissed .rfx-sheen,
 .cards .card.is-dismissed .rfx-motes, .cards .card.is-dismissed .rfx-edge { display: none; }
-.cards .card.is-dismissed .rfx-glow { animation: none; opacity: 0; }
-.game[data-motion="reduced"] .cards .card::after, .game[data-flashes="off"] .cards .card::after { animation: none; opacity: 0; }
+.cards .card.is-dismissed .rfx-glow { opacity: 0; }
+.game[data-motion="reduced"] .cards .card::after, .game[data-flashes="off"] .cards .card:not(.is-chosen)::after { animation: none; opacity: 0; } /* Flashes off keeps the pick ring */
 @media (prefers-reduced-motion: reduce) {
   .cards .card::after { animation: none; opacity: 0; }
 }
@@ -14358,7 +14379,7 @@ html[data-layout='desktop'] .cv-slot { flex: 0 1 auto; width: 240px; min-width: 
    Every earned thing wears its tier the same way: the Vault clutch faces, the prize banner, the apex
    interrupt, the containers on the shelf. The FRAME speaks rarity (--rar); a reward's own emblem/amount keeps
    its family colour (a tower's hue, a currency's) — the two used to be one, so a Legendary material read pink. */
-.vspec-front.rfx { border-color: color-mix(in srgb, var(--rar) 62%, var(--line-strong)); --mote-rise: -170px; }
+.vspec-front.rfx { border-color: color-mix(in srgb, var(--rar) 62%, var(--line-strong)); }
 .vspec-front > .rfx-edge { inset: 0; } /* the face clips (overflow: hidden) — keep the ring inside its edge */
 .vspec.t2 .rfx-flash { --flash-d: 0.24s; }
 .vspec.t3 .rfx-flash, .vspec.t4 .rfx-flash { --flash-d: 0.34s; } /* lands as the slower apex flip shows its face */
@@ -14366,12 +14387,10 @@ html[data-layout='desktop'] .cv-slot { flex: 0 1 auto; width: 240px; min-width: 
   border-color: color-mix(in srgb, var(--rar) 62%, var(--line-strong));
   background: linear-gradient(120deg, color-mix(in srgb, var(--rar) 14%, var(--panel-2)), var(--panel-2));
   box-shadow: none; /* the rfx glow is the halo now */
-  --mote-rise: -110px;
   --sheen-w: 22%;
 }
 .hatch-prize-r.rfx-chip { padding: 4px 9px; border-radius: 999px; }
 /* the shelf: banked containers + the incubating box glow, sweep and (rare+) edge in their tier */
-.vault-obj.rfx { --mote-rise: -90px; }
 .rfx.tt:hover, .rfx.tt:focus-within { z-index: 4; } /* an isolated host keeps its tooltip above the next tile */
 .sv-card.rfx { position: relative; } /* specimens: a positioned host for the shared layers */
 
@@ -14383,7 +14402,6 @@ html[data-layout='desktop'] .cv-slot { flex: 0 1 auto; width: 240px; min-width: 
   border-radius: var(--r-lg);
   border: 1px solid color-mix(in srgb, var(--gold) 38%, var(--line));
   background: radial-gradient(120% 70% at 50% 0%, color-mix(in srgb, var(--gold) 12%, var(--panel)), var(--panel) 70%);
-  --mote-rise: -280px;
   --sheen-w: 24%;
 }
 .grk-cine-card > .rfx-flash { --reveal-a: 0.55; } /* a big card: a bloom, not a white-out */
@@ -14440,3 +14458,12 @@ html[data-layout='desktop'] .cv-slot { flex: 0 1 auto; width: 240px; min-width: 
 /* Results: each banked container row lands lit in its tier (a staggered one-shot flash, then the grid glow) */
 .ve-row.rfx { position: relative; }
 .ve-row .rfx-flash { --flash-d: calc(0.12s + var(--i, 0) * 0.08s); }
+/* the tap on Open answers next frame: the shelf pulses (compositor transform — it keeps moving through the
+   synchronous open) while the buttons hold their pressed state (GeneticVault `is-cracking`) */
+.vault.is-cracking .vault-obj { animation: vault-crack-pulse 0.32s var(--ease-in-out) infinite alternate; }
+.vault.is-cracking .vault-crack { pointer-events: none; transform: translateY(1px) scale(0.97); }
+@keyframes vault-crack-pulse {
+  from { transform: scale(1); }
+  to { transform: scale(1.06); }
+}
+@media (prefers-reduced-motion: reduce) { .vault.is-cracking .vault-obj { animation: none; } }
