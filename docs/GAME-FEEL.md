@@ -97,6 +97,18 @@ into a blurred, dimmed backdrop that Results sits on. DEFEAT: the board drains o
 cracks spread from the breach point. Timings/colours are one table (`render/runOutro.ts OUTRO`);
 reduced motion shows the end state at once with the same text.
 
+### §combat-vfx — the damage language (docs/COMBAT-VISUAL-STANDARDS.md §damage-language)
+The audit's P0 hit effects, P1 death payoff and P2 trails, finished as ONE system: the striker's
+combat class (its damage type) picks the FORM of its shot, muzzle burst, field pulse, hit burst,
+splash blast and kill pop; its own color tints them. Kinetic darts burst into streaks, Caustic globs
+splat, Viral spores puff, Neural bolts crackle, Vital orbs bloom, Resonant pulses ripple — six forms,
+one six-row table (`render/combatFx.ts DAMAGE_STYLE`), every tower and hero covered by data. Hit
+flashes light the body in the striker's hue (additive — the creature stays readable); splash blasts
+draw at their true radius; field towers send one faint wavefront to their real reach. Control
+statuses grip (bracket arcs) where damage-over-time glows (rims), and a busy field's rims hold still.
+Damage numbers carry a **crowd budget**: past 24 on screen, chip damage recedes so the big hits read.
+Reduced motion: static sizes, fades only. Flashes off: no additive cores, forms + rims stay.
+
 ---
 
 ## 1. Philosophy
@@ -127,6 +139,7 @@ Design for both: a constant satisfying hum + occasional fireworks.
 
 ### ⭐ P0 — Hit effects *(fires every projectile)*
 - **Why:** confirms every hit *connected* — closes the action→feedback loop and makes combat feel physical instead of "numbers quietly dropping."
+- **Shipped (2026-11):** §combat-vfx — class-form hit bursts + striker-tinted additive hit flash.
 - **Visual:** **impact spark** at contact (small class-tinted starburst), **target flinch** (2-frame squash + 60ms white flash), a micro-knockback nudge against the flow; AoE/pierce show a thin shock ring. Gate flinch/spark behind the LOD `detail` flag.
 - **Audio:** a short percussive per class (Kinetic sharp *tick*, Caustic wet *splat*, Viral *squelch*), pitch-varied ±10%, **voice-pooled** (cap ~8 concurrent; aggregate beyond).
 
@@ -147,6 +160,7 @@ Design for both: a constant satisfying hum + occasional fireworks.
 
 ### ⭐ P1 — Damage numbers
 - **Why:** "numbers go up" is foundational dopamine *and* information — but uncontrolled, it's clutter that violates readability.
+- **Shipped (2026-11):** the crowd budget (§combat-vfx) — the number-LOD below, as a fade not a cut.
 - **Visual:** pooled floats; **aggregate per target over ~120ms** (one growing number, not 30 from a fast tower); **size scales with magnitude**; color by type (normal off-white, **crit gold**, reaction pair-color, DoT small/dim, Shred yellow — already used); arc up + fade. **Number-LOD:** in a huge swarm, show only crits/reactions. Player toggle (off / crits-only / all).
 - **Audio:** numbers ride the hit SFX (no extra voice); a giant number can tick a soft count-up.
 
@@ -171,6 +185,7 @@ Design for both: a constant satisfying hum + occasional fireworks.
 
 ### ⭐ P2 — Projectile trails *(polish + legibility)*
 - **Why:** speed sensation + readability (READABILITY tier 6) — trails make fast shots trackable and satisfying.
+- **Shipped (2026-11):** §combat-vfx — six class shot forms + class muzzle bursts.
 - **Visual:** short **class-tinted fading trail** (segment streak or gradient); Kinetic = thin sharp, Caustic = thick wobbly glob trail; **muzzle flash** at origin + **impact puff** at end; obey the size floor/cap. Skip trails under LOD.
 - **Audio:** keep mostly silent (every shot = noise); optional very-quiet pooled *fwip*, or only on the first shot of a burst.
 
