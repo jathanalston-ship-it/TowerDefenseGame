@@ -148,7 +148,8 @@ export interface AccountLevelReward {
 
 /** Deep-level payout re-weighting (docs/ACCOUNT-LEVEL.md §depth). Depth XP makes deep levels arrive
  *  ~2–4× as often, so each pays a smaller share — more frequent, smaller beats, with level-reward
- *  value per hour held within ~±10 % of the pre-depth economy (sim-measured). Levels ≤ `fromLevel`
+ *  value per hour within −14…+18 % of the pre-depth economy per play band (±1 % over 30–400 h,
+ *  sim-measured). Levels ≤ `fromLevel`
  *  pay exactly what they always did; past it the budget divides by 1 + k·ln(n / fromLevel), which
  *  dips to ~45 by L100 and then creeps back up (budget ∝ n^0.7 / ln n — deep levels never shrink to
  *  nothing). Containers: one every `every` levels, the interval widening by `every` each `widenEvery`
