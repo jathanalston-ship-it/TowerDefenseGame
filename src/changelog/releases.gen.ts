@@ -8,7 +8,7 @@ export const RELEASES: Release[] = [
     "id": "v2026.11.05.6",
     "date": "2026-11-05",
     "title": "Made for Your Phone’s Browser",
-    "sealed": false,
+    "sealed": true,
     "entries": [
       {
         "cat": "UX",

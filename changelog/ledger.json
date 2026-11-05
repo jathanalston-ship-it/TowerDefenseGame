@@ -1,6 +1,6 @@
 {
-  "lastSha": "da7194408872f03e175ffa2dc7cbbacc4ae25e71",
-  "commitsSinceDraft": 4,
+  "lastSha": "0b91f44346c06280fc8c69a9cedc49d4900492d5",
+  "commitsSinceDraft": 6,
   "content": {
     "tower": [
       "needle",
@@ -4017,7 +4017,7 @@
       "id": "v2026.11.05.6",
       "date": "2026-11-05",
       "title": "Made for Your Phone’s Browser",
-      "sealed": false,
+      "sealed": true,
       "entries": [
         {
           "cat": "UX",
@@ -8843,6 +8843,22 @@
       "cat": "UI",
       "text": "The mobile-browser version — fit around the address bar, full screen, Add to Home Screen",
       "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "1534b4114c63c2ff9a5916a6b9b9a3e31cf1d3eb",
+      "date": "2026-11-05",
+      "cat": "Developer Tools",
+      "text": "Release notes \"Made for Your Phone's Browser\" curated; site + PIL regenerated",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "0b91f44346c06280fc8c69a9cedc49d4900492d5",
+      "date": "2026-11-05",
+      "cat": "Developer Tools",
+      "text": "Validation,status: mobile-browser version PASS over 0f7d1d2..HEAD — 3110/3110, mobile gate clean",
+      "internal": true,
       "needsReview": false
     }
   ]

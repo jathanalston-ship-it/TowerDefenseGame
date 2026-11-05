@@ -3,8 +3,8 @@
 > Maintained at the END of every session (paired with `docs/AI_HANDOFF.md` — the constitution's
 > workflow step 4). This is the "where are we?" answer; `docs/GAME-STATE.md` remains the deeper
 > per-system built-vs-planned index, `docs/PROJECT_MANIFEST.md` the system map.
-> **Last updated:** 2026-11-05f (**MADE FOR YOUR PHONE'S BROWSER — merged + validated, awaiting the owner's
-> release go-ahead.** RESPONSIVE-DESIGN.md §browser: every full-screen height uses `--app-h` (100dvh, measured
+> **Last updated:** 2026-11-05f (**DEPLOYED — MADE FOR YOUR PHONE'S BROWSER** (`0b91f44`, run #235; owner
+> approved the release).** RESPONSIVE-DESIGN.md §browser: every full-screen height uses `--app-h` (100dvh, measured
 > fallback; uiStandards forbids bare 100vh) so the address bar never hides the game's foot; Android/iPad
 > browsers go full screen on the first tap (Settings toggle, top-bar ⛶); iPhone Safari gets a one-time Add to
 > Home Screen card; manifest installs landscape (was portrait); short portrait (390×664) keeps the run board
