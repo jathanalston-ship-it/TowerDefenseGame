@@ -8,9 +8,10 @@
 
 import { describe, expect, it } from 'vitest';
 import {
-  ACCOUNT_TITLES, ACCOUNT_XP, MILESTONE_LEVELS, accountLevelReward, isMilestoneLevel, levelFromXp,
-  levelProgress, monthKey, nextMilestone, totalXpForLevel, weekKey, xpForLevel,
+  ACCOUNT_REWARD_DEPTH, ACCOUNT_TITLES, ACCOUNT_XP, ACCOUNT_XP_DEPTH, MILESTONE_LEVELS, accountLevelReward, depthXpMult,
+  isContainerLevel, isMilestoneLevel, levelFromXp, levelProgress, monthKey, nextMilestone, totalXpForLevel, weekKey, xpForLevel,
 } from './accountLevel';
+import { accountDepth, itemLevelForDepth } from './equipment';
 import { meta } from '../state/meta';
 import type { RunResult } from '../state/meta';
 import type { RunStats } from './types';
@@ -82,13 +83,51 @@ describe('procedural rewards — deterministic, never empty, prestige-preserving
     }
   });
 
-  it('banks a Bio-Container exactly every 5th level (plus milestone bonuses)', () => {
-    for (let n = 1; n <= 200; n++) {
+  it('banks a Bio-Container every 5th level, the interval widening by 5 each 50 levels (plus milestone bonuses)', () => {
+    // Depth XP (§depth) makes deep levels ~3× as frequent, so the periodic container spaces out to
+    // keep containers/hour honest: every 5th to L50, every 10th to L100, every 15th to L150 …
+    for (let n = 1; n <= 400; n++) {
       const r = accountLevelReward(n);
-      const periodic = n % 5 === 0 ? 1 : 0;
+      const periodic = n % (5 * Math.ceil(n / 50)) === 0 ? 1 : 0;
       const milestoneBonus = isMilestoneLevel(n) ? 1 : 0;
+      expect(isContainerLevel(n), `level ${n}`).toBe(periodic === 1);
       expect(r.containers.length, `level ${n}`).toBe(periodic + milestoneBonus);
     }
+    // The early ladder is untouched, and the interval always lands on round levels.
+    for (let n = 5; n <= 50; n += 5) expect(isContainerLevel(n)).toBe(true);
+    expect([60, 70, 100, 105, 120, 150, 160, 200, 250, 500, 1000].every(isContainerLevel)).toBe(true);
+    expect([55, 65, 110, 155, 170].some(isContainerLevel)).toBe(false);
+  });
+
+  it('levels 1–42 pay EXACTLY the pre-Depth-XP ladder (onboarding rewards untouched)', () => {
+    // Pinned sums of the 2026-07 ladder for levels 1..42 — the re-weighting only starts past
+    // ACCOUNT_REWARD_DEPTH.fromLevel.
+    expect(ACCOUNT_REWARD_DEPTH.fromLevel).toBe(42);
+    const t = { c: 0, e: 0, t: 0, h: 0, m: 0, i: 0, k: 0 };
+    for (let n = 1; n <= 42; n++) {
+      const r = accountLevelReward(n);
+      t.c += r.cores; t.e += r.essence; t.t += r.towerShards; t.h += r.heroShards;
+      t.m += r.mats.mutagen + r.mats.scrap + r.mats.catalyst; t.i += r.ichor; t.k += r.containers.length;
+    }
+    expect(t).toEqual({ c: 2381, e: 983, t: 125, h: 37, m: 16, i: 4, k: 10 });
+  });
+
+  it('deep levels pay smaller beats that never shrink to nothing (and creep back up)', () => {
+    const avgCores = (start: number): number => {
+      let sum = 0, n = 0;
+      for (let l = start; l < start + 20; l++) {
+        if (isMilestoneLevel(l)) continue;
+        sum += accountLevelReward(l).cores;
+        n++;
+      }
+      return sum / n;
+    };
+    // Smaller than the onboarding beat (the frequency carries the reward now) …
+    expect(avgCores(100)).toBeLessThan(avgCores(20));
+    // … but bounded below everywhere, and rising again deep (budget ∝ n^0.7 / ln n).
+    for (const at of [60, 100, 200, 400, 1000, 5000]) expect(avgCores(at), `L${at}`).toBeGreaterThan(20);
+    expect(avgCores(1000)).toBeGreaterThan(avgCores(140));
+    expect(avgCores(5000)).toBeGreaterThan(avgCores(1000));
   });
 
   it('milestones pay several times their neighbours and carry the named titles', () => {
@@ -120,6 +159,35 @@ describe('procedural rewards — deterministic, never empty, prestige-preserving
       const xpRatio = xpForLevel(base * 2) / xpForLevel(base);
       expect(rewardRatio).toBeLessThan(xpRatio);
     }
+  });
+});
+
+describe('depth XP — play XP scales with the account depth (§depth)', () => {
+  it('is exactly ×1 through depth 30 (onboarding untouched), then rises smoothly and without cap', () => {
+    expect(ACCOUNT_XP_DEPTH.from).toBe(30);
+    for (const d of [0, 1, 12, 29.5, 30]) expect(depthXpMult(d)).toBe(1);
+    let prev = 1;
+    for (let d = 31; d <= 2000; d++) {
+      const m = depthXpMult(d);
+      expect(m).toBeGreaterThan(prev); // strictly monotonic past `from`
+      expect(m / prev).toBeLessThan(1.05); // smooth: no single stage is a cliff (ratio → 1)
+      prev = m;
+    }
+    expect(Number.isFinite(depthXpMult(1e6))).toBe(true);
+  });
+
+  it('hits its calibration anchors (1 + ((d − 30) / 25)^1.6)', () => {
+    expect(depthXpMult(55)).toBeCloseTo(2, 6);
+    expect(depthXpMult(80)).toBeCloseTo(1 + Math.pow(2, 1.6), 6); // ≈ 4.0
+    expect(depthXpMult(105)).toBeCloseTo(1 + Math.pow(3, 1.6), 6); // ≈ 6.8
+  });
+
+  it('reads the SAME account depth as the gear chase (deepest stage, or Infinite best × weight)', () => {
+    expect(accountDepth(0)).toBe(0);
+    expect(accountDepth(60, 40)).toBe(60); // the campaign reads deeper
+    expect(accountDepth(20, 160)).toBe(80); // the Infinite record reads deeper (× 0.5)
+    // One definition: the gear chase's item level is a pure function of this depth.
+    expect(itemLevelForDepth(20, 160)).toBe(itemLevelForDepth(80));
   });
 });
 
@@ -162,6 +230,26 @@ describe('meta integration — XP settles, levels cross, rewards land', () => {
     // Every crossed level's reward landed (cores are guaranteed on every level).
     expect(outcome.accountXp.levelUps.length).toBe(after.level - 1);
     for (const lu of outcome.accountXp.levelUps) expect(lu.reward.cores).toBeGreaterThan(0);
+  });
+
+  it('a run at depth pays depthXpMult × its play XP and reports the multiplier (§depth)', () => {
+    const settle = (stage: number) => {
+      meta.reset();
+      if (stage > 0) meta.debugSetCampaignStage(stage);
+      const o = meta.finishRun(makeResult({ wave: 12, kills: 260, won: false }, { wave: 12, kills: 260 }));
+      // Achievement + contract XP are flat folds (contract previews quote the table value).
+      const flat = o.achievements.length * ACCOUNT_XP.achievement + (o.contracts?.length ?? 0) * ACCOUNT_XP.contract
+        + (o.perfectWeek ? ACCOUNT_XP.perfectWeek : 0);
+      return { gained: o.accountXp.gained - flat, mult: o.accountXp.depthMult };
+    };
+    const play = 260 * ACCOUNT_XP.kill + 12 * ACCOUNT_XP.wave;
+    const shallow = settle(30);
+    expect(shallow.gained).toBe(play); // ×1 at/below depth 30 — no multiplier reported
+    expect(shallow.mult).toBeUndefined();
+    const deep = settle(80);
+    expect(deep.mult).toBeCloseTo(depthXpMult(80), 9);
+    expect(deep.gained).toBe(Math.round(play * depthXpMult(80)));
+    meta.reset();
   });
 
   it('weekly/monthly ledgers accumulate under the current period keys', () => {
