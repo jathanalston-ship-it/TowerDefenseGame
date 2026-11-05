@@ -297,7 +297,7 @@ export function InitCutscene({ onDone }: { onDone: (dived?: boolean) => void }):
 
   const diving = phase === 'dive';
   return (
-    <div className="intro" role="dialog" aria-label="Initialization sequence" onClick={advance}>
+    <div className={`intro${reducedMotion ? ' is-still' : ''}`} role="dialog" aria-label="Initialization sequence" onClick={advance}>
       <div className={`intro-stage is-${scene.visual} is-copy-${scene.copyAt ?? 'center'} ${diving ? 'is-diving' : ''}`}>
         <canvas ref={canvasRef} className="intro-canvas" aria-hidden />
         <div className="intro-grade" aria-hidden />
