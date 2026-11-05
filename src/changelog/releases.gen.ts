@@ -8,7 +8,7 @@ export const RELEASES: Release[] = [
     "id": "v2026.11.05.5",
     "date": "2026-11-05",
     "title": "A Calmer First Hour",
-    "sealed": false,
+    "sealed": true,
     "entries": [
       {
         "cat": "UX",

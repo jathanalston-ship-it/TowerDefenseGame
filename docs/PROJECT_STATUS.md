@@ -3,8 +3,8 @@
 > Maintained at the END of every session (paired with `docs/AI_HANDOFF.md` — the constitution's
 > workflow step 4). This is the "where are we?" answer; `docs/GAME-STATE.md` remains the deeper
 > per-system built-vs-planned index, `docs/PROJECT_MANIFEST.md` the system map.
-> **Last updated:** 2026-11-05e (**A CALMER FIRST HOUR + THE SOUND PASS — merged + validated, awaiting the
-> owner's release go-ahead.** First hour (lead): What's New paced to 2 cards per finished run (was 11 after
+> **Last updated:** 2026-11-05e (**DEPLOYED — A CALMER FIRST HOUR + THE SOUND PASS** (`0f7d1d2`, run #234;
+> owner approved "release as is").** First hour (lead): What's New paced to 2 cards per finished run (was 11 after
 > run 1), the SEAL RULE (no mechanic before its screen), in-run FIELD NOTES for Early Call / speed / the
 > defense zone / hero evolution, and every screen — incl. the Tower Lab / Hero Hall / Infinite — briefs and
 > guides on arrival (save v57 archives those lessons for players who had met the screens). Sound (track S1):

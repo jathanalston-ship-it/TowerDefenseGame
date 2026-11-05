@@ -1,6 +1,6 @@
 {
-  "lastSha": "2bd90c7101e012b7d4f9c5aa43322708e3d88a4c",
-  "commitsSinceDraft": 0,
+  "lastSha": "0f7d1d2bbbda1c6161ffcaddc505559ccb26e268",
+  "commitsSinceDraft": 2,
   "content": {
     "tower": [
       "needle",
@@ -3974,7 +3974,7 @@
       "id": "v2026.11.05.5",
       "date": "2026-11-05",
       "title": "A Calmer First Hour",
-      "sealed": false,
+      "sealed": true,
       "entries": [
         {
           "cat": "UX",
@@ -8781,6 +8781,22 @@
       "cat": "Bug Fixes",
       "text": "Quiet-by-design tiers stay quiet; repeating cues never duck the score; final audit report",
       "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "a508abcbb8c596de7b18776555f6d39baa7a7d52",
+      "date": "2026-11-05",
+      "cat": "Developer Tools",
+      "text": "Release notes \"A Calmer First Hour\" curated; site + PIL regenerated",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "0f7d1d2bbbda1c6161ffcaddc505559ccb26e268",
+      "date": "2026-11-05",
+      "cat": "Developer Tools",
+      "text": "First hour + sound pass PASS over 2d0c694..HEAD — 3109/3109, mobile gate clean",
+      "internal": true,
       "needsReview": false
     }
   ]

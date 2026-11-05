@@ -634,3 +634,5 @@
 - `f411fad` **[Audio]** Unit-energy room + dry frequent combat, converged trims; audit reports balance + render cost
 - `24ddeed` **[Developer Tools]** AUDIO.md (the measured SFX mix + audit), MUSIC_LEVEL, registry/DIL/anchors _(internal)_
 - `dbf629a` **[Bug Fixes]** Quiet-by-design tiers stay quiet; repeating cues never duck the score; final audit report
+- `a508abc` **[Developer Tools]** Release notes "A Calmer First Hour" curated; site + PIL regenerated _(internal)_
+- `0f7d1d2` **[Developer Tools]** First hour + sound pass PASS over 2d0c694..HEAD — 3109/3109, mobile gate clean _(internal)_
