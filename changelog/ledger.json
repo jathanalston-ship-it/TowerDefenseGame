@@ -1,6 +1,6 @@
 {
-  "lastSha": "a21bc732937173a46c95bcb1c1cd28d445916f40",
-  "commitsSinceDraft": 5,
+  "lastSha": "2b14f67cff64039aa3077d8a696e07e7a3798c3a",
+  "commitsSinceDraft": 7,
   "content": {
     "tower": [
       "needle",
@@ -3864,7 +3864,7 @@
       "id": "v2026.11.05.3",
       "date": "2026-11-05",
       "title": "A Battlefield You Can Read",
-      "sealed": false,
+      "sealed": true,
       "entries": [
         {
           "cat": "Visuals",
@@ -8583,6 +8583,22 @@
       "date": "2026-11-05",
       "cat": "Towers",
       "text": "Sync Chronicle artifacts to HEAD; first-session probe PASS (0 errors, first tower 7.2 s)",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "30d4a29cdb6ddfd16dbb498a0b891670daaad1fc",
+      "date": "2026-11-05",
+      "cat": "Gameplay",
+      "text": "Account: weekly/monthly XP boards count pure activity",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "2b14f67cff64039aa3077d8a696e07e7a3798c3a",
+      "date": "2026-11-05",
+      "cat": "Developer Tools",
+      "text": "Validation: release gate PASS over eb83070..HEAD — 3084/3084, mobile gate clean",
       "internal": true,
       "needsReview": false
     }

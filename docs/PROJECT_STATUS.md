@@ -3,17 +3,17 @@
 > Maintained at the END of every session (paired with `docs/AI_HANDOFF.md` — the constitution's
 > workflow step 4). This is the "where are we?" answer; `docs/GAME-STATE.md` remains the deeper
 > per-system built-vs-planned index, `docs/PROJECT_MANIFEST.md` the system map.
-> **Last updated:** 2026-11-05c (**"A BATTLEFIELD YOU CAN READ" — merged + validated, awaiting the owner's release
-> go-ahead.** Full-game VFX pass in four tracks: V1 combat damage language (`render/combatFx.ts`), V2 one
+> **Last updated:** 2026-11-05c (**DEPLOYED — "A BATTLEFIELD YOU CAN READ"** (`2b14f67`, run #232 green; owner approved
+> the release).** Full-game VFX pass in four tracks: V1 combat damage language (`render/combatFx.ts`), V2 one
 > telegraph language for bosses/Mega/hero casts (`render/telegraphs.ts`), V3 biome ground + tower moments + the
 > Hive Core integrity arc (`render/biomeGround.ts`, `render/towerMoments.ts`; fixed a per-frame floor re-bake,
 > the biggest render cost), V4 one rarity language (`ui/components/RarityFx.tsx`) + vault rarity truth +
 > promotion ceremony. Also: frontier v4 coverage model (`core/coverage.ts`; flawless 69 → 63 % / 73 → 62 %),
 > Depth XP (account level-ups ~1/h at depth; deep rewards re-weighted), the Hive splices, honest veteran ETAs,
 > within-reach stage ETAs, draft-card rarity VFX, reaction-label crowd budget, boss verb hold, media script
-> closes drafts. Owner decisions pending with the release: the L100 milestone size (~328 vs ~1182 Cores) and
-> depth-weighted vs pure-activity weekly/monthly XP boards. VALIDATION: validate PASS over eb83070..HEAD
-> (3083/3083, mobile gate clean). Website: release v2026.11.05.3, devlog `a-battlefield-you-can-read`, features,
+> closes drafts. Owner decisions with the release: the L100 milestone stays smaller (~328 Cores); weekly/monthly XP
+> boards stay pure activity (period ledgers fold pre-depth-multiplier XP). VALIDATION: validate PASS over
+> eb83070..HEAD (3084/3084, mobile gate clean). Website: release v2026.11.05.3, devlog `a-battlefield-you-can-read`, features,
 > guides, media re-shot.)
 >
 > **2026-11-05b** (**DEPLOYED — FRONTIER CHALLENGE v3** (`eb83070`, run #231 green; owner

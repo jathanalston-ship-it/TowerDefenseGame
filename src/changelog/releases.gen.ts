@@ -8,7 +8,7 @@ export const RELEASES: Release[] = [
     "id": "v2026.11.05.3",
     "date": "2026-11-05",
     "title": "A Battlefield You Can Read",
-    "sealed": false,
+    "sealed": true,
     "entries": [
       {
         "cat": "Visuals",
