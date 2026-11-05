@@ -115,7 +115,7 @@ import { adaptiveIncomeMult, coreShardIncome, lootPointIncome } from '../core/ec
 import { predictBossRush, predictCampaign, predictInfinite, calibrate } from '../core/predict';
 import type { RouletteReward } from './bioRoulette';
 import type { Prediction } from '../core/predict';
-import { unlockedMechanics, pendingAnnouncements } from './mechanics';
+import { unlockedMechanics, pacedAnnouncements } from './mechanics';
 import type { MechanicDef } from './mechanics';
 import { featureRevealed, unlatchedReveals } from './unlocks';
 import { ACCOUNT_XP, accountLevelReward, depthXpMult, levelFromXp, levelProgress, monthKey, nextMilestone, weekKey } from '../core/accountLevel';
@@ -821,6 +821,9 @@ let pendingAccountLevelUps: AccountLevelUp[] = [];
 // pollGenomePromotions (finishRun + the menu drain) and celebrated exactly once.
 export interface GenomePromotion { index: number; name: string; numeral: string; reward: GenomeRankReward }
 let pendingGenomePromotions: GenomePromotion[] = [];
+// The What's New BEAT (docs/PROGRESSION-GATING.md §announcements): cards shown since the last finished run.
+// Session memory, not save data — a reload simply opens a fresh beat (at most one extra pair of cards).
+let announceBeat = { runs: -1, shown: 0 };
 
 /** Fold gained Account XP onto a save DRAFT: lifetime + rolling week/month ledgers, then every
  *  crossed level's procedurally generated reward (cores/essence/shards/mats/ichor/containers/
@@ -7725,13 +7728,21 @@ export const meta = {
   helpMechanics(): MechanicDef[] {
     return unlockedMechanics(store.get());
   },
-  /** Mechanics unlocked but not yet announced — drives the "What's New?" queue. */
+  /** This beat's What's New cards (docs/PROGRESSION-GATING.md §announcements): the unannounced
+   *  mechanics in priority order, capped at ANNOUNCE.perBeat per finished run — the rest wait for the
+   *  next runs (they are already in the Help wiki). */
   whatsNew(): MechanicDef[] {
-    return pendingAnnouncements(store.get());
-  },
-  /** Archive announced mechanics into Help (so they never re-announce, but stay browsable). */
-  archiveMechanics(ids: string[]): void {
     const s = store.get();
+    if (announceBeat.runs !== s.totalRuns) announceBeat = { runs: s.totalRuns, shown: 0 };
+    return pacedAnnouncements(s, announceBeat.shown);
+  },
+  /** Archive announced mechanics into Help (so they never re-announce, but stay browsable). Cards the
+   *  player was SHOWN this beat count against its budget; ids already seen don't. */
+  archiveMechanics(ids: string[], opts: { beat?: boolean } = {}): void {
+    const s = store.get();
+    const fresh = ids.filter((id) => !s.help.seen.includes(id));
+    // In-run FIELD NOTES archive with beat:false — they are taught mid-fight, not from the hub's budget.
+    if (opts.beat !== false && announceBeat.runs === s.totalRuns) announceBeat = { runs: s.totalRuns, shown: announceBeat.shown + fresh.length };
     const seen = Array.from(new Set([...s.help.seen, ...ids]));
     persist({ ...s, help: { ...s.help, seen } });
   },
@@ -7959,6 +7970,7 @@ export const meta = {
     if (!guardOk('account.reset')) return;
     resetSecurity();
     saveStore.backup();
+    announceBeat = { runs: -1, shown: 0 };
     persist(defaultSave());
   },
 

@@ -6,10 +6,12 @@
 // Queued: unlocks that land together show one at a time. Rendered on the menu only.
 // When the mechanic has a Guided Unlock (docs/GUIDED-UNLOCKS.md), the CTA reads "Show me ▸" and
 // the guideBus arms the anchored walkthrough right after navigation — card, door, guide: one chain.
-// BATCHING (docs/GUIDED-UNLOCKS.md §batching): WHATS_NEW_SUMMARY_AT+ queued announcements (a first
-// run unlocks a dozen) collapse into ONE summary card — glyph · name · one line · "Open" per
-// system, one dismiss — and any cosmetic specimens that landed in the same breath fold into it
-// instead of queuing their own ceremonies. Every full briefing is still archived into Help.
+// BATCHING (docs/GUIDED-UNLOCKS.md §batching): WHATS_NEW_SUMMARY_AT+ queued announcements collapse
+// into ONE summary card — glyph · name · one line · "Open" per system, one dismiss — and any cosmetic
+// specimens that landed in the same breath fold into it instead of queuing their own ceremonies.
+// Since the first-hour PACING (docs/PROGRESSION-GATING.md §announcements) meta.whatsNew() hands at most
+// ANNOUNCE.perBeat (2) cards per finished run, so the summary is the valve for a raised budget, not the
+// norm: a first run now teaches two systems in full instead of listing eleven.
 
 import { useEffect } from 'react';
 import type { CSSProperties } from 'react';

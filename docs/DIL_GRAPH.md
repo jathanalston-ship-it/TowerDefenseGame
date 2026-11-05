@@ -1,6 +1,6 @@
 # DIL_GRAPH.md — the Design Intelligence Layer (GENERATED — `npm run dil -- regen`)
 
-> **The project's brain** (docs/DIL.md). 984 nodes · 1914 edges, built from the live
+> **The project's brain** (docs/DIL.md). 986 nodes · 1917 edges, built from the live
 > registries + curated knowledge (src/dev/dil/). **Query it instead of searching the repo:**
 > `npm run dil -- node <id>` · `affects <id>` · `requires <id>` · `missing <kind> <edge>` ·
 > `checklist tower <kind>` · `find <text>`. Edge kinds are bidirectional (19 kinds).
@@ -556,6 +556,7 @@ graph LR
   system_boss_rush["Boss Rush"] -->|dependsOn| system_power["Power Score"]
   system_hub_shell["Hub Shell & Home"] -->|consumes| system_campaign["Campaign"]
   system_living_battlefield["Living Battlefield"] -->|consumes| system_assimilation["Assimilation Index"]
+  system_onboarding["Tutorials, Help & Onboarding"] -->|dependsOn| system_progression_gating["Progression Gating & Director"]
   system_onboarding["Tutorials, Help & Onboarding"] -->|dependsOn| system_rendering["Rendering & VFX"]
   system_account_level["Account Level (evergreen meta-progression)"] -->|provides| system_loot["Loot & Bio-Containers"]
   system_account_level["Account Level (evergreen meta-progression)"] -->|dependsOn| system_equipment["Equipment & Armory"]
@@ -932,7 +933,7 @@ _at: src/core/game.ts, src/core/combat.ts, src/core/status.ts, src/core/targetin
   - requiredBy ← `system:nemesis`
   - requiredBy ← `system:onboarding`
   - requiredBy ← `system:run-ui`
-  - _…246 more (query: `npm run dil -- node system:engine`)_
+  - _…247 more (query: `npm run dil -- node system:engine`)_
 
 ### `system:content-infra` — Content Infrastructure
 
@@ -2084,7 +2085,7 @@ _at: src/state/profile.ts, src/ui/PlayerProfile.tsx, src/ui/components/Commander
 
 Combat Tutorial over a live sim, THE COMMISSIONING (post-tutorial account-creation ceremony: rewards, designation, sigil + founding-title oath, account safeguard), HUD Tour, mechanics-registry Help wiki, What's New, loading tips.
 
-_at: src/ui/InitCutscene.tsx, src/ui/IntroMount.tsx, src/ui/introState.ts, src/render/introScenes.ts, src/core/tutorial.ts, src/state/tutorial.ts, src/state/mechanics.ts, src/ui/TutorialRunner.tsx, src/ui/tutorial/*, src/ui/HelpWiki.tsx, src/ui/helpSearch.ts, src/ui/WhatsNew.tsx, src/ui/HudTour.tsx, src/state/guidedUnlocks.ts, src/ui/GuidedUnlock.tsx, src/ui/tips.ts_
+_at: src/ui/InitCutscene.tsx, src/ui/IntroMount.tsx, src/ui/introState.ts, src/state/fieldNotes.ts, src/ui/FieldNote.tsx, src/render/introScenes.ts, src/core/tutorial.ts, src/state/tutorial.ts, src/state/mechanics.ts, src/ui/TutorialRunner.tsx, src/ui/tutorial/*, src/ui/HelpWiki.tsx, src/ui/helpSearch.ts, src/ui/WhatsNew.tsx, src/ui/HudTour.tsx, src/state/guidedUnlocks.ts, src/ui/GuidedUnlock.tsx, src/ui/tips.ts_
 
   - dependsOn → `system:engine`
   - dependsOn → `system:meta-store`
@@ -2093,6 +2094,7 @@ _at: src/ui/InitCutscene.tsx, src/ui/IntroMount.tsx, src/ui/introState.ts, src/r
   - consumes → `system:meta-store` — owns save field 'tutorial'
   - consumes → `system:meta-store` — owns save field 'help'
   - triggers → `system:audio` — the opening cinematic scores itself via the cinema track + cin_* beat cues
+  - dependsOn → `system:progression-gating` — THE FIRST HOUR (2026-11, PROGRESSION-GATING.md §announcements): mechanics.isMechanicUnlocked applies the SEAL RULE (a row whose nav is a FEATURES wing never unlocks before that wing reveals — Help or What's New); meta.whatsNew() is PACED (ANNOUNCE.perBeat=2 per finished run, a revealed wing's own FEATURES.teach lesson first; session-memory beat, no save field); in-run controls (FIELD_NOTES: early call, speed, defense zone, hero evolution) teach mid-fight via ui/FieldNote and never queue; every post-minute-0 screen must teach a NON-core lesson (firstHour.test) — v57 archived the Tower Lab/Hero Hall/Infinite lessons for players who had met those screens
   - dependsOn → `system:rendering` — THE OPENING FILM CASTS THE REAL ROSTER: render/introScenes.ts draws SWARM_CAST/APEX_CAST through enemyForms.drawEnemyBody and DEFENDER_CAST through towerForms.drawTowerForm (colours from ENEMY_DEFS/TOWER_DEFS) — renaming a cast kind breaks the film; the drawers are wrapped in save/restore so their alpha writes never break the dissolve (GAME-FEEL.md §intro)
   - conflictsWith → `system:cosmetics` — POST-RUN SEQUENCING (GUIDED-UNLOCKS.md §batching): ≥3 queued What's New cards collapse into ONE summary that also folds (and banks) pending WardrobeReveal specimens; WardrobeReveal waits while any What's New card is up and RewardToaster mounts held — a new post-run modal must join this order, not stack on it.
   - conflictsWith → `system:run-ui` — DESKTOP TEACHING CONTRACT (docs/TUTORIAL-AUDIT.md §G, 2026-11): every lesson shown while a wave runs or asking for a slot tap declares callout.avoid = canvas.board (the bubble re-seats beside the lane, measured + clamped); the draft lesson anchors BELOW .overlay .cards; the ability lesson targets [data-tut="ability"] .ability-btn and runs DURING wave 2; desktop Pause/Skip take a measured seat clear of [data-tut="ability"]. A HUD/board re-layout must keep canvas.board, .ability-btn and data-tut="ability" (tutorialAnchors.test resolves them) — positions are never hard-coded
@@ -2187,6 +2189,7 @@ _at: src/state/unlocks.ts, src/state/progressionDirector.ts, src/state/navBus.ts
   - documentedBy ← `doc:UNLOCK-TREE.md`
   - testedBy ← `test:src/state/progressionDirector.test.ts`
   - testedBy ← `test:src/state/unlocks.test.ts`
+  - requiredBy ← `system:onboarding` — THE FIRST HOUR (2026-11, PROGRESSION-GATING.md §announcements): mechanics.isMechanicUnlocked applies the SEAL RULE (a row whose nav is a FEATURES wing never unlocks before that wing reveals — Help or What's New); meta.whatsNew() is PACED (ANNOUNCE.perBeat=2 per finished run, a revealed wing's own FEATURES.teach lesson first; session-memory beat, no save field); in-run controls (FIELD_NOTES: early call, speed, defense zone, hero evolution) teach mid-fight via ui/FieldNote and never queue; every post-minute-0 screen must teach a NON-core lesson (firstHour.test) — v57 archived the Tower Lab/Hero Hall/Infinite lessons for players who had met those screens
   - extendedBy ← `system:onboarding` — GUIDED UNLOCKS (2026-07, GUIDED-UNLOCKS.md — Foundation #3): state/guidedUnlocks.ts GUIDES keyed by MECHANIC id (== FEATURES.teach) → ui/GuidedUnlock.tsx renders ≤4 one-sentence steps with the Combat Tutorial's own Spotlight/Callout/useTargetRect over `[data-guide]` marks the screens declare (BestBuyStrip's data-guide="bbs" covers all four spend screens — the guide teaches the ADVISOR); the interact step advances on the player's first REAL capture-phase click (the click still lands; chrome drops so ceremonies stay free); completion pays via meta.grantTutorialMilestone('guided', mech) — the tutorial ledger, replays never re-grant. Armed ONLY by What's New's "Show me ▸" (App owns the state; leaves menu ⇒ dropped; WhatsNew queue waits while a guide runs). COVERAGE IS ENFORCED over the FULL curve: EVERY FEATURES screen with teach (except campaign/store) must have a guide — a new wing FAILS guidedUnlocks.test until its guide row exists (mode/spend screens use gentle practice: a guide never forces a run start or a purchase). Missing anchor ⇒ centered callout, no dim (never traps)
   - conflictsWith ← `system:online-foundation` — PRINTER GUARD (marketCatalog.neverTrade): content the save sanitizer RE-SEEDS on load (STARTER_GENES, wardrobe source:starter) must never be tradable or baseline-stocked — selling a self-healing unlock mints Ichor forever; enforced at listing (server 403 never-trade), in meta.auctionEscrowOut, and via baselineCatalog riding neverTrade on the exclusive channel; if a NEW sanitizer ever seeds owned content, add it to the neverTrade derivation FIRST
   - modifiedBy ← `system:hub-shell` — COMPRESSED RAIL (NOTIFICATIONS.md §hubs, 2026-07): the desktop rail renders ONLY front doors — HOME + one .hub-door per hub (data-hub → HubLanding) + direct doors for headerless single-screen groups (the Store, data-nav) — NO per-screen rows/rings/teasers at rail level (they live on the landings; HubLanding cards carry data-nav); teasers still gate door visibility so an all-teaser hub renders its door; three consumers move together whenever rail anchors change: mobilecheck desktopRailWalk (door → landing audited once per hub → card), HudTour wing stops (anchor [data-hub] + nav field for the reveal gate; tutorialAnchors.test covers data-hub), and the NavGroup.compact flag is GONE (headerless now means "direct door, no landing hop")
@@ -2326,7 +2329,7 @@ _at: src/state/meta.ts, src/state/store.ts, src/state/prefs.ts, src/state/devRes
   - consumedBy ← `system:mulligans` — owns save field 'mulligans'
   - consumedBy ← `system:mulligans` — owns save field 'mulliganDex'
   - consumedBy ← `system:premium` — owns save field 'premium'
-  - _…130 more (query: `npm run dil -- node system:meta-store`)_
+  - _…131 more (query: `npm run dil -- node system:meta-store`)_
 
 ### `system:bosses` — Bosses
 
@@ -4124,7 +4127,7 @@ _at: site/guides.ts → /guides/live-events/_
 - `doc:VOWS.md` — project documentation _(documents `system:prestige`)_
 - `doc:WEBSITE.md` — project documentation _(documents `system:field-research`, documents `system:website`)_
 
-## Tests (339)
+## Tests (341)
 
 - `test:src/audio/cues.test.ts` — automated validation _(tests `system:audio`)_
 - `test:src/audio/music.test.ts` — automated validation _(tests `system:audio`)_
@@ -4351,6 +4354,7 @@ _at: site/guides.ts → /guides/live-events/_
 - `test:src/save/envelope.test.ts` — automated validation _(tests `system:meta-store`, tests `system:accounts`)_
 - `test:src/save/saveStore.test.ts` — automated validation _(tests `system:meta-store`)_
 - `test:src/save/v56.test.ts` — automated validation _(tests `system:meta-store`)_
+- `test:src/save/v57.test.ts` — automated validation _(tests `system:meta-store`)_
 - `test:src/security/actionGuard.test.ts` — automated validation _(tests `system:security`)_
 - `test:src/security/securityRegistry.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/security/tabArbiter.test.ts` — automated validation _(tests `system:security`)_
@@ -4380,6 +4384,7 @@ _at: site/guides.ts → /guides/live-events/_
 - `test:src/state/evolutionRoadmap.test.ts` — automated validation _(tests `system:power`)_
 - `test:src/state/evolutioncap.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/state/expeditions.test.ts` — automated validation _(tests `system:engine`)_
+- `test:src/state/firstHour.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/state/flashOffers.test.ts` — automated validation _(tests `system:premium`)_
 - `test:src/state/front.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/state/geneArchive.test.ts` — automated validation _(tests `system:gene-cards`)_

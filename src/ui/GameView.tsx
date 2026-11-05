@@ -50,6 +50,7 @@ import { drawAssimilationFx } from '../render/assimilationFx';
 import { Announcer, BOSS_VERB_HOLD_MS, FEEL, viewFeel } from '../render/feel';
 import type { FeelRow, Shown } from '../render/feel';
 import { CentreStage, megaFallCard, type StageCard } from './components/CentreStage';
+import { FieldNote } from './FieldNote';
 import { LivingGutters } from './components/LivingGutters';
 import { clearImpacts, drawImpacts, pushImpactBloom, pushImpactRing } from '../render/impactFx';
 import { LastKillMoment } from '../render/lastKill';
@@ -1188,6 +1189,9 @@ export function GameView({
         <BuildControls game={game} hud={hud} refresh={refresh} tutorialLock={!!tutorial && !!tutSession} autoGeneLock={automation.allowed ? null : automation.reason} />
         {breachAt > 0 && <div className="wave-breach" key={`br${breachAt}`} aria-hidden />}
         {stageCard && hud.phase !== 'draft' && <CentreStage shown={stageCard} />}
+        {/* FIELD NOTES (docs/GUIDED-UNLOCKS.md §field-notes): in-run controls teach themselves the first
+            time their moment arrives — never in the tutorial (it has its own voice). */}
+        {!tutorial && <FieldNote hud={hud} speed={speed} />}
         {/* RUN CONTROLS STRIP (docs/HUD.md §run-controls): speed · Hive Intelligence · Pause (+ the
             Hive ticker / speed note) share ONE flex row reserved at the top of the board, so they
             can never collide with each other, the wave briefing, or the boss bars below it. */}

@@ -48,6 +48,31 @@ What's New card is up (sequential, never stacked). Reward placards hold while an
 card is up and flush afterwards, an achievement burst collapsed (docs/NOTIFICATIONS.md
 §reward-toasts).
 
+**Pacing (2026-11, the first-hour pass — docs/PROGRESSION-GATING.md §announcements):** the queue
+is now PACED — `meta.whatsNew()` hands at most `ANNOUNCE.perBeat` (2) cards per finished run, a
+revealed screen's own lesson first — so a first run teaches two systems in full instead of listing
+eleven, and the summary card above is the valve for a raised budget rather than the norm.
+
+**Every screen gets its guided moment.** A guide is armed from its What's New card ("Show me ▸"), so
+a screen whose lesson was `core` (always-known, never announced) was never guided on arrival — the
+Tower Lab, Hero Hall and Infinite were silent. They are announced lessons now (v57 archived them for
+players who had already met those screens), and `src/state/firstHour.test.ts` fails CI if any screen
+that opens after minute 0 teaches a core lesson.
+
+## §field-notes — in-run controls teach themselves at their moment
+
+A hub card about a fight control after the run is a lecture about something already past. The in-run
+controls — **Early Call**, **game speed**, the **Final Defense Zone**, mid-run **hero evolution** — are
+taught mid-fight instead: `state/fieldNotes.ts` (`FIELD_NOTES`: mechanic id · HUD anchor · side ·
+`avoid` region · line · `when` over the live `HudSnapshot`) and `ui/FieldNote.tsx` (mounted by
+GameView on every non-tutorial run) show ONE note at a time — the Combat Tutorial's own `Callout`,
+pointed at the control, re-seated beside the board so the lane stays clear — held
+`FIELD_NOTE_PACE.holdMs` (tap dismisses), at least `gapMs` apart, never before wave 2 (danger
+excepted), never over a draft. Showing a note archives its mechanic into Help (`archiveMechanics(…,
+{ beat: false })` — outside the hub's budget), and `pendingAnnouncements` never queues a field-noted
+mechanic. A new in-run lesson is one row; `firstHour.test.ts` checks every anchor names a control the
+run view renders and that the notes fire on their moments (danger first).
+
 ## Coalescing + reuse
 
 Spend-screen guides point the practice step at the **Power Advisor's** BEST VALUE strip

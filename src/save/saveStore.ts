@@ -611,7 +611,7 @@ export interface TutorialSave {
 // archives it to `rushLegacyBestBoss` (display only) and restarts the record at 0, so its Ichor
 // bands and the (re-keyed) leaderboard pay again. `rushBestWave` is kept (its readers are capped).
 // Merge: max.
-export const CURRENT_VERSION = 56;
+export const CURRENT_VERSION = 57;
 
 // ── v56 Income ledger (docs/ONE-MORE-RUN.md §eta) — the SHAPE lives here; meters + math in
 // state/income.ts. Keys are meter ids ('cores', 'stage', 'apex:shepherd', …). ──
@@ -2068,13 +2068,32 @@ function migrate(version: number, data: unknown): unknown {
   // by withDefaults. Structural changes add steps here.
   // v55→v56: the Boss Rush record epoch (docs/BOSS-RUSH.md §epoch) — archive the pre-wall
   // single-run record and restart it. Runs once: a v56 blob never re-enters this step.
-  if (version < 56 && typeof data === 'object' && data !== null) {
-    const o = data as { rushBestBoss?: unknown; rushLegacyBestBoss?: unknown };
+  let out = data;
+  if (version < 56 && typeof out === 'object' && out !== null) {
+    const o = out as { rushBestBoss?: unknown; rushLegacyBestBoss?: unknown };
     const old = Math.max(0, Math.floor(Number(o.rushBestBoss) || 0));
-    if (old > 0) return { ...o, rushBestBoss: 0, rushLegacyBestBoss: Math.max(old, Math.floor(Number(o.rushLegacyBestBoss) || 0)) };
+    if (old > 0) out = { ...o, rushBestBoss: 0, rushLegacyBestBoss: Math.max(old, Math.floor(Number(o.rushLegacyBestBoss) || 0)) };
   }
-  return data;
+  // v56→v57: the first-hour pass (docs/PROGRESSION-GATING.md §announcements) turns the Tower Lab, Hero
+  // Hall and Infinite lessons from always-known rows into briefings that announce when their screen
+  // opens (carrying the guided "Show me ▸"). A player who already MET a screen (its reveal is latched in
+  // director.revealed — or, for a pre-director save that has played, all of them) gets that lesson
+  // archived, so a veteran never sees a "Towers — new system" card; a screen not yet reached still
+  // briefs and guides on arrival. Runs once.
+  if (version < 57 && typeof out === 'object' && out !== null) {
+    const o = out as { totalRuns?: unknown; help?: { seen?: unknown }; director?: { revealed?: unknown } };
+    const latched = o.director && typeof o.director.revealed === 'object' && o.director.revealed !== null ? Object.keys(o.director.revealed) : [];
+    const played = (Number(o.totalRuns) || 0) >= 1;
+    const met = V57_WING_LESSONS.filter(([wing]) => latched.includes(wing) || (latched.length === 0 && played)).map(([, lesson]) => lesson);
+    if (met.length > 0 && o.help && typeof o.help === 'object') {
+      const seen = Array.isArray(o.help.seen) ? (o.help.seen as unknown[]).filter((x): x is string => typeof x === 'string') : [];
+      out = { ...o, help: { ...o.help, seen: Array.from(new Set([...seen, ...met])) } };
+    }
+  }
+  return out;
 }
+/** [screen, lesson] pairs whose lesson stopped being always-known at v57 (see migrate). */
+const V57_WING_LESSONS: readonly [string, string][] = [['towers', 'towers'], ['heroes', 'heroes'], ['infinite', 'infinite']];
 
 function blobString(data: SaveData): string {
   const body = JSON.stringify(data);

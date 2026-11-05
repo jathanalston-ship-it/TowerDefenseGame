@@ -13,6 +13,7 @@ import { highestCampaignStage } from '../save/derive'; // cycle-free (never impo
 import { FEATURE_BY_ID, featureRevealed, isOpenNav } from './unlocks';
 import { PRESTIGE } from '../core/prestige'; // pure data — the Molt Imprint numbers the Help row quotes
 import { DRAFT_FEATURES } from '../core/config'; // pure data — the Splice / opening-draft gates the Help row quotes
+import { FIELD_NOTE_MECHANICS } from './fieldNotes'; // the in-run lessons — taught at their moment, never queued here
 
 export type MechanicCategory = 'Basics' | 'Towers' | 'Heroes' | 'Progression' | 'Modes' | 'World';
 
@@ -249,7 +250,7 @@ export const MECHANICS: MechanicDef[] = [
     mistakes: 'No single system can carry the rating — its weight is capped by design. When one lane walls, the Advisor always has another.',
     unlock: (s) => s.totalRuns >= 3 },
   // ── Towers ──
-  { id: 'towers', title: 'Towers', category: 'Towers', core: true, nav: 'towers', links: ['tower-stars', 'tower-branches'],
+  { id: 'towers', title: 'Towers', category: 'Towers', nav: 'towers', // announces as the Tower Lab opens (seal rule), with its guided walkthrough links: ['tower-stars', 'tower-branches'],
     summary: 'Automated defenders you place with Biomass.', media: 'GIF: towers firing',
     what: 'Towers are placed on build slots for Biomass and fire automatically. Each class fills a battlefield role.',
     why: 'They are your primary damage — layering roles (single-target, splash, support) wins waves.',
@@ -336,7 +337,7 @@ export const MECHANICS: MechanicDef[] = [
     mistakes: 'A card marked “Off-build” touches little of your damage — take it only to pivot your build.',
     unlock: (s) => highestCampaignStage(s) >= DRAFT_FEATURES.splice.fromCleared },
   // ── Heroes ──
-  { id: 'heroes', title: 'Heroes', category: 'Heroes', core: true, nav: 'heroes', links: ['hero-slots', 'equipment'],
+  { id: 'heroes', title: 'Heroes', category: 'Heroes', nav: 'heroes', // announces as the Hero Hall opens (seal rule), with its guided walkthrough links: ['hero-slots', 'equipment'],
     summary: 'A living unit that moves and fights on its own.', media: 'GIF: the hero fighting',
     what: 'Your Hero patrols the field autonomously, attacks, and has a powerful Active Ability you trigger. Buy AUTO-CAST in a run (the AUTO chip by the ability button) and the Hero fires that ability itself, on cooldown — toggle it off anytime.',
     why: 'A Hero is mobile burst + control the static towers can’t provide.',
@@ -516,7 +517,7 @@ export const MECHANICS: MechanicDef[] = [
     where: 'The wave briefing chip above the battlefield between waves; the multiplier is capped, never applies to the opening, and starts at Stage 4.',
     next: 'The stronger your board, the harder the finale you earn — the run’s cards, branches and strains still decide it.',
     mistakes: 'Coasting on an early lead: the adapted finale punishes a board that stopped spending at wave 5.' },
-  { id: 'infinite', title: 'Infinite', category: 'Modes', core: true, nav: 'infinite', links: ['bosses', 'biomes'],
+  { id: 'infinite', title: 'Infinite', category: 'Modes', nav: 'infinite', // announces as the Infinite pillar opens (seal rule), with its guided walkthrough links: ['bosses', 'biomes'],
     summary: 'Endless, escalating waves — chase a best.', media: 'GIF: a deep Infinite run',
     what: 'Infinite is an endless mode where an AI Director escalates the threat forever. A board that holds flawless waves past Depth 10 is SQUEEZED (tougher waves, shown on the briefing); a bleeding one is eased back, and the Core braces so no single wave can take more than about a third of it — deep runs end through attrition, not one wipe.',
     why: 'It is the ultimate test of a build — and pays the Loot Meter richly the deeper you hold.',
@@ -530,7 +531,7 @@ export const MECHANICS: MechanicDef[] = [
     where: 'The THREAT picker on the Campaign deploy panel (replays of cleared stages), the Infinite terminal and the Boss Rush terminal. The active level shows in the battle header and on Results; your best per mode lives on the Profile.',
     next: 'Clear a level (win a replay near your frontier · reach Depth 15 · reach Boss Rush wave 5) to unlock the next. Threat 3/5/7/10 award titles; 5 and 10 unlock profile frames.',
     mistakes: 'Hive Intelligence and Auto Gene stay off above your best cleared Threat — a new rung is a frontier, so play it by hand.',
-    unlock: (s) => highestCampaignStage(s) >= 1 },
+    unlock: (s) => featureRevealed(s, 'infinite') }, // the replay ladder arrives with the first replay pillar (Stage 3), not run 1
   { id: 'infestation', title: 'The Front', category: 'Modes', nav: 'infestation', links: ['infinite', 'expeditions'],
     summary: 'The territory war — hold sectors, collect tribute, answer incursions.',
     media: 'GIF: a sector climbing to Stronghold on the living map',
@@ -563,7 +564,7 @@ export const MECHANICS: MechanicDef[] = [
     where: 'On the battlefield; announced as you enter one.',
     next: 'Learn each biome’s hazard and counter-build for it.' },
   { id: 'arena-layouts', title: 'Arena Layouts', category: 'World', links: ['campaign', 'infinite', 'biomes'],
-    unlock: (s) => highestCampaignStage(s) >= 1,
+    unlock: (s) => highestCampaignStage(s) >= 2, // after the first NEW routing idea (stage 2's open_maw pin) has been played
     summary: 'The battlefield’s terrain reshapes how the swarm reaches you.', media: 'Image: three arena layouts side by side',
     what: 'Every Campaign stage, Daily and Infinite biome fields an arena layout — walls, chokepoints, split lanes or open fields that route the swarm before it reaches your line.',
     why: 'Where the swarm enters your defensive zone changes which emplacements see it first — a chokepoint rewards stacked damage, a flank funnel punishes a narrow build.',
@@ -580,9 +581,14 @@ export const MECHANICS: MechanicDef[] = [
 
 export const MECHANIC_BY_ID = new Map(MECHANICS.map((m) => [m.id, m] as const));
 
-/** True if a mechanic is unlocked (core mechanics always are). */
+/** True if a mechanic is unlocked (core mechanics always are). THE SEAL RULE (docs/PROGRESSION-GATING.md
+ *  §announcements): a row whose `nav` names a gated wing never unlocks before that wing reveals — neither
+ *  the Help wiki nor What's New may advise a sealed screen (the Nucleus row announced the stage-25 Mulligan
+ *  Lab at minute 0; Gene Essence announced the stage-4 Gene Archive after run 1). */
 export function isMechanicUnlocked(m: MechanicDef, save: SaveData): boolean {
-  return !!m.core || (m.unlock ? m.unlock(save) : true);
+  if (m.core) return true;
+  if (m.nav && FEATURE_BY_ID.has(m.nav) && !featureRevealed(save, m.nav)) return false;
+  return m.unlock ? m.unlock(save) : true;
 }
 
 /** The mechanics currently visible in the Help wiki (unlocked only). */
@@ -590,10 +596,43 @@ export function unlockedMechanics(save: SaveData): MechanicDef[] {
   return MECHANICS.filter((m) => isMechanicUnlocked(m, save));
 }
 
-/** The ids of mechanics unlocked but NOT yet announced (drives What's New). */
+/** The ids of mechanics unlocked but NOT yet announced (drives What's New). In-run controls with a
+ *  FIELD NOTE (state/fieldNotes.ts) are taught at their moment mid-fight instead, so they never queue. */
 export function pendingAnnouncements(save: SaveData): MechanicDef[] {
   const seen = new Set(save.help?.seen ?? []);
-  return MECHANICS.filter((m) => !m.core && !seen.has(m.id) && isMechanicUnlocked(m, save));
+  return MECHANICS.filter((m) => !m.core && !seen.has(m.id) && !FIELD_NOTE_MECHANICS.has(m.id) && isMechanicUnlocked(m, save));
+}
+
+/** ANNOUNCEMENT PACING (docs/PROGRESSION-GATING.md §announcements) — "one learnable beat at a time"
+ *  applied to What's New: at most `perBeat` cards per BEAT (a finished run), the rest wait for the
+ *  following runs. Nothing is lost — a queued mechanic is already in the Help wiki; only the
+ *  announcement waits. A fresh account used to get ~13 cards (one "11 new systems unlocked" summary)
+ *  after its first run. */
+export const ANNOUNCE = { perBeat: 2 };
+
+/** The mechanic each SCREEN teaches (FEATURES.teach) → its screen id: a wing's own briefing. */
+const WING_LESSON: ReadonlyMap<string, string> = new Map(
+  [...FEATURE_BY_ID.values()].filter((f) => f.teach).map((f) => [f.teach as string, f.id] as const),
+);
+
+/** Priority within a beat: a revealed SCREEN's own briefing first (the wing just opened and the player
+ *  can act on it — its card carries the guided "Show me ▸"), then registry order (Basics → … → World,
+ *  display order within each). */
+function announcePriority(m: MechanicDef, save: SaveData): number {
+  const wing = WING_LESSON.get(m.id);
+  return wing && featureRevealed(save, wing) ? 0 : 1;
+}
+
+/** This beat's cards: the pending queue in priority order, capped to what the beat has left. */
+export function pacedAnnouncements(save: SaveData, shownThisBeat: number): MechanicDef[] {
+  const left = Math.max(0, ANNOUNCE.perBeat - shownThisBeat);
+  if (left === 0) return [];
+  const pending = pendingAnnouncements(save);
+  const order = new Map(MECHANICS.map((m, i) => [m.id, i] as const));
+  return pending
+    .slice()
+    .sort((a, b) => announcePriority(a, save) - announcePriority(b, save) || (order.get(a.id) ?? 0) - (order.get(b.id) ?? 0))
+    .slice(0, left);
 }
 
 /** What's New batching (docs/GUIDED-UNLOCKS.md §batching): this many queued announcements (or

@@ -121,6 +121,34 @@ They now spread across the first **~8 h (frictionless bot) / ~20 h (Fresh Accoun
 (≤2-per-beat past the core, no luck-reveal past the core, the first-hour seal, the re-pace
 grandfather, a stage-30 veteran has everything).
 
+## §announcements · The first hour, one beat at a time (2026-11)
+
+Screens were already paced (§timeline), but the **mechanics** announcements (What's New) had no
+budget: a fresh account's first run unlocked 11 at once — one "11 new systems unlocked" summary
+(measured: `simulateAccount` + the tutorial step, Fresh Account persona, matching the first-session
+probe). Three rules now apply (`state/mechanics.ts`, `state/fieldNotes.ts`, `meta.whatsNew`):
+
+1. **The seal rule.** A mechanic whose `nav` names a gated screen never unlocks — in the Help wiki or
+   What's New — before that screen reveals (`isMechanicUnlocked`). It closed two leaks: the Nucleus row
+   announced the stage-25 Mulligan Lab from minute 0, Gene Essence the stage-4 Gene Archive after run 1.
+2. **Pacing.** `meta.whatsNew()` hands at most `ANNOUNCE.perBeat` = **2** cards per BEAT (a finished
+   run); a revealed screen's own lesson (`FEATURES.teach`) leads, then registry order. The beat is
+   session memory (no save field — a reload opens a fresh beat). Nothing is hidden: a queued mechanic
+   is already in the Help wiki; only its announcement waits.
+3. **In-run controls teach in the run** — the field notes (docs/GUIDED-UNLOCKS.md §field-notes) — and
+   never queue in the hub. Two lazy gates moved to their real moment: the map-layout lesson after the
+   first NEW layout is played (stage 2's pin), the Threat ladder with the first replay pillar
+   (Infinite, stage 3).
+
+Measured, Fresh Account + tutorial (`firstHour.test.ts` pins the shape):
+
+| | before | after |
+|---|---|---|
+| Cards after run 1 | 11 (one summary) | 2 (Tower Lab briefing + the daily cache) |
+| Max cards in one beat | 11 | 2 |
+| Queue | everything at once | peaks at ~8 waiting, drained by ~2 h |
+| Screen briefings | Tower Lab / Hero Hall / Infinite never (core lessons) | every screen, on the run it opens |
+
 ## 6 · Existing gates, re-evaluated (what changed and what deliberately didn't)
 
 - **Re-paced 2026-11** (§timeline): Boss Rush S9 → S12, every deep wing moved to stages 10–30.

@@ -6,7 +6,7 @@
 > build disagree, **the build wins and this file is the tiebreaker.** Prefer reading this over
 > re-reading a system's implementation (per CLAUDE.md "Trust existing architecture").
 >
-> **Save schema:** `CURRENT_VERSION = 56` (additive migrations via `withDefaults` + per-field
+> **Save schema:** `CURRENT_VERSION = 57` (additive migrations via `withDefaults` + per-field
 > sanitizers; checksummed blob). **Stack:** React + TypeScript + Vite static SPA, deterministic sim
 > core in `src/core/` (no React/DOM), Canvas renderer, browser-local saves. Tests: `npm test`
 > (Vitest) — the golden characterization test pins the sim byte-for-byte.
@@ -194,6 +194,12 @@ Content — not systems — is the binding constraint (see EA-DESIGN-AUDIT). The
   / no picks resolves to the exact base kit; `neutralHeroProgress` + `NO_META` pass no kits ⇒ byte-
   identical (heroForks.test.ts pins identity + patch math + the HUD-level end-to-end)
 
+- ✅ **THE FIRST HOUR, one beat at a time** (2026-11 — PROGRESSION-GATING.md §announcements, GUIDED-UNLOCKS.md
+  §field-notes): What's New is PACED (`ANNOUNCE.perBeat` = 2 cards per finished run, a revealed screen's own
+  lesson first — was 11 after run 1); the SEAL RULE keeps every mechanic (Help + What's New) behind its screen's
+  gate; in-run controls (Early Call, speed, the Final Defense Zone, hero evolution) teach mid-fight as FIELD NOTES
+  (`state/fieldNotes.ts`, `ui/FieldNote.tsx`); the Tower Lab / Hero Hall / Infinite now brief + guide on arrival
+  (save v57 archives those lessons for players who had met the screens). Pinned by `state/firstHour.test.ts`.
 - ✅ **The OPENING FILM** (2026-11-05 overhaul — GAME-FEEL.md §intro) — six scored scenes with a turn: the
   scope floods with contacts → the crust splits and the game's REAL swarm climbs out (enemyForms), the apex
   rising past the lens → veins take a steel truss whole → the Hive Core → **the Hive answers** (real towers

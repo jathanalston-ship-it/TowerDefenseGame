@@ -7,7 +7,8 @@ import { isOpenNav } from './unlocks';
 describe('mechanics registry (Help + What\'s New spine)', () => {
   it('core mechanics are always unlocked; gated ones start hidden', () => {
     const un = unlockedMechanics(defaultSave());
-    expect(un.some((m) => m.id === 'towers')).toBe(true); // core
+    expect(un.some((m) => m.id === 'campaign')).toBe(true); // core
+    expect(un.some((m) => m.id === 'towers')).toBe(false); // v57: the Tower Lab lesson arrives with its screen (seal rule)
     expect(un.some((m) => m.id === 'prestige')).toBe(false); // gated at Campaign 10
     expect(un.some((m) => m.id === 'hero-slots')).toBe(false); // gated at Campaign 25
   });
@@ -43,7 +44,7 @@ describe('mechanics registry (Help + What\'s New spine)', () => {
 
   it('primeHelp archives everything already unlocked once (existing saves never flood)', () => {
     meta.importText(serializeExport({ ...defaultSave(), campaign: { cleared: { standard: 12 }, bestTime: {} } }));
-    expect(meta.whatsNew().some((m) => m.id === 'prestige')).toBe(true); // would announce pre-prime
+    expect(pendingAnnouncements(meta.get()).some((m) => m.id === 'prestige')).toBe(true); // would queue pre-prime (whatsNew shows it paced)
     meta.primeHelp();
     expect(meta.get().help.primed).toBe(true);
     expect(meta.whatsNew().length).toBe(0); // all already-unlocked archived silently

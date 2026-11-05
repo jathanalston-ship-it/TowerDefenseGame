@@ -494,6 +494,11 @@ ladders. 4. Every permanent progression source must move the Power Score (valida
 - **Known limitations:** media placeholders only; announcement order is registry order.
 - **Developer tips:** tutorial rewards are idempotent (`grantTutorialRewards` ledger) — never
   grant onboarding rewards directly.
+- **The first hour (pacing):** `state/mechanics.ts` (`isMechanicUnlocked` — the seal rule;
+  `ANNOUNCE` + `pacedAnnouncements` — at most 2 What's New cards per finished run, a revealed screen's
+  lesson first), `meta.whatsNew()` (the session-memory beat), `state/fieldNotes.ts` + `ui/FieldNote.tsx`
+  (in-run controls taught mid-fight). Tests: `state/firstHour.test.ts`. Docs: PROGRESSION-GATING.md
+  §announcements, GUIDED-UNLOCKS.md §field-notes. A new in-run lesson = one `FIELD_NOTES` row.
 - **The opening film (first boot, before the tutorial):** `ui/InitCutscene.tsx` (scene DATA:
   copy, `cin_*` beats, `copyAt`, the title's `eyebrowAt`/`ctaAt`) + `render/introScenes.ts` (six
   painters; the swarm + answer scenes draw the REAL roster through `render/enemyForms` /

@@ -29,8 +29,8 @@ function v55Blob(over: Record<string, unknown> = {}): string {
 }
 
 describe('v55 → v56 migration', () => {
-  it('the schema is v56', () => {
-    expect(CURRENT_VERSION).toBe(56);
+  it('the schema is at least v56', () => {
+    expect(CURRENT_VERSION).toBeGreaterThanOrEqual(56); // v57 = the first-hour lesson archive (v57.test.ts)
   });
 
   it('a pre-v56 save backfills the Gear Codex from the HELD inventory, peak 0, empty income ledger', () => {

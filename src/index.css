@@ -14567,3 +14567,10 @@ html[data-layout='desktop'] .cv-slot { flex: 0 1 auto; width: 240px; min-width: 
   to { transform: scale(1.06); }
 }
 @media (prefers-reduced-motion: reduce) { .vault.is-cracking .vault-obj { animation: none; } }
+
+/* ── FIELD NOTES (docs/GUIDED-UNLOCKS.md §field-notes) — the in-run lesson bubble: the Combat Tutorial's
+      callout, pointed at a HUD control the first time its moment arrives. Over the run controls (48),
+      under the pause veil (50); only the bubble takes pointer events (tap dismisses). ── */
+.field-note { position: fixed; inset: 0; z-index: 49; pointer-events: none; }
+.field-note .tut-callout { pointer-events: auto; cursor: pointer; border-color: color-mix(in srgb, var(--gold) 45%, var(--line-strong)); }
+.field-note-dismiss { margin-top: 8px; font-size: 11px; color: var(--muted); }
