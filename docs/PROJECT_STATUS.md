@@ -3,7 +3,19 @@
 > Maintained at the END of every session (paired with `docs/AI_HANDOFF.md` — the constitution's
 > workflow step 4). This is the "where are we?" answer; `docs/GAME-STATE.md` remains the deeper
 > per-system built-vs-planned index, `docs/PROJECT_MANIFEST.md` the system map.
-> **Last updated:** 2026-11-05d (**DEPLOYED — THE OPENING FILM, REBUILT** (`2d0c694`, run #233; owner
+> **Last updated:** 2026-11-05e (**A CALMER FIRST HOUR + THE SOUND PASS — merged + validated, awaiting the
+> owner's release go-ahead.** First hour (lead): What's New paced to 2 cards per finished run (was 11 after
+> run 1), the SEAL RULE (no mechanic before its screen), in-run FIELD NOTES for Early Call / speed / the
+> defense zone / hero evolution, and every screen — incl. the Tower Lab / Hero Hall / Infinite — briefs and
+> guides on arrival (save v57 archives those lessons for players who had met the screens). Sound (track S1):
+> a measured, mastered SFX mix as data (`audio/sfxMix.ts`; loudness error vs design 10.3 → 0.2 dB RMS), 19
+> truncated cues fixed, layered top cues, music level 0.8 → 0.7, Effects + Music volume sliders, `npm run
+> audio:audit`. The owner should audition the A/B pack before release (effects are 8–10 dB louder relative to
+> the music by design). VALIDATION: validate PASS over 2d0c694..HEAD (3109/3109, mobile gate clean);
+> first-session probe PASS (2 modals after run 1: Towers + Daily Bio-Cache). Website: release
+> v2026.11.05.5 "A Calmer First Hour", devlog `the-first-hour-and-a-sound-pass`, features + guides copy.)
+>
+> **2026-11-05d** (**DEPLOYED — THE OPENING FILM, REBUILT** (`2d0c694`, run #233; owner
 > approved the release).** The first-boot cinematic gains a TURN: a new "the Hive answers" scene where the game's
 > real towers erupt along the line and the game's real swarm breaks on it and streams home as biomass; the
 > swarm scene casts the real creatures (enemyForms) with the apex rising past the lens; the veins take a truss
