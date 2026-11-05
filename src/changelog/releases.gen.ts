@@ -5,6 +5,27 @@ import type { Release } from './types';
 /** Player-facing releases, newest first. */
 export const RELEASES: Release[] = [
   {
+    "id": "v2026.11.05.7",
+    "date": "2026-11-05",
+    "title": "A Lighter First Download",
+    "sealed": false,
+    "entries": [
+      {
+        "cat": "Performance",
+        "text": "The game starts sooner: what your browser downloads before the first screen went from about 667 KB to 549 KB (compressed), roughly a sixth less",
+        "major": true
+      },
+      {
+        "cat": "Performance",
+        "text": "Each screen now brings its own styling when you open it, and the full Help text and patch-note history load only when you open them"
+      },
+      {
+        "cat": "Bug Fixes",
+        "text": "Help: the Towers, Heroes and Infinite entries show their related topics again"
+      }
+    ]
+  },
+  {
     "id": "v2026.11.05.6",
     "date": "2026-11-05",
     "title": "Made for Your Phone’s Browser",

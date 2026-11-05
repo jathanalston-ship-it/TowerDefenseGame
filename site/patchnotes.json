@@ -1,6 +1,28 @@
 [
   {
     "date": "2026-11-05",
+    "title": "A Lighter First Download",
+    "categories": [
+      "Performance",
+      "Bug Fixes"
+    ],
+    "items": [
+      {
+        "cat": "Performance",
+        "text": "★ The game starts sooner: what your browser downloads before the first screen went from about 667 KB to 549 KB (compressed), roughly a sixth less"
+      },
+      {
+        "cat": "Performance",
+        "text": "Each screen now brings its own styling when you open it, and the full Help text and patch-note history load only when you open them"
+      },
+      {
+        "cat": "Bug Fixes",
+        "text": "Help: the Towers, Heroes and Infinite entries show their related topics again"
+      }
+    ]
+  },
+  {
+    "date": "2026-11-05",
     "title": "Made for Your Phone’s Browser",
     "categories": [
       "UX",

@@ -640,3 +640,6 @@
 - `da71944` **[UI]** The mobile-browser version — fit around the address bar, full screen, Add to Home Screen
 - `1534b41` **[Developer Tools]** Release notes "Made for Your Phone's Browser" curated; site + PIL regenerated _(internal)_
 - `0b91f44` **[Developer Tools]** Validation,status: mobile-browser version PASS over 0f7d1d2..HEAD — 3110/3110, mobile gate clean _(internal)_
+- `da317f8` **[Developer Tools]** Status,chronicle: DEPLOYED "Made for Your Phone's Browser" (0b91f44, run #235); seal v2026.11.05.6 _(internal)_
+- `eb92f39` **[UI]** Boot download: patch-note history and mechanic help text load with their screens
+- `04141f9` **[UI]** Boot download: per-screen stylesheets; Store and Front load with their doors

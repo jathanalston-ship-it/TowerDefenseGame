@@ -1,6 +1,6 @@
 {
-  "lastSha": "0b91f44346c06280fc8c69a9cedc49d4900492d5",
-  "commitsSinceDraft": 6,
+  "lastSha": "04141f9b1aabe1e5c5e3288f60bf2e385150e3e7",
+  "commitsSinceDraft": 9,
   "content": {
     "tower": [
       "needle",
@@ -4040,6 +4040,27 @@
         {
           "cat": "Bug Fixes",
           "text": "The top bar no longer runs off the edge on small phones held sideways"
+        }
+      ]
+    },
+    {
+      "id": "v2026.11.05.7",
+      "date": "2026-11-05",
+      "title": "A Lighter First Download",
+      "sealed": false,
+      "entries": [
+        {
+          "cat": "Performance",
+          "text": "The game starts sooner: what your browser downloads before the first screen went from about 667 KB to 549 KB (compressed), roughly a sixth less",
+          "major": true
+        },
+        {
+          "cat": "Performance",
+          "text": "Each screen now brings its own styling when you open it, and the full Help text and patch-note history load only when you open them"
+        },
+        {
+          "cat": "Bug Fixes",
+          "text": "Help: the Towers, Heroes and Infinite entries show their related topics again"
         }
       ]
     }
@@ -8859,6 +8880,30 @@
       "cat": "Developer Tools",
       "text": "Validation,status: mobile-browser version PASS over 0f7d1d2..HEAD — 3110/3110, mobile gate clean",
       "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "da317f8742f47e8748b099884b7900355f17ff47",
+      "date": "2026-11-05",
+      "cat": "Developer Tools",
+      "text": "Status,chronicle: DEPLOYED \"Made for Your Phone's Browser\" (0b91f44, run #235); seal v2026.11.05.6",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "eb92f39900fe43456745a283c4a5dac4918fd03d",
+      "date": "2026-11-05",
+      "cat": "UI",
+      "text": "Boot download: patch-note history and mechanic help text load with their screens",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "04141f9b1aabe1e5c5e3288f60bf2e385150e3e7",
+      "date": "2026-11-05",
+      "cat": "UI",
+      "text": "Boot download: per-screen stylesheets; Store and Front load with their doors",
+      "internal": false,
       "needsReview": false
     }
   ]

@@ -17,6 +17,24 @@ export interface BlogPost {
 
 export const POSTS: BlogPost[] = [
   {
+    slug: 'a-lighter-first-download',
+    date: '2026-11-05',
+    title: 'A lighter first download: the game starts sooner',
+    category: 'Tech',
+    tags: ['performance', 'mobile', 'tech'],
+    summary: 'Before you could see the first screen, the game used to download about 667 KB of compressed code and styling. It’s now about 549 KB, roughly a sixth less, so the game starts sooner, most noticeably on a phone connection. Nothing looks or plays differently.',
+    body: `
+<p>Opening ASSIMILATION means your browser downloads the game’s code and its styling before anything appears. We measured exactly what that first download contained, and a lot of it was for screens you don’t see until later. Here is what changed.</p>
+<h2>Each screen brings its own pieces</h2>
+<p>The game is split into parts, and most screens already loaded their code only when you opened them. Their <b>styling</b> didn’t: one large stylesheet covering every screen had to arrive before the first frame. Now every screen carries its own styling and fetches it the moment you open it, and the first download keeps only what the opening screens need. The stylesheet you wait for went from 115 KB to 52 KB.</p>
+<h2>Text that waits for its moment</h2>
+<p>The full Help entries for every system and the complete patch-note history were part of the first download, though they only appear when you open Help, a “new system” card or the update briefing. They now load when one of those opens. The Premium Store and The Front also stopped riding along with the home screen. The code you wait for went from 552 KB to 497 KB.</p>
+<h2>Nothing else changes</h2>
+<p>Before shipping, we opened every screen of the game, on desktop and on phone sizes, in the old version and the new one, and compared the final look of every element. They match. While splitting the Help text we also fixed a small bug: the Towers, Heroes and Infinite entries in Help were missing their links to related topics.</p>
+<p>Both numbers are now checked on every build, so the first download can’t quietly grow back.</p>
+`,
+  },
+  {
     slug: 'playing-in-your-phones-browser',
     date: '2026-11-05',
     title: 'Playing in your phone’s browser, without the address bar in the way',
