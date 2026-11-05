@@ -322,6 +322,12 @@ describe('LIVE threat v3 — cards out of the ratio, threat by composition (§6a
       expect(p.gap).toBe(coverageGap(b, p.axis));
     }
     expect(liveProbe(['runner', 'mite'], board('needle'))).toBeNull(); // no probe role in the pool ⇒ no swap
+    // a TIE band: gaps within it of the largest count as tied, and the table (harm) order breaks it
+    const needle = board('needle');
+    const air = coverageGap(needle, 'area');
+    const art = coverageGap(needle, 'burst');
+    expect(air).toBeGreaterThan(art);
+    expect(liveProbe(['runner', 'wisp', 'spitter'], needle, air - art + 1e-9)?.role).toBe('artillery');
   });
 
   it('coverage is DERIVED from tower data (no per-tower list): area, reach, pierce, burst, control', () => {

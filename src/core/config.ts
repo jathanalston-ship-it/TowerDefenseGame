@@ -3264,6 +3264,7 @@ export const DIRECTOR_ADAPTIVE = {
   liveProbeGapScale: 0,
   liveProbeByBudget: 0, // 1 ⇒ the probe takes share × the wave's plain THREAT BUDGET (units), not whole groups
   liveProbeGapTie: 0, // probe roles whose gap is within this of the largest count as tied (table = harm order breaks it)
+  liveProbeFinaleWeight: 0, // the share × (1 − f + f·wave/total) — 1 ⇒ the probe grows toward the finale (damage there outlasts the heals)
 };
 
 // ── Board COVERAGE model (docs/DIFFICULTY_DIRECTOR.md §6a v4 — coverage.ts) ─────────────────────

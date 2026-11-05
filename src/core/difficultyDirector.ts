@@ -144,10 +144,11 @@ export class RunDirector {
   /** v3 LIVE PROBE share (§6a): the share of a wave's plain groups swapped for the board's probe role —
    *  liveProbeShare × (1 − 1/m), the same shape as the elite share. v4: × (1 − g + g·gap) for the probe
    *  role's coverage GAP (0..1, coverage.ts) at liveProbeGapScale g — exactly the v3 share at g 0. */
-  liveProbeShare(m: number, gap = 1): number {
+  liveProbeShare(m: number, gap = 1, progress = 1): number {
     if (!(m > 1)) return 0;
     const g = DIRECTOR_ADAPTIVE.liveProbeGapScale;
-    return DIRECTOR_ADAPTIVE.liveProbeShare * (1 - 1 / m) * (g > 0 ? 1 - g + g * gap : 1);
+    const f = DIRECTOR_ADAPTIVE.liveProbeFinaleWeight;
+    return DIRECTOR_ADAPTIVE.liveProbeShare * (1 - 1 / m) * (g > 0 ? 1 - g + g * gap : 1) * (f > 0 ? 1 - f + f * progress : 1);
   }
 
   /** Bounty/biomass multiplier for a 0-based wave index. */
