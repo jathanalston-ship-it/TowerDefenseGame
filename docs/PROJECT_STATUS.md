@@ -3,7 +3,18 @@
 > Maintained at the END of every session (paired with `docs/AI_HANDOFF.md` — the constitution's
 > workflow step 4). This is the "where are we?" answer; `docs/GAME-STATE.md` remains the deeper
 > per-system built-vs-planned index, `docs/PROJECT_MANIFEST.md` the system map.
-> **Last updated:** 2026-11-04f (**DEPLOYED — BATCH G "THE GRIND"** (`2524c2d`, run #229 green; owner approved
+> **Last updated:** 2026-11-05a (**FRONTIER CHALLENGE v2 — merged + validated on `claude/beautiful-feynman-qdyilo`,
+> awaiting the owner's release go-ahead.** GR1 follow-up to Batch G (DIFFICULTY_DIRECTOR §6a/§7): the
+> live ratio counts towers fielded ÷ the opening build; the live multiplier splits HP^0.3 × pace^0.2 ×
+> speed^0.5 (speed ≤ the 1.85 readability ceiling); w 0.3, caps 8/4, from wave 4 and Stage 4;
+> `READINESS.warnBelow` 0.9 → 0.7. Measured: frontier win 8 h 87 → 73 %, 100 h 82 → 59 %; run time no
+> longer than live; wave-1 losses 0; losses after wave 3 90 % / 83 %. Still open: flawless 73 / 67 %,
+> draft picks barely move Campaign outcomes (next: cards-excluded ratio, threat by composition). Lead:
+> owed-draft eyebrow ("+N more owed"), probe outcome label. VALIDATION: validate PASS over 2524c2d..HEAD
+> (3022/3022, mobile gate clean); GR1's first-session probe PASS; live check clean. Website: release
+> v2026.11.04.5 "Frontiers Bite Again", devlog `frontiers-bite-again`, campaign guide; PIL R 2026-11-05.)
+>
+> **2026-11-04f** (**DEPLOYED — BATCH G "THE GRIND"** (`2524c2d`, run #229 green; owner approved
 > the release with live-threat caps 3/4).** Four tracks from the G1/G2 grind audits: GR1 the run (Campaign
 > opening rules + answering gift, the LIVE adaptive threat on waves ≥ 4 / bosses, Early Call, the Infinite
 > squeeze), GR2 in-run decisions (draft fit, ◆PICK = fit × Power, the opening draft, Splice, the Hive
