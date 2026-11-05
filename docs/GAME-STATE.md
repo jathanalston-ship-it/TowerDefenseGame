@@ -1759,3 +1759,37 @@ the next lever; a probe share > ~0.4 crushes the 100 h curve.
 Affix tiers move item Power little (base effects dominate). Migrated veterans' ETAs start optimistic
 for ~10 runs; their first settle crosses ~17 ladder rungs at once (folded on Results). Hive
 Intelligence doesn't use Splice. Infinite "start at 60 % depth" was not built.
+
+## Compressed system summary — Full-game VFX pass (2026-11-05) ✅ BUILT
+
+**Architecture.** Four render/UI-only tracks (goldens, replays and the sim untouched), each a data table +
+one module, small commented hooks in renderer.ts / GameView:
+- **Combat (`render/combatFx.ts`):** `DAMAGE_STYLE` — one shot form + one burst form per combat class
+  (Kinetic dart/star, Caustic glob/splat, Viral spore/puff, Neural bolt/crackle, Vital orb/bloom, Resonant
+  pulse/ripple), tinted by the striker's colour; muzzle flashes, hit bursts, splash blasts at the TRUE radius,
+  overkill-scaled kill pops, field towers pulsing to their reach; a 128-slot pool + cached glow sprites.
+  Striker-tinted additive hit flash; control statuses grip (turning brackets) vs DoTs glow; crowd budgets for
+  damage numbers (`DAMAGE_NUMBERS.crowd*`) and reaction labels (`REACTION_LABELS`).
+- **Telegraphs (`render/telegraphs.ts`):** WHERE (zone rim) / WHEN (closing lock) / LAND (contact frame) for
+  boss verbs (`BOSS_TELLS`, a total Record per module kind, on the sim's real `moduleCd` via
+  `RenderState.bossDefs`), the core-shot crawl + strike, dash lanes to the real reach, phase-shift bursts, Mega
+  cataclysm/lash core locks and weak-point damage ghosts, hero cast lock/landing/contact; heroes breathe/recoil.
+  Bosses get a rim glint under fire (no white-out); the banner holds a fired verb `BOSS_VERB_HOLD_MS`.
+- **Battlefield (`render/biomeGround.ts`, `render/towerMoments.ts`):** `BIOME_GROUND` rows (tone, relief motif,
+  obstacle rock, air — a missing row derives from the accent), all baked; tower deploy landing and evolve beats
+  escalating with tier + strain (`TOWER_MOMENTS`); the Hive Core integrity arc; `bakeScale` (fixed the per-frame
+  floor re-bake — the biggest render cost).
+- **UI (`ui/components/RarityFx.tsx` + RARITY FX css):** one rarity language (glow / sweep / edge / motes /
+  crown; full + lite profiles) on draft cards, Vault, Armory, Gear Codex, Gene Archive, Specimens, Wardrobe,
+  Market, Results; one exotic token; the Genome Rank promotion ceremony; Motion/Flashes reach hub ceremonies.
+
+**Extension points.** A new damage class / boss module kind / biome / rarity = one row in the matching table
+(`DAMAGE_STYLE`, `BOSS_TELLS` — compile-enforced, `BIOME_GROUND`, `RARITY_VFX`/RarityFx tiers).
+
+**Assumptions.** Telegraph timing reads the sim, never drives it; reduced motion keeps information (telegraphs,
+rarity colours, arcs) and drops motion; Flashes gates additive pops/blooms.
+
+**Known limitations.** Draft rarity layers add ~1.5 ms of style work per frame over a 160-body field in
+headless software compositing (GPU compositing should be off-thread — unmeasured). Boss bodies get no class hit
+bursts (V1's motion tracker skips them). Phone portrait frames for boss telegraphs weren't shot. Star/mastery
+evolution (Tower Lab) has no battlefield moment.

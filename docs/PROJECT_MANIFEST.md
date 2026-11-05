@@ -130,6 +130,9 @@ ladders. 4. Every permanent progression source must move the Power Score (valida
   tuning them requires progression-simulator evidence (pinned by test).
 - **Developer tips:** never write `resolveDifficulty(...).x * warp.y` inline — add or use a
   director query. Parity tests reproduce the legacy formulas verbatim; goldens gate the sim.
+- **Coverage model (§6a v4):** `core/coverage.ts` grades every tower kind on reach/area/pierce/burst/
+  control from data; live waves probe the board's thinnest axis (`LIVE_PROBE_ROLES`), named in the
+  briefing ("⌖ ARTILLERY · lacks burst").
 - **LIVE board power (Batch G, §6a):** `RunOptions.livePowerBase` re-feeds `threatPerPowerRatio` (0.5) at every Campaign wave launch — upward only, capped; HUD `▲ ADAPTED ×N`. Known limit: the ratio ignores board size (§7).
 
 ## Progression Loop Engine
@@ -513,6 +516,13 @@ ladders. 4. Every permanent progression source must move the Power Score (valida
 - **Known limitations:** `index.css` is one 5.3k-line stylesheet (see `ENGINEERING-AUDIT.md`).
 - **Developer tips:** UI reads snapshots — never reach into live sim entities from React;
   intents go through `Game` methods. A new modal joins Back/Escape with `useDismiss(close)`.
+- **VFX pass (2026-11-05):** the combat damage language (`render/combatFx.ts` — one shot/burst form per
+  combat class, striker-tinted; splash at true radius; damage-number + reaction-label crowd budgets), one
+  telegraph language for bosses/Mega/hero casts (`render/telegraphs.ts` — WHERE/WHEN/LAND on the sim's real
+  cooldowns), biome ground + tower deploy/evolve moments + the Hive Core integrity arc
+  (`render/biomeGround.ts`, `render/towerMoments.ts`), and one rarity language for every item surface
+  (`ui/components/RarityFx.tsx` + the RARITY FX css section). Docs: COMBAT-VISUAL-STANDARDS, BOSS-DESIGN
+  §telegraphs, MEGA-BOSS, HERO-CINEMATICS, LIVING-BATTLEFIELD, GAME-FEEL, LOOTBOX §rarity-fx.
 - **Early Call (Batch G):** `⏩ Call early +N` in the run-controls strip / Space mid-wave (`Game.callWaveEarly`, a recorded input; owed drafts dealt at the clear); Splice pill in the build phase. Docs: `EARLY-CALL.md`.
 
 ## Audio
