@@ -298,12 +298,28 @@ The first boot opens on a fully SCORED procedural film (`ui/InitCutscene.tsx` �
 
 ## §draft-sheen — rarer draft cards look rarer at a glance (2026-11)
 
-Every gene-draft card carries a passive **light sweep** (`.card-sheen`, a translate-only band, staggered
-per card by `--i`) and a breathing **rarity glow** (`.cards .card::before`, opacity-only) — both
-compositor-friendly, at most three cards on screen. Strength is one data table in `src/index.css`
-("DRAFT CARD SHEEN"): per rarity `--sheen-a` (band brightness), `--sheen-t` (sweep period), `--glow-a`
-(peak glow), `--glow-r` (radius), `--glow-t` (breath period). Common barely glints with no glow;
-uncommon → rare → epic → legendary step up; exotic glows pink with a cyan sweep. The pick moment owns
-the chosen card's light (sheen hidden on chosen/dismissed). **Reduced motion** (OS setting or Settings →
-Motion via `.game[data-motion="reduced"]`): no sweep, a steady glow at 75 % — the rarity read stays,
-the motion goes (verified: 16 captured frames identical).
+**One system, one layer per effect** (the polish pass folded two legacy layers into it: a rare+
+background sheen whose keyframe name collided with the new sweep, and an epic/legendary conic edge +
+legendary crown that fought the glow for `::before`/`::after`). Every strength and colour is a row in
+`src/index.css` "DRAFT CARD RARITY VFX"; which extra layers a card mounts is `RARITY_VFX` in
+`ui/DraftModal.tsx` (a new rarity = a row in each).
+
+| layer | element | who | how |
+|---|---|---|---|
+| glow | `::before` | all (common: none) | rarity-coloured halo, breathing (opacity); swells on hover / keyboard focus |
+| sweep | `.card-sheen` | all | translate-only light band, staggered by `--i`, then rests |
+| border light | `.card-edge` | rare+ | masked ring whose oversized conic child rotates (transform); exotic is iridescent |
+| motes | `.card-motes > i` | epic 3 · legendary 6 · exotic 7 | sparks rising (deterministic layout, no RNG); exotic alternates pink/cyan |
+| crown | `.card-crown` | legendary ◆◆◆ · exotic ✦✦✦ | floats above the card |
+| reveal | `::after` | uncommon+ (`--reveal-a`) | a flash in the rarity colour as the card lands (one shot, staggered) |
+| pick | `.is-chosen::after` | all, epic+ hardest | a shockwave ring out of the chosen card (the FEEL pick moment keeps its flare) |
+| chip | `.card-rarity` | all | speaks its rarity colour (legendary/exotic had none); epic+ chips glow |
+
+Rows (`--sheen-a/-t`, `--glow-a/-r/-t`, `--edge-a/-t/-bg`, `--reveal-a`, `--mote-s`): common barely
+glints; uncommon → rare → epic → legendary step up in brightness, radius and speed; exotic glows pink
+with a cyan sweep and a pink→cyan→gold edge. All animation is transform/opacity (compositor-friendly),
+three cards at most. **Reduced motion** (OS, or Settings → Motion via `.game[data-motion]`): every
+colour stays — steady glow, a still border in the rarity colour, the crown at rest, tinted chip — and
+the sweep, motes, flash and burst go (verified: 16 captured frames identical at 844×390). Checked live at
+1440×900 and 844×390 with frame-stepped strips of real deep-wave drafts (epic/legendary/exotic), the
+deal-in reveal and the pick burst.

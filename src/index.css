@@ -4535,28 +4535,7 @@ kbd {
   }
 }
 
-/* Rare+ draft cards get a slow sheen sweep */
-.card.r-rare::after,
-.card.r-epic::after,
-.card.r-legendary::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  pointer-events: none;
-  background: linear-gradient(115deg, transparent 42%, rgba(255, 255, 255, 0.12) 50%, transparent 58%);
-  background-size: 250% 100%;
-  animation: card-sheen 3.2s ease-in-out infinite;
-}
-@keyframes card-sheen {
-  0%,
-  100% {
-    background-position: 130% 0;
-  }
-  50% {
-    background-position: -30% 0;
-  }
-}
+/* (Rare+ draft-card sheen moved into the unified DRAFT CARD RARITY VFX section at the end — docs/GAME-FEEL.md §draft-sheen.) */
 
 /* ── Build-Phase controls (top-center overlay — never affects layout) ──────────
    Always mounted inside .canvas-wrap; visibility is a class toggle (fade + slide)
@@ -10099,44 +10078,7 @@ html[data-layout='landscape'] .mc-campaign > .mc-ledger { order: 3; }
   transform: translateY(-6px) rotate3d(1, 0.6, 0, 4deg) scale(1.02);
   box-shadow: 0 18px 40px -16px rgba(0, 0, 0, 0.8), 0 0 26px -8px color-mix(in srgb, var(--rar, var(--kinetic)) 55%, transparent);
 }
-.cards .card.r-epic, .cards .card.r-legendary { position: relative; overflow: visible; }
-.cards .card.r-epic::after, .cards .card.r-legendary::after {
-  content: '';
-  position: absolute;
-  inset: -2px;
-  border-radius: inherit;
-  padding: 2px;
-  background: conic-gradient(from var(--rar-a, 0deg), transparent 0 62%, var(--rar, var(--viral)) 82%, #fff 88%, var(--rar, var(--viral)) 94%, transparent 100%);
-  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-  -webkit-mask-composite: xor;
-  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-  mask-composite: exclude;
-  animation: rar-sweep 3.4s linear infinite;
-  pointer-events: none;
-}
-.cards .card.r-epic { --rar: var(--viral); }
-.cards .card.r-legendary { --rar: var(--gold); }
-.cards .card.r-legendary::after { animation-duration: 2.2s; }
-@property --rar-a { syntax: '<angle>'; inherits: false; initial-value: 0deg; }
-@keyframes rar-sweep { to { --rar-a: 360deg; } }
-.cards .card.r-legendary::before {
-  content: '◆ ◆ ◆';
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: -18px;
-  text-align: center;
-  font-size: 10px;
-  letter-spacing: 0.42em;
-  color: var(--gold);
-  text-shadow: 0 0 10px var(--gold);
-  animation: leg-motes 2.6s ease-in-out infinite;
-  pointer-events: none;
-}
-@keyframes leg-motes {
-  0%, 100% { opacity: 0.5; transform: translateY(0); }
-  50% { opacity: 1; transform: translateY(-3px); }
-}
+/* (Epic/legendary edge light + legendary crown moved into the unified DRAFT CARD RARITY VFX section at the end.) */
 
 @media (prefers-reduced-motion: reduce) {
   /* `animation: none`, NOT a 0.01s duration: these timelines end at opacity 0 with fill `both`, so
@@ -14166,18 +14108,35 @@ html[data-layout='desktop'] .cv-slot { flex: 0 1 auto; width: 240px; min-width: 
 /* §6a v3 live composition: the ELITE count on a wave-briefing chip (★N of the kind arrive elite). */
 .wb-chip .wb-elite { font-size: 10px; font-weight: 900; letter-spacing: 0.04em; color: var(--warn); font-variant-numeric: tabular-nums; }
 
-/* ── DRAFT CARD SHEEN (docs/GAME-FEEL.md §draft-sheen) — rarer cards look rarer at a glance ──────────────
-   A passive light sweep (.card-sheen, transform-only) and a breathing rarity-coloured glow (::before,
-   opacity-only) — both compositor-friendly, three cards at most. THE TABLE: one row per rarity —
-   --sheen-a (band brightness), --sheen-t (sweep period), --glow-a (peak glow opacity), --glow-r (glow
-   radius), --glow-t (breath period). Common barely glints; legendary/exotic glow and sweep faster. */
-.cards .card { isolation: isolate; --glow-c: var(--pick, var(--r-common)); --sheen-c: 255, 255, 255; }
-.cards .card.r-common    { --sheen-a: 0.05; --sheen-t: 7.5s; --glow-a: 0;    --glow-r: 0px;  --glow-t: 4s; }
-.cards .card.r-uncommon  { --sheen-a: 0.09; --sheen-t: 6.5s; --glow-a: 0.28; --glow-r: 10px; --glow-t: 3.6s; }
-.cards .card.r-rare      { --sheen-a: 0.13; --sheen-t: 5.5s; --glow-a: 0.42; --glow-r: 16px; --glow-t: 3.2s; }
-.cards .card.r-epic      { --sheen-a: 0.18; --sheen-t: 4.5s; --glow-a: 0.56; --glow-r: 22px; --glow-t: 2.8s; }
-.cards .card.r-legendary { --sheen-a: 0.24; --sheen-t: 3.6s; --glow-a: 0.72; --glow-r: 28px; --glow-t: 2.4s; }
-.cards .card.r-exotic    { --sheen-a: 0.28; --sheen-t: 3.2s; --glow-a: 0.8;  --glow-r: 32px; --glow-t: 2.2s; --glow-c: #ff7ad9; --sheen-c: 123, 224, 255; }
+/* ══ DRAFT CARD RARITY VFX (docs/GAME-FEEL.md §draft-sheen) — rarer cards look rarer at a glance ══════════
+   One system, one layer per effect (no pseudo-element contention), every strength from THE TABLE below.
+   Layers (all transform/opacity-animated — compositor-friendly; at most three cards on screen):
+     ::before      breathing rarity GLOW                    (all; --glow-a/-r/-t)
+     .card-sheen   passive light SWEEP, staggered by --i    (all; --sheen-a/-t, --sheen-c)
+     .card-edge    a light that circles the BORDER          (rare+; --edge-a/-t, --edge-bg) — DraftModal RARITY_VFX
+     .card-motes   sparks drifting up out of the card       (epic+; count per RARITY_VFX)
+     .card-crown   the floating crown above the card        (legendary+)
+     ::after       REVEAL flash as the card lands; a shockwave RING when it is picked (--reveal-a)
+   Common stays clean (a faint glint, nothing else). Reduced motion keeps the colours, drops the motion. */
+.cards .card {
+  isolation: isolate;
+  --rar: var(--r-common);
+  --sheen-c: 255, 255, 255;
+  --edge-a: 0;
+  --edge-t: 6s;
+  --edge-bg: conic-gradient(transparent 0 60%, var(--rar) 78%, #fff 85%, var(--rar) 92%, transparent 100%);
+  --reveal-a: 0;
+}
+/*                         colour                   sweep                         glow                                       border                          reveal  */
+.cards .card.r-common    { --rar: var(--r-common);    --sheen-a: 0.05; --sheen-t: 7.5s; --glow-a: 0;    --glow-r: 0px;  --glow-t: 4s;                                   --reveal-a: 0; }
+.cards .card.r-uncommon  { --rar: var(--r-uncommon);  --sheen-a: 0.09; --sheen-t: 6.5s; --glow-a: 0.28; --glow-r: 10px; --glow-t: 3.6s;                                 --reveal-a: 0.3; }
+.cards .card.r-rare      { --rar: var(--r-rare);      --sheen-a: 0.13; --sheen-t: 5.5s; --glow-a: 0.42; --glow-r: 16px; --glow-t: 3.2s; --edge-a: 0.55; --edge-t: 6s;   --reveal-a: 0.5; }
+.cards .card.r-epic      { --rar: var(--r-epic);      --sheen-a: 0.18; --sheen-t: 4.5s; --glow-a: 0.56; --glow-r: 22px; --glow-t: 2.8s; --edge-a: 0.8;  --edge-t: 4.4s; --reveal-a: 0.7; }
+.cards .card.r-legendary { --rar: var(--r-legendary); --sheen-a: 0.24; --sheen-t: 3.6s; --glow-a: 0.72; --glow-r: 28px; --glow-t: 2.4s; --edge-a: 0.95; --edge-t: 3.2s; --reveal-a: 0.9; }
+.cards .card.r-exotic    { --rar: #ff7ad9;           --sheen-a: 0.28; --sheen-t: 3.2s; --glow-a: 0.8;  --glow-r: 32px; --glow-t: 2.2s; --edge-a: 1;    --edge-t: 2.8s; --reveal-a: 1;
+  --sheen-c: 123, 224, 255; --edge-bg: conic-gradient(#ff7ad9, #7be0ff, #ffd24d, #b388ff, #ff7ad9); }
+
+/* GLOW — a halo in the rarity colour that breathes; it swells while hovered or keyboard-focused. */
 .cards .card::before {
   content: '';
   position: absolute;
@@ -14185,14 +14144,18 @@ html[data-layout='desktop'] .cv-slot { flex: 0 1 auto; width: 240px; min-width: 
   border-radius: inherit;
   z-index: -1;
   pointer-events: none;
-  box-shadow: 0 0 var(--glow-r) calc(var(--glow-r) * 0.2) var(--glow-c);
+  box-shadow: 0 0 var(--glow-r) calc(var(--glow-r) * 0.2) var(--rar);
   opacity: var(--glow-a);
   animation: card-glow var(--glow-t) ease-in-out infinite;
+  transition: filter var(--dur-3) var(--ease-out);
 }
 @keyframes card-glow {
   0%, 100% { opacity: calc(var(--glow-a) * 0.5); }
   50% { opacity: var(--glow-a); }
 }
+.cards .card:hover::before, .cards .card:focus-visible::before { filter: brightness(1.45) saturate(1.2); }
+
+/* SWEEP — a translate-only light band, then rest (a glint, not a strobe). */
 .card-sheen {
   position: absolute;
   inset: 0;
@@ -14210,22 +14173,142 @@ html[data-layout='desktop'] .cv-slot { flex: 0 1 auto; width: 240px; min-width: 
   background: linear-gradient(100deg, transparent 0%, rgba(var(--sheen-c), var(--sheen-a)) 45%, rgba(var(--sheen-c), calc(var(--sheen-a) * 1.6)) 50%, rgba(var(--sheen-c), var(--sheen-a)) 55%, transparent 100%);
   mix-blend-mode: screen;
   transform: translateX(-130%);
-  animation: card-sheen var(--sheen-t) ease-in-out infinite;
+  animation: card-sweep var(--sheen-t) ease-in-out infinite;
   animation-delay: calc(0.4s + var(--i, 0) * 0.55s);
 }
-/* sweep across in the first third of the period, then rest — a glint, not a strobe */
-@keyframes card-sheen {
+@keyframes card-sweep {
   0% { transform: translateX(-130%); }
   32%, 100% { transform: translateX(260%); }
 }
-/* the pick moment owns the chosen card's light; dismissed cards stop shining */
-.cards .card.is-chosen .card-sheen, .cards .card.is-dismissed .card-sheen { display: none; }
+
+/* BORDER LIGHT — a masked ring whose oversized conic child ROTATES (transform, not a repainting angle). */
+.card-edge {
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  padding: 2px;
+  overflow: hidden;
+  pointer-events: none;
+  opacity: var(--edge-a);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask-composite: exclude;
+}
+.card-edge::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 260%;
+  aspect-ratio: 1;
+  background: var(--edge-bg);
+  transform: translate(-50%, -50%);
+  animation: card-edge-spin var(--edge-t) linear infinite;
+}
+@keyframes card-edge-spin {
+  from { transform: translate(-50%, -50%) rotate(0turn); }
+  to { transform: translate(-50%, -50%) rotate(1turn); }
+}
+
+/* MOTES — sparks rising out of epic+ cards (positions/delays come from DraftModal, deterministic). */
+.card-motes {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  overflow: hidden;
+  pointer-events: none;
+}
+.card-motes i {
+  position: absolute;
+  bottom: -4px;
+  left: var(--x);
+  width: var(--mote-s, 3px);
+  height: var(--mote-s, 3px);
+  border-radius: 50%;
+  background: var(--rar);
+  box-shadow: 0 0 6px 1px var(--rar);
+  opacity: 0;
+  animation: card-mote var(--t, 3.6s) linear infinite;
+  animation-delay: var(--d, 0s);
+}
+.cards .card.r-exotic .card-motes i:nth-child(even) { background: #7be0ff; box-shadow: 0 0 6px 1px #7be0ff; }
+@keyframes card-mote {
+  0% { transform: translate(0, 0); opacity: 0; }
+  12% { opacity: 0.95; }
+  70% { opacity: 0.6; }
+  100% { transform: translate(var(--dx, 0px), -300px); opacity: 0; }
+}
+
+/* CROWN — the legendary/exotic diadem floating over the card. */
+.card-crown {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: -18px;
+  text-align: center;
+  font-size: 10px;
+  letter-spacing: 0.42em;
+  color: var(--rar);
+  text-shadow: 0 0 10px var(--rar);
+  pointer-events: none;
+  animation: card-crown 2.6s ease-in-out infinite;
+}
+.cards .card.r-exotic .card-crown { background: linear-gradient(90deg, #ff7ad9, #7be0ff); -webkit-background-clip: text; background-clip: text; color: transparent; text-shadow: none; filter: drop-shadow(0 0 6px #ff7ad9); }
+@keyframes card-crown {
+  0%, 100% { opacity: 0.6; transform: translateY(0); }
+  50% { opacity: 1; transform: translateY(-3px); }
+}
+/* the RARITY CHIP speaks its rarity's colour on every card (legendary/exotic had none); epic+ chips glow */
+.cards .card .card-rarity { color: var(--rar); background: color-mix(in srgb, var(--rar) 16%, transparent); }
+.cards .card.r-common .card-rarity { color: var(--muted); background: var(--line); }
+.cards .card.r-epic .card-rarity, .cards .card.r-legendary .card-rarity, .cards .card.r-exotic .card-rarity { box-shadow: 0 0 10px -2px var(--rar); }
+.cards .card.r-legendary, .cards .card.r-exotic { --mote-s: 4px; }
+
+/* REVEAL — the card lands with a flash in its colour (one shot, after its deal-in)… */
+.cards .card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: radial-gradient(closest-side, color-mix(in srgb, var(--rar) 65%, #fff), transparent);
+  mix-blend-mode: screen;
+  opacity: 0;
+  animation: card-reveal 0.7s ease-out both;
+  animation-delay: calc(0.18s + var(--i, 0) * 0.07s);
+}
+@keyframes card-reveal {
+  0% { opacity: var(--reveal-a); transform: scale(0.6); }
+  100% { opacity: 0; transform: scale(1.35); }
+}
+/* …and the PICK sends a shockwave ring out of it (epic+ ring hardest — --reveal-a). */
+.cards .card.is-chosen::after {
+  inset: -24px;
+  background: radial-gradient(closest-side, transparent 58%, var(--rar) 72%, transparent 100%);
+  animation: card-burst 0.55s ease-out both;
+  animation-delay: 0s;
+}
+@keyframes card-burst {
+  0% { opacity: var(--reveal-a); transform: scale(0.7); }
+  100% { opacity: 0; transform: scale(1.6); }
+}
+/* the pick moment owns the chosen card's light; dismissed cards go dark */
+.cards .card.is-chosen .card-sheen, .cards .card.is-dismissed .card-sheen,
+.cards .card.is-dismissed .card-motes, .cards .card.is-dismissed .card-edge { display: none; }
 .cards .card.is-dismissed::before { animation: none; opacity: 0; }
-/* REDUCED MOTION (OS setting or Settings → Motion): keep the rarity information, drop the motion —
-   a steady glow at its mid strength, no sweep. */
-.game[data-motion="reduced"] .card-sheen { display: none; }
+
+/* REDUCED MOTION (OS setting, or Settings → Motion via .game[data-motion]) — keep every colour, drop the
+   motion: a steady glow, a still border in the rarity colour, the crown at rest, no sweep/motes/flash. */
+.game[data-motion="reduced"] .card-sheen, .game[data-motion="reduced"] .card-motes { display: none; }
 .game[data-motion="reduced"] .cards .card::before { animation: none; opacity: calc(var(--glow-a) * 0.75); }
+.game[data-motion="reduced"] .card-edge::before { animation: none; background: var(--rar); }
+.game[data-motion="reduced"] .card-crown { animation: none; opacity: 1; }
+.game[data-motion="reduced"] .cards .card::after { animation: none; opacity: 0; }
 @media (prefers-reduced-motion: reduce) {
-  .card-sheen { display: none; }
+  .card-sheen, .card-motes { display: none; }
   .cards .card::before { animation: none; opacity: calc(var(--glow-a) * 0.75); }
+  .card-edge::before { animation: none; background: var(--rar); }
+  .card-crown { animation: none; opacity: 1; }
+  .cards .card::after { animation: none; opacity: 0; }
 }

@@ -25,6 +25,27 @@ import type { CardOption } from '../core/types';
 // Higher = rarer. Unknown tiers sort as 0, so new rarities slot in by adding a key.
 const RARITY_RANK: Record<string, number> = { common: 0, uncommon: 1, rare: 2, epic: 3, legendary: 4, exotic: 5 };
 
+// Rarity VFX layers (docs/GAME-FEEL.md §draft-sheen): which EXTRA layers a card mounts — every strength
+// and colour lives in index.css's DRAFT CARD RARITY VFX table. Unknown tiers mount none (a new rarity
+// slots in by adding a row here + a row there). Common/uncommon stay clean: glow + glint only.
+const RARITY_VFX: Record<string, { edge?: boolean; motes?: number; crown?: string }> = {
+  rare: { edge: true },
+  epic: { edge: true, motes: 3 },
+  legendary: { edge: true, motes: 6, crown: '◆ ◆ ◆' },
+  exotic: { edge: true, motes: 7, crown: '✦ ✦ ✦' },
+};
+
+/** Deterministic spark layout (no Math.random — the same card always sparkles the same way). */
+function moteStyle(k: number, n: number): CSSProperties {
+  return {
+    '--x': `${8 + ((k * 37) % 84)}%`,
+    '--d': `${((k * 0.83) % 3.6).toFixed(2)}s`,
+    '--t': `${(3.2 + ((k * 7) % 5) * 0.25).toFixed(2)}s`,
+    '--dx': `${((k % 2 === 0 ? 1 : -1) * (6 + ((k * 5) % 9)))}px`,
+    zIndex: n - k,
+  } as CSSProperties;
+}
+
 // Auto Gene Selection: seconds the recommended card is offered before it auto-drafts.
 const AUTO_SECONDS = 10;
 
@@ -352,6 +373,13 @@ export function DraftModal({
             {/* Rarity SHEEN (docs/GAME-FEEL.md §draft-sheen): a passive light sweep + breathing glow whose
                 strength is the rarity's row in index.css (the sheen and glow variables). Decorative only. */}
             <span className="card-sheen" aria-hidden />
+            {RARITY_VFX[o.rarity]?.edge && <span className="card-edge" aria-hidden />}
+            {(RARITY_VFX[o.rarity]?.motes ?? 0) > 0 && (
+              <span className="card-motes" aria-hidden>
+                {Array.from({ length: RARITY_VFX[o.rarity]!.motes! }, (_, k) => <i key={k} style={moteStyle(k, RARITY_VFX[o.rarity]!.motes!)} />)}
+              </span>
+            )}
+            {RARITY_VFX[o.rarity]?.crown && <span className="card-crown" aria-hidden>{RARITY_VFX[o.rarity]!.crown}</span>}
             <span className="card-hotkey">{i + 1}</span>
             <span className="card-top">
               <span className="card-rarity">{o.rarity}</span>
