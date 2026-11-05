@@ -532,8 +532,14 @@ export function rollItem(rng: Rng, def: EquipDef, rarity: Rarity, ilvl?: number,
  *  `infiniteWeight` when it reads deeper. Pure + monotonic in both; a fresh account reads i1. */
 export function itemLevelForDepth(stage: number, bestWave = 0): number {
   const c = ITEM_LEVEL_CURVE;
-  const depth = Math.max(0, stage, bestWave * c.infiniteWeight);
-  return Math.max(1, Math.round(1 + c.perLn * Math.log(1 + depth / c.depthScale)));
+  return Math.max(1, Math.round(1 + c.perLn * Math.log(1 + accountDepth(stage, bestWave) / c.depthScale)));
+}
+
+/** The account's DEPTH: the deepest cleared Campaign stage, or the Infinite record ×
+ *  `infiniteWeight` when that reads deeper. ONE definition — the gear chase and Depth XP
+ *  (core/accountLevel depthXpMult) both read it. Pure + monotonic in both inputs. */
+export function accountDepth(stage: number, bestWave = 0): number {
+  return Math.max(0, stage, bestWave * ITEM_LEVEL_CURVE.infiniteWeight);
 }
 
 /** The GEAR_RARITY_BANDS row an item level rolls from (the deepest band starting at/below it). */

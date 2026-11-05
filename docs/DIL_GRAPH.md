@@ -1,6 +1,6 @@
 # DIL_GRAPH.md — the Design Intelligence Layer (GENERATED — `npm run dil -- regen`)
 
-> **The project's brain** (docs/DIL.md). 979 nodes · 1897 edges, built from the live
+> **The project's brain** (docs/DIL.md). 979 nodes · 1899 edges, built from the live
 > registries + curated knowledge (src/dev/dil/). **Query it instead of searching the repo:**
 > `npm run dil -- node <id>` · `affects <id>` · `requires <id>` · `missing <kind> <edge>` ·
 > `checklist tower <kind>` · `find <text>`. Edge kinds are bidirectional (19 kinds).
@@ -555,6 +555,7 @@ graph LR
   system_hub_shell["Hub Shell & Home"] -->|consumes| system_campaign["Campaign"]
   system_living_battlefield["Living Battlefield"] -->|consumes| system_assimilation["Assimilation Index"]
   system_account_level["Account Level (evergreen meta-progression)"] -->|provides| system_loot["Loot & Bio-Containers"]
+  system_account_level["Account Level (evergreen meta-progression)"] -->|dependsOn| system_equipment["Equipment & Armory"]
   system_genome_rank["Genome Rank (ultimate mastery ladder)"] -->|consumes| system_account_level["Account Level (evergreen meta-progression)"]
   system_hive_mind["Hive Intelligence (in-run)"] -->|consumes| system_engine["Sim Engine"]
   system_heroes["Heroes"] -->|consumes| system_mega_bosses["Mega Bosses"]
@@ -1419,6 +1420,7 @@ _at: src/core/equipment.ts, src/render/equipmentArt.ts, src/ui/EquipmentPanel.ts
   - documentedBy ← `guide:equipment`
   - testedBy ← `test:src/core/equipment.test.ts`
   - testedBy ← `test:src/render/equipmentArt.test.ts`
+  - requiredBy ← `system:account-level` — DEPTH XP (ACCOUNT-LEVEL.md §depth): a run's play XP × depthXpMult(accountDepth(deepest stage, Infinite best)) — accountDepth lives in core/equipment beside itemLevelForDepth, ONE depth for both: retuning ITEM_LEVEL_CURVE.infiniteWeight moves the gear chase AND account XP. The multiplier is paired with ACCOUNT_REWARD_DEPTH (deep payouts re-weighted) — retune them together against the cadence sim
   - consumedBy ← `system:collection` — PERMANENT GEAR CODEX (v56 equipment.discovered): meta.persist folds every def entering the inventory (any path) into the ledger at the ONE chokepoint (withGearDiscoveries); gearDiscovered(save) = ledger ∪ inventory feeds collectionContextOf.ownedDefIds (Collection %, its Power, Quartermaster), genomeSnapshot.gearRatio and the container isNew badge — salvaging the last copy never un-discovers. Migration backfills from the held inventory; merge = union
 
 ### `system:crafting` — Crafting / Reforge
@@ -1899,6 +1901,7 @@ _at: src/core/contracts.ts, src/ui/components/ContractsCard.tsx_
   - documentedBy ← `doc:CONTRACTS.md`
   - documentedBy ← `guide:contracts`
   - testedBy ← `test:src/core/contracts.test.ts`
+  - referencedBy ← `system:account-level` — contract / perfect-week XP stay FLAT (outside the Depth XP multiplier) because ContractsCard quotes ACCOUNT_XP.contract/perfectWeek — previews == outcomes
   - referencedBy ← `system:quests` — contracts are the quest-adjacent weekly SKILL checks — same board (ContractsCard mounts in QuestBoard), same run-facts DNA (QuestRunFacts extends ContractRunFacts)
 
 ### `system:infestation` — Infestation Map — THE FRONT
@@ -2112,7 +2115,9 @@ _at: src/core/accountLevel.ts, src/ui/components/AccountXpBar.tsx_
   - dependsOn → `system:loot`
   - consumes → `system:meta-store` — owns save field 'accountXp'
   - consumes → `system:meta-store` — every XP-paying persist wraps in foldAccountXp — a NEW XP source is one ACCOUNT_XP row + one wrap, never a parallel pipeline
-  - provides → `system:loot` — every 5th level + milestones bank Bio-Containers as kind:'cache' — REUSE the cache branch, never add a PendingContainer kind for level rewards
+  - provides → `system:loot` — periodic levels (isContainerLevel: every 5th, widening by 5 each 50 levels) + milestones bank Bio-Containers as kind:'cache' — REUSE the cache branch, never add a PendingContainer kind for level rewards
+  - dependsOn → `system:equipment` — DEPTH XP (ACCOUNT-LEVEL.md §depth): a run's play XP × depthXpMult(accountDepth(deepest stage, Infinite best)) — accountDepth lives in core/equipment beside itemLevelForDepth, ONE depth for both: retuning ITEM_LEVEL_CURVE.infiniteWeight moves the gear chase AND account XP. The multiplier is paired with ACCOUNT_REWARD_DEPTH (deep payouts re-weighted) — retune them together against the cadence sim
+  - references → `system:contracts` — contract / perfect-week XP stay FLAT (outside the Depth XP multiplier) because ContractsCard quotes ACCOUNT_XP.contract/perfectWeek — previews == outcomes
   - references → `system:mastery` — account titles share save.equippedTitle with mastery rewards — display surfaces MUST resolve via titleName() (profile.ts), not masteryRewardById alone
   - conflictsWith → `system:shards-economy` — level-reward cores must stay a supplement — sim guard trips if they exceed 15% of lifetime cores (reward ∝ n^0.7 vs requirement ∝ n^1.25)
   - dependsOn → `system:notifications` — AccountLevelToast takes the RewardToaster’s `held` gate (meta.whatsNew().length > 0): post-run level-ups wait behind the "N new systems unlocked" summary and flush when it closes
