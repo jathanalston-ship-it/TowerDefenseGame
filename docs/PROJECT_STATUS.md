@@ -3,7 +3,19 @@
 > Maintained at the END of every session (paired with `docs/AI_HANDOFF.md` — the constitution's
 > workflow step 4). This is the "where are we?" answer; `docs/GAME-STATE.md` remains the deeper
 > per-system built-vs-planned index, `docs/PROJECT_MANIFEST.md` the system map.
-> **Last updated:** 2026-11-05f (**DEPLOYED — MADE FOR YOUR PHONE'S BROWSER** (`0b91f44`, run #235; owner
+> **Last updated:** 2026-11-05g (**A LIGHTER FIRST DOWNLOAD — validated, awaiting the owner's release go-ahead.**
+> DEPLOYMENT.md §boot-budget · §boot-css: the first download before any screen fell from 552 KB JS + 115 KB CSS to
+> 497 + 51 KB gzip (−18 %). Patch-note history + the mechanics' Help/What's New copy (`state/mechanicsText.ts`)
+> load with their screens; Store/Front helpers in their own files (both screens lazy); every class only one lazy
+> module renders lives in that module's own sheet (59 sheets) — the split kept 321 rules whose move could flip
+> the cascade, and a computed-style diff over 65 screens × viewports matched the old build exactly. lazyNamed
+> re-requests a screen sheet that failed to load (else unstyled). Fix: Help's Towers/Heroes/Infinite cross-links.
+> Probe budgets: boot JS ≤ 515, boot CSS ≤ 58 KB gzip (both pass). Not changed: `meta.ts` (all of it is boot —
+> splitting it would not shrink the download); the service worker still precaches every chunk after the first
+> visit (offline play). VALIDATION: validate PASS over 0b91f44..HEAD (3115/3115, mobile gate clean; first-session probe all budgets ok). Website:
+> release v2026.11.05.7, devlog `a-lighter-first-download`.)
+>
+> **2026-11-05f** (**DEPLOYED — MADE FOR YOUR PHONE'S BROWSER** (`0b91f44`, run #235; owner
 > approved the release).** RESPONSIVE-DESIGN.md §browser: every full-screen height uses `--app-h` (100dvh, measured
 > fallback; uiStandards forbids bare 100vh) so the address bar never hides the game's foot; Android/iPad
 > browsers go full screen on the first tap (Settings toggle, top-bar ⛶); iPhone Safari gets a one-time Add to
