@@ -1405,7 +1405,7 @@ function drawTower(ctx: CanvasRenderingContext2D, tw: RenderState['towers'][numb
   ctx.ellipse(tw.x, tw.y + r * 0.7, r * 0.85, r * 0.4, 0, 0, Math.PI * 2);
   ctx.fill();
   // DEPLOY landing on the ground plane (towerMoments.ts): pad flare, shock + dust rings, kicked flecks.
-  drawDeployGround(ctx, tw.x, tw.y, r, now - tw.bornAt, kcolor, tw.id);
+  drawDeployGround(ctx, tw.x, tw.y, Math.max(r, TOWER_R), now - tw.bornAt, kcolor, tw.id); // sized by the landed body, not the growing one
 
   // MULLIGAN organism, BACK slice (docs/MULLIGANS.md §visuals): the graft's up-lane organs +
   // containment aura paint BEHIND the turret body so the creature visibly wraps its host — the
@@ -2953,7 +2953,19 @@ function drawFieldDisc(ctx: CanvasRenderingContext2D, x: number, y: number, rang
   ctx.arc(x, y, r, 0, Math.PI * 2);
   ctx.fillStyle = rgba(tone, 0.07);
   ctx.fill();
+  rangeUnderStroke(ctx, x, y, r);
   ring(ctx, x, y, r, rgba(tone, 0.34), 1.5, [6, 6]);
+}
+
+/** A soft dark bed under a range edge so the dashed tone line reads on ANY ground — a bright biome
+ *  floor, deep-stage flesh, or an acid pond (docs/RANGE.md §6). One solid stroke, no allocation. */
+const RANGE_BED = 'rgba(4, 6, 10, 0.42)';
+function rangeUnderStroke(ctx: CanvasRenderingContext2D, x: number, y: number, r: number): void {
+  ctx.strokeStyle = RANGE_BED;
+  ctx.lineWidth = 3.5;
+  ctx.beginPath();
+  ctx.arc(x, y, r, 0, Math.PI * 2);
+  ctx.stroke();
 }
 
 /** Medium ranged towers: a clean bounded range ring (the circle is readable at this size). */
@@ -2962,6 +2974,7 @@ function drawRangeRing(ctx: CanvasRenderingContext2D, x: number, y: number, rang
   ctx.arc(x, y, range, 0, Math.PI * 2);
   ctx.fillStyle = rgba(tone, 0.05);
   ctx.fill();
+  rangeUnderStroke(ctx, x, y, range);
   ctx.save();
   ctx.strokeStyle = rgba(tone, 0.5);
   ctx.lineWidth = 1.5;
@@ -2988,7 +3001,13 @@ function drawEngagementFrontier(ctx: CanvasRenderingContext2D, x: number, y: num
   ctx.moveTo(x, y);
   ctx.lineTo(x, frontierY);
   ctx.stroke();
-  // the frontier itself — an animated leading edge of engagement
+  // the frontier itself — an animated leading edge of engagement (on a dark bed: legible on any ground)
+  ctx.strokeStyle = RANGE_BED;
+  ctx.lineWidth = 3.5;
+  ctx.beginPath();
+  ctx.moveTo(0, frontierY + 0.5);
+  ctx.lineTo(WIDTH, frontierY + 0.5);
+  ctx.stroke();
   ctx.save();
   ctx.strokeStyle = rgba(tone, 0.6);
   ctx.lineWidth = 1.5;

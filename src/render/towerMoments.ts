@@ -37,7 +37,7 @@ export const TOWER_MOMENTS = {
     ringEvery: 2, maxRings: 4, ringStagger: 0.09, ringTo: 2.4, ringPerLevel: 0.2, // +1 ring per 2 levels (1..4 rings)
     popSec: 0.5, popAlpha: 0.5, // the white pop (Flashes setting)
     shards: 5, shardsPerLevel: 1, shardReach: 2.4, shardSize: 3.6, // shed chitin
-    apexLevel: 5, columnH: 7.5, columnW: 0.5, columnAlpha: 0.4, // the light column at an apex step
+    apexLevel: 5, columnH: 10, columnW: 1.1, columnAlpha: 0.55, // the light column at an apex step
     haloR: 1.8, // reduced-motion static halo (× r)
   },
 } as const;
