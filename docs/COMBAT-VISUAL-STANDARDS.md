@@ -200,3 +200,11 @@ Machine-enforced where possible; review the rest at authoring time:
 - Quality scaling is automatic (enemy count); low-end devices degrade along the same curve.
 - The sim's particle budget (`PERF.maxParticles`) is untouched — status particles are painted,
   not simulated.
+
+### Reaction-label budget (integration follow-up to the V1 damage language)
+The word callouts ("DETONATE", "SHRED", "DISSOLVE", "VIRULENCE"…) say a reaction FIRED; on a crowded
+field the tenth copy of the same word says nothing new and papered the 150-body stress frames. Past
+`REACTION_LABELS.crowdAt` (10) live labels (render/feel.ts), each word draws its first `repeat` (2)
+copies in full and the rest recede to `crowdAlpha` (0.15) — the field still reads busy, the words stop
+burying it. One reused map per frame (no allocation). Pinned in render/combatFx.test.ts.
+

@@ -32,7 +32,7 @@ import { drawEnemyBody } from './enemyForms';
 import type { BodyForm } from './enemyForms';
 import { ingestDeaths, updateGore, drawGoreFloor, drawGorePieces, goreThrob } from './gore';
 import { drawAbilityCinematics } from './abilityCinematics';
-import { DAMAGE_NUMBERS, viewFeel } from './feel';
+import { DAMAGE_NUMBERS, REACTION_LABELS, viewFeel } from './feel';
 import { attackAnticipation, drawTowerForm, drawTowerSignature, FORM_ANTICIPATION, TOWER_FORM } from './towerForms';
 import { drawOrganismEmissions, organismAlert, organismPose, updateOrganisms } from './organism';
 import {
@@ -470,16 +470,19 @@ export function drawGame(
   // field the small ones recede so the big hits read (one cheap pre-pass, no allocation).
   let nNums = 0;
   let maxNum = 0;
-  if (viewFeel.numbers) {
-    for (const f of rs.floats) {
-      const c0 = f.text.charCodeAt(0);
-      if (f.kind === 'crit' || c0 < 48 || c0 > 57) continue;
-      nNums++;
-      const v = leadingInt(f.text);
-      if (v > maxNum) maxNum = v;
-    }
+  let nLabels = 0;
+  for (const f of rs.floats) {
+    const c0 = f.text.charCodeAt(0);
+    if (f.kind === 'crit') continue;
+    if (c0 < 48 || c0 > 57) { nLabels++; continue; }
+    if (!viewFeel.numbers) continue;
+    nNums++;
+    const v = leadingInt(f.text);
+    if (v > maxNum) maxNum = v;
   }
   const crowdCut = nNums > DAMAGE_NUMBERS.crowdAt ? maxNum * DAMAGE_NUMBERS.crowdFrac : 0;
+  const labelCrowded = nLabels > REACTION_LABELS.crowdAt;
+  if (labelCrowded) LABEL_SEEN.clear(); // reused map — no per-frame allocation
   for (const f of rs.floats) {
     const c0 = f.text.charCodeAt(0);
     const numeric = c0 >= 48 && c0 <= 57;
@@ -522,6 +525,11 @@ export function drawGame(
       ctx.fillStyle = f.color;
       ctx.fillText(f.text, f.x, f.y);
     } else {
+      if (labelCrowded) {
+        const n = (LABEL_SEEN.get(f.text) ?? 0) + 1;
+        LABEL_SEEN.set(f.text, n);
+        if (n > REACTION_LABELS.repeat) ctx.globalAlpha = Math.min(1, f.life * 2) * REACTION_LABELS.crowdAlpha; // the same word again says nothing new
+      }
       ctx.fillStyle = f.color;
       ctx.font = "bold 14px 'Exo 2', system-ui, sans-serif";
       ctx.textAlign = 'center';
@@ -541,6 +549,8 @@ export function drawGame(
 
 // ── Floating-text type (pre-built — the float pass never builds a font string per frame) ──
 const FLOAT_OUTLINE = 'rgba(6,8,12,0.82)';
+/** Reaction-label copies counted this frame (REACTION_LABELS budget) — module-level, cleared per frame. */
+const LABEL_SEEN = new Map<string, number>();
 const DMG_FONTS: string[] = [];
 const CRIT_FONTS: string[] = [];
 for (let px = 0; px <= 44; px++) {

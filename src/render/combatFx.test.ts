@@ -7,7 +7,7 @@ import { COMBAT_CLASS_ORDER } from '../core/combatClass';
 import { HERO_DEFS, TOWER_DEFS } from '../core/config';
 import type { RenderState } from '../core/game';
 import type { HeroKind, TowerKind } from '../core/types';
-import { DAMAGE_NUMBERS, viewFeel } from './feel';
+import { DAMAGE_NUMBERS, REACTION_LABELS, viewFeel } from './feel';
 import { drawGame } from './renderer';
 import { Game } from '../core/game';
 import { towerSlots } from '../core/map';
@@ -187,6 +187,26 @@ describe('damage numbers — the crowd budget', () => {
     expect(texts.find((x) => x.text === '480')!.alpha).toBe(1);
     expect(texts.find((x) => x.text === '9!')!.alpha).toBe(1);
     expect(texts.find((x) => x.text === '7')!.alpha).toBeCloseTo(DAMAGE_NUMBERS.crowdAlpha);
+  });
+
+  it('reaction labels: past crowdAt, each word keeps `repeat` full copies and the rest recede', () => {
+    const g = new Game(3, NO_META);
+    const rs = g.getRenderState();
+    const floats: RenderState['floats'] = [];
+    for (let i = 0; i < REACTION_LABELS.crowdAt + 2; i++) floats.push({ x: 40 + i * 10, y: 300, text: 'DETONATE', color: '#ff8a3d', life: 0.5 });
+    floats.push({ x: 300, y: 300, text: 'SHRED', color: '#ffd24d', life: 0.5 });
+    (rs as { floats: RenderState['floats'] }).floats = floats;
+    const { ctx, texts } = textAlphaCtx();
+    drawGame(ctx, rs, null);
+    const det = texts.filter((x) => x.text === 'DETONATE').map((x) => x.alpha);
+    expect(det.filter((a) => a === 1).length).toBe(REACTION_LABELS.repeat);
+    expect(det.filter((a) => a < 1).every((a) => Math.abs(a - REACTION_LABELS.crowdAlpha) < 1e-9)).toBe(true);
+    expect(texts.find((x) => x.text === 'SHRED')!.alpha).toBe(1); // a different word still reads in full
+    // a quiet field: every label full
+    (rs as { floats: RenderState['floats'] }).floats = floats.slice(0, 3);
+    const quiet = textAlphaCtx();
+    drawGame(quiet.ctx, rs, null);
+    expect(quiet.texts.filter((x) => x.text === 'DETONATE').every((x) => x.alpha === 1)).toBe(true);
   });
 
   it('a quiet field shows every number at full strength', () => {

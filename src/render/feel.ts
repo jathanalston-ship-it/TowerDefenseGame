@@ -107,6 +107,16 @@ export const DAMAGE_NUMBERS = {
   crowdAlpha: 0.3,
 } as const;
 
+// REACTION-LABEL budget (docs/COMBAT-VISUAL-STANDARDS.md §hit-confirmation): the word callouts
+// ("DETONATE", "SHRED", "DISSOLVE"…) say a reaction FIRED — the tenth copy of the same word says nothing
+// new. Past `crowdAt` live labels, each word draws its first `repeat` copies in full and the rest recede
+// to `crowdAlpha` (the field still shows it's busy, the words stop papering it).
+export const REACTION_LABELS = {
+  crowdAt: 10,
+  repeat: 2,
+  crowdAlpha: 0.15,
+} as const;
+
 // ── LAST KILL — the wave's final enemy LANDS (docs/SIGNATURE-MOMENTS.md §1, render/lastKill.ts) ──
 // The owner's taste values. Times are wall-clock ms from the kill at 1× (see speedCompress).
 export interface LastKillSpec {
