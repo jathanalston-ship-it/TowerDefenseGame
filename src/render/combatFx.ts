@@ -124,7 +124,8 @@ function glowSprite(color: string): HTMLCanvasElement | null {
     c = document.createElement('canvas');
     c.width = GLOW_PX; c.height = GLOW_PX;
     const g = c.getContext('2d');
-    if (g) {
+    try {
+      if (!g) throw new Error('no 2d context');
       const grad = g.createRadialGradient(GLOW_PX / 2, GLOW_PX / 2, 1, GLOW_PX / 2, GLOW_PX / 2, GLOW_PX / 2);
       grad.addColorStop(0, color);
       grad.addColorStop(0.45, color);
@@ -139,7 +140,9 @@ function glowSprite(color: string): HTMLCanvasElement | null {
       fade.addColorStop(1, 'rgba(0,0,0,0)');
       g.fillStyle = fade;
       g.fillRect(0, 0, GLOW_PX, GLOW_PX);
-    } else c = null;
+    } catch {
+      c = null; // no context, or an unparsable tint (addColorStop throws) — the plain soft disc fallback
+    }
   }
   glowCache.set(color, c);
   return c;
@@ -457,7 +460,7 @@ let splashN = 0;
 let frameNo = 0;
 let lastKillSeq = -1;
 let lastT = -1;
-const fieldRange: Partial<Record<TowerKind, number>> = {};
+let fieldRange: Partial<Record<TowerKind, number>> = {}; // the sim's effective-range table (read-only reference)
 
 /** Once per frame (after the projectiles are known, before drawCombatBursts): detect splash
  *  detonations, ingest kills, and cache the effective field ranges for the field pulses. */
@@ -465,7 +468,7 @@ export function updateCombatFx(rs: RenderState, t: number, detail: boolean): voi
   frameNo++;
   if (t < lastT - 1) clearCombatFx(); // a new run restarted the clock
   lastT = t;
-  for (const k in rs.effectiveRanges) fieldRange[k as TowerKind] = rs.effectiveRanges[k as TowerKind];
+  fieldRange = rs.effectiveRanges ?? fieldRange;
   // splash shells
   for (const p of rs.projectiles) {
     if (p.behavior !== 'splash' || p.splash <= 0) continue;
