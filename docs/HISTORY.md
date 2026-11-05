@@ -637,3 +637,4 @@
 - `a508abc` **[Developer Tools]** Release notes "A Calmer First Hour" curated; site + PIL regenerated _(internal)_
 - `0f7d1d2` **[Developer Tools]** First hour + sound pass PASS over 2d0c694..HEAD — 3109/3109, mobile gate clean _(internal)_
 - `aa3f250` **[Developer Tools]** Status,chronicle: DEPLOYED "A Calmer First Hour" (0f7d1d2, run #234); seal v2026.11.05.5 _(internal)_
+- `da71944` **[UI]** The mobile-browser version — fit around the address bar, full screen, Add to Home Screen

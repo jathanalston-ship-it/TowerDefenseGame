@@ -5,6 +5,36 @@ import type { Release } from './types';
 /** Player-facing releases, newest first. */
 export const RELEASES: Release[] = [
   {
+    "id": "v2026.11.05.6",
+    "date": "2026-11-05",
+    "title": "Made for Your Phone’s Browser",
+    "sealed": false,
+    "entries": [
+      {
+        "cat": "UX",
+        "text": "In a phone’s web browser the game now fits what the address bar leaves visible — menus, Results and dialogs no longer slip under it",
+        "major": true
+      },
+      {
+        "cat": "UX",
+        "text": "Android and iPad: your first tap goes full screen (Settings can turn it off), and ⛶ in the top bar brings it back",
+        "major": true
+      },
+      {
+        "cat": "UX",
+        "text": "iPhone: a one-time card shows how to add the game to your Home Screen to play without the address bar; the installed game now opens in landscape"
+      },
+      {
+        "cat": "UX",
+        "text": "Upright phones keep a bigger battlefield during runs: the loot meter folds into a thin strip and the controls tighten"
+      },
+      {
+        "cat": "Bug Fixes",
+        "text": "The top bar no longer runs off the edge on small phones held sideways"
+      }
+    ]
+  },
+  {
     "id": "v2026.11.05.5",
     "date": "2026-11-05",
     "title": "A Calmer First Hour",
