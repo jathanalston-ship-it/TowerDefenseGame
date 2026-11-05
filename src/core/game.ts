@@ -8693,7 +8693,7 @@ export class Game {
   private liveWave(idx0: number, m: number): { wave: WaveDef; probe: LiveProbe | null } {
     const base = this.waves[idx0];
     if (!(m > 1) || this.stage === null) return { wave: base, probe: null };
-    const probe = this.dd.liveProbeShare(m) > 0 ? liveProbe(this.stage.enemyPool, this.towers) : null;
+    const probe = this.dd.liveProbeShare(m) > 0 ? liveProbe(this.stage.enemyPool, this.towers, DIRECTOR_ADAPTIVE.liveProbeGapTie) : null;
     const probed = probe !== null ? swapInProbe(base, probe.kind, this.dd.liveProbeShare(m, probe.gap), DIRECTOR_ADAPTIVE.liveProbeByBudget > 0) : base;
     return { wave: promoteEliteShare(probed, this.dd.liveEliteShare(m)), probe: probed !== base ? probe : null };
   }

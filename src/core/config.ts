@@ -3263,6 +3263,7 @@ export const DIRECTOR_ADAPTIVE = {
   // well-covered board meets a smaller probe).
   liveProbeGapScale: 0,
   liveProbeByBudget: 0, // 1 ⇒ the probe takes share × the wave's plain THREAT BUDGET (units), not whole groups
+  liveProbeGapTie: 0, // probe roles whose gap is within this of the largest count as tied (table = harm order breaks it)
 };
 
 // ── Board COVERAGE model (docs/DIFFICULTY_DIRECTOR.md §6a v4 — coverage.ts) ─────────────────────

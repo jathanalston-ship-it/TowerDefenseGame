@@ -120,7 +120,7 @@ export function BuildControls({
                 <span className="tt-bubble">
                   {hud.endless
                     ? 'Your board has held flawless waves — the Hive squeezes harder (enemy HP). A wave that bleeds the Core eases it back.'
-                    : 'Your run’s live board (towers fielded + Biomass invested — never your drafted cards) has outgrown this stage — from wave 4 (and on every boss) the Hive answers with tougher, faster enemies and swaps in the role your board covers least (listed below).'}
+                    : 'Your run’s live board (towers fielded + Biomass invested — never your drafted cards) has outgrown this stage — from wave 4 (and on every boss) the Hive answers with tougher, faster enemies and swaps in the role your board covers least — the ⌖ PROBE below names it and the coverage it tests.'}
                 </span>
               </span>
             )}
@@ -137,10 +137,13 @@ export function BuildControls({
                     <span className="wb-name">{def.name}</span>
                     <span className="wb-n">×{e.count}</span>
                     {(e.elite ?? 0) > 0 && <span className="wb-elite">★{e.elite}</span>}
-                    {role && <span className="wb-role">{role}</span>}
+                    {e.probe ? (
+                      <span className="wb-probe">⌖ {e.probe.label.toUpperCase()}<span className="wb-probe-why"> · lacks {e.probe.lacks}</span></span>
+                    ) : role && <span className="wb-role">{role}</span>}
                     <span className="tt-bubble">
                       {def.name} — {def.hp} HP{def.armor > 0 ? ` · ${def.armor} armor` : ''}{role ? ` · ${role.toLowerCase()}` : ''}
                       {(e.elite ?? 0) > 0 ? ` · ${e.elite} ELITE (×${DIRECTOR.eliteHpMult} HP, ×${DIRECTOR.eliteDmgMult} damage)` : ''}
+                      {e.probe ? ` · the Hive’s PROBE (${e.probe.label.toLowerCase()}): your board lacks ${e.probe.lacks}` : ''}
                     </span>
                   </span>
                 );

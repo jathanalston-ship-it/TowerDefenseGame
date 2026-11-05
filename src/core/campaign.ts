@@ -249,40 +249,51 @@ export function promoteEliteShare(wave: WaveDef, share: number): WaveDef {
 
 /** LIVE PROBE roles (§6a v3 → v4 coverage gap) — threat by COMPOSITION: what the Hive sends to test a
  *  runaway board. Both sides are DATA: a role is a predicate over the enemy def plus the coverage AXIS
- *  (coverage.ts) that answers it. The board's GAP on that axis (how far its Strain-weighted coverage sits
- *  below the roster's mean) grades the role; the largest gap with kinds in the stage's pool wins, ties
- *  in table order. Never a per-enemy
- *  list: a new enemy joins by its traits, a new tower by its numbers. */
+ *  (coverage.ts) that answers it in the sim. The board's GAP on that axis (how far its Strain-weighted
+ *  coverage sits below the roster's mean) grades the role; the largest gap with kinds in the stage's
+ *  pool wins. Ties go in table order, which is the measured HARM order (GR1 harness: chip damage per
+ *  probed wave — artillery and sprinters bleed a board, soak bodies barely do). Never a per-enemy list:
+ *  a new enemy joins by its traits, a new tower by its numbers. */
 export const LIVE_PROBE_ROLES: readonly { id: string; label: string; is: (e: EnemyDef) => boolean; axis: CoverageAxis }[] = [
+  // bombards from its standoff ring: reach is not the answer (a needle board reaches it and still bleeds) — killing power is
+  { id: 'artillery', label: 'Artillery', is: (e) => e.siege !== undefined, axis: 'burst' },
+  { id: 'sprinter', label: 'Sprinters', is: (e) => e.speed >= COVERAGE.fastFrom, axis: 'control' }, // a fast stream leaks past single targets
   { id: 'air-pack', label: 'Air pack', is: (e) => e.behavior.flying === true, axis: 'area' }, // fliers skip the maze — packs need area
-  { id: 'artillery', label: 'Artillery', is: (e) => e.siege !== undefined, axis: 'reach' }, // bombards from standoff range
-  { id: 'burrower', label: 'Burrowers', is: (e) => e.behavior.burrowing === true, axis: 'reach' }, // the straight line under the maze
+  { id: 'burrower', label: 'Burrowers', is: (e) => e.behavior.burrowing === true, axis: 'control' }, // the straight line under the maze, past every block
   { id: 'armored', label: 'Armored', is: (e) => e.armor >= COVERAGE.armoredFrom, axis: 'pierce' },
-  { id: 'sprinter', label: 'Sprinters', is: (e) => e.speed >= COVERAGE.fastFrom, axis: 'control' },
   { id: 'sustain', label: 'Sustain', is: (e) => (e.shieldHp ?? 0) > 0 || (e.regenPerSec ?? 0) > 0, axis: 'burst' }, // a shield / regen on the BODY outlasts chip hits
 ];
 
 /** A board's live probe: the enemy kind, its role, the axis that answers it and the board's gap there. */
 export interface LiveProbe { kind: EnemyKind; role: string; label: string; axis: CoverageAxis; gap: number }
 
-/** The probe for a board: the LIVE_PROBE_ROLES role with the largest coverage gap whose kinds are in
- *  `pool` (ties in table order), and of that role the LIGHTEST body (lowest effective HP — the probe
- *  threatens by its role, not its bulk, so it adds chip damage without lengthening the wave). Exploders
- *  never probe. null ⇒ the pool fields no probe role. */
-export function liveProbe(pool: readonly EnemyKind[], towers: readonly { kind: TowerKind; strain: number }[]): LiveProbe | null {
-  let best: LiveProbe | null = null;
+/** The LIGHTEST body of a role in `pool` (lowest effective HP — the probe threatens by its role, not
+ *  its bulk, so it adds chip damage without lengthening the wave); exploders never probe. */
+function lightestOfRole(pool: readonly EnemyKind[], is: (e: EnemyDef) => boolean): EnemyKind | null {
+  let kind: EnemyKind | null = null;
+  for (const k of pool) {
+    const d = ENEMY_DEFS[k];
+    if (!is(d) || d.explodeDamage) continue;
+    if (kind === null || effectiveHp(d) < effectiveHp(ENEMY_DEFS[kind])) kind = k;
+  }
+  return kind;
+}
+
+/** The probe for a board: of the LIVE_PROBE_ROLES roles whose kinds are in `pool`, the first (table =
+ *  harm order) whose coverage gap is within `tie` of the largest — `tie` 0 ⇒ simply the largest gap,
+ *  ties in table order; a band treats gaps the coarse model cannot tell apart as ties — and of that
+ *  role the lightest body. null ⇒ the pool fields no probe role. */
+export function liveProbe(pool: readonly EnemyKind[], towers: readonly { kind: TowerKind; strain: number }[], tie = 0): LiveProbe | null {
+  let max = -1;
+  for (const role of LIVE_PROBE_ROLES) if (lightestOfRole(pool, role.is) !== null) max = Math.max(max, coverageGap(towers, role.axis));
+  if (max < 0) return null;
   for (const role of LIVE_PROBE_ROLES) {
     const gap = coverageGap(towers, role.axis);
-    if (best !== null && !(gap > best.gap)) continue;
-    let kind: EnemyKind | null = null;
-    for (const k of pool) {
-      const d = ENEMY_DEFS[k];
-      if (!role.is(d) || d.explodeDamage) continue;
-      if (kind === null || effectiveHp(d) < effectiveHp(ENEMY_DEFS[kind])) kind = k;
-    }
-    if (kind !== null) best = { kind, role: role.id, label: role.label, axis: role.axis, gap };
+    if (gap < max - tie) continue;
+    const kind = lightestOfRole(pool, role.is);
+    if (kind !== null) return { kind, role: role.id, label: role.label, axis: role.axis, gap };
   }
-  return best;
+  return null;
 }
 
 /** Swap a share of a wave's PLAIN groups (not elite, not an exploder, not already the probe) for the
