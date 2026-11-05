@@ -3824,7 +3824,7 @@
       "id": "v2026.11.05",
       "date": "2026-11-05",
       "title": "Frontiers Bite Again",
-      "sealed": false,
+      "sealed": true,
       "entries": [
         {
           "cat": "Balance",
