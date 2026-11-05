@@ -382,6 +382,10 @@ export interface RenderState {
   mines: SporeMine[]; // Blight Sower spore mines (docs/SOWER.md); empty on every other run
   deathEvents: DeathEvent[]; // one-shot ENEMY-DEATH descriptors for the assimilation VFX (render/gore.ts)
   castEvents: CastEvent[]; // one-shot hero-CAST descriptors for the ability cinematics (render/abilityCinematics.ts)
+  /** Every boss def this run has fielded, by id (authored + assembled) — presentation reads it to
+   *  turn the sim's real module cooldowns into wind-up telegraphs (render/telegraphs.ts). A live
+   *  reference to the sim's own lookup; nothing in the sim reads it back. */
+  bossDefs?: ReadonlyMap<string, BossDef>;
   // LIVING BATTLEFIELD (docs/LIVING-BATTLEFIELD.md) — read-only run signals the render-side biomass
   // accumulator folds (with rs.towers/heroes/biome + the render maps) into the arena's evolution
   // stage. Pure snapshot reads of counters the sim already tracks ⇒ no sim math touched ⇒ golden-safe.
@@ -8310,6 +8314,7 @@ export class Game {
       mines: this.mines,
       deathEvents: this.deathEvents,
       castEvents: this.castEvents,
+      bossDefs: this.procBosses,
       assimilation: { wave: this.waveIndex, kills: this.kills, bossKills: this.runBossKills, megaKills: this.runMegaKills.length },
     };
   }

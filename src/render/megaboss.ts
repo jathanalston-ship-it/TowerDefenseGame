@@ -17,6 +17,7 @@ import { viewFeel } from './feel';
 import type { RenderState } from '../core/game';
 import { MEGA, megaBossDef } from '../core/megaboss';
 import type { MegaWeakPoint } from '../core/megaboss';
+import { drawAimLine, drawLandingImpact, drawLandingLock, drawStrikeLine, TELL } from './telegraphs';
 
 type Ctx = CanvasRenderingContext2D;
 type MegaView = NonNullable<RenderState['megaBoss']>;
@@ -262,6 +263,19 @@ const wpPrevState = new Map<number, MegaWeakPoint['state']>(); // spec → last-
 const wpRuptureT = new Map<number, number>(); // spec → renderer-now of the rupture
 let prevLashWf = 0; // last-frame HIVE LASH windup (completion edge → strike afterimage)
 let lashFlashT = -10; // renderer-now of the last landed lash
+const wpGhost = new Map<number, number>(); // spec → the HP-arc damage ghost (lags the real fraction)
+
+/** Field-level telegraph tunables (docs/MEGA-BOSS.md §telegraphs v4) — data, not literals. */
+export const MEGA_TELL = {
+  coreLockR: 46, // px — the lock ON the Hive Core while a cataclysm / lash winds up
+  cataColor: '#ff5d73', // the finale's red (matches the HUD's ⚠ CATACLYSM band)
+  windupRx: 92, // the windup clock around the maw (an ellipse — the field-visible WHEN)
+  windupRy: 40,
+  ghostDecay: 0.07, // per-frame ease of the organ HP ghost toward the real fraction
+  hitPunch: 0.2, // organ scale punch on a landed hit (×1.25 base → ×1.5)
+  hitJolt: 6, // px the organ jolts up its stalk on a hit
+  urgentFrac: 0.3, // below this HP fraction an open organ reads "about to burst"
+} as const;
 
 // ── The body (under entities) ────────────────────────────────────────────────
 export function drawMegaBody(ctx: Ctx, v: MegaView, now: number): void {
@@ -533,6 +547,24 @@ export function drawMegaBody(ctx: Ctx, v: MegaView, now: number): void {
       ctx.beginPath();
       ctx.arc(mawX + Math.cos(a2) * d, mawY + Math.sin(a2) * d * 0.5, 1.2 + h * 1.8, 0, TAU);
       ctx.fill();
+    }
+    // The WINDUP CLOCK: the field-visible WHEN (the eye and the top warning band sit under the raid
+    // bar on most layouts) — a sweep around the maw that completes the frame the cast resolves, with
+    // a lock ellipse closing onto it (reduced motion: the sweep alone). A premiere POSE has no clock.
+    if (tele.kind !== 'pose') {
+      ctx.strokeStyle = rgba(hot, 0.8 * alpha);
+      ctx.lineWidth = cata ? 4 : 3;
+      ctx.beginPath();
+      ctx.ellipse(mawX, mawY, MEGA_TELL.windupRx, MEGA_TELL.windupRy, 0, -Math.PI / 2, -Math.PI / 2 + TAU * tele.frac);
+      ctx.stroke();
+      if (viewFeel.motion > 0) {
+        const lk = 1 + 0.6 * (1 - tele.frac);
+        ctx.strokeStyle = rgba(hot, (0.2 + 0.5 * tele.frac) * alpha);
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.ellipse(mawX, mawY, MEGA_TELL.windupRx * lk, MEGA_TELL.windupRy * lk, 0, 0, TAU);
+        ctx.stroke();
+      }
     }
     if (cata) {
       const f = tele.frac;
@@ -864,18 +896,26 @@ export function drawMegaOrgans(ctx: Ctx, v: MegaView, now: number): void {
     ctx.lineCap = 'butt';
 
     const ox = wp.x + swing * 0.4;
+    // HIT REACTION: a landed hit PUNCHES the organ (scale) and jolts it up its stalk — the raid
+    // feels every blow land on the thing it is aiming at (reduced motion: the flash alone).
+    const hit = !closed && viewFeel.motion > 0 ? Math.min(1, Math.max(0, wp.hitFlash) / 0.15) : 0;
+    const punch = 1.25 * (1 + MEGA_TELL.hitPunch * hit * hit);
     // Raid-scale anatomy: organs draw at ×1.25 through a transform, so every per-kind
     // painter (and its beats/particles) inherits the presence without re-authoring.
     ctx.save();
-    ctx.translate(ox, oy);
-    ctx.scale(1.25, 1.25);
+    ctx.translate(ox, oy - MEGA_TELL.hitJolt * hit);
+    ctx.scale(punch, punch);
     drawOrgan(ctx, wp, 0, 0, glo, body, now, dim);
     ctx.restore();
 
     if (!closed) {
-      // Vulnerability ring — the battlefield itself says SHOOT THIS.
-      const ringR = 31 + pulse(now, 0.9) * 5;
-      ctx.strokeStyle = rgba(glo, 0.5 + pulse(now, 0.9) * 0.3);
+      // Vulnerability ring — the battlefield itself says SHOOT THIS. Nearly burst, it runs hot and
+      // quick: finish it (the urgency is colour + tempo, never a flash).
+      const frac = Math.max(0, wp.hp / wp.maxHp);
+      const urgent = frac < MEGA_TELL.urgentFrac;
+      const per = urgent ? 0.35 : 0.9;
+      const ringR = 31 + pulse(now, per) * 5;
+      ctx.strokeStyle = urgent ? rgba('255, 120, 90', 0.6 + pulse(now, per) * 0.35) : rgba(glo, 0.5 + pulse(now, per) * 0.3);
       ctx.lineWidth = 1.6;
       ctx.setLineDash([6, 5]);
       ctx.beginPath();
@@ -890,10 +930,19 @@ export function drawMegaOrgans(ctx: Ctx, v: MegaView, now: number): void {
         ctx.arc(ox, oy, ringR + 6, 0, TAU);
         ctx.stroke();
       }
-      // HP arc: how close the rupture is.
-      const frac = Math.max(0, wp.hp / wp.maxHp);
-      ctx.strokeStyle = rgba('255, 255, 255', 0.75);
+      // HP arc: how close the rupture is — with a DAMAGE GHOST (the chunk the last hits tore off,
+      // draining after the real arc) so every volley visibly takes a bite.
+      let ghost = wpGhost.get(wp.spec) ?? frac;
+      ghost = ghost > frac ? ghost + (frac - ghost) * MEGA_TELL.ghostDecay : frac;
+      wpGhost.set(wp.spec, ghost);
       ctx.lineWidth = 2.6;
+      if (ghost - frac > 0.004) {
+        ctx.strokeStyle = rgba('255, 214, 140', 0.9);
+        ctx.beginPath();
+        ctx.arc(ox, oy, 25, -Math.PI / 2 + TAU * frac, -Math.PI / 2 + TAU * ghost);
+        ctx.stroke();
+      }
+      ctx.strokeStyle = rgba('255, 255, 255', 0.75);
       ctx.beginPath();
       ctx.arc(ox, oy, 25, -Math.PI / 2, -Math.PI / 2 + TAU * frac);
       ctx.stroke();
@@ -935,14 +984,10 @@ export function drawMegaOrgans(ctx: Ctx, v: MegaView, now: number): void {
       ctx.lineCap = 'butt';
       // The claw tip: a charge bulb burning hotter as the strike closes in.
       glow(ctx, tx, ty, 10 + wf * 16 + flash * 18, rgba(glo, 0.45 + wf * 0.4 + flash * 0.4));
-      // Imminent warning: the Nucleus itself rings once the windup passes 70%.
-      if (wf > 0.7) {
-        ctx.strokeStyle = rgba('255, 93, 115', ((wf - 0.7) / 0.3) * (0.45 + pulse(now, 0.24, 0, 0.3)));
-        ctx.lineWidth = 2.4;
-        ctx.beginPath();
-        ctx.arc(nucleusPoint.x, nucleusPoint.y, 30 + pulse(now, 0.24) * 6, 0, TAU);
-        ctx.stroke();
-      }
+      // WHERE + WHEN (render/telegraphs.ts): the Hive Core wears the shared lock across the whole
+      // windup — it closes onto the Core the frame the lash lands (an interrupt simply retracts it).
+      if (flash <= 0) drawLandingLock(ctx, nucleusPoint.x, nucleusPoint.y, MEGA_TELL.coreLockR, wf, MEGA_TELL.cataColor, now);
+      else drawLandingImpact(ctx, nucleusPoint.x, nucleusPoint.y, MEGA_TELL.coreLockR, now - lashFlashT, MEGA_TELL.cataColor, true);
     } else {
       // Between windups: the arm coils under the maw, writhing — the threat never leaves.
       ctx.lineCap = 'round';
@@ -961,6 +1006,22 @@ export function drawMegaOrgans(ctx: Ctx, v: MegaView, now: number): void {
     }
   }
   ctx.restore(); // §dormancy wrapper
+
+  // ── CATACLYSM on the FIELD (docs/MEGA-BOSS.md §telegraphs v4) — the maw's gather plays under the
+  // raid bar, so the battlefield itself says WHERE (the Hive Core) and WHEN: a lock closes on the
+  // Core while a fall line descends from the maw, its fill reaching the Core the frame it resolves.
+  // The resolve then lands as a strike bolt + impact AT the Core (the maw's shock ring never did).
+  const tele = v.telegraph;
+  const mawY = v.anchorY + 96;
+  if (tele !== null && tele.kind === 'cataclysm' && bur < 0.5) {
+    drawAimLine(ctx, WIDTH / 2, mawY, nucleusPoint.x, nucleusPoint.y - 8, tele.frac, MEGA_TELL.cataColor, 3);
+    drawLandingLock(ctx, nucleusPoint.x, nucleusPoint.y, MEGA_TELL.coreLockR, tele.frac, MEGA_TELL.cataColor, now);
+  }
+  const castAge = now - castFlashT;
+  if (castFlashBig && castAge >= 0 && castAge < TELL.strikeSec) {
+    drawStrikeLine(ctx, WIDTH / 2, mawY, nucleusPoint.x, nucleusPoint.y, castAge, MEGA_TELL.cataColor, 10);
+    drawLandingImpact(ctx, nucleusPoint.x, nucleusPoint.y, MEGA_TELL.coreLockR, castAge, MEGA_TELL.cataColor, true);
+  }
 }
 
 function easeOut(t: number): number {

@@ -63,6 +63,7 @@ import type { Assimilation } from './livingBattlefield';
 import { drawVictoryWash } from './runOutro';
 import { drawMegaBody, drawMegaOrgans, drawMegaShots, drawMegaVignette } from './megaboss';
 import { bossColorOf, drawBossBody, drawBossCrown } from './bossChassis';
+import { drawBossHitRim, drawBossTells } from './telegraphs';
 import { deathFlavorOf, drawStatusFxOver, drawStatusFxUnder, mergeStatusFx, statusBodyTransform } from './statusFx';
 import type { DeathFlavor, StatusFxQuality } from './statusFx';
 import { dangerCurve } from '../core/dangerCamera';
@@ -444,6 +445,7 @@ export function drawGame(
   if (detail) drawDeathEchoes(ctx, t); // fading crumples UNDER the living bodies
   for (const e of rs.enemies) drawEnemy(ctx, e, detail, t, fxQ);
   drawImpactSparks(ctx, t); // hit-confirmation starbursts OVER the bodies they struck
+  drawBossTells(ctx, rs, t, bossDrawR); // V2: boss wind-ups / core-shot / dash lane / phase shifts (render/telegraphs.ts) — over the bodies
   drawGorePieces(ctx); // gibs + juice + coalescing streams, OVER the bodies
 
   // MEGA weak-point organs + raid-fire tracers — over enemies (they are the priority targets).
@@ -2092,6 +2094,10 @@ function drawDeathEchoes(ctx: CanvasRenderingContext2D, t: number): void {
 function visualHeft(r: number): number {
   return r * Math.min(1.75, Math.max(1.15, 1.75 - (r - 6) * (0.5 / 18)));
 }
+/** A boss's drawn body radius — the one size the telegraph pass (render/telegraphs.ts) anchors to. */
+function bossDrawR(e: RenderState['enemies'][number]): number {
+  return visualHeft(themedEnemyDef(e.kind).radius);
+}
 
 function drawEnemy(
   ctx: CanvasRenderingContext2D,
@@ -2375,29 +2381,8 @@ function drawEnemy(
         const k = Math.min(1, b.enrage * 0.2);
         ring(ctx, e.x, drawY, r + 2, rgba(hexRgb('#ff4d4d'), 0.3 + 0.5 * k), 2 + k * 2);
       }
-      if (b.charge > 0) {
-        // Charge telegraph — the dash vector flashes downfield before it fires.
-        ctx.strokeStyle = rgba(hexRgb('#ffd24d'), pulse(t, 9, 0.4, 0.9));
-        ctx.lineWidth = 2.5;
-        ctx.setLineDash([6, 5]);
-        ctx.beginPath();
-        ctx.moveTo(e.x, drawY + r);
-        ctx.lineTo(e.x, drawY + r * 4);
-        ctx.stroke();
-        ctx.setLineDash([]);
-        chevronDown(ctx, e.x, drawY + r * 4 + 4, 7, rgba(hexRgb('#ffd24d'), 0.9));
-      }
-      if (b.channel > 0) {
-        // Nucleus channel — a feeding tether; sever it by breaking the channel.
-        ctx.strokeStyle = rgba(hexRgb('#ff8a3d'), pulse(t, 5, 0.35, 0.7));
-        ctx.lineWidth = 2;
-        ctx.setLineDash([3, 6]);
-        ctx.beginPath();
-        ctx.moveTo(e.x, drawY);
-        ctx.lineTo(nucleusPoint.x, nucleusPoint.y);
-        ctx.stroke();
-        ctx.setLineDash([]);
-      }
+      // Charge dash lane + core-shot channel: drawn by the telegraph pass (render/telegraphs.ts —
+      // the real dash reach, the tether fill reaching the Core as the shot lands, the strike frame).
       if (b.grip > 0) {
         // Core-crush — a thick crushing tether INTO the Nucleus; the boss is EXPOSED while
         // it squeezes (burst it off before the Integrity drains away).
@@ -2415,7 +2400,10 @@ function drawEnemy(
 
   if (detail) {
     // white pop on taking a hit (FX.hitFlash ≈ 0.09s → normalize ×9 for alpha)
-    if (e.hitFlash > 0) drawShape(ctx, shape, e.x, drawY, r, rgba(THEME.enemy.hitFlash, Math.min(0.8, e.hitFlash * 9)));
+    if (e.hitFlash > 0) {
+      if (e.boss) drawBossHitRim(ctx, e.x, drawY, r, e.hitFlash); // V2: a rim glint — a focused boss no longer whites out
+      else drawShape(ctx, shape, e.x, drawY, r, rgba(THEME.enemy.hitFlash, Math.min(0.8, e.hitFlash * 9)));
+    }
     // Status overlays + particles — the merged framework pass (replaces the old per-status
     // rings: corrosion/infection/disrupt/fracture now blend through their registry fx traits).
     if (sfx) drawStatusFxOver(ctx, sfx, e.x, drawY, r, t, e.id, eFxQ);
