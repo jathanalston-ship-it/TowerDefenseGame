@@ -1,6 +1,6 @@
 {
-  "lastSha": "2b14f67cff64039aa3077d8a696e07e7a3798c3a",
-  "commitsSinceDraft": 7,
+  "lastSha": "dac9dcefb3eb063596509ab9c0e4b29458045593",
+  "commitsSinceDraft": 8,
   "content": {
     "tower": [
       "needle",
@@ -8599,6 +8599,14 @@
       "date": "2026-11-05",
       "cat": "Developer Tools",
       "text": "Validation: release gate PASS over eb83070..HEAD — 3084/3084, mobile gate clean",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "dac9dcefb3eb063596509ab9c0e4b29458045593",
+      "date": "2026-11-05",
+      "cat": "Developer Tools",
+      "text": "Status,chronicle: DEPLOYED \"A Battlefield You Can Read\" (2b14f67, run #232); seal v2026.11.05.3",
       "internal": true,
       "needsReview": false
     }

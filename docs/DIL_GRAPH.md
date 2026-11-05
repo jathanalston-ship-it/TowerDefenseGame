@@ -1,6 +1,6 @@
 # DIL_GRAPH.md — the Design Intelligence Layer (GENERATED — `npm run dil -- regen`)
 
-> **The project's brain** (docs/DIL.md). 984 nodes · 1913 edges, built from the live
+> **The project's brain** (docs/DIL.md). 984 nodes · 1914 edges, built from the live
 > registries + curated knowledge (src/dev/dil/). **Query it instead of searching the repo:**
 > `npm run dil -- node <id>` · `affects <id>` · `requires <id>` · `missing <kind> <edge>` ·
 > `checklist tower <kind>` · `find <text>`. Edge kinds are bidirectional (19 kinds).
@@ -556,6 +556,7 @@ graph LR
   system_boss_rush["Boss Rush"] -->|dependsOn| system_power["Power Score"]
   system_hub_shell["Hub Shell & Home"] -->|consumes| system_campaign["Campaign"]
   system_living_battlefield["Living Battlefield"] -->|consumes| system_assimilation["Assimilation Index"]
+  system_onboarding["Tutorials, Help & Onboarding"] -->|dependsOn| system_rendering["Rendering & VFX"]
   system_account_level["Account Level (evergreen meta-progression)"] -->|provides| system_loot["Loot & Bio-Containers"]
   system_account_level["Account Level (evergreen meta-progression)"] -->|dependsOn| system_equipment["Equipment & Armory"]
   system_genome_rank["Genome Rank (ultimate mastery ladder)"] -->|consumes| system_account_level["Account Level (evergreen meta-progression)"]
@@ -2083,7 +2084,7 @@ _at: src/state/profile.ts, src/ui/PlayerProfile.tsx, src/ui/components/Commander
 
 Combat Tutorial over a live sim, THE COMMISSIONING (post-tutorial account-creation ceremony: rewards, designation, sigil + founding-title oath, account safeguard), HUD Tour, mechanics-registry Help wiki, What's New, loading tips.
 
-_at: src/ui/InitCutscene.tsx, src/render/introScenes.ts, src/core/tutorial.ts, src/state/tutorial.ts, src/state/mechanics.ts, src/ui/TutorialRunner.tsx, src/ui/tutorial/*, src/ui/HelpWiki.tsx, src/ui/helpSearch.ts, src/ui/WhatsNew.tsx, src/ui/HudTour.tsx, src/state/guidedUnlocks.ts, src/ui/GuidedUnlock.tsx, src/ui/tips.ts_
+_at: src/ui/InitCutscene.tsx, src/ui/IntroMount.tsx, src/ui/introState.ts, src/render/introScenes.ts, src/core/tutorial.ts, src/state/tutorial.ts, src/state/mechanics.ts, src/ui/TutorialRunner.tsx, src/ui/tutorial/*, src/ui/HelpWiki.tsx, src/ui/helpSearch.ts, src/ui/WhatsNew.tsx, src/ui/HudTour.tsx, src/state/guidedUnlocks.ts, src/ui/GuidedUnlock.tsx, src/ui/tips.ts_
 
   - dependsOn → `system:engine`
   - dependsOn → `system:meta-store`
@@ -2092,6 +2093,7 @@ _at: src/ui/InitCutscene.tsx, src/render/introScenes.ts, src/core/tutorial.ts, s
   - consumes → `system:meta-store` — owns save field 'tutorial'
   - consumes → `system:meta-store` — owns save field 'help'
   - triggers → `system:audio` — the opening cinematic scores itself via the cinema track + cin_* beat cues
+  - dependsOn → `system:rendering` — THE OPENING FILM CASTS THE REAL ROSTER: render/introScenes.ts draws SWARM_CAST/APEX_CAST through enemyForms.drawEnemyBody and DEFENDER_CAST through towerForms.drawTowerForm (colours from ENEMY_DEFS/TOWER_DEFS) — renaming a cast kind breaks the film; the drawers are wrapped in save/restore so their alpha writes never break the dissolve (GAME-FEEL.md §intro)
   - conflictsWith → `system:cosmetics` — POST-RUN SEQUENCING (GUIDED-UNLOCKS.md §batching): ≥3 queued What's New cards collapse into ONE summary that also folds (and banks) pending WardrobeReveal specimens; WardrobeReveal waits while any What's New card is up and RewardToaster mounts held — a new post-run modal must join this order, not stack on it.
   - conflictsWith → `system:run-ui` — DESKTOP TEACHING CONTRACT (docs/TUTORIAL-AUDIT.md §G, 2026-11): every lesson shown while a wave runs or asking for a slot tap declares callout.avoid = canvas.board (the bubble re-seats beside the lane, measured + clamped); the draft lesson anchors BELOW .overlay .cards; the ability lesson targets [data-tut="ability"] .ability-btn and runs DURING wave 2; desktop Pause/Skip take a measured seat clear of [data-tut="ability"]. A HUD/board re-layout must keep canvas.board, .ability-btn and data-tut="ability" (tutorialAnchors.test resolves them) — positions are never hard-coded
   - consumes → `system:meta-store` — ONE GRADUATION (docs/TUTORIAL.md §graduation, 2026-11): meta.grantOnboardingRewards() pays every unclaimed onboarding ledger (tutorial.rewarded: combat + hudtour) as ONE Commissioning reveal; the HUD tour pays nothing (completeHudTour only settles a LEGACY graduate still owed hudtour, Finish or Skip alike); pendingOnboardingReward() feeds the tutorial Skip confirm. Adding an onboarding grant = one ONBOARDING_LEDGERS entry, never a second reward card
@@ -2591,7 +2593,7 @@ _at: src/render/*, src/core/dangerCamera.ts_
   - testedBy ← `test:src/render/assimilationFx.test.ts`
   - testedBy ← `test:src/render/biomeGround.test.ts`
   - testedBy ← `test:src/render/combatFx.test.ts`
-  - _…30 more (query: `npm run dil -- node system:rendering`)_
+  - _…31 more (query: `npm run dil -- node system:rendering`)_
 
 ### `system:living-battlefield` — Living Battlefield
 

@@ -31,7 +31,8 @@ itself (painter `'mega'` + a `mega` arc — §premieres; test-enforced). Budget 
 card), `boost` (§boosts), and `scenes[]` — each `{painter, durMs, lines[{at, text, em}],
 beats[{at, cue, impact?}]}` plus the optional direction rows `copyAt`, `camera`, `punch`,
 `mega` (§direction). Beats speak only the cinematic cue set (`cin_ping/alarm/rumble/shriek/
-creep/snap/heart/bloom/title/cut/dive`); the quality gates (≥2 scenes, ≥4 lines, timings
+creep/snap/heart/bloom/title/cut/dive/erupt/feed` — `erupt` a defender bursting from the ground, `feed`
+the swarm breaking and its biomass going home; both added with the opening film's answer scene); the quality gates (≥2 scenes, ≥4 lines, timings
 inside the hold, beats in clock order, painters registered, ≥1 impact beat per film) are
 test-enforced.
 

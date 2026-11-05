@@ -494,6 +494,12 @@ ladders. 4. Every permanent progression source must move the Power Score (valida
 - **Known limitations:** media placeholders only; announcement order is registry order.
 - **Developer tips:** tutorial rewards are idempotent (`grantTutorialRewards` ledger) — never
   grant onboarding rewards directly.
+- **The opening film (first boot, before the tutorial):** `ui/InitCutscene.tsx` (scene DATA:
+  copy, `cin_*` beats, `copyAt`, the title's `eyebrowAt`/`ctaAt`) + `render/introScenes.ts` (six
+  painters; the swarm + answer scenes draw the REAL roster through `render/enemyForms` /
+  `render/towerForms` — cast tables `SWARM_CAST`/`DEFENDER_CAST`/`APEX_CAST`). Its own chunk:
+  `ui/IntroMount.tsx` lazy-loads it (black hold; skips the film if the chunk fails); the boot side is
+  `ui/introState.ts` (seen flag + `useIntroPlaying` for the tutorial banner). Docs: GAME-FEEL.md §intro.
 
 ## HUD
 

@@ -23,7 +23,8 @@ import type { GuideDef } from '../state/guidedUnlocks';
 import { featureRevealed } from '../state/unlocks';
 import { UpdateBriefing } from './UpdateBriefing';
 import { CommanderName } from './components/CommanderName';
-import { InitCutscene, introSeen } from './InitCutscene';
+import { IntroMount } from './IntroMount';
+import { introSeen } from './introState';
 const CutscenePlayer = lazyNamed(() => import('./CutscenePlayer'), 'CutscenePlayer');
 import { cutsceneDef } from '../core/cutscenes';
 import { UpdateToast } from './components/UpdateToast';
@@ -635,7 +636,7 @@ export function App(): JSX.Element {
         <Suspense fallback={<ScreenFallback />}><SpectateView record={spectate} onExit={() => { setSpectate(null); clearReplayParam(); }} /></Suspense>
       )}
       {introActive && (
-        <InitCutscene
+        <IntroMount
           onDone={(dived) => {
             setIntroActive(false);
             if (dived) setAfterglow(true);

@@ -7,7 +7,7 @@ import { REDUCED_FRAME_T, drawDiveTransition, drawIntroFrame } from './introScen
 import type { IntroVisual } from './introScenes';
 import { SCENES } from '../ui/InitCutscene';
 
-const VISUALS: IntroVisual[] = ['signal', 'descent', 'veins', 'core', 'title'];
+const VISUALS: IntroVisual[] = ['signal', 'descent', 'veins', 'core', 'answer', 'title'];
 
 function stubCtx(): CanvasRenderingContext2D {
   const proxy: unknown = new Proxy(function () { /* noop */ }, {

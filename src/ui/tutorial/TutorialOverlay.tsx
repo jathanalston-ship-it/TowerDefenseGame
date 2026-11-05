@@ -16,7 +16,7 @@ import { meta } from '../../state/meta';
 import { currentCheckpoint } from '../../core/tutorial';
 import { useTargetRect } from './useTargetRect';
 import { Callout, CameraFocus, ContinuePrompt, ObjectiveTracker, Spotlight, TutorialArrow, Typewriter, overlaps } from './primitives';
-import { useIntroPlaying } from '../InitCutscene';
+import { useIntroPlaying } from '../introState';
 
 const OPEN_MS = 3400; // the cold-open banner's hold (tap dismisses sooner)
 

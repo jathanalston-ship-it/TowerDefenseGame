@@ -347,6 +347,8 @@ async function session(ctx: BrowserContext, dist: string): Promise<Page> {
   await shot(page, 'boot');
   step('skip-cutscene');
   if (await page.$('.intro')) {
+    // the film is its own chunk (ui/IntroMount): a black hold stands in until the gate arrives
+    await waitFor(page, 'the intro gate to load', async () => !(await page.$('.intro')) || !!(await page.$('.intro-gate, .intro-stage')), 15_000);
     await sleep(900); // let the "receive" gate arm
     const skipped = await clickBox(page, '.intro button, .intro [role=button]', { text: /skip/i }) || await clickBox(page, '.intro >> text=Skip');
     if (!skipped) { await page.mouse.click(720, 474); await sleep(600); await clickBox(page, '.intro button', { text: /skip|descend/i }); }

@@ -12,7 +12,7 @@ import { isCutsceneUnlocked, unlockedCutsceneIds } from '../save/derive';
 import { defaultSave } from '../save/saveStore';
 
 // The film-language cue set (audio/sound.ts §cinematic) — beats may only speak it.
-const ALLOWED_CUES = new Set(['cin_ping', 'cin_alarm', 'cin_rumble', 'cin_shriek', 'cin_creep', 'cin_snap', 'cin_heart', 'cin_bloom', 'cin_title', 'cin_cut', 'cin_dive']);
+const ALLOWED_CUES = new Set(['cin_ping', 'cin_alarm', 'cin_rumble', 'cin_shriek', 'cin_creep', 'cin_snap', 'cin_heart', 'cin_bloom', 'cin_title', 'cin_cut', 'cin_dive', 'cin_erupt', 'cin_feed']);
 
 describe('THE RULE — every mega boss ships a defeat cutscene', () => {
   it('every MEGA_BOSS_DEFS id has a mega cutscene (add one in core/cutscenes.ts before shipping the boss)', () => {

@@ -194,6 +194,13 @@ Content — not systems — is the binding constraint (see EA-DESIGN-AUDIT). The
   / no picks resolves to the exact base kit; `neutralHeroProgress` + `NO_META` pass no kits ⇒ byte-
   identical (heroForks.test.ts pins identity + patch math + the HUD-level end-to-end)
 
+- ✅ **The OPENING FILM** (2026-11-05 overhaul — GAME-FEEL.md §intro) — six scored scenes with a turn: the
+  scope floods with contacts → the crust splits and the game's REAL swarm climbs out (enemyForms), the apex
+  rising past the lens → veins take a steel truss whole → the Hive Core → **the Hive answers** (real towers
+  erupt along the line, the swarm breaks on it, kills stream home as biomass, every tower turns on the apex)
+  → the title resolves glyph by glyph over the looming organism, the triad landing word by word. Its own
+  lazy chunk (`ui/IntroMount` → `ui/InitCutscene` + `render/introScenes`; boot side `ui/introState`) —
+  boot JS 552.6 → 546.1 KB gzip. New cues `cin_erupt` / `cin_feed`. Phone-portrait title clip fixed.
 - ✅ **Hero ability CINEMATICS** — every cast is a procedural set-piece: the Cinderwyrm's breath is a
   dragon swooping the lane, the Fovea's stare an opening eye-lance (HERO-CINEMATICS.md). **Data:**
   `HeroAbilityDef.cinematic { actor, motion, impactDelay }` on all 30 abilities (10 heroes × ult+2 skills).

@@ -339,6 +339,12 @@ function sCinHeart(): void { // the Hive Core's double-thump — the film's puls
 function sCinBloom(): void { // regrowth — a warm gathering shimmer (motes spiraling home)
   tone(523, 0.35, 'sine', 0.03, 784); tone(659, 0.3, 'sine', 0.024, 988); tone(392, 0.42, 'triangle', 0.02, 523);
 }
+function sCinErupt(): void { // a defender bursts out of the ground — a wet organic thud under a rising sinew crack
+  tone(70, 0.35, 'sine', 0.13, 44); noise(0.22, 0.07, 900, 200); tone(260, 0.24, 'triangle', 0.04, 620);
+}
+function sCinFeed(): void { // the swarm breaks on the line — a crunching volley, then the biomass shimmering home
+  noise(0.12, 0.08, 2600, 700); tone(180, 0.12, 'square', 0.03, 90); tone(784, 0.3, 'sine', 0.025, 1175);
+}
 function sCinTitle(): void { // the wordmark lands — a wide dark-major swell with a sub floor
   tone(65, 1.7, 'sine', 0.1, 63); tone(196, 1.4, 'sine', 0.05); tone(247, 1.4, 'sine', 0.045); tone(392, 1.2, 'triangle', 0.035); noise(1.2, 0.02, 900, 300);
 }
@@ -626,6 +632,8 @@ export const audio = {
         case 'cin_snap': sCinSnap(); break;
         case 'cin_heart': sCinHeart(); break;
         case 'cin_bloom': sCinBloom(); break;
+        case 'cin_erupt': sCinErupt(); break;
+        case 'cin_feed': sCinFeed(); break;
         case 'cin_title': sCinTitle(); break;
         case 'cin_cut': sCinCut(); break;
         case 'cin_dive': sCinDive(); break;

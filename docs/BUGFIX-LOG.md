@@ -122,6 +122,7 @@ bug-hunt pass (scope, method, verdict) so "we looked" is auditable.
 | 110 | Exotic was three different colours (gear magenta, gear art teal, draft/gene pink; the toaster used an undefined token). | Three separate colour maps. | One `--r-exotic` / `--r-exotic-2` token pair used everywhere (uiStandards test guards it). Found by V4. |
 | 111 | "Open One" in the Vault gave no feedback for ~0.6 s, and the Genome Rank promotion's Continue sat below the fold at 844×390. | The open ran synchronously before any paint; the promotion card was too tall for short viewports. | An `is-cracking` press state + a deferred open (first feedback in ~13 ms); short-viewport compaction for the promotion. Found by V4. |
 | 112 | A boss's fired verb (MEND, SUPPRESS…) flashed on its banner for one frame. | The sim names the verb on the tick it fires and clears it the next. | GameView holds the latest verb `BOSS_VERB_HOLD_MS` (1.2 s). Flagged by V2. |
+| 113 | The opening film's title clipped to "ASSIMILAT…" on a 390px-wide phone — the first frame of the game a phone player sees. | A fixed 58px wordmark with 0.14em tracking is ~475px wide. | `clamp(26px, 9.6vw, 58px)` + `white-space: nowrap`; captured at 390×844 and 844×390. Found in the intro overhaul audit. |
 
 ---
 

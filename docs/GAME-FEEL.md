@@ -303,28 +303,50 @@ soundtrack, not two layers.
 ## §intro — the opening cinematic (the cold open)
 
 The first boot opens on a fully SCORED procedural film (`ui/InitCutscene.tsx` — the projector;
-`render/introScenes.ts` — the five set-piece painters + the dive), replayable from Settings → Help:
+`render/introScenes.ts` — the six set-piece painters + the dive), replayable from Settings → Help.
+**Its own chunk:** App mounts it through `ui/IntroMount.tsx` (`lazyNamed` + a black hold + skip-on-load-
+failure); the boot bundle keeps only `ui/introState.ts` (the seen flag + the on-screen store the tutorial
+reads). The film is a story with a TURN, told with the game's own pieces:
+
+| # | scene (painter) | what it shows | copy |
+|---|---|---|---|
+| 1 | signal (`signal`) | the deep-crust radar; a CONTACTS count climbing by orders of magnitude; the last pings flood the scope red | SIGNAL REACQUIRED. · 11,204 days of silence end. |
+| 2 | swarm (`descent`) | jagged seams split the crust; the game's REAL creatures (`SWARM_CAST`, drawn by `render/enemyForms`) birth out of them and climb, far→near (depth by colour: `sink()` toward the abyss tone); on the rumble the apex rises past the lens, blood-lit | They came from below. · Not an army — an APPETITE. |
+| 3 | take (`veins`) | eight vein roots take a real truss (columns, bay beams, X-braces, two depths) WHOLE by the end of the hold; taken steel sags, shudders on the snap and carries the infection; the pods turn violet ("Thought") | Everything they touch, they take. · Flesh. Steel. Thought. |
+| 4 | core (`core`) | the breathing Hive Core (copy below it) | One organism refused to be eaten. · You are its HIVE CORE — · the last thing still growing back. |
+| 5 | **answer (`answer`)** | **the game's promise before the tutorial:** the Core at the bottom reaches tendrils to the line, REAL towers (`DEFENDER_CAST`, `render/towerForms`) erupt centre-out, the swarm pours down the lane out of a shroud and dies on the line to tracer fire from the nearest tower, every kill streams home as gold biomass and the Core swells; then the apex arrives and every tower turns on it | So it grew teeth. · Everything that falls becomes its next mutation. |
+| 6 | title (`title`) | the organism you now are looms behind the wordmark (membranes, radial veins with travelling pulses, gathered motes); the wordmark resolves glyph by glyph, a glint crosses it, the triad DEFEND · EVOLVE · CONSUME lands word by word on its beats (`eyebrowAt`), then the call to action (`ctaAt`) | ASSIMILATION |
 
 - **Pre-roll gate.** "INCOMING TRANSMISSION — TAP TO RECEIVE": the one tap the browser's autoplay
   policy demands, staged diegetically. The tap unlocks the AudioContext, rolls the `cinema` score
-  (`TRACKS.cinema` — a 62bpm D-minor processional, percussion nearly absent), and starts the film
-  at t=0, fully scored.
+  (`TRACKS.cinema` — a 62bpm D-minor processional), and starts the film at t=0, fully scored.
 - **A film, not a slideshow.** One master timeline; scenes are DATA (`SCENES`): staged copy LINES
-  with per-line reveal times, and sound-design BEATS — scene-relative times firing `cin_*` cues in
-  sync with the visuals (radar pings ride the sweep, the heartbeat rides the core's 1.9s
-  double-thump, the title swell lands with the wordmark). The score's intensity seam walks 0→1
-  scene-by-scene. Letterboxed; each set-piece runs under the shared film direction layers
-  (docs/CUTSCENES.md §direction — a subtle 2–3 % drift, camera punches on `impact` beats, a mid
-  layer that moves on the beats, particulate foreground) with its copy on its quiet band
-  (`copyAt` — the core scene's copy sits below the Hive Core); tap = next scene, Skip = out; the
-  title card waits for the player.
+  with per-line reveal times, and sound-design BEATS firing `cin_*` cues in sync with the visuals
+  (pings quicken as the scope floods, the apex rises on the second rumble, the heart rides the Core's
+  1.9s double-thump, the defenders erupt on `cin_erupt`, kills stream home on `cin_feed`, the triad's
+  words land on erupt/bloom/feed). The score's intensity seam walks 0→1 scene by scene. Letterboxed;
+  each set-piece runs under the shared film direction layers (docs/CUTSCENES.md §direction) with its
+  copy on its quiet band (`copyAt`) over a soft dark scrim (`.intro-copy::before`) — painter light
+  passes UNDER the words. Tap = next scene, Skip = out; the title card waits for the player. ~40 s.
+- **Choreography is pure in t.** Every kill in the answer scene is precomputed per canvas size
+  (`raiders[].die`, `shooter`), so a frame — and a reduced-motion still — is a function of the clock.
+  Tunables: `ANSWER` (shot flight, feed flight, motes per kill, the apex's path), the cast tables, and
+  `DRIFT`/`REDUCED_FRAME_T`. A new face in the film is one cast entry.
+- **The wordmark** is sized to the viewport (`clamp(26px, 9.6vw, 58px)` — it clipped to "ASSIMILAT"
+  at 390px), each glyph carries its own slice of the gradient (`--i`/`--n`), and the glint is each
+  glyph's `::after` (the same character, a light band clipped to it) — no blend modes. The call to
+  action is film chrome (a thin gold pill, tracked caps, an opacity-only breathing halo), not the UI kit.
 - **THE DESCENT.** Leaving the title never hard-cuts: `drawDiveTransition` dives from the looming
   nucleus down a living tunnel and blooms white-gold into the next screen — the tutorial on first
   boot (whose letterboxed cold-open banner picks the film's voice straight up), the menu on a
   replay. App hands the music baton on landing (`combat`/`menu`).
 - **Accessibility.** Reduced motion (the OS request unless Settings → Motion overrides it — the same
-  `resolveMotion` the run uses) swaps the animation for a hand-picked still per scene (gentle CSS
-  fades; no drift, punches or flashes), skips the dive, and shows typewriter text whole.
+  `resolveMotion` the run uses; `.intro.is-still`) swaps the animation for a hand-picked still per scene
+  (gentle CSS fades; no drift, punches, glints or halos), skips the dive. A short stage (≤480px tall —
+  phone landscape) steps the copy down a size so the tableau keeps its picture.
+- **Cost** (headless 1440×900, rAF callback): 0.8–1.5 ms/frame average per scene, p95 ≤ 3.4 ms — on a
+  par with the old film; the game's creature/tower drawers wrap in save/restore so their own alpha
+  writes never break the dissolve. Boot JS fell 552.6 → 546.1 KB gzip (the film left the boot bundle).
 
 ## §draft-sheen — rarer draft cards look rarer at a glance (2026-11)
 

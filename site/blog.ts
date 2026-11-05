@@ -17,6 +17,30 @@ export interface BlogPost {
 
 export const POSTS: BlogPost[] = [
   {
+    slug: 'the-opening-film',
+    date: '2026-11-05',
+    title: 'The opening film, rebuilt: the real swarm, the real towers, and a turn',
+    category: 'Art & Audio',
+    tags: ['visuals', 'audio', 'onboarding', 'design'],
+    summary: 'The cinematic that plays on your first boot now tells a story with a turn. It shows the creatures you will fight and the towers you will grow, drawn by the game itself, and ends on a title that assembles in front of the organism you now are.',
+    body: `
+<p>The opening film is the first thing a new player sees, and it was telling half a story. It showed a signal, a swarm, a takeover and the Hive Core, then cut to the title. It never showed the game: the Hive fighting back. We rebuilt it around that missing scene.</p>
+<h2>A story with a turn</h2>
+<p>The film now runs in six scenes. The listening post's contact count climbs by orders of magnitude until the whole scope floods red. The crust splits, and the swarm climbs out of the seams: the <b>actual creatures</b> from the game, drawn by the same code that draws them on the battlefield, with a giant rising past the camera. The veins take a steel truss <b>whole</b>, so it sags, shudders and turns green. The Core refuses to be eaten. Then comes the new scene: <b>the Hive answers</b>. Tendrils reach out from the Core, real towers burst out of the ground along the line, and the swarm pours down the lane and dies on it. Every kill streams home as gold biomass, and the Core swells with each one. The last thing down the lane is the apex, and every tower turns on it.</p>
+<h2>A title that lands</h2>
+<p>The wordmark now assembles letter by letter in front of the organism you have become, with its membranes, its veins and a slow heartbeat. A glint crosses it, and <b>DEFEND · EVOLVE · CONSUME</b> lands one word at a time, each on its own sound. Then the film asks you to descend, and dives you into the first battle.</p>
+<h2>Smaller details</h2>
+<ul>
+<li>On a narrow phone the title used to clip to "ASSIMILAT…". It now sizes itself to the screen.</li>
+<li>Every line of copy sits on a soft dark backdrop, so the radar sweep, the swarm and the light never cross the words.</li>
+<li>Two new sounds: towers bursting out of the ground, and the swarm breaking on the line.</li>
+<li>The film now loads on its own, only when it plays, so the game's first download got smaller even though the film got bigger.</li>
+<li>Reduced motion still gets the whole story, as one hand-picked still per scene.</li>
+</ul>
+<p>Already seen it? Replay it any time from <b>Settings → Help</b>.</p>
+`,
+  },
+  {
     slug: 'a-battlefield-you-can-read',
     date: '2026-11-05',
     title: 'A battlefield you can read: a full visual pass, a Hive that probes your board, and levels that keep coming',

@@ -1,6 +1,9 @@
 // INITIALIZATION SEQUENCE (docs/GAME-FEEL.md §intro) — the cold-open CINEMATIC.
 // Plays ONCE on a device's very first boot, BEFORE the tutorial, and replays any time from
-// Settings → Help. A continuous, fully SCORED film, not a slideshow:
+// Settings → Help. Its own lazy chunk (App mounts it through ui/IntroMount; the boot-side flags live in
+// ui/introState). Six scenes: the signal, the swarm, the taking, the Core, the Hive ANSWERING (the
+// game's real towers and swarm — the promise of the game before the tutorial), the title.
+// A continuous, fully SCORED film, not a slideshow:
 //
 //   • PRE-ROLL GATE — "TAP TO RECEIVE" unlocks the AudioContext, so the whole film plays with
 //     its score + sound design from t=0 (the browser's autoplay policy, made diegetic).
@@ -19,41 +22,15 @@
 // Reduced motion (the OS request unless Settings → Motion overrides it) swaps the animation
 // for a hand-picked still per scene (gentle CSS fades only) and skips the dive.
 
-import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import type { CSSProperties } from 'react';
 import { audio } from '../audio/sound';
 import { music } from '../audio/music';
 import { REDUCED_FRAME_T, drawDiveTransition, drawIntroFrame } from '../render/introScenes';
 import type { IntroVisual } from '../render/introScenes';
 import type { CutsceneBeat, CutsceneCamera, CutsceneCopyAt } from '../core/cutscenes';
 import { motionPrefs, resolveMotion, systemReducedMotion } from '../state/prefs';
-
-export const INTRO_SEEN_KEY = 'assimilate.introSeen';
-
-export function introSeen(): boolean {
-  try {
-    return localStorage.getItem(INTRO_SEEN_KEY) === '1';
-  } catch {
-    return false;
-  }
-}
-
-// The film's ON-SCREEN flag (docs/TUTORIAL.md §cinematic): first boot mounts the tutorial
-// BENEATH the film, so its cold-open banner holds its clock until the film has landed.
-let playing = false;
-const playingListeners = new Set<() => void>();
-function setPlaying(on: boolean): void {
-  if (playing === on) return;
-  playing = on;
-  for (const fn of playingListeners) fn();
-}
-const subscribePlaying = (fn: () => void): (() => void) => {
-  playingListeners.add(fn);
-  return () => { playingListeners.delete(fn); };
-};
-/** React hook — true while the opening film is mounted (gate, film or descent). */
-export function useIntroPlaying(): boolean {
-  return useSyncExternalStore(subscribePlaying, () => playing);
-}
+import { markIntroSeen, setIntroPlaying } from './introState';
 
 /** A copy line staged onto the film at a scene-relative time (seconds). */
 interface SceneLine { at: number; text: string; em?: boolean }
@@ -67,49 +44,54 @@ export interface IntroScene {
   copyAt?: CutsceneCopyAt; // the copy's quiet region (default 'center')
   camera?: CutsceneCamera; // default: the painter's drift row (render/introScenes.ts DRIFT)
   punch?: number; // punch zoom on impact beats (default FILM.punch.zoom; 0 = none)
+  eyebrowAt?: number[]; // the title's triad: each ' · '-separated eyebrow word lands at its own time (s)
+  ctaAt?: number; // the title's call to action appears at this time (s)
 }
 
 /** The authored film — copy, staging and SOUND as data (edit here, not in the component).
- *  Beat times are tuned to the painters: pings ride the radar sweep (~5.7s/turn), the heart
- *  thumps on the core's 1.9s cycle, the title swell lands with the wordmark. `copyAt` puts the
- *  copy on each tableau's measured quiet band (never over the core's light). */
+ *  Beat times are tuned to the painters: pings ride the radar sweep (~5.7s/turn) and quicken as the
+ *  scope floods, the apex rises on the second rumble, the heart thumps on the core's 1.9s cycle, the
+ *  defenders erupt on `cin_erupt`, kills stream home on `cin_feed`, the triad lands word by word.
+ *  `copyAt` puts the copy on each tableau's measured quiet band (never over the core's light). */
 export const SCENES: IntroScene[] = [
   {
-    id: 'signal', eyebrow: 'DEEP CRUST RELAY 7', visual: 'signal', durMs: 8200,
+    id: 'signal', eyebrow: 'DEEP CRUST RELAY 7', visual: 'signal', durMs: 7600,
     lines: [
       { at: 0.7, text: 'SIGNAL REACQUIRED.' },
       { at: 2.6, text: '11,204 days of silence end.', em: true },
     ],
     beats: [
       { at: 0.15, cue: 'cin_ping' }, { at: 1.6, cue: 'cin_alarm', impact: true }, { at: 2.9, cue: 'cin_ping' },
-      { at: 4.4, cue: 'cin_ping' }, { at: 5.6, cue: 'cin_ping' }, { at: 6.5, cue: 'cin_ping' }, { at: 7.2, cue: 'cin_ping' },
+      { at: 4.2, cue: 'cin_ping' }, { at: 5.2, cue: 'cin_ping' }, { at: 5.9, cue: 'cin_ping' }, { at: 6.4, cue: 'cin_ping' },
+      { at: 6.8, cue: 'cin_ping' }, { at: 7.1, cue: 'cin_shriek', impact: true },
     ],
   },
   {
-    id: 'below', visual: 'descent', durMs: 8600, copyAt: 'upper',
+    // the crust splits and the game's own swarm climbs out; the apex rises past the lens on the rumble
+    id: 'below', visual: 'descent', durMs: 8200, copyAt: 'upper',
     lines: [
       { at: 0.8, text: 'They came from below.' },
-      { at: 3.2, text: 'Not an army — an APPETITE.', em: true },
+      { at: 3.4, text: 'Not an army — an APPETITE.', em: true },
     ],
     beats: [
-      { at: 0.1, cue: 'cin_rumble' }, { at: 2.6, cue: 'cin_shriek', impact: true }, { at: 4.2, cue: 'cin_rumble', impact: true },
-      { at: 5.8, cue: 'cin_shriek' }, { at: 7.1, cue: 'cin_shriek' },
+      { at: 0.1, cue: 'cin_rumble' }, { at: 2.2, cue: 'cin_shriek' }, { at: 3.6, cue: 'cin_rumble', impact: true },
+      { at: 5.0, cue: 'cin_shriek', impact: true }, { at: 6.4, cue: 'cin_shriek' }, { at: 7.5, cue: 'cin_shriek' },
     ],
   },
   {
-    id: 'take', visual: 'veins', durMs: 8600, copyAt: 'upper',
+    id: 'take', visual: 'veins', durMs: 8000, copyAt: 'upper',
     lines: [
       { at: 0.8, text: 'Everything they touch, they take.' },
       { at: 3.4, text: 'Flesh. Steel. Thought.', em: true },
     ],
     beats: [
       { at: 0.3, cue: 'cin_creep' }, { at: 2.2, cue: 'cin_snap', impact: true }, { at: 3.6, cue: 'cin_creep' },
-      { at: 5.2, cue: 'cin_snap', impact: true }, { at: 6.6, cue: 'cin_creep' },
+      { at: 5.0, cue: 'cin_snap', impact: true }, { at: 6.2, cue: 'cin_creep' }, { at: 7.2, cue: 'cin_snap' },
     ],
   },
   {
     // the copy sits BELOW the Hive Core — the core is the brightest light in the film
-    id: 'core', visual: 'core', durMs: 9400, copyAt: 'lower',
+    id: 'core', visual: 'core', durMs: 8600, copyAt: 'lower',
     lines: [
       { at: 0.9, text: 'One organism refused to be eaten.' },
       { at: 3.6, text: 'You are its HIVE CORE —' },
@@ -122,12 +104,33 @@ export const SCENES: IntroScene[] = [
     ],
   },
   {
+    // THE TURN — the game's promise before the tutorial: real towers erupt along the line, the swarm
+    // breaks on it, every kill streams home to the Core. The swarm pours down from the top, so the copy
+    // sits on the upper band ABOVE the kill zone (the shroud the swarm emerges from).
+    id: 'answer', visual: 'answer', durMs: 9600, copyAt: 'upper',
+    lines: [
+      { at: 0.7, text: 'So it grew teeth.' },
+      { at: 4.2, text: 'Everything that falls becomes its next mutation.', em: true },
+    ],
+    beats: [
+      { at: 0.2, cue: 'cin_heart' }, { at: 0.9, cue: 'cin_erupt', impact: true }, { at: 1.75, cue: 'cin_erupt', impact: true },
+      { at: 2.4, cue: 'cin_shriek' }, { at: 3.9, cue: 'cin_feed' }, { at: 4.8, cue: 'cin_rumble' }, { at: 5.4, cue: 'cin_feed' },
+      { at: 6.5, cue: 'cin_feed' }, { at: 7.4, cue: 'cin_bloom', impact: true }, { at: 8.6, cue: 'cin_heart' },
+    ],
+  },
+  {
+    // the wordmark resolves letter by letter, then the triad lands word by word on its own beats
     id: 'title', eyebrow: 'DEFEND · EVOLVE · CONSUME', visual: 'title', durMs: 0, // 0 = waits for the player
+    eyebrowAt: [1.6, 2.05, 2.5], ctaAt: 3.1,
     lines: [{ at: 0.6, text: 'ASSIMILATION', em: true }],
-    beats: [{ at: 0.55, cue: 'cin_title', impact: true }],
+    beats: [
+      { at: 0.55, cue: 'cin_title', impact: true },
+      { at: 1.6, cue: 'cin_erupt' }, { at: 2.05, cue: 'cin_bloom' }, { at: 2.5, cue: 'cin_feed' },
+    ],
   },
 ];
 
+const WORDMARK = 'ASSIMILATION';
 const FADE_MS = 850; // scene-to-scene cross-dissolve
 const DIVE_MS = 1500; // the descent transition out of the film
 
@@ -137,7 +140,7 @@ type Phase = 'gate' | 'film' | 'dive';
  *  bloom, so the caller can fade an afterglow out instead of cutting to the next screen). */
 export function InitCutscene({ onDone }: { onDone: (dived?: boolean) => void }): JSX.Element {
   const [phase, setPhase] = useState<Phase>('gate');
-  useEffect(() => { setPlaying(true); return () => setPlaying(false); }, []);
+  useEffect(() => { setIntroPlaying(true); return () => setIntroPlaying(false); }, []);
   // Reduced motion = THE motionScale (OS request unless Settings → Motion overrides it): stills,
   // no camera drift / punches / flashes, no dive. Resolved once per showing.
   const [feel] = useState(() => resolveMotion(motionPrefs(), systemReducedMotion()));
@@ -156,17 +159,10 @@ export function InitCutscene({ onDone }: { onDone: (dived?: boolean) => void }):
   idxRef.current = idx;
   const scene = SCENES[idx];
 
-  const markSeen = (): void => {
-    try {
-      localStorage.setItem(INTRO_SEEN_KEY, '1');
-    } catch {
-      /* storage unavailable — it simply plays again next boot */
-    }
-  };
   /** Leave through the DESCENT (reduced motion / not-yet-started exit immediately). */
   const finish = (): void => {
     if (doneRef.current) return;
-    markSeen();
+    markIntroSeen();
     if (reducedMotion || phaseRef.current !== 'film') {
       doneRef.current = true;
       onDone();
@@ -289,7 +285,7 @@ export function InitCutscene({ onDone }: { onDone: (dived?: boolean) => void }):
             </button>
             <button
               className="intro-skip intro-gate-skip"
-              onClick={(e) => { e.stopPropagation(); markSeen(); doneRef.current = true; onDone(); }}
+              onClick={(e) => { e.stopPropagation(); markIntroSeen(); doneRef.current = true; onDone(); }}
             >
               Skip
             </button>
@@ -308,18 +304,32 @@ export function InitCutscene({ onDone }: { onDone: (dived?: boolean) => void }):
         <div className="intro-bar intro-bar-top" aria-hidden />
         <div className="intro-bar intro-bar-bot" aria-hidden />
         <div className="intro-copy" key={scene.id}>
-          {scene.eyebrow && <div className="intro-eyebrow">{scene.eyebrow}</div>}
+          {scene.eyebrow && scene.id !== 'title' && <div className="intro-eyebrow">{scene.eyebrow}</div>}
           {scene.id === 'title' ? (
             <>
-              <h1 className="intro-title" style={{ animationDelay: '0.55s' }}>ASSIMILATION</h1>
+              {/* The wordmark resolves glyph by glyph (each its own slice of the gradient), then a
+                  glint crosses it letter by letter; the triad lands word by word on the film's beats. */}
+              <h1 className="intro-title" aria-label={WORDMARK} style={{ '--n': WORDMARK.length } as CSSProperties}>
+                {[...WORDMARK].map((ch, i) => (
+                  <span key={i} aria-hidden data-c={ch} style={{ '--i': i } as CSSProperties}>{ch}</span>
+                ))}
+              </h1>
+              {scene.eyebrow && (
+                <div className="intro-triad">
+                  {scene.eyebrow.split(' · ').map((word, i) => (
+                    <span key={word} style={{ animationDelay: `${scene.eyebrowAt?.[i] ?? 1 + i * 0.4}s` }}>{word}</span>
+                  ))}
+                </div>
+              )}
               <button
-                className="primary intro-begin"
+                className="intro-begin"
+                style={{ animationDelay: `${scene.ctaAt ?? 1}s` }}
                 onClick={(e) => {
                   e.stopPropagation();
                   finish();
                 }}
               >
-                ▶ Descend
+                <span aria-hidden>▾</span> Descend
               </button>
             </>
           ) : (
