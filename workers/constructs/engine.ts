@@ -128,10 +128,10 @@ export async function tickConstruct(c: ConstructDef, state: ConstructState, wire
   }
 
   // ── 4. Commit the save (the tick's single commit point) ──
-  const committed = await commitSave(c, wire, creds);
-  report.saved = committed;
-  if (!committed) {
-    report.errors.push('save-commit');
+  const commit = await commitSave(c, wire, creds);
+  report.saved = commit === null;
+  if (commit !== null) {
+    report.errors.push(`save-commit-${commit}`); // e.g. save-commit-429 (the slot's write budget)
     return { state, report }; // pacing untouched: the next tick replays the owed time
   }
 
@@ -143,7 +143,8 @@ export async function tickConstruct(c: ConstructDef, state: ConstructState, wire
     } else {
       meta.grantIchor('Auction wallet refund', pendingDeposit); // refused — the Ichor goes back
       report.errors.push(`deposit-${String(r.body.error ?? r.status)}`);
-      if (!(await commitSave(c, wire, creds))) report.errors.push('save-commit-refund');
+      const again = await commitSave(c, wire, creds);
+      if (again !== null) report.errors.push(`save-commit-refund-${again}`);
     }
   }
 
@@ -153,8 +154,9 @@ export async function tickConstruct(c: ConstructDef, state: ConstructState, wire
   return { state: { ...state, lastTickAt: now, creditSec: credit }, report };
 }
 
-/** Upload the live save the way the sync engine does (envelope + headline). */
-async function commitSave(c: ConstructDef, wire: ConstructWire, creds: { playerId: string; token: string }): Promise<boolean> {
+/** Upload the live save the way the sync engine does (envelope + headline). null = committed,
+ *  else the refusal (error code or HTTP status) for the tick report. */
+async function commitSave(c: ConstructDef, wire: ConstructWire, creds: { playerId: string; token: string }): Promise<string | null> {
   const save = meta.get();
   const env = buildEnvelope(save, {
     accountId: c.id,
@@ -163,7 +165,7 @@ async function commitSave(c: ConstructDef, wire: ConstructWire, creds: { playerI
     campaignStage: highestCampaignStage(save),
   });
   const r = await wire('PUT', '/api/save', { ...creds, blob: JSON.stringify(env), meta: { ...envelopeMeta(env) } });
-  return r.status === 200;
+  return r.status === 200 ? null : String(r.body.error ?? r.status);
 }
 
 /** One market visit. Returns the Ichor to deposit AFTER the commit (already spent locally). */
