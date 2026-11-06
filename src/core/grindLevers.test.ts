@@ -143,16 +143,43 @@ describe('EARLY CALL (docs/EARLY-CALL.md)', () => {
     step(g, EARLY_CALL.minElapsed + 0.1);
     expect(g.earlyCallBonus()).toBe(-1);
     expect(g.callWaveEarly()).toBe(false);
+    // Play it out, taking every draft as it comes: one per called-over wave + the cleared wave's own.
+    let picks = 0;
     let guard = 0;
-    while (g.phase === 'wave' && guard++ < 200) step(g, 1);
-    expect(g.phase).toBe('draft');
-    // the cleared wave's card + one per called-over wave, back to back
-    for (let i = 0; i < EARLY_CALL.maxAhead + 1; i++) {
-      expect(g.phase).toBe('draft');
-      g.chooseCard(g.getSnapshot().draft![0].id);
+    while (g.phase !== 'prep' && guard++ < 400) {
+      if (g.phase === 'draft') { g.chooseCard(g.getSnapshot().draft![0].id); picks++; continue; }
+      step(g, 0.25);
     }
-    expect(g.phase).toBe('prep');
+    expect(picks).toBe(EARLY_CALL.maxAhead + 1);
     expect(g.waveIndex).toBe(1 + EARLY_CALL.maxAhead);
+  });
+
+  it('§owed: a called-over wave\'s draft is dealt the moment ITS last unit falls — mid-fight — and the pick resumes the fight', () => {
+    const g = boot();
+    g.startWave();
+    step(g, EARLY_CALL.minElapsed + 0.1);
+    expect(g.callWaveEarly()).toBe(true); // wave 1 called over → wave 2 overlaps it
+    expect(g.getSnapshot().draftsOwed).toBe(1);
+    const enemies = (): { owedWave?: number; alive: boolean }[] => anyG(g).enemies as { owedWave?: number; alive: boolean }[];
+    let guard = 0;
+    while (g.phase === 'wave' && guard++ < 4000) step(g, SIM_DT);
+    // The draft opened for WAVE 1 while wave 2 still had units on the field (or due) — not at the clear.
+    expect(g.phase).toBe('draft');
+    expect(g.getSnapshot().owedDraftWave).toBe(1);
+    const wave2Left = enemies().filter((e) => e.alive).length + (anyG(g).spawnQueue as unknown[]).length;
+    expect(wave2Left).toBeGreaterThan(0);
+    expect(enemies().some((e) => e.owedWave === 1)).toBe(false); // wave 1 is spent
+    expect(g.getSnapshot().draftsOwed).toBe(0);
+    g.chooseCard(g.getSnapshot().draft![0].id);
+    expect(g.phase).toBe('wave'); // back to the fight it paused — not to build
+    expect(g.getSnapshot().owedDraftWave).toBeUndefined();
+    // …and wave 2's own draft arrives at its clear, alone (no back-to-back backlog).
+    guard = 0;
+    while (g.phase === 'wave' && guard++ < 8000) step(g, SIM_DT);
+    expect(g.phase).toBe('draft');
+    expect(g.getSnapshot().owedDraftWave).toBeUndefined();
+    g.chooseCard(g.getSnapshot().draft![0].id);
+    expect(g.phase).toBe('prep');
   });
 
   it('never on the final scripted wave, never in the tutorial', () => {

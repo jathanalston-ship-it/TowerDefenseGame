@@ -15,7 +15,8 @@ import { audio } from '../../audio/sound';
 import { formatPower } from '../../core/power';
 import type { HeroKind } from '../../core/types';
 
-/** Execute an atlas move — every branch is the SAME guarded meta action its wing calls. */
+/** Execute an atlas move — every branch is the SAME guarded meta action its wing calls (and the
+ *  atlas only ever offers moves on revealed wings — docs/PROGRESSION-GATING.md §seal). */
 function runAtlasAction(a: AtlasAction): boolean {
   if (a.type === 'purchase') return executePurchase(a.surface, a.id);
   if (a.type === 'adapt') return meta.spendAdaptation(a.subject, a.unit, a.nodeId);

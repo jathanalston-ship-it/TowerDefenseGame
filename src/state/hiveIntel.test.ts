@@ -21,7 +21,8 @@ describe('Hive Intelligence Feed — derived, honest, self-retiring', () => {
   });
 
   it('banked value + the Advisor top move surface as ACT rows, ranked first', () => {
-    const s = { ...defaultSave(), shards: 800, pendingContainers: [{}, {}] as never };
+    // A stage-3 account (Evolution HQ revealed — the Advisor only advises reached wings) with cores banked.
+    const s = { ...defaultSave(), shards: 800, campaign: { cleared: { standard: 3 }, bestTime: {} }, pendingContainers: [{}, {}] as never };
     const feed = hiveIntel(s, NOW);
     expect(feed[0].priority).toBe('act');
     expect(feed.some((e) => e.id === 'intel:vault')).toBe(true);

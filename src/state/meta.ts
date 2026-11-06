@@ -3756,6 +3756,9 @@ export const meta = {
     // A DORMANT tower's tree is locked shut — Antigen only flows into synthesized organisms
     // (the Lab shows the same lock; this guard keeps every other surface honest).
     if (subject === 'tower' && !isTowerUnlocked(save, unit as TowerKind)) return false;
+    // Antigen BANKS until the Adaptation Chamber opens (docs/PROGRESSION-GATING.md) — no surface
+    // (a best-move shortcut, a stale tab) may spend it before the wing is revealed.
+    if (!featureRevealed(save, 'adaptation')) return false;
     const key = `${subject}:${unit}`;
     const chosen = save.adaptation?.[key] ?? [];
     const view = adaptationView(save, subject, unit);

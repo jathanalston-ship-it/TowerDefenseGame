@@ -16,6 +16,7 @@ import { bestPurchase } from './bestPurchase';
 import type { PurchaseSurface } from './bestPurchase';
 import { adaptationPicks } from './adaptationAdvisor';
 import { equipUpgrades } from './equipAdvisor';
+import { isOpenNav } from './unlocks';
 import type { AtlasAction } from './powerAtlas';
 
 /** One ranked "do this" — provenance + the same guarded executable payload the Atlas uses. */
@@ -49,7 +50,9 @@ export function advisorPlan(save: SaveData, k = 5): AdvisorPlan {
   const affordable: AdvisorMove[] = [];
   let saveUp: AdvisorMove | null = null;
 
+  // THE SEAL RULE (docs/PROGRESSION-GATING.md): only wings the player has reached may be advised.
   for (const { surface, system, nav } of SURFACES) {
+    if (!isOpenNav(save, nav)) continue;
     const { ranked } = bestPurchase(save, surface);
     for (const c of ranked) {
       const move: AdvisorMove = {
@@ -60,14 +63,14 @@ export function advisorPlan(save: SaveData, k = 5): AdvisorPlan {
       else if (!saveUp || c.powerDelta > saveUp.powerDelta) saveUp = move;
     }
   }
-  for (const p of adaptationPicks(save, k)) {
+  for (const p of isOpenNav(save, 'adaptation') ? adaptationPicks(save, k) : []) {
     affordable.push({
       label: `${p.unitName} — ${p.nodeName}`, system: 'Adaptation', nav: 'adaptation',
       price: '1 Antigen pick', powerDelta: p.powerDelta, affordable: true,
       action: { type: 'adapt', subject: p.subject, unit: p.unit, nodeId: p.nodeId },
     });
   }
-  for (const g of equipUpgrades(save, k)) {
+  for (const g of isOpenNav(save, 'equipment') ? equipUpgrades(save, k) : []) {
     affordable.push({
       label: `Equip ${g.itemName} — ${g.heroName}`, system: 'Equipment', nav: 'equipment',
       price: 'free', powerDelta: g.powerDelta, affordable: true,

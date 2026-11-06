@@ -25,9 +25,16 @@ spawns, then waits for the schedule to run out. Early Call turns that dead time 
   minus now, capped at `maxSkipSeconds` (30) — × `biomassPerSecond` (2) × the **next** wave's
   bounty multiplier × the run's Biomass multiplier. The HUD shows it live (`HudSnapshot.earlyCall`,
   −1 = unavailable) and it shrinks as the current wave runs out. Paid up front, cued (`splice`).
-- **Nothing owed is lost:** every called-over wave still earns its **gene draft** — owed drafts
-  (`draftsOwed`) are dealt back to back when the field clears (endless cadence respected via
-  `shouldDraftThisWave`), and **Regenerative Carapace** ticks at the call.
+- **Nothing owed is lost (§owed):** every called-over wave still earns its **gene draft**, dealt the
+  moment **that wave's own last unit falls** — mid-fight; the draft pauses the sim and the pick drops
+  straight back into the fight. At the call, every live unit and queued spawn not already owed to an
+  older called-over wave is tagged with the called-over wave's number (`Enemy.owedWave`,
+  `QueuedSpawn.owedWave`; boss splits and summons inherit their parent's), and `checkOwedDrafts()`
+  deals a wave's card once nothing carrying its number is alive or due. Waves can finish out of
+  order (the first spent one is dealt). Before 2026-11-06 every owed card waited for the whole field
+  to clear and then came 2–4 in a row (owner report). The draft header names the wave it pays
+  (`owedDraftWave`). Endless cadence is still respected via `shouldDraftThisWave` at call time, and
+  **Regenerative Carapace** ticks at the call.
 
 ## Scope (opt-in per run — golden-safe)
 
@@ -69,3 +76,4 @@ lost more runs — a human picks safer moments).
 - The credit is time-based, not threat-based: calling over a wave whose tail is a boss pays the
   same per second as chaff. The stack cap + the overlap risk are the counterweight.
 - `waveCompleted` events (tutorial-only listener) fire once per field clear, not per called-over wave.
+- Mega reinforcements and other parentless spawns carry no wave tag, so they never hold an owed draft.

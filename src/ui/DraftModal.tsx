@@ -292,7 +292,7 @@ export function DraftModal({
           ? <div className="wave-cleared">◆ OPENING DRAFT ◆</div>
           : kind === 'splice'
             ? <div className="wave-cleared draft-splice-eyebrow">◆ SPLICE · EXTRA DRAFT ◆</div>
-            : clearedWave ? <div className="wave-cleared">◆ WAVE {clearedWave} CLEARED ◆{owedAfter > 0 && <span className="draft-owed"> +{owedAfter} more owed — waves you called early</span>}</div> : null}
+            : clearedWave ? <div className="wave-cleared">◆ WAVE {clearedWave} CLEARED ◆{owedAfter > 0 && <span className="draft-owed"> +{owedAfter} more owed — each arrives as its called wave falls</span>}</div> : null}
         <h2>{kind === 'opening' ? 'CHOOSE YOUR OPENING GENE' : 'DRAFT A GENE CARD'}</h2>
         <p className="draft-sub">
           {kind === 'opening' ? 'Pick the gene this run builds around — ' : 'Powers this run only — '}press <kbd>1</kbd>–<kbd>{options.length}</kbd> or <kbd>Enter</kbd> for the pick.

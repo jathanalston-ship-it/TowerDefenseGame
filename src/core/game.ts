@@ -746,7 +746,7 @@ export class Game {
   private waveStartIntegrity = 0; // integrity when the current wave began (drives FLAWLESS)
   private prepCountdown = AUTO_START_DELAY; // prep seconds left before an auto-start fires
   private wavesSinceDraft = 0; // endless cadence: waves cleared since the last Gene Card draft
-  private rushPending: { at: number; tl: number; ramp: number; hp: number }[] = []; // Boss Rush: staggered boss deployments still due this wave (time-sorted; ramp = the strength curve's HP/damage scale)
+  private rushPending: { at: number; tl: number; ramp: number; hp: number; owedWave?: number }[] = []; // Boss Rush: staggered boss deployments still due this wave (time-sorted; ramp = the strength curve's HP/damage scale)
   // ── Batch G grind levers (all neutral unless the app opts the run in) ──
   private readonly earlyCallAllowed: boolean; // RunOptions.earlyCall (docs/EARLY-CALL.md)
   private readonly livePowerBase: number | null; // RunOptions.livePowerBase (§6a live adaptive threat; Campaign only)
@@ -754,7 +754,13 @@ export class Game {
   private waveLaunchedAt = 0; // sim time the latest wave launched (early-call minElapsed)
   private waveSpawnEnd = 0; // last scheduled spawn time of the waves on the field (early-call skip credit)
   private calledAhead = 0; // waves called early since the field last cleared (≤ EARLY_CALL.maxAhead)
-  private draftsOwed = 0; // gene drafts the called-over waves still owe — dealt back to back at the clear
+  private draftsOwed = 0; // gene drafts the called-over waves still owe (== owedWaves.length)
+  // EARLY CALL §owed: the called-over waves still owing a draft (oldest first). Each wave's units carry
+  // its number (Enemy.owedWave); the draft is dealt MID-FIGHT the moment the last one falls, and the
+  // pick resumes the fight (draftResumesWave). Empty on every run without an early call (golden-safe).
+  private owedWaves: number[] = [];
+  private draftResumesWave = false;
+  private owedDraftWave = 0; // the called-over wave the open draft pays (0 = the current wave's own)
   /** The live adaptive multiplier the latest Campaign wave launched with (1 = none) — HUD intel. */
   liveThreat = 1;
   /** Infinite pressure-band HP multiplier (1 = none; ENDLESS_SQUEEZE). */
@@ -2412,15 +2418,24 @@ export class Game {
   /** Call the next wave NOW, over the live field (docs/EARLY-CALL.md). The waves overlap: the
    *  called-over wave's unspawned tail keeps its schedule and the new wave's queue merges in by
    *  time. Pays earlyCallBonus() up front; the called-over wave's per-wave beats still land — its
-   *  gene draft is OWED (dealt at the next clear) and Regenerative Carapace ticks now. A recorded
-   *  input (core/replay.ts REPLAY_METHODS). Returns false (nothing happens) when unavailable. */
+   *  gene draft is OWED (§owed: its live units + unspawned tail are tagged, and the draft is dealt
+   *  the moment the last of them falls) and Regenerative Carapace ticks now. A recorded input
+   *  (core/replay.ts REPLAY_METHODS). Returns false (nothing happens) when unavailable. */
   callWaveEarly(): boolean {
     const bonus = this.earlyCallBonus();
     if (bonus < 0) return false;
-    if (this.shouldDraftThisWave()) this.draftsOwed++; // the called-over wave's card, dealt at the clear
-    if (this.mods.integrityRegenPerWave > 0) this.integrity = Math.min(this.maxIntegrity, this.integrity + this.mods.integrityRegenPerWave);
     const carry = this.spawnQueue;
     const carryRush = this.rushPending;
+    if (this.shouldDraftThisWave()) { // the called-over wave's card — owed until its own last unit falls
+      const w = this.waveIndex;
+      this.owedWaves.push(w);
+      this.draftsOwed++;
+      // Everything on the field (or still due) not already owed to an OLDER called-over wave is this one's.
+      for (const e of this.enemies) if (e.owedWave === undefined) e.owedWave = w;
+      for (const q of carry) if (q.owedWave === undefined) q.owedWave = w;
+      for (const p of carryRush) if (p.owedWave === undefined) p.owedWave = w;
+    }
+    if (this.mods.integrityRegenPerWave > 0) this.integrity = Math.min(this.maxIntegrity, this.integrity + this.mods.integrityRegenPerWave);
     const prevEnd = this.waveSpawnEnd;
     this.calledAhead++;
     this.launchWave();
@@ -2437,17 +2452,44 @@ export class Game {
     return true;
   }
 
-  /** Deal one OWED draft (a wave called over early still earns its card). False when none is owed. */
+  /** Deal one OWED draft at the clear (a wave called over early still earns its card) — normally
+   *  each was already dealt mid-fight by checkOwedDrafts(); this catches a wave spent in the very
+   *  step the field cleared. False when none is owed. */
   private dealOwedDraft(): boolean {
     while (this.draftsOwed > 0) {
       this.draftsOwed--;
+      this.owedDraftWave = this.owedWaves.shift() ?? 0;
       this.draft = this.dealDraft(); // THE deal seam (draft fit when on — docs/CARDS.md §fit)
       this.draftKind = 'wave';
       this.draftRerolled = false;
       if (this.draft.length > 0) return true;
     }
     this.draft = null;
+    this.owedDraftWave = 0;
     return false;
+  }
+
+  /** EARLY CALL §owed: deal the draft of a called-over wave the moment its LAST unit falls — no live
+   *  unit and no queued spawn still carries its number — mid-fight (the draft pauses the sim; the
+   *  pick resumes the fight). Before this, every owed card waited for the whole field to clear and
+   *  then came 2–4 in a row. Waves can finish out of order (a fast later wave, a slow tank left
+   *  over); the first spent one is dealt. No-op without an early call (golden-safe). */
+  private checkOwedDrafts(): void {
+    if (this.owedWaves.length === 0 || this.phase !== 'wave' || this.settleTimer > 0) return;
+    const idx = this.owedWaves.findIndex((w) =>
+      !this.enemies.some((e) => e.owedWave === w) && !this.spawnQueue.some((q) => q.owedWave === w) && !this.rushPending.some((p) => p.owedWave === w));
+    if (idx < 0) return;
+    const [w] = this.owedWaves.splice(idx, 1);
+    this.draftsOwed--;
+    const deal = this.dealDraft(); // THE deal seam (draft fit when on — docs/CARDS.md §fit)
+    if (deal.length === 0) return; // nothing draftable — the card is simply spent (as at the clear)
+    this.draft = deal;
+    this.draftKind = 'wave';
+    this.draftRerolled = false;
+    this.owedDraftWave = w;
+    this.draftResumesWave = true;
+    this.phase = 'draft';
+    this.pushSfx('draft');
   }
 
   /** INFINITE SQUEEZE pressure band (ENDLESS_SQUEEZE): a flawless wave past fromDepth tightens the
@@ -2659,6 +2701,12 @@ export class Game {
       if (this.events.hasListeners('cardChosen')) this.events.emit('cardChosen', { id: card.id, rarity: card.rarity });
     }
     this.draft = null;
+    this.owedDraftWave = 0;
+    if (this.draftResumesWave) { // EARLY CALL §owed: a mid-fight deal — back to the fight it paused
+      this.draftResumesWave = false;
+      this.phase = 'wave';
+      return;
+    }
     if (this.dealOwedDraft()) return; // EARLY CALL: a called-over wave's card is next (stay in the draft)
     this.phase = 'prep';
     this.prepCountdown = AUTO_START_DELAY; // fresh countdown for the new prep
@@ -2966,6 +3014,7 @@ export class Game {
       this.deathSystem();
       this.floatSystem(dt);
       this.particleSystem(dt);
+      if (this.owedWaves.length > 0) this.checkOwedDrafts(); // EARLY CALL §owed: a called-over wave just fell
       this.checkWaveEnd();
       if (this.integrity <= 0) {
         this.integrity = 0;
@@ -3014,7 +3063,9 @@ export class Game {
   private spawnSystem(): void {
     while (this.spawnQueue.length > 0 && this.spawnQueue[0].at <= this.time) {
       const q = this.spawnQueue.shift()!;
+      const n = this.enemies.length;
       this.spawnOne(q.kind, q.hpMult, q.bountyMult, q.elite === true, q.speedMult ?? 1);
+      if (q.owedWave !== undefined && this.enemies.length > n) this.enemies[n].owedWave = q.owedWave; // §owed
     }
     if (this.spawnQueue.length === 0) this.spawnedAll = true;
   }
@@ -3024,7 +3075,9 @@ export class Game {
   private rushSpawnSystem(): void {
     while (this.rushPending.length > 0 && this.rushPending[0].at <= this.time) {
       const p = this.rushPending.shift()!;
+      const n = this.enemies.length;
       this.spawnProceduralBoss(p.tl, p.ramp, p.hp);
+      if (p.owedWave !== undefined && this.enemies.length > n) this.enemies[n].owedWave = p.owedWave; // §owed
     }
   }
 
@@ -3203,7 +3256,7 @@ export class Game {
           if (rm.kind !== 'rally') continue;
           const call = (rm.amount ?? 4) + Math.floor((1 - hpFrac) * 3);
           for (let i = 0; i < call && this.enemies.length < PERF.maxEnemies; i++) {
-            this.spawnNear(rm.addKind ?? 'runner', e.x, e.y);
+            this.spawnNear(rm.addKind ?? 'runner', e.x, e.y, e.owedWave);
           }
         }
       }
@@ -3240,7 +3293,7 @@ export class Game {
           case 'spawner':
             if (this.enemies.length < PERF.maxEnemies) {
               const n = m.amount ?? 3;
-              for (let i = 0; i < n; i++) this.spawnNear(m.addKind ?? 'runner', e.x, e.y);
+              for (let i = 0; i < n; i++) this.spawnNear(m.addKind ?? 'runner', e.x, e.y, e.owedWave);
               b.telegraph = 'SUMMON';
             }
             break;
@@ -3387,7 +3440,7 @@ export class Game {
             b.exposeT = m.duration ?? 3;
             const n = m.amount ?? 5;
             for (let i = 0; i < n && this.enemies.length < PERF.maxEnemies; i++) {
-              this.spawnNear(m.addKind ?? 'runner', e.x, e.y);
+              this.spawnNear(m.addKind ?? 'runner', e.x, e.y, e.owedWave);
             }
             b.telegraph = 'BROODBURST';
             e.hitFlash = FX.hitFlash;
@@ -3544,6 +3597,7 @@ export class Game {
     if (!def) return;
     const copies = def.modules.find((m) => m.kind === 'splitter')?.amount ?? 2;
     const childHp = Math.max(1, Math.floor(parent.maxHp * 0.4)); // diminishing — finishing beats overkill
+    const firstChild = this.enemies.length;
     for (let i = 0; i < copies; i++) {
       if (this.enemies.length >= PERF.maxEnemies) break;
       const ang = ((i + 0.5) / copies) * Math.PI * 2;
@@ -3566,11 +3620,13 @@ export class Game {
         },
       });
     }
+    if (parent.owedWave !== undefined) for (let k = firstChild; k < this.enemies.length; k++) this.enemies[k].owedWave = parent.owedWave; // §owed: the split is still that wave
     this.floats.push({ x: parent.x, y: parent.y - 20, text: 'SPLIT!', color: def.color, life: 0.9 });
   }
 
-  /** Spawn a normal enemy at a position (boss adds). */
-  private spawnNear(kind: EnemyKind, x: number, y: number): void {
+  /** Spawn a normal enemy at a position (boss adds). `owedWave`: the summoner's called-over wave
+   *  (EARLY CALL §owed) — its adds belong to that wave too. */
+  private spawnNear(kind: EnemyKind, x: number, y: number, owedWave?: number): void {
     if (this.enemies.length >= PERF.maxEnemies) return;
     const def = ENEMY_DEFS[kind];
     this.enemies.push({
@@ -3581,6 +3637,7 @@ export class Game {
       lastHitKind: null, boss: null, elite: false,
       shield: def.shieldHp, summonCd: def.summon?.interval, siegeCd: def.siege?.interval,
     });
+    if (owedWave !== undefined) this.enemies[this.enemies.length - 1].owedWave = owedWave;
   }
 
   // ════════════════════════ MEGA BOSS (docs/MEGA-BOSS.md) ════════════════════════
@@ -4376,7 +4433,7 @@ export class Game {
         e.summonCd = (e.summonCd ?? def.summon.interval) - dt; // Summoner
         if (e.summonCd <= 0) {
           e.summonCd = def.summon.interval;
-          for (let i = 0; i < def.summon.count; i++) this.spawnNear(def.summon.kind, e.x, e.y);
+          for (let i = 0; i < def.summon.count; i++) this.spawnNear(def.summon.kind, e.x, e.y, e.owedWave);
           // Birth burst — the womb's release reads on the battlefield (render-only particles).
           this.spawnParticles(e.x, e.y, PARTICLE.spore, def.color);
         }
@@ -8494,6 +8551,7 @@ export class Game {
       draft: this.draft ? this.draftOffers(this.draft) : null,
       draftKind: this.draftKind,
       draftsOwed: this.draftsOwed,
+      owedDraftWave: this.owedDraftWave || undefined,
       spliceCost: this.spliceOn && this.phase === 'prep' && !this.tutorialMode && this.dailyFx.draftEveryWaves <= 0 ? this.spliceCost() : -1,
       // §reroll: the open draft's one paid re-deal — price, or -1 once used / in the tutorial.
       draftRerollCost: this.phase === 'draft' && this.draft !== null && !this.draftRerolled && !this.tutorialMode ? this.rerollCost() : -1,

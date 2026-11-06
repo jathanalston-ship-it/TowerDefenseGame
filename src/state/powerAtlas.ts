@@ -15,6 +15,7 @@ import type { PowerSlice } from './profile';
 import { bestPurchase } from './bestPurchase';
 import { adaptableUnits, adaptationPicks } from './adaptationAdvisor';
 import { equipUpgrades } from './equipAdvisor';
+import { isOpenNav } from './unlocks';
 import { collectionContextOf, fieldedLoadout, isTowerUnlocked, loadoutOf } from './meta';
 import { collectionView } from '../core/collection';
 import { MULLIGAN_SLOTS } from '../core/mulligan';
@@ -133,13 +134,17 @@ export function powerAtlas(save: SaveData): PowerAtlasModel {
     note: `${Math.round(cv.completion * 100)}% assimilated · discover specimens to compound Power`,
   });
 
+  // THE SEAL RULE (docs/PROGRESSION-GATING.md): a wing the player hasn't reached has no row and can
+  // never be the best move — its one-tap action would bypass the gate (Antigen spent before the
+  // Adaptation Chamber opened, reported 2026-11-06).
+  const open = systems.filter((s) => isOpenNav(save, s.nav));
   // Best move now = the biggest AFFORDABLE exact gain anywhere (powerDelta is currency-free,
   // so cross-system comparison is honest — unlike per-1k value, which stays per-surface).
   let headline: PowerAtlasModel['headline'] = null;
-  for (const sys of systems) {
+  for (const sys of open) {
     if (sys.move && sys.move.affordable && sys.move.powerDelta > 0 && (!headline || sys.move.powerDelta > headline.move.powerDelta)) {
       headline = { system: sys, move: sys.move };
     }
   }
-  return { score, slices, systems, headline };
+  return { score, slices, systems: open, headline };
 }

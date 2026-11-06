@@ -7,10 +7,14 @@
 import { describe, it, expect } from 'vitest';
 import { advisorPlan } from './powerAdvisor';
 import { defaultSave } from '../save/saveStore';
+import { isOpenNav } from './unlocks';
+
+/** An account that has reached every advised wing (the plan only covers revealed screens). */
+const developed = (): ReturnType<typeof defaultSave> => { const s = defaultSave(); s.campaign.cleared = { standard: 30 }; s.totalRuns = 25; return s; };
 
 describe('Power Advisor — the cross-system plan', () => {
   it('a funded account gets a ranked, affordable, executable plan', () => {
-    const s = { ...defaultSave(), shards: 800 }; // Genome Cores fund Evolution HQ purchases
+    const s = { ...developed(), shards: 800 }; // Genome Cores fund Evolution HQ purchases
     const plan = advisorPlan(s, 5);
     expect(plan.moves.length).toBeGreaterThan(0);
     for (const m of plan.moves) {
@@ -27,7 +31,10 @@ describe('Power Advisor — the cross-system plan', () => {
   });
 
   it('a fresh, broke account gets an EMPTY plan plus a save-up target — never fabricated gains', () => {
-    const plan = advisorPlan(defaultSave(), 5);
+    const broke = defaultSave();
+    broke.campaign.cleared = { standard: 12 }; // the buy wings are open; the Chamber (free Antigen picks) isn't yet
+    broke.totalRuns = 12;
+    const plan = advisorPlan(broke, 5);
     expect(plan.moves).toEqual([]); // nothing affordable ⇒ nothing promised
     expect(plan.totalGain).toBe(0);
     expect(plan.saveUp).not.toBeNull(); // …but the thing worth banking for is named
@@ -35,8 +42,15 @@ describe('Power Advisor — the cross-system plan', () => {
     expect(plan.saveUp!.powerDelta).toBeGreaterThan(0);
   });
 
+  it('never advises a sealed wing (the seal rule) — a fresh account is offered nothing it cannot reach', () => {
+    const fresh = { ...defaultSave(), shards: 800, towerMasteryXp: { ...defaultSave().towerMasteryXp, needle: 1e9 } };
+    const plan = advisorPlan(fresh, 8);
+    for (const m of [...plan.moves, ...(plan.saveUp ? [plan.saveUp] : [])]) expect(isOpenNav(fresh, m.nav), m.nav).toBe(true);
+    expect(plan.moves.some((m) => m.action.type === 'adapt')).toBe(false);
+  });
+
   it('respects k and stays deterministic', () => {
-    const s = { ...defaultSave(), shards: 800 };
+    const s = { ...developed(), shards: 800 };
     expect(advisorPlan(s, 1).moves.length).toBeLessThanOrEqual(1);
     expect(JSON.stringify(advisorPlan(s, 5))).toBe(JSON.stringify(advisorPlan(s, 5)));
   });

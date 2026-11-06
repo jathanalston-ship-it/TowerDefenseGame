@@ -147,11 +147,22 @@ describe('effects — golden-safe fold into the existing per-kind kit', () => {
 
 describe('meta layer — spends, campaign gating, PRICED + GATED respec', () => {
   const xp = { ...defaultSave().towerMasteryXp, needle: 1e9 }; // deep mastery ⇒ plenty of ranks
+  // These cases exercise the TREE's own gates, so the Chamber is open: a latched reveal (a player
+  // who already met the wing) at whatever campaign stage the case needs.
+  const chamber = (s: ReturnType<typeof defaultSave>): ReturnType<typeof defaultSave> => ({ ...s, director: { ...s.director, revealed: { ...s.director.revealed, adaptation: 1 } } });
+
+  it('the SEALED wing refuses every spend — Antigen banks until the Adaptation Chamber opens', () => {
+    meta.importText(serializeExport({ ...defaultSave(), towerMasteryXp: xp }));
+    expect(meta.adaptation('tower', 'needle').pointsAvailable).toBeGreaterThan(0); // the budget banks…
+    expect(meta.spendAdaptation('tower', 'needle', 'needle.predation.1')).toBe(false); // …but can't be spent
+    meta.importText(serializeExport({ ...defaultSave(), towerMasteryXp: xp, campaign: { cleared: { standard: 24 }, bestTime: {} } }));
+    expect(meta.spendAdaptation('tower', 'needle', 'needle.predation.1')).toBe(true); // stage 24 opens the Chamber
+  });
 
   it('spend refused at 0 points; succeeds with budget; deep tiers wait for the campaign', () => {
-    meta.importText(serializeExport(defaultSave()));
+    meta.importText(serializeExport(chamber(defaultSave())));
     expect(meta.spendAdaptation('tower', 'needle', 'needle.predation.1')).toBe(false);
-    meta.importText(serializeExport({ ...defaultSave(), towerMasteryXp: xp }));
+    meta.importText(serializeExport(chamber({ ...defaultSave(), towerMasteryXp: xp })));
     for (const id of ['needle.predation.1', 'needle.predation.2', 'needle.predation.3']) {
       expect(meta.spendAdaptation('tower', 'needle', id)).toBe(true);
     }
@@ -167,7 +178,7 @@ describe('meta layer — spends, campaign gating, PRICED + GATED respec', () => 
   it('a LOCKED (dormant) tower refuses spends outright — Antigen only flows into synthesized organisms', () => {
     // maw ships gated (unlockShards > 0): with a fat budget the spend is still refused until
     // synthesis, then the SAME pick succeeds — the guard tests unlock state, nothing else.
-    meta.importText(serializeExport({ ...defaultSave(), towerMasteryXp: { ...defaultSave().towerMasteryXp, maw: 1e9 } }));
+    meta.importText(serializeExport(chamber({ ...defaultSave(), towerMasteryXp: { ...defaultSave().towerMasteryXp, maw: 1e9 } })));
     expect(meta.adaptation('tower', 'maw').pointsAvailable).toBeGreaterThan(0); // budget exists…
     expect(meta.spendAdaptation('tower', 'maw', 'maw.predation.1')).toBe(false); // …but the tree is sealed
     meta.importText(serializeExport({ ...meta.get(), towerUnlocked: [...(meta.get().towerUnlocked ?? []), 'maw'] }));
@@ -175,7 +186,7 @@ describe('meta layer — spends, campaign gating, PRICED + GATED respec', () => 
   });
 
   it('respec: refused before the stage gate; then PRICED in Genome Cores and refunds all', () => {
-    meta.importText(serializeExport({ ...defaultSave(), towerMasteryXp: xp, shards: 1000 }));
+    meta.importText(serializeExport(chamber({ ...defaultSave(), towerMasteryXp: xp, shards: 1000 })));
     meta.spendAdaptation('tower', 'needle', 'needle.predation.1');
     meta.spendAdaptation('tower', 'needle', 'needle.mutation.1');
     expect(meta.respecAdaptation('tower', 'needle')).toBe(false); // stage 0 < gate

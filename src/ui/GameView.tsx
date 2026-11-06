@@ -172,8 +172,8 @@ export function GameView({
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const gameRef = useRef<Game | null>(null);
   // One DraftModal MOUNT per deal: the modal locks after its one pick (anti double-pick), so a deal
-  // that follows a pick without the phase leaving 'draft' — an EARLY CALL's owed drafts, dealt back
-  // to back (docs/EARLY-CALL.md) — must get a fresh mount or every later pick is ignored.
+  // that follows a pick without the phase leaving 'draft' — an EARLY CALL's owed draft caught at the
+  // clear (docs/EARLY-CALL.md §owed) — must get a fresh mount or every later pick is ignored.
   const draftPicks = useRef(0);
   // BOSS VERB HOLD (render/feel.ts BOSS_VERB_HOLD_MS): the sim's banner verb lives one tick — keep the last
   // one on screen long enough to read (presentation only; a new verb replaces it at once).
@@ -1450,7 +1450,7 @@ export function GameView({
           <DraftModal
             key={draftPicks.current}
             options={hud.draft}
-            clearedWave={hud.wave}
+            clearedWave={hud.owedDraftWave ?? hud.wave} // EARLY CALL §owed: a called-over wave's own number
             kind={hud.draftKind}
             owedAfter={hud.draftsOwed ?? 0}
             forceManual={!!tutorial || !automation.allowed}

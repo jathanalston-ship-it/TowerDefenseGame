@@ -159,6 +159,9 @@ export interface Enemy {
   // surge. Optional/lazy — undefined until a warcry ever fires, so the base path is untouched.
   hasteT?: number; // seconds of warcry haste remaining
   hasteMult?: number; // speed multiplier while hasteT > 0 (set by the warcry that granted it)
+  // EARLY CALL (docs/EARLY-CALL.md §owed): the called-over wave this unit still belongs to — that
+  // wave's gene draft is dealt the moment its last unit falls. Undefined unless a wave was called early.
+  owedWave?: number;
 }
 
 /** An ARTILLERY shell in flight (Siege Maw / Acid Spitter bombardment — docs/ENEMIES.md
@@ -763,9 +766,12 @@ export interface HudSnapshot {
   /** Why the open draft was dealt (docs/CARDS.md): a cleared wave, the run's OPENING draft (§opening) or a
    *  bought SPLICE (§splice). Optional — absent reads as 'wave'. */
   draftKind?: 'wave' | 'opening' | 'splice';
-  /** EARLY CALL (docs/EARLY-CALL.md): drafts still owed AFTER the open one — called-over waves' cards,
-   *  dealt back to back at the clear. Optional (fixtures); 0/absent = this is the last. */
+  /** EARLY CALL (docs/EARLY-CALL.md §owed): drafts still owed AFTER the open one — called-over waves
+   *  whose own last unit has not fallen yet (each is dealt the moment it does). Optional (fixtures). */
   draftsOwed?: number;
+  /** EARLY CALL §owed: the called-over wave the OPEN draft pays (dealt mid-fight when that wave's last
+   *  unit fell, or at the clear). Absent/0 ⇒ the open draft is the current wave's own. */
+  owedDraftWave?: number;
   /** §splice: the Biomass price of an extra draft RIGHT NOW (build phase, feature on); -1 = unavailable.
    *  The button shows only once the bank reaches it — the price IS the threshold. Optional (fixtures). */
   spliceCost?: number;

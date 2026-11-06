@@ -131,6 +131,10 @@ probe). Three rules now apply (`state/mechanics.ts`, `state/fieldNotes.ts`, `met
 1. **The seal rule.** A mechanic whose `nav` names a gated screen never unlocks — in the Help wiki or
    What's New — before that screen reveals (`isMechanicUnlocked`). It closed two leaks: the Nucleus row
    announced the stage-25 Mulligan Lab from minute 0, Gene Essence the stage-4 Gene Archive after run 1.
+   It binds every ADVICE surface too (2026-11-06): the Power Atlas (Growth panel BEST MOVE) and the Power
+   Advisor (Mission Control, Hive Intel) rank moves only on wings `isOpenNav` admits, and
+   `meta.spendAdaptation` refuses while the Adaptation Chamber is sealed — a one-tap best move had spent
+   banked Antigen before stage 24 (owner report).
 2. **Pacing.** `meta.whatsNew()` hands at most `ANNOUNCE.perBeat` = **2** cards per BEAT (a finished
    run); a revealed screen's own lesson (`FEATURES.teach`) leads, then registry order. The beat is
    session memory (no save field — a reload opens a fresh beat). Nothing is hidden: a queued mechanic
