@@ -3,7 +3,7 @@
 > Maintained at the END of every session (paired with `docs/AI_HANDOFF.md` — the constitution's
 > workflow step 4). This is the "where are we?" answer; `docs/GAME-STATE.md` remains the deeper
 > per-system built-vs-planned index, `docs/PROJECT_MANIFEST.md` the system map.
-> **Last updated:** 2026-11-06a (**FIRST STEPS, WALKED WITH YOU — validated, awaiting the owner's release go-ahead.**
+> **Last updated:** 2026-11-06a (**DEPLOYED — FIRST STEPS, WALKED WITH YOU** (`a0b332d`, run #237; owner approved "release the batch").**
 > Owner playtest fixes + asks: (1) EARLY CALL §owed — a called-over wave's draft is dealt the moment ITS last unit falls
 > (mid-fight; the pick resumes the fight), not 2–4 in a row at the clear; (2) the SEAL RULE now binds the Power Atlas /
 > Advisor (BEST MOVE could level Adaptations before stage 24) and `spendAdaptation` refuses a sealed Chamber; (3) THE FIRST

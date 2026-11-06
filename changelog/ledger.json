@@ -1,6 +1,6 @@
 {
-  "lastSha": "a7e5103177f987f11aae80e712b51a6955497142",
-  "commitsSinceDraft": 0,
+  "lastSha": "a0b332de3bfe566304f8b98f9a6478231f5e115b",
+  "commitsSinceDraft": 2,
   "content": {
     "tower": [
       "needle",
@@ -4072,7 +4072,7 @@
       "id": "v2026.11.06",
       "date": "2026-11-06",
       "title": "First Steps, Walked With You",
-      "sealed": false,
+      "sealed": true,
       "entries": [
         {
           "cat": "UX",
@@ -9039,6 +9039,22 @@
       "text": "Site copy: hands-on first steps and per-wave Early Call drafts; devlog 'Your first steps, walked with you'",
       "internal": false,
       "needsReview": false
+    },
+    {
+      "sha": "80ab789fd1de11c5986c19cf604014ea04ff824c",
+      "date": "2026-11-06",
+      "cat": "Website",
+      "text": "Release notes 'First Steps, Walked With You' curated; site + PIL regenerated (review stamp 2026-11-06)",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "a0b332de3bfe566304f8b98f9a6478231f5e115b",
+      "date": "2026-11-06",
+      "cat": "Framework",
+      "text": "Validation,status: first steps + Early Call + best move + frame rate PASS over 429e7db..HEAD — 3130/3130, mobile gate clean",
+      "internal": true,
+      "needsReview": true
     }
   ]
 }

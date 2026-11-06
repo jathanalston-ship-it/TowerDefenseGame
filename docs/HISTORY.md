@@ -657,3 +657,5 @@
 - `b63e516` **[Performance]** Docs: frame budget, hot spots and the unpulled perf levers _(internal)_
 - `cbf1c17` **[Website]** First loop: a one-screen hub's door skips the landing step; one advance per step
 - `a7e5103` **[Website]** Site copy: hands-on first steps and per-wave Early Call drafts; devlog 'Your first steps, walked with you'
+- `80ab789` **[Website]** Release notes 'First Steps, Walked With You' curated; site + PIL regenerated (review stamp 2026-11-06)
+- ⚑ `a0b332d` **[Framework]** Validation,status: first steps + Early Call + best move + frame rate PASS over 429e7db..HEAD — 3130/3130, mobile gate clean _(internal)_

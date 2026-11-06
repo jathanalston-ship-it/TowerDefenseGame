@@ -8,7 +8,7 @@ export const RELEASES: Release[] = [
     "id": "v2026.11.06",
     "date": "2026-11-06",
     "title": "First Steps, Walked With You",
-    "sealed": false,
+    "sealed": true,
     "entries": [
       {
         "cat": "UX",
