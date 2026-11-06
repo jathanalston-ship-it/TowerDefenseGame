@@ -262,8 +262,9 @@ the player do it, one real control at a time (`state/firstLoop.ts` data, `ui/Fir
   banner, Recommended, the campaign forecast, the roadmap, the feed and the dashboard, and the
   objective ledger shows two rows (`FIRST_LOOP_LEDGER_ROWS`); the Growth panel arrives after GROW.
 - **Never traps:** a rail control on a narrow shell points at ☰ first; a control below the fold is
-  scrolled into view; a control on another screen offers "Take me there"; a landing-only control that
-  vanishes steps back to the door that opens it; a control genuinely absent on its own screen offers
+  scrolled into view; a control on another screen offers "Take me there"; a landing card whose hub has
+  ONE revealed screen is skipped (the rail door opens that screen directly — `dest`); a landing-only
+  control that vanishes steps back to the door that opens it; a control genuinely absent on its own screen offers
   Next; "Skip the guide" ends the whole loop.
 - **Who sees it:** graduates only (the Combat Tutorial done or skipped), in each beat's run window;
   an account with ≥ `FIRST_LOOP_MAX_RUNS` (4) runs never does. Progress lives in the tutorial

@@ -60,6 +60,13 @@ describe('the first loop — every step points at something real', () => {
     }
   });
 
+  it('a hub-landing step names the screen it opens (a one-screen hub skips its landing)', () => {
+    for (const beat of FIRST_LOOP) for (const st of beat.steps) {
+      const m = /^\.hubl-grid \[data-nav="([\w-]+)"\]$/.exec(st.anchor ?? '');
+      if (m) expect(st.dest, `${beat.id}: ${st.title}`).toBe(m[1]);
+    }
+  });
+
   it('copy stays short — a step is a glance, not a lecture', () => {
     for (const beat of FIRST_LOOP) {
       expect(beat.steps.length, beat.id).toBeLessThanOrEqual(8);

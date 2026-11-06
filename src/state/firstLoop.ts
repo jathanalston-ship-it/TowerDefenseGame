@@ -29,6 +29,9 @@ export interface CoachStep {
   /** The hub screen the control lives on — the recovery button navigates here when the anchor is
    *  missing (the player wandered off). 'home' = the Command Center. */
   nav?: string;
+  /** The screen this step OPENS (a hub-landing card). Already on it ⇒ the step is done: a hub with a
+   *  single revealed screen opens it straight from its rail door, with no landing in between. */
+  dest?: string;
   /** The control sits in the hub RAIL: on a narrow shell the rail is a drawer, so the coach first
    *  points at the ☰ menu button. */
   rail?: boolean;
@@ -73,7 +76,7 @@ export const FIRST_LOOP: CoachBeat[] = [
         text: 'Every run pays Genome Cores and Strain Samples. Spending them makes you permanently stronger.' },
       { anchor: '[data-hub="progression"]', nav: 'home', rail: true, advance: 'click', title: 'Open the Evolution Hub',
         text: 'This menu holds everything you upgrade between runs.' },
-      { anchor: '.hubl-grid [data-nav="towers"]', advance: 'click', title: 'Open the Tower Lab',
+      { anchor: '.hubl-grid [data-nav="towers"]', dest: 'towers', advance: 'click', title: 'Open the Tower Lab',
         text: 'Your towers get permanent upgrades here.' },
       { anchor: '[data-guide="lab-buy"]', nav: 'towers', advance: 'click', title: 'Buy a star',
         text: 'Spend Strain Samples on a star. It is permanent: this tower is stronger in every run from now on.',
@@ -93,7 +96,7 @@ export const FIRST_LOOP: CoachBeat[] = [
     steps: [
       { anchor: '[data-hub="rewards"]', nav: 'home', rail: true, advance: 'click', title: 'Collect your loot',
         text: 'Runs bank sealed Bio-Containers. Open the Rewards Hub.' },
-      { anchor: '.hubl-grid [data-nav="vault"]', advance: 'click', title: 'Open the Genetic Vault',
+      { anchor: '.hubl-grid [data-nav="vault"]', dest: 'vault', advance: 'click', title: 'Open the Genetic Vault',
         text: 'Your containers wait here.' },
       { anchor: '[data-guide="vault-crack"]', nav: 'vault', advance: 'click', title: 'Crack one open',
         text: 'Gear, samples and materials pour out.',

@@ -347,6 +347,11 @@ async function followCoach(page: Page, beat: string, maxSec: number, done: () =>
       continue;
     }
     if (titles[titles.length - 1] !== st.title) titles.push(st.title);
+    if (process.env.PROBE_COACH_DEBUG) {
+      const hit = st.ring ? await page.evaluate(({ x, y }) => { const e = document.elementFromPoint(x, y); return e ? `${e.tagName.toLowerCase()}.${String(e.className).slice(0, 40)} nav=${e.closest('[data-nav]')?.getAttribute('data-nav') ?? '-'}` : 'none'; }, st.ring) : '-';
+      const eyebrow = await page.evaluate(() => document.querySelector('.flcoach-eyebrow')?.textContent ?? '');
+      log(`    coach[${eyebrow}] ${st.title} next=${st.next} go=${st.go} ring=${st.ring ? `${Math.round(st.ring.x)},${Math.round(st.ring.y)}` : '-'} hit=${hit}`);
+    }
     if (st.next) await clickBox(page, '.flcoach-next');
     else if (st.ring) await page.mouse.click(st.ring.x, st.ring.y);
     else if (st.go) await clickBox(page, '.flcoach-go');

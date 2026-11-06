@@ -68,10 +68,14 @@ export function FirstLoopCoach(): JSX.Element | null {
   const began = useRef<SaveData>(save); // the save when this step began (`done` compares against it)
   const missingSince = useRef<number | null>(null);
   const scrolled = useRef(false); // one scroll-into-view per step (never fights the player's own scrolling)
+  const advancedFrom = useRef(''); // a step advances ONCE (a click, its save change and the poll can coincide)
   const [onNav, setOnNav] = useState(false); // already on the step's screen → no "Take me there"
 
   const advance = (): void => {
     if (!beat) return;
+    const key = `${beat.id}:${i}`;
+    if (advancedFrom.current === key) return;
+    advancedFrom.current = key;
     if (i >= beat.steps.length - 1) {
       meta.completeCoachBeat(beat.id);
       audio.cue('unlock');
@@ -95,6 +99,8 @@ export function FirstLoopCoach(): JSX.Element | null {
     if (!step) return undefined;
     const measure = (): void => {
       setHidden(blocked());
+      // Already where this step leads (a one-screen hub's door opened it directly) — it's done.
+      if (step.dest && currentScreen() === step.dest) { advance(); return; }
       if (!step.anchor) { setAim({ mode: 'missing', rect: null }); return; }
       const el = onScreen(step.anchor);
       if (el) { missingSince.current = null; setAim({ mode: 'anchor', rect: el.getBoundingClientRect() }); return; }
@@ -117,6 +123,7 @@ export function FirstLoopCoach(): JSX.Element | null {
     const t = window.setInterval(measure, POLL_MS);
     window.addEventListener('resize', measure);
     return () => { clearInterval(t); window.removeEventListener('resize', measure); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [step, i]);
 
   // The practice objective: the player's own click inside the control completes the step. Capture
