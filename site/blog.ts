@@ -17,6 +17,33 @@ export interface BlogPost {
 
 export const POSTS: BlogPost[] = [
   {
+    slug: 'first-steps-walked',
+    date: '2026-11-06',
+    title: 'Your first steps, walked with you',
+    category: 'Systems',
+    tags: ['onboarding', 'design', 'ui', 'performance'],
+    summary: 'Coming back to base after your first fights used to mean a screen full of panels, cards and pop-ups. Now the game walks you through it one button at a time: you open the menus, buy your first upgrade and crack your first container yourself. Plus Early Call drafts that arrive on time, a fix for Best Move, and a lighter battlefield.',
+    body: `
+<p>A player told us the truth after their first session: the fight was fine, but coming back to base was a lot on the screen at once. The tutorial taught combat well. Nothing taught the loop around it. Here is what changed.</p>
+<h2>First steps, hands-on</h2>
+<p>After the tutorial, your first three visits to the Command Center are guided, and you do every step yourself. Each step lights up the real button and waits for you to press it:</p>
+<ul>
+<li><b>Before your first run:</b> where your next fight is, and how to deploy.</li>
+<li><b>After run 1:</b> open the Evolution Hub, open the Tower Lab, buy your first star, watch your Power rise, head home, read what to do next, and deploy into Stage 2.</li>
+<li><b>After run 2:</b> open the Rewards Hub, crack your first Bio-Container, meet Best Move, and open your Daily Bio-Cache.</li>
+</ul>
+<p>On a phone it opens the ☰ menu with you, and if you wander off it offers to take you back. You can skip it at any step.</p>
+<h2>A calmer board while you learn</h2>
+<p>While the guide is running, the Command Center only shows what it has introduced so far. The live-event banner, the side panels and the reward pop-ups wait, and the goal list shows just your two nearest goals. The full board opens up when the guide is done.</p>
+<h2>Early Call drafts arrive on time</h2>
+<p>Calling waves early used to leave their gene drafts until every called wave was gone, so you could face three or four drafts in a row. Now each called wave's draft arrives the moment that wave's own last enemy falls. You pick, and the fight carries on.</p>
+<h2>Best Move respects what you've unlocked</h2>
+<p>The Best Move shortcut on the Command Center could spend points in systems you hadn't reached yet. It could even level Adaptations before the Adaptation Chamber opened. It now only suggests upgrades on screens you've unlocked, and points you earn early wait safely until their screen opens.</p>
+<h2>A lighter battlefield</h2>
+<p>We profiled busy fights and rapid clicking on a deliberately slowed-down machine. On that machine the game loop now does 8–14% less work per frame, creates about a third less memory garbage, and handles tower clicks more cheaply. The battlefield looks exactly the same: we compared every draw call before and after.</p>
+`,
+  },
+  {
     slug: 'a-lighter-first-download',
     date: '2026-11-05',
     title: 'A lighter first download: the game starts sooner',
