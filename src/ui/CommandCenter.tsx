@@ -405,7 +405,9 @@ function MissionControl({ save, view, go, start, onStartCampaign, onStartEndless
       {/* ── The objective ledger (Foundation #1) — SECONDARY moves + where it's all going. ── */}
       {(mc.secondary.length > 0 || mc.longterm.length > 0) && (
         <div className="mc-ledger" aria-label="Mission objectives">
-          {(firstLoopDone(save) ? mc.secondary : mc.secondary.slice(0, FIRST_LOOP_LEDGER_ROWS)).map((o) => ( // §first-loop: a short list until the loop is walked
+          {/* §first-loop: until the loop is walked, the two rows CLOSEST to done (a new account's
+              long roads — First Molt, slot 2 — would otherwise lead the short list). */}
+          {(firstLoopDone(save) ? mc.secondary : [...mc.secondary].sort((x, y) => y.progress - x.progress).slice(0, FIRST_LOOP_LEDGER_ROWS)).map((o) => (
             <button key={o.id} className="mc-obj" onClick={() => go(o.nav as NavKey)} title={o.why}>
               <span className="mc-obj-ring" style={{ ['--p' as string]: o.progress }} aria-hidden>
                 <b>{Math.round(o.progress * 100)}%</b>
