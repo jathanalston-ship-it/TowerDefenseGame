@@ -22,7 +22,7 @@ import { FEATURE_BY_ID } from '../state/unlocks';
 
 export type NavKey =
   | 'home' | 'campaign' | 'infinite' | 'bossrush' | 'daily' | 'quests' | 'season' | 'arena' | 'infestation' | 'metabolism'
-  | 'towers' | 'heroes' | 'expeditions' | 'evolution' | 'adaptation' | 'genes' | 'mulligans' | 'hive' | 'harvest'
+  | 'towers' | 'heroes' | 'expeditions' | 'evolution' | 'bonds' | 'adaptation' | 'genes' | 'mulligans' | 'hive' | 'harvest'
   | 'vault' | 'market' | 'auction' | 'equipment' | 'gearcodex' | 'phenotypes' | 'specimens' | 'collection'
   | 'store'
   | 'profile' | 'settings' | 'help';
@@ -73,6 +73,7 @@ export const navGroups = (): NavGroup[] => [
     row('towers'),
     row('heroes'),
     row('evolution'),
+    row('bonds'), // Class Bonds (docs/CLASS-BONDS.md)
     row('adaptation'), // Adaptation Chamber (docs/ADAPTATION.md)
     row('genes'),
     row('mulligans'),

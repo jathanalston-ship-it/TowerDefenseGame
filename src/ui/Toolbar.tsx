@@ -4,6 +4,7 @@ import { audio } from '../audio/sound';
 import { telemetry } from '../net/telemetry';
 import type { HudSnapshot } from '../core/types';
 import { meta, masteryLevel } from '../state/meta';
+import { COMBAT_CLASSES } from '../core/combatClass';
 import { BiomassIcon, BoltIcon, HeroIcon } from './components/Icon';
 
 /** Best strain-merge target for `kind` (mirrors Game.strainFromConveyor's pick) + its cost. */
@@ -122,6 +123,7 @@ export function Toolbar({
                   style={{ ['--cv' as string]: def.color, ['--grow' as string]: c.growFrac }}
                 >
                   <div className="cv-head">
+                    <span className="cv-cls" style={{ color: COMBAT_CLASSES[def.combatClass].color }} title={hud.bonds ? `${def.combatClass} — counts toward the ${def.combatClass} bond` : def.combatClass} aria-label={def.combatClass}>{COMBAT_CLASSES[def.combatClass].glyph}</span>
                     <span className="cv-name">{def.name}</span>
                     {c.strain > 1 && <span className="cv-strain">Strain {ROMAN[c.strain - 1]}</span>}
                     {idx < 3 && <span className="hotkey" title={`Press ${idx + 2} to arm this pod`}>{idx + 2}</span>}

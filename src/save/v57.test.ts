@@ -11,7 +11,7 @@ const v56Blob = (over: Record<string, unknown>): string => JSON.stringify({ sche
 
 describe('v56 → v57 migration', () => {
   it('the schema is v57', () => {
-    expect(CURRENT_VERSION).toBe(57);
+    expect(CURRENT_VERSION).toBeGreaterThanOrEqual(57); // v58 (Class Bonds) is additive on top
   });
 
   it('a player who met the screens archives their lessons (no veteran "new system" cards)', () => {

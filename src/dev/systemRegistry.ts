@@ -218,6 +218,14 @@ export const SYSTEMS: SystemDef[] = [
     docs: ['docs/GENE-EVOLUTION.md', 'docs/CARDS.md', 'docs/GENE-AUDIT-REPORT.md'],
   },
   {
+    id: 'class-bonds', name: 'Class Bonds', purpose: 'The class set bonus (docs/CLASS-BONDS.md): every deployed tower and fielded hero counts toward its combat class; 2/4/6 units wake Bond I/II/III for as long as they stay deployed; per-class bond levels (Genome Cores) strengthen every tier.',
+    files: ['src/core/classBonds.ts', 'src/ui/BondsScreen.tsx'],
+    dependsOn: ['engine', 'towers', 'heroes', 'power', 'meta-store', 'progression-gating'], powerScore: 'classBondsPowerMult multiplies the meta PowerParts bucket (BOND.powerPerLevel per level; \u00d71 with no levels)', save: ['classBonds'],
+    tutorial: [], help: ['class-bonds', 'bonds-in-battle'], hud: ['Run Build \u2192 Class Bonds strip', 'conveyor pod class marks', 'tier-rise board announcement'],
+    ui: ['BondsScreen (Evolution Hub)'], collection: 'none', achievements: [],
+    localization: 'inline-en', docs: ['docs/CLASS-BONDS.md'],
+  },
+  {
     id: 'nucleus', name: 'Nucleus Mulligans', purpose: 'The Hive Nucleus\u2019s own organ system: 3 chambers \u00d7 3 support organs, class adaptations, visible Hive mutations, multi-system chamber trials.',
     files: ['src/core/nucleus.ts', 'src/render/nucleusDress.ts', 'src/ui/NucleusChambers.tsx'],
     dependsOn: ['mulligans', 'content-infra', 'power', 'meta-store', 'genome-rank'], powerScore: 'nucleusPower multiplies the mulligans PowerParts bucket (\u00d71 while no chamber is complete); organs are SUPPORT-only \u2014 towerDamageMult is registry-banned', save: ['nucleus'],

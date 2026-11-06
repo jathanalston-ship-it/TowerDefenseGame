@@ -6,7 +6,7 @@
 > build disagree, **the build wins and this file is the tiebreaker.** Prefer reading this over
 > re-reading a system's implementation (per CLAUDE.md "Trust existing architecture").
 >
-> **Save schema:** `CURRENT_VERSION = 57` (additive migrations via `withDefaults` + per-field
+> **Save schema:** `CURRENT_VERSION = 58` (additive migrations via `withDefaults` + per-field
 > sanitizers; checksummed blob). **Stack:** React + TypeScript + Vite static SPA, deterministic sim
 > core in `src/core/` (no React/DOM), Canvas renderer, browser-local saves. Tests: `npm test`
 > (Vitest) — the golden characterization test pins the sim byte-for-byte.
@@ -570,6 +570,13 @@ sink ≈ hour-400 at endgame income — re-tune as the library grows.
   (foundationsUX.test.ts): every persona across the spectrum always has an objective, a bounded feed,
   and something to do — no dead-ends, no notification walls
 - ✅ Combat Tutorial, HUD Tour, Help wiki + mechanics registry, "What's New" — TUTORIAL.md, HELP.md
+- ✅ **CLASS BONDS** (2026-11-06, CLASS-BONDS.md) — the class set bonus: every deployed tower and fielded
+  hero counts toward its combat class; 2 / 4 / 6 units wake Bond I / II / III for as long as they stay
+  deployed (Impact · Dissolution · Contagion · Lattice · Sustain · Chorus — damage, fire rate, a Core mend,
+  an all-tower chorus). Bond levels 0–10 per class (Genome Cores, Evolution Hub → Class Bonds) strengthen
+  every tier (×1.8 at 10) and count toward Power. Reveals at Campaign stage 13 (the same gate turns them on
+  in runs); Daily runs base strength. Taught by its What's New card + guided walkthrough, a CLASS BOND field
+  note the first time one wakes, Run Build's live Class Bonds strip and the conveyor's class marks. Save v58
 - ✅ **THE FIRST LOOP** (2026-11-06, TUTORIAL.md §first-loop) — a hands-on coach for a new account's
   first hub visits: DEPLOY (tap Continue Campaign), GROW after run 1 (open the Evolution Hub → Tower
   Lab → buy a star → Power → home → the objective ledger → deploy Stage 2), COLLECT after run 2

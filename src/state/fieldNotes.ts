@@ -56,6 +56,11 @@ export const FIELD_NOTES: FieldNoteDef[] = [
     when: (h) => h.phase === 'prep' && heroEvoAffordable(h),
   },
   {
+    mechanic: 'bonds-in-battle', anchor: '.bonds-strip', side: 'right', avoid: 'canvas.board', eyebrow: 'CLASS BOND',
+    text: 'A bond woke: you fielded two units of one class. Four and six wake stronger tiers — Run Build shows what each class gives.',
+    when: (h) => (h.bonds ?? []).some((b) => b.tier > 0),
+  },
+  {
     mechanic: 'game-speed', anchor: '.speed-ctl', side: 'bottom', avoid: 'canvas.board', eyebrow: 'GAME SPEED',
     text: 'The same fight, faster: tap 2× or 5×. Speed drops back to 1× by itself when danger spikes.',
     when: (h, v) => h.phase === 'wave' && h.wave >= 3 && v.speed === 1 && !h.emergency,

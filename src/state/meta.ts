@@ -119,6 +119,9 @@ import { unlockedMechanics, pacedAnnouncements } from './mechanics';
 import type { MechanicDef } from './mechanics';
 import { featureRevealed, unlatchedReveals } from './unlocks';
 import { FIRST_LOOP_BY_ID, beatKey } from './firstLoop';
+import { BOND, bondCost, classBondsPowerMult } from '../core/classBonds';
+import type { BondLevels } from '../core/classBonds';
+import type { CombatClass } from '../core/types';
 import type { CoachBeatId } from './firstLoop';
 import { ACCOUNT_XP, accountLevelReward, depthXpMult, levelFromXp, levelProgress, monthKey, nextMilestone, weekKey } from '../core/accountLevel';
 import type { AccountLevelReward } from '../core/accountLevel';
@@ -1206,13 +1209,15 @@ export function accountPowerParts(save: SaveData, temporary = 1): PowerParts {
   // Completed Mastery Evolution loops (docs/MASTERY.md §evolution track) are the same class of
   // permanent strength — ×1 while nothing has prestiged, so v43 saves read identically.
   const evolutionMult = masteryEvolutionPowerMult(save.masteryEvolution);
+  // Class Bond levels (v58, docs/CLASS-BONDS.md) — permanent strength like any upgrade; ×1 with none.
+  const bondsMult = classBondsPowerMult(save.classBonds);
   return {
     // Every PERMANENT strength source lands in `meta`: upgrades (tower-dmg proxy × genome run-effects ×
     // the hero/biomass/integrity/slot axes), prestige/ascendant, and collection bonuses — so ANY
     // upgrade raises Power. Towers/heroes/equipment/temporary are the other buckets.
     // Permanent gene-card upgrades are account strength → they fold into `meta` via the scale-safe
     // gene collection multiplier (1 until Task 4 authors upgrade levels; docs/GENE-EVOLUTION.md).
-    meta: genomeUpgradeFactor(save) * collectionMult * battlePassMult * wardrobeMult * geneCollectionPowerMult(save.genes) * heroSlotMult * evolutionMult,
+    meta: genomeUpgradeFactor(save) * collectionMult * battlePassMult * wardrobeMult * geneCollectionPowerMult(save.genes) * heroSlotMult * evolutionMult * bondsMult,
     towers: geomean(TOWER_ORDER.map((k) => tp[k].damageMult)),
     heroes: geomean(HERO_ORDER.map((k) => hp[k].damageMult)),
     equipment: equipmentPower(save),
@@ -2361,6 +2366,27 @@ export const meta = {
       upgrades: { ...save.upgrades, [id]: level + 1 },
     }, ACCOUNT_XP.acquisition).save); // every permanent acquisition advances the account (docs/ACCOUNT-LEVEL.md)
     announcePower(`${def.name} L${level + 1} — Genome Upgrade`, powerBefore, meta.power().score);
+    return true;
+  },
+
+  /** CLASS BONDS (docs/CLASS-BONDS.md): the account's bond level per combat class (sparse; absent = 0). */
+  bondLevels(): BondLevels {
+    return store.get().classBonds;
+  },
+  /** Raise one class's bond a level with Genome Cores — the set bonus that class's fielded units wake
+   *  in every run grows with it. Guarded like every permanent purchase; refused while the Class Bonds
+   *  screen is sealed (banked Cores wait — the seal rule), at max level, or unaffordable. */
+  upgradeBond(cls: CombatClass): boolean {
+    if (!guardOk('progress.upgrade', `bond:${cls}`)) return false;
+    const save = store.get();
+    if (!featureRevealed(save, 'bonds')) return false;
+    const level = save.classBonds[cls] ?? 0;
+    if (level >= BOND.maxLevel) return false;
+    const cost = bondCost(level);
+    if (save.shards < cost) return false;
+    const powerBefore = meta.power().score;
+    persist(foldAccountXp({ ...save, shards: save.shards - cost, classBonds: { ...save.classBonds, [cls]: level + 1 } }, ACCOUNT_XP.acquisition).save);
+    announcePower(`${cls} Bond L${level + 1}`, powerBefore, meta.power().score);
     return true;
   },
 

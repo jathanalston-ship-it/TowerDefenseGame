@@ -58,8 +58,8 @@ describe('navModel — portrait tab shell contract', () => {
 describe('navModel — folded screens (side screens live as host tabs)', () => {
   const folded = Object.keys(FOLDED_NAVS) as NavKey[];
 
-  it('the nav lists 26 destinations; the five folded screens are tabs, not rows', () => {
-    expect(allNavKeys().length).toBe(26);
+  it('the nav lists 27 destinations; the five folded screens are tabs, not rows', () => {
+    expect(allNavKeys().length).toBe(27); // +Class Bonds (2026-11-06, docs/CLASS-BONDS.md)
     expect(folded.sort()).toEqual(['expeditions', 'gearcodex', 'harvest', 'metabolism', 'specimens']);
     for (const k of folded) expect(allNavKeys(), `${k} must not be a nav row`).not.toContain(k);
   });

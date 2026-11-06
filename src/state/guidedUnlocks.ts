@@ -93,6 +93,15 @@ export const GUIDES: GuideDef[] = [
     ],
   },
   {
+    mech: 'class-bonds', nav: 'bonds', reward: 15,
+    steps: [
+      { anchor: '[data-guide="bonds-grid"]', title: 'Six classes, six bonds',
+        text: 'Field 2, 4 or 6 units of one class in a run and its bond wakes for as long as they stay deployed.' },
+      { anchor: '[data-guide="bonds-upgrade"]', interact: true, title: 'Strengthen a bond',
+        text: 'Genome Cores level a bond up — every tier of it grows stronger in every run.' },
+    ],
+  },
+  {
     mech: 'gene-archive', nav: 'genes', reward: 15,
     steps: [
       { anchor: '[data-guide="gene-loadout"]', title: 'Cards collect forever',

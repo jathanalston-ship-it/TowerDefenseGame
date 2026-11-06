@@ -248,6 +248,20 @@ export const MECHANIC_TEXT: Readonly<Record<string, MechanicText>> = {
     next: 'Claim glowing nodes, then chase the loop top: EVOLVE re-arms the track with alternate progression (cores, essence, materials, containers, rare Ichor).',
     mistakes: 'Deep loops never pay unit shards again — that is by design (no infinite shard farm). Bank the first loop’s shards; later loops enrich everything else.',
   },
+  "class-bonds": {
+    what: 'Every tower and hero belongs to one of six classes (Kinetic, Caustic, Viral, Neural, Vital, Resonant). Field 2 units of one class in a run and its bond wakes at tier I; 4 wakes tier II, 6 wakes tier III. Each deployed tower counts once (two of the same tower count twice), and each fielded hero counts once.',
+    why: 'A bond makes that class better at its job: Kinetic hits harder, Viral fires faster, Vital mends the Hive Core every wave, Resonant speeds up every tower. Committing to a class trades some variety for a bigger payoff.',
+    where: 'Evolution Hub → Class Bonds, where you see every class, its members and its three tiers, and level each bond up with Genome Cores. In a run, the Run Build panel shows your live bonds.',
+    next: 'Each bond level strengthens all three tiers of that bond in every run (level 10 is ×1.8).',
+    mistakes: 'A bond only lasts while its units stay deployed. Sell one and a tier can drop. Six units of one class leaves gaps a mixed board would cover, so watch what the waves bring.',
+    media: 'Image: the Run Build panel with a Kinetic Bond II lit',
+  },
+  "bonds-in-battle": {
+    what: 'The Run Build panel lists every class you have fielded: how many units, which bond tier is awake, and how many more wake the next tier. Hover a class for exactly what its bond gives. When a tier wakes, its name flashes on the board.',
+    why: 'You build a bond during the fight. Deploying one more unit of a class can wake a stronger tier.',
+    where: 'Run Build (left panel) → Class Bonds. Conveyor pods carry their class mark next to the tower name.',
+    next: 'Level bonds up between runs on the Class Bonds screen.',
+  },
   "tower-branches": {
     media: 'GIF: the branch tree',
     what: 'Branches are in-run specialization paths that re-author a tower with new firing behavior across five tiers.',

@@ -329,6 +329,7 @@ export const GUARDED_META_METHODS: Record<string, string> = {
   buyHeroPrime: 'progress.star',
   collectIdleHarvest: 'idle.collect',
   buyIdleNode: 'progress.upgrade',
+  upgradeBond: 'progress.upgrade',
   claimFrontTier: 'front.claim',
   claimFrontTribute: 'front.claim',
   unlockTower: 'progress.unlock',

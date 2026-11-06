@@ -4,6 +4,9 @@
 // is ever persisted (PROGRESSION.md §1.1: the run is temporary).
 
 import { Rng } from './rng';
+import { CLASS_BONDS, bondFx, bondNext } from './classBonds';
+import type { BondFx, BondLevels } from './classBonds';
+import { COMBAT_CLASSES, COMBAT_CLASS_ORDER } from './combatClass';
 import { dist, dist2, moveToward } from './math';
 import { SpatialGrid } from './spatial';
 import {
@@ -220,6 +223,11 @@ export interface RunOptions {
    *  bonus (callWaveEarly)? The app passes true for every run except the tutorial; the Arena never
    *  does. Omitted ⇒ false (golden-safe: autoplay never calls). */
   earlyCall?: boolean;
+  /** CLASS BONDS (docs/CLASS-BONDS.md): the account's bond levels per combat class. Present ⇒ the
+   *  set bonus is ON: 2/4/6 fielded units of a class wake its Bond I/II/III while they stay deployed.
+   *  The app passes it once the bonds are revealed (never the tutorial / Arena). Omitted ⇒ off
+   *  (golden-safe: every multiplier stays exactly 1). */
+  classBonds?: BondLevels;
   /** LIVE ADAPTIVE THREAT (docs/DIFFICULTY_DIRECTOR.md §6a), Campaign only: the account's Power ÷
    *  the stage's recommended Power at boot. Present ⇒ waves ≥ DIRECTOR_ADAPTIVE.liveFromWave and
    *  every boss body scale with the run's live Power ratio. Omitted ⇒ ×1 (golden-safe). */
@@ -749,6 +757,11 @@ export class Game {
   private rushPending: { at: number; tl: number; ramp: number; hp: number; owedWave?: number }[] = []; // Boss Rush: staggered boss deployments still due this wave (time-sorted; ramp = the strength curve's HP/damage scale)
   // ── Batch G grind levers (all neutral unless the app opts the run in) ──
   private readonly earlyCallAllowed: boolean; // RunOptions.earlyCall (docs/EARLY-CALL.md)
+  // CLASS BONDS (docs/CLASS-BONDS.md): the account's bond levels (null = bonds off ⇒ golden-safe), the
+  // board's live bonds (refreshed each step from the fielded classes) and its composition signature.
+  private readonly bondLevels: BondLevels | null;
+  private bond: BondFx | null = null;
+  private bondSig = -1;
   private readonly livePowerBase: number | null; // RunOptions.livePowerBase (§6a live adaptive threat; Campaign only)
   private readonly squeezeOn: boolean; // RunOptions.squeeze (ENDLESS_SQUEEZE; Infinite only)
   private waveLaunchedAt = 0; // sim time the latest wave launched (early-call minElapsed)
@@ -895,6 +908,7 @@ export class Game {
     this.automationAllowed = opts.automationAllowed === true;
     // Batch G grind levers — each off unless the app opts this run in (golden/Arena/probes unchanged).
     this.earlyCallAllowed = opts.earlyCall === true;
+    this.bondLevels = opts.classBonds ?? null;
     // §6a: from DIRECTOR_ADAPTIVE.liveFromStage on — the onboarding Stages 1–3 keep their calibrated curve (campaignCurve).
     this.livePowerBase = opts.mode === 'campaign' && (opts.stage?.stage ?? 0) >= DIRECTOR_ADAPTIVE.liveFromStage && opts.livePowerBase !== undefined && Number.isFinite(opts.livePowerBase) ? Math.max(0, opts.livePowerBase) : null;
     this.squeezeOn = opts.squeeze === true && opts.mode === 'endless';
@@ -1206,7 +1220,8 @@ export class Game {
   }
   /** Target-independent hero damage multiplier: gear × biome × stars/mastery × Evolution Lethality. */
   private heroDamageMult(h: Hero): number {
-    return this.hmods(h).heroDamageMult * this.activeBiome.mods.heroDamageMult * this.heroProgress[h.kind].damageMult * this.evo.damageMult;
+    const base = this.hmods(h).heroDamageMult * this.activeBiome.mods.heroDamageMult * this.heroProgress[h.kind].damageMult * this.evo.damageMult;
+    return this.bond ? base * this.bond.dmg[HERO_DEFS[h.kind].combatClass] : base; // CLASS BONDS: a hero shares its class's bond
   }
   /** Effective hero move speed (px/s), steady (excludes the transient Bloodthirst surge). */
   private heroSpeed(h: Hero): number {
@@ -2398,6 +2413,43 @@ export class Game {
     return this.waveIndex + 1 >= DIRECTOR_ADAPTIVE.liveFromWave && this.waveIndex < this.totalWaves ? this.liveThreatNow() : 1;
   }
 
+  /** CLASS BONDS (docs/CLASS-BONDS.md): recount the fielded classes — every deployed tower and every
+   *  fielded hero — and refold the bonds when the composition changed. A tier that RISES is announced
+   *  on the board (presentation only). Cheap: six counters + a packed signature per step; the fold
+   *  itself runs only on a change. Never called with bonds off (golden-safe). */
+  private refreshBonds(): void {
+    const counts = [0, 0, 0, 0, 0, 0];
+    for (const t of this.towers) counts[COMBAT_CLASS_ORDER.indexOf(TOWER_DEFS[t.kind].combatClass)]++;
+    for (const h of this.heroes) counts[COMBAT_CLASS_ORDER.indexOf(HERO_DEFS[h.kind].combatClass)]++;
+    let sig = 0;
+    for (const n of counts) sig = sig * 64 + Math.min(63, n);
+    if (sig === this.bondSig && this.bond) return;
+    this.bondSig = sig;
+    const fielded = COMBAT_CLASS_ORDER.flatMap((c, i) => Array.from({ length: counts[i] }, () => c));
+    const prev = this.bond;
+    this.bond = bondFx(fielded, this.bondLevels ?? {});
+    if (!prev) return; // the opening fold (an already-fielded hero) is not a moment
+    let y = 150;
+    for (const c of COMBAT_CLASS_ORDER) {
+      const tier = this.bond.tiers[c];
+      if (tier <= prev.tiers[c]) continue;
+      this.floats.push({ x: WIDTH / 2, y, text: `${COMBAT_CLASSES[c].glyph} ${CLASS_BONDS[c].name.toUpperCase()} ${'I'.repeat(tier)}`, color: COMBAT_CLASSES[c].hex, life: 1.8 });
+      y += 22;
+      this.pushSfx('splice');
+    }
+  }
+
+  /** HUD read of the bonds: every class with a fielded unit (count, tier, next threshold) — undefined
+   *  when bonds are off. Sorted strongest first so the strip leads with what is working. */
+  private bondSnapshot(): { cls: CombatClass; count: number; tier: number; next: number | null }[] | undefined {
+    if (!this.bondLevels) return undefined;
+    if (!this.bond) this.refreshBonds();
+    const b = this.bond!;
+    return COMBAT_CLASS_ORDER.filter((c) => b.counts[c] > 0)
+      .map((c) => ({ cls: c, count: b.counts[c], tier: b.tiers[c], next: bondNext(b.counts[c]) }))
+      .sort((x, y) => y.tier - x.tier || y.count - x.count);
+  }
+
   /** EARLY CALL (docs/EARLY-CALL.md): the Biomass calling the next wave RIGHT NOW would pay, or -1
    *  when no call is possible — off for this run (RunOptions.earlyCall), the tutorial, outside a
    *  fight or during its settle beat, the Daily Mega, the final scripted wave, the stack cap
@@ -2436,6 +2488,7 @@ export class Game {
       for (const p of carryRush) if (p.owedWave === undefined) p.owedWave = w;
     }
     if (this.mods.integrityRegenPerWave > 0) this.integrity = Math.min(this.maxIntegrity, this.integrity + this.mods.integrityRegenPerWave);
+    if (this.bond && this.bond.coreMend > 0) this.integrity = Math.min(this.maxIntegrity, this.integrity + this.bond.coreMend); // the called-over wave's Sustain mend
     const prevEnd = this.waveSpawnEnd;
     this.calledAhead++;
     this.launchWave();
@@ -2936,6 +2989,7 @@ export class Game {
 
   private step(dt: number): void {
     this.stepCount++;
+    if (this.bondLevels) this.refreshBonds(); // CLASS BONDS: the board's set bonuses follow what is deployed
     // Danger camera (docs/CAMERA.md) — render-only, ticked in EVERY phase (combat, settle,
     // prep, won, lost) so the tension always enters deliberately and exhales smoothly.
     this.dangerCameraSystem(dt);
@@ -4851,7 +4905,13 @@ export class Game {
     // Idle-choir song (docs/TOWER-IDLE.md — Sepulchral Chorus): an unengaged choir tower grants
     // nearby towers a small damage bonus; ×1 whenever no choir sings (golden/disableIdle path).
     const choir = t.choirDmg > 0 ? 1 + t.choirDmg : 1;
-    const dmgMult = combineMult(this.mods.towerDamageMult, prog.damageMult, ocDmg, ksDmg, reso, heroDmgAura, runBuffDmg, bk ? bk.damageMult : 1) * biomeClassDmg * this.towerCorruptionMult(t) * choir;
+    let dmgMult = combineMult(this.mods.towerDamageMult, prog.damageMult, ocDmg, ksDmg, reso, heroDmgAura, runBuffDmg, bk ? bk.damageMult : 1) * biomeClassDmg * this.towerCorruptionMult(t) * choir;
+    // CLASS BONDS (docs/CLASS-BONDS.md): the tower's class bond + the Resonant chorus. Only folded when
+    // bonds are on — the off path never multiplies (bit-identical to the pre-bond sim).
+    if (this.bond) {
+      dmgMult *= this.bond.dmg[def.combatClass];
+      return { dmgMult, rateMult: rateMult * this.bond.rate[def.combatClass] * this.bond.allRate };
+    }
     return { dmgMult, rateMult };
   }
 
@@ -7418,6 +7478,9 @@ export class Game {
         this.integrity = Math.min(this.maxIntegrity, this.integrity + this.mods.integrityRegenPerWave);
       }
       const flawless = this.integrity >= this.waveStartIntegrity; // held the line without a breach
+      // CLASS BONDS — Sustain (Vital): the Core mends at every clear (after the flawless read — a mend
+      // never turns a breached wave into a clean one).
+      if (this.bond && this.bond.coreMend > 0) this.integrity = Math.min(this.maxIntegrity, this.integrity + this.bond.coreMend);
       // Fire the clear feedback NOW (and roll the draft at the unchanged RNG point), but hold the
       // phase flip for the settle beat (endWave) so the battlefield winds down first. The draft
       // options aren't shown until the phase is 'draft' (the modal is phase-gated).
@@ -8556,6 +8619,7 @@ export class Game {
       // §reroll: the open draft's one paid re-deal — price, or -1 once used / in the tutorial.
       draftRerollCost: this.phase === 'draft' && this.draft !== null && !this.draftRerolled && !this.tutorialMode ? this.rerollCost() : -1,
       earlyCall: this.earlyCallBonus(),
+      bonds: this.bondSnapshot(),
       liveThreat: this.liveThreatView(),
       squeezePressure: this.squeezePressure,
       selectedTower: this.selectedTower,

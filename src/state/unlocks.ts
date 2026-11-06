@@ -18,6 +18,7 @@ import { antigenEarned } from '../core/adaptation';
 import type { SaveData } from '../save/saveStore';
 import { highestCampaignStage } from '../save/derive';
 import { MODE_UNLOCKS } from '../core/config';
+import { BOND } from '../core/classBonds';
 
 // ── Conditions ──────────────────────────────────────────────────────────────
 
@@ -211,6 +212,9 @@ export const FEATURES: FeatureDef[] = [
   { kind: 'screen', id: 'collection', name: 'Bio-Dex', glyph: '▤', order: 17,
     blurb: 'Rank badges and bonuses for everything you catalogue.', condition: { kind: 'stage', stage: 13 },
     because: 'By stage 13 (~1h) two Mega Bosses, a dozen enemy families and the first gear sets exist to catalogue — rank bonuses stop being abstract.', teach: 'collection-codex' },
+  { kind: 'screen', id: 'bonds', name: 'Class Bonds', glyph: '⟡', order: 17.5,
+    blurb: 'Field one class together and its set bonus wakes — level each bond up.', condition: { kind: 'stage', stage: BOND.revealStage },
+    because: 'docs/CLASS-BONDS.md: the first wing past the first hour (the hour-one screen cap holds) — by then a player has fielded every class many times over and reads the conveyor\'s class marks. The SAME reveal turns the bonds on in runs, so a run never shows a bond the screen has not introduced.', teach: 'class-bonds' },
   { kind: 'screen', id: 'hive', name: 'The Hive', glyph: '⬡', order: 18,
     blurb: 'Build the laboratory organism — organs that transform your base.', condition: { kind: 'stage', stage: 14 },
     because: 'A composite sink needs wallets to sink — by stage 14 (~1h15) Cores/Essence/materials have pooled long enough that the first organs are affordable on arrival; the Hive then grows its Production and Expedition tabs over the next stages.', teach: 'hive-construction' },

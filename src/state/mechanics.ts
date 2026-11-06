@@ -126,6 +126,14 @@ export const MECHANICS: MechanicDef[] = [
   { id: 'mastery-evolution', title: 'Evolution Tracks', category: 'Progression', nav: 'towers', links: ['tower-mastery', 'power-score'],
     unlock: (s) => Object.values(s.towerMasteryXp).some((n) => (n ?? 0) > 0) || Object.values(s.heroMasteryXp).some((n) => (n ?? 0) > 0),
     summary: 'Every tower and hero owns a 100-level reward helix that renews forever.' },
+  // CLASS BONDS (docs/CLASS-BONDS.md): the class set bonus — announced as its screen reveals (the seal
+  // rule), plus the in-run row the field note teaches the first time a bond wakes in a fight.
+  { id: 'class-bonds', title: 'Class Bonds', category: 'Towers', nav: 'bonds', links: ['towers', 'heroes', 'bonds-in-battle'],
+    unlock: (s) => featureRevealed(s, 'bonds'),
+    summary: 'Field units of one class together — 2, 4 or 6 — and their set bonus wakes.' },
+  { id: 'bonds-in-battle', title: 'Bonds in Battle', category: 'Towers', links: ['class-bonds'],
+    unlock: (s) => featureRevealed(s, 'bonds'),
+    summary: 'Run Build lists every class you have fielded and the bond it has woken.' },
   { id: 'tower-branches', title: 'Tower Branches', category: 'Towers', nav: 'towers', links: ['towers', 'tower-stars'],
     unlock: (s) => highestCampaignStage(s) >= 3,
     summary: 'Specialize a tower down a mutation path.' },

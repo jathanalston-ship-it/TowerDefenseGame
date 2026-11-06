@@ -1,6 +1,6 @@
 # DIL_GRAPH.md — the Design Intelligence Layer (GENERATED — `npm run dil -- regen`)
 
-> **The project's brain** (docs/DIL.md). 991 nodes · 1925 edges, built from the live
+> **The project's brain** (docs/DIL.md). 996 nodes · 1940 edges, built from the live
 > registries + curated knowledge (src/dev/dil/). **Query it instead of searching the repo:**
 > `npm run dil -- node <id>` · `affects <id>` · `requires <id>` · `missing <kind> <edge>` ·
 > `checklist tower <kind>` · `find <text>`. Edge kinds are bidirectional (19 kinds).
@@ -26,7 +26,7 @@
 
 ### Power Score Index
 
-`system:hive-mind` · `system:engine` · `system:power` · `system:campaign` · `system:daily` · `system:mulligans` · `system:premium` · `system:arena` · `system:towers` · `system:mastery` · `system:heroes` · `system:equipment` · `system:crafting` · `system:loot` · `system:gene-cards` · `system:nucleus` · `system:hero-symbiotes` · `system:idle-harvest` · `system:metabolism` · `system:shards-economy` · `system:collection` · `system:evolution-hq` · `system:prestige` · `system:splice-market` · `system:achievements` · `system:cosmetics` · `system:battle-pass` · `system:quests` · `system:run-ui` · `system:prediction` · `system:meta-store` · `system:mega-bosses` · `system:assimilation` · `system:analytics`
+`system:hive-mind` · `system:engine` · `system:power` · `system:campaign` · `system:daily` · `system:mulligans` · `system:premium` · `system:arena` · `system:towers` · `system:mastery` · `system:heroes` · `system:equipment` · `system:crafting` · `system:loot` · `system:gene-cards` · `system:class-bonds` · `system:nucleus` · `system:hero-symbiotes` · `system:idle-harvest` · `system:metabolism` · `system:shards-economy` · `system:collection` · `system:evolution-hq` · `system:prestige` · `system:splice-market` · `system:achievements` · `system:cosmetics` · `system:battle-pass` · `system:quests` · `system:run-ui` · `system:prediction` · `system:meta-store` · `system:mega-bosses` · `system:assimilation` · `system:analytics`
 
 ### Audio Index
 
@@ -34,11 +34,11 @@
 
 ### Teaching Index
 
-`tutorial:combat` · `help:mission-control` · `help:hive-intel` · `help:evolution-roadmap` · `help:power-advisor` · `help:field-guides` · `help:hive-core` · `help:biomorph-conveyor` · `help:strain-evolution` · `help:boss-sieges` · `help:boss-rush` · `help:bio-roulette` · `help:gene-essence` · `help:field-research` · `help:splice-market` · `help:auction-house` · `help:daily-login` · `help:hive-construction` · `help:gene-archive` · `help:gene-loadout` · `help:biomass` · `help:wave-rhythm` · `help:game-speed` · `help:early-call` · `help:emergency-defense` · `help:power-score` · `help:account-level` · `help:genome-rank` · `help:towers` · `help:tower-stars` · `help:tower-mastery` · `help:blockers` · `help:mastery-evolution` · `help:tower-branches` · `help:adaptation` · `help:mulligans` · `help:nucleus` · `help:gene-cards` · `help:splice` · `help:heroes` · `help:hero-evolution` · `help:hero-slots` · `help:equipment` · `help:equipment-reforge` · `help:gear-codex` · `help:genome-core` · `help:prestige` · `help:ascension` · `help:containers` · `help:loot-meter` · `help:mega-hunt` · `help:collection-codex` · `help:phenotype-lab` · `help:idle-harvest` · `help:metabolism` · `help:specimens` · `help:arena` · `help:expeditions` · `help:quests` · `help:season-pass` · …34 more
+`tutorial:combat` · `help:mission-control` · `help:hive-intel` · `help:evolution-roadmap` · `help:power-advisor` · `help:field-guides` · `help:hive-core` · `help:biomorph-conveyor` · `help:strain-evolution` · `help:boss-sieges` · `help:boss-rush` · `help:bio-roulette` · `help:gene-essence` · `help:field-research` · `help:splice-market` · `help:auction-house` · `help:daily-login` · `help:hive-construction` · `help:gene-archive` · `help:gene-loadout` · `help:biomass` · `help:wave-rhythm` · `help:game-speed` · `help:early-call` · `help:emergency-defense` · `help:power-score` · `help:account-level` · `help:genome-rank` · `help:towers` · `help:tower-stars` · `help:tower-mastery` · `help:blockers` · `help:mastery-evolution` · `help:class-bonds` · `help:bonds-in-battle` · `help:tower-branches` · `help:adaptation` · `help:mulligans` · `help:nucleus` · `help:gene-cards` · `help:splice` · `help:heroes` · `help:hero-evolution` · `help:hero-slots` · `help:equipment` · `help:equipment-reforge` · `help:gear-codex` · `help:genome-core` · `help:prestige` · `help:ascension` · `help:containers` · `help:loot-meter` · `help:mega-hunt` · `help:collection-codex` · `help:phenotype-lab` · `help:idle-harvest` · `help:metabolism` · `help:specimens` · `help:arena` · `help:expeditions` · …36 more
 
 ### Testing Index
 
-`system:hive-mind` · `system:engine` · `system:content-infra` · `system:power` · `system:campaign` · `system:pil` · `system:accounts` · `system:boss-rush` · `system:daily` · `system:mulligans` · `system:premium` · `system:net-backend` · `system:online-foundation` · `system:arena` · `system:towers` · `system:mastery` · `system:heroes` · `system:hero-cinematics` · `system:equipment` · `system:crafting` · `system:loot` · `system:gene-cards` · `system:nucleus` · `system:hero-symbiotes` · `system:idle-harvest` · `system:metabolism` · `system:collection` · `system:evolution-hq` · `system:hive-construction` · `system:daily-login` · `system:prestige` · `system:currencies` · `system:splice-market` · `system:achievements` · `system:stats` · `system:liveops` · `system:directives` · `system:contracts` · `system:infestation` · `system:chronicle` · `system:cosmetics` · `system:battle-pass` · `system:quests` · `system:profile` · `system:onboarding` · `system:account-level` · `system:genome-rank` · `system:progression-gating` · `system:hub-shell` · `system:run-ui` · `system:notifications` · `system:prediction` · `system:meta-store` · `system:bosses` · `system:mega-bosses` · `system:cutscenes` · `system:security` · `system:biomes` · `system:map-layouts` · `system:doctrines` · …11 more
+`system:hive-mind` · `system:engine` · `system:content-infra` · `system:power` · `system:campaign` · `system:pil` · `system:accounts` · `system:boss-rush` · `system:daily` · `system:mulligans` · `system:premium` · `system:net-backend` · `system:online-foundation` · `system:arena` · `system:towers` · `system:mastery` · `system:heroes` · `system:hero-cinematics` · `system:equipment` · `system:crafting` · `system:loot` · `system:gene-cards` · `system:class-bonds` · `system:nucleus` · `system:hero-symbiotes` · `system:idle-harvest` · `system:metabolism` · `system:collection` · `system:evolution-hq` · `system:hive-construction` · `system:daily-login` · `system:prestige` · `system:currencies` · `system:splice-market` · `system:achievements` · `system:stats` · `system:liveops` · `system:directives` · `system:contracts` · `system:infestation` · `system:chronicle` · `system:cosmetics` · `system:battle-pass` · `system:quests` · `system:profile` · `system:onboarding` · `system:account-level` · `system:genome-rank` · `system:progression-gating` · `system:hub-shell` · `system:run-ui` · `system:notifications` · `system:prediction` · `system:meta-store` · `system:bosses` · `system:mega-bosses` · `system:cutscenes` · `system:security` · `system:biomes` · `system:map-layouts` · …12 more
 
 ### Developer Tooling Index
 
@@ -68,6 +68,7 @@ graph LR
   system_crafting["Crafting / Reforge"] -->|consumes| system_meta_store["Meta Store & Save"]
   system_loot["Loot & Bio-Containers"] -->|consumes| system_meta_store["Meta Store & Save"]
   system_gene_cards["Gene Cards (draft + permanent evolution)"] -->|consumes| system_meta_store["Meta Store & Save"]
+  system_class_bonds["Class Bonds"] -->|consumes| system_meta_store["Meta Store & Save"]
   system_nucleus["Nucleus Mulligans"] -->|consumes| system_meta_store["Meta Store & Save"]
   system_hero_symbiotes["Hero Symbiotes"] -->|consumes| system_meta_store["Meta Store & Save"]
   system_idle_harvest["Idle Harvest"] -->|consumes| system_meta_store["Meta Store & Save"]
@@ -228,6 +229,7 @@ graph LR
   system_crafting["Crafting / Reforge"] -->|provides| concept_power_score["Power Score"]
   system_loot["Loot & Bio-Containers"] -->|provides| concept_power_score["Power Score"]
   system_gene_cards["Gene Cards (draft + permanent evolution)"] -->|provides| concept_power_score["Power Score"]
+  system_class_bonds["Class Bonds"] -->|provides| concept_power_score["Power Score"]
   system_nucleus["Nucleus Mulligans"] -->|provides| concept_power_score["Power Score"]
   system_hero_symbiotes["Hero Symbiotes"] -->|provides| concept_power_score["Power Score"]
   system_idle_harvest["Idle Harvest"] -->|provides| concept_power_score["Power Score"]
@@ -367,6 +369,13 @@ graph LR
   system_gene_cards["Gene Cards (draft + permanent evolution)"] -->|dependsOn| system_campaign["Campaign"]
   system_gene_cards["Gene Cards (draft + permanent evolution)"] -->|dependsOn| system_shards_economy["Shards & Star Economy"]
   system_gene_cards["Gene Cards (draft + permanent evolution)"] -->|consumes| system_meta_store["Meta Store & Save"]
+  system_class_bonds["Class Bonds"] -->|dependsOn| system_engine["Sim Engine"]
+  system_class_bonds["Class Bonds"] -->|dependsOn| system_towers["Towers, Stars, Branches, Strain & Codex"]
+  system_class_bonds["Class Bonds"] -->|dependsOn| system_heroes["Heroes"]
+  system_class_bonds["Class Bonds"] -->|dependsOn| system_power["Power Score"]
+  system_class_bonds["Class Bonds"] -->|dependsOn| system_meta_store["Meta Store & Save"]
+  system_class_bonds["Class Bonds"] -->|dependsOn| system_progression_gating["Progression Gating & Director"]
+  system_class_bonds["Class Bonds"] -->|consumes| system_meta_store["Meta Store & Save"]
   system_nucleus["Nucleus Mulligans"] -->|dependsOn| system_mulligans["Mulligan System"]
   system_nucleus["Nucleus Mulligans"] -->|dependsOn| system_content_infra["Content Infrastructure"]
   system_nucleus["Nucleus Mulligans"] -->|dependsOn| system_power["Power Score"]
@@ -683,7 +692,7 @@ ONE account-strength number folded from every permanent bucket + the in-run temp
   - providedBy ← `system:mastery` — mastery multiplier folds into the permanent bucket
   - providedBy ← `system:heroes` — hero stars/evolution feed permanent + temporary buckets
   - providedBy ← `system:equipment` — equipped items score via itemPower into the gear bucket
-  - _…31 more (query: `npm run dil -- node concept:power-score`)_
+  - _…32 more (query: `npm run dil -- node concept:power-score`)_
 
 ### `concept:determinism` — Determinism
 
@@ -885,7 +894,7 @@ The premium reserve — never farmable; bled from achievements, collection ranks
 
   - rewardedBy ← `system:daily-login` — a rare small lane (weight 3, clamped 2–6/day) — deliberately below the never-farmable premium posture thresholds
 
-## Systems (78)
+## Systems (79)
 
 ### `system:hive-mind` — Hive Intelligence (in-run)
 
@@ -933,10 +942,10 @@ _at: src/core/game.ts, src/core/combat.ts, src/core/status.ts, src/core/targetin
   - requiredBy ← `system:arena`
   - requiredBy ← `system:heroes`
   - requiredBy ← `system:hero-cinematics`
+  - requiredBy ← `system:class-bonds`
   - requiredBy ← `system:nemesis`
   - requiredBy ← `system:onboarding`
-  - requiredBy ← `system:run-ui`
-  - _…247 more (query: `npm run dil -- node system:engine`)_
+  - _…248 more (query: `npm run dil -- node system:engine`)_
 
 ### `system:content-infra` — Content Infrastructure
 
@@ -977,10 +986,10 @@ _at: src/core/power.ts, src/state/itemPower.ts, src/state/powerEvents.ts, src/st
   - requiredBy ← `system:equipment`
   - requiredBy ← `system:loot`
   - requiredBy ← `system:gene-cards`
+  - requiredBy ← `system:class-bonds`
   - requiredBy ← `system:nucleus`
   - requiredBy ← `system:hero-symbiotes`
-  - requiredBy ← `system:profile`
-  - _…27 more (query: `npm run dil -- node system:power`)_
+  - _…28 more (query: `npm run dil -- node system:power`)_
 
 ### `system:campaign` — Campaign
 
@@ -1316,6 +1325,7 @@ _at: src/core/stars.ts, src/core/branches.ts, src/core/branchTree.ts, src/core/s
   - requiredBy ← `system:engine`
   - requiredBy ← `system:daily`
   - requiredBy ← `system:mulligans`
+  - requiredBy ← `system:class-bonds`
   - requiredBy ← `system:contracts`
   - contains ← `tower:needle`
   - contains ← `tower:mortar`
@@ -1323,8 +1333,7 @@ _at: src/core/stars.ts, src/core/branches.ts, src/core/branchTree.ts, src/core/s
   - contains ← `tower:parasite`
   - contains ← `tower:obelisk`
   - contains ← `tower:maw`
-  - contains ← `tower:chrysalis`
-  - _…46 more (query: `npm run dil -- node system:towers`)_
+  - _…48 more (query: `npm run dil -- node system:towers`)_
 
 ### `system:mastery` — Mastery / Adaptation
 
@@ -1383,6 +1392,7 @@ _at: src/core/heroIdentity.ts, src/core/heroLore.ts, src/core/heroEvolution.ts, 
   - requiredBy ← `system:engine`
   - requiredBy ← `system:hero-cinematics`
   - requiredBy ← `system:equipment`
+  - requiredBy ← `system:class-bonds`
   - requiredBy ← `system:hero-symbiotes`
   - requiredBy ← `system:expeditions`
   - contains ← `hero:ravager`
@@ -1390,8 +1400,7 @@ _at: src/core/heroIdentity.ts, src/core/heroLore.ts, src/core/heroEvolution.ts, 
   - contains ← `hero:overseer`
   - contains ← `hero:vitriol`
   - contains ← `hero:revenant`
-  - contains ← `hero:knell`
-  - _…22 more (query: `npm run dil -- node system:heroes`)_
+  - _…23 more (query: `npm run dil -- node system:heroes`)_
 
 ### `system:hero-cinematics` — Hero Ability Cinematics
 
@@ -1521,6 +1530,26 @@ _at: src/core/cards.ts, src/core/effectLanguage.ts, src/core/geneCards.ts, src/c
   - documentedBy ← `doc:CARDS.md`
   - documentedBy ← `doc:GENE-AUDIT-REPORT.md`
   - _…11 more (query: `npm run dil -- node system:gene-cards`)_
+
+### `system:class-bonds` — Class Bonds
+
+The class set bonus (docs/CLASS-BONDS.md): every deployed tower and fielded hero counts toward its combat class; 2/4/6 units wake Bond I/II/III for as long as they stay deployed; per-class bond levels (Genome Cores) strengthen every tier.
+
+_at: src/core/classBonds.ts, src/ui/BondsScreen.tsx_
+
+  - dependsOn → `system:engine`
+  - dependsOn → `system:towers`
+  - dependsOn → `system:heroes`
+  - dependsOn → `system:power`
+  - dependsOn → `system:meta-store`
+  - dependsOn → `system:progression-gating`
+  - provides → `concept:power-score` — classBondsPowerMult multiplies the meta PowerParts bucket (BOND.powerPerLevel per level; ×1 with no levels)
+  - consumes → `system:meta-store` — owns save field 'classBonds'
+  - extends → `system:towers` — CLASS BONDS (docs/CLASS-BONDS.md): reads the EXISTING six-class combatClass taxonomy of towers AND heroes (it adds none). Every deployed tower + fielded hero counts once toward its class; BOND.thresholds 2/4/6 wake I/II/III live (Game.refreshBonds, packed composition signature). Effects fold ONLY in towerAttackMods (dmg/rate — every firing path shares it) and heroDamageMult (class damage), plus the Vital wave-clear mend (after the flawless read; also at an Early Call) and the Resonant all-tower rate. Golden-safe by RunOptions.classBonds (absent ⇒ bond null, no fold). The FEATURES `bonds` reveal (BOND.revealStage, 13 — the hour-one screen cap of 18 forbade earlier) is ALSO the in-run on-switch (GameView) — a run never shows a bond the wing has not introduced; Daily runs pass {} (base strength, fair board). Levels: save.classBonds (v58), meta.upgradeBond guarded progress.upgrade + sealed-wing refusal; classBondsPowerMult folds into the meta Power bucket. Teaching = What's New `class-bonds` + GUIDES row + field note `bonds-in-battle` (FIELD_NOTE_MECHANICS — never a hub card) anchored to BuildPanel .bonds-strip
+  - taughtBy ← `help:class-bonds`
+  - taughtBy ← `help:bonds-in-battle`
+  - documentedBy ← `doc:CLASS-BONDS.md`
+  - testedBy ← `test:src/core/classBonds.test.ts`
 
 ### `system:nucleus` — Nucleus Mulligans
 
@@ -2118,7 +2147,7 @@ _at: src/ui/InitCutscene.tsx, src/ui/IntroMount.tsx, src/ui/introState.ts, src/s
   - contains ← `help:strain-evolution`
   - contains ← `help:boss-sieges`
   - contains ← `help:boss-rush`
-  - _…75 more (query: `npm run dil -- node system:onboarding`)_
+  - _…77 more (query: `npm run dil -- node system:onboarding`)_
 
 ### `system:account-level` — Account Level (evergreen meta-progression)
 
@@ -2188,6 +2217,7 @@ _at: src/state/unlocks.ts, src/state/progressionDirector.ts, src/state/navBus.ts
   - gates → `system:notifications` — RE-PACE 2026-11 (PROGRESSION-GATING.md §timeline): wings spread across stages 3–30 (≈ first ~8h bot / ~20h fresh); notificationSources installs setChannelGate — a SEALED channel counts 0 in badges/reasons/live, so a hidden wing never badges and its backlog surfaces at the reveal. Past the core block every row is a pure stage gate (no resource luck-reveal); latched director.revealed grandfathers older saves, and isBossRushUnlocked honours a latched bossrush reveal
   - gates → `system:currencies` — PLAYER-FACING CURRENCIES (state/rewardVisibility.ts, ECONOMY.md §player-facing): REVEALED_WITH maps every currency/reward kind to the feature that spends it — the toaster, VaultReveal (visibleChests), Results rows and account-level reward lines skip unrevealed kinds (they bank silently; the save is untouched). Gene Essence/Mutagen/Scrap/Catalyst/Chitin/Tissue present as ONE Materials group (MaterialsChip, "materials" toast type)
   - modifies → `system:hub-shell` — ONE NAME PER SCREEN: state/unlocks FEATURES[].name + glyph are THE screen name + icon — ui/navModel row()/navLabel() DERIVE rail/breadcrumb/sibling-chip labels + monos from them (other locales translate by id in i18n SCREEN_NAMES; the rail Home door nav.home is chrome, not a name). navModel.test pins label===name, mono===glyph, unique names, no bare-letter glyphs, exactly one "Vault" (the specimen screen is the Specimen Cabinet). Renaming a screen = edit its FEATURES row + SCREEN_NAMES rows; never type a label into navModel.
+  - requiredBy ← `system:class-bonds`
   - requiredBy ← `system:reward-architecture`
   - documentedBy ← `doc:PROGRESSION-GATING.md`
   - documentedBy ← `doc:UNLOCK-TREE.md`
@@ -2336,7 +2366,7 @@ _at: src/state/meta.ts, src/state/store.ts, src/state/prefs.ts, src/state/devRes
   - consumedBy ← `system:mulligans` — owns save field 'mulligans'
   - consumedBy ← `system:mulligans` — owns save field 'mulliganDex'
   - consumedBy ← `system:premium` — owns save field 'premium'
-  - _…131 more (query: `npm run dil -- node system:meta-store`)_
+  - _…133 more (query: `npm run dil -- node system:meta-store`)_
 
 ### `system:bosses` — Bosses
 
@@ -3509,7 +3539,7 @@ _at: src/core/tutorial.ts_
   - teaches → `system:onboarding`
   - teaches → `system:run-ui`
 
-## Help Topics (70)
+## Help Topics (72)
 
 - `help:mission-control` — Your standing orders — the answer to "what should I do now?" _(partOf `system:onboarding`, teaches `system:power`)_
 - `help:hive-intel` — The live intel feed — banked value, ready moves, recent milestones. _(partOf `system:onboarding`, teaches `system:notifications`)_
@@ -3543,6 +3573,8 @@ _at: src/core/tutorial.ts_
 - `help:tower-mastery` — Infinite craft levels from USING a tower — tracked live in every run. _(partOf `system:onboarding`)_
 - `help:blockers` — Friendly units that stand in the lane and HOLD whatever walks into them. _(partOf `system:onboarding`)_
 - `help:mastery-evolution` — Every tower and hero owns a 100-level reward helix that renews forever. _(partOf `system:onboarding`)_
+- `help:class-bonds` — Field units of one class together — 2, 4 or 6 — and their set bonus wakes. _(partOf `system:onboarding`, teaches `system:class-bonds`)_
+- `help:bonds-in-battle` — Run Build lists every class you have fielded and the bond it has woken. _(partOf `system:onboarding`, teaches `system:class-bonds`)_
 - `help:tower-branches` — Specialize a tower down a mutation path. _(partOf `system:onboarding`, teaches `system:towers`)_
 - `help:adaptation` — Per-tower talent trees bought with Antigen. _(partOf `system:onboarding`, teaches `system:mastery`)_
 - `help:mulligans` — Biomechanical organisms you assemble onto towers — stats AND flesh. _(partOf `system:onboarding`, teaches `system:mulligans`)_
@@ -3938,7 +3970,7 @@ _at: site/guides.ts → /guides/live-events/_
 - `achievement:ladder_skulls_1` — Reach 500 Boss Rush bosses (lifetime). _(partOf `system:achievements`, rewards `currency:genome-cores`)_
 - `achievement:ladder_anatomy_1` — Reach 250 Weak Points destroyed. _(partOf `system:achievements`, rewards `currency:genome-cores`)_
 
-## Documentation (196)
+## Documentation (197)
 
 - `doc:ACCOUNT-LEVEL.md` — project documentation _(documents `system:account-level`)_
 - `doc:ACCOUNTS.md` — project documentation _(documents `system:accounts`)_
@@ -3969,6 +4001,7 @@ _at: site/guides.ts → /guides/live-events/_
 - `doc:CAMPAIGN.md` — project documentation _(documents `system:campaign`)_
 - `doc:CARDS.md` — project documentation _(documents `system:gene-cards`)_
 - `doc:CHANGELOG-PIPELINE.md` — project documentation _(documents `system:chronicle`)_
+- `doc:CLASS-BONDS.md` — project documentation _(documents `system:class-bonds`)_
 - `doc:CODEMAP.md` — project documentation _(documents `system:engine`, documents `system:content-infra`)_
 - `doc:COGLOAD_REPORT.md` — project documentation
 - `doc:COLLECTION.md` — project documentation _(documents `system:collection`)_
@@ -4137,7 +4170,7 @@ _at: site/guides.ts → /guides/live-events/_
 - `doc:VOWS.md` — project documentation _(documents `system:prestige`)_
 - `doc:WEBSITE.md` — project documentation _(documents `system:field-research`, documents `system:website`)_
 
-## Tests (344)
+## Tests (345)
 
 - `test:src/audio/cues.test.ts` — automated validation _(tests `system:audio`)_
 - `test:src/audio/music.test.ts` — automated validation _(tests `system:audio`)_
@@ -4175,6 +4208,7 @@ _at: site/guides.ts → /guides/live-events/_
 - `test:src/core/campaignEvents.test.ts` — automated validation _(tests `system:campaign`)_
 - `test:src/core/cards.test.ts` — automated validation _(tests `system:gene-cards`)_
 - `test:src/core/carrion.test.ts` — automated validation _(tests `system:engine`)_
+- `test:src/core/classBonds.test.ts` — automated validation _(tests `system:class-bonds`)_
 - `test:src/core/coil.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/core/collection.test.ts` — automated validation _(tests `system:collection`)_
 - `test:src/core/combat.test.ts` — automated validation _(tests `system:engine`)_

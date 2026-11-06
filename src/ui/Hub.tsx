@@ -42,6 +42,7 @@ const TowerLab = lazyNamed(() => import('./TowerLab'), 'TowerLab');
 const MulliganLab = lazyNamed(() => import('./MulliganLab'), 'MulliganLab');
 const HeroLab = lazyNamed(() => import('./HeroLab'), 'HeroLab');
 const AdaptationChamber = lazyNamed(() => import('./AdaptationChamber'), 'AdaptationChamber');
+const BondsScreen = lazyNamed(() => import('./BondsScreen'), 'BondsScreen'); // Class Bonds (docs/CLASS-BONDS.md)
 const EquipmentPanel = lazyNamed(() => import('./EquipmentPanel'), 'EquipmentPanel');
 const GeneticVault = lazyNamed(() => import('./GeneticVault'), 'GeneticVault');
 const SpliceMarket = lazyNamed(() => import('./SpliceMarket'), 'SpliceMarket');
@@ -693,6 +694,7 @@ export function Hub({
           {nav === 'heroes' && <HeroLab />}
           {nav === 'adaptation' && <AdaptationChamber />}
           {nav === 'evolution' && <EvolutionHQ />}
+          {nav === 'bonds' && <BondsScreen />}
           {nav === 'genes' && <GeneArchive />}
           {nav === 'hive' && <HiveScreen />}
           {nav === 'infestation' && <FrontScreen />}

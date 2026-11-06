@@ -12,6 +12,8 @@ import { defaultLootQueue, sanitizeLootQueue } from '../core/lootQueue';
 import type { LootQueueState } from '../core/lootQueue';
 import type { PendingContainer } from '../state/lootbox';
 import { defaultPrestige } from '../core/prestige';
+import { sanitizeClassBonds } from '../core/classBonds';
+import type { BondLevels } from '../core/classBonds';
 import { cosmeticById } from '../core/cosmetics';
 import { trophyById, TROPHY_SLOT_THRESHOLDS } from '../core/trophies';
 import { vowById, MAX_VOWS } from '../core/vows';
@@ -354,6 +356,10 @@ export interface SaveData {
   //    only once touched; everything empty ⇒ resolveHeroSymbiote is identity (golden-safe).
   //    All additive: pre-v41 saves default to {}. ──
   heroSymbiotes: Partial<Record<HeroKind, HeroSymbioteState>>;
+  // ── Class Bonds (v58, docs/CLASS-BONDS.md) — the account's bond LEVEL per combat class (0..10,
+  //    bought with Genome Cores on the Class Bonds screen). Sparse: a class appears once levelled.
+  //    Levels scale the set bonus a run's fielded classes wake; additive — pre-v58 saves ⇒ {}. ──
+  classBonds: BondLevels;
   // ── Mastery Evolution Tracks (v44, docs/MASTERY.md §evolution track) — per-unit CLAIM state
   //    for the procedural reward tracks (core/masteryEvolution.ts): claimedUpTo = highest track
   //    level fully claimed THIS loop, prestige = completed loops, xpAt (v45) = the unit's
@@ -611,7 +617,7 @@ export interface TutorialSave {
 // archives it to `rushLegacyBestBoss` (display only) and restarts the record at 0, so its Ichor
 // bands and the (re-keyed) leaderboard pay again. `rushBestWave` is kept (its readers are capped).
 // Merge: max.
-export const CURRENT_VERSION = 57;
+export const CURRENT_VERSION = 58;
 
 // ── v56 Income ledger (docs/ONE-MORE-RUN.md §eta) — the SHAPE lives here; meters + math in
 // state/income.ts. Keys are meter ids ('cores', 'stage', 'apex:shepherd', …). ──
@@ -1072,6 +1078,7 @@ export function defaultSave(): SaveData {
     mulliganDex: {},
     nucleus: emptyNucleus(),
     heroSymbiotes: {},
+    classBonds: {},
     masteryEvolution: {},
     arena: defaultArenaSave(),
     // v47 coverage invariant: even a FRESH account's starter tradables (starter genes,
@@ -1713,6 +1720,7 @@ function withDefaults(data: SaveData): SaveData {
     mulliganDex: sanitizeMulliganDex((data as { mulliganDex?: unknown }).mulliganDex),
     nucleus: sanitizeNucleus((data as { nucleus?: unknown }).nucleus),
     heroSymbiotes: sanitizeHeroSymbiotes((data as { heroSymbiotes?: unknown }).heroSymbiotes),
+    classBonds: sanitizeClassBonds((data as { classBonds?: unknown }).classBonds), // v58 (absent ⇒ {})
     masteryEvolution: sanitizeMasteryEvolution((data as { masteryEvolution?: unknown }).masteryEvolution),
     wardrobe: sanitizeWardrobe((data as { wardrobe?: unknown }).wardrobe),
     battlePass: sanitizeBattlePass((data as { battlePass?: unknown }).battlePass),
@@ -2090,6 +2098,9 @@ function migrate(version: number, data: unknown): unknown {
       out = { ...o, help: { ...o.help, seen: Array.from(new Set([...seen, ...met])) } };
     }
   }
+  // v57→v58: Class Bonds (docs/CLASS-BONDS.md) — additive `classBonds` levels; the sanitizer turns an
+  // absent field into {} (no levels), so there is nothing to rewrite. The bump exists so an OLDER
+  // client refuses a v58 save instead of loading it and dropping the bond levels on its next write.
   return out;
 }
 /** [screen, lesson] pairs whose lesson stopped being always-known at v57 (see migrate). */

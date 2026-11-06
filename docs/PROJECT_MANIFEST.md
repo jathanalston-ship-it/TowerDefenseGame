@@ -498,6 +498,11 @@ ladders. 4. Every permanent progression source must move the Power Score (valida
   `ANNOUNCE` + `pacedAnnouncements` — at most 2 What's New cards per finished run, a revealed screen's
   lesson first), `meta.whatsNew()` (the session-memory beat), `state/fieldNotes.ts` + `ui/FieldNote.tsx`
   (in-run controls taught mid-fight). Tests: `state/firstHour.test.ts`. Docs: PROGRESSION-GATING.md
+- **Class Bonds (2026-11-06):** `core/classBonds.ts` (tables, fold, cost, Power, sanitizer) → `Game`
+  (`RunOptions.classBonds`; `refreshBonds` + `towerAttackMods` / `heroDamageMult` / the wave-clear mend),
+  `ui/BondsScreen.tsx` (Evolution Hub wing, level-ups via `meta.upgradeBond`), `ui/BuildPanel.tsx` (the
+  in-run strip) + conveyor class marks; taught by mechanics `class-bonds` / `bonds-in-battle`, a GUIDES row
+  and a FIELD_NOTES row. Docs: CLASS-BONDS.md
 - **The first loop (2026-11-06):** `state/firstLoop.ts` (three coach beats — DEPLOY / GROW / COLLECT —
   as data: anchor, nav, click-or-next, `done`) + `ui/FirstLoopCoach.tsx` (lazy) walk a new account's
   first hub visits hands-on, replacing the passive HUD tour for new accounts; while a beat is due the

@@ -1,6 +1,6 @@
 # UNLOCK-TREE.md — the complete progression reveal timeline (GENERATED — `npm run unlocks`)
 
-> 34 features under progression gating (docs/PROGRESSION-GATING.md): every hub
+> 35 features under progression gating (docs/PROGRESSION-GATING.md): every hub
 > screen and wallet chip, in learning-curve order. "Possible" = earliest a lucky account can
 > reveal it; "guaranteed" = the campaign stage that opens it regardless of drops.
 
@@ -13,9 +13,9 @@
 | 3 | ⚙ **Settings** `settings` | screen | always available | start | start | minute 0 | — | Accessibility, audio and account controls can never be gated. |
 | 4 | ◑ **Player Profile** `profile` | screen | Finish your first run · 1 to go | start | S1 | ≈ 3 min · fresh ≈ 6 min | — | Empty before the first run; reveals the moment there are stats to show. |
 | 5 | ◈ **Genetic Vault** `vault` | screen | Bank a Bio-Container | start | S2 | ≈ 6 min · fresh ≈ 12 min | Bio-Containers (`containers`) | The session-1 payoff: the first run banks a container — the Vault reveals exactly when there is something to open (the lootbox hook). Stage 2 backstops a no-cache start. |
-| 6 | T **Tower Lab** `towers` | screen | Clear Campaign Stage 1 · 1 to go | S1 | S1 | ≈ 3 min · fresh ≈ 6 min | Towers (`towers`) | Stage 1’s first-clear pays Strain Samples + a container — the Lab opens the moment it has something to do. |
+| 6 | ♜ **Tower Lab** `towers` | screen | Clear Campaign Stage 1 · 1 to go | S1 | S1 | ≈ 3 min · fresh ≈ 6 min | Towers (`towers`) | Stage 1’s first-clear pays Strain Samples + a container — the Lab opens the moment it has something to do. |
 | 7 | ✷ **Evolution HQ** `evolution` | screen | Earn your first Genome Cores | start | S2 | ≈ 6 min · fresh ≈ 12 min | Genome Core Upgrades (`genome-core`) | Reveals with the first Genome Cores (usually stage 1) — the other half of the same lesson: currency → permanent power. |
-| 8 | H **Hero Hall** `heroes` | screen | Clear Campaign Stage 2 · 2 to go | S2 | S2 | ≈ 6 min · fresh ≈ 12 min | Heroes (`heroes`) | The hero already fights from run 1; the HALL matters once shards start dropping — one beat after towers so the two spend-screens don’t land together. |
+| 8 | ♛ **Hero Hall** `heroes` | screen | Clear Campaign Stage 2 · 2 to go | S2 | S2 | ≈ 6 min · fresh ≈ 12 min | Heroes (`heroes`) | The hero already fights from run 1; the HALL matters once shards start dropping — one beat after towers so the two spend-screens don’t land together. |
 | 9 | ∞ **Infinite** `infinite` | screen | Clear Campaign Stage 3 · 3 to go | S3 | S3 | ≈ 9 min · fresh ≈ 18 min | Infinite (`infinite`) | The established mode gate (docs/MODE-IDENTITY.md): three stages teach the loop before the loop’s farm-half opens. |
 | 10 | ⌬ **Gene Archive** `genes` | screen | Clear Campaign Stage 4 · 4 to go | S4 | S4 | ≈ 15 min · fresh ≈ 30 min | Gene Archive (`gene-archive`) | The starter archive exists from minute 0, but the screen teaches best once drafting is familiar — stage 4, one beat after Infinite. (Re-paced 2026-11: the old six-drafts trigger fired on run 2, inside the first-session flood; Gene Essence banks silently until this reveal.) |
 | 11 | ☀ **Daily Run** `daily` | screen | Clear Campaign Stage 5 · 5 to go | start | S5 | ≈ 18 min · fresh ≈ 36 min | Daily Run (`daily-run`) | The established gate (docs/DAILY-RUN.md): the retention rhythm starts once the core loop is fluent. History grandfathers. |
@@ -25,6 +25,7 @@
 | 15 | ❁ **Season Pass** `season` | screen | Clear Campaign Stage 10 · 10 to go | S10 | S10 | ≈ 45 min · fresh ≈ 1.1 h | Season Pass (`season-pass`) | XP accrues silently from run 1 (rollover mail keeps it lossless) — the track REVEALS at stage 10 (~45 min) once the loop is fluent and several faucets exist to feed it; the banked levels auto-claim as one batch at the next run end. |
 | 16 | ☠ **Boss Rush** `bossrush` | screen | Clear Campaign Stage 12 · 12 to go | start | S12 | ≈ 1.0 h · fresh ≈ 1.4 h | Boss Rush (`boss-rush`) | The established gate (MODE_UNLOCKS.bossRush, stage 12 ≈ 1h): the skill-check pillar arrives once builds are real. History grandfathers (rush records, or a reveal latched under the old stage-9 gate). |
 | 17 | ▤ **Bio-Dex** `collection` | screen | Clear Campaign Stage 13 · 13 to go | S13 | S13 | ≈ 1.0 h · fresh ≈ 1.4 h | Bio-Dex (Collection) (`collection-codex`) | By stage 13 (~1h) two Mega Bosses, a dozen enemy families and the first gear sets exist to catalogue — rank bonuses stop being abstract. |
+| 17.5 | ⟡ **Class Bonds** `bonds` | screen | Clear Campaign Stage 13 · 13 to go | S13 | S13 | ≈ 1.0 h · fresh ≈ 1.4 h | Class Bonds (`class-bonds`) | docs/CLASS-BONDS.md: the first wing past the first hour (the hour-one screen cap holds) — by then a player has fielded every class many times over and reads the conveyor's class marks. The SAME reveal turns the bonds on in runs, so a run never shows a bond the screen has not introduced. |
 | 18 | ⬡ **The Hive** `hive` | screen | Clear Campaign Stage 14 · 14 to go | S14 | S14 | ≈ 1.3 h · fresh ≈ 1.5 h | Hive Construction (`hive-construction`) | A composite sink needs wallets to sink — by stage 14 (~1h15) Cores/Essence/materials have pooled long enough that the first organs are affordable on arrival; the Hive then grows its Production and Expedition tabs over the next stages. |
 | 19 | ❑ **Gear Codex** `gearcodex` | screen | Clear Campaign Stage 15 · 15 to go | S15 | S15 | ≈ 1.3 h · fresh ≈ 1.5 h | Gear Codex (`gear-codex`) | A collection layer OVER gear — an Armory tab that lands at stage 15 (~1h15), long after the Armory habit forms; undiscovered silhouettes become goals. |
 | 20 | ⬣ **Hive Production** `harvest` | screen | Clear Campaign Stage 16 · 16 to go | S16 | S16 | ≈ 1.5 h · fresh ≈ 1.8 h | Hive Production (`idle-harvest`) | Idle exists to soften RETURN friction — it opens as a tab inside The Hive two stages after the Hive itself (~1h30), when sessions start to end mid-progress and the first away-session banks something worth a ceremony. |
@@ -34,7 +35,7 @@
 | 24 | ☣ **Adaptation Chamber** `adaptation` | screen | Clear Campaign Stage 24 · 24 to go | S24 | S24 | ≈ 2.3 h · fresh ≈ 6 h | Adaptation & Antigen (`adaptation`) | Specialization after fluency: stage 24 (~3h, where the first Molt usually lands) opens the deep-specialization beat. Antigen earned earlier (achievements/depth/traces) BANKS SILENTLY and arrives as a ready budget at the reveal (re-paced 2026-11). |
 | 25 | ⊛ **Mulligan Lab** `mulligans` | screen | Clear Campaign Stage 25 · 25 to go | S25 | S25 | ≈ 6 h · fresh ≈ 8 h | Mulligan Organisms (`mulligans`) | The deepest tower system waits for tower fluency: stage 25 (~3–5h, the first Molt plateau). Modifiers sequenced earlier BANK SILENTLY (no luck-reveal — re-paced 2026-11) and are waiting in the Lab at the reveal. |
 | 26 | ❖ **Phenotype Lab** `phenotypes` | screen | Clear Campaign Stage 26 · 26 to go | S26 | S26 | ≈ 6 h · fresh ≈ 9 h | Phenotype Lab (`phenotype-lab`) | Pure luxury — cosmetics wait (stage 26, ~5–6h) until the mechanical wardrobe is full and Gene Essence has a purpose beyond upgrades. |
-| 27 | ⧉ **Specimen Vault** `specimens` | screen | Clear Campaign Stage 27 · 27 to go | S27 | S27 | ≈ 6 h · fresh ≈ 9 h | Specimen Vault (Cosmetic Claiming) (`specimens`) | A Phenotype Lab tab one stage after the Lab itself (~6h). Specimens received earlier BANK SILENTLY — nothing strands: unclaimed stock waits in the inventory and its arrival card holds until this reveal (docs/COSMETICS.md §claiming; re-paced 2026-11 from reveal-on-need). |
+| 27 | ⧉ **Specimen Cabinet** `specimens` | screen | Clear Campaign Stage 27 · 27 to go | S27 | S27 | ≈ 6 h · fresh ≈ 9 h | Specimen Cabinet (Cosmetic Claiming) (`specimens`) | A Phenotype Lab tab one stage after the Lab itself (~6h). Specimens received earlier BANK SILENTLY — nothing strands: unclaimed stock waits in the inventory and its arrival card holds until this reveal (docs/COSMETICS.md §claiming; re-paced 2026-11 from reveal-on-need). |
 | 28 | ⚔ **The Proving Grounds** `arena` | screen | Clear Campaign Stage 28 · 28 to go | S28 | S28 | ≈ 7 h · fresh ≈ 9 h | The Arena (Live PvP) (`arena`) | PvP demands a REAL build to be fair or fun — it reveals at stage 28 (~8h), after the first Molt and the deep-specialization beat, so the first ranked match is fought with towers, genes and a hero worth ranking (docs/ARENA.md). |
 | 29 | ⚖ **Auction House** `auction` | screen | Clear Campaign Stage 30 · 30 to go | S30 | S30 | ≈ 8 h · fresh ≈ 22 h | Auction House (`auction-house`) | Trading is an EARNED capability (docs/TRADING-PREP.md fraud friction) and the last wing to open: stage 30 (~10h), when the account owns gear, cosmetics and organs worth trading. TRADE.minCampaignStage (10, server-enforced) is long satisfied by then. |
 | 30 | 🩸 **Ichor** `cur:ichor` | currency | Clear Campaign Stage 8 · 8 to go | S8 | S8 | ≈ 45 min · fresh ≈ 54 min | — | Shows WITH the Splice Market (its sink) — a currency chip never precedes its purpose. Ichor bled earlier (achievements, Mega Boss bounties) banks silently and appears as one balance at the reveal (re-paced 2026-11). |
@@ -44,8 +45,8 @@
 ## The worst-case walk (no drop luck — every backstop earning its keep)
 
 - **Minute 0** — ⌂ Command Center · ⬡ Campaign · ? Help · ✷ Premium Store · ⚙ Settings
-- **Stage 1** (≈ 3 min · fresh ≈ 6 min) — ◑ Player Profile · T Tower Lab
-- **Stage 2** (≈ 6 min · fresh ≈ 12 min) — ◈ Genetic Vault · ✷ Evolution HQ · H Hero Hall
+- **Stage 1** (≈ 3 min · fresh ≈ 6 min) — ◑ Player Profile · ♜ Tower Lab
+- **Stage 2** (≈ 6 min · fresh ≈ 12 min) — ◈ Genetic Vault · ✷ Evolution HQ · ♛ Hero Hall
 - **Stage 3** (≈ 9 min · fresh ≈ 18 min) — ∞ Infinite
 - **Stage 4** (≈ 15 min · fresh ≈ 30 min) — ⌬ Gene Archive · ⊕ Materials
 - **Stage 5** (≈ 18 min · fresh ≈ 36 min) — ☀ Daily Run
@@ -54,7 +55,7 @@
 - **Stage 8** (≈ 45 min · fresh ≈ 54 min) — ◆ Splice Market · 🩸 Ichor
 - **Stage 10** (≈ 45 min · fresh ≈ 1.1 h) — ❁ Season Pass
 - **Stage 12** (≈ 1.0 h · fresh ≈ 1.4 h) — ☠ Boss Rush
-- **Stage 13** (≈ 1.0 h · fresh ≈ 1.4 h) — ▤ Bio-Dex
+- **Stage 13** (≈ 1.0 h · fresh ≈ 1.4 h) — ▤ Bio-Dex · ⟡ Class Bonds
 - **Stage 14** (≈ 1.3 h · fresh ≈ 1.5 h) — ⬡ The Hive
 - **Stage 15** (≈ 1.3 h · fresh ≈ 1.5 h) — ❑ Gear Codex
 - **Stage 16** (≈ 1.5 h · fresh ≈ 1.8 h) — ⬣ Hive Production
@@ -64,6 +65,6 @@
 - **Stage 24** (≈ 2.3 h · fresh ≈ 6 h) — ☣ Adaptation Chamber · ✦ Ascendant Cells
 - **Stage 25** (≈ 6 h · fresh ≈ 8 h) — ⊛ Mulligan Lab
 - **Stage 26** (≈ 6 h · fresh ≈ 9 h) — ❖ Phenotype Lab
-- **Stage 27** (≈ 6 h · fresh ≈ 9 h) — ⧉ Specimen Vault
+- **Stage 27** (≈ 6 h · fresh ≈ 9 h) — ⧉ Specimen Cabinet
 - **Stage 28** (≈ 7 h · fresh ≈ 9 h) — ⚔ The Proving Grounds
 - **Stage 30** (≈ 8 h · fresh ≈ 22 h) — ⚖ Auction House

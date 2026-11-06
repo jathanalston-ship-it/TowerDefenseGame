@@ -198,6 +198,9 @@
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.09), 0 0 12px -4px color-mix(in srgb, var(--r-epic, #d98cff) 55%, transparent), 0 3px 8px -3px rgba(0, 0, 0, 0.6);
 }
 
+/* Class mark (docs/CLASS-BONDS.md): the pod's combat class at a glance — what bond it feeds. */
+.cv-cls { font-size: var(--fs-xs); line-height: 1; margin-right: 3px; }
+
 .cv-name {
   font-size: var(--fs-xs);
   font-weight: 800;
@@ -1153,6 +1156,23 @@
   margin-left: 4px;
   color: var(--gold);
 }
+
+/* ── Class Bonds in Run Build (docs/CLASS-BONDS.md): one chip per fielded class, class-hued via --cc;
+   lit when its bond is awake, three tier pips, the exact effect on hover. ── */
+.bond-chips { display: flex; flex-direction: column; gap: 4px; }
+.bond-chip {
+  display: flex; align-items: center; gap: 6px; padding: 4px 8px; font-size: 11px;
+  border-radius: var(--r-sm); border: 1px solid color-mix(in srgb, var(--cc) 22%, transparent);
+  background: color-mix(in srgb, var(--cc) 5%, transparent); color: var(--muted);
+}
+.bond-chip.is-on { color: var(--text); border-color: color-mix(in srgb, var(--cc) 60%, transparent); background: color-mix(in srgb, var(--cc) 14%, transparent); }
+.bond-glyph { font-style: normal; color: var(--cc); }
+.bond-name { font-weight: 800; }
+.bond-chip.is-on .bond-name { color: var(--cc); }
+.bond-count { margin-left: auto; font-variant-numeric: tabular-nums; }
+.bond-pips { display: inline-flex; gap: 2px; }
+.bond-pips i { width: 6px; height: 6px; border-radius: 50%; border: 1px solid color-mix(in srgb, var(--cc) 55%, transparent); }
+.bond-pips i.on { background: var(--cc); box-shadow: 0 0 6px var(--cc); }
 
 .buff-chip {
   font-size: 11px;

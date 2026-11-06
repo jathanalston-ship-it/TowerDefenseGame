@@ -769,6 +769,9 @@ export interface HudSnapshot {
   /** EARLY CALL (docs/EARLY-CALL.md §owed): drafts still owed AFTER the open one — called-over waves
    *  whose own last unit has not fallen yet (each is dealt the moment it does). Optional (fixtures). */
   draftsOwed?: number;
+  /** CLASS BONDS (docs/CLASS-BONDS.md): every class with a fielded unit — count, bond tier (0–3) and the
+   *  next threshold (null at Bond III). Absent when bonds are off (fixtures, tutorial, Arena). */
+  bonds?: { cls: CombatClass; count: number; tier: number; next: number | null }[];
   /** EARLY CALL §owed: the called-over wave the OPEN draft pays (dealt mid-fight when that wave's last
    *  unit fell, or at the clear). Absent/0 ⇒ the open draft is the current wave's own. */
   owedDraftWave?: number;

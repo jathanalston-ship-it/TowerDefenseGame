@@ -1,0 +1,39 @@
+/* BondsScreen — the styles only this module's elements need, shipped in its lazy chunk instead of the
+   boot stylesheet (docs/DEPLOYMENT.md §boot-css). src/index.css keeps every class a boot screen (or
+   more than one lazy chunk) renders; lazy stylesheets load AFTER it, so override here, not there. */
+
+/* ── Class Bonds (docs/CLASS-BONDS.md): one card per combat class, class-hued via --cc ── */
+.bonds-screen { display: flex; flex-direction: column; gap: 14px; }
+.bonds-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; }
+
+.bond-card {
+  display: flex; flex-direction: column; gap: 10px; padding: 14px;
+  background: var(--panel); border: 1px solid color-mix(in srgb, var(--cc) 35%, var(--line-strong));
+  border-radius: var(--r-md); box-shadow: inset 0 1px 0 color-mix(in srgb, var(--cc) 18%, transparent);
+}
+.bond-card-head { display: flex; align-items: center; gap: 10px; }
+.bond-card-glyph {
+  flex: none; width: 36px; height: 36px; display: grid; place-items: center; font-size: 18px;
+  color: var(--cc); border-radius: 50%; background: color-mix(in srgb, var(--cc) 14%, transparent);
+  border: 1px solid color-mix(in srgb, var(--cc) 45%, transparent);
+}
+.bond-card-names { display: flex; flex-direction: column; min-width: 0; flex: 1; }
+.bond-card-cls { font-size: 16px; font-weight: 800; color: var(--cc); }
+.bond-card-bond { font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+.bond-card-lvl { font-size: 13px; font-weight: 800; color: var(--text); padding: 2px 10px; border-radius: 999px; border: 1px solid var(--line-strong); }
+.bond-card-blurb { margin: 0; font-size: 12px; line-height: 1.45; color: var(--muted); }
+
+.bond-members { display: flex; flex-wrap: wrap; gap: 4px; }
+.bond-member { font-size: 11px; padding: 2px 8px; border-radius: 999px; color: var(--text); background: color-mix(in srgb, var(--cc) 12%, transparent); }
+.bond-member.is-hero { font-weight: 700; }
+.bond-member.is-locked { opacity: 0.45; }
+
+.bond-tiers { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+.bond-tier { display: flex; gap: 10px; align-items: baseline; font-size: 12px; }
+.bond-tier-k { flex: none; width: 76px; font-weight: 800; color: var(--cc); }
+.bond-tier-v { color: var(--text); }
+
+.bond-level { display: flex; align-items: center; gap: 10px; margin-top: auto; }
+.bond-level-bar { flex: 1; height: 6px; border-radius: 999px; background: var(--panel-3); overflow: hidden; }
+.bond-level-bar i { display: block; height: 100%; background: var(--cc); transition: width var(--dur-3) var(--ease-out); }
+.bond-up { flex: none; display: inline-flex; align-items: center; gap: 6px; font-size: 12px; padding: 6px 12px; }

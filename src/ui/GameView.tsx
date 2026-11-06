@@ -24,6 +24,7 @@ import { HERO_ORDER, TOWER_ORDER } from '../core/config';
 import type { ResolvedHeroKit } from '../core/config';
 import { AUTOSTART_KEY, motionPrefs, onMotionPrefs, resolveMotion, systemReducedMotion } from '../state/prefs';
 import { masteryLevel, meta, equippedCosmeticThemes } from '../state/meta';
+import { featureRevealed } from '../state/unlocks';
 import { automationFor, highestCampaignStage } from '../save/derive';
 import { frontDeploy } from '../state/frontDeploy';
 import { announcePower } from '../state/powerEvents';
@@ -191,6 +192,10 @@ export function GameView({
     // LIVE adaptive threat seeded with account Power ÷ the stage's recommended Power (§6a); and the
     // Infinite SQUEEZE (ENDLESS_SQUEEZE). The Arena boots its own games and never passes these.
     earlyCall: !tutorial,
+    // CLASS BONDS (docs/CLASS-BONDS.md): on once the bonds are revealed (the same gate as their screen),
+    // never in the tutorial. The shared Daily board runs them at BASE strength (no account levels) —
+    // the same fairness rule as Mulligans / the nemesis.
+    ...(!tutorial && featureRevealed(meta.get(), 'bonds') ? { classBonds: daily ? {} : meta.bondLevels() } : {}),
     ...(mode === 'campaign' && stage && !tutorial ? { livePowerBase: meta.power().score / Math.max(1, recommendedPowerScore(stage.stage, stage.difficulty)) } : {}),
     ...(mode === 'endless' && !tutorial ? { squeeze: true } : {}),
     // Daily Run (docs/DAILY-RUN.md): the day's 3-tower trial pool REPLACES the account roster for
