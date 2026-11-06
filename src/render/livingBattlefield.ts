@@ -41,7 +41,25 @@ function hex(h: string): Col {
   hexCache.set(h, c);
   return c;
 }
-function css(c: Col, a = 1): string { return `rgba(${c[0] | 0},${c[1] | 0},${c[2] | 0},${a})`; }
+// Memoized like theme.rgba (perf — docs/RENDER-PIPELINE.md §6): packed rgb → alpha at 1/1000 → string,
+// so the per-frame root / scar / bead alphas stop formatting a fresh colour string per draw.
+const cssCache = new Map<number, Map<number, string>>();
+let cssCached = 0;
+function css(c: Col, a = 1): string {
+  const r = c[0] | 0, g = c[1] | 0, b = c[2] | 0;
+  const q = Math.round(a * 1000);
+  if (r < 0 || r > 255 || g < 0 || g > 255 || b < 0 || b > 255) return `rgba(${r},${g},${b},${q / 1000})`;
+  const key = (r << 16) | (g << 8) | b;
+  let byA = cssCache.get(key);
+  if (!byA) { byA = new Map(); cssCache.set(key, byA); }
+  let s = byA.get(q);
+  if (s === undefined) {
+    if (++cssCached > 50_000) { cssCache.clear(); cssCached = 0; }
+    s = `rgba(${r},${g},${b},${q / 1000})`;
+    byA.set(q, s);
+  }
+  return s;
+}
 function mix(a: Col, b: Col, t: number): Col { return [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t]; }
 function shade(c: Col, f: number): Col {
   return f >= 0 ? [c[0] + (255 - c[0]) * f, c[1] + (255 - c[1]) * f, c[2] + (255 - c[2]) * f]

@@ -29,7 +29,7 @@ import type { RenderState } from '../core/game';
 import type { TowerFiring, EnemyKind, HeroKind } from '../core/types';
 import { THEME, ENEMY_SHAPE, ENEMY_TIER, ENEMY_BODY, ENEMY_VARIANT, ENEMY_ACCENT, hexRgb, rgba } from './theme';
 import { drawEnemyBody } from './enemyForms';
-import type { BodyForm } from './enemyForms';
+import type { BodyForm, BodyOpts } from './enemyForms';
 import { ingestDeaths, updateGore, drawGoreFloor, drawGorePieces, goreThrob } from './gore';
 import { drawAbilityCinematics } from './abilityCinematics';
 import { DAMAGE_NUMBERS, REACTION_LABELS, viewFeel } from './feel';
@@ -261,7 +261,7 @@ function drawAmbientMotes(ctx: CanvasRenderingContext2D, t: number, biome: Rende
     const drift = ((hash01(i * 17 + 2) * WIDTH) + Math.sin(t * (0.15 + h * 0.2) + i) * 30 + t * (i % 2 ? 2.5 : -2)) % WIDTH;
     const x = drift < 0 ? drift + WIDTH : drift;
     const y = (hash01(i * 23 + 6) * HEIGHT + t * (4 + h * 7)) % HEIGHT;
-    ctx.fillStyle = `rgba(190, 230, 210, ${0.05 + 0.06 * pulse(t, 0.4 + h, 0, 1)})`;
+    ctx.fillStyle = rgba('190, 230, 210', 0.05 + 0.06 * pulse(t, 0.4 + h, 0, 1));
     ctx.beginPath();
     ctx.arc(x, y, 1 + h * 1.3, 0, Math.PI * 2);
     ctx.fill();
@@ -358,7 +358,7 @@ export function drawGame(
         ctx.beginPath();
         ctx.arc(bx, by, br, 0, Math.PI * 2);
         ctx.fill();
-        ctx.fillStyle = `rgba(235,255,210,${(0.5 - cyc * 0.4) * fade})`;
+        ctx.fillStyle = rgba('235,255,210', (0.5 - cyc * 0.4) * fade);
         ctx.beginPath();
         ctx.arc(bx - br * 0.3, by - br * 0.3, br * 0.3, 0, Math.PI * 2);
         ctx.fill();
@@ -2254,6 +2254,9 @@ function bossDrawR(e: RenderState['enemies'][number]): number {
   return visualHeft(themedEnemyDef(e.kind).radius);
 }
 
+/** drawEnemy's creature-body options, refilled per body (perf — docs/RENDER-PIPELINE.md §6). */
+const bodyOpts: BodyOpts = { seed: 0, phase: 0, rim: '' };
+
 function drawEnemy(
   ctx: CanvasRenderingContext2D,
   e: RenderState['enemies'][number],
@@ -2473,11 +2476,12 @@ function drawEnemy(
     const mo = enemyMotion.get(e.id);
     const emerge = easeOutCubic(mo ? Math.min(1, (t - mo.spawnT) / EMERGE_T) : 1);
     const bodyR = r * (0.93 + (e.id % 5) * 0.028); // per-instance size jitter (body only — rings stay true)
-    drawEnemyBody(ctx, ENEMY_BODY[e.kind], e.x, drawY, bodyR, def.color, t, {
-      seed: ENEMY_VARIANT[e.kind], accent: ENEMY_ACCENT[e.kind], phase: e.id, rim, flying,
-      vx: mo?.vx ?? 0, vy: mo?.vy ?? 0, emerge,
-      flinch: Math.min(1, e.hitFlash * 9), // the 0.09s sim flash → a physical recoil
-    });
+    const o = bodyOpts; // one reused options object (like introScenes' castOpts) — no per-body allocation
+    o.seed = ENEMY_VARIANT[e.kind]; o.accent = ENEMY_ACCENT[e.kind]; o.phase = e.id; o.rim = rim; o.flying = flying;
+    o.vx = mo?.vx ?? 0; o.vy = mo?.vy ?? 0; o.emerge = emerge;
+    o.flinch = Math.min(1, e.hitFlash * 9); // the 0.09s sim flash → a physical recoil
+    o.moving = undefined; // drawEnemyBody derives it per body (a fresh object never carried one)
+    drawEnemyBody(ctx, ENEMY_BODY[e.kind], e.x, drawY, bodyR, def.color, t, o);
   }
   else drawShape(ctx, shape, e.x, drawY, r, e.boss ? bcol : def.color);
   if (stag > 0.01) ctx.restore();
@@ -2487,7 +2491,7 @@ function drawEnemy(
     // body's leading edge, aimed where the tracker says this creature is looking.
     const gz = e.boss ? undefined : enemyMotion.get(e.id);
     if (gz && gz.gazeW > 0.25) {
-      glowDisc(ctx, e.x + Math.cos(gz.gazeA) * r * 0.42, drawY + Math.sin(gz.gazeA) * r * 0.42, 1.4, `rgba(255,255,255,${(0.38 * gz.gazeW).toFixed(3)})`);
+      glowDisc(ctx, e.x + Math.cos(gz.gazeA) * r * 0.42, drawY + Math.sin(gz.gazeA) * r * 0.42, 1.4, rgba('255,255,255', 0.38 * gz.gazeW));
     }
 
     // Shield bubble — a front-arc barrier facing the descent, alpha by remaining charge;
