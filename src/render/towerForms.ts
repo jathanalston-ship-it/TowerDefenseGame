@@ -94,14 +94,22 @@ function tri(hex: string): [number, number, number] {
   const n = parseInt(full, 16); const out: [number, number, number] = [(n >> 16) & 255, (n >> 8) & 255, n & 255];
   triCache.set(hex, out); return out;
 }
-const colCache = new Map<string, string>();
+// hex → lit → alpha → colour. Nested maps, not a `${hex}|${lit}|${a}` key: building that key string
+// per call was this file's biggest per-frame allocation (perf, docs/RENDER-PIPELINE.md §6).
+const colCache = new Map<string, Map<number, Map<number, string>>>();
+let colCached = 0;
 function C(hex: string, lit: number, a = 1): string {
-  const key = `${hex}|${lit}|${a}`; const hit = colCache.get(key); if (hit) return hit;
+  let byLit = colCache.get(hex);
+  if (!byLit) { byLit = new Map(); colCache.set(hex, byLit); }
+  let byA = byLit.get(lit);
+  if (!byA) { byA = new Map(); byLit.set(lit, byA); }
+  const hit = byA.get(a); if (hit) return hit;
   let [r, g, b] = tri(hex);
   if (lit >= 0) { r += (255 - r) * lit; g += (255 - g) * lit; b += (255 - b) * lit; } else { const k = 1 + lit; r *= k; g *= k; b *= k; }
   r = Math.round(r); g = Math.round(g); b = Math.round(b);
   const out = a >= 1 ? `rgb(${r},${g},${b})` : `rgba(${r},${g},${b},${a})`;
-  colCache.set(key, out); return out;
+  if (++colCached > 20_000) { colCache.clear(); colCached = 0; } // dynamic alphas are the open-ended axis; a backstop
+  byA.set(a, out); return out;
 }
 const RIM = 'rgba(4,6,12,0.7)';
 

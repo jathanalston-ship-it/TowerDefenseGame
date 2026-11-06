@@ -10,18 +10,53 @@ import type { EnemyKind, TowerKind } from '../core/types';
 import type { BodyForm } from './enemyForms';
 import type { ShapeKind } from './vfx';
 
-/** Compose an `rgba()` string from an "r, g, b" token and an alpha. */
+// COLOUR-STRING MEMO (perf — docs/RENDER-PIPELINE.md §6): the renderer composes thousands of
+// dynamic-alpha colours a frame, and formatting + parsing a fresh `rgba()` string per draw was the
+// battlefield's top allocation source. Alpha is keyed at RGBA_ALPHA_STEPS (≤ 0.0005 off — well under
+// one 8-bit colour level), so pulsing/fading alphas land on a bounded set of cached strings; the
+// cache resets past RGBA_CACHE_MAX entries (blended status hues are the only open-ended tokens).
+const RGBA_ALPHA_STEPS = 1000;
+const RGBA_CACHE_MAX = 50_000;
+const rgbaCache = new Map<string, Map<number, string>>();
+let rgbaCached = 0;
+
+/** Compose an `rgba()` string from an "r, g, b" token and an alpha (memoized — see above). */
 export function rgba(rgb: string, a: number): string {
-  return `rgba(${rgb}, ${a})`;
+  const q = Math.round(a * RGBA_ALPHA_STEPS);
+  let byAlpha = rgbaCache.get(rgb);
+  if (byAlpha === undefined) {
+    byAlpha = new Map();
+    rgbaCache.set(rgb, byAlpha);
+  }
+  let s = byAlpha.get(q);
+  if (s === undefined) {
+    if (rgbaCached >= RGBA_CACHE_MAX) {
+      rgbaCache.clear();
+      rgbaCached = 0;
+      byAlpha = new Map();
+      rgbaCache.set(rgb, byAlpha);
+    }
+    s = `rgba(${rgb}, ${q / RGBA_ALPHA_STEPS})`;
+    byAlpha.set(q, s);
+    rgbaCached++;
+  }
+  return s;
 }
 
+const hexRgbCache = new Map<string, string>();
 /** Convert a `#rgb`/`#rrggbb` hex into an "r, g, b" token for use with rgba().
- * Lets data-driven entity colors (config) feed the alpha-composed render tokens. */
+ * Lets data-driven entity colors (config) feed the alpha-composed render tokens. Memoized (the
+ * hot draw loops convert the same few dozen entity colours every frame). */
 export function hexRgb(hex: string): string {
+  const hit = hexRgbCache.get(hex);
+  if (hit !== undefined) return hit;
   const h = hex.replace('#', '');
   const full = h.length === 3 ? h.split('').map((c) => c + c).join('') : h;
   const n = parseInt(full, 16);
-  return `${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}`;
+  const out = `${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}`;
+  if (hexRgbCache.size >= 4096) hexRgbCache.clear(); // entity colours are a finite palette; just a backstop
+  hexRgbCache.set(hex, out);
+  return out;
 }
 
 // ── Palette ──────────────────────────────────────────────────────────────────

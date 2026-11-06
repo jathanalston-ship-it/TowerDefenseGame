@@ -16,6 +16,7 @@
 import type { DeathEvent, RenderState } from '../core/game';
 import { TOWER_DEFS, HERO_DEFS } from '../core/config';
 import { WIDTH } from '../core/map';
+import { rgba } from './theme'; // memoized colour strings (perf — docs/RENDER-PIPELINE.md §6)
 
 type Ctx = CanvasRenderingContext2D;
 
@@ -266,7 +267,7 @@ export function goreThrob(key: string): number { return throb.get(key) ?? 0; }
 export function drawGoreFloor(ctx: Ctx): void {
   for (const d of decals) {
     const a = Math.min(0.5, (d.life / d.maxLife) * 0.5);
-    ctx.fillStyle = `rgba(${d.rgb},${a})`;
+    ctx.fillStyle = rgba(d.rgb, a);
     ctx.beginPath();
     ctx.ellipse(d.x, d.y, d.size * d.sx, d.size * 0.55, 0, 0, Math.PI * 2);
     ctx.fill();
@@ -285,13 +286,13 @@ export function drawGorePieces(ctx: Ctx): void {
       sz = p.orbT > 0 ? p.size * Math.max(0.35, p.orbT / ORBIT_SECONDS) : p.size;
       // a soft halo while orbiting — the vortex glows as it condenses
       if (p.orbT > 0) {
-        ctx.fillStyle = `rgba(${p.rgb},${a * 0.22})`;
+        ctx.fillStyle = rgba(p.rgb, a * 0.22);
         ctx.beginPath();
         ctx.arc(p.x, p.y, sz * 2.4, 0, Math.PI * 2);
         ctx.fill();
       }
       // the comet trail sells the "streaming in"
-      ctx.strokeStyle = `rgba(${p.rgb},${a * 0.5})`;
+      ctx.strokeStyle = rgba(p.rgb, a * 0.5);
       ctx.lineWidth = sz * 1.1;
       ctx.lineCap = 'round';
       ctx.beginPath();
@@ -302,7 +303,7 @@ export function drawGorePieces(ctx: Ctx): void {
       a = p.alpha * Math.min(1, lf * 2); // ballistic gibs/drops still fade out
       sz = p.size;
     }
-    ctx.fillStyle = `rgba(${p.rgb},${a})`;
+    ctx.fillStyle = rgba(p.rgb, a);
     ctx.beginPath();
     ctx.arc(p.x, p.y, sz, 0, Math.PI * 2);
     ctx.fill();
@@ -311,7 +312,7 @@ export function drawGorePieces(ctx: Ctx): void {
   // Consumption flashes — a quick ring pop where a chunk was absorbed.
   for (const f of flashes) {
     const k = 1 - f.life / f.maxLife;
-    ctx.strokeStyle = `rgba(${f.rgb},${(1 - k) * 0.8})`;
+    ctx.strokeStyle = rgba(f.rgb, (1 - k) * 0.8);
     ctx.lineWidth = 1.6;
     ctx.beginPath();
     ctx.arc(f.x, f.y, 4 + k * 20, 0, Math.PI * 2);
@@ -327,7 +328,7 @@ export function drawGorePieces(ctx: Ctx): void {
     ctx.lineWidth = 3;
     ctx.strokeStyle = `rgba(6,10,14,${a * 0.85})`;
     ctx.strokeText(fl.text, fl.x, y);
-    ctx.fillStyle = `rgba(${fl.rgb},${a})`;
+    ctx.fillStyle = rgba(fl.rgb, a);
     ctx.fillText(fl.text, fl.x, y);
   }
   ctx.textAlign = 'start';

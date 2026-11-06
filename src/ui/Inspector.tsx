@@ -42,21 +42,37 @@ function InsHead({ title, onCollapse }: { title: string; onCollapse?: () => void
   );
 }
 
+/** A kind's Power Score contribution (current − with its stars + mastery zeroed): two full
+ *  account-Power folds. Memoized per save snapshot (saves are replaced, never mutated), so
+ *  clicking between towers doesn't re-fold the whole account on every selection (perf). */
+const contributionCache = new WeakMap<object, Map<TowerKind, number>>();
+function masteryContribution(kind: TowerKind): number {
+  const save = meta.get();
+  let byKind = contributionCache.get(save);
+  if (!byKind) {
+    byKind = new Map();
+    contributionCache.set(save, byKind);
+  }
+  const hit = byKind.get(kind);
+  if (hit !== undefined) return hit;
+  const cur = meta.power().score;
+  const without = meta.previewPower((sv) => ({
+    ...sv,
+    towerStars: { ...sv.towerStars, [kind]: 0 },
+    towerMasteryXp: { ...sv.towerMasteryXp, [kind]: 0 },
+  })).score;
+  const v = Math.max(0, cur - without);
+  byKind.set(kind, v);
+  return v;
+}
+
 /** Live Mastery for the selected tower (docs/MASTERY.md §live): projected level + a
  * smoothly-filling bar + floating "+N XP" ticks as the organism earns, over the save-side
  * ledger (rank, bonus, next unlock, lifetime, Power contribution). */
 function MasteryLive({ kind, color, live }: { kind: TowerKind; color: string; live: LiveMasteryView | undefined }): JSX.Element | null {
   const save = meta.get(); // stable during a run (mastery banks at finishRun)
   const ledger = useMemo(() => masteryPanelModel(save, kind), [save, kind]);
-  const contribution = useMemo(() => {
-    const cur = meta.power().score;
-    const without = meta.previewPower((sv) => ({
-      ...sv,
-      towerStars: { ...sv.towerStars, [kind]: 0 },
-      towerMasteryXp: { ...sv.towerMasteryXp, [kind]: 0 },
-    })).score;
-    return Math.max(0, cur - without);
-  }, [kind]);
+  const contribution = useMemo(() => masteryContribution(kind), [kind]);
   // Floating XP ticks: whenever this kind's run XP rises, a "+N Mastery XP" drifts up.
   const [floats, setFloats] = useState<{ id: number; amt: number }[]>([]);
   const prevGained = useRef<{ kind: TowerKind; gained: number } | null>(null);

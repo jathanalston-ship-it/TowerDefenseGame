@@ -230,7 +230,12 @@ export function composePower(parts: PowerParts): PowerScore {
   return { score: Math.round(POWER_BASE * mult), mult, parts };
 }
 
+/** One formatter, built once — `Number#toLocaleString()` with no arguments builds a fresh ICU
+ *  formatter per call (~8 µs; the HUD formats Power on every snapshot). Same default locale and
+ *  options ⇒ the identical string. */
+const POWER_FORMAT = new Intl.NumberFormat();
+
 /** The readable integer, thousands-separated (e.g. 1284 → "1,284"). */
 export function formatPower(score: number): string {
-  return Math.round(score).toLocaleString();
+  return POWER_FORMAT.format(Math.round(score));
 }

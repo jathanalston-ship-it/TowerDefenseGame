@@ -39,11 +39,13 @@ export interface BodyOpts {
 }
 
 // ── Colour shading (memoized — colours are per-kind, so ~40 distinct keys, not per-enemy) ──────────
-const shadeCache = new Map<string, string>();
+// hex → f → colour (nested: no per-call `hex + f` key string — perf, docs/RENDER-PIPELINE.md §6).
+const shadeCache = new Map<string, Map<number, string>>();
 /** Darken (f<0) or lighten-toward-white (f>0) a hex colour → an `rgb()` string. */
 function shade(hex: string, f: number): string {
-  const key = hex + f;
-  const hit = shadeCache.get(key);
+  let byF = shadeCache.get(hex);
+  if (!byF) { byF = new Map(); shadeCache.set(hex, byF); }
+  const hit = byF.get(f);
   if (hit) return hit;
   const h = hex.replace('#', '');
   const full = h.length === 3 ? h.split('').map((c) => c + c).join('') : h;
@@ -52,19 +54,20 @@ function shade(hex: string, f: number): string {
   if (f >= 0) { r += (255 - r) * f; g += (255 - g) * f; b += (255 - b) * f; }
   else { const k = 1 + f; r *= k; g *= k; b *= k; }
   const out = `rgb(${Math.round(r)},${Math.round(g)},${Math.round(b)})`;
-  shadeCache.set(key, out);
+  byF.set(f, out);
   return out;
 }
 /** The same shade as an "r,g,b" TOKEN for `rgba(${…},a)` templates. (The spawn-intro VFX used to
  *  wrap shade()'s `rgb()` string in rgba() — invalid CSS the canvas silently ignores, so every
  *  birth burst painted in whatever stroke/fill colour the previous draw left behind.) */
-const tokCache = new Map<string, string>();
+const tokCache = new Map<string, Map<number, string>>();
 function shadeTok(hex: string, f: number): string {
-  const key = hex + f;
-  const hit = tokCache.get(key);
+  let byF = tokCache.get(hex);
+  if (!byF) { byF = new Map(); tokCache.set(hex, byF); }
+  const hit = byF.get(f);
   if (hit) return hit;
   const out = shade(hex, f).slice(4, -1); // "rgb(r,g,b)" → "r,g,b"
-  tokCache.set(key, out);
+  byF.set(f, out);
   return out;
 }
 

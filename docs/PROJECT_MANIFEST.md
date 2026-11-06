@@ -601,7 +601,10 @@ ladders. 4. Every permanent progression source must move the Power Score (valida
 - **Known limitations:** everything is procedural placeholder art by design (EA).
 - **Developer tips:** sim particles live in the SIM (golden-relevant!) — visual-only tweaks
   belong in the renderer (statusFx pools/sparks are render-local, capped, deterministic). Never
-  draw a bespoke per-status ring; add traits and let the merge compose them.
+  draw a bespoke per-status ring; add traits and let the merge compose them. Per-frame colours with a
+  dynamic alpha go through the memoized `theme.rgba(token, a)` — never a template literal in a draw
+  loop; `npm run perf` measures the loop (deterministic frozen scene + live fight + click handling) —
+  `RENDER-PIPELINE.md` §6 has the frame budget and the levers not yet pulled.
 
 ## Assimilation Index
 

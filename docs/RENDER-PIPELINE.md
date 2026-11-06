@@ -121,3 +121,53 @@ refactor. Findings and the decisions they drove:
 `npm run typecheck` (strict) · `npm test` (33 tests incl. 6 golden) · `npm run
 build` — all green. Live: headless-Chromium smoke placed all three towers and
 spawned the full archetype mix (every silhouette) with **zero console errors**.
+
+---
+
+## 6. Performance — where a frame goes (2026-11-06 pass)
+
+Owner report: on a loaded desktop (30 fps baseline) busy fights dipped to 20–25 fps, more while
+clicking/selecting. Measured with `npm run perf` (scripts/perf-probe.ts — a deterministic frozen
+scene + a live fight + a selection-churn window; CDP `--cpu 4` stands in for a loaded machine) and
+CPU / heap-sampling profiles, ~100 enemies · 21 towers · ~400 particles · 100–600 floats.
+
+**Where the main thread goes (1× CPU, per frame):** the game loop (rAF) ≈ 7 ms — `drawGame` ≈ 85 %
+of it (enemies ~45 %: creature forms, status FX, glows, health pips; towers ~15 %; the living
+battlefield ~8 %), the sim's `advance()` ≈ 10 %, audio cue synthesis ≈ 5 %. React HUD work ≈ 1 ms/s
+per 12.5 Hz snapshot (~10–13 ms/s). DOM style + paint ≈ 0.8 ms/frame, driven by ~14 non-composited
+CSS animations in the HUD (it surfaces as the first `ctx.font` set in `drawSpawnZone`, which forces
+the frame's style recalc early — moving it would not remove it). A busy frame records ~25,000 canvas
+ops and, before this pass, allocated ~1 MB of garbage. **Text is not a hot spot** — Chrome caches
+glyphs; a sprite cache for float text measured *slower* (drawImage-of-canvas snapshots) and was
+dropped.
+
+**Changed (invisible — the 21,189-op command stream of a deterministic frame is identical):**
+- *Colour strings are memoized* — `theme.rgba` / `hexRgb`, livingBattlefield `css`, towerForms `C`,
+  enemyForms `shade`/`shadeTok`, status hue tokens; gore and a few template literals route through
+  `rgba`. Dynamic alpha is keyed at 1/1000 (≤ 0.0005 off — under one 8-bit colour level). Formatting +
+  parsing a fresh `rgba()` per draw was ~0.65 µs and the top allocation source. **New code: compose
+  dynamic-alpha colours with `rgba(token, a)`, never a template literal in a per-frame loop.**
+- Per-body allocations reused: drawEnemy's `BodyOpts`, `deathFlavorOf`'s descriptors.
+- HUD: `BiomassReadout` owns the per-snapshot income/pop state (it used to re-render the whole bar a
+  second time per snapshot); `formatPower` uses one cached `Intl.NumberFormat` (`toLocaleString()`
+  built an ICU formatter per call); the Inspector's mastery Power contribution is memoized per save
+  snapshot (two whole-account Power folds ran on every tower click).
+
+**Measured, before → after** (minified builds, software raster, `--disable-gpu`): per-frame
+allocation 1000 → 683 KB (−32 %), GC time −13–23 %; deterministic-scene loop JS p50 5.18 → 4.95 ms
+(1×) and 28.2 → 26.1 ms (4×), p95 39.4 → 31.5 ms (4×); live fight loop JS −10 % (1×) / −8–14 % (4×);
+HUD component renders −7 %; click handling (pointerup → synchronous selection render) mean
+2.40 → 2.16 ms (1×). Frame *intervals* in the probe are raster-bound (software raster ≈ 17–34 ms of
+each frame), so they move little — read the loop/React columns.
+
+**The big levers left — measured, not changed (visible or cross-cutting; owner decision):**
+1. *A load-adaptive detail tier.* The existing LOD path (`PERF.lodEnemyCount`) cuts loop JS 7.3 → 4.2 ms
+   (−42 %) and lifts the probe from 25 → 39 fps — but it swaps creature bodies for flat silhouettes and
+   drops status FX. A frame-time-driven middle tier (keep bodies; shed glows/emitters/trails first, with
+   hysteresis) is the material win for loaded machines; it needs a design pass (what may degrade).
+2. *A display-sized backing store.* At 1440×900 the board shows at 543×724 CSS px but renders 720×960
+   (1.76× the pixels, downsampled by the compositor). Rendering at the displayed size measured raster
+   17.5 → 11.8 ms/frame (−33 %), 23 → 33 fps, with no visible loss — but `canvas.board` sizes from its
+   intrinsic (backing) size, so it needs a CSS sizing change across the four layout profiles (mobilecheck).
+3. *Compositor-only HUD animations.* ~14 HUD animations (background-position, text-shadow, `::before/
+   ::after`) restyle + repaint every frame (~0.8 ms/frame); transform/opacity versions run off-thread.

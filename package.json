@@ -25,6 +25,7 @@
     "mobilecheck": "vite-node scripts/mobilecheck.ts",
     "cogload": "vite-node scripts/cogload.ts",
     "probe:first-session": "vite-node scripts/first-session-probe.ts",
+    "perf": "vite-node scripts/perf-probe.ts",
     "audio:audit": "vite-node scripts/audio-audit.ts",
     "media": "vite-node scripts/capture-media.ts",
     "preflight": "vite-node scripts/preflight.ts",

@@ -56,6 +56,13 @@ function hueNums(hex: string): [number, number, number] {
   hueCache.set(hex, out);
   return out;
 }
+// The same hue as an "r, g, b" token — cached, so the per-frame merge stops joining a fresh array per hue.
+const hueTokCache = new Map<string, string>();
+function hueTok(hex: string): string {
+  let tok = hueTokCache.get(hex);
+  if (tok === undefined) { tok = hueNums(hex).join(', '); hueTokCache.set(hex, tok); }
+  return tok;
+}
 
 interface Contribution { hue: string; glow: number; pulseSpeed: number; overlay: StatusOverlayKind; particles: readonly StatusParticleKind[]; distortion: number; jitter: number; k: number; control: boolean }
 
@@ -122,7 +129,7 @@ export function mergeStatusFx(e: EnemyView, quality: StatusFxQuality): MergedSta
   const overlays: MergedStatusFx['overlays'] = [];
   for (const p of parts) {
     const cur = overlays.find((o) => o.kind === p.overlay);
-    const pRgb = hueNums(p.hue).join(', ');
+    const pRgb = hueTok(p.hue);
     if (!cur) overlays.push({ kind: p.overlay, rgb: pRgb, k: p.k, control: p.control });
     else {
       if (p.k > cur.k) { cur.rgb = pRgb; cur.control = p.control; }
@@ -135,7 +142,7 @@ export function mergeStatusFx(e: EnemyView, quality: StatusFxQuality): MergedSta
   for (const p of parts) {
     for (const kind of p.particles) {
       const cur = emitters.find((o) => o.kind === kind);
-      if (!cur) emitters.push({ kind, rgb: hueNums(p.hue).join(', '), k: p.k });
+      if (!cur) emitters.push({ kind, rgb: hueTok(p.hue), k: p.k });
       else cur.k = 1 - (1 - cur.k) * (1 - p.k);
     }
   }
@@ -159,21 +166,32 @@ export function mergeStatusFx(e: EnemyView, quality: StatusFxQuality): MergedSta
  *  ones collapse in embers, infested ones burst spores, corroded ones dissolve. */
 export type DeathFlavor = 'shatter' | 'embers' | 'spores' | 'dissolve';
 
-export function deathFlavorOf(e: EnemyView): { flavor: DeathFlavor; hue: string } | null {
+export function deathFlavorOf(e: EnemyView): Readonly<{ flavor: DeathFlavor; hue: string }> | null {
   const list = e.statuses;
   if (list !== undefined && list.length > 0) {
-    let best: { flavor: DeathFlavor; hue: string } | null = null;
+    let best: Readonly<{ flavor: DeathFlavor; hue: string }> | null = null;
     for (const s of list) {
       if (s.stacks <= 0) continue;
-      if (s.id === 'freeze') return { flavor: 'shatter', hue: statusRegistry.get('freeze')!.fx.hue };
-      if (s.id === 'burn') best = { flavor: 'embers', hue: statusRegistry.get('burn')!.fx.hue };
-      else if (!best && s.id === 'poison') best = { flavor: 'spores', hue: statusRegistry.get('poison')!.fx.hue };
+      if (s.id === 'freeze') return flavorOf('shatter', 'freeze');
+      if (s.id === 'burn') best = flavorOf('embers', 'burn');
+      else if (!best && s.id === 'poison') best = flavorOf('spores', 'poison');
     }
     if (best) return best;
   }
-  if (e.infection > 0) return { flavor: 'spores', hue: statusRegistry.get('infection')!.fx.hue };
-  if (e.corrosion > 0) return { flavor: 'dissolve', hue: statusRegistry.get('corrosion')!.fx.hue };
+  if (e.infection > 0) return flavorOf('spores', 'infection');
+  if (e.corrosion > 0) return flavorOf('dissolve', 'corrosion');
   return null;
+}
+/** One shared, frozen descriptor per (flavor, status) — deathFlavorOf runs for every afflicted body
+ *  every frame (the renderer's motion tracker), so it hands out constants instead of fresh objects. */
+const flavorCache = new Map<string, Readonly<{ flavor: DeathFlavor; hue: string }>>();
+function flavorOf(flavor: DeathFlavor, statusId: string): Readonly<{ flavor: DeathFlavor; hue: string }> {
+  const hue = statusRegistry.get(statusId)!.fx.hue;
+  const hit = flavorCache.get(statusId);
+  if (hit && hit.flavor === flavor && hit.hue === hue) return hit;
+  const out = Object.freeze({ flavor, hue });
+  flavorCache.set(statusId, out);
+  return out;
 }
 
 /** Control-state body transform: trembling offset (fear/stun/shock) + heat/psionic warp scale.
