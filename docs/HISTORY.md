@@ -662,3 +662,4 @@
 - ⚑ `eb7b181` **[Framework]** Status,chronicle: DEPLOYED "First Steps, Walked With You" (a0b332d, run #237); seal v2026.11.06 _(internal)_
 - `0d0d8f4` **[Heroes]** Class Bonds: the class set bonus for towers and heroes, upgradeable, taught end to end
 - `f81d494` **[Towers]** Site: Class Bonds in the tower guide (from the live tables), roadmap entry; devlog 'Class Bonds'
+- `e1968ae` **[Website]** Release notes 'Class Bonds' curated; site + PIL regenerated

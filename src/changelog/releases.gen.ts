@@ -20,7 +20,7 @@ export const RELEASES: Release[] = [
         "text": "Six bonds with six jobs: Kinetic hits harder, Caustic hits harder and fires faster, Viral fires much faster, Neural fires faster and hits harder, Vital mends your Hive Core every wave, and Resonant speeds up every tower"
       },
       {
-        "cat": "Progression",
+        "cat": "Gameplay",
         "text": "The new Class Bonds screen (Evolution Hub, after Campaign Stage 13) lists every class and its members; spend Genome Cores to level a bond up and strengthen all three tiers in every run (up to ×1.8), raising your Power",
         "major": true
       },
@@ -35,6 +35,10 @@ export const RELEASES: Release[] = [
       {
         "cat": "Website",
         "text": "New dev blog post: “Class Bonds: build around a class, and make it stronger”; the Tower Guide covers bonds"
+      },
+      {
+        "cat": "Website",
+        "text": "Release notes 'Class Bonds' curated; site + PIL regenerated"
       }
     ]
   },
