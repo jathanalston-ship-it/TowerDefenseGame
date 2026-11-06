@@ -37,6 +37,46 @@ function powerTier(p: number): number {
   return p >= 1e12 ? 4 : p >= 1e9 ? 3 : p >= 1e6 ? 2 : 1;
 }
 
+/** The Biomass value + smoothed income rate. Its own component (perf, docs/RENDER-PIPELINE.md §6):
+ *  the pop/income state updates after every snapshot that moves biomass — here that re-renders these
+ *  two divs, not the whole HUD bar a second time per tick. */
+function BiomassReadout({ biomass }: { biomass: number }): JSX.Element {
+  // pulse the biomass readout whenever it ticks up (resource-gain feedback)
+  const prevBiomass = useRef(biomass);
+  const [biomassPop, setBiomassPop] = useState(false);
+  // smoothed income rate (/s), measured from the throttled snapshot deltas
+  const rateRef = useRef({ biomass, t: performance.now(), ema: 0 });
+  const [income, setIncome] = useState(0);
+  useEffect(() => {
+    const now = performance.now();
+    const r = rateRef.current;
+    const dt = (now - r.t) / 1000;
+    if (dt > 0.02) {
+      const inst = Math.max(0, (biomass - r.biomass) / dt); // income only (spends ignored)
+      r.ema = r.ema * 0.6 + inst * 0.4;
+      r.biomass = biomass;
+      r.t = now;
+      setIncome(Math.round(r.ema));
+    }
+    if (biomass > prevBiomass.current) {
+      setBiomassPop(true);
+      const id = setTimeout(() => setBiomassPop(false), 220);
+      prevBiomass.current = biomass;
+      return () => clearTimeout(id);
+    }
+    prevBiomass.current = biomass;
+    return undefined;
+  }, [biomass]);
+  return (
+    <>
+      <div className={`hud-v ${biomassPop ? 'pop' : ''}`} style={{ color: 'var(--caustic)' }}>
+        {biomass}
+      </div>
+      <div className="hud-rate">{income > 0 ? `+${income}/s` : ' '}</div>
+    </>
+  );
+}
+
 export function Hud({ hud, power, onOpenConsole, tutorial = false, doctrine = null, vows = [] }: { hud: HudSnapshot; power: number; onOpenConsole?: () => void; tutorial?: boolean; doctrine?: { icon: string; name: string } | null; vows?: { icon: string; name: string }[] }): JSX.Element {
   const layout = useLayoutProfile(); // touch copy: no space bar on a phone
   const displayWave =
@@ -57,33 +97,6 @@ export function Hud({ hud, power, onOpenConsole, tutorial = false, doctrine = nu
   // Hive Siege pressure (docs/HIVE-SIEGE.md §UI): who's chewing, how fast, how long we last.
   const underAttack = hud.hiveAttackers > 0 && hud.phase === 'wave';
   const survivalS = hud.hiveDps > 0.5 ? Math.max(0, Math.round(hud.integrity / hud.hiveDps)) : 999;
-
-  // pulse the biomass readout whenever it ticks up (resource-gain feedback)
-  const prevBiomass = useRef(hud.biomass);
-  const [biomassPop, setBiomassPop] = useState(false);
-  // smoothed income rate (/s), measured from the throttled snapshot deltas
-  const rateRef = useRef({ biomass: hud.biomass, t: performance.now(), ema: 0 });
-  const [income, setIncome] = useState(0);
-  useEffect(() => {
-    const now = performance.now();
-    const r = rateRef.current;
-    const dt = (now - r.t) / 1000;
-    if (dt > 0.02) {
-      const inst = Math.max(0, (hud.biomass - r.biomass) / dt); // income only (spends ignored)
-      r.ema = r.ema * 0.6 + inst * 0.4;
-      r.biomass = hud.biomass;
-      r.t = now;
-      setIncome(Math.round(r.ema));
-    }
-    if (hud.biomass > prevBiomass.current) {
-      setBiomassPop(true);
-      const id = setTimeout(() => setBiomassPop(false), 220);
-      prevBiomass.current = hud.biomass;
-      return () => clearTimeout(id);
-    }
-    prevBiomass.current = hud.biomass;
-    return undefined;
-  }, [hud.biomass]);
 
   // POWER GAIN CELEBRATION (docs/GAME-FEEL.md): any live increase (a draft, an evolution buy,
   // a mastery perk) fires the fly-up + pulse + burst, with a throttled chime. Render-only.
@@ -302,10 +315,7 @@ export function Hud({ hud, power, onOpenConsole, tutorial = false, doctrine = nu
 
         <div className={`hud-cell hud-biomass tt${hphase === 'prep' ? ' is-primary' : ''}`} tabIndex={0} data-tut="biomass" style={{ ['--hud-acc' as string]: 'var(--caustic)' }}>
           <div className="hud-k">Biomass</div>
-          <div className={`hud-v ${biomassPop ? 'pop' : ''}`} style={{ color: 'var(--caustic)' }}>
-            {hud.biomass}
-          </div>
-          <div className="hud-rate">{income > 0 ? `+${income}/s` : ' '}</div>
+          <BiomassReadout biomass={hud.biomass} />
           <span className="tt-bubble">In-run currency. Spend it to grow towers.</span>
         </div>
 
