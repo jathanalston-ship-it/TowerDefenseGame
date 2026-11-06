@@ -3,7 +3,18 @@
 > Maintained at the END of every session (paired with `docs/AI_HANDOFF.md` — the constitution's
 > workflow step 4). This is the "where are we?" answer; `docs/GAME-STATE.md` remains the deeper
 > per-system built-vs-planned index, `docs/PROJECT_MANIFEST.md` the system map.
-> **Last updated:** 2026-11-06a (**DEPLOYED — FIRST STEPS, WALKED WITH YOU** (`a0b332d`, run #237; owner approved "release the batch").**
+> **Last updated:** 2026-11-06b (**CLASS BONDS — validated, awaiting the owner's release go-ahead.**
+> CLASS-BONDS.md: the class set bonus on the EXISTING six-class taxonomy — every deployed tower + fielded hero
+> counts toward its class; 2/4/6 wake Bond I/II/III while deployed (Impact · Dissolution · Contagion · Lattice ·
+> Sustain · Chorus), folded only in towerAttackMods / heroDamageMult + the Vital mend; bond levels 0–10 per class
+> (Genome Cores, Evolution Hub → Class Bonds; ×1.8 at 10; meta Power) — save v58. Reveals at stage 13 (the hour-one
+> screen cap of 18 forbade earlier); the same gate turns bonds on in runs; Daily = base strength. Taught by What's
+> New + a guided walkthrough, a CLASS BOND field note, Run Build's Class Bonds strip, conveyor class marks, Help.
+> Live-checked (screen, level-up, in-run strip). VALIDATION: validate PASS over a0b332d..HEAD (3140/3140, mobile
+> gate clean); first-session probe all budgets ok (boot JS 500.8 KB). Website: release v2026.11.06.2, devlog
+> `class-bonds`, Tower Guide §Class Bonds, roadmap entry.)
+>
+> **2026-11-06a** (**DEPLOYED — FIRST STEPS, WALKED WITH YOU** (`a0b332d`, run #237; owner approved "release the batch").**
 > Owner playtest fixes + asks: (1) EARLY CALL §owed — a called-over wave's draft is dealt the moment ITS last unit falls
 > (mid-fight; the pick resumes the fight), not 2–4 in a row at the clear; (2) the SEAL RULE now binds the Power Atlas /
 > Advisor (BEST MOVE could level Adaptations before stage 24) and `spendAdaptation` refuses a sealed Chamber; (3) THE FIRST
