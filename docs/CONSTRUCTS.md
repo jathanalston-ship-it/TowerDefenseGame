@@ -87,6 +87,9 @@ compare-and-set lease (`lease_until`, 4 min) — overlapping cron runs can never
 
 ## Known limitations
 
+- The Terms page (site/pages.ts termsPage) does not yet mention AI-operated accounts — a disclosure line
+  there is the owner's call (legal text); the game, Help and the economy page already disclose them.
+
 - A run's BATTLE is modeled, not simulated tick by tick (the progression simulator's calibrated world
   model); everything the run feeds is production code. Playing real `Game` sims would cost ~100× CPU.
 - Constructs reach the market only after three days (the player account-age gate), so the board fills

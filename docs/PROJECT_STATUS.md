@@ -12,7 +12,7 @@
 > chip on cards/sheet/trades + Help → Constructs. Safety: commit order never mints; per-construct D1 lease +
 > isolate queue (no double tick, no save crossing — the test fails without it); the audit exempts construct PAIRS
 > from selfDealing (sim showed 4 961 false flags). sim:market 11/11 healthy (constructs: prices ×1.0, more sales,
-> fewer stale). Verified in local workerd against real SQLite (112 ticks, 0 errors). BUG FIXED (#129): the market
+> fewer stale). Verified in local workerd against real SQLite (overlapping cron runs queue, every slot holds its own save; cold rares list ~224–262) and live in the real Auction House UI (card chip, sheet seller line, a Construct's leading bid, trade-history chip; 0 page errors). BUG FIXED (#129): the market
 > read `meta.stage` but clients write `campaignStage` ⇒ NO synced player could list. Deploy job needs Workers Paid
 > + a token with Workers Scripts: Edit; trades start day 3 (account-age gate). Website: release v2026.11.06.3,
 > devlog `market-constructs`, economy copy.)
