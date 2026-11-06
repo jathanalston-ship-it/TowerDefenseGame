@@ -12,9 +12,13 @@ Fresh Chromium context (new save) at 1440×900 against `vite preview` of a produ
 2. Plays the **combat tutorial** (reactive player: advances narrated beats, places the favourite tower,
    uses the conveyor, picks the draft card).
 3. **Commissioning** (designation → identity → safeguard → continue as guest) → hub.
-4. **Hub tour** finished/skipped, popups drained.
+4. **The first loop — DEPLOY** (docs/TUTORIAL.md §first-loop): popups drained, then the coach is played
+   like a player (Next on an explanation, otherwise a real click on the spotlit control) — it starts Stage 1.
 5. **Campaign Stage 1 at 5×**: places towers, starts waves, picks drafts, reaches **Results**, back to the hub.
-6. Optional `--offline`: reloads `/play/` with the network off (service worker only) and starts a run again.
+6. **GROW** (Evolution Hub → Tower Lab → a star → Power → home → the ledger → Stage 2), **Campaign Stage 2**,
+   then **COLLECT** (Rewards Hub → Vault → crack → home → BEST MOVE → the Daily Bio-Cache). The log lists
+   every coach step walked; a step that cannot complete fails the run naming the steps seen.
+7. Optional `--offline`: reloads `/play/` with the network off (service worker only) and starts a run again.
 
 The driver reacts to what is on screen (`data-tut` / `data-nav` / role / visible text, with fallbacks).
 When a step cannot proceed it fails **naming the step** and dumps the visible text + a `blocked`
@@ -37,7 +41,8 @@ screenshot (with `--shots`) — it never hangs (every wait has a timeout).
 | Page/console errors | 0 |
 | Modals after the first run | ≤ 3 |
 | Time to first tower (cutscene skipped) | ≤ 15 s |
-| Boot JS gzip (static entry closure of play/index.html: entry + vendor + their static imports) | ≤ 560 KB (set from the code-splitting result: ~503 KB at the time of writing) |
+| Boot JS gzip (static entry closure of play/index.html: entry + vendor + their static imports) | ≤ 515 KB (2026-11-05 boot pass: ~499 KB at the time of writing — docs/DEPLOYMENT.md §boot-budget) |
+| Boot CSS gzip (the stylesheet play/index.html links — render-blocking) | ≤ 58 KB (~51 KB — §boot-css) |
 | Session completed | every step reached |
 
 Exit code 1 when any budget is violated. Time budgets are wall-clock on a headless browser — on a

@@ -14,6 +14,7 @@ import { composePower } from '../core/power';
 import { collectionView } from '../core/collection';
 import { highestCampaignStage } from '../save/derive';
 import { featureRevealed } from '../state/unlocks';
+import { firstLoopDone, loopPast } from '../state/firstLoop';
 import { labEra, labIntensity, labScore } from './homeBaseTiers';
 import { generateStage, recommendedPowerScore } from '../core/campaign';
 import type { StageConfig } from '../core/campaign';
@@ -246,19 +247,19 @@ homeRegistry.register({ id: 'vitals', zone: 'strip', order: 10 });
 homeRegistry.register({ id: 'world-status', zone: 'world', order: 10 });
 homeRegistry.register({ id: 'mission-control', zone: 'main', order: 10 }); // Foundation #1: the deploy card + the objective ledger (absorbed the old next-goal banner — docs/MISSION-CONTROL.md)
 homeRegistry.register({ id: 'bio-cache', zone: 'main', order: 25, when: (s) => s.totalRuns > 0 }); // Daily Bio-Cache (docs/DAILY-LOGIN.md) — the day's first beat; held back from the minute-0 board so the first-boot funnel stays clean
-homeRegistry.register({ id: 'live-events', zone: 'main', order: 30 }); // LiveOps calendar strip (docs/LIVEOPS.md)
+homeRegistry.register({ id: 'live-events', zone: 'main', order: 30, when: firstLoopDone }); // LiveOps calendar strip (docs/LIVEOPS.md) — after the first loop (docs/TUTORIAL.md §first-loop: the board grows as the coach introduces it)
 homeRegistry.register({ id: 'directives', zone: 'main', order: 35, when: (s) => featureRevealed(s, 'daily') }); // Weekly Directives ladder (docs/LIVEOPS.md §directives) — arrives with the weekly rhythm
 homeRegistry.register({ id: 'contracts', zone: 'main', order: 40, when: (s) => featureRevealed(s, 'daily') }); // Champion Contracts board (docs/CONTRACTS.md) — the weekly rhythm arrives with the daily one
-homeRegistry.register({ id: 'recommend', zone: 'side', order: 5, when: (s) => s.totalRuns > 0 }); // Recommended-now panel (docs/NOTIFICATIONS.md §recommendations) — the loop's next step leads the side column
-homeRegistry.register({ id: 'forecast', zone: 'side', order: 10, when: (s) => s.totalRuns > 0 });
-homeRegistry.register({ id: 'growth', zone: 'side', order: 15, when: (s) => featureRevealed(s, 'towers') }); // Power Atlas organ (docs/POWER-SCORE.md §atlas) — arrives with the first upgrade wing
-homeRegistry.register({ id: 'roadmap', zone: 'side', order: 20 });
+homeRegistry.register({ id: 'recommend', zone: 'side', order: 5, when: (s) => s.totalRuns > 0 && firstLoopDone(s) }); // Recommended-now panel (docs/NOTIFICATIONS.md §recommendations) — the loop's next step leads the side column
+homeRegistry.register({ id: 'forecast', zone: 'side', order: 10, when: (s) => s.totalRuns > 0 && firstLoopDone(s) });
+homeRegistry.register({ id: 'growth', zone: 'side', order: 15, when: (s) => featureRevealed(s, 'towers') && loopPast(s, 'grow') }); // Power Atlas organ (docs/POWER-SCORE.md §atlas) — arrives with the first upgrade wing
+homeRegistry.register({ id: 'roadmap', zone: 'side', order: 20, when: firstLoopDone });
 homeRegistry.register({ id: 'army', zone: 'army', order: 10, when: (s) => featureRevealed(s, 'towers') }); // the roster strip appears with the Tower Lab
 homeRegistry.register({ id: 'modes', zone: 'ops', order: 10 });
 homeRegistry.register({ id: 'infestation', zone: 'ops', order: 20, when: (s) => featureRevealed(s, 'infestation') }); // Infestation conquest map (docs/INFESTATION.md) — arrives WITH The Front (stage 20), never before its wing
 // Hive Intelligence (docs/HIVE-INTEL.md) mounts whenever it has ANYTHING to say — banked
 // containers and ready Power moves count, not just timeline history (the old gate hid a fresh
 // account's first ACT rows). The widget itself renders null when the feed is empty.
-homeRegistry.register({ id: 'command-feed', zone: 'feed', order: 10, when: (s) => (s.timeline ?? []).length > 0 || (s.pendingContainers ?? []).length > 0 || s.shards > 0 });
-homeRegistry.register({ id: 'dashboard', zone: 'feed', order: 20 });
+homeRegistry.register({ id: 'command-feed', zone: 'feed', order: 10, when: (s) => firstLoopDone(s) && ((s.timeline ?? []).length > 0 || (s.pendingContainers ?? []).length > 0 || s.shards > 0) });
+homeRegistry.register({ id: 'dashboard', zone: 'feed', order: 20, when: firstLoopDone });
 homeRegistry.register({ id: 'tip', zone: 'foot', order: 10 });

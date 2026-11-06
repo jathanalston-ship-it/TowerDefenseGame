@@ -51,6 +51,7 @@ import { evolutionRoadmap } from '../state/evolutionRoadmap';
 import type { HomeView, HomeZone } from './homeModel';
 import type { NavKey } from './Hub';
 import { LiveEventsPanel } from './components/LiveEventsPanel';
+import { FIRST_LOOP_LEDGER_ROWS, firstLoopDone } from '../state/firstLoop';
 
 type RunRecap = { result: RunResult; outcome: RunOutcome } | null;
 
@@ -116,6 +117,9 @@ export function CommandCenter({
     fn();
   };
   const ctx: WidgetCtx = { save, view, go, start, onStart, onStartEndless, onStartCampaign, doctrineRef, tip };
+  // THE FIRST LOOP (docs/TUTORIAL.md §first-loop): until the coach has walked the loop, the board
+  // shows only what it has introduced — the live-event banner and the side panels arrive after.
+  const loopDone = firstLoopDone(save);
 
   const zone = (z: HomeZone): ReactNode =>
     homeRegistry.zone(save, z).map((d) => {
@@ -132,7 +136,7 @@ export function CommandCenter({
       {/* LIVE EVENTS — loud and proud, the first read on home (LIVE-EVENTS.md §4): the
           theme owner headlines, the other two horizons ride as chips, and the banner
           unfolds into the claim console (challenges → tokens → track → shop). */}
-      <LiveEventsPanel />
+      {loopDone && <LiveEventsPanel />}
       {recap.length > 0 && (
         <section className="mc-recap" aria-label="Since your last run">
           <span className="mc-recap-h">Since your last run</span>
@@ -401,7 +405,7 @@ function MissionControl({ save, view, go, start, onStartCampaign, onStartEndless
       {/* ── The objective ledger (Foundation #1) — SECONDARY moves + where it's all going. ── */}
       {(mc.secondary.length > 0 || mc.longterm.length > 0) && (
         <div className="mc-ledger" aria-label="Mission objectives">
-          {mc.secondary.map((o) => (
+          {(firstLoopDone(save) ? mc.secondary : mc.secondary.slice(0, FIRST_LOOP_LEDGER_ROWS)).map((o) => ( // §first-loop: a short list until the loop is walked
             <button key={o.id} className="mc-obj" onClick={() => go(o.nav as NavKey)} title={o.why}>
               <span className="mc-obj-ring" style={{ ['--p' as string]: o.progress }} aria-hidden>
                 <b>{Math.round(o.progress * 100)}%</b>

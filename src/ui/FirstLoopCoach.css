@@ -1,0 +1,17 @@
+/* FirstLoopCoach — the first-loop coach (docs/TUTORIAL.md §first-loop), shipped in its lazy chunk
+   (docs/DEPLOYMENT.md §boot-css). The bubble rides the tutorial's .tut-callout box; the dims block
+   clicks outside the spotlit control so the step is the one thing to do (a missing control renders
+   no dim, so the player can always navigate back). */
+
+.flcoach > .tut-dim,
+.flcoach > .tut-ring { z-index: 80; }
+.flcoach .tut-callout { z-index: 81; border-color: color-mix(in srgb, var(--vital) 45%, var(--line-strong)); }
+.flcoach-eyebrow { font-size: 10px; font-weight: 900; letter-spacing: 0.16em; color: var(--vital); margin-bottom: 4px; }
+.flcoach-title { font-size: 16px; font-weight: 800; color: var(--text); margin-bottom: 4px; }
+.flcoach-text { font-size: 13px; line-height: 1.5; color: var(--muted); }
+.flcoach-btns { display: flex; align-items: center; gap: 10px; margin-top: 12px; }
+/* .tut-callout is pointer-events:none — every coach button re-enables it. */
+.flcoach-btns button { pointer-events: auto; }
+.flcoach-btns .primary { margin-left: auto; padding: 6px 14px; font-size: 13px; }
+.flcoach-skip { background: none; border: none; color: var(--muted); font-size: 11px; cursor: pointer; padding: 4px 0; }
+.flcoach-skip:hover { color: var(--text); }

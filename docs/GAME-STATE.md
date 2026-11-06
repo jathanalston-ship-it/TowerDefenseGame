@@ -570,6 +570,12 @@ sink ≈ hour-400 at endgame income — re-tune as the library grows.
   (foundationsUX.test.ts): every persona across the spectrum always has an objective, a bounded feed,
   and something to do — no dead-ends, no notification walls
 - ✅ Combat Tutorial, HUD Tour, Help wiki + mechanics registry, "What's New" — TUTORIAL.md, HELP.md
+- ✅ **THE FIRST LOOP** (2026-11-06, TUTORIAL.md §first-loop) — a hands-on coach for a new account's
+  first hub visits: DEPLOY (tap Continue Campaign), GROW after run 1 (open the Evolution Hub → Tower
+  Lab → buy a star → Power → home → the objective ledger → deploy Stage 2), COLLECT after run 2
+  (Rewards Hub → Vault → crack → home → BEST MOVE → Daily Bio-Cache). Each step spotlights the real
+  control and waits for the player's own click; the Command Center shows only what the loop has
+  introduced until it's done. Skippable; never for veterans. The first-session probe plays it end to end
 - ✅ **THE COMMISSIONING** (2026-07, PROFILE.md §commissioning) — account creation at tutorial
   completion as ONE four-step ceremony (was: scattered reveal + CommanderName modal + a cold
   first-launch WelcomeGate that completers never saw): GRADUATION (reward payout, shared

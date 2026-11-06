@@ -118,6 +118,8 @@ import type { Prediction } from '../core/predict';
 import { unlockedMechanics, pacedAnnouncements } from './mechanics';
 import type { MechanicDef } from './mechanics';
 import { featureRevealed, unlatchedReveals } from './unlocks';
+import { FIRST_LOOP_BY_ID, beatKey } from './firstLoop';
+import type { CoachBeatId } from './firstLoop';
 import { ACCOUNT_XP, accountLevelReward, depthXpMult, levelFromXp, levelProgress, monthKey, nextMilestone, weekKey } from '../core/accountLevel';
 import type { AccountLevelReward } from '../core/accountLevel';
 import { genomeAdvice, genomeBreakdown, genomeRankReward, genomeRating, rankFromRating, rankName, romanNumeral } from '../core/genomeRank';
@@ -7920,6 +7922,22 @@ export const meta = {
     persist({ ...s, help: { ...s.help, seen, primed: true } });
   },
   /** First-launch HUD Tour gate: run once, only after the Combat Tutorial, on a fresh account. */
+  /** THE FIRST LOOP (state/firstLoop.ts, docs/TUTORIAL.md §first-loop): record a finished coach beat
+   *  and archive what it taught hands-on — its What's New cards would only repeat the lesson.
+   *  Idempotent (the tutorial milestone ledger; no reward of its own). */
+  completeCoachBeat(id: CoachBeatId): void {
+    const s = store.get();
+    const key = beatKey(id);
+    if (!s.tutorial.milestones.includes(key)) persist({ ...s, tutorial: { ...s.tutorial, milestones: [...s.tutorial.milestones, key] } });
+    const teaches = FIRST_LOOP_BY_ID.get(id)?.teaches ?? [];
+    if (teaches.length > 0) this.archiveMechanics(teaches, { beat: false });
+  },
+  /** Skip the whole first loop: the coach stops for good and the full Command Center opens. */
+  skipFirstLoop(): void {
+    const s = store.get();
+    const key = beatKey('skip');
+    if (!s.tutorial.milestones.includes(key)) persist({ ...s, tutorial: { ...s.tutorial, milestones: [...s.tutorial.milestones, key] } });
+  },
   shouldHudTour(): boolean {
     const s = store.get();
     return !s.help.hudTour && s.tutorial.completed.includes('combat');

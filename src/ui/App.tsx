@@ -18,6 +18,7 @@ import { bindRootMotionAttrs } from './components/MotionSettings';
 import { LootToaster } from './LootToaster';
 import { GuidedUnlock } from './GuidedUnlock';
 import { guideBus, guideFor } from '../state/guidedUnlocks';
+import { dueBeat } from '../state/firstLoop';
 import type { GuideDef } from '../state/guidedUnlocks';
 import { featureRevealed } from '../state/unlocks';
 import { CommanderName } from './components/CommanderName';
@@ -33,6 +34,8 @@ const UpdateBriefing = lazyNamed(() => import('./UpdateBriefing'), 'UpdateBriefi
 // The What's New card carries the mechanics' long-form text (state/mechanicsText.ts) — fetched only
 // when a card is actually queued (docs/DEPLOYMENT.md §boot-budget).
 const WhatsNew = lazyNamed(() => import('./WhatsNew'), 'WhatsNew');
+// THE FIRST LOOP coach (docs/TUTORIAL.md §first-loop) — loaded only while a beat is due.
+const FirstLoopCoach = lazyNamed(() => import('./FirstLoopCoach'), 'FirstLoopCoach');
 import { decodeReplayCode } from '../net/replayShare';
 import type { ReplayRecord } from '../core/replay';
 import { startSyncEngine } from '../net/syncEngine';
@@ -489,7 +492,13 @@ export function App(): JSX.Element {
   const clearLast = useCallback(() => setLast(null), []);
   // First-launch HUD Tour: latch it ON when eligible (after the tutorial, on the menu). Latched
   // (not the reactive predicate) so its reward reveal survives completeHudTour marking it done.
-  useEffect(() => { if (screen === 'menu' && meta.shouldHudTour()) setTourActive(true); }, [screen]);
+  // A new account's first hub visits belong to the FIRST LOOP coach (docs/TUTORIAL.md §first-loop) —
+  // hands-on steps replace the passive HUD tour (still replayable from Help / Settings).
+  useEffect(() => {
+    if (screen !== 'menu' || !meta.shouldHudTour()) return;
+    if (dueBeat(meta.get())) meta.completeHudTour();
+    else setTourActive(true);
+  }, [screen]);
   // Guided Unlock walkthrough (docs/GUIDED-UNLOCKS.md): armed over the guideBus — by a What's
   // New "Show me ▸" after it navigates, or a Help-wiki replay (re-teaches, never re-pays).
   // Dropped if the player leaves the menu (the wing being taught lives there).
@@ -568,6 +577,8 @@ export function App(): JSX.Element {
   // A live Arena match renders OVER the hub (screen stays 'menu'): ceremonies, toasts and prompts
   // wait until it ends — a real-time PvP field must never be covered (their queues persist).
   const menuIdle = screen === 'menu' && !arenaSetup;
+  // While a first-loop beat is due the coach owns the hub: cards, briefings and placards wait.
+  const coachDue = dueBeat(meta.get()) !== null;
 
   return (
     <div className="app">
@@ -700,12 +711,12 @@ export function App(): JSX.Element {
       {/* Claim receipts (docs/NOTIFICATIONS.md §claim-popups) — hub claims only, so the
           popup can never cover a live run. Held while an unlock announcement is up: the
           post-run placards (achievements…) land AFTER the What's New card/summary, collapsed. */}
-      {menuIdle && <RewardToaster held={meta.whatsNew().length > 0} />}
+      {menuIdle && <RewardToaster held={meta.whatsNew().length > 0 || coachDue} />}
       {menuIdle && <PowerToaster />}
       {/* Account level-ups earned off-run (star buys, molts …) celebrate here; run-settle level-ups
           render inline on Results instead, so the toaster only drains on the menu — and waits
           behind an unlock announcement exactly like the reward placards (same `held` gate). */}
-      {menuIdle && <AccountLevelToast held={meta.whatsNew().length > 0} />}
+      {menuIdle && <AccountLevelToast held={meta.whatsNew().length > 0 || coachDue} />}
       {/* Genome Rank promotions (docs/GENOME-RANK.md) — the full-screen ceremony, menu only. */}
       {menuIdle && <GenomePromotionCinematic />}
       {/* Loot-fill toast — bio-container earned on the live meter; queued, never interrupts play. */}
@@ -716,8 +727,9 @@ export function App(): JSX.Element {
       {/* Guided Unlock (docs/GUIDED-UNLOCKS.md): "Show me ▸" on a What's New card walks the new
           wing itself — the card queue waits (WhatsNew unmounts) until the walkthrough closes. */}
       {menuIdle && !tourActive && guided && <GuidedUnlock guide={guided} onClose={() => setGuided(null)} />}
-      {menuIdle && !tourActive && !guided && meta.whatsNew().length > 0 && <Suspense fallback={null}><WhatsNew /></Suspense>}
-      {menuIdle && !tourActive && !guided && <Suspense fallback={null}><UpdateBriefing /></Suspense>}
+      {menuIdle && !tourActive && !guided && coachDue && <Suspense fallback={null}><FirstLoopCoach /></Suspense>}
+      {menuIdle && !tourActive && !guided && !coachDue && meta.whatsNew().length > 0 && <Suspense fallback={null}><WhatsNew /></Suspense>}
+      {menuIdle && !tourActive && !guided && !coachDue && <Suspense fallback={null}><UpdateBriefing /></Suspense>}
       {/* Commander designation: the FIRST prompt an unnamed save sees on reaching the hub
           (i.e. immediately after the tutorial completes or is skipped). */}
       {menuIdle && !tourActive && <CommanderName />}

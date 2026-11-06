@@ -34,6 +34,7 @@ import type { ArenaTransport } from '../net/arenaTransport';
 const DailyScreen = lazyNamed(() => import('./DailyScreen'), 'DailyScreen');
 const PremiumStore = lazyNamed(() => import('./PremiumStore'), 'PremiumStore');
 import { featureRevealed, featureView, nextReveals, type FeatureView } from '../state/unlocks';
+import { dueBeat } from '../state/firstLoop';
 import { AccountXpBar } from './components/AccountXpBar';
 import { navBus } from '../state/navBus';
 const CampaignScreen = lazyNamed(() => import('./CampaignScreen'), 'CampaignScreen');
@@ -713,7 +714,7 @@ export function Hub({
         </section>
         {/* iPhone Safari: the one-time "Add to Home Screen" card — only once the tutorial is behind
             the player and the hub is calm (§browser). */}
-        <InstallHint ready={save.totalRuns >= 1} />
+        <InstallHint ready={save.totalRuns >= 1 && dueBeat(save) === null} /> {/* never over the first-loop coach */}
       </div>
 
       {mobileShell && (

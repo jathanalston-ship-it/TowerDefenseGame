@@ -226,7 +226,8 @@ A fresh account's whole first-time path, in order — **one** reward moment:
 | 2 | "Incoming transmission" → opening cutscene | 1 tap + film | yes (Skip) |
 | 3 | Cold-open banner → **Combat Tutorial** | 10 lessons, 2 waves | yes (Skip confirm, §graduation) |
 | 4 | **THE COMMISSIONING** — GRADUATION (the ONE reward reveal) → designation → identity → safeguard | 4 cards | every card |
-| 5 | Hub → **Field Orientation** | 4 stops | yes — pays nothing, so nothing is lost |
+| 5 | Hub → **THE FIRST LOOP**, beat DEPLOY (§first-loop) — replaced the passive Field Orientation for new accounts | 2 steps | yes (Skip the guide) |
+| 6 | After runs 1 and 2 → first-loop beats GROW and COLLECT | 8 + 7 hands-on steps | yes |
 
 Field Orientation (`ui/HudTour.tsx` `TOUR`) is cut from 10 stops (of 16 authored) to the four a graduate needs on
 minute one, in the order they act: **Your Next Fight** (`.mc-campaign`) → **Rewards Hub**
@@ -234,6 +235,42 @@ minute one, in the order they act: **Your Next Fight** (`.mc-campaign`) → **Re
 spent) → **Profile & Help** (account, settings, the Field Manual, replays). Every other wing
 announces itself with its own What's New card when it reveals. A combat-tutorial skipper's tour
 drops the not-yet-revealed stops (typically 2 remain).
+
+Since 2026-11-06 a NEW account does not get this tour (the first-loop coach walks the same ground
+hands-on); it stays replayable from Help / Settings.
+
+## §first-loop — walk the loop, don't describe it (2026-11-06 owner playtest)
+
+The finding: "a LOT on the screen in one go — break up the tutorial, make the player engage
+step-by-step with menu navigation and 'what's next', walk them through the loop the first once or
+twice." The Combat Tutorial teaches the FIGHT; the first loop teaches the LOOP around it by having
+the player do it, one real control at a time (`state/firstLoop.ts` data, `ui/FirstLoopCoach.tsx`).
+
+| Beat | When (`totalRuns`) | Steps — each spotlights the REAL control |
+|---|---|---|
+| DEPLOY | 0 (right after the commissioning) | your next fight → **tap Continue Campaign** |
+| GROW (needs the Tower Lab) | 1–2 | your run paid you → **open the Evolution Hub** → **open the Tower Lab** → **buy a star** → Power went up → **head home** → what to do next (the objective ledger) → **deploy Stage 2** |
+| COLLECT (needs the Genetic Vault) | 2–3 | **open the Rewards Hub** → **open the Genetic Vault** → **crack a container** → **head home** → BEST MOVE → **open the Daily Bio-Cache** → that is the loop |
+
+- **Hands-on:** a click step completes on the player's OWN click (capture listener — the click still
+  does its job) or on the save change that proves it (`done`: a star bought, a container cracked, the
+  cache claimed). Explanations get Next. Copy is ≤ 2 short sentences (tested).
+- **The coach owns the hub while a beat is due:** What's New, the update briefing and the reward /
+  level placards wait; the beat's mechanics are archived when it completes (What's New never repeats
+  the lesson). It steps aside for any other dialog or Popup (a vault reveal, the cache opening).
+- **The board grows with it:** until the loop is done the Command Center holds back the live-event
+  banner, Recommended, the campaign forecast, the roadmap, the feed and the dashboard, and the
+  objective ledger shows two rows (`FIRST_LOOP_LEDGER_ROWS`); the Growth panel arrives after GROW.
+- **Never traps:** a rail control on a narrow shell points at ☰ first; a control below the fold is
+  scrolled into view; a control on another screen offers "Take me there"; a landing-only control that
+  vanishes steps back to the door that opens it; a control genuinely absent on its own screen offers
+  Next; "Skip the guide" ends the whole loop.
+- **Who sees it:** graduates only (the Combat Tutorial done or skipped), in each beat's run window;
+  an account with ≥ `FIRST_LOOP_MAX_RUNS` (4) runs never does. Progress lives in the tutorial
+  milestone ledger (`first-loop:<beat>` / `first-loop:skip`) — no save-schema change.
+- **Proof:** `npm run probe:first-session` now plays the whole first loop (deploy → Stage 1 → grow →
+  Stage 2 → collect) by clicking whatever the coach spotlights; `firstLoop.test.ts` pins every anchor
+  against the UI source, the windows, the skip, the archive and the progressive board.
 
 ## §graduation — ONE payout, idempotent ledgers
 

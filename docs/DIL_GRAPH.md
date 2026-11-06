@@ -1,6 +1,6 @@
 # DIL_GRAPH.md — the Design Intelligence Layer (GENERATED — `npm run dil -- regen`)
 
-> **The project's brain** (docs/DIL.md). 990 nodes · 1923 edges, built from the live
+> **The project's brain** (docs/DIL.md). 991 nodes · 1925 edges, built from the live
 > registries + curated knowledge (src/dev/dil/). **Query it instead of searching the repo:**
 > `npm run dil -- node <id>` · `affects <id>` · `requires <id>` · `missing <kind> <edge>` ·
 > `checklist tower <kind>` · `find <text>`. Edge kinds are bidirectional (19 kinds).
@@ -2088,7 +2088,7 @@ _at: src/state/profile.ts, src/ui/PlayerProfile.tsx, src/ui/components/Commander
 
 Combat Tutorial over a live sim, THE COMMISSIONING (post-tutorial account-creation ceremony: rewards, designation, sigil + founding-title oath, account safeguard), HUD Tour, mechanics-registry Help wiki, What's New, loading tips.
 
-_at: src/ui/InitCutscene.tsx, src/ui/IntroMount.tsx, src/ui/introState.ts, src/state/fieldNotes.ts, src/ui/FieldNote.tsx, src/render/introScenes.ts, src/core/tutorial.ts, src/state/tutorial.ts, src/state/mechanics.ts, src/state/mechanicsText.ts, src/ui/TutorialRunner.tsx, src/ui/tutorial/*, src/ui/HelpWiki.tsx, src/ui/helpSearch.ts, src/ui/WhatsNew.tsx, src/ui/HudTour.tsx, src/state/guidedUnlocks.ts, src/ui/GuidedUnlock.tsx, src/ui/tips.ts_
+_at: src/ui/InitCutscene.tsx, src/ui/IntroMount.tsx, src/ui/introState.ts, src/state/fieldNotes.ts, src/ui/FieldNote.tsx, src/state/firstLoop.ts, src/ui/FirstLoopCoach.tsx, src/render/introScenes.ts, src/core/tutorial.ts, src/state/tutorial.ts, src/state/mechanics.ts, src/state/mechanicsText.ts, src/ui/TutorialRunner.tsx, src/ui/tutorial/*, src/ui/HelpWiki.tsx, src/ui/helpSearch.ts, src/ui/WhatsNew.tsx, src/ui/HudTour.tsx, src/state/guidedUnlocks.ts, src/ui/GuidedUnlock.tsx, src/ui/tips.ts_
 
   - dependsOn → `system:engine`
   - dependsOn → `system:meta-store`
@@ -2104,6 +2104,7 @@ _at: src/ui/InitCutscene.tsx, src/ui/IntroMount.tsx, src/ui/introState.ts, src/s
   - consumes → `system:meta-store` — ONE GRADUATION (docs/TUTORIAL.md §graduation, 2026-11): meta.grantOnboardingRewards() pays every unclaimed onboarding ledger (tutorial.rewarded: combat + hudtour) as ONE Commissioning reveal; the HUD tour pays nothing (completeHudTour only settles a LEGACY graduate still owed hudtour, Finish or Skip alike); pendingOnboardingReward() feeds the tutorial Skip confirm. Adding an onboarding grant = one ONBOARDING_LEDGERS entry, never a second reward card
   - conflictsWith → `system:run-ui` — PHONE DOCK CONTRACT (docs/TUTORIAL.md §phone): ≤700px the lesson callout DOCKS to the edge opposite its anchor and must never cover the step’s action (the step-3 slot bug); controls live top-right, the banner yields to the draft, and a missing spotlight target renders NO scrim
   - extends → `system:progression-gating` — GUIDED UNLOCKS (2026-07, GUIDED-UNLOCKS.md — Foundation #3): state/guidedUnlocks.ts GUIDES keyed by MECHANIC id (== FEATURES.teach) → ui/GuidedUnlock.tsx renders ≤4 one-sentence steps with the Combat Tutorial's own Spotlight/Callout/useTargetRect over `[data-guide]` marks the screens declare (BestBuyStrip's data-guide="bbs" covers all four spend screens — the guide teaches the ADVISOR); the interact step advances on the player's first REAL capture-phase click (the click still lands; chrome drops so ceremonies stay free); completion pays via meta.grantTutorialMilestone('guided', mech) — the tutorial ledger, replays never re-grant. Armed ONLY by What's New's "Show me ▸" (App owns the state; leaves menu ⇒ dropped; WhatsNew queue waits while a guide runs). COVERAGE IS ENFORCED over the FULL curve: EVERY FEATURES screen with teach (except campaign/store) must have a guide — a new wing FAILS guidedUnlocks.test until its guide row exists (mode/spend screens use gentle practice: a guide never forces a run start or a purchase). Missing anchor ⇒ centered callout, no dim (never traps)
+  - extends → `system:progression-gating` — THE FIRST LOOP (docs/TUTORIAL.md §first-loop, state/firstLoop.ts + ui/FirstLoopCoach.tsx): after the Combat Tutorial, three hands-on coach beats own the first hub visits — DEPLOY (runs 0), GROW (runs 1–2: Evolution Hub → Tower Lab → buy a star → Power → home → the objective ledger → deploy), COLLECT (runs 2–3: Rewards Hub → Vault → crack → BEST MOVE → Daily Bio-Cache). Steps spotlight REAL controls and complete on the player's own click (capture listener) or a save change (`done`); a rail control on a narrow shell points at ☰ first; the coach yields to any other [role=dialog] (its own bubble excluded via .flcoach). While a beat is due: HudTour is skipped (marked done), What's New + UpdateBriefing wait, reward/level toasts are held. Progress = tutorial milestones `first-loop:<beat>` (no schema change); veterans (totalRuns ≥ FIRST_LOOP_MAX_RUNS) and non-graduates never see it. The Command Center GROWS with it: homeRegistry `when` gates (firstLoopDone/loopPast) hold live events, Recommended, the forecast, roadmap, feed and dashboard; the ledger shows FIRST_LOOP_LEDGER_ROWS. A new early-game lesson = a step row; firstLoop.test pins every anchor against the UI source
   - dependsOn → `system:cutscenes` — INTRO → TUTORIAL HANDOFF: InitCutscene.useIntroPlaying() holds the TutorialOverlay cold-open banner clock while the film is mounted (first boot mounts the tutorial BENEATH it), and App fades a 520ms gold .intro-afterglow when onDone(dived) — the descent ends on full-screen gold, the tutorial is dark (TUTORIAL.md §cinematic)
   - requiredBy ← `system:progression-gating`
   - contains ← `tutorial:combat`
@@ -2117,7 +2118,7 @@ _at: src/ui/InitCutscene.tsx, src/ui/IntroMount.tsx, src/ui/introState.ts, src/s
   - contains ← `help:strain-evolution`
   - contains ← `help:boss-sieges`
   - contains ← `help:boss-rush`
-  - _…74 more (query: `npm run dil -- node system:onboarding`)_
+  - _…75 more (query: `npm run dil -- node system:onboarding`)_
 
 ### `system:account-level` — Account Level (evergreen meta-progression)
 
@@ -2196,6 +2197,7 @@ _at: src/state/unlocks.ts, src/state/progressionDirector.ts, src/state/navBus.ts
   - extendedBy ← `system:onboarding` — GUIDED UNLOCKS (2026-07, GUIDED-UNLOCKS.md — Foundation #3): state/guidedUnlocks.ts GUIDES keyed by MECHANIC id (== FEATURES.teach) → ui/GuidedUnlock.tsx renders ≤4 one-sentence steps with the Combat Tutorial's own Spotlight/Callout/useTargetRect over `[data-guide]` marks the screens declare (BestBuyStrip's data-guide="bbs" covers all four spend screens — the guide teaches the ADVISOR); the interact step advances on the player's first REAL capture-phase click (the click still lands; chrome drops so ceremonies stay free); completion pays via meta.grantTutorialMilestone('guided', mech) — the tutorial ledger, replays never re-grant. Armed ONLY by What's New's "Show me ▸" (App owns the state; leaves menu ⇒ dropped; WhatsNew queue waits while a guide runs). COVERAGE IS ENFORCED over the FULL curve: EVERY FEATURES screen with teach (except campaign/store) must have a guide — a new wing FAILS guidedUnlocks.test until its guide row exists (mode/spend screens use gentle practice: a guide never forces a run start or a purchase). Missing anchor ⇒ centered callout, no dim (never traps)
   - conflictsWith ← `system:online-foundation` — PRINTER GUARD (marketCatalog.neverTrade): content the save sanitizer RE-SEEDS on load (STARTER_GENES, wardrobe source:starter) must never be tradable or baseline-stocked — selling a self-healing unlock mints Ichor forever; enforced at listing (server 403 never-trade), in meta.auctionEscrowOut, and via baselineCatalog riding neverTrade on the exclusive channel; if a NEW sanitizer ever seeds owned content, add it to the neverTrade derivation FIRST
   - modifiedBy ← `system:hub-shell` — COMPRESSED RAIL (NOTIFICATIONS.md §hubs, 2026-07): the desktop rail renders ONLY front doors — HOME + one .hub-door per hub (data-hub → HubLanding) + direct doors for headerless single-screen groups (the Store, data-nav) — NO per-screen rows/rings/teasers at rail level (they live on the landings; HubLanding cards carry data-nav); teasers still gate door visibility so an all-teaser hub renders its door; three consumers move together whenever rail anchors change: mobilecheck desktopRailWalk (door → landing audited once per hub → card), HudTour wing stops (anchor [data-hub] + nav field for the reveal gate; tutorialAnchors.test covers data-hub), and the NavGroup.compact flag is GONE (headerless now means "direct door, no landing hop")
+  - extendedBy ← `system:onboarding` — THE FIRST LOOP (docs/TUTORIAL.md §first-loop, state/firstLoop.ts + ui/FirstLoopCoach.tsx): after the Combat Tutorial, three hands-on coach beats own the first hub visits — DEPLOY (runs 0), GROW (runs 1–2: Evolution Hub → Tower Lab → buy a star → Power → home → the objective ledger → deploy), COLLECT (runs 2–3: Rewards Hub → Vault → crack → BEST MOVE → Daily Bio-Cache). Steps spotlight REAL controls and complete on the player's own click (capture listener) or a save change (`done`); a rail control on a narrow shell points at ☰ first; the coach yields to any other [role=dialog] (its own bubble excluded via .flcoach). While a beat is due: HudTour is skipped (marked done), What's New + UpdateBriefing wait, reward/level toasts are held. Progress = tutorial milestones `first-loop:<beat>` (no schema change); veterans (totalRuns ≥ FIRST_LOOP_MAX_RUNS) and non-graduates never see it. The Command Center GROWS with it: homeRegistry `when` gates (firstLoopDone/loopPast) hold live events, Recommended, the forecast, roadmap, feed and dashboard; the ledger shows FIRST_LOOP_LEDGER_ROWS. A new early-game lesson = a step row; firstLoop.test pins every anchor against the UI source
 
 ### `system:hub-shell` — Hub Shell & Home
 
@@ -4135,7 +4137,7 @@ _at: site/guides.ts → /guides/live-events/_
 - `doc:VOWS.md` — project documentation _(documents `system:prestige`)_
 - `doc:WEBSITE.md` — project documentation _(documents `system:field-research`, documents `system:website`)_
 
-## Tests (343)
+## Tests (344)
 
 - `test:src/audio/cues.test.ts` — automated validation _(tests `system:audio`)_
 - `test:src/audio/music.test.ts` — automated validation _(tests `system:audio`)_
@@ -4394,6 +4396,7 @@ _at: site/guides.ts → /guides/live-events/_
 - `test:src/state/evolutioncap.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/state/expeditions.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/state/firstHour.test.ts` — automated validation _(tests `system:engine`)_
+- `test:src/state/firstLoop.test.ts` — automated validation _(tests `system:onboarding`)_
 - `test:src/state/flashOffers.test.ts` — automated validation _(tests `system:premium`)_
 - `test:src/state/front.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/state/geneArchive.test.ts` — automated validation _(tests `system:gene-cards`)_

@@ -60,12 +60,13 @@ interface Metrics {
   errors: string[]; ignored404: number; steps: { name: string; at: number; note?: string }[];
   bootJs: { files: number; gzipKb: number }; bootCss: { files: number; gzipKb: number }; firstScreenJs: { files: number; gzipKb: number }; homeJs: { files: number; gzipKb: number }; runJs: { files: number; gzipKb: number };
   offline: string | null; failedStep: string | null; failMessage: string | null; stage1Result: string | null;
+  coach: string[]; // THE FIRST LOOP: the coach steps the probe walked, in order
 }
 const M: Metrics = {
   timeToFirstTower: null, timeToFirstWave: null, timeToFirstReward: null, cutsceneSkippedAt: null, tutorialDoneAt: null, hubAt: null,
   firstRunStartAt: null, firstRunEndAt: null, modalsAfterRun: [], toastsAfterRun: [], toastsTotal: 0, badgesHub: [], badgeTotal: 0,
   errors: [], ignored404: 0, steps: [], bootJs: { files: 0, gzipKb: 0 }, bootCss: { files: 0, gzipKb: 0 }, firstScreenJs: { files: 0, gzipKb: 0 }, homeJs: { files: 0, gzipKb: 0 }, runJs: { files: 0, gzipKb: 0 },
-  offline: null, failedStep: null, failMessage: null, stage1Result: null,
+  offline: null, failedStep: null, failMessage: null, stage1Result: null, coach: [],
 };
 let currentStep = 'boot';
 let livePage: Page | null = null; // for the blocked-step screenshot
@@ -88,7 +89,7 @@ const OBSERVER = `(() => {
   const scan = (root) => {
     if (!root.querySelectorAll) return;
     const dl = root.matches && root.matches('[role=dialog]') ? [root, ...root.querySelectorAll('[role=dialog]')] : [...root.querySelectorAll('[role=dialog]')];
-    for (const el of dl) { if (seen.has(el)) continue; seen.add(el); const hd = ((el.querySelector('h1,h2,h3,[class*=title],[class*=name]') || {}).textContent || '').replace(/\\s+/g, ' ').trim().slice(0, 50); const l0 = label(el); const l = hd && !l0.includes(hd) ? l0 + ' | ' + hd : l0; if (NON_MODAL.test(l)) continue; P.dialogs.push({ t: Date.now(), mark: P.mark, label: l, cls: String(el.className).slice(0, 40) }); }
+    for (const el of dl) { if (seen.has(el) || (el.closest && el.closest('.flcoach'))) continue; seen.add(el); const hd = ((el.querySelector('h1,h2,h3,[class*=title],[class*=name]') || {}).textContent || '').replace(/\\s+/g, ' ').trim().slice(0, 50); const l0 = label(el); const l = hd && !l0.includes(hd) ? l0 + ' | ' + hd : l0; if (NON_MODAL.test(l)) continue; P.dialogs.push({ t: Date.now(), mark: P.mark, label: l, cls: String(el.className).slice(0, 40) }); }
     const tl = root.matches && root.matches(TOAST) ? [root, ...root.querySelectorAll(TOAST)] : [...root.querySelectorAll(TOAST)];
     for (const el of tl) { if (seen.has(el)) continue; if (el.parentElement && el.parentElement.closest(TOAST)) continue; seen.add(el); P.toasts.push({ t: Date.now(), mark: P.mark, label: (el.textContent || '').replace(/\\s+/g, ' ').trim().slice(0, 70) }); }
   };
@@ -296,14 +297,14 @@ async function drainHubPopups(page: Page, maxSec: number): Promise<number> {
     await sleep(600);
     const { pressed, desc } = await page.evaluate(() => {
       const vis = (e: Element): boolean => { const r = e.getBoundingClientRect(); return r.width > 1 && r.height > 1 && r.top < innerHeight && r.bottom > 0; };
-      const dlgs = [...document.querySelectorAll('[role=dialog], .overlay, .ps-overlay, .whatsnew, .evo-unlock')].filter(vis);
+      const dlgs = [...document.querySelectorAll('[role=dialog], .overlay, .ps-overlay, .whatsnew, .evo-unlock')].filter((e) => vis(e) && !e.closest('.flcoach'));
       const desc = dlgs.map((d) => {
         const l0 = (d.getAttribute('aria-label') ?? d.className.toString().slice(0, 24)).replace(/\s+/g, ' ').trim().slice(0, 80);
         const hd = (d.querySelector('h1,h2,h3,[class*=title],[class*=name]')?.textContent ?? '').replace(/\s+/g, ' ').trim().slice(0, 50);
         return hd && !l0.includes(hd) ? `${l0} | ${hd}` : l0;
       });
       if (dlgs.length === 0) return { pressed: null, desc };
-      const pats = [/^got it/i, /^next \(\d/i, /^continue/i, /^collect/i, /^claim/i, /^done/i, /^close/i, /^dismiss/i, /^later/i, /^ok\b/i, /^onward/i, /^skip/i, /^✕|^×/];
+      const pats = [/^got it/i, /^next \(\d/i, /^continue/i, /^collect/i, /^claim/i, /^done/i, /^close/i, /^dismiss/i, /^later/i, /^ok\b/i, /^onward/i, /^return/i, /^skip/i, /^✕|^×/];
       for (const d of dlgs) {
         const bs = [...d.querySelectorAll('button')].filter(vis) as HTMLButtonElement[];
         for (const p of pats) { const b = bs.find((x) => p.test((x.innerText || x.getAttribute('aria-label') || '').trim())); if (b) { b.click(); return { pressed: (b.innerText || '').trim().slice(0, 30), desc }; } }
@@ -318,6 +319,43 @@ async function drainHubPopups(page: Page, maxSec: number): Promise<number> {
   }
   return clicks;
 }
+
+/** THE FIRST LOOP coach (docs/TUTORIAL.md §first-loop): play it like a player — Next on an
+ *  explanation, otherwise click the SPOTLIT control (the ring's centre: a real click, so the coach's
+ *  own listener and the control both see it). Anything else that opens (a vault reveal, the cache,
+ *  a placard) is dismissed or tapped through. Ends when `done()` holds; returns the step titles. */
+async function followCoach(page: Page, beat: string, maxSec: number, done: () => Promise<boolean>): Promise<string[]> {
+  const end = Date.now() + maxSec * 1000;
+  const titles: string[] = [];
+  while (Date.now() < end) {
+    if (await done()) { log(`  coach ${beat}: ${titles.length} step(s) — ${titles.join(' → ')}`); return titles; }
+    const st = await page.evaluate(() => {
+      const c = document.querySelector('.flcoach');
+      if (!c) return null;
+      const ring = c.querySelector('.tut-ring')?.getBoundingClientRect();
+      return {
+        title: (c.querySelector('.flcoach-title')?.textContent ?? '').trim(),
+        next: !!c.querySelector('.flcoach-next'), go: !!c.querySelector('.flcoach-go'),
+        ring: ring ? { x: ring.left + ring.width / 2, y: ring.top + ring.height / 2 } : null,
+      };
+    });
+    if (!st) {
+      // the coach is stepping aside: a cache pod to rupture, or a dialog to close
+      if (await page.$('.bc-pod')) { await clickBox(page, '.bc-pod'); await sleep(900); continue; }
+      await drainHubPopups(page, 2);
+      await sleep(300);
+      continue;
+    }
+    if (titles[titles.length - 1] !== st.title) titles.push(st.title);
+    if (st.next) await clickBox(page, '.flcoach-next');
+    else if (st.ring) await page.mouse.click(st.ring.x, st.ring.y);
+    else if (st.go) await clickBox(page, '.flcoach-go');
+    await sleep(900);
+  }
+  throw new StepError(currentStep, `coach ${beat}: not finished after ${maxSec}s (steps seen: ${titles.join(' → ')}). Screen: "${await bodyText(page, 300)}"`);
+}
+
+const inRun = async (page: Page): Promise<boolean> => !!(await page.$('canvas.board, [data-tut="hive-core"]'));
 
 // ─────────────────────────────── the session ───────────────────────────────
 async function session(ctx: BrowserContext, dist: string): Promise<Page> {
@@ -397,26 +435,22 @@ async function session(ctx: BrowserContext, dist: string): Promise<Page> {
   await commission();
 
   // 4 ── hub + tour
-  step('hub-tour');
+  step('hub-coach');
   await waitFor(page, 'the hub shell (a [data-nav] item)', async () => !!(await page.$('[data-nav], .hub-door, nav button')), 20_000);
   M.hubAt = +now().toFixed(1);
   M.homeJs = await jsAt();
   await shot(page, 'hub-first');
-  for (let i = 0; i < 14; i++) { // finish or skip the orientation tour; popups dismissed along the way
-    const tourBtn = await page.$('button:has-text("Skip tour"), button:has-text("Skip")');
-    const next = await page.$('button:has-text("Next"), button:has-text("Finish"), button:has-text("Done")');
-    const isTour = /FIELD ORIENTATION|ORIENTATION/i.test(await bodyText(page, 1500));
-    if (!isTour) break;
-    if (next) await clickBox(page, 'button:has-text("Next"), button:has-text("Finish"), button:has-text("Done")'); else if (tourBtn) await clickBox(page, 'button:has-text("Skip")'); else break;
-    await sleep(700);
-  }
   await drainHubPopups(page, 6);
+  // THE FIRST LOOP — DEPLOY: the coach walks the player to Continue Campaign (it starts Stage 1).
+  M.coach.push(...await followCoach(page, 'deploy', 60, () => inRun(page)));
 
   // 5 ── Campaign Stage 1
   step('campaign-stage-1', 'start from Home');
-  await clickBox(page, '[data-nav="home"]');
-  await sleep(500);
-  await startCampaign(page);
+  if (!(await inRun(page))) {
+    await clickBox(page, '[data-nav="home"]');
+    await sleep(500);
+    await startCampaign(page);
+  }
   M.firstRunStartAt = +now().toFixed(1);
   M.runJs = await jsAt();
   firstTowerMarked = firstTowerMarked || false;
@@ -459,6 +493,34 @@ async function session(ctx: BrowserContext, dist: string): Promise<Page> {
   });
   M.badgeTotal = M.badgesHub.length;
   log(`hub after run 1: ${M.modalsAfterRun.length} modals [${M.modalsAfterRun.join(' | ')}], ${M.toastsAfterRun.length} toasts, ${M.badgeTotal} badges`);
+
+  // 7 ── THE FIRST LOOP — GROW: Evolution Hub → Tower Lab → a star → Power → home → the ledger → Stage 2
+  step('coach-grow');
+  M.coach.push(...await followCoach(page, 'grow', 120, () => inRun(page)));
+
+  // 8 ── Campaign Stage 2 (the coach deployed it)
+  step('campaign-stage-2');
+  await playRun(page, {
+    name: 'campaign-2', maxSec: 420, speed5: true,
+    stopWhen: async (_p, text) => /VICTORY|DEFEAT|STAGE CLEAR|HIVE FELL|OVERRUN|RUN COMPLETE/i.test(text) || !!(await page.$('.results-screen')),
+  });
+  await page.waitForSelector('.results-screen', { timeout: 8000 }).catch(() => undefined);
+  for (let i = 0; i < 12; i++) {
+    if (!(await page.$('.results-screen'))) break;
+    await clickBox(page, '.results-screen button', { text: /^(continue|collect|return|home|next)/i, last: true });
+    await sleep(900);
+  }
+  await waitFor(page, 'the hub after run 2', async () => !!(await page.$('[data-nav], .hub-door')) && !(await page.$('.results-screen')), 20_000);
+
+  // 9 ── THE FIRST LOOP — COLLECT: Rewards Hub → Vault → crack → home → BEST MOVE → the Daily Bio-Cache → done
+  step('coach-collect');
+  let quiet = 0;
+  M.coach.push(...await followCoach(page, 'collect', 150, async () => {
+    const coach = !!(await page.$('.flcoach'));
+    quiet = coach ? 0 : quiet + 1;
+    return quiet >= 6; // the coach has stayed gone (beat finished) for ~6 polls
+  }));
+  await shot(page, 'hub-after-first-loop');
   return page;
 }
 
