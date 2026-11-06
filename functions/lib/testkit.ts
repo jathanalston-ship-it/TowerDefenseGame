@@ -42,6 +42,8 @@ export class FakeD1 {
   anActivity = new Set<string>(); // key: player_id|day
   anErrors = new Map<string, Row>(); // key: hash
   anFlags: Row | null = null;
+  // ── Market Constructs (docs/CONSTRUCTS.md) ──
+  constructs = new Map<string, Row>(); // key: player_id
 
   prepare(sql: string): FakeStatement {
     return new FakeStatement(this, sql.replace(/\s+/g, ' ').trim());
@@ -166,6 +168,29 @@ class FakeStatement {
     if (sql.startsWith('SELECT COUNT(*) AS n FROM fulfillments WHERE player_id = ?1 AND offer_id = ?2')) {
       const n = [...db.fulfillments.values()].filter((r) => r.player_id === args[0] && r.offer_id === args[1]).length;
       return { rows: [{ n }], changes: 0 };
+    }
+    // ── constructs (the AI-player roster, workers/constructs/roster.ts) ──
+    if (sql.startsWith('SELECT player_id, name, token, credit_sec, last_tick_at, runs_total, last_report FROM constructs')) {
+      return { rows: [...db.constructs.values()].sort((a, b) => String(a.player_id).localeCompare(String(b.player_id))), changes: 0 };
+    }
+    if (sql.startsWith('INSERT INTO constructs')) {
+      if (db.constructs.has(String(args[0]))) return { rows: [], changes: 0 };
+      db.constructs.set(String(args[0]), {
+        player_id: args[0], name: args[1], token: args[2], credit_sec: 0, last_tick_at: 0, runs_total: 0, last_report: '', lease_until: 0, created_at: args[3],
+      });
+      return { rows: [], changes: 1 };
+    }
+    if (sql.startsWith('UPDATE constructs SET lease_until')) {
+      const row = db.constructs.get(String(args[0]));
+      if (!row || !(Number(row.lease_until) < Number(args[2]))) return { rows: [], changes: 0 };
+      db.constructs.set(String(args[0]), { ...row, lease_until: args[1] });
+      return { rows: [], changes: 1 };
+    }
+    if (sql.startsWith('UPDATE constructs SET credit_sec')) {
+      const row = db.constructs.get(String(args[0]));
+      if (!row) return { rows: [], changes: 0 };
+      db.constructs.set(String(args[0]), { ...row, credit_sec: args[1], last_tick_at: args[2], runs_total: Number(row.runs_total) + Number(args[3]), last_report: args[4], lease_until: 0 });
+      return { rows: [], changes: 1 };
     }
     // ── cloud_saves ──
     if (sql.startsWith('SELECT token_hash FROM cloud_saves')) {

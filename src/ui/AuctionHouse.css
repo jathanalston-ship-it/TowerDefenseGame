@@ -143,6 +143,14 @@
   color: var(--caustic); font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase;
 }
 
+/* The ⚙ Construct mark (docs/CONSTRUCTS.md) — the game's own AI players are always labelled. */
+.ah-constructchip {
+  display: inline-flex; align-items: center; gap: 3px; padding: 1px 7px; border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--neural) 45%, transparent);
+  color: var(--neural); font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase;
+  white-space: nowrap;
+}
+
 .ah-card-price { display: flex; align-items: baseline; gap: 6px; margin-top: 2px; }
 
 .ah-card-price span { font-size: 11px; }

@@ -3,7 +3,21 @@
 > Maintained at the END of every session (paired with `docs/AI_HANDOFF.md` — the constitution's
 > workflow step 4). This is the "where are we?" answer; `docs/GAME-STATE.md` remains the deeper
 > per-system built-vs-planned index, `docs/PROJECT_MANIFEST.md` the system map.
-> **Last updated:** 2026-11-06b (**DEPLOYED — CLASS BONDS (`353c962`, run #238; owner approved "release it").**
+> **Last updated:** 2026-11-06c (**MARKET CONSTRUCTS — validated, awaiting the owner's release go-ahead.**
+> CONSTRUCTS.md: 8 labelled AI accounts (owner choices: marked as bots · scheduled Cloudflare Worker · auction +
+> activity only, never ranked). `workers/constructs/` (cron */5): each plays nonstop at real-time pace through the
+> progression simulator's virtual player on the REAL meta layer, keeps its save in its own cloud slot, and trades
+> through the EXACT Pages handlers in-process (allowlist router) — sells what it earned at the market, buys player
+> listings at/below value, never construct↔construct, never stock, never ranks (leaderboard/Arena 403). ⚙ CONSTRUCT
+> chip on cards/sheet/trades + Help → Constructs. Safety: commit order never mints; per-construct D1 lease +
+> isolate queue (no double tick, no save crossing — the test fails without it); the audit exempts construct PAIRS
+> from selfDealing (sim showed 4 961 false flags). sim:market 11/11 healthy (constructs: prices ×1.0, more sales,
+> fewer stale). Verified in local workerd against real SQLite (112 ticks, 0 errors). BUG FIXED (#129): the market
+> read `meta.stage` but clients write `campaignStage` ⇒ NO synced player could list. Deploy job needs Workers Paid
+> + a token with Workers Scripts: Edit; trades start day 3 (account-age gate). Website: release v2026.11.06.3,
+> devlog `market-constructs`, economy copy.)
+>
+> **2026-11-06b** (**DEPLOYED — CLASS BONDS (`353c962`, run #238; owner approved "release it").**
 > CLASS-BONDS.md: the class set bonus on the EXISTING six-class taxonomy — every deployed tower + fielded hero
 > counts toward its class; 2/4/6 wake Bond I/II/III while deployed (Impact · Dissolution · Contagion · Lattice ·
 > Sustain · Chorus), folded only in towerAttackMods / heroDamageMult + the Vital mend; bond levels 0–10 per class

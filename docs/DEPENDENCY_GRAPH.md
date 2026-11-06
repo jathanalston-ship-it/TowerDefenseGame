@@ -100,6 +100,9 @@ graph TD
   class_bonds --> power
   class_bonds --> meta_store
   class_bonds --> progression_gating
+  market_constructs --> online_foundation
+  market_constructs --> net_backend
+  market_constructs --> splice_market
   nucleus --> mulligans
   nucleus --> content_infra
   nucleus --> power
@@ -258,8 +261,8 @@ graph TD
 | **Mulligan System** (`mulligans`) | `content-infra` · `towers` · `power` · `meta-store` | `nucleus` · `hero-symbiotes` | ⚡ a DEDICATED, separately-inspectable PowerParts.mulligans bucket (accountMulliganPower) — modifiers × rarity × level; exactly 1 until an organism is fully assembled | `mulligans` · `mulliganDex` | `docs/MULLIGANS.md` |
 | **Premium Store** (`premium`) | `content-infra` · `splice-market` · `daily` · `power` | `field-research` · `net-backend` · `battle-pass` | ⚡ offerPowerPotential — the honest "up to +N when invested" estimate | `premium` | `docs/PREMIUM-STORE.md` · `docs/PREMIUM-ECONOMY-REPORT.md` |
 | **Field Research (rewarded studies)** (`field-research`) | `premium` · `meta-store` · `splice-market` · `boss-rush` · `daily` | — | — | `research` | `docs/RESEARCH.md` · `docs/WEBSITE.md` |
-| **Backend lanes (net/)** (`net-backend`) | `premium` · `meta-store` · `daily` · `power` | `security` | — | `premium` | `docs/DEPLOYMENT.md` · `docs/REPLAY-SHARE.md` |
-| **Online Foundation** (`online-foundation`) | `engine` · `content-infra` · `splice-market` | `arena` | — | `provenance` | `docs/ONLINE-FOUNDATION.md` · `docs/TRADING-PREP.md` |
+| **Backend lanes (net/)** (`net-backend`) | `premium` · `meta-store` · `daily` · `power` | `market-constructs` · `security` | — | `premium` | `docs/DEPLOYMENT.md` · `docs/REPLAY-SHARE.md` |
+| **Online Foundation** (`online-foundation`) | `engine` · `content-infra` · `splice-market` | `arena` · `market-constructs` | — | `provenance` | `docs/ONLINE-FOUNDATION.md` · `docs/TRADING-PREP.md` |
 | **Arena (Live PvP)** (`arena`) | `online-foundation` · `engine` · `battle-pass` · `idle-harvest` · `power` · `meta-store` | — | ⚡ arena exclusives are full content pieces scored by the existing tower/hero buckets once unlocked; rank itself is deliberately zero-Power (prestige lane, like Genome Rank) | `arena` | `docs/ARENA.md` · `docs/ARENA_MATCH_REPORT.md` |
 | **Towers, Stars, Branches, Strain & Codex** (`towers`) | `content-infra` · `shards-economy` · `campaign` | `hive-mind` · `engine` · `daily` · `mulligans` · `class-bonds` · `contracts` | ⚡ stars/branches feed permanent + temporary buckets | `towerStars` · `towerPrime` · `towerShards` · `towerMasteryXp` · `towerForks` | `docs/TOWER-STARS.md` · `docs/TOWER-BRANCHES.md` · `docs/TOWER-LAB.md` · `docs/TOWER-CODEX.md` · `docs/TOWERS.md` · `docs/STRAIN.md` |
 | **Mastery / Adaptation** (`mastery`) | `stats` · `content-infra` | — | ⚡ mastery multiplier folds into the permanent bucket | `towerMasteryXp` · `heroMasteryXp` · `adaptation` · `antigen` · `masteryEvolution` | `docs/MASTERY.md` · `docs/ADAPTATION.md` |
@@ -270,6 +273,7 @@ graph TD
 | **Loot & Bio-Containers** (`loot`) | `content-infra` · `power` · `campaign` | `infinite` · `boss-rush` · `equipment` · `crafting` · `shards-economy` · `splice-market` · `account-level` | ⚡ reads Power for catch-up bias; grants move account Power | `lootQueue` · `pendingContainers` | `docs/LOOTBOX.md` · `docs/LOOT-PROGRESSION.md` · `docs/REWARD-PRESENTATION.md` |
 | **Gene Cards (draft + permanent evolution)** (`gene-cards`) | `content-infra` · `power` · `campaign` · `shards-economy` | `engine` · `doctrines` | ⚡ permanent levels + Transcendence lines fold linearly (GENE_POWER_SCALE); drafts feed the temporary bucket; validator enforces visibility | `genes` · `geneEssence` · `geneSlots` · `geneLoadout` · `genesDiscovered` | `docs/GENE-EVOLUTION.md` · `docs/CARDS.md` · `docs/GENE-AUDIT-REPORT.md` |
 | **Class Bonds** (`class-bonds`) | `engine` · `towers` · `heroes` · `power` · `meta-store` · `progression-gating` | — | ⚡ classBondsPowerMult multiplies the meta PowerParts bucket (BOND.powerPerLevel per level; ×1 with no levels) | `classBonds` | `docs/CLASS-BONDS.md` |
+| **Market Constructs** (`market-constructs`) | `online-foundation` · `net-backend` · `splice-market` | — | ⚡ none — constructs are separate accounts; nothing folds into a player’s Power | — | `docs/CONSTRUCTS.md` |
 | **Nucleus Mulligans** (`nucleus`) | `mulligans` · `content-infra` · `power` · `meta-store` · `genome-rank` | — | ⚡ nucleusPower multiplies the mulligans PowerParts bucket (×1 while no chamber is complete); organs are SUPPORT-only — towerDamageMult is registry-banned | `nucleus` | `docs/NUCLEUS.md` |
 | **Hero Symbiotes** (`hero-symbiotes`) | `mulligans` · `heroes` · `content-infra` · `power` · `meta-store` · `genome-rank` | — | ⚡ accountSymbiotePower multiplies the mulligans PowerParts bucket (×1 while no slot is complete); the kit TYPE has no damage/cooldown stat fields — the no-equipment-duplication contract | `heroSymbiotes` | `docs/HERO-SYMBIOTES.md` |
 | **Idle Harvest** (`idle-harvest`) | `meta-store` · `genome-rank` · `collection` · `account-level` | `arena` | ⚡ none — pure economy by design (idle must never buy Power); the idle codex is identity-only | `idle` | `docs/IDLE-HARVEST.md` |
@@ -281,7 +285,7 @@ graph TD
 | **Daily Bio-Cache (login streak)** (`daily-login`) | `meta-store` · `battle-pass` · `cosmetics` · `collection` | — | — | `login` | `docs/DAILY-LOGIN.md` · `docs/DAILY-RUN.md` · `docs/ECONOMY.md` |
 | **Prestige (Molt / Ascendant)** (`prestige`) | `campaign` · `evolution-hq` | `evolution-hq` · `profile` | ⚡ the P bucket (log fold of Cells + tree) | `prestige` | `docs/PROGRESSION-PHILOSOPHY.md` · `docs/PROGRESSION-REDESIGN.md` · `docs/SIMULATION-FRAMEWORK.md` · `docs/BALANCE_REPORT.md` · `docs/VOWS.md` |
 | **Currencies & Economy Framework** (`currencies`) | `content-infra` | `splice-market` | — | `hiveMaterials` · `mulliganTissue` | `docs/ECONOMY.md` · `docs/LEXICON.md` · `docs/ECONOMY_FORMULAS.md` |
-| **Splice Market & Ichor** (`splice-market`) | `currencies` · `loot` | `premium` · `field-research` · `online-foundation` | ⚡ none by design (Ichor never feeds Power) | `ichor` · `lifetimeIchor` · `market` · `ichorExchange` | `docs/MARKET.md` |
+| **Splice Market & Ichor** (`splice-market`) | `currencies` · `loot` | `premium` · `field-research` · `online-foundation` · `market-constructs` | ⚡ none by design (Ichor never feeds Power) | `ichor` · `lifetimeIchor` · `market` · `ichorExchange` | `docs/MARKET.md` |
 | **Achievements** (`achievements`) | `stats` | `profile` | ⚡ rewards (shards) move Power indirectly | `achievements` | `docs/PROGRESSION-SYSTEMS.md` |
 | **Lifetime Stats** (`stats`) | — | `mastery` · `collection` · `achievements` · `profile` | — | `stats` · `totalRuns` · `bestWave` | `docs/PROGRESSION-SYSTEMS.md` |
 | **LiveOps calendar** (`liveops`) | `meta-store` · `daily` | `directives` · `contracts` | — | `liveEvents` | `docs/LIVEOPS.md` · `docs/LIVE-EVENTS.md` |
@@ -528,14 +532,14 @@ graph TD
 
 - **Files:** `src/net/identity.ts` · `src/net/checkout.ts` · `src/net/cloudSave.ts` · `src/net/syncEngine.ts` · `src/net/connectivity.ts` · `src/net/leaderboard.ts` · `src/net/turnstile.ts` · `src/core/replay.ts` · `src/net/replayShare.ts` · `src/ui/SpectateView.tsx` · `src/ui/components/ShareReplay.tsx` · `src/ui/components/CloudBackup.tsx` · `src/ui/components/LeaderboardBlock.tsx`
 - **Depends on:** `premium` · `meta-store` · `daily` · `power`
-- **Consumers — what breaks if you change this:** `security`
+- **Consumers — what breaks if you change this:** `market-constructs` · `security`
 - **Power Score:** — (intentionally none)
 - **Save fields:** `premium`
 - **Tutorial:** — · **Help mechanics:** —
 - **HUD surfaces:** — · **UI screens:** `CloudBackup` · `LeaderboardBlock` · `SpectateView` · `DailyScreen (Replay Theater)`
 - **Collection:** — · **Achievements:** —
 - **Localization:** inline English strings (no i18n layer yet — this field enumerates the surface for the day it lands)
-- **Docs to update on change:** `docs/DEPLOYMENT.md` · `docs/REPLAY-SHARE.md` · `docs/SECURITY.md`
+- **Docs to update on change:** `docs/DEPLOYMENT.md` · `docs/REPLAY-SHARE.md` · `docs/CONSTRUCTS.md` · `docs/SECURITY.md`
 
 ### Online Foundation (`online-foundation`)
 
@@ -543,14 +547,14 @@ graph TD
 
 - **Files:** `src/core/online.ts` · `src/core/itemIdentity.ts` · `src/core/trading.ts` · `src/core/auction.ts` · `src/core/marketAuthority.ts` · `src/core/marketCatalog.ts` · `src/net/arenaTransport.ts` · `src/net/arenaSession.ts` · `src/net/arenaMatchmaker.ts` · `src/net/auctionHouse.ts` · `src/state/auctionHouse.ts` · `src/ui/AuctionHouse.tsx`
 - **Depends on:** `engine` · `content-infra` · `splice-market`
-- **Consumers — what breaks if you change this:** `arena`
+- **Consumers — what breaks if you change this:** `arena` · `market-constructs`
 - **Power Score:** — (intentionally none)
 - **Save fields:** `provenance`
 - **Tutorial:** — · **Help mechanics:** —
 - **HUD surfaces:** — · **UI screens:** —
 - **Collection:** — · **Achievements:** —
 - **Localization:** inline English strings (no i18n layer yet — this field enumerates the surface for the day it lands)
-- **Docs to update on change:** `docs/ONLINE-FOUNDATION.md` · `docs/TRADING-PREP.md` · `docs/ARENA.md` · `docs/ARENA_MATCH_REPORT.md`
+- **Docs to update on change:** `docs/ONLINE-FOUNDATION.md` · `docs/TRADING-PREP.md` · `docs/ARENA.md` · `docs/ARENA_MATCH_REPORT.md` · `docs/CONSTRUCTS.md`
 
 ### Arena (Live PvP) (`arena`)
 
@@ -701,6 +705,21 @@ graph TD
 - **Collection:** none · **Achievements:** —
 - **Localization:** inline English strings (no i18n layer yet — this field enumerates the surface for the day it lands)
 - **Docs to update on change:** `docs/CLASS-BONDS.md`
+
+### Market Constructs (`market-constructs`)
+
+*The game’s own labelled AI players (docs/CONSTRUCTS.md): a fixed roster that plays the real progression code around the clock (scheduled Worker, workers/constructs/) and trades what it earns on the Auction House through the SAME handlers a player hits — at market prices, never with each other, never on a leaderboard.*
+
+- **Files:** `src/core/constructs.ts`
+- **Depends on:** `online-foundation` · `net-backend` · `splice-market`
+- **Consumers — what breaks if you change this:** —
+- **Power Score:** none — constructs are separate accounts; nothing folds into a player’s Power
+- **Save fields:** —
+- **Tutorial:** — · **Help mechanics:** `market-constructs` · `auction-house`
+- **HUD surfaces:** `⚙ Construct chip (Auction House cards, listing sheet, trade history)` · **UI screens:** `AuctionHouse`
+- **Collection:** none · **Achievements:** —
+- **Localization:** inline English strings (no i18n layer yet — this field enumerates the surface for the day it lands)
+- **Docs to update on change:** `docs/CONSTRUCTS.md`
 
 ### Nucleus Mulligans (`nucleus`)
 
@@ -873,14 +892,14 @@ graph TD
 
 - **Files:** `src/core/market.ts` · `src/core/ichorExchange.ts` · `src/state/spliceMarket.ts` · `src/ui/SpliceMarket.tsx`
 - **Depends on:** `currencies` · `loot`
-- **Consumers — what breaks if you change this:** `premium` · `field-research` · `online-foundation`
+- **Consumers — what breaks if you change this:** `premium` · `field-research` · `online-foundation` · `market-constructs`
 - **Power Score:** none by design (Ichor never feeds Power)
 - **Save fields:** `ichor` · `lifetimeIchor` · `market` · `ichorExchange`
 - **Tutorial:** — · **Help mechanics:** `splice-market`
 - **HUD surfaces:** `top resource bar (Ichor chip)` · **UI screens:** `SpliceMarket` · `Hub nav (Collection group)`
 - **Collection:** — · **Achievements:** —
 - **Localization:** inline English strings (no i18n layer yet — this field enumerates the surface for the day it lands)
-- **Docs to update on change:** `docs/MARKET.md` · `docs/PREMIUM-STORE.md` · `docs/PREMIUM-ECONOMY-REPORT.md` · `docs/RESEARCH.md` · `docs/WEBSITE.md` · `docs/ONLINE-FOUNDATION.md` · `docs/TRADING-PREP.md`
+- **Docs to update on change:** `docs/MARKET.md` · `docs/PREMIUM-STORE.md` · `docs/PREMIUM-ECONOMY-REPORT.md` · `docs/RESEARCH.md` · `docs/WEBSITE.md` · `docs/ONLINE-FOUNDATION.md` · `docs/TRADING-PREP.md` · `docs/CONSTRUCTS.md`
 
 ### Achievements (`achievements`)
 

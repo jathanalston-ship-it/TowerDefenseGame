@@ -498,6 +498,14 @@ ladders. 4. Every permanent progression source must move the Power Score (valida
   `ANNOUNCE` + `pacedAnnouncements` — at most 2 What's New cards per finished run, a revealed screen's
   lesson first), `meta.whatsNew()` (the session-memory beat), `state/fieldNotes.ts` + `ui/FieldNote.tsx`
   (in-run controls taught mid-fight). Tests: `state/firstHour.test.ts`. Docs: PROGRESSION-GATING.md
+- **Market Constructs (2026-11-06):** `core/constructs.ts` (roster with version-0 ids, `CONSTRUCT`
+  tunables, every trading decision pure — shared with `scripts/sim-market.ts`) → `workers/constructs/`
+  (`engine.ts` one tick: load save → `playVirtualRun` at real-time pace → market visit → commit;
+  `router.ts` the allowlisted in-process wire to the real Pages handlers; `roster.ts` the cron loop over
+  the D1 `constructs` table (migration 0009); `index.ts` the Worker + `/status`; `wrangler.toml`; typed by
+  `workers/tsconfig.json`). Server: leaderboard/Arena refuse `isConstructId`; `auditMarket` exempts
+  construct pairs from selfDealing. Client: the ⚙ chip in `ui/AuctionHouse.tsx`; Help `market-constructs`.
+  Deploy: the `constructs` job in deploy.yml. Docs: CONSTRUCTS.md
 - **Class Bonds (2026-11-06):** `core/classBonds.ts` (tables, fold, cost, Power, sanitizer) → `Game`
   (`RunOptions.classBonds`; `refreshBonds` + `towerAttackMods` / `heroDamageMult` / the wave-clear mend),
   `ui/BondsScreen.tsx` (Evolution Hub wing, level-ups via `meta.upgradeBond`), `ui/BuildPanel.tsx` (the

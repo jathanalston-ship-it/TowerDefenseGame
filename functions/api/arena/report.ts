@@ -20,6 +20,7 @@ import {
   divisionForRating, divisionIndex, ratingDelta,
 } from '../../../src/core/arena';
 import type { ArenaMatchClaim } from '../../../src/core/arena';
+import { isConstructId } from '../../../src/core/constructs';
 
 interface Body {
   playerId?: string;
@@ -46,6 +47,9 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
 
   const body = await readJson<Body>(request, 4_096);
   if (!body || !isPlayerId(body.playerId) || !body.claim || typeof body.claim !== 'object') return err(400, 'bad-request');
+  // Market Constructs never rank (docs/CONSTRUCTS.md — the owner's rule; the construct router
+  // cannot reach this endpoint either, this is the server-side half of the guarantee).
+  if (isConstructId(body.playerId)) return err(403, 'construct');
   const claim = body.claim;
   const problem = arenaClaimProblem(claim);
   if (problem) return err(400, problem);

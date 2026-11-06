@@ -17,6 +17,7 @@
 import { FRAUD, auditTradeEvents } from './trading';
 import type { FraudSignal, TradeEvent } from './trading';
 import type { LiveListing } from './auction';
+import { isConstructId } from './constructs';
 
 // ── Metrics (one window's observation of the whole market) ───────────────────
 export interface MarketMetrics {
@@ -387,7 +388,13 @@ export function auditMarket(
   activeListings: readonly LiveListing[],
   medianOf: (familyKey: string) => number,
 ): MarketFlag[] {
-  const flags: MarketFlag[] = [...auditTradeEvents(trades)];
+  // selfDealing watches two ACCOUNTS colluding. A Market Construct (docs/CONSTRUCTS.md) is the
+  // game's own counterparty — it trades with every player by design, never with another
+  // construct, buys only at/below value and sells at the market — so a pair that includes one
+  // cannot be collusion; flagging it would bury the moderation feed. Item-chain signals
+  // (rapidTransfer, circular, priceOutlier) still see construct trades in full.
+  const flags: MarketFlag[] = auditTradeEvents(trades)
+    .filter((f) => f.kind !== 'selfDealing' || !(isConstructId(f.a) || isConstructId(f.b)));
   // rapidRelist: open/cancel cycles per (seller, item) inside the window.
   const cycles = new Map<string, { opens: number; cancels: number; sellerId: string; refKey: string }>();
   const cutoff = Math.max(...listingEvents.map((e) => e.at), 0) - MANIPULATION.relistWindowMs;

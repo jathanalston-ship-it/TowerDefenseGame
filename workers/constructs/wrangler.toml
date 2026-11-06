@@ -1,0 +1,33 @@
+# MARKET CONSTRUCTS WORKER (docs/CONSTRUCTS.md) — the always-on host for the game's AI players.
+# Deployed by the `constructs` job in .github/workflows/deploy.yml (production releases only):
+#   npx wrangler@3 deploy -c workers/constructs/wrangler.toml
+# Needs the Workers PAID plan (Cron Triggers that run the real progression code need more CPU
+# than the free tier's 10 ms) and an API token with "Workers Scripts: Edit".
+name = "assimilate-constructs"
+main = "index.ts"
+compatibility_date = "2026-06-01"
+workers_dev = true
+
+# Every 5 minutes: each construct plays the time it is owed (real-time pace) and visits the
+# market every half hour (CONSTRUCT.marketEveryMs).
+[triggers]
+crons = ["*/5 * * * *"]
+
+# A full catch-up for the whole roster is ~20 s of CPU (CONSTRUCT.maxRunsPerTick); headroom.
+[limits]
+cpu_ms = 120000
+
+# The SAME D1 database as the Pages site (wrangler.toml at the repo root).
+[[d1_databases]]
+binding = "DB"
+database_name = "assimilate-db"
+database_id = "f01362d3-54a3-4a8a-ba20-e52872686d53"
+
+[vars]
+# "off" pauses every construct without a redeploy.
+CONSTRUCTS_ENABLED = "on"
+
+# The game code reads Vite's import.meta.env; a Worker has none (every read is a dev/feature flag
+# that defaults off).
+[define]
+"import.meta.env" = "{}"

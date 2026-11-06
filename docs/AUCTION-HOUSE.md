@@ -164,6 +164,17 @@ player bid landing in the window race always beats the authority at the SQL leve
 trade INSERT + money statements follow the §7 conditioning exactly (op ids share the
 `sale:<listingId>:*` family — a listing settles once, ever).
 
+## 5c. §constructs — the Market Constructs (the game's own labelled AI players)
+
+Eight AI accounts trade here alongside players, ALWAYS marked ⚙ CONSTRUCT (cards, listing sheet, a
+leading bid, trade history; Help → Constructs). They reach the market through the EXACT handlers a
+browser hits (an in-process router — every rule in this document applies to them unchanged), sell only
+what their own play earned at the market price, buy players' listings only at or below value, never trade
+with each other or buy authority stock, and never rank. `sim:market` scenario "constructs" proves the
+economy contract with the same pure decisions the Worker runs. `auditMarket` exempts construct PAIRS from
+`selfDealing` (they are every player's counterparty by design); item-chain signals still apply. Full
+design: docs/CONSTRUCTS.md.
+
 ## 6. Anti-manipulation (flag, never auto-punish)
 
 Detectors (`auditMarket`, ~twice daily over 7d of trades + 24h of listing events):

@@ -142,11 +142,14 @@ export async function authMarket(
   return { ok: true, campaignStage: stage, accountAgeDays: Math.floor((now - firstTouchMs) / 86_400_000) };
 }
 
-function stageFromMeta(meta: string | undefined | null): number {
+/** The campaign stage from a cloud-save headline. The sync engine writes `campaignStage`
+ *  (save/envelope.ts envelopeMeta); `stage` is the legacy/test spelling. Reading only `stage`
+ *  left every real synced account at stage 0 ⇒ blocked from listing (BUGFIX-LOG 2026-11-06). */
+export function stageFromMeta(meta: string | undefined | null): number {
   if (!meta) return 0;
   try {
-    const m = JSON.parse(meta) as { stage?: unknown };
-    const n = Math.floor(Number(m.stage));
+    const m = JSON.parse(meta) as { campaignStage?: unknown; stage?: unknown };
+    const n = Math.floor(Number(m.campaignStage ?? m.stage));
     return Number.isFinite(n) && n > 0 ? n : 0;
   } catch {
     return 0;

@@ -15,6 +15,7 @@ import { ListControls } from './components/ListControls';
 import { Popup } from './components/Popup';
 import { TRADE, minNextBid, tradeBlockLabel } from '../core/trading';
 import { marketFamily } from '../core/marketCatalog';
+import { constructOf } from '../core/constructs';
 import { rarityColorOf } from '../core/equipment';
 import { account } from '../account/accountStore';
 import { connectivity } from '../net/connectivity';
@@ -171,6 +172,18 @@ function BrowseTab({ onOpen }: { onOpen: (listingId: string) => void }): JSX.Ele
   );
 }
 
+/** The ⚙ Construct mark (docs/CONSTRUCTS.md): every listing, bid or trade by one of the game's
+ *  own AI players says so — a player always knows who they are trading with. */
+function ConstructChip({ id, role }: { id: string | null | undefined; role?: string }): JSX.Element | null {
+  const c = constructOf(id);
+  if (!c) return null;
+  return (
+    <span className="ah-constructchip" title={`${c.name} — a Construct: an AI player run by the game. It plays around the clock and trades what it earns, at market prices, never with other Constructs.`}>
+      ⚙ {role ? `${role} ` : ''}construct
+    </span>
+  );
+}
+
 function ListingCard({ l, skew, onOpen }: { l: WireListing; skew: number; onOpen: () => void }): JSX.Element {
   return (
     <button type="button" className="ah-card" onClick={onOpen} style={{ ['--rc' as string]: RARITY_TINT[l.rarity] ?? 'var(--muted)' }}>
@@ -179,6 +192,7 @@ function ListingCard({ l, skew, onOpen }: { l: WireListing; skew: number; onOpen
       <div className="ah-card-sub">
         <span className="ah-card-rar">{l.rarity}</span>
         {l.authority ? <span className="ah-stockchip" title="Baseline stock — always common essentials, never exclusives.">⚕ stock</span> : null}
+        <ConstructChip id={l.sellerId} />
       </div>
       <div className="ah-card-price">
         {l.buyNow !== null && <b>◆ {l.buyNow.toLocaleString()}</b>}
@@ -221,6 +235,7 @@ function ListingSheet({ listing, myId, onClose }: { listing: WireListing; myId: 
               <h3>{famName(listing.familyKey)}</h3>
               <span className="ah-card-rar">{listing.rarity}</span>
               {listing.authority && <span className="ah-stockchip">⚕ stock</span>}
+              <ConstructChip id={listing.sellerId} />
             </div>
             <button type="button" className="ah-x" onClick={onClose} aria-label="Close">✕</button>
           </header>
@@ -245,6 +260,8 @@ function ListingSheet({ listing, myId, onClose }: { listing: WireListing; myId: 
               ? 'Baseline stock keeps essentials available — bought units leave circulation entirely.'
               : `Bids escrow in full from your market wallet; anti-snipe extends the clock by ${TRADE.antiSnipeSec}s on late bids.`}
           </p>
+          {constructOf(listing.sellerId) && <p className="ah-dim ah-fine">Sold by {constructOf(listing.sellerId)!.name}, a Construct — an AI player run by the game. It earned this by playing and prices it at the market.</p>}
+          {listing.bidderId !== myId && constructOf(listing.bidderId) && <p className="ah-dim ah-fine">The leading bid is a Construct&apos;s — they never bid above an item&apos;s market value.</p>}
           {note && <div className="ah-note">{note}</div>}
         </div>
       </div>
@@ -451,6 +468,7 @@ function MineTab({ myId, onOpen }: { myId: string; onOpen: (listingId: string) =
           <div key={t.listing_id} className="ah-row">
             <span className="ah-row-name">{famName(t.family_key)}</span>
             <span className={t.seller_id === myId ? 'ah-lead' : ''}>{t.seller_id === myId ? `sold +◆ ${(t.price - t.tax).toLocaleString()}` : `bought −◆ ${t.price.toLocaleString()}`}</span>
+            <ConstructChip id={t.seller_id === myId ? t.buyer_id : t.seller_id} role={t.seller_id === myId ? 'to a' : 'from a'} />
             <span className="ah-dim">{new Date(t.at).toLocaleDateString()}</span>
           </div>
         ))}

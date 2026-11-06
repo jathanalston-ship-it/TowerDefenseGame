@@ -76,6 +76,11 @@ export const MECHANICS: MechanicDef[] = [
   { id: 'auction-house', title: 'Auction House', category: 'Progression', nav: 'auction', links: ['splice-market', 'equipment'],
     unlock: (s) => featureRevealed(s, 'auction'),
     summary: 'The player-driven market: list gene cards, gear and cosmetics for Ichor, bid or buy now, and bank proceeds in your market wallet.' },
+  // MARKET CONSTRUCTS (docs/CONSTRUCTS.md): the game's own labelled AI players — announced with the
+  // Auction House so nobody ever trades with one unknowingly.
+  { id: 'market-constructs', title: 'Constructs', category: 'Progression', nav: 'auction', links: ['auction-house'],
+    unlock: (s) => featureRevealed(s, 'auction'),
+    summary: 'The game\u2019s own AI players — always marked \u2699 Construct — keep the market stocked and buy fairly priced listings.' },
   { id: 'daily-login', title: 'Daily Bio-Cache', category: 'Progression', nav: 'home', links: ['splice-market'],
     summary: 'One living cache per day — its value compounds for every consecutive day you answer.',
     unlock: (s) => s.totalRuns >= 1 },

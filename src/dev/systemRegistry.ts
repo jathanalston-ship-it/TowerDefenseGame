@@ -226,6 +226,14 @@ export const SYSTEMS: SystemDef[] = [
     localization: 'inline-en', docs: ['docs/CLASS-BONDS.md'],
   },
   {
+    id: 'market-constructs', name: 'Market Constructs', purpose: 'The game\u2019s own labelled AI players (docs/CONSTRUCTS.md): a fixed roster that plays the real progression code around the clock (scheduled Worker, workers/constructs/) and trades what it earns on the Auction House through the SAME handlers a player hits \u2014 at market prices, never with each other, never on a leaderboard.',
+    files: ['src/core/constructs.ts'],
+    dependsOn: ['online-foundation', 'net-backend', 'splice-market'], powerScore: 'none \u2014 constructs are separate accounts; nothing folds into a player\u2019s Power', save: [],
+    tutorial: [], help: ['market-constructs', 'auction-house'], hud: ['\u2699 Construct chip (Auction House cards, listing sheet, trade history)'],
+    ui: ['AuctionHouse'], collection: 'none', achievements: [],
+    localization: 'inline-en', docs: ['docs/CONSTRUCTS.md'],
+  },
+  {
     id: 'nucleus', name: 'Nucleus Mulligans', purpose: 'The Hive Nucleus\u2019s own organ system: 3 chambers \u00d7 3 support organs, class adaptations, visible Hive mutations, multi-system chamber trials.',
     files: ['src/core/nucleus.ts', 'src/render/nucleusDress.ts', 'src/ui/NucleusChambers.tsx'],
     dependsOn: ['mulligans', 'content-infra', 'power', 'meta-store', 'genome-rank'], powerScore: 'nucleusPower multiplies the mulligans PowerParts bucket (\u00d71 while no chamber is complete); organs are SUPPORT-only \u2014 towerDamageMult is registry-banned', save: ['nucleus'],

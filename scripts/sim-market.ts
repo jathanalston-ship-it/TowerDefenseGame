@@ -22,11 +22,16 @@ import type {
   MarketMetrics, SellerBuybackRecord,
 } from '../src/core/marketAuthority';
 import type { MarketHistoryPoint, TradeEvent } from '../src/core/trading';
+import { minNextBid } from '../src/core/trading';
+import {
+  CONSTRUCT, CONSTRUCTS, constructAsk, constructBid, constructBuyNow, constructOf, constructWorth,
+  depositAmount, isConstructId, shoppable, wantsBuyNow, withdrawAmount,
+} from '../src/core/constructs';
 
 const DAY = 24 * 3_600_000;
 
 // ── Personas ──────────────────────────────────────────────────────────────────
-type Persona = 'f2p' | 'casual' | 'whale' | 'manipulator' | 'bot';
+type Persona = 'f2p' | 'casual' | 'whale' | 'manipulator' | 'bot' | 'construct';
 
 interface Agent {
   id: string;
@@ -55,6 +60,8 @@ interface Scenario {
   expectEngaged?: boolean;
   /** Assert the liquidity engine provided velocity (low-population scenarios). */
   expectBuybacks?: boolean;
+  /** Assert the Market Constructs actually traded with players (docs/CONSTRUCTS.md). */
+  expectConstructTrade?: boolean;
   expectFlags?: ('selfDealing' | 'circular' | 'rapidRelist' | 'monopoly' | 'priceOutlier' | 'priceFixing' | 'rapidTransfer')[];
 }
 
@@ -174,6 +181,70 @@ function openFor(w: World, agent: Agent, familyKey: string, ask: number, buyNowP
   return r.value;
 }
 
+// ── Market Constructs (docs/CONSTRUCTS.md) — the game's own AI players, driven by the SAME
+//    pure decisions the Worker runs (src/core/constructs.ts). A sim day ≈ 48 market visits, so
+//    the per-day caps bind exactly as live. They play nonstop ⇒ more drops than a player; their
+//    Ichor is their own play's (deposits capped per day — modeled as the faucet). ──
+function constructDay(w: World, sc: Scenario, agent: Agent, daybook: LiveListing[]): void {
+  const style = constructOf(agent.id)!.style;
+  const out = withdrawAmount(agent.wallet); // proceeds back to the save (money leaves the market)
+  agent.wallet -= out;
+  w.minted -= out;
+  const dep = depositAmount(Number.MAX_SAFE_INTEGER, agent.wallet, 0); // nonstop play out-earns the cap
+  agent.wallet += dep;
+  w.minted += dep;
+  for (let d = 0; d < sc.dropsPerDay * 3; d++) {
+    if (w.rng.next() > 0.5) continue;
+    const pool = CATALOG.filter((c) => (!sc.rareDrought || !RARE_FAMILIES.has(c.familyKey)) && (!c.exclusive || w.rng.next() < 0.02));
+    agent.items.push(pool[Math.floor(w.rng.next() * pool.length)].familyKey);
+  }
+  // SELL at the market (the style band around guidance), within the day's listing cap and the
+  // per-family cap. A COLD family (no history, nothing listed) is priced from the rarity anchor —
+  // the sim's twin of the server's HOST.defaultGuide — never the bare floor.
+  const live = new Map<string, number>();
+  for (const l of w.listings.values()) if (l.state === 'active' && l.sellerId === agent.id) live.set(l.familyKey, (live.get(l.familyKey) ?? 0) + 1);
+  for (let n = 0; n < CONSTRUCT.maxListingsPerDay && agent.items.length > 0; n++) {
+    const familyKey = agent.items.pop()!;
+    if ((live.get(familyKey) ?? 0) >= CONSTRUCT.maxPerFamily) continue;
+    live.set(familyKey, (live.get(familyKey) ?? 0) + 1);
+    const stats = statsFor(w, familyKey);
+    const cold = stats.estimatedValue === null && stats.lowestListing === null;
+    const guide = cold ? ANCHOR[CATALOG.find((c) => c.familyKey === familyKey)!.rarity] : recommendedPrice(stats, w.authority.recBias);
+    const ask = constructAsk(guide, style, w.rng.next());
+    openFor(w, agent, familyKey, ask, constructBuyNow(ask, w.rng.next(), w.rng.next()));
+  }
+  // SHOP players' listings at or below value — never a construct's, never stock.
+  let buys = CONSTRUCT.maxBuysPerDay;
+  let bids = CONSTRUCT.maxBidsPerDay;
+  let scanned = 0;
+  for (const l0 of daybook) {
+    if ((buys <= 0 && bids <= 0) || scanned++ > CONSTRUCT.shopScan) break;
+    const l = w.listings.get(l0.listingId)!;
+    if (!shoppable({ sellerId: l.sellerId, authority: l.authority, state: l.state }, agent.id)) continue;
+    const stats = statsFor(w, l.familyKey);
+    const worth = constructWorth(stats.estimatedValue ?? recommendedPrice(stats, w.authority.recBias), style);
+    if (l.buyNow !== null && buys > 0 && wantsBuyNow(l.buyNow, worth, agent.wallet)) {
+      const r = buyNow(l, agent.id, w.now, w.authority.taxMult);
+      if (r.ok && applyOps(w, r.ops)) {
+        w.listings.set(l.listingId, r.value.listing);
+        agent.items.push(l.familyKey);
+        recordSale(w, l.familyKey, r.value.sale.price, l.sellerId, agent.id, r.value.sale.refKey);
+        buys--;
+      }
+      continue;
+    }
+    if (bids > 0 && l.bidderId !== agent.id) {
+      const amount = constructBid(l.bid === null ? l.ask : minNextBid(l.bid), worth, agent.wallet);
+      if (amount === null) continue;
+      const r = placeBid(l, agent.id, amount, w.now);
+      if (r.ok && applyOps(w, r.ops)) {
+        w.listings.set(l.listingId, r.value);
+        bids--;
+      }
+    }
+  }
+}
+
 // ── One simulated day ─────────────────────────────────────────────────────────
 function runDay(w: World, sc: Scenario): void {
   w.daySales = [];
@@ -200,6 +271,10 @@ function runDay(w: World, sc: Scenario): void {
   const daybook = sortListings([...w.listings.values()].filter((l) => l.state === 'active'), 'priceAsc');
 
   for (const agent of w.agents) {
+    if (agent.persona === 'construct') {
+      constructDay(w, sc, agent, daybook);
+      continue;
+    }
     // Faucet income (external economy feeding the market wallet).
     agent.wallet += sc.faucetPerDay;
     w.minted += sc.faucetPerDay;
@@ -413,6 +488,11 @@ function runDay(w: World, sc: Scenario): void {
 // ── Scenario harness + health assertions ─────────────────────────────────────
 interface Health {
   name: string;
+  /** Trades between two Market Constructs (must be 0) / involving one (must be > 0 when expected). */
+  constructPairTrades: number;
+  constructTrades: number;
+  /** Fraud-audit flags that implicate a construct (moderation noise — must stay empty). */
+  constructFlags: string[];
   days: number;
   endMedianBasket: number;
   startMedianBasket: number;
@@ -445,7 +525,8 @@ function runScenario(sc: Scenario, seed: number): Health {
   const agents: Agent[] = [];
   let n = 0;
   for (const g of sc.agents) {
-    for (let i = 0; i < g.count; i++) agents.push({ id: `${g.persona}${n++}`, persona: g.persona, wallet: g.wallet, items: [] });
+    // Constructs carry their REAL roster ids — the shared isConstructId/shoppable rules apply as live.
+    for (let i = 0; i < g.count; i++) agents.push({ id: g.persona === 'construct' ? CONSTRUCTS[i].id : `${g.persona}${n++}`, persona: g.persona, wallet: g.wallet, items: [] });
   }
   // Pair manipulators.
   const manips = agents.filter((a) => a.persona === 'manipulator');
@@ -494,6 +575,9 @@ function runScenario(sc: Scenario, seed: number): Health {
     ichorInjected: w.injected,
     ichorBurned: w.burned,
     exclusiveBuybacks: w.buybackLog.filter((b) => CATALOG.find((c) => c.familyKey === b.familyKey)?.exclusive).length,
+    constructPairTrades: w.trades.filter((t) => isConstructId(t.fromId) && isConstructId(t.toId)).length,
+    constructFlags: w.flags.filter((f) => CONSTRUCTS.some((c) => JSON.stringify(f).includes(c.id))).map((f) => f.kind),
+    constructTrades: w.trades.filter((t) => isConstructId(t.fromId) || isConstructId(t.toId)).length,
     suspectBuybacks: w.buybackLog.filter((b) => {
       const persona = w.byId.get(b.sellerId)?.persona;
       return persona === 'bot' || persona === 'manipulator';
@@ -525,6 +609,9 @@ const SCENARIOS: Scenario[] = [
   { name: 'bots + manipulators', days: 300, faucetPerDay: 30, dropsPerDay: 1, agents: [
     { persona: 'casual', count: 50, wallet: 300 }, { persona: 'bot', count: 6, wallet: 200 }, { persona: 'manipulator', count: 4, wallet: 50_000 }],
     expectFlags: ['selfDealing', 'rapidRelist', 'priceOutlier'] },
+  // Market Constructs (docs/CONSTRUCTS.md): the roster trading nonstop beside a modest player base.
+  { name: 'constructs (8 AI players, nonstop)', days: 300, faucetPerDay: 30, dropsPerDay: 1, expectConstructTrade: true, agents: [
+    { persona: 'casual', count: 40, wallet: 300 }, { persona: 'f2p', count: 25, wallet: 60 }, { persona: 'construct', count: CONSTRUCTS.length, wallet: 0 }] },
 ];
 
 let failures = 0;
@@ -546,6 +633,9 @@ for (let i = 0; i < SCENARIOS.length; i++) {
   if (h.authorityBuys > h.totalSales * 0.25) problems.push(`buybacks dominate trade (${h.authorityBuys} vs ${h.totalSales} sales)`);
   if (h.ichorInjected > h.ichorBurned) problems.push(`liquidity engine net-inflationary (injected ${h.ichorInjected} > burned ${h.ichorBurned})`);
   if (sc.expectBuybacks && h.authorityBuys === 0) problems.push('liquidity engine never engaged in a quiet market');
+  if (h.constructPairTrades > 0) problems.push(`CONSTRUCTS TRADED WITH EACH OTHER (${h.constructPairTrades})`);
+  if (h.constructFlags.length > 0) problems.push(`the fraud audit flagged a construct: ${[...new Set(h.constructFlags)].join(', ')} (${h.constructFlags.length})`);
+  if (sc.expectConstructTrade && h.constructTrades === 0) problems.push('constructs never traded (no stimulation)');
   if (h.authority.feeMult > 2.5 || h.authority.taxMult > 2) problems.push('authority left its bounds');
   if (sc.expectEngaged && h.authority.feeMult < 1.15 && h.authority.inflationIdx < 1.02) problems.push('authority never engaged under inflation pressure');
   for (const k of sc.expectFlags ?? []) {
@@ -562,7 +652,7 @@ for (let i = 0; i < SCENARIOS.length; i++) {
   }
 }
 
-console.log('MARKET SIMULATION — 10 scenarios, ~3,820 simulated market days');
+console.log(`MARKET SIMULATION — ${SCENARIOS.length} scenarios, ~${SCENARIOS.reduce((s, x) => s + x.days, 0).toLocaleString('en-US')} simulated market days`);
 for (const l of report) console.log(l);
 if (failures > 0) {
   console.error(`\n${failures} scenario(s) UNHEALTHY`);

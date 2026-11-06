@@ -121,11 +121,18 @@ export const MECHANIC_TEXT: Readonly<Record<string, MechanicText>> = {
     mistakes: 'Ichor bleeds are a bonus, never a strategy: their expected value sits far below a container’s price, so a streak always runs dry.',
   },
   "auction-house": {
-    what: 'The Auction House trades three categories — Gene Cards, Bio-Gear, and cosmetics — between real players, priced in Ichor. Sellers pay a small non-refundable listing fee and a sale tax; buyers bid (the full bid escrows) or Buy Now. Money moves through your MARKET WALLET: deposit Ichor to shop, withdraw proceeds after sales. Every family shows its price history, the current floor, and a recommended ask. Baseline stock from the market itself keeps common essentials available — seasonal and event exclusives are never restocked, only player-traded.',
+    what: 'The Auction House trades three categories — Gene Cards, Bio-Gear, and cosmetics — between players, priced in Ichor (the game\u2019s own AI players, the Constructs, trade here too — always marked \u2699 Construct). Sellers pay a small non-refundable listing fee and a sale tax; buyers bid (the full bid escrows) or Buy Now. Money moves through your MARKET WALLET: deposit Ichor to shop, withdraw proceeds after sales. Every family shows its price history, the current floor, and a recommended ask. Baseline stock from the market itself keeps common essentials available — seasonal and event exclusives are never restocked, only player-traded.',
     why: 'Spare pulls become Ichor; missing pieces become findable. Prices are set by players, and long-term value stays real because exclusives stay scarce.',
     where: 'Auction House in the Market group (opens at Campaign Stage 30, accounts 3+ days old).',
     next: 'List a duplicate at the recommended price — the fee is a fraction of what a sale returns.',
     mistakes: 'Selling a gene card or cosmetic sells your ONLY copy — the unlock leaves your account until you buy it back. Bids escrow immediately: an outbid refunds, but a winning bid is spent.',
+  },
+  "market-constructs": {
+    what: 'Constructs are the game\u2019s own AI players — eight of them, always marked \u2699 CONSTRUCT on a listing, a bid or a trade. They play the campaign around the clock, sell what their play earns at the market price, and buy players\u2019 listings priced at or below their value. They never trade with each other, never buy the market\u2019s baseline stock, and never appear on a leaderboard or the Arena ladder.',
+    why: 'A market needs someone on the other side. Constructs keep the board stocked and give a fairly priced listing a buyer — without setting prices: they follow the market, never lead it.',
+    where: 'Auction House — the \u2699 CONSTRUCT chip on a listing card, the listing sheet and your trade history. Hover it for the construct\u2019s name.',
+    next: 'Price a listing at the recommended ask and a Construct may buy it; their own listings sit at the market price, so a well-priced player listing sells first.',
+    mistakes: 'A Construct never overpays: a listing far above the market waits for a player. They follow the same fees, taxes and limits you do — no special prices.',
   },
   "daily-login": {
     what: 'Every UTC day the hive grows a Bio-Cache on the home board. Its contents are generated fresh each day (Cores, Gene Essence, samples, materials, containers, Season XP — even rare exclusives), but their VALUE follows one curve: a base that grows with your lifetime claims, times a streak multiplier that rises a little EVERY consecutive day and never stops rising.',

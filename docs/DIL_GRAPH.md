@@ -1,6 +1,6 @@
 # DIL_GRAPH.md — the Design Intelligence Layer (GENERATED — `npm run dil -- regen`)
 
-> **The project's brain** (docs/DIL.md). 996 nodes · 1940 edges, built from the live
+> **The project's brain** (docs/DIL.md). 1000 nodes · 1951 edges, built from the live
 > registries + curated knowledge (src/dev/dil/). **Query it instead of searching the repo:**
 > `npm run dil -- node <id>` · `affects <id>` · `requires <id>` · `missing <kind> <edge>` ·
 > `checklist tower <kind>` · `find <text>`. Edge kinds are bidirectional (19 kinds).
@@ -26,7 +26,7 @@
 
 ### Power Score Index
 
-`system:hive-mind` · `system:engine` · `system:power` · `system:campaign` · `system:daily` · `system:mulligans` · `system:premium` · `system:arena` · `system:towers` · `system:mastery` · `system:heroes` · `system:equipment` · `system:crafting` · `system:loot` · `system:gene-cards` · `system:class-bonds` · `system:nucleus` · `system:hero-symbiotes` · `system:idle-harvest` · `system:metabolism` · `system:shards-economy` · `system:collection` · `system:evolution-hq` · `system:prestige` · `system:splice-market` · `system:achievements` · `system:cosmetics` · `system:battle-pass` · `system:quests` · `system:run-ui` · `system:prediction` · `system:meta-store` · `system:mega-bosses` · `system:assimilation` · `system:analytics`
+`system:hive-mind` · `system:engine` · `system:power` · `system:campaign` · `system:daily` · `system:mulligans` · `system:premium` · `system:arena` · `system:towers` · `system:mastery` · `system:heroes` · `system:equipment` · `system:crafting` · `system:loot` · `system:gene-cards` · `system:class-bonds` · `system:market-constructs` · `system:nucleus` · `system:hero-symbiotes` · `system:idle-harvest` · `system:metabolism` · `system:shards-economy` · `system:collection` · `system:evolution-hq` · `system:prestige` · `system:splice-market` · `system:achievements` · `system:cosmetics` · `system:battle-pass` · `system:quests` · `system:run-ui` · `system:prediction` · `system:meta-store` · `system:mega-bosses` · `system:assimilation` · `system:analytics`
 
 ### Audio Index
 
@@ -34,11 +34,11 @@
 
 ### Teaching Index
 
-`tutorial:combat` · `help:mission-control` · `help:hive-intel` · `help:evolution-roadmap` · `help:power-advisor` · `help:field-guides` · `help:hive-core` · `help:biomorph-conveyor` · `help:strain-evolution` · `help:boss-sieges` · `help:boss-rush` · `help:bio-roulette` · `help:gene-essence` · `help:field-research` · `help:splice-market` · `help:auction-house` · `help:daily-login` · `help:hive-construction` · `help:gene-archive` · `help:gene-loadout` · `help:biomass` · `help:wave-rhythm` · `help:game-speed` · `help:early-call` · `help:emergency-defense` · `help:power-score` · `help:account-level` · `help:genome-rank` · `help:towers` · `help:tower-stars` · `help:tower-mastery` · `help:blockers` · `help:mastery-evolution` · `help:class-bonds` · `help:bonds-in-battle` · `help:tower-branches` · `help:adaptation` · `help:mulligans` · `help:nucleus` · `help:gene-cards` · `help:splice` · `help:heroes` · `help:hero-evolution` · `help:hero-slots` · `help:equipment` · `help:equipment-reforge` · `help:gear-codex` · `help:genome-core` · `help:prestige` · `help:ascension` · `help:containers` · `help:loot-meter` · `help:mega-hunt` · `help:collection-codex` · `help:phenotype-lab` · `help:idle-harvest` · `help:metabolism` · `help:specimens` · `help:arena` · `help:expeditions` · …36 more
+`tutorial:combat` · `help:mission-control` · `help:hive-intel` · `help:evolution-roadmap` · `help:power-advisor` · `help:field-guides` · `help:hive-core` · `help:biomorph-conveyor` · `help:strain-evolution` · `help:boss-sieges` · `help:boss-rush` · `help:bio-roulette` · `help:gene-essence` · `help:field-research` · `help:splice-market` · `help:auction-house` · `help:market-constructs` · `help:daily-login` · `help:hive-construction` · `help:gene-archive` · `help:gene-loadout` · `help:biomass` · `help:wave-rhythm` · `help:game-speed` · `help:early-call` · `help:emergency-defense` · `help:power-score` · `help:account-level` · `help:genome-rank` · `help:towers` · `help:tower-stars` · `help:tower-mastery` · `help:blockers` · `help:mastery-evolution` · `help:class-bonds` · `help:bonds-in-battle` · `help:tower-branches` · `help:adaptation` · `help:mulligans` · `help:nucleus` · `help:gene-cards` · `help:splice` · `help:heroes` · `help:hero-evolution` · `help:hero-slots` · `help:equipment` · `help:equipment-reforge` · `help:gear-codex` · `help:genome-core` · `help:prestige` · `help:ascension` · `help:containers` · `help:loot-meter` · `help:mega-hunt` · `help:collection-codex` · `help:phenotype-lab` · `help:idle-harvest` · `help:metabolism` · `help:specimens` · `help:arena` · …37 more
 
 ### Testing Index
 
-`system:hive-mind` · `system:engine` · `system:content-infra` · `system:power` · `system:campaign` · `system:pil` · `system:accounts` · `system:boss-rush` · `system:daily` · `system:mulligans` · `system:premium` · `system:net-backend` · `system:online-foundation` · `system:arena` · `system:towers` · `system:mastery` · `system:heroes` · `system:hero-cinematics` · `system:equipment` · `system:crafting` · `system:loot` · `system:gene-cards` · `system:class-bonds` · `system:nucleus` · `system:hero-symbiotes` · `system:idle-harvest` · `system:metabolism` · `system:collection` · `system:evolution-hq` · `system:hive-construction` · `system:daily-login` · `system:prestige` · `system:currencies` · `system:splice-market` · `system:achievements` · `system:stats` · `system:liveops` · `system:directives` · `system:contracts` · `system:infestation` · `system:chronicle` · `system:cosmetics` · `system:battle-pass` · `system:quests` · `system:profile` · `system:onboarding` · `system:account-level` · `system:genome-rank` · `system:progression-gating` · `system:hub-shell` · `system:run-ui` · `system:notifications` · `system:prediction` · `system:meta-store` · `system:bosses` · `system:mega-bosses` · `system:cutscenes` · `system:security` · `system:biomes` · `system:map-layouts` · …12 more
+`system:hive-mind` · `system:engine` · `system:content-infra` · `system:power` · `system:campaign` · `system:pil` · `system:accounts` · `system:boss-rush` · `system:daily` · `system:mulligans` · `system:premium` · `system:net-backend` · `system:online-foundation` · `system:arena` · `system:towers` · `system:mastery` · `system:heroes` · `system:hero-cinematics` · `system:equipment` · `system:crafting` · `system:loot` · `system:gene-cards` · `system:class-bonds` · `system:market-constructs` · `system:nucleus` · `system:hero-symbiotes` · `system:idle-harvest` · `system:metabolism` · `system:collection` · `system:evolution-hq` · `system:hive-construction` · `system:daily-login` · `system:prestige` · `system:currencies` · `system:splice-market` · `system:achievements` · `system:stats` · `system:liveops` · `system:directives` · `system:contracts` · `system:infestation` · `system:chronicle` · `system:cosmetics` · `system:battle-pass` · `system:quests` · `system:profile` · `system:onboarding` · `system:account-level` · `system:genome-rank` · `system:progression-gating` · `system:hub-shell` · `system:run-ui` · `system:notifications` · `system:prediction` · `system:meta-store` · `system:bosses` · `system:mega-bosses` · `system:cutscenes` · `system:security` · `system:biomes` · …13 more
 
 ### Developer Tooling Index
 
@@ -230,6 +230,7 @@ graph LR
   system_loot["Loot & Bio-Containers"] -->|provides| concept_power_score["Power Score"]
   system_gene_cards["Gene Cards (draft + permanent evolution)"] -->|provides| concept_power_score["Power Score"]
   system_class_bonds["Class Bonds"] -->|provides| concept_power_score["Power Score"]
+  system_market_constructs["Market Constructs"] -->|provides| concept_power_score["Power Score"]
   system_nucleus["Nucleus Mulligans"] -->|provides| concept_power_score["Power Score"]
   system_hero_symbiotes["Hero Symbiotes"] -->|provides| concept_power_score["Power Score"]
   system_idle_harvest["Idle Harvest"] -->|provides| concept_power_score["Power Score"]
@@ -376,6 +377,9 @@ graph LR
   system_class_bonds["Class Bonds"] -->|dependsOn| system_meta_store["Meta Store & Save"]
   system_class_bonds["Class Bonds"] -->|dependsOn| system_progression_gating["Progression Gating & Director"]
   system_class_bonds["Class Bonds"] -->|consumes| system_meta_store["Meta Store & Save"]
+  system_market_constructs["Market Constructs"] -->|dependsOn| system_online_foundation["Online Foundation"]
+  system_market_constructs["Market Constructs"] -->|dependsOn| system_net_backend["Backend lanes (net/)"]
+  system_market_constructs["Market Constructs"] -->|dependsOn| system_splice_market["Splice Market & Ichor"]
   system_nucleus["Nucleus Mulligans"] -->|dependsOn| system_mulligans["Mulligan System"]
   system_nucleus["Nucleus Mulligans"] -->|dependsOn| system_content_infra["Content Infrastructure"]
   system_nucleus["Nucleus Mulligans"] -->|dependsOn| system_power["Power Score"]
@@ -692,7 +696,7 @@ ONE account-strength number folded from every permanent bucket + the in-run temp
   - providedBy ← `system:mastery` — mastery multiplier folds into the permanent bucket
   - providedBy ← `system:heroes` — hero stars/evolution feed permanent + temporary buckets
   - providedBy ← `system:equipment` — equipped items score via itemPower into the gear bucket
-  - _…32 more (query: `npm run dil -- node concept:power-score`)_
+  - _…33 more (query: `npm run dil -- node concept:power-score`)_
 
 ### `concept:determinism` — Determinism
 
@@ -894,7 +898,7 @@ The premium reserve — never farmable; bled from achievements, collection ranks
 
   - rewardedBy ← `system:daily-login` — a rare small lane (weight 3, clamped 2–6/day) — deliberately below the never-farmable premium posture thresholds
 
-## Systems (79)
+## Systems (80)
 
 ### `system:hive-mind` — Hive Intelligence (in-run)
 
@@ -1224,6 +1228,7 @@ _at: src/net/identity.ts, src/net/checkout.ts, src/net/cloudSave.ts, src/net/syn
   - consumes → `concept:replays` — leaderboard verification recomputes submitted runs
   - extends → `system:account-level` — leaderboard modes accountLevel/weeklyXp/monthlyXp: score = XP, wave = level; the SERVER derives period bucket keys (functions/lib/period.ts mirrors core weekKey/monthKey)
   - consumes → `system:online-foundation` — AUCTION ATOMICITY (functions/lib/auctionHost.ts): wallet CHECKs (balance/escrow ≥0) + the partial UNIQUE active-listing index turn violations into FULL batch rollbacks; ordering = state transition FIRST, every money statement CONDITIONED on it via WHERE EXISTS (lost races charge nothing); exactly-once anchors: market_trades PK, wallet-ledger op-id PK, market_windows PK; client custody is SERVER-FIRST (meta.auctionEscrowOut only after 200; auctionReconcile self-heals; wallet ops ride a localStorage outbox with the same op id across restarts)
+  - requiredBy ← `system:market-constructs`
   - requiredBy ← `system:security`
   - documentedBy ← `doc:DEPLOYMENT.md`
   - documentedBy ← `doc:REPLAY-SHARE.md`
@@ -1233,6 +1238,7 @@ _at: src/net/identity.ts, src/net/checkout.ts, src/net/cloudSave.ts, src/net/syn
   - extendedBy ← `system:arena` — SERVER AUTHORITY (ARENA.md §7): settleArenaMatch (guarded arena.settle, exactly-once by matchId in save.arena.settledMatchIds) and functions/api/arena/report.ts run the SAME shared validators (arenaClaimProblem/ratingDelta/arenaMatchRewards from src/core/arena.ts — the premium.ts shared-import precedent); the server derives rating from STORED state and rewards from its OWN division read — client amounts are never fields in the protocol; net/arenaReport.ts is fail-soft (offline/guest ⇒ local settle stands, reconciled later)
   - extendedBy ← `system:online-foundation` — THE RELAY (ONLINE-FOUNDATION.md §relay): human matchmaking = ArenaScreen racing findArenaOpponent (net/arenaMatchmaker.ts) against the 20s AI window — paired {room,role} → hello/loadout/boot → peerProblem gate (proto/season/LIVE bracket/bootBundleProblem/fingerprint) → role 0 proposes ready{matchId,seed}, role 1 ECHOES it (the accept); RelayTransport.setRoom re-targets reconnects at the assigned r<n> room so a mid-match rejoin NEVER re-enters the mm: pool (a stranger's cmds would corrupt the mirror); the ws server is the PURE RelayBroker (functions/lib/arenaRelayRoom.ts — pairing keys mm:s<season>.p<log2 power band>, verbatim forwarding, unpaired-ping answering, rooms HELD for the reconnect window) bound by scripts/arena-relay.ts (npm run relay, ws devDep) — portable to a Durable Object verbatim because the broker has no node imports
   - extendedBy ← `system:online-foundation` — MARKET LIQUIDITY ENGINE (AUCTION-HOUSE.md §5b): the authority's BUY side — planBuybacks (core/marketAuthority.ts, BUYBACK tunables) picks stale bid-free fairly-priced FOUNDATIONAL listings (BUYBACK_MAX_RARITY band; catalog exclusive/neverTrade is an absolute veto; AUTHORITY_ELIGIBLE_OVERRIDES is the hand-curated widening hook) under a sink-funded budget (min(cap, max(floor, prevWindowBurns × 0.5)) — injections can never outrun burns), crypto-rng shuffle + accept roll (NEVER guaranteed — no farmable sequence exists), caps 3/window · 1/family/window · 1/seller/UTC-day + 6h cooldown, valuation corridor ×0.2–×1.05 of the family estimate (overpricing is invisible, suppression bait unrewarded), velocity+population fades (busyFade/velocityFade — players ARE the liquidity); host runBuybacks settles with the normal sale discipline BUT the sold-gate adds AND bid IS NULL (a racing player bid always wins), buyer @authority, trade authority=2, item ABSORBED (never resold), and buybacks are EXCLUDED from market_history + demand metrics (no self-referential price support); conservation identity gains the explicit injection term (held+burned+withdrawn = deposited + Σ authority-2 prices); sim: all 10 scenarios must stay green with buybacks ≤ 25% of trade, never from flagged personas
+  - conflictsWith ← `system:market-constructs` — CONSTRUCT ↔ SERVER CONTRACT: the market reads a cloud-save headline field for the campaign gate — authMarket.stageFromMeta reads campaignStage (what envelopeMeta writes; legacy `stage` honoured). Constructs commit through PUT /api/save with envelopeMeta, so renaming that headline field silently locks every construct AND every player out of listing (the 2026-11-06 bug). Any new endpoint a construct must reach goes on router.ts ROUTES deliberately; anything that must stay player-only (rank, telemetry, store) stays off it AND refuses isConstructId server-side.
   - requiredBy ← `system:boss-rush` — RECORD EPOCH (BOSS-RUSH.md §epoch, save v56): migrate() archives a pre-v56 rushBestBoss to rushLegacyBestBoss (display only) and restarts the record; the bossRush board buckets under RUSH_BOARD_EPOCH (functions/lib/period.ts ≡ src/net/leaderboard.ts, pinned by leaderboardEpoch.test) — a new epoch bumps BOTH
 
 ### `system:online-foundation` — Online Foundation
@@ -1252,6 +1258,7 @@ _at: src/core/online.ts, src/core/itemIdentity.ts, src/core/trading.ts, src/core
   - extends → `system:net-backend` — THE RELAY (ONLINE-FOUNDATION.md §relay): human matchmaking = ArenaScreen racing findArenaOpponent (net/arenaMatchmaker.ts) against the 20s AI window — paired {room,role} → hello/loadout/boot → peerProblem gate (proto/season/LIVE bracket/bootBundleProblem/fingerprint) → role 0 proposes ready{matchId,seed}, role 1 ECHOES it (the accept); RelayTransport.setRoom re-targets reconnects at the assigned r<n> room so a mid-match rejoin NEVER re-enters the mm: pool (a stranger's cmds would corrupt the mirror); the ws server is the PURE RelayBroker (functions/lib/arenaRelayRoom.ts — pairing keys mm:s<season>.p<log2 power band>, verbatim forwarding, unpaired-ping answering, rooms HELD for the reconnect window) bound by scripts/arena-relay.ts (npm run relay, ws devDep) — portable to a Durable Object verbatim because the broker has no node imports
   - extends → `system:net-backend` — MARKET LIQUIDITY ENGINE (AUCTION-HOUSE.md §5b): the authority's BUY side — planBuybacks (core/marketAuthority.ts, BUYBACK tunables) picks stale bid-free fairly-priced FOUNDATIONAL listings (BUYBACK_MAX_RARITY band; catalog exclusive/neverTrade is an absolute veto; AUTHORITY_ELIGIBLE_OVERRIDES is the hand-curated widening hook) under a sink-funded budget (min(cap, max(floor, prevWindowBurns × 0.5)) — injections can never outrun burns), crypto-rng shuffle + accept roll (NEVER guaranteed — no farmable sequence exists), caps 3/window · 1/family/window · 1/seller/UTC-day + 6h cooldown, valuation corridor ×0.2–×1.05 of the family estimate (overpricing is invisible, suppression bait unrewarded), velocity+population fades (busyFade/velocityFade — players ARE the liquidity); host runBuybacks settles with the normal sale discipline BUT the sold-gate adds AND bid IS NULL (a racing player bid always wins), buyer @authority, trade authority=2, item ABSORBED (never resold), and buybacks are EXCLUDED from market_history + demand metrics (no self-referential price support); conservation identity gains the explicit injection term (held+burned+withdrawn = deposited + Σ authority-2 prices); sim: all 10 scenarios must stay green with buybacks ≤ 25% of trade, never from flagged personas
   - requiredBy ← `system:arena`
+  - requiredBy ← `system:market-constructs`
   - documentedBy ← `doc:ONLINE-FOUNDATION.md`
   - documentedBy ← `doc:TRADING-PREP.md`
   - testedBy ← `test:src/core/auction.test.ts`
@@ -1262,8 +1269,7 @@ _at: src/core/online.ts, src/core/itemIdentity.ts, src/core/trading.ts, src/core
   - testedBy ← `test:src/net/arenaMatchmaker.test.ts`
   - conflictsWith ← `system:engine` — ONE GAME = ONE BUS: meta.ts records boss/Mega kills for the PLAYER off the app-wide gameEvents bus, so any Game that is not the player’s own run (SpectateView replay, ArenaMatch remote mirror + its rollback rebuild, replayRun verification) MUST call game.isolateEvents() — otherwise someone else’s kills credit this save.
   - consumedBy ← `system:net-backend` — AUCTION ATOMICITY (functions/lib/auctionHost.ts): wallet CHECKs (balance/escrow ≥0) + the partial UNIQUE active-listing index turn violations into FULL batch rollbacks; ordering = state transition FIRST, every money statement CONDITIONED on it via WHERE EXISTS (lost races charge nothing); exactly-once anchors: market_trades PK, wallet-ledger op-id PK, market_windows PK; client custody is SERVER-FIRST (meta.auctionEscrowOut only after 200; auctionReconcile self-heals; wallet ops ride a localStorage outbox with the same op id across restarts)
-  - extendedBy ← `system:mulligans` — MULLIGAN PIECES TRADE (2026-07, the fourth category): mul:<pieceId> trades the DEX UNLOCK (save.mulliganDex) — families mul.<piece>.<rarity> per SEQUENCED rarity (equipment precedent; mixed rarities poison price stats); baseline/buyback bands common+uncommon only; a grafted piece blocks as slotted (unslot first), a reforge-LOCKED host reads bound, escrow-out deletes the dex entry, delivery sequences an unowned piece at the listing rarity or dissolves an owned one to Tissue via DUP_TISSUE (core/mulligan.ts — the pillar duplicate law, shared with container opens); pinned by state/auctionCustody.test.ts + a functions wire round-trip
-  - _…5 more (query: `npm run dil -- node system:online-foundation`)_
+  - _…7 more (query: `npm run dil -- node system:online-foundation`)_
 
 ### `system:arena` — Arena (Live PvP)
 
@@ -1551,6 +1557,23 @@ _at: src/core/classBonds.ts, src/ui/BondsScreen.tsx_
   - documentedBy ← `doc:CLASS-BONDS.md`
   - testedBy ← `test:src/core/classBonds.test.ts`
 
+### `system:market-constructs` — Market Constructs
+
+The game’s own labelled AI players (docs/CONSTRUCTS.md): a fixed roster that plays the real progression code around the clock (scheduled Worker, workers/constructs/) and trades what it earns on the Auction House through the SAME handlers a player hits — at market prices, never with each other, never on a leaderboard.
+
+_at: src/core/constructs.ts_
+
+  - dependsOn → `system:online-foundation`
+  - dependsOn → `system:net-backend`
+  - dependsOn → `system:splice-market`
+  - provides → `concept:power-score` — none — constructs are separate accounts; nothing folds into a player’s Power
+  - extends → `system:online-foundation` — MARKET CONSTRUCTS (docs/CONSTRUCTS.md): 8 labelled AI accounts (version-0 UUID ids — no client can mint one; isConstructId is the ONE test). The scheduled Worker (workers/constructs/) plays each through src/dev/progressionSim playVirtualRun (modeled battle, REAL meta) at real-time pace (play-credit in the D1 constructs row, capped catch-up) and trades through router.ts = the EXACT Pages handlers in-process (allowlist: its save slot + /api/auction/*; every rule applies). Pure decisions in src/core/constructs.ts are shared by the Worker AND sim:market (scenario "constructs"). Never ranks (leaderboard/submit + arena/report 403 construct). auditMarket exempts construct PAIRS from selfDealing only. Commit order never mints (deposit spent→committed→credited; acks after commit). Cold families price from HOST.defaultGuide, never the bare floor. Market age gate ⇒ they trade from day 3.
+  - conflictsWith → `system:net-backend` — CONSTRUCT ↔ SERVER CONTRACT: the market reads a cloud-save headline field for the campaign gate — authMarket.stageFromMeta reads campaignStage (what envelopeMeta writes; legacy `stage` honoured). Constructs commit through PUT /api/save with envelopeMeta, so renaming that headline field silently locks every construct AND every player out of listing (the 2026-11-06 bug). Any new endpoint a construct must reach goes on router.ts ROUTES deliberately; anything that must stay player-only (rank, telemetry, store) stays off it AND refuses isConstructId server-side.
+  - taughtBy ← `help:market-constructs`
+  - taughtBy ← `help:auction-house`
+  - documentedBy ← `doc:CONSTRUCTS.md`
+  - testedBy ← `test:src/core/constructs.test.ts`
+
 ### `system:nucleus` — Nucleus Mulligans
 
 The Hive Nucleus’s own organ system: 3 chambers × 3 support organs, class adaptations, visible Hive mutations, multi-system chamber trials.
@@ -1825,6 +1848,7 @@ _at: src/core/market.ts, src/core/ichorExchange.ts, src/state/spliceMarket.ts, s
   - requiredBy ← `system:premium`
   - requiredBy ← `system:field-research`
   - requiredBy ← `system:online-foundation`
+  - requiredBy ← `system:market-constructs`
   - taughtBy ← `help:splice-market`
   - documentedBy ← `doc:MARKET.md`
   - testedBy ← `test:src/core/market.test.ts`
@@ -2147,7 +2171,7 @@ _at: src/ui/InitCutscene.tsx, src/ui/IntroMount.tsx, src/ui/introState.ts, src/s
   - contains ← `help:strain-evolution`
   - contains ← `help:boss-sieges`
   - contains ← `help:boss-rush`
-  - _…77 more (query: `npm run dil -- node system:onboarding`)_
+  - _…78 more (query: `npm run dil -- node system:onboarding`)_
 
 ### `system:account-level` — Account Level (evergreen meta-progression)
 
@@ -3539,7 +3563,7 @@ _at: src/core/tutorial.ts_
   - teaches → `system:onboarding`
   - teaches → `system:run-ui`
 
-## Help Topics (72)
+## Help Topics (73)
 
 - `help:mission-control` — Your standing orders — the answer to "what should I do now?" _(partOf `system:onboarding`, teaches `system:power`)_
 - `help:hive-intel` — The live intel feed — banked value, ready moves, recent milestones. _(partOf `system:onboarding`, teaches `system:notifications`)_
@@ -3555,7 +3579,8 @@ _at: src/core/tutorial.ts_
 - `help:gene-essence` — Permanent currency that upgrades Gene Cards. _(partOf `system:onboarding`, teaches `system:gene-cards`, teaches `system:currencies`)_
 - `help:field-research` — Optional daily field studies — review a specimen observation for a small sample payout. Never required, never the path. _(partOf `system:onboarding`, teaches `system:field-research`)_
 - `help:splice-market` — A refreshing black bazaar: small goods for Genome Cores, premium goods and Bio-Containers for Ichor. _(partOf `system:onboarding`, teaches `system:splice-market`)_
-- `help:auction-house` — The player-driven market: list gene cards, gear and cosmetics for Ichor, bid or buy now, and bank proceeds in your market wallet. _(partOf `system:onboarding`)_
+- `help:auction-house` — The player-driven market: list gene cards, gear and cosmetics for Ichor, bid or buy now, and bank proceeds in your market wallet. _(partOf `system:onboarding`, teaches `system:market-constructs`)_
+- `help:market-constructs` — The game’s own AI players — always marked ⚙ Construct — keep the market stocked and buy fairly priced listings. _(partOf `system:onboarding`, teaches `system:market-constructs`)_
 - `help:daily-login` — One living cache per day — its value compounds for every consecutive day you answer. _(partOf `system:onboarding`, teaches `system:daily-login`)_
 - `help:hive-construction` — Build the laboratory organism — organs that visibly transform your base. _(partOf `system:onboarding`)_
 - `help:gene-archive` — Permanently level your collected Gene Cards. _(partOf `system:onboarding`, teaches `system:gene-cards`)_
@@ -3970,7 +3995,7 @@ _at: site/guides.ts → /guides/live-events/_
 - `achievement:ladder_skulls_1` — Reach 500 Boss Rush bosses (lifetime). _(partOf `system:achievements`, rewards `currency:genome-cores`)_
 - `achievement:ladder_anatomy_1` — Reach 250 Weak Points destroyed. _(partOf `system:achievements`, rewards `currency:genome-cores`)_
 
-## Documentation (197)
+## Documentation (198)
 
 - `doc:ACCOUNT-LEVEL.md` — project documentation _(documents `system:account-level`)_
 - `doc:ACCOUNTS.md` — project documentation _(documents `system:accounts`)_
@@ -4007,6 +4032,7 @@ _at: site/guides.ts → /guides/live-events/_
 - `doc:COLLECTION.md` — project documentation _(documents `system:collection`)_
 - `doc:COMBAT-VISUAL-STANDARDS.md` — project documentation _(documents `system:rendering`)_
 - `doc:COMMAND-CENTER.md` — project documentation _(documents `system:hub-shell`)_
+- `doc:CONSTRUCTS.md` — project documentation _(documents `system:market-constructs`)_
 - `doc:CONTENT-ROADMAP.md` — project documentation
 - `doc:CONTRACTS.md` — project documentation _(documents `system:contracts`)_
 - `doc:CORE-FRAMEWORKS.md` — project documentation _(documents `system:content-infra`)_
@@ -4170,7 +4196,7 @@ _at: site/guides.ts → /guides/live-events/_
 - `doc:VOWS.md` — project documentation _(documents `system:prestige`)_
 - `doc:WEBSITE.md` — project documentation _(documents `system:field-research`, documents `system:website`)_
 
-## Tests (345)
+## Tests (346)
 
 - `test:src/audio/cues.test.ts` — automated validation _(tests `system:audio`)_
 - `test:src/audio/music.test.ts` — automated validation _(tests `system:audio`)_
@@ -4212,6 +4238,7 @@ _at: site/guides.ts → /guides/live-events/_
 - `test:src/core/coil.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/core/collection.test.ts` — automated validation _(tests `system:collection`)_
 - `test:src/core/combat.test.ts` — automated validation _(tests `system:engine`)_
+- `test:src/core/constructs.test.ts` — automated validation _(tests `system:market-constructs`)_
 - `test:src/core/content-integrity.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/core/contracts.test.ts` — automated validation _(tests `system:contracts`)_
 - `test:src/core/conveyor.test.ts` — automated validation _(tests `system:towers`)_

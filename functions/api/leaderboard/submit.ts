@@ -16,6 +16,7 @@ import { timingSafeEqualStr } from '../../lib/crypto';
 import { isDayKey, isIntInRange, isPlayerId, sanitizeName } from '../../lib/validate';
 import { mintDayTicket, utcDayKey } from '../daily/seed';
 import { RUSH_BOARD_EPOCH, utcMonthKey, utcWeekKey } from '../../lib/period';
+import { isConstructId } from '../../../src/core/constructs';
 
 // Generous but finite claim bounds — anything outside is a rejected forgery. The account-XP
 // modes (docs/ACCOUNT-LEVEL.md §leaderboards) carry lifetime XP as `score` and the account
@@ -51,6 +52,9 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
 
   const body = await readJson<Body>(request, 300_000); // roomy: replay blobs are ~10KB, capped at 256KB
   if (!body || !isPlayerId(body.playerId)) return err(400, 'bad-request');
+  // Market Constructs never rank (docs/CONSTRUCTS.md — the owner's rule; the construct router
+  // cannot reach this endpoint either, this is the server-side half of the guarantee).
+  if (isConstructId(body.playerId)) return err(403, 'construct');
   const bounds = typeof body.mode === 'string' ? MODE_BOUNDS[body.mode] : undefined;
   if (!bounds) return err(400, 'bad-mode');
   if (!isIntInRange(body.score, 1, bounds.score) || !isIntInRange(body.wave, 0, bounds.wave) || !isIntInRange(body.power, 0, MAX_POWER)) {

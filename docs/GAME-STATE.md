@@ -570,6 +570,15 @@ sink ≈ hour-400 at endgame income — re-tune as the library grows.
   (foundationsUX.test.ts): every persona across the spectrum always has an objective, a bounded feed,
   and something to do — no dead-ends, no notification walls
 - ✅ Combat Tutorial, HUD Tour, Help wiki + mechanics registry, "What's New" — TUTORIAL.md, HELP.md
+- ✅ **MARKET CONSTRUCTS** (2026-11-06, CONSTRUCTS.md) — eight labelled AI accounts (⚙ CONSTRUCT on every
+  listing, bid and trade; Help → Constructs) run by a scheduled Cloudflare Worker (`workers/constructs/`,
+  cron every 5 min). Each plays nonstop at real-time pace through the progression simulator's virtual
+  player against the REAL meta layer (modeled battles), keeps its save in its own cloud slot, and trades on
+  the Auction House through the EXACT Pages handlers in-process: sells what it earned at the market price,
+  buys players' listings at/below value, never trades with another construct or buys stock, never ranks
+  (leaderboard/Arena refuse its id). Pure policy shared with `sim:market` (scenario "constructs": prices
+  flat, more sales, money conserved). Needs Workers Paid + a Workers-edit token; trades from day 3 (the
+  account-age gate)
 - ✅ **CLASS BONDS** (2026-11-06, CLASS-BONDS.md) — the class set bonus: every deployed tower and fielded
   hero counts toward its combat class; 2 / 4 / 6 units wake Bond I / II / III for as long as they stay
   deployed (Impact · Dissolution · Contagion · Lattice · Sustain · Chorus — damage, fire rate, a Core mend,

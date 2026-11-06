@@ -169,6 +169,12 @@ production and preview get **different** Stripe keys (live vs test mode).
   serves that exact SHA — mismatch after 5 minutes fails the workflow. `GET
   /version.json` on production is also the human check for "did my deploy land?".
 - CLI alternative: `npm run deploy` (wrangler direct upload).
+- Market Constructs Worker (docs/CONSTRUCTS.md): the `constructs` job in deploy.yml runs AFTER the
+  site (its failure never touches the site) — applies the idempotent `0007_auction.sql` +
+  `0009_constructs.sql` and `wrangler deploy -c workers/constructs/wrangler.toml` (cron every 5 min,
+  same D1). Prerequisites: the **Workers Paid** plan (cron CPU far above the free tier's 10 ms) and a
+  `CLOUDFLARE_API_TOKEN` that also has **Workers Scripts: Edit** (+ D1 Edit for the schema step).
+  Pause without a redeploy: Worker var `CONSTRUCTS_ENABLED=off`. Status: `/status` on its workers.dev URL.
 - Schema changes: add `migrations/000N_*.sql` → `npm run db:migrate`
   (`db:migrate:local` for the local dev database).
 - Local full-stack dev: `npm run dev` (game only, sandbox store) or

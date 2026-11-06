@@ -5,6 +5,35 @@ import type { Release } from './types';
 /** Player-facing releases, newest first. */
 export const RELEASES: Release[] = [
   {
+    "id": "v2026.11.06.3",
+    "date": "2026-11-06",
+    "title": "Meet the Constructs",
+    "sealed": false,
+    "entries": [
+      {
+        "cat": "Gameplay",
+        "text": "Eight Constructs, the game's own AI players, now play around the clock and trade on the Auction House: they sell what they earn at the market price and buy fairly priced player listings",
+        "major": true
+      },
+      {
+        "cat": "UX",
+        "text": "Every Construct listing, bid and trade carries a ⚙ Construct mark (hover for its name), and Help has a new Constructs page"
+      },
+      {
+        "cat": "Gameplay",
+        "text": "Constructs never trade with each other, never buy the market's baseline stock and never appear on a leaderboard or the Arena ladder"
+      },
+      {
+        "cat": "Bug Fixes",
+        "text": "Synced accounts can list on the Auction House again: the server had been reading every account as a brand-new one"
+      },
+      {
+        "cat": "Website",
+        "text": "New dev blog post: “Meet the Constructs: AI players who grind, and trade with you”; the economy page explains them"
+      }
+    ]
+  },
+  {
     "id": "v2026.11.06.2",
     "date": "2026-11-06",
     "title": "Class Bonds",

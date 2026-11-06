@@ -259,13 +259,75 @@ export interface SimTrace {
  *  meta singleton (reset first) — accounts are sequential, never concurrent. Omitting
  *  `persona` reproduces the historical loop-faithful policy EXACTLY (the pinned pacing
  *  envelope); a persona modulates decisions/luck/spending (docs/SIMULATION-FRAMEWORK.md). */
+/** What one virtual run did (simulateAccount's counters; the Constructs' activity log). */
+export interface VirtualRun {
+  /** Wall seconds the run + its menu overhead took. */
+  secs: number;
+  phase: 'advance' | 'farm' | 'push-early';
+  won: boolean;
+  stage?: number;
+  waves: number;
+}
+
+/** ONE RUN of the loop-faithful virtual player against the live meta save: pick the run the
+ *  progression loop asks for (persona deviations applied), feed its modeled result through the
+ *  REAL run settlement (loot banking, mega ledgers, finishRun), crack every container, then the
+ *  greedy spend pass. The unit simulateAccount loops — and the unit the Market Constructs play
+ *  (docs/CONSTRUCTS.md): one definition of "a virtual player plays a run". */
+export function playVirtualRun(rng: () => number, persona?: Persona, hero: HeroKind = HERO_ORDER[0]): VirtualRun {
+  const luck = persona?.luck ?? 1;
+  const menuSec = persona?.menuSec ?? WORLD.secMenu;
+  const save = meta.get();
+  const ls = loopState(save);
+  // Persona deviations from the intended macro-loop: farm when told to advance
+  // (infinite-lovers), or push the frontier under-ready (impatient campaigners).
+  let phase: 'advance' | 'farm' | 'push-early' =
+    ls.phase === 'advance-campaign' ? 'advance' : 'farm';
+  if (persona) {
+    if (phase === 'advance' && rng() < persona.farmAnyway) phase = 'farm';
+    else if (phase === 'farm' && rng() < persona.pushRisk) phase = 'push-early';
+  }
+  let result: RunResult;
+  if (phase === 'advance') {
+    const stage = ls.frontierStage;
+    const waves = WORLD.campaignWaves(stage);
+    const kills = Math.round(waves * WORLD.killsPerWave * (0.9 + rng() * 0.2) * luck);
+    result = makeResult({ rng, waves, kills, won: true, endless: false, stage, hero });
+  } else if (phase === 'push-early') {
+    // Under-ready attempt: win chance tracks readiness; a loss burns most of the run's
+    // time for no stage credit — the wall-frustration model for campaign-focused players.
+    const stage = ls.frontierStage;
+    const waves = WORLD.campaignWaves(stage);
+    const won = rng() < Math.max(0.1, Math.min(0.95, ls.readiness));
+    const played = won ? waves : Math.max(2, Math.round(waves * 0.6));
+    const kills = Math.round(played * WORLD.killsPerWave * (0.9 + rng() * 0.2) * luck);
+    result = makeResult({ rng, waves: played, kills, won, endless: false, stage, hero });
+  } else {
+    // Farm at the predicted frontier ±12% — short runs would fail the qualify gate.
+    const depth = Math.max(5, Math.round(ls.farmDepth * (0.88 + rng() * 0.24)));
+    const kills = Math.round(depth * WORLD.killsPerWave * (0.9 + rng() * 0.2) * luck);
+    result = makeResult({ rng, waves: depth, kills, won: false, endless: true, hero });
+  }
+  meta.syncRunLoot(result.wave, result.kills); // live loot banking, like a real run
+  // A real run's megaKilled event fires DURING play (it writes the megaProgress.slain ledger
+  // that awakens the Bio-Container meter) — mirror it before finishRun, same order as live.
+  for (const k of result.stats.megaKills ?? []) {
+    // …and its organ ruptures (the Mega Hunt ledger, docs/MEGA-BOSS.md §hunt) fire live too.
+    const organs = megaBossDef(k.defId)?.weakPoints ?? [];
+    for (let i = 0; i < k.weakPoints && organs.length > 0; i++) gameEvents.emit('megaWeakPointDown', { defId: k.defId, kind: organs[i % organs.length].kind, note: '', interrupted: false });
+    gameEvents.emit('megaKilled', k);
+  }
+  meta.finishRun(result);
+  while (meta.openContainer()) { /* crack the whole stockpile */ }
+  if (!persona || rng() >= persona.spendSkip) spendEverything(persona?.focus);
+  return { secs: result.wave * WORLD.secPerWave + menuSec, phase, won: result.won, stage: result.campaignStage, waves: result.wave };
+}
+
 export function simulateAccount(seed: number, bands: number[], persona?: Persona): SimTrace {
   meta.reset();
   const rng = mulberry32(seed);
   const hero = HERO_ORDER[0];
   const totalHours = bands[bands.length - 1];
-  const luck = persona?.luck ?? 1;
-  const menuSec = persona?.menuSec ?? WORLD.secMenu;
   let secs = 0;
   let runs = 0;
   let farmRuns = 0;
@@ -276,54 +338,14 @@ export function simulateAccount(seed: number, bands: number[], persona?: Persona
   let bandIx = 0;
 
   while (secs < totalHours * 3600) {
-    const save = meta.get();
-    const ls = loopState(save);
-    // Persona deviations from the intended macro-loop: farm when told to advance
-    // (infinite-lovers), or push the frontier under-ready (impatient campaigners).
-    let phase: 'advance' | 'farm' | 'push-early' =
-      ls.phase === 'advance-campaign' ? 'advance' : 'farm';
-    if (persona) {
-      if (phase === 'advance' && rng() < persona.farmAnyway) phase = 'farm';
-      else if (phase === 'farm' && rng() < persona.pushRisk) phase = 'push-early';
-    }
-    let result: RunResult;
-    if (phase === 'advance') {
-      const stage = ls.frontierStage;
-      const waves = WORLD.campaignWaves(stage);
-      const kills = Math.round(waves * WORLD.killsPerWave * (0.9 + rng() * 0.2) * luck);
-      result = makeResult({ rng, waves, kills, won: true, endless: false, stage, hero });
-    } else if (phase === 'push-early') {
-      // Under-ready attempt: win chance tracks readiness; a loss burns most of the run's
-      // time for no stage credit — the wall-frustration model for campaign-focused players.
-      const stage = ls.frontierStage;
-      const waves = WORLD.campaignWaves(stage);
-      const won = rng() < Math.max(0.1, Math.min(0.95, ls.readiness));
+    const run = playVirtualRun(rng, persona, hero);
+    if (run.phase === 'farm') farmRuns++;
+    if (run.phase === 'push-early') {
       pushes++;
-      if (!won) failedPushes++;
-      const played = won ? waves : Math.max(2, Math.round(waves * 0.6));
-      const kills = Math.round(played * WORLD.killsPerWave * (0.9 + rng() * 0.2) * luck);
-      result = makeResult({ rng, waves: played, kills, won, endless: false, stage, hero });
-    } else {
-      farmRuns++;
-      // Farm at the predicted frontier ±12% — short runs would fail the qualify gate.
-      const depth = Math.max(5, Math.round(ls.farmDepth * (0.88 + rng() * 0.24)));
-      const kills = Math.round(depth * WORLD.killsPerWave * (0.9 + rng() * 0.2) * luck);
-      result = makeResult({ rng, waves: depth, kills, won: false, endless: true, hero });
+      if (!run.won) failedPushes++;
     }
-    meta.syncRunLoot(result.wave, result.kills); // live loot banking, like a real run
-    // A real run's megaKilled event fires DURING play (it writes the megaProgress.slain ledger
-    // that awakens the Bio-Container meter) — mirror it before finishRun, same order as live.
-    for (const k of result.stats.megaKills ?? []) {
-      // …and its organ ruptures (the Mega Hunt ledger, docs/MEGA-BOSS.md §hunt) fire live too.
-      const organs = megaBossDef(k.defId)?.weakPoints ?? [];
-      for (let i = 0; i < k.weakPoints && organs.length > 0; i++) gameEvents.emit('megaWeakPointDown', { defId: k.defId, kind: organs[i % organs.length].kind, note: '', interrupted: false });
-      gameEvents.emit('megaKilled', k);
-    }
-    meta.finishRun(result);
-    while (meta.openContainer()) { /* crack the whole stockpile */ }
-    if (!persona || rng() >= persona.spendSkip) spendEverything(persona?.focus);
     runs++;
-    secs += result.wave * WORLD.secPerWave + menuSec;
+    secs += run.secs;
     const power = Math.round(meta.power().score);
     peakPower = Math.max(peakPower, power);
 

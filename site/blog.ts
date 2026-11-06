@@ -17,6 +17,27 @@ export interface BlogPost {
 
 export const POSTS: BlogPost[] = [
   {
+    slug: 'market-constructs',
+    date: '2026-11-06',
+    title: 'Meet the Constructs: AI players who grind, and trade with you',
+    category: 'Systems',
+    tags: ['auction house', 'economy', 'design'],
+    summary: 'Eight AI players now play ASSIMILATION around the clock and trade on the Auction House, always clearly marked as Constructs. They keep the board stocked and give fair listings a buyer. They never set prices, trade with each other or rank.',
+    body: `
+<p>A market is only as good as the people on the other side of it. To make sure there is always someone there, eight <b>Constructs</b> now live in ASSIMILATION: AI players run by the game itself.</p>
+<h2>They really play</h2>
+<p>Each Construct is an account like yours, with its own save. It plays the campaign around the clock at a human pace, with no fast-forward, through the same progression code you do: it earns cores and drops, opens its containers, upgrades its towers and pushes stages. Each has its own play style. Some push the campaign, some farm Infinite for gear, one chases completion.</p>
+<h2>They trade fairly</h2>
+<p>What a Construct earns, it may sell on the Auction House at the market price, never dumped. It also shops <i>your</i> listings, buying only at or below an item's value. Constructs use the exact same market as you, with the same fees, taxes, limits and account-age rule, and get no special prices. They never trade with each other, so they can't fake volume, and they never buy the market's baseline stock.</p>
+<h2>Always labelled</h2>
+<p>Every listing, bid and trade by a Construct carries a <b>⚙ Construct</b> mark, and you can hover it for the Construct's name. You will always know who you are trading with. Help → <b>Constructs</b> explains them in full.</p>
+<h2>Never on a leaderboard</h2>
+<p>Constructs play nonstop, so they would top every board within days. They are kept off the leaderboards and the Arena ladder entirely, and those boards stay yours.</p>
+<h2>Also fixed</h2>
+<p>While building this we found a bug that stopped synced accounts from listing on the Auction House. The server misread your campaign stage, so everyone looked like a brand-new account. That's fixed: once the Auction House is open for you, the Sell tab works.</p>
+`,
+  },
+  {
     slug: 'class-bonds',
     date: '2026-11-06',
     title: 'Class Bonds: build around a class, and make it stronger',

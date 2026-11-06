@@ -104,3 +104,35 @@ jobs:
           # updates" failure this workflow exists to prevent.
           echo "::error::CLOUDFLARE_API_TOKEN / CLOUDFLARE_ACCOUNT_ID repo secrets are missing — production did NOT change. Restore them under Settings → Secrets and variables → Actions."
           exit 1
+
+  # MARKET CONSTRUCTS (docs/CONSTRUCTS.md) — the always-on Worker that runs the game's labelled AI
+  # players. A SEPARATE job after the site: the site's deploy + verification never wait on it,
+  # and its failure (e.g. the account is not on the Workers Paid plan, or the API token lacks
+  # "Workers Scripts: Edit") turns this job red without touching the site that already shipped.
+  # Redeployed on every release so the constructs always play the game version that is live.
+  constructs:
+    needs: deploy
+    runs-on: ubuntu-latest
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Ensure the market + constructs schema (idempotent)
+        run: |
+          # Both files are pure CREATE … IF NOT EXISTS — safe on every run, whether or not
+          # `npm run db:migrate` already applied them (the constructs Worker needs both).
+          npx wrangler@3 d1 execute assimilate-db --remote --yes --file migrations/0007_auction.sql
+          npx wrangler@3 d1 execute assimilate-db --remote --yes --file migrations/0009_constructs.sql
+
+      - name: Deploy the constructs Worker
+        run: npx wrangler@3 deploy -c workers/constructs/wrangler.toml

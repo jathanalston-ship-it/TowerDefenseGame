@@ -18,7 +18,9 @@ import { onRequestGet as historyGet } from './api/auction/history';
 import { onRequestGet as mineGet } from './api/auction/mine';
 import { onRequestGet as flagsGet, onRequestPost as flagsPost } from './api/auction/flags';
 import { sha256Hex } from './lib/crypto';
-import { maintainMarket } from './lib/auctionHost';
+import { maintainMarket, stageFromMeta } from './lib/auctionHost';
+import { buildEnvelope, envelopeMeta } from '../src/save/envelope';
+import { defaultSave } from '../src/save/saveStore';
 import type { Env } from './lib/env';
 import { listingFee, minNextBid, saleTax } from '../src/core/trading';
 import { CARD_POOL } from '../src/core/cards';
@@ -155,6 +157,20 @@ describe('list — shared eligibility, catalog validation, atomic fee + escrow',
     expect(low.status).toBe(403);
     expect((await res(low)).error).toBe('blocked-campaign');
     conservation(env);
+  });
+
+  it('reads the stage from the headline the REAL sync engine writes (envelopeMeta.campaignStage)', async () => {
+    // Regression (BUGFIX-LOG 2026-11-06): the server read only `stage`, the client writes
+    // `campaignStage` — every real synced account read as stage 0 and could not list.
+    const env = makeEnv();
+    idleAuthority(env);
+    await seedPlayer(env, SELLER);
+    const synced = envelopeMeta(buildEnvelope(defaultSave(), { accountId: SELLER, platform: 'web', power: 1, campaignStage: 24 }));
+    db(env).cloudSaves.get(SELLER)!.meta = JSON.stringify(synced);
+    expect(stageFromMeta(JSON.stringify(synced))).toBe(24);
+    const r = await res(await listPost(ctx(postJson('https://x/api/auction/list', listBody(SELLER)), env)));
+    expect(r.ok).toBe(true);
+    expect(stageFromMeta(JSON.stringify({ stage: 12 }))).toBe(12); // legacy spelling still honoured
   });
 
   it('insufficient funds for the fee rolls EVERYTHING back (no listing, no escrow)', async () => {
