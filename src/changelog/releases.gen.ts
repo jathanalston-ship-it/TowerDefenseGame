@@ -5,6 +5,40 @@ import type { Release } from './types';
 /** Player-facing releases, newest first. */
 export const RELEASES: Release[] = [
   {
+    "id": "v2026.11.06",
+    "date": "2026-11-06",
+    "title": "First Steps, Walked With You",
+    "sealed": false,
+    "entries": [
+      {
+        "cat": "UX",
+        "text": "New players are walked through their first trips back to base step by step: open the menus, buy a first upgrade, crack a first container and see what to do next, pressing every button yourself",
+        "major": true
+      },
+      {
+        "cat": "UX",
+        "text": "While the guide runs, the Command Center shows only what it has introduced: the event banner, side panels and reward pop-ups wait, and the goal list shows your two nearest goals"
+      },
+      {
+        "cat": "Gameplay",
+        "text": "Early Call: each called wave's gene draft now arrives the moment that wave's last enemy falls, so drafts no longer pile up three or four in a row",
+        "major": true
+      },
+      {
+        "cat": "Bug Fixes",
+        "text": "Best Move and the Command Center's suggestions no longer offer upgrades in systems you haven't unlocked (they could level Adaptations before the Adaptation Chamber opened)"
+      },
+      {
+        "cat": "Performance",
+        "text": "Busy fights and tower clicks do less work per frame, with about a third less memory churn, and the battlefield looks exactly the same"
+      },
+      {
+        "cat": "Website",
+        "text": "New dev blog post: “Your first steps, walked with you”"
+      }
+    ]
+  },
+  {
     "id": "v2026.11.05.7",
     "date": "2026-11-05",
     "title": "A Lighter First Download",

@@ -645,3 +645,15 @@
 - `04141f9` **[UI]** Boot download: per-screen stylesheets; Store and Front load with their doors
 - `376aa38` **[Website]** Devlog "A lighter first download"; release notes curated; site + PIL regenerated
 - ⚑ `429e7db` **[Framework]** Validation,status: lighter first download PASS over 0b91f44..HEAD — 3115/3115, mobile gate clean, probe budgets ok _(internal)_
+## 2026-11-06
+
+- ⚑ `521bab8` **[Framework]** Status,chronicle: DEPLOYED "A Lighter First Download" (429e7db, run #236); seal v2026.11.05.7 _(internal)_
+- `ef6f11d` **[Gameplay]** Early Call drafts arrive per wave; best move only advises reached wings
+- `245f233` **[UI]** The first loop: a hands-on coach for a new account's first hub visits
+- `3a72ae3` **[UI]** First loop: the coached ledger shows the two goals closest to done
+- `88ed964` **[Visuals]** Render: memoize per-frame colour strings, reuse per-body objects
+- `42501f3` **[Towers]** HUD: one render per snapshot, cached number format, cheaper tower clicks
+- `080858f` **[Performance]** Tooling: npm run perf — repeatable per-frame cost probe _(internal)_
+- `b63e516` **[Performance]** Docs: frame budget, hot spots and the unpulled perf levers _(internal)_
+- `cbf1c17` **[Website]** First loop: a one-screen hub's door skips the landing step; one advance per step
+- `a7e5103` **[Website]** Site copy: hands-on first steps and per-wave Early Call drafts; devlog 'Your first steps, walked with you'

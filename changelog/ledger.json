@@ -1,5 +1,5 @@
 {
-  "lastSha": "429e7db9130c61742659f6d92820f00448ec8158",
+  "lastSha": "a7e5103177f987f11aae80e712b51a6955497142",
   "commitsSinceDraft": 0,
   "content": {
     "tower": [
@@ -4065,6 +4065,40 @@
         {
           "cat": "Website",
           "text": "New dev blog post: “A lighter first download” — what we cut, and how we checked nothing looks different"
+        }
+      ]
+    },
+    {
+      "id": "v2026.11.06",
+      "date": "2026-11-06",
+      "title": "First Steps, Walked With You",
+      "sealed": false,
+      "entries": [
+        {
+          "cat": "UX",
+          "text": "New players are walked through their first trips back to base step by step: open the menus, buy a first upgrade, crack a first container and see what to do next, pressing every button yourself",
+          "major": true
+        },
+        {
+          "cat": "UX",
+          "text": "While the guide runs, the Command Center shows only what it has introduced: the event banner, side panels and reward pop-ups wait, and the goal list shows your two nearest goals"
+        },
+        {
+          "cat": "Gameplay",
+          "text": "Early Call: each called wave's gene draft now arrives the moment that wave's last enemy falls, so drafts no longer pile up three or four in a row",
+          "major": true
+        },
+        {
+          "cat": "Bug Fixes",
+          "text": "Best Move and the Command Center's suggestions no longer offer upgrades in systems you haven't unlocked (they could level Adaptations before the Adaptation Chamber opened)"
+        },
+        {
+          "cat": "Performance",
+          "text": "Busy fights and tower clicks do less work per frame, with about a third less memory churn, and the battlefield looks exactly the same"
+        },
+        {
+          "cat": "Website",
+          "text": "New dev blog post: “Your first steps, walked with you”"
         }
       ]
     }
@@ -8925,6 +8959,86 @@
       "text": "Validation,status: lighter first download PASS over 0b91f44..HEAD — 3115/3115, mobile gate clean, probe budgets ok",
       "internal": true,
       "needsReview": true
+    },
+    {
+      "sha": "521bab854b980a620bbb306ef72995c798457400",
+      "date": "2026-11-06",
+      "cat": "Framework",
+      "text": "Status,chronicle: DEPLOYED \"A Lighter First Download\" (429e7db, run #236); seal v2026.11.05.7",
+      "internal": true,
+      "needsReview": true
+    },
+    {
+      "sha": "ef6f11dba1cddf16bccd84299fc67ed7c429551b",
+      "date": "2026-11-06",
+      "cat": "Gameplay",
+      "text": "Early Call drafts arrive per wave; best move only advises reached wings",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "245f2331abfe7af623f4c721bdec214fe82dd658",
+      "date": "2026-11-06",
+      "cat": "UI",
+      "text": "The first loop: a hands-on coach for a new account's first hub visits",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "3a72ae391d8e333f7e2ad62a56d9af0fd12e1e03",
+      "date": "2026-11-06",
+      "cat": "UI",
+      "text": "First loop: the coached ledger shows the two goals closest to done",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "88ed9648c168e39a698259e141e476f5a75b904b",
+      "date": "2026-11-06",
+      "cat": "Visuals",
+      "text": "Render: memoize per-frame colour strings, reuse per-body objects",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "42501f318b881ae0f68fc921a6417330e9539296",
+      "date": "2026-11-06",
+      "cat": "Towers",
+      "text": "HUD: one render per snapshot, cached number format, cheaper tower clicks",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "080858ff500725353d85464705354e6bae35cd14",
+      "date": "2026-11-06",
+      "cat": "Performance",
+      "text": "Tooling: npm run perf — repeatable per-frame cost probe",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "b63e516aae3fc48456d5a55cd70d8a1d78ae1854",
+      "date": "2026-11-06",
+      "cat": "Performance",
+      "text": "Docs: frame budget, hot spots and the unpulled perf levers",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "cbf1c17001e1dce844816b754a28a332aad295d7",
+      "date": "2026-11-06",
+      "cat": "Website",
+      "text": "First loop: a one-screen hub's door skips the landing step; one advance per step",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "a7e5103177f987f11aae80e712b51a6955497142",
+      "date": "2026-11-06",
+      "cat": "Website",
+      "text": "Site copy: hands-on first steps and per-wave Early Call drafts; devlog 'Your first steps, walked with you'",
+      "internal": false,
+      "needsReview": false
     }
   ]
 }

@@ -42,7 +42,7 @@ export interface PublicPage {
 
 // Review stamp: the date every public page was last read against the shipped game. Bump it after each
 // website pass (CLAUDE.md "Website freshness"); `npm run pil -- staleness` lists what moved since.
-const R = '2026-11-05';
+const R = '2026-11-06';
 
 const SINGLETON_PAGES: PublicPage[] = [
   { id: 'page:home', path: 'index.html', title: 'Home', references: ['system:towers', 'system:heroes', 'system:campaign', 'system:infinite', 'system:boss-rush', 'concept:power-score', 'system:map-layouts', 'system:gene-cards', 'system:threat', 'system:arena'], lastReviewed: R },
