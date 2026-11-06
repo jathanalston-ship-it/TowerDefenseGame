@@ -3,7 +3,20 @@
 > Maintained at the END of every session (paired with `docs/AI_HANDOFF.md` — the constitution's
 > workflow step 4). This is the "where are we?" answer; `docs/GAME-STATE.md` remains the deeper
 > per-system built-vs-planned index, `docs/PROJECT_MANIFEST.md` the system map.
-> **Last updated:** 2026-11-05g (**DEPLOYED — A LIGHTER FIRST DOWNLOAD** (`429e7db`, run #236; owner approved the release).**
+> **Last updated:** 2026-11-06a (**FIRST STEPS, WALKED WITH YOU — validated, awaiting the owner's release go-ahead.**
+> Owner playtest fixes + asks: (1) EARLY CALL §owed — a called-over wave's draft is dealt the moment ITS last unit falls
+> (mid-fight; the pick resumes the fight), not 2–4 in a row at the clear; (2) the SEAL RULE now binds the Power Atlas /
+> Advisor (BEST MOVE could level Adaptations before stage 24) and `spendAdaptation` refuses a sealed Chamber; (3) THE FIRST
+> LOOP (TUTORIAL.md §first-loop) — a hands-on coach for a new account's first three hub visits (deploy · grow · collect),
+> each step the player's own click on the real control; the Command Center grows with it; the first-session probe plays
+> it end to end (also walked at 844×390); (4) frame-rate pass (RENDER-PIPELINE.md §6) — memoized colour strings, one HUD
+> render per snapshot, cheaper tower clicks: −8–14% game-loop JS on a ×4-throttled CPU, −32% per-frame allocation, no
+> visual change. Unpulled levers (owner decisions): a load-triggered detail tier (−42% JS, flatter bodies) and rendering
+> the board at its displayed size (−33% raster; a layout change across profiles). VALIDATION: validate PASS over
+> 429e7db..HEAD (3130/3130, mobile gate clean); probe all budgets ok. Website: release v2026.11.06, devlog
+> `first-steps-walked`, beginner/features copy.)
+>
+> **2026-11-05g** (**DEPLOYED — A LIGHTER FIRST DOWNLOAD** (`429e7db`, run #236; owner approved the release).**
 > DEPLOYMENT.md §boot-budget · §boot-css: the first download before any screen fell from 552 KB JS + 115 KB CSS to
 > 497 + 51 KB gzip (−18 %). Patch-note history + the mechanics' Help/What's New copy (`state/mechanicsText.ts`)
 > load with their screens; Store/Front helpers in their own files (both screens lazy); every class only one lazy
