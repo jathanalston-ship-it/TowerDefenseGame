@@ -1,6 +1,6 @@
 {
-  "lastSha": "e1968ae196eedb1f511695a318ff245e48e7e305",
-  "commitsSinceDraft": 6,
+  "lastSha": "353c962b144c1a03774eb149b127b2a1122a89de",
+  "commitsSinceDraft": 8,
   "content": {
     "tower": [
       "needle",
@@ -4107,7 +4107,7 @@
       "id": "v2026.11.06.2",
       "date": "2026-11-06",
       "title": "Class Bonds",
-      "sealed": false,
+      "sealed": true,
       "entries": [
         {
           "cat": "Gameplay",
@@ -4134,10 +4134,6 @@
         {
           "cat": "Website",
           "text": "New dev blog post: “Class Bonds: build around a class, and make it stronger”; the Tower Guide covers bonds"
-        },
-        {
-          "cat": "Website",
-          "text": "Release notes 'Class Bonds' curated; site + PIL regenerated"
         }
       ]
     }
@@ -9124,8 +9120,24 @@
       "date": "2026-11-06",
       "cat": "Website",
       "text": "Release notes 'Class Bonds' curated; site + PIL regenerated",
-      "internal": false,
+      "internal": true,
       "needsReview": false
+    },
+    {
+      "sha": "24b873b7b7d8bdfcd12bbf2703619bd3706c44c0",
+      "date": "2026-11-06",
+      "cat": "Gameplay",
+      "text": "Release notes: use a valid changelog category (Progression is not one)",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "353c962b144c1a03774eb149b127b2a1122a89de",
+      "date": "2026-11-06",
+      "cat": "Framework",
+      "text": "Validation,status: Class Bonds PASS over a0b332d..HEAD — 3140/3140, mobile gate clean, probe budgets ok",
+      "internal": true,
+      "needsReview": true
     }
   ]
 }

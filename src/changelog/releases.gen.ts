@@ -8,7 +8,7 @@ export const RELEASES: Release[] = [
     "id": "v2026.11.06.2",
     "date": "2026-11-06",
     "title": "Class Bonds",
-    "sealed": false,
+    "sealed": true,
     "entries": [
       {
         "cat": "Gameplay",
@@ -35,10 +35,6 @@ export const RELEASES: Release[] = [
       {
         "cat": "Website",
         "text": "New dev blog post: “Class Bonds: build around a class, and make it stronger”; the Tower Guide covers bonds"
-      },
-      {
-        "cat": "Website",
-        "text": "Release notes 'Class Bonds' curated; site + PIL regenerated"
       }
     ]
   },
