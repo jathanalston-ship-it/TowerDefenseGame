@@ -1,6 +1,6 @@
 {
-  "lastSha": "04141f9b1aabe1e5c5e3288f60bf2e385150e3e7",
-  "commitsSinceDraft": 9,
+  "lastSha": "429e7db9130c61742659f6d92820f00448ec8158",
+  "commitsSinceDraft": 0,
   "content": {
     "tower": [
       "needle",
@@ -4047,7 +4047,7 @@
       "id": "v2026.11.05.7",
       "date": "2026-11-05",
       "title": "A Lighter First Download",
-      "sealed": false,
+      "sealed": true,
       "entries": [
         {
           "cat": "Performance",
@@ -4061,6 +4061,10 @@
         {
           "cat": "Bug Fixes",
           "text": "Help: the Towers, Heroes and Infinite entries show their related topics again"
+        },
+        {
+          "cat": "Website",
+          "text": "New dev blog post: “A lighter first download” — what we cut, and how we checked nothing looks different"
         }
       ]
     }
@@ -8905,6 +8909,22 @@
       "text": "Boot download: per-screen stylesheets; Store and Front load with their doors",
       "internal": false,
       "needsReview": false
+    },
+    {
+      "sha": "376aa381a2529800af0a0470f725bf3cc65d8696",
+      "date": "2026-11-05",
+      "cat": "Website",
+      "text": "Devlog \"A lighter first download\"; release notes curated; site + PIL regenerated",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "429e7db9130c61742659f6d92820f00448ec8158",
+      "date": "2026-11-05",
+      "cat": "Framework",
+      "text": "Validation,status: lighter first download PASS over 0b91f44..HEAD — 3115/3115, mobile gate clean, probe budgets ok",
+      "internal": true,
+      "needsReview": true
     }
   ]
 }

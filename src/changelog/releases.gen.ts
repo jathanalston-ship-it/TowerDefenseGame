@@ -8,7 +8,7 @@ export const RELEASES: Release[] = [
     "id": "v2026.11.05.7",
     "date": "2026-11-05",
     "title": "A Lighter First Download",
-    "sealed": false,
+    "sealed": true,
     "entries": [
       {
         "cat": "Performance",
@@ -22,6 +22,10 @@ export const RELEASES: Release[] = [
       {
         "cat": "Bug Fixes",
         "text": "Help: the Towers, Heroes and Infinite entries show their related topics again"
+      },
+      {
+        "cat": "Website",
+        "text": "New dev blog post: “A lighter first download” — what we cut, and how we checked nothing looks different"
       }
     ]
   },

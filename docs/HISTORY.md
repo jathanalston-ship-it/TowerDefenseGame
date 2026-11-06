@@ -643,3 +643,5 @@
 - `da317f8` **[Developer Tools]** Status,chronicle: DEPLOYED "Made for Your Phone's Browser" (0b91f44, run #235); seal v2026.11.05.6 _(internal)_
 - `eb92f39` **[UI]** Boot download: patch-note history and mechanic help text load with their screens
 - `04141f9` **[UI]** Boot download: per-screen stylesheets; Store and Front load with their doors
+- `376aa38` **[Website]** Devlog "A lighter first download"; release notes curated; site + PIL regenerated
+- ⚑ `429e7db` **[Framework]** Validation,status: lighter first download PASS over 0b91f44..HEAD — 3115/3115, mobile gate clean, probe budgets ok _(internal)_

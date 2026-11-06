@@ -3,7 +3,7 @@
 > Maintained at the END of every session (paired with `docs/AI_HANDOFF.md` — the constitution's
 > workflow step 4). This is the "where are we?" answer; `docs/GAME-STATE.md` remains the deeper
 > per-system built-vs-planned index, `docs/PROJECT_MANIFEST.md` the system map.
-> **Last updated:** 2026-11-05g (**A LIGHTER FIRST DOWNLOAD — validated, awaiting the owner's release go-ahead.**
+> **Last updated:** 2026-11-05g (**DEPLOYED — A LIGHTER FIRST DOWNLOAD** (`429e7db`, run #236; owner approved the release).**
 > DEPLOYMENT.md §boot-budget · §boot-css: the first download before any screen fell from 552 KB JS + 115 KB CSS to
 > 497 + 51 KB gzip (−18 %). Patch-note history + the mechanics' Help/What's New copy (`state/mechanicsText.ts`)
 > load with their screens; Store/Front helpers in their own files (both screens lazy); every class only one lazy

@@ -4,7 +4,8 @@
     "title": "A Lighter First Download",
     "categories": [
       "Performance",
-      "Bug Fixes"
+      "Bug Fixes",
+      "Website"
     ],
     "items": [
       {
@@ -18,6 +19,10 @@
       {
         "cat": "Bug Fixes",
         "text": "Help: the Towers, Heroes and Infinite entries show their related topics again"
+      },
+      {
+        "cat": "Website",
+        "text": "New dev blog post: “A lighter first download” — what we cut, and how we checked nothing looks different"
       }
     ]
   },
