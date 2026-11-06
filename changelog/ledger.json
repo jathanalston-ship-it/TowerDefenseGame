@@ -1,6 +1,6 @@
 {
-  "lastSha": "a0b332de3bfe566304f8b98f9a6478231f5e115b",
-  "commitsSinceDraft": 2,
+  "lastSha": "f81d494e5568e196fe6936e6ec919d1dbd105605",
+  "commitsSinceDraft": 5,
   "content": {
     "tower": [
       "needle",
@@ -665,6 +665,7 @@
       "crafting",
       "loot",
       "gene-cards",
+      "class-bonds",
       "nucleus",
       "hero-symbiotes",
       "idle-harvest",
@@ -4099,6 +4100,40 @@
         {
           "cat": "Website",
           "text": "New dev blog post: “Your first steps, walked with you”"
+        }
+      ]
+    },
+    {
+      "id": "v2026.11.06.2",
+      "date": "2026-11-06",
+      "title": "Class Bonds",
+      "sealed": false,
+      "entries": [
+        {
+          "cat": "Gameplay",
+          "text": "New system: Class Bonds. Field 2, 4 or 6 towers and heroes of one class in a run and its bond wakes at tier I, II or III, for as long as they stay deployed",
+          "major": true
+        },
+        {
+          "cat": "Gameplay",
+          "text": "Six bonds with six jobs: Kinetic hits harder, Caustic hits harder and fires faster, Viral fires much faster, Neural fires faster and hits harder, Vital mends your Hive Core every wave, and Resonant speeds up every tower"
+        },
+        {
+          "cat": "Progression",
+          "text": "The new Class Bonds screen (Evolution Hub, after Campaign Stage 13) lists every class and its members; spend Genome Cores to level a bond up and strengthen all three tiers in every run (up to ×1.8), raising your Power",
+          "major": true
+        },
+        {
+          "cat": "UX",
+          "text": "The Run Build panel shows every class you've fielded and how close the next tier is, conveyor pods carry their class mark, and a waking bond is announced on the battlefield"
+        },
+        {
+          "cat": "UX",
+          "text": "Bonds are introduced with a card, a short guided tour and an in-fight field note, and each has its own Help entry"
+        },
+        {
+          "cat": "Website",
+          "text": "New dev blog post: “Class Bonds: build around a class, and make it stronger”; the Tower Guide covers bonds"
         }
       ]
     }
@@ -9055,6 +9090,30 @@
       "text": "Validation,status: first steps + Early Call + best move + frame rate PASS over 429e7db..HEAD — 3130/3130, mobile gate clean",
       "internal": true,
       "needsReview": true
+    },
+    {
+      "sha": "eb7b18133f56a7944d1cf811de624ac5162adca6",
+      "date": "2026-11-06",
+      "cat": "Framework",
+      "text": "Status,chronicle: DEPLOYED \"First Steps, Walked With You\" (a0b332d, run #237); seal v2026.11.06",
+      "internal": true,
+      "needsReview": true
+    },
+    {
+      "sha": "0d0d8f43e65b1c0d574440ec20c035b827dcb729",
+      "date": "2026-11-06",
+      "cat": "Heroes",
+      "text": "Class Bonds: the class set bonus for towers and heroes, upgradeable, taught end to end",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "f81d494e5568e196fe6936e6ec919d1dbd105605",
+      "date": "2026-11-06",
+      "cat": "Towers",
+      "text": "Site: Class Bonds in the tower guide (from the live tables), roadmap entry; devlog 'Class Bonds'",
+      "internal": false,
+      "needsReview": false
     }
   ]
 }

@@ -1,6 +1,42 @@
 [
   {
     "date": "2026-11-06",
+    "title": "Class Bonds",
+    "categories": [
+      "Gameplay",
+      "Progression",
+      "UX",
+      "Website"
+    ],
+    "items": [
+      {
+        "cat": "Gameplay",
+        "text": "★ New system: Class Bonds. Field 2, 4 or 6 towers and heroes of one class in a run and its bond wakes at tier I, II or III, for as long as they stay deployed"
+      },
+      {
+        "cat": "Gameplay",
+        "text": "Six bonds with six jobs: Kinetic hits harder, Caustic hits harder and fires faster, Viral fires much faster, Neural fires faster and hits harder, Vital mends your Hive Core every wave, and Resonant speeds up every tower"
+      },
+      {
+        "cat": "Progression",
+        "text": "★ The new Class Bonds screen (Evolution Hub, after Campaign Stage 13) lists every class and its members; spend Genome Cores to level a bond up and strengthen all three tiers in every run (up to ×1.8), raising your Power"
+      },
+      {
+        "cat": "UX",
+        "text": "The Run Build panel shows every class you've fielded and how close the next tier is, conveyor pods carry their class mark, and a waking bond is announced on the battlefield"
+      },
+      {
+        "cat": "UX",
+        "text": "Bonds are introduced with a card, a short guided tour and an in-fight field note, and each has its own Help entry"
+      },
+      {
+        "cat": "Website",
+        "text": "New dev blog post: “Class Bonds: build around a class, and make it stronger”; the Tower Guide covers bonds"
+      }
+    ]
+  },
+  {
+    "date": "2026-11-06",
     "title": "First Steps, Walked With You",
     "categories": [
       "UX",

@@ -659,3 +659,6 @@
 - `a7e5103` **[Website]** Site copy: hands-on first steps and per-wave Early Call drafts; devlog 'Your first steps, walked with you'
 - `80ab789` **[Website]** Release notes 'First Steps, Walked With You' curated; site + PIL regenerated (review stamp 2026-11-06)
 - ⚑ `a0b332d` **[Framework]** Validation,status: first steps + Early Call + best move + frame rate PASS over 429e7db..HEAD — 3130/3130, mobile gate clean _(internal)_
+- ⚑ `eb7b181` **[Framework]** Status,chronicle: DEPLOYED "First Steps, Walked With You" (a0b332d, run #237); seal v2026.11.06 _(internal)_
+- `0d0d8f4` **[Heroes]** Class Bonds: the class set bonus for towers and heroes, upgradeable, taught end to end
+- `f81d494` **[Towers]** Site: Class Bonds in the tower guide (from the live tables), roadmap entry; devlog 'Class Bonds'
