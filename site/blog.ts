@@ -17,6 +17,33 @@ export interface BlogPost {
 
 export const POSTS: BlogPost[] = [
   {
+    slug: 'class-bonds',
+    date: '2026-11-06',
+    title: 'Class Bonds: build around a class, and make it stronger',
+    category: 'Systems',
+    tags: ['towers', 'heroes', 'design', 'progression'],
+    summary: 'Every tower and hero already belonged to one of six classes. Now fielding enough of one class wakes its bond, a set bonus that lasts as long as they stay deployed, and you can level each bond up between runs.',
+    body: `
+<p>Every tower and hero in ASSIMILATION has always had a class: Kinetic, Caustic, Viral, Neural, Vital or Resonant. Until now that was mostly colour. Now it's a decision.</p>
+<h2>How a bond wakes</h2>
+<p>Field <b>2</b> units of one class in a run and its bond wakes at tier I. Field <b>4</b> for tier II and <b>6</b> for tier III. Every tower on the board counts once, so two of the same tower count twice, and every hero you field counts too. The bond lasts as long as those units stay deployed. Sell one and a tier can drop.</p>
+<h2>Six bonds, six jobs</h2>
+<ul>
+<li><b>Impact</b> (Kinetic): Kinetic units hit harder.</li>
+<li><b>Dissolution</b> (Caustic): Caustic units hit harder and fire faster.</li>
+<li><b>Contagion</b> (Viral): Viral towers fire much faster, so infections spread sooner.</li>
+<li><b>Lattice</b> (Neural): Neural towers fire faster and hit harder.</li>
+<li><b>Sustain</b> (Vital): your Hive Core mends at every wave clear, and Vital units hit harder.</li>
+<li><b>Chorus</b> (Resonant): <i>every</i> tower fires faster, and Resonant units hit harder.</li>
+</ul>
+<p>Committing to one class pays off, but six of one class leaves gaps a mixed board would cover. That trade-off is the point.</p>
+<h2>Make your bonds stronger</h2>
+<p>The new <b>Class Bonds</b> screen in the Evolution Hub lists every class, its members and its three tiers. Spend Genome Cores to level a bond up: each level strengthens all three of its tiers in every run, up to ×1.8 at level 10, and raises your Power.</p>
+<h2>Learning it</h2>
+<p>Bonds open after Campaign Stage 13, once you've fielded every class a few times. A card introduces them, and a short guided tour walks you through the screen and your first level-up. The first time a bond wakes in a fight, a field note points to it. From then on, the Run Build panel shows every class you've fielded and how close the next tier is, and conveyor pods carry their class mark so you can plan as they arrive.</p>
+`,
+  },
+  {
     slug: 'first-steps-walked',
     date: '2026-11-06',
     title: 'Your first steps, walked with you',

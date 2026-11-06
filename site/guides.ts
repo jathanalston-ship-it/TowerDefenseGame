@@ -4,6 +4,8 @@
 // (towers/heroes) splice in the encyclopedia tables, so they expand with the roster for free.
 
 import { CAMPAIGN_OPENING, DIRECTOR_ADAPTIVE, DRAFT_FEATURES, ENDLESS_SQUEEZE, MODE_UNLOCKS, READINESS, RUSH } from '../src/core/config';
+import { BOND, CLASS_BONDS, bondFxLine, bondTierFx } from '../src/core/classBonds';
+import { COMBAT_CLASSES, COMBAT_CLASS_ORDER } from '../src/core/combatClass';
 import { MAP_LAYOUTS } from '../src/core/mapLayouts';
 import { ACCOUNT_XP_DEPTH } from '../src/core/accountLevel';
 import { THREAT_MAX } from '../src/core/threat';
@@ -51,6 +53,11 @@ export const GUIDES: Guide[] = [
       { h: 'Four evolution layers', body: [
         'A tower kind grows along four independent axes. <b>Stars</b> (permanent, bought with Tower Shards in the Lab) climb an authored ★-path of stat and behavior upgrades. <b>Branches</b> (in-run, per instance) lock a tower into one of two mutually exclusive mutations that re-author how it fires. <b>Strain</b> (in-run) is the evolution layer fed by consuming duplicate organisms from the Biomorph Conveyor. <b>Mastery</b> (permanent XP from kills) unlocks ranks, lore and cosmetic evolution.',
         'The practical order for a new player: place towers → learn their branches → push stars on your favorites → let mastery accumulate on its own.',
+      ] },
+      { h: 'Class Bonds — the set bonus', body: [
+        'Every tower and hero belongs to one of six classes (the class column above). Field <b>' + BOND.thresholds[0] + '</b>, <b>' + BOND.thresholds[1] + '</b> or <b>' + BOND.thresholds[2] + '</b> units of one class in a run and its <b>bond</b> wakes at tier I, II or III, for as long as they stay deployed. Each tower on the board counts once (two of the same tower count twice) and so does each fielded hero. Bonds open with the Class Bonds screen after Campaign Stage ' + BOND.revealStage + '.',
+        '<ul>' + COMBAT_CLASS_ORDER.map((c) => '<li>' + COMBAT_CLASSES[c].glyph + ' <b>' + c + '</b> — ' + CLASS_BONDS[c].name + ': ' + ([1, 2, 3] as const).map((t) => ['I', 'II', 'III'][t - 1] + ' ' + bondFxLine(bondTierFx(c, t, 0))).join('; ') + '.</li>').join('') + '</ul>',
+        'Spend Genome Cores on the Class Bonds screen to level a bond up: each level strengthens all three of its tiers in every run (up to ×' + (1 + BOND.levelStep * BOND.maxLevel).toFixed(1) + ' at level ' + BOND.maxLevel + '). In a run, the Run Build panel shows every class you have fielded and how close the next tier is.',
       ] },
       { h: 'Reading a tower’s role', body: [
         'Cost and range tell you where it lives; cadence and splash tell you what it kills. Cheap + long range = your opener. High splash = swarm control. Beam or debuff organs multiply everything AROUND them — they never carry a line alone. Artillery has a deadzone: enemies closer than its minimum range cannot be targeted, so screen it with short-range brawlers.',
