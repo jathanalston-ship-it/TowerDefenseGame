@@ -9,7 +9,7 @@
 
 ## Summary of work completed
 
-Active continuous improvement goal; roughly-hourly deployments with matching website notes authorized. LIVE v2026.11.09.6 Sound That Responds Smoothly,5 curated notes. SHA4545bff2ed18e243009ba5ce8e283a454141c1c9; Actions42767736604 SUCCESS. Normal custom-domain play/home/news and all5 notes verified06:22UTC Nov10; play-BAy15d18.js matches local build and returns200. Audio controls smoothly follow latest volume/mute, re-enable current looping scene, and mute scheduled flourishes; Toolbar exposes selected placement and auto-cast states. .6 is sealed. Goal remains active.
+Release v2026.11.09.7 Clearer Battlefield Choices is LIVE. SHA4ae0d15ecca52bda8a03a14b0ee34e1170f54050; Actions42773576301 SUCCESS with exact-SHA production verification. Normal custom-domain play/home/news verified07:14UTC Nov10: play-DxebhRO7.js matches local build and returns200; all five website notes present. Final353files/3155tests, sealed build, four site-sync tests and docs check PASS; mobile27screens/nine run viewports PASS before final no-layout Hive-confirmation follow-up; targeted browser probes PASS after follow-up. Continuous improvement goal remains active; next approximate release08:14UTC. No servers or test sessions running. Untracked devlog draft remains unpublished.
 
 ## Files modified
 
@@ -48,7 +48,7 @@ Final3150 full suite passed before the two-line current-destination drawer fix. 
 
 ## Recommended next tasks
 
-Release local .7 Clearer Battlefield Choices, five notes. Final build and docs checks PASS. Full mobile gate 63403 PASS; 27 screens and nine gameplay viewports. Final regression suite 26515 PASS:353files/3155tests,155.11s, log battlefield-final-tests.log. Latest Hive-aware confirmations passed actual GameView race, changed prompt, live quote, keyboard and Pause/Resume browser probes. Five notes sealed; final sealed build/site check37511 PASS (four site tests). Commit on codex/hive-autoplay and deploy to claude/zen-hawking-rh1gxl. Verify with ../verify-battlefield-release.ps1. LIVE remains .6 SHA4545bff2. Goal active; do not mark complete. Exclude untracked devlog draft.
+Continue active improvement goal. Latest .7 is sealed and verified live; create the next release only when new player-facing improvements are ready. Next approximately08:14UTC. Work codex/hive-autoplay and deploy claude/zen-hawking-rh1gxl. Match every deployment with website notes. No running sessions. Exclude untracked devlog draft. Do not mark the goal complete.
 
 ## Future expansion hooks
 
