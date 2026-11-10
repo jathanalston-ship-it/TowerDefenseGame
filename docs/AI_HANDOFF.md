@@ -4,23 +4,22 @@
 > before committing. Read together with docs/PROJECT_STATUS.md and the latest
 > docs/VALIDATION_REPORT.md. Next session: start at docs/PROJECT_MANIFEST.md.
 
-- **Generated:** 2026-11-10 21:35 UTC · **Diff scope:** working tree vs HEAD
-- **Branch:** codex/hive-autoplay · **HEAD:** 4e5b2c81
+- **Generated:** 2026-11-10 21:40 UTC · **Diff scope:** working tree vs HEAD
+- **Branch:** codex/hive-autoplay · **HEAD:** 7d753686
 
 ## Summary of work completed
 
-LOCAL unsealed .13 Clearer Reward Feedback has SEVEN generated notes: quest focus, keyboard burst origins, live quest motion, accessible loot progress, loot motion override, Vault guidance and post-run Skip focus. RewardReveal baseline: Enter on focused Skip removed the button and left BODY focused. Track Skip focus and, on completed sequence, restore persistent Continue only if focus fell to body; blur clears intent. ../reveal-skip-focus-check.cjs PASS Skip, natural completion while Skip focused, actual Continue callback and unrelated focus preserved.11UI/site tests PASS1.72s; docs/handoff2547 PASS; build99771 PASS7.02s, SWmwb7lg8q, reveal-skip-focus-build.log. All processes terminal. No reward/audio/timing/save changes. Generated devlog draft remains untracked/unpublished. LIVE remains .12 Clearer Progress and Gear, SHA73b564bbe72b1d9edf7741283b09679ee6d40c30; Actions42901613298 passed and normal public URLs verified21:08UTC. Next approximate deployment22:10UTC. Goal remains active.
+Sealed .13 Clearer Reward Feedback with seven notes. Full suite24615 PASS3194tests354files159.36s (clearer-feedback-tests.log). Docs77929 PASS. SiteSync4tests PASS; final build62175 PASS5.86s, SWmwb7rg5c, asset/assets/play-Yt8wuaAi.js (clearer-feedback-release-build.log). Required validate wrapper again failed its child launches with empty output; raw report/output preserved in clearer-feedback-wrapper*.log and prior canonical report restored. Original final mobile29807 terminal PASS27nav+nine gameplay viewport profiles, clearer-feedback-release-mobile.log. No gate assertions/timeouts changed. All local checks passed. LIVE remains .12, SHA73b564bbe72b1d9edf7741283b09679ee6d40c30; normal custom-domain game/home/news verified21:08UTC. Goal remains active.
 
 ## Files modified
 
-- Source (2): `src/changelog/releases.gen.ts`, `src/ui/RewardReveal.tsx`
+- Source (1): `src/changelog/releases.gen.ts`
 - Tests (0): —
-- Docs (5): `docs/HISTORY.md`, `docs/HUD.md`, `docs/PROJECT_MANIFEST.md`, `docs/devlog/DRAFT-2026-11-09.md`, `docs/devlog/DRAFT-2026-11-10.md`
+- Docs (3): `docs/HISTORY.md`, `docs/devlog/DRAFT-2026-11-09.md`, `docs/devlog/DRAFT-2026-11-10.md`
 
 ## Systems affected (from the dependency registry)
 
 - **chronicle** — `src/changelog/releases.gen.ts`
-- **run-ui** — `src/ui/RewardReveal.tsx`
 
 ## Power Score changes
 
@@ -62,7 +61,7 @@ No new debt. Two untracked devlog drafts remain unpublished and unstaged. Existi
 
 ## Recommended next tasks
 
-Continue evidence-led improvements without gameplay/balance changes; next approximate deployment22:10UTC. Current .13 seven-note batch is local only. Seal/generate/build and run original mobile before deployment; verify Actions exact-SHA guard and normal public game/home/news. All processes terminal. Preserve unpublished drafts.
+Original final mobile29807 passed. Commit release and push authorized production ref; verify Actions exact-SHA guard and normal public game/home/news using ../verify-current-release.ps1. Current .13 has seven sealed notes. Do not publish the two devlog drafts. Continue the active improvement goal after verified deployment.
 
 ## Future expansion hooks
 

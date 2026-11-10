@@ -1,6 +1,6 @@
 {
-  "lastSha": "4e5b2c81beab8155bd5d6b9c46aa220d045f3c3d",
-  "commitsSinceDraft": 0,
+  "lastSha": "7d75368646dd760a8c1c3b4610d4a41feb5a4d58",
+  "commitsSinceDraft": 1,
   "content": {
     "tower": [
       "needle",
@@ -4718,7 +4718,7 @@
       "id": "v2026.11.10.13",
       "date": "2026-11-10",
       "title": "Clearer Reward Feedback",
-      "sealed": false,
+      "sealed": true,
       "entries": [
         {
           "cat": "UI",
@@ -10917,6 +10917,14 @@
       "date": "2026-11-10",
       "cat": "UI",
       "text": "Explain unopened loot rewards accurately",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "7d75368646dd760a8c1c3b4610d4a41feb5a4d58",
+      "date": "2026-11-10",
+      "cat": "UI",
+      "text": "Ui: retain keyboard focus after reward reveal skip",
       "internal": true,
       "needsReview": false
     }

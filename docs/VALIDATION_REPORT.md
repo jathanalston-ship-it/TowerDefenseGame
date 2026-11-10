@@ -862,3 +862,13 @@ Loot tooltip incorrectly said opened into shards on completion. Confirmed syncRu
 ## 2026-11-10 21:35 UTC — Post-run reveal keyboard continuity
 
 RewardReveal baseline: Enter on focused Skip removed the button and left BODY focused. Track Skip focus and, on completed sequence, restore persistent Continue only if focus fell to body; blur clears intent. ../reveal-skip-focus-check.cjs PASS Skip, natural completion while Skip focused, actual Continue callback and unrelated focus preserved.11UI/site tests PASS1.72s; docs/handoff2547 PASS; build99771 PASS7.02s, SWmwb7lg8q, reveal-skip-focus-build.log. All processes terminal. No reward/audio/timing/save changes. Generated devlog draft remains untracked/unpublished. Seventh note generated in local .13 Clearer Reward Feedback. Live .12 unchanged; next approximate deployment22:10UTC. Final release mobile pending.
+
+
+## 2026-11-10 21:41 UTC — Clearer Reward Feedback release validation
+
+Sealed .13 Clearer Reward Feedback with seven notes. Full suite24615 PASS3194tests354files159.36s (clearer-feedback-tests.log). Docs77929 PASS. SiteSync4tests PASS; final build62175 PASS5.86s, SWmwb7rg5c, asset/assets/play-Yt8wuaAi.js (clearer-feedback-release-build.log). Required validate wrapper again failed its child launches with empty output; raw report/output preserved in clearer-feedback-wrapper*.log and prior canonical report restored. Original final mobile29807 RUNNING against unchanged build, clearer-feedback-release-mobile.log. Poll SAME handle; observation timeout is not failure. No competing heavy/browser work or dist writes during mobile. Registry follow-ups reviewed: quest/HUD/loot docs updated; reward economy, mode rules, help/tutorial unlocks, audio cues and saves unchanged, so no additional registrations or economy/migration docs needed. Focused runtime probes are recorded above. Release not yet deployed.
+
+
+## 2026-11-10 21:46 UTC — Final reward-feedback mobile gate passed
+
+Original mobile29807 terminal PASS27nav+nine gameplay profiles on sealed .13 build; clearer-feedback-release-mobile.log. Full suite3194tests354files159.36s, final build5.86s, siteSync and docs passed. All local checks complete, production push authorized; deployment/public verification pending.
