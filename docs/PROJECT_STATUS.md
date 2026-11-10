@@ -1789,3 +1789,8 @@ Unsealed Read Your Build now has four website notes. CSS-only HUD explanations o
 ## 2026-11-10 18:20 UTC — HUD reading keys (local)
 
 Reproduced Space on focused Core explanation starting a wave. GameView now consumes that key for HUD cells; real browser probe1764 passed Core/Power/Biomass reading, Hero Console activation and normal board Space wave start. Added fifth website note and canonical HUD documentation. Eleven site/UI tests78230 and docs38229 passed. Typecheck96986 and prior-build mobile30430 are still running; no dist overwrite while mobile owns it. Gameplay simulation unchanged.
+
+
+## 2026-11-10 18:23 UTC — Release sealed; mobile failure under investigation
+
+Sealed v2026.11.10.9 Read Your Build with five website notes; regenerated site, four siteSync tests passed552ms. Latest typecheck96986 terminalPASS. Original mobile30430 terminalFAIL at waitForDrawerClosed (5000ms) in landscapeRailWalk, repeating prior .8 failure signature; root cause unproven. Unchanged-build diagnostic81740 is active, preserves original assertions/timeouts and captures drawer state on failure. Do not overwrite dist while it runs. Final five-note release build and original full mobile gate remain pending. Remote production branch checked and remains8950ec0d.

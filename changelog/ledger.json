@@ -1,6 +1,6 @@
 {
-  "lastSha": "52267c383b18fe9eb600e29aaae7ea35c4d8eb4d",
-  "commitsSinceDraft": 3,
+  "lastSha": "d1b0132a6589d2f1e3a5874d6a60a377fda47b37",
+  "commitsSinceDraft": 4,
   "content": {
     "tower": [
       "needle",
@@ -4598,7 +4598,7 @@
       "id": "v2026.11.10.9",
       "date": "2026-11-10",
       "title": "Read Your Build",
-      "sealed": false,
+      "sealed": true,
       "entries": [
         {
           "cat": "UI",
@@ -10485,6 +10485,14 @@
       "date": "2026-11-10",
       "cat": "UI",
       "text": "Keep HUD explanations on screen",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "d1b0132a6589d2f1e3a5874d6a60a377fda47b37",
+      "date": "2026-11-10",
+      "cat": "UI",
+      "text": "Prevent wave starts while reading HUD help",
       "internal": true,
       "needsReview": false
     }
