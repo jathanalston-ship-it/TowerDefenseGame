@@ -4,21 +4,22 @@
 > before committing. Read together with docs/PROJECT_STATUS.md and the latest
 > docs/VALIDATION_REPORT.md. Next session: start at docs/PROJECT_MANIFEST.md.
 
-- **Generated:** 2026-11-10 06:19 UTC · **Diff scope:** working tree vs HEAD
-- **Branch:** codex/hive-autoplay · **HEAD:** 663ef58b
+- **Generated:** 2026-11-10 06:23 UTC · **Diff scope:** working tree vs HEAD
+- **Branch:** codex/hive-autoplay · **HEAD:** 4545bff2
 
 ## Summary of work completed
 
-Active continuous improvement goal; authorized roughly-hourly deployments with website notes. LIVE: fa4f78bcff196db9dad2d4683b3c852907516c73, v2026.11.09.5 Feedback That Stays Readable, six curated notes. Actions42763247079 SUCCESS. Normal custom-domain game/home/news verified: play-DZzequMq.js matches local build and returns200; homepage title and detailed motion/Vault notes present. Deployed ~05:38UTC Nov10. New LOCAL batch v2026.11.09.6 Sound That Responds Smoothly, five notes (four Audio, one UI); .5 sealed. Do not mark the ongoing goal complete.
+Active continuous improvement goal; roughly-hourly deployments with matching website notes authorized. LIVE v2026.11.09.6 Sound That Responds Smoothly,5 curated notes. SHA4545bff2ed18e243009ba5ce8e283a454141c1c9; Actions42767736604 SUCCESS. Normal custom-domain play/home/news and all5 notes verified06:22UTC Nov10; play-BAy15d18.js matches local build and returns200. Audio controls smoothly follow latest volume/mute, re-enable current looping scene, and mute scheduled flourishes; Toolbar exposes selected placement and auto-cast states. .6 is sealed. Goal remains active.
+
 ## Files modified
 
-- Source (1): `src/changelog/releases.gen.ts`
+- Source (0): —
 - Tests (0): —
-- Docs (4): `docs/HISTORY.md`, `docs/PROJECT_STATUS.md`, `docs/VALIDATION_REPORT.md`, `docs/devlog/DRAFT-2026-11-09.md`
+- Docs (3): `docs/PROJECT_STATUS.md`, `docs/VALIDATION_REPORT.md`, `docs/devlog/DRAFT-2026-11-09.md`
 
 ## Systems affected (from the dependency registry)
 
-- **chronicle** — `src/changelog/releases.gen.ts`
+- (no registered source files in this diff)
 
 ## Power Score changes
 
@@ -46,7 +47,7 @@ Final3150 full suite passed before the two-line current-destination drawer fix. 
 
 ## Recommended next tasks
 
-Final build87703 PASS (sfx-volume-build.log,Vite7.20s); no processes remain. Continue .6 audit; next approximate deploy06:38UTC. Music master slider follow-up now verified: cancels old recovery, keeps zero silent and honors latest level. Continue auditing player controls and feedback from observed behavior. Work codex/hive-autoplay; deploy claude/zen-hawking-rh1gxl under existing authorization, with website notes and exact-SHA Actions/live checks. ../verify-progress-release.ps1 still targets LIVE .5; change markers before .6 deployment. Untracked devlog draft remains excluded.
+Continue evidence-led improvements in a NEW release batch; .6 is sealed/live. Next approximate deploy07:22UTC. All processes terminal. Existing verify-audio-release.ps1 targets live .6; update/copy for the next batch. Full3155 tests/mobile9viewports passed for audio, then four ARIA-only followups passed realGame/AXkeyboard probes and finalbuild. Latest build35451 PASS. No need to repeat completed checks absent new changes. Work codex/hive-autoplay; deploy claude/zen-hawking-rh1gxl. Exclude untracked devlog draft. Do not mark ongoing goal complete.
 
 ## Future expansion hooks
 
@@ -73,3 +74,5 @@ Final auto-cast accessibility build19427 PASS (autocast-accessibility-build.log)
 LATEST .6 placement ARIA followup: Toolbar favorite and conveyor Deploy aria-pressed; conveyor aria-label includes organism/current Biomass cost or free. ../placement-accessibility-check.cjs baseline no states; after keyboard select/clear/switch AXstates PASS; free/paid labels PASS via normal wave-grown pod. Fixture first sim tick seeds gift; prep time does not grow paid pod, so probe starts wave. Auto-cast AX re-PASS.4 site-sync tests PASS; build23561 terminal0 (placement-accessibility-build.log). Full3155/mobile completed before four ARIA attributes across these followups; no visual/layout/gameplay changes. All processes terminal. Five local notes (combined UI note); next approx deploy06:38UTC. Live .5 remains. ../verify-audio-release.ps1 targets .6 game/home/news.
 
 RELEASE .6 CHECKPOINT: sealed5notes, final build35451 PASS (audio-release-build.log), sealed siteSync4 PASS. All local processes terminal. Full3155/mobile9viewport before ARIA-only followups; actualGame/AXkeyboard probes cover latest attributes. Remote deploy branch remainsfa4f78bc. Publishing now; exact-SHA workflow and ../verify-audio-release.ps1 livechecks pending. Active continuous goal remains active.
+
+LATEST DEPLOYMENT VERIFIED:4545bff2,Actions42767736604 SUCCESS; normal /play/ assetplay-BAy15d18.js HTTP200 + home/news title + all5 notes PASS06:22UTC. Initial custom-domain propagation checks saw .5, then normal URL reached .6; no intervention needed. All processes terminal. New batch next, .6 sealed. Next approx deployment07:22UTC. This docs-only checkpoint need not trigger another deploy.

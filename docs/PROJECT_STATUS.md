@@ -1423,3 +1423,5 @@ Final auto-cast accessibility build19427 PASS (autocast-accessibility-build.log)
 Local .6 placement controls now expose armed state; conveyor Deploy names the organism and free/live cost. Real Game keyboard/AX checks PASS for selection/clearing/switching and free/paid labels; auto-cast AX re-PASS,4 site tests PASS, production build23561 PASS. All processes terminal. Five notes prepared, still local.
 
 Release .6 sealed and verified:5 curated website notes, final production build/site sync PASS. Publishing now under ongoing deployment authorization; live verification pending.
+
+LIVE .6 Sound That Responds Smoothly:4545bff2ed18e243009ba5ce8e283a454141c1c9, Actions42767736604 SUCCESS. Normal custom-domain play assetplay-BAy15d18.js matches build and returns200; home/news and all5 notes verified06:22UTC. .6 sealed. Next approximate deployment07:22UTC, with a new release batch. No processes running.
