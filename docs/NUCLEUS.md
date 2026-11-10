@@ -94,3 +94,5 @@ canvas **preview** drawing the exact mutation kit the run will render (`drawKit`
 - `towerDamageMult` never appears in organ or adaptation effects (registry validation + tests).
 
 NucleusPreview follows shared resolved motion plus live device changes. It renders a still mutation kit when motion is reduced, pauses animation offscreen/hidden, resumes without hidden-time jumps and releases its observer/listeners/frame on unmount. Mutation-list changes retain their existing redraw dependency. Organ/chamber rules, effects, costs and Power are unchanged.
+
+Nucleus socket accessibility (2026-11-10): both empty and filled socket controls expose aria-pressed and chamber/socket identity; armed filled sockets use a visible outline. A status line explains the selected destination. Organ-specific graft/extract labels disambiguate actions; category filters expose selection. Successful graft/extract restores focus to the destination socket after its DOM replacement. Guarded meta operations, costs, effects and adaptation cues are unchanged.

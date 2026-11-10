@@ -5,7 +5,7 @@
 // checklists — every requirement ALWAYS shown with live progress (the anticipation rule).
 // All reads via meta selectors; all writes via the guarded meta pipeline. Menu-only.
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { meta } from '../state/meta';
 import { motionPrefs, onMotionPrefs, resolveMotion } from '../state/prefs';
 import {
@@ -100,6 +100,13 @@ export function NucleusChambers(): JSX.Element {
   const resolved = meta.nucleusResolved();
   const [armed, setArmed] = useState<{ chamber: number; slot: number } | null>(null);
   const [cat, setCat] = useState<NucleusCategory | 'all'>('all');
+  const rootRef = useRef<HTMLDivElement>(null);
+  const returnSocket = useRef<string | null>(null);
+  useLayoutEffect(() => {
+    if (returnSocket.current === null) return;
+    rootRef.current?.querySelector<HTMLElement>(`[data-nucleus-socket="${returnSocket.current}"]`)?.focus();
+    returnSocket.current = null;
+  }, [nucleus, armed]);
   const [confirmUnlock, setConfirmUnlock] = useState<number | null>(null); // 2-step on the Ichor spend
 
   const grow = (o: NucleusOrgan): void => { if (meta.growNucleusOrgan(o.id)) audio.cue('splice'); };
@@ -108,13 +115,17 @@ export function NucleusChambers(): JSX.Element {
     if (!armed) return;
     const before = chamberAdaptation(meta.nucleus(), armed.chamber)?.tier;
     if (meta.setNucleusSlot(armed.chamber, armed.slot, o.id)) {
+      returnSocket.current = `${armed.chamber}:${armed.slot}`;
       setArmed(null);
       const after = chamberAdaptation(meta.nucleus(), armed.chamber)?.tier;
       audio.cue(after === 'full' && before !== 'full' ? 'adapt' : 'graftSquelch');
     }
   };
   const clear = (chamber: number, slot: number): void => {
-    if (meta.setNucleusSlot(chamber, slot, null)) { audio.cue('select'); setArmed(null); }
+    if (meta.setNucleusSlot(chamber, slot, null)) {
+      returnSocket.current = `${chamber}:${slot}`;
+      audio.cue('select'); setArmed(null);
+    }
   };
   const unlock = (chamber: number): void => {
     if (meta.unlockNucleusChamber(chamber)) { audio.cue('jackpot'); setConfirmUnlock(null); }
@@ -123,7 +134,7 @@ export function NucleusChambers(): JSX.Element {
   const organs = nucleusRegistry.all().filter((o) => cat === 'all' || o.category === cat);
 
   return (
-    <div className="ncl">
+    <div className="ncl" ref={rootRef}>
       <div className="ncl-head">
         <div>
           <div className="ncl-title">{NUCLEUS_MARK} Hive Nucleus</div>
@@ -161,19 +172,22 @@ export function NucleusChambers(): JSX.Element {
                     if (def) {
                       const lvl = nucleus.grown[def.id]?.level ?? 1;
                       return (
-                        <div className="ncl-socket is-filled" key={s} style={{ ['--rc' as string]: MULLIGAN_RARITY[def.rarity].color, ['--cc' as string]: COMBAT_CLASSES[def.cls].hex }}>
-                          <button className="ncl-socket-body" onClick={() => setArmed(isArmed ? null : { chamber: c, slot: s })} title={`${def.name} — ${def.desc}`}>
+                        <div className={`ncl-socket is-filled${isArmed ? ' is-arming' : ''}`} key={s} style={{ ['--rc' as string]: MULLIGAN_RARITY[def.rarity].color, ['--cc' as string]: COMBAT_CLASSES[def.cls].hex }}>
+                          <button className="ncl-socket-body" data-nucleus-socket={`${c}:${s}`} aria-pressed={isArmed} aria-label={`Chamber ${c + 1}, socket ${s + 1}: ${def.name}, level ${lvl}. Select to replace`} onClick={() => setArmed(isArmed ? null : { chamber: c, slot: s })} title={`${def.name} — ${def.desc}`}>
                             <span className="ncl-socket-glyph">{COMBAT_CLASSES[def.cls].glyph}</span>
                             <span className="ncl-socket-name">{def.name}</span>
                             <span className="ncl-socket-lvl">L{lvl}</span>
                           </button>
-                          <button className="ncl-socket-x" title="Extract organ" onClick={() => clear(c, s)}>✕</button>
+                          <button className="ncl-socket-x" title="Extract organ" aria-label={`Extract ${def.name} from Chamber ${c + 1}, socket ${s + 1}`} onClick={() => clear(c, s)}>✕</button>
                         </div>
                       );
                     }
                     return (
                       <button
                         key={s}
+                        data-nucleus-socket={`${c}:${s}`}
+                        aria-pressed={isArmed}
+                        aria-label={`Chamber ${c + 1}, socket ${s + 1}: empty. Select to graft`}
                         className={`ncl-socket is-empty${isArmed ? ' is-arming' : ''}`}
                         onClick={() => setArmed(isArmed ? null : { chamber: c, slot: s })}
                         title="Graft an organ — click, then pick one from the conservatory below"
@@ -251,12 +265,15 @@ export function NucleusChambers(): JSX.Element {
         <span className="ncl-shelf-title">Organ Conservatory</span>
         <div className="ncl-cats">
           {CATEGORIES.map((k) => (
-            <button key={k} className={`ncl-cat${cat === k ? ' on' : ''}`} onClick={() => setCat(k)}>
+            <button key={k} aria-pressed={cat === k} className={`ncl-cat${cat === k ? ' on' : ''}`} onClick={() => setCat(k)}>
               {k === 'all' ? 'All' : NUCLEUS_CATEGORY_LABEL[k]}
             </button>
           ))}
         </div>
         <span className="ncl-wallet" title="Gene Essence"><CurrencyIcon id="geneEssence" size={13} title="" /> {save.geneEssence.toLocaleString()}</span>
+      </div>
+      <div className="ncl-adapt-hint" role="status">
+        {armed ? `Choose an organ below for Chamber ${armed.chamber + 1}, socket ${armed.slot + 1}.` : 'Select a socket above, then graft a grown organ below.'}
       </div>
       <div className={`ncl-shelf${armed ? ' is-arming' : ''}`}>
         {organs.map((o) => {
@@ -293,7 +310,7 @@ export function NucleusChambers(): JSX.Element {
                   </button>
                 ) : (
                   <>
-                    {armed && <button className="primary ncl-slotin" onClick={() => slotIn(o)}>Graft into Chamber {armed.chamber + 1}</button>}
+                    {armed && <button className="primary ncl-slotin" aria-label={`Graft into Chamber ${armed.chamber + 1}, socket ${armed.slot + 1}: ${o.name}`} onClick={() => slotIn(o)}>Graft into Chamber {armed.chamber + 1}</button>}
                     {grown.level < cap && (
                       <button className="ncl-levelup" disabled={save.geneEssence < upCost} onClick={() => level(o)} title="Level this organ">
                         L{grown.level + 1} · <CurrencyIcon id="geneEssence" size={11} title="" /> {upCost.toLocaleString()}

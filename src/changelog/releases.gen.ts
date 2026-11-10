@@ -33,6 +33,10 @@ export const RELEASES: Release[] = [
       {
         "cat": "UI",
         "text": "Post-run rewards and reward number animations now follow live motion preferences and honor Allow motion. Reducing motion finishes the presentation immediately while preserving keyboard focus and waiting for any covering cinematic before playing reward audio."
+      },
+      {
+        "cat": "UI",
+        "text": "Nucleus grafting now clearly marks the selected socket, including filled sockets being replaced. Graft and extract controls identify their organ and destination, category filters expose selection, and keyboard focus returns to the socket after a successful change."
       }
     ]
   },

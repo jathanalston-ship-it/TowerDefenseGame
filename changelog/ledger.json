@@ -1,6 +1,6 @@
 {
-  "lastSha": "0998a782c7fa4fc8cf1586aaa0abcb361f765d7b",
-  "commitsSinceDraft": 8,
+  "lastSha": "2307a64e9b462c1c1dc0c49fd52ad0de32bd38b6",
+  "commitsSinceDraft": 9,
   "content": {
     "tower": [
       "needle",
@@ -4779,6 +4779,10 @@
         {
           "cat": "UI",
           "text": "Post-run rewards and reward number animations now follow live motion preferences and honor Allow motion. Reducing motion finishes the presentation immediately while preserving keyboard focus and waiting for any covering cinematic before playing reward audio."
+        },
+        {
+          "cat": "UI",
+          "text": "Nucleus grafting now clearly marks the selected socket, including filled sockets being replaced. Graft and extract controls identify their organ and destination, category filters expose selection, and keyboard focus returns to the socket after a successful change."
         }
       ]
     }
@@ -11013,6 +11017,14 @@
       "date": "2026-11-10",
       "cat": "UI",
       "text": "Ui: follow live motion preferences in reforge reveals",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "2307a64e9b462c1c1dc0c49fd52ad0de32bd38b6",
+      "date": "2026-11-10",
+      "cat": "UI",
+      "text": "Ui: synchronize reward reveals with live motion preferences",
       "internal": true,
       "needsReview": false
     }
