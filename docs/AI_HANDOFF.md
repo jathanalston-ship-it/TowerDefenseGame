@@ -4,8 +4,8 @@
 > before committing. Read together with docs/PROJECT_STATUS.md and the latest
 > docs/VALIDATION_REPORT.md. Next session: start at docs/PROJECT_MANIFEST.md.
 
-- **Generated:** 2026-11-10 16:32 UTC · **Diff scope:** working tree vs HEAD
-- **Branch:** codex/hive-autoplay · **HEAD:** 22661905
+- **Generated:** 2026-11-10 16:38 UTC · **Diff scope:** working tree vs HEAD
+- **Branch:** codex/hive-autoplay · **HEAD:** bfb1de80
 
 ## Summary of work completed
 
@@ -13,13 +13,13 @@ LIVE v2026.11.10.6 Memories Within Reach, five sealed notes. SHA7f18a4f7fe74450f
 
 ## Files modified
 
-- Source (1): `src/changelog/releases.gen.ts`
+- Source (0): —
 - Tests (0): —
-- Docs (3): `docs/HISTORY.md`, `docs/devlog/DRAFT-2026-11-09.md`, `docs/devlog/DRAFT-2026-11-10.md`
+- Docs (2): `docs/devlog/DRAFT-2026-11-09.md`, `docs/devlog/DRAFT-2026-11-10.md`
 
 ## Systems affected (from the dependency registry)
 
-- **chronicle** — `src/changelog/releases.gen.ts`
+- (no registered source files in this diff)
 
 ## Power Score changes
 
@@ -47,7 +47,7 @@ Windows validate wrapper cannot launch npx/npm with shell:false; use direct gate
 
 ## Recommended next tasks
 
-Release .10.7 Progress You Can Trust: five SEALED notes; full3192tests/354files PASS454.39s, final build22.72s,4site tests anddocs PASS. MOBILE RUNNING session34331, save-release-mobile.log, final dist. Poll same handle; DO NOT rebuild while mobile runs. All other processes terminal. On clean mobile, record gates, push HEAD to claude/zen-hawking-rh1gxl, verify exact-SHA workflow then ../verify-current-release.ps1 normal public game/home/news/all5notes. Live remains .10.6 SHA7f18a4f7 until deploy. Full goal active.
+All .10.7 release gates PASS. Publish then verify exact-SHA Actions and ../verify-current-release.ps1 normal public game/home/news/all5notes. Final asset /assets/play-D1KgKJPZ.js. All local processes terminal. Next post-release audit: BuildControls incoming tooltip labels ENEMY_DEFS.hp simply HP, while Game spawn multiplies it; assess clear base-stat wording without changing combat. Continuous goal active.
 
 ## Future expansion hooks
 
@@ -113,6 +113,8 @@ Hero readiness final build65590 PASS (Vite7.59s); all processes terminal. Next r
 
 
 
-## 2026-11-10 — Progress You Can Trust release checkpoint
 
-Five sealed notes generated for game/home/news. Full suite26406 terminal PASS354files/3192tests454.39s. Final app/functions TS+build22.72s,4sealed site tests anddocs PASS (26535 terminal). Actual browser probes cover save UI previews/confirmations/focus/phone fit plus storage failure stages, tab ownership, live recovery and pending flush handling. Required wrapper exit1 known Windows launcher; save-release-wrapper-report.log preserved; direct gates supply evidence. MOBILE34331 RUNNING on final dist in save-release-mobile.log; do not rebuild until it completes. Source batch complete, no deployment yet. All other processes terminal. Goal remains active.
+
+## 2026-11-10 — Progress You Can Trust ready to publish
+
+Five sealed notes. Full354files/3192tests PASS454.39s; final app/functions TS+build22.72s,4site tests anddocs PASS. Mobile34331 terminal CLEAN27nav screens and9gameplay viewports, drawers/rotation/portrait+landscape/run-chrome contracts, no clipping/overflow/sub24targets. Focused save UI and real-storage browser probes PASS fault injection, confirmation/cancel, preview races, focus, tab ownership, latest-state recovery and flush cancellation. Required wrapper limitation documented with save-release-wrapper-report.log; direct gates PASS. Final asset /assets/play-D1KgKJPZ.js. Source/schema/gameplay unchanged since final gates. All local processes terminal; publishing next.
