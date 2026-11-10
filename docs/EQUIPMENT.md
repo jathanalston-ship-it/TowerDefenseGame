@@ -572,3 +572,5 @@ Salvage confirmation renders through a nested Popup at viewport level, so scroll
 Favorite, item salvage lock and individual affix locks expose stable descriptive names with aria-pressed. Favorite/item-lock tooltips describe the current available action. Randomize names its affected affix. Existing handlers, protection checks, costs and layout are unchanged.
 
 Disabled whole-item upgrades retain their action description and show a readable reason: exact missing materials, no affixes, locked eligible affixes, the item-level tier ceiling, or the rarity upgrade limit. Existing opAvailable/canAfford/reforgeCost remain authoritative; presentation derives the explanation without changing availability or costs. Disabled cards use a dashed border rather than fading their explanations.
+
+ItemDetails is a named modal dialog. Opening an item focuses Close, Tab/Shift+Tab wrap through enabled buttons, and closing restores the connected enabled invoking control. The outer keyboard handler defers while salvage confirmation is open; its nested focus/restore rules remain independent.

@@ -4,18 +4,20 @@
 > before committing. Read together with docs/PROJECT_STATUS.md and the latest
 > docs/VALIDATION_REPORT.md. Next session: start at docs/PROJECT_MANIFEST.md.
 
-- **Generated:** 2026-11-10 20:23 UTC · **Diff scope:** working tree vs HEAD
-- **Branch:** codex/hive-autoplay · **HEAD:** 5bc81994
+- **Generated:** 2026-11-10 20:27 UTC · **Diff scope:** working tree vs HEAD
+- **Branch:** codex/hive-autoplay · **HEAD:** 2401a8fd
 
 ## Summary of work completed
 
-LOCAL unsealed v2026.11.10.12 Upgrade Guidance has one generated website note. ItemDetails disabled upgrades preserve their normal description and add exact material shortfalls or affix-lock/tier/rarity/no-affix reasons, based on existing opAvailable/canAfford/reforgeCost. Dashed border replaces faded text for readable disabled cards. ../upgrade-reasons-check.cjs PASS shortage, live funding, actual Enhance toT2, tier cap, locked affix, rarity cap, no-affix and320/844 layouts; screenshot inspected.27crafting/UI/site tests PASS4.59s; docs3686 PASS; build31876 PASS17.56s (SWmwb52fxx), upgrade-guidance-build.log. No simulation/save/cost/availability changes. Final release mobile pending.
+ItemDetails baseline browser left focus on opener behind panel. It now has named modal semantics, focuses Close on entry, wraps enabled-button Tab/Shift+Tab, restores connected enabled invoker on close and defers to nested salvage while confirming. ../item-details-focus-check.cjs PASS initial focus, both wraps, Escape and return focus; ../salvage-confirm-check.cjs --stronger rerun PASS320/390/844 focus, nested trap, inert release, cancellation and actual isolated salvage.35crafting/UI/site/back tests PASS5.36s; docs54015 PASS; build68639 PASS11.36s (SWmwb572k9), item-details-focus-build.log. All processes terminal; final release mobile pending. No gameplay/save changes.
+
+LOCAL unsealed v2026.11.10.12 Upgrade Guidance has two generated website notes. ItemDetails disabled upgrades preserve their normal description and add exact material shortfalls or affix-lock/tier/rarity/no-affix reasons, based on existing opAvailable/canAfford/reforgeCost. Dashed border replaces faded text for readable disabled cards. ../upgrade-reasons-check.cjs PASS shortage, live funding, actual Enhance toT2, tier cap, locked affix, rarity cap, no-affix and320/844 layouts; screenshot inspected.27crafting/UI/site tests PASS4.59s; docs3686 PASS; build31876 PASS17.56s (SWmwb52fxx), upgrade-guidance-build.log. No simulation/save/cost/availability changes. Final release mobile pending.
 
 LIVE v2026.11.10.11 Clearer Gear and Motion, SEVEN notes. SHA fdd8131f40aaed078f0c7e3932e8192accf95127. Actions42893701543/job130101131626 SUCCESS including exact-commit production guard. Normal custom-domain game/home/news/all7notes and entry asset verified20:20UTC by ../verify-current-release.ps1; asset/assets/play-CSQGqZlk.js. Final original mobile27718 passed27nav+nine gameplay profiles. Build19916 PASS11.17s,23focused tests and docs passed. Goal remains active; next approximate deployment21:20UTC.
 
 ## Files modified
 
-- Source (3): `src/changelog/releases.gen.ts`, `src/ui/EquipmentPanel.css`, `src/ui/ItemDetails.tsx`
+- Source (2): `src/changelog/releases.gen.ts`, `src/ui/ItemDetails.tsx`
 - Tests (0): —
 - Docs (5): `docs/EQUIPMENT.md`, `docs/HISTORY.md`, `docs/PROJECT_MANIFEST.md`, `docs/devlog/DRAFT-2026-11-09.md`, `docs/devlog/DRAFT-2026-11-10.md`
 
@@ -31,6 +33,8 @@ None. UI/render-only changes; equipment stats, preview derivation, simulation an
 
 ## UI changes
 
+ItemDetails baseline browser left focus on opener behind panel. It now has named modal semantics, focuses Close on entry, wraps enabled-button Tab/Shift+Tab, restores connected enabled invoker on close and defers to nested salvage while confirming. ../item-details-focus-check.cjs PASS initial focus, both wraps, Escape and return focus; ../salvage-confirm-check.cjs --stronger rerun PASS320/390/844 focus, nested trap, inert release, cancellation and actual isolated salvage.35crafting/UI/site/back tests PASS5.36s; docs54015 PASS; build68639 PASS11.36s (SWmwb572k9), item-details-focus-build.log. All processes terminal; final release mobile pending. No gameplay/save changes.
+
 LOCAL unsealed v2026.11.10.12 Upgrade Guidance has one generated website note. ItemDetails disabled upgrades preserve their normal description and add exact material shortfalls or affix-lock/tier/rarity/no-affix reasons, based on existing opAvailable/canAfford/reforgeCost. Dashed border replaces faded text for readable disabled cards. ../upgrade-reasons-check.cjs PASS shortage, live funding, actual Enhance toT2, tier cap, locked affix, rarity cap, no-affix and320/844 layouts; screenshot inspected.27crafting/UI/site tests PASS4.59s; docs3686 PASS; build31876 PASS17.56s (SWmwb52fxx), upgrade-guidance-build.log. No simulation/save/cost/availability changes. Final release mobile pending.
 
 Favorite/item salvage lock/affix lock now have stable accessible names and aria-pressed; randomize names its affix. Isolated ../item-toggle-check.cjs PASS real keyboard toggles and preserved salvage protection. Sealed .11 Clearer Gear and Motion with SEVEN generated notes. Final23 UI/artwork/site/back tests PASS4.59s; docs77844 PASS; build19916 PASS11.17s (SWmwb4izai), clearer-gear-release-build.log, asset/assets/play-CSQGqZlk.js. ORIGINAL final mobile27718 terminalPASS27nav+nine gameplay profiles, clearer-gear-release-mobile.log. Production advanced to fdd8131f40aaed078f0c7e3932e8192accf95127 and public URLs verified.
@@ -41,7 +45,7 @@ Infestation motion/selection: browser probes passed live prefs, resize, pins, hi
 
 ## Documentation changes
 
-Current .12: EQUIPMENT.md and manifest describe upgrade feedback; one UI note generated.
+Current .12: EQUIPMENT.md and manifest describe upgrade feedback; two UI notes generated.
 
 INFESTATION.md, EQUIPMENT.md and manifest updated. Seven curated UI notes generated for game and website. No new mechanic/reward/save field: no help registry, audio or migration change needed.
 

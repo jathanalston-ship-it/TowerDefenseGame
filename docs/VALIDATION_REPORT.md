@@ -775,3 +775,8 @@ LIVE v2026.11.10.11 Clearer Gear and Motion, SEVEN notes. SHA fdd8131f40aaed078f
 ## 2026-11-10 20:25 UTC — Upgrade guidance
 
 LOCAL unsealed v2026.11.10.12 Upgrade Guidance has one generated website note. ItemDetails disabled upgrades preserve their normal description and add exact material shortfalls or affix-lock/tier/rarity/no-affix reasons, based on existing opAvailable/canAfford/reforgeCost. Dashed border replaces faded text for readable disabled cards. ../upgrade-reasons-check.cjs PASS shortage, live funding, actual Enhance toT2, tier cap, locked affix, rarity cap, no-affix and320/844 layouts; screenshot inspected.27crafting/UI/site tests PASS4.59s; docs3686 PASS; build31876 PASS17.56s (SWmwb52fxx), upgrade-guidance-build.log. No simulation/save/cost/availability changes. Final release mobile pending. All handles terminal. Live .11 unchanged; next approximate deploy21:20UTC.
+
+
+## 2026-11-10 20:29 UTC — Item Details keyboard entry and exit
+
+ItemDetails baseline browser left focus on opener behind panel. It now has named modal semantics, focuses Close on entry, wraps enabled-button Tab/Shift+Tab, restores connected enabled invoker on close and defers to nested salvage while confirming. ../item-details-focus-check.cjs PASS initial focus, both wraps, Escape and return focus; ../salvage-confirm-check.cjs --stronger rerun PASS320/390/844 focus, nested trap, inert release, cancellation and actual isolated salvage.35crafting/UI/site/back tests PASS5.36s; docs54015 PASS; build68639 PASS11.36s (SWmwb572k9), item-details-focus-build.log. All processes terminal; final release mobile pending. No gameplay/save changes. Two generated notes in unsealed .12 Upgrade Guidance. Live .11 unchanged; next approximate deploy21:20UTC.

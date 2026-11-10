@@ -799,3 +799,4 @@
 - `23c040a` **[UI]** Release: prepare Clearer Gear and Motion _(internal)_
 - `fdd8131` **[Framework]** Release: publish Clearer Gear and Motion _(internal)_
 - `5bc8199` **[Framework]** Docs: record verified gear and motion deployment _(internal)_
+- `2401a8f` **[UI]** Explain disabled equipment upgrades _(internal)_

@@ -1,6 +1,6 @@
 {
-  "lastSha": "5bc81994075eb4755fdaabf5c85d84a7ed073136",
-  "commitsSinceDraft": 4,
+  "lastSha": "2401a8fd3e3fd4c1a6ef357cbfb02f1ae8defac7",
+  "commitsSinceDraft": 5,
   "content": {
     "tower": [
       "needle",
@@ -4687,6 +4687,10 @@
         {
           "cat": "UI",
           "text": "Disabled equipment upgrades now explain missing materials, locked affixes, item-level tier caps, or the rarity limit. These reasons remain readable and update as your gear or materials change."
+        },
+        {
+          "cat": "UI",
+          "text": "Opening Item Details now moves keyboard focus into the panel. Tab stays among its available controls, and closing it returns focus to the control you used to open it; salvage confirmation keeps its own keyboard behavior."
         }
       ]
     }
@@ -10729,6 +10733,14 @@
       "date": "2026-11-10",
       "cat": "Framework",
       "text": "Docs: record verified gear and motion deployment",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "2401a8fd3e3fd4c1a6ef357cbfb02f1ae8defac7",
+      "date": "2026-11-10",
+      "cat": "UI",
+      "text": "Explain disabled equipment upgrades",
       "internal": true,
       "needsReview": false
     }

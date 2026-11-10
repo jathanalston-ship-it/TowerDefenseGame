@@ -9,6 +9,10 @@
       {
         "cat": "UI",
         "text": "Disabled equipment upgrades now explain missing materials, locked affixes, item-level tier caps, or the rarity limit. These reasons remain readable and update as your gear or materials change."
+      },
+      {
+        "cat": "UI",
+        "text": "Opening Item Details now moves keyboard focus into the panel. Tab stays among its available controls, and closing it returns focus to the control you used to open it; salvage confirmation keeps its own keyboard behavior."
       }
     ]
   },

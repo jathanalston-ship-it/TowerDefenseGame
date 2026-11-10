@@ -67,6 +67,13 @@ export function ItemDetails({
   const cancelRef = useRef<HTMLButtonElement>(null);
   const salvageDescriptionId = useId();
   useEffect(() => {
+    const previous = document.activeElement;
+    boxRef.current?.querySelector<HTMLButtonElement>('.id-close')?.focus();
+    return () => {
+      if (previous instanceof HTMLElement && previous.isConnected && !previous.matches(':disabled')) previous.focus();
+    };
+  }, [uid]);
+  useEffect(() => {
     if (!confirming) return;
     const previous = document.activeElement;
     const box = boxRef.current;
@@ -114,8 +121,16 @@ export function ItemDetails({
   return (
     <Popup onClose={onClose}>
     <div className="cmp-overlay">
-      <div ref={boxRef} className="id-box" onClick={(e) => e.stopPropagation()} style={{ ['--rc' as string]: c }}>
-        <button className="id-close" onClick={onClose} title="Close">✕</button>
+      <div ref={boxRef} className="id-box" role="dialog" aria-modal="true" aria-label={`${def.name} details`}
+        onKeyDown={(e) => {
+          if (confirming || e.key !== 'Tab') return;
+          const buttons = e.currentTarget.querySelectorAll<HTMLButtonElement>('button:not(:disabled)');
+          const first = buttons[0], last = buttons[buttons.length - 1];
+          if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last?.focus(); }
+          else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first?.focus(); }
+        }}
+        onClick={(e) => e.stopPropagation()} style={{ ['--rc' as string]: c }}>
+        <button className="id-close" onClick={onClose} aria-label="Close item details" title="Close item details">✕</button>
 
         {/* ── Identity: large art + a LIVE preview of the hero wearing it + name + Power + management ── */}
         <div className="id-head">
