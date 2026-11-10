@@ -1502,3 +1502,9 @@ Validation: build61662 PASS (before final article wording correction);13Nemesis 
 AchievementPanel uses shared ListControls for trimmed/case-insensitive visible name/description search and All/Not earned/Earned chips. Live result count and empty guidance; concealed milestones match only public placeholder text until earned. Lifetime ladders stay separate; no save writes or progression changes.
 
 Validation: production build66372 terminal PASS;21achievement/site-sync tests PASS. ../achievement-search-check.cjs actual Chrome PASS keyboard filters, pressed state, case/trim search, no secret leak, earned secret becomes searchable, empty recovery, and card/control fit1366/390/320. Screenshot reviewed. Docs65310 terminal PASS. Seven unsealed .10.2 website notes; next work is full release regression and final mobile checks before approximate09:03UTC deployment.
+
+## 2026-11-10 — v2026.11.10.2 release validation
+
+Rewards You Can Read sealed with seven website notes: readable account/container notices, reward-dismiss focus, hub-only update prompts, clearer achievement/trophy information, and milestone search. No simulation, balance, reward grants or save schema changes.
+
+Full run43607:3174/3175 tests passed across354files in184.59s; the sole failure was DIL_GRAPH missing the new swRegister test node. Regenerated graph (998nodes1943edges);all7DIL tests then PASS. No product code changed after this full run. Final sealed build16310 PASS5.97s and4site-sync tests PASS. Mobile74803 terminal PASS:27navigation screens and9gameplay viewports, drawers/rotate/touch/overlap contracts clean. Wrapper validate --base a6249d38 still exits1 due known Windows spawn handling; direct gates above provide evidence. All focused browser checks are recorded in preceding entries. All processes terminal. Deployment pending.

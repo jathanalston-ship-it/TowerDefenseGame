@@ -1,6 +1,6 @@
 {
-  "lastSha": "41aa41606df42d60da90251e7638b9d1fd257114",
-  "commitsSinceDraft": 3,
+  "lastSha": "0adabebb0a4d54cfd871f7da2a6c7b4b94deab03",
+  "commitsSinceDraft": 4,
   "content": {
     "tower": [
       "needle",
@@ -4398,7 +4398,7 @@
       "id": "v2026.11.10.2",
       "date": "2026-11-10",
       "title": "Rewards You Can Read",
-      "sealed": false,
+      "sealed": true,
       "entries": [
         {
           "cat": "UI",
@@ -9877,6 +9877,14 @@
       "date": "2026-11-10",
       "cat": "UI",
       "text": "Ui: explain trophy rack states and unlocks",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "0adabebb0a4d54cfd871f7da2a6c7b4b94deab03",
+      "date": "2026-11-10",
+      "cat": "UI",
+      "text": "Make achievement milestones searchable",
       "internal": true,
       "needsReview": false
     }

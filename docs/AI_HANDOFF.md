@@ -4,8 +4,8 @@
 > before committing. Read together with docs/PROJECT_STATUS.md and the latest
 > docs/VALIDATION_REPORT.md. Next session: start at docs/PROJECT_MANIFEST.md.
 
-- **Generated:** 2026-11-10 08:38 UTC · **Diff scope:** working tree vs HEAD
-- **Branch:** codex/hive-autoplay · **HEAD:** 41aa4160
+- **Generated:** 2026-11-10 08:50 UTC · **Diff scope:** working tree vs HEAD
+- **Branch:** codex/hive-autoplay · **HEAD:** 0adabebb
 
 ## Summary of work completed
 
@@ -13,15 +13,13 @@ LIVE v2026.11.10.1 Clearer Run Controls, seven sealed website notes. SHAa6249d38
 
 ## Files modified
 
-- Source (2): `src/changelog/releases.gen.ts`, `src/ui/AchievementPanel.tsx`
+- Source (1): `src/changelog/releases.gen.ts`
 - Tests (0): —
-- Docs (7): `docs/HISTORY.md`, `docs/PROGRESSION-SYSTEMS.md`, `docs/PROJECT_MANIFEST.md`, `docs/PROJECT_STATUS.md`, `docs/VALIDATION_REPORT.md`, `docs/devlog/DRAFT-2026-11-09.md`, `docs/devlog/DRAFT-2026-11-10.md`
+- Docs (6): `docs/DIL_GRAPH.md`, `docs/HISTORY.md`, `docs/PROJECT_STATUS.md`, `docs/VALIDATION_REPORT.md`, `docs/devlog/DRAFT-2026-11-09.md`, `docs/devlog/DRAFT-2026-11-10.md`
 
 ## Systems affected (from the dependency registry)
 
-- **achievements** — `src/ui/AchievementPanel.tsx`
 - **chronicle** — `src/changelog/releases.gen.ts`
-- Consumer ring (verify, unchanged): profile
 
 ## Power Score changes
 
@@ -45,11 +43,11 @@ Windows validate wrapper fails spawning npx shell:false; direct gates supplement
 
 ## Remaining technical debt
 
-Final3150 full suite passed before the two-line current-destination drawer fix. That follow-up passed19 nav/back tests, actual phone browser checks, final production build,4 website-sync tests and final full mobile gate. AX checks verify tree content, not every screen reader speech output.
+Windows validate wrapper cannot launch npx/npm with shell:false; use direct gates and record results honestly. Browser accessibility-tree checks do not establish speech output in every screen reader.
 
 ## Recommended next tasks
 
-Local v2026.11.10.2 Rewards You Can Read now has seven unsealed notes. Latest achievement search/filter UI verified: case/trim, keyboard pressed chips, empty recovery, hidden names protected until earned, desktop/390/320 controls/cards fit. ../achievement-search-check.cjs PASS;build66372 terminal PASS;21tests PASS. Docs65310 terminal PASS; all processes stopped. No browser/dev processes. Next: full suite with network permissions, then seal/site/final build/site tests and final mobile gate before deploy roughly09:03UTC (approximate hourly; previous live verified08:03UTC). Live .10.1 SHAa6249d38 remains. Push existing feature HEAD to claude/zen-hawking-rh1gxl, watch exactSHA Actions and verify live game+website via ../verify-current-release.ps1. Exclude both devlog drafts. Goal stays active.
+Deploy sealed v2026.11.10.2 Rewards You Can Read, seven website notes. Full43607:3174/3175PASS;sole generated DIL graph mismatch corrected and7DIL tests re-PASS. No product changes afterward. Finalbuild16310 PASS5.97s,4site tests PASS, finalmobile74803 PASS27screens/9gameplay viewports. All processes terminal. Remote deployment branch confirmeda6249d38 before release. Push feature HEAD to claude/zen-hawking-rh1gxl, poll exactSHA Actions, verify normal custom-domain game/home/news via ../verify-current-release.ps1. Then record liveSHA/URL and continue active goal, next release roughlyhour later. Exclude both devlog drafts.
 
 ## Future expansion hooks
 

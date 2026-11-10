@@ -725,3 +725,4 @@
 - `12be6e8` **[UI]** Ui: defer update prompts until the hub _(internal)_
 - `a89e537` **[UI]** Clarify achievement status and rewards _(internal)_
 - `41aa416` **[UI]** Ui: explain trophy rack states and unlocks _(internal)_
+- `0adabeb` **[UI]** Make achievement milestones searchable _(internal)_

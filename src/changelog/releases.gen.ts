@@ -8,7 +8,7 @@ export const RELEASES: Release[] = [
     "id": "v2026.11.10.2",
     "date": "2026-11-10",
     "title": "Rewards You Can Read",
-    "sealed": false,
+    "sealed": true,
     "entries": [
       {
         "cat": "UI",
