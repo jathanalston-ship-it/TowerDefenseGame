@@ -1429,3 +1429,5 @@ LIVE .6 Sound That Responds Smoothly:4545bff2ed18e243009ba5ce8e283a454141c1c9, A
 New LOCAL .7 Clearer Battlefield Choices: correct zero starting-gift refund, retained keyboard focus after recycle/merge, named transaction buttons. Actual browser matrix and20 tests PASS; build65033 PASS. One UI website note prepared. Live .6 remains, next approximate deployment07:22UTC. No processes running.
 
 Local .7 recycle confirmation now plays once via sim queue. ActualGameView direct+queued trace reproduced2 ->1; stale retry0.35 focused tests PASS; build40516 PASS. Two website notes, local only. All processes terminal.
+
+Local .7 tower sale/first-branch prompts now have safe Cancel focus, named modal semantics, Tab containment, Escape/restoration and cancel on Pause. Actual keyboard matrix, styled 3viewport measurements and fullGameView Back/Pause/Resume PASS;29 tests and build96060 PASS. Three local notes. Nextapprox deployment07:22UTC, live .6 unchanged. No running processes.

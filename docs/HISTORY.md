@@ -704,3 +704,4 @@
 - `4545bff` **[Audio]** Ship responsive audio and accessible controls _(internal)_
 - `cf49f45` **[Audio]** Record verified audio deployment _(internal)_
 - `e4269ab` **[UI]** Ui: clarify conveyor refunds and preserve focus _(internal)_
+- `5471e5d` **[Audio]** Avoid duplicate conveyor recycle cue _(internal)_

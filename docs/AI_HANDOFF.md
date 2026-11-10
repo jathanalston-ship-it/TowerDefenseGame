@@ -4,8 +4,8 @@
 > before committing. Read together with docs/PROJECT_STATUS.md and the latest
 > docs/VALIDATION_REPORT.md. Next session: start at docs/PROJECT_MANIFEST.md.
 
-- **Generated:** 2026-11-10 06:34 UTC · **Diff scope:** working tree vs HEAD
-- **Branch:** codex/hive-autoplay · **HEAD:** e4269aba
+- **Generated:** 2026-11-10 06:48 UTC · **Diff scope:** working tree vs HEAD
+- **Branch:** codex/hive-autoplay · **HEAD:** 5471e5d0
 
 ## Summary of work completed
 
@@ -13,14 +13,14 @@ Active continuous improvement goal; roughly-hourly deployments with matching web
 
 ## Files modified
 
-- Source (2): `src/changelog/releases.gen.ts`, `src/ui/Toolbar.tsx`
+- Source (2): `src/changelog/releases.gen.ts`, `src/ui/Inspector.tsx`
 - Tests (0): —
-- Docs (6): `docs/AUDIO.md`, `docs/HISTORY.md`, `docs/HUD.md`, `docs/PROJECT_STATUS.md`, `docs/VALIDATION_REPORT.md`, `docs/devlog/DRAFT-2026-11-09.md`
+- Docs (8): `docs/HISTORY.md`, `docs/HUD.md`, `docs/PROJECT_MANIFEST.md`, `docs/PROJECT_STATUS.md`, `docs/TOWER-BRANCHES.md`, `docs/TOWER-MANAGEMENT.md`, `docs/VALIDATION_REPORT.md`, `docs/devlog/DRAFT-2026-11-09.md`
 
 ## Systems affected (from the dependency registry)
 
 - **chronicle** — `src/changelog/releases.gen.ts`
-- **run-ui** — `src/ui/Toolbar.tsx`
+- **run-ui** — `src/ui/Inspector.tsx`
 
 ## Power Score changes
 
@@ -48,7 +48,7 @@ Final3150 full suite passed before the two-line current-destination drawer fix. 
 
 ## Recommended next tasks
 
-Continue evidence-led improvements in a NEW release batch; .6 is sealed/live. Next approximate deploy07:22UTC. All processes terminal. Existing verify-audio-release.ps1 targets live .6; update/copy for the next batch. Full3155 tests/mobile9viewports passed for audio, then four ARIA-only followups passed realGame/AXkeyboard probes and finalbuild. Latest build35451 PASS. No need to repeat completed checks absent new changes. Work codex/hive-autoplay; deploy claude/zen-hawking-rh1gxl. Exclude untracked devlog draft. Do not mark ongoing goal complete.
+Continue LOCAL .7 Clearer Battlefield Choices,3notes (conveyor refund/focus, single recycle cue, tower confirmations). Live .6 sealed. Nextapprox deploy07:22UTC. All processes terminal; latest build96060 PASS.29 branch/tower/back/site tests PASS; actual browser matrix/layout/Back-Pause-Resume probes PASS. Complete batch regression gates before .7 release. Work codex/hive-autoplay, deploy claude/zen-hawking-rh1gxl. Update/copy verify-audio-release.ps1 for new .7 title/notes. Exclude untracked devlog draft. Goal remains active.
 
 ## Future expansion hooks
 
@@ -81,3 +81,5 @@ LATEST DEPLOYMENT VERIFIED:4545bff2,Actions42767736604 SUCCESS; normal /play/ as
 LATEST LOCAL .7 Clearer Battlefield Choices,oneUI note: Toolbar corrects free starting gift recycle50shown/0paid mismatch to0; focus after consumed merge/recycle ->remaining enabledDeploy,favorite,namedconveyor group; only when consumed button hadfocus and noothercontrol nowfocused. Merge/recycle names includeorganism+amount. ../conveyor-recycle-check.cjs baseline/bodyfocus andafterPASS; ../conveyor-focus-check.cjs paidrefund/nextdeploy/favorite/merge/poor-group/unrelatedfocusPASS. Initial long-wave fixturelost beforeaction; validhighintegritymeta fixture thenPASS.20 conveyor/site testsPASS; build65033terminal0 (conveyor-focus-build.log). No processes. Live .6 unchanged; .7 unsealed. Next approxdeploy07:22UTC. Potential next targeted audit: Toolbar discard still calls audio.cue(dissolve), while Game.discardConveyor also queues dissolve; verify actual delivery before changing.
 
 LATEST LOCAL .7: recycle duplicate confirmed/fixed. ../recycle-audio-check.cjs mounts actual GameView: baseline directdissolve1+queued1; now queued1only, staleconsumedidfalse and0cues. Removedone Toolbar audio.cue; sim/mix unchanged. Known fixtureViteHMRsocket warning excluded from producterrorlist.35 conveyor/sound/cues/site tests5415PASS; build40516PASS (recycle-audio-build.log,Vite6.17s). Dev4900 intentionallystopped. All processes terminal. Two .7notes prepared. Live .6 unchanged; nextapprox07:22UTC.
+
+LATEST .7 Inspector confirmations: local TowerConfirmation+Popup adds namedmodal, safeCancel, Tabtrap, allkeyisolation, Escape+focusrestore; fallbackfocusnamedInspector ifopenergone/disabled. Pause subscription closespendingprompt. No globalBackpolicychange: runBackstillPause. Baseline no role/focus/Escape; actualGameView Back originallyleft2dialogs (confirmoverPause,focusbehind), now1Pause andresumefocusmut-buy. ../inspector-confirm-matrix.cjs PASS realGame keyboard/transaction/Back; ../inspector-pause-check.cjs fullGameView PASS Back/Pause/Resume; ../inspector-confirm-layout.cjs actualCSS/fonts2dialogsx3viewportsPASS.29testsPASS; build96060PASS. All processes terminal. Three .7 notes local, live .6 unchanged,nextapprox07:22UTC. Fullbatchgates stillneededbefore .7publish.

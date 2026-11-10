@@ -5,12 +5,14 @@
 //   • otherwise → hero status + a live run summary so the panel is never dead space.
 
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { createPortal } from 'react-dom';
+import type { KeyboardEvent, ReactNode } from 'react';
 import { HERO_DEFS, TOWER_DEFS } from '../core/config';
 import { branchStatsView, branchTreeView } from '../core/branchTree';
 import { BranchTree } from './components/BranchTree';
 import { ProgressBar } from './components/ProgressBar';
+import { Popup } from './components/Popup';
 import { meta } from '../state/meta';
+import { runBus } from '../state/navBus';
 import { itemDef } from '../core/equipment';
 import { masteryPanelModel } from './towerLabModel';
 import type { LiveMasteryView } from '../state/masteryEvents';
@@ -39,6 +41,51 @@ function InsHead({ title, onCollapse }: { title: string; onCollapse?: () => void
         </button>
       )}
     </div>
+  );
+}
+
+function TowerConfirmation({ title, className = '', onClose, children }: {
+  title: string; className?: string; onClose: () => void; children: ReactNode;
+}): JSX.Element {
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const closeRef = useRef(onClose);
+  closeRef.current = onClose;
+  useEffect(() => {
+    const previous = document.activeElement;
+    const panel = previous instanceof HTMLElement ? previous.closest<HTMLElement>('.inspector') : null;
+    dialogRef.current?.querySelector<HTMLButtonElement>('[data-confirm-cancel]')?.focus();
+    const stopPause = runBus.onPause(() => closeRef.current());
+    return () => {
+      stopPause();
+      if (previous instanceof HTMLElement && previous.isConnected && !previous.matches(':disabled')) previous.focus();
+      else if (panel?.isConnected) panel.focus();
+    };
+  }, []);
+  const onKey = (event: KeyboardEvent<HTMLDivElement>): void => {
+    event.stopPropagation(); // the confirmation owns keys, never the battlefield underneath
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      onClose();
+    } else if (event.key === 'Tab') {
+      const buttons = Array.from(event.currentTarget.querySelectorAll<HTMLButtonElement>('button:not(:disabled)'));
+      const first = buttons[0], last = buttons[buttons.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault(); last?.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault(); first?.focus();
+      }
+    }
+  };
+  return (
+    <Popup onClose={onClose}>
+      <div className="branch-confirm-overlay">
+        <div className={`branch-confirm ${className}`} ref={dialogRef} role="dialog" aria-modal="true" aria-label={title}
+          onKeyDown={onKey} onClick={(event) => event.stopPropagation()}>
+          <h3>{title}</h3>
+          {children}
+        </div>
+      </div>
+    </Popup>
   );
 }
 
@@ -199,7 +246,7 @@ export function Inspector({
 }): JSX.Element {
   // Tier-1 commit confirmation (the lock warning).
   const [confirm, setConfirm] = useState<{ towerId: number; branchId: string; name: string } | null>(null);
-  // Sell confirmation (docs/TOWER-MANAGEMENT.md §2) — a lightweight, non-modal centered popup.
+  // Sell confirmation (docs/TOWER-MANAGEMENT.md §2) — a centered, keyboard-contained prompt.
   const [sell, setSell] = useState<SelectedPlacedTower | null>(null);
 
   // ── Mutation panel: a PLACED tower is selected (the Tower Inspect redesign) ──
@@ -215,7 +262,7 @@ export function Inspector({
     const stats = branchStatsView(sp.kind, committedId, sp.tier);
     const hasBranches = tree.lanes.length > 0;
     return (
-      <aside className="side-panel inspector is-mutate" aria-label="Tower mutation panel">
+      <aside className="side-panel inspector is-mutate" aria-label="Tower mutation panel" tabIndex={-1}>
         <InsHead title="Mutate" onCollapse={onCollapse} />
         <div className="ins-title">
           <span className="ins-name" style={{ color: accent }}>{sp.name}</span>
@@ -320,10 +367,8 @@ export function Inspector({
 
         {/* Portal to <body> so the modal is a true screen-centered pop-up — rendering it inside the
             transformed/animated sidebar trapped `position: fixed` to the sidebar (warped + cut off). */}
-        {sell && createPortal(
-          <div className="branch-confirm-overlay" onClick={() => setSell(null)}>
-            <div className="branch-confirm sell-confirm" onClick={(e) => e.stopPropagation()}>
-              <h3>Sell {sell.name}?</h3>
+        {sell && (
+          <TowerConfirmation title={`Sell ${sell.name}?`} className="sell-confirm" onClose={() => setSell(null)}>
               <div className="sell-rows">
                 <div className="sell-row"><span>Current investment</span><b>{sell.sell.investment} biomass</b></div>
                 <div className="sell-row"><span>Tower refund</span><b className="sell-pos">+{sell.sell.towerRefund}</b></div>
@@ -335,17 +380,13 @@ export function Inspector({
               <p className="sell-warn" role="note">⚠ This tower is <b>permanently removed</b> for this run. Gene Cards, mastery, and stars are kept.</p>
               <div className="branch-confirm-btns">
                 <button className="primary" onClick={() => { onSell?.(sell.id); setSell(null); }}>Sell tower</button>
-                <button onClick={() => setSell(null)}>Cancel</button>
+                <button data-confirm-cancel onClick={() => setSell(null)}>Cancel</button>
               </div>
-            </div>
-          </div>,
-          document.body,
+          </TowerConfirmation>
         )}
 
-        {confirm && createPortal(
-          <div className="branch-confirm-overlay" onClick={() => setConfirm(null)}>
-            <div className="branch-confirm" onClick={(e) => e.stopPropagation()}>
-              <h3>Splice the {confirm.name} strain?</h3>
+        {confirm && (
+          <TowerConfirmation title={`Splice the ${confirm.name} strain?`} onClose={() => setConfirm(null)}>
               <p>
                 This <b>permanently</b> commits this tower to one mutation path for the rest of the
                 run. The other path is closed off. There is no reverting.
@@ -360,11 +401,9 @@ export function Inspector({
                 >
                   Commit
                 </button>
-                <button onClick={() => setConfirm(null)}>Cancel</button>
+                <button data-confirm-cancel onClick={() => setConfirm(null)}>Cancel</button>
               </div>
-            </div>
-          </div>,
-          document.body,
+          </TowerConfirmation>
         )}
       </aside>
     );
@@ -378,7 +417,7 @@ export function Inspector({
     const dps = def.fireInterval > 0 ? Math.round(def.damage / def.fireInterval) : 0;
     const rate = def.fireInterval > 0 ? (1 / def.fireInterval).toFixed(1) : null;
     return (
-      <aside className="side-panel inspector" aria-label="Tower inspector">
+      <aside className="side-panel inspector" aria-label="Tower inspector" tabIndex={-1}>
         <InsHead title="Inspect" onCollapse={onCollapse} />
         <div className="ins-title">
           <span className="ins-name" style={{ color: `var(--${cls})` }}>
@@ -420,7 +459,7 @@ export function Inspector({
   });
 
   return (
-    <aside className="side-panel inspector" aria-label="Run inspector">
+    <aside className="side-panel inspector" aria-label="Run inspector" tabIndex={-1}>
       <InsHead title="Hero Ops" onCollapse={onCollapse} />
 
       <div className={`hero-ops${hud.hero.down ? ' is-down' : ''}`} style={{ ['--hero' as string]: heroDef.color }}>

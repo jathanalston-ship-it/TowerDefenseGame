@@ -1,6 +1,6 @@
 {
-  "lastSha": "e4269aba63e6e6d6627f0ec1c7b93a2c68df2ac4",
-  "commitsSinceDraft": 4,
+  "lastSha": "5471e5d00974f316c210655fcc609c3892552f65",
+  "commitsSinceDraft": 5,
   "content": {
     "tower": [
       "needle",
@@ -4343,6 +4343,10 @@
         {
           "cat": "Audio",
           "text": "Recycling a conveyor organism now plays one confirmation sound instead of two overlapping copies. Unsuccessful attempts remain silent."
+        },
+        {
+          "cat": "UI",
+          "text": "Tower sale and first-branch confirmations now open with Cancel focused, contain keyboard navigation, and close with Escape. Pausing cancels an unfinished confirmation, keeping the Pause controls visible and focused."
         }
       ]
     }
@@ -9641,6 +9645,14 @@
       "date": "2026-11-09",
       "cat": "UI",
       "text": "Ui: clarify conveyor refunds and preserve focus",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "5471e5d00974f316c210655fcc609c3892552f65",
+      "date": "2026-11-09",
+      "cat": "Audio",
+      "text": "Avoid duplicate conveyor recycle cue",
       "internal": true,
       "needsReview": false
     }

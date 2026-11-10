@@ -17,6 +17,10 @@ export const RELEASES: Release[] = [
       {
         "cat": "Audio",
         "text": "Recycling a conveyor organism now plays one confirmation sound instead of two overlapping copies. Unsuccessful attempts remain silent."
+      },
+      {
+        "cat": "UI",
+        "text": "Tower sale and first-branch confirmations now open with Cancel focused, contain keyboard navigation, and close with Escape. Pausing cancels an unfinished confirmation, keeping the Pause controls visible and focused."
       }
     ]
   },

@@ -158,6 +158,8 @@ pre-lock. The lock logic (`branchId` pin) already enforces "one path per instanc
 2. **Buying Tier 1** opens a **confirmation modal**:
    > *"Splice the **{Branch}** strain? This permanently commits this tower to one
    > mutation path for the rest of the run. There is no reverting."* → **Commit / Cancel**.
+   Cancel receives initial keyboard focus; Tab stays in the named dialog, Escape cancels,
+   and closing restores focus to the opener or Inspector. Pausing cancels an uncommitted prompt.
 3. On commit: Tier 1 applies, the branch **locks** (other paths greyed for that
    instance), and Tiers 2–5 unlock sequentially as Biomass allows.
 4. Tiers 2–5 buy directly (no further lock warning — the commitment is already made).

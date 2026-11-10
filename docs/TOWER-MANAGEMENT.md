@@ -129,7 +129,9 @@ this extends the surrounding handlers:
 `game.click(px, py, { shift })` gains an options arg (Shift). Move mode is handled at
 the top of `click` (a tap lands/cancels the pickup). Nothing here blocks the sim or
 opens a full-screen modal — the only confirmation is the Sell dialog (a lightweight
-centered popup via the existing `createPortal` pattern, dismissible by click-away/ESC).
+centered `Popup`, dismissible by click-away/ESC). Cancel receives initial focus; Tab stays
+inside the named dialog, and closing restores the opener or surviving Inspector. A Pause
+request cancels the pending decision, so browser Back still opens Pause without stacking prompts.
 
 ---
 
