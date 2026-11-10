@@ -1,6 +1,6 @@
 {
-  "lastSha": "fc8fed3ae09de72b60cc77bd64066ad2838d63d5",
-  "commitsSinceDraft": 3,
+  "lastSha": "59e01366cbc12020b6d60d2904a57c29cee04b3c",
+  "commitsSinceDraft": 4,
   "content": {
     "tower": [
       "needle",
@@ -4753,12 +4753,16 @@
     {
       "id": "v2026.11.10.14",
       "date": "2026-11-10",
-      "title": "Clearer Field Manual",
+      "title": "Clearer Help and Previews",
       "sealed": false,
       "entries": [
         {
           "cat": "UI",
           "text": "Help search now reports matching topics and gives accurate guidance when no results are found. A Clear search button restores unlocked topics and returns keyboard focus to the search field."
+        },
+        {
+          "cat": "UI",
+          "text": "The Mulligan Lab graft preview now follows live motion preferences, pauses while offscreen or hidden, and resumes when visible. Reduced motion keeps a still preview that updates when your graft changes."
         }
       ]
     }
@@ -10953,6 +10957,14 @@
       "date": "2026-11-10",
       "cat": "Framework",
       "text": "Docs: record verified reward feedback deployment",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "59e01366cbc12020b6d60d2904a57c29cee04b3c",
+      "date": "2026-11-10",
+      "cat": "UI",
+      "text": "Ui: clarify empty help searches and recovery",
       "internal": true,
       "needsReview": false
     }

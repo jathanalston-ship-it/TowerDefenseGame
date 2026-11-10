@@ -8,6 +8,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { meta } from '../state/meta';
+import { motionPrefs, onMotionPrefs, resolveMotion } from '../state/prefs';
 import { TOWER_DEFS } from '../core/config';
 import type { TowerKind } from '../core/types';
 import { mulliganLabView, recommendModifiers } from '../state/mulliganLabModel';
@@ -43,6 +44,7 @@ const SORT_LABEL: Record<ModSort, string> = {
  *  DPR-crisp; draws a single static frame under prefers-reduced-motion (the organism is information,
  *  not ambience — it must still be visible); rAF self-pauses while the tab is hidden. */
 function OrganismPreview({ kind }: { kind: TowerKind }): JSX.Element {
+  const organism = meta.use().mulligans?.[kind];
   const ref = useRef<HTMLCanvasElement>(null);
   const SIZE = 220;
   useEffect(() => {
@@ -56,23 +58,50 @@ function OrganismPreview({ kind }: { kind: TowerKind }): JSX.Element {
     const draw = (now: number): void => {
       ctx.clearRect(0, 0, SIZE, SIZE);
       const cx = SIZE / 2, cy = SIZE / 2, r = 46;
-      const st = meta.get().mulligans?.[kind];
+      const st = organism;
       const resolved = resolveMulligan(st, TOWER_DEFS[kind].combatClass);
       // The organism wraps the host: organs behind the body AND reaching over it (battlefield layering).
       if (st) drawMulliganOrganism(ctx, cx, cy, r, resolved, st.visualSeed, st.animSeed, now, 0);
       drawTowerForm(ctx, kind, cx, cy, r, TOWER_DEFS[kind].color, now, 0, 1);
       if (st) drawMulliganOrganism(ctx, cx, cy, r, resolved, st.visualSeed, st.animSeed, now, 0);
     };
-    if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) { draw(0); return; }
     let raf = 0;
-    const t0 = performance.now();
+    let visible = true;
+    let elapsed = 0;
+    let previous: number | null = null;
+    let prefs = motionPrefs();
+    const media = window.matchMedia?.('(prefers-reduced-motion: reduce)');
     const loop = (nowMs: number): void => {
-      draw((nowMs - t0) / 1000);
+      if (previous !== null) elapsed += (nowMs - previous) / 1000;
+      previous = nowMs;
+      draw(elapsed);
       raf = requestAnimationFrame(loop);
     };
-    raf = requestAnimationFrame(loop);
-    return () => cancelAnimationFrame(raf);
-  }, [kind]);
+    const sync = (): void => {
+      cancelAnimationFrame(raf);
+      previous = null;
+      if (!visible || document.hidden) return;
+      if (resolveMotion(prefs, media?.matches ?? false).motion === 0) draw(0);
+      else raf = requestAnimationFrame(loop);
+    };
+    draw(0);
+    const observer = typeof IntersectionObserver === 'undefined' ? null : new IntersectionObserver(([entry]) => {
+      visible = entry.isIntersecting;
+      sync();
+    });
+    observer?.observe(cv);
+    const offPrefs = onMotionPrefs((next) => { prefs = next; sync(); });
+    media?.addEventListener('change', sync);
+    document.addEventListener('visibilitychange', sync);
+    sync();
+    return () => {
+      cancelAnimationFrame(raf);
+      observer?.disconnect();
+      offPrefs();
+      media?.removeEventListener('change', sync);
+      document.removeEventListener('visibilitychange', sync);
+    };
+  }, [kind, organism]);
   return <canvas ref={ref} className="mgl-canvas" style={{ width: SIZE, height: SIZE }} aria-hidden />;
 }
 

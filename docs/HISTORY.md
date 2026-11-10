@@ -818,3 +818,4 @@
 - `7d75368` **[UI]** Ui: retain keyboard focus after reward reveal skip _(internal)_
 - `da7800d` **[Framework]** Release: publish clearer reward feedback _(internal)_
 - `fc8fed3` **[Framework]** Docs: record verified reward feedback deployment _(internal)_
+- `59e0136` **[UI]** Ui: clarify empty help searches and recovery _(internal)_

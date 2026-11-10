@@ -342,3 +342,5 @@ the ⟡ crown on adapted rail rows, the class-hued orbiting-thorn crown on the o
 readout, and the COMPLETE CLASS ADAPTATION ceremony (dedicated `adapt` cue) on the equip that
 synchronizes. Genome Rank's mulligan measure now blends assembly + full adaptations
 (`(assembled + adapted) / (towers × 2)`).
+
+Organism preview lifecycle: the lab follows shared resolved motion preferences and live device changes. It paints a still frame when motion is reduced, pauses animation while offscreen/hidden, resumes without hidden-time jumps, and releases observers/listeners/frames on unmount. Reactive organism identity redraws even the still preview after a graft change. Rendering, graft rules, costs and Power calculations are unchanged.

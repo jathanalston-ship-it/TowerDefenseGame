@@ -863,3 +863,5 @@ InitCutscene visibility lifecycle pauses scene holds, gate/film/dive clocks and 
 ## Champion Contracts display clock
 
 `ui/components/ContractsCard.tsx` refreshes its visible board every minute and on tab return, using one timestamp for roster, completion keys and countdown. See `docs/CONTRACTS.md`; no contract rule or reward changes.
+
+`ui/MulliganLab.tsx` organism previews follow live shared/device motion preferences, pause when offscreen/hidden and redraw still graft changes. See `docs/MULLIGANS.md`; simulation, graft costs and Power are unchanged.

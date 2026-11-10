@@ -7,12 +7,16 @@ export const RELEASES: Release[] = [
   {
     "id": "v2026.11.10.14",
     "date": "2026-11-10",
-    "title": "Clearer Field Manual",
+    "title": "Clearer Help and Previews",
     "sealed": false,
     "entries": [
       {
         "cat": "UI",
         "text": "Help search now reports matching topics and gives accurate guidance when no results are found. A Clear search button restores unlocked topics and returns keyboard focus to the search field."
+      },
+      {
+        "cat": "UI",
+        "text": "The Mulligan Lab graft preview now follows live motion preferences, pauses while offscreen or hidden, and resumes when visible. Reduced motion keeps a still preview that updates when your graft changes."
       }
     ]
   },
