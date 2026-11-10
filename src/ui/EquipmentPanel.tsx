@@ -134,6 +134,9 @@ function ArmoryBody(): JSX.Element {
       }
     });
 
+  const visibleSelected = shown.filter((i) => selected.has(i.uid) && meta.canSalvage(i.uid)).length;
+  const hiddenSelected = Math.max(0, salvagePreview.count - visibleSelected);
+
   const cardFor = (item: OwnedItem): JSX.Element | null => {
     const def = itemDef(item.defId);
     if (!def) return null;
@@ -379,7 +382,7 @@ function ArmoryBody(): JSX.Element {
           <span className="asb-grab" aria-label="Quick-grab dismantlable gear by rarity">
             {(['common', 'rare'] as Rarity[]).filter((r) => raritiesPresent.includes(r)).map((r) => (
               <button key={r} className="asb-chip" style={{ ['--rc' as string]: rarityColor(r) }} onClick={() => grabUpTo(r)}
-                title={`Select every unlocked, unequipped ${rarityLabelOf(r)}${r === 'common' ? '' : '-or-below'} item`}>
+                title={`Select every unlocked, unequipped ${rarityLabelOf(r)}${r === 'common' ? '' : '-or-below'} item across your full inventory, including gear hidden by filters`}>
                 {r === 'common' ? rarityLabelOf(r) : `≤ ${rarityLabelOf(r)}`}
               </button>
             ))}
@@ -387,7 +390,7 @@ function ArmoryBody(): JSX.Element {
               <button className="asb-chip is-clear" onClick={() => { setSelected(new Set()); setConfirmSalvage(false); }}>None</button>
             )}
           </span>
-          <span className="asb-count">{salvagePreview.count > 0 ? `${salvagePreview.count} selected` : 'Tap gear — or grab a rarity'}</span>
+          <span className="asb-count" role="status">{salvagePreview.count > 0 ? `${salvagePreview.count} selected${hiddenSelected > 0 ? ` · ${hiddenSelected} hidden by filters` : ''}` : 'Tap gear — or grab a rarity'}</span>
           <button className="asb-cancel" onClick={exitSalvage}>Cancel</button>
           <button
             className="asb-go"

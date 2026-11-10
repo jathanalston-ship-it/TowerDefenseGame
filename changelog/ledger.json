@@ -1,6 +1,6 @@
 {
-  "lastSha": "2a0cf6b1af2204b6677983579aa6ba583bf16ad2",
-  "commitsSinceDraft": 9,
+  "lastSha": "316bca10cb32f1f4085dffc675cea992fec2de1a",
+  "commitsSinceDraft": 0,
   "content": {
     "tower": [
       "needle",
@@ -4681,7 +4681,7 @@
     {
       "id": "v2026.11.10.12",
       "date": "2026-11-10",
-      "title": "Upgrade Guidance",
+      "title": "Clearer Progress and Gear",
       "sealed": false,
       "entries": [
         {
@@ -4707,6 +4707,10 @@
         {
           "cat": "Bug Fixes",
           "text": "The Armory keeps your selected rarity filter visible even after its last item is removed. Clear filters restores all categories, rarities, and favorites while keeping your sort choice; filter buttons now expose their selected state."
+        },
+        {
+          "cat": "UI",
+          "text": "Quick-Salvage now tells you how many selected items are hidden by your current filters. Quick-grab tooltips clarify that they cover the full inventory; clearing filters preserves the selected batch and the existing confirmation steps."
         }
       ]
     }
@@ -10789,6 +10793,14 @@
       "date": "2026-11-10",
       "cat": "UI",
       "text": "Refresh the visible weekly contract board",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "316bca10cb32f1f4085dffc675cea992fec2de1a",
+      "date": "2026-11-10",
+      "cat": "UI",
+      "text": "Ui: keep armory filters recoverable after inventory changes",
       "internal": true,
       "needsReview": false
     }

@@ -1,7 +1,7 @@
 [
   {
     "date": "2026-11-10",
-    "title": "Upgrade Guidance",
+    "title": "Clearer Progress and Gear",
     "categories": [
       "UI",
       "Bug Fixes"
@@ -30,6 +30,10 @@
       {
         "cat": "Bug Fixes",
         "text": "The Armory keeps your selected rarity filter visible even after its last item is removed. Clear filters restores all categories, rarities, and favorites while keeping your sort choice; filter buttons now expose their selected state."
+      },
+      {
+        "cat": "UI",
+        "text": "Quick-Salvage now tells you how many selected items are hidden by your current filters. Quick-grab tooltips clarify that they cover the full inventory; clearing filters preserves the selected batch and the existing confirmation steps."
       }
     ]
   },
