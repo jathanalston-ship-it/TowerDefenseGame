@@ -366,3 +366,9 @@ Validation: production build84638 PASS6.50s; subsequent typecheck87169 PASS with
 AchievementPanel labels earned/in-progress/undiscovered states explicitly, names Genome Core rewards below goal text, and shows existing next-rung ladder rewards. Removed whole-card opacity from unfinished cards; secret names/descriptions/rewards remain concealed. No checks, thresholds, grants or saves changed. Manifest's obsolete Shard reward description corrected to Genome Cores.
 
 Validation: production build82292 PASS6.16s;17achievement tests+4site-sync tests PASS; docs87144 PASS. ../achievement-panel-check.cjs actual Chrome PASS earned status, concealed secret names/rewards, matching ladder previews, normal unfinished opacity and all-card overflow checks at1366/390/320. ../achievement-panel.png visually reviewed. Five website notes generated for .10.2, not deployed. All processes terminal; next approximate deploy09:03UTC.
+
+## 2026-11-10 — Trophy Rack instructions (local .10.2)
+
+Profile trophy cards expose mounted state with aria-pressed, visible mount/unmount/full-rack instructions, and locked source requirements. Next-slot hint derives from TROPHY_SLOT_THRESHOLDS; disabled cards remain readable. Real equipTrophy logic, ownership, slot limits and effects unchanged.
+
+Validation: build61662 PASS (before final article wording correction);13Nemesis tests and4site-sync tests PASS. Actual Chrome ../trophy-rack-check.cjs PASS twice, including final wording: real boss ownership, Space mount/Enter unmount, pressed state/full-rack handling,5/12 thresholds and all-card fit1366/390/320. ../trophy-rack.png reviewed. Final typecheck69908 and docs35776 terminal PASS. Six unsealed .10.2 website notes; next approximate release09:03UTC.

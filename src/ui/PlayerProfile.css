@@ -444,7 +444,8 @@
 
 .pf-trophy.on b { color: var(--gold); }
 
-.pf-trophy.is-locked { opacity: 0.45; }
+.pf-trophy:disabled { opacity: 1; }
+.pf-trophy-state { color: var(--muted); font-size: 11px; line-height: 1.4; }
 
 .pf-trophy.is-venge { background: color-mix(in srgb, var(--caustic) 7%, var(--panel-2)); border-color: color-mix(in srgb, var(--caustic) 35%, var(--line)); }
 

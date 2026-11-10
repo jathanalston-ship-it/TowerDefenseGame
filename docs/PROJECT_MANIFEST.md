@@ -475,7 +475,7 @@ ladders. 4. Every permanent progression source must move the Power Score (valida
 - **Dependencies:** run summaries + lifetime stats; rewards auto-grant.
 - **Files:** `state/achievements.ts` (defs + checker), `ui/AchievementPanel.tsx`,
   `ui/AchievementToaster.tsx`, inline strip in `ui/RewardReveal.tsx`.
-- **Related:** Stats, Results (end-of-run reveal), notifications (profile badge).
+- **Related:** Stats, Results (end-of-run reveal), notifications (profile badge). The Profile Trophy Rack names mounted/owned/full/locked states and unlock sources; next-slot guidance derives from TROPHY_SLOT_THRESHOLDS.
 - **Future expansion:** an achievement is a def row (`test`, `progress`, `reward`).
 - **Known limitations:** flat list (no chains/categories yet).
 - **Developer tips:** achievements check on run finish (`checkAchievements`) — a new stat needs

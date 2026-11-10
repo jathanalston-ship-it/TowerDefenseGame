@@ -723,3 +723,4 @@
 - `c62fb01` **[UI]** Ui: preserve keyboard focus while dismissing rewards _(internal)_
 - `6c7d2ea` **[UI]** Ui: keep container notifications readable and keyboard accessible _(internal)_
 - `12be6e8` **[UI]** Ui: defer update prompts until the hub _(internal)_
+- `a89e537` **[UI]** Clarify achievement status and rewards _(internal)_

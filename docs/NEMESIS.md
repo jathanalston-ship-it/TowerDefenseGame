@@ -78,3 +78,7 @@ vengeance-trophy ledger AND the hunt's rap sheet). All additive/migrated, saniti
   test-pinned). **New megas** grow their Relic automatically (generator over `megaBossRegistry`).
 - **Re-tune the hunt** entirely from data: `NEMESIS` (caps, reward curve) + `GRUDGE_LADDER`
   (tier thresholds + per-rung traits) — no logic edits, and the sim + UI both read the same folds.
+
+### Rack controls and readable states
+
+Profile trophy buttons expose aria-pressed for mounted organs and visible mounted/owned/full-rack/locked instructions. Locked chassis and Vengeance organs name the required boss type or revenge; Mega relics name their boss in the card title. Unavailable cards remain readable and disabled, and the next-slot threshold is read from TROPHY_SLOT_THRESHOLDS. Keyboard Space/Enter uses the existing equipTrophy operation; no ownership, limits, effects or guards change.

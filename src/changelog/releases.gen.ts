@@ -29,6 +29,10 @@ export const RELEASES: Release[] = [
       {
         "cat": "UI",
         "text": "Achievement cards show Earned, In progress, or Undiscovered in text, with brighter unfinished goals and clearly named Genome Core rewards. Ladder cards also preview their next reward; secret milestones remain concealed until earned."
+      },
+      {
+        "cat": "UI",
+        "text": "The Trophy Rack labels mounted and owned organs, explains full-rack restrictions and locked trophy sources, and shows when the next slot unlocks. Mounted trophies expose their selected state to assistive technology, while unavailable trophy details remain readable."
       }
     ]
   },

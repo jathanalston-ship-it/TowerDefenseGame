@@ -1,6 +1,6 @@
 {
-  "lastSha": "12be6e85dfe2d662eaa5f08c08403c213dcda63d",
-  "commitsSinceDraft": 1,
+  "lastSha": "a89e5371ef87da7c5830617a4075c725a8ae1bd3",
+  "commitsSinceDraft": 2,
   "content": {
     "tower": [
       "needle",
@@ -4419,6 +4419,10 @@
         {
           "cat": "UI",
           "text": "Achievement cards show Earned, In progress, or Undiscovered in text, with brighter unfinished goals and clearly named Genome Core rewards. Ladder cards also preview their next reward; secret milestones remain concealed until earned."
+        },
+        {
+          "cat": "UI",
+          "text": "The Trophy Rack labels mounted and owned organs, explains full-rack restrictions and locked trophy sources, and shows when the next slot unlocks. Mounted trophies expose their selected state to assistive technology, while unavailable trophy details remain readable."
         }
       ]
     }
@@ -9853,6 +9857,14 @@
       "date": "2026-11-10",
       "cat": "UI",
       "text": "Ui: defer update prompts until the hub",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "a89e5371ef87da7c5830617a4075c725a8ae1bd3",
+      "date": "2026-11-10",
+      "cat": "UI",
+      "text": "Clarify achievement status and rewards",
       "internal": true,
       "needsReview": false
     }

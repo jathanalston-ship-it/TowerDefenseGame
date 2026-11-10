@@ -4,8 +4,8 @@
 > before committing. Read together with docs/PROJECT_STATUS.md and the latest
 > docs/VALIDATION_REPORT.md. Next session: start at docs/PROJECT_MANIFEST.md.
 
-- **Generated:** 2026-11-10 08:31 UTC · **Diff scope:** working tree vs HEAD
-- **Branch:** codex/hive-autoplay · **HEAD:** 12be6e85
+- **Generated:** 2026-11-10 08:35 UTC · **Diff scope:** working tree vs HEAD
+- **Branch:** codex/hive-autoplay · **HEAD:** a89e5371
 
 ## Summary of work completed
 
@@ -13,15 +13,15 @@ LIVE v2026.11.10.1 Clearer Run Controls, seven sealed website notes. SHAa6249d38
 
 ## Files modified
 
-- Source (3): `src/changelog/releases.gen.ts`, `src/ui/AchievementPanel.tsx`, `src/ui/PlayerProfile.css`
+- Source (3): `src/changelog/releases.gen.ts`, `src/ui/PlayerProfile.css`, `src/ui/PlayerProfile.tsx`
 - Tests (0): —
-- Docs (7): `docs/HISTORY.md`, `docs/PROGRESSION-SYSTEMS.md`, `docs/PROJECT_MANIFEST.md`, `docs/PROJECT_STATUS.md`, `docs/VALIDATION_REPORT.md`, `docs/devlog/DRAFT-2026-11-09.md`, `docs/devlog/DRAFT-2026-11-10.md`
+- Docs (7): `docs/HISTORY.md`, `docs/NEMESIS.md`, `docs/PROJECT_MANIFEST.md`, `docs/PROJECT_STATUS.md`, `docs/VALIDATION_REPORT.md`, `docs/devlog/DRAFT-2026-11-09.md`, `docs/devlog/DRAFT-2026-11-10.md`
 
 ## Systems affected (from the dependency registry)
 
-- **achievements** — `src/ui/AchievementPanel.tsx`
 - **chronicle** — `src/changelog/releases.gen.ts`
-- Consumer ring (verify, unchanged): profile
+- **profile** — `src/ui/PlayerProfile.tsx`
+- Consumer ring (verify, unchanged): accounts, onboarding, threat
 
 ## Power Score changes
 
@@ -49,7 +49,7 @@ Final3150 full suite passed before the two-line current-destination drawer fix. 
 
 ## Recommended next tasks
 
-Local v2026.11.10.2 Rewards You Can Read has five unsealed website notes: account level reading, reward focus, container reading, update prompts, achievement clarity. Latest AchievementPanel visible status and currency labels plus ladder reward previews; hidden content preserved. Build82292 PASS6.16s,17achievement+4site tests PASS, docs87144 PASS. ../achievement-panel-check.cjs PASS all-card layout at1366/390/320 and secret/status/reward invariants; screenshot reviewed. All processes terminal. Next deploy roughly09:03UTC; live .10.1 SHAa6249d38 remains. Continue clarity/accessibility audit, then final full/mobile gates and seal/deploy with website notes. Exclude two untracked devlog drafts. Goal active.
+Local v2026.11.10.2 Rewards You Can Read has six unsealed notes: account/reward/container/update notifications, achievements, Trophy Rack. Latest rack guidance and pressed state verified against real boss ownership and equip actions in ../trophy-rack-check.cjs; final wording re-PASS, all cards fit1366/390/320. Build61662 PASS before wording-only correction;13Nemesis+4site tests PASS. Final typecheck69908 and docs35776 terminal PASS; all processes stopped. All browser/dev processes stopped. Next deploy roughly09:03UTC; live .10.1 SHAa6249d38 unchanged. Continue audit then full/mobile final release checks, seal/build/push and verify website notes. Exclude both untracked devlog drafts. Goal active.
 
 ## Future expansion hooks
 
