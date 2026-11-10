@@ -8,7 +8,7 @@ export const RELEASES: Release[] = [
     "id": "v2026.11.10.1",
     "date": "2026-11-10",
     "title": "Clearer Run Controls",
-    "sealed": false,
+    "sealed": true,
     "entries": [
       {
         "cat": "UI",
@@ -33,6 +33,10 @@ export const RELEASES: Release[] = [
       {
         "cat": "UI",
         "text": "Buying a cooldown upgrade during recharge no longer makes the ability gauge jump backward. The active gauge follows its current cast; the shorter cooldown is shown when it is ready for the next cast."
+      },
+      {
+        "cat": "UI",
+        "text": "Tap or keyboard-activate the Hero Ops ability wheel to read its status and description inside the panel. The explanation stays readable instead of being clipped at the panel edge; Escape closes it without interrupting play."
       }
     ]
   },

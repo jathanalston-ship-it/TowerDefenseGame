@@ -2592,7 +2592,9 @@
 
 .ho-evo { font-size: 10px; font-weight: 800; color: var(--kinetic); }
 
-.ho-ability { position: relative; width: 44px; height: 44px; flex: none; }
+.ho-ability { position: relative; width: 44px; height: 44px; flex: none; padding: 0; border: 0; border-radius: 50%; background: transparent; }
+.ho-ab-info { position: absolute; left: -2px; bottom: -2px; display: grid; place-items: center; width: 16px; height: 16px; border-radius: 50%; background: var(--panel-2); border: 1px solid var(--line-strong); color: var(--text); font-size: 10px; font-weight: 800; }
+.ho-ability-detail { margin: 10px 0 0; overflow-wrap: anywhere; }
 
 .ho-ab-wheel {
   position: absolute;

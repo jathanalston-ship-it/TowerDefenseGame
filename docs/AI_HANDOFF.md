@@ -4,8 +4,8 @@
 > before committing. Read together with docs/PROJECT_STATUS.md and the latest
 > docs/VALIDATION_REPORT.md. Next session: start at docs/PROJECT_MANIFEST.md.
 
-- **Generated:** 2026-11-10 07:44 UTC · **Diff scope:** working tree vs HEAD
-- **Branch:** codex/hive-autoplay · **HEAD:** b7eeefd9
+- **Generated:** 2026-11-10 07:53 UTC · **Diff scope:** working tree vs HEAD
+- **Branch:** codex/hive-autoplay · **HEAD:** 7dea6a61
 
 ## Summary of work completed
 
@@ -13,15 +13,14 @@ Release v2026.11.09.7 Clearer Battlefield Choices is LIVE. SHA4ae0d15ecca52bda8a
 
 ## Files modified
 
-- Source (2): `src/changelog/releases.gen.ts`, `src/core/game.ts`
-- Tests (1): `src/core/heroSelect.test.ts`
-- Docs (6): `docs/HERO-SELECTION.md`, `docs/HISTORY.md`, `docs/HUD.md`, `docs/PROJECT_MANIFEST.md`, `docs/devlog/DRAFT-2026-11-09.md`, `docs/devlog/DRAFT-2026-11-10.md`
+- Source (3): `src/changelog/releases.gen.ts`, `src/ui/GameView.css`, `src/ui/Inspector.tsx`
+- Tests (0): —
+- Docs (5): `docs/HISTORY.md`, `docs/HUD.md`, `docs/PROJECT_MANIFEST.md`, `docs/devlog/DRAFT-2026-11-09.md`, `docs/devlog/DRAFT-2026-11-10.md`
 
 ## Systems affected (from the dependency registry)
 
 - **chronicle** — `src/changelog/releases.gen.ts`
-- **engine** — `src/core/game.ts`
-- Consumer ring (verify, unchanged): arena, audio, boss-rush, bosses, campaign, class-bonds, daily, hero-cinematics, heroes, hive-mind, infinite, living-battlefield, map-layouts, mega-bosses, nemesis, onboarding, online-foundation, rendering, run-ui
+- **run-ui** — `src/ui/Inspector.tsx`
 
 ## Power Score changes
 
@@ -49,7 +48,7 @@ Final3150 full suite passed before the two-line current-destination drawer fix. 
 
 ## Recommended next tasks
 
-Continue local v2026.11.10.1 Clearer Run Controls, six unsealed notes. Latest cast-cycle display fix keeps a running ability gauge stable across Overdrive purchases, applies new duration when ready/next cast.21heroSelect tests PASS; ../hero-midcooldown-check.cjs baseline25%→0 despite same6s; fixed25%→25%. Full14798 PASS353files/3172tests187.38s. Mobile57569 PASS27screens/nine gameplay viewports on recovery build before latest readout-only fix; no subsequent UI/CSS changes. Docs28636 PASS. Final build57126 PASS; all processes terminal. ../verify-current-release.ps1 prepared for next deploy. Latest live .7 SHA4ae0d15e, next deployment roughly08:14UTC. Exclude both devlog drafts. Goal active; codex/hive-autoplay → claude/zen-hawking-rh1gxl. Website notes mandatory.
+Deploy v2026.11.10.1 Clearer Run Controls, seven SEALED notes. Final follow-up makes Hero Ops wheel an inline disclosure to avoid clipped tooltip; actual full GameView Space/Escape and standalone three viewport checks PASS. Screenshot ../hero-details-panel.png inspected. Readiness AX and tower confirmation matrix re-PASS.40tests PASS after UI/CSS follow-up; full3172 suite passed before it. Sealed build54139 PASS5.47s and four site tests PASS; docs53698 PASS. Final mobile46835 PASS27screens/nine gameplay viewports(run-controls-final-mobile.log). All sessions terminal. No other running processes. All12 descriptions fit168px sidebar/340px high browser probe. After gates update validation/commit/push from codex/hive-autoplay to claude/zen-hawking-rh1gxl; verify Actions exact SHA and ../verify-current-release.ps1. Last LIVE .7 SHA4ae0d15e. Exclude both devlog drafts. Goal active; target roughly08:14UTC deployment.
 
 ## Future expansion hooks
 

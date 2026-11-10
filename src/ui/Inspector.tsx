@@ -4,7 +4,7 @@
 //   • a tower KIND is armed for placement → its live combat stats (mobile stat readout);
 //   • otherwise → hero status + a live run summary so the panel is never dead space.
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useId, useMemo, useRef, useState } from 'react';
 import type { KeyboardEvent, ReactNode } from 'react';
 import { HERO_DEFS, TOWER_DEFS } from '../core/config';
 import { branchStatsView, branchTreeView } from '../core/branchTree';
@@ -246,6 +246,8 @@ export function Inspector({
   onMove?: (towerId: number) => void;
   onCancelMove?: () => void;
 }): JSX.Element {
+  const abilityDetailsId = useId();
+  const [abilityDetails, setAbilityDetails] = useState(false);
   // Tier-1 commit confirmation (the lock warning).
   const [confirm, setConfirm] = useState<{ towerId: number; branchId: string; name: string } | null>(null);
   // Sell confirmation (docs/TOWER-MANAGEMENT.md §2) — a centered, keyboard-contained prompt.
@@ -494,21 +496,32 @@ export function Inspector({
               </span>
             )}
           </div>
-          <div
-            className={`ho-ability tt${hud.hero.abilityReady ? ' is-ready' : ''}`}
-            role="img"
-            tabIndex={0}
+          <button
+            type="button"
+            className={`ho-ability${hud.hero.abilityReady ? ' is-ready' : ''}`}
             style={{ ['--ab' as string]: abPct }}
-            aria-label={`${heroDef.ability.name} — ${abilityStatus}`}
+            aria-label={`${heroDef.ability.name} — ${abilityStatus} · Ability details`}
             aria-description={heroDef.ability.blurb}
+            aria-expanded={abilityDetails}
+            aria-controls={abilityDetails ? abilityDetailsId : undefined}
+            onClick={() => setAbilityDetails((open) => !open)}
+            onKeyDown={(event) => {
+              if (event.key === 'Escape' && abilityDetails) {
+                event.preventDefault(); event.stopPropagation(); setAbilityDetails(false);
+              }
+            }}
           >
             <span className="ho-ab-wheel" aria-hidden />
             <span className="ho-ab-icon" aria-hidden>⚡</span>
             {!hud.hero.abilityReady && !hud.hero.down && <span className="ho-ab-cd">{Math.ceil(hud.hero.abilityCd)}</span>}
-            <span className="tt-bubble">{heroDef.ability.name} — {abilityStatus} · {heroDef.ability.blurb}</span>
-          </div>
+            <span className="ho-ab-info" aria-hidden>i</span>
+          </button>
         </div>
-
+        {abilityDetails && (
+          <p id={abilityDetailsId} className="ins-blurb ho-ability-detail">
+            <b>{heroDef.ability.name} · {abilityStatus}</b><br />{heroDef.ability.blurb}
+          </p>
+        )}
         {hud.hero.down ? (
           <div className="ho-down" role="status">REGENERATING · {Math.ceil(hud.hero.respawn)}s</div>
         ) : (
