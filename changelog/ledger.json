@@ -1,6 +1,6 @@
 {
-  "lastSha": "2d318f3a38df5d97a71c9a28a808e1f3749fe0e3",
-  "commitsSinceDraft": 0,
+  "lastSha": "f832f0871e29531214478252e6305832ca53006a",
+  "commitsSinceDraft": 1,
   "content": {
     "tower": [
       "needle",
@@ -4535,6 +4535,10 @@
         {
           "cat": "UX",
           "text": "Collection rank-up celebrations now support keyboard focus, Escape dismissal and live reduced-motion preferences. Long promotion lists scroll within the popup, keeping Continue reachable on small screens and in landscape."
+        },
+        {
+          "cat": "UX",
+          "text": "Collection browsing now keeps keyboard focus with you: arrow keys, Home and End switch Codex sections, opening a category focuses its heading, and returning to all categories restores the tile you came from."
         }
       ]
     }
@@ -10201,6 +10205,14 @@
       "date": "2026-11-10",
       "cat": "UI",
       "text": "Ui: make recovered memories easier to find and replay",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "f832f0871e29531214478252e6305832ca53006a",
+      "date": "2026-11-10",
+      "cat": "UI",
+      "text": "Ui: make collection celebrations accessible",
       "internal": true,
       "needsReview": false
     }

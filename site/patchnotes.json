@@ -13,6 +13,10 @@
       {
         "cat": "UX",
         "text": "Collection rank-up celebrations now support keyboard focus, Escape dismissal and live reduced-motion preferences. Long promotion lists scroll within the popup, keeping Continue reachable on small screens and in landscape."
+      },
+      {
+        "cat": "UX",
+        "text": "Collection browsing now keeps keyboard focus with you: arrow keys, Home and End switch Codex sections, opening a category focuses its heading, and returning to all categories restores the tile you came from."
       }
     ]
   },

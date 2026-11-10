@@ -204,7 +204,7 @@ function nextRankText(c: CollectionCategory): string {
 function CategoryTile({ c, onOpen }: { c: CollectionCategory; onOpen: () => void }): JSX.Element {
   const color = RANK_COLORS[c.rank];
   return (
-    <button className="cx-tile" style={{ ['--cxc' as string]: color }} onClick={onOpen}>
+    <button className="cx-tile" data-category={c.id} style={{ ['--cxc' as string]: color }} onClick={onOpen}>
       <span className="cx-tile-top">
         <b className="cx-tile-name">{c.name}</b>
         <RankBadge rank={c.rank} size={10} />
@@ -221,12 +221,14 @@ function CategoryTile({ c, onOpen }: { c: CollectionCategory; onOpen: () => void
 /** The drilled-in category page: back row, header, reward track, bonuses, every entry. */
 function CategoryDetail({ c, onBack }: { c: CollectionCategory; onBack: () => void }): JSX.Element {
   const color = RANK_COLORS[c.rank];
+  const titleRef = useRef<HTMLHeadingElement>(null);
+  useEffect(() => { titleRef.current?.focus(); }, [c.id]);
   return (
     <div className="cx-detail" style={{ ['--cxc' as string]: color }}>
       <button className="cx-back" onClick={onBack}>‹ All categories</button>
       <div className="cx-detail-head">
         <div className="cx-detail-title">
-          <h3>{c.name}</h3>
+          <h3 ref={titleRef} tabIndex={-1}>{c.name}</h3>
           <RankBadge rank={c.rank} />
         </div>
         <span className="cx-detail-count">{c.discovered}/{c.total} · {Math.round(c.completion * 100)}%</span>
@@ -309,6 +311,9 @@ type CxTab = (typeof CX_TABS)[number]['id'];
 /** Codex as a dedicated headquarters screen. Reflects meta.collection() / meta.collectionRewards();
  * read-only, except it polls session rank-ups on mount to celebrate promotions. */
 export function CollectionScreen(): JSX.Element {
+  const screenId = useId();
+  const screenRef = useRef<HTMLDivElement>(null);
+  const returnCategory = useRef<string | null>(null);
   const view = useMemo(() => meta.collection(), []);
   const rewards = useMemo(() => meta.collectionRewards(), []);
   const memories = useMemo(() => meta.cutscenesView(), []);
@@ -319,12 +324,20 @@ export function CollectionScreen(): JSX.Element {
   const memUnlocked = memories.filter((m) => m.unlocked).length;
 
   useEffect(() => {
+    if (openCat !== null || returnCategory.current === null) return;
+    const tile = Array.from(screenRef.current?.querySelectorAll<HTMLButtonElement>('[data-category]') ?? [])
+      .find((button) => button.dataset.category === returnCategory.current);
+    tile?.focus();
+    returnCategory.current = null;
+  }, [openCat]);
+
+  useEffect(() => {
     const { rankUps, powerGain } = meta.pollCollectionRankUps();
     if (rankUps.length > 0) setCelebration({ rankUps, powerGain });
   }, []);
 
   return (
-    <div className="collection cx" style={{ color: '#dfe8f2' }}>
+    <div ref={screenRef} className="collection cx" style={{ color: '#dfe8f2' }}>
       <style>{KEYFRAMES}</style>
 
       {/* ── MASTHEAD — the whole collection at a glance ── */}
@@ -350,9 +363,22 @@ export function CollectionScreen(): JSX.Element {
           <button
             key={t.id}
             role="tab"
+            id={`${screenId}-tab-${t.id}`}
+            aria-controls={`${screenId}-panel-${t.id}`}
             aria-selected={tab === t.id}
+            tabIndex={tab === t.id ? 0 : -1}
             className={`wing-tab${tab === t.id ? ' on' : ''}`}
             onClick={() => { setTab(t.id); setOpenCat(null); }}
+            onKeyDown={(e) => {
+              const index = CX_TABS.findIndex((entry) => entry.id === t.id);
+              const next = e.key === 'ArrowRight' ? (index + 1) % CX_TABS.length
+                : e.key === 'ArrowLeft' ? (index + CX_TABS.length - 1) % CX_TABS.length
+                : e.key === 'Home' ? 0 : e.key === 'End' ? CX_TABS.length - 1 : -1;
+              if (next < 0) return;
+              e.preventDefault();
+              setTab(CX_TABS[next].id); setOpenCat(null);
+              e.currentTarget.parentElement?.querySelectorAll<HTMLButtonElement>('[role="tab"]')[next]?.focus();
+            }}
           >
             <span className="wing-tab-glyph" aria-hidden>{t.glyph}</span>
             <span className="wing-tab-body">
@@ -364,9 +390,13 @@ export function CollectionScreen(): JSX.Element {
           </button>
         ))}
       </div>
+      {CX_TABS.filter((entry) => entry.id !== tab).map((entry) => (
+        <div key={entry.id} hidden role="tabpanel" id={`${screenId}-panel-${entry.id}`} aria-labelledby={`${screenId}-tab-${entry.id}`} />
+      ))}
 
+      <div className="cx-page" role="tabpanel" id={`${screenId}-panel-${tab}`} aria-labelledby={`${screenId}-tab-${tab}`} tabIndex={0}>
       {tab === 'codex' && (open ? (
-        <CategoryDetail c={open} onBack={() => setOpenCat(null)} />
+        <CategoryDetail c={open} onBack={() => { returnCategory.current = open.id; setOpenCat(null); }} />
       ) : (
         <>
           <div className="cx-wing-sub">Every category ranks Bronze → Ascendant — open one for its reward track, bonuses and entries.</div>
@@ -400,6 +430,7 @@ export function CollectionScreen(): JSX.Element {
         </>
       )}
 
+      </div>
       {celebration && <RankUpCelebration rankUps={celebration.rankUps} powerGain={celebration.powerGain} onClose={() => setCelebration(null)} />}
     </div>
   );

@@ -397,7 +397,7 @@ Career statistic hints use explicit Details buttons and inline reading panels. P
 - **Purpose:** the codex — every enemy/boss/tower/hero/card/item/biome/cache discovered, with
   usage tiers, category ranks, completion rewards, and a small Power contribution.
 - **Dependencies:** lifetime stats, all content registries.
-- **Files:** `core/collection.ts` (view + tiers + bonuses + rewards), `ui/CollectionPanel.tsx`. Rank-up celebrations support keyboard focus, scrollable results and live reduced motion. Memory Archive supports revealed-copy search, recovery filters and accessible replay controls (see `CUTSCENES.md`).
+- **Files:** `core/collection.ts` (view + tiers + bonuses + rewards), `ui/CollectionPanel.tsx`. Collection tabs and category drill-in preserve keyboard navigation/focus. Rank-up celebrations support keyboard focus, scrollable results and live reduced motion. Memory Archive supports revealed-copy search, recovery filters and accessible replay controls (see `CUTSCENES.md`).
   Docs: `COLLECTION.md`.
 - **Related:** every content system; Gene Cards (card entries show permanent Gene level —
   label only, completion untouched).

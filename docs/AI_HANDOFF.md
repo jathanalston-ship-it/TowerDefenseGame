@@ -4,8 +4,8 @@
 > before committing. Read together with docs/PROJECT_STATUS.md and the latest
 > docs/VALIDATION_REPORT.md. Next session: start at docs/PROJECT_MANIFEST.md.
 
-- **Generated:** 2026-11-10 15:18 UTC · **Diff scope:** working tree vs HEAD
-- **Branch:** codex/hive-autoplay · **HEAD:** 2d318f3a
+- **Generated:** 2026-11-10 15:23 UTC · **Diff scope:** working tree vs HEAD
+- **Branch:** codex/hive-autoplay · **HEAD:** f832f087
 
 ## Summary of work completed
 
@@ -49,7 +49,7 @@ Windows validate wrapper cannot launch npx/npm with shell:false; use direct gate
 
 ## Recommended next tasks
 
-Local .10.6 has two unsealed notes: Memory Archive discovery and accessible collection celebrations. All processes terminal. Continue usability work; next approximate16:04UTC deployment needs full suite, sealed final build, mobile gate and exact-SHA/live website verification. Live .10.5 remains unchanged. Full goal stays active.
+Local .10.6 has three unsealed notes: archive discovery, accessible rank-up celebration, collection navigation. All processes terminal. Next approximate16:04UTC deployment needs full suite, sealed build/mobile and live verification. Continue active goal. Next audit candidate: EntryGrid hides undiscovered names in visible text but puts e.name in title; inspect whether tooltips reveal intended hidden content and whether locked status is readable before changing it.
 
 ## Future expansion hooks
 
@@ -93,6 +93,8 @@ Hero readiness final build65590 PASS (Vite7.59s); all processes terminal. Next r
 
 
 
-## 2026-11-10 — accessible collection rank-up celebration (local .10.6)
 
-Named modal, initial Continue focus, contained Tab/Shift+Tab, Escape dismissal and opener restoration; focusable scrollable promotion region keeps Continue visible on phone/landscape. Live OS/override motion preferences suppress scale/rotation without replaying the fanfare. No reward/power/save semantics changed. ../collection-rankup-check.cjs PASS actual component/renderer:24 promotions at1366x900/320x568/568x320, scroll by keyboard, modal focus/Escape/restore, live motion, single cue; screenshot inspected. Probe now explicitly focuses opener and waits resize frames. Initial release note category corrected to UX after compiler rejection. Initial UI gate caught raw100dvh; changed to var(--app-h), browser and34 collection/feel/UI/site tests re-PASS. App/functions TS+build PASS16.02s before final CSS-only app-height correction; final sealed build remains required. Docs PASS. Validation wrapper exit1 on known Windows launcher; rankup-wrapper-report.log preserved, direct checks used. Two unsealed website notes generated. No active processes; next release about16:04UTC.
+
+## 2026-11-10 — collection keyboard navigation (local .10.6)
+
+Linked tabs/panels with roving tab stop and ArrowLeft/Right/Home/End activation. Opening category focuses its heading; back restores the exact category tile. Switching wings clears detail without stale focus restoration. Back control44px minimum. ../collection-navigation-check.cjs PASS all keyboard/association/focus behaviors, 1366/390/320 fit and back target. Archive and rank-up probes re-PASS after panel integration. App/functions TS+production build PASS20.80s;34 collection/feel/UI/site tests PASS;docs anchors/references/staleness PASS;diff clean. Three unsealed website notes generated. No gameplay/save/balance changes. Full release/mobile gates pending next approximate16:04UTC deploy. All processes terminal; continuous goal active.
