@@ -74,8 +74,12 @@ export function SaveManager(): JSX.Element {
                 <div className="desc">{new Date(b.at).toLocaleString()}</div>
               </div>
               <button
+                aria-label={`Restore backup from ${new Date(b.at).toLocaleString()}`}
                 onClick={() => {
-                  setMsg(meta.restoreBackup(b.id) ? 'Backup restored.' : 'Restore failed.');
+                  if (!window.confirm(`Restore the backup from ${new Date(b.at).toLocaleString()}? This replaces your current progress. Export JSON first if you want a separate copy.`)) return;
+                  const restored = meta.restoreBackup(b.id);
+                  refresh();
+                  setMsg(restored ? 'Backup restored.' : 'Restore failed. Your current progress has not been replaced.');
                 }}
               >
                 Restore

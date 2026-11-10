@@ -2243,7 +2243,7 @@ export class SaveStore {
   }
 
   /** Snapshot the current main save into the rolling backup ring. */
-  backup(): BackupMeta | null {
+  backup(protectedId?: string): BackupMeta | null {
     const raw = this.get(SAVE_KEY);
     if (!raw || !parseBlob(raw)) return null;
     const meta: BackupMeta = {
@@ -2253,6 +2253,9 @@ export class SaveStore {
     if (!this.set(BAK_PREFIX + meta.id, raw)) return null;
     const previous = this.listBackups();
     const list = [meta, ...previous].slice(0, MAX_BACKUPS);
+    // A restore must not evict its own source before the main-save write succeeds.
+    const protectedBackup = previous.find((entry) => entry.id === protectedId);
+    if (protectedBackup && !list.some((entry) => entry.id === protectedId)) list[list.length - 1] = protectedBackup;
     // Publish the index before pruning: a failed write must not destroy older snapshots.
     if (!this.set(BAK_INDEX, JSON.stringify(list))) {
       this.remove(BAK_PREFIX + meta.id);
@@ -2279,7 +2282,10 @@ export class SaveStore {
   restoreBackup(id: string): SaveData | null {
     const data = parseBlob(this.get(BAK_PREFIX + id));
     if (!data) return null;
-    this.save(data);
+    // Keep the current valid save recoverable. A corrupt/absent main save may still be repaired.
+    const current = this.get(SAVE_KEY);
+    if (current && parseBlob(current) && !this.backup(id)) return null;
+    if (!this.set(SAVE_KEY, blobString(data))) return null;
     return data;
   }
 

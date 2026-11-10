@@ -4,8 +4,8 @@
 > before committing. Read together with docs/PROJECT_STATUS.md and the latest
 > docs/VALIDATION_REPORT.md. Next session: start at docs/PROJECT_MANIFEST.md.
 
-- **Generated:** 2026-11-10 15:58 UTC · **Diff scope:** working tree vs HEAD
-- **Branch:** codex/hive-autoplay · **HEAD:** 76fbbb68
+- **Generated:** 2026-11-10 16:04 UTC · **Diff scope:** working tree vs HEAD
+- **Branch:** codex/hive-autoplay · **HEAD:** 5563bacb
 
 ## Summary of work completed
 
@@ -49,7 +49,7 @@ Windows validate wrapper cannot launch npx/npm with shell:false; use direct gate
 
 ## Recommended next tasks
 
-Local .10.7 Progress You Can Trust has one unsealed backup-safety/feedback note. Build13.84s,50save/site tests,docs and browser probe PASS; all processes terminal. Next approximate deployment16:53UTC requires full suite/final build/mobile/live gates. Continue active usability goal. Follow-up candidate: SaveManager Restore lacks a preview/confirmation and its success message does not distinguish persistence failure; inspect restore semantics and existing recovery guarantees before editing. No schema migration needed for current backup-write ordering/return handling.
+Local .10.7 has two unsealed backup/restore safety notes. Build16.56s,53save/site tests,docs and both UI probes PASS; all processes terminal. Next approximate16:53UTC deployment needs full regression/final build/mobile/live checks. Continue active goal. Follow-up audit: file import currently applies immediately; inspect import validation/backup failure handling and whether a clear preview/cancel flow can preserve current progress. No schema migration required for existing changes.
 
 ## Future expansion hooks
 
@@ -105,6 +105,8 @@ Hero readiness final build65590 PASS (Vite7.59s); all processes terminal. Next r
 
 
 
-## 2026-11-10 — truthful backup feedback and failure safety (local .10.7)
 
-SaveStore.set now returns write success privately; ordinary save callers retain prior behavior. backup rejects absent/corrupt current blobs, returns null on snapshot/index write failure, publishes the new index before pruning, and cleans an unlisted new snapshot on index failure. Older snapshots remain unchanged. SaveManager reports success only for a backup result, offers Export JSON after failure, and uses a persistent status region. No schema/checksum/cap/gameplay changes; migration not needed. Three new fault/corruption tests FAILED on baseline and PASS after fix, covering ring preservation, restoreability and retries. All50save/site tests PASS, production app/functions TS+build13.84s PASS, docs PASS, ../backup-feedback-check.cjs actual UI PASS keyboard/success/failure/export/preserved list/1024-390-320 fit. Required wrapper exit1 known Windows launcher; backup-wrapper-report.log preserved, direct checks used. One unsealed .10.7 website note generated. All processes terminal; next approximate16:53UTC release. Goal active.
+
+## 2026-11-10 — recoverable, confirmed backup restoration (local .10.7)
+
+SaveManager uses a dated native confirmation before restore, uniquely labels each Restore button, refreshes the backup list and announces truthful results. SaveStore preloads selected data, preserves readable current progress via backup, protects the selected source from pruning even in a full ring, and reports success only after main write succeeds. Safety-backup failure stops restore; corrupt/absent main data can still be repaired. Schema/cap/gameplay unchanged. Three restore assertions failed on baseline;29saveStore tests now PASS including undo snapshot, failure preservation, full-ring oldest-target retry and corrupt-main repair. All53save/site tests, app/functions TS+build16.56s anddocs PASS. ../restore-feedback-check.cjs actual UI PASS dated labels/native keyboard confirmation/cancel-no-mutation/accept-once/error/success/list/focus/phone fit; ../backup-feedback-check.cjs re-PASS. Initial probe selected the newly inserted first row for focus; corrected to original dated button. Required wrapper exit1 known Windows launcher; restore-wrapper-report.log preserved. Two unsealed website notes generated. All processes terminal; next approximate16:53UTC release; goal active.

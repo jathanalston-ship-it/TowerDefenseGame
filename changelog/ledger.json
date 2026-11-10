@@ -1,6 +1,6 @@
 {
-  "lastSha": "76fbbb680a86e774470a01d20504af4c8b2f2ee3",
-  "commitsSinceDraft": 7,
+  "lastSha": "5563bacbddb3e3893c4abe18b0aa37997c3c0a7a",
+  "commitsSinceDraft": 8,
   "content": {
     "tower": [
       "needle",
@@ -4559,6 +4559,10 @@
         {
           "cat": "Bug Fixes",
           "text": "Manual backups now report when a snapshot could not be saved and offer Export JSON as a fallback. Failed backup writes preserve older snapshots, and corrupt current-save data is no longer copied into the backup list."
+        },
+        {
+          "cat": "UX",
+          "text": "Restoring a backup now asks for confirmation and keeps a recovery snapshot of readable current progress. Failed storage writes no longer claim success, and the selected backup stays available for retry even when the backup list is full."
         }
       ]
     }
@@ -10281,6 +10285,14 @@
       "date": "2026-11-10",
       "cat": "Framework",
       "text": "Docs: record verified collection release deployment",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "5563bacbddb3e3893c4abe18b0aa37997c3c0a7a",
+      "date": "2026-11-10",
+      "cat": "Gameplay",
+      "text": "Save: preserve backups and report write failures",
       "internal": true,
       "needsReview": false
     }

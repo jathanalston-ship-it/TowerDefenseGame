@@ -759,3 +759,4 @@
 - `e081e6e` **[Music]** Enlarge music console touch targets _(internal)_
 - `7f18a4f` **[Framework]** Release: publish Memories Within Reach _(internal)_
 - `76fbbb6` **[Framework]** Docs: record verified collection release deployment _(internal)_
+- `5563bac` **[Gameplay]** Save: preserve backups and report write failures _(internal)_
