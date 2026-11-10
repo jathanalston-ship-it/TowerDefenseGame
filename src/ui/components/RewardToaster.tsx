@@ -6,7 +6,7 @@
 // glow, t2 spark burst, t3 legendary takeover (bigger card + screen accent + stinger).
 // Pure presentation over the state/rewardToast queue rules; the save is already true.
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import type { CSSProperties, PointerEvent as ReactPointerEvent } from 'react';
 import {
   TOAST_MAX_VISIBLE, applyEvent, lifeOf, pruneCards, rewardToast, rewardTypeOf,
@@ -38,7 +38,7 @@ function QtyLine({ qty, unitOnly }: { qty: number; unitOnly: boolean }): JSX.Ele
   return <><span className="rwt2-qty" aria-hidden="true">+{shown.toLocaleString()}</span><span className="a11y-only">+{qty.toLocaleString()}</span></>;
 }
 
-function Card({ card, onDismiss, onReading }: { card: ToastCard; onDismiss: (uid: number) => void; onReading: (uid: number, reading: boolean) => void }): JSX.Element {
+function Card({ card, onDismiss, onReading }: { card: ToastCard; onDismiss: (uid: number, restoreFocus?: boolean) => void; onReading: (uid: number, reading: boolean) => void }): JSX.Element {
   const def = rewardTypeOf(card.type);
   const [open, setOpen] = useState(false); // a summary placard expands to its itemized lines
   const [hovered, setHovered] = useState(false);
@@ -120,7 +120,7 @@ function Card({ card, onDismiss, onReading }: { card: ToastCard; onDismiss: (uid
             type="button"
             className="rwt2-nav"
             onPointerDown={(e) => e.stopPropagation()}
-            onClick={(e) => { e.stopPropagation(); navBus.go(card.nav!.key); onDismiss(card.uid); }}
+            onClick={(e) => { e.stopPropagation(); navBus.go(card.nav!.key); onDismiss(card.uid, false); }}
           >
             {card.nav.label} →
           </button>
@@ -132,6 +132,17 @@ function Card({ card, onDismiss, onReading }: { card: ToastCard; onDismiss: (uid
 
 export function RewardToaster({ held = false }: { held?: boolean } = {}): JSX.Element | null {
   const [cards, setCards] = useState<ToastCard[]>([]);
+  const stackRef = useRef<HTMLDivElement>(null);
+  const dismissedFocus = useRef<HTMLElement | null>(null);
+  const previousFocus = useRef<HTMLElement | null>(null);
+  useLayoutEffect(() => {
+    const removed = dismissedFocus.current;
+    dismissedFocus.current = null;
+    if (!removed || removed.isConnected || document.activeElement !== document.body) return;
+    const next = stackRef.current?.querySelector<HTMLButtonElement>('.rwt2-x');
+    if (next) next.focus({ preventScroll: true });
+    else if (previousFocus.current?.isConnected) previousFocus.current.focus({ preventScroll: true });
+  }, [cards]);
   const lastCueAt = useRef(0);
   const reading = useRef(new Set<number>());
   const grace = useRef(new Map<number, number>());
@@ -195,17 +206,29 @@ export function RewardToaster({ held = false }: { held?: boolean } = {}): JSX.El
   const visible = [...pinned, ...cards.filter((c) => !pinnedIds.current.includes(c.uid))].slice(0, TOAST_MAX_VISIBLE);
   visibleIds.current = visible.map((c) => c.uid);
   const queued = cards.length - visible.length;
-  const dismiss = (uid: number): void => setCards((cs) => cs.filter((c) => c.uid !== uid));
+  const dismiss = (uid: number, restoreFocus = true): void => {
+    const active = document.activeElement;
+    if (restoreFocus && active instanceof HTMLElement && stackRef.current?.contains(active)) dismissedFocus.current = active;
+    setCards((cs) => cs.filter((c) => c.uid !== uid));
+  };
   const hasApex = visible.some((c) => c.tier >= 3);
   return (
-    <div className="rwt2-wrap">
+    <div className="rwt2-wrap" ref={stackRef}
+      onFocusCapture={(event) => {
+        const from = event.relatedTarget;
+        if (from instanceof HTMLElement && from.isConnected && !event.currentTarget.contains(from)) previousFocus.current = from;
+      }}>
       {/* The legendary takeover: a one-shot screen accent behind the stack (reduced-motion: none) */}
       {hasApex && <span key={visible.find((c) => c.tier >= 3)?.uid} className="rwt2-accent" aria-hidden />}
       {visible.map((c) => <Card key={c.uid} card={c} onDismiss={dismiss} onReading={onReading} />)}
       {(queued > 0 || cards.length > 2) && (
         <div className="rwt2-foot">
           {queued > 0 && <span className="rwt2-more">+{queued} more</span>}
-          <button type="button" className="rwt2-clear" onClick={() => setCards([])}>Dismiss All ✕</button>
+          <button type="button" className="rwt2-clear" onClick={() => {
+            const active = document.activeElement;
+            if (active instanceof HTMLElement && stackRef.current?.contains(active)) dismissedFocus.current = active;
+            setCards([]);
+          }}>Dismiss All ✕</button>
         </div>
       )}
     </div>

@@ -1,6 +1,6 @@
 {
-  "lastSha": "2bae012e75a8ea96037028bd020b8a30ee3d06e3",
-  "commitsSinceDraft": 7,
+  "lastSha": "7741797b8b276db42cee786e7c935141fe83b30a",
+  "commitsSinceDraft": 8,
   "content": {
     "tower": [
       "needle",
@@ -4403,6 +4403,10 @@
         {
           "cat": "UI",
           "text": "Account level-up notices stay visible while hovered or keyboard-focused and include a keyboard-accessible dismiss button. Focus follows queued notices and returns afterward; a notice resumed after an unlock announcement no longer repeats its sound."
+        },
+        {
+          "cat": "UI",
+          "text": "Dismissing reward cards with the keyboard now moves focus to the next card, or back to the previous page control when the stack is cleared. Dismiss All and a disappearing stack footer follow the same rule without stealing unrelated focus."
         }
       ]
     }
@@ -9805,6 +9809,14 @@
       "date": "2026-11-10",
       "cat": "Framework",
       "text": "Docs: record verified run controls deployment",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "7741797b8b276db42cee786e7c935141fe83b30a",
+      "date": "2026-11-10",
+      "cat": "UI",
+      "text": "Ui: give account level notices time to be read",
       "internal": true,
       "needsReview": false
     }

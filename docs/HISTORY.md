@@ -719,3 +719,4 @@
 - `7dea6a6` **[UI]** Ui: keep active ability gauges stable through upgrades _(internal)_
 - `a6249d3` **[Heroes]** Publish clearer run controls and hero readouts _(internal)_
 - `2bae012` **[Framework]** Docs: record verified run controls deployment _(internal)_
+- `7741797` **[UI]** Ui: give account level notices time to be read _(internal)_

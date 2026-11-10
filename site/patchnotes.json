@@ -9,6 +9,10 @@
       {
         "cat": "UI",
         "text": "Account level-up notices stay visible while hovered or keyboard-focused and include a keyboard-accessible dismiss button. Focus follows queued notices and returns afterward; a notice resumed after an unlock announcement no longer repeats its sound."
+      },
+      {
+        "cat": "UI",
+        "text": "Dismissing reward cards with the keyboard now moves focus to the next card, or back to the previous page control when the stack is cleared. Dismiss All and a disappearing stack footer follow the same rule without stealing unrelated focus."
       }
     ]
   },
