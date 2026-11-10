@@ -6,7 +6,7 @@
 // glow, t2 spark burst, t3 legendary takeover (bigger card + screen accent + stinger).
 // Pure presentation over the state/rewardToast queue rules; the save is already true.
 
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import type { CSSProperties, PointerEvent as ReactPointerEvent } from 'react';
 import {
   TOAST_MAX_VISIBLE, applyEvent, lifeOf, pruneCards, rewardToast, rewardTypeOf,
@@ -38,9 +38,16 @@ function QtyLine({ qty, unitOnly }: { qty: number; unitOnly: boolean }): JSX.Ele
   return <><span className="rwt2-qty" aria-hidden="true">+{shown.toLocaleString()}</span><span className="a11y-only">+{qty.toLocaleString()}</span></>;
 }
 
-function Card({ card, onDismiss, onKeep }: { card: ToastCard; onDismiss: (uid: number) => void; onKeep: (uid: number) => void }): JSX.Element {
+function Card({ card, onDismiss, onReading }: { card: ToastCard; onDismiss: (uid: number) => void; onReading: (uid: number, reading: boolean) => void }): JSX.Element {
   const def = rewardTypeOf(card.type);
   const [open, setOpen] = useState(false); // a summary placard expands to its itemized lines
+  const [hovered, setHovered] = useState(false);
+  const [focused, setFocused] = useState(false);
+  const reading = hovered || focused || open;
+  useEffect(() => {
+    onReading(card.uid, reading);
+    return () => { if (reading) onReading(card.uid, false); };
+  }, [card.uid, reading, onReading]);
   const color = card.rarity ? `var(--r-${card.rarity})` : def?.art.kind === 'glyph' ? def.art.color : 'var(--gold)';
   // Swipe dismissal (mobile + mouse drags): track dx; past the threshold the card flies out.
   const [dx, setDx] = useState(0);
@@ -60,6 +67,10 @@ function Card({ card, onDismiss, onKeep }: { card: ToastCard; onDismiss: (uid: n
     <article
       className={`rwt2 t${card.tier}`}
       role="status"
+      onPointerEnter={(e) => { if (e.pointerType !== 'touch') setHovered(true); }}
+      onPointerLeave={() => setHovered(false)}
+      onFocusCapture={() => setFocused(true)}
+      onBlurCapture={(e) => { if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setFocused(false); }}
       style={{ ['--rw' as string]: color, transform: dx !== 0 ? `translateX(${dx}px)` : undefined, opacity: dx !== 0 ? Math.max(0.25, 1 - Math.abs(dx) / 160) : undefined } as CSSProperties}
       onPointerDown={onDown}
       onPointerMove={onMove}
@@ -97,7 +108,7 @@ function Card({ card, onDismiss, onKeep }: { card: ToastCard; onDismiss: (uid: n
               className="rwt2-expand"
               aria-expanded={open}
               onPointerDown={(e) => e.stopPropagation()}
-              onClick={(e) => { e.stopPropagation(); setOpen((o) => !o); onKeep(card.uid); }}
+              onClick={(e) => { e.stopPropagation(); setOpen((o) => !o); }}
             >
               {open ? '▾ Hide' : `▸ Show all ${card.items.length}`}
             </button>
@@ -122,6 +133,32 @@ function Card({ card, onDismiss, onKeep }: { card: ToastCard; onDismiss: (uid: n
 export function RewardToaster({ held = false }: { held?: boolean } = {}): JSX.Element | null {
   const [cards, setCards] = useState<ToastCard[]>([]);
   const lastCueAt = useRef(0);
+  const reading = useRef(new Set<number>());
+  const grace = useRef(new Map<number, number>());
+  const cardsRef = useRef(cards);
+  cardsRef.current = cards;
+  const visibleIds = useRef<number[]>([]);
+  const pinnedIds = useRef<number[]>([]);
+  const onReading = useCallback((uid: number, active: boolean): void => {
+    if (active === reading.current.has(uid)) return;
+    if (active) {
+      if (!reading.current.size) pinnedIds.current = [...visibleIds.current];
+      reading.current.add(uid);
+    } else {
+      reading.current.delete(uid);
+      const card = cardsRef.current.find((c) => c.uid === uid);
+      if (card) grace.current.set(uid, Date.now() + lifeOf(card));
+      if (!reading.current.size) pinnedIds.current = [];
+    }
+    setCards((cs) => [...cs]);
+  }, []);
+  // Presentation deadlines stay separate from bumpedAt, which owns merge windows and FX.
+  const prune = useCallback((cs: ToastCard[], now: number): ToastCard[] => {
+    for (const [uid, until] of grace.current) if (until <= now) grace.current.delete(uid);
+    const alive = new Set(pruneCards(cs, now).map((c) => c.uid));
+    const next = cs.filter((c) => alive.has(c.uid) || reading.current.has(c.uid) || (grace.current.get(c.uid) ?? 0) > now);
+    return next.length === cs.length ? cs : next;
+  }, []);
 
   // Subscribe to the bus; each event folds through the pure queue rules. Arrival audio is
   // tier-keyed and rate-limited (a burst clicks once, not eight times); merges tick softly.
@@ -133,7 +170,7 @@ export function RewardToaster({ held = false }: { held?: boolean } = {}): JSX.El
     const e = presentRewardEvent(meta.get(), raw);
     if (!e) return;
     setCards((cs) => {
-      const next = applyEvent(pruneCards(cs, Date.now()), e, Date.now());
+      const next = applyEvent(prune(cs, Date.now()), e, Date.now());
       const merged = next.length === cs.length; // same count ⇒ the event merged into a card
       const now = performance.now();
       if (now - lastCueAt.current > 200) {
@@ -143,27 +180,28 @@ export function RewardToaster({ held = false }: { held?: boolean } = {}): JSX.El
       }
       return next;
     });
-  }), [held]);
+  }), [held, prune]);
 
   // Lifetime prune tick (lifetimes re-arm on merge bumps, so a fixed timer per card is wrong).
   useEffect(() => {
     if (cards.length === 0) return undefined;
-    const id = window.setInterval(() => setCards((cs) => pruneCards(cs, Date.now())), 250);
+    const id = window.setInterval(() => setCards((cs) => prune(cs, Date.now())), 250);
     return () => window.clearInterval(id);
-  }, [cards.length > 0]);
+  }, [cards.length > 0, prune]);
 
   if (cards.length === 0) return null;
-  const visible = cards.slice(0, TOAST_MAX_VISIBLE);
+  // New arrivals must not push a focused/expanded card out of the visible stack.
+  const pinned = pinnedIds.current.flatMap((uid) => cards.filter((c) => c.uid === uid));
+  const visible = [...pinned, ...cards.filter((c) => !pinnedIds.current.includes(c.uid))].slice(0, TOAST_MAX_VISIBLE);
+  visibleIds.current = visible.map((c) => c.uid);
   const queued = cards.length - visible.length;
   const dismiss = (uid: number): void => setCards((cs) => cs.filter((c) => c.uid !== uid));
-  // Reading an expanded summary re-arms its lifetime (it never expires mid-read).
-  const keep = (uid: number): void => setCards((cs) => cs.map((c) => (c.uid === uid ? { ...c, bumpedAt: Date.now() } : c)));
   const hasApex = visible.some((c) => c.tier >= 3);
   return (
     <div className="rwt2-wrap">
       {/* The legendary takeover: a one-shot screen accent behind the stack (reduced-motion: none) */}
       {hasApex && <span key={visible.find((c) => c.tier >= 3)?.uid} className="rwt2-accent" aria-hidden />}
-      {visible.map((c) => <Card key={c.uid} card={c} onDismiss={dismiss} onKeep={keep} />)}
+      {visible.map((c) => <Card key={c.uid} card={c} onDismiss={dismiss} onReading={onReading} />)}
       {(queued > 0 || cards.length > 2) && (
         <div className="rwt2-foot">
           {queued > 0 && <span className="rwt2-more">+{queued} more</span>}

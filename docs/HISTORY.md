@@ -687,3 +687,4 @@
 - `880c803` **[UI]** Ui: verify keyboard vault reveal flow _(internal)_
 - `3720b7f` **[UI]** Ui: honor live vault feedback preferences _(internal)_
 - `cf5360c` **[Framework]** Docs: record feedback release verification _(internal)_
+- `0452050` **[UI]** Ui: verify stable reward announcements _(internal)_

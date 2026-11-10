@@ -313,3 +313,5 @@ it for that day only. `rush.freeEntry` is the first volatile source; apply delib
 persistent watermarks remain correct for cumulative/actionable counts that DROP on action.
 
 Reward announcement accessibility: QtyLine keeps the visible count-up aria-hidden and exposes the final quantity in a clipped .a11y-only span. Merges update that stable quantity once. Each card retains role=status; the surrounding stack no longer adds a nested live region. Controls and other reward details remain accessible. No queue, expiry or reward math changes.
+
+Reward reading holds: hover (mouse/pen), focus within a card, or an expanded summary protect it from expiry. The visible slots stay pinned while a card is being read so new arrivals cannot unmount a focused card. Releasing the last interaction grants the normal lifeOf interval. Reading deadlines are presentation-only refs, separate from bumpedAt: merge windows and merge pulses remain unchanged. Explicit card/swipe/navigation/Dismiss All still dismiss.

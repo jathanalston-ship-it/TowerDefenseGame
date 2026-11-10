@@ -4,70 +4,53 @@
 > before committing. Read together with docs/PROJECT_STATUS.md and the latest
 > docs/VALIDATION_REPORT.md. Next session: start at docs/PROJECT_MANIFEST.md.
 
-- **Generated:** 2026-11-10 05:07 UTC · **Diff scope:** working tree vs HEAD
-- **Branch:** codex/hive-autoplay · **HEAD:** cf5360c0
+- **Generated:** 2026-11-10 05:13 UTC · **Diff scope:** working tree vs HEAD
+- **Branch:** codex/hive-autoplay · **HEAD:** 04520506
 
 ## Summary of work completed
 
-Active continuous improvement goal: keep improving usability, clarity, graphics, sound, animation and cutscenes without changing gameplay; authorized deployments roughly hourly with website notes. LIVE is bfa87c50fe652ca8105961d2faa2372bf281f51e, v2026.11.09.4 Progress You Can Follow (Actions 42756081493 success, ~04:30 UTC Nov10). Normal game/home/news URLs and play-CtxVJXHT.js verified; all 3150 tests and nine-viewport mobile gate passed before publication. Current LOCAL batch is v2026.11.09.5 Feedback That Stays Readable, five curated notes; .4 is sealed. No deployment for .5 yet. Earlier detailed verification history remains in VALIDATION_REPORT.md.
+Active continuous improvement goal, authorized roughly-hourly deployments with website notes. LIVE: bfa87c50fe652ca8105961d2faa2372bf281f51e, v2026.11.09.4 Progress You Can Follow (Actions42756081493 success, ~04:30UTC Nov10). LOCAL: v2026.11.09.5 Feedback That Stays Readable, five curated notes, not deployed. Current time ~05:13UTC; next deploy ~05:30UTC.
 
 ## Files modified
 
-- Source (4): `src/changelog/releases.gen.ts`, `src/index.css`, `src/ui/VaultReveal.tsx`, `src/ui/components/RewardToaster.tsx`
+- Source (2): `src/changelog/releases.gen.ts`, `src/ui/components/RewardToaster.tsx`
 - Tests (0): —
-- Docs (6): `docs/HISTORY.md`, `docs/LOOTBOX.md`, `docs/NOTIFICATIONS.md`, `docs/PROJECT_STATUS.md`, `docs/VALIDATION_REPORT.md`, `docs/devlog/DRAFT-2026-11-09.md`
+- Docs (5): `docs/HISTORY.md`, `docs/NOTIFICATIONS.md`, `docs/PROJECT_STATUS.md`, `docs/VALIDATION_REPORT.md`, `docs/devlog/DRAFT-2026-11-09.md`
 
 ## Systems affected (from the dependency registry)
 
 - **chronicle** — `src/changelog/releases.gen.ts`
-- **loot** — `src/ui/VaultReveal.tsx`
 - **notifications** — `src/ui/components/RewardToaster.tsx`
-- Consumer ring (verify, unchanged): account-level, boss-rush, crafting, equipment, hub-shell, infinite, metabolism, shards-economy, splice-market
+- Consumer ring (verify, unchanged): hub-shell, metabolism
 
 ## Power Score changes
 
-None. Preview animation and motion settings only; combat, economy, Power and saves unchanged.
+None. Combat, economy, progression, Power formulas and saves unchanged.
 
 ## UI changes
 
-Surfaces in the blast radius: `App (UpdateBriefing popup)`, `HeroLab`, `ability button`, `HeroSelectPanel`, `TowerLab`, `TowerCodex`, `StarCeremony`, `tower rail`, `Inspector`
-
-Reduced-motion hero upgrade floats remain visible and show the latest concurrent gain; Power/Mastery notices remain static and readable. Hero symbiote canvas pauses offscreen/hidden, uses visible elapsed time, follows live device/player preferences and releases listeners/RAF. Tower canvas now follows player overrides too. Hero aura/pulse/orbit CSS has still states. Browser probes ../feedback-motion-check.cjs --assert, ../upgrade-feedback-check.cjs, ../hero-portrait-motion-check.cjs and ../portrait-check.cjs PASS. Real static Lv5 upgrade result screenshot inspected; normal expiry retained. 15 symbiote/feel tests PASS; prior CSS checkpoint build and 4 site tests PASS. Current portrait production build PASS. All local test/build/dev processes completed; dev server stopped.
+Local .5: readable reduced-motion gain/Power/Mastery notices; hero/tower portrait visibility and live motion lifecycle; keyboard focus/Tab/Escape for wardrobe and tower star ceremonies; complete Vault keyboard flow and live heartbeat/flash/shake settings; stable accessible reward totals alongside visual count-ups; reward placards held while hovered/focused/expanded and pinned through incoming bursts. Reading deadlines are separate from original merge timing.
 
 ## Documentation changes
 
-Registry says these move with the touched systems: `docs/CHANGELOG-PIPELINE.md`, `docs/HEROES.md`, `docs/HERO-FRAMEWORK.md`, `docs/HERO-EVOLUTION.md`, `docs/HERO-SELECTION.md`, `docs/SLOTS.md`, `docs/HIVE-MIND.md`, `docs/ARCHITECTURE.md`, `docs/CODEMAP.md`, `docs/DESIGN.md`, `docs/EARLY-CALL.md`, `docs/HERO-CINEMATICS.md`, `docs/EQUIPMENT.md`, `docs/EQUIPMENT-PHILOSOPHY.md`, `docs/CLASS-BONDS.md`, `docs/HERO-SYMBIOTES.md`, `docs/EXPEDITIONS.md`, `docs/TOWER-STARS.md`, `docs/TOWER-BRANCHES.md`, `docs/TOWER-LAB.md`, `docs/TOWER-CODEX.md`, `docs/TOWERS.md`, `docs/STRAIN.md`, `docs/DAILY-RUN.md`, `docs/MODE-IDENTITY.md`, `docs/MULLIGANS.md`, `docs/CONTRACTS.md`
-
-Updated UI-STANDARDS, UI-MOTION, HERO-SYMBIOTES, validation, status and website ledger/generated notes. Other registry-listed docs need no change: no new mechanics, progression, save or renderer formulas.
+Canonical UI-MOTION, HERO-SYMBIOTES, COSMETICS, TOWER-LAB, LOOTBOX, NOTIFICATIONS plus release ledger/generated website and validation/status updated. No mechanic/tutorial/save changes required. DIL/PIL latest regeneration: zero structural findings,34 existing stale pairs.
 
 ## Save changes
 
-None — save layer untouched.
+None. Presentation only; reward queue model and persistence untouched.
 
 ## Known edge cases
 
-Windows validate wrapper cannot spawn npx shell:false; direct build/full tests/mobile/doc gates supplement it. Chrome uses ignoreDefaultArgs headless=old plus headless=new (../chrome-probe-compat.cjs for mobilecheck). One tower frame assertion raced live media-change settling; diagnostic repeat and a 300ms settling interval passed. Custom-domain version.json returns 404; verify hashed game entry plus home/news and successful Actions production SHA guard. Generated docs/devlog/DRAFT-2026-11-09.md remains unpublished/untracked; do not stage it blindly.
+Windows validate wrapper fails spawning npx shell:false; direct gates supplement. Chrome probes use headless=new compatibility shim. AX-tree checks do not prove speech output of every screen reader. Generated docs/devlog/DRAFT-2026-11-09.md is untracked/unpublished; do not stage. Custom-domain version.json is404: verify hashed game entry and matching website notes instead.
 
 ## Remaining technical debt
 
-No new framework or simulation debt. Continue checking other canvas previews and cinematic feedback for lifecycle/readability issues. Do not extrapolate focused UI probes into a claim that every interaction is perfect.
+Do not claim broader verification than performed. Previous full3150 suite and nine-viewport mobile gate passed before later UI-only changes; new full suite now running. Latest reward reading behavior passes Chrome but current build passed; full suite and mobile gate are pending.
 
 ## Recommended next tasks
 
-Continue the broad experience audit, then run appropriate final regression/build/mobile gates for .5. Next approximately-hourly release window ~05:30 UTC Nov10. Commit on codex/hive-autoplay; deploy via git push origin HEAD:refs/heads/claude/zen-hawking-rh1gxl under existing authorization. Poll Actions for exact SHA to success and verify live game/home/news. ../verify-progress-release.ps1 now targets .5 title, motion and Vault note markers. Keep the goal active after a release.
+Poll existing full-suite session34772 (feedback-release-tests.log) to terminal. Build97201 passed (Vite22.56s, reward-reading-build.log); never restart on observation timeout. Dev server49659 stopped. Mobile gate is now running on latest dist: session37446, feedback-release-mobile.log. Do not rewrite dist during this gate. Commit checkpoint on codex/hive-autoplay. Deploy around05:30UTC to claude/zen-hawking-rh1gxl with existing authorization; poll exact Actions SHA to success, verify normal live home/news/game using ../verify-progress-release.ps1 (now targets .5). Remote last checked bfa87c50 unchanged. Keep goal active.
 
 ## Future expansion hooks
 
-Existing HeroPortrait.SymbioteOverlay, TowerPortrait and shared resolveMotion remain the preview seams. No new content or save structures.
-
-WardrobeReveal local follow-up: modal semantics, initial/per-card focus, Tab loop, Escape skips ceremony with focus restoration and no navigation. Single/three/six-item browser probe ../wardrobe-focus-check.cjs PASS; 38 core/meta wardrobe tests PASS. Ledger .5 now five curated notes; production build PASS (Vite 18.39s, service worker stamped). Release checks recorded in the latest checkpoint below.
-
-StarCeremony: labeled modal, Continue autofocus, Tab containment, Escape isolation and focus restoration. Chrome probe ../star-focus-check.cjs PASS all three dismissal keys exactly once. Production build PASS (21.29s Vite). Full regression PASS: 353 files /3150 tests (332.45s), session 10941 exited 0. DIL/PIL regeneration passed: zero structural findings, existing 34 stale pairs. Dev server stopped. Vault keyboard follow-up now implemented and verified below.
-
-VaultReveal: hatch Enter/Space, labeled modal, phase/disabled-flip focus recovery, active nested-highlight Tab containment, Escape acknowledgment/replay dismissal/summary close, safe Collect/Return focus and opener restoration. Underlying reveal hidden from assistive technology during highlights. Desktop and styled 390x844 phone Chrome probes PASS (../vault-focus-check.cjs, ../vault-focus-phone-check.cjs), including 13-pull Skip animations + Reveal all; 16 vault model tests PASS. Production build PASS, Vite13.82s. Dev server stopped. Release mobile gate RUNNING session76108, feedback-mobile.log: poll same handle, do not restart on timeout. .5 remains local; four website notes generated. Next release around05:30UTC. Vault motion follow-up implemented below.
-
-Vault motion follow-up: latest resolved prefs drive heartbeat WAAPI; live OS/player subscriptions cancel/resume pulse without restarting ceremony timers. World/inner/rarity flashes respect flashes off, highlight shine separated from warp, zero shake suppresses quake. ../vault-motion-check.cjs PASS; styled phone keyboard probe re-PASS;29 vault/feel tests PASS. Full mobile gate PASS on pre-motion build; latest motion follow-up independently checked in Chrome. Typecheck PASS, session52623 exited0 (vault-motion-typecheck.log). Final production build PASS (feedback-final-build.log, session96766 exited0, Vite13.74s). Dev server stopped; notes regenerated (four entries).
-
-AUTHORITATIVE CHECKPOINT ~05:03UTC Nov10: .5 remains local, four notes. All spawned processes terminal, no dev/preview server left. Full suite3150 PASS before Vault UI follow-up; follow-up29 model/feel tests plus desktop/styled-phone motion/keyboard probes PASS. Mobile27-nav/nine-viewport gate PASS on Vault-keyboard build before motion-only change; final motion build PASS and websiteSync4 PASS. DIL/PIL zero structural,34 existing stale pairs. Initial siteSync test path was wrong (no tests); corrected src/changelog/siteSync.test.ts PASS. Production branch verified unchanged bfa87c50. Next approximate deployment05:30UTC. Reward announcement accessibility follow-up implemented below. Goal remains active.
-
-Reward announcements: visual count-ups aria-hidden with stable final accessible text (shared CSS a11y-only); merged quantities update final text; removed nested live-region wrapper, cards retain status. Chrome AX-tree probe ../reward-announcement-check.cjs PASS (not a speech-reader integration test),47 rewardToast/Vault tests PASS. Five notes generated. Build PASS (session2141 exited0, reward-announce-build.log, Vite20.55s); websiteSync4 PASS (22593 exited0). All processes completed. Dev server stopped. Next audit: reward placards expire while keyboard focus/hover/expanded reading is active; current onKeep bumps once, despite comment claiming no mid-read expiry. Inspect queue/prune and burst ordering before fixing.
+Existing RewardToaster presentation seams and resolveMotion remain the extension points. No new systems/files under src. Scratch browser probes in parent workspace: reward-reading-check.cjs (hover/focus/expanded hold, grace expiry, burst stability, unchanged merge windows); reward-announcement-check.cjs (AX stable totals); vault-focus-check.cjs and vault-focus-phone-check.cjs (keyboard flow); vault-motion-check.cjs; star-focus-check.cjs; wardrobe-focus-check.cjs; portrait and feedback motion probes. All focused probes passed. Reward reading change re-passed accessible totals probe. Earlier47 rewardToast/Vault tests and4 site tests passed. Validation history has full detail.

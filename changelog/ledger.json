@@ -1,6 +1,6 @@
 {
-  "lastSha": "cf5360c02a720d06af7b718981606faa6a97c7f6",
-  "commitsSinceDraft": 7,
+  "lastSha": "0452050647bfec8553f9615684a6b67c4f5c1348",
+  "commitsSinceDraft": 8,
   "content": {
     "tower": [
       "needle",
@@ -4294,7 +4294,7 @@
         },
         {
           "cat": "UI",
-          "text": "Reward notifications and Vault Power totals expose the final amount to screen readers while the visible numbers count up. Merged rewards update that amount without announcing every animation frame."
+          "text": "Reward notifications and Vault Power totals expose the final amount to screen readers while the visible numbers count up. Merged rewards update that amount without announcing every animation frame. Notifications stay available while you hover, focus a control or read an expanded summary; incoming rewards keep your active card in view."
         }
       ]
     }
@@ -9457,6 +9457,14 @@
       "date": "2026-11-09",
       "cat": "Framework",
       "text": "Docs: record feedback release verification",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "0452050647bfec8553f9615684a6b67c4f5c1348",
+      "date": "2026-11-09",
+      "cat": "UI",
+      "text": "Ui: verify stable reward announcements",
       "internal": true,
       "needsReview": false
     }

@@ -257,3 +257,7 @@ Release checkpoint: mobile gate CLEAN27 nav screens and in-run at all nine viewp
 Reward announcement Chrome AX probe PASS: final quantity present while visual number animates, intermediate number excluded, merged Genome Cores final amount updates, no nested live wrapper, Vault Power total stable and clipped helper occupies1x1px. Probe corrected to concatenate Chrome static-text fragments and to use registered genomeCores (unknown cores does not merge). No assertion of speech output from specific screen readers. RewardToast/Vault model47 tests PASS.
 
 Reward announcement final production build PASS (Vite20.55s, service worker stamped); four website-sync tests PASS.
+
+Reward reading Chrome probe PASS using advanced Date.now against real prune intervals: hover beyond6s survives; late same-type arrival remains separate (merge window unchanged); leaving permits expiry. Focus survives6 new distinct arrivals and expiry of unheld cards. Expanded summary survives9s without hover/focus; collapse/blur permits expiry. Explicit dismissal works. Stable AX totals/visual count-up probe re-PASS. Full regression started session34772 (feedback-release-tests.log).
+
+Reward reading production build PASS (Vite22.56s,97201 exited0). Fresh release mobile gate started against this latest build, feedback-release-mobile.log; full suite still running34772.

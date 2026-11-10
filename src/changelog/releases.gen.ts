@@ -28,7 +28,7 @@ export const RELEASES: Release[] = [
       },
       {
         "cat": "UI",
-        "text": "Reward notifications and Vault Power totals expose the final amount to screen readers while the visible numbers count up. Merged rewards update that amount without announcing every animation frame."
+        "text": "Reward notifications and Vault Power totals expose the final amount to screen readers while the visible numbers count up. Merged rewards update that amount without announcing every animation frame. Notifications stay available while you hover, focus a control or read an expanded summary; incoming rewards keep your active card in view."
       }
     ]
   },

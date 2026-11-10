@@ -1385,3 +1385,7 @@ Vault motion follow-up locally verified: live heartbeat prefs, flash suppression
 Local .5 adds stable reward/Vault total accessibility text while retaining visual count-up. Chrome AX-tree and47 model checks PASS; fifth website note prepared.
 
 Reward announcement production build and website-sync checks PASS; local .5 now five notes. All local processes stopped.
+
+Reward card reading holds now verified across hover, focus, expanded summary and incoming bursts. Original merge timing preserved; accessible-count probe re-passed. Full release regression running. Fifth website note expanded.
+
+Reward reading production build PASS. Final full suite34772 and mobile37446 continue; same handles/logs recorded in handoff.
