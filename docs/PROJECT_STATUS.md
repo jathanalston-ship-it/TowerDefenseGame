@@ -1413,3 +1413,5 @@ Local .6 shared mute now silences scheduled musical flourishes via100ms master f
 Final shared-mute production build28873 PASS (music-mute-build.log); all task processes terminal. Four notes prepared for .6; next approximate deployment06:38UTC. Live remains .5.
 
 Audio .6 checkpoint:353 files/3155 tests PASS; actual shared keyboard audio controls and compact persistence PASS; docs checks PASS. Full mobile gate29287 remains running; poll same handle. Game/website still live .5, .6 four notes local; deployment target approximately06:38UTC.
+
+Audio .6 mobile gate CLEAN all9 viewports (29287 terminal0). All batch gates completed; no processes remain. Four website notes local, next approximate release06:38UTC.

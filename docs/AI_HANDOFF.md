@@ -4,8 +4,8 @@
 > before committing. Read together with docs/PROJECT_STATUS.md and the latest
 > docs/VALIDATION_REPORT.md. Next session: start at docs/PROJECT_MANIFEST.md.
 
-- **Generated:** 2026-11-10 06:04 UTC · **Diff scope:** working tree vs HEAD
-- **Branch:** codex/hive-autoplay · **HEAD:** 955c9fc5
+- **Generated:** 2026-11-10 06:07 UTC · **Diff scope:** working tree vs HEAD
+- **Branch:** codex/hive-autoplay · **HEAD:** a74be402
 
 ## Summary of work completed
 
@@ -63,3 +63,5 @@ Latest local .6 shared mute: updateMasterVolume applies enabled state to100ms fa
 Final shared-mute production build28873 PASS (music-mute-build.log); all task processes terminal. Four notes prepared for .6; next approximate deployment06:38UTC. Live remains .5.
 
 LATEST checkpoint06:04UTC:353 files/3155 full tests PASS (audio-batch-tests.log,150.14s,25991 terminal0). Shared AudioToggles keyboard/persistence/compact/mute independence/current-boss restoration browser PASS (../audio-controls-check.cjs production React bundle,no page errors). Initial Vite-only HMR socket error isolated by standalone bundle; dev93300 intentionally stopped. docs check23386 PASS anchors/references/freshness. FULL MOBILE29287 RUNNING against existing production dist, log audio-batch-mobile.log; poll same handle, never restart on observation timeout. No source edits this turn. ../verify-audio-release.ps1 now targets .6 title/notes and exact built asset; use after deployment. Next deployment approximately06:38UTC. Live remains .5; four local .6 notes.
+
+LATEST: mobile29287 terminal PASS,CLEAN27navscreens+live runs across9viewports (audio-batch-mobile.log). All processes terminal. All current audio .6 gates complete:3155tests/build/47audio/4site/browsercontrol/offlineaudio/docs/mobile. No source changes since checks. Next audit candidate: src/ui/Toolbar.tsx hero auto-cast control visually ON/OFF but lacks aria-pressed (unlike other automation controls); inspect actual accessibility tree and fix if confirmed. Do not alter purchase semantics: before unlock it is a purchase button, after unlock a toggle; Hive-managed is disabled+on. Next approximate deploy06:38UTC; ../verify-audio-release.ps1 prepared. Live .5 remains unchanged.
