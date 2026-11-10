@@ -596,6 +596,7 @@ Career statistic hints use explicit Details buttons and inline reading panels. P
   entry); real audio assets could layer in behind the same `audio.cue(tag)` / voice functions.
 - **Known limitations:** fully procedural — distinctive but synthetic (choir is detuned
   triangles, not voices).
+- **Touch settings:** Audio/motion switches keep44px coarse-pointer targets in Settings and the scrollable pause menu.
 - **Developer tips:** SFX API is `audio.cue(tag)` / `audio.resume()` (autoplay policy); music
   API is `music.play(category, opts)` + `setIntensity`/`setDuress`/`setScene`/`setProgression`/
   `stinger` — callers never pick tracks (there is no `audio.play`). Audition everything in

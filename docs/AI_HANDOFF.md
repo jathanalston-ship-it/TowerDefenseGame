@@ -4,34 +4,34 @@
 > before committing. Read together with docs/PROJECT_STATUS.md and the latest
 > docs/VALIDATION_REPORT.md. Next session: start at docs/PROJECT_MANIFEST.md.
 
-- **Generated:** 2026-11-10 20:27 UTC · **Diff scope:** working tree vs HEAD
-- **Branch:** codex/hive-autoplay · **HEAD:** 2401a8fd
+- **Generated:** 2026-11-10 20:32 UTC · **Diff scope:** working tree vs HEAD
+- **Branch:** codex/hive-autoplay · **HEAD:** 5e78a28d
 
 ## Summary of work completed
 
 ItemDetails baseline browser left focus on opener behind panel. It now has named modal semantics, focuses Close on entry, wraps enabled-button Tab/Shift+Tab, restores connected enabled invoker on close and defers to nested salvage while confirming. ../item-details-focus-check.cjs PASS initial focus, both wraps, Escape and return focus; ../salvage-confirm-check.cjs --stronger rerun PASS320/390/844 focus, nested trap, inert release, cancellation and actual isolated salvage.35crafting/UI/site/back tests PASS5.36s; docs54015 PASS; build68639 PASS11.36s (SWmwb572k9), item-details-focus-build.log. All processes terminal; final release mobile pending. No gameplay/save changes.
 
-LOCAL unsealed v2026.11.10.12 Upgrade Guidance has two generated website notes. ItemDetails disabled upgrades preserve their normal description and add exact material shortfalls or affix-lock/tier/rarity/no-affix reasons, based on existing opAvailable/canAfford/reforgeCost. Dashed border replaces faded text for readable disabled cards. ../upgrade-reasons-check.cjs PASS shortage, live funding, actual Enhance toT2, tier cap, locked affix, rarity cap, no-affix and320/844 layouts; screenshot inspected.27crafting/UI/site tests PASS4.59s; docs3686 PASS; build31876 PASS17.56s (SWmwb52fxx), upgrade-guidance-build.log. No simulation/save/cost/availability changes. Final release mobile pending.
+LOCAL unsealed v2026.11.10.12 Upgrade Guidance has three generated website notes. ItemDetails disabled upgrades preserve their normal description and add exact material shortfalls or affix-lock/tier/rarity/no-affix reasons, based on existing opAvailable/canAfford/reforgeCost. Dashed border replaces faded text for readable disabled cards. ../upgrade-reasons-check.cjs PASS shortage, live funding, actual Enhance toT2, tier cap, locked affix, rarity cap, no-affix and320/844 layouts; screenshot inspected.27crafting/UI/site tests PASS4.59s; docs3686 PASS; build31876 PASS17.56s (SWmwb52fxx), upgrade-guidance-build.log. No simulation/save/cost/availability changes. Final release mobile pending.
 
 LIVE v2026.11.10.11 Clearer Gear and Motion, SEVEN notes. SHA fdd8131f40aaed078f0c7e3932e8192accf95127. Actions42893701543/job130101131626 SUCCESS including exact-commit production guard. Normal custom-domain game/home/news/all7notes and entry asset verified20:20UTC by ../verify-current-release.ps1; asset/assets/play-CSQGqZlk.js. Final original mobile27718 passed27nav+nine gameplay profiles. Build19916 PASS11.17s,23focused tests and docs passed. Goal remains active; next approximate deployment21:20UTC.
 
 ## Files modified
 
-- Source (2): `src/changelog/releases.gen.ts`, `src/ui/ItemDetails.tsx`
+- Source (2): `src/changelog/releases.gen.ts`, `src/index.css`
 - Tests (0): —
-- Docs (5): `docs/EQUIPMENT.md`, `docs/HISTORY.md`, `docs/PROJECT_MANIFEST.md`, `docs/devlog/DRAFT-2026-11-09.md`, `docs/devlog/DRAFT-2026-11-10.md`
+- Docs (5): `docs/GAME-FEEL.md`, `docs/HISTORY.md`, `docs/PROJECT_MANIFEST.md`, `docs/devlog/DRAFT-2026-11-09.md`, `docs/devlog/DRAFT-2026-11-10.md`
 
 ## Systems affected (from the dependency registry)
 
 - **chronicle** — `src/changelog/releases.gen.ts`
-- **equipment** — `src/ui/ItemDetails.tsx`
-- Consumer ring (verify, unchanged): crafting
 
 ## Power Score changes
 
 None. UI/render-only changes; equipment stats, preview derivation, simulation and save schema unchanged.
 
 ## UI changes
+
+Pause touch baseline: compact audio/motion switches ~28px. Removing min-height0 alone still left28px because later narrow-screen generic24px rule beat global coarse44px. Final scoped coarse-pointer audio/motion switch rule establishes44px while preserving desktop padding. ../pause-touch-check.cjs final37797 PASS320x568/390x844/844x340, real GameView: switches/sliders44px, viewport bounds/hit testing, actual toggles/slider keys retain pause, Abandon->Keep Playing and Resume remain reachable via existing scrolling. Landscape screenshot inspected.11UI/site tests PASS2.38s; docs26064 PASS; build76710 PASS10.18s (SWmwb5d8bd), pause-touch-build.log. No audio/motion/pause behavior changes. Original full mobile started, upgrade-guidance-mobile.log; handle5046 running.
 
 ItemDetails baseline browser left focus on opener behind panel. It now has named modal semantics, focuses Close on entry, wraps enabled-button Tab/Shift+Tab, restores connected enabled invoker on close and defers to nested salvage while confirming. ../item-details-focus-check.cjs PASS initial focus, both wraps, Escape and return focus; ../salvage-confirm-check.cjs --stronger rerun PASS320/390/844 focus, nested trap, inert release, cancellation and actual isolated salvage.35crafting/UI/site/back tests PASS5.36s; docs54015 PASS; build68639 PASS11.36s (SWmwb572k9), item-details-focus-build.log. All processes terminal; final release mobile pending. No gameplay/save changes.
 
@@ -45,7 +45,9 @@ Infestation motion/selection: browser probes passed live prefs, resize, pins, hi
 
 ## Documentation changes
 
-Current .12: EQUIPMENT.md and manifest describe upgrade feedback; two UI notes generated.
+GAME-FEEL.md and manifest updated for touch target sizing; third curated UI note generated.
+
+Current .12: EQUIPMENT.md and manifest describe upgrade feedback; three UI notes generated.
 
 INFESTATION.md, EQUIPMENT.md and manifest updated. Seven curated UI notes generated for game and website. No new mechanic/reward/save field: no help registry, audio or migration change needed.
 
@@ -65,7 +67,7 @@ No new debt intended. Existing Windows validation launcher issue. Two untracked 
 
 ## Recommended next tasks
 
-All processes terminal. Continue evidence-led improvements in local unsealed .12 Upgrade Guidance; next approximate deploy21:20UTC. Before release, seal notes/generate website, final build and original full mobile, then verify deployment exact SHA and public URLs. Live .11 SHA fdd8131f40aaed078f0c7e3932e8192accf95127. Two devlog drafts remain unpublished/unstaged. Vite5174 may remain available; verify process command lines before cleanup.
+ONLY active validation handle5046: ORIGINAL full mobile --no-build, upgrade-guidance-mobile.log, build76710 current .12 dist. Poll SAME handle; no dist writes or competing heavy/browser checks until terminal. All other checks terminalPASS. Continue evidence-led work afterward; next approximate deployment21:20UTC. Local unsealed .12 has three generated notes. Live .11 SHA fdd8131f40aaed078f0c7e3932e8192accf95127. Preserve two untracked devlog drafts.
 
 ## Future expansion hooks
 

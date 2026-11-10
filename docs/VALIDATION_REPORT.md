@@ -780,3 +780,10 @@ LOCAL unsealed v2026.11.10.12 Upgrade Guidance has one generated website note. I
 ## 2026-11-10 20:29 UTC — Item Details keyboard entry and exit
 
 ItemDetails baseline browser left focus on opener behind panel. It now has named modal semantics, focuses Close on entry, wraps enabled-button Tab/Shift+Tab, restores connected enabled invoker on close and defers to nested salvage while confirming. ../item-details-focus-check.cjs PASS initial focus, both wraps, Escape and return focus; ../salvage-confirm-check.cjs --stronger rerun PASS320/390/844 focus, nested trap, inert release, cancellation and actual isolated salvage.35crafting/UI/site/back tests PASS5.36s; docs54015 PASS; build68639 PASS11.36s (SWmwb572k9), item-details-focus-build.log. All processes terminal; final release mobile pending. No gameplay/save changes. Two generated notes in unsealed .12 Upgrade Guidance. Live .11 unchanged; next approximate deploy21:20UTC.
+
+
+## 2026-11-10 20:34 UTC — Pause touch controls
+
+Pause touch baseline: compact audio/motion switches ~28px. Removing min-height0 alone still left28px because later narrow-screen generic24px rule beat global coarse44px. Final scoped coarse-pointer audio/motion switch rule establishes44px while preserving desktop padding. ../pause-touch-check.cjs final37797 PASS320x568/390x844/844x340, real GameView: switches/sliders44px, viewport bounds/hit testing, actual toggles/slider keys retain pause, Abandon->Keep Playing and Resume remain reachable via existing scrolling. Landscape screenshot inspected.11UI/site tests PASS2.38s; docs26064 PASS; build76710 PASS10.18s (SWmwb5d8bd), pause-touch-build.log. No audio/motion/pause behavior changes. Original full mobile started, upgrade-guidance-mobile.log; pending handle recorded below. Three notes in unsealed .12 Upgrade Guidance. Live .11 unchanged; next approximate deploy21:20UTC.
+
+Active original mobile handle5046; poll same process and keep dist unchanged.

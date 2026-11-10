@@ -4173,7 +4173,7 @@ html[data-layout='landscape'] .mc-campaign > .mc-ledger { order: 3; }
 /* ── Gameplay Speed control (docs/HUD.md §speed) — beside Pause; F cycles. ── */
 .speed-ctl { position: absolute; top: 10px; right: 108px; z-index: 30; display: inline-flex; gap: 2px; padding: 2px; border-radius: 999px; border: 1px solid var(--line-strong); background: rgba(8, 12, 20, 0.82); backdrop-filter: blur(4px); }
 @media (max-width: 640px) { .speed-ctl { right: 96px; } }
-.audio-toggles.is-compact .set-switch { padding: 4px 14px; min-height: 0; }
+.audio-toggles.is-compact .set-switch { padding: 4px 14px; }
 .audio-toggles.is-compact .motion-shake input[type="range"] { width: 100px; }
 
 /* ═══ HERO LAB — Champion Select (HEROES.md) ════════════════════════════════════ */
@@ -6450,8 +6450,12 @@ html[data-layout='landscape'] .conveyor { flex-direction: column; padding: 6px; 
 .motion-shake input[type="range"]:disabled { opacity: 0.4; }
 .motion-shake b { min-width: 38px; text-align: right; font-size: 13px; font-variant-numeric: tabular-nums; color: var(--text); }
 .motion-settings .set-switch:disabled { opacity: 0.45; cursor: not-allowed; }
-.motion-settings.is-compact .set-switch { padding: 4px 14px; min-height: 0; }
+.motion-settings.is-compact .set-switch { padding: 4px 14px; }
 .motion-settings.is-compact .motion-shake input[type="range"] { width: 100px; }
+@media (pointer: coarse) {
+  .audio-toggles .set-switch,
+  .motion-settings .set-switch { min-height: 44px; }
+}
 /* ── S2 · VICTORY CARRIES INTO RESULTS (docs/SIGNATURE-MOMENTS.md §2; render/runOutro.ts) ─────────
    The run-end veil centres on the BOARD (runOutro sets --outro-* from the canvas rect at begin) so
    the victory wash and the defeat cracks stay in view; the last beat (data-outro="settle") eases the

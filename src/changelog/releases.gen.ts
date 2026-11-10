@@ -17,6 +17,10 @@ export const RELEASES: Release[] = [
       {
         "cat": "UI",
         "text": "Opening Item Details now moves keyboard focus into the panel. Tab stays among its available controls, and closing it returns focus to the control you used to open it; salvage confirmation keeps its own keyboard behavior."
+      },
+      {
+        "cat": "UI",
+        "text": "Audio and motion switches now keep comfortable 44-pixel touch targets in Settings and the pause menu. The pause panel remains scrollable on short landscape screens, with Resume and Keep Playing reachable."
       }
     ]
   },
