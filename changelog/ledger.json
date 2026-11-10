@@ -1,6 +1,6 @@
 {
-  "lastSha": "6b23be63aac43bc8ba3a51a8ac15efdd43077c0b",
-  "commitsSinceDraft": 6,
+  "lastSha": "59d3baad355c606b68fcaaf8d63cf1aea5ac603f",
+  "commitsSinceDraft": 7,
   "content": {
     "tower": [
       "needle",
@@ -4793,7 +4793,7 @@
     {
       "id": "v2026.11.10.15",
       "date": "2026-11-10",
-      "title": "Clearer Graft Controls",
+      "title": "Clearer Upgrade Controls",
       "sealed": false,
       "entries": [
         {
@@ -4807,6 +4807,10 @@
         {
           "cat": "UI",
           "text": "Graft level and ascension controls now show Mulligan Tissue, matching the currency they already spend. Help explains the correct wallet, and reforged organisms show binding and upgrade guidance instead of suggesting unavailable graft clearing."
+        },
+        {
+          "cat": "UI",
+          "text": "The harvest receipt’s View next upgrade button now takes you to the recommended production upgrade and focuses its card. It remains a navigation step, so you can review the upgrade before spending Chitin."
         }
       ]
     }
@@ -11105,6 +11109,14 @@
       "date": "2026-11-10",
       "cat": "UI",
       "text": "Ui: add keyboard navigation to graft host tabs",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "59d3baad355c606b68fcaaf8d63cf1aea5ac603f",
+      "date": "2026-11-10",
+      "cat": "UI",
+      "text": "Show the correct graft upgrade currency and binding guidance",
       "internal": true,
       "needsReview": false
     }

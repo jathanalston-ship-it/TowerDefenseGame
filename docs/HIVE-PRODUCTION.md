@@ -69,3 +69,5 @@ organs never touch COMBAT power — Power Score still never reads the hive.
   authored PAIRS, deliberately (the organism is not a grid).
 - The Growth and Production views live in different hubs (Evolution vs Rewards) by
   behavior; the organism tab strip is the bridge.
+
+Harvest recommendation navigation (2026-11-10): the receipt CTA is named View next upgrade. In HarvestScreen, it closes the receipt then focuses and nearest-scrolls the corresponding named node card using the receipt recommendation id. HarvestArrival retains its existing onVisitHarvest callback. This action never calls buyIdleNode; collection, recommendation choice and upgrade prices remain unchanged.

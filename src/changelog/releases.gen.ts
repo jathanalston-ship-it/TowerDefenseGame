@@ -7,7 +7,7 @@ export const RELEASES: Release[] = [
   {
     "id": "v2026.11.10.15",
     "date": "2026-11-10",
-    "title": "Clearer Graft Controls",
+    "title": "Clearer Upgrade Controls",
     "sealed": false,
     "entries": [
       {
@@ -21,6 +21,10 @@ export const RELEASES: Release[] = [
       {
         "cat": "UI",
         "text": "Graft level and ascension controls now show Mulligan Tissue, matching the currency they already spend. Help explains the correct wallet, and reforged organisms show binding and upgrade guidance instead of suggesting unavailable graft clearing."
+      },
+      {
+        "cat": "UI",
+        "text": "The harvest receipt’s View next upgrade button now takes you to the recommended production upgrade and focuses its card. It remains a navigation step, so you can review the upgrade before spending Chitin."
       }
     ]
   },

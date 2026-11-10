@@ -6,7 +6,7 @@
 //    collect plays pods-bursting + staggered reward flyouts + stats (time away, efficiency)
 //    and ends on a "grow this next" suggestion. Never a boring popup.
 
-import { useState } from 'react';
+import { useLayoutEffect, useRef, useState } from 'react';
 import { meta } from '../state/meta';
 import type { IdleHarvestReceipt, IdleHarvestView, IdleNodeView } from '../state/meta';
 import { fmtIdleHours } from '../state/meta';
@@ -87,7 +87,7 @@ function HarvestCeremony({ r, onClose, onGrow }: { r: IdleHarvestReceipt; onClos
         {xp && <div className="hv-cer-xp" style={{ animationDelay: `${0.3 + haul.length * 0.11}s` }}>⬆ {xp.label}</div>}
         {r.suggestion && r.suggestion.kind === 'buy' && (
           <button className="hv-cer-grow" onClick={() => { onGrow?.(); onClose(); }}>
-            <span className="hv-grow-k">Grow next</span>
+            <span className="hv-grow-k">View next upgrade</span>
             <span className="hv-grow-n">{r.suggestion.node.glyph} {r.suggestion.node.name}</span>
             <span className="hv-grow-c">{r.suggestion.cost.toLocaleString('en-US')} <CurrencyIcon id="hiveMaterials" size={12} title="Chitin" /></span>
           </button>
@@ -142,7 +142,7 @@ function NodeCard({ n }: { n: IdleNodeView }): JSX.Element {
     setGrewLv(n.level + 1);
   };
   return (
-    <div className={`hv-node${n.gate ? ' is-gated' : ''}${grewLv > 0 ? ' is-grown' : ''}`} key={grewLv}>
+    <div data-idle-node={n.def.id} tabIndex={-1} role="group" aria-label={n.def.name} className={`hv-node${n.gate ? ' is-gated' : ''}${grewLv > 0 ? ' is-grown' : ''}`} key={grewLv}>
       <div className="hv-node-h">
         <span className="hv-node-g" aria-hidden>{n.def.glyph}</span>
         <span className="hv-node-name">{n.def.name}</span>
@@ -163,13 +163,22 @@ function NodeCard({ n }: { n: IdleNodeView }): JSX.Element {
 export function HarvestScreen(): JSX.Element {
   meta.use();
   const [receipt, setReceipt] = useState<IdleHarvestReceipt | null>(null);
+  const rootRef = useRef<HTMLDivElement>(null);
+  const pendingNode = useRef<string | null>(null);
+  useLayoutEffect(() => {
+    if (receipt || !pendingNode.current) return;
+    const node = rootRef.current?.querySelector<HTMLElement>(`[data-idle-node="${pendingNode.current}"]`);
+    node?.focus({ preventScroll: true });
+    node?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+    pendingNode.current = null;
+  }, [receipt]);
   const v: IdleHarvestView = meta.idleView(); // meta.use() above re-renders on every persist
   const a = v.accrual;
   const fillPct = pct(Math.min(1, a.rawHours / a.capHours));
   const toFullH = Math.max(0, a.capHours - a.rawHours);
   const built = meta.get().hive.built;
   return (
-    <div className="screen hv-screen">
+    <div ref={rootRef} className="screen hv-screen">
       <header className="screen-h">
         <h2>Hive Production</h2>
         <p className="screen-sub">The Hive produces while you're away — its body is the engine, this is the yield. Playing always out-earns it, but nothing is wasted.</p>
@@ -291,7 +300,9 @@ export function HarvestScreen(): JSX.Element {
         <span><b>{v.ledger.blooms.toLocaleString('en-US')}</b> blooms</span>
       </section>
 
-      {receipt && <HarvestCeremony r={receipt} onClose={() => setReceipt(null)} />}
+      {receipt && <HarvestCeremony r={receipt} onClose={() => setReceipt(null)} onGrow={() => {
+        pendingNode.current = receipt.suggestion?.node.id ?? null;
+      }} />}
     </div>
   );
 }

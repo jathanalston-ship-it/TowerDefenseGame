@@ -177,3 +177,5 @@ Client-only idle games cannot fully trust the device clock; this is the bounded-
 - The collect is ONE atomic persist: wallets + ledger + anchor + timeline move together.
 - Container-class lines ≤ 2 per collect; rolls deterministic from the seed.
 - Idle < 25% of the weakest active lane at every band (`idleHarvest.test.ts`).
+
+Harvest recommendation navigation (2026-11-10): the receipt CTA is named View next upgrade. In HarvestScreen, it closes the receipt then focuses and nearest-scrolls the corresponding named node card using the receipt recommendation id. HarvestArrival retains its existing onVisitHarvest callback. This action never calls buyIdleNode; collection, recommendation choice and upgrade prices remain unchanged.
