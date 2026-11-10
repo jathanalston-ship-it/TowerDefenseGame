@@ -9,7 +9,7 @@
 
 ## Summary of work completed
 
-LIVE v2026.11.10.1 Clearer Run Controls, seven sealed website notes. SHAa6249d385614942cfe6d902b987330b4ecb1c2d9; Actions42779296326 SUCCESS including exact-SHA production check. Normal custom-domain game/home/news/all7notes and entry asset verified08:03UTC Nov10; play-Tn7MFVuY.js matches local and returns200. Initial custom-domain request served prior .7, then propagated normally after20s. Verifier local reserved-variable error corrected before successful verification. Full3172 suite PASS before final UI-only disclosure;40focused tests, final sealed build/four site-sync tests, docs and mobile27screens/nine gameplay viewports PASS after it. All processes terminal; continuous goal active, next approximate release09:03UTC.
+LIVE v2026.11.10.2 Rewards You Can Read, seven sealed website notes. SHA e176563d06bd43881dabd1a579bea51d21f0521e; Actions42785759629 SUCCESS including exact-SHA production guard. Normal custom-domain game/home/news/all7notes verified08:52UTC Nov10; asset /assets/play-Bj9XiPk2.js matches local build and returns200. Full run3174/3175PASS;sole stale generated DIL graph corrected and7DIL tests re-PASS. Final sealed build5.97s,4site-sync tests and mobile27screens/9gameplay viewports PASS. All processes terminal; continuous goal remains active. Next approximate deployment09:52UTC.
 
 ## Files modified
 
@@ -47,7 +47,7 @@ Windows validate wrapper cannot launch npx/npm with shell:false; use direct gate
 
 ## Recommended next tasks
 
-Deploy sealed v2026.11.10.2 Rewards You Can Read, seven website notes. Full43607:3174/3175PASS;sole generated DIL graph mismatch corrected and7DIL tests re-PASS. No product changes afterward. Finalbuild16310 PASS5.97s,4site tests PASS, finalmobile74803 PASS27screens/9gameplay viewports. All processes terminal. Remote deployment branch confirmeda6249d38 before release. Push feature HEAD to claude/zen-hawking-rh1gxl, poll exactSHA Actions, verify normal custom-domain game/home/news via ../verify-current-release.ps1. Then record liveSHA/URL and continue active goal, next release roughlyhour later. Exclude both devlog drafts.
+Continue continuous playability/clarity/accessibility/audio/visual work. Latest LIVE .10.2 at SHAe176563d; Actions42785759629 SUCCESS and normal customdomain verified08:52UTC. Next approximate release09:52UTC. No open/unsealed release yet; start next batch on first substantive improvement and generate website notes. No active processes. Candidate next audit: Profile Power breakdown/tooltips and other remaining hover-only explanations; inspect actual evidence before choosing. Keep current branch codex/hive-autoplay, deploy to claude/zen-hawking-rh1gxl. Exclude both untracked devlog drafts. Latest browser scratch probes account-toast/reward-focus/loot-toast/update-toast/achievement-search/trophy-rack all passed. Goal stays active.
 
 ## Future expansion hooks
 
