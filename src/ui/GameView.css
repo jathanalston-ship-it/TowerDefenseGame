@@ -3504,3 +3504,13 @@ html[data-layout='desktop'] .cv-slot { flex: 0 1 auto; width: 240px; min-width: 
 .bond-entry > summary::after { content: '▸'; }
 .bond-entry[open] > summary::after { content: '▾'; }
 .bond-detail { margin: 0; padding: 8px; font-size: 12px; line-height: 1.5; color: var(--text); overflow-wrap: anywhere; }
+
+/* Drafted gene descriptions remain inside the scrollable Run Build panel. */
+.gene-entry { flex: 1 1 100%; min-width: 0; }
+.gene-entry > summary { display: flex; align-items: center; gap: 4px; min-height: 44px; white-space: normal; overflow: visible; list-style: none; cursor: pointer; }
+.gene-entry > summary::-webkit-details-marker { display: none; }
+.gene-entry > summary::after { content: '▸'; flex: none; margin-left: auto; }
+.gene-entry[open] > summary::after { content: '▾'; }
+.gene-name { min-width: 0; overflow-wrap: anywhere; }
+.gene-entry .chip-dot, .gene-entry .stack { flex: none; }
+.gene-detail { margin: 0; padding: 8px; font-size: 12px; line-height: 1.5; color: var(--text); overflow-wrap: anywhere; }

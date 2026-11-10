@@ -315,3 +315,12 @@ names; expanded readers survive live board updates. No effect or threshold math 
 Bond effect descriptions read the resolved level from each HUD bond snapshot, not the live
 account store. Daily runs therefore display their actual base-strength effects even when the
 account owns upgrades. This snapshot field does not change the bond fold or combat values.
+
+## Drafted Gene Card reading
+
+Run Build groups repeated picks as before. Each card is a native 44px disclosure whose
+name wraps instead of truncating; tap, Enter or Space reveals the exact saved description
+and affected subject inside the scrollable drawer. Repeated picks label that description
+"Per copy" rather than implying an aggregate bonus. Counts and expanded readers survive
+live deck refreshes. Reading keys do not dispatch battlefield shortcuts; Escape retains
+its normal handling. Draft choices, stacking math and effects are unchanged.

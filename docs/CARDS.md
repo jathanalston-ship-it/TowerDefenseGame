@@ -738,3 +738,12 @@ chips still render their own hand/technical text. They should migrate to
 `describeEffects`/`EFFECT_CATEGORIES` — each is a rendering swap, no data change. New
 systems MUST speak through this module from day one (DIL edge `system:gene-cards →
 system:hub-shell` records the rule).
+
+## Drafted Gene Card reading
+
+Run Build groups repeated picks as before. Each card is a native 44px disclosure whose
+name wraps instead of truncating; tap, Enter or Space reveals the exact saved description
+and affected subject inside the scrollable drawer. Repeated picks label that description
+"Per copy" rather than implying an aggregate bonus. Counts and expanded readers survive
+live deck refreshes. Reading keys do not dispatch battlefield shortcuts; Escape retains
+its normal handling. Draft choices, stacking math and effects are unchanged.

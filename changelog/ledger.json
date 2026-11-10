@@ -1,6 +1,6 @@
 {
-  "lastSha": "6754688b03e7de845a15aca06e561d0e94cad3ec",
-  "commitsSinceDraft": 0,
+  "lastSha": "57569d2c07c2d290b455a654b77a1bd6af612e6c",
+  "commitsSinceDraft": 1,
   "content": {
     "tower": [
       "needle",
@@ -4607,6 +4607,10 @@
         {
           "cat": "Bug Fixes",
           "text": "Daily Class Bond descriptions now show the base-strength bonuses that the shared run actually uses, instead of your account-upgraded bonuses."
+        },
+        {
+          "cat": "UI",
+          "text": "Drafted Gene Cards in Run Build now expand by tap or keyboard. Long names and descriptions stay readable, and repeated cards label their description per copy while keeping the stack count visible."
         }
       ]
     }
@@ -10449,6 +10453,14 @@
       "date": "2026-11-10",
       "cat": "Framework",
       "text": "Docs: record verified intel deployment",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "57569d2c07c2d290b455a654b77a1bd6af612e6c",
+      "date": "2026-11-10",
+      "cat": "UI",
+      "text": "Ui: make bond explanations accessible and run accurate",
       "internal": true,
       "needsReview": false
     }

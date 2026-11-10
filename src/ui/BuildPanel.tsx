@@ -114,17 +114,17 @@ export function BuildPanel({ hud, onCollapse, onOpenEvolution, doctrine = null, 
                   {g.stacks.map((s) => {
                     const aff = affectsOf(s.opt.subject);
                     return (
-                      <span
-                        key={s.opt.id}
-                        className="card-chip tt"
-                        data-rarity={s.opt.rarity}
-                        tabIndex={0}
-                      >
-                        <span className="chip-dot" style={{ background: aff.color }} aria-hidden />
-                        {s.opt.name}
-                        {s.count > 1 && <b className="stack">×{s.count}</b>}
-                        <span className="tt-bubble">{aff.label} · {s.opt.description}</span>
-                      </span>
+                      <details className="gene-entry" key={s.opt.id} onKeyDown={(event) => {
+                        if (event.key !== 'Escape') event.stopPropagation();
+                      }}>
+                        <summary className="card-chip" data-rarity={s.opt.rarity}
+                          aria-label={`${s.opt.name}${s.count > 1 ? `, ${s.count} copies` : ''}. ${aff.label}. Gene details`}>
+                          <span className="chip-dot" style={{ background: aff.color }} aria-hidden />
+                          <span className="gene-name">{s.opt.name}</span>
+                          {s.count > 1 && <b className="stack">×{s.count}</b>}
+                        </summary>
+                        <p className="gene-detail"><strong>{aff.label}</strong> · {s.count > 1 ? 'Per copy: ' : ''}{s.opt.description}</p>
+                      </details>
                     );
                   })}
                 </div>

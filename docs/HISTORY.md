@@ -774,3 +774,4 @@
 - `a28e86d` **[Framework]** Release: prepare Know What Is Coming with two notes _(internal)_
 - `8950ec0` **[Framework]** Release: publish Know What Is Coming _(internal)_
 - `6754688` **[Framework]** Docs: record verified intel deployment _(internal)_
+- `57569d2` **[UI]** Ui: make bond explanations accessible and run accurate _(internal)_
