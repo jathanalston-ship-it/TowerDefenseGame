@@ -822,3 +822,4 @@
 - `829c2c4` **[UI]** Ui: pause graft previews and follow live motion _(internal)_
 - `71100c6` **[UI]** Ui: pause nucleus previews and follow live motion _(internal)_
 - `7c39ffd` **[UI]** Ui: keep reforge reveals visible and keyboard accessible _(internal)_
+- `0998a78` **[UI]** Ui: follow live motion preferences in reforge reveals _(internal)_

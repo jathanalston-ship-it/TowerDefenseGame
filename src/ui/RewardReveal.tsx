@@ -12,9 +12,9 @@ import { useCountUp } from './components/useCountUp';
 import type { CSSProperties, ReactNode } from 'react';
 import { ACCOUNT_CURRENCY } from '../core/currencies';
 import { audio } from '../audio/sound';
+import { motionPrefs, onMotionPrefs, resolveMotion, systemReducedMotion } from '../state/prefs';
 
-const prefersReduced = (): boolean =>
-  typeof window !== 'undefined' && !!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+const prefersReduced = (): boolean => resolveMotion(motionPrefs(), systemReducedMotion()).motion === 0;
 
 const CATEGORY_MS = 1000; // gap between category reveals → ~5 categories lands in the 5–7s window
 const COUNT_MS = 700; // per-number count-up duration
@@ -231,6 +231,22 @@ export function RewardReveal({
     setSettled(true);
     setAchvShown(achievements.length);
   }, [categories.length, achievements.length]);
+
+  // Motion reduction completes presentation only; rewards were already applied upstream.
+  useEffect(() => {
+    let prefs = motionPrefs();
+    const media = window.matchMedia?.('(prefers-reduced-motion: reduce)');
+    const sync = (): void => {
+      if (resolveMotion(prefs, media?.matches ?? false).motion === 0) revealAll();
+    };
+    const offPrefs = onMotionPrefs((next) => { prefs = next; sync(); });
+    media?.addEventListener('change', sync);
+    sync();
+    return () => {
+      offPrefs();
+      media?.removeEventListener('change', sync);
+    };
+  }, [revealAll]);
 
   // Click anywhere on the capsule fast-forwards exactly one beat (reveal next / settle / next achv).
   const nudge = useCallback(() => {

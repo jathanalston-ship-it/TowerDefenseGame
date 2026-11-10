@@ -2,17 +2,20 @@
 // reward summaries. One implementation for every reveal surface; add options here, not copies.
 
 import { useEffect, useState } from 'react';
+import { motionPrefs, onMotionPrefs, resolveMotion, systemReducedMotion } from '../../state/prefs';
 
 /** Animate a number 0→`target` over `ms`. `instant` (skip / reduced-motion) snaps to the value;
  *  a non-positive target renders as 0 immediately. */
 export function useCountUp(target: number, { ms = 750, instant = false }: { ms?: number; instant?: boolean } = {}): number {
-  const [reduced, setReduced] = useState(() => typeof window !== 'undefined' && !!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches);
+  const [reduced, setReduced] = useState(() => resolveMotion(motionPrefs(), systemReducedMotion()).motion === 0);
   useEffect(() => {
     const mq = window.matchMedia?.('(prefers-reduced-motion: reduce)');
-    const update = (): void => setReduced(!!mq?.matches);
+    let prefs = motionPrefs();
+    const update = (): void => setReduced(resolveMotion(prefs, mq?.matches ?? false).motion === 0);
+    const offPrefs = onMotionPrefs((next) => { prefs = next; update(); });
     update();
     mq?.addEventListener('change', update);
-    return () => mq?.removeEventListener('change', update);
+    return () => { offPrefs(); mq?.removeEventListener('change', update); };
   }, []);
   const snap = instant || reduced || ms <= 0 || target <= 0;
   const [n, setN] = useState(snap ? Math.max(0, target) : 0);

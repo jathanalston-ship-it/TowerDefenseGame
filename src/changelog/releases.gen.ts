@@ -29,6 +29,10 @@ export const RELEASES: Release[] = [
       {
         "cat": "UI",
         "text": "The reforge wheel now honors Allow motion and follows live device motion preferences. Switching to reduced motion reveals the already-rolled graft immediately; restoring motion never restarts a finished reveal."
+      },
+      {
+        "cat": "UI",
+        "text": "Post-run rewards and reward number animations now follow live motion preferences and honor Allow motion. Reducing motion finishes the presentation immediately while preserving keyboard focus and waiting for any covering cinematic before playing reward audio."
       }
     ]
   },

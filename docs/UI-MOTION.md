@@ -112,3 +112,5 @@ InitCutscene applies live resolved motion/flashes at the pre-roll gate and durin
 Story cutscenes suspend their visual clock and caption animations while hidden; auto scene/coda holds retain remaining visible time. On return the projector resumes without hidden-time sound catch-up. This does not alter global music settings.
 
 Opening-cinematic visibility suspends gate/film/dive motion and caption CSS animations. Resume preserves scene hold and dive progress. Reduced motion requested during a hidden dive completes safely rather than waiting in a frozen transition.
+
+Reward motion preferences (2026-11-10): RewardReveal resolves shared motion preferences at entry and subscribes to device/preference changes. Reduction reveals the already-applied reward summary immediately without restarting completed sequences; existing paused audio and focus rules remain. Shared useCountUp (results, vault summary, reward toasts) now uses the same resolver and subscriptions; completed counts do not restart. Reward amounts and actions are unchanged.

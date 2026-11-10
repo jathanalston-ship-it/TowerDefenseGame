@@ -1,6 +1,6 @@
 {
-  "lastSha": "7c39ffd7be0708e46752d267e79b64e65bdefb78",
-  "commitsSinceDraft": 7,
+  "lastSha": "0998a782c7fa4fc8cf1586aaa0abcb361f765d7b",
+  "commitsSinceDraft": 8,
   "content": {
     "tower": [
       "needle",
@@ -4775,6 +4775,10 @@
         {
           "cat": "UI",
           "text": "The reforge wheel now honors Allow motion and follows live device motion preferences. Switching to reduced motion reveals the already-rolled graft immediately; restoring motion never restarts a finished reveal."
+        },
+        {
+          "cat": "UI",
+          "text": "Post-run rewards and reward number animations now follow live motion preferences and honor Allow motion. Reducing motion finishes the presentation immediately while preserving keyboard focus and waiting for any covering cinematic before playing reward audio."
         }
       ]
     }
@@ -11001,6 +11005,14 @@
       "date": "2026-11-10",
       "cat": "UI",
       "text": "Ui: keep reforge reveals visible and keyboard accessible",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "0998a782c7fa4fc8cf1586aaa0abcb361f765d7b",
+      "date": "2026-11-10",
+      "cat": "UI",
+      "text": "Ui: follow live motion preferences in reforge reveals",
       "internal": true,
       "needsReview": false
     }
