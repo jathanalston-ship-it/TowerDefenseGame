@@ -10,18 +10,10 @@
 import { useEffect, useRef } from 'react';
 import type { CSSProperties } from 'react';
 import type { HeroDef } from '../../core/config';
+import { COMBAT_CLASSES } from '../../core/combatClass';
 import { drawHeroSymbiotes } from '../../render/heroSymbiotes';
 import type { HeroSymbioteRender } from '../../render/heroSymbiotes';
 import './HeroPortrait.css';
-
-// A class sigil per combat class (extend as classes are added; falls back to a neutral mark).
-const CLASS_GLYPH: Record<string, string> = {
-  Kinetic: '✦',
-  Vital: '✚',
-  Neural: '◉',
-  Caustic: '☣',
-  Viral: '⬡',
-};
 
 /** The animated graft overlay — the in-run symbiote layer drawn over the portrait. */
 function SymbioteOverlay({ def, size, view }: { def: HeroDef; size: number; view: HeroSymbioteRender }): JSX.Element {
@@ -68,7 +60,7 @@ export function HeroPortrait({
   /** Optional live graft preview (docs/HERO-SYMBIOTES.md) — the in-run mutation layer. */
   symbiote?: HeroSymbioteRender;
 }): JSX.Element {
-  const glyph = CLASS_GLYPH[def.combatClass] ?? '◆';
+  const glyph = COMBAT_CLASSES[def.combatClass].glyph;
   return (
     <div
       className={`hero-portrait beh-${def.behavior}`}

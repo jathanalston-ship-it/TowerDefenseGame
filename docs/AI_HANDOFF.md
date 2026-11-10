@@ -39,3 +39,7 @@ Count-up follow-up: shared hook honors live OS reduced motion for toasts/vault t
 
 Clarity batch full suite PASS: 353 files/3150 tests; production build PASS. Next confirmed visual issue: components/HeroPortrait.tsx maintains a local CLASS_GLYPH table missing Resonant; use core/combatClass.ts COMBAT_CLASSES in the next visual pass. Keep roughly-hourly cadence; last deployed release remains 3cc51a83.
 Clarity mobile gate PASS across all nine standard viewports. All validation processes completed and probe server stopped. Batch ready as a local checkpoint; proceed with next visual pass before the next approximately-hourly release.
+
+Hero class-symbol follow-up: removed the duplicate incomplete CLASS_GLYPH map; HeroPortrait reads COMBAT_CLASSES. All six classes verified in Chrome using actual representative hero definitions; ../hero-class-portraits.png inspected. Resonant now correctly shows ◈.
+
+Release preparation: v2026.11.09.3 Clearer Rewards and Answers rebuilt successfully. Full checkpoint: 3150 tests and mobile gate pass; subsequent hero glyph lookup: six-class visual probe and 34 final focused tests pass. Publishing now under owner recurring-deployment authorization; verify Actions and live assets before claiming deployed. Generated docs/devlog/DRAFT-2026-11-09.md remains unpublished/untracked.

@@ -1,5 +1,7 @@
 # PROJECT_STATUS.md — the live state board
 
+> **2026-11-09 clarity release prepared:** reward audio/interaction fixes, complete Help search and related navigation, calmer portrait/count-up animation, continuous wallet totals, keyboard-friendly currency popovers, canonical hero class glyphs. Full 3150-test checkpoint and nine-viewport mobile gate pass; final glyph/site/docs checks and build pass. Website v2026.11.09.3 included. Broader experience goal remains active.
+
 > **2026-11-09 experience batch — verified for release:** manual cinematic reading and keyboard navigation, resize-safe stills, live device-motion updates, clear hero timers and Hive-managed controls. Production build, 3148 tests (full run plus generated-doc freshness reruns), doc/site audits and nine-viewport mobile gate pass. Website release v2026.11.09.2 prepared. Ongoing broader experience goal remains active.
 
 > Maintained at the END of every session (paired with `docs/AI_HANDOFF.md` — the constitution's

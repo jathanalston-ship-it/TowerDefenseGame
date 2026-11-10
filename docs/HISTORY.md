@@ -669,3 +669,4 @@
 
 - `6ace805` **[Website]** Ship Hive Intelligence auto-play and curated website notes _(internal)_
 - `3cc51a8` **[Gameplay]** Improve cinematic reading and gameplay feedback _(internal)_
+- `60dd21e` **[UI]** Verify reward clarity and accessible UI feedback _(internal)_

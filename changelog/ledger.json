@@ -1,6 +1,6 @@
 {
-  "lastSha": "3cc51a8349c7c9aabb09bf1d6abe86f53ec92e1f",
-  "commitsSinceDraft": 0,
+  "lastSha": "60dd21e173b9e830168f36fa08eb6dbba8611d4a",
+  "commitsSinceDraft": 1,
   "content": {
     "tower": [
       "needle",
@@ -4227,6 +4227,10 @@
         {
           "cat": "Visuals",
           "text": "Reward toasts and vault totals now honor device reduced motion directly, including changes made during a count-up. Re-enabling motion leaves completed totals intact."
+        },
+        {
+          "cat": "Visuals",
+          "text": "Hero portraits now use the same class symbols as the rest of the game, including Resonant’s proper diamond-within-diamond mark."
         }
       ]
     }
@@ -9245,6 +9249,14 @@
       "date": "2026-11-09",
       "cat": "Gameplay",
       "text": "Improve cinematic reading and gameplay feedback",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "60dd21e173b9e830168f36fa08eb6dbba8611d4a",
+      "date": "2026-11-09",
+      "cat": "UI",
+      "text": "Verify reward clarity and accessible UI feedback",
       "internal": true,
       "needsReview": false
     }

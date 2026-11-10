@@ -170,3 +170,7 @@ ChipPopover Chrome checks PASS: initial dialog focus, Tab to action, Escape rest
 
 Clarity batch full verification: production build PASS; all 353 test files and 3150 tests PASS in a single full run (317.71s). Shared count-up browser probe PASS for live reduced-motion snap, subsequent totals, restoring motion without replay, zero duration and nonpositive targets. Mobile gate still pending at this note.
 Mobile gate now PASS: 27 navigation screens and live runs across nine desktop/tablet/phone/browser viewports; no overflow, clipped text, undersized targets or run-chrome overlap.
+
+Hero portrait symbol browser check PASS across all six combat classes using real hero definitions; screenshot visually inspected. Only glyph lookup changed.
+
+Clarity release final gate: rebuilt final source PASS. After the verified 3150-test checkpoint and nine-viewport mobile gate, the only gameplay-facing source delta is the HeroPortrait shared glyph lookup; six real hero classes visually checked, 34 final hero/site/DIL/PIL tests PASS. No unresolved failures.

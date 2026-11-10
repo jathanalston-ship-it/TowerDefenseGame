@@ -37,6 +37,10 @@ export const RELEASES: Release[] = [
       {
         "cat": "Visuals",
         "text": "Reward toasts and vault totals now honor device reduced motion directly, including changes made during a count-up. Re-enabling motion leaves completed totals intact."
+      },
+      {
+        "cat": "Visuals",
+        "text": "Hero portraits now use the same class symbols as the rest of the game, including Resonant’s proper diamond-within-diamond mark."
       }
     ]
   },
