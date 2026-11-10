@@ -805,3 +805,4 @@
 - `a43c562` **[UI]** Ui: clarify quest progress rewards and claims _(internal)_
 - `2a0cf6b` **[UI]** Refresh the visible weekly contract board _(internal)_
 - `316bca1` **[UI]** Ui: keep armory filters recoverable after inventory changes _(internal)_
+- `309a981` **[UI]** Ui: show salvage selections hidden by filters _(internal)_

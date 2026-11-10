@@ -1936,3 +1936,13 @@ Armory baseline: select rare, remove last rare through real meta.salvageItem in 
 ## 2026-11-10 20:55 UTC — Hidden Quick-Salvage selections
 
 Quick-Salvage now reports eligible selected items hidden by current filters. Quick-grab tooltips describe inventory-wide scope. Existing selection and two-step confirmation remain unchanged. ../salvage-hidden-selection-check.cjs passed partial/all hidden selections, clear-filter selection preservation, confirmation, cancel and320/844 layouts;320 screenshot inspected. Build log salvage-hidden-build.log ends with successful8.06s Vite build and SW stamp mwb620ge. Docs check and11UI/site tests passed1.68s (session48633 terminal). Earlier .12 focused browser/check results are recorded chronologically in PROJECT_STATUS/VALIDATION_REPORT. Original mobile5046 passed27nav+nine gameplay profiles before the last four changes; final release mobile still required. Local .12 renamed Clearer Progress and Gear with seven generated notes; not yet deployed. Live .11 unchanged.
+
+
+## 2026-11-10 21:02 UTC — Sealed release checks
+
+Full regression suite88615 PASS3194tests354files178.58s (clearer-progress-tests.log). Required validate wrapper failed again with empty child output; source still uses spawnSync npx with shell:false on Windows. Preserved prior report; raw wrapper/report logs clearer-progress-wrapper*.log. Direct docs33749 and siteSync4tests passed. Sealed .12 Clearer Progress and Gear with seven notes; final build41170 PASS8.35s, SWmwb6anyq, asset/assets/play-CWH1Jmla.js. Original final mobile4857 remains running; release not deployed. Registry follow-ups: equipment, quests and contracts docs updated; gameplay/reward/help/tutorial/save/audio rules unchanged, so no new mechanic/help/cue/migration registration needed. UI probes from preceding entries cover the changed controls and lifecycle.
+
+
+## 2026-11-10 21:05 UTC — Final mobile gate passed
+
+Original final mobile4857 terminal PASS27 navigation screens and nine gameplay viewport profiles, clearer-progress-release-mobile.log. No gate assertions/timeouts changed. Full suite3194tests354files, final build, siteSync and docs passed. Sealed seven-note .12 candidate ready for authorized production push; public deployment verification remains pending.

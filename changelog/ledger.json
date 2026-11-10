@@ -1,6 +1,6 @@
 {
-  "lastSha": "316bca10cb32f1f4085dffc675cea992fec2de1a",
-  "commitsSinceDraft": 0,
+  "lastSha": "309a9818d0f261232fc06293dce99ab473f2e0dd",
+  "commitsSinceDraft": 1,
   "content": {
     "tower": [
       "needle",
@@ -4682,7 +4682,7 @@
       "id": "v2026.11.10.12",
       "date": "2026-11-10",
       "title": "Clearer Progress and Gear",
-      "sealed": false,
+      "sealed": true,
       "entries": [
         {
           "cat": "UI",
@@ -10801,6 +10801,14 @@
       "date": "2026-11-10",
       "cat": "UI",
       "text": "Ui: keep armory filters recoverable after inventory changes",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "309a9818d0f261232fc06293dce99ab473f2e0dd",
+      "date": "2026-11-10",
+      "cat": "UI",
+      "text": "Ui: show salvage selections hidden by filters",
       "internal": true,
       "needsReview": false
     }
