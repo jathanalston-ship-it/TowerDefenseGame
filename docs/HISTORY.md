@@ -796,3 +796,6 @@
 - `551a76f` **[UI]** Ui: preserve gear inspection with reduced motion _(internal)_
 - `92b6941` **[UI]** Ui: add keyboard gear preview rotation controls _(internal)_
 - `f605db7` **[UI]** Ui: keep salvage confirmation visible and keyboard contained _(internal)_
+- `23c040a` **[UI]** Release: prepare Clearer Gear and Motion _(internal)_
+- `fdd8131` **[Framework]** Release: publish Clearer Gear and Motion _(internal)_
+- `5bc8199` **[Framework]** Docs: record verified gear and motion deployment _(internal)_

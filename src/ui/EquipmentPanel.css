@@ -214,7 +214,9 @@
 
 .id-op:hover:not(:disabled) { border-color: var(--rc); background: color-mix(in srgb, var(--rc) 10%, var(--panel-2)); }
 
-.id-op:disabled { opacity: 0.4; }
+.id-op:disabled { opacity: 1; border-style: dashed; cursor: not-allowed; }
+.id-op:disabled .id-op-h { color: var(--muted); }
+.id-op-reason { font-size: 11px; color: var(--text); line-height: 1.4; }
 
 .id-op.danger:hover:not(:disabled), .id-op.danger.is-armed { border-color: var(--danger); background: color-mix(in srgb, var(--danger) 16%, var(--panel-2)); }
 

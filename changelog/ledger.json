@@ -1,6 +1,6 @@
 {
-  "lastSha": "f605db7e53ff6be32536c18bce2bd3ef925e179e",
-  "commitsSinceDraft": 1,
+  "lastSha": "5bc81994075eb4755fdaabf5c85d84a7ed073136",
+  "commitsSinceDraft": 4,
   "content": {
     "tower": [
       "needle",
@@ -4675,6 +4675,18 @@
         {
           "cat": "UI",
           "text": "Item Details now gives Favorite, item lock, and affix lock clear accessible names and selected states. Their tooltips describe the available action, and affix randomization names the affected affix."
+        }
+      ]
+    },
+    {
+      "id": "v2026.11.10.12",
+      "date": "2026-11-10",
+      "title": "Upgrade Guidance",
+      "sealed": false,
+      "entries": [
+        {
+          "cat": "UI",
+          "text": "Disabled equipment upgrades now explain missing materials, locked affixes, item-level tier caps, or the rarity limit. These reasons remain readable and update as your gear or materials change."
         }
       ]
     }
@@ -10693,6 +10705,30 @@
       "date": "2026-11-10",
       "cat": "UI",
       "text": "Ui: keep salvage confirmation visible and keyboard contained",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "23c040a915f0b6a8e7d053f02c554a91dd6df0d9",
+      "date": "2026-11-10",
+      "cat": "UI",
+      "text": "Release: prepare Clearer Gear and Motion",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "fdd8131f40aaed078f0c7e3932e8192accf95127",
+      "date": "2026-11-10",
+      "cat": "Framework",
+      "text": "Release: publish Clearer Gear and Motion",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "5bc81994075eb4755fdaabf5c85d84a7ed073136",
+      "date": "2026-11-10",
+      "cat": "Framework",
+      "text": "Docs: record verified gear and motion deployment",
       "internal": true,
       "needsReview": false
     }

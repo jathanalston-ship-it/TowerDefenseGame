@@ -356,7 +356,7 @@ Career statistic hints use explicit Details buttons and inline reading panels. P
 - **Future expansion:** 500-item target; behavioral affix vocabulary keeps growing.
 - **Known limitations:** exotic rarity is loot-only in places (can't transmute past legendary).
 - **Developer tips:** destruction safeguards + Undo Salvage exist (`EQUIPMENT.md §safeguards`) —
-  route ALL item deletion through them, never delete inventory rows directly. Item Details salvage confirmation is viewport-portaled, keyboard-contained and restores focus on cancellation. Favorite/item/affix locks expose their current toggle state to assistive tools.
+  route ALL item deletion through them, never delete inventory rows directly. Item Details salvage confirmation is viewport-portaled, keyboard-contained and restores focus on cancellation. Favorite/item/affix locks expose their current toggle state to assistive tools. Disabled upgrades explain material deficits and affix/tier/rarity gates.
 - **Gear chase (Batch G):** item level follows depth on an uncapped log curve (`ITEM_LEVEL_CURVE`, T6 from ~Stage 100); rarity per item-level band (`GEAR_RARITY_BANDS`, `gearRarityOdds` is the one source for roll + Armory line); permanent Gear Codex (`equipment.discovered`, v56). Known limit: base effects dominate item Power. Docs: `EQUIPMENT.md` §gear-chase §codex.
 
 ## Crafting / Reforging

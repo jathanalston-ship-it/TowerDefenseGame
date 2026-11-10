@@ -181,7 +181,8 @@ export function ItemDetails({
             {REFORGE_OPS.map((op) => {
               const isSalvage = op.id === 'salvage';
               const cost = reforgeCost(op.id, item);
-              const disabled = !opAvailable(op.id, item) || (!isSalvage && !canAfford(mats, cost));
+              const available = opAvailable(op.id, item);
+              const disabled = !available || (!isSalvage && !canAfford(mats, cost));
               if (isSalvage) {
                 return (
                   <button key={op.id} className="id-op danger" disabled={!!salvageBlock} onClick={requestSalvage}>
@@ -190,10 +191,23 @@ export function ItemDetails({
                   </button>
                 );
               }
+              let reason: string | null = null;
+              if (!available) {
+                if (op.id === 'upgrade') reason = `Rarity upgrades stop at ${rarityLabelOf('legendary')}.`;
+                else if (item.affixes.length === 0) reason = 'This item has no affixes to modify.';
+                else if (op.id === 'enhance' && !item.affixes.some((a) => a.tier < ceiling)) reason = `Affixes have reached this item's T${ceiling} limit.`;
+                else reason = op.id === 'enhance' ? `Unlock an affix below T${ceiling} to enhance.` : 'Unlock an affix first.';
+              } else if (disabled) {
+                const missing = ([['mutagen', 'Mutagen'], ['scrap', 'Scrap'], ['catalyst', 'Catalyst']] as const)
+                  .filter(([key]) => cost[key] > mats[key])
+                  .map(([key, name]) => `${cost[key] - mats[key]} more ${name}`);
+                reason = `Need ${missing.join(', ')}.`;
+              }
               return (
-                <button key={op.id} className="id-op" disabled={disabled} onClick={() => meta.reforgeOp(uid, op.id)}>
+                <button key={op.id} className="id-op" disabled={disabled} title={reason ?? op.blurb} onClick={() => meta.reforgeOp(uid, op.id)}>
                   <span className="id-op-h"><b>{op.icon} {op.label}</b><span className="id-op-cost">{costLabel(cost)}</span></span>
                   <span className="id-op-blurb">{op.blurb}</span>
+                  {reason && <span className="id-op-reason">{reason}</span>}
                 </button>
               );
             })}

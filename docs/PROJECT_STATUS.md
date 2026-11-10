@@ -1899,3 +1899,8 @@ Final ORIGINAL mobile27718 terminalPASS27nav+nine gameplay profiles on sealed bu
 ## 2026-11-10 20:20 UTC — Clearer Gear and Motion LIVE
 
 LIVE v2026.11.10.11 Clearer Gear and Motion, SEVEN notes. SHA fdd8131f40aaed078f0c7e3932e8192accf95127. Actions42893701543/job130101131626 SUCCESS including exact-commit production guard. Normal custom-domain game/home/news/all7notes and entry asset verified20:20UTC by ../verify-current-release.ps1; asset/assets/play-CSQGqZlk.js. Final original mobile27718 passed27nav+nine gameplay profiles. Build19916 PASS11.17s,23focused tests and docs passed. Goal remains active; next approximate deployment21:20UTC. Custom-domain responses initially lagged Actions (also with cache-bypass) but then normal URLs passed without redeployment. Read-only diagnostics found connector logs unsupported, gh unavailable and wrangler auth absent; all terminal, no remaining deployment blocker.
+
+
+## 2026-11-10 20:25 UTC — Upgrade guidance
+
+LOCAL unsealed v2026.11.10.12 Upgrade Guidance has one generated website note. ItemDetails disabled upgrades preserve their normal description and add exact material shortfalls or affix-lock/tier/rarity/no-affix reasons, based on existing opAvailable/canAfford/reforgeCost. Dashed border replaces faded text for readable disabled cards. ../upgrade-reasons-check.cjs PASS shortage, live funding, actual Enhance toT2, tier cap, locked affix, rarity cap, no-affix and320/844 layouts; screenshot inspected.27crafting/UI/site tests PASS4.59s; docs3686 PASS; build31876 PASS17.56s (SWmwb52fxx), upgrade-guidance-build.log. No simulation/save/cost/availability changes. Final release mobile pending. All handles terminal. Live .11 unchanged; next approximate deploy21:20UTC.

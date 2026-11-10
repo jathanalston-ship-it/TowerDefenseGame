@@ -5,6 +5,18 @@ import type { Release } from './types';
 /** Player-facing releases, newest first. */
 export const RELEASES: Release[] = [
   {
+    "id": "v2026.11.10.12",
+    "date": "2026-11-10",
+    "title": "Upgrade Guidance",
+    "sealed": false,
+    "entries": [
+      {
+        "cat": "UI",
+        "text": "Disabled equipment upgrades now explain missing materials, locked affixes, item-level tier caps, or the rarity limit. These reasons remain readable and update as your gear or materials change."
+      }
+    ]
+  },
+  {
     "id": "v2026.11.10.11",
     "date": "2026-11-10",
     "title": "Clearer Gear and Motion",

@@ -4,28 +4,34 @@
 > before committing. Read together with docs/PROJECT_STATUS.md and the latest
 > docs/VALIDATION_REPORT.md. Next session: start at docs/PROJECT_MANIFEST.md.
 
-- **Generated:** 2026-11-10 20:20 UTC · **Diff scope:** working tree vs HEAD
-- **Branch:** codex/hive-autoplay · **HEAD:** fdd8131f
+- **Generated:** 2026-11-10 20:23 UTC · **Diff scope:** working tree vs HEAD
+- **Branch:** codex/hive-autoplay · **HEAD:** 5bc81994
 
 ## Summary of work completed
+
+LOCAL unsealed v2026.11.10.12 Upgrade Guidance has one generated website note. ItemDetails disabled upgrades preserve their normal description and add exact material shortfalls or affix-lock/tier/rarity/no-affix reasons, based on existing opAvailable/canAfford/reforgeCost. Dashed border replaces faded text for readable disabled cards. ../upgrade-reasons-check.cjs PASS shortage, live funding, actual Enhance toT2, tier cap, locked affix, rarity cap, no-affix and320/844 layouts; screenshot inspected.27crafting/UI/site tests PASS4.59s; docs3686 PASS; build31876 PASS17.56s (SWmwb52fxx), upgrade-guidance-build.log. No simulation/save/cost/availability changes. Final release mobile pending.
 
 LIVE v2026.11.10.11 Clearer Gear and Motion, SEVEN notes. SHA fdd8131f40aaed078f0c7e3932e8192accf95127. Actions42893701543/job130101131626 SUCCESS including exact-commit production guard. Normal custom-domain game/home/news/all7notes and entry asset verified20:20UTC by ../verify-current-release.ps1; asset/assets/play-CSQGqZlk.js. Final original mobile27718 passed27nav+nine gameplay profiles. Build19916 PASS11.17s,23focused tests and docs passed. Goal remains active; next approximate deployment21:20UTC.
 
 ## Files modified
 
-- Source (0): —
+- Source (3): `src/changelog/releases.gen.ts`, `src/ui/EquipmentPanel.css`, `src/ui/ItemDetails.tsx`
 - Tests (0): —
-- Docs (2): `docs/devlog/DRAFT-2026-11-09.md`, `docs/devlog/DRAFT-2026-11-10.md`
+- Docs (5): `docs/EQUIPMENT.md`, `docs/HISTORY.md`, `docs/PROJECT_MANIFEST.md`, `docs/devlog/DRAFT-2026-11-09.md`, `docs/devlog/DRAFT-2026-11-10.md`
 
 ## Systems affected (from the dependency registry)
 
-- (no registered source files in this diff)
+- **chronicle** — `src/changelog/releases.gen.ts`
+- **equipment** — `src/ui/ItemDetails.tsx`
+- Consumer ring (verify, unchanged): crafting
 
 ## Power Score changes
 
 None. UI/render-only changes; equipment stats, preview derivation, simulation and save schema unchanged.
 
 ## UI changes
+
+LOCAL unsealed v2026.11.10.12 Upgrade Guidance has one generated website note. ItemDetails disabled upgrades preserve their normal description and add exact material shortfalls or affix-lock/tier/rarity/no-affix reasons, based on existing opAvailable/canAfford/reforgeCost. Dashed border replaces faded text for readable disabled cards. ../upgrade-reasons-check.cjs PASS shortage, live funding, actual Enhance toT2, tier cap, locked affix, rarity cap, no-affix and320/844 layouts; screenshot inspected.27crafting/UI/site tests PASS4.59s; docs3686 PASS; build31876 PASS17.56s (SWmwb52fxx), upgrade-guidance-build.log. No simulation/save/cost/availability changes. Final release mobile pending.
 
 Favorite/item salvage lock/affix lock now have stable accessible names and aria-pressed; randomize names its affix. Isolated ../item-toggle-check.cjs PASS real keyboard toggles and preserved salvage protection. Sealed .11 Clearer Gear and Motion with SEVEN generated notes. Final23 UI/artwork/site/back tests PASS4.59s; docs77844 PASS; build19916 PASS11.17s (SWmwb4izai), clearer-gear-release-build.log, asset/assets/play-CSQGqZlk.js. ORIGINAL final mobile27718 terminalPASS27nav+nine gameplay profiles, clearer-gear-release-mobile.log. Production advanced to fdd8131f40aaed078f0c7e3932e8192accf95127 and public URLs verified.
 
@@ -34,6 +40,8 @@ Salvage confirmation baseline at320x568: dialog top=-550.77,bottom=-341.23 after
 Infestation motion/selection: browser probes passed live prefs, resize, pins, hidden lifecycle and keyboard region/sector selection. ItemArt: baseline30frames/500ms under reduced motion; fixed probe passed0frames, nonblank still, override/revoke, offscreen/hidden pause-resume and cleanup. HeroGearPreview: baseline29frames/500ms; fixed motion probe passed still drag with real equipment pixel change, motion prefs, visibility and cleanup. Idle rotation now uses elapsed time at prior60Hz speed. Native Left/Right44px buttons rotate by PI/8; focus pauses animation, blur out resumes. Real ItemDetails controls probe passed320/390/844, Enter/Space, Tab, stable focus image, opposite rotation restoring angle, target bounds/hit tests and reduced keyboard rotation. Expanded final probe also proved blur resumes; screenshots320/844 inspected. Final motion rerun passed. Fifteen artwork/UI/site tests PASS2.26s; docs32157 PASS; build47084 PASS15.52s, SWmwb47opn, gear-controls-build.log. Full original mobile64256 passed27nav+nine gameplay profiles BEFORE keyboard controls; final original mobile27718 subsequently passed.
 
 ## Documentation changes
+
+Current .12: EQUIPMENT.md and manifest describe upgrade feedback; one UI note generated.
 
 INFESTATION.md, EQUIPMENT.md and manifest updated. Seven curated UI notes generated for game and website. No new mechanic/reward/save field: no help registry, audio or migration change needed.
 
@@ -53,7 +61,7 @@ No new debt intended. Existing Windows validation launcher issue. Two untracked 
 
 ## Recommended next tasks
 
-All processes terminal. Continue evidence-led improvements; next approximate deployment21:20UTC. No pending release work. Preserve two untracked devlog drafts. Vite5174 may remain available; verify exact process command lines before cleanup. Latest live SHA fdd8131f40aaed078f0c7e3932e8192accf95127. Postdeploy docs commit stays local to avoid redundant deployment.
+All processes terminal. Continue evidence-led improvements in local unsealed .12 Upgrade Guidance; next approximate deploy21:20UTC. Before release, seal notes/generate website, final build and original full mobile, then verify deployment exact SHA and public URLs. Live .11 SHA fdd8131f40aaed078f0c7e3932e8192accf95127. Two devlog drafts remain unpublished/unstaged. Vite5174 may remain available; verify process command lines before cleanup.
 
 ## Future expansion hooks
 
