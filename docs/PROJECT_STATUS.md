@@ -1393,3 +1393,5 @@ Reward reading production build PASS. Final full suite34772 and mobile37446 cont
 Final suite3150 PASS. Mobile gate identified a drawer-transition sampling race; focused landscape diagnostic and controlled settling check passed. Gate now waits for actual closed visibility; full rerun83603 active. Deployment waits for this result.
 
 Same-destination drawer close fixed and browser-verified with no extra Back stop. Build and19 navigation tests PASS. Final mobile72291 running; six website notes.
+
+.5 final mobile gate PASS at05:36UTC; deploying verified six-note release. Full3150 suite plus focused19 nav/back and4 site checks passed; final build and focused browser checks passed.
