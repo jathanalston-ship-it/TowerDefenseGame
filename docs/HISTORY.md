@@ -836,3 +836,4 @@
 - `e15b182` **[UI]** Release: publish clearer upgrade controls _(internal)_
 - `f2fea73` **[Framework]** Docs: record verified upgrade controls release _(internal)_
 - `faffe6f` **[Developer Tools]** Dev: isolate test and production validation environments _(internal)_
+- `1869407` **[UI]** Ui: preserve harvest upgrade focus and growth feedback _(internal)_

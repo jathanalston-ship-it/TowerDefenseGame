@@ -13,6 +13,10 @@ export const RELEASES: Release[] = [
       {
         "cat": "UI",
         "text": "Growing a production upgrade now keeps keyboard focus on its Grow button. If the next level is locked or unaffordable, focus stays on the upgrade card so you can read its new status. Growth effects still replay after each purchase."
+      },
+      {
+        "cat": "UI",
+        "text": "Production upgrades now show how much more Chitin you need. Keyboard and screen-reader controls identify the upgrade, next level and price, while focused cards describe their current level and unlock requirement."
       }
     ]
   },

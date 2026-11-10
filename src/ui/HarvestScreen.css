@@ -82,7 +82,7 @@
 
 .hv-node-lv { font-size: 11px; font-weight: 700; color: var(--gold); }
 
-.hv-node-blurb { font-size: 11px; color: var(--muted); margin: 0; }
+.hv-node-blurb, .hv-node-shortfall { font-size: 11px; color: var(--muted); margin: 0; }
 
 .hv-node-gate { font-size: 11px; color: var(--r-epic); }
 

@@ -6,7 +6,7 @@
 //    collect plays pods-bursting + staggered reward flyouts + stats (time away, efficiency)
 //    and ends on a "grow this next" suggestion. Never a boring popup.
 
-import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { useEffect, useId, useLayoutEffect, useRef, useState } from 'react';
 import { meta } from '../state/meta';
 import type { IdleHarvestReceipt, IdleHarvestView, IdleNodeView } from '../state/meta';
 import { fmtIdleHours } from '../state/meta';
@@ -152,7 +152,9 @@ export function HarvestArrival({ onVisitHarvest }: { onVisitHarvest: () => void 
 }
 
 // ── The Harvest screen ───────────────────────────────────────────────────────────────────────
-function NodeCard({ n }: { n: IdleNodeView }): JSX.Element {
+function NodeCard({ n, chitin }: { n: IdleNodeView; chitin: number }): JSX.Element {
+  const id = useId();
+  const growLabel = `Grow ${n.def.name} to level ${n.level + 1} for ${n.cost.toLocaleString('en-US')} Chitin`;
   // GROW ceremony (docs/IDLE-HARVEST.md §presentation): a successful node buy must FEEL like
   // biology taking — graftCrack cue (the house upgrade sound), a caustic ring bursting off the
   // card, the glyph swelling, and the new level flaring gold. `grewLv` keys the one-shot CSS
@@ -175,20 +177,23 @@ function NodeCard({ n }: { n: IdleNodeView }): JSX.Element {
     setGrewLv(n.level + 1);
   };
   return (
-    <div ref={cardRef} data-idle-node={n.def.id} tabIndex={-1} role="group" aria-label={n.def.name} className={`hv-node${n.gate ? ' is-gated' : ''}${grewLv > 0 ? ' is-grown' : ''}`}>
+    <div ref={cardRef} data-idle-node={n.def.id} tabIndex={-1} role="group" aria-label={`${n.def.name}, level ${n.level}`} aria-describedby={`${id}-blurb${n.gate || !n.affordable ? ` ${id}-status` : ''}`} className={`hv-node${n.gate ? ' is-gated' : ''}${grewLv > 0 ? ' is-grown' : ''}`}>
       {grewLv > 0 && <span key={`ring-${grewLv}`} className="hv-node-ring" aria-hidden />}
       <div className="hv-node-h" key={grewLv}>
         <span className="hv-node-g" aria-hidden>{n.def.glyph}</span>
         <span className="hv-node-name">{n.def.name}</span>
         <span className="hv-node-lv">L{n.level}</span>
       </div>
-      <p className="hv-node-blurb">{n.def.blurb}</p>
+      <p id={`${id}-blurb`} className="hv-node-blurb">{n.def.blurb}</p>
       {n.gate ? (
-        <div className="hv-node-gate">🔒 {n.gateLabel} unlocks L{n.level + 1}</div>
+        <div id={`${id}-status`} className="hv-node-gate">🔒 {n.gateLabel} unlocks L{n.level + 1}</div>
       ) : (
-        <button ref={buyRef} className={`hv-node-buy${n.affordable ? ' is-afford' : ''}`} disabled={!n.affordable} onClick={buy}>
-          Grow · {n.cost.toLocaleString('en-US')} <CurrencyIcon id="hiveMaterials" size={12} title="Chitin" />
-        </button>
+        <>
+          <button ref={buyRef} aria-label={growLabel} title={growLabel} aria-describedby={`${id}-blurb`} className={`hv-node-buy${n.affordable ? ' is-afford' : ''}`} disabled={!n.affordable} onClick={buy}>
+            Grow · {n.cost.toLocaleString('en-US')} <CurrencyIcon id="hiveMaterials" size={12} title="Chitin" />
+          </button>
+          {!n.affordable && <p id={`${id}-status`} className="hv-node-shortfall">Need {Math.max(0, n.cost - chitin).toLocaleString('en-US')} more Chitin</p>}
+        </>
       )}
     </div>
   );
@@ -309,7 +314,7 @@ export function HarvestScreen(): JSX.Element {
           <span className="hv-sec-s">{v.chitin.toLocaleString('en-US')} <CurrencyIcon id="hiveMaterials" size={12} title="Chitin" /> · every node grows forever, ever slower, ever pricier</span>
         </div>
         <div className="hv-nodes">
-          {v.nodes.map((n) => <NodeCard key={n.def.id} n={n} />)}
+          {v.nodes.map((n) => <NodeCard key={n.def.id} n={n} chitin={v.chitin} />)}
         </div>
       </section>
 

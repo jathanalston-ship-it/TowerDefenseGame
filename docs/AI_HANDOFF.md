@@ -4,18 +4,18 @@
 > before committing. Read together with docs/PROJECT_STATUS.md and the latest
 > docs/VALIDATION_REPORT.md. Next session: start at docs/PROJECT_MANIFEST.md.
 
-- **Generated:** 2026-11-10 23:43 UTC · **Diff scope:** working tree vs HEAD
-- **Branch:** codex/hive-autoplay · **HEAD:** faffe6ff
+- **Generated:** 2026-11-10 23:47 UTC · **Diff scope:** working tree vs HEAD
+- **Branch:** codex/hive-autoplay · **HEAD:** 18694079
 
 ## Summary of work completed
 
-LOCAL unsealed v2026.11.10.16 Smoother Hive Upgrades, one game/website note. Harvest node successful purchase previously remounted focused Grow and dropped focus to body (browser reproduced, cost60 unchanged). Card/button now stable, only ring/header remount to replay animation; focused purchase retains enabled Grow or falls back to named card when gated/unaffordable. Actual-meta probes passed normal/repeated growth, exact debits, gate/zero-wallet fallback, live reduced motion and recommendation navigation.63 relevant tests3.21s, docs/handoff and production build28608 PASS5.66s/SWmwbc6bfe. All processes terminal. Corrected-environment FULL validator85990 PASS23:41UTC3194tests/mobile/docs, BEFORE this UI edit; nested build exact production hash verified. Live remains .15 SHAe15b1827f86bdb6c8c722d7e049091a12260d98d verified23:32UTC. Goal active; next approximate deployment00:32UTC.
+LOCAL unsealed v2026.11.10.16 Smoother Hive Upgrades now has TWO notes. Added exact Chitin shortfall to unaffordable ungated production upgrades; accessible Grow names/tooltips specify node/nextlevel/price. Card name includes current level and stable useId descriptions expose blurb plus shortage/gate. Actual browser accessibility snapshots passed level1/81Chitin and level9/Campaign25 unlock, exact debits and existing focus fallback; repeated growth/animation/reducedmotion regression passed.320px screenshot inspected/no horizontal overflow.63 tests3.16s, docs/handoff and build18366 PASS5.88s/SWmwbcaxms. All processes terminal. Full .16 audit pending; latest full3194tests/productionmobile PASS23:41 before .16UI. Live .15 remains verified23:32UTC; next approximate deploy00:32UTC. Goal active.
 
 ## Files modified
 
 - Source (3): `src/changelog/releases.gen.ts`, `src/ui/HarvestScreen.css`, `src/ui/HarvestScreen.tsx`
 - Tests (0): —
-- Docs (7): `docs/HISTORY.md`, `docs/HIVE-PRODUCTION.md`, `docs/IDLE-HARVEST.md`, `docs/PROJECT_MANIFEST.md`, `docs/VALIDATION_REPORT.md`, `docs/devlog/DRAFT-2026-11-09.md`, `docs/devlog/DRAFT-2026-11-10.md`
+- Docs (6): `docs/HISTORY.md`, `docs/HIVE-PRODUCTION.md`, `docs/IDLE-HARVEST.md`, `docs/PROJECT_MANIFEST.md`, `docs/devlog/DRAFT-2026-11-09.md`, `docs/devlog/DRAFT-2026-11-10.md`
 
 ## Systems affected (from the dependency registry)
 
@@ -29,11 +29,11 @@ None. Presentation/focus only.
 
 ## UI changes
 
-Stable harvest node/card and Grow control. Decorative ring now aria-hidden span keyed per purchase, header keyed to replay glyph/level effects. Existing costs, gates, sound and animation timings retained. Browser probes: ../harvest-growth-{focus,poor,gated,repeat}-check.cjs and ../harvest-grow-next-phone-check.cjs (game cwd).
+Contextual Grow accessible labels/tooltips; current-level card names; associated effect and unavailable-status descriptions; visible exact Chitin shortfall from idleView balance. Browser probes ../harvest-upgrade-guidance-check.cjs, ../harvest-upgrade-gate-guidance-check.cjs, ../harvest-growth-repeat-check.cjs all passed. Screenshot ../harvest-upgrade-guidance-320.png reviewed. Previous stable-card focus implementation retained.
 
 ## Documentation changes
 
-IDLE-HARVEST, HIVE-PRODUCTION and manifest updated. One curated note generated for game and website. No new help/tutorial/audio registration needed.
+IDLE-HARVEST, HIVE-PRODUCTION and manifest updated; two game/website notes generated. No new mechanics/audio/help needed.
 
 ## Save changes
 
@@ -49,7 +49,7 @@ Local Chrome still needs MOBILECHECK_CHROMIUM and NODE_OPTIONS parent chrome-pro
 
 ## Recommended next tasks
 
-Continue interaction/clarity audits, perhaps production upgrade feedback and accessible descriptions after gated growth. Validate concrete issues before changing. Seal/generate/fullvalidate around00:15UTC for approximate00:32 deployment.
+Continue broader UI/animation/accessibility audit; harvest guidance now covered. Consider other production/growth controls or a separate collection/detail flow for meaningful issues. Begin full .16 validation around00:15UTC for approximate00:32 deployment. No active child processes.
 
 ## Future expansion hooks
 

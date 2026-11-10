@@ -1,6 +1,6 @@
 {
-  "lastSha": "faffe6ff96f1bf71ded77962b701a1a01726ca69",
-  "commitsSinceDraft": 0,
+  "lastSha": "1869407950ca8cbcb25a4e7054e9cd41ae116245",
+  "commitsSinceDraft": 1,
   "content": {
     "tower": [
       "needle",
@@ -4827,6 +4827,10 @@
         {
           "cat": "UI",
           "text": "Growing a production upgrade now keeps keyboard focus on its Grow button. If the next level is locked or unaffordable, focus stays on the upgrade card so you can read its new status. Growth effects still replay after each purchase."
+        },
+        {
+          "cat": "UI",
+          "text": "Production upgrades now show how much more Chitin you need. Keyboard and screen-reader controls identify the upgrade, next level and price, while focused cards describe their current level and unlock requirement."
         }
       ]
     }
@@ -11165,6 +11169,14 @@
       "date": "2026-11-10",
       "cat": "Developer Tools",
       "text": "Dev: isolate test and production validation environments",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "1869407950ca8cbcb25a4e7054e9cd41ae116245",
+      "date": "2026-11-10",
+      "cat": "UI",
+      "text": "Ui: preserve harvest upgrade focus and growth feedback",
       "internal": true,
       "needsReview": false
     }
