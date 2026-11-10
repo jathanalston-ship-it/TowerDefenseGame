@@ -695,3 +695,8 @@ Added44px help beside Auto Wave/Auto Gene using existing bounded briefing reader
 ## 2026-11-10 18:49 UTC — Automation help build passed; mobile running
 
 Final build78237 terminalPASS16.19s (automation-help-final-build.log, SWmwb1m0tw). Original full mobile53228 started against that exact dist, automation-help-mobile.log; do not overwrite dist or run competing heavy checks while pending. Worktree source unchanged this turn. Next possible inspection: Pause seemed partly cut off in320x568 locked-profile screenshot, but no runtime bounds evidence yet; do not infer a confirmed bug. Live remains .9, local .10 has one note.
+
+
+## 2026-11-10 18:57 UTC — Automation mobile passed; narrow Pause reviewed
+
+Original full mobile53228 terminalPASS27nav+nine gameplay profiles. Focused run-controls probe88649 PASS320x568/390x844/844x390: all controls inside viewport and hit-testable, Pause opens and documented P resumes. Screenshots inspected. No Pause clipping reproduced; no source change justified. Earlier39716 probe wrongly assumed Escape resumes; corrected to documented P. Fixed landscape controls are not clipped by board ancestor despite naive geometry flags. Local .10 automation help now has passing build/docs/tests/browser/mobile checks; live .9 unchanged. Next approximate deployment19:38UTC.

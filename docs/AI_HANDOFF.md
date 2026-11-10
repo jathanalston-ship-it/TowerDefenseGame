@@ -4,8 +4,8 @@
 > before committing. Read together with docs/PROJECT_STATUS.md and the latest
 > docs/VALIDATION_REPORT.md. Next session: start at docs/PROJECT_MANIFEST.md.
 
-- **Generated:** 2026-11-10 18:48 UTC · **Diff scope:** working tree vs HEAD
-- **Branch:** codex/hive-autoplay · **HEAD:** 3e816951
+- **Generated:** 2026-11-10 18:55 UTC · **Diff scope:** working tree vs HEAD
+- **Branch:** codex/hive-autoplay · **HEAD:** c078929b
 
 ## Summary of work completed
 
@@ -27,7 +27,9 @@ None. Prior added HUD bond level is read-only; no gameplay, balance or save chan
 
 ## UI changes
 
-BuildControls adds44px help button to existing automation row and reuses bounded briefing reader. Explanations derive current WAIT, autoGeneLock reason and hiveActive, update live, describe countdown/manual card override. Existing toggles/prefs/gates unchanged. Reader keeps Space isolated, Escape restores opener. Compact labels wrap inside buttons (no font-size reduction); initial narrower-grid clipping was caught and fixed. Final real GameView checks85873 unlocked +32996 locked PASS320x568/390x844/844x390/1280x800, reader/label bounds and keyboard behavior; locked/unlocked phone screenshots inspected. Standalone state probe PASS waiting/locked/liveHiveupdate/disabledbuttons/keys. Initial fixture resizing before profile settlement produced width20px; fixed initial portrait and explicit profile wait. Loot meter unlocked geometry probe5639 also PASS, no source change needed there. Eleven site/UI tests1292 PASS10.51s; docs70306 PASS. Initial build68516 PASS23.05s predates last wrapping fix. Final build78237 terminalPASS16.19s, automation-help-final-build.log, SWmwb1m0tw. Original full mobile53228 is running, automation-help-mobile.log.
+Additional review: ../run-controls-narrow-check.cjs final88649 terminalPASS at320x568,390x844,844x390. Every control is in viewport and receives center hit-testing; Pause opens and documented P resumes. Screenshots inspected. No Pause clipping defect reproduced, so no source change made. Earlier probe39716 failed because it incorrectly expected Escape to resume; corrected to documented P. Ancestor-overflow geometry falsely flagged fixed landscape controls; actual hit testing and screenshots prove visible.
+
+BuildControls adds44px help button to existing automation row and reuses bounded briefing reader. Explanations derive current WAIT, autoGeneLock reason and hiveActive, update live, describe countdown/manual card override. Existing toggles/prefs/gates unchanged. Reader keeps Space isolated, Escape restores opener. Compact labels wrap inside buttons (no font-size reduction); initial narrower-grid clipping was caught and fixed. Final real GameView checks85873 unlocked +32996 locked PASS320x568/390x844/844x390/1280x800, reader/label bounds and keyboard behavior; locked/unlocked phone screenshots inspected. Standalone state probe PASS waiting/locked/liveHiveupdate/disabledbuttons/keys. Initial fixture resizing before profile settlement produced width20px; fixed initial portrait and explicit profile wait. Loot meter unlocked geometry probe5639 also PASS, no source change needed there. Eleven site/UI tests1292 PASS10.51s; docs70306 PASS. Initial build68516 PASS23.05s predates last wrapping fix. Final build78237 terminalPASS16.19s, automation-help-final-build.log, SWmwb1m0tw. Original full mobile53228 terminalPASS27nav+nine gameplay profiles, automation-help-mobile.log.
 
 ## Documentation changes
 
@@ -39,7 +41,7 @@ None.
 
 ## Known edge cases
 
-Final build passed; full mobile53228 pending. Wider state labels required flex wrapping, verified in focused real game probes. Native disclosure/keyboard checks do not prove every screen reader speech output. Prior .9 original mobile30430 failed drawer-close timeout; unchanged-build diagnostic81740 and final original72320 passed, root cause unproven. Do not weaken original gate; preserve failure history. Existing Windows validate wrapper npx shell:false launch issue remains documented.
+Final build and full mobile53228 passed. Wider state labels required flex wrapping, verified in focused real game probes. Native disclosure/keyboard checks do not prove every screen reader speech output. Prior .9 original mobile30430 failed drawer-close timeout; unchanged-build diagnostic81740 and final original72320 passed, root cause unproven. Do not weaken original gate; preserve failure history. Existing Windows validate wrapper npx shell:false launch issue remains documented.
 
 ## Remaining technical debt
 
@@ -47,7 +49,7 @@ Existing Windows validate launcher issue only. Two untracked docs/devlog/DRAFT-2
 
 ## Recommended next tasks
 
-ONLY active handle53228: ORIGINAL full mobilecheck --no-build, automation-help-mobile.log, current final automation-help dist. Poll SAME handle to terminal; do not overwrite dist or start competing heavy checks/browser probes while it runs. Build78237 terminalPASS16.19s. All focused probes/tests/docs are terminal; handoff75317 terminalPASS. Once mobile finishes, continue .10 work until approximate19:38 deployment with website notes. Next read-only candidate: narrow locked-account screenshot ../automation-help-locked-phone.png appeared to cut off part of Pause at320x568. This is NOT a confirmed defect: measure .run-ctl and child bounds in real GameView stage0 vsstage5, compare with current live CSS if needed. No change to that strip was made in .10; source run-ctl flex rule GameView.css2905, phone sizing3131ff, portrait strip3294ff, landscape column3332ff. Do not fix without runtime evidence. Vite5174 remains PID30948,parent32932; no active probes. Live .9 production48b2f2a81ac463b53708ffcc2aab5b11f7f7cfdc. Leave two untracked devlog drafts unpublished.
+All known validation/probe handles terminal. Local unsealed .10 Know Your Controls has one note, focused/browser/docs/tests/build and ORIGINAL full mobile53228 PASS. No source edits this turn; suspected Pause clipping ruled out with measurements, screenshots and interaction checks. Continue evidence-led improvements until approximate19:38UTC release, then seal/regenerate/build/site-sync checks and final mobile as needed, commit/push authorized production ref and verify Actions exactSHA/customdomain. Live .9 SHA48b2f2a81ac463b53708ffcc2aab5b11f7f7cfdc. Vite5174 remains PID30948,parent32932, no active probes. Keep two untracked devlog drafts unpublished.
 
 ## Future expansion hooks
 
