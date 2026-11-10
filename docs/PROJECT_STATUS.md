@@ -1355,3 +1355,5 @@ Implemented on `codex/hive-autoplay`, not deployed: Stage 5 completion unlocks c
 Next local batch follow-up: pause dialog focus containment/restoration and safe confirmation focus verified in Chrome. Mobile pause now overlays open Status drawers; 390x844 visual and click checks pass. These changes remain local for the next release.
 
 Evolution follow-up local: keyboard purchasing fixed in shared hold-to-buy hook; hero purchase focus and multi-buy level feedback corrected; console layering fixed. Browser purchase/affordability checks, 19 evolution tests and production build pass.
+
+Selected-hero readout follow-up: corrected hero-specific recovery, shield and ability countdown; accessible roster tabs; removed Infinity attack rate for non-attackers. Three-hero desktop/phone probe and 19 focused tests pass.

@@ -21,6 +21,10 @@
       {
         "cat": "UI",
         "text": "Evolution purchases now work with Enter and Space as well as clicking or holding. Hero upgrade buttons name the upgrade and Biomass cost, keep keyboard focus after buying, and show the correct level after buying several upgrades. The hero console stays above game-speed controls so its Close button remains clickable."
+      },
+      {
+        "cat": "UI",
+        "text": "Switching champions in the Hero Combat Console now shows recovery, shield, and actual ability countdown for the selected hero. Heroes without a basic attack no longer display an infinite attack rate. Use arrow keys, Home, and End to move between roster tabs."
       }
     ]
   },

@@ -1,6 +1,6 @@
 {
-  "lastSha": "b3308c32bf535f0f1f21ff14610d670fe1582b2d",
-  "commitsSinceDraft": 4,
+  "lastSha": "2686bc29802a1f0d5afcf91e4483cf6b2cb21a45",
+  "commitsSinceDraft": 6,
   "content": {
     "tower": [
       "needle",
@@ -4255,6 +4255,10 @@
         {
           "cat": "UI",
           "text": "Evolution purchases now work with Enter and Space as well as clicking or holding. Hero upgrade buttons name the upgrade and Biomass cost, keep keyboard focus after buying, and show the correct level after buying several upgrades. The hero console stays above game-speed controls so its Close button remains clickable."
+        },
+        {
+          "cat": "UI",
+          "text": "Switching champions in the Hero Combat Console now shows recovery, shield, and actual ability countdown for the selected hero. Heroes without a basic attack no longer display an infinite attack rate. Use arrow keys, Home, and End to move between roster tabs."
         }
       ]
     }
@@ -9305,6 +9309,22 @@
       "date": "2026-11-09",
       "cat": "UI",
       "text": "Ui: verify pause focus and phone layering",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "0bdad42eda8e1074fedcd2c9d950ed8d062c78e8",
+      "date": "2026-11-09",
+      "cat": "Gene Cards",
+      "text": "Verify accessible evolution purchases",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "2686bc29802a1f0d5afcf91e4483cf6b2cb21a45",
+      "date": "2026-11-09",
+      "cat": "Framework",
+      "text": "Validation: record controls regression checkpoint",
       "internal": true,
       "needsReview": false
     }

@@ -4,8 +4,8 @@
 > before committing. Read together with docs/PROJECT_STATUS.md and the latest
 > docs/VALIDATION_REPORT.md. Next session: start at docs/PROJECT_MANIFEST.md.
 
-- **Generated:** 2026-11-10 04:06 UTC · **Diff scope:** working tree vs HEAD
-- **Branch:** codex/hive-autoplay · **HEAD:** 0bdad42e
+- **Generated:** 2026-11-10 04:11 UTC · **Diff scope:** working tree vs HEAD
+- **Branch:** codex/hive-autoplay · **HEAD:** 2686bc29
 
 ## Summary of work completed
 
@@ -13,13 +13,15 @@ Active continuous improvement goal remains active; owner authorizes verified rel
 
 ## Files modified
 
-- Source (0): —
+- Source (2): `src/changelog/releases.gen.ts`, `src/ui/HeroEvolutionPanel.tsx`
 - Tests (0): —
-- Docs (4): `docs/AI_HANDOFF.md`, `docs/PROJECT_STATUS.md`, `docs/VALIDATION_REPORT.md`, `docs/devlog/DRAFT-2026-11-09.md`
+- Docs (6): `docs/AI_HANDOFF.md`, `docs/HERO-EVOLUTION.md`, `docs/HISTORY.md`, `docs/PROJECT_STATUS.md`, `docs/VALIDATION_REPORT.md`, `docs/devlog/DRAFT-2026-11-09.md`
 
 ## Systems affected (from the dependency registry)
 
-- (no registered source files in this diff)
+- **chronicle** — `src/changelog/releases.gen.ts`
+- **heroes** — `src/ui/HeroEvolutionPanel.tsx`
+- Consumer ring (verify, unchanged): class-bonds, engine, equipment, expeditions, hero-cinematics, hero-symbiotes, hive-mind
 
 ## Power Score changes
 
@@ -62,3 +64,7 @@ Pause follow-up evidence: phone 390x844 screenshot inspected; reproduced open-dr
 Next local follow-up: shared usePressRepeat now supports keyboard/assistive clicks without double charging pointer clicks. Hero upgrade callback forwards handler; row flash no longer remounts focused button; purchase labels name upgrade/cost; multi-buy float uses actual level. Console z-index raised above board controls after Close click interception reproduced; redundant pause button hidden while console owns pause. ../evolution-purchase-check.cjs and 19 evolution tests PASS. Add final build/full-suite/mobile release gates before deployment.
 
 Checkpoint 0bdad42e verified 2026-11-10 04:06 UTC: production build PASS, all 353 files / 3150 tests PASS (234.27s), mobilecheck CLEAN (27 navigation screens + live runs across nine viewports). Source unchanged throughout checks; no background dev servers left. Production remote still 33676de6. Next concrete finding: HeroEvolutionPanel selected secondary hero uses hud.hero.respawn and primary-only abilityReady; inspect hero-specific readout and keyboard roster navigation. Current batch is ready as a verified checkpoint but not deployed; last deployment ~03:38 UTC, continue until next approximately-hourly batch.
+
+Selected-hero follow-up completed locally: HeroEvolutionPanel uses selected entity recovery/shield/current cooldown; roster tabs rove via arrows/Home/End and link active panel. Phone screenshot revealed zero attackInterval produced Infinity; now shows a no-basic-attack dash. ../hero-roster-check.cjs PASS with three real heroes and mobile Close; 19 evolution tests PASS. Changes are UI-only after full checkpoint; final build pending below.
+
+Selected-hero follow-up production build now PASS; corrected phone screenshot inspected. Next: broaden experience audit beyond controls (audio/cinematic feedback or teaching cues), preserving the verified checkpoint and batching deployment with website notes near ~04:38 UTC. All local test/dev processes completed.

@@ -12,6 +12,10 @@ interrupts gameplay.
   still buy exactly once, holding repeats with the affordability guard. Upgrade feedback
   preserves the focused button and reports the actual reached level during multi-buy.
   The console stays above board controls; its Close button remains reachable.
+- **Roster readouts:** recovery, shield and ability readiness/remaining cooldown belong to
+  the selected champion. Non-attacking heroes show no basic attack rate instead of Infinity.
+  Roster tabs use one Tab stop; Left/Right wrap and Home/End select first/last, with focus
+  following selection and the detail panel labelled by the active tab.
 - **10 axes × 10 levels:** Vitality (HP), Lethality (damage), Frenzy (attack + pulse speed),
   Swiftness (move speed), Overdrive (ability cooldown ↓), Amplitude (ability radius), Precision
   (crit chance), Savagery (crit damage), Regeneration (healing received), Carapace (armor).

@@ -201,3 +201,7 @@ Pause dialog follow-up: strict typecheck PASS. Chrome verifies initial/restored 
 Evolution purchase probe PASS in real GameView: pointer buys exactly one, Enter/Space one, Shift-click and Shift-Enter five, focus retained, multi-buy float reflects actual level, hold repeats and release stops. Reproduced console Close being intercepted by game-speed controls; console z-index now above run controls and same click succeeds. Core/render heroEvolution: 19 tests PASS.
 
 Shared purchase hook standalone browser check also PASS (Evolution HQ call pattern without a click override): pointer/Enter/Space each buy once; hold stops at affordability limit. Production build PASS.
+
+After verified checkpoint 0bdad42e: HeroEvolutionPanel only — selected-hero recovery/shield/readiness/countdown, roving keyboard tabs and zero-interval attack-rate display. Chrome three-hero probe PASS for independent 19s/7s recovery, secondary READY, shield42, 4.2s rounded to5s, Arrow/Home/End/wrapping/ARIA association; 390x844 screenshot inspected and Close clickable. Found Infinity attack-rate display for Overseer and corrected to no-basic-attack dash; probe rerun PASS. Core/render evolution 19 tests PASS.
+
+Selected-hero follow-up final production build PASS; corrected 390x844 screenshot re-inspected. Full checkpoint evidence remains applicable to unchanged gameplay code; this UI delta has its dedicated multi-hero browser checks.
