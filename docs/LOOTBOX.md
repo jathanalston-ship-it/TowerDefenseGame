@@ -323,3 +323,5 @@ Vault keyboard flow: labeled opening/harvest modal restores its opener on unmoun
 Vault feedback preferences resolve live OS and device settings. Heartbeat WAAPI checks the latest resolved motion without restarting incubation/audio timers; switching to reduced motion cancels the active pulse. Reveal cleanup cancels pulse/listeners. World/inner/rarity flashes obey flashes off, highlight shine is separate from warp, and zero resolved shake omits rupture quake. Existing CSS reduced-motion styling remains in place.
 
 Harvest Power announcements expose the final total as stable assistive text alongside an aria-hidden visual count-up, avoiding per-frame live text changes.
+
+HUD meter accessibility: the bar exposes a rarity-qualified progressbar with bounds and current value from the same clamped fill/cost used visually. Value text matches the visible integer percentage and tooltip point count. The existing focusable meter is a named group linked to its explanation by useId; no live-region announcements are added to the per-tick progress, and gate/queue/award/ceremony behavior is unchanged.

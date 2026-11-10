@@ -1,6 +1,6 @@
 {
-  "lastSha": "c66a8a13e2333e2e640686502cb7589ff7b5eebd",
-  "commitsSinceDraft": 6,
+  "lastSha": "bd295e7da91a53d999aa7028da6490dcc4dfc13e",
+  "commitsSinceDraft": 7,
   "content": {
     "tower": [
       "needle",
@@ -4717,7 +4717,7 @@
     {
       "id": "v2026.11.10.13",
       "date": "2026-11-10",
-      "title": "Smoother Quest Claims",
+      "title": "Clearer Reward Feedback",
       "sealed": false,
       "entries": [
         {
@@ -4731,6 +4731,10 @@
         {
           "cat": "UI",
           "text": "Quest celebrations now follow motion preferences immediately while the board is open. Reduced motion stops active bursts and prevents new ones; the explicit Allow motion setting enables them when you choose it."
+        },
+        {
+          "cat": "UI",
+          "text": "The HUD loot meter now exposes named progress with the current container rarity, percentage and loot-point total. Keyboard focus includes its existing explanation of points remaining and the next container."
         }
       ]
     }
@@ -10869,6 +10873,14 @@
       "date": "2026-11-10",
       "cat": "UI",
       "text": "Ui: anchor keyboard quest celebrations to claims",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "bd295e7da91a53d999aa7028da6490dcc4dfc13e",
+      "date": "2026-11-10",
+      "cat": "UI",
+      "text": "Ui: follow live motion preferences for quest bursts",
       "internal": true,
       "needsReview": false
     }

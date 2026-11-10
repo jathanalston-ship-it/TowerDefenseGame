@@ -1,7 +1,7 @@
 [
   {
     "date": "2026-11-10",
-    "title": "Smoother Quest Claims",
+    "title": "Clearer Reward Feedback",
     "categories": [
       "UI"
     ],
@@ -17,6 +17,10 @@
       {
         "cat": "UI",
         "text": "Quest celebrations now follow motion preferences immediately while the board is open. Reduced motion stops active bursts and prevents new ones; the explicit Allow motion setting enables them when you choose it."
+      },
+      {
+        "cat": "UI",
+        "text": "The HUD loot meter now exposes named progress with the current container rarity, percentage and loot-point total. Keyboard focus includes its existing explanation of points remaining and the next container."
       }
     ]
   },

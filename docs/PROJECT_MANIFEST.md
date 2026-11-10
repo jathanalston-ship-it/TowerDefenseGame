@@ -382,7 +382,7 @@ Career statistic hints use explicit Details buttons and inline reading panels. P
 - **Files:** `core/loot.ts` (rarity registry, `rollRarity`, pity), `core/lootQueue.ts`
   (pre-determined queue), `core/progressionLoot.ts` (catch-up bias), `core/materialDrop.ts`,
   `state/lootbox.ts` (chest reward tables), `state/vaultReveal.ts` (pull choreography model),
-  `ui/GeneticVault.tsx`, `ui/VaultReveal.tsx`, `ui/LootMeter.tsx`, `ui/LootToaster.tsx`. Container notices pause for reading and support keyboard dismissal with queue/final focus restoration.
+  `ui/GeneticVault.tsx`, `ui/VaultReveal.tsx`, `ui/LootMeter.tsx`, `ui/LootToaster.tsx`. Container notices pause for reading and support keyboard dismissal with queue/final focus restoration. The HUD loot meter exposes named live progress derived from its visual fill and links keyboard focus to its explanation.
   Docs: `LOOTBOX.md`, `LOOT-PROGRESSION.md`, `REWARD-PRESENTATION.md`.
 - **Related:** Equipment, Gene Essence (duplicate conversion + bonus drops), Crafting
   (materials), Currencies.
