@@ -25,6 +25,10 @@
       {
         "cat": "UI",
         "text": "Hero recovery countdowns now account for faster-revival symbiotes, keeping the battlefield label, HUD and hero panels consistent with the actual time remaining."
+      },
+      {
+        "cat": "UI",
+        "text": "Buying a cooldown upgrade during recharge no longer makes the ability gauge jump backward. The active gauge follows its current cast; the shorter cooldown is shown when it is ready for the next cast."
       }
     ]
   },

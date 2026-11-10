@@ -292,3 +292,5 @@ Run control accessibility: speed buttons expose aria-pressed from the same state
 Hero Ops ability wheel uses HudSnapshot.hero.abilityCdMax (the resolved live cooldown), with zero fill while recovering. Its named image and tooltip distinguish recovering/recharging/ready/armed, without live-region countdown chatter or changes to casting/cooldown simulation.
 
 Recovery display: Game.heroRecoverySeconds converts the internal recovery work by the same reviveSpeedMult used in updateHero. HUD/selected-hero snapshots, Combat Console and battlefield label use that simulation-second estimate. RenderState supplies an optional per-kind map only while a hero is down. Internal timers, revival behavior and saves are unchanged. Tests compare displayed time to actual revival at1x/2x.
+
+Active ability cycle: presentation-only heroAbilityPeriods records each cast duration. HUD abilityCdMax and selected-hero ability total retain that duration while recharging, then show the resolved next-cast duration when ready. Overdrive purchases never rescale the combat timer; the gauge now preserves that existing rule without jumping backward.

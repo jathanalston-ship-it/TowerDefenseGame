@@ -4,8 +4,8 @@
 > before committing. Read together with docs/PROJECT_STATUS.md and the latest
 > docs/VALIDATION_REPORT.md. Next session: start at docs/PROJECT_MANIFEST.md.
 
-- **Generated:** 2026-11-10 07:38 UTC · **Diff scope:** working tree vs HEAD
-- **Branch:** codex/hive-autoplay · **HEAD:** 7f348090
+- **Generated:** 2026-11-10 07:44 UTC · **Diff scope:** working tree vs HEAD
+- **Branch:** codex/hive-autoplay · **HEAD:** b7eeefd9
 
 ## Summary of work completed
 
@@ -13,17 +13,15 @@ Release v2026.11.09.7 Clearer Battlefield Choices is LIVE. SHA4ae0d15ecca52bda8a
 
 ## Files modified
 
-- Source (4): `src/changelog/releases.gen.ts`, `src/core/game.ts`, `src/render/renderer.ts`, `src/ui/HeroEvolutionPanel.tsx`
+- Source (2): `src/changelog/releases.gen.ts`, `src/core/game.ts`
 - Tests (1): `src/core/heroSelect.test.ts`
-- Docs (7): `docs/HERO-SELECTION.md`, `docs/HERO-SYMBIOTES.md`, `docs/HISTORY.md`, `docs/HUD.md`, `docs/PROJECT_MANIFEST.md`, `docs/devlog/DRAFT-2026-11-09.md`, `docs/devlog/DRAFT-2026-11-10.md`
+- Docs (6): `docs/HERO-SELECTION.md`, `docs/HISTORY.md`, `docs/HUD.md`, `docs/PROJECT_MANIFEST.md`, `docs/devlog/DRAFT-2026-11-09.md`, `docs/devlog/DRAFT-2026-11-10.md`
 
 ## Systems affected (from the dependency registry)
 
 - **chronicle** — `src/changelog/releases.gen.ts`
 - **engine** — `src/core/game.ts`
-- **heroes** — `src/ui/HeroEvolutionPanel.tsx`
-- **rendering** — `src/render/renderer.ts`
-- Consumer ring (verify, unchanged): arena, audio, boss-rush, bosses, campaign, class-bonds, daily, equipment, expeditions, hero-cinematics, hero-symbiotes, hive-mind, infinite, living-battlefield, map-layouts, mega-bosses, nemesis, onboarding, online-foundation, run-ui
+- Consumer ring (verify, unchanged): arena, audio, boss-rush, bosses, campaign, class-bonds, daily, hero-cinematics, heroes, hive-mind, infinite, living-battlefield, map-layouts, mega-bosses, nemesis, onboarding, online-foundation, rendering, run-ui
 
 ## Power Score changes
 
@@ -51,7 +49,7 @@ Final3150 full suite passed before the two-line current-destination drawer fix. 
 
 ## Recommended next tasks
 
-Continue local v2026.11.10.1 Clearer Run Controls, five unsealed notes. Latest recovery fix converts raw timer by reviveSpeedMult for HUD/selected snapshots, console and renderer.20heroSelect tests PASS including actual revival1x/2x; Chrome ../hero-recovery-check.cjs PASS: Inspector/Toolbar/SelectedHero/Console and real drawGame canvas all show3s for6work/2x. Build96717 PASS7.24s; full75923 PASS353files/3171tests166.75s; docs57891 PASS. All sessions terminal. Before next deployment run the full mobile gate against current dist; browser UI/canvas probes passed, no CSS changes. Latest live .7 SHA4ae0d15e, next deployment roughly08:14UTC. Exclude both untracked devlog drafts. Goal active; codex/hive-autoplay → claude/zen-hawking-rh1gxl. Website notes required for deployment.
+Continue local v2026.11.10.1 Clearer Run Controls, six unsealed notes. Latest cast-cycle display fix keeps a running ability gauge stable across Overdrive purchases, applies new duration when ready/next cast.21heroSelect tests PASS; ../hero-midcooldown-check.cjs baseline25%→0 despite same6s; fixed25%→25%. Full14798 PASS353files/3172tests187.38s. Mobile57569 PASS27screens/nine gameplay viewports on recovery build before latest readout-only fix; no subsequent UI/CSS changes. Docs28636 PASS. Final build57126 PASS; all processes terminal. ../verify-current-release.ps1 prepared for next deploy. Latest live .7 SHA4ae0d15e, next deployment roughly08:14UTC. Exclude both devlog drafts. Goal active; codex/hive-autoplay → claude/zen-hawking-rh1gxl. Website notes mandatory.
 
 ## Future expansion hooks
 

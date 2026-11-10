@@ -1458,3 +1458,7 @@ Hero cadence final full suite87589 PASS:353files/3169tests191.64s. Build, docs a
 Local fifth release note: recovery countdowns use remaining simulation seconds after reviveSpeedMult across HUD, Inspector, Toolbar, selected-hero panel, Combat Console and canvas. Raw recovery timer unchanged.20heroSelect tests PASS including elapsed revival1x/2x; actual Chrome panels and drawGame canvas all show3s for6raw/2x. Build96717 PASS7.24s, docs57891 PASS. Full75923 still running; no failures observed. No simulation/save/economy changes.
 
 Recovery final full75923 PASS353files/3171tests166.75s. Build, docs, browser UI and real canvas verification PASS. All processes terminal. Local v2026.11.10.1 has five unsealed website notes; latest live .7 unchanged. Next approximate deployment08:14UTC.
+
+Local sixth note: active ability gauges retain the duration recorded at cast time through Overdrive purchases, then show the shorter next-cast duration once ready. Browser baseline25%->0 with unchanged6s reproduced; fixed25%->25%.21 focused tests PASS including actual next cast. Full14798 PASS353files/3172tests187.38s. Mobile57569 PASS27navscreens/nine gameplay viewports on recovery build before this readout-only follow-up; no subsequent UI/CSS changes. Docs28636 PASS. Final build57126 pending. Live .7 unchanged. ../verify-current-release.ps1 prepared for exact asset/home/news/all release-note verification.
+
+Final cycle build57126 PASS; all processes terminal. Six notes prepared, next approximate deployment08:14UTC.

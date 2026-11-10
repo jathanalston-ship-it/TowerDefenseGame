@@ -722,6 +722,7 @@ export class Game {
   private grid = new SpatialGrid<Enemy>(WIDTH, HEIGHT, PERF.spatialCell);
   // Presentation-only cadence history: never read by combat or serialized with heroes.
   private readonly heroAttackPeriods = new WeakMap<Hero, number>();
+  private readonly heroAbilityPeriods = new WeakMap<Hero, number>();
   private readonly heroPulsePeriods = new WeakMap<Hero, number>();
   private enemyById = new Map<number, Enemy>(); // O(1) projectile target lookup
   private reactorCount = 0; // cached on tower placement (economy), not per tick
@@ -1252,6 +1253,12 @@ export class Game {
   /** Remaining simulation seconds for recovery displays; never alters the internal recovery work. */
   heroRecoverySeconds(hero: Hero): number {
     return hero.down ? Math.max(0, hero.respawn) / (this.symbioteOf(hero)?.reviveSpeedMult ?? 1) : 0;
+  }
+  /** Keep a running cooldown gauge on its cast-time duration; upgrades affect the next cast. */
+  private heroAbilityCycleFor(hero: Hero): number {
+    return hero.abilityCd > 0
+      ? this.heroAbilityPeriods.get(hero) ?? this.heroAbilityCooldownFor(hero)
+      : this.heroAbilityCooldownFor(hero);
   }
   /** Effective ability cooldown (s): base × gear × biome × mastery × Evolution Overdrive. */
   private heroAbilityCooldownFor(h: Hero): number {
@@ -6992,6 +6999,7 @@ export class Game {
     if (delay === 0 && ab.particle) this.spawnParticles(px, py, PARTICLE[ab.particle], ab.fxColor); // the ult's unique cast VFX (fork-recoloured); a delayed payload bursts on LANDING instead
     if (this.relicHooks.length) this.fireRelicHooks('abilityCast', null, px, py); // relic/rule hooks fire at the cast point
     h.abilityCd = this.heroAbilityCooldownFor(h);
+    this.heroAbilityPeriods.set(h, h.abilityCd);
     this.pushSfx('ability');
     if (this.events.hasListeners('heroAbilityUsed')) this.events.emit('heroAbilityUsed', { kind: h.kind }); // drives the Combat Tutorial (golden-safe: gated on a listener)
     // The name rides ABOVE the zone (the caster repositions onto its centre) — never on its body,
@@ -8576,7 +8584,7 @@ export class Game {
     const attackPeriod = this.heroAttackPeriods.get(h) ?? (def.behavior === 'siege' ? def.attackInterval : def.attackInterval / this.heroHaste(h));
     // Cooldowns — only the gauges that apply: ability always; attack for attackers; pulse for support.
     const ultDef = this.heroAbilityKits[h.kind]?.ult ?? def.ability; // fork-resolved names read on the HUD
-    const cooldowns: HeroCooldownView[] = [{ id: 'ability', label: ultDef.name, remaining: Math.max(0, h.abilityCd), total: this.heroAbilityCooldownFor(h) }];
+    const cooldowns: HeroCooldownView[] = [{ id: 'ability', label: ultDef.name, remaining: Math.max(0, h.abilityCd), total: this.heroAbilityCycleFor(h) }];
     // Star-gated kit skills (HEROES.md) — surface a cooldown gauge for each UNLOCKED one (none at 0 stars).
     const unlockedSkills = this.heroProgress[h.kind].skillCount ?? 0;
     const skillDefs = this.heroAbilityKits[h.kind]?.skills ?? HERO_SKILL_DEFS[h.kind];
@@ -8657,7 +8665,7 @@ export class Game {
         shield: Math.ceil(h.shield), // 0 when no shield (zeroed on expiry in updateHero)
         abilityReady: h.abilityCd <= 0 && !h.down,
         abilityCd: Math.max(0, h.abilityCd),
-        abilityCdMax: this.heroAbilityCooldownFor(h),
+        abilityCdMax: this.heroAbilityCycleFor(h),
       },
       enemiesAlive: this.enemies.length,
       // Banner rides the danger-camera STATE (deliberate entry + min-hold + smooth exit,

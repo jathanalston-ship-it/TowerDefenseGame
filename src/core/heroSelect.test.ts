@@ -165,3 +165,24 @@ it.each([1, 2])('recovery displays match actual revival time at speed multiplier
   expect(elapsed).toBeCloseTo(expected, 1);
   expect(g.heroRecoverySeconds(h)).toBe(0);
 });
+it('keeps a running ability gauge stable when cooldown upgrades affect the next cast', () => {
+  const g = new Game(5, NO_META);
+  g.biomass = 100000;
+  g.startWave();
+  g.armAbility(); g.click(300, 300);
+  const h = g.heroes[0];
+  const duration = h.abilityCd;
+  for (let i = 0; i < 120; i++) g.advance(SIM_DT);
+  const remaining = h.abilityCd;
+  for (let i = 0; i < 10; i++) expect(g.buyHeroEvolution('cooldown')).toBe(true);
+  g.selectHero(h.kind);
+  expect(h.abilityCd).toBe(remaining);
+  expect(g.getSnapshot().hero.abilityCdMax).toBe(duration);
+  expect(g.getSnapshot().selectedHero!.cooldowns[0].total).toBe(duration);
+  while (h.abilityCd > 0) g.advance(SIM_DT);
+  const nextDuration = g.getSnapshot().hero.abilityCdMax;
+  expect(nextDuration).toBeLessThan(duration);
+  g.armAbility(); g.click(300, 300);
+  expect(h.abilityCd).toBeCloseTo(nextDuration);
+  expect(g.getSnapshot().hero.abilityCdMax).toBeCloseTo(nextDuration);
+});

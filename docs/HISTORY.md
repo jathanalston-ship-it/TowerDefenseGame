@@ -715,3 +715,4 @@
 - `4d21ded` **[Heroes]** Show effective hero ability readiness _(internal)_
 - `cec6e8b` **[Heroes]** Align selected hero cooldown readouts with combat _(internal)_
 - `7f34809` **[Heroes]** Report observed hero attack and pulse cadence _(internal)_
+- `b7eeefd` **[UI]** Ui: align recovery countdowns with revival modifiers _(internal)_
