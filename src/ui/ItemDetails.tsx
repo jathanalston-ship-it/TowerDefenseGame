@@ -5,7 +5,7 @@
 // (Enhance / Reroll / Reforge / Upgrade Rarity / Salvage) with live costs, and the item's story
 // (upgrade potential, power contribution, source, mod history). Reads the reactive save via meta.
 
-import { useEffect, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import { meta } from '../state/meta';
 import { HERO_DEFS } from '../core/config';
 import type { HeroKind } from '../core/types';
@@ -63,6 +63,20 @@ export function ItemDetails({
 }): JSX.Element | null {
   const save = meta.use(); // reactive: equips / reforges / salvage reflect immediately
   const [confirming, setConfirming] = useState(false); // salvage confirm dialog (tiered by rarity / power)
+  const boxRef = useRef<HTMLDivElement>(null);
+  const cancelRef = useRef<HTMLButtonElement>(null);
+  const salvageDescriptionId = useId();
+  useEffect(() => {
+    if (!confirming) return;
+    const previous = document.activeElement;
+    const box = boxRef.current;
+    if (box) box.inert = true;
+    cancelRef.current?.focus();
+    return () => {
+      if (box) box.inert = false;
+      if (previous instanceof HTMLElement && previous.isConnected) previous.focus();
+    };
+  }, [confirming]);
   useEffect(() => { meta.markItemSeen(uid); }, [uid]); // opening Details clears the "NEW" badge
   const item = save.equipment.inventory.find((i) => i.uid === uid);
   const def = item ? itemDef(item.defId) : undefined;
@@ -100,7 +114,7 @@ export function ItemDetails({
   return (
     <Popup onClose={onClose}>
     <div className="cmp-overlay">
-      <div className="id-box" onClick={(e) => e.stopPropagation()} style={{ ['--rc' as string]: c }}>
+      <div ref={boxRef} className="id-box" onClick={(e) => e.stopPropagation()} style={{ ['--rc' as string]: c }}>
         <button className="id-close" onClick={onClose} title="Close">✕</button>
 
         {/* ── Identity: large art + a LIVE preview of the hero wearing it + name + Power + management ── */}
@@ -234,9 +248,18 @@ export function ItemDetails({
           const rIdx = RARITY_ORDER.indexOf(item.rarity);
           const level = higherPower ? 'warning' : rIdx >= 3 ? 'legendary' : rIdx === 2 ? 'epic' : 'rare';
           return (
-            <div className="id-salvage-scrim" onClick={() => setConfirming(false)}>
-              <div className={`id-salvage is-${level}`} onClick={(e) => e.stopPropagation()} style={{ ['--rc' as string]: c }}>
-                {higherPower ? (
+            <Popup onClose={() => setConfirming(false)}>
+            <div className="id-salvage-scrim">
+              <div className={`id-salvage is-${level}`} role="alertdialog" aria-modal="true" aria-label={`Salvage ${def.name}?`} aria-describedby={salvageDescriptionId}
+                onKeyDown={(e) => {
+                  if (e.key !== 'Tab') return;
+                  const buttons = e.currentTarget.querySelectorAll<HTMLButtonElement>('button');
+                  const first = buttons[0], last = buttons[buttons.length - 1];
+                  if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last?.focus(); }
+                  else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first?.focus(); }
+                }}
+                onClick={(e) => e.stopPropagation()} style={{ ['--rc' as string]: c }}>
+                <div id={salvageDescriptionId}>{higherPower ? (
                   <>
                     <div className="id-salvage-warn">⚠ WARNING</div>
                     <p className="id-salvage-copy">This item has <b>+{powerDiff}</b> higher Power than your equipped {slotWord}.</p>
@@ -249,13 +272,14 @@ export function ItemDetails({
                     {level === 'epic' && <p className="id-salvage-copy">Power {power}{rival ? ` vs ${rivalPower} equipped (${powerDiff >= 0 ? '+' : ''}${powerDiff})` : ''} · yields +{costLabel(salvageValue(item))}.</p>}
                     {level === 'rare' && <p className="id-salvage-copy">Yields +{costLabel(salvageValue(item))} materials.</p>}
                   </>
-                )}
+                )}</div>
                 <div className="id-salvage-btns">
-                  <button onClick={() => setConfirming(false)}>Cancel</button>
+                  <button ref={cancelRef} onClick={() => setConfirming(false)}>Cancel</button>
                   <button className="danger" onClick={doSalvage}>Salvage</button>
                 </div>
               </div>
             </div>
+            </Popup>
           );
         })()}
       </div>

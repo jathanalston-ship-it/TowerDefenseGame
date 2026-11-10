@@ -1,6 +1,6 @@
 {
-  "lastSha": "551a76f07faf54609c805623b4679f1b23e9be9d",
-  "commitsSinceDraft": 9,
+  "lastSha": "92b6941bd830f53ffd3412aa6c07d35befc02eab",
+  "commitsSinceDraft": 0,
   "content": {
     "tower": [
       "needle",
@@ -4667,6 +4667,10 @@
         {
           "cat": "UI",
           "text": "Item Details now includes labeled Left and Right buttons for rotating the hero gear preview with a keyboard or tap. Automatic motion pauses while those controls have focus, making equipment easier to inspect."
+        },
+        {
+          "cat": "Bug Fixes",
+          "text": "Salvage confirmation now stays visible after scrolling Item Details on a phone. Cancel receives keyboard focus, Tab stays within the prompt, and Escape cancels the confirmation without closing the item."
         }
       ]
     }
@@ -10669,6 +10673,14 @@
       "date": "2026-11-10",
       "cat": "UI",
       "text": "Ui: preserve gear inspection with reduced motion",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "92b6941bd830f53ffd3412aa6c07d35befc02eab",
+      "date": "2026-11-10",
+      "cat": "UI",
+      "text": "Ui: add keyboard gear preview rotation controls",
       "internal": true,
       "needsReview": false
     }
