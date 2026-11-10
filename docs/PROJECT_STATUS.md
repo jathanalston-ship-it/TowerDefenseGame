@@ -1389,3 +1389,5 @@ Reward announcement production build and website-sync checks PASS; local .5 now 
 Reward card reading holds now verified across hover, focus, expanded summary and incoming bursts. Original merge timing preserved; accessible-count probe re-passed. Full release regression running. Fifth website note expanded.
 
 Reward reading production build PASS. Final full suite34772 and mobile37446 continue; same handles/logs recorded in handoff.
+
+Final suite3150 PASS. Mobile gate identified a drawer-transition sampling race; focused landscape diagnostic and controlled settling check passed. Gate now waits for actual closed visibility; full rerun83603 active. Deployment waits for this result.

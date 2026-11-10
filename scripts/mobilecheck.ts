@@ -331,6 +331,17 @@ async function openDrawer(page: import('playwright-core').Page): Promise<void> {
   if (opened) await page.waitForTimeout(300);
 }
 
+/** Wait for the drawer's actual closed state, including its delayed visibility transition.
+ * A fixed wall-clock delay can sample the slide-out on a busy browser. */
+async function waitForDrawerClosed(page: import('playwright-core').Page): Promise<void> {
+  await page.waitForFunction(() => {
+    const burger = document.querySelector<HTMLElement>('.hub-burger');
+    const nav = document.querySelector('.hub-nav');
+    return !burger || burger.offsetParent === null || !nav ||
+      (!nav.classList.contains('is-open') && getComputedStyle(nav).visibility === 'hidden');
+  }, undefined, { timeout: 5000 });
+}
+
 /** Landscape phones: the SAME door→landing→card discovery walk as desktop, through the
  *  narrow-shell drawer (☰ opens the off-canvas rail before each door hop). */
 async function landscapeRailWalk(page: import('playwright-core').Page, vpName: string): Promise<Violation[]> {
@@ -354,6 +365,7 @@ async function landscapeRailWalk(page: import('playwright-core').Page, vpName: s
       }, hub);
       if (!doorOpen) { missing++; continue; }
       await page.waitForTimeout(450);
+      await waitForDrawerClosed(page);
       if (!auditedHubs.has(hub)) {
         auditedHubs.add(hub);
         out.push(...(await audit(page, `hub-${hub}`, vpName, true)));
@@ -366,6 +378,7 @@ async function landscapeRailWalk(page: import('playwright-core').Page, vpName: s
       if (!card) { missing++; continue; }
     }
     await page.waitForTimeout(650);
+    await waitForDrawerClosed(page);
     await dismiss(page);
     out.push(...(await audit(page, nav, vpName, true)));
   }
