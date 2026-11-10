@@ -1736,3 +1736,16 @@ Actual GameView ../run-conditions-check.cjs PASS on1280x800,390x844,320x568,844x
 Poll fullsuite45403 (run-conditions-full-tests.log) and combined-release mobile59105 (run-conditions-mobile.log). Do not overwrite dist while mobilecheck runs. After gates pass, prepare hourly release around17:35–17:41UTC: seal .8, regenerate site, finalbuild and site-sync test, preserve generated handoff judgments, commit/push authorized production ref and verify Actions exactSHA plus normal custom-domain game/home/news/all2notes. No further source changes required for the two current notes unless validation finds a defect. Do not stage two untracked devlog drafts.
 
 HUD.md/manifest updated. No mechanic/tutorial/reward changes: READABILITY, REWARD-PRESENTATION, help, save and Power documentation need no revision. Chronicle mechanics unchanged; two curated notes generated.
+
+
+## 2026-11-10 17:33 UTC — sealed intel release gates
+
+Preparing sealed v2026.11.10.8 Know What Is Coming with two website notes (wave intel and Run conditions). Live remains .7 SHA b441f62cf0512d7da5c8d0692d53d3927fead962; remote production branch rechecked unchanged. Full regression45403 terminal PASS3192tests/354files332.80s.4sealed site-sync tests PASS; docs21518PASS; combined pre-seal build39830PASS11.67s. Final sealed build86377 is running (intel-release-final-build.log).
+
+Combined mobile59105 terminated with waitForDrawerClosed timeout5000ms in landscapeRailWalk; no passing claim for that run. No gate or production-code changes were made to bypass it. Diagnostic52251 on the SAME unchanged dist passed all27nav screens across844x390,926x428,844x340,915x356 and gameplay/tutorial checks (intel-drawer-diagnostic.log). Failure did not reproduce; root cause remains unproven. Final original full mobile gate must be rerun after sealed build completes. Earlier99756 mobile PASS covers final wave-reading layout before Run conditions. All focused wave/conditions probes pass and screenshots inspected.
+
+Poll final build86377, then run original full mobilecheck --no-build on final dist (with Chrome compatibility shim); do not overwrite dist while it runs. Only after PASS: record all final evidence, branch-check/add-u/chore(release)commit; push origin HEAD:refs/heads/claude/zen-hawking-rh1gxl (remote expected b441f62c), monitor Actions exactSHA production guard, run ../verify-current-release.ps1 against normal URLs, record liveSHA/asset/job/time. Do not stage two devlog drafts. Deployment remains authorized; no user confirmation needed. Continuous goal remains active.
+
+## 2026-11-10 17:34 UTC — final sealed build
+
+Final sealed build86377 terminal PASS11.83s (intel-release-final-build.log). Original full mobile retry20386 is live against that exact dist (intel-release-mobile-final.log). Poll same handle; do not rebuild or overwrite dist. After success, record result and deploy sealed .8 through the authorized production branch, then verify workflow exactSHA and normal custom-domain game/home/news/all2notes. No other processes active.

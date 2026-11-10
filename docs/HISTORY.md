@@ -770,3 +770,4 @@
 - `346b9d3` **[UI]** Make incoming wave intel readable and explicit _(internal)_
 - `21102f9` **[UI]** Constrain wave details to the battlefield _(internal)_
 - `f9d6f03` **[UI]** Give compact wave details room to read _(internal)_
+- `491024e` **[UI]** Ui: explain active run conditions in the drawer _(internal)_
