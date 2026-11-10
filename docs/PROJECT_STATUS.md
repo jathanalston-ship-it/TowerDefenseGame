@@ -1542,3 +1542,9 @@ Validation: build90718 PASS5.99s;11codec/i18n tests+4site-sync tests PASS. ../re
 Replay viewer now owns initial/contained/restored focus, consumes Escape locally, focuses/describes the outcome and hides covered controls from accessibility tree. Pressed playback state and localized progressbar added. Skip clears pause before advancing to outcome. Simulation stepping/private events/verification unchanged.
 
 Validation: build12778 PASS12.22s before final outcome-copy spacing/covered-header Tab adjustment; final browser ../replay-controls-check.cjs PASS modalTab/Escape/restore,pause/speed/progress,skipfrompause,verifiedactualrecord,unchangedsave and1366x768/390x844/320x568/844x390fit. Initial save assertion included scheduled startup powerLog; probe now waits for that documented0ms snapshot before baseline, then save equalityPASS.20replay/codec/i18n tests PASS. Final typecheck/site/docs2159 terminal PASS (4site tests). Five unsealed .10.3 notes;next approximate deploy09:52UTC.
+
+## 2026-11-10 — quiet replay skipping (local .10.3)
+
+SpectateView always drains sim SFX but only plays them during normal playback. Pending LastKill ticks still advance while skipping, consuming fanfare timing silently. No global mute/music, simulation pacing or outcome changes.
+
+Evidence: ../replay-skip-audio-check.cjs baseline failed with a compressed batch(kill3,edie_squelch3,assimilate3); after fix skip audio[] and full viewer/verified-outcome/save-isolation checks PASS. ../replay-normal-audio-check.cjs PASS normal x16 playback retains4audio batches and identical outcome/save. Build25769 PASS17.31s;30replay/lastKill/cues/site tests PASS;docs45666 terminal PASS. Six unsealed .10.3 website notes;next approximate deploy09:52UTC.

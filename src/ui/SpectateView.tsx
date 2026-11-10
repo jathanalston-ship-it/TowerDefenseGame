@@ -135,7 +135,7 @@ export function SpectateView({ record, onExit }: { record: ReplayRecord; onExit:
         last = now;
         let over = false;
         const lastKill = lastKillRef.current!;
-        if (!pausedRef.current && lastKill.tick(dt * 1000)) audio.cue('clear');
+        if (!pausedRef.current && lastKill.tick(dt * 1000) && !skippingRef.current) audio.cue('clear');
         if (!pausedRef.current) {
           if (skippingRef.current) {
             for (let i = 0; i < SKIP_STEPS_PER_FRAME && !over; i++) over = !stepOnce();
@@ -146,9 +146,9 @@ export function SpectateView({ record, onExit }: { record: ReplayRecord; onExit:
               over = !stepOnce();
             }
           }
-          // The sim's presentation cues still land — the theater has sound.
+          // Drain even while skipping so compressed combat sounds cannot burst now or on resume.
           const cues = game.drainSfx();
-          if (cues.length) {
+          if (cues.length && !skippingRef.current) {
             const tally: Record<string, number> = {};
             for (const c of cues) tally[c] = (tally[c] ?? 0) + 1;
             audio.cueBatch(tally);

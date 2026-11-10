@@ -732,3 +732,4 @@
 - `184460c` **[UI]** Ui: make career explanations readable on demand _(internal)_
 - `f5db1eb` **[Backend]** Improve leaderboard recovery and loading feedback _(internal)_
 - `9ec9fbb` **[UI]** Ui: recover replay sharing when clipboard access fails _(internal)_
+- `0a21f15` **[UI]** Ui: improve replay keyboard controls and skip behavior _(internal)_

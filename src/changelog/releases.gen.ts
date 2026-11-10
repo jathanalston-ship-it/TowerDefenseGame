@@ -29,6 +29,10 @@ export const RELEASES: Release[] = [
       {
         "cat": "UI",
         "text": "Replay Theater now keeps keyboard focus inside the viewer, restores the opener on exit, and focuses the outcome action when playback finishes. Pause/speed/progress expose their state, and Skip to outcome works even while paused."
+      },
+      {
+        "cat": "Audio",
+        "text": "Skipping a replay to its outcome no longer compresses skipped combat sounds into a sudden burst. Normal playback, including faster playback speeds, keeps its combat audio."
       }
     ]
   },

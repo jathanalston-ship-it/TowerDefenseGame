@@ -1,6 +1,6 @@
 {
-  "lastSha": "9ec9fbb1c8b8fb588a55c8e19773282a8517c91b",
-  "commitsSinceDraft": 0,
+  "lastSha": "0a21f153c1a45bcba76c097ceeacb9be37431fd8",
+  "commitsSinceDraft": 1,
   "content": {
     "tower": [
       "needle",
@@ -4455,6 +4455,10 @@
         {
           "cat": "UI",
           "text": "Replay Theater now keeps keyboard focus inside the viewer, restores the opener on exit, and focuses the outcome action when playback finishes. Pause/speed/progress expose their state, and Skip to outcome works even while paused."
+        },
+        {
+          "cat": "Audio",
+          "text": "Skipping a replay to its outcome no longer compresses skipped combat sounds into a sudden burst. Normal playback, including faster playback speeds, keeps its combat audio."
         }
       ]
     }
@@ -9961,6 +9965,14 @@
       "date": "2026-11-10",
       "cat": "UI",
       "text": "Ui: recover replay sharing when clipboard access fails",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "0a21f153c1a45bcba76c097ceeacb9be37431fd8",
+      "date": "2026-11-10",
+      "cat": "UI",
+      "text": "Ui: improve replay keyboard controls and skip behavior",
       "internal": true,
       "needsReview": false
     }
