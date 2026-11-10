@@ -4,23 +4,24 @@
 > before committing. Read together with docs/PROJECT_STATUS.md and the latest
 > docs/VALIDATION_REPORT.md. Next session: start at docs/PROJECT_MANIFEST.md.
 
-- **Generated:** 2026-11-10 22:00 UTC · **Diff scope:** working tree vs HEAD
-- **Branch:** codex/hive-autoplay · **HEAD:** 829c2c44
+- **Generated:** 2026-11-10 22:08 UTC · **Diff scope:** working tree vs HEAD
+- **Branch:** codex/hive-autoplay · **HEAD:** 71100c63
 
 ## Summary of work completed
 
-LOCAL unsealed v2026.11.10.14 Clearer Help and Previews has THREE generated notes (Help search recovery, graft preview lifecycle, Nucleus preview lifecycle). Nucleus preview baseline drew17frames/300ms after live reduced motion. Added shared/device preference subscription, IntersectionObserver and visibility lifecycle with paused elapsed time, initial/still draw and complete cleanup. Existing mutation-list dependency remains. ../nucleus-preview-motion-check.cjs PASS zero steady-state frames, nonblank still, actual registry-organ mutation image update, override/revoke, offscreen/hidden pause-resume and unmount; screenshot inspected.33 nucleus/UI/site tests passed2.44s; docs/handoff78072 passed; build39593 passed7.03s, SWmwb8ho5g, nucleus-preview-motion-build.log. All processes terminal. No organ/chamber, cost, Power or save changes. LIVE remains .13 Clearer Reward Feedback, SHA da7800db61388e86c9a7a987b6bb823a6bd48e20; normal public URLs verified21:48UTC after Actions42908261432 passed. Next approximate deployment22:50UTC. Goal remains active.
+LOCAL unsealed v2026.11.10.14 Clearer Help and Previews now has FOUR notes. Reforge baseline at 320x568 in a transformed lab placed the card at y=-3320 and left focus on the spin button. Shared Popup portal, responsive scrollable card and modal focus lifecycle now pass real-browser checks at 320x568, 844x340 and 390x844. Both normal (1000 Ichor) and last-affordable (40 Ichor) fixtures pass focus entry/result/Tab/Shift+Tab/Escape/return, and verify no second charge or roll alteration. Phone screenshot inspected. 22 model/UI/site tests passed in 2.58s; build58938 passed (5.59s Vite, SWmwb8rjat); docs and handoff62070 passed. All processes terminal. Website note generated; not deployed. LIVE remains .13 at da7800db61388e86c9a7a987b6bb823a6bd48e20, verified21:48UTC. Next approximate deployment22:50UTC; goal active.
 
 ## Files modified
 
-- Source (2): `src/changelog/releases.gen.ts`, `src/ui/NucleusChambers.tsx`
+- Source (3): `src/changelog/releases.gen.ts`, `src/ui/MulliganLab.css`, `src/ui/MulliganLab.tsx`
 - Tests (0): —
-- Docs (5): `docs/HISTORY.md`, `docs/NUCLEUS.md`, `docs/PROJECT_MANIFEST.md`, `docs/devlog/DRAFT-2026-11-09.md`, `docs/devlog/DRAFT-2026-11-10.md`
+- Docs (5): `docs/HISTORY.md`, `docs/MULLIGANS.md`, `docs/PROJECT_MANIFEST.md`, `docs/devlog/DRAFT-2026-11-09.md`, `docs/devlog/DRAFT-2026-11-10.md`
 
 ## Systems affected (from the dependency registry)
 
 - **chronicle** — `src/changelog/releases.gen.ts`
-- **nucleus** — `src/ui/NucleusChambers.tsx`
+- **mulligans** — `src/ui/MulliganLab.tsx`
+- Consumer ring (verify, unchanged): hero-symbiotes, nucleus
 
 ## Power Score changes
 
@@ -28,19 +29,15 @@ None. Search presentation only; progression, rewards and simulation unchanged.
 
 ## UI changes
 
-Nucleus preview baseline drew17frames/300ms after live reduced motion. Added shared/device preference subscription, IntersectionObserver and visibility lifecycle with paused elapsed time, initial/still draw and complete cleanup. Existing mutation-list dependency remains. ../nucleus-preview-motion-check.cjs PASS zero steady-state frames, nonblank still, actual registry-organ mutation image update, override/revoke, offscreen/hidden pause-resume and unmount; screenshot inspected.33 nucleus/UI/site tests passed2.44s; docs/handoff78072 passed; build39593 passed7.03s, SWmwb8ho5g, nucleus-preview-motion-build.log. All processes terminal. No organ/chamber, cost, Power or save changes.
-
-Mulligan OrganismPreview baseline drew16frames/300ms after live reduced motion. Added shared preference/device subscription, IntersectionObserver and visibility lifecycle with elapsed-time pause, initial/still draw and complete cleanup. Reactive organism dependency updates still artwork after graft changes. ../graft-preview-motion-check.cjs PASS zero steady-state frames, nonblank still, visual-seed update, override/revoke, offscreen/hidden pause-resume and unmount; screenshot inspected. Initial instrumentation patched wrong draw method and timed out; corrected to clearRect. First fixed probe saw one settling redraw at150ms;500ms settling then300ms observation passed zero. 19 model/render/UI/site tests passed2.68s; docs/handoff28618 passed; build31360 passed7.36s, SWmwb8dp06, graft-preview-motion-build.log. All processes terminal. Fixture uses isolated real meta with three gate entries and registry graft slots; no real save modified.
-
-Help empty-search baseline advertised Enter to read a nonexistent selected topic. HelpWiki now reports matching count/empty-state guidance in its described status and offers Clear search for empty matches; clearing restores unlocked topics and search focus. Existing 44 px Help button style reused. ../help-search-recovery-check.cjs passed clear/keyboard recovery, existing article/related/back/navigation flow, four viewport reading checks and 320/844 recovery bounds. Phone screenshot inspected. Fixture uses actual mechanic registry with meta visibility fixture; unlocked gating and search ranking code unchanged. Initial probe/edit calls used wrong parent-relative paths; corrected before final probes. 23 search/mechanics/UI/site tests passed in 2.49 s; docs/handoff42351 passed; build62437 passed in 7.15 s, SW mwb862p4, help-search-recovery-build.log. All processes terminal.
+Reforge baseline at 320x568 in a transformed lab placed the card at y=-3320 and left focus on the spin button. Shared Popup portal, responsive scrollable card and modal focus lifecycle now pass real-browser checks at 320x568, 844x340 and 390x844. Both normal (1000 Ichor) and last-affordable (40 Ichor) fixtures pass focus entry/result/Tab/Shift+Tab/Escape/return, and verify no second charge or roll alteration. Phone screenshot inspected. 22 model/UI/site tests passed in 2.58s; build58938 passed (5.59s Vite, SWmwb8rjat); docs and handoff62070 passed. All processes terminal. Website note generated; not deployed.
 
 ## Documentation changes
 
-HELP.md, MULLIGANS.md, NUCLEUS.md and manifest updated. Three curated UI notes generated into game and website artifacts. No simulation, graft costs, Power or save changes; no new mechanic/help/audio registration needed.
+HELP.md, MULLIGANS.md, NUCLEUS.md and manifest updated. Four curated UI notes generated into game and website artifacts. No simulation, graft costs, Power or save changes; no new mechanic/help/audio registration needed.
 
 ## Save changes
 
-None. Browser probes use isolated profiles and registry/real-meta fixtures; real player saves untouched.
+None — save layer untouched.
 
 ## Known edge cases
 
@@ -52,7 +49,7 @@ No new debt. Existing Windows validation launcher issue. Two untracked devlog dr
 
 ## Recommended next tasks
 
-Continue evidence-led improvements without gameplay/balance changes. Current .14 has three local notes; next approximate deployment22:50UTC. Seal/generate/build and run original mobile before publishing, then verify Actions exact-SHA and normal public game/home/news. All processes terminal; preserve unpublished drafts.
+Continue evidence-led improvements, then seal/generate/final build/full suite and original mobile for .14 before the approximate22:50UTC deployment. Verify exact-SHA workflow and normal public game/home/news. Do not use web search cached crawl as current deployment evidence. Leave both untracked devlog drafts unpublished.
 
 ## Future expansion hooks
 

@@ -344,3 +344,5 @@ synchronizes. Genome Rank's mulligan measure now blends assembly + full adaptati
 (`(assembled + adapted) / (towers × 2)`).
 
 Organism preview lifecycle: the lab follows shared resolved motion preferences and live device changes. It paints a still frame when motion is reduced, pauses animation while offscreen/hidden, resumes without hidden-time jumps, and releases observers/listeners/frames on unmount. Reactive organism identity redraws even the still preview after a graft change. Rendering, graft rules, costs and Power calculations are unchanged.
+
+Reforge reveal accessibility (2026-11-10): MulliganLab uses the shared Popup portal to escape transformed lab panels. Its card fits the viewport and scrolls on short displays; keyboard focus enters the dialog, moves to Accept on landing, stays inside on Tab, and returns to the opener (or its programmatically focusable slot when unaffordable). Escape follows the existing landed-only backdrop dismissal. Roll, cost, binding and ceremony duration are unchanged.

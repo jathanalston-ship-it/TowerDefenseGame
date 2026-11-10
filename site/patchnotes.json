@@ -17,6 +17,10 @@
       {
         "cat": "UI",
         "text": "The Nucleus mutation preview now follows live motion preferences and pauses while offscreen or hidden. Its still image remains visible and updates when chamber mutations change, with smooth resumption when motion is allowed."
+      },
+      {
+        "cat": "UI",
+        "text": "The reforge reveal now stays inside the screen on phones and short landscape displays. Keyboard focus follows the wheel result, stays in the dialog, and returns to the reforge bay when you close it."
       }
     ]
   },

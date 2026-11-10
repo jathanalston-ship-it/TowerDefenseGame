@@ -867,3 +867,5 @@ InitCutscene visibility lifecycle pauses scene holds, gate/film/dive clocks and 
 `ui/MulliganLab.tsx` organism previews follow live shared/device motion preferences, pause when offscreen/hidden and redraw still graft changes. See `docs/MULLIGANS.md`; simulation, graft costs and Power are unchanged.
 
 `ui/NucleusChambers.tsx` mutation previews follow live shared/device motion preferences, pause offscreen/hidden and retain current still mutation artwork. See `docs/NUCLEUS.md`; organ/chamber rules and Power are unchanged.
+
+Reforge reveal accessibility (2026-11-10): MulliganLab uses the shared Popup portal to escape transformed lab panels. Its card fits the viewport and scrolls on short displays; keyboard focus enters the dialog, moves to Accept on landing, stays inside on Tab, and returns to the opener (or its programmatically focusable slot when unaffordable). Escape follows the existing landed-only backdrop dismissal. Roll, cost, binding and ceremony duration are unchanged.

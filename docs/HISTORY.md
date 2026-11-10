@@ -820,3 +820,4 @@
 - `fc8fed3` **[Framework]** Docs: record verified reward feedback deployment _(internal)_
 - `59e0136` **[UI]** Ui: clarify empty help searches and recovery _(internal)_
 - `829c2c4` **[UI]** Ui: pause graft previews and follow live motion _(internal)_
+- `71100c6` **[UI]** Ui: pause nucleus previews and follow live motion _(internal)_

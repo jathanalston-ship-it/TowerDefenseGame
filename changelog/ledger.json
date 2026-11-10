@@ -1,6 +1,6 @@
 {
-  "lastSha": "829c2c44d7669e8cfc5be33110b0e7c8c7c753cc",
-  "commitsSinceDraft": 5,
+  "lastSha": "71100c63cf8f2a507df1533751745d54ba6234a9",
+  "commitsSinceDraft": 6,
   "content": {
     "tower": [
       "needle",
@@ -4767,6 +4767,10 @@
         {
           "cat": "UI",
           "text": "The Nucleus mutation preview now follows live motion preferences and pauses while offscreen or hidden. Its still image remains visible and updates when chamber mutations change, with smooth resumption when motion is allowed."
+        },
+        {
+          "cat": "UI",
+          "text": "The reforge reveal now stays inside the screen on phones and short landscape displays. Keyboard focus follows the wheel result, stays in the dialog, and returns to the reforge bay when you close it."
         }
       ]
     }
@@ -10977,6 +10981,14 @@
       "date": "2026-11-10",
       "cat": "UI",
       "text": "Ui: pause graft previews and follow live motion",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "71100c63cf8f2a507df1533751745d54ba6234a9",
+      "date": "2026-11-10",
+      "cat": "UI",
+      "text": "Ui: pause nucleus previews and follow live motion",
       "internal": true,
       "needsReview": false
     }

@@ -27,6 +27,7 @@ import { drawMulliganOrganism } from '../render/mulliganOrganism';
 import { NucleusChambers } from './NucleusChambers';
 import { TowerPortrait } from './TowerPortrait';
 import { MobileSection } from './components/MobileSection';
+import { Popup } from './components/Popup';
 import { ProgressBar } from './components/ProgressBar';
 import { PowerPreview } from './components/PowerScore';
 import { audio } from '../audio/sound';
@@ -112,6 +113,18 @@ function OrganismPreview({ kind }: { kind: TowerKind }): JSX.Element {
 function ReforgeWheelOverlay({ mod, onClose }: { mod: MulliganReforgeMod; onClose: () => void }): JSX.Element {
   const ref = useRef<HTMLCanvasElement>(null);
   const [landed, setLanded] = useState(false);
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const acceptRef = useRef<HTMLButtonElement>(null);
+  useEffect(() => {
+    const opener = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    dialogRef.current?.focus();
+    return () => {
+      if (!opener?.isConnected) return;
+      const target = opener.matches(':disabled') ? opener.closest<HTMLElement>('.mgl-rf-slot') : opener;
+      target?.focus();
+    };
+  }, []);
+  useEffect(() => { if (landed) acceptRef.current?.focus(); }, [landed]);
   const SIZE = 300;
   const target = REFORGE_MODS.findIndex((m) => m.id === mod.id);
   useEffect(() => {
@@ -145,22 +158,30 @@ function ReforgeWheelOverlay({ mod, onClose }: { mod: MulliganReforgeMod; onClos
   }, [target]);
   const tier = REFORGE_RARITY[mod.rarity];
   return (
-    <div className="rfw-overlay" role="dialog" aria-label="Mulligan reforge" onClick={landed ? onClose : undefined}>
-      <div className="rfw-card" onClick={(e) => e.stopPropagation()}>
-        <div className="rfw-badge">⊛ REFORGE — THE WHEEL DECIDES</div>
-        <canvas ref={ref} className="rfw-canvas" style={{ width: SIZE, height: SIZE }} aria-hidden />
-        {landed && (
-          <div className="rfw-result" style={{ ['--rc' as string]: tier.color }}>
-            <span className="rfw-rarity">{tier.label}</span>
-            <span className="rfw-name">{mod.name}</span>
-            <span className="rfw-desc">{mod.desc}</span>
-            <span className="rfw-bound">⚠ This organism is now BOUND to its host — permanently.</span>
-            <button className="primary rfw-go" onClick={onClose}>Accept the graft ▸</button>
-          </div>
-        )}
-        {!landed && <div className="rfw-spinning">the iris turns…</div>}
+    <Popup>
+      <div ref={dialogRef} className="rfw-overlay" role="dialog" aria-modal="true" aria-label="Mulligan reforge" tabIndex={-1}
+        onKeyDown={(e) => {
+          if (e.key === 'Tab') {
+            e.preventDefault();
+            (acceptRef.current ?? dialogRef.current)?.focus();
+          }
+        }} onClick={landed ? onClose : undefined}>
+        <div className="rfw-card" onClick={(e) => e.stopPropagation()}>
+          <div className="rfw-badge">⊛ REFORGE — THE WHEEL DECIDES</div>
+          <canvas ref={ref} className="rfw-canvas" style={{ width: '100%', maxWidth: SIZE, height: 'auto' }} aria-hidden />
+          {landed && (
+            <div className="rfw-result" style={{ ['--rc' as string]: tier.color }}>
+              <span className="rfw-rarity">{tier.label}</span>
+              <span className="rfw-name">{mod.name}</span>
+              <span className="rfw-desc">{mod.desc}</span>
+              <span className="rfw-bound">⚠ This organism is now BOUND to its host — permanently.</span>
+              <button ref={acceptRef} className="primary rfw-go" onClick={onClose}>Accept the graft ▸</button>
+            </div>
+          )}
+          {!landed && <div className="rfw-spinning">the iris turns…</div>}
+        </div>
       </div>
-    </div>
+    </Popup>
   );
 }
 
@@ -469,7 +490,7 @@ export function MulliganLab(): JSX.Element {
               )}
               <div className="mgl-rf-slots">
                 {tv.reforge.slots.map((r) => (
-                  <div key={r.index} className={`mgl-rf-slot${r.mod ? ' is-rolled' : ''}`} style={r.mod ? { ['--rc' as string]: r.mod.color } : undefined}>
+                  <div key={r.index} tabIndex={-1} className={`mgl-rf-slot${r.mod ? ' is-rolled' : ''}`} style={r.mod ? { ['--rc' as string]: r.mod.color } : undefined}>
                     <span className="mgl-rf-idx">{r.index + 1}</span>
                     {r.mod
                       ? <span className="mgl-rf-mod"><b>{r.mod.name}</b><i>{r.mod.rarity}</i><em>{r.mod.desc}</em></span>
