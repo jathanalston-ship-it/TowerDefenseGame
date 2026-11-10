@@ -711,3 +711,4 @@
 
 - `4ae0d15` **[UI]** Release: publish clearer battlefield choices and Hive safeguards _(internal)_
 - `c9a6a65` **[Framework]** Docs: record verified battlefield release _(internal)_
+- `9428fa1` **[UI]** Ui: clarify accessible run control states and costs _(internal)_

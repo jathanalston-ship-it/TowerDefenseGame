@@ -4,8 +4,8 @@
 > before committing. Read together with docs/PROJECT_STATUS.md and the latest
 > docs/VALIDATION_REPORT.md. Next session: start at docs/PROJECT_MANIFEST.md.
 
-- **Generated:** 2026-11-10 07:16 UTC · **Diff scope:** working tree vs HEAD
-- **Branch:** codex/hive-autoplay · **HEAD:** c9a6a65b
+- **Generated:** 2026-11-10 07:19 UTC · **Diff scope:** working tree vs HEAD
+- **Branch:** codex/hive-autoplay · **HEAD:** 9428fa18
 
 ## Summary of work completed
 
@@ -13,14 +13,14 @@ Release v2026.11.09.7 Clearer Battlefield Choices is LIVE. SHA4ae0d15ecca52bda8a
 
 ## Files modified
 
-- Source (2): `src/changelog/releases.gen.ts`, `src/ui/GameView.tsx`
+- Source (2): `src/changelog/releases.gen.ts`, `src/ui/Inspector.tsx`
 - Tests (0): —
-- Docs (4): `docs/HISTORY.md`, `docs/HUD.md`, `docs/PROJECT_MANIFEST.md`, `docs/devlog/DRAFT-2026-11-09.md`
+- Docs (5): `docs/HISTORY.md`, `docs/HUD.md`, `docs/PROJECT_MANIFEST.md`, `docs/devlog/DRAFT-2026-11-09.md`, `docs/devlog/DRAFT-2026-11-10.md`
 
 ## Systems affected (from the dependency registry)
 
 - **chronicle** — `src/changelog/releases.gen.ts`
-- **run-ui** — `src/ui/GameView.tsx`
+- **run-ui** — `src/ui/Inspector.tsx`
 
 ## Power Score changes
 
@@ -48,7 +48,7 @@ Final3150 full suite passed before the two-line current-destination drawer fix. 
 
 ## Recommended next tasks
 
-Continue local v2026.11.10.1 Clearer Run Controls (one unsealed website note). Actual GameView/Chrome AX probe ../run-controls-check.cjs PASS: mouse and F speed1/2/5 selection matches timeScale; early-call wave/overlap/reward and Splice live800 Biomass label. Build/test15527 PASS: build7.16s and12tests. Docs1472 PASS; no active processes. Dev44829 stopped. Latest LIVE remains .7 SHA4ae0d15e, deployed07:13UTC, next roughly08:14UTC. Work codex/hive-autoplay; deploy claude/zen-hawking-rh1gxl with website notes. Exclude untracked devlog draft; goal remains active.
+Continue local v2026.11.10.1 Clearer Run Controls (two unsealed website notes). Actual GameView/Chrome AX probe ../run-controls-check.cjs PASS: mouse and F speed1/2/5 selection matches timeScale; early-call wave/overlap/reward and Splice live800 Biomass label. Build/test15527 PASS: build7.16s and12tests. Docs1472 PASS; no active processes. Dev44829 stopped. Latest LIVE remains .7 SHA4ae0d15e, deployed07:13UTC, next roughly08:14UTC. Work codex/hive-autoplay; deploy claude/zen-hawking-rh1gxl with website notes. Exclude both untracked devlog drafts; goal remains active.
 
 ## Future expansion hooks
 
@@ -85,3 +85,7 @@ LATEST LOCAL .7: recycle duplicate confirmed/fixed. ../recycle-audio-check.cjs m
 LATEST .7 Inspector confirmations: local TowerConfirmation+Popup adds namedmodal, safeCancel, Tabtrap, allkeyisolation, Escape+focusrestore; fallbackfocusnamedInspector ifopenergone/disabled. Pause subscription closespendingprompt. No globalBackpolicychange: runBackstillPause. Baseline no role/focus/Escape; actualGameView Back originallyleft2dialogs (confirmoverPause,focusbehind), now1Pause andresumefocusmut-buy. ../inspector-confirm-matrix.cjs PASS realGame keyboard/transaction/Back; ../inspector-pause-check.cjs fullGameView PASS Back/Pause/Resume; ../inspector-confirm-layout.cjs actualCSS/fonts2dialogsx3viewportsPASS.29testsPASS; build96060PASS. All processes terminal. Three .7 notes local, live .6 unchanged,nextapprox07:22UTC. Fullbatchgates stillneededbefore .7publish.
 
 LATEST .7 BranchTree focus: baselineTier5 purchase->BODY; now focusselectedtierpreview ifbuyremoved/disabled, retainnextbuyifavailable, donotstealunrelatedfocus. ../branch-final-focus-check.cjs --assert / --poor / --outside PASS; confirmationmatrixrePASS. Fixture100k lacked160kfinalprice; corrected1mfixtureverifiedcompletionandkeptpoorcase.20testsPASS; build28850PASS Vite6.20s. Full3155batchsuite19178PASS164.59s (startedbeforefollowup); docs34520PASS. MOBILE63403RUNNING onfinaldist, logbattlefield-batch-mobile.log, pollsameworker. Four noteslocal. Live.6unchanged,nextdeploy~07:22UTC.
+
+Local v2026.11.10.1 now has two notes: Hero Ops uses effective abilityCdMax and reports recovery/armed state accurately, plus run controls. Actual Chrome probe reproduced half-progress .75/.25 with cooldown modifiers; now .5 for1/.5/1.5 multipliers. Recovery7s, armed, fully ready and AX image name plus ability description PASS.24 heroes/equipment/evolution and4 site tests PASS. Docs check PASS. No core/CSS/save/cost changes; not deployed. Both generated devlog drafts remain unpublished.
+
+Hero readiness final build65590 PASS (Vite7.59s); all processes terminal. Next release remains roughly08:14UTC with matching website notes; live .7 unchanged.

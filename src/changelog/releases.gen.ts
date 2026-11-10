@@ -13,6 +13,10 @@ export const RELEASES: Release[] = [
       {
         "cat": "UI",
         "text": "Screen readers now identify the selected game speed. Call early names the next wave, its overlap and Biomass reward; Splice explains its live Biomass cost and extra Gene Card choice."
+      },
+      {
+        "cat": "UI",
+        "text": "The Hero Ops ability wheel now follows your actual cooldown after upgrades and modifiers. Its tooltip and screen-reader description distinguish recovering, recharging, ready and armed abilities."
       }
     ]
   },

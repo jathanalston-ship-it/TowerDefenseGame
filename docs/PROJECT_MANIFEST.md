@@ -798,3 +798,5 @@ Campaign Stage 5 completion unlocks a run-local ON/OFF helper in Campaign and In
 Hive-aware tower confirmations: sale quotes derive from the live selected tower. Branch purchase intents include the displayed tier; GameView rejects an intent if the tower has advanced. A pending first-tier prompt reports a changed upgrade, disables Commit and focuses Cancel after a Hive upgrade. Selection changes clear stale prompts. Costs, refunds and simulation APIs are unchanged.
 
 Run control accessibility: speed buttons expose aria-pressed from the same state that drives their visual selection and simulation speed, including F cycling and automatic slowdown. Early Call and Splice accessible names describe their live wave/reward or draft cost. No timing, costs, hotkeys or simulation changes.
+
+Hero Ops ability wheel uses HudSnapshot.hero.abilityCdMax (the resolved live cooldown), with zero fill while recovering. Its named image and tooltip distinguish recovering/recharging/ready/armed, without live-region countdown chatter or changes to casting/cooldown simulation.

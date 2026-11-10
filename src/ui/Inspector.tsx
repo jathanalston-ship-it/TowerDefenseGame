@@ -456,8 +456,12 @@ export function Inspector({
 
   // ── Default: HERO OPS — portrait, vitals, ability wheel, gear, run summary ─────────────
   const heroDef = HERO_DEFS[hud.hero.kind];
-  const abMax = Math.max(0.001, heroDef.ability.cooldown);
-  const abPct = hud.hero.abilityReady ? 1 : Math.max(0, Math.min(1, 1 - hud.hero.abilityCd / abMax));
+  const abMax = Math.max(0.001, hud.hero.abilityCdMax);
+  const abPct = hud.hero.down ? 0 : hud.hero.abilityReady ? 1 : Math.max(0, Math.min(1, 1 - hud.hero.abilityCd / abMax));
+  const abilityStatus = hud.hero.down
+    ? `Hero recovering — ${Math.ceil(hud.hero.respawn)}s`
+    : hud.armedAbility ? 'Armed — click the battlefield to cast.'
+      : hud.hero.abilityReady ? 'Ready (Q)' : `Recharging — ${Math.ceil(hud.hero.abilityCd)}s`;
   const save = meta.get();
   const loadout = save.equipment.loadouts[hud.hero.kind];
   const inv = save.equipment.inventory;
@@ -492,14 +496,16 @@ export function Inspector({
           </div>
           <div
             className={`ho-ability tt${hud.hero.abilityReady ? ' is-ready' : ''}`}
+            role="img"
             tabIndex={0}
             style={{ ['--ab' as string]: abPct }}
-            aria-label={`${heroDef.ability.name} ${hud.hero.abilityReady ? 'ready' : `recharging, ${Math.ceil(hud.hero.abilityCd)}s`}`}
+            aria-label={`${heroDef.ability.name} — ${abilityStatus}`}
+            aria-description={heroDef.ability.blurb}
           >
             <span className="ho-ab-wheel" aria-hidden />
             <span className="ho-ab-icon" aria-hidden>⚡</span>
             {!hud.hero.abilityReady && !hud.hero.down && <span className="ho-ab-cd">{Math.ceil(hud.hero.abilityCd)}</span>}
-            <span className="tt-bubble">{heroDef.ability.name} — {heroDef.ability.blurb} (Q)</span>
+            <span className="tt-bubble">{heroDef.ability.name} — {abilityStatus} · {heroDef.ability.blurb}</span>
           </div>
         </div>
 

@@ -1,6 +1,6 @@
 {
-  "lastSha": "c9a6a65bd54752effd1be5927b502282f772232f",
-  "commitsSinceDraft": 9,
+  "lastSha": "9428fa1863f89927fd43efe29ef5e03d37ff8df4",
+  "commitsSinceDraft": 0,
   "content": {
     "tower": [
       "needle",
@@ -4367,6 +4367,10 @@
         {
           "cat": "UI",
           "text": "Screen readers now identify the selected game speed. Call early names the next wave, its overlap and Biomass reward; Splice explains its live Biomass cost and extra Gene Card choice."
+        },
+        {
+          "cat": "UI",
+          "text": "The Hero Ops ability wheel now follows your actual cooldown after upgrades and modifiers. Its tooltip and screen-reader description distinguish recovering, recharging, ready and armed abilities."
         }
       ]
     }
@@ -9705,6 +9709,14 @@
       "date": "2026-11-10",
       "cat": "Framework",
       "text": "Docs: record verified battlefield release",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "9428fa1863f89927fd43efe29ef5e03d37ff8df4",
+      "date": "2026-11-10",
+      "cat": "UI",
+      "text": "Ui: clarify accessible run control states and costs",
       "internal": true,
       "needsReview": false
     }
