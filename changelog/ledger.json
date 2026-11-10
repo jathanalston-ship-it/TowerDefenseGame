@@ -1,6 +1,6 @@
 {
-  "lastSha": "55763a86c6c174109857f07e4569a0e08ca413eb",
-  "commitsSinceDraft": 3,
+  "lastSha": "97b70426fca84ffd2813703e62c00099a373a37b",
+  "commitsSinceDraft": 6,
   "content": {
     "tower": [
       "needle",
@@ -4467,6 +4467,18 @@
         {
           "cat": "UI",
           "text": "Update briefing links and the Never show again control now have larger touch targets, making release information easier to use on tablets."
+        }
+      ]
+    },
+    {
+      "id": "v2026.11.10.4",
+      "date": "2026-11-10",
+      "title": "Clearer Briefings",
+      "sealed": false,
+      "entries": [
+        {
+          "cat": "UI",
+          "text": "Update briefings now keep keyboard focus inside the dialog, return focus when dismissed, and support Escape. Release highlights and changes can be focused and scrolled with the keyboard, while new-player and mechanic-introduction priorities stay unchanged."
         }
       ]
     }
@@ -9997,6 +10009,30 @@
       "date": "2026-11-10",
       "cat": "UI",
       "text": "Ui: accept replay links and guard pending input",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "8bca53e653f88178fe17a6f189133024a1e0760b",
+      "date": "2026-11-10",
+      "cat": "UI",
+      "text": "Release: publish Progress Explained with eight notes",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "35a8153e643d37174abc532f4a4db794afb54353",
+      "date": "2026-11-10",
+      "cat": "Framework",
+      "text": "Docs: record verified Progress Explained deployment",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "97b70426fca84ffd2813703e62c00099a373a37b",
+      "date": "2026-11-10",
+      "cat": "Framework",
+      "text": "Docs: align next release window with verification time",
       "internal": true,
       "needsReview": false
     }

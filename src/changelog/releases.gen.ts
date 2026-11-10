@@ -5,6 +5,18 @@ import type { Release } from './types';
 /** Player-facing releases, newest first. */
 export const RELEASES: Release[] = [
   {
+    "id": "v2026.11.10.4",
+    "date": "2026-11-10",
+    "title": "Clearer Briefings",
+    "sealed": false,
+    "entries": [
+      {
+        "cat": "UI",
+        "text": "Update briefings now keep keyboard focus inside the dialog, return focus when dismissed, and support Escape. Release highlights and changes can be focused and scrolled with the keyboard, while new-player and mechanic-introduction priorities stay unchanged."
+      }
+    ]
+  },
+  {
     "id": "v2026.11.10.3",
     "date": "2026-11-10",
     "title": "Progress Explained",

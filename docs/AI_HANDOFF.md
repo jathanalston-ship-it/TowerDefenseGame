@@ -4,8 +4,8 @@
 > before committing. Read together with docs/PROJECT_STATUS.md and the latest
 > docs/VALIDATION_REPORT.md. Next session: start at docs/PROJECT_MANIFEST.md.
 
-- **Generated:** 2026-11-10 09:54 UTC · **Diff scope:** working tree vs HEAD
-- **Branch:** codex/hive-autoplay · **HEAD:** 55763a86
+- **Generated:** 2026-11-10 13:39 UTC · **Diff scope:** working tree vs HEAD
+- **Branch:** codex/hive-autoplay · **HEAD:** 97b70426
 
 ## Summary of work completed
 
@@ -13,13 +13,13 @@ LIVE v2026.11.10.3 Progress Explained with eight sealed website notes. SHA8bca53
 
 ## Files modified
 
-- Source (2): `src/changelog/releases.gen.ts`, `src/ui/UpdateBriefing.css`
+- Source (2): `src/changelog/releases.gen.ts`, `src/ui/UpdateBriefing.tsx`
 - Tests (0): —
-- Docs (8): `docs/AI_HANDOFF.md`, `docs/CHANGELOG-PIPELINE.md`, `docs/HISTORY.md`, `docs/PROJECT_MANIFEST.md`, `docs/PROJECT_STATUS.md`, `docs/VALIDATION_REPORT.md`, `docs/devlog/DRAFT-2026-11-09.md`, `docs/devlog/DRAFT-2026-11-10.md`
+- Docs (7): `docs/CHANGELOG-PIPELINE.md`, `docs/HISTORY.md`, `docs/PROJECT_MANIFEST.md`, `docs/PROJECT_STATUS.md`, `docs/VALIDATION_REPORT.md`, `docs/devlog/DRAFT-2026-11-09.md`, `docs/devlog/DRAFT-2026-11-10.md`
 
 ## Systems affected (from the dependency registry)
 
-- **chronicle** — `src/changelog/releases.gen.ts`
+- **chronicle** — `src/changelog/releases.gen.ts`, `src/ui/UpdateBriefing.tsx`
 
 ## Power Score changes
 
@@ -47,7 +47,7 @@ Windows validate wrapper cannot launch npx/npm with shell:false; use direct gate
 
 ## Recommended next tasks
 
-Continue active playability/clarity/accessibility/presentation improvements without gameplay or balance changes. Next approximate deployment14:33UTC, with website notes for every game change. Current release is fully verified; start a new unsealed release for the next batch. Keep two untracked devlog drafts unpublished. Windows validation wrapper still has its documented launcher issue; use and record direct gates.
+Continue the active improvement goal. Local v2026.11.10.4 Clearer Briefings has one unsealed note: keyboard lifecycle and scrolling access in UpdateBriefing. Browser probe ../briefing-keyboard-check.cjs PASS; final build10.26s,8patchNotes/site tests,docs PASS. All processes terminal. Next approximate deployment14:33UTC with full release gates and website notes. Current live remains8bca53e6 (.10.3), verified13:33UTC. Keep the two untracked devlog drafts unpublished.
 
 ## Future expansion hooks
 

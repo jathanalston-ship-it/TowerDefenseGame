@@ -735,3 +735,6 @@
 - `0a21f15` **[UI]** Ui: improve replay keyboard controls and skip behavior _(internal)_
 - `3d6e652` **[Audio]** Audio: keep replay outcome skips quiet _(internal)_
 - `55763a8` **[UI]** Ui: accept replay links and guard pending input _(internal)_
+- `8bca53e` **[UI]** Release: publish Progress Explained with eight notes _(internal)_
+- `35a8153` **[Framework]** Docs: record verified Progress Explained deployment _(internal)_
+- `97b7042` **[Framework]** Docs: align next release window with verification time _(internal)_

@@ -1,6 +1,19 @@
 [
   {
     "date": "2026-11-10",
+    "title": "Clearer Briefings",
+    "categories": [
+      "UI"
+    ],
+    "items": [
+      {
+        "cat": "UI",
+        "text": "Update briefings now keep keyboard focus inside the dialog, return focus when dismissed, and support Escape. Release highlights and changes can be focused and scrolled with the keyboard, while new-player and mechanic-introduction priorities stay unchanged."
+      }
+    ]
+  },
+  {
+    "date": "2026-11-10",
     "title": "Progress Explained",
     "categories": [
       "UI",

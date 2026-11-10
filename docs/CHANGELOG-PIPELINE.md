@@ -93,3 +93,5 @@ the regenerated artifacts with your changes. Commit messages ARE the patch notes
 write player-meaningful subjects (`feat(towers): …`), and the pipeline does the rest.
 
 Update briefing secondary actions (patch notes, blog, and Never show again) have a 44px minimum height in UpdateBriefing.css, including tablet layouts.
+
+Keyboard access: when the briefing becomes visible, Continue receives focus; Tab stays within its links, buttons and named scrolling note regions. Escape acknowledges the release just like Continue, and dismissal/unmount restores a connected opener. Hidden/fresh/intro-deferred briefings do not claim focus.

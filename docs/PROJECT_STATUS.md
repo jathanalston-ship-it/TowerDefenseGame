@@ -1568,3 +1568,9 @@ Final sealed mobile rerun session66791 terminal PASS: 27 navigation screens and 
 ## 2026-11-10 13:33 UTC — Progress Explained live
 
 v2026.11.10.3 Progress Explained deployed at SHA8bca53e653f88178fe17a6f189133024a1e0760b. Actions42794604361 completed SUCCESS including the exact-SHA production guard. Normal custom-domain game/home/news/all8notes verified by ../verify-current-release.ps1; asset /assets/play-Ctdm4tfv.js matches the final local build and returns200. Initial immediate asset request returned404 during propagation; the same normal URL succeeded on retry. No outstanding release checks. Next approximate deployment14:33UTC; continuous improvement goal remains active.
+
+## 2026-11-10 — keyboard-readable update briefings (local .10.4)
+
+UpdateBriefing now claims focus on Continue only while visible, contains Tab across its actions and named scrolling note regions, consumes Escape as normal acknowledgement, and restores the connected opener on hide/unmount. Fresh baselines and mechanic-intro precedence remain unchanged. No balance, simulation, reward, Power or save-shape changes.
+
+Verification: ../briefing-keyboard-check.cjs terminal PASS for initial/contained/restored focus, Escape/Continue/opt-out, keyboard note scrolling, intro/fresh precedence, unmount and action layouts at1366x768/1024x768/844x390/320x568. Screenshot ../briefing-keyboard.png reviewed: scrolling region focus visible, actions remain in view with large note backlog. Final app/functions TypeScript + build PASS10.26s;8patchNotes/site tests PASS;docs PASS. Required validation wrapper again exited1 with empty child-command output on its known Windows launcher path; detailed report preserved in briefing-keyboard-wrapper-report.log. Direct checks supply evidence; browser assertions do not prove every screen reader. One unsealed note in v2026.11.10.4 Clearer Briefings. Not deployed yet; next approximate deployment14:33UTC. All processes terminal; goal active.

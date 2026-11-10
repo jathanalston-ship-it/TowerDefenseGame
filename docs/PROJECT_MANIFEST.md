@@ -821,3 +821,5 @@ Account-level notices: hover (non-touch) and focus pause expiry, then grant the 
 Reward-stack focus: dismissals capture the active stack control; after removal, only if focus fell to body, a layout effect focuses the next dismiss button or the previous connected external control. This covers the disappearing Dismiss All footer too. Navigation actions opt out so their destination owns focus. Unrelated focus, reading holds, pinning, merge windows, reward grants and queue rules are unchanged.
 
 Update briefing presentation: ui/UpdateBriefing.css gives secondary release actions 44px minimum touch targets; see CHANGELOG-PIPELINE.md.
+
+Update briefing keyboard lifecycle (ui/UpdateBriefing.tsx): visibility-based initial/restored focus, local Escape, contained Tab and focusable note regions; CHANGELOG-PIPELINE.md documents the behavior.
