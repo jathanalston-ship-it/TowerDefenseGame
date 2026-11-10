@@ -4,8 +4,8 @@
 > before committing. Read together with docs/PROJECT_STATUS.md and the latest
 > docs/VALIDATION_REPORT.md. Next session: start at docs/PROJECT_MANIFEST.md.
 
-- **Generated:** 2026-11-10 14:33 UTC · **Diff scope:** working tree vs HEAD
-- **Branch:** codex/hive-autoplay · **HEAD:** 20ba0c4d
+- **Generated:** 2026-11-10 14:41 UTC · **Diff scope:** working tree vs HEAD
+- **Branch:** codex/hive-autoplay · **HEAD:** 7f969db1
 
 ## Summary of work completed
 
@@ -13,15 +13,15 @@ LIVE v2026.11.10.4 Clearer Briefings, five sealed website notes. SHAd1642e26c1bc
 
 ## Files modified
 
-- Source (2): `src/changelog/releases.gen.ts`, `src/ui/InitCutscene.tsx`
+- Source (3): `src/changelog/releases.gen.ts`, `src/ui/CutscenePlayer.css`, `src/ui/CutscenePlayer.tsx`
 - Tests (0): —
-- Docs (8): `docs/GAME-FEEL.md`, `docs/HISTORY.md`, `docs/PROJECT_MANIFEST.md`, `docs/PROJECT_STATUS.md`, `docs/UI-MOTION.md`, `docs/VALIDATION_REPORT.md`, `docs/devlog/DRAFT-2026-11-09.md`, `docs/devlog/DRAFT-2026-11-10.md`
+- Docs (8): `docs/CUTSCENES.md`, `docs/HISTORY.md`, `docs/PROJECT_MANIFEST.md`, `docs/PROJECT_STATUS.md`, `docs/UI-MOTION.md`, `docs/VALIDATION_REPORT.md`, `docs/devlog/DRAFT-2026-11-09.md`, `docs/devlog/DRAFT-2026-11-10.md`
 
 ## Systems affected (from the dependency registry)
 
 - **chronicle** — `src/changelog/releases.gen.ts`
-- **onboarding** — `src/ui/InitCutscene.tsx`
-- Consumer ring (verify, unchanged): progression-gating
+- **cutscenes** — `src/ui/CutscenePlayer.tsx`
+- Consumer ring (verify, unchanged): quests
 
 ## Power Score changes
 
@@ -49,7 +49,7 @@ Windows validate wrapper cannot launch npx/npm with shell:false; use direct gate
 
 ## Recommended next tasks
 
-Continue active improvement goal. Local v2026.11.10.5 Films That Follow You has two unsealed notes: live story-cutscene preferences and live opening-film preferences/safe reduced-motion dive exit. Both actual-renderer browser probes PASS; latest build13.69s,44intro/film/feel/cutscene/site tests,docs PASS. All processes terminal. Next approximate deployment15:20UTC with full release/mobile gates and website notes. Live remainsd1642e26 (.10.4), verified14:20UTC. Keep two untracked devlog drafts unpublished. Candidate next investigation: background/foreground cinematic playback, especially missed copy and audio catch-up.
+Continue active improvement goal. Local v2026.11.10.5 Films That Follow You has three unsealed notes: live story preferences, live opening preferences/safe dive exit, and hidden-tab story-film continuity. Browser visibility fixture and live-motion regression PASS; latest build10.18s,41cutscene/premiere/film/feel/site tests,docs PASS. All processes terminal. Next approximate deployment15:20UTC with full release/mobile gates and website notes. Live remainsd1642e26 (.10.4), verified14:20UTC. Keep two untracked devlog drafts unpublished. Candidate next: opening film visibility continuity, including its gate and dive clocks; preserve existing once-only completion and seen state.
 
 ## Future expansion hooks
 

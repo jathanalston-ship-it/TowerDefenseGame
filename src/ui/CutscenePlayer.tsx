@@ -37,6 +37,8 @@ export function CutscenePlayer({ def, onDone }: { def: CutsceneDef; onDone: () =
   const [idx, setIdx] = useState(0);
   const [coda, setCoda] = useState(false);
   const [manual, setManual] = useState(false);
+  const [hidden, setHidden] = useState(() => document.hidden);
+  const hiddenAt = useRef<number | null>(document.hidden ? performance.now() : null);
   const dialogRef = useRef<HTMLDivElement>(null);
   const doneRef = useRef(false);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -48,6 +50,24 @@ export function CutscenePlayer({ def, onDone }: { def: CutsceneDef; onDone: () =
   const codaRef = useRef(false);
   codaRef.current = coda;
   const scene = def.scenes[idx];
+
+  useEffect(() => {
+    const update = (): void => {
+      const now = performance.now();
+      if (document.hidden) {
+        if (hiddenAt.current === null) hiddenAt.current = now;
+      } else if (hiddenAt.current !== null) {
+        const elapsed = now - hiddenAt.current;
+        filmRef.current.startedAt += elapsed;
+        filmRef.current.prevStartedAt += elapsed;
+        hiddenAt.current = null;
+      }
+      setHidden(document.hidden);
+    };
+    document.addEventListener('visibilitychange', update);
+    update();
+    return () => document.removeEventListener('visibilitychange', update);
+  }, []);
 
   // Keep keyboard navigation in the film, then return to the Archive's launch button.
   useEffect(() => {
@@ -89,12 +109,30 @@ export function CutscenePlayer({ def, onDone }: { def: CutsceneDef; onDone: () =
   // Auto-advance each scene after its hold; the coda auto-continues after its own hold.
   useEffect(() => {
     if (manual) return;
-    if (coda) {
-      const t = setTimeout(finish, CODA_MS);
-      return () => clearTimeout(t);
-    }
-    const t = setTimeout(advance, scene.durMs);
-    return () => clearTimeout(t);
+    let remaining = coda ? CODA_MS : scene.durMs;
+    let started: number | null = null;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    let fired = false;
+    const update = (): void => {
+      if (fired) return;
+      if (document.hidden) {
+        if (started !== null) remaining = Math.max(0, remaining - (performance.now() - started));
+        started = null;
+        clearTimeout(timer);
+      } else if (started === null) {
+        started = performance.now();
+        timer = setTimeout(() => {
+          started = null;
+          remaining = 0;
+          if (document.hidden) return;
+          fired = true;
+          if (coda) finish(); else advance();
+        }, remaining);
+      }
+    };
+    document.addEventListener('visibilitychange', update);
+    update();
+    return () => { clearTimeout(timer); document.removeEventListener('visibilitychange', update); };
     // eslint-disable-next-line react-hooks/exhaustive-deps -- advance/finish are stable closures over refs
   }, [idx, coda, scene.durMs, manual]);
 
@@ -113,6 +151,7 @@ export function CutscenePlayer({ def, onDone }: { def: CutsceneDef; onDone: () =
 
   // The projector — full-screen canvas, beats fired as the clock crosses them.
   useEffect(() => {
+    if (hidden) return undefined;
     const cv = canvasRef.current;
     const ctx = cv?.getContext('2d');
     if (!cv || !ctx) return undefined;
@@ -138,6 +177,7 @@ export function CutscenePlayer({ def, onDone }: { def: CutsceneDef; onDone: () =
       scene: null, prevScene: null, megaId: cutsceneMegaId(def), motion: feel.motion, flashes: feel.flashes,
     };
     const frame = (): void => {
+      if (document.hidden) return;
       const f = filmRef.current;
       const now = performance.now();
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -186,13 +226,13 @@ export function CutscenePlayer({ def, onDone }: { def: CutsceneDef; onDone: () =
       window.removeEventListener('resize', resize);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps -- the loop reads clocks from refs; reduced mode repaints per scene
-  }, [feel.motion, feel.flashes, reducedMotion ? idx : null, reducedMotion ? coda : false]);
+  }, [hidden, feel.motion, feel.flashes, reducedMotion ? idx : null, reducedMotion ? coda : false]);
 
   // PORTALED to <body>: the player launches from deep screens (the Archive) where filling
   // transform animations on ancestors would otherwise capture position:fixed and cage the
   // film inside the hub column.
   return createPortal(
-    <div ref={dialogRef} tabIndex={-1} className={`intro cutscene${manual ? ' is-manual' : ''}`} role="dialog" aria-modal="true" aria-label={`Cutscene — ${def.title}`} onClick={advance}
+    <div ref={dialogRef} tabIndex={-1} className={`intro cutscene${manual ? ' is-manual' : ''}${hidden ? ' is-suspended' : ''}`} role="dialog" aria-modal="true" aria-label={`Cutscene — ${def.title}`} onClick={advance}
       onKeyDown={(e) => {
         if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); coda ? finish() : toCoda(); }
         if (e.key !== 'Tab') return;

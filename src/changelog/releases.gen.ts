@@ -17,6 +17,10 @@ export const RELEASES: Release[] = [
       {
         "cat": "Visuals",
         "text": "The opening cinematic now follows motion and flash preferences live, from its start screen through the film. Restoring animation skips elapsed sound cues, and requesting reduced motion during the final dive exits cleanly without getting stuck."
+      },
+      {
+        "cat": "UX",
+        "text": "Story cutscenes now preserve scene and ending-card reading time while their tab is hidden. Captions and scene animation pause, and returning continues the same visual timeline without a backlog of sound cues."
       }
     ]
   },

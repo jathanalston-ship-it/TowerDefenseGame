@@ -746,3 +746,4 @@
 - `d1642e2` **[Framework]** Release: publish Clearer Briefings with five notes _(internal)_
 - `af1232f` **[Framework]** Docs: record verified Clearer Briefings deployment _(internal)_
 - `20ba0c4` **[UI]** Apply cutscene motion preferences live _(internal)_
+- `7f969db` **[UI]** Ui: follow live motion settings through the opening film _(internal)_
