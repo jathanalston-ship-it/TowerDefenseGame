@@ -108,6 +108,12 @@ export function NucleusChambers(): JSX.Element {
     returnSocket.current = null;
   }, [nucleus, armed]);
   const [confirmUnlock, setConfirmUnlock] = useState<number | null>(null); // 2-step on the Ichor spend
+  const gateFocus = useRef<string | null>(null);
+  useLayoutEffect(() => {
+    if (gateFocus.current === null) return;
+    rootRef.current?.querySelector<HTMLElement>(`[data-nucleus-gate-control="${gateFocus.current}"]`)?.focus();
+    gateFocus.current = null;
+  }, [confirmUnlock]);
 
   const grow = (o: NucleusOrgan): void => { if (meta.growNucleusOrgan(o.id)) audio.cue('splice'); };
   const level = (o: NucleusOrgan): void => { if (meta.upgradeNucleusOrgan(o.id)) audio.cue('graftCrack'); };
@@ -128,7 +134,10 @@ export function NucleusChambers(): JSX.Element {
     }
   };
   const unlock = (chamber: number): void => {
-    if (meta.unlockNucleusChamber(chamber)) { audio.cue('jackpot'); setConfirmUnlock(null); }
+    if (meta.unlockNucleusChamber(chamber)) {
+      returnSocket.current = `${chamber - 1}:0`;
+      audio.cue('jackpot'); setConfirmUnlock(null);
+    }
   };
 
   const organs = nucleusRegistry.all().filter((o) => cat === 'all' || o.category === cat);
@@ -234,22 +243,23 @@ export function NucleusChambers(): JSX.Element {
                 )}
               </ul>
               {next && (confirmUnlock === c + 1 ? (
-                <div className="ncl-gate-confirm">
+                <div className="ncl-gate-confirm" role="group" aria-label={`Open Chamber ${c + 1}${gate.gate.ichorCost > 0 ? ` for ${gate.gate.ichorCost} Ichor` : ''}?`}>
                   <span>
                     {gate.gate.ichorCost > 0
                       ? <>Open Chamber {c + 1} for <b>{gate.gate.ichorCost}</b> <CurrencyIcon id="ichor" size={12} title="Ichor" /> Ichor? The trial is met — this is the Hive's crown.</>
                       : <>Open Chamber {c + 1}? The trial is met.</>}
                   </span>
                   <div className="ncl-gate-confirm-row">
-                    <button onClick={() => setConfirmUnlock(null)}>Not yet</button>
+                    <button data-nucleus-gate-control={`cancel:${c + 1}`} onClick={() => { gateFocus.current = `open:${c + 1}`; setConfirmUnlock(null); }}>Not yet</button>
                     <button className="primary ncl-gate-go" disabled={!gate.ready} onClick={() => unlock(c + 1)}>Open the chamber</button>
                   </div>
                 </div>
               ) : (
                 <button
                   className={`ncl-gate-btn${gate.ready ? ' is-ready' : ''}`}
+                  data-nucleus-gate-control={`open:${c + 1}`}
                   disabled={!gate.ready}
-                  onClick={() => setConfirmUnlock(c + 1)}
+                  onClick={() => { gateFocus.current = `cancel:${c + 1}`; setConfirmUnlock(c + 1); }}
                   title={gate.ready ? 'Every requirement is met' : 'Meet every requirement above first'}
                 >
                   {gate.ready ? '❖ Undertake the opening' : 'Requirements not yet met'}

@@ -824,3 +824,4 @@
 - `7c39ffd` **[UI]** Ui: keep reforge reveals visible and keyboard accessible _(internal)_
 - `0998a78` **[UI]** Ui: follow live motion preferences in reforge reveals _(internal)_
 - `2307a64` **[UI]** Ui: synchronize reward reveals with live motion preferences _(internal)_
+- `251bfdf` **[UI]** Ui: clarify nucleus socket selection and preserve focus _(internal)_

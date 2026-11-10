@@ -37,6 +37,10 @@ export const RELEASES: Release[] = [
       {
         "cat": "UI",
         "text": "Nucleus grafting now clearly marks the selected socket, including filled sockets being replaced. Graft and extract controls identify their organ and destination, category filters expose selection, and keyboard focus returns to the socket after a successful change."
+      },
+      {
+        "cat": "UI",
+        "text": "Nucleus chamber-opening confirmations now keep keyboard focus: Not yet is focused when the prompt opens, cancel returns to the opening button, and a successful unlock focuses the new chamber’s first socket. The confirmation also names the chamber and any Ichor cost."
       }
     ]
   },

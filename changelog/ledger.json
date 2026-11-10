@@ -1,6 +1,6 @@
 {
-  "lastSha": "2307a64e9b462c1c1dc0c49fd52ad0de32bd38b6",
-  "commitsSinceDraft": 9,
+  "lastSha": "251bfdf5966477e508c36cd2fc810a7e80d3de6e",
+  "commitsSinceDraft": 0,
   "content": {
     "tower": [
       "needle",
@@ -4783,6 +4783,10 @@
         {
           "cat": "UI",
           "text": "Nucleus grafting now clearly marks the selected socket, including filled sockets being replaced. Graft and extract controls identify their organ and destination, category filters expose selection, and keyboard focus returns to the socket after a successful change."
+        },
+        {
+          "cat": "UI",
+          "text": "Nucleus chamber-opening confirmations now keep keyboard focus: Not yet is focused when the prompt opens, cancel returns to the opening button, and a successful unlock focuses the new chamber’s first socket. The confirmation also names the chamber and any Ichor cost."
         }
       ]
     }
@@ -11025,6 +11029,14 @@
       "date": "2026-11-10",
       "cat": "UI",
       "text": "Ui: synchronize reward reveals with live motion preferences",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "251bfdf5966477e508c36cd2fc810a7e80d3de6e",
+      "date": "2026-11-10",
+      "cat": "UI",
+      "text": "Ui: clarify nucleus socket selection and preserve focus",
       "internal": true,
       "needsReview": false
     }

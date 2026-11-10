@@ -4,16 +4,16 @@
 > before committing. Read together with docs/PROJECT_STATUS.md and the latest
 > docs/VALIDATION_REPORT.md. Next session: start at docs/PROJECT_MANIFEST.md.
 
-- **Generated:** 2026-11-10 22:20 UTC · **Diff scope:** working tree vs HEAD
-- **Branch:** codex/hive-autoplay · **HEAD:** 2307a64e
+- **Generated:** 2026-11-10 22:24 UTC · **Diff scope:** working tree vs HEAD
+- **Branch:** codex/hive-autoplay · **HEAD:** 251bfdf5
 
 ## Summary of work completed
 
-LOCAL unsealed v2026.11.10.14 Clearer Help and Previews now has SEVEN notes. Nucleus socket baseline lacked pressed selection and filled-socket highlight. Added selected state/names for sockets and filters, a selected-destination status line, specific graft/extract names and successful-action focus restoration to the replaced socket. Browser nucleus-socket-controls-check.cjs passed actual isolated meta graft/extract, saved-slot result, focus, category selection and computed2px outline at320px; screenshot inspected. Initial edit script wrote TSX then hit a const reassignment before CSS; completed CSS and reran probe successfully. Graft accessible name begins with its visible text for voice control.33 nucleus/UI/site tests passed2.20s; docs/handoff passed. Build39773 passed5.49s Vite, SWmwb984ah (nucleus-socket-build.log); all processes terminal. No costs, effects, guards, Power, saves or simulation changes. Prior reward-motion full suite passed3194tests/354files160.28s. LIVE remains .13 SHA da7800db61388e86c9a7a987b6bb823a6bd48e20, verified21:48UTC. Next approximate deployment22:50UTC; goal active.
+LOCAL unsealed v2026.11.10.14 Clearer Help and Previews has EIGHT notes. Nucleus opening baseline dropped keyboard focus when showing confirmation. Added named confirmation group including chamber/cost, focus on Not yet at entry, return to opener on cancel and first new socket after success. Parent nucleus-opening-focus-check.cjs passed all-keyboard open/cancel/confirm, no pre-confirm charge and actual300 Ichor debit once. Fixture uses real meta unlock with isolated eligible nucleusGateSnapshot; no real save touched. Existing socket graft/extract regression passed.33 nucleus/UI/site tests passed2.23s; docs/handoff/build34749 passed (5.71s Vite, SWmwb9chs4, nucleus-opening-build.log). All processes terminal. No gate, cost, XP fold, save or simulation changes. Prior full suite3194tests/354files passed160.28s. LIVE remains .13 SHA da7800db61388e86c9a7a987b6bb823a6bd48e20, verified21:48UTC. Next approximate deployment22:50UTC; goal active.
 
 ## Files modified
 
-- Source (3): `src/changelog/releases.gen.ts`, `src/index.css`, `src/ui/NucleusChambers.tsx`
+- Source (2): `src/changelog/releases.gen.ts`, `src/ui/NucleusChambers.tsx`
 - Tests (0): —
 - Docs (5): `docs/HISTORY.md`, `docs/NUCLEUS.md`, `docs/PROJECT_MANIFEST.md`, `docs/devlog/DRAFT-2026-11-09.md`, `docs/devlog/DRAFT-2026-11-10.md`
 
@@ -28,11 +28,11 @@ None. Search presentation only; progression, rewards and simulation unchanged.
 
 ## UI changes
 
-Nucleus socket baseline lacked pressed selection and filled-socket highlight. Added selected state/names for sockets and filters, a selected-destination status line, specific graft/extract names and successful-action focus restoration to the replaced socket. Browser nucleus-socket-controls-check.cjs passed actual isolated meta graft/extract, saved-slot result, focus, category selection and computed2px outline at320px; screenshot inspected. Initial edit script wrote TSX then hit a const reassignment before CSS; completed CSS and reran probe successfully. Graft accessible name begins with its visible text for voice control.33 nucleus/UI/site tests passed2.20s; docs/handoff passed. Build39773 pending. No costs, effects, guards, Power, saves or simulation changes.
+Nucleus opening baseline dropped keyboard focus when showing confirmation. Added named confirmation group including chamber/cost, focus on Not yet at entry, return to opener on cancel and first new socket after success. Parent nucleus-opening-focus-check.cjs passed all-keyboard open/cancel/confirm, no pre-confirm charge and actual300 Ichor debit once. Fixture uses real meta unlock with isolated eligible nucleusGateSnapshot; no real save touched. Existing socket graft/extract regression passed.33 nucleus/UI/site tests passed2.23s; docs/handoff/build34749 pending. No gate, cost, XP fold, save or simulation changes.
 
 ## Documentation changes
 
-NUCLEUS.md and manifest updated. Seven curated notes generated into game and website artifacts. No new mechanic/help/audio registration required.
+NUCLEUS.md and manifest updated; eight curated game/website notes generated. No new mechanic/help/audio registrations needed.
 
 ## Save changes
 
@@ -48,7 +48,7 @@ No new debt. Existing Windows validation launcher issue. Two untracked devlog dr
 
 ## Recommended next tasks
 
-Continue evidence-led improvements, then seal/generate/final build and original mobile for approximate22:50UTC deployment. Exact-SHA Actions and normal public game/home/news checks required. Preserve two untracked devlog drafts.
+Continue evidence-led improvements until release preparation around22:35–22:40UTC, then seal/generate/final build and original mobile before approximate22:50UTC deployment. Verify exact-SHA Actions and normal public game/home/news. Preserve both untracked devlog drafts.
 
 ## Future expansion hooks
 
