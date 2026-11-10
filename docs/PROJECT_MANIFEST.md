@@ -531,6 +531,7 @@ Career statistic hints use explicit Details buttons and inline reading panels. P
 - **Purpose:** the in-run interface — resources, wave state, tower rail, inspector, draft,
   build controls, live Power — and the Hub shell (nav, badges, rings, screens) around the game.
 - **Dependencies:** `game.getSnapshot()` (~10 Hz) + `meta.use()`; notifications registry.
+- Run Build exposes existing doctrine/vow descriptions, active Threat rungs and current biome/event context through a keyboard/touch Run conditions disclosure; no simulation changes.
 - Wave briefing chips open readable details outside the phone scroller, with keyboard focus and Escape/Close restoration. Base bounty/HP/armor labels distinguish reference values from modified run results; elite counts are inclusive. See HUD.md.
 - **Files:** `ui/Hud.tsx`, `ui/Toolbar.tsx`, `ui/BuildControls.tsx`, `ui/Inspector.tsx`,
   `ui/BuildPanel.tsx`, `ui/DraftModal.tsx`, `ui/GameView.tsx` (rAF host), `ui/Hub.tsx` (nav

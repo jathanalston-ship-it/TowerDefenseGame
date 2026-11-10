@@ -13,6 +13,10 @@ export const RELEASES: Release[] = [
       {
         "cat": "UI",
         "text": "Incoming-wave intel opens readable details on tap or keyboard, including on phones. Base Biomass and enemy stats are clearly labeled, and elite counts explain how many are included in the wave."
+      },
+      {
+        "cat": "UI",
+        "text": "Run Build now includes expandable Run conditions: review your doctrine, sworn vows, active Threat modifiers, biome and current event on phone or desktop."
       }
     ]
   },

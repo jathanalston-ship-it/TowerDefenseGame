@@ -254,17 +254,17 @@ export function Hud({ hud, power, onOpenConsole, tutorial = false, doctrine = nu
         {(hud.biome.id !== 'neutral' || hud.anticipation.length > 0 || hud.runHeadline || doctrine || vows.length > 0 || hud.threat > 0) && (
           <div className="wm-chips">
             {doctrine && (
-              <span className="wm-chip wm-doc" title="This run's doctrine commitment (docs/DOCTRINES.md)">
+              <span className="wm-chip wm-doc" title="Selected doctrine for this run. Open Run Build → Run conditions for details.">
                 {doctrine.icon} {doctrine.name}
               </span>
             )}
             {vows.length > 0 && (
-              <span className="wm-chip wm-vow" title={`Molt Vows sworn (docs/VOWS.md) — the world is warped this whole cycle: ${vows.map((v) => v.name).join(' · ')}`}>
+              <span className="wm-chip wm-vow" title={`Molt Vows active throughout this cycle: ${vows.map((v) => v.name).join(' · ')}`}>
                 ⛧ {vows.map((v) => v.icon).join(' ')}
               </span>
             )}
             {hud.threat > 0 && (
-              <span className="wm-chip wm-threat" title={`Threat ${hud.threat} (docs/THREAT.md) — ${threatRungs(hud.threat).map((r) => r.name).join(' · ')}`}>
+              <span className="wm-chip wm-threat" title={`Threat ${hud.threat} — ${threatRungs(hud.threat).map((r) => r.name).join(' · ')}`}>
                 ☣ THREAT {hud.threat}
               </span>
             )}

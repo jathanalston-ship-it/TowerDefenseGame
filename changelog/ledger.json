@@ -1,6 +1,6 @@
 {
-  "lastSha": "a8e6b4da3caf43018ce3346a38edca395e3394cb",
-  "commitsSinceDraft": 5,
+  "lastSha": "f9d6f03225aa37b9ec0652a1417fe585636e5009",
+  "commitsSinceDraft": 8,
   "content": {
     "tower": [
       "needle",
@@ -4587,6 +4587,10 @@
         {
           "cat": "UI",
           "text": "Incoming-wave intel opens readable details on tap or keyboard, including on phones. Base Biomass and enemy stats are clearly labeled, and elite counts explain how many are included in the wave."
+        },
+        {
+          "cat": "UI",
+          "text": "Run Build now includes expandable Run conditions: review your doctrine, sworn vows, active Threat modifiers, biome and current event on phone or desktop."
         }
       ]
     }
@@ -10373,6 +10377,30 @@
       "date": "2026-11-10",
       "cat": "Gameplay",
       "text": "Record verified save-management deployment",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "346b9d3fd4f274f8887ad893729f6974bafc7e5b",
+      "date": "2026-11-10",
+      "cat": "UI",
+      "text": "Make incoming wave intel readable and explicit",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "21102f9e37656a800130d0f9338f46c1516fce60",
+      "date": "2026-11-10",
+      "cat": "UI",
+      "text": "Constrain wave details to the battlefield",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "f9d6f03225aa37b9ec0652a1417fe585636e5009",
+      "date": "2026-11-10",
+      "cat": "UI",
+      "text": "Give compact wave details room to read",
       "internal": true,
       "needsReview": false
     }

@@ -231,9 +231,9 @@ export function GameView({
   }));
   // MOLT VOW chips (docs/VOWS.md): the armed wager's compact HUD marker — captured once at
   // game creation (the same exclusions as the run opts: never on dailies or the tutorial).
-  const [vowChips] = useState<{ icon: string; name: string }[]>(() =>
+  const [vowChips] = useState<{ icon: string; name: string; blurb: string }[]>(() =>
     !daily && !tutorial
-      ? meta.get().prestige.vows.map((id) => vowById(id)).filter((v): v is VowDef => !!v).map((v) => ({ icon: v.icon, name: v.name }))
+      ? meta.get().prestige.vows.map((id) => vowById(id)).filter((v): v is VowDef => !!v).map((v) => ({ icon: v.icon, name: v.name, blurb: v.blurb }))
       : []);
   // Nucleus dress (docs/NUCLEUS.md §visuals): hand the renderer the resolved mutations for THIS
   // run — account visuals stay out of the daily/tutorial exactly like the sim fold above.
@@ -1169,7 +1169,7 @@ export function GameView({
             aria-hidden
           />
         )}
-        {leftOpen && <BuildPanel hud={hud} onCollapse={() => setLeftOpen(false)} onOpenEvolution={() => setEvoOpen(true)} />}
+        {leftOpen && <BuildPanel hud={hud} doctrine={doctrine && doctrine !== 'none' ? resolveDoctrine(doctrine) : null} vows={vowChips} onCollapse={() => setLeftOpen(false)} onOpenEvolution={() => setEvoOpen(true)} />}
         {(!leftOpen || drawers) && (
           <button className="panel-rail" onClick={() => setLeftOpen((v) => !v)} aria-label="Show Run Build" aria-expanded={leftOpen}>
             <span className="rail-arrow">»</span>

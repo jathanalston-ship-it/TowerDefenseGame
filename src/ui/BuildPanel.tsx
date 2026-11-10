@@ -9,6 +9,9 @@ import { meta } from '../state/meta';
 import { COMBAT_CLASSES } from '../core/combatClass';
 import { BOND, CLASS_BONDS, bondFxLine, bondTierFx } from '../core/classBonds';
 import type { BondTier } from '../core/classBonds';
+import { threatRungs } from '../core/threat';
+
+type RunCommitment = { icon: string; name: string; blurb: string };
 
 const ROMAN = ['', 'I', 'II', 'III'] as const;
 
@@ -66,13 +69,20 @@ function groupCards(cards: CardOption[]): { category: string; stacks: Stack[] }[
   return [...byCat.entries()].map(([category, m]) => ({ category, stacks: [...m.values()] }));
 }
 
-export function BuildPanel({ hud, onCollapse, onOpenEvolution }: { hud: HudSnapshot; onCollapse?: () => void; onOpenEvolution?: () => void }): JSX.Element {
+export function BuildPanel({ hud, onCollapse, onOpenEvolution, doctrine = null, vows = [] }: {
+  hud: HudSnapshot;
+  onCollapse?: () => void;
+  onOpenEvolution?: () => void;
+  doctrine?: RunCommitment | null;
+  vows?: RunCommitment[];
+}): JSX.Element {
   const groups = groupCards(hud.cards);
   const hasCards = hud.cards.length > 0;
   // Collapsible sections — grouped, animated, no dead space (docs/HUD.md §left panel).
   const [folded, setFolded] = useState<Record<string, boolean>>({});
   const toggle = (k: string): void => setFolded((f) => ({ ...f, [k]: !f[k] }));
   const wavesLeft = Math.max(0, hud.totalWaves - Math.max(0, hud.wave));
+  const hasConditions = !!doctrine || vows.length > 0 || hud.threat > 0 || hud.biome.id !== 'neutral' || !!hud.runHeadline || !!hud.runEvent;
 
   return (
     <aside className="side-panel build-panel" aria-label="Run build">
@@ -141,6 +151,24 @@ export function BuildPanel({ hud, onCollapse, onOpenEvolution }: { hud: HudSnaps
         </div>
       )}
 
+      {hasConditions && (
+        <details className="side-sec run-conditions" onKeyDown={(event) => {
+          // Native disclosure/reading keys must not also trigger battlefield shortcuts.
+          if (event.key !== 'Escape') event.stopPropagation();
+        }}>
+          <summary className="side-k">Run conditions</summary>
+          <dl>
+            {doctrine && <div><dt>{doctrine.icon} Doctrine · {doctrine.name}</dt><dd>{doctrine.blurb}</dd></div>}
+            {vows.map((vow) => <div key={vow.name}><dt>{vow.icon} {vow.name}</dt><dd>{vow.blurb} Active for this Molt cycle.</dd></div>)}
+            {hud.threat > 0 && <div><dt>Threat {hud.threat}</dt><dd>These ladder modifiers stack for this run.</dd></div>}
+            {threatRungs(hud.threat).map((rung) => <div key={rung.level}><dt>{rung.icon} {rung.level}. {rung.name}</dt><dd>{rung.blurb}</dd></div>)}
+            {hud.biome.id !== 'neutral' && <div><dt>Biome · {hud.biome.name}</dt><dd>{hud.biome.modifier || 'Current battlefield biome.'}{hud.biome.hazardActive ? ` · Active hazard: ${hud.biome.hazardName}` : ''}</dd></div>}
+            {hud.runHeadline && <div><dt>Run identity</dt><dd>{hud.runHeadline}</dd></div>}
+            {hud.runEvent && <div><dt>Current event · {hud.runEvent.name}</dt><dd>{hud.runEvent.desc}</dd></div>}
+          </dl>
+        </details>
+      )}
+
       <div className={`side-sec${folded.fx ? ' is-folded' : ''}`}>
         <button className="side-k side-fold" onClick={() => toggle('fx')} aria-expanded={!folded.fx}>
           Active Effects{hud.buffs.length > 0 ? ` · ${hud.buffs.length}` : ''}
@@ -155,7 +183,7 @@ export function BuildPanel({ hud, onCollapse, onOpenEvolution }: { hud: HudSnaps
             ))}
           </div>
         ) : (
-          <p className="side-empty">No run modifiers yet.</p>
+          <p className="side-empty">No active bonuses to show.</p>
         ))}
       </div>
 

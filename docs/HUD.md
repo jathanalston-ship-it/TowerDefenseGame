@@ -44,7 +44,11 @@ The redesign below has been implemented and extended. The live combat HUD is now
   base stats, elite counts are included in the total, and rewards explain modifier/kill limits.
 - **HERO OPS** right-panel default: breathing portrait, conic ability wheel, HP + shield,
   rarity-lit equipment slots, evolution chip, compact run stats.
-- **Left panel**: collapsible Gene Cards / Active Effects + an OBJECTIVES section.
+- **Left panel**: collapsible Gene Cards / Active Effects + an OBJECTIVES section. Run conditions
+  is a native keyboard/touch disclosure with a 44px summary. It lists the selected doctrine,
+  run-captured vows (same Daily/tutorial exclusions), active Threat rungs, current biome/hazard,
+  run identity and current event from their existing data. It is omitted when none apply.
+  Reading/disclosure keys do not trigger battlefield shortcuts; Escape retains its normal handling.
 
 ### §0b — the 2026-07 HUD OVERHAUL (triple-A pass: organs, belt, vessel)
 

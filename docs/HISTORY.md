@@ -767,3 +767,6 @@
 - `bfb1de8` **[Framework]** Release: prepare Progress You Can Trust with five notes _(internal)_
 - `b441f62` **[Framework]** Release: publish Progress You Can Trust _(internal)_
 - `a8e6b4d` **[Gameplay]** Record verified save-management deployment _(internal)_
+- `346b9d3` **[UI]** Make incoming wave intel readable and explicit _(internal)_
+- `21102f9` **[UI]** Constrain wave details to the battlefield _(internal)_
+- `f9d6f03` **[UI]** Give compact wave details room to read _(internal)_

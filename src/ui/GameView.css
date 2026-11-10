@@ -3490,3 +3490,10 @@ html[data-layout='desktop'] .cv-slot { flex: 0 1 auto; width: 240px; min-width: 
 .wb-detail p { margin: 4px 0; font-size: 13px; line-height: 1.5; color: var(--text); }
 /* Reading replaces the compact intel row, leaving launch controls available. */
 :is(html[data-layout='portrait'], html[data-layout='landscape']) .build-controls.has-detail .wb-brief { display: none; }
+
+.run-conditions > summary { display: flex; align-items: center; min-height: 44px; cursor: pointer; }
+.run-conditions > summary::before { content: '▸'; margin-right: 8px; }
+.run-conditions[open] > summary::before { content: '▾'; }
+.run-conditions dl { margin: 8px 0 0; font-size: 12px; line-height: 1.5; }
+.run-conditions dt { color: var(--text); font-weight: 800; margin-top: 12px; }
+.run-conditions dd { color: var(--muted); margin: 3px 0 0; overflow-wrap: anywhere; }

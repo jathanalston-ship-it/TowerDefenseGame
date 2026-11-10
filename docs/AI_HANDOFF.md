@@ -4,22 +4,23 @@
 > before committing. Read together with docs/PROJECT_STATUS.md and the latest
 > docs/VALIDATION_REPORT.md. Next session: start at docs/PROJECT_MANIFEST.md.
 
-- **Generated:** 2026-11-10 17:11 UTC · **Diff scope:** working tree vs HEAD
-- **Branch:** codex/hive-autoplay · **HEAD:** 21102f9e
+- **Generated:** 2026-11-10 17:19 UTC · **Diff scope:** working tree vs HEAD
+- **Branch:** codex/hive-autoplay · **HEAD:** f9d6f032
 
 ## Summary of work completed
 
-LIVE .7 remains SHA b441f62cf0512d7da5c8d0692d53d3927fead962 with five verified notes. LOCAL unsealed .8 Know What Is Coming has one generated website note for readable wave intel and explicit base stats/rewards. Final phone refinement now hides only the compact intel row while details are open, preserves launch controls, and restores focus after the row reappears. Short/long elite-probe explanations pass actual GameView at390x844,320x568,844x390,1280x800; no clipping, keyboard End reaches text, Close stays44px/visible, reading does not dispatch Space, Escape restores chip focus. Screenshots inspected: ../wave-briefing-game-phone.png and ../wave-briefing-long-phone.png. The prior20px reading-area issue is RESOLVED. Build38551 PASS12.07s. No core/balance/save changes.
+LIVE remains .7 SHA b441f62cf0512d7da5c8d0692d53d3927fead962. LOCAL .8 Know What Is Coming now has two generated website notes: readable/base-value wave intel and accessible Run conditions. BuildPanel native44px disclosure lists existing selected doctrine, run-captured vows, active Threat rungs, biome/hazard, run identity and current event. GameView passes doctrine and vow blurb alongside existing name/icon (same Daily/tutorial exclusions); no simulation/state/schema changes. Empty conditions are omitted and obsolete event/hazard text disappears while expanded state survives refresh. Summary/reading keys cannot trigger battlefield shortcuts; Escape retains normal propagation. HUD titles no longer display internal docs paths. Existing Active Effects empty message no longer claims there are no run modifiers.
 
 ## Files modified
 
-- Source (2): `src/ui/BuildControls.tsx`, `src/ui/GameView.css`
+- Source (5): `src/changelog/releases.gen.ts`, `src/ui/BuildPanel.tsx`, `src/ui/GameView.css`, `src/ui/GameView.tsx`, `src/ui/Hud.tsx`
 - Tests (0): —
-- Docs (3): `docs/HUD.md`, `docs/devlog/DRAFT-2026-11-09.md`, `docs/devlog/DRAFT-2026-11-10.md`
+- Docs (5): `docs/HISTORY.md`, `docs/HUD.md`, `docs/PROJECT_MANIFEST.md`, `docs/devlog/DRAFT-2026-11-09.md`, `docs/devlog/DRAFT-2026-11-10.md`
 
 ## Systems affected (from the dependency registry)
 
-- **run-ui** — `src/ui/BuildControls.tsx`
+- **chronicle** — `src/changelog/releases.gen.ts`
+- **run-ui** — `src/ui/BuildPanel.tsx`, `src/ui/GameView.tsx`, `src/ui/Hud.tsx`
 
 ## Power Score changes
 
@@ -47,7 +48,7 @@ Windows validate wrapper cannot launch npx/npm with shell:false; use direct gate
 
 ## Recommended next tasks
 
-Current live handle: final mobile99756 (wave-briefing-reading-mobile.log), run against final reading-layout dist; poll same handle. Docs96417 terminal PASS (anchors/references/staleness). All browser probes and devserver76491 terminal. Fullsuite3192/354files passed321.95s before final UI-only focus/layout refinements; targeted browser checks cover these refinements. Previous mobile94526 passed27nav/9gameplay but predates refinement; final99756 is authoritative.13site/registry tests passed earlier; website artifacts unchanged this turn. Continue useful improvements while respecting active mobilecheck dist (do not overwrite dist). Approx next deployment17:41UTC; seal/regenerate/build/test finalrelease when due. One next read-only investigation: Hud.tsx doctrine/vow/threat chips are title-only and mention docs/*.md, so phone explanation/accessibility may be improvable; do not assume a functional defect without probing. Do not stage untracked devlog drafts.
+Poll fullsuite45403 (run-conditions-full-tests.log) and combined-release mobile59105 (run-conditions-mobile.log). Do not overwrite dist while mobilecheck runs. After gates pass, prepare hourly release around17:35–17:41UTC: seal .8, regenerate site, finalbuild and site-sync test, preserve generated handoff judgments, commit/push authorized production ref and verify Actions exactSHA plus normal custom-domain game/home/news/all2notes. No further source changes required for the two current notes unless validation finds a defect. Do not stage two untracked devlog drafts.
 
 ## Future expansion hooks
 
@@ -91,11 +92,13 @@ Hero readiness final build65590 PASS (Vite7.59s); all processes terminal. Next r
 
 
 
+
 ## 2026-11-10 16:57 UTC — wave briefing checkpoint
 
 LIVE remains v2026.11.10.7, SHA b441f62cf0512d7da5c8d0692d53d3927fead962, verified normal game/home/news with five notes. LOCAL .8 Know What Is Coming has one generated website note. Incoming-wave reward/enemy/adaptation chips now open a readable detail region outside the mobile scroller. Base Biomass/HP/armor and inclusive elite counts are explicit. Keyboard opening, Escape/Close restoration, preview-change dismissal, reading-key isolation, phone/landscape geometry and real-game launch/inert behavior pass the isolated Chrome probe. No core, balance or save changes. Continuous goal remains active.
 
 Poll existing handles, never restart on observation timeout: final production build21016 (wave-briefing-release-build.log); full regression suite77517 (wave-briefing-full-tests.log); browser probe60232 printed PASS but Chrome shutdown was still live at last poll. Earlier builds90994 and19517 succeeded; latter predates final reading-key isolation.13 registry/site tests and docs check PASS. After final build completes, run mobilecheck against its dist, then continue improvements toward approximate17:41 UTC deployment. .8 remains unsealed; regenerate/build if further changes. Existing Windows validate wrapper launcher failure reproduced (wave-briefing-wrapper-report.log); direct gates required. Do not stage the two untracked devlog drafts.
+
 
 
 ## 2026-11-10 17:06 UTC — integrated wave details
@@ -104,8 +107,17 @@ Full3192tests/354files PASS321.95s (77517 terminal). Build21016 PASS10.40s. Mobi
 
 Next: improve 320x568 detail reading area (sticky header currently consumes most of83px region). Consider using more of the existing briefing area while details are open, rather than squeezing text below all launch controls; verify in actual GameView with ../wave-briefing-game-check.cjs. Final CSS build22763 terminal PASS11.88s (wave-briefing-constrained-build.log). Local Vite95476 stopped intentionally; browser10106 terminal. All earlier handles terminal. After any final layout change run the real-game probe, build and mobile gate on final dist. Fullsuite3192 and13registry/site tests already pass; repeat only when justified by later code changes. Next approx deployment17:41UTC; live .7 remains verified. Do not stage two untracked devlog drafts.
 
+
 ## 2026-11-10 17:12 UTC — readable compact wave details
 
 LIVE .7 remains SHA b441f62cf0512d7da5c8d0692d53d3927fead962 with five verified notes. LOCAL unsealed .8 Know What Is Coming has one generated website note for readable wave intel and explicit base stats/rewards. Final phone refinement now hides only the compact intel row while details are open, preserves launch controls, and restores focus after the row reappears. Short/long elite-probe explanations pass actual GameView at390x844,320x568,844x390,1280x800; no clipping, keyboard End reaches text, Close stays44px/visible, reading does not dispatch Space, Escape restores chip focus. Screenshots inspected: ../wave-briefing-game-phone.png and ../wave-briefing-long-phone.png. The prior20px reading-area issue is RESOLVED. Build38551 PASS12.07s. No core/balance/save changes.
 
 Current live handle: final mobile99756 (wave-briefing-reading-mobile.log), run against final reading-layout dist; poll same handle. Docs96417 terminal PASS (anchors/references/staleness). All browser probes and devserver76491 terminal. Fullsuite3192/354files passed321.95s before final UI-only focus/layout refinements; targeted browser checks cover these refinements. Previous mobile94526 passed27nav/9gameplay but predates refinement; final99756 is authoritative.13site/registry tests passed earlier; website artifacts unchanged this turn. Continue useful improvements while respecting active mobilecheck dist (do not overwrite dist). Approx next deployment17:41UTC; seal/regenerate/build/test finalrelease when due. One next read-only investigation: Hud.tsx doctrine/vow/threat chips are title-only and mention docs/*.md, so phone explanation/accessibility may be improvable; do not assume a functional defect without probing. Do not stage untracked devlog drafts.
+
+## 2026-11-10 17:21 UTC — run conditions checkpoint
+
+LIVE remains .7 SHA b441f62cf0512d7da5c8d0692d53d3927fead962. LOCAL .8 Know What Is Coming now has two generated website notes: readable/base-value wave intel and accessible Run conditions. BuildPanel native44px disclosure lists existing selected doctrine, run-captured vows, active Threat rungs, biome/hazard, run identity and current event. GameView passes doctrine and vow blurb alongside existing name/icon (same Daily/tutorial exclusions); no simulation/state/schema changes. Empty conditions are omitted and obsolete event/hazard text disappears while expanded state survives refresh. Summary/reading keys cannot trigger battlefield shortcuts; Escape retains normal propagation. HUD titles no longer display internal docs paths. Existing Active Effects empty message no longer claims there are no run modifiers.
+
+Actual GameView ../run-conditions-check.cjs PASS on1280x800,390x844,320x568,844x390: real Glass Doctrine, Vows of Flesh/Haste, only Threat1–3; Space disclosure does not launch wave;44px target; drawer scroll/width. ../run-conditions-state-check.cjs PASS neutral omission, live biome/hazard/event descriptions, stale removal and expanded-state preservation. Screenshot ../run-conditions-phone.png inspected. Earlier final wave-only mobile99756 CLEAN27nav/9gameplay, terminal. Combined build39830 PASS11.67s; docs21518 PASS; validation wrapper known Windows launch failure recorded in run-conditions-wrapper-report.log. All Chrome/dev sessions terminal.
+
+Poll fullsuite45403 (run-conditions-full-tests.log) and combined-release mobile59105 (run-conditions-mobile.log). Do not overwrite dist while mobilecheck runs. After gates pass, prepare hourly release around17:35–17:41UTC: seal .8, regenerate site, finalbuild and site-sync test, preserve generated handoff judgments, commit/push authorized production ref and verify Actions exactSHA plus normal custom-domain game/home/news/all2notes. No further source changes required for the two current notes unless validation finds a defect. Do not stage two untracked devlog drafts.
