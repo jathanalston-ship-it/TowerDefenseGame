@@ -821,3 +821,4 @@
 - `59e0136` **[UI]** Ui: clarify empty help searches and recovery _(internal)_
 - `829c2c4` **[UI]** Ui: pause graft previews and follow live motion _(internal)_
 - `71100c6` **[UI]** Ui: pause nucleus previews and follow live motion _(internal)_
+- `7c39ffd` **[UI]** Ui: keep reforge reveals visible and keyboard accessible _(internal)_

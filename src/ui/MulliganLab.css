@@ -320,5 +320,5 @@
 .rfw-go { margin-top: 8px; min-width: 190px; }
 
 @media (prefers-reduced-motion: reduce) {
-  .rfw-spinning { animation: none; }
+  :root:not([data-motion="full"]) .rfw-spinning { animation: none; }
 }

@@ -1,6 +1,6 @@
 {
-  "lastSha": "71100c63cf8f2a507df1533751745d54ba6234a9",
-  "commitsSinceDraft": 6,
+  "lastSha": "7c39ffd7be0708e46752d267e79b64e65bdefb78",
+  "commitsSinceDraft": 7,
   "content": {
     "tower": [
       "needle",
@@ -4771,6 +4771,10 @@
         {
           "cat": "UI",
           "text": "The reforge reveal now stays inside the screen on phones and short landscape displays. Keyboard focus follows the wheel result, stays in the dialog, and returns to the reforge bay when you close it."
+        },
+        {
+          "cat": "UI",
+          "text": "The reforge wheel now honors Allow motion and follows live device motion preferences. Switching to reduced motion reveals the already-rolled graft immediately; restoring motion never restarts a finished reveal."
         }
       ]
     }
@@ -10989,6 +10993,14 @@
       "date": "2026-11-10",
       "cat": "UI",
       "text": "Ui: pause nucleus previews and follow live motion",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "7c39ffd7be0708e46752d267e79b64e65bdefb78",
+      "date": "2026-11-10",
+      "cat": "UI",
+      "text": "Ui: keep reforge reveals visible and keyboard accessible",
       "internal": true,
       "needsReview": false
     }

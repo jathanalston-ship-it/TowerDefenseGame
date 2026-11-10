@@ -136,25 +136,37 @@ function ReforgeWheelOverlay({ mod, onClose }: { mod: MulliganReforgeMod; onClos
     cv.height = SIZE * dpr;
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     const finalAngle = angleForSegment(target) - 4 * Math.PI * 2; // four full revolutions in
-    if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) {
-      drawReforgeWheel(ctx, SIZE, angleForSegment(target), 0.9, target);
-      setLanded(true);
-      return;
-    }
     const t0 = performance.now();
     const DUR = 2600;
     let raf = 0;
+    let done = false;
+    let prefs = motionPrefs();
+    const media = window.matchMedia?.('(prefers-reduced-motion: reduce)');
+    const syncMotion = (): void => {
+      if (done || resolveMotion(prefs, media?.matches ?? false).motion !== 0) return;
+      done = true;
+      cancelAnimationFrame(raf);
+      drawReforgeWheel(ctx, SIZE, angleForSegment(target), 0.9, target);
+      setLanded(true);
+    };
     const loop = (now: number): void => {
       const p = Math.min(1, (now - t0) / DUR);
       const ease = 1 - Math.pow(1 - p, 3); // cubic ease-out — a heavy organ spinning down
       const angle = finalAngle * (1 - ease) + angleForSegment(target) * ease
         + (1 - ease) * 0; // finalAngle already encodes the revolutions
       drawReforgeWheel(ctx, SIZE, angle, now / 1000, p >= 1 ? target : -1);
-      if (p >= 1) { setLanded(true); audio.cue('graftCrack'); return; }
+      if (p >= 1) { done = true; setLanded(true); audio.cue('graftCrack'); return; }
       raf = requestAnimationFrame(loop);
     };
-    raf = requestAnimationFrame(loop);
-    return () => cancelAnimationFrame(raf);
+    const offPrefs = onMotionPrefs((next) => { prefs = next; syncMotion(); });
+    media?.addEventListener('change', syncMotion);
+    syncMotion();
+    if (!done) raf = requestAnimationFrame(loop);
+    return () => {
+      cancelAnimationFrame(raf);
+      offPrefs();
+      media?.removeEventListener('change', syncMotion);
+    };
   }, [target]);
   const tier = REFORGE_RARITY[mod.rarity];
   return (

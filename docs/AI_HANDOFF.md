@@ -4,12 +4,12 @@
 > before committing. Read together with docs/PROJECT_STATUS.md and the latest
 > docs/VALIDATION_REPORT.md. Next session: start at docs/PROJECT_MANIFEST.md.
 
-- **Generated:** 2026-11-10 22:08 UTC · **Diff scope:** working tree vs HEAD
-- **Branch:** codex/hive-autoplay · **HEAD:** 71100c63
+- **Generated:** 2026-11-10 22:11 UTC · **Diff scope:** working tree vs HEAD
+- **Branch:** codex/hive-autoplay · **HEAD:** 7c39ffd7
 
 ## Summary of work completed
 
-LOCAL unsealed v2026.11.10.14 Clearer Help and Previews now has FOUR notes. Reforge baseline at 320x568 in a transformed lab placed the card at y=-3320 and left focus on the spin button. Shared Popup portal, responsive scrollable card and modal focus lifecycle now pass real-browser checks at 320x568, 844x340 and 390x844. Both normal (1000 Ichor) and last-affordable (40 Ichor) fixtures pass focus entry/result/Tab/Shift+Tab/Escape/return, and verify no second charge or roll alteration. Phone screenshot inspected. 22 model/UI/site tests passed in 2.58s; build58938 passed (5.59s Vite, SWmwb8rjat); docs and handoff62070 passed. All processes terminal. Website note generated; not deployed. LIVE remains .13 at da7800db61388e86c9a7a987b6bb823a6bd48e20, verified21:48UTC. Next approximate deployment22:50UTC; goal active.
+LOCAL unsealed v2026.11.10.14 Clearer Help and Previews has FIVE notes. Reforge baseline ignored Allow motion under OS reduced motion. Wheel now subscribes to shared preferences and device changes, resolves the shared motion setting, reveals the existing result on reduction and never restarts a completed reveal. Parent reforge-motion-check.cjs passed override/revoke/live OS change/result preservation/normal completion; original responsive keyboard probe passed. Initial multi-roll probe hit the existing400ms action-dedupe guard; spacing rolls1000ms passed without changing that guard. 22 model/UI/site tests passed2.51s; docs and handoff passed. Production build33174 passed (6.17s Vite; SWmwb8wxnw, reforge-motion-build.log). All processes terminal. No roll, cost, binding, save, Power or simulation changes. LIVE remains .13 SHA da7800db61388e86c9a7a987b6bb823a6bd48e20, verified21:48UTC. Next approximate deployment22:50UTC. Goal active.
 
 ## Files modified
 
@@ -29,11 +29,11 @@ None. Search presentation only; progression, rewards and simulation unchanged.
 
 ## UI changes
 
-Reforge baseline at 320x568 in a transformed lab placed the card at y=-3320 and left focus on the spin button. Shared Popup portal, responsive scrollable card and modal focus lifecycle now pass real-browser checks at 320x568, 844x340 and 390x844. Both normal (1000 Ichor) and last-affordable (40 Ichor) fixtures pass focus entry/result/Tab/Shift+Tab/Escape/return, and verify no second charge or roll alteration. Phone screenshot inspected. 22 model/UI/site tests passed in 2.58s; build58938 passed (5.59s Vite, SWmwb8rjat); docs and handoff62070 passed. All processes terminal. Website note generated; not deployed.
+Reforge baseline ignored Allow motion under OS reduced motion. Wheel now subscribes to shared preferences and device changes, resolves the shared motion setting, reveals the existing result on reduction and never restarts a completed reveal. Parent reforge-motion-check.cjs passed override/revoke/live OS change/result preservation/normal completion; original responsive keyboard probe passed. Initial multi-roll probe hit the existing400ms action-dedupe guard; spacing rolls1000ms passed without changing that guard. 22 model/UI/site tests passed2.51s; docs and handoff passed. Production build33174 passed (6.17s Vite; SWmwb8wxnw, reforge-motion-build.log). All processes terminal. No roll, cost, binding, save, Power or simulation changes.
 
 ## Documentation changes
 
-HELP.md, MULLIGANS.md, NUCLEUS.md and manifest updated. Four curated UI notes generated into game and website artifacts. No simulation, graft costs, Power or save changes; no new mechanic/help/audio registration needed.
+HELP.md, MULLIGANS.md, NUCLEUS.md and manifest updated. Five curated UI notes generated into game and website artifacts. No simulation, graft costs, Power or save changes; no new mechanic/help/audio registration needed.
 
 ## Save changes
 
@@ -49,7 +49,7 @@ No new debt. Existing Windows validation launcher issue. Two untracked devlog dr
 
 ## Recommended next tasks
 
-Continue evidence-led improvements, then seal/generate/final build/full suite and original mobile for .14 before the approximate22:50UTC deployment. Verify exact-SHA workflow and normal public game/home/news. Do not use web search cached crawl as current deployment evidence. Leave both untracked devlog drafts unpublished.
+Continue evidence-led UX improvements. Seal/generate/final build/full suite and original mobile before approximate22:50UTC deployment. Verify exact-SHA Actions and normal public game/home/news; cached web search is not deployment evidence. Preserve both untracked devlog drafts.
 
 ## Future expansion hooks
 
