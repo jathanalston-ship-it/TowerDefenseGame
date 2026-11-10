@@ -8,7 +8,7 @@ export const RELEASES: Release[] = [
     "id": "v2026.11.10.3",
     "date": "2026-11-10",
     "title": "Progress Explained",
-    "sealed": false,
+    "sealed": true,
     "entries": [
       {
         "cat": "UI",
@@ -37,6 +37,10 @@ export const RELEASES: Release[] = [
       {
         "cat": "UI",
         "text": "The Replay Theater paste field accepts copied replay links as well as raw codes, supports Enter to watch, and shows localized checking/error feedback. Editing the input or leaving the screen prevents an older decode from opening the wrong replay."
+      },
+      {
+        "cat": "UI",
+        "text": "Update briefing links and the Never show again control now have larger touch targets, making release information easier to use on tablets."
       }
     ]
   },

@@ -734,3 +734,4 @@
 - `9ec9fbb` **[UI]** Ui: recover replay sharing when clipboard access fails _(internal)_
 - `0a21f15` **[UI]** Ui: improve replay keyboard controls and skip behavior _(internal)_
 - `3d6e652` **[Audio]** Audio: keep replay outcome skips quiet _(internal)_
+- `55763a8` **[UI]** Ui: accept replay links and guard pending input _(internal)_

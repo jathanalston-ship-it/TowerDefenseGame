@@ -819,3 +819,5 @@ Hero Ops ability explanation: the wheel is a44px disclosure button (aria-expande
 Account-level notices: hover (non-touch) and focus pause expiry, then grant the original full3400ms/5200ms reading window on leave. A24px dismiss button supports Enter/Space; queued notices retain focus, final dismissal restores the prior connected control without stealing unrelated focus. Unlock-held notices clear reading flags and resume without replaying their cue. Timer callbacks verify the same front item before removing it. Reward grants, queue order and milestone duration are unchanged.
 
 Reward-stack focus: dismissals capture the active stack control; after removal, only if focus fell to body, a layout effect focuses the next dismiss button or the previous connected external control. This covers the disappearing Dismiss All footer too. Navigation actions opt out so their destination owns focus. Unrelated focus, reading holds, pinning, merge windows, reward grants and queue rules are unchanged.
+
+Update briefing presentation: ui/UpdateBriefing.css gives secondary release actions 44px minimum touch targets; see CHANGELOG-PIPELINE.md.

@@ -91,3 +91,5 @@ plans. **Drafts are never auto-published**: edit, publish as a post in `site/blo
 Run `npm run notes` at the end of a work batch (alongside `npm run handoff`), commit
 the regenerated artifacts with your changes. Commit messages ARE the patch notes —
 write player-meaningful subjects (`feat(towers): …`), and the pipeline does the rest.
+
+Update briefing secondary actions (patch notes, blog, and Never show again) have a 44px minimum height in UpdateBriefing.css, including tablet layouts.

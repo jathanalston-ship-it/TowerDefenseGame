@@ -1,6 +1,6 @@
 {
-  "lastSha": "3d6e652d750424bbfea5fbf34445ac45b41c5da3",
-  "commitsSinceDraft": 2,
+  "lastSha": "55763a86c6c174109857f07e4569a0e08ca413eb",
+  "commitsSinceDraft": 3,
   "content": {
     "tower": [
       "needle",
@@ -4434,7 +4434,7 @@
       "id": "v2026.11.10.3",
       "date": "2026-11-10",
       "title": "Progress Explained",
-      "sealed": false,
+      "sealed": true,
       "entries": [
         {
           "cat": "UI",
@@ -4463,6 +4463,10 @@
         {
           "cat": "UI",
           "text": "The Replay Theater paste field accepts copied replay links as well as raw codes, supports Enter to watch, and shows localized checking/error feedback. Editing the input or leaving the screen prevents an older decode from opening the wrong replay."
+        },
+        {
+          "cat": "UI",
+          "text": "Update briefing links and the Never show again control now have larger touch targets, making release information easier to use on tablets."
         }
       ]
     }
@@ -9985,6 +9989,14 @@
       "date": "2026-11-10",
       "cat": "Audio",
       "text": "Audio: keep replay outcome skips quiet",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "55763a86c6c174109857f07e4569a0e08ca413eb",
+      "date": "2026-11-10",
+      "cat": "UI",
+      "text": "Ui: accept replay links and guard pending input",
       "internal": true,
       "needsReview": false
     }

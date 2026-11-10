@@ -430,3 +430,13 @@ Evidence: ../replay-skip-audio-check.cjs baseline failed with a compressed batch
 Added local-only decodeReplayInput adapter for HTTP(S) share links/raw codes; existing codec validation unchanged. Daily input is an Enter-submit form with localized checking, invalid feedback association, duplicate-submit lock and request-generation cancellation on edit/unmount. No pasted URL is fetched.
 
 Validation: build71068 PASS22.64s;13codec/i18n tests PASS including2new link/malformed-link regressions. ../replay-input-check.cjs actual Daily browser PASS real link/rawdecode,Enter,error clear/association,pending lock,late edit/unmount rejection and3locale1366/390/320fit. Initial unmount test resolved before React committed unmount; corrected test waits for removal and PASS. Final site/docs83285 terminal PASS (4site tests). Seven unsealed .10.3 notes; next work full release regression/mobile gates toward roughly09:52UTC deploy.
+
+## 2026-11-10 — Progress Explained release gates
+
+v2026.11.10.3 has seven sealed player-facing notes, generated for the game, homepage and news page. Full regression suite: 354 files / 3177 tests PASS (478.92s). Final production build including app/functions TypeScript checks PASS; Vite 20.45s. Four sealed site synchronization tests PASS. Documentation check PASS, no stale systems. Required validation wrapper exited 1 on the known Windows npx/spawnSync launcher issue; direct gates provide the validation evidence. Final sealed mobile sweep is running in session90178; do not rebuild dist until it completes. No gameplay, balance, Power formula or save changes.
+
+## 2026-11-10 — tablet update briefing gate correction
+
+Initial sealed mobile gate session90178 failed only three tablet-landscape1024x768 target measurements: Full patch notes, Dev blog and Never show again (24px tall). Increased their module CSS minimum height to44px; added eighth release note and updated canonical pipeline/manifest docs. No behavior change. Rebuilt final artifacts: app/functions TypeScript plus Vite PASS11.63s; four site-sync tests and documentation check PASS. Full3177-test result remains applicable to unchanged behavior. Final mobile rerun session66791 uses progress-explained-mobile-final.log; wait for its terminal result before publishing.
+
+Final sealed mobile rerun session66791 terminal PASS: 27 navigation screens and nine gameplay viewports, landscape drawers, portrait rotation/run contracts, overlap, clipping and target checks all clean. Ready to deploy eight sealed notes with the game and website.

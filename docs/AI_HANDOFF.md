@@ -4,27 +4,22 @@
 > before committing. Read together with docs/PROJECT_STATUS.md and the latest
 > docs/VALIDATION_REPORT.md. Next session: start at docs/PROJECT_MANIFEST.md.
 
-- **Generated:** 2026-11-10 09:25 UTC · **Diff scope:** working tree vs HEAD
-- **Branch:** codex/hive-autoplay · **HEAD:** 3d6e652d
+- **Generated:** 2026-11-10 09:54 UTC · **Diff scope:** working tree vs HEAD
+- **Branch:** codex/hive-autoplay · **HEAD:** 55763a86
 
 ## Summary of work completed
 
-LIVE v2026.11.10.2 Rewards You Can Read, seven sealed website notes. SHA e176563d06bd43881dabd1a579bea51d21f0521e; Actions42785759629 SUCCESS including exact-SHA production guard. Normal custom-domain game/home/news/all7notes verified08:52UTC Nov10; asset /assets/play-Bj9XiPk2.js matches local build and returns200. Full run3174/3175PASS;sole stale generated DIL graph corrected and7DIL tests re-PASS. Final sealed build5.97s,4site-sync tests and mobile27screens/9gameplay viewports PASS. All processes terminal; continuous goal remains active. Next approximate deployment09:52UTC.
+Ready to publish v2026.11.10.3 Progress Explained with eight sealed notes. Profile explanations, leaderboard recovery and replay sharing/controls improved; tablet briefing action targets fixed after mobile gate caught them. Full354files/3177tests PASS; final build11.63s plus app/functions typechecks,4site tests,docs and mobile27screens/9gameplay viewports PASS. Validation wrapper retains known Windows launch failure, recorded separately. All processes terminal. Prior live e176563d (.10.2). Continuous goal remains active.
 
 ## Files modified
 
-- Source (4): `src/changelog/releases.gen.ts`, `src/i18n/index.ts`, `src/net/replayShare.ts`, `src/ui/DailyScreen.tsx`
-- Tests (1): `src/net/replayShare.test.ts`
-- Docs (7): `docs/HISTORY.md`, `docs/PROJECT_MANIFEST.md`, `docs/PROJECT_STATUS.md`, `docs/REPLAY-SHARE.md`, `docs/VALIDATION_REPORT.md`, `docs/devlog/DRAFT-2026-11-09.md`, `docs/devlog/DRAFT-2026-11-10.md`
+- Source (2): `src/changelog/releases.gen.ts`, `src/ui/UpdateBriefing.css`
+- Tests (0): —
+- Docs (8): `docs/AI_HANDOFF.md`, `docs/CHANGELOG-PIPELINE.md`, `docs/HISTORY.md`, `docs/PROJECT_MANIFEST.md`, `docs/PROJECT_STATUS.md`, `docs/VALIDATION_REPORT.md`, `docs/devlog/DRAFT-2026-11-09.md`, `docs/devlog/DRAFT-2026-11-10.md`
 
 ## Systems affected (from the dependency registry)
 
 - **chronicle** — `src/changelog/releases.gen.ts`
-- **daily** — `src/ui/DailyScreen.tsx`
-- **i18n** — `src/i18n/index.ts`
-- **net-backend** — `src/net/replayShare.ts`
-- **website** — `src/net/replayShare.ts`
-- Consumer ring (verify, unchanged): directives, field-research, liveops, premium, security
 
 ## Power Score changes
 
@@ -52,7 +47,7 @@ Windows validate wrapper cannot launch npx/npm with shell:false; use direct gate
 
 ## Recommended next tasks
 
-Local .10.3 Progress Explained has7unsealednotes:Power/Career reading,leaderboardfeedback,replaycopy,viewercontrols,quietskip,replayinput. Latest decodeReplayInput linkadapter and Daily form verified in ../replay-input-check.cjs with realcodec and controlled delayedresponses; allPASS incl3locales/phones. Build71068 PASS22.64s;13codec/i18n testsPASS(2newtests in existingfile). Browser47725 terminalPASS after correcting unmount test to awaitactualDOMremoval. Site/docs83285 terminal PASS (4site tests);all processes stopped. No browser/dev processes. Next run fullsuite,fix any actualfailures,seal/site/finalbuild/site/mobile thenpush andverify roughly09:52UTC. Latest LIVE .10.2 SHAe176563d verified08:52UTC;remote ref claude/zen-hawking-rh1gxl. Exclude devlogdrafts. Goal remainsactive afterdeploy.
+Commit release on codex/hive-autoplay and push HEAD to claude/zen-hawking-rh1gxl (remote checked e176563d). Follow Actions exact-SHA production guard, then ../verify-current-release.ps1 to check normal custom-domain game/home/news/all8notes. Record live SHA and verification, then continue the active improvement goal. Do not publish the two untracked devlog drafts.
 
 ## Future expansion hooks
 
