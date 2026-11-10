@@ -223,7 +223,7 @@ export function HeroEvolutionPanel({
         <div className="hcc-vitals">
           <div className="hcc-vname" style={{ color: def.color }}>{def.name} <span className="hcc-vclass">{def.combatClass}</span></div>
           {hero && (hero.down
-            ? <div className="hcc-down">DOWN · revives in {Math.ceil(hero.respawn)}s</div>
+            ? <div className="hcc-down">DOWN · revives in {Math.ceil(game.heroRecoverySeconds(hero))}s</div>
             : <ProgressBar value={Math.round(hero.hp)} max={hero.maxHp} color={def.color} height={8} label={`${def.name} HP`} />)}
           {hero && !hero.down && <div className="hcc-hp">{Math.round(hero.hp)} / {Math.round(hero.maxHp)}{hero.shield > 0 ? ` · ⛨${Math.ceil(hero.shield)}` : ''}</div>}
           <div className="hcc-stats">

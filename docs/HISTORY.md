@@ -714,3 +714,4 @@
 - `9428fa1` **[UI]** Ui: clarify accessible run control states and costs _(internal)_
 - `4d21ded` **[Heroes]** Show effective hero ability readiness _(internal)_
 - `cec6e8b` **[Heroes]** Align selected hero cooldown readouts with combat _(internal)_
+- `7f34809` **[Heroes]** Report observed hero attack and pulse cadence _(internal)_

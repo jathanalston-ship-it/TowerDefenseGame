@@ -143,3 +143,25 @@ it('tracks the siege hero switching from a hasted mega raid to its normal siege 
   expect(read().total).toBeCloseTo(HERO_DEFS.vitriol.attackInterval);
   expect(g.getSnapshot().selectedHero!.attackSpeed).toBeCloseTo(1 / HERO_DEFS.vitriol.attackInterval);
 });
+it.each([1, 2])('recovery displays match actual revival time at speed multiplier %s', (reviveSpeedMult) => {
+  const progress = Object.fromEntries(HERO_ORDER.map((kind) => [kind, {
+    damageMult: 1, cooldownMult: 1, symbiote: { reviveSpeedMult },
+  }])) as HeroProgress;
+  const g = new Game(5, NO_META, undefined, 'ravager', progress);
+  g.startWave();
+  const h = g.heroes[0];
+  h.down = true;
+  h.respawn = 6;
+  g.selectHero(h.kind);
+  const expected = 6 / reviveSpeedMult;
+  expect(g.getSnapshot().hero.respawn).toBe(expected);
+  expect(g.getSnapshot().selectedHero!.respawn).toBe(expected);
+  expect(g.getRenderState().heroRecoverySeconds?.[h.kind]).toBe(expected);
+  expect(g.heroRecoverySeconds(h)).toBe(expected);
+  expect(h.respawn).toBe(6); // observational conversion, never rewrite the simulation timer
+  let elapsed = 0;
+  while (h.down && elapsed < 7) { g.advance(SIM_DT); elapsed += SIM_DT; }
+  expect(h.down).toBe(false);
+  expect(elapsed).toBeCloseTo(expected, 1);
+  expect(g.heroRecoverySeconds(h)).toBe(0);
+});

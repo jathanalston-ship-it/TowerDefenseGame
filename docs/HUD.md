@@ -290,3 +290,5 @@ Hive-aware tower confirmations: sale quotes derive from the live selected tower.
 Run control accessibility: speed buttons expose aria-pressed from the same state that drives their visual selection and simulation speed, including F cycling and automatic slowdown. Early Call and Splice accessible names describe their live wave/reward or draft cost. No timing, costs, hotkeys or simulation changes.
 
 Hero Ops ability wheel uses HudSnapshot.hero.abilityCdMax (the resolved live cooldown), with zero fill while recovering. Its named image and tooltip distinguish recovering/recharging/ready/armed, without live-region countdown chatter or changes to casting/cooldown simulation.
+
+Recovery display: Game.heroRecoverySeconds converts the internal recovery work by the same reviveSpeedMult used in updateHero. HUD/selected-hero snapshots, Combat Console and battlefield label use that simulation-second estimate. RenderState supplies an optional per-kind map only while a hero is down. Internal timers, revival behavior and saves are unchanged. Tests compare displayed time to actual revival at1x/2x.

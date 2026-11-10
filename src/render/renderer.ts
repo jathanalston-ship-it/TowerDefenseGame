@@ -2826,7 +2826,7 @@ function drawHero(ctx: CanvasRenderingContext2D, rs: RenderState, h: RenderState
     ctx.fillStyle = THEME.hero.down;
     ctx.font = "bold 12px 'Exo 2', system-ui, sans-serif";
     ctx.textAlign = 'center';
-    ctx.fillText(`${Math.ceil(h.respawn)}s`, h.x, h.y - 22);
+    ctx.fillText(`${Math.ceil(rs.heroRecoverySeconds?.[h.kind] ?? h.respawn)}s`, h.x, h.y - 22);
     ctx.textAlign = 'left';
   } else {
     const pct = Math.max(0, h.hp / h.maxHp);

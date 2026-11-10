@@ -357,6 +357,7 @@ export interface RenderState {
   floats: FloatingText[];
   particles: Particle[];
   heroes: Hero[];
+  heroRecoverySeconds?: Partial<Record<HeroKind, number>>; // display time after revival modifiers
   minions: Minion[];
   phase: Phase;
   selectedTower: TowerKind | null;
@@ -1247,6 +1248,10 @@ export class Game {
     const kh = this.symbioteOf(h)?.killHaste;
     const rush = kh && this.time < h.rushUntil ? kh.mult : 1;
     return this.hmods(h).heroAttackSpeedMult * this.evo.attackSpeedMult * rush;
+  }
+  /** Remaining simulation seconds for recovery displays; never alters the internal recovery work. */
+  heroRecoverySeconds(hero: Hero): number {
+    return hero.down ? Math.max(0, hero.respawn) / (this.symbioteOf(hero)?.reviveSpeedMult ?? 1) : 0;
   }
   /** Effective ability cooldown (s): base × gear × biome × mastery × Evolution Overdrive. */
   private heroAbilityCooldownFor(h: Hero): number {
@@ -8453,6 +8458,8 @@ export class Game {
       floats: this.floats,
       particles: this.particles,
       heroes: this.heroes,
+      heroRecoverySeconds: this.heroes.some((hero) => hero.down)
+        ? Object.fromEntries(this.heroes.filter((hero) => hero.down).map((hero) => [hero.kind, this.heroRecoverySeconds(hero)])) : undefined,
       minions: this.minions,
       phase: this.phase,
       selectedTower: this.selectedTower,
@@ -8604,7 +8611,7 @@ export class Game {
       maxHp: Math.round(h.maxHp),
       shield: Math.round(h.shield),
       down: h.down,
-      respawn: Math.max(0, h.respawn),
+      respawn: this.heroRecoverySeconds(h),
       state: h.moveState,
       target,
       cooldowns,
@@ -8644,7 +8651,7 @@ export class Game {
       hero: {
         kind: h.kind,
         down: h.down,
-        respawn: h.respawn,
+        respawn: this.heroRecoverySeconds(h),
         hp: Math.ceil(h.hp),
         maxHp: h.maxHp,
         shield: Math.ceil(h.shield), // 0 when no shield (zeroed on expiry in updateHero)

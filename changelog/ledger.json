@@ -1,6 +1,6 @@
 {
-  "lastSha": "cec6e8b3f75171ed14b0fdd03e2aa85946a94638",
-  "commitsSinceDraft": 2,
+  "lastSha": "7f348090b77c007f85b3548b349db85b452ee0ce",
+  "commitsSinceDraft": 3,
   "content": {
     "tower": [
       "needle",
@@ -4379,6 +4379,10 @@
         {
           "cat": "UI",
           "text": "Hero attack and pulse gauges now follow the interval actually used in combat, including haste and siege heroes switching between normal attacks and mega-boss raids. The attack-speed readout matches that cadence."
+        },
+        {
+          "cat": "UI",
+          "text": "Hero recovery countdowns now account for faster-revival symbiotes, keeping the battlefield label, HUD and hero panels consistent with the actual time remaining."
         }
       ]
     }
@@ -9741,6 +9745,14 @@
       "date": "2026-11-10",
       "cat": "Heroes",
       "text": "Align selected hero cooldown readouts with combat",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "7f348090b77c007f85b3548b349db85b452ee0ce",
+      "date": "2026-11-10",
+      "cat": "Heroes",
+      "text": "Report observed hero attack and pulse cadence",
       "internal": true,
       "needsReview": false
     }

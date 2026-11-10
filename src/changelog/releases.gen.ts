@@ -25,6 +25,10 @@ export const RELEASES: Release[] = [
       {
         "cat": "UI",
         "text": "Hero attack and pulse gauges now follow the interval actually used in combat, including haste and siege heroes switching between normal attacks and mega-boss raids. The attack-speed readout matches that cadence."
+      },
+      {
+        "cat": "UI",
+        "text": "Hero recovery countdowns now account for faster-revival symbiotes, keeping the battlefield label, HUD and hero panels consistent with the actual time remaining."
       }
     ]
   },

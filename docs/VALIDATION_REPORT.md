@@ -330,3 +330,7 @@ Selected-hero final full regression68135 PASS:353files/3156tests,156.14s. Build/
 Local v2026.11.10.1 fourth note: hero attack/pulse gauges capture the actual interval after each timer starts in private WeakMaps. No timer math changed; maps are not serialized or consulted by combat. Selected attack speed follows that interval (behavior baseline before first action).18 heroSelect regressions PASS: every hero with haste and Vitriol mega-raid-to-siege transition. Chrome real hasted attack shows3.64/s and50% halfway. Build77223 PASS8.01s, docs97323 PASS; full87589 pending. No UI/CSS/save/economy changes.
 
 Hero cadence final full suite87589 PASS:353files/3169tests191.64s. Build, docs and real browser checks PASS; all processes terminal. Local v2026.11.10.1 remains unsealed with four website notes. LIVE .7 unchanged; next deployment roughly08:14UTC.
+
+Local fifth release note: recovery countdowns use remaining simulation seconds after reviveSpeedMult across HUD, Inspector, Toolbar, selected-hero panel, Combat Console and canvas. Raw recovery timer unchanged.20heroSelect tests PASS including elapsed revival1x/2x; actual Chrome panels and drawGame canvas all show3s for6raw/2x. Build96717 PASS7.24s, docs57891 PASS. Full75923 still running; no failures observed. No simulation/save/economy changes.
+
+Recovery final full75923 PASS353files/3171tests166.75s. Build, docs, browser UI and real canvas verification PASS. All processes terminal. Local v2026.11.10.1 has five unsealed website notes; latest live .7 unchanged. Next approximate deployment08:14UTC.
