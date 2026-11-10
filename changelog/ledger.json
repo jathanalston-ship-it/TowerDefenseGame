@@ -1,6 +1,6 @@
 {
-  "lastSha": "92b6941bd830f53ffd3412aa6c07d35befc02eab",
-  "commitsSinceDraft": 0,
+  "lastSha": "f605db7e53ff6be32536c18bce2bd3ef925e179e",
+  "commitsSinceDraft": 1,
   "content": {
     "tower": [
       "needle",
@@ -4645,8 +4645,8 @@
     {
       "id": "v2026.11.10.11",
       "date": "2026-11-10",
-      "title": "Motion and Map Controls",
-      "sealed": false,
+      "title": "Clearer Gear and Motion",
+      "sealed": true,
       "entries": [
         {
           "cat": "UI",
@@ -4671,6 +4671,10 @@
         {
           "cat": "Bug Fixes",
           "text": "Salvage confirmation now stays visible after scrolling Item Details on a phone. Cancel receives keyboard focus, Tab stays within the prompt, and Escape cancels the confirmation without closing the item."
+        },
+        {
+          "cat": "UI",
+          "text": "Item Details now gives Favorite, item lock, and affix lock clear accessible names and selected states. Their tooltips describe the available action, and affix randomization names the affected affix."
         }
       ]
     }
@@ -10681,6 +10685,14 @@
       "date": "2026-11-10",
       "cat": "UI",
       "text": "Ui: add keyboard gear preview rotation controls",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "f605db7e53ff6be32536c18bce2bd3ef925e179e",
+      "date": "2026-11-10",
+      "cat": "UI",
+      "text": "Ui: keep salvage confirmation visible and keyboard contained",
       "internal": true,
       "needsReview": false
     }

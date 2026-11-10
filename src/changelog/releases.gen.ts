@@ -7,8 +7,8 @@ export const RELEASES: Release[] = [
   {
     "id": "v2026.11.10.11",
     "date": "2026-11-10",
-    "title": "Motion and Map Controls",
-    "sealed": false,
+    "title": "Clearer Gear and Motion",
+    "sealed": true,
     "entries": [
       {
         "cat": "UI",
@@ -33,6 +33,10 @@ export const RELEASES: Release[] = [
       {
         "cat": "Bug Fixes",
         "text": "Salvage confirmation now stays visible after scrolling Item Details on a phone. Cancel receives keyboard focus, Tab stays within the prompt, and Escape cancels the confirmation without closing the item."
+      },
+      {
+        "cat": "UI",
+        "text": "Item Details now gives Favorite, item lock, and affix lock clear accessible names and selected states. Their tooltips describe the available action, and affix randomization names the affected affix."
       }
     ]
   },

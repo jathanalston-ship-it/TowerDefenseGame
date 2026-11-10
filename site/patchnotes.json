@@ -1,7 +1,7 @@
 [
   {
     "date": "2026-11-10",
-    "title": "Motion and Map Controls",
+    "title": "Clearer Gear and Motion",
     "categories": [
       "UI",
       "Bug Fixes"
@@ -30,6 +30,10 @@
       {
         "cat": "Bug Fixes",
         "text": "Salvage confirmation now stays visible after scrolling Item Details on a phone. Cancel receives keyboard focus, Tab stays within the prompt, and Escape cancels the confirmation without closing the item."
+      },
+      {
+        "cat": "UI",
+        "text": "Item Details now gives Favorite, item lock, and affix lock clear accessible names and selected states. Their tooltips describe the available action, and affix randomization names the affected affix."
       }
     ]
   },

@@ -4,16 +4,16 @@
 > before committing. Read together with docs/PROJECT_STATUS.md and the latest
 > docs/VALIDATION_REPORT.md. Next session: start at docs/PROJECT_MANIFEST.md.
 
-- **Generated:** 2026-11-10 20:05 UTC · **Diff scope:** working tree vs HEAD
-- **Branch:** codex/hive-autoplay · **HEAD:** 92b6941b
+- **Generated:** 2026-11-10 20:10 UTC · **Diff scope:** working tree vs HEAD
+- **Branch:** codex/hive-autoplay · **HEAD:** f605db7e
 
 ## Summary of work completed
 
-LIVE .10 Know Your Controls, SHA2400521c2dbf87dda58e5e9f5d161fb4800e6cd2, Actions42885435823 success including exact-SHA guard; game/home/news verified19:30UTC. LOCAL unsealed .11 Motion and Map Controls now has six generated notes: infestation live motion, truthful feed selection, equipment art motion, gear preview motion, keyboard rotation, and visible salvage confirmation. Goal active; next approximate deployment20:30UTC.
+LIVE .10 Know Your Controls, SHA2400521c2dbf87dda58e5e9f5d161fb4800e6cd2, Actions42885435823 success including exact-SHA guard; game/home/news verified19:30UTC. LOCAL sealed .11 Clearer Gear and Motion now has seven generated notes: infestation live motion, truthful feed selection, equipment art motion, gear preview motion, keyboard rotation, and visible salvage confirmation. Goal active; next approximate deployment20:30UTC.
 
 ## Files modified
 
-- Source (3): `src/changelog/releases.gen.ts`, `src/ui/EquipmentPanel.css`, `src/ui/ItemDetails.tsx`
+- Source (2): `src/changelog/releases.gen.ts`, `src/ui/ItemDetails.tsx`
 - Tests (0): —
 - Docs (5): `docs/EQUIPMENT.md`, `docs/HISTORY.md`, `docs/PROJECT_MANIFEST.md`, `docs/devlog/DRAFT-2026-11-09.md`, `docs/devlog/DRAFT-2026-11-10.md`
 
@@ -29,13 +29,15 @@ None. UI/render-only changes; equipment stats, preview derivation, simulation an
 
 ## UI changes
 
-Salvage confirmation baseline at320x568: dialog top=-550.77,bottom=-341.23 after scroll730, entirely offscreen. ItemDetails now portals nested confirmation to viewport, uses alertdialog with linked warning, focuses Cancel, makes underlying box inert, traps Tab and restores invoking focus; Escape/backdrop/Cancel only cancel prompt.44px action targets and bounded scroll use shared --app-h. ../salvage-confirm-check.cjs final normal26417 and stronger-gear19618b probes PASS320/390/844: visible dialog, focus/trap, inert release, safe cancellation and actual isolated salvage. Warning screenshots inspected. Initial23test run82308 failed UI viewport-token rule; changed100dvh tovar(--app-h), replacement75347 passed23tests5.99s and build13.48s (SWmwb4exfh), salvage-confirm-build.log. Docs25457 PASS. Final full mobile pending; gameplay/salvage rules unchanged.
+Favorite/item salvage lock/affix lock now have stable accessible names and aria-pressed; randomize names its affix. Isolated ../item-toggle-check.cjs PASS real keyboard toggles and preserved salvage protection. Sealed .11 Clearer Gear and Motion with SEVEN generated notes. Final23 UI/artwork/site/back tests PASS4.59s; docs77844 PASS; build19916 PASS11.17s (SWmwb4izai), clearer-gear-release-build.log, asset/assets/play-CSQGqZlk.js. ORIGINAL final mobile27718 RUNNING, clearer-gear-release-mobile.log. Production ref checked still2400521c2dbf87dda58e5e9f5d161fb4800e6cd2.
+
+Salvage confirmation baseline at320x568: dialog top=-550.77,bottom=-341.23 after scroll730, entirely offscreen. ItemDetails now portals nested confirmation to viewport, uses alertdialog with linked warning, focuses Cancel, makes underlying box inert, traps Tab and restores invoking focus; Escape/backdrop/Cancel only cancel prompt.44px action targets and bounded scroll use shared --app-h. ../salvage-confirm-check.cjs final normal26417 and stronger-gear19618b probes PASS320/390/844: visible dialog, focus/trap, inert release, safe cancellation and actual isolated salvage. Warning screenshots inspected. Initial23test run82308 failed UI viewport-token rule; changed100dvh tovar(--app-h), replacement75347 passed23tests5.99s and build13.48s (SWmwb4exfh), salvage-confirm-build.log. Docs25457 PASS. Final full mobile27718 running; gameplay/salvage rules unchanged.
 
 Infestation motion/selection: browser probes passed live prefs, resize, pins, hidden lifecycle and keyboard region/sector selection. ItemArt: baseline30frames/500ms under reduced motion; fixed probe passed0frames, nonblank still, override/revoke, offscreen/hidden pause-resume and cleanup. HeroGearPreview: baseline29frames/500ms; fixed motion probe passed still drag with real equipment pixel change, motion prefs, visibility and cleanup. Idle rotation now uses elapsed time at prior60Hz speed. Native Left/Right44px buttons rotate by PI/8; focus pauses animation, blur out resumes. Real ItemDetails controls probe passed320/390/844, Enter/Space, Tab, stable focus image, opposite rotation restoring angle, target bounds/hit tests and reduced keyboard rotation. Expanded final probe also proved blur resumes; screenshots320/844 inspected. Final motion rerun passed. Fifteen artwork/UI/site tests PASS2.26s; docs32157 PASS; build47084 PASS15.52s, SWmwb47opn, gear-controls-build.log. Full original mobile64256 passed27nav+nine gameplay profiles BEFORE keyboard controls; final release mobile remains pending.
 
 ## Documentation changes
 
-INFESTATION.md, EQUIPMENT.md and manifest updated. Six curated UI notes generated for game and website. No new mechanic/reward/save field: no help registry, audio or migration change needed.
+INFESTATION.md, EQUIPMENT.md and manifest updated. Seven curated UI notes generated for game and website. No new mechanic/reward/save field: no help registry, audio or migration change needed.
 
 ## Save changes
 
@@ -51,7 +53,7 @@ No new debt intended. Existing Windows validation launcher issue. Two untracked 
 
 ## Recommended next tasks
 
-All validation handles terminal; no mobile gate currently running. Continue evidence-led improvements until next approximate deployment20:30UTC. For release: seal six notes (or subsequent batch), generate website, site tests, final build and ORIGINAL mobile gate; do not overwrite dist or run competing heavy/browser checks during mobile. Then push authorized production ref and verify Actions exact SHA plus normal live game/home/news. Vite5174 remains available; verify process command lines before cleanup. Keep two devlog drafts unstaged.
+ONLY active validation27718: original final mobile --no-build against sealed .11. Poll SAME handle; no dist writes or competing heavy/browser checks while running. All other handles terminalPASS. After success, update validation/handoff, commit release, push authorized production ref, watch Actions including exact-SHA production guard, and verify ../verify-current-release.ps1 normal URLs. Never restart an active process just for an observation timeout. Live .10 remains unchanged. Keep two untracked devlog drafts unstaged.
 
 ## Future expansion hooks
 

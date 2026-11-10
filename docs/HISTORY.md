@@ -795,3 +795,4 @@
 - `75c147e` **[Gene Cards]** Honor motion preferences in equipment card art _(internal)_
 - `551a76f` **[UI]** Ui: preserve gear inspection with reduced motion _(internal)_
 - `92b6941` **[UI]** Ui: add keyboard gear preview rotation controls _(internal)_
+- `f605db7` **[UI]** Ui: keep salvage confirmation visible and keyboard contained _(internal)_

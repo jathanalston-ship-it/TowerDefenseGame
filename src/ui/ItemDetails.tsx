@@ -47,8 +47,8 @@ function AffixRow({ item, affix, mats, tag, color }: { item: OwnedItem; affix: R
         <span className="id-affix-explain">{affixEffectText(affix)}</span>
       </span>
       <span className="id-affix-actions">
-        <button className={`id-mini${affix.locked ? ' is-on' : ''}`} title={affix.locked ? 'Unlock this affix' : 'Lock this affix (protect from reroll / reforge / randomize)'} onClick={() => meta.lockItemAffix(item.uid, index)}>{affix.locked ? '🔒' : '🔓'}</button>
-        <button className="id-mini" title={`Randomize this affix — a new type (${costLabel(randCost)})`} disabled={!canRand} onClick={() => meta.randomizeItemAffix(item.uid, index)}>⤨</button>
+        <button className={`id-mini${affix.locked ? ' is-on' : ''}`} aria-label={`${def?.name ?? affix.affixId} affix lock`} aria-pressed={!!affix.locked} title={affix.locked ? 'Unlock this affix' : 'Lock this affix (protect from reroll / reforge / randomize)'} onClick={() => meta.lockItemAffix(item.uid, index)}>{affix.locked ? '🔒' : '🔓'}</button>
+        <button className="id-mini" aria-label={`Randomize ${def?.name ?? affix.affixId} affix`} title={`Randomize this affix — a new type (${costLabel(randCost)})`} disabled={!canRand} onClick={() => meta.randomizeItemAffix(item.uid, index)}>⤨</button>
       </span>
     </div>
   );
@@ -138,8 +138,8 @@ export function ItemDetails({
               <button className={`id-equip${equipped ? ' on' : ''}`} onClick={() => meta.equip(hero, def.slot, equipped ? null : uid)}>
                 {equipped ? 'Unequip' : rival ? `Equip to ${heroName}` : 'Equip'}
               </button>
-              <button className={`id-mini${item.favorite ? ' is-on' : ''}`} title="Favorite (pins the item; never auto-salvaged)" onClick={() => meta.toggleFavorite(uid)}>★</button>
-              <button className={`id-mini${item.locked ? ' is-on' : ''}`} title="Lock (protect from salvage)" onClick={() => meta.toggleLock(uid)}>{item.locked ? '🔒' : '🔓'}</button>
+              <button className={`id-mini${item.favorite ? ' is-on' : ''}`} aria-label="Favorite item" aria-pressed={!!item.favorite} title={item.favorite ? 'Remove favorite' : 'Favorite (pins the item; never auto-salvaged)'} onClick={() => meta.toggleFavorite(uid)}>★</button>
+              <button className={`id-mini${item.locked ? ' is-on' : ''}`} aria-label="Item salvage lock" aria-pressed={!!item.locked} title={item.locked ? 'Unlock item for salvage' : 'Lock (protect from salvage)'} onClick={() => meta.toggleLock(uid)}>{item.locked ? '🔒' : '🔓'}</button>
             </div>
           </div>
         </div>
