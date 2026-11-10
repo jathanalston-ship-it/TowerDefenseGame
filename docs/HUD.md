@@ -278,3 +278,5 @@ Hero auto-cast accessibility: the Toolbar exposes aria-pressed only after the un
 Placement accessibility: favorite tower and conveyor Deploy expose aria-pressed from the same armed/selected state as their visual classes. Conveyor deploy names identify the organism and live Biomass cost (or free starting gift). Keyboard selection, clearing and switching are checked through the real Game and browser AX tree; free and wave-grown paid pod labels match their definitions/costs. No placement or cost logic changes.
 
 Conveyor consumption: a focused recycle/merge action that removes its card restores focus to a remaining enabled Deploy, then the favorite tower, or the named conveyor group if no placement is affordable. Focus elsewhere is preserved. Recycle displays the actual refund: zero for the free starting organism, the normal conveyor refund otherwise. Merge/recycle accessible names include the organism and transaction amount. The simulation owns costs/refunds; no economy changes.
+
+Conveyor recycle audio is delivered once via the existing simulation queue, alongside the focus/refund behavior above; the button does not duplicate that cue.

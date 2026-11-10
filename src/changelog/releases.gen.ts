@@ -13,6 +13,10 @@ export const RELEASES: Release[] = [
       {
         "cat": "UI",
         "text": "Conveyor recycling now shows the correct zero refund for the free starting organism. Recycling or merging a card keeps keyboard focus on a remaining placement option, and merge/recycle buttons identify their organism and cost or refund."
+      },
+      {
+        "cat": "Audio",
+        "text": "Recycling a conveyor organism now plays one confirmation sound instead of two overlapping copies. Unsuccessful attempts remain silent."
       }
     ]
   },

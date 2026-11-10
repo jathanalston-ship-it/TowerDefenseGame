@@ -703,3 +703,4 @@
 - `663ef58` **[Towers]** Expose armed tower placement controls _(internal)_
 - `4545bff` **[Audio]** Ship responsive audio and accessible controls _(internal)_
 - `cf49f45` **[Audio]** Record verified audio deployment _(internal)_
+- `e4269ab` **[UI]** Ui: clarify conveyor refunds and preserve focus _(internal)_

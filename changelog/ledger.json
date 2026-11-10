@@ -1,6 +1,6 @@
 {
-  "lastSha": "cf49f45a0869ef9545a57640e66f07d39d6a9225",
-  "commitsSinceDraft": 3,
+  "lastSha": "e4269aba63e6e6d6627f0ec1c7b93a2c68df2ac4",
+  "commitsSinceDraft": 4,
   "content": {
     "tower": [
       "needle",
@@ -4339,6 +4339,10 @@
         {
           "cat": "UI",
           "text": "Conveyor recycling now shows the correct zero refund for the free starting organism. Recycling or merging a card keeps keyboard focus on a remaining placement option, and merge/recycle buttons identify their organism and cost or refund."
+        },
+        {
+          "cat": "Audio",
+          "text": "Recycling a conveyor organism now plays one confirmation sound instead of two overlapping copies. Unsuccessful attempts remain silent."
         }
       ]
     }
@@ -9629,6 +9633,14 @@
       "date": "2026-11-09",
       "cat": "Audio",
       "text": "Record verified audio deployment",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "e4269aba63e6e6d6627f0ec1c7b93a2c68df2ac4",
+      "date": "2026-11-09",
+      "cat": "UI",
+      "text": "Ui: clarify conveyor refunds and preserve focus",
       "internal": true,
       "needsReview": false
     }

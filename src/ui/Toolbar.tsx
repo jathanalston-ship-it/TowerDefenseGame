@@ -197,7 +197,7 @@ export function Toolbar({
                         onClick={(event) => {
                           if (document.activeElement === event.currentTarget) consumedFocus.current = event.currentTarget;
                           audio.resume();
-                          if (game.discardConveyor(c.id)) audio.cue('dissolve');
+                          game.discardConveyor(c.id); // the sim queues one cue on success
                           refresh();
                         }}
                       >

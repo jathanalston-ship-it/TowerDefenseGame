@@ -1427,3 +1427,5 @@ Release .6 sealed and verified:5 curated website notes, final production build/s
 LIVE .6 Sound That Responds Smoothly:4545bff2ed18e243009ba5ce8e283a454141c1c9, Actions42767736604 SUCCESS. Normal custom-domain play assetplay-BAy15d18.js matches build and returns200; home/news and all5 notes verified06:22UTC. .6 sealed. Next approximate deployment07:22UTC, with a new release batch. No processes running.
 
 New LOCAL .7 Clearer Battlefield Choices: correct zero starting-gift refund, retained keyboard focus after recycle/merge, named transaction buttons. Actual browser matrix and20 tests PASS; build65033 PASS. One UI website note prepared. Live .6 remains, next approximate deployment07:22UTC. No processes running.
+
+Local .7 recycle confirmation now plays once via sim queue. ActualGameView direct+queued trace reproduced2 ->1; stale retry0.35 focused tests PASS; build40516 PASS. Two website notes, local only. All processes terminal.
