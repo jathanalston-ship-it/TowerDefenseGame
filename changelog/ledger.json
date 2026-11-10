@@ -1,6 +1,6 @@
 {
-  "lastSha": "683ca4b39b37d852a8b87090d12483cd4ed8181e",
-  "commitsSinceDraft": 9,
+  "lastSha": "2d318f3a38df5d97a71c9a28a808e1f3749fe0e3",
+  "commitsSinceDraft": 0,
   "content": {
     "tower": [
       "needle",
@@ -4531,6 +4531,10 @@
         {
           "cat": "UX",
           "text": "The Memory Archive now lets you search revealed titles, bonuses and unlock hints, and filter recovered or unrecovered memories. Locked story details stay hidden, replay buttons are easier to tap, and the archive explains that recovered bonuses already apply automatically."
+        },
+        {
+          "cat": "UX",
+          "text": "Collection rank-up celebrations now support keyboard focus, Escape dismissal and live reduced-motion preferences. Long promotion lists scroll within the popup, keeping Continue reachable on small screens and in landscape."
         }
       ]
     }
@@ -10189,6 +10193,14 @@
       "date": "2026-11-10",
       "cat": "Framework",
       "text": "Docs: record verified cinematic release deployment",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "2d318f3a38df5d97a71c9a28a808e1f3749fe0e3",
+      "date": "2026-11-10",
+      "cat": "UI",
+      "text": "Ui: make recovered memories easier to find and replay",
       "internal": true,
       "needsReview": false
     }

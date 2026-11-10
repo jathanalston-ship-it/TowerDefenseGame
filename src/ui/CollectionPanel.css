@@ -112,4 +112,9 @@
 .mem-filters button[aria-pressed="true"] { border-color: var(--viral); color: var(--viral); }
 .mem-empty { font-size: 12px; color: var(--muted); }
 
+.cx-celebration-card { display: flex; flex-direction: column; max-height: calc(var(--app-h) - 24px); }
+.cx-celebration-results { min-height: 0; overflow-y: auto; overflow-wrap: anywhere; }
+.cx-celebration-card > h2, .cx-celebration-card > button { flex-shrink: 0; }
+.cx-celebration.is-still, .cx-celebration.is-still * { animation: none !important; }
+
 .mem-lock { position: absolute; top: 10px; right: 12px; font-size: 14px; opacity: 0.7; }

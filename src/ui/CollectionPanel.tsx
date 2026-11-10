@@ -5,10 +5,11 @@
 // A rank-up CELEBRATION (Power-gain popup + fanfare) fires for any promotions since the last visit
 // (meta.pollCollectionRankUps, session-diffed). Read-only over meta.collection().
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useId, useMemo, useRef, useState } from 'react';
 import { meta } from '../state/meta';
 import { audio } from '../audio/sound';
 import { music } from '../audio/music';
+import { motionPrefs, onMotionPrefs, resolveMotion, systemReducedMotion } from '../state/prefs';
 import { RANK_COLORS, rankMilestones } from '../core/collection';
 import type { BonusLine, CollectionCategory, CollectionEntry, CollectionRank, CollectionRankUp, RewardKind } from '../core/collection';
 import type { CutsceneDef } from '../core/cutscenes';
@@ -240,20 +241,45 @@ function CategoryDetail({ c, onBack }: { c: CollectionCategory; onBack: () => vo
 
 /** Celebration overlay — fires the fanfare + a Power-gain popup for promotions since the last visit. */
 function RankUpCelebration({ rankUps, powerGain, onClose }: { rankUps: CollectionRankUp[]; powerGain: number; onClose: () => void }): JSX.Element {
+  const titleId = useId();
+  const continueRef = useRef<HTMLButtonElement>(null);
+  const [motion, setMotion] = useState(() => resolveMotion(motionPrefs(), systemReducedMotion()).motion);
   useEffect(() => { audio.resume(); audio.cue('rankup'); }, []);
+  useEffect(() => {
+    const previous = document.activeElement;
+    continueRef.current?.focus();
+    return () => { if (previous instanceof HTMLElement && previous.isConnected) previous.focus({ preventScroll: true }); };
+  }, []);
+  useEffect(() => {
+    let prefs = motionPrefs();
+    const media = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const update = () => setMotion(resolveMotion(prefs, media.matches).motion);
+    const unsubscribe = onMotionPrefs((next) => { prefs = next; update(); });
+    media.addEventListener('change', update);
+    update();
+    return () => { unsubscribe(); media.removeEventListener('change', update); };
+  }, []);
   return (
-    <div onClick={onClose} style={{
+    <div className={`cx-celebration${motion ? '' : ' is-still'}`} onClick={onClose} style={{
       position: 'fixed', inset: 0, zIndex: 60, display: 'flex', alignItems: 'center', justifyContent: 'center',
       background: 'rgba(4,8,14,0.74)', backdropFilter: 'blur(3px)', animation: 'codexFade 0.3s ease',
     }}>
-      <div onClick={(e) => e.stopPropagation()} style={{
-        minWidth: 300, maxWidth: 420, padding: '22px 26px', borderRadius: 14, textAlign: 'center',
+      <div className="cx-celebration-card" role="dialog" aria-modal="true" aria-labelledby={titleId} onClick={(e) => e.stopPropagation()} onKeyDown={(e) => {
+        if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); onClose(); }
+        if (e.key !== 'Tab') return;
+        const controls = Array.from(e.currentTarget.querySelectorAll<HTMLElement>('[tabindex="0"], button'));
+        const first = controls[0], last = controls[controls.length - 1];
+        if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last?.focus(); }
+        else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first?.focus(); }
+      }} style={{
+        width: 420, maxWidth: 'calc(100% - 24px)', boxSizing: 'border-box', padding: '22px 26px', borderRadius: 14, textAlign: 'center',
         background: 'linear-gradient(160deg, rgba(28,20,44,0.98), rgba(12,16,26,0.98))',
         border: '1px solid rgba(230,162,255,0.4)', boxShadow: '0 12px 48px rgba(0,0,0,0.6)', animation: 'codexPop 0.5s cubic-bezier(.2,1.3,.4,1)',
       }}>
-        <div style={{ fontSize: 11, letterSpacing: '0.28em', opacity: 0.7, marginBottom: 12 }}>CODEX RANK UP</div>
+        <h2 id={titleId} style={{ fontSize: 11, letterSpacing: '0.28em', opacity: 0.7, margin: '0 0 12px' }}>CODEX RANK UP</h2>
+        <div className="cx-celebration-results" role="region" aria-label="Collection promotions and Power gain" tabIndex={0}>
         {rankUps.map((r) => (
-          <div key={r.category} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, margin: '8px 0', animation: 'codexBadge 0.6s ease both' }}>
+          <div key={r.category} style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'center', gap: 10, margin: '8px 0', animation: 'codexBadge 0.6s ease both' }}>
             <span style={{ fontSize: 16, fontWeight: 700 }}>{r.categoryName}</span>
             <RankBadge rank={r.rank} size={14} />
           </div>
@@ -263,8 +289,9 @@ function RankUpCelebration({ rankUps, powerGain, onClose }: { rankUps: Collectio
             +{powerGain.toLocaleString()} Power
           </div>
         )}
-        <button onClick={onClose} style={{
-          marginTop: 16, padding: '8px 22px', borderRadius: 8, cursor: 'pointer', fontSize: 13, fontWeight: 600,
+        </div>
+        <button ref={continueRef} onClick={onClose} style={{
+          marginTop: 16, minHeight: 44, padding: '8px 22px', borderRadius: 8, cursor: 'pointer', fontSize: 13, fontWeight: 600,
           color: '#0a0e16', background: 'linear-gradient(90deg,#c9a2ff,#e6a2ff)', border: 'none',
         }}>Continue ▸</button>
       </div>

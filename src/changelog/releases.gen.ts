@@ -13,6 +13,10 @@ export const RELEASES: Release[] = [
       {
         "cat": "UX",
         "text": "The Memory Archive now lets you search revealed titles, bonuses and unlock hints, and filter recovered or unrecovered memories. Locked story details stay hidden, replay buttons are easier to tap, and the archive explains that recovered bonuses already apply automatically."
+      },
+      {
+        "cat": "UX",
+        "text": "Collection rank-up celebrations now support keyboard focus, Escape dismissal and live reduced-motion preferences. Long promotion lists scroll within the popup, keeping Continue reachable on small screens and in landscape."
       }
     ]
   },

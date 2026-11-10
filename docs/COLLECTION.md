@@ -98,3 +98,5 @@ docs/CARDS.md §discovery), not "drafted once": tier 1 = **Discovered**, label e
 Collections" lane — and because a fresh account owns the 16 starters, a fresh save's ONLY
 Power above base is its collection slice (base × collection(starters) ≈ +5;
 powerIntegration/profile tests pin exactly that shape).
+
+Rank-up celebration accessibility: named modal with initial Continue focus, contained Tab/Shift+Tab, Escape dismissal and opener restoration. The focusable promotion region scrolls independently so Continue remains reachable on short screens. Live OS/device motion preferences suppress scale/rotation animation; fanfare still fires once per mounted celebration. Rank/power settlement remains unchanged.

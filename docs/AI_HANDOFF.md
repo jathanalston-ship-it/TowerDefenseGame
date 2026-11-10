@@ -4,8 +4,8 @@
 > before committing. Read together with docs/PROJECT_STATUS.md and the latest
 > docs/VALIDATION_REPORT.md. Next session: start at docs/PROJECT_MANIFEST.md.
 
-- **Generated:** 2026-11-10 15:12 UTC · **Diff scope:** working tree vs HEAD
-- **Branch:** codex/hive-autoplay · **HEAD:** 683ca4b3
+- **Generated:** 2026-11-10 15:18 UTC · **Diff scope:** working tree vs HEAD
+- **Branch:** codex/hive-autoplay · **HEAD:** 2d318f3a
 
 ## Summary of work completed
 
@@ -15,7 +15,7 @@ LIVE v2026.11.10.5 Films That Follow You with four sealed website notes. SHA8299
 
 - Source (3): `src/changelog/releases.gen.ts`, `src/ui/CollectionPanel.css`, `src/ui/CollectionPanel.tsx`
 - Tests (0): —
-- Docs (5): `docs/CUTSCENES.md`, `docs/HISTORY.md`, `docs/PROJECT_MANIFEST.md`, `docs/devlog/DRAFT-2026-11-09.md`, `docs/devlog/DRAFT-2026-11-10.md`
+- Docs (5): `docs/COLLECTION.md`, `docs/HISTORY.md`, `docs/PROJECT_MANIFEST.md`, `docs/devlog/DRAFT-2026-11-09.md`, `docs/devlog/DRAFT-2026-11-10.md`
 
 ## Systems affected (from the dependency registry)
 
@@ -49,7 +49,7 @@ Windows validate wrapper cannot launch npx/npm with shell:false; use direct gate
 
 ## Recommended next tasks
 
-Continue active playability/clarity/accessibility/presentation improvements without gameplay/balance changes. Start a new unsealed release for the next batch; next approximate deployment16:04UTC with website notes. Current .10.5 fully verified. Keep two untracked devlog drafts unpublished. Windows validation wrapper launcher limitation remains documented; direct release gates passed. Cinematic visibility probes use synthetic browser events with real painters; OS-level visibility behavior has not been directly exercised.
+Local .10.6 has two unsealed notes: Memory Archive discovery and accessible collection celebrations. All processes terminal. Continue usability work; next approximate16:04UTC deployment needs full suite, sealed final build, mobile gate and exact-SHA/live website verification. Live .10.5 remains unchanged. Full goal stays active.
 
 ## Future expansion hooks
 
@@ -91,6 +91,8 @@ Local v2026.11.10.1 now has two notes: Hero Ops uses effective abilityCdMax and 
 
 Hero readiness final build65590 PASS (Vite7.59s); all processes terminal. Next release remains roughly08:14UTC with matching website notes; live .7 unchanged.
 
-## Current archive checkpoint
 
-Local .10.6 Memory Archive search/recovery filters, concealed locked story details, clear automatic-passive explanation, 44px replay targets and reset focus. Browser probe ../memory-archive-check.cjs PASS at desktop/390/320 with actual renderer/replay; 21 cutscene/collection tests and app/functions build PASS. Website note generated, unsealed; not deployed. Next release about16:04UTC needs full release/mobile gates. Continuous goal active.
+
+## 2026-11-10 — accessible collection rank-up celebration (local .10.6)
+
+Named modal, initial Continue focus, contained Tab/Shift+Tab, Escape dismissal and opener restoration; focusable scrollable promotion region keeps Continue visible on phone/landscape. Live OS/override motion preferences suppress scale/rotation without replaying the fanfare. No reward/power/save semantics changed. ../collection-rankup-check.cjs PASS actual component/renderer:24 promotions at1366x900/320x568/568x320, scroll by keyboard, modal focus/Escape/restore, live motion, single cue; screenshot inspected. Probe now explicitly focuses opener and waits resize frames. Initial release note category corrected to UX after compiler rejection. Initial UI gate caught raw100dvh; changed to var(--app-h), browser and34 collection/feel/UI/site tests re-PASS. App/functions TS+build PASS16.02s before final CSS-only app-height correction; final sealed build remains required. Docs PASS. Validation wrapper exit1 on known Windows launcher; rankup-wrapper-report.log preserved, direct checks used. Two unsealed website notes generated. No active processes; next release about16:04UTC.

@@ -751,3 +751,4 @@
 - `8941c2c` **[UI]** Ui: preserve opening-film progress while hidden _(internal)_
 - `8299841` **[Framework]** Release: publish Films That Follow You _(internal)_
 - `683ca4b` **[Framework]** Docs: record verified cinematic release deployment _(internal)_
+- `2d318f3` **[UI]** Ui: make recovered memories easier to find and replay _(internal)_
