@@ -388,3 +388,5 @@ Mindrender have no projectile skin (no projectile attack). Particle/sfx are auth
 lock tier; a capstone could set richer ones via the same fold if desired.
 
 Keyboard purchase continuity: when an activated buy button disappears at the final tier or becomes disabled because the next tier is unaffordable, TierDetail moves focus to its selected tier preview. An enabled next-buy button retains focus; unrelated focus is never taken. This affects presentation only, not branch selection or purchase rules.
+
+Hive-aware tower confirmations: sale quotes derive from the live selected tower. Branch purchase intents include the displayed tier; GameView rejects an intent if the tower has advanced. A pending first-tier prompt reports a changed upgrade, disables Commit and focuses Cancel after a Hive upgrade. Selection changes clear stale prompts. Costs, refunds and simulation APIs are unchanged.

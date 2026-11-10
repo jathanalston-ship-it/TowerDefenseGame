@@ -1,6 +1,6 @@
 {
-  "lastSha": "738cd924630b3fa49ae6b19d040dd8956b5e9111",
-  "commitsSinceDraft": 6,
+  "lastSha": "a50fc9bcda27402f35e9fb1b826f2c8aa2c774d2",
+  "commitsSinceDraft": 7,
   "content": {
     "tower": [
       "needle",
@@ -4334,7 +4334,7 @@
       "id": "v2026.11.09.7",
       "date": "2026-11-09",
       "title": "Clearer Battlefield Choices",
-      "sealed": false,
+      "sealed": true,
       "entries": [
         {
           "cat": "UI",
@@ -4351,6 +4351,10 @@
         {
           "cat": "UI",
           "text": "After a tower upgrade, keyboard focus stays useful even when the path is complete or the next tier is unaffordable: it moves to the selected tier preview instead of disappearing from the controls."
+        },
+        {
+          "cat": "UI",
+          "text": "Tower confirmations keep up with Hive Intelligence: sell refunds update as the tower improves, and an outdated upgrade confirmation cannot purchase an unintended, more expensive tier."
         }
       ]
     }
@@ -9665,6 +9669,14 @@
       "date": "2026-11-09",
       "cat": "Towers",
       "text": "Keep tower confirmations keyboard accessible",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "a50fc9bcda27402f35e9fb1b826f2c8aa2c774d2",
+      "date": "2026-11-09",
+      "cat": "UI",
+      "text": "Ui: retain focus after completed branch upgrades",
       "internal": true,
       "needsReview": false
     }

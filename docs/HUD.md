@@ -284,3 +284,5 @@ Conveyor recycle audio is delivered once via the existing simulation queue, alon
 Tower sale/branch confirmations: named modal cards use Popup, safe initial Cancel focus, Tab containment and keyboard-event isolation. Escape/backdrop/Cancel restores the opener, or the surviving Inspector when the opener was removed. runBus Pause requests cancel pending prompts before Pause takes focus; browser Back retains the run's Pause contract. Successful purchases/sales still use their original callbacks and economy APIs.
 
 Branch upgrade buttons retain keyboard focus while the next buy remains available. If the completed path removes the button or the next tier disables it, focus moves to the selected tier preview in that same lane, without taking focus from another control.
+
+Hive-aware tower confirmations: sale quotes derive from the live selected tower. Branch purchase intents include the displayed tier; GameView rejects an intent if the tower has advanced. A pending first-tier prompt reports a changed upgrade, disables Commit and focuses Cancel after a Hive upgrade. Selection changes clear stale prompts. Costs, refunds and simulation APIs are unchanged.

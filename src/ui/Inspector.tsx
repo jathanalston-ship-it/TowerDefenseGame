@@ -20,7 +20,7 @@ import { CLASS_ADAPTATIONS, MULLIGAN_RARITY, dominantAxis, mulliganRegistry, ref
 import { COMBAT_CLASSES } from '../core/combatClass';
 import { REFORGE_RARITY, reforgeModById } from '../core/mulliganReforge';
 import type { MulliganState } from '../core/mulligan';
-import type { HudSnapshot, SelectedPlacedTower, TowerKind } from '../core/types';
+import type { HudSnapshot, TowerKind } from '../core/types';
 
 function StatRow({ k, v }: { k: string; v: string | number }): JSX.Element {
   return (
@@ -53,7 +53,6 @@ function TowerConfirmation({ title, className = '', onClose, children }: {
   useEffect(() => {
     const previous = document.activeElement;
     const panel = previous instanceof HTMLElement ? previous.closest<HTMLElement>('.inspector') : null;
-    dialogRef.current?.querySelector<HTMLButtonElement>('[data-confirm-cancel]')?.focus();
     const stopPause = runBus.onPause(() => closeRef.current());
     return () => {
       stopPause();
@@ -61,6 +60,9 @@ function TowerConfirmation({ title, className = '', onClose, children }: {
       else if (panel?.isConnected) panel.focus();
     };
   }, []);
+  useEffect(() => {
+    dialogRef.current?.querySelector<HTMLButtonElement>('[data-confirm-cancel]')?.focus();
+  }, [title]);
   const onKey = (event: KeyboardEvent<HTMLDivElement>): void => {
     event.stopPropagation(); // the confirmation owns keys, never the battlefield underneath
     if (event.key === 'Escape') {
@@ -238,7 +240,7 @@ export function Inspector({
   liveMastery?: Partial<Record<string, LiveMasteryView>>;
   mulliganStates?: Partial<Record<TowerKind, MulliganState>>; // this RUN's organisms (docs/MULLIGANS.md §inspect)
   onCollapse?: () => void;
-  onBranchBuy?: (towerId: number, branchId: string) => void;
+  onBranchBuy?: (towerId: number, branchId: string, tier: number) => void;
   onDeselect?: () => void;
   onSell?: (towerId: number) => void;
   onMove?: (towerId: number) => void;
@@ -247,13 +249,18 @@ export function Inspector({
   // Tier-1 commit confirmation (the lock warning).
   const [confirm, setConfirm] = useState<{ towerId: number; branchId: string; name: string } | null>(null);
   // Sell confirmation (docs/TOWER-MANAGEMENT.md §2) — a centered, keyboard-contained prompt.
-  const [sell, setSell] = useState<SelectedPlacedTower | null>(null);
+  const [sellId, setSell] = useState<number | null>(null);
+  const sp = hud.selectedPlaced;
+  const sell = sp?.id === sellId ? sp : null; // keep the quote live while automation upgrades it
+  useEffect(() => {
+    if (sellId !== null && sp?.id !== sellId) setSell(null);
+    if (confirm && sp?.id !== confirm.towerId) setConfirm(null);
+  }, [sellId, confirm?.towerId, sp?.id]);
 
   // ── Mutation panel: a PLACED tower is selected (the Tower Inspect redesign) ──
   // ORDER IS THE DESIGN (TOWER-BRANCHES.md §3): the tree — the decision — sits directly under
   // the title so the next buy is in hand without scrolling; the combat profile compresses to
   // one strip; Strain/Mulligan/Mastery fold into "Host vitals" a tap away.
-  const sp = hud.selectedPlaced;
   if (sp) {
     const cls = sp.combatClass.toLowerCase();
     const accent = `var(--${cls})`;
@@ -261,6 +268,7 @@ export function Inspector({
     const tree = branchTreeView(sp.kind, committedId, sp.tier, hud.biomass);
     const stats = branchStatsView(sp.kind, committedId, sp.tier);
     const hasBranches = tree.lanes.length > 0;
+    const branchChanged = confirm !== null && (confirm.towerId !== sp.id || sp.tier !== 0);
     return (
       <aside className="side-panel inspector is-mutate" aria-label="Tower mutation panel" tabIndex={-1}>
         <InsHead title="Mutate" onCollapse={onCollapse} />
@@ -317,7 +325,7 @@ export function Inspector({
               if (tier === 1) {
                 setConfirm({ towerId: sp.id, branchId, name: tree.lanes.find((l) => l.branchId === branchId)?.name ?? '' });
               } else {
-                onBranchBuy?.(sp.id, branchId);
+                onBranchBuy?.(sp.id, branchId, tier);
               }
             }}
           />
@@ -358,7 +366,7 @@ export function Inspector({
               ⤢ Move
             </button>
           )}
-          <button className="mut-btn mut-sell" onClick={() => setSell(sp)} title={`Sell for +${sp.sell.total} biomass`}>
+          <button className="mut-btn mut-sell" onClick={() => setSell(sp.id)} title={`Sell for +${sp.sell.total} biomass`}>
             Sell <span className="mut-sell-amt">+{sp.sell.total}</span>
           </button>
           <button className="mut-btn" onClick={onDeselect} title="Close the mutation panel">Done</button>
@@ -386,16 +394,17 @@ export function Inspector({
         )}
 
         {confirm && (
-          <TowerConfirmation title={`Splice the ${confirm.name} strain?`} onClose={() => setConfirm(null)}>
-              <p>
+          <TowerConfirmation title={branchChanged ? 'Tower upgrade changed' : `Splice the ${confirm.name} strain?`} onClose={() => setConfirm(null)}>
+              {branchChanged ? <p role="status">That upgrade is no longer available. Close this prompt to review the tower's current upgrades.</p> : <p>
                 This <b>permanently</b> commits this tower to one mutation path for the rest of the
                 run. The other path is closed off. There is no reverting.
-              </p>
+              </p>}
               <div className="branch-confirm-btns">
                 <button
                   className="primary"
+                  disabled={branchChanged}
                   onClick={() => {
-                    onBranchBuy?.(confirm.towerId, confirm.branchId);
+                    onBranchBuy?.(confirm.towerId, confirm.branchId, 1);
                     setConfirm(null);
                   }}
                 >

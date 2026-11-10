@@ -8,7 +8,7 @@ export const RELEASES: Release[] = [
     "id": "v2026.11.09.7",
     "date": "2026-11-09",
     "title": "Clearer Battlefield Choices",
-    "sealed": false,
+    "sealed": true,
     "entries": [
       {
         "cat": "UI",
@@ -25,6 +25,10 @@ export const RELEASES: Release[] = [
       {
         "cat": "UI",
         "text": "After a tower upgrade, keyboard focus stays useful even when the path is complete or the next tier is unaffordable: it moves to the selected tier preview instead of disappearing from the controls."
+      },
+      {
+        "cat": "UI",
+        "text": "Tower confirmations keep up with Hive Intelligence: sell refunds update as the tower improves, and an outdated upgrade confirmation cannot purchase an unintended, more expensive tier."
       }
     ]
   },

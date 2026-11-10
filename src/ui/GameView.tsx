@@ -1546,7 +1546,11 @@ export function GameView({
             liveMastery={liveMastery}
             mulliganStates={mulliganOverride ?? meta.get().mulligans}
             onCollapse={closeRight}
-            onBranchBuy={(towerId, branchId) => {
+            onBranchBuy={(towerId, branchId, tier) => {
+              // Hive may have upgraded between the displayed quote and this input event.
+              // Buy only the requested tier, never the now-more-expensive next one.
+              const tower = game.towers.find((candidate) => candidate.id === towerId);
+              if (!tower || tower.tier + 1 !== tier) { refresh(); return; }
               audio.resume(); // ensure the splice cue is audible (the click is the unlock gesture)
               const powerBefore = meta.powerWith(game.powerEffects()).score;
               if (game.buyBranchTier(towerId, branchId) === 'ok') {

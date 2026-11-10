@@ -4,8 +4,8 @@
 > before committing. Read together with docs/PROJECT_STATUS.md and the latest
 > docs/VALIDATION_REPORT.md. Next session: start at docs/PROJECT_MANIFEST.md.
 
-- **Generated:** 2026-11-10 06:56 UTC · **Diff scope:** working tree vs HEAD
-- **Branch:** codex/hive-autoplay · **HEAD:** 738cd924
+- **Generated:** 2026-11-10 07:08 UTC · **Diff scope:** working tree vs HEAD
+- **Branch:** codex/hive-autoplay · **HEAD:** a50fc9bc
 
 ## Summary of work completed
 
@@ -13,15 +13,14 @@ Active continuous improvement goal; roughly-hourly deployments with matching web
 
 ## Files modified
 
-- Source (2): `src/changelog/releases.gen.ts`, `src/ui/components/BranchTree.tsx`
+- Source (3): `src/changelog/releases.gen.ts`, `src/ui/GameView.tsx`, `src/ui/Inspector.tsx`
 - Tests (0): —
-- Docs (7): `docs/HISTORY.md`, `docs/HUD.md`, `docs/PROJECT_MANIFEST.md`, `docs/PROJECT_STATUS.md`, `docs/TOWER-BRANCHES.md`, `docs/VALIDATION_REPORT.md`, `docs/devlog/DRAFT-2026-11-09.md`
+- Docs (6): `docs/HISTORY.md`, `docs/HUD.md`, `docs/PROJECT_MANIFEST.md`, `docs/TOWER-BRANCHES.md`, `docs/TOWER-MANAGEMENT.md`, `docs/devlog/DRAFT-2026-11-09.md`
 
 ## Systems affected (from the dependency registry)
 
 - **chronicle** — `src/changelog/releases.gen.ts`
-- **towers** — `src/ui/components/BranchTree.tsx`
-- Consumer ring (verify, unchanged): class-bonds, contracts, daily, engine, hive-mind, mulligans
+- **run-ui** — `src/ui/GameView.tsx`, `src/ui/Inspector.tsx`
 
 ## Power Score changes
 
@@ -49,7 +48,7 @@ Final3150 full suite passed before the two-line current-destination drawer fix. 
 
 ## Recommended next tasks
 
-Continue LOCAL .7 Clearer Battlefield Choices,4notes. LIVE .6 sealed. Nextapprox deploy07:22UTC. MOBILE63403 RUNNING (battlefield-batch-mobile.log), poll SAME handle; do not restart or overwrite dist. Other processes terminal. Full3155 suite19178 PASS164.59s; started before final BranchTree focus followup, which has actual browser/20tests/finalbuild28850 PASS. Docs34520 PASS. Followup focus handles final/unaffordable upgrades without taking unrelated focus. Complete mobile gate before release. Work codex/hive-autoplay; deploy claude/zen-hawking-rh1gxl. Update/copy verify-audio-release.ps1 for .7 title/notes. Exclude untracked devlog draft. Goal remains active.
+Release local .7 Clearer Battlefield Choices, five notes. Final build and docs checks PASS. Full mobile gate 63403 PASS; 27 screens and nine gameplay viewports. Final regression suite 26515 PASS:353files/3155tests,155.11s, log battlefield-final-tests.log. Latest Hive-aware confirmations passed actual GameView race, changed prompt, live quote, keyboard and Pause/Resume browser probes. Five notes sealed; final sealed build/site check37511 PASS (four site tests). Commit on codex/hive-autoplay and deploy to claude/zen-hawking-rh1gxl. Verify with ../verify-battlefield-release.ps1. LIVE remains .6 SHA4545bff2. Goal active; do not mark complete. Exclude untracked devlog draft.
 
 ## Future expansion hooks
 

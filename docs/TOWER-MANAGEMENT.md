@@ -150,3 +150,5 @@ and reactor counts stay coherent.
   per-tower or per-class refund modifier would extend the quote, not the call sites.
 - The Sell dissolve streams motes toward the core position; it does not path around
   obstacles (purely cosmetic).
+
+Hive-aware tower confirmations: sale quotes derive from the live selected tower. Branch purchase intents include the displayed tier; GameView rejects an intent if the tower has advanced. A pending first-tier prompt reports a changed upgrade, disables Commit and focuses Cancel after a Hive upgrade. Selection changes clear stale prompts. Costs, refunds and simulation APIs are unchanged.

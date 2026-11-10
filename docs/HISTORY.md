@@ -706,3 +706,4 @@
 - `e4269ab` **[UI]** Ui: clarify conveyor refunds and preserve focus _(internal)_
 - `5471e5d` **[Audio]** Avoid duplicate conveyor recycle cue _(internal)_
 - `738cd92` **[Towers]** Keep tower confirmations keyboard accessible _(internal)_
+- `a50fc9b` **[UI]** Ui: retain focus after completed branch upgrades _(internal)_

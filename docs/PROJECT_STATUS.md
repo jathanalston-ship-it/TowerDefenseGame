@@ -1433,3 +1433,8 @@ Local .7 recycle confirmation now plays once via sim queue. ActualGameView direc
 Local .7 tower sale/first-branch prompts now have safe Cancel focus, named modal semantics, Tab containment, Escape/restoration and cancel on Pause. Actual keyboard matrix, styled 3viewport measurements and fullGameView Back/Pause/Resume PASS;29 tests and build96060 PASS. Three local notes. Nextapprox deployment07:22UTC, live .6 unchanged. No running processes.
 
 Local .7 branch focus retained at final/unaffordable upgrade, with unrelated focus preserved. Browser and20 tests PASS; build/docs PASS. Full3155 batch suite PASS; mobile63403 stillRUNNING. Four local notes. Nextapprox deployment07:22UTC, live .6 unchanged.
+
+Local .7 final follow-up: Hive-aware confirmations keep sale quotes live and reject stale requested branch tiers. Actual Chrome race reproduced unintended tier2/2800 spend, fixed to tier1/0; fresh tier2 still succeeds. Changed prompts disable Commit and focus Cancel. Live sale quote tracks75->525. Confirmation keyboard and actual Pause/Resume probes PASS. Final build/docs PASS. Full mobile gate PASS27screens/nine run viewports before this no-layout follow-up. Core/economy/save data unchanged. Final suite running; release not yet deployed.
+
+
+Release .7 final verification: all353 test files/3155 tests PASS (155.11s), final build and docs anchors/references/freshness PASS. Prior mobile gate PASS27 screens plus9 gameplay viewports. Actual Chrome Hive race, changed-state Cancel, live sale quote, keyboard matrix and full GameView Pause/Resume PASS. Five player-facing website notes sealed for Clearer Battlefield Choices. Windows validate wrapper limitation remains as documented; direct gates used. No core/economy/save changes.
