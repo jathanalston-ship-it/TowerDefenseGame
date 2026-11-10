@@ -13,6 +13,10 @@
       {
         "cat": "UI",
         "text": "The Hero Ops ability wheel now follows your actual cooldown after upgrades and modifiers. Its tooltip and screen-reader description distinguish recovering, recharging, ready and armed abilities."
+      },
+      {
+        "cat": "UI",
+        "text": "Selected heroes now show their effective ability and skill cooldowns after upgrades. Downed heroes display unavailable cooldowns instead of suggesting their abilities are ready."
       }
     ]
   },

@@ -1,6 +1,6 @@
 {
-  "lastSha": "9428fa1863f89927fd43efe29ef5e03d37ff8df4",
-  "commitsSinceDraft": 0,
+  "lastSha": "4d21ded52f983ea35f9b847cad773bfde401f7aa",
+  "commitsSinceDraft": 1,
   "content": {
     "tower": [
       "needle",
@@ -4371,6 +4371,10 @@
         {
           "cat": "UI",
           "text": "The Hero Ops ability wheel now follows your actual cooldown after upgrades and modifiers. Its tooltip and screen-reader description distinguish recovering, recharging, ready and armed abilities."
+        },
+        {
+          "cat": "UI",
+          "text": "Selected heroes now show their effective ability and skill cooldowns after upgrades. Downed heroes display unavailable cooldowns instead of suggesting their abilities are ready."
         }
       ]
     }
@@ -9717,6 +9721,14 @@
       "date": "2026-11-10",
       "cat": "UI",
       "text": "Ui: clarify accessible run control states and costs",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "4d21ded52f983ea35f9b847cad773bfde401f7aa",
+      "date": "2026-11-10",
+      "cat": "Heroes",
+      "text": "Show effective hero ability readiness",
       "internal": true,
       "needsReview": false
     }

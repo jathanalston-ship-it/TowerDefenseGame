@@ -4,8 +4,8 @@
 > before committing. Read together with docs/PROJECT_STATUS.md and the latest
 > docs/VALIDATION_REPORT.md. Next session: start at docs/PROJECT_MANIFEST.md.
 
-- **Generated:** 2026-11-10 07:19 UTC · **Diff scope:** working tree vs HEAD
-- **Branch:** codex/hive-autoplay · **HEAD:** 9428fa18
+- **Generated:** 2026-11-10 07:24 UTC · **Diff scope:** working tree vs HEAD
+- **Branch:** codex/hive-autoplay · **HEAD:** 4d21ded5
 
 ## Summary of work completed
 
@@ -13,14 +13,16 @@ Release v2026.11.09.7 Clearer Battlefield Choices is LIVE. SHA4ae0d15ecca52bda8a
 
 ## Files modified
 
-- Source (2): `src/changelog/releases.gen.ts`, `src/ui/Inspector.tsx`
-- Tests (0): —
-- Docs (5): `docs/HISTORY.md`, `docs/HUD.md`, `docs/PROJECT_MANIFEST.md`, `docs/devlog/DRAFT-2026-11-09.md`, `docs/devlog/DRAFT-2026-11-10.md`
+- Source (3): `src/changelog/releases.gen.ts`, `src/core/game.ts`, `src/ui/HeroSelectPanel.tsx`
+- Tests (1): `src/core/heroSelect.test.ts`
+- Docs (5): `docs/HERO-SELECTION.md`, `docs/HISTORY.md`, `docs/PROJECT_MANIFEST.md`, `docs/devlog/DRAFT-2026-11-09.md`, `docs/devlog/DRAFT-2026-11-10.md`
 
 ## Systems affected (from the dependency registry)
 
 - **chronicle** — `src/changelog/releases.gen.ts`
-- **run-ui** — `src/ui/Inspector.tsx`
+- **engine** — `src/core/game.ts`
+- **heroes** — `src/ui/HeroSelectPanel.tsx`
+- Consumer ring (verify, unchanged): arena, audio, boss-rush, bosses, campaign, class-bonds, daily, equipment, expeditions, hero-cinematics, hero-symbiotes, hive-mind, infinite, living-battlefield, map-layouts, mega-bosses, nemesis, onboarding, online-foundation, rendering, run-ui
 
 ## Power Score changes
 
@@ -48,7 +50,7 @@ Final3150 full suite passed before the two-line current-destination drawer fix. 
 
 ## Recommended next tasks
 
-Continue local v2026.11.10.1 Clearer Run Controls (two unsealed website notes). Actual GameView/Chrome AX probe ../run-controls-check.cjs PASS: mouse and F speed1/2/5 selection matches timeScale; early-call wave/overlap/reward and Splice live800 Biomass label. Build/test15527 PASS: build7.16s and12tests. Docs1472 PASS; no active processes. Dev44829 stopped. Latest LIVE remains .7 SHA4ae0d15e, deployed07:13UTC, next roughly08:14UTC. Work codex/hive-autoplay; deploy claude/zen-hawking-rh1gxl with website notes. Exclude both untracked devlog drafts; goal remains active.
+Continue local v2026.11.10.1 Clearer Run Controls, three unsealed notes. Selected hero ability/skill readout now uses actual cast cooldowns; downed gauges say Unavailable. Browser ../selected-hero-check.cjs PASS; new regression5tests PASS. Build44563 PASS8.59s; full suite68135 PASS353files/3156tests156.14s; docs98411 PASS. No active sessions. Styled cooldown label fits checked at three desktop/phone viewports. Live .7 SHA4ae0d15e remains unchanged, next deployment roughly08:14UTC. Exclude both untracked devlog drafts. Work codex/hive-autoplay; deploy claude/zen-hawking-rh1gxl. Goal active. Follow-up candidate: attack/pulse gauges still use base totals; inspect behavior-specific cadence (siege uses base, other attacks often use heroHaste) before changing presentation.
 
 ## Future expansion hooks
 

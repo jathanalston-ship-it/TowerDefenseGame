@@ -4,8 +4,8 @@
 
 import { describe, it, expect } from 'vitest';
 import { Game } from './game';
-import { SIM_DT } from './config';
-import type { MetaModifiers } from './types';
+import { SIM_DT, HERO_ORDER, HERO_SKILL_DEFS } from './config';
+import type { MetaModifiers, HeroProgress } from './types';
 
 const NO_META: MetaModifiers = { towerDamageMult: 1, biomassMult: 1, heroDamageMult: 1, integrityBonus: 0, bonusSlots: 0 };
 
@@ -68,5 +68,28 @@ describe('hero selection', () => {
     g.startWave();
     for (let i = 0; i < 30; i++) g.advance(SIM_DT);
     expect(g.getRenderState().selectedHero).toBeNull(); // nothing selects itself
+  });
+});
+
+describe('selected hero cooldown readout', () => {
+  it('matches the cooldown applied by a cast after gear and progression modifiers', () => {
+    const progress = Object.fromEntries(HERO_ORDER.map((kind) => [kind, { damageMult: 1, cooldownMult: 0.5, skillCount: 1 }])) as HeroProgress;
+    const g = new Game(5, NO_META, undefined, 'ravager', progress, {
+      heroEquip: { ravager: [{ op: 'mul', field: 'heroCooldownMult', value: 0.8 }] },
+    });
+    g.selectHero('ravager');
+    const before = g.getSnapshot().selectedHero!;
+    expect(before.cooldowns.find((cd) => cd.id === 'ability')!.total).toBeCloseTo(g.getSnapshot().hero.abilityCdMax);
+    expect(before.cooldowns.find((cd) => cd.id === 'skill0')!.total).toBeCloseTo(HERO_SKILL_DEFS.ravager[0].cooldown * 0.5);
+    g.startWave();
+    g.armAbility();
+    g.click(300, 300);
+    g.selectHero('ravager');
+    const ability = g.getSnapshot().selectedHero!.cooldowns.find((cd) => cd.id === 'ability')!;
+    expect(ability.remaining).toBeGreaterThan(0);
+    expect(ability.total).toBeCloseTo(ability.remaining);
+    const state = JSON.stringify(g.getRenderState());
+    g.getSnapshot();
+    expect(JSON.stringify(g.getRenderState())).toBe(state);
   });
 });

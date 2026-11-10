@@ -16,7 +16,7 @@ Tapping a living hero opens the **Hero Selection Panel** (bottom-left of the boa
   combat class, and **Level** (hero mastery level).
 - **Health** — HP / max, with a shield overlay when the hero has an absorb pool.
 - **Effective combat stats** — live **Damage**, **Attack Speed** (/s), **Move Speed** (px/s), and the
-  base **Ability Cooldown**. Damage/attack read `—` for a non-attacker (support/controller). These fold
+  effective **Ability Cooldown**. Damage/attack read `—` for a non-attacker (support/controller). These fold
   gear + stars + mastery + biome, matching what combat actually uses.
 - **Cooldowns** — a gauge per relevant timer: the signature Ability (always), Attack (attackers),
   role Pulse (support/control).
@@ -73,3 +73,5 @@ cooldown gauge, so wiring a cast button is additive. New buff/debuff chips are o
   autoplay never selects a hero**, so every pinned outcome is byte-identical (verified: `golden.test.ts`
   unchanged; `heroSelect.test.ts` pins the behavior + the "no selection in autoplay" contract).
 - The panel is a read-model over the snapshot; opening/closing it does not touch the run.
+
+Selected-hero ability cooldown totals use the existing heroAbilityCooldownFor calculation; star-skill totals use the same progression multiplier as skill casts. HeroSelectPanel displays the live ability total to one decimal place and suppresses Ready/fill while downed. This is observational only: no cast timers, combat effects, saves or balance changed. Attack/pulse totals remain unchanged.

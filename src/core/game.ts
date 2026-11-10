@@ -8557,12 +8557,12 @@ export class Game {
     const def = HERO_DEFS[h.kind];
     // Cooldowns — only the gauges that apply: ability always; attack for attackers; pulse for support.
     const ultDef = this.heroAbilityKits[h.kind]?.ult ?? def.ability; // fork-resolved names read on the HUD
-    const cooldowns: HeroCooldownView[] = [{ id: 'ability', label: ultDef.name, remaining: Math.max(0, h.abilityCd), total: def.ability.cooldown }];
+    const cooldowns: HeroCooldownView[] = [{ id: 'ability', label: ultDef.name, remaining: Math.max(0, h.abilityCd), total: this.heroAbilityCooldownFor(h) }];
     // Star-gated kit skills (HEROES.md) — surface a cooldown gauge for each UNLOCKED one (none at 0 stars).
     const unlockedSkills = this.heroProgress[h.kind].skillCount ?? 0;
     const skillDefs = this.heroAbilityKits[h.kind]?.skills ?? HERO_SKILL_DEFS[h.kind];
     for (let i = 0; i < unlockedSkills && i < skillDefs.length; i++) {
-      cooldowns.push({ id: `skill${i}`, label: skillDefs[i].name, remaining: Math.max(0, h.skillCd?.[i] ?? 0), total: skillDefs[i].cooldown });
+      cooldowns.push({ id: `skill${i}`, label: skillDefs[i].name, remaining: Math.max(0, h.skillCd?.[i] ?? 0), total: skillDefs[i].cooldown * this.heroProgress[h.kind].cooldownMult });
     }
     if (def.attackRange > 0) cooldowns.push({ id: 'attack', label: 'Attack', remaining: Math.max(0, h.attackCd), total: def.attackInterval });
     if (def.pulseInterval > 0) cooldowns.push({ id: 'pulse', label: 'Pulse', remaining: Math.max(0, h.pulseCd), total: def.pulseInterval });

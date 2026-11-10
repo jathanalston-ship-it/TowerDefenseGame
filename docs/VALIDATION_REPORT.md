@@ -322,3 +322,7 @@ Local v2026.11.10.1 Clearer Run Controls: speed aria-pressed and descriptive liv
 Local v2026.11.10.1 now has two notes: Hero Ops uses effective abilityCdMax and reports recovery/armed state accurately, plus run controls. Actual Chrome probe reproduced half-progress .75/.25 with cooldown modifiers; now .5 for1/.5/1.5 multipliers. Recovery7s, armed, fully ready and AX image name plus ability description PASS.24 heroes/equipment/evolution and4 site tests PASS. Docs check PASS. No core/CSS/save/cost changes; not deployed. Both generated devlog drafts remain unpublished.
 
 Hero readiness final build65590 PASS (Vite7.59s); all processes terminal. Next release remains roughly08:14UTC with matching website notes; live .7 unchanged.
+
+Local selected-hero readout follow-up: ability and unlocked skill totals now match the cooldowns used by casts. Effective ability text rounds to one decimal; downed gauges show Unavailable and zero fill. New heroSelect regression PASS5tests includes actual cast timer/readout agreement and read-only snapshot check. Chrome selected-hero-check and styled label-fit checks at1366x768/844x340/390x664 PASS. Build44563 PASS8.59s, docs98411 PASS. Full regression68135 running. Third website note generated. No combat timers/effects, cost, save or CSS changes.
+
+Selected-hero final full regression68135 PASS:353files/3156tests,156.14s. Build/docs/browser checks all passed; no active processes. Local v2026.11.10.1 has three unsealed player-facing website notes. Last live .7 unchanged; next deployment roughly08:14UTC.
