@@ -1844,3 +1844,8 @@ Corrected-category build93090 PASS16.32s. Sealed .10 three notes and generated w
 ## 2026-11-10 19:27 UTC — Know Your Controls ready to publish
 
 Final ORIGINAL mobile51961 terminalPASS27nav+nine gameplay profiles on sealed build63376 (17.35s, SWmwb2p9ip). Focused automation/early-call/motion checks, docs, eleven UI-site and four sealed siteSync tests passed. All handles terminal. Three notes ready; production verification pending authorized push. No balance/save changes.
+
+
+## 2026-11-10 19:30 UTC — Know Your Controls LIVE
+
+Deployed SHA2400521c2dbf87dda58e5e9f5d161fb4800e6cd2. Actions42885435823/job130072400258 SUCCESS including exact-commit production guard. verify-current-release.ps1 passed NORMAL custom-domain game/home/news/all THREE notes/entry asset; /assets/play-DLqe10Zs.js. Final original mobile51961 passed27nav+nine gameplay profiles. Live v2026.11.10.10 Know Your Controls. Goal remains active; next approximate deployment20:30UTC.
