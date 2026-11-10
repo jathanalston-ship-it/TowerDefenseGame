@@ -720,3 +720,4 @@
 - `a6249d3` **[Heroes]** Publish clearer run controls and hero readouts _(internal)_
 - `2bae012` **[Framework]** Docs: record verified run controls deployment _(internal)_
 - `7741797` **[UI]** Ui: give account level notices time to be read _(internal)_
+- `c62fb01` **[UI]** Ui: preserve keyboard focus while dismissing rewards _(internal)_

@@ -379,7 +379,7 @@ ladders. 4. Every permanent progression source must move the Power Score (valida
 - **Files:** `core/loot.ts` (rarity registry, `rollRarity`, pity), `core/lootQueue.ts`
   (pre-determined queue), `core/progressionLoot.ts` (catch-up bias), `core/materialDrop.ts`,
   `state/lootbox.ts` (chest reward tables), `state/vaultReveal.ts` (pull choreography model),
-  `ui/GeneticVault.tsx`, `ui/VaultReveal.tsx`, `ui/LootMeter.tsx`, `ui/LootToaster.tsx`.
+  `ui/GeneticVault.tsx`, `ui/VaultReveal.tsx`, `ui/LootMeter.tsx`, `ui/LootToaster.tsx`. Container notices pause for reading and support keyboard dismissal with queue/final focus restoration.
   Docs: `LOOTBOX.md`, `LOOT-PROGRESSION.md`, `REWARD-PRESENTATION.md`.
 - **Related:** Equipment, Gene Essence (duplicate conversion + bonus drops), Crafting
   (materials), Currencies.

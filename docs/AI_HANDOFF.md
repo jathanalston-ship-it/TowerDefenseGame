@@ -4,8 +4,8 @@
 > before committing. Read together with docs/PROJECT_STATUS.md and the latest
 > docs/VALIDATION_REPORT.md. Next session: start at docs/PROJECT_MANIFEST.md.
 
-- **Generated:** 2026-11-10 08:15 UTC · **Diff scope:** working tree vs HEAD
-- **Branch:** codex/hive-autoplay · **HEAD:** 7741797b
+- **Generated:** 2026-11-10 08:23 UTC · **Diff scope:** working tree vs HEAD
+- **Branch:** codex/hive-autoplay · **HEAD:** c62fb01e
 
 ## Summary of work completed
 
@@ -13,15 +13,15 @@ LIVE v2026.11.10.1 Clearer Run Controls, seven sealed website notes. SHAa6249d38
 
 ## Files modified
 
-- Source (2): `src/changelog/releases.gen.ts`, `src/ui/components/RewardToaster.tsx`
+- Source (3): `src/changelog/releases.gen.ts`, `src/index.css`, `src/ui/LootToaster.tsx`
 - Tests (0): —
-- Docs (5): `docs/HISTORY.md`, `docs/NOTIFICATIONS.md`, `docs/PROJECT_MANIFEST.md`, `docs/devlog/DRAFT-2026-11-09.md`, `docs/devlog/DRAFT-2026-11-10.md`
+- Docs (7): `docs/HISTORY.md`, `docs/LOOT-PROGRESSION.md`, `docs/PROJECT_MANIFEST.md`, `docs/PROJECT_STATUS.md`, `docs/VALIDATION_REPORT.md`, `docs/devlog/DRAFT-2026-11-09.md`, `docs/devlog/DRAFT-2026-11-10.md`
 
 ## Systems affected (from the dependency registry)
 
 - **chronicle** — `src/changelog/releases.gen.ts`
-- **notifications** — `src/ui/components/RewardToaster.tsx`
-- Consumer ring (verify, unchanged): hub-shell, metabolism
+- **loot** — `src/ui/LootToaster.tsx`
+- Consumer ring (verify, unchanged): account-level, boss-rush, crafting, equipment, infinite, shards-economy, splice-market
 
 ## Power Score changes
 
@@ -49,7 +49,7 @@ Final3150 full suite passed before the two-line current-destination drawer fix. 
 
 ## Recommended next tasks
 
-Continue local v2026.11.10.2 Rewards You Can Read, two unsealed notes. Latest RewardToaster focus restoration handles next/final card, Dismiss All, removed footer; navigation opts out, unrelated focus preserved. ../reward-focus-check.cjs actual browser PASS, existing ../reward-reading-check.cjs re-PASS reading holds/bursts/merge windows. Dev32227 stopped. Build40357 PASS5.35s;40tests PASS; docs59978 PASS. All processes terminal. Next useful audit: LootToaster reading/keyboard lifecycle (source still uses click-only timed card). Latest LIVE .10.1 SHAa6249d38, next deploy roughly09:03UTC. Exclude both devlog drafts. Goal active; codex/hive-autoplay → claude/zen-hawking-rh1gxl with website notes.
+Local v2026.11.10.2 Rewards You Can Read now has three unsealed website notes. Account-level/reward focus changes committed previously; latest LootToaster reading holds, keyboard dismissal/queue focus and visible held state verified with actual Chrome and full GameView. Build44025 terminal PASS5.74s;45focused tests and4 regenerated site tests PASS. Browser probes ../loot-toast-check.cjs and ../loot-toast-game-check.cjs PASS including320px. Dev68044 stopped. Docs11399 terminal PASS; all processes stopped. Next release roughly09:03UTC; live remains .10.1 SHAa6249d38. Run final release full/mobile checks before sealing/deploy. Continue broader UI/accessibility work meanwhile. Exclude both untracked devlog drafts. Goal remains active.
 
 ## Future expansion hooks
 

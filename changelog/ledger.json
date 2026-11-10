@@ -1,6 +1,6 @@
 {
-  "lastSha": "7741797b8b276db42cee786e7c935141fe83b30a",
-  "commitsSinceDraft": 8,
+  "lastSha": "c62fb01ebf9f955430242bc2a3366a77a1e4f694",
+  "commitsSinceDraft": 9,
   "content": {
     "tower": [
       "needle",
@@ -4407,6 +4407,10 @@
         {
           "cat": "UI",
           "text": "Dismissing reward cards with the keyboard now moves focus to the next card, or back to the previous page control when the stack is cleared. Dismiss All and a disappearing stack footer follow the same rule without stealing unrelated focus."
+        },
+        {
+          "cat": "UI",
+          "text": "Bio-Container notices stay readable while hovered or keyboard-focused, with a dismiss button that follows queued rewards and returns focus afterward. Dismissing a notice with Space does not start a wave."
         }
       ]
     }
@@ -9817,6 +9821,14 @@
       "date": "2026-11-10",
       "cat": "UI",
       "text": "Ui: give account level notices time to be read",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "c62fb01ebf9f955430242bc2a3366a77a1e4f694",
+      "date": "2026-11-10",
+      "cat": "UI",
+      "text": "Ui: preserve keyboard focus while dismissing rewards",
       "internal": true,
       "needsReview": false
     }

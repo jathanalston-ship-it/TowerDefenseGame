@@ -13,6 +13,10 @@
       {
         "cat": "UI",
         "text": "Dismissing reward cards with the keyboard now moves focus to the next card, or back to the previous page control when the stack is cleared. Dismiss All and a disappearing stack footer follow the same rule without stealing unrelated focus."
+      },
+      {
+        "cat": "UI",
+        "text": "Bio-Container notices stay readable while hovered or keyboard-focused, with a dismiss button that follows queued rewards and returns focus afterward. Dismissing a notice with Space does not start a wave."
       }
     ]
   },
