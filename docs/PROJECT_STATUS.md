@@ -1834,3 +1834,8 @@ Real mid-wave baseline47721: Early Call at320x568 spanned x=-43.45..18.70, offsc
 ## 2026-11-10 19:16 UTC — World Status live motion preferences
 
 Early Call build11357 PASS23.95s and original full mobile10866 terminalPASS27nav+nine profiles. New WorldStatus baseline confirmed57frames/second after OS reduced motion enabled. Fixed media/pref subscriptions, still account/resize redraw, pixel-stable spores, visibility/cleanup. Final browser18462 terminalPASS all cases; still screenshot inspected. Eleven site/UI tests62654 and docs PASS. Initial build82064 failed unsupported Accessibility note category; corrected to existing UI/regenerated. Final build93090 RUNNING, world-status-motion-final-build.log. Local .10 now three notes, unsealed; updated mobile pending. No simulation/save changes.
+
+
+## 2026-11-10 19:20 UTC — Know Your Controls sealed; final mobile running
+
+Corrected-category build93090 PASS16.32s. Sealed .10 three notes and generated website; four siteSync tests PASS657ms. Final build63376 PASS17.35s, SWmwb2p9ip. Final review corrected automation close label; focused2045 PASS and built GameView-C8pzR7tP.js explicitly contains Close automation help. Original full mobile51961 is RUNNING, controls-release-mobile.log; keep dist fixed/no competing heavy checks. Remote production checked, still48b2f2a8. Live unchanged; deploy after final gate near19:38UTC.

@@ -1,6 +1,6 @@
 {
-  "lastSha": "81c4804926e846e25b72a0ce52da3c04f4a5b024",
-  "commitsSinceDraft": 1,
+  "lastSha": "27819687d429ebbc3a6467d99b191873a9cd1953",
+  "commitsSinceDraft": 2,
   "content": {
     "tower": [
       "needle",
@@ -4626,7 +4626,7 @@
       "id": "v2026.11.10.10",
       "date": "2026-11-10",
       "title": "Know Your Controls",
-      "sealed": false,
+      "sealed": true,
       "entries": [
         {
           "cat": "UI",
@@ -10577,6 +10577,14 @@
       "date": "2026-11-10",
       "cat": "UI",
       "text": "Ui: keep early call reachable on narrow phones",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "27819687d429ebbc3a6467d99b191873a9cd1953",
+      "date": "2026-11-10",
+      "cat": "UI",
+      "text": "Ui: follow live motion preferences on world status",
       "internal": true,
       "needsReview": false
     }

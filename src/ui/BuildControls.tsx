@@ -250,7 +250,7 @@ export function BuildControls({
             event.stopPropagation();
             if (event.key === 'Escape') { event.preventDefault(); closeDetail(); }
           }}>
-          <div className="wb-detail-head"><strong>{detail.title}</strong><button type="button" onClick={closeDetail} aria-label="Close wave details">✕</button></div>
+          <div className="wb-detail-head"><strong>{detail.title}</strong><button type="button" onClick={closeDetail} aria-label={detail.id === 'automation' ? 'Close automation help' : 'Close wave details'}>✕</button></div>
           <p>{detail.id === 'automation' ? automationHelp : detail.text}</p>
         </div>
       )}
