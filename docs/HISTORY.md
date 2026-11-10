@@ -806,3 +806,5 @@
 - `2a0cf6b` **[UI]** Refresh the visible weekly contract board _(internal)_
 - `316bca1` **[UI]** Ui: keep armory filters recoverable after inventory changes _(internal)_
 - `309a981` **[UI]** Ui: show salvage selections hidden by filters _(internal)_
+- `73b564b` **[Framework]** Release: publish clearer progress and gear _(internal)_
+- `12982a9` **[Framework]** Docs: record verified clearer progress deployment _(internal)_

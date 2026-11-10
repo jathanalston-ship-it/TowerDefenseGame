@@ -5,6 +5,18 @@ import type { Release } from './types';
 /** Player-facing releases, newest first. */
 export const RELEASES: Release[] = [
   {
+    "id": "v2026.11.10.13",
+    "date": "2026-11-10",
+    "title": "Smoother Quest Claims",
+    "sealed": false,
+    "entries": [
+      {
+        "cat": "UI",
+        "text": "After a successful quest mission claim, keyboard focus stays on the completed mission so Tab continues through the board. Unsuccessful claims keep focus on their button, and the completed mission remains clearly identified."
+      }
+    ]
+  },
+  {
     "id": "v2026.11.10.12",
     "date": "2026-11-10",
     "title": "Clearer Progress and Gear",

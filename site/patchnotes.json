@@ -1,6 +1,19 @@
 [
   {
     "date": "2026-11-10",
+    "title": "Smoother Quest Claims",
+    "categories": [
+      "UI"
+    ],
+    "items": [
+      {
+        "cat": "UI",
+        "text": "After a successful quest mission claim, keyboard focus stays on the completed mission so Tab continues through the board. Unsuccessful claims keep focus on their button, and the completed mission remains clearly identified."
+      }
+    ]
+  },
+  {
+    "date": "2026-11-10",
     "title": "Clearer Progress and Gear",
     "categories": [
       "UI",

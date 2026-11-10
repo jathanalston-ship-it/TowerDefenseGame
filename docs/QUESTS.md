@@ -106,3 +106,5 @@ exactly the ceremonies left.
   queue).
 
 Quest Board accessibility: each mission progress bar names its quest and mission, exposes bounded progress and announces ready/claimed state. Reward icon groups expose the existing rewardLabel descriptions (also as native tooltips). Mission and finale claim buttons name their objective/quest; visible layout, handlers, rewards and eligibility are unchanged.
+
+Mission claim keyboard continuity: each mission is a named group with a programmatic focus target. A successful focused Claim action moves focus to that same persistent row before the button disappears; the row label then includes claimed. A rejected claim keeps its button focus. Rows do not add extra Tab stops, and reward/eligibility logic remains in meta.claimQuestMission.

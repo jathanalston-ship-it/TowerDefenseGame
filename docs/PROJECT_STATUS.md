@@ -1951,3 +1951,8 @@ Original final mobile4857 terminal PASS27 navigation screens and nine gameplay v
 ## 2026-11-10 21:08 UTC — Clearer Progress and Gear verified live
 
 LIVE v2026.11.10.12 Clearer Progress and Gear, seven notes. SHA73b564bbe72b1d9edf7741283b09679ee6d40c30. Actions42901613298/job130128733728 SUCCESS including exact-commit production guard. Normal custom-domain game/home/news/all7notes/asset verified 2026-11-10 21:08UTC by ../verify-current-release.ps1; asset/assets/play-CWH1Jmla.js. Initial public verification served prior .11; retry after25seconds passed without redeploy/config change. Full suite3194tests354files178.58s, final build8.35s, original mobile27nav+nine gameplay profiles, siteSync and docs passed. All processes terminal. Goal remains active; next approximate deployment22:10UTC.
+
+
+## 2026-11-10 21:13 UTC — Quest mission keyboard continuity
+
+Quest mission keyboard baseline dropped focus to BODY after real Enter claim. MissionRow is now a named programmatically focusable group; claimMission reports existing meta success, and successful focused claims move focus to the persistent row before its button disappears. Rejected claims retain button focus. ../quest-claim-focus-check.cjs PASS real success, simulated rejection, Tab continuation, existing reward/progress labels and320/844 layouts;320 screenshot inspected. Initial edit missed two CRLF-sensitive replacements and probe10021 timed out; corrected source, final probes passed.45quest/UI/site tests PASS2.53s; docs/handoff86371 PASS; build39065 PASS9.84s, SWmwb6s3nm, quest-claim-focus-build.log. All processes terminal. Local unsealed .13 Smoother Quest Claims has one generated note. Live .12 unchanged; next approximate deployment22:10UTC.

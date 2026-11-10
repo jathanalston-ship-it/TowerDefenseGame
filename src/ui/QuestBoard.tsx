@@ -5,7 +5,7 @@
 // next). Bottom: Champion Contracts, the quest-adjacent weekly skill checks, on the same
 // board. Poll-on-tick keeps the rotation + countdown live; claims pay through meta.
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { CSSProperties } from 'react';
 import { meta } from '../state/meta';
 import type { QuestsView } from '../state/meta';
@@ -35,15 +35,16 @@ function MissionRow({ mi, questName, cur, claimed, onClaim }: {
   questName: string;
   cur: number;
   claimed: boolean;
-  onClaim: (e: React.MouseEvent) => void;
+  onClaim: (e: React.MouseEvent) => boolean;
 }): JSX.Element {
+  const rowRef = useRef<HTMLDivElement>(null);
   const earned = cur >= mi.target;
   const current = Math.max(0, Math.min(cur, mi.target));
   const pct = (current / Math.max(1, mi.target)) * 100;
   const rewards = mi.rewards.map(rewardLabel);
   const rewardText = `Rewards: ${rewards.map((r) => r.label).join(', ')}`;
   return (
-    <div className={`qb-mission${claimed ? ' is-claimed' : earned ? ' is-earned' : ''}`}>
+    <div ref={rowRef} tabIndex={-1} role="group" aria-label={`${questName}: ${mi.name}${claimed ? ', claimed' : ''}`} className={`qb-mission${claimed ? ' is-claimed' : earned ? ' is-earned' : ''}`}>
       <div className="qb-m-main">
         <span className="qb-m-name">{mi.name}{!claimed && earned && <i className="qb-m-readydot" aria-label="Ready to claim" />}</span>
         <span className="qb-m-blurb">{mi.blurb}</span>
@@ -58,7 +59,10 @@ function MissionRow({ mi, questName, cur, claimed, onClaim }: {
         {claimed
           ? <span className="qb-m-done" aria-label="Claimed">✓</span>
           : earned
-            ? <button className="qb-m-claim act-claim" aria-label={`Claim ${mi.name} — ${questName}`} onClick={onClaim}>Claim</button>
+            ? <button className="qb-m-claim act-claim" aria-label={`Claim ${mi.name} — ${questName}`} onClick={(e) => {
+                const focused = document.activeElement === e.currentTarget;
+                if (onClaim(e) && focused) rowRef.current?.focus({ preventScroll: true });
+              }}>Claim</button>
             : null}
       </div>
     </div>
@@ -160,13 +164,14 @@ function QuestDirectives(): JSX.Element {
   };
   // Claims present through the global claim popup (docs/NOTIFICATIONS.md §claim-popups):
   // a bold itemized receipt naming the mission/quest — the burst stays as local juice.
-  const claimMission = (mi: MissionDef, _accent: string, e: React.MouseEvent): void => {
+  const claimMission = (mi: MissionDef, _accent: string, e: React.MouseEvent): boolean => {
     const lines = meta.claimQuestMission(mi.id, Date.now());
     if (lines) {
       celebrate(e, lines, false);
       audio.cue('chest');
       audio.cue('power');
     }
+    return !!lines;
   };
   const claimFinale = (q: QuestDef, _firstTime: boolean, e: React.MouseEvent): void => {
     const lines = meta.claimQuestFinale(q.id, Date.now());

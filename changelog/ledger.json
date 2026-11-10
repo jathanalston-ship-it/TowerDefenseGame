@@ -1,6 +1,6 @@
 {
-  "lastSha": "309a9818d0f261232fc06293dce99ab473f2e0dd",
-  "commitsSinceDraft": 1,
+  "lastSha": "12982a9d0cef31d5bf35a9b10887cbe14f301d8f",
+  "commitsSinceDraft": 3,
   "content": {
     "tower": [
       "needle",
@@ -4711,6 +4711,18 @@
         {
           "cat": "UI",
           "text": "Quick-Salvage now tells you how many selected items are hidden by your current filters. Quick-grab tooltips clarify that they cover the full inventory; clearing filters preserves the selected batch and the existing confirmation steps."
+        }
+      ]
+    },
+    {
+      "id": "v2026.11.10.13",
+      "date": "2026-11-10",
+      "title": "Smoother Quest Claims",
+      "sealed": false,
+      "entries": [
+        {
+          "cat": "UI",
+          "text": "After a successful quest mission claim, keyboard focus stays on the completed mission so Tab continues through the board. Unsuccessful claims keep focus on their button, and the completed mission remains clearly identified."
         }
       ]
     }
@@ -10809,6 +10821,22 @@
       "date": "2026-11-10",
       "cat": "UI",
       "text": "Ui: show salvage selections hidden by filters",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "73b564bbe72b1d9edf7741283b09679ee6d40c30",
+      "date": "2026-11-10",
+      "cat": "Framework",
+      "text": "Release: publish clearer progress and gear",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "12982a9d0cef31d5bf35a9b10887cbe14f301d8f",
+      "date": "2026-11-10",
+      "cat": "Framework",
+      "text": "Docs: record verified clearer progress deployment",
       "internal": true,
       "needsReview": false
     }
