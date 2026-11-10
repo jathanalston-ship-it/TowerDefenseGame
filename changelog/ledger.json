@@ -1,6 +1,6 @@
 {
-  "lastSha": "c78aeab8a76aa4df80f6206c129e71e4a247d517",
-  "commitsSinceDraft": 0,
+  "lastSha": "663ef58bf2f5cf3b9bde4492b6eec665ee331a4e",
+  "commitsSinceDraft": 1,
   "content": {
     "tower": [
       "needle",
@@ -4306,7 +4306,7 @@
       "id": "v2026.11.09.6",
       "date": "2026-11-09",
       "title": "Sound That Responds Smoothly",
-      "sealed": false,
+      "sealed": true,
       "entries": [
         {
           "cat": "Audio",
@@ -9593,6 +9593,14 @@
       "date": "2026-11-09",
       "cat": "Heroes",
       "text": "Expose hero auto-cast toggle state",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "663ef58bf2f5cf3b9bde4492b6eec665ee331a4e",
+      "date": "2026-11-09",
+      "cat": "Towers",
+      "text": "Expose armed tower placement controls",
       "internal": true,
       "needsReview": false
     }

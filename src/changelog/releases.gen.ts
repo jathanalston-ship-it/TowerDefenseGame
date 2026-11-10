@@ -8,7 +8,7 @@ export const RELEASES: Release[] = [
     "id": "v2026.11.09.6",
     "date": "2026-11-09",
     "title": "Sound That Responds Smoothly",
-    "sealed": false,
+    "sealed": true,
     "entries": [
       {
         "cat": "Audio",

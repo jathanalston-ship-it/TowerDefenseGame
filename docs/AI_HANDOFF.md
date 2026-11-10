@@ -4,22 +4,21 @@
 > before committing. Read together with docs/PROJECT_STATUS.md and the latest
 > docs/VALIDATION_REPORT.md. Next session: start at docs/PROJECT_MANIFEST.md.
 
-- **Generated:** 2026-11-10 06:16 UTC · **Diff scope:** working tree vs HEAD
-- **Branch:** codex/hive-autoplay · **HEAD:** c78aeab8
+- **Generated:** 2026-11-10 06:19 UTC · **Diff scope:** working tree vs HEAD
+- **Branch:** codex/hive-autoplay · **HEAD:** 663ef58b
 
 ## Summary of work completed
 
 Active continuous improvement goal; authorized roughly-hourly deployments with website notes. LIVE: fa4f78bcff196db9dad2d4683b3c852907516c73, v2026.11.09.5 Feedback That Stays Readable, six curated notes. Actions42763247079 SUCCESS. Normal custom-domain game/home/news verified: play-DZzequMq.js matches local build and returns200; homepage title and detailed motion/Vault notes present. Deployed ~05:38UTC Nov10. New LOCAL batch v2026.11.09.6 Sound That Responds Smoothly, five notes (four Audio, one UI); .5 sealed. Do not mark the ongoing goal complete.
 ## Files modified
 
-- Source (2): `src/changelog/releases.gen.ts`, `src/ui/Toolbar.tsx`
+- Source (1): `src/changelog/releases.gen.ts`
 - Tests (0): —
-- Docs (6): `docs/HISTORY.md`, `docs/HUD.md`, `docs/PROJECT_MANIFEST.md`, `docs/PROJECT_STATUS.md`, `docs/VALIDATION_REPORT.md`, `docs/devlog/DRAFT-2026-11-09.md`
+- Docs (4): `docs/HISTORY.md`, `docs/PROJECT_STATUS.md`, `docs/VALIDATION_REPORT.md`, `docs/devlog/DRAFT-2026-11-09.md`
 
 ## Systems affected (from the dependency registry)
 
 - **chronicle** — `src/changelog/releases.gen.ts`
-- **run-ui** — `src/ui/Toolbar.tsx`
 
 ## Power Score changes
 
@@ -72,3 +71,5 @@ LATEST .6 hero auto-cast fix: one aria-pressed expression in Toolbar, no gamepla
 Final auto-cast accessibility build19427 PASS (autocast-accessibility-build.log), all processes terminal. Five notes local for .6; live remains .5.
 
 LATEST .6 placement ARIA followup: Toolbar favorite and conveyor Deploy aria-pressed; conveyor aria-label includes organism/current Biomass cost or free. ../placement-accessibility-check.cjs baseline no states; after keyboard select/clear/switch AXstates PASS; free/paid labels PASS via normal wave-grown pod. Fixture first sim tick seeds gift; prep time does not grow paid pod, so probe starts wave. Auto-cast AX re-PASS.4 site-sync tests PASS; build23561 terminal0 (placement-accessibility-build.log). Full3155/mobile completed before four ARIA attributes across these followups; no visual/layout/gameplay changes. All processes terminal. Five local notes (combined UI note); next approx deploy06:38UTC. Live .5 remains. ../verify-audio-release.ps1 targets .6 game/home/news.
+
+RELEASE .6 CHECKPOINT: sealed5notes, final build35451 PASS (audio-release-build.log), sealed siteSync4 PASS. All local processes terminal. Full3155/mobile9viewport before ARIA-only followups; actualGame/AXkeyboard probes cover latest attributes. Remote deploy branch remainsfa4f78bc. Publishing now; exact-SHA workflow and ../verify-audio-release.ps1 livechecks pending. Active continuous goal remains active.

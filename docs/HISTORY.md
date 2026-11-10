@@ -700,3 +700,4 @@
 - `a74be40` **[Audio]** Audio: record controls and regression checkpoint _(internal)_
 - `8b491cb` **[Audio]** Audio: record completed mobile release gate _(internal)_
 - `c78aeab` **[Heroes]** Expose hero auto-cast toggle state _(internal)_
+- `663ef58` **[Towers]** Expose armed tower placement controls _(internal)_

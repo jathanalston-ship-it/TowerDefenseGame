@@ -1421,3 +1421,5 @@ Local .6 accessibility follow-up: hero auto-cast exposes pressed state after unl
 Final auto-cast accessibility build19427 PASS (autocast-accessibility-build.log), all processes terminal. Five notes local for .6; live remains .5.
 
 Local .6 placement controls now expose armed state; conveyor Deploy names the organism and free/live cost. Real Game keyboard/AX checks PASS for selection/clearing/switching and free/paid labels; auto-cast AX re-PASS,4 site tests PASS, production build23561 PASS. All processes terminal. Five notes prepared, still local.
+
+Release .6 sealed and verified:5 curated website notes, final production build/site sync PASS. Publishing now under ongoing deployment authorization; live verification pending.
