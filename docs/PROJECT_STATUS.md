@@ -1349,3 +1349,5 @@ already registered per system) · platform decision on backend (cloud saves, dai
 ## 2026-11-09 — Hive Intelligence continuous play (local branch)
 
 Implemented on `codex/hive-autoplay`, not deployed: Stage 5 completion unlocks continuous purchases, wave starts, gene picks and lead-hero ability/rally control in Campaign and Infinite. See `docs/AI_HANDOFF.md` and `docs/HIVE-MIND.md`. No save migration.
+
+Next local batch follow-up: pause dialog focus containment/restoration and safe confirmation focus verified in Chrome. Mobile pause now overlays open Status drawers; 390x844 visual and click checks pass. These changes remain local for the next release.

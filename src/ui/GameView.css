@@ -3075,6 +3075,9 @@ html[data-layout='desktop'] .hud-wave-mod:has(> .phase-emergency) > .phase-hint 
   justify-content: flex-start; /* centered via auto margins below — a tall draft scrolls from its TOP */
 }
 
+/* Pause owns input above an already-open run drawer (veil 649, panel 650). */
+:is(html[data-layout='portrait'], html[data-layout='landscape']) .pause-overlay { z-index: 660; }
+
 :is(html[data-layout='portrait'], html[data-layout='landscape']) .canvas-wrap > .overlay > :first-child { margin-top: auto; }
 
 :is(html[data-layout='portrait'], html[data-layout='landscape']) .canvas-wrap > .overlay > :last-child { margin-bottom: auto; }

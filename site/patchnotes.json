@@ -16,7 +16,7 @@
       },
       {
         "cat": "UI",
-        "text": "Pause-menu settings and confirmation buttons now work correctly with Enter and Space. Resuming with Space no longer also starts a wave, and board shortcuts stay quiet while paused, inside the hero console, or typing in a text field."
+        "text": "Pause-menu settings and confirmation buttons now work correctly with Enter and Space. Resuming with Space no longer also starts a wave, and board shortcuts stay quiet while paused, inside the hero console, or typing in a text field. Pause-menu focus stays inside its controls, returns when closed, and starts on Keep Playing when confirming abandonment. On phones, the pause menu stays above open run drawers so Resume remains reachable."
       }
     ]
   },

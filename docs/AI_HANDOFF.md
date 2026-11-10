@@ -4,8 +4,8 @@
 > before committing. Read together with docs/PROJECT_STATUS.md and the latest
 > docs/VALIDATION_REPORT.md. Next session: start at docs/PROJECT_MANIFEST.md.
 
-- **Generated:** 2026-11-10 03:48 UTC · **Diff scope:** working tree vs HEAD
-- **Branch:** codex/hive-autoplay · **HEAD:** 33676de6
+- **Generated:** 2026-11-10 03:54 UTC · **Diff scope:** working tree vs HEAD
+- **Branch:** codex/hive-autoplay · **HEAD:** 8a3c0cf5
 
 ## Summary of work completed
 
@@ -13,17 +13,14 @@ Active continuous improvement goal remains active; owner authorizes verified rel
 
 ## Files modified
 
-- Source (5): `src/changelog/releases.gen.ts`, `src/ui/DraftModal.tsx`, `src/ui/GameView.tsx`, `src/ui/Toolbar.tsx`, `src/ui/components/ProgressBar.tsx`
+- Source (3): `src/changelog/releases.gen.ts`, `src/ui/GameView.css`, `src/ui/GameView.tsx`
 - Tests (0): —
-- Docs (8): `docs/AI_HANDOFF.md`, `docs/CARDS.md`, `docs/HISTORY.md`, `docs/HUD.md`, `docs/PROJECT_STATUS.md`, `docs/UI-STANDARDS.md`, `docs/VALIDATION_REPORT.md`, `docs/devlog/DRAFT-2026-11-09.md`
+- Docs (6): `docs/AI_HANDOFF.md`, `docs/HISTORY.md`, `docs/HUD.md`, `docs/PROJECT_STATUS.md`, `docs/VALIDATION_REPORT.md`, `docs/devlog/DRAFT-2026-11-09.md`
 
 ## Systems affected (from the dependency registry)
 
 - **chronicle** — `src/changelog/releases.gen.ts`
-- **gene-cards** — `src/ui/DraftModal.tsx`
-- **run-ui** — `src/ui/GameView.tsx`, `src/ui/Toolbar.tsx`
-- **ui-kit** — `src/ui/components/ProgressBar.tsx`
-- Consumer ring (verify, unchanged): doctrines, engine
+- **run-ui** — `src/ui/GameView.tsx`
 
 ## Power Score changes
 
@@ -51,7 +48,7 @@ Windows npm run validate wrapper cannot spawn npx with shell:false; direct build
 
 ## Remaining technical debt
 
-No new architecture or save debt. Existing pause overlay is not a full focus-trapped dialog; current fix isolates keyboard ownership without redesigning the menu. A future accessibility pass should examine focus containment across run overlays.
+No new architecture or save debt. Pause overlay now has dialog semantics, initial focus, Tab containment (including sliders), safe confirmation focus and focus restoration. Chrome focus and input regression checks PASS; strict typecheck PASS. Continue checking other run overlays for focus containment.
 
 ## Recommended next tasks
 
@@ -60,3 +57,5 @@ Continue evidence-driven usability, visual, sound and cinematic improvements. Ru
 ## Future expansion hooks
 
 Existing ProgressBar, DraftModal and GameView remain the shared seams; no new framework needed.
+
+Pause follow-up evidence: phone 390x844 screenshot inspected; reproduced open-drawer veil blocking Resume and fixed phone pause z-index to 660. Full pause Chrome probe now PASS with actual initLayoutProfile, including desktop focus checks and phone confirmation/resume/open-drawer pause. No gameplay changes.

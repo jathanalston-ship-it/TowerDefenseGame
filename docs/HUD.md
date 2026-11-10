@@ -2,8 +2,9 @@
 
 Keyboard ownership: focused controls own Space; text fields do not dispatch board shortcuts.
 Paused runs ignore board actions except P to resume. The hero console owns its pause and
-closes with E/Escape; board shortcuts cannot act through it. The pause backdrop handles
-Enter/Space only when it itself has focus, leaving its settings and confirmation buttons intact.
+closes with E/Escape; board shortcuts cannot act through it. The pause sheet is a labelled modal
+dialog: opening focuses Resume, Tab wraps through its buttons and sliders, and closing restores
+the previous connected control. Abandon confirmation focuses Keep Playing, the safe choice.
 
 Layout + visual specs for the in-run HUD. Derives all colors/type/spacing from
 `STYLE-GUIDE.md`. Grounded in the current build (`src/ui/Hud.tsx`,
@@ -269,3 +270,5 @@ Campaign Stage 5 completion unlocks a run-local ON/OFF helper in Campaign and In
 
 ### Hero and automation status clarity
 The ability shortcut displays seconds remaining while recharging, or a recovery timer while the hero is down. Its ring uses HudSnapshot.hero.abilityCdMax, including cooldown upgrades. Hive-managed wave/gene controls remain disabled but show HIVE at full text opacity, with a reason in their title.
+
+On phone layouts, pause is layered above run drawers and their veil; pausing from an open Status drawer must leave Resume reachable.

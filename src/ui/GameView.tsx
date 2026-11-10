@@ -336,6 +336,18 @@ export function GameView({
   const evoOpenRef = useRef(false);
   evoOpenRef.current = evoOpen;
   const pausedBeforeConsole = useRef(false); // restore the player's own pause state on close
+  const pauseDialogRef = useRef<HTMLDivElement>(null);
+  const pauseVisible = paused && !evoOpen;
+  useEffect(() => {
+    if (!pauseVisible) return;
+    const previous = document.activeElement;
+    return () => { if (previous instanceof HTMLElement && previous.isConnected) previous.focus(); };
+  }, [pauseVisible]);
+  useEffect(() => {
+    if (!pauseVisible) return;
+    // Confirmation starts on the safe choice; returning restores the menu's first action.
+    pauseDialogRef.current?.querySelector<HTMLButtonElement>(confirmAbandon ? '.pause-keep' : '.pause-resume')?.focus();
+  }, [pauseVisible, confirmAbandon]);
   // ── Gameplay Speed (docs/HUD.md §speed): 1×/2×/5× run MORE fixed SIM_DT steps per frame —
   //    byte-identical simulation at any speed. Auto-slow triggers fire once per run each.
   const [speed, setSpeedState] = useState(1);
@@ -1301,16 +1313,23 @@ export function GameView({
           </button>
         )}
         </div>
-        {paused && !evoOpen && (
+        {pauseVisible && (
           <div
+            ref={pauseDialogRef}
             className="pause-overlay"
-            role="button"
-            tabIndex={0}
-            aria-label="Resume"
+            role="dialog"
+            aria-modal="true"
+            tabIndex={-1}
+            aria-label={confirmAbandon ? 'Abandon run confirmation' : 'Game paused'}
             onClick={togglePause}
             onKeyDown={(e) => {
-              if (e.target === e.currentTarget && (e.key === 'Enter' || e.key === ' ')) {
-                e.preventDefault(); togglePause();
+              if (e.key !== 'Tab') return;
+              const controls = Array.from(e.currentTarget.querySelectorAll<HTMLElement>('button:not(:disabled), input:not(:disabled), select:not(:disabled), [tabindex="0"]'));
+              const first = controls[0], last = controls[controls.length - 1];
+              if (e.shiftKey && (document.activeElement === first || document.activeElement === e.currentTarget)) {
+                e.preventDefault(); last?.focus();
+              } else if (!e.shiftKey && document.activeElement === last) {
+                e.preventDefault(); first?.focus();
               }
             }}
           >
@@ -1331,7 +1350,7 @@ export function GameView({
                   </div>
                   <div className="pause-row">
                     <button className="set-danger" onClick={(e) => { e.stopPropagation(); onAbandon(game.waveIndex); }}>Forfeit &amp; Quit</button>
-                    <button onClick={(e) => { e.stopPropagation(); setConfirmAbandon(false); }}>Keep Playing</button>
+                    <button className="pause-keep" onClick={(e) => { e.stopPropagation(); setConfirmAbandon(false); }}>Keep Playing</button>
                   </div>
                 </>
               ) : (

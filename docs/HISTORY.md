@@ -671,3 +671,4 @@
 - `3cc51a8` **[Gameplay]** Improve cinematic reading and gameplay feedback _(internal)_
 - `60dd21e` **[UI]** Verify reward clarity and accessible UI feedback _(internal)_
 - `33676de` **[Visuals]** Ship clearer rewards help and visual feedback _(internal)_
+- `8a3c0cf` **[Bug Fixes]** Ui: isolate draft and pause keyboard controls _(internal)_
