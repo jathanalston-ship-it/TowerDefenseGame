@@ -1381,3 +1381,7 @@ Vault final build and styled phone keyboard flow PASS; mobile release gate runni
 Vault motion follow-up locally verified: live heartbeat prefs, flash suppression and zero shake; phone keyboard checks still pass. Mobile gate continues on preceding build; final motion build pending.
 
 .5 release checkpoint05:03UTC: final build, mobile gate, website sync and focused follow-up checks passed. No processes left running. Still local; next approximate deployment05:30UTC. Website verifier updated to .5 markers.
+
+Local .5 adds stable reward/Vault total accessibility text while retaining visual count-up. Chrome AX-tree and47 model checks PASS; fifth website note prepared.
+
+Reward announcement production build and website-sync checks PASS; local .5 now five notes. All local processes stopped.

@@ -321,3 +321,5 @@ tiers on demand.
 Vault keyboard flow: labeled opening/harvest modal restores its opener on unmount. Hatch now supports Enter/Space. Phase/page/flip/highlight transitions repair removed or disabled focus without moving a valid current choice. Tab stays within the active highlight or main reveal; Escape acknowledges a highlight/replay or closes the completed harvest. Summary initially prefers Collect/Return over Hatch Another. Nested highlights hide underlying reveal content from assistive technology. Reward reducer, purchases, pacing and persistence unchanged.
 
 Vault feedback preferences resolve live OS and device settings. Heartbeat WAAPI checks the latest resolved motion without restarting incubation/audio timers; switching to reduced motion cancels the active pulse. Reveal cleanup cancels pulse/listeners. World/inner/rarity flashes obey flashes off, highlight shine is separate from warp, and zero resolved shake omits rupture quake. Existing CSS reduced-motion styling remains in place.
+
+Harvest Power announcements expose the final total as stable assistive text alongside an aria-hidden visual count-up, avoiding per-frame live text changes.

@@ -685,3 +685,5 @@
 - `c678576` **[UI]** Verify keyboard cosmetic ceremonies _(internal)_
 - `a165a71` **[UI]** Ui: verify accessible star celebrations _(internal)_
 - `880c803` **[UI]** Ui: verify keyboard vault reveal flow _(internal)_
+- `3720b7f` **[UI]** Ui: honor live vault feedback preferences _(internal)_
+- `cf5360c` **[Framework]** Docs: record feedback release verification _(internal)_

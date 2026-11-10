@@ -1,6 +1,6 @@
 {
-  "lastSha": "880c803132c9666b9984e0cf71421c25f22106c0",
-  "commitsSinceDraft": 5,
+  "lastSha": "cf5360c02a720d06af7b718981606faa6a97c7f6",
+  "commitsSinceDraft": 7,
   "content": {
     "tower": [
       "needle",
@@ -4291,6 +4291,10 @@
         {
           "cat": "UI",
           "text": "Genetic Vault openings can be followed by keyboard from hatching through card flips, highlights and harvest. Focus stays with the active reveal, including replay highlights, and returns when you close it. The harvest focuses Collect or Return so hatching another container stays a deliberate choice. Heartbeat motion responds to live motion settings, and flash and shake effects respect their settings."
+        },
+        {
+          "cat": "UI",
+          "text": "Reward notifications and Vault Power totals expose the final amount to screen readers while the visible numbers count up. Merged rewards update that amount without announcing every animation frame."
         }
       ]
     }
@@ -9437,6 +9441,22 @@
       "date": "2026-11-09",
       "cat": "UI",
       "text": "Ui: verify keyboard vault reveal flow",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "3720b7f2b1ac43016510bbe22186523a2cb8d7ec",
+      "date": "2026-11-09",
+      "cat": "UI",
+      "text": "Ui: honor live vault feedback preferences",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "cf5360c02a720d06af7b718981606faa6a97c7f6",
+      "date": "2026-11-09",
+      "cat": "Framework",
+      "text": "Docs: record feedback release verification",
       "internal": true,
       "needsReview": false
     }

@@ -253,3 +253,7 @@ Vault live motion probe PASS: initial OS reduce yields zero WAAPI pulses; allowM
 Vault motion TypeScript app/functions check PASS (session52623 exited0).
 
 Release checkpoint: mobile gate CLEAN27 nav screens and in-run at all nine viewports (feedback-mobile.log, session76108 exited0). It audited the Vault-keyboard build before the subsequent motion-only change; that change passed targeted live browser checks. Final production build PASS13.74s Vite (feedback-final-build.log,96766 exited0). Website synchronization4 tests PASS; initial incorrect src/dev filter matched no files, corrected src/changelog path. DIL/PIL zero structural findings,34 existing stale pairs. Remote deployment branch still bfa87c50.
+
+Reward announcement Chrome AX probe PASS: final quantity present while visual number animates, intermediate number excluded, merged Genome Cores final amount updates, no nested live wrapper, Vault Power total stable and clipped helper occupies1x1px. Probe corrected to concatenate Chrome static-text fragments and to use registered genomeCores (unknown cores does not merge). No assertion of speech output from specific screen readers. RewardToast/Vault model47 tests PASS.
+
+Reward announcement final production build PASS (Vite20.55s, service worker stamped); four website-sync tests PASS.

@@ -79,7 +79,10 @@ function SummaryList({ sections, totalPower }: { sections: SummarySection[]; tot
       <div className="vreveal-summary-h">
         <span className="vreveal-summary-title">Harvest</span>
         {totalPower > 0 && (
-          <span className="vreveal-power-total" aria-live="polite">▲ +{formatPower(power)} Power</span>
+          <span className="vreveal-power-total" aria-live="polite">
+            <span aria-hidden="true">▲ +{formatPower(power)} Power</span>
+            <span className="a11y-only">+{formatPower(totalPower)} Power</span>
+          </span>
         )}
       </div>
       <div className="vreveal-sections">

@@ -35,7 +35,7 @@ function ArtPanel({ art, rarity }: { art: RewardArt | undefined; rarity?: string
 function QtyLine({ qty, unitOnly }: { qty: number; unitOnly: boolean }): JSX.Element | null {
   const shown = useCountUp(qty);
   if (unitOnly) return null;
-  return <span className="rwt2-qty">+{shown.toLocaleString()}</span>;
+  return <><span className="rwt2-qty" aria-hidden="true">+{shown.toLocaleString()}</span><span className="a11y-only">+{qty.toLocaleString()}</span></>;
 }
 
 function Card({ card, onDismiss, onKeep }: { card: ToastCard; onDismiss: (uid: number) => void; onKeep: (uid: number) => void }): JSX.Element {
@@ -160,7 +160,7 @@ export function RewardToaster({ held = false }: { held?: boolean } = {}): JSX.El
   const keep = (uid: number): void => setCards((cs) => cs.map((c) => (c.uid === uid ? { ...c, bumpedAt: Date.now() } : c)));
   const hasApex = visible.some((c) => c.tier >= 3);
   return (
-    <div className="rwt2-wrap" aria-live="polite">
+    <div className="rwt2-wrap">
       {/* The legendary takeover: a one-shot screen accent behind the stack (reduced-motion: none) */}
       {hasApex && <span key={visible.find((c) => c.tier >= 3)?.uid} className="rwt2-accent" aria-hidden />}
       {visible.map((c) => <Card key={c.uid} card={c} onDismiss={dismiss} onKeep={keep} />)}

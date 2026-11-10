@@ -4,22 +4,25 @@
 > before committing. Read together with docs/PROJECT_STATUS.md and the latest
 > docs/VALIDATION_REPORT.md. Next session: start at docs/PROJECT_MANIFEST.md.
 
-- **Generated:** 2026-11-10 05:03 UTC · **Diff scope:** working tree vs HEAD
-- **Branch:** codex/hive-autoplay · **HEAD:** 3720b7f2
+- **Generated:** 2026-11-10 05:07 UTC · **Diff scope:** working tree vs HEAD
+- **Branch:** codex/hive-autoplay · **HEAD:** cf5360c0
 
 ## Summary of work completed
 
-Active continuous improvement goal: keep improving usability, clarity, graphics, sound, animation and cutscenes without changing gameplay; authorized deployments roughly hourly with website notes. LIVE is bfa87c50fe652ca8105961d2faa2372bf281f51e, v2026.11.09.4 Progress You Can Follow (Actions 42756081493 success, ~04:30 UTC Nov10). Normal game/home/news URLs and play-CtxVJXHT.js verified; all 3150 tests and nine-viewport mobile gate passed before publication. Current LOCAL batch is v2026.11.09.5 Feedback That Stays Readable, four curated notes; .4 is sealed. No deployment for .5 yet. Earlier detailed verification history remains in VALIDATION_REPORT.md.
+Active continuous improvement goal: keep improving usability, clarity, graphics, sound, animation and cutscenes without changing gameplay; authorized deployments roughly hourly with website notes. LIVE is bfa87c50fe652ca8105961d2faa2372bf281f51e, v2026.11.09.4 Progress You Can Follow (Actions 42756081493 success, ~04:30 UTC Nov10). Normal game/home/news URLs and play-CtxVJXHT.js verified; all 3150 tests and nine-viewport mobile gate passed before publication. Current LOCAL batch is v2026.11.09.5 Feedback That Stays Readable, five curated notes; .4 is sealed. No deployment for .5 yet. Earlier detailed verification history remains in VALIDATION_REPORT.md.
 
 ## Files modified
 
-- Source (0): —
+- Source (4): `src/changelog/releases.gen.ts`, `src/index.css`, `src/ui/VaultReveal.tsx`, `src/ui/components/RewardToaster.tsx`
 - Tests (0): —
-- Docs (1): `docs/devlog/DRAFT-2026-11-09.md`
+- Docs (6): `docs/HISTORY.md`, `docs/LOOTBOX.md`, `docs/NOTIFICATIONS.md`, `docs/PROJECT_STATUS.md`, `docs/VALIDATION_REPORT.md`, `docs/devlog/DRAFT-2026-11-09.md`
 
 ## Systems affected (from the dependency registry)
 
-- (no registered source files in this diff)
+- **chronicle** — `src/changelog/releases.gen.ts`
+- **loot** — `src/ui/VaultReveal.tsx`
+- **notifications** — `src/ui/components/RewardToaster.tsx`
+- Consumer ring (verify, unchanged): account-level, boss-rush, crafting, equipment, hub-shell, infinite, metabolism, shards-economy, splice-market
 
 ## Power Score changes
 
@@ -57,7 +60,7 @@ Continue the broad experience audit, then run appropriate final regression/build
 
 Existing HeroPortrait.SymbioteOverlay, TowerPortrait and shared resolveMotion remain the preview seams. No new content or save structures.
 
-WardrobeReveal local follow-up: modal semantics, initial/per-card focus, Tab loop, Escape skips ceremony with focus restoration and no navigation. Single/three/six-item browser probe ../wardrobe-focus-check.cjs PASS; 38 core/meta wardrobe tests PASS. Ledger .5 now four curated notes; production build PASS (Vite 18.39s, service worker stamped). Release checks recorded in the latest checkpoint below.
+WardrobeReveal local follow-up: modal semantics, initial/per-card focus, Tab loop, Escape skips ceremony with focus restoration and no navigation. Single/three/six-item browser probe ../wardrobe-focus-check.cjs PASS; 38 core/meta wardrobe tests PASS. Ledger .5 now five curated notes; production build PASS (Vite 18.39s, service worker stamped). Release checks recorded in the latest checkpoint below.
 
 StarCeremony: labeled modal, Continue autofocus, Tab containment, Escape isolation and focus restoration. Chrome probe ../star-focus-check.cjs PASS all three dismissal keys exactly once. Production build PASS (21.29s Vite). Full regression PASS: 353 files /3150 tests (332.45s), session 10941 exited 0. DIL/PIL regeneration passed: zero structural findings, existing 34 stale pairs. Dev server stopped. Vault keyboard follow-up now implemented and verified below.
 
@@ -65,4 +68,6 @@ VaultReveal: hatch Enter/Space, labeled modal, phase/disabled-flip focus recover
 
 Vault motion follow-up: latest resolved prefs drive heartbeat WAAPI; live OS/player subscriptions cancel/resume pulse without restarting ceremony timers. World/inner/rarity flashes respect flashes off, highlight shine separated from warp, zero shake suppresses quake. ../vault-motion-check.cjs PASS; styled phone keyboard probe re-PASS;29 vault/feel tests PASS. Full mobile gate PASS on pre-motion build; latest motion follow-up independently checked in Chrome. Typecheck PASS, session52623 exited0 (vault-motion-typecheck.log). Final production build PASS (feedback-final-build.log, session96766 exited0, Vite13.74s). Dev server stopped; notes regenerated (four entries).
 
-AUTHORITATIVE CHECKPOINT ~05:03UTC Nov10: .5 remains local, four notes. All spawned processes terminal, no dev/preview server left. Full suite3150 PASS before Vault UI follow-up; follow-up29 model/feel tests plus desktop/styled-phone motion/keyboard probes PASS. Mobile27-nav/nine-viewport gate PASS on Vault-keyboard build before motion-only change; final motion build PASS and websiteSync4 PASS. DIL/PIL zero structural,34 existing stale pairs. Initial siteSync test path was wrong (no tests); corrected src/changelog/siteSync.test.ts PASS. Production branch verified unchanged bfa87c50. Next approximate deployment05:30UTC. Next audit: Vault summary aria-live receives animated count every frame; inspect other reward announcers for redundant intermediate announcements before changing. Goal remains active.
+AUTHORITATIVE CHECKPOINT ~05:03UTC Nov10: .5 remains local, four notes. All spawned processes terminal, no dev/preview server left. Full suite3150 PASS before Vault UI follow-up; follow-up29 model/feel tests plus desktop/styled-phone motion/keyboard probes PASS. Mobile27-nav/nine-viewport gate PASS on Vault-keyboard build before motion-only change; final motion build PASS and websiteSync4 PASS. DIL/PIL zero structural,34 existing stale pairs. Initial siteSync test path was wrong (no tests); corrected src/changelog/siteSync.test.ts PASS. Production branch verified unchanged bfa87c50. Next approximate deployment05:30UTC. Reward announcement accessibility follow-up implemented below. Goal remains active.
+
+Reward announcements: visual count-ups aria-hidden with stable final accessible text (shared CSS a11y-only); merged quantities update final text; removed nested live-region wrapper, cards retain status. Chrome AX-tree probe ../reward-announcement-check.cjs PASS (not a speech-reader integration test),47 rewardToast/Vault tests PASS. Five notes generated. Build PASS (session2141 exited0, reward-announce-build.log, Vite20.55s); websiteSync4 PASS (22593 exited0). All processes completed. Dev server stopped. Next audit: reward placards expire while keyboard focus/hover/expanded reading is active; current onKeep bumps once, despite comment claiming no mid-read expiry. Inspect queue/prune and burst ordering before fixing.

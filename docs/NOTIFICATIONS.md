@@ -311,3 +311,5 @@ tomorrow, so a persistent watermark from one un-acted visit would suppress the b
 forever. At day rollover the badge re-lights while the count still stands; viewing quiets
 it for that day only. `rush.freeEntry` is the first volatile source; apply deliberately —
 persistent watermarks remain correct for cumulative/actionable counts that DROP on action.
+
+Reward announcement accessibility: QtyLine keeps the visible count-up aria-hidden and exposes the final quantity in a clipped .a11y-only span. Merges update that stable quantity once. Each card retains role=status; the surrounding stack no longer adds a nested live region. Controls and other reward details remain accessible. No queue, expiry or reward math changes.
