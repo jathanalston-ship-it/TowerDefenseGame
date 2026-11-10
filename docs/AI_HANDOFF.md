@@ -9,7 +9,7 @@
 
 ## Summary of work completed
 
-LIVE v2026.11.10.5 Films That Follow You with four sealed website notes. SHA82998411c90caf74ec77d5c847e6bc1645b708a0; Actions42840127306 SUCCESS including exact-SHA production guard. Normal public game/home/news/all4notes verified 2026-11-10 15:04 UTC; asset /assets/play-CXZtdME2.js matches final build and returns200. Initial cached prior entry resolved on same URLs. Full3177tests/354files PASS; final build8.17s,4site tests,docs and mobile27screens/9gameplay viewports PASS. All processes terminal; continuous goal active.
+LIVE v2026.11.10.6 Memories Within Reach, five sealed notes. SHA7f18a4f7fe74450f26650da823b789ce5bb4468d; Actions42848792447 SUCCESS including exact-SHA production guard. Normal public game/home/news/all5notes verified 2026-11-10 15:53 UTC; asset /assets/play-CEgN7IqO.js matches final build and returns200. Full3177tests PASS before two inline console target heights; final build26.02s,11UI/site tests,docs and mobile27screens/9gameplay viewports PASS. All processes terminal. Continuous goal active.
 
 ## Files modified
 
@@ -47,7 +47,7 @@ Windows validate wrapper cannot launch npx/npm with shell:false; use direct gate
 
 ## Recommended next tasks
 
-All .10.6 release gates complete. Publish then verify exact-SHA Actions and normal game/home/news/all5notes via ../verify-current-release.ps1. Local final asset /assets/play-CEgN7IqO.js. All local processes terminal. Next usability audit after deployment: SaveManager reports Backup created even when meta.backupNow returns null; inspect storage-write failure semantics before a fix. Continuous goal remains active.
+Release .10.6 is fully live and verified. Continue active usability/accessibility/presentation goal, starting a new unsealed release. Next approximate deployment16:53 UTC. Read-only audit candidate: SaveManager unconditionally reports Backup created when meta.backupNow returns null; SaveStore.set swallows write failures too. Inspect actual UI/storage behavior before making a fix, preserve save safety and semantics. All processes terminal; no build/mobile/deploy handles pending.
 
 ## Future expansion hooks
 
