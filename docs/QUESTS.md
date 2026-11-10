@@ -104,3 +104,5 @@ exactly the ceremonies left.
 - Rollover mail unlocks (cutscene/cosmetic) land silently in the Archive/Wardrobe — only
   hub claims premiere the film (a surprise premiere at boot would collide with the briefing
   queue).
+
+Quest Board accessibility: each mission progress bar names its quest and mission, exposes bounded progress and announces ready/claimed state. Reward icon groups expose the existing rewardLabel descriptions (also as native tooltips). Mission and finale claim buttons name their objective/quest; visible layout, handlers, rewards and eligibility are unchanged.

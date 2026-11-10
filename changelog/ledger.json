@@ -1,6 +1,6 @@
 {
-  "lastSha": "5e78a28d952c3731936fc837aae5cd3e89ad0813",
-  "commitsSinceDraft": 6,
+  "lastSha": "9b2af4c1a293c4fd153bd7ed762d672df515fdd4",
+  "commitsSinceDraft": 7,
   "content": {
     "tower": [
       "needle",
@@ -4695,6 +4695,10 @@
         {
           "cat": "UI",
           "text": "Audio and motion switches now keep comfortable 44-pixel touch targets in Settings and the pause menu. The pause panel remains scrollable on short landscape screens, with Resume and Keep Playing reachable."
+        },
+        {
+          "cat": "UI",
+          "text": "Quest Board progress and claim controls now name both the mission and its quest, distinguishing repeated mission names. Reward icons expose their full descriptions, and progress reports when a reward is ready or claimed."
         }
       ]
     }
@@ -10753,6 +10757,14 @@
       "date": "2026-11-10",
       "cat": "UI",
       "text": "Ui: contain and restore item details keyboard focus",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "9b2af4c1a293c4fd153bd7ed762d672df515fdd4",
+      "date": "2026-11-10",
+      "cat": "UI",
+      "text": "Keep pause settings comfortable on touchscreens",
       "internal": true,
       "needsReview": false
     }

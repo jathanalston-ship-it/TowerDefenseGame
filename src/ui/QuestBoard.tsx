@@ -30,30 +30,35 @@ function fmtLeft(ms: number): string {
   return d > 0 ? `${d}d ${h}h` : h > 0 ? `${h}h ${m}m` : `${m}m`;
 }
 
-function MissionRow({ mi, cur, claimed, onClaim }: {
+function MissionRow({ mi, questName, cur, claimed, onClaim }: {
   mi: MissionDef;
+  questName: string;
   cur: number;
   claimed: boolean;
   onClaim: (e: React.MouseEvent) => void;
 }): JSX.Element {
   const earned = cur >= mi.target;
-  const pct = Math.min(100, (cur / Math.max(1, mi.target)) * 100);
+  const current = Math.max(0, Math.min(cur, mi.target));
+  const pct = (current / Math.max(1, mi.target)) * 100;
+  const rewards = mi.rewards.map(rewardLabel);
+  const rewardText = `Rewards: ${rewards.map((r) => r.label).join(', ')}`;
   return (
     <div className={`qb-mission${claimed ? ' is-claimed' : earned ? ' is-earned' : ''}`}>
       <div className="qb-m-main">
         <span className="qb-m-name">{mi.name}{!claimed && earned && <i className="qb-m-readydot" aria-label="Ready to claim" />}</span>
         <span className="qb-m-blurb">{mi.blurb}</span>
-        <div className="qb-m-bar" role="progressbar" aria-valuenow={cur} aria-valuemin={0} aria-valuemax={mi.target}>
+        <div className="qb-m-bar" role="progressbar" aria-label={`${questName}: ${mi.name} progress`} aria-valuenow={current} aria-valuemin={0} aria-valuemax={mi.target}
+          aria-valuetext={`${current} of ${mi.target}${claimed ? ', claimed' : earned ? ', ready to claim' : ''}`}>
           <i style={{ width: `${pct}%` }} />
         </div>
       </div>
       <div className="qb-m-side">
-        <span className="qb-m-count">{Math.min(cur, mi.target)}<em>/{mi.target}</em></span>
-        <span className="qb-m-pay" aria-hidden>{mi.rewards.map((r, i) => <i key={i}>{rewardLabel(r).icon}</i>)}</span>
+        <span className="qb-m-count">{current}<em>/{mi.target}</em></span>
+        <span className="qb-m-pay" role="img" aria-label={rewardText} title={rewardText}>{rewards.map((r, i) => <i key={i}>{r.icon}</i>)}</span>
         {claimed
           ? <span className="qb-m-done" aria-label="Claimed">✓</span>
           : earned
-            ? <button className="qb-m-claim act-claim" onClick={onClaim}>Claim</button>
+            ? <button className="qb-m-claim act-claim" aria-label={`Claim ${mi.name} — ${questName}`} onClick={onClaim}>Claim</button>
             : null}
       </div>
     </div>
@@ -115,7 +120,7 @@ function FinaleStrip({ q, firstTime, claimable, claimed, onClaim }: {
       </div>
       {claimed
         ? <span className="qb-finale-done">✓ Claimed</span>
-        : <button className="primary qb-finale-claim" disabled={!claimable} onClick={onClaim}>
+        : <button className="primary qb-finale-claim" disabled={!claimable} aria-label={claimable ? `Claim finale for ${q.name}` : `Complete every mission in ${q.name}`} onClick={onClaim}>
             {claimable ? 'Claim finale' : 'Complete every mission'}
           </button>}
     </div>
@@ -226,6 +231,7 @@ function QuestDirectives(): JSX.Element {
             <MissionRow
               key={mi.id}
               mi={mi}
+              questName={wk.quest.name}
               cur={wk.progress[mi.id] ?? 0}
               claimed={wk.claimed.has(mi.id)}
               onClaim={(e) => claimMission(mi, wk.quest.accent, e)}
@@ -276,6 +282,7 @@ function QuestDirectives(): JSX.Element {
                     <MissionRow
                       key={mi.id}
                       mi={mi}
+                      questName={c.name}
                       cur={progress[mi.id] ?? 0}
                       claimed={claimed.has(mi.id)}
                       onClaim={(e) => claimMission(mi, c.accent, e)}
