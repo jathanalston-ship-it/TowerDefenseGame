@@ -4,25 +4,24 @@
 > before committing. Read together with docs/PROJECT_STATUS.md and the latest
 > docs/VALIDATION_REPORT.md. Next session: start at docs/PROJECT_MANIFEST.md.
 
-- **Generated:** 2026-11-10 04:40 UTC · **Diff scope:** working tree vs HEAD
-- **Branch:** codex/hive-autoplay · **HEAD:** aaaddf1b
+- **Generated:** 2026-11-10 04:45 UTC · **Diff scope:** working tree vs HEAD
+- **Branch:** codex/hive-autoplay · **HEAD:** 85a42cf1
 
 ## Summary of work completed
 
-Active continuous improvement goal: keep improving usability, clarity, graphics, sound, animation and cutscenes without changing gameplay; authorized deployments roughly hourly with website notes. LIVE is bfa87c50fe652ca8105961d2faa2372bf281f51e, v2026.11.09.4 Progress You Can Follow (Actions 42756081493 success, ~04:30 UTC Nov10). Normal game/home/news URLs and play-CtxVJXHT.js verified; all 3150 tests and nine-viewport mobile gate passed before publication. Current LOCAL batch is v2026.11.09.5 Feedback That Stays Readable, two curated notes; .4 is sealed. No deployment for .5 yet. Earlier detailed verification history remains in VALIDATION_REPORT.md.
+Active continuous improvement goal: keep improving usability, clarity, graphics, sound, animation and cutscenes without changing gameplay; authorized deployments roughly hourly with website notes. LIVE is bfa87c50fe652ca8105961d2faa2372bf281f51e, v2026.11.09.4 Progress You Can Follow (Actions 42756081493 success, ~04:30 UTC Nov10). Normal game/home/news URLs and play-CtxVJXHT.js verified; all 3150 tests and nine-viewport mobile gate passed before publication. Current LOCAL batch is v2026.11.09.5 Feedback That Stays Readable, three curated notes; .4 is sealed. No deployment for .5 yet. Earlier detailed verification history remains in VALIDATION_REPORT.md.
 
 ## Files modified
 
-- Source (4): `src/changelog/releases.gen.ts`, `src/ui/TowerPortrait.tsx`, `src/ui/components/HeroPortrait.css`, `src/ui/components/HeroPortrait.tsx`
+- Source (2): `src/changelog/releases.gen.ts`, `src/ui/components/WardrobeReveal.tsx`
 - Tests (0): —
-- Docs (7): `docs/AI_HANDOFF.md`, `docs/HERO-SYMBIOTES.md`, `docs/HISTORY.md`, `docs/PROJECT_STATUS.md`, `docs/UI-MOTION.md`, `docs/VALIDATION_REPORT.md`, `docs/devlog/DRAFT-2026-11-09.md`
+- Docs (6): `docs/AI_HANDOFF.md`, `docs/COSMETICS.md`, `docs/HISTORY.md`, `docs/PROJECT_STATUS.md`, `docs/VALIDATION_REPORT.md`, `docs/devlog/DRAFT-2026-11-09.md`
 
 ## Systems affected (from the dependency registry)
 
 - **chronicle** — `src/changelog/releases.gen.ts`
-- **heroes** — `src/ui/components/HeroPortrait.tsx`
-- **towers** — `src/ui/TowerPortrait.tsx`
-- Consumer ring (verify, unchanged): class-bonds, contracts, daily, engine, equipment, expeditions, hero-cinematics, hero-symbiotes, hive-mind, mulligans
+- **cosmetics** — `src/ui/components/WardrobeReveal.tsx`
+- Consumer ring (verify, unchanged): battle-pass, contracts, daily-login, nemesis, quests
 
 ## Power Score changes
 
@@ -59,3 +58,5 @@ Continue the broad experience audit, then run appropriate final regression/build
 ## Future expansion hooks
 
 Existing HeroPortrait.SymbioteOverlay, TowerPortrait and shared resolveMotion remain the preview seams. No new content or save structures.
+
+WardrobeReveal local follow-up: modal semantics, initial/per-card focus, Tab loop, Escape skips ceremony with focus restoration and no navigation. Single/three/six-item browser probe ../wardrobe-focus-check.cjs PASS; 38 core/meta wardrobe tests PASS. Ledger .5 now three curated notes; production build PASS (Vite 18.39s, service worker stamped). Full regression/mobile gates remain for the next release.

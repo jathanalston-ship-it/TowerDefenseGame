@@ -1369,3 +1369,5 @@ Field-note local improvement: readable hover/focus hold, keyboard Dismiss and po
 Next local batch v2026.11.09.5: readable static upgrade/Power/Mastery feedback under reduced motion, verified by CSS and actual purchase browser probes. .4 remains the live release.
 
 Portrait preview local improvement: offscreen/hidden symbiote drawing stops, live motion changes work for hero/tower canvases, and hero CSS decorations still under reduced motion. Browser lifecycle checks and 15 rendering/motion tests pass.
+
+Cosmetic ceremony local improvement: keyboard focus/Tab/Escape behavior verified across single, sequence and backlog reveals; final cabinet action unchanged. Browser checks and 38 wardrobe tests pass.

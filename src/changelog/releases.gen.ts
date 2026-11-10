@@ -17,6 +17,10 @@ export const RELEASES: Release[] = [
       {
         "cat": "Visuals",
         "text": "Hero symbiote previews pause when off-screen or the page is hidden, and respond immediately to motion-preference changes. Tower previews now follow the in-game motion override too. Reduced-motion hero portraits retain their artwork without spinning decorations."
+      },
+      {
+        "cat": "UI",
+        "text": "Cosmetic unlock ceremonies now focus their main action, keep keyboard navigation inside the card, and carry focus forward through multiple unlocks. Escape skips the ceremony and returns you to the previous control; unlocked items remain in the Specimen Cabinet."
       }
     ]
   },

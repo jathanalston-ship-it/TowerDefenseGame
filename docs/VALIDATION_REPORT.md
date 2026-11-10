@@ -235,3 +235,7 @@ Reduced-motion feedback final production build and four website synchronization 
 Portrait lifecycle follow-up: hero and tower Chrome probes PASS for visible animation, zero offscreen frames, resume, live OS still, in-game motion override/resume/re-disable, visible still pixels and unmount cleanup. One tower assertion sampled immediately after media change failed intermittently; diagnostic repeat passed, then a 300ms settling interval before measuring zero subsequent frames passed. Render symbiotes/feel: 15 tests PASS.
 
 Portrait lifecycle final production build PASS; test/dev processes completed.
+
+Wardrobe ceremony follow-up: Chrome probe PASS for initial/next-card focus, forward/reverse Tab, single-action backlog loop, Escape isolation/restoration and final cabinet navigation exactly once. Real wardrobe definitions used with isolated presentation queue; core wardrobe/wardrobeMeta ownership tests: 38 PASS. Inventory, claiming, gating and persistence unchanged.
+
+Wardrobe ceremony production build PASS: TypeScript, Vite (18.39s), service worker stamping. This is a local checkpoint; full release regression/mobile gates remain pending.

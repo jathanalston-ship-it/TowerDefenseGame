@@ -681,3 +681,4 @@
 - `bfa87c5` **[Framework]** Release: ship clearer controls and progress feedback _(internal)_
 - `b684a2b` **[Framework]** Docs: record verified progress release _(internal)_
 - `aaaddf1` **[UI]** Ui: verify readable reduced motion feedback _(internal)_
+- `85a42cf` **[UI]** Verify responsive portrait animation lifecycle _(internal)_

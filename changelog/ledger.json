@@ -1,6 +1,6 @@
 {
-  "lastSha": "aaaddf1b8f7848a68abc8b91df6d960f0ff5a3b7",
-  "commitsSinceDraft": 1,
+  "lastSha": "85a42cf1785434a4722139649308f43ca1b92c41",
+  "commitsSinceDraft": 2,
   "content": {
     "tower": [
       "needle",
@@ -4283,6 +4283,10 @@
         {
           "cat": "Visuals",
           "text": "Hero symbiote previews pause when off-screen or the page is hidden, and respond immediately to motion-preference changes. Tower previews now follow the in-game motion override too. Reduced-motion hero portraits retain their artwork without spinning decorations."
+        },
+        {
+          "cat": "UI",
+          "text": "Cosmetic unlock ceremonies now focus their main action, keep keyboard navigation inside the card, and carry focus forward through multiple unlocks. Escape skips the ceremony and returns you to the previous control; unlocked items remain in the Specimen Cabinet."
         }
       ]
     }
@@ -9397,6 +9401,14 @@
       "date": "2026-11-09",
       "cat": "UI",
       "text": "Ui: verify readable reduced motion feedback",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "85a42cf1785434a4722139649308f43ca1b92c41",
+      "date": "2026-11-09",
+      "cat": "UI",
+      "text": "Verify responsive portrait animation lifecycle",
       "internal": true,
       "needsReview": false
     }

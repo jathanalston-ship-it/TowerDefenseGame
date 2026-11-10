@@ -3,8 +3,8 @@
 // living preview, name, story and source. The queue is PERSISTED (save.wardrobe.pendingReveal),
 // so a run-end unlock still celebrates after a reload. Click advances; the last click closes.
 
-import { useEffect, useState } from 'react';
-import type { CSSProperties } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import type { CSSProperties, KeyboardEvent } from 'react';
 import { meta } from '../../state/meta';
 import { featureRevealed } from '../../state/unlocks';
 import { navBus } from '../../state/navBus';
@@ -17,6 +17,31 @@ export function WardrobeReveal(): JSX.Element | null {
   const save = meta.use();
   const [queue, setQueue] = useState<WardrobeItemDef[]>([]);
   const [idx, setIdx] = useState(0);
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const open = queue.length > 0;
+  useEffect(() => {
+    if (!open) return;
+    const previous = document.activeElement;
+    return () => { if (previous instanceof HTMLElement && previous.isConnected) previous.focus(); };
+  }, [open]);
+  useEffect(() => {
+    if (open) dialogRef.current?.querySelector<HTMLButtonElement>('.wdr-next')?.focus();
+  }, [open, idx]);
+  const onDialogKey = (e: KeyboardEvent<HTMLDivElement>): void => {
+    if (e.key === 'Escape') {
+      e.preventDefault(); e.stopPropagation();
+      setQueue([]); // already unlocked; dismissal only skips the ceremony
+      audio.cue('ui');
+    } else if (e.key === 'Tab') {
+      const buttons = Array.from(e.currentTarget.querySelectorAll<HTMLButtonElement>('button:not(:disabled)'));
+      const first = buttons[0], last = buttons[buttons.length - 1];
+      if (e.shiftKey && (document.activeElement === first || document.activeElement === e.currentTarget)) {
+        e.preventDefault(); last?.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault(); first?.focus();
+      }
+    }
+  };
 
   // The arrival ceremony HOLDS until the Specimen Cabinet (a Phenotype Lab tab) has revealed —
   // specimens bank silently before that and land as one batch at the reveal
@@ -57,7 +82,7 @@ export function WardrobeReveal(): JSX.Element | null {
   // item named, one gesture. Per-card theater stays for the live-play trickle (≤5).
   if (queue.length > 5) {
     return (
-      <div className="wdr-veil" role="dialog" aria-label={`${queue.length} cosmetics unlocked`}>
+      <div ref={dialogRef} className="wdr-veil" role="dialog" aria-modal="true" tabIndex={-1} onKeyDown={onDialogKey} aria-label={`${queue.length} cosmetics unlocked`}>
         <div className="wdr-card wdr-batch-card">
           <div className="wdr-burst" aria-hidden><i /><i /><i /><i /><i /><i /></div>
           <div className="wdr-eyebrow">SPECIMENS ACQUIRED</div>
@@ -80,7 +105,7 @@ export function WardrobeReveal(): JSX.Element | null {
   }
 
   return (
-    <div className="wdr-veil" role="dialog" aria-label={`Cosmetic unlocked — ${d.name}`} onClick={next}>
+    <div ref={dialogRef} className="wdr-veil" role="dialog" aria-modal="true" tabIndex={-1} onKeyDown={onDialogKey} aria-label={`Cosmetic unlocked — ${d.name}`} onClick={next}>
       <div key={d.id} className={`wdr-card is-${d.rarity} ${rfxClass(d.rarity)}`} style={{ ['--rc' as string]: rc, ['--pc' as string]: d.payload.accent ?? rc } as CSSProperties}>
         <RarityFx rarity={d.rarity} flash />
         <div className="wdr-burst" aria-hidden><i /><i /><i /><i /><i /><i /></div>
