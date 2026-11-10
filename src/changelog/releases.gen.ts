@@ -17,6 +17,10 @@ export const RELEASES: Release[] = [
       {
         "cat": "UI",
         "text": "Production upgrades now show how much more Chitin you need. Keyboard and screen-reader controls identify the upgrade, next level and price, while focused cards describe their current level and unlock requirement."
+      },
+      {
+        "cat": "UI",
+        "text": "The living Hive diagram now pauses its animations while offscreen or in a hidden tab. It follows motion-setting changes immediately, including your explicit animation opt-in, while keeping production and storage information visible."
       }
     ]
   },

@@ -4,24 +4,23 @@
 > before committing. Read together with docs/PROJECT_STATUS.md and the latest
 > docs/VALIDATION_REPORT.md. Next session: start at docs/PROJECT_MANIFEST.md.
 
-- **Generated:** 2026-11-10 23:47 UTC · **Diff scope:** working tree vs HEAD
-- **Branch:** codex/hive-autoplay · **HEAD:** 18694079
+- **Generated:** 2026-11-10 23:51 UTC · **Diff scope:** working tree vs HEAD
+- **Branch:** codex/hive-autoplay · **HEAD:** 50e7885b
 
 ## Summary of work completed
 
-LOCAL unsealed v2026.11.10.16 Smoother Hive Upgrades now has TWO notes. Added exact Chitin shortfall to unaffordable ungated production upgrades; accessible Grow names/tooltips specify node/nextlevel/price. Card name includes current level and stable useId descriptions expose blurb plus shortage/gate. Actual browser accessibility snapshots passed level1/81Chitin and level9/Campaign25 unlock, exact debits and existing focus fallback; repeated growth/animation/reducedmotion regression passed.320px screenshot inspected/no horizontal overflow.63 tests3.16s, docs/handoff and build18366 PASS5.88s/SWmwbcaxms. All processes terminal. Full .16 audit pending; latest full3194tests/productionmobile PASS23:41 before .16UI. Live .15 remains verified23:32UTC; next approximate deploy00:32UTC. Goal active.
+LOCAL .16 Smoother Hive Upgrades now THREE notes. HiveOrganism offscreen SVG animation reproduced still running; added shared live motion prefs + intersection/document visibility lifecycle to pause SVG timeline and CSS animations, respect explicit allowMotion, disable fill transitions under reduction. Starts static before layout effect resolves. Browser probes hive-organism-motion-check.cjs and hive-organism-lifecycle-check.cjs passed offscreen pause/resume, live reduction/opt-in/revoke, simulated hidden-document stopped clock/CSS, rerender stability and visibility resume.320px screenshot reviewed.31 tests3.13s/docs/handoff/build7826 PASS5.65s/SWmwbcfo8l. All processes terminal. Live remains .15 SHAe15b1827f86bdb6c8c722d7e049091a12260d98d verified23:32UTC. Next~00:32UTC; full .16 audit pending. Goal active.
 
 ## Files modified
 
-- Source (3): `src/changelog/releases.gen.ts`, `src/ui/HarvestScreen.css`, `src/ui/HarvestScreen.tsx`
+- Source (3): `src/changelog/releases.gen.ts`, `src/ui/components/HiveOrganism.css`, `src/ui/components/HiveOrganism.tsx`
 - Tests (0): —
-- Docs (6): `docs/HISTORY.md`, `docs/HIVE-PRODUCTION.md`, `docs/IDLE-HARVEST.md`, `docs/PROJECT_MANIFEST.md`, `docs/devlog/DRAFT-2026-11-09.md`, `docs/devlog/DRAFT-2026-11-10.md`
+- Docs (5): `docs/HISTORY.md`, `docs/HIVE-PRODUCTION.md`, `docs/PROJECT_MANIFEST.md`, `docs/devlog/DRAFT-2026-11-09.md`, `docs/devlog/DRAFT-2026-11-10.md`
 
 ## Systems affected (from the dependency registry)
 
 - **chronicle** — `src/changelog/releases.gen.ts`
-- **idle-harvest** — `src/ui/HarvestScreen.tsx`
-- Consumer ring (verify, unchanged): arena
+- **hive-construction** — `src/ui/components/HiveOrganism.tsx`
 
 ## Power Score changes
 
@@ -29,11 +28,11 @@ None. Presentation/focus only.
 
 ## UI changes
 
-Contextual Grow accessible labels/tooltips; current-level card names; associated effect and unavailable-status descriptions; visible exact Chitin shortfall from idleView balance. Browser probes ../harvest-upgrade-guidance-check.cjs, ../harvest-upgrade-gate-guidance-check.cjs, ../harvest-growth-repeat-check.cjs all passed. Screenshot ../harvest-upgrade-guidance-320.png reviewed. Previous stable-card focus implementation retained.
+HiveOrganism presentation only: root motion/active attributes, SVG pause/unpause and CSS pause/reduced styles driven by live shared prefs and visibility. Production/storage/built data unchanged. SVG timeline and CSS verified in Chrome; hidden-document lifecycle simulated via document.hidden getter and visibilitychange. Existing three .16 notes include harvest stable focus and contextual costs.
 
 ## Documentation changes
 
-IDLE-HARVEST, HIVE-PRODUCTION and manifest updated; two game/website notes generated. No new mechanics/audio/help needed.
+HIVE-PRODUCTION and manifest updated; three game/website notes generated. No gameplay/help/audio changes needed.
 
 ## Save changes
 
@@ -49,7 +48,7 @@ Local Chrome still needs MOBILECHECK_CHROMIUM and NODE_OPTIONS parent chrome-pro
 
 ## Recommended next tasks
 
-Continue broader UI/animation/accessibility audit; harvest guidance now covered. Consider other production/growth controls or a separate collection/detail flow for meaningful issues. Begin full .16 validation around00:15UTC for approximate00:32 deployment. No active child processes.
+Continue broader presentation/interaction audit; Hive SVG lifecycle now covered. Inspect another collection/detail or growth flow for concrete issues. Begin full .16 validation around00:15UTC for approximate00:32 deployment. No active child processes.
 
 ## Future expansion hooks
 

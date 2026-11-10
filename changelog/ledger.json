@@ -1,6 +1,6 @@
 {
-  "lastSha": "1869407950ca8cbcb25a4e7054e9cd41ae116245",
-  "commitsSinceDraft": 1,
+  "lastSha": "50e7885bfee2d7a41bba43f17386a07ec4e70001",
+  "commitsSinceDraft": 2,
   "content": {
     "tower": [
       "needle",
@@ -4831,6 +4831,10 @@
         {
           "cat": "UI",
           "text": "Production upgrades now show how much more Chitin you need. Keyboard and screen-reader controls identify the upgrade, next level and price, while focused cards describe their current level and unlock requirement."
+        },
+        {
+          "cat": "UI",
+          "text": "The living Hive diagram now pauses its animations while offscreen or in a hidden tab. It follows motion-setting changes immediately, including your explicit animation opt-in, while keeping production and storage information visible."
         }
       ]
     }
@@ -11177,6 +11181,14 @@
       "date": "2026-11-10",
       "cat": "UI",
       "text": "Ui: preserve harvest upgrade focus and growth feedback",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "50e7885bfee2d7a41bba43f17386a07ec4e70001",
+      "date": "2026-11-10",
+      "cat": "UI",
+      "text": "Explain harvest upgrade costs and requirements",
       "internal": true,
       "needsReview": false
     }
