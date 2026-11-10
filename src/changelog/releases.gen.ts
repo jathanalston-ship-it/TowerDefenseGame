@@ -25,6 +25,10 @@ export const RELEASES: Release[] = [
       {
         "cat": "UI",
         "text": "Tutorial and field-guide text now follows live motion preferences, including Allow motion. Reduced motion reveals the whole sentence immediately, restoring motion does not hide text already read, and assistive technology receives the complete sentence throughout the visual reveal."
+      },
+      {
+        "cat": "UI",
+        "text": "Finishing a field guide with the keyboard now focuses Stay here and makes the completion result available from its controls. Escape closes the completion card, buttons fit narrow screens with larger touch targets, and a separate ceremony opened by your action keeps its focus."
       }
     ]
   },

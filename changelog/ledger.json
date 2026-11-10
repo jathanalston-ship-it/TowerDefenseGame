@@ -1,6 +1,6 @@
 {
-  "lastSha": "b80b67190385b281228dd50a74b2028bbb6b633c",
-  "commitsSinceDraft": 9,
+  "lastSha": "1a3838c4d0e4083f5a1641dd1055bb1b59de3550",
+  "commitsSinceDraft": 0,
   "content": {
     "tower": [
       "needle",
@@ -4491,6 +4491,10 @@
         {
           "cat": "UI",
           "text": "Tutorial and field-guide text now follows live motion preferences, including Allow motion. Reduced motion reveals the whole sentence immediately, restoring motion does not hide text already read, and assistive technology receives the complete sentence throughout the visual reveal."
+        },
+        {
+          "cat": "UI",
+          "text": "Finishing a field guide with the keyboard now focuses Stay here and makes the completion result available from its controls. Escape closes the completion card, buttons fit narrow screens with larger touch targets, and a separate ceremony opened by your action keeps its focus."
         }
       ]
     }
@@ -10069,6 +10073,14 @@
       "date": "2026-11-10",
       "cat": "UI",
       "text": "Ui: make Help topics easier to read and revisit",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "1a3838c4d0e4083f5a1641dd1055bb1b59de3550",
+      "date": "2026-11-10",
+      "cat": "UX",
+      "text": "Honor live motion preferences in tutorial text",
       "internal": true,
       "needsReview": false
     }

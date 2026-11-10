@@ -829,3 +829,5 @@ Mechanic introductions (ui/WhatsNew.tsx): one focus session across queued/summar
 HelpWiki reading navigation: index/Enter selection focuses the article, and Back to topics returns to its current index entry. Related links retain filter-clearing behavior; see HELP.md. Search ranking and progression visibility unchanged.
 
 Tutorial text presentation: tutorial/primitives.tsx consumes meta-store device prefs for live resolved typewriter motion and keeps the full sentence accessible. See TUTORIAL.md and UI-MOTION.md; lesson logic/rewards unchanged.
+
+GuidedUnlock completion (ui/GuidedUnlock.tsx, index.css): focus recovery, described result, local Escape and responsive touch controls; avoids stealing focus from real-action ceremonies. See GUIDED-UNLOCKS.md.

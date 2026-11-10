@@ -4,8 +4,8 @@
 > before committing. Read together with docs/PROJECT_STATUS.md and the latest
 > docs/VALIDATION_REPORT.md. Next session: start at docs/PROJECT_MANIFEST.md.
 
-- **Generated:** 2026-11-10 13:56 UTC · **Diff scope:** working tree vs HEAD
-- **Branch:** codex/hive-autoplay · **HEAD:** b80b6719
+- **Generated:** 2026-11-10 14:02 UTC · **Diff scope:** working tree vs HEAD
+- **Branch:** codex/hive-autoplay · **HEAD:** 1a3838c4
 
 ## Summary of work completed
 
@@ -13,14 +13,14 @@ LIVE v2026.11.10.3 Progress Explained with eight sealed website notes. SHA8bca53
 
 ## Files modified
 
-- Source (3): `src/changelog/releases.gen.ts`, `src/index.css`, `src/ui/tutorial/primitives.tsx`
+- Source (3): `src/changelog/releases.gen.ts`, `src/index.css`, `src/ui/GuidedUnlock.tsx`
 - Tests (0): —
-- Docs (8): `docs/HISTORY.md`, `docs/PROJECT_MANIFEST.md`, `docs/PROJECT_STATUS.md`, `docs/TUTORIAL.md`, `docs/UI-MOTION.md`, `docs/VALIDATION_REPORT.md`, `docs/devlog/DRAFT-2026-11-09.md`, `docs/devlog/DRAFT-2026-11-10.md`
+- Docs (7): `docs/GUIDED-UNLOCKS.md`, `docs/HISTORY.md`, `docs/PROJECT_MANIFEST.md`, `docs/PROJECT_STATUS.md`, `docs/VALIDATION_REPORT.md`, `docs/devlog/DRAFT-2026-11-09.md`, `docs/devlog/DRAFT-2026-11-10.md`
 
 ## Systems affected (from the dependency registry)
 
 - **chronicle** — `src/changelog/releases.gen.ts`
-- **onboarding** — `src/ui/tutorial/primitives.tsx`
+- **onboarding** — `src/ui/GuidedUnlock.tsx`
 - Consumer ring (verify, unchanged): progression-gating
 
 ## Power Score changes
@@ -49,7 +49,7 @@ Windows validate wrapper cannot launch npx/npm with shell:false; use direct gate
 
 ## Recommended next tasks
 
-Continue active improvement goal. Local v2026.11.10.4 Clearer Briefings has four unsealed notes: UpdateBriefing keyboard lifecycle, WhatsNew queue/batch focus, HelpWiki reading flow, and live-motion/accessible Typewriter text. Four browser probes PASS; latest build8.29s,45motion/tutorial/gate/anchor/DIL/site tests,docs PASS. DIL998nodes1943edges. All processes terminal. Next approximate deployment14:33UTC with full release/mobile gates and website notes. Live remains8bca53e6 (.10.3), verified13:33UTC. Keep two untracked devlog drafts unpublished.
+Prepare v2026.11.10.4 Clearer Briefings for approximate14:33UTC deployment: full regression suite, seal five notes, regenerate site, final build/site checks and mobile sweep, then commit/push/follow Actions and verify public game/home/news. Five changes: UpdateBriefing keyboard lifecycle, WhatsNew queue/batch focus, HelpWiki reading flow, live-motion/accessible Typewriter, GuidedUnlock completion focus/fit. Five browser probes PASS; latest build10.71s,18guide/reward/anchor/site tests,docs PASS. DIL998nodes1943edges. All processes terminal. Live remains8bca53e6 (.10.3), verified13:33UTC. Keep two untracked devlog drafts unpublished. Continuous goal remains active beyond deployment.
 
 ## Future expansion hooks
 

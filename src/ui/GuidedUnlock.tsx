@@ -6,7 +6,7 @@
 // Skippable at every moment; a missing anchor degrades to a centered card with no dim (never
 // traps, never blacks out). Rewards ride the tutorial milestone ledger — replays never re-grant.
 
-import { useEffect, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import { guideBus } from '../state/guidedUnlocks';
 import type { GuideDef } from '../state/guidedUnlocks';
 import { FEATURE_BY_ID } from '../state/unlocks';
@@ -17,6 +17,8 @@ import { Spotlight, Callout, Typewriter } from './tutorial/primitives';
 import { useTargetRect } from './tutorial/useTargetRect';
 
 export function GuidedUnlock({ guide, onClose }: { guide: GuideDef; onClose: () => void }): JSX.Element {
+  const rootRef = useRef<HTMLDivElement>(null);
+  const resultId = useId();
   const [i, setI] = useState(0);
   // null = still stepping · {cores} = completion payout · 0 cores renders as plain "integrated"
   const [done, setDone] = useState<{ cores: number } | null>(null);
@@ -32,6 +34,18 @@ export function GuidedUnlock({ guide, onClose }: { guide: GuideDef; onClose: () 
 
   // Folded sections open while the guide runs (SectionNav listens), so every anchor exists.
   useEffect(() => { guideBus.setActive(true); return () => guideBus.setActive(false); }, []);
+  useEffect(() => {
+    const previous = document.activeElement;
+    return () => {
+      if (previous instanceof HTMLElement && previous.isConnected &&
+          (document.activeElement === document.body || rootRef.current?.contains(document.activeElement))) previous.focus({ preventScroll: true });
+    };
+  }, []);
+  useEffect(() => {
+    if (done && (document.activeElement === document.body || rootRef.current?.contains(document.activeElement))) {
+      rootRef.current?.querySelector<HTMLButtonElement>('.guide-stay')?.focus({ preventScroll: true });
+    }
+  }, [done]);
 
   // The practice objective: the player's first real click inside the anchor advances the guide.
   // Capture phase observes WITHOUT consuming — the click still fires the control it landed on,
@@ -49,19 +63,22 @@ export function GuidedUnlock({ guide, onClose }: { guide: GuideDef; onClose: () 
 
   if (done) {
     return (
-      <div className="guide-done" role="status">
-        <span className="guide-done-t">✓ {(FEATURE_BY_ID.get(guide.nav)?.name ?? guide.nav).toUpperCase()} INTEGRATED</span>
-        {done.cores > 0 && <span className="guide-done-r">+{done.cores} Genome Cores banked</span>}
+      <div ref={rootRef} className="guide-done" role="region" aria-label="Field guide complete"
+        onKeyDown={e => { if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); onClose(); } }}>
+        <span id={resultId} className="guide-done-copy" role="status">
+          <span className="guide-done-t">✓ {(FEATURE_BY_ID.get(guide.nav)?.name ?? guide.nav).toUpperCase()} INTEGRATED</span>
+          {done.cores > 0 && <span className="guide-done-r">+{done.cores} Genome Cores banked</span>}
+        </span>
         <span className="guide-done-btns">
-          <button className="primary" onClick={() => { onClose(); navBus.go('home'); }}>⌂ Command Center ▸</button>
-          <button className="guide-stay" onClick={onClose}>Stay here ▸</button>
+          <button className="primary" aria-describedby={resultId} onClick={() => { onClose(); navBus.go('home'); }}>⌂ Command Center ▸</button>
+          <button className="guide-stay" aria-describedby={resultId} onClick={onClose}>Stay here ▸</button>
         </span>
       </div>
     );
   }
 
   return (
-    <div className="guide" role="dialog" aria-label="Field guide">
+    <div ref={rootRef} className="guide" role="dialog" aria-label="Field guide">
       <Spotlight rect={rect} dimWhenMissing={false} />
       <Callout rect={rect} side="bottom">
         <div className="guide-eyebrow">FIELD GUIDE · {i + 1} / {guide.steps.length}</div>
