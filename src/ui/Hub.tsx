@@ -383,7 +383,7 @@ export function Hub({
     // still deep-links; the host component owns the tab strip (ui/components/HostTabs.tsx).
     const k = hostOf(to);
     if (k !== to) requestHostTab(to);
-    if (k === nav && landing === null && !mIndex) return; // already here — no-op, no history churn
+    if (k === nav && landing === null && !mIndex) { setNavOpen(false); return; } // already here — close the drawer without history churn
     audio.cue('ui');
     pushHist();
     // Telemetry: the screen-view lane, plus "a lit badge drew this click" (docs/ANALYTICS.md
@@ -403,7 +403,7 @@ export function Hub({
 
   /** Open a hub's landing page (desktop group headers; landing rows drill in via go). */
   const goLanding = (id: NavGroupId): void => {
-    if (landing === id) return;
+    if (landing === id) { setNavOpen(false); return; }
     // A hub with exactly ONE open screen has no landing — its door IS the screen.
     const sole = soleOpenScreen(save, navGroups().find((g) => g.id === id) ?? navGroups()[0]);
     if (sole) { go(sole); return; }

@@ -688,3 +688,5 @@
 - `3720b7f` **[UI]** Ui: honor live vault feedback preferences _(internal)_
 - `cf5360c` **[Framework]** Docs: record feedback release verification _(internal)_
 - `0452050` **[UI]** Ui: verify stable reward announcements _(internal)_
+- `066e02d` **[Gene Cards]** Preserve reward cards while reading _(internal)_
+- `0b1ea64` **[Developer Tools]** Test: wait for closed navigation drawer in layout gate _(internal)_
