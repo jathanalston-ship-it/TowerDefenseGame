@@ -7,6 +7,7 @@
 import { useEffect, useMemo, useRef } from 'react';
 import type { EquipDef } from '../../core/equipment';
 import { deriveItemArt, drawItemArt, rarityTier } from '../../render/equipmentArt';
+import { motionPrefs, onMotionPrefs, resolveMotion } from '../../state/prefs';
 
 // Rarity colors come from the ONE canonical map (core/equipment.ts) — re-exported for callers.
 import { rarityColorOf as rarityColor } from '../../core/equipment';
@@ -42,10 +43,41 @@ export function ItemArt({
     // Premium tiers (epic+) animate; lower tiers are static (draw once).
     if (rarityTier(rarity) >= 2) {
       let raf = 0;
-      const t0 = performance.now();
-      const loop = (): void => { paint((performance.now() - t0) / 1000); raf = requestAnimationFrame(loop); };
-      raf = requestAnimationFrame(loop);
-      return () => cancelAnimationFrame(raf);
+      let visible = true;
+      let elapsed = 0;
+      let previous: number | null = null;
+      let prefs = motionPrefs();
+      const media = window.matchMedia?.('(prefers-reduced-motion: reduce)');
+      const loop = (now: number): void => {
+        if (previous !== null) elapsed += (now - previous) / 1000;
+        previous = now;
+        paint(elapsed);
+        raf = requestAnimationFrame(loop);
+      };
+      const sync = (): void => {
+        cancelAnimationFrame(raf);
+        previous = null;
+        if (!visible || document.hidden) return;
+        if (resolveMotion(prefs, media?.matches ?? false).motion === 0) paint(0);
+        else raf = requestAnimationFrame(loop);
+      };
+      paint(0);
+      const observer = typeof IntersectionObserver === 'undefined' ? null : new IntersectionObserver(([entry]) => {
+        visible = entry.isIntersecting;
+        sync();
+      });
+      observer?.observe(cv);
+      const offPrefs = onMotionPrefs((next) => { prefs = next; sync(); });
+      media?.addEventListener('change', sync);
+      document.addEventListener('visibilitychange', sync);
+      sync();
+      return () => {
+        cancelAnimationFrame(raf);
+        observer?.disconnect();
+        offPrefs();
+        media?.removeEventListener('change', sync);
+        document.removeEventListener('visibilitychange', sync);
+      };
     }
     paint(0);
     return undefined;

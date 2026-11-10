@@ -352,6 +352,7 @@ Career statistic hints use explicit Details buttons and inline reading panels. P
   `ui/EquipmentPanel.tsx`, `ui/ItemDetails.tsx`, `ui/components/ItemArt.tsx`.
   Docs: `EQUIPMENT.md`, `EQUIPMENT-PHILOSOPHY.md`.
 - **Related:** Hero Equipment (loadouts), Crafting (reforge), Loot (acquisition), Collections.
+- **Card motion:** ItemArt honors live reduced motion/override and pauses offscreen or hidden; static lower rarities are unchanged.
 - **Future expansion:** 500-item target; behavioral affix vocabulary keeps growing.
 - **Known limitations:** exotic rarity is loot-only in places (can't transmute past legendary).
 - **Developer tips:** destruction safeguards + Undo Salvage exist (`EQUIPMENT.md §safeguards`) —

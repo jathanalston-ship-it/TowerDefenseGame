@@ -1,6 +1,6 @@
 {
-  "lastSha": "e74e507f2ec3472ceb2fb61e5bdb5d5c478aec80",
-  "commitsSinceDraft": 6,
+  "lastSha": "8a96f378fbd54ca0936d823e352674ddedde4d5b",
+  "commitsSinceDraft": 7,
   "content": {
     "tower": [
       "needle",
@@ -4655,6 +4655,10 @@
         {
           "cat": "UI",
           "text": "Infestation feed controls now expose their selected state and full region names to assistive tools. Sector hints distinguish a direct pin from a region’s next feed target."
+        },
+        {
+          "cat": "UI",
+          "text": "Premium equipment card artwork now honors live reduced-motion settings and the in-game override. Animated cards pause outside the viewport or in hidden tabs, then resume when visible."
         }
       ]
     }
@@ -10633,6 +10637,14 @@
       "date": "2026-11-10",
       "cat": "UI",
       "text": "Respect live motion settings on infestation map",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "8a96f378fbd54ca0936d823e352674ddedde4d5b",
+      "date": "2026-11-10",
+      "cat": "UI",
+      "text": "Expose infestation feed selection state",
       "internal": true,
       "needsReview": false
     }

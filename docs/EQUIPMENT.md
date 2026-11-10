@@ -560,3 +560,5 @@ legendary-hued bolt.
 The visualization system is feature-complete. (Distinct new equipment SLOTS — helmet/shoulders as
 *separate* slots — were considered and deliberately left out: they are a data-model + balance change,
 not visual polish, and the current 3 slots already render shoulders/back/plates/organs.)
+
+Premium ItemArt card canvases follow live OS reduced motion and the shared in-game override. Reduced motion renders a visible still; IntersectionObserver and document visibility pause offscreen/hidden animation. Resuming preserves animation time without a hidden-time jump. Common/rare art remains static; item stats and generated silhouettes are unchanged.

@@ -4,35 +4,38 @@
 > before committing. Read together with docs/PROJECT_STATUS.md and the latest
 > docs/VALIDATION_REPORT.md. Next session: start at docs/PROJECT_MANIFEST.md.
 
-- **Generated:** 2026-11-10 19:44 UTC · **Diff scope:** working tree vs HEAD
-- **Branch:** codex/hive-autoplay · **HEAD:** e74e507f
+- **Generated:** 2026-11-10 19:48 UTC · **Diff scope:** working tree vs HEAD
+- **Branch:** codex/hive-autoplay · **HEAD:** 8a96f378
 
 ## Summary of work completed
 
-LIVE .10 Know Your Controls, SHA2400521c2dbf87dda58e5e9f5d161fb4800e6cd2, Actions42885435823/job130072400258 SUCCESS including exactSHA guard; normal custom-domain game/home/news/three notes verified19:30UTC, asset /assets/play-DLqe10Zs.js. LOCAL unsealed .11 Map Motion Controls, two generated notes: infestation map follows live motion settings, resizes still canvas correctly and stops hidden animation. Goal active; next approximate deploy20:30UTC.
+LIVE .10 Know Your Controls, SHA2400521c2dbf87dda58e5e9f5d161fb4800e6cd2, Actions42885435823/job130072400258 SUCCESS including exactSHA guard; normal custom-domain game/home/news/three notes verified19:30UTC, asset /assets/play-DLqe10Zs.js. LOCAL unsealed .11 Map Motion Controls, three generated notes: infestation map follows live motion settings, resizes still canvas correctly and stops hidden animation. Goal active; next approximate deploy20:30UTC.
 
 ## Files modified
 
-- Source (2): `src/changelog/releases.gen.ts`, `src/ui/components/InfestationBoard.tsx`
+- Source (2): `src/changelog/releases.gen.ts`, `src/ui/components/ItemArt.tsx`
 - Tests (0): —
-- Docs (5): `docs/HISTORY.md`, `docs/INFESTATION.md`, `docs/PROJECT_MANIFEST.md`, `docs/devlog/DRAFT-2026-11-09.md`, `docs/devlog/DRAFT-2026-11-10.md`
+- Docs (5): `docs/EQUIPMENT.md`, `docs/HISTORY.md`, `docs/PROJECT_MANIFEST.md`, `docs/devlog/DRAFT-2026-11-09.md`, `docs/devlog/DRAFT-2026-11-10.md`
 
 ## Systems affected (from the dependency registry)
 
 - **chronicle** — `src/changelog/releases.gen.ts`
-- **infestation** — `src/ui/components/InfestationBoard.tsx`
+- **equipment** — `src/ui/components/ItemArt.tsx`
+- Consumer ring (verify, unchanged): crafting
 
 ## Power Score changes
 
-None. All .10 changes are UI/presentation; no core simulation or balance changes.
+None. All current changes are UI/presentation; no core simulation or balance changes.
 
 ## UI changes
+
+Premium ItemArt now follows live OS/shared motion preferences, renders a nonblank still, pauses offscreen/hidden and resumes without a hidden-time jump. Baseline browser drew30frames/500ms while reduced. Fixed ../item-art-motion-check.cjs PASS0frames plus override/revoke, viewport/visibility pause-resume and cleanup. Initial fixed probe saw one settling frame with100ms media wait;500ms settling interval passed. Fifteen artwork/UI/site tests PASS2.51s; docs7282 PASS; build21859 PASS9.54s (SWmwb3sfoa), item-art-motion-build.log. No gameplay/save changes. Final release mobile remains pending.
 
 InfestationBoard removes module-level OS motion constant. Component subscribes to shared prefs and media changes; projector re-arms on showMap/reducedMotion, ResizeObserver sizes canvas in both modes, visibility cancels/restarts RAF, reduced data redraw skips hidden documents. Input/pin state and simulation untouched. Feed controls now expose actual selection via aria-pressed, full region names, and distinguish direct sector pins from region-resolved feed markers. Baseline20669 terminalPASS measured57frames in1s after reduce=true; fixed basic probe passed0frames and override behavior. Expanded ../infestation-motion-check.cjs final68906 terminalPASS: live OS change, nonblank still, canvas backing dimensions after resize,16sector controls, real pin click, no restarted still loop, simulated hidden document stop/resume, override/revoke, collapse/reopen, restored OS motion and unmount cleanup. Screenshot ../infestation-motion-still.png inspected. Initial fixture79410 counted clearRect while map uses fillRect; corrected to setTransform. Expanded94370 timed out on fixed200ms resume assertion; corrected to wait for actual frame within5s, final passed. Eleven UI/site tests10221 PASS6.63s; docs28515 PASS. Build84198 PASS12.89s, infestation-motion-build.log, SWmwb3bmh4. Original full mobile93548 terminalPASS: 27 nav screens and nine gameplay profiles. Subsequent selection-only update passed ../infestation-selection-check.cjs: keyboard region/sector selection, truthful resolved-feed marker, toggle off and Spread. Eleven UI/site tests PASS6.02s; docs PASS; build63586 PASS (Vite8.87s, SWmwb3o18o), infestation-selection-build.log.
 
 ## Documentation changes
 
-INFESTATION.md and manifest updated with projector lifecycle. Two curated UI notes generated in ledger/game/site; existing category vocabulary preserved. No new mechanic/reward/save field, so no help registry/audio/migration change needed.
+INFESTATION.md, EQUIPMENT.md and manifest updated with projector lifecycle and equipment card motion. Three curated UI notes generated in ledger/game/site; existing category vocabulary preserved. No new mechanic/reward/save field, so no help registry/audio/migration change needed.
 
 ## Save changes
 
@@ -48,7 +51,7 @@ No new debt intended. Existing Windows validation launcher issue. Two untracked 
 
 ## Recommended next tasks
 
-All validation handles terminal. Local unsealed .11 Map Motion Controls has two generated website notes. Continue evidence-led improvements; next approximate deployment20:30UTC. Before deploying, seal notes, regenerate website, build and run final original mobile gate, then verify Actions and normal public game/news URLs. Live production remains2400521c2dbf87dda58e5e9f5d161fb4800e6cd2. Two untracked devlog drafts remain unpublished.
+All validation handles terminal. Local unsealed .11 Map Motion Controls has three generated website notes. Continue evidence-led improvements; next approximate deployment20:30UTC. Before deploying, seal notes, regenerate website, build and run final original mobile gate, then verify Actions and normal public game/news URLs. Live production remains2400521c2dbf87dda58e5e9f5d161fb4800e6cd2. Two untracked devlog drafts remain unpublished.
 
 ## Future expansion hooks
 

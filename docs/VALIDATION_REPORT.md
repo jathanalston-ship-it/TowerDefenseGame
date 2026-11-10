@@ -735,3 +735,8 @@ Baseline20669 measured57frames/sec after reduced motion enabled. InfestationBoar
 ## 2026-11-10 19:46 UTC — Infestation feed selection accessibility
 
 Original motion mobile93548 terminalPASS27nav+nine gameplay profiles. Feed buttons now expose actual selected state and full region names; region-resolved sector markers are identified as next feed rather than direct pins. Real browser keyboard/click probe passed region selection, direct pin, toggle off and Spread. Docs check and eleven UI/site tests PASS6.02s. Build63586 PASS (Vite8.87s, SWmwb3o18o), infestation-selection-build.log. Mobile coverage predates the ARIA/label-only follow-up; final release gate pending. Two notes generated in unsealed .11 Map Motion Controls. No simulation/save changes. Live remains .10; next approximate deployment20:30UTC.
+
+
+## 2026-11-10 19:50 UTC — Equipment card motion
+
+Premium ItemArt now follows live OS/shared motion preferences, renders a nonblank still, pauses offscreen/hidden and resumes without a hidden-time jump. Baseline browser drew30frames/500ms while reduced. Fixed ../item-art-motion-check.cjs PASS0frames plus override/revoke, viewport/visibility pause-resume and cleanup. Initial fixed probe saw one settling frame with100ms media wait;500ms settling interval passed. Fifteen artwork/UI/site tests PASS2.51s; docs7282 PASS; build21859 PASS9.54s (SWmwb3sfoa), item-art-motion-build.log. No gameplay/save changes. Final release mobile remains pending. Local unsealed .11 has three generated website notes; live remains .10. Next approximate deployment20:30UTC.

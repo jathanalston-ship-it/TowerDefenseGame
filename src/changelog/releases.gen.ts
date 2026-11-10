@@ -17,6 +17,10 @@ export const RELEASES: Release[] = [
       {
         "cat": "UI",
         "text": "Infestation feed controls now expose their selected state and full region names to assistive tools. Sector hints distinguish a direct pin from a region’s next feed target."
+      },
+      {
+        "cat": "UI",
+        "text": "Premium equipment card artwork now honors live reduced-motion settings and the in-game override. Animated cards pause outside the viewport or in hidden tabs, then resume when visible."
       }
     ]
   },
