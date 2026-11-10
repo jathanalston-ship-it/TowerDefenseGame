@@ -1839,3 +1839,8 @@ Early Call build11357 PASS23.95s and original full mobile10866 terminalPASS27nav
 ## 2026-11-10 19:20 UTC — Know Your Controls sealed; final mobile running
 
 Corrected-category build93090 PASS16.32s. Sealed .10 three notes and generated website; four siteSync tests PASS657ms. Final build63376 PASS17.35s, SWmwb2p9ip. Final review corrected automation close label; focused2045 PASS and built GameView-C8pzR7tP.js explicitly contains Close automation help. Original full mobile51961 is RUNNING, controls-release-mobile.log; keep dist fixed/no competing heavy checks. Remote production checked, still48b2f2a8. Live unchanged; deploy after final gate near19:38UTC.
+
+
+## 2026-11-10 19:27 UTC — Know Your Controls ready to publish
+
+Final ORIGINAL mobile51961 terminalPASS27nav+nine gameplay profiles on sealed build63376 (17.35s, SWmwb2p9ip). Focused automation/early-call/motion checks, docs, eleven UI-site and four sealed siteSync tests passed. All handles terminal. Three notes ready; production verification pending authorized push. No balance/save changes.

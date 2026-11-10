@@ -4,8 +4,8 @@
 > before committing. Read together with docs/PROJECT_STATUS.md and the latest
 > docs/VALIDATION_REPORT.md. Next session: start at docs/PROJECT_MANIFEST.md.
 
-- **Generated:** 2026-11-10 19:19 UTC · **Diff scope:** working tree vs HEAD
-- **Branch:** codex/hive-autoplay · **HEAD:** 27819687
+- **Generated:** 2026-11-10 19:26 UTC · **Diff scope:** working tree vs HEAD
+- **Branch:** codex/hive-autoplay · **HEAD:** f084b8cb
 
 ## Summary of work completed
 
@@ -13,14 +13,13 @@ LIVE .9 Read Your Build, SHA48b2f2a81ac463b53708ffcc2aab5b11f7f7cfdc, Actions428
 
 ## Files modified
 
-- Source (2): `src/changelog/releases.gen.ts`, `src/ui/BuildControls.tsx`
+- Source (0): —
 - Tests (0): —
-- Docs (3): `docs/HISTORY.md`, `docs/devlog/DRAFT-2026-11-09.md`, `docs/devlog/DRAFT-2026-11-10.md`
+- Docs (2): `docs/devlog/DRAFT-2026-11-09.md`, `docs/devlog/DRAFT-2026-11-10.md`
 
 ## Systems affected (from the dependency registry)
 
-- **chronicle** — `src/changelog/releases.gen.ts`
-- **run-ui** — `src/ui/BuildControls.tsx`
+- (no registered source files in this diff)
 
 ## Power Score changes
 
@@ -28,7 +27,7 @@ None. All .10 changes are UI/presentation; no core simulation or balance changes
 
 ## UI changes
 
-Final release preparation: corrected automation reader close button name to Close automation help (wave readers retain Close wave details); focused state/keyboard probe2045 terminalPASS. Corrected-category build93090 terminalPASS16.32s. Sealed THREE notes, regenerated site, four siteSync tests PASS657ms. SEALED final build63376 terminalPASS17.35s, controls-release-build.log, SWmwb2p9ip. Explicit bundle check found final close label in dist/assets/GameView-C8pzR7tP.js. Original full mobile51961 is running against this exact build.
+Final release preparation: corrected automation reader close button name to Close automation help (wave readers retain Close wave details); focused state/keyboard probe2045 terminalPASS. Corrected-category build93090 terminalPASS16.32s. Sealed THREE notes, regenerated site, four siteSync tests PASS657ms. SEALED final build63376 terminalPASS17.35s, controls-release-build.log, SWmwb2p9ip. Explicit bundle check found final close label in dist/assets/GameView-C8pzR7tP.js. Original full mobile51961 terminalPASS27nav+nine gameplay profiles on this exact build.
 
 Automation help uses existing bounded briefing reader; locked/waiting/Hive explanations and manual override, safe keys/focus. Real locked/unlocked four-viewport probes passed; original mobile53228 passed. Early Call at320 previously x=-43..19 and unclickable; CSS<=380px reserves second row above canvas. Action probe14282 passed three viewports, hit tests/Pause and real next wave+displayed23Biomass. Its build11357 PASS23.95s and ORIGINAL mobile10866 now terminalPASS27nav+nine profiles.
 
@@ -44,7 +43,7 @@ None. Existing device-local motion preferences are read/subscribed; no new persi
 
 ## Known edge cases
 
-Initial WorldStatus build82064 FAILED because new note used unsupported Accessibility category. Corrected to existing UI and regenerated; replacement93090 and final sealed63376 builds both passed. Final mobile51961 pending. Prior .9 mobile30430 drawer timeout remains documented; unchanged-build diagnostic81740 and final original72320 passed, cause unproven. Existing Windows validate wrapper npx shell:false launch issue remains. Native browser checks do not prove all screen readers.
+Initial WorldStatus build82064 FAILED because new note used unsupported Accessibility category. Corrected to existing UI and regenerated; replacement93090 and final sealed63376 builds both passed. Final original mobile51961 passed. Prior .9 mobile30430 drawer timeout remains documented; unchanged-build diagnostic81740 and final original72320 passed, cause unproven. Existing Windows validate wrapper npx shell:false launch issue remains. Native browser checks do not prove all screen readers.
 
 ## Remaining technical debt
 
@@ -52,7 +51,7 @@ No new debt intended. Existing Windows validation launcher issue. Two untracked 
 
 ## Recommended next tasks
 
-ONLY active handle51961: ORIGINAL full mobilecheck --no-build on sealed final .10 artifact, controls-release-mobile.log. Poll SAME handle; do not overwrite dist or run competing heavy/browser checks. All other handles terminal. Final build63376 PASS17.35s, four sealed siteSync tests PASS, eleven UI/site checks and docs PASS, relevant focused browser/action/motion tests PASS. Three sealed notes, .10 Know Your Controls. Once mobile terminalPASS, record final gates and prepare authorized deployment near19:38UTC (last live18:38). Verify branch codex/hive-autoplay, git add -u (exclude two untracked drafts), commit/push HEAD:refs/heads/claude/zen-hawking-rh1gxl; remote checked19:20 and still48b2f2a81ac463b53708ffcc2aab5b11f7f7cfdc. Verify GitHub Actions head_sha/run/jobs including exactSHA production guard, then ../verify-current-release.ps1 NORMAL custom-domain URLs; sameURLretry20s for cache if needed. Keep goal active, record actual live result. Vite5174 still PID30948,parent32932; no active browser probes.
+All validation handles terminal. SEALED .10 Know Your Controls ready for authorized deployment: final build63376 PASS17.35s, ORIGINAL full mobile51961 PASS27nav+nine profiles, focused state/action/motion/browser checks PASS, docs/eleven UI-site tests/four sealed siteSync tests PASS. No simulation/save changes. Commit/push from codex/hive-autoplay to HEAD:refs/heads/claude/zen-hawking-rh1gxl. Expected old production48b2f2a81ac463b53708ffcc2aab5b11f7f7cfdc. Verify GitHub Actions exactSHA guard, then ../verify-current-release.ps1 NORMAL custom-domain URLs and all THREE notes. Record actual outcome and keep goal active. Two untracked devlog drafts remain unpublished. Vite5174 still PID30948,parent32932; no active probes.
 
 ## Future expansion hooks
 
