@@ -9,7 +9,7 @@
 
 ## Summary of work completed
 
-Live remains v2026.11.10.8 Know What Is Coming, SHA8950ec0d44d7f3959d988c4e6460b42f0a468ca0, Actions42867374482 SUCCESS; normal game/home/news verified17:42UTC. Local SEALED .9 Read Your Build now has FIVE generated website notes: accessible Bond details, Daily run-accurate bond values, readable drafted Gene Cards, HUD explanations below readouts, and safe Space while reading HUD help. Continuous goal active; next approximate deployment18:42UTC.
+LIVE v2026.11.10.9 Read Your Build, five website notes. SHA48b2f2a81ac463b53708ffcc2aab5b11f7f7cfdc; Actions42876793393/job130042106520 SUCCESS including exact-commit production guard. Normal custom-domain game/home/news/all five notes/asset verified18:38UTC; asset /assets/play-7JbVGzDZ.js. Bond and drafted Gene descriptions are accessible disclosures, Daily bond strength is accurate, HUD explanations stay on screen and Space while reading cannot start waves. Continuous goal active; next approximate deployment19:38UTC.
 
 ## Files modified
 
@@ -27,15 +27,11 @@ None. Prior added HUD bond level is read-only; no gameplay, balance or save chan
 
 ## UI changes
 
-Latest validation: unchanged-build four-landscape diagnostic81740 terminalPASS (read-build-drawer-diagnostic.log), all27nav screens and gameplay checks. Original mobile30430 failure remains recorded; root cause unproven. Final SEALED FIVE-NOTE release build20300 terminalPASS21.92s, read-build-final-build.log, SWmwb0wbmg. Original final mobile72320 terminalPASS:27nav screens+nine gameplay profiles, no layout violations.
-
-Latest: GameView consumes Space on focused .hud-cell.tt before wave shortcuts. Real GameView baseline95814 terminalPASS reproduced phase=wave while reading Core. Fixed probe1764 terminalPASS confirmed Core/Power/Biomass remain prep, Hero Space opens Console, and unfocused-board Space starts wave. Eleven site/UI tests78230 and docs38229 terminalPASS. Typecheck96986 terminalPASS. Four sealed siteSync tests PASS552ms.
-
-New CSS-only HUD tooltip placement opens downward, anchors Core/Hero/portrait Biomass inward, and raises active HUD above run controls (49 vs48, below pause50). Initial browser geometry exposed negative top coordinates. First implementation still covered by toolbar; screenshot inspection caught and fixed stacking. Final keyboard-only real GameView probe39136 terminalPASS across320x568,390x844,844x390,1280x800; all visible tooltip bounds inside viewport. Final phone screenshot inspected. Hover geometry also passed before final stacking change. Probe ../hud-tooltip-bounds-check.cjs waits2500ms for initial layout before focus; an earlier keyboard check lost focus during initialization, so its hidden-tooltip result was a fixture issue. Current eleven site/UI-standard tests38320 PASS; docs check PASS. Final production build39671 terminalPASS10.42s, hud-tooltip-final-build.log. Earlier build40313 PASS20.97s predates final z-index line.
+Bond and gene disclosures retain live counts/expanded state and consume reading keys. Daily bond descriptions use HudSnapshot.bonds.level resolved by the run. HUD tooltip CSS opens downward with inward alignment and active stacking above controls; keyboard-only four-viewport probe and phone screenshot verified. GameView guard consumes Space on focused HUD cells; browser probe proves resource reading stays prep, Hero Space still opens Console, board Space still starts waves. Full suite3194tests354files PASS; final build20300 PASS21.92s; typecheck/docs/eleven UI-site tests/four sealed-site tests PASS. Final ORIGINAL mobile72320 PASS27nav+nine gameplay profiles. Focused gene/bond/Daily/HUD browser probes PASS.
 
 ## Documentation changes
 
-HUD.md and PROJECT_MANIFEST.md updated; fourth curated ledger note generated into site/game release data. No new mechanic/reward/save field, so no help, audio or migration change needed.
+HUD.md, CARDS.md, CLASS-BONDS.md and PROJECT_MANIFEST.md updated during this release. Five curated notes sealed/generated/published in ledger, game release data and website. Detailed chronology remains in PROJECT_STATUS.md, VALIDATION_REPORT.md and Git history. No new mechanic/reward/save field requires help/audio/migration changes.
 
 ## Save changes
 
@@ -43,7 +39,7 @@ None.
 
 ## Known edge cases
 
-Prior four-note build passed; mobile30430 terminalFAIL: waitForDrawerClosed timeout5000ms in landscapeRailWalk. This repeats the prior .8 failure mode; root cause remains unproven. Original previous three-note mobile99507 terminalPASS27nav+9gameplay profiles; do not represent it as covering the new HUD CSS. Prior full suite30801 PASS3194tests354files356.10s includes two bond snapshot accuracy tests. Prior gene/bond browser probes allPASS. Windows validate wrapper has known npx shell:false launch failure; direct checks and retained bond-daily-wrapper-report.log document it. Screenshot and keyboard tests do not prove every screen reader speech output.
+Original earlier mobile30430 failed waitForDrawerClosed timeout5000ms, repeating the previous .8 symptom. Unchanged-build four-landscape diagnostic81740 PASS; final original mobile72320 PASS. Root cause remains unproven, failure retained, no gate weakened. Windows validate wrapper retains known npx shell:false launch failure; direct checks and retained bond-daily-wrapper-report.log supplement it. Browser/AX checks do not prove every screen reader speech output.
 
 ## Remaining technical debt
 
@@ -51,8 +47,8 @@ Existing Windows validate launcher issue only. Two untracked docs/devlog/DRAFT-2
 
 ## Recommended next tasks
 
-All local validation handles terminal. Final original mobile72320 PASS, full3194tests/354files PASS, final build20300 PASS21.92s, typecheck and docs PASS, focused browser checks PASS, sealed siteSync4tests PASS. Original30430 failure and unchanged-build diagnostic81740 PASS remain recorded; cause unproven, no checks weakened. Ready to deploy sealed v2026.11.10.9 Read Your Build, five notes. Verify branch, commit, git push origin HEAD:refs/heads/claude/zen-hawking-rh1gxl, then verify Actions exactSHA guard and ../verify-current-release.ps1 normal URLs. Expected old production8950ec0d44d7f3959d988c4e6460b42f0a468ca0. Two untracked devlog drafts remain unpublished. Keep goal active. Vite5174 remains PID30948,parent32932, no active browser probes.
+All validation/deployment handles terminal. Release .9 verified live; continue evidence-led playability/clarity/accessibility/presentation improvements without balance changes, next approximate deployment19:38UTC with website notes. Current production SHA48b2f2a81ac463b53708ffcc2aab5b11f7f7cfdc. Work on codex/hive-autoplay; git add -u leaves the two untracked unpublished devlog drafts out. Vite5174 remains PID30948,parent32932, no active browser probes; verify exact command lines before cleanup. Parent probe files are local artifacts outside repo. Future mobile runs: original gate, Chrome headless=new preload, no concurrent builds/dist writes; poll same handle until terminal.
 
 ## Future expansion hooks
 
-BuildPanel native disclosures remain the in-flow reading pattern; HudSnapshot.bonds.level is authoritative run strength. Production command: git push origin HEAD:refs/heads/claude/zen-hawking-rh1gxl from codex/hive-autoplay. Current remote expected8950ec0d44d7f3959d988c4e6460b42f0a468ca0. No PR unless asked.
+BuildPanel native disclosures remain the in-flow reading pattern; HudSnapshot.bonds.level is authoritative run strength. Production command: git push origin HEAD:refs/heads/claude/zen-hawking-rh1gxl. Verify Actions exactSHA guard plus ../verify-current-release.ps1 NORMAL public URLs each deployment. No PR unless asked. Next read-only review can explore other help/accessibility surfaces; reproduce any issue before editing.

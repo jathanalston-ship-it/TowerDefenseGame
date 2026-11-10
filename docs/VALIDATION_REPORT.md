@@ -680,3 +680,8 @@ Unchanged-build drawer diagnostic81740 terminalPASS:27nav screens and gameplay c
 ## 2026-11-10 18:35 UTC — Read Your Build ready for deployment
 
 Final ORIGINAL mobile72320 terminalPASS:27nav screens and nine gameplay profiles, no overflow/clipping/target/run-chrome violations. Final build20300 PASS21.92s, prior full suite3194tests/354files PASS, typecheck/docs/focused browser and sealed siteSync checks PASS. Earlier mobile30430 drawer timeout remains documented; unchanged-build diagnostic81740 passed and no gate was weakened. Sealed .9 contains five website notes and is ready for authorized deployment; production verification still pending.
+
+
+## 2026-11-10 18:38 UTC — Read Your Build LIVE
+
+Deployed SHA48b2f2a81ac463b53708ffcc2aab5b11f7f7cfdc. Actions42876793393/job130042106520 SUCCESS including exact-commit production guard. Normal custom-domain game, homepage, news, all five notes and asset verified by verify-current-release.ps1; asset /assets/play-7JbVGzDZ.js. Final original mobile72320 PASS27nav+nine gameplay layouts. Release v2026.11.10.9 Read Your Build is live. Goal remains active; next approximate deployment19:38UTC.
