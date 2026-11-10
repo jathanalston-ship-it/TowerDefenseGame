@@ -4,7 +4,7 @@
 // and an Equipment (gear) Score. Scales to hundreds (data-driven grid) and is rarity-agnostic
 // (mythic/seasonal-ready). Reads the reactive save; equips/crafts/favorites go through meta.
 
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { meta } from '../state/meta';
 import { equipAllPlan, equipUpgrades } from '../state/equipAdvisor';
 import { listOrgPrefs, setListOrgPrefs } from '../state/prefs';
@@ -62,6 +62,12 @@ function ArmoryBody(): JSX.Element {
   });
   const setSort = (s: SortKey): void => { setSortState(s); setListOrgPrefs('equipment', { sort: s }); };
   const [favOnly, setFavOnly] = useState(false);
+  const allCategoriesRef = useRef<HTMLButtonElement>(null);
+  const filtersActive = category !== 'all' || rarity !== 'all' || favOnly;
+  const clearFilters = (): void => {
+    setCategory('all'); setRarity('all'); setFavOnly(false);
+    allCategoriesRef.current?.focus();
+  };
   const [detailsUid, setDetailsUid] = useState<string | null>(null); // opens the Equipment Details screen
   // Quick-Salvage mode: multi-select unlocked gear, then dismantle the batch in one action
   // (docs/EQUIPMENT.md §safeguards — locked/favorite/equipped items are inert and never selectable).
@@ -106,6 +112,7 @@ function ArmoryBody(): JSX.Element {
   const gearScore = loadoutScore(inventory, loadout);
   const idxOf = new Map(inventory.map((i, n) => [i.uid, n] as const));
   const raritiesPresent = RARITY_ORDER.filter((r) => inventory.some((i) => i.rarity === r));
+  const rarityChoices = RARITY_ORDER.filter((r) => raritiesPresent.includes(r) || r === rarity);
 
   const shown = inventory
     .filter((i) => {
@@ -331,24 +338,25 @@ function ArmoryBody(): JSX.Element {
 
       {/* Controls: category · rarity · sort · favorites */}
       <div className="armory-controls">
-        <div className="ac-group">
+        <div className="ac-group" role="group" aria-label="Equipment category">
           {(['all', 'weapon', 'armor', 'relic'] as const).map((f) => (
-            <button key={f} className={category === f ? 'on' : ''} onClick={() => setCategory(f)}>
+            <button key={f} ref={f === 'all' ? allCategoriesRef : undefined} className={category === f ? 'on' : ''} aria-pressed={category === f} aria-label={f === 'all' ? 'All gear categories' : `${SLOT_LABELS[f]} filter`} onClick={() => setCategory(f)}>
               {f === 'all' ? 'All' : SLOT_LABELS[f]}
             </button>
           ))}
         </div>
-        {raritiesPresent.length > 1 && (
-          <div className="ac-group">
-            <button className={rarity === 'all' ? 'on' : ''} onClick={() => setRarity('all')}>Any</button>
-            {raritiesPresent.map((r) => (
-              <button key={r} className={rarity === r ? 'on' : ''} style={rarity === r ? { color: rarityColor(r), borderColor: rarityColor(r) } : { color: rarityColor(r) }} onClick={() => setRarity(r)}>{rarityLabelOf(r)}</button>
+        {(raritiesPresent.length > 1 || rarity !== 'all') && (
+          <div className="ac-group" role="group" aria-label="Equipment rarity">
+            <button className={rarity === 'all' ? 'on' : ''} aria-pressed={rarity === 'all'} aria-label="Any gear rarity" onClick={() => setRarity('all')}>Any</button>
+            {rarityChoices.map((r) => (
+              <button key={r} className={rarity === r ? 'on' : ''} aria-pressed={rarity === r} style={rarity === r ? { color: rarityColor(r), borderColor: rarityColor(r) } : { color: rarityColor(r) }} onClick={() => setRarity(r)}>{rarityLabelOf(r)}</button>
             ))}
           </div>
         )}
         <div className="ac-group ac-right">
           <button className={`${salvageMode ? 'on' : ''} ac-salv`} onClick={() => (salvageMode ? exitSalvage() : setSalvageMode(true))} title="Quick-Salvage — multi-select unlocked gear to dismantle in one go">◳ Salvage</button>
-          <button className={favOnly ? 'on' : ''} onClick={() => setFavOnly((v) => !v)} title="Show favorites only">★ Favorites</button>
+          <button className={favOnly ? 'on' : ''} aria-pressed={favOnly} onClick={() => setFavOnly((v) => !v)} title="Show favorites only">★ Favorites</button>
+          {filtersActive && <button onClick={clearFilters}>Clear filters</button>}
           <label className="ac-sort">Sort
             <select value={sort} onChange={(e) => setSort(e.target.value as SortKey)}>
               {SORTS.map((s) => <option key={s.key} value={s.key}>{s.label}</option>)}

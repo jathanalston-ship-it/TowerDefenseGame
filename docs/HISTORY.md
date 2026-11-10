@@ -803,3 +803,4 @@
 - `5e78a28` **[UI]** Ui: contain and restore item details keyboard focus _(internal)_
 - `9b2af4c` **[UI]** Keep pause settings comfortable on touchscreens _(internal)_
 - `a43c562` **[UI]** Ui: clarify quest progress rewards and claims _(internal)_
+- `2a0cf6b` **[UI]** Refresh the visible weekly contract board _(internal)_

@@ -26,6 +26,10 @@
       {
         "cat": "Bug Fixes",
         "text": "Champion Contracts now refresh their weekly roster, completion marks, and rotation countdown while the card is open, and immediately when you return to the tab. Leaving the screen cleans up its refresh timer."
+      },
+      {
+        "cat": "Bug Fixes",
+        "text": "The Armory keeps your selected rarity filter visible even after its last item is removed. Clear filters restores all categories, rarities, and favorites while keeping your sort choice; filter buttons now expose their selected state."
       }
     ]
   },

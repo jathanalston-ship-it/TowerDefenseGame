@@ -1,6 +1,6 @@
 {
-  "lastSha": "a43c562add09f658bdc14a47b191dc8bfd3e668a",
-  "commitsSinceDraft": 8,
+  "lastSha": "2a0cf6b1af2204b6677983579aa6ba583bf16ad2",
+  "commitsSinceDraft": 9,
   "content": {
     "tower": [
       "needle",
@@ -4703,6 +4703,10 @@
         {
           "cat": "Bug Fixes",
           "text": "Champion Contracts now refresh their weekly roster, completion marks, and rotation countdown while the card is open, and immediately when you return to the tab. Leaving the screen cleans up its refresh timer."
+        },
+        {
+          "cat": "Bug Fixes",
+          "text": "The Armory keeps your selected rarity filter visible even after its last item is removed. Clear filters restores all categories, rarities, and favorites while keeping your sort choice; filter buttons now expose their selected state."
         }
       ]
     }
@@ -10777,6 +10781,14 @@
       "date": "2026-11-10",
       "cat": "UI",
       "text": "Ui: clarify quest progress rewards and claims",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "2a0cf6b1af2204b6677983579aa6ba583bf16ad2",
+      "date": "2026-11-10",
+      "cat": "UI",
+      "text": "Refresh the visible weekly contract board",
       "internal": true,
       "needsReview": false
     }
