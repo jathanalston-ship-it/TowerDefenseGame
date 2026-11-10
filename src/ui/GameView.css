@@ -1810,7 +1810,7 @@
 
 /* ── HERO COMBAT CONSOLE (docs/HERO-EVOLUTION.md §console) — three-region command surface.
    Reuses the evo-menu shell; wider, with the roster tabs + vitals | showcase | upgrades. ── */
-.evo-menu.hcc { width: min(980px, 96%); max-height: calc(var(--app-h) - 110px - var(--safe-t) - var(--safe-b)); overflow-y: auto; }
+.evo-menu.hcc { z-index: 60; width: min(980px, 96%); max-height: calc(var(--app-h) - 110px - var(--safe-t) - var(--safe-b)); overflow-y: auto; }
 
 .hcc-held { margin-left: 10px; padding: 2px 9px; border-radius: 999px; font-size: 10px; font-weight: 800; letter-spacing: 0.08em; color: var(--warn); border: 1px solid color-mix(in srgb, var(--warn) 45%, var(--line)); background: color-mix(in srgb, var(--warn) 9%, transparent); }
 

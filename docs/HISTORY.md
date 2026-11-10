@@ -672,3 +672,4 @@
 - `60dd21e` **[UI]** Verify reward clarity and accessible UI feedback _(internal)_
 - `33676de` **[Visuals]** Ship clearer rewards help and visual feedback _(internal)_
 - `8a3c0cf` **[Bug Fixes]** Ui: isolate draft and pause keyboard controls _(internal)_
+- `b3308c3` **[UI]** Ui: verify pause focus and phone layering _(internal)_

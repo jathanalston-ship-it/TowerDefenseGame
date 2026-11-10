@@ -328,3 +328,5 @@ verified at 4K/Deck/720p/iPad/phones with the board dominant and all chrome reac
 - **Content caps** (`src/dev/mobileContent.test.ts`): names ≤26 chars, descriptions
   ≤240 across towers/heroes/enemies/cards/upgrades/biomes/megas — new content that
   would break a phone layout fails `npm test` the moment it's added.
+
+Purchase accessibility: usePressRepeat handles non-pointer click activation once (keyboard/assistive detail=0); pointer activation already fires on pointerdown and must not be charged again on click. Call sites composing onClick must forward the hook callback. Hero upgrades retain their DOM button through purchase feedback.

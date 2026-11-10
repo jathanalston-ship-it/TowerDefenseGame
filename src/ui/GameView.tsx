@@ -1302,7 +1302,7 @@ export function GameView({
             {hiveTicker.lines.length > 6 && <span>+{hiveTicker.lines.length - 6} more</span>}
           </div>
         )}
-        {(hud.phase === 'prep' || hud.phase === 'wave') && (
+        {!evoOpen && (hud.phase === 'prep' || hud.phase === 'wave') && (
           <button
             className="pause-btn"
             onClick={togglePause}

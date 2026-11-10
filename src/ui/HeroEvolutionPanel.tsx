@@ -49,7 +49,7 @@ function UpgradeRow({
   const maxed = level >= HERO_EVO.maxLevel;
   // Hold-to-buy (usePressRepeat): each fire attempts ONE level; a failed buy halts the hold.
   const press = usePressRepeat(() => !maxed && onBuy(1));
-  const [flash, setFlash] = useState(0);
+  const [flash, setFlash] = useState(false);
 
   // Full comparison for the expanded state — the REAL models end to end.
   const detail = useMemo(() => {
@@ -72,7 +72,8 @@ function UpgradeRow({
   }, [cat, level, levels, maxed, powerDelta]);
 
   return (
-    <div className={`hcc-row${expanded ? ' is-open' : ''}${flash ? ' is-bought' : ''}`} key={flash}>
+    <div className={`hcc-row${expanded ? ' is-open' : ''}${flash ? ' is-bought' : ''}`}
+      onAnimationEnd={(e) => { if (e.target === e.currentTarget) setFlash(false); }}>
       <button className="hcc-row-head" onClick={onToggle} aria-expanded={expanded}>
         <span className="hcc-row-icon" aria-hidden>{cat.icon}</span>
         <span className="hcc-row-name">{cat.name}</span>
@@ -85,9 +86,10 @@ function UpgradeRow({
       <button
         className={`hcc-buy${affordable ? ' can' : ''}`}
         disabled={maxed || !affordable}
+        aria-label={maxed ? `${cat.name} fully evolved` : `Upgrade ${cat.name} for ${cost} Biomass`}
         title={maxed ? 'Maxed out' : `Hold to repeat · shift-click buys 5 · ${cost} Biomass`}
         {...press}
-        onClick={(e) => { if (e.shiftKey) { for (let i = 0; i < 4; i++) if (!onBuy(1)) break; } setFlash((n) => n + 1); }}
+        onClick={(e) => { press.onClick(e); if (e.shiftKey) { for (let i = 0; i < 4; i++) if (!onBuy(1)) break; } setFlash(true); }}
       >
         {maxed ? 'MAX' : <>{cost} ⬢</>}
       </button>
@@ -145,7 +147,7 @@ export function HeroEvolutionPanel({
     if (!game.buyHeroEvolution(id)) return false;
     audio.cue('splice');
     announcePower('Hero Evolution', powerBefore, meta.powerWith(game.powerEffects()).score);
-    const lvl = (hud.heroEvo.levels[id] ?? 0) + 1; // hud refreshes next tick; show the level just reached
+    const lvl = game.heroEvoLevelsView()[id] ?? 0; // multi-buy can advance several levels before HUD refresh
     const gain = cat.op === 'mul' ? pct(Math.abs(cat.perLevel)) : pct(cat.perLevel);
     const fid = ++floats.current;
     setFloatFx((f) => [...f.slice(-3), { id: fid, text: `${gain} ${cat.name} · Lv ${lvl}` }]);

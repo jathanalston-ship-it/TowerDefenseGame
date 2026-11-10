@@ -21,6 +21,10 @@ export const RELEASES: Release[] = [
       {
         "cat": "UI",
         "text": "Pause-menu settings and confirmation buttons now work correctly with Enter and Space. Resuming with Space no longer also starts a wave, and board shortcuts stay quiet while paused, inside the hero console, or typing in a text field. Pause-menu focus stays inside its controls, returns when closed, and starts on Keep Playing when confirming abandonment. On phones, the pause menu stays above open run drawers so Resume remains reachable."
+      },
+      {
+        "cat": "UI",
+        "text": "Evolution purchases now work with Enter and Space as well as clicking or holding. Hero upgrade buttons name the upgrade and Biomass cost, keep keyboard focus after buying, and show the correct level after buying several upgrades. The hero console stays above game-speed controls so its Close button remains clickable."
       }
     ]
   },

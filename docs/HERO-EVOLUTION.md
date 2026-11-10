@@ -6,8 +6,12 @@ ends — nothing is saved. A second strategic layer (which axes to deepen with y
 interrupts gameplay.
 
 ## Player-facing
-- **Access:** a **Hero Evolution** button in the Run Build panel (beside Gene Cards) opens a
-  **non-modal** menu — the sim keeps running while it's open.
+- **Access:** the Hero Evolution button or E opens the Hero Combat Console. The battlefield
+  pauses while it is open and restores the previous pause state on close.
+- **Keyboard purchases:** Enter/Space buys once; Shift also buys up to five. Pointer clicks
+  still buy exactly once, holding repeats with the affordability guard. Upgrade feedback
+  preserves the focused button and reports the actual reached level during multi-buy.
+  The console stays above board controls; its Close button remains reachable.
 - **10 axes × 10 levels:** Vitality (HP), Lethality (damage), Frenzy (attack + pulse speed),
   Swiftness (move speed), Overdrive (ability cooldown ↓), Amplitude (ability radius), Precision
   (crit chance), Savagery (crit damage), Regeneration (healing received), Carapace (armor).

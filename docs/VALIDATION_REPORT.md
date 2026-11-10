@@ -182,3 +182,7 @@ Draft keyboard Chrome probe PASS: focused non-recommended choice, Stop Hive and 
 Pause keyboard Chrome probe PASS: settings toggle stays paused, abandon/Keep Playing preserve confirmation flow, Resume Space does not launch, paused board keys ignored, normal Space/P retained, hero console isolates hotkeys, text entry ignored. Production build PASS; tutorial/tutorialGate/hivemind: 43 tests PASS. No simulation, balance, save, reward or audio changes.
 
 Pause dialog follow-up: strict typecheck PASS. Chrome verifies initial/restored focus, both Tab wrapping directions, every button/slider reachable, safe Keep Playing focus, and all prior keyboard cases. Phone 390x844 pause screenshot inspected. A reproduced open-Status-drawer veil interception was fixed by raising the phone pause layer above drawers; identical click probe now PASS. Harness initializes the actual layout profile (manually setting only the CSS data attribute left stale desktop drawer state).
+
+Evolution purchase probe PASS in real GameView: pointer buys exactly one, Enter/Space one, Shift-click and Shift-Enter five, focus retained, multi-buy float reflects actual level, hold repeats and release stops. Reproduced console Close being intercepted by game-speed controls; console z-index now above run controls and same click succeeds. Core/render heroEvolution: 19 tests PASS.
+
+Shared purchase hook standalone browser check also PASS (Evolution HQ call pattern without a click override): pointer/Enter/Space each buy once; hold stops at affordability limit. Production build PASS.

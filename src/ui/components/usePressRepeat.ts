@@ -11,6 +11,7 @@ const REPEAT_FLOOR_MS = 70; // ramps down to this (satisfying, never uncontrolla
 const RAMP = 0.92;
 
 export interface PressRepeatHandlers {
+  onClick: (e: React.MouseEvent) => void;
   onPointerDown: (e: React.PointerEvent) => void;
   onPointerUp: () => void;
   onPointerLeave: () => void;
@@ -39,6 +40,9 @@ export function usePressRepeat(fire: (step: number) => boolean): PressRepeatHand
   };
 
   return {
+    // Keyboard/assistive clicks have no preceding pointer press. Pointer clicks already
+    // bought on pointerdown, so handling both would charge twice.
+    onClick: (e) => { if (e.detail === 0) fireRef.current(0); },
     onPointerDown: (e) => {
       if (e.button !== 0 && e.pointerType === 'mouse') return;
       stop();

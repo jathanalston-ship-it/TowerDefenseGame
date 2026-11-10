@@ -4,8 +4,8 @@
 > before committing. Read together with docs/PROJECT_STATUS.md and the latest
 > docs/VALIDATION_REPORT.md. Next session: start at docs/PROJECT_MANIFEST.md.
 
-- **Generated:** 2026-11-10 03:54 UTC · **Diff scope:** working tree vs HEAD
-- **Branch:** codex/hive-autoplay · **HEAD:** 8a3c0cf5
+- **Generated:** 2026-11-10 03:59 UTC · **Diff scope:** working tree vs HEAD
+- **Branch:** codex/hive-autoplay · **HEAD:** b3308c32
 
 ## Summary of work completed
 
@@ -13,14 +13,17 @@ Active continuous improvement goal remains active; owner authorizes verified rel
 
 ## Files modified
 
-- Source (3): `src/changelog/releases.gen.ts`, `src/ui/GameView.css`, `src/ui/GameView.tsx`
+- Source (5): `src/changelog/releases.gen.ts`, `src/ui/GameView.css`, `src/ui/GameView.tsx`, `src/ui/HeroEvolutionPanel.tsx`, `src/ui/components/usePressRepeat.ts`
 - Tests (0): —
-- Docs (6): `docs/AI_HANDOFF.md`, `docs/HISTORY.md`, `docs/HUD.md`, `docs/PROJECT_STATUS.md`, `docs/VALIDATION_REPORT.md`, `docs/devlog/DRAFT-2026-11-09.md`
+- Docs (7): `docs/AI_HANDOFF.md`, `docs/HERO-EVOLUTION.md`, `docs/HISTORY.md`, `docs/PROJECT_STATUS.md`, `docs/RESPONSIVE-DESIGN.md`, `docs/VALIDATION_REPORT.md`, `docs/devlog/DRAFT-2026-11-09.md`
 
 ## Systems affected (from the dependency registry)
 
 - **chronicle** — `src/changelog/releases.gen.ts`
+- **heroes** — `src/ui/HeroEvolutionPanel.tsx`
 - **run-ui** — `src/ui/GameView.tsx`
+- **ui-kit** — `src/ui/components/usePressRepeat.ts`
+- Consumer ring (verify, unchanged): class-bonds, engine, equipment, expeditions, hero-cinematics, hero-symbiotes, hive-mind
 
 ## Power Score changes
 
@@ -59,3 +62,5 @@ Continue evidence-driven usability, visual, sound and cinematic improvements. Ru
 Existing ProgressBar, DraftModal and GameView remain the shared seams; no new framework needed.
 
 Pause follow-up evidence: phone 390x844 screenshot inspected; reproduced open-drawer veil blocking Resume and fixed phone pause z-index to 660. Full pause Chrome probe now PASS with actual initLayoutProfile, including desktop focus checks and phone confirmation/resume/open-drawer pause. No gameplay changes.
+
+Next local follow-up: shared usePressRepeat now supports keyboard/assistive clicks without double charging pointer clicks. Hero upgrade callback forwards handler; row flash no longer remounts focused button; purchase labels name upgrade/cost; multi-buy float uses actual level. Console z-index raised above board controls after Close click interception reproduced; redundant pause button hidden while console owns pause. ../evolution-purchase-check.cjs and 19 evolution tests PASS. Add final build/full-suite/mobile release gates before deployment.
