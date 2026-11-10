@@ -1,6 +1,6 @@
 {
-  "lastSha": "251bfdf5966477e508c36cd2fc810a7e80d3de6e",
-  "commitsSinceDraft": 0,
+  "lastSha": "98802f15b0593309c864a45376d845173e96fb8c",
+  "commitsSinceDraft": 1,
   "content": {
     "tower": [
       "needle",
@@ -4754,7 +4754,7 @@
       "id": "v2026.11.10.14",
       "date": "2026-11-10",
       "title": "Clearer Help and Previews",
-      "sealed": false,
+      "sealed": true,
       "entries": [
         {
           "cat": "UI",
@@ -11037,6 +11037,14 @@
       "date": "2026-11-10",
       "cat": "UI",
       "text": "Ui: clarify nucleus socket selection and preserve focus",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "98802f15b0593309c864a45376d845173e96fb8c",
+      "date": "2026-11-10",
+      "cat": "UI",
+      "text": "Ui: preserve focus through nucleus chamber opening",
       "internal": true,
       "needsReview": false
     }

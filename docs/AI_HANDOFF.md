@@ -4,23 +4,22 @@
 > before committing. Read together with docs/PROJECT_STATUS.md and the latest
 > docs/VALIDATION_REPORT.md. Next session: start at docs/PROJECT_MANIFEST.md.
 
-- **Generated:** 2026-11-10 22:24 UTC · **Diff scope:** working tree vs HEAD
-- **Branch:** codex/hive-autoplay · **HEAD:** 251bfdf5
+- **Generated:** 2026-11-10 22:27 UTC · **Diff scope:** working tree vs HEAD
+- **Branch:** codex/hive-autoplay · **HEAD:** 98802f15
 
 ## Summary of work completed
 
-LOCAL unsealed v2026.11.10.14 Clearer Help and Previews has EIGHT notes. Nucleus opening baseline dropped keyboard focus when showing confirmation. Added named confirmation group including chamber/cost, focus on Not yet at entry, return to opener on cancel and first new socket after success. Parent nucleus-opening-focus-check.cjs passed all-keyboard open/cancel/confirm, no pre-confirm charge and actual300 Ichor debit once. Fixture uses real meta unlock with isolated eligible nucleusGateSnapshot; no real save touched. Existing socket graft/extract regression passed.33 nucleus/UI/site tests passed2.23s; docs/handoff/build34749 passed (5.71s Vite, SWmwb9chs4, nucleus-opening-build.log). All processes terminal. No gate, cost, XP fold, save or simulation changes. Prior full suite3194tests/354files passed160.28s. LIVE remains .13 SHA da7800db61388e86c9a7a987b6bb823a6bd48e20, verified21:48UTC. Next approximate deployment22:50UTC; goal active.
+RELEASE PREP: v2026.11.10.14 Clearer Help and Previews sealed with eight notes. Final suite20592 passed3194tests/354files159.24s; final build86909 passed7.56s Vite, SWmwb9ev4e, asset /assets/play-OJ1qam35.js. Built news contains all8notes. Original mobile59018 PASS27navigation screens and nine gameplay viewport profiles, including drawer/rotation/run-chrome contracts. All local processes terminal. Docs11500 and handoff passed. Validation wrapper Windows npx-launch limitation recurred; preserved raw wrapper report/log and restored canonical prior report. LIVE remains .13 da7800db61388e86c9a7a987b6bb823a6bd48e20, verified21:48UTC. Goal active.
 
 ## Files modified
 
-- Source (2): `src/changelog/releases.gen.ts`, `src/ui/NucleusChambers.tsx`
+- Source (1): `src/changelog/releases.gen.ts`
 - Tests (0): —
-- Docs (5): `docs/HISTORY.md`, `docs/NUCLEUS.md`, `docs/PROJECT_MANIFEST.md`, `docs/devlog/DRAFT-2026-11-09.md`, `docs/devlog/DRAFT-2026-11-10.md`
+- Docs (3): `docs/HISTORY.md`, `docs/devlog/DRAFT-2026-11-09.md`, `docs/devlog/DRAFT-2026-11-10.md`
 
 ## Systems affected (from the dependency registry)
 
 - **chronicle** — `src/changelog/releases.gen.ts`
-- **nucleus** — `src/ui/NucleusChambers.tsx`
 
 ## Power Score changes
 
@@ -28,11 +27,11 @@ None. Search presentation only; progression, rewards and simulation unchanged.
 
 ## UI changes
 
-Nucleus opening baseline dropped keyboard focus when showing confirmation. Added named confirmation group including chamber/cost, focus on Not yet at entry, return to opener on cancel and first new socket after success. Parent nucleus-opening-focus-check.cjs passed all-keyboard open/cancel/confirm, no pre-confirm charge and actual300 Ichor debit once. Fixture uses real meta unlock with isolated eligible nucleusGateSnapshot; no real save touched. Existing socket graft/extract regression passed.33 nucleus/UI/site tests passed2.23s; docs/handoff/build34749 pending. No gate, cost, XP fold, save or simulation changes.
+Eight verified improvements: Help search recovery; graft and Nucleus preview live-motion/visibility lifecycle; reforge viewport/focus and live motion; reward reveal/count-up live motion; Nucleus socket selection/action focus; Nucleus chamber confirmation focus. Parent browser probes and focused tests documented in PROJECT_STATUS and VALIDATION_REPORT. No gameplay, cost, save or balance changes.
 
 ## Documentation changes
 
-NUCLEUS.md and manifest updated; eight curated game/website notes generated. No new mechanic/help/audio registrations needed.
+Owner docs and manifest updated with each improvement. Eight curated website and game notes sealed and generated. No new help/mechanic/audio registration needed.
 
 ## Save changes
 
@@ -40,7 +39,7 @@ None — save layer untouched.
 
 ## Known edge cases
 
-Final release mobile required before .14 deployment. Existing Windows validate wrapper spawnSync npx with shell:false cannot launch its children; direct gates are recorded. Prior .13 release passed all 3,194 tests across354files and original27nav/nine gameplay viewport profiles. Normal public-domain verification is required after Actions; propagation can lag.
+Final release pending commit/push, Actions exact-commit guard and normal custom-domain game/home/news verification. Existing Windows validation wrapper cannot launch npx children; direct suite/build/docs passed. Preserve untracked devlog drafts.
 
 ## Remaining technical debt
 
@@ -48,7 +47,7 @@ No new debt. Existing Windows validation launcher issue. Two untracked devlog dr
 
 ## Recommended next tasks
 
-Continue evidence-led improvements until release preparation around22:35–22:40UTC, then seal/generate/final build and original mobile before approximate22:50UTC deployment. Verify exact-SHA Actions and normal public game/home/news. Preserve both untracked devlog drafts.
+Commit release on codex/hive-autoplay and push HEAD to claude/zen-hawking-rh1gxl (never force). Verify Actions exact-SHA guard and ../verify-current-release.ps1 normal URLs.
 
 ## Future expansion hooks
 
