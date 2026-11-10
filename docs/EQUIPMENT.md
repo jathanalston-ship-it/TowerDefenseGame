@@ -562,3 +562,5 @@ The visualization system is feature-complete. (Distinct new equipment SLOTS — 
 not visual polish, and the current 3 slots already render shoulders/back/plates/organs.)
 
 Premium ItemArt card canvases follow live OS reduced motion and the shared in-game override. Reduced motion renders a visible still; IntersectionObserver and document visibility pause offscreen/hidden animation. Resuming preserves animation time without a hidden-time jump. Common/rare art remains static; item stats and generated silhouettes are unchanged.
+
+HeroGearPreview follows the same live motion/visibility policy. Its still mode redraws on drag, preserving manual inspection without an animation loop. Pointer cancellation/lost capture clears dragging. Automatic rotation uses elapsed time (the previous 60Hz speed), so high-refresh displays no longer spin faster. Presentation only; preview loadout/stat derivation is unchanged.

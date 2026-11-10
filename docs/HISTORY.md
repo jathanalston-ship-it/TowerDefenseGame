@@ -792,3 +792,4 @@
 - `e6ad531` **[Framework]** Docs: record verified controls deployment _(internal)_
 - `e74e507` **[UI]** Respect live motion settings on infestation map _(internal)_
 - `8a96f37` **[UI]** Expose infestation feed selection state _(internal)_
+- `75c147e` **[Gene Cards]** Honor motion preferences in equipment card art _(internal)_

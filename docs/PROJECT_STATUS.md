@@ -1864,3 +1864,8 @@ Original motion mobile93548 terminalPASS27nav+nine gameplay profiles. Feed butto
 ## 2026-11-10 19:50 UTC — Equipment card motion
 
 Premium ItemArt now follows live OS/shared motion preferences, renders a nonblank still, pauses offscreen/hidden and resumes without a hidden-time jump. Baseline browser drew30frames/500ms while reduced. Fixed ../item-art-motion-check.cjs PASS0frames plus override/revoke, viewport/visibility pause-resume and cleanup. Initial fixed probe saw one settling frame with100ms media wait;500ms settling interval passed. Fifteen artwork/UI/site tests PASS2.51s; docs7282 PASS; build21859 PASS9.54s (SWmwb3sfoa), item-art-motion-build.log. No gameplay/save changes. Final release mobile remains pending. Local unsealed .11 has three generated website notes; live remains .10. Next approximate deployment20:30UTC.
+
+
+## 2026-11-10 19:54 UTC — Hero gear preview motion
+
+HeroGearPreview now honors live motion preferences, pauses offscreen/hidden and redraws on drag in still mode. Idle spin uses elapsed time at prior60Hz speed. Pointer cancel/lost capture ends dragging. Baseline browser29frames/500ms under reduce; fixed final6195 PASS0frames, visible pixel change on drag with real WEAPONS[0] equipment, no loop restart, override/revoke, offscreen/hidden pause-resume and cleanup. Fifteen artwork/UI/site tests PASS2.58s, docs16411 PASS. Build88220 PASS16.66s (SWmwb3x5eo), gear-preview-motion-build.log. Original full mobile64256 RUNNING against this dist, motion-controls-mobile.log. Four generated notes in unsealed .11 Motion and Map Controls. No gameplay/save changes. Live remains .10; next approximate deployment20:30UTC. Keyboard rotation remains a follow-up.

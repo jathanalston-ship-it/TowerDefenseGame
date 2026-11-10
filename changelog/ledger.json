@@ -1,6 +1,6 @@
 {
-  "lastSha": "8a96f378fbd54ca0936d823e352674ddedde4d5b",
-  "commitsSinceDraft": 7,
+  "lastSha": "75c147ed5eaa817599f61ab56f5adaea648b240d",
+  "commitsSinceDraft": 8,
   "content": {
     "tower": [
       "needle",
@@ -4645,7 +4645,7 @@
     {
       "id": "v2026.11.10.11",
       "date": "2026-11-10",
-      "title": "Map Motion Controls",
+      "title": "Motion and Map Controls",
       "sealed": false,
       "entries": [
         {
@@ -4659,6 +4659,10 @@
         {
           "cat": "UI",
           "text": "Premium equipment card artwork now honors live reduced-motion settings and the in-game override. Animated cards pause outside the viewport or in hidden tabs, then resume when visible."
+        },
+        {
+          "cat": "UI",
+          "text": "Hero gear previews now respect reduced motion while still letting you drag to inspect equipment. Previews pause offscreen or in hidden tabs, and automatic rotation keeps a consistent speed across display refresh rates."
         }
       ]
     }
@@ -10645,6 +10649,14 @@
       "date": "2026-11-10",
       "cat": "UI",
       "text": "Expose infestation feed selection state",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "75c147ed5eaa817599f61ab56f5adaea648b240d",
+      "date": "2026-11-10",
+      "cat": "Gene Cards",
+      "text": "Honor motion preferences in equipment card art",
       "internal": true,
       "needsReview": false
     }

@@ -9,6 +9,7 @@ import type { PointerEvent as RPointerEvent } from 'react';
 import { HERO_DEFS } from '../../core/config';
 import type { HeroKind } from '../../core/types';
 import { meta } from '../../state/meta';
+import { motionPrefs, onMotionPrefs, resolveMotion } from '../../state/prefs';
 import { activeSets, itemDef } from '../../core/equipment';
 import type { EquipSlot, OwnedItem } from '../../core/equipment';
 import { deriveHeroGear, drawHeroGear } from '../../render/equipmentArt';
@@ -51,6 +52,7 @@ export function HeroGearPreview({ heroKind, item, size = 180 }: { heroKind: Hero
   // Turntable: auto-rotate, or drag horizontally to spin. `spinRef` persists across frames.
   const spinRef = useRef(0.6);
   const dragRef = useRef<{ x: number } | null>(null);
+  const repaintRef = useRef<(() => void) | null>(null);
 
   useEffect(() => {
     const cv = ref.current;
@@ -63,10 +65,13 @@ export function HeroGearPreview({ heroKind, item, size = 180 }: { heroKind: Hero
     const shape = HERO_SHAPE[heroKind] ?? 'circle';
     const cx = size / 2, cy = size / 2, r = size * 0.16;
     let raf = 0;
-    const t0 = performance.now();
-    const loop = (): void => {
-      const now = (performance.now() - t0) / 1000;
-      if (!dragRef.current) spinRef.current += 0.006; // idle auto-rotate
+    let visible = true;
+    let elapsed = 0;
+    let previous: number | null = null;
+    let prefs = motionPrefs();
+    const media = window.matchMedia?.('(prefers-reduced-motion: reduce)');
+    const reduced = (): boolean => resolveMotion(prefs, media?.matches ?? false).motion === 0;
+    const paint = (now: number): void => {
       const spin = spinRef.current;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       ctx.clearRect(0, 0, size, size);
@@ -78,16 +83,48 @@ export function HeroGearPreview({ heroKind, item, size = 180 }: { heroKind: Hero
       bodyPath(ctx, shape, cx, cy, r); ctx.fillStyle = def.color; ctx.fill();
       ctx.fillStyle = '#eef3ff'; ctx.beginPath(); ctx.arc(cx, cy - r * 0.15, r * 0.32, 0, TAU); ctx.fill();
       drawHeroGear(ctx, cx, cy, r, spec, now, def.color, 1, spin);
+    };
+    const loop = (now: number): void => {
+      const dt = previous === null ? 0 : (now - previous) / 1000;
+      previous = now;
+      elapsed += dt;
+      if (!dragRef.current) spinRef.current += dt * 0.36;
+      paint(elapsed);
       raf = requestAnimationFrame(loop);
     };
-    raf = requestAnimationFrame(loop);
-    return () => cancelAnimationFrame(raf);
+    const sync = (): void => {
+      cancelAnimationFrame(raf);
+      previous = null;
+      if (!visible || document.hidden) return;
+      if (reduced()) paint(0);
+      else raf = requestAnimationFrame(loop);
+    };
+    repaintRef.current = () => { if (visible && !document.hidden && reduced()) paint(0); };
+    paint(0);
+    const observer = typeof IntersectionObserver === 'undefined' ? null : new IntersectionObserver(([entry]) => {
+      visible = entry.isIntersecting;
+      sync();
+    });
+    observer?.observe(cv);
+    const offPrefs = onMotionPrefs((next) => { prefs = next; sync(); });
+    media?.addEventListener('change', sync);
+    document.addEventListener('visibilitychange', sync);
+    sync();
+    return () => {
+      cancelAnimationFrame(raf);
+      repaintRef.current = null;
+      dragRef.current = null;
+      observer?.disconnect();
+      offPrefs();
+      media?.removeEventListener('change', sync);
+      document.removeEventListener('visibilitychange', sync);
+    };
   }, [spec, heroKind, size]);
 
   const onDown = (e: RPointerEvent): void => { dragRef.current = { x: e.clientX }; (e.target as Element).setPointerCapture?.(e.pointerId); };
-  const onMove = (e: RPointerEvent): void => { if (dragRef.current) { spinRef.current += (e.clientX - dragRef.current.x) * 0.015; dragRef.current.x = e.clientX; } };
+  const onMove = (e: RPointerEvent): void => { if (dragRef.current) { spinRef.current += (e.clientX - dragRef.current.x) * 0.015; dragRef.current.x = e.clientX; repaintRef.current?.(); } };
   const onUp = (): void => { dragRef.current = null; };
 
-  return <canvas ref={ref} width={size} height={size} onPointerDown={onDown} onPointerMove={onMove} onPointerUp={onUp} onPointerLeave={onUp}
+  return <canvas ref={ref} width={size} height={size} onPointerDown={onDown} onPointerMove={onMove} onPointerUp={onUp} onPointerLeave={onUp} onPointerCancel={onUp} onLostPointerCapture={onUp}
     style={{ width: size, height: size, display: 'block', cursor: 'ew-resize', touchAction: 'none' }} title="Drag to rotate" />;
 }

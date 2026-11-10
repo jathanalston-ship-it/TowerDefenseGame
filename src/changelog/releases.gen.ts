@@ -7,7 +7,7 @@ export const RELEASES: Release[] = [
   {
     "id": "v2026.11.10.11",
     "date": "2026-11-10",
-    "title": "Map Motion Controls",
+    "title": "Motion and Map Controls",
     "sealed": false,
     "entries": [
       {
@@ -21,6 +21,10 @@ export const RELEASES: Release[] = [
       {
         "cat": "UI",
         "text": "Premium equipment card artwork now honors live reduced-motion settings and the in-game override. Animated cards pause outside the viewport or in hidden tabs, then resume when visible."
+      },
+      {
+        "cat": "UI",
+        "text": "Hero gear previews now respect reduced motion while still letting you drag to inspect equipment. Previews pause offscreen or in hidden tabs, and automatic rotation keeps a consistent speed across display refresh rates."
       }
     ]
   },
