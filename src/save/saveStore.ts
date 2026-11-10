@@ -2289,12 +2289,12 @@ export class SaveStore {
     }
   }
 
-  restoreBackup(id: string): SaveData | null {
+  restoreBackup(id: string, liveCurrent?: SaveData): SaveData | null {
     const data = parseBlob(this.get(BAK_PREFIX + id));
     if (!data) return null;
     // Keep the current valid save recoverable. A corrupt/absent main save may still be repaired.
-    const current = this.get(SAVE_KEY);
-    if (current && parseBlob(current) && !this.backup(id)) return null;
+    const current = liveCurrent ? blobString(liveCurrent) : this.get(SAVE_KEY);
+    if (current && parseBlob(current) && !this.writeBackup(current, id)) return null;
     if (!this.set(SAVE_KEY, blobString(data))) return null;
     return data;
   }

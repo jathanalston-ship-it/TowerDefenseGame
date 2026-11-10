@@ -201,6 +201,15 @@ describe('save export / import', () => {
 });
 
 describe('backups & corruption recovery', () => {
+  it('preserves supplied live progress when restoring over a pending disk save', () => {
+    const store = new SaveStore(mem());
+    store.save({ ...defaultSave(), shards: 100 });
+    const target = store.backup()!;
+    store.save({ ...defaultSave(), shards: 200 });
+    expect(store.restoreBackup(target.id, { ...defaultSave(), shards: 300 })?.shards).toBe(100);
+    expect(store.restoreBackup(store.listBackups()[0].id)?.shards).toBe(300);
+  });
+
   it.each(['snapshot', 'index', 'main'] as const)('does not replace a save when an import %s write fails', (failure) => {
     const storage = mem();
     const store = new SaveStore(storage);

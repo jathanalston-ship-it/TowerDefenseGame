@@ -12,7 +12,19 @@ import { gameEvents } from '../core/events';
 import { resetSecurity, setSecurityClock, setSecurityEnabled } from '../security/actionGuard';
 import { onWriterMark, resetTabArbiter } from '../security/tabArbiter';
 
-describe('confirmed import persistence', () => {
+describe('confirmed save replacement persistence', () => {
+  it('blocks stale-tab restoration before touching storage or session state', () => {
+    setSecurityEnabled(false);
+    const before = meta.get();
+    const restore = vi.spyOn(SaveStore.prototype, 'restoreBackup').mockReturnValue(defaultSave());
+    onWriterMark('another-tab:1');
+    try {
+      expect(meta.restoreBackup('snapshot')).toBe(false);
+      expect(meta.get()).toBe(before);
+      expect(restore).not.toHaveBeenCalled();
+    } finally { resetTabArbiter(); restore.mockRestore(); }
+  });
+
   it('keeps the session unchanged when the storage transaction fails', () => {
     setSecurityEnabled(false);
     const before = meta.get();

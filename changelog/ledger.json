@@ -1,6 +1,6 @@
 {
-  "lastSha": "030b6d89ae147e0421ac79d6dda28d8f698769ad",
-  "commitsSinceDraft": 0,
+  "lastSha": "a04cc8767add42bb361853edaf6108b7fb1d1b5c",
+  "commitsSinceDraft": 1,
   "content": {
     "tower": [
       "needle",
@@ -4571,6 +4571,10 @@
         {
           "cat": "Bug Fixes",
           "text": "Confirmed save imports now finish their storage writes before replacing the active session. If the recovery backup or imported save cannot be written, current progress stays intact; a competing browser tab also blocks the import until you reload."
+        },
+        {
+          "cat": "Bug Fixes",
+          "text": "Backup restoration now respects browser-tab ownership and keeps the latest live progress in its recovery snapshot, including changes waiting to be saved. A successful restore also clears the old pending save so it cannot run afterward."
         }
       ]
     }
@@ -10317,6 +10321,14 @@
       "date": "2026-11-10",
       "cat": "UI",
       "text": "Review save files before importing progress",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "a04cc8767add42bb361853edaf6108b7fb1d1b5c",
+      "date": "2026-11-10",
+      "cat": "Gameplay",
+      "text": "Save: commit imports before replacing session progress",
       "internal": true,
       "needsReview": false
     }

@@ -762,3 +762,4 @@
 - `5563bac` **[Gameplay]** Save: preserve backups and report write failures _(internal)_
 - `c1df2d9` **[Gameplay]** Save: confirm restores and preserve recovery snapshots _(internal)_
 - `030b6d8` **[UI]** Review save files before importing progress _(internal)_
+- `a04cc87` **[Gameplay]** Save: commit imports before replacing session progress _(internal)_

@@ -4,8 +4,8 @@
 > before committing. Read together with docs/PROJECT_STATUS.md and the latest
 > docs/VALIDATION_REPORT.md. Next session: start at docs/PROJECT_MANIFEST.md.
 
-- **Generated:** 2026-11-10 16:20 UTC · **Diff scope:** working tree vs HEAD
-- **Branch:** codex/hive-autoplay · **HEAD:** 030b6d89
+- **Generated:** 2026-11-10 16:26 UTC · **Diff scope:** working tree vs HEAD
+- **Branch:** codex/hive-autoplay · **HEAD:** a04cc876
 
 ## Summary of work completed
 
@@ -49,7 +49,7 @@ Windows validate wrapper cannot launch npx/npm with shell:false; use direct gate
 
 ## Recommended next tasks
 
-Local .10.7 has four unsealed save-safety/review notes. Build23.79s,104save/meta/discovery/site tests,docs and actual-browser durable-import probe PASS. All processes terminal. Next approximate16:53UTC release requires full suite/final build/mobile/live gates. Audit restore counterpart before release: meta.restoreBackup still lacks tabIsStale guard/stamp/queued-flush handling and SaveStore.restoreBackup currently snapshots disk current rather than pending live progress. Apply only evidence-backed changes, keep ordinary persist unchanged. Full goal active.
+Local .10.7 has five unsealed notes; source batch complete pending release gates. FULL SUITE RUNNING session26406, save-release-tests.log. Poll same handle, never restart on observation timeout. Build20.09s/102focused tests PASS; docs15424 finishing if not terminal. After full suite passes, seal notes/site/final build, mobile, deploy assigned ref and exact-SHA/live game+website verification. Target roughly16:53UTC. Actual import+restore storage probes PASS. Goal active.
 
 ## Future expansion hooks
 
@@ -111,6 +111,8 @@ Hero readiness final build65590 PASS (Vite7.59s); all processes terminal. Next r
 
 
 
-## 2026-11-10 — commit confirmed imports before session replacement (local .10.7)
 
-Baseline actual-browser fault probe showed snapshot/index failures still applied imports and main-write failure changed session while disk stayed old, all claiming success. SaveStore.importSave now snapshots supplied live current state via shared private writeBackup, then commits incoming data. meta.importText retains strict guard/parser, rejects stale tabs, enriches gear discovery, and only after storage success cancels pending flush, notes clock/stamps writer and publishes store.set. Ordinary persist unchanged. Added4storage cases plus3meta integration tests. ../import-storage-check.cjs PASS real meta/Storage failures at3stages, same memory/disk on failure, stale-tab no-write, durable-before-subscriber, live pending-state recovery and canceled old300ms flush. Build app/functions TS+Vite23.79s PASS;104save/meta/discovery/site tests PASS;docs PASS. Required wrapper exit1 known Windows launcher; import-storage-wrapper-report.log preserved. Fourth unsealed website note generated. All processes terminal; next approximate16:53UTC release, full goal active.
+
+## 2026-11-10 — live-state and tab-safe restore integration (local .10.7)
+
+Two baseline tests reproduced stale-tab restore and recovery snapshot missing pending live progress. meta.restoreBackup now rejects stale tabs before storage, passes store.get() into SaveStore.restoreBackup, and uses shared publishSaveReplacement with imports. Successful committed replacements clear old flush/note clock/stamp writer before notifying; failed paths preserve session/flush. Headless restore callers keep readable disk fallback. Both tests PASS;78targeted tests then102save/meta/site tests PASS; app/functions TS+build20.09s PASS. ../restore-storage-check.cjs actual browser PASS3write failure stages, stale-tab no mutations, durable-before-notify, writer stamp, live recovery and old-flush cancellation; ../import-storage-check.cjs re-PASS shared helper. Required wrapper exit1 known Windows launcher; restore-live-wrapper-report.log retained. Fifth unsealed note generated. FULL REGRESSION26406 RUNNING in save-release-tests.log; docs15424 finishing. Do not restart running handles. Release seal/final build/mobile/live gates next; goal active.

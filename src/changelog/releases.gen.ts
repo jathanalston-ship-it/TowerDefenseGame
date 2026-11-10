@@ -25,6 +25,10 @@ export const RELEASES: Release[] = [
       {
         "cat": "Bug Fixes",
         "text": "Confirmed save imports now finish their storage writes before replacing the active session. If the recovery backup or imported save cannot be written, current progress stays intact; a competing browser tab also blocks the import until you reload."
+      },
+      {
+        "cat": "Bug Fixes",
+        "text": "Backup restoration now respects browser-tab ownership and keeps the latest live progress in its recovery snapshot, including changes waiting to be saved. A successful restore also clears the old pending save so it cannot run afterward."
       }
     ]
   },
