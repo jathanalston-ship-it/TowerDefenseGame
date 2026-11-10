@@ -719,6 +719,9 @@ export class Game {
   private rng: Rng;
   private fxRng: Rng; // cosmetic-only stream (particles) — keeps gameplay rng pure
   private grid = new SpatialGrid<Enemy>(WIDTH, HEIGHT, PERF.spatialCell);
+  // Presentation-only cadence history: never read by combat or serialized with heroes.
+  private readonly heroAttackPeriods = new WeakMap<Hero, number>();
+  private readonly heroPulsePeriods = new WeakMap<Hero, number>();
   private enemyById = new Map<number, Enemy>(); // O(1) projectile target lookup
   private reactorCount = 0; // cached on tower placement (economy), not per tick
   private bossCount = 0; // # framework bosses on the field (gates the boss system)
@@ -4408,11 +4411,13 @@ export class Game {
         this.megaHitWeakPoint(wp, dmg, h.x, h.y, HERO_DEFS[h.kind].color);
         this.heroMasteryAccrual[h.kind].damage += dmg;
         h.attackCd = def.attackInterval / this.heroHaste(h);
+        this.heroAttackPeriods.set(h, h.attackCd);
       } else if (wp === null && dist2(h.x, h.y, bx, MEGA.bodyBandY) <= reach * reach) {
         const dmg = def.attackDamage * this.heroDamageMult(h) * this.megaChipMult();
         this.megaHitBody(dmg, h.x, h.y, bx, MEGA.bodyBandY, HERO_DEFS[h.kind].color);
         this.heroMasteryAccrual[h.kind].damage += dmg;
         h.attackCd = def.attackInterval / this.heroHaste(h);
+        this.heroAttackPeriods.set(h, h.attackCd);
       }
     }
     return true;
@@ -6578,6 +6583,7 @@ export class Game {
       this.maybeReact(target);
       this.runHeroAttackKit(h, target); // weapon: cleave/chain/AoE/status/crit RE-AUTHOR the attack
       h.attackCd = def.attackInterval / this.heroHaste(h);
+      this.heroAttackPeriods.set(h, h.attackCd);
     }
   }
 
@@ -6638,6 +6644,7 @@ export class Game {
     if (def.pulseInterval > 0 && h.pulseCd <= 0) {
       this.heroPulse(h);
       h.pulseCd = def.pulseInterval / this.heroHaste(h); // Frenzy speeds the role pulse too
+      this.heroPulsePeriods.set(h, h.pulseCd);
     }
   }
 
@@ -6662,6 +6669,7 @@ export class Game {
     if (def.pulseInterval > 0 && h.pulseCd <= 0) {
       this.heroPulse(h);
       h.pulseCd = def.pulseInterval / this.heroHaste(h); // Frenzy speeds the role pulse too
+      this.heroPulsePeriods.set(h, h.pulseCd);
     }
   }
 
@@ -6698,6 +6706,7 @@ export class Game {
     if (target && h.attackCd <= 0) {
       this.fireSiegeShell(h, def, target);
       h.attackCd = def.attackInterval;
+      this.heroAttackPeriods.set(h, h.attackCd);
     }
   }
 
@@ -6769,6 +6778,7 @@ export class Game {
     this.maybeReact(target);
     this.runHeroAttackKit(h, target); // weapon: cleave/chain/on-hit re-authors the strike
     h.attackCd = def.attackInterval / this.heroHaste(h);
+    this.heroAttackPeriods.set(h, h.attackCd);
   }
 
   /** The hive's SKY caste — the CINDERWYRM (Caustic strafe-flier). It never lands and never
@@ -6838,6 +6848,7 @@ export class Game {
     this.runHeroAttackKit(h, target); // weapon: cleave/chain/on-hit re-authors the strike
     this.spawnParticles(target.x, target.y, PARTICLE.acid, def.color, 0.5); // a searing pass
     h.attackCd = def.attackInterval / this.heroHaste(h);
+    this.heroAttackPeriods.set(h, h.attackCd);
     // Bank point: carry the strafe line PAST the victim (clamped to the arena).
     const ang = Math.atan2(target.y - h.y, target.x - h.x);
     h.bankX = Math.max(0, Math.min(WIDTH, target.x + Math.cos(ang) * WYRM.bankDist));
@@ -8555,6 +8566,7 @@ export class Game {
     const h = this.getSelectedHero();
     if (!h) return null;
     const def = HERO_DEFS[h.kind];
+    const attackPeriod = this.heroAttackPeriods.get(h) ?? (def.behavior === 'siege' ? def.attackInterval : def.attackInterval / this.heroHaste(h));
     // Cooldowns — only the gauges that apply: ability always; attack for attackers; pulse for support.
     const ultDef = this.heroAbilityKits[h.kind]?.ult ?? def.ability; // fork-resolved names read on the HUD
     const cooldowns: HeroCooldownView[] = [{ id: 'ability', label: ultDef.name, remaining: Math.max(0, h.abilityCd), total: this.heroAbilityCooldownFor(h) }];
@@ -8564,8 +8576,8 @@ export class Game {
     for (let i = 0; i < unlockedSkills && i < skillDefs.length; i++) {
       cooldowns.push({ id: `skill${i}`, label: skillDefs[i].name, remaining: Math.max(0, h.skillCd?.[i] ?? 0), total: skillDefs[i].cooldown * this.heroProgress[h.kind].cooldownMult });
     }
-    if (def.attackRange > 0) cooldowns.push({ id: 'attack', label: 'Attack', remaining: Math.max(0, h.attackCd), total: def.attackInterval });
-    if (def.pulseInterval > 0) cooldowns.push({ id: 'pulse', label: 'Pulse', remaining: Math.max(0, h.pulseCd), total: def.pulseInterval });
+    if (def.attackRange > 0) cooldowns.push({ id: 'attack', label: 'Attack', remaining: Math.max(0, h.attackCd), total: attackPeriod });
+    if (def.pulseInterval > 0) cooldowns.push({ id: 'pulse', label: 'Pulse', remaining: Math.max(0, h.pulseCd), total: this.heroPulsePeriods.get(h) ?? def.pulseInterval / this.heroHaste(h) });
     // Buffs from live hero state (extensible — a new hero status appends a chip). Debuffs: none yet.
     const buffs: HeroStatusChip[] = [];
     if (h.shield > 0) buffs.push({ id: 'shield', label: 'Shielded', kind: 'buff', detail: `${Math.round(h.shield)} absorb · ${h.shieldTime.toFixed(1)}s` });
@@ -8586,7 +8598,7 @@ export class Game {
       name: def.name,
       combatClass: def.combatClass,
       damage: Math.round(damage),
-      attackSpeed: def.attackInterval > 0 ? this.heroHaste(h) / def.attackInterval : 0,
+      attackSpeed: def.attackInterval > 0 ? 1 / attackPeriod : 0,
       moveSpeed: Math.round(this.heroSpeed(h)),
       hp: Math.max(0, Math.round(h.hp)),
       maxHp: Math.round(h.maxHp),

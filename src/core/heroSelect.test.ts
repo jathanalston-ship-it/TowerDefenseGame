@@ -4,7 +4,7 @@
 
 import { describe, it, expect } from 'vitest';
 import { Game } from './game';
-import { SIM_DT, HERO_ORDER, HERO_SKILL_DEFS } from './config';
+import { SIM_DT, HERO_DEFS, HERO_ORDER, HERO_SKILL_DEFS } from './config';
 import type { MetaModifiers, HeroProgress } from './types';
 
 const NO_META: MetaModifiers = { towerDamageMult: 1, biomassMult: 1, heroDamageMult: 1, integrityBonus: 0, bonusSlots: 0 };
@@ -92,4 +92,54 @@ describe('selected hero cooldown readout', () => {
     g.getSnapshot();
     expect(JSON.stringify(g.getRenderState())).toBe(state);
   });
+});
+describe('selected hero observed attack and pulse cadence', () => {
+  it.each(HERO_ORDER)('%s gauges match the interval actually started in combat', (kind) => {
+    const g = new Game(7, NO_META, undefined, kind, undefined, {
+      heroEquip: { [kind]: [{ op: 'mul', field: 'heroAttackSpeedMult', value: 2 }] },
+    });
+    g.startWave();
+    g.debugSpawn('tank');
+    const h = g.heroes[0];
+    const def = HERO_DEFS[kind];
+    const timer = def.attackRange > 0 ? 'attackCd' : 'pulseCd';
+    const id = def.attackRange > 0 ? 'attack' : 'pulse';
+    h[timer] = 0;
+    for (let i = 0; i < 600 && h[timer] <= 0; i++) {
+      const enemy = g.enemies.find((e) => e.alive);
+      if (enemy) { enemy.x = h.x + 10; enemy.y = h.y - 10; }
+      g.advance(SIM_DT);
+    }
+    expect(h[timer]).toBeGreaterThan(0);
+    g.selectHero(kind);
+    const view = g.getSnapshot().selectedHero!;
+    const cd = view.cooldowns.find((c) => c.id === id)!;
+    expect(cd.total).toBeCloseTo(h[timer], 5);
+    if (id === 'attack') expect(view.attackSpeed).toBeCloseTo(1 / cd.total);
+    // A partially elapsed timer still reports the full observed interval, not remaining time.
+    h[timer] *= 0.5;
+    expect(g.getSnapshot().selectedHero!.cooldowns.find((c) => c.id === id)!.total).toBe(cd.total);
+  });
+});
+it('tracks the siege hero switching from a hasted mega raid to its normal siege cadence', () => {
+  const g = new Game(21, NO_META, undefined, 'vitriol', undefined, {
+    megaDaily: { defId: 'voraxis', tier: 1 },
+    heroEquip: { vitriol: [{ op: 'mul', field: 'heroAttackSpeedMult', value: 2 }] },
+  });
+  g.startWave();
+  const h = g.heroes[0];
+  h.attackCd = 0;
+  for (let i = 0; i < 900 && h.attackCd <= 0; i++) g.advance(SIM_DT);
+  g.selectHero('vitriol');
+  const read = () => g.getSnapshot().selectedHero!.cooldowns.find((cd) => cd.id === 'attack')!;
+  expect(h.attackCd).toBeGreaterThan(0);
+  expect(read().total).toBeCloseTo(HERO_DEFS.vitriol.attackInterval / 2);
+  g.debugSpawn('tank');
+  const enemy = g.enemies.find((e) => e.alive)!;
+  enemy.x = h.x; enemy.y = h.y - 10;
+  h.attackCd = 0;
+  g.advance(SIM_DT);
+  expect(h.attackCd).toBeGreaterThan(0);
+  expect(read().total).toBeCloseTo(HERO_DEFS.vitriol.attackInterval);
+  expect(g.getSnapshot().selectedHero!.attackSpeed).toBeCloseTo(1 / HERO_DEFS.vitriol.attackInterval);
 });

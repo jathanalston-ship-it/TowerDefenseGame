@@ -4,8 +4,8 @@
 > before committing. Read together with docs/PROJECT_STATUS.md and the latest
 > docs/VALIDATION_REPORT.md. Next session: start at docs/PROJECT_MANIFEST.md.
 
-- **Generated:** 2026-11-10 07:24 UTC · **Diff scope:** working tree vs HEAD
-- **Branch:** codex/hive-autoplay · **HEAD:** 4d21ded5
+- **Generated:** 2026-11-10 07:32 UTC · **Diff scope:** working tree vs HEAD
+- **Branch:** codex/hive-autoplay · **HEAD:** cec6e8b3
 
 ## Summary of work completed
 
@@ -13,7 +13,7 @@ Release v2026.11.09.7 Clearer Battlefield Choices is LIVE. SHA4ae0d15ecca52bda8a
 
 ## Files modified
 
-- Source (3): `src/changelog/releases.gen.ts`, `src/core/game.ts`, `src/ui/HeroSelectPanel.tsx`
+- Source (2): `src/changelog/releases.gen.ts`, `src/core/game.ts`
 - Tests (1): `src/core/heroSelect.test.ts`
 - Docs (5): `docs/HERO-SELECTION.md`, `docs/HISTORY.md`, `docs/PROJECT_MANIFEST.md`, `docs/devlog/DRAFT-2026-11-09.md`, `docs/devlog/DRAFT-2026-11-10.md`
 
@@ -21,8 +21,7 @@ Release v2026.11.09.7 Clearer Battlefield Choices is LIVE. SHA4ae0d15ecca52bda8a
 
 - **chronicle** — `src/changelog/releases.gen.ts`
 - **engine** — `src/core/game.ts`
-- **heroes** — `src/ui/HeroSelectPanel.tsx`
-- Consumer ring (verify, unchanged): arena, audio, boss-rush, bosses, campaign, class-bonds, daily, equipment, expeditions, hero-cinematics, hero-symbiotes, hive-mind, infinite, living-battlefield, map-layouts, mega-bosses, nemesis, onboarding, online-foundation, rendering, run-ui
+- Consumer ring (verify, unchanged): arena, audio, boss-rush, bosses, campaign, class-bonds, daily, hero-cinematics, heroes, hive-mind, infinite, living-battlefield, map-layouts, mega-bosses, nemesis, onboarding, online-foundation, rendering, run-ui
 
 ## Power Score changes
 
@@ -50,7 +49,7 @@ Final3150 full suite passed before the two-line current-destination drawer fix. 
 
 ## Recommended next tasks
 
-Continue local v2026.11.10.1 Clearer Run Controls, three unsealed notes. Selected hero ability/skill readout now uses actual cast cooldowns; downed gauges say Unavailable. Browser ../selected-hero-check.cjs PASS; new regression5tests PASS. Build44563 PASS8.59s; full suite68135 PASS353files/3156tests156.14s; docs98411 PASS. No active sessions. Styled cooldown label fits checked at three desktop/phone viewports. Live .7 SHA4ae0d15e remains unchanged, next deployment roughly08:14UTC. Exclude both untracked devlog drafts. Work codex/hive-autoplay; deploy claude/zen-hawking-rh1gxl. Goal active. Follow-up candidate: attack/pulse gauges still use base totals; inspect behavior-specific cadence (siege uses base, other attacks often use heroHaste) before changing presentation.
+Continue local v2026.11.10.1 Clearer Run Controls, four unsealed notes. Latest hero attack/pulse gauges record actual cadence in private presentation-only WeakMaps, not serialized or read by combat.18heroSelect tests PASS including all12 heroes with haste and Vitriol mega-raid→siege transition. Actual Chrome ../hero-cadence-check.cjs PASS: hasted attack3.64/s and half-full gauge. Build77223 PASS8.01s; full suite87589 PASS353files/3169tests191.64s; docs97323 PASS. All processes terminal. Latest live .7 SHA4ae0d15e, next deployment roughly08:14UTC. Exclude both untracked devlog drafts. Goal active; codex/hive-autoplay → claude/zen-hawking-rh1gxl. Website notes required for deployment.
 
 ## Future expansion hooks
 

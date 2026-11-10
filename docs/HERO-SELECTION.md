@@ -74,4 +74,6 @@ cooldown gauge, so wiring a cast button is additive. New buff/debuff chips are o
   unchanged; `heroSelect.test.ts` pins the behavior + the "no selection in autoplay" contract).
 - The panel is a read-model over the snapshot; opening/closing it does not touch the run.
 
-Selected-hero ability cooldown totals use the existing heroAbilityCooldownFor calculation; star-skill totals use the same progression multiplier as skill casts. HeroSelectPanel displays the live ability total to one decimal place and suppresses Ready/fill while downed. This is observational only: no cast timers, combat effects, saves or balance changed. Attack/pulse totals remain unchanged.
+Selected-hero ability cooldown totals use the existing heroAbilityCooldownFor calculation; star-skill totals use the same progression multiplier as skill casts. HeroSelectPanel displays the live ability total to one decimal place and suppresses Ready/fill while downed. This is observational only: no cast timers, combat effects, saves or balance changed. Attack/pulse gauges use the observed cadence described below.
+
+Observed attack/pulse cadence: Game keeps presentation-only WeakMaps keyed by hero, recording the unchanged timer immediately after each attack/pulse starts. Selected-hero gauges and attack-speed text read that interval, including siege/mega-raid transitions; before the first action they use the behavior baseline. These maps are never read by combat or serialized. Regression probes cover all12 heroes with haste and a Vitriol raid-to-siege transition.

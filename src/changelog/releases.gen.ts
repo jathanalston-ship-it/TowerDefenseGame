@@ -21,6 +21,10 @@ export const RELEASES: Release[] = [
       {
         "cat": "UI",
         "text": "Selected heroes now show their effective ability and skill cooldowns after upgrades. Downed heroes display unavailable cooldowns instead of suggesting their abilities are ready."
+      },
+      {
+        "cat": "UI",
+        "text": "Hero attack and pulse gauges now follow the interval actually used in combat, including haste and siege heroes switching between normal attacks and mega-boss raids. The attack-speed readout matches that cadence."
       }
     ]
   },
