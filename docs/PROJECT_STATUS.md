@@ -1377,3 +1377,5 @@ Local .5 follow-up: tower star ceremony keyboard focus/dismissal verified in Chr
 Local .5 now includes full Vault ceremony keyboard flow; browser single/legendary/batch checks and 16 model tests PASS. Prior full suite passed 3150 tests; final build pending. Four curated website notes.
 
 Vault final build and styled phone keyboard flow PASS; mobile release gate running against the completed build.
+
+Vault motion follow-up locally verified: live heartbeat prefs, flash suppression and zero shake; phone keyboard checks still pass. Mobile gate continues on preceding build; final motion build pending.

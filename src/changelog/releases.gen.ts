@@ -24,7 +24,7 @@ export const RELEASES: Release[] = [
       },
       {
         "cat": "UI",
-        "text": "Genetic Vault openings can be followed by keyboard from hatching through card flips, highlights and harvest. Focus stays with the active reveal, including replay highlights, and returns when you close it. The harvest focuses Collect or Return so hatching another container stays a deliberate choice."
+        "text": "Genetic Vault openings can be followed by keyboard from hatching through card flips, highlights and harvest. Focus stays with the active reveal, including replay highlights, and returns when you close it. The harvest focuses Collect or Return so hatching another container stays a deliberate choice. Heartbeat motion responds to live motion settings, and flash and shake effects respect their settings."
       }
     ]
   },

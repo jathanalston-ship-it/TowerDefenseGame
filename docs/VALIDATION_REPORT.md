@@ -247,3 +247,7 @@ Star follow-up production build PASS (Vite 21.29s). DIL/PIL regeneration: zero s
 Prior ceremony/motion batch full suite PASS: 353 files / 3150 tests, 332.45s (feedback-suite.log, session 10941 exited 0). Vault follow-up Chrome probe PASS: hatch Enter/Space, phase focus, disabled flipped-card recovery, legendary interrupt/replay focus and Tab, Escape isolation, Collect/Return focus without extra purchase, opener restoration; 13-item Skip animations + Reveal all retains all rewards. Vault reducer/model tests: 16 PASS.
 
 Vault final production build PASS (Vite13.82s); styled 390x844 phone browser flow PASS in addition to desktop. Mobile release gate started (session76108, feedback-mobile.log).
+
+Vault live motion probe PASS: initial OS reduce yields zero WAAPI pulses; allowMotion resumes; disabling it stops further pulses; live OS no-preference resumes. Flashes off removes world flash and hides inner flash; enabling restores; zero shake omits quake. Same reveal stays active. Styled phone keyboard probe re-passed; vault/feel 29 tests PASS. Mobile gate still running on previous build; do not rewrite dist while preview runs.
+
+Vault motion TypeScript app/functions check PASS (session52623 exited0).

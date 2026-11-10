@@ -1,6 +1,6 @@
 {
-  "lastSha": "a165a71f111200f6bacafaebe86a4cf0fab28bb3",
-  "commitsSinceDraft": 4,
+  "lastSha": "880c803132c9666b9984e0cf71421c25f22106c0",
+  "commitsSinceDraft": 5,
   "content": {
     "tower": [
       "needle",
@@ -4290,7 +4290,7 @@
         },
         {
           "cat": "UI",
-          "text": "Genetic Vault openings can be followed by keyboard from hatching through card flips, highlights and harvest. Focus stays with the active reveal, including replay highlights, and returns when you close it. The harvest focuses Collect or Return so hatching another container stays a deliberate choice."
+          "text": "Genetic Vault openings can be followed by keyboard from hatching through card flips, highlights and harvest. Focus stays with the active reveal, including replay highlights, and returns when you close it. The harvest focuses Collect or Return so hatching another container stays a deliberate choice. Heartbeat motion responds to live motion settings, and flash and shake effects respect their settings."
         }
       ]
     }
@@ -9429,6 +9429,14 @@
       "date": "2026-11-09",
       "cat": "UI",
       "text": "Ui: verify accessible star celebrations",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "880c803132c9666b9984e0cf71421c25f22106c0",
+      "date": "2026-11-09",
+      "cat": "UI",
+      "text": "Ui: verify keyboard vault reveal flow",
       "internal": true,
       "needsReview": false
     }

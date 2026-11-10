@@ -42,7 +42,7 @@ import { archiveCompletion } from '../core/geneDiscovery';
 import { meta } from '../state/meta';
 import { visibleChests } from '../state/rewardVisibility';
 import { audio } from '../audio/sound';
-import { setVaultSkipAnimsPref, vaultSkipAnimsPref } from '../state/prefs';
+import { motionPrefs, onMotionPrefs, resolveMotion, systemReducedMotion, setVaultSkipAnimsPref, vaultSkipAnimsPref } from '../state/prefs';
 import { CurrencyIcon } from './components/CurrencyIcon';
 import { PowerDelta } from './components/PowerDelta';
 import { RarityFx, rfxClass } from './components/RarityFx';
@@ -202,6 +202,23 @@ export function VaultReveal({
   const [beat, setBeat] = useState(0); // heartbeat counter — keys one visible pulse per audible thump
   const [still, setStill] = useState(false); // the DEAD-STILL beat right before the shell gives
   const podRef = useRef<HTMLDivElement | null>(null);
+  const heartbeatRef = useRef<Animation | null>(null);
+  const [feel, setFeel] = useState(() => resolveMotion(motionPrefs(), systemReducedMotion()));
+  const feelRef = useRef(feel);
+  useEffect(() => {
+    let prefs = motionPrefs();
+    const media = window.matchMedia?.('(prefers-reduced-motion: reduce)');
+    const sync = (): void => {
+      const next = resolveMotion(prefs, media?.matches ?? false);
+      feelRef.current = next;
+      setFeel(next);
+      if (!next.motion) heartbeatRef.current?.cancel();
+    };
+    const off = onMotionPrefs((next) => { prefs = next; sync(); });
+    media?.addEventListener('change', sync);
+    sync();
+    return () => { off(); media?.removeEventListener('change', sync); heartbeatRef.current?.cancel(); };
+  }, []);
   const incubMs = 1700 + tier * 350; // the egg holds longer when something big is inside
 
   // ── INCUBATE: an ACCELERATING heartbeat (audio synced to the pod's visual accelerando).
@@ -216,29 +233,29 @@ export function VaultReveal({
     const stillAt = incubMs - 460;
     const stillT = setTimeout(() => setStill(true), stillAt);
     const t0 = performance.now();
-    const noMotion = typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
     let beatDelay = 560;
     let beatT: ReturnType<typeof setTimeout>;
     const thump = (): void => {
       audio.cue('heartbeat');
       setBeat((b) => b + 1);
-      if (!noMotion) {
+      if (feelRef.current.motion) {
         const k = (560 - beatDelay) / (560 - 180); // 0 → 1 as the accelerando peaks
         const s = 0.028 + 0.055 * k; // the contraction grows with the rate
-        podRef.current?.animate(
+        heartbeatRef.current?.cancel();
+        heartbeatRef.current = podRef.current?.animate(
           [
             { transform: 'scale(1, 1)' },
             { transform: `scale(${1 + s}, ${1 - s * 0.55})`, offset: 0.32 },
             { transform: 'scale(1, 1)' },
           ],
           { duration: Math.min(260, beatDelay * 0.8), easing: 'ease-out' },
-        );
+        ) ?? null;
       }
       beatDelay = Math.max(180, beatDelay * 0.84); // the accelerando
       if (performance.now() - t0 + beatDelay < stillAt) beatT = setTimeout(thump, beatDelay);
     };
     beatT = setTimeout(thump, 220);
-    return () => { clearTimeout(t); clearTimeout(stillT); clearTimeout(beatT); };
+    return () => { clearTimeout(t); clearTimeout(stillT); clearTimeout(beatT); heartbeatRef.current?.cancel(); };
   }, [phase, incubMs, hatch]);
 
   // ── RUPTURE: brief and decisive — the crack lands here, then the clutch materializes.
@@ -320,7 +337,7 @@ export function VaultReveal({
     return () => clearTimeout(id);
   }, [phase, done, st.interrupt, st.skipAnims]);
 
-  const isNoMotion = typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const isNoMotion = feel.motion === 0;
   const pageStart = st.page * grid.pageSize;
   const pageEnd = Math.min(model.count, pageStart + grid.pageSize);
   const pageSpecimens = specimens.slice(pageStart, pageEnd);
@@ -367,7 +384,8 @@ export function VaultReveal({
     <div
       ref={dialogRef}
       tabIndex={-1}
-      className={`vreveal-backdrop ${isRare ? 'is-rare' : ''} ${phase === 'rupture' ? 'is-quake' : ''}${heldSpecimen && !isNoMotion ? ' is-warp is-shine' : ''}`}
+      className={`vreveal-backdrop ${isRare ? 'is-rare' : ''} ${phase === 'rupture' && feel.shake > 0 ? 'is-quake' : ''}${heldSpecimen && !isNoMotion ? ' is-warp' : ''}${heldSpecimen && feel.flashes ? ' is-shine' : ''}`}
+      data-flashes={feel.flashes ? 'on' : 'off'}
       style={{ ['--vr-accent' as string]: accent, ['--shine' as string]: heldSpecimen?.pull.color ?? accent }}
       onClick={phase === 'incubate' ? hatch : undefined}
       role="dialog"
@@ -396,7 +414,7 @@ export function VaultReveal({
     >
       {/* Sibling of the modal shell so the RUPTURE lights the whole room, not just the box
           (the shell scrolls/clips its own content — fullscreen FX can't live inside it). */}
-      {phase === 'rupture' && <span className="hatch-worldflash" aria-hidden />}
+      {phase === 'rupture' && feel.flashes && <span className="hatch-worldflash" aria-hidden />}
       {/* The living ROOM: drifting spore strata + a slow accent fog — every act breathes in
           the same atmosphere; rare+ ceremonies stand in a god-ray column from the first beat. */}
       <span className="hatch-atmo" aria-hidden><i className="a" /><i className="b" />{isRare && <i className="rays" />}</span>

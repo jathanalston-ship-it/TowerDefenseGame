@@ -4,8 +4,8 @@
 > before committing. Read together with docs/PROJECT_STATUS.md and the latest
 > docs/VALIDATION_REPORT.md. Next session: start at docs/PROJECT_MANIFEST.md.
 
-- **Generated:** 2026-11-10 04:55 UTC · **Diff scope:** working tree vs HEAD
-- **Branch:** codex/hive-autoplay · **HEAD:** a165a71f
+- **Generated:** 2026-11-10 05:00 UTC · **Diff scope:** working tree vs HEAD
+- **Branch:** codex/hive-autoplay · **HEAD:** 880c8031
 
 ## Summary of work completed
 
@@ -13,9 +13,9 @@ Active continuous improvement goal: keep improving usability, clarity, graphics,
 
 ## Files modified
 
-- Source (2): `src/changelog/releases.gen.ts`, `src/ui/VaultReveal.tsx`
+- Source (3): `src/changelog/releases.gen.ts`, `src/ui/GeneticVault.css`, `src/ui/VaultReveal.tsx`
 - Tests (0): —
-- Docs (5): `docs/HISTORY.md`, `docs/LOOTBOX.md`, `docs/PROJECT_STATUS.md`, `docs/VALIDATION_REPORT.md`, `docs/devlog/DRAFT-2026-11-09.md`
+- Docs (4): `docs/HISTORY.md`, `docs/LOOTBOX.md`, `docs/VALIDATION_REPORT.md`, `docs/devlog/DRAFT-2026-11-09.md`
 
 ## Systems affected (from the dependency registry)
 
@@ -63,4 +63,6 @@ WardrobeReveal local follow-up: modal semantics, initial/per-card focus, Tab loo
 
 StarCeremony: labeled modal, Continue autofocus, Tab containment, Escape isolation and focus restoration. Chrome probe ../star-focus-check.cjs PASS all three dismissal keys exactly once. Production build PASS (21.29s Vite). Full regression PASS: 353 files /3150 tests (332.45s), session 10941 exited 0. DIL/PIL regeneration passed: zero structural findings, existing 34 stale pairs. Dev server stopped. Vault keyboard follow-up now implemented and verified below.
 
-VaultReveal: hatch Enter/Space, labeled modal, phase/disabled-flip focus recovery, active nested-highlight Tab containment, Escape acknowledgment/replay dismissal/summary close, safe Collect/Return focus and opener restoration. Underlying reveal hidden from assistive technology during highlights. Desktop and styled 390x844 phone Chrome probes PASS (../vault-focus-check.cjs, ../vault-focus-phone-check.cjs), including 13-pull Skip animations + Reveal all; 16 vault model tests PASS. Production build PASS, Vite13.82s. Dev server stopped. Release mobile gate RUNNING session76108, feedback-mobile.log: poll same handle, do not restart on timeout. .5 remains local; four website notes generated. Next release around05:30UTC. Future Vault audit: WAAPI heartbeat still reads OS preference once and may ignore in-game override; inspect motion preference policy before editing.
+VaultReveal: hatch Enter/Space, labeled modal, phase/disabled-flip focus recovery, active nested-highlight Tab containment, Escape acknowledgment/replay dismissal/summary close, safe Collect/Return focus and opener restoration. Underlying reveal hidden from assistive technology during highlights. Desktop and styled 390x844 phone Chrome probes PASS (../vault-focus-check.cjs, ../vault-focus-phone-check.cjs), including 13-pull Skip animations + Reveal all; 16 vault model tests PASS. Production build PASS, Vite13.82s. Dev server stopped. Release mobile gate RUNNING session76108, feedback-mobile.log: poll same handle, do not restart on timeout. .5 remains local; four website notes generated. Next release around05:30UTC. Vault motion follow-up implemented below.
+
+Vault motion follow-up: latest resolved prefs drive heartbeat WAAPI; live OS/player subscriptions cancel/resume pulse without restarting ceremony timers. World/inner/rarity flashes respect flashes off, highlight shine separated from warp, zero shake suppresses quake. ../vault-motion-check.cjs PASS; styled phone keyboard probe re-PASS;29 vault/feel tests PASS. Existing full mobile gate remains on pre-motion dist (session76108 feedback-mobile.log); do not rebuild until it finishes. Typecheck PASS, session52623 exited0 (vault-motion-typecheck.log). Final production build pending afterward. Dev server stopped; notes regenerated (four entries).
