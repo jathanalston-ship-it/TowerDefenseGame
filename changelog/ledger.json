@@ -1,6 +1,6 @@
 {
-  "lastSha": "bd295e7da91a53d999aa7028da6490dcc4dfc13e",
-  "commitsSinceDraft": 7,
+  "lastSha": "fa2fc27aa38e453c0c0c50e380c350f0f17348ef",
+  "commitsSinceDraft": 8,
   "content": {
     "tower": [
       "needle",
@@ -4735,6 +4735,10 @@
         {
           "cat": "UI",
           "text": "The HUD loot meter now exposes named progress with the current container rarity, percentage and loot-point total. Keyboard focus includes its existing explanation of points remaining and the next container."
+        },
+        {
+          "cat": "UI",
+          "text": "The loot meter now honors your explicit Allow motion choice, including the flying container and chest celebration. Turning the override off keeps the flight, chest motion and fill shimmer still under reduced motion."
         }
       ]
     }
@@ -10881,6 +10885,14 @@
       "date": "2026-11-10",
       "cat": "UI",
       "text": "Ui: follow live motion preferences for quest bursts",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "fa2fc27aa38e453c0c0c50e380c350f0f17348ef",
+      "date": "2026-11-10",
+      "cat": "UI",
+      "text": "Expose accessible live loot meter progress",
       "internal": true,
       "needsReview": false
     }

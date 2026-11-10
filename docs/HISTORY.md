@@ -812,3 +812,4 @@
 - `b8575c5` **[UI]** Ui: retain board focus after batch quest claims _(internal)_
 - `c66a8a1` **[UI]** Ui: anchor keyboard quest celebrations to claims _(internal)_
 - `bd295e7` **[UI]** Ui: follow live motion preferences for quest bursts _(internal)_
+- `fa2fc27` **[UI]** Expose accessible live loot meter progress _(internal)_

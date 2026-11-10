@@ -1609,13 +1609,13 @@ html[data-layout='portrait'] .hud-biomass > .tt-bubble::after { left: 24px; }
   backdrop-filter: blur(6px);
 }
 
+/* Root motion resolution also covers the flight portaled outside .game. */
 @media (prefers-reduced-motion: reduce) {
-  .loot-fly,
-.loot-burst i,
-.loot-chest.is-impact,
-.hud-loot.is-celebrating,
-.loot-bar.is-hot .loot-bar-fill,
-.loot-bar-fill::after { animation: none !important; }
+  :root:not([data-motion="full"]) :is(
+    .loot-fly, .loot-burst i, .loot-chest.is-impact,
+    .hud-loot.is-celebrating, .loot-bar.is-hot .loot-bar-fill
+  ),
+  :root:not([data-motion="full"]) .loot-bar-fill::after { animation: none !important; }
 }
 
 /* ── Branch-tier purchase celebration — a screen flash + a popping "MUTATION" banner. The

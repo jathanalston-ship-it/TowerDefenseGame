@@ -325,3 +325,5 @@ Vault feedback preferences resolve live OS and device settings. Heartbeat WAAPI 
 Harvest Power announcements expose the final total as stable assistive text alongside an aria-hidden visual count-up, avoiding per-frame live text changes.
 
 HUD meter accessibility: the bar exposes a rarity-qualified progressbar with bounds and current value from the same clamped fill/cost used visually. Value text matches the visible integer percentage and tooltip point count. The existing focusable meter is a named group linked to its explanation by useId; no live-region announcements are added to the per-tick progress, and gate/queue/award/ceremony behavior is unchanged.
+
+Loot celebration CSS uses the shared root data-motion resolution to honor the explicit Allow motion override under device reduced motion. The root scope covers the body-portaled flight as well as chest/sparks/fill effects. Missing root preference falls back to reduced motion; the shimmer pseudo-element retains a separate selector. Queue/fill calculations and celebration timing are unchanged.

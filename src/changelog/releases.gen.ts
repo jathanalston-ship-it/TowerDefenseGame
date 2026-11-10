@@ -25,6 +25,10 @@ export const RELEASES: Release[] = [
       {
         "cat": "UI",
         "text": "The HUD loot meter now exposes named progress with the current container rarity, percentage and loot-point total. Keyboard focus includes its existing explanation of points remaining and the next container."
+      },
+      {
+        "cat": "UI",
+        "text": "The loot meter now honors your explicit Allow motion choice, including the flying container and chest celebration. Turning the override off keeps the flight, chest motion and fill shimmer still under reduced motion."
       }
     ]
   },
