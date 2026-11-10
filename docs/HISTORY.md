@@ -731,3 +731,4 @@
 - `b1d8620` **[UI]** Ui: make profile power explanations expandable _(internal)_
 - `184460c` **[UI]** Ui: make career explanations readable on demand _(internal)_
 - `f5db1eb` **[Backend]** Improve leaderboard recovery and loading feedback _(internal)_
+- `9ec9fbb` **[UI]** Ui: recover replay sharing when clipboard access fails _(internal)_

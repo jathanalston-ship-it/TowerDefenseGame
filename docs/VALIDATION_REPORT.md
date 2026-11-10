@@ -412,3 +412,9 @@ Validation: build93517 terminal PASS before final table-header markup; final ../
 ShareReplayButton adds localized pending/success/failure feedback, disabled pending button and selectable read-only fallback for missing/denied clipboard. Request generation and timer cleanup prevent stale UI after blob changes/unmount. Existing code/link encoding and cutoff unchanged; no network share or live clipboard used by probe.
 
 Validation: build90718 PASS5.99s;11codec/i18n tests+4site-sync tests PASS. ../replay-copy-check.cjs actual Chrome PASS denied/missingclipboard, selected fallback roundtrip, retry success,pending lock, old-result rejection,longrawcode and3locales x desktop/390/320fit,zero page errors. Initial probe needed a DOM lookup for intentionally hidden empty status; corrected probe PASS. Docs16894 terminal PASS. Four unsealed .10.3 notes;next deploy roughly09:52UTC.
+
+## 2026-11-10 — Replay Theater controls (local .10.3)
+
+Replay viewer now owns initial/contained/restored focus, consumes Escape locally, focuses/describes the outcome and hides covered controls from accessibility tree. Pressed playback state and localized progressbar added. Skip clears pause before advancing to outcome. Simulation stepping/private events/verification unchanged.
+
+Validation: build12778 PASS12.22s before final outcome-copy spacing/covered-header Tab adjustment; final browser ../replay-controls-check.cjs PASS modalTab/Escape/restore,pause/speed/progress,skipfrompause,verifiedactualrecord,unchangedsave and1366x768/390x844/320x568/844x390fit. Initial save assertion included scheduled startup powerLog; probe now waits for that documented0ms snapshot before baseline, then save equalityPASS.20replay/codec/i18n tests PASS. Final typecheck/site/docs2159 terminal PASS (4site tests). Five unsealed .10.3 notes;next approximate deploy09:52UTC.

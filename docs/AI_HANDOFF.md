@@ -4,8 +4,8 @@
 > before committing. Read together with docs/PROJECT_STATUS.md and the latest
 > docs/VALIDATION_REPORT.md. Next session: start at docs/PROJECT_MANIFEST.md.
 
-- **Generated:** 2026-11-10 09:10 UTC · **Diff scope:** working tree vs HEAD
-- **Branch:** codex/hive-autoplay · **HEAD:** f5db1eb2
+- **Generated:** 2026-11-10 09:16 UTC · **Diff scope:** working tree vs HEAD
+- **Branch:** codex/hive-autoplay · **HEAD:** 9ec9fbb1
 
 ## Summary of work completed
 
@@ -13,7 +13,7 @@ LIVE v2026.11.10.2 Rewards You Can Read, seven sealed website notes. SHA e176563
 
 ## Files modified
 
-- Source (4): `src/changelog/releases.gen.ts`, `src/i18n/index.ts`, `src/index.css`, `src/ui/components/ShareReplay.tsx`
+- Source (4): `src/changelog/releases.gen.ts`, `src/i18n/index.ts`, `src/ui/SpectateView.css`, `src/ui/SpectateView.tsx`
 - Tests (0): —
 - Docs (7): `docs/HISTORY.md`, `docs/PROJECT_MANIFEST.md`, `docs/PROJECT_STATUS.md`, `docs/REPLAY-SHARE.md`, `docs/VALIDATION_REPORT.md`, `docs/devlog/DRAFT-2026-11-09.md`, `docs/devlog/DRAFT-2026-11-10.md`
 
@@ -21,7 +21,7 @@ LIVE v2026.11.10.2 Rewards You Can Read, seven sealed website notes. SHA e176563
 
 - **chronicle** — `src/changelog/releases.gen.ts`
 - **i18n** — `src/i18n/index.ts`
-- **net-backend** — `src/ui/components/ShareReplay.tsx`
+- **net-backend** — `src/ui/SpectateView.tsx`
 - Consumer ring (verify, unchanged): security
 
 ## Power Score changes
@@ -50,7 +50,7 @@ Windows validate wrapper cannot launch npx/npm with shell:false; use direct gate
 
 ## Recommended next tasks
 
-Local .10.3 Progress Explained has4unsealednotes:Power/Career explanations,leaderboardfeedback,replaycopyrecovery. Latest replay fallback/requestguard verified ../replay-copy-check.cjs:realcodec/mockclipboard,denied/missing,roundtrip,selectall,retry,pending,oldresultignored,longrawcode,3localephonefit PASS. Build90718 PASS5.99s;11codec/i18n+4site tests PASS. Docs16894 terminal PASS;all processes stopped. Browser87111 terminal failed only harness hidden-status lookup;fixed rerun terminalPASS. No other active processes. Live .10.2 SHAe176563d verified08:52UTC;next deploy09:52UTC approximate. Continue broader UI/audio/visual work;finalfull/mobile gates before release. Exclude both untrackeddevlogdrafts. Goal active.
+Local .10.3 Progress Explained has5unsealednotes:Power/Career hints,leaderboardfeedback,replaycopy,ReplayTheatercontrols. Latest real-record browser ../replay-controls-check.cjs PASS modalfocus/Tab/Escape/restoration,pressed/progress,skipfrompause,verifiedoutcome,saveunchanged and4viewports. Baseline waits for normal startup powerLog snapshot before comparison. Build12778 PASS12.22s before final tiny markup/spacing change;20replay/codec/i18n tests PASS. Final typecheck/site/docs2159 terminal PASS (4site tests);all processes stopped. No browser/dev processes. Live .10.2 SHAe176563d verified08:52UTC;next release roughly09:52UTC. Candidate follow-up: replay skip audio says silent in comments but cueBatch currently drains/plays while skipping; investigate with actual evidence. Keep gameplay unchanged;finalfull/mobile gates. Exclude both devlogdrafts. Goal active.
 
 ## Future expansion hooks
 

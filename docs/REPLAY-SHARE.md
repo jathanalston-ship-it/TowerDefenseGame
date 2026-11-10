@@ -48,3 +48,7 @@ viewer, with no server involved.
 ## Clipboard recovery
 
 ShareReplayButton disables duplicate requests while encoding/copying and announces success or failure. A denied or missing Clipboard API exposes the same generated link/code in a read-only field, selected on focus/click for manual copying. Encoding failures offer retry feedback. English/Spanish/Portuguese text follows the active locale. Blob changes/unmount invalidate pending UI results and clear the success timer; an already-started browser clipboard operation itself cannot be canceled. Wire format, compression and URL cutoff are unchanged.
+
+## Viewer keyboard and playback feedback
+
+SpectateView focuses Exit on entry, contains Tab navigation, consumes Escape locally and restores the connected opener on unmount. Completion focuses the outcome Exit and associates the verdict with the dialog while hiding covered controls from assistive technology. Pause/speed/skip expose pressed state; progress is a labeled progressbar. Skip explicitly clears pause before accelerating to the recorded end. Replay stepping, verification and private event bus are unchanged.

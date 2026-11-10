@@ -1,6 +1,6 @@
 {
-  "lastSha": "f5db1eb2b79bce563ee7879b782f789675aaea89",
-  "commitsSinceDraft": 9,
+  "lastSha": "9ec9fbb1c8b8fb588a55c8e19773282a8517c91b",
+  "commitsSinceDraft": 0,
   "content": {
     "tower": [
       "needle",
@@ -4451,6 +4451,10 @@
         {
           "cat": "UI",
           "text": "Replay sharing now shows a selectable link or code when clipboard access is denied or unavailable. Preparing/copy feedback is localized, duplicate requests are disabled while pending, and results from an older replay cannot overwrite the current control."
+        },
+        {
+          "cat": "UI",
+          "text": "Replay Theater now keeps keyboard focus inside the viewer, restores the opener on exit, and focuses the outcome action when playback finishes. Pause/speed/progress expose their state, and Skip to outcome works even while paused."
         }
       ]
     }
@@ -9949,6 +9953,14 @@
       "date": "2026-11-10",
       "cat": "Backend",
       "text": "Improve leaderboard recovery and loading feedback",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "9ec9fbb1c8b8fb588a55c8e19773282a8517c91b",
+      "date": "2026-11-10",
+      "cat": "UI",
+      "text": "Ui: recover replay sharing when clipboard access fails",
       "internal": true,
       "needsReview": false
     }

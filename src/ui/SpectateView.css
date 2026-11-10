@@ -95,6 +95,7 @@
   background: linear-gradient(180deg, var(--panel-2), var(--panel));
   box-shadow: var(--shadow-lg);
 }
+.spectate-outcome-copy { display: flex; flex-direction: column; gap: 10px; }
 
 .spectate-verdict { font-size: 13px; font-weight: 800; letter-spacing: 0.08em; }
 
