@@ -9,7 +9,7 @@
 
 ## Summary of work completed
 
-Release v2026.11.09.7 Clearer Battlefield Choices is LIVE. SHA4ae0d15ecca52bda8a03a14b0ee34e1170f54050; Actions42773576301 SUCCESS with exact-SHA production verification. Normal custom-domain play/home/news verified07:14UTC Nov10: play-DxebhRO7.js matches local build and returns200; all five website notes present. Final353files/3155tests, sealed build, four site-sync tests and docs check PASS; mobile27screens/nine run viewports PASS before final no-layout Hive-confirmation follow-up; targeted browser probes PASS after follow-up. Continuous improvement goal remains active; next approximate release08:14UTC. No servers or test sessions running. Untracked devlog draft remains unpublished.
+LIVE v2026.11.10.1 Clearer Run Controls, seven sealed website notes. SHAa6249d385614942cfe6d902b987330b4ecb1c2d9; Actions42779296326 SUCCESS including exact-SHA production check. Normal custom-domain game/home/news/all7notes and entry asset verified08:03UTC Nov10; play-Tn7MFVuY.js matches local and returns200. Initial custom-domain request served prior .7, then propagated normally after20s. Verifier local reserved-variable error corrected before successful verification. Full3172 suite PASS before final UI-only disclosure;40focused tests, final sealed build/four site-sync tests, docs and mobile27screens/nine gameplay viewports PASS after it. All processes terminal; continuous goal active, next approximate release09:03UTC.
 
 ## Files modified
 
@@ -48,7 +48,7 @@ Final3150 full suite passed before the two-line current-destination drawer fix. 
 
 ## Recommended next tasks
 
-Deploy v2026.11.10.1 Clearer Run Controls, seven SEALED notes. Final follow-up makes Hero Ops wheel an inline disclosure to avoid clipped tooltip; actual full GameView Space/Escape and standalone three viewport checks PASS. Screenshot ../hero-details-panel.png inspected. Readiness AX and tower confirmation matrix re-PASS.40tests PASS after UI/CSS follow-up; full3172 suite passed before it. Sealed build54139 PASS5.47s and four site tests PASS; docs53698 PASS. Final mobile46835 PASS27screens/nine gameplay viewports(run-controls-final-mobile.log). All sessions terminal. No other running processes. All12 descriptions fit168px sidebar/340px high browser probe. After gates update validation/commit/push from codex/hive-autoplay to claude/zen-hawking-rh1gxl; verify Actions exact SHA and ../verify-current-release.ps1. Last LIVE .7 SHA4ae0d15e. Exclude both devlog drafts. Goal active; target roughly08:14UTC deployment.
+Continue active improvement goal; latest .10.1 is sealed and verified LIVE. Create a new release for subsequent improvements. Next approximately09:03UTC. All sessions terminal. Work codex/hive-autoplay; deploy claude/zen-hawking-rh1gxl with website notes and ../verify-current-release.ps1. Exclude both untracked devlog drafts. New Hero Ops ability control is a button disclosure, not an image/tooltip; updated browser probe reflects this. Do not mark the continuous goal complete.
 
 ## Future expansion hooks
 
