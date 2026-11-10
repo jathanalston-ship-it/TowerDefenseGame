@@ -705,3 +705,8 @@ Original full mobile53228 terminalPASS27nav+nine gameplay profiles. Focused run-
 ## 2026-11-10 19:02 UTC — Early Call reachable on narrow phones
 
 Real mid-wave baseline47721: Early Call at320x568 spanned x=-43.45..18.70, offscreen and not hit-testable. CSS-only portrait<=380px second-row layout reserves canvas padding; current probe14282 PASS three viewports, all control hit tests/Pause and actual wave1->2 plus displayed23Biomass reward. Screenshot inspected; no battlefield overlap. Initial probe17322 incorrectly advanced3.2s in one clamped call, corrected to normal-sized steps. Eleven site/UI tests2738 and docs72656 PASS. Build11357 running, early-call-layout-build.log; updated full mobile pending. Second note generated in local unsealed .10 Know Your Controls. No balance/save/action changes.
+
+
+## 2026-11-10 19:16 UTC — World Status live motion preferences
+
+Early Call build11357 PASS23.95s and original full mobile10866 terminalPASS27nav+nine profiles. New WorldStatus baseline confirmed57frames/second after OS reduced motion enabled. Fixed media/pref subscriptions, still account/resize redraw, pixel-stable spores, visibility/cleanup. Final browser18462 terminalPASS all cases; still screenshot inspected. Eleven site/UI tests62654 and docs PASS. Initial build82064 failed unsupported Accessibility note category; corrected to existing UI/regenerated. Final build93090 RUNNING, world-status-motion-final-build.log. Local .10 now three notes, unsealed; updated mobile pending. No simulation/save changes.

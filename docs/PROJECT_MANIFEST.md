@@ -545,7 +545,7 @@ Career statistic hints use explicit Details buttons and inline reading panels. P
   `ui/BuildPanel.tsx`, `ui/DraftModal.tsx`, `ui/GameView.tsx` (rAF host), `ui/Hub.tsx` (nav
   shell), `ui/hubProgress.ts` (rings), `state/notificationSources.ts` (badges). The HOME
   screen is the Command Center (`ui/CommandCenter.tsx` + `ui/homeModel.ts` registry +
-  `ui/WorldStatus.tsx` living centerpiece — `COMMAND-CENTER.md`): registry-driven widget
+  `ui/WorldStatus.tsx` living centerpiece (live resolved motion preferences, still account/resize repaint) — `COMMAND-CENTER.md`): registry-driven widget
   zones (command strip, world status, mission control, forecast/roadmap rail, live army,
   command feed, dashboard); a future system's home widget = one register() + one renderer.
   Shell kit (2026-11): `ui/browserBack.ts` (Back/Escape + `useDismiss`), `components/

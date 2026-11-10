@@ -17,6 +17,10 @@ export const RELEASES: Release[] = [
       {
         "cat": "Bug Fixes",
         "text": "Early Call no longer slips off the left edge on very narrow portrait phones. It gets its own row above the battlefield, keeping the action, bonus, speed controls and Pause reachable."
+      },
+      {
+        "cat": "UI",
+        "text": "The home screen organism now responds immediately when reduced-motion preferences change, including the in-game override. Its still image refreshes when your account or screen size changes, without restarting animation."
       }
     ]
   },

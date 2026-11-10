@@ -785,3 +785,4 @@
 - `3e81695` **[UI]** Ui: explain automation controls on touch and keyboard _(internal)_
 - `c078929` **[Framework]** Docs: record automation build and active mobile gate _(internal)_
 - `ed1c8e8` **[Framework]** Docs: record mobile pass and narrow control review _(internal)_
+- `81c4804` **[UI]** Ui: keep early call reachable on narrow phones _(internal)_

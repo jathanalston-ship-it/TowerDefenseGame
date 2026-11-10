@@ -1,6 +1,6 @@
 {
-  "lastSha": "ed1c8e8f1a6da280a5305894e9c111d24cebd4a0",
-  "commitsSinceDraft": 0,
+  "lastSha": "81c4804926e846e25b72a0ce52da3c04f4a5b024",
+  "commitsSinceDraft": 1,
   "content": {
     "tower": [
       "needle",
@@ -4635,6 +4635,10 @@
         {
           "cat": "Bug Fixes",
           "text": "Early Call no longer slips off the left edge on very narrow portrait phones. It gets its own row above the battlefield, keeping the action, bonus, speed controls and Pause reachable."
+        },
+        {
+          "cat": "UI",
+          "text": "The home screen organism now responds immediately when reduced-motion preferences change, including the in-game override. Its still image refreshes when your account or screen size changes, without restarting animation."
         }
       ]
     }
@@ -10565,6 +10569,14 @@
       "date": "2026-11-10",
       "cat": "Framework",
       "text": "Docs: record mobile pass and narrow control review",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "81c4804926e846e25b72a0ce52da3c04f4a5b024",
+      "date": "2026-11-10",
+      "cat": "UI",
+      "text": "Ui: keep early call reachable on narrow phones",
       "internal": true,
       "needsReview": false
     }

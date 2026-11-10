@@ -4,57 +4,55 @@
 > before committing. Read together with docs/PROJECT_STATUS.md and the latest
 > docs/VALIDATION_REPORT.md. Next session: start at docs/PROJECT_MANIFEST.md.
 
-- **Generated:** 2026-11-10 19:01 UTC · **Diff scope:** working tree vs HEAD
-- **Branch:** codex/hive-autoplay · **HEAD:** ed1c8e8f
+- **Generated:** 2026-11-10 19:15 UTC · **Diff scope:** working tree vs HEAD
+- **Branch:** codex/hive-autoplay · **HEAD:** 81c48049
 
 ## Summary of work completed
 
-LIVE .9 Read Your Build, SHA48b2f2a81ac463b53708ffcc2aab5b11f7f7cfdc, Actions42876793393/job130042106520 SUCCESS; public game/home/news/five notes verified18:38UTC, asset /assets/play-7JbVGzDZ.js. LOCAL unsealed .10 Know Your Controls with TWO generated website notes: automation help and reachable Early Call on narrow portrait phones. Goal active; next approximate deployment19:38UTC.
+LIVE .9 Read Your Build, SHA48b2f2a81ac463b53708ffcc2aab5b11f7f7cfdc, Actions42876793393/job130042106520 SUCCESS; public game/home/news/five notes verified18:38UTC, asset /assets/play-7JbVGzDZ.js. LOCAL unsealed .10 Know Your Controls now has THREE notes: automation help, reachable narrow-phone Early Call, live World Status motion preferences. Goal active; next approximate deploy19:38UTC.
 
 ## Files modified
 
-- Source (2): `src/changelog/releases.gen.ts`, `src/ui/GameView.css`
+- Source (2): `src/changelog/releases.gen.ts`, `src/ui/WorldStatus.tsx`
 - Tests (0): —
-- Docs (6): `docs/EARLY-CALL.md`, `docs/HISTORY.md`, `docs/HUD.md`, `docs/PROJECT_MANIFEST.md`, `docs/devlog/DRAFT-2026-11-09.md`, `docs/devlog/DRAFT-2026-11-10.md`
+- Docs (5): `docs/COMMAND-CENTER.md`, `docs/HISTORY.md`, `docs/PROJECT_MANIFEST.md`, `docs/devlog/DRAFT-2026-11-09.md`, `docs/devlog/DRAFT-2026-11-10.md`
 
 ## Systems affected (from the dependency registry)
 
 - **chronicle** — `src/changelog/releases.gen.ts`
+- **hub-shell** — `src/ui/WorldStatus.tsx`
+- Consumer ring (verify, unchanged): battle-pass, cosmetics, hive-construction, infestation, profile, quests, reward-architecture
 
 ## Power Score changes
 
-None. Prior added HUD bond level is read-only; no gameplay, balance or save changes.
+None. All .10 changes are UI/presentation; no core simulation or balance changes.
 
 ## UI changes
 
-Latest CSS-only fix: portrait<=380px available Early Call uses second control row (absolute top ctl-h+4,left0), canvas padding reserves strip+ctl-h+4; label shown. No simulation/action change. Real mid-wave baseline47721 reproduced Early Call x=-43.45..18.70 at320x568, offscreen and not hit-testable. Fixed80272 and final14282 PASS320x568/390x844/844x390, all controls in viewport/hit-testable, Pause/P resume. Final probe clicked Early Call at320: wave advanced1->2 and biomass increased by displayed23; button above canvas, screenshot inspected. Initial17322 fixture mistakenly used advance(3.2), clamped by engine; corrected40 steps of0.1, not a game bug. Eleven site/UI tests2738 and docs72656 terminalPASS. Build11357 running, early-call-layout-build.log.
+Automation help uses existing bounded briefing reader; locked/waiting/Hive explanations and manual override, safe keys/focus. Real locked/unlocked four-viewport probes passed; original mobile53228 passed. Early Call at320 previously x=-43..19 and unclickable; CSS<=380px reserves second row above canvas. Action probe14282 passed three viewports, hit tests/Pause and real next wave+displayed23Biomass. Its build11357 PASS23.95s and ORIGINAL mobile10866 now terminalPASS27nav+nine profiles.
 
-Additional review: ../run-controls-narrow-check.cjs final88649 terminalPASS at320x568,390x844,844x390. Every control is in viewport and receives center hit-testing; Pause opens and documented P resumes. Screenshots inspected. No Pause clipping defect reproduced, so no source change made. Earlier probe39716 failed because it incorrectly expected Escape to resume; corrected to documented P. Ancestor-overflow geometry falsely flagged fixed landscape controls; actual hit testing and screenshots prove visible.
-
-BuildControls adds44px help button to existing automation row and reuses bounded briefing reader. Explanations derive current WAIT, autoGeneLock reason and hiveActive, update live, describe countdown/manual card override. Existing toggles/prefs/gates unchanged. Reader keeps Space isolated, Escape restores opener. Compact labels wrap inside buttons (no font-size reduction); initial narrower-grid clipping was caught and fixed. Final real GameView checks85873 unlocked +32996 locked PASS320x568/390x844/844x390/1280x800, reader/label bounds and keyboard behavior; locked/unlocked phone screenshots inspected. Standalone state probe PASS waiting/locked/liveHiveupdate/disabledbuttons/keys. Initial fixture resizing before profile settlement produced width20px; fixed initial portrait and explicit profile wait. Loot meter unlocked geometry probe5639 also PASS, no source change needed there. Eleven site/UI tests1292 PASS10.51s; docs70306 PASS. Initial build68516 PASS23.05s predates last wrapping fix. Final build78237 terminalPASS16.19s, automation-help-final-build.log, SWmwb1m0tw. Original full mobile53228 terminalPASS27nav+nine gameplay profiles, automation-help-mobile.log.
+WorldStatus now subscribes to OS media and existing motion prefs, uses resolved mode cached on changes, stops RAF for still mode, repaints account/resize changes, avoids spore drift on unchanged still redraws, and cleans listeners/RAF on unmount. Baseline after settled mount counted57frames in1s while reduced=true. Final ../world-status-motion-check.cjs probe18462 terminalPASS: normal motion, live OS stop/nonblank still, pixel-identical unchanged-account redraw, changed-account repaint, resize, simulated hidden-document stop/resume, allowMotion override/revoke, restored OS motion and unmount cleanup. Screenshot ../world-status-still.png inspected. Earlier copied fixture mistakenly scoped frame counter to hero-portrait, then initial unsettled sample saw0frames; corrected to cc-world and2s settle before valid baseline. Eleven site/UI tests62654 PASS4.50s, docs PASS.
 
 ## Documentation changes
 
-EARLY-CALL.md, HUD.md and manifest describe reserved narrow portrait row. Second curated .10 website note generated.
-
-HUD.md/PROJECT_MANIFEST.md updated; one curated .10 note generated in ledger/game/site. No mechanic/reward/save changes, so no help registry/audio/migration changes needed. Prior .9 evidence remains in chronological status/validation reports and Git.
+HUD.md, EARLY-CALL.md, COMMAND-CENTER.md and manifest updated across .10. Three curated notes generated into ledger/game/site. Existing UI category used for motion note. No new mechanic/reward/save fields require help registry/audio/migration changes.
 
 ## Save changes
 
-None.
+None. Existing device-local motion preferences are read/subscribed; no new persistence fields.
 
 ## Known edge cases
 
-Earlier automation-help build/mobile passed; current Early Call build11357 and updated full mobile pending. Wider state labels required flex wrapping, verified in focused real game probes. Native disclosure/keyboard checks do not prove every screen reader speech output. Prior .9 original mobile30430 failed drawer-close timeout; unchanged-build diagnostic81740 and final original72320 passed, root cause unproven. Do not weaken original gate; preserve failure history. Existing Windows validate wrapper npx shell:false launch issue remains documented.
+Initial WorldStatus build82064 FAILED because new note used unsupported Accessibility category. Corrected to existing UI and regenerated; FINAL build93090 is running, not yet claimed passed. Prior .9 mobile30430 drawer timeout remains documented; unchanged-build diagnostic81740 and final original72320 passed, cause unproven. Existing Windows validate wrapper npx shell:false launch issue remains. Native browser checks do not prove all screen readers.
 
 ## Remaining technical debt
 
-Existing Windows validate launcher issue only. Two untracked docs/devlog/DRAFT-2026-11-09.md and DRAFT-2026-11-10.md remain unpublished: do not stage.
+No new debt intended. Existing Windows validation launcher issue. Two untracked docs/devlog/DRAFT-2026-11-09.md and DRAFT-2026-11-10.md remain unpublished and must not be staged.
 
 ## Recommended next tasks
 
-ONLY active validation handle11357: build, early-call-layout-build.log. Poll SAME handle until terminal, then run original full mobilecheck --no-build (Chrome headless=new preload ../chrome-probe-compat.cjs), with no competing heavy checks/dist writes. Prior mobile53228 PASS covers automation-help build BEFORE newest Early Call CSS. Current focused action/geometry probe14282 PASS; docs72656 and eleven site/UI tests2738 PASS. No other active probes/tests. Source latest change only GameView.css13lines; .10 has two notes, still unsealed. Next approximate deploy19:38UTC. Live .9 SHA48b2f2a81ac463b53708ffcc2aab5b11f7f7cfdc. Vite5174 remains PID30948,parent32932. Two untracked devlog drafts remain unpublished.
+ONLY active validation handle93090: final WorldStatus build, world-status-motion-final-build.log. Poll SAME handle. Then original full mobilecheck --no-build with Chrome headless=new preload ../chrome-probe-compat.cjs; no competing heavy builds/browser probes or dist writes during mobile. All other tests/probes terminal. .10 still unsealed, three notes. Prepare next release near19:38UTC after gates; seal/regenerate/build/site sync/final mobile as appropriate. Live .9 production48b2f2a81ac463b53708ffcc2aab5b11f7f7cfdc. Vite5174 remains PID30948,parent32932; verify exact command lines before cleanup. No active browser probes.
 
 ## Future expansion hooks
 
-BuildPanel native disclosures remain the in-flow reading pattern; HudSnapshot.bonds.level is authoritative run strength. Production command: git push origin HEAD:refs/heads/claude/zen-hawking-rh1gxl. Verify Actions exactSHA guard plus ../verify-current-release.ps1 NORMAL public URLs each deployment. No PR unless asked. Next read-only review can explore other help/accessibility surfaces; reproduce any issue before editing.
+WorldStatus follows shared state/prefs motion resolution like HeroPortrait; no new abstraction. Production push git push origin HEAD:refs/heads/claude/zen-hawking-rh1gxl from codex/hive-autoplay. Verify Actions exactSHA and ../verify-current-release.ps1 normal URLs every deployment. No PR unless asked. Keep goal active.
