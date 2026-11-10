@@ -324,3 +324,5 @@ and affected subject inside the scrollable drawer. Repeated picks label that des
 "Per copy" rather than implying an aggregate bonus. Counts and expanded readers survive
 live deck refreshes. Reading keys do not dispatch battlefield shortcuts; Escape retains
 its normal handling. Draft choices, stacking math and effects are unchanged.
+
+HUD resource explanations open below their readouts with inward edge alignment and raised active cells, so keyboard/hover/touch details stay inside the viewport. The shared tooltip behavior and simulation remain unchanged.

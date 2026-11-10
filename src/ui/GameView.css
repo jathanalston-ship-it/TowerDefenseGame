@@ -92,6 +92,38 @@
   box-shadow: none;
 }
 
+/* HUD explanations open into the screen, with edge cells anchored inward. */
+.hud-cell > .tt-bubble {
+  top: calc(100% + 8px);
+  bottom: auto;
+}
+
+.hud-cell > .tt-bubble::after {
+  top: auto;
+  bottom: 100%;
+  border-top-color: transparent;
+  border-bottom-color: var(--line-strong);
+}
+
+.hud .hud-vital > .tt-bubble,
+html[data-layout='portrait'] .hud-biomass > .tt-bubble {
+  left: 0;
+  transform: none;
+}
+
+.hud .hud-hero > .tt-bubble {
+  left: auto;
+  right: 0;
+  transform: none;
+}
+
+.hud-vital > .tt-bubble::after,
+html[data-layout='portrait'] .hud-biomass > .tt-bubble::after { left: 24px; }
+.hud-hero > .tt-bubble::after { left: auto; right: 18px; transform: none; }
+
+.hud-cell.tt:is(:hover, :focus-within, .tt-open) { z-index: 3; }
+.hud:has(.hud-cell.tt:is(:hover, :focus-within, .tt-open)) { z-index: 49; } /* over run controls (48), below pause (50) */
+
 .hud-k::before {
   content: '';
   flex: none;

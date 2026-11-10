@@ -18,6 +18,10 @@
       {
         "cat": "UI",
         "text": "Drafted Gene Cards in Run Build now expand by tap or keyboard. Long names and descriptions stay readable, and repeated cards label their description per copy while keeping the stack count visible."
+      },
+      {
+        "cat": "Bug Fixes",
+        "text": "HUD explanations now open below their readouts, keeping Core, Power, Biomass, pressure and Hero details on screen. Edge readouts align their explanations inward on narrow screens."
       }
     ]
   },

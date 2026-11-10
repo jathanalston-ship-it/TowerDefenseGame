@@ -1,6 +1,6 @@
 {
-  "lastSha": "57569d2c07c2d290b455a654b77a1bd6af612e6c",
-  "commitsSinceDraft": 1,
+  "lastSha": "eb5c069c318fd4a1979c94346b23d882cc34b21b",
+  "commitsSinceDraft": 2,
   "content": {
     "tower": [
       "needle",
@@ -4611,6 +4611,10 @@
         {
           "cat": "UI",
           "text": "Drafted Gene Cards in Run Build now expand by tap or keyboard. Long names and descriptions stay readable, and repeated cards label their description per copy while keeping the stack count visible."
+        },
+        {
+          "cat": "Bug Fixes",
+          "text": "HUD explanations now open below their readouts, keeping Core, Power, Biomass, pressure and Hero details on screen. Edge readouts align their explanations inward on narrow screens."
         }
       ]
     }
@@ -10461,6 +10465,14 @@
       "date": "2026-11-10",
       "cat": "UI",
       "text": "Ui: make bond explanations accessible and run accurate",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "eb5c069c318fd4a1979c94346b23d882cc34b21b",
+      "date": "2026-11-10",
+      "cat": "Gene Cards",
+      "text": "Make drafted gene descriptions readable",
       "internal": true,
       "needsReview": false
     }
