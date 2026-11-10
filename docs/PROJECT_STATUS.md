@@ -1986,3 +1986,8 @@ Loot flight baseline under OS reduce plus explicit Allow motion: root data-motio
 ## 2026-11-10 21:32 UTC — Accurate loot reward guidance
 
 Loot tooltip incorrectly said opened into shards on completion. Confirmed syncRunLoot banks PendingContainer entries unopened and openContainer grants rewards later in Genetic Vault. Tooltip now describes that actual flow. Remaining display clamps at0 rather than1, fixing100percent/owed-state guidance without touching queue/award code. Expanded ../loot-meter-accessibility-check.cjs PASS full-meter zero-point description, Vault guidance, live progress/rollover/width and320/844 layouts.22lootQueue/UI/site tests PASS2.12s; docs/handoff51001 PASS; build85793 PASS7.78s, SWmwb7hhhw, loot-guidance-build.log. All processes terminal. Sixth note generated in local .13 Clearer Reward Feedback. Live .12 unchanged; next approximate deployment22:10UTC. Final release mobile pending.
+
+
+## 2026-11-10 21:35 UTC — Post-run reveal keyboard continuity
+
+RewardReveal baseline: Enter on focused Skip removed the button and left BODY focused. Track Skip focus and, on completed sequence, restore persistent Continue only if focus fell to body; blur clears intent. ../reveal-skip-focus-check.cjs PASS Skip, natural completion while Skip focused, actual Continue callback and unrelated focus preserved.11UI/site tests PASS1.72s; docs/handoff2547 PASS; build99771 PASS7.02s, SWmwb7lg8q, reveal-skip-focus-build.log. All processes terminal. No reward/audio/timing/save changes. Generated devlog draft remains untracked/unpublished. Seventh note generated in local .13 Clearer Reward Feedback. Live .12 unchanged; next approximate deployment22:10UTC. Final release mobile pending.

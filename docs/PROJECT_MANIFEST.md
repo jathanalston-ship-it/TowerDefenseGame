@@ -527,6 +527,8 @@ Career statistic hints use explicit Details buttons and inline reading panels. P
 
 ## HUD
 
+Post-run `RewardReveal` preserves Continue focus when its focused Skip control disappears, without moving focus from another control. See `docs/HUD.md`.
+
 - InfestationBoard on The Front follows shared live motion preferences, keeps reduced-motion canvas/sector geometry aligned on resize and stops its loop while hidden. Feed buttons expose actual selection state, distinct from a region-resolved feed marker. See INFESTATION.md.
 
 - Very narrow portrait Early Call uses a reserved second control row so it remains reachable without covering the battlefield. See EARLY-CALL.md.

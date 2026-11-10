@@ -7,7 +7,7 @@
 // inspect it. Pure presentation: the rewards are already decided + applied upstream. Each landing
 // category plucks the climbing `reveal` cue; a stat's own `cue` (the level-up) follows its row.
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { useCountUp } from './components/useCountUp';
 import type { CSSProperties, ReactNode } from 'react';
 import { ACCOUNT_CURRENCY } from '../core/currencies';
@@ -155,6 +155,8 @@ export function RewardReveal({
   next?: { label: string; onClick: (choiceId?: string) => void; choices?: { id: string; name: string; desc: string }[]; choiceLabel?: string; accent?: string };
   paused?: boolean; // a milestone cinematic is over the capsule — the sequence (and its audio) waits for it
 }): JSX.Element {
+  const continueRef = useRef<HTMLButtonElement>(null);
+  const skipFocused = useRef(false);
   const reduced = useRef(prefersReduced()).current;
   const [instant, setInstant] = useState(reduced);
   const [choice, setChoice] = useState<string | undefined>(next?.choices?.[0]?.id);
@@ -167,6 +169,13 @@ export function RewardReveal({
   const achvDone = achvShown >= achievements.length;
   const hasAchv = achievements.length > 0;
   const sequenceDone = allRevealed && settled && achvDone;
+
+  // Keep keyboard position when the focused Skip control disappears at completion.
+  useLayoutEffect(() => {
+    if (!sequenceDone) return;
+    if (skipFocused.current && document.activeElement === document.body) continueRef.current?.focus({ preventScroll: true });
+    skipFocused.current = false;
+  }, [sequenceDone]);
 
   // Pace the category reveals.
   useEffect(() => {
@@ -243,7 +252,10 @@ export function RewardReveal({
       {banner}
 
       {!sequenceDone && (
-        <button type="button" className="rr-skip" onClick={(e) => { e.stopPropagation(); revealAll(); }}>
+        <button type="button" className="rr-skip"
+          onFocus={() => { skipFocused.current = true; }}
+          onBlur={() => { skipFocused.current = false; }}
+          onClick={(e) => { e.stopPropagation(); revealAll(); }}>
           Skip ▸▸
         </button>
       )}
@@ -316,6 +328,7 @@ export function RewardReveal({
           <button type="button" className="primary rr-next" onClick={() => next.onClick(choice)}>{next.label}</button>
         )}
         <button
+          ref={continueRef}
           type="button"
           className={`${next && sequenceDone ? 'rr-btn' : 'primary'} rr-continue${sequenceDone ? ' is-ready' : ''}`}
           onClick={(e) => { e.stopPropagation(); onContinue(); }}

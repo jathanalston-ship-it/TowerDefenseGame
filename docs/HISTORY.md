@@ -814,3 +814,4 @@
 - `bd295e7` **[UI]** Ui: follow live motion preferences for quest bursts _(internal)_
 - `fa2fc27` **[UI]** Expose accessible live loot meter progress _(internal)_
 - `58ae45f` **[UI]** Honor motion override for loot celebrations _(internal)_
+- `4e5b2c8` **[UI]** Explain unopened loot rewards accurately _(internal)_

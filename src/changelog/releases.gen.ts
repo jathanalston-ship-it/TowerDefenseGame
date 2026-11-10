@@ -33,6 +33,10 @@ export const RELEASES: Release[] = [
       {
         "cat": "UI",
         "text": "The loot meter explanation now correctly says that completed Bio-Containers wait unopened in the Genetic Vault, where you collect their rewards. A full meter also shows zero points remaining."
+      },
+      {
+        "cat": "UI",
+        "text": "When the focused Skip button disappears from the post-run reward reveal, keyboard focus now moves to Continue. This also works when the reveal finishes naturally and leaves focus alone if you are using another control."
       }
     ]
   },

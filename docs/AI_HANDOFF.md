@@ -4,30 +4,31 @@
 > before committing. Read together with docs/PROJECT_STATUS.md and the latest
 > docs/VALIDATION_REPORT.md. Next session: start at docs/PROJECT_MANIFEST.md.
 
-- **Generated:** 2026-11-10 21:32 UTC · **Diff scope:** working tree vs HEAD
-- **Branch:** codex/hive-autoplay · **HEAD:** 58ae45f5
+- **Generated:** 2026-11-10 21:35 UTC · **Diff scope:** working tree vs HEAD
+- **Branch:** codex/hive-autoplay · **HEAD:** 4e5b2c81
 
 ## Summary of work completed
 
-LOCAL unsealed .13 Clearer Reward Feedback has SIX generated notes: quest keyboard focus, keyboard burst origins, live quest motion, accessible loot progress, loot motion override and corrected Vault guidance. Loot tooltip incorrectly said opened into shards on completion. Confirmed syncRunLoot banks PendingContainer entries unopened and openContainer grants rewards later in Genetic Vault. Tooltip now describes that actual flow. Remaining display clamps at0 rather than1, fixing100percent/owed-state guidance without touching queue/award code. Expanded ../loot-meter-accessibility-check.cjs PASS full-meter zero-point description, Vault guidance, live progress/rollover/width and320/844 layouts.22lootQueue/UI/site tests PASS2.12s; docs/handoff51001 PASS; build85793 PASS7.78s, SWmwb7hhhw, loot-guidance-build.log. All processes terminal. LIVE remains .12 Clearer Progress and Gear, SHA73b564bbe72b1d9edf7741283b09679ee6d40c30; Actions42901613298 passed and normal public URLs verified21:08UTC. Next approximate deployment22:10UTC. Goal remains active.
+LOCAL unsealed .13 Clearer Reward Feedback has SEVEN generated notes: quest focus, keyboard burst origins, live quest motion, accessible loot progress, loot motion override, Vault guidance and post-run Skip focus. RewardReveal baseline: Enter on focused Skip removed the button and left BODY focused. Track Skip focus and, on completed sequence, restore persistent Continue only if focus fell to body; blur clears intent. ../reveal-skip-focus-check.cjs PASS Skip, natural completion while Skip focused, actual Continue callback and unrelated focus preserved.11UI/site tests PASS1.72s; docs/handoff2547 PASS; build99771 PASS7.02s, SWmwb7lg8q, reveal-skip-focus-build.log. All processes terminal. No reward/audio/timing/save changes. Generated devlog draft remains untracked/unpublished. LIVE remains .12 Clearer Progress and Gear, SHA73b564bbe72b1d9edf7741283b09679ee6d40c30; Actions42901613298 passed and normal public URLs verified21:08UTC. Next approximate deployment22:10UTC. Goal remains active.
 
 ## Files modified
 
-- Source (2): `src/changelog/releases.gen.ts`, `src/ui/LootMeter.tsx`
+- Source (2): `src/changelog/releases.gen.ts`, `src/ui/RewardReveal.tsx`
 - Tests (0): —
-- Docs (5): `docs/HISTORY.md`, `docs/LOOTBOX.md`, `docs/PROJECT_MANIFEST.md`, `docs/devlog/DRAFT-2026-11-09.md`, `docs/devlog/DRAFT-2026-11-10.md`
+- Docs (5): `docs/HISTORY.md`, `docs/HUD.md`, `docs/PROJECT_MANIFEST.md`, `docs/devlog/DRAFT-2026-11-09.md`, `docs/devlog/DRAFT-2026-11-10.md`
 
 ## Systems affected (from the dependency registry)
 
 - **chronicle** — `src/changelog/releases.gen.ts`
-- **loot** — `src/ui/LootMeter.tsx`
-- Consumer ring (verify, unchanged): account-level, boss-rush, crafting, equipment, infinite, shards-economy, splice-market
+- **run-ui** — `src/ui/RewardReveal.tsx`
 
 ## Power Score changes
 
 None. Claim eligibility, rewards, power and simulation unchanged.
 
 ## UI changes
+
+RewardReveal baseline: Enter on focused Skip removed the button and left BODY focused. Track Skip focus and, on completed sequence, restore persistent Continue only if focus fell to body; blur clears intent. ../reveal-skip-focus-check.cjs PASS Skip, natural completion while Skip focused, actual Continue callback and unrelated focus preserved.11UI/site tests PASS1.72s; docs/handoff2547 PASS; build99771 PASS7.02s, SWmwb7lg8q, reveal-skip-focus-build.log. All processes terminal. No reward/audio/timing/save changes. Generated devlog draft remains untracked/unpublished.
 
 Loot tooltip incorrectly said opened into shards on completion. Confirmed syncRunLoot banks PendingContainer entries unopened and openContainer grants rewards later in Genetic Vault. Tooltip now describes that actual flow. Remaining display clamps at0 rather than1, fixing100percent/owed-state guidance without touching queue/award code. Expanded ../loot-meter-accessibility-check.cjs PASS full-meter zero-point description, Vault guidance, live progress/rollover/width and320/844 layouts.22lootQueue/UI/site tests PASS2.12s; docs/handoff51001 PASS; build85793 PASS7.78s, SWmwb7hhhw, loot-guidance-build.log. All processes terminal.
 
@@ -45,7 +46,7 @@ Quest mission keyboard baseline dropped focus to BODY after real Enter claim. Mi
 
 ## Documentation changes
 
-LOOTBOX.md, QUESTS.md and manifest updated for current batch. SIX curated notes generated for website/game under Clearer Reward Feedback. No new mechanic/reward/save/audio rules, so no help/cue/migration registration needed.
+HUD.md, LOOTBOX.md, QUESTS.md and manifest updated for current batch. SEVEN curated notes generated for website/game under Clearer Reward Feedback. No new mechanic/reward/save/audio rules, so no help/cue/migration registration needed.
 
 ## Save changes
 
@@ -61,7 +62,7 @@ No new debt. Two untracked devlog drafts remain unpublished and unstaged. Existi
 
 ## Recommended next tasks
 
-Continue evidence-led improvements without gameplay/balance changes; next approximate deployment22:10UTC. Current .13 six-note batch is local only. Seal/generate/build and run original mobile before deployment; verify Actions exact-SHA guard and normal public game/home/news. All processes terminal. Preserve unpublished drafts.
+Continue evidence-led improvements without gameplay/balance changes; next approximate deployment22:10UTC. Current .13 seven-note batch is local only. Seal/generate/build and run original mobile before deployment; verify Actions exact-SHA guard and normal public game/home/news. All processes terminal. Preserve unpublished drafts.
 
 ## Future expansion hooks
 
