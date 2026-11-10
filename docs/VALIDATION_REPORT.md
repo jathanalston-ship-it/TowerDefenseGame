@@ -239,3 +239,7 @@ Portrait lifecycle final production build PASS; test/dev processes completed.
 Wardrobe ceremony follow-up: Chrome probe PASS for initial/next-card focus, forward/reverse Tab, single-action backlog loop, Escape isolation/restoration and final cabinet navigation exactly once. Real wardrobe definitions used with isolated presentation queue; core wardrobe/wardrobeMeta ownership tests: 38 PASS. Inventory, claiming, gating and persistence unchanged.
 
 Wardrobe ceremony production build PASS: TypeScript, Vite (18.39s), service worker stamping. This is a local checkpoint; full release regression/mobile gates remain pending.
+
+Star ceremony browser probe PASS: dialog name, initial focus, forward/reverse Tab, Escape/Enter/Space close once and return focus; Escape does not leak. Initial probe counter collided with read-only window.closed; corrected harness to closeCount and reran successfully. No gameplay/save changes.
+
+Star follow-up production build PASS (Vite 21.29s). DIL/PIL regeneration: zero structural findings, 34 existing stale pairs.

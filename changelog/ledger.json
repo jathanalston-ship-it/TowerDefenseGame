@@ -1,6 +1,6 @@
 {
-  "lastSha": "85a42cf1785434a4722139649308f43ca1b92c41",
-  "commitsSinceDraft": 2,
+  "lastSha": "c678576aefecd6b9751eaed22979c7ef1b984b97",
+  "commitsSinceDraft": 3,
   "content": {
     "tower": [
       "needle",
@@ -4286,7 +4286,7 @@
         },
         {
           "cat": "UI",
-          "text": "Cosmetic unlock ceremonies now focus their main action, keep keyboard navigation inside the card, and carry focus forward through multiple unlocks. Escape skips the ceremony and returns you to the previous control; unlocked items remain in the Specimen Cabinet."
+          "text": "Tower star celebrations now support keyboard dismissal and restore focus. Cosmetic unlock ceremonies now focus their main action, keep keyboard navigation inside the card, and carry focus forward through multiple unlocks. Escape skips the ceremony and returns you to the previous control; unlocked items remain in the Specimen Cabinet."
         }
       ]
     }
@@ -9409,6 +9409,14 @@
       "date": "2026-11-09",
       "cat": "UI",
       "text": "Verify responsive portrait animation lifecycle",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "c678576aefecd6b9751eaed22979c7ef1b984b97",
+      "date": "2026-11-09",
+      "cat": "UI",
+      "text": "Verify keyboard cosmetic ceremonies",
       "internal": true,
       "needsReview": false
     }

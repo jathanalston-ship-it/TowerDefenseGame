@@ -4,8 +4,8 @@
 > before committing. Read together with docs/PROJECT_STATUS.md and the latest
 > docs/VALIDATION_REPORT.md. Next session: start at docs/PROJECT_MANIFEST.md.
 
-- **Generated:** 2026-11-10 04:45 UTC · **Diff scope:** working tree vs HEAD
-- **Branch:** codex/hive-autoplay · **HEAD:** 85a42cf1
+- **Generated:** 2026-11-10 04:50 UTC · **Diff scope:** working tree vs HEAD
+- **Branch:** codex/hive-autoplay · **HEAD:** c678576a
 
 ## Summary of work completed
 
@@ -13,15 +13,15 @@ Active continuous improvement goal: keep improving usability, clarity, graphics,
 
 ## Files modified
 
-- Source (2): `src/changelog/releases.gen.ts`, `src/ui/components/WardrobeReveal.tsx`
+- Source (2): `src/changelog/releases.gen.ts`, `src/ui/StarCeremony.tsx`
 - Tests (0): —
-- Docs (6): `docs/AI_HANDOFF.md`, `docs/COSMETICS.md`, `docs/HISTORY.md`, `docs/PROJECT_STATUS.md`, `docs/VALIDATION_REPORT.md`, `docs/devlog/DRAFT-2026-11-09.md`
+- Docs (5): `docs/HISTORY.md`, `docs/PROJECT_STATUS.md`, `docs/TOWER-LAB.md`, `docs/VALIDATION_REPORT.md`, `docs/devlog/DRAFT-2026-11-09.md`
 
 ## Systems affected (from the dependency registry)
 
 - **chronicle** — `src/changelog/releases.gen.ts`
-- **cosmetics** — `src/ui/components/WardrobeReveal.tsx`
-- Consumer ring (verify, unchanged): battle-pass, contracts, daily-login, nemesis, quests
+- **towers** — `src/ui/StarCeremony.tsx`
+- Consumer ring (verify, unchanged): class-bonds, contracts, daily, engine, hive-mind, mulligans
 
 ## Power Score changes
 
@@ -60,3 +60,5 @@ Continue the broad experience audit, then run appropriate final regression/build
 Existing HeroPortrait.SymbioteOverlay, TowerPortrait and shared resolveMotion remain the preview seams. No new content or save structures.
 
 WardrobeReveal local follow-up: modal semantics, initial/per-card focus, Tab loop, Escape skips ceremony with focus restoration and no navigation. Single/three/six-item browser probe ../wardrobe-focus-check.cjs PASS; 38 core/meta wardrobe tests PASS. Ledger .5 now three curated notes; production build PASS (Vite 18.39s, service worker stamped). Full regression/mobile gates remain for the next release.
+
+StarCeremony: labeled modal, Continue autofocus, Tab containment, Escape isolation and focus restoration. Chrome probe ../star-focus-check.cjs PASS all three dismissal keys exactly once. Production build PASS (21.29s Vite). Full regression running in session 10941, feedback-suite.log; must poll same handle to terminal. DIL/PIL regeneration passed: zero structural findings, existing 34 stale pairs. Dev server stopped. Next audit candidate: VaultReveal has no keyboard focus management and hatch role=button lacks keyboard support; examine phased/nested highlight flow before changing.
