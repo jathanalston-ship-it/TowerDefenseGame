@@ -1365,3 +1365,5 @@ Selected-hero readout follow-up: corrected hero-specific recovery, shield and ab
 Audio follow-up local: purchase cues now drain during pause without advancing sim or adding shake; duplicate hero/conveyor sounds removed. Dispatcher browser check and 68 gameplay/upgrade regression tests pass.
 
 Field-note local improvement: readable hover/focus hold, keyboard Dismiss and polite announcement. Chrome expiry/interaction/phone checks and 8 first-hour tests pass.
+
+Next local batch v2026.11.09.5: readable static upgrade/Power/Mastery feedback under reduced motion, verified by CSS and actual purchase browser probes. .4 remains the live release.

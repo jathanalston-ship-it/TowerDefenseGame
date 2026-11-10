@@ -3343,6 +3343,15 @@ html[data-layout='landscape'] .build-controls.is-visible ~ .mega-banner { top: 6
 
 .game[data-motion="reduced"] .wave-breach::before { display: none; }
 
+/* Keep the purchase result readable when motion is stilled. An instant completed rise
+   would land on opacity:0; static burst labels must not pile up at the same position. */
+:is(:root[data-motion="reduced"], .game[data-motion="reduced"]) .hcc-float { animation: none; opacity: 1; }
+:is(:root[data-motion="reduced"], .game[data-motion="reduced"]) .hcc-float:not(:last-child) { display: none; }
+@media (prefers-reduced-motion: reduce) {
+  .hcc-float { animation: none; opacity: 1; }
+  .hcc-float:not(:last-child) { display: none; }
+}
+
 .game[data-motion="reduced"] .mutation-banner { animation: mut-banner-reduced 2.4s ease both; }
 
 @keyframes mut-banner-reduced { 0%, 85% { opacity: 1; } 100% { opacity: 0; } }

@@ -4520,7 +4520,11 @@ html[data-layout='landscape'] .mc-campaign > .mc-ledger { order: 3; }
 .pp-impact { font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--success); opacity: 0.9; }
 
 @media (prefers-reduced-motion: reduce) {
-  .ptoast { animation: none; }
+  .ptoast, .mtoast { animation: none !important; opacity: 1; }
+}
+
+:is(:root[data-motion="reduced"], .game[data-motion="reduced"]) :is(.ptoast, .mtoast) {
+  animation: none; opacity: 1;
 }
 
 .power-badge { display: inline-flex; align-items: baseline; gap: 6px; padding: 4px 10px; border-radius: 999px; background: var(--panel-2); border: 1px solid var(--line); transition: box-shadow var(--dur-3) ease, border-color var(--dur-3) ease; }

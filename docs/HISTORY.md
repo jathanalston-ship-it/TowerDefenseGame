@@ -678,3 +678,5 @@
 - `781e81f` **[Heroes]** Verify selected hero console readouts _(internal)_
 - `607300d` **[Audio]** Verify single purchase cue delivery _(internal)_
 - `4e62318` **[UI]** Ui: verify readable field note interactions _(internal)_
+- `bfa87c5` **[Framework]** Release: ship clearer controls and progress feedback _(internal)_
+- `b684a2b` **[Framework]** Docs: record verified progress release _(internal)_

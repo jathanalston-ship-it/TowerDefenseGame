@@ -4,8 +4,8 @@
 > before committing. Read together with docs/PROJECT_STATUS.md and the latest
 > docs/VALIDATION_REPORT.md. Next session: start at docs/PROJECT_MANIFEST.md.
 
-- **Generated:** 2026-11-10 04:28 UTC · **Diff scope:** working tree vs HEAD
-- **Branch:** codex/hive-autoplay · **HEAD:** 4e62318d
+- **Generated:** 2026-11-10 04:34 UTC · **Diff scope:** working tree vs HEAD
+- **Branch:** codex/hive-autoplay · **HEAD:** b684a2b7
 
 ## Summary of work completed
 
@@ -21,13 +21,13 @@ Active continuous improvement goal remains active; owner authorizes verified rel
 
 ## Files modified
 
-- Source (0): —
+- Source (3): `src/changelog/releases.gen.ts`, `src/index.css`, `src/ui/GameView.css`
 - Tests (0): —
-- Docs (4): `docs/HISTORY.md`, `docs/PROJECT_STATUS.md`, `docs/VALIDATION_REPORT.md`, `docs/devlog/DRAFT-2026-11-09.md`
+- Docs (6): `docs/AI_HANDOFF.md`, `docs/HISTORY.md`, `docs/PROJECT_STATUS.md`, `docs/UI-STANDARDS.md`, `docs/VALIDATION_REPORT.md`, `docs/devlog/DRAFT-2026-11-09.md`
 
 ## Systems affected (from the dependency registry)
 
-- (no registered source files in this diff)
+- **chronicle** — `src/changelog/releases.gen.ts`
 
 ## Power Score changes
 
@@ -84,3 +84,7 @@ FieldNote follow-up: hover/focus holds note retirement, native Dismiss button pl
 Field-note final production build PASS; dev server stopped. Last deployment ~03:38 UTC; current time ~04:20 UTC, approaching release window. Consider final full tests/mobile sweep on accumulated post-checkpoint UI/audio changes, then deploy with all seven curated v2026.11.09.4 notes and verify live assets/news.
 
 Final release gate: all source through 4e62318d passes production build, 353 files /3150 tests (197.84s), and 27-screen/nine-viewport mobilecheck CLEAN. Publishing v2026.11.09.4 Progress You Can Follow with seven curated notes. Local entry play-CtxVJXHT.js. Verify Actions for final release commit then run ../verify-progress-release.ps1 against normal custom-domain URLs (CacheBust switch available for cache diagnosis). All test/preview processes completed. Keep goal active after release.
+
+New local batch v2026.11.09.5 Feedback That Stays Readable; .4 sealed after live verification. CSS only: reduced-motion hero upgrade floats stay visible and show newest concurrent result; Power/Mastery toasts respect manual root/game motion settings as well as OS. ../feedback-motion-check.cjs --assert and ../upgrade-feedback-check.cjs PASS; real Lv5 static result and normal expiry verified; ../upgrade-feedback-reduced.png inspected. Last deploy ~04:30 UTC; next roughly-hourly batch pending further improvements.
+
+Reduced-motion follow-up production build and four site synchronization tests PASS. Local dev server stopped; no new deployment yet.

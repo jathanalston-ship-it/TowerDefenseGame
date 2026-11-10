@@ -5,10 +5,22 @@ import type { Release } from './types';
 /** Player-facing releases, newest first. */
 export const RELEASES: Release[] = [
   {
+    "id": "v2026.11.09.5",
+    "date": "2026-11-09",
+    "title": "Feedback That Stays Readable",
+    "sealed": false,
+    "entries": [
+      {
+        "cat": "Visuals",
+        "text": "Reduced motion keeps hero upgrade results visible instead of fading them away instantly. Rapid purchases show the latest gain clearly, and Power and Mastery notices stay still under both device and in-game motion settings."
+      }
+    ]
+  },
+  {
     "id": "v2026.11.09.4",
     "date": "2026-11-09",
     "title": "Progress You Can Follow",
-    "sealed": false,
+    "sealed": true,
     "entries": [
       {
         "cat": "UI",

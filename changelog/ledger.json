@@ -1,6 +1,6 @@
 {
-  "lastSha": "4e62318dbf284c173ba69e6893773802c7617d54",
-  "commitsSinceDraft": 9,
+  "lastSha": "b684a2b7a01993fceb849076c1eeb8d760b7df15",
+  "commitsSinceDraft": 0,
   "content": {
     "tower": [
       "needle",
@@ -4238,7 +4238,7 @@
       "id": "v2026.11.09.4",
       "date": "2026-11-09",
       "title": "Progress You Can Follow",
-      "sealed": false,
+      "sealed": true,
       "entries": [
         {
           "cat": "UI",
@@ -4267,6 +4267,18 @@
         {
           "cat": "UI",
           "text": "Field notes stay visible while you hover over or focus them, giving you time to read. A keyboard-accessible Dismiss button replaces the tap-only hint; notes still clear automatically during normal play and when a gene draft opens."
+        }
+      ]
+    },
+    {
+      "id": "v2026.11.09.5",
+      "date": "2026-11-09",
+      "title": "Feedback That Stays Readable",
+      "sealed": false,
+      "entries": [
+        {
+          "cat": "Visuals",
+          "text": "Reduced motion keeps hero upgrade results visible instead of fading them away instantly. Rapid purchases show the latest gain clearly, and Power and Mastery notices stay still under both device and in-game motion settings."
         }
       ]
     }
@@ -9357,6 +9369,22 @@
       "date": "2026-11-09",
       "cat": "UI",
       "text": "Ui: verify readable field note interactions",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "bfa87c50fe652ca8105961d2faa2372bf281f51e",
+      "date": "2026-11-09",
+      "cat": "Framework",
+      "text": "Release: ship clearer controls and progress feedback",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "b684a2b7a01993fceb849076c1eeb8d760b7df15",
+      "date": "2026-11-09",
+      "cat": "Framework",
+      "text": "Docs: record verified progress release",
       "internal": true,
       "needsReview": false
     }

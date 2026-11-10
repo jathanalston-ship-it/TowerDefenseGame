@@ -227,3 +227,7 @@ Audio-routing follow-up final production build PASS. Full 3150-test/nine-viewpor
 Field-note follow-up: Chrome probe PASS using a one-second accelerated hold (longer than entry animation): hover/focus preserve the note, pointer exit does not override keyboard focus, Enter dismisses, draft retires immediately, unattended note expires, no focus theft. 390x844 bubble bounds and 44px Dismiss verified; screenshot inspected. First-hour teaching/pacing: 8 tests PASS.
 
 Field-note final production build PASS.
+
+Next batch v2026.11.09.5: CSS feedback probe reproduced hcc-float opacity0 under OS reduced motion and continued notice animation under in-game setting. After fix, latest gain/Power/Mastery all animation:none opacity1 under both sources; older static floats hidden; normal animation names restored when motion enabled. Real GameView shift-buy probe PASS: one visible latest Lv5 gain, no motion, original expiry. Screenshot inspected. No sim or timing code changed.
+
+Reduced-motion feedback final production build and four website synchronization tests PASS.
