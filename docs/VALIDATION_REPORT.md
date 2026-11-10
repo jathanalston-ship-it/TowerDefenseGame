@@ -916,3 +916,7 @@ Baseline confirmation dropped keyboard focus. Named confirmation now includes ch
 ## 2026-11-10 22:35 UTC — .14 release gates
 
 v2026.11.10.14 Clearer Help and Previews sealed with8notes, generated into website and game. Final suite20592 PASS3194tests/354files159.24s, help-preview-release-tests.log. Final build86909 PASS7.56s Vite, SWmwb9ev4e, /assets/play-OJ1qam35.js, help-preview-release-build.log. Original mobile59018 PASS27nav screens plus nine gameplay profiles/drawer/rotation/run-chrome, help-preview-release-mobile.log. Docs11500 and handoff passed. Wrapper failed launching children; direct spawnSync npx with shell:false reproduced ENOENT/statusnull. Raw wrapper evidence preserved in help-preview-wrapper.log and help-preview-wrapper-report.log, prior canonical report restored. All direct gates passed; all processes terminal. No gameplay/balance/save changes. Release pending push and external verification.
+
+## 2026-11-10 22:36 UTC — .14 deployed and verified
+
+LIVE v2026.11.10.14 Clearer Help and Previews,8notes. SHA9060e09a7e98ae12c569b0dca8e137eed2012a00; Actions42915852269/job130177928821 passed including exact-commit production guard. Normal public game/home/news and all8notes verified22:36UTC, asset /assets/play-OJ1qam35.js. No cache-bypass needed. Game and website updated together. Final gates:3194tests/354files159.24s; build7.56s; original27nav/nine gameplay mobile profiles passed. Goal remains active; next approximate deployment23:35–23:40UTC. This post-deployment record is a local docs-only commit.

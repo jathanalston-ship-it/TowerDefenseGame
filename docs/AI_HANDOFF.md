@@ -9,7 +9,7 @@
 
 ## Summary of work completed
 
-RELEASE PREP: v2026.11.10.14 Clearer Help and Previews sealed with eight notes. Final suite20592 passed3194tests/354files159.24s; final build86909 passed7.56s Vite, SWmwb9ev4e, asset /assets/play-OJ1qam35.js. Built news contains all8notes. Original mobile59018 PASS27navigation screens and nine gameplay viewport profiles, including drawer/rotation/run-chrome contracts. All local processes terminal. Docs11500 and handoff passed. Validation wrapper Windows npx-launch limitation recurred; preserved raw wrapper report/log and restored canonical prior report. LIVE remains .13 da7800db61388e86c9a7a987b6bb823a6bd48e20, verified21:48UTC. Goal active.
+LIVE v2026.11.10.14 Clearer Help and Previews,8notes. SHA9060e09a7e98ae12c569b0dca8e137eed2012a00; Actions42915852269/job130177928821 passed including exact-commit production guard. Normal public game/home/news and all8notes verified22:36UTC, asset /assets/play-OJ1qam35.js. No cache-bypass needed. Final suite20592 passed3194tests/354files159.24s; build86909 passed7.56s Vite, SWmwb9ev4e; original mobile59018 passed27nav+nine gameplay profiles/drawer/rotation/run-chrome. Docs and handoff passed. All processes terminal. Eight UI improvements documented below. Goal active; next approximate deployment23:35–23:40UTC.
 
 ## Files modified
 
@@ -39,7 +39,7 @@ None — save layer untouched.
 
 ## Known edge cases
 
-Final release pending commit/push, Actions exact-commit guard and normal custom-domain game/home/news verification. Existing Windows validation wrapper cannot launch npx children; direct suite/build/docs passed. Preserve untracked devlog drafts.
+Existing Windows validate wrapper spawnSync npx shell:false fails ENOENT; raw failed wrapper report/log preserved, direct build/full suite/docs/original mobile all passed. No current deployment blocker. Preserve both untracked devlog drafts.
 
 ## Remaining technical debt
 
@@ -47,7 +47,7 @@ No new debt. Existing Windows validation launcher issue. Two untracked devlog dr
 
 ## Recommended next tasks
 
-Commit release on codex/hive-autoplay and push HEAD to claude/zen-hawking-rh1gxl (never force). Verify Actions exact-SHA guard and ../verify-current-release.ps1 normal URLs.
+Continue evidence-led improvements across playability, clarity, accessibility and presentation without gameplay/balance changes. All current work is live. Next approximate deployment23:35–23:40UTC, with website notes. Potential follow-up: make the validation launcher cross-platform so it can run existing gates on Windows; current ENOENT is a launcher defect, not a test failure. Seal/generate/final build/mobile before next release and verify exact-SHA plus normal public URLs.
 
 ## Future expansion hooks
 
