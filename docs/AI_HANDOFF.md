@@ -9,7 +9,7 @@
 
 ## Summary of work completed
 
-Sealed local v2026.11.10.15 Clearer Upgrade Controls with five game/website notes. Includes adaptation reveal portal/focus, graft host keyboard tabs, accurate Tissue labels, harvest recommendation navigation, and harvest receipt portal/focus. Full normal validation session23275 PASS23:26UTC:3194tests, typecheck, production build/mobile and docs. Production remains .14 until verified deployment.
+LIVE v2026.11.10.15 Clearer Upgrade Controls. SHAe15b1827f86bdb6c8c722d7e049091a12260d98d; Actions42923489450/job130203938604 SUCCESS including exact-commit production guard. Normal public game/home/news/all5notes verified at23:32UTC; asset /assets/play-BKBxfanN.js matches standalone production build (5.90s, SWmwbbp895). Full normal validator23275 PASS3194tests/typecheck/mobile/docs at23:26. Caveat discovered during public verification: validator launched under vite-node inherited development NODE_ENV for its nested build, producing development JSX runtime and different entry hash. All241 entry source-map sources match apart from React runtime selection; live HarvestScreen source matches exactly. Standalone production build56606 passed and normal URL check passed. Follow up validator environment isolation next; do not treat the previous hash mismatch as stale deployment. No gameplay/save changes. Both untracked devlog drafts preserved. Goal remains active; next approximate deployment00:32UTC.
 
 ## Files modified
 
@@ -41,7 +41,7 @@ None.
 
 ## Known edge cases
 
-Full release validation passed. Arrival focus restoration requires its remembered prior control to remain connected. Preserve both untracked devlog drafts.
+Validator nested build inherited development NODE_ENV from vite-node. Fix environment isolation before next release; production build and exact public match are separately verified. Arrival focus restoration requires prior control still connected. Preserve both untracked drafts.
 
 ## Remaining technical debt
 
@@ -49,7 +49,7 @@ Local installed Chrome needs MOBILECHECK_CHROMIUM and NODE_OPTIONS parent chrome
 
 ## Recommended next tasks
 
-Validation23275 completed successfully. Commit and deploy. Push authorized production branch and verify exact-SHA Actions plus normal public game/home/news. Next deployment roughly23:35–23:40UTC; continuous goal stays active.
+Continue active continuous-improvement goal. First investigate/fix validator NODE_ENV inheritance and prove normal production asset output without weakening gates. Latest release is live and verified; next roughly00:32UTC.
 
 ## Future expansion hooks
 
