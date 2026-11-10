@@ -759,7 +759,7 @@ Global standings offer retry/refresh with announced request status and labeled c
   session/durable storage drivers + `swapStorage` — Guest Mode's seam, `ACCOUNTS.md §guest-mode`),
   `save/saveFile.ts` (file I/O), `save/derive.ts` (shared pure derivations, e.g.
   `highestCampaignStage`), `state/devReset.ts` + `state/prefs.ts` (`DEVICE_PREF_KEYS` registry),
-  `ui/SaveManager.tsx`. Backups publish their index before pruning; failed writes preserve prior snapshots and report failure in the UI. Confirmed restores keep a recovery snapshot and protect their source from pruning. File imports validate into a cancellable, keyboard-accessible preview before applying. Docs: `DEV-RESET.md`, `SCALABILITY.md`.
+  `ui/SaveManager.tsx`. Backups publish their index before pruning; failed writes preserve prior snapshots and report failure in the UI. Confirmed restores keep a recovery snapshot and protect their source from pruning. File imports validate into a cancellable, keyboard-accessible preview; confirmed imports preserve live recovery state and commit to storage before notifying the session, with stale-tab protection. Docs: `DEV-RESET.md`, `SCALABILITY.md`.
 - **Related:** literally everything permanent; Power recomputes on every persist.
 - **Future expansion:** cloud sync shipped as the accounts platform (`ACCOUNTS.md` — envelope,
   sync engine, conflict flow); the schema stays additive-ready.

@@ -2246,6 +2246,16 @@ export class SaveStore {
   backup(protectedId?: string): BackupMeta | null {
     const raw = this.get(SAVE_KEY);
     if (!raw || !parseBlob(raw)) return null;
+    return this.writeBackup(raw, protectedId);
+  }
+
+  /** Explicit import: preserve live progress (which may have a pending disk flush) first. */
+  importSave(data: SaveData, current: SaveData): boolean {
+    if (!this.writeBackup(blobString(current))) return false;
+    return this.set(SAVE_KEY, blobString(data));
+  }
+
+  private writeBackup(raw: string, protectedId?: string): BackupMeta | null {
     const meta: BackupMeta = {
       id: `${Date.now().toString(36)}-${(this.bakSeq++).toString(36)}`,
       at: new Date().toISOString(),

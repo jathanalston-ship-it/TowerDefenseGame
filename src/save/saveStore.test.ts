@@ -201,6 +201,34 @@ describe('save export / import', () => {
 });
 
 describe('backups & corruption recovery', () => {
+  it.each(['snapshot', 'index', 'main'] as const)('does not replace a save when an import %s write fails', (failure) => {
+    const storage = mem();
+    const store = new SaveStore(storage);
+    store.save({ ...defaultSave(), shards: 100 });
+    const main = storage.map.get('assimilate.save');
+    const write = storage.setItem;
+    storage.setItem = (key, value) => {
+      if ((failure === 'main' && key === 'assimilate.save') ||
+          (failure === 'index' && key === 'assimilate.save.baklist') ||
+          (failure === 'snapshot' && key.startsWith('assimilate.save.bak.'))) throw new Error('Storage full');
+      write(key, value);
+    };
+    expect(store.importSave({ ...defaultSave(), shards: 999 }, { ...defaultSave(), shards: 250 })).toBe(false);
+    expect(storage.map.get('assimilate.save')).toBe(main);
+    expect(store.load().shards).toBe(100);
+    storage.setItem = write;
+    expect(store.importSave({ ...defaultSave(), shards: 999 }, { ...defaultSave(), shards: 250 })).toBe(true);
+    expect(store.load().shards).toBe(999);
+    expect(store.restoreBackup(store.listBackups()[0].id)?.shards).toBe(250);
+  });
+
+  it('imports into an empty store while preserving the current live session', () => {
+    const store = new SaveStore(mem());
+    expect(store.importSave({ ...defaultSave(), shards: 999 }, { ...defaultSave(), shards: 250 })).toBe(true);
+    expect(store.load().shards).toBe(999);
+    expect(store.restoreBackup(store.listBackups()[0].id)?.shards).toBe(250);
+  });
+
   it.each(['snapshot', 'index'] as const)('keeps existing backups when the %s write fails', (failure) => {
     const storage = mem();
     const store = new SaveStore(storage);

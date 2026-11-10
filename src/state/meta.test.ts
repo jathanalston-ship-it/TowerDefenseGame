@@ -1,5 +1,5 @@
-import { describe, it, expect } from 'vitest';
-import { defaultLifetimeStats, defaultSave, parseImport, serializeExport } from '../save/saveStore';
+import { describe, it, expect, vi } from 'vitest';
+import { defaultLifetimeStats, defaultSave, parseImport, serializeExport, SaveStore } from '../save/saveStore';
 import { collectionContextOf, heroShardUnlockPool, isHeroUnlocked, meta, metaModifiers, upgradeCost, nextUpgradeCost, genomeRunEffects } from './meta';
 import type { RunResult } from './meta';
 import { CAMPAIGN_REWARDS, HERO_ORDER, META_UPGRADES, TOWER_ORDER } from '../core/config';
@@ -10,6 +10,48 @@ import type { HeroKind, RunStats } from '../core/types';
 import { defaultPrestige } from '../core/prestige';
 import { gameEvents } from '../core/events';
 import { resetSecurity, setSecurityClock, setSecurityEnabled } from '../security/actionGuard';
+import { onWriterMark, resetTabArbiter } from '../security/tabArbiter';
+
+describe('confirmed import persistence', () => {
+  it('keeps the session unchanged when the storage transaction fails', () => {
+    setSecurityEnabled(false);
+    const before = meta.get();
+    const write = vi.spyOn(SaveStore.prototype, 'importSave').mockReturnValue(false);
+    try {
+      expect(meta.importText(serializeExport({ ...defaultSave(), shards: 999 })).ok).toBe(false);
+      expect(meta.get()).toBe(before);
+    } finally { write.mockRestore(); }
+  });
+
+  it('blocks stale-tab imports before creating any backup or writing a save', () => {
+    setSecurityEnabled(false);
+    const before = meta.get();
+    const write = vi.spyOn(SaveStore.prototype, 'importSave');
+    onWriterMark('another-tab:1');
+    try {
+      expect(meta.importText(serializeExport(defaultSave())).ok).toBe(false);
+      expect(meta.get()).toBe(before);
+      expect(write).not.toHaveBeenCalled();
+    } finally { resetTabArbiter(); write.mockRestore(); }
+  });
+
+  it('commits imported data before notifying session subscribers', () => {
+    setSecurityEnabled(false);
+    const original = SaveStore.prototype.importSave;
+    let committed = false;
+    const write = vi.spyOn(SaveStore.prototype, 'importSave').mockImplementation(function (this: SaveStore, data, current) {
+      committed = original.call(this, data, current);
+      return committed;
+    });
+    const seen: boolean[] = [];
+    const unsubscribe = meta.subscribe(() => seen.push(committed));
+    try {
+      expect(meta.importText(serializeExport({ ...defaultSave(), shards: 123 })).ok).toBe(true);
+      expect(seen).toEqual([true]);
+      expect(meta.get().shards).toBe(123);
+    } finally { unsubscribe(); write.mockRestore(); }
+  });
+});
 
 /** Minimal finished-run payload (zeroed mastery/stats) — enough to drive finishRun's loot
  * banking without standing up a full Game. */

@@ -1,6 +1,6 @@
 {
-  "lastSha": "c1df2d921afd37fddc7c105e64f713d0bfdd8a4f",
-  "commitsSinceDraft": 9,
+  "lastSha": "030b6d89ae147e0421ac79d6dda28d8f698769ad",
+  "commitsSinceDraft": 0,
   "content": {
     "tower": [
       "needle",
@@ -4567,6 +4567,10 @@
         {
           "cat": "UX",
           "text": "Choosing a save file now opens a review showing its name, currency, best wave and run count. Nothing is imported until you choose Replace progress; Cancel or Escape keeps your current progress, and invalid or unreadable files show a clear error."
+        },
+        {
+          "cat": "Bug Fixes",
+          "text": "Confirmed save imports now finish their storage writes before replacing the active session. If the recovery backup or imported save cannot be written, current progress stays intact; a competing browser tab also blocks the import until you reload."
         }
       ]
     }
@@ -10305,6 +10309,14 @@
       "date": "2026-11-10",
       "cat": "Gameplay",
       "text": "Save: confirm restores and preserve recovery snapshots",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "030b6d89ae147e0421ac79d6dda28d8f698769ad",
+      "date": "2026-11-10",
+      "cat": "UI",
+      "text": "Review save files before importing progress",
       "internal": true,
       "needsReview": false
     }

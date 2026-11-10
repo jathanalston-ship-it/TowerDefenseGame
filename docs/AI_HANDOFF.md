@@ -4,8 +4,8 @@
 > before committing. Read together with docs/PROJECT_STATUS.md and the latest
 > docs/VALIDATION_REPORT.md. Next session: start at docs/PROJECT_MANIFEST.md.
 
-- **Generated:** 2026-11-10 16:11 UTC · **Diff scope:** working tree vs HEAD
-- **Branch:** codex/hive-autoplay · **HEAD:** c1df2d92
+- **Generated:** 2026-11-10 16:20 UTC · **Diff scope:** working tree vs HEAD
+- **Branch:** codex/hive-autoplay · **HEAD:** 030b6d89
 
 ## Summary of work completed
 
@@ -13,14 +13,14 @@ LIVE v2026.11.10.6 Memories Within Reach, five sealed notes. SHA7f18a4f7fe74450f
 
 ## Files modified
 
-- Source (3): `src/changelog/releases.gen.ts`, `src/ui/SaveManager.css`, `src/ui/SaveManager.tsx`
-- Tests (0): —
+- Source (3): `src/changelog/releases.gen.ts`, `src/save/saveStore.ts`, `src/state/meta.ts`
+- Tests (2): `src/save/saveStore.test.ts`, `src/state/meta.test.ts`
 - Docs (5): `docs/HISTORY.md`, `docs/PROJECT_MANIFEST.md`, `docs/SCALABILITY.md`, `docs/devlog/DRAFT-2026-11-09.md`, `docs/devlog/DRAFT-2026-11-10.md`
 
 ## Systems affected (from the dependency registry)
 
 - **chronicle** — `src/changelog/releases.gen.ts`
-- **meta-store** — `src/ui/SaveManager.tsx`
+- **meta-store** — `src/save/saveStore.ts`, `src/state/meta.ts`
 - Consumer ring (verify, unchanged): account-level, accounts, analytics, arena, battle-pass, class-bonds, contracts, cosmetics, cutscenes, daily-login, devtools, directives, expeditions, field-research, genome-rank, hero-symbiotes, hive-construction, hub-shell, idle-harvest, infestation, liveops, metabolism, mulligans, nemesis, net-backend, notifications, nucleus, onboarding, progression-gating, quests, run-ui, security
 
 ## Power Score changes
@@ -49,7 +49,7 @@ Windows validate wrapper cannot launch npx/npm with shell:false; use direct gate
 
 ## Recommended next tasks
 
-Local .10.7 has three unsealed notes: backup writes, restore safety, import review. Build14.44s/60save-UI-site tests/docs and all3save UI probes PASS. All processes terminal. Next16:53UTC approximate deployment requires full suite/final/mobile/live gates. Next task: durable import failure handling. meta.importText currently ignores backup failure and calls persist(), which store.sets before best-effort disk writes. Preserve cross-tab stale guard, gear discoveries, writer stamp and scheduled flush semantics if changing this path; ordinary persist must remain unchanged. SaveStore may need a tested replacement method that snapshots live current data and writes imported data before meta memory changes. Current preview validates/cancels safely but confirmed persistence still uses existing importText.
+Local .10.7 has four unsealed save-safety/review notes. Build23.79s,104save/meta/discovery/site tests,docs and actual-browser durable-import probe PASS. All processes terminal. Next approximate16:53UTC release requires full suite/final build/mobile/live gates. Audit restore counterpart before release: meta.restoreBackup still lacks tabIsStale guard/stamp/queued-flush handling and SaveStore.restoreBackup currently snapshots disk current rather than pending live progress. Apply only evidence-backed changes, keep ordinary persist unchanged. Full goal active.
 
 ## Future expansion hooks
 
@@ -109,6 +109,8 @@ Hero readiness final build65590 PASS (Vite7.59s); all processes terminal. Next r
 
 
 
-## 2026-11-10 — review before importing save files (local .10.7)
 
-SaveManager reads/validates with existing file helper/parser into a cancellable review showing filename and sanitized currency/wave/run totals. Explicit Replace progress applies via existing importText; Cancel/Escape leave progress untouched. Heading focus, return focus,44px actions, long-name wrapping, reading status and epoch-based late-read rejection added. Invalid/unreadable files never invoke import. Failed apply retains preview for retry. Corrected misleading no-account copy. ../import-preview-check.cjs PASS real FileReader/parser plus controlled out-of-order callbacks, invalid/read errors, same-file reselect, heading/Escape/cancel/focus, explicit apply/retry,320px long filename/targets. Phone screenshot inspected. Backup and restore UI probes re-PASS. App/functions TS+build14.44s,60save/UI/site tests anddocs PASS. Third unsealed website note generated. Confirmed import still uses prior persistence method; durable failure handling remains next. All processes terminal; goal active.
+
+## 2026-11-10 — commit confirmed imports before session replacement (local .10.7)
+
+Baseline actual-browser fault probe showed snapshot/index failures still applied imports and main-write failure changed session while disk stayed old, all claiming success. SaveStore.importSave now snapshots supplied live current state via shared private writeBackup, then commits incoming data. meta.importText retains strict guard/parser, rejects stale tabs, enriches gear discovery, and only after storage success cancels pending flush, notes clock/stamps writer and publishes store.set. Ordinary persist unchanged. Added4storage cases plus3meta integration tests. ../import-storage-check.cjs PASS real meta/Storage failures at3stages, same memory/disk on failure, stale-tab no-write, durable-before-subscriber, live pending-state recovery and canceled old300ms flush. Build app/functions TS+Vite23.79s PASS;104save/meta/discovery/site tests PASS;docs PASS. Required wrapper exit1 known Windows launcher; import-storage-wrapper-report.log preserved. Fourth unsealed website note generated. All processes terminal; next approximate16:53UTC release, full goal active.

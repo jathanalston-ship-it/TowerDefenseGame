@@ -7623,8 +7623,17 @@ export const meta = {
     if (!guardOk('save.import')) return { ok: false, error: 'Rate limited — try again in a moment.' };
     const result = parseImport(text);
     if (!result.ok) return result;
-    saveStore.backup(); // non-destructive: keep the pre-import state recoverable
-    persist(result.data);
+    if (tabIsStale()) return { ok: false, error: 'Another tab is managing this save. Reload before importing.' };
+    const next = withGearDiscoveries(result.data);
+    // Imports are explicitly paced by save.import, but must not use persist's best-effort
+    // write coalescer: report success and notify subscribers only after the disk commit.
+    if (!saveStore.importSave(next, store.get())) {
+      return { ok: false, error: 'Could not save the import. Your current progress is unchanged. Export JSON to keep a separate copy.' };
+    }
+    if (persistFlushTimer !== null) { clearTimeout(persistFlushTimer); persistFlushTimer = null; }
+    noteClock();
+    stampWriter();
+    store.set(next);
     return result;
   },
 

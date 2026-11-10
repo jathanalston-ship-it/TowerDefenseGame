@@ -21,6 +21,10 @@ export const RELEASES: Release[] = [
       {
         "cat": "UX",
         "text": "Choosing a save file now opens a review showing its name, currency, best wave and run count. Nothing is imported until you choose Replace progress; Cancel or Escape keeps your current progress, and invalid or unreadable files show a clear error."
+      },
+      {
+        "cat": "Bug Fixes",
+        "text": "Confirmed save imports now finish their storage writes before replacing the active session. If the recovery backup or imported save cannot be written, current progress stays intact; a competing browser tab also blocks the import until you reload."
       }
     ]
   },

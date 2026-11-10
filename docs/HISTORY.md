@@ -761,3 +761,4 @@
 - `76fbbb6` **[Framework]** Docs: record verified collection release deployment _(internal)_
 - `5563bac` **[Gameplay]** Save: preserve backups and report write failures _(internal)_
 - `c1df2d9` **[Gameplay]** Save: confirm restores and preserve recovery snapshots _(internal)_
+- `030b6d8` **[UI]** Review save files before importing progress _(internal)_
