@@ -29,7 +29,7 @@ import { music } from '../audio/music';
 import { REDUCED_FRAME_T, drawDiveTransition, drawIntroFrame } from '../render/introScenes';
 import type { IntroVisual } from '../render/introScenes';
 import type { CutsceneBeat, CutsceneCamera, CutsceneCopyAt } from '../core/cutscenes';
-import { motionPrefs, resolveMotion, systemReducedMotion } from '../state/prefs';
+import { motionPrefs, onMotionPrefs, resolveMotion, systemReducedMotion } from '../state/prefs';
 import { markIntroSeen, setIntroPlaying } from './introState';
 import './InitCutscene.css';
 
@@ -143,9 +143,19 @@ export function InitCutscene({ onDone }: { onDone: (dived?: boolean) => void }):
   const [phase, setPhase] = useState<Phase>('gate');
   useEffect(() => { setIntroPlaying(true); return () => setIntroPlaying(false); }, []);
   // Reduced motion = THE motionScale (OS request unless Settings → Motion overrides it): stills,
-  // no camera drift / punches / flashes, no dive. Resolved once per showing.
-  const [feel] = useState(() => resolveMotion(motionPrefs(), systemReducedMotion()));
+  // no camera drift / punches / flashes, no dive. Preferences remain live throughout playback.
+  const [feel, setFeel] = useState(() => resolveMotion(motionPrefs(), systemReducedMotion()));
   const reducedMotion = feel.motion === 0;
+  const previousMotion = useRef(feel.motion);
+  useEffect(() => {
+    let prefs = motionPrefs();
+    const update = (): void => setFeel(resolveMotion(prefs, systemReducedMotion()));
+    const off = onMotionPrefs(next => { prefs = next; update(); });
+    const mq = window.matchMedia?.('(prefers-reduced-motion: reduce)');
+    mq?.addEventListener('change', update);
+    update();
+    return () => { off(); mq?.removeEventListener('change', update); };
+  }, []);
   const [idx, setIdx] = useState(0);
   const [manual, setManual] = useState(false);
   const dialogRef = useRef<HTMLDivElement>(null);
@@ -237,6 +247,11 @@ export function InitCutscene({ onDone }: { onDone: (dived?: boolean) => void }):
   // the scene's sound-design BEATS as the clock crosses them, and painting the dive on exit.
   // Reduced motion: no loop — each scene paints ONE hand-picked still (CSS fades carry it).
   useEffect(() => {
+    // A live reduced-motion request ends an in-flight dive without leaving a frozen transition.
+    if (reducedMotion && phase === 'dive') {
+      if (!doneRef.current) { doneRef.current = true; onDone(); }
+      return undefined;
+    }
     const cv = canvasRef.current;
     const ctx = cv?.getContext('2d');
     if (!cv || !ctx) return undefined;
@@ -247,6 +262,13 @@ export function InitCutscene({ onDone }: { onDone: (dived?: boolean) => void }):
     };
     size();
     let raf = 0;
+    if (previousMotion.current === 0 && feel.motion > 0 && phase === 'film') {
+      const f = filmRef.current;
+      const beats = SCENES[f.scene].beats;
+      const elapsed = (performance.now() - f.startedAt) / 1000;
+      while (f.beatsFired < beats.length && beats[f.beatsFired].at <= elapsed) f.beatsFired++;
+    }
+    previousMotion.current = feel.motion;
     const frame = (): void => {
       const f = filmRef.current;
       const now = performance.now();
@@ -293,7 +315,7 @@ export function InitCutscene({ onDone }: { onDone: (dived?: boolean) => void }):
     // eslint-disable-next-line react-hooks/exhaustive-deps -- reduced mode repaints per scene; the loop reads clocks from refs.
     // `phase` IS a dep: the gate and the film are separate JSX trees, so the canvas REMOUNTS on
     // gate→film — the projector must rebind to the new element.
-  }, [phase, reducedMotion ? scene.visual : true]);
+  }, [phase, feel.motion, feel.flashes, reducedMotion ? scene.visual : null]);
 
   // ── Pre-roll gate: the one tap the browser needs, staged as the transmission arriving ──
   if (phase === 'gate') {

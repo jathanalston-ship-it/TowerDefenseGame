@@ -833,3 +833,5 @@ Tutorial text presentation: tutorial/primitives.tsx consumes meta-store device p
 GuidedUnlock completion (ui/GuidedUnlock.tsx, index.css): focus recovery, described result, local Escape and responsive touch controls; avoids stealing focus from real-action ceremonies. See GUIDED-UNLOCKS.md.
 
 Story cutscene presentation: ui/CutscenePlayer.tsx follows live resolved motion/flash preferences, preserves scene clocks and avoids elapsed-beat catch-up; see CUTSCENES.md and UI-MOTION.md.
+
+Opening cinematic (ui/InitCutscene.tsx): live resolved motion/flash preferences across gate/film/dive, elapsed-beat suppression on animation resume, safe reduced-motion dive exit. See GAME-FEEL.md and UI-MOTION.md.

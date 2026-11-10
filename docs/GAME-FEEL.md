@@ -448,3 +448,5 @@ pass), and the HUD boss banner's one-tick verb label (a UI-side hold would fix i
 
 ### Live device motion changes
 The hub root motion/flashes attributes and both MotionSettings layouts subscribe to device reduced-motion changes. The existing Allow motion override remains authoritative, and stored shake strength survives toggling the device preference. Both preference and media-query listeners are removed on cleanup. Sound and motion switches expose stable accessible names.
+
+Opening-film motion lifecycle: InitCutscene subscribes to OS/device motion and flash preferences during gate, film and descent. Changes keep the current scene clock; restoring animation skips elapsed silent-mode beats. A reduced-motion request during the descent completes immediately without the dive afterglow flag, with the existing seen/once-only completion lifecycle preserved. Projector and preference listeners clean up on unmount.

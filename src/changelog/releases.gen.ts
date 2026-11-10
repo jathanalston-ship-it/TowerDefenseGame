@@ -13,6 +13,10 @@ export const RELEASES: Release[] = [
       {
         "cat": "Visuals",
         "text": "Story cutscenes now respond to motion and flash settings while playing. Reduced motion keeps a still image, restoring motion preserves the scene clock without replaying elapsed sound cues, and the ending card keeps its dimmed backdrop in either mode."
+      },
+      {
+        "cat": "Visuals",
+        "text": "The opening cinematic now follows motion and flash preferences live, from its start screen through the film. Restoring animation skips elapsed sound cues, and requesting reduced motion during the final dive exits cleanly without getting stuck."
       }
     ]
   },

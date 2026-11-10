@@ -1,6 +1,6 @@
 {
-  "lastSha": "af1232f0e1310236311c09b5f8489f5598049365",
-  "commitsSinceDraft": 3,
+  "lastSha": "20ba0c4d33a9c42f9315435b81b2a2c834b81fd8",
+  "commitsSinceDraft": 4,
   "content": {
     "tower": [
       "needle",
@@ -4507,6 +4507,10 @@
         {
           "cat": "Visuals",
           "text": "Story cutscenes now respond to motion and flash settings while playing. Reduced motion keeps a still image, restoring motion preserves the scene clock without replaying elapsed sound cues, and the ending card keeps its dimmed backdrop in either mode."
+        },
+        {
+          "cat": "Visuals",
+          "text": "The opening cinematic now follows motion and flash preferences live, from its start screen through the film. Restoring animation skips elapsed sound cues, and requesting reduced motion during the final dive exits cleanly without getting stuck."
         }
       ]
     }
@@ -10117,6 +10121,14 @@
       "date": "2026-11-10",
       "cat": "Framework",
       "text": "Docs: record verified Clearer Briefings deployment",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "20ba0c4d33a9c42f9315435b81b2a2c834b81fd8",
+      "date": "2026-11-10",
+      "cat": "UI",
+      "text": "Apply cutscene motion preferences live",
       "internal": true,
       "needsReview": false
     }

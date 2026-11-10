@@ -745,3 +745,4 @@
 - `22c4fb2` **[UI]** Restore useful focus after field guides _(internal)_
 - `d1642e2` **[Framework]** Release: publish Clearer Briefings with five notes _(internal)_
 - `af1232f` **[Framework]** Docs: record verified Clearer Briefings deployment _(internal)_
+- `20ba0c4` **[UI]** Apply cutscene motion preferences live _(internal)_
