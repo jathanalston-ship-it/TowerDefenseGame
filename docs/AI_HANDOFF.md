@@ -4,8 +4,8 @@
 > before committing. Read together with docs/PROJECT_STATUS.md and the latest
 > docs/VALIDATION_REPORT.md. Next session: start at docs/PROJECT_MANIFEST.md.
 
-- **Generated:** 2026-11-10 15:44 UTC · **Diff scope:** working tree vs HEAD
-- **Branch:** codex/hive-autoplay · **HEAD:** ef23cd94
+- **Generated:** 2026-11-10 15:51 UTC · **Diff scope:** working tree vs HEAD
+- **Branch:** codex/hive-autoplay · **HEAD:** e081e6e5
 
 ## Summary of work completed
 
@@ -13,15 +13,13 @@ LIVE v2026.11.10.5 Films That Follow You with four sealed website notes. SHA8299
 
 ## Files modified
 
-- Source (2): `src/changelog/releases.gen.ts`, `src/ui/MusicDebug.tsx`
+- Source (0): —
 - Tests (0): —
-- Docs (5): `docs/HISTORY.md`, `docs/MUSIC.md`, `docs/PROJECT_MANIFEST.md`, `docs/devlog/DRAFT-2026-11-09.md`, `docs/devlog/DRAFT-2026-11-10.md`
+- Docs (2): `docs/devlog/DRAFT-2026-11-09.md`, `docs/devlog/DRAFT-2026-11-10.md`
 
 ## Systems affected (from the dependency registry)
 
-- **audio** — `src/ui/MusicDebug.tsx`
-- **chronicle** — `src/changelog/releases.gen.ts`
-- Consumer ring (verify, unchanged): cutscenes, living-battlefield
+- (no registered source files in this diff)
 
 ## Power Score changes
 
@@ -49,7 +47,7 @@ Windows validate wrapper cannot launch npx/npm with shell:false; use direct gate
 
 ## Recommended next tasks
 
-Mobile98307 terminal FAIL one tablet Settings input119x24 target: optional MusicDebug minHeight24. Fixed both console input/slider definitions to44; actual console browser probe PASS at1024/844/568 widths plus edit/range keys. Final rebuild+11UI/site tests+docs RUNNING session75574 (collection-final-build.log). Poll SAME handle. After passes, rerun full mobile on rebuilt dist; previous failed process is terminal. Five sealed notes now prepared; full3177suite passed before this CSS-only inline-height change. Remote deployment branch verified82998411. No deploy yet. Then publish and exact-SHA/live website checks. Goal active.
+All .10.6 release gates complete. Publish then verify exact-SHA Actions and normal game/home/news/all5notes via ../verify-current-release.ps1. Local final asset /assets/play-CEgN7IqO.js. All local processes terminal. Next usability audit after deployment: SaveManager reports Backup created even when meta.backupNow returns null; inspect storage-write failure semantics before a fix. Continuous goal remains active.
 
 ## Future expansion hooks
 
@@ -101,6 +99,8 @@ Hero readiness final build65590 PASS (Vite7.59s); all processes terminal. Next r
 
 
 
-## 2026-11-10 — release mobile finding and console target fix
 
-Mobile98307 terminal exit1: only violation Settings tablet1024x768 input119x24. Inspected optional MusicDebug: both boss-name input and slider helper had inline minHeight24; raised both to44. No audio/control logic changed. ../music-console-target-check.cjs actual component PASS at1024/844/568 widths, all input heights44, widths120, no page overflow, boss name editing and keyboard range endpoints. Fifth sealed website note generated. Final build/tests/docs RUNNING session75574, collection-final-build.log. Full3177suite passed before this two-style-value change; full mobile rerun required after rebuilt dist is ready. No deployment yet. Goal remains active.
+
+## 2026-11-10 — Memories Within Reach final release gates
+
+Five sealed notes. Full354files/3177tests PASS430.11s before two inline MusicDebug height values changed24→44. Actual console browser probe PASS sizes/edit/keyboard across3widths. Final app/functions TS+build26.02s PASS;11UI/site tests anddocs PASS. Mobile80163 terminal CLEAN27navigation screens and9gameplay viewports, drawers, rotation, portrait/landscape contracts, no clipping/overflow/sub24targets. Prior mobile98307 failed one optional debug input; final run verifies correction. Four collection browser probes previously PASS. Required wrapper failure documented with preserved report; direct release gates PASS. Final asset /assets/play-CEgN7IqO.js. Ready to publish; exact-SHA Actions/live verification next. All local processes terminal.
