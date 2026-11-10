@@ -1634,3 +1634,7 @@ Validation: ../intro-visibility-check.cjs actual renderer with synthetic visibil
 ## 2026-11-10 — Films That Follow You release gates
 
 v2026.11.10.5 Films That Follow You: four sealed notes generated for game/home/news. Full suite39809 terminal PASS354files/3177tests (324.57s). Final app/functions TypeScript + production build PASS8.17s;4sealed site tests PASS;docs PASS. Mobile94048 terminal CLEAN27nav screens/nine gameplay viewports, drawers, rotate/portrait run contracts, overlap/clipping/tap-target gates. Four focused browser probes passed, with real painters and synthetic visibility events. Required validation wrapper exited1 on documented Windows launcher path; separate films-release-wrapper-report.log retained. Direct gates provide evidence. No gameplay/balance/save-shape changes. All processes terminal; ready to publish.
+
+## 2026-11-10 15:04 UTC — Films That Follow You live
+
+v2026.11.10.5 deployed at SHA82998411c90caf74ec77d5c847e6bc1645b708a0. Actions42840127306 SUCCESS including exact-SHA production guard. ../verify-current-release.ps1 confirmed normal custom-domain game/home/news/all4notes; asset /assets/play-CXZtdME2.js matches final build and returns200. Initial cached prior entry resolved on same URLs after propagation. Full3177tests, build8.17s,4site tests,docs and mobile27screens/9gameplay viewports PASS. All release checks complete; next approximate deployment16:04UTC. Continuous goal active.

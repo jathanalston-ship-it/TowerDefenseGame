@@ -9,7 +9,7 @@
 
 ## Summary of work completed
 
-Ready to publish v2026.11.10.5 Films That Follow You with four sealed website notes: live story/opening motion and flash preferences, safe reduced-motion dive exit, hidden-tab scene/coda/dive continuity. Full3177tests/354files PASS; final build8.17s,4site tests,docs and mobile27screens/9gameplay viewports PASS. All processes terminal. Prior live d1642e26 (.10.4). Continuous goal active.
+LIVE v2026.11.10.5 Films That Follow You with four sealed website notes. SHA82998411c90caf74ec77d5c847e6bc1645b708a0; Actions42840127306 SUCCESS including exact-SHA production guard. Normal public game/home/news/all4notes verified 2026-11-10 15:04 UTC; asset /assets/play-CXZtdME2.js matches final build and returns200. Initial cached prior entry resolved on same URLs. Full3177tests/354files PASS; final build8.17s,4site tests,docs and mobile27screens/9gameplay viewports PASS. All processes terminal; continuous goal active.
 
 ## Files modified
 
@@ -47,7 +47,7 @@ Windows validate wrapper cannot launch npx/npm with shell:false; use direct gate
 
 ## Recommended next tasks
 
-Commit release on codex/hive-autoplay and push HEAD to claude/zen-hawking-rh1gxl (remote checked d1642e26). Follow Actions exact-SHA production guard; run ../verify-current-release.ps1 against normal public URLs to confirm game/home/news/all4notes. Record production verification and continue active goal. Keep two untracked devlog drafts unpublished.
+Continue active playability/clarity/accessibility/presentation improvements without gameplay/balance changes. Start a new unsealed release for the next batch; next approximate deployment16:04UTC with website notes. Current .10.5 fully verified. Keep two untracked devlog drafts unpublished. Windows validation wrapper launcher limitation remains documented; direct release gates passed. Cinematic visibility probes use synthetic browser events with real painters; OS-level visibility behavior has not been directly exercised.
 
 ## Future expansion hooks
 
