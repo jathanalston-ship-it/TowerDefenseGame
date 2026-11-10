@@ -1395,3 +1395,5 @@ Final suite3150 PASS. Mobile gate identified a drawer-transition sampling race; 
 Same-destination drawer close fixed and browser-verified with no extra Back stop. Build and19 navigation tests PASS. Final mobile72291 running; six website notes.
 
 .5 final mobile gate PASS at05:36UTC; deploying verified six-note release. Full3150 suite plus focused19 nav/back and4 site checks passed; final build and focused browser checks passed.
+
+LIVE ~05:38UTC Nov10: v2026.11.09.5 Feedback That Stays Readable, commitfa4f78bc, six website notes. Actions42763247079 success; normal game/home/news verified against built hashplay-DZzequMq.js. Next approximate deployment06:38UTC; continuous improvement goal remains active.

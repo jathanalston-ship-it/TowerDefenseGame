@@ -9,8 +9,7 @@
 
 ## Summary of work completed
 
-Active continuous improvement goal, authorized roughly-hourly deployments with website notes. LIVE: bfa87c50fe652ca8105961d2faa2372bf281f51e, v2026.11.09.4 Progress You Can Follow (Actions42756081493 success, ~04:30UTC Nov10). LOCAL: v2026.11.09.5 Feedback That Stays Readable, six curated notes, not deployed. Final gate passed05:36UTC; release deployment underway.
-
+Active continuous improvement goal; authorized roughly-hourly deployments with website notes. LIVE: fa4f78bcff196db9dad2d4683b3c852907516c73, v2026.11.09.5 Feedback That Stays Readable, six curated notes. Actions42763247079 SUCCESS. Normal custom-domain game/home/news verified: play-DZzequMq.js matches local build and returns200; homepage title and detailed motion/Vault notes present. Deployed ~05:38UTC Nov10. No remaining local game changes; do not mark the ongoing goal complete.
 ## Files modified
 
 - Source (0): —
@@ -47,8 +46,7 @@ Final3150 full suite passed before the two-line current-destination drawer fix. 
 
 ## Recommended next tasks
 
-Final mobile72291 PASS on latest build (feedback-release-mobile-final.log),27 nav screens/live runs across nine viewports. Commit release on codex/hive-autoplay, push HEAD:refs/heads/claude/zen-hawking-rh1gxl; poll exact SHA Actions to success and verify ../verify-progress-release.ps1 normal custom-domain URLs. All local processes terminal. After deployment keep goal active; next batch audit can continue without changing mechanics.
-
+Continue the experience audit without changing mechanics. Start a new local .6 release and seal .5 when the next player-facing improvement is ready; next approximate deployment06:38UTC. Keep website notes with every deployment. Work on codex/hive-autoplay, publish to claude/zen-hawking-rh1gxl under existing authorization. All local test/build/browser/preview processes are terminal. Newest live verification: ../verify-progress-release.ps1 targets .5; update its note markers for the next release. Only untracked file is the generated unpublished devlog draft, which must remain excluded from staging.
 ## Future expansion hooks
 
 Existing RewardToaster presentation seams and resolveMotion remain the extension points. No new systems/files under src. Scratch browser probes in parent workspace: reward-reading-check.cjs (hover/focus/expanded hold, grace expiry, burst stability, unchanged merge windows); reward-announcement-check.cjs (AX stable totals); vault-focus-check.cjs and vault-focus-phone-check.cjs (keyboard flow); vault-motion-check.cjs; star-focus-check.cjs; wardrobe-focus-check.cjs; portrait and feedback motion probes. All focused probes passed. Reward reading change re-passed accessible totals probe. Earlier47 rewardToast/Vault tests and4 site tests passed. Validation history has full detail.
