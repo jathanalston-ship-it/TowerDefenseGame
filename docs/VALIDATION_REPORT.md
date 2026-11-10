@@ -145,3 +145,15 @@ The generated wrapper above cannot launch its Unix-style npx/npm subprocesses on
 Limitations: automation is heuristic and does not guarantee a win. It does not sell/reposition towers, overlap waves with Early Call, buy rerolls, spend hub currencies, or launch another run.
 
 Final verification after hero controls and opening-draft Enable were integrated: strict typecheck PASS; production build PASS; 62 focused tests across 6 files PASS; final browser smoke PASS (opening towers, automatic launch, auto gene, Stop held through a full countdown). The isolated test harness emitted a Vite hot-reload websocket-port warning; game error capture was empty. Preview server stopped.
+
+## 2026-11-09 story accessibility checkpoint
+Direct typecheck and production build PASS. Focused cutscene tests: 14/14; website generator tests: 12/12. Chrome runtime checks PASS: manual scene hold, manual coda hold beyond 6.2 seconds, keyboard Next, Tab containment, Escape, focus restoration, reduced-motion canvas repaint after rotation. Landscape image inspected. Full regression suite not rerun for this presentation-only batch; simulation, save data and balance untouched. Local changes are not deployed.
+
+Opening cinematic follow-up: 20/20 cinematic content/render/premiere tests PASS; Chrome checks PASS for keyboard audio gate, manual hold beyond authored timing, all scene transitions, title focus, 320px phone layout, resized still, Escape and focus restoration. Normal-motion descent survives repeated Escape and finishes at its original duration. Website notes regenerated.
+
+Motion/settings follow-up: Chrome OS-change/override/retention/cleanup checks PASS; render/feel.test.ts 13/13 PASS, including new root subscription regression. Typecheck run recorded separately.
+
+HUD follow-up: typecheck PASS; 34 hero/autocast/Hive tests PASS. Browser smoke verifies effective cooldown ring at 12/24 seconds, recovery/ready states and Hive-managed labels. 390px portrait image inspected. No gameplay changes.
+
+## Experience release gate — 2026-11-10 03:02 UTC
+Production build PASS. Full suite: 351 files/3146 tests passed, 2 generated documentation checks initially failed; DIL/PIL regenerated, both files pass all 13 tests. All 3148 tests accounted for with no unresolved failures. Doc anchors/references and public structural audit PASS. Mobile gate CLEAN: 27 nav screens plus live runs across nine desktop/tablet/phone/browser viewports; no overflow, clipped text, sub-24px targets or run-chrome overlap. Existing large-chunk build warning remains. No claim that these checks prove every possible regression absent.

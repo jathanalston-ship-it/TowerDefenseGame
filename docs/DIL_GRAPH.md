@@ -3542,7 +3542,7 @@ _at: src/core/tutorial.ts_
 
 ## Help Topics (73)
 
-- `help:hive-autoplay` — Toggle automatic tower purchases, wave starts and gene picks after Campaign Stage 5. _(partOf `system:onboarding`, teaches `system:hive-mind`)_
+- `help:hive-autoplay` — Toggle automatic tower purchases, hero abilities, wave starts and gene picks after Campaign Stage 5. _(partOf `system:onboarding`, teaches `system:hive-mind`)_
 - `help:mission-control` — Your standing orders — the answer to "what should I do now?" _(partOf `system:onboarding`, teaches `system:power`)_
 - `help:hive-intel` — The live intel feed — banked value, ready moves, recent milestones. _(partOf `system:onboarding`, teaches `system:notifications`)_
 - `help:evolution-roadmap` — Every wing of the hive on one rail, in unlock order. _(partOf `system:onboarding`, teaches `system:power`)_

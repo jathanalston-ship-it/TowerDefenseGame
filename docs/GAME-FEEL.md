@@ -445,3 +445,6 @@ progress sweep and holds release beats still — telegraphs are information, nev
 allocation (pooled pulses, per-boss state once, cached colour strings, in-place list compaction).
 **Deliberately left:** the reaction/status float stacking that buries a boss under text (V1's float
 pass), and the HUD boss banner's one-tick verb label (a UI-side hold would fix it).
+
+### Live device motion changes
+The hub root motion/flashes attributes and both MotionSettings layouts subscribe to device reduced-motion changes. The existing Allow motion override remains authoritative, and stored shake strength survives toggling the device preference. Both preference and media-query listeners are removed on cleanup. Sound and motion switches expose stable accessible names.

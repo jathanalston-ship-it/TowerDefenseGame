@@ -665,3 +665,6 @@
 - `e1968ae` **[Website]** Release notes 'Class Bonds' curated; site + PIL regenerated
 - `24b873b` **[Gameplay]** Release notes: use a valid changelog category (Progression is not one)
 - ⚑ `353c962` **[Framework]** Validation,status: Class Bonds PASS over a0b332d..HEAD — 3140/3140, mobile gate clean, probe budgets ok _(internal)_
+## 2026-11-09
+
+- `6ace805` **[Website]** Ship Hive Intelligence auto-play and curated website notes _(internal)_

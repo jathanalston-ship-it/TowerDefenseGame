@@ -28,6 +28,10 @@ ladders. 4. Every permanent progression source must move the Power Score (valida
 
 ---
 
+## Story film accessibility
+
+`ui/CutscenePlayer.tsx` and `ui/InitCutscene.tsx` support manual reading, keyboard scene controls, modal focus restoration and reduced-motion repaint on viewport changes. See `docs/CUTSCENES.md`; reward/unlock data and simulation are unchanged.
+
 ## System index
 
 [Campaign](#campaign) · [Infinite](#infinite) · [Arena (Live PvP)](#arena-live-pvp) ·

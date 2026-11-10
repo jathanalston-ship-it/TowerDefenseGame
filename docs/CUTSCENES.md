@@ -15,6 +15,15 @@ RULE) · `src/state/cutscenePremiere.test.ts` (the premiere lane).
 
 ## §rule — ENFORCED: every mega boss ships a cutscene
 
+### Reading and keyboard access
+
+The story player and opening cinematic offer **Read at my pace**: all text in the current scene is revealed,
+and scenes and the final memory card wait for explicit advancement. Auto-play restores
+the normal hold from its beginning. **Next scene** is a native keyboard/touch button;
+Escape skips to the memory card, then closes it; in the opening film it exits through the existing descent (immediately under reduced motion). Focus stays within the film and returns
+to the launching control when it closes. Controls have 44px minimum height. Reduced-motion
+stills redraw after viewport changes so rotating a phone cannot clear the artwork.
+
 **Adding a `MEGA_BOSS_DEFS` entry REQUIRES adding its defeat cutscene** (`kind: 'mega'`,
 id `mega:<megaId>`) in `core/cutscenes.ts`. `cutscenes.test.ts` fails the build otherwise —
 this is a content contract, not a convention. The DIL records the same edge

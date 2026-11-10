@@ -261,3 +261,6 @@ re-raise immediately. Controller support rides the same button group (documented
 ## Hive Intelligence continuous toggle
 
 Campaign Stage 5 completion unlocks a run-local ON/OFF helper in Campaign and Infinite, including new campaign stages. It buys through the existing planner, starts waves and chooses recommended genes with a visible countdown. Stop from the battlefield or draft; Pause suspends actions. Daily, Boss Rush, Quick Skirmish, tutorials and uncleared Threat levels remain excluded. See `docs/HIVE-MIND.md`.
+
+### Hero and automation status clarity
+The ability shortcut displays seconds remaining while recharging, or a recovery timer while the hero is down. Its ring uses HudSnapshot.hero.abilityCdMax, including cooldown upgrades. Hive-managed wave/gene controls remain disabled but show HIVE at full text opacity, with a reason in their title.

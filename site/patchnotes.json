@@ -1,6 +1,32 @@
 [
   {
     "date": "2026-11-09",
+    "title": "Memories at Your Pace",
+    "categories": [
+      "UI",
+      "Bug Fixes"
+    ],
+    "items": [
+      {
+        "cat": "UI",
+        "text": "Opening and story films now offer Read at my pace: reveal all scene text and choose when to advance. Keyboard players can use Next scene, Skip, and Escape, with focus returning to the replay control after the film."
+      },
+      {
+        "cat": "Bug Fixes",
+        "text": "Reduced-motion cinematic artwork now redraws when you resize the window or rotate your phone. Repeated clicks no longer interrupt the opening film’s descent transition."
+      },
+      {
+        "cat": "UI",
+        "text": "Device reduced-motion changes now update hub effects and motion controls immediately. Sound and motion switches have clearer screen-reader names."
+      },
+      {
+        "cat": "UI",
+        "text": "Hero ability controls show recharge seconds and recovery time, with a ring that respects your upgraded cooldown. Auto Wave and Auto Gene clearly show HIVE while Hive Intelligence manages them."
+      }
+    ]
+  },
+  {
+    "date": "2026-11-09",
     "title": "Let the Hive Take Over",
     "categories": [
       "Gameplay",

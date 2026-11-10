@@ -1515,6 +1515,7 @@
 .wb-autos { display: flex; gap: 6px; }
 
 .auto-btn b { font-weight: 900; letter-spacing: 0.04em; color: inherit; margin-left: 5px; }
+.auto-btn.is-managed:disabled { opacity: 1; cursor: default; }
 
 .wb-led { width: 6px; height: 6px; border-radius: 50%; background: currentColor; opacity: 0.45; margin-right: 5px; display: inline-block; }
 

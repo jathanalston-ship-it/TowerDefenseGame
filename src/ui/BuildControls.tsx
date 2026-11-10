@@ -173,12 +173,12 @@ export function BuildControls({
           {!tutorialLock && <div className="wb-autos">
             <button
               type="button"
-              className={`auto-btn ${hud.autoStart ? (hud.autoStartWaiting ? 'is-waiting' : 'is-on') : ''}`}
+              className={`auto-btn ${hud.autoStart ? (hud.autoStartWaiting ? 'is-waiting' : 'is-on') : ''}${hud.hiveActive ? ' is-managed' : ''}`}
               disabled={hud.hiveActive}
               aria-pressed={hud.autoStart}
               tabIndex={visible ? 0 : -1}
               title={
-                hud.autoStartWaiting
+                hud.hiveActive ? 'Managed by Hive Intelligence — turn Hive off to change Auto Wave.' : hud.autoStartWaiting
                   ? 'Auto Wave is armed but waiting — it starts once you place your first tower or start Wave 1'
                   : 'Auto-start the next wave after a short countdown'
               }
@@ -190,15 +190,15 @@ export function BuildControls({
             >
               <i className="wb-led" aria-hidden />
               ⟳ Auto Wave
-              <b>{hud.autoStart ? (hud.autoStartWaiting ? 'WAIT' : hud.autoStartIn > 0 ? `${Math.ceil(hud.autoStartIn)}s` : 'ON') : 'OFF'}</b>
+              <b>{hud.hiveActive ? 'HIVE' : hud.autoStart ? (hud.autoStartWaiting ? 'WAIT' : hud.autoStartIn > 0 ? `${Math.ceil(hud.autoStartIn)}s` : 'ON') : 'OFF'}</b>
             </button>
             <button
               type="button"
-              className={`auto-btn ${(autoGene || hud.hiveActive) && !autoGeneLock ? 'is-on' : ''}`}
+              className={`auto-btn ${(autoGene || hud.hiveActive) && !autoGeneLock ? 'is-on' : ''}${hud.hiveActive ? ' is-managed' : ''}`}
               aria-pressed={(autoGene || hud.hiveActive) && !autoGeneLock}
               tabIndex={visible ? 0 : -1}
               disabled={!!autoGeneLock || hud.hiveActive}
-              title={autoGeneLock ? `Auto Gene — ${autoGeneLock}` : 'Auto-draft the recommended ◆ PICK gene card after a countdown (pick any card to override)'}
+              title={autoGeneLock ? `Auto Gene — ${autoGeneLock}` : hud.hiveActive ? 'Managed by Hive Intelligence — turn Hive off to change Auto Gene.' : 'Auto-draft the recommended ◆ PICK gene card after a countdown (pick any card to override)'}
               onClick={() => {
                 const next = !autoGene;
                 setAutoGene(next);
@@ -207,7 +207,7 @@ export function BuildControls({
             >
               <i className="wb-led" aria-hidden />
               ◆ Auto Gene
-              <b>{autoGeneLock ? 'LOCKED' : (autoGene || hud.hiveActive) ? 'ON' : 'OFF'}</b>
+              <b>{autoGeneLock ? 'LOCKED' : hud.hiveActive ? 'HIVE' : autoGene ? 'ON' : 'OFF'}</b>
             </button>
           </div>}
         </div>

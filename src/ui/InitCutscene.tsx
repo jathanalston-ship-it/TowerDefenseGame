@@ -23,7 +23,7 @@
 // for a hand-picked still per scene (gentle CSS fades only) and skips the dive.
 
 import { useEffect, useRef, useState } from 'react';
-import type { CSSProperties } from 'react';
+import type { CSSProperties, KeyboardEvent } from 'react';
 import { audio } from '../audio/sound';
 import { music } from '../audio/music';
 import { REDUCED_FRAME_T, drawDiveTransition, drawIntroFrame } from '../render/introScenes';
@@ -147,6 +147,8 @@ export function InitCutscene({ onDone }: { onDone: (dived?: boolean) => void }):
   const [feel] = useState(() => resolveMotion(motionPrefs(), systemReducedMotion()));
   const reducedMotion = feel.motion === 0;
   const [idx, setIdx] = useState(0);
+  const [manual, setManual] = useState(false);
+  const dialogRef = useRef<HTMLDivElement>(null);
   const doneRef = useRef(false);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   // The cinematographer's clocks: current scene start, what it dissolved from, fired beats, dive start.
@@ -160,9 +162,27 @@ export function InitCutscene({ onDone }: { onDone: (dived?: boolean) => void }):
   idxRef.current = idx;
   const scene = SCENES[idx];
 
+  useEffect(() => {
+    const previous = document.activeElement;
+    return () => { if (previous instanceof HTMLElement && previous.isConnected) previous.focus(); };
+  }, []);
+  useEffect(() => { dialogRef.current?.focus(); }, [phase]);
+  useEffect(() => {
+    if (scene.id === 'title' && phase === 'film') dialogRef.current?.querySelector<HTMLButtonElement>('.intro-begin')?.focus();
+  }, [scene.id, phase]);
+  const onKeyDown = (e: KeyboardEvent<HTMLDivElement>): void => {
+    if (e.key === 'Escape' && phase !== 'dive') { e.preventDefault(); e.stopPropagation(); finish(); }
+    if (e.key !== 'Tab') return;
+    const buttons = Array.from(e.currentTarget.querySelectorAll<HTMLButtonElement>('button:not(:disabled)'));
+    const first = buttons[0], last = buttons[buttons.length - 1];
+    if (!first) { e.preventDefault(); return; }
+    if (e.shiftKey && (document.activeElement === first || document.activeElement === e.currentTarget)) { e.preventDefault(); last.focus(); }
+    else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+  };
+
   /** Leave through the DESCENT (reduced motion / not-yet-started exit immediately). */
   const finish = (): void => {
-    if (doneRef.current) return;
+    if (doneRef.current || phaseRef.current === 'dive') return;
     markIntroSeen();
     if (reducedMotion || phaseRef.current !== 'film') {
       doneRef.current = true;
@@ -191,10 +211,10 @@ export function InitCutscene({ onDone }: { onDone: (dived?: boolean) => void }):
 
   // Auto-advance each scene after its hold (a tap advances sooner; the title — durMs 0 — waits).
   useEffect(() => {
-    if (phase !== 'film' || scene.durMs === 0) return undefined;
+    if (manual || phase !== 'film' || scene.durMs === 0) return undefined;
     const t = setTimeout(() => setIdx((i) => Math.min(i + 1, SCENES.length - 1)), scene.durMs);
     return () => clearTimeout(t);
-  }, [phase, idx, scene.durMs]);
+  }, [phase, idx, scene.durMs, manual]);
 
   // Scene change → film clocks + cut whoosh + score swell (the intensity seam walks 0 → 1).
   useEffect(() => {
@@ -226,7 +246,6 @@ export function InitCutscene({ onDone }: { onDone: (dived?: boolean) => void }):
       cv.height = Math.round(cv.clientHeight * dpr);
     };
     size();
-    window.addEventListener('resize', size);
     let raf = 0;
     const frame = (): void => {
       const f = filmRef.current;
@@ -261,10 +280,15 @@ export function InitCutscene({ onDone }: { onDone: (dived?: boolean) => void }):
       }
       raf = requestAnimationFrame(frame);
     };
+    const resize = (): void => {
+      size();
+      if (reducedMotion) { cancelAnimationFrame(raf); raf = requestAnimationFrame(frame); }
+    };
+    window.addEventListener('resize', resize);
     raf = requestAnimationFrame(frame);
     return () => {
       cancelAnimationFrame(raf);
-      window.removeEventListener('resize', size);
+      window.removeEventListener('resize', resize);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps -- reduced mode repaints per scene; the loop reads clocks from refs.
     // `phase` IS a dep: the gate and the film are separate JSX trees, so the canvas REMOUNTS on
@@ -274,7 +298,7 @@ export function InitCutscene({ onDone }: { onDone: (dived?: boolean) => void }):
   // ── Pre-roll gate: the one tap the browser needs, staged as the transmission arriving ──
   if (phase === 'gate') {
     return (
-      <div className="intro" role="dialog" aria-label="Initialization sequence" onClick={receive}>
+      <div ref={dialogRef} tabIndex={-1} className="intro" role="dialog" aria-modal="true" aria-label="Initialization sequence" onKeyDown={onKeyDown} onClick={receive}>
         <div className="intro-stage is-signal">
           <canvas ref={canvasRef} className="intro-canvas" aria-hidden />
           <div className="intro-grade" aria-hidden />
@@ -298,7 +322,7 @@ export function InitCutscene({ onDone }: { onDone: (dived?: boolean) => void }):
 
   const diving = phase === 'dive';
   return (
-    <div className={`intro${reducedMotion ? ' is-still' : ''}`} role="dialog" aria-label="Initialization sequence" onClick={advance}>
+    <div ref={dialogRef} tabIndex={-1} className={`intro opening-film${reducedMotion ? ' is-still' : ''}${manual ? ' is-manual' : ''}`} role="dialog" aria-modal="true" aria-label="Initialization sequence" onKeyDown={onKeyDown} onClick={advance}>
       <div className={`intro-stage is-${scene.visual} is-copy-${scene.copyAt ?? 'center'} ${diving ? 'is-diving' : ''}`}>
         <canvas ref={canvasRef} className="intro-canvas" aria-hidden />
         <div className="intro-grade" aria-hidden />
@@ -324,6 +348,7 @@ export function InitCutscene({ onDone }: { onDone: (dived?: boolean) => void }):
               )}
               <button
                 className="intro-begin"
+                disabled={diving}
                 style={{ animationDelay: `${scene.ctaAt ?? 1}s` }}
                 onClick={(e) => {
                   e.stopPropagation();
@@ -348,8 +373,14 @@ export function InitCutscene({ onDone }: { onDone: (dived?: boolean) => void }):
             <i key={s.id} className={i < idx ? 'done' : i === idx ? 'on' : ''} />
           ))}
         </span>
+        <div className="opening-controls" onClick={(e) => e.stopPropagation()}>
+        <button className="intro-skip" disabled={diving} aria-label="Read at my pace" aria-pressed={manual} title="Show all scene text and advance only when you choose" onClick={() => setManual(!manual)}>
+          {manual ? 'Auto-play' : 'Read at my pace'}
+        </button>
+        {scene.id !== 'title' && <button className="intro-skip" disabled={diving} onClick={advance}>Next scene ▸</button>}
         <button
           className="intro-skip"
+          disabled={diving}
           onClick={(e) => {
             e.stopPropagation();
             finish();
@@ -357,6 +388,7 @@ export function InitCutscene({ onDone }: { onDone: (dived?: boolean) => void }):
         >
           Skip
         </button>
+        </div>
       </div>
     </div>
   );

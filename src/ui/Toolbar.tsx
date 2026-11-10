@@ -32,6 +32,10 @@ export function Toolbar({
 }): JSX.Element {
   const playable = hud.phase === 'prep' || hud.phase === 'wave';
   const heroDef = HERO_DEFS[hud.hero.kind];
+  const abilityStatus = hud.hero.down
+    ? `Hero recovering — ${Math.ceil(hud.hero.respawn)}s`
+    : hud.armedAbility ? 'Armed — click the battlefield to cast.'
+      : hud.hero.abilityReady ? heroDef.ability.blurb : `Recharging — ${Math.ceil(hud.hero.abilityCd)}s`;
   const save = meta.use(); // stars + mastery ranks on the cards (permanent identity at a glance)
   // The tutorial rails the SAME conveyor model as every real run (docs/TUTORIAL.md §accuracy) —
   // teaching a full classic rail the player never sees again was the #1 playtest confusion.
@@ -191,9 +195,11 @@ export function Toolbar({
         <button
           className={`ability-btn tt ${hud.armedAbility ? 'is-armed' : ''}`}
           disabled={!hud.hero.abilityReady || !playable}
+          aria-label={`${heroDef.ability.name} — ${abilityStatus}`}
+          aria-pressed={hud.armedAbility}
           // Cooldown ring (--cd 0→1): the recharge is visible at a glance; the ring closes and
           // yields to the ready-glow the moment the ability comes back.
-          style={{ ['--cd' as string]: hud.hero.abilityReady ? 1 : Math.max(0, Math.min(1, 1 - hud.hero.abilityCd / Math.max(0.01, heroDef.ability.cooldown))) }}
+          style={{ ['--cd' as string]: hud.hero.abilityReady ? 1 : Math.max(0, Math.min(1, 1 - hud.hero.abilityCd / Math.max(0.01, hud.hero.abilityCdMax))) }}
           onClick={() => {
             audio.resume();
             const wasArmed = game.armedAbility;
@@ -203,13 +209,9 @@ export function Toolbar({
           }}
         >
           <BoltIcon /> {heroDef.ability.name}
-          <span className="hotkey">Q</span>
+          <span className="hotkey" title={abilityStatus}>{hud.hero.down ? `↻ ${Math.ceil(hud.hero.respawn)}s` : hud.hero.abilityReady ? 'Q' : `${Math.ceil(hud.hero.abilityCd)}s`}</span>
           <span className="tt-bubble">
-            {hud.armedAbility
-              ? 'Armed — click the battlefield to cast.'
-              : hud.hero.abilityReady
-                ? heroDef.ability.blurb
-                : 'Recharging…'}
+            {abilityStatus}
           </span>
         </button>
         <button

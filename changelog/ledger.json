@@ -1,6 +1,6 @@
 {
-  "lastSha": "353c962b144c1a03774eb149b127b2a1122a89de",
-  "commitsSinceDraft": 8,
+  "lastSha": "6ace805f56102a8bc51c0a51bd860bc25ddaf039",
+  "commitsSinceDraft": 9,
   "content": {
     "tower": [
       "needle",
@@ -4145,7 +4145,7 @@
       "id": "v2026.11.09",
       "date": "2026-11-09",
       "title": "Let the Hive Take Over",
-      "sealed": false,
+      "sealed": true,
       "entries": [
         {
           "cat": "Gameplay",
@@ -4167,6 +4167,30 @@
         {
           "cat": "Website",
           "text": "New guide and dev blog explain the stage-5 unlock, automatic actions and manual takeover."
+        }
+      ]
+    },
+    {
+      "id": "v2026.11.09.2",
+      "date": "2026-11-09",
+      "title": "Memories at Your Pace",
+      "sealed": false,
+      "entries": [
+        {
+          "cat": "UI",
+          "text": "Opening and story films now offer Read at my pace: reveal all scene text and choose when to advance. Keyboard players can use Next scene, Skip, and Escape, with focus returning to the replay control after the film."
+        },
+        {
+          "cat": "Bug Fixes",
+          "text": "Reduced-motion cinematic artwork now redraws when you resize the window or rotate your phone. Repeated clicks no longer interrupt the opening film’s descent transition."
+        },
+        {
+          "cat": "UI",
+          "text": "Device reduced-motion changes now update hub effects and motion controls immediately. Sound and motion switches have clearer screen-reader names."
+        },
+        {
+          "cat": "UI",
+          "text": "Hero ability controls show recharge seconds and recovery time, with a ring that respects your upgraded cooldown. Auto Wave and Auto Gene clearly show HIVE while Hive Intelligence manages them."
         }
       ]
     }
@@ -9171,6 +9195,14 @@
       "text": "Validation,status: Class Bonds PASS over a0b332d..HEAD — 3140/3140, mobile gate clean, probe budgets ok",
       "internal": true,
       "needsReview": true
+    },
+    {
+      "sha": "6ace805f56102a8bc51c0a51bd860bc25ddaf039",
+      "date": "2026-11-09",
+      "cat": "Website",
+      "text": "Ship Hive Intelligence auto-play and curated website notes",
+      "internal": true,
+      "needsReview": false
     }
   ]
 }

@@ -7,6 +7,7 @@ import type { AnnounceKind } from './feel';
 import { STINGERS } from '../audio/music';
 import { FX } from '../core/config';
 import { MOTION_DEFAULTS, motionPrefs, resolveMotion, setMotionPrefs, onMotionPrefs, DEVICE_PREF_KEYS } from '../state/prefs';
+import { bindRootMotionAttrs } from '../ui/components/MotionSettings';
 
 type Card = { kind: AnnounceKind; id?: number };
 const card = (kind: AnnounceKind, id = 0): Card => ({ kind, id });
@@ -129,6 +130,33 @@ describe('FEEL table (one source for shake / hit-stop / duck / stinger)', () => 
 });
 
 describe('Motion prefs → one motionScale', () => {
+  it('updates hub motion when the OS changes, preserves overrides, and removes both subscriptions', () => {
+    const store = new Map<string, string>();
+    const listeners = new Set<() => void>();
+    const mq = {
+      matches: false,
+      addEventListener: (_: string, fn: () => void) => listeners.add(fn),
+      removeEventListener: (_: string, fn: () => void) => listeners.delete(fn),
+    };
+    const dataset: Record<string, string> = {};
+    vi.stubGlobal('window', { matchMedia: () => mq });
+    vi.stubGlobal('document', { documentElement: { dataset } });
+    vi.stubGlobal('localStorage', { getItem: (k: string) => store.get(k) ?? null, setItem: (k: string, v: string) => store.set(k, v) });
+    const off = bindRootMotionAttrs();
+    try {
+      expect(dataset).toEqual({ motion: 'full', flashes: 'on' });
+      mq.matches = true;
+      listeners.forEach((fn) => fn());
+      expect(dataset).toEqual({ motion: 'reduced', flashes: 'off' });
+      setMotionPrefs({ allowMotion: true });
+      expect(dataset.motion).toBe('full');
+      off();
+      expect(listeners.size).toBe(0);
+      setMotionPrefs({ allowMotion: false });
+      expect(dataset.motion).toBe('full');
+    } finally { off(); vi.unstubAllGlobals(); }
+  });
+
   it('reduced motion zeroes shake + flashes unless the player allows motion; numbers are independent', () => {
     expect(resolveMotion(MOTION_DEFAULTS, false)).toEqual({ motion: 1, shake: 1, numbers: true, flashes: true });
     expect(resolveMotion(MOTION_DEFAULTS, true)).toEqual({ motion: 0, shake: 0, numbers: true, flashes: false });
