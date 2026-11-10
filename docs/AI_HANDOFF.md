@@ -4,23 +4,21 @@
 > before committing. Read together with docs/PROJECT_STATUS.md and the latest
 > docs/VALIDATION_REPORT.md. Next session: start at docs/PROJECT_MANIFEST.md.
 
-- **Generated:** 2026-11-10 05:57 UTC · **Diff scope:** working tree vs HEAD
-- **Branch:** codex/hive-autoplay · **HEAD:** cfc0a9bd
+- **Generated:** 2026-11-10 06:04 UTC · **Diff scope:** working tree vs HEAD
+- **Branch:** codex/hive-autoplay · **HEAD:** 955c9fc5
 
 ## Summary of work completed
 
-Active continuous improvement goal; authorized roughly-hourly deployments with website notes. LIVE: fa4f78bcff196db9dad2d4683b3c852907516c73, v2026.11.09.5 Feedback That Stays Readable, six curated notes. Actions42763247079 SUCCESS. Normal custom-domain game/home/news verified: play-DZzequMq.js matches local build and returns200; homepage title and detailed motion/Vault notes present. Deployed ~05:38UTC Nov10. New LOCAL batch v2026.11.09.6 Sound That Responds Smoothly, two Audio notes; .5 sealed. Do not mark the ongoing goal complete.
+Active continuous improvement goal; authorized roughly-hourly deployments with website notes. LIVE: fa4f78bcff196db9dad2d4683b3c852907516c73, v2026.11.09.5 Feedback That Stays Readable, six curated notes. Actions42763247079 SUCCESS. Normal custom-domain game/home/news verified: play-DZzequMq.js matches local build and returns200; homepage title and detailed motion/Vault notes present. Deployed ~05:38UTC Nov10. New LOCAL batch v2026.11.09.6 Sound That Responds Smoothly, four Audio notes; .5 sealed. Do not mark the ongoing goal complete.
 ## Files modified
 
-- Source (2): `src/audio/music.ts`, `src/changelog/releases.gen.ts`
-- Tests (1): `src/audio/music.test.ts`
-- Docs (5): `docs/HISTORY.md`, `docs/MUSIC.md`, `docs/PROJECT_STATUS.md`, `docs/VALIDATION_REPORT.md`, `docs/devlog/DRAFT-2026-11-09.md`
+- Source (0): —
+- Tests (0): —
+- Docs (3): `docs/PROJECT_STATUS.md`, `docs/VALIDATION_REPORT.md`, `docs/devlog/DRAFT-2026-11-09.md`
 
 ## Systems affected (from the dependency registry)
 
-- **audio** — `src/audio/music.ts`
-- **chronicle** — `src/changelog/releases.gen.ts`
-- Consumer ring (verify, unchanged): cutscenes, living-battlefield
+- (no registered source files in this diff)
 
 ## Power Score changes
 
@@ -63,3 +61,5 @@ Latest local .6: music toggle restores latest looping scene, including muted bos
 Latest local .6 shared mute: updateMasterVolume applies enabled state to100ms fade, used by toggle/volume; duress skips master updates while muted. Actual legendary-stinger offline probe baseline after-mute RMS0.017549 ->0; volume/duress while muted stay silent.47 audio+4 site tests PASS; toggle and rapid-volume/duress probes re-PASS. Four website notes prepared. Build28873 pending at this entry; next result supersedes it.
 
 Final shared-mute production build28873 PASS (music-mute-build.log); all task processes terminal. Four notes prepared for .6; next approximate deployment06:38UTC. Live remains .5.
+
+LATEST checkpoint06:04UTC:353 files/3155 full tests PASS (audio-batch-tests.log,150.14s,25991 terminal0). Shared AudioToggles keyboard/persistence/compact/mute independence/current-boss restoration browser PASS (../audio-controls-check.cjs production React bundle,no page errors). Initial Vite-only HMR socket error isolated by standalone bundle; dev93300 intentionally stopped. docs check23386 PASS anchors/references/freshness. FULL MOBILE29287 RUNNING against existing production dist, log audio-batch-mobile.log; poll same handle, never restart on observation timeout. No source edits this turn. ../verify-audio-release.ps1 now targets .6 title/notes and exact built asset; use after deployment. Next deployment approximately06:38UTC. Live remains .5; four local .6 notes.
