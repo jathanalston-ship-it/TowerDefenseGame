@@ -726,3 +726,5 @@
 - `a89e537` **[UI]** Clarify achievement status and rewards _(internal)_
 - `41aa416` **[UI]** Ui: explain trophy rack states and unlocks _(internal)_
 - `0adabeb` **[UI]** Make achievement milestones searchable _(internal)_
+- `e176563` **[Gameplay]** Ship readable rewards and progression controls _(internal)_
+- `660656c` **[Framework]** Docs: record readable rewards production verification _(internal)_

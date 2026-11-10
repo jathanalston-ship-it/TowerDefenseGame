@@ -1,6 +1,6 @@
 {
-  "lastSha": "0adabebb0a4d54cfd871f7da2a6c7b4b94deab03",
-  "commitsSinceDraft": 4,
+  "lastSha": "660656c8e498a22b2f2bb19a611fa9d51d2f6491",
+  "commitsSinceDraft": 6,
   "content": {
     "tower": [
       "needle",
@@ -4427,6 +4427,18 @@
         {
           "cat": "UI",
           "text": "Find achievement milestones faster with name/description search and All, Not earned, and Earned filters. A live result count and clear empty state help you narrow the list; hidden milestone names stay unsearchable until earned."
+        }
+      ]
+    },
+    {
+      "id": "v2026.11.10.3",
+      "date": "2026-11-10",
+      "title": "Progress Explained",
+      "sealed": false,
+      "entries": [
+        {
+          "cat": "UI",
+          "text": "Profile Power explanations expand with a tap, Enter, or Space and stay open while you read. The rows have larger interaction targets, and multiplier values show more precision so small positive bonuses are not rounded away."
         }
       ]
     }
@@ -9885,6 +9897,22 @@
       "date": "2026-11-10",
       "cat": "UI",
       "text": "Make achievement milestones searchable",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "e176563d06bd43881dabd1a579bea51d21f0521e",
+      "date": "2026-11-10",
+      "cat": "Gameplay",
+      "text": "Ship readable rewards and progression controls",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "660656c8e498a22b2f2bb19a611fa9d51d2f6491",
+      "date": "2026-11-10",
+      "cat": "Framework",
+      "text": "Docs: record readable rewards production verification",
       "internal": true,
       "needsReview": false
     }

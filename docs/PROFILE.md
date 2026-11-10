@@ -146,3 +146,7 @@ platform formalizes, so it survives guest→account upgrades and never changes).
   responses → name renders bare), the Profile banner (`.pf-tag`, tooltip explains it), and
   both name prompts (Commissioning DESIGNATION + CommanderName modal) always preview the FULL
   identity — *"Will appear as 'Marrowthorn #0421'"* — so the number never surprises anyone.
+
+### Reading Power explanations
+
+Power category rows are native details/summary disclosures, usable with pointer, Enter or Space. Each summary has a 44px minimum target; descriptions and multipliers expand inline and stay readable without hover. Display multipliers use two to four decimal places so small positive bonuses remain visible. Score, share attribution and bar widths still use the same powerBreakdown model.

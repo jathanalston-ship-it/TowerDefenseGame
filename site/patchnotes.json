@@ -1,6 +1,19 @@
 [
   {
     "date": "2026-11-10",
+    "title": "Progress Explained",
+    "categories": [
+      "UI"
+    ],
+    "items": [
+      {
+        "cat": "UI",
+        "text": "Profile Power explanations expand with a tap, Enter, or Space and stay open while you read. The rows have larger interaction targets, and multiplier values show more precision so small positive bonuses are not rounded away."
+      }
+    ]
+  },
+  {
+    "date": "2026-11-10",
     "title": "Rewards You Can Read",
     "categories": [
       "UI"

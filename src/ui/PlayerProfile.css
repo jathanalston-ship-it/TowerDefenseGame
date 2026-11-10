@@ -331,7 +331,11 @@
 /* ── Power breakdown ── */
 .pf-power { display: flex; flex-direction: column; gap: 6px; }
 
-.pf-power-row { display: grid; grid-template-columns: 150px 1fr 92px; align-items: center; gap: 10px; }
+.pf-power-row { display: grid; grid-template-columns: 150px 1fr 92px; align-items: center; gap: 10px; min-height: 44px; cursor: pointer; list-style: none; }
+.pf-power-row::-webkit-details-marker { display: none; }
+.pf-power-arrow { display: inline-block; }
+.pf-power-detail[open] .pf-power-arrow { transform: rotate(90deg); }
+.pf-power-hint { margin: 0 0 8px; color: var(--muted); font-size: 12px; line-height: 1.5; }
 
 .pf-power-k { font-size: 12px; font-weight: 700; color: var(--text); }
 

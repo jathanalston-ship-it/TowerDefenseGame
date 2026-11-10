@@ -4,8 +4,8 @@
 > before committing. Read together with docs/PROJECT_STATUS.md and the latest
 > docs/VALIDATION_REPORT.md. Next session: start at docs/PROJECT_MANIFEST.md.
 
-- **Generated:** 2026-11-10 08:50 UTC · **Diff scope:** working tree vs HEAD
-- **Branch:** codex/hive-autoplay · **HEAD:** 0adabebb
+- **Generated:** 2026-11-10 08:56 UTC · **Diff scope:** working tree vs HEAD
+- **Branch:** codex/hive-autoplay · **HEAD:** 660656c8
 
 ## Summary of work completed
 
@@ -13,13 +13,15 @@ LIVE v2026.11.10.2 Rewards You Can Read, seven sealed website notes. SHA e176563
 
 ## Files modified
 
-- Source (1): `src/changelog/releases.gen.ts`
+- Source (3): `src/changelog/releases.gen.ts`, `src/ui/PlayerProfile.css`, `src/ui/PlayerProfile.tsx`
 - Tests (0): —
-- Docs (6): `docs/DIL_GRAPH.md`, `docs/HISTORY.md`, `docs/PROJECT_STATUS.md`, `docs/VALIDATION_REPORT.md`, `docs/devlog/DRAFT-2026-11-09.md`, `docs/devlog/DRAFT-2026-11-10.md`
+- Docs (7): `docs/HISTORY.md`, `docs/PROFILE.md`, `docs/PROJECT_MANIFEST.md`, `docs/PROJECT_STATUS.md`, `docs/VALIDATION_REPORT.md`, `docs/devlog/DRAFT-2026-11-09.md`, `docs/devlog/DRAFT-2026-11-10.md`
 
 ## Systems affected (from the dependency registry)
 
 - **chronicle** — `src/changelog/releases.gen.ts`
+- **profile** — `src/ui/PlayerProfile.tsx`
+- Consumer ring (verify, unchanged): accounts, onboarding, threat
 
 ## Power Score changes
 
@@ -47,7 +49,7 @@ Windows validate wrapper cannot launch npx/npm with shell:false; use direct gate
 
 ## Recommended next tasks
 
-Continue continuous playability/clarity/accessibility/audio/visual work. Latest LIVE .10.2 at SHAe176563d; Actions42785759629 SUCCESS and normal customdomain verified08:52UTC. Next approximate release09:52UTC. No open/unsealed release yet; start next batch on first substantive improvement and generate website notes. No active processes. Candidate next audit: Profile Power breakdown/tooltips and other remaining hover-only explanations; inspect actual evidence before choosing. Keep current branch codex/hive-autoplay, deploy to claude/zen-hawking-rh1gxl. Exclude both untracked devlog drafts. Latest browser scratch probes account-toast/reward-focus/loot-toast/update-toast/achievement-search/trophy-rack all passed. Goal stays active.
+Local .10.3 Progress Explained has one unsealed note. Power Profile rows now native disclosures,44px targets, inline hints,2–4decimal multipliers. Browser ../power-details-check.cjs PASS6rows,Enter/Space/click,smallbonusvisible,valuesunchanged,1366/390/320fit; screenshot reviewed.24profile/power/site tests PASS;docs66410 PASS. Build13806 PASS6.02s before final format tweak;final typecheck24831 terminal PASS;all processes stopped. No browser/dev processes. Live .10.2 SHAe176563d remains verified08:52UTC;next approximate deploy09:52UTC. Continue UI audit (career stat hint cards also use hover/focus tooltips; inspect before changing). Exclude both untracked devlog drafts. Goal active.
 
 ## Future expansion hooks
 

@@ -330,12 +330,14 @@ export function PlayerProfile({ onNavigate }: { onNavigate?: (nav: string) => vo
         )}
         <div className="pf-power">
           {power.slices.map((s) => (
-            <div className="pf-power-row tt" key={s.id} tabIndex={0}>
-              <span className="pf-power-k">{s.label}</span>
-              <span className="pf-power-bar" aria-hidden><i style={{ width: `${Math.round((s.share / maxShare) * 100)}%` }} /></span>
-              <span className="pf-power-v">{s.share > 0 ? `+${formatPower(s.share)}` : '—'}</span>
-              <span className="tt-bubble">{s.hint} Multiplier ×{s.mult.toFixed(2)}.</span>
-            </div>
+            <details className="pf-power-detail" key={s.id}>
+              <summary className="pf-power-row">
+                <span className="pf-power-k"><span className="pf-power-arrow" aria-hidden>▸</span> {s.label}</span>
+                <span className="pf-power-bar" aria-hidden><i style={{ width: `${Math.round((s.share / maxShare) * 100)}%` }} /></span>
+                <span className="pf-power-v">{s.share > 0 ? `+${formatPower(s.share)}` : '—'}</span>
+              </summary>
+              <p className="pf-power-hint">{s.hint} Multiplier ×{s.mult.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 })}.</p>
+            </details>
           ))}
           <div className="pf-power-base">Baseline organism {formatPower(power.base)} — every bucket multiplies it.</div>
         </div>

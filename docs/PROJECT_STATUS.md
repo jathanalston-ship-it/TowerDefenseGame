@@ -1512,3 +1512,9 @@ Full run43607:3174/3175 tests passed across354files in184.59s; the sole failure 
 ## Deployment verified — 2026-11-10 08:52 UTC
 
 LIVE v2026.11.10.2 Rewards You Can Read, seven sealed website notes. SHA e176563d06bd43881dabd1a579bea51d21f0521e; Actions42785759629 SUCCESS including exact-SHA production guard. Normal custom-domain game/home/news/all7notes verified08:52UTC Nov10; asset /assets/play-Bj9XiPk2.js matches local build and returns200. Full run3174/3175PASS;sole stale generated DIL graph corrected and7DIL tests re-PASS. Final sealed build5.97s,4site-sync tests and mobile27screens/9gameplay viewports PASS. All processes terminal; continuous goal remains active. Next approximate deployment09:52UTC.
+
+## 2026-11-10 — Power explanations (local .10.3)
+
+Profile Power rows use native details/summary with44px minimum targets, inline descriptions and persistent open state. Pointer/Enter/Space supported. Multiplier display uses2–4decimals to preserve small positive bonuses; score/share/bar calculations unchanged. First unsealed website note prepared for .10.3 Progress Explained.
+
+Validation: build13806 PASS6.02s before final precision formatting; final ../power-details-check.cjs actual Chrome PASS all6disclosures, keyboard/pointer controls, unchanged values, small positive multiplier visible and1366/390/320 fit with44px targets. Screenshot reviewed.24profile/power/site tests PASS;docs66410 PASS. Final typecheck24831 terminal PASS. Live stays .10.2, next approximate deployment09:52UTC.

@@ -5,6 +5,18 @@ import type { Release } from './types';
 /** Player-facing releases, newest first. */
 export const RELEASES: Release[] = [
   {
+    "id": "v2026.11.10.3",
+    "date": "2026-11-10",
+    "title": "Progress Explained",
+    "sealed": false,
+    "entries": [
+      {
+        "cat": "UI",
+        "text": "Profile Power explanations expand with a tap, Enter, or Space and stay open while you read. The rows have larger interaction targets, and multiplier values show more precision so small positive bonuses are not rounded away."
+      }
+    ]
+  },
+  {
     "id": "v2026.11.10.2",
     "date": "2026-11-10",
     "title": "Rewards You Can Read",

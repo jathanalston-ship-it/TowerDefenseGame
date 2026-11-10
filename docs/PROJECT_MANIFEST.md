@@ -204,6 +204,8 @@ ladders. 4. Every permanent progression source must move the Power Score (valida
 
 ## Power Score
 
+Profile power categories use native expandable rows with 44px targets and inline explanations; multipliers display up to four decimal places. Attribution and score formulas are unchanged.
+
 - **Purpose:** ONE number for account strength. Folds every permanent bucket (upgrades, stars,
   mastery, heroes, equipment, collection, genes, prestige) plus a temporary in-run bucket;
   drives recommended-power checks and progress prediction.
