@@ -47,7 +47,7 @@ Windows validate wrapper cannot launch npx/npm with shell:false; use direct gate
 
 ## Recommended next tasks
 
-Continue active playability/clarity/accessibility/presentation improvements without gameplay or balance changes. Next approximate deployment10:57UTC, with website notes for every game change. Current release is fully verified; start a new unsealed release for the next batch. Keep two untracked devlog drafts unpublished. Windows validation wrapper still has its documented launcher issue; use and record direct gates.
+Continue active playability/clarity/accessibility/presentation improvements without gameplay or balance changes. Next approximate deployment14:33UTC, with website notes for every game change. Current release is fully verified; start a new unsealed release for the next batch. Keep two untracked devlog drafts unpublished. Windows validation wrapper still has its documented launcher issue; use and record direct gates.
 
 ## Future expansion hooks
 
