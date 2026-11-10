@@ -80,10 +80,6 @@
   border-color: rgba(255, 210, 77, 0.4);
 }
 
-.achv-badge.locked {
-  opacity: 0.62;
-}
-
 .achv-badge.got .achv-badge-icon {
   background: radial-gradient(circle at 50% 35%, color-mix(in srgb, var(--gold) 20%, var(--panel-deep)), var(--panel-3));
   border-color: var(--gold);
@@ -111,6 +107,9 @@
   color: var(--gold);
 }
 
+.achv-state { font-size: 10px; font-weight: 700; color: var(--muted); }
+.achv-badge.got .achv-state { color: var(--gold); }
+
 .achv-badge-desc {
   color: var(--muted);
   font-size: 11px;
@@ -137,7 +136,7 @@
 
 .achv-reward {
   flex: none;
-  align-self: center;
+  align-self: flex-start;
   display: inline-flex;
   align-items: center;
   gap: 3px;

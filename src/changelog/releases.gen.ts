@@ -25,6 +25,10 @@ export const RELEASES: Release[] = [
       {
         "cat": "UI",
         "text": "Update-ready prompts wait until you return to the hub, keeping refresh controls out of active runs, tutorials, and Arena matches. Updates downloaded before the prompt mounts are still detected, and dismissing the notice restores keyboard focus."
+      },
+      {
+        "cat": "UI",
+        "text": "Achievement cards show Earned, In progress, or Undiscovered in text, with brighter unfinished goals and clearly named Genome Core rewards. Ladder cards also preview their next reward; secret milestones remain concealed until earned."
       }
     ]
   },

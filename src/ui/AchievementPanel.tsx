@@ -38,6 +38,7 @@ export function AchievementPanel(): JSX.Element {
               <span className="achv-badge-icon" aria-hidden>{mono}</span>
               <span className="achv-badge-text">
                 <span className="achv-badge-name">{name}</span>
+                <span className="achv-state">{got ? 'Earned' : concealed ? 'Undiscovered' : 'In progress'}</span>
                 <span className="achv-badge-desc">{desc}</span>
                 {prog && (
                   <span className="achv-progress">
@@ -53,12 +54,12 @@ export function AchievementPanel(): JSX.Element {
                     </span>
                   </span>
                 )}
+                {!got && !concealed && a.reward ? (
+                  <span className="achv-reward">
+                    <CurrencyIcon id="genomeCores" title="" /> +{a.reward.toLocaleString()} {ACCOUNT_CURRENCY.name}
+                  </span>
+                ) : null}
               </span>
-              {!got && !concealed && a.reward ? (
-                <span className="achv-reward" title={`${ACCOUNT_CURRENCY.name} reward`}>
-                  +{a.reward} <CurrencyIcon id="genomeCores" title="" />
-                </span>
-              ) : null}
             </div>
           );
         })}
@@ -79,6 +80,7 @@ export function AchievementPanel(): JSX.Element {
                     <ProgressBar value={Math.round(g.progress * 100)} max={100} color="var(--r-rare)" height={5} label={`${g.name} progress`} />
                   </span>
                 )}
+                {g && <span className="achv-reward">{g.reward}</span>}
               </span>
             </div>
           );

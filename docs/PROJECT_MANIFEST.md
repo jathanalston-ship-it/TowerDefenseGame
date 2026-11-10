@@ -471,7 +471,7 @@ ladders. 4. Every permanent progression source must move the Power Score (valida
 
 ## Achievements
 
-- **Purpose:** milestone recognition with Shard rewards, surfaced in Profile and toasts.
+- **Purpose:** milestone recognition with Genome Core rewards, surfaced in Profile and toasts. Gallery cards explicitly label earned/in-progress/undiscovered status, name reward currency and preview next ladder rewards without exposing secrets.
 - **Dependencies:** run summaries + lifetime stats; rewards auto-grant.
 - **Files:** `state/achievements.ts` (defs + checker), `ui/AchievementPanel.tsx`,
   `ui/AchievementToaster.tsx`, inline strip in `ui/RewardReveal.tsx`.

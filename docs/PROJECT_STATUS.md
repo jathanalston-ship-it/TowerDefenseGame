@@ -1484,3 +1484,9 @@ Validation: production build PASS (Vite 5.74s); 45 loot/queue/progression/vault/
 UpdateToast holds outside idle hub, retaining events across run/tutorial/results/roulette/Arena transitions. hasWaitingUpdate exposes the existing pending worker for late prompt mounts. Dismiss restores prior connected focus only when its focused control disappeared; label localized EN/ES/PT. No automatic refresh or service-worker activation policy changes.
 
 Validation: production build84638 PASS6.50s; subsequent typecheck87169 PASS with new tests. 24 locale/navigation tests,3 new worker lifecycle tests,9 registry tests and4 regenerated site-sync tests PASS. ../update-toast-check.cjs actual Chrome PASS early worker event, held/resumed event, keyboard dismiss/focus, no dismissal activation, explicit SKIP_WAITING, EN/ES/PT layout at1366/390/320. App wiring uses existing menuIdle (excludes live Arena); full App transition browser check not run separately. Four unsealed website notes; next deploy roughly09:03UTC. Docs8157 terminal PASS.
+
+## 2026-11-10 — achievement clarity (local .10.2)
+
+AchievementPanel labels earned/in-progress/undiscovered states explicitly, names Genome Core rewards below goal text, and shows existing next-rung ladder rewards. Removed whole-card opacity from unfinished cards; secret names/descriptions/rewards remain concealed. No checks, thresholds, grants or saves changed. Manifest's obsolete Shard reward description corrected to Genome Cores.
+
+Validation: production build82292 PASS6.16s;17achievement tests+4site-sync tests PASS; docs87144 PASS. ../achievement-panel-check.cjs actual Chrome PASS earned status, concealed secret names/rewards, matching ladder previews, normal unfinished opacity and all-card overflow checks at1366/390/320. ../achievement-panel.png visually reviewed. Five website notes generated for .10.2, not deployed. All processes terminal; next approximate deploy09:03UTC.
