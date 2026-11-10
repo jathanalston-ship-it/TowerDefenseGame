@@ -5,10 +5,22 @@ import type { Release } from './types';
 /** Player-facing releases, newest first. */
 export const RELEASES: Release[] = [
   {
+    "id": "v2026.11.09.6",
+    "date": "2026-11-09",
+    "title": "Sound That Responds Smoothly",
+    "sealed": false,
+    "entries": [
+      {
+        "cat": "Audio",
+        "text": "Sound-effect volume and mute changes fade smoothly over a brief instant, avoiding abrupt cuts during playback. Rapid slider changes follow your latest setting, and adjusting the level while muted keeps the game quiet."
+      }
+    ]
+  },
+  {
     "id": "v2026.11.09.5",
     "date": "2026-11-09",
     "title": "Feedback That Stays Readable",
-    "sealed": false,
+    "sealed": true,
     "entries": [
       {
         "cat": "Visuals",

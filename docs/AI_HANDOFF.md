@@ -4,21 +4,23 @@
 > before committing. Read together with docs/PROJECT_STATUS.md and the latest
 > docs/VALIDATION_REPORT.md. Next session: start at docs/PROJECT_MANIFEST.md.
 
-- **Generated:** 2026-11-10 05:36 UTC · **Diff scope:** working tree vs HEAD
-- **Branch:** codex/hive-autoplay · **HEAD:** 08fcaff9
+- **Generated:** 2026-11-10 05:44 UTC · **Diff scope:** working tree vs HEAD
+- **Branch:** codex/hive-autoplay · **HEAD:** 205a8c49
 
 ## Summary of work completed
 
-Active continuous improvement goal; authorized roughly-hourly deployments with website notes. LIVE: fa4f78bcff196db9dad2d4683b3c852907516c73, v2026.11.09.5 Feedback That Stays Readable, six curated notes. Actions42763247079 SUCCESS. Normal custom-domain game/home/news verified: play-DZzequMq.js matches local build and returns200; homepage title and detailed motion/Vault notes present. Deployed ~05:38UTC Nov10. No remaining local game changes; do not mark the ongoing goal complete.
+Active continuous improvement goal; authorized roughly-hourly deployments with website notes. LIVE: fa4f78bcff196db9dad2d4683b3c852907516c73, v2026.11.09.5 Feedback That Stays Readable, six curated notes. Actions42763247079 SUCCESS. Normal custom-domain game/home/news verified: play-DZzequMq.js matches local build and returns200; homepage title and detailed motion/Vault notes present. Deployed ~05:38UTC Nov10. New LOCAL batch v2026.11.09.6 Sound That Responds Smoothly, one Audio note; .5 sealed. Do not mark the ongoing goal complete.
 ## Files modified
 
-- Source (0): —
-- Tests (0): —
-- Docs (3): `docs/PROJECT_STATUS.md`, `docs/VALIDATION_REPORT.md`, `docs/devlog/DRAFT-2026-11-09.md`
+- Source (2): `src/audio/sound.ts`, `src/changelog/releases.gen.ts`
+- Tests (1): `src/audio/sound.test.ts`
+- Docs (5): `docs/AUDIO.md`, `docs/HISTORY.md`, `docs/PROJECT_STATUS.md`, `docs/VALIDATION_REPORT.md`, `docs/devlog/DRAFT-2026-11-09.md`
 
 ## Systems affected (from the dependency registry)
 
-- (no registered source files in this diff)
+- **audio** — `src/audio/sound.ts`
+- **chronicle** — `src/changelog/releases.gen.ts`
+- Consumer ring (verify, unchanged): cutscenes, living-battlefield
 
 ## Power Score changes
 
@@ -46,7 +48,10 @@ Final3150 full suite passed before the two-line current-destination drawer fix. 
 
 ## Recommended next tasks
 
-Continue the experience audit without changing mechanics. Start a new local .6 release and seal .5 when the next player-facing improvement is ready; next approximate deployment06:38UTC. Keep website notes with every deployment. Work on codex/hive-autoplay, publish to claude/zen-hawking-rh1gxl under existing authorization. All local test/build/browser/preview processes are terminal. Newest live verification: ../verify-progress-release.ps1 targets .5; update its note markers for the next release. Only untracked file is the generated unpublished devlog draft, which must remain excluded from staging.
+Final build87703 PASS (sfx-volume-build.log,Vite7.20s); no processes remain. Continue .6 audit; next approximate deploy06:38UTC. Candidate: music master shares scheduled duck/duress ramps with volume; measure whether old scheduled targets can override a later slider change before modifying. Work codex/hive-autoplay; deploy claude/zen-hawking-rh1gxl under existing authorization, with website notes and exact-SHA Actions/live checks. ../verify-progress-release.ps1 still targets LIVE .5; change markers before .6 deployment. Untracked devlog draft remains excluded.
+
 ## Future expansion hooks
 
 Existing RewardToaster presentation seams and resolveMotion remain the extension points. No new systems/files under src. Scratch browser probes in parent workspace: reward-reading-check.cjs (hover/focus/expanded hold, grace expiry, burst stability, unchanged merge windows); reward-announcement-check.cjs (AX stable totals); vault-focus-check.cjs and vault-focus-phone-check.cjs (keyboard flow); vault-motion-check.cjs; star-focus-check.cjs; wardrobe-focus-check.cjs; portrait and feedback motion probes. All focused probes passed. Reward reading change re-passed accessible totals probe. Earlier47 rewardToast/Vault tests and4 site tests passed. Validation history has full detail.
+
+LOCAL .6 SFX control change: existing master fades20ms for volume/mute, latest ramp cancels old one, explicit current-time anchor, fallback supported; no context creation or synth/mix changes. ../volume-transition-check.cjs baseline single-step0.187501 ->0.000195 and silence. ../volume-sequence-check.cjs native/fallback rapid/interrupted volume/mute/unmute PASS max step0.000156, muted0, expected final0.112501.42 sound/music/cues tests PASS. Initial ramp without timed anchor failed offline sample check and was corrected; initial build found test Array.at lib mismatch, corrected. Final build87703 PASS; sound/site15 tests re-passed after compatibility correction. No browser/dev servers running.

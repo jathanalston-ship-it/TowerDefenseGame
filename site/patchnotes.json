@@ -1,6 +1,19 @@
 [
   {
     "date": "2026-11-09",
+    "title": "Sound That Responds Smoothly",
+    "categories": [
+      "Audio"
+    ],
+    "items": [
+      {
+        "cat": "Audio",
+        "text": "Sound-effect volume and mute changes fade smoothly over a brief instant, avoiding abrupt cuts during playback. Rapid slider changes follow your latest setting, and adjusting the level while muted keeps the game quiet."
+      }
+    ]
+  },
+  {
+    "date": "2026-11-09",
     "title": "Feedback That Stays Readable",
     "categories": [
       "Visuals",

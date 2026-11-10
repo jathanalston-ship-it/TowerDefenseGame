@@ -168,3 +168,5 @@ alone per section). Writes WAVs (`--mp3` adds the audition set) and docs/AUDIO_R
   cue can lose its tail layer). Priority stealing is the hook if it's ever audible.
 - Trims are measured at the default volume with a seeded room; each session's IR is freshly random
   (±0.5 dB on wet cues).
+
+SFX control smoothing: mute and player-volume changes ramp the existing master over20ms, anchored at currentTime. New cues are still rejected immediately while muted; changing volume while muted targets zero. Rapid changes cancel/hold the old ramp and start from the current gain (cancelScheduledValues fallback supported). Settings never instantiate an AudioContext. Initial graph gain and every synth/mix trim remain unchanged. Offline constant-signal measurement through the real master: abrupt mute max sample step0.187501 before,0.000195 after; rapid volume/mute/unmute sequence max0.000156, muted output0 and final expected level0.112501.

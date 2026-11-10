@@ -1,6 +1,6 @@
 {
-  "lastSha": "0b1ea64708132d6fc16c7564857ffe44c3d4374d",
-  "commitsSinceDraft": 0,
+  "lastSha": "205a8c49d45f285a26b78dc58da60f93afa08f9a",
+  "commitsSinceDraft": 3,
   "content": {
     "tower": [
       "needle",
@@ -4274,7 +4274,7 @@
       "id": "v2026.11.09.5",
       "date": "2026-11-09",
       "title": "Feedback That Stays Readable",
-      "sealed": false,
+      "sealed": true,
       "entries": [
         {
           "cat": "Visuals",
@@ -4299,6 +4299,18 @@
         {
           "cat": "UI",
           "text": "Choosing the screen or hub you are already viewing now closes the phone navigation drawer, without adding an extra Back step."
+        }
+      ]
+    },
+    {
+      "id": "v2026.11.09.6",
+      "date": "2026-11-09",
+      "title": "Sound That Responds Smoothly",
+      "sealed": false,
+      "entries": [
+        {
+          "cat": "Audio",
+          "text": "Sound-effect volume and mute changes fade smoothly over a brief instant, avoiding abrupt cuts during playback. Rapid slider changes follow your latest setting, and adjusting the level while muted keeps the game quiet."
         }
       ]
     }
@@ -9485,6 +9497,30 @@
       "date": "2026-11-09",
       "cat": "Developer Tools",
       "text": "Test: wait for closed navigation drawer in layout gate",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "08fcaff9044b4bbdbd9899ee335582e6155238c9",
+      "date": "2026-11-09",
+      "cat": "UI",
+      "text": "Ui: close drawer on current destination selection",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "fa4f78bcff196db9dad2d4683b3c852907516c73",
+      "date": "2026-11-09",
+      "cat": "Framework",
+      "text": "Release: ship readable feedback and accessible ceremonies",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "205a8c49d45f285a26b78dc58da60f93afa08f9a",
+      "date": "2026-11-09",
+      "cat": "Framework",
+      "text": "Docs: record verified feedback deployment",
       "internal": true,
       "needsReview": false
     }

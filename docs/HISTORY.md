@@ -690,3 +690,6 @@
 - `0452050` **[UI]** Ui: verify stable reward announcements _(internal)_
 - `066e02d` **[Gene Cards]** Preserve reward cards while reading _(internal)_
 - `0b1ea64` **[Developer Tools]** Test: wait for closed navigation drawer in layout gate _(internal)_
+- `08fcaff` **[UI]** Ui: close drawer on current destination selection _(internal)_
+- `fa4f78b` **[Framework]** Release: ship readable feedback and accessible ceremonies _(internal)_
+- `205a8c4` **[Framework]** Docs: record verified feedback deployment _(internal)_

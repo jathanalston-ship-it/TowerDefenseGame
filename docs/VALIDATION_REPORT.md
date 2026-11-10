@@ -271,3 +271,9 @@ Stricter mobile83603 correctly timed out: current Home/landing early returns lef
 FINAL RELEASE MOBILE PASS:72291 exited0, feedback-release-mobile-final.log CLEAN across27 nav screens plus live runs at all nine standard viewports. Includes current-screen drawer fix and actual closed-state gate. All build/test/browser/mobile processes terminal. Ready to deploy v2026.11.09.5 with six curated website notes.
 
 DEPLOYED .5:fa4f78bcff196db9dad2d4683b3c852907516c73, Actions42763247079 completed SUCCESS. Normal custom-domain verification PASS: /play/ loads exact /assets/play-DZzequMq.js (HTTP200); homepage and/news show Feedback That Stays Readable and matching motion/Vault notes. Six notes published with game. No processes left running.
+
+Local .6 SFX control smoothing: OfflineAudioContext rendering of real master reproduced single-sample mute step0.187501. Initial unanchored ramp still jumped0.173647; explicit current-time starting event fixed it to0.000195 and settled output0. Rapid volume changes, interrupted fade, muted level change and unmute max step0.000156, silence while muted, final0.112501 as expected. Native cancelAndHold and fallback both PASS. No synth/mix retune, so targeted control measurements used instead of per-cue trim recalibration.
+
+Audio sound/music/cues42 tests PASS after anchored fade. Build initially found Array.at in new test outside project TS lib; replaced with indexed access and rebuilt. Behavioral audio implementation unchanged by test compatibility correction.
+
+SFX control final production build PASS (Vite7.20s,87703 exited0). Sound11 + websiteSync4 tests re-PASS after test compatibility correction. All processes terminal.

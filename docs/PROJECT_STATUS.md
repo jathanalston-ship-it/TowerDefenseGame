@@ -1397,3 +1397,7 @@ Same-destination drawer close fixed and browser-verified with no extra Back stop
 .5 final mobile gate PASS at05:36UTC; deploying verified six-note release. Full3150 suite plus focused19 nav/back and4 site checks passed; final build and focused browser checks passed.
 
 LIVE ~05:38UTC Nov10: v2026.11.09.5 Feedback That Stays Readable, commitfa4f78bc, six website notes. Actions42763247079 success; normal game/home/news verified against built hashplay-DZzequMq.js. Next approximate deployment06:38UTC; continuous improvement goal remains active.
+
+New local batch .6 Sound That Responds Smoothly; .5 sealed/live. First change:20ms SFX volume/mute ramps verified by real offline audio samples, including rapid changes and fallback. One Audio website note prepared.
+
+.6 SFX smoothing final build and website synchronization PASS; local checkpoint ready. .5 remains live, next deployment around06:38UTC.
