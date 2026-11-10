@@ -1,6 +1,6 @@
 {
-  "lastSha": "9b2af4c1a293c4fd153bd7ed762d672df515fdd4",
-  "commitsSinceDraft": 7,
+  "lastSha": "a43c562add09f658bdc14a47b191dc8bfd3e668a",
+  "commitsSinceDraft": 8,
   "content": {
     "tower": [
       "needle",
@@ -4699,6 +4699,10 @@
         {
           "cat": "UI",
           "text": "Quest Board progress and claim controls now name both the mission and its quest, distinguishing repeated mission names. Reward icons expose their full descriptions, and progress reports when a reward is ready or claimed."
+        },
+        {
+          "cat": "Bug Fixes",
+          "text": "Champion Contracts now refresh their weekly roster, completion marks, and rotation countdown while the card is open, and immediately when you return to the tab. Leaving the screen cleans up its refresh timer."
         }
       ]
     }
@@ -10765,6 +10769,14 @@
       "date": "2026-11-10",
       "cat": "UI",
       "text": "Keep pause settings comfortable on touchscreens",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "a43c562add09f658bdc14a47b191dc8bfd3e668a",
+      "date": "2026-11-10",
+      "cat": "UI",
+      "text": "Ui: clarify quest progress rewards and claims",
       "internal": true,
       "needsReview": false
     }

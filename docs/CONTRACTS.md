@@ -75,3 +75,5 @@ positions so each week carries one), or add a constraint verb (one union member 
 (`requireTower`/`requireHero`) must reference content every account owns early — a
 contract no new player can complete is a dead row. Reward-id hygiene is pinned: every
 cosmetic payout must resolve to a real `source: 'contract'` phenotype.
+
+ContractsCard owns a minute refresh while visible and refreshes immediately on visibility return. One liveopsNow timestamp supplies activeContracts, contractWeekKey and contractRotationEnd, so roster/completion keys/countdown cannot use different weeks in one render. Hidden ticks skip state updates; unmount clears the interval and visibility listener. Contract evaluation, rewards and completion persistence are unchanged.

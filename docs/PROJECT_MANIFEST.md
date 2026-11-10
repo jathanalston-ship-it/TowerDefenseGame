@@ -857,3 +857,7 @@ InitCutscene visibility lifecycle pauses scene holds, gate/film/dive clocks and 
 ## Quest Board accessibility
 
 `ui/QuestBoard.tsx` names mission progress and claim controls with quest context and exposes reward descriptions. Progress accessibility values match the capped visible count; claims still use the existing meta pipeline. See `docs/QUESTS.md`.
+
+## Champion Contracts display clock
+
+`ui/components/ContractsCard.tsx` refreshes its visible board every minute and on tab return, using one timestamp for roster, completion keys and countdown. See `docs/CONTRACTS.md`; no contract rule or reward changes.

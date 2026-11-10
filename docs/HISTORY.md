@@ -802,3 +802,4 @@
 - `2401a8f` **[UI]** Explain disabled equipment upgrades _(internal)_
 - `5e78a28` **[UI]** Ui: contain and restore item details keyboard focus _(internal)_
 - `9b2af4c` **[UI]** Keep pause settings comfortable on touchscreens _(internal)_
+- `a43c562` **[UI]** Ui: clarify quest progress rewards and claims _(internal)_

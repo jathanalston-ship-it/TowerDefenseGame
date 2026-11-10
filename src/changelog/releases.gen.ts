@@ -25,6 +25,10 @@ export const RELEASES: Release[] = [
       {
         "cat": "UI",
         "text": "Quest Board progress and claim controls now name both the mission and its quest, distinguishing repeated mission names. Reward icons expose their full descriptions, and progress reports when a reward is ready or claimed."
+      },
+      {
+        "cat": "Bug Fixes",
+        "text": "Champion Contracts now refresh their weekly roster, completion marks, and rotation countdown while the card is open, and immediately when you return to the tab. Leaving the screen cleans up its refresh timer."
       }
     ]
   },

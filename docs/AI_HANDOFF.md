@@ -4,33 +4,36 @@
 > before committing. Read together with docs/PROJECT_STATUS.md and the latest
 > docs/VALIDATION_REPORT.md. Next session: start at docs/PROJECT_MANIFEST.md.
 
-- **Generated:** 2026-11-10 20:41 UTC · **Diff scope:** working tree vs HEAD
-- **Branch:** codex/hive-autoplay · **HEAD:** 9b2af4c1
+- **Generated:** 2026-11-10 20:45 UTC · **Diff scope:** working tree vs HEAD
+- **Branch:** codex/hive-autoplay · **HEAD:** a43c562a
 
 ## Summary of work completed
 
 ItemDetails baseline browser left focus on opener behind panel. It now has named modal semantics, focuses Close on entry, wraps enabled-button Tab/Shift+Tab, restores connected enabled invoker on close and defers to nested salvage while confirming. ../item-details-focus-check.cjs PASS initial focus, both wraps, Escape and return focus; ../salvage-confirm-check.cjs --stronger rerun PASS320/390/844 focus, nested trap, inert release, cancellation and actual isolated salvage.35crafting/UI/site/back tests PASS5.36s; docs54015 PASS; build68639 PASS11.36s (SWmwb572k9), item-details-focus-build.log. All processes terminal; final release mobile pending. No gameplay/save changes.
 
-LOCAL unsealed v2026.11.10.12 Upgrade Guidance has four generated website notes. ItemDetails disabled upgrades preserve their normal description and add exact material shortfalls or affix-lock/tier/rarity/no-affix reasons, based on existing opAvailable/canAfford/reforgeCost. Dashed border replaces faded text for readable disabled cards. ../upgrade-reasons-check.cjs PASS shortage, live funding, actual Enhance toT2, tier cap, locked affix, rarity cap, no-affix and320/844 layouts; screenshot inspected.27crafting/UI/site tests PASS4.59s; docs3686 PASS; build31876 PASS17.56s (SWmwb52fxx), upgrade-guidance-build.log. No simulation/save/cost/availability changes. Final release mobile pending.
+LOCAL unsealed v2026.11.10.12 Upgrade Guidance has five generated website notes. ItemDetails disabled upgrades preserve their normal description and add exact material shortfalls or affix-lock/tier/rarity/no-affix reasons, based on existing opAvailable/canAfford/reforgeCost. Dashed border replaces faded text for readable disabled cards. ../upgrade-reasons-check.cjs PASS shortage, live funding, actual Enhance toT2, tier cap, locked affix, rarity cap, no-affix and320/844 layouts; screenshot inspected.27crafting/UI/site tests PASS4.59s; docs3686 PASS; build31876 PASS17.56s (SWmwb52fxx), upgrade-guidance-build.log. No simulation/save/cost/availability changes. Final release mobile pending.
 
 LIVE v2026.11.10.11 Clearer Gear and Motion, SEVEN notes. SHA fdd8131f40aaed078f0c7e3932e8192accf95127. Actions42893701543/job130101131626 SUCCESS including exact-commit production guard. Normal custom-domain game/home/news/all7notes and entry asset verified20:20UTC by ../verify-current-release.ps1; asset/assets/play-CSQGqZlk.js. Final original mobile27718 passed27nav+nine gameplay profiles. Build19916 PASS11.17s,23focused tests and docs passed. Goal remains active; next approximate deployment21:20UTC.
 
 ## Files modified
 
-- Source (2): `src/changelog/releases.gen.ts`, `src/ui/QuestBoard.tsx`
+- Source (2): `src/changelog/releases.gen.ts`, `src/ui/components/ContractsCard.tsx`
 - Tests (0): —
-- Docs (6): `docs/AI_HANDOFF.md`, `docs/HISTORY.md`, `docs/PROJECT_MANIFEST.md`, `docs/QUESTS.md`, `docs/devlog/DRAFT-2026-11-09.md`, `docs/devlog/DRAFT-2026-11-10.md`
+- Docs (5): `docs/CONTRACTS.md`, `docs/HISTORY.md`, `docs/PROJECT_MANIFEST.md`, `docs/devlog/DRAFT-2026-11-09.md`, `docs/devlog/DRAFT-2026-11-10.md`
 
 ## Systems affected (from the dependency registry)
 
 - **chronicle** — `src/changelog/releases.gen.ts`
-- **quests** — `src/ui/QuestBoard.tsx`
+- **contracts** — `src/ui/components/ContractsCard.tsx`
+- Consumer ring (verify, unchanged): quests
 
 ## Power Score changes
 
 None. UI/render-only changes; equipment stats, preview derivation, simulation and save schema unchanged.
 
 ## UI changes
+
+ContractsCard baseline retained Apex Hunt/Ascetic/Mortar Covenant after advancing past weekly rollover and visibility return; expected Iron Line/Lean Garrison/Deep Stand. Added owned minute clock and visibility refresh; same Date feeds roster, week completion key and countdown. Hidden ticks skip updates; cleanup removes interval/listener. Expanded ../contract-rollover-check.cjs PASS current/next week roster, old completion marker removal, registered minute callback, hidden suppression, return refresh and timer cleanup.27contract/UI/site tests PASS2.35s, docs47236 PASS, build4182 PASS8.21s (SWmwb5t2de), contract-rollover-build.log. No rule/reward/save changes. Final release mobile remains pending; all handles terminal.
 
 Original mobile5046 terminalPASS27nav+nine gameplay profiles on three-change .12 build76710. Subsequent QuestBoard accessibility: quest-qualified mission progress/claims (weekly/story names can repeat), bounded displayed/ARIA values, ready/claimed text, full reward descriptions/tooltips and named finales. First browser probe failed ambiguous repeated Open the Larder name; added quest context, final ../quest-accessibility-check.cjs PASS unique target, bounded progress, descriptions, actual keyboard claim and claimed state,320/844 layout.45quest/UI/site tests PASS4.81s; docs72296 PASS; build69088 PASS13.30s (SWmwb5oixe), quest-accessibility-build.log. No claim eligibility/reward/save changes. Final release mobile remains pending.
 
@@ -48,11 +51,13 @@ Infestation motion/selection: browser probes passed live prefs, resize, pins, hi
 
 ## Documentation changes
 
+Current contract change: CONTRACTS.md and manifest updated; fifth note generated.
+
 Current quest change: QUESTS.md and manifest updated; fourth UI note generated.
 
 GAME-FEEL.md and manifest updated for touch target sizing; third curated UI note generated.
 
-Current .12: EQUIPMENT.md and manifest describe upgrade feedback; four UI notes generated.
+Current .12: EQUIPMENT.md and manifest describe upgrade feedback; five UI notes generated.
 
 INFESTATION.md, EQUIPMENT.md and manifest updated. Seven curated UI notes generated for game and website. No new mechanic/reward/save field: no help registry, audio or migration change needed.
 
@@ -72,7 +77,7 @@ No new debt intended. Existing Windows validation launcher issue. Two untracked 
 
 ## Recommended next tasks
 
-All processes terminal. Local unsealed .12 Upgrade Guidance has FOUR generated notes. Continue evidence-led improvements; next approximate deploy21:20UTC. Seal/generate/build and final original mobile before deployment, then verify Actions exact-SHA and normal public game/news. Mobile5046 passed before latest quest labels; focused real claim probe covers those changes. Live .11 SHA fdd8131f40aaed078f0c7e3932e8192accf95127. Preserve two untracked devlog drafts.
+All processes terminal. Local unsealed .12 Upgrade Guidance has FIVE generated notes. Continue evidence-led improvements; next approximate deploy21:20UTC. Seal/generate/build and final original mobile before deployment, then verify Actions exact-SHA and normal public game/news. Mobile5046 passed before latest quest labels; focused real claim probe covers those changes. Live .11 SHA fdd8131f40aaed078f0c7e3932e8192accf95127. Preserve two untracked devlog drafts.
 
 ## Future expansion hooks
 
