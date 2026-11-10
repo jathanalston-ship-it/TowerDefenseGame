@@ -883,3 +883,5 @@ Cross-platform regression launcher (2026-11-10): scripts/validate.ts invokes the
 Complete class adaptation reveal (2026-11-10): shared Popup portal escapes transformed lab panels; scrollable card fits the app viewport. Continue receives focus without its former delayed entrance, Tab stays inside, and closing by Continue/backdrop/Escape restores the programmatically focusable host heading. Existing equip/adaptation completion and cue are unchanged.
 
 Adaptation reveal decoration: rotating rays are clipped in their own inset layer so they cannot widen the overlay or create horizontal scrolling; the content card remains independently scrollable.
+
+Graft-host keyboard navigation (2026-11-10): host tablist uses a single selected Tab stop, Arrow keys/Home/End with wrapping and nearest scrolling, and unique tab-to-panel ARIA links. Tab enters the named focusable showcase; class filters expose aria-pressed. Selection still uses the existing selectTower function; progression and graft operations are unchanged.

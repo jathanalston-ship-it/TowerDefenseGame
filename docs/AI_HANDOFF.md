@@ -4,16 +4,16 @@
 > before committing. Read together with docs/PROJECT_STATUS.md and the latest
 > docs/VALIDATION_REPORT.md. Next session: start at docs/PROJECT_MANIFEST.md.
 
-- **Generated:** 2026-11-10 22:52 UTC · **Diff scope:** working tree vs HEAD
-- **Branch:** codex/hive-autoplay · **HEAD:** 7d4c867e
+- **Generated:** 2026-11-10 22:57 UTC · **Diff scope:** working tree vs HEAD
+- **Branch:** codex/hive-autoplay · **HEAD:** e43f8089
 
 ## Summary of work completed
 
-LOCAL unsealed v2026.11.10.15 Clearer Adaptation Reveals has ONE curated note, generated into game and website. Complete class adaptation baseline opened at y=-3012 on320px transformed lab and left focus on body. Added shared Popup portal, bounded scrollable card, immediate Continue focus, Tab trap and host-heading return. Real-meta completing-graft probes passed Escape/Continue/backdrop and saved-graft preservation at320x568,844x340,390x844; screenshot inspected. Extra ray check found overlay scrollWidth373/client320; contained the decorative layer and final probe passed320/320 plus full focus/viewport flow. Reforge regression passed.22 model/UI/site tests passed2.45s; final11 UI/site tests passed1.75s. Docs/handoff52466 passed; initial build passed5.55s before ray fix, final build58033 passed5.67s Vite, SWmwbaelwf (adaptation-dialog-final-build.log); all processes terminal. No equip/adaptation effects, audio cue, costs, Power or save changes. LIVE remains .14 SHA9060e09a7e98ae12c569b0dca8e137eed2012a00, verified22:36UTC. Normal validator fixed in7d4c867e and passed3194tests/mobile at22:48UTC before this UI change. Goal active; next approximate deployment23:35–23:40UTC.
+LOCAL unsealed v2026.11.10.15 Clearer Adaptation Reveals has TWO curated game/website notes (adaptation reveal and host keyboard navigation). Host tablist baseline ignored ArrowDown and exposed every host as a Tab stop. Added roving selected tabIndex, four Arrow keys/Home/End/wrap/nearest scrolling, unique tab/panel ARIA links and focusable named showcase; class filters expose pressed state. Parent mulligan-host-keyboard-check.cjs and phone variant PASS navigation, one Tab stop, named panel/filter selection and byte-unchanged saved progression. Adaptation overflow/focus regression passed.22 model/UI/site tests passed2.51s; docs and handoff passed. Build40115 passed6.17s Vite, SWmwbaj6ob (mulligan-host-build.log); all processes terminal. Selection still delegates to selectTower; no progression, save, cost or sim changes. LIVE remains .14 SHA9060e09a7e98ae12c569b0dca8e137eed2012a00, normal public verification22:36UTC. Normal validator fixed and passed3194tests/mobile at22:48UTC before .15 UI changes. Goal active; next approximate deployment23:35–23:40UTC.
 
 ## Files modified
 
-- Source (3): `src/changelog/releases.gen.ts`, `src/ui/MulliganLab.css`, `src/ui/MulliganLab.tsx`
+- Source (2): `src/changelog/releases.gen.ts`, `src/ui/MulliganLab.tsx`
 - Tests (0): —
 - Docs (5): `docs/HISTORY.md`, `docs/MULLIGANS.md`, `docs/PROJECT_MANIFEST.md`, `docs/devlog/DRAFT-2026-11-09.md`, `docs/devlog/DRAFT-2026-11-10.md`
 
@@ -29,11 +29,11 @@ None. Search presentation only; progression, rewards and simulation unchanged.
 
 ## UI changes
 
-Complete class adaptation baseline opened at y=-3012 on320px transformed lab and left focus on body. Added shared Popup portal, bounded scrollable card, immediate Continue focus, Tab trap and host-heading return. Real-meta completing-graft probes passed Escape/Continue/backdrop and saved-graft preservation at320x568,844x340,390x844; screenshot inspected. Extra ray check found overlay scrollWidth373/client320; contained the decorative layer and final probe passed320/320 plus full focus/viewport flow. Reforge regression passed.22 model/UI/site tests passed2.45s; final11 UI/site tests passed1.75s. Docs/handoff52466 passed; initial build passed5.55s before ray fix, final build58033 passed5.67s Vite, SWmwbaelwf (adaptation-dialog-final-build.log); all processes terminal. No equip/adaptation effects, audio cue, costs, Power or save changes.
+Host tablist baseline ignored ArrowDown and exposed every host as a Tab stop. Added roving selected tabIndex, four Arrow keys/Home/End/wrap/nearest scrolling, unique tab/panel ARIA links and focusable named showcase; class filters expose pressed state. Parent mulligan-host-keyboard-check.cjs and phone variant PASS navigation, one Tab stop, named panel/filter selection and byte-unchanged saved progression. Adaptation overflow/focus regression passed.22 model/UI/site tests passed2.51s; docs and handoff passed. Build40115 passed6.17s Vite, SWmwbaj6ob (mulligan-host-build.log); all processes terminal. Selection still delegates to selectTower; no progression, save, cost or sim changes.
 
 ## Documentation changes
 
-MULLIGANS.md and manifest document the reveal portal/focus, scrollable card and clipped ray layer. One website/game note generated. No new mechanic/help/audio registration needed.
+MULLIGANS.md and manifest updated. Two curated website/game notes generated; no new mechanic/help/audio registrations needed.
 
 ## Save changes
 
@@ -41,7 +41,7 @@ None — save layer untouched.
 
 ## Known edge cases
 
-Local full validator uses MOBILECHECK_CHROMIUM Chrome path and NODE_OPTIONS preload of parent chrome-probe-compat.cjs. Validation launcher now works; full release validation still needed for .15. Preserve two unpublished devlog drafts.
+Full .15 release validation remains pending. Use normal validator with local MOBILECHECK_CHROMIUM and NODE_OPTIONS preload chrome-probe-compat.cjs as recorded in7d4c867e handoff. Preserve two untracked devlog drafts.
 
 ## Remaining technical debt
 
@@ -49,7 +49,7 @@ No new debt. Chrome/Playwright local compatibility preload remains.
 
 ## Recommended next tasks
 
-Continue evidence-led player improvements and approximately hourly deployments with website notes. Next deployment23:35–23:40UTC; use normal validator with documented local Chrome environment for release gates.
+Continue evidence-led improvements; start .15 release validation around23:15–23:20UTC to allow original full suite/build/mobile and deployment before23:35–23:40UTC. Use normal validator with documented local Chrome environment, seal/generate notes and verify exact-SHA plus normal public URLs.
 
 ## Future expansion hooks
 

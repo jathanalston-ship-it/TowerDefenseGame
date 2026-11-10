@@ -1,6 +1,6 @@
 {
-  "lastSha": "7d4c867e66920956dd446c743bf32181ed004e73",
-  "commitsSinceDraft": 4,
+  "lastSha": "e43f8089d0bde2877776cb08da02f73ad7491293",
+  "commitsSinceDraft": 5,
   "content": {
     "tower": [
       "needle",
@@ -4799,6 +4799,10 @@
         {
           "cat": "UI",
           "text": "Complete class adaptation reveals now stay visible on phones and short landscape screens. Continue is immediately reachable by keyboard, focus stays inside the reveal, and closing returns to the graft host without changing the completed adaptation."
+        },
+        {
+          "cat": "UI",
+          "text": "Graft-host tabs now support arrow keys, Home and End, with one Tab stop for the selected host and a clearly named details panel. Modifier class filters now announce which filter is selected."
         }
       ]
     }
@@ -11081,6 +11085,14 @@
       "date": "2026-11-10",
       "cat": "Developer Tools",
       "text": "Dev: make regression validation launch reliably on Windows",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "e43f8089d0bde2877776cb08da02f73ad7491293",
+      "date": "2026-11-10",
+      "cat": "UI",
+      "text": "Ui: keep adaptation reveals visible and keyboard accessible",
       "internal": true,
       "needsReview": false
     }

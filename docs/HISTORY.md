@@ -829,3 +829,4 @@
 - `9060e09` **[Framework]** Release: publish clearer help and previews _(internal)_
 - `98be43b` **[Framework]** Docs: record verified help and previews deployment _(internal)_
 - `7d4c867` **[Developer Tools]** Dev: make regression validation launch reliably on Windows _(internal)_
+- `e43f808` **[UI]** Ui: keep adaptation reveals visible and keyboard accessible _(internal)_

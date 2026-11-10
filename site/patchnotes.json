@@ -9,6 +9,10 @@
       {
         "cat": "UI",
         "text": "Complete class adaptation reveals now stay visible on phones and short landscape screens. Continue is immediately reachable by keyboard, focus stays inside the reveal, and closing returns to the graft host without changing the completed adaptation."
+      },
+      {
+        "cat": "UI",
+        "text": "Graft-host tabs now support arrow keys, Home and End, with one Tab stop for the selected host and a clearly named details panel. Modifier class filters now announce which filter is selected."
       }
     ]
   },

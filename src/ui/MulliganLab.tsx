@@ -6,7 +6,7 @@
 // library. All reads flow through mulliganLabView; all writes through the meta pipeline. Menu-only —
 // never touches the sim.
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import { meta } from '../state/meta';
 import { motionPrefs, onMotionPrefs, resolveMotion } from '../state/prefs';
 import { TOWER_DEFS } from '../core/config';
@@ -198,6 +198,7 @@ function ReforgeWheelOverlay({ mod, onClose }: { mod: MulliganReforgeMod; onClos
 }
 
 export function MulliganLab(): JSX.Element {
+  const labId = useId();
   const save = meta.use();
   const view = mulliganLabView(save);
   const [selected, setSelected] = useState<TowerKind>(view.towers[0].kind);
@@ -359,11 +360,26 @@ export function MulliganLab(): JSX.Element {
 
       <div className="mgl-body">
         {/* ── Host rail: one row per tower, organism status at a glance (scales to a 100-tower roster) ── */}
-        <div className="mgl-rail" data-guide="mulligan-rail" role="tablist" aria-label="Graft hosts">
+        <div className="mgl-rail" data-guide="mulligan-rail" role="tablist" aria-label="Graft hosts"
+          onKeyDown={(e) => {
+            if (!['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End'].includes(e.key)) return;
+            const tabs = Array.from(e.currentTarget.querySelectorAll<HTMLButtonElement>('[role="tab"]'));
+            const current = tabs.findIndex((tab) => tab === document.activeElement);
+            if (current < 0) return;
+            e.preventDefault();
+            const index = e.key === 'Home' ? 0 : e.key === 'End' ? tabs.length - 1
+              : (current + (e.key === 'ArrowLeft' || e.key === 'ArrowUp' ? -1 : 1) + tabs.length) % tabs.length;
+            tabs[index].focus({ preventScroll: true });
+            tabs[index].scrollIntoView({ block: 'nearest', inline: 'nearest' });
+            tabs[index].click();
+          }}>
           {view.towers.map((t) => (
             <button
               key={t.kind}
               role="tab"
+              id={`${labId}-host-${t.kind}`}
+              aria-controls={`${labId}-panel`}
+              tabIndex={t.kind === selected ? 0 : -1}
               aria-selected={t.kind === selected}
               className={`mgl-item${t.kind === selected ? ' on' : ''}`}
               style={{ ['--tw' as string]: t.color }}
@@ -387,7 +403,7 @@ export function MulliganLab(): JSX.Element {
         </div>
 
         {/* ── Showcase: one host's organism ── */}
-        <div className="mgl-showcase" style={{ ['--tw' as string]: tv.color }}>
+        <div className="mgl-showcase" role="tabpanel" id={`${labId}-panel`} aria-labelledby={`${labId}-host-${tv.kind}`} tabIndex={0} style={{ ['--tw' as string]: tv.color }}>
           <div className="mgl-hero">
             <div className={`mgl-chamber${tv.active ? ' is-awake' : ''}`} role="img" aria-label={`${tv.name} graft chamber${tv.active ? ' — organism awake' : ' — dormant'}`}>
               <span className={`mgl-chamber-tag${tv.active ? ' is-awake' : ''}`}>
@@ -530,9 +546,9 @@ export function MulliganLab(): JSX.Element {
             <div className="mgl-block-h">
               <span className="mgl-eyebrow">Sequenced Modifiers</span>
               <div className="mgl-cats" role="group" aria-label="Filter by class">
-                <button className={`mgl-chip${cls === 'all' ? ' on' : ''}`} onClick={() => setCls('all')}>All</button>
+                <button aria-pressed={cls === 'all'} className={`mgl-chip${cls === 'all' ? ' on' : ''}`} onClick={() => setCls('all')}>All</button>
                 {COMBAT_CLASS_ORDER.map((c) => (
-                  <button key={c} className={`mgl-chip mgl-chip-cls${cls === c ? ' on' : ''}`} style={{ ['--cc' as string]: COMBAT_CLASSES[c].color }}
+                  <button key={c} aria-pressed={cls === c} className={`mgl-chip mgl-chip-cls${cls === c ? ' on' : ''}`} style={{ ['--cc' as string]: COMBAT_CLASSES[c].color }}
                     onClick={() => setCls(c)} title={COMBAT_CLASSES[c].role}>
                     {COMBAT_CLASSES[c].glyph} {c}
                   </button>
