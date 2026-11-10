@@ -1,6 +1,6 @@
 {
-  "lastSha": "f832f0871e29531214478252e6305832ca53006a",
-  "commitsSinceDraft": 1,
+  "lastSha": "0d31f13445298a45c5938171f73dff8e6fbad6fd",
+  "commitsSinceDraft": 2,
   "content": {
     "tower": [
       "needle",
@@ -4539,6 +4539,10 @@
         {
           "cat": "UX",
           "text": "Collection browsing now keeps keyboard focus with you: arrow keys, Home and End switch Codex sections, opening a category focuses its heading, and returning to all categories restores the tile you came from."
+        },
+        {
+          "cat": "UX",
+          "text": "Undiscovered collection entries now use a clear, readable label instead of dim question marks. Tooltips keep unrevealed names hidden, while discovered entries retain their names, status and mastery counts."
         }
       ]
     }
@@ -10213,6 +10217,14 @@
       "date": "2026-11-10",
       "cat": "UI",
       "text": "Ui: make collection celebrations accessible",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "0d31f13445298a45c5938171f73dff8e6fbad6fd",
+      "date": "2026-11-10",
+      "cat": "UI",
+      "text": "Ui: preserve focus while browsing collection categories",
       "internal": true,
       "needsReview": false
     }

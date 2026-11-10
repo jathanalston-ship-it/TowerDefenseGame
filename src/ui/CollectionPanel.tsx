@@ -179,14 +179,14 @@ function tierColor(e: CollectionEntry): string {
 
 function EntryGrid({ entries }: { entries: CollectionEntry[] }): JSX.Element {
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(126px, 1fr))', gap: 6, marginTop: 8 }}>
+    <div role="list" aria-label="Collection entries" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(126px, 1fr))', gap: 6, marginTop: 8 }}>
       {entries.map((e) => (
-        <div key={e.id} title={`${e.name} — ${e.tierLabel}`} style={{
+        <div key={e.id} role="listitem" title={`${e.tier <= 0 ? 'Undiscovered entry' : e.name} — ${e.tierLabel}`} style={{
           display: 'flex', flexDirection: 'column', gap: 2, padding: '6px 8px', borderRadius: 6,
-          background: 'rgba(255,255,255,0.04)', borderLeft: `3px solid ${tierColor(e)}`, opacity: e.tier <= 0 ? 0.45 : 1,
+          background: 'rgba(255,255,255,0.04)', borderLeft: `3px solid ${tierColor(e)}`, overflowWrap: 'anywhere',
         }}>
-          <span style={{ fontSize: 12.5, fontWeight: 600 }}>{e.tier <= 0 ? '???' : e.name}</span>
-          <span style={{ fontSize: 10.5, opacity: 0.75 }}>{e.tierLabel}{e.maxTier > 1 && e.tier > 0 ? ` · ${e.tier}/${e.maxTier}` : ''}</span>
+          <span style={{ fontSize: 13, fontWeight: 600 }}>{e.tier <= 0 ? 'Undiscovered entry' : e.name}</span>
+          <span style={{ fontSize: 11, color: 'var(--muted)' }}>{e.tierLabel}{e.maxTier > 1 && e.tier > 0 ? ` · ${e.tier}/${e.maxTier}` : ''}</span>
         </div>
       ))}
     </div>

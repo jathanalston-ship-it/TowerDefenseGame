@@ -102,3 +102,5 @@ powerIntegration/profile tests pin exactly that shape).
 Rank-up celebration accessibility: named modal with initial Continue focus, contained Tab/Shift+Tab, Escape dismissal and opener restoration. The focusable promotion region scrolls independently so Continue remains reachable on short screens. Live OS/device motion preferences suppress scale/rotation animation; fanfare still fires once per mounted celebration. Rank/power settlement remains unchanged.
 
 Collection navigation: the three sections use linked tabs/panels with one tab stop and automatic ArrowLeft/ArrowRight/Home/End activation. Category detail focuses its heading on entry; All categories restores the original category tile. Changing sections clears detail without restoring a stale tile.
+
+Entry cards form a named accessible list. Tier-zero entries use “Undiscovered entry” in both copy and tooltips (no name reveal); status text remains readable without whole-card dimming. Revealed names, tier labels and mastery fractions are unchanged, and long names wrap within phone cards.

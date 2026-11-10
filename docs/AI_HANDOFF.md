@@ -4,8 +4,8 @@
 > before committing. Read together with docs/PROJECT_STATUS.md and the latest
 > docs/VALIDATION_REPORT.md. Next session: start at docs/PROJECT_MANIFEST.md.
 
-- **Generated:** 2026-11-10 15:23 UTC · **Diff scope:** working tree vs HEAD
-- **Branch:** codex/hive-autoplay · **HEAD:** f832f087
+- **Generated:** 2026-11-10 15:27 UTC · **Diff scope:** working tree vs HEAD
+- **Branch:** codex/hive-autoplay · **HEAD:** 0d31f134
 
 ## Summary of work completed
 
@@ -13,7 +13,7 @@ LIVE v2026.11.10.5 Films That Follow You with four sealed website notes. SHA8299
 
 ## Files modified
 
-- Source (3): `src/changelog/releases.gen.ts`, `src/ui/CollectionPanel.css`, `src/ui/CollectionPanel.tsx`
+- Source (2): `src/changelog/releases.gen.ts`, `src/ui/CollectionPanel.tsx`
 - Tests (0): —
 - Docs (5): `docs/COLLECTION.md`, `docs/HISTORY.md`, `docs/PROJECT_MANIFEST.md`, `docs/devlog/DRAFT-2026-11-09.md`, `docs/devlog/DRAFT-2026-11-10.md`
 
@@ -49,7 +49,7 @@ Windows validate wrapper cannot launch npx/npm with shell:false; use direct gate
 
 ## Recommended next tasks
 
-Local .10.6 has three unsealed notes: archive discovery, accessible rank-up celebration, collection navigation. All processes terminal. Next approximate16:04UTC deployment needs full suite, sealed build/mobile and live verification. Continue active goal. Next audit candidate: EntryGrid hides undiscovered names in visible text but puts e.name in title; inspect whether tooltips reveal intended hidden content and whether locked status is readable before changing it.
+Local .10.6 now has four unsealed collection notes. FULL REGRESSION RUNNING session45035, collection-release-tests.log; poll same handle, never restart on observation timeout. Build and21 focused tests PASS; check docs session54331 if not terminal. Next seal/site/final build/mobile, then publish and exact-SHA/live website verification around hourly window16:04UTC. Live .10.5 unchanged; continuous goal active.
 
 ## Future expansion hooks
 
@@ -95,6 +95,8 @@ Hero readiness final build65590 PASS (Vite7.59s); all processes terminal. Next r
 
 
 
-## 2026-11-10 — collection keyboard navigation (local .10.6)
 
-Linked tabs/panels with roving tab stop and ArrowLeft/Right/Home/End activation. Opening category focuses its heading; back restores the exact category tile. Switching wings clears detail without stale focus restoration. Back control44px minimum. ../collection-navigation-check.cjs PASS all keyboard/association/focus behaviors, 1366/390/320 fit and back target. Archive and rank-up probes re-PASS after panel integration. App/functions TS+production build PASS20.80s;34 collection/feel/UI/site tests PASS;docs anchors/references/staleness PASS;diff clean. Three unsealed website notes generated. No gameplay/save/balance changes. Full release/mobile gates pending next approximate16:04UTC deploy. All processes terminal; continuous goal active.
+
+## 2026-11-10 — readable undiscovered collection entries (local .10.6)
+
+EntryGrid now conceals tier-zero names in tooltips as well as visible copy, labels them Undiscovered entry, removes whole-card dimming, uses readable status text and wraps long names. Named list/listitems support assistive navigation. Discovered names/status/mastery and progression unchanged. ../collection-entry-check.cjs PASS all29categories:1162hidden/24revealed entries, exact status/mastery retention, no name leaks, no overflow at390/320. Production build/app+functions TS PASS16.95s;21collection/UI/site tests PASS. Fourth unsealed website note generated. Full release regression is RUNNING session45035 in collection-release-tests.log; poll existing handle. Mobile/final sealed build/live release gates remain. Continuous goal active.

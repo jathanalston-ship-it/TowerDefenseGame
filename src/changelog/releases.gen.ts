@@ -21,6 +21,10 @@ export const RELEASES: Release[] = [
       {
         "cat": "UX",
         "text": "Collection browsing now keeps keyboard focus with you: arrow keys, Home and End switch Codex sections, opening a category focuses its heading, and returning to all categories restores the tile you came from."
+      },
+      {
+        "cat": "UX",
+        "text": "Undiscovered collection entries now use a clear, readable label instead of dim question marks. Tooltips keep unrevealed names hidden, while discovered entries retain their names, status and mastery counts."
       }
     ]
   },
