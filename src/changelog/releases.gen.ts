@@ -5,6 +5,18 @@ import type { Release } from './types';
 /** Player-facing releases, newest first. */
 export const RELEASES: Release[] = [
   {
+    "id": "v2026.11.10.11",
+    "date": "2026-11-10",
+    "title": "Map Motion Controls",
+    "sealed": false,
+    "entries": [
+      {
+        "cat": "UI",
+        "text": "The infestation map now follows live reduced-motion settings and the in-game override. Its still image resizes correctly, sector pins remain interactive, and animation stops while the tab is hidden."
+      }
+    ]
+  },
+  {
     "id": "v2026.11.10.10",
     "date": "2026-11-10",
     "title": "Know Your Controls",

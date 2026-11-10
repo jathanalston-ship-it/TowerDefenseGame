@@ -526,6 +526,8 @@ Career statistic hints use explicit Details buttons and inline reading panels. P
 
 ## HUD
 
+- InfestationBoard on The Front follows shared live motion preferences, keeps reduced-motion canvas/sector geometry aligned on resize and stops its loop while hidden. See INFESTATION.md.
+
 - Very narrow portrait Early Call uses a reserved second control row so it remains reachable without covering the battlefield. See EARLY-CALL.md.
 
 - BuildControls exposes live Auto Wave/Auto Gene explanations through a44px help button and its existing briefing reader; no automation behavior changes. See HUD.md.

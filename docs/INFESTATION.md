@@ -127,3 +127,5 @@ strength live in the exported constants (`SECTOR_TIERS`, `SATURATED_AT`, `DECAY_
 `GAIN_PER_WAVE`, `GAIN_CAP_PER_RUN`, `SATURATED_DECAY_MULT`, `ENTRENCH_MULT`); war pacing
 in `HOTSPOT_FEED_MULT`, `INCURSION_BITE`, `INCURSION_MIN_TIER`, `TRIBUTE_MIN_TIERS`, and
 the reward tables — re-run `npm run sim:front` after touching any of them.
+
+The map projector follows live OS reduced-motion changes and the shared in-game motion override. Reduced mode draws REDUCED_MAP_T without a loop, repaints current data and canvas-size changes, and keeps the sector-button overlay aligned. A ResizeObserver sizes the canvas in both modes. Hidden documents cancel the frame loop and resume/repaint on visibility; closing the map disconnects its projector observer/visibility listener and cancels pending frames; unmount also unsubscribes from media/preference changes. Pin selection, infestation state and rules are unchanged.

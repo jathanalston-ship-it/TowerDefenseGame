@@ -1,6 +1,6 @@
 {
-  "lastSha": "27819687d429ebbc3a6467d99b191873a9cd1953",
-  "commitsSinceDraft": 2,
+  "lastSha": "e6ad531515d92ec832ddd2277359464c51ac74fc",
+  "commitsSinceDraft": 5,
   "content": {
     "tower": [
       "needle",
@@ -4639,6 +4639,18 @@
         {
           "cat": "UI",
           "text": "The home screen organism now responds immediately when reduced-motion preferences change, including the in-game override. Its still image refreshes when your account or screen size changes, without restarting animation."
+        }
+      ]
+    },
+    {
+      "id": "v2026.11.10.11",
+      "date": "2026-11-10",
+      "title": "Map Motion Controls",
+      "sealed": false,
+      "entries": [
+        {
+          "cat": "UI",
+          "text": "The infestation map now follows live reduced-motion settings and the in-game override. Its still image resizes correctly, sector pins remain interactive, and animation stops while the tab is hidden."
         }
       ]
     }
@@ -10585,6 +10597,30 @@
       "date": "2026-11-10",
       "cat": "UI",
       "text": "Ui: follow live motion preferences on world status",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "f084b8cb56f5e59a1943d2a4eba3c454a4fd2a24",
+      "date": "2026-11-10",
+      "cat": "UI",
+      "text": "Release: prepare Know Your Controls",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "2400521c2dbf87dda58e5e9f5d161fb4800e6cd2",
+      "date": "2026-11-10",
+      "cat": "Framework",
+      "text": "Release: publish Know Your Controls",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "e6ad531515d92ec832ddd2277359464c51ac74fc",
+      "date": "2026-11-10",
+      "cat": "Framework",
+      "text": "Docs: record verified controls deployment",
       "internal": true,
       "needsReview": false
     }

@@ -17,8 +17,8 @@ import { audio } from '../../audio/sound';
 import { REGIONS, regionOfSector } from '../../core/infestation';
 import { REDUCED_MAP_T, decayFlashes, drawInfestationMap, infestationLayout } from '../../render/infestationMap';
 import type { MapDrawState } from '../../render/infestationMap';
+import { motionPrefs, onMotionPrefs, resolveMotion, systemReducedMotion } from '../../state/prefs';
 
-const reducedMotion = typeof window !== 'undefined' && !!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
 const REGION_IDS = REGIONS.map((r) => ({ id: r.id, sectorIds: r.sectors.map((s) => s.id) }));
 
 function fmtDays(d: number | null): string {
@@ -34,6 +34,16 @@ export function InfestationBoard(): JSX.Element {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const wrapRef = useRef<HTMLDivElement>(null);
   const [focus, setFocus] = useState<string | null>(null); // hovered/keyboard-focused sector for the detail line
+  const [reducedMotion, setReducedMotion] = useState(() => resolveMotion(motionPrefs(), systemReducedMotion()).motion === 0);
+  useEffect(() => {
+    let prefs = motionPrefs();
+    const media = window.matchMedia?.('(prefers-reduced-motion: reduce)');
+    const sync = (): void => setReducedMotion(resolveMotion(prefs, media?.matches ?? false).motion === 0);
+    const offPrefs = onMotionPrefs((next) => { prefs = next; sync(); });
+    media?.addEventListener('change', sync);
+    sync();
+    return () => { offPrefs(); media?.removeEventListener('change', sync); };
+  }, []);
   const [, bump] = useState(0);
   // Dormant collapse: the full map mounts only on request while nothing is infested.
   // `showMap` gates the render; the layout effects below re-arm on it (the canvas/wrap
@@ -96,34 +106,40 @@ export function InfestationBoard(): JSX.Element {
       const layout = infestationLayout(w, h, REGION_IDS);
       drawInfestationMap(ctx, layout, drawRef.current, t);
     };
-    size();
-    if (reducedMotion) {
-      paint(REDUCED_MAP_T);
-      return () => { stopped = true; };
-    }
     const loop = (now: number): void => {
-      if (stopped) return;
+      if (stopped || document.hidden) return;
       const dt = Math.min(0.05, (now - last) / 1000);
       last = now;
-      if (!document.hidden) {
-        decayFlashes(drawRef.current.flashes, dt);
-        paint(now / 1000);
-      }
+      decayFlashes(drawRef.current.flashes, dt);
+      paint(now / 1000);
       raf = requestAnimationFrame(loop);
     };
-    raf = requestAnimationFrame(loop);
-    const onResize = (): void => size();
-    window.addEventListener('resize', onResize);
+    const sync = (): void => {
+      cancelAnimationFrame(raf);
+      if (stopped || document.hidden) return;
+      last = performance.now();
+      if (reducedMotion) paint(REDUCED_MAP_T);
+      else raf = requestAnimationFrame(loop);
+    };
+    size();
+    const observer = new ResizeObserver(() => {
+      size();
+      if (reducedMotion && !document.hidden) paint(REDUCED_MAP_T);
+    });
+    observer.observe(cv);
+    document.addEventListener('visibilitychange', sync);
+    sync();
     return () => {
       stopped = true;
       cancelAnimationFrame(raf);
-      window.removeEventListener('resize', onResize);
+      observer.disconnect();
+      document.removeEventListener('visibilitychange', sync);
     };
-  }, [showMap]); // re-arm when the map mounts out of the dormant teaser
+  }, [showMap, reducedMotion]); // re-arm when the map opens or motion preference changes
 
   // Redraw the reduced-motion still whenever the data changes (no loop to pick it up).
   useEffect(() => {
-    if (!reducedMotion) return;
+    if (!reducedMotion || document.hidden) return;
     const cv = canvasRef.current;
     const ctx = cv?.getContext('2d');
     if (!cv || !ctx) return;

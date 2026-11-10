@@ -787,3 +787,6 @@
 - `ed1c8e8` **[Framework]** Docs: record mobile pass and narrow control review _(internal)_
 - `81c4804` **[UI]** Ui: keep early call reachable on narrow phones _(internal)_
 - `2781968` **[UI]** Ui: follow live motion preferences on world status _(internal)_
+- `f084b8c` **[UI]** Release: prepare Know Your Controls _(internal)_
+- `2400521` **[Framework]** Release: publish Know Your Controls _(internal)_
+- `e6ad531` **[Framework]** Docs: record verified controls deployment _(internal)_

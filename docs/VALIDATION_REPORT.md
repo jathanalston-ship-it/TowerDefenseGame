@@ -725,3 +725,8 @@ Final ORIGINAL mobile51961 terminalPASS27nav+nine gameplay profiles on sealed bu
 ## 2026-11-10 19:30 UTC — Know Your Controls LIVE
 
 Deployed SHA2400521c2dbf87dda58e5e9f5d161fb4800e6cd2. Actions42885435823/job130072400258 SUCCESS including exact-commit production guard. verify-current-release.ps1 passed NORMAL custom-domain game/home/news/all THREE notes/entry asset; /assets/play-DLqe10Zs.js. Final original mobile51961 passed27nav+nine gameplay profiles. Live v2026.11.10.10 Know Your Controls. Goal remains active; next approximate deployment20:30UTC.
+
+
+## 2026-11-10 19:37 UTC — Infestation live motion controls (local .11)
+
+Baseline20669 measured57frames/sec after reduced motion enabled. InfestationBoard now subscribes to OS/shared preferences, resizes still canvas via ResizeObserver and cancels RAF while hidden. Expanded browser68906 PASS motion/override, backing dimensions,16sector targets, pin action, hidden-document lifecycle, collapse/reopen and cleanup; still screenshot inspected. Initial fixture counted wrong drawing API; another used a too-short fixed resume delay; corrected before final pass. Eleven UI/site tests10221 and docs28515 PASS. Build84198 PASS12.89s (SWmwb3bmh4). Original full mobile93548 RUNNING, infestation-motion-mobile.log; no dist writes/competing heavy checks. One note generated in unsealed .11 Map Motion Controls. No simulation/save changes.

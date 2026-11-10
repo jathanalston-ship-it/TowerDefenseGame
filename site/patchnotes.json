@@ -1,6 +1,19 @@
 [
   {
     "date": "2026-11-10",
+    "title": "Map Motion Controls",
+    "categories": [
+      "UI"
+    ],
+    "items": [
+      {
+        "cat": "UI",
+        "text": "The infestation map now follows live reduced-motion settings and the in-game override. Its still image resizes correctly, sector pins remain interactive, and animation stops while the tab is hidden."
+      }
+    ]
+  },
+  {
+    "date": "2026-11-10",
     "title": "Know Your Controls",
     "categories": [
       "UI",
