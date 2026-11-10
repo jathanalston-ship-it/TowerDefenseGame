@@ -1,6 +1,6 @@
 {
-  "lastSha": "491024e540fb18e2eeba92b89aab3c5fd3a76624",
-  "commitsSinceDraft": 9,
+  "lastSha": "6754688b03e7de845a15aca06e561d0e94cad3ec",
+  "commitsSinceDraft": 0,
   "content": {
     "tower": [
       "needle",
@@ -4591,6 +4591,22 @@
         {
           "cat": "UI",
           "text": "Run Build now includes expandable Run conditions: review your doctrine, sworn vows, active Threat modifiers, biome and current event on phone or desktop."
+        }
+      ]
+    },
+    {
+      "id": "v2026.11.10.9",
+      "date": "2026-11-10",
+      "title": "Read Your Build",
+      "sealed": false,
+      "entries": [
+        {
+          "cat": "UI",
+          "text": "Class Bond chips in Run Build now expand with a tap or keyboard to show their current effect and next-tier requirement. Details stay inside the drawer and update as your deployed units change."
+        },
+        {
+          "cat": "Bug Fixes",
+          "text": "Daily Class Bond descriptions now show the base-strength bonuses that the shared run actually uses, instead of your account-upgraded bonuses."
         }
       ]
     }
@@ -10409,6 +10425,30 @@
       "date": "2026-11-10",
       "cat": "UI",
       "text": "Ui: explain active run conditions in the drawer",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "a28e86d0799111a14d9c9fa4faa01e5262057c91",
+      "date": "2026-11-10",
+      "cat": "Framework",
+      "text": "Release: prepare Know What Is Coming with two notes",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "8950ec0d44d7f3959d988c4e6460b42f0a468ca0",
+      "date": "2026-11-10",
+      "cat": "Framework",
+      "text": "Release: publish Know What Is Coming",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "6754688b03e7de845a15aca06e561d0e94cad3ec",
+      "date": "2026-11-10",
+      "cat": "Framework",
+      "text": "Docs: record verified intel deployment",
       "internal": true,
       "needsReview": false
     }

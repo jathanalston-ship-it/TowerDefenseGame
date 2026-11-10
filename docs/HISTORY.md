@@ -771,3 +771,6 @@
 - `21102f9` **[UI]** Constrain wave details to the battlefield _(internal)_
 - `f9d6f03` **[UI]** Give compact wave details room to read _(internal)_
 - `491024e` **[UI]** Ui: explain active run conditions in the drawer _(internal)_
+- `a28e86d` **[Framework]** Release: prepare Know What Is Coming with two notes _(internal)_
+- `8950ec0` **[Framework]** Release: publish Know What Is Coming _(internal)_
+- `6754688` **[Framework]** Docs: record verified intel deployment _(internal)_

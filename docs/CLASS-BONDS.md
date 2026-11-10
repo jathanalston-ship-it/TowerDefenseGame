@@ -71,7 +71,7 @@ screen (Evolution Hub). A level adds `BOND.levelStep` (8%) of the base to EVERY 
 |---|---|
 | Stage 13 reveal | What's New card **Class Bonds** (`class-bonds`, teaches the wing) with **Show me ▸** → the guided walkthrough (`GUIDES`: the six bonds → level one up, interactive) |
 | First bond in a fight | Field note **CLASS BOND** anchored to Run Build → Class Bonds (`bonds-in-battle`) |
-| Every run | Run Build panel → Class Bonds: each fielded class, count / next threshold, tier pips, hover = the exact effect at your level; conveyor pods carry their class mark |
+| Every run | Run Build panel → Class Bonds: each fielded class, count / next threshold, tier pips, tap/Enter/Space expands the exact effect and next threshold; conveyor pods carry their class mark |
 | Any time | Help wiki: **Class Bonds** + **Bonds in Battle** |
 
 ## Extending
@@ -86,3 +86,11 @@ screen (Evolution Hub). A level adds `BOND.levelStep` (8%) of the base to EVERY 
   invested Power; the magnitudes are kept moderate for that reason.
 - The Power Advisor does not rank bond levels yet (a bond's value depends on what you field).
 - Range is not a bond channel (tower range is frozen per kind for the range previews).
+
+Run bond summaries are native disclosures with 44px targets. Their explanations stay inside the
+scrolling drawer, remain expanded during tier/count refreshes, and expose the current tier and
+unit count to assistive technology. Reading keys do not dispatch battlefield shortcuts.
+
+Bond effect descriptions read the resolved level from each HUD bond snapshot, not the live
+account store. Daily runs therefore display their actual base-strength effects even when the
+account owns upgrades. This snapshot field does not change the bond fold or combat values.

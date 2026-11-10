@@ -5,7 +5,6 @@
 import { useState } from 'react';
 import { affectsOf } from './cardAffects';
 import type { CardOption, HudSnapshot } from '../core/types';
-import { meta } from '../state/meta';
 import { COMBAT_CLASSES } from '../core/combatClass';
 import { BOND, CLASS_BONDS, bondFxLine, bondTierFx } from '../core/classBonds';
 import type { BondTier } from '../core/classBonds';
@@ -16,9 +15,8 @@ type RunCommitment = { icon: string; name: string; blurb: string };
 const ROMAN = ['', 'I', 'II', 'III'] as const;
 
 /** CLASS BONDS (docs/CLASS-BONDS.md) — every class with a fielded unit: glyph, count toward the next
- *  tier, three tier pips, and (hover) exactly what its awake bond gives at the account's bond level. */
+ *  tier, three tier pips, and expandable effects at the run's resolved bond level. */
 function BondsSection({ bonds }: { bonds: NonNullable<HudSnapshot['bonds']> }): JSX.Element {
-  const levels = meta.bondLevels();
   return (
     <div className="side-sec bonds-strip" aria-label="Class bonds">
       <div className="side-k">Class Bonds</div>
@@ -31,18 +29,23 @@ function BondsSection({ bonds }: { bonds: NonNullable<HudSnapshot['bonds']> }): 
             const def = CLASS_BONDS[b.cls];
             const tier = b.tier as BondTier;
             const tip = tier > 0
-              ? `${def.name} ${ROMAN[tier]} — ${bondFxLine(bondTierFx(b.cls, tier, levels[b.cls] ?? 0))}${b.next ? ` · ${b.next - b.count} more for tier ${ROMAN[tier + 1]}` : ''}`
+              ? `${def.name} ${ROMAN[tier]} — ${bondFxLine(bondTierFx(b.cls, tier, b.level))}${b.next ? ` · ${b.next - b.count} more for tier ${ROMAN[tier + 1]}` : ''}`
               : `${def.name} — ${(b.next ?? 0) - b.count} more ${b.cls} unit${(b.next ?? 0) - b.count === 1 ? '' : 's'} to wake it`;
             return (
-              <span className={`bond-chip tt${tier > 0 ? ' is-on' : ''}`} key={b.cls} style={{ ['--cc' as string]: cc.color }}>
-                <i className="bond-glyph" aria-hidden>{cc.glyph}</i>
-                <span className="bond-name">{b.cls}</span>
-                <span className="bond-count">{b.count}{b.next ? `/${b.next}` : ''}</span>
-                <span className="bond-pips" aria-label={`Bond tier ${tier} of 3`}>
-                  {[1, 2, 3].map((n) => <i key={n} className={n <= tier ? 'on' : ''} />)}
-                </span>
-                <span className="tt-bubble">{tip}</span>
-              </span>
+              <details className="bond-entry" key={b.cls} onKeyDown={(event) => {
+                if (event.key !== 'Escape') event.stopPropagation();
+              }}>
+                <summary className={`bond-chip${tier > 0 ? ' is-on' : ''}`} style={{ ['--cc' as string]: cc.color }}
+                  aria-label={`${b.cls} bond, tier ${tier} of 3, ${b.count} ${b.count === 1 ? 'unit' : 'units'} deployed. Effects and next tier`}>
+                  <i className="bond-glyph" aria-hidden>{cc.glyph}</i>
+                  <span className="bond-name">{b.cls}</span>
+                  <span className="bond-count">{b.count}{b.next ? `/${b.next}` : ''}</span>
+                  <span className="bond-pips" aria-hidden>
+                    {[1, 2, 3].map((n) => <i key={n} className={n <= tier ? 'on' : ''} />)}
+                  </span>
+                </summary>
+                <p className="bond-detail">{tip}</p>
+              </details>
             );
           })}
         </div>

@@ -1158,7 +1158,7 @@
 }
 
 /* ── Class Bonds in Run Build (docs/CLASS-BONDS.md): one chip per fielded class, class-hued via --cc;
-   lit when its bond is awake, three tier pips, the exact effect on hover. ── */
+   lit when its bond is awake, three tier pips, and expandable exact effects. ── */
 .bond-chips { display: flex; flex-direction: column; gap: 4px; }
 .bond-chip {
   display: flex; align-items: center; gap: 6px; padding: 4px 8px; font-size: 11px;
@@ -3497,3 +3497,10 @@ html[data-layout='desktop'] .cv-slot { flex: 0 1 auto; width: 240px; min-width: 
 .run-conditions dl { margin: 8px 0 0; font-size: 12px; line-height: 1.5; }
 .run-conditions dt { color: var(--text); font-weight: 800; margin-top: 12px; }
 .run-conditions dd { color: var(--muted); margin: 3px 0 0; overflow-wrap: anywhere; }
+
+/* Bond effects expand within the scrolling drawer instead of floating outside it. */
+.bond-entry > summary { min-height: 44px; list-style: none; cursor: pointer; }
+.bond-entry > summary::-webkit-details-marker { display: none; }
+.bond-entry > summary::after { content: '▸'; }
+.bond-entry[open] > summary::after { content: '▾'; }
+.bond-detail { margin: 0; padding: 8px; font-size: 12px; line-height: 1.5; color: var(--text); overflow-wrap: anywhere; }

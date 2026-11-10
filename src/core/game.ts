@@ -2464,14 +2464,15 @@ export class Game {
     }
   }
 
-  /** HUD read of the bonds: every class with a fielded unit (count, tier, next threshold) — undefined
+  /** HUD read of the bonds: every class with a fielded unit (count, tier, next threshold, run level) — undefined
    *  when bonds are off. Sorted strongest first so the strip leads with what is working. */
-  private bondSnapshot(): { cls: CombatClass; count: number; tier: number; next: number | null }[] | undefined {
-    if (!this.bondLevels) return undefined;
+  private bondSnapshot(): HudSnapshot['bonds'] {
+    const levels = this.bondLevels;
+    if (!levels) return undefined;
     if (!this.bond) this.refreshBonds();
     const b = this.bond!;
     return COMBAT_CLASS_ORDER.filter((c) => b.counts[c] > 0)
-      .map((c) => ({ cls: c, count: b.counts[c], tier: b.tiers[c], next: bondNext(b.counts[c]) }))
+      .map((c) => ({ cls: c, count: b.counts[c], tier: b.tiers[c], next: bondNext(b.counts[c]), level: levels[c] ?? 0 }))
       .sort((x, y) => y.tier - x.tier || y.count - x.count);
   }
 

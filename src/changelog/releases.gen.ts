@@ -5,6 +5,22 @@ import type { Release } from './types';
 /** Player-facing releases, newest first. */
 export const RELEASES: Release[] = [
   {
+    "id": "v2026.11.10.9",
+    "date": "2026-11-10",
+    "title": "Read Your Build",
+    "sealed": false,
+    "entries": [
+      {
+        "cat": "UI",
+        "text": "Class Bond chips in Run Build now expand with a tap or keyboard to show their current effect and next-tier requirement. Details stay inside the drawer and update as your deployed units change."
+      },
+      {
+        "cat": "Bug Fixes",
+        "text": "Daily Class Bond descriptions now show the base-strength bonuses that the shared run actually uses, instead of your account-upgraded bonuses."
+      }
+    ]
+  },
+  {
     "id": "v2026.11.10.8",
     "date": "2026-11-10",
     "title": "Know What Is Coming",

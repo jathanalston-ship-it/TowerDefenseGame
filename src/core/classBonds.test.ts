@@ -75,12 +75,23 @@ describe('class bonds — in the sim', () => {
     const g = new Game(7, NO_META, undefined, 'ravager', undefined, { classBonds: {} }); // Ravager is Kinetic
     expect(HERO_DEFS.ravager.combatClass).toBe('Kinetic');
     step(g, 0.1);
-    expect(g.getSnapshot().bonds).toEqual([{ cls: 'Kinetic', count: 1, tier: 0, next: 2 }]);
+    expect(g.getSnapshot().bonds).toEqual([{ cls: 'Kinetic', count: 1, tier: 0, next: 2, level: 0 }]);
     place(g, ['needle']); // Needle Spitter: Kinetic
     step(g, 0.1);
     const k = g.getSnapshot().bonds!.find((b) => b.cls === 'Kinetic')!;
-    expect(k).toEqual({ cls: 'Kinetic', count: 2, tier: 1, next: 4 });
+    expect(k).toEqual({ cls: 'Kinetic', count: 2, tier: 1, next: 4, level: 0 });
     expect(anyG(g).bond!.dmg.Kinetic).toBeCloseTo(1 + CLASS_BONDS.Kinetic.tiers[0].dmg!, 10);
+  });
+
+  it.each([0, 4])('HUD bond effects describe the actual run level %i (including normalized Daily strength)', (level) => {
+    const g = new Game(7, NO_META, undefined, 'ravager', undefined, { classBonds: level ? { Kinetic: level } : {} });
+    place(g, ['needle']);
+    step(g, 0.1);
+    const shown = g.getSnapshot().bonds!.find((b) => b.cls === 'Kinetic')!;
+    expect(shown.level).toBe(level);
+    expect(shown.tier).toBe(1);
+    const described = bondTierFx(shown.cls, 1, shown.level);
+    expect(anyG(g).bond!.dmg.Kinetic).toBeCloseTo(1 + described.dmg!, 10);
   });
 
   it('the bond reaches tower damage + fire rate and hero damage — and leaves other classes alone', () => {

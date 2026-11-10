@@ -307,3 +307,11 @@ Recovery display: Game.heroRecoverySeconds converts the internal recovery work b
 Active ability cycle: presentation-only heroAbilityPeriods records each cast duration. HUD abilityCdMax and selected-hero ability total retain that duration while recharging, then show the resolved next-cast duration when ready. Overdrive purchases never rescale the combat timer; the gauge now preserves that existing rule without jumping backward.
 
 Hero Ops ability explanation: the wheel is a44px disclosure button (aria-expanded/controls, named status and description). Click/Enter/Space toggle an inline paragraph; Escape closes it and stops propagation. Content remains in the scrolling panel instead of a clipped absolute tooltip. Opening does not arm/cast or start waves. Existing status/recovery/progress calculation is preserved.
+
+Class Bond chips in Run Build are native disclosures: keyboard/touch opens the current effect
+and next-tier requirement within the drawer. 44px summaries expose tier/count in their accessible
+names; expanded readers survive live board updates. No effect or threshold math changes.
+
+Bond effect descriptions read the resolved level from each HUD bond snapshot, not the live
+account store. Daily runs therefore display their actual base-strength effects even when the
+account owns upgrades. This snapshot field does not change the bond fold or combat values.
