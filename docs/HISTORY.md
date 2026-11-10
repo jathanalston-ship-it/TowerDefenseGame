@@ -707,3 +707,7 @@
 - `5471e5d` **[Audio]** Avoid duplicate conveyor recycle cue _(internal)_
 - `738cd92` **[Towers]** Keep tower confirmations keyboard accessible _(internal)_
 - `a50fc9b` **[UI]** Ui: retain focus after completed branch upgrades _(internal)_
+## 2026-11-10
+
+- `4ae0d15` **[UI]** Release: publish clearer battlefield choices and Hive safeguards _(internal)_
+- `c9a6a65` **[Framework]** Docs: record verified battlefield release _(internal)_

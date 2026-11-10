@@ -5,6 +5,18 @@ import type { Release } from './types';
 /** Player-facing releases, newest first. */
 export const RELEASES: Release[] = [
   {
+    "id": "v2026.11.10.1",
+    "date": "2026-11-10",
+    "title": "Clearer Run Controls",
+    "sealed": false,
+    "entries": [
+      {
+        "cat": "UI",
+        "text": "Screen readers now identify the selected game speed. Call early names the next wave, its overlap and Biomass reward; Splice explains its live Biomass cost and extra Gene Card choice."
+      }
+    ]
+  },
+  {
     "id": "v2026.11.09.7",
     "date": "2026-11-09",
     "title": "Clearer Battlefield Choices",

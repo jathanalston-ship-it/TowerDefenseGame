@@ -1,6 +1,6 @@
 {
-  "lastSha": "a50fc9bcda27402f35e9fb1b826f2c8aa2c774d2",
-  "commitsSinceDraft": 7,
+  "lastSha": "c9a6a65bd54752effd1be5927b502282f772232f",
+  "commitsSinceDraft": 9,
   "content": {
     "tower": [
       "needle",
@@ -4355,6 +4355,18 @@
         {
           "cat": "UI",
           "text": "Tower confirmations keep up with Hive Intelligence: sell refunds update as the tower improves, and an outdated upgrade confirmation cannot purchase an unintended, more expensive tier."
+        }
+      ]
+    },
+    {
+      "id": "v2026.11.10.1",
+      "date": "2026-11-10",
+      "title": "Clearer Run Controls",
+      "sealed": false,
+      "entries": [
+        {
+          "cat": "UI",
+          "text": "Screen readers now identify the selected game speed. Call early names the next wave, its overlap and Biomass reward; Splice explains its live Biomass cost and extra Gene Card choice."
         }
       ]
     }
@@ -9677,6 +9689,22 @@
       "date": "2026-11-09",
       "cat": "UI",
       "text": "Ui: retain focus after completed branch upgrades",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "4ae0d15ecca52bda8a03a14b0ee34e1170f54050",
+      "date": "2026-11-10",
+      "cat": "UI",
+      "text": "Release: publish clearer battlefield choices and Hive safeguards",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "c9a6a65bd54752effd1be5927b502282f772232f",
+      "date": "2026-11-10",
+      "cat": "Framework",
+      "text": "Docs: record verified battlefield release",
       "internal": true,
       "needsReview": false
     }

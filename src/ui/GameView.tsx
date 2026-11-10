@@ -1240,7 +1240,7 @@ export function GameView({
         {!tutorial && (hud.phase === 'prep' || hud.phase === 'wave') && (
           <div className="speed-ctl" role="group" aria-label="Game speed (F)">
             {[1, 2, 5].map((x) => (
-              <button key={x} className={`speed-btn${speed === x ? ' on' : ''}`} onClick={() => setSpeed(x)} title={`${x}× simulation speed (F cycles)`}>
+              <button key={x} className={`speed-btn${speed === x ? ' on' : ''}`} aria-pressed={speed === x} onClick={() => setSpeed(x)} title={`${x}× simulation speed (F cycles)`}>
                 {x}×
               </button>
             ))}
@@ -1257,6 +1257,7 @@ export function GameView({
         {hud.phase === 'wave' && hud.earlyCall >= 0 && (
           <button
             className="early-call-btn"
+            aria-label={`Call wave ${hud.wave + 1} early, overlapping the current wave, for ${hud.earlyCall} Biomass`}
             onClick={() => {
               audio.resume();
               game.callWaveEarly(); // the sim cues the launch + the Biomass splice itself
@@ -1296,6 +1297,7 @@ export function GameView({
         {!tutorial && hud.phase === 'prep' && hud.spliceCost !== undefined && hud.spliceCost > 0 && hud.biomass >= hud.spliceCost && (
           <button
             className="splice-btn"
+            aria-label={`Splice: spend ${hud.spliceCost.toLocaleString()} Biomass to choose an extra Gene Card`}
             onClick={() => {
               audio.resume();
               if (game.splice()) refresh();

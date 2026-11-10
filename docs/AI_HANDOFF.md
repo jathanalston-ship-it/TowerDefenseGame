@@ -4,8 +4,8 @@
 > before committing. Read together with docs/PROJECT_STATUS.md and the latest
 > docs/VALIDATION_REPORT.md. Next session: start at docs/PROJECT_MANIFEST.md.
 
-- **Generated:** 2026-11-10 07:08 UTC · **Diff scope:** working tree vs HEAD
-- **Branch:** codex/hive-autoplay · **HEAD:** a50fc9bc
+- **Generated:** 2026-11-10 07:16 UTC · **Diff scope:** working tree vs HEAD
+- **Branch:** codex/hive-autoplay · **HEAD:** c9a6a65b
 
 ## Summary of work completed
 
@@ -13,14 +13,14 @@ Release v2026.11.09.7 Clearer Battlefield Choices is LIVE. SHA4ae0d15ecca52bda8a
 
 ## Files modified
 
-- Source (3): `src/changelog/releases.gen.ts`, `src/ui/GameView.tsx`, `src/ui/Inspector.tsx`
+- Source (2): `src/changelog/releases.gen.ts`, `src/ui/GameView.tsx`
 - Tests (0): —
-- Docs (6): `docs/HISTORY.md`, `docs/HUD.md`, `docs/PROJECT_MANIFEST.md`, `docs/TOWER-BRANCHES.md`, `docs/TOWER-MANAGEMENT.md`, `docs/devlog/DRAFT-2026-11-09.md`
+- Docs (4): `docs/HISTORY.md`, `docs/HUD.md`, `docs/PROJECT_MANIFEST.md`, `docs/devlog/DRAFT-2026-11-09.md`
 
 ## Systems affected (from the dependency registry)
 
 - **chronicle** — `src/changelog/releases.gen.ts`
-- **run-ui** — `src/ui/GameView.tsx`, `src/ui/Inspector.tsx`
+- **run-ui** — `src/ui/GameView.tsx`
 
 ## Power Score changes
 
@@ -48,7 +48,7 @@ Final3150 full suite passed before the two-line current-destination drawer fix. 
 
 ## Recommended next tasks
 
-Continue active improvement goal. Latest .7 is sealed and verified live; create the next release only when new player-facing improvements are ready. Next approximately08:14UTC. Work codex/hive-autoplay and deploy claude/zen-hawking-rh1gxl. Match every deployment with website notes. No running sessions. Exclude untracked devlog draft. Do not mark the goal complete.
+Continue local v2026.11.10.1 Clearer Run Controls (one unsealed website note). Actual GameView/Chrome AX probe ../run-controls-check.cjs PASS: mouse and F speed1/2/5 selection matches timeScale; early-call wave/overlap/reward and Splice live800 Biomass label. Build/test15527 PASS: build7.16s and12tests. Docs1472 PASS; no active processes. Dev44829 stopped. Latest LIVE remains .7 SHA4ae0d15e, deployed07:13UTC, next roughly08:14UTC. Work codex/hive-autoplay; deploy claude/zen-hawking-rh1gxl with website notes. Exclude untracked devlog draft; goal remains active.
 
 ## Future expansion hooks
 
