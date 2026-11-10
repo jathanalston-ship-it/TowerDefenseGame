@@ -9,7 +9,7 @@
 
 ## Summary of work completed
 
-LOCAL sealed v2026.11.10.12 Clearer Progress and Gear has seven generated website/game notes. It includes upgrade eligibility explanations, ItemDetails focus management, touch pause target sizing, quest accessibility, weekly contract display refresh, Armory filter recovery and hidden Quick-Salvage selection counts. LIVE remains v2026.11.10.11 Clearer Gear and Motion, SHA fdd8131f40aaed078f0c7e3932e8192accf95127; Actions42893701543 and exact-commit guard passed, normal public game/home/news verified20:20UTC. Next approximate deployment21:20UTC. Goal remains active.
+LIVE v2026.11.10.12 Clearer Progress and Gear, seven notes. SHA73b564bbe72b1d9edf7741283b09679ee6d40c30. Actions42901613298/job130128733728 SUCCESS including exact-commit production guard. Normal custom-domain game/home/news/all7notes/asset verified 2026-11-10 21:08UTC by ../verify-current-release.ps1; asset/assets/play-CWH1Jmla.js. Initial public verification served prior .11; retry after25seconds passed without redeploy/config change. Full suite3194tests354files178.58s, final build8.35s, original mobile27nav+nine gameplay profiles, siteSync and docs passed. All processes terminal. Goal remains active; next approximate deployment22:10UTC.
 
 ## Files modified
 
@@ -47,7 +47,7 @@ No new debt. Two untracked devlog drafts must remain unpublished and unstaged. E
 
 ## Recommended next tasks
 
-Full suite88615 passed3194tests354files178.58s. Sealed .12, generated site, four siteSync tests and final build41170 passed8.35s (SWmwb6anyq, asset/assets/play-CWH1Jmla.js); docs/handoff33749 passed. Original final mobile4857 terminal PASS27 navigation screens and nine gameplay viewport profiles, clearer-progress-release-mobile.log. All release gates passed; commit/push release and verify public deployment. Push authorized production branch, verify Actions exact-SHA guard and normal public game/home/news with ../verify-current-release.ps1. Keep every game deployment accompanied by website notes.
+Continue evidence-led improvements to playability, clarity, accessibility and presentation without overt gameplay/balance changes. Current .12 is live and verified. Next approximate deployment22:10UTC; every game deployment must include website notes. All processes terminal; preserve the two unpublished/untracked devlog drafts. This postdeploy documentation commit is local only to avoid a redundant deployment.
 
 ## Future expansion hooks
 
