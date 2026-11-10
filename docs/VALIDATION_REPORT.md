@@ -372,3 +372,9 @@ Validation: production build82292 PASS6.16s;17achievement tests+4site-sync tests
 Profile trophy cards expose mounted state with aria-pressed, visible mount/unmount/full-rack instructions, and locked source requirements. Next-slot hint derives from TROPHY_SLOT_THRESHOLDS; disabled cards remain readable. Real equipTrophy logic, ownership, slot limits and effects unchanged.
 
 Validation: build61662 PASS (before final article wording correction);13Nemesis tests and4site-sync tests PASS. Actual Chrome ../trophy-rack-check.cjs PASS twice, including final wording: real boss ownership, Space mount/Enter unmount, pressed state/full-rack handling,5/12 thresholds and all-card fit1366/390/320. ../trophy-rack.png reviewed. Final typecheck69908 and docs35776 terminal PASS. Six unsealed .10.2 website notes; next approximate release09:03UTC.
+
+## 2026-11-10 — achievement search (local .10.2)
+
+AchievementPanel uses shared ListControls for trimmed/case-insensitive visible name/description search and All/Not earned/Earned chips. Live result count and empty guidance; concealed milestones match only public placeholder text until earned. Lifetime ladders stay separate; no save writes or progression changes.
+
+Validation: production build66372 terminal PASS;21achievement/site-sync tests PASS. ../achievement-search-check.cjs actual Chrome PASS keyboard filters, pressed state, case/trim search, no secret leak, earned secret becomes searchable, empty recovery, and card/control fit1366/390/320. Screenshot reviewed. Docs65310 terminal PASS. Seven unsealed .10.2 website notes; next work is full release regression and final mobile checks before approximate09:03UTC deployment.

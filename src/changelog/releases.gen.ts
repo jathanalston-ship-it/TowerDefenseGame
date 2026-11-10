@@ -33,6 +33,10 @@ export const RELEASES: Release[] = [
       {
         "cat": "UI",
         "text": "The Trophy Rack labels mounted and owned organs, explains full-rack restrictions and locked trophy sources, and shows when the next slot unlocks. Mounted trophies expose their selected state to assistive technology, while unavailable trophy details remain readable."
+      },
+      {
+        "cat": "UI",
+        "text": "Find achievement milestones faster with name/description search and All, Not earned, and Earned filters. A live result count and clear empty state help you narrow the list; hidden milestone names stay unsearchable until earned."
       }
     ]
   },

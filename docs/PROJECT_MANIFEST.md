@@ -477,7 +477,7 @@ ladders. 4. Every permanent progression source must move the Power Score (valida
   `ui/AchievementToaster.tsx`, inline strip in `ui/RewardReveal.tsx`.
 - **Related:** Stats, Results (end-of-run reveal), notifications (profile badge). The Profile Trophy Rack names mounted/owned/full/locked states and unlock sources; next-slot guidance derives from TROPHY_SLOT_THRESHOLDS.
 - **Future expansion:** an achievement is a def row (`test`, `progress`, `reward`).
-- **Known limitations:** flat list (no chains/categories yet).
+- **Gallery navigation:** shared search and All/Not earned/Earned chips filter authored milestones with a live count. Search uses only revealed name/description text; lifetime ladders remain a separate section.
 - **Developer tips:** achievements check on run finish (`checkAchievements`) — a new stat needs
   to be in the run summary or lifetime stats first.
 - **Ladders (Batch G):** `LADDER_FAMILIES` rows generate geometric rungs over lifetime ledgers (Cores-only rewards, kept out of authored totals; one gallery card per family); Results folds rungs crossed together into one line (`collapseLadderRungs`). Docs: `PROGRESSION-SYSTEMS.md` §ladders.

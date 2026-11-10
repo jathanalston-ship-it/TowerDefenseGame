@@ -209,3 +209,5 @@ are GENERATED tiered families over lifetime ledgers — DATA rows (`LADDER_FAMIL
 ### Achievement gallery readability
 
 AchievementPanel labels authored milestones Earned, In progress or Undiscovered. Unfinished text keeps normal contrast; status no longer depends on gold tint. Unrevealed secret names, descriptions and rewards remain concealed. Visible unearned rewards explicitly name Genome Cores below the description/progress. Each ladder card also shows the existing ladderGoals reward for its next rung. These are read-only presentation changes; achievement checks, grants and thresholds are unchanged.
+
+Milestone search uses the shared ListControls input and pressed filter chips (All / Not earned / Earned). It matches trimmed, case-insensitive visible names/descriptions, with a live shown count and empty-result guidance. Hidden milestones only match their public placeholder until earned. Lifetime ladders remain a separate unfiltered section. Filters are session-local and do not write save data.

@@ -1,6 +1,6 @@
 {
-  "lastSha": "a89e5371ef87da7c5830617a4075c725a8ae1bd3",
-  "commitsSinceDraft": 2,
+  "lastSha": "41aa41606df42d60da90251e7638b9d1fd257114",
+  "commitsSinceDraft": 3,
   "content": {
     "tower": [
       "needle",
@@ -4423,6 +4423,10 @@
         {
           "cat": "UI",
           "text": "The Trophy Rack labels mounted and owned organs, explains full-rack restrictions and locked trophy sources, and shows when the next slot unlocks. Mounted trophies expose their selected state to assistive technology, while unavailable trophy details remain readable."
+        },
+        {
+          "cat": "UI",
+          "text": "Find achievement milestones faster with name/description search and All, Not earned, and Earned filters. A live result count and clear empty state help you narrow the list; hidden milestone names stay unsearchable until earned."
         }
       ]
     }
@@ -9865,6 +9869,14 @@
       "date": "2026-11-10",
       "cat": "UI",
       "text": "Clarify achievement status and rewards",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "41aa41606df42d60da90251e7638b9d1fd257114",
+      "date": "2026-11-10",
+      "cat": "UI",
+      "text": "Ui: explain trophy rack states and unlocks",
       "internal": true,
       "needsReview": false
     }
