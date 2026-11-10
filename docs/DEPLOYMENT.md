@@ -346,3 +346,7 @@ UpdateToast stays mounted to receive waiting-worker events but hides while App i
 ### Standings request feedback
 
 LeaderboardBlock retains best-effort submission/fetch behavior and provides Retry when unavailable or Refresh when ready. Loading disables duplicate requests; a status region announces loading, unavailability or board context/count. Mode changes clear previous rows, and effect cleanup ignores superseded responses. The named table has Rank/Commander/Result column headers. No endpoint, ranking, submission or score rules change.
+
+## 2026-11-10 13:33 UTC — Progress Explained live
+
+v2026.11.10.3 Progress Explained deployed at SHA8bca53e653f88178fe17a6f189133024a1e0760b. Actions42794604361 completed SUCCESS including the exact-SHA production guard. Normal custom-domain game/home/news/all8notes verified by ../verify-current-release.ps1; asset /assets/play-Ctdm4tfv.js matches the final local build and returns200. Initial immediate asset request returned404 during propagation; the same normal URL succeeded on retry. No outstanding release checks. Next approximate deployment10:57UTC; continuous improvement goal remains active.

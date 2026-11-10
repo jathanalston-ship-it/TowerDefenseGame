@@ -9,7 +9,7 @@
 
 ## Summary of work completed
 
-Ready to publish v2026.11.10.3 Progress Explained with eight sealed notes. Profile explanations, leaderboard recovery and replay sharing/controls improved; tablet briefing action targets fixed after mobile gate caught them. Full354files/3177tests PASS; final build11.63s plus app/functions typechecks,4site tests,docs and mobile27screens/9gameplay viewports PASS. Validation wrapper retains known Windows launch failure, recorded separately. All processes terminal. Prior live e176563d (.10.2). Continuous goal remains active.
+LIVE v2026.11.10.3 Progress Explained with eight sealed website notes. SHA8bca53e653f88178fe17a6f189133024a1e0760b; Actions42794604361 SUCCESS including exact-SHA production guard. Normal custom-domain game/home/news/all8notes verified 2026-11-10 13:33 UTC; asset /assets/play-Ctdm4tfv.js matches local build and returns200 (initial transient404 resolved on same URL). Full354files/3177tests PASS; final build11.63s,4site tests,docs and mobile27screens/9gameplay viewports PASS. Initial mobile failure fixed three tablet briefing targets to44px and added eighth note. All processes terminal. Continuous goal remains active.
 
 ## Files modified
 
@@ -47,7 +47,7 @@ Windows validate wrapper cannot launch npx/npm with shell:false; use direct gate
 
 ## Recommended next tasks
 
-Commit release on codex/hive-autoplay and push HEAD to claude/zen-hawking-rh1gxl (remote checked e176563d). Follow Actions exact-SHA production guard, then ../verify-current-release.ps1 to check normal custom-domain game/home/news/all8notes. Record live SHA and verification, then continue the active improvement goal. Do not publish the two untracked devlog drafts.
+Continue active playability/clarity/accessibility/presentation improvements without gameplay or balance changes. Next approximate deployment10:57UTC, with website notes for every game change. Current release is fully verified; start a new unsealed release for the next batch. Keep two untracked devlog drafts unpublished. Windows validation wrapper still has its documented launcher issue; use and record direct gates.
 
 ## Future expansion hooks
 

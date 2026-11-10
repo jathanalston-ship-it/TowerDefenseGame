@@ -440,3 +440,7 @@ v2026.11.10.3 has seven sealed player-facing notes, generated for the game, home
 Initial sealed mobile gate session90178 failed only three tablet-landscape1024x768 target measurements: Full patch notes, Dev blog and Never show again (24px tall). Increased their module CSS minimum height to44px; added eighth release note and updated canonical pipeline/manifest docs. No behavior change. Rebuilt final artifacts: app/functions TypeScript plus Vite PASS11.63s; four site-sync tests and documentation check PASS. Full3177-test result remains applicable to unchanged behavior. Final mobile rerun session66791 uses progress-explained-mobile-final.log; wait for its terminal result before publishing.
 
 Final sealed mobile rerun session66791 terminal PASS: 27 navigation screens and nine gameplay viewports, landscape drawers, portrait rotation/run contracts, overlap, clipping and target checks all clean. Ready to deploy eight sealed notes with the game and website.
+
+## 2026-11-10 13:33 UTC — Progress Explained live
+
+v2026.11.10.3 Progress Explained deployed at SHA8bca53e653f88178fe17a6f189133024a1e0760b. Actions42794604361 completed SUCCESS including the exact-SHA production guard. Normal custom-domain game/home/news/all8notes verified by ../verify-current-release.ps1; asset /assets/play-Ctdm4tfv.js matches the final local build and returns200. Initial immediate asset request returned404 during propagation; the same normal URL succeeded on retry. No outstanding release checks. Next approximate deployment10:57UTC; continuous improvement goal remains active.
