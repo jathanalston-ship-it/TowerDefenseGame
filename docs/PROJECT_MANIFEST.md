@@ -524,6 +524,8 @@ ladders. 4. Every permanent progression source must move the Power Score (valida
 
 ## HUD
 
+- Toolbar hero auto-cast exposes its toggle state after unlock and under Hive management; the initial unlock retains purchase-button semantics. See HUD.md.
+
 - **Purpose:** the in-run interface — resources, wave state, tower rail, inspector, draft,
   build controls, live Power — and the Hub shell (nav, badges, rings, screens) around the game.
 - **Dependencies:** `game.getSnapshot()` (~10 Hz) + `meta.use()`; notifications registry.

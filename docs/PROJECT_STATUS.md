@@ -1415,3 +1415,7 @@ Final shared-mute production build28873 PASS (music-mute-build.log); all task pr
 Audio .6 checkpoint:353 files/3155 tests PASS; actual shared keyboard audio controls and compact persistence PASS; docs checks PASS. Full mobile gate29287 remains running; poll same handle. Game/website still live .5, .6 four notes local; deployment target approximately06:38UTC.
 
 Audio .6 mobile gate CLEAN all9 viewports (29287 terminal0). All batch gates completed; no processes remain. Four website notes local, next approximate release06:38UTC.
+
+Local .6 accessibility follow-up: hero auto-cast exposes pressed state after unlock or under Hive management; locked purchase remains a normal button. Actual Chrome AX tree and keyboard actions PASS;41 focused tests PASS. Five website notes prepared; final build pending.
+
+Final auto-cast accessibility build19427 PASS (autocast-accessibility-build.log), all processes terminal. Five notes local for .6; live remains .5.

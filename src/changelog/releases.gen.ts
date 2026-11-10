@@ -25,6 +25,10 @@ export const RELEASES: Release[] = [
       {
         "cat": "Audio",
         "text": "Music off now smoothly silences the entire soundtrack, including musical reward flourishes already playing. Changes in battle pressure or volume cannot bring music back while it is muted."
+      },
+      {
+        "cat": "UI",
+        "text": "Hero auto-cast now exposes its on/off state to assistive technology, including when Hive Intelligence manages it. Before unlocking, it remains a purchase button."
       }
     ]
   },

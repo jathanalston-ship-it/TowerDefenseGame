@@ -696,3 +696,6 @@
 - `88943a6` **[Audio]** Smooth sound-effect volume transitions _(internal)_
 - `3462701` **[Music]** Preserve latest music volume setting _(internal)_
 - `cfc0a9b` **[Music]** Restore scene music when re-enabled _(internal)_
+- `955c9fc` **[Music]** Silence scheduled music while muted _(internal)_
+- `a74be40` **[Audio]** Audio: record controls and regression checkpoint _(internal)_
+- `8b491cb` **[Audio]** Audio: record completed mobile release gate _(internal)_

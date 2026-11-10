@@ -4,21 +4,22 @@
 > before committing. Read together with docs/PROJECT_STATUS.md and the latest
 > docs/VALIDATION_REPORT.md. Next session: start at docs/PROJECT_MANIFEST.md.
 
-- **Generated:** 2026-11-10 06:07 UTC · **Diff scope:** working tree vs HEAD
-- **Branch:** codex/hive-autoplay · **HEAD:** a74be402
+- **Generated:** 2026-11-10 06:11 UTC · **Diff scope:** working tree vs HEAD
+- **Branch:** codex/hive-autoplay · **HEAD:** 8b491cb6
 
 ## Summary of work completed
 
-Active continuous improvement goal; authorized roughly-hourly deployments with website notes. LIVE: fa4f78bcff196db9dad2d4683b3c852907516c73, v2026.11.09.5 Feedback That Stays Readable, six curated notes. Actions42763247079 SUCCESS. Normal custom-domain game/home/news verified: play-DZzequMq.js matches local build and returns200; homepage title and detailed motion/Vault notes present. Deployed ~05:38UTC Nov10. New LOCAL batch v2026.11.09.6 Sound That Responds Smoothly, four Audio notes; .5 sealed. Do not mark the ongoing goal complete.
+Active continuous improvement goal; authorized roughly-hourly deployments with website notes. LIVE: fa4f78bcff196db9dad2d4683b3c852907516c73, v2026.11.09.5 Feedback That Stays Readable, six curated notes. Actions42763247079 SUCCESS. Normal custom-domain game/home/news verified: play-DZzequMq.js matches local build and returns200; homepage title and detailed motion/Vault notes present. Deployed ~05:38UTC Nov10. New LOCAL batch v2026.11.09.6 Sound That Responds Smoothly, five notes (four Audio, one UI); .5 sealed. Do not mark the ongoing goal complete.
 ## Files modified
 
-- Source (0): —
+- Source (2): `src/changelog/releases.gen.ts`, `src/ui/Toolbar.tsx`
 - Tests (0): —
-- Docs (3): `docs/PROJECT_STATUS.md`, `docs/VALIDATION_REPORT.md`, `docs/devlog/DRAFT-2026-11-09.md`
+- Docs (6): `docs/HISTORY.md`, `docs/HUD.md`, `docs/PROJECT_MANIFEST.md`, `docs/PROJECT_STATUS.md`, `docs/VALIDATION_REPORT.md`, `docs/devlog/DRAFT-2026-11-09.md`
 
 ## Systems affected (from the dependency registry)
 
-- (no registered source files in this diff)
+- **chronicle** — `src/changelog/releases.gen.ts`
+- **run-ui** — `src/ui/Toolbar.tsx`
 
 ## Power Score changes
 
@@ -65,3 +66,7 @@ Final shared-mute production build28873 PASS (music-mute-build.log); all task pr
 LATEST checkpoint06:04UTC:353 files/3155 full tests PASS (audio-batch-tests.log,150.14s,25991 terminal0). Shared AudioToggles keyboard/persistence/compact/mute independence/current-boss restoration browser PASS (../audio-controls-check.cjs production React bundle,no page errors). Initial Vite-only HMR socket error isolated by standalone bundle; dev93300 intentionally stopped. docs check23386 PASS anchors/references/freshness. FULL MOBILE29287 RUNNING against existing production dist, log audio-batch-mobile.log; poll same handle, never restart on observation timeout. No source edits this turn. ../verify-audio-release.ps1 now targets .6 title/notes and exact built asset; use after deployment. Next deployment approximately06:38UTC. Live remains .5; four local .6 notes.
 
 LATEST: mobile29287 terminal PASS,CLEAN27navscreens+live runs across9viewports (audio-batch-mobile.log). All processes terminal. All current audio .6 gates complete:3155tests/build/47audio/4site/browsercontrol/offlineaudio/docs/mobile. No source changes since checks. Next audit candidate: src/ui/Toolbar.tsx hero auto-cast control visually ON/OFF but lacks aria-pressed (unlike other automation controls); inspect actual accessibility tree and fix if confirmed. Do not alter purchase semantics: before unlock it is a purchase button, after unlock a toggle; Hive-managed is disabled+on. Next approximate deploy06:38UTC; ../verify-audio-release.ps1 prepared. Live .5 remains unchanged.
+
+LATEST .6 hero auto-cast fix: one aria-pressed expression in Toolbar, no gameplay/layout change. Actual Chrome AX baseline lacked pressed state; after fix purchase:none,on:true,off:false,Hive:true+disabled. Real Game buy/toggle/Hive APIs, Enter/Space exercised by ../autocast-accessibility-check.cjs. Initial fixture needed full build-env object; corrected then baseline/after worked.41 Hive/heroEvolution/site tests PASS. Full3155 and full mobile passed before this single attribute. Build19427 pending at this entry. Five website notes prepared. Next deploy~06:38UTC, live .5.
+
+Final auto-cast accessibility build19427 PASS (autocast-accessibility-build.log), all processes terminal. Five notes local for .6; live remains .5.

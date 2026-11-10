@@ -272,3 +272,5 @@ Campaign Stage 5 completion unlocks a run-local ON/OFF helper in Campaign and In
 The ability shortcut displays seconds remaining while recharging, or a recovery timer while the hero is down. Its ring uses HudSnapshot.hero.abilityCdMax, including cooldown upgrades. Hive-managed wave/gene controls remain disabled but show HIVE at full text opacity, with a reason in their title.
 
 On phone layouts, pause is layered above run drawers and their veil; pausing from an open Status drawer must leave Resume reachable.
+
+Hero auto-cast accessibility: the Toolbar exposes aria-pressed only after the unlock or while Hive Intelligence manages it. The locked control stays a purchase button; the Hive-managed state is pressed and disabled. The browser AX tree verifies purchase/no-toggle, on, off and Hive/on-disabled through actual game actions. Mechanics and costs are unchanged.

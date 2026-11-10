@@ -218,6 +218,7 @@ export function Toolbar({
         </button>
         <button
           className={`autocast-btn tt${(hud.hiveActive || hud.autocast.on) ? ' is-on' : ''}`}
+          aria-pressed={hud.hiveActive || hud.autocast.unlocked ? hud.hiveActive || hud.autocast.on : undefined}
           disabled={hud.hiveActive || !playable || (!hud.autocast.unlocked && !hud.autocast.affordable)}
           onClick={() => {
             audio.resume();

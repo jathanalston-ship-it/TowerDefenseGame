@@ -1,6 +1,6 @@
 {
-  "lastSha": "cfc0a9bd5bd5af2435fa13881c2dda5296a7806d",
-  "commitsSinceDraft": 6,
+  "lastSha": "8b491cb640819bb4e47abf75270aa7dbb7a9ab81",
+  "commitsSinceDraft": 9,
   "content": {
     "tower": [
       "needle",
@@ -4323,6 +4323,10 @@
         {
           "cat": "Audio",
           "text": "Music off now smoothly silences the entire soundtrack, including musical reward flourishes already playing. Changes in battle pressure or volume cannot bring music back while it is muted."
+        },
+        {
+          "cat": "UI",
+          "text": "Hero auto-cast now exposes its on/off state to assistive technology, including when Hive Intelligence manages it. Before unlocking, it remains a purchase button."
         }
       ]
     }
@@ -9557,6 +9561,30 @@
       "date": "2026-11-09",
       "cat": "Music",
       "text": "Restore scene music when re-enabled",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "955c9fc5b8d13f4ecf58f97505b68b2a6a329899",
+      "date": "2026-11-09",
+      "cat": "Music",
+      "text": "Silence scheduled music while muted",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "a74be402687d9afff32fb009f8073466f4856913",
+      "date": "2026-11-09",
+      "cat": "Audio",
+      "text": "Audio: record controls and regression checkpoint",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "8b491cb640819bb4e47abf75270aa7dbb7a9ab81",
+      "date": "2026-11-09",
+      "cat": "Audio",
+      "text": "Audio: record completed mobile release gate",
       "internal": true,
       "needsReview": false
     }
