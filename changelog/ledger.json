@@ -1,6 +1,6 @@
 {
-  "lastSha": "5563bacbddb3e3893c4abe18b0aa37997c3c0a7a",
-  "commitsSinceDraft": 8,
+  "lastSha": "c1df2d921afd37fddc7c105e64f713d0bfdd8a4f",
+  "commitsSinceDraft": 9,
   "content": {
     "tower": [
       "needle",
@@ -4563,6 +4563,10 @@
         {
           "cat": "UX",
           "text": "Restoring a backup now asks for confirmation and keeps a recovery snapshot of readable current progress. Failed storage writes no longer claim success, and the selected backup stays available for retry even when the backup list is full."
+        },
+        {
+          "cat": "UX",
+          "text": "Choosing a save file now opens a review showing its name, currency, best wave and run count. Nothing is imported until you choose Replace progress; Cancel or Escape keeps your current progress, and invalid or unreadable files show a clear error."
         }
       ]
     }
@@ -10293,6 +10297,14 @@
       "date": "2026-11-10",
       "cat": "Gameplay",
       "text": "Save: preserve backups and report write failures",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "c1df2d921afd37fddc7c105e64f713d0bfdd8a4f",
+      "date": "2026-11-10",
+      "cat": "Gameplay",
+      "text": "Save: confirm restores and preserve recovery snapshots",
       "internal": true,
       "needsReview": false
     }

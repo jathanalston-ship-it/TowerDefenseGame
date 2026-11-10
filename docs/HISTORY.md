@@ -760,3 +760,4 @@
 - `7f18a4f` **[Framework]** Release: publish Memories Within Reach _(internal)_
 - `76fbbb6` **[Framework]** Docs: record verified collection release deployment _(internal)_
 - `5563bac` **[Gameplay]** Save: preserve backups and report write failures _(internal)_
+- `c1df2d9` **[Gameplay]** Save: confirm restores and preserve recovery snapshots _(internal)_

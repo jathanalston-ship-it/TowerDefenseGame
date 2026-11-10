@@ -14,6 +14,10 @@
       {
         "cat": "UX",
         "text": "Restoring a backup now asks for confirmation and keeps a recovery snapshot of readable current progress. Failed storage writes no longer claim success, and the selected backup stays available for retry even when the backup list is full."
+      },
+      {
+        "cat": "UX",
+        "text": "Choosing a save file now opens a review showing its name, currency, best wave and run count. Nothing is imported until you choose Replace progress; Cancel or Escape keeps your current progress, and invalid or unreadable files show a clear error."
       }
     ]
   },

@@ -4,8 +4,8 @@
 > before committing. Read together with docs/PROJECT_STATUS.md and the latest
 > docs/VALIDATION_REPORT.md. Next session: start at docs/PROJECT_MANIFEST.md.
 
-- **Generated:** 2026-11-10 16:04 UTC · **Diff scope:** working tree vs HEAD
-- **Branch:** codex/hive-autoplay · **HEAD:** 5563bacb
+- **Generated:** 2026-11-10 16:11 UTC · **Diff scope:** working tree vs HEAD
+- **Branch:** codex/hive-autoplay · **HEAD:** c1df2d92
 
 ## Summary of work completed
 
@@ -13,14 +13,14 @@ LIVE v2026.11.10.6 Memories Within Reach, five sealed notes. SHA7f18a4f7fe74450f
 
 ## Files modified
 
-- Source (3): `src/changelog/releases.gen.ts`, `src/save/saveStore.ts`, `src/ui/SaveManager.tsx`
-- Tests (1): `src/save/saveStore.test.ts`
+- Source (3): `src/changelog/releases.gen.ts`, `src/ui/SaveManager.css`, `src/ui/SaveManager.tsx`
+- Tests (0): —
 - Docs (5): `docs/HISTORY.md`, `docs/PROJECT_MANIFEST.md`, `docs/SCALABILITY.md`, `docs/devlog/DRAFT-2026-11-09.md`, `docs/devlog/DRAFT-2026-11-10.md`
 
 ## Systems affected (from the dependency registry)
 
 - **chronicle** — `src/changelog/releases.gen.ts`
-- **meta-store** — `src/save/saveStore.ts`, `src/ui/SaveManager.tsx`
+- **meta-store** — `src/ui/SaveManager.tsx`
 - Consumer ring (verify, unchanged): account-level, accounts, analytics, arena, battle-pass, class-bonds, contracts, cosmetics, cutscenes, daily-login, devtools, directives, expeditions, field-research, genome-rank, hero-symbiotes, hive-construction, hub-shell, idle-harvest, infestation, liveops, metabolism, mulligans, nemesis, net-backend, notifications, nucleus, onboarding, progression-gating, quests, run-ui, security
 
 ## Power Score changes
@@ -49,7 +49,7 @@ Windows validate wrapper cannot launch npx/npm with shell:false; use direct gate
 
 ## Recommended next tasks
 
-Local .10.7 has two unsealed backup/restore safety notes. Build16.56s,53save/site tests,docs and both UI probes PASS; all processes terminal. Next approximate16:53UTC deployment needs full regression/final build/mobile/live checks. Continue active goal. Follow-up audit: file import currently applies immediately; inspect import validation/backup failure handling and whether a clear preview/cancel flow can preserve current progress. No schema migration required for existing changes.
+Local .10.7 has three unsealed notes: backup writes, restore safety, import review. Build14.44s/60save-UI-site tests/docs and all3save UI probes PASS. All processes terminal. Next16:53UTC approximate deployment requires full suite/final/mobile/live gates. Next task: durable import failure handling. meta.importText currently ignores backup failure and calls persist(), which store.sets before best-effort disk writes. Preserve cross-tab stale guard, gear discoveries, writer stamp and scheduled flush semantics if changing this path; ordinary persist must remain unchanged. SaveStore may need a tested replacement method that snapshots live current data and writes imported data before meta memory changes. Current preview validates/cancels safely but confirmed persistence still uses existing importText.
 
 ## Future expansion hooks
 
@@ -107,6 +107,8 @@ Hero readiness final build65590 PASS (Vite7.59s); all processes terminal. Next r
 
 
 
-## 2026-11-10 — recoverable, confirmed backup restoration (local .10.7)
 
-SaveManager uses a dated native confirmation before restore, uniquely labels each Restore button, refreshes the backup list and announces truthful results. SaveStore preloads selected data, preserves readable current progress via backup, protects the selected source from pruning even in a full ring, and reports success only after main write succeeds. Safety-backup failure stops restore; corrupt/absent main data can still be repaired. Schema/cap/gameplay unchanged. Three restore assertions failed on baseline;29saveStore tests now PASS including undo snapshot, failure preservation, full-ring oldest-target retry and corrupt-main repair. All53save/site tests, app/functions TS+build16.56s anddocs PASS. ../restore-feedback-check.cjs actual UI PASS dated labels/native keyboard confirmation/cancel-no-mutation/accept-once/error/success/list/focus/phone fit; ../backup-feedback-check.cjs re-PASS. Initial probe selected the newly inserted first row for focus; corrected to original dated button. Required wrapper exit1 known Windows launcher; restore-wrapper-report.log preserved. Two unsealed website notes generated. All processes terminal; next approximate16:53UTC release; goal active.
+
+## 2026-11-10 — review before importing save files (local .10.7)
+
+SaveManager reads/validates with existing file helper/parser into a cancellable review showing filename and sanitized currency/wave/run totals. Explicit Replace progress applies via existing importText; Cancel/Escape leave progress untouched. Heading focus, return focus,44px actions, long-name wrapping, reading status and epoch-based late-read rejection added. Invalid/unreadable files never invoke import. Failed apply retains preview for retry. Corrected misleading no-account copy. ../import-preview-check.cjs PASS real FileReader/parser plus controlled out-of-order callbacks, invalid/read errors, same-file reselect, heading/Escape/cancel/focus, explicit apply/retry,320px long filename/targets. Phone screenshot inspected. Backup and restore UI probes re-PASS. App/functions TS+build14.44s,60save/UI/site tests anddocs PASS. Third unsealed website note generated. Confirmed import still uses prior persistence method; durable failure handling remains next. All processes terminal; goal active.
