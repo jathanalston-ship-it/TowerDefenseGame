@@ -742,3 +742,4 @@
 - `a064a1d` **[UI]** Ui: keep unlock introductions keyboard accessible _(internal)_
 - `b80b671` **[UI]** Ui: make Help topics easier to read and revisit _(internal)_
 - `1a3838c` **[UX]** Honor live motion preferences in tutorial text _(internal)_
+- `22c4fb2` **[UI]** Restore useful focus after field guides _(internal)_

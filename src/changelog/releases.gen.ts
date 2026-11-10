@@ -8,7 +8,7 @@ export const RELEASES: Release[] = [
     "id": "v2026.11.10.4",
     "date": "2026-11-10",
     "title": "Clearer Briefings",
-    "sealed": false,
+    "sealed": true,
     "entries": [
       {
         "cat": "UI",

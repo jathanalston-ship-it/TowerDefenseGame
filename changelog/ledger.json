@@ -1,6 +1,6 @@
 {
-  "lastSha": "1a3838c4d0e4083f5a1641dd1055bb1b59de3550",
-  "commitsSinceDraft": 0,
+  "lastSha": "22c4fb2c1304ba8e2e6a454be85e0a7249a9b77c",
+  "commitsSinceDraft": 1,
   "content": {
     "tower": [
       "needle",
@@ -4474,7 +4474,7 @@
       "id": "v2026.11.10.4",
       "date": "2026-11-10",
       "title": "Clearer Briefings",
-      "sealed": false,
+      "sealed": true,
       "entries": [
         {
           "cat": "UI",
@@ -10081,6 +10081,14 @@
       "date": "2026-11-10",
       "cat": "UX",
       "text": "Honor live motion preferences in tutorial text",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "22c4fb2c1304ba8e2e6a454be85e0a7249a9b77c",
+      "date": "2026-11-10",
+      "cat": "UI",
+      "text": "Restore useful focus after field guides",
       "internal": true,
       "needsReview": false
     }

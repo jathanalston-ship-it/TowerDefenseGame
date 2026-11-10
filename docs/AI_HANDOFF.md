@@ -4,24 +4,22 @@
 > before committing. Read together with docs/PROJECT_STATUS.md and the latest
 > docs/VALIDATION_REPORT.md. Next session: start at docs/PROJECT_MANIFEST.md.
 
-- **Generated:** 2026-11-10 14:02 UTC · **Diff scope:** working tree vs HEAD
-- **Branch:** codex/hive-autoplay · **HEAD:** 1a3838c4
+- **Generated:** 2026-11-10 14:17 UTC · **Diff scope:** working tree vs HEAD
+- **Branch:** codex/hive-autoplay · **HEAD:** 22c4fb2c
 
 ## Summary of work completed
 
-LIVE v2026.11.10.3 Progress Explained with eight sealed website notes. SHA8bca53e653f88178fe17a6f189133024a1e0760b; Actions42794604361 SUCCESS including exact-SHA production guard. Normal custom-domain game/home/news/all8notes verified 2026-11-10 13:33 UTC; asset /assets/play-Ctdm4tfv.js matches local build and returns200 (initial transient404 resolved on same URL). Full354files/3177tests PASS; final build11.63s,4site tests,docs and mobile27screens/9gameplay viewports PASS. Initial mobile failure fixed three tablet briefing targets to44px and added eighth note. All processes terminal. Continuous goal remains active.
+Ready to publish v2026.11.10.4 Clearer Briefings, five sealed website notes: update briefing keyboard lifecycle, unlock queues/batch focus, Help reading flow, live-motion/accessible tutorial text, guide completion focus/fit. Full3177tests/354files PASS; final build16.25s,4site tests,docs and mobile27screens/9gameplay viewports PASS. Wrapper launcher limitation recorded separately. All processes terminal. Prior live8bca53e6 (.10.3). Continuous goal active.
 
 ## Files modified
 
-- Source (3): `src/changelog/releases.gen.ts`, `src/index.css`, `src/ui/GuidedUnlock.tsx`
+- Source (1): `src/changelog/releases.gen.ts`
 - Tests (0): —
-- Docs (7): `docs/GUIDED-UNLOCKS.md`, `docs/HISTORY.md`, `docs/PROJECT_MANIFEST.md`, `docs/PROJECT_STATUS.md`, `docs/VALIDATION_REPORT.md`, `docs/devlog/DRAFT-2026-11-09.md`, `docs/devlog/DRAFT-2026-11-10.md`
+- Docs (5): `docs/HISTORY.md`, `docs/PROJECT_STATUS.md`, `docs/VALIDATION_REPORT.md`, `docs/devlog/DRAFT-2026-11-09.md`, `docs/devlog/DRAFT-2026-11-10.md`
 
 ## Systems affected (from the dependency registry)
 
 - **chronicle** — `src/changelog/releases.gen.ts`
-- **onboarding** — `src/ui/GuidedUnlock.tsx`
-- Consumer ring (verify, unchanged): progression-gating
 
 ## Power Score changes
 
@@ -49,7 +47,7 @@ Windows validate wrapper cannot launch npx/npm with shell:false; use direct gate
 
 ## Recommended next tasks
 
-Prepare v2026.11.10.4 Clearer Briefings for approximate14:33UTC deployment: full regression suite, seal five notes, regenerate site, final build/site checks and mobile sweep, then commit/push/follow Actions and verify public game/home/news. Five changes: UpdateBriefing keyboard lifecycle, WhatsNew queue/batch focus, HelpWiki reading flow, live-motion/accessible Typewriter, GuidedUnlock completion focus/fit. Five browser probes PASS; latest build10.71s,18guide/reward/anchor/site tests,docs PASS. DIL998nodes1943edges. All processes terminal. Live remains8bca53e6 (.10.3), verified13:33UTC. Keep two untracked devlog drafts unpublished. Continuous goal remains active beyond deployment.
+Commit release on codex/hive-autoplay; verify remote8bca53e6 and push HEAD to claude/zen-hawking-rh1gxl. Follow Actions exact-SHA production guard, then ../verify-current-release.ps1 for normal custom-domain game/home/news/all5notes. Record live SHA/time and continue goal. Candidate next investigation: CutscenePlayer snapshots resolved motion once per showing; consider live preference changes without beat/audio catch-up bursts. Keep two untracked devlog drafts unpublished.
 
 ## Future expansion hooks
 
