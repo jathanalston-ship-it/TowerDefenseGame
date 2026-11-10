@@ -1419,3 +1419,5 @@ Audio .6 mobile gate CLEAN all9 viewports (29287 terminal0). All batch gates com
 Local .6 accessibility follow-up: hero auto-cast exposes pressed state after unlock or under Hive management; locked purchase remains a normal button. Actual Chrome AX tree and keyboard actions PASS;41 focused tests PASS. Five website notes prepared; final build pending.
 
 Final auto-cast accessibility build19427 PASS (autocast-accessibility-build.log), all processes terminal. Five notes local for .6; live remains .5.
+
+Local .6 placement controls now expose armed state; conveyor Deploy names the organism and free/live cost. Real Game keyboard/AX checks PASS for selection/clearing/switching and free/paid labels; auto-cast AX re-PASS,4 site tests PASS, production build23561 PASS. All processes terminal. Five notes prepared, still local.

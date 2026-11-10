@@ -274,3 +274,5 @@ The ability shortcut displays seconds remaining while recharging, or a recovery 
 On phone layouts, pause is layered above run drawers and their veil; pausing from an open Status drawer must leave Resume reachable.
 
 Hero auto-cast accessibility: the Toolbar exposes aria-pressed only after the unlock or while Hive Intelligence manages it. The locked control stays a purchase button; the Hive-managed state is pressed and disabled. The browser AX tree verifies purchase/no-toggle, on, off and Hive/on-disabled through actual game actions. Mechanics and costs are unchanged.
+
+Placement accessibility: favorite tower and conveyor Deploy expose aria-pressed from the same armed/selected state as their visual classes. Conveyor deploy names identify the organism and live Biomass cost (or free starting gift). Keyboard selection, clearing and switching are checked through the real Game and browser AX tree; free and wave-grown paid pod labels match their definitions/costs. No placement or cost logic changes.

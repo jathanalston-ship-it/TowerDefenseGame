@@ -4,8 +4,8 @@
 > before committing. Read together with docs/PROJECT_STATUS.md and the latest
 > docs/VALIDATION_REPORT.md. Next session: start at docs/PROJECT_MANIFEST.md.
 
-- **Generated:** 2026-11-10 06:11 UTC · **Diff scope:** working tree vs HEAD
-- **Branch:** codex/hive-autoplay · **HEAD:** 8b491cb6
+- **Generated:** 2026-11-10 06:16 UTC · **Diff scope:** working tree vs HEAD
+- **Branch:** codex/hive-autoplay · **HEAD:** c78aeab8
 
 ## Summary of work completed
 
@@ -70,3 +70,5 @@ LATEST: mobile29287 terminal PASS,CLEAN27navscreens+live runs across9viewports (
 LATEST .6 hero auto-cast fix: one aria-pressed expression in Toolbar, no gameplay/layout change. Actual Chrome AX baseline lacked pressed state; after fix purchase:none,on:true,off:false,Hive:true+disabled. Real Game buy/toggle/Hive APIs, Enter/Space exercised by ../autocast-accessibility-check.cjs. Initial fixture needed full build-env object; corrected then baseline/after worked.41 Hive/heroEvolution/site tests PASS. Full3155 and full mobile passed before this single attribute. Build19427 pending at this entry. Five website notes prepared. Next deploy~06:38UTC, live .5.
 
 Final auto-cast accessibility build19427 PASS (autocast-accessibility-build.log), all processes terminal. Five notes local for .6; live remains .5.
+
+LATEST .6 placement ARIA followup: Toolbar favorite and conveyor Deploy aria-pressed; conveyor aria-label includes organism/current Biomass cost or free. ../placement-accessibility-check.cjs baseline no states; after keyboard select/clear/switch AXstates PASS; free/paid labels PASS via normal wave-grown pod. Fixture first sim tick seeds gift; prep time does not grow paid pod, so probe starts wave. Auto-cast AX re-PASS.4 site-sync tests PASS; build23561 terminal0 (placement-accessibility-build.log). Full3155/mobile completed before four ARIA attributes across these followups; no visual/layout/gameplay changes. All processes terminal. Five local notes (combined UI note); next approx deploy06:38UTC. Live .5 remains. ../verify-audio-release.ps1 targets .6 game/home/news.

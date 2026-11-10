@@ -59,6 +59,7 @@ export function Toolbar({
               key={kind}
               data-tut={i === 0 ? 'tower-card-first' : undefined}
               className={`tcard ${def.combatClass.toLowerCase()} tt ${sel ? 'is-sel' : ''}${afford && playable ? ' is-ready' : ''}`}
+              aria-pressed={sel}
               disabled={(!afford && !sel) || !playable}
               onClick={() => {
                 audio.resume();
@@ -144,6 +145,8 @@ export function Toolbar({
                     <div className="cv-actions">
                       <button
                         className={`cv-btn cv-deploy${armed ? ' is-on' : ''}${c.free ? ' is-free' : ''}`}
+                        aria-pressed={armed}
+                        aria-label={`${def.name} — ${c.free ? 'Deploy free' : `Deploy for ${hud.conveyor.deployCost} Biomass`}`}
                         disabled={!playable || (!c.free && hud.biomass < hud.conveyor.deployCost)}
                         title={c.free
                           ? `Deploy — FREE (the run-start gift)${c.strain > 1 ? ` (arrives at Strain ${ROMAN[c.strain - 1]})` : ''}`

@@ -25,7 +25,7 @@
       },
       {
         "cat": "UI",
-        "text": "Hero auto-cast now exposes its on/off state to assistive technology, including when Hive Intelligence manages it. Before unlocking, it remains a purchase button."
+        "text": "Screen readers can now identify armed tower and conveyor placements and whether hero auto-cast is on. Conveyor deploy buttons name the organism and its cost; auto-cast keeps its purchase behavior until unlocked."
       }
     ]
   },
