@@ -1,6 +1,6 @@
 {
-  "lastSha": "22c4fb2c1304ba8e2e6a454be85e0a7249a9b77c",
-  "commitsSinceDraft": 1,
+  "lastSha": "af1232f0e1310236311c09b5f8489f5598049365",
+  "commitsSinceDraft": 3,
   "content": {
     "tower": [
       "needle",
@@ -4495,6 +4495,18 @@
         {
           "cat": "UI",
           "text": "Finishing a field guide with the keyboard now focuses Stay here and makes the completion result available from its controls. Escape closes the completion card, buttons fit narrow screens with larger touch targets, and a separate ceremony opened by your action keeps its focus."
+        }
+      ]
+    },
+    {
+      "id": "v2026.11.10.5",
+      "date": "2026-11-10",
+      "title": "Films That Follow You",
+      "sealed": false,
+      "entries": [
+        {
+          "cat": "Visuals",
+          "text": "Story cutscenes now respond to motion and flash settings while playing. Reduced motion keeps a still image, restoring motion preserves the scene clock without replaying elapsed sound cues, and the ending card keeps its dimmed backdrop in either mode."
         }
       ]
     }
@@ -10089,6 +10101,22 @@
       "date": "2026-11-10",
       "cat": "UI",
       "text": "Restore useful focus after field guides",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "d1642e26c1bc1459e536c94c1beb6cdd97e4d1c6",
+      "date": "2026-11-10",
+      "cat": "Framework",
+      "text": "Release: publish Clearer Briefings with five notes",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "af1232f0e1310236311c09b5f8489f5598049365",
+      "date": "2026-11-10",
+      "cat": "Framework",
+      "text": "Docs: record verified Clearer Briefings deployment",
       "internal": true,
       "needsReview": false
     }

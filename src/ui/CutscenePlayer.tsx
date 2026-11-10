@@ -13,7 +13,7 @@ import { music } from '../audio/music';
 import type { CutsceneDef } from '../core/cutscenes';
 import { cutsceneMegaId, cutsceneStillT, drawCutsceneFrame } from '../render/cutsceneScenes';
 import type { CutsceneFrameSpec } from '../render/cutsceneScenes';
-import { motionPrefs, resolveMotion, systemReducedMotion } from '../state/prefs';
+import { motionPrefs, onMotionPrefs, resolveMotion, systemReducedMotion } from '../state/prefs';
 import './CutscenePlayer.css';
 
 const FADE_MS = 850; // scene-to-scene cross-dissolve (the intro's cut length)
@@ -21,9 +21,19 @@ const CODA_MS = 6200; // how long the coda holds before auto-continue
 
 export function CutscenePlayer({ def, onDone }: { def: CutsceneDef; onDone: () => void }): JSX.Element {
   // Reduced motion = THE motionScale (OS request unless Settings → Motion overrides it): one still
-  // per scene, no camera drift / punches / flashes. Resolved once per showing.
-  const [feel] = useState(() => resolveMotion(motionPrefs(), systemReducedMotion()));
+  // per scene, no camera drift / punches / flashes. Preferences remain live during the film.
+  const [feel, setFeel] = useState(() => resolveMotion(motionPrefs(), systemReducedMotion()));
   const reducedMotion = feel.motion === 0;
+  const previousMotion = useRef(feel.motion);
+  useEffect(() => {
+    let prefs = motionPrefs();
+    const update = (): void => setFeel(resolveMotion(prefs, systemReducedMotion()));
+    const off = onMotionPrefs(next => { prefs = next; update(); });
+    const mq = window.matchMedia?.('(prefers-reduced-motion: reduce)');
+    mq?.addEventListener('change', update);
+    update();
+    return () => { off(); mq?.removeEventListener('change', update); };
+  }, []);
   const [idx, setIdx] = useState(0);
   const [coda, setCoda] = useState(false);
   const [manual, setManual] = useState(false);
@@ -113,6 +123,14 @@ export function CutscenePlayer({ def, onDone }: { def: CutsceneDef; onDone: () =
     };
     size();
     let raf = 0;
+    // Reduced playback is silent. Do not replay its elapsed beats when motion is restored.
+    if (previousMotion.current === 0 && feel.motion > 0) {
+      const f = filmRef.current;
+      const beats = def.scenes[f.scene].beats;
+      const elapsed = (performance.now() - f.startedAt) / 1000;
+      while (f.beatsFired < beats.length && beats[f.beatsFired].at <= elapsed) f.beatsFired++;
+    }
+    previousMotion.current = feel.motion;
     // One frame spec for the whole showing, mutated per frame (no per-frame allocation).
     const prevSpec = { painter: def.scenes[0].painter, t: 0 };
     const spec: CutsceneFrameSpec = {
@@ -130,32 +148,31 @@ export function CutscenePlayer({ def, onDone }: { def: CutsceneDef; onDone: () =
       spec.scene = cur;
       if (reducedMotion) {
         spec.t = cutsceneStillT(cur);
-        drawCutsceneFrame(ctx, w, h, spec);
-        return; // one still per scene — repainted when the scene remounts the effect
-      }
-      const t = (now - f.startedAt) / 1000;
-      if (!codaRef.current) {
-        while (f.beatsFired < cur.beats.length && t >= cur.beats[f.beatsFired].at) {
-          audio.cue(cur.beats[f.beatsFired].cue);
-          f.beatsFired++;
+      } else {
+        const t = (now - f.startedAt) / 1000;
+        if (!codaRef.current) {
+          while (f.beatsFired < cur.beats.length && t >= cur.beats[f.beatsFired].at) {
+            audio.cue(cur.beats[f.beatsFired].cue);
+            f.beatsFired++;
+          }
         }
+        const prevScene = f.prev >= 0 ? def.scenes[f.prev] : null;
+        spec.t = t;
+        spec.prevScene = prevScene;
+        if (prevScene) {
+          prevSpec.painter = prevScene.painter;
+          prevSpec.t = (now - f.prevStartedAt) / 1000;
+        }
+        spec.prev = prevScene ? prevSpec : null;
+        spec.fade = prevScene ? Math.min(1, (now - f.startedAt) / FADE_MS) : 1;
       }
-      const prevScene = f.prev >= 0 ? def.scenes[f.prev] : null;
-      spec.t = t;
-      spec.prevScene = prevScene;
-      if (prevScene) {
-        prevSpec.painter = prevScene.painter;
-        prevSpec.t = (now - f.prevStartedAt) / 1000;
-      }
-      spec.prev = prevScene ? prevSpec : null;
-      spec.fade = prevScene ? Math.min(1, (now - f.startedAt) / FADE_MS) : 1;
       drawCutsceneFrame(ctx, w, h, spec);
       if (codaRef.current) {
         // the coda dims the film under its card — the memory settling into the archive
         ctx.fillStyle = 'rgba(3,5,9,0.55)';
         ctx.fillRect(0, 0, w, h);
       }
-      raf = requestAnimationFrame(frame);
+      if (!reducedMotion) raf = requestAnimationFrame(frame);
     };
     const resize = (): void => {
       size();
@@ -169,7 +186,7 @@ export function CutscenePlayer({ def, onDone }: { def: CutsceneDef; onDone: () =
       window.removeEventListener('resize', resize);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps -- the loop reads clocks from refs; reduced mode repaints per scene
-  }, [reducedMotion ? idx : true]);
+  }, [feel.motion, feel.flashes, reducedMotion ? idx : null, reducedMotion ? coda : false]);
 
   // PORTALED to <body>: the player launches from deep screens (the Archive) where filling
   // transform animations on ancestors would otherwise capture position:fixed and cage the

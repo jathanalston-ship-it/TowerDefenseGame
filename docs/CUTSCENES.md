@@ -81,7 +81,7 @@ copy on the tableau's measured quiet band (`.intro-stage.is-copy-*` in index.css
 core scene sits its copy BELOW the Hive Core, Mega scenes under the organism.
 
 **Reduced motion** (the OS request unless Settings → Motion overrides it — `resolveMotion`,
-resolved once per showing): one still per scene, no drift, no punches, no flashes; the same copy
+resolved live throughout the showing): one still per scene, no drift, no punches, no flashes; the same copy
 on the same timing; Skip / tap-to-advance unchanged. Tunables: `FILM` (filmDirection.ts) and
 `MEGA_SCENE` (cutsceneScenes.ts) — the owner's dials.
 
@@ -151,3 +151,5 @@ Skip jumps to the **coda** — "MEMORY ARCHIVED · title · boost" — so the co
 lands even on a skip. Reduced motion: one still per scene, CSS fades only (§direction). The
 frame spec is one object per showing, mutated per frame (no per-frame allocation). The caller
 owns what the music does after (`music.play('menu')`).
+
+Live film preferences: CutscenePlayer subscribes to device settings and OS motion changes without resetting scene/copy/reading clocks. Returning from reduced to animated playback consumes elapsed sound beats silently; only future beats play. Flash changes update the projector. Reduced stills repaint on scene/coda/resize changes, including the ending-card dim, and listeners/projector frames clean up on unmount.

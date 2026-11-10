@@ -5,6 +5,18 @@ import type { Release } from './types';
 /** Player-facing releases, newest first. */
 export const RELEASES: Release[] = [
   {
+    "id": "v2026.11.10.5",
+    "date": "2026-11-10",
+    "title": "Films That Follow You",
+    "sealed": false,
+    "entries": [
+      {
+        "cat": "Visuals",
+        "text": "Story cutscenes now respond to motion and flash settings while playing. Reduced motion keeps a still image, restoring motion preserves the scene clock without replaying elapsed sound cues, and the ending card keeps its dimmed backdrop in either mode."
+      }
+    ]
+  },
+  {
     "id": "v2026.11.10.4",
     "date": "2026-11-10",
     "title": "Clearer Briefings",

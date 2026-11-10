@@ -4,8 +4,8 @@
 > before committing. Read together with docs/PROJECT_STATUS.md and the latest
 > docs/VALIDATION_REPORT.md. Next session: start at docs/PROJECT_MANIFEST.md.
 
-- **Generated:** 2026-11-10 14:17 UTC · **Diff scope:** working tree vs HEAD
-- **Branch:** codex/hive-autoplay · **HEAD:** 22c4fb2c
+- **Generated:** 2026-11-10 14:27 UTC · **Diff scope:** working tree vs HEAD
+- **Branch:** codex/hive-autoplay · **HEAD:** af1232f0
 
 ## Summary of work completed
 
@@ -13,13 +13,15 @@ LIVE v2026.11.10.4 Clearer Briefings, five sealed website notes. SHAd1642e26c1bc
 
 ## Files modified
 
-- Source (1): `src/changelog/releases.gen.ts`
+- Source (2): `src/changelog/releases.gen.ts`, `src/ui/CutscenePlayer.tsx`
 - Tests (0): —
-- Docs (5): `docs/HISTORY.md`, `docs/PROJECT_STATUS.md`, `docs/VALIDATION_REPORT.md`, `docs/devlog/DRAFT-2026-11-09.md`, `docs/devlog/DRAFT-2026-11-10.md`
+- Docs (8): `docs/CUTSCENES.md`, `docs/HISTORY.md`, `docs/PROJECT_MANIFEST.md`, `docs/PROJECT_STATUS.md`, `docs/UI-MOTION.md`, `docs/VALIDATION_REPORT.md`, `docs/devlog/DRAFT-2026-11-09.md`, `docs/devlog/DRAFT-2026-11-10.md`
 
 ## Systems affected (from the dependency registry)
 
 - **chronicle** — `src/changelog/releases.gen.ts`
+- **cutscenes** — `src/ui/CutscenePlayer.tsx`
+- Consumer ring (verify, unchanged): quests
 
 ## Power Score changes
 
@@ -47,7 +49,7 @@ Windows validate wrapper cannot launch npx/npm with shell:false; use direct gate
 
 ## Recommended next tasks
 
-Continue active improvement goal; start a new unsealed release for next batch. Next approximate deployment15:20UTC with website notes. Candidate investigation: CutscenePlayer snapshots resolved motion once per showing; examine live preference changes without replaying missed audio beats or hiding already-read copy. Current .10.4 fully verified. Keep two untracked devlog drafts unpublished. Windows validation wrapper launcher issue remains documented; direct gates supplied release evidence.
+Continue active improvement goal. Local v2026.11.10.5 Films That Follow You has one unsealed note for live CutscenePlayer motion/flash preferences, preserved clocks and no elapsed-beat audio catch-up. Browser probe ../cutscene-motion-check.cjs PASS with actual renderer; build8.84s,41cutscene/premiere/film/feel/site tests,docs PASS. All processes terminal. Next approximate deployment15:20UTC with full release/mobile gates and website notes. Live remainsd1642e26 (.10.4), verified14:20UTC. Keep two untracked devlog drafts unpublished. Candidate related review: opening cinematic motion lifecycle and background/foreground playback behavior.
 
 ## Future expansion hooks
 
