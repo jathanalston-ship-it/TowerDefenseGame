@@ -4,8 +4,8 @@
 > before committing. Read together with docs/PROJECT_STATUS.md and the latest
 > docs/VALIDATION_REPORT.md. Next session: start at docs/PROJECT_MANIFEST.md.
 
-- **Generated:** 2026-11-10 07:53 UTC · **Diff scope:** working tree vs HEAD
-- **Branch:** codex/hive-autoplay · **HEAD:** 7dea6a61
+- **Generated:** 2026-11-10 08:09 UTC · **Diff scope:** working tree vs HEAD
+- **Branch:** codex/hive-autoplay · **HEAD:** 2bae012e
 
 ## Summary of work completed
 
@@ -13,14 +13,15 @@ LIVE v2026.11.10.1 Clearer Run Controls, seven sealed website notes. SHAa6249d38
 
 ## Files modified
 
-- Source (3): `src/changelog/releases.gen.ts`, `src/ui/GameView.css`, `src/ui/Inspector.tsx`
+- Source (3): `src/changelog/releases.gen.ts`, `src/index.css`, `src/ui/components/AccountXpBar.tsx`
 - Tests (0): —
-- Docs (5): `docs/HISTORY.md`, `docs/HUD.md`, `docs/PROJECT_MANIFEST.md`, `docs/devlog/DRAFT-2026-11-09.md`, `docs/devlog/DRAFT-2026-11-10.md`
+- Docs (5): `docs/ACCOUNT-LEVEL.md`, `docs/HISTORY.md`, `docs/PROJECT_MANIFEST.md`, `docs/devlog/DRAFT-2026-11-09.md`, `docs/devlog/DRAFT-2026-11-10.md`
 
 ## Systems affected (from the dependency registry)
 
+- **account-level** — `src/ui/components/AccountXpBar.tsx`
 - **chronicle** — `src/changelog/releases.gen.ts`
-- **run-ui** — `src/ui/Inspector.tsx`
+- Consumer ring (verify, unchanged): contracts, genome-rank, idle-harvest
 
 ## Power Score changes
 
@@ -48,7 +49,7 @@ Final3150 full suite passed before the two-line current-destination drawer fix. 
 
 ## Recommended next tasks
 
-Continue active improvement goal; latest .10.1 is sealed and verified LIVE. Create a new release for subsequent improvements. Next approximately09:03UTC. All sessions terminal. Work codex/hive-autoplay; deploy claude/zen-hawking-rh1gxl with website notes and ../verify-current-release.ps1. Exclude both untracked devlog drafts. New Hero Ops ability control is a button disclosure, not an image/tooltip; updated browser probe reflects this. Do not mark the continuous goal complete.
+Continue local v2026.11.10.2 Rewards You Can Read, one unsealed note. AccountLevelToast gains hover/focus reading hold, dismiss button, queue/final focus restoration and once-per-item audio across unlock holds. Actual Chrome clock probe ../account-toast-check.cjs PASS all lifecycles; long milestone text fits1366/390/320 widths,24px button, screenshot ../account-toast-panel.png visually inspected. Build77587 PASS5.21s;61tests PASS; docs43827 PASS. All processes terminal. Latest LIVE .10.1 SHAa6249d38, next deploy roughly09:03UTC. Exclude both devlog drafts. Goal active; codex/hive-autoplay → claude/zen-hawking-rh1gxl; website notes required.
 
 ## Future expansion hooks
 

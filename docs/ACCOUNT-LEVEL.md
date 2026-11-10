@@ -154,3 +154,5 @@ cadence harness (level-ups/hour + level-reward value/hour by band) and `npm run 
 - The cadence still drifts slowly longer past ~400 h (~75 min/level at stage 165); the formula
   is uncapped, so a later retune is one `ACCOUNT_XP_DEPTH` row.
 - Battle-pass-style seasonal tracks can ride the weekly/monthly ledgers as-is.
+
+Account-level notices: hover (non-touch) and focus pause expiry, then grant the original full3400ms/5200ms reading window on leave. A24px dismiss button supports Enter/Space; queued notices retain focus, final dismissal restores the prior connected control without stealing unrelated focus. Unlock-held notices clear reading flags and resume without replaying their cue. Timer callbacks verify the same front item before removing it. Reward grants, queue order and milestone duration are unchanged.

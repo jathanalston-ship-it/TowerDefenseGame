@@ -1,6 +1,19 @@
 [
   {
     "date": "2026-11-10",
+    "title": "Rewards You Can Read",
+    "categories": [
+      "UI"
+    ],
+    "items": [
+      {
+        "cat": "UI",
+        "text": "Account level-up notices stay visible while hovered or keyboard-focused and include a keyboard-accessible dismiss button. Focus follows queued notices and returns afterward; a notice resumed after an unlock announcement no longer repeats its sound."
+      }
+    ]
+  },
+  {
+    "date": "2026-11-10",
     "title": "Clearer Run Controls",
     "categories": [
       "UI"

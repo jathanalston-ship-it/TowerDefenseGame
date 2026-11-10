@@ -717,3 +717,5 @@
 - `7f34809` **[Heroes]** Report observed hero attack and pulse cadence _(internal)_
 - `b7eeefd` **[UI]** Ui: align recovery countdowns with revival modifiers _(internal)_
 - `7dea6a6` **[UI]** Ui: keep active ability gauges stable through upgrades _(internal)_
+- `a6249d3` **[Heroes]** Publish clearer run controls and hero readouts _(internal)_
+- `2bae012` **[Framework]** Docs: record verified run controls deployment _(internal)_

@@ -1,6 +1,6 @@
 {
-  "lastSha": "7dea6a6121d480be75e2a8b9af9d7fff72bba947",
-  "commitsSinceDraft": 5,
+  "lastSha": "2bae012e75a8ea96037028bd020b8a30ee3d06e3",
+  "commitsSinceDraft": 7,
   "content": {
     "tower": [
       "needle",
@@ -4391,6 +4391,18 @@
         {
           "cat": "UI",
           "text": "Tap or keyboard-activate the Hero Ops ability wheel to read its status and description inside the panel. The explanation stays readable instead of being clipped at the panel edge; Escape closes it without interrupting play."
+        }
+      ]
+    },
+    {
+      "id": "v2026.11.10.2",
+      "date": "2026-11-10",
+      "title": "Rewards You Can Read",
+      "sealed": false,
+      "entries": [
+        {
+          "cat": "UI",
+          "text": "Account level-up notices stay visible while hovered or keyboard-focused and include a keyboard-accessible dismiss button. Focus follows queued notices and returns afterward; a notice resumed after an unlock announcement no longer repeats its sound."
         }
       ]
     }
@@ -9777,6 +9789,22 @@
       "date": "2026-11-10",
       "cat": "UI",
       "text": "Ui: keep active ability gauges stable through upgrades",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "a6249d385614942cfe6d902b987330b4ecb1c2d9",
+      "date": "2026-11-10",
+      "cat": "Heroes",
+      "text": "Publish clearer run controls and hero readouts",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "2bae012e75a8ea96037028bd020b8a30ee3d06e3",
+      "date": "2026-11-10",
+      "cat": "Framework",
+      "text": "Docs: record verified run controls deployment",
       "internal": true,
       "needsReview": false
     }

@@ -5,6 +5,18 @@ import type { Release } from './types';
 /** Player-facing releases, newest first. */
 export const RELEASES: Release[] = [
   {
+    "id": "v2026.11.10.2",
+    "date": "2026-11-10",
+    "title": "Rewards You Can Read",
+    "sealed": false,
+    "entries": [
+      {
+        "cat": "UI",
+        "text": "Account level-up notices stay visible while hovered or keyboard-focused and include a keyboard-accessible dismiss button. Focus follows queued notices and returns afterward; a notice resumed after an unlock announcement no longer repeats its sound."
+      }
+    ]
+  },
+  {
     "id": "v2026.11.10.1",
     "date": "2026-11-10",
     "title": "Clearer Run Controls",

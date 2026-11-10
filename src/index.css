@@ -3541,10 +3541,12 @@ kbd {
 
 /* The menu level-up toast — a centered ceremony card, not a rail toast (level-ups are rarer and
    bigger than power ticks). Click anywhere on it to skip; milestones hold longer and go gold. */
-.axp-toast { position: fixed; top: calc(74px + var(--safe-t)); left: 50%; transform: translateX(-50%); z-index: 620; display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 12px 26px; border-radius: var(--r-lg); background: color-mix(in srgb, var(--viral) 12%, var(--panel)); border: 1px solid color-mix(in srgb, var(--viral) 50%, var(--line)); box-shadow: 0 18px 50px rgba(0, 0, 0, 0.5), 0 0 34px -10px var(--viral); cursor: pointer; animation: axp-toast-in 0.5s var(--ease-spring, cubic-bezier(0.34, 1.56, 0.64, 1)) both; }
+.axp-toast { position: fixed; top: calc(74px + var(--safe-t)); left: 50%; transform: translateX(-50%); z-index: 620; display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 12px 34px; border-radius: var(--r-lg); background: color-mix(in srgb, var(--viral) 12%, var(--panel)); border: 1px solid color-mix(in srgb, var(--viral) 50%, var(--line)); box-shadow: 0 18px 50px rgba(0, 0, 0, 0.5), 0 0 34px -10px var(--viral); cursor: pointer; animation: axp-toast-in 0.5s var(--ease-spring, cubic-bezier(0.34, 1.56, 0.64, 1)) both; }
 .axp-toast.is-milestone { border-color: color-mix(in srgb, var(--gold) 60%, var(--line)); background: color-mix(in srgb, var(--gold) 12%, var(--panel)); box-shadow: 0 18px 50px rgba(0, 0, 0, 0.5), 0 0 44px -8px var(--gold); }
+.axp-toast-dismiss { position: absolute; top: 4px; right: 4px; width: 24px; height: 24px; padding: 0; display: grid; place-items: center; font-size: 11px; }
 .axp-toast-badge { font-size: 10px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; color: var(--viral); }
-.axp-toast.is-milestone .axp-toast-badge { color: var(--gold); }
+.axp-toast.is-milestone .axp-toast-dismiss { position: absolute; top: 4px; right: 4px; width: 24px; height: 24px; padding: 0; display: grid; place-items: center; font-size: 11px; }
+.axp-toast-badge { color: var(--gold); }
 .axp-toast-lv { font-size: 20px; font-weight: 800; }
 .axp-toast-r { font-size: 12px; color: var(--muted); max-width: min(420px, 80vw); text-align: center; }
 @keyframes axp-toast-in { from { opacity: 0; transform: translateX(-50%) translateY(-14px) scale(0.92); } to { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); } }
