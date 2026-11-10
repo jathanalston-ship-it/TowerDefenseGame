@@ -18,6 +18,10 @@
       {
         "cat": "UX",
         "text": "Story cutscenes now preserve scene and ending-card reading time while their tab is hidden. Captions and scene animation pause, and returning continues the same visual timeline without a backlog of sound cues."
+      },
+      {
+        "cat": "UX",
+        "text": "The opening cinematic now pauses its start-screen animation, scene reading time, captions, and final dive while its tab is hidden. Returning resumes from the same point, with no skipped scenes or overdue sound burst."
       }
     ]
   },

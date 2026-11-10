@@ -837,3 +837,5 @@ Story cutscene presentation: ui/CutscenePlayer.tsx follows live resolved motion/
 Opening cinematic (ui/InitCutscene.tsx): live resolved motion/flash preferences across gate/film/dive, elapsed-beat suppression on animation resume, safe reduced-motion dive exit. See GAME-FEEL.md and UI-MOTION.md.
 
 CutscenePlayer visibility lifecycle preserves scene/coda remaining time, pauses caption/projector motion and resumes the visual/audio-cue clock without catch-up; see CUTSCENES.md. No global audio-setting or progression changes.
+
+InitCutscene visibility lifecycle pauses scene holds, gate/film/dive clocks and caption animations while hidden, retaining once-only seen/completion behavior and live reduced-motion exits; GAME-FEEL.md and UI-MOTION.md document it.

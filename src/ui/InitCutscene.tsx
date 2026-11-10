@@ -158,6 +158,8 @@ export function InitCutscene({ onDone }: { onDone: (dived?: boolean) => void }):
   }, []);
   const [idx, setIdx] = useState(0);
   const [manual, setManual] = useState(false);
+  const [hidden, setHidden] = useState(() => document.hidden);
+  const hiddenAt = useRef<number | null>(document.hidden ? performance.now() : null);
   const dialogRef = useRef<HTMLDivElement>(null);
   const doneRef = useRef(false);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -171,6 +173,25 @@ export function InitCutscene({ onDone }: { onDone: (dived?: boolean) => void }):
   const idxRef = useRef(0);
   idxRef.current = idx;
   const scene = SCENES[idx];
+
+  useEffect(() => {
+    const update = (): void => {
+      const now = performance.now();
+      if (document.hidden) {
+        if (hiddenAt.current === null) hiddenAt.current = now;
+      } else if (hiddenAt.current !== null) {
+        const elapsed = now - hiddenAt.current;
+        filmRef.current.startedAt += elapsed;
+        filmRef.current.prevStartedAt += elapsed;
+        if (phaseRef.current === 'dive') filmRef.current.diveAt += elapsed;
+        hiddenAt.current = null;
+      }
+      setHidden(document.hidden);
+    };
+    document.addEventListener('visibilitychange', update);
+    update();
+    return () => document.removeEventListener('visibilitychange', update);
+  }, []);
 
   useEffect(() => {
     const previous = document.activeElement;
@@ -222,8 +243,30 @@ export function InitCutscene({ onDone }: { onDone: (dived?: boolean) => void }):
   // Auto-advance each scene after its hold (a tap advances sooner; the title — durMs 0 — waits).
   useEffect(() => {
     if (manual || phase !== 'film' || scene.durMs === 0) return undefined;
-    const t = setTimeout(() => setIdx((i) => Math.min(i + 1, SCENES.length - 1)), scene.durMs);
-    return () => clearTimeout(t);
+    let remaining = scene.durMs;
+    let started: number | null = null;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    let fired = false;
+    const update = (): void => {
+      if (fired) return;
+      if (document.hidden) {
+        if (started !== null) remaining = Math.max(0, remaining - (performance.now() - started));
+        started = null;
+        clearTimeout(timer);
+      } else if (started === null) {
+        started = performance.now();
+        timer = setTimeout(() => {
+          started = null;
+          remaining = 0;
+          if (document.hidden) return;
+          fired = true;
+          setIdx(i => Math.min(i + 1, SCENES.length - 1));
+        }, remaining);
+      }
+    };
+    document.addEventListener('visibilitychange', update);
+    update();
+    return () => { clearTimeout(timer); document.removeEventListener('visibilitychange', update); };
   }, [phase, idx, scene.durMs, manual]);
 
   // Scene change → film clocks + cut whoosh + score swell (the intensity seam walks 0 → 1).
@@ -252,6 +295,7 @@ export function InitCutscene({ onDone }: { onDone: (dived?: boolean) => void }):
       if (!doneRef.current) { doneRef.current = true; onDone(); }
       return undefined;
     }
+    if (hidden) return undefined;
     const cv = canvasRef.current;
     const ctx = cv?.getContext('2d');
     if (!cv || !ctx) return undefined;
@@ -270,6 +314,7 @@ export function InitCutscene({ onDone }: { onDone: (dived?: boolean) => void }):
     }
     previousMotion.current = feel.motion;
     const frame = (): void => {
+      if (document.hidden) return;
       const f = filmRef.current;
       const now = performance.now();
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -315,12 +360,12 @@ export function InitCutscene({ onDone }: { onDone: (dived?: boolean) => void }):
     // eslint-disable-next-line react-hooks/exhaustive-deps -- reduced mode repaints per scene; the loop reads clocks from refs.
     // `phase` IS a dep: the gate and the film are separate JSX trees, so the canvas REMOUNTS on
     // gate→film — the projector must rebind to the new element.
-  }, [phase, feel.motion, feel.flashes, reducedMotion ? scene.visual : null]);
+  }, [hidden, phase, feel.motion, feel.flashes, reducedMotion ? scene.visual : null]);
 
   // ── Pre-roll gate: the one tap the browser needs, staged as the transmission arriving ──
   if (phase === 'gate') {
     return (
-      <div ref={dialogRef} tabIndex={-1} className="intro" role="dialog" aria-modal="true" aria-label="Initialization sequence" onKeyDown={onKeyDown} onClick={receive}>
+      <div ref={dialogRef} tabIndex={-1} className={`intro${hidden ? ' opening-suspended' : ''}`} role="dialog" aria-modal="true" aria-label="Initialization sequence" onKeyDown={onKeyDown} onClick={receive}>
         <div className="intro-stage is-signal">
           <canvas ref={canvasRef} className="intro-canvas" aria-hidden />
           <div className="intro-grade" aria-hidden />
@@ -344,7 +389,7 @@ export function InitCutscene({ onDone }: { onDone: (dived?: boolean) => void }):
 
   const diving = phase === 'dive';
   return (
-    <div ref={dialogRef} tabIndex={-1} className={`intro opening-film${reducedMotion ? ' is-still' : ''}${manual ? ' is-manual' : ''}`} role="dialog" aria-modal="true" aria-label="Initialization sequence" onKeyDown={onKeyDown} onClick={advance}>
+    <div ref={dialogRef} tabIndex={-1} className={`intro opening-film${reducedMotion ? ' is-still' : ''}${manual ? ' is-manual' : ''}${hidden ? ' opening-suspended' : ''}`} role="dialog" aria-modal="true" aria-label="Initialization sequence" onKeyDown={onKeyDown} onClick={advance}>
       <div className={`intro-stage is-${scene.visual} is-copy-${scene.copyAt ?? 'center'} ${diving ? 'is-diving' : ''}`}>
         <canvas ref={canvasRef} className="intro-canvas" aria-hidden />
         <div className="intro-grade" aria-hidden />

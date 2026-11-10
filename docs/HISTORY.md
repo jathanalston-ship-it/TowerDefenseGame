@@ -747,3 +747,4 @@
 - `af1232f` **[Framework]** Docs: record verified Clearer Briefings deployment _(internal)_
 - `20ba0c4` **[UI]** Apply cutscene motion preferences live _(internal)_
 - `7f969db` **[UI]** Ui: follow live motion settings through the opening film _(internal)_
+- `068efbe` **[UI]** Preserve cutscene reading time in hidden tabs _(internal)_

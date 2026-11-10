@@ -110,3 +110,5 @@ CutscenePlayer resolves motion/flashes live. Changing preferences preserves film
 InitCutscene applies live resolved motion/flashes at the pre-roll gate and during playback. Reduced motion during an active dive ends the transition cleanly; normal dive duration and single completion remain unchanged. Restoring animation consumes past film beats without sound catch-up.
 
 Story cutscenes suspend their visual clock and caption animations while hidden; auto scene/coda holds retain remaining visible time. On return the projector resumes without hidden-time sound catch-up. This does not alter global music settings.
+
+Opening-cinematic visibility suspends gate/film/dive motion and caption CSS animations. Resume preserves scene hold and dive progress. Reduced motion requested during a hidden dive completes safely rather than waiting in a frozen transition.

@@ -147,3 +147,4 @@
 .opening-film.is-manual .intro-triad span,
 .opening-film.is-manual .intro-begin { animation: none; opacity: 1; transform: none; }
 .opening-film .intro-begin:focus-visible { animation: none; opacity: 1; transform: none; }
+.intro.opening-suspended, .intro.opening-suspended *, .intro.opening-suspended *::before, .intro.opening-suspended *::after { animation-play-state: paused !important; }
