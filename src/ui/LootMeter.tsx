@@ -42,7 +42,7 @@ function LootMeterBody(): JSX.Element {
   const cost = costOf(frontId);
   const filled = Math.min(Math.max(0, lootQueue.progress), cost);
   const pct = cost > 0 ? Math.min(1, filled / cost) : 0;
-  const toGo = Math.max(1, Math.ceil(cost - filled));
+  const toGo = Math.max(0, Math.ceil(cost - filled));
   const hot = pct >= 0.85; // near-full: the bar breathes — a container is imminent
 
   // Completion detection: the front rarity changed OR banked progress dropped (a box was
@@ -144,7 +144,7 @@ function LootMeterBody(): JSX.Element {
         )}
       <span id={descriptionId} className="tt-bubble">
         Filling toward a <b style={{ color }}>{front?.name ?? 'Common'}</b> box ({Math.floor(filled)}/{cost}). {toGo} pts
-        to go — banked live as you play, opened into shards on completion.
+        to go. Filling the meter banks an unopened Bio-Container in the Genetic Vault. Open it there to collect rewards.
         {next && (
           <>
             {' '}

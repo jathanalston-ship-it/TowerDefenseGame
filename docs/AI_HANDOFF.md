@@ -4,28 +4,32 @@
 > before committing. Read together with docs/PROJECT_STATUS.md and the latest
 > docs/VALIDATION_REPORT.md. Next session: start at docs/PROJECT_MANIFEST.md.
 
-- **Generated:** 2026-11-10 21:30 UTC · **Diff scope:** working tree vs HEAD
-- **Branch:** codex/hive-autoplay · **HEAD:** fa2fc27a
+- **Generated:** 2026-11-10 21:32 UTC · **Diff scope:** working tree vs HEAD
+- **Branch:** codex/hive-autoplay · **HEAD:** 58ae45f5
 
 ## Summary of work completed
 
-LOCAL unsealed .13 Clearer Reward Feedback has FIVE generated notes: quest keyboard focus, keyboard burst origins, live quest motion, accessible loot progress and loot motion override. Loot flight baseline under OS reduce plus explicit Allow motion: root data-motion full, computed flight animation none. GameView.css reduced-motion rule now excludes root full override; portaled flight remains covered via root scope. Kept shimmer pseudo-element outside :is so its reduced-motion rule remains valid. ../loot-motion-override-check.cjs PASS explicit override yields loot-fly/loot-fly-land, revoking disables flight/chest/shimmer, missing-root fallback still disables shimmer.11UI/site tests PASS1.70s; docs/handoff94192 PASS; build42274 PASS7.41s, SWmwb7efw2, loot-motion-override-build.log. All processes terminal. No timing, queue, reward, fill or save changes. LIVE remains .12 Clearer Progress and Gear, SHA73b564bbe72b1d9edf7741283b09679ee6d40c30; Actions42901613298 passed and normal public URLs verified21:08UTC. Next approximate deployment22:10UTC. Goal remains active.
+LOCAL unsealed .13 Clearer Reward Feedback has SIX generated notes: quest keyboard focus, keyboard burst origins, live quest motion, accessible loot progress, loot motion override and corrected Vault guidance. Loot tooltip incorrectly said opened into shards on completion. Confirmed syncRunLoot banks PendingContainer entries unopened and openContainer grants rewards later in Genetic Vault. Tooltip now describes that actual flow. Remaining display clamps at0 rather than1, fixing100percent/owed-state guidance without touching queue/award code. Expanded ../loot-meter-accessibility-check.cjs PASS full-meter zero-point description, Vault guidance, live progress/rollover/width and320/844 layouts.22lootQueue/UI/site tests PASS2.12s; docs/handoff51001 PASS; build85793 PASS7.78s, SWmwb7hhhw, loot-guidance-build.log. All processes terminal. LIVE remains .12 Clearer Progress and Gear, SHA73b564bbe72b1d9edf7741283b09679ee6d40c30; Actions42901613298 passed and normal public URLs verified21:08UTC. Next approximate deployment22:10UTC. Goal remains active.
 
 ## Files modified
 
-- Source (2): `src/changelog/releases.gen.ts`, `src/ui/GameView.css`
+- Source (2): `src/changelog/releases.gen.ts`, `src/ui/LootMeter.tsx`
 - Tests (0): —
 - Docs (5): `docs/HISTORY.md`, `docs/LOOTBOX.md`, `docs/PROJECT_MANIFEST.md`, `docs/devlog/DRAFT-2026-11-09.md`, `docs/devlog/DRAFT-2026-11-10.md`
 
 ## Systems affected (from the dependency registry)
 
 - **chronicle** — `src/changelog/releases.gen.ts`
+- **loot** — `src/ui/LootMeter.tsx`
+- Consumer ring (verify, unchanged): account-level, boss-rush, crafting, equipment, infinite, shards-economy, splice-market
 
 ## Power Score changes
 
 None. Claim eligibility, rewards, power and simulation unchanged.
 
 ## UI changes
+
+Loot tooltip incorrectly said opened into shards on completion. Confirmed syncRunLoot banks PendingContainer entries unopened and openContainer grants rewards later in Genetic Vault. Tooltip now describes that actual flow. Remaining display clamps at0 rather than1, fixing100percent/owed-state guidance without touching queue/award code. Expanded ../loot-meter-accessibility-check.cjs PASS full-meter zero-point description, Vault guidance, live progress/rollover/width and320/844 layouts.22lootQueue/UI/site tests PASS2.12s; docs/handoff51001 PASS; build85793 PASS7.78s, SWmwb7hhhw, loot-guidance-build.log. All processes terminal.
 
 Loot flight baseline under OS reduce plus explicit Allow motion: root data-motion full, computed flight animation none. GameView.css reduced-motion rule now excludes root full override; portaled flight remains covered via root scope. Kept shimmer pseudo-element outside :is so its reduced-motion rule remains valid. ../loot-motion-override-check.cjs PASS explicit override yields loot-fly/loot-fly-land, revoking disables flight/chest/shimmer, missing-root fallback still disables shimmer.11UI/site tests PASS1.70s; docs/handoff94192 PASS; build42274 PASS7.41s, SWmwb7efw2, loot-motion-override-build.log. All processes terminal. No timing, queue, reward, fill or save changes.
 
@@ -41,7 +45,7 @@ Quest mission keyboard baseline dropped focus to BODY after real Enter claim. Mi
 
 ## Documentation changes
 
-LOOTBOX.md, QUESTS.md and manifest updated for current batch. FIVE curated notes generated for website/game under Clearer Reward Feedback. No new mechanic/reward/save/audio rules, so no help/cue/migration registration needed.
+LOOTBOX.md, QUESTS.md and manifest updated for current batch. SIX curated notes generated for website/game under Clearer Reward Feedback. No new mechanic/reward/save/audio rules, so no help/cue/migration registration needed.
 
 ## Save changes
 
@@ -57,7 +61,7 @@ No new debt. Two untracked devlog drafts remain unpublished and unstaged. Existi
 
 ## Recommended next tasks
 
-Continue evidence-led improvements without gameplay/balance changes; next approximate deployment22:10UTC. Current .13 five-note batch is local only. Seal/generate/build and run original mobile before deployment; verify Actions exact-SHA guard and normal public game/home/news. All processes terminal. Preserve unpublished drafts.
+Continue evidence-led improvements without gameplay/balance changes; next approximate deployment22:10UTC. Current .13 six-note batch is local only. Seal/generate/build and run original mobile before deployment; verify Actions exact-SHA guard and normal public game/home/news. All processes terminal. Preserve unpublished drafts.
 
 ## Future expansion hooks
 

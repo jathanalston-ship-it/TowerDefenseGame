@@ -1,6 +1,6 @@
 {
-  "lastSha": "fa2fc27aa38e453c0c0c50e380c350f0f17348ef",
-  "commitsSinceDraft": 8,
+  "lastSha": "58ae45f5ad7707d74d2a5233210f884f659ef1c0",
+  "commitsSinceDraft": 9,
   "content": {
     "tower": [
       "needle",
@@ -4739,6 +4739,10 @@
         {
           "cat": "UI",
           "text": "The loot meter now honors your explicit Allow motion choice, including the flying container and chest celebration. Turning the override off keeps the flight, chest motion and fill shimmer still under reduced motion."
+        },
+        {
+          "cat": "UI",
+          "text": "The loot meter explanation now correctly says that completed Bio-Containers wait unopened in the Genetic Vault, where you collect their rewards. A full meter also shows zero points remaining."
         }
       ]
     }
@@ -10893,6 +10897,14 @@
       "date": "2026-11-10",
       "cat": "UI",
       "text": "Expose accessible live loot meter progress",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "58ae45f5ad7707d74d2a5233210f884f659ef1c0",
+      "date": "2026-11-10",
+      "cat": "UI",
+      "text": "Honor motion override for loot celebrations",
       "internal": true,
       "needsReview": false
     }

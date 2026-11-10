@@ -25,6 +25,10 @@
       {
         "cat": "UI",
         "text": "The loot meter now honors your explicit Allow motion choice, including the flying container and chest celebration. Turning the override off keeps the flight, chest motion and fill shimmer still under reduced motion."
+      },
+      {
+        "cat": "UI",
+        "text": "The loot meter explanation now correctly says that completed Bio-Containers wait unopened in the Genetic Vault, where you collect their rewards. A full meter also shows zero points remaining."
       }
     ]
   },
