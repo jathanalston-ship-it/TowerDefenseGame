@@ -317,3 +317,5 @@ containers pulse on a compositor transform that keeps moving through the main-th
 open after the next paint (rAF → timeout 0). The 600 ms burst guard is unchanged. Staging note for
 captures: the roll is META `Math.random`, so a driver can script it across that deferred open to show upper
 tiers on demand.
+
+Vault keyboard flow: labeled opening/harvest modal restores its opener on unmount. Hatch now supports Enter/Space. Phase/page/flip/highlight transitions repair removed or disabled focus without moving a valid current choice. Tab stays within the active highlight or main reveal; Escape acknowledges a highlight/replay or closes the completed harvest. Summary initially prefers Collect/Return over Hatch Another. Nested highlights hide underlying reveal content from assistive technology. Reward reducer, purchases, pacing and persistence unchanged.

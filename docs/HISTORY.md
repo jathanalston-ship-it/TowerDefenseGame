@@ -683,3 +683,4 @@
 - `aaaddf1` **[UI]** Ui: verify readable reduced motion feedback _(internal)_
 - `85a42cf` **[UI]** Verify responsive portrait animation lifecycle _(internal)_
 - `c678576` **[UI]** Verify keyboard cosmetic ceremonies _(internal)_
+- `a165a71` **[UI]** Ui: verify accessible star celebrations _(internal)_

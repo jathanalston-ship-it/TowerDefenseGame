@@ -341,16 +341,58 @@ export function VaultReveal({
 
   const heldSpecimen = st.interrupt !== null ? specimens[st.interrupt] : null;
   const replaySpecimen = replayI !== null ? highlights[replayI] : null;
+  const dialogRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const previous = document.activeElement;
+    return () => { if (previous instanceof HTMLElement && previous.isConnected) previous.focus(); };
+  }, []);
+  useEffect(() => {
+    const dialog = dialogRef.current;
+    if (!dialog) return;
+    const scope = dialog.querySelector<HTMLElement>('.vintr') ?? dialog;
+    const active = document.activeElement;
+    // Flipped specimens become disabled; phase changes remove their controls. Keep a
+    // valid current choice, otherwise move to the active ceremony's next safe action.
+    if (active instanceof HTMLElement && scope.contains(active) && active !== dialog &&
+      !active.matches(':disabled') && !active.closest('.vreveal[aria-hidden="true"]')) return;
+    const preferred = scope.querySelector<HTMLElement>(
+      '.vintr-actions .primary, .vreveal-collect, .vreveal-return, .hatch-stage[role="button"]',
+    );
+    (preferred ?? scope.querySelector<HTMLElement>('button:not(:disabled)') ?? dialog).focus();
+  }, [phase, st.page, flips, st.interrupt, replayI]);
 
   // Portal to <body> so the fixed, fullscreen backdrop escapes the Hub's `isolation: isolate`
   // stacking context — it must cover EVERYTHING (nav included) with nothing clipping it.
   return createPortal(
     <div
+      ref={dialogRef}
+      tabIndex={-1}
       className={`vreveal-backdrop ${isRare ? 'is-rare' : ''} ${phase === 'rupture' ? 'is-quake' : ''}${heldSpecimen && !isNoMotion ? ' is-warp is-shine' : ''}`}
       style={{ ['--vr-accent' as string]: accent, ['--shine' as string]: heldSpecimen?.pull.color ?? accent }}
       onClick={phase === 'incubate' ? hatch : undefined}
       role="dialog"
       aria-modal="true"
+      aria-label={`${name} — ${phase === 'summary' ? 'Harvest' : 'Opening'}`}
+      onKeyDown={(e) => {
+        if (e.key === 'Escape') {
+          e.preventDefault(); e.stopPropagation();
+          if (heldSpecimen) dispatch({ kind: 'ack' });
+          else if (replaySpecimen) setReplayI(null);
+          else if (phase === 'summary') onClose();
+        } else if (e.key === 'Tab') {
+          const scope = e.currentTarget.querySelector<HTMLElement>('.vintr') ?? e.currentTarget;
+          const controls = Array.from(scope.querySelectorAll<HTMLElement>('button:not(:disabled), [role="button"][tabindex="0"]'));
+          const first = controls[0], last = controls[controls.length - 1];
+          if (!first) { e.preventDefault(); e.currentTarget.focus(); }
+          else if (!scope.contains(document.activeElement) || document.activeElement === e.currentTarget) {
+            e.preventDefault(); (e.shiftKey ? last : first).focus();
+          } else if (e.shiftKey && document.activeElement === first) {
+            e.preventDefault(); last.focus();
+          } else if (!e.shiftKey && document.activeElement === last) {
+            e.preventDefault(); first.focus();
+          }
+        }
+      }}
     >
       {/* Sibling of the modal shell so the RUPTURE lights the whole room, not just the box
           (the shell scrolls/clips its own content — fullscreen FX can't live inside it). */}
@@ -358,9 +400,10 @@ export function VaultReveal({
       {/* The living ROOM: drifting spore strata + a slow accent fog — every act breathes in
           the same atmosphere; rare+ ceremonies stand in a god-ray column from the first beat. */}
       <span className="hatch-atmo" aria-hidden><i className="a" /><i className="b" />{isRare && <i className="rays" />}</span>
-      <div className={`vreveal hatch tier-${model.topRarity} phase-${phase}`} onClick={(e) => e.stopPropagation()}>
+      <div className={`vreveal hatch tier-${model.topRarity} phase-${phase}`} aria-hidden={heldSpecimen || replaySpecimen ? true : undefined} onClick={(e) => e.stopPropagation()}>
         {phase === 'incubate' ? (
-          <div className={`hatch-stage t${tier}${still ? ' is-still' : ''}`} onClick={hatch} role="button" aria-label="Hatch now">
+          <div className={`hatch-stage t${tier}${still ? ' is-still' : ''}`} onClick={hatch} role="button" tabIndex={0} aria-label="Hatch now"
+            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); hatch(); } }}>
             <div ref={podRef} className="hatch-pod" style={{ ['--inc' as string]: `${incubMs}ms` }} aria-hidden>
               <span className="hatch-membrane" />
               <span className="hatch-fetus" />

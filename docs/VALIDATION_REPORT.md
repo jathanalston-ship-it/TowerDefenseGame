@@ -243,3 +243,7 @@ Wardrobe ceremony production build PASS: TypeScript, Vite (18.39s), service work
 Star ceremony browser probe PASS: dialog name, initial focus, forward/reverse Tab, Escape/Enter/Space close once and return focus; Escape does not leak. Initial probe counter collided with read-only window.closed; corrected harness to closeCount and reran successfully. No gameplay/save changes.
 
 Star follow-up production build PASS (Vite 21.29s). DIL/PIL regeneration: zero structural findings, 34 existing stale pairs.
+
+Prior ceremony/motion batch full suite PASS: 353 files / 3150 tests, 332.45s (feedback-suite.log, session 10941 exited 0). Vault follow-up Chrome probe PASS: hatch Enter/Space, phase focus, disabled flipped-card recovery, legendary interrupt/replay focus and Tab, Escape isolation, Collect/Return focus without extra purchase, opener restoration; 13-item Skip animations + Reveal all retains all rewards. Vault reducer/model tests: 16 PASS.
+
+Vault final production build PASS (Vite13.82s); styled 390x844 phone browser flow PASS in addition to desktop. Mobile release gate started (session76108, feedback-mobile.log).

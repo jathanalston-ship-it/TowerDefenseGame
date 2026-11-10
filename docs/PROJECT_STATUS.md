@@ -1373,3 +1373,7 @@ Portrait preview local improvement: offscreen/hidden symbiote drawing stops, liv
 Cosmetic ceremony local improvement: keyboard focus/Tab/Escape behavior verified across single, sequence and backlog reveals; final cabinet action unchanged. Browser checks and 38 wardrobe tests pass.
 
 Local .5 follow-up: tower star ceremony keyboard focus/dismissal verified in Chrome; included in the ceremony website note. Full release suite running.
+
+Local .5 now includes full Vault ceremony keyboard flow; browser single/legendary/batch checks and 16 model tests PASS. Prior full suite passed 3150 tests; final build pending. Four curated website notes.
+
+Vault final build and styled phone keyboard flow PASS; mobile release gate running against the completed build.

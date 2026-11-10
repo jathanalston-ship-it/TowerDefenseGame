@@ -4,24 +4,24 @@
 > before committing. Read together with docs/PROJECT_STATUS.md and the latest
 > docs/VALIDATION_REPORT.md. Next session: start at docs/PROJECT_MANIFEST.md.
 
-- **Generated:** 2026-11-10 04:50 UTC · **Diff scope:** working tree vs HEAD
-- **Branch:** codex/hive-autoplay · **HEAD:** c678576a
+- **Generated:** 2026-11-10 04:55 UTC · **Diff scope:** working tree vs HEAD
+- **Branch:** codex/hive-autoplay · **HEAD:** a165a71f
 
 ## Summary of work completed
 
-Active continuous improvement goal: keep improving usability, clarity, graphics, sound, animation and cutscenes without changing gameplay; authorized deployments roughly hourly with website notes. LIVE is bfa87c50fe652ca8105961d2faa2372bf281f51e, v2026.11.09.4 Progress You Can Follow (Actions 42756081493 success, ~04:30 UTC Nov10). Normal game/home/news URLs and play-CtxVJXHT.js verified; all 3150 tests and nine-viewport mobile gate passed before publication. Current LOCAL batch is v2026.11.09.5 Feedback That Stays Readable, three curated notes; .4 is sealed. No deployment for .5 yet. Earlier detailed verification history remains in VALIDATION_REPORT.md.
+Active continuous improvement goal: keep improving usability, clarity, graphics, sound, animation and cutscenes without changing gameplay; authorized deployments roughly hourly with website notes. LIVE is bfa87c50fe652ca8105961d2faa2372bf281f51e, v2026.11.09.4 Progress You Can Follow (Actions 42756081493 success, ~04:30 UTC Nov10). Normal game/home/news URLs and play-CtxVJXHT.js verified; all 3150 tests and nine-viewport mobile gate passed before publication. Current LOCAL batch is v2026.11.09.5 Feedback That Stays Readable, four curated notes; .4 is sealed. No deployment for .5 yet. Earlier detailed verification history remains in VALIDATION_REPORT.md.
 
 ## Files modified
 
-- Source (2): `src/changelog/releases.gen.ts`, `src/ui/StarCeremony.tsx`
+- Source (2): `src/changelog/releases.gen.ts`, `src/ui/VaultReveal.tsx`
 - Tests (0): —
-- Docs (5): `docs/HISTORY.md`, `docs/PROJECT_STATUS.md`, `docs/TOWER-LAB.md`, `docs/VALIDATION_REPORT.md`, `docs/devlog/DRAFT-2026-11-09.md`
+- Docs (5): `docs/HISTORY.md`, `docs/LOOTBOX.md`, `docs/PROJECT_STATUS.md`, `docs/VALIDATION_REPORT.md`, `docs/devlog/DRAFT-2026-11-09.md`
 
 ## Systems affected (from the dependency registry)
 
 - **chronicle** — `src/changelog/releases.gen.ts`
-- **towers** — `src/ui/StarCeremony.tsx`
-- Consumer ring (verify, unchanged): class-bonds, contracts, daily, engine, hive-mind, mulligans
+- **loot** — `src/ui/VaultReveal.tsx`
+- Consumer ring (verify, unchanged): account-level, boss-rush, crafting, equipment, infinite, shards-economy, splice-market
 
 ## Power Score changes
 
@@ -59,6 +59,8 @@ Continue the broad experience audit, then run appropriate final regression/build
 
 Existing HeroPortrait.SymbioteOverlay, TowerPortrait and shared resolveMotion remain the preview seams. No new content or save structures.
 
-WardrobeReveal local follow-up: modal semantics, initial/per-card focus, Tab loop, Escape skips ceremony with focus restoration and no navigation. Single/three/six-item browser probe ../wardrobe-focus-check.cjs PASS; 38 core/meta wardrobe tests PASS. Ledger .5 now three curated notes; production build PASS (Vite 18.39s, service worker stamped). Full regression/mobile gates remain for the next release.
+WardrobeReveal local follow-up: modal semantics, initial/per-card focus, Tab loop, Escape skips ceremony with focus restoration and no navigation. Single/three/six-item browser probe ../wardrobe-focus-check.cjs PASS; 38 core/meta wardrobe tests PASS. Ledger .5 now four curated notes; production build PASS (Vite 18.39s, service worker stamped). Full regression/mobile gates remain for the next release.
 
-StarCeremony: labeled modal, Continue autofocus, Tab containment, Escape isolation and focus restoration. Chrome probe ../star-focus-check.cjs PASS all three dismissal keys exactly once. Production build PASS (21.29s Vite). Full regression running in session 10941, feedback-suite.log; must poll same handle to terminal. DIL/PIL regeneration passed: zero structural findings, existing 34 stale pairs. Dev server stopped. Next audit candidate: VaultReveal has no keyboard focus management and hatch role=button lacks keyboard support; examine phased/nested highlight flow before changing.
+StarCeremony: labeled modal, Continue autofocus, Tab containment, Escape isolation and focus restoration. Chrome probe ../star-focus-check.cjs PASS all three dismissal keys exactly once. Production build PASS (21.29s Vite). Full regression PASS: 353 files /3150 tests (332.45s), session 10941 exited 0. DIL/PIL regeneration passed: zero structural findings, existing 34 stale pairs. Dev server stopped. Vault keyboard follow-up now implemented and verified below.
+
+VaultReveal: hatch Enter/Space, labeled modal, phase/disabled-flip focus recovery, active nested-highlight Tab containment, Escape acknowledgment/replay dismissal/summary close, safe Collect/Return focus and opener restoration. Underlying reveal hidden from assistive technology during highlights. Desktop and styled 390x844 phone Chrome probes PASS (../vault-focus-check.cjs, ../vault-focus-phone-check.cjs), including 13-pull Skip animations + Reveal all; 16 vault model tests PASS. Production build PASS, Vite13.82s. Dev server stopped. Release mobile gate RUNNING session76108, feedback-mobile.log: poll same handle, do not restart on timeout. .5 remains local; four website notes generated. Next release around05:30UTC. Future Vault audit: WAAPI heartbeat still reads OS preference once and may ignore in-game override; inspect motion preference policy before editing.

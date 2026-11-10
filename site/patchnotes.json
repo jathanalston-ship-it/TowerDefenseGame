@@ -18,6 +18,10 @@
       {
         "cat": "UI",
         "text": "Tower star celebrations now support keyboard dismissal and restore focus. Cosmetic unlock ceremonies now focus their main action, keep keyboard navigation inside the card, and carry focus forward through multiple unlocks. Escape skips the ceremony and returns you to the previous control; unlocked items remain in the Specimen Cabinet."
+      },
+      {
+        "cat": "UI",
+        "text": "Genetic Vault openings can be followed by keyboard from hatching through card flips, highlights and harvest. Focus stays with the active reveal, including replay highlights, and returns when you close it. The harvest focuses Collect or Return so hatching another container stays a deliberate choice."
       }
     ]
   },
