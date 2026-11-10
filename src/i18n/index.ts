@@ -100,6 +100,7 @@ const EN = {
   // ── Update toast / LiveOps chrome ──
   'sw.ready': 'A new version of ASSIMILATION is ready.',
   'sw.refresh': '↻ Refresh',
+  'sw.dismiss': 'Dismiss update notification',
   'liveops.title': '◉ LIVE OPERATIONS',
   'liveops.utc': 'all times UTC',
   'liveops.endsIn': 'ends {left}',
@@ -225,6 +226,7 @@ const ES: Record<MsgKey, string> = {
   'commission.account.back': '← Volver',
   'sw.ready': 'Hay una nueva versión de ASSIMILATION lista.',
   'sw.refresh': '↻ Actualizar',
+  'sw.dismiss': 'Cerrar aviso de actualización',
   'liveops.title': '◉ OPERACIONES EN VIVO',
   'liveops.utc': 'horario UTC',
   'liveops.endsIn': 'termina {left}',
@@ -343,6 +345,7 @@ const PT: Record<MsgKey, string> = {
   'commission.account.back': '← Voltar',
   'sw.ready': 'Uma nova versão de ASSIMILATION está pronta.',
   'sw.refresh': '↻ Atualizar',
+  'sw.dismiss': 'Fechar aviso de atualização',
   'liveops.title': '◉ OPERAÇÕES AO VIVO',
   'liveops.utc': 'horários em UTC',
   'liveops.endsIn': 'termina {left}',

@@ -21,6 +21,10 @@ export const RELEASES: Release[] = [
       {
         "cat": "UI",
         "text": "Bio-Container notices stay readable while hovered or keyboard-focused, with a dismiss button that follows queued rewards and returns focus afterward. Dismissing a notice with Space does not start a wave."
+      },
+      {
+        "cat": "UI",
+        "text": "Update-ready prompts wait until you return to the hub, keeping refresh controls out of active runs, tutorials, and Arena matches. Updates downloaded before the prompt mounts are still detected, and dismissing the notice restores keyboard focus."
       }
     ]
   },

@@ -4,8 +4,8 @@
 > before committing. Read together with docs/PROJECT_STATUS.md and the latest
 > docs/VALIDATION_REPORT.md. Next session: start at docs/PROJECT_MANIFEST.md.
 
-- **Generated:** 2026-11-10 08:23 UTC · **Diff scope:** working tree vs HEAD
-- **Branch:** codex/hive-autoplay · **HEAD:** c62fb01e
+- **Generated:** 2026-11-10 08:28 UTC · **Diff scope:** working tree vs HEAD
+- **Branch:** codex/hive-autoplay · **HEAD:** 6c7d2ea9
 
 ## Summary of work completed
 
@@ -13,15 +13,16 @@ LIVE v2026.11.10.1 Clearer Run Controls, seven sealed website notes. SHAa6249d38
 
 ## Files modified
 
-- Source (3): `src/changelog/releases.gen.ts`, `src/index.css`, `src/ui/LootToaster.tsx`
-- Tests (0): —
-- Docs (7): `docs/HISTORY.md`, `docs/LOOT-PROGRESSION.md`, `docs/PROJECT_MANIFEST.md`, `docs/PROJECT_STATUS.md`, `docs/VALIDATION_REPORT.md`, `docs/devlog/DRAFT-2026-11-09.md`, `docs/devlog/DRAFT-2026-11-10.md`
+- Source (5): `src/changelog/releases.gen.ts`, `src/i18n/index.ts`, `src/net/swRegister.ts`, `src/ui/App.tsx`, `src/ui/components/UpdateToast.tsx`
+- Tests (1): `src/net/swRegister.test.ts`
+- Docs (7): `docs/DEPLOYMENT.md`, `docs/HISTORY.md`, `docs/PROJECT_MANIFEST.md`, `docs/PROJECT_STATUS.md`, `docs/VALIDATION_REPORT.md`, `docs/devlog/DRAFT-2026-11-09.md`, `docs/devlog/DRAFT-2026-11-10.md`
 
 ## Systems affected (from the dependency registry)
 
 - **chronicle** — `src/changelog/releases.gen.ts`
-- **loot** — `src/ui/LootToaster.tsx`
-- Consumer ring (verify, unchanged): account-level, boss-rush, crafting, equipment, infinite, shards-economy, splice-market
+- **hub-shell** — `src/net/swRegister.ts`, `src/ui/App.tsx`, `src/ui/components/UpdateToast.tsx`
+- **i18n** — `src/i18n/index.ts`
+- Consumer ring (verify, unchanged): battle-pass, cosmetics, hive-construction, infestation, profile, quests, reward-architecture
 
 ## Power Score changes
 
@@ -49,7 +50,7 @@ Final3150 full suite passed before the two-line current-destination drawer fix. 
 
 ## Recommended next tasks
 
-Local v2026.11.10.2 Rewards You Can Read now has three unsealed website notes. Account-level/reward focus changes committed previously; latest LootToaster reading holds, keyboard dismissal/queue focus and visible held state verified with actual Chrome and full GameView. Build44025 terminal PASS5.74s;45focused tests and4 regenerated site tests PASS. Browser probes ../loot-toast-check.cjs and ../loot-toast-game-check.cjs PASS including320px. Dev68044 stopped. Docs11399 terminal PASS; all processes stopped. Next release roughly09:03UTC; live remains .10.1 SHAa6249d38. Run final release full/mobile checks before sealing/deploy. Continue broader UI/accessibility work meanwhile. Exclude both untracked devlog drafts. Goal remains active.
+Local v2026.11.10.2 Rewards You Can Read now has four unsealed website notes (account level reading, reward focus, container reading, update prompts). Latest UpdateToast held outside menuIdle; waiting-worker snapshot handles pre-mount events; localized dismissal restores focus. ../update-toast-check.cjs PASS lifecycle/keyboard/refresh and3locales x3viewports. Build84638 terminal PASS6.50s; subsequent typecheck87169 PASS.24locale/nav+3worker+9registry+4site tests PASS. Docs8157 terminal PASS. All other processes terminal. Need final full/mobile release gates before roughly09:03UTC deploy; live .10.1 SHAa6249d38 remains. Continue UI clarity work in meantime. Exclude both devlog drafts; worker regression tests included. Goal active.
 
 ## Future expansion hooks
 

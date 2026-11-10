@@ -1,6 +1,6 @@
 {
-  "lastSha": "c62fb01ebf9f955430242bc2a3366a77a1e4f694",
-  "commitsSinceDraft": 9,
+  "lastSha": "6c7d2ea9f115bbbc97889fde4542280c895c3145",
+  "commitsSinceDraft": 0,
   "content": {
     "tower": [
       "needle",
@@ -4411,6 +4411,10 @@
         {
           "cat": "UI",
           "text": "Bio-Container notices stay readable while hovered or keyboard-focused, with a dismiss button that follows queued rewards and returns focus afterward. Dismissing a notice with Space does not start a wave."
+        },
+        {
+          "cat": "UI",
+          "text": "Update-ready prompts wait until you return to the hub, keeping refresh controls out of active runs, tutorials, and Arena matches. Updates downloaded before the prompt mounts are still detected, and dismissing the notice restores keyboard focus."
         }
       ]
     }
@@ -9829,6 +9833,14 @@
       "date": "2026-11-10",
       "cat": "UI",
       "text": "Ui: preserve keyboard focus while dismissing rewards",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "6c7d2ea9f115bbbc97889fde4542280c895c3145",
+      "date": "2026-11-10",
+      "cat": "UI",
+      "text": "Ui: keep container notifications readable and keyboard accessible",
       "internal": true,
       "needsReview": false
     }

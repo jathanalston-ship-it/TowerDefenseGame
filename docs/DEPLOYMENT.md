@@ -338,3 +338,7 @@ Two speeds, both safe:
 2. **Source-of-truth (one commit)** — `git revert <bad-sha> && git push` on the deploying
    branch. CI rebuilds, redeploys, and the verify gate confirms production serves the
    reverted tree. Chronicle artifacts are committed data, so notes/news revert with it.
+
+## Service-worker update prompt
+
+UpdateToast stays mounted to receive waiting-worker events but hides while App is outside the idle hub (including deployment, runs, tutorials, results, roulette and live Arena). Returning to the hub reveals the pending notice; the player explicitly selects Refresh to promote the worker. hasWaitingUpdate also covers an update announced before the prompt mounts. Dismissal has localized accessible text and restores the previous connected keyboard control without moving unrelated focus. Registration and first-install reload behavior are unchanged.

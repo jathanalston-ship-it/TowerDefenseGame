@@ -778,6 +778,7 @@ ladders. 4. Every permanent progression source must move the Power Score (valida
 | Ability components | `core/ability.ts` | tower/hero combat as data blocks run by one executor |
 | Status engine | `core/status.ts` | stacking/duration/potency rules as data |
 | Read-model pattern | `state/*.ts` | pure `f(save) → view` modules; UI stays logic-free |
+| Update prompts | `net/swRegister.ts`, `ui/components/UpdateToast.tsx`, `ui/App.tsx` | pending service-worker snapshot plus events; prompt held outside idle hub, explicit refresh, localized dismissal with focus restoration |
 | Notifications | `state/notifications.ts` | menu badges = registered `count(save)` sources; `state/rewardToast.ts` + `RewardToaster` = the ONE claim-receipt popup every hub claim presents through |
 | Mechanics registry | `state/mechanics.ts` | Help wiki + What's New + tour from one def list |
 | Validation | `core/validate.ts` | dev-boot content invariants across all registries |

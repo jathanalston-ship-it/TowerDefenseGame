@@ -721,3 +721,4 @@
 - `2bae012` **[Framework]** Docs: record verified run controls deployment _(internal)_
 - `7741797` **[UI]** Ui: give account level notices time to be read _(internal)_
 - `c62fb01` **[UI]** Ui: preserve keyboard focus while dismissing rewards _(internal)_
+- `6c7d2ea` **[UI]** Ui: keep container notifications readable and keyboard accessible _(internal)_

@@ -354,3 +354,9 @@ Local .10.2 reward-stack follow-up: dismissal captures focused stack controls an
 LootToaster now holds expiry while hovered/focused, provides a labeled 24px dismiss button, transfers focus through its queue and restores prior focus afterward. Independent cue effect prevents replay during reading. Removed the fixed CSS exit timer so held notices stay visible; entry/glow and reduced-motion rules remain. No loot grants, economy, saves or simulation changes.
 
 Validation: production build PASS (Vite 5.74s); 45 loot/queue/progression/vault/site tests PASS, regenerated site-sync 4 tests PASS. Actual Chrome probes ../loot-toast-check.cjs and ../loot-toast-game-check.cjs PASS reading holds, expiry, queue/final/unrelated focus, single cues, Enter/Space safety in GameView, and desktop/390px/320px fit. Dev server stopped. Website note generated as the third unsealed .10.2 entry; not deployed yet.
+
+## 2026-11-10 — update prompt timing (local .10.2)
+
+UpdateToast holds outside idle hub, retaining events across run/tutorial/results/roulette/Arena transitions. hasWaitingUpdate exposes the existing pending worker for late prompt mounts. Dismiss restores prior connected focus only when its focused control disappeared; label localized EN/ES/PT. No automatic refresh or service-worker activation policy changes.
+
+Validation: production build84638 PASS6.50s; subsequent typecheck87169 PASS with new tests. 24 locale/navigation tests,3 new worker lifecycle tests,9 registry tests and4 regenerated site-sync tests PASS. ../update-toast-check.cjs actual Chrome PASS early worker event, held/resumed event, keyboard dismiss/focus, no dismissal activation, explicit SKIP_WAITING, EN/ES/PT layout at1366/390/320. App wiring uses existing menuIdle (excludes live Arena); full App transition browser check not run separately. Four unsealed website notes; next deploy roughly09:03UTC. Docs8157 terminal PASS.
