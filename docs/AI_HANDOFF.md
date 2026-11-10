@@ -1,45 +1,62 @@
-# AI_HANDOFF.md — continuous player-experience work
+# AI_HANDOFF.md — session handoff
 
-## Active goal
-Improve usability, accessibility, graphics, sound, animations and cutscenes without changing gameplay or introducing regressions. Owner authorizes verified deployments roughly hourly, with website notes every time. Goal remains active; do not mark it complete based on this batch.
+> Scaffolded by `npm run handoff`; the sections marked TODO are filled by the session
+> before committing. Read together with docs/PROJECT_STATUS.md and the latest
+> docs/VALIDATION_REPORT.md. Next session: start at docs/PROJECT_MANIFEST.md.
 
-## Current checkpoint
-Branch: codex/hive-autoplay. Production is still 6ace805f (Hive Intelligence, deployed 2026-11-10 02:28 UTC). Current uncommitted batch: Memories at Your Pace, v2026.11.09.2. No upstream changes at release preparation.
+- **Generated:** 2026-11-10 03:48 UTC · **Diff scope:** working tree vs HEAD
+- **Branch:** codex/hive-autoplay · **HEAD:** 33676de6
 
-## Changes
-- Opening and story films: opt-in manual reading, native Next controls, Escape, focus containment/restoration, visible keyboard title action, 44px controls; resized reduced-motion stills repaint. Opening descent ignores repeat exit requests.
-- Motion settings: live OS changes update hub motion/flash attributes and settings UI; explicit player overrides and stored shake strength preserved; listeners cleaned up. Sound/motion switches have stable accessible names.
-- HUD: ability timer distinguishes cooldown from hero recovery; ring uses effective cooldown. Wave/gene controls show HIVE when managed, retaining readable disabled status.
-- Website: generated homepage/patch notes reflect the batch. Design graph and public inventory regenerated after full-suite freshness failures.
+## Summary of work completed
 
-## Verification
-Production build and strict typecheck pass. Full suite: 3146 passing, two generated-doc freshness failures; regenerated DIL/PIL and all 13 tests in those files pass (all 3148 suite tests now accounted for). Direct Chrome smoke checks cover cinematic reading/timing, keyboard focus, reduced-motion rotation, 320px title layout, normal descent, OS preference changes/override/cleanup, hero states and 12/24s cooldown fraction. Focused cinematic, motion, HUD and site tests pass. Full mobile layout gate PASS: 27 nav screens and live runs across nine viewports. All test/build/browser processes completed; preview servers stopped.
+Active continuous improvement goal remains active; owner authorizes verified releases roughly hourly with website notes. Production 33676de6 (v2026.11.09.3) is live, Actions 42750454616 succeeded and normal game/news URLs verified. Local v2026.11.09.4 Progress You Can Follow improves fractional progress accessibility and keyboard ownership in drafts, pause settings and the hero console. This batch is not yet deployed. Last deployment was around 03:38 UTC Nov 10; continue broader experience improvements before the next release.
 
-## Invariants and limitations
-Simulation, balance, save schema, rewards and audio mix unchanged. Reading mode holds text advancement, not the soundtrack or animated artwork. Re-enabling auto-play restarts the scene hold. Existing reward reveal players are separate from these story/intro changes. Full-screen 320x568 run-board limitation predates this work; do not claim all mobile layouts are solved.
+## Files modified
 
-## Local verification artifacts
-Workspace parent: cutscene-check.cjs, intro-check.cjs, intro-dive-check.cjs, motion-check.cjs, hud-feedback-check.cjs and screenshots. chrome-probe-compat.cjs adapts the installed Chrome to Playwright's old headless launch flag without modifying repository scripts. Repository logs: experience-tests.log, experience-build.log, experience-mobile.log (ignored).
+- Source (5): `src/changelog/releases.gen.ts`, `src/ui/DraftModal.tsx`, `src/ui/GameView.tsx`, `src/ui/Toolbar.tsx`, `src/ui/components/ProgressBar.tsx`
+- Tests (0): —
+- Docs (8): `docs/AI_HANDOFF.md`, `docs/CARDS.md`, `docs/HISTORY.md`, `docs/HUD.md`, `docs/PROJECT_STATUS.md`, `docs/UI-STANDARDS.md`, `docs/VALIDATION_REPORT.md`, `docs/devlog/DRAFT-2026-11-09.md`
 
-## Next
-Finish release verification, commit/deploy the coherent batch and verify live assets and website notes. Continue with gameplay understanding, settings discoverability and reward/audio/animation feedback. Keep scope broad and evidence-driven; preserve gameplay.
+## Systems affected (from the dependency registry)
 
-## Next batch: clearer reward screen
-Previous experience batch deployed as 3cc51a8349c7c9aabb09bf1d6abe86f53ec92e1f; Actions run 42746874975 succeeded and public assets/notes matched. New local RewardReveal changes: category clicks no longer nudge sequence; pending stat cues wait across milestone pause and resume once; post-run radios gain arrow/Home/End and roving Tab navigation. Browser harness ../reward-check.cjs verifies pause/resume audio, category isolation, skip, keyboard wrapping and next-stage choice forwarding. Website notes v2026.11.09.3 prepared for next roughly-hourly deployment.
+- **chronicle** — `src/changelog/releases.gen.ts`
+- **gene-cards** — `src/ui/DraftModal.tsx`
+- **run-ui** — `src/ui/GameView.tsx`, `src/ui/Toolbar.tsx`
+- **ui-kit** — `src/ui/components/ProgressBar.tsx`
+- Consumer ring (verify, unchanged): doctrines, engine
 
-Field Manual follow-up: expanded normalized search over all teaching fields, all-word fallback after phrase ranks, best-result reset when query changes, related-topic filter clearing and focus transfer, active-topic aria-current. helpSearch.test.ts 5 tests PASS; ../help-check.cjs verifies actual search/related/focus behavior in Chrome. Notes added to v2026.11.09.3.
+## Power Score changes
 
-Portrait follow-up: TowerPortrait now pauses off-screen/hidden, responds live to device reduced-motion, and retains elapsed animation time on resume. ../portrait-check.cjs measured zero offscreen frames, visible resume, reduced-motion still pixels, motion restoration and unmount cleanup. Same artwork, no gameplay changes. Notes added to current next-release ledger.
+None. UI input routing and accessible status only; simulation, balance, Power and rewards unchanged.
 
-Wallet follow-up: useRollingNumber now tracks the rendered integer rather than the last target; interrupted grants/spends remain continuous. Reduced-motion snap clears gaining state. ../wallet-check.cjs controls RAF to verify overlapping grants, spending, exact final value and reduced-motion. Notes included in next batch.
+## UI changes
 
-ChipPopover follow-up: focus-on-open, Escape containment/restoration, natural focus-out close, popup ARIA association and action-close restoration. ../popover-check.cjs passes keyboard and pointer focus checks. Updated current release notes.
+Surfaces in the blast radius: `App (UpdateBriefing popup)`, `GeneArchive`, `DraftModal`, `BuildPanel`, `gene splash`, `Splice pill`, `Results`, `ALL`, `(embedded everywhere)`
 
-Count-up follow-up: shared hook honors live OS reduced motion for toasts/vault totals, preserves completed values on restoring motion, handles zero duration. ../count-check.cjs PASS. Beginning full regression/build validation for next batch.
+ProgressBar clamps visual and accessible values consistently without rounding fractional progress away; conveyor growth names its organism and time remaining. Draft Enter respects focused buttons, text entry and pause. GameView lets focused controls own Space; paused/console input cannot trigger board actions. Chrome probes ../progress-check.cjs, ../draft-keyboard-check.cjs and ../pause-keyboard-check.cjs PASS. Existing HUD probe passes using live cooldown tolerance. Production build PASS; 63 card/draft/Hive and 43 tutorial/Hive tests PASS. Prior deployed checkpoint passed all 3150 tests and nine-viewport mobile gate; the next batch still needs its release gates.
 
-Clarity batch full suite PASS: 353 files/3150 tests; production build PASS. Next confirmed visual issue: components/HeroPortrait.tsx maintains a local CLASS_GLYPH table missing Resonant; use core/combatClass.ts COMBAT_CLASSES in the next visual pass. Keep roughly-hourly cadence; last deployed release remains 3cc51a83.
-Clarity mobile gate PASS across all nine standard viewports. All validation processes completed and probe server stopped. Batch ready as a local checkpoint; proceed with next visual pass before the next approximately-hourly release.
+## Documentation changes
 
-Hero class-symbol follow-up: removed the duplicate incomplete CLASS_GLYPH map; HeroPortrait reads COMBAT_CLASSES. All six classes verified in Chrome using actual representative hero definitions; ../hero-class-portraits.png inspected. Resonant now correctly shows ◈.
+Registry says these move with the touched systems: `docs/CHANGELOG-PIPELINE.md`, `docs/GENE-EVOLUTION.md`, `docs/CARDS.md`, `docs/GENE-AUDIT-REPORT.md`, `docs/ARCHITECTURE.md`, `docs/CODEMAP.md`, `docs/DESIGN.md`, `docs/EARLY-CALL.md`, `docs/DOCTRINES.md`, `docs/MODE-IDENTITY.md`, `docs/HUD.md`, `docs/READABILITY.md`, `docs/REWARD-PRESENTATION.md`, `docs/UI-STANDARDS.md`, `docs/STYLE-GUIDE.md`, `docs/UI-MOTION.md`, `docs/VISUAL_IDENTITY.md`, `docs/UI_STYLE_GUIDE.md`, `docs/DESIGN_LANGUAGE.md`, `docs/RESPONSIVE-DESIGN.md`, `docs/ICON-LANGUAGE.md`, `docs/INFO-HIERARCHY.md`
 
-Release preparation: v2026.11.09.3 Clearer Rewards and Answers rebuilt successfully. Full checkpoint: 3150 tests and mobile gate pass; subsequent hero glyph lookup: six-class visual probe and 34 final focused tests pass. Publishing now under owner recurring-deployment authorization; verify Actions and live assets before claiming deployed. Generated docs/devlog/DRAFT-2026-11-09.md remains unpublished/untracked.
+Updated CARDS, HUD, UI-STANDARDS, validation, status, handoff and generated website release notes. Other registry-listed docs need no change: no system contract, progression, content, economy or save changes.
+
+## Save changes
+
+None — save layer untouched.
+
+## Known edge cases
+
+Windows npm run validate wrapper cannot spawn npx with shell:false; direct build/test/mobile/doc checks provide the validation supplement. Chrome probes use ignoreDefaultArgs headless=old plus headless=new. Local devserver stopped. Root custom-domain version.json returns 404; verify deployed main JS hash and website note, allowing HTML cache propagation. Generated docs/devlog/DRAFT-2026-11-09.md remains unpublished/untracked.
+
+## Remaining technical debt
+
+No new architecture or save debt. Existing pause overlay is not a full focus-trapped dialog; current fix isolates keyboard ownership without redesigning the menu. A future accessibility pass should examine focus containment across run overlays.
+
+## Recommended next tasks
+
+Continue evidence-driven usability, visual, sound and cinematic improvements. Run final regression/build/mobile checks for the next coherent release; regenerate DIL/PIL if site artifacts affect freshness. Deploy feature HEAD to claude/zen-hawking-rh1gxl under existing authorization, wait for Actions, then verify game assets and news. Do not mark the ongoing goal complete based on one batch.
+
+## Future expansion hooks
+
+Existing ProgressBar, DraftModal and GameView remain the shared seams; no new framework needed.

@@ -174,3 +174,9 @@ Mobile gate now PASS: 27 navigation screens and live runs across nine desktop/ta
 Hero portrait symbol browser check PASS across all six combat classes using real hero definitions; screenshot visually inspected. Only glyph lookup changed.
 
 Clarity release final gate: rebuilt final source PASS. After the verified 3150-test checkpoint and nine-viewport mobile gate, the only gameplay-facing source delta is the HeroPortrait shared glyph lookup; six real hero classes visually checked, 34 final hero/site/DIL/PIL tests PASS. No unresolved failures.
+
+Progress accessibility probe PASS: 0.6/1 exposes 0.6 with 60% fill, over-cap clamps consistently, zero maximum and negative values expose valid empty ranges. Live HUD probe PASS after replacing a timing-sensitive exact-half assertion with comparison to the live cooldown within HUD refresh tolerance.
+
+Draft keyboard Chrome probe PASS: focused non-recommended choice, Stop Hive and reroll remain independent; paused click/number/Enter picks blocked; text input ignored; recommended Enter retained outside controls. Core cards/draftFit/hivemind: 3 files, 63 tests PASS.
+
+Pause keyboard Chrome probe PASS: settings toggle stays paused, abandon/Keep Playing preserve confirmation flow, Resume Space does not launch, paused board keys ignored, normal Space/P retained, hero console isolates hotkeys, text entry ignored. Production build PASS; tutorial/tutorialGate/hivemind: 43 tests PASS. No simulation, balance, save, reward or audio changes.

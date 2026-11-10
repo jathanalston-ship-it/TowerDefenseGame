@@ -1,6 +1,27 @@
 [
   {
     "date": "2026-11-09",
+    "title": "Progress You Can Follow",
+    "categories": [
+      "UI"
+    ],
+    "items": [
+      {
+        "cat": "UI",
+        "text": "Progress bars now expose accurate fractional values to screen readers instead of rounding partial unlocks to complete. Conveyor growth bars identify the organism and report progress and time remaining."
+      },
+      {
+        "cat": "UI",
+        "text": "Gene drafting respects keyboard focus: Enter activates the selected card, Stop Hive Intelligence, or reroll without accidentally taking the recommended gene. Paused drafts ignore card picks, and typing in a text field no longer triggers draft shortcuts."
+      },
+      {
+        "cat": "UI",
+        "text": "Pause-menu settings and confirmation buttons now work correctly with Enter and Space. Resuming with Space no longer also starts a wave, and board shortcuts stay quiet while paused, inside the hero console, or typing in a text field."
+      }
+    ]
+  },
+  {
+    "date": "2026-11-09",
     "title": "Clearer Rewards and Answers",
     "categories": [
       "UI",

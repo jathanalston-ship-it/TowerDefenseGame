@@ -133,7 +133,9 @@ export function Toolbar({
                     {idx < 3 && <span className="hotkey" title={`Press ${idx + 2} to arm this pod`}>{idx + 2}</span>}
                   </div>
                   {!ready && (
-                    <div className="cv-grow" role="progressbar" aria-label={`Growing — ${Math.ceil(c.readyIn)}s`}>
+                    <div className="cv-grow" role="progressbar" aria-label={`${def.name} growth`}
+                      aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(Math.max(0, Math.min(1, c.growFrac)) * 100)}
+                      aria-valuetext={`${Math.ceil(c.readyIn)} seconds until ready`}>
                       <span className="cv-grow-fill" />
                       <span className="cv-timer">{Math.ceil(c.readyIn)}s</span>
                     </div>

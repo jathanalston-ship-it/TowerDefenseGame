@@ -263,3 +263,5 @@ surface = a host class + `<RarityFx>` — never bespoke glow CSS.
 
 ### Currency explanation focus
 ChipPopover is a non-modal dialog: opening focuses its container without scrolling, Tab can reach its action and leave naturally, focus leaving closes it, and Escape/resize/scroll dismissal restores the chip only if focus was inside the popup. Outside clicks preserve the new target. Triggers expose aria-haspopup and aria-controls.
+
+ProgressBar uses the same clamped, fractional value for fill width and aria-valuenow. A missing/invalid maximum produces an empty valid 0–1 range. Conveyor growth labels identify the organism and expose percent plus a readable time-until-ready value.

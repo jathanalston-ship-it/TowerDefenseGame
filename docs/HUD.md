@@ -1,5 +1,10 @@
 # HUD.md — HUD Analysis & Redesign (desktop-first)
 
+Keyboard ownership: focused controls own Space; text fields do not dispatch board shortcuts.
+Paused runs ignore board actions except P to resume. The hero console owns its pause and
+closes with E/Escape; board shortcuts cannot act through it. The pause backdrop handles
+Enter/Space only when it itself has focus, leaving its settings and confirmation buttons intact.
+
 Layout + visual specs for the in-run HUD. Derives all colors/type/spacing from
 `STYLE-GUIDE.md`. Grounded in the current build (`src/ui/Hud.tsx`,
 `Toolbar.tsx`, `DraftModal.tsx`, `GameView.tsx`; data model = `HudSnapshot` in

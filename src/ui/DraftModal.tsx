@@ -211,7 +211,7 @@ export function DraftModal({
   recIdRef.current = options[best].id;
 
   const pick = (id: string): void => {
-    if (!armed.current || picked.current) return; // ignore pre-arm clicks; one pick only
+    if (paused || !armed.current || picked.current) return; // ignore paused/pre-arm clicks; one pick only
     picked.current = true;
     window.clearTimeout(hoverTimer.current);
     setHoverDetail(null);
@@ -275,11 +275,17 @@ export function DraftModal({
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent): void => {
+      if (paused || e.defaultPrevented || e.ctrlKey || e.metaKey || e.altKey) return;
+      const target = e.target instanceof HTMLElement ? e.target : null;
+      if (target?.closest('input, textarea, select, [contenteditable="true"]')) return;
       if (e.key === 'Shift') { setDetailAll(true); return; } // hold to peek exact values
       if (e.repeat) return;
       if (e.key >= '1' && e.key <= String(options.length)) {
         pick(options[Number(e.key) - 1].id);
       } else if (e.key === 'Enter') {
+        // Focused controls own Enter: a different card, Stop Hive, or reroll must not
+        // also commit the recommended gene through this window-level shortcut.
+        if (target?.closest('button, a, [role="button"]')) return;
         pick(recIdRef.current);
       }
     };
@@ -293,7 +299,7 @@ export function DraftModal({
       window.removeEventListener('keyup', onKeyUp);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [options]);
+  }, [options, paused]);
 
   return (
     <div className={`overlay${committed ? ' is-committing' : ''}`}>

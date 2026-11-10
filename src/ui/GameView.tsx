@@ -1036,14 +1036,23 @@ export function GameView({
   // ── Desktop keyboard shortcuts (1-N towers · Q ability · Space wave · Esc) ──
   useEffect(() => {
     const onKey = (e: KeyboardEvent): void => {
-      if (e.repeat || e.metaKey || e.ctrlKey || e.altKey) return;
+      if (e.defaultPrevented || e.repeat || e.metaKey || e.ctrlKey || e.altKey) return;
+      const target = e.target instanceof HTMLElement ? e.target : null;
+      if (target?.closest('input, textarea, select, [contenteditable="true"]')) return;
+      // Space belongs to a focused control, not to the board beneath it.
+      if ((e.key === ' ' || e.key === 'Spacebar') && target?.closest('button, a, [role="button"], [role="switch"]')) return;
       audio.resume();
       // Board hotkeys only during active play — the draft owns the keyboard while open.
       if (game.phase !== 'prep' && game.phase !== 'wave') return;
       const k = e.key;
+      if (evoOpenRef.current) {
+        if (k === 'Escape' || k === 'e' || k === 'E') setEvoOpen(false);
+        return;
+      }
       // Tutorial: the director scripts wave starts and pins 1× speed — swallow their hotkeys.
       if (tutorial && (k === ' ' || k === 'Spacebar' || k === 'f' || k === 'F')) { e.preventDefault(); return; }
       if (k === 'p' || k === 'P') { togglePause(); return; }
+      if (pausedRef.current || tutPausedRef.current) return;
       if (k >= '1' && k <= '4') {
         // The number row mirrors the DEPLOY DOCK left→right: 1 = the favorite rail card,
         // 2-4 = the conveyor pods (the chips on those cards ARE these keys). The old 1-N
@@ -1075,7 +1084,6 @@ export function GameView({
         if (game.phase === 'wave') game.callWaveEarly();
         else game.startWave();
       } else if (k === 'Escape') {
-        if (evoOpenRef.current) { setEvoOpen(false); return; } // console first, then board intents
         game.cancelInteractions(); // close inspect / cancel move / disarm placement
       } else {
         return;
@@ -1300,7 +1308,11 @@ export function GameView({
             tabIndex={0}
             aria-label="Resume"
             onClick={togglePause}
-            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); togglePause(); } }}
+            onKeyDown={(e) => {
+              if (e.target === e.currentTarget && (e.key === 'Enter' || e.key === ' ')) {
+                e.preventDefault(); togglePause();
+              }
+            }}
           >
             <div className="pause-card" onClick={(e) => e.stopPropagation()}>
               <div className="pause-eyebrow">Simulation held</div>

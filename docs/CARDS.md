@@ -1,5 +1,9 @@
 # CARDS.md — Roguelite Card Drafting (canonical spec)
 
+Keyboard draft controls respect focus: Enter on a card or another button activates that control;
+Enter elsewhere keeps the recommended-pick shortcut. Text fields and modified key combinations
+do not trigger draft shortcuts. Paused drafts reject manual picks as well as suspending auto-picks.
+
 The in-run roguelite layer. Companion to `DESIGN.md §6.3`, `TOWERS.md`,
 `HEROES.md`, `ECONOMY.md`. **Cards are temporary (reset every run) and are the
 primary source of run-to-run build diversity.** The *pool* you draw from is
