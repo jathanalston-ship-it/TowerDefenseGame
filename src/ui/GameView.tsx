@@ -1061,6 +1061,11 @@ export function GameView({
       if (e.defaultPrevented || e.repeat || e.metaKey || e.ctrlKey || e.altKey) return;
       const target = e.target instanceof HTMLElement ? e.target : null;
       if (target?.closest('input, textarea, select, [contenteditable="true"]')) return;
+      // A focused HUD explanation is a reading surface, not a wave-start target.
+      if ((e.key === ' ' || e.key === 'Spacebar') && target?.closest('.hud-cell.tt')) {
+        e.preventDefault();
+        return;
+      }
       // Space belongs to a focused control, not to the board beneath it.
       if ((e.key === ' ' || e.key === 'Spacebar') && target?.closest('button, a, [role="button"], [role="switch"]')) return;
       audio.resume();

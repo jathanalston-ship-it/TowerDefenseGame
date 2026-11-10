@@ -326,3 +326,5 @@ live deck refreshes. Reading keys do not dispatch battlefield shortcuts; Escape 
 its normal handling. Draft choices, stacking math and effects are unchanged.
 
 HUD resource explanations open below their readouts with inward edge alignment and raised active cells, so keyboard/hover/touch details stay inside the viewport. The shared tooltip behavior and simulation remain unchanged.
+
+Space on a focused HUD explanation is consumed before battlefield shortcuts; the Hero readout still opens its Console, and unfocused-board Space still starts waves.

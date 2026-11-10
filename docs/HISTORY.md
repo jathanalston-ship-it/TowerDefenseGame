@@ -776,3 +776,4 @@
 - `6754688` **[Framework]** Docs: record verified intel deployment _(internal)_
 - `57569d2` **[UI]** Ui: make bond explanations accessible and run accurate _(internal)_
 - `eb5c069` **[Gene Cards]** Make drafted gene descriptions readable _(internal)_
+- `52267c3` **[UI]** Keep HUD explanations on screen _(internal)_

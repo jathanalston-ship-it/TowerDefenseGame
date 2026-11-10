@@ -1784,3 +1784,8 @@ Only active handle: mobile99507, read-build-mobile.log, running original full mo
 ## 2026-11-10 18:16 UTC — HUD explanation placement (local)
 
 Unsealed Read Your Build now has four website notes. CSS-only HUD explanations open below readouts with inward edge alignment and active stacking above run controls. Baseline negative top coordinates and an intermediate toolbar occlusion were reproduced; final keyboard GameView probe39136 passed four viewport sizes, and the phone screenshot was inspected. Eleven site/UI-standard tests38320 and docs check passed. Prior three-note mobile99507 completed CLEAN (27 nav +9 gameplay profiles); final build39671 passed10.42s; original updated mobile30430 is running, hud-tooltip-mobile.log. No balance/save changes. Live remains .8; next approximate deployment18:42UTC.
+
+
+## 2026-11-10 18:20 UTC — HUD reading keys (local)
+
+Reproduced Space on focused Core explanation starting a wave. GameView now consumes that key for HUD cells; real browser probe1764 passed Core/Power/Biomass reading, Hero Console activation and normal board Space wave start. Added fifth website note and canonical HUD documentation. Eleven site/UI tests78230 and docs38229 passed. Typecheck96986 and prior-build mobile30430 are still running; no dist overwrite while mobile owns it. Gameplay simulation unchanged.

@@ -1,6 +1,6 @@
 {
-  "lastSha": "eb5c069c318fd4a1979c94346b23d882cc34b21b",
-  "commitsSinceDraft": 2,
+  "lastSha": "52267c383b18fe9eb600e29aaae7ea35c4d8eb4d",
+  "commitsSinceDraft": 3,
   "content": {
     "tower": [
       "needle",
@@ -4615,6 +4615,10 @@
         {
           "cat": "Bug Fixes",
           "text": "HUD explanations now open below their readouts, keeping Core, Power, Biomass, pressure and Hero details on screen. Edge readouts align their explanations inward on narrow screens."
+        },
+        {
+          "cat": "Bug Fixes",
+          "text": "Pressing Space while reading a focused HUD resource explanation no longer starts a wave. The battlefield wave shortcut and Hero Console activation still work as before."
         }
       ]
     }
@@ -10473,6 +10477,14 @@
       "date": "2026-11-10",
       "cat": "Gene Cards",
       "text": "Make drafted gene descriptions readable",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "52267c383b18fe9eb600e29aaae7ea35c4d8eb4d",
+      "date": "2026-11-10",
+      "cat": "UI",
+      "text": "Keep HUD explanations on screen",
       "internal": true,
       "needsReview": false
     }

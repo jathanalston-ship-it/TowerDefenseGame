@@ -25,6 +25,10 @@ export const RELEASES: Release[] = [
       {
         "cat": "Bug Fixes",
         "text": "HUD explanations now open below their readouts, keeping Core, Power, Biomass, pressure and Hero details on screen. Edge readouts align their explanations inward on narrow screens."
+      },
+      {
+        "cat": "Bug Fixes",
+        "text": "Pressing Space while reading a focused HUD resource explanation no longer starts a wave. The battlefield wave shortcut and Hero Console activation still work as before."
       }
     ]
   },

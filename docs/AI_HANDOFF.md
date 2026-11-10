@@ -4,28 +4,31 @@
 > before committing. Read together with docs/PROJECT_STATUS.md and the latest
 > docs/VALIDATION_REPORT.md. Next session: start at docs/PROJECT_MANIFEST.md.
 
-- **Generated:** 2026-11-10 18:14 UTC · **Diff scope:** working tree vs HEAD
-- **Branch:** codex/hive-autoplay · **HEAD:** eb5c069c
+- **Generated:** 2026-11-10 18:19 UTC · **Diff scope:** working tree vs HEAD
+- **Branch:** codex/hive-autoplay · **HEAD:** 52267c38
 
 ## Summary of work completed
 
-Live remains v2026.11.10.8 Know What Is Coming, SHA8950ec0d44d7f3959d988c4e6460b42f0a468ca0, Actions42867374482 SUCCESS; normal game/home/news verified17:42UTC. Local unsealed .9 Read Your Build now has FOUR generated website notes: accessible Bond details, Daily run-accurate bond values, readable drafted Gene Cards, and HUD explanations below readouts. Continuous goal active; next approximate deployment18:42UTC.
+Live remains v2026.11.10.8 Know What Is Coming, SHA8950ec0d44d7f3959d988c4e6460b42f0a468ca0, Actions42867374482 SUCCESS; normal game/home/news verified17:42UTC. Local unsealed .9 Read Your Build now has FIVE generated website notes: accessible Bond details, Daily run-accurate bond values, readable drafted Gene Cards, HUD explanations below readouts, and safe Space while reading HUD help. Continuous goal active; next approximate deployment18:42UTC.
 
 ## Files modified
 
-- Source (2): `src/changelog/releases.gen.ts`, `src/ui/GameView.css`
+- Source (2): `src/changelog/releases.gen.ts`, `src/ui/GameView.tsx`
 - Tests (0): —
 - Docs (5): `docs/HISTORY.md`, `docs/HUD.md`, `docs/PROJECT_MANIFEST.md`, `docs/devlog/DRAFT-2026-11-09.md`, `docs/devlog/DRAFT-2026-11-10.md`
 
 ## Systems affected (from the dependency registry)
 
 - **chronicle** — `src/changelog/releases.gen.ts`
+- **run-ui** — `src/ui/GameView.tsx`
 
 ## Power Score changes
 
 None. Prior added HUD bond level is read-only; no gameplay, balance or save changes.
 
 ## UI changes
+
+Latest: GameView consumes Space on focused .hud-cell.tt before wave shortcuts. Real GameView baseline95814 terminalPASS reproduced phase=wave while reading Core. Fixed probe1764 terminalPASS confirmed Core/Power/Biomass remain prep, Hero Space opens Console, and unfocused-board Space starts wave. Eleven site/UI tests78230 and docs38229 terminalPASS. Typecheck96986 still running; poll same handle. No new build while mobile30430 uses current dist.
 
 New CSS-only HUD tooltip placement opens downward, anchors Core/Hero/portrait Biomass inward, and raises active HUD above run controls (49 vs48, below pause50). Initial browser geometry exposed negative top coordinates. First implementation still covered by toolbar; screenshot inspection caught and fixed stacking. Final keyboard-only real GameView probe39136 terminalPASS across320x568,390x844,844x390,1280x800; all visible tooltip bounds inside viewport. Final phone screenshot inspected. Hover geometry also passed before final stacking change. Probe ../hud-tooltip-bounds-check.cjs waits2500ms for initial layout before focus; an earlier keyboard check lost focus during initialization, so its hidden-tooltip result was a fixture issue. Current eleven site/UI-standard tests38320 PASS; docs check PASS. Final production build39671 terminalPASS10.42s, hud-tooltip-final-build.log. Earlier build40313 PASS20.97s predates final z-index line.
 
@@ -47,7 +50,7 @@ Existing Windows validate launcher issue only. Two untracked docs/devlog/DRAFT-2
 
 ## Recommended next tasks
 
-Original mobilecheck30430 is RUNNING on final dist, log hud-tooltip-mobile.log (Chrome headless=new preload ../chrome-probe-compat.cjs). Poll SAME handle; do not overwrite dist while it runs. Record terminal results. All other known test/build handles are terminal. Vite5174 remains running with unknown session handle: verified PID30948 vite.js and parent32932 npm run dev; stop only those after verifying if cleanup needed. Probe files/logs live in parent; no active browser probe. Continue scoped work until approximate18:42 deployment, then seal/regenerate/build/site checks/mobile and push authorized production ref, verify Actions exactSHA and normal custom-domain URLs. No permission request needed. Keep goal active.
+Original mobilecheck30430 is RUNNING on final dist, log hud-tooltip-mobile.log (Chrome headless=new preload ../chrome-probe-compat.cjs). Poll SAME handle; do not overwrite dist while it runs. Record terminal results. Typecheck96986 still pending; other known test/build handles terminal. Mobile30430 covers previous four-note HUD CSS build, not the newest keyboard guard. After it finishes, rebuild for the five-note release and final mobile gate. Vite5174 remains running with unknown session handle: verified PID30948 vite.js and parent32932 npm run dev; stop only those after verifying if cleanup needed. Probe files/logs live in parent; no active browser probe. Continue scoped work until approximate18:42 deployment, then seal/regenerate/build/site checks/mobile and push authorized production ref, verify Actions exactSHA and normal custom-domain URLs. No permission request needed. Keep goal active.
 
 ## Future expansion hooks
 

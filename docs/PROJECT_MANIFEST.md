@@ -526,7 +526,7 @@ Career statistic hints use explicit Details buttons and inline reading panels. P
 
 ## HUD
 
-- HUD explanations open below their readouts with inward edge alignment and active stacking above run controls. See HUD.md.
+- HUD explanations open below their readouts with inward edge alignment and active stacking above run controls. Space while reading a focused HUD cell cannot start waves; Hero activation and board shortcuts retain their behavior. See HUD.md.
 
 - Toolbar hero auto-cast exposes its toggle state after unlock and under Hive management; the initial unlock retains purchase-button semantics. Favorite/conveyor placement exposes armed state, and conveyor deploy names include organism/cost. Consumed cards restore keyboard focus; free starting organisms display their actual zero recycle refund. Sale/branch confirmations contain keyboard focus and cancel on Pause; completed/unaffordable upgrades return focus to their tier preview. See HUD.md.
 
