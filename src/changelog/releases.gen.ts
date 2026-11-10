@@ -13,6 +13,10 @@ export const RELEASES: Release[] = [
       {
         "cat": "UI",
         "text": "Profile Power explanations expand with a tap, Enter, or Space and stay open while you read. The rows have larger interaction targets, and multiplier values show more precision so small positive bonuses are not rounded away."
+      },
+      {
+        "cat": "UI",
+        "text": "Career statistics with explanations now have keyboard- and touch-accessible Details controls. Explanations stay open inline while you read, including after reopening their section, and ordinary statistic cards stay compact."
       }
     ]
   },

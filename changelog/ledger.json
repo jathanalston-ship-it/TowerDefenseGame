@@ -1,6 +1,6 @@
 {
-  "lastSha": "660656c8e498a22b2f2bb19a611fa9d51d2f6491",
-  "commitsSinceDraft": 6,
+  "lastSha": "b1d86201c8fa2281fc6ba9b3b4cf35f6a12ae5d0",
+  "commitsSinceDraft": 7,
   "content": {
     "tower": [
       "needle",
@@ -4439,6 +4439,10 @@
         {
           "cat": "UI",
           "text": "Profile Power explanations expand with a tap, Enter, or Space and stay open while you read. The rows have larger interaction targets, and multiplier values show more precision so small positive bonuses are not rounded away."
+        },
+        {
+          "cat": "UI",
+          "text": "Career statistics with explanations now have keyboard- and touch-accessible Details controls. Explanations stay open inline while you read, including after reopening their section, and ordinary statistic cards stay compact."
         }
       ]
     }
@@ -9913,6 +9917,14 @@
       "date": "2026-11-10",
       "cat": "Framework",
       "text": "Docs: record readable rewards production verification",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "b1d86201c8fa2281fc6ba9b3b4cf35f6a12ae5d0",
+      "date": "2026-11-10",
+      "cat": "UI",
+      "text": "Ui: make profile power explanations expandable",
       "internal": true,
       "needsReview": false
     }

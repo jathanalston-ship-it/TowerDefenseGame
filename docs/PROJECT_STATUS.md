@@ -1518,3 +1518,9 @@ LIVE v2026.11.10.2 Rewards You Can Read, seven sealed website notes. SHA e176563
 Profile Power rows use native details/summary with44px minimum targets, inline descriptions and persistent open state. Pointer/Enter/Space supported. Multiplier display uses2–4decimals to preserve small positive bonuses; score/share/bar calculations unchanged. First unsealed website note prepared for .10.3 Progress Explained.
 
 Validation: build13806 PASS6.02s before final precision formatting; final ../power-details-check.cjs actual Chrome PASS all6disclosures, keyboard/pointer controls, unchanged values, small positive multiplier visible and1366/390/320 fit with44px targets. Screenshot reviewed.24profile/power/site tests PASS;docs66410 PASS. Final typecheck24831 terminal PASS. Live stays .10.2, next approximate deployment09:52UTC.
+
+## 2026-11-10 — Career detail controls (local .10.3)
+
+StatCell hints now use explicit44px Details buttons with expanded state and controlled inline text; ordinary cells remain static. Open hints survive parent Fold close/reopen. Removed two internal documentation references from player-facing hints. No statistic calculations or saves changed.
+
+Validation: build89016 PASS7.28s before final wording-only cleanup;10profile tests PASS again after cleanup,4site-sync tests PASS,docs52147 PASS. ../career-details-check.cjs actual Chrome PASS42hints,Enter/Space/click,controlledregions,parentfoldpersistence,unchangedvalues and1366/390/320fit/44px. First probe failed because its dynamic closed-section selector shrank during iteration; corrected probe passed, no product defect there. Screenshot reviewed. All processes terminal. Two unsealed website notes prepared for .10.3;live .10.2 remains,next deploy roughly09:52UTC.

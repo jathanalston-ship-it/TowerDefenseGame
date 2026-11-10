@@ -115,8 +115,8 @@ profileRegistry.registerAll([
       { id: 'towers-built', label: 'Towers Grown', value: num(TOWER_ORDER.reduce((a, k) => a + (s.stats.towerUsage[k] ?? 0), 0)) },
       { id: 'hero-kills', label: 'Hero Kills', value: num(HERO_ORDER.reduce((a, k) => a + (s.heroKills[k] ?? 0), 0)) },
       { id: 'cards-drafted', label: 'Gene Cards Drafted', value: num(s.stats.cardsDrafted) },
-      { id: 'strands-found', label: 'Strands Discovered', value: `${(s.genesDiscovered ?? []).length}/${cardRegistry.ids().length}`, hint: 'Gene cards permanently recovered into the Archive — starters free, the rest from Bio-Containers (docs: Gene Discovery).' },
-      { id: 'evo-loops', label: 'Evolution Loops', value: num(Object.values(s.masteryEvolution ?? {}).reduce((a, st) => a + Math.max(0, st.prestige), 0)), hint: 'Completed Mastery Evolution prestiges across the roster (docs: Evolution Track).' },
+      { id: 'strands-found', label: 'Strands Discovered', value: `${(s.genesDiscovered ?? []).length}/${cardRegistry.ids().length}`, hint: 'Gene cards permanently recovered into the Archive — starters free, the rest from Bio-Containers.' },
+      { id: 'evo-loops', label: 'Evolution Loops', value: num(Object.values(s.masteryEvolution ?? {}).reduce((a, st) => a + Math.max(0, st.prestige), 0)), hint: 'Completed Mastery Evolution loops across the roster.' },
     ],
   },
   {

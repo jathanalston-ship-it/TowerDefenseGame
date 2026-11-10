@@ -150,3 +150,5 @@ platform formalizes, so it survives guest→account upgrades and never changes).
 ### Reading Power explanations
 
 Power category rows are native details/summary disclosures, usable with pointer, Enter or Space. Each summary has a 44px minimum target; descriptions and multipliers expand inline and stay readable without hover. Display multipliers use two to four decimal places so small positive bonuses remain visible. Score, share attribution and bar widths still use the same powerBreakdown model.
+
+Career StatCell hints use explicit Details buttons with aria-expanded/aria-controls and 44px minimum targets. Hints expand inline without hover; ordinary cells remain static. Closing/reopening a parent Fold retains each card's reading state while the Career page stays mounted. Registry values and progress calculations are unchanged.

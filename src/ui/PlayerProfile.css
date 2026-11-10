@@ -321,6 +321,9 @@
 }
 
 .pf-stat:hover { border-color: var(--line-strong); transform: translateY(-1px); }
+.pf-stat-toggle { display: flex; flex-direction: column; gap: 4px; width: 100%; min-height: 44px; padding: 0; border: 0; border-radius: 0; background: transparent; color: inherit; text-align: left; }
+.pf-stat-details { color: var(--muted); font-size: 11px; }
+.pf-stat-hint { margin: 4px 0 0; color: var(--muted); font-size: 12px; line-height: 1.5; }
 
 .pf-stat-k { font-size: 10px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
 

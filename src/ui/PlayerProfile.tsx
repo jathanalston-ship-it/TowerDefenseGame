@@ -6,7 +6,7 @@
 // this file. Identity surfaces (title picker, achievement gallery) embed the existing
 // components rather than duplicating them.
 
-import { useState } from 'react';
+import { useId, useState } from 'react';
 import type { CSSProperties } from 'react';
 import { AccountCard } from './components/AccountPanel';
 import { myDesignationTag } from '../net/identity';
@@ -49,14 +49,24 @@ const PF_TABS = [
 type PfTab = (typeof PF_TABS)[number]['id'];
 
 function StatCell({ s }: { s: ProfileStat }): JSX.Element {
-  return (
-    <div className={`pf-stat${s.hint ? ' tt' : ''}`} tabIndex={s.hint ? 0 : undefined}>
+  const [expanded, setExpanded] = useState(false);
+  const hintId = useId();
+  const content = <>
       <span className="pf-stat-k">{s.label}</span>
       <span className="pf-stat-v" style={s.color ? { color: s.color } : undefined}>{s.value}</span>
       {s.progress !== undefined && (
         <span className="pf-stat-bar" aria-hidden><i style={{ width: `${Math.round(Math.min(1, s.progress) * 100)}%` }} /></span>
       )}
-      {s.hint && <span className="tt-bubble">{s.hint}</span>}
+  </>;
+  return (
+    <div className="pf-stat">
+      {s.hint ? <>
+        <button type="button" className="pf-stat-toggle" aria-expanded={expanded} aria-controls={hintId} onClick={() => setExpanded(v => !v)}>
+          {content}
+          <span className="pf-stat-details">{expanded ? 'Hide details' : 'Details'} <span aria-hidden>{expanded ? '▾' : '▸'}</span></span>
+        </button>
+        <p className="pf-stat-hint" id={hintId} hidden={!expanded}>{s.hint}</p>
+      </> : content}
     </div>
   );
 }
