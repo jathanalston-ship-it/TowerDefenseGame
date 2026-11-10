@@ -5,6 +5,18 @@ import { MECHANICS } from '../state/mechanics';
 import { helpMatchTier, searchMechanics } from './helpSearch';
 
 describe('help search — best match first', () => {
+  it('finds advice and locations beyond the What section', () => {
+    for (const query of ['repetitive setup', 'beside speed', 'guaranteed win']) {
+      expect(searchMechanics(MECHANICS, query).some((m) => m.id === 'hive-autoplay')).toBe(true);
+    }
+  });
+
+  it('treats punctuation as spaces and finds words across teaching sections', () => {
+    expect(searchMechanics(MECHANICS, 'run-local').map((m) => m.id)).toEqual(searchMechanics(MECHANICS, 'run local').map((m) => m.id));
+    expect(searchMechanics(MECHANICS, 'repetitive countdown').some((m) => m.id === 'hive-autoplay')).toBe(true);
+    expect(searchMechanics(MECHANICS, 'repetitive nonexistentword')).toEqual([]);
+  });
+
   it('"threat" opens The Threat Ladder, not a mode that merely mentions threat', () => {
     const hits = searchMechanics(MECHANICS, 'threat');
     expect(hits[0].id).toBe('threat');

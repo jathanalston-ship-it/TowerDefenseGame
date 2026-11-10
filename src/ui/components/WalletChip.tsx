@@ -21,9 +21,10 @@ function useRollingNumber(value: number, ms = 600): { shown: number; rising: boo
   const prev = useRef(value);
   useEffect(() => {
     const from = prev.current;
-    prev.current = value;
     if (reduced || from === value) {
+      prev.current = value;
       setShown(value);
+      setRising(false);
       return undefined;
     }
     setRising(value > from);
@@ -31,7 +32,9 @@ function useRollingNumber(value: number, ms = 600): { shown: number; rising: boo
     const start = performance.now();
     const tick = (now: number): void => {
       const p = Math.min(1, (now - start) / ms);
-      setShown(Math.round(from + (value - from) * (1 - Math.pow(1 - p, 3))));
+      const next = Math.round(from + (value - from) * (1 - Math.pow(1 - p, 3)));
+      prev.current = next; // another grant/spend starts from the number actually on screen
+      setShown(next);
       if (p < 1) raf = requestAnimationFrame(tick);
       else setRising(false);
     };

@@ -260,3 +260,6 @@ name in its colour; an isolated host that carries a `.tt` tooltip lifts itself o
 (OS · `:root`/`.game[data-motion]`) keeps every colour and drops the motion (static glow, solid edge, crown
 at rest); Flashes off (`data-flashes`) drops `rfx-flash`. A new rarity = a row in each table; a new item
 surface = a host class + `<RarityFx>` — never bespoke glow CSS.
+
+### Currency explanation focus
+ChipPopover is a non-modal dialog: opening focuses its container without scrolling, Tab can reach its action and leave naturally, focus leaving closes it, and Escape/resize/scroll dismissal restores the chip only if focus was inside the popup. Outside clicks preserve the new target. Triggers expose aria-haspopup and aria-controls.

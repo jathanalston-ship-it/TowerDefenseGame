@@ -157,3 +157,16 @@ HUD follow-up: typecheck PASS; 34 hero/autocast/Hive tests PASS. Browser smoke v
 
 ## Experience release gate — 2026-11-10 03:02 UTC
 Production build PASS. Full suite: 351 files/3146 tests passed, 2 generated documentation checks initially failed; DIL/PIL regenerated, both files pass all 13 tests. All 3148 tests accounted for with no unresolved failures. Doc anchors/references and public structural audit PASS. Mobile gate CLEAN: 27 nav screens plus live runs across nine desktop/tablet/phone/browser viewports; no overflow, clipped text, sub-24px targets or run-chrome overlap. Existing large-chunk build warning remains. No claim that these checks prove every possible regression absent.
+
+Reward reveal follow-up (local, next batch): Chrome checks PASS for category click isolation, paused/resumed stat audio exactly once, skip, radio arrow wrapping and selected-choice forwarding. Focused reward/audio/site tests: 29/29 PASS. Gameplay rewards unchanged.
+
+Field Manual follow-up: five search tests PASS. Chrome verified query changes select best result, related links clear filters and focus articles, advice text matches, active-topic state and empty results. No changes to unlock gates or gameplay.
+
+Tower portrait browser probe PASS: visible frame activity, zero draw calls while scrolled offscreen, visible resume, zero continuing frames after reduced-motion switch with nonblank still, motion restoration and unmount cleanup.
+
+Wallet browser probe PASS using controlled RAF: interrupted gains remain continuous, spending does not jump upward, final balance exact, reduced-motion snaps and clears highlight. Accounting code untouched.
+
+ChipPopover Chrome checks PASS: initial dialog focus, Tab to action, Escape restoration without bubbling to outer controls, Tab-out close, action-close restoration, outside-click target retains focus.
+
+Clarity batch full verification: production build PASS; all 353 test files and 3150 tests PASS in a single full run (317.71s). Shared count-up browser probe PASS for live reduced-motion snap, subsequent totals, restoring motion without replay, zero duration and nonpositive targets. Mobile gate still pending at this note.
+Mobile gate now PASS: 27 navigation screens and live runs across nine desktop/tablet/phone/browser viewports; no overflow, clipped text, undersized targets or run-chrome overlap.

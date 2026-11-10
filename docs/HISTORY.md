@@ -668,3 +668,4 @@
 ## 2026-11-09
 
 - `6ace805` **[Website]** Ship Hive Intelligence auto-play and curated website notes _(internal)_
+- `3cc51a8` **[Gameplay]** Improve cinematic reading and gameplay feedback _(internal)_

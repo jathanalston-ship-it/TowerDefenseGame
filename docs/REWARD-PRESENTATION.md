@@ -202,3 +202,10 @@ The Bio-Containers bucket's banked rows (`.ve-row`) are `rfx-lite` hosts in thei
 glow — a Mythic row is unmistakably not a Common one at a glance. Caches stay their own dashed
 `--cache` identity (never a rarity). Pacing (`CATEGORY_MS`/`SETTLE_MS`) is unchanged. The Genome Rank
 promotion that can follow a run is a legendary-tier moment (docs/GAME-FEEL.md §reward-vfx).
+
+### Results interaction and sound timing
+Reward category headers only expand/collapse details; their clicks do not nudge the reveal timeline. Post-run choice groups use roving Tab focus and arrow/Home/End selection. Delayed stat sounds are queued in RewardReveal across milestone pauses, deduplicated per pending batch, and cancelled on unmount. Rewards remain applied upstream.
+
+Wallet rolling counters retain their last rendered integer as the next animation start. Overlapping rewards/spending therefore never jump to an unrendered target. Reduced-motion/same-value snaps also clear the gaining state; currency accounting and the accessible true balance are unchanged.
+
+The shared useCountUp hook follows live device reduced-motion requests even when callers do not pass instant. Completed totals remain settled when motion is restored; zero-duration and nonpositive targets snap safely.

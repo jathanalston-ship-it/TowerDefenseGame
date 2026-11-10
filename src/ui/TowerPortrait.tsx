@@ -76,16 +76,40 @@ export function TowerPortrait({
     canvas.width = size * dpr;
     canvas.height = size * dpr;
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    const reduced = !!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
-    if (reduced) { drawPortrait(ctx, size, size, color, stars, 0, kind, branchId, tier); return; }
+    const motion = window.matchMedia?.('(prefers-reduced-motion: reduce)');
     let raf = 0;
-    const start = performance.now();
+    let visible = true;
+    let elapsed = 0;
+    let previous: number | null = null;
     const frame = (nowMs: number): void => {
-      drawPortrait(ctx, size, size, color, stars, (nowMs - start) / 1000, kind, branchId, tier);
+      if (previous !== null) elapsed += (nowMs - previous) / 1000;
+      previous = nowMs;
+      drawPortrait(ctx, size, size, color, stars, elapsed, kind, branchId, tier);
       raf = requestAnimationFrame(frame);
     };
-    raf = requestAnimationFrame(frame);
-    return () => cancelAnimationFrame(raf);
+    const sync = (): void => {
+      cancelAnimationFrame(raf);
+      previous = null; // resuming a scrolled-away portrait never jumps its animation clock
+      if (motion?.matches) {
+        drawPortrait(ctx, size, size, color, stars, 0, kind, branchId, tier);
+      } else if (visible && !document.hidden) raf = requestAnimationFrame(frame);
+    };
+    // Always leave a complete portrait behind, even before its first visible animation frame.
+    drawPortrait(ctx, size, size, color, stars, 0, kind, branchId, tier);
+    const observer = typeof IntersectionObserver === 'undefined' ? null : new IntersectionObserver(([entry]) => {
+      visible = entry.isIntersecting;
+      sync();
+    });
+    observer?.observe(canvas);
+    motion?.addEventListener('change', sync);
+    document.addEventListener('visibilitychange', sync);
+    sync();
+    return () => {
+      cancelAnimationFrame(raf);
+      observer?.disconnect();
+      motion?.removeEventListener('change', sync);
+      document.removeEventListener('visibilitychange', sync);
+    };
   }, [color, stars, size, kind, branchId, tier]);
   return <canvas ref={ref} className="tl-portrait-canvas" style={{ width: size, height: size }} aria-hidden />;
 }

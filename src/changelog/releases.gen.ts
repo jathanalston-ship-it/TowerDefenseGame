@@ -5,10 +5,46 @@ import type { Release } from './types';
 /** Player-facing releases, newest first. */
 export const RELEASES: Release[] = [
   {
+    "id": "v2026.11.09.3",
+    "date": "2026-11-09",
+    "title": "Clearer Rewards and Answers",
+    "sealed": false,
+    "entries": [
+      {
+        "cat": "UI",
+        "text": "Inspecting a reward category no longer advances the reveal sequence. Post-run choices now support arrow keys, Home and End, with one Tab stop for the group."
+      },
+      {
+        "cat": "Audio",
+        "text": "Reward sounds wait while a milestone cinematic covers the results, then resume once without repeating cues already heard."
+      },
+      {
+        "cat": "UI",
+        "text": "Field Manual search includes advice, locations and common mistakes, accepts punctuation differences, and finds words across sections. New searches select their best match; related topics open correctly and receive keyboard focus."
+      },
+      {
+        "cat": "Visuals",
+        "text": "Tower portraits rest when scrolled out of view or when the tab is hidden. Device reduced-motion changes immediately switch them to a complete still; returning to the portrait resumes its animation."
+      },
+      {
+        "cat": "Visuals",
+        "text": "Wallet totals now roll smoothly from the number currently shown when rewards or spending overlap, instead of jumping to an unfinished animation’s target. Reduced-motion updates clear the gain highlight correctly."
+      },
+      {
+        "cat": "UI",
+        "text": "Currency explanations now receive keyboard focus when opened. Escape returns to the chip, Tab moves naturally onward, and screen readers can identify the chip’s popup."
+      },
+      {
+        "cat": "Visuals",
+        "text": "Reward toasts and vault totals now honor device reduced motion directly, including changes made during a count-up. Re-enabling motion leaves completed totals intact."
+      }
+    ]
+  },
+  {
     "id": "v2026.11.09.2",
     "date": "2026-11-09",
     "title": "Memories at Your Pace",
-    "sealed": false,
+    "sealed": true,
     "entries": [
       {
         "cat": "UI",

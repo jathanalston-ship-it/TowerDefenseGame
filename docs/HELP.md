@@ -82,3 +82,6 @@ Defense, Adaptation/Antigen, and in-run Hero Evolution.
 - Media is placeholder-only (no assets yet).
 - Announcement order follows `MECHANICS` array order, not unlock recency.
 - `help.seen` grows unbounded (bounded in practice by the registry size).
+
+### Search and related-topic navigation
+Search normalizes punctuation/spacing and searches all What/Why/Where/Next/Watch out text plus titles, summaries and categories. Exact title/summary/body phrases rank before results whose query words span sections. All query words must match. Each query change selects the best result; related links clear the filter and focus their opened article. Unlocked-topic gating remains unchanged.

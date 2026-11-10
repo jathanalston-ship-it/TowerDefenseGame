@@ -3,7 +3,7 @@
 // next), media placeholders, clickable UI references, and cross-links between related topics. New
 // systems and archived "What's New" entries appear here automatically. Reads meta.helpMechanics().
 
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { meta } from '../state/meta';
 import { MECHANIC_BY_ID } from '../state/mechanics';
 import { MECHANIC_TEXT } from '../state/mechanicsText';
@@ -20,6 +20,8 @@ export function HelpWiki({ onNavigate, onReplayTour }: { onNavigate?: (nav: stri
   const all = meta.helpMechanics();
   const [query, setQuery] = useState('');
   const [selId, setSelId] = useState<string | null>(all[0]?.id ?? null);
+  const detailRef = useRef<HTMLElement>(null);
+  const followRelated = useRef(false);
 
   const q = query.trim().toLowerCase();
   // Searching RANKS (ui/helpSearch.ts): title hits first, then summary, then body mentions —
@@ -31,6 +33,12 @@ export function HelpWiki({ onNavigate, onReplayTour }: { onNavigate?: (nav: stri
     ? (selId && filtered.find((m) => m.id === selId)) || filtered[0]
     : (selId && all.find((m) => m.id === selId)) || filtered[0]) || null;
   const selText = sel ? MECHANIC_TEXT[sel.id] : undefined;
+  useEffect(() => {
+    if (followRelated.current) {
+      followRelated.current = false;
+      detailRef.current?.focus();
+    }
+  }, [sel?.id]);
 
   return (
     <div className="panel help-wiki">
@@ -43,7 +51,7 @@ export function HelpWiki({ onNavigate, onReplayTour }: { onNavigate?: (nav: stri
         )}
       </div>
       <div className="panel-sub">A living guide — new systems appear here the moment you unlock them.</div>
-      <input className="help-search" placeholder="Search mechanics…" value={query} onChange={(e) => setQuery(e.target.value)} aria-label="Search Help" />
+      <input className="help-search" type="search" placeholder="Search mechanics…" value={query} onChange={(e) => { setQuery(e.target.value); setSelId(null); }} aria-label="Search Help" />
 
       <div className="help-body">
         <nav className="help-index" aria-label="Mechanics">
@@ -51,7 +59,7 @@ export function HelpWiki({ onNavigate, onReplayTour }: { onNavigate?: (nav: stri
             <div className="help-cat">
               <div className="help-cat-h">{filtered.length} result{filtered.length === 1 ? '' : 's'} · best match first</div>
               {filtered.map((m) => (
-                <button key={m.id} className={`help-entry ${sel?.id === m.id ? 'on' : ''}`} onClick={() => setSelId(m.id)}>{m.title}</button>
+                <button key={m.id} aria-current={sel?.id === m.id ? 'true' : undefined} className={`help-entry ${sel?.id === m.id ? 'on' : ''}`} onClick={() => setSelId(m.id)}>{m.title}</button>
               ))}
             </div>
           )}
@@ -59,7 +67,7 @@ export function HelpWiki({ onNavigate, onReplayTour }: { onNavigate?: (nav: stri
             <div className="help-cat" key={c}>
               <div className="help-cat-h">{c}</div>
               {byCat.get(c)!.map((m) => (
-                <button key={m.id} className={`help-entry ${sel?.id === m.id ? 'on' : ''}`} onClick={() => setSelId(m.id)}>{m.title}</button>
+                <button key={m.id} aria-current={sel?.id === m.id ? 'true' : undefined} className={`help-entry ${sel?.id === m.id ? 'on' : ''}`} onClick={() => setSelId(m.id)}>{m.title}</button>
               ))}
             </div>
           ))}
@@ -67,7 +75,7 @@ export function HelpWiki({ onNavigate, onReplayTour }: { onNavigate?: (nav: stri
         </nav>
 
         {sel && (
-          <article className="help-detail" key={sel.id}>
+          <article ref={detailRef} tabIndex={-1} aria-label={sel.title} className="help-detail" key={sel.id}>
             <h3 className="help-detail-title">{sel.title}</h3>
             <div className="help-detail-sum">{sel.summary}</div>
             {selText?.media && <div className="help-media" aria-hidden>▶ {selText.media}</div>}
@@ -98,7 +106,7 @@ export function HelpWiki({ onNavigate, onReplayTour }: { onNavigate?: (nav: stri
               <div className="help-links">
                 <span className="help-links-k">Related</span>
                 {sel.links.filter((id) => all.some((m) => m.id === id)).map((id) => (
-                  <button key={id} className="help-link" onClick={() => setSelId(id)}>{MECHANIC_BY_ID.get(id)?.title ?? id}</button>
+                  <button key={id} className="help-link" onClick={() => { followRelated.current = true; setQuery(''); setSelId(id); }}>{MECHANIC_BY_ID.get(id)?.title ?? id}</button>
                 ))}
               </div>
             )}
