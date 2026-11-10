@@ -8,7 +8,7 @@ export const RELEASES: Release[] = [
     "id": "v2026.11.10.15",
     "date": "2026-11-10",
     "title": "Clearer Upgrade Controls",
-    "sealed": false,
+    "sealed": true,
     "entries": [
       {
         "cat": "UI",
@@ -25,6 +25,10 @@ export const RELEASES: Release[] = [
       {
         "cat": "UI",
         "text": "The harvest receipt’s View next upgrade button now takes you to the recommended production upgrade and focuses its card. It remains a navigation step, so you can review the upgrade before spending Chitin."
+      },
+      {
+        "cat": "UI",
+        "text": "Harvest receipts now stay on screen, including short landscape layouts, and support keyboard focus, Escape and returning to the production screen or prior hub control. Viewing the next upgrade keeps its destination focus."
       }
     ]
   },

@@ -4,16 +4,16 @@
 > before committing. Read together with docs/PROJECT_STATUS.md and the latest
 > docs/VALIDATION_REPORT.md. Next session: start at docs/PROJECT_MANIFEST.md.
 
-- **Generated:** 2026-11-10 23:08 UTC · **Diff scope:** working tree vs HEAD
-- **Branch:** codex/hive-autoplay · **HEAD:** 59d3baad
+- **Generated:** 2026-11-10 23:18 UTC · **Diff scope:** working tree vs HEAD
+- **Branch:** codex/hive-autoplay · **HEAD:** 85fb4883
 
 ## Summary of work completed
 
-LOCAL unsealed v2026.11.10.15 renamed Clearer Upgrade Controls, FOUR game/website notes. Harvest upgrade prices already correctly use Chitin. Found HarvestScreen receipt Grow next omitted onGrow and only dismissed. Added pending recommendation id, focusable named node cards and post-dismiss layout-effect focus/nearest scroll. Renamed CTA View next upgrade to clarify navigation. Actual-meta desktop/320px probes passed recommendation focus/scroll and no wallet/node purchase; arrival variant passed existing onVisitHarvest callback once with no spend. Phone screenshot inspected.63 idle/production/UI/site tests passed2.55s; docs/handoff/build53232 passed (7.58s Vite, SWmwbaxbdg, harvest-recommendation-build.log); all processes terminal. Collection, recommendation algorithm and pricing untouched. LIVE remains .14 SHA9060e09a7e98ae12c569b0dca8e137eed2012a00, normal public verification22:36UTC. Goal active; next approximate deployment23:35–23:40UTC.
+Sealed local v2026.11.10.15 Clearer Upgrade Controls with five game/website notes. Includes adaptation reveal portal/focus, graft host keyboard tabs, accurate Tissue labels, harvest recommendation navigation, and harvest receipt portal/focus. Full normal validation session23275 PASS23:26UTC:3194tests, typecheck, production build/mobile and docs. Production remains .14 until verified deployment.
 
 ## Files modified
 
-- Source (2): `src/changelog/releases.gen.ts`, `src/ui/HarvestScreen.tsx`
+- Source (3): `src/changelog/releases.gen.ts`, `src/ui/HarvestScreen.css`, `src/ui/HarvestScreen.tsx`
 - Tests (0): —
 - Docs (6): `docs/HISTORY.md`, `docs/HIVE-PRODUCTION.md`, `docs/IDLE-HARVEST.md`, `docs/PROJECT_MANIFEST.md`, `docs/devlog/DRAFT-2026-11-09.md`, `docs/devlog/DRAFT-2026-11-10.md`
 
@@ -25,32 +25,32 @@ LOCAL unsealed v2026.11.10.15 renamed Clearer Upgrade Controls, FOUR game/websit
 
 ## Power Score changes
 
-None. Search presentation only; progression, rewards and simulation unchanged.
+None. Presentation and navigation only.
 
 ## UI changes
 
-Harvest upgrade prices already correctly use Chitin. Found HarvestScreen receipt Grow next omitted onGrow and only dismissed. Added pending recommendation id, focusable named node cards and post-dismiss layout-effect focus/nearest scroll. Renamed CTA View next upgrade to clarify navigation. Actual-meta desktop/320px probes passed recommendation focus/scroll and no wallet/node purchase; arrival variant passed existing onVisitHarvest callback once with no spend. Phone screenshot inspected.63 idle/production/UI/site tests passed2.55s; docs/handoff/build53232 pending. Collection, recommendation algorithm and pricing untouched.
+Harvest receipt now uses shared Popup, viewport bounds and a fade entrance. Initial card focus, action Tab wrapping, Escape/Back and close focus restoration support both production and arrival variants. Explicit upgrade navigation preserves target focus. Actual-meta Chrome probes passed 320x568 and844x340 layout, transformed-parent containment, keyboard/Escape, unchanged rewards, recommendation focus/scroll/no spend, arrival destination callback and prior-control restoration. Landscape screenshot reviewed. Navigation fixture now registers the real non-root hub history state; the prior standalone fixture consumed a root guard and restored document scroll, unlike the actual HarvestScreen route.
 
 ## Documentation changes
 
-IDLE-HARVEST.md, HIVE-PRODUCTION.md and manifest updated. Four curated game/website notes generated. No new mechanic/help/audio registration needed.
+IDLE-HARVEST, HIVE-PRODUCTION and manifest updated; five notes sealed and website generated. No new mechanic, help, tutorial or audio registration needed; collection audio and reward logic remain intact.
 
 ## Save changes
 
-None — save layer untouched.
+None.
 
 ## Known edge cases
 
-Full .15 validation pending. Normal validator works with local Chrome path and NODE_OPTIONS parent chrome-probe-compat.cjs. Separate audit candidate: shared HarvestCeremony is still inline without Popup/focus lifecycle; verify actual viewport behavior and handle arrival opener disappearance before changing. Preserve both untracked devlog drafts.
+Full release validation passed. Arrival focus restoration requires its remembered prior control to remain connected. Preserve both untracked devlog drafts.
 
 ## Remaining technical debt
 
-No new debt. Chrome/Playwright local compatibility preload remains.
+Local installed Chrome needs MOBILECHECK_CHROMIUM and NODE_OPTIONS parent chrome-probe-compat.cjs for old Playwright compatibility.
 
 ## Recommended next tasks
 
-Consider focused HarvestCeremony portal/focus audit next. Seal/generate .15 and start full normal validation by23:15–23:20UTC to allow deployment23:35–23:40UTC. Verify exact-SHA Actions and normal public game/home/news.
+Validation23275 completed successfully. Commit and deploy. Push authorized production branch and verify exact-SHA Actions plus normal public game/home/news. Next deployment roughly23:35–23:40UTC; continuous goal stays active.
 
 ## Future expansion hooks
 
-Production push from codex/hive-autoplay: git push origin HEAD:refs/heads/claude/zen-hawking-rh1gxl. Verify ../verify-current-release.ps1. Original mobile uses MOBILECHECK_CHROMIUM and node -r ../chrome-probe-compat.cjs node_modules/vite-node/vite-node.mjs scripts/mobilecheck.ts --no-build. Avoid dist writes or competing heavy/browser tasks during mobile. Every deployment includes website notes.
+Production push: git push origin HEAD:refs/heads/claude/zen-hawking-rh1gxl from codex/hive-autoplay. Public verification: ../verify-current-release.ps1. Do not compete with full mobile checks or overwrite dist while validation runs.

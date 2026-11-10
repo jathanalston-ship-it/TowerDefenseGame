@@ -179,3 +179,5 @@ Client-only idle games cannot fully trust the device clock; this is the bounded-
 - Idle < 25% of the weakest active lane at every band (`idleHarvest.test.ts`).
 
 Harvest recommendation navigation (2026-11-10): the receipt CTA is named View next upgrade. In HarvestScreen, it closes the receipt then focuses and nearest-scrolls the corresponding named node card using the receipt recommendation id. HarvestArrival retains its existing onVisitHarvest callback. This action never calls buyIdleNode; collection, recommendation choice and upgrade prices remain unchanged.
+
+Harvest receipt accessibility (2026-11-10): HarvestCeremony uses the shared Popup portal so transformed panels cannot displace it. The viewport-bounded card scrolls, receives initial focus, traps Tab across its actions and dismisses with shared Escape/Back. Closing restores the production heading or the arrival banner’s prior outside control when still connected. Explicit upgrade navigation skips restoration. Its backdrop uses fade-in rather than the arrival banner’s translated entrance. Collection and rewards are unchanged.

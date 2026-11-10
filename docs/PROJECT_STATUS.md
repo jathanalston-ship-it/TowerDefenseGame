@@ -2069,3 +2069,7 @@ UI falsely advertised Gene Essence while meta/model already spend Mulligan Tissu
 ## 2026-11-10 23:09 UTC — harvest recommendation navigation (local .15)
 
 HarvestScreen receipt Grow next previously only dismissed because onGrow was omitted. View next upgrade now focuses and nearest-scrolls the named recommended node after closing, without purchasing it. Actual-meta desktop/320px probes passed focus/scroll and unchanged wallet/nodes; arrival receipt callback passed once with no spend. Phone screenshot inspected.63 idle/production/UI/site tests passed2.55s; docs/handoff/build53232 passed (7.58s Vite, SWmwbaxbdg). All processes terminal. Four website/game notes prepared under Clearer Upgrade Controls; not live. Collection, recommendation and pricing unchanged. Full release validation pending.
+
+## 2026-11-10 23:26 UTC — upgrade controls release validation
+
+Full v2026.11.10.15 Clearer Upgrade Controls validation passed at23:26UTC: 3194 tests, typecheck, production build/original mobile audit and doc anchors/references. Session23275 completed exit0; log upgrade-controls-validation.log. Five game/website notes sealed and generated. Focused harvest phone/short-landscape, keyboard, arrival focus and recommendation/no-spend probes passed. Arena consumer rules, saves, rewards, audio, help and tutorials require no changes for this presentation-only adjustment. Deployment pending.

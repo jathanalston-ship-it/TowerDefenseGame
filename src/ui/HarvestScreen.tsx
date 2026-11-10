@@ -6,7 +6,7 @@
 //    collect plays pods-bursting + staggered reward flyouts + stats (time away, efficiency)
 //    and ends on a "grow this next" suggestion. Never a boring popup.
 
-import { useLayoutEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { meta } from '../state/meta';
 import type { IdleHarvestReceipt, IdleHarvestView, IdleNodeView } from '../state/meta';
 import { fmtIdleHours } from '../state/meta';
@@ -14,6 +14,7 @@ import { IDLE } from '../core/config';
 import { audio } from '../audio/sound';
 import { NextUp } from './HubLanding';
 import { navBus } from '../state/navBus';
+import { Popup } from './components/Popup';
 import { CurrencyIcon } from './components/CurrencyIcon';
 import { HiveOrganism } from './components/HiveOrganism';
 import { telemetry } from '../net/telemetry';
@@ -57,47 +58,65 @@ function CeremonyLine({ l, delay }: { l: IdleHarvestReceipt['lines'][number]; de
   );
 }
 
-function HarvestCeremony({ r, onClose, onGrow }: { r: IdleHarvestReceipt; onClose: () => void; onGrow?: () => void }): JSX.Element {
+function HarvestCeremony({ r, onClose, onGrow, returnFocus }: { r: IdleHarvestReceipt; onClose: () => void; onGrow?: () => void; returnFocus?: HTMLElement | null }): JSX.Element {
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const navigating = useRef(false);
+  useEffect(() => {
+    dialogRef.current?.focus({ preventScroll: true });
+    return () => { if (!navigating.current && returnFocus?.isConnected) returnFocus.focus(); };
+  }, [returnFocus]);
   const xp = r.lines.find((l) => l.icon === '⬆');
   const haul = r.lines.filter((l) => l !== xp);
   return (
-    <div className="hv-cer-backdrop" onClick={onClose}>
-      <div className={`hv-cer${r.bloom ? ' is-bloom' : ''}`} onClick={(e) => e.stopPropagation()} role="dialog" aria-label="Hive production collected">
-        <div className="hv-cer-eyebrow">{r.bloom ? '❉ THE HIVE BLOOMED ❉' : '⬢ HIVE PRODUCTION COMPLETE ⬢'}</div>
-        {r.bloom && <div className="hv-cer-bloomline">A rare surge doubled this harvest.</div>}
-        <div className="hv-cer-pods" aria-hidden>
-          {Array.from({ length: 5 }, (_, i) => (
-            <span key={i} className="hv-pod" style={{ animationDelay: `${i * 0.1}s` }}><span className="hv-pod-glow" /></span>
-          ))}
-        </div>
-        <div className="hv-cer-stats">
-          <div className="hv-stat"><b>{fmtIdleHours(r.rawHours)}</b><span>away</span></div>
-          <div className="hv-stat-sep" aria-hidden />
-          <div className="hv-stat">
-            <b>{fmtIdleHours(r.effHours)}</b>
-            <span>banked{r.full && <em className="hv-brim" title="Storage was full — grow Storage Tissue to bank longer absences.">BRIMMED</em>}</span>
+    <Popup>
+      <div className="hv-cer-backdrop" onClick={onClose}>
+        <div className={`hv-cer${r.bloom ? ' is-bloom' : ''}`} onClick={(e) => e.stopPropagation()} ref={dialogRef} role="dialog" aria-modal="true" tabIndex={-1} aria-label="Hive production collected"
+          onKeyDown={(e) => {
+            if (e.key !== 'Tab') return;
+            const buttons = Array.from(e.currentTarget.querySelectorAll<HTMLButtonElement>('button:not(:disabled)'));
+            if (!buttons.length) return;
+            e.preventDefault();
+            const current = buttons.findIndex((button) => button === document.activeElement);
+            const next = current < 0 ? (e.shiftKey ? buttons.length - 1 : 0)
+              : (current + (e.shiftKey ? -1 : 1) + buttons.length) % buttons.length;
+            buttons[next].focus();
+          }}>
+          <div className="hv-cer-eyebrow">{r.bloom ? '❉ THE HIVE BLOOMED ❉' : '⬢ HIVE PRODUCTION COMPLETE ⬢'}</div>
+          {r.bloom && <div className="hv-cer-bloomline">A rare surge doubled this harvest.</div>}
+          <div className="hv-cer-pods" aria-hidden>
+            {Array.from({ length: 5 }, (_, i) => (
+              <span key={i} className="hv-pod" style={{ animationDelay: `${i * 0.1}s` }}><span className="hv-pod-glow" /></span>
+            ))}
           </div>
-          <div className="hv-stat-sep" aria-hidden />
-          <div className="hv-stat"><b>{r.efficiencyPct}%</b><span>efficiency</span></div>
+          <div className="hv-cer-stats">
+            <div className="hv-stat"><b>{fmtIdleHours(r.rawHours)}</b><span>away</span></div>
+            <div className="hv-stat-sep" aria-hidden />
+            <div className="hv-stat">
+              <b>{fmtIdleHours(r.effHours)}</b>
+              <span>banked{r.full && <em className="hv-brim" title="Storage was full — grow Storage Tissue to bank longer absences.">BRIMMED</em>}</span>
+            </div>
+            <div className="hv-stat-sep" aria-hidden />
+            <div className="hv-stat"><b>{r.efficiencyPct}%</b><span>efficiency</span></div>
+          </div>
+          <div className="hv-cer-kicker">The Hive produced</div>
+          <div className="hv-cer-lines">
+            {haul.map((l, i) => <CeremonyLine key={i} l={l} delay={0.3 + i * 0.11} />)}
+          </div>
+          {xp && <div className="hv-cer-xp" style={{ animationDelay: `${0.3 + haul.length * 0.11}s` }}>⬆ {xp.label}</div>}
+          {r.suggestion && r.suggestion.kind === 'buy' && (
+            <button className="hv-cer-grow" onClick={() => { navigating.current = true; onGrow?.(); onClose(); }}>
+              <span className="hv-grow-k">View next upgrade</span>
+              <span className="hv-grow-n">{r.suggestion.node.glyph} {r.suggestion.node.name}</span>
+              <span className="hv-grow-c">{r.suggestion.cost.toLocaleString('en-US')} <CurrencyIcon id="hiveMaterials" size={12} title="Chitin" /></span>
+            </button>
+          )}
+          {r.suggestion && r.suggestion.kind === 'gate' && (
+            <div className="hv-cer-gate">Next horizon: {r.suggestion.node.name} awaits — keep progressing.</div>
+          )}
+          <button className="hv-cer-close primary" onClick={onClose}>Return to the Hive</button>
         </div>
-        <div className="hv-cer-kicker">The Hive produced</div>
-        <div className="hv-cer-lines">
-          {haul.map((l, i) => <CeremonyLine key={i} l={l} delay={0.3 + i * 0.11} />)}
-        </div>
-        {xp && <div className="hv-cer-xp" style={{ animationDelay: `${0.3 + haul.length * 0.11}s` }}>⬆ {xp.label}</div>}
-        {r.suggestion && r.suggestion.kind === 'buy' && (
-          <button className="hv-cer-grow" onClick={() => { onGrow?.(); onClose(); }}>
-            <span className="hv-grow-k">View next upgrade</span>
-            <span className="hv-grow-n">{r.suggestion.node.glyph} {r.suggestion.node.name}</span>
-            <span className="hv-grow-c">{r.suggestion.cost.toLocaleString('en-US')} <CurrencyIcon id="hiveMaterials" size={12} title="Chitin" /></span>
-          </button>
-        )}
-        {r.suggestion && r.suggestion.kind === 'gate' && (
-          <div className="hv-cer-gate">Next horizon: {r.suggestion.node.name} awaits — keep progressing.</div>
-        )}
-        <button className="hv-cer-close primary" onClick={onClose}>Return to the Hive</button>
       </div>
-    </div>
+    </Popup>
   );
 }
 
@@ -106,13 +125,16 @@ let arrivalShown = false;
 export function HarvestArrival({ onVisitHarvest }: { onVisitHarvest: () => void }): JSX.Element | null {
   meta.use();
   const [dismissed, setDismissed] = useState(false);
+  const previousFocus = useRef<HTMLElement | null>(null);
   const [receipt, setReceipt] = useState<IdleHarvestReceipt | null>(null);
   const v = meta.idleView();
   const ripe = v.collectable && v.accrual.rawHours * 60 >= IDLE.ceremonyMinutes;
-  if (receipt) return <HarvestCeremony r={receipt} onClose={() => { setReceipt(null); setDismissed(true); }} onGrow={onVisitHarvest} />;
+  if (receipt) return <HarvestCeremony returnFocus={previousFocus.current} r={receipt} onClose={() => { setReceipt(null); setDismissed(true); }} onGrow={onVisitHarvest} />;
   if (arrivalShown || dismissed || !ripe) return null;
   return (
-    <div className="hv-arrive" data-guide="hv-arrive" role="status">
+    <div className="hv-arrive" data-guide="hv-arrive" role="status" onFocusCapture={(e) => {
+      if (e.relatedTarget instanceof HTMLElement && !e.currentTarget.contains(e.relatedTarget)) previousFocus.current = e.relatedTarget;
+    }}>
       <span className="hv-arrive-glyph" aria-hidden>⬢</span>
       <span className="hv-arrive-t">The Hive kept harvesting — <b>{fmtIdleHours(v.accrual.effHours)}</b> banked{v.accrual.full ? ' (brimmed)' : ''}.</span>
       <button className="primary hv-arrive-go" onClick={() => {
@@ -164,6 +186,7 @@ export function HarvestScreen(): JSX.Element {
   meta.use();
   const [receipt, setReceipt] = useState<IdleHarvestReceipt | null>(null);
   const rootRef = useRef<HTMLDivElement>(null);
+  const headingRef = useRef<HTMLHeadingElement>(null);
   const pendingNode = useRef<string | null>(null);
   useLayoutEffect(() => {
     if (receipt || !pendingNode.current) return;
@@ -180,7 +203,7 @@ export function HarvestScreen(): JSX.Element {
   return (
     <div ref={rootRef} className="screen hv-screen">
       <header className="screen-h">
-        <h2>Hive Production</h2>
+        <h2 ref={headingRef} tabIndex={-1}>Hive Production</h2>
         <p className="screen-sub">The Hive produces while you're away — its body is the engine, this is the yield. Playing always out-earns it, but nothing is wasted.</p>
       </header>
 
@@ -300,7 +323,7 @@ export function HarvestScreen(): JSX.Element {
         <span><b>{v.ledger.blooms.toLocaleString('en-US')}</b> blooms</span>
       </section>
 
-      {receipt && <HarvestCeremony r={receipt} onClose={() => setReceipt(null)} onGrow={() => {
+      {receipt && <HarvestCeremony returnFocus={headingRef.current} r={receipt} onClose={() => setReceipt(null)} onGrow={() => {
         pendingNode.current = receipt.suggestion?.node.id ?? null;
       }} />}
     </div>

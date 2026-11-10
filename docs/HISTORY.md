@@ -832,3 +832,4 @@
 - `e43f808` **[UI]** Ui: keep adaptation reveals visible and keyboard accessible _(internal)_
 - `6b23be6` **[UI]** Ui: add keyboard navigation to graft host tabs _(internal)_
 - `59d3baa` **[UI]** Show the correct graft upgrade currency and binding guidance _(internal)_
+- `85fb488` **[Gene Cards]** Navigate harvest recommendations to their upgrade cards _(internal)_
