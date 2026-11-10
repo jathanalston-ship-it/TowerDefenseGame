@@ -3,7 +3,7 @@
 // breadcrumb JSON-LD and the in-article ad seam. Guides that benefit from live game data
 // (towers/heroes) splice in the encyclopedia tables, so they expand with the roster for free.
 
-import { CAMPAIGN_OPENING, DIRECTOR_ADAPTIVE, DRAFT_FEATURES, ENDLESS_SQUEEZE, MODE_UNLOCKS, READINESS, RUSH } from '../src/core/config';
+import { CAMPAIGN_OPENING, DIRECTOR_ADAPTIVE, DRAFT_FEATURES, ENDLESS_SQUEEZE, HIVE_MIND, MODE_UNLOCKS, READINESS, RUSH } from '../src/core/config';
 import { BOND, CLASS_BONDS, bondFxLine, bondTierFx } from '../src/core/classBonds';
 import { COMBAT_CLASSES, COMBAT_CLASS_ORDER } from '../src/core/combatClass';
 import { MAP_LAYOUTS } from '../src/core/mapLayouts';
@@ -36,7 +36,7 @@ export const GUIDES: Guide[] = [
       ] },
       { h: 'Your first hour', body: [
         'The tutorial teaches the real loop over two waves — wave, draft, build, wave — and ends with one graduation reward. Your first trips back to the Command Center are walked step by step: you open the menus, buy your first upgrade and crack your first container yourself, and the board only shows what you have been shown. From there the hive opens up as you clear Campaign stages: <b>Infinite</b> after Stage ' + MODE_UNLOCKS.infinite + ', the <b>Daily Run</b> after Stage ' + MODE_UNLOCKS.daily + ', <b>Boss Rush</b> after Stage ' + MODE_UNLOCKS.bossRush + ', and the labs, market and side wings a step or two at a time in between. After each run you learn at most two new systems, each with its own card (and a short guided tour when it opens a new screen); controls you use mid-fight, like Early Call and game speed, show a one-line field note the first time they matter. Everything you have unlocked is in Help, and the Command Center always names what comes next.',
-        'If a stage beats you, read the Results screen before you retry: it tells you how close you came, what got through and one thing to change. Replaying a stage you have already cleared is never wasted — it pays progression, and it is where <b>Hive Intelligence</b> can take the routine purchases off your hands.',
+        'If a stage beats you, read the Results screen before you retry: it tells you how close you came, what got through and one thing to change. Replaying a stage you have already cleared is never wasted — it pays progression. After completing Campaign Stage ' + HIVE_MIND.unlockStage + ', toggle <b>Hive Intelligence</b> in Campaign or Infinite to automate purchases, hero abilities, wave starts and recommended gene picks. Turn it off any time to take over.',
       ] },
       { h: 'The five run-enders', body: [
         '<b>1. Hoarding Biomass.</b> Towers you didn’t build deal no damage. <b>2. Ignoring fliers.</b> Check the wave preview; airborne strains ignore ground obstacles. <b>3. One damage type.</b> Armored waves shrug off chip damage — layer classes. <b>4. Wasting the hero ability.</b> It is your emergency brake. <b>5. Quitting after a loss.</b> Every run pays permanent progression — a lost run is still fuel.',

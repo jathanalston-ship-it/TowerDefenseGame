@@ -176,13 +176,14 @@ export function GameView({
   // that follows a pick without the phase leaving 'draft' — an EARLY CALL's owed draft caught at the
   // clear (docs/EARLY-CALL.md §owed) — must get a fresh mount or every later pick is ignored.
   const draftPicks = useRef(0);
+  const hiveReportSeen = useRef(0);
   // BOSS VERB HOLD (render/feel.ts BOSS_VERB_HOLD_MS): the sim's banner verb lives one tick — keep the last
   // one on screen long enough to read (presentation only; a new verb replaces it at once).
   const bossVerbRef = useRef<{ text: string; at: number } | null>(null);
   // Daily runs record their input log for leaderboard replay verification (core/replay.ts).
   const recorderRef = useRef<Recorder | null>(null);
   // THE AUTOMATION GATE (docs/HIVE-MIND.md §solved-content): Hive Intelligence + Auto Gene only on
-  // content this account has beaten — decided ONCE from the save, threaded into the sim as an option.
+  // Campaign Stage 5, with mode/Threat exclusions — decided once from the save at run mount.
   const [automation] = useState(() => automationFor(meta.get(), { mode: mode ?? 'stage', tutorial: !!tutorial, stage: stage?.stage, difficulty: stage?.difficulty ?? difficulty, threat }));
   const game = (gameRef.current ??= newRecordedGame(recorderRef, !!daily && !tutorial, seed, mods, progress, heroKind, heroProgress, {
     runEffects, mode, stage, difficulty, doctrine, heroRoster, heroEquip, setEffects, heroAbilityKits,
@@ -679,6 +680,10 @@ export function GameView({
         if (game.hitstop > 0) game.hitstop = Math.max(0, game.hitstop - dt);
         else game.advance(dt * lastKill.rate(game.timeScale, viewFeel.motion));
 
+        if (game.hiveReport.serial !== hiveReportSeen.current) {
+          hiveReportSeen.current = game.hiveReport.serial;
+          setHiveTicker({ at: Date.now(), lines: game.hiveReport.actions.map((a) => a.label), spent: game.hiveReport.spent });
+        }
         // Drain presentation cues → audio + screen-shake trauma.
         const cues = game.drainSfx();
         if (cues.length) {
@@ -1232,27 +1237,27 @@ export function GameView({
             ⏩ <span className="early-call-label">Call early</span> <b>+{hud.earlyCall}</b>
           </button>
         )}
-        {/* HIVE INTELLIGENCE (docs/HIVE-MIND.md): one press evaluates EVERY biomass purchase
-            and executes the best ones — glowing whenever something worthwhile is affordable.
+        {/* HIVE INTELLIGENCE (docs/HIVE-MIND.md): the run-local toggle automates purchases, hero control, waves
+            and drafts — glowing while active or when a purchase is affordable.
             Manual play is untouched; the ticker names each action the hive took. */}
         {!tutorial && (hud.phase === 'prep' || hud.phase === 'wave') && (
           <button
-            className={`hive-mind-btn${hud.hiveReady ? ' is-ready' : ''}`}
+            className={`hive-mind-btn${hud.hiveActive || hud.hiveReady ? ' is-ready' : ''}`}
+            aria-pressed={hud.hiveActive}
             disabled={!automation.allowed}
             onClick={() => {
               audio.resume();
-              const rep = game.hivePulse();
-              if (rep.actions.length > 0) setHiveTicker({ at: Date.now(), lines: rep.actions.map((a) => a.label), spent: rep.spent });
+              game.setHiveActive(!game.hiveActive);
               refresh();
             }}
             title={!automation.allowed
               ? `Hive Intelligence — ${automation.reason}`
               : hud.hiveReady
-                ? 'Hive Intelligence — evaluate every Biomass purchase and execute the best ones (keeps a reserve; manual play is untouched)'
-                : 'Hive Intelligence — nothing worthwhile is affordable right now'}
+                ? 'Toggle automatic purchases, hero abilities, wave starts and recommended gene picks. Turn off any time to take over.'
+                : 'Toggle automatic purchases, hero abilities, wave starts and recommended gene picks'}
           >
             <i className="hive-mind-core" aria-hidden />
-            ◈ HIVE INTELLIGENCE
+            ◈ HIVE INTELLIGENCE {hud.hiveActive ? 'ON' : 'OFF'}
             {!automation.allowed && <small className="hive-mind-why">{automation.reason}</small>}
           </button>
         )}
@@ -1459,6 +1464,10 @@ export function GameView({
             kind={hud.draftKind}
             owedAfter={hud.draftsOwed ?? 0}
             forceManual={!!tutorial || !automation.allowed}
+            autoOverride={hud.hiveActive ? true : undefined}
+            paused={paused}
+            onStartAuto={!tutorial && automation.allowed ? () => { game.setHiveActive(true); refresh(); } : undefined}
+            onStopAuto={hud.hiveActive ? () => { game.setHiveActive(false); refresh(); } : undefined}
             rerollCost={hud.draftRerollCost}
             biomass={hud.biomass}
             chosen={hud.cards}

@@ -812,6 +812,7 @@ export interface HudSnapshot {
   /** HIVE INTELLIGENCE (docs/HIVE-MIND.md): ≥1 worthwhile purchase is affordable right now —
    *  the HUD button glows. Lightly cached in the sim (~0.5 s), so it may lag a beat. */
   hiveReady: boolean;
+  hiveActive: boolean;
   /** THREAT LADDER level of this run (docs/THREAT.md) — 0 = baseline; the header chip shows it. */
   threat: number;
   // Hero Evolution (docs/HERO-EVOLUTION.md) — per-category levels bought this run + total owned.

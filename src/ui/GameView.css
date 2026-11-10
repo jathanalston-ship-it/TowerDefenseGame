@@ -3459,3 +3459,7 @@ html[data-layout='desktop'] .cv-slot { flex: 0 1 auto; width: 240px; min-width: 
   html[data-layout='portrait'] .hud .hud-loot .loot-bar-wrap { flex: 1; }
   html[data-layout='portrait'] .hud .hud-loot .loot-bar { height: 6px; }
 }
+
+/* Continuous Hive state remains legible in the compact phone control. */
+:is(html[data-layout='portrait'], html[data-layout='landscape']) .run-ctl .hive-mind-btn[aria-pressed='true']::after { content: '◈ HIVE ON'; }
+:is(html[data-layout='portrait'], html[data-layout='landscape']) .run-ctl .hive-mind-btn[aria-pressed='false']:not(:disabled)::after { content: '◈ HIVE OFF'; }

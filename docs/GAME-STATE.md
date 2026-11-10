@@ -1836,3 +1836,8 @@ rarity colours, arcs) and drops motion; Flashes gates additive pops/blooms.
 headless software compositing (GPU compositing should be off-thread — unmeasured). Boss bodies get no class hit
 bursts (V1's motion tracker skips them). Phone portrait frames for boss telegraphs weren't shot. Star/mastery
 evolution (Tower Lab) has no battlefield moment.
+
+
+## Hive Intelligence continuous toggle
+
+Campaign Stage 5 completion unlocks a run-local ON/OFF helper in Campaign and Infinite, including new campaign stages. It buys through the existing planner, starts waves and chooses recommended genes with a visible countdown. Stop from the battlefield or draft; Pause suspends actions. Daily, Boss Rush, Quick Skirmish, tutorials and uncleared Threat levels remain excluded. See `docs/HIVE-MIND.md`.

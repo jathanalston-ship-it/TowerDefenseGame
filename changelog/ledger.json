@@ -1,6 +1,6 @@
 {
-  "lastSha": "e1968ae196eedb1f511695a318ff245e48e7e305",
-  "commitsSinceDraft": 6,
+  "lastSha": "353c962b144c1a03774eb149b127b2a1122a89de",
+  "commitsSinceDraft": 8,
   "content": {
     "tower": [
       "needle",
@@ -4107,7 +4107,7 @@
       "id": "v2026.11.06.2",
       "date": "2026-11-06",
       "title": "Class Bonds",
-      "sealed": false,
+      "sealed": true,
       "entries": [
         {
           "cat": "Gameplay",
@@ -4138,6 +4138,35 @@
         {
           "cat": "Website",
           "text": "Release notes 'Class Bonds' curated; site + PIL regenerated"
+        }
+      ]
+    },
+    {
+      "id": "v2026.11.09",
+      "date": "2026-11-09",
+      "title": "Let the Hive Take Over",
+      "sealed": false,
+      "entries": [
+        {
+          "cat": "Gameplay",
+          "major": true,
+          "text": "Complete Campaign Stage 5 to unlock continuous Hive Intelligence in Campaign and Infinite, including new campaign stages."
+        },
+        {
+          "cat": "Gameplay",
+          "text": "Toggle the hive on to place towers, buy upgrades, merge organisms, start waves and choose recommended genes automatically."
+        },
+        {
+          "cat": "Heroes",
+          "text": "Hive Intelligence directs your lead hero toward threats and uses their ability automatically, without buying the separate Auto-Cast upgrade."
+        },
+        {
+          "cat": "UX",
+          "text": "Take control at any time with the ON/OFF toggle or draft Stop button. Pause suspends automation; each new run starts with Hive Intelligence off."
+        },
+        {
+          "cat": "Website",
+          "text": "New guide and dev blog explain the stage-5 unlock, automatic actions and manual takeover."
         }
       ]
     }
@@ -9126,6 +9155,22 @@
       "text": "Release notes 'Class Bonds' curated; site + PIL regenerated",
       "internal": false,
       "needsReview": false
+    },
+    {
+      "sha": "24b873b7b7d8bdfcd12bbf2703619bd3706c44c0",
+      "date": "2026-11-06",
+      "cat": "Gameplay",
+      "text": "Release notes: use a valid changelog category (Progression is not one)",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "353c962b144c1a03774eb149b127b2a1122a89de",
+      "date": "2026-11-06",
+      "cat": "Framework",
+      "text": "Validation,status: Class Bonds PASS over a0b332d..HEAD — 3140/3140, mobile gate clean, probe budgets ok",
+      "internal": true,
+      "needsReview": true
     }
   ]
 }

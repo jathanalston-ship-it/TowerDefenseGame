@@ -34,6 +34,7 @@ export interface HiveGame {
   unlockedKinds: ReadonlySet<TowerKind>;
   unlockedSlots: number;
   autocastUnlocked: boolean;
+  hiveActive?: boolean;
   heroes: { length: number };
   branchTierCost(kind: TowerKind, tier: number): number;
   heroEvoLevelsView(): Readonly<HeroEvoLevels>;
@@ -208,7 +209,7 @@ registerHiveProvider({
 registerHiveProvider({
   id: 'autocast',
   enumerate(g) {
-    if (g.autocastUnlocked || g.heroes.length === 0) return [];
+    if (g.hiveActive || g.autocastUnlocked || g.heroes.length === 0) return [];
     return [{
       id: 'autocast',
       provider: 'autocast',
@@ -374,8 +375,8 @@ export function hivePlan(g: HiveGame, opts?: { reserveFloor?: number }): HiveAct
 
 // ── THE AUTOMATION GATE (docs/HIVE-MIND.md §solved-content) ──────────────────────────────
 // Hive Intelligence (the pulse) and Auto Gene (automatic draft picks) replace DECISIONS, so they
-// run only on SOLVED content: content the account has already beaten. On a frontier the best play
-// must never be "press one button". The meta layer evaluates this from the save and threads ONE
+// unlock after Campaign Stage 5, including new campaign stages. Competitive/mode and Threat
+// exclusions remain. The meta layer evaluates this from the save and threads ONE
 // explicit run option (RunOptions.automationAllowed) — the sim never reads the save. Auto Wave and
 // game speed are pure convenience and stay available everywhere (not governed here).
 
@@ -387,7 +388,7 @@ export type AutomationMode = 'stage' | 'endless' | 'campaign' | 'bossRush' | 'da
  *  shared board / hand practice). `reason` is the player-facing line shown when it is off. */
 export const AUTOMATION_POLICY: Record<AutomationMode, { allow: 'always' | 'cleared' | 'never'; reason: string }> = {
   endless: { allow: 'always', reason: '' }, // Infinite is the farm — solved content by design
-  campaign: { allow: 'cleared', reason: 'Unlocks on stages you’ve cleared' }, // replays yes, frontier no
+  campaign: { allow: 'always', reason: '' }, // after the account unlock, including frontier stages
   bossRush: { allow: 'never', reason: 'Off in Boss Rush — every run chases a record' }, // record lanes pay; each run is a frontier
   daily: { allow: 'never', reason: 'Off on the Daily — one shared, fair board' }, // a worldwide leaderboard
   stage: { allow: 'never', reason: 'Off in Quick Skirmish — practice is played by hand' }, // the practice sandbox
@@ -403,6 +404,7 @@ export interface AutomationContext {
   tutorial: boolean;
   /** Campaign: the stage being played is already cleared at this difficulty (meta-computed). */
   contentCleared: boolean;
+  campaignCleared: number;
   /** The run's Threat level (0 = baseline) and the mode's best CLEARED Threat level. */
   threat: number;
   threatCleared: number;
@@ -411,6 +413,7 @@ export interface AutomationContext {
 /** Pure policy: may this run use Hive Intelligence + Auto Gene, and if not, why. */
 export function automationGate(c: AutomationContext): { allowed: boolean; reason: string | null } {
   if (c.tutorial) return { allowed: false, reason: AUTOMATION_TUTORIAL_REASON };
+  if (c.campaignCleared < HIVE_MIND.unlockStage) return { allowed: false, reason: `Unlocks after Campaign Stage ${HIVE_MIND.unlockStage}` };
   const p = AUTOMATION_POLICY[c.mode];
   if (p.allow === 'never' || (p.allow === 'cleared' && !c.contentCleared)) return { allowed: false, reason: p.reason };
   if (c.threat > c.threatCleared) return { allowed: false, reason: AUTOMATION_THREAT_REASON };

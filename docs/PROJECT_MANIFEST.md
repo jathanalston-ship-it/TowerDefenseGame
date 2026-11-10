@@ -781,3 +781,8 @@ ladders. 4. Every permanent progression source must move the Power Score (valida
   shipped). Wrong manifests are worse than none.
 - New systems get a section with the same seven fields.
 - Keep each section ≤ ~15 lines — this is a map, not the territory (the linked doc is).
+
+
+## Hive Intelligence continuous toggle
+
+Campaign Stage 5 completion unlocks a run-local ON/OFF helper in Campaign and Infinite, including new campaign stages. It buys through the existing planner, starts waves and chooses recommended genes with a visible countdown. Stop from the battlefield or draft; Pause suspends actions. Daily, Boss Rush, Quick Skirmish, tutorials and uncleared Threat levels remain excluded. See `docs/HIVE-MIND.md`.

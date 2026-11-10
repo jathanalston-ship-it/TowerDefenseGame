@@ -17,6 +17,15 @@ export interface BlogPost {
 
 export const POSTS: BlogPost[] = [
   {
+    slug: 'let-the-hive-take-over', date: '2026-11-09', title: 'Let the hive take over',
+    category: 'Release', tags: ['gameplay', 'heroes', 'quality of life'],
+    summary: 'After Campaign Stage 5, Hive Intelligence can handle repetitive setup, waves, gene picks and hero abilities while you watch or take over.',
+    body: `<p>Easy waves should not mean placing the same organisms over and over. Hive Intelligence is now an optional continuous assistant.</p>
+<h2>Unlock it after Campaign Stage 5</h2><p>Complete Stage 5 on any difficulty, then turn on <b>HIVE INTELLIGENCE</b> in Campaign or Infinite. It works on new campaign stages as well as replays.</p>
+<h2>What the hive handles</h2><ul><li>Deploying towers, buying mutations and hero upgrades, and merging conveyor organisms.</li><li>Starting waves after the setup countdown and picking the recommended gene after a visible countdown.</li><li>Directing the lead hero toward threats and using their ability when ready.</li></ul>
+<h2>You stay in control</h2><p>Switch it off whenever you want, including during a gene draft. Pick a gene yourself to override the recommendation. Pause suspends automation, and the toggle starts off each run.</p><p>This is a simple helper, not a guaranteed win. Daily, Boss Rush, Quick Skirmish, tutorials and uncleared Threat levels remain manual. The hive does not spend permanent or premium currencies, sell your towers, or launch another run.</p>`,
+  },
+  {
     slug: 'class-bonds',
     date: '2026-11-06',
     title: 'Class Bonds: build around a class, and make it stronger',

@@ -1338,3 +1338,8 @@ already registered per system) · platform decision on backend (cloud saves, dai
 - Zero runtime import cycles (type-only back-edges by design); RC sweep verified ZERO orphan modules (209 files, all imported) and zero TODO/FIXME in shipping code.
 - Registry-enforced: no orphan source files, no unresolvable system references.
 - Debt ranked and bounded (`docs/ENGINEERING-AUDIT.md` §4–5); no unbounded growth surfaces known.
+
+
+## 2026-11-09 — Hive Intelligence continuous play (local branch)
+
+Implemented on `codex/hive-autoplay`, not deployed: Stage 5 completion unlocks continuous purchases, wave starts, gene picks and lead-hero ability/rally control in Campaign and Infinite. See `docs/AI_HANDOFF.md` and `docs/HIVE-MIND.md`. No save migration.

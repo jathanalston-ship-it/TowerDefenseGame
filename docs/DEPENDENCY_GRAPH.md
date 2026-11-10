@@ -329,14 +329,14 @@ graph TD
 
 ### Hive Intelligence (in-run) (`hive-mind`)
 
-*The in-run best-upgrade executive (player-facing HIVE INTELLIGENCE button): a pure provider-registry planner over every Biomass purchase (branch tiers, hero evolution, auto-cast, conveyor deploy/merge — future sinks register one provider), exact power-per-cost scoring with context multipliers (sparse board, heavy wave, pinned reserve), deterministic pulse execution through the same public APIs manual clicks use. Golden-safe: only the player button calls it. Distinct from state/hiveIntel.ts (the HUB intel FEED).*
+*The in-run best-upgrade executive (player-facing HIVE INTELLIGENCE button): a pure provider-registry planner over every Biomass purchase (branch tiers, hero evolution, auto-cast, conveyor deploy/merge — future sinks register one provider), exact power-per-cost scoring with context multipliers (sparse board, heavy wave, pinned reserve), deterministic pulse execution through the same public APIs manual clicks use. Opt-in run-local continuous toggle after Campaign Stage 5; purchases and waves use the sim clock, gene picks use the existing visible draft countdown. Distinct from state/hiveIntel.ts (the HUB intel FEED).*
 
 - **Files:** `src/core/hivemind.ts`
 - **Depends on:** `engine` · `content-infra` · `towers` · `heroes` · `power`
 - **Consumers — what breaks if you change this:** —
 - **Power Score:** reads the temporary bucket for exact purchase deltas (never writes)
 - **Save fields:** —
-- **Tutorial:** — · **Help mechanics:** —
+- **Tutorial:** — · **Help mechanics:** `hive-autoplay`
 - **HUD surfaces:** `GameView (◈ HIVE INTELLIGENCE button + pulse ticker)` · **UI screens:** `GameView`
 - **Collection:** — · **Achievements:** —
 - **Localization:** inline English strings (no i18n layer yet — this field enumerates the surface for the day it lands)

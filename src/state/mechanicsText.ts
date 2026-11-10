@@ -7,7 +7,7 @@
 
 import { LOGIN } from '../core/loginStreak';
 import { PRESTIGE } from '../core/prestige';
-import { DRAFT_FEATURES } from '../core/config';
+import { DRAFT_FEATURES, HIVE_MIND } from '../core/config';
 
 export interface MechanicText {
   what: string;
@@ -21,6 +21,13 @@ export interface MechanicText {
 }
 
 export const MECHANIC_TEXT: Readonly<Record<string, MechanicText>> = {
+  'hive-autoplay': {
+    what: 'A run-local toggle that places organisms, buys upgrades, starts waves, directs the lead hero, casts abilities and picks recommended genes.',
+    why: 'Let the hive handle repetitive setup while you watch its choices or take over.',
+    where: 'Complete Campaign Stage ' + HIVE_MIND.unlockStage + ', then use HIVE INTELLIGENCE beside speed and Pause in Campaign or Infinite.',
+    next: 'Turn it off any time; choose a gene yourself to override its visible countdown.',
+    mistakes: 'It is a simple helper, not a guaranteed win. Daily, Boss Rush, Quick Skirmish, tutorials and uncleared Threat levels remain manual.',
+  },
   "mission-control": {
     what: 'The Command Center’s centerpiece: your next Campaign stage with its recommended Power, an objective ledger of the best side-moves (each with live progress, reward and an honest ETA in runs at your current income), and the AHEAD strip of wings you’ll unlock next. When you are genuinely under-powered, the main button becomes “Farm Infinite” — with the readiness each run gains — and fighting the stage anyway steps down to a smaller button.',
     why: 'You should never have to guess what to do. Every row says what, why, what it pays — and how many runs it really is away.',

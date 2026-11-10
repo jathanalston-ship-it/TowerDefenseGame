@@ -1,6 +1,6 @@
 # DIL_GRAPH.md — the Design Intelligence Layer (GENERATED — `npm run dil -- regen`)
 
-> **The project's brain** (docs/DIL.md). 996 nodes · 1940 edges, built from the live
+> **The project's brain** (docs/DIL.md). 997 nodes · 1942 edges, built from the live
 > registries + curated knowledge (src/dev/dil/). **Query it instead of searching the repo:**
 > `npm run dil -- node <id>` · `affects <id>` · `requires <id>` · `missing <kind> <edge>` ·
 > `checklist tower <kind>` · `find <text>`. Edge kinds are bidirectional (19 kinds).
@@ -34,7 +34,7 @@
 
 ### Teaching Index
 
-`tutorial:combat` · `help:mission-control` · `help:hive-intel` · `help:evolution-roadmap` · `help:power-advisor` · `help:field-guides` · `help:hive-core` · `help:biomorph-conveyor` · `help:strain-evolution` · `help:boss-sieges` · `help:boss-rush` · `help:bio-roulette` · `help:gene-essence` · `help:field-research` · `help:splice-market` · `help:auction-house` · `help:daily-login` · `help:hive-construction` · `help:gene-archive` · `help:gene-loadout` · `help:biomass` · `help:wave-rhythm` · `help:game-speed` · `help:early-call` · `help:emergency-defense` · `help:power-score` · `help:account-level` · `help:genome-rank` · `help:towers` · `help:tower-stars` · `help:tower-mastery` · `help:blockers` · `help:mastery-evolution` · `help:class-bonds` · `help:bonds-in-battle` · `help:tower-branches` · `help:adaptation` · `help:mulligans` · `help:nucleus` · `help:gene-cards` · `help:splice` · `help:heroes` · `help:hero-evolution` · `help:hero-slots` · `help:equipment` · `help:equipment-reforge` · `help:gear-codex` · `help:genome-core` · `help:prestige` · `help:ascension` · `help:containers` · `help:loot-meter` · `help:mega-hunt` · `help:collection-codex` · `help:phenotype-lab` · `help:idle-harvest` · `help:metabolism` · `help:specimens` · `help:arena` · `help:expeditions` · …36 more
+`tutorial:combat` · `help:hive-autoplay` · `help:mission-control` · `help:hive-intel` · `help:evolution-roadmap` · `help:power-advisor` · `help:field-guides` · `help:hive-core` · `help:biomorph-conveyor` · `help:strain-evolution` · `help:boss-sieges` · `help:boss-rush` · `help:bio-roulette` · `help:gene-essence` · `help:field-research` · `help:splice-market` · `help:auction-house` · `help:daily-login` · `help:hive-construction` · `help:gene-archive` · `help:gene-loadout` · `help:biomass` · `help:wave-rhythm` · `help:game-speed` · `help:early-call` · `help:emergency-defense` · `help:power-score` · `help:account-level` · `help:genome-rank` · `help:towers` · `help:tower-stars` · `help:tower-mastery` · `help:blockers` · `help:mastery-evolution` · `help:class-bonds` · `help:bonds-in-battle` · `help:tower-branches` · `help:adaptation` · `help:mulligans` · `help:nucleus` · `help:gene-cards` · `help:splice` · `help:heroes` · `help:hero-evolution` · `help:hero-slots` · `help:equipment` · `help:equipment-reforge` · `help:gear-codex` · `help:genome-core` · `help:prestige` · `help:ascension` · `help:containers` · `help:loot-meter` · `help:mega-hunt` · `help:collection-codex` · `help:phenotype-lab` · `help:idle-harvest` · `help:metabolism` · `help:specimens` · `help:arena` · …37 more
 
 ### Testing Index
 
@@ -898,7 +898,7 @@ The premium reserve — never farmable; bled from achievements, collection ranks
 
 ### `system:hive-mind` — Hive Intelligence (in-run)
 
-The in-run best-upgrade executive (player-facing HIVE INTELLIGENCE button): a pure provider-registry planner over every Biomass purchase (branch tiers, hero evolution, auto-cast, conveyor deploy/merge — future sinks register one provider), exact power-per-cost scoring with context multipliers (sparse board, heavy wave, pinned reserve), deterministic pulse execution through the same public APIs manual clicks use. Golden-safe: only the player button calls it. Distinct from state/hiveIntel.ts (the HUB intel FEED).
+The in-run best-upgrade executive (player-facing HIVE INTELLIGENCE button): a pure provider-registry planner over every Biomass purchase (branch tiers, hero evolution, auto-cast, conveyor deploy/merge — future sinks register one provider), exact power-per-cost scoring with context multipliers (sparse board, heavy wave, pinned reserve), deterministic pulse execution through the same public APIs manual clicks use. Opt-in run-local continuous toggle after Campaign Stage 5; purchases and waves use the sim clock, gene picks use the existing visible draft countdown. Distinct from state/hiveIntel.ts (the HUB intel FEED).
 
 _at: src/core/hivemind.ts_
 
@@ -909,8 +909,9 @@ _at: src/core/hivemind.ts_
   - dependsOn → `system:power`
   - provides → `concept:power-score` — reads the temporary bucket for exact purchase deltas (never writes)
   - consumes → `system:engine` — PINNED-RESERVE PULSE CONTRACT (docs/HIVE-MIND.md §scoring): Game.hivePulse computes the reserve ONCE from the wallet at pulse start and threads it through every hivePlan re-plan — per-iteration recomputation on the shrinking wallet asymptotically spends to zero (sim:hive caught 87 violations before the pin). New Biomass sinks join via registerHiveProvider (core/hivemind.ts) — one provider, no planner/UI/sim changes; execute ONLY through the public API a manual click uses so the Power audit + ceremonies fire
-  - gates → `system:campaign` — AUTOMATION GATE (docs/HIVE-MIND.md §solved-content): Hive Intelligence + Auto Gene act only on SOLVED content — automationGate (core/hivemind.ts AUTOMATION_POLICY) evaluated by save/derive.ts automationFor at GameView mount, threaded as RunOptions.automationAllowed (FAIL-CLOSED: omitted ⇒ false). Headless instruments modelling solved content must pass automationAllowed: true or the pulse is a no-op
+  - gates → `system:campaign` — AUTOMATION GATE (docs/HIVE-MIND.md §solved-content): Hive Intelligence + Auto Gene unlock after Campaign Stage 5, including new campaign stages; mode and Threat restrictions still apply — automationGate (core/hivemind.ts AUTOMATION_POLICY) evaluated by save/derive.ts automationFor at GameView mount, threaded as RunOptions.automationAllowed (FAIL-CLOSED: omitted ⇒ false). Headless instruments modelling solved content must pass automationAllowed: true or the pulse is a no-op
   - modifies → `system:heroes` — THIN-BOARD HOLD (docs/HIVE-MIND.md §opening): with fewer than HIVE_MIND.thinBoardTowers towers the planner values heroEvo/autocast at 0 and the favorite provider (Game.deployTower) places towers — the start-of-run glow follows the same plan. G1: the old pulse sank ~90 % of the opening Biomass into Hero Evolution
+  - taughtBy ← `help:hive-autoplay`
   - documentedBy ← `doc:HIVE-MIND.md`
   - testedBy ← `test:src/core/hivemind.test.ts`
 
@@ -2137,6 +2138,7 @@ _at: src/ui/InitCutscene.tsx, src/ui/IntroMount.tsx, src/ui/introState.ts, src/s
   - dependsOn → `system:cutscenes` — INTRO → TUTORIAL HANDOFF: InitCutscene.useIntroPlaying() holds the TutorialOverlay cold-open banner clock while the film is mounted (first boot mounts the tutorial BENEATH it), and App fades a 520ms gold .intro-afterglow when onDone(dived) — the descent ends on full-screen gold, the tutorial is dark (TUTORIAL.md §cinematic)
   - requiredBy ← `system:progression-gating`
   - contains ← `tutorial:combat`
+  - contains ← `help:hive-autoplay`
   - contains ← `help:mission-control`
   - contains ← `help:hive-intel`
   - contains ← `help:evolution-roadmap`
@@ -2146,8 +2148,7 @@ _at: src/ui/InitCutscene.tsx, src/ui/IntroMount.tsx, src/ui/introState.ts, src/s
   - contains ← `help:biomorph-conveyor`
   - contains ← `help:strain-evolution`
   - contains ← `help:boss-sieges`
-  - contains ← `help:boss-rush`
-  - _…77 more (query: `npm run dil -- node system:onboarding`)_
+  - _…78 more (query: `npm run dil -- node system:onboarding`)_
 
 ### `system:account-level` — Account Level (evergreen meta-progression)
 
@@ -3539,8 +3540,9 @@ _at: src/core/tutorial.ts_
   - teaches → `system:onboarding`
   - teaches → `system:run-ui`
 
-## Help Topics (72)
+## Help Topics (73)
 
+- `help:hive-autoplay` — Toggle automatic tower purchases, wave starts and gene picks after Campaign Stage 5. _(partOf `system:onboarding`, teaches `system:hive-mind`)_
 - `help:mission-control` — Your standing orders — the answer to "what should I do now?" _(partOf `system:onboarding`, teaches `system:power`)_
 - `help:hive-intel` — The live intel feed — banked value, ready moves, recent milestones. _(partOf `system:onboarding`, teaches `system:notifications`)_
 - `help:evolution-roadmap` — Every wing of the hive on one rail, in unlock order. _(partOf `system:onboarding`, teaches `system:power`)_
@@ -4201,8 +4203,8 @@ _at: site/guides.ts → /guides/live-events/_
 - `test:src/core/bossmodules.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/core/bossrush.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/core/boundaries.test.ts` — automated validation _(tests `system:engine`)_
-- `test:src/core/branchTree.test.ts` — automated validation _(tests `system:towers`)_
 - `test:src/core/branches.test.ts` — automated validation _(tests `system:towers`)_
+- `test:src/core/branchTree.test.ts` — automated validation _(tests `system:towers`)_
 - `test:src/core/buffs.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/core/campaign.test.ts` — automated validation _(tests `system:campaign`)_
 - `test:src/core/campaignEvents.test.ts` — automated validation _(tests `system:campaign`)_
@@ -4228,8 +4230,8 @@ _at: site/guides.ts → /guides/live-events/_
 - `test:src/core/directives.test.ts` — automated validation _(tests `system:directives`)_
 - `test:src/core/director.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/core/doctrines.test.ts` — automated validation _(tests `system:doctrines`)_
-- `test:src/core/draftFit.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/core/draftcadence.test.ts` — automated validation _(tests `system:engine`)_
+- `test:src/core/draftFit.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/core/earlyBrood.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/core/economyDirector.test.ts` — automated validation _(tests `system:currencies`)_
 - `test:src/core/effectLanguage.test.ts` — automated validation _(tests `system:gene-cards`)_
@@ -4259,19 +4261,19 @@ _at: site/guides.ts → /guides/live-events/_
 - `test:src/core/grindLevers.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/core/heroCinematics.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/core/heroEquip.test.ts` — automated validation _(tests `system:engine`)_
+- `test:src/core/heroes.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/core/heroEvoGame.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/core/heroEvolution.test.ts` — automated validation _(tests `system:heroes`)_
 - `test:src/core/heroForks.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/core/heroIdentity.test.ts` — automated validation _(tests `system:heroes`)_
 - `test:src/core/heroKit.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/core/heroSelect.test.ts` — automated validation _(tests `system:engine`)_
-- `test:src/core/heroSymbiote.test.ts` — automated validation _(tests `system:hero-symbiotes`)_
-- `test:src/core/heroes.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/core/heroshield.test.ts` — automated validation _(tests `system:engine`)_
+- `test:src/core/heroSymbiote.test.ts` — automated validation _(tests `system:hero-symbiotes`)_
+- `test:src/core/hivemind.test.ts` — automated validation _(tests `system:hive-mind`)_
 - `test:src/core/hiveOrgans.test.ts` — automated validation _(tests `system:hive-construction`)_
 - `test:src/core/hiveProduction.test.ts` — automated validation _(tests `system:hive-construction`)_
 - `test:src/core/hiveSiege.test.ts` — automated validation _(tests `system:engine`)_
-- `test:src/core/hivemind.test.ts` — automated validation _(tests `system:hive-mind`)_
 - `test:src/core/identity.test.ts` — automated validation _(tests `system:profile`)_
 - `test:src/core/idleHarvest.test.ts` — automated validation _(tests `system:idle-harvest`)_
 - `test:src/core/itemIdentity.test.ts` — automated validation _(tests `system:online-foundation`)_
@@ -4308,9 +4310,9 @@ _at: site/guides.ts → /guides/live-events/_
 - `test:src/core/progressionLoot.test.ts` — automated validation _(tests `system:loot`)_
 - `test:src/core/puzzleFauna.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/core/quests.test.ts` — automated validation _(tests `system:quests`)_
-- `test:src/core/reactionTrio.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/core/reactions.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/core/reactionsSim.test.ts` — automated validation _(tests `system:engine`)_
+- `test:src/core/reactionTrio.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/core/reactor.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/core/reforge.test.ts` — automated validation _(tests `system:crafting`)_
 - `test:src/core/registry.test.ts` — automated validation _(tests `system:content-infra`)_
@@ -4336,8 +4338,8 @@ _at: site/guides.ts → /guides/live-events/_
 - `test:src/core/spire.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/core/stars.test.ts` — automated validation _(tests `system:towers`)_
 - `test:src/core/status.test.ts` — automated validation _(tests `system:engine`)_
-- `test:src/core/strainVerbs.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/core/strains.test.ts` — automated validation _(tests `system:towers`)_
+- `test:src/core/strainVerbs.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/core/summon.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/core/targeting.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/core/targetlast.test.ts` — automated validation _(tests `system:engine`)_
@@ -4425,9 +4427,9 @@ _at: site/guides.ts → /guides/live-events/_
 - `test:src/state/directShardGrants.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/state/endlessTaperBanking.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/state/equipAdvisor.test.ts` — automated validation _(tests `system:power`)_
+- `test:src/state/evolutioncap.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/state/evolutionHQ.test.ts` — automated validation _(tests `system:evolution-hq`)_
 - `test:src/state/evolutionRoadmap.test.ts` — automated validation _(tests `system:power`)_
-- `test:src/state/evolutioncap.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/state/expeditions.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/state/firstHour.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/state/firstLoop.test.ts` — automated validation _(tests `system:onboarding`)_
@@ -4468,8 +4470,8 @@ _at: site/guides.ts → /guides/live-events/_
 - `test:src/state/mulliganOverhaul.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/state/nemesis.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/state/nextGoal.test.ts` — automated validation _(tests `system:hub-shell`)_
-- `test:src/state/notificationSources.season.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/state/notifications.test.ts` — automated validation _(tests `system:notifications`)_
+- `test:src/state/notificationSources.season.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/state/patchNotes.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/state/powerAdvisor.test.ts` — automated validation _(tests `system:power`)_
 - `test:src/state/powerAtlas.test.ts` — automated validation _(tests `system:power`)_
@@ -4501,17 +4503,17 @@ _at: site/guides.ts → /guides/live-events/_
 - `test:src/state/verifiedPurchase.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/state/vowsMeta.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/state/wardrobeMeta.test.ts` — automated validation _(tests `system:engine`)_
-- `test:src/ui/HubLanding.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/ui/browserBack.test.ts` — automated validation _(tests `system:hub-shell`)_
-- `test:src/ui/components/RunBackdrop.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/ui/components/loadoutStrip.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/ui/components/rarityFx.test.ts` — automated validation _(tests `system:engine`)_
+- `test:src/ui/components/RunBackdrop.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/ui/components/sectionNav.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/ui/components/topbarTouch.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/ui/evolutionTrackModel.test.ts` — automated validation _(tests `system:mastery`)_
 - `test:src/ui/helpSearch.test.ts` — automated validation _(tests `system:onboarding`)_
 - `test:src/ui/homeBaseTiers.test.ts` — automated validation _(tests `system:hub-shell`)_
 - `test:src/ui/homeModel.test.ts` — automated validation _(tests `system:hub-shell`)_
+- `test:src/ui/HubLanding.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/ui/hubProgress.test.ts` — automated validation _(tests `system:hub-shell`)_
 - `test:src/ui/lazyNamed.test.ts` — automated validation _(tests `system:ui-kit`)_
 - `test:src/ui/navModel.test.ts` — automated validation _(tests `system:hub-shell`)_

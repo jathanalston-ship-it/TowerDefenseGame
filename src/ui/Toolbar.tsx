@@ -213,8 +213,8 @@ export function Toolbar({
           </span>
         </button>
         <button
-          className={`autocast-btn tt${hud.autocast.on ? ' is-on' : ''}`}
-          disabled={!playable || (!hud.autocast.unlocked && !hud.autocast.affordable)}
+          className={`autocast-btn tt${(hud.hiveActive || hud.autocast.on) ? ' is-on' : ''}`}
+          disabled={hud.hiveActive || !playable || (!hud.autocast.unlocked && !hud.autocast.affordable)}
           onClick={() => {
             audio.resume();
             if (hud.autocast.unlocked) game.toggleAutocast();
@@ -222,9 +222,9 @@ export function Toolbar({
             refresh();
           }}
         >
-          {hud.autocast.unlocked ? (hud.autocast.on ? 'AUTO ON' : 'AUTO OFF') : `AUTO ⌁ ${hud.autocast.cost}`}
+          {hud.hiveActive ? 'HIVE AUTO' : hud.autocast.unlocked ? (hud.autocast.on ? 'AUTO ON' : 'AUTO OFF') : `AUTO ⌁ ${hud.autocast.cost}`}
           <span className="tt-bubble">
-            {hud.autocast.unlocked
+            {hud.hiveActive ? 'Hive Intelligence handles abilities. Turn it off to take control.' : hud.autocast.unlocked
               ? hud.autocast.on
                 ? 'Auto-cast ON — the hero fires its ability automatically. Click to turn off.'
                 : 'Auto-cast OFF. Click to turn on.'

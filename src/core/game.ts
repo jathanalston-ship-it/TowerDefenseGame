@@ -593,6 +593,16 @@ export class Game {
   // Auto-start: when on, prep auto-advances to the next wave after a countdown. Off by default
   // (a player QoL toggle); the manual-start golden run never touches it.
   autoStart = false;
+  hiveActive = false;
+  private hivePulseIn = 0;
+  hiveReport: { serial: number; spent: number; actions: { label: string; detail: string; cost: number }[] } = { serial: 0, spent: 0, actions: [] };
+
+  /** Run-local toggle; standalone Auto Wave preference is preserved. */
+  setHiveActive(on: boolean): void {
+    this.hiveActive = on && this.automationAllowed && !this.tutorialMode && this.phase !== 'won' && this.phase !== 'lost';
+    this.hivePulseIn = 0;
+    this.prepCountdown = this.waveIndex === 0 ? AUTO_START_FIRST_DELAY : AUTO_START_DELAY;
+  }
   // Primary-hero AUTO-CAST (docs/HEROES.md): a one-time in-run Biomass unlock, then a free toggle.
   // Both default OFF ⇒ the primary hero stays player-triggered and the golden run never auto-casts.
   autocastUnlocked = false;
@@ -2210,7 +2220,7 @@ export class Game {
     this.autoStartReady = true;
     // Auto-start: the FIRST tower of the opening prep (before any wave) buys a longer setup
     // window, so an auto-start doesn't fire before the player finishes their opening build.
-    if (this.autoStart && this.waveIndex === 0 && this.towers.length === 1) {
+    if ((this.autoStart || this.hiveActive) && this.waveIndex === 0 && this.towers.length === 1) {
       this.prepCountdown = AUTO_START_FIRST_DELAY;
     }
     return this.towers[this.towers.length - 1];
@@ -2841,7 +2851,7 @@ export class Game {
   }
 
   // ── HIVE INTELLIGENCE (docs/HIVE-MIND.md) — the in-run best-upgrade executive ────────────
-  //    Player-triggered ONLY (the HUD button): golden autoplay never calls these, so every
+  //    Opt-in continuous toggle (the HUD button): golden autoplay never calls these, so every
   //    golden seed is untouched by construction. All purchases ride the same public APIs a
   //    manual click uses — Power audit, ceremonies and stats all fire normally.
 
@@ -2887,7 +2897,10 @@ export class Game {
       this.floats.push({ x: WIDTH / 2, y: 330 + actions.length * 22, text: `◈ ${best.label}`, color: '#8fd0ff', life: 1.6 });
       if (this.phase === 'draft') break; // a SPLICE opened a draft — the pulse ends; the pick is the player's
     }
-    if (actions.length > 0) this.pushSfx('splice');
+    if (actions.length > 0) {
+      this.pushSfx('splice');
+      this.hiveReport = { serial: this.hiveReport.serial + 1, spent, actions };
+    }
     this.hiveReadyAt = -1; // the wallet moved — recompute the button glow immediately
     return { spent, actions };
   }
@@ -2973,6 +2986,7 @@ export class Game {
   }
 
   advance(dtReal: number): void {
+    if (this.phase === 'won' || this.phase === 'lost') this.hiveActive = false;
     if (this.paused) return;
     if (this.biomeFlash > 0) this.biomeFlash = Math.max(0, this.biomeFlash - dtReal * 0.7); // render-only transition ease (~1.4s)
     const scale = this.timeScale;
@@ -2989,6 +3003,14 @@ export class Game {
 
   private step(dt: number): void {
     this.stepCount++;
+    if (this.hiveActive && !this.tutorialMode && this.settleTimer <= 0 && (this.phase === 'prep' || this.phase === 'wave')) {
+      this.hivePulseIn -= dt;
+      if (this.hivePulseIn <= 0) {
+        this.hivePulse();
+        this.hiveRally();
+        this.hivePulseIn = HIVE_MIND.pulseSeconds;
+      }
+    }
     if (this.bondLevels) this.refreshBonds(); // CLASS BONDS: the board's set bonuses follow what is deployed
     // Danger camera (docs/CAMERA.md) — render-only, ticked in EVERY phase (combat, settle,
     // prep, won, lost) so the tension always enters deliberately and exhales smoothly.
@@ -3091,7 +3113,7 @@ export class Game {
       // taken their first setup action (autoStartReady). Off by default ⇒ the manual-start golden
       // run is byte-identical; consumes no rng. While armed-but-not-ready the countdown is frozen
       // (the HUD shows "Waiting for first placement…") so the run never auto-fires on an empty board.
-      if (this.autoStart && this.autoStartReady && this.phase === 'prep') {
+      if ((this.autoStart || this.hiveActive) && this.autoStartReady && this.phase === 'prep') {
         // REAL-TIME countdown: dividing by timeScale cancels the fast-forward step multiplier, so the
         // prep auto-start burns the same WALL time at 1×/2×/5×. timeScale is 1 on the golden path (and
         // no combat runs in prep) ⇒ byte-identical. See docs/GAME-SPEED / AUTO_START_DELAY.
@@ -6297,6 +6319,19 @@ export class Game {
     }
   }
 
+  /** Keep the lead hero near the deepest live threat; native hero AI handles movement/combat. */
+  private hiveRally(): void {
+    if (this.phase !== 'wave' || this.heroes.length === 0 || this.primaryHero.down) return;
+    let target: Enemy | null = null;
+    let nearest = Infinity;
+    for (const enemy of this.enemies) {
+      if (!enemy.alive) continue;
+      const distance = this.nav.goalDistanceAt(enemy.x, enemy.y);
+      if (distance < nearest) { nearest = distance; target = enemy; }
+    }
+    if (target) this.setRally(target.x, target.y);
+  }
+
   private heroSystem(dt: number): void {
     if (this.gravebindHero !== null && this.raiseCd > 0) this.raiseCd -= dt; // Gravebind cadence (gated ⇒ golden-inert)
     for (const h of this.heroes) this.updateHero(h, dt);
@@ -6304,9 +6339,9 @@ export class Game {
     // cooldown; the primary (slot 1) stays PLAYER-triggered. The loop is empty for a single-hero run
     // ⇒ it never executes ⇒ byte-identical golden run.
     for (let i = 1; i < this.heroes.length; i++) this.autoCastHero(this.heroes[i]);
-    // Primary hero (slot 1): AUTO-CAST only when the player has bought AND enabled it — same
+    // Primary hero: purchased Auto-Cast OR the active Hive assistant uses the same
     // decision + code path as the autonomous roster. Off by default ⇒ byte-identical golden run.
-    if (this.autocastOn && this.heroes.length > 0) this.autoCastHero(this.heroes[0]);
+    if ((this.autocastOn || (this.hiveActive && this.phase === 'wave' && this.settleTimer <= 0)) && this.heroes.length > 0) this.autoCastHero(this.heroes[0]);
   }
 
   /** Autonomous ability cast for a non-primary hero: fire the signature ability the moment it's
@@ -8648,11 +8683,12 @@ export class Game {
       runHeadline: this.runPlan?.headline || undefined,
       selectedHero: this.selectedHeroView(),
       anticipation: this.tutorialWaves > 0 ? [] : this.nextAnticipation(), // the lesson has no finale to anticipate
-      autoStart: this.autoStart,
+      autoStart: this.autoStart || this.hiveActive,
+      hiveActive: this.hiveActive,
       hiveReady: this.hiveReadySnapshot(),
       threat: this.threat,
-      autoStartIn: this.autoStart && this.autoStartReady && this.phase === 'prep' ? Math.max(0, this.prepCountdown) : 0,
-      autoStartWaiting: this.autoStart && !this.autoStartReady,
+      autoStartIn: (this.autoStart || this.hiveActive) && this.autoStartReady && this.phase === 'prep' ? Math.max(0, this.prepCountdown) : 0,
+      autoStartWaiting: (this.autoStart || this.hiveActive) && !this.autoStartReady,
       autocast: { unlocked: this.autocastUnlocked, on: this.autocastOn, cost: HERO_AUTOCAST.cost, affordable: this.biomass >= HERO_AUTOCAST.cost },
       heroEvo: { levels: { ...this.heroEvoLevels }, totalOwned: heroEvoTotalOwned(this.heroEvoLevels) },
     };

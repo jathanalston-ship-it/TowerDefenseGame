@@ -73,15 +73,15 @@ describe('derived ladder state + the automation gate', () => {
     expect(threatMaxFor(s({ rushBestWave: 2, threat: { campaign: 0, endless: 0, bossRush: 3 } }), 'bossRush')).toBe(0); // baseline record missing ⇒ sealed
   });
 
-  it('automation: cleared Campaign replays + Infinite only; frontier stages, Rush, Daily, tutorial and frontier Threat say why', () => {
+  it('automation: stage-5 Campaign and Infinite; Rush, Daily, tutorial and frontier Threat say why', () => {
     const vet = s({ campaign: { ...defaultSave().campaign, cleared: { standard: 8 } }, bestWave: 30, threat: { campaign: 2, endless: 2, bossRush: 0 } });
     expect(campaignStageCleared(vet, 8, 'standard')).toBe(true);
     expect(campaignStageCleared(vet, 9, 'standard')).toBe(false);
     expect(campaignStageCleared(vet, 3, 'nightmare')).toBe(false); // the frontier is per difficulty track
     expect(automationFor(vet, { mode: 'campaign', tutorial: false, stage: 5, difficulty: 'standard' }).allowed).toBe(true);
     const frontier = automationFor(vet, { mode: 'campaign', tutorial: false, stage: 9, difficulty: 'standard' });
-    expect(frontier.allowed).toBe(false);
-    expect(frontier.reason).toBe('Unlocks on stages you’ve cleared');
+    expect(frontier.allowed).toBe(true);
+    expect(automationFor(defaultSave(), { mode: 'campaign', tutorial: false, stage: 1 }).reason).toMatch(/Stage 5/);
     expect(automationFor(vet, { mode: 'endless', tutorial: false, threat: 2 }).allowed).toBe(true);
     expect(automationFor(vet, { mode: 'endless', tutorial: false, threat: 3 }).reason).toMatch(/Threat/);
     expect(automationFor(vet, { mode: 'campaign', tutorial: false, stage: 5, difficulty: 'standard', threat: 3 }).allowed).toBe(false);

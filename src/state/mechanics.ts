@@ -11,7 +11,7 @@ import { highestCampaignStage } from '../save/derive'; // cycle-free (never impo
 // (docs/PROGRESSION-GATING.md) so the What's New card fires the moment its nav entry reveals —
 // ONE source of truth for "when does this system exist".
 import { FEATURE_BY_ID, featureRevealed, isOpenNav } from './unlocks';
-import { DRAFT_FEATURES } from '../core/config'; // pure data — the Splice gate
+import { DRAFT_FEATURES, HIVE_MIND } from '../core/config'; // pure data — the Splice gate
 import { FIELD_NOTE_MECHANICS } from './fieldNotes'; // the in-run lessons — taught at their moment, never queued here
 
 export type MechanicCategory = 'Basics' | 'Towers' | 'Heroes' | 'Progression' | 'Modes' | 'World';
@@ -35,6 +35,9 @@ const hasGear = (s: SaveData): boolean => s.equipment.inventory.length > 0;
 
 // Order = display order within a category. Unknown (locked) mechanics stay hidden until unlocked.
 export const MECHANICS: MechanicDef[] = [
+  { id: 'hive-autoplay', title: 'Hive Intelligence — Auto Play', category: 'Basics', nav: 'campaign',
+    unlock: (s) => highestCampaignStage(s) >= HIVE_MIND.unlockStage,
+    summary: 'Toggle automatic tower purchases, hero abilities, wave starts and gene picks after Campaign Stage ' + HIVE_MIND.unlockStage + '.' },
   // ── Basics · the five guidance instruments (the UX Foundations — docs/MISSION-CONTROL.md and
   //    siblings). CORE rows: browsable from minute 0, never announced (the HUD Tour and the
   //    tutorial handoff introduce them — a What's New card for the guidance layer would be noise).

@@ -5,10 +5,39 @@ import type { Release } from './types';
 /** Player-facing releases, newest first. */
 export const RELEASES: Release[] = [
   {
+    "id": "v2026.11.09",
+    "date": "2026-11-09",
+    "title": "Let the Hive Take Over",
+    "sealed": false,
+    "entries": [
+      {
+        "cat": "Gameplay",
+        "major": true,
+        "text": "Complete Campaign Stage 5 to unlock continuous Hive Intelligence in Campaign and Infinite, including new campaign stages."
+      },
+      {
+        "cat": "Gameplay",
+        "text": "Toggle the hive on to place towers, buy upgrades, merge organisms, start waves and choose recommended genes automatically."
+      },
+      {
+        "cat": "Heroes",
+        "text": "Hive Intelligence directs your lead hero toward threats and uses their ability automatically, without buying the separate Auto-Cast upgrade."
+      },
+      {
+        "cat": "UX",
+        "text": "Take control at any time with the ON/OFF toggle or draft Stop button. Pause suspends automation; each new run starts with Hive Intelligence off."
+      },
+      {
+        "cat": "Website",
+        "text": "New guide and dev blog explain the stage-5 unlock, automatic actions and manual takeover."
+      }
+    ]
+  },
+  {
     "id": "v2026.11.06.2",
     "date": "2026-11-06",
     "title": "Class Bonds",
-    "sealed": false,
+    "sealed": true,
     "entries": [
       {
         "cat": "Gameplay",

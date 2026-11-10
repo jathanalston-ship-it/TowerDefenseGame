@@ -174,6 +174,7 @@ export function BuildControls({
             <button
               type="button"
               className={`auto-btn ${hud.autoStart ? (hud.autoStartWaiting ? 'is-waiting' : 'is-on') : ''}`}
+              disabled={hud.hiveActive}
               aria-pressed={hud.autoStart}
               tabIndex={visible ? 0 : -1}
               title={
@@ -193,10 +194,10 @@ export function BuildControls({
             </button>
             <button
               type="button"
-              className={`auto-btn ${autoGene && !autoGeneLock ? 'is-on' : ''}`}
-              aria-pressed={autoGene && !autoGeneLock}
+              className={`auto-btn ${(autoGene || hud.hiveActive) && !autoGeneLock ? 'is-on' : ''}`}
+              aria-pressed={(autoGene || hud.hiveActive) && !autoGeneLock}
               tabIndex={visible ? 0 : -1}
-              disabled={!!autoGeneLock}
+              disabled={!!autoGeneLock || hud.hiveActive}
               title={autoGeneLock ? `Auto Gene — ${autoGeneLock}` : 'Auto-draft the recommended ◆ PICK gene card after a countdown (pick any card to override)'}
               onClick={() => {
                 const next = !autoGene;
@@ -206,7 +207,7 @@ export function BuildControls({
             >
               <i className="wb-led" aria-hidden />
               ◆ Auto Gene
-              <b>{autoGeneLock ? 'LOCKED' : autoGene ? 'ON' : 'OFF'}</b>
+              <b>{autoGeneLock ? 'LOCKED' : (autoGene || hud.hiveActive) ? 'ON' : 'OFF'}</b>
             </button>
           </div>}
         </div>
