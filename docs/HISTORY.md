@@ -754,3 +754,4 @@
 - `2d318f3` **[UI]** Ui: make recovered memories easier to find and replay _(internal)_
 - `f832f08` **[UI]** Ui: make collection celebrations accessible _(internal)_
 - `0d31f13` **[UI]** Ui: preserve focus while browsing collection categories _(internal)_
+- `2d2fbed` **[UI]** Ui: clarify undiscovered collection entries _(internal)_

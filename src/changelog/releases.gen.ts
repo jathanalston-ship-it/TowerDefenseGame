@@ -8,7 +8,7 @@ export const RELEASES: Release[] = [
     "id": "v2026.11.10.6",
     "date": "2026-11-10",
     "title": "Memories Within Reach",
-    "sealed": false,
+    "sealed": true,
     "entries": [
       {
         "cat": "UX",

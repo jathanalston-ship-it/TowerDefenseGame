@@ -4,8 +4,8 @@
 > before committing. Read together with docs/PROJECT_STATUS.md and the latest
 > docs/VALIDATION_REPORT.md. Next session: start at docs/PROJECT_MANIFEST.md.
 
-- **Generated:** 2026-11-10 15:27 UTC · **Diff scope:** working tree vs HEAD
-- **Branch:** codex/hive-autoplay · **HEAD:** 0d31f134
+- **Generated:** 2026-11-10 15:34 UTC · **Diff scope:** working tree vs HEAD
+- **Branch:** codex/hive-autoplay · **HEAD:** 2d2fbedd
 
 ## Summary of work completed
 
@@ -13,15 +13,13 @@ LIVE v2026.11.10.5 Films That Follow You with four sealed website notes. SHA8299
 
 ## Files modified
 
-- Source (2): `src/changelog/releases.gen.ts`, `src/ui/CollectionPanel.tsx`
+- Source (1): `src/changelog/releases.gen.ts`
 - Tests (0): —
-- Docs (5): `docs/COLLECTION.md`, `docs/HISTORY.md`, `docs/PROJECT_MANIFEST.md`, `docs/devlog/DRAFT-2026-11-09.md`, `docs/devlog/DRAFT-2026-11-10.md`
+- Docs (3): `docs/HISTORY.md`, `docs/devlog/DRAFT-2026-11-09.md`, `docs/devlog/DRAFT-2026-11-10.md`
 
 ## Systems affected (from the dependency registry)
 
 - **chronicle** — `src/changelog/releases.gen.ts`
-- **collection** — `src/ui/CollectionPanel.tsx`
-- Consumer ring (verify, unchanged): cosmetics, daily-login, genome-rank, idle-harvest, profile, quests
 
 ## Power Score changes
 
@@ -49,7 +47,7 @@ Windows validate wrapper cannot launch npx/npm with shell:false; use direct gate
 
 ## Recommended next tasks
 
-Local .10.6 now has four unsealed collection notes. FULL REGRESSION RUNNING session45035, collection-release-tests.log; poll same handle, never restart on observation timeout. Build and21 focused tests PASS; check docs session54331 if not terminal. Next seal/site/final build/mobile, then publish and exact-SHA/live website verification around hourly window16:04UTC. Live .10.5 unchanged; continuous goal active.
+Release .10.6 Memories Within Reach has four SEALED notes. Full3177tests/354files PASS session45035 terminal. Final build24.20s and4site tests PASS; docs session12576 finishing. MOBILE RUNNING session98307 against final dist, collection-release-mobile.log. Poll same handles; DO NOT rebuild dist during mobile. After mobile passes, record release gates, publish assigned deployment ref, verify exact-SHA Actions and normal custom-domain game/home/news/all4notes with ../verify-current-release.ps1. Live .10.5 remains until publication. Goal active.
 
 ## Future expansion hooks
 
@@ -97,6 +95,8 @@ Hero readiness final build65590 PASS (Vite7.59s); all processes terminal. Next r
 
 
 
-## 2026-11-10 — readable undiscovered collection entries (local .10.6)
 
-EntryGrid now conceals tier-zero names in tooltips as well as visible copy, labels them Undiscovered entry, removes whole-card dimming, uses readable status text and wraps long names. Named list/listitems support assistive navigation. Discovered names/status/mastery and progression unchanged. ../collection-entry-check.cjs PASS all29categories:1162hidden/24revealed entries, exact status/mastery retention, no name leaks, no overflow at390/320. Production build/app+functions TS PASS16.95s;21collection/UI/site tests PASS. Fourth unsealed website note generated. Full release regression is RUNNING session45035 in collection-release-tests.log; poll existing handle. Mobile/final sealed build/live release gates remain. Continuous goal active.
+
+## 2026-11-10 — collection release regression checkpoint
+
+v2026.11.10.6 Memories Within Reach now has four sealed notes generated for game/home/news. Full suite45035 terminal PASS354files/3177tests (430.11s). Final app/functions TS+build PASS24.20s;4sealed site tests PASS. Four focused browser probes PASS archive/rank-up/navigation/all29category entry states. Required validation wrapper still exits1 on known Windows launcher path; collection-release-wrapper-report.log preserved, direct gates used. MOBILE98307 RUNNING on final dist in collection-release-mobile.log; no rebuild until terminal. Docs12576 finishing. No deployment yet; exact-SHA workflow/live checks follow mobile. Continuous goal active.

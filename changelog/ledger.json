@@ -1,6 +1,6 @@
 {
-  "lastSha": "0d31f13445298a45c5938171f73dff8e6fbad6fd",
-  "commitsSinceDraft": 2,
+  "lastSha": "2d2fbedda27ffa27224a29686e16f67d6b4c365f",
+  "commitsSinceDraft": 3,
   "content": {
     "tower": [
       "needle",
@@ -4526,7 +4526,7 @@
       "id": "v2026.11.10.6",
       "date": "2026-11-10",
       "title": "Memories Within Reach",
-      "sealed": false,
+      "sealed": true,
       "entries": [
         {
           "cat": "UX",
@@ -10225,6 +10225,14 @@
       "date": "2026-11-10",
       "cat": "UI",
       "text": "Ui: preserve focus while browsing collection categories",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "2d2fbedda27ffa27224a29686e16f67d6b4c365f",
+      "date": "2026-11-10",
+      "cat": "UI",
+      "text": "Ui: clarify undiscovered collection entries",
       "internal": true,
       "needsReview": false
     }
