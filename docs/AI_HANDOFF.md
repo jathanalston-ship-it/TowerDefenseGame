@@ -9,7 +9,7 @@
 
 ## Summary of work completed
 
-Ready to publish v2026.11.10.4 Clearer Briefings, five sealed website notes: update briefing keyboard lifecycle, unlock queues/batch focus, Help reading flow, live-motion/accessible tutorial text, guide completion focus/fit. Full3177tests/354files PASS; final build16.25s,4site tests,docs and mobile27screens/9gameplay viewports PASS. Wrapper launcher limitation recorded separately. All processes terminal. Prior live8bca53e6 (.10.3). Continuous goal active.
+LIVE v2026.11.10.4 Clearer Briefings, five sealed website notes. SHAd1642e26c1bc1459e536c94c1beb6cdd97e4d1c6; Actions42832653336 SUCCESS including exact-SHA production guard. Normal custom-domain game/home/news/all5notes verified 2026-11-10 14:20 UTC; asset /assets/play-hhnWgeY7.js matches local build and returns200. Initial cached prior asset resolved on same URLs. Full3177tests/354files PASS; final build16.25s,4site tests,docs and mobile27screens/9gameplay viewports PASS. All processes terminal; continuous goal active.
 
 ## Files modified
 
@@ -47,7 +47,7 @@ Windows validate wrapper cannot launch npx/npm with shell:false; use direct gate
 
 ## Recommended next tasks
 
-Commit release on codex/hive-autoplay; verify remote8bca53e6 and push HEAD to claude/zen-hawking-rh1gxl. Follow Actions exact-SHA production guard, then ../verify-current-release.ps1 for normal custom-domain game/home/news/all5notes. Record live SHA/time and continue goal. Candidate next investigation: CutscenePlayer snapshots resolved motion once per showing; consider live preference changes without beat/audio catch-up bursts. Keep two untracked devlog drafts unpublished.
+Continue active improvement goal; start a new unsealed release for next batch. Next approximate deployment15:20UTC with website notes. Candidate investigation: CutscenePlayer snapshots resolved motion once per showing; examine live preference changes without replaying missed audio beats or hiding already-read copy. Current .10.4 fully verified. Keep two untracked devlog drafts unpublished. Windows validation wrapper launcher issue remains documented; direct gates supplied release evidence.
 
 ## Future expansion hooks
 

@@ -1602,3 +1602,7 @@ Evidence: ../guide-completion-check.cjs baseline FAILED with focus falling to bo
 ## 2026-11-10 — Clearer Briefings release gates
 
 v2026.11.10.4 Clearer Briefings: five sealed notes generated for game/home/news. Full regression suite session91942 terminal PASS354files/3177tests (323.86s). Final app/functions TypeScript and production build PASS16.25s;4sealed site-sync tests PASS;docs PASS. Mobile session35980 terminal CLEAN:27nav screens/nine gameplay viewports, landscape drawer, rotate/portrait run contracts, overlap/clipping/target gates. Required validation wrapper exited1 on its known Windows child-command launcher path; separate report clearer-briefings-wrapper-report.log retained and direct gate evidence recorded. Five focused browser probes passed earlier. No combat/balance/progression/save-shape changes. All processes terminal; ready to publish.
+
+## 2026-11-10 14:20 UTC — Clearer Briefings live
+
+v2026.11.10.4 Clearer Briefings deployed at SHAd1642e26c1bc1459e536c94c1beb6cdd97e4d1c6. Actions42832653336 SUCCESS including exact-SHA production guard. Normal custom-domain game/home/news/all5notes verified by ../verify-current-release.ps1; asset /assets/play-hhnWgeY7.js matches sealed local build and returns200. Initial check saw cached prior asset; same URLs passed after propagation. Full3177tests, final build16.25s,4site tests,docs and mobile27screens/9gameplay viewports PASS. No remaining release checks. Next approximate deployment15:20UTC. Continuous goal active.

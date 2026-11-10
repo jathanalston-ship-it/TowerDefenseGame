@@ -350,3 +350,7 @@ LeaderboardBlock retains best-effort submission/fetch behavior and provides Retr
 ## 2026-11-10 13:33 UTC — Progress Explained live
 
 v2026.11.10.3 Progress Explained deployed at SHA8bca53e653f88178fe17a6f189133024a1e0760b. Actions42794604361 completed SUCCESS including the exact-SHA production guard. Normal custom-domain game/home/news/all8notes verified by ../verify-current-release.ps1; asset /assets/play-Ctdm4tfv.js matches the final local build and returns200. Initial immediate asset request returned404 during propagation; the same normal URL succeeded on retry. No outstanding release checks. Next approximate deployment14:33UTC; continuous improvement goal remains active.
+
+## 2026-11-10 14:20 UTC — Clearer Briefings live
+
+v2026.11.10.4 Clearer Briefings deployed at SHAd1642e26c1bc1459e536c94c1beb6cdd97e4d1c6. Actions42832653336 SUCCESS including exact-SHA production guard. Normal custom-domain game/home/news/all5notes verified by ../verify-current-release.ps1; asset /assets/play-hhnWgeY7.js matches sealed local build and returns200. Initial check saw cached prior asset; same URLs passed after propagation. Full3177tests, final build16.25s,4site tests,docs and mobile27screens/9gameplay viewports PASS. No remaining release checks. Next approximate deployment15:20UTC. Continuous goal active.
