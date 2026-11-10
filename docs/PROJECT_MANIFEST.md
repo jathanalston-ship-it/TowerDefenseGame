@@ -885,3 +885,5 @@ Complete class adaptation reveal (2026-11-10): shared Popup portal escapes trans
 Adaptation reveal decoration: rotating rays are clipped in their own inset layer so they cannot widen the overlay or create horizontal scrolling; the content card remains independently scrollable.
 
 Graft-host keyboard navigation (2026-11-10): host tablist uses a single selected Tab stop, Arrow keys/Home/End with wrapping and nearest scrolling, and unique tab-to-panel ARIA links. Tab enters the named focusable showcase; class filters expose aria-pressed. Selection still uses the existing selectTower function; progression and graft operations are unchanged.
+
+Mulligan currency guidance (2026-11-10): tower graft level/ascend UI and Help now name Mulligan Tissue, matching meta/model spending. Bound-organism guidance explains permanent graft binding and upgrade caps. Nucleus Gene Essence remains unchanged; no economy or save changes. See MULLIGANS.md and ECONOMY.md §8.

@@ -1,6 +1,6 @@
 {
-  "lastSha": "e43f8089d0bde2877776cb08da02f73ad7491293",
-  "commitsSinceDraft": 5,
+  "lastSha": "6b23be63aac43bc8ba3a51a8ac15efdd43077c0b",
+  "commitsSinceDraft": 6,
   "content": {
     "tower": [
       "needle",
@@ -4793,7 +4793,7 @@
     {
       "id": "v2026.11.10.15",
       "date": "2026-11-10",
-      "title": "Clearer Adaptation Reveals",
+      "title": "Clearer Graft Controls",
       "sealed": false,
       "entries": [
         {
@@ -4803,6 +4803,10 @@
         {
           "cat": "UI",
           "text": "Graft-host tabs now support arrow keys, Home and End, with one Tab stop for the selected host and a clearly named details panel. Modifier class filters now announce which filter is selected."
+        },
+        {
+          "cat": "UI",
+          "text": "Graft level and ascension controls now show Mulligan Tissue, matching the currency they already spend. Help explains the correct wallet, and reforged organisms show binding and upgrade guidance instead of suggesting unavailable graft clearing."
         }
       ]
     }
@@ -11093,6 +11097,14 @@
       "date": "2026-11-10",
       "cat": "UI",
       "text": "Ui: keep adaptation reveals visible and keyboard accessible",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "6b23be63aac43bc8ba3a51a8ac15efdd43077c0b",
+      "date": "2026-11-10",
+      "cat": "UI",
+      "text": "Ui: add keyboard navigation to graft host tabs",
       "internal": true,
       "needsReview": false
     }

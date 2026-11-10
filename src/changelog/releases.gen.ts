@@ -7,7 +7,7 @@ export const RELEASES: Release[] = [
   {
     "id": "v2026.11.10.15",
     "date": "2026-11-10",
-    "title": "Clearer Adaptation Reveals",
+    "title": "Clearer Graft Controls",
     "sealed": false,
     "entries": [
       {
@@ -17,6 +17,10 @@ export const RELEASES: Release[] = [
       {
         "cat": "UI",
         "text": "Graft-host tabs now support arrow keys, Home and End, with one Tab stop for the selected host and a clearly named details panel. Modifier class filters now announce which filter is selected."
+      },
+      {
+        "cat": "UI",
+        "text": "Graft level and ascension controls now show Mulligan Tissue, matching the currency they already spend. Help explains the correct wallet, and reforged organisms show binding and upgrade guidance instead of suggesting unavailable graft clearing."
       }
     ]
   },

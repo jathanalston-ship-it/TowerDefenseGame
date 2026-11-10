@@ -2061,3 +2061,7 @@ Complete class adaptation reveal baseline was y=-3012 at320px and lost focus. Sh
 ## 2026-11-10 22:58 UTC — graft-host keyboard navigation (local .15)
 
 Baseline tablist ignored ArrowDown and made all hosts Tab stops. Added selected-tab roving focus, arrows/Home/End/wrap/nearest scrolling, unique named tabpanel linkage and pressed class filters. Desktop and320px browser probes passed navigation, focus and unchanged saved progression; adaptation overflow/focus regression passed.22 model/UI/site tests passed2.51s; docs/handoff passed; build40115 passed6.17s, SWmwbaj6ob. All processes terminal. Two .15 website/game notes prepared; not live. Full .15 release validation pending.
+
+## 2026-11-10 23:04 UTC — correct graft currency guidance (local .15)
+
+UI falsely advertised Gene Essence while meta/model already spend Mulligan Tissue. Corrected level/ascend icons, text, tooltips, accessible names, empty-library copy and Mulligans Help. Locked-organism hint no longer offers unavailable clearing and explains capped upgrades. Desktop/320px actual-meta probes passed Tissue debit for upgrade/ascend, unchanged Essence/binding, accurate hints and retained Nucleus Essence icons; screenshot inspected.37 focused tests passed3.39s; docs/handoff passed; build26268 passed5.44s Vite, SWmwbapv4u. All processes terminal. MULLIGANS.md upgrade-wallet prose corrected. .15 renamed Clearer Graft Controls with3notes; not live. No economy, cost, affordability, save or simulation changes; full release validation remains pending.

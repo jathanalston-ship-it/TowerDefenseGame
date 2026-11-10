@@ -455,7 +455,7 @@ export function MulliganLab(): JSX.Element {
           <div className="mgl-block">
             <div className="mgl-block-h">
               <span className="mgl-eyebrow">Graft Sites</span>
-              <span className="mgl-block-hint">level with <CurrencyIcon id="geneEssence" size={12} title="Gene Essence" /> Gene Essence · ascend a maxed graft to the next rarity</span>
+              <span className="mgl-block-hint">level with <CurrencyIcon id="mulliganTissue" size={12} title="Mulligan Tissue" /> Mulligan Tissue · ascend a maxed graft to the next rarity</span>
             </div>
             <div className="mgl-slots">
               {tv.slots.map((s) => s.filled ? (
@@ -477,15 +477,15 @@ export function MulliganLab(): JSX.Element {
                   <div className="mgl-slot-actions">
                     {!s.maxed && (
                       <button className="mgl-btn" disabled={!s.canAfford} onClick={() => upgrade(s.index)}
-                        title={`${s.upgradeCost!.toLocaleString()} Gene Essence`}>
-                        Level up · <CurrencyIcon id="geneEssence" size={12} title="" /> {s.upgradeCost!.toLocaleString()}
+                        title={`${s.upgradeCost!.toLocaleString()} Mulligan Tissue`} aria-label={`Level up · ${s.upgradeCost!.toLocaleString()} Mulligan Tissue — ${s.name}`}>
+                        Level up · <CurrencyIcon id="mulliganTissue" size={12} title="" /> {s.upgradeCost!.toLocaleString()}
                       </button>
                     )}
                     {s.maxed && s.nextRarity && s.ascendCost != null && (
                       <button className="mgl-btn is-ascend" disabled={!s.ascendable} onClick={() => ascend(s.index)}
                         style={{ ['--mg' as string]: MULLIGAN_RARITY[s.nextRarity].color }}
-                        title={`${s.ascendCost.toLocaleString()} Gene Essence`}>
-                        Ascend → {MULLIGAN_RARITY[s.nextRarity].label} · <CurrencyIcon id="geneEssence" size={12} title="" /> {s.ascendCost.toLocaleString()}
+                        title={`${s.ascendCost.toLocaleString()} Mulligan Tissue`} aria-label={`Ascend → ${MULLIGAN_RARITY[s.nextRarity].label} · ${s.ascendCost.toLocaleString()} Mulligan Tissue — ${s.name}`}>
+                        Ascend → {MULLIGAN_RARITY[s.nextRarity].label} · <CurrencyIcon id="mulliganTissue" size={12} title="" /> {s.ascendCost.toLocaleString()}
                       </button>
                     )}
                     {s.maxed && !s.nextRarity && <span className="mgl-apex">APEX — fully ascended</span>}
@@ -564,11 +564,11 @@ export function MulliganLab(): JSX.Element {
             {armedSite != null && view.owned.length > 0 && (
               <div className="mgl-arm-note" role="status">Grafting into site <b>{SITE[armedSite]}</b> — choose a modifier.</div>
             )}
-            {armedSite == null && <div className="mgl-arm-note is-full">All graft sites full — clear a site to re-graft.</div>}
+            {armedSite == null && <div className="mgl-arm-note is-full">{tv.locked ? 'Reforged organism — grafts are permanently bound. Levels and ascensions remain available up to their caps.' : 'All graft sites full — clear a site to re-graft.'}</div>}
             {view.owned.length === 0 ? (
               <p className="mgl-empty">
-                Nothing sequenced yet. Bio-Containers bleed <CurrencyIcon id="geneEssence" size={12} title="" /> Gene Essence;
-                epic-or-better containers sequence a new modifier.
+                Nothing sequenced yet. Epic-or-better Bio-Containers can sequence a modifier.
+                Use <CurrencyIcon id="mulliganTissue" size={12} title="" /> Mulligan Tissue to level and ascend grafts.
               </p>
             ) : (
               <div className="mgl-mods">

@@ -287,7 +287,7 @@ export const MECHANIC_TEXT: Readonly<Record<string, MechanicText>> = {
     media: 'GIF: an organism growing on a tower',
     what: 'A Mulligan is a secondary organism grafted onto a tower kind, assembled from three genetic MODIFIERS discovered in Bio-Containers. Every modifier belongs to a biological CLASS (Kinetic, Caustic, Viral, Neural, Vital, Resonant — the same classes towers use). Once all three slots are filled the organism awakens: its stat package folds into the tower, and it physically GROWS on the host.',
     why: 'It is the tower long-game — and the class chase: match ALL THREE modifier classes to the host tower\u2019s class for a COMPLETE CLASS ADAPTATION (a unique capability bonus + a visible crown on the organism); two matches grant a minor adaptation. Hybrids stay viable — adaptations reward specialists, they never punish mixers.',
-    where: 'The Mulligan Lab (Hub → Progression); modifiers + Gene Essence drop from Bio-Containers. The Lab\u2019s Advisor highlights recommended grafts per host.',
+    where: 'The Mulligan Lab (Hub → Progression); tower grafts level and ascend with Mulligan Tissue, earned from duplicate modifiers, premium Bio-Containers and Hive production. The Lab\u2019s Advisor highlights recommended grafts per host.',
     next: 'Chase the full class match on your favorite tower — the adaptation panel shows how close you are, and the ceremony fires the moment it synchronizes.',
     mistakes: 'An organism does NOTHING until all three slots are filled — a two-slot graft is dormant. And a completed HYBRID beats an incomplete match: never leave a site empty waiting for the perfect class piece.',
   },
