@@ -9,6 +9,14 @@
 
 ## Summary of work completed
 
+**Live release:** `bfa87c50fe652ca8105961d2faa2372bf281f51e`, v2026.11.09.4 Progress You Can Follow,
+deployed successfully around 2026-11-10 04:30 UTC (Actions 42756081493). Ordinary custom-domain
+game/home/news URLs verified immediately: live entry `/assets/play-CtxVJXHT.js` matches local
+build; homepage title, detailed release, field-note and purchase-audio notes all present.
+All 3150 tests and full nine-viewport mobile gate passed before publication. Earlier local/pending
+release notes below are historical. Continue the active goal with a fresh next batch; do not mark
+the goal complete. Seal v2026.11.09.4 before creating the next curated release.
+
 Active continuous improvement goal remains active; owner authorizes verified releases roughly hourly with website notes. Production 33676de6 (v2026.11.09.3) is live, Actions 42750454616 succeeded and normal game/news URLs verified. Local v2026.11.09.4 Progress You Can Follow improves fractional progress accessibility and keyboard ownership in drafts, pause settings and the hero console. This batch is not yet deployed. Last deployment was around 03:38 UTC Nov 10; continue broader experience improvements before the next release.
 
 ## Files modified

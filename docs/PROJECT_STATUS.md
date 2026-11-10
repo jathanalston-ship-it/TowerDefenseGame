@@ -1,5 +1,7 @@
 # PROJECT_STATUS.md — the live state board
 
+> **LIVE 2026-11-10 ~04:30 UTC:** v2026.11.09.4 Progress You Can Follow, commit bfa87c50. Actions 42756081493 succeeded. Normal public game/home/news URLs verified: play-CtxVJXHT.js and all expected release content. 3150 tests and full mobile gate passed. Ongoing improvement goal continues; prior prepared/pending notices below are historical.
+
 > **v2026.11.09.4 release prepared:** all source through 4e62318d passes production build, all 3150 tests, and the full 27-screen/nine-viewport mobile gate. Seven curated website notes included. Publishing Progress You Can Follow; verify Actions and live game/home/news before claiming deployed. Ongoing experience-improvement goal remains active.
 
 > **2026-11-10 04:06 UTC verified local checkpoint:** `0bdad42e` production build, all 3150 tests in 353 files, and the full 27-screen/nine-viewport mobile gate PASS. v2026.11.09.4 notes prepared; production remains 33676de6 (remote verified). Next investigate the selected hero's recovery/ability readout, which currently uses primary-hero fields. Goal remains active; this batch has not deployed yet.

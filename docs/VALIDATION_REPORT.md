@@ -2,6 +2,10 @@
 
 ## Final release gate — v2026.11.09.4
 
+**Deployment verified:** `bfa87c50fe652ca8105961d2faa2372bf281f51e`, Actions 42756081493 success.
+Ordinary custom-domain URLs serve matching `play-CtxVJXHT.js`; homepage title and detailed
+release notes (including field-note reading and purchase audio) verified live. Entry asset HTTP 200.
+
 All accumulated source through `4e62318d` verified: production build PASS; full suite
 **353 files / 3150 tests PASS** in 197.84 seconds; mobilecheck **CLEAN** across 27 navigation
 screens and live runs at nine viewports. Release source stayed fixed through the checks.
