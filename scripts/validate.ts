@@ -38,8 +38,8 @@ for (const id of direct.keys()) for (const c of consumersOf(id)) if (!direct.has
 
 // ── Run the verification suite. ──
 // Run installed JavaScript CLIs directly: Windows npm/npx shims are not executables.
-const runNode = (script: string, arg: string[]): { ok: boolean; tail: string } => {
-  const r = spawnSync(process.execPath, [join(REPO_ROOT, script), ...arg], { cwd: REPO_ROOT, encoding: 'utf8', shell: false, maxBuffer: 64 * 1024 * 1024 });
+const runNode = (script: string, arg: string[], env: NodeJS.ProcessEnv = {}): { ok: boolean; tail: string } => {
+  const r = spawnSync(process.execPath, [join(REPO_ROOT, script), ...arg], { cwd: REPO_ROOT, env: { ...process.env, ...env }, encoding: 'utf8', shell: false, maxBuffer: 64 * 1024 * 1024 });
   const diagnostic = r.error ? `Launch error: ${r.error.message}`
     : r.signal ? `Terminated by signal: ${r.signal}` : r.status !== 0 ? `Exit status: ${r.status}` : '';
   const out = [r.stdout ?? '', r.stderr ?? '', diagnostic].filter(Boolean).join('\n');
@@ -48,7 +48,7 @@ const runNode = (script: string, arg: string[]): { ok: boolean; tail: string } =
 console.log('validate: typecheck…');
 const tc = runNode('node_modules/typescript/bin/tsc', ['--noEmit', '-p', 'tsconfig.json']);
 console.log('validate: test suite (goldens / save / power / stress)…');
-const tests = runNode('node_modules/vitest/vitest.mjs', ['run', '--silent', '--maxWorkers=2', '--minWorkers=1']);
+const tests = runNode('node_modules/vitest/vitest.mjs', ['run', '--silent', '--maxWorkers=2', '--minWorkers=1'], { NODE_ENV: 'test' });
 console.log('validate: mobile layout gate (390/320px, every screen)…');
 const mobile = runNode('node_modules/vite-node/vite-node.mjs', ['scripts/mobilecheck.ts']); // builds + probes; docs/RESPONSIVE-DESIGN.md
 const anchors = anchorProblems();

@@ -24,7 +24,7 @@
 //   2. This gate walks doors BY DISCOVERY (whatever the rail/landings render), so a new
 //      screen is swept and audited the day it ships — there is no second list to update.
 // `npm run validate` runs this gate. Options:
-//   --no-build   reuse dist/ as-is (validate builds beforehand anyway)
+//   --no-build   reuse dist/ as-is (caller must build production first)
 //   --port 4321  fixed port (default: 4310)
 //   --full       sweep the complete published viewport matrix (small-landscape floor,
 //                large phones, big tablets, ultrawide)
@@ -98,7 +98,8 @@ function profileOf(vp: { width: number; height: number }): 'portrait' | 'landsca
 
 async function main(): Promise<void> {
   if (!args.includes('--no-build')) {
-    execSync('npm run build', { stdio: 'inherit' });
+    // vite-node defaults NODE_ENV to development; the gate must probe the deployed runtime.
+    execSync('npm run build', { stdio: 'inherit', env: { ...process.env, NODE_ENV: 'production' } });
   }
   // vite itself, not `npx vite`: npx leaves its vite child orphaned when killed (same as first-session-probe).
   const server = spawn(process.execPath, ['node_modules/vite/bin/vite.js', 'preview', '--port', String(PORT), '--strictPort'], { stdio: 'ignore' });
