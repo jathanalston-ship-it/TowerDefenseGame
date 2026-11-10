@@ -1379,3 +1379,5 @@ Local .5 now includes full Vault ceremony keyboard flow; browser single/legendar
 Vault final build and styled phone keyboard flow PASS; mobile release gate running against the completed build.
 
 Vault motion follow-up locally verified: live heartbeat prefs, flash suppression and zero shake; phone keyboard checks still pass. Mobile gate continues on preceding build; final motion build pending.
+
+.5 release checkpoint05:03UTC: final build, mobile gate, website sync and focused follow-up checks passed. No processes left running. Still local; next approximate deployment05:30UTC. Website verifier updated to .5 markers.

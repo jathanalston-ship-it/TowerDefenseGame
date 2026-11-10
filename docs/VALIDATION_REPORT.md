@@ -251,3 +251,5 @@ Vault final production build PASS (Vite13.82s); styled 390x844 phone browser flo
 Vault live motion probe PASS: initial OS reduce yields zero WAAPI pulses; allowMotion resumes; disabling it stops further pulses; live OS no-preference resumes. Flashes off removes world flash and hides inner flash; enabling restores; zero shake omits quake. Same reveal stays active. Styled phone keyboard probe re-passed; vault/feel 29 tests PASS. Mobile gate still running on previous build; do not rewrite dist while preview runs.
 
 Vault motion TypeScript app/functions check PASS (session52623 exited0).
+
+Release checkpoint: mobile gate CLEAN27 nav screens and in-run at all nine viewports (feedback-mobile.log, session76108 exited0). It audited the Vault-keyboard build before the subsequent motion-only change; that change passed targeted live browser checks. Final production build PASS13.74s Vite (feedback-final-build.log,96766 exited0). Website synchronization4 tests PASS; initial incorrect src/dev filter matched no files, corrected src/changelog path. DIL/PIL zero structural findings,34 existing stale pairs. Remote deployment branch still bfa87c50.
