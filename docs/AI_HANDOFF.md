@@ -9,7 +9,7 @@
 
 ## Summary of work completed
 
-LIVE v2026.11.10.6 Memories Within Reach, five sealed notes. SHA7f18a4f7fe74450f26650da823b789ce5bb4468d; Actions42848792447 SUCCESS including exact-SHA production guard. Normal public game/home/news/all5notes verified 2026-11-10 15:53 UTC; asset /assets/play-CEgN7IqO.js matches final build and returns200. Full3177tests PASS before two inline console target heights; final build26.02s,11UI/site tests,docs and mobile27screens/9gameplay viewports PASS. All processes terminal. Continuous goal active.
+LIVE v2026.11.10.7 Progress You Can Trust with five sealed website notes. SHAb441f62cf0512d7da5c8d0692d53d3927fead962; Actions42856634182 SUCCESS including exact-SHA production guard. Normal custom-domain game/home/news/all5notes verified 2026-11-10 16:41 UTC; asset /assets/play-D1KgKJPZ.js matches final build and returns200. Initial cached prior entry resolved on same URLs after20s. Full3192tests/354files PASS454.39s; final build22.72s,4site tests,docs and mobile27screens/9gameplay viewports PASS. All processes terminal. Continuous goal active.
 
 ## Files modified
 
@@ -47,7 +47,7 @@ Windows validate wrapper cannot launch npx/npm with shell:false; use direct gate
 
 ## Recommended next tasks
 
-All .10.7 release gates PASS. Publish then verify exact-SHA Actions and ../verify-current-release.ps1 normal public game/home/news/all5notes. Final asset /assets/play-D1KgKJPZ.js. All local processes terminal. Next post-release audit: BuildControls incoming tooltip labels ENEMY_DEFS.hp simply HP, while Game spawn multiplies it; assess clear base-stat wording without changing combat. Continuous goal active.
+Release .10.7 fully live and verified; all processes terminal. Continue active clarity/accessibility/presentation goal with a new unsealed release. Next approximate deployment17:41 UTC. Read-only follow-up: BuildControls incoming-enemy tooltip shows ENEMY_DEFS.hp labeled HP; Game.spawnEnemy at~3198 applies hpMult/eHp/biome multipliers. Assess base-stat wording and useful context without changing combat or implying exact forecasted HP. ThreatPicker already has labeled buttons and live level announcement; no demonstrated issue there.
 
 ## Future expansion hooks
 
