@@ -842,7 +842,7 @@ Update briefing keyboard lifecycle (ui/UpdateBriefing.tsx): visibility-based ini
 
 Mechanic introductions (ui/WhatsNew.tsx): one focus session across queued/summarized unlock cards, per-card dismiss focus and contained Tab/Escape; HELP.md and GUIDED-UNLOCKS.md document keyboard and settlement behavior.
 
-HelpWiki reading navigation: index/Enter selection focuses the article, and Back to topics returns to its current index entry. Related links retain filter-clearing behavior; see HELP.md. Search ranking and progression visibility unchanged.
+HelpWiki search reports result counts and accurate no-result guidance, with keyboard-focused clear-search recovery. Reading navigation: index/Enter selection focuses the article, and Back to topics returns to its current index entry. Related links retain filter-clearing behavior; see HELP.md. Search ranking and progression visibility unchanged.
 
 Tutorial text presentation: tutorial/primitives.tsx consumes meta-store device prefs for live resolved typewriter motion and keeps the full sentence accessible. See TUTORIAL.md and UI-MOTION.md; lesson logic/rewards unchanged.
 

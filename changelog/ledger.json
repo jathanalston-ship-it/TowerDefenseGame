@@ -1,6 +1,6 @@
 {
-  "lastSha": "7d75368646dd760a8c1c3b4610d4a41feb5a4d58",
-  "commitsSinceDraft": 1,
+  "lastSha": "fc8fed3ae09de72b60cc77bd64066ad2838d63d5",
+  "commitsSinceDraft": 3,
   "content": {
     "tower": [
       "needle",
@@ -4747,6 +4747,18 @@
         {
           "cat": "UI",
           "text": "When the focused Skip button disappears from the post-run reward reveal, keyboard focus now moves to Continue. This also works when the reveal finishes naturally and leaves focus alone if you are using another control."
+        }
+      ]
+    },
+    {
+      "id": "v2026.11.10.14",
+      "date": "2026-11-10",
+      "title": "Clearer Field Manual",
+      "sealed": false,
+      "entries": [
+        {
+          "cat": "UI",
+          "text": "Help search now reports matching topics and gives accurate guidance when no results are found. A Clear search button restores unlocked topics and returns keyboard focus to the search field."
         }
       ]
     }
@@ -10925,6 +10937,22 @@
       "date": "2026-11-10",
       "cat": "UI",
       "text": "Ui: retain keyboard focus after reward reveal skip",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "da7800db61388e86c9a7a987b6bb823a6bd48e20",
+      "date": "2026-11-10",
+      "cat": "Framework",
+      "text": "Release: publish clearer reward feedback",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "fc8fed3ae09de72b60cc77bd64066ad2838d63d5",
+      "date": "2026-11-10",
+      "cat": "Framework",
+      "text": "Docs: record verified reward feedback deployment",
       "internal": true,
       "needsReview": false
     }

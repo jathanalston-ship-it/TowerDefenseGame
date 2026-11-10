@@ -66,7 +66,11 @@ export function HelpWiki({ onNavigate, onReplayTour }: { onNavigate?: (nav: stri
       <div className="panel-sub">A living guide — new systems appear here the moment you unlock them.</div>
       <input ref={searchRef} className="help-search" type="search" placeholder="Search mechanics…" value={query} onChange={(e) => { setQuery(e.target.value); setSelId(null); }} aria-label="Search Help" aria-describedby={searchHintId}
         onKeyDown={e => { if (e.key === 'Enter' && sel) { e.preventDefault(); detailRef.current?.focus(); } }} />
-      <div id={searchHintId} className="help-search-hint">Press Enter to read the selected topic.</div>
+      <div id={searchHintId} className="help-search-hint" role="status">
+        {sel
+          ? `${q ? `${filtered.length} matching topic${filtered.length === 1 ? '' : 's'}. ` : ''}Press Enter to read the selected topic.`
+          : q ? 'No matching topics. Try another search or clear it.' : 'No unlocked topics yet.'}
+      </div>
 
       <div className="help-body">
         <nav ref={indexRef} className="help-index" aria-label="Mechanics">
@@ -86,7 +90,10 @@ export function HelpWiki({ onNavigate, onReplayTour }: { onNavigate?: (nav: stri
               ))}
             </div>
           ))}
-          {filtered.length === 0 && <div className="hint">No mechanics match “{query}”.</div>}
+          {filtered.length === 0 && <div className="hint">
+            No mechanics match “{query}”.
+            {q && <div><button type="button" className="help-back" title="Clear search and show unlocked topics" onClick={() => { setQuery(''); setSelId(null); searchRef.current?.focus(); }}>Clear search</button></div>}
+          </div>}
         </nav>
 
         {sel && (

@@ -877,3 +877,8 @@ Original mobile29807 terminal PASS27nav+nine gameplay profiles on sealed .13 bui
 ## 2026-11-10 21:48 UTC — Clearer Reward Feedback verified live
 
 LIVE v2026.11.10.13 Clearer Reward Feedback, SEVEN notes. SHA da7800db61388e86c9a7a987b6bb823a6bd48e20. Actions42908261432/job130151844885 SUCCESS including exact-commit production guard. Normal custom-domain game/home/news/all7notes/asset verified 2026-11-10 21:48UTC with ../verify-current-release.ps1; asset/assets/play-Yt8wuaAi.js. Full suite3194tests354files159.36s, final build5.86s, original mobile27nav+nine gameplay profiles, siteSync and docs passed. All processes terminal. Goal remains active; next approximate deployment22:50UTC.
+
+
+## 2026-11-10 21:52 UTC — Help search recovery
+
+Help empty-search baseline advertised Enter to read a nonexistent selected topic. HelpWiki now reports matching count/empty-state guidance in its described status and offers Clear search for empty matches; clearing restores unlocked topics and search focus. Existing 44 px Help button style reused. ../help-search-recovery-check.cjs passed clear/keyboard recovery, existing article/related/back/navigation flow, four viewport reading checks and 320/844 recovery bounds. Phone screenshot inspected. Fixture uses actual mechanic registry with meta visibility fixture; unlocked gating and search ranking code unchanged. Initial probe/edit calls used wrong parent-relative paths; corrected before final probes. 23 search/mechanics/UI/site tests passed in 2.49 s; docs/handoff42351 passed; build62437 passed in 7.15 s, SW mwb862p4, help-search-recovery-build.log. All processes terminal. Local .14 Clearer Field Manual has one note. Live .13 unchanged; next approximate deployment22:50UTC.

@@ -5,6 +5,18 @@ import type { Release } from './types';
 /** Player-facing releases, newest first. */
 export const RELEASES: Release[] = [
   {
+    "id": "v2026.11.10.14",
+    "date": "2026-11-10",
+    "title": "Clearer Field Manual",
+    "sealed": false,
+    "entries": [
+      {
+        "cat": "UI",
+        "text": "Help search now reports matching topics and gives accurate guidance when no results are found. A Clear search button restores unlocked topics and returns keyboard focus to the search field."
+      }
+    ]
+  },
+  {
     "id": "v2026.11.10.13",
     "date": "2026-11-10",
     "title": "Clearer Reward Feedback",
