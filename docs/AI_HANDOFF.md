@@ -4,8 +4,8 @@
 > before committing. Read together with docs/PROJECT_STATUS.md and the latest
 > docs/VALIDATION_REPORT.md. Next session: start at docs/PROJECT_MANIFEST.md.
 
-- **Generated:** 2026-11-10 15:34 UTC · **Diff scope:** working tree vs HEAD
-- **Branch:** codex/hive-autoplay · **HEAD:** 2d2fbedd
+- **Generated:** 2026-11-10 15:44 UTC · **Diff scope:** working tree vs HEAD
+- **Branch:** codex/hive-autoplay · **HEAD:** ef23cd94
 
 ## Summary of work completed
 
@@ -13,13 +13,15 @@ LIVE v2026.11.10.5 Films That Follow You with four sealed website notes. SHA8299
 
 ## Files modified
 
-- Source (1): `src/changelog/releases.gen.ts`
+- Source (2): `src/changelog/releases.gen.ts`, `src/ui/MusicDebug.tsx`
 - Tests (0): —
-- Docs (3): `docs/HISTORY.md`, `docs/devlog/DRAFT-2026-11-09.md`, `docs/devlog/DRAFT-2026-11-10.md`
+- Docs (5): `docs/HISTORY.md`, `docs/MUSIC.md`, `docs/PROJECT_MANIFEST.md`, `docs/devlog/DRAFT-2026-11-09.md`, `docs/devlog/DRAFT-2026-11-10.md`
 
 ## Systems affected (from the dependency registry)
 
+- **audio** — `src/ui/MusicDebug.tsx`
 - **chronicle** — `src/changelog/releases.gen.ts`
+- Consumer ring (verify, unchanged): cutscenes, living-battlefield
 
 ## Power Score changes
 
@@ -47,7 +49,7 @@ Windows validate wrapper cannot launch npx/npm with shell:false; use direct gate
 
 ## Recommended next tasks
 
-Release .10.6 Memories Within Reach has four SEALED notes. Full3177tests/354files PASS session45035 terminal. Final build24.20s and4site tests PASS; docs session12576 finishing. MOBILE RUNNING session98307 against final dist, collection-release-mobile.log. Poll same handles; DO NOT rebuild dist during mobile. After mobile passes, record release gates, publish assigned deployment ref, verify exact-SHA Actions and normal custom-domain game/home/news/all4notes with ../verify-current-release.ps1. Live .10.5 remains until publication. Goal active.
+Mobile98307 terminal FAIL one tablet Settings input119x24 target: optional MusicDebug minHeight24. Fixed both console input/slider definitions to44; actual console browser probe PASS at1024/844/568 widths plus edit/range keys. Final rebuild+11UI/site tests+docs RUNNING session75574 (collection-final-build.log). Poll SAME handle. After passes, rerun full mobile on rebuilt dist; previous failed process is terminal. Five sealed notes now prepared; full3177suite passed before this CSS-only inline-height change. Remote deployment branch verified82998411. No deploy yet. Then publish and exact-SHA/live website checks. Goal active.
 
 ## Future expansion hooks
 
@@ -97,6 +99,8 @@ Hero readiness final build65590 PASS (Vite7.59s); all processes terminal. Next r
 
 
 
-## 2026-11-10 — collection release regression checkpoint
 
-v2026.11.10.6 Memories Within Reach now has four sealed notes generated for game/home/news. Full suite45035 terminal PASS354files/3177tests (430.11s). Final app/functions TS+build PASS24.20s;4sealed site tests PASS. Four focused browser probes PASS archive/rank-up/navigation/all29category entry states. Required validation wrapper still exits1 on known Windows launcher path; collection-release-wrapper-report.log preserved, direct gates used. MOBILE98307 RUNNING on final dist in collection-release-mobile.log; no rebuild until terminal. Docs12576 finishing. No deployment yet; exact-SHA workflow/live checks follow mobile. Continuous goal active.
+
+## 2026-11-10 — release mobile finding and console target fix
+
+Mobile98307 terminal exit1: only violation Settings tablet1024x768 input119x24. Inspected optional MusicDebug: both boss-name input and slider helper had inline minHeight24; raised both to44. No audio/control logic changed. ../music-console-target-check.cjs actual component PASS at1024/844/568 widths, all input heights44, widths120, no page overflow, boss name editing and keyboard range endpoints. Fifth sealed website note generated. Final build/tests/docs RUNNING session75574, collection-final-build.log. Full3177suite passed before this two-style-value change; full mobile rerun required after rebuilt dist is ready. No deployment yet. Goal remains active.

@@ -572,7 +572,7 @@ Career statistic hints use explicit Details buttons and inline reading panels. P
 - **Files:** `audio/sound.ts` (SFX bus + all synths + the cue→stinger `STING` bridge),
   `audio/sfxMix.ts` (THE MIX as data: categories, loudness targets, the audit-derived trim table,
   variation, voice budgets, the master chain), `audio/music.ts` (pure composition core + the music
-  manager), `ui/MusicDebug.tsx` (Settings dev console), `scripts/audio-audit.ts` (`npm run
+  manager), `ui/MusicDebug.tsx` (Settings dev console; 44px input/slider targets), `scripts/audio-audit.ts` (`npm run
   audio:audit` — renders every cue offline → `docs/AUDIO_REPORT.md`). Docs: `AUDIO.md`, `MUSIC.md`,
   `GAME-FEEL.md`. A new cue = a `case` + a `CUE_MIX` row (`sound.test.ts` enforces), its trim from
   `npm run audio:audit -- --only <tag> --suggest`.

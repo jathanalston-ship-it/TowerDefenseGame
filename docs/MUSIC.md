@@ -190,3 +190,5 @@ until unpinned — console force-plays still work).
   LiveOps calendar weeks color the HUB (menu scene bias), not run playback — by design.
 
 Player volume overrides pending master automation: setVolume cancels/holds prior duck/duress recovery, anchors the current gain, then ramps100ms to the new level with the current duress multiplier. It does not create a context or retune music. Zero remains zero after an older recovery deadline; rapid slider changes supersede previous targets. Native cancelAndHoldAtTime and cancelScheduledValues fallback are supported.
+
+Music console touch controls: boss-name input and mix sliders use a 44px minimum target height, including tablet landscape. Debug opt-in and audio behavior are unchanged.

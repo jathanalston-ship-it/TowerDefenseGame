@@ -1658,3 +1658,7 @@ EntryGrid now conceals tier-zero names in tooltips as well as visible copy, labe
 ## 2026-11-10 — collection release regression checkpoint
 
 v2026.11.10.6 Memories Within Reach now has four sealed notes generated for game/home/news. Full suite45035 terminal PASS354files/3177tests (430.11s). Final app/functions TS+build PASS24.20s;4sealed site tests PASS. Four focused browser probes PASS archive/rank-up/navigation/all29category entry states. Required validation wrapper still exits1 on known Windows launcher path; collection-release-wrapper-report.log preserved, direct gates used. MOBILE98307 RUNNING on final dist in collection-release-mobile.log; no rebuild until terminal. Docs12576 finishing. No deployment yet; exact-SHA workflow/live checks follow mobile. Continuous goal active.
+
+## 2026-11-10 — release mobile finding and console target fix
+
+Mobile98307 terminal exit1: only violation Settings tablet1024x768 input119x24. Inspected optional MusicDebug: both boss-name input and slider helper had inline minHeight24; raised both to44. No audio/control logic changed. ../music-console-target-check.cjs actual component PASS at1024/844/568 widths, all input heights44, widths120, no page overflow, boss name editing and keyboard range endpoints. Fifth sealed website note generated. Final build/tests/docs RUNNING session75574, collection-final-build.log. Full3177suite passed before this two-style-value change; full mobile rerun required after rebuilt dist is ready. No deployment yet. Goal remains active.

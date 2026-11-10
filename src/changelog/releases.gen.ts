@@ -25,6 +25,10 @@ export const RELEASES: Release[] = [
       {
         "cat": "UX",
         "text": "Undiscovered collection entries now use a clear, readable label instead of dim question marks. Tooltips keep unrevealed names hidden, while discovered entries retain their names, status and mastery counts."
+      },
+      {
+        "cat": "UX",
+        "text": "The optional debug music console now gives its boss-name field and sliders larger touch targets, including on tablets."
       }
     ]
   },

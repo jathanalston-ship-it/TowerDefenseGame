@@ -755,3 +755,4 @@
 - `f832f08` **[UI]** Ui: make collection celebrations accessible _(internal)_
 - `0d31f13` **[UI]** Ui: preserve focus while browsing collection categories _(internal)_
 - `2d2fbed` **[UI]** Ui: clarify undiscovered collection entries _(internal)_
+- `ef23cd9` **[Framework]** Release: prepare collection update and record regression gates _(internal)_
