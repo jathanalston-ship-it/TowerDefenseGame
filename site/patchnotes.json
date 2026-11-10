@@ -17,6 +17,10 @@
       {
         "cat": "UI",
         "text": "Selecting a Field Manual topic now brings its article into focus, including on narrow screens. Press Enter from search to read the selected result, and use Back to topics to return to its index entry without losing your search."
+      },
+      {
+        "cat": "UI",
+        "text": "Tutorial and field-guide text now follows live motion preferences, including Allow motion. Reduced motion reveals the whole sentence immediately, restoring motion does not hide text already read, and assistive technology receives the complete sentence throughout the visual reveal."
       }
     ]
   },

@@ -740,3 +740,4 @@
 - `97b7042` **[Framework]** Docs: align next release window with verification time _(internal)_
 - `ea2eece` **[UI]** Ui: make update briefings keyboard readable _(internal)_
 - `a064a1d` **[UI]** Ui: keep unlock introductions keyboard accessible _(internal)_
+- `b80b671` **[UI]** Ui: make Help topics easier to read and revisit _(internal)_

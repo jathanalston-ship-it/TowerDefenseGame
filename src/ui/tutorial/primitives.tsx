@@ -4,6 +4,7 @@
 // about combat or a specific lesson.
 
 import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react';
+import { motionPrefs, onMotionPrefs, resolveMotion, systemReducedMotion } from '../../state/prefs';
 
 type Side = 'top' | 'bottom' | 'left' | 'right';
 
@@ -197,35 +198,47 @@ export function ObjectiveTracker({ title, step, total }: { title: string; step: 
   );
 }
 
-const reducedMotion = typeof window !== 'undefined' && !!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
-
 /** Typewriter — reveals text like an incoming transmission (~28ms/char, capped ~1.1s so long lessons
- * never drag), with a blinking caret while typing. Reduced motion (or a re-render of the same text)
- * shows it whole. Generic: any future tutorial callout/briefing types through this. */
+ * never drag), with a blinking caret while typing. Resolved reduced motion shows it whole and
+ * updates live. Assistive technology always receives the complete sentence, without typing ticks. */
 export function Typewriter({ text }: { text: string }): JSX.Element {
-  const [shown, setShown] = useState(reducedMotion ? text.length : 0);
+  const [reduced, setReduced] = useState(() => resolveMotion(motionPrefs(), systemReducedMotion()).motion === 0);
+  const [progress, setProgress] = useState({ text, shown: 0 });
   useEffect(() => {
-    if (reducedMotion) { setShown(text.length); return undefined; }
-    setShown(0);
+    let prefs = motionPrefs();
+    const update = (): void => setReduced(resolveMotion(prefs, systemReducedMotion()).motion === 0);
+    const off = onMotionPrefs(next => { prefs = next; update(); });
+    const mq = window.matchMedia?.('(prefers-reduced-motion: reduce)');
+    mq?.addEventListener('change', update);
+    update();
+    return () => { off(); mq?.removeEventListener('change', update); };
+  }, []);
+  useEffect(() => {
+    if (reduced) { setProgress({ text, shown: text.length }); return undefined; }
+    setProgress(previous => previous.text === text ? previous : { text, shown: 0 });
     const step = Math.max(1, Math.ceil(text.length / 40)); // cap the reveal at ~40 ticks (~1.1s)
     const id = setInterval(() => {
-      setShown((n) => {
-        const next = Math.min(text.length, n + step);
+      setProgress(previous => {
+        const next = Math.min(text.length, previous.shown + step);
         if (next >= text.length) clearInterval(id);
-        return next;
+        return previous.shown === next ? previous : { text, shown: next };
       });
     }, 28);
     return () => clearInterval(id);
-  }, [text]);
+  }, [text, reduced]);
+  const shown = reduced ? text.length : progress.text === text ? progress.shown : 0;
   const typing = shown < text.length;
   // The untyped remainder is laid out INVISIBLY, so the bubble has its final size from the first
   // frame: a measured callout never grows mid-transmission (growing used to walk a lane-avoiding
   // bubble back over the lane, or a top-anchored one down over its own arrow, until it re-seated).
   return (
-    <span className="tut-type" onClick={typing ? () => setShown(text.length) : undefined}>
-      {text.slice(0, shown)}
-      {typing && <i className="tut-caret" aria-hidden>▌</i>}
-      {typing && <span className="tut-type-rest" aria-hidden>{text.slice(shown)}</span>}
+    <span className="tut-type" onClick={typing ? () => setProgress({ text, shown: text.length }) : undefined}>
+      <span className="tut-type-readable">{text}</span>
+      <span aria-hidden>
+        {text.slice(0, shown)}
+        {typing && <i className="tut-caret">▌</i>}
+        {typing && <span className="tut-type-rest">{text.slice(shown)}</span>}
+      </span>
     </span>
   );
 }

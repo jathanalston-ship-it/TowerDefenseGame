@@ -1,6 +1,6 @@
 {
-  "lastSha": "a064a1d69276e54b0b4020f45f55ee2491ab0e86",
-  "commitsSinceDraft": 8,
+  "lastSha": "b80b67190385b281228dd50a74b2028bbb6b633c",
+  "commitsSinceDraft": 9,
   "content": {
     "tower": [
       "needle",
@@ -4487,6 +4487,10 @@
         {
           "cat": "UI",
           "text": "Selecting a Field Manual topic now brings its article into focus, including on narrow screens. Press Enter from search to read the selected result, and use Back to topics to return to its index entry without losing your search."
+        },
+        {
+          "cat": "UI",
+          "text": "Tutorial and field-guide text now follows live motion preferences, including Allow motion. Reduced motion reveals the whole sentence immediately, restoring motion does not hide text already read, and assistive technology receives the complete sentence throughout the visual reveal."
         }
       ]
     }
@@ -10057,6 +10061,14 @@
       "date": "2026-11-10",
       "cat": "UI",
       "text": "Ui: keep unlock introductions keyboard accessible",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "b80b67190385b281228dd50a74b2028bbb6b633c",
+      "date": "2026-11-10",
+      "cat": "UI",
+      "text": "Ui: make Help topics easier to read and revisit",
       "internal": true,
       "needsReview": false
     }

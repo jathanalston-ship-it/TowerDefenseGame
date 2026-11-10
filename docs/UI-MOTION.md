@@ -102,3 +102,5 @@ each Rising separately — nested Rises double the motion and read as jank.
   and transitions collapse automatically; no per-rule opt-out needed.
 
 Hero symbiote and tower preview canvases resolve device reduced motion plus the player override through resolveMotion and subscribe to changes. Hero CSS aura/pulse/orbit decorations have explicit still states. Offscreen/hidden preview loops stop; artwork and progression remain unchanged.
+
+Tutorial Typewriter (ui/tutorial/primitives.tsx) now resolves state/prefs motion live, including Allow motion, and exposes a stable complete sentence separately from the aria-hidden visual reveal. Reduced motion finishes the current reveal; restoring motion preserves already-read content.
