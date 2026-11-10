@@ -112,3 +112,5 @@ Mission claim keyboard continuity: each mission is a named group with a programm
 Claim all follows the same keyboard continuity rule: after at least one successful reward claim from a focused batch button, focus moves to the persistent Quest Board heading. If no claims succeed, focus stays on the button. The heading adds no sequential Tab stop; batch contents and finale exclusion are unchanged.
 
 Quest claim burst origin uses the activating control center for keyboard/assistive clicks (detail === 0); pointer clicks retain their client coordinates. This shared path covers mission, batch and finale claims. Existing reduced-motion suppression, receipt contents and reward/audio logic are unchanged.
+
+Quest bursts resolve current device motion plus the shared explicit Allow motion preference at claim time. The board subscribes to preference/device changes to clear in-flight bursts when motion becomes disabled, and releases both subscriptions on unmount. Burst CSS no longer separately vetoes the explicit override; non-burst reduced-motion styling is unchanged.

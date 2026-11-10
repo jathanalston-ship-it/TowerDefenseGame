@@ -856,7 +856,7 @@ InitCutscene visibility lifecycle pauses scene holds, gate/film/dive clocks and 
 
 ## Quest Board accessibility
 
-`ui/QuestBoard.tsx` names mission progress and claim controls with quest context and exposes reward descriptions. Progress accessibility values match the capped visible count; claims still use the existing meta pipeline. Successful focused mission claims preserve keyboard position on their completed row; successful focused batch claims return to the board heading, while rejected claims retain button focus. Keyboard claim celebrations originate at the activating control; pointer origins and reduced-motion suppression remain unchanged. See `docs/QUESTS.md`.
+`ui/QuestBoard.tsx` names mission progress and claim controls with quest context and exposes reward descriptions. Progress accessibility values match the capped visible count; claims still use the existing meta pipeline. Successful focused mission claims preserve keyboard position on their completed row; successful focused batch claims return to the board heading, while rejected claims retain button focus. Keyboard claim celebrations originate at the activating control; pointer origins remain unchanged. Bursts follow live device/shared motion preferences, including the explicit override, and stop immediately when motion is disabled. See `docs/QUESTS.md`.
 
 ## Champion Contracts display clock
 

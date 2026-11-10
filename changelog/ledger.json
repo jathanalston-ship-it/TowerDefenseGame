@@ -1,6 +1,6 @@
 {
-  "lastSha": "b8575c5d9ab1b4a8cf6522ba6643bf8f24abed23",
-  "commitsSinceDraft": 5,
+  "lastSha": "c66a8a13e2333e2e640686502cb7589ff7b5eebd",
+  "commitsSinceDraft": 6,
   "content": {
     "tower": [
       "needle",
@@ -4727,6 +4727,10 @@
         {
           "cat": "UI",
           "text": "Quest reward celebrations triggered with the keyboard now appear at the claim button instead of the screen corner. Mouse and touch celebrations still begin where you tap, and reduced motion continues to skip the burst."
+        },
+        {
+          "cat": "UI",
+          "text": "Quest celebrations now follow motion preferences immediately while the board is open. Reduced motion stops active bursts and prevents new ones; the explicit Allow motion setting enables them when you choose it."
         }
       ]
     }
@@ -10857,6 +10861,14 @@
       "date": "2026-11-10",
       "cat": "UI",
       "text": "Ui: retain board focus after batch quest claims",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "c66a8a13e2333e2e640686502cb7589ff7b5eebd",
+      "date": "2026-11-10",
+      "cat": "UI",
+      "text": "Ui: anchor keyboard quest celebrations to claims",
       "internal": true,
       "needsReview": false
     }

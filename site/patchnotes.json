@@ -13,6 +13,10 @@
       {
         "cat": "UI",
         "text": "Quest reward celebrations triggered with the keyboard now appear at the claim button instead of the screen corner. Mouse and touch celebrations still begin where you tap, and reduced motion continues to skip the burst."
+      },
+      {
+        "cat": "UI",
+        "text": "Quest celebrations now follow motion preferences immediately while the board is open. Reduced motion stops active bursts and prevents new ones; the explicit Allow motion setting enables them when you choose it."
       }
     ]
   },

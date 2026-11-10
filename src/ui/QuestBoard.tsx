@@ -8,6 +8,7 @@
 import { useEffect, useRef, useState } from 'react';
 import type { CSSProperties } from 'react';
 import { meta } from '../state/meta';
+import { motionPrefs, onMotionPrefs, resolveMotion, systemReducedMotion } from '../state/prefs';
 import type { QuestsView } from '../state/meta';
 import { rewardLabel } from '../core/battlePass';
 import { QUESTS } from '../core/quests';
@@ -138,6 +139,7 @@ export function QuestBoard(): JSX.Element {
 
 function QuestDirectives(): JSX.Element {
   const headingRef = useRef<HTMLHeadingElement>(null);
+  const motionRef = useRef(motionPrefs());
   meta.use(); // re-render on credits / claims
   const [now, setNow] = useState(() => Date.now());
   const [burst, setBurst] = useState<{ x: number; y: number; lines: { icon: string; label: string }[]; big: boolean; key: number } | null>(null);
@@ -148,6 +150,17 @@ function QuestDirectives(): JSX.Element {
     return () => window.clearInterval(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+  // Device and explicit preference changes also stop an in-flight decorative burst.
+  useEffect(() => {
+    const sync = (): void => {
+      if (resolveMotion(motionRef.current, systemReducedMotion()).motion === 0) setBurst(null);
+    };
+    const off = onMotionPrefs((prefs) => { motionRef.current = prefs; sync(); });
+    const media = window.matchMedia?.('(prefers-reduced-motion: reduce)');
+    media?.addEventListener('change', sync);
+    sync();
+    return () => { off(); media?.removeEventListener('change', sync); };
+  }, []);
   // The burst self-clears (pointer-transparent, purely decorative).
   useEffect(() => {
     if (!burst) return;
@@ -157,10 +170,9 @@ function QuestDirectives(): JSX.Element {
 
   const view: QuestsView = meta.quests(now);
   const wk = view.weekly;
-  const reduced = typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches === true;
 
   const celebrate = (e: React.MouseEvent, lines: { icon: string; label: string }[], big: boolean): void => {
-    if (reduced) return;
+    if (resolveMotion(motionRef.current, systemReducedMotion()).motion === 0) return;
     const rect = e.currentTarget.getBoundingClientRect();
     const x = e.detail === 0 ? rect.left + rect.width / 2 : e.clientX;
     const y = e.detail === 0 ? rect.top + rect.height / 2 : e.clientY;

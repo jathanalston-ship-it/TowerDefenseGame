@@ -810,3 +810,4 @@
 - `12982a9` **[Framework]** Docs: record verified clearer progress deployment _(internal)_
 - `fd2a2d7` **[UI]** Ui: preserve keyboard position after quest claims _(internal)_
 - `b8575c5` **[UI]** Ui: retain board focus after batch quest claims _(internal)_
+- `c66a8a1` **[UI]** Ui: anchor keyboard quest celebrations to claims _(internal)_
