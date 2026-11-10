@@ -838,3 +838,4 @@
 - `faffe6f` **[Developer Tools]** Dev: isolate test and production validation environments _(internal)_
 - `1869407` **[UI]** Ui: preserve harvest upgrade focus and growth feedback _(internal)_
 - `50e7885` **[UI]** Explain harvest upgrade costs and requirements _(internal)_
+- `60da498` **[UI]** Pause hidden hive diagram animations _(internal)_

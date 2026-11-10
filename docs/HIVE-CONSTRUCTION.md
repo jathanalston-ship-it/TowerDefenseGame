@@ -70,3 +70,5 @@ tier is affordable (era met), via the standard notification source.
 New organ = one `HIVE_ORGANS` row + its `.fix-hv-*` CSS layers. Rebalance = edit recipes /
 `HIVE_TIER_FACTOR`. New currencies join `RECIPE_KEYS` + the wallet map in `hiveView`/
 `buildOrgan`/the badge. The registry validator and the test suite hold the contract.
+
+Growth reveal focus (2026-11-10): HiveGrowth focuses the Return button on ceremony entry and traps Tab/ShiftTab there. The shared Popup handles Escape/Back. Effect cleanup restores the organ’s enabled Grow control or its named focusable tier group if maxed/unaffordable; missing/unmounted screens are ignored. The card is viewport-bounded and scrollable with a20px gutter. Actual-meta probes cover320x568/844x340, Escape/Return/backdrop, repeated-tier/fully-grown/insufficient-wallet fallback and byte-unchanged post-purchase save on dismissal. Purchase logic/audio unchanged.

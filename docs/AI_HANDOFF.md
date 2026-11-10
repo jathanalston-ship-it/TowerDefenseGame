@@ -4,23 +4,23 @@
 > before committing. Read together with docs/PROJECT_STATUS.md and the latest
 > docs/VALIDATION_REPORT.md. Next session: start at docs/PROJECT_MANIFEST.md.
 
-- **Generated:** 2026-11-10 23:51 UTC · **Diff scope:** working tree vs HEAD
-- **Branch:** codex/hive-autoplay · **HEAD:** 50e7885b
+- **Generated:** 2026-11-10 23:54 UTC · **Diff scope:** working tree vs HEAD
+- **Branch:** codex/hive-autoplay · **HEAD:** 60da4981
 
 ## Summary of work completed
 
-LOCAL .16 Smoother Hive Upgrades now THREE notes. HiveOrganism offscreen SVG animation reproduced still running; added shared live motion prefs + intersection/document visibility lifecycle to pause SVG timeline and CSS animations, respect explicit allowMotion, disable fill transitions under reduction. Starts static before layout effect resolves. Browser probes hive-organism-motion-check.cjs and hive-organism-lifecycle-check.cjs passed offscreen pause/resume, live reduction/opt-in/revoke, simulated hidden-document stopped clock/CSS, rerender stability and visibility resume.320px screenshot reviewed.31 tests3.13s/docs/handoff/build7826 PASS5.65s/SWmwbcfo8l. All processes terminal. Live remains .15 SHAe15b1827f86bdb6c8c722d7e049091a12260d98d verified23:32UTC. Next~00:32UTC; full .16 audit pending. Goal active.
+LOCAL .16 Smoother Hive Upgrades now FOUR notes. Hive Growth ceremony baseline browser probe reproduced missing entry focus. Added focused Return button, Tab trap, aria-modal, parent cleanup returning to enabled Grow or named tier card for maxed/unaffordable organs, viewport-bounded scrollable reveal. Actual-meta probes hive-growth-dialog-{check,phone-check,maxed-check,poor-check}.cjs passed320x568/844x340, Escape/Return/backdrop, focusfallback and unchanged post-purchase save. Phone screenshot reviewed.36tests2.90s/docs/handoff/build89665 PASS5.91s/SWmwbck1m9. All processes terminal. Live remains .15 SHAe15b1827f86bdb6c8c722d7e049091a12260d98d verified23:32UTC. Next~00:32UTC; full .16 audit pending. Goal active.
 
 ## Files modified
 
-- Source (3): `src/changelog/releases.gen.ts`, `src/ui/components/HiveOrganism.css`, `src/ui/components/HiveOrganism.tsx`
+- Source (3): `src/changelog/releases.gen.ts`, `src/ui/HiveScreen.css`, `src/ui/HiveScreen.tsx`
 - Tests (0): —
-- Docs (5): `docs/HISTORY.md`, `docs/HIVE-PRODUCTION.md`, `docs/PROJECT_MANIFEST.md`, `docs/devlog/DRAFT-2026-11-09.md`, `docs/devlog/DRAFT-2026-11-10.md`
+- Docs (6): `docs/HISTORY.md`, `docs/HIVE-CONSTRUCTION.md`, `docs/HIVE-PRODUCTION.md`, `docs/PROJECT_MANIFEST.md`, `docs/devlog/DRAFT-2026-11-09.md`, `docs/devlog/DRAFT-2026-11-10.md`
 
 ## Systems affected (from the dependency registry)
 
 - **chronicle** — `src/changelog/releases.gen.ts`
-- **hive-construction** — `src/ui/components/HiveOrganism.tsx`
+- **hive-construction** — `src/ui/HiveScreen.tsx`
 
 ## Power Score changes
 
@@ -28,11 +28,11 @@ None. Presentation/focus only.
 
 ## UI changes
 
-HiveOrganism presentation only: root motion/active attributes, SVG pause/unpause and CSS pause/reduced styles driven by live shared prefs and visibility. Production/storage/built data unchanged. SVG timeline and CSS verified in Chrome; hidden-document lifecycle simulated via document.hidden getter and visibilitychange. Existing three .16 notes include harvest stable focus and contextual costs.
+Growth reveal focus/trap/return and viewport bounds. Named organ tier groups provide fallback when Grow disappears or disables. Purchase logic/audio unchanged. Four .16 notes also cover harvest focus, guidance and Hive diagram motion.
 
 ## Documentation changes
 
-HIVE-PRODUCTION and manifest updated; three game/website notes generated. No gameplay/help/audio changes needed.
+HIVE-CONSTRUCTION, HIVE-PRODUCTION and manifest updated; four notes generated for game/site.
 
 ## Save changes
 
@@ -48,7 +48,7 @@ Local Chrome still needs MOBILECHECK_CHROMIUM and NODE_OPTIONS parent chrome-pro
 
 ## Recommended next tasks
 
-Continue broader presentation/interaction audit; Hive SVG lifecycle now covered. Inspect another collection/detail or growth flow for concrete issues. Begin full .16 validation around00:15UTC for approximate00:32 deployment. No active child processes.
+Inspect shared HostedScreen/HostTabs keyboard behavior next: current strip uses role=tab but may lack arrow/Home/End handling and associated panels. Reproduce before changing; preserve gated teasers, deep links and notification acknowledgement. Begin full .16 validation around00:15UTC for approximate00:32 deployment.
 
 ## Future expansion hooks
 

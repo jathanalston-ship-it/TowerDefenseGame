@@ -1,6 +1,6 @@
 {
-  "lastSha": "50e7885bfee2d7a41bba43f17386a07ec4e70001",
-  "commitsSinceDraft": 2,
+  "lastSha": "60da498151354361c77fe57a0c4f3ed2b16b774f",
+  "commitsSinceDraft": 3,
   "content": {
     "tower": [
       "needle",
@@ -4835,6 +4835,10 @@
         {
           "cat": "UI",
           "text": "The living Hive diagram now pauses its animations while offscreen or in a hidden tab. It follows motion-setting changes immediately, including your explicit animation opt-in, while keeping production and storage information visible."
+        },
+        {
+          "cat": "UI",
+          "text": "Hive organ growth reveals now keep keyboard focus inside the dialog and return it to the organ afterward, including fully grown organs. Reveals fit phones and short landscape screens and remain dismissible with Escape, Return or the backdrop."
         }
       ]
     }
@@ -11189,6 +11193,14 @@
       "date": "2026-11-10",
       "cat": "UI",
       "text": "Explain harvest upgrade costs and requirements",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "60da498151354361c77fe57a0c4f3ed2b16b774f",
+      "date": "2026-11-10",
+      "cat": "UI",
+      "text": "Pause hidden hive diagram animations",
       "internal": true,
       "needsReview": false
     }

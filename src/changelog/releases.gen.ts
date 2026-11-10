@@ -21,6 +21,10 @@ export const RELEASES: Release[] = [
       {
         "cat": "UI",
         "text": "The living Hive diagram now pauses its animations while offscreen or in a hidden tab. It follows motion-setting changes immediately, including your explicit animation opt-in, while keeping production and storage information visible."
+      },
+      {
+        "cat": "UI",
+        "text": "Hive organ growth reveals now keep keyboard focus inside the dialog and return it to the organ afterward, including fully grown organs. Reveals fit phones and short landscape screens and remain dismissible with Escape, Return or the backdrop."
       }
     ]
   },
