@@ -17,6 +17,10 @@ export const RELEASES: Release[] = [
       {
         "cat": "UI",
         "text": "New-system introductions now keep keyboard focus inside each card and move it to the next queued introduction. Escape acknowledges the current card or batch, scrolling lists are keyboard-accessible, and closing the queue restores the original control."
+      },
+      {
+        "cat": "UI",
+        "text": "Selecting a Field Manual topic now brings its article into focus, including on narrow screens. Press Enter from search to read the selected result, and use Back to topics to return to its index entry without losing your search."
       }
     ]
   },

@@ -825,3 +825,5 @@ Update briefing presentation: ui/UpdateBriefing.css gives secondary release acti
 Update briefing keyboard lifecycle (ui/UpdateBriefing.tsx): visibility-based initial/restored focus, local Escape, contained Tab and focusable note regions; CHANGELOG-PIPELINE.md documents the behavior.
 
 Mechanic introductions (ui/WhatsNew.tsx): one focus session across queued/summarized unlock cards, per-card dismiss focus and contained Tab/Escape; HELP.md and GUIDED-UNLOCKS.md document keyboard and settlement behavior.
+
+HelpWiki reading navigation: index/Enter selection focuses the article, and Back to topics returns to its current index entry. Related links retain filter-clearing behavior; see HELP.md. Search ranking and progression visibility unchanged.

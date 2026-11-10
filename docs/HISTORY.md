@@ -739,3 +739,4 @@
 - `35a8153` **[Framework]** Docs: record verified Progress Explained deployment _(internal)_
 - `97b7042` **[Framework]** Docs: align next release window with verification time _(internal)_
 - `ea2eece` **[UI]** Ui: make update briefings keyboard readable _(internal)_
+- `a064a1d` **[UI]** Ui: keep unlock introductions keyboard accessible _(internal)_
