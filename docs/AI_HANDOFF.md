@@ -4,8 +4,8 @@
 > before committing. Read together with docs/PROJECT_STATUS.md and the latest
 > docs/VALIDATION_REPORT.md. Next session: start at docs/PROJECT_MANIFEST.md.
 
-- **Generated:** 2026-11-10 16:52 UTC · **Diff scope:** working tree vs HEAD
-- **Branch:** codex/hive-autoplay · **HEAD:** a8e6b4da
+- **Generated:** 2026-11-10 17:06 UTC · **Diff scope:** working tree vs HEAD
+- **Branch:** codex/hive-autoplay · **HEAD:** 346b9d3f
 
 ## Summary of work completed
 
@@ -13,14 +13,13 @@ LIVE remains v2026.11.10.7, SHA b441f62cf0512d7da5c8d0692d53d3927fead962, verifi
 
 ## Files modified
 
-- Source (3): `src/changelog/releases.gen.ts`, `src/ui/BuildControls.tsx`, `src/ui/GameView.css`
+- Source (1): `src/ui/GameView.css`
 - Tests (0): —
-- Docs (5): `docs/HISTORY.md`, `docs/HUD.md`, `docs/PROJECT_MANIFEST.md`, `docs/devlog/DRAFT-2026-11-09.md`, `docs/devlog/DRAFT-2026-11-10.md`
+- Docs (2): `docs/devlog/DRAFT-2026-11-09.md`, `docs/devlog/DRAFT-2026-11-10.md`
 
 ## Systems affected (from the dependency registry)
 
-- **chronicle** — `src/changelog/releases.gen.ts`
-- **run-ui** — `src/ui/BuildControls.tsx`
+- (no registered source files in this diff)
 
 ## Power Score changes
 
@@ -48,7 +47,7 @@ Windows validate wrapper cannot launch npx/npm with shell:false; use direct gate
 
 ## Recommended next tasks
 
-Poll existing handles, never restart on observation timeout: final production build21016 (wave-briefing-release-build.log); full regression suite77517 (wave-briefing-full-tests.log); browser probe60232 printed PASS but Chrome shutdown was still live at last poll. Earlier builds90994 and19517 succeeded; latter predates final reading-key isolation.13 registry/site tests and docs check PASS. After final build completes, run mobilecheck against its dist, then continue improvements toward approximate17:41 UTC deployment. .8 remains unsealed; regenerate/build if further changes. Existing Windows validate wrapper launcher failure reproduced (wave-briefing-wrapper-report.log); direct gates required. Do not stage the two untracked devlog drafts.
+Next: improve 320x568 detail reading area (sticky header currently consumes most of83px region). Consider using more of the existing briefing area while details are open, rather than squeezing text below all launch controls; verify in actual GameView with ../wave-briefing-game-check.cjs. Final CSS build22763 terminal PASS11.88s (wave-briefing-constrained-build.log). Local Vite95476 stopped intentionally; browser10106 terminal. All earlier handles terminal. After any final layout change run the real-game probe, build and mobile gate on final dist. Fullsuite3192 and13registry/site tests already pass; repeat only when justified by later code changes. Next approx deployment17:41UTC; live .7 remains verified. Do not stage two untracked devlog drafts.
 
 ## Future expansion hooks
 
@@ -90,8 +89,15 @@ Local v2026.11.10.1 now has two notes: Hero Ops uses effective abilityCdMax and 
 
 Hero readiness final build65590 PASS (Vite7.59s); all processes terminal. Next release remains roughly08:14UTC with matching website notes; live .7 unchanged.
 
+
 ## 2026-11-10 16:57 UTC — wave briefing checkpoint
 
 LIVE remains v2026.11.10.7, SHA b441f62cf0512d7da5c8d0692d53d3927fead962, verified normal game/home/news with five notes. LOCAL .8 Know What Is Coming has one generated website note. Incoming-wave reward/enemy/adaptation chips now open a readable detail region outside the mobile scroller. Base Biomass/HP/armor and inclusive elite counts are explicit. Keyboard opening, Escape/Close restoration, preview-change dismissal, reading-key isolation, phone/landscape geometry and real-game launch/inert behavior pass the isolated Chrome probe. No core, balance or save changes. Continuous goal remains active.
 
 Poll existing handles, never restart on observation timeout: final production build21016 (wave-briefing-release-build.log); full regression suite77517 (wave-briefing-full-tests.log); browser probe60232 printed PASS but Chrome shutdown was still live at last poll. Earlier builds90994 and19517 succeeded; latter predates final reading-key isolation.13 registry/site tests and docs check PASS. After final build completes, run mobilecheck against its dist, then continue improvements toward approximate17:41 UTC deployment. .8 remains unsealed; regenerate/build if further changes. Existing Windows validate wrapper launcher failure reproduced (wave-briefing-wrapper-report.log); direct gates required. Do not stage the two untracked devlog drafts.
+
+## 2026-11-10 17:06 UTC — integrated wave details
+
+Full3192tests/354files PASS321.95s (77517 terminal). Build21016 PASS10.40s. Mobile94526 CLEAN27nav/9gameplay viewports (terminal), predating last CSS-only constraint. Actual GameView probe found 320x568 clipping: detail bottom509 exceeded canvas bottom440. BuildControls max-height now subtracts controls strip, bar does not shrink, details shrink/scroll. Full-game campaign probe passes 390x844,320x568,844x390,1280x800 geometry, End scrolling, Escape focus restoration and Space isolation; latest10106 terminalPASS. Two original fixture failures were from endless mode intentionally lacking previews; campaign uses actual preview. Screenshot ../wave-briefing-game-phone.png inspected: final sticky44px close header remains visible but leaves only about20px of reading height at320x568. This is a remaining usability issue: refine details presentation before release, preserving full-text scrolling, accessible Close/Escape and existing Start Wave behavior. No core changes; website note remains unsealed .8.
+
+Next: improve 320x568 detail reading area (sticky header currently consumes most of83px region). Consider using more of the existing briefing area while details are open, rather than squeezing text below all launch controls; verify in actual GameView with ../wave-briefing-game-check.cjs. Final CSS build22763 terminal PASS11.88s (wave-briefing-constrained-build.log). Local Vite95476 stopped intentionally; browser10106 terminal. All earlier handles terminal. After any final layout change run the real-game probe, build and mobile gate on final dist. Fullsuite3192 and13registry/site tests already pass; repeat only when justified by later code changes. Next approx deployment17:41UTC; live .7 remains verified. Do not stage two untracked devlog drafts.
