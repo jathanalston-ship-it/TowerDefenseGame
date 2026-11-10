@@ -53,6 +53,8 @@ export function HeroGearPreview({ heroKind, item, size = 180 }: { heroKind: Hero
   const spinRef = useRef(0.6);
   const dragRef = useRef<{ x: number } | null>(null);
   const repaintRef = useRef<(() => void) | null>(null);
+  const syncRef = useRef<(() => void) | null>(null);
+  const focusedRef = useRef(false);
 
   useEffect(() => {
     const cv = ref.current;
@@ -96,10 +98,13 @@ export function HeroGearPreview({ heroKind, item, size = 180 }: { heroKind: Hero
       cancelAnimationFrame(raf);
       previous = null;
       if (!visible || document.hidden) return;
-      if (reduced()) paint(0);
+      if (reduced() || focusedRef.current) paint(reduced() ? 0 : elapsed);
       else raf = requestAnimationFrame(loop);
     };
-    repaintRef.current = () => { if (visible && !document.hidden && reduced()) paint(0); };
+    syncRef.current = sync;
+    repaintRef.current = () => {
+      if (visible && !document.hidden && (reduced() || focusedRef.current)) paint(reduced() ? 0 : elapsed);
+    };
     paint(0);
     const observer = typeof IntersectionObserver === 'undefined' ? null : new IntersectionObserver(([entry]) => {
       visible = entry.isIntersecting;
@@ -113,6 +118,7 @@ export function HeroGearPreview({ heroKind, item, size = 180 }: { heroKind: Hero
     return () => {
       cancelAnimationFrame(raf);
       repaintRef.current = null;
+      syncRef.current = null;
       dragRef.current = null;
       observer?.disconnect();
       offPrefs();
@@ -124,7 +130,19 @@ export function HeroGearPreview({ heroKind, item, size = 180 }: { heroKind: Hero
   const onDown = (e: RPointerEvent): void => { dragRef.current = { x: e.clientX }; (e.target as Element).setPointerCapture?.(e.pointerId); };
   const onMove = (e: RPointerEvent): void => { if (dragRef.current) { spinRef.current += (e.clientX - dragRef.current.x) * 0.015; dragRef.current.x = e.clientX; repaintRef.current?.(); } };
   const onUp = (): void => { dragRef.current = null; };
+  const rotate = (direction: number): void => { spinRef.current += direction * Math.PI / 8; repaintRef.current?.(); };
 
-  return <canvas ref={ref} width={size} height={size} onPointerDown={onDown} onPointerMove={onMove} onPointerUp={onUp} onPointerLeave={onUp} onPointerCancel={onUp} onLostPointerCapture={onUp}
-    style={{ width: size, height: size, display: 'block', cursor: 'ew-resize', touchAction: 'none' }} title="Drag to rotate" />;
+  return <div style={{ width: size }}>
+    <canvas ref={ref} width={size} height={size} onPointerDown={onDown} onPointerMove={onMove} onPointerUp={onUp} onPointerLeave={onUp} onPointerCancel={onUp} onLostPointerCapture={onUp}
+      role="img" aria-label={`${HERO_DEFS[heroKind].name} gear preview`}
+      style={{ width: size, height: size, display: 'block', cursor: 'ew-resize', touchAction: 'none' }} title="Drag to rotate, or use the Left and Right buttons" />
+    <div role="group" aria-label="Rotate hero gear preview" style={{ display: 'flex', gap: 4, paddingBottom: 6 }}
+      onFocus={() => { focusedRef.current = true; syncRef.current?.(); }}
+      onBlur={(e) => { if (!e.currentTarget.contains(e.relatedTarget)) { focusedRef.current = false; syncRef.current?.(); } }}>
+      <button type="button" style={{ flex: 1, minWidth: 44, minHeight: 44, padding: 2, fontSize: 12 }}
+        aria-label="Rotate preview left" title="Rotate preview left" onClick={() => rotate(-1)}>↶ Left</button>
+      <button type="button" style={{ flex: 1, minWidth: 44, minHeight: 44, padding: 2, fontSize: 12 }}
+        aria-label="Rotate preview right" title="Rotate preview right" onClick={() => rotate(1)}>Right ↷</button>
+    </div>
+  </div>;
 }

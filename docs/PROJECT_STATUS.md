@@ -1869,3 +1869,13 @@ Premium ItemArt now follows live OS/shared motion preferences, renders a nonblan
 ## 2026-11-10 19:54 UTC — Hero gear preview motion
 
 HeroGearPreview now honors live motion preferences, pauses offscreen/hidden and redraws on drag in still mode. Idle spin uses elapsed time at prior60Hz speed. Pointer cancel/lost capture ends dragging. Baseline browser29frames/500ms under reduce; fixed final6195 PASS0frames, visible pixel change on drag with real WEAPONS[0] equipment, no loop restart, override/revoke, offscreen/hidden pause-resume and cleanup. Fifteen artwork/UI/site tests PASS2.58s, docs16411 PASS. Build88220 PASS16.66s (SWmwb3x5eo), gear-preview-motion-build.log. Original full mobile64256 RUNNING against this dist, motion-controls-mobile.log. Four generated notes in unsealed .11 Motion and Map Controls. No gameplay/save changes. Live remains .10; next approximate deployment20:30UTC. Keyboard rotation remains a follow-up.
+
+
+## 2026-11-10 19:58 UTC — Gear preview keyboard controls pending verification
+
+UNCOMMITTED follow-up: HeroGearPreview wraps its canvas with two labeled native Left/Right44px buttons. Focus on controls pauses animation; blur out resumes by motion/visibility policy. Buttons rotate by PI/8 and repaint in either still/focused mode; canvas has named image role. EQUIPMENT.md and manifest updated. Prepared ../gear-preview-controls-check.cjs (NOT RUN) mounts real ItemDetails with isolated WEAPONS[0] exotic item, checks320/390/844, focus pause, Enter/Space, Tab order, target bounds/hit tests, reduced-motion keyboard rotation, screenshots. Original mobile64256 still confirmedrunning against PRE-keyboard dist. Do not run competing browser/heavy checks or overwrite dist. After terminal, run prepared controls probe, inspect screenshots, rerun motion probe, add fifth curated note, generate site, tests/docs/build, final mobile before release. Current keyboard changes are unvalidated, uncommitted and not yet in ledger; preserve them.
+
+
+## 2026-11-10 20:02 UTC — Keyboard gear inspection verified
+
+Original mobile64256 terminalPASS27nav+nine gameplay profiles on pre-keyboard build. New native Left/Right44px buttons verified in real ItemDetails at320/390/844: keyboard rotation, Tab order, focus pause/blur resume, target hit testing and reduced motion. Screenshots inspected; motion lifecycle rerun passed. Fifteen tests PASS2.26s, docs32157 PASS, build47084 PASS15.52s (SWmwb47opn). Five generated notes in local unsealed .11 Motion and Map Controls. Final release mobile remains pending. All handles terminal. Live .10 unchanged; next approximate deployment20:30UTC.

@@ -1,6 +1,6 @@
 {
-  "lastSha": "75c147ed5eaa817599f61ab56f5adaea648b240d",
-  "commitsSinceDraft": 8,
+  "lastSha": "551a76f07faf54609c805623b4679f1b23e9be9d",
+  "commitsSinceDraft": 9,
   "content": {
     "tower": [
       "needle",
@@ -4663,6 +4663,10 @@
         {
           "cat": "UI",
           "text": "Hero gear previews now respect reduced motion while still letting you drag to inspect equipment. Previews pause offscreen or in hidden tabs, and automatic rotation keeps a consistent speed across display refresh rates."
+        },
+        {
+          "cat": "UI",
+          "text": "Item Details now includes labeled Left and Right buttons for rotating the hero gear preview with a keyboard or tap. Automatic motion pauses while those controls have focus, making equipment easier to inspect."
         }
       ]
     }
@@ -10657,6 +10661,14 @@
       "date": "2026-11-10",
       "cat": "Gene Cards",
       "text": "Honor motion preferences in equipment card art",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "551a76f07faf54609c805623b4679f1b23e9be9d",
+      "date": "2026-11-10",
+      "cat": "UI",
+      "text": "Ui: preserve gear inspection with reduced motion",
       "internal": true,
       "needsReview": false
     }

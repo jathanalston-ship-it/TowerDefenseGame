@@ -745,3 +745,8 @@ Premium ItemArt now follows live OS/shared motion preferences, renders a nonblan
 ## 2026-11-10 19:54 UTC — Hero gear preview motion
 
 HeroGearPreview now honors live motion preferences, pauses offscreen/hidden and redraws on drag in still mode. Idle spin uses elapsed time at prior60Hz speed. Pointer cancel/lost capture ends dragging. Baseline browser29frames/500ms under reduce; fixed final6195 PASS0frames, visible pixel change on drag with real WEAPONS[0] equipment, no loop restart, override/revoke, offscreen/hidden pause-resume and cleanup. Fifteen artwork/UI/site tests PASS2.58s, docs16411 PASS. Build88220 PASS16.66s (SWmwb3x5eo), gear-preview-motion-build.log. Original full mobile64256 RUNNING against this dist, motion-controls-mobile.log. Four generated notes in unsealed .11 Motion and Map Controls. No gameplay/save changes. Live remains .10; next approximate deployment20:30UTC. Keyboard rotation remains a follow-up.
+
+
+## 2026-11-10 20:02 UTC — Keyboard gear inspection verified
+
+Original mobile64256 terminalPASS27nav+nine gameplay profiles on pre-keyboard build. New native Left/Right44px buttons verified in real ItemDetails at320/390/844: keyboard rotation, Tab order, focus pause/blur resume, target hit testing and reduced motion. Screenshots inspected; motion lifecycle rerun passed. Fifteen tests PASS2.26s, docs32157 PASS, build47084 PASS15.52s (SWmwb47opn). Five generated notes in local unsealed .11 Motion and Map Controls. Final release mobile remains pending. All handles terminal. Live .10 unchanged; next approximate deployment20:30UTC.

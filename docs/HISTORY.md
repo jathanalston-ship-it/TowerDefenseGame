@@ -793,3 +793,4 @@
 - `e74e507` **[UI]** Respect live motion settings on infestation map _(internal)_
 - `8a96f37` **[UI]** Expose infestation feed selection state _(internal)_
 - `75c147e` **[Gene Cards]** Honor motion preferences in equipment card art _(internal)_
+- `551a76f` **[UI]** Ui: preserve gear inspection with reduced motion _(internal)_

@@ -25,6 +25,10 @@ export const RELEASES: Release[] = [
       {
         "cat": "UI",
         "text": "Hero gear previews now respect reduced motion while still letting you drag to inspect equipment. Previews pause offscreen or in hidden tabs, and automatic rotation keeps a consistent speed across display refresh rates."
+      },
+      {
+        "cat": "UI",
+        "text": "Item Details now includes labeled Left and Right buttons for rotating the hero gear preview with a keyboard or tap. Automatic motion pauses while those controls have focus, making equipment easier to inspect."
       }
     ]
   },
