@@ -4,8 +4,8 @@
 > before committing. Read together with docs/PROJECT_STATUS.md and the latest
 > docs/VALIDATION_REPORT.md. Next session: start at docs/PROJECT_MANIFEST.md.
 
-- **Generated:** 2026-11-10 09:04 UTC · **Diff scope:** working tree vs HEAD
-- **Branch:** codex/hive-autoplay · **HEAD:** 184460c6
+- **Generated:** 2026-11-10 09:10 UTC · **Diff scope:** working tree vs HEAD
+- **Branch:** codex/hive-autoplay · **HEAD:** f5db1eb2
 
 ## Summary of work completed
 
@@ -13,14 +13,15 @@ LIVE v2026.11.10.2 Rewards You Can Read, seven sealed website notes. SHA e176563
 
 ## Files modified
 
-- Source (3): `src/changelog/releases.gen.ts`, `src/ui/components/LeaderboardBlock.css`, `src/ui/components/LeaderboardBlock.tsx`
+- Source (4): `src/changelog/releases.gen.ts`, `src/i18n/index.ts`, `src/index.css`, `src/ui/components/ShareReplay.tsx`
 - Tests (0): —
-- Docs (7): `docs/DEPLOYMENT.md`, `docs/HISTORY.md`, `docs/PROJECT_MANIFEST.md`, `docs/PROJECT_STATUS.md`, `docs/VALIDATION_REPORT.md`, `docs/devlog/DRAFT-2026-11-09.md`, `docs/devlog/DRAFT-2026-11-10.md`
+- Docs (7): `docs/HISTORY.md`, `docs/PROJECT_MANIFEST.md`, `docs/PROJECT_STATUS.md`, `docs/REPLAY-SHARE.md`, `docs/VALIDATION_REPORT.md`, `docs/devlog/DRAFT-2026-11-09.md`, `docs/devlog/DRAFT-2026-11-10.md`
 
 ## Systems affected (from the dependency registry)
 
 - **chronicle** — `src/changelog/releases.gen.ts`
-- **net-backend** — `src/ui/components/LeaderboardBlock.tsx`
+- **i18n** — `src/i18n/index.ts`
+- **net-backend** — `src/ui/components/ShareReplay.tsx`
 - Consumer ring (verify, unchanged): security
 
 ## Power Score changes
@@ -49,7 +50,7 @@ Windows validate wrapper cannot launch npx/npm with shell:false; use direct gate
 
 ## Recommended next tasks
 
-Local .10.3 Progress Explained has3unsealednotes:Power explanations,Career Details,leaderboard feedback. Latest LeaderboardBlock retry/refresh,loading/status,mode reset,late-response guard and namedtableheaders verified in ../leaderboard-feedback-check.cjs(mocktransport): keyboardretry keepsfocus, recovery/empty/races and1366/390/320fit PASS. Build93517 PASS before final tableheaders;5epoch/site tests PASS. Docs40902 terminal PASS;all processes stopped. No browser/dev processes. Live .10.2 SHAe176563d verified08:52UTC;nextdeploy roughly09:52UTC. Continue broader UI/audio/visual audit, with finalfull/mobile checks before release. Exclude devlogdrafts. Goal active.
+Local .10.3 Progress Explained has4unsealednotes:Power/Career explanations,leaderboardfeedback,replaycopyrecovery. Latest replay fallback/requestguard verified ../replay-copy-check.cjs:realcodec/mockclipboard,denied/missing,roundtrip,selectall,retry,pending,oldresultignored,longrawcode,3localephonefit PASS. Build90718 PASS5.99s;11codec/i18n+4site tests PASS. Docs16894 terminal PASS;all processes stopped. Browser87111 terminal failed only harness hidden-status lookup;fixed rerun terminalPASS. No other active processes. Live .10.2 SHAe176563d verified08:52UTC;next deploy09:52UTC approximate. Continue broader UI/audio/visual work;finalfull/mobile gates before release. Exclude both untrackeddevlogdrafts. Goal active.
 
 ## Future expansion hooks
 

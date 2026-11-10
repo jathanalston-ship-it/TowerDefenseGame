@@ -6875,3 +6875,9 @@ html[data-layout='landscape'] .hub-burger-l { display: none; }
 .ih-text { flex: 1; min-width: 0; }
 .ih-share { vertical-align: -3px; color: #4aa3ff; }
 .ih-close { flex: none; min-height: 36px; padding: 6px 14px; font-weight: 800; border-radius: var(--r-sm); }
+
+/* Replay clipboard fallback is shared by Daily and Results. */
+.replay-share { display: inline-flex; flex-direction: column; gap: 6px; max-width: 100%; min-width: 0; }
+.replay-share-status { font-size: 12px; line-height: 1.4; color: var(--muted); }
+.replay-share-status:empty { display: none; }
+.replay-share textarea { width: min(320px, 70vw); max-width: 100%; font-size: 12px; resize: vertical; }

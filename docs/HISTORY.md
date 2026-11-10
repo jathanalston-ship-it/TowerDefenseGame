@@ -730,3 +730,4 @@
 - `660656c` **[Framework]** Docs: record readable rewards production verification _(internal)_
 - `b1d8620` **[UI]** Ui: make profile power explanations expandable _(internal)_
 - `184460c` **[UI]** Ui: make career explanations readable on demand _(internal)_
+- `f5db1eb` **[Backend]** Improve leaderboard recovery and loading feedback _(internal)_

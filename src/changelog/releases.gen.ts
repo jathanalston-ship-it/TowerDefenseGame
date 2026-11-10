@@ -21,6 +21,10 @@ export const RELEASES: Release[] = [
       {
         "cat": "UI",
         "text": "Global standings now offer Retry after an unavailable response and Refresh after loading, with announced status and labeled table columns. Changing boards clears old results while loading, and delayed responses cannot replace the current board."
+      },
+      {
+        "cat": "UI",
+        "text": "Replay sharing now shows a selectable link or code when clipboard access is denied or unavailable. Preparing/copy feedback is localized, duplicate requests are disabled while pending, and results from an older replay cannot overwrite the current control."
       }
     ]
   },

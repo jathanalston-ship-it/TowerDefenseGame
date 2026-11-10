@@ -1,6 +1,6 @@
 {
-  "lastSha": "184460c6ffa489497344fd000a0e5094e4ca3bd0",
-  "commitsSinceDraft": 8,
+  "lastSha": "f5db1eb2b79bce563ee7879b782f789675aaea89",
+  "commitsSinceDraft": 9,
   "content": {
     "tower": [
       "needle",
@@ -4447,6 +4447,10 @@
         {
           "cat": "UI",
           "text": "Global standings now offer Retry after an unavailable response and Refresh after loading, with announced status and labeled table columns. Changing boards clears old results while loading, and delayed responses cannot replace the current board."
+        },
+        {
+          "cat": "UI",
+          "text": "Replay sharing now shows a selectable link or code when clipboard access is denied or unavailable. Preparing/copy feedback is localized, duplicate requests are disabled while pending, and results from an older replay cannot overwrite the current control."
         }
       ]
     }
@@ -9937,6 +9941,14 @@
       "date": "2026-11-10",
       "cat": "UI",
       "text": "Ui: make career explanations readable on demand",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "f5db1eb2b79bce563ee7879b782f789675aaea89",
+      "date": "2026-11-10",
+      "cat": "Backend",
+      "text": "Improve leaderboard recovery and loading feedback",
       "internal": true,
       "needsReview": false
     }

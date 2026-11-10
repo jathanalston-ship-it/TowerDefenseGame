@@ -44,3 +44,7 @@ viewer, with no server involved.
   round-trip test fails loudly if recording misses an input path, which protects shares
   and leaderboard verification alike.
 - Chrome strings live in the i18n catalogs (`spectate.*`, `daily.theater.*`).
+
+## Clipboard recovery
+
+ShareReplayButton disables duplicate requests while encoding/copying and announces success or failure. A denied or missing Clipboard API exposes the same generated link/code in a read-only field, selected on focus/click for manual copying. Encoding failures offer retry feedback. English/Spanish/Portuguese text follows the active locale. Blob changes/unmount invalidate pending UI results and clear the success timer; an already-started browser clipboard operation itself cannot be canceled. Wire format, compression and URL cutoff are unchanged.
