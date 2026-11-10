@@ -778,3 +778,7 @@
 - `eb5c069` **[Gene Cards]** Make drafted gene descriptions readable _(internal)_
 - `52267c3` **[UI]** Keep HUD explanations on screen _(internal)_
 - `d1b0132` **[UI]** Prevent wave starts while reading HUD help _(internal)_
+- `d35b3fd` **[Framework]** Release: seal Read Your Build notes _(internal)_
+- `1ec6dec` **[Framework]** Release: record final build and drawer diagnostic _(internal)_
+- `48b2f2a` **[Framework]** Release: publish Read Your Build _(internal)_
+- `1637569` **[Framework]** Docs: record verified Read Your Build deployment _(internal)_

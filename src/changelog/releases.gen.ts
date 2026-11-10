@@ -5,6 +5,18 @@ import type { Release } from './types';
 /** Player-facing releases, newest first. */
 export const RELEASES: Release[] = [
   {
+    "id": "v2026.11.10.10",
+    "date": "2026-11-10",
+    "title": "Know Your Controls",
+    "sealed": false,
+    "entries": [
+      {
+        "cat": "UI",
+        "text": "A new help button beside Auto Wave and Auto Gene explains countdowns, waiting for your first tower, unlock requirements and Hive-managed controls. Read it by touch or keyboard without changing your automation settings."
+      }
+    ]
+  },
+  {
     "id": "v2026.11.10.9",
     "date": "2026-11-10",
     "title": "Read Your Build",

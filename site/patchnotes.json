@@ -1,6 +1,19 @@
 [
   {
     "date": "2026-11-10",
+    "title": "Know Your Controls",
+    "categories": [
+      "UI"
+    ],
+    "items": [
+      {
+        "cat": "UI",
+        "text": "A new help button beside Auto Wave and Auto Gene explains countdowns, waiting for your first tower, unlock requirements and Hive-managed controls. Read it by touch or keyboard without changing your automation settings."
+      }
+    ]
+  },
+  {
+    "date": "2026-11-10",
     "title": "Read Your Build",
     "categories": [
       "UI",

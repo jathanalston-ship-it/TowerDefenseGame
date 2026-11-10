@@ -62,6 +62,12 @@ export function BuildControls({
   // automations are toggled together (and in-run, not only from the Hub's Settings). Both
   // persist to localStorage; the DraftModal reads the pref when the next draft opens.
   const [autoGene, setAutoGene] = useState(autoGenePref());
+  const automationHelp = [
+    'Auto Wave starts the next wave after a short countdown.',
+    hud.autoStartWaiting ? 'WAIT means it is armed: place your first tower or start Wave 1 to begin.' : '',
+    autoGeneLock ? `Auto Gene is locked: ${autoGeneLock}.` : 'Auto Gene drafts the recommended ◆ PICK card after a countdown. Choose any card yourself to override it.',
+    hud.hiveActive ? 'Hive Intelligence currently manages both controls. Turn Hive off to change them individually.' : '',
+  ].filter(Boolean).join(' ');
   const nextWave = hud.endless || hud.bossRush ? hud.wave + 1 : Math.min(hud.totalWaves, hud.wave + 1);
   // Launch sweep: a one-shot full-board energy band when the wave fires (keyed per launch).
   const [sweepAt, setSweepAt] = useState(0);
@@ -231,6 +237,9 @@ export function BuildControls({
               ◆ Auto Gene
               <b>{autoGeneLock ? 'LOCKED' : hud.hiveActive ? 'HIVE' : autoGene ? 'ON' : 'OFF'}</b>
             </button>
+            <button type="button" className="wb-auto-help" tabIndex={visible ? 0 : -1}
+              aria-label="Explain Auto Wave and Auto Gene" aria-expanded={detail?.id === 'automation'}
+              onClick={(event) => showDetail(event, 'automation', 'Automation', automationHelp)}>?</button>
           </div>}
         </div>
       </div>
@@ -242,7 +251,7 @@ export function BuildControls({
             if (event.key === 'Escape') { event.preventDefault(); closeDetail(); }
           }}>
           <div className="wb-detail-head"><strong>{detail.title}</strong><button type="button" onClick={closeDetail} aria-label="Close wave details">✕</button></div>
-          <p>{detail.text}</p>
+          <p>{detail.id === 'automation' ? automationHelp : detail.text}</p>
         </div>
       )}
       {hud.autoStartWaiting && (

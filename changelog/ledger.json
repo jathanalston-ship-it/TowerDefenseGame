@@ -1,6 +1,6 @@
 {
-  "lastSha": "d1b0132a6589d2f1e3a5874d6a60a377fda47b37",
-  "commitsSinceDraft": 4,
+  "lastSha": "1637569b94fedb14a202eaa31bf4d0a8e9aac8e6",
+  "commitsSinceDraft": 8,
   "content": {
     "tower": [
       "needle",
@@ -4619,6 +4619,18 @@
         {
           "cat": "Bug Fixes",
           "text": "Pressing Space while reading a focused HUD resource explanation no longer starts a wave. The battlefield wave shortcut and Hero Console activation still work as before."
+        }
+      ]
+    },
+    {
+      "id": "v2026.11.10.10",
+      "date": "2026-11-10",
+      "title": "Know Your Controls",
+      "sealed": false,
+      "entries": [
+        {
+          "cat": "UI",
+          "text": "A new help button beside Auto Wave and Auto Gene explains countdowns, waiting for your first tower, unlock requirements and Hive-managed controls. Read it by touch or keyboard without changing your automation settings."
         }
       ]
     }
@@ -10493,6 +10505,38 @@
       "date": "2026-11-10",
       "cat": "UI",
       "text": "Prevent wave starts while reading HUD help",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "d35b3fde4c1aa571840f4f61afa667db75a997da",
+      "date": "2026-11-10",
+      "cat": "Framework",
+      "text": "Release: seal Read Your Build notes",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "1ec6dec9a155fffe5e88543a4a694010ea352a1f",
+      "date": "2026-11-10",
+      "cat": "Framework",
+      "text": "Release: record final build and drawer diagnostic",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "48b2f2a81ac463b53708ffcc2aab5b11f7f7cfdc",
+      "date": "2026-11-10",
+      "cat": "Framework",
+      "text": "Release: publish Read Your Build",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "1637569b94fedb14a202eaa31bf4d0a8e9aac8e6",
+      "date": "2026-11-10",
+      "cat": "Framework",
+      "text": "Docs: record verified Read Your Build deployment",
       "internal": true,
       "needsReview": false
     }

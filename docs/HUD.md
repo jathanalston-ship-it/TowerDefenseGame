@@ -328,3 +328,5 @@ its normal handling. Draft choices, stacking math and effects are unchanged.
 HUD resource explanations open below their readouts with inward edge alignment and raised active cells, so keyboard/hover/touch details stay inside the viewport. The shared tooltip behavior and simulation remain unchanged.
 
 Space on a focused HUD explanation is consumed before battlefield shortcuts; the Hero readout still opens its Console, and unfocused-board Space still starts waves.
+
+Automation help: a44px question button beside Auto Wave/Auto Gene opens the existing bounded briefing reader. It explains countdown/manual gene override, current WAIT, the live gate reason and Hive management; open text updates with these states. Existing Escape/focus restoration and reading-key isolation apply. Toggles, stored preferences, gates and gameplay remain unchanged. Compact labels may wrap instead of clipping.

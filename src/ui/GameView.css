@@ -1545,6 +1545,7 @@ html[data-layout='portrait'] .hud-biomass > .tt-bubble::after { left: 24px; }
 .wb-actions { display: flex; flex-direction: column; gap: 6px; justify-content: center; flex: none; border-left: 1px solid rgba(255,255,255,0.07); padding-left: 14px; }
 
 .wb-autos { display: flex; gap: 6px; }
+.wb-auto-help { flex: none; min-width: 44px; min-height: 44px; }
 
 .auto-btn b { font-weight: 900; letter-spacing: 0.04em; color: inherit; margin-left: 5px; }
 .auto-btn.is-managed:disabled { opacity: 1; cursor: default; }
@@ -3169,9 +3170,9 @@ html[data-layout='desktop'] .hud-wave-mod:has(> .phase-emergency) > .phase-hint 
 
 :is(html[data-layout='portrait'], html[data-layout='landscape']) .build-bar .start-btn { width: 100%; justify-content: center; min-height: 44px; }
 
-:is(html[data-layout='portrait'], html[data-layout='landscape']) .wb-autos { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; flex-wrap: nowrap; }
+:is(html[data-layout='portrait'], html[data-layout='landscape']) .wb-autos { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 44px; gap: 6px; flex-wrap: nowrap; }
 
-:is(html[data-layout='portrait'], html[data-layout='landscape']) .auto-btn { min-height: 40px; display: inline-flex; align-items: center; justify-content: center; padding: 4px 8px; font-size: 11px; }
+:is(html[data-layout='portrait'], html[data-layout='landscape']) .auto-btn { min-height: 40px; display: inline-flex; align-items: center; justify-content: center; padding: 4px; gap: 2px; flex-wrap: wrap; font-size: 11px; letter-spacing: 0.02em; white-space: normal; }
 
 /* The tower rail: the deck's glass, carried by the rail itself (the toolbar box dissolves). */
 :is(html[data-layout='portrait'], html[data-layout='landscape']) .tower-rail {

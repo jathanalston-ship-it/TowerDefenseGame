@@ -4,22 +4,23 @@
 > before committing. Read together with docs/PROJECT_STATUS.md and the latest
 > docs/VALIDATION_REPORT.md. Next session: start at docs/PROJECT_MANIFEST.md.
 
-- **Generated:** 2026-11-10 18:35 UTC · **Diff scope:** working tree vs HEAD
-- **Branch:** codex/hive-autoplay · **HEAD:** 1ec6dec9
+- **Generated:** 2026-11-10 18:44 UTC · **Diff scope:** working tree vs HEAD
+- **Branch:** codex/hive-autoplay · **HEAD:** 1637569b
 
 ## Summary of work completed
 
-LIVE v2026.11.10.9 Read Your Build, five website notes. SHA48b2f2a81ac463b53708ffcc2aab5b11f7f7cfdc; Actions42876793393/job130042106520 SUCCESS including exact-commit production guard. Normal custom-domain game/home/news/all five notes/asset verified18:38UTC; asset /assets/play-7JbVGzDZ.js. Bond and drafted Gene descriptions are accessible disclosures, Daily bond strength is accurate, HUD explanations stay on screen and Space while reading cannot start waves. Continuous goal active; next approximate deployment19:38UTC.
+LIVE .9 Read Your Build, SHA48b2f2a81ac463b53708ffcc2aab5b11f7f7cfdc, Actions42876793393/job130042106520 SUCCESS; public game/home/news/five notes verified18:38UTC, asset /assets/play-7JbVGzDZ.js. LOCAL unsealed .10 Know Your Controls with one generated website note: touch/keyboard help beside Auto Wave/Auto Gene. Goal active; next approximate deployment19:38UTC.
 
 ## Files modified
 
-- Source (0): —
+- Source (3): `src/changelog/releases.gen.ts`, `src/ui/BuildControls.tsx`, `src/ui/GameView.css`
 - Tests (0): —
-- Docs (2): `docs/devlog/DRAFT-2026-11-09.md`, `docs/devlog/DRAFT-2026-11-10.md`
+- Docs (5): `docs/HISTORY.md`, `docs/HUD.md`, `docs/PROJECT_MANIFEST.md`, `docs/devlog/DRAFT-2026-11-09.md`, `docs/devlog/DRAFT-2026-11-10.md`
 
 ## Systems affected (from the dependency registry)
 
-- (no registered source files in this diff)
+- **chronicle** — `src/changelog/releases.gen.ts`
+- **run-ui** — `src/ui/BuildControls.tsx`
 
 ## Power Score changes
 
@@ -27,11 +28,11 @@ None. Prior added HUD bond level is read-only; no gameplay, balance or save chan
 
 ## UI changes
 
-Bond and gene disclosures retain live counts/expanded state and consume reading keys. Daily bond descriptions use HudSnapshot.bonds.level resolved by the run. HUD tooltip CSS opens downward with inward alignment and active stacking above controls; keyboard-only four-viewport probe and phone screenshot verified. GameView guard consumes Space on focused HUD cells; browser probe proves resource reading stays prep, Hero Space still opens Console, board Space still starts waves. Full suite3194tests354files PASS; final build20300 PASS21.92s; typecheck/docs/eleven UI-site tests/four sealed-site tests PASS. Final ORIGINAL mobile72320 PASS27nav+nine gameplay profiles. Focused gene/bond/Daily/HUD browser probes PASS.
+BuildControls adds44px help button to existing automation row and reuses bounded briefing reader. Explanations derive current WAIT, autoGeneLock reason and hiveActive, update live, describe countdown/manual card override. Existing toggles/prefs/gates unchanged. Reader keeps Space isolated, Escape restores opener. Compact labels wrap inside buttons (no font-size reduction); initial narrower-grid clipping was caught and fixed. Final real GameView checks85873 unlocked +32996 locked PASS320x568/390x844/844x390/1280x800, reader/label bounds and keyboard behavior; locked/unlocked phone screenshots inspected. Standalone state probe PASS waiting/locked/liveHiveupdate/disabledbuttons/keys. Initial fixture resizing before profile settlement produced width20px; fixed initial portrait and explicit profile wait. Loot meter unlocked geometry probe5639 also PASS, no source change needed there. Eleven site/UI tests1292 PASS10.51s; docs70306 PASS. Initial build68516 PASS23.05s predates last wrapping fix. Final build78237 RUNNING in automation-help-final-build.log.
 
 ## Documentation changes
 
-HUD.md, CARDS.md, CLASS-BONDS.md and PROJECT_MANIFEST.md updated during this release. Five curated notes sealed/generated/published in ledger, game release data and website. Detailed chronology remains in PROJECT_STATUS.md, VALIDATION_REPORT.md and Git history. No new mechanic/reward/save field requires help/audio/migration changes.
+HUD.md/PROJECT_MANIFEST.md updated; one curated .10 note generated in ledger/game/site. No mechanic/reward/save changes, so no help registry/audio/migration changes needed. Prior .9 evidence remains in chronological status/validation reports and Git.
 
 ## Save changes
 
@@ -39,7 +40,7 @@ None.
 
 ## Known edge cases
 
-Original earlier mobile30430 failed waitForDrawerClosed timeout5000ms, repeating the previous .8 symptom. Unchanged-build four-landscape diagnostic81740 PASS; final original mobile72320 PASS. Root cause remains unproven, failure retained, no gate weakened. Windows validate wrapper retains known npx shell:false launch failure; direct checks and retained bond-daily-wrapper-report.log supplement it. Browser/AX checks do not prove every screen reader speech output.
+Final current build/full mobile still pending. Wider state labels required flex wrapping, verified in focused real game probes. Native disclosure/keyboard checks do not prove every screen reader speech output. Prior .9 original mobile30430 failed drawer-close timeout; unchanged-build diagnostic81740 and final original72320 passed, root cause unproven. Do not weaken original gate; preserve failure history. Existing Windows validate wrapper npx shell:false launch issue remains documented.
 
 ## Remaining technical debt
 
@@ -47,7 +48,7 @@ Existing Windows validate launcher issue only. Two untracked docs/devlog/DRAFT-2
 
 ## Recommended next tasks
 
-All validation/deployment handles terminal. Release .9 verified live; continue evidence-led playability/clarity/accessibility/presentation improvements without balance changes, next approximate deployment19:38UTC with website notes. Current production SHA48b2f2a81ac463b53708ffcc2aab5b11f7f7cfdc. Work on codex/hive-autoplay; git add -u leaves the two untracked unpublished devlog drafts out. Vite5174 remains PID30948,parent32932, no active browser probes; verify exact command lines before cleanup. Parent probe files are local artifacts outside repo. Future mobile runs: original gate, Chrome headless=new preload, no concurrent builds/dist writes; poll same handle until terminal.
+ONLY active handle78237: final build, automation-help-final-build.log. Poll SAME handle to terminal; then run original full mobilecheck --no-build with Chrome headless=new preload ../chrome-probe-compat.cjs, no competing heavy builds or dist writes during mobile. All browser probes terminalPASS; existing Vite5174 server remains PID30948,parent32932. Current work is .10 automation help, source BuildControls.tsx and GameView.css only. Next approximation19:38 deploy with website note after gates. Production48b2f2a81ac463b53708ffcc2aab5b11f7f7cfdc. Leave two untracked devlog drafts unpublished.
 
 ## Future expansion hooks
 
