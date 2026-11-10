@@ -1,6 +1,6 @@
 {
-  "lastSha": "2266190579c7b5925160a5f28ca4292192b18eeb",
-  "commitsSinceDraft": 2,
+  "lastSha": "a8e6b4da3caf43018ce3346a38edca395e3394cb",
+  "commitsSinceDraft": 5,
   "content": {
     "tower": [
       "needle",
@@ -4575,6 +4575,18 @@
         {
           "cat": "Bug Fixes",
           "text": "Backup restoration now respects browser-tab ownership and keeps the latest live progress in its recovery snapshot, including changes waiting to be saved. A successful restore also clears the old pending save so it cannot run afterward."
+        }
+      ]
+    },
+    {
+      "id": "v2026.11.10.8",
+      "date": "2026-11-10",
+      "title": "Know What Is Coming",
+      "sealed": false,
+      "entries": [
+        {
+          "cat": "UI",
+          "text": "Incoming-wave intel opens readable details on tap or keyboard, including on phones. Base Biomass and enemy stats are clearly labeled, and elite counts explain how many are included in the wave."
         }
       ]
     }
@@ -10337,6 +10349,30 @@
       "date": "2026-11-10",
       "cat": "Gameplay",
       "text": "Save: preserve live progress and tab ownership on restore",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "bfb1de802afba14854d505dddac66bb3731fc387",
+      "date": "2026-11-10",
+      "cat": "Framework",
+      "text": "Release: prepare Progress You Can Trust with five notes",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "b441f62cf0512d7da5c8d0692d53d3927fead962",
+      "date": "2026-11-10",
+      "cat": "Framework",
+      "text": "Release: publish Progress You Can Trust",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "a8e6b4da3caf43018ce3346a38edca395e3394cb",
+      "date": "2026-11-10",
+      "cat": "Gameplay",
+      "text": "Record verified save-management deployment",
       "internal": true,
       "needsReview": false
     }

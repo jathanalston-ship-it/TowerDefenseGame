@@ -34,7 +34,11 @@ The redesign below has been implemented and extended. The live combat HUD is now
 - **Tower cards**: hover lift + sheen sweep, mastery ring (conic, capped 99), star-tier pips,
   DPS + deployed-count chips, affordable-pulse edge.
 - **Start Wave focal** + full-board energy sweep on launch; the briefing header carries the
-  encounter forecast (Σ bounty Biomass + ELITES/BOSS INBOUND warnings).
+  encounter forecast (Σ unmodified bounty, labeled base Biomass, + ELITES/BOSS INBOUND warnings).
+  Reward, adaptation and enemy chips open a keyboard-focusable detail region below the bar,
+  outside the mobile horizontal scroller. Escape/Close returns focus to the triggering chip;
+  a new preview or departure from prep dismisses the details. Enemy HP/armor are explicitly
+  base stats, elite counts are included in the total, and rewards explain modifier/kill limits.
 - **HERO OPS** right-panel default: breathing portrait, conic ability wheel, HP + shield,
   rarity-lit equipment slots, evolution chip, compact run stats.
 - **Left panel**: collapsible Gene Cards / Active Effects + an OBJECTIVES section.

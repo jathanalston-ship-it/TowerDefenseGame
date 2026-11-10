@@ -5,6 +5,18 @@ import type { Release } from './types';
 /** Player-facing releases, newest first. */
 export const RELEASES: Release[] = [
   {
+    "id": "v2026.11.10.8",
+    "date": "2026-11-10",
+    "title": "Know What Is Coming",
+    "sealed": false,
+    "entries": [
+      {
+        "cat": "UI",
+        "text": "Incoming-wave intel opens readable details on tap or keyboard, including on phones. Base Biomass and enemy stats are clearly labeled, and elite counts explain how many are included in the wave."
+      }
+    ]
+  },
+  {
     "id": "v2026.11.10.7",
     "date": "2026-11-10",
     "title": "Progress You Can Trust",

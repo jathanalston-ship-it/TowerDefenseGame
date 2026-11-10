@@ -764,3 +764,6 @@
 - `030b6d8` **[UI]** Review save files before importing progress _(internal)_
 - `a04cc87` **[Gameplay]** Save: commit imports before replacing session progress _(internal)_
 - `2266190` **[Gameplay]** Save: preserve live progress and tab ownership on restore _(internal)_
+- `bfb1de8` **[Framework]** Release: prepare Progress You Can Trust with five notes _(internal)_
+- `b441f62` **[Framework]** Release: publish Progress You Can Trust _(internal)_
+- `a8e6b4d` **[Gameplay]** Record verified save-management deployment _(internal)_

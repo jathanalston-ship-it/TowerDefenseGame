@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, type MouseEvent } from 'react';
 import type { Game } from '../core/game';
 import { DIRECTOR, ENEMY_DEFS } from '../core/config';
 import type { EnemyDef } from '../core/config';
@@ -65,7 +65,7 @@ export function BuildControls({
   const nextWave = hud.endless || hud.bossRush ? hud.wave + 1 : Math.min(hud.totalWaves, hud.wave + 1);
   // Launch sweep: a one-shot full-board energy band when the wave fires (keyed per launch).
   const [sweepAt, setSweepAt] = useState(0);
-  // Encounter forecast — expected biomass (Σ bounty) + the heaviest tier present, from the
+  // Encounter forecast — base biomass (Σ unmodified bounty) + the heaviest tier present, from the
   // SAME memoized preview (no extra per-render aggregation).
   const forecast = useMemo(() => {
     if (!preview) return null;
@@ -85,6 +85,22 @@ export function BuildControls({
   // accessibility violation ("Blocked aria-hidden…"). `inert` blocks focus AND hides from AT; we
   // also release any focus still inside before the subtree goes inert.
   const rootRef = useRef<HTMLDivElement>(null);
+  const [detail, setDetail] = useState<{ id: string; title: string; text: string } | null>(null);
+  const detailRef = useRef<HTMLDivElement>(null);
+  const detailOpener = useRef<HTMLButtonElement | null>(null);
+  const showDetail = (event: MouseEvent<HTMLButtonElement>, id: string, title: string, text: string): void => {
+    detailOpener.current = event.currentTarget;
+    setDetail((current) => current?.id === id ? null : { id, title, text });
+  };
+  const closeDetail = (): void => {
+    if (detailRef.current?.contains(document.activeElement)) detailOpener.current?.focus({ preventScroll: true });
+    setDetail(null);
+  };
+  useEffect(() => {
+    if (visible && detailRef.current?.contains(document.activeElement)) detailOpener.current?.focus({ preventScroll: true });
+    setDetail(null);
+  }, [visible, preview]);
+  useEffect(() => { if (detail) detailRef.current?.focus({ preventScroll: true }); }, [detail]);
   useEffect(() => {
     const el = rootRef.current;
     if (!el) return;
@@ -102,10 +118,11 @@ export function BuildControls({
             {!hud.endless && !hud.bossRush && <span className="wb-of">/ {hud.totalWaves}</span>}
             {hostiles > 0 && <span className="wb-count">{hostiles} hostiles</span>}
             {forecast && forecast.biomass > 0 && (
-              <span className="wb-forecast tt" tabIndex={visible ? 0 : -1}>
-                ⬢ +{forecast.biomass}
-                <span className="tt-bubble">Expected Biomass if the whole wave falls.</span>
-              </span>
+              <button type="button" className="wb-forecast wb-info" tabIndex={visible ? 0 : -1}
+                aria-expanded={detail?.id === 'biomass'} aria-label={`Explain ${forecast.biomass} base Biomass`}
+                onClick={(event) => showDetail(event, 'biomass', 'Base Biomass', 'Base Biomass from the listed enemies, before bounty modifiers. Actual earnings depend on kills and run modifiers; other rewards are not included.')}>
+                ⬢ {forecast.biomass} base
+              </button>
             )}
             {forecast?.heavy && (
               <span className={`wb-heavy is-${forecast.heavy}`} role="alert">
@@ -115,14 +132,13 @@ export function BuildControls({
             {/* The Hive adapts (docs/DIFFICULTY_DIRECTOR.md §6a) / the Infinite squeeze (ENDLESS_SQUEEZE):
                 the enemy-HP multiplier this wave launches with — shown only when it is above ×1. */}
             {(hud.endless ? hud.squeezePressure : hud.liveThreat) > 1.005 && (
-              <span className="wb-adapt tt" tabIndex={visible ? 0 : -1}>
+              <button type="button" className="wb-adapt wb-info" tabIndex={visible ? 0 : -1}
+                aria-expanded={detail?.id === 'adaptation'}
+                onClick={(event) => showDetail(event, 'adaptation', hud.endless ? 'Squeezed' : 'Adapted', hud.endless
+                  ? 'Your board has held flawless waves — the Hive squeezes harder (enemy HP). A wave that bleeds the Core eases it back.'
+                  : 'Your run’s live board (towers fielded + Biomass invested — never your drafted cards) has outgrown this stage — from wave 4 (and on every boss) the Hive answers with tougher, faster enemies and swaps in the role your board covers least — the PROBE names it and the coverage it tests.')}>
                 ▲ {hud.endless ? 'SQUEEZED' : 'ADAPTED'} ×{(hud.endless ? hud.squeezePressure : hud.liveThreat).toFixed(1)}
-                <span className="tt-bubble">
-                  {hud.endless
-                    ? 'Your board has held flawless waves — the Hive squeezes harder (enemy HP). A wave that bleeds the Core eases it back.'
-                    : 'Your run’s live board (towers fielded + Biomass invested — never your drafted cards) has outgrown this stage — from wave 4 (and on every boss) the Hive answers with tougher, faster enemies and swaps in the role your board covers least — the ⌖ PROBE below names it and the coverage it tests.'}
-                </span>
-              </span>
+              </button>
             )}
           </div>
           {preview && (
@@ -131,8 +147,11 @@ export function BuildControls({
                 const def = ENEMY_DEFS[e.kind];
                 const tier = ENEMY_TIER[e.kind];
                 const role = roleTag(def);
+                const explanation = `${def.name} — ${def.hp} base HP${def.armor > 0 ? ` · ${def.armor} base armor` : ''}${role ? ` · ${role.toLowerCase()}` : ''}. Wave and run modifiers can change these stats.${(e.elite ?? 0) > 0 ? ` ${e.elite} of ${e.count} are ELITE (×${DIRECTOR.eliteHpMult} HP, ×${DIRECTOR.eliteDmgMult} damage before other modifiers).` : ''}${e.probe ? ` The Hive’s PROBE (${e.probe.label.toLowerCase()}): your board lacks ${e.probe.lacks}.` : ''}`;
                 return (
-                  <span className={`wb-chip tt is-${tier}`} key={e.kind} tabIndex={visible ? 0 : -1} style={{ ['--ec' as string]: def.color }}>
+                  <button type="button" className={`wb-chip is-${tier}`} key={e.kind} tabIndex={visible ? 0 : -1} style={{ ['--ec' as string]: def.color }}
+                    aria-expanded={detail?.id === e.kind} aria-label={`${def.name}: ${e.count} incoming${(e.elite ?? 0) > 0 ? `, including ${e.elite} elites` : ''}. Show details`}
+                    onClick={(event) => showDetail(event, e.kind, def.name, explanation)}>
                     <span className="wb-dot" aria-hidden />
                     <span className="wb-name">{def.name}</span>
                     <span className="wb-n">×{e.count}</span>
@@ -140,12 +159,7 @@ export function BuildControls({
                     {e.probe ? (
                       <span className="wb-probe">⌖ {e.probe.label.toUpperCase()}<span className="wb-probe-why"> · lacks {e.probe.lacks}</span></span>
                     ) : role && <span className="wb-role">{role}</span>}
-                    <span className="tt-bubble">
-                      {def.name} — {def.hp} HP{def.armor > 0 ? ` · ${def.armor} armor` : ''}{role ? ` · ${role.toLowerCase()}` : ''}
-                      {(e.elite ?? 0) > 0 ? ` · ${e.elite} ELITE (×${DIRECTOR.eliteHpMult} HP, ×${DIRECTOR.eliteDmgMult} damage)` : ''}
-                      {e.probe ? ` · the Hive’s PROBE (${e.probe.label.toLowerCase()}): your board lacks ${e.probe.lacks}` : ''}
-                    </span>
-                  </span>
+                  </button>
                 );
               })}
             </div>
@@ -212,6 +226,17 @@ export function BuildControls({
           </div>}
         </div>
       </div>
+      {visible && detail && (
+        <div ref={detailRef} className="wb-detail panel" role="region" aria-label={`${detail.title} details`} tabIndex={-1}
+          onKeyDown={(event) => {
+            // Reading/scrolling intel must not dispatch board shortcuts (Space launches a wave).
+            event.stopPropagation();
+            if (event.key === 'Escape') { event.preventDefault(); closeDetail(); }
+          }}>
+          <div className="wb-detail-head"><strong>{detail.title}</strong><button type="button" onClick={closeDetail} aria-label="Close wave details">✕</button></div>
+          <p>{detail.text}</p>
+        </div>
+      )}
       {hud.autoStartWaiting && (
         <div className="auto-wait-note" role="status">
           Waiting for first placement…

@@ -4,22 +4,23 @@
 > before committing. Read together with docs/PROJECT_STATUS.md and the latest
 > docs/VALIDATION_REPORT.md. Next session: start at docs/PROJECT_MANIFEST.md.
 
-- **Generated:** 2026-11-10 16:38 UTC · **Diff scope:** working tree vs HEAD
-- **Branch:** codex/hive-autoplay · **HEAD:** bfb1de80
+- **Generated:** 2026-11-10 16:52 UTC · **Diff scope:** working tree vs HEAD
+- **Branch:** codex/hive-autoplay · **HEAD:** a8e6b4da
 
 ## Summary of work completed
 
-LIVE v2026.11.10.7 Progress You Can Trust with five sealed website notes. SHAb441f62cf0512d7da5c8d0692d53d3927fead962; Actions42856634182 SUCCESS including exact-SHA production guard. Normal custom-domain game/home/news/all5notes verified 2026-11-10 16:41 UTC; asset /assets/play-D1KgKJPZ.js matches final build and returns200. Initial cached prior entry resolved on same URLs after20s. Full3192tests/354files PASS454.39s; final build22.72s,4site tests,docs and mobile27screens/9gameplay viewports PASS. All processes terminal. Continuous goal active.
+LIVE remains v2026.11.10.7, SHA b441f62cf0512d7da5c8d0692d53d3927fead962, verified normal game/home/news with five notes. LOCAL .8 Know What Is Coming has one generated website note. Incoming-wave reward/enemy/adaptation chips now open a readable detail region outside the mobile scroller. Base Biomass/HP/armor and inclusive elite counts are explicit. Keyboard opening, Escape/Close restoration, preview-change dismissal, reading-key isolation, phone/landscape geometry and real-game launch/inert behavior pass the isolated Chrome probe. No core, balance or save changes. Continuous goal remains active.
 
 ## Files modified
 
-- Source (0): —
+- Source (3): `src/changelog/releases.gen.ts`, `src/ui/BuildControls.tsx`, `src/ui/GameView.css`
 - Tests (0): —
-- Docs (2): `docs/devlog/DRAFT-2026-11-09.md`, `docs/devlog/DRAFT-2026-11-10.md`
+- Docs (5): `docs/HISTORY.md`, `docs/HUD.md`, `docs/PROJECT_MANIFEST.md`, `docs/devlog/DRAFT-2026-11-09.md`, `docs/devlog/DRAFT-2026-11-10.md`
 
 ## Systems affected (from the dependency registry)
 
-- (no registered source files in this diff)
+- **chronicle** — `src/changelog/releases.gen.ts`
+- **run-ui** — `src/ui/BuildControls.tsx`
 
 ## Power Score changes
 
@@ -47,7 +48,7 @@ Windows validate wrapper cannot launch npx/npm with shell:false; use direct gate
 
 ## Recommended next tasks
 
-Release .10.7 fully live and verified; all processes terminal. Continue active clarity/accessibility/presentation goal with a new unsealed release. Next approximate deployment17:41 UTC. Read-only follow-up: BuildControls incoming-enemy tooltip shows ENEMY_DEFS.hp labeled HP; Game.spawnEnemy at~3198 applies hpMult/eHp/biome multipliers. Assess base-stat wording and useful context without changing combat or implying exact forecasted HP. ThreatPicker already has labeled buttons and live level announcement; no demonstrated issue there.
+Poll existing handles, never restart on observation timeout: final production build21016 (wave-briefing-release-build.log); full regression suite77517 (wave-briefing-full-tests.log); browser probe60232 printed PASS but Chrome shutdown was still live at last poll. Earlier builds90994 and19517 succeeded; latter predates final reading-key isolation.13 registry/site tests and docs check PASS. After final build completes, run mobilecheck against its dist, then continue improvements toward approximate17:41 UTC deployment. .8 remains unsealed; regenerate/build if further changes. Existing Windows validate wrapper launcher failure reproduced (wave-briefing-wrapper-report.log); direct gates required. Do not stage the two untracked devlog drafts.
 
 ## Future expansion hooks
 
@@ -89,32 +90,8 @@ Local v2026.11.10.1 now has two notes: Hero Ops uses effective abilityCdMax and 
 
 Hero readiness final build65590 PASS (Vite7.59s); all processes terminal. Next release remains roughly08:14UTC with matching website notes; live .7 unchanged.
 
+## 2026-11-10 16:57 UTC — wave briefing checkpoint
 
+LIVE remains v2026.11.10.7, SHA b441f62cf0512d7da5c8d0692d53d3927fead962, verified normal game/home/news with five notes. LOCAL .8 Know What Is Coming has one generated website note. Incoming-wave reward/enemy/adaptation chips now open a readable detail region outside the mobile scroller. Base Biomass/HP/armor and inclusive elite counts are explicit. Keyboard opening, Escape/Close restoration, preview-change dismissal, reading-key isolation, phone/landscape geometry and real-game launch/inert behavior pass the isolated Chrome probe. No core, balance or save changes. Continuous goal remains active.
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-## 2026-11-10 — Progress You Can Trust ready to publish
-
-Five sealed notes. Full354files/3192tests PASS454.39s; final app/functions TS+build22.72s,4site tests anddocs PASS. Mobile34331 terminal CLEAN27nav screens and9gameplay viewports, drawers/rotation/portrait+landscape/run-chrome contracts, no clipping/overflow/sub24targets. Focused save UI and real-storage browser probes PASS fault injection, confirmation/cancel, preview races, focus, tab ownership, latest-state recovery and flush cancellation. Required wrapper limitation documented with save-release-wrapper-report.log; direct gates PASS. Final asset /assets/play-D1KgKJPZ.js. Source/schema/gameplay unchanged since final gates. All local processes terminal; publishing next.
+Poll existing handles, never restart on observation timeout: final production build21016 (wave-briefing-release-build.log); full regression suite77517 (wave-briefing-full-tests.log); browser probe60232 printed PASS but Chrome shutdown was still live at last poll. Earlier builds90994 and19517 succeeded; latter predates final reading-key isolation.13 registry/site tests and docs check PASS. After final build completes, run mobilecheck against its dist, then continue improvements toward approximate17:41 UTC deployment. .8 remains unsealed; regenerate/build if further changes. Existing Windows validate wrapper launcher failure reproduced (wave-briefing-wrapper-report.log); direct gates required. Do not stage the two untracked devlog drafts.
