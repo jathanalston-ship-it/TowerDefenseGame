@@ -122,3 +122,7 @@ same blueprint; invariants hold) as they grow.
 > modifiers/events). To avoid stranding shared-branch work, this pass ships the
 > **review + the conflict-free tooling gate (B8)**; the structural refactors are
 > sequenced for when that lane lands, not raced against it.
+
+## Manual backup write safety
+
+SaveStore.backup validates the current blob, writes a new snapshot, then publishes its index before pruning old snapshots. Failed snapshot/index writes return null; an index failure removes the new unlisted snapshot and leaves the old ring intact. SaveManager reports success only for a returned backup, otherwise offers Export JSON, using a persistent status region. Save schema, checksum envelope, cap and main-save write behavior remain unchanged. Fault-injected storage tests cover both failure points, prior-backup restorability, retry success and corrupt/absent current data.

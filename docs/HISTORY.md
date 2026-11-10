@@ -756,3 +756,6 @@
 - `0d31f13` **[UI]** Ui: preserve focus while browsing collection categories _(internal)_
 - `2d2fbed` **[UI]** Ui: clarify undiscovered collection entries _(internal)_
 - `ef23cd9` **[Framework]** Release: prepare collection update and record regression gates _(internal)_
+- `e081e6e` **[Music]** Enlarge music console touch targets _(internal)_
+- `7f18a4f` **[Framework]** Release: publish Memories Within Reach _(internal)_
+- `76fbbb6` **[Framework]** Docs: record verified collection release deployment _(internal)_

@@ -1,6 +1,6 @@
 {
-  "lastSha": "ef23cd94645fb615829db50782b1c3f4d5a38693",
-  "commitsSinceDraft": 4,
+  "lastSha": "76fbbb680a86e774470a01d20504af4c8b2f2ee3",
+  "commitsSinceDraft": 7,
   "content": {
     "tower": [
       "needle",
@@ -4547,6 +4547,18 @@
         {
           "cat": "UX",
           "text": "The optional debug music console now gives its boss-name field and sliders larger touch targets, including on tablets."
+        }
+      ]
+    },
+    {
+      "id": "v2026.11.10.7",
+      "date": "2026-11-10",
+      "title": "Progress You Can Trust",
+      "sealed": false,
+      "entries": [
+        {
+          "cat": "Bug Fixes",
+          "text": "Manual backups now report when a snapshot could not be saved and offer Export JSON as a fallback. Failed backup writes preserve older snapshots, and corrupt current-save data is no longer copied into the backup list."
         }
       ]
     }
@@ -10245,6 +10257,30 @@
       "date": "2026-11-10",
       "cat": "Framework",
       "text": "Release: prepare collection update and record regression gates",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "e081e6e52b5657f0b7051288076a7a2d17496769",
+      "date": "2026-11-10",
+      "cat": "Music",
+      "text": "Enlarge music console touch targets",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "7f18a4f7fe74450f26650da823b789ce5bb4468d",
+      "date": "2026-11-10",
+      "cat": "Framework",
+      "text": "Release: publish Memories Within Reach",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "76fbbb680a86e774470a01d20504af4c8b2f2ee3",
+      "date": "2026-11-10",
+      "cat": "Framework",
+      "text": "Docs: record verified collection release deployment",
       "internal": true,
       "needsReview": false
     }

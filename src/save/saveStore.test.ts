@@ -201,6 +201,41 @@ describe('save export / import', () => {
 });
 
 describe('backups & corruption recovery', () => {
+  it.each(['snapshot', 'index'] as const)('keeps existing backups when the %s write fails', (failure) => {
+    const storage = mem();
+    const store = new SaveStore(storage);
+    for (let i = 0; i < 10; i++) {
+      store.save({ ...defaultSave(), shards: i + 1 });
+      expect(store.backup()).not.toBeNull();
+    }
+    const before = new Map(storage.map);
+    const snapshots = store.listBackups();
+    const write = storage.setItem;
+    storage.setItem = (key, value) => {
+      const isIndex = value.startsWith('[{"id":');
+      if ((failure === 'index') === isIndex) throw new Error('Storage full');
+      write(key, value);
+    };
+    expect(store.backup()).toBeNull();
+    expect(storage.map).toEqual(before);
+    expect(store.listBackups()).toEqual(snapshots);
+    storage.setItem = write;
+    for (const snapshot of snapshots) expect(store.restoreBackup(snapshot.id)).not.toBeNull();
+    expect(store.backup()).not.toBeNull();
+  });
+
+  it('does not publish a backup for an absent or corrupt current save', () => {
+    const storage = mem();
+    const store = new SaveStore(storage);
+    expect(store.backup()).toBeNull();
+    store.save(defaultSave());
+    expect(store.backup()).not.toBeNull();
+    storage.map.set('assimilate.save', '{broken');
+    const before = new Map(storage.map);
+    expect(store.backup()).toBeNull();
+    expect(storage.map).toEqual(before);
+  });
+
   it('backs up and restores a snapshot', () => {
     const store = new SaveStore(mem());
     store.save({ ...defaultSave(), shards: 100 });

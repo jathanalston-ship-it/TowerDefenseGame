@@ -4,8 +4,8 @@
 > before committing. Read together with docs/PROJECT_STATUS.md and the latest
 > docs/VALIDATION_REPORT.md. Next session: start at docs/PROJECT_MANIFEST.md.
 
-- **Generated:** 2026-11-10 15:51 UTC · **Diff scope:** working tree vs HEAD
-- **Branch:** codex/hive-autoplay · **HEAD:** e081e6e5
+- **Generated:** 2026-11-10 15:58 UTC · **Diff scope:** working tree vs HEAD
+- **Branch:** codex/hive-autoplay · **HEAD:** 76fbbb68
 
 ## Summary of work completed
 
@@ -13,13 +13,15 @@ LIVE v2026.11.10.6 Memories Within Reach, five sealed notes. SHA7f18a4f7fe74450f
 
 ## Files modified
 
-- Source (0): —
-- Tests (0): —
-- Docs (2): `docs/devlog/DRAFT-2026-11-09.md`, `docs/devlog/DRAFT-2026-11-10.md`
+- Source (3): `src/changelog/releases.gen.ts`, `src/save/saveStore.ts`, `src/ui/SaveManager.tsx`
+- Tests (1): `src/save/saveStore.test.ts`
+- Docs (5): `docs/HISTORY.md`, `docs/PROJECT_MANIFEST.md`, `docs/SCALABILITY.md`, `docs/devlog/DRAFT-2026-11-09.md`, `docs/devlog/DRAFT-2026-11-10.md`
 
 ## Systems affected (from the dependency registry)
 
-- (no registered source files in this diff)
+- **chronicle** — `src/changelog/releases.gen.ts`
+- **meta-store** — `src/save/saveStore.ts`, `src/ui/SaveManager.tsx`
+- Consumer ring (verify, unchanged): account-level, accounts, analytics, arena, battle-pass, class-bonds, contracts, cosmetics, cutscenes, daily-login, devtools, directives, expeditions, field-research, genome-rank, hero-symbiotes, hive-construction, hub-shell, idle-harvest, infestation, liveops, metabolism, mulligans, nemesis, net-backend, notifications, nucleus, onboarding, progression-gating, quests, run-ui, security
 
 ## Power Score changes
 
@@ -47,7 +49,7 @@ Windows validate wrapper cannot launch npx/npm with shell:false; use direct gate
 
 ## Recommended next tasks
 
-Release .10.6 is fully live and verified. Continue active usability/accessibility/presentation goal, starting a new unsealed release. Next approximate deployment16:53 UTC. Read-only audit candidate: SaveManager unconditionally reports Backup created when meta.backupNow returns null; SaveStore.set swallows write failures too. Inspect actual UI/storage behavior before making a fix, preserve save safety and semantics. All processes terminal; no build/mobile/deploy handles pending.
+Local .10.7 Progress You Can Trust has one unsealed backup-safety/feedback note. Build13.84s,50save/site tests,docs and browser probe PASS; all processes terminal. Next approximate deployment16:53UTC requires full suite/final build/mobile/live gates. Continue active usability goal. Follow-up candidate: SaveManager Restore lacks a preview/confirmation and its success message does not distinguish persistence failure; inspect restore semantics and existing recovery guarantees before editing. No schema migration needed for current backup-write ordering/return handling.
 
 ## Future expansion hooks
 
@@ -101,6 +103,8 @@ Hero readiness final build65590 PASS (Vite7.59s); all processes terminal. Next r
 
 
 
-## 2026-11-10 — Memories Within Reach final release gates
 
-Five sealed notes. Full354files/3177tests PASS430.11s before two inline MusicDebug height values changed24→44. Actual console browser probe PASS sizes/edit/keyboard across3widths. Final app/functions TS+build26.02s PASS;11UI/site tests anddocs PASS. Mobile80163 terminal CLEAN27navigation screens and9gameplay viewports, drawers, rotation, portrait/landscape contracts, no clipping/overflow/sub24targets. Prior mobile98307 failed one optional debug input; final run verifies correction. Four collection browser probes previously PASS. Required wrapper failure documented with preserved report; direct release gates PASS. Final asset /assets/play-CEgN7IqO.js. Ready to publish; exact-SHA Actions/live verification next. All local processes terminal.
+
+## 2026-11-10 — truthful backup feedback and failure safety (local .10.7)
+
+SaveStore.set now returns write success privately; ordinary save callers retain prior behavior. backup rejects absent/corrupt current blobs, returns null on snapshot/index write failure, publishes the new index before pruning, and cleans an unlisted new snapshot on index failure. Older snapshots remain unchanged. SaveManager reports success only for a backup result, offers Export JSON after failure, and uses a persistent status region. No schema/checksum/cap/gameplay changes; migration not needed. Three new fault/corruption tests FAILED on baseline and PASS after fix, covering ring preservation, restoreability and retries. All50save/site tests PASS, production app/functions TS+build13.84s PASS, docs PASS, ../backup-feedback-check.cjs actual UI PASS keyboard/success/failure/export/preserved list/1024-390-320 fit. Required wrapper exit1 known Windows launcher; backup-wrapper-report.log preserved, direct checks used. One unsealed .10.7 website note generated. All processes terminal; next approximate16:53UTC release. Goal active.

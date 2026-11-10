@@ -5,6 +5,18 @@ import type { Release } from './types';
 /** Player-facing releases, newest first. */
 export const RELEASES: Release[] = [
   {
+    "id": "v2026.11.10.7",
+    "date": "2026-11-10",
+    "title": "Progress You Can Trust",
+    "sealed": false,
+    "entries": [
+      {
+        "cat": "Bug Fixes",
+        "text": "Manual backups now report when a snapshot could not be saved and offer Export JSON as a fallback. Failed backup writes preserve older snapshots, and corrupt current-save data is no longer copied into the backup list."
+      }
+    ]
+  },
+  {
     "id": "v2026.11.10.6",
     "date": "2026-11-10",
     "title": "Memories Within Reach",

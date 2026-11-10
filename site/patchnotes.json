@@ -1,6 +1,19 @@
 [
   {
     "date": "2026-11-10",
+    "title": "Progress You Can Trust",
+    "categories": [
+      "Bug Fixes"
+    ],
+    "items": [
+      {
+        "cat": "Bug Fixes",
+        "text": "Manual backups now report when a snapshot could not be saved and offer Export JSON as a fallback. Failed backup writes preserve older snapshots, and corrupt current-save data is no longer copied into the backup list."
+      }
+    ]
+  },
+  {
+    "date": "2026-11-10",
     "title": "Memories Within Reach",
     "categories": [
       "UX"

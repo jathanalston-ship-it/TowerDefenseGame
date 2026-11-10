@@ -46,15 +46,15 @@ export function SaveManager(): JSX.Element {
         />
         <button
           onClick={() => {
-            meta.backupNow();
+            const backup = meta.backupNow();
             refresh();
-            setMsg('Backup created.');
+            setMsg(backup ? 'Backup created.' : 'Backup could not be created. Export JSON to keep a copy of your current progress.');
           }}
         >
           <PlusIcon /> Backup now
         </button>
       </div>
-      {msg && <div style={{ marginTop: 8, fontSize: 13, color: 'var(--muted)' }}>{msg}</div>}
+      <div role="status" style={{ marginTop: msg ? 8 : 0, fontSize: 13, color: 'var(--muted)' }}>{msg}</div>
       {backups.length > 0 && (
         <div style={{ marginTop: 10 }}>
           <div

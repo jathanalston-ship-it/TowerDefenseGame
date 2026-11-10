@@ -2217,11 +2217,13 @@ export class SaveStore {
     }
   }
 
-  private set(key: string, value: string): void {
+  private set(key: string, value: string): boolean {
     try {
       this.storage.setItem(key, value);
+      return true;
     } catch {
       /* storage full/unavailable — fail soft */
+      return false;
     }
   }
 
@@ -2243,19 +2245,23 @@ export class SaveStore {
   /** Snapshot the current main save into the rolling backup ring. */
   backup(): BackupMeta | null {
     const raw = this.get(SAVE_KEY);
-    if (!raw) return null;
+    if (!raw || !parseBlob(raw)) return null;
     const meta: BackupMeta = {
       id: `${Date.now().toString(36)}-${(this.bakSeq++).toString(36)}`,
       at: new Date().toISOString(),
     };
-    this.set(BAK_PREFIX + meta.id, raw);
-    const list = [meta, ...this.listBackups()].slice(0, MAX_BACKUPS);
-    // prune dropped backups
+    if (!this.set(BAK_PREFIX + meta.id, raw)) return null;
+    const previous = this.listBackups();
+    const list = [meta, ...previous].slice(0, MAX_BACKUPS);
+    // Publish the index before pruning: a failed write must not destroy older snapshots.
+    if (!this.set(BAK_INDEX, JSON.stringify(list))) {
+      this.remove(BAK_PREFIX + meta.id);
+      return null;
+    }
     const kept = new Set(list.map((b) => b.id));
-    for (const old of this.listBackups()) {
+    for (const old of previous) {
       if (!kept.has(old.id)) this.remove(BAK_PREFIX + old.id);
     }
-    this.set(BAK_INDEX, JSON.stringify(list));
     return meta;
   }
 
