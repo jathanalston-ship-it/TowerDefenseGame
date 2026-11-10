@@ -677,3 +677,4 @@
 - `2686bc2` **[Framework]** Validation: record controls regression checkpoint _(internal)_
 - `781e81f` **[Heroes]** Verify selected hero console readouts _(internal)_
 - `607300d` **[Audio]** Verify single purchase cue delivery _(internal)_
+- `4e62318` **[UI]** Ui: verify readable field note interactions _(internal)_

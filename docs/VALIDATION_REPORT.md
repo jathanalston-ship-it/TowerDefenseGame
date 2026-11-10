@@ -1,5 +1,15 @@
 # VALIDATION_REPORT.md — automated regression audit
 
+## Final release gate — v2026.11.09.4
+
+All accumulated source through `4e62318d` verified: production build PASS; full suite
+**353 files / 3150 tests PASS** in 197.84 seconds; mobilecheck **CLEAN** across 27 navigation
+screens and live runs at nine viewports. Release source stayed fixed through the checks.
+Seven curated player-facing website notes regenerated; DIL/PIL structural checks pass.
+Existing 34 PIL stale-pair advisories are unchanged. Simulation, balance and save code untouched.
+Final local game entry: `play-CtxVJXHT.js`. Publishing under standing owner authorization;
+Actions and live game/home/news verification must succeed before reporting deployment complete.
+
 ## Latest verified checkpoint — 2026-11-10 04:06 UTC
 
 Source checkpoint `0bdad42e`: production build PASS; full suite **353 files / 3150 tests PASS**

@@ -1,5 +1,7 @@
 # PROJECT_STATUS.md — the live state board
 
+> **v2026.11.09.4 release prepared:** all source through 4e62318d passes production build, all 3150 tests, and the full 27-screen/nine-viewport mobile gate. Seven curated website notes included. Publishing Progress You Can Follow; verify Actions and live game/home/news before claiming deployed. Ongoing experience-improvement goal remains active.
+
 > **2026-11-10 04:06 UTC verified local checkpoint:** `0bdad42e` production build, all 3150 tests in 353 files, and the full 27-screen/nine-viewport mobile gate PASS. v2026.11.09.4 notes prepared; production remains 33676de6 (remote verified). Next investigate the selected hero's recovery/ability readout, which currently uses primary-hero fields. Goal remains active; this batch has not deployed yet.
 
 > **2026-11-09 next local batch:** production 33676de6 and website release v2026.11.09.3 verified live. Local v2026.11.09.4 improves progress accessibility and draft/pause keyboard ownership. Chrome interaction probes, strict build, 63 card/draft/Hive tests and 43 tutorial/Hive tests pass. Next batch not yet deployed; ongoing goal remains active.

@@ -4,8 +4,8 @@
 > before committing. Read together with docs/PROJECT_STATUS.md and the latest
 > docs/VALIDATION_REPORT.md. Next session: start at docs/PROJECT_MANIFEST.md.
 
-- **Generated:** 2026-11-10 04:20 UTC · **Diff scope:** working tree vs HEAD
-- **Branch:** codex/hive-autoplay · **HEAD:** 607300df
+- **Generated:** 2026-11-10 04:28 UTC · **Diff scope:** working tree vs HEAD
+- **Branch:** codex/hive-autoplay · **HEAD:** 4e62318d
 
 ## Summary of work completed
 
@@ -13,15 +13,13 @@ Active continuous improvement goal remains active; owner authorizes verified rel
 
 ## Files modified
 
-- Source (3): `src/changelog/releases.gen.ts`, `src/ui/FieldNote.tsx`, `src/ui/GameView.css`
+- Source (0): —
 - Tests (0): —
-- Docs (6): `docs/AI_HANDOFF.md`, `docs/GUIDED-UNLOCKS.md`, `docs/HISTORY.md`, `docs/PROJECT_STATUS.md`, `docs/VALIDATION_REPORT.md`, `docs/devlog/DRAFT-2026-11-09.md`
+- Docs (4): `docs/HISTORY.md`, `docs/PROJECT_STATUS.md`, `docs/VALIDATION_REPORT.md`, `docs/devlog/DRAFT-2026-11-09.md`
 
 ## Systems affected (from the dependency registry)
 
-- **chronicle** — `src/changelog/releases.gen.ts`
-- **onboarding** — `src/ui/FieldNote.tsx`
-- Consumer ring (verify, unchanged): progression-gating
+- (no registered source files in this diff)
 
 ## Power Score changes
 
@@ -76,3 +74,5 @@ Audio follow-up final production build PASS; dev server stopped. Next broaden th
 FieldNote follow-up: hover/focus holds note retirement, native Dismiss button plus polite text status; seven-second timer resumes after reading. Tap/draft/archive/pacing unchanged. ../field-note-check.cjs PASS (accelerated 1s timeout after initial 350ms probe raced entry animation), 8 firstHour tests PASS, phone image inspected. Image currently at workspace parent ../field-note-phone.png because scratch probe ran from parent workspace cwd.
 
 Field-note final production build PASS; dev server stopped. Last deployment ~03:38 UTC; current time ~04:20 UTC, approaching release window. Consider final full tests/mobile sweep on accumulated post-checkpoint UI/audio changes, then deploy with all seven curated v2026.11.09.4 notes and verify live assets/news.
+
+Final release gate: all source through 4e62318d passes production build, 353 files /3150 tests (197.84s), and 27-screen/nine-viewport mobilecheck CLEAN. Publishing v2026.11.09.4 Progress You Can Follow with seven curated notes. Local entry play-CtxVJXHT.js. Verify Actions for final release commit then run ../verify-progress-release.ps1 against normal custom-domain URLs (CacheBust switch available for cache diagnosis). All test/preview processes completed. Keep goal active after release.
