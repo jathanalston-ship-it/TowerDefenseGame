@@ -514,3 +514,7 @@ v2026.11.10.5 Films That Follow You: four sealed notes generated for game/home/n
 ## 2026-11-10 15:04 UTC — Films That Follow You live
 
 v2026.11.10.5 deployed at SHA82998411c90caf74ec77d5c847e6bc1645b708a0. Actions42840127306 SUCCESS including exact-SHA production guard. ../verify-current-release.ps1 confirmed normal custom-domain game/home/news/all4notes; asset /assets/play-CXZtdME2.js matches final build and returns200. Initial cached prior entry resolved on same URLs after propagation. Full3177tests, build8.17s,4site tests,docs and mobile27screens/9gameplay viewports PASS. All release checks complete; next approximate deployment16:04UTC. Continuous goal active.
+
+## 2026-11-10 — Memory Archive discovery (local .10.6)
+
+Added revealed-copy search, All/Recovered/Unrecovered filters with pressed state and live count, explicit locked headings, automatic-passive explanation and 44px replay controls. Empty reset restores search focus. Replay/unlock/effects unchanged. Actual Chrome probe ../memory-archive-check.cjs PASS: hidden title concealment, trim/case, unlock hints, keyboard filters, empty reset/focus, replay returns focus/filter/music, desktop/390/320 fit and touch targets. Screenshot inspected. Build/app+functions TS PASS;21 cutscene/collection tests PASS;docs anchors/references/staleness PASS. New unsealed website note in .10.6. Full release/mobile gates remain before next approximate16:04UTC deploy.

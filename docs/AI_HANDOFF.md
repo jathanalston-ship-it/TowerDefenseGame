@@ -4,8 +4,8 @@
 > before committing. Read together with docs/PROJECT_STATUS.md and the latest
 > docs/VALIDATION_REPORT.md. Next session: start at docs/PROJECT_MANIFEST.md.
 
-- **Generated:** 2026-11-10 15:01 UTC · **Diff scope:** working tree vs HEAD
-- **Branch:** codex/hive-autoplay · **HEAD:** 8941c2ca
+- **Generated:** 2026-11-10 15:12 UTC · **Diff scope:** working tree vs HEAD
+- **Branch:** codex/hive-autoplay · **HEAD:** 683ca4b3
 
 ## Summary of work completed
 
@@ -13,13 +13,15 @@ LIVE v2026.11.10.5 Films That Follow You with four sealed website notes. SHA8299
 
 ## Files modified
 
-- Source (1): `src/changelog/releases.gen.ts`
+- Source (3): `src/changelog/releases.gen.ts`, `src/ui/CollectionPanel.css`, `src/ui/CollectionPanel.tsx`
 - Tests (0): —
-- Docs (5): `docs/HISTORY.md`, `docs/PROJECT_STATUS.md`, `docs/VALIDATION_REPORT.md`, `docs/devlog/DRAFT-2026-11-09.md`, `docs/devlog/DRAFT-2026-11-10.md`
+- Docs (5): `docs/CUTSCENES.md`, `docs/HISTORY.md`, `docs/PROJECT_MANIFEST.md`, `docs/devlog/DRAFT-2026-11-09.md`, `docs/devlog/DRAFT-2026-11-10.md`
 
 ## Systems affected (from the dependency registry)
 
 - **chronicle** — `src/changelog/releases.gen.ts`
+- **collection** — `src/ui/CollectionPanel.tsx`
+- Consumer ring (verify, unchanged): cosmetics, daily-login, genome-rank, idle-harvest, profile, quests
 
 ## Power Score changes
 
@@ -88,3 +90,7 @@ LATEST .7 BranchTree focus: baselineTier5 purchase->BODY; now focusselectedtierp
 Local v2026.11.10.1 now has two notes: Hero Ops uses effective abilityCdMax and reports recovery/armed state accurately, plus run controls. Actual Chrome probe reproduced half-progress .75/.25 with cooldown modifiers; now .5 for1/.5/1.5 multipliers. Recovery7s, armed, fully ready and AX image name plus ability description PASS.24 heroes/equipment/evolution and4 site tests PASS. Docs check PASS. No core/CSS/save/cost changes; not deployed. Both generated devlog drafts remain unpublished.
 
 Hero readiness final build65590 PASS (Vite7.59s); all processes terminal. Next release remains roughly08:14UTC with matching website notes; live .7 unchanged.
+
+## Current archive checkpoint
+
+Local .10.6 Memory Archive search/recovery filters, concealed locked story details, clear automatic-passive explanation, 44px replay targets and reset focus. Browser probe ../memory-archive-check.cjs PASS at desktop/390/320 with actual renderer/replay; 21 cutscene/collection tests and app/functions build PASS. Website note generated, unsealed; not deployed. Next release about16:04UTC needs full release/mobile gates. Continuous goal active.

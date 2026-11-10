@@ -49,7 +49,7 @@ function MemoryCard({ def, unlocked, onPlay }: { def: CutsceneDef; unlocked: boo
       <canvas ref={cvRef} className="mem-art" aria-hidden />
       <div className="mem-body">
         <span className="mem-kind">{def.kind === 'mega' ? '☠ MEGA MEMORY' : '◈ STORY MEMORY'}</span>
-        <span className="mem-title">{unlocked ? def.title : '· · ·'}</span>
+        <h3 className="mem-title">{unlocked ? def.title : 'Unrecovered memory'}</h3>
         <span className="mem-sub">{unlocked ? def.subtitle : def.unlockHint}</span>
         <span className="mem-boost">{unlocked ? `✦ ${def.boost.label}` : '✦ Unlock for a small permanent boost'}</span>
       </div>
@@ -65,14 +65,40 @@ function MemoryCard({ def, unlocked, onPlay }: { def: CutsceneDef; unlocked: boo
 /** The Memory Archive wing — every story cutscene as a collectible, replayable forever. */
 function MemoryArchive({ memories }: { memories: ReturnType<typeof meta.cutscenesView> }): JSX.Element {
   const [playing, setPlaying] = useState<CutsceneDef | null>(null);
+  const [query, setQuery] = useState('');
+  const searchRef = useRef<HTMLInputElement>(null);
+  const [filter, setFilter] = useState<'all' | 'recovered' | 'unrecovered'>('all');
   const unlocked = memories.filter((m) => m.unlocked).length;
+  const needle = query.trim().toLocaleLowerCase();
+  const visible = memories.filter(({ def, unlocked: recovered }) => {
+    if (filter === 'recovered' && !recovered || filter === 'unrecovered' && recovered) return false;
+    // Search only revealed copy: locked titles, subtitles and bonuses stay secret.
+    const copy = [def.kind === 'mega' ? 'mega memory' : 'story memory',
+      ...(recovered ? [def.title, def.subtitle, def.boost.label] : ['Unrecovered memory', def.unlockHint])];
+    return copy.join(' ').toLocaleLowerCase().includes(needle);
+  });
   return (
     <>
       <div className="cx-wing-sub">
-        {unlocked}/{memories.length} recovered · story cutscenes replay forever · each grants a small passive
+        {unlocked}/{memories.length} recovered. Recovered bonuses apply automatically to your runs. Replay memories anytime; watching again does not grant another bonus.
       </div>
+      <label className="mem-search">Search memories
+        <input ref={searchRef} type="search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Title, bonus, or unlock hint" />
+      </label>
+      <div className="mem-filters" role="group" aria-label="Memory recovery">
+        {(['all', 'recovered', 'unrecovered'] as const).map((value) => (
+          <button key={value} aria-pressed={filter === value} onClick={() => setFilter(value)}>
+            {value === 'all' ? `All (${memories.length})` : value === 'recovered' ? `Recovered (${unlocked})` : `Unrecovered (${memories.length - unlocked})`}
+          </button>
+        ))}
+      </div>
+      <div className="cx-wing-sub" role="status">Showing {visible.length} of {memories.length} memories</div>
+      {visible.length === 0 && <div className="mem-empty">
+        <span>No memories match. Clear the search or choose All.</span>
+        <button onClick={() => { setQuery(''); setFilter('all'); searchRef.current?.focus(); }}>Show all memories</button>
+      </div>}
       <div className="mem-grid">
-        {memories.map((m) => (
+        {visible.map((m) => (
           <MemoryCard key={m.def.id} def={m.def} unlocked={m.unlocked} onPlay={() => { audio.cue('ui'); setPlaying(m.def); }} />
         ))}
       </div>

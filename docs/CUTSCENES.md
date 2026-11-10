@@ -130,7 +130,7 @@ Archive, like cosmetics.
 
 The Collection screen's **Memory Archive**: one card per cutscene — painted thumbnail (its
 own opening tableau), MEGA/STORY kind tag, title + subtitle when recovered (locked cards
-show `· · ·` + the unlock hint), the passive it grants, and **▶ Watch** (the same
+show “Unrecovered memory” + the unlock hint), the passive it grants, and **▶ Watch** (the same
 CutscenePlayer, fullscreen). A `collection.memories` notification source badges new
 recoveries on the Collection nav.
 
@@ -155,3 +155,5 @@ owns what the music does after (`music.play('menu')`).
 Live film preferences: CutscenePlayer subscribes to device settings and OS motion changes without resetting scene/copy/reading clocks. Returning from reduced to animated playback consumes elapsed sound beats silently; only future beats play. Flash changes update the projector. Reduced stills repaint on scene/coda/resize changes, including the ending-card dim, and listeners/projector frames clean up on unmount.
 
 Hidden-tab story playback: CutscenePlayer pauses the remaining scene/coda timeout, projector, and caption CSS animations on visibilitychange. Resume offsets current/previous visual clocks by hidden duration, preserving beat timing without catch-up. Manual reading retains its existing timer behavior; a film mounted hidden waits to begin visible playback. Visibility listeners, timers and frames are removed on cleanup. Background music preference/ownership is unchanged.
+
+Archive discovery controls: search matches only revealed copy (recovered title/subtitle/bonus; locked unlock hint and kind). All/Recovered/Unrecovered filters expose pressed state and a result count, with a reset action returning focus to search. Replay controls have a 44px minimum height. Recovered passives apply automatically to runs; replaying never grants an extra bonus.

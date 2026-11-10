@@ -749,3 +749,5 @@
 - `7f969db` **[UI]** Ui: follow live motion settings through the opening film _(internal)_
 - `068efbe` **[UI]** Preserve cutscene reading time in hidden tabs _(internal)_
 - `8941c2c` **[UI]** Ui: preserve opening-film progress while hidden _(internal)_
+- `8299841` **[Framework]** Release: publish Films That Follow You _(internal)_
+- `683ca4b` **[Framework]** Docs: record verified cinematic release deployment _(internal)_

@@ -1,6 +1,6 @@
 {
-  "lastSha": "8941c2ca3553b394141ccef286dfd0e5d69e52f5",
-  "commitsSinceDraft": 7,
+  "lastSha": "683ca4b39b37d852a8b87090d12483cd4ed8181e",
+  "commitsSinceDraft": 9,
   "content": {
     "tower": [
       "needle",
@@ -4519,6 +4519,18 @@
         {
           "cat": "UX",
           "text": "The opening cinematic now pauses its start-screen animation, scene reading time, captions, and final dive while its tab is hidden. Returning resumes from the same point, with no skipped scenes or overdue sound burst."
+        }
+      ]
+    },
+    {
+      "id": "v2026.11.10.6",
+      "date": "2026-11-10",
+      "title": "Memories Within Reach",
+      "sealed": false,
+      "entries": [
+        {
+          "cat": "UX",
+          "text": "The Memory Archive now lets you search revealed titles, bonuses and unlock hints, and filter recovered or unrecovered memories. Locked story details stay hidden, replay buttons are easier to tap, and the archive explains that recovered bonuses already apply automatically."
         }
       ]
     }
@@ -10161,6 +10173,22 @@
       "date": "2026-11-10",
       "cat": "UI",
       "text": "Ui: preserve opening-film progress while hidden",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "82998411c90caf74ec77d5c847e6bc1645b708a0",
+      "date": "2026-11-10",
+      "cat": "Framework",
+      "text": "Release: publish Films That Follow You",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "683ca4b39b37d852a8b87090d12483cd4ed8181e",
+      "date": "2026-11-10",
+      "cat": "Framework",
+      "text": "Docs: record verified cinematic release deployment",
       "internal": true,
       "needsReview": false
     }

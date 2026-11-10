@@ -5,6 +5,18 @@ import type { Release } from './types';
 /** Player-facing releases, newest first. */
 export const RELEASES: Release[] = [
   {
+    "id": "v2026.11.10.6",
+    "date": "2026-11-10",
+    "title": "Memories Within Reach",
+    "sealed": false,
+    "entries": [
+      {
+        "cat": "UX",
+        "text": "The Memory Archive now lets you search revealed titles, bonuses and unlock hints, and filter recovered or unrecovered memories. Locked story details stay hidden, replay buttons are easier to tap, and the archive explains that recovered bonuses already apply automatically."
+      }
+    ]
+  },
+  {
     "id": "v2026.11.10.5",
     "date": "2026-11-10",
     "title": "Films That Follow You",
