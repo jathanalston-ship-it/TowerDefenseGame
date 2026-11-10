@@ -670,3 +670,8 @@ Reproduced Space on focused Core explanation starting a wave. GameView now consu
 ## 2026-11-10 18:23 UTC — Release sealed; mobile failure under investigation
 
 Sealed v2026.11.10.9 Read Your Build with five website notes; regenerated site, four siteSync tests passed552ms. Latest typecheck96986 terminalPASS. Original mobile30430 terminalFAIL at waitForDrawerClosed (5000ms) in landscapeRailWalk, repeating prior .8 failure signature; root cause unproven. Unchanged-build diagnostic81740 is active, preserves original assertions/timeouts and captures drawer state on failure. Do not overwrite dist while it runs. Final five-note release build and original full mobile gate remain pending. Remote production branch checked and remains8950ec0d.
+
+
+## 2026-11-10 18:29 UTC — Final release build; full mobile gate active
+
+Unchanged-build drawer diagnostic81740 terminalPASS:27nav screens and gameplay checks across four landscape profiles. Earlier original mobile30430 drawer timeout remains an unexplained failure, not erased by this result. Final sealed five-note build20300 terminalPASS21.92s (read-build-final-build.log, SWmwb0wbmg). Original complete mobile72320 now running against final dist (read-build-final-mobile.log); do not overwrite dist or start competing heavy checks. Live remains .8, next approximate deploy18:42UTC.

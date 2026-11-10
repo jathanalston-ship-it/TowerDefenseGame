@@ -4,8 +4,8 @@
 > before committing. Read together with docs/PROJECT_STATUS.md and the latest
 > docs/VALIDATION_REPORT.md. Next session: start at docs/PROJECT_MANIFEST.md.
 
-- **Generated:** 2026-11-10 18:22 UTC · **Diff scope:** working tree vs HEAD
-- **Branch:** codex/hive-autoplay · **HEAD:** d1b0132a
+- **Generated:** 2026-11-10 18:27 UTC · **Diff scope:** working tree vs HEAD
+- **Branch:** codex/hive-autoplay · **HEAD:** d35b3fde
 
 ## Summary of work completed
 
@@ -13,19 +13,21 @@ Live remains v2026.11.10.8 Know What Is Coming, SHA8950ec0d44d7f3959d988c4e6460b
 
 ## Files modified
 
-- Source (1): `src/changelog/releases.gen.ts`
+- Source (0): —
 - Tests (0): —
-- Docs (3): `docs/HISTORY.md`, `docs/devlog/DRAFT-2026-11-09.md`, `docs/devlog/DRAFT-2026-11-10.md`
+- Docs (2): `docs/devlog/DRAFT-2026-11-09.md`, `docs/devlog/DRAFT-2026-11-10.md`
 
 ## Systems affected (from the dependency registry)
 
-- **chronicle** — `src/changelog/releases.gen.ts`
+- (no registered source files in this diff)
 
 ## Power Score changes
 
 None. Prior added HUD bond level is read-only; no gameplay, balance or save changes.
 
 ## UI changes
+
+Latest validation: unchanged-build four-landscape diagnostic81740 terminalPASS (read-build-drawer-diagnostic.log), all27nav screens and gameplay checks. Original mobile30430 failure remains recorded; root cause unproven. Final SEALED FIVE-NOTE release build20300 terminalPASS21.92s, read-build-final-build.log, SWmwb0wbmg. Original final mobile72320 is running; do not overwrite dist.
 
 Latest: GameView consumes Space on focused .hud-cell.tt before wave shortcuts. Real GameView baseline95814 terminalPASS reproduced phase=wave while reading Core. Fixed probe1764 terminalPASS confirmed Core/Power/Biomass remain prep, Hero Space opens Console, and unfocused-board Space starts wave. Eleven site/UI tests78230 and docs38229 terminalPASS. Typecheck96986 terminalPASS. Four sealed siteSync tests PASS552ms.
 
@@ -49,7 +51,7 @@ Existing Windows validate launcher issue only. Two untracked docs/devlog/DRAFT-2
 
 ## Recommended next tasks
 
-ONLY active handle:81740, unchanged-build diagnostic ../read-build-drawer-diagnostic.ts --no-build, log read-build-drawer-diagnostic.log. Poll SAME handle; do not overwrite dist while it runs. It retains original assertions and5second timeout, limits to four landscape profiles, logs each screen, and on failure captures nav outerHTML/visibility/profile/focus plus read-build-drawer-failure.png. Prior original mobile30430 FAILED; do not call passed. Once diagnostic terminal, inspect evidence; then build the sealed five-note release (current dist predates newest HUD keyboard guard) and run full ORIGINAL mobilecheck. No gate weakening/restarting on observation timeout. Typecheck96986, docs38229, tests78230, baseline95814 and focusedbrowser1764 all terminalPASS. Seal42057 PASS (five entries), four siteSync tests PASS. Production ref rechecked18:21 and still8950ec0d44d7f3959d988c4e6460b42f0a468ca0. Next approximate deploy18:42; follow build/mobile/Actions exactSHA/customdomain verification. Vite5174 remains PID30948 with parent32932; verify exact command lines if cleanup needed.
+ONLY active validation handle:72320, original complete mobilecheck --no-build on final sealed five-note dist, log read-build-final-mobile.log. Poll SAME handle; do not rebuild or run competing heavy checks while it runs. Earlier four-note mobile30430 FAILED drawer-close timeout; unchanged-build diagnostic81740 then PASSED all four landscape profiles. No timeout/assertion was weakened; root cause unproven. Final build20300 PASS21.92s and typecheck96986 PASS. Full regression3194tests/354files passed earlier in batch, relevant browser probes and eleven UI/site checks passed; four sealed siteSync tests passed. Once final mobile terminalPASS, finish release validation/docs commit and authorized push near18:42UTC. Do not rerun completed checks without reason. Production ref last checked18:21:8950ec0d44d7f3959d988c4e6460b42f0a468ca0. Verify branch codex/hive-autoplay, git add -u (leave two untracked drafts), commit, git push origin HEAD:refs/heads/claude/zen-hawking-rh1gxl. Then use GitHub fetch Actions head_sha/run/jobs to verify success including exactSHA guard; run ../verify-current-release.ps1 on NORMAL custom-domain URLs, retry sameURLs after20s for cache if needed. Record actual deployment and leave goal active. Vite5174 remains PID30948,parent32932, no active probe.
 
 ## Future expansion hooks
 
