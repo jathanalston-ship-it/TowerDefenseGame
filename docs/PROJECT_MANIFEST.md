@@ -526,6 +526,8 @@ Career statistic hints use explicit Details buttons and inline reading panels. P
 
 ## HUD
 
+- Very narrow portrait Early Call uses a reserved second control row so it remains reachable without covering the battlefield. See EARLY-CALL.md.
+
 - BuildControls exposes live Auto Wave/Auto Gene explanations through a44px help button and its existing briefing reader; no automation behavior changes. See HUD.md.
 
 - HUD explanations open below their readouts with inward edge alignment and active stacking above run controls. Space while reading a focused HUD cell cannot start waves; Hero activation and board shortcuts retain their behavior. See HUD.md.

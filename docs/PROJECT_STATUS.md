@@ -1824,3 +1824,8 @@ Final build78237 terminalPASS16.19s (automation-help-final-build.log, SWmwb1m0tw
 ## 2026-11-10 18:57 UTC — Automation mobile passed; narrow Pause reviewed
 
 Original full mobile53228 terminalPASS27nav+nine gameplay profiles. Focused run-controls probe88649 PASS320x568/390x844/844x390: all controls inside viewport and hit-testable, Pause opens and documented P resumes. Screenshots inspected. No Pause clipping reproduced; no source change justified. Earlier39716 probe wrongly assumed Escape resumes; corrected to documented P. Fixed landscape controls are not clipped by board ancestor despite naive geometry flags. Local .10 automation help now has passing build/docs/tests/browser/mobile checks; live .9 unchanged. Next approximate deployment19:38UTC.
+
+
+## 2026-11-10 19:02 UTC — Early Call reachable on narrow phones
+
+Real mid-wave baseline47721: Early Call at320x568 spanned x=-43.45..18.70, offscreen and not hit-testable. CSS-only portrait<=380px second-row layout reserves canvas padding; current probe14282 PASS three viewports, all control hit tests/Pause and actual wave1->2 plus displayed23Biomass reward. Screenshot inspected; no battlefield overlap. Initial probe17322 incorrectly advanced3.2s in one clamped call, corrected to normal-sized steps. Eleven site/UI tests2738 and docs72656 PASS. Build11357 running, early-call-layout-build.log; updated full mobile pending. Second note generated in local unsealed .10 Know Your Controls. No balance/save/action changes.

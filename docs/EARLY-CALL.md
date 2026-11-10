@@ -77,3 +77,5 @@ lost more runs — a human picks safer moments).
   same per second as chaff. The stack cap + the overlap risk are the counterweight.
 - `waveCompleted` events (tutorial-only listener) fire once per field clear, not per called-over wave.
 - Mega reinforcements and other parentless spawns carry no wave tag, so they never hold an owed draft.
+
+On portrait screens up to380px wide, an available Early Call uses a second control row with its label shown. Canvas top padding reserves that row so the button does not cover the battlefield. The extra row disappears when the offer does; launch rules, rewards and timing are unchanged.

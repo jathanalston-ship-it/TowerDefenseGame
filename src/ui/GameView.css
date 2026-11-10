@@ -3471,6 +3471,19 @@ html[data-layout='desktop'] .cv-slot { flex: 0 1 auto; width: 240px; min-width: 
   .run-ctl .early-call-btn { padding: 0 9px; }
 }
 
+/* Keep the optional combat action reachable when the primary controls fill a small phone. */
+@media (max-width: 380px) {
+  html[data-layout='portrait'] .canvas-wrap:has(.early-call-btn) {
+    padding-top: calc(var(--strip) + var(--ctl-h) + 4px);
+  }
+  html[data-layout='portrait'] .run-ctl .early-call-btn {
+    position: absolute;
+    top: calc(var(--ctl-h) + 4px);
+    left: 0;
+  }
+  html[data-layout='portrait'] .run-ctl .early-call-btn .early-call-label { display: inline; }
+}
+
 /* The Hive adapts / the Infinite squeeze — the wave briefing's live enemy-HP multiplier (GR1). */
 .wb-adapt {
   font-size: 10px; font-weight: 900; letter-spacing: 0.12em; padding: 1px 8px; border-radius: 999px;

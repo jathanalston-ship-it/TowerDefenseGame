@@ -13,6 +13,10 @@ export const RELEASES: Release[] = [
       {
         "cat": "UI",
         "text": "A new help button beside Auto Wave and Auto Gene explains countdowns, waiting for your first tower, unlock requirements and Hive-managed controls. Read it by touch or keyboard without changing your automation settings."
+      },
+      {
+        "cat": "Bug Fixes",
+        "text": "Early Call no longer slips off the left edge on very narrow portrait phones. It gets its own row above the battlefield, keeping the action, bonus, speed controls and Pause reachable."
       }
     ]
   },

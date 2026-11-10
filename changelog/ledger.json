@@ -1,6 +1,6 @@
 {
-  "lastSha": "1637569b94fedb14a202eaa31bf4d0a8e9aac8e6",
-  "commitsSinceDraft": 8,
+  "lastSha": "ed1c8e8f1a6da280a5305894e9c111d24cebd4a0",
+  "commitsSinceDraft": 0,
   "content": {
     "tower": [
       "needle",
@@ -4631,6 +4631,10 @@
         {
           "cat": "UI",
           "text": "A new help button beside Auto Wave and Auto Gene explains countdowns, waiting for your first tower, unlock requirements and Hive-managed controls. Read it by touch or keyboard without changing your automation settings."
+        },
+        {
+          "cat": "Bug Fixes",
+          "text": "Early Call no longer slips off the left edge on very narrow portrait phones. It gets its own row above the battlefield, keeping the action, bonus, speed controls and Pause reachable."
         }
       ]
     }
@@ -10537,6 +10541,30 @@
       "date": "2026-11-10",
       "cat": "Framework",
       "text": "Docs: record verified Read Your Build deployment",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "3e8169510e0005447a5aed09e642c4ad3bb5796b",
+      "date": "2026-11-10",
+      "cat": "UI",
+      "text": "Ui: explain automation controls on touch and keyboard",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "c078929bb5d3733197153b9f6c1856071ae5f9e0",
+      "date": "2026-11-10",
+      "cat": "Framework",
+      "text": "Docs: record automation build and active mobile gate",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "ed1c8e8f1a6da280a5305894e9c111d24cebd4a0",
+      "date": "2026-11-10",
+      "cat": "Framework",
+      "text": "Docs: record mobile pass and narrow control review",
       "internal": true,
       "needsReview": false
     }

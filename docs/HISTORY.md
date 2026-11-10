@@ -782,3 +782,6 @@
 - `1ec6dec` **[Framework]** Release: record final build and drawer diagnostic _(internal)_
 - `48b2f2a` **[Framework]** Release: publish Read Your Build _(internal)_
 - `1637569` **[Framework]** Docs: record verified Read Your Build deployment _(internal)_
+- `3e81695` **[UI]** Ui: explain automation controls on touch and keyboard _(internal)_
+- `c078929` **[Framework]** Docs: record automation build and active mobile gate _(internal)_
+- `ed1c8e8` **[Framework]** Docs: record mobile pass and narrow control review _(internal)_

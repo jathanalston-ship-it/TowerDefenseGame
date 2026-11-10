@@ -330,3 +330,5 @@ HUD resource explanations open below their readouts with inward edge alignment a
 Space on a focused HUD explanation is consumed before battlefield shortcuts; the Hero readout still opens its Console, and unfocused-board Space still starts waves.
 
 Automation help: a44px question button beside Auto Wave/Auto Gene opens the existing bounded briefing reader. It explains countdown/manual gene override, current WAIT, the live gate reason and Hive management; open text updates with these states. Existing Escape/focus restoration and reading-key isolation apply. Toggles, stored preferences, gates and gameplay remain unchanged. Compact labels may wrap instead of clipping.
+
+On portrait screens up to380px wide, an available Early Call uses a second control row with its label shown. Canvas top padding reserves that row so the button does not cover the battlefield. The extra row disappears when the offer does; launch rules, rewards and timing are unchanged.
