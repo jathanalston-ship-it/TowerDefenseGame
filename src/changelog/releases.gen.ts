@@ -8,7 +8,7 @@ export const RELEASES: Release[] = [
     "id": "v2026.11.10.5",
     "date": "2026-11-10",
     "title": "Films That Follow You",
-    "sealed": false,
+    "sealed": true,
     "entries": [
       {
         "cat": "Visuals",

@@ -1,6 +1,6 @@
 {
-  "lastSha": "068efbed318f822b40bb6dff7fd4372d06fab145",
-  "commitsSinceDraft": 6,
+  "lastSha": "8941c2ca3553b394141ccef286dfd0e5d69e52f5",
+  "commitsSinceDraft": 7,
   "content": {
     "tower": [
       "needle",
@@ -4502,7 +4502,7 @@
       "id": "v2026.11.10.5",
       "date": "2026-11-10",
       "title": "Films That Follow You",
-      "sealed": false,
+      "sealed": true,
       "entries": [
         {
           "cat": "Visuals",
@@ -10153,6 +10153,14 @@
       "date": "2026-11-10",
       "cat": "UI",
       "text": "Preserve cutscene reading time in hidden tabs",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "8941c2ca3553b394141ccef286dfd0e5d69e52f5",
+      "date": "2026-11-10",
+      "cat": "UI",
+      "text": "Ui: preserve opening-film progress while hidden",
       "internal": true,
       "needsReview": false
     }

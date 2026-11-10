@@ -4,24 +4,22 @@
 > before committing. Read together with docs/PROJECT_STATUS.md and the latest
 > docs/VALIDATION_REPORT.md. Next session: start at docs/PROJECT_MANIFEST.md.
 
-- **Generated:** 2026-11-10 14:47 UTC · **Diff scope:** working tree vs HEAD
-- **Branch:** codex/hive-autoplay · **HEAD:** 068efbed
+- **Generated:** 2026-11-10 15:01 UTC · **Diff scope:** working tree vs HEAD
+- **Branch:** codex/hive-autoplay · **HEAD:** 8941c2ca
 
 ## Summary of work completed
 
-LIVE v2026.11.10.4 Clearer Briefings, five sealed website notes. SHAd1642e26c1bc1459e536c94c1beb6cdd97e4d1c6; Actions42832653336 SUCCESS including exact-SHA production guard. Normal custom-domain game/home/news/all5notes verified 2026-11-10 14:20 UTC; asset /assets/play-hhnWgeY7.js matches local build and returns200. Initial cached prior asset resolved on same URLs. Full3177tests/354files PASS; final build16.25s,4site tests,docs and mobile27screens/9gameplay viewports PASS. All processes terminal; continuous goal active.
+Ready to publish v2026.11.10.5 Films That Follow You with four sealed website notes: live story/opening motion and flash preferences, safe reduced-motion dive exit, hidden-tab scene/coda/dive continuity. Full3177tests/354files PASS; final build8.17s,4site tests,docs and mobile27screens/9gameplay viewports PASS. All processes terminal. Prior live d1642e26 (.10.4). Continuous goal active.
 
 ## Files modified
 
-- Source (3): `src/changelog/releases.gen.ts`, `src/ui/InitCutscene.css`, `src/ui/InitCutscene.tsx`
+- Source (1): `src/changelog/releases.gen.ts`
 - Tests (0): —
-- Docs (8): `docs/GAME-FEEL.md`, `docs/HISTORY.md`, `docs/PROJECT_MANIFEST.md`, `docs/PROJECT_STATUS.md`, `docs/UI-MOTION.md`, `docs/VALIDATION_REPORT.md`, `docs/devlog/DRAFT-2026-11-09.md`, `docs/devlog/DRAFT-2026-11-10.md`
+- Docs (5): `docs/HISTORY.md`, `docs/PROJECT_STATUS.md`, `docs/VALIDATION_REPORT.md`, `docs/devlog/DRAFT-2026-11-09.md`, `docs/devlog/DRAFT-2026-11-10.md`
 
 ## Systems affected (from the dependency registry)
 
 - **chronicle** — `src/changelog/releases.gen.ts`
-- **onboarding** — `src/ui/InitCutscene.tsx`
-- Consumer ring (verify, unchanged): progression-gating
 
 ## Power Score changes
 
@@ -49,7 +47,7 @@ Windows validate wrapper cannot launch npx/npm with shell:false; use direct gate
 
 ## Recommended next tasks
 
-Prepare v2026.11.10.5 Films That Follow You for approximate15:20UTC deployment: full regression suite, seal four notes, regenerate website, final build/site and mobile gates, then commit/push/follow Actions exact-SHA guard and verify public game/home/news. Four changes: live story preferences, live opening preferences/safe dive exit, story hidden-tab continuity, opening hidden-tab continuity. Four browser probes PASS (visibility fixtures synthetic; real painters). Latest build10.76s,44intro/film/feel/cutscene/site tests,docs PASS. All processes terminal. Live remainsd1642e26 (.10.4), verified14:20UTC. Keep two untracked devlog drafts unpublished. Continuous goal remains active after release.
+Commit release on codex/hive-autoplay and push HEAD to claude/zen-hawking-rh1gxl (remote checked d1642e26). Follow Actions exact-SHA production guard; run ../verify-current-release.ps1 against normal public URLs to confirm game/home/news/all4notes. Record production verification and continue active goal. Keep two untracked devlog drafts unpublished.
 
 ## Future expansion hooks
 
