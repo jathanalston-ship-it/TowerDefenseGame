@@ -1359,3 +1359,5 @@ Evolution follow-up local: keyboard purchasing fixed in shared hold-to-buy hook;
 Selected-hero readout follow-up: corrected hero-specific recovery, shield and ability countdown; accessible roster tabs; removed Infinity attack rate for non-attackers. Three-hero desktop/phone probe and 19 focused tests pass.
 
 Audio follow-up local: purchase cues now drain during pause without advancing sim or adding shake; duplicate hero/conveyor sounds removed. Dispatcher browser check and 68 gameplay/upgrade regression tests pass.
+
+Field-note local improvement: readable hover/focus hold, keyboard Dismiss and polite announcement. Chrome expiry/interaction/phone checks and 8 first-hour tests pass.

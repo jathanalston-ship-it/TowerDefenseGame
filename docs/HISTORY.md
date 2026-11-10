@@ -676,3 +676,4 @@
 - `0bdad42` **[Gene Cards]** Verify accessible evolution purchases _(internal)_
 - `2686bc2` **[Framework]** Validation: record controls regression checkpoint _(internal)_
 - `781e81f` **[Heroes]** Verify selected hero console readouts _(internal)_
+- `607300d` **[Audio]** Verify single purchase cue delivery _(internal)_

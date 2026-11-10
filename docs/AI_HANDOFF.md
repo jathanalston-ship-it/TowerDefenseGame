@@ -4,8 +4,8 @@
 > before committing. Read together with docs/PROJECT_STATUS.md and the latest
 > docs/VALIDATION_REPORT.md. Next session: start at docs/PROJECT_MANIFEST.md.
 
-- **Generated:** 2026-11-10 04:15 UTC · **Diff scope:** working tree vs HEAD
-- **Branch:** codex/hive-autoplay · **HEAD:** 781e81f4
+- **Generated:** 2026-11-10 04:20 UTC · **Diff scope:** working tree vs HEAD
+- **Branch:** codex/hive-autoplay · **HEAD:** 607300df
 
 ## Summary of work completed
 
@@ -13,16 +13,15 @@ Active continuous improvement goal remains active; owner authorizes verified rel
 
 ## Files modified
 
-- Source (4): `src/changelog/releases.gen.ts`, `src/ui/GameView.tsx`, `src/ui/HeroEvolutionPanel.tsx`, `src/ui/Toolbar.tsx`
+- Source (3): `src/changelog/releases.gen.ts`, `src/ui/FieldNote.tsx`, `src/ui/GameView.css`
 - Tests (0): —
-- Docs (6): `docs/AI_HANDOFF.md`, `docs/AUDIO.md`, `docs/HISTORY.md`, `docs/PROJECT_STATUS.md`, `docs/VALIDATION_REPORT.md`, `docs/devlog/DRAFT-2026-11-09.md`
+- Docs (6): `docs/AI_HANDOFF.md`, `docs/GUIDED-UNLOCKS.md`, `docs/HISTORY.md`, `docs/PROJECT_STATUS.md`, `docs/VALIDATION_REPORT.md`, `docs/devlog/DRAFT-2026-11-09.md`
 
 ## Systems affected (from the dependency registry)
 
 - **chronicle** — `src/changelog/releases.gen.ts`
-- **heroes** — `src/ui/HeroEvolutionPanel.tsx`
-- **run-ui** — `src/ui/GameView.tsx`, `src/ui/Toolbar.tsx`
-- Consumer ring (verify, unchanged): class-bonds, engine, equipment, expeditions, hero-cinematics, hero-symbiotes, hive-mind
+- **onboarding** — `src/ui/FieldNote.tsx`
+- Consumer ring (verify, unchanged): progression-gating
 
 ## Power Score changes
 
@@ -73,3 +72,7 @@ Selected-hero follow-up production build now PASS; corrected phone screenshot in
 Audio routing follow-up: HeroEvolutionPanel direct splice plus queued sim splice caused delayed replay on resume. GameView now shares presentCues(withFeel) between normal loop and paused branch; paused branch drains audio only, no sim/render/trauma. Removed duplicate direct hero and conveyor strain cues. ../purchase-audio-check.cjs PASS (exactly once, multi tally, sim frozen, no resume replay); 68 golden/strain/evolution tests PASS. Synths and mix untouched.
 
 Audio follow-up final production build PASS; dev server stopped. Next broaden the visual/cinematic/teaching audit while approaching ~04:38 UTC batch deployment. Keep website notes in v2026.11.09.4; no unverified failures remain at this checkpoint.
+
+FieldNote follow-up: hover/focus holds note retirement, native Dismiss button plus polite text status; seven-second timer resumes after reading. Tap/draft/archive/pacing unchanged. ../field-note-check.cjs PASS (accelerated 1s timeout after initial 350ms probe raced entry animation), 8 firstHour tests PASS, phone image inspected. Image currently at workspace parent ../field-note-phone.png because scratch probe ran from parent workspace cwd.
+
+Field-note final production build PASS; dev server stopped. Last deployment ~03:38 UTC; current time ~04:20 UTC, approaching release window. Consider final full tests/mobile sweep on accumulated post-checkpoint UI/audio changes, then deploy with all seven curated v2026.11.09.4 notes and verify live assets/news.

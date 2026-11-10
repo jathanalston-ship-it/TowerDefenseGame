@@ -209,3 +209,7 @@ Selected-hero follow-up final production build PASS; corrected 390x844 screensho
 Purchase-audio follow-up: Chrome dispatcher probe PASS for paused single purchase exactly once, multi-buy tally, frozen simulation time, and no replay after console Close. GameView uses one shared queue drain (paused path without camera trauma); duplicate direct hero/conveyor splice cues removed. Synths/mix unchanged. Golden/strainVerbs/strains/heroEvolution: 4 files, 68 tests PASS.
 
 Audio-routing follow-up final production build PASS. Full 3150-test/nine-viewport checkpoint preceded the hero-readout and audio-only follow-ups; both deltas have focused browser/regression checks.
+
+Field-note follow-up: Chrome probe PASS using a one-second accelerated hold (longer than entry animation): hover/focus preserve the note, pointer exit does not override keyboard focus, Enter dismisses, draft retires immediately, unattended note expires, no focus theft. 390x844 bubble bounds and 44px Dismiss verified; screenshot inspected. First-hour teaching/pacing: 8 tests PASS.
+
+Field-note final production build PASS.

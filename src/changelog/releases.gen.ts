@@ -33,6 +33,10 @@ export const RELEASES: Release[] = [
       {
         "cat": "Audio",
         "text": "Hero upgrades give immediate purchase feedback while the console is paused, without replaying those sounds when you resume. Conveyor strain purchases also avoid duplicate sound feedback."
+      },
+      {
+        "cat": "UI",
+        "text": "Field notes stay visible while you hover over or focus them, giving you time to read. A keyboard-accessible Dismiss button replaces the tap-only hint; notes still clear automatically during normal play and when a gene draft opens."
       }
     ]
   },

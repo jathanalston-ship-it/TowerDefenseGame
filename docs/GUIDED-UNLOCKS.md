@@ -94,3 +94,5 @@ steps: a guide never forces a run start or a purchase.)
 `src/state/guidedUnlocks.test.ts` (full-window coverage from the registry, no orphan guides,
 anti-wordiness contract, Foundation help rows are core). Live headless E2E: card → Show me → vault
 guide → real crack advanced it → +15 Cores → ceremony free → home return.
+
+Field-note reading accessibility: hovered or keyboard-focused notes suspend their retirement timer. Leaving both states gives the normal hold interval again. A native 44px Dismiss button is reachable without autofocus; the note text uses a polite status announcement. Tap-anywhere dismissal, draft retirement, archive-on-show, pacing and gameplay remain unchanged.
