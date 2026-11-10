@@ -92,3 +92,5 @@ canvas **preview** drawing the exact mutation kit the run will render (`drawKit`
 - An organ id lives in at most ONE chamber seat (sanitizer + MOVE semantics both enforce).
 - Chambers above `unlocked` never activate, even if a forged save references organs there.
 - `towerDamageMult` never appears in organ or adaptation effects (registry validation + tests).
+
+NucleusPreview follows shared resolved motion plus live device changes. It renders a still mutation kit when motion is reduced, pauses animation offscreen/hidden, resumes without hidden-time jumps and releases its observer/listeners/frame on unmount. Mutation-list changes retain their existing redraw dependency. Organ/chamber rules, effects, costs and Power are unchanged.

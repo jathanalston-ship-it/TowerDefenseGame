@@ -13,6 +13,10 @@
       {
         "cat": "UI",
         "text": "The Mulligan Lab graft preview now follows live motion preferences, pauses while offscreen or hidden, and resumes when visible. Reduced motion keeps a still preview that updates when your graft changes."
+      },
+      {
+        "cat": "UI",
+        "text": "The Nucleus mutation preview now follows live motion preferences and pauses while offscreen or hidden. Its still image remains visible and updates when chamber mutations change, with smooth resumption when motion is allowed."
       }
     ]
   },

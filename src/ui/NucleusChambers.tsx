@@ -7,6 +7,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { meta } from '../state/meta';
+import { motionPrefs, onMotionPrefs, resolveMotion } from '../state/prefs';
 import {
   NUCLEUS_CATEGORY_LABEL, NUCLEUS_CHAMBERS, NUCLEUS_MARK,
   chamberAdaptation, isChamberActive, nucleusRegistry, organChamber, organGrowCost,
@@ -31,10 +32,7 @@ function NucleusPreview({ mutations }: { mutations: string[] }): JSX.Element {
     const dpr = Math.min(2, window.devicePixelRatio || 1);
     cv.width = 180 * dpr;
     cv.height = 150 * dpr;
-    let raf = 0;
-    const still = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const draw = (): void => {
-      const t = performance.now() / 1000;
+    const draw = (t: number): void => {
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       ctx.clearRect(0, 0, 180, 150);
       const x = 90, y = 78;
@@ -53,10 +51,43 @@ function NucleusPreview({ mutations }: { mutations: string[] }): JSX.Element {
       ctx.arc(x, y, R * 0.58, 0, Math.PI * 2);
       ctx.fill();
       drawKit(ctx, { mutations: mutations as never, crowns: 0 }, x, y, R, beat, t);
-      if (!still) raf = requestAnimationFrame(draw);
     };
-    draw();
-    return () => cancelAnimationFrame(raf);
+    let raf = 0;
+    let visible = true;
+    let elapsed = 0;
+    let previous: number | null = null;
+    let prefs = motionPrefs();
+    const media = window.matchMedia?.('(prefers-reduced-motion: reduce)');
+    const loop = (now: number): void => {
+      if (previous !== null) elapsed += (now - previous) / 1000;
+      previous = now;
+      draw(elapsed);
+      raf = requestAnimationFrame(loop);
+    };
+    const sync = (): void => {
+      cancelAnimationFrame(raf);
+      previous = null;
+      if (!visible || document.hidden) return;
+      if (resolveMotion(prefs, media?.matches ?? false).motion === 0) draw(0);
+      else raf = requestAnimationFrame(loop);
+    };
+    draw(0);
+    const observer = typeof IntersectionObserver === 'undefined' ? null : new IntersectionObserver(([entry]) => {
+      visible = entry.isIntersecting;
+      sync();
+    });
+    observer?.observe(cv);
+    const offPrefs = onMotionPrefs((next) => { prefs = next; sync(); });
+    media?.addEventListener('change', sync);
+    document.addEventListener('visibilitychange', sync);
+    sync();
+    return () => {
+      cancelAnimationFrame(raf);
+      observer?.disconnect();
+      offPrefs();
+      media?.removeEventListener('change', sync);
+      document.removeEventListener('visibilitychange', sync);
+    };
   }, [mutations.join(',')]);
   return <canvas ref={ref} className="ncl-preview" style={{ width: 180, height: 150 }} aria-label="Nucleus mutation preview" />;
 }

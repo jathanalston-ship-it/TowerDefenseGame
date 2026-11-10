@@ -1,6 +1,6 @@
 {
-  "lastSha": "59e01366cbc12020b6d60d2904a57c29cee04b3c",
-  "commitsSinceDraft": 4,
+  "lastSha": "829c2c44d7669e8cfc5be33110b0e7c8c7c753cc",
+  "commitsSinceDraft": 5,
   "content": {
     "tower": [
       "needle",
@@ -4763,6 +4763,10 @@
         {
           "cat": "UI",
           "text": "The Mulligan Lab graft preview now follows live motion preferences, pauses while offscreen or hidden, and resumes when visible. Reduced motion keeps a still preview that updates when your graft changes."
+        },
+        {
+          "cat": "UI",
+          "text": "The Nucleus mutation preview now follows live motion preferences and pauses while offscreen or hidden. Its still image remains visible and updates when chamber mutations change, with smooth resumption when motion is allowed."
         }
       ]
     }
@@ -10965,6 +10969,14 @@
       "date": "2026-11-10",
       "cat": "UI",
       "text": "Ui: clarify empty help searches and recovery",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "829c2c44d7669e8cfc5be33110b0e7c8c7c753cc",
+      "date": "2026-11-10",
+      "cat": "UI",
+      "text": "Ui: pause graft previews and follow live motion",
       "internal": true,
       "needsReview": false
     }
