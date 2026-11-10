@@ -13,6 +13,10 @@ export const RELEASES: Release[] = [
       {
         "cat": "UI",
         "text": "Quest claims preserve your keyboard position: individual claims keep focus on the completed mission, and Claim all returns it to the Quest Board heading so Tab continues through the board. Unsuccessful claims keep focus on their button."
+      },
+      {
+        "cat": "UI",
+        "text": "Quest reward celebrations triggered with the keyboard now appear at the claim button instead of the screen corner. Mouse and touch celebrations still begin where you tap, and reduced motion continues to skip the burst."
       }
     ]
   },

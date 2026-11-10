@@ -1,6 +1,6 @@
 {
-  "lastSha": "fd2a2d79eee8a163538a8c58e9f5596d9d3df30d",
-  "commitsSinceDraft": 4,
+  "lastSha": "b8575c5d9ab1b4a8cf6522ba6643bf8f24abed23",
+  "commitsSinceDraft": 5,
   "content": {
     "tower": [
       "needle",
@@ -4723,6 +4723,10 @@
         {
           "cat": "UI",
           "text": "Quest claims preserve your keyboard position: individual claims keep focus on the completed mission, and Claim all returns it to the Quest Board heading so Tab continues through the board. Unsuccessful claims keep focus on their button."
+        },
+        {
+          "cat": "UI",
+          "text": "Quest reward celebrations triggered with the keyboard now appear at the claim button instead of the screen corner. Mouse and touch celebrations still begin where you tap, and reduced motion continues to skip the burst."
         }
       ]
     }
@@ -10845,6 +10849,14 @@
       "date": "2026-11-10",
       "cat": "UI",
       "text": "Ui: preserve keyboard position after quest claims",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "b8575c5d9ab1b4a8cf6522ba6643bf8f24abed23",
+      "date": "2026-11-10",
+      "cat": "UI",
+      "text": "Ui: retain board focus after batch quest claims",
       "internal": true,
       "needsReview": false
     }

@@ -161,7 +161,10 @@ function QuestDirectives(): JSX.Element {
 
   const celebrate = (e: React.MouseEvent, lines: { icon: string; label: string }[], big: boolean): void => {
     if (reduced) return;
-    setBurst({ x: e.clientX, y: e.clientY, lines, big, key: Date.now() });
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = e.detail === 0 ? rect.left + rect.width / 2 : e.clientX;
+    const y = e.detail === 0 ? rect.top + rect.height / 2 : e.clientY;
+    setBurst({ x, y, lines, big, key: Date.now() });
   };
   // Claims present through the global claim popup (docs/NOTIFICATIONS.md §claim-popups):
   // a bold itemized receipt naming the mission/quest — the burst stays as local juice.

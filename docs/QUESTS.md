@@ -110,3 +110,5 @@ Quest Board accessibility: each mission progress bar names its quest and mission
 Mission claim keyboard continuity: each mission is a named group with a programmatic focus target. A successful focused Claim action moves focus to that same persistent row before the button disappears; the row label then includes claimed. A rejected claim keeps its button focus. Rows do not add extra Tab stops, and reward/eligibility logic remains in meta.claimQuestMission.
 
 Claim all follows the same keyboard continuity rule: after at least one successful reward claim from a focused batch button, focus moves to the persistent Quest Board heading. If no claims succeed, focus stays on the button. The heading adds no sequential Tab stop; batch contents and finale exclusion are unchanged.
+
+Quest claim burst origin uses the activating control center for keyboard/assistive clicks (detail === 0); pointer clicks retain their client coordinates. This shared path covers mission, batch and finale claims. Existing reduced-motion suppression, receipt contents and reward/audio logic are unchanged.
