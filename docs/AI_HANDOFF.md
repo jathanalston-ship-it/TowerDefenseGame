@@ -9,9 +9,9 @@
 
 ## Summary of work completed
 
-Preparing sealed v2026.11.10.8 Know What Is Coming with two website notes (wave intel and Run conditions). Live remains .7 SHA b441f62cf0512d7da5c8d0692d53d3927fead962; remote production branch rechecked unchanged. Full regression45403 terminal PASS3192tests/354files332.80s.4sealed site-sync tests PASS; docs21518PASS; combined pre-seal build39830PASS11.67s. Final sealed build86377 PASS11.83s; full mobile retry20386 is live (intel-release-mobile-final.log).
+Release .8 Know What Is Coming is ready to deploy with two sealed notes. Full3192tests/354files PASS332.80s; final sealed build86377 PASS11.83s;4site tests and docsPASS. Final ORIGINAL full mobile20386 PASS27nav/9gameplay viewports, including landscape drawer, rotation, tutorial, phone run and run-chrome contracts. Earlier mobile59105 drawer-close timeout did not reproduce in unchanged-build focused diagnostic52251 or final full retry20386; no gate weakened and no code changed to bypass it. All local task processes terminal. Deploy authorized production ref and verify exactSHA workflow + normal custom-domain game/home/news/all2notes.
 
-Combined mobile59105 terminated with waitForDrawerClosed timeout5000ms in landscapeRailWalk; no passing claim for that run. No gate or production-code changes were made to bypass it. Diagnostic52251 on the SAME unchanged dist passed all27nav screens across844x390,926x428,844x340,915x356 and gameplay/tutorial checks (intel-drawer-diagnostic.log). Failure did not reproduce; root cause remains unproven. Final original full mobile gate must be rerun after sealed build completes. Earlier99756 mobile PASS covers final wave-reading layout before Run conditions. All focused wave/conditions probes pass and screenshots inspected.
+Live remains .7 until the production verification below is recorded.
 
 ## Files modified
 
@@ -71,7 +71,7 @@ TODO: new debt introduced or observed (cross-reference docs/ENGINEERING-AUDIT.md
 
 ## Recommended next tasks
 
-Final sealed build86377 terminal PASS11.83s (intel-release-final-build.log). Original full mobile retry20386 is live against that exact dist (intel-release-mobile-final.log). Poll same handle; do not rebuild or overwrite dist. After success, record result and deploy sealed .8 through the authorized production branch, then verify workflow exactSHA and normal custom-domain game/home/news/all2notes. No other processes active.
+Push release to origin HEAD:refs/heads/claude/zen-hawking-rh1gxl after confirming remote still b441f62c. Monitor Actions exactSHA production guard, then ../verify-current-release.ps1. Record liveSHA/asset/job/time and next approximate hourly window. Goal active; two devlog drafts remain untracked/unpublished.
 
 ## Future expansion hooks
 
@@ -162,3 +162,7 @@ Poll final build86377, then run original full mobilecheck --no-build on final di
 ## 2026-11-10 17:34 UTC — final sealed build
 
 Final sealed build86377 terminal PASS11.83s (intel-release-final-build.log). Original full mobile retry20386 is live against that exact dist (intel-release-mobile-final.log). Poll same handle; do not rebuild or overwrite dist. After success, record result and deploy sealed .8 through the authorized production branch, then verify workflow exactSHA and normal custom-domain game/home/news/all2notes. No other processes active.
+
+## 2026-11-10 17:40 UTC — final intel release gates passed
+
+Release .8 Know What Is Coming is ready to deploy with two sealed notes. Full3192tests/354files PASS332.80s; final sealed build86377 PASS11.83s;4site tests and docsPASS. Final ORIGINAL full mobile20386 PASS27nav/9gameplay viewports, including landscape drawer, rotation, tutorial, phone run and run-chrome contracts. Earlier mobile59105 drawer-close timeout did not reproduce in unchanged-build focused diagnostic52251 or final full retry20386; no gate weakened and no code changed to bypass it. All local task processes terminal. Deploy authorized production ref and verify exactSHA workflow + normal custom-domain game/home/news/all2notes.

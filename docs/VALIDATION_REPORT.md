@@ -625,3 +625,7 @@ Poll final build86377, then run original full mobilecheck --no-build on final di
 ## 2026-11-10 17:34 UTC — final sealed build
 
 Final sealed build86377 terminal PASS11.83s (intel-release-final-build.log). Original full mobile retry20386 is live against that exact dist (intel-release-mobile-final.log). Poll same handle; do not rebuild or overwrite dist. After success, record result and deploy sealed .8 through the authorized production branch, then verify workflow exactSHA and normal custom-domain game/home/news/all2notes. No other processes active.
+
+## 2026-11-10 17:40 UTC — final intel release gates passed
+
+Release .8 Know What Is Coming is ready to deploy with two sealed notes. Full3192tests/354files PASS332.80s; final sealed build86377 PASS11.83s;4site tests and docsPASS. Final ORIGINAL full mobile20386 PASS27nav/9gameplay viewports, including landscape drawer, rotation, tutorial, phone run and run-chrome contracts. Earlier mobile59105 drawer-close timeout did not reproduce in unchanged-build focused diagnostic52251 or final full retry20386; no gate weakened and no code changed to bypass it. All local task processes terminal. Deploy authorized production ref and verify exactSHA workflow + normal custom-domain game/home/news/all2notes.
