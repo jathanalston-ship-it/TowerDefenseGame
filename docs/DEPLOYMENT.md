@@ -342,3 +342,7 @@ Two speeds, both safe:
 ## Service-worker update prompt
 
 UpdateToast stays mounted to receive waiting-worker events but hides while App is outside the idle hub (including deployment, runs, tutorials, results, roulette and live Arena). Returning to the hub reveals the pending notice; the player explicitly selects Refresh to promote the worker. hasWaitingUpdate also covers an update announced before the prompt mounts. Dismissal has localized accessible text and restores the previous connected keyboard control without moving unrelated focus. Registration and first-install reload behavior are unchanged.
+
+### Standings request feedback
+
+LeaderboardBlock retains best-effort submission/fetch behavior and provides Retry when unavailable or Refresh when ready. Loading disables duplicate requests; a status region announces loading, unavailability or board context/count. Mode changes clear previous rows, and effect cleanup ignores superseded responses. The named table has Rank/Commander/Result column headers. No endpoint, ranking, submission or score rules change.

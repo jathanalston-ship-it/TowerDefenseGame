@@ -648,6 +648,8 @@ Career statistic hints use explicit Details buttons and inline reading panels. P
 
 ## Online Foundation
 
+Global standings offer retry/refresh with announced request status and labeled columns; changing modes clears stale results and ignores superseded requests. Submission and ranking rules are unchanged.
+
 - **Purpose:** the authoritative online architecture every online feature inherits — the
   replicated command vocabulary (ONE `applyArenaCommand` path onto Game intents), the versioned
   wire protocol (deterministic lockstep: only commands cross the wire; command-log replay IS

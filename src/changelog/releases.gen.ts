@@ -17,6 +17,10 @@ export const RELEASES: Release[] = [
       {
         "cat": "UI",
         "text": "Career statistics with explanations now have keyboard- and touch-accessible Details controls. Explanations stay open inline while you read, including after reopening their section, and ordinary statistic cards stay compact."
+      },
+      {
+        "cat": "UI",
+        "text": "Global standings now offer Retry after an unavailable response and Refresh after loading, with announced status and labeled table columns. Changing boards clears old results while loading, and delayed responses cannot replace the current board."
       }
     ]
   },

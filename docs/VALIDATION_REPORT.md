@@ -400,3 +400,9 @@ Validation: build13806 PASS6.02s before final precision formatting; final ../pow
 StatCell hints now use explicit44px Details buttons with expanded state and controlled inline text; ordinary cells remain static. Open hints survive parent Fold close/reopen. Removed two internal documentation references from player-facing hints. No statistic calculations or saves changed.
 
 Validation: build89016 PASS7.28s before final wording-only cleanup;10profile tests PASS again after cleanup,4site-sync tests PASS,docs52147 PASS. ../career-details-check.cjs actual Chrome PASS42hints,Enter/Space/click,controlledregions,parentfoldpersistence,unchangedvalues and1366/390/320fit/44px. First probe failed because its dynamic closed-section selector shrank during iteration; corrected probe passed, no product defect there. Screenshot reviewed. All processes terminal. Two unsealed website notes prepared for .10.3;live .10.2 remains,next deploy roughly09:52UTC.
+
+## 2026-11-10 — leaderboard feedback (local .10.3)
+
+LeaderboardBlock now has retry/refresh, disabled loading controls, status feedback and named table/column headers. Mode effects clear old results and cleanup ignores stale requests; rendering also requires matching response mode. Submission/ranking/API logic unchanged.
+
+Validation: build93517 terminal PASS before final table-header markup; final ../leaderboard-feedback-check.cjs Chrome PASS loading/offline/keyboardretry/focus/recovery/refresh, mode reset, late-response race, empty response and1366/390/320fit. Mock transport only; no live leaderboard submitted by probe.5epoch/site-sync tests PASS. Docs40902 terminal PASS. Three unsealed .10.3 website notes;next approximate deploy09:52UTC.

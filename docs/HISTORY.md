@@ -729,3 +729,4 @@
 - `e176563` **[Gameplay]** Ship readable rewards and progression controls _(internal)_
 - `660656c` **[Framework]** Docs: record readable rewards production verification _(internal)_
 - `b1d8620` **[UI]** Ui: make profile power explanations expandable _(internal)_
+- `184460c` **[UI]** Ui: make career explanations readable on demand _(internal)_

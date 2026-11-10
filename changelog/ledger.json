@@ -1,6 +1,6 @@
 {
-  "lastSha": "b1d86201c8fa2281fc6ba9b3b4cf35f6a12ae5d0",
-  "commitsSinceDraft": 7,
+  "lastSha": "184460c6ffa489497344fd000a0e5094e4ca3bd0",
+  "commitsSinceDraft": 8,
   "content": {
     "tower": [
       "needle",
@@ -4443,6 +4443,10 @@
         {
           "cat": "UI",
           "text": "Career statistics with explanations now have keyboard- and touch-accessible Details controls. Explanations stay open inline while you read, including after reopening their section, and ordinary statistic cards stay compact."
+        },
+        {
+          "cat": "UI",
+          "text": "Global standings now offer Retry after an unavailable response and Refresh after loading, with announced status and labeled table columns. Changing boards clears old results while loading, and delayed responses cannot replace the current board."
         }
       ]
     }
@@ -9925,6 +9929,14 @@
       "date": "2026-11-10",
       "cat": "UI",
       "text": "Ui: make profile power explanations expandable",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "184460c6ffa489497344fd000a0e5094e4ca3bd0",
+      "date": "2026-11-10",
+      "cat": "UI",
+      "text": "Ui: make career explanations readable on demand",
       "internal": true,
       "needsReview": false
     }
