@@ -5,6 +5,18 @@ import type { Release } from './types';
 /** Player-facing releases, newest first. */
 export const RELEASES: Release[] = [
   {
+    "id": "v2026.11.10.16",
+    "date": "2026-11-10",
+    "title": "Smoother Hive Upgrades",
+    "sealed": false,
+    "entries": [
+      {
+        "cat": "UI",
+        "text": "Growing a production upgrade now keeps keyboard focus on its Grow button. If the next level is locked or unaffordable, focus stays on the upgrade card so you can read its new status. Growth effects still replay after each purchase."
+      }
+    ]
+  },
+  {
     "id": "v2026.11.10.15",
     "date": "2026-11-10",
     "title": "Clearer Upgrade Controls",

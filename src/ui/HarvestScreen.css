@@ -88,10 +88,10 @@
 
 /* GROW ceremony (IDLE-HARVEST.md §presentation) — a one-shot bloom the instant a node level
    takes: caustic ring burst off the card, glyph swell, the new level flaring white→gold. The
-   card remounts per buy (key=level) so re-buys re-trigger crisply. */
+   decorative ring and header remount per buy; the card and Grow control keep focus. */
 .hv-node { position: relative; }
 
-.hv-node.is-grown::after { content: ''; position: absolute; inset: -2px; border-radius: inherit; border: 2px solid var(--caustic); opacity: 0; pointer-events: none; animation: hvGrowRing 0.7s ease-out; }
+.hv-node-ring { position: absolute; inset: -2px; border-radius: inherit; border: 2px solid var(--caustic); opacity: 0; pointer-events: none; animation: hvGrowRing 0.7s ease-out; }
 
 .hv-node.is-grown .hv-node-g { display: inline-block; animation: hvGlyphPop 0.55s var(--ease-out); }
 
@@ -114,7 +114,7 @@
 @keyframes hvBrimPulse { 0%, 100% { box-shadow: 0 0 14px rgba(63, 224, 138, 0.35); } 50% { box-shadow: 0 0 26px rgba(63, 224, 138, 0.7); } }
 
 @media (prefers-reduced-motion: reduce) {
-  .hv-node.is-grown::after, .hv-node.is-grown .hv-node-g, .hv-node.is-grown .hv-node-lv,
+  .hv-node-ring, .hv-node.is-grown .hv-node-g, .hv-node.is-grown .hv-node-lv,
   .hv-node-buy.is-afford, .hv-collect.is-brimmed { animation: none; }
 }
 

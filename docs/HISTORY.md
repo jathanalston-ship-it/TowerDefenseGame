@@ -833,3 +833,6 @@
 - `6b23be6` **[UI]** Ui: add keyboard navigation to graft host tabs _(internal)_
 - `59d3baa` **[UI]** Show the correct graft upgrade currency and binding guidance _(internal)_
 - `85fb488` **[Gene Cards]** Navigate harvest recommendations to their upgrade cards _(internal)_
+- `e15b182` **[UI]** Release: publish clearer upgrade controls _(internal)_
+- `f2fea73` **[Framework]** Docs: record verified upgrade controls release _(internal)_
+- `faffe6f` **[Developer Tools]** Dev: isolate test and production validation environments _(internal)_

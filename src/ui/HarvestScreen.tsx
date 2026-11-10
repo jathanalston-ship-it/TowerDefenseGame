@@ -158,14 +158,26 @@ function NodeCard({ n }: { n: IdleNodeView }): JSX.Element {
   // card, the glyph swelling, and the new level flaring gold. `grewLv` keys the one-shot CSS
   // animation to the level just reached (re-buys re-trigger); reduced-motion stills it in CSS.
   const [grewLv, setGrewLv] = useState(0);
+  const cardRef = useRef<HTMLDivElement>(null);
+  const buyRef = useRef<HTMLButtonElement>(null);
+  const restoreFocus = useRef(false);
+  useLayoutEffect(() => {
+    if (!restoreFocus.current) return;
+    restoreFocus.current = false;
+    const target = buyRef.current && !buyRef.current.disabled ? buyRef.current : cardRef.current;
+    target?.focus({ preventScroll: true });
+  }, [grewLv]);
   const buy = (): void => {
+    const wasFocused = document.activeElement === buyRef.current;
     if (!meta.buyIdleNode(n.def.id)) return;
+    restoreFocus.current = wasFocused;
     audio.cue('graftCrack');
     setGrewLv(n.level + 1);
   };
   return (
-    <div data-idle-node={n.def.id} tabIndex={-1} role="group" aria-label={n.def.name} className={`hv-node${n.gate ? ' is-gated' : ''}${grewLv > 0 ? ' is-grown' : ''}`} key={grewLv}>
-      <div className="hv-node-h">
+    <div ref={cardRef} data-idle-node={n.def.id} tabIndex={-1} role="group" aria-label={n.def.name} className={`hv-node${n.gate ? ' is-gated' : ''}${grewLv > 0 ? ' is-grown' : ''}`}>
+      {grewLv > 0 && <span key={`ring-${grewLv}`} className="hv-node-ring" aria-hidden />}
+      <div className="hv-node-h" key={grewLv}>
         <span className="hv-node-g" aria-hidden>{n.def.glyph}</span>
         <span className="hv-node-name">{n.def.name}</span>
         <span className="hv-node-lv">L{n.level}</span>
@@ -174,7 +186,7 @@ function NodeCard({ n }: { n: IdleNodeView }): JSX.Element {
       {n.gate ? (
         <div className="hv-node-gate">🔒 {n.gateLabel} unlocks L{n.level + 1}</div>
       ) : (
-        <button className={`hv-node-buy${n.affordable ? ' is-afford' : ''}`} disabled={!n.affordable} onClick={buy}>
+        <button ref={buyRef} className={`hv-node-buy${n.affordable ? ' is-afford' : ''}`} disabled={!n.affordable} onClick={buy}>
           Grow · {n.cost.toLocaleString('en-US')} <CurrencyIcon id="hiveMaterials" size={12} title="Chitin" />
         </button>
       )}

@@ -4,34 +4,36 @@
 > before committing. Read together with docs/PROJECT_STATUS.md and the latest
 > docs/VALIDATION_REPORT.md. Next session: start at docs/PROJECT_MANIFEST.md.
 
-- **Generated:** 2026-11-10 23:33 UTC · **Diff scope:** working tree vs HEAD
-- **Branch:** codex/hive-autoplay · **HEAD:** f2fea73a
+- **Generated:** 2026-11-10 23:43 UTC · **Diff scope:** working tree vs HEAD
+- **Branch:** codex/hive-autoplay · **HEAD:** faffe6ff
 
 ## Summary of work completed
 
-LOCAL validation environment fix: validate.runNode accepts child env overrides; Vitest explicitly NODE_ENV=test. Mobilecheck build explicitly NODE_ENV=production, preserving other env values, so vite-node development defaults cannot alter production JSX runtime. Parent validation-environment-check.cjs passes actual CLI success/failure/ENOENT and inherited-env override/preservation. FULL audit currently RUNNING session85990, log production-environment-validation.log; last verified live in test-suite phase. Resume SAME handle, do not restart on timeout. No source/dist changes or competing heavy/browser jobs during mobile. Live .15 remains SHAe15b1827f86bdb6c8c722d7e049091a12260d98d, verified23:32UTC; next deployment~00:32UTC. Goal active.
+LOCAL unsealed v2026.11.10.16 Smoother Hive Upgrades, one game/website note. Harvest node successful purchase previously remounted focused Grow and dropped focus to body (browser reproduced, cost60 unchanged). Card/button now stable, only ring/header remount to replay animation; focused purchase retains enabled Grow or falls back to named card when gated/unaffordable. Actual-meta probes passed normal/repeated growth, exact debits, gate/zero-wallet fallback, live reduced motion and recommendation navigation.63 relevant tests3.21s, docs/handoff and production build28608 PASS5.66s/SWmwbc6bfe. All processes terminal. Corrected-environment FULL validator85990 PASS23:41UTC3194tests/mobile/docs, BEFORE this UI edit; nested build exact production hash verified. Live remains .15 SHAe15b1827f86bdb6c8c722d7e049091a12260d98d verified23:32UTC. Goal active; next approximate deployment00:32UTC.
 
 ## Files modified
 
-- Source (0): —
+- Source (3): `src/changelog/releases.gen.ts`, `src/ui/HarvestScreen.css`, `src/ui/HarvestScreen.tsx`
 - Tests (0): —
-- Docs (4): `docs/PROJECT_MANIFEST.md`, `docs/SCALABILITY.md`, `docs/devlog/DRAFT-2026-11-09.md`, `docs/devlog/DRAFT-2026-11-10.md`
+- Docs (7): `docs/HISTORY.md`, `docs/HIVE-PRODUCTION.md`, `docs/IDLE-HARVEST.md`, `docs/PROJECT_MANIFEST.md`, `docs/VALIDATION_REPORT.md`, `docs/devlog/DRAFT-2026-11-09.md`, `docs/devlog/DRAFT-2026-11-10.md`
 
 ## Systems affected (from the dependency registry)
 
-- (no registered source files in this diff)
+- **chronicle** — `src/changelog/releases.gen.ts`
+- **idle-harvest** — `src/ui/HarvestScreen.tsx`
+- Consumer ring (verify, unchanged): arena
 
 ## Power Score changes
 
-None. Presentation and navigation only.
+None. Presentation/focus only.
 
 ## UI changes
 
-No new UI edits this turn. Read-only audit identified harvest node remount focus candidate; not yet proven in browser.
+Stable harvest node/card and Grow control. Decorative ring now aria-hidden span keyed per purchase, header keyed to replay glyph/level effects. Existing costs, gates, sound and animation timings retained. Browser probes: ../harvest-growth-{focus,poor,gated,repeat}-check.cjs and ../harvest-grow-next-phone-check.cjs (game cwd).
 
 ## Documentation changes
 
-SCALABILITY and manifest explain child environment isolation. No player-facing changes/notes for this tooling correction. Preserve untracked drafts.
+IDLE-HARVEST, HIVE-PRODUCTION and manifest updated. One curated note generated for game and website. No new help/tutorial/audio registration needed.
 
 ## Save changes
 
@@ -39,18 +41,16 @@ None.
 
 ## Known edge cases
 
-Full corrected-environment audit85990 pending; do not claim it passed. Prior .15 mobile audited development JSX runtime; standalone production build and exact public asset/source match separately verified.
+Full .16 release audit pending. Full corrected-environment validator report23:41 covers infrastructure and prior release, before new harvest UI. Preserve both untracked drafts.
 
 ## Remaining technical debt
 
-Local installed Chrome needs MOBILECHECK_CHROMIUM and NODE_OPTIONS parent chrome-probe-compat.cjs for old Playwright compatibility.
+Local Chrome still needs MOBILECHECK_CHROMIUM and NODE_OPTIONS parent chrome-probe-compat.cjs. Environment inheritance bug is fixed and full auditpassed.
 
 ## Recommended next tasks
 
-Poll SAME audit85990 to terminal, inspect report, then verify dist/play entry hash equals live /assets/play-BKBxfanN.js (no game changes). Record/commit tooling correction after pass. Next UI candidate: NodeCard HarvestScreen key={grewLv} remounts entire node on successful buy; likely loses focused Grow button. Verify actual keyboard behavior before changing, preserve upgrade animation and gate/affordability handling.
+Continue interaction/clarity audits, perhaps production upgrade feedback and accessible descriptions after gated growth. Validate concrete issues before changing. Seal/generate/fullvalidate around00:15UTC for approximate00:32 deployment.
 
 ## Future expansion hooks
 
-Production push: git push origin HEAD:refs/heads/claude/zen-hawking-rh1gxl from codex/hive-autoplay. Public verification: ../verify-current-release.ps1. Do not compete with full mobile checks or overwrite dist while validation runs.
-
-At23:36UTC the active validator’s newly built dist/play entry exactly matched verified live /assets/play-BKBxfanN.js; its source map has no development JSX runtime. This proves nested build environment isolation. Mobile interaction audit85990 remains running; poll same handle. Parent harvest-growth-focus-check.cjs is prepared but NOT RUN, awaiting mobile completion.
+Production push from codex/hive-autoplay: git push origin HEAD:refs/heads/claude/zen-hawking-rh1gxl. Verify exact-SHA Actions and ../verify-current-release.ps1 normal URLs. Every deployment gets website notes. No active validation/build/browser process remains.

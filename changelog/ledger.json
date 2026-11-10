@@ -1,6 +1,6 @@
 {
-  "lastSha": "85fb4883d2cb155bd5d42573535ff5d61e2fe1b3",
-  "commitsSinceDraft": 8,
+  "lastSha": "faffe6ff96f1bf71ded77962b701a1a01726ca69",
+  "commitsSinceDraft": 0,
   "content": {
     "tower": [
       "needle",
@@ -4815,6 +4815,18 @@
         {
           "cat": "UI",
           "text": "Harvest receipts now stay on screen, including short landscape layouts, and support keyboard focus, Escape and returning to the production screen or prior hub control. Viewing the next upgrade keeps its destination focus."
+        }
+      ]
+    },
+    {
+      "id": "v2026.11.10.16",
+      "date": "2026-11-10",
+      "title": "Smoother Hive Upgrades",
+      "sealed": false,
+      "entries": [
+        {
+          "cat": "UI",
+          "text": "Growing a production upgrade now keeps keyboard focus on its Grow button. If the next level is locked or unaffordable, focus stays on the upgrade card so you can read its new status. Growth effects still replay after each purchase."
         }
       ]
     }
@@ -11129,6 +11141,30 @@
       "date": "2026-11-10",
       "cat": "Gene Cards",
       "text": "Navigate harvest recommendations to their upgrade cards",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "e15b1827f86bdb6c8c722d7e049091a12260d98d",
+      "date": "2026-11-10",
+      "cat": "UI",
+      "text": "Release: publish clearer upgrade controls",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "f2fea73ad605a9f89696e22bf2c4bea4222a2e6a",
+      "date": "2026-11-10",
+      "cat": "Framework",
+      "text": "Docs: record verified upgrade controls release",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "faffe6ff96f1bf71ded77962b701a1a01726ca69",
+      "date": "2026-11-10",
+      "cat": "Developer Tools",
+      "text": "Dev: isolate test and production validation environments",
       "internal": true,
       "needsReview": false
     }
