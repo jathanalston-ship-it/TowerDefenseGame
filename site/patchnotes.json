@@ -30,6 +30,10 @@
       {
         "cat": "Audio",
         "text": "Skipping a replay to its outcome no longer compresses skipped combat sounds into a sudden burst. Normal playback, including faster playback speeds, keeps its combat audio."
+      },
+      {
+        "cat": "UI",
+        "text": "The Replay Theater paste field accepts copied replay links as well as raw codes, supports Enter to watch, and shows localized checking/error feedback. Editing the input or leaving the screen prevents an older decode from opening the wrong replay."
       }
     ]
   },

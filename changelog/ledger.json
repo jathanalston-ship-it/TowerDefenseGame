@@ -1,6 +1,6 @@
 {
-  "lastSha": "0a21f153c1a45bcba76c097ceeacb9be37431fd8",
-  "commitsSinceDraft": 1,
+  "lastSha": "3d6e652d750424bbfea5fbf34445ac45b41c5da3",
+  "commitsSinceDraft": 2,
   "content": {
     "tower": [
       "needle",
@@ -4459,6 +4459,10 @@
         {
           "cat": "Audio",
           "text": "Skipping a replay to its outcome no longer compresses skipped combat sounds into a sudden burst. Normal playback, including faster playback speeds, keeps its combat audio."
+        },
+        {
+          "cat": "UI",
+          "text": "The Replay Theater paste field accepts copied replay links as well as raw codes, supports Enter to watch, and shows localized checking/error feedback. Editing the input or leaving the screen prevents an older decode from opening the wrong replay."
         }
       ]
     }
@@ -9973,6 +9977,14 @@
       "date": "2026-11-10",
       "cat": "UI",
       "text": "Ui: improve replay keyboard controls and skip behavior",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "3d6e652d750424bbfea5fbf34445ac45b41c5da3",
+      "date": "2026-11-10",
+      "cat": "Audio",
+      "text": "Audio: keep replay outcome skips quiet",
       "internal": true,
       "needsReview": false
     }

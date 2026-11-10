@@ -4,8 +4,8 @@
 > before committing. Read together with docs/PROJECT_STATUS.md and the latest
 > docs/VALIDATION_REPORT.md. Next session: start at docs/PROJECT_MANIFEST.md.
 
-- **Generated:** 2026-11-10 09:20 UTC · **Diff scope:** working tree vs HEAD
-- **Branch:** codex/hive-autoplay · **HEAD:** 0a21f153
+- **Generated:** 2026-11-10 09:25 UTC · **Diff scope:** working tree vs HEAD
+- **Branch:** codex/hive-autoplay · **HEAD:** 3d6e652d
 
 ## Summary of work completed
 
@@ -13,15 +13,18 @@ LIVE v2026.11.10.2 Rewards You Can Read, seven sealed website notes. SHA e176563
 
 ## Files modified
 
-- Source (2): `src/changelog/releases.gen.ts`, `src/ui/SpectateView.tsx`
-- Tests (0): —
+- Source (4): `src/changelog/releases.gen.ts`, `src/i18n/index.ts`, `src/net/replayShare.ts`, `src/ui/DailyScreen.tsx`
+- Tests (1): `src/net/replayShare.test.ts`
 - Docs (7): `docs/HISTORY.md`, `docs/PROJECT_MANIFEST.md`, `docs/PROJECT_STATUS.md`, `docs/REPLAY-SHARE.md`, `docs/VALIDATION_REPORT.md`, `docs/devlog/DRAFT-2026-11-09.md`, `docs/devlog/DRAFT-2026-11-10.md`
 
 ## Systems affected (from the dependency registry)
 
 - **chronicle** — `src/changelog/releases.gen.ts`
-- **net-backend** — `src/ui/SpectateView.tsx`
-- Consumer ring (verify, unchanged): security
+- **daily** — `src/ui/DailyScreen.tsx`
+- **i18n** — `src/i18n/index.ts`
+- **net-backend** — `src/net/replayShare.ts`
+- **website** — `src/net/replayShare.ts`
+- Consumer ring (verify, unchanged): directives, field-research, liveops, premium, security
 
 ## Power Score changes
 
@@ -49,7 +52,7 @@ Windows validate wrapper cannot launch npx/npm with shell:false; use direct gate
 
 ## Recommended next tasks
 
-Local .10.3 Progress Explained has6unsealednotes, latest Audio for quiet replay skip. ../replay-skip-audio-check.cjs measured baseline compressed kill/squelch/assimilate batch,nowaudio[];full viewer controls/outcome/save PASS. ../replay-normal-audio-check.cjs x16normalaudio4batches/outcome/save PASS. Build25769 terminal PASS17.31s;30replay/lastKill/cues/site tests PASS. Docs45666 terminal PASS;all processes stopped. All browser/dev processes stopped. Live .10.2 SHAe176563d verified08:52UTC;next release roughly09:52UTC. Continue focused clarity/accessibility/visual audits until finalfull/mobile release gates. Exclude both devlogdrafts. Goal active.
+Local .10.3 Progress Explained has7unsealednotes:Power/Career reading,leaderboardfeedback,replaycopy,viewercontrols,quietskip,replayinput. Latest decodeReplayInput linkadapter and Daily form verified in ../replay-input-check.cjs with realcodec and controlled delayedresponses; allPASS incl3locales/phones. Build71068 PASS22.64s;13codec/i18n testsPASS(2newtests in existingfile). Browser47725 terminalPASS after correcting unmount test to awaitactualDOMremoval. Site/docs83285 terminal PASS (4site tests);all processes stopped. No browser/dev processes. Next run fullsuite,fix any actualfailures,seal/site/finalbuild/site/mobile thenpush andverify roughly09:52UTC. Latest LIVE .10.2 SHAe176563d verified08:52UTC;remote ref claude/zen-hawking-rh1gxl. Exclude devlogdrafts. Goal remainsactive afterdeploy.
 
 ## Future expansion hooks
 

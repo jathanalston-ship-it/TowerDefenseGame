@@ -424,3 +424,9 @@ Validation: build12778 PASS12.22s before final outcome-copy spacing/covered-head
 SpectateView always drains sim SFX but only plays them during normal playback. Pending LastKill ticks still advance while skipping, consuming fanfare timing silently. No global mute/music, simulation pacing or outcome changes.
 
 Evidence: ../replay-skip-audio-check.cjs baseline failed with a compressed batch(kill3,edie_squelch3,assimilate3); after fix skip audio[] and full viewer/verified-outcome/save-isolation checks PASS. ../replay-normal-audio-check.cjs PASS normal x16 playback retains4audio batches and identical outcome/save. Build25769 PASS17.31s;30replay/lastKill/cues/site tests PASS;docs45666 terminal PASS. Six unsealed .10.3 website notes;next approximate deploy09:52UTC.
+
+## 2026-11-10 — replay paste compatibility (local .10.3)
+
+Added local-only decodeReplayInput adapter for HTTP(S) share links/raw codes; existing codec validation unchanged. Daily input is an Enter-submit form with localized checking, invalid feedback association, duplicate-submit lock and request-generation cancellation on edit/unmount. No pasted URL is fetched.
+
+Validation: build71068 PASS22.64s;13codec/i18n tests PASS including2new link/malformed-link regressions. ../replay-input-check.cjs actual Daily browser PASS real link/rawdecode,Enter,error clear/association,pending lock,late edit/unmount rejection and3locale1366/390/320fit. Initial unmount test resolved before React committed unmount; corrected test waits for removal and PASS. Final site/docs83285 terminal PASS (4site tests). Seven unsealed .10.3 notes; next work full release regression/mobile gates toward roughly09:52UTC deploy.

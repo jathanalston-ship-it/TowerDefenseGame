@@ -648,7 +648,7 @@ Career statistic hints use explicit Details buttons and inline reading panels. P
 
 ## Online Foundation
 
-Global standings offer retry/refresh with announced request status and labeled columns; changing modes clears stale results and ignores superseded requests. Submission and ranking rules are unchanged. Replay sharing has localized pending/success/failure feedback and a selectable manual-copy fallback when clipboard access is unavailable; outdated async results are ignored. Replay Theater manages modal focus, exposes playback state/progress and resumes pacing when skipping from pause; simulation and verification are unchanged. Skip-to-outcome drains/discards combat cues and suppresses delayed clear fanfares; normal playback audio remains active.
+Global standings offer retry/refresh with announced request status and labeled columns; changing modes clears stale results and ignores superseded requests. Submission and ranking rules are unchanged. Replay sharing has localized pending/success/failure feedback and a selectable manual-copy fallback when clipboard access is unavailable; outdated async results are ignored. Replay Theater manages modal focus, exposes playback state/progress and resumes pacing when skipping from pause; simulation and verification are unchanged. Skip-to-outcome drains/discards combat cues and suppresses delayed clear fanfares; normal playback audio remains active. Daily replay input accepts links/codes locally, supports Enter and ignores outdated decode results after edits or unmount.
 
 - **Purpose:** the authoritative online architecture every online feature inherits — the
   replicated command vocabulary (ONE `applyArenaCommand` path onto Game intents), the versioned

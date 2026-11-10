@@ -54,3 +54,7 @@ ShareReplayButton disables duplicate requests while encoding/copying and announc
 SpectateView focuses Exit on entry, contains Tab navigation, consumes Escape locally and restores the connected opener on unmount. Completion focuses the outcome Exit and associates the verdict with the dialog while hiding covered controls from assistive technology. Pause/speed/skip expose pressed state; progress is a labeled progressbar. Skip explicitly clears pause before accelerating to the recorded end. Replay stepping, verification and private event bus are unchanged.
 
 Skip-to-outcome drains and discards simulation sound cues rather than batching thousands of steps into one audible frame. Any already-pending last-kill fanfare advances silently during skip so it cannot play late on resume. Ordinary playback (including speed multipliers) retains combat cues; global audio/music preferences are untouched.
+
+## Pasting a shared replay
+
+decodeReplayInput accepts either a wire code or an HTTP(S) share URL, extracts its replay query parameter locally and delegates to the unchanged validated decoder. It never fetches the pasted URL. DailyScreen submits with Enter or Watch, disables duplicate submits while checking, associates invalid feedback with the input and clears it on edit. A request generation invalidates results after input edits/unmount; a late decode cannot launch an older replay. Placeholders/checking text support EN/ES/PT.
