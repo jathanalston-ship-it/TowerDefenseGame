@@ -4,8 +4,8 @@
 > before committing. Read together with docs/PROJECT_STATUS.md and the latest
 > docs/VALIDATION_REPORT.md. Next session: start at docs/PROJECT_MANIFEST.md.
 
-- **Generated:** 2026-11-10 16:26 UTC · **Diff scope:** working tree vs HEAD
-- **Branch:** codex/hive-autoplay · **HEAD:** a04cc876
+- **Generated:** 2026-11-10 16:32 UTC · **Diff scope:** working tree vs HEAD
+- **Branch:** codex/hive-autoplay · **HEAD:** 22661905
 
 ## Summary of work completed
 
@@ -13,15 +13,13 @@ LIVE v2026.11.10.6 Memories Within Reach, five sealed notes. SHA7f18a4f7fe74450f
 
 ## Files modified
 
-- Source (3): `src/changelog/releases.gen.ts`, `src/save/saveStore.ts`, `src/state/meta.ts`
-- Tests (2): `src/save/saveStore.test.ts`, `src/state/meta.test.ts`
-- Docs (5): `docs/HISTORY.md`, `docs/PROJECT_MANIFEST.md`, `docs/SCALABILITY.md`, `docs/devlog/DRAFT-2026-11-09.md`, `docs/devlog/DRAFT-2026-11-10.md`
+- Source (1): `src/changelog/releases.gen.ts`
+- Tests (0): —
+- Docs (3): `docs/HISTORY.md`, `docs/devlog/DRAFT-2026-11-09.md`, `docs/devlog/DRAFT-2026-11-10.md`
 
 ## Systems affected (from the dependency registry)
 
 - **chronicle** — `src/changelog/releases.gen.ts`
-- **meta-store** — `src/save/saveStore.ts`, `src/state/meta.ts`
-- Consumer ring (verify, unchanged): account-level, accounts, analytics, arena, battle-pass, class-bonds, contracts, cosmetics, cutscenes, daily-login, devtools, directives, expeditions, field-research, genome-rank, hero-symbiotes, hive-construction, hub-shell, idle-harvest, infestation, liveops, metabolism, mulligans, nemesis, net-backend, notifications, nucleus, onboarding, progression-gating, quests, run-ui, security
 
 ## Power Score changes
 
@@ -49,7 +47,7 @@ Windows validate wrapper cannot launch npx/npm with shell:false; use direct gate
 
 ## Recommended next tasks
 
-Local .10.7 has five unsealed notes; source batch complete pending release gates. FULL SUITE RUNNING session26406, save-release-tests.log. Poll same handle, never restart on observation timeout. Build20.09s/102focused tests PASS; docs15424 finishing if not terminal. After full suite passes, seal notes/site/final build, mobile, deploy assigned ref and exact-SHA/live game+website verification. Target roughly16:53UTC. Actual import+restore storage probes PASS. Goal active.
+Release .10.7 Progress You Can Trust: five SEALED notes; full3192tests/354files PASS454.39s, final build22.72s,4site tests anddocs PASS. MOBILE RUNNING session34331, save-release-mobile.log, final dist. Poll same handle; DO NOT rebuild while mobile runs. All other processes terminal. On clean mobile, record gates, push HEAD to claude/zen-hawking-rh1gxl, verify exact-SHA workflow then ../verify-current-release.ps1 normal public game/home/news/all5notes. Live remains .10.6 SHA7f18a4f7 until deploy. Full goal active.
 
 ## Future expansion hooks
 
@@ -113,6 +111,8 @@ Hero readiness final build65590 PASS (Vite7.59s); all processes terminal. Next r
 
 
 
-## 2026-11-10 — live-state and tab-safe restore integration (local .10.7)
 
-Two baseline tests reproduced stale-tab restore and recovery snapshot missing pending live progress. meta.restoreBackup now rejects stale tabs before storage, passes store.get() into SaveStore.restoreBackup, and uses shared publishSaveReplacement with imports. Successful committed replacements clear old flush/note clock/stamp writer before notifying; failed paths preserve session/flush. Headless restore callers keep readable disk fallback. Both tests PASS;78targeted tests then102save/meta/site tests PASS; app/functions TS+build20.09s PASS. ../restore-storage-check.cjs actual browser PASS3write failure stages, stale-tab no mutations, durable-before-notify, writer stamp, live recovery and old-flush cancellation; ../import-storage-check.cjs re-PASS shared helper. Required wrapper exit1 known Windows launcher; restore-live-wrapper-report.log retained. Fifth unsealed note generated. FULL REGRESSION26406 RUNNING in save-release-tests.log; docs15424 finishing. Do not restart running handles. Release seal/final build/mobile/live gates next; goal active.
+
+## 2026-11-10 — Progress You Can Trust release checkpoint
+
+Five sealed notes generated for game/home/news. Full suite26406 terminal PASS354files/3192tests454.39s. Final app/functions TS+build22.72s,4sealed site tests anddocs PASS (26535 terminal). Actual browser probes cover save UI previews/confirmations/focus/phone fit plus storage failure stages, tab ownership, live recovery and pending flush handling. Required wrapper exit1 known Windows launcher; save-release-wrapper-report.log preserved; direct gates supply evidence. MOBILE34331 RUNNING on final dist in save-release-mobile.log; do not rebuild until it completes. Source batch complete, no deployment yet. All other processes terminal. Goal remains active.

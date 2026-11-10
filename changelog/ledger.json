@@ -1,6 +1,6 @@
 {
-  "lastSha": "a04cc8767add42bb361853edaf6108b7fb1d1b5c",
-  "commitsSinceDraft": 1,
+  "lastSha": "2266190579c7b5925160a5f28ca4292192b18eeb",
+  "commitsSinceDraft": 2,
   "content": {
     "tower": [
       "needle",
@@ -4554,7 +4554,7 @@
       "id": "v2026.11.10.7",
       "date": "2026-11-10",
       "title": "Progress You Can Trust",
-      "sealed": false,
+      "sealed": true,
       "entries": [
         {
           "cat": "Bug Fixes",
@@ -10329,6 +10329,14 @@
       "date": "2026-11-10",
       "cat": "Gameplay",
       "text": "Save: commit imports before replacing session progress",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "2266190579c7b5925160a5f28ca4292192b18eeb",
+      "date": "2026-11-10",
+      "cat": "Gameplay",
+      "text": "Save: preserve live progress and tab ownership on restore",
       "internal": true,
       "needsReview": false
     }
