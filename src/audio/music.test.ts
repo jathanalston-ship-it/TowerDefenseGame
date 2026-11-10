@@ -5,15 +5,54 @@
 // selection (scene/rotation/progression weighting), stable per-boss theme assignment, and the
 // stinger library. See docs/MUSIC.md.
 
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi, afterEach } from 'vitest';
 import {
   TRACKS, TRACK_LIBRARY, LAYER_IDS, MOTIFS, STINGERS, BOSS_THEME_OVERRIDES,
-  tracksOf, pickTrack, bossTrackFor, barNotes, chordAt,
+  tracksOf, pickTrack, bossTrackFor, barNotes, chordAt, music,
 } from './music';
 import type { MusicCategory, MotifId, StingerId, TrackDef } from './music';
 
 const CATEGORIES: MusicCategory[] = ['menu', 'combat', 'boss', 'mega', 'victory', 'defeat', 'events', 'cinema'];
 const menu = TRACKS.menu;
+
+describe('music preference scene restoration', () => {
+  afterEach(() => {
+    music.stop();
+    music.setPinned(false);
+    music.setEnabled(true);
+    vi.restoreAllMocks();
+  });
+
+  it('requests the latest muted scene and retains its boss binding on enable', () => {
+    music.setEnabled(false);
+    music.play('menu');
+    music.play('boss', { boss: 'The Devourer' });
+    const play = vi.spyOn(music, 'play');
+    music.setEnabled(true);
+    expect(play).toHaveBeenCalledWith('boss', { boss: 'The Devourer', force: true });
+    play.mockClear();
+    music.setEnabled(true);
+    expect(play).not.toHaveBeenCalled();
+  });
+
+  it.each(['victory', 'defeat'] as const)('does not replay a stale %s on enable', (category) => {
+    music.setEnabled(false);
+    music.play('combat');
+    music.play(category);
+    const play = vi.spyOn(music, 'play');
+    music.setEnabled(true);
+    expect(play).not.toHaveBeenCalled();
+  });
+
+  it('respects an explicit stop while muted', () => {
+    music.setEnabled(false);
+    music.play('menu');
+    music.stop();
+    const play = vi.spyOn(music, 'play');
+    music.setEnabled(true);
+    expect(play).not.toHaveBeenCalled();
+  });
+});
 
 /** Mirror the renderer's bar→loop-bar mapping (for harmony checks). */
 const loopBarOf = (t: TrackDef, bar: number): number =>

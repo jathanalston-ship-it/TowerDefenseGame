@@ -1,6 +1,6 @@
 {
-  "lastSha": "88943a63c43d3764b97c4418c994d7088f5321b8",
-  "commitsSinceDraft": 4,
+  "lastSha": "34627015d26f6424284792618ffa9b23d865eacd",
+  "commitsSinceDraft": 5,
   "content": {
     "tower": [
       "needle",
@@ -4315,6 +4315,10 @@
         {
           "cat": "Audio",
           "text": "The music slider now takes priority over an earlier automatic fade. Turning music down to zero stays silent instead of having an old recovery fade bring the volume back up."
+        },
+        {
+          "cat": "Audio",
+          "text": "Turning music back on restores the current scene's soundtrack immediately, including its boss theme. Scene changes made while muted are remembered, without replaying old victory or defeat music."
         }
       ]
     }
@@ -9533,6 +9537,14 @@
       "date": "2026-11-09",
       "cat": "Audio",
       "text": "Smooth sound-effect volume transitions",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "34627015d26f6424284792618ffa9b23d865eacd",
+      "date": "2026-11-09",
+      "cat": "Music",
+      "text": "Preserve latest music volume setting",
       "internal": true,
       "needsReview": false
     }

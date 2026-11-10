@@ -556,6 +556,8 @@ ladders. 4. Every permanent progression source must move the Power Score (valida
 
 ## Audio
 
+- Music enable restores the latest looping scene requested while muted, including boss binding; explicit stop clears it and one-shot ceremonies are not replayed. See MUSIC.md.
+
 - **Purpose:** synthesized SFX bus (no audio assets) — cues for combat, UI, rewards, branch
   tiers; heartbeat tempo under pressure — plus the ADAPTIVE SOUNDTRACK: a motif-library score
   (15-track data library, 8 intensity-gated layers, scene/rotation/progression-weighted

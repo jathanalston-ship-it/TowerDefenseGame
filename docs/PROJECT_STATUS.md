@@ -1405,3 +1405,5 @@ New local batch .6 Sound That Responds Smoothly; .5 sealed/live. First change:20
 .6 music slider now supersedes older duck/duress recovery. Real audio rendering reproduces/fixes zero-volume rebound; rapid settings and fallback PASS,42 audio tests PASS. Second Audio website note prepared.
 
 .6 music slider final build and website checks PASS; two audio improvements saved locally. .5 remains live; next deployment around06:38UTC.
+
+Local .6 follow-up: music re-enable now restores latest looping scene (including muted scene changes/boss binding), without stale ceremony replay.46 audio tests,4 site-sync tests, actual Chrome toggle checks and earlier volume probes PASS; production build PASS. Three Audio website notes prepared, still local. Next approximate deployment06:38UTC.

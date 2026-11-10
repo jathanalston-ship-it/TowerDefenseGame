@@ -27,6 +27,9 @@ special case for new content.
 
 ### The WebAudio player (`music` — the manager singleton)
 
+- **Music toggle**: re-enabling requests the latest looping scene, including changes made while
+  muted and its boss binding. Muting does not create an audio context. One-shot ceremonies are
+  not queued for replay; an explicit `stop()` clears the remembered request.
 - **Lookahead scheduler** (150 ms lookahead, 40 ms tick): bars are rendered slightly ahead of
   the clock — sample-accurate, no pops, seamless loops.
 - **Per-layer gain buses + fixed stereo stage** (`LAYER_PAN`): bass/kick centred, arp left,

@@ -17,6 +17,10 @@ export const RELEASES: Release[] = [
       {
         "cat": "Audio",
         "text": "The music slider now takes priority over an earlier automatic fade. Turning music down to zero stays silent instead of having an old recovery fade bring the volume back up."
+      },
+      {
+        "cat": "Audio",
+        "text": "Turning music back on restores the current scene's soundtrack immediately, including its boss theme. Scene changes made while muted are remembered, without replaying old victory or defeat music."
       }
     ]
   },
