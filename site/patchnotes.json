@@ -18,6 +18,10 @@
       {
         "cat": "UI",
         "text": "Tower sale and first-branch confirmations now open with Cancel focused, contain keyboard navigation, and close with Escape. Pausing cancels an unfinished confirmation, keeping the Pause controls visible and focused."
+      },
+      {
+        "cat": "UI",
+        "text": "After a tower upgrade, keyboard focus stays useful even when the path is complete or the next tier is unaffordable: it moves to the selected tier preview instead of disappearing from the controls."
       }
     ]
   },

@@ -8,7 +8,7 @@
 // lane(s) collapse into a "locked out" bar. Rendered generically from the read-model
 // (core/branchTree), so extra branches or longer ladders need no layout change. Pure display.
 
-import { useState } from 'react';
+import { useLayoutEffect, useRef, useState } from 'react';
 import { branchStatsView } from '../../core/branchTree';
 import type { BranchLaneView, BranchTreeView, TierNodeView } from '../../core/branchTree';
 import type { TowerKind } from '../../core/types';
@@ -51,10 +51,21 @@ function TierDetail({ lane, t, kind, committedId, currentTier, accent, onBuy }: 
   accent: string;
   onBuy: () => void;
 }): JSX.Element {
+  const detailRef = useRef<HTMLDivElement>(null);
+  const purchaseFocus = useRef<HTMLButtonElement | null>(null);
+  useLayoutEffect(() => {
+    const button = purchaseFocus.current;
+    purchaseFocus.current = null;
+    if (!button || (button.isConnected && !button.disabled)) return;
+    if (document.activeElement !== document.body && document.activeElement !== button) return;
+    // A completed or newly unaffordable ladder still has a useful, non-purchasing preview.
+    detailRef.current?.closest('.mut-lane')
+      ?.querySelector<HTMLButtonElement>('.mut-tpip[aria-pressed="true"]')?.focus();
+  });
   // Owned tiers already sit inside the current fold — a delta only means something forward.
   const deltas = t.state === 'owned' ? [] : statDeltas(kind, committedId, currentTier, lane.branchId, t.tier);
   return (
-    <div className="mut-detail">
+    <div className="mut-detail" ref={detailRef}>
       <div className="mut-detail-top">
         <span className="mut-detail-name">T{t.tier} · {t.name}</span>
         {t.state === 'owned' && <span className="mut-detail-owned" style={{ color: accent }}>✓ active</span>}
@@ -76,7 +87,10 @@ function TierDetail({ lane, t, kind, committedId, currentTier, accent, onBuy }: 
           title={t.affordable
             ? (t.tier === 1 ? 'Buying Tier 1 locks this tower to this path for the run' : `Evolve to ${t.name}`)
             : `Not enough Biomass — needs ${fmtCost(t.cost)}`}
-          onClick={onBuy}
+          onClick={(event) => {
+            if (document.activeElement === event.currentTarget) purchaseFocus.current = event.currentTarget;
+            onBuy();
+          }}
         >
           {t.tier === 1 ? 'Splice this path' : 'Evolve'} · {fmtCost(t.cost)} ⬡
         </button>

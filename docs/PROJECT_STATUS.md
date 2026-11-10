@@ -1431,3 +1431,5 @@ New LOCAL .7 Clearer Battlefield Choices: correct zero starting-gift refund, ret
 Local .7 recycle confirmation now plays once via sim queue. ActualGameView direct+queued trace reproduced2 ->1; stale retry0.35 focused tests PASS; build40516 PASS. Two website notes, local only. All processes terminal.
 
 Local .7 tower sale/first-branch prompts now have safe Cancel focus, named modal semantics, Tab containment, Escape/restoration and cancel on Pause. Actual keyboard matrix, styled 3viewport measurements and fullGameView Back/Pause/Resume PASS;29 tests and build96060 PASS. Three local notes. Nextapprox deployment07:22UTC, live .6 unchanged. No running processes.
+
+Local .7 branch focus retained at final/unaffordable upgrade, with unrelated focus preserved. Browser and20 tests PASS; build/docs PASS. Full3155 batch suite PASS; mobile63403 stillRUNNING. Four local notes. Nextapprox deployment07:22UTC, live .6 unchanged.

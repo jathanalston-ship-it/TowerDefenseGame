@@ -282,3 +282,5 @@ Conveyor consumption: a focused recycle/merge action that removes its card resto
 Conveyor recycle audio is delivered once via the existing simulation queue, alongside the focus/refund behavior above; the button does not duplicate that cue.
 
 Tower sale/branch confirmations: named modal cards use Popup, safe initial Cancel focus, Tab containment and keyboard-event isolation. Escape/backdrop/Cancel restores the opener, or the surviving Inspector when the opener was removed. runBus Pause requests cancel pending prompts before Pause takes focus; browser Back retains the run's Pause contract. Successful purchases/sales still use their original callbacks and economy APIs.
+
+Branch upgrade buttons retain keyboard focus while the next buy remains available. If the completed path removes the button or the next tier disables it, focus moves to the selected tier preview in that same lane, without taking focus from another control.

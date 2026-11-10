@@ -705,3 +705,4 @@
 - `cf49f45` **[Audio]** Record verified audio deployment _(internal)_
 - `e4269ab` **[UI]** Ui: clarify conveyor refunds and preserve focus _(internal)_
 - `5471e5d` **[Audio]** Avoid duplicate conveyor recycle cue _(internal)_
+- `738cd92` **[Towers]** Keep tower confirmations keyboard accessible _(internal)_

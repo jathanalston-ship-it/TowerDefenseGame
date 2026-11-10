@@ -4,8 +4,8 @@
 > before committing. Read together with docs/PROJECT_STATUS.md and the latest
 > docs/VALIDATION_REPORT.md. Next session: start at docs/PROJECT_MANIFEST.md.
 
-- **Generated:** 2026-11-10 06:48 UTC · **Diff scope:** working tree vs HEAD
-- **Branch:** codex/hive-autoplay · **HEAD:** 5471e5d0
+- **Generated:** 2026-11-10 06:56 UTC · **Diff scope:** working tree vs HEAD
+- **Branch:** codex/hive-autoplay · **HEAD:** 738cd924
 
 ## Summary of work completed
 
@@ -13,14 +13,15 @@ Active continuous improvement goal; roughly-hourly deployments with matching web
 
 ## Files modified
 
-- Source (2): `src/changelog/releases.gen.ts`, `src/ui/Inspector.tsx`
+- Source (2): `src/changelog/releases.gen.ts`, `src/ui/components/BranchTree.tsx`
 - Tests (0): —
-- Docs (8): `docs/HISTORY.md`, `docs/HUD.md`, `docs/PROJECT_MANIFEST.md`, `docs/PROJECT_STATUS.md`, `docs/TOWER-BRANCHES.md`, `docs/TOWER-MANAGEMENT.md`, `docs/VALIDATION_REPORT.md`, `docs/devlog/DRAFT-2026-11-09.md`
+- Docs (7): `docs/HISTORY.md`, `docs/HUD.md`, `docs/PROJECT_MANIFEST.md`, `docs/PROJECT_STATUS.md`, `docs/TOWER-BRANCHES.md`, `docs/VALIDATION_REPORT.md`, `docs/devlog/DRAFT-2026-11-09.md`
 
 ## Systems affected (from the dependency registry)
 
 - **chronicle** — `src/changelog/releases.gen.ts`
-- **run-ui** — `src/ui/Inspector.tsx`
+- **towers** — `src/ui/components/BranchTree.tsx`
+- Consumer ring (verify, unchanged): class-bonds, contracts, daily, engine, hive-mind, mulligans
 
 ## Power Score changes
 
@@ -48,7 +49,7 @@ Final3150 full suite passed before the two-line current-destination drawer fix. 
 
 ## Recommended next tasks
 
-Continue LOCAL .7 Clearer Battlefield Choices,3notes (conveyor refund/focus, single recycle cue, tower confirmations). Live .6 sealed. Nextapprox deploy07:22UTC. All processes terminal; latest build96060 PASS.29 branch/tower/back/site tests PASS; actual browser matrix/layout/Back-Pause-Resume probes PASS. Complete batch regression gates before .7 release. Work codex/hive-autoplay, deploy claude/zen-hawking-rh1gxl. Update/copy verify-audio-release.ps1 for new .7 title/notes. Exclude untracked devlog draft. Goal remains active.
+Continue LOCAL .7 Clearer Battlefield Choices,4notes. LIVE .6 sealed. Nextapprox deploy07:22UTC. MOBILE63403 RUNNING (battlefield-batch-mobile.log), poll SAME handle; do not restart or overwrite dist. Other processes terminal. Full3155 suite19178 PASS164.59s; started before final BranchTree focus followup, which has actual browser/20tests/finalbuild28850 PASS. Docs34520 PASS. Followup focus handles final/unaffordable upgrades without taking unrelated focus. Complete mobile gate before release. Work codex/hive-autoplay; deploy claude/zen-hawking-rh1gxl. Update/copy verify-audio-release.ps1 for .7 title/notes. Exclude untracked devlog draft. Goal remains active.
 
 ## Future expansion hooks
 
@@ -83,3 +84,5 @@ LATEST LOCAL .7 Clearer Battlefield Choices,oneUI note: Toolbar corrects free st
 LATEST LOCAL .7: recycle duplicate confirmed/fixed. ../recycle-audio-check.cjs mounts actual GameView: baseline directdissolve1+queued1; now queued1only, staleconsumedidfalse and0cues. Removedone Toolbar audio.cue; sim/mix unchanged. Known fixtureViteHMRsocket warning excluded from producterrorlist.35 conveyor/sound/cues/site tests5415PASS; build40516PASS (recycle-audio-build.log,Vite6.17s). Dev4900 intentionallystopped. All processes terminal. Two .7notes prepared. Live .6 unchanged; nextapprox07:22UTC.
 
 LATEST .7 Inspector confirmations: local TowerConfirmation+Popup adds namedmodal, safeCancel, Tabtrap, allkeyisolation, Escape+focusrestore; fallbackfocusnamedInspector ifopenergone/disabled. Pause subscription closespendingprompt. No globalBackpolicychange: runBackstillPause. Baseline no role/focus/Escape; actualGameView Back originallyleft2dialogs (confirmoverPause,focusbehind), now1Pause andresumefocusmut-buy. ../inspector-confirm-matrix.cjs PASS realGame keyboard/transaction/Back; ../inspector-pause-check.cjs fullGameView PASS Back/Pause/Resume; ../inspector-confirm-layout.cjs actualCSS/fonts2dialogsx3viewportsPASS.29testsPASS; build96060PASS. All processes terminal. Three .7 notes local, live .6 unchanged,nextapprox07:22UTC. Fullbatchgates stillneededbefore .7publish.
+
+LATEST .7 BranchTree focus: baselineTier5 purchase->BODY; now focusselectedtierpreview ifbuyremoved/disabled, retainnextbuyifavailable, donotstealunrelatedfocus. ../branch-final-focus-check.cjs --assert / --poor / --outside PASS; confirmationmatrixrePASS. Fixture100k lacked160kfinalprice; corrected1mfixtureverifiedcompletionandkeptpoorcase.20testsPASS; build28850PASS Vite6.20s. Full3155batchsuite19178PASS164.59s (startedbeforefollowup); docs34520PASS. MOBILE63403RUNNING onfinaldist, logbattlefield-batch-mobile.log, pollsameworker. Four noteslocal. Live.6unchanged,nextdeploy~07:22UTC.

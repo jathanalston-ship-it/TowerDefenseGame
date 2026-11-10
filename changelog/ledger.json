@@ -1,6 +1,6 @@
 {
-  "lastSha": "5471e5d00974f316c210655fcc609c3892552f65",
-  "commitsSinceDraft": 5,
+  "lastSha": "738cd924630b3fa49ae6b19d040dd8956b5e9111",
+  "commitsSinceDraft": 6,
   "content": {
     "tower": [
       "needle",
@@ -4347,6 +4347,10 @@
         {
           "cat": "UI",
           "text": "Tower sale and first-branch confirmations now open with Cancel focused, contain keyboard navigation, and close with Escape. Pausing cancels an unfinished confirmation, keeping the Pause controls visible and focused."
+        },
+        {
+          "cat": "UI",
+          "text": "After a tower upgrade, keyboard focus stays useful even when the path is complete or the next tier is unaffordable: it moves to the selected tier preview instead of disappearing from the controls."
         }
       ]
     }
@@ -9653,6 +9657,14 @@
       "date": "2026-11-09",
       "cat": "Audio",
       "text": "Avoid duplicate conveyor recycle cue",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "738cd924630b3fa49ae6b19d040dd8956b5e9111",
+      "date": "2026-11-09",
+      "cat": "Towers",
+      "text": "Keep tower confirmations keyboard accessible",
       "internal": true,
       "needsReview": false
     }

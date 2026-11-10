@@ -386,3 +386,5 @@ No sim executors, no save change.
 capped); they're tunable in one place if a dense board proves muddy in playtest. Reactor and
 Mindrender have no projectile skin (no projectile attack). Particle/sfx are authored on the
 lock tier; a capstone could set richer ones via the same fold if desired.
+
+Keyboard purchase continuity: when an activated buy button disappears at the final tier or becomes disabled because the next tier is unaffordable, TierDetail moves focus to its selected tier preview. An enabled next-buy button retains focus; unrelated focus is never taken. This affects presentation only, not branch selection or purchase rules.
