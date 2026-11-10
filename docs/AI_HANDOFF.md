@@ -4,8 +4,8 @@
 > before committing. Read together with docs/PROJECT_STATUS.md and the latest
 > docs/VALIDATION_REPORT.md. Next session: start at docs/PROJECT_MANIFEST.md.
 
-- **Generated:** 2026-11-10 05:54 UTC · **Diff scope:** working tree vs HEAD
-- **Branch:** codex/hive-autoplay · **HEAD:** 34627015
+- **Generated:** 2026-11-10 05:57 UTC · **Diff scope:** working tree vs HEAD
+- **Branch:** codex/hive-autoplay · **HEAD:** cfc0a9bd
 
 ## Summary of work completed
 
@@ -14,7 +14,7 @@ Active continuous improvement goal; authorized roughly-hourly deployments with w
 
 - Source (2): `src/audio/music.ts`, `src/changelog/releases.gen.ts`
 - Tests (1): `src/audio/music.test.ts`
-- Docs (6): `docs/HISTORY.md`, `docs/MUSIC.md`, `docs/PROJECT_MANIFEST.md`, `docs/PROJECT_STATUS.md`, `docs/VALIDATION_REPORT.md`, `docs/devlog/DRAFT-2026-11-09.md`
+- Docs (5): `docs/HISTORY.md`, `docs/MUSIC.md`, `docs/PROJECT_STATUS.md`, `docs/VALIDATION_REPORT.md`, `docs/devlog/DRAFT-2026-11-09.md`
 
 ## Systems affected (from the dependency registry)
 
@@ -59,3 +59,7 @@ LOCAL .6 SFX control change: existing master fades20ms for volume/mute, latest r
 LOCAL .6 music volume fix: old duck recovery restored0.296109 output after volume0 in real offline renderer. setVolume now cancels/holds prior automation, anchors current gain and keeps original100ms ramp. ../music-volume-check.cjs and ../music-volume-sequence-check.cjs native/fallback PASS for zero/rapid20->80% and duress multiplier (expected0.658559989,observed0.658559978).42 audio tests and4 site-sync tests PASS. Build45854 PASS (music-volume-build.log,Vite8.57s); all processes terminal. No dev/browser processes. Two Audio notes generated. No compositions/synths/mix levels changed.
 
 Latest local .6: music toggle restores latest looping scene, including muted boss changes; skips stale one-shots and honors explicit stop. Baseline/after actual Chrome probe confirms fix.46 audio tests+4 site tests PASS; existing zero-volume and SFX sequence browser probes re-PASS. Build87156 terminal PASS (music-toggle-build.log,Vite9.06s). Three website Audio notes prepared. No running processes. Next deploy approximately06:38UTC. Live remains .5.
+
+Latest local .6 shared mute: updateMasterVolume applies enabled state to100ms fade, used by toggle/volume; duress skips master updates while muted. Actual legendary-stinger offline probe baseline after-mute RMS0.017549 ->0; volume/duress while muted stay silent.47 audio+4 site tests PASS; toggle and rapid-volume/duress probes re-PASS. Four website notes prepared. Build28873 pending at this entry; next result supersedes it.
+
+Final shared-mute production build28873 PASS (music-mute-build.log); all task processes terminal. Four notes prepared for .6; next approximate deployment06:38UTC. Live remains .5.

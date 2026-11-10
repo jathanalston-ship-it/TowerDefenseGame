@@ -733,7 +733,7 @@ class MusicManager {
     const t = this.ctx.currentTime + 0.35;
     // 18kHz (transparent) → ~700Hz (underwater) on an exponential perceptual sweep.
     this.duressFilter.frequency.exponentialRampToValueAtTime(18000 * Math.pow(700 / 18000, d), t);
-    this.master.gain.linearRampToValueAtTime(this.volume * (1 + 0.22 * d), t);
+    if (this.enabled) this.master.gain.linearRampToValueAtTime(this.volume * (1 + 0.22 * d), t);
   }
 
   /** Account progression 0..1 — `lateWeight` tracks (evolved themes) surface more for veterans. */
@@ -787,21 +787,26 @@ class MusicManager {
   /** The player's Music volume, 0..1 (1 = the designed level, MUSIC_LEVEL). */
   setVolume(v: number): void {
     this.volume = MUSIC_LEVEL * Math.min(1, Math.max(0, v));
+    this.updateMasterVolume();
+  }
+
+  private updateMasterVolume(): void {
     if (this.master && this.ctx) {
       const gain = this.master.gain;
       const now = this.ctx.currentTime;
       const current = gain.value;
-      // A scheduled duck recovery must never restore an older player volume.
+      // Player volume/mute wins over every previously scheduled duck or duress fade.
       if (typeof gain.cancelAndHoldAtTime === 'function') gain.cancelAndHoldAtTime(now);
       else gain.cancelScheduledValues(now);
       gain.setValueAtTime(current, now);
-      gain.linearRampToValueAtTime(this.volume * (1 + 0.22 * this.duress), now + 0.1);
+      gain.linearRampToValueAtTime(this.enabled ? this.volume * (1 + 0.22 * this.duress) : 0, now + 0.1);
     }
   }
 
   setEnabled(on: boolean): void {
     if (this.enabled === on) return;
     this.enabled = on;
+    this.updateMasterVolume();
     if (!on) {
       const requested = this.requested;
       this.stop();

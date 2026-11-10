@@ -1407,3 +1407,7 @@ New local batch .6 Sound That Responds Smoothly; .5 sealed/live. First change:20
 .6 music slider final build and website checks PASS; two audio improvements saved locally. .5 remains live; next deployment around06:38UTC.
 
 Local .6 follow-up: music re-enable now restores latest looping scene (including muted scene changes/boss binding), without stale ceremony replay.46 audio tests,4 site-sync tests, actual Chrome toggle checks and earlier volume probes PASS; production build PASS. Three Audio website notes prepared, still local. Next approximate deployment06:38UTC.
+
+Local .6 shared mute now silences scheduled musical flourishes via100ms master fade. Actual reward-stinger offline output after mute changed fromRMS0.017549 to0; muted volume/duress remain silent.47 audio+4 site tests PASS, scene/volume browser regressions PASS. Four local website notes; awaiting final build result.
+
+Final shared-mute production build28873 PASS (music-mute-build.log); all task processes terminal. Four notes prepared for .6; next approximate deployment06:38UTC. Live remains .5.

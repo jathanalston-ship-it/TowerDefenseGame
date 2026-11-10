@@ -1,6 +1,6 @@
 {
-  "lastSha": "34627015d26f6424284792618ffa9b23d865eacd",
-  "commitsSinceDraft": 5,
+  "lastSha": "cfc0a9bd5bd5af2435fa13881c2dda5296a7806d",
+  "commitsSinceDraft": 6,
   "content": {
     "tower": [
       "needle",
@@ -4319,6 +4319,10 @@
         {
           "cat": "Audio",
           "text": "Turning music back on restores the current scene's soundtrack immediately, including its boss theme. Scene changes made while muted are remembered, without replaying old victory or defeat music."
+        },
+        {
+          "cat": "Audio",
+          "text": "Music off now smoothly silences the entire soundtrack, including musical reward flourishes already playing. Changes in battle pressure or volume cannot bring music back while it is muted."
         }
       ]
     }
@@ -9545,6 +9549,14 @@
       "date": "2026-11-09",
       "cat": "Music",
       "text": "Preserve latest music volume setting",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "cfc0a9bd5bd5af2435fa13881c2dda5296a7806d",
+      "date": "2026-11-09",
+      "cat": "Music",
+      "text": "Restore scene music when re-enabled",
       "internal": true,
       "needsReview": false
     }

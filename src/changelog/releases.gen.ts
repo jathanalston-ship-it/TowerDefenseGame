@@ -21,6 +21,10 @@ export const RELEASES: Release[] = [
       {
         "cat": "Audio",
         "text": "Turning music back on restores the current scene's soundtrack immediately, including its boss theme. Scene changes made while muted are remembered, without replaying old victory or defeat music."
+      },
+      {
+        "cat": "Audio",
+        "text": "Music off now smoothly silences the entire soundtrack, including musical reward flourishes already playing. Changes in battle pressure or volume cannot bring music back while it is muted."
       }
     ]
   },

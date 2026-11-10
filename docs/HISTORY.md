@@ -695,3 +695,4 @@
 - `205a8c4` **[Framework]** Docs: record verified feedback deployment _(internal)_
 - `88943a6` **[Audio]** Smooth sound-effect volume transitions _(internal)_
 - `3462701` **[Music]** Preserve latest music volume setting _(internal)_
+- `cfc0a9b` **[Music]** Restore scene music when re-enabled _(internal)_

@@ -30,6 +30,9 @@ special case for new content.
 - **Music toggle**: re-enabling requests the latest looping scene, including changes made while
   muted and its boss binding. Muting does not create an audio context. One-shot ceremonies are
   not queued for replay; an explicit `stop()` clears the remembered request.
+- **Shared mute**: Music off fades the master output to silence over 100 ms, covering outgoing
+  crossfades and already-scheduled musical flourishes. Volume and duress changes stay silent
+  while muted; re-enabling restores the latest selected level and current duress treatment.
 - **Lookahead scheduler** (150 ms lookahead, 40 ms tick): bars are rendered slightly ahead of
   the clock — sample-accurate, no pops, seamless loops.
 - **Per-layer gain buses + fixed stereo stage** (`LAYER_PAN`): bass/kick centred, arp left,
