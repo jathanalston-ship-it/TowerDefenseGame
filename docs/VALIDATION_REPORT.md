@@ -690,3 +690,8 @@ Deployed SHA48b2f2a81ac463b53708ffcc2aab5b11f7f7cfdc. Actions42876793393/job1300
 ## 2026-11-10 18:47 UTC — Automation help (local .10)
 
 Added44px help beside Auto Wave/Auto Gene using existing bounded briefing reader. It exposes waiting, gate reason, Hive management and manual draft override without changing settings. Live state updates and safe reading/focus behavior verified. Initial compact label overflow fixed with wrapping; final real GameView unlocked85873 and locked32996 passed four viewport sizes, screenshots inspected. Standalone state probe passed; eleven site/UI tests1292 and docs70306 passed. Final build78237 is running; original full mobile check remains pending. One generated website note in unsealed v2026.11.10.10 Know Your Controls. Live remains .9; next approximate deploy19:38UTC.
+
+
+## 2026-11-10 18:49 UTC — Automation help build passed; mobile running
+
+Final build78237 terminalPASS16.19s (automation-help-final-build.log, SWmwb1m0tw). Original full mobile53228 started against that exact dist, automation-help-mobile.log; do not overwrite dist or run competing heavy checks while pending. Worktree source unchanged this turn. Next possible inspection: Pause seemed partly cut off in320x568 locked-profile screenshot, but no runtime bounds evidence yet; do not infer a confirmed bug. Live remains .9, local .10 has one note.
