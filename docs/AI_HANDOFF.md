@@ -4,8 +4,8 @@
 > before committing. Read together with docs/PROJECT_STATUS.md and the latest
 > docs/VALIDATION_REPORT.md. Next session: start at docs/PROJECT_MANIFEST.md.
 
-- **Generated:** 2026-11-10 04:11 UTC · **Diff scope:** working tree vs HEAD
-- **Branch:** codex/hive-autoplay · **HEAD:** 2686bc29
+- **Generated:** 2026-11-10 04:15 UTC · **Diff scope:** working tree vs HEAD
+- **Branch:** codex/hive-autoplay · **HEAD:** 781e81f4
 
 ## Summary of work completed
 
@@ -13,14 +13,15 @@ Active continuous improvement goal remains active; owner authorizes verified rel
 
 ## Files modified
 
-- Source (2): `src/changelog/releases.gen.ts`, `src/ui/HeroEvolutionPanel.tsx`
+- Source (4): `src/changelog/releases.gen.ts`, `src/ui/GameView.tsx`, `src/ui/HeroEvolutionPanel.tsx`, `src/ui/Toolbar.tsx`
 - Tests (0): —
-- Docs (6): `docs/AI_HANDOFF.md`, `docs/HERO-EVOLUTION.md`, `docs/HISTORY.md`, `docs/PROJECT_STATUS.md`, `docs/VALIDATION_REPORT.md`, `docs/devlog/DRAFT-2026-11-09.md`
+- Docs (6): `docs/AI_HANDOFF.md`, `docs/AUDIO.md`, `docs/HISTORY.md`, `docs/PROJECT_STATUS.md`, `docs/VALIDATION_REPORT.md`, `docs/devlog/DRAFT-2026-11-09.md`
 
 ## Systems affected (from the dependency registry)
 
 - **chronicle** — `src/changelog/releases.gen.ts`
 - **heroes** — `src/ui/HeroEvolutionPanel.tsx`
+- **run-ui** — `src/ui/GameView.tsx`, `src/ui/Toolbar.tsx`
 - Consumer ring (verify, unchanged): class-bonds, engine, equipment, expeditions, hero-cinematics, hero-symbiotes, hive-mind
 
 ## Power Score changes
@@ -68,3 +69,7 @@ Checkpoint 0bdad42e verified 2026-11-10 04:06 UTC: production build PASS, all 35
 Selected-hero follow-up completed locally: HeroEvolutionPanel uses selected entity recovery/shield/current cooldown; roster tabs rove via arrows/Home/End and link active panel. Phone screenshot revealed zero attackInterval produced Infinity; now shows a no-basic-attack dash. ../hero-roster-check.cjs PASS with three real heroes and mobile Close; 19 evolution tests PASS. Changes are UI-only after full checkpoint; final build pending below.
 
 Selected-hero follow-up production build now PASS; corrected phone screenshot inspected. Next: broaden experience audit beyond controls (audio/cinematic feedback or teaching cues), preserving the verified checkpoint and batching deployment with website notes near ~04:38 UTC. All local test/dev processes completed.
+
+Audio routing follow-up: HeroEvolutionPanel direct splice plus queued sim splice caused delayed replay on resume. GameView now shares presentCues(withFeel) between normal loop and paused branch; paused branch drains audio only, no sim/render/trauma. Removed duplicate direct hero and conveyor strain cues. ../purchase-audio-check.cjs PASS (exactly once, multi tally, sim frozen, no resume replay); 68 golden/strain/evolution tests PASS. Synths and mix untouched.
+
+Audio follow-up final production build PASS; dev server stopped. Next broaden the visual/cinematic/teaching audit while approaching ~04:38 UTC batch deployment. Keep website notes in v2026.11.09.4; no unverified failures remain at this checkpoint.

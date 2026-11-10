@@ -163,7 +163,7 @@ export function Toolbar({
                         title={target === null ? `No ${def.name} on the field below Strain V` : `Strain — consume to evolve your strongest ${def.name} to Strain ${ROMAN[Math.min(4, target.strain)]} (${mergeCost} Biomass)`}
                         onClick={() => {
                           audio.resume();
-                          if (game.strainFromConveyor(c.id) === 'ok') audio.cue('splice');
+                          game.strainFromConveyor(c.id); // the sim queues the successful purchase cue
                           refresh();
                         }}
                       >

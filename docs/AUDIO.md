@@ -1,5 +1,11 @@
 # AUDIO — the SFX mix, its mastering, and the audit that measures it
 
+Queued gameplay-action cues have one owner: GameView drains and coalesces them into audio.
+The queue also drains while paused so console purchases give prompt feedback; that paused
+path does not advance the simulation, render the board, or add camera trauma. UI callers must
+not play a second direct splice cue for hero evolution or conveyor strain purchases already
+queued by the game. Synths, mastering and mix levels are unchanged by this routing.
+
 The game's sound effects are **synthesized** (`src/audio/sound.ts` — ~130 cue functions over a few
 voice primitives, dispatched by `audio.cue(tag)` / `audio.cueBatch(counts)`). The score is a separate
 engine with its own mastering (`src/audio/music.ts`, docs/MUSIC.md). This doc owns everything between

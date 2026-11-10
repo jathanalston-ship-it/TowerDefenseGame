@@ -1,6 +1,6 @@
 {
-  "lastSha": "2686bc29802a1f0d5afcf91e4483cf6b2cb21a45",
-  "commitsSinceDraft": 6,
+  "lastSha": "781e81f4e14efba4cc14aaf23d67e9d6bbb23631",
+  "commitsSinceDraft": 7,
   "content": {
     "tower": [
       "needle",
@@ -4259,6 +4259,10 @@
         {
           "cat": "UI",
           "text": "Switching champions in the Hero Combat Console now shows recovery, shield, and actual ability countdown for the selected hero. Heroes without a basic attack no longer display an infinite attack rate. Use arrow keys, Home, and End to move between roster tabs."
+        },
+        {
+          "cat": "Audio",
+          "text": "Hero upgrades give immediate purchase feedback while the console is paused, without replaying those sounds when you resume. Conveyor strain purchases also avoid duplicate sound feedback."
         }
       ]
     }
@@ -9325,6 +9329,14 @@
       "date": "2026-11-09",
       "cat": "Framework",
       "text": "Validation: record controls regression checkpoint",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "781e81f4e14efba4cc14aaf23d67e9d6bbb23631",
+      "date": "2026-11-09",
+      "cat": "Heroes",
+      "text": "Verify selected hero console readouts",
       "internal": true,
       "needsReview": false
     }

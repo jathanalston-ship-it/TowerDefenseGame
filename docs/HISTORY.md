@@ -675,3 +675,4 @@
 - `b3308c3` **[UI]** Ui: verify pause focus and phone layering _(internal)_
 - `0bdad42` **[Gene Cards]** Verify accessible evolution purchases _(internal)_
 - `2686bc2` **[Framework]** Validation: record controls regression checkpoint _(internal)_
+- `781e81f` **[Heroes]** Verify selected hero console readouts _(internal)_

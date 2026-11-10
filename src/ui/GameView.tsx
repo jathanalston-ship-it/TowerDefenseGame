@@ -673,12 +673,42 @@ export function GameView({
     let lastHud = 0;
     let assimAt = 0; // wall-clock of the last Assimilation target recompute (throttle to ~8Hz)
 
+    const presentCues = (withFeel: boolean): void => {
+      // One cue path for player and sim actions. Paused purchases still sound immediately,
+      // without queuing a second burst or camera trauma for when the console closes.
+      const cues = game.drainSfx();
+      if (cues.length) {
+        const tally: Record<string, number> = {};
+        for (const c of cues) {
+          // Phenotype firing variants: a 'tfire_X:kind' cue re-keys to 'tfire_X~variant'
+          // when that kind's equipped skin carries one (sound.ts §variants); unthemed
+          // kinds strip back to the base cue. Trauma reads the base id either way.
+          let key = c;
+          let base = c;
+          const m = /^(tfire_\w+):(\w+)$/.exec(c);
+          if (m) {
+            base = m[1];
+            const th = skins.towers[m[2] as TowerKind];
+            key = th && th.sfx !== 'default' ? `${m[1]}~${th.sfx}` : m[1];
+          }
+          tally[key] = (tally[key] ?? 0) + 1;
+          if (withFeel) applyFeel(FEEL[base.indexOf('@') < 0 ? base : base.slice(0, base.indexOf('@'))]);
+        }
+        audio.cueBatch(tally);
+      }
+    };
+
     const loop = (now: number): void => {
       try {
         // Paused: keep the loop alive (so resume is instant) but skip the sim + render. Advancing
         // `last` here means resume doesn't fast-forward by the whole pause duration. The canvas
         // keeps its last-drawn frame; the React PAUSED overlay covers the board.
-        if (pausedRef.current || tutPausedRef.current) { last = now; raf = requestAnimationFrame(loop); return; }
+        if (pausedRef.current || tutPausedRef.current) {
+          presentCues(false);
+          last = now;
+          raf = requestAnimationFrame(loop);
+          return;
+        }
         const dt = (now - last) / 1000;
         last = now;
         telemetry.fpsTick(dt); // O(1) histogram bump — the session's FPS summary lane
@@ -696,27 +726,7 @@ export function GameView({
           hiveReportSeen.current = game.hiveReport.serial;
           setHiveTicker({ at: Date.now(), lines: game.hiveReport.actions.map((a) => a.label), spent: game.hiveReport.spent });
         }
-        // Drain presentation cues → audio + screen-shake trauma.
-        const cues = game.drainSfx();
-        if (cues.length) {
-          const tally: Record<string, number> = {};
-          for (const c of cues) {
-            // Phenotype firing variants: a 'tfire_X:kind' cue re-keys to 'tfire_X~variant'
-            // when that kind's equipped skin carries one (sound.ts §variants); unthemed
-            // kinds strip back to the base cue. Trauma reads the base id either way.
-            let key = c;
-            let base = c;
-            const m = /^(tfire_\w+):(\w+)$/.exec(c);
-            if (m) {
-              base = m[1];
-              const th = skins.towers[m[2] as TowerKind];
-              key = th && th.sfx !== 'default' ? `${m[1]}~${th.sfx}` : m[1];
-            }
-            tally[key] = (tally[key] ?? 0) + 1;
-            applyFeel(FEEL[base.indexOf('@') < 0 ? base : base.slice(0, base.indexOf('@'))]);
-          }
-          audio.cueBatch(tally);
-        }
+        presentCues(true);
         traumaRef.current = Math.max(0, traumaRef.current - SHAKE_DECAY * dt);
 
         // ── Hive vital audio (docs/HIVE-SIEGE.md §audio): a GROAN as each damage state fails

@@ -146,7 +146,6 @@ export function HeroEvolutionPanel({
     const powerBefore = meta.powerWith(game.powerEffects()).score;
     const cat = HERO_EVO_CATEGORIES.find((c) => c.id === id)!;
     if (!game.buyHeroEvolution(id)) return false;
-    audio.cue('splice');
     announcePower('Hero Evolution', powerBefore, meta.powerWith(game.powerEffects()).score);
     const lvl = game.heroEvoLevelsView()[id] ?? 0; // multi-buy can advance several levels before HUD refresh
     const gain = cat.op === 'mul' ? pct(Math.abs(cat.perLevel)) : pct(cat.perLevel);

@@ -29,6 +29,10 @@ export const RELEASES: Release[] = [
       {
         "cat": "UI",
         "text": "Switching champions in the Hero Combat Console now shows recovery, shield, and actual ability countdown for the selected hero. Heroes without a basic attack no longer display an infinite attack rate. Use arrow keys, Home, and End to move between roster tabs."
+      },
+      {
+        "cat": "Audio",
+        "text": "Hero upgrades give immediate purchase feedback while the console is paused, without replaying those sounds when you resume. Conveyor strain purchases also avoid duplicate sound feedback."
       }
     ]
   },

@@ -205,3 +205,7 @@ Shared purchase hook standalone browser check also PASS (Evolution HQ call patte
 After verified checkpoint 0bdad42e: HeroEvolutionPanel only — selected-hero recovery/shield/readiness/countdown, roving keyboard tabs and zero-interval attack-rate display. Chrome three-hero probe PASS for independent 19s/7s recovery, secondary READY, shield42, 4.2s rounded to5s, Arrow/Home/End/wrapping/ARIA association; 390x844 screenshot inspected and Close clickable. Found Infinity attack-rate display for Overseer and corrected to no-basic-attack dash; probe rerun PASS. Core/render evolution 19 tests PASS.
 
 Selected-hero follow-up final production build PASS; corrected 390x844 screenshot re-inspected. Full checkpoint evidence remains applicable to unchanged gameplay code; this UI delta has its dedicated multi-hero browser checks.
+
+Purchase-audio follow-up: Chrome dispatcher probe PASS for paused single purchase exactly once, multi-buy tally, frozen simulation time, and no replay after console Close. GameView uses one shared queue drain (paused path without camera trauma); duplicate direct hero/conveyor splice cues removed. Synths/mix unchanged. Golden/strainVerbs/strains/heroEvolution: 4 files, 68 tests PASS.
+
+Audio-routing follow-up final production build PASS. Full 3150-test/nine-viewport checkpoint preceded the hero-readout and audio-only follow-ups; both deltas have focused browser/regression checks.
