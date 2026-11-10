@@ -2049,3 +2049,7 @@ v2026.11.10.14 Clearer Help and Previews sealed with8notes, generated into websi
 ## 2026-11-10 22:36 UTC — .14 deployed and verified
 
 LIVE v2026.11.10.14 Clearer Help and Previews,8notes. SHA9060e09a7e98ae12c569b0dca8e137eed2012a00; Actions42915852269/job130177928821 passed including exact-commit production guard. Normal public game/home/news and all8notes verified22:36UTC, asset /assets/play-OJ1qam35.js. No cache-bypass needed. Game and website updated together. Final gates:3194tests/354files159.24s; build7.56s; original27nav/nine gameplay mobile profiles passed. Goal remains active; next approximate deployment23:35–23:40UTC. This post-deployment record is a local docs-only commit.
+
+## 2026-11-10 22:48 UTC — portable validation launcher
+
+Replaced npm/npx shim spawning with process.execPath and installed JS CLI paths, shell:false. Unchanged full suite bounded to2workers/1minimum. Launch errors, signals and nonzero status now reported with12tail lines. Parent diagnostic probe passed real success, nonzero child and missing executable. End-to-end npm run validate50536 passed typecheck,3194tests, original build-and-mobile gate and doc checks; generated VALIDATION_REPORT.md now PASS. Local Chrome environment/preload documented in handoff; all processes terminal. No game changes or new public release; live remains .14 verified22:36UTC.

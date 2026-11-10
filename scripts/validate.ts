@@ -37,17 +37,20 @@ const ring = new Set<string>();
 for (const id of direct.keys()) for (const c of consumersOf(id)) if (!direct.has(c.id)) ring.add(c.id);
 
 // ── Run the verification suite. ──
-const sh = (cmd: string, arg: string[]): { ok: boolean; tail: string } => {
-  const r = spawnSync(cmd, arg, { cwd: REPO_ROOT, encoding: 'utf8', shell: false, maxBuffer: 64 * 1024 * 1024 });
-  const out = (r.stdout ?? '') + (r.stderr ?? '');
-  return { ok: r.status === 0, tail: out.trim().split('\n').slice(-3).join('\n') };
+// Run installed JavaScript CLIs directly: Windows npm/npx shims are not executables.
+const runNode = (script: string, arg: string[]): { ok: boolean; tail: string } => {
+  const r = spawnSync(process.execPath, [join(REPO_ROOT, script), ...arg], { cwd: REPO_ROOT, encoding: 'utf8', shell: false, maxBuffer: 64 * 1024 * 1024 });
+  const diagnostic = r.error ? `Launch error: ${r.error.message}`
+    : r.signal ? `Terminated by signal: ${r.signal}` : r.status !== 0 ? `Exit status: ${r.status}` : '';
+  const out = [r.stdout ?? '', r.stderr ?? '', diagnostic].filter(Boolean).join('\n');
+  return { ok: !r.error && r.status === 0, tail: out.trim().split('\n').slice(-12).join('\n') };
 };
 console.log('validate: typecheck…');
-const tc = sh('npx', ['tsc', '--noEmit', '-p', 'tsconfig.json']);
+const tc = runNode('node_modules/typescript/bin/tsc', ['--noEmit', '-p', 'tsconfig.json']);
 console.log('validate: test suite (goldens / save / power / stress)…');
-const tests = sh('npx', ['vitest', 'run', '--silent']);
+const tests = runNode('node_modules/vitest/vitest.mjs', ['run', '--silent', '--maxWorkers=2', '--minWorkers=1']);
 console.log('validate: mobile layout gate (390/320px, every screen)…');
-const mobile = sh('npm', ['run', 'mobilecheck']); // builds + probes; docs/RESPONSIVE-DESIGN.md
+const mobile = runNode('node_modules/vite-node/vite-node.mjs', ['scripts/mobilecheck.ts']); // builds + probes; docs/RESPONSIVE-DESIGN.md
 const anchors = anchorProblems();
 const dead = deadDocPaths();
 

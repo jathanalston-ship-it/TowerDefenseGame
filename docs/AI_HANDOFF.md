@@ -4,22 +4,22 @@
 > before committing. Read together with docs/PROJECT_STATUS.md and the latest
 > docs/VALIDATION_REPORT.md. Next session: start at docs/PROJECT_MANIFEST.md.
 
-- **Generated:** 2026-11-10 22:27 UTC · **Diff scope:** working tree vs HEAD
-- **Branch:** codex/hive-autoplay · **HEAD:** 98802f15
+- **Generated:** 2026-11-10 22:45 UTC · **Diff scope:** working tree vs HEAD
+- **Branch:** codex/hive-autoplay · **HEAD:** 98be43b6
 
 ## Summary of work completed
 
-LIVE v2026.11.10.14 Clearer Help and Previews,8notes. SHA9060e09a7e98ae12c569b0dca8e137eed2012a00; Actions42915852269/job130177928821 passed including exact-commit production guard. Normal public game/home/news and all8notes verified22:36UTC, asset /assets/play-OJ1qam35.js. No cache-bypass needed. Final suite20592 passed3194tests/354files159.24s; build86909 passed7.56s Vite, SWmwb9ev4e; original mobile59018 passed27nav+nine gameplay profiles/drawer/rotation/run-chrome. Docs and handoff passed. All processes terminal. Eight UI improvements documented below. Goal active; next approximate deployment23:35–23:40UTC.
+LOCAL tooling fix: scripts/validate.ts launches installed JS CLIs with process.execPath and shell:false; bounded2workers/1minimum runs the unchanged full suite. Launch errors/signals/nonzero exits now appear in12-line diagnostics. Parent portable-validation-launch-check.cjs passed actual CLI success/nonzero/missing-executable scenarios. End-to-end npm run validate50536 PASS at22:48UTC: typecheck,3194tests, original build-and-mobile gate, doc anchors and references; new generated VALIDATION_REPORT.md is authoritative. Raw output portable-validation.log; prior report preserved portable-validation-prior-report.log and git history. Docs82775 and handoff passed. All processes terminal. LIVE remains .14 SHA9060e09a7e98ae12c569b0dca8e137eed2012a00; Actions42915852269 passed and normal public game/home/news8notes verified22:36UTC. Goal active, next approximate deployment23:35–23:40UTC.
 
 ## Files modified
 
-- Source (1): `src/changelog/releases.gen.ts`
+- Source (0): —
 - Tests (0): —
-- Docs (3): `docs/HISTORY.md`, `docs/devlog/DRAFT-2026-11-09.md`, `docs/devlog/DRAFT-2026-11-10.md`
+- Docs (4): `docs/PROJECT_MANIFEST.md`, `docs/SCALABILITY.md`, `docs/devlog/DRAFT-2026-11-09.md`, `docs/devlog/DRAFT-2026-11-10.md`
 
 ## Systems affected (from the dependency registry)
 
-- **chronicle** — `src/changelog/releases.gen.ts`
+- (no registered source files in this diff)
 
 ## Power Score changes
 
@@ -27,11 +27,11 @@ None. Search presentation only; progression, rewards and simulation unchanged.
 
 ## UI changes
 
-Eight verified improvements: Help search recovery; graft and Nucleus preview live-motion/visibility lifecycle; reforge viewport/focus and live motion; reward reveal/count-up live motion; Nucleus socket selection/action focus; Nucleus chamber confirmation focus. Parent browser probes and focused tests documented in PROJECT_STATUS and VALIDATION_REPORT. No gameplay, cost, save or balance changes.
+None in this tooling-only change. Static candidate for next browser audit: inline Complete class adaptation ceremony at MulliganLab.tsx around584 uses no Popup portal or focus lifecycle; confirm actual behavior before editing.
 
 ## Documentation changes
 
-Owner docs and manifest updated with each improvement. Eight curated website and game notes sealed and generated. No new help/mechanic/audio registration needed.
+PROJECT_MANIFEST.md and SCALABILITY.md document direct Node launch, bounded workers and failure diagnostics. No game/player-facing changes or new release notes in this tooling-only commit.
 
 ## Save changes
 
@@ -39,15 +39,15 @@ None — save layer untouched.
 
 ## Known edge cases
 
-Existing Windows validate wrapper spawnSync npx shell:false fails ENOENT; raw failed wrapper report/log preserved, direct build/full suite/docs/original mobile all passed. No current deployment blocker. Preserve both untracked devlog drafts.
+Local Chrome uses MOBILECHECK_CHROMIUM=C:/Program Files/Google/Chrome/Application/chrome.exe and NODE_OPTIONS=--require="C:/Users/lego1/OneDrive/Documents/ChatGPT/Assimilation/chrome-probe-compat.cjs" for the installed Playwright old-headless incompatibility. These are local process environment values, not repository behavior. The validation launcher itself is now verified end-to-end on Windows. No active processes. Preserve both untracked devlog drafts.
 
 ## Remaining technical debt
 
-No new debt. Existing Windows validation launcher issue. Two untracked devlog drafts remain unpublished/unstaged.
+Windows npm/npx-launch defect resolved and verified. Installed Chrome/Playwright compatibility preload remains a local environment workaround. No game changes in this tooling-only commit.
 
 ## Recommended next tasks
 
-Continue evidence-led improvements across playability, clarity, accessibility and presentation without gameplay/balance changes. All current work is live. Next approximate deployment23:35–23:40UTC, with website notes. Potential follow-up: make the validation launcher cross-platform so it can run existing gates on Windows; current ENOENT is a launcher defect, not a test failure. Seal/generate/final build/mobile before next release and verify exact-SHA plus normal public URLs.
+Inspect the inline Complete class adaptation ceremony (MulliganLab.tsx around584) in the actual browser before editing: it currently has no Popup/focus lifecycle. Continue player-facing improvements and approximately hourly deployments with website notes. Next approximate deployment23:35–23:40UTC. The normal validator now works with the local Chrome environment noted above; run it for subsequent major changes. Preserve unpublished devlog drafts.
 
 ## Future expansion hooks
 
