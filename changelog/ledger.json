@@ -1,6 +1,6 @@
 {
-  "lastSha": "b684a2b7a01993fceb849076c1eeb8d760b7df15",
-  "commitsSinceDraft": 0,
+  "lastSha": "aaaddf1b8f7848a68abc8b91df6d960f0ff5a3b7",
+  "commitsSinceDraft": 1,
   "content": {
     "tower": [
       "needle",
@@ -4279,6 +4279,10 @@
         {
           "cat": "Visuals",
           "text": "Reduced motion keeps hero upgrade results visible instead of fading them away instantly. Rapid purchases show the latest gain clearly, and Power and Mastery notices stay still under both device and in-game motion settings."
+        },
+        {
+          "cat": "Visuals",
+          "text": "Hero symbiote previews pause when off-screen or the page is hidden, and respond immediately to motion-preference changes. Tower previews now follow the in-game motion override too. Reduced-motion hero portraits retain their artwork without spinning decorations."
         }
       ]
     }
@@ -9385,6 +9389,14 @@
       "date": "2026-11-09",
       "cat": "Framework",
       "text": "Docs: record verified progress release",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "aaaddf1b8f7848a68abc8b91df6d960f0ff5a3b7",
+      "date": "2026-11-09",
+      "cat": "UI",
+      "text": "Ui: verify readable reduced motion feedback",
       "internal": true,
       "needsReview": false
     }

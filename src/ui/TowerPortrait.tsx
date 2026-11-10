@@ -12,6 +12,7 @@ import { hexRgb, rgba } from '../render/theme';
 import { drawBranchPortrait, evolutionGrowth } from '../render/towerEvolution';
 import { drawStarEvolution, starEvolutionGrowth } from '../render/starEvolution';
 import type { TowerKind } from '../core/types';
+import { motionPrefs, onMotionPrefs, resolveMotion } from '../state/prefs';
 import './TowerPortrait.css';
 
 function drawPortrait(
@@ -77,6 +78,7 @@ export function TowerPortrait({
     canvas.height = size * dpr;
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     const motion = window.matchMedia?.('(prefers-reduced-motion: reduce)');
+    let prefs = motionPrefs();
     let raf = 0;
     let visible = true;
     let elapsed = 0;
@@ -90,7 +92,7 @@ export function TowerPortrait({
     const sync = (): void => {
       cancelAnimationFrame(raf);
       previous = null; // resuming a scrolled-away portrait never jumps its animation clock
-      if (motion?.matches) {
+      if (resolveMotion(prefs, motion?.matches ?? false).motion === 0) {
         drawPortrait(ctx, size, size, color, stars, 0, kind, branchId, tier);
       } else if (visible && !document.hidden) raf = requestAnimationFrame(frame);
     };
@@ -101,12 +103,14 @@ export function TowerPortrait({
       sync();
     });
     observer?.observe(canvas);
+    const offPrefs = onMotionPrefs((next) => { prefs = next; sync(); });
     motion?.addEventListener('change', sync);
     document.addEventListener('visibilitychange', sync);
     sync();
     return () => {
       cancelAnimationFrame(raf);
       observer?.disconnect();
+      offPrefs();
       motion?.removeEventListener('change', sync);
       document.removeEventListener('visibilitychange', sync);
     };

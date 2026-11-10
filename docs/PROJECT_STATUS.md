@@ -1367,3 +1367,5 @@ Audio follow-up local: purchase cues now drain during pause without advancing si
 Field-note local improvement: readable hover/focus hold, keyboard Dismiss and polite announcement. Chrome expiry/interaction/phone checks and 8 first-hour tests pass.
 
 Next local batch v2026.11.09.5: readable static upgrade/Power/Mastery feedback under reduced motion, verified by CSS and actual purchase browser probes. .4 remains the live release.
+
+Portrait preview local improvement: offscreen/hidden symbiote drawing stops, live motion changes work for hero/tower canvases, and hero CSS decorations still under reduced motion. Browser lifecycle checks and 15 rendering/motion tests pass.

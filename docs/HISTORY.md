@@ -680,3 +680,4 @@
 - `4e62318` **[UI]** Ui: verify readable field note interactions _(internal)_
 - `bfa87c5` **[Framework]** Release: ship clearer controls and progress feedback _(internal)_
 - `b684a2b` **[Framework]** Docs: record verified progress release _(internal)_
+- `aaaddf1` **[UI]** Ui: verify readable reduced motion feedback _(internal)_

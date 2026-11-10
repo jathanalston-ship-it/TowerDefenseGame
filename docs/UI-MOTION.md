@@ -100,3 +100,5 @@ each Rising separately — nested Rises double the motion and read as jank.
   the acknowledgement.
 - **Reduced motion** is honored by the existing global media query — new keyframes
   and transitions collapse automatically; no per-rule opt-out needed.
+
+Hero symbiote and tower preview canvases resolve device reduced motion plus the player override through resolveMotion and subscribe to changes. Hero CSS aura/pulse/orbit decorations have explicit still states. Offscreen/hidden preview loops stop; artwork and progression remain unchanged.

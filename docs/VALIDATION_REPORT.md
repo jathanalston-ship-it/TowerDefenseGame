@@ -231,3 +231,7 @@ Field-note final production build PASS.
 Next batch v2026.11.09.5: CSS feedback probe reproduced hcc-float opacity0 under OS reduced motion and continued notice animation under in-game setting. After fix, latest gain/Power/Mastery all animation:none opacity1 under both sources; older static floats hidden; normal animation names restored when motion enabled. Real GameView shift-buy probe PASS: one visible latest Lv5 gain, no motion, original expiry. Screenshot inspected. No sim or timing code changed.
 
 Reduced-motion feedback final production build and four website synchronization tests PASS.
+
+Portrait lifecycle follow-up: hero and tower Chrome probes PASS for visible animation, zero offscreen frames, resume, live OS still, in-game motion override/resume/re-disable, visible still pixels and unmount cleanup. One tower assertion sampled immediately after media change failed intermittently; diagnostic repeat passed, then a 300ms settling interval before measuring zero subsequent frames passed. Render symbiotes/feel: 15 tests PASS.
+
+Portrait lifecycle final production build PASS; test/dev processes completed.

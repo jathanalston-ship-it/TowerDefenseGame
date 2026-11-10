@@ -116,3 +116,5 @@ surge, plague, echo, adaptive retreat, cocoon, brood nurture) · goldens stay by
 - New HERO = two gate rows + one visual stage row (compiler + tests refuse anything less).
 - New VERB = one optional kit field + one presence-gated seam read.
 - A fourth slot / new resonance rows are data changes (`SYMBIOTE_SLOTS`, the census table).
+
+Portrait preview lifecycle: SymbioteOverlay suspends its canvas RAF while off-screen/document-hidden, follows live OS and player motion preferences, and paints a complete still when reduced. Visible animation resumes from accumulated visible time rather than jumping through hidden time. Observers, preference subscriptions and RAF are released on unmount. Battlefield rendering is unchanged.

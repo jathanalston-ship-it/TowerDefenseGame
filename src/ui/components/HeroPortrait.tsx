@@ -11,6 +11,7 @@ import { useEffect, useRef } from 'react';
 import type { CSSProperties } from 'react';
 import type { HeroDef } from '../../core/config';
 import { COMBAT_CLASSES } from '../../core/combatClass';
+import { motionPrefs, onMotionPrefs, resolveMotion } from '../../state/prefs';
 import { drawHeroSymbiotes } from '../../render/heroSymbiotes';
 import type { HeroSymbioteRender } from '../../render/heroSymbiotes';
 import './HeroPortrait.css';
@@ -27,17 +28,46 @@ function SymbioteOverlay({ def, size, view }: { def: HeroDef; size: number; view
     cv.width = size * dpr;
     cv.height = size * dpr;
     let raf = 0;
-    const still = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const motion = window.matchMedia?.('(prefers-reduced-motion: reduce)');
+    let prefs = motionPrefs();
+    let visible = true;
+    let elapsed = 0;
+    let previous: number | null = null;
     const hero = { kind: def.kind, x: size / 2, y: size / 2 };
-    const draw = (): void => {
-      const t = performance.now() / 1000;
+    const draw = (t: number): void => {
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       ctx.clearRect(0, 0, size, size);
       drawHeroSymbiotes(ctx, hero, view, size * 0.2, t, def.color, false);
-      if (!still) raf = requestAnimationFrame(draw);
     };
-    draw();
-    return () => cancelAnimationFrame(raf);
+    const frame = (now: number): void => {
+      if (previous !== null) elapsed += (now - previous) / 1000;
+      previous = now;
+      draw(elapsed);
+      raf = requestAnimationFrame(frame);
+    };
+    const sync = (): void => {
+      cancelAnimationFrame(raf);
+      previous = null;
+      if (resolveMotion(prefs, motion?.matches ?? false).motion === 0) draw(0);
+      else if (visible && !document.hidden) raf = requestAnimationFrame(frame);
+    };
+    draw(0);
+    const observer = typeof IntersectionObserver === 'undefined' ? null : new IntersectionObserver(([entry]) => {
+      visible = entry.isIntersecting;
+      sync();
+    });
+    observer?.observe(cv);
+    const offPrefs = onMotionPrefs((next) => { prefs = next; sync(); });
+    motion?.addEventListener('change', sync);
+    document.addEventListener('visibilitychange', sync);
+    sync();
+    return () => {
+      cancelAnimationFrame(raf);
+      observer?.disconnect();
+      offPrefs();
+      motion?.removeEventListener('change', sync);
+      document.removeEventListener('visibilitychange', sync);
+    };
   }, [def.kind, def.color, size, view.stage, view.resonant, view.fx.join(',')]);
   return (
     <canvas

@@ -9,6 +9,10 @@
       {
         "cat": "Visuals",
         "text": "Reduced motion keeps hero upgrade results visible instead of fading them away instantly. Rapid purchases show the latest gain clearly, and Power and Mastery notices stay still under both device and in-game motion settings."
+      },
+      {
+        "cat": "Visuals",
+        "text": "Hero symbiote previews pause when off-screen or the page is hidden, and respond immediately to motion-preference changes. Tower previews now follow the in-game motion override too. Reduced-motion hero portraits retain their artwork without spinning decorations."
       }
     ]
   },
