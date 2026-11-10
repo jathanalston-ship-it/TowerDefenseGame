@@ -1,6 +1,6 @@
 {
-  "lastSha": "205a8c49d45f285a26b78dc58da60f93afa08f9a",
-  "commitsSinceDraft": 3,
+  "lastSha": "88943a63c43d3764b97c4418c994d7088f5321b8",
+  "commitsSinceDraft": 4,
   "content": {
     "tower": [
       "needle",
@@ -4311,6 +4311,10 @@
         {
           "cat": "Audio",
           "text": "Sound-effect volume and mute changes fade smoothly over a brief instant, avoiding abrupt cuts during playback. Rapid slider changes follow your latest setting, and adjusting the level while muted keeps the game quiet."
+        },
+        {
+          "cat": "Audio",
+          "text": "The music slider now takes priority over an earlier automatic fade. Turning music down to zero stays silent instead of having an old recovery fade bring the volume back up."
         }
       ]
     }
@@ -9521,6 +9525,14 @@
       "date": "2026-11-09",
       "cat": "Framework",
       "text": "Docs: record verified feedback deployment",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "88943a63c43d3764b97c4418c994d7088f5321b8",
+      "date": "2026-11-09",
+      "cat": "Audio",
+      "text": "Smooth sound-effect volume transitions",
       "internal": true,
       "needsReview": false
     }

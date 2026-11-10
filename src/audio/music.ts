@@ -782,7 +782,16 @@ class MusicManager {
   /** The player's Music volume, 0..1 (1 = the designed level, MUSIC_LEVEL). */
   setVolume(v: number): void {
     this.volume = MUSIC_LEVEL * Math.min(1, Math.max(0, v));
-    if (this.master && this.ctx) this.master.gain.linearRampToValueAtTime(this.volume * (1 + 0.22 * this.duress), this.ctx.currentTime + 0.1);
+    if (this.master && this.ctx) {
+      const gain = this.master.gain;
+      const now = this.ctx.currentTime;
+      const current = gain.value;
+      // A scheduled duck recovery must never restore an older player volume.
+      if (typeof gain.cancelAndHoldAtTime === 'function') gain.cancelAndHoldAtTime(now);
+      else gain.cancelScheduledValues(now);
+      gain.setValueAtTime(current, now);
+      gain.linearRampToValueAtTime(this.volume * (1 + 0.22 * this.duress), now + 0.1);
+    }
   }
 
   setEnabled(on: boolean): void {

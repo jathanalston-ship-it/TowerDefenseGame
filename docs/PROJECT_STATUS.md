@@ -1401,3 +1401,7 @@ LIVE ~05:38UTC Nov10: v2026.11.09.5 Feedback That Stays Readable, commitfa4f78bc
 New local batch .6 Sound That Responds Smoothly; .5 sealed/live. First change:20ms SFX volume/mute ramps verified by real offline audio samples, including rapid changes and fallback. One Audio website note prepared.
 
 .6 SFX smoothing final build and website synchronization PASS; local checkpoint ready. .5 remains live, next deployment around06:38UTC.
+
+.6 music slider now supersedes older duck/duress recovery. Real audio rendering reproduces/fixes zero-volume rebound; rapid settings and fallback PASS,42 audio tests PASS. Second Audio website note prepared.
+
+.6 music slider final build and website checks PASS; two audio improvements saved locally. .5 remains live; next deployment around06:38UTC.

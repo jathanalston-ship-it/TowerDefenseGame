@@ -277,3 +277,7 @@ Local .6 SFX control smoothing: OfflineAudioContext rendering of real master rep
 Audio sound/music/cues42 tests PASS after anchored fade. Build initially found Array.at in new test outside project TS lib; replaced with indexed access and rebuilt. Behavioral audio implementation unchanged by test compatibility correction.
 
 SFX control final production build PASS (Vite7.20s,87703 exited0). Sound11 + websiteSync4 tests re-PASS after test compatibility correction. All processes terminal.
+
+.6 music slider bug reproduced through real OfflineAudioContext: duck recovery scheduled before setVolume(0) restored audible output0.296109 at1.5s. Fix cancels old automation and anchors a100ms ramp; measured output stays0. Sequence check changing20% then0% stays0;20% then80% with duress0.8 reaches expected gain0.658559989 (observed0.658559978). Native/fallback both PASS. Sound/music/cues42 tests PASS. No compositions, mix levels or gameplay changes.
+
+Music slider final production build PASS (Vite8.57s,45854 exited0), websiteSync4 PASS. All task processes terminal.

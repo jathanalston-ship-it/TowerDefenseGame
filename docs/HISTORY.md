@@ -693,3 +693,4 @@
 - `08fcaff` **[UI]** Ui: close drawer on current destination selection _(internal)_
 - `fa4f78b` **[Framework]** Release: ship readable feedback and accessible ceremonies _(internal)_
 - `205a8c4` **[Framework]** Docs: record verified feedback deployment _(internal)_
+- `88943a6` **[Audio]** Smooth sound-effect volume transitions _(internal)_

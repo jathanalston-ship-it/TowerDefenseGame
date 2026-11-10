@@ -13,6 +13,10 @@ export const RELEASES: Release[] = [
       {
         "cat": "Audio",
         "text": "Sound-effect volume and mute changes fade smoothly over a brief instant, avoiding abrupt cuts during playback. Rapid slider changes follow your latest setting, and adjusting the level while muted keeps the game quiet."
+      },
+      {
+        "cat": "Audio",
+        "text": "The music slider now takes priority over an earlier automatic fade. Turning music down to zero stays silent instead of having an old recovery fade bring the volume back up."
       }
     ]
   },
