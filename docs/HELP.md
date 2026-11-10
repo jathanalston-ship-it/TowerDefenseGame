@@ -85,3 +85,5 @@ Defense, Adaptation/Antigen, and in-run Hero Evolution.
 
 ### Search and related-topic navigation
 Search normalizes punctuation/spacing and searches all What/Why/Where/Next/Watch out text plus titles, summaries and categories. Exact title/summary/body phrases rank before results whose query words span sections. All query words must match. Each query change selects the best result; related links clear the filter and focus their opened article. Unlocked-topic gating remains unchanged.
+
+What's New keyboard access: a visible queue captures its opener once. Each card focuses Got it, Tab stays inside the dialog (including the named explanation/list), and Escape uses the same acknowledgement as Got it. Closing the queue or unmounting restores a connected opener. Single cards include the mechanic title in the accessible dialog name; card identity follows the mechanic so the next card receives fresh focus.

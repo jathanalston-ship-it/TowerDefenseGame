@@ -4,8 +4,8 @@
 > before committing. Read together with docs/PROJECT_STATUS.md and the latest
 > docs/VALIDATION_REPORT.md. Next session: start at docs/PROJECT_MANIFEST.md.
 
-- **Generated:** 2026-11-10 13:39 UTC · **Diff scope:** working tree vs HEAD
-- **Branch:** codex/hive-autoplay · **HEAD:** 97b70426
+- **Generated:** 2026-11-10 13:44 UTC · **Diff scope:** working tree vs HEAD
+- **Branch:** codex/hive-autoplay · **HEAD:** ea2eece3
 
 ## Summary of work completed
 
@@ -13,13 +13,15 @@ LIVE v2026.11.10.3 Progress Explained with eight sealed website notes. SHA8bca53
 
 ## Files modified
 
-- Source (2): `src/changelog/releases.gen.ts`, `src/ui/UpdateBriefing.tsx`
+- Source (2): `src/changelog/releases.gen.ts`, `src/ui/WhatsNew.tsx`
 - Tests (0): —
-- Docs (7): `docs/CHANGELOG-PIPELINE.md`, `docs/HISTORY.md`, `docs/PROJECT_MANIFEST.md`, `docs/PROJECT_STATUS.md`, `docs/VALIDATION_REPORT.md`, `docs/devlog/DRAFT-2026-11-09.md`, `docs/devlog/DRAFT-2026-11-10.md`
+- Docs (8): `docs/GUIDED-UNLOCKS.md`, `docs/HELP.md`, `docs/HISTORY.md`, `docs/PROJECT_MANIFEST.md`, `docs/PROJECT_STATUS.md`, `docs/VALIDATION_REPORT.md`, `docs/devlog/DRAFT-2026-11-09.md`, `docs/devlog/DRAFT-2026-11-10.md`
 
 ## Systems affected (from the dependency registry)
 
-- **chronicle** — `src/changelog/releases.gen.ts`, `src/ui/UpdateBriefing.tsx`
+- **chronicle** — `src/changelog/releases.gen.ts`
+- **onboarding** — `src/ui/WhatsNew.tsx`
+- Consumer ring (verify, unchanged): progression-gating
 
 ## Power Score changes
 
@@ -47,7 +49,7 @@ Windows validate wrapper cannot launch npx/npm with shell:false; use direct gate
 
 ## Recommended next tasks
 
-Continue the active improvement goal. Local v2026.11.10.4 Clearer Briefings has one unsealed note: keyboard lifecycle and scrolling access in UpdateBriefing. Browser probe ../briefing-keyboard-check.cjs PASS; final build10.26s,8patchNotes/site tests,docs PASS. All processes terminal. Next approximate deployment14:33UTC with full release gates and website notes. Current live remains8bca53e6 (.10.3), verified13:33UTC. Keep the two untracked devlog drafts unpublished.
+Continue active improvement goal. Local v2026.11.10.4 Clearer Briefings has two unsealed notes: UpdateBriefing keyboard lifecycle/scrolling and WhatsNew single/queued/batch focus/keyboard access. Both browser probes PASS; latest build16.80s,42mechanics/unlocks/guided/text/site tests,docs PASS. All processes terminal. Next approximate deployment14:33UTC with full release gates and website notes. Live remains8bca53e6 (.10.3), verified13:33UTC. Keep two untracked devlog drafts unpublished.
 
 ## Future expansion hooks
 

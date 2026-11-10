@@ -96,3 +96,5 @@ anti-wordiness contract, Foundation help rows are core). Live headless E2E: card
 guide → real crack advanced it → +15 Cores → ceremony free → home return.
 
 Field-note reading accessibility: hovered or keyboard-focused notes suspend their retirement timer. Leaving both states gives the normal hold interval again. A native 44px Dismiss button is reachable without autofocus; the note text uses a polite status announcement. Tap-anywhere dismissal, draft retirement, archive-on-show, pacing and gameplay remain unchanged.
+
+Keyboard batching: the summary shares the queue's focus session. Got it is focused initially; its list is focusable for native arrow-key scrolling, Tab is contained, and Escape settles the same batch/specimen reveal queue as Got it. Open continues to archive, navigate, then arm any guide in that order.

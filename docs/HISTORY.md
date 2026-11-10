@@ -738,3 +738,4 @@
 - `8bca53e` **[UI]** Release: publish Progress Explained with eight notes _(internal)_
 - `35a8153` **[Framework]** Docs: record verified Progress Explained deployment _(internal)_
 - `97b7042` **[Framework]** Docs: align next release window with verification time _(internal)_
+- `ea2eece` **[UI]** Ui: make update briefings keyboard readable _(internal)_

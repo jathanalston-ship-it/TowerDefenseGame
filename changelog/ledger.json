@@ -1,6 +1,6 @@
 {
-  "lastSha": "97b70426fca84ffd2813703e62c00099a373a37b",
-  "commitsSinceDraft": 6,
+  "lastSha": "ea2eece36de4235202dd4cc7bedc07cba53974f3",
+  "commitsSinceDraft": 7,
   "content": {
     "tower": [
       "needle",
@@ -4479,6 +4479,10 @@
         {
           "cat": "UI",
           "text": "Update briefings now keep keyboard focus inside the dialog, return focus when dismissed, and support Escape. Release highlights and changes can be focused and scrolled with the keyboard, while new-player and mechanic-introduction priorities stay unchanged."
+        },
+        {
+          "cat": "UI",
+          "text": "New-system introductions now keep keyboard focus inside each card and move it to the next queued introduction. Escape acknowledges the current card or batch, scrolling lists are keyboard-accessible, and closing the queue restores the original control."
         }
       ]
     }
@@ -10033,6 +10037,14 @@
       "date": "2026-11-10",
       "cat": "Framework",
       "text": "Docs: align next release window with verification time",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "ea2eece36de4235202dd4cc7bedc07cba53974f3",
+      "date": "2026-11-10",
+      "cat": "UI",
+      "text": "Ui: make update briefings keyboard readable",
       "internal": true,
       "needsReview": false
     }

@@ -823,3 +823,5 @@ Reward-stack focus: dismissals capture the active stack control; after removal, 
 Update briefing presentation: ui/UpdateBriefing.css gives secondary release actions 44px minimum touch targets; see CHANGELOG-PIPELINE.md.
 
 Update briefing keyboard lifecycle (ui/UpdateBriefing.tsx): visibility-based initial/restored focus, local Escape, contained Tab and focusable note regions; CHANGELOG-PIPELINE.md documents the behavior.
+
+Mechanic introductions (ui/WhatsNew.tsx): one focus session across queued/summarized unlock cards, per-card dismiss focus and contained Tab/Escape; HELP.md and GUIDED-UNLOCKS.md document keyboard and settlement behavior.

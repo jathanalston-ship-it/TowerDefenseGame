@@ -9,6 +9,10 @@
       {
         "cat": "UI",
         "text": "Update briefings now keep keyboard focus inside the dialog, return focus when dismissed, and support Escape. Release highlights and changes can be focused and scrolled with the keyboard, while new-player and mechanic-introduction priorities stay unchanged."
+      },
+      {
+        "cat": "UI",
+        "text": "New-system introductions now keep keyboard focus inside each card and move it to the next queued introduction. Escape acknowledges the current card or batch, scrolling lists are keyboard-accessible, and closing the queue restores the original control."
       }
     ]
   },
