@@ -4,10 +4,12 @@
 > before committing. Read together with docs/PROJECT_STATUS.md and the latest
 > docs/VALIDATION_REPORT.md. Next session: start at docs/PROJECT_MANIFEST.md.
 
-- **Generated:** 2026-11-10 21:12 UTC · **Diff scope:** working tree vs HEAD
-- **Branch:** codex/hive-autoplay · **HEAD:** 12982a9d
+- **Generated:** 2026-11-10 21:15 UTC · **Diff scope:** working tree vs HEAD
+- **Branch:** codex/hive-autoplay · **HEAD:** fd2a2d79
 
 ## Summary of work completed
+
+Quest Claim all baseline dropped focus to BODY after real batch reward claim. Added programmatically focusable board heading and focus transfer only when the batch button was focused and at least one existing claim succeeded. No extra Tab stop, no change to batch contents/finale exclusion. ../quest-batch-focus-check.cjs PASS rejection preserves focus, actual batch claims, heading focus, Tab continuation and320/844 layouts; individual ../quest-claim-focus-check.cjs also rerun PASS. Initial probe locator anchored Claim all text and missed its accessible-name prefix; corrected to actual .qb-claimall control before reproducing baseline.45quest/UI/site tests PASS3.51s; docs/handoff21221 PASS; build8545 PASS10.89s, SWmwb6wxnb, quest-batch-focus-build.log. All processes terminal. Existing .13 note expanded to cover both individual and batch keyboard continuity.
 
 LOCAL unsealed v2026.11.10.13 Smoother Quest Claims has one generated website/game note. Quest mission keyboard baseline dropped focus to BODY after real Enter claim. MissionRow is now a named programmatically focusable group; claimMission reports existing meta success, and successful focused claims move focus to the persistent row before its button disappears. Rejected claims retain button focus. ../quest-claim-focus-check.cjs PASS real success, simulated rejection, Tab continuation, existing reward/progress labels and320/844 layouts;320 screenshot inspected. Initial edit missed two CRLF-sensitive replacements and probe10021 timed out; corrected source, final probes passed.45quest/UI/site tests PASS2.53s; docs/handoff86371 PASS; build39065 PASS9.84s, SWmwb6s3nm, quest-claim-focus-build.log. All processes terminal. LIVE remains .12 Clearer Progress and Gear, SHA73b564bbe72b1d9edf7741283b09679ee6d40c30, normal public URLs verified21:08UTC after Actions42901613298 succeeded. Next approximate deployment22:10UTC. Goal remains active.
 
@@ -27,6 +29,8 @@ LOCAL unsealed v2026.11.10.13 Smoother Quest Claims has one generated website/ga
 None. Claim eligibility, rewards, power and simulation unchanged.
 
 ## UI changes
+
+Quest Claim all baseline dropped focus to BODY after real batch reward claim. Added programmatically focusable board heading and focus transfer only when the batch button was focused and at least one existing claim succeeded. No extra Tab stop, no change to batch contents/finale exclusion. ../quest-batch-focus-check.cjs PASS rejection preserves focus, actual batch claims, heading focus, Tab continuation and320/844 layouts; individual ../quest-claim-focus-check.cjs also rerun PASS. Initial probe locator anchored Claim all text and missed its accessible-name prefix; corrected to actual .qb-claimall control before reproducing baseline.45quest/UI/site tests PASS3.51s; docs/handoff21221 PASS; build8545 PASS10.89s, SWmwb6wxnb, quest-batch-focus-build.log. All processes terminal. Existing .13 note expanded to cover both individual and batch keyboard continuity.
 
 Quest mission keyboard baseline dropped focus to BODY after real Enter claim. MissionRow is now a named programmatically focusable group; claimMission reports existing meta success, and successful focused claims move focus to the persistent row before its button disappears. Rejected claims retain button focus. ../quest-claim-focus-check.cjs PASS real success, simulated rejection, Tab continuation, existing reward/progress labels and320/844 layouts;320 screenshot inspected. Initial edit missed two CRLF-sensitive replacements and probe10021 timed out; corrected source, final probes passed.45quest/UI/site tests PASS2.53s; docs/handoff86371 PASS; build39065 PASS9.84s, SWmwb6s3nm, quest-claim-focus-build.log. All processes terminal.
 

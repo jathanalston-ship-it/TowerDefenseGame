@@ -1,6 +1,6 @@
 {
-  "lastSha": "12982a9d0cef31d5bf35a9b10887cbe14f301d8f",
-  "commitsSinceDraft": 3,
+  "lastSha": "fd2a2d79eee8a163538a8c58e9f5596d9d3df30d",
+  "commitsSinceDraft": 4,
   "content": {
     "tower": [
       "needle",
@@ -4722,7 +4722,7 @@
       "entries": [
         {
           "cat": "UI",
-          "text": "After a successful quest mission claim, keyboard focus stays on the completed mission so Tab continues through the board. Unsuccessful claims keep focus on their button, and the completed mission remains clearly identified."
+          "text": "Quest claims preserve your keyboard position: individual claims keep focus on the completed mission, and Claim all returns it to the Quest Board heading so Tab continues through the board. Unsuccessful claims keep focus on their button."
         }
       ]
     }
@@ -10837,6 +10837,14 @@
       "date": "2026-11-10",
       "cat": "Framework",
       "text": "Docs: record verified clearer progress deployment",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "fd2a2d79eee8a163538a8c58e9f5596d9d3df30d",
+      "date": "2026-11-10",
+      "cat": "UI",
+      "text": "Ui: preserve keyboard position after quest claims",
       "internal": true,
       "needsReview": false
     }

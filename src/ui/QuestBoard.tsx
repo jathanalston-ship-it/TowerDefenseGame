@@ -137,6 +137,7 @@ export function QuestBoard(): JSX.Element {
 }
 
 function QuestDirectives(): JSX.Element {
+  const headingRef = useRef<HTMLHeadingElement>(null);
   meta.use(); // re-render on credits / claims
   const [now, setNow] = useState(() => Date.now());
   const [burst, setBurst] = useState<{ x: number; y: number; lines: { icon: string; label: string }[]; big: boolean; key: number } | null>(null);
@@ -197,18 +198,20 @@ function QuestDirectives(): JSX.Element {
     + (wk.finaleClaimable && !wk.completionClaimed ? 1 : 0)
     + (activeChapter?.finaleClaimable ? 1 : 0);
   const claimAllMissions = (e: React.MouseEvent): void => {
+    const focused = document.activeElement === e.currentTarget;
     const now = Date.now();
     const lines = readyMissions.flatMap((mi) => meta.claimQuestMission(mi.id, now) ?? []);
     if (lines.length === 0) return;
     celebrate(e, lines, false);
     audio.cue('chest');
     audio.cue('power');
+    if (focused) headingRef.current?.focus({ preventScroll: true });
   };
 
   return (
     <div className="menu qb" style={{ ['--qa' as string]: wk.quest.accent } as CSSProperties}>
       <header className="screen-h">
-        <h2>Quest Board {claimableNow > 0 && <span className="qb-claimable-chip">◈ {claimableNow} to claim</span>}</h2>
+        <h2 ref={headingRef} tabIndex={-1}>Quest Board {claimableNow > 0 && <span className="qb-claimable-chip">◈ {claimableNow} to claim</span>}</h2>
         <p className="screen-sub">Directives from the deep — weekly orders and the story of the descent.</p>
         {readyMissions.length > 0 && <ClaimAll count={readyMissions.length} onClaim={claimAllMissions} className="qb-claimall" />}
       </header>

@@ -808,3 +808,4 @@
 - `309a981` **[UI]** Ui: show salvage selections hidden by filters _(internal)_
 - `73b564b` **[Framework]** Release: publish clearer progress and gear _(internal)_
 - `12982a9` **[Framework]** Docs: record verified clearer progress deployment _(internal)_
+- `fd2a2d7` **[UI]** Ui: preserve keyboard position after quest claims _(internal)_

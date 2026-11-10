@@ -12,7 +12,7 @@ export const RELEASES: Release[] = [
     "entries": [
       {
         "cat": "UI",
-        "text": "After a successful quest mission claim, keyboard focus stays on the completed mission so Tab continues through the board. Unsuccessful claims keep focus on their button, and the completed mission remains clearly identified."
+        "text": "Quest claims preserve your keyboard position: individual claims keep focus on the completed mission, and Claim all returns it to the Quest Board heading so Tab continues through the board. Unsuccessful claims keep focus on their button."
       }
     ]
   },
