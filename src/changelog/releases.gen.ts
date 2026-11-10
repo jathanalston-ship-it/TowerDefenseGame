@@ -5,6 +5,18 @@ import type { Release } from './types';
 /** Player-facing releases, newest first. */
 export const RELEASES: Release[] = [
   {
+    "id": "v2026.11.10.15",
+    "date": "2026-11-10",
+    "title": "Clearer Adaptation Reveals",
+    "sealed": false,
+    "entries": [
+      {
+        "cat": "UI",
+        "text": "Complete class adaptation reveals now stay visible on phones and short landscape screens. Continue is immediately reachable by keyboard, focus stays inside the reveal, and closing returns to the graft host without changing the completed adaptation."
+      }
+    ]
+  },
+  {
     "id": "v2026.11.10.14",
     "date": "2026-11-10",
     "title": "Clearer Help and Previews",

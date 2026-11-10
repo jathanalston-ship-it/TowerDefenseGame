@@ -826,3 +826,6 @@
 - `2307a64` **[UI]** Ui: synchronize reward reveals with live motion preferences _(internal)_
 - `251bfdf` **[UI]** Ui: clarify nucleus socket selection and preserve focus _(internal)_
 - `98802f1` **[UI]** Ui: preserve focus through nucleus chamber opening _(internal)_
+- `9060e09` **[Framework]** Release: publish clearer help and previews _(internal)_
+- `98be43b` **[Framework]** Docs: record verified help and previews deployment _(internal)_
+- `7d4c867` **[Developer Tools]** Dev: make regression validation launch reliably on Windows _(internal)_

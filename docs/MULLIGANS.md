@@ -348,3 +348,7 @@ Organism preview lifecycle: the lab follows shared resolved motion preferences a
 Reforge reveal accessibility (2026-11-10): MulliganLab uses the shared Popup portal to escape transformed lab panels. Its card fits the viewport and scrolls on short displays; keyboard focus enters the dialog, moves to Accept on landing, stays inside on Tab, and returns to the opener (or its programmatically focusable slot when unaffordable). Escape follows the existing landed-only backdrop dismissal. Roll, cost, binding and ceremony duration are unchanged.
 
 Reforge wheel motion (2026-11-10): shared motion resolution honors Allow motion and listens to live preference/device changes. Reducing motion finishes the existing result immediately; a completed reveal never restarts. Animation and listener cleanup run on unmount; normal timing and roll/cost/binding remain unchanged.
+
+Complete class adaptation reveal (2026-11-10): shared Popup portal escapes transformed lab panels; scrollable card fits the app viewport. Continue receives focus without its former delayed entrance, Tab stays inside, and closing by Continue/backdrop/Escape restores the programmatically focusable host heading. Existing equip/adaptation completion and cue are unchanged.
+
+Adaptation reveal decoration: rotating rays are clipped in their own inset layer so they cannot widen the overlay or create horizontal scrolling; the content card remains independently scrollable.

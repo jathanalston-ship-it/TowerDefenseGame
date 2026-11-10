@@ -4,22 +4,24 @@
 > before committing. Read together with docs/PROJECT_STATUS.md and the latest
 > docs/VALIDATION_REPORT.md. Next session: start at docs/PROJECT_MANIFEST.md.
 
-- **Generated:** 2026-11-10 22:45 UTC · **Diff scope:** working tree vs HEAD
-- **Branch:** codex/hive-autoplay · **HEAD:** 98be43b6
+- **Generated:** 2026-11-10 22:52 UTC · **Diff scope:** working tree vs HEAD
+- **Branch:** codex/hive-autoplay · **HEAD:** 7d4c867e
 
 ## Summary of work completed
 
-LOCAL tooling fix: scripts/validate.ts launches installed JS CLIs with process.execPath and shell:false; bounded2workers/1minimum runs the unchanged full suite. Launch errors/signals/nonzero exits now appear in12-line diagnostics. Parent portable-validation-launch-check.cjs passed actual CLI success/nonzero/missing-executable scenarios. End-to-end npm run validate50536 PASS at22:48UTC: typecheck,3194tests, original build-and-mobile gate, doc anchors and references; new generated VALIDATION_REPORT.md is authoritative. Raw output portable-validation.log; prior report preserved portable-validation-prior-report.log and git history. Docs82775 and handoff passed. All processes terminal. LIVE remains .14 SHA9060e09a7e98ae12c569b0dca8e137eed2012a00; Actions42915852269 passed and normal public game/home/news8notes verified22:36UTC. Goal active, next approximate deployment23:35–23:40UTC.
+LOCAL unsealed v2026.11.10.15 Clearer Adaptation Reveals has ONE curated note, generated into game and website. Complete class adaptation baseline opened at y=-3012 on320px transformed lab and left focus on body. Added shared Popup portal, bounded scrollable card, immediate Continue focus, Tab trap and host-heading return. Real-meta completing-graft probes passed Escape/Continue/backdrop and saved-graft preservation at320x568,844x340,390x844; screenshot inspected. Extra ray check found overlay scrollWidth373/client320; contained the decorative layer and final probe passed320/320 plus full focus/viewport flow. Reforge regression passed.22 model/UI/site tests passed2.45s; final11 UI/site tests passed1.75s. Docs/handoff52466 passed; initial build passed5.55s before ray fix, final build58033 passed5.67s Vite, SWmwbaelwf (adaptation-dialog-final-build.log); all processes terminal. No equip/adaptation effects, audio cue, costs, Power or save changes. LIVE remains .14 SHA9060e09a7e98ae12c569b0dca8e137eed2012a00, verified22:36UTC. Normal validator fixed in7d4c867e and passed3194tests/mobile at22:48UTC before this UI change. Goal active; next approximate deployment23:35–23:40UTC.
 
 ## Files modified
 
-- Source (0): —
+- Source (3): `src/changelog/releases.gen.ts`, `src/ui/MulliganLab.css`, `src/ui/MulliganLab.tsx`
 - Tests (0): —
-- Docs (4): `docs/PROJECT_MANIFEST.md`, `docs/SCALABILITY.md`, `docs/devlog/DRAFT-2026-11-09.md`, `docs/devlog/DRAFT-2026-11-10.md`
+- Docs (5): `docs/HISTORY.md`, `docs/MULLIGANS.md`, `docs/PROJECT_MANIFEST.md`, `docs/devlog/DRAFT-2026-11-09.md`, `docs/devlog/DRAFT-2026-11-10.md`
 
 ## Systems affected (from the dependency registry)
 
-- (no registered source files in this diff)
+- **chronicle** — `src/changelog/releases.gen.ts`
+- **mulligans** — `src/ui/MulliganLab.tsx`
+- Consumer ring (verify, unchanged): hero-symbiotes, nucleus
 
 ## Power Score changes
 
@@ -27,11 +29,11 @@ None. Search presentation only; progression, rewards and simulation unchanged.
 
 ## UI changes
 
-None in this tooling-only change. Static candidate for next browser audit: inline Complete class adaptation ceremony at MulliganLab.tsx around584 uses no Popup portal or focus lifecycle; confirm actual behavior before editing.
+Complete class adaptation baseline opened at y=-3012 on320px transformed lab and left focus on body. Added shared Popup portal, bounded scrollable card, immediate Continue focus, Tab trap and host-heading return. Real-meta completing-graft probes passed Escape/Continue/backdrop and saved-graft preservation at320x568,844x340,390x844; screenshot inspected. Extra ray check found overlay scrollWidth373/client320; contained the decorative layer and final probe passed320/320 plus full focus/viewport flow. Reforge regression passed.22 model/UI/site tests passed2.45s; final11 UI/site tests passed1.75s. Docs/handoff52466 passed; initial build passed5.55s before ray fix, final build58033 passed5.67s Vite, SWmwbaelwf (adaptation-dialog-final-build.log); all processes terminal. No equip/adaptation effects, audio cue, costs, Power or save changes.
 
 ## Documentation changes
 
-PROJECT_MANIFEST.md and SCALABILITY.md document direct Node launch, bounded workers and failure diagnostics. No game/player-facing changes or new release notes in this tooling-only commit.
+MULLIGANS.md and manifest document the reveal portal/focus, scrollable card and clipped ray layer. One website/game note generated. No new mechanic/help/audio registration needed.
 
 ## Save changes
 
@@ -39,15 +41,15 @@ None — save layer untouched.
 
 ## Known edge cases
 
-Local Chrome uses MOBILECHECK_CHROMIUM=C:/Program Files/Google/Chrome/Application/chrome.exe and NODE_OPTIONS=--require="C:/Users/lego1/OneDrive/Documents/ChatGPT/Assimilation/chrome-probe-compat.cjs" for the installed Playwright old-headless incompatibility. These are local process environment values, not repository behavior. The validation launcher itself is now verified end-to-end on Windows. No active processes. Preserve both untracked devlog drafts.
+Local full validator uses MOBILECHECK_CHROMIUM Chrome path and NODE_OPTIONS preload of parent chrome-probe-compat.cjs. Validation launcher now works; full release validation still needed for .15. Preserve two unpublished devlog drafts.
 
 ## Remaining technical debt
 
-Windows npm/npx-launch defect resolved and verified. Installed Chrome/Playwright compatibility preload remains a local environment workaround. No game changes in this tooling-only commit.
+No new debt. Chrome/Playwright local compatibility preload remains.
 
 ## Recommended next tasks
 
-Inspect the inline Complete class adaptation ceremony (MulliganLab.tsx around584) in the actual browser before editing: it currently has no Popup/focus lifecycle. Continue player-facing improvements and approximately hourly deployments with website notes. Next approximate deployment23:35–23:40UTC. The normal validator now works with the local Chrome environment noted above; run it for subsequent major changes. Preserve unpublished devlog drafts.
+Continue evidence-led player improvements and approximately hourly deployments with website notes. Next deployment23:35–23:40UTC; use normal validator with documented local Chrome environment for release gates.
 
 ## Future expansion hooks
 

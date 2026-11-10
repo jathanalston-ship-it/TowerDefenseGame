@@ -1,6 +1,6 @@
 {
-  "lastSha": "98802f15b0593309c864a45376d845173e96fb8c",
-  "commitsSinceDraft": 1,
+  "lastSha": "7d4c867e66920956dd446c743bf32181ed004e73",
+  "commitsSinceDraft": 4,
   "content": {
     "tower": [
       "needle",
@@ -4787,6 +4787,18 @@
         {
           "cat": "UI",
           "text": "Nucleus chamber-opening confirmations now keep keyboard focus: Not yet is focused when the prompt opens, cancel returns to the opening button, and a successful unlock focuses the new chamber’s first socket. The confirmation also names the chamber and any Ichor cost."
+        }
+      ]
+    },
+    {
+      "id": "v2026.11.10.15",
+      "date": "2026-11-10",
+      "title": "Clearer Adaptation Reveals",
+      "sealed": false,
+      "entries": [
+        {
+          "cat": "UI",
+          "text": "Complete class adaptation reveals now stay visible on phones and short landscape screens. Continue is immediately reachable by keyboard, focus stays inside the reveal, and closing returns to the graft host without changing the completed adaptation."
         }
       ]
     }
@@ -11045,6 +11057,30 @@
       "date": "2026-11-10",
       "cat": "UI",
       "text": "Ui: preserve focus through nucleus chamber opening",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "9060e09a7e98ae12c569b0dca8e137eed2012a00",
+      "date": "2026-11-10",
+      "cat": "Framework",
+      "text": "Release: publish clearer help and previews",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "98be43b606aae680cafe901467890537ff16888e",
+      "date": "2026-11-10",
+      "cat": "Framework",
+      "text": "Docs: record verified help and previews deployment",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "7d4c867e66920956dd446c743bf32181ed004e73",
+      "date": "2026-11-10",
+      "cat": "Developer Tools",
+      "text": "Dev: make regression validation launch reliably on Windows",
       "internal": true,
       "needsReview": false
     }

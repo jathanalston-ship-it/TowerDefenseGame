@@ -207,6 +207,14 @@ export function MulliganLab(): JSX.Element {
   const [wheel, setWheel] = useState<MulliganReforgeMod | null>(null); // §reforge — the spinning ceremony
   // §adaptations — the COMPLETE CLASS ADAPTATION ceremony (set on the equip that completes it).
   const [adaptCeremony, setAdaptCeremony] = useState<{ cls: CombatClass; title: string; desc: string } | null>(null);
+  const adaptationContinue = useRef<HTMLButtonElement>(null);
+  const graftHost = useRef<HTMLSpanElement>(null);
+  useEffect(() => {
+    if (!adaptCeremony) return;
+    const host = graftHost.current;
+    adaptationContinue.current?.focus();
+    return () => { if (host?.isConnected) host.focus(); };
+  }, [adaptCeremony]);
   const tv = view.towers.find((t) => t.kind === selected) ?? view.towers[0];
 
   // §gate — the pillar is sealed until three DISTINCT Mega Bosses have fallen (accounts
@@ -389,7 +397,7 @@ export function MulliganLab(): JSX.Element {
             </div>
             <div className="mgl-id">
               <span className="mgl-eyebrow">Graft Host</span>
-              <span className="mgl-name" style={{ color: tv.color }}>{tv.name}</span>
+              <span ref={graftHost} tabIndex={-1} role="heading" aria-level={3} className="mgl-name" style={{ color: tv.color }}>{tv.name}</span>
               <span className="mgl-identity">
                 {tv.active
                   ? <>Awake — <b className="mgl-axis">{tv.dominant}</b> organism</>
@@ -582,18 +590,21 @@ export function MulliganLab(): JSX.Element {
       </div>
       {wheel && <ReforgeWheelOverlay mod={wheel} onClose={() => setWheel(null)} />}
       {adaptCeremony && (
-        <div className="evo-unlock mgl-adapt-cine" role="dialog" aria-label="Complete class adaptation" onClick={() => setAdaptCeremony(null)}>
-          <div className="evo-rays" aria-hidden />
-          <div className="evo-card mgl-adapt-card" onClick={(e) => e.stopPropagation()} style={{ ['--cc' as string]: COMBAT_CLASSES[adaptCeremony.cls].color }}>
-            <div className="evo-eyebrow">⟡ COMPLETE CLASS ADAPTATION ⟡</div>
-            <div className="mgl-adapt-cine-glyph" aria-hidden>{COMBAT_CLASSES[adaptCeremony.cls].glyph}</div>
-            <h2 className="evo-title">{adaptCeremony.cls.toUpperCase()} SYNCHRONIZED</h2>
-            <div className="mgl-adapt-cine-name">{adaptCeremony.title}</div>
-            <p className="evo-blurb">{adaptCeremony.desc}</p>
-            <p className="mgl-adapt-cine-foot">The organism has evolved — its crown is visible on the battlefield.</p>
-            <button className="primary evo-continue" onClick={() => setAdaptCeremony(null)}>Continue</button>
+        <Popup>
+          <div className="evo-unlock mgl-adapt-cine" role="dialog" aria-modal="true" aria-label="Complete class adaptation"
+            onKeyDown={(e) => { if (e.key === 'Tab') { e.preventDefault(); adaptationContinue.current?.focus(); } }} onClick={() => setAdaptCeremony(null)}>
+            <div className="mgl-adapt-rays" aria-hidden><div className="evo-rays" /></div>
+            <div className="evo-card mgl-adapt-card" onClick={(e) => e.stopPropagation()} style={{ ['--cc' as string]: COMBAT_CLASSES[adaptCeremony.cls].color }}>
+              <div className="evo-eyebrow">⟡ COMPLETE CLASS ADAPTATION ⟡</div>
+              <div className="mgl-adapt-cine-glyph" aria-hidden>{COMBAT_CLASSES[adaptCeremony.cls].glyph}</div>
+              <h2 className="evo-title">{adaptCeremony.cls.toUpperCase()} SYNCHRONIZED</h2>
+              <div className="mgl-adapt-cine-name">{adaptCeremony.title}</div>
+              <p className="evo-blurb">{adaptCeremony.desc}</p>
+              <p className="mgl-adapt-cine-foot">The organism has evolved — its crown is visible on the battlefield.</p>
+              <button ref={adaptationContinue} className="primary evo-continue" onClick={() => setAdaptCeremony(null)}>Continue</button>
+            </div>
           </div>
-        </div>
+        </Popup>
       )}
     </div>
   );

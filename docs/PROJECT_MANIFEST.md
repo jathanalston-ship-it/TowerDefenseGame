@@ -879,3 +879,7 @@ Nucleus socket accessibility (2026-11-10): both empty and filled socket controls
 Nucleus opening focus (2026-11-10): the inline confirmation is a named group including chamber and Ichor cost. Opening focuses Not yet; cancellation restores the opener; successful guarded unlock focuses the new chamber first socket. Sequential gates, two-step confirmation, costs and XP fold remain unchanged.
 
 Cross-platform regression launcher (2026-11-10): scripts/validate.ts invokes the installed TypeScript, Vitest and vite-node JavaScript CLIs through process.execPath, avoiding Windows npm/npx executable-shim failures without invoking a shell. The full suite uses two workers (one minimum) to bound memory; test selection and assertions are unchanged. Child failures report exit status, launch errors or terminating signals with the last twelve output lines. Mobile validation still runs the original build-and-probe path; MOBILECHECK_CHROMIUM selects the installed browser as before.
+
+Complete class adaptation reveal (2026-11-10): shared Popup portal escapes transformed lab panels; scrollable card fits the app viewport. Continue receives focus without its former delayed entrance, Tab stays inside, and closing by Continue/backdrop/Escape restores the programmatically focusable host heading. Existing equip/adaptation completion and cue are unchanged.
+
+Adaptation reveal decoration: rotating rays are clipped in their own inset layer so they cannot widen the overlay or create horizontal scrolling; the content card remains independently scrollable.
