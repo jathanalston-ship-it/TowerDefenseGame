@@ -1854,3 +1854,8 @@ Deployed SHA2400521c2dbf87dda58e5e9f5d161fb4800e6cd2. Actions42885435823/job1300
 ## 2026-11-10 19:37 UTC — Infestation live motion controls (local .11)
 
 Baseline20669 measured57frames/sec after reduced motion enabled. InfestationBoard now subscribes to OS/shared preferences, resizes still canvas via ResizeObserver and cancels RAF while hidden. Expanded browser68906 PASS motion/override, backing dimensions,16sector targets, pin action, hidden-document lifecycle, collapse/reopen and cleanup; still screenshot inspected. Initial fixture counted wrong drawing API; another used a too-short fixed resume delay; corrected before final pass. Eleven UI/site tests10221 and docs28515 PASS. Build84198 PASS12.89s (SWmwb3bmh4). Original full mobile93548 RUNNING, infestation-motion-mobile.log; no dist writes/competing heavy checks. One note generated in unsealed .11 Map Motion Controls. No simulation/save changes.
+
+
+## 2026-11-10 19:46 UTC — Infestation feed selection accessibility
+
+Original motion mobile93548 terminalPASS27nav+nine gameplay profiles. Feed buttons now expose actual selected state and full region names; region-resolved sector markers are identified as next feed rather than direct pins. Real browser keyboard/click probe passed region selection, direct pin, toggle off and Spread. Docs check and eleven UI/site tests PASS6.02s. Build63586 PASS (Vite8.87s, SWmwb3o18o), infestation-selection-build.log. Mobile coverage predates the ARIA/label-only follow-up; final release gate pending. Two notes generated in unsealed .11 Map Motion Controls. No simulation/save changes. Live remains .10; next approximate deployment20:30UTC.

@@ -4,12 +4,12 @@
 > before committing. Read together with docs/PROJECT_STATUS.md and the latest
 > docs/VALIDATION_REPORT.md. Next session: start at docs/PROJECT_MANIFEST.md.
 
-- **Generated:** 2026-11-10 19:35 UTC · **Diff scope:** working tree vs HEAD
-- **Branch:** codex/hive-autoplay · **HEAD:** e6ad5315
+- **Generated:** 2026-11-10 19:44 UTC · **Diff scope:** working tree vs HEAD
+- **Branch:** codex/hive-autoplay · **HEAD:** e74e507f
 
 ## Summary of work completed
 
-LIVE .10 Know Your Controls, SHA2400521c2dbf87dda58e5e9f5d161fb4800e6cd2, Actions42885435823/job130072400258 SUCCESS including exactSHA guard; normal custom-domain game/home/news/three notes verified19:30UTC, asset /assets/play-DLqe10Zs.js. LOCAL unsealed .11 Map Motion Controls, one generated note: infestation map follows live motion settings, resizes still canvas correctly and stops hidden animation. Goal active; next approximate deploy20:30UTC.
+LIVE .10 Know Your Controls, SHA2400521c2dbf87dda58e5e9f5d161fb4800e6cd2, Actions42885435823/job130072400258 SUCCESS including exactSHA guard; normal custom-domain game/home/news/three notes verified19:30UTC, asset /assets/play-DLqe10Zs.js. LOCAL unsealed .11 Map Motion Controls, two generated notes: infestation map follows live motion settings, resizes still canvas correctly and stops hidden animation. Goal active; next approximate deploy20:30UTC.
 
 ## Files modified
 
@@ -28,11 +28,11 @@ None. All .10 changes are UI/presentation; no core simulation or balance changes
 
 ## UI changes
 
-InfestationBoard removes module-level OS motion constant. Component subscribes to shared prefs and media changes; projector re-arms on showMap/reducedMotion, ResizeObserver sizes canvas in both modes, visibility cancels/restarts RAF, reduced data redraw skips hidden documents. Input/pin state and simulation untouched. Baseline20669 terminalPASS measured57frames in1s after reduce=true; fixed basic probe passed0frames and override behavior. Expanded ../infestation-motion-check.cjs final68906 terminalPASS: live OS change, nonblank still, canvas backing dimensions after resize,16sector controls, real pin click, no restarted still loop, simulated hidden document stop/resume, override/revoke, collapse/reopen, restored OS motion and unmount cleanup. Screenshot ../infestation-motion-still.png inspected. Initial fixture79410 counted clearRect while map uses fillRect; corrected to setTransform. Expanded94370 timed out on fixed200ms resume assertion; corrected to wait for actual frame within5s, final passed. Eleven UI/site tests10221 PASS6.63s; docs28515 PASS. Build84198 PASS12.89s, infestation-motion-build.log, SWmwb3bmh4. Original full mobile93548 running.
+InfestationBoard removes module-level OS motion constant. Component subscribes to shared prefs and media changes; projector re-arms on showMap/reducedMotion, ResizeObserver sizes canvas in both modes, visibility cancels/restarts RAF, reduced data redraw skips hidden documents. Input/pin state and simulation untouched. Feed controls now expose actual selection via aria-pressed, full region names, and distinguish direct sector pins from region-resolved feed markers. Baseline20669 terminalPASS measured57frames in1s after reduce=true; fixed basic probe passed0frames and override behavior. Expanded ../infestation-motion-check.cjs final68906 terminalPASS: live OS change, nonblank still, canvas backing dimensions after resize,16sector controls, real pin click, no restarted still loop, simulated hidden document stop/resume, override/revoke, collapse/reopen, restored OS motion and unmount cleanup. Screenshot ../infestation-motion-still.png inspected. Initial fixture79410 counted clearRect while map uses fillRect; corrected to setTransform. Expanded94370 timed out on fixed200ms resume assertion; corrected to wait for actual frame within5s, final passed. Eleven UI/site tests10221 PASS6.63s; docs28515 PASS. Build84198 PASS12.89s, infestation-motion-build.log, SWmwb3bmh4. Original full mobile93548 terminalPASS: 27 nav screens and nine gameplay profiles. Subsequent selection-only update passed ../infestation-selection-check.cjs: keyboard region/sector selection, truthful resolved-feed marker, toggle off and Spread. Eleven UI/site tests PASS6.02s; docs PASS; build63586 PASS (Vite8.87s, SWmwb3o18o), infestation-selection-build.log.
 
 ## Documentation changes
 
-INFESTATION.md and manifest updated with projector lifecycle. One curated UI note generated in ledger/game/site; existing category vocabulary preserved. No new mechanic/reward/save field, so no help registry/audio/migration change needed.
+INFESTATION.md and manifest updated with projector lifecycle. Two curated UI notes generated in ledger/game/site; existing category vocabulary preserved. No new mechanic/reward/save field, so no help registry/audio/migration change needed.
 
 ## Save changes
 
@@ -40,7 +40,7 @@ None. Uses existing motion preferences and existing infestation pin actions. Bro
 
 ## Known edge cases
 
-Full current mobile93548 pending. Simulated document.hidden covers event lifecycle, not every browser background-throttling policy. Existing Windows validate wrapper npx shell:false issue remains. Prior .9 mobile30430 drawer timeout retained; diagnostic81740 and original72320 passed, root cause unproven. Latest live .10 final mobile51961 passed.
+Full mobile93548 passed the motion-fix build before the subsequent ARIA/label-only selection change. Final release mobile check remains pending. Simulated document.hidden covers event lifecycle, not every browser background-throttling policy. Existing Windows validate wrapper npx shell:false issue remains. Prior .9 mobile30430 drawer timeout retained; diagnostic81740 and original72320 passed, root cause unproven. Latest live .10 final mobile51961 passed.
 
 ## Remaining technical debt
 
@@ -48,7 +48,7 @@ No new debt intended. Existing Windows validation launcher issue. Two untracked 
 
 ## Recommended next tasks
 
-ONLY active validation handle93548: ORIGINAL full mobilecheck --no-build, infestation-motion-mobile.log, current .11 dist. Poll SAME handle; do not overwrite dist or start competing heavy/browser checks. All prior build/docs/tests/probes terminalPASS. Next approximate deploy20:30UTC. Continue evidence-led work after gate; .11 unsealed one note. Live production2400521c2dbf87dda58e5e9f5d161fb4800e6cd2. Vite5174 remains PID30948,parent32932; no active probes. Two untracked devlog drafts remain unpublished.
+All validation handles terminal. Local unsealed .11 Map Motion Controls has two generated website notes. Continue evidence-led improvements; next approximate deployment20:30UTC. Before deploying, seal notes, regenerate website, build and run final original mobile gate, then verify Actions and normal public game/news URLs. Live production remains2400521c2dbf87dda58e5e9f5d161fb4800e6cd2. Two untracked devlog drafts remain unpublished.
 
 ## Future expansion hooks
 

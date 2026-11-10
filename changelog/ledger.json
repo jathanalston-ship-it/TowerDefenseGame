@@ -1,6 +1,6 @@
 {
-  "lastSha": "e6ad531515d92ec832ddd2277359464c51ac74fc",
-  "commitsSinceDraft": 5,
+  "lastSha": "e74e507f2ec3472ceb2fb61e5bdb5d5c478aec80",
+  "commitsSinceDraft": 6,
   "content": {
     "tower": [
       "needle",
@@ -4651,6 +4651,10 @@
         {
           "cat": "UI",
           "text": "The infestation map now follows live reduced-motion settings and the in-game override. Its still image resizes correctly, sector pins remain interactive, and animation stops while the tab is hidden."
+        },
+        {
+          "cat": "UI",
+          "text": "Infestation feed controls now expose their selected state and full region names to assistive tools. Sector hints distinguish a direct pin from a region’s next feed target."
         }
       ]
     }
@@ -10621,6 +10625,14 @@
       "date": "2026-11-10",
       "cat": "Framework",
       "text": "Docs: record verified controls deployment",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "e74e507f2ec3472ceb2fb61e5bdb5d5c478aec80",
+      "date": "2026-11-10",
+      "cat": "UI",
+      "text": "Respect live motion settings on infestation map",
       "internal": true,
       "needsReview": false
     }

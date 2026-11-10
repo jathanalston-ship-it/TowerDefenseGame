@@ -216,6 +216,7 @@ export function InfestationBoard(): JSX.Element {
           {overlay.cells.map((cell) => {
             const det = view.sectorDetails[cell.sectorId];
             const pinned = pinnedSectors.has(cell.sectorId);
+            const directlyPinned = view.target === cell.sectorId;
             const isFeed = cell.sectorId === view.feedsInto;
             return (
               <button
@@ -227,8 +228,9 @@ export function InfestationBoard(): JSX.Element {
                 onFocus={() => setFocus(cell.sectorId)}
                 onMouseLeave={() => setFocus(null)}
                 onBlur={() => setFocus(null)}
-                title={`${det.name} — ${det.tier.name} ${Math.round(det.level)}/100${pinned ? ' · pinned' : isFeed ? ' · next feed' : ' · click to pin'}`}
-                aria-label={`${det.name}, ${det.tier.name}, ${Math.round(det.level)} of 100${pinned ? ', pinned' : ''}`}
+                title={`${det.name} — ${det.tier.name} ${Math.round(det.level)}/100${directlyPinned ? ' · pinned' : isFeed ? ' · next feed' : ' · click to pin'}`}
+                aria-label={`${det.name}, ${det.tier.name}, ${Math.round(det.level)} of 100${directlyPinned ? ', pinned' : isFeed ? ', next feed' : ''}`}
+                aria-pressed={directlyPinned}
               />
             );
           })}
@@ -263,12 +265,14 @@ export function InfestationBoard(): JSX.Element {
         <span className="inf-controls-k">Feed</span>
         {REGIONS.map((r) => (
           <button key={r.id} className={`inf-chip${view.target === r.id ? ' on' : ''}`}
+            aria-label={`${r.name} region feed target`} aria-pressed={view.target === r.id}
             style={{ ['--rc' as string]: r.accent }} onClick={() => setTarget(view.target === r.id ? null : r.id)}
             title={`Pin ${r.name} — runs feed its emptiest sector`}>
             {r.name.split(' ')[0]}
           </button>
         ))}
         <button className={`inf-chip inf-chip-spread${view.target === null ? ' on' : ''}`} onClick={() => setTarget(null)}
+          aria-pressed={view.target === null}
           title="Spread — runs feed the emptiest sector on the whole map">
           Spread
         </button>

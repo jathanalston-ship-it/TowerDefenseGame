@@ -790,3 +790,4 @@
 - `f084b8c` **[UI]** Release: prepare Know Your Controls _(internal)_
 - `2400521` **[Framework]** Release: publish Know Your Controls _(internal)_
 - `e6ad531` **[Framework]** Docs: record verified controls deployment _(internal)_
+- `e74e507` **[UI]** Respect live motion settings on infestation map _(internal)_

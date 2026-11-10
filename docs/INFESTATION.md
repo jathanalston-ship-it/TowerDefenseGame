@@ -129,3 +129,5 @@ in `HOTSPOT_FEED_MULT`, `INCURSION_BITE`, `INCURSION_MIN_TIER`, `TRIBUTE_MIN_TIE
 the reward tables — re-run `npm run sim:front` after touching any of them.
 
 The map projector follows live OS reduced-motion changes and the shared in-game motion override. Reduced mode draws REDUCED_MAP_T without a loop, repaints current data and canvas-size changes, and keeps the sector-button overlay aligned. A ResizeObserver sizes the canvas in both modes. Hidden documents cancel the frame loop and resume/repaint on visibility; closing the map disconnects its projector observer/visibility listener and cancels pending frames; unmount also unsubscribes from media/preference changes. Pin selection, infestation state and rules are unchanged.
+
+Feed buttons expose aria-pressed for the actual target: a direct sector, a region, or Spread. A sector highlighted because a pinned region resolves to it remains unpressed and is named next feed; only a directly selected sector is pressed/pinned. Region controls expose their full names. Existing click/Enter/Space selection and toggle-to-Spread behavior are unchanged.
