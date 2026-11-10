@@ -88,19 +88,27 @@ export function BuildControls({
   const [detail, setDetail] = useState<{ id: string; title: string; text: string } | null>(null);
   const detailRef = useRef<HTMLDivElement>(null);
   const detailOpener = useRef<HTMLButtonElement | null>(null);
+  const restoreDetailFocus = useRef(false);
   const showDetail = (event: MouseEvent<HTMLButtonElement>, id: string, title: string, text: string): void => {
     detailOpener.current = event.currentTarget;
     setDetail((current) => current?.id === id ? null : { id, title, text });
   };
   const closeDetail = (): void => {
-    if (detailRef.current?.contains(document.activeElement)) detailOpener.current?.focus({ preventScroll: true });
+    restoreDetailFocus.current = !!detailRef.current?.contains(document.activeElement);
     setDetail(null);
   };
   useEffect(() => {
-    if (visible && detailRef.current?.contains(document.activeElement)) detailOpener.current?.focus({ preventScroll: true });
+    restoreDetailFocus.current = visible && !!detailRef.current?.contains(document.activeElement);
     setDetail(null);
   }, [visible, preview]);
-  useEffect(() => { if (detail) detailRef.current?.focus({ preventScroll: true }); }, [detail]);
+  useEffect(() => {
+    if (detail && visible) detailRef.current?.focus({ preventScroll: true });
+    else if (restoreDetailFocus.current && visible) {
+      // The phone's compact intel row becomes visible again in this commit.
+      detailOpener.current?.focus({ preventScroll: true });
+      restoreDetailFocus.current = false;
+    }
+  }, [detail, visible]);
   useEffect(() => {
     const el = rootRef.current;
     if (!el) return;
@@ -109,7 +117,7 @@ export function BuildControls({
   }, [visible]);
 
   return (
-    <div ref={rootRef} className={`build-controls ${visible ? 'is-visible' : ''}`}>
+    <div ref={rootRef} className={`build-controls ${visible ? 'is-visible' : ''}${detail ? ' has-detail' : ''}`}>
       <div className="build-bar">
         <div className="wb-brief">
           <div className="wb-head">

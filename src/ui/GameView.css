@@ -3488,3 +3488,5 @@ html[data-layout='desktop'] .cv-slot { flex: 0 1 auto; width: 240px; min-width: 
 .wb-detail-head { position: sticky; top: 0; z-index: 1; display: flex; align-items: center; justify-content: space-between; gap: 8px; background: var(--panel); }
 .wb-detail-head button { min-width: 44px; min-height: 44px; }
 .wb-detail p { margin: 4px 0; font-size: 13px; line-height: 1.5; color: var(--text); }
+/* Reading replaces the compact intel row, leaving launch controls available. */
+:is(html[data-layout='portrait'], html[data-layout='landscape']) .build-controls.has-detail .wb-brief { display: none; }

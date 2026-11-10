@@ -4,22 +4,22 @@
 > before committing. Read together with docs/PROJECT_STATUS.md and the latest
 > docs/VALIDATION_REPORT.md. Next session: start at docs/PROJECT_MANIFEST.md.
 
-- **Generated:** 2026-11-10 17:06 UTC · **Diff scope:** working tree vs HEAD
-- **Branch:** codex/hive-autoplay · **HEAD:** 346b9d3f
+- **Generated:** 2026-11-10 17:11 UTC · **Diff scope:** working tree vs HEAD
+- **Branch:** codex/hive-autoplay · **HEAD:** 21102f9e
 
 ## Summary of work completed
 
-LIVE remains v2026.11.10.7, SHA b441f62cf0512d7da5c8d0692d53d3927fead962, verified normal game/home/news with five notes. LOCAL .8 Know What Is Coming has one generated website note. Incoming-wave reward/enemy/adaptation chips now open a readable detail region outside the mobile scroller. Base Biomass/HP/armor and inclusive elite counts are explicit. Keyboard opening, Escape/Close restoration, preview-change dismissal, reading-key isolation, phone/landscape geometry and real-game launch/inert behavior pass the isolated Chrome probe. No core, balance or save changes. Continuous goal remains active.
+LIVE .7 remains SHA b441f62cf0512d7da5c8d0692d53d3927fead962 with five verified notes. LOCAL unsealed .8 Know What Is Coming has one generated website note for readable wave intel and explicit base stats/rewards. Final phone refinement now hides only the compact intel row while details are open, preserves launch controls, and restores focus after the row reappears. Short/long elite-probe explanations pass actual GameView at390x844,320x568,844x390,1280x800; no clipping, keyboard End reaches text, Close stays44px/visible, reading does not dispatch Space, Escape restores chip focus. Screenshots inspected: ../wave-briefing-game-phone.png and ../wave-briefing-long-phone.png. The prior20px reading-area issue is RESOLVED. Build38551 PASS12.07s. No core/balance/save changes.
 
 ## Files modified
 
-- Source (1): `src/ui/GameView.css`
+- Source (2): `src/ui/BuildControls.tsx`, `src/ui/GameView.css`
 - Tests (0): —
-- Docs (2): `docs/devlog/DRAFT-2026-11-09.md`, `docs/devlog/DRAFT-2026-11-10.md`
+- Docs (3): `docs/HUD.md`, `docs/devlog/DRAFT-2026-11-09.md`, `docs/devlog/DRAFT-2026-11-10.md`
 
 ## Systems affected (from the dependency registry)
 
-- (no registered source files in this diff)
+- **run-ui** — `src/ui/BuildControls.tsx`
 
 ## Power Score changes
 
@@ -47,7 +47,7 @@ Windows validate wrapper cannot launch npx/npm with shell:false; use direct gate
 
 ## Recommended next tasks
 
-Next: improve 320x568 detail reading area (sticky header currently consumes most of83px region). Consider using more of the existing briefing area while details are open, rather than squeezing text below all launch controls; verify in actual GameView with ../wave-briefing-game-check.cjs. Final CSS build22763 terminal PASS11.88s (wave-briefing-constrained-build.log). Local Vite95476 stopped intentionally; browser10106 terminal. All earlier handles terminal. After any final layout change run the real-game probe, build and mobile gate on final dist. Fullsuite3192 and13registry/site tests already pass; repeat only when justified by later code changes. Next approx deployment17:41UTC; live .7 remains verified. Do not stage two untracked devlog drafts.
+Current live handle: final mobile99756 (wave-briefing-reading-mobile.log), run against final reading-layout dist; poll same handle. Docs96417 terminal PASS (anchors/references/staleness). All browser probes and devserver76491 terminal. Fullsuite3192/354files passed321.95s before final UI-only focus/layout refinements; targeted browser checks cover these refinements. Previous mobile94526 passed27nav/9gameplay but predates refinement; final99756 is authoritative.13site/registry tests passed earlier; website artifacts unchanged this turn. Continue useful improvements while respecting active mobilecheck dist (do not overwrite dist). Approx next deployment17:41UTC; seal/regenerate/build/test finalrelease when due. One next read-only investigation: Hud.tsx doctrine/vow/threat chips are title-only and mention docs/*.md, so phone explanation/accessibility may be improvable; do not assume a functional defect without probing. Do not stage untracked devlog drafts.
 
 ## Future expansion hooks
 
@@ -90,14 +90,22 @@ Local v2026.11.10.1 now has two notes: Hero Ops uses effective abilityCdMax and 
 Hero readiness final build65590 PASS (Vite7.59s); all processes terminal. Next release remains roughly08:14UTC with matching website notes; live .7 unchanged.
 
 
+
 ## 2026-11-10 16:57 UTC — wave briefing checkpoint
 
 LIVE remains v2026.11.10.7, SHA b441f62cf0512d7da5c8d0692d53d3927fead962, verified normal game/home/news with five notes. LOCAL .8 Know What Is Coming has one generated website note. Incoming-wave reward/enemy/adaptation chips now open a readable detail region outside the mobile scroller. Base Biomass/HP/armor and inclusive elite counts are explicit. Keyboard opening, Escape/Close restoration, preview-change dismissal, reading-key isolation, phone/landscape geometry and real-game launch/inert behavior pass the isolated Chrome probe. No core, balance or save changes. Continuous goal remains active.
 
 Poll existing handles, never restart on observation timeout: final production build21016 (wave-briefing-release-build.log); full regression suite77517 (wave-briefing-full-tests.log); browser probe60232 printed PASS but Chrome shutdown was still live at last poll. Earlier builds90994 and19517 succeeded; latter predates final reading-key isolation.13 registry/site tests and docs check PASS. After final build completes, run mobilecheck against its dist, then continue improvements toward approximate17:41 UTC deployment. .8 remains unsealed; regenerate/build if further changes. Existing Windows validate wrapper launcher failure reproduced (wave-briefing-wrapper-report.log); direct gates required. Do not stage the two untracked devlog drafts.
 
+
 ## 2026-11-10 17:06 UTC — integrated wave details
 
 Full3192tests/354files PASS321.95s (77517 terminal). Build21016 PASS10.40s. Mobile94526 CLEAN27nav/9gameplay viewports (terminal), predating last CSS-only constraint. Actual GameView probe found 320x568 clipping: detail bottom509 exceeded canvas bottom440. BuildControls max-height now subtracts controls strip, bar does not shrink, details shrink/scroll. Full-game campaign probe passes 390x844,320x568,844x390,1280x800 geometry, End scrolling, Escape focus restoration and Space isolation; latest10106 terminalPASS. Two original fixture failures were from endless mode intentionally lacking previews; campaign uses actual preview. Screenshot ../wave-briefing-game-phone.png inspected: final sticky44px close header remains visible but leaves only about20px of reading height at320x568. This is a remaining usability issue: refine details presentation before release, preserving full-text scrolling, accessible Close/Escape and existing Start Wave behavior. No core changes; website note remains unsealed .8.
 
 Next: improve 320x568 detail reading area (sticky header currently consumes most of83px region). Consider using more of the existing briefing area while details are open, rather than squeezing text below all launch controls; verify in actual GameView with ../wave-briefing-game-check.cjs. Final CSS build22763 terminal PASS11.88s (wave-briefing-constrained-build.log). Local Vite95476 stopped intentionally; browser10106 terminal. All earlier handles terminal. After any final layout change run the real-game probe, build and mobile gate on final dist. Fullsuite3192 and13registry/site tests already pass; repeat only when justified by later code changes. Next approx deployment17:41UTC; live .7 remains verified. Do not stage two untracked devlog drafts.
+
+## 2026-11-10 17:12 UTC — readable compact wave details
+
+LIVE .7 remains SHA b441f62cf0512d7da5c8d0692d53d3927fead962 with five verified notes. LOCAL unsealed .8 Know What Is Coming has one generated website note for readable wave intel and explicit base stats/rewards. Final phone refinement now hides only the compact intel row while details are open, preserves launch controls, and restores focus after the row reappears. Short/long elite-probe explanations pass actual GameView at390x844,320x568,844x390,1280x800; no clipping, keyboard End reaches text, Close stays44px/visible, reading does not dispatch Space, Escape restores chip focus. Screenshots inspected: ../wave-briefing-game-phone.png and ../wave-briefing-long-phone.png. The prior20px reading-area issue is RESOLVED. Build38551 PASS12.07s. No core/balance/save changes.
+
+Current live handle: final mobile99756 (wave-briefing-reading-mobile.log), run against final reading-layout dist; poll same handle. Docs96417 terminal PASS (anchors/references/staleness). All browser probes and devserver76491 terminal. Fullsuite3192/354files passed321.95s before final UI-only focus/layout refinements; targeted browser checks cover these refinements. Previous mobile94526 passed27nav/9gameplay but predates refinement; final99756 is authoritative.13site/registry tests passed earlier; website artifacts unchanged this turn. Continue useful improvements while respecting active mobilecheck dist (do not overwrite dist). Approx next deployment17:41UTC; seal/regenerate/build/test finalrelease when due. One next read-only investigation: Hud.tsx doctrine/vow/threat chips are title-only and mention docs/*.md, so phone explanation/accessibility may be improvable; do not assume a functional defect without probing. Do not stage untracked devlog drafts.

@@ -36,7 +36,10 @@ The redesign below has been implemented and extended. The live combat HUD is now
 - **Start Wave focal** + full-board energy sweep on launch; the briefing header carries the
   encounter forecast (Σ unmodified bounty, labeled base Biomass, + ELITES/BOSS INBOUND warnings).
   Reward, adaptation and enemy chips open a keyboard-focusable detail region below the bar,
-  outside the mobile horizontal scroller. Escape/Close returns focus to the triggering chip;
+  outside the mobile horizontal scroller. On phone layouts the expanded details replace the
+  compact intel row, preserving reading space and launch controls. Details stay within the
+  battlefield and scroll when necessary, with Close kept visible. Escape/Close returns focus
+  to the triggering chip after the compact row reappears;
   a new preview or departure from prep dismisses the details. Enemy HP/armor are explicitly
   base stats, elite counts are included in the total, and rewards explain modifier/kill limits.
 - **HERO OPS** right-panel default: breathing portrait, conic ability wheel, HP + shield,
