@@ -1,6 +1,19 @@
 [
   {
     "date": "2026-11-09",
+    "title": "Clearer Battlefield Choices",
+    "categories": [
+      "UI"
+    ],
+    "items": [
+      {
+        "cat": "UI",
+        "text": "Conveyor recycling now shows the correct zero refund for the free starting organism. Recycling or merging a card keeps keyboard focus on a remaining placement option, and merge/recycle buttons identify their organism and cost or refund."
+      }
+    ]
+  },
+  {
+    "date": "2026-11-09",
     "title": "Sound That Responds Smoothly",
     "categories": [
       "Audio",

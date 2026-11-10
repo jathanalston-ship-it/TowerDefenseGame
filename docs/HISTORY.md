@@ -701,3 +701,5 @@
 - `8b491cb` **[Audio]** Audio: record completed mobile release gate _(internal)_
 - `c78aeab` **[Heroes]** Expose hero auto-cast toggle state _(internal)_
 - `663ef58` **[Towers]** Expose armed tower placement controls _(internal)_
+- `4545bff` **[Audio]** Ship responsive audio and accessible controls _(internal)_
+- `cf49f45` **[Audio]** Record verified audio deployment _(internal)_

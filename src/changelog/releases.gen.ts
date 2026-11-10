@@ -5,6 +5,18 @@ import type { Release } from './types';
 /** Player-facing releases, newest first. */
 export const RELEASES: Release[] = [
   {
+    "id": "v2026.11.09.7",
+    "date": "2026-11-09",
+    "title": "Clearer Battlefield Choices",
+    "sealed": false,
+    "entries": [
+      {
+        "cat": "UI",
+        "text": "Conveyor recycling now shows the correct zero refund for the free starting organism. Recycling or merging a card keeps keyboard focus on a remaining placement option, and merge/recycle buttons identify their organism and cost or refund."
+      }
+    ]
+  },
+  {
     "id": "v2026.11.09.6",
     "date": "2026-11-09",
     "title": "Sound That Responds Smoothly",

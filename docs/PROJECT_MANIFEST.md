@@ -524,7 +524,7 @@ ladders. 4. Every permanent progression source must move the Power Score (valida
 
 ## HUD
 
-- Toolbar hero auto-cast exposes its toggle state after unlock and under Hive management; the initial unlock retains purchase-button semantics. Favorite/conveyor placement exposes armed state, and conveyor deploy names include organism/cost. See HUD.md.
+- Toolbar hero auto-cast exposes its toggle state after unlock and under Hive management; the initial unlock retains purchase-button semantics. Favorite/conveyor placement exposes armed state, and conveyor deploy names include organism/cost. Consumed cards restore keyboard focus; free starting organisms display their actual zero recycle refund. See HUD.md.
 
 - **Purpose:** the in-run interface — resources, wave state, tower rail, inspector, draft,
   build controls, live Power — and the Hub shell (nav, badges, rings, screens) around the game.

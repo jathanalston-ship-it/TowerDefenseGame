@@ -4,8 +4,8 @@
 > before committing. Read together with docs/PROJECT_STATUS.md and the latest
 > docs/VALIDATION_REPORT.md. Next session: start at docs/PROJECT_MANIFEST.md.
 
-- **Generated:** 2026-11-10 06:23 UTC · **Diff scope:** working tree vs HEAD
-- **Branch:** codex/hive-autoplay · **HEAD:** 4545bff2
+- **Generated:** 2026-11-10 06:30 UTC · **Diff scope:** working tree vs HEAD
+- **Branch:** codex/hive-autoplay · **HEAD:** cf49f45a
 
 ## Summary of work completed
 
@@ -13,13 +13,14 @@ Active continuous improvement goal; roughly-hourly deployments with matching web
 
 ## Files modified
 
-- Source (0): —
+- Source (2): `src/changelog/releases.gen.ts`, `src/ui/Toolbar.tsx`
 - Tests (0): —
-- Docs (3): `docs/PROJECT_STATUS.md`, `docs/VALIDATION_REPORT.md`, `docs/devlog/DRAFT-2026-11-09.md`
+- Docs (6): `docs/HISTORY.md`, `docs/HUD.md`, `docs/PROJECT_MANIFEST.md`, `docs/PROJECT_STATUS.md`, `docs/VALIDATION_REPORT.md`, `docs/devlog/DRAFT-2026-11-09.md`
 
 ## Systems affected (from the dependency registry)
 
-- (no registered source files in this diff)
+- **chronicle** — `src/changelog/releases.gen.ts`
+- **run-ui** — `src/ui/Toolbar.tsx`
 
 ## Power Score changes
 
@@ -76,3 +77,5 @@ LATEST .6 placement ARIA followup: Toolbar favorite and conveyor Deploy aria-pre
 RELEASE .6 CHECKPOINT: sealed5notes, final build35451 PASS (audio-release-build.log), sealed siteSync4 PASS. All local processes terminal. Full3155/mobile9viewport before ARIA-only followups; actualGame/AXkeyboard probes cover latest attributes. Remote deploy branch remainsfa4f78bc. Publishing now; exact-SHA workflow and ../verify-audio-release.ps1 livechecks pending. Active continuous goal remains active.
 
 LATEST DEPLOYMENT VERIFIED:4545bff2,Actions42767736604 SUCCESS; normal /play/ assetplay-BAy15d18.js HTTP200 + home/news title + all5 notes PASS06:22UTC. Initial custom-domain propagation checks saw .5, then normal URL reached .6; no intervention needed. All processes terminal. New batch next, .6 sealed. Next approx deployment07:22UTC. This docs-only checkpoint need not trigger another deploy.
+
+LATEST LOCAL .7 Clearer Battlefield Choices,oneUI note: Toolbar corrects free starting gift recycle50shown/0paid mismatch to0; focus after consumed merge/recycle ->remaining enabledDeploy,favorite,namedconveyor group; only when consumed button hadfocus and noothercontrol nowfocused. Merge/recycle names includeorganism+amount. ../conveyor-recycle-check.cjs baseline/bodyfocus andafterPASS; ../conveyor-focus-check.cjs paidrefund/nextdeploy/favorite/merge/poor-group/unrelatedfocusPASS. Initial long-wave fixturelost beforeaction; validhighintegritymeta fixture thenPASS.20 conveyor/site testsPASS; build65033terminal0 (conveyor-focus-build.log). No processes. Live .6 unchanged; .7 unsealed. Next approxdeploy07:22UTC. Potential next targeted audit: Toolbar discard still calls audio.cue(dissolve), while Game.discardConveyor also queues dissolve; verify actual delivery before changing.

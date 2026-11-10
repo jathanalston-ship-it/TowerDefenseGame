@@ -1,3 +1,4 @@
+import { useLayoutEffect, useRef } from 'react';
 import type { Game } from '../core/game';
 import { HERO_DEFS, TOWER_DEFS } from '../core/config';
 import { audio } from '../audio/sound';
@@ -30,6 +31,19 @@ export function Toolbar({
   hud: HudSnapshot;
   refresh: () => void;
 }): JSX.Element {
+  const toolbarRef = useRef<HTMLDivElement>(null);
+  const consumedFocus = useRef<HTMLButtonElement | null>(null);
+  useLayoutEffect(() => {
+    const removed = consumedFocus.current;
+    consumedFocus.current = null;
+    if (!removed || removed.isConnected || document.activeElement !== document.body) return;
+    // A consumed card must not strand keyboard focus or move it onto another recycle action.
+    const toolbar = toolbarRef.current;
+    const next = toolbar?.querySelector<HTMLElement>('.cv-deploy:not(:disabled)')
+      ?? toolbar?.querySelector<HTMLElement>('.tcard:not(:disabled)')
+      ?? toolbar?.querySelector<HTMLElement>('.conveyor');
+    next?.focus();
+  });
   const playable = hud.phase === 'prep' || hud.phase === 'wave';
   const heroDef = HERO_DEFS[hud.hero.kind];
   const abilityStatus = hud.hero.down
@@ -43,7 +57,7 @@ export function Toolbar({
   const railKinds = [hud.conveyor.favorite]; // the always-available favorite; everything else arrives on the belt
 
   return (
-    <div className="toolbar">
+    <div className="toolbar" ref={toolbarRef}>
       <div className="tower-rail" data-tut="tower-rail">
         {railKinds.map((kind, i) => {
           const def = TOWER_DEFS[kind];
@@ -114,11 +128,12 @@ export function Toolbar({
         })}
 
         {conveyorMode && (
-          <div className="conveyor" data-tut="conveyor" aria-label="Biomorph Conveyor">
+          <div className="conveyor" data-tut="conveyor" role="group" tabIndex={-1} aria-label="Biomorph Conveyor">
             {hud.conveyor.items.map((c, idx) => {
               const def = TOWER_DEFS[c.kind];
               const ready = c.growFrac >= 1;
               const armed = game.selectedConveyorId === c.id;
+              const refund = c.free ? 0 : hud.conveyor.recycleValue;
               const target = mergeTargetOf(game, c.kind);
               const mergeCost = target ? hud.conveyor.strainCostFrom[Math.max(0, Math.min(3, target.strain - 1))] : 0;
               return (
@@ -162,9 +177,11 @@ export function Toolbar({
                       </button>
                       <button
                         className="cv-btn cv-strainb"
+                        aria-label={`Merge ${def.name}${target ? ` for ${mergeCost} Biomass` : ' — no eligible tower'}`}
                         disabled={!playable || target === null || hud.biomass < mergeCost}
                         title={target === null ? `No ${def.name} on the field below Strain V` : `Strain — consume to evolve your strongest ${def.name} to Strain ${ROMAN[Math.min(4, target.strain)]} (${mergeCost} Biomass)`}
-                        onClick={() => {
+                        onClick={(event) => {
+                          if (document.activeElement === event.currentTarget) consumedFocus.current = event.currentTarget;
                           audio.resume();
                           game.strainFromConveyor(c.id); // the sim queues the successful purchase cue
                           refresh();
@@ -174,15 +191,17 @@ export function Toolbar({
                       </button>
                       <button
                         className="cv-btn cv-discard"
+                        aria-label={`Recycle ${def.name} for ${refund} Biomass`}
                         disabled={!playable}
-                        title={`Discard — recycle for ${hud.conveyor.recycleValue} Biomass`}
-                        onClick={() => {
+                        title={`Discard — recycle for ${refund} Biomass${c.free ? ' (free starting organism)' : ''}`}
+                        onClick={(event) => {
+                          if (document.activeElement === event.currentTarget) consumedFocus.current = event.currentTarget;
                           audio.resume();
                           if (game.discardConveyor(c.id)) audio.cue('dissolve');
                           refresh();
                         }}
                       >
-                        ♻ {hud.conveyor.recycleValue}
+                        ♻ {refund}
                       </button>
                     </div>
                   )}
