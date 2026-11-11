@@ -5,6 +5,18 @@ import type { Release } from './types';
 /** Player-facing releases, newest first. */
 export const RELEASES: Release[] = [
   {
+    "id": "v2026.11.11.2",
+    "date": "2026-11-11",
+    "title": "Clearer Affix Controls",
+    "sealed": false,
+    "entries": [
+      {
+        "cat": "UI",
+        "text": "Item Details now shows each affix randomization price with material names. Locked affixes explain how to enable the action, and unaffordable ones show the exact materials still needed. Screen readers receive the same guidance."
+      }
+    ]
+  },
+  {
     "id": "v2026.11.11",
     "date": "2026-11-11",
     "title": "Clearer Equipment Details",

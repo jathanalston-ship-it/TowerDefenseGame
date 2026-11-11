@@ -846,3 +846,5 @@
 - `119c194` **[Framework]** Docs: record verified growth and navigation deployment _(internal)_
 - `52e75f6` **[UI]** Clarify equipment codex bonus units _(internal)_
 - `de9bc18` **[UI]** Make the equipment codex searchable _(internal)_
+- `59b261e` **[Gameplay]** Publish clearer equipment details _(internal)_
+- `34bb252` **[Gameplay]** Record verified equipment deployment _(internal)_

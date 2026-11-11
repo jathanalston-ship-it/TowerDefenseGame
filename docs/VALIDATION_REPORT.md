@@ -59,3 +59,7 @@ Sealed v2026.11.11 Clearer Equipment Details full validation19908 PASS at01:39UT
 ## 2026-11-11 01:42 UTC — clearer equipment details live
 
 LIVE v2026.11.11 Clearer Equipment Details. SHA59b261e56d48bc93e2f36006bae516be9bcc4f8b; Actions42940689648/job130261502856 SUCCESS including exact-commit production guard. Normal public game/home/news/all3notes verified01:42UTC; asset /assets/play-RFnb4Vhp.js exactly matches full-validator production build. Full validator19908 PASS01:39UTC3195tests/typecheck/mobile/docs. Three improvements: correct Codex set units, searchable Codex, current-tier affix descriptions. Applied effects, costs and saves unchanged. All check/deploy processes terminal; devserver64507 still available. Goal active; next approximate deployment02:42UTC.
+
+## 2026-11-11 — affix randomize guidance verified locally
+
+LOCAL unsealed v2026.11.11.2 Clearer Affix Controls has one generated website/game note. Affix Randomize now visibly names costs and lock/material deficits, linked with aria-describedby; upgrade-bar deficits share equivalent formatter. Real320px browser purchase/accessibility probe passed lock/unlock, exact deficits,1Mutagen2Scrap debit and updated shortage; screenshot inspected.27 focused tests PASS28.53s; docs/handoff and production build8240 PASS26.37s Vite/SWmwbgp9bg. All check processes terminal; devserver64507 available. Gameplay/costs/save unchanged. Full next-release audit pending. Live remains v2026.11.11 verified01:42UTC; next deployment~02:42UTC; goal active.

@@ -25,7 +25,16 @@ import { Popup } from './components/Popup';
 
 const cap = (s: string): string => s.charAt(0).toUpperCase() + s.slice(1);
 
-function costLabel(cost: Mats): string {
+const MATERIALS = [['mutagen', 'Mutagen'], ['scrap', 'Scrap'], ['catalyst', 'Catalyst']] as const;
+
+function missingMaterials(have: Mats, cost: Mats): string {
+  return MATERIALS.filter(([key]) => cost[key] > have[key])
+    .map(([key, name]) => `${cost[key] - have[key]} more ${name}`).join(', ');
+}
+
+function costLabel(cost: Mats, named = false): string {
+  if (named) return MATERIALS.filter(([key]) => cost[key] > 0)
+    .map(([key, name]) => `${cost[key]} ${name}`).join(', ') || 'Free';
   const parts: string[] = [];
   if (cost.mutagen) parts.push(`⊕${cost.mutagen}`);
   if (cost.scrap) parts.push(`◳${cost.scrap}`);
@@ -39,6 +48,9 @@ function AffixRow({ item, affix, mats, tag, color }: { item: OwnedItem; affix: R
   const def = affixDef(affix.affixId);
   const randCost = reforgeCost('randomize', item);
   const canRand = !affix.locked && canAfford(mats, randCost);
+  const randomizeDescriptionId = useId();
+  const randomizeReason = affix.locked ? 'Unlock this affix first.' : !canRand ? `Need ${missingMaterials(mats, randCost)}.` : 'Replaces this affix with a new type.';
+  const randomizeDescription = `Randomize: ${costLabel(randCost, true)}. ${randomizeReason}`;
   return (
     <div className={`id-affix${affix.locked ? ' is-locked' : ''}`}>
       <span className="id-affix-tag" style={{ color }}>{tag}</span>
@@ -48,8 +60,9 @@ function AffixRow({ item, affix, mats, tag, color }: { item: OwnedItem; affix: R
       </span>
       <span className="id-affix-actions">
         <button className={`id-mini${affix.locked ? ' is-on' : ''}`} aria-label={`${def?.name ?? affix.affixId} affix lock`} aria-pressed={!!affix.locked} title={affix.locked ? 'Unlock this affix' : 'Lock this affix (protect from reroll / reforge / randomize)'} onClick={() => meta.lockItemAffix(item.uid, index)}>{affix.locked ? '🔒' : '🔓'}</button>
-        <button className="id-mini" aria-label={`Randomize ${def?.name ?? affix.affixId} affix`} title={`Randomize this affix — a new type (${costLabel(randCost)})`} disabled={!canRand} onClick={() => meta.randomizeItemAffix(item.uid, index)}>⤨</button>
+        <button className="id-mini" aria-label={`Randomize ${def?.name ?? affix.affixId} affix`} aria-describedby={randomizeDescriptionId} title={randomizeDescription} disabled={!canRand} onClick={() => meta.randomizeItemAffix(item.uid, index)}>⤨</button>
       </span>
+      <span id={randomizeDescriptionId} className="id-affix-randomize">{randomizeDescription}</span>
     </div>
   );
 }
@@ -213,10 +226,7 @@ export function ItemDetails({
                 else if (op.id === 'enhance' && !item.affixes.some((a) => a.tier < ceiling)) reason = `Affixes have reached this item's T${ceiling} limit.`;
                 else reason = op.id === 'enhance' ? `Unlock an affix below T${ceiling} to enhance.` : 'Unlock an affix first.';
               } else if (disabled) {
-                const missing = ([['mutagen', 'Mutagen'], ['scrap', 'Scrap'], ['catalyst', 'Catalyst']] as const)
-                  .filter(([key]) => cost[key] > mats[key])
-                  .map(([key, name]) => `${cost[key] - mats[key]} more ${name}`);
-                reason = `Need ${missing.join(', ')}.`;
+                reason = `Need ${missingMaterials(mats, cost)}.`;
               }
               return (
                 <button key={op.id} className="id-op" disabled={disabled} title={reason ?? op.blurb} onClick={() => meta.reforgeOp(uid, op.id)}>

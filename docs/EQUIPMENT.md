@@ -590,3 +590,7 @@ Codex search uses the shared ListControls and organizeList framework with author
 ### Affix tier descriptions
 
 affixEffectText scales its displayed first effect with the same affixTierFactor and scaleEffect used by itemEffects. Tier bounds and applied effects are unchanged; percentage descriptions retain two decimals and additive descriptions four to avoid floating-point noise. Behavioral effects remain unscaled. Equipment tests compare descriptions with applied effects for every affix across tiers and bounds.
+
+### Targeted randomize guidance
+
+AffixRow displays named randomize costs plus lock/affordability guidance below the row. A useId description associates the same text with the Randomize button. Material shortfalls share the upgrade-bar formatter, and costs/enabling/purchase guards remain unchanged. Guidance updates after lock toggles and spending.

@@ -208,6 +208,8 @@
 
 .id-affix-actions { display: flex; gap: 4px; }
 
+.id-affix-randomize { grid-column: 1 / -1; font-size: 11px; line-height: 1.4; color: var(--text); }
+
 .id-ops { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px; }
 
 .id-op { display: flex; flex-direction: column; gap: 3px; text-align: left; padding: 8px 10px; border-radius: var(--r-sm); background: var(--panel-2); border: 1px solid var(--line); }

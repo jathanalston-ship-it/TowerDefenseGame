@@ -1,6 +1,19 @@
 [
   {
     "date": "2026-11-11",
+    "title": "Clearer Affix Controls",
+    "categories": [
+      "UI"
+    ],
+    "items": [
+      {
+        "cat": "UI",
+        "text": "Item Details now shows each affix randomization price with material names. Locked affixes explain how to enable the action, and unaffordable ones show the exact materials still needed. Screen readers receive the same guidance."
+      }
+    ]
+  },
+  {
+    "date": "2026-11-11",
     "title": "Clearer Equipment Details",
     "categories": [
       "UI"

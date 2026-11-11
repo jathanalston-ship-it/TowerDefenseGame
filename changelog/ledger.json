@@ -1,6 +1,6 @@
 {
-  "lastSha": "de9bc185c3f095271f9245fdc52b89fb1ba41cea",
-  "commitsSinceDraft": 0,
+  "lastSha": "34bb252c88e7d653ea0012da174a1899a7d68224",
+  "commitsSinceDraft": 2,
   "content": {
     "tower": [
       "needle",
@@ -4871,6 +4871,18 @@
         {
           "cat": "UI",
           "text": "Item Details now describes affixes at their current tier instead of always showing tier-one strength. Enhancing gear updates the displayed bonus immediately, with decimal precision for smaller improvements. Applied equipment effects are unchanged."
+        }
+      ]
+    },
+    {
+      "id": "v2026.11.11.2",
+      "date": "2026-11-11",
+      "title": "Clearer Affix Controls",
+      "sealed": false,
+      "entries": [
+        {
+          "cat": "UI",
+          "text": "Item Details now shows each affix randomization price with material names. Locked affixes explain how to enable the action, and unaffordable ones show the exact materials still needed. Screen readers receive the same guidance."
         }
       ]
     }
@@ -11289,6 +11301,22 @@
       "date": "2026-11-10",
       "cat": "UI",
       "text": "Make the equipment codex searchable",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "59b261e56d48bc93e2f36006bae516be9bcc4f8b",
+      "date": "2026-11-10",
+      "cat": "Gameplay",
+      "text": "Publish clearer equipment details",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "34bb252c88e7d653ea0012da174a1899a7d68224",
+      "date": "2026-11-10",
+      "cat": "Gameplay",
+      "text": "Record verified equipment deployment",
       "internal": true,
       "needsReview": false
     }
