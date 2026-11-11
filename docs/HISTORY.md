@@ -678,3 +678,4 @@
 - `f84a66f` **[Website]** Website: devlog "A lighter hub", curated v2026.11.11 notes, regenerated site + PIL report _(internal)_
 - `8e3b073` **[Gameplay]** Playtest list 2: act-only notifications, gated best moves greyed, Continue locked, Hive docked, Infinite End Early + 1/5 containers _(internal)_
 - `1dd6948` **[Enemies]** Infinite wall: past depth 4 + cleared Campaign stage enemy HP ×2/depth; sim:infinite harness _(internal)_
+- `be02da6` **[Website]** Website + notes: regenerated site, curated v2026.11.11 entries, DIL + PIL reports _(internal)_
