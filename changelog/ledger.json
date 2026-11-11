@@ -1,6 +1,6 @@
 {
-  "lastSha": "be02da66dcd79c6fc86fa53ce2baaa7f1d05c7f6",
-  "commitsSinceDraft": 8,
+  "lastSha": "30bca6f1aad553fb33913cd5eaa61402f506fd4b",
+  "commitsSinceDraft": 0,
   "content": {
     "tower": [
       "needle",
@@ -9338,6 +9338,30 @@
       "date": "2026-11-11",
       "cat": "Website",
       "text": "Website + notes: regenerated site, curated v2026.11.11 entries, DIL + PIL reports",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "d6ac95c017a0f8abfbda906f169611a0c44451d5",
+      "date": "2026-11-11",
+      "cat": "Framework",
+      "text": "Curate the batch's housekeeping commit out of the v2026.11.11 notes",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "54f3489723eb4b2a6f35dfcb5b967a2515fac486",
+      "date": "2026-11-11",
+      "cat": "Bug Fixes",
+      "text": "Ui: the update briefing's \"See all changes\" link is a full-size tap target on phones",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "30bca6f1aad553fb33913cd5eaa61402f506fd4b",
+      "date": "2026-11-11",
+      "cat": "Bug Fixes",
+      "text": "Ui: Growth rows keep their +Power gain visible on narrow layouts",
       "internal": true,
       "needsReview": false
     }

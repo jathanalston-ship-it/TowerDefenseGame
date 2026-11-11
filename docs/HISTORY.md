@@ -679,3 +679,6 @@
 - `8e3b073` **[Gameplay]** Playtest list 2: act-only notifications, gated best moves greyed, Continue locked, Hive docked, Infinite End Early + 1/5 containers _(internal)_
 - `1dd6948` **[Enemies]** Infinite wall: past depth 4 + cleared Campaign stage enemy HP ×2/depth; sim:infinite harness _(internal)_
 - `be02da6` **[Website]** Website + notes: regenerated site, curated v2026.11.11 entries, DIL + PIL reports _(internal)_
+- `d6ac95c` **[Framework]** Curate the batch's housekeeping commit out of the v2026.11.11 notes _(internal)_
+- `54f3489` **[Bug Fixes]** Ui: the update briefing's "See all changes" link is a full-size tap target on phones _(internal)_
+- `30bca6f` **[Bug Fixes]** Ui: Growth rows keep their +Power gain visible on narrow layouts _(internal)_

@@ -3,7 +3,7 @@
 > Maintained at the END of every session (paired with `docs/AI_HANDOFF.md` — the constitution's
 > workflow step 4). This is the "where are we?" answer; `docs/GAME-STATE.md` remains the deeper
 > per-system built-vs-planned index, `docs/PROJECT_MANIFEST.md` the system map.
-> **Last updated:** 2026-11-11b (**PLAYTEST PASS — HUB LAG + FEWER WORDS; releasing with Hive Call + Constructs** (owner:
+> **Last updated:** 2026-11-11b (**PLAYTEST PASS — validated (validate PASS over 353c962..HEAD: 3173/3173, mobile gate clean); RELEASING with Hive Call + Constructs** (owner:
 > "once you fix these can release all of it"). Owner playtest: the hub's Buy best-upgrade froze ~½ s; unlock summaries
 > and the hub read like a dashboard. LAG (BUGFIX #130): per-save memos (state/saveMemo.ts — committed store snapshots
 > only, results frozen) for Power parts, purchase candidates, adaptation picks, equip upgrades and two badge counts;
