@@ -62,3 +62,7 @@ LIVE v2026.11.10.16 Smoother Growth and Navigation. SHA bd8624a1cd353b8ad34fff38
 ## 2026-11-11 — equipment effect units verified locally
 
 LOCAL unsealed v2026.11.11 Clearer Equipment Details: shared effect-language formatter fixes Codex percentage/count units without changing equipment effects.33 focused tests passed11.77s; desktop/narrow and true portrait browser probes passed, screenshot inspected, save unchanged. Docs and production build passed (25.98s Vite, SWmwbeqii5). Full next-release validation pending. Live remains .16 verified00:43UTC; next approximate deployment01:43UTC. Goal active; devserver64507 active.
+
+## 2026-11-11 — equipment codex search verified locally
+
+LOCAL unsealed v2026.11.11 Clearer Equipment Details now has TWO website/game notes. Codex search uses shared organizer/controls for name, description, slot and set; preserves authored order/discovery, reveals phone hits, reports counts and restores input focus on clear. Real phone/desktop probes passed including unchanged save and query reset after remount; screenshot reviewed.43 equipment/effect/list/UI tests passed, and all4siteSync tests passed after completed regeneration (initial intermediate ledger mismatch explained in handoff). Docs and production build53660 PASS44.94s Vite/SWmwbf2eoq. All check processes terminal; devserver64507 active. Full release audit pending; live .16 remains verified00:43UTC; next deployment~01:43UTC. Goal active.

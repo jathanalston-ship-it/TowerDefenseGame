@@ -582,3 +582,7 @@ Quick-Salvage selection status includes the count of eligible selected items hid
 ### Codex effect units
 
 EquipmentCollection uses core/effectLanguage.describeEffects exact text for set bonuses. FIELD_VOCAB supplies percentage/count units; do not reintroduce a private field-name formatter. Equipment definitions and effects are unchanged.
+
+### Codex search
+
+Codex search uses the shared ListControls and organizeList framework with authored ordering. Queries match item name, description, slot label and set name; queries are transient and never saved. Matching set bonuses remain visible, empty slots disappear, phone search results bypass folds, and Clear search restores focus to the search field. Collection progress remains global and unchanged by searching.

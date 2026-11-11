@@ -13,6 +13,10 @@ export const RELEASES: Release[] = [
       {
         "cat": "UI",
         "text": "Equipment Codex set bonuses now use the same effect descriptions as gene cards. Percentage bonuses such as critical chance and Reactor overcharge display as percentages, while extra Fracture stacks remain counts. Equipment effects are unchanged."
+      },
+      {
+        "cat": "UI",
+        "text": "The Equipment Codex now searches relic names, sets, slots and descriptions. Matching items appear directly on phones, result counts explain what is shown, and Clear search restores the collection without changing discovery progress."
       }
     ]
   },

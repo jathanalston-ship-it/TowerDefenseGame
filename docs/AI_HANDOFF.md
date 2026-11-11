@@ -4,12 +4,12 @@
 > before committing. Read together with docs/PROJECT_STATUS.md and the latest
 > docs/VALIDATION_REPORT.md. Next session: start at docs/PROJECT_MANIFEST.md.
 
-- **Generated:** 2026-11-11 00:52 UTC · **Diff scope:** working tree vs HEAD
-- **Branch:** codex/hive-autoplay · **HEAD:** 119c194e
+- **Generated:** 2026-11-11 01:00 UTC · **Diff scope:** working tree vs HEAD
+- **Branch:** codex/hive-autoplay · **HEAD:** 52e75f66
 
 ## Summary of work completed
 
-LOCAL unsealed v2026.11.11 Clearer Equipment Details has one game/website note. EquipmentCollection now uses shared describeEffects exact text instead of a private formatter that displayed percentage fractions. Live remains v2026.11.10.16 SHA bd8624a1cd353b8ad34fff389afd6324b409e331, game and seven website notes verified 00:43UTC. Goal active; next approximate deployment01:43UTC.
+LOCAL unsealed v2026.11.11 Clearer Equipment Details now has TWO generated game/website notes. Added shared-framework Codex search by name, description, slot and set; prior committed change fixes percentage/count units. Live .16 remains SHA bd8624a1cd353b8ad34fff389afd6324b409e331, verified game/home/news00:43UTC. Goal active; next approximate deployment01:43UTC.
 
 ## Files modified
 
@@ -25,15 +25,15 @@ LOCAL unsealed v2026.11.11 Clearer Equipment Details has one game/website note. 
 
 ## Power Score changes
 
-None. Equipment definitions and simulation untouched.33 equipment/effect-language tests passed11.77s.
+None. Discovery, inventory, equipment definitions and simulation untouched. Equipment and effect-language tests passed.
 
 ## UI changes
 
-Codex shows +12% Reactor overcharge, +8% Hero crit chance and +25% Hero crit damage while preserving +1 max Fracture stacks. Parent equipment-set-units-check.cjs and equipment-set-units-portrait-check.cjs passed actual rendering, 320px no-overflow and unchanged-save checks; portrait screenshot inspected.
+Search shows match count, matching set bonuses and nonempty slot groups. Phone hits bypass folds. Clear search restores field focus; leaving screen resets query. Parent equipment-codex-search-check.cjs and desktop variant passed mixed-case/trimmed set names, descriptions, slot, empty recovery, field focus, no phone overflow, remount reset and byte-unchanged save.320px screenshot reviewed.
 
 ## Documentation changes
 
-EQUIPMENT and PROJECT_MANIFEST updated. Game/home/news generated with one unsealed note. CHANGELOG-PIPELINE, EQUIPMENT-PHILOSOPHY and REFORGE need no change: no pipeline, design, crafting or model behavior changes. Docs anchors/references/staleness passed.
+EQUIPMENT and manifest updated; two game/home/news notes generated. CHANGELOG-PIPELINE, EQUIPMENT-PHILOSOPHY and REFORGE need no changes: no pipeline, design, crafting or model changes. Docs check passed.
 
 ## Save changes
 
@@ -41,16 +41,16 @@ None — save layer untouched.
 
 ## Known edge cases
 
-Preserve both untracked devlog drafts. Full release audit remains pending for this new correction; prior full3194-test audit covers live .16.
+Initial siteSync check overlapped ledger update and caught intermediate1-versus2 note counts. After site generation, rerun all4siteSync tests PASS1.70s. Other43focused equipment/effect/list/UI tests passed. Do not edit ledger while siteSync tests run. Both untracked devlog drafts preserved.
 
 ## Remaining technical debt
 
-No new debt. Local Chrome audit needs MOBILECHECK_CHROMIUM and NODE_OPTIONS parent chrome-probe-compat.cjs.
+No new debt. Chrome full audit requires MOBILECHECK_CHROMIUM plus NODE_OPTIONS parent chrome-probe-compat.cjs.
 
 ## Recommended next tasks
 
-Production build97971 passed (25.98s Vite, SWmwbeqii5). Continue goal and collect focused improvements until next release about01:43UTC. Seal/regenerate notes, run full validator before deployment. Do not confuse locally generated next-release website with the currently live .16 website.
+Production build53660 PASS44.94s Vite/SWmwbf2eoq; all checks terminal. Full release validation still pending. Continue goal and next deployment about01:43UTC: seal/regenerate notes, run complete validator, push and verify actual normal public game/home/news.
 
 ## Future expansion hooks
 
-Devserver5174 active session64507. Production push: git push origin HEAD:refs/heads/claude/zen-hawking-rh1gxl. Public verifier ../verify-current-release.ps1. Every deployment includes website notes.
+Devserver5174 active64507. Production push git push origin HEAD:refs/heads/claude/zen-hawking-rh1gxl. Public verifier ../verify-current-release.ps1. Shared codex spec is CODEX_LIST in EquipmentCollection; no persistent query preference.

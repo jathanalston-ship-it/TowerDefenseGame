@@ -844,3 +844,4 @@
 - `2ce05c1` **[Heroes]** Keep focus with dispatched expedition teams _(internal)_
 - `bd8624a` **[UI]** Release: publish smoother growth and navigation _(internal)_
 - `119c194` **[Framework]** Docs: record verified growth and navigation deployment _(internal)_
+- `52e75f6` **[UI]** Clarify equipment codex bonus units _(internal)_

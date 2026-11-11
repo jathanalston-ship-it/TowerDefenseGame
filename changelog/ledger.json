@@ -1,6 +1,6 @@
 {
-  "lastSha": "119c194eefb9e80e0a53720c32f1356ac6aac30f",
-  "commitsSinceDraft": 8,
+  "lastSha": "52e75f66b340acc4a6acd6c54856a073a959ec9b",
+  "commitsSinceDraft": 9,
   "content": {
     "tower": [
       "needle",
@@ -4863,6 +4863,10 @@
         {
           "cat": "UI",
           "text": "Equipment Codex set bonuses now use the same effect descriptions as gene cards. Percentage bonuses such as critical chance and Reactor overcharge display as percentages, while extra Fracture stacks remain counts. Equipment effects are unchanged."
+        },
+        {
+          "cat": "UI",
+          "text": "The Equipment Codex now searches relic names, sets, slots and descriptions. Matching items appear directly on phones, result counts explain what is shown, and Clear search restores the collection without changing discovery progress."
         }
       ]
     }
@@ -11265,6 +11269,14 @@
       "date": "2026-11-10",
       "cat": "Framework",
       "text": "Docs: record verified growth and navigation deployment",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "52e75f66b340acc4a6acd6c54856a073a959ec9b",
+      "date": "2026-11-10",
+      "cat": "UI",
+      "text": "Clarify equipment codex bonus units",
       "internal": true,
       "needsReview": false
     }
