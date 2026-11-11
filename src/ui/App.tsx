@@ -42,7 +42,7 @@ import { startSyncEngine } from '../net/syncEngine';
 const HudTour = lazyNamed(() => import('./HudTour'), 'HudTour');
 import { WelcomeGate, ConflictModal } from './components/AccountPanel';
 import { isDebugEnabled } from '../debug/debug';
-import { meta, metaModifiers } from '../state/meta';
+import { flushPowerLog, meta, metaModifiers } from '../state/meta';
 import { audio } from '../audio/sound';
 import { applyWardrobeDressing } from './wardrobeDressing';
 import { music } from '../audio/music';
@@ -278,6 +278,7 @@ export function App(): JSX.Element {
     setScreen('roulette');
   }), [screen]);
   const begin = useCallback((mode: RunMode, stage: StageConfig | null = null, extraRunEffects: CardEffect[] = []) => {
+    flushPowerLog(); // a run's start is a natural pause to record the day's Power (docs/POWER-SCORE.md §history)
     seedRef.current = (Date.now() ^ Math.floor(Math.random() * 0xffffffff)) >>> 0;
     // Snapshot permanent progression + hero choice + equipped loadout at run start
     // (the run stays deterministic from this snapshot).

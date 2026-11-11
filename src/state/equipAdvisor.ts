@@ -7,6 +7,7 @@
 // equipment row memoize per save revision.
 
 import type { SaveData } from '../save/saveStore';
+import { memoPerSave } from './saveMemo';
 import type { EquipSlot, OwnedItem, Rarity } from '../core/equipment';
 import { EQUIP_SLOTS, emptyLoadout, itemDef } from '../core/equipment';
 import type { HeroKind } from '../core/types';
@@ -33,7 +34,14 @@ const PREFILTER = 3;
 
 /** Every strictly-positive free gear upgrade across the fielded roster, best-gain first
  *  (one pick per hero × slot — the best candidate for that seat). */
+/** Free gear upgrades, best first. The full ranking is scored ONCE per save snapshot
+ *  (state/saveMemo.ts) and sliced per caller (the Armory strip, the advisor, the badge). */
 export function equipUpgrades(save: SaveData, limit = 8): EquipPick[] {
+  return allUpgradesOfSave(save).slice(0, Math.max(0, limit));
+}
+const allUpgradesOfSave = memoPerSave((save: SaveData): EquipPick[] => equipUpgradesOf(save, Infinity));
+
+function equipUpgradesOf(save: SaveData, limit: number): EquipPick[] {
   const worn = new Set<string>();
   for (const lo of Object.values(save.equipment.loadouts)) {
     if (lo) for (const s of EQUIP_SLOTS) { const u = lo[s]; if (u) worn.add(u); }

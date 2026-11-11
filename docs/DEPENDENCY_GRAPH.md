@@ -380,7 +380,7 @@ graph TD
 
 *ONE account-strength number folded from every permanent bucket + the in-run temporary bucket.*
 
-- **Files:** `src/core/power.ts` · `src/state/itemPower.ts` · `src/state/powerEvents.ts` · `src/state/bestPurchase.ts` · `src/state/equipAdvisor.ts` · `src/state/powerAtlas.ts` · `src/state/powerAdvisor.ts` · `src/state/missionControl.ts` · `src/state/evolutionRoadmap.ts` · `src/state/powerLog.ts` · `src/ui/components/PowerScore.tsx` · `src/ui/components/PowerDelta.tsx` · `src/ui/components/PowerToaster.tsx` · `src/ui/components/BestBuyStrip.tsx` · `src/ui/components/GrowthPanel.tsx`
+- **Files:** `src/core/power.ts` · `src/state/itemPower.ts` · `src/state/powerEvents.ts` · `src/state/bestPurchase.ts` · `src/state/saveMemo.ts` · `src/state/equipAdvisor.ts` · `src/state/powerAtlas.ts` · `src/state/powerAdvisor.ts` · `src/state/missionControl.ts` · `src/state/evolutionRoadmap.ts` · `src/state/powerLog.ts` · `src/ui/components/PowerScore.tsx` · `src/ui/components/PowerDelta.tsx` · `src/ui/components/PowerToaster.tsx` · `src/ui/components/BestBuyStrip.tsx` · `src/ui/components/GrowthPanel.tsx`
 - **Depends on:** `content-infra`
 - **Consumers — what breaks if you change this:** `hive-mind` · `campaign` · `mulligans` · `premium` · `net-backend` · `arena` · `equipment` · `loot` · `gene-cards` · `class-bonds` · `nucleus` · `hero-symbiotes` · `profile` · `genome-rank` · `hub-shell` · `run-ui` · `prediction`
 - **Power Score:** IS the model (buckets, effectsPower, FIELD_WEIGHT)

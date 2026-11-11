@@ -12,6 +12,7 @@
 import type { SaveData } from '../save/saveStore';
 import type { HeroKind, TowerKind } from '../core/types';
 import { powerBreakdown } from './profile';
+import { memoPerSaveKeyed } from './saveMemo';
 import { geneArchiveRows } from './geneArchive';
 import { HERO_DEFS, HERO_ORDER, META_UPGRADES, STAR, TOWER_DEFS, TOWER_ORDER } from '../core/config';
 import { primeCatalystCost, primeCost } from '../core/prime';
@@ -30,8 +31,15 @@ export interface PurchaseCandidate {
   valuePer1k: number; // powerDelta per 1000 currency — the per-surface ranking key
 }
 
-/** Every legal next purchase on a surface, scored. Sorted best-value first. */
+/** Every legal next purchase on a surface, scored. Sorted best-value first. Memoized per save
+ *  snapshot (state/saveMemo.ts) — the Growth panel, Mission Control and the feed all ask for the
+ *  same snapshot's candidates; callers must not mutate the returned rows. */
 export function purchaseCandidates(save: SaveData, surface: PurchaseSurface): PurchaseCandidate[] {
+  return candidatesOfSave(save, surface);
+}
+const candidatesOfSave = memoPerSaveKeyed((save: SaveData, surface: PurchaseSurface): PurchaseCandidate[] => computeCandidates(save, surface));
+
+function computeCandidates(save: SaveData, surface: PurchaseSurface): PurchaseCandidate[] {
   const base = powerBreakdown(save).score;
   const out: PurchaseCandidate[] = [];
   const score = (mutated: SaveData): number => Math.max(0, powerBreakdown(mutated).score - base);

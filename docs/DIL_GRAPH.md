@@ -1,6 +1,6 @@
 # DIL_GRAPH.md — the Design Intelligence Layer (GENERATED — `npm run dil -- regen`)
 
-> **The project's brain** (docs/DIL.md). 1001 nodes · 1953 edges, built from the live
+> **The project's brain** (docs/DIL.md). 1001 nodes · 1954 edges, built from the live
 > registries + curated knowledge (src/dev/dil/). **Query it instead of searching the repo:**
 > `npm run dil -- node <id>` · `affects <id>` · `requires <id>` · `missing <kind> <edge>` ·
 > `checklist tower <kind>` · `find <text>`. Edge kinds are bidirectional (19 kinds).
@@ -976,12 +976,13 @@ _at: src/core/registry.ts, src/core/validate.ts, src/core/config.ts, src/core/ty
 
 ONE account-strength number folded from every permanent bucket + the in-run temporary bucket.
 
-_at: src/core/power.ts, src/state/itemPower.ts, src/state/powerEvents.ts, src/state/bestPurchase.ts, src/state/equipAdvisor.ts, src/state/powerAtlas.ts, src/state/powerAdvisor.ts, src/state/missionControl.ts, src/state/evolutionRoadmap.ts, src/state/powerLog.ts, src/ui/components/PowerScore.tsx, src/ui/components/PowerDelta.tsx, src/ui/components/PowerToaster.tsx, src/ui/components/BestBuyStrip.tsx, src/ui/components/GrowthPanel.tsx_
+_at: src/core/power.ts, src/state/itemPower.ts, src/state/powerEvents.ts, src/state/bestPurchase.ts, src/state/saveMemo.ts, src/state/equipAdvisor.ts, src/state/powerAtlas.ts, src/state/powerAdvisor.ts, src/state/missionControl.ts, src/state/evolutionRoadmap.ts, src/state/powerLog.ts, src/ui/components/PowerScore.tsx, src/ui/components/PowerDelta.tsx, src/ui/components/PowerToaster.tsx, src/ui/components/BestBuyStrip.tsx, src/ui/components/GrowthPanel.tsx_
 
   - dependsOn → `system:content-infra`
   - provides → `concept:power-score` — IS the model (buckets, effectsPower, FIELD_WEIGHT)
   - consumes → `system:meta-store` — owns save field 'powerLog'
   - extends → `system:hub-shell` — POWER ATLAS (state/powerAtlas.ts): one row per Power system — best next move via the exact advisors (bestPurchase, now incl. a `heroes` surface + Prime rows for max-◈ units; adaptationPicks; equipAdvisor.ts free exact gear swaps with a one-click Equip in the Armory) + honest tend notes (Mulligan completion / Archive %). The Command Center `growth` widget (ui/components/GrowthPanel.tsx, homeRegistry order 15, gated on the towers reveal) renders it; save.powerLog (v43, bounded 90-day daily ledger, state/powerLog.ts — written by meta.notePowerSnapshot on boot + debounced power gains, browser-only) feeds its weekly delta + sparkline and the Profile Power Breakdown trend
+  - conflictsWith → `system:meta-store` — PER-SAVE MEMOS (state/saveMemo.ts): accountPowerParts, purchaseCandidates, adaptationPicks/adaptableUnits, equipUpgrades and two badge counts cache per COMMITTED store snapshot (markSnapshot at every store.set site — boot, persist, the loot-meter write, restoreBackup). Contract: a committed snapshot is NEVER mutated in place (any new store.set site must markSnapshot; mutate-in-place saves — harnesses, hypotheticals — are simply not cached). Cached results are frozen (shallow) — never sort/push them; slice first. The Power-history ledger now writes at natural pauses (boot, run start via flushPowerLog, tab hidden/pagehide), NOT 600 ms after each gain — that second snapshot doubled every quick-buy's cost. CommandCenter reads useDeferredValue(meta.use()) so a click paints before the advisor panels recompute (2026-11-11: 2×300 ms long tasks → one ~80 ms).
   - requiredBy ← `system:hive-mind`
   - requiredBy ← `system:campaign`
   - requiredBy ← `system:mulligans`
@@ -2391,7 +2392,7 @@ _at: src/state/meta.ts, src/state/store.ts, src/state/prefs.ts, src/state/devRes
   - consumedBy ← `system:mulligans` — owns save field 'mulligans'
   - consumedBy ← `system:mulligans` — owns save field 'mulliganDex'
   - consumedBy ← `system:premium` — owns save field 'premium'
-  - _…133 more (query: `npm run dil -- node system:meta-store`)_
+  - _…134 more (query: `npm run dil -- node system:meta-store`)_
 
 ### `system:bosses` — Bosses
 

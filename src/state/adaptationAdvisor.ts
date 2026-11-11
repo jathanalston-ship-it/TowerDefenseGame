@@ -6,6 +6,7 @@
 // never hidden, never oversold. Pure over SaveData; the UI decides how many to show.
 
 import type { SaveData } from '../save/saveStore';
+import { memoPerSave } from './saveMemo';
 import { adaptationView, isHeroUnlocked, isTowerUnlocked } from './meta';
 import { powerBreakdown } from './profile';
 import { HERO_DEFS, HERO_ORDER, TOWER_DEFS, TOWER_ORDER } from '../core/config';
@@ -26,7 +27,9 @@ export interface AdaptPick {
 }
 
 /** Units the chamber can adapt right now: unlocked, with ≥1 free Antigen. */
-export function adaptableUnits(save: SaveData): { subject: 'tower' | 'hero'; unit: string; free: number }[] {
+/** Memoized per save snapshot (state/saveMemo.ts) — the atlas, the advisor and the Chamber share it. */
+export const adaptableUnits = memoPerSave(adaptableUnitsOf);
+function adaptableUnitsOf(save: SaveData): { subject: 'tower' | 'hero'; unit: string; free: number }[] {
   const out: { subject: 'tower' | 'hero'; unit: string; free: number }[] = [];
   for (const k of TOWER_ORDER) {
     if (!isTowerUnlocked(save, k)) continue;
@@ -40,7 +43,13 @@ export function adaptableUnits(save: SaveData): { subject: 'tower' | 'hero'; uni
 }
 
 /** Every pickable adaptation across the account, ranked by exact Power gain. */
+/** The full ranking is scored ONCE per save snapshot (state/saveMemo.ts) and sliced per caller —
+ *  the Chamber (6), Mission Control (5), the feed (1) and the atlas all read the same list. */
 export function adaptationPicks(save: SaveData, limit = 8): AdaptPick[] {
+  return allPicksOfSave(save).slice(0, Math.max(0, limit));
+}
+const allPicksOfSave = memoPerSave((save: SaveData): AdaptPick[] => adaptationPicksOf(save, Infinity));
+function adaptationPicksOf(save: SaveData, limit: number): AdaptPick[] {
   const base = powerBreakdown(save).score;
   const out: AdaptPick[] = [];
   for (const { subject, unit, free } of adaptableUnits(save)) {

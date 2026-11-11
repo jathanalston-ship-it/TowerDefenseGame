@@ -7,7 +7,7 @@
 // dashboard → the tip. Pure presentation over existing read-models; run starts route
 // through the same callbacks the Hub always passed.
 
-import { useEffect, useMemo, useState, type MutableRefObject, type ReactNode } from 'react';
+import { useDeferredValue, useEffect, useMemo, useState, type MutableRefObject, type ReactNode } from 'react';
 import { meta } from '../state/meta';
 import { isBossRushUnlocked, isDailyUnlocked, isInfiniteUnlocked } from '../save/derive';
 import { MODE_UNLOCKS } from '../core/config';
@@ -103,7 +103,11 @@ export function CommandCenter({
   onSeenLast: () => void;
   doctrineRef: MutableRefObject<string>;
 }): JSX.Element {
-  const save = meta.use();
+  // The board's heavy models (Power advisor, atlas, Mission Control, the feed) render one beat AFTER
+  // a save change: React's deferred value lets the click's own feedback (the top bar's currencies,
+  // the purchase cue/toast) paint first, then the board catches up at transition priority — a
+  // quick-buy never holds the frame (the 2026-11-11 hub lag).
+  const save = useDeferredValue(meta.use());
   // The board's single source of numbers — recomputed only when the save snapshot changes.
   const view = useMemo(() => buildHomeView(save), [save]);
   // Snapshot the last run ONCE at mount so the recap survives onSeenLast clearing it.

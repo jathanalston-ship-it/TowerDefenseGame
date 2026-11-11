@@ -16,6 +16,7 @@ import { registerNotification, setChannelGate } from './notifications';
 import { featureRevealed, FEATURE_BY_ID } from './unlocks';
 import { equipUpgrades } from './equipAdvisor';
 import type { SaveData } from '../save/saveStore';
+import { memoPerSave } from './saveMemo';
 import { geneArchiveRows } from './geneArchive';
 import { HIVE_ORGANS, hiveCost } from '../core/hiveOrgans';
 import { labEra, labScore } from '../ui/homeBaseTiers';
@@ -118,7 +119,7 @@ registerNotification({
 registerNotification({
   id: 'hive.affordable',
   channel: 'hive',
-  count: (s) => {
+  count: memoPerSave((s) => { // pure over the save — memoized per snapshot (badges/reasons/live all poll it)
     const era = labEra(labScore(s));
     const wallet = {
       cores: s.shards, essence: s.geneEssence, strain: sumValues(s.towerShards), apex: sumValues(s.heroShards),
@@ -129,7 +130,7 @@ registerNotification({
       if (era < def.era || built >= def.tiers) return n;
       return n + (hiveCost(def, built + 1).every((l) => wallet[l.key] >= l.amount) ? 1 : 0);
     }, 0);
-  },
+  }),
   reason: (_s, n) => `${n} Hive organ${n === 1 ? '' : 's'} affordable`,
 });
 
@@ -184,12 +185,12 @@ registerNotification({
 registerNotification({
   id: 'adaptation.points',
   channel: 'adaptation',
-  count: (s) => {
+  count: memoPerSave((s) => { // pure over the save — memoized per snapshot (an adaptationView per unit)
     let n = 0;
     for (const k of TOWER_ORDER) if (isTowerUnlocked(s, k) && adaptationView(s, 'tower', k).pointsAvailable > 0) n++;
     for (const h of HERO_ORDER) if (isHeroUnlocked(s, h) && adaptationView(s, 'hero', h).pointsAvailable > 0) n++;
     return n;
-  },
+  }),
   reason: (_s, n) => `${n} unit${n === 1 ? '' : 's'} holding unspent Antigen`,
 });
 

@@ -16,6 +16,7 @@ import {
   sessionStorageLike,
 } from '../save/saveStore';
 import type { BackupMeta, ImportResult, SaveData } from '../save/saveStore';
+import { markSnapshot, memoPerSave } from './saveMemo';
 import { enterGuestMode, exitGuestMode, guestModeActive } from './guestMode';
 import { coresPerMinute, coresPerRun, incomeMeters, tickIncome } from './income';
 import { hasSlainMega, highestCampaignStage, isBossRushUnlocked, isCutsceneUnlocked, isDailyUnlocked, threatMaxFor, unlockedCutsceneIds } from '../save/derive';
@@ -936,7 +937,7 @@ gameEvents.on('megaWeakPointDown', (e) => {
 // Guest Mode (docs/ACCOUNTS.md §guest-mode): while the tryout flag is up the whole save
 // lifecycle rides session-scoped storage — nothing durable exists until the player converts.
 const saveStore = new SaveStore(guestModeActive() ? sessionStorageLike() : undefined);
-const store = createStore<SaveData>(saveStore.load());
+const store = createStore<SaveData>(markSnapshot(saveStore.load()));
 noteClock(); // boot clock high-water check (docs/SECURITY.md §offline) — no-op outside the browser
 
 // Splice Market stock seed (docs/MARKET.md): derived from the profile's createdAt stamp so
@@ -954,7 +955,7 @@ let persistFlushTimer: ReturnType<typeof setTimeout> | null = null;
 
 function persist(next: SaveData): void {
   next = withGearDiscoveries(next);
-  store.set(next);
+  store.set(markSnapshot(next)); // a committed snapshot — the per-save memos may key on it (state/saveMemo.ts)
   noteClock();
   // Cross-tab arbitration (docs/SECURITY.md §tabs): once another tab owns the save, THIS
   // tab's disk writes stop — memory stays live for the session, the takeover banner says
@@ -1192,12 +1193,22 @@ export function genomeUpgradeFactor(save: SaveData): number {
 }
 
 export function accountPowerParts(save: SaveData, temporary = 1): PowerParts {
+  // Per-save memo (state/saveMemo.ts): the hub's panels all read the same snapshot's Power — the
+  // quick-buy lag (2026-11-11) was this computed 3–5× per save change. temporary ≠ 1 is a run's
+  // live read (never shared) and computes fresh.
+  return temporary === 1 ? accountPowerPartsOfSave(save) : computeAccountPowerParts(save, temporary);
+}
+const accountPowerPartsOfSave = memoPerSave((save: SaveData): PowerParts => Object.freeze(computeAccountPowerParts(save, 1)));
+
+function computeAccountPowerParts(save: SaveData, temporary: number): PowerParts {
   // Mulligan-EXCLUDED tower progress for the towers bucket: the Mulligan's Power is credited to its
   // own dedicated bucket below, never double-counted through the towers geomean (docs/MULLIGANS.md).
   const tp = towerProgress(save, false);
   const hp = heroProgress(save);
   // Collection completion bonuses are permanent account strength → their offense folds into `meta`.
-  const collectionMult = effectsPower(collectionBonusEffects(collectionView(collectionContextOf(save))));
+  // ONE collection view per evaluation (it was built twice — for the bonus and for the bucket).
+  const collection = collectionView(collectionContextOf(save));
+  const collectionMult = effectsPower(collectionBonusEffects(collection));
   // Battle Pass permanents + Perennial stacks are the same class of strength (docs/BATTLEPASS.md).
   const battlePassMult = effectsPower(battlePassEffectsOf(save));
   // Claimed-cosmetic permanent bonuses (v53, docs/COSMETICS.md §bonuses) — ×1 on a fresh save
@@ -1222,7 +1233,7 @@ export function accountPowerParts(save: SaveData, temporary = 1): PowerParts {
     heroes: geomean(HERO_ORDER.map((k) => hp[k].damageMult)),
     equipment: equipmentPower(save),
     // Codex completion across categories (1 on a fresh account ⇒ POWER_BASE preserved).
-    collection: collectionView(collectionContextOf(save)).power,
+    collection: collection.power,
     // Mulligan organisms (docs/MULLIGANS.md) — a dedicated, separately-inspectable bucket. Each
     // tower's Mulligan is 1 until all three slots are filled ⇒ 1 on a fresh account ⇒ POWER_BASE.
     // × the Nucleus's own organism (docs/NUCLEUS.md) and every hero's Symbiotes
@@ -3432,7 +3443,7 @@ export const meta = {
     runLootBanked = total;
     const adv = addProgress(save.lootQueue, Math.max(0, delta), Math.random, lootBiasFor(save));
     if (adv.awarded.length === 0) {
-      store.set({ ...save, lootQueue: adv.state }); // pure progress: advance the meter, skip the disk write
+      store.set(markSnapshot({ ...save, lootQueue: adv.state })); // pure progress: advance the meter, skip the disk write
       return [];
     }
     // A container completed — bank it UNOPENED. It waits in the Genetic Vault until the
@@ -7648,7 +7659,7 @@ export const meta = {
     if (!guardOk('save.restore', id)) return false;
     const data = saveStore.restoreBackup(id);
     if (!data) return false;
-    store.set(data);
+    store.set(markSnapshot(data));
     return true;
   },
 
@@ -8212,15 +8223,27 @@ export const meta = {
   },
 };
 
+/** Write the pending Power-history entry now (a run's start calls it — App.begin). No-op in Node. */
+let powerLogFlush: () => void = () => undefined;
+export function flushPowerLog(): void { powerLogFlush(); }
+
 // ── Power-history wiring (docs/POWER-SCORE.md §history) ─────────────────────────────────────
 // Browser-only, like the security layer's inert-in-Node rule — Node test runs stay free of
-// stray timers/persists. Boot logs today's baseline; gains re-log on a short debounce so a
-// claim-all chain lands as ONE ledger write.
+// stray timers/persists. The ledger is a DAILY history (the trend sparkline + the 7-day delta, which
+// read the live score for "now"), so it is written at natural pauses — boot, a run's start, the tab
+// going hidden / closing — never on a debounce after each gain: that write was a second full save
+// snapshot 600 ms after every quick-buy, re-running every hub model (the 2026-11-11 lag's second
+// long task). A gain only marks the ledger dirty.
 if (typeof window !== 'undefined') {
-  let logTimer: ReturnType<typeof setTimeout> | null = null;
-  onPowerGain(() => {
-    if (logTimer) clearTimeout(logTimer);
-    logTimer = setTimeout(() => { logTimer = null; meta.notePowerSnapshot(); }, 600);
-  });
+  let dirty = false;
+  onPowerGain(() => { dirty = true; });
+  const flush = (): void => {
+    if (!dirty) return;
+    dirty = false;
+    meta.notePowerSnapshot();
+  };
+  powerLogFlush = flush;
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') flush(); });
+  window.addEventListener('pagehide', flush);
   setTimeout(() => meta.notePowerSnapshot(), 0);
 }
