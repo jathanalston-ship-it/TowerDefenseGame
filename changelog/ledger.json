@@ -1,6 +1,6 @@
 {
-  "lastSha": "3373670aff71483d1928ef138a6cfa0cea4b5411",
-  "commitsSinceDraft": 4,
+  "lastSha": "528569aef1f0afa921ab00fc51964d851ad81f3c",
+  "commitsSinceDraft": 5,
   "content": {
     "tower": [
       "needle",
@@ -4843,6 +4843,10 @@
         {
           "cat": "UI",
           "text": "Page tabs in the Hive, Quest Board, Armory and Phenotype Lab now support arrow keys, Home and End. Tab moves from the selected page into its named content panel, while locked previews remain readable without opening unavailable pages."
+        },
+        {
+          "cat": "UI",
+          "text": "Sending a hero on an expedition now keeps keyboard focus with their Away Team card and return time. Send and claim controls name the hero and mission, making similar-looking actions easier to distinguish."
         }
       ]
     }
@@ -11213,6 +11217,14 @@
       "date": "2026-11-10",
       "cat": "UI",
       "text": "Ui: preserve focus through hive organ reveals",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "528569aef1f0afa921ab00fc51964d851ad81f3c",
+      "date": "2026-11-10",
+      "cat": "UI",
+      "text": "Ui: add keyboard navigation to hosted page tabs",
       "internal": true,
       "needsReview": false
     }

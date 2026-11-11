@@ -65,3 +65,5 @@ New mission = one `EXPEDITION_DEFS` row (id, hours, risk, affinity, bundle). New
 find = one `RARE_FINDS` row. New reward lanes (equipment drops, research points) belong
 in `ExpeditionReward` + `claimExpedition`'s fold, keeping the same absolute-timestamp +
 hashed-roll discipline.
+
+Expedition dispatch focus (2026-11-11): a successful send from a focused control records the hero for post-render focus/nearest-scroll to its matching named Away Team group. Shared useId status references expose the live return time or claim state. Send accessible names include hero, mission, hours, risk and projected multiplier; claim names identify hero and mission. Failed starts do not move focus. Actual-meta phone probes cover one and three dispatches, distinct tickets, full-slot board disappearance, unchanged wallets/fielded loadout and accessible ETA. Mission timing, rewards, claims and slot rules are untouched.

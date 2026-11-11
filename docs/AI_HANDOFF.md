@@ -4,24 +4,23 @@
 > before committing. Read together with docs/PROJECT_STATUS.md and the latest
 > docs/VALIDATION_REPORT.md. Next session: start at docs/PROJECT_MANIFEST.md.
 
-- **Generated:** 2026-11-11 00:01 UTC · **Diff scope:** working tree vs HEAD
-- **Branch:** codex/hive-autoplay · **HEAD:** 3373670a
+- **Generated:** 2026-11-11 00:05 UTC · **Diff scope:** working tree vs HEAD
+- **Branch:** codex/hive-autoplay · **HEAD:** 528569ae
 
 ## Summary of work completed
 
-LOCAL .16 renamed Smoother Growth and Navigation, FIVE notes. Shared HostedScreen/HostTabs baseline real Hive probe reproduced missing ArrowRight behavior. Added stable useId tab/panel relationships, one selected Tab stop, arrow/Home/End navigation through existing guarded click, focusable named panel only when tabs exist. Locked teasers arrow-focusable but never activate. Actual Hive/QuestBoard/EquipmentPanel/Wardrobe320px probes passed selection/wrap/panel association/focus/width; locked teaser Enter and deep-link fallback/live unlocked Production deep links passed. Initial deep-link probe imported duplicate Vite module instance; corrected to host-imported timestamp URL, no source workaround. Existing growth dialog phone/maxed tests passed.50tests4.43s/docs/handoff/build29163 PASS10.82s/SWmwbcsgb7. All processes terminal. Live .15 remains verified23:32UTC; next~00:32UTC. Full .16 audit pending. Goal active.
+LOCAL .16 Smoother Growth and Navigation now SIX notes. Expedition dispatch baseline reproduced focus falling off removed send button. Successful focused send now targets matching named Away Team group after render and nearest-scrolls it; status id exposes ETA/claim state. Send/claim accessible names identify hero/mission, send adds hours/risk/multiplier. Actual-meta320px probes expedition-send-focus-check.cjs and expedition-send-slots-check.cjs pass correct distinct tickets, unchanged wallets/fielded loadout, accessible ETA, three slots/full-board removal and matched focus. Screenshot reviewed.29tests4.34s/docs/handoff/build81881 PASS11.59s/SWmwbcyjtg. All processes terminal. Live .15 verified23:32UTC; next~00:32UTC. Full .16 validation pending. Goal active.
 
 ## Files modified
 
-- Source (3): `src/changelog/releases.gen.ts`, `src/index.css`, `src/ui/components/HostTabs.tsx`
+- Source (2): `src/changelog/releases.gen.ts`, `src/ui/ExpeditionScreen.tsx`
 - Tests (0): —
-- Docs (5): `docs/HISTORY.md`, `docs/NOTIFICATIONS.md`, `docs/PROJECT_MANIFEST.md`, `docs/devlog/DRAFT-2026-11-09.md`, `docs/devlog/DRAFT-2026-11-10.md`
+- Docs (5): `docs/EXPEDITIONS.md`, `docs/HISTORY.md`, `docs/PROJECT_MANIFEST.md`, `docs/devlog/DRAFT-2026-11-09.md`, `docs/devlog/DRAFT-2026-11-10.md`
 
 ## Systems affected (from the dependency registry)
 
 - **chronicle** — `src/changelog/releases.gen.ts`
-- **hub-shell** — `src/ui/components/HostTabs.tsx`
-- Consumer ring (verify, unchanged): battle-pass, cosmetics, hive-construction, infestation, profile, quests, reward-architecture
+- **expeditions** — `src/ui/ExpeditionScreen.tsx`
 
 ## Power Score changes
 
@@ -29,11 +28,11 @@ None. Presentation/focus only.
 
 ## UI changes
 
-Shared host tabs gain keyboard selection and labelled panels, with a width100%/min-width0 wrapper. Locked and unlocked routing guards, notifications/exposure and audio unchanged. Probes ../host-tabs-keyboard-check.cjs, ../host-tabs-locked-check.cjs, ../host-{quests,equipment,phenotypes}-keyboard-check.cjs passed. Equipment phone screenshot reviewed.
+Expedition dispatch focus and contextual action labels. Mission/reward/timing/slot rules unchanged. Earlier five .16 notes remain harvestfocus/guidance, Hive animation lifecycle/growth modal and shared hosted tabs.
 
 ## Documentation changes
 
-NOTIFICATIONS and manifest updated; five curated notes generated with title Smoother Growth and Navigation.
+EXPEDITIONS and manifest updated; six curated notes generated.
 
 ## Save changes
 
@@ -49,7 +48,7 @@ Local Chrome still needs MOBILECHECK_CHROMIUM and NODE_OPTIONS parent chrome-pro
 
 ## Recommended next tasks
 
-It is approximately00:01UTC. Consider another focused audit before sealing/full validation~00:15 for00:32 deploy. Shared wrapper affects four host screens; full mobile gate must cover them. Verify real production assets after corrected validator; no competing dist writes/heavy browsers during mobile.
+Current00:05UTC. A final focused candidate is expedition claim receipt: claim removes focused button, SpoilsCard expires9s and may strand keyboard focus; reproduce and handle receipt focus/expiry safely if changing. Begin full .16 validation~00:15 for00:32deploy. No active child processes.
 
 ## Future expansion hooks
 
