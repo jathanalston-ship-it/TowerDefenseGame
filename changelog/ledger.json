@@ -1,6 +1,6 @@
 {
-  "lastSha": "f84a66fef2de8a71187f87582ce06aebff4fbbd5",
-  "commitsSinceDraft": 5,
+  "lastSha": "1dd694890c06fb88341e377bf38960ed3fe5208b",
+  "commitsSinceDraft": 7,
   "content": {
     "tower": [
       "needle",
@@ -9314,6 +9314,22 @@
       "date": "2026-11-11",
       "cat": "Website",
       "text": "Website: devlog \"A lighter hub\", curated v2026.11.11 notes, regenerated site + PIL report",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "8e3b073f4097074f210be3154aa46a776432e174",
+      "date": "2026-11-11",
+      "cat": "Gameplay",
+      "text": "Playtest list 2: act-only notifications, gated best moves greyed, Continue locked, Hive docked, Infinite End Early + 1/5 containers",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "1dd694890c06fb88341e377bf38960ed3fe5208b",
+      "date": "2026-11-11",
+      "cat": "Enemies",
+      "text": "Infinite wall: past depth 4 + cleared Campaign stage enemy HP ×2/depth; sim:infinite harness",
       "internal": true,
       "needsReview": false
     }

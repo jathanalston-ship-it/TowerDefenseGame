@@ -47,6 +47,15 @@ export const RELEASES: Release[] = [
       },
       {
         "cat": "Balance",
+        "major": true,
+        "text": "Infinite now has a wall: past depth 4 + your highest cleared Campaign stage, enemy health doubles every depth. Gear buys a few depths past it and every Campaign stage pushes it one deeper, so a Stage 12 account tops out around depth 20 instead of riding past 60"
+      },
+      {
+        "cat": "Balance",
+        "text": "An Infinite run qualifies for rewards at half your best depth or half your wall, whichever is lower, so a record set before the wall never locks you out"
+      },
+      {
+        "cat": "Balance",
         "text": "Infinite fills Bio-Containers at a fifth of its old pace, so a long farm no longer outpaces every other source of containers"
       },
       {
