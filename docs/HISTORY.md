@@ -674,3 +674,4 @@
 - `0e1896c` **[Gene Cards]** Hive Call: the hive calls the next wave early when its forecast says the board holds; Auto Gene 3 s _(internal)_
 - `1a306d1` **[Gene Cards]** Validation: Hive Call + 3 s Auto Gene PASS over 353c962..HEAD — 3162/3162, mobile gate clean _(internal)_
 - `9521758` **[Gameplay]** Hub quick-buy lag: one shared Power read per save snapshot; no second write; deferred board _(internal)_
+- `14516cd` **[Gene Cards]** Fewer words, more icons: hub action tiles, a medallion unlock card, a three-tile update briefing _(internal)_

@@ -1,6 +1,6 @@
 {
-  "lastSha": "95217584dd72f531e3a7d40e24f4e3689ed2f022",
-  "commitsSinceDraft": 3,
+  "lastSha": "14516cd86e591ae0c458b1f5d2534009c23985c2",
+  "commitsSinceDraft": 4,
   "content": {
     "tower": [
       "needle",
@@ -4205,7 +4205,7 @@
         },
         {
           "cat": "Website",
-          "text": "New dev blog post: “The Hive calls the wave”; the Hive Intelligence page and FAQ describe the new calls"
+          "text": "New dev blog posts: “The Hive calls the wave” and “A lighter hub”; the Hive Intelligence page and FAQ describe the new calls"
         }
       ]
     }
@@ -9264,6 +9264,14 @@
       "date": "2026-11-11",
       "cat": "Gameplay",
       "text": "Hub quick-buy lag: one shared Power read per save snapshot; no second write; deferred board",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "14516cd86e591ae0c458b1f5d2534009c23985c2",
+      "date": "2026-11-11",
+      "cat": "Gene Cards",
+      "text": "Fewer words, more icons: hub action tiles, a medallion unlock card, a three-tile update briefing",
       "internal": true,
       "needsReview": false
     }

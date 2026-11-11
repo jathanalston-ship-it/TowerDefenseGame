@@ -29,7 +29,7 @@ export const RELEASES: Release[] = [
       },
       {
         "cat": "Performance",
-        "text": "The hub's Buy best-upgrade button no longer freezes the screen: a purchase does about 5× less work, and the screen responds first while the advice panels catch up",
+        "text": "Hub lag fixed: the Buy best-upgrade button no longer freezes the screen — a purchase does about 5× less work, and the screen responds first while the advice panels catch up",
         "major": true
       },
       {
@@ -42,7 +42,7 @@ export const RELEASES: Release[] = [
       },
       {
         "cat": "Website",
-        "text": "New dev blog post: “The Hive calls the wave”; the Hive Intelligence page and FAQ describe the new calls"
+        "text": "New dev blog posts: “The Hive calls the wave” and “A lighter hub”; the Hive Intelligence page and FAQ describe the new calls"
       }
     ]
   },
@@ -54,7 +54,7 @@ export const RELEASES: Release[] = [
     "entries": [
       {
         "cat": "Gameplay",
-        "text": "Eight Constructs, the game's own AI players, now play around the clock and trade on the Auction House: they sell what they earn at the market price and buy fairly priced player listings",
+        "text": "Market Constructs arrive: eight of the game's own AI players now play around the clock and trade on the Auction House: they sell what they earn at the market price and buy fairly priced player listings",
         "major": true
       },
       {
