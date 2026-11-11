@@ -9,7 +9,7 @@
 
 ## Summary of work completed
 
-Sealed v2026.11.11 Clearer Equipment Details full validation19908 PASS at01:39UTC:3195tests, typecheck, production build/mobile layout audit and doc anchors/references. Log clearer-equipment-release-validation.log. Three notes generated for game/home/news. Human equipment pass completed with actual phone/desktop Codex search/units and ItemDetails Enhance probes, save preservation, exact material debit and screenshots. Equipment philosophy, reforge, Help, tutorial and audio need no changes because equipment effects, costs, acquisition and save rules are unchanged. All checks terminal. Deployment pending; goal active. Live still .16 SHA bd8624a1cd353b8ad34fff389afd6324b409e331 verified00:43UTC until deployment verification.
+LIVE v2026.11.11 Clearer Equipment Details. SHA59b261e56d48bc93e2f36006bae516be9bcc4f8b; Actions42940689648/job130261502856 SUCCESS including exact-commit production guard. Normal public game/home/news/all3notes verified01:42UTC; asset /assets/play-RFnb4Vhp.js exactly matches full-validator production build. Full validator19908 PASS01:39UTC3195tests/typecheck/mobile/docs. Three improvements: correct Codex set units, searchable Codex, current-tier affix descriptions. Applied effects, costs and saves unchanged. All check/deploy processes terminal; devserver64507 still available. Goal active; next approximate deployment02:42UTC.
 
 ## Files modified
 
@@ -49,7 +49,7 @@ Potential next review after release: affix randomize action only shows cost in h
 
 ## Recommended next tasks
 
-Commit/push release, verify exact-commit Actions success and normal public game/home/news/all3notes using ../verify-current-release.ps1. Then continue active goal; next approximate deployment one hour after actual live verification.
+Continue active improvement goal. Start a fresh unsealed release for subsequent changes. Next approximate deployment02:42UTC with website notes. Candidate review: affix Randomize costs/reasons are hover-only; additive fractional affix descriptions still use raw units. Full audit is terminal/passed; preserve both untracked devlog drafts.
 
 ## Future expansion hooks
 

@@ -55,3 +55,7 @@
 ## 2026-11-11 01:40 UTC — equipment release validated
 
 Sealed v2026.11.11 Clearer Equipment Details full validation19908 PASS at01:39UTC:3195tests, typecheck, production build/mobile layout audit and doc anchors/references. Log clearer-equipment-release-validation.log. Three notes generated for game/home/news. Human equipment pass completed with actual phone/desktop Codex search/units and ItemDetails Enhance probes, save preservation, exact material debit and screenshots. Equipment philosophy, reforge, Help, tutorial and audio need no changes because equipment effects, costs, acquisition and save rules are unchanged. All checks terminal. Deployment pending; goal active.
+
+## 2026-11-11 01:42 UTC — clearer equipment details live
+
+LIVE v2026.11.11 Clearer Equipment Details. SHA59b261e56d48bc93e2f36006bae516be9bcc4f8b; Actions42940689648/job130261502856 SUCCESS including exact-commit production guard. Normal public game/home/news/all3notes verified01:42UTC; asset /assets/play-RFnb4Vhp.js exactly matches full-validator production build. Full validator19908 PASS01:39UTC3195tests/typecheck/mobile/docs. Three improvements: correct Codex set units, searchable Codex, current-tier affix descriptions. Applied effects, costs and saves unchanged. All check/deploy processes terminal; devserver64507 still available. Goal active; next approximate deployment02:42UTC.
