@@ -6,7 +6,11 @@
 // Measured per cohort: mean survival depth, mean final live Power, biomass efficiency
 // (spent/earned), actions taken, reserve violations (must be 0 — the pulse may never
 // leave the wallet below the reserve it computed when it started buying).
-// GATE (exit 1): hive mean depth ≥ manual mean depth, and zero reserve violations.
+// HIVE CALL (docs/HIVE-MIND.md §hive-call): every cohort runs with Auto Wave on + automation allowed,
+// so the hive also calls waves early when its forecast is comfortable — counted per cohort with the
+// calls whose overlap cost the Core anything (the forecast's promise is that this stays rare).
+// GATE (exit 1): hive mean depth ≥ manual mean depth, zero reserve violations, and Core damage in
+// at most HIVE_CALL_HURT_MAX of all hive-called overlaps.
 // Run: npm run sim:hive
 import { Game } from '../src/core/game';
 import { HIVE_MIND, SIM_DT } from '../src/core/config';
@@ -19,7 +23,8 @@ const OPENING: TowerKind[] = ['needle', 'mortar', 'coil', 'spitfang'];
 const SEEDS = [3, 11, 19, 27, 35, 43];
 const MAX_SIM_SEC = 900;
 
-interface RunResult { depth: number; power: number; spent: number; earned: number; actions: number; reserveViolations: number }
+interface RunResult { depth: number; power: number; spent: number; earned: number; actions: number; reserveViolations: number; calls: number; hurtCalls: number }
+const HIVE_CALL_HURT_MAX = 0.05;
 
 function run(seed: number, pulseEvery: number): RunResult {
   const g = new Game(seed, NO_META, undefined, 'ravager', undefined, { mode: 'endless', automationAllowed: true });
@@ -36,14 +41,22 @@ function run(seed: number, pulseEvery: number): RunResult {
   let reserveViolations = 0;
   let preps = 0;
   let wasPrep = true;
+  let calls = 0;
+  let hurtCalls = 0;
+  let lastCall = 0;
+  let callIntegrity = -1; // integrity when the hive called, until the overlapped field clears
+  const integrity = (): number => (g as unknown as { integrity: number }).integrity;
   g.setAutoStart(true);
   g.startWave();
   for (let t = 0; t < MAX_SIM_SEC && g.phase !== 'lost'; t += SIM_DT) {
     // The draft PAUSES the whole sim (the mega-probe lesson, docs/MEGA-BOSS.md §feel) —
     // every headless run harness must play it or it measures the menu.
     if (g.phase === 'draft' && g.draft !== null && g.draft.length > 0) g.chooseCard(g.draft[0].id);
+    const hc = g.getSnapshot().hiveCall;
+    if (hc && hc.wave !== lastCall) { lastCall = hc.wave; calls++; callIntegrity = integrity(); }
     const isPrep = g.phase === 'prep';
     if (isPrep && !wasPrep) {
+      if (callIntegrity >= 0) { if (integrity() < callIntegrity) hurtCalls++; callIntegrity = -1; }
       preps++;
       if (pulseEvery > 0 && preps % pulseEvery === 0) {
         const before = g.biomass;
@@ -59,10 +72,11 @@ function run(seed: number, pulseEvery: number): RunResult {
     lastBio = g.biomass;
     g.advance(SIM_DT);
   }
-  return { depth: g.waveIndex, power: effectsPower(g.powerEffects()), spent, earned, actions, reserveViolations };
+  if (callIntegrity >= 0 && g.phase === 'lost') hurtCalls++; // died inside a called overlap
+  return { depth: g.waveIndex, power: effectsPower(g.powerEffects()), spent, earned, actions, reserveViolations, calls, hurtCalls };
 }
 
-function cohort(name: string, pulseEvery: number): { name: string; depth: number; power: number; eff: number; actions: number; violations: number } {
+function cohort(name: string, pulseEvery: number): { name: string; depth: number; power: number; eff: number; actions: number; violations: number; calls: number; hurtCalls: number } {
   const rs = SEEDS.map((s) => run(s, pulseEvery));
   const mean = (f: (r: RunResult) => number): number => rs.reduce((a, r) => a + f(r), 0) / rs.length;
   return {
@@ -72,6 +86,8 @@ function cohort(name: string, pulseEvery: number): { name: string; depth: number
     eff: mean((r) => (r.earned > 0 ? r.spent / r.earned : 0)),
     actions: mean((r) => r.actions),
     violations: rs.reduce((a, r) => a + r.reserveViolations, 0),
+    calls: rs.reduce((a, r) => a + r.calls, 0),
+    hurtCalls: rs.reduce((a, r) => a + r.hurtCalls, 0),
   };
 }
 
@@ -84,9 +100,12 @@ for (const c of [manual, hive, mixed]) {
   console.log(`▸ ${c.name}`);
   console.log(`    mean depth ${c.depth.toFixed(1)} · mean live power ${c.power.toFixed(2)} · biomass efficiency ${(c.eff * 100).toFixed(0)}% spent`);
   console.log(`    mean actions/run ${c.actions.toFixed(1)} · reserve violations ${c.violations}`);
+  console.log(`    hive calls ${c.calls} · overlaps that cost the Core anything ${c.hurtCalls}`);
 }
-const ok = hive.depth >= manual.depth && hive.violations === 0 && mixed.violations === 0;
+const allCalls = manual.calls + hive.calls + mixed.calls;
+const hurtRate = allCalls > 0 ? (manual.hurtCalls + hive.hurtCalls + mixed.hurtCalls) / allCalls : 0;
+const ok = hive.depth >= manual.depth && hive.violations === 0 && mixed.violations === 0 && hurtRate <= HIVE_CALL_HURT_MAX;
 console.log(ok
   ? '\nPASS — the mind never makes a run worse and never raids the reserve'
-  : '\nFAIL — hive underperforms manual or violated the reserve; investigate before shipping');
+  : `\nFAIL — hive underperforms manual, violated the reserve, or hive calls hurt the Core in ${(hurtRate * 100).toFixed(0)}% of overlaps (max ${HIVE_CALL_HURT_MAX * 100}%); investigate before shipping`);
 process.exit(ok ? 0 : 1);

@@ -17,6 +17,24 @@ export interface BlogPost {
 
 export const POSTS: BlogPost[] = [
   {
+    slug: 'hive-calls-the-wave',
+    date: '2026-11-11',
+    title: 'The Hive calls the wave',
+    category: 'Systems',
+    tags: ['hive intelligence', 'automation', 'design'],
+    summary: 'On content you have already beaten, Hive Intelligence now calls the next wave early when it forecasts your board will hold, and Auto Gene picks your recommended card after three seconds.',
+    body: `
+<p>Farming a stage you have mastered should feel fast. Two changes make the Hive a better co-pilot there.</p>
+<h2>Early calls, when it is safe</h2>
+<p>Turn on <b>Auto Wave</b> and the Hive watches every fight. It measures how far down the field enemies get before your towers kill them, counting only the distance past where your towers first reach them. Then it asks one question: if the next wave landed on top of this one, would your board still kill everything with room to spare? When the answer is a clear yes, it calls the next wave early and banks the Early Call Biomass for you. A callout and the Hive Intelligence ticker tell you the wave it called, what it earned and how comfortable the forecast was.</p>
+<p>It is deliberately careful. It never calls into or over a boss wave, never once your Core has taken damage that wave, never on a wounded Core, and only once before the field clears. We tuned it by forcing hundreds of calls in simulation and checking what really happened against the forecast. The threshold sits where calls stopped costing the Core at all. In our test runs, boards that let the Hive call early lost less often than the same boards without it.</p>
+<h2>Faster drafts</h2>
+<p><b>Auto Gene</b> now takes the recommended card after three seconds instead of ten. Any pick you make yourself still wins.</p>
+<h2>Only where you've earned it</h2>
+<p>Like the rest of Hive Intelligence, both act only on content you have already beaten: Infinite and campaign replays. On your frontier, in the Daily and in Boss Rush record runs, the calls stay yours.</p>
+`,
+  },
+  {
     slug: 'market-constructs',
     date: '2026-11-06',
     title: 'Meet the Constructs: AI players who grind, and trade with you',

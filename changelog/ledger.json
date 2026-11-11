@@ -1,6 +1,6 @@
 {
-  "lastSha": "72f0432dcb56ec3ff33db203494cc6ee9152e80e",
-  "commitsSinceDraft": 9,
+  "lastSha": "6c8c01bef9a88aec90ee939d602fed47151dd23b",
+  "commitsSinceDraft": 0,
   "content": {
     "tower": [
       "needle",
@@ -4142,7 +4142,7 @@
       "id": "v2026.11.06.3",
       "date": "2026-11-06",
       "title": "Meet the Constructs",
-      "sealed": false,
+      "sealed": true,
       "entries": [
         {
           "cat": "Gameplay",
@@ -4164,6 +4164,39 @@
         {
           "cat": "Website",
           "text": "New dev blog post: “Meet the Constructs: AI players who grind, and trade with you”; the economy page explains them"
+        }
+      ]
+    },
+    {
+      "id": "v2026.11.11",
+      "date": "2026-11-11",
+      "title": "The Hive Calls the Wave",
+      "sealed": false,
+      "entries": [
+        {
+          "cat": "Gameplay",
+          "text": "With Auto Wave on, Hive Intelligence now calls the next wave early mid-fight when it forecasts your board will hold the overlap with room to spare, and banks the Early Call Biomass",
+          "major": true
+        },
+        {
+          "cat": "Gameplay",
+          "text": "The Hive never calls into or over a boss wave, never once your Core has been hit that wave, and never on a wounded Core; like Auto Gene it only acts on content you've already beaten"
+        },
+        {
+          "cat": "UX",
+          "text": "Auto Gene now drafts the recommended card after 3 seconds (was 10); any manual pick still wins"
+        },
+        {
+          "cat": "UX",
+          "text": "A board callout and the Hive Intelligence ticker report each call: the wave, the Biomass banked and the forecast margin"
+        },
+        {
+          "cat": "Bug Fixes",
+          "text": "The Early Call help page no longer says Auto Wave never calls early, and correctly says a called-over wave's card arrives when its last enemy falls"
+        },
+        {
+          "cat": "Website",
+          "text": "New dev blog post: “The Hive calls the wave”; the Hive Intelligence page and FAQ describe the new calls"
         }
       ]
     }
@@ -9176,6 +9209,30 @@
       "text": "Status,chronicle: DEPLOYED \"Class Bonds\" (353c962, run #238); seal v2026.11.06.2",
       "internal": true,
       "needsReview": true
+    },
+    {
+      "sha": "1d16e42eed023512f1e5da18ddb151c7a33cca22",
+      "date": "2026-11-06",
+      "cat": "Backend",
+      "text": "Market Constructs: 8 labelled AI players that grind nonstop and trade on the Auction House",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "d22f8723e6a9c883c1a8571fbd88408e98c858d5",
+      "date": "2026-11-06",
+      "cat": "Gameplay",
+      "text": "Constructs: tick reports name why a save commit was refused (e.g. save-commit-429)",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "6c8c01bef9a88aec90ee939d602fed47151dd23b",
+      "date": "2026-11-06",
+      "cat": "UI",
+      "text": "Status,docs: Market Constructs live-checked in the Auction House UI; full suite 3154/3154",
+      "internal": true,
+      "needsReview": false
     }
   ]
 }

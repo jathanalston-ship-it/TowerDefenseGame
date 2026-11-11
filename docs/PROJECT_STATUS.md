@@ -3,7 +3,20 @@
 > Maintained at the END of every session (paired with `docs/AI_HANDOFF.md` — the constitution's
 > workflow step 4). This is the "where are we?" answer; `docs/GAME-STATE.md` remains the deeper
 > per-system built-vs-planned index, `docs/PROJECT_MANIFEST.md` the system map.
-> **Last updated:** 2026-11-06c (**MARKET CONSTRUCTS — validated, awaiting the owner's release go-ahead.**
+> **Last updated:** 2026-11-11 (**HIVE CALL + 3 s AUTO GENE — validated, awaiting the owner's release go-ahead.**
+> Owner ask: the hive "picks gene cards after only 3 seconds on autodraft and calls waves early if it calculates
+> you'll survive the wave significantly". Auto Gene countdown 10 s → 3 s (DraftModal AUTO_SECONDS). HIVE CALL
+> (HIVE-MIND.md §hive-call): rides Auto Wave + the automation gate (solved content only); Game.hiveCallSystem reads
+> the live fight every 0.25 s and calls through callWaveEarly when the pure hiveCallForecast says the overlapped
+> field still dies within 60 % of the stretch from first contact to the Core (front = Game.hiveFront from real tower
+> reach; load = remaining + next ×1.3 over this wave). Holds: bosses (now or next — Game.nextWaveHasBoss), any Core
+> damage this wave, Core < 60 %, thin read, one call per cycle. CALIBRATED by forcing 401 calls (projected < 0.6: 0
+> Core hits in 35); measured 97 calls over 40 Infinite runs — 0 Hive deaths, 3 overlaps cost Core, fewer losses
+> than the no-call control. Live-verified (ticker "Called Wave 2 early · +22 Biomass / holds ×1.6"; auto-draft 3 s).
+> Golden byte-identical (Auto Wave off). sim:hive now reports calls + gates overlap damage ≤ 5 %. Also fixed stale
+> Early Call help ("Auto Wave never calls early"; owed cards dealt at the clear).)
+>
+> **2026-11-06c** (**MARKET CONSTRUCTS — validated, awaiting the owner's release go-ahead.**
 > CONSTRUCTS.md: 8 labelled AI accounts (owner choices: marked as bots · scheduled Cloudflare Worker · auction +
 > activity only, never ranked). `workers/constructs/` (cron */5): each plays nonstop at real-time pace through the
 > progression simulator's virtual player on the REAL meta layer, keeps its save in its own cloud slot, and trades

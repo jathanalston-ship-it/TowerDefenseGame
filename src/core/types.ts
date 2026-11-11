@@ -779,6 +779,9 @@ export interface HudSnapshot {
    *  The button shows only once the bank reaches it — the price IS the threshold. Optional (fixtures). */
   spliceCost?: number;
   earlyCall: number; // docs/EARLY-CALL.md: Biomass a mid-wave call of the next wave pays right now; -1 = unavailable
+  /** HIVE CALL (docs/HIVE-MIND.md §hive-call): the hive's latest automatic early call this run — the wave
+   *  it launched, the forecast margin (×, ≥ 1) and the bonus it banked. null until the hive has called. */
+  hiveCall: { wave: number; margin: number; bonus: number } | null;
   liveThreat: number; // docs/DIFFICULTY_DIRECTOR.md §6a: the live adaptive HP multiplier — prep: what the NEXT wave would launch with now; wave: the current one's (1 = none)
   squeezePressure: number; // ENDLESS_SQUEEZE pressure band: Infinite enemy-HP pressure (1 = none)
   selectedTower: TowerKind | null;

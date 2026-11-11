@@ -95,7 +95,7 @@ permanent (shaped by **Mutation Fragments**, `ECONOMY.md`); the *draw* is per-ru
   plan). Charges from progression.
 - **Gene Lab nodes** — bonus draft with a guaranteed rarity floor.
 - **Auto Gene Selection** (opt-in Settings toggle, persisted via `state/prefs.ts`).
-  When on, each draft shows a visible 10s countdown and auto-drafts the recommended
+  When on, each draft shows a visible 3s countdown (10s until 2026-11-11) and auto-drafts the recommended
   **◆ PICK** (the best FIT — §fit) card on expiry. Any manual pick (click / `1`–`N` / `Enter`)
   cancels the countdown immediately. UI-only — the deterministic sim is untouched.
 - **Reset.** The deck, rerolls, banishes, and any run-stack effects **wipe at run

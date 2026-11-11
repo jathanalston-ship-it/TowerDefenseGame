@@ -27,7 +27,7 @@ import { RarityFx, rfxClass } from './components/RarityFx';
 const RARITY_RANK: Record<string, number> = { common: 0, uncommon: 1, rare: 2, epic: 3, legendary: 4, exotic: 5 };
 
 // Auto Gene Selection: seconds the recommended card is offered before it auto-drafts.
-const AUTO_SECONDS = 10;
+const AUTO_SECONDS = 3; // owner ask 2026-11-11 (was 10) — the hive picks quickly; any manual pick still wins
 
 // Ignore picks for a beat after the modal opens, so a click/keypress already in flight as a
 // wave clears can't blow through the draft. Covers the card entry animation (card-in 0.32s).

@@ -1,6 +1,6 @@
 # DIL_GRAPH.md — the Design Intelligence Layer (GENERATED — `npm run dil -- regen`)
 
-> **The project's brain** (docs/DIL.md). 1000 nodes · 1951 edges, built from the live
+> **The project's brain** (docs/DIL.md). 1001 nodes · 1953 edges, built from the live
 > registries + curated knowledge (src/dev/dil/). **Query it instead of searching the repo:**
 > `npm run dil -- node <id>` · `affects <id>` · `requires <id>` · `missing <kind> <edge>` ·
 > `checklist tower <kind>` · `find <text>`. Edge kinds are bidirectional (19 kinds).
@@ -915,6 +915,7 @@ _at: src/core/hivemind.ts_
   - consumes → `system:engine` — PINNED-RESERVE PULSE CONTRACT (docs/HIVE-MIND.md §scoring): Game.hivePulse computes the reserve ONCE from the wallet at pulse start and threads it through every hivePlan re-plan — per-iteration recomputation on the shrinking wallet asymptotically spends to zero (sim:hive caught 87 violations before the pin). New Biomass sinks join via registerHiveProvider (core/hivemind.ts) — one provider, no planner/UI/sim changes; execute ONLY through the public API a manual click uses so the Power audit + ceremonies fire
   - gates → `system:campaign` — AUTOMATION GATE (docs/HIVE-MIND.md §solved-content): Hive Intelligence + Auto Gene act only on SOLVED content — automationGate (core/hivemind.ts AUTOMATION_POLICY) evaluated by save/derive.ts automationFor at GameView mount, threaded as RunOptions.automationAllowed (FAIL-CLOSED: omitted ⇒ false). Headless instruments modelling solved content must pass automationAllowed: true or the pulse is a no-op
   - modifies → `system:heroes` — THIN-BOARD HOLD (docs/HIVE-MIND.md §opening): with fewer than HIVE_MIND.thinBoardTowers towers the planner values heroEvo/autocast at 0 and the favorite provider (Game.deployTower) places towers — the start-of-run glow follows the same plan. G1: the old pulse sank ~90 % of the opening Biomass into Hero Evolution
+  - extends → `system:engine` — HIVE CALL (docs/HIVE-MIND.md §hive-call): with Auto Wave ON (autoStart, a recorded input) AND RunOptions.automationAllowed, Game.hiveCallSystem samples every HIVE_CALL.sampleEvery while a wave is live and calls the next wave early through callWaveEarly ITSELF (every Early Call rule applies) when the pure hiveCallForecast is comfortable: projected = front + max(deepest − front, depthFloor) × load, front = first contact (shallowest nav depth inside any tower reach — Game.hiveFront), load = (remaining HP + next wave HP ×1.3) ÷ this wave HP; comfortable ⇔ the excess uses ≤ safeShare of the stretch from first contact to the Core. Hard holds: a boss on the field or NEXT (Game.nextWaveHasBoss mirrors the launch rules — endless director cadence + Mega schedule; stage finale/mini-boss/bossWaves/Mega arrival), any Core damage this wave, Core < 60 %, too early (kills/spawned share), calledAhead > 0 (one hive call per cycle). Calibrated by forcing calls (projected vs actual overlap depth); npm run sim:hive gates Core damage in ≤ 5 % of hive-called overlaps. The per-wave read (hcSpawned/hcSpawnedHp/hcDeepest) is written on every run but READ only when armed ⇒ golden byte-identical. Auto Gene countdown 3 s (DraftModal AUTO_SECONDS).
   - documentedBy ← `doc:HIVE-MIND.md`
   - testedBy ← `test:src/core/hivemind.test.ts`
 
@@ -949,7 +950,7 @@ _at: src/core/game.ts, src/core/combat.ts, src/core/status.ts, src/core/targetin
   - requiredBy ← `system:class-bonds`
   - requiredBy ← `system:nemesis`
   - requiredBy ← `system:onboarding`
-  - _…248 more (query: `npm run dil -- node system:engine`)_
+  - _…250 more (query: `npm run dil -- node system:engine`)_
 
 ### `system:content-infra` — Content Infrastructure
 
@@ -4196,7 +4197,7 @@ _at: site/guides.ts → /guides/live-events/_
 - `doc:VOWS.md` — project documentation _(documents `system:prestige`)_
 - `doc:WEBSITE.md` — project documentation _(documents `system:field-research`, documents `system:website`)_
 
-## Tests (346)
+## Tests (347)
 
 - `test:src/audio/cues.test.ts` — automated validation _(tests `system:audio`)_
 - `test:src/audio/music.test.ts` — automated validation _(tests `system:audio`)_
@@ -4298,6 +4299,7 @@ _at: site/guides.ts → /guides/live-events/_
 - `test:src/core/hiveOrgans.test.ts` — automated validation _(tests `system:hive-construction`)_
 - `test:src/core/hiveProduction.test.ts` — automated validation _(tests `system:hive-construction`)_
 - `test:src/core/hiveSiege.test.ts` — automated validation _(tests `system:engine`)_
+- `test:src/core/hivecall.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/core/hivemind.test.ts` — automated validation _(tests `system:hive-mind`)_
 - `test:src/core/identity.test.ts` — automated validation _(tests `system:profile`)_
 - `test:src/core/idleHarvest.test.ts` — automated validation _(tests `system:idle-harvest`)_

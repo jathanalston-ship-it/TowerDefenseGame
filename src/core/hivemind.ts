@@ -416,3 +416,78 @@ export function automationGate(c: AutomationContext): { allowed: boolean; reason
   if (c.threat > c.threatCleared) return { allowed: false, reason: AUTOMATION_THREAT_REASON };
   return { allowed: true, reason: null };
 }
+
+// ── HIVE CALL — the hive calls the next wave early when it forecasts a comfortable hold ──────────
+// (docs/HIVE-MIND.md §hive-call). Rides the player's Auto Wave toggle and the SAME automation gate
+// as Auto Gene (solved content only). Pure: the Game gathers a read of the live fight, this decides.
+//
+// The forecast works on the stretch between FIRST CONTACT (the shallowest point any tower can hit —
+// no board kills an enemy before it walks into range) and the Core. How far past first contact did
+// this wave get (the deepest any enemy reached, minus the front) is the board's demonstrated kill
+// speed against enemy pace; a call multiplies that EXCESS by the LOAD it adds (what is still on/
+// coming to the field + the next wave, over what this wave brought). The call is comfortable when
+// the overlapped field still dies within the first 60 % of that stretch (HIVE_CALL.safeShare). Linear excess × load is
+// conservative: a board with idle firepower kills a heavier field no deeper.
+
+export const HIVE_CALL = {
+  /** Sim seconds between forecasts while armed (cheap: one pass over live enemies). */
+  sampleEvery: 0.25,
+  /** Kills this wave before the forecast trusts its read of the board. */
+  minKills: 6,
+  /** Share of this wave's spawns already on the field (the read covers most of the wave). */
+  minSpawnedFrac: 0.7,
+  /** The Core must be healthy — never stack a wave on a wounded hive. */
+  minIntegrityFrac: 0.6,
+  /** HP growth assumed for the next wave (conservative over the per-wave curves). */
+  nextWaveGrowth: 1.3,
+  /** "Survive significantly": with the call, enemies may use at most this share of the stretch
+   *  from first contact to the Core. CALIBRATED (docs/HIVE-MIND.md §hive-call): 401 forced calls on
+   *  Infinite boards — projected < 0.6: 35 calls, 0 Core hits; 0.6–0.7: 1 hit in 48; 0.7–0.8: 6 %
+   *  hit + a loss; ≥ 1.0: 43 % hit. 0.6 is the widest setting that never cost the Core in the data. */
+  safeShare: 0.6,
+  /** An excess read can't be smaller than this (an instant kill zone still has jitter). */
+  depthFloor: 0.05,
+} as const;
+
+/** What the Game knows about the live fight when the hive considers a call. */
+export interface HiveCallRead {
+  /** Integrity lost since this wave launched (any ⇒ no call). */
+  coreTouched: boolean;
+  integrityFrac: number;
+  kills: number;
+  spawnedFrac: number;
+  /** Deepest point any enemy reached this wave, 0 (spawn row) .. 1 (at the Core). */
+  deepest: number;
+  /** First contact: the shallowest point any tower's range covers, same scale (1 = none covers). */
+  front: number;
+  /** HP still on the field + HP still to spawn this wave, and this wave's total HP. */
+  remainingHp: number;
+  waveHp: number;
+  /** A boss is on the field, or the next wave brings one (never auto-call into a boss). */
+  boss: boolean;
+}
+
+export interface HiveCallForecast {
+  call: boolean;
+  /** Projected deepest point with the call made (0..∞; > 1 = enemies would reach the Core). */
+  projected: number;
+  /** The stretch the call may use ÷ the stretch it is projected to use — ≥ 1 ⇒ comfortable (the
+   *  HUD shows it as "holds ×margin"). */
+  margin: number;
+  /** Why not (for tests + the ticker), null when calling. */
+  hold: 'boss' | 'core-touched' | 'core-low' | 'too-early' | 'too-deep' | null;
+}
+
+export function hiveCallForecast(r: HiveCallRead): HiveCallForecast {
+  const load = (r.remainingHp + r.waveHp * HIVE_CALL.nextWaveGrowth) / Math.max(1, r.waveHp);
+  const front = Math.min(1, Math.max(0, Math.min(r.front, r.deepest)));
+  const excess = Math.max(r.deepest - front, HIVE_CALL.depthFloor) * load;
+  const projected = front + excess;
+  const margin = (HIVE_CALL.safeShare * (1 - front)) / excess;
+  const hold: HiveCallForecast['hold'] = r.boss ? 'boss'
+    : r.coreTouched ? 'core-touched'
+      : r.integrityFrac < HIVE_CALL.minIntegrityFrac ? 'core-low'
+        : r.kills < HIVE_CALL.minKills || r.spawnedFrac < HIVE_CALL.minSpawnedFrac ? 'too-early'
+          : margin < 1 ? 'too-deep' : null;
+  return { call: hold === null, projected, margin, hold };
+}

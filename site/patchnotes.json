@@ -1,5 +1,41 @@
 [
   {
+    "date": "2026-11-11",
+    "title": "The Hive Calls the Wave",
+    "categories": [
+      "Gameplay",
+      "UX",
+      "Bug Fixes",
+      "Website"
+    ],
+    "items": [
+      {
+        "cat": "Gameplay",
+        "text": "★ With Auto Wave on, Hive Intelligence now calls the next wave early mid-fight when it forecasts your board will hold the overlap with room to spare, and banks the Early Call Biomass"
+      },
+      {
+        "cat": "Gameplay",
+        "text": "The Hive never calls into or over a boss wave, never once your Core has been hit that wave, and never on a wounded Core; like Auto Gene it only acts on content you've already beaten"
+      },
+      {
+        "cat": "UX",
+        "text": "Auto Gene now drafts the recommended card after 3 seconds (was 10); any manual pick still wins"
+      },
+      {
+        "cat": "UX",
+        "text": "A board callout and the Hive Intelligence ticker report each call: the wave, the Biomass banked and the forecast margin"
+      },
+      {
+        "cat": "Bug Fixes",
+        "text": "The Early Call help page no longer says Auto Wave never calls early, and correctly says a called-over wave's card arrives when its last enemy falls"
+      },
+      {
+        "cat": "Website",
+        "text": "New dev blog post: “The Hive calls the wave”; the Hive Intelligence page and FAQ describe the new calls"
+      }
+    ]
+  },
+  {
     "date": "2026-11-06",
     "title": "Meet the Constructs",
     "categories": [

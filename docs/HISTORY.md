@@ -666,3 +666,6 @@
 - `24b873b` **[Gameplay]** Release notes: use a valid changelog category (Progression is not one) _(internal)_
 - ⚑ `353c962` **[Framework]** Validation,status: Class Bonds PASS over a0b332d..HEAD — 3140/3140, mobile gate clean, probe budgets ok _(internal)_
 - ⚑ `72f0432` **[Framework]** Status,chronicle: DEPLOYED "Class Bonds" (353c962, run #238); seal v2026.11.06.2 _(internal)_
+- `1d16e42` **[Backend]** Market Constructs: 8 labelled AI players that grind nonstop and trade on the Auction House _(internal)_
+- `d22f872` **[Gameplay]** Constructs: tick reports name why a save commit was refused (e.g. save-commit-429) _(internal)_
+- `6c8c01b` **[UI]** Status,docs: Market Constructs live-checked in the Auction House UI; full suite 3154/3154 _(internal)_

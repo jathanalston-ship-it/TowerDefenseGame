@@ -20,6 +20,8 @@ import {
   nucleusPoint,
   slotAt,
   towerSlots,
+  COLS,
+  ROWS,
 } from './map';
 import type { NavField, TowerSlot } from './map';
 import { DEFAULT_LAYOUT_ID, layoutById, layoutIdForDepth, layoutSpawn, navFieldFor } from './mapLayouts';
@@ -71,7 +73,7 @@ import {
   TOWER_IDLE,
   HIVE_MIND,
 } from './config';
-import { hivePlan, type HiveAction } from './hivemind';
+import { HIVE_CALL, hiveCallForecast, hivePlan, type HiveAction } from './hivemind';
 import { IDLE_BEHAVIORS, towerIdleState } from './towerIdle';
 import type { CinematicActor, CinematicMotion, EnemyDef, HeroAbilityDef, HeroDef, MinionDef, ResolvedHeroKit, TowerDef } from './config';
 import { DANGER_CAM, initialDangerCamera, stepDangerCamera } from './dangerCamera';
@@ -767,6 +769,20 @@ export class Game {
   private waveLaunchedAt = 0; // sim time the latest wave launched (early-call minElapsed)
   private waveSpawnEnd = 0; // last scheduled spawn time of the waves on the field (early-call skip credit)
   private calledAhead = 0; // waves called early since the field last cleared (≤ EARLY_CALL.maxAhead)
+  // HIVE CALL (docs/HIVE-MIND.md §hive-call): the per-wave read behind the hive's early-call forecast.
+  // Written on every run, READ only when Auto Wave + automation are on — never moves the sim otherwise.
+  private hcDeepest = 0; // deepest point any enemy reached this wave (0 spawn row … 1 the Core)
+  private hcKillsAt = 0; // kills when this wave launched
+  private hcQueued = 0; // spawns queued at launch
+  private hcSpawned = 0; // …of which emitted so far
+  private hcSpawnedHp = 0; // their total max HP
+  private hcSampleT = 0; // sim time of the next forecast
+  private navSpan = 1; // path cost from the spawn row to the Core (per nav field)
+  private navSpanOf: NavField | null = null;
+  private hcFront = 1; // first contact: the shallowest depth any tower's range covers (per wave + board)
+  private hcFrontKey = '';
+  /** The hive's latest call (HUD ticker): the wave it launched, the forecast margin, the bonus. */
+  private hiveCallLast: { wave: number; margin: number; bonus: number } | null = null;
   private draftsOwed = 0; // gene drafts the called-over waves still owe (== owedWaves.length)
   // EARLY CALL §owed: the called-over waves still owing a draft (oldest first). Each wave's units carry
   // its number (Enemy.owedWave); the draft is dealt MID-FIGHT the moment the last one falls, and the
@@ -2388,6 +2404,13 @@ export class Game {
     const q = this.spawnQueue;
     const r = this.rushPending;
     this.waveSpawnEnd = Math.max(this.time, q.length > 0 ? q[q.length - 1].at : 0, r.length > 0 ? r[r.length - 1].at : 0);
+    // HIVE CALL: a fresh read per launch (a called-over wave's carried tail counts as this one's load).
+    this.hcDeepest = 0;
+    this.hcKillsAt = this.kills;
+    this.hcQueued = q.length;
+    this.hcSpawned = 0;
+    this.hcSpawnedHp = 0;
+    this.hcSampleT = this.time;
   }
 
   /** §6a live board-power ratio → the director's live threat multiplier. Exactly 1 unless this
@@ -2465,6 +2488,103 @@ export class Game {
     const skipped = Math.min(EARLY_CALL.maxSkipSeconds, Math.max(0, this.waveSpawnEnd + EARLY_CALL.clearAllowance - this.time));
     const bounty = open ? this.endlessBountyMult(this.waveIndex + 1) : this.bountyMultFor(this.waveIndex);
     return Math.round(EARLY_CALL.biomassPerSecond * skipped * bounty * this.mods.biomassMult);
+  }
+
+  /** HIVE CALL (docs/HIVE-MIND.md §hive-call): read the live fight and, if the forecast is
+   *  comfortable, make the Early Call the player could have made — through callWaveEarly itself, so
+   *  every Early Call rule (stack cap, minimum elapsed, the bonus, §owed drafts) applies unchanged.
+   *  At most ONE hive call per cycle (calledAhead must be 0); never into or over a boss. */
+  private hiveCallSystem(): void {
+    this.hcSampleT = this.time + HIVE_CALL.sampleEvery;
+    const span = this.hiveSpan();
+    let fieldHp = 0;
+    for (const e of this.enemies) {
+      if (!e.alive) continue;
+      fieldHp += Math.max(0, e.hp);
+      const d = e.sieging ? 1 : Math.min(1, Math.max(0, 1 - this.nav.goalDistanceAt(e.x, e.y) / span));
+      if (d > this.hcDeepest) this.hcDeepest = d;
+    }
+    if (this.calledAhead > 0 || this.earlyCallBonus() < 0) return;
+    const queuedLeft = this.spawnQueue.length;
+    const avgHp = this.hcSpawned > 0 ? this.hcSpawnedHp / this.hcSpawned : 0;
+    const f = hiveCallForecast({
+      front: this.hiveFront(span),
+      coreTouched: this.integrity < this.waveStartIntegrity,
+      integrityFrac: this.integrity / Math.max(1, this.maxIntegrity),
+      kills: this.kills - this.hcKillsAt,
+      spawnedFrac: this.hcQueued > 0 ? this.hcSpawned / this.hcQueued : 1,
+      deepest: this.hcDeepest,
+      remainingHp: fieldHp + queuedLeft * avgHp,
+      waveHp: this.hcSpawnedHp + queuedLeft * avgHp,
+      boss: this.bossCount > 0 || this.mega !== null || this.rushPending.length > 0 || this.nextWaveHasBoss(),
+    });
+    if (!f.call) return;
+    const bonus = this.earlyCallBonus();
+    const wave = this.waveIndex + 1;
+    if (!this.callWaveEarly()) return;
+    this.hiveCallLast = { wave, margin: f.margin, bonus };
+    this.floats.push({ x: WIDTH / 2, y: 96, text: `◈ HIVE CALL — holds ×${f.margin.toFixed(1)}`, color: '#7fe8ff', life: 1.8 });
+  }
+
+  /** Whether the NEXT wave brings a boss or Mega (the hive never calls into one). Mirrors the
+   *  launch rules: Infinite's director cadence + the Mega schedule; a stage's finale, mini-boss,
+   *  per-wave bosses and Mega arrival; every Boss Rush wave. */
+  private nextWaveHasBoss(): boolean {
+    const n = this.waveIndex + 1;
+    if (this.mode === 'bossRush') return true;
+    if (this.mode === 'endless') {
+      const every = Math.max(1, Math.round(DIRECTOR.bossEvery / this.diff.bossFrequencyMult));
+      return n % every === 0 || (this.mega === null && infiniteMegaFor(n) !== null);
+    }
+    if (!this.stage) return false;
+    if (n >= this.totalWaves) return true;
+    if (this.stage.miniBoss && n === this.stage.miniBossWave) return true;
+    if (this.stage.bossWaves?.[n]) return true;
+    return this.mode === 'campaign' && this.mega === null && n === Math.min(this.totalWaves, CAMPAIGN_OPENING.megaArrivalWave)
+      && campaignMegaFor(this.stage.stage) !== null;
+  }
+
+  /** First contact for the forecast: the shallowest depth (0 spawn row … 1 Core) of any open cell
+   *  inside a tower's effective reach. Recomputed when the board changes (count, position, tier) —
+   *  432 cells × the towers, only while the hive call is armed. 1 when nothing covers the path. */
+  private hiveFront(span: number): number {
+    const key = `${this.waveIndex}|${this.towers.map((t) => `${t.x},${t.y},${t.tier}`).join(';')}`;
+    if (key === this.hcFrontKey) return this.hcFront;
+    let front = 1;
+    for (const t of this.towers) {
+      const def = TOWER_DEFS[t.kind];
+      const bk = t.tier > 0 ? resolveBranchKit(t.branchId, t.tier) : null;
+      const reach = def.range * (this.towerProgress[t.kind].rangeMult ?? 1) * (bk?.rangeMult ?? 1) * this.megaFx.towerRange;
+      const r2 = reach * reach;
+      for (let r = 0; r < ROWS; r++) {
+        for (let c = 0; c < COLS; c++) {
+          const d = this.nav.cellDistance(c, r);
+          if (!Number.isFinite(d)) continue;
+          const dx = (c + 0.5) * CELL - t.x;
+          const dy = (r + 0.5) * CELL - t.y;
+          if (dx * dx + dy * dy > r2) continue;
+          const depth = Math.min(1, Math.max(0, 1 - d / span));
+          if (depth < front) front = depth;
+        }
+      }
+    }
+    this.hcFront = front;
+    this.hcFrontKey = key;
+    return front;
+  }
+
+  /** Path cost from the spawn row to the Core on the current nav field (cached per field). */
+  private hiveSpan(): number {
+    if (this.navSpanOf !== this.nav) {
+      let m = 1;
+      for (let c = 0; c < COLS; c++) {
+        const d = this.nav.cellDistance(c, 0);
+        if (Number.isFinite(d) && d > m) m = d;
+      }
+      this.navSpan = m;
+      this.navSpanOf = this.nav;
+    }
+    return this.navSpan;
   }
 
   /** Call the next wave NOW, over the live field (docs/EARLY-CALL.md). The waves overlap: the
@@ -3074,6 +3194,10 @@ export class Game {
         this.integrity = 0;
         this.phase = 'lost';
       }
+      // HIVE CALL (docs/HIVE-MIND.md §hive-call): with Auto Wave on, on solved content, the hive calls
+      // the next wave early when its forecast says the board holds with a wide margin. Off ⇒ never
+      // runs (Auto Wave is off on the golden path ⇒ byte-identical).
+      if (this.phase === 'wave' && this.autoStart && this.automationAllowed && this.time >= this.hcSampleT) this.hiveCallSystem();
     } else {
       // prep / draft: hero still roams; no spawns/economy/loss (overcharge is cached on
       // placement). Combat RESIDUE keeps winding down — projectiles coast out + fade, acid pools
@@ -3119,7 +3243,11 @@ export class Game {
       const q = this.spawnQueue.shift()!;
       const n = this.enemies.length;
       this.spawnOne(q.kind, q.hpMult, q.bountyMult, q.elite === true, q.speedMult ?? 1);
-      if (q.owedWave !== undefined && this.enemies.length > n) this.enemies[n].owedWave = q.owedWave; // §owed
+      if (this.enemies.length > n) {
+        if (q.owedWave !== undefined) this.enemies[n].owedWave = q.owedWave; // §owed
+        this.hcSpawned++; // HIVE CALL: the wave's measured size (read only by the forecast)
+        this.hcSpawnedHp += this.enemies[n].maxHp;
+      }
     }
     if (this.spawnQueue.length === 0) this.spawnedAll = true;
   }
@@ -8619,6 +8747,7 @@ export class Game {
       // §reroll: the open draft's one paid re-deal — price, or -1 once used / in the tutorial.
       draftRerollCost: this.phase === 'draft' && this.draft !== null && !this.draftRerolled && !this.tutorialMode ? this.rerollCost() : -1,
       earlyCall: this.earlyCallBonus(),
+      hiveCall: this.hiveCallLast,
       bonds: this.bondSnapshot(),
       liveThreat: this.liveThreatView(),
       squeezePressure: this.squeezePressure,

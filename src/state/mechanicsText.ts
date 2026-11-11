@@ -183,9 +183,9 @@ export const MECHANIC_TEXT: Readonly<Record<string, MechanicText>> = {
   },
   "early-call": {
     what: 'A few seconds into a wave, the ⏩ CALL EARLY button (top of the battlefield, or Space) launches the next wave over the live field. The waves overlap, and you bank Biomass for the wait you skipped — the +N on the button, shrinking as the current wave runs out. You can stack up to two calls before the field clears.',
-    why: 'A board that is crushing its waves turns dead time into income and tempo — and every gene card a called-over wave owed is still dealt when the field clears.',
+    why: 'A board that is crushing its waves turns dead time into income and tempo — and a called-over wave still deals its gene card, the moment its own last enemy falls.',
     where: 'The run-controls strip above the battlefield while a wave is in progress (Campaign, Infinite, Boss Rush, Skirmish and the Daily — never the tutorial or the Arena).',
-    next: 'Auto Wave never calls early — it only launches from the build phase, so the risk is always your call.',
+    next: 'On content you’ve already beaten, Auto Wave lets the Hive call early for you — only when its forecast says your board holds the overlap with half the field to spare (never into a boss wave, never once the Core has been hit). On frontier content the call is always yours.',
     mistakes: 'Calling over a wave that is already leaking stacks two waves on a failing line — call when the field is quiet, not when it is close.',
   },
   "emergency-defense": {

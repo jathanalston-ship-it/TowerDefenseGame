@@ -179,7 +179,9 @@ export function BuildControls({
               title={
                 hud.autoStartWaiting
                   ? 'Auto Wave is armed but waiting — it starts once you place your first tower or start Wave 1'
-                  : 'Auto-start the next wave after a short countdown'
+                  : autoGeneLock
+                    ? 'Auto-start the next wave after a short countdown'
+                    : 'Auto-start the next wave after a short countdown — and mid-fight the Hive calls the next wave EARLY (+Biomass) when it forecasts your board holds it comfortably'
               }
               onClick={() => {
                 game.setAutoStart(!game.autoStart);

@@ -20,7 +20,9 @@
   Parasite Nest") and each purchase fires its own existing ceremony (mutation spectacle,
   arrival, splice cue) — the hive visibly does the work; gameplay is never interrupted.
 - Manual play is untouched: every surface the mind buys from remains fully manual, and the
-  mind never acts on its own — a pulse happens only when the player asks for one.
+  mind never SPENDS on its own — a pulse happens only when the player asks for one. Its one
+  standing behavior is the **HIVE CALL** (§hive-call): with the player's Auto Wave on, on solved
+  content, it calls the next wave early when its forecast says the board holds with a wide margin.
   (Future seam: optional modes — one-purchase / spend-all / boss-prep profiles — ride the
   same planner with different tunables; see §modes.)
 
@@ -137,6 +139,66 @@ Deterministic slot scoring in `hiveBestSlot` (data-driven, no per-kind code):
   toward the horizontal center (route coverage), with a small penalty for stacking next to the
   same kind (spread beats a monoculture — and Myriad punishes single-kind lines by design).
   When the next wave previews FLIERS, the slot NEAREST the Nucleus instead (§opening).
+
+## §hive-call — the hive calls the next wave early when the board holds comfortably (2026-11-11)
+
+Owner ask: "it calls waves early if it calculates that you'll survive the wave significantly".
+Rides the player's **Auto Wave** toggle (no new control) and the SAME automation gate as Auto Gene
+(`RunOptions.automationAllowed` — solved content only; frontier, Boss Rush, Daily, Skirmish and the
+tutorial never get it). `Game.hiveCallSystem` runs every `HIVE_CALL.sampleEvery` (0.25 s sim) while
+a wave is live and both switches are on; the decision is the pure `hiveCallForecast` (core/hivemind.ts).
+
+- **The read:** the deepest point any enemy reached this wave (`nav.goalDistanceAt` ÷ the spawn
+  row's path cost — 0 spawn row … 1 at the Core; a sieging enemy is 1), kills since launch, the
+  share of the wave already spawned, the HP still on/coming to the field and the wave's total HP
+  (summed from what actually spawned), Core integrity since launch, bosses.
+- **The forecast:** `load = (remaining HP + next wave HP) ÷ this wave's HP`, the next wave assumed
+  `nextWaveGrowth` (×1.3) heavier. Only the distance PAST FIRST CONTACT scales with load (no board
+  kills an enemy before it walks into range): `front` = the shallowest depth any tower's effective
+  reach covers (`Game.hiveFront`), `projected = front + max(deepest − front, depthFloor) × load`.
+  Calling is comfortable when the overlapped field still dies within `safeShare` (60 %) of the
+  stretch from first contact to the Core; `margin` = allowed stretch ÷ projected stretch is what
+  the HUD shows ("holds ×1.4").
+- **Calibration** (scratch harness — calls FORCED whenever every other rule passed, then the
+  forecast compared with what the overlapped field really did; 401 calls on opening / strong /
+  dominant Infinite boards):
+
+  | projected depth | calls | Core hit | Hive lost |
+  |---|---|---|---|
+  | < 0.6 | 35 | 0 | 0 |
+  | 0.6–0.7 | 48 | 1 | 0 |
+  | 0.7–0.8 | 68 | 4 | 1 |
+  | 0.8–1.0 | 130 | 15 | 6 |
+  | ≥ 1.0 | 120 | 52 | 34 |
+
+  The forecast is predictive (risk rises steadily with it); `safeShare` 0.6 is the widest setting
+  that never cost the Core in the data.
+- **Hard holds:** a boss on the field or due next (Infinite director cadence + Mega schedule; a
+  stage's finale, mini-boss, per-wave bosses, Mega arrival; every Boss Rush wave), ANY Core damage
+  this wave, Core below `minIntegrityFrac` (60 %), fewer than `minKills` kills or `minSpawnedFrac`
+  of the wave on the field, a call already stacked (`calledAhead > 0` — at most ONE hive call per
+  cycle), and every Early Call rule (it calls through `callWaveEarly` itself: minimum elapsed,
+  the bonus, §owed drafts — docs/EARLY-CALL.md).
+- **Visible:** a board float "◈ HIVE CALL — holds ×M" and the hive ticker ("Called Wave N early ·
+  +B Biomass / Forecast: the board holds ×M") from `HudSnapshot.hiveCall`.
+- **Determinism:** the read is sim state only; Auto Wave is a recorded input (`setAutoStart`), so a
+  replay re-makes every call. Off on the golden path (Auto Wave off) ⇒ byte-identical.
+- **Measured with safeShare 0.6** (scratch harness — 20 Infinite seeds × 600 s per cohort, the hive
+  pulsing every prep, Auto Wave on; the same runs with the call disabled as the control):
+
+  | board | hive calls | overlaps that cost the Core | runs lost (calls / none) | mean depth (calls / none) |
+  |---|---|---|---|---|
+  | strong (10 towers) | 39 | 3 | 7 / 11 | 22.4 / 20.9 |
+  | dominant (10 towers, ×3 account damage) | 58 | 0 | 8 / 9 | 23.1 / 23.0 |
+
+  No hive-called overlap ever killed the Hive; the Early Call Biomass it banks fed the board, and
+  runs with calls lost less often. Weak boards (sim:hive's 4-tower openings) never reach a
+  comfortable forecast and make no calls. `npm run sim:hive` now reports calls per cohort and gates
+  Core damage in ≤ 5 % of hive-called overlaps.
+- **Verified live** (real client, Infinite, debug-built strong board): the hive called Wave 2 early
+  ("holds ×1.6", +22 Biomass) with the board float + ticker, and Auto Gene drafted after 3 s.
+
+Auto Gene's countdown is **3 s** since the same ask (was 10 s) — any manual pick still wins.
 
 ## §golden-safety & determinism
 

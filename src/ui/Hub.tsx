@@ -214,7 +214,7 @@ function SettingsScreen({ onReplayTutorial, onReplayTour, onReplayIntro }: { onR
           <MotionSettings />
           <ImmersiveSetting />
           <label className="set-toggle">
-            <span>Auto Gene Selection<small>Auto-draft the ◆ PICK card after a 10s countdown.</small></span>
+            <span>Auto Gene Selection<small>Auto-draft the ◆ PICK card after a 3s countdown.</small></span>
             <button className={`set-switch ${autoGene ? 'on' : ''}`} onClick={toggleAutoGene} aria-pressed={autoGene}>
               {autoGene ? 'On' : 'Off'}
             </button>

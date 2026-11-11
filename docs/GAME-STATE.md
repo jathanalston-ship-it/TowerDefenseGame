@@ -570,6 +570,12 @@ sink ≈ hour-400 at endgame income — re-tune as the library grows.
   (foundationsUX.test.ts): every persona across the spectrum always has an objective, a bounded feed,
   and something to do — no dead-ends, no notification walls
 - ✅ Combat Tutorial, HUD Tour, Help wiki + mechanics registry, "What's New" — TUTORIAL.md, HELP.md
+- ✅ **HIVE CALL + 3 s AUTO GENE** (2026-11-11, HIVE-MIND.md §hive-call) — with Auto Wave on, on solved
+  content (the automation gate), the Hive calls the next wave EARLY mid-fight when its forecast says the
+  board holds the overlap comfortably: the deepest point enemies reached past first contact × the load the
+  call adds must stay within 60 % of the stretch to the Core (calibrated on 401 forced calls; never into or
+  over a boss, never after Core damage, one call per cycle, through callWaveEarly itself). Board float +
+  ticker ("Called Wave N early · +B Biomass / holds ×M"). Auto Gene's countdown is 3 s (was 10 s)
 - ✅ **MARKET CONSTRUCTS** (2026-11-06, CONSTRUCTS.md) — eight labelled AI accounts (⚙ CONSTRUCT on every
   listing, bid and trade; Help → Constructs) run by a scheduled Cloudflare Worker (`workers/constructs/`,
   cron every 5 min). Each plays nonstop at real-time pace through the progression simulator's virtual

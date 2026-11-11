@@ -342,6 +342,15 @@ export function GameView({
   // HIVE INTELLIGENCE (docs/HIVE-MIND.md): the pulse report ticker — what the hive just
   // bought, fading on its own (keyed by `at` so every pulse restarts the animation).
   const [hiveTicker, setHiveTicker] = useState<{ at: number; lines: string[]; spent: number } | null>(null);
+  // HIVE CALL (docs/HIVE-MIND.md §hive-call): the hive's automatic early call reports on the same
+  // ticker — which wave it called, the Biomass it banked, and the margin its forecast saw.
+  const hiveCallSeen = useRef(0);
+  useEffect(() => {
+    const c = hud.hiveCall;
+    if (!c || c.wave === hiveCallSeen.current) return;
+    hiveCallSeen.current = c.wave;
+    setHiveTicker({ at: Date.now(), lines: [`Called Wave ${c.wave} early${c.bonus > 0 ? ` · +${c.bonus} Biomass` : ''}`, `Forecast: the board holds ×${c.margin.toFixed(1)}`], spent: 0 });
+  }, [hud.hiveCall]);
   const autoSlowFired = useRef({ finale: false, record: false, danger: false }); // finale/record: once per RUN; danger: once per WAVE (re-armed in prep)
   const setSpeed = useCallback((x: number) => {
     game.timeScale = x;
