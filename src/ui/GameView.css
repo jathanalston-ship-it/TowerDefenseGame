@@ -1418,6 +1418,9 @@ html[data-layout='portrait'] .hud-biomass > .tt-bubble::after { left: 24px; }
   align-items: center;
   gap: 10px;
   margin-top: 12px;
+  flex-wrap: wrap; /* + the ■ Stop Hive button: wraps on a phone instead of widening the header past the viewport */
+  justify-content: center;
+  max-width: 100%;
 }
 
 .draft-auto-k {

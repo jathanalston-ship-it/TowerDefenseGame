@@ -846,3 +846,22 @@
 - `119c194` **[Framework]** Docs: record verified growth and navigation deployment _(internal)_
 - `52e75f6` **[UI]** Clarify equipment codex bonus units _(internal)_
 - `de9bc18` **[UI]** Make the equipment codex searchable _(internal)_
+## 2026-11-06
+
+- ⚑ `72f0432` **[Framework]** Status,chronicle: DEPLOYED "Class Bonds" (353c962, run #238); seal v2026.11.06.2 _(internal)_
+- `1d16e42` **[Backend]** Market Constructs: 8 labelled AI players that grind nonstop and trade on the Auction House _(internal)_
+- `d22f872` **[Gameplay]** Constructs: tick reports name why a save commit was refused (e.g. save-commit-429) _(internal)_
+- `6c8c01b` **[UI]** Status,docs: Market Constructs live-checked in the Auction House UI; full suite 3154/3154 _(internal)_
+## 2026-11-11
+
+- `0e1896c` **[Gene Cards]** Hive Call: the hive calls the next wave early when its forecast says the board holds; Auto Gene 3 s _(internal)_
+- `1a306d1` **[Gene Cards]** Validation: Hive Call + 3 s Auto Gene PASS over 353c962..HEAD — 3162/3162, mobile gate clean _(internal)_
+- `9521758` **[Gameplay]** Hub quick-buy lag: one shared Power read per save snapshot; no second write; deferred board _(internal)_
+- `14516cd` **[Gene Cards]** Fewer words, more icons: hub action tiles, a medallion unlock card, a three-tile update briefing _(internal)_
+- `f84a66f` **[Website]** Website: devlog "A lighter hub", curated v2026.11.11 notes, regenerated site + PIL report _(internal)_
+- `8e3b073` **[Gameplay]** Playtest list 2: act-only notifications, gated best moves greyed, Continue locked, Hive docked, Infinite End Early + 1/5 containers _(internal)_
+- `1dd6948` **[Enemies]** Infinite wall: past depth 4 + cleared Campaign stage enemy HP ×2/depth; sim:infinite harness _(internal)_
+- `be02da6` **[Website]** Website + notes: regenerated site, curated v2026.11.11 entries, DIL + PIL reports _(internal)_
+- `d6ac95c` **[Framework]** Curate the batch's housekeeping commit out of the v2026.11.11 notes _(internal)_
+- `54f3489` **[Bug Fixes]** Ui: the update briefing's "See all changes" link is a full-size tap target on phones _(internal)_
+- `30bca6f` **[Bug Fixes]** Ui: Growth rows keep their +Power gain visible on narrow layouts _(internal)_

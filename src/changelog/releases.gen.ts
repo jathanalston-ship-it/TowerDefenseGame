@@ -5,6 +5,103 @@ import type { Release } from './types';
 /** Player-facing releases, newest first. */
 export const RELEASES: Release[] = [
   {
+    "id": "v2026.11.11.2",
+    "date": "2026-11-11",
+    "title": "Lighter Hub, Infinite Wall and Market Constructs",
+    "entries": [
+      {
+        "cat": "Gameplay",
+        "text": "Hive Intelligence calls waves early: while it (or Auto Wave) is on, it calls the next wave mid-fight when it forecasts your board will hold the overlap with room to spare, and banks the Early Call Biomass",
+        "major": true
+      },
+      {
+        "cat": "Gameplay",
+        "text": "The Hive never calls into or over a boss wave, never once your Core has been hit that wave, and never on a wounded Core; like Auto Gene it only acts on content you've already beaten"
+      },
+      {
+        "cat": "UX",
+        "text": "Auto Gene and Hive Intelligence now draft the recommended gene after 3 seconds (was 10); any pick you make yourself still wins"
+      },
+      {
+        "cat": "UX",
+        "text": "A board callout and the Hive Intelligence ticker report each call: the wave, the Biomass banked and the forecast margin"
+      },
+      {
+        "cat": "Performance",
+        "text": "Hub lag fixed: the Buy best-upgrade button no longer freezes the screen — a purchase does about 5× less work, and the screen responds first while the advice panels catch up",
+        "major": true
+      },
+      {
+        "cat": "UX",
+        "text": "Fewer words, more icons: a new system arrives as a glyph, its name and one line (the full briefing is one tap away), update briefings are three icon tiles, and the home screen's Ready Chain and recommendations are icon buttons with counts"
+      },
+      {
+        "cat": "Bug Fixes",
+        "text": "The Early Call help page no longer says Auto Wave never calls early, and correctly says a called-over wave's card arrives when its last enemy falls"
+      },
+      {
+        "cat": "Gameplay",
+        "major": true,
+        "text": "End Early in Infinite: pause and stop a run whenever you like to keep 60% of its Genome Cores, mastery and XP; depth records, contracts and containers you already filled stay in full"
+      },
+      {
+        "cat": "Balance",
+        "major": true,
+        "text": "Infinite now has a wall: past depth 4 + your highest cleared Campaign stage, enemy health doubles every depth. Gear buys a few depths past it and every Campaign stage pushes it one deeper, so a Stage 12 account tops out around depth 20 instead of riding past 60"
+      },
+      {
+        "cat": "Balance",
+        "text": "An Infinite run qualifies for rewards at half your best depth or half your wall, whichever is lower, so a record set before the wall never locks you out"
+      },
+      {
+        "cat": "Balance",
+        "text": "Infinite fills Bio-Containers at a fifth of its old pace, so a long farm no longer outpaces every other source of containers"
+      },
+      {
+        "cat": "UX",
+        "text": "Notifications only point at things you can do: no more badges for tower Stars past your Evolution Cap, for Antigen with no open rung, or “almost unlocked” tiles for systems you can't reach yet"
+      },
+      {
+        "cat": "Bug Fixes",
+        "text": "The hub's Best Move no longer offers an upgrade you can afford but can't take yet; if nothing else is buyable it greys out and names what's in the way instead of a Buy that does nothing"
+      },
+      {
+        "cat": "UX",
+        "text": "The post-run summary's Continue button stays in one place while rewards reveal instead of jumping with every new line"
+      },
+      {
+        "cat": "UX",
+        "text": "Hive Intelligence’s ON/OFF switch sits with Auto Wave and Auto Gene on the build console at the start of a wave, and its Enable/Stop buttons on gene drafts have their own row instead of crowding the cards"
+      },
+      {
+        "cat": "Gameplay",
+        "text": "Market Constructs arrive: eight of the game's own AI players now play around the clock and trade on the Auction House: they sell what they earn at the market price and buy fairly priced player listings",
+        "major": true
+      },
+      {
+        "cat": "UX",
+        "text": "Every Construct listing, bid and trade carries a ⚙ Construct mark (hover for its name), and Help has a new Constructs page"
+      },
+      {
+        "cat": "Gameplay",
+        "text": "Constructs never trade with each other, never buy the market's baseline stock and never appear on a leaderboard or the Arena ladder"
+      },
+      {
+        "cat": "Bug Fixes",
+        "text": "Synced accounts can list on the Auction House again: the server had been reading every account as a brand-new one"
+      },
+      {
+        "cat": "Website",
+        "text": "New dev blog posts: “The Hive calls the wave” and “Playtest fixes: a lighter hub, End Early and quieter notifications”; the Hive Intelligence page and FAQ describe the new calls"
+      },
+      {
+        "cat": "Website",
+        "text": "New dev blog post: “Meet the Constructs: AI players who grind, and trade with you”; the economy page explains them"
+      }
+    ],
+    "sealed": false
+  },
+  {
     "id": "v2026.11.11",
     "date": "2026-11-11",
     "title": "Clearer Equipment Details",

@@ -1,6 +1,6 @@
 # DIL_GRAPH.md — the Design Intelligence Layer (GENERATED — `npm run dil -- regen`)
 
-> **The project's brain** (docs/DIL.md). 998 nodes · 1943 edges, built from the live
+> **The project's brain** (docs/DIL.md). 1005 nodes · 1962 edges, built from the live
 > registries + curated knowledge (src/dev/dil/). **Query it instead of searching the repo:**
 > `npm run dil -- node <id>` · `affects <id>` · `requires <id>` · `missing <kind> <edge>` ·
 > `checklist tower <kind>` · `find <text>`. Edge kinds are bidirectional (19 kinds).
@@ -26,7 +26,7 @@
 
 ### Power Score Index
 
-`system:hive-mind` · `system:engine` · `system:power` · `system:campaign` · `system:daily` · `system:mulligans` · `system:premium` · `system:arena` · `system:towers` · `system:mastery` · `system:heroes` · `system:equipment` · `system:crafting` · `system:loot` · `system:gene-cards` · `system:class-bonds` · `system:nucleus` · `system:hero-symbiotes` · `system:idle-harvest` · `system:metabolism` · `system:shards-economy` · `system:collection` · `system:evolution-hq` · `system:prestige` · `system:splice-market` · `system:achievements` · `system:cosmetics` · `system:battle-pass` · `system:quests` · `system:run-ui` · `system:prediction` · `system:meta-store` · `system:mega-bosses` · `system:assimilation` · `system:analytics`
+`system:hive-mind` · `system:engine` · `system:power` · `system:campaign` · `system:daily` · `system:mulligans` · `system:premium` · `system:arena` · `system:towers` · `system:mastery` · `system:heroes` · `system:equipment` · `system:crafting` · `system:loot` · `system:gene-cards` · `system:class-bonds` · `system:market-constructs` · `system:nucleus` · `system:hero-symbiotes` · `system:idle-harvest` · `system:metabolism` · `system:shards-economy` · `system:collection` · `system:evolution-hq` · `system:prestige` · `system:splice-market` · `system:achievements` · `system:cosmetics` · `system:battle-pass` · `system:quests` · `system:run-ui` · `system:prediction` · `system:meta-store` · `system:mega-bosses` · `system:assimilation` · `system:analytics`
 
 ### Audio Index
 
@@ -34,11 +34,11 @@
 
 ### Teaching Index
 
-`tutorial:combat` · `help:hive-autoplay` · `help:mission-control` · `help:hive-intel` · `help:evolution-roadmap` · `help:power-advisor` · `help:field-guides` · `help:hive-core` · `help:biomorph-conveyor` · `help:strain-evolution` · `help:boss-sieges` · `help:boss-rush` · `help:bio-roulette` · `help:gene-essence` · `help:field-research` · `help:splice-market` · `help:auction-house` · `help:daily-login` · `help:hive-construction` · `help:gene-archive` · `help:gene-loadout` · `help:biomass` · `help:wave-rhythm` · `help:game-speed` · `help:early-call` · `help:emergency-defense` · `help:power-score` · `help:account-level` · `help:genome-rank` · `help:towers` · `help:tower-stars` · `help:tower-mastery` · `help:blockers` · `help:mastery-evolution` · `help:class-bonds` · `help:bonds-in-battle` · `help:tower-branches` · `help:adaptation` · `help:mulligans` · `help:nucleus` · `help:gene-cards` · `help:splice` · `help:heroes` · `help:hero-evolution` · `help:hero-slots` · `help:equipment` · `help:equipment-reforge` · `help:gear-codex` · `help:genome-core` · `help:prestige` · `help:ascension` · `help:containers` · `help:loot-meter` · `help:mega-hunt` · `help:collection-codex` · `help:phenotype-lab` · `help:idle-harvest` · `help:metabolism` · `help:specimens` · `help:arena` · …37 more
+`tutorial:combat` · `help:hive-autoplay` · `help:mission-control` · `help:hive-intel` · `help:evolution-roadmap` · `help:power-advisor` · `help:field-guides` · `help:hive-core` · `help:biomorph-conveyor` · `help:strain-evolution` · `help:boss-sieges` · `help:boss-rush` · `help:bio-roulette` · `help:gene-essence` · `help:field-research` · `help:splice-market` · `help:auction-house` · `help:market-constructs` · `help:daily-login` · `help:hive-construction` · `help:gene-archive` · `help:gene-loadout` · `help:biomass` · `help:wave-rhythm` · `help:game-speed` · `help:early-call` · `help:emergency-defense` · `help:power-score` · `help:account-level` · `help:genome-rank` · `help:towers` · `help:tower-stars` · `help:tower-mastery` · `help:blockers` · `help:mastery-evolution` · `help:class-bonds` · `help:bonds-in-battle` · `help:tower-branches` · `help:adaptation` · `help:mulligans` · `help:nucleus` · `help:gene-cards` · `help:splice` · `help:heroes` · `help:hero-evolution` · `help:hero-slots` · `help:equipment` · `help:equipment-reforge` · `help:gear-codex` · `help:genome-core` · `help:prestige` · `help:ascension` · `help:containers` · `help:loot-meter` · `help:mega-hunt` · `help:collection-codex` · `help:phenotype-lab` · `help:idle-harvest` · `help:metabolism` · `help:specimens` · …38 more
 
 ### Testing Index
 
-`system:hive-mind` · `system:engine` · `system:content-infra` · `system:power` · `system:campaign` · `system:pil` · `system:accounts` · `system:boss-rush` · `system:daily` · `system:mulligans` · `system:premium` · `system:net-backend` · `system:online-foundation` · `system:arena` · `system:towers` · `system:mastery` · `system:heroes` · `system:hero-cinematics` · `system:equipment` · `system:crafting` · `system:loot` · `system:gene-cards` · `system:class-bonds` · `system:nucleus` · `system:hero-symbiotes` · `system:idle-harvest` · `system:metabolism` · `system:collection` · `system:evolution-hq` · `system:hive-construction` · `system:daily-login` · `system:prestige` · `system:currencies` · `system:splice-market` · `system:achievements` · `system:stats` · `system:liveops` · `system:directives` · `system:contracts` · `system:infestation` · `system:chronicle` · `system:cosmetics` · `system:battle-pass` · `system:quests` · `system:profile` · `system:onboarding` · `system:account-level` · `system:genome-rank` · `system:progression-gating` · `system:hub-shell` · `system:run-ui` · `system:notifications` · `system:prediction` · `system:meta-store` · `system:bosses` · `system:mega-bosses` · `system:cutscenes` · `system:security` · `system:biomes` · `system:map-layouts` · …12 more
+`system:hive-mind` · `system:engine` · `system:content-infra` · `system:power` · `system:campaign` · `system:pil` · `system:accounts` · `system:boss-rush` · `system:daily` · `system:mulligans` · `system:premium` · `system:net-backend` · `system:online-foundation` · `system:arena` · `system:towers` · `system:mastery` · `system:heroes` · `system:hero-cinematics` · `system:equipment` · `system:crafting` · `system:loot` · `system:gene-cards` · `system:class-bonds` · `system:market-constructs` · `system:nucleus` · `system:hero-symbiotes` · `system:idle-harvest` · `system:metabolism` · `system:collection` · `system:evolution-hq` · `system:hive-construction` · `system:daily-login` · `system:prestige` · `system:currencies` · `system:splice-market` · `system:achievements` · `system:stats` · `system:liveops` · `system:directives` · `system:contracts` · `system:infestation` · `system:chronicle` · `system:cosmetics` · `system:battle-pass` · `system:quests` · `system:profile` · `system:onboarding` · `system:account-level` · `system:genome-rank` · `system:progression-gating` · `system:hub-shell` · `system:run-ui` · `system:notifications` · `system:prediction` · `system:meta-store` · `system:bosses` · `system:mega-bosses` · `system:cutscenes` · `system:security` · `system:biomes` · …13 more
 
 ### Developer Tooling Index
 
@@ -208,6 +208,8 @@ graph LR
   system_difficulty["Difficulty"] -->|modifies| system_campaign["Campaign"]
   system_living_battlefield["Living Battlefield"] -->|consumes| system_biomes["Biomes"]
   system_difficulty["Difficulty"] -->|modifies| system_infinite["Infinite Mode"]
+  system_infinite["Infinite Mode"] -->|modifies| system_loot["Loot & Bio-Containers"]
+  system_campaign["Campaign"] -->|modifies| system_infinite["Infinite Mode"]
 ```
 
 ### Power Score Map
@@ -230,6 +232,7 @@ graph LR
   system_loot["Loot & Bio-Containers"] -->|provides| concept_power_score["Power Score"]
   system_gene_cards["Gene Cards (draft + permanent evolution)"] -->|provides| concept_power_score["Power Score"]
   system_class_bonds["Class Bonds"] -->|provides| concept_power_score["Power Score"]
+  system_market_constructs["Market Constructs"] -->|provides| concept_power_score["Power Score"]
   system_nucleus["Nucleus Mulligans"] -->|provides| concept_power_score["Power Score"]
   system_hero_symbiotes["Hero Symbiotes"] -->|provides| concept_power_score["Power Score"]
   system_idle_harvest["Idle Harvest"] -->|provides| concept_power_score["Power Score"]
@@ -376,6 +379,9 @@ graph LR
   system_class_bonds["Class Bonds"] -->|dependsOn| system_meta_store["Meta Store & Save"]
   system_class_bonds["Class Bonds"] -->|dependsOn| system_progression_gating["Progression Gating & Director"]
   system_class_bonds["Class Bonds"] -->|consumes| system_meta_store["Meta Store & Save"]
+  system_market_constructs["Market Constructs"] -->|dependsOn| system_online_foundation["Online Foundation"]
+  system_market_constructs["Market Constructs"] -->|dependsOn| system_net_backend["Backend lanes (net/)"]
+  system_market_constructs["Market Constructs"] -->|dependsOn| system_splice_market["Splice Market & Ichor"]
   system_nucleus["Nucleus Mulligans"] -->|dependsOn| system_mulligans["Mulligan System"]
   system_nucleus["Nucleus Mulligans"] -->|dependsOn| system_content_infra["Content Infrastructure"]
   system_nucleus["Nucleus Mulligans"] -->|dependsOn| system_power["Power Score"]
@@ -671,6 +677,8 @@ graph LR
   system_towers["Towers, Stars, Branches, Strain & Codex"] -->|modifies| system_difficulty["Difficulty"]
   system_difficulty["Difficulty"] -->|modifies| system_campaign["Campaign"]
   system_difficulty["Difficulty"] -->|modifies| system_infinite["Infinite Mode"]
+  system_infinite["Infinite Mode"] -->|modifies| system_loot["Loot & Bio-Containers"]
+  system_campaign["Campaign"] -->|modifies| system_infinite["Infinite Mode"]
 ```
 
 ## Concepts (8)
@@ -692,7 +700,7 @@ ONE account-strength number folded from every permanent bucket + the in-run temp
   - providedBy ← `system:mastery` — mastery multiplier folds into the permanent bucket
   - providedBy ← `system:heroes` — hero stars/evolution feed permanent + temporary buckets
   - providedBy ← `system:equipment` — equipped items score via itemPower into the gear bucket
-  - _…32 more (query: `npm run dil -- node concept:power-score`)_
+  - _…33 more (query: `npm run dil -- node concept:power-score`)_
 
 ### `concept:determinism` — Determinism
 
@@ -894,7 +902,7 @@ The premium reserve — never farmable; bled from achievements, collection ranks
 
   - rewardedBy ← `system:daily-login` — a rare small lane (weight 3, clamped 2–6/day) — deliberately below the never-farmable premium posture thresholds
 
-## Systems (79)
+## Systems (80)
 
 ### `system:hive-mind` — Hive Intelligence (in-run)
 
@@ -911,6 +919,7 @@ _at: src/core/hivemind.ts_
   - consumes → `system:engine` — PINNED-RESERVE PULSE CONTRACT (docs/HIVE-MIND.md §scoring): Game.hivePulse computes the reserve ONCE from the wallet at pulse start and threads it through every hivePlan re-plan — per-iteration recomputation on the shrinking wallet asymptotically spends to zero (sim:hive caught 87 violations before the pin). New Biomass sinks join via registerHiveProvider (core/hivemind.ts) — one provider, no planner/UI/sim changes; execute ONLY through the public API a manual click uses so the Power audit + ceremonies fire
   - gates → `system:campaign` — AUTOMATION GATE (docs/HIVE-MIND.md §solved-content): Hive Intelligence + Auto Gene unlock after Campaign Stage 5, including new campaign stages; mode and Threat restrictions still apply — automationGate (core/hivemind.ts AUTOMATION_POLICY) evaluated by save/derive.ts automationFor at GameView mount, threaded as RunOptions.automationAllowed (FAIL-CLOSED: omitted ⇒ false). Headless instruments modelling solved content must pass automationAllowed: true or the pulse is a no-op
   - modifies → `system:heroes` — THIN-BOARD HOLD (docs/HIVE-MIND.md §opening): with fewer than HIVE_MIND.thinBoardTowers towers the planner values heroEvo/autocast at 0 and the favorite provider (Game.deployTower) places towers — the start-of-run glow follows the same plan. G1: the old pulse sank ~90 % of the opening Biomass into Hero Evolution
+  - extends → `system:engine` — HIVE CALL (docs/HIVE-MIND.md §hive-call): with Auto Wave ON (autoStart, a recorded input) AND RunOptions.automationAllowed, Game.hiveCallSystem samples every HIVE_CALL.sampleEvery while a wave is live and calls the next wave early through callWaveEarly ITSELF (every Early Call rule applies) when the pure hiveCallForecast is comfortable: projected = front + max(deepest − front, depthFloor) × load, front = first contact (shallowest nav depth inside any tower reach — Game.hiveFront), load = (remaining HP + next wave HP ×1.3) ÷ this wave HP; comfortable ⇔ the excess uses ≤ safeShare of the stretch from first contact to the Core. Hard holds: a boss on the field or NEXT (Game.nextWaveHasBoss mirrors the launch rules — endless director cadence + Mega schedule; stage finale/mini-boss/bossWaves/Mega arrival), any Core damage this wave, Core < 60 %, too early (kills/spawned share), calledAhead > 0 (one hive call per cycle). Calibrated by forcing calls (projected vs actual overlap depth); npm run sim:hive gates Core damage in ≤ 5 % of hive-called overlaps. The per-wave read (hcSpawned/hcSpawnedHp/hcDeepest) is written on every run but READ only when armed ⇒ golden byte-identical. Auto Gene countdown 3 s (DraftModal AUTO_SECONDS).
   - taughtBy ← `help:hive-autoplay`
   - documentedBy ← `doc:HIVE-MIND.md`
   - testedBy ← `test:src/core/hivemind.test.ts`
@@ -946,7 +955,7 @@ _at: src/core/game.ts, src/core/combat.ts, src/core/status.ts, src/core/targetin
   - requiredBy ← `system:class-bonds`
   - requiredBy ← `system:nemesis`
   - requiredBy ← `system:onboarding`
-  - _…248 more (query: `npm run dil -- node system:engine`)_
+  - _…252 more (query: `npm run dil -- node system:engine`)_
 
 ### `system:content-infra` — Content Infrastructure
 
@@ -972,12 +981,13 @@ _at: src/core/registry.ts, src/core/validate.ts, src/core/config.ts, src/core/ty
 
 ONE account-strength number folded from every permanent bucket + the in-run temporary bucket.
 
-_at: src/core/power.ts, src/state/itemPower.ts, src/state/powerEvents.ts, src/state/bestPurchase.ts, src/state/equipAdvisor.ts, src/state/powerAtlas.ts, src/state/powerAdvisor.ts, src/state/missionControl.ts, src/state/evolutionRoadmap.ts, src/state/powerLog.ts, src/ui/components/PowerScore.tsx, src/ui/components/PowerDelta.tsx, src/ui/components/PowerToaster.tsx, src/ui/components/BestBuyStrip.tsx, src/ui/components/GrowthPanel.tsx_
+_at: src/core/power.ts, src/state/itemPower.ts, src/state/powerEvents.ts, src/state/bestPurchase.ts, src/state/saveMemo.ts, src/state/equipAdvisor.ts, src/state/powerAtlas.ts, src/state/powerAdvisor.ts, src/state/missionControl.ts, src/state/evolutionRoadmap.ts, src/state/powerLog.ts, src/ui/components/PowerScore.tsx, src/ui/components/PowerDelta.tsx, src/ui/components/PowerToaster.tsx, src/ui/components/BestBuyStrip.tsx, src/ui/components/GrowthPanel.tsx_
 
   - dependsOn → `system:content-infra`
   - provides → `concept:power-score` — IS the model (buckets, effectsPower, FIELD_WEIGHT)
   - consumes → `system:meta-store` — owns save field 'powerLog'
   - extends → `system:hub-shell` — POWER ATLAS (state/powerAtlas.ts): one row per Power system — best next move via the exact advisors (bestPurchase, now incl. a `heroes` surface + Prime rows for max-◈ units; adaptationPicks; equipAdvisor.ts free exact gear swaps with a one-click Equip in the Armory) + honest tend notes (Mulligan completion / Archive %). The Command Center `growth` widget (ui/components/GrowthPanel.tsx, homeRegistry order 15, gated on the towers reveal) renders it; save.powerLog (v43, bounded 90-day daily ledger, state/powerLog.ts — written by meta.notePowerSnapshot on boot + debounced power gains, browser-only) feeds its weekly delta + sparkline and the Profile Power Breakdown trend
+  - conflictsWith → `system:meta-store` — PER-SAVE MEMOS (state/saveMemo.ts): accountPowerParts, purchaseCandidates, adaptationPicks/adaptableUnits, equipUpgrades and two badge counts cache per COMMITTED store snapshot (markSnapshot at every store.set site — boot, persist, the loot-meter write, restoreBackup). Contract: a committed snapshot is NEVER mutated in place (any new store.set site must markSnapshot; mutate-in-place saves — harnesses, hypotheticals — are simply not cached). Cached results are frozen (shallow) — never sort/push them; slice first. The Power-history ledger now writes at natural pauses (boot, run start via flushPowerLog, tab hidden/pagehide), NOT 600 ms after each gain — that second snapshot doubled every quick-buy's cost. CommandCenter reads useDeferredValue(meta.use()) so a click paints before the advisor panels recompute (2026-11-11: 2×300 ms long tasks → one ~80 ms).
   - requiredBy ← `system:hive-mind`
   - requiredBy ← `system:campaign`
   - requiredBy ← `system:mulligans`
@@ -1015,6 +1025,7 @@ _at: src/core/campaign.ts, src/core/campaignEvents.ts, src/core/hash.ts, src/ui/
   - conflictsWith → `concept:golden-test` — a new enemy whose DERIVED unlockStage is ≤ 3 re-rolls the pinned Stage 1–3 onboarding pools and moves campaignCurve.test — the puzzle fauna were tuned (EHP) to enter at ≥ 4; biome signatures also append to the Infinite director rosters while that biome is active
   - consumes → `system:towers` — LIVE PROBE (§6a v3→v4, campaign.ts LIVE_PROBE_ROLES + coverage.ts): every tower kind gets a DERIVED coverage vector (reach / area / pierce / burst / control from TowerDef + kit + status-framework traits — a new tower is graded by its numbers); the FIELDED board folds Strain-weighted and each probe role (air-pack, artillery, burrower, armored, sprinter, sustain — enemy-trait predicates) reads its answering axis as a GAP below the ROSTER mean coverage; a live Campaign wave swaps a share of its plain threat budget (same budget) for the lightest body of the largest-gap role; the live ratio excludes drafted cards (liveCardExp 0) so picks are pure gain; Game.liveWave feeds both the launch and the prep preview (the briefing chip names the role + the coverage it tests)
   - consumes → `system:towers` — OPENING ANSWER GIFT (core/conveyor.ts §opening): the stage ≥ 4 run-start gift rolls from owned kinds whose TOWER DATA answers the opening threats (drag-damage aura, then area damage) — a new tower is classified by its stats; Stages 1–3 keep the plain roll (campaignCurve)
+  - modifies → `system:infinite` — THE INFINITE WALL (config.ENDLESS_WALL, ENDLESS-SCALING.md §wall): wall depth = 4 + highest cleared Campaign stage; past it enemy HP ×2/depth (Game.wallHpMult via RunOptions.endlessWall, set by GameView from meta.endlessWallFor). Anything that reasons about Infinite depth must read the wall: the qualify gate (½·min(best, wall)), predictInfinite(…, wall), the Infinite forecast. Calibrate with npm run sim:infinite (real save + client run setup).
   - requiredBy ← `system:daily`
   - requiredBy ← `system:towers`
   - requiredBy ← `system:heroes`
@@ -1041,6 +1052,7 @@ _at: src/ui/InfiniteScreen.tsx_
   - consumes → `system:meta-store` — owns save field 'bestWave'
   - rewards → `currency:genome-cores` — depth records + chest tiers
   - consumes → `system:map-layouts` — layoutIdForDepth: biome period 0 = classic, then registry order per BIOME_PERIOD; switched at wave start (field clear). Arena runs endless rules ⇒ rotates too (both sides share the seed ⇒ fair)
+  - modifies → `system:loot` — INFINITE PACE (config.ENDLESS_RUN, MODE-IDENTITY.md §pace): lootMeterRate 0.2 folds into BOTH the live meter (syncRunLoot taper × rate) and the settle (lootPointIncome endless.meterRate) — change one path, change both. END EARLY (RunResult.endedEarly, pause menu) pays endEarlyRewardMult 0.6 on run INCOME (cores/XP/play XP/meter remainder); deeds (records, contracts, hunts, run cache) pay in full.
   - requiredBy ← `system:threat`
   - taughtBy ← `help:infinite`
   - documentedBy ← `doc:ENDLESS-SCALING.md`
@@ -1049,6 +1061,7 @@ _at: src/ui/InfiniteScreen.tsx_
   - balancedBy ← `system:difficulty` — endless threat curves
   - conflictsWith ← `system:campaign` — Run Identity invasions: campaign passes the STAGE enemyPool as invasionPool (an all-kinds pool dropped 8 colossi on stage 1); endless keeps ENEMY_KINDS
   - modifiedBy ← `system:difficulty` — INFINITE SQUEEZE (ENDLESS_SQUEEZE, RunOptions.squeeze): pressure band (flawless → HP pressure up to cap; bleeding → eased to floor) + per-wave breach ceiling in Game.braceHiveDamage; the Arena (also endless) forces it off
+  - modifiedBy ← `system:campaign` — THE INFINITE WALL (config.ENDLESS_WALL, ENDLESS-SCALING.md §wall): wall depth = 4 + highest cleared Campaign stage; past it enemy HP ×2/depth (Game.wallHpMult via RunOptions.endlessWall, set by GameView from meta.endlessWallFor). Anything that reasons about Infinite depth must read the wall: the qualify gate (½·min(best, wall)), predictInfinite(…, wall), the Infinite forecast. Calibrate with npm run sim:infinite (real save + client run setup).
 
 ### `system:pil` — Public Intelligence Layer
 
@@ -1225,6 +1238,7 @@ _at: src/net/identity.ts, src/net/checkout.ts, src/net/cloudSave.ts, src/net/syn
   - consumes → `concept:replays` — leaderboard verification recomputes submitted runs
   - extends → `system:account-level` — leaderboard modes accountLevel/weeklyXp/monthlyXp: score = XP, wave = level; the SERVER derives period bucket keys (functions/lib/period.ts mirrors core weekKey/monthKey)
   - consumes → `system:online-foundation` — AUCTION ATOMICITY (functions/lib/auctionHost.ts): wallet CHECKs (balance/escrow ≥0) + the partial UNIQUE active-listing index turn violations into FULL batch rollbacks; ordering = state transition FIRST, every money statement CONDITIONED on it via WHERE EXISTS (lost races charge nothing); exactly-once anchors: market_trades PK, wallet-ledger op-id PK, market_windows PK; client custody is SERVER-FIRST (meta.auctionEscrowOut only after 200; auctionReconcile self-heals; wallet ops ride a localStorage outbox with the same op id across restarts)
+  - requiredBy ← `system:market-constructs`
   - requiredBy ← `system:security`
   - documentedBy ← `doc:DEPLOYMENT.md`
   - documentedBy ← `doc:REPLAY-SHARE.md`
@@ -1234,6 +1248,7 @@ _at: src/net/identity.ts, src/net/checkout.ts, src/net/cloudSave.ts, src/net/syn
   - extendedBy ← `system:arena` — SERVER AUTHORITY (ARENA.md §7): settleArenaMatch (guarded arena.settle, exactly-once by matchId in save.arena.settledMatchIds) and functions/api/arena/report.ts run the SAME shared validators (arenaClaimProblem/ratingDelta/arenaMatchRewards from src/core/arena.ts — the premium.ts shared-import precedent); the server derives rating from STORED state and rewards from its OWN division read — client amounts are never fields in the protocol; net/arenaReport.ts is fail-soft (offline/guest ⇒ local settle stands, reconciled later)
   - extendedBy ← `system:online-foundation` — THE RELAY (ONLINE-FOUNDATION.md §relay): human matchmaking = ArenaScreen racing findArenaOpponent (net/arenaMatchmaker.ts) against the 20s AI window — paired {room,role} → hello/loadout/boot → peerProblem gate (proto/season/LIVE bracket/bootBundleProblem/fingerprint) → role 0 proposes ready{matchId,seed}, role 1 ECHOES it (the accept); RelayTransport.setRoom re-targets reconnects at the assigned r<n> room so a mid-match rejoin NEVER re-enters the mm: pool (a stranger's cmds would corrupt the mirror); the ws server is the PURE RelayBroker (functions/lib/arenaRelayRoom.ts — pairing keys mm:s<season>.p<log2 power band>, verbatim forwarding, unpaired-ping answering, rooms HELD for the reconnect window) bound by scripts/arena-relay.ts (npm run relay, ws devDep) — portable to a Durable Object verbatim because the broker has no node imports
   - extendedBy ← `system:online-foundation` — MARKET LIQUIDITY ENGINE (AUCTION-HOUSE.md §5b): the authority's BUY side — planBuybacks (core/marketAuthority.ts, BUYBACK tunables) picks stale bid-free fairly-priced FOUNDATIONAL listings (BUYBACK_MAX_RARITY band; catalog exclusive/neverTrade is an absolute veto; AUTHORITY_ELIGIBLE_OVERRIDES is the hand-curated widening hook) under a sink-funded budget (min(cap, max(floor, prevWindowBurns × 0.5)) — injections can never outrun burns), crypto-rng shuffle + accept roll (NEVER guaranteed — no farmable sequence exists), caps 3/window · 1/family/window · 1/seller/UTC-day + 6h cooldown, valuation corridor ×0.2–×1.05 of the family estimate (overpricing is invisible, suppression bait unrewarded), velocity+population fades (busyFade/velocityFade — players ARE the liquidity); host runBuybacks settles with the normal sale discipline BUT the sold-gate adds AND bid IS NULL (a racing player bid always wins), buyer @authority, trade authority=2, item ABSORBED (never resold), and buybacks are EXCLUDED from market_history + demand metrics (no self-referential price support); conservation identity gains the explicit injection term (held+burned+withdrawn = deposited + Σ authority-2 prices); sim: all 10 scenarios must stay green with buybacks ≤ 25% of trade, never from flagged personas
+  - conflictsWith ← `system:market-constructs` — CONSTRUCT ↔ SERVER CONTRACT: the market reads a cloud-save headline field for the campaign gate — authMarket.stageFromMeta reads campaignStage (what envelopeMeta writes; legacy `stage` honoured). Constructs commit through PUT /api/save with envelopeMeta, so renaming that headline field silently locks every construct AND every player out of listing (the 2026-11-06 bug). Any new endpoint a construct must reach goes on router.ts ROUTES deliberately; anything that must stay player-only (rank, telemetry, store) stays off it AND refuses isConstructId server-side.
   - requiredBy ← `system:boss-rush` — RECORD EPOCH (BOSS-RUSH.md §epoch, save v56): migrate() archives a pre-v56 rushBestBoss to rushLegacyBestBoss (display only) and restarts the record; the bossRush board buckets under RUSH_BOARD_EPOCH (functions/lib/period.ts ≡ src/net/leaderboard.ts, pinned by leaderboardEpoch.test) — a new epoch bumps BOTH
 
 ### `system:online-foundation` — Online Foundation
@@ -1253,6 +1268,7 @@ _at: src/core/online.ts, src/core/itemIdentity.ts, src/core/trading.ts, src/core
   - extends → `system:net-backend` — THE RELAY (ONLINE-FOUNDATION.md §relay): human matchmaking = ArenaScreen racing findArenaOpponent (net/arenaMatchmaker.ts) against the 20s AI window — paired {room,role} → hello/loadout/boot → peerProblem gate (proto/season/LIVE bracket/bootBundleProblem/fingerprint) → role 0 proposes ready{matchId,seed}, role 1 ECHOES it (the accept); RelayTransport.setRoom re-targets reconnects at the assigned r<n> room so a mid-match rejoin NEVER re-enters the mm: pool (a stranger's cmds would corrupt the mirror); the ws server is the PURE RelayBroker (functions/lib/arenaRelayRoom.ts — pairing keys mm:s<season>.p<log2 power band>, verbatim forwarding, unpaired-ping answering, rooms HELD for the reconnect window) bound by scripts/arena-relay.ts (npm run relay, ws devDep) — portable to a Durable Object verbatim because the broker has no node imports
   - extends → `system:net-backend` — MARKET LIQUIDITY ENGINE (AUCTION-HOUSE.md §5b): the authority's BUY side — planBuybacks (core/marketAuthority.ts, BUYBACK tunables) picks stale bid-free fairly-priced FOUNDATIONAL listings (BUYBACK_MAX_RARITY band; catalog exclusive/neverTrade is an absolute veto; AUTHORITY_ELIGIBLE_OVERRIDES is the hand-curated widening hook) under a sink-funded budget (min(cap, max(floor, prevWindowBurns × 0.5)) — injections can never outrun burns), crypto-rng shuffle + accept roll (NEVER guaranteed — no farmable sequence exists), caps 3/window · 1/family/window · 1/seller/UTC-day + 6h cooldown, valuation corridor ×0.2–×1.05 of the family estimate (overpricing is invisible, suppression bait unrewarded), velocity+population fades (busyFade/velocityFade — players ARE the liquidity); host runBuybacks settles with the normal sale discipline BUT the sold-gate adds AND bid IS NULL (a racing player bid always wins), buyer @authority, trade authority=2, item ABSORBED (never resold), and buybacks are EXCLUDED from market_history + demand metrics (no self-referential price support); conservation identity gains the explicit injection term (held+burned+withdrawn = deposited + Σ authority-2 prices); sim: all 10 scenarios must stay green with buybacks ≤ 25% of trade, never from flagged personas
   - requiredBy ← `system:arena`
+  - requiredBy ← `system:market-constructs`
   - documentedBy ← `doc:ONLINE-FOUNDATION.md`
   - documentedBy ← `doc:TRADING-PREP.md`
   - testedBy ← `test:src/core/auction.test.ts`
@@ -1263,8 +1279,7 @@ _at: src/core/online.ts, src/core/itemIdentity.ts, src/core/trading.ts, src/core
   - testedBy ← `test:src/net/arenaMatchmaker.test.ts`
   - conflictsWith ← `system:engine` — ONE GAME = ONE BUS: meta.ts records boss/Mega kills for the PLAYER off the app-wide gameEvents bus, so any Game that is not the player’s own run (SpectateView replay, ArenaMatch remote mirror + its rollback rebuild, replayRun verification) MUST call game.isolateEvents() — otherwise someone else’s kills credit this save.
   - consumedBy ← `system:net-backend` — AUCTION ATOMICITY (functions/lib/auctionHost.ts): wallet CHECKs (balance/escrow ≥0) + the partial UNIQUE active-listing index turn violations into FULL batch rollbacks; ordering = state transition FIRST, every money statement CONDITIONED on it via WHERE EXISTS (lost races charge nothing); exactly-once anchors: market_trades PK, wallet-ledger op-id PK, market_windows PK; client custody is SERVER-FIRST (meta.auctionEscrowOut only after 200; auctionReconcile self-heals; wallet ops ride a localStorage outbox with the same op id across restarts)
-  - extendedBy ← `system:mulligans` — MULLIGAN PIECES TRADE (2026-07, the fourth category): mul:<pieceId> trades the DEX UNLOCK (save.mulliganDex) — families mul.<piece>.<rarity> per SEQUENCED rarity (equipment precedent; mixed rarities poison price stats); baseline/buyback bands common+uncommon only; a grafted piece blocks as slotted (unslot first), a reforge-LOCKED host reads bound, escrow-out deletes the dex entry, delivery sequences an unowned piece at the listing rarity or dissolves an owned one to Tissue via DUP_TISSUE (core/mulligan.ts — the pillar duplicate law, shared with container opens); pinned by state/auctionCustody.test.ts + a functions wire round-trip
-  - _…5 more (query: `npm run dil -- node system:online-foundation`)_
+  - _…7 more (query: `npm run dil -- node system:online-foundation`)_
 
 ### `system:arena` — Arena (Live PvP)
 
@@ -1334,7 +1349,7 @@ _at: src/core/stars.ts, src/core/branches.ts, src/core/branchTree.ts, src/core/s
   - contains ← `tower:parasite`
   - contains ← `tower:obelisk`
   - contains ← `tower:maw`
-  - _…48 more (query: `npm run dil -- node system:towers`)_
+  - _…49 more (query: `npm run dil -- node system:towers`)_
 
 ### `system:mastery` — Mastery / Adaptation
 
@@ -1488,7 +1503,7 @@ _at: src/core/loot.ts, src/core/lootQueue.ts, src/core/progressionLoot.ts, src/s
   - documentedBy ← `doc:LOOT-PROGRESSION.md`
   - documentedBy ← `doc:REWARD-PRESENTATION.md`
   - testedBy ← `test:src/core/loot.test.ts`
-  - _…7 more (query: `npm run dil -- node system:loot`)_
+  - _…8 more (query: `npm run dil -- node system:loot`)_
 
 ### `system:gene-cards` — Gene Cards (draft + permanent evolution)
 
@@ -1551,6 +1566,23 @@ _at: src/core/classBonds.ts, src/ui/BondsScreen.tsx_
   - taughtBy ← `help:bonds-in-battle`
   - documentedBy ← `doc:CLASS-BONDS.md`
   - testedBy ← `test:src/core/classBonds.test.ts`
+
+### `system:market-constructs` — Market Constructs
+
+The game’s own labelled AI players (docs/CONSTRUCTS.md): a fixed roster that plays the real progression code around the clock (scheduled Worker, workers/constructs/) and trades what it earns on the Auction House through the SAME handlers a player hits — at market prices, never with each other, never on a leaderboard.
+
+_at: src/core/constructs.ts_
+
+  - dependsOn → `system:online-foundation`
+  - dependsOn → `system:net-backend`
+  - dependsOn → `system:splice-market`
+  - provides → `concept:power-score` — none — constructs are separate accounts; nothing folds into a player’s Power
+  - extends → `system:online-foundation` — MARKET CONSTRUCTS (docs/CONSTRUCTS.md): 8 labelled AI accounts (version-0 UUID ids — no client can mint one; isConstructId is the ONE test). The scheduled Worker (workers/constructs/) plays each through src/dev/progressionSim playVirtualRun (modeled battle, REAL meta) at real-time pace (play-credit in the D1 constructs row, capped catch-up) and trades through router.ts = the EXACT Pages handlers in-process (allowlist: its save slot + /api/auction/*; every rule applies). Pure decisions in src/core/constructs.ts are shared by the Worker AND sim:market (scenario "constructs"). Never ranks (leaderboard/submit + arena/report 403 construct). auditMarket exempts construct PAIRS from selfDealing only. Commit order never mints (deposit spent→committed→credited; acks after commit). Cold families price from HOST.defaultGuide, never the bare floor. Market age gate ⇒ they trade from day 3.
+  - conflictsWith → `system:net-backend` — CONSTRUCT ↔ SERVER CONTRACT: the market reads a cloud-save headline field for the campaign gate — authMarket.stageFromMeta reads campaignStage (what envelopeMeta writes; legacy `stage` honoured). Constructs commit through PUT /api/save with envelopeMeta, so renaming that headline field silently locks every construct AND every player out of listing (the 2026-11-06 bug). Any new endpoint a construct must reach goes on router.ts ROUTES deliberately; anything that must stay player-only (rank, telemetry, store) stays off it AND refuses isConstructId server-side.
+  - taughtBy ← `help:market-constructs`
+  - taughtBy ← `help:auction-house`
+  - documentedBy ← `doc:CONSTRUCTS.md`
+  - testedBy ← `test:src/core/constructs.test.ts`
 
 ### `system:nucleus` — Nucleus Mulligans
 
@@ -1826,6 +1858,7 @@ _at: src/core/market.ts, src/core/ichorExchange.ts, src/state/spliceMarket.ts, s
   - requiredBy ← `system:premium`
   - requiredBy ← `system:field-research`
   - requiredBy ← `system:online-foundation`
+  - requiredBy ← `system:market-constructs`
   - taughtBy ← `help:splice-market`
   - documentedBy ← `doc:MARKET.md`
   - testedBy ← `test:src/core/market.test.ts`
@@ -2148,7 +2181,7 @@ _at: src/ui/InitCutscene.tsx, src/ui/IntroMount.tsx, src/ui/introState.ts, src/s
   - contains ← `help:biomorph-conveyor`
   - contains ← `help:strain-evolution`
   - contains ← `help:boss-sieges`
-  - _…78 more (query: `npm run dil -- node system:onboarding`)_
+  - _…79 more (query: `npm run dil -- node system:onboarding`)_
 
 ### `system:account-level` — Account Level (evergreen meta-progression)
 
@@ -2315,6 +2348,7 @@ _at: src/state/notifications.ts, src/state/notificationSources.ts, src/state/rew
   - modifies → `system:hub-shell` — READY CHAIN (state/readyChain.ts — docs/HUB-FLOW.md): the hub's live harvest queue derives from notifications.live() (NO seen-watermark — badges/reasons stay the attention lane, the chain is the truth lane; a visited-but-unclaimed reward must never go dark) classified by the SAME exported CHANNEL_CLASS claim/open vocabulary as recommendations. Surfaces: Command Center centerpiece leads the recommend widget, hub doors + landing cards + portrait tabs/rows pulse via chainNavs() (readiness BREATHES via .is-ready, novelty stays the numeric badge), NextUp hands node→node with the remaining count before falling back to rotated recommendations. A future claim surface joins by registering a notification source — no chain wiring.
   - modifies → `system:run-ui` — AUTO-CLAIM (state/autoClaim.ts, NOTIFICATIONS.md §auto-claim): Results mounts AutoClaimSummary once per result (WeakMap settle-once) → quest missions / pass levels / metabolism tiers / evolution-track nodes on REVEALED systems claim inside rewardToast.capture() and read back as ONE "Also earned" row; finales + EVOLVE stay manual; tier-3 rewards still toast; prefs.autoClaimPref (Settings) switches it off
   - provides → `system:hub-shell` — THE CLAIM POPUP (2026-07, NOTIFICATIONS.md §claim-popups): every hub claim — quest missions/finales, pass levels/claim-all/premium unlock, weekly directives, wardrobe milestones — pushes its PremiumReceiptLine[] to state/rewardToast; ONE RewardToaster (App, menu only) presents it bold + itemized. The "view it" jump derives from receipt ICONS (single-sourced in meta.applyRewardList/rewardLabel — change an icon there and update rewardToast DESTINATIONS) and routes via navBus. Ceremonial reveals (BioCache, VaultReveal, WardrobeReveal, PremiumStore, SpoilsCard, GenomePromotion) deliberately stay bespoke — the popup is the RECEIPT layer, not the ceremony layer
+  - conflictsWith → `system:towers` — ACT-ONLY BADGES + GATED MOVES (2026-11-11, BUGFIX #131): nextStarCost is the COST LADDER only — the Campaign Evolution Cap lives in buyStar. Anything that calls a ★ "affordable" (towers.stars badge, bestPurchase → canBuyNow, ProgressDashboard) must also read meta.towerStarBlock, or a capped star badges and the Best Move Buy silently refuses. A new gate on a buy action ⇒ surface it as PurchaseCandidate.blocked.
   - requiredBy ← `system:metabolism`
   - requiredBy ← `system:hub-shell`
   - taughtBy ← `help:hive-intel`
@@ -2367,7 +2401,7 @@ _at: src/state/meta.ts, src/state/store.ts, src/state/prefs.ts, src/state/devRes
   - consumedBy ← `system:mulligans` — owns save field 'mulligans'
   - consumedBy ← `system:mulligans` — owns save field 'mulliganDex'
   - consumedBy ← `system:premium` — owns save field 'premium'
-  - _…133 more (query: `npm run dil -- node system:meta-store`)_
+  - _…134 more (query: `npm run dil -- node system:meta-store`)_
 
 ### `system:bosses` — Bosses
 
@@ -3540,7 +3574,7 @@ _at: src/core/tutorial.ts_
   - teaches → `system:onboarding`
   - teaches → `system:run-ui`
 
-## Help Topics (73)
+## Help Topics (74)
 
 - `help:hive-autoplay` — Toggle automatic tower purchases, hero abilities, wave starts and gene picks after Campaign Stage 5. _(partOf `system:onboarding`, teaches `system:hive-mind`)_
 - `help:mission-control` — Your standing orders — the answer to "what should I do now?" _(partOf `system:onboarding`, teaches `system:power`)_
@@ -3557,7 +3591,8 @@ _at: src/core/tutorial.ts_
 - `help:gene-essence` — Permanent currency that upgrades Gene Cards. _(partOf `system:onboarding`, teaches `system:gene-cards`, teaches `system:currencies`)_
 - `help:field-research` — Optional daily field studies — review a specimen observation for a small sample payout. Never required, never the path. _(partOf `system:onboarding`, teaches `system:field-research`)_
 - `help:splice-market` — A refreshing black bazaar: small goods for Genome Cores, premium goods and Bio-Containers for Ichor. _(partOf `system:onboarding`, teaches `system:splice-market`)_
-- `help:auction-house` — The player-driven market: list gene cards, gear and cosmetics for Ichor, bid or buy now, and bank proceeds in your market wallet. _(partOf `system:onboarding`)_
+- `help:auction-house` — The player-driven market: list gene cards, gear and cosmetics for Ichor, bid or buy now, and bank proceeds in your market wallet. _(partOf `system:onboarding`, teaches `system:market-constructs`)_
+- `help:market-constructs` — The game’s own AI players — always marked ⚙ Construct — keep the market stocked and buy fairly priced listings. _(partOf `system:onboarding`, teaches `system:market-constructs`)_
 - `help:daily-login` — One living cache per day — its value compounds for every consecutive day you answer. _(partOf `system:onboarding`, teaches `system:daily-login`)_
 - `help:hive-construction` — Build the laboratory organism — organs that visibly transform your base. _(partOf `system:onboarding`)_
 - `help:gene-archive` — Permanently level your collected Gene Cards. _(partOf `system:onboarding`, teaches `system:gene-cards`)_
@@ -3972,7 +4007,7 @@ _at: site/guides.ts → /guides/live-events/_
 - `achievement:ladder_skulls_1` — Reach 500 Boss Rush bosses (lifetime). _(partOf `system:achievements`, rewards `currency:genome-cores`)_
 - `achievement:ladder_anatomy_1` — Reach 250 Weak Points destroyed. _(partOf `system:achievements`, rewards `currency:genome-cores`)_
 
-## Documentation (197)
+## Documentation (198)
 
 - `doc:ACCOUNT-LEVEL.md` — project documentation _(documents `system:account-level`)_
 - `doc:ACCOUNTS.md` — project documentation _(documents `system:accounts`)_
@@ -4009,6 +4044,7 @@ _at: site/guides.ts → /guides/live-events/_
 - `doc:COLLECTION.md` — project documentation _(documents `system:collection`)_
 - `doc:COMBAT-VISUAL-STANDARDS.md` — project documentation _(documents `system:rendering`)_
 - `doc:COMMAND-CENTER.md` — project documentation _(documents `system:hub-shell`)_
+- `doc:CONSTRUCTS.md` — project documentation _(documents `system:market-constructs`)_
 - `doc:CONTENT-ROADMAP.md` — project documentation
 - `doc:CONTRACTS.md` — project documentation _(documents `system:contracts`)_
 - `doc:CORE-FRAMEWORKS.md` — project documentation _(documents `system:content-infra`)_
@@ -4172,7 +4208,7 @@ _at: site/guides.ts → /guides/live-events/_
 - `doc:VOWS.md` — project documentation _(documents `system:prestige`)_
 - `doc:WEBSITE.md` — project documentation _(documents `system:field-research`, documents `system:website`)_
 
-## Tests (346)
+## Tests (350)
 
 - `test:src/audio/cues.test.ts` — automated validation _(tests `system:audio`)_
 - `test:src/audio/music.test.ts` — automated validation _(tests `system:audio`)_
@@ -4203,8 +4239,8 @@ _at: site/guides.ts → /guides/live-events/_
 - `test:src/core/bossmodules.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/core/bossrush.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/core/boundaries.test.ts` — automated validation _(tests `system:engine`)_
-- `test:src/core/branches.test.ts` — automated validation _(tests `system:towers`)_
 - `test:src/core/branchTree.test.ts` — automated validation _(tests `system:towers`)_
+- `test:src/core/branches.test.ts` — automated validation _(tests `system:towers`)_
 - `test:src/core/buffs.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/core/campaign.test.ts` — automated validation _(tests `system:campaign`)_
 - `test:src/core/campaignEvents.test.ts` — automated validation _(tests `system:campaign`)_
@@ -4214,6 +4250,7 @@ _at: site/guides.ts → /guides/live-events/_
 - `test:src/core/coil.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/core/collection.test.ts` — automated validation _(tests `system:collection`)_
 - `test:src/core/combat.test.ts` — automated validation _(tests `system:engine`)_
+- `test:src/core/constructs.test.ts` — automated validation _(tests `system:market-constructs`)_
 - `test:src/core/content-integrity.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/core/contracts.test.ts` — automated validation _(tests `system:contracts`)_
 - `test:src/core/conveyor.test.ts` — automated validation _(tests `system:towers`)_
@@ -4230,12 +4267,13 @@ _at: site/guides.ts → /guides/live-events/_
 - `test:src/core/directives.test.ts` — automated validation _(tests `system:directives`)_
 - `test:src/core/director.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/core/doctrines.test.ts` — automated validation _(tests `system:doctrines`)_
-- `test:src/core/draftcadence.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/core/draftFit.test.ts` — automated validation _(tests `system:engine`)_
+- `test:src/core/draftcadence.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/core/earlyBrood.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/core/economyDirector.test.ts` — automated validation _(tests `system:currencies`)_
 - `test:src/core/effectLanguage.test.ts` — automated validation _(tests `system:gene-cards`)_
 - `test:src/core/endlessTaper.test.ts` — automated validation _(tests `system:engine`)_
+- `test:src/core/endlessWall.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/core/enemies.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/core/engagement.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/core/equipment.behavior.test.ts` — automated validation _(tests `system:engine`)_
@@ -4261,19 +4299,20 @@ _at: site/guides.ts → /guides/live-events/_
 - `test:src/core/grindLevers.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/core/heroCinematics.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/core/heroEquip.test.ts` — automated validation _(tests `system:engine`)_
-- `test:src/core/heroes.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/core/heroEvoGame.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/core/heroEvolution.test.ts` — automated validation _(tests `system:heroes`)_
 - `test:src/core/heroForks.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/core/heroIdentity.test.ts` — automated validation _(tests `system:heroes`)_
 - `test:src/core/heroKit.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/core/heroSelect.test.ts` — automated validation _(tests `system:engine`)_
-- `test:src/core/heroshield.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/core/heroSymbiote.test.ts` — automated validation _(tests `system:hero-symbiotes`)_
-- `test:src/core/hivemind.test.ts` — automated validation _(tests `system:hive-mind`)_
+- `test:src/core/heroes.test.ts` — automated validation _(tests `system:engine`)_
+- `test:src/core/heroshield.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/core/hiveOrgans.test.ts` — automated validation _(tests `system:hive-construction`)_
 - `test:src/core/hiveProduction.test.ts` — automated validation _(tests `system:hive-construction`)_
 - `test:src/core/hiveSiege.test.ts` — automated validation _(tests `system:engine`)_
+- `test:src/core/hivecall.test.ts` — automated validation _(tests `system:engine`)_
+- `test:src/core/hivemind.test.ts` — automated validation _(tests `system:hive-mind`)_
 - `test:src/core/identity.test.ts` — automated validation _(tests `system:profile`)_
 - `test:src/core/idleHarvest.test.ts` — automated validation _(tests `system:idle-harvest`)_
 - `test:src/core/itemIdentity.test.ts` — automated validation _(tests `system:online-foundation`)_
@@ -4310,9 +4349,9 @@ _at: site/guides.ts → /guides/live-events/_
 - `test:src/core/progressionLoot.test.ts` — automated validation _(tests `system:loot`)_
 - `test:src/core/puzzleFauna.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/core/quests.test.ts` — automated validation _(tests `system:quests`)_
+- `test:src/core/reactionTrio.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/core/reactions.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/core/reactionsSim.test.ts` — automated validation _(tests `system:engine`)_
-- `test:src/core/reactionTrio.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/core/reactor.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/core/reforge.test.ts` — automated validation _(tests `system:crafting`)_
 - `test:src/core/registry.test.ts` — automated validation _(tests `system:content-infra`)_
@@ -4338,8 +4377,8 @@ _at: site/guides.ts → /guides/live-events/_
 - `test:src/core/spire.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/core/stars.test.ts` — automated validation _(tests `system:towers`)_
 - `test:src/core/status.test.ts` — automated validation _(tests `system:engine`)_
-- `test:src/core/strains.test.ts` — automated validation _(tests `system:towers`)_
 - `test:src/core/strainVerbs.test.ts` — automated validation _(tests `system:engine`)_
+- `test:src/core/strains.test.ts` — automated validation _(tests `system:towers`)_
 - `test:src/core/summon.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/core/targeting.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/core/targetlast.test.ts` — automated validation _(tests `system:engine`)_
@@ -4428,9 +4467,9 @@ _at: site/guides.ts → /guides/live-events/_
 - `test:src/state/directShardGrants.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/state/endlessTaperBanking.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/state/equipAdvisor.test.ts` — automated validation _(tests `system:power`)_
-- `test:src/state/evolutioncap.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/state/evolutionHQ.test.ts` — automated validation _(tests `system:evolution-hq`)_
 - `test:src/state/evolutionRoadmap.test.ts` — automated validation _(tests `system:power`)_
+- `test:src/state/evolutioncap.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/state/expeditions.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/state/firstHour.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/state/firstLoop.test.ts` — automated validation _(tests `system:onboarding`)_
@@ -4471,8 +4510,8 @@ _at: site/guides.ts → /guides/live-events/_
 - `test:src/state/mulliganOverhaul.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/state/nemesis.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/state/nextGoal.test.ts` — automated validation _(tests `system:hub-shell`)_
-- `test:src/state/notifications.test.ts` — automated validation _(tests `system:notifications`)_
 - `test:src/state/notificationSources.season.test.ts` — automated validation _(tests `system:engine`)_
+- `test:src/state/notifications.test.ts` — automated validation _(tests `system:notifications`)_
 - `test:src/state/patchNotes.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/state/powerAdvisor.test.ts` — automated validation _(tests `system:power`)_
 - `test:src/state/powerAtlas.test.ts` — automated validation _(tests `system:power`)_
@@ -4504,17 +4543,18 @@ _at: site/guides.ts → /guides/live-events/_
 - `test:src/state/verifiedPurchase.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/state/vowsMeta.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/state/wardrobeMeta.test.ts` — automated validation _(tests `system:engine`)_
+- `test:src/ui/HubLanding.test.ts` — automated validation _(tests `system:engine`)_
+- `test:src/ui/UpdateBriefing.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/ui/browserBack.test.ts` — automated validation _(tests `system:hub-shell`)_
+- `test:src/ui/components/RunBackdrop.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/ui/components/loadoutStrip.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/ui/components/rarityFx.test.ts` — automated validation _(tests `system:engine`)_
-- `test:src/ui/components/RunBackdrop.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/ui/components/sectionNav.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/ui/components/topbarTouch.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/ui/evolutionTrackModel.test.ts` — automated validation _(tests `system:mastery`)_
 - `test:src/ui/helpSearch.test.ts` — automated validation _(tests `system:onboarding`)_
 - `test:src/ui/homeBaseTiers.test.ts` — automated validation _(tests `system:hub-shell`)_
 - `test:src/ui/homeModel.test.ts` — automated validation _(tests `system:hub-shell`)_
-- `test:src/ui/HubLanding.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/ui/hubProgress.test.ts` — automated validation _(tests `system:hub-shell`)_
 - `test:src/ui/lazyNamed.test.ts` — automated validation _(tests `system:ui-kit`)_
 - `test:src/ui/navModel.test.ts` — automated validation _(tests `system:hub-shell`)_

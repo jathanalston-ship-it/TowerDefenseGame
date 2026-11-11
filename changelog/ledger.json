@@ -1,5 +1,5 @@
 {
-  "lastSha": "de9bc185c3f095271f9245fdc52b89fb1ba41cea",
+  "lastSha": "a1508255afeab022f209bd5de1a38ba61b3a89c4",
   "commitsSinceDraft": 0,
   "content": {
     "megaBoss": [
@@ -37,6 +37,7 @@
       "loot",
       "gene-cards",
       "class-bonds",
+      "market-constructs",
       "nucleus",
       "hero-symbiotes",
       "idle-harvest",
@@ -90,8 +91,7 @@
       "ui-kit",
       "analytics",
       "reward-architecture",
-      "dev-registry",
-      "market-constructs"
+      "dev-registry"
     ],
     "biome": [
       "verdant",

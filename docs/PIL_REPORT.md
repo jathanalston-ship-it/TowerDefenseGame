@@ -1,44 +1,10 @@
 # PIL_REPORT.md — Public Intelligence Layer report (GENERATED — `npm run pil -- regen`)
 
-> The public-facing sync ledger (docs/PIL.md): 63 pages · 6 assets tracked against the DIL.
+> The public-facing sync ledger (docs/PIL.md): 66 pages · 6 assets tracked against the DIL.
 
 ## Structural audit — ✅ clean
 
-## Staleness (advisory) — 34 page/ref pair(s) to re-review
-- `index.html` references **system:infinite** whose source changed 2026-11-10
-- `index.html` references **system:map-layouts** whose source changed 2026-11-10
-- `features/index.html` references **system:infinite** whose source changed 2026-11-10
-- `features/index.html` references **system:map-layouts** whose source changed 2026-11-10
-- `features/index.html` references **system:hive-mind** whose source changed 2026-11-10
-- `faq/index.html` references **system:map-layouts** whose source changed 2026-11-10
-- `faq/index.html` references **system:hive-mind** whose source changed 2026-11-10
-- `encyclopedia/biomes/index.html` references **system:biomes** whose source changed 2026-11-10
-- `guides/beginner/index.html` references **guide:beginner** whose source changed 2026-11-10
-- `guides/towers/index.html` references **guide:towers** whose source changed 2026-11-10
-- `guides/heroes/index.html` references **guide:heroes** whose source changed 2026-11-10
-- `guides/gene-cards/index.html` references **guide:gene-cards** whose source changed 2026-11-10
-- `guides/bosses/index.html` references **guide:bosses** whose source changed 2026-11-10
-- `guides/mega-bosses/index.html` references **guide:mega-bosses** whose source changed 2026-11-10
-- `guides/power-score/index.html` references **guide:power-score** whose source changed 2026-11-10
-- `guides/progression/index.html` references **guide:progression** whose source changed 2026-11-10
-- `guides/campaign/index.html` references **guide:campaign** whose source changed 2026-11-10
-- `guides/infinite/index.html` references **guide:infinite** whose source changed 2026-11-10
-- `guides/infinite/index.html` references **system:infinite** whose source changed 2026-11-10
-- `guides/boss-rush/index.html` references **guide:boss-rush** whose source changed 2026-11-10
-- `guides/daily/index.html` references **guide:daily** whose source changed 2026-11-10
-- `guides/mulligans/index.html` references **guide:mulligans** whose source changed 2026-11-10
-- `guides/collections/index.html` references **guide:collections** whose source changed 2026-11-10
-- `guides/mastery/index.html` references **guide:mastery** whose source changed 2026-11-10
-- `guides/doctrines/index.html` references **guide:doctrines** whose source changed 2026-11-10
-- `guides/contracts/index.html` references **guide:contracts** whose source changed 2026-11-10
-- `guides/quests/index.html` references **guide:quests** whose source changed 2026-11-10
-- `guides/account-progression/index.html` references **guide:account-progression** whose source changed 2026-11-10
-- `guides/nemesis/index.html` references **guide:nemesis** whose source changed 2026-11-10
-- `guides/equipment/index.html` references **guide:equipment** whose source changed 2026-11-10
-- `guides/prestige/index.html` references **guide:prestige** whose source changed 2026-11-10
-- `guides/live-events/index.html` references **guide:live-events** whose source changed 2026-11-10
-- `blog/the-first-hour/index.html` references **system:map-layouts** whose source changed 2026-11-10
-- `blog/the-first-hour/index.html` references **system:hive-mind** whose source changed 2026-11-10
+## Staleness (advisory) — 0 page/ref pair(s) to re-review
 
 ## Page inventory
 - `/` — Home → system:towers, system:heroes, system:campaign, system:infinite, system:boss-rush, concept:power-score, system:map-layouts, system:gene-cards, system:threat, system:arena
@@ -85,6 +51,7 @@
 - `/guides/live-events/` — Live Events Guide — The Rotating Hive → guide:live-events
 - `/blog/a-battlefield-you-can-read/` — Dev Blog — a-battlefield-you-can-read → (static)
 - `/blog/a-lighter-first-download/` — Dev Blog — a-lighter-first-download → (static)
+- `/blog/a-lighter-hub/` — Dev Blog — a-lighter-hub → (static)
 - `/blog/class-bonds/` — Dev Blog — class-bonds → (static)
 - `/blog/determinism/` — Dev Blog — determinism → concept:determinism
 - `/blog/equipment-identity/` — Dev Blog — equipment-identity → system:equipment
@@ -92,8 +59,10 @@
 - `/blog/feel-and-flow/` — Dev Blog — feel-and-flow → (static)
 - `/blog/first-steps-walked/` — Dev Blog — first-steps-walked → (static)
 - `/blog/frontiers-bite-again/` — Dev Blog — frontiers-bite-again → (static)
+- `/blog/hive-calls-the-wave/` — Dev Blog — hive-calls-the-wave → (static)
 - `/blog/let-the-hive-take-over/` — Dev Blog — let-the-hive-take-over → (static)
 - `/blog/living-battlefield/` — Dev Blog — living-battlefield → system:living-battlefield
+- `/blog/market-constructs/` — Dev Blog — market-constructs → (static)
 - `/blog/mega-boss-raids/` — Dev Blog — mega-boss-raids → system:mega-bosses
 - `/blog/moments-that-land/` — Dev Blog — moments-that-land → (static)
 - `/blog/opening-cinematic/` — Dev Blog — opening-cinematic → system:onboarding
@@ -106,9 +75,9 @@
 - `/blog/the-weekly-game/` — Dev Blog — the-weekly-game → system:contracts, system:quests, system:account-level, system:genome-rank
 
 ## Media inventory
-- `og.png` — og · current · captured 2026-11-09
-- `favicon.svg` — icon · current · captured 2026-11-09
-- `icon-512.png` — icon · current · captured 2026-11-09
-- `media/shots/combat.webp` — screenshot · current · captured 2026-11-09 · depicts system:run-ui
-- `media/shots/command.webp` — screenshot · current · captured 2026-11-09 · depicts system:run-ui
-- `media/shots/megaraid.webp` — screenshot · current · captured 2026-11-09 · depicts system:run-ui
+- `og.png` — og · current · captured 2026-11-11
+- `favicon.svg` — icon · current · captured 2026-11-11
+- `icon-512.png` — icon · current · captured 2026-11-11
+- `media/shots/combat.webp` — screenshot · current · captured 2026-11-11 · depicts system:run-ui
+- `media/shots/command.webp` — screenshot · current · captured 2026-11-11 · depicts system:run-ui
+- `media/shots/megaraid.webp` — screenshot · current · captured 2026-11-11 · depicts system:run-ui
