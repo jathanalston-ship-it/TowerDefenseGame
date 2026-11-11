@@ -8,7 +8,7 @@ export const RELEASES: Release[] = [
     "id": "v2026.11.10.16",
     "date": "2026-11-10",
     "title": "Smoother Growth and Navigation",
-    "sealed": false,
+    "sealed": true,
     "entries": [
       {
         "cat": "UI",
@@ -33,6 +33,10 @@ export const RELEASES: Release[] = [
       {
         "cat": "UI",
         "text": "Sending a hero on an expedition now keeps keyboard focus with their Away Team card and return time. Send and claim controls name the hero and mission, making similar-looking actions easier to distinguish."
+      },
+      {
+        "cat": "UI",
+        "text": "Expedition spoils now stay available until dismissed or replaced by the next claim. Keyboard claims focus the reward receipt, dismissal returns to the Mission Board, and materials are labelled by name so you can review the full haul at your own pace."
       }
     ]
   },

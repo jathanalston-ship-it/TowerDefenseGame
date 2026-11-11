@@ -4,12 +4,12 @@
 > before committing. Read together with docs/PROJECT_STATUS.md and the latest
 > docs/VALIDATION_REPORT.md. Next session: start at docs/PROJECT_MANIFEST.md.
 
-- **Generated:** 2026-11-11 00:05 UTC · **Diff scope:** working tree vs HEAD
-- **Branch:** codex/hive-autoplay · **HEAD:** 528569ae
+- **Generated:** 2026-11-11 00:13 UTC · **Diff scope:** working tree vs HEAD
+- **Branch:** codex/hive-autoplay · **HEAD:** 2ce05c11
 
 ## Summary of work completed
 
-LOCAL .16 Smoother Growth and Navigation now SIX notes. Expedition dispatch baseline reproduced focus falling off removed send button. Successful focused send now targets matching named Away Team group after render and nearest-scrolls it; status id exposes ETA/claim state. Send/claim accessible names identify hero/mission, send adds hours/risk/multiplier. Actual-meta320px probes expedition-send-focus-check.cjs and expedition-send-slots-check.cjs pass correct distinct tickets, unchanged wallets/fielded loadout, accessible ETA, three slots/full-board removal and matched focus. Screenshot reviewed.29tests4.34s/docs/handoff/build81881 PASS11.59s/SWmwbcyjtg. All processes terminal. Live .15 verified23:32UTC; next~00:32UTC. Full .16 validation pending. Goal active.
+Full sealed v2026.11.10.16 Smoother Growth and Navigation validation92800 PASS at00:39UTC:3194tests, typecheck, production build/original mobile and doc anchors/references. Log smoother-growth-release-validation.log. All seven notes generated; all focused browser probes passed as recorded. Audit finished exit0 despite slow machine. No active build/test/browser processes. Prior Vite5174 stopped; restart for future probes. Release deployment pending.
 
 ## Files modified
 
@@ -28,11 +28,11 @@ None. Presentation/focus only.
 
 ## UI changes
 
-Expedition dispatch focus and contextual action labels. Mission/reward/timing/slot rules unchanged. Earlier five .16 notes remain harvestfocus/guidance, Hive animation lifecycle/growth modal and shared hosted tabs.
+Expedition spoils remain until dismissed/replaced/leaving screen. Focused claim receives the receipt; dismiss from inside restores Mission Board heading. Accessible hero/outcome/haul references and separate named material chips. Existing nine-second timer removed; mission/reward/security model unchanged. Parent probes expedition-claim-receipt-check.cjs and expedition-claim-repeat-check.cjs passed, latter respects800ms cooldown.
 
 ## Documentation changes
 
-EXPEDITIONS and manifest updated; six curated notes generated.
+EXPEDITIONS and manifest updated; seven notes sealed and website regenerated. No new mechanic/audio registration.
 
 ## Save changes
 
@@ -40,7 +40,7 @@ None.
 
 ## Known edge cases
 
-Full .16 release audit pending. Full corrected-environment validator report23:41 covers infrastructure and prior release, before new harvest UI. Preserve both untracked drafts.
+No outstanding validation failures. Preserve both untracked devlog drafts. Local Chrome compatibility preload remains required.
 
 ## Remaining technical debt
 
@@ -48,8 +48,8 @@ Local Chrome still needs MOBILECHECK_CHROMIUM and NODE_OPTIONS parent chrome-pro
 
 ## Recommended next tasks
 
-Current00:05UTC. A final focused candidate is expedition claim receipt: claim removes focused button, SpoilsCard expires9s and may strand keyboard focus; reproduce and handle receipt focus/expiry safely if changing. Begin full .16 validation~00:15 for00:32deploy. No active child processes.
+Commit sealed release on codex/hive-autoplay, push production ref, verify exact-SHA Actions and normal custom-domain game/home/news/all7notes. Goal remains active; next release roughly one hour after actual public verification.
 
 ## Future expansion hooks
 
-Production push from codex/hive-autoplay: git push origin HEAD:refs/heads/claude/zen-hawking-rh1gxl. Verify exact-SHA Actions and ../verify-current-release.ps1 normal URLs. Every deployment gets website notes. No active validation/build/browser process remains.
+Production push: git push origin HEAD:refs/heads/claude/zen-hawking-rh1gxl. Previous live SHAe15b1827f86bdb6c8c722d7e049091a12260d98d. Public verifier ../verify-current-release.ps1. No active audit process. Vite5174 stopped; restart npm run dev -- --host 127.0.0.1 --port 5174 --strictPort for future browser probes.

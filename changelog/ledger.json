@@ -1,6 +1,6 @@
 {
-  "lastSha": "528569aef1f0afa921ab00fc51964d851ad81f3c",
-  "commitsSinceDraft": 5,
+  "lastSha": "2ce05c110bfb35e9c37dba1bbf7c7dbf957a1833",
+  "commitsSinceDraft": 6,
   "content": {
     "tower": [
       "needle",
@@ -4822,7 +4822,7 @@
       "id": "v2026.11.10.16",
       "date": "2026-11-10",
       "title": "Smoother Growth and Navigation",
-      "sealed": false,
+      "sealed": true,
       "entries": [
         {
           "cat": "UI",
@@ -4847,6 +4847,10 @@
         {
           "cat": "UI",
           "text": "Sending a hero on an expedition now keeps keyboard focus with their Away Team card and return time. Send and claim controls name the hero and mission, making similar-looking actions easier to distinguish."
+        },
+        {
+          "cat": "UI",
+          "text": "Expedition spoils now stay available until dismissed or replaced by the next claim. Keyboard claims focus the reward receipt, dismissal returns to the Mission Board, and materials are labelled by name so you can review the full haul at your own pace."
         }
       ]
     }
@@ -11225,6 +11229,14 @@
       "date": "2026-11-10",
       "cat": "UI",
       "text": "Ui: add keyboard navigation to hosted page tabs",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "2ce05c110bfb35e9c37dba1bbf7c7dbf957a1833",
+      "date": "2026-11-10",
+      "cat": "Heroes",
+      "text": "Keep focus with dispatched expedition teams",
       "internal": true,
       "needsReview": false
     }

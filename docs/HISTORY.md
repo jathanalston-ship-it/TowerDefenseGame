@@ -841,3 +841,4 @@
 - `60da498` **[UI]** Pause hidden hive diagram animations _(internal)_
 - `3373670` **[UI]** Ui: preserve focus through hive organ reveals _(internal)_
 - `528569a` **[UI]** Ui: add keyboard navigation to hosted page tabs _(internal)_
+- `2ce05c1` **[Heroes]** Keep focus with dispatched expedition teams _(internal)_
