@@ -28,7 +28,7 @@
 
 .ub-tile-t { font-size: 14px; font-weight: 700; color: var(--text); line-height: 1.3; }
 
-.ub-more { margin-top: 4px; font-size: 12px; font-weight: 700; color: var(--muted); text-decoration: none; }
+.ub-more { margin-top: 2px; display: inline-flex; align-items: center; min-height: 32px; padding: 0 10px; font-size: 12px; font-weight: 700; color: var(--muted); text-decoration: none; } /* a real tap target (mobilecheck TAP_MIN) */
 
 .ub-more:hover { color: var(--text); }
 
