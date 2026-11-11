@@ -58,3 +58,7 @@ Full sealed v2026.11.10.16 Smoother Growth and Navigation validation92800 PASS a
 ## 2026-11-11 00:43 UTC — smoother growth/navigation live
 
 LIVE v2026.11.10.16 Smoother Growth and Navigation. SHA bd8624a1cd353b8ad34fff389afd6324b409e331; Actions42933253291/job130236928735 SUCCESS including exact-commit production guard. Normal custom-domain game/home/news/all7notes verified at00:43UTC; asset /assets/play-B5ZgEVpc.js exactly matches validator production build. Full3194tests/typecheck/production mobile/docs PASS00:39UTC. All processes terminal. Seven changes cover harvest focus/cost guidance, Hive motion and growth reveals, shared page-tab keyboard navigation, expedition send focus and readable persistent claim receipts. No gameplay/reward/timing rules changed. Devserver5174 remains stopped. Goal active; next approximate deployment01:43UTC.
+
+## 2026-11-11 — equipment effect units verified locally
+
+LOCAL unsealed v2026.11.11 Clearer Equipment Details: shared effect-language formatter fixes Codex percentage/count units without changing equipment effects.33 focused tests passed11.77s; desktop/narrow and true portrait browser probes passed, screenshot inspected, save unchanged. Docs and production build passed (25.98s Vite, SWmwbeqii5). Full next-release validation pending. Live remains .16 verified00:43UTC; next approximate deployment01:43UTC. Goal active; devserver64507 active.

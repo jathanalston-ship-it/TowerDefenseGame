@@ -842,3 +842,5 @@
 - `3373670` **[UI]** Ui: preserve focus through hive organ reveals _(internal)_
 - `528569a` **[UI]** Ui: add keyboard navigation to hosted page tabs _(internal)_
 - `2ce05c1` **[Heroes]** Keep focus with dispatched expedition teams _(internal)_
+- `bd8624a` **[UI]** Release: publish smoother growth and navigation _(internal)_
+- `119c194` **[Framework]** Docs: record verified growth and navigation deployment _(internal)_

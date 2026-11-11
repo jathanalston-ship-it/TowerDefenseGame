@@ -5,6 +5,18 @@ import type { Release } from './types';
 /** Player-facing releases, newest first. */
 export const RELEASES: Release[] = [
   {
+    "id": "v2026.11.11",
+    "date": "2026-11-11",
+    "title": "Clearer Equipment Details",
+    "sealed": false,
+    "entries": [
+      {
+        "cat": "UI",
+        "text": "Equipment Codex set bonuses now use the same effect descriptions as gene cards. Percentage bonuses such as critical chance and Reactor overcharge display as percentages, while extra Fracture stacks remain counts. Equipment effects are unchanged."
+      }
+    ]
+  },
+  {
     "id": "v2026.11.10.16",
     "date": "2026-11-10",
     "title": "Smoother Growth and Navigation",

@@ -4,52 +4,53 @@
 > before committing. Read together with docs/PROJECT_STATUS.md and the latest
 > docs/VALIDATION_REPORT.md. Next session: start at docs/PROJECT_MANIFEST.md.
 
-- **Generated:** 2026-11-11 00:13 UTC · **Diff scope:** working tree vs HEAD
-- **Branch:** codex/hive-autoplay · **HEAD:** 2ce05c11
+- **Generated:** 2026-11-11 00:52 UTC · **Diff scope:** working tree vs HEAD
+- **Branch:** codex/hive-autoplay · **HEAD:** 119c194e
 
 ## Summary of work completed
 
-LIVE v2026.11.10.16 Smoother Growth and Navigation. SHA bd8624a1cd353b8ad34fff389afd6324b409e331; Actions42933253291/job130236928735 SUCCESS including exact-commit production guard. Normal custom-domain game/home/news/all7notes verified at00:43UTC; asset /assets/play-B5ZgEVpc.js exactly matches validator production build. Full3194tests/typecheck/production mobile/docs PASS00:39UTC. All processes terminal. Seven changes cover harvest focus/cost guidance, Hive motion and growth reveals, shared page-tab keyboard navigation, expedition send focus and readable persistent claim receipts. No gameplay/reward/timing rules changed. Devserver5174 remains stopped. Goal active; next approximate deployment01:43UTC.
+LOCAL unsealed v2026.11.11 Clearer Equipment Details has one game/website note. EquipmentCollection now uses shared describeEffects exact text instead of a private formatter that displayed percentage fractions. Live remains v2026.11.10.16 SHA bd8624a1cd353b8ad34fff389afd6324b409e331, game and seven website notes verified 00:43UTC. Goal active; next approximate deployment01:43UTC.
 
 ## Files modified
 
-- Source (2): `src/changelog/releases.gen.ts`, `src/ui/ExpeditionScreen.tsx`
+- Source (2): `src/changelog/releases.gen.ts`, `src/ui/EquipmentCollection.tsx`
 - Tests (0): —
-- Docs (5): `docs/EXPEDITIONS.md`, `docs/HISTORY.md`, `docs/PROJECT_MANIFEST.md`, `docs/devlog/DRAFT-2026-11-09.md`, `docs/devlog/DRAFT-2026-11-10.md`
+- Docs (5): `docs/EQUIPMENT.md`, `docs/HISTORY.md`, `docs/PROJECT_MANIFEST.md`, `docs/devlog/DRAFT-2026-11-09.md`, `docs/devlog/DRAFT-2026-11-10.md`
 
 ## Systems affected (from the dependency registry)
 
 - **chronicle** — `src/changelog/releases.gen.ts`
-- **expeditions** — `src/ui/ExpeditionScreen.tsx`
+- **equipment** — `src/ui/EquipmentCollection.tsx`
+- Consumer ring (verify, unchanged): crafting
 
 ## Power Score changes
 
-None. Presentation/focus only.
+None. Equipment definitions and simulation untouched.33 equipment/effect-language tests passed11.77s.
 
 ## UI changes
 
-Expedition spoils remain until dismissed/replaced/leaving screen. Focused claim receives the receipt; dismiss from inside restores Mission Board heading. Accessible hero/outcome/haul references and separate named material chips. Existing nine-second timer removed; mission/reward/security model unchanged. Parent probes expedition-claim-receipt-check.cjs and expedition-claim-repeat-check.cjs passed, latter respects800ms cooldown.
+Codex shows +12% Reactor overcharge, +8% Hero crit chance and +25% Hero crit damage while preserving +1 max Fracture stacks. Parent equipment-set-units-check.cjs and equipment-set-units-portrait-check.cjs passed actual rendering, 320px no-overflow and unchanged-save checks; portrait screenshot inspected.
 
 ## Documentation changes
 
-EXPEDITIONS and manifest updated; seven notes sealed and website regenerated. No new mechanic/audio registration.
+EQUIPMENT and PROJECT_MANIFEST updated. Game/home/news generated with one unsealed note. CHANGELOG-PIPELINE, EQUIPMENT-PHILOSOPHY and REFORGE need no change: no pipeline, design, crafting or model behavior changes. Docs anchors/references/staleness passed.
 
 ## Save changes
 
-None.
+None — save layer untouched.
 
 ## Known edge cases
 
-No outstanding validation failures. Preserve both untracked devlog drafts. Local Chrome compatibility preload remains required.
+Preserve both untracked devlog drafts. Full release audit remains pending for this new correction; prior full3194-test audit covers live .16.
 
 ## Remaining technical debt
 
-Local Chrome still needs MOBILECHECK_CHROMIUM and NODE_OPTIONS parent chrome-probe-compat.cjs. Environment inheritance bug is fixed and full auditpassed.
+No new debt. Local Chrome audit needs MOBILECHECK_CHROMIUM and NODE_OPTIONS parent chrome-probe-compat.cjs.
 
 ## Recommended next tasks
 
-Continue continuous-improvement goal. No pending release work. Next approximate deployment01:43UTC with website notes. Start a fresh unsealed release for new player changes. Restart local Vite5174 before parent browser probes. Prefer focused evidence and reserve full audit for the next release; recent full suite was unusually slow but passed without retries.
+Production build97971 passed (25.98s Vite, SWmwbeqii5). Continue goal and collect focused improvements until next release about01:43UTC. Seal/regenerate notes, run full validator before deployment. Do not confuse locally generated next-release website with the currently live .16 website.
 
 ## Future expansion hooks
 
-Production push from codex/hive-autoplay: git push origin HEAD:refs/heads/claude/zen-hawking-rh1gxl. Current live SHA bd8624a1cd353b8ad34fff389afd6324b409e331. Public verifier ../verify-current-release.ps1. No active process. For dev probes restart npm run dev -- --host 127.0.0.1 --port 5174 --strictPort. Every deployment includes website notes.
+Devserver5174 active session64507. Production push: git push origin HEAD:refs/heads/claude/zen-hawking-rh1gxl. Public verifier ../verify-current-release.ps1. Every deployment includes website notes.

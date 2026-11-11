@@ -1,6 +1,6 @@
 {
-  "lastSha": "2ce05c110bfb35e9c37dba1bbf7c7dbf957a1833",
-  "commitsSinceDraft": 6,
+  "lastSha": "119c194eefb9e80e0a53720c32f1356ac6aac30f",
+  "commitsSinceDraft": 8,
   "content": {
     "tower": [
       "needle",
@@ -4851,6 +4851,18 @@
         {
           "cat": "UI",
           "text": "Expedition spoils now stay available until dismissed or replaced by the next claim. Keyboard claims focus the reward receipt, dismissal returns to the Mission Board, and materials are labelled by name so you can review the full haul at your own pace."
+        }
+      ]
+    },
+    {
+      "id": "v2026.11.11",
+      "date": "2026-11-11",
+      "title": "Clearer Equipment Details",
+      "sealed": false,
+      "entries": [
+        {
+          "cat": "UI",
+          "text": "Equipment Codex set bonuses now use the same effect descriptions as gene cards. Percentage bonuses such as critical chance and Reactor overcharge display as percentages, while extra Fracture stacks remain counts. Equipment effects are unchanged."
         }
       ]
     }
@@ -11237,6 +11249,22 @@
       "date": "2026-11-10",
       "cat": "Heroes",
       "text": "Keep focus with dispatched expedition teams",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "bd8624a1cd353b8ad34fff389afd6324b409e331",
+      "date": "2026-11-10",
+      "cat": "UI",
+      "text": "Release: publish smoother growth and navigation",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "119c194eefb9e80e0a53720c32f1356ac6aac30f",
+      "date": "2026-11-10",
+      "cat": "Framework",
+      "text": "Docs: record verified growth and navigation deployment",
       "internal": true,
       "needsReview": false
     }

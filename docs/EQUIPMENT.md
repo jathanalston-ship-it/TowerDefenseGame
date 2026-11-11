@@ -578,3 +578,7 @@ ItemDetails is a named modal dialog. Opening an item focuses Close, Tab/Shift+Ta
 Armory filter recovery: a selected rarity remains among the visible choices even when none of that rarity remains in inventory. Clear filters appears whenever category/rarity/favorites restrict the list, resets only those three browsing filters, preserves sort and salvage selection/mode, and moves focus to All categories. Category/rarity/favorites controls expose selected state. Inventory mutations and salvage protections are unchanged.
 
 Quick-Salvage selection status includes the count of eligible selected items hidden by current filters. It derives hidden count from the existing eligible salvage preview minus visible eligible selection, so protected stale selections do not inflate it. The status is announced; quick-grab tooltips explicitly describe inventory-wide scope. Filtering does not change the batch, and the two-step confirmation/cancellation/Undo rules remain unchanged.
+
+### Codex effect units
+
+EquipmentCollection uses core/effectLanguage.describeEffects exact text for set bonuses. FIELD_VOCAB supplies percentage/count units; do not reintroduce a private field-name formatter. Equipment definitions and effects are unchanged.

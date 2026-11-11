@@ -8,22 +8,12 @@ import { gearDiscovered, meta } from '../state/meta';
 import {
   ALL_ITEMS, EQUIP_SLOTS, SETS, SLOT_LABELS, RARITY_ORDER, rarityColorOf, rarityLabelOf,
 } from '../core/equipment';
-import type { CardEffect } from '../core/cards';
+import { describeEffects } from '../core/effectLanguage';
 import type { EquipDef, Rarity } from '../core/equipment';
 import { ItemArt } from './components/ItemArt';
 import { MobileSection } from './components/MobileSection';
 import { useLayoutProfile } from './layoutProfile';
 import { RarityFx, rfxClass } from './components/RarityFx';
-
-/** A compact plain-language phrase for a set-bonus effect (no shared helper exists — inline).
- *  Set bonuses only ever use the field-bearing ops (mul/add/flag); others get a generic label. */
-function fmtEffect(e: CardEffect): string {
-  if (!('field' in e)) return e.op === 'grant' ? 'special boon' : String(e.op);
-  const name = e.field.replace(/Mult$|Frac$|Bonus$/, '').replace(/([A-Z])/g, ' $1').trim().toLowerCase();
-  if (e.op === 'mul') return `+${Math.round((e.value - 1) * 100)}% ${name}`;
-  if (e.op === 'add') return `+${e.value} ${name}`;
-  return name;
-}
 
 export function EquipmentCollection(): JSX.Element {
   const save = meta.use();
@@ -90,10 +80,10 @@ export function EquipmentCollection(): JSX.Element {
                     <span style={{ opacity: 0.6, fontSize: 11 }}>{ownedCount}/{members.length} discovered</span>
                   </div>
                   <div style={{ fontSize: 11.5, opacity: 0.85, marginTop: 3 }}>
-                    <b>(2)</b> {set.bonus2.map(fmtEffect).join(', ')}
+                    <b>(2)</b> {describeEffects(set.bonus2).map((line) => line.exact).join(', ')}
                   </div>
                   <div style={{ fontSize: 11.5, opacity: 0.85 }}>
-                    <b>(4)</b> {set.bonus4.map(fmtEffect).join(', ')}
+                    <b>(4)</b> {describeEffects(set.bonus4).map((line) => line.exact).join(', ')}
                   </div>
                 </div>
               );
