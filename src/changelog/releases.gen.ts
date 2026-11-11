@@ -7,7 +7,7 @@ export const RELEASES: Release[] = [
   {
     "id": "v2026.11.10.16",
     "date": "2026-11-10",
-    "title": "Smoother Hive Upgrades",
+    "title": "Smoother Growth and Navigation",
     "sealed": false,
     "entries": [
       {
@@ -25,6 +25,10 @@ export const RELEASES: Release[] = [
       {
         "cat": "UI",
         "text": "Hive organ growth reveals now keep keyboard focus inside the dialog and return it to the organ afterward, including fully grown organs. Reveals fit phones and short landscape screens and remain dismissible with Escape, Return or the backdrop."
+      },
+      {
+        "cat": "UI",
+        "text": "Page tabs in the Hive, Quest Board, Armory and Phenotype Lab now support arrow keys, Home and End. Tab moves from the selected page into its named content panel, while locked previews remain readable without opening unavailable pages."
       }
     ]
   },

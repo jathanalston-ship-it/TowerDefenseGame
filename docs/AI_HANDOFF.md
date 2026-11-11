@@ -4,23 +4,24 @@
 > before committing. Read together with docs/PROJECT_STATUS.md and the latest
 > docs/VALIDATION_REPORT.md. Next session: start at docs/PROJECT_MANIFEST.md.
 
-- **Generated:** 2026-11-10 23:54 UTC · **Diff scope:** working tree vs HEAD
-- **Branch:** codex/hive-autoplay · **HEAD:** 60da4981
+- **Generated:** 2026-11-11 00:01 UTC · **Diff scope:** working tree vs HEAD
+- **Branch:** codex/hive-autoplay · **HEAD:** 3373670a
 
 ## Summary of work completed
 
-LOCAL .16 Smoother Hive Upgrades now FOUR notes. Hive Growth ceremony baseline browser probe reproduced missing entry focus. Added focused Return button, Tab trap, aria-modal, parent cleanup returning to enabled Grow or named tier card for maxed/unaffordable organs, viewport-bounded scrollable reveal. Actual-meta probes hive-growth-dialog-{check,phone-check,maxed-check,poor-check}.cjs passed320x568/844x340, Escape/Return/backdrop, focusfallback and unchanged post-purchase save. Phone screenshot reviewed.36tests2.90s/docs/handoff/build89665 PASS5.91s/SWmwbck1m9. All processes terminal. Live remains .15 SHAe15b1827f86bdb6c8c722d7e049091a12260d98d verified23:32UTC. Next~00:32UTC; full .16 audit pending. Goal active.
+LOCAL .16 renamed Smoother Growth and Navigation, FIVE notes. Shared HostedScreen/HostTabs baseline real Hive probe reproduced missing ArrowRight behavior. Added stable useId tab/panel relationships, one selected Tab stop, arrow/Home/End navigation through existing guarded click, focusable named panel only when tabs exist. Locked teasers arrow-focusable but never activate. Actual Hive/QuestBoard/EquipmentPanel/Wardrobe320px probes passed selection/wrap/panel association/focus/width; locked teaser Enter and deep-link fallback/live unlocked Production deep links passed. Initial deep-link probe imported duplicate Vite module instance; corrected to host-imported timestamp URL, no source workaround. Existing growth dialog phone/maxed tests passed.50tests4.43s/docs/handoff/build29163 PASS10.82s/SWmwbcsgb7. All processes terminal. Live .15 remains verified23:32UTC; next~00:32UTC. Full .16 audit pending. Goal active.
 
 ## Files modified
 
-- Source (3): `src/changelog/releases.gen.ts`, `src/ui/HiveScreen.css`, `src/ui/HiveScreen.tsx`
+- Source (3): `src/changelog/releases.gen.ts`, `src/index.css`, `src/ui/components/HostTabs.tsx`
 - Tests (0): —
-- Docs (6): `docs/HISTORY.md`, `docs/HIVE-CONSTRUCTION.md`, `docs/HIVE-PRODUCTION.md`, `docs/PROJECT_MANIFEST.md`, `docs/devlog/DRAFT-2026-11-09.md`, `docs/devlog/DRAFT-2026-11-10.md`
+- Docs (5): `docs/HISTORY.md`, `docs/NOTIFICATIONS.md`, `docs/PROJECT_MANIFEST.md`, `docs/devlog/DRAFT-2026-11-09.md`, `docs/devlog/DRAFT-2026-11-10.md`
 
 ## Systems affected (from the dependency registry)
 
 - **chronicle** — `src/changelog/releases.gen.ts`
-- **hive-construction** — `src/ui/HiveScreen.tsx`
+- **hub-shell** — `src/ui/components/HostTabs.tsx`
+- Consumer ring (verify, unchanged): battle-pass, cosmetics, hive-construction, infestation, profile, quests, reward-architecture
 
 ## Power Score changes
 
@@ -28,11 +29,11 @@ None. Presentation/focus only.
 
 ## UI changes
 
-Growth reveal focus/trap/return and viewport bounds. Named organ tier groups provide fallback when Grow disappears or disables. Purchase logic/audio unchanged. Four .16 notes also cover harvest focus, guidance and Hive diagram motion.
+Shared host tabs gain keyboard selection and labelled panels, with a width100%/min-width0 wrapper. Locked and unlocked routing guards, notifications/exposure and audio unchanged. Probes ../host-tabs-keyboard-check.cjs, ../host-tabs-locked-check.cjs, ../host-{quests,equipment,phenotypes}-keyboard-check.cjs passed. Equipment phone screenshot reviewed.
 
 ## Documentation changes
 
-HIVE-CONSTRUCTION, HIVE-PRODUCTION and manifest updated; four notes generated for game/site.
+NOTIFICATIONS and manifest updated; five curated notes generated with title Smoother Growth and Navigation.
 
 ## Save changes
 
@@ -48,7 +49,7 @@ Local Chrome still needs MOBILECHECK_CHROMIUM and NODE_OPTIONS parent chrome-pro
 
 ## Recommended next tasks
 
-Inspect shared HostedScreen/HostTabs keyboard behavior next: current strip uses role=tab but may lack arrow/Home/End handling and associated panels. Reproduce before changing; preserve gated teasers, deep links and notification acknowledgement. Begin full .16 validation around00:15UTC for approximate00:32 deployment.
+It is approximately00:01UTC. Consider another focused audit before sealing/full validation~00:15 for00:32 deploy. Shared wrapper affects four host screens; full mobile gate must cover them. Verify real production assets after corrected validator; no competing dist writes/heavy browsers during mobile.
 
 ## Future expansion hooks
 

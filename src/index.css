@@ -4857,6 +4857,7 @@ html[data-layout='landscape'] .mc-campaign > .mc-ledger { order: 3; }
 .pf-chip b { color: var(--text); margin-left: 4px; }
 
 /* ── Wing sub-nav — in-screen pages (Profile, Bio-Dex, …): --wingc sets the accent ── */
+.host-panel { width: 100%; min-width: 0; }
 .wing-tabs {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
